@@ -179,15 +179,7 @@ case "$cc_vendor-$cc_version" in
 
     gcc-3*)
         # Replace -ansi flag with -std=gnu99 flag or -std=c99 flag
-        # (Only use the gnu99 flag when compiling with async I/O enabled)
-        case "$CPPFLAGS" in
-            *USE_ASYNC_IO*)
-                CFLAGS="`echo $CFLAGS | sed -e 's/-ansi/-std=gnu99/g'`"
-                ;;
-            *)
-                CFLAGS="`echo $CFLAGS | sed -e 's/-ansi/-std=c99/g'`"
-                ;;
-        esac
+        CFLAGS="`echo $CFLAGS | sed -e 's/-ansi/-std=c99/g'`"
 
         # Append warning flags from gcc-2.95.* case
 	CFLAGS="$CFLAGS -Wno-long-long"
