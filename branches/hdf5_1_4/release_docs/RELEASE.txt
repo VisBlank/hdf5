@@ -38,6 +38,8 @@ New Features
 ============
   o Configuration
   ================
+    * Added "unofficial support" for AIX 64bits.  See INSTALL for configure
+      details. AKC - 2002/08/29
     * Added "--with-dmalloc" flag, to easily enable support for the 'dmalloc'
         debugging malloc implementation. QAK - 2002/07/15
 
