@@ -55,7 +55,6 @@
 ./config/rs6000-ibm-aix4.1.4.0
 ./config/solaris2.5
 
-./doc/html/ddl.html
 ./doc/html/Attributes.html
 ./doc/html/Big.html
 ./doc/html/Caching.html
@@ -75,7 +74,8 @@
 ./doc/html/Datasets.html
 ./doc/html/Dataspaces.html
 ./doc/html/Datatypes.html
-./doc/html/DDL.html
+./doc/html/ddl.html
+./doc/html/DDL.html              	_DO_NOT_DISTRIBUTE_ 
 ./doc/html/Debugging.html
 ./doc/html/Environment.html
 ./doc/html/Errors.html
