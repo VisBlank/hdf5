@@ -221,7 +221,7 @@ DataSet::~DataSet()
     try {
 	resetIdComponent( this ); }
     catch (Exception close_error) { // thrown by p_close
-	cerr << "DataSet::~DataSet" << close_error.getDetailMsg() << endl;
+	cerr << "DataSet::~DataSet - " << close_error.getDetailMsg() << endl;
     }
 }
 

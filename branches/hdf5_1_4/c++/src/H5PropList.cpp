@@ -124,7 +124,7 @@ PropList::~PropList()
     try {
         resetIdComponent( this ); }
     catch (Exception close_error) { // thrown by p_close
-        cerr << "PropList::~PropList" << close_error.getDetailMsg() << endl;
+        cerr << "PropList::~PropList - " << close_error.getDetailMsg() << endl;
     }
 }  
 
