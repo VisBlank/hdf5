@@ -38,6 +38,8 @@ New Features
 ============
   o Configuration
   ================
+    - Fixed error in library when configured with --enable-debug=all.
+      QAK - 2003/02/17
 
   o Library
   =========

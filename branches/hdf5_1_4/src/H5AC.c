@@ -219,7 +219,7 @@ H5AC_term_interface(void)
     int		n=0;
 
     if (interface_initialize_g) {
-        if(H5AC_dxpl_id>0 || H5AC_noblock_dxpl_id>0) {
+        if(H5AC_dxpl_id>0 || H5AC_noblock_dxpl_id>0 || H5AC_ind_dxpl_id>0) {
             /* Indicate more work to do */
             n = 1; /* H5I */
 

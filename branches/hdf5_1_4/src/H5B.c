@@ -1534,7 +1534,7 @@ H5B_insert_helper(H5F_t *f, hid_t dxpl_id, haddr_t addr, const H5B_class_t *type
 	    herr_t status = H5B_decode_key(f, bt, bt->nchildren);
 	    assert(status >= 0);
 	}
-	cmp = (type->cmp2) (f, bt->key[bt->nchildren].nkey, udata,
+	cmp = (type->cmp2) (f, dxpl_id, bt->key[bt->nchildren].nkey, udata,
 			    twin->key[0].nkey);
 	assert(0 == cmp);
 #endif
@@ -2354,7 +2354,7 @@ H5B_assert(H5F_t *f, hid_t dxpl_id, haddr_t addr, const H5B_class_t *type, void 
 		/* Check that the keys are monotonically increasing */
 		status = H5B_decode_keys(f, bt, i);
 		assert(status >= 0);
-		cmp = (type->cmp2) (f, bt->key[i].nkey, udata,
+		cmp = (type->cmp2) (f, dxpl_id, bt->key[i].nkey, udata,
 				    bt->key[i+1].nkey);
 		assert(cmp < 0);
 	    }
