@@ -253,11 +253,6 @@ fi # Test the HDF5 library
 # Run Release snapshot, update version, and commit to cvs and tag
 #=============================
 if [ "$cmd" = "all" -o -n "$cmdrel" ]; then
-    echo "Release is under construction.  No release done."
-    errcode=1
-    snapshot=no
-    break
-    exit $errcord
     if [ "$snapshot" = "yes" ]; then
 	(cd ${CURRENT}; ${MAKE} distclean)
 	(
