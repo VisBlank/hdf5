@@ -25,6 +25,7 @@
 static int verbose_g = 0;
 static int dump_g = 0;
 static int width_g = 80;
+static hbool_t string_g = FALSE;	/*print 1-byte numbers as ASCII*/
 
 /* Information about how to display each type of object */
 static struct dispatch_t {
@@ -69,6 +70,7 @@ usage: %s [OPTIONS] FILE [OBJECTS...]\n\
       -h, -?, --help   Print a usage message and exit\n\
       -d, --dump       Print the values of datasets\n\
       -wN, --width=N   Set the number of columns of output\n\
+      -s, --string     Print 1-byte integer datasets as ASCII\n\
       -v, --verbose    Generate more verbose output\n\
       -V, --version    Print version number and exit\n\
    FILE\n\
@@ -111,10 +113,12 @@ dump_dataset_values(hid_t dset)
     if (verbose_g) info.cmpd_name = "%s=";
 
     /*
-     * If the dataset is a 1-byte integer type then format it as an ASCI
-     * character string instead of integers.
+     * If the dataset is a 1-byte integer data type then format it as an
+     * ASCII character string instead of integers if the `-s' or `--string'
+     * command-line option was given.
      */
-    if (1==size && H5T_INTEGER==H5Tget_class(f_type)) {
+    if (string_g && 1==size && H5T_INTEGER==H5Tget_class(f_type)) {
+	info.ascii = TRUE;
 	info.elmt_suf1 = "";
 	info.elmt_suf2 = "";
 	info.idx_fmt = "        (%s) \"";
