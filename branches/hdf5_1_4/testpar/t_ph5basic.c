@@ -46,7 +46,6 @@ test_comm_info_delete(void)
     MPI_Info info = MPI_INFO_NULL;
     MPI_Info info_tmp = MPI_INFO_NULL;
     int mrc;			/* MPI return value */
-    hid_t fid;			/* file IDs */
     hid_t acc_pl;		/* File access properties */
     herr_t ret;			/* hdf5 return value */
     int nkeys, nkeys_tmp;
@@ -71,10 +70,12 @@ test_comm_info_delete(void)
     /* create a new INFO object with some trivial information. */
     mrc = MPI_Info_create(&info);
     VRFY((mrc==MPI_SUCCESS), "MPI_Info_create");
-    if (mrc = MPI_Info_set(info, "hdf_info_name", "XYZ")) {
-	VRFY((mrc==MPI_SUCCESS), "MPI_Info_set");
+    mrc = MPI_Info_set(info, "hdf_info_name", "XYZ");
+    VRFY((mrc==MPI_SUCCESS), "MPI_Info_set");
+    if (MPI_INFO_NULL != info){
+	mrc=MPI_Info_get_nkeys(info, &nkeys);
+	VRFY((mrc==MPI_SUCCESS), "MPI_Info_get_nkeys");
     }
-    (MPI_INFO_NULL != info) && MPI_Info_get_nkeys(info, &nkeys);
     if (verbose)
 	h5_dump_info_object(info);
 
@@ -84,7 +85,8 @@ test_comm_info_delete(void)
     ret = H5Pset_fapl_mpio(acc_pl, comm, info);
     VRFY((ret >= 0), "");
 
-    /* Free the created communicator and INFO object. 
+    /* Case 1:
+     * Free the created communicator and INFO object. 
      * Check if the access property list is still valid and can return
      * valid communicator and INFO object.
      */
@@ -104,14 +106,19 @@ test_comm_info_delete(void)
 	mpi_rank_tmp, mpi_size_tmp);
     VRFY((mpi_size_tmp==mpi_size), "MPI_Comm_size");
     VRFY((mpi_rank_tmp==mpi_rank), "MPI_Comm_rank");
-    (MPI_INFO_NULL != info_tmp) && MPI_Info_get_nkeys(info_tmp, &nkeys_tmp);
+    if (MPI_INFO_NULL != info_tmp){
+	mrc=MPI_Info_get_nkeys(info_tmp, &nkeys_tmp);
+	VRFY((mrc==MPI_SUCCESS), "MPI_Info_get_nkeys");
+	VRFY((nkeys_tmp==nkeys), "new and old nkeys equal");
+    }
     if (verbose)
 	h5_dump_info_object(info_tmp);
-    VRFY((nkeys_tmp==nkeys), "MPI_Info_get_nkeys");
 
-    /* Free the retrieved communicator and INFO object.
+    /* Case 2:
+     * Free the retrieved communicator and INFO object.
      * Check if the access property list is still valid and can return
      * valid communicator and INFO object.
+     * Also verify the NULL argument option.
      */
     mrc = MPI_Comm_free(&comm_tmp);
     VRFY((mrc==MPI_SUCCESS), "MPI_Comm_free");
@@ -120,6 +127,23 @@ test_comm_info_delete(void)
 	VRFY((mrc==MPI_SUCCESS), "MPI_Info_free");
     }
 
+    /* check NULL argument options. */
+    ret = H5Pget_fapl_mpio(acc_pl, &comm_tmp, NULL);
+    VRFY((ret >= 0), "H5Pget_fapl_mpio Comm only");
+    mrc = MPI_Comm_free(&comm_tmp);
+    VRFY((mrc==MPI_SUCCESS), "MPI_Comm_free");
+
+    ret = H5Pget_fapl_mpio(acc_pl, NULL, &info_tmp);
+    VRFY((ret >= 0), "H5Pget_fapl_mpio Info only");
+    if (MPI_INFO_NULL!=info_tmp){
+	mrc = MPI_Info_free(&info_tmp);
+	VRFY((mrc==MPI_SUCCESS), "MPI_Info_free");
+    }
+
+    ret = H5Pget_fapl_mpio(acc_pl, NULL, NULL);
+    VRFY((ret >= 0), "H5Pget_fapl_mpio neither");
+
+    /* now get both and check validity too. */
     ret = H5Pget_fapl_mpio(acc_pl, &comm_tmp, &info_tmp);
     VRFY((ret >= 0), "H5Pget_fapl_mpio");
     MPI_Comm_size(comm_tmp,&mpi_size_tmp);
@@ -129,13 +153,17 @@ test_comm_info_delete(void)
 	mpi_rank_tmp, mpi_size_tmp);
     VRFY((mpi_size_tmp==mpi_size), "MPI_Comm_size");
     VRFY((mpi_rank_tmp==mpi_rank), "MPI_Comm_rank");
-    (MPI_INFO_NULL != info_tmp) && MPI_Info_get_nkeys(info_tmp, &nkeys);
+    if (MPI_INFO_NULL != info_tmp){
+	mrc=MPI_Info_get_nkeys(info_tmp, &nkeys_tmp);
+	VRFY((mrc==MPI_SUCCESS), "MPI_Info_get_nkeys");
+	VRFY((nkeys_tmp==nkeys), "new and old nkeys equal");
+    }
     if (verbose)
 	h5_dump_info_object(info_tmp);
-    VRFY((nkeys_tmp==nkeys), "MPI_Info_get_nkeys");
 
-    /* close the property list and verify the retrieved communicator and INFO
-     * object is still valid.
+    /* Case 3:
+     * Close the property list and verify the retrieved communicator and INFO
+     * object are still valid.
      */
     H5Pclose(acc_pl);
     MPI_Comm_size(comm_tmp,&mpi_size_tmp);
@@ -143,7 +171,10 @@ test_comm_info_delete(void)
     if (verbose)
 	printf("After Property list closed: rank/size of comm are %d/%d\n",
 	mpi_rank_tmp, mpi_size_tmp);
-    (MPI_INFO_NULL != info_tmp) && MPI_Info_get_nkeys(info_tmp, &nkeys);
+    if (MPI_INFO_NULL != info_tmp){
+	mrc=MPI_Info_get_nkeys(info_tmp, &nkeys_tmp);
+	VRFY((mrc==MPI_SUCCESS), "MPI_Info_get_nkeys");
+    }
     if (verbose)
 	h5_dump_info_object(info_tmp);
 
