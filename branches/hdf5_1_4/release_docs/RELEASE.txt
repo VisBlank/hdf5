@@ -1,13 +1,13 @@
-HDF5 version 1.4.5 currently under development
+HDF5 version 1.4.5 released on Sat Feb  1 12:48:22 CST 2003
 ==============================================================================
 
 
 INTRODUCTION
 
 This document describes the differences between HDF5-1.4.4 and
-HDF5-1.4.4-*, and contains information on the platforms tested and
-known problems in HDF5-1.4.4. For more details check the HISTORY.txt
-file in the HDF5 source.
+HDF5-1.4.5, and contains information on the platforms tested and
+known problems in HDF5-1.4.5. For additional information check the 
+HISTORY.txt file in the HDF5 source.
 
 The HDF5 documentation can be found on the NCSA ftp server
 (ftp.ncsa.uiuc.edu) in the directory:
@@ -80,11 +80,6 @@ New Features
       VL Length C APIs functionality for integer, real and string datatypes.
       See HDF5 Reference Manual and HDF5 FORTRAN90 User's Notes for more
       information and for the functions description.
-      
- 
-    o Performance
-    -------------
-
 
   o Parallel library
   ==================
