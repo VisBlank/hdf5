@@ -505,7 +505,7 @@ case "$host_cpu-$host_vendor-$host_os" in
         MAJOR_VER="`uname -r | cut -d '.' -f1`"
         MINOR_VER="`uname -r | cut -d '.' -f2`"
 
-        if test $MAJOR_VER -ge 2 -a $MINOR_VER -ge 4; then
+        if test ${MAJOR_VER} -gt 2 -o ${MAJOR_VER} -eq 2 -a ${MINOR_VER} -ge 4; then
           LINUX_LFS="yes"
         fi
         ;;
@@ -738,7 +738,7 @@ case $withval in
       LDFLAGS="$LDFLAGS -L$zlib_lib"
     fi
 
-    AC_CHECK_LIB(z, compress2,, unset HAVE_ZLIB)
+    AC_CHECK_LIB(z, compress2,, LDFLAGS="$saved_LDFLAGS"; unset HAVE_ZLIB)
     AC_CHECK_FUNC(compress2, HAVE_COMPRESS2="yes")
     ;;
 esac

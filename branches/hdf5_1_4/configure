@@ -8491,7 +8491,7 @@ fi;
         MAJOR_VER="`uname -r | cut -d '.' -f1`"
         MINOR_VER="`uname -r | cut -d '.' -f2`"
 
-        if test $MAJOR_VER -ge 2 -a $MINOR_VER -ge 4; then
+        if test ${MAJOR_VER} -gt 2 -o ${MAJOR_VER} -eq 2 -a ${MINOR_VER} -ge 4; then
           LINUX_LFS="yes"
         fi
         ;;
@@ -23074,7 +23074,7 @@ _ACEOF
   LIBS="-lz $LIBS"
 
 else
-  unset HAVE_ZLIB
+  LDFLAGS="$saved_LDFLAGS"; unset HAVE_ZLIB
 fi
 
     echo "$as_me:$LINENO: checking for compress2" >&5
