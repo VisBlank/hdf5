@@ -97,6 +97,7 @@
 ./doc/html/IH_mapHead.gif
 ./doc/html/IOPipe.html
 ./doc/html/MemoryManagement.html	_DO_NOT_DISTRIBUTE_
+./doc/html/NCSAfooterlogo.gif
 ./doc/html/ObjectHeader.txt		_DO_NOT_DISTRIBUTE_
 ./doc/html/Properties.html
 ./doc/html/Ragged.html
@@ -133,6 +134,7 @@
 ./doc/html/group_p3.gif
 ./doc/html/group_p3.obj			_DO_NOT_DISTRIBUTE_
 ./doc/html/h5s.examples
+./doc/html/hdf2.jpg
 ./doc/html/ph5design.html
 ./doc/html/ph5example.c
 ./doc/html/ph5implement.txt
@@ -171,11 +173,12 @@
 ./doc/src/RM_H5T.html			_DO_NOT_DISTRIBUTE_
 ./doc/src/RM_H5Z.html			_DO_NOT_DISTRIBUTE_
 ./doc/src/Tools.html			_DO_NOT_DISTRIBUTE_
-./doc/tgif/APIGrammar.obj		_DO_NOT_DISTRIBUTE_
-./doc/tgif/FileGrammar.obj		_DO_NOT_DISTRIBUTE_
-./doc/tgif/IOPipe.obj			_DO_NOT_DISTRIBUTE_
-./doc/tgif/RobbPipe.obj			_DO_NOT_DISTRIBUTE_
-./doc/tgif/UserView.obj			_DO_NOT_DISTRIBUTE_
+./doc/tgif/APIGrammar.obj       _DO_NOT_DISTRIBUTE_
+./doc/tgif/FileGrammar.obj      _DO_NOT_DISTRIBUTE_
+./doc/tgif/IOPipe.obj           _DO_NOT_DISTRIBUTE_
+./doc/tgif/RobbPipe.obj         _DO_NOT_DISTRIBUTE_
+./doc/tgif/UserView.obj         _DO_NOT_DISTRIBUTE_
+
 
 ./examples/Attributes.txt
 ./examples/Makefile.in
