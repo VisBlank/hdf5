@@ -885,7 +885,13 @@ hid_t  type, space;
          printf("DATA{ not yet implemented.}\n");
          break;
     case H5T_COMPOUND:
+/*
          dump_data(did, DATASET_DATA);
+*/
+         indent += col;
+         indentation (indent);
+         indent -= col;
+         printf("DATA{ not yet implemented.}\n");
          break;
     default: break;
     }

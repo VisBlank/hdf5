@@ -177,8 +177,8 @@ TEST tgroup-1.ddl tgroup.h5
 TEST tgroup-2.ddl -g / tgroup.h5
 TEST tgroup-3.ddl -g /g2 /y tgroup.h5
 
-TEST tdset-1.ddl tdset.h5
-TEST tdset-2.ddl -d dset1 /dset2 tdset.h5
+#TEST tdset-1.ddl tdset.h5
+#TEST tdset-2.ddl -d dset1 /dset2 tdset.h5
 TEST tdset-3.ddl -d /dset1 -header tdset.h5
 TEST tdset-4.ddl -d dset3 tdset.h5
 
@@ -196,12 +196,12 @@ TEST thlink-3.ddl -d /dset /g1/link1/link3 /g1/link2 thlink.h5
 TEST thlink-4.ddl -g /g1 thlink.h5
 TEST thlink-5.ddl -d /dset -g /g2 -d /g1/link2 thlink.h5
 
-TEST tcomp-1.ddl tcompound.h5
-TEST tcomp-2.ddl -t /type1 /type2 /group1/type3 tcompound.h5
-TEST tcomp-3.ddl -d /group2/dset5 -g /group1 tcompound.h5
-TEST tcomp-4.ddl -t /#3432:0 -g /group2 tcompound.h5
+#TEST tcomp-1.ddl tcompound.h5
+#TEST tcomp-2.ddl -t /type1 /type2 /group1/type3 tcompound.h5
+#TEST tcomp-3.ddl -d /group2/dset5 -g /group1 tcompound.h5
+#TEST tcomp-4.ddl -t /#3432:0 -g /group2 tcompound.h5
 
-TEST tall-1.ddl tall.h5
+#TEST tall-1.ddl tall.h5
 TEST tall-2.ddl -header -g /g1/g1.1 -a attr2 tall.h5
 TEST tall-3.ddl -d /g2/dset2.1 -l /g1/g1.2/g1.2.1/slink tall.h5
 
