@@ -62,7 +62,7 @@ typedef int hid_t;
 extern "C" {
 #endif
 
-__DLL__ H5I_type_t H5Iget_type(hid_t id);
+H5_DLL H5I_type_t H5Iget_type(hid_t id);
 
 
 #ifdef __cplusplus
