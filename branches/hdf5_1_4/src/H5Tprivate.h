@@ -96,12 +96,12 @@ typedef struct {
 /* Private functions */
 H5_DLL herr_t H5TN_init_interface(void);
 H5_DLL herr_t H5T_init(void);
-H5_DLL htri_t H5T_isa(H5G_entry_t *ent);
-H5_DLL H5T_t *H5T_open(H5G_entry_t *loc, const char *name);
-H5_DLL H5T_t *H5T_open_oid(H5G_entry_t *ent);
+H5_DLL htri_t H5T_isa(H5G_entry_t *ent, hid_t dxpl_id);
+H5_DLL H5T_t *H5T_open(H5G_entry_t *loc, const char *name, hid_t dxpl_id);
+H5_DLL H5T_t *H5T_open_oid(H5G_entry_t *ent, hid_t dxpl_id);
 H5_DLL H5T_t *H5T_create(H5T_class_t type, size_t size);
 H5_DLL H5T_t *H5T_copy(const H5T_t *old_dt, H5T_copy_t method);
-H5_DLL herr_t H5T_commit(H5G_entry_t *loc, const char *name, H5T_t *type);
+H5_DLL herr_t H5T_commit(H5G_entry_t *loc, const char *name, H5T_t *type, hid_t dxpl_id);
 H5_DLL herr_t H5T_lock(H5T_t *dt, hbool_t immutable);
 H5_DLL herr_t H5T_close(H5T_t *dt);
 H5_DLL herr_t H5T_unregister(H5T_pers_t pers, const char *name, H5T_t *src,

@@ -19,7 +19,6 @@ $Source = "";
                "htri_t"                    => "b",
                "double"                    => "d",
                "H5D_layout_t"              => "Dl",
-               "H5FD_mpio_xfer_t"          => "Dt",
                "herr_t"                    => "e",
                "H5E_direction_t"           => "Ed",
                "H5E_error_t*"              => "Ee",

@@ -1099,7 +1099,7 @@ H5S_get_simple_extent_dims(const H5S_t *ds, hsize_t dims[], hsize_t max_dims[])
  *-------------------------------------------------------------------------
  */
 herr_t
-H5S_modify(H5G_entry_t *ent, const H5S_t *ds)
+H5S_modify(H5G_entry_t *ent, const H5S_t *ds, hid_t dxpl_id)
 {
     FUNC_ENTER(H5S_modify, FAIL);
 
@@ -1109,7 +1109,7 @@ H5S_modify(H5G_entry_t *ent, const H5S_t *ds)
     switch (ds->extent.type) {
         case H5S_SCALAR:
         case H5S_SIMPLE:
-            if (H5O_modify(ent, H5O_SDSPACE, 0, 0, &(ds->extent.u.simple))<0) {
+            if (H5O_modify(ent, H5O_SDSPACE, 0, 0, &(ds->extent.u.simple), dxpl_id)<0) {
                 HRETURN_ERROR(H5E_DATASPACE, H5E_CANTINIT, FAIL,
                       "can't update simple data space message");
             }
@@ -1146,7 +1146,7 @@ H5S_modify(H5G_entry_t *ent, const H5S_t *ds)
  *-------------------------------------------------------------------------
  */
 H5S_t *
-H5S_read(H5G_entry_t *ent)
+H5S_read(H5G_entry_t *ent, hid_t dxpl_id)
 {
     H5S_t		   *ds = NULL;          /* Dataspace to return */
     H5S_t		   *ret_value = NULL;   /* Return value */
@@ -1159,7 +1159,7 @@ H5S_read(H5G_entry_t *ent)
     if (NULL==(ds = H5FL_ALLOC(H5S_t,1)))
         HGOTO_ERROR (H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed");
     
-    if (H5O_read(ent, H5O_SDSPACE, 0, &(ds->extent.u.simple)) == NULL)
+    if (H5O_read(ent, H5O_SDSPACE, 0, &(ds->extent.u.simple), dxpl_id) == NULL)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTINIT, NULL, "unable to load dataspace info from dataset header");
 
     if(ds->extent.u.simple.rank != 0) {
@@ -1964,7 +1964,7 @@ H5Soffset_simple(hid_t space_id, const hssize_t *offset)
  *-------------------------------------------------------------------------
  */
 herr_t
-H5S_debug(H5F_t *f, const void *_mesg, FILE *stream, int indent, int fwidth)
+H5S_debug(H5F_t *f, hid_t dxpl_id, const void *_mesg, FILE *stream, int indent, int fwidth)
 {
     const H5S_t	*mesg = (const H5S_t*)_mesg;
     
@@ -1979,7 +1979,7 @@ H5S_debug(H5F_t *f, const void *_mesg, FILE *stream, int indent, int fwidth)
     case H5S_SIMPLE:
 	fprintf(stream, "%*s%-*s H5S_SIMPLE\n", indent, "", fwidth,
 		"Space class:");
-	(H5O_SDSPACE->debug)(f, &(mesg->extent.u.simple), stream,
+	(H5O_SDSPACE->debug)(f, dxpl_id, &(mesg->extent.u.simple), stream,
 			     indent+3, MAX(0, fwidth-3));
 	break;
 	

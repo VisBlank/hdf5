@@ -99,12 +99,11 @@ H5F_seq_read(H5F_t *f, hid_t dxpl_id, const struct H5O_layout_t *layout,
     {
 	/* Get the transfer mode for MPIO transfers */
         H5D_xfer_t *dxpl;
-        H5FD_mpio_dxpl_t *dx;
 
         if (IS_H5FD_MPIO(f) && H5P_DEFAULT!=dxpl_id && (dxpl=H5I_object(dxpl_id)) &&
-                H5FD_MPIO==dxpl->driver_id && (dx=dxpl->driver_info) &&
-                H5FD_MPIO_INDEPENDENT!=dx->xfer_mode) {
-            xfer_mode = dx->xfer_mode;
+                H5FD_MPIO==dxpl->driver_id && 
+                H5FD_MPIO_INDEPENDENT!=dxpl->xfer_mode) {
+            xfer_mode = dxpl->xfer_mode;
         }
     }
 
@@ -545,12 +544,11 @@ H5F_seq_write(H5F_t *f, hid_t dxpl_id, const struct H5O_layout_t *layout,
     {
 	/* Get the transfer mode for MPIO transfers */
         H5D_xfer_t *dxpl;
-        H5FD_mpio_dxpl_t *dx;
 
         if (IS_H5FD_MPIO(f) && H5P_DEFAULT!=dxpl_id && (dxpl=H5I_object(dxpl_id)) &&
-                H5FD_MPIO==dxpl->driver_id && (dx=dxpl->driver_info) &&
-                H5FD_MPIO_INDEPENDENT!=dx->xfer_mode) {
-            xfer_mode = dx->xfer_mode;
+                H5FD_MPIO==dxpl->driver_id && 
+                H5FD_MPIO_INDEPENDENT!=dxpl->xfer_mode) {
+            xfer_mode = dxpl->xfer_mode;
         }
     }
 

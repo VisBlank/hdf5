@@ -86,7 +86,7 @@ static herr_t H5FD_mpio_read(H5FD_t *_file, H5FD_mem_t type, hid_t fapl_id, hadd
 			     hsize_t size, void *buf);
 static herr_t H5FD_mpio_write(H5FD_t *_file, H5FD_mem_t type, hid_t fapl_id, haddr_t addr,
 			      hsize_t size, const void *buf);
-static herr_t H5FD_mpio_flush(H5FD_t *_file);
+static herr_t H5FD_mpio_flush(H5FD_t *_file, hid_t dxpl_id);
 static herr_t H5FD_mpio_comm_info_dup(MPI_Comm comm, MPI_Info info,
 				MPI_Comm *comm_new, MPI_Info *info_new);
 static herr_t H5FD_mpio_comm_info_free(MPI_Comm *comm, MPI_Info *info);
@@ -108,7 +108,7 @@ static const H5FD_class_t H5FD_mpio_g = {
     H5FD_mpio_fapl_get,				/*fapl_get		*/
     H5FD_mpio_fapl_copy,			/*fapl_copy		*/
     H5FD_mpio_fapl_free, 			/*fapl_free		*/
-    sizeof(H5FD_mpio_dxpl_t),			/*dxpl_size		*/
+    0,						/*dxpl_size		*/
     NULL,					/*dxpl_copy		*/
     NULL,					/*dxpl_free		*/
     H5FD_mpio_open,				/*open			*/
@@ -430,23 +430,24 @@ fprintf(stderr, "leaving H5Pget_fapl_mpio\n");
 herr_t
 H5Pset_dxpl_mpio(hid_t dxpl_id, H5FD_mpio_xfer_t xfer_mode)
 {
+    H5D_xfer_t		*plist = NULL;
     herr_t ret_value=FAIL;
-    H5FD_mpio_dxpl_t	dx;
 
     FUNC_ENTER(H5Pset_dxpl_mpio, FAIL);
     H5TRACE2("e","iDt",dxpl_id,xfer_mode);
     
     /* Check arguments */
-    if (H5P_DATASET_XFER!=H5Pget_class(dxpl_id))
+    if (H5P_DATASET_XFER != H5P_get_class (dxpl_id) ||
+            NULL == (plist = H5I_object (dxpl_id)))
         HRETURN_ERROR(H5E_PLIST, H5E_BADTYPE, FAIL, "not a dxpl");
     if (H5FD_MPIO_INDEPENDENT!=xfer_mode &&
             H5FD_MPIO_COLLECTIVE!=xfer_mode)
         HRETURN_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "incorrect xfer_mode");
 
-    /* Initialize driver-specific properties */
-    dx.xfer_mode = xfer_mode;
+    /* Set property */
+    plist->xfer_mode = xfer_mode;
 
-    ret_value= H5Pset_driver(dxpl_id, H5FD_MPIO, &dx);
+    ret_value= H5Pset_driver(dxpl_id, H5FD_MPIO, NULL);
 
     FUNC_LEAVE(ret_value);
 }
@@ -475,20 +476,19 @@ H5Pset_dxpl_mpio(hid_t dxpl_id, H5FD_mpio_xfer_t xfer_mode)
 herr_t
 H5Pget_dxpl_mpio(hid_t dxpl_id, H5FD_mpio_xfer_t *xfer_mode/*out*/)
 {
-    H5FD_mpio_dxpl_t	*dx;
+    H5D_xfer_t		*plist = NULL;
 
     FUNC_ENTER(H5Pget_dxpl_mpio, FAIL);
     H5TRACE2("e","ix",dxpl_id,xfer_mode);
 
-    if (H5P_DATASET_XFER!=H5Pget_class(dxpl_id)) 
+    if (H5P_DATASET_XFER != H5P_get_class (dxpl_id) ||
+            NULL == (plist = H5I_object (dxpl_id)))
         HRETURN_ERROR(H5E_PLIST, H5E_BADTYPE, FAIL, "not a dxpl");
     if (H5FD_MPIO!=H5P_get_driver(dxpl_id))
         HRETURN_ERROR(H5E_PLIST, H5E_BADVALUE, FAIL, "incorrect VFL driver");
-    if (NULL==(dx=H5Pget_driver_info(dxpl_id)))
-        HRETURN_ERROR(H5E_PLIST, H5E_BADVALUE, FAIL, "bad VFL driver info");
 
     if (xfer_mode)
-        *xfer_mode = dx->xfer_mode;
+        *xfer_mode = plist->xfer_mode;
 
     FUNC_LEAVE(SUCCEED);
 }
@@ -1414,8 +1414,6 @@ H5FD_mpio_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t dxpl_id, haddr_t add
 {
     H5FD_mpio_t			*file = (H5FD_mpio_t*)_file;
     const H5D_xfer_t	*xfer_parms = NULL;     /* Dataset transfer plist */
-    const H5FD_mpio_dxpl_t	*dx=NULL;
-    H5FD_mpio_dxpl_t		_dx;
     MPI_Offset			mpi_off, mpi_disp;
     MPI_Status  		mpi_stat;
     MPI_Datatype		buf_type, file_type;
@@ -1457,15 +1455,6 @@ H5FD_mpio_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t dxpl_id, haddr_t add
         HRETURN_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not xfer parms");
     }
 
-    /* Obtain the data transfer properties */
-    if (H5P_DEFAULT==dxpl_id || H5FD_MPIO!=H5P_get_driver(dxpl_id)) {
-        _dx.xfer_mode = H5FD_MPIO_INDEPENDENT; /*the default*/
-        dx = &_dx;
-    } else {
-        dx = H5Pget_driver_info(dxpl_id);
-        assert(dx);
-    }
-    
     /*
      * Set up for a fancy xfer using complex types, or single byte block. We
      * wouldn't need to rely on the use_view field if MPI semantics allowed
@@ -1503,8 +1492,8 @@ H5FD_mpio_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t dxpl_id, haddr_t add
     } /* end if */
     
     /* Read the data. */
-    assert(H5FD_MPIO_INDEPENDENT==dx->xfer_mode || H5FD_MPIO_COLLECTIVE==dx->xfer_mode);
-    if (H5FD_MPIO_INDEPENDENT==dx->xfer_mode) {
+    assert(H5FD_MPIO_INDEPENDENT==xfer_parms->xfer_mode || H5FD_MPIO_COLLECTIVE==xfer_parms->xfer_mode);
+    if (H5FD_MPIO_INDEPENDENT==xfer_parms->xfer_mode || (type!=H5FD_MEM_DRAW)) {
         if (MPI_SUCCESS!= (mpi_code=MPI_File_read_at(file->f, mpi_off, buf, size_i, buf_type, &mpi_stat)))
             HMPI_GOTO_ERROR(FAIL, "MPI_File_read_at failed", mpi_code);
     } else {
@@ -1719,8 +1708,6 @@ H5FD_mpio_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
 {
     H5FD_mpio_t			*file = (H5FD_mpio_t*)_file;
     const H5D_xfer_t	*xfer_parms = NULL;     /* Dataset transfer plist */
-    const H5FD_mpio_dxpl_t	*dx=NULL;
-    H5FD_mpio_dxpl_t		_dx;
     MPI_Offset 		 	mpi_off, mpi_disp;
     MPI_Status			mpi_stat;
     MPI_Datatype		buf_type, file_type;
@@ -1762,15 +1749,6 @@ H5FD_mpio_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
         HRETURN_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not xfer parms");
     }
 
-    /* Obtain the data transfer properties */
-    if (H5P_DEFAULT==dxpl_id || H5FD_MPIO!=H5P_get_driver(dxpl_id)) {
-        _dx.xfer_mode = H5FD_MPIO_INDEPENDENT; /*the default*/
-        dx = &_dx;
-    } else {
-        dx = H5Pget_driver_info(dxpl_id);
-        assert(dx);
-    }
-    
     /*
      * Set up for a fancy xfer using complex types, or single byte block. We
      * wouldn't need to rely on the use_view field if MPI semantics allowed
@@ -1836,8 +1814,9 @@ H5FD_mpio_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
     } /* end if */
 
     /* Write the data. */
-    assert(H5FD_MPIO_INDEPENDENT==dx->xfer_mode || H5FD_MPIO_COLLECTIVE==dx->xfer_mode);
-    if (H5FD_MPIO_INDEPENDENT==dx->xfer_mode) {
+    assert(H5FD_MPIO_INDEPENDENT==xfer_parms->xfer_mode || H5FD_MPIO_COLLECTIVE==xfer_parms->xfer_mode);
+    if (H5FD_MPIO_INDEPENDENT==xfer_parms->xfer_mode || (type!=H5FD_MEM_DRAW && H5_mpi_1_metawrite_g)
+            || (type==H5FD_MEM_DRAW && xfer_parms->library_internal)) {
         /*OKAY: CAST DISCARDS CONST QUALIFIER*/
         if (MPI_SUCCESS != (mpi_code=MPI_File_write_at(file->f, mpi_off, (void*)buf, size_i, buf_type, &mpi_stat)))
             HMPI_GOTO_ERROR(FAIL, "MPI_File_write_at failed", mpi_code);
@@ -1957,7 +1936,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5FD_mpio_flush(H5FD_t *_file)
+H5FD_mpio_flush(H5FD_t *_file, hid_t UNUSED dxpl_id)
 {
     H5FD_mpio_t		*file = (H5FD_mpio_t*)_file;
     int			mpi_code;	/* mpi return code */

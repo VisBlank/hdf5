@@ -137,14 +137,14 @@ static herr_t H5FD_multi_query(const H5FD_t *_f1, unsigned long *flags);
 static haddr_t H5FD_multi_get_eoa(H5FD_t *_file);
 static herr_t H5FD_multi_set_eoa(H5FD_t *_file, haddr_t eoa);
 static haddr_t H5FD_multi_get_eof(H5FD_t *_file);
-static haddr_t H5FD_multi_alloc(H5FD_t *_file, H5FD_mem_t type, hsize_t size);
-static herr_t H5FD_multi_free(H5FD_t *_file, H5FD_mem_t type, haddr_t addr,
+static haddr_t H5FD_multi_alloc(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, hsize_t size);
+static herr_t H5FD_multi_free(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
 			      hsize_t size);
 static herr_t H5FD_multi_read(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
 			      hsize_t size, void *_buf/*out*/);
 static herr_t H5FD_multi_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
 			       hsize_t size, const void *_buf);
-static herr_t H5FD_multi_flush(H5FD_t *_file);
+static herr_t H5FD_multi_flush(H5FD_t *_file, hid_t dxpl_id);
 
 /* The class struct */
 static const H5FD_class_t H5FD_multi_g = {
@@ -1263,10 +1263,6 @@ H5FD_multi_close(H5FD_t *_file)
     /* Clear the error stack */
     H5Eclear();
 
-    /* Flush our own data */
-    if (H5FD_multi_flush(_file)<0)
-        nerrors++;
-
     /* Close as many members as possible */
     ALL_MEMBERS(mt) {
 	if (file->memb[mt]) {
@@ -1542,7 +1538,7 @@ H5FD_multi_get_eof(H5FD_t *_file)
  *-------------------------------------------------------------------------
  */
 static haddr_t
-H5FD_multi_alloc(H5FD_t *_file, H5FD_mem_t type, hsize_t size)
+H5FD_multi_alloc(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, hsize_t size)
 {
     H5FD_multi_t	*file = (H5FD_multi_t*)_file;
     H5FD_mem_t		mmt;
@@ -1552,7 +1548,7 @@ H5FD_multi_alloc(H5FD_t *_file, H5FD_mem_t type, hsize_t size)
     mmt = file->fa.memb_map[type];
     if (H5FD_MEM_DEFAULT==mmt) mmt = type;
     
-    if (HADDR_UNDEF==(addr=H5FDalloc(file->memb[mmt], type, size))) {
+    if (HADDR_UNDEF==(addr=H5FDalloc(file->memb[mmt], type, dxpl_id, size))) {
         H5Epush_ret(func, H5E_INTERNAL, H5E_BADVALUE, "member file can't alloc", HADDR_UNDEF);
     }
     addr += file->fa.memb_addr[mmt];
@@ -1578,7 +1574,7 @@ H5FD_multi_alloc(H5FD_t *_file, H5FD_mem_t type, hsize_t size)
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5FD_multi_free(H5FD_t *_file, H5FD_mem_t type, haddr_t addr, hsize_t size)
+H5FD_multi_free(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr, hsize_t size)
 {
     H5FD_multi_t	*file = (H5FD_multi_t*)_file;
     H5FD_mem_t		mmt;
@@ -1591,7 +1587,7 @@ H5FD_multi_free(H5FD_t *_file, H5FD_mem_t type, haddr_t addr, hsize_t size)
     
     assert(addr>=file->fa.memb_addr[mmt]);
     assert(addr+size<=file->memb_next[mmt]);
-    return H5FDfree(file->memb[mmt], type, addr-file->fa.memb_addr[mmt], size);
+    return H5FDfree(file->memb[mmt], type, dxpl_id, addr-file->fa.memb_addr[mmt], size);
 }
 
 
@@ -1723,7 +1719,7 @@ H5FD_multi_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr, hs
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5FD_multi_flush(H5FD_t *_file)
+H5FD_multi_flush(H5FD_t *_file, hid_t dxpl_id)
 {
     H5FD_multi_t	*file = (H5FD_multi_t*)_file;
     H5FD_mem_t		mt;
@@ -1769,7 +1765,7 @@ H5FD_multi_flush(H5FD_t *_file)
     for (mt=H5FD_MEM_SUPER; mt<H5FD_MEM_NTYPES; INC_ENUM(H5FD_mem_t,mt)) {
 	if (file->memb[mt]) {
 	    H5E_BEGIN_TRY {
-		if (H5FDflush(file->memb[mt])<0) nerrors++;
+		if (H5FDflush(file->memb[mt], dxpl_id)<0) nerrors++;
 	    } H5E_END_TRY;
 	}
     }

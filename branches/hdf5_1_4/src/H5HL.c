@@ -53,7 +53,6 @@ typedef struct H5HL_free_t {
 typedef struct H5HL_t {
     H5AC_info_t cache_info; /* Information for H5AC cache functions, _must_ be */
                             /* first field in structure */
-    int		    dirty;
     haddr_t		    addr;	/*address of data		*/
     size_t		    disk_alloc;	/*data bytes allocated on disk	*/
     size_t		    mem_alloc;	/*data bytes allocated in mem	*/
@@ -65,6 +64,7 @@ typedef struct H5HL_t {
 static H5HL_t *H5HL_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *udata1,
 			 void *udata2);
 static herr_t H5HL_flush(H5F_t *f, hid_t dxpl_id, hbool_t dest, haddr_t addr, H5HL_t *heap);
+static herr_t H5HL_dest(H5F_t *f, H5HL_t *heap);
 
 /*
  * H5HL inherits cache-like properties from H5AC
@@ -73,6 +73,7 @@ static const H5AC_class_t H5AC_LHEAP[1] = {{
     H5AC_LHEAP_ID,
     (H5AC_load_func_t)H5HL_load,
     (H5AC_flush_func_t)H5HL_flush,
+    (H5AC_dest_func_t)H5HL_dest,
 }};
 
 /* Interface initialization */
@@ -117,7 +118,7 @@ H5FL_BLK_DEFINE_STATIC(heap_chunk);
  *-------------------------------------------------------------------------
  */
 herr_t
-H5HL_create(H5F_t *f, size_t size_hint, haddr_t *addr_p/*out*/)
+H5HL_create(H5F_t *f, hid_t dxpl_id, size_t size_hint, haddr_t *addr_p/*out*/)
 {
     H5HL_t	*heap = NULL;
     hsize_t	total_size;		/*total heap size on disk	*/
@@ -136,7 +137,7 @@ H5HL_create(H5F_t *f, size_t size_hint, haddr_t *addr_p/*out*/)
 
     /* allocate file version */
     total_size = H5HL_SIZEOF_HDR(f) + size_hint;
-    if (HADDR_UNDEF==(*addr_p=H5MF_alloc(f, H5FD_MEM_LHEAP, total_size))) {
+    if (HADDR_UNDEF==(*addr_p=H5MF_alloc(f, H5FD_MEM_LHEAP, dxpl_id, total_size))) {
 	HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL,
 		      "unable to allocate file memory");
     }
@@ -168,8 +169,8 @@ H5HL_create(H5F_t *f, size_t size_hint, haddr_t *addr_p/*out*/)
     }
 
     /* add to cache */
-    heap->dirty = 1;
-    if (H5AC_set(f, H5AC_LHEAP, *addr_p, heap) < 0) {
+    heap->cache_info.dirty = 1;
+    if (H5AC_set(f, dxpl_id, H5AC_LHEAP, *addr_p, heap) < 0) {
 	HGOTO_ERROR(H5E_HEAP, H5E_CANTINIT, FAIL,
 		    "unable to cache heap");
     }
@@ -178,7 +179,7 @@ H5HL_create(H5F_t *f, size_t size_hint, haddr_t *addr_p/*out*/)
  done:
     if (ret_value<0) {
 	if (H5F_addr_defined(*addr_p)) {
-	    H5MF_xfree(f, H5FD_MEM_LHEAP, *addr_p, total_size);
+	    H5MF_xfree(f, H5FD_MEM_LHEAP, dxpl_id, *addr_p, total_size);
 	}
 	if (heap) {
 	    H5FL_BLK_FREE (heap_chunk,heap->chunk);
@@ -357,7 +358,7 @@ H5HL_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5HL_t *heap)
     assert(H5F_addr_defined(addr));
     assert(heap);
 
-    if (heap->dirty) {
+    if (heap->cache_info.dirty) {
 	/*
 	 * If the heap grew larger than disk storage then move the
 	 * data segment of the heap to a larger contiguous block of
@@ -366,12 +367,12 @@ H5HL_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5HL_t *heap)
 	if (heap->mem_alloc > heap->disk_alloc) {
 	    haddr_t old_addr = heap->addr, new_addr;
 	    if (HADDR_UNDEF==(new_addr=H5MF_alloc(f, H5FD_MEM_LHEAP,
-						  (hsize_t)heap->mem_alloc))) {
+						  dxpl_id, (hsize_t)heap->mem_alloc))) {
 		HRETURN_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL,
 			      "unable to allocate file space for heap");
 	    }
 	    heap->addr = new_addr;
-	    H5MF_xfree(f, H5FD_MEM_LHEAP, old_addr, (hsize_t)heap->disk_alloc);
+	    H5MF_xfree(f, H5FD_MEM_LHEAP, dxpl_id, old_addr, (hsize_t)heap->disk_alloc);
 	    H5E_clear(); /*don't really care if the free failed */
 	    heap->disk_alloc = heap->mem_alloc;
 	}
@@ -429,21 +430,55 @@ H5HL_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5HL_t *heap)
 	    }
 	}
 
-	heap->dirty = 0;
+	heap->cache_info.dirty = 0;
     }
 
     /*
      * Should we destroy the memory version?
      */
     if (destroy) {
-        heap->chunk = H5FL_BLK_FREE(heap_chunk,heap->chunk);
-        while (heap->freelist) {
-            fl = heap->freelist;
-            heap->freelist = fl->next;
-            H5FL_FREE(H5HL_free_t,fl);
-        }
-        H5FL_FREE(H5HL_t,heap);
+        if(H5HL_dest(f,heap)<0)
+	    HRETURN_ERROR(H5E_HEAP, H5E_CANTFREE, FAIL, "unable to destroy local heap collection");
     }
+    FUNC_LEAVE(SUCCEED);
+}
+
+/*-------------------------------------------------------------------------
+ * Function:	H5HL_dest
+ *
+ * Purpose:	Destroys a heap in memory.
+ *
+ * Return:	Non-negative on success/Negative on failure
+ *
+ * Programmer:	Quincey Koziol
+ *		koziol@ncsa.uiuc.edu
+ *		Jan 15 2003
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+H5HL_dest(H5F_t UNUSED *f, H5HL_t *heap)
+{
+    H5HL_free_t	*fl;
+
+    FUNC_ENTER(H5HL_dest, FAIL);
+
+    /* check arguments */
+    assert(heap);
+
+    /* Verify that node is clean */
+    assert (heap->cache_info.dirty==0);
+
+    heap->chunk = H5FL_BLK_FREE(heap_chunk,heap->chunk);
+    while (heap->freelist) {
+        fl = heap->freelist;
+        heap->freelist = fl->next;
+        H5FL_FREE(H5HL_free_t,fl);
+    }
+    H5FL_FREE(H5HL_t,heap);
+
     FUNC_LEAVE(SUCCEED);
 }
 
@@ -475,7 +510,7 @@ H5HL_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5HL_t *heap)
  *-------------------------------------------------------------------------
  */
 void *
-H5HL_read(H5F_t *f, haddr_t addr, size_t offset, size_t size, void *buf)
+H5HL_read(H5F_t *f, hid_t dxpl_id, haddr_t addr, size_t offset, size_t size, void *buf)
 {
     H5HL_t	*heap = NULL;
 
@@ -485,7 +520,7 @@ H5HL_read(H5F_t *f, haddr_t addr, size_t offset, size_t size, void *buf)
     assert(f);
     assert (H5F_addr_defined(addr));
 
-    if (NULL == (heap = H5AC_find(f, H5AC_LHEAP, addr, NULL, NULL))) {
+    if (NULL == (heap = H5AC_find(f, dxpl_id, H5AC_LHEAP, addr, NULL, NULL))) {
 	HRETURN_ERROR(H5E_HEAP, H5E_CANTLOAD, NULL,
 		      "unable to load heap");
     }
@@ -533,7 +568,7 @@ H5HL_read(H5F_t *f, haddr_t addr, size_t offset, size_t size, void *buf)
  *-------------------------------------------------------------------------
  */
 const void *
-H5HL_peek(H5F_t *f, haddr_t addr, size_t offset)
+H5HL_peek(H5F_t *f, hid_t dxpl_id, haddr_t addr, size_t offset)
 {
     H5HL_t		*heap = NULL;
     const void		*retval = NULL;
@@ -544,7 +579,7 @@ H5HL_peek(H5F_t *f, haddr_t addr, size_t offset)
     assert(f);
     assert(H5F_addr_defined(addr));
 
-    if (NULL == (heap = H5AC_find(f, H5AC_LHEAP, addr, NULL, NULL))) {
+    if (NULL == (heap = H5AC_find(f, dxpl_id, H5AC_LHEAP, addr, NULL, NULL))) {
 	HRETURN_ERROR(H5E_HEAP, H5E_CANTLOAD, NULL, "unable to load heap");
     }
     assert(offset < heap->mem_alloc);
@@ -598,7 +633,7 @@ H5HL_remove_free(H5HL_t *heap, H5HL_free_t *fl)
  *-------------------------------------------------------------------------
  */
 size_t
-H5HL_insert(H5F_t *f, haddr_t addr, size_t buf_size, const void *buf)
+H5HL_insert(H5F_t *f, hid_t dxpl_id, haddr_t addr, size_t buf_size, const void *buf)
 {
     H5HL_t	*heap = NULL;
     H5HL_free_t	*fl = NULL, *max_fl = NULL;
@@ -618,11 +653,11 @@ H5HL_insert(H5F_t *f, haddr_t addr, size_t buf_size, const void *buf)
 		       "no write intent on file");
     }
 
-    if (NULL == (heap = H5AC_find(f, H5AC_LHEAP, addr, NULL, NULL))) {
+    if (NULL == (heap = H5AC_find(f, dxpl_id, H5AC_LHEAP, addr, NULL, NULL))) {
 	HRETURN_ERROR(H5E_HEAP, H5E_CANTLOAD, (size_t)(-1),
 		      "unable to load heap");
     }
-    heap->dirty += 1;
+    heap->cache_info.dirty += 1;
 
     /*
      * In order to keep the free list descriptors aligned on word boundaries,
@@ -764,7 +799,7 @@ H5HL_insert(H5F_t *f, haddr_t addr, size_t buf_size, const void *buf)
  *-------------------------------------------------------------------------
  */
 herr_t
-H5HL_write(H5F_t *f, haddr_t addr, size_t offset, size_t size, const void *buf)
+H5HL_write(H5F_t *f, hid_t dxpl_id, haddr_t addr, size_t offset, size_t size, const void *buf)
 {
     H5HL_t *heap = NULL;
 
@@ -780,14 +815,14 @@ H5HL_write(H5F_t *f, haddr_t addr, size_t offset, size_t size, const void *buf)
 		       "no write intent on file");
     }
 
-    if (NULL == (heap = H5AC_find(f, H5AC_LHEAP, addr, NULL, NULL))) {
+    if (NULL == (heap = H5AC_find(f, dxpl_id, H5AC_LHEAP, addr, NULL, NULL))) {
 	HRETURN_ERROR(H5E_HEAP, H5E_CANTLOAD, FAIL,
 		      "unable to load heap");
     }
     assert(offset < heap->mem_alloc);
     assert(offset + size <= heap->mem_alloc);
 
-    heap->dirty += 1;
+    heap->cache_info.dirty += 1;
     HDmemcpy(heap->chunk + H5HL_SIZEOF_HDR(f) + offset, buf, size);
 
     FUNC_LEAVE(SUCCEED);
@@ -821,7 +856,7 @@ H5HL_write(H5F_t *f, haddr_t addr, size_t offset, size_t size, const void *buf)
  *-------------------------------------------------------------------------
  */
 herr_t
-H5HL_remove(H5F_t *f, haddr_t addr, size_t offset, size_t size)
+H5HL_remove(H5F_t *f, hid_t dxpl_id, haddr_t addr, size_t offset, size_t size)
 {
     H5HL_t		*heap = NULL;
     H5HL_free_t		*fl = NULL, *fl2 = NULL;
@@ -839,7 +874,7 @@ H5HL_remove(H5F_t *f, haddr_t addr, size_t offset, size_t size)
     }
 
     size = H5HL_ALIGN (size);
-    if (NULL == (heap = H5AC_find(f, H5AC_LHEAP, addr, NULL, NULL))) {
+    if (NULL == (heap = H5AC_find(f, dxpl_id, H5AC_LHEAP, addr, NULL, NULL))) {
 	HRETURN_ERROR(H5E_HEAP, H5E_CANTLOAD, FAIL,
 		      "unable to load heap");
     }
@@ -847,7 +882,7 @@ H5HL_remove(H5F_t *f, haddr_t addr, size_t offset, size_t size)
     assert(offset + size <= heap->mem_alloc);
     fl = heap->freelist;
 
-    heap->dirty += 1;
+    heap->cache_info.dirty += 1;
 
     /*
      * Check if this chunk can be prepended or appended to an already
@@ -942,7 +977,7 @@ H5HL_remove(H5F_t *f, haddr_t addr, size_t offset, size_t size)
  *-------------------------------------------------------------------------
  */
 herr_t
-H5HL_debug(H5F_t *f, haddr_t addr, FILE * stream, int indent, int fwidth)
+H5HL_debug(H5F_t *f, hid_t dxpl_id, haddr_t addr, FILE * stream, int indent, int fwidth)
 {
     H5HL_t		*h = NULL;
     int			i, j, overlap;
@@ -960,14 +995,14 @@ H5HL_debug(H5F_t *f, haddr_t addr, FILE * stream, int indent, int fwidth)
     assert(indent >= 0);
     assert(fwidth >= 0);
 
-    if (NULL == (h = H5AC_find(f, H5AC_LHEAP, addr, NULL, NULL))) {
+    if (NULL == (h = H5AC_find(f, dxpl_id, H5AC_LHEAP, addr, NULL, NULL))) {
 	HRETURN_ERROR(H5E_HEAP, H5E_CANTLOAD, FAIL,
 		      "unable to load heap");
     }
     fprintf(stream, "%*sLocal Heap...\n", indent, "");
     fprintf(stream, "%*s%-*s %d\n", indent, "", fwidth,
 	    "Dirty:",
-	    (int) (h->dirty));
+	    (int) (h->cache_info.dirty));
     fprintf(stream, "%*s%-*s %lu\n", indent, "", fwidth,
 	    "Header size (in bytes):",
 	    (unsigned long) H5HL_SIZEOF_HDR(f));

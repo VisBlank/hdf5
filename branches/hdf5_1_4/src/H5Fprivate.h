@@ -275,7 +275,7 @@ H5_DLL hid_t H5F_get_driver_id(H5F_t *f);
 H5_DLL herr_t H5F_get_fileno(const H5F_t *f, unsigned long *filenum);
 
 /* Functions that operate on array storage */
-H5_DLL herr_t H5F_arr_create(H5F_t *f,
+H5_DLL herr_t H5F_arr_create(H5F_t *f, hid_t dxpl_id,
 			      struct H5O_layout_t *layout /*in,out*/);
 H5_DLL herr_t H5F_arr_read (H5F_t *f, hid_t dxpl_id,
 			     const struct H5O_layout_t *layout,
@@ -323,8 +323,8 @@ H5_DLL herr_t H5F_istore_allocate (H5F_t *f, hid_t dxpl_id,
 				    const struct H5O_pline_t *pline,
 				    const struct H5O_fill_t *fill);
 #endif /* H5_HAVE_PARALLEL */
-H5_DLL hsize_t H5F_istore_allocated(H5F_t *f, unsigned ndims, haddr_t addr);
-H5_DLL herr_t H5F_istore_dump_btree(H5F_t *f, FILE *stream, unsigned ndims,
+H5_DLL hsize_t H5F_istore_allocated(H5F_t *f, hid_t dxpl_id, unsigned ndims, haddr_t addr);
+H5_DLL herr_t H5F_istore_dump_btree(H5F_t *f, hid_t dxpl_id, FILE *stream, unsigned ndims,
 				     haddr_t addr);
 
 /* Address-related functions */

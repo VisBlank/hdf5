@@ -131,6 +131,10 @@ H5_init_library(void)
         HRETURN_ERROR(H5E_FUNC, H5E_CANTINIT, FAIL,
                   "unable to initialize property list interface");
     }
+    if (H5AC_init()<0) {
+        HRETURN_ERROR(H5E_FUNC, H5E_CANTINIT, FAIL,
+                  "unable to initialize metadata caching interface");
+    }
 
     /* Debugging? */
     H5_debug_mask("-all");
@@ -1613,29 +1617,6 @@ H5_trace (double *returning, const char *func, const char *type, ...)
 			break;
 		    default:
 			fprintf (out, "%ld", (long)layout);
-			break;
-		    }
-		}
-		break;
-		
-	    case 't':
-		if (ptr) {
-		    if (vp) {
-			fprintf (out, "0x%lx", (unsigned long)vp);
-		    } else {
-			fprintf(out, "NULL");
-		    }
-		} else {
-		    H5FD_mpio_xfer_t transfer = va_arg(ap, H5FD_mpio_xfer_t);
-		    switch (transfer) {
-		    case H5FD_MPIO_INDEPENDENT:
-			fprintf (out, "H5FD_MPIO_INDEPENDENT");
-			break;
-		    case H5FD_MPIO_COLLECTIVE:
-			fprintf (out, "H5FD_MPIO_COLLECTIVE");
-			break;
-		    default:
-			fprintf (out, "%ld", (long)transfer);
 			break;
 		    }
 		}

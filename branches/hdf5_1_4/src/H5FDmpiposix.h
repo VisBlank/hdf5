@@ -22,16 +22,13 @@
 #ifndef __H5FDmpiposix_H
 #define __H5FDmpiposix_H
 
+#ifdef H5_HAVE_PARALLEL
+
 #include "H5FDpublic.h"
 #include "H5Ipublic.h"
 
-#ifdef H5_HAVE_PARALLEL
 #   define H5FD_MPIPOSIX	(H5FD_mpiposix_init())
-#else
-#   define H5FD_MPIPOSIX	(-1)
-#endif
 
-#ifdef H5_HAVE_PARALLEL
 
 /* Macros */
 
@@ -58,5 +55,4 @@ H5_DLL int H5FD_mpiposix_mpi_size(H5FD_t *_file);
 #endif /*H5_HAVE_PARALLEL*/
 
 #endif /* __H5FDmpiposix_H */
-
 

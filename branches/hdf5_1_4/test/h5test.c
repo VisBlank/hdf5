@@ -311,6 +311,7 @@ h5_fixname(const char *base_name, hid_t fapl, char *fullname, size_t size)
     }
     
     /* Use different ones depending on parallel or serial driver used. */
+#ifdef H5_HAVE_PARALLEL
     if (H5P_DEFAULT != fapl && H5F_LOW_MPIO == driver){
 	/* For parallel:
 	 * First use command line option, then the environment variable,
@@ -323,6 +324,7 @@ h5_fixname(const char *base_name, hid_t fapl, char *fullname, size_t size)
             prefix = HDF5_PARAPREFIX;
 #endif  /* HDF5_PARAPREFIX */
     }else{
+#endif /* H5_HAVE_PARALLEL */
 	/* For serial:
 	 * First use the environment variable, then try the constant
 	 */
@@ -330,7 +332,9 @@ h5_fixname(const char *base_name, hid_t fapl, char *fullname, size_t size)
 #ifdef HDF5_PREFIX
 	if (!prefix) prefix = HDF5_PREFIX;
 #endif
+#ifdef H5_HAVE_PARALLEL
     }
+#endif /* H5_HAVE_PARALLEL */
 #else /* H5_WANT_H5_V1_2_COMPAT */
     /* figure out the suffix */
     if (H5P_DEFAULT != fapl){
@@ -345,6 +349,7 @@ h5_fixname(const char *base_name, hid_t fapl, char *fullname, size_t size)
     }
     
     /* Use different ones depending on parallel or serial driver used. */
+#ifdef H5_HAVE_PARALLEL
     if (H5P_DEFAULT != fapl && H5FD_MPIO == driver){
 	/* For parallel:
 	 * First use command line option, then the environment variable,
@@ -357,6 +362,7 @@ h5_fixname(const char *base_name, hid_t fapl, char *fullname, size_t size)
             prefix = HDF5_PARAPREFIX;
 #endif  /* HDF5_PARAPREFIX */
     }else{
+#endif /* H5_HAVE_PARALLEL */
 	/* For serial:
 	 * First use the environment variable, then try the constant
 	 */
@@ -366,11 +372,14 @@ h5_fixname(const char *base_name, hid_t fapl, char *fullname, size_t size)
 	if (!prefix)
             prefix = HDF5_PREFIX;
 #endif  /* HDF5_PREFIX */
+#ifdef H5_HAVE_PARALLEL
     }
+#endif /* H5_HAVE_PARALLEL */
 #endif /* H5_WANT_H5_V1_2_COMPAT */
 
     /* Prepend the prefix value to the base name */
     if (prefix && *prefix) {
+#ifdef H5_HAVE_PARALLEL
 #ifdef H5_WANT_H5_V1_2_COMPAT
         if (H5P_DEFAULT != fapl && H5F_LOW_MPIO == driver) {
 #else
@@ -423,10 +432,13 @@ h5_fixname(const char *base_name, hid_t fapl, char *fullname, size_t size)
                 return NULL;
             }
         } else {
+#endif /* H5_HAVE_PARALLEL */
             if (HDsnprintf(fullname, size, "%s/%s", prefix, base_name) == (int)size)
                 /* Buffer is too small */
                 return NULL;
+#ifdef H5_HAVE_PARALLEL
         }
+#endif /* H5_HAVE_PARALLEL */
     } else if (strlen(base_name) >= size) {
 	return NULL; /*buffer is too small*/
     } else {

@@ -119,6 +119,9 @@ New Features
 
 Bug Fixes since HDF5-1.4.4 Release
 ==================================
+    * Corrected metadata caching bug in parallel I/O which could cause hangs
+        when chunked datasets were accessed with independent transfer mode.
+        QAK - 2003/01/23
     * Allow opening objects with unknown object header messages.
         QAK - 2003/01/21
     * Added improved error assertion for nil VL strings.  It return error

@@ -25,6 +25,9 @@
 #include "H5Fprivate.h"		/*for the H5F_t type			     */
 #include "H5Gprivate.h"		/*symbol tables				     */
 #include "H5MMpublic.h"		/*for H5MM_allocate_t and H5MM_free_t types  */
+#ifdef H5_HAVE_PARALLEL
+#include "H5FDmpio.h"           /* MPI-I/O file driver info                  */
+#endif /* H5_HAVE_PARALLEL */
 #include "H5Oprivate.h"		/*object Headers			     */
 #include "H5Sprivate.h"		/*for the H5S_t type			     */
 #include "H5Tprivate.h"		/*for the H5T_t type			     */
@@ -73,6 +76,8 @@ typedef struct H5D_xfer_t {
     MPI_Datatype        btype;          /* MPI type for buffer (memory) */
     MPI_Datatype        ftype;          /* MPI type for file */
     unsigned            block_before_meta_write;    /* Whether to block before metadata writes */
+    H5FD_mpio_xfer_t	xfer_mode;	/*collective or independent I/O	*/
+    unsigned            library_internal;/* Whether this property list is used internally to the library or not */
 #endif /* H5_HAVE_PARALLEL */
 } H5D_xfer_t;
 
@@ -86,23 +91,23 @@ H5_DLLVAR H5D_xfer_t H5D_xfer_dflt;
 H5_DLL herr_t H5D_init(void);
 H5_DLL H5D_t *H5D_create(H5G_entry_t *loc, const char *name,
 			  const H5T_t *type, const H5S_t *space,
-			  const H5D_create_t *create_parms);
-H5_DLL H5D_t *H5D_open(H5G_entry_t *loc, const char *name);
+			  hid_t dxpl_id, const H5D_create_t *create_parms);
+H5_DLL H5D_t *H5D_open(H5G_entry_t *loc, const char *name, hid_t dxpl_id);
 H5_DLL herr_t H5D_close(H5D_t *dataset);
-H5_DLL htri_t H5D_isa(H5G_entry_t *ent);
+H5_DLL htri_t H5D_isa(H5G_entry_t *ent, hid_t dxpl_id);
 H5_DLL herr_t H5D_read(H5D_t *dataset, const H5T_t *mem_type,
 			const H5S_t *mem_space, const H5S_t *file_space,
 			hid_t dset_xfer_plist, void *buf/*out*/);
 H5_DLL herr_t H5D_write(H5D_t *dataset, const H5T_t *mem_type,
 			 const H5S_t *mem_space, const H5S_t *file_space,
 			 hid_t dset_xfer_plist, const void *buf);
-H5_DLL herr_t H5D_extend(H5D_t *dataset, const hsize_t *size);
+H5_DLL herr_t H5D_extend(H5D_t *dataset, const hsize_t *size, hid_t dxpl_id);
 H5_DLL H5G_entry_t *H5D_entof(H5D_t *dataset);
 H5_DLL H5T_t *H5D_typeof(H5D_t *dset);
-H5_DLL H5S_t *H5D_get_space(H5D_t *dset);
-H5_DLL H5D_t * H5D_open_oid(H5G_entry_t *ent);
+H5_DLL H5S_t *H5D_get_space(H5D_t *dset, hid_t dxpl_id);
+H5_DLL H5D_t * H5D_open_oid(H5G_entry_t *ent, hid_t dxpl_id);
 H5_DLL H5F_t * H5D_get_file(const H5D_t *dset);
-H5_DLL hsize_t H5D_get_storage_size(H5D_t *dset);
+H5_DLL hsize_t H5D_get_storage_size(H5D_t *dset, hid_t dxpl_id);
 H5_DLL void *H5D_vlen_get_buf_size_alloc(size_t size, void *info);
 H5_DLL herr_t H5D_vlen_get_buf_size(void *elem, hid_t type_id, hsize_t ndim, hssize_t *point, void *op_data);
 

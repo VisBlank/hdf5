@@ -62,7 +62,7 @@ static int interface_initialize_g = 0;
  *-------------------------------------------------------------------------
  */
 herr_t
-H5F_arr_create (H5F_t *f, struct H5O_layout_t *layout/*in,out*/)
+H5F_arr_create (H5F_t *f, hid_t dxpl_id, struct H5O_layout_t *layout/*in,out*/)
 {
     unsigned		u;
     hsize_t		nbytes;
@@ -80,7 +80,7 @@ H5F_arr_create (H5F_t *f, struct H5O_layout_t *layout/*in,out*/)
             for (u=0, nbytes=1; u<layout->ndims; u++)
                 nbytes *= layout->dim[u];
             assert (nbytes>0);
-            if (HADDR_UNDEF==(layout->addr=H5MF_alloc(f, H5FD_MEM_DRAW, nbytes))) {
+            if (HADDR_UNDEF==(layout->addr=H5MF_alloc(f, H5FD_MEM_DRAW, dxpl_id, nbytes))) {
                 HRETURN_ERROR (H5E_IO, H5E_NOSPACE, FAIL,
                        "unable to reserve file space");
             }
@@ -88,7 +88,7 @@ H5F_arr_create (H5F_t *f, struct H5O_layout_t *layout/*in,out*/)
 
         case H5D_CHUNKED:
             /* Create the root of the B-tree that describes chunked storage */
-            if (H5F_istore_create (f, layout/*out*/)<0) {
+            if (H5F_istore_create (f, dxpl_id, layout/*out*/)<0) {
                 HRETURN_ERROR (H5E_IO, H5E_CANTINIT, FAIL,
                        "unable to initialize chunked storage");
             }
@@ -181,11 +181,10 @@ H5F_arr_read(H5F_t *f, hid_t dxpl_id, const struct H5O_layout_t *layout,
     {
 	/* Get the transfer mode for MPIO transfers */
 	H5D_xfer_t *dxpl;
-	H5FD_mpio_dxpl_t *dx;
 	if (IS_H5FD_MPIO(f) && H5P_DEFAULT!=dxpl_id && (dxpl=H5I_object(dxpl_id)) &&
-	    H5FD_MPIO==dxpl->driver_id && (dx=dxpl->driver_info) &&
-	    H5FD_MPIO_INDEPENDENT!=dx->xfer_mode) {
-	    xfer_mode = dx->xfer_mode;
+	    H5FD_MPIO==dxpl->driver_id && 
+	    H5FD_MPIO_INDEPENDENT!=dxpl->xfer_mode) {
+	    xfer_mode = dxpl->xfer_mode;
 	}
     }
 #endif
@@ -434,11 +433,10 @@ H5F_arr_write(H5F_t *f, hid_t dxpl_id, const struct H5O_layout_t *layout,
     {
 	/* Get the transfer mode for MPIO transfers */
 	H5D_xfer_t *dxpl;
-	H5FD_mpio_dxpl_t *dx;
 	if (IS_H5FD_MPIO(f) && H5P_DEFAULT!=dxpl_id && (dxpl=H5I_object(dxpl_id)) &&
-	    H5FD_MPIO==dxpl->driver_id && (dx=dxpl->driver_info) &&
-	    H5FD_MPIO_INDEPENDENT!=dx->xfer_mode) {
-	    xfer_mode = dx->xfer_mode;
+	    H5FD_MPIO==dxpl->driver_id && 
+	    H5FD_MPIO_INDEPENDENT!=dxpl->xfer_mode) {
+	    xfer_mode = dxpl->xfer_mode;
 	}
     }
 #endif
