@@ -223,9 +223,9 @@ __DLL__ htri_t H5S_is_simple(const H5S_t *sdim);
 __DLL__ unsigned H5S_nelem(const H5S_t *space);
 __DLL__ herr_t H5S_select_hyperslab(H5S_t *space, H5S_seloper_t op,
 				    const hssize_t start[],
-				    const hsize_t _stride[],
+				    const hsize_t *_stride,
 				    const hsize_t count[],
-				    const hsize_t _block[]);
+				    const hsize_t *_block);
 __DLL__ int H5S_get_hyperslab(const H5S_t *ds, hssize_t offset[]/*out*/,
 			       hsize_t size[]/*out*/, hsize_t stride[]/*out*/);
 __DLL__ herr_t H5S_select_copy(H5S_t *dst, const H5S_t *src);
