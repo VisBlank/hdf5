@@ -35,6 +35,7 @@
      INTEGER :: element_total_error = 0
      INTEGER :: basic_select_total_error = 0
      INTEGER :: total_error_compoundtest = 0
+     INTEGER :: enum_total_error = 0
      INTEGER :: basic_datatype_total_error = 0
      INTEGER :: external_total_error = 0
      INTEGER :: attribute_total_error = 0
@@ -198,6 +199,15 @@
      write(*, fmt = '(47x,a)', advance = 'no')  ' '
      write(*, fmt = e_format) error_string
      total_error = total_error + total_error_compoundtest
+
+     error_string = failure
+     CALL enumtest(cleanup, enum_total_error)
+     IF (enum_total_error == 0) error_string = success
+     write(*, fmt = '(19a)', advance = 'no') ' Enum datatype test'     
+     write(*, fmt = '(51x,a)', advance = 'no')  ' '
+     write(*, fmt = e_format) error_string
+     total_error = total_error + enum_total_error 
+
 
 !     write(*,*)
 !     write(*,*) '========================================='
