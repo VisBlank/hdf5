@@ -253,7 +253,7 @@ H5_term_library(void)
  *
  *-------------------------------------------------------------------------
  */
-herr_t 
+herr_t
 H5dont_atexit(void)
 {
     /* FUNC_ENTER_INIT() should not be called */
@@ -300,12 +300,13 @@ H5dont_atexit(void)
  *
  *-------------------------------------------------------------------------
  */
-herr_t 
+herr_t
 H5garbage_collect(void)
 {
     herr_t                  ret_value = SUCCEED;
 
     FUNC_ENTER(H5garbage_collect, FAIL);
+    H5TRACE0("e","");
 
     /* Call the garbage collection routines in the library */
     H5FL_garbage_coll();
@@ -343,13 +344,15 @@ H5garbage_collect(void)
  *
  *-------------------------------------------------------------------------
  */
-herr_t 
+herr_t
 H5set_free_list_limits(int reg_global_lim, int reg_list_lim, int arr_global_lim,
     int arr_list_lim, int blk_global_lim, int blk_list_lim)
 {
     herr_t                  ret_value = SUCCEED;
 
     FUNC_ENTER(H5set_free_list_limits, FAIL);
+    H5TRACE6("e","IsIsIsIsIsIs",reg_global_lim,reg_list_lim,arr_global_lim,
+             arr_list_lim,blk_global_lim,blk_list_lim);
 
     /* Call the free list function to actually set the limits */
     H5FL_set_free_list_limits(reg_global_lim, reg_list_lim, arr_global_lim, arr_list_lim, blk_global_lim, blk_list_lim);
@@ -473,12 +476,13 @@ H5_debug_mask(const char *s)
  *
  *-------------------------------------------------------------------------
  */
-herr_t 
+herr_t
 H5get_libversion(unsigned *majnum, unsigned *minnum, unsigned *relnum)
 {
     herr_t                  ret_value = SUCCEED;
 
     FUNC_ENTER(H5get_libversion, FAIL);
+    H5TRACE3("e","*Iu*Iu*Iu",majnum,minnum,relnum);
 
     /* Set the version information */
     if (majnum) *majnum = H5_VERS_MAJOR;
@@ -524,7 +528,7 @@ H5get_libversion(unsigned *majnum, unsigned *minnum, unsigned *relnum)
  *-------------------------------------------------------------------------
  */
 herr_t
-H5check_version (unsigned majnum, unsigned minnum, unsigned relnum)
+H5check_version(unsigned majnum, unsigned minnum, unsigned relnum)
 {
     char	lib_str[256];
     char	substr[] = H5_VERS_SUBRELEASE;
@@ -654,6 +658,7 @@ herr_t
 H5open(void)
 {
     FUNC_ENTER(H5open, FAIL);
+    H5TRACE0("e","");
     /* all work is done by FUNC_ENTER() */
     FUNC_LEAVE(SUCCEED);
 }
@@ -674,7 +679,7 @@ H5open(void)
  *-------------------------------------------------------------------------
  */
 herr_t
-H5close (void)
+H5close(void)
 {
     /*
      * Don't call FUNC_ENTER() since we don't want to initialize the whole
@@ -2408,6 +2413,38 @@ H5_trace (double *returning, const char *func, const char *type, ...)
 		    }
 		}
 		break;
+
+            case 't':
+                if (ptr) {
+                    if (vp) {
+                        fprintf(out, "0x%lx", (unsigned long)vp);
+                    } else {
+                        fprintf(out, "NULL");
+                    }
+                } else {
+                    H5S_sel_type st = va_arg(ap, H5S_sel_type);
+                    switch (st) {
+                    case H5S_SEL_ERROR:
+                        fprintf(out, "H5S_SEL_ERROR");
+                        break;
+                    case H5S_SEL_NONE:
+                        fprintf(out, "H5S_SEL_NONE");
+                        break;
+                    case H5S_SEL_POINTS:
+                        fprintf(out, "H5S_SEL_POINTS");
+                        break;
+                    case H5S_SEL_HYPERSLABS:
+                        fprintf(out, "H5S_SEL_HYPERSLABS");
+                        break;
+                    case H5S_SEL_ALL:
+                        fprintf(out, "H5S_SEL_ALL");
+                        break;
+                    default:
+                        fprintf(out, "%ld", (long)st);
+                        break;
+                    }
+                }
+                break;
 
 	    default:
 		fprintf(out, "BADTYPE(S%c)", type[1]);
