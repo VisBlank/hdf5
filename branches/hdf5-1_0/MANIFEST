@@ -188,11 +188,11 @@
 ./examples/h5_select.c
 ./examples/h5_attribute.c
 
-./pablo/HDFentries.txt
-./pablo/Makefile.in
-./pablo/PabloHDF.c
-./pablo/PabloHDF_RT.c
-./pablo/PabloHDF_SDDF.c
+./pablo/HDFentries.txt      _DO_NOT_DISTRIBUTE_
+./pablo/Makefile.in         _DO_NOT_DISTRIBUTE_
+./pablo/PabloHDF.c          _DO_NOT_DISTRIBUTE_
+./pablo/PabloHDF_RT.c       _DO_NOT_DISTRIBUTE_
+./pablo/PabloHDF_SDDF.c     _DO_NOT_DISTRIBUTE_
 
 ./src/.distdep
 ./src/.indent.pro			_DO_NOT_DISTRIBUTE_
