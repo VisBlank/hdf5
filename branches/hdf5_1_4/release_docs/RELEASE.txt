@@ -43,7 +43,7 @@ New Features
     * Added "unofficial support" for AIX 64bits.  See INSTALL for configure
       details. AKC - 2002/08/29
     * Added "--with-dmalloc" flag, to easily enable support for the 'dmalloc'
-        debugging malloc implementation. QAK - 2002/07/15
+      debugging malloc implementation. QAK - 2002/07/15
 
   o Library
   =========
@@ -64,7 +64,7 @@ New Features
 	    trace   -- turn on/off basic tracing
 	    ttimes  -- turn on tracing and report event times and
                        time spent in each API function.
-            ttop    -- turn on tracing but display only top-level
+        ttop    -- turn on tracing but display only top-level
                        API calls.
 
     o APIs
@@ -120,9 +120,9 @@ New Features
 Bug Fixes since HDF5-1.4.4 Release
 ==================================
     * Allow opening objects with unknown object header messages.
-      QAK - 2003/01/21
+        QAK - 2003/01/21
     * Added improved error assertion for nil VL strings.  It return error
-      stack instead of a simple assertion.  SLU - 2002/12/16
+        stack instead of a simple assertion.  SLU - 2002/12/16
     * Fixed h5dump bug(cannot dump data and datatype) for VL string. 
         SLU - 2002/11/18 
     * Fixed error condition where "none" selections were not being handled
@@ -131,6 +131,9 @@ Bug Fixes since HDF5-1.4.4 Release
         invoked for parallel I/O operations in collective mode.  QAK - 2002/07/22
     * Fixed metadata corruption problem which could occur when many objects
         are created in a file during parallel I/O.  QAK - 2002/07/19
+    * Fixed minor problem with configuration when users specified /usr/include
+        and /usr/lib for the --with-* options that some compilers can't
+        handle. BW - 2003/01/23
 
 
 Performance Improvements
@@ -342,6 +345,10 @@ Known Problems
 
           # How to pass a linker flag through the compiler.
           wl="-Wl,"
+
+      UPDATE: This is now done automatically by the configure script. However,
+      if you still experience a problem, you may want to check this line in
+      the libtool file and make sure that it has the correct value.
 
     * To build the Fortran library using Intel compilerso on Linux, one has to 
           x Use -fpp -DDEC$=DEC_ -DMS$=MS_ compiler flags to disable
