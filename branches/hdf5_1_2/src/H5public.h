@@ -61,8 +61,17 @@ static char             RcsId[] = "@(#)$Revision$";
 #undef SIZEOF_LONG_DOUBLE
 #undef SIZEOF___INT64_T
 
+/*
+ * Some compilers can't handle the defined inline macro. This undefines it
+ * since it's really not for public consumption anyway.
+ */
+#undef inline
 
 #include <H5config.h>           /*from configure                             */
+
+/* ditto...see above */
+#undef inline
+
 #include <sys/types.h>
 #ifdef STDC_HEADERS
 #   include <limits.h>		/*for H5T_NATIVE_CHAR defn in H5Tpublic.h    */
