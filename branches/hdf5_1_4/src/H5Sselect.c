@@ -1513,7 +1513,7 @@ H5S_select_regular(const H5S_t *space)
             break;
 
         case H5S_SEL_NONE:           /* Nothing selected */
-            ret_value=FALSE;
+            ret_value=TRUE;
             break;
 
         case H5S_SEL_ERROR:

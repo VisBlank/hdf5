@@ -493,7 +493,7 @@ dataset_writeAll(char *filename)
     hid_t sid;   		/* Dataspace ID */
     hid_t file_dataspace;	/* File dataspace ID */
     hid_t mem_dataspace;	/* memory dataspace ID */
-    hid_t dataset1, dataset2;	/* Dataset ID */
+    hid_t dataset1, dataset2,dataset3;	/* Dataset ID */
     hid_t datatype;		/* Datatype ID */
     hsize_t dims[RANK];   	/* dataset dim sizes */
     DATATYPE *data_array1 = NULL;	/* data buffer */
@@ -557,6 +557,10 @@ dataset_writeAll(char *filename)
 
     dataset2 = H5Dcreate(fid, DATASETNAME2, datatype, sid, H5P_DEFAULT);
     VRFY((dataset2 >= 0), "H5Dcreate 2 succeeded");
+
+    /* create a third dataset collectively */
+    dataset3 = H5Dcreate(fid, DATASETNAME3, H5T_NATIVE_INT, sid, H5P_DEFAULT);
+    VRFY((dataset1 >= 0), "H5Dcreate succeeded");
 
     /*
      * Set up dimensions of the slab this process accesses.
@@ -675,10 +679,66 @@ dataset_writeAll(char *filename)
     VRFY((ret >= 0), "H5Dwrite dataset1 by ZCOL succeeded");
 
     /* release all temporary handles. */
+    /* Could have used them for dataset3 but it is cleaner */
+    /* to create them again.*/
     H5Sclose(file_dataspace);
     H5Sclose(mem_dataspace);
     H5Pclose(xfer_plist);
 
+
+    /* Dataset3: each process takes a block of rows, except process zero uses "none" selection. */
+    slab_set(mpi_rank, mpi_size, start, count, stride, block, BYROW);
+
+    /* create a file dataspace independently */
+    file_dataspace = H5Dget_space (dataset3);
+    VRFY((file_dataspace >= 0), "H5Dget_space succeeded");
+    if (MAINPROCESS) {
+	ret=H5Sselect_none(file_dataspace);
+	VRFY((ret >= 0), "H5Sselect_none file_dataspace succeeded");
+    } /* end if */
+    else {
+        ret=H5Sselect_hyperslab(file_dataspace, H5S_SELECT_SET, start, stride, count, block);
+        VRFY((ret >= 0), "H5Sselect_hyperslab succeeded");
+    } /* end else */
+
+    /* create a memory dataspace independently */
+    mem_dataspace = H5Screate_simple (RANK, block, NULL);
+    VRFY((mem_dataspace >= 0), "");
+    if (MAINPROCESS) {
+	ret=H5Sselect_none(mem_dataspace);
+	VRFY((ret >= 0), "H5Sselect_none mem_dataspace succeeded");
+    } /* end if */
+
+    /* fill the local slab with some trivial data */
+    dataset_fill(start, block, data_array1);
+    MESG("data_array initialized");
+    if (verbose) {
+	MESG("data_array created");
+	dataset_print(start, block, data_array1);
+    } /* end if */
+
+    /* set up the collective transfer properties list */
+    xfer_plist = H5Pcreate (H5P_DATASET_XFER);
+    VRFY((xfer_plist >= 0), "");
+    ret=H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
+    VRFY((ret >= 0), "H5Pcreate xfer succeeded");
+
+    /* write data collectively */
+    MESG("writeAll with none");
+    ret = H5Dwrite(dataset3, H5T_NATIVE_INT, mem_dataspace, file_dataspace,
+	    xfer_plist, data_array1);
+    VRFY((ret >= 0), "H5Dwrite dataset3 succeeded");
+
+    /* write data collectively (with datatype conversion) */
+    MESG("writeAll with none");
+    ret = H5Dwrite(dataset3, H5T_NATIVE_UCHAR, mem_dataspace, file_dataspace,
+	    xfer_plist, data_array1);
+    VRFY((ret >= 0), "H5Dwrite dataset3 succeeded");
+
+    /* release all temporary handles. */
+    H5Sclose(file_dataspace);
+    H5Sclose(mem_dataspace);
+    H5Pclose(xfer_plist);
 
     /*
      * All writes completed.  Close datasets collectively
@@ -687,6 +747,8 @@ dataset_writeAll(char *filename)
     VRFY((ret >= 0), "H5Dclose1 succeeded");
     ret=H5Dclose(dataset2);
     VRFY((ret >= 0), "H5Dclose2 succeeded");
+    ret=H5Dclose(dataset3);
+    VRFY((ret >= 0), "H5Dclose3 succeeded");
 
     /* release all IDs created */
     H5Sclose(sid);

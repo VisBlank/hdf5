@@ -412,6 +412,10 @@ H5S_all_opt_possible( const H5S_t *mem_space, const H5S_t *file_space, const uns
     if (H5S_SIMPLE!=mem_space->extent.type || H5S_SIMPLE!=file_space->extent.type)
         HGOTO_DONE(FALSE);
 
+    /* Special case for two "none" selections */
+    if(H5S_SEL_NONE==mem_space->select.type && H5S_SEL_NONE==file_space->select.type)
+        HGOTO_DONE(TRUE);
+
     /* Check whether both selections are single blocks */
     c1=H5S_select_single(file_space);
     c2=H5S_select_single(mem_space);
@@ -604,6 +608,7 @@ H5S_all_write(H5F_t *f, const struct H5O_layout_t *layout,
                 break;
 
             case H5S_SEL_ALL:
+            case H5S_SEL_NONE:
                 mem_off=0;
                 break;
 
@@ -634,6 +639,11 @@ H5S_all_write(H5F_t *f, const struct H5O_layout_t *layout,
 
             case H5S_SEL_ALL:
                 file_elmts=file_space->extent.u.simple.size[u];
+                file_off=0;
+                break;
+
+            case H5S_SEL_NONE:
+                file_elmts=0;
                 file_off=0;
                 break;
 

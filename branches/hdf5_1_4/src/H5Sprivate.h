@@ -202,6 +202,8 @@ H5_DLLVAR const H5S_fconv_t	H5S_ALL_FCONV[];
 H5_DLLVAR const H5S_mconv_t	H5S_ALL_MCONV[];
 H5_DLLVAR const H5S_fconv_t	H5S_HYPER_FCONV[];
 H5_DLLVAR const H5S_mconv_t	H5S_HYPER_MCONV[];
+H5_DLLVAR const H5S_fconv_t	H5S_NONE_FCONV[];
+H5_DLLVAR const H5S_mconv_t	H5S_NONE_MCONV[];
 
 /* We get the declaration of H5G_entry_t from the H5Oprivate.h file */
 
