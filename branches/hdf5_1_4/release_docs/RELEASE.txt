@@ -102,6 +102,7 @@ New Features
 
   o Support for new platforms and languages
   =========================================
+    * C++ API now works on the Origin2000 (IRIX6.5.14.)  BMR - 2002/11/14
 
   
   o Misc.
