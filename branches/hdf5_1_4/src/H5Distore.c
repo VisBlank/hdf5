@@ -44,6 +44,7 @@
 #define H5F_PACKAGE		/*suppress error about including H5Fpkg	  */
 
 #include "H5private.h"
+#include "H5Bprivate.h"		/*B-link trees				*/
 #include "H5Dprivate.h"
 #include "H5Eprivate.h"
 #include "H5Fpkg.h"
@@ -188,7 +189,7 @@ H5B_class_t H5B_ISTORE[1] = {{
     H5F_istore_debug_key,			/*debug			*/
 }};
 
-#define H5F_HASH_DIVISOR 8     /* Attempt to spread out the hashing */
+#define H5F_HASH_DIVISOR 1     /* Attempt to spread out the hashing */
                                 /* This should be the same size as the alignment of */
                                 /* of the smallest file format object written to the file.  */
 #define H5F_HASH(F,ADDR) H5F_addr_hash((ADDR/H5F_HASH_DIVISOR),(F)->shared->rdcc.nslots)
@@ -688,12 +689,28 @@ H5F_istore_insert(H5F_t *f, haddr_t addr, void *_lt_key,
 #ifdef AKC
             printf("calling H5MF_realloc for new chunk\n");
 #endif
+/* Currently, the old chunk data is "thrown away" after the space is reallocated,
+ * so avoid data copy in H5MF_realloc() call by just free'ing the space and
+ * allocating new space.
+ * 
+ * This should keep the file smaller also, by freeing the space and then
+ * allocating new space, instead of vice versa (in H5MF_realloc).
+ *
+ * QAK - 11/19/2002
+ */
+#ifdef OLD_WAY
             if (HADDR_UNDEF==(*new_node_p=H5MF_realloc(f, H5FD_MEM_DRAW, addr,
                                   (hsize_t)lt_key->nbytes,
                                   (hsize_t)udata->key.nbytes))) {
                 HRETURN_ERROR (H5E_STORAGE, H5E_WRITEERROR, H5B_INS_ERROR,
                        "unable to reallocate chunk storage");
             }
+#else /* OLD_WAY */
+            if (H5MF_xfree(f, H5FD_MEM_DRAW, addr,(hsize_t)lt_key->nbytes)<0)
+                HRETURN_ERROR(H5E_STORAGE, H5E_CANTFREE, H5B_INS_ERROR, "unable to free chunk");
+            if (HADDR_UNDEF==(*new_node_p=H5MF_alloc(f, H5FD_MEM_DRAW, (hsize_t)udata->key.nbytes)))
+                HRETURN_ERROR(H5E_STORAGE, H5E_NOSPACE, H5B_INS_ERROR, "unable to reallocate chunk");
+#endif /* OLD_WAY */
             lt_key->nbytes = udata->key.nbytes;
             lt_key->filter_mask = udata->key.filter_mask;
             *lt_key_changed = TRUE;
@@ -1272,8 +1289,8 @@ H5F_istore_lock(H5F_t *f, hid_t dxpl_id, const H5O_layout_t *layout,
     if (rdcc->nslots>0) {
         /* We don't care about loss of precision in the following statement. */
         for (u=0, temp_idx=0; u<layout->ndims; u++) {
-            temp_idx *= layout->dim[u];
             temp_idx += offset[u];
+            temp_idx *= layout->dim[u];
         }
         temp_idx += (hsize_t)(layout->addr);
         idx=H5F_HASH(f,temp_idx);
