@@ -1,13 +1,14 @@
 
  
-                       HDF5 Release 1.2.2
+                       HDF5 Release 1.2.3 
+                       (Thsi file is under construction !)
 
 
 INTRODUCTION
 
-This document describes the differences between HDF5-1.2.1 and 
-HDF5-1.2.2, and contains information on the platforms where HDF5-1.2.2
-was tested and known problems in HDF5-1.2.2. 
+This document describes the differences between HDF5-1.2.2 and 
+HDF5-1.2.3, and contains information on the platforms where HDF5-1.23.
+was tested and known problems in HDF5-1.2.3. 
 
 The HDF5 documentation can be found on the NCSA ftp server 
 (ftp.ncsa.uiuc.edu) in the directory:
@@ -25,53 +26,19 @@ If you have any questions or comments, please send them to:
 
 CONTENTS
 
-- Features Added since HDF5-1.2.1 
-- Bug Fixes since HDF5-1.2.1
+- Features Added since HDF5-1.2.2 
+- Bug Fixes since HDF5-1.2.2
 - Known Problems
 - Platforms Tested
 
 
-Features Added since HDF5-1.2.1
+Features Added since HDF5-1.2.2
 ===============================
-   * Added internal free-lists to reduce memory required by the library and
-     H5garbage_collect API function.
-   * h5dump displays opaque and bitfield types.
-   * New features added to snapshots.  Use 'snapshot help' to see a
-     complete list of features.
-   * Improved configure to detect if MPIO routines are available when
-     parallel mode is requested.
+   * 
 
-Bug Fixes since HDF5-1.2.1
+Bug Fixes since HDF5-1.2.2
 ==========================
-   * h5dump correctly displays compound datatypes, including simple and
-     nested compound types.
-   * h5dump correctly displays the committed copy of predefined types.
-   * Corrected an error in h5toh4 which did not convert the 32-bit
-     int from HDF5 to HDF4 correctly for the T3E platform.
-   * Corrected a floating point number conversion error for the
-     Cray J90 platform.  The error did not convert the value 0.0
-     correctly.
-   * Fixed error in H5Giterate which was not updating the "index" parameter
-     correctly.
-   * Fixed error in hyperslab iteration which was not walking through the
-     correct sequence of array elements if hyperslabs were staggered in a
-     certain pattern.
-   * Fixed several other problems in hyperslab iteration code.
-   * Fixed another H5Giterate bug which caused groups with large numbers
-     of objects in them to misbehave when the callback function returned
-     non-zero values.
-   * Changed return type of H5Aiterate and H5A_operator_t typedef to be
-     herr_t, to align them with the dataset and group iterator functions.
-   * Changed H5Screate_simple and H5Sset_extent_simple to not allow dimensions
-     of size 0 without the same dimension being unlimited.
-   * Improved metadata hashing & caching algorithms to avoid
-     many hash flushes and also removed some redundant I/O when moving metadata
-     blocks in the file.
-   * The libhdf5.settings file shows the correct machine byte-sex.
-   * The "struct(opt)" type conversion function which gets invoked for
-     certain compound datatype conversions was fixed for nested compound
-     types. This required a small change in the datatype conversion
-     function API.
+   * 
 
 Known Problems
 ==============
