@@ -618,9 +618,8 @@ usage(const char *prog)
     fprintf(stdout, "     -w N, --width=N      Set the number of columns of output\n");
     fprintf(stdout, "     -x, --xml            Output in XML\n");
     fprintf(stdout, "     -D U, --xml-dtd=U    Use the DTD at U\n");
-    fprintf(stdout, "     --                   Stop parsing of commandline options. The rest\n");
-    fprintf(stdout, "                          of the commandline is interpreted as the file\n");
-    fprintf(stdout, "                          to dump.\n");
+    fprintf(stdout, "     --                   Indicate that all following arguments are non-options.\n");
+    fprintf(stdout, "                          E.g., to dump a file called `-f', use h5dump -- -f.\n");
     fprintf(stdout, "\n");
     fprintf(stdout, " Subsetting is available by using the following options with a dataset\n");
     fprintf(stdout, " attribute. Subsetting is done by selecting a hyperslab from the data.\n");
