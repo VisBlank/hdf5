@@ -1,6 +1,12 @@
 Release information for hdf5-1.0.0
 ------------------------------------
 
+			      BUG FIXES
+
+* The h5ls program displays 1-byte integer data as integers instead of
+  ASCII characters. To get the old behavior, supply the `-s' or
+  `--string' command-line switch.
+
 		    CHANGES SINCE THE BETA RELEASE
 
 * Added fill values for datasets.  For contiguous datasets fill value
