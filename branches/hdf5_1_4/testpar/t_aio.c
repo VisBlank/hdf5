@@ -1,7 +1,7 @@
 /**/
 #include "h5test.h"
 
-#if defined(H5_HAVE_AIO_H) && defined(H5_HAVE_STRUCT_AIOCB_AIO_FILDES)
+#ifdef H5_HAVE_AIO_H
 #include <aio.h>
 #endif
 
