@@ -406,10 +406,10 @@ int main(int argc, char **argv)
 
     if (doindependent){
 	MPI_BANNER("collective group and dataset write ...");
-        collective_group_write(filenames[6], ngroups);
+        collective_group_write(filenames[5], ngroups);
         if (doread) {
        	    MPI_BANNER("indepenent group and dataset read ...");
-            independent_group_read(filenames[6], ngroups);
+            independent_group_read(filenames[5], ngroups);
         }
     }
     else{

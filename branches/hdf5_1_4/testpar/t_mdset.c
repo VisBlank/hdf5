@@ -25,6 +25,8 @@ void write_dataset(hid_t, hid_t, hid_t);
 int  read_dataset(hid_t, hid_t, hid_t);
 void create_group_recursive(hid_t, hid_t, hid_t, int);
 void recursive_read_group(hid_t, hid_t, hid_t, int);
+void group_dataset_read(hid_t fid, int mpi_rank, int mpi_size, int m);
+int  check_value(DATATYPE *, DATATYPE *);
 
 /*
  * Example of using PHDF5 to create ndatasets datasets.  Each process write
@@ -44,19 +46,12 @@ void multiple_dset_write(char *filename, int ndatasets)
     MPI_Comm_rank (MPI_COMM_WORLD, &mpi_rank);
     MPI_Comm_size (MPI_COMM_WORLD, &mpi_size);
 
-    VRFY((mpi_size <= SIZE), "mpi_size <= SIZE");
-
-    chunk_origin [0] = mpi_rank * (SIZE / mpi_size);
-    chunk_origin [1] = 0;
-    chunk_dims [0] = SIZE / mpi_size;
-    chunk_dims [1] = SIZE;
-
-    for (i = 0; i < DIM; i++)
-	file_dims [i] = SIZE;
-
     plist = create_faccess_plist(MPI_COMM_WORLD, MPI_INFO_NULL, facc_type);
     iof = H5Fcreate (filename, H5F_ACC_TRUNC, H5P_DEFAULT, plist);
     H5Pclose (plist);
+
+    /* decide the hyperslab according to process number. */
+    get_slab(chunk_origin, chunk_dims, count, file_dims);  
 
     memspace = H5Screate_simple (DIM, chunk_dims, NULL);
     filespace = H5Screate_simple (DIM, file_dims, NULL);
@@ -258,14 +253,8 @@ void multiple_group_write(char *filename, int ngroups)
     fid = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, plist);
     H5Pclose(plist);
 
-  
-    chunk_origin[0] = mpi_rank * (SIZE/mpi_size);
-    chunk_origin[1] = 0;
-    chunk_dims[0]   = SIZE / mpi_size;
-    chunk_dims[1]   = SIZE;
-
-    for(l=0; l<DIM; l++)
-        file_dims[l] = SIZE;
+    /* decide the hyperslab according to process number. */
+    get_slab(chunk_origin, chunk_dims, count, file_dims); 
 
     memspace  = H5Screate_simple(DIM, chunk_dims, NULL);
     filespace = H5Screate_simple(DIM, file_dims,  NULL);
@@ -384,15 +373,10 @@ void multiple_group_read(char *filename, int ngroups)
     plist = create_faccess_plist(MPI_COMM_WORLD, MPI_INFO_NULL, facc_type);
     fid = H5Fopen(filename, H5F_ACC_RDONLY, plist);
     H5Pclose(plist);
-
-    chunk_origin[0] = mpi_rank * (SIZE/mpi_size);
-    chunk_origin[1] = 0;
-    chunk_dims[0]   = SIZE / mpi_size;
-    chunk_dims[1]   = SIZE;
-
-    for(l=0; l<DIM; l++)
-        file_dims[l] = SIZE;
-
+    
+    /* decide hyperslab for each process */
+    get_slab(chunk_origin, chunk_dims, count, file_dims);
+    
     memspace  = H5Screate_simple(DIM, chunk_dims, NULL);
     filespace = H5Screate_simple(DIM, file_dims, NULL);
 
@@ -501,3 +485,59 @@ void recursive_read_group(hid_t memspace, hid_t filespace, hid_t gid,
         H5Gclose(child_gid);
     }
 }
+
+/* This functions compares the original data with the read-in data for its 
+ * hyperslab part only by process ID. */
+int check_value(DATATYPE *indata, DATATYPE *outdata) 
+{
+    int mpi_rank, mpi_size, err_num=0;
+    hsize_t i, j;
+    hssize_t chunk_origin[DIM];
+    hsize_t  chunk_dims[DIM], count[DIM];
+
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+    
+    get_slab(chunk_origin, chunk_dims, count, NULL);
+
+    indata += chunk_origin[0]*SIZE;
+    outdata += chunk_origin[0]*SIZE;
+    for(i=chunk_origin[0]; i<(chunk_origin[0]+chunk_dims[0]); i++)
+         for(j=chunk_origin[1]; j<(chunk_origin[1]+chunk_dims[1]); j++) {
+              if( *indata != *outdata )
+	          if(err_num++ < MAX_ERR_REPORT || verbose)
+		      printf("Dataset Verify failed at [%ld][%ld](row %ld, col%ld): expect %d, got %d\n", (long)i, (long)j, (long)i, (long)j, *outdata, *indata); 
+	 }
+    if(err_num > MAX_ERR_REPORT && !verbose)
+        printf("[more errors ...]\n");
+    if(err_num)
+        printf("%d errors found in check_value\n", err_num);
+    return err_num;
+}
+
+/* Decide the portion of data chunk in dataset by process ID. */
+void get_slab(hssize_t chunk_origin[], hsize_t chunk_dims[], hsize_t count[],
+              hsize_t file_dims[])
+{
+    int mpi_rank, mpi_size;
+    
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+
+    if(chunk_origin != NULL) {
+        chunk_origin[0] = mpi_rank * (SIZE/mpi_size);
+        chunk_origin[1] = 0;
+    }
+    if(chunk_dims != NULL) {
+        chunk_dims[0]   = SIZE/mpi_size;
+        chunk_dims[1]   = SIZE;
+    }
+    if(file_dims != NULL) 
+        file_dims[0] = file_dims[1] = SIZE;
+    if(count != NULL) 
+        count[0] = count[1] = 1;
+}
+
+/*=============================================================================
+ *                         End of t_mdset.c
+ *===========================================================================*/
