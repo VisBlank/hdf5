@@ -619,7 +619,7 @@ usage(const char *prog)
     fprintf(stdout, "     -x, --xml            Output in XML\n");
     fprintf(stdout, "     -D U, --xml-dtd=U    Use the DTD at U\n");
     fprintf(stdout, "     --                   Indicate that all following arguments are non-options.\n");
-    fprintf(stdout, "                          E.g., to dump a file called `-f', use h5dump -- -f.\n");
+    fprintf(stdout, "                          E.g., to dump a file called `-f', use h5dump -- -f\n");
     fprintf(stdout, "\n");
     fprintf(stdout, " Subsetting is available by using the following options with a dataset\n");
     fprintf(stdout, " attribute. Subsetting is done by selecting a hyperslab from the data.\n");
@@ -886,29 +886,6 @@ print_datatype(hid_t type)
 	    for (i = 0; i < nmembers; i++) {
 		fname = H5Tget_member_name(type, i);
 		mtype = H5Tget_member_type(type, i);
-#ifdef WANT_H5_V1_2_COMPAT
-            /* v1.2 returns the base type of an array field, work around this */
-            {
-                hid_t new_mtype;         /* datatype for array, if necessary */
-                int     arrndims;       /* Array rank for reading */
-                size_t	dims[H5S_MAX_RANK];    /* Array dimensions for reading */
-                hsize_t	arrdims[H5S_MAX_RANK];    /* Array dimensions for reading */
-                int k;              /* Local index variable */
-
-                /* Get the array dimensions */
-                arrndims=H5Tget_member_dims(type,i,dims,NULL);
-
-                /* Patch up array information */
-                if(arrndims>0) {
-                    for(k=0; k<arrndims; k++)
-                        arrdims[k]=dims[k];
-                    new_mtype=H5Tarray_create(mtype,arrndims,arrdims,NULL);
-                    H5Tclose(mtype);
-                    mtype=new_mtype;
-                } /* end if */
-            }
-#endif /* WANT_H5_V1_2_COMPAT */
-
 		indentation(indent + COL);
 
 		if (H5Tget_class(mtype) == H5T_COMPOUND)
@@ -2443,11 +2420,6 @@ parse_command_line(int argc, const char *argv[])
     struct handler_t   *hand, *last_dset = NULL;
     int                 i, opt, last_was_dset = FALSE;
 
-    if (argc < 2) {
-        usage(progname);
-        exit(EXIT_FAILURE);
-    }
-
     /* this will be plenty big enough to hold the info */
     hand = calloc((size_t)argc, sizeof(struct handler_t));
 
@@ -2635,6 +2607,12 @@ end_collect:
     }
 
 parse_end:
+    /* check for file name to be processed */
+    if (argc <= opt_ind) {
+        error_msg(progname, "missing file name\n");
+        usage(progname);
+        exit(EXIT_FAILURE);
+    }
     return hand;
 }
 
@@ -2717,11 +2695,6 @@ main(int argc, const char *argv[])
     struct handler_t   *hand;
     int                 i;
 
-    if (argc < 2) {
-        usage(progname);
-        exit(EXIT_FAILURE);
-    }
-
     dump_header_format = &standardformat;
     dump_function_table = &ddl_function_table;
 
@@ -2763,10 +2736,12 @@ main(int argc, const char *argv[])
         }
     }
 
-    if (argv[opt_ind][0] == '\\')
-	fname = &argv[opt_ind][1];
-    else
-	fname = argv[opt_ind];
+    if (argc <= opt_ind) {
+        error_msg(progname, "missing file name\n");
+        usage(progname);
+        exit(EXIT_FAILURE);
+    }
+    fname = argv[opt_ind];
 
     fid = h5tools_fopen(fname, driver, NULL, 0);
 
@@ -3416,7 +3391,7 @@ xml_escape_the_string(const char *str, int slen)
     }
 
     cp = str;
-    rcp = ncp = calloc((size_t)(len + extra + 1), sizeof(char));
+    rcp = ncp = calloc((len + extra + 1), sizeof(char));
 
     if (ncp == NULL)
 	return NULL;		/* ?? */
@@ -3528,7 +3503,7 @@ xml_print_datatype(hid_t type)
 	}
 	printf("\" Size=\"");
 	sz = H5Tget_size(type);
-	printf("%u", (unsigned)sz);
+	printf("%lu", (unsigned long)sz);
 	printf("\" />\n");
 	indent -= COL;
 	indentation(indent);
@@ -3559,12 +3534,12 @@ xml_print_datatype(hid_t type)
 	}
 	printf("\" Size=\"");
 	sz = H5Tget_size(type);
-	printf("%u", (unsigned)sz);
+	printf("%lu", (unsigned long)sz);
 	H5Tget_fields(type, &spos, &epos, &esize, &mpos, &msize);
-	printf("\" SignBitLocation=\"%u\" ", (unsigned)spos);
-	printf("ExponentBits=\"%u\" ExponentLocation=\"%u\" ", (unsigned)esize, (unsigned)epos);
-	printf("MantissaBits=\"%u\" MantissaLocation=\"%u\" />\n",
-	       (unsigned)msize, (unsigned)mpos);
+	printf("\" SignBitLocation=\"%lu\" ", (unsigned long)spos);
+	printf("ExponentBits=\"%lu\" ExponentLocation=\"%lu\" ", (unsigned long)esize, (unsigned long)epos);
+	printf("MantissaBits=\"%lu\" MantissaLocation=\"%lu\" />\n",
+	       (unsigned long)msize, (unsigned long)mpos);
 	indent -= COL;
 	indentation(indent);
 	printf("</AtomicType>\n");
@@ -3633,7 +3608,7 @@ xml_print_datatype(hid_t type)
 	    printf("ERROR_UNKNOWN");
 	}
 	size = H5Tget_size(type);
-	printf("\" Size=\"%u\"/>\n", (unsigned)size);
+	printf("\" Size=\"%lu\"/>\n", (unsigned long)size);
 	indent -= COL;
 	indentation(indent);
 	printf("</AtomicType>\n");
@@ -3648,7 +3623,7 @@ xml_print_datatype(hid_t type)
 	indentation(indent);
 	printf("<OpaqueType Tag=\"%s\" ", H5Tget_tag(type));
 	size = H5Tget_size(type);
-	printf("Size=\"%u\"/>\n", (unsigned)size);
+	printf("Size=\"%lu\"/>\n", (unsigned long)size);
 	indent -= COL;
 	indentation(indent);
 	printf("</AtomicType>\n");
@@ -3697,28 +3672,6 @@ xml_print_datatype(hid_t type)
 
 		fname = H5Tget_member_name(type, i);
 		mtype = H5Tget_member_type(type, i);
-#ifdef WANT_H5_V1_2_COMPAT
-            /* v1.2 returns the base type of an array field, work around this */
-            {
-                hid_t new_mtype;         /* datatype for array, if necessary */
-                int     arrndims;       /* Array rank for reading */
-                size_t	dims[H5S_MAX_RANK];    /* Array dimensions for reading */
-                hsize_t	arrdims[H5S_MAX_RANK];    /* Array dimensions for reading */
-                int k;              /* Local index variable */
-
-                /* Get the array dimensions */
-                arrndims=H5Tget_member_dims(type,i,dims,NULL);
-
-                /* Patch up array information */
-                if(arrndims>0) {
-                    for(k=0; k<arrndims; k++)
-                        arrdims[k]=dims[k];
-                    new_mtype=H5Tarray_create(mtype,arrndims,arrdims,NULL);
-                    H5Tclose(mtype);
-                    mtype=new_mtype;
-                } /* end if */
-            }
-#endif /* WANT_H5_V1_2_COMPAT */
 		indentation(indent);
                 t_fname = xml_escape_the_name(fname);
 		printf("<Field FieldName=\"%s\">\n", t_fname);
@@ -4276,28 +4229,6 @@ xml_dump_named_datatype(hid_t type, const char *name)
 
 	    fname = H5Tget_member_name(type, x);
 	    mtype = H5Tget_member_type(type, x);
-#ifdef WANT_H5_V1_2_COMPAT
-            /* v1.2 returns the base type of an array field, work around this */
-            {
-                hid_t new_mtype;         /* datatype for array, if necessary */
-                int     arrndims;       /* Array rank for reading */
-                size_t	dims[H5S_MAX_RANK];    /* Array dimensions for reading */
-                hsize_t	arrdims[H5S_MAX_RANK];    /* Array dimensions for reading */
-                int k;              /* Local index variable */
-
-                /* Get the array dimensions */
-                arrndims=H5Tget_member_dims(type,x,dims,NULL);
-
-                /* Patch up array information */
-                if(arrndims>0) {
-                    for(k=0; k<arrndims; k++)
-                        arrdims[k]=dims[k];
-                    new_mtype=H5Tarray_create(mtype,arrndims,arrdims,NULL);
-                    H5Tclose(mtype);
-                    mtype=new_mtype;
-                } /* end if */
-            }
-#endif /* WANT_H5_V1_2_COMPAT */
 	    indentation(indent);
             t_fname = xml_escape_the_name(fname);
 	    printf("<Field FieldName=\"%s\">\n", t_fname);
@@ -4772,6 +4703,7 @@ xml_dump_dataset(hid_t did, const char *name, struct subset_t * UNUSED sset)
     hsize_t                *chsize;
     int                     ndims;
     int                     i;
+	hsize_t                 tempi;
     char                   *tmp;
     char                   *t_name, *t_tmp, *t_prefix;
 
@@ -4837,9 +4769,9 @@ xml_dump_dataset(hid_t did, const char *name, struct subset_t * UNUSED sset)
     indent += COL;
     H5Aiterate(did, NULL, dump_function_table->dump_attribute_function, NULL);
     indent -= COL;
-    i = (int)H5Dget_storage_size(did);
-
-    if (display_data && (i > 0)) {
+	tempi = H5Dget_storage_size(did);
+    
+    if (display_data && (tempi > 0)) {
 	switch (H5Tget_class(type)) {
 	case H5T_INTEGER:
 	case H5T_FLOAT:
