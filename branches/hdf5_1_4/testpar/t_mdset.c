@@ -27,6 +27,7 @@ void create_group_recursive(hid_t, hid_t, hid_t, int);
 void recursive_read_group(hid_t, hid_t, hid_t, int);
 void group_dataset_read(hid_t fid, int mpi_rank, int mpi_size, int m);
 int  check_value(DATATYPE *, DATATYPE *);
+void get_slab(hssize_t [], hsize_t [], hsize_t [], hsize_t []);
 
 /*
  * Example of using PHDF5 to create ndatasets datasets.  Each process write
@@ -239,7 +240,7 @@ void group_dataset_read(hid_t fid, int mpi_rank, int mpi_size, int m)
 void multiple_group_write(char *filename, int ngroups)
 {
     int mpi_rank, mpi_size;
-    int l, m;
+    int m;
     char gname[64];
     hid_t fid, gid, plist, memspace, filespace;
     hssize_t chunk_origin[DIM];
@@ -361,7 +362,7 @@ void create_group_recursive(hid_t memspace, hid_t filespace, hid_t gid,
 void multiple_group_read(char *filename, int ngroups)
 {
     int      mpi_rank, mpi_size, error_num;
-    int      l, m;
+    int      m;
     char     gname[64];
     hid_t    plist, fid, gid, memspace, filespace;
     hssize_t chunk_origin[DIM];
