@@ -41,6 +41,13 @@
  *		  that the number of bytes read is always equal to the number
  *		  requested.  This kluge is activated by #ifdef MPI_KLUGE0202.
  *
+ *	H5PC_Wait_for_left_neighbor
+ *	H5PC_Signal_right_neighbor
+ *		- These interprocess coordination routines don't do file I/O,
+ *		  and really belong in a separate package.
+ *		  I have given them the prefix "PC" for "process control",
+ *		  but as yet no separate PC package exists.
+ *
  */
 #include <H5private.h>
 #include <H5Eprivate.h>
@@ -301,6 +308,9 @@ H5F_mpio_access(const char *name, const H5F_access_t *access_parms, int mode,
  *      Added H5F_mpio_Debug debug flags controlled by MPI_Info.
  *
  *      rky 980828 Init flag controlling redundant metadata writes to disk.
+ *
+ *      rky 19981208 Added barrier after MPI_File_set_size to prevent race:
+ *	interspersed writes were being truncated, causing holes in file.
  *-------------------------------------------------------------------------
  */
 static H5F_low_t *
@@ -359,6 +369,12 @@ H5F_mpio_open(const char *name, const H5F_access_t *access_parms, uintn flags,
 	    MPI_File_close( &fh );
 	    HRETURN_ERROR(H5E_IO, H5E_CANTOPENFILE, NULL,
 			  "MPI_File_set_size failed trying to truncate file" );
+	}
+	/* Don't let any proc return until all have truncated the file. */
+	mpierr = MPI_Barrier( access_parms->u.mpio.comm );
+	if (MPI_SUCCESS!=mpierr) {
+	    MPI_File_close( &fh );
+	    HRETURN_ERROR( H5E_IO, H5E_MPI, NULL, "MPI_Barrier failed" );
 	}
     }
 
