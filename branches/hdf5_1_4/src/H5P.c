@@ -1899,7 +1899,6 @@ H5P_get_driver(hid_t plist_id)
     hid_t		ret_value=-1;
 
     FUNC_ENTER (H5P_get_driver, FAIL);
-    H5TRACE1("i","i",plist_id);
 
     if (H5P_FILE_ACCESS==H5P_get_class(plist_id) &&
             (fapl=H5I_object(plist_id))) {
