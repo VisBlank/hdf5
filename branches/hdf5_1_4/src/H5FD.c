@@ -570,7 +570,6 @@ H5FD_fapl_free(hid_t driver_id, void *fapl)
     H5FD_class_t	*driver=NULL;
 
     FUNC_ENTER(H5FD_fapl_free, FAIL);
-    H5TRACE2("e","ix",driver_id,fapl);
 
     /* Check args */
     if (H5I_VFL!=H5I_get_type(driver_id) ||
