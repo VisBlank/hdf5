@@ -263,7 +263,8 @@ hssize_t H5T_vlen_str_mem_getlen(H5F_t UNUSED *f, void *vl_addr)
     FUNC_ENTER (H5T_vlen_str_mem_getlen, FAIL);
 
     /* check parameters */
-    assert(s);
+    if(!s)
+        HRETURN_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "nil pointer"); 
 
     ret_value=(hssize_t)HDstrlen(s);
 
