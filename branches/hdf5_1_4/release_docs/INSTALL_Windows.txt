@@ -586,7 +586,8 @@ We just briefly introduce you how to build HDF5 in VS 7.0(.NET);
 or "debug", then choose "build all".
 3. If you want to change some project setting, select the project and right
 click the button to choose Properties; find the similar menu there as in 6.0.
-4. You need to add one line at H5pubconf.h which is under MyHDF5/hdf5/src;
-#define H5_HAVE_FUNCTION 1
+4. You need to specify the zlib include header files and libraries under 
+Tools->Options->Projects->VC++ Directories and choose Include and libraries under
+the category of "show directories for" to add the corresponding path.
 
 
