@@ -28695,9 +28695,6 @@ echo "$as_me:$LINENO: result: no (not POSIX compliant)" >&5
 echo "${ECHO_T}no (not POSIX compliant)" >&6
 fi
 rm -f conftest.$ac_objext conftest.$ac_ext
-    if test -z "$HAVE_STRUCT_AIOCB_AIO_FILDES"; then
-        unset ASYNCIO
-    fi
 
     echo "$as_me:$LINENO: checking for ASYNCIO" >&5
 echo $ECHO_N "checking for ASYNCIO... $ECHO_C" >&6

@@ -1284,9 +1284,6 @@ case "$enable_asyncio" in
 	    AC_MSG_RESULT([yes (probably POSIX compliant)])
 	       AC_DEFINE(HAVE_STRUCT_AIOCB_AIO_FILDES),
 	    AC_MSG_RESULT([no (not POSIX compliant)]))
-    if test -z "$HAVE_STRUCT_AIOCB_AIO_FILDES"; then
-        unset ASYNCIO
-    fi
 
     AC_MSG_CHECKING(for ASYNCIO)
     if test -n "$ASYNCIO"; then
