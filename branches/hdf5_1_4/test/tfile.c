@@ -43,6 +43,7 @@
 #define F2_RANK            2
 #define F2_DIM0            4
 #define F2_DIM1            6
+#define F2_DSET            "dset"
 #define FILE2	"tfile2.h5"
 
 #define F3_USERBLOCK_SIZE  (hsize_t)0
@@ -185,7 +186,7 @@ test_file_create(void)
        CHECK(dataspace_id, FAIL, "H5Screate_simple");
 
        /* Create the dataset. */
-       dataset_id = H5Dcreate(fid2, "/dset", H5T_NATIVE_INT, dataspace_id, H5P_DEFAULT);
+       dataset_id = H5Dcreate(fid2, F2_DSET, H5T_NATIVE_INT, dataspace_id, H5P_DEFAULT);
        CHECK(dataset_id, FAIL, "H5Dcreate");
 
        /* Write data to the new dataset */
@@ -287,13 +288,19 @@ test_file_create(void)
 static void 
 test_file_open(void)
 {
-    hid_t		fid1;		/*HDF5 File IDs			*/
+    hid_t		fid1, fid2;	/*HDF5 File IDs			*/
+    hid_t               did;            /*dataset ID                    */
+    hid_t               fapl_id;        /*file access property list ID  */
     hid_t		tmpl1;		/*file creation templates	*/
     hsize_t		ublock;		/*sizeof user block		*/
     size_t		parm;		/*file-creation parameters	*/
     size_t		parm2;		/*file-creation parameters	*/
     int			iparm, iparm2;
     herr_t		ret;		/*generic return value		*/
+    
+    /*
+     * Test single file open 
+     */
 
     /* Output message about test being performed */
     MESSAGE(5, ("Testing Low-Level File Opening I/O\n"));
@@ -328,7 +335,36 @@ test_file_open(void)
     /* Close first file */
     ret = H5Fclose(fid1);
     CHECK(ret, FAIL, "H5Fclose");
-}				/* test_file_open() */
+
+    /*
+     * Test two file opens: one is opened H5F_ACC_RDONLY and H5F_CLOSE_WEAK.  
+     * It's closed with an object left open.  Then another is opened 
+     * H5F_ACC_RDWR, which should fail.
+     */
+
+    /* Output message about test being performed */
+    MESSAGE(5, ("Testing 2 File Openings\n"));
+
+    /* Open file for first time */
+    fid1 = H5Fopen(FILE2, H5F_ACC_RDONLY, H5P_DEFAULT);
+    CHECK(fid1, FAIL, "H5Fopen");
+    
+    /* Open dataset */
+    did = H5Dopen(fid1, F2_DSET);
+    CHECK(did, FAIL, "H5Dopen");
+
+    /* Close first open */
+    ret = H5Fclose(fid1);
+    CHECK(ret, FAIL, "H5Fclose");
+
+    /* Open file for second time, which should fail. */
+    fid2 = H5Fopen(FILE2, H5F_ACC_RDWR, fapl_id);
+    VERIFY(fid2, FAIL, "H5Fopen");
+
+    /* Close dataset from first open */
+    ret = H5Dclose(did);
+    CHECK(ret, FAIL, "H5Dclose");
+}   /* test_file_open() */
 
 /****************************************************************
 **
