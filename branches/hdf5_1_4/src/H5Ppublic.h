@@ -58,6 +58,10 @@ typedef enum H5P_class_t {
  */
 #define H5P_DATA_XFER H5P_DATASET_XFER
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Define property list class callback function pointer types */
 typedef herr_t (*H5P_cls_create_func_t)(hid_t prop_id, void *create_data);
 typedef herr_t (*H5P_cls_close_func_t)(hid_t prop_id, void *close_data);
@@ -70,10 +74,6 @@ typedef herr_t (*H5P_prp_close_func_t)(const char *name, void *value);
 
 /* Define property list iteration function type */
 typedef herr_t (*H5P_iterate_t)(hid_t id, const char *name, void *iter_data); 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /*
  * The library created property list classes

@@ -188,12 +188,17 @@
  * suppresses warnings about unused function arguments.	 It's no big deal if
  * we don't.
  */
+#ifdef __cplusplus
+#   define __attribute__(X)	/*void*/
+#   define UNUSED		/*void*/
+#else /* __cplusplus */
 #ifdef H5_HAVE_ATTRIBUTE
 #   define UNUSED		__attribute__((unused))
 #else
 #   define __attribute__(X)	/*void*/
 #   define UNUSED		/*void*/
 #endif
+#endif /* __cplusplus */
 
 /*
  * Does the compiler expand __FUNCTION__ to be the name of the function
@@ -426,6 +431,20 @@
  */
 #ifndef CONSTR
 #  define CONSTR(VAR,STR) static const char VAR[]=STR
+#endif
+
+/*
+ * A macro to portably increment enumerated types.
+ */
+#ifndef H5_INC_ENUM
+#  define H5_INC_ENUM(TYPE,VAR) (VAR)=((TYPE)((VAR)+1))
+#endif
+
+/*
+ * A macro to portably decrement enumerated types.
+ */
+#ifndef H5_DEC_ENUM
+#  define H5_DEC_ENUM(TYPE,VAR) (VAR)=((TYPE)((VAR)-1))
 #endif
 
 /*
