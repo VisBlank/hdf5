@@ -38,7 +38,10 @@ Features Added since HDF5-1.2.2
 
 Bug Fixes since HDF5-1.2.2
 ==========================
-   * 
+   * Re-wrote part of the hyperslab initialization code to speed it up quite
+        a bit.
+   * Added bounded garbage collection for the free lists when they run out of
+        memory.
 
 Known Problems
 ==============
