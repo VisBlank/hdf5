@@ -105,9 +105,6 @@ New Features
         QAK - 2002/07/15
 
 
-  o Tools
-  =======
-
 
   o Support for new platforms and languages
   =========================================
@@ -144,12 +141,10 @@ Bug Fixes since HDF5-1.4.4 Release
         handle. BW - 2003/01/23
 
 
-Performance Improvements
-========================
-
 
 Documentation
 =============
+    New PDF files are not available for this release.
 
 
 Platforms Tested
@@ -301,8 +296,15 @@ Supported Configuration Features Summary
 Known Problems
 ==============
 
-    * On Linux 2.4 IA64, Fortran test fails for h5dwrite_int_f and 
-      h5dwrite_vl_real_f.
+    * On Linux 2.4 IA64, Fortran test fails for h5dwrite_vl_f 
+      for integer and real base datatypes.
+
+    * When fortran library is built with Intel compilers, compilation
+      for fflush1.f90, fflush2.f90 and fortanlib_test.f90 will fail 
+      complaining about EXEC function. Comment the call to EXEC subroutine
+      in each program, or get a patch for the HDF5 Fortran source code. 
+
+    * Fortran external dataset test fails on Linux 2.4 with pgf90 compiler.
 
     * On Windows, h5dump may abort printing if a VL string is longer than 4096
       bytes due to a compiler problem.  It'll be fixed in v1.6 release.
@@ -344,11 +346,12 @@ Known Problems
     * On Windows platforms, C and Fortran tests fail with the debug DLL version
       of the Library if built from all_withf90.zip file.
 
-    * Fortran external dataset test fails on Linux 2.4 with pgf90 compiler.
-
     * On Cray T3E (sn6606 2.0.6.08 unicosmk CRAY T3E) with Cray Standard C Version 6.6.0.1.3
       compiler optimization causes errors in many HDF5 Library tests. Use -g -h zero flags
       to build HDF5 Library. 
+
+    * On Cray SV1 10.0.1. 0 datatype convertion test fails. Please check HDF FTP site
+      if patch is available. We will try to provide one in the nearest future. 
 
     * For configuration, building and testing with Intel and PGI compilers see
       corresponding section in INSTALL file.
