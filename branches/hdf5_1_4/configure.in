@@ -440,6 +440,9 @@ case "X-$enable_production" in
     CONFIG_MODE=production
     CFLAGS="$CFLAGS $PROD_CFLAGS"
     CPPFLAGS="$CPPFLAGS $PROD_CPPFLAGS"
+
+    dnl Remove the "-g" (debug) flag from here if in production mode.
+    CFLAGS="`echo $CFLAGS | sed -e s/-g//g`"
     ;;
   X-no)
     enable_production="no"

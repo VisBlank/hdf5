@@ -7746,6 +7746,8 @@ echo "${ECHO_T}\"production\"" >&6
     CONFIG_MODE=production
     CXXFLAGS="$CXXFLAGS $PROD_CXXFLAGS"
     CPPFLAGS="$CPPFLAGS $PROD_CPPFLAGS"
+
+        CXXFLAGS="`echo $CXXFLAGS | sed -e s/-g//g`"
     ;;
   X-|X-no)
     echo "$as_me:$LINENO: result: \"development\"" >&5

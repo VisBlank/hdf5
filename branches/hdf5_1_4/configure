@@ -7434,6 +7434,8 @@ echo "${ECHO_T}\"production\"" >&6
     CONFIG_MODE=production
     CFLAGS="$CFLAGS $PROD_CFLAGS"
     CPPFLAGS="$CPPFLAGS $PROD_CPPFLAGS"
+
+        CFLAGS="`echo $CFLAGS | sed -e s/-g//g`"
     ;;
   X-no)
     enable_production="no"
