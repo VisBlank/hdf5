@@ -21,10 +21,10 @@
 
 
 /*-------------------------------------------------------------------------
- * Function:    H5FD_mpio_clot_comm_info_deletee
+ * Function:    test_comm_info_delete
  *
  * Purpose:     Test if communicator and INFO object can be safely deleted
- *		after calling H5Pset_facl_mpio.
+ *		after calling H5Pset_fapl_mpio.
  *
  * Return:      Success:        None
  *
@@ -37,7 +37,7 @@
  *-------------------------------------------------------------------------
  */
 void
-test_comm_info_delete()
+test_comm_info_delete(void)
 {
     int mpi_size, mpi_rank;
     MPI_Comm comm, comm_tmp;
@@ -49,7 +49,7 @@ test_comm_info_delete()
     hid_t fid;			/* file IDs */
     hid_t acc_pl;		/* File access properties */
     herr_t ret;			/* hdf5 return value */
-    int nkeys;
+    int nkeys, nkeys_tmp;
 
     if (verbose)
 	printf("Delete communicator and INFO object\n");
@@ -102,9 +102,12 @@ test_comm_info_delete()
     if (verbose)
 	printf("After H5Pget_fapl_mpio: rank/size of comm are %d/%d\n",
 	mpi_rank_tmp, mpi_size_tmp);
-    (MPI_INFO_NULL != info_tmp) && MPI_Info_get_nkeys(info_tmp, &nkeys);
+    VRFY((mpi_size_tmp==mpi_size), "MPI_Comm_size");
+    VRFY((mpi_rank_tmp==mpi_rank), "MPI_Comm_rank");
+    (MPI_INFO_NULL != info_tmp) && MPI_Info_get_nkeys(info_tmp, &nkeys_tmp);
     if (verbose)
 	h5_dump_info_object(info_tmp);
+    VRFY((nkeys_tmp==nkeys), "MPI_Info_get_nkeys");
 
     /* Free the retrieved communicator and INFO object.
      * Check if the access property list is still valid and can return
@@ -124,9 +127,12 @@ test_comm_info_delete()
     if (verbose)
 	printf("After second H5Pget_fapl_mpio: rank/size of comm are %d/%d\n",
 	mpi_rank_tmp, mpi_size_tmp);
+    VRFY((mpi_size_tmp==mpi_size), "MPI_Comm_size");
+    VRFY((mpi_rank_tmp==mpi_rank), "MPI_Comm_rank");
     (MPI_INFO_NULL != info_tmp) && MPI_Info_get_nkeys(info_tmp, &nkeys);
     if (verbose)
 	h5_dump_info_object(info_tmp);
+    VRFY((nkeys_tmp==nkeys), "MPI_Info_get_nkeys");
 
     /* close the property list and verify the retrieved communicator and INFO
      * object is still valid.
