@@ -990,6 +990,7 @@
 
 ./testpar/Dependencies
 ./testpar/Makefile.in
+./testpar/t_aio.c
 ./testpar/t_dset.c
 ./testpar/t_file.c
 ./testpar/t_mdset.c
