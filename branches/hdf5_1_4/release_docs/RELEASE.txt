@@ -178,7 +178,7 @@ Platforms Tested
                                   g++ 2.95.2
                                   pgf90 3.2-4
     OSF1 V5.1                     Compaq C V6.4-014
-                                  Compaq Fortran V5.5-1877-48BBF
+                                  Compaq Fortran X5.4A-1684
                                   gcc version 3.0 for C++
     SunOS 5.7                     WorkShop Compilers 5.0 98/12/15 C 5.0
      (Solaris 2.7)                WorkShop Compilers 5.0 98/12/15 C++ 5.0 
