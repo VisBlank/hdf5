@@ -611,7 +611,11 @@ typedef struct stat             h5_stat_t;
 #define HDlog(X)		log(X)
 #define HDlog10(X)		log10(X)
 #define HDlongjmp(J,N)		longjmp(J,N)
+#ifdef WIN32
+#define HDlseek(F,O,W)          _lseeki64(F,O,W)
+#else
 #define HDlseek(F,O,W)		lseek(F,O,W)
+#endif
 #define HDmalloc(Z)		malloc(Z)
 #define HDmblen(S,N)		mblen(S,N)
 #define HDmbstowcs(P,S,Z)	mbstowcs(P,S,Z)
@@ -633,7 +637,7 @@ typedef struct stat             h5_stat_t;
 #define HDmkfifo(S,M)		mkfifo(S,M)
 #define HDmktime(T)		mktime(T)
 #define HDmodf(X,Y)		modf(X,Y)
-#ifdef O_BINARY
+#ifdef O_BINARY 
 #define HDopen(S,F,M)		open(S,F|_O_BINARY,M)
 #else
 #define HDopen(S,F,M)		open(S,F,M)
