@@ -690,7 +690,7 @@ h5dump_sprint(h5dump_str_t *str/*in,out*/, const h5dump_t *info,
 	pad = H5Tget_strpad(type);
 
 	for (i=0;
-	     i<size && ((pad == H5T_STR_NULLPAD)?1:(((char*)vp)[i] != '\0'));
+	     i<size && (((char*)vp)[i] != '\0' || pad != H5T_STR_NULLTERM);
 	     i++) {
 
 
