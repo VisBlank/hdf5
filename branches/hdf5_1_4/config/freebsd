@@ -14,15 +14,23 @@ fi
 # Architecture-specific flags
 ARCH=
 
-# Add "_POSIX_C_SOURCE" define to cpp flags, to quiet warnings
-#       from /usr/include/sys/cdefs.h
-CPPFLAGS="$CPPFLAGS -D_POSIX_C_SOURCE=1" 
-
 # Omit frame pointer for optimized code?
 NOFP=${NOFP:=-fomit-frame-pointer}
 
 # Figure out compiler flags
 . $srcdir/config/gnu-flags
+
+# Add "_POSIX_C_SOURCE" define to cpp flags, to quiet warnings
+#       from /usr/include/sys/cdefs.h
+# (Don't add macro when compiling with gcc 3.x)
+case "$cc_vendor-$cc_version" in
+    gcc-3*)
+        ;;
+    *)
+        CPPFLAGS="$CPPFLAGS -D_POSIX_C_SOURCE=1" 
+        ;;
+esac
+
 
 # Special setup to use pthread support if enable-threadsafe is on.
 # Works with static executable only.
