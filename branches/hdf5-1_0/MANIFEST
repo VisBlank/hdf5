@@ -136,7 +136,12 @@
 ./doc/html/h5s.examples
 ./doc/html/hdf2.jpg
 ./doc/html/ph5design.html
-./doc/html/ph5example.c
+./doc/html/ph5eg.h
+./doc/html/ph5eg_coll.c
+./doc/html/ph5eg_comm.c
+./doc/html/ph5eg_extindep.c
+./doc/html/ph5eg_indep.c
+./doc/html/ph5eg_main.c
 ./doc/html/ph5implement.txt
 ./doc/html/pipe1.gif
 ./doc/html/pipe1.obj			_DO_NOT_DISTRIBUTE_
@@ -173,6 +178,7 @@
 ./doc/src/RM_H5T.html			_DO_NOT_DISTRIBUTE_
 ./doc/src/RM_H5Z.html			_DO_NOT_DISTRIBUTE_
 ./doc/src/Tools.html			_DO_NOT_DISTRIBUTE_
+./doc/src/ph5design.doc			_DO_NOT_DISTRIBUTE_
 ./doc/tgif/APIGrammar.obj       _DO_NOT_DISTRIBUTE_
 ./doc/tgif/FileGrammar.obj      _DO_NOT_DISTRIBUTE_
 ./doc/tgif/IOPipe.obj           _DO_NOT_DISTRIBUTE_
