@@ -7,14 +7,12 @@ formats.
 For those that like to live dangerously and don't like to read ;-) you
 can do the following:
 
-	$ tar xf hdf5-1.0.0a.tar
-	$ cd hdf5-1.0.0a
+	$ tar xf hdf5-1.0.0.tar
+	$ cd hdf5-1.0.0
         
-        $ sh configure
+        $ sh configure		# Configures the library
         $ make                  # Builds library and tools
-	$ make test             # Builds and runs confidence tests.
-                                # NOTE: if fails, run the
-                                # command in the test directory
+	$ make _test            # Builds and runs confidence tests.
 
 	$ make install		# Optional
 
@@ -31,19 +29,19 @@ Step 0: Install optional third-party packages.
 
 Step 1. Unpack the source tree.
 
-    * The tarball will unpack into an hdf5-1.1.0 directory with one of
+    * The tarball will unpack into an hdf5-1.0.0 directory with one of
       the following commands:
 
-	$ tar xf hdf5-1.1.0.tar				OR
-	$ gunzip <hdf5-1.1.0.tar.gz |tar xf -		OR
-	$ bunzip2 <hdf5-1.1.0.tar.bz2 |tar xf -		OR
-	$ uncompress -c <hdf5-1.1.0.tar.Z |tar xf -
+	$ tar xf hdf5-1.0.0.tar				OR
+	$ gunzip <hdf5-1.0.0.tar.gz |tar xf -		OR
+	$ bunzip2 <hdf5-1.0.0.tar.bz2 |tar xf -		OR
+	$ uncompress -c <hdf5-1.0.0.tar.Z |tar xf -
 
 Step 2. Configure.
 
     * HDF5 uses the GNU autoconf program for configuration.  Most
       installations can be configured by typing just (from the
-      hdf5-1.1.0 directory)
+      hdf5-1.0.0 directory)
 
 	$ sh configure
 
@@ -69,27 +67,28 @@ Step 2. Configure.
 	MAKE	  Name of the `make' program (GNU make is preferred)
 
     * This version of HDF5 is normally built with various debugging
-      code enabled.  To turn it off add the `--disable-debug' switch
+      code disabled.  To turn it on add the `--enable-debug' switch
       to the configure command. Even if debugging support is compiled
       into the library one must still enable the code at runtime with
       the HDF5_DEBUG environment variable (see Debugging.html).
 
-    * This version of HDF5 is normally built with support for symbolic 
-      debugging with dbx or gdb and without compiler optimization
-      switches.  To disable symbolic debugging and enable
-      optimizations add `--enable-production' to the configure
-      command.
+    * This version of HDF5 is normally built with compiler optimization
+      but without support for symbolic debugging with dbx or gdb.  To
+      disable optimizations and enable symbolic debugging add
+      `--disable-production' to the configure command.
 
-    * This version of HDF5 is normally built with the ability to print
+    * This version of HDF5 is normally built without the ability to print
       the names, arguments, and return values of all API functions
       when they're called.  For more information refer to the
-      Debugging.html file.  To disable tracing support add
-      `--disable-trace' to the configure command.
+      Debugging.html file.  To enable tracing support add
+      `--enable-trace' to the configure command.
 
     * Old versions of gcc (<2.8.0) may experience register allocation
       problems on some architectures.  If this happens then the
       `--disable-hsizet' can be given but the resulting library will
-      be unable to handle datasets larger than 4GB.
+      be unable to handle datasets larger than 4GB.  This will cause
+      the library to only be able to access 2GB files and objects but
+      often results in a substantial speed improvement.
 
     * Libraries, include files, programs, and documentation are
       installed (when one says `make install') under /usr/local/lib,
@@ -134,7 +133,7 @@ Step 4. Run confidence tests.
     * Temporary files will be deleted by each test when it completes,
       but may continue to exist in an incomplete state if the test
       fails. To prevent deletion of the files define the
-      HDF5_NOCLEANUP environment variable.
+      HDF5_NOCLEANUP environment variable to some non-empty value.
 
 Step 5. Install public files.
 
