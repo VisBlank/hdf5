@@ -166,6 +166,12 @@
 #   include "ProcIDs.h"
 #endif
 
+/*
+ * dmalloc (debugging malloc) support
+ */
+#ifdef H5_HAVE_DMALLOC_H
+#include "dmalloc.h"
+#endif /* H5_HAVE_DMALLOC_H */
 
 /*
  * NT doesn't define SIGBUS, but since NT only runs on processors             
@@ -562,6 +568,7 @@ typedef	struct _stati64		h5_stat_t;
 typedef struct stat             h5_stat_t;
 #endif
 #define HDftell(F)		ftell(F)
+#define HDftruncate(F,L)	ftruncate(F,L)
 #define HDfwrite(M,Z,N,F)	fwrite(M,Z,N,F)
 #define HDgetc(F)		getc(F)
 #define HDgetchar()		getchar()
