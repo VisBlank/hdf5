@@ -579,12 +579,19 @@ H5_DLL int HDfprintf (FILE *stream, const char *fmt, ...);
 #define HDfseek(F,O,W)		fseek(F,O,W)
 #define HDfsetpos(F,P)		fsetpos(F,P)
 /* definitions related to the file stat utilities */
+
+
 #ifdef WIN32
-#define HDfstat(F,B)            _fstati64(F,B)
-typedef	struct _stati64		h5_stat_t;
+# ifdef __MWERKS__ 
+#  define HDfstat(F,B)		fstat(F,B)
+   typedef struct stat  h5_stat_t;
+# else /*MSVC*/
+#  define HDfstat(F,B)     _fstati64(F,B)
+   typedef	struct _stati64		h5_stat_t;
+# endif
 #else
-#define HDfstat(F,B)		fstat(F,B)
-typedef struct stat             h5_stat_t;
+# define HDfstat(F,B)		fstat(F,B)
+  typedef struct stat  h5_stat_t;
 #endif
 #define HDftell(F)		ftell(F)
 #define HDftruncate(F,L)	ftruncate(F,L)
@@ -631,9 +638,13 @@ typedef struct stat             h5_stat_t;
 #define HDlog10(X)		log10(X)
 #define HDlongjmp(J,N)		longjmp(J,N)
 #ifdef WIN32
-#define HDlseek(F,O,W)          _lseeki64(F,O,W)
+# ifdef __MWERKS__ 
+#  define HDlseek(F,O,W)		lseek(F,O,W)
+# else /*MSVC*/
+#  define HDlseek(F,O,W)  _lseeki64(F,O,W)
+# endif
 #else
-#define HDlseek(F,O,W)		lseek(F,O,W)
+#  define HDlseek(F,O,W)		lseek(F,O,W)
 #endif
 #define HDmalloc(Z)		malloc(Z)
 #define HDmblen(S,N)		mblen(S,N)
@@ -714,7 +725,11 @@ typedef struct stat             h5_stat_t;
 #define HDsrand(N)		srand(N)
 /* sscanf() variable arguments */
 #ifdef WIN32
-#define HDstat(S,B)             _stati64(S,B)
+# ifdef __MWERKS__ 
+#  define HDstat(S,B)		stat(S,B)
+# else /*MSVC*/
+#  define HDstat(S,B)  _stati64(S,B)
+# endif
 #else
 #define HDstat(S,B)		stat(S,B)
 #endif
@@ -783,7 +798,6 @@ H5_DLL int64_t HDstrtoll (const char *s, const char **rest, int base);
 #if defined (__MWERKS__)
 /* workaround for a bug in the Metrowerks header file for write
  which is not defined as const void*
- pvn
  */
 #define HDwrite(F,M,Z)		write(F,(void*)M,Z)
 #else
