@@ -194,7 +194,7 @@ Platforms Tested
                                           Patch 109503-07 2001/08/11
                                   Sun WorkShop 6 update 1 C++ 5.2 Patch
                                         109508-04 2001/07/11
-    TFLOPS r1.0.4 v4.2.2 i386     pgcc Rel 3.1-4i with mpich-1.2.3 with
+    TFLOPS r1.0.4 v4.3.3 i386     pgcc Rel 3.1-4i with mpich-1.2.4 with
                                           local modifications
     IA-32 Linux 2.4.9             gcc 2.96
                                   Intel(R) C++ Version 7.0
