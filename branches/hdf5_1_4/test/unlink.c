@@ -30,7 +30,7 @@ const char *FILENAME[] = {
 
 /* Macros for test_create_unlink() */
 #define GROUPNAME       "Group"
-#define NGROUPS         1000
+#define UNLINK_NGROUPS         1000
 
 
 /*-------------------------------------------------------------------------
@@ -327,7 +327,7 @@ static int test_create_unlink(const char *msg, hid_t fapl)
     }
 
     /* Create a many groups to remove */
-    for(u=0; u<NGROUPS; u++) {
+    for(u=0; u<UNLINK_NGROUPS; u++) {
         sprintf(groupname,"%s %u",GROUPNAME,u);
         if((group = H5Gcreate (file, groupname, 0))<0)
         {
@@ -344,7 +344,7 @@ static int test_create_unlink(const char *msg, hid_t fapl)
     } /* end for */
 
     /* Remove the all the groups */
-    for(u=0; u<NGROUPS; u++) {
+    for(u=0; u<UNLINK_NGROUPS; u++) {
         sprintf(groupname,"%s %u",GROUPNAME,u);
         if(H5Gunlink (file, groupname)<0)
         {
