@@ -101,26 +101,24 @@ H5FL_ARR_DEFINE_STATIC(H5AC_prot_t,-1);
 static herr_t
 H5AC_init_interface(void)
 {
-#ifdef H5_HAVE_PARALLEL
     H5P_t *new_plist;           /* New dataset transfer property list created */
     H5D_xfer_t	*xfer_parms;    /* Pointer to copy of default dataset transfer property */
-#endif /* H5_HAVE_PARALLEL */
 
     FUNC_ENTER(H5AC_init_interface, FAIL);
 
-#ifdef H5_HAVE_PARALLEL
     /* Copy the default dataset transfer properties for use in flush calls */
     if (NULL==(new_plist=H5P_copy(H5P_DATASET_XFER, &H5D_xfer_dflt)))
         HRETURN_ERROR(H5E_CACHE, H5E_CANTCOPY, FAIL, "unable to copy default dataset transfer property list");
 
+#ifdef H5_HAVE_PARALLEL
     /* Set the [private] flag to indicate parallel I/O needs to block before a metadata write */
     xfer_parms = &(new_plist->u.dxfer);
     xfer_parms->block_before_meta_write=1;
+#endif /* H5_HAVE_PARALLEL */
 
     /* Get an ID for the H5AC dxpl */
     if ((H5AC_dxpl_id=H5P_create(H5P_DATASET_XFER, new_plist)) < 0)
         HRETURN_ERROR(H5E_CACHE, H5E_CANTREGISTER, FAIL, "unable to register property list");
-#endif /* H5_HAVE_PARALLEL */
 
     FUNC_LEAVE(SUCCEED);
 } /* end H5AC_init_interface() */
@@ -149,7 +147,6 @@ H5AC_term_interface(void)
     int		n=0;
 
     if (interface_initialize_g) {
-#ifdef H5_HAVE_PARALLEL
         if(H5AC_dxpl_id>0) {
             /* Indicate more work to do */
             n = 1; /* H5I */
@@ -166,7 +163,6 @@ H5AC_term_interface(void)
             } /* end else */
         } /* end if */
         else
-#endif /* H5_HAVE_PARALLEL */
             /* Reset interface initialization flag */
             interface_initialize_g = 0;
     } /* end if */
