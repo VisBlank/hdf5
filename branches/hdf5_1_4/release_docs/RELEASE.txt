@@ -119,6 +119,8 @@ New Features
 
 Bug Fixes since HDF5-1.4.4 Release
 ==================================
+    * H5Fopen without the H5F_ACC_CREAT flag should not succeed in creating
+        a new file with the 'core' VFL driver.  QAK - 2003/01/24
     * Corrected metadata caching bug in parallel I/O which could cause hangs
         when chunked datasets were accessed with independent transfer mode.
         QAK - 2003/01/23

@@ -296,7 +296,7 @@ H5FD_core_fapl_get(H5FD_t *_file)
  *-------------------------------------------------------------------------
  */
 static H5FD_t *
-H5FD_core_open(const char *name, unsigned UNUSED flags, hid_t fapl_id,
+H5FD_core_open(const char *name, unsigned flags, hid_t fapl_id,
 	       haddr_t maxaddr)
 {
     H5FD_core_t		*file=NULL;
@@ -306,6 +306,8 @@ H5FD_core_open(const char *name, unsigned UNUSED flags, hid_t fapl_id,
     FUNC_ENTER(H5FD_init_interface, NULL);
     
     /* Check arguments */
+    if (!(H5F_ACC_CREAT & flags))
+        HRETURN_ERROR(H5E_ARGS, H5E_UNSUPPORTED, NULL, "must create core files, not open them");
     if (0==maxaddr || HADDR_UNDEF==maxaddr)
         HRETURN_ERROR(H5E_ARGS, H5E_BADRANGE, NULL, "bogus maxaddr");
     if (ADDR_OVERFLOW(maxaddr))
