@@ -68,7 +68,7 @@
 ./config/solaris2.x
 ./config/sv1-cray
 ./config/unicos
-./config/unicos2.10.0.X
+./config/unicos10.0.X
 ./config/unicosmk
 ./config/unicosmk2.0.X
 ./config/unicosmk2.0.5.X
@@ -528,7 +528,7 @@
 ./fortran/config/solaris2.x
 ./fortran/config/sv1-cray
 ./fortran/config/unicos
-./fortran/config/unicos2.10.0.X
+./fortran/config/unicos10.0.X
 ./fortran/config/unicosmk
 ./fortran/config/unicosmk2.0.X
 ./fortran/config/unicosmk2.0.5.X
