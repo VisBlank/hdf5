@@ -597,7 +597,11 @@ H5HG_insert (H5F_t *f, size_t size, void *obj, H5HG_t *hobj/*out*/)
 	}
 	assert (f->shared->ncwfs>0);
 	assert (f->shared->cwfs[0]==heap);
+#ifdef OLD_WAY
 	assert (f->shared->cwfs[0]->obj[0].size >= need+H5HG_SIZEOF_HDR(f));
+#else /* OLD_WAY */
+	assert (f->shared->cwfs[0]->obj[0].size >= need);
+#endif /* OLD_WAY */
 	cwfsno = 0;
     }
     
