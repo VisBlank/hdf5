@@ -7901,14 +7901,6 @@ else
 #line $LINENO "configure"
 #include "confdefs.h"
 
-#ifdef OLD_HEADER_FILENAME
-#include <iostream.h>
-#else
-#include <iostream>
-#endif
-
-using namespace std;
-
 namespace H5 {
 int fnord;
 }
@@ -7942,6 +7934,54 @@ cat conftest.$ac_ext >&5
 
    echo no
    CXXFLAGS="${CXXFLAGS} -DH5_NO_NAMESPACE"
+
+fi
+rm -f core core.* *.core conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+fi
+
+echo "$as_me:$LINENO: checking if $CXX supports std" >&5
+echo $ECHO_N "checking if $CXX supports std... $ECHO_C" >&6
+if test "$cross_compiling" = yes; then
+  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling" >&5
+echo "$as_me: error: cannot run test program while cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+else
+  cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+#include "confdefs.h"
+
+#include <string>
+
+using namespace std;
+
+int main(void) {
+   string myString("testing namespace std");
+   return 0;
+}
+
+_ACEOF
+rm -f conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+
+   echo yes
+
+else
+  echo "$as_me: program exited with status $ac_status" >&5
+echo "$as_me: failed program was:" >&5
+cat conftest.$ac_ext >&5
+( exit $ac_status )
+
+   echo no
+   CXXFLAGS="${CXXFLAGS} -DH5_NO_STD"
 
 fi
 rm -f core core.* *.core conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
