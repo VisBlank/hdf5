@@ -1,0 +1,71 @@
+                          UNIX-LIKE SYSTEMS
+                          -----------------
+
+To build/install HDF5 on Unix systems from the root of the
+distribution directory:
+
+   * Build the ./src/H5config.h file and Makefiles by saying:
+
+        ./configure
+
+     You can say `./configure --help' to see a list of options.
+
+     One common option is to specify the prefix directory under which
+     public files are stored.  The default prefix is `/usr/local'
+     resulting in the directory structure:
+
+        /usr/local/include      -- C header files.
+        /usr/local/lib          -- The HDF5 library.
+        /usr/local/bin          -- HDF5 support programs.
+
+     To install the public files in `/usr/include', `/usr/lib', and
+     `/usr/bin' instead say:
+
+        ./configure --prefix=/usr
+
+     Configure will create directories `include', `lib', and `bin'
+     under the prefix directory if they don't already exist, but the
+     prefix directory must already exist and be writable.
+
+     You can also override detection of certain things with
+     environment variables:
+
+        CC              Name of the C compiler to use.
+        CFLAGS          Alternate C compiler flags.
+        CPPFLAGS        Alternate C preprocessor flags.
+        MAKE            Name of the make(1) program.
+
+     For instance it is common to say (add `env' to the beginning of
+     this command if you're running a csh-like shell)
+
+        CPPFLAGS=-DNDEBUG CC=gcc CFLAGS=-O3 ./configure
+
+   * Build library targets by saying (if you supplied some other
+     make command through the MAKE variable in the previous step then
+     use that command instead):
+
+        make
+
+     If you're re-building the library after changing some files and
+     you're not using GNU make and gcc, then you should say `make
+     clean' from the top directory between each build attempt since
+     the development Makefiles don't have complete dependency
+     information yet.
+
+   * Install the library, header files, and programs by saying:
+
+        make install
+
+     This step will fail unless you have permission to write to the
+     installation directories.  Of course, you can use the header
+     files, library, and programs directly out of the source tree if
+     you like, skipping this step.
+
+
+                           NON-UNIX SYSTEMS
+                           ----------------
+
+To build/install HDF5 on non-Unix systems from the root of the
+distribution directory:
+
+   * To be written later.
