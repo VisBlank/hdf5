@@ -1,0 +1,148 @@
+Release information for hdf5-1.0.0a
+----------------------------------
+
+This release is an beta release for functionality necessary for the
+ASCI vector bundle project in a serial environment.  Some parallel
+support is also available.  Other features should be considered alpha
+quality.
+
+The following functions are implemented. Errors are returned if an
+attempt is made to use some feature which is not implemented and
+printing the error stack will show `not implemented yet'.
+
+Library
+   H5dont_atexit	- don't call library close on exit
+   H5init		- initialize library (happens automatically)
+   H5version		- retrieve library version info
+
+Templates
+   H5Cclose		- release template resources
+   H5Ccopy		- copy a template
+   H5Ccreate		- create a new template
+   H5Cget_chunk		- get chunked storage parameters
+   H5Cget_class		- get template class
+   H5Cget_istore_k	- get chunked storage parameters
+   H5Cget_layout	- get raw data layout class
+   H5Cget_sizes		- get address and size sizes
+   H5Cget_sym_k		- get symbol table storage parameters
+   H5Cget_userblock	- get user-block size
+   H5Cget_version	- get file version numbers
+   H5Cset_chunk		- set chunked storage parameters
+   H5Cset_istore_k	- set chunked storage parameters
+   H5Cset_layout	- set raw data layout class
+   H5Cset_sizes		- set address and size sizes
+   H5Cset_sym_k		- set symbol table storage parameters
+   H5Cset_userblock	- set user-block size
+
+Datasets
+   H5Dclose		- release dataset resources
+   H5Dcreate		- create a new dataset
+   H5Dget_space		- get data space
+   H5Dopen		- open an existing dataset
+   H5Dread		- read raw data
+   H5Dwrite		- write raw data
+
+Errors
+   H5Eclear		- clear the error stack
+   H5Eclose		- release an error stack
+   H5Ecreate		- create a new error stack
+   H5Eprint		- print an error stack
+   H5Epush		- push an error onto a stack
+
+Files
+   H5Fclose		- close a file and release resources
+   H5Fcreate		- create a new file
+   H5Fget_create_template - get file creation template
+   H5Fis_hdf5		- determine if a file is an hdf5 file
+   H5Fopen		- open an existing file
+
+Groups
+   H5Gclose		- close a group and release resources
+   H5Gcreate		- create a new group
+   H5Gopen		- open an existing group
+   H5Gpop		- pop a group from the cwg stack
+   H5Gpush		- push a group onto the cwg stack
+   H5Gset		- set the current working group (cwg)
+
+Data spaces
+   H5Pclose		- release data space resources
+   H5Pcreate_simple	- create a new simple data space
+   H5Pget_dims		- get data space size
+   H5Pget_hyperslab	- get data space selection
+   H5Pget_ndims		- get data space dimensionality
+   H5Pget_npoints	- get number of selected points
+   H5Pis_simple		- determine if data space is simple
+   H5Pset_hyperslab	- select data points
+   H5Pset_space		- reset data space dimensionality and size
+
+Data types
+   H5Tclose		- release data type resources
+   H5Tcopy		- copy a data type
+   H5Tcreate		- create a new data type
+   H5Tequal		- compare two data types
+   H5Tfind		- find a data type conversion function
+   H5Tget_class		- get data type class
+   H5Tget_cset		- get character set
+   H5Tget_ebias		- get exponent bias
+   H5Tget_fields	- get floating point fields
+   H5Tget_inpad		- get inter-field padding
+   H5Tget_member_dims	- get struct member dimensions
+   H5Tget_member_name	- get struct member name
+   H5Tget_member_offset	- get struct member byte offset
+   H5Tget_member_type	- get struct member type
+   H5Tget_nmembers	- get number of struct members
+   H5Tget_norm		- get floating point normalization
+   H5Tget_offset	- get bit offset within type
+   H5Tget_order		- get byte order
+   H5Tget_pad		- get padding type
+   H5Tget_precision	- get precision in bits
+   H5Tget_sign		- get integer sign type
+   H5Tget_size		- get size in bytes
+   H5Tget_strpad	- get string padding
+   H5Tinsert		- insert struct member
+   H5Tlock		- lock type to prevent changes
+   H5Tpack		- pack struct members
+   H5Tregister_hard	- register specific type conversion function
+   H5Tregister_soft	- register general type conversion function
+   H5Tset_cset		- set character set
+   H5Tset_ebias		- set exponent bias
+   H5Tset_fields	- set floating point fields
+   H5Tset_inpad		- set inter-field padding
+   H5Tset_norm		- set floating point normalization
+   H5Tset_offset	- set bit offset within type
+   H5Tset_order		- set byte order
+   H5Tset_pad		- set padding type
+   H5Tset_precision	- set precision in bits
+   H5Tset_sign		- set integer sign type
+   H5Tset_size		- set size in bytes
+   H5Tset_strpad	- set string padding
+   H5Tunregister	- remove a type conversion function
+
+This release has been tested on UNIX platforms only; specifically:
+Linux, FreedBSD, IRIX, Solaris & Dec UNIX.
+
+
+Release information for parallel HDF5
+-------------------------------------
+
++) Current release supports independent access to fixed dimension datasets
+   only.
+
++) The comm and info arguments of H5Cset_mpi are not used.  All parallel
+   I/O are done via MPI_COMM_WORLD.  Access_mode for H5Cset_mpi can be
+   H5ACC_INDEPENDENT only.
+
++) This release of parallel HDF5 has been tested on IBM SP2 and SGI
+   Origin 2000 systems.  It uses the ROMIO version of MPIO interface
+   for parallel I/O supports.
+
++) Useful URL's.
+   Parallel HDF webpage: "http://hdf.ncsa.uiuc.edu/Parallel_HDF/"
+   ROMIO webpage: "http://www.mcs.anl.gov/home/thakur/romio/"
+
++) Some to-do items for future releases
+      support for Intel Teraflop platform.
+      support for unlimited dimension datasets.
+      support for file access via a communicator besides MPI_COMM_WORLD.
+      support for collective access to datasets.
+      support for independent create/open of datasets.
