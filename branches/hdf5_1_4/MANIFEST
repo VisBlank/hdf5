@@ -590,7 +590,9 @@
 ./fortran/test/fflush1.f90
 ./fortran/test/fflush2.f90
 ./fortran/test/fortranlib_test.f90
-./fortran/test/hdf5test.f90
+./fortran/test/t.c
+./fortran/test/t.h
+./fortran/test/tf.f90
 ./fortran/test/tH5A.f90
 ./fortran/test/tH5D.f90
 ./fortran/test/tH5E.f90
@@ -606,7 +608,6 @@
 ./fortran/testpar/Dependencies
 ./fortran/testpar/Makefile.in
 ./fortran/testpar/ptesthdf5_fortran.f90
-./fortran/testpar/tcheck.f90
 ./fortran/testpar/thdf5.f90
 ./fortran/testpar/thyperslab_wr.f90
 
