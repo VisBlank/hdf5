@@ -78,7 +78,8 @@ New Features
 
       Functions h5dvlen_get_max_len_f, h5dwrite_vl_f, and h5dread_vl_f support
       VL Length C APIs functionality for integer, real and string datatypes.
-      See HDF5 Reference Manual for the function description.
+      See HDF5 Reference Manual and HDF5 FORTRAN90 User's Notes for more
+      information and for the functions description.
       
  
     o Performance
@@ -115,7 +116,8 @@ New Features
   
   o Misc.
   =========================================
-
+    HDF5 1.4.5 works with Portland Group Compilers (pgcc, pgf90 and pgCC 
+    version 4.0-2) on Linux 2.4 
 
 Bug Fixes since HDF5-1.4.4 Release
 ==================================
@@ -144,7 +146,6 @@ Bug Fixes since HDF5-1.4.4 Release
 Performance Improvements
 ========================
 
-
 Documentation
 =============
 
@@ -152,16 +153,9 @@ Documentation
 Platforms Tested
 ================
 
-    AIX 4.3.3.0 (IBM SP powerpc)  xlc 5.0.2.0
-                                  mpcc_r 5.0.2.0
-                                  xlf 07.01.0000.0002
-                                  mpxlf 07.01.0000.0002
-    AIX 4.3 (IBM SP RS6000)       C for AIX Compiler, Version 5.0.2.0
-                                  xlf 7.1.0.2
-                                  poe 3.1.0.12 (includes mpi)
-    AIX 5.1                       xlc 5.0.2.0 
-                                  xlf 07.01.0000.0002
-                                  mpcc_r 5.0.2.0; mpxlf_r 07.01.0000.0002
+    AIX 5.1  (32 and 64-bit)      C for AIX Compiler, Version 6
+                                  xlf 8.1.0.2
+                                  poe 3.2.0.11
     Cray T3E sn6606 2.0.6.08      Cray Standard C Version 6.6.0.1.3 
                                   Cray Fortran Version 3.6.0.0.12 
     Cray SV1 10.0.1. 0            Cray Standard C Version 6.6.0.1.3
@@ -169,14 +163,9 @@ Platforms Tested
     Cray T90IEEE 10.0.1.01u       Cray Standard C Version 6.4.0.2.3
                                   Cray Fortran Version 3.4.0.3
     FreeBSD 4.7                   gcc 2.95.4
-                                  g++ 2.95.4
-    HP-UX B.10.20                 HP C  HP92453-01 A.10.32.30
-                                  HP F90 v2.3
+                                  g++ 2.95.5
     HP-UX B.11.00                 HP C  HP92453-01 A.11.01.20 
                                   HP F90 v2.4
-    HP-UX B.11.00 SysV            HP C  HP92453-01 A.11.01.20 
-                                  HP F90 v2.4
-                                  HP MPI [not a product] (03/24/2000) B6060BA
     IRIX 6.5                      MIPSpro cc 7.30
     IRIX64 6.5 (64 & n32)         MIPSpro cc 7.3.1.3m
                                   F90 MIPSpro 7.3.1.3m (64 only)
@@ -184,11 +173,10 @@ Platforms Tested
                                   g++ 2.95.3
                                   Intel(R) C++ Version 6.0
                                   Intel(R) Fortran Compiler Version 6.0
-                                  MPICH 1.2.2
+                                  PGI compilers (pgcc, pgf90, pgCC) version 4.0-2
     Linux 2.2.18smp               gcc 2.95.2
-                                  gcc 2.95.2 with mpich 1.2.1
                                   g++ 2.95.2
-                                  pgf90 3.2-4
+                                  pgf90  3.2-4
     OSF1 V5.1                     Compaq C V6.4-014
                                   Compaq Fortran X5.4A-1684
                                   gcc version 3.0 for C++
@@ -208,19 +196,21 @@ Platforms Tested
                                         109508-04 2001/07/11
     TFLOPS r1.0.4 v4.2.2 i386     pgcc Rel 3.1-4i with mpich-1.2.3 with
                                           local modifications
-    IA-32 Linux 2.4.9             cc Intel 5.0.1
-                                  gcc 2.96
-                                  Intel(R) C++ Version 6.0
-                                  Intel(R) Fortran Compiler Version 6.0
+    IA-32 Linux 2.4.9             gcc 2.96
+                                  Intel(R) C++ Version 7.0
+                                  Intel(R) Fortran Compiler Version 7.0
                                   
     IA-64 Linux 2.4.16 ia64       gcc version 2.96 20000731
-                                  Intel(R) C++ Version 6.0
-                                  Intel(R) Fortran Compiler Version 6.0
+                                  Intel(R) C++ Version 7.0
+                                  Intel(R) Fortran Compiler Version 7.0
     Windows 2000 (NT5.0)          MSVC++ 6.0
                                   DEC Visual Fortran 6.0
-    Windows NT4.0                 MSVC++ 6.0
-                                  DEC Visual Fortran 6.0
+    Windows XP                    .NET
     Windows NT4.0                 Code Warrior 6.0
+    MAC OS X                      Darwin 6.2
+                                  gcc and g++ Apple Computer, Inc. GCC 
+                                  version 1161, based on gcc version 3.1
+                                  
 
 
 Supported Configuration Features Summary
@@ -235,11 +225,10 @@ Supported Configuration Features Summary
 
     Platform           C  C         F90  F90      C++  Shared       zlib  Tools
                           parallel       parallel      libraries(5)
-    Solaris2.6         y  n         y    n        y    y            y     y
-    Solaris2.7 64      y  y (1)     y    n        y    y            y     y
-    Solaris2.7 32      y  y (1)     y    n        y    y            y     y
-    Solaris2.8 64      y  n         y    n        y    y            y     y
-    Solaris2.8 32      y  n         y    n        y    y            y     y
+    Solaris2.7 64      y  y (1)     y    y (1)    y    y            y     y
+    Solaris2.7 32      y  y (1)     y    y (1)    y    y            y     y
+    Solaris2.8 64      y  n         y    y (1)    y    y            y     y
+    Solaris2.8 32      y  n         y    y (1)    y    y            y     y
     IRIX6.5            y  y (1)     n    n        n    y            y     y
     IRIX64_6.5 64      y  y (2)     y    y        n    y            y     y
     IRIX64_6.5 n32     y  y (2)     n    n        n    y            y     y
@@ -264,7 +253,6 @@ Supported Configuration Features Summary
 
     Platform           1.2            static-  Thread-  SRB  GASS  STREAM-
                        compatibility  exec     safe                VFD
-    Solaris2.6         y              x        y        n    n     y
     Solaris2.7 64      y              x        y        n    n     y
     Solaris2.7 32      y              x        y        n    n     y
     Solaris2.8 64      n              n        n        n    n     y
@@ -291,7 +279,7 @@ Supported Configuration Features Summary
     Linux 2.4 IA64     y              y        n        n    n     y
 
 
-    Footnotes: (1) Using mpich.
+    Footnotes: (1) Using mpich1.2.4
                (2) Using mpt and mpich.
                (3) When configured with static-exec enabled, tests fail in 
                    serial mode.
@@ -338,42 +326,18 @@ Known Problems
       be off by default.  One may turn it on by setting the environment 
       variable HDF5_MPI_OPT_TYPES to a non-zero value such as 1.
 
-    * When Intel compilers are used (icc or ecc), you will need to 
-      modify the generated "libtool" program after configuration is finished.
-      On or around line 104 of the libtool file, there are lines which 
-      look like:
+    * On OSF1 v5.1 and IA32 h5dumpgentst program that generates test files
+      for h5dump, gives segmentation fault.
 
-          # How to pass a linker flag through the compiler.
-          wl=""
+    * On Windows platforms, C and Fortran tests fail with the debug DLL version
+      of the Library if built from all_withf90.zip file.
 
-      Change these lines to this:
+    * Fortran external dataset test fails on Linux 2.4 with pgf90 compiler.
 
-          # How to pass a linker flag through the compiler.
-          wl="-Wl,"
-
-      UPDATE: This is now done automatically by the configure script. However,
-      if you still experience a problem, you may want to check this line in
-      the libtool file and make sure that it has the correct value.
-
-    * To build the Fortran library using Intel compilerso on Linux, one has to 
-          x Use -fpp -DDEC$=DEC_ -DMS$=MS_ compiler flags to disable
-            !DEC and !MS compiler directives.
-          x The build will fail in the fortran/test directory and then in the
-            fortran/examples directory; to proceed, edit the work.pcl files in
-            those directories to contain two lines
-
-                    work.pc
-                    ../src/work.pc 
-          x Do the same in fortran/examples directory
-
-    * To build the Fortran library on IA64 use
-                   setenv CC "ecc -DIA64"
-                   setenv F9X "efc -fpp -DDEC$=DEC_ -DMS$=MS_ -cl,work.pcl"
-            before running configure and see the steps described above.
-
-    * Fortran external dataset test fails on Linux 2.4
     * On Cray T3E (sn6606 2.0.6.08 unicosmk CRAY T3E) with Cray Standard C Version 6.6.0.1.3
       compiler optimization causes errors in many HDF5 Library tests. Use -g -h zero flags
       to build HDF5 Library. 
 
+    * For configuration, building and testing with Intel and PGI compilers see
+      corresponding section in INSTALL file.
 
