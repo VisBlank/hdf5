@@ -1119,7 +1119,7 @@ dump_dataspace(hid_t space)
  *-------------------------------------------------------------------------
  */
 static herr_t
-dump_attr(hid_t attr, const char *attr_name, void * UNUSED op_data)
+dump_attr(hid_t attr, const char *attr_name, void UNUSED * op_data)
 {
     hid_t       attr_id, type, space;
     herr_t      ret = SUCCEED;
@@ -1999,7 +1999,7 @@ set_output_file(const char *fname)
  *-------------------------------------------------------------------------
  */
 static void
-handle_attributes(hid_t fid, char *attr, void * UNUSED data)
+handle_attributes(hid_t fid, char *attr, void UNUSED * data)
 {
     dump_selected_attr(fid, attr);
 }
@@ -2259,7 +2259,7 @@ handle_datasets(hid_t fid, char *dset, void *data)
  *-------------------------------------------------------------------------
  */
 static void
-handle_groups(hid_t fid, char *group, void * UNUSED data)
+handle_groups(hid_t fid, char *group, void UNUSED * data)
 {
     H5G_stat_t  statbuf;
     hid_t       gid;
@@ -2304,7 +2304,7 @@ handle_groups(hid_t fid, char *group, void * UNUSED data)
  *-------------------------------------------------------------------------
  */
 static void
-handle_links(hid_t fid, char *links, void * UNUSED data)
+handle_links(hid_t fid, char *links, void UNUSED * data)
 {
     H5G_stat_t  statbuf;
 
@@ -2360,7 +2360,7 @@ handle_links(hid_t fid, char *links, void * UNUSED data)
  *-------------------------------------------------------------------------
  */
 static void
-handle_datatypes(hid_t fid, char *type, void * UNUSED data)
+handle_datatypes(hid_t fid, char *type, void UNUSED * data)
 {
     hid_t       type_id;
 
@@ -3201,7 +3201,7 @@ lookup_ref_path(hobj_ref_t * ref)
  *-------------------------------------------------------------------------
  */
 static herr_t
-fill_ref_path_table(hid_t group, const char *name, void * UNUSED op_data)
+fill_ref_path_table(hid_t group, const char *name, void UNUSED * op_data)
 {
     hid_t                   obj;
     char                   *tmp;
@@ -3981,7 +3981,7 @@ xml_dump_dataspace(hid_t space)
  *-------------------------------------------------------------------------
  */
 static void
-xml_dump_data(hid_t obj_id, int obj_data, struct subset_t * UNUSED sset)
+xml_dump_data(hid_t obj_id, int obj_data, struct subset_t UNUSED * sset)
 {
     h5dump_t               *outputformat = &xml_dataformat;
     int                     status = -1;
@@ -4085,7 +4085,7 @@ xml_dump_data(hid_t obj_id, int obj_data, struct subset_t * UNUSED sset)
  *-------------------------------------------------------------------------
  */
 static herr_t
-xml_dump_attr(hid_t attr, const char *attr_name, void * UNUSED op_data)
+xml_dump_attr(hid_t attr, const char *attr_name, void UNUSED * op_data)
 {
     hid_t   attr_id, type, space;
     char   *t_aname = xml_escape_the_name(attr_name);
@@ -4596,7 +4596,7 @@ xml_print_strs(hid_t did, int source)
     hid_t                   type, space;
     void                   *buf;
     char                   *bp;
-    char                   *onestring;
+    char                   *onestring=NULL;
     hsize_t                 ssiz;
     size_t                  tsiz, str_size;
     size_t                  i;
@@ -4743,7 +4743,7 @@ check_compression(hid_t dcpl)
  *-------------------------------------------------------------------------
  */
 static void
-xml_dump_dataset(hid_t did, const char *name, struct subset_t * UNUSED sset)
+xml_dump_dataset(hid_t did, const char *name, struct subset_t UNUSED * sset)
 {
     hid_t                   type, space;
     hid_t                   dcpl;

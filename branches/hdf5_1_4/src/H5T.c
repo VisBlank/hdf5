@@ -2047,7 +2047,6 @@ H5T_is_variable_str(H5T_t *dt)
     if(H5T_VLEN == dt->type && H5T_VLEN_STRING == dt->u.vlen.type)
         ret_value = TRUE;
 
-done:
     FUNC_LEAVE(ret_value);   
 }
 

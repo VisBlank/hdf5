@@ -1057,7 +1057,7 @@ test_select_hyper_stride(hid_t xfer_plist)
         tbuf2=rbuf+loc2[i];
         if(*tbuf!=*tbuf2) {
             printf("%d: hyperslab values don't match!, loc1[%d]=%d, loc2[%d]=%d\n",__LINE__,i,(int)loc1[i],i,(int)loc2[i]);
-#ifndef QAK
+#ifdef QAK
             printf("wbuf=%p, tbuf=%p, rbuf=%p, tbuf2=%p\n",wbuf,tbuf,rbuf,tbuf2);
             printf("*tbuf=%d, *tbuf2=%d\n",(int)*tbuf,(int)*tbuf2);
 #endif /* QAK */

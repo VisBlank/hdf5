@@ -122,7 +122,7 @@ H5S_none_init(const struct H5O_layout_t UNUSED *layout,
  *-------------------------------------------------------------------------
  */
 static hsize_t
-H5S_none_favail(const H5S_t *space, const H5S_sel_iter_t *sel_iter, hsize_t UNUSED max)
+H5S_none_favail(const H5S_t UNUSED *space, const H5S_sel_iter_t UNUSED *sel_iter, hsize_t UNUSED max)
 {
     FUNC_ENTER(H5S_none_favail, 0);
 
@@ -157,12 +157,12 @@ H5S_none_favail(const H5S_t *space, const H5S_sel_iter_t *sel_iter, hsize_t UNUS
  *-------------------------------------------------------------------------
  */
 static hsize_t
-H5S_none_fgath (H5F_t *f, const struct H5O_layout_t *layout,
+H5S_none_fgath (H5F_t UNUSED *f, const struct H5O_layout_t UNUSED *layout,
 	       const struct H5O_pline_t UNUSED *pline,
 	       const struct H5O_fill_t UNUSED *fill, const struct H5O_efl_t UNUSED *efl,
-	       size_t elmt_size, const H5S_t *file_space,
-	       H5S_sel_iter_t *file_iter, hsize_t nelmts, hid_t UNUSED dxpl_id,
-	       void *buf/*out*/)
+	       size_t UNUSED elmt_size, const H5S_t UNUSED *file_space,
+	       H5S_sel_iter_t UNUSED *file_iter, hsize_t UNUSED nelmts, hid_t UNUSED dxpl_id,
+	       void UNUSED *buf/*out*/)
 {
     FUNC_ENTER(H5S_none_fgath, 0);
 
@@ -198,11 +198,11 @@ H5S_none_fgath (H5F_t *f, const struct H5O_layout_t *layout,
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5S_none_fscat (H5F_t *f, const struct H5O_layout_t *layout,
+H5S_none_fscat (H5F_t UNUSED *f, const struct H5O_layout_t UNUSED *layout,
 	       const struct H5O_pline_t UNUSED *pline, const struct H5O_fill_t UNUSED *fill,
-	       const struct H5O_efl_t UNUSED *efl, size_t elmt_size,
-	       const H5S_t *file_space, H5S_sel_iter_t *file_iter,
-	       hsize_t nelmts, hid_t UNUSED dxpl_id, const void *buf)
+	       const struct H5O_efl_t UNUSED *efl, size_t UNUSED elmt_size,
+	       const H5S_t UNUSED *file_space, H5S_sel_iter_t UNUSED *file_iter,
+	       hsize_t UNUSED nelmts, hid_t UNUSED dxpl_id, const void UNUSED *buf)
 {
     FUNC_ENTER(H5S_none_fscat, FAIL);
 
@@ -238,9 +238,9 @@ H5S_none_fscat (H5F_t *f, const struct H5O_layout_t *layout,
  *-------------------------------------------------------------------------
  */
 static hsize_t
-H5S_none_mgath (const void *_buf, size_t elmt_size,
-	       const H5S_t UNUSED *mem_space, H5S_sel_iter_t *mem_iter,
-	       hsize_t nelmts, void *tconv_buf/*out*/)
+H5S_none_mgath (const void UNUSED *_buf, size_t UNUSED elmt_size,
+	       const H5S_t UNUSED *mem_space, H5S_sel_iter_t UNUSED *mem_iter,
+	       hsize_t UNUSED nelmts, void UNUSED *tconv_buf/*out*/)
 {
     FUNC_ENTER(H5S_none_mgath, 0);
 
@@ -274,9 +274,9 @@ H5S_none_mgath (const void *_buf, size_t elmt_size,
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5S_none_mscat (const void *tconv_buf, size_t elmt_size,
-	       const H5S_t UNUSED *mem_space, H5S_sel_iter_t *mem_iter,
-	       hsize_t nelmts, void *_buf/*out*/)
+H5S_none_mscat (const void UNUSED *tconv_buf, size_t UNUSED elmt_size,
+	       const H5S_t UNUSED *mem_space, H5S_sel_iter_t UNUSED *mem_iter,
+	       hsize_t UNUSED nelmts, void UNUSED *_buf/*out*/)
 {
     FUNC_ENTER (H5S_none_mscat, FAIL);
 
