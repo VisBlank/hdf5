@@ -7429,19 +7429,22 @@ fi;
 case "X-$enable_production" in
   X-|X-yes)
     enable_production="yes"
+
+            CFLAGS_temp=""
+    if test -n "$CFLAGS"; then
+      for d in $CFLAGS ; do
+        if test "X$d" != "X-g"; then
+          CFLAGS_temp="$CFLAGS_temp $d"
+        fi
+      done
+      CFLAGS=$CFLAGS_temp
+    fi
+
     echo "$as_me:$LINENO: result: \"production\"" >&5
 echo "${ECHO_T}\"production\"" >&6
     CONFIG_MODE=production
     CFLAGS="$CFLAGS $PROD_CFLAGS"
     CPPFLAGS="$CPPFLAGS $PROD_CPPFLAGS"
-
-                if test "X$CFLAGS" = "X-g"; then
-      CFLAGS=""
-    fi
-
-    CFLAGS="`echo $CFLAGS | sed -e 's/ -g / /g'`"
-    CFLAGS="`echo $CFLAGS | sed -e 's/^-g / /'`"
-    CFLAGS="`echo $CFLAGS | sed -e 's/ -g$//'`"
     ;;
   X-no)
     enable_production="no"
