@@ -170,6 +170,7 @@ main(int argc, char *argv[])
     InitTest("reference", test_reference, cleanup_reference,  "References");
     InitTest("vltypes", test_vltypes, cleanup_vltypes,  "Variable-Length Datatypes");
     InitTest("iterate", test_iterate, cleanup_iterate,  "Group & Attribute Iteration");
+    InitTest("compat", test_compat, cleanup_compat,  "Datatype Compatibility");
 
     Verbosity = 4;              /* Default Verbosity is Low */
     H5get_libversion(&major, &minor, &release);
