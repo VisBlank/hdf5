@@ -395,7 +395,7 @@ main(void)
 
     /* Metadata cache parameters */
     int mdc_nelmts;
-    size_t rdcc_nelmts;
+    int rdcc_nelmts;
     size_t rdcc_nbytes;
     double rdcc_w0;
 
