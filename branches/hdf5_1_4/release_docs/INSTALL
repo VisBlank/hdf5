@@ -563,6 +563,9 @@
           x Use -fpp -DDEC$=DEC_ -DMS$=MS_ compiler flags to disable
             DEC and MS compiler directives in source files in fortran/src, fortran/test 
             and fortran/examples directories.
+	    e.g., setenv F9X 'ifc -fpp -DDEC$=DEC_ -DMS$=MS_'
+	    (do not use double quotes since $ is interpreted in them.)
+
           x If Version 6.0 of Fortran compiler is used, build fails in 
             the fortran/test directory and then in the
             fortran/examples directory; to proceed, edit the work.pcl files in
@@ -601,7 +604,8 @@
       if you still experience a problem, you may want to check this line in
       the libtool file and make sure that it has the correct value.
 
-      To build HDF5 C++ Library with pgCC set environment variable CXX to "pgCC -tlocal"
+      To build HDF5 C++ Library with pgCC (version 4.0 and later), set
+      environment variable CXX to "pgCC -tlocal"
          setenv CXX "pgCC -tlocal"
       before running the configure script.
 
