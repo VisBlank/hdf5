@@ -3500,6 +3500,7 @@ xml_print_datatype(hid_t type)
     size_t                  mpos;
     size_t                  msize;
     int                     nmembs;
+    htri_t                  is_vlstr=FALSE;
 
     switch (H5Tget_class(type)) {
     case H5T_INTEGER:
@@ -3594,7 +3595,8 @@ xml_print_datatype(hid_t type)
 	size = H5Tget_size(type);
 	str_pad = H5Tget_strpad(type);
 	cset = H5Tget_cset(type);
-
+        is_vlstr = H5Tis_variable_str(type);
+        
 	indentation(indent);
 	printf("<AtomicType>\n");
 	indent += COL;
@@ -3605,7 +3607,10 @@ xml_print_datatype(hid_t type)
 	} else {
 	    printf("unknown_cset\" ");
 	}
-	printf("StrSize=\"%d\" StrPad=\"", (int) size);
+        if(is_vlstr)
+            printf("StrSize=\"H5T_VARIABLE\" StrPad=\"");
+        else                                   
+            printf("StrSize=\"%d\" StrPad=\"", (int) size);
 	if (str_pad == H5T_STR_NULLTERM) {
 	    printf("H5T_STR_NULLTERM\"/>\n");
 	} else if (str_pad == H5T_STR_NULLPAD) {
