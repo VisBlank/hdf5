@@ -994,6 +994,7 @@ Optional Features:
   --enable-static=PKGS  build static libraries default=yes
   --enable-fast-install=PKGS  optimize for fast installation default=yes
   --disable-libtool-lock  avoid locking (might break parallel builds)
+  --enable-production     Determines how to run the compiler.
   --enable-static-exec    Build only statically linked executables default=no
   --enable-linux-lfs      Enable support for large (64-bit) files on Linux.
                           [default=check]
@@ -3887,7 +3888,7 @@ test "x$enable_libtool_lock" != xno && enable_libtool_lock=yes
 case $host in
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 3890 "configure"' > conftest.$ac_ext
+  echo '#line 3891 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -4428,7 +4429,7 @@ chmod -w .
 save_CFLAGS="$CFLAGS"
 CFLAGS="$CFLAGS -o out/conftest2.$ac_objext"
 compiler_c_o=no
-if { (eval echo configure:4431: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>out/conftest.err; } && test -s out/conftest2.$ac_objext; then
+if { (eval echo configure:4432: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>out/conftest.err; } && test -s out/conftest2.$ac_objext; then
   # The compiler can only warn and ignore the option if not recognized
   # So say no if there are warnings
   if test -s out/conftest.err; then
@@ -6239,7 +6240,7 @@ else
     lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 6242 "configure"
+#line 6243 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -6337,7 +6338,7 @@ else
     lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 6340 "configure"
+#line 6341 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -7222,6 +7223,45 @@ echo "$as_me: error: ${MAKE-make} requires the build and source directories to b
   done
   rm maketest
 fi
+
+echo "$as_me:$LINENO: checking for production mode" >&5
+echo $ECHO_N "checking for production mode... $ECHO_C" >&6
+# Check whether --enable-production or --disable-production was given.
+if test "${enable_production+set}" = set; then
+  enableval="$enable_production"
+
+fi;
+
+case "X-$enable_production" in
+  X-yes)
+    echo "$as_me:$LINENO: result: \"production\"" >&5
+echo "${ECHO_T}\"production\"" >&6
+    CONFIG_MODE=production
+    CFLAGS="$CFLAGS $PROD_CFLAGS"
+    CPPFLAGS="$CPPFLAGS $PROD_CPPFLAGS"
+
+        CFLAGS="`echo $CFLAGS | sed -e s/-g//g`"
+    ;;
+  X-|X-no)
+    echo "$as_me:$LINENO: result: \"development\"" >&5
+echo "${ECHO_T}\"development\"" >&6
+    CONFIG_MODE=development
+    CFLAGS="$CFLAGS $DEBUG_CFLAGS"
+    CPPFLAGS="$CPPFLAGS $DEBUG_CPPFLAGS"
+    ;;
+  X-pg|X-profile)
+    echo "$as_me:$LINENO: result: \"profile\"" >&5
+echo "${ECHO_T}\"profile\"" >&6
+    CONFIG_MODE=profile
+    CFLAGS="$CXXFLAGS $PROFILE_CFLAGS"
+    CPPFLAGS="$CPPFLAGS $PROFILE_CPPFLAGS"
+    ;;
+  *)
+    echo "$as_me:$LINENO: result: \"user-defined\"" >&5
+echo "${ECHO_T}\"user-defined\"" >&6
+    CONFIG_MODE="$X-enableval"
+    ;;
+esac
 
 echo "$as_me:$LINENO: checking if should build only statically linked executables" >&5
 echo $ECHO_N "checking if should build only statically linked executables... $ECHO_C" >&6
