@@ -86,7 +86,7 @@ typedef struct H5FD_mpiposix_t {
     haddr_t	last_eoa;	/* Last known end-of-address marker	*/
     haddr_t	pos;		/* Current file I/O position	        */
     int		op;		/* Last file I/O operation		*/
-    int         naccess;        /* Number of file accesses (read or write) */
+    hsize_t	naccess;	/* Number of (write) accesses to file   */
     size_t      blksize;        /* Block size of file system            */
 #ifndef WIN32
     /*
@@ -1060,7 +1060,7 @@ H5FD_mpiposix_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
                 HMPI_GOTO_ERROR(FAIL, "MPI_Barrier failed", mpi_code);
         } /* end if */
 
-#if 0
+#if 1
         /* Only p<round> will do the actual write if all procs in comm write same data */
         if (H5_mpiposix_1_metawrite_g) {
             if (file->mpi_rank != file->mpi_round)
