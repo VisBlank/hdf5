@@ -178,8 +178,8 @@ case "$cc_vendor-$cc_version" in
 	;;
 
     gcc-3*)
-        # Replace -ansi flag with -std=c99 flag
-	CFLAGS="`echo $CFLAGS | sed -e 's/-ansi/-std=c99/g'`"
+        # Replace -ansi flag with -std=gnu99 flag
+	CFLAGS="`echo $CFLAGS | sed -e 's/-ansi/-std=gnu99/g'`"
 
         # Append warning flags from gcc-2.95.* case
 	CFLAGS="$CFLAGS -Wno-long-long"
