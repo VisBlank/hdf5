@@ -56,6 +56,12 @@ main(int argc, char *argv[])
     herr_t      status = SUCCEED;
     haddr_t     extra;
 
+    if (argc == 1) {
+	fprintf(stderr,
+		"Usage: %s filename [signature addr [extra]]\n", argv[0]);
+	HDexit(1);
+    }
+
     /*
      * Open the file and get the file descriptor.
      */
