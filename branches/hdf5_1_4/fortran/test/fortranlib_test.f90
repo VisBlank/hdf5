@@ -41,6 +41,8 @@
      INTEGER :: identifier_total_error = 0
      INTEGER :: group_total_error = 0
      INTEGER :: error_total_error = 0
+     INTEGER :: vl_total_error = 0
+     INTEGER :: majnum, minnum, relnum
      CHARACTER(LEN=8) error_string
      CHARACTER(LEN=8) :: success = ' PASSED '
      CHARACTER(LEN=8) :: failure = '*FAILED*'
@@ -52,6 +54,22 @@
      write(*,*) '                       ==========================                            '
      write(*,*) '                              FORTRAN tests '
      write(*,*) '                       ==========================                            '
+
+     CALL h5get_libversion_f(majnum, minnum, relnum, total_error)
+     if(total_error .eq. 0) then
+
+     write(*, '(" FORTRANLIB_TEST is linked with HDF5 Library version ")', advance="NO")
+     write(*, '(I1)', advance="NO") majnum
+     write(*, '(".")', advance="NO") 
+     write(*, '(I1)', advance="NO") minnum
+     write(*, '(" release ")', advance="NO")
+     write(*, '(I3)') relnum
+     else
+        total_error = total_error + 1
+     endif
+     write(*,*)
+!     CALL h5check_version_f(1,4,4,total_error)
+
 !     write(*,*) '========================================='
 !     write(*,*) 'Testing FILE Interface                   '
 !     write(*,*) '========================================='
@@ -240,6 +258,17 @@
      write(*, fmt = '(59x,a)', advance = 'no')  ' '
      write(*, fmt = e_format) error_string
      total_error = total_error + error_total_error 
+
+     error_string = failure
+     cleanup = .FALSE.
+     CALL vl_test_integer(cleanup, vl_total_error)
+     CALL vl_test_real(cleanup, vl_total_error)
+     CALL vl_test_string(cleanup, vl_total_error)
+     IF (vl_total_error == 0) error_string = success
+     write(*, fmt = '(11a)', advance = 'no') ' VL test'     
+     write(*, fmt = '(62x,a)', advance = 'no')  ' '
+     write(*, fmt = e_format) error_string
+     total_error = total_error + vl_total_error 
 
      write(*,*)
 
