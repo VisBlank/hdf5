@@ -2495,6 +2495,13 @@ printf("%s: check 2.0, src_type_size=%d, dst_type_size=%d, target_size=%d\n",FUN
 #ifdef QAK
 	printf("%s: check 6.4\n",FUNC);
 #endif
+#ifdef OLD_WAY
+/*
+ * This was taken out because it can be called in a parallel program with
+ * independent access, causing the metadata cache to get corrupted. Its been
+ * disabled for all types of access (serial as well as parallel) to make the
+ * modification time consistent for all programs. -QAK
+ */
     /*
      * Update modification time.  We have to do this explicitly because
      * writing to a dataset doesn't necessarily change the object header.
@@ -2503,6 +2510,7 @@ printf("%s: check 2.0, src_type_size=%d, dst_type_size=%d, target_size=%d\n",FUN
         HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL,
 		    "unable to update modification time");
     }
+#endif /* OLD_WAY */
 
 done:
 #ifdef H5_HAVE_PARALLEL
