@@ -764,6 +764,13 @@ H5F_mpio_tas_allsame(H5F_low_t *lf, hbool_t newval )
  * 	Robb Matzke, 19990421
  *	Changed xfer_mode to xfer_parms for all H5F_*_write() callbacks.
  *
+ *      Albert Cheng, 2000-10-18
+ *	(This was applied to v1.3.x in 1999-12-19.)
+ *      When only-p0-write-allsame-data, p0 Bcasts the
+ *      ret_value to other processes.  This prevents
+ *      a racing condition (that other processes try to
+ *      read the file before p0 finishes writing) and also
+ *      allows all processes to report the same ret_value.
  *-------------------------------------------------------------------------
  */
 static herr_t
@@ -778,6 +785,7 @@ H5F_mpio_write(H5F_low_t *lf, H5F_access_t *access_parms,
     int		use_types_this_time, used_types_last_time;
     char        mpierrmsg[MPI_MAX_ERROR_STRING];
     hbool_t     allsame;
+    herr_t      ret_value=SUCCEED;
 
     FUNC_ENTER(H5F_mpio_write, FAIL);
 #ifdef H5Fmpio_DEBUG
@@ -819,7 +827,7 @@ H5F_mpio_write(H5F_low_t *lf, H5F_access_t *access_parms,
 		fprintf(stdout, "  in H5F_mpio_write (write omitted)\n" );
 	    }
 #endif
-	    goto done;			/* skip the actual write */
+	    HGOTO_DONE(SUCCEED);	/* skip the actual write */
 	}
     }
 
@@ -835,7 +843,7 @@ H5F_mpio_write(H5F_low_t *lf, H5F_access_t *access_parms,
 	file_type = access_parms->u.mpio.ftype;
 	if (SUCCEED !=
 	    H5F_haddr_to_MPIOff(&(access_parms->u.mpio.disp), &mpi_disp)) {
-	    HRETURN_ERROR(H5E_IO, H5E_BADTYPE, FAIL,
+	    HGOTO_ERROR(H5E_IO, H5E_BADTYPE, FAIL,
 			  "couldn't convert addr to MPIOffset" );
 	}
     } else {
@@ -856,7 +864,7 @@ H5F_mpio_write(H5F_low_t *lf, H5F_access_t *access_parms,
 				    "native",  access_parms->u.mpio.info );
 	if (MPI_SUCCESS != mpierr) {
 	    MPI_Error_string( mpierr, mpierrmsg, &msglen );
-	    HRETURN_ERROR(H5E_IO, H5E_MPI, FAIL, mpierrmsg );
+	    HGOTO_ERROR(H5E_IO, H5E_MPI, FAIL, mpierrmsg );
 	}
     }
     /* We always set the use_types flag to 0 because the 
@@ -883,11 +891,11 @@ H5F_mpio_write(H5F_low_t *lf, H5F_access_t *access_parms,
 	break;
 
     default:
-	HRETURN_ERROR(H5E_IO, H5E_BADVALUE, FAIL, "invalid file access mode");
+	HGOTO_ERROR(H5E_IO, H5E_BADVALUE, FAIL, "invalid file access mode");
     }
     if (MPI_SUCCESS != mpierr) {
         MPI_Error_string( mpierr, mpierrmsg, &msglen );
-	HRETURN_ERROR(H5E_IO, H5E_WRITEERROR, FAIL, mpierrmsg );
+	HGOTO_ERROR(H5E_IO, H5E_WRITEERROR, FAIL, mpierrmsg );
     }
 
     /* How many bytes were actually written? */
@@ -900,7 +908,7 @@ H5F_mpio_write(H5F_low_t *lf, H5F_access_t *access_parms,
 #endif
     if (MPI_SUCCESS != mpierr) {
         MPI_Error_string( mpierr, mpierrmsg, &msglen );
-	HRETURN_ERROR(H5E_IO, H5E_MPI, FAIL, mpierrmsg );
+	HGOTO_ERROR(H5E_IO, H5E_MPI, FAIL, mpierrmsg );
     }
 
 #define MPI_KLUGE0202
@@ -911,16 +919,22 @@ H5F_mpio_write(H5F_low_t *lf, H5F_access_t *access_parms,
 #endif
 
     if ((bytes_written<0) || (bytes_written > size_i)) {
-	HRETURN_ERROR(H5E_IO, H5E_WRITEERROR, FAIL,
+	HGOTO_ERROR(H5E_IO, H5E_WRITEERROR, FAIL,
 			"MPI_Get_count returned invalid count" );
     }
 
     done:
+    /* if only p0 writes, need to boardcast the ret_value to other processes */
+    if (allsame && H5_mpi_1_metawrite_g) {
+	if (MPI_SUCCESS !=
+	    MPI_Bcast(&ret_value, sizeof(ret_value), MPI_BYTE, 0, access_parms->u.mpio.comm))
+          HRETURN_ERROR(H5E_INTERNAL, H5E_MPI, NULL, "MPI_Bcast failed");
+    }
 #ifdef H5Fmpio_DEBUG
     if (H5F_mpio_Debug[(int)'t'])
     	fprintf(stdout, "Leaving H5F_mpio_write\n" );
 #endif
-    FUNC_LEAVE(SUCCEED);
+    FUNC_LEAVE(ret_value);
 } /* H5F_mpio_write */
 
 /*-------------------------------------------------------------------------
