@@ -1264,17 +1264,47 @@ dnl The POSIX struct aiocb has an aio_fildes member while the AIX
 dnl implementation lacks that member but passes a file descriptor as an
 dnl extra argument to aio_read() and aio_write().
 dnl
-AC_CHECK_LIB(rt, aio_write)
-AC_CHECK_HEADERS(aio.h)
-dnl AC_CHECK_MEMBER(struct aiocb.aio_fildes)      # Doesn't work as advertised
-AH_TEMPLATE(HAVE_STRUCT_AIOCB_AIO_FILDES,
-            [Define if the struct aiocb has an aio_fildes member])
-AC_MSG_CHECKING(for aio_fildes in struct aiocb)
-AC_TRY_COMPILE([#include <aio.h>],
-        [struct aiocb x; x.aio_fildes=1;],
-        AC_MSG_RESULT([yes (probably POSIX compliant)])
-           AC_DEFINE(HAVE_STRUCT_AIOCB_AIO_FILDES),
-        AC_MSG_RESULT([no (not POSIX compliant)]))
+AC_SUBST(ASYNCIO) ASYNCIO=yes
+AC_ARG_ENABLE([asyncio],
+              [AC_HELP_STRING([--enable-asyncio],
+                              [Build the Async I/O feature 
+                               [default=no]])])
+
+case "$enable_asyncio" in
+  yes)
+    dnl -lrt is needed by current version of Linux and is not supported yet.
+    dnl AC_CHECK_LIB(rt, aio_write, , unset ASYNCIO)
+    AC_CHECK_HEADERS(aio.h, , unset ASYNCIO)
+    dnl AC_CHECK_MEMBER(struct aiocb.aio_fildes)      # Doesn't work as advertised
+    AH_TEMPLATE(HAVE_STRUCT_AIOCB_AIO_FILDES,
+		[Define if the struct aiocb has an aio_fildes member])
+    AC_MSG_CHECKING(for aio_fildes in struct aiocb)
+    AC_TRY_COMPILE([#include <aio.h>],
+	    [struct aiocb x; x.aio_fildes=1;],
+	    AC_MSG_RESULT([yes (probably POSIX compliant)])
+	       AC_DEFINE(HAVE_STRUCT_AIOCB_AIO_FILDES),
+	    AC_MSG_RESULT([no (not POSIX compliant)]))
+
+    AC_MSG_CHECKING(for ASYNCIO)
+    if test -n "$ASYNCIO"; then
+      AC_MSG_RESULT(yes)
+      dnl hardset macro to activate Async I/O.
+      dnl should be replaced by HAVE_ASYNCIO or something like that.
+      CPPFLAGS="$CPPFLAGE -DUSE_ASYNC_IO"
+      AC_DEFINE(HAVE_ASYNCIO, 1,
+		[Define if the Async IO is defined])
+    else
+      AC_MSG_RESULT(no)
+    fi
+    ;;
+
+  no|*)
+    AC_MSG_CHECKING(for ASYNCIO)
+    AC_MSG_RESULT(suppressed)
+    unset ASYNCIO 
+    ;;
+
+esac
 
 dnl ----------------------------------------------------------------------
 dnl Check for functions.
