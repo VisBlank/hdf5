@@ -1054,7 +1054,11 @@ nh5dwrite_vl_real_c ( hid_t_f *dset_id ,  hid_t_f *mem_type_id, hid_t_f *mem_spa
   hid_t c_file_space_id;
   hid_t c_xfer_prp;
   herr_t status;
+#if defined (_UNICOS)
+  double *tmp;
+#else
   float *tmp;
+#endif 
   size_t max_len;
 
   hvl_t *c_buf;
@@ -1072,7 +1076,11 @@ nh5dwrite_vl_real_c ( hid_t_f *dset_id ,  hid_t_f *mem_type_id, hid_t_f *mem_spa
 
   c_buf = (hvl_t *)malloc(num_elem * sizeof(hvl_t)); 
   if (c_buf == NULL) return ret_value;
+#if defined (_UNICOS)
+  tmp = (double*)buf;
+#else
   tmp = (float *)buf; 
+#endif
   for (i=0; i < num_elem; i++) {
        c_buf[i].len = (size_t)len[i];  
        c_buf[i].p   = tmp;
@@ -1144,7 +1152,11 @@ nh5dread_vl_real_c ( hid_t_f *dset_id ,  hid_t_f *mem_type_id, hid_t_f *mem_spac
  if ( status >=0 ) {
   for (i=0; i < num_elem; i++) {
        len[i] = (size_t_f)c_buf[i].len;  
+#if defined (_UNICOS)
+       memcpy(&buf[i*max_len], c_buf[i].p, c_buf[i].len*sizeof(double));
+#else
        memcpy(&buf[i*max_len], c_buf[i].p, c_buf[i].len*sizeof(float));
+#endif
   }
  } 
   ret_value = num_elem;
