@@ -1,0 +1,60 @@
+#							-*- shell-script -*-
+#
+# This file is part of the HDF5 build script.  It is processed shortly
+# after configure starts and defines, among other things, flags for
+# the various compile modes.
+#
+# See BlankForm in this directory for details.
+
+# The default compiler is `cicc'
+if test "X-" =  "X-$CC"; then
+    CC=cicc
+    CC_BASENAME=cicc
+fi
+
+# The default archiver is `xar'
+AR=${AR:-xar}
+
+# There is no ranlib
+RANLIB=:
+
+# Additional libraries
+LDFLAGS="$LDFLAGS -lnoop_stubs"
+
+# How to run serial and parallel test programs
+RUNSERIAL="yod -sz 1"
+RUNPARALLEL="yod -sz 8"
+
+# What must *always* be present for things to compile correctly?
+#CPPFLAGS="$CPPFLAGS -I."
+
+# What compiler flags should be used for code development?
+DEBUG_CFLAGS=-g
+DEBUG_CPPFLAGS=
+
+# What compiler flags should be used for building a production
+# library?
+PROD_CFLAGS=-O
+PROD_CPPFLAGS=
+
+# What compiler flags enable code profiling?
+PROFILE_CFLAGS=-pg
+PROFILE_CPPFLAGS=
+
+# Turn off shared lib option.  It does not work for TFLOPS yet.
+enable_shared="${enable_shared:-no}"
+
+# Set this to the width required by printf() to print type `long
+# long'.  For instance, if the format would be `%lld' then set it to
+# `ll' or if the format would be `%qd' set it to `q'.
+hdf5_cv_printf_ll=${hdf5_cv_printf_ll='ll'}
+
+# Hard set sizeof_intn_t to 0 because they are not supported.
+ac_cv_sizeof_int16_t=${ac_cv_sizeof_int16_t='0'}
+ac_cv_sizeof_int32_t=${ac_cv_sizeof_int32_t='0'}
+ac_cv_sizeof_int64_t=${ac_cv_sizeof_int64_t='0'}
+ac_cv_sizeof_int8_t=${ac_cv_sizeof_int8_t='0'}
+ac_cv_sizeof_uint16_t=${ac_cv_sizeof_uint16_t='0'}
+ac_cv_sizeof_uint32_t=${ac_cv_sizeof_uint32_t='0'}
+ac_cv_sizeof_uint64_t=${ac_cv_sizeof_uint64_t='0'}
+ac_cv_sizeof_uint8_t=${ac_cv_sizeof_uint8_t='0'}
