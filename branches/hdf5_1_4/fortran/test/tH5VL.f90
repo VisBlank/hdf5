@@ -54,7 +54,7 @@
           !
           do i = 1, 6 
              do j = 1, 5 
-                vl_int_data(i,j) = -100
+                vl_int_data(j,i) = -100
              end do
           end do
 
@@ -102,7 +102,7 @@
           ! Write the dataset.
           !
           CALL h5dwrite_vl_f(dset_id, vltype_id, vl_int_data, data_dims, len, error)
-              CALL check("h5dwrite_f", error, total_error)
+              CALL check("h5dwrite_int_f", error, total_error)
 
 
           !   
@@ -140,7 +140,7 @@
           !
           CALL h5dread_vl_f(dset_id, vltype_id, vl_int_data_out, data_dims, len_out, &
                             error, mem_space_id = dspace_id, file_space_id = dspace_id)
-              CALL check("h5dread_f", error, total_error)
+              CALL check("h5dread_int_f", error, total_error)
               do i = 1, data_dims(2)
               do j = 1, len_out(i)
               if(vl_int_data(j,i) .ne. vl_int_data_out(j,i))  then
@@ -262,7 +262,7 @@
           ! Write the dataset.
           !
           CALL h5dwrite_vl_f(dset_id, vltype_id, vl_real_data, data_dims, len, error)
-              CALL check("h5dwrite_vl_f", error, total_error)
+              CALL check("h5dwrite_vl_real_f", error, total_error)
 
 
           !   
@@ -300,7 +300,7 @@
           !
           CALL h5dread_vl_f(dset_id, vltype_id, vl_real_data_out, data_dims, len_out, &
                             error, mem_space_id = dspace_id, file_space_id = dspace_id)
-              CALL check("h5dread_f", error, total_error)
+              CALL check("h5dread_real_f", error, total_error)
               do i = 1, data_dims(2)
               do j = 1, len_out(i)
               if(vl_real_data(j,i) .ne. vl_real_data_out(j,i))  then
@@ -412,7 +412,7 @@
           ! Write the dataset.
           !
           CALL h5dwrite_vl_f(dset_id, H5T_STRING, string_data, data_dims, str_len, error)
-              CALL check("h5dwrite_f", error, total_error)
+              CALL check("h5dwrite_string_f", error, total_error)
 
 
           !   
@@ -443,7 +443,7 @@
           !
           CALL h5dread_vl_f(dset_id, H5T_STRING, string_data_out, data_dims,  &
                             str_len_out, error)
-              CALL check("h5dread_f", error, total_error)
+              CALL check("h5dread_string_f", error, total_error)
           do 100 i = 1, data_dims(2)
              if(str_len(i) .ne. str_len_out(i)) then
                 total_error=total_error + 1

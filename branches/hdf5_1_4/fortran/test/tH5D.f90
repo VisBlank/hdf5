@@ -139,6 +139,9 @@
           !
           ! Read the dataset.
           !
+          data_dims(1) = 4
+          data_dims(2) = 6 
+
           CALL h5dread_f(dset_id, H5T_NATIVE_INTEGER, data_out, data_dims, error)
               CALL check("h5dread_f", error, total_error)
 

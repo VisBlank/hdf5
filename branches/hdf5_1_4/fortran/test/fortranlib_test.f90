@@ -260,7 +260,6 @@
      total_error = total_error + error_total_error 
 
      error_string = failure
-     cleanup = .FALSE.
      CALL vl_test_integer(cleanup, vl_total_error)
      CALL vl_test_real(cleanup, vl_total_error)
      CALL vl_test_string(cleanup, vl_total_error)
