@@ -346,9 +346,9 @@
           LOGICAL, INTENT(IN) :: cleanup
           INTEGER, INTENT(OUT) :: total_error 
 
-          CHARACTER(LEN=7), PARAMETER :: filename = "VLtypesS" ! File name
+          CHARACTER(LEN=8), PARAMETER :: filename = "VLtypesS" ! File name
           CHARACTER(LEN=80) :: fix_filename 
-          CHARACTER(LEN=5), PARAMETER :: dsetname = "VLstrings"     ! Dataset name
+          CHARACTER(LEN=9), PARAMETER :: dsetname = "VLstrings"     ! Dataset name
 
           INTEGER(HID_T) :: file_id       ! File identifier 
           INTEGER(HID_T) :: dset_id       ! Dataset identifier 
