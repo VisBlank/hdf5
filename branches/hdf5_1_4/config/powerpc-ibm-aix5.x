@@ -48,7 +48,6 @@ RUNPARALLEL=${RUNPARALLEL="MP_PROCS=3 MP_TASKS_PER_NODE=3 poe"}
 ac_cv_sizeof_char=${ac_cv_sizeof_char=1}
 ac_cv_sizeof_short=${ac_cv_sizeof_short=2}
 ac_cv_sizeof_int=${ac_cv_sizeof_int=4}
-ac_cv_sizeof_long=${ac_cv_sizeof_long=4}
 ac_cv_sizeof_long_long=${ac_cv_sizeof_long_long=8}
 ac_cv_sizeof___int64=${ac_cv_sizeof___int64=8}
 ac_cv_sizeof_float=${ac_cv_sizeof_float=4}
@@ -78,6 +77,9 @@ ac_cv_sizeof_int_least64_t=${ac_cv_sizeof_int_least64_t=8}
 ac_cv_sizeof_uint_least64_t=${ac_cv_sizeof_uint_least64_t=8}
 ac_cv_sizeof_int_fast64_t=${ac_cv_sizeof_int_fast64_t=8}
 ac_cv_sizeof_uint_fast64_t=${ac_cv_sizeof_uint_fast64_t=8}
+
+# Don't cache long since it varies between 32 and 64 bits
+#ac_cv_sizeof_long=${ac_cv_sizeof_long=4}
 
 # Don't cache size_t and off_t because they depend on if -D_LARGE_FILES is used
 #ac_cv_sizeof_size_t=${ac_cv_sizeof_size_t=4}
