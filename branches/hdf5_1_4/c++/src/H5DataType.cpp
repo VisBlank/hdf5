@@ -13,7 +13,11 @@
   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <string>
+#ifdef OLD_HEADER_FILENAME
+#include <iostream.h>
+#else
 #include <iostream>
+#endif
 
 #include "H5Include.h"
 #include "H5RefCounter.h"
@@ -353,7 +357,7 @@ DataType::~DataType()
     try {
         resetIdComponent( this ); }
     catch (Exception close_error) { // thrown by p_close
-        cout << "DataType::~DataType" << close_error.getDetailMsg() << endl;
+        cerr << "DataType::~DataType" << close_error.getDetailMsg() << endl;
     }
 }  
 

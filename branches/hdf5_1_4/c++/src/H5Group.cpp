@@ -13,7 +13,11 @@
   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <string>
+#ifdef OLD_HEADER_FILENAME
+#include <iostream.h>
+#else
 #include <iostream>
+#endif
 
 #include "H5Include.h"
 #include "H5RefCounter.h"
@@ -99,7 +103,7 @@ Group::~Group()
     try {
         resetIdComponent( this ); }
     catch (Exception close_error) { // thrown by p_close
-        cout << "Group::~Group" << close_error.getDetailMsg() << endl;
+        cerr << "Group::~Group" << close_error.getDetailMsg() << endl;
     }
 
 }  

@@ -13,7 +13,11 @@
   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <string>
+#ifdef OLD_HEADER_FILENAME
+#include <iostream.h>
+#else
 #include <iostream>
+#endif
 
 #include "H5Include.h"
 #include "H5RefCounter.h"
@@ -120,7 +124,7 @@ PropList::~PropList()
     try {
         resetIdComponent( this ); }
     catch (Exception close_error) { // thrown by p_close
-        cout << "PropList::~PropList" << close_error.getDetailMsg() << endl;
+        cerr << "PropList::~PropList" << close_error.getDetailMsg() << endl;
     }
 }  
 

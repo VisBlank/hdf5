@@ -13,7 +13,11 @@
   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <string>
+#ifdef OLD_HEADER_FILENAME
+#include <iostream.h>
+#else
 #include <iostream>
+#endif
 
 #include "H5Include.h"
 #include "H5Exception.h"
@@ -357,7 +361,7 @@ DataSpace::~DataSpace()
     try {
         resetIdComponent( this ); }
     catch (Exception close_error) { // thrown by p_close
-        cout << "DataSpace::~DataSpace" << close_error.getDetailMsg() << endl;
+        cerr << "DataSpace::~DataSpace" << close_error.getDetailMsg() << endl;
     }
 }  
 
