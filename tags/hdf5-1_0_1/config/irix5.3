@@ -1,0 +1,44 @@
+#							-*- shell-script -*-
+#
+# This file is part of the HDF5 build script.  It is processed shortly
+# after configure starts and defines, among other things, flags for
+# the various compile modes.
+#
+# Modifications:
+#	Robb Matzke, 1998-08-31
+#	Removed `-ansi' from the CFLAGS because it caused sigaction()
+#	to not be compiled.
+
+
+#----------------------------------------------------------------------------
+# Compiler flags. The CPPFLAGS values should not include package debug
+# flags like `-DH5G_DEBUG' since these are added with the
+# `--enable-debug' switch of configure.
+
+# Sometimes a particular compiler must be used.  If that's the case
+# then uncomment the following line.  Otherwise the main configure
+# script will try to detect the compiler automatically.
+CC=${CC:-cc}
+RANLIB=:
+
+case $CC in
+    *gcc*)
+	CFLAGS="$CFLAGS -ansi"
+	DEBUG_CFLAGS="-g -fverbose-asm"
+	DEBUG_CPPFLAGS="-DH5F_LOW_DFLT=H5F_LOW_SEC2"
+	PROD_CFLAGS="-O3 -finline-functions"
+	PROD_CPPFLAGS=
+	PROFILE_CFLAGS=-pg
+	PROFILE_CPPFLAGS=
+	;;
+    *)
+        CFLAGS="$CFLAGS -fullwarn -prototypes -woff 799"
+        DEBUG_CFLAGS=-g
+	DEBUG_CPPFLAGS=
+        PROD_CFLAGS=-O
+	PROD_CPPFLAGS=
+	PROFILE_CFLAGS=-pg
+	PROFILE_CPPFLAGS=
+	;;
+esac
+
