@@ -184,11 +184,16 @@ static int interface_initialize_g = 0;
 hid_t
 H5FD_mpio_init(void)
 {
+#ifdef H5FDmpio_DEBUG
     static int H5FD_mpio_Debug_inited=0;
+#endif /* H5FDmpio_DEBUG */
+
     FUNC_ENTER(H5FD_mpio_init, FAIL);
 
     if (H5I_VFL!=H5Iget_type(H5FD_MPIO_g))
         H5FD_MPIO_g = H5FDregister(&H5FD_mpio_g);
+
+#ifdef H5FDmpio_DEBUG
     if (!H5FD_mpio_Debug_inited)
     {
 	/* set debug mask */
@@ -202,6 +207,7 @@ H5FD_mpio_init(void)
         }
 	H5FD_mpio_Debug_inited++;
     }
+#endif /* H5FDmpio_DEBUG */
     
 
     FUNC_LEAVE(H5FD_MPIO_g);
@@ -264,7 +270,7 @@ H5FD_mpio_init(void)
 herr_t
 H5Pset_fapl_mpio(hid_t fapl_id, MPI_Comm comm, MPI_Info info)
 {
-    herr_t ret_value=FAIL;
+    herr_t ret_value;
     H5FD_mpio_fapl_t	fa;
     MPI_Comm comm_dup=MPI_COMM_NULL;
     MPI_Info info_dup=MPI_INFO_NULL;
@@ -354,10 +360,10 @@ fprintf(stderr, "Leaving H5Pset_fapl_mpio\n");
 herr_t
 H5Pget_fapl_mpio(hid_t fapl_id, MPI_Comm *comm/*out*/, MPI_Info *info/*out*/)
 {
-    herr_t ret_value=FAIL;
+    herr_t ret_value=SUCCEED;
     H5FD_mpio_fapl_t	*fa;
-    MPI_Comm 		comm_tmp=MPI_COMM_NULL;
-    MPI_Info		info_tmp=MPI_INFO_NULL;
+    MPI_Comm	        comm_tmp=MPI_COMM_NULL;
+    MPI_Info	        info_tmp=MPI_INFO_NULL;
     
     FUNC_ENTER(H5Pget_fapl_mpio, FAIL);
     H5TRACE3("e","ixx",fapl_id,comm,info);
@@ -374,10 +380,8 @@ fprintf(stderr, "in H5Pget_fapl_mpio\n");
         HRETURN_ERROR(H5E_PLIST, H5E_BADVALUE, FAIL, "bad VFL driver info");
 
     if (comm){
-	if (MPI_SUCCESS != MPI_Comm_dup(fa->comm, &comm_tmp)){
+	if (MPI_SUCCESS != MPI_Comm_dup(fa->comm, &comm_tmp))
 	    HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_Comm_dup failed");
-	}
-	*comm = comm_tmp;
     }
     
     if (info){
@@ -388,9 +392,13 @@ fprintf(stderr, "in H5Pget_fapl_mpio\n");
 	    /* do not dup it */
 	    info_tmp = fa->info;
 	}
-	*info = info_tmp;
     }
-    ret_value = SUCCEED;
+
+    /* copy them to the return arguments */
+    if(comm)
+        *comm = comm_tmp;
+    if(info)
+        *info = info_tmp;
 
 done:
     if (FAIL==ret_value){
@@ -829,7 +837,7 @@ H5FD_mpio_closing(H5FD_t *_file)
 static void *
 H5FD_mpio_fapl_get(H5FD_t *_file)
 {
-    void		*ret_value = NULL;
+    void		*ret_value;
     H5FD_mpio_t		*file = (H5FD_mpio_t*)_file;
     H5FD_mpio_fapl_t	*fa = NULL;
 
@@ -884,7 +892,7 @@ fprintf(stderr, "leaving H5FD_mpio_fapl_get\n");
 static void *
 H5FD_mpio_fapl_copy(const void *_old_fa)
 {
-    void		*ret_value = NULL;
+    void		*ret_value;
     const H5FD_mpio_fapl_t *old_fa = (const H5FD_mpio_fapl_t*)_old_fa;
     H5FD_mpio_fapl_t	*new_fa = NULL;
     
@@ -893,9 +901,6 @@ H5FD_mpio_fapl_copy(const void *_old_fa)
 if (H5FD_mpio_Debug[(int)'a'])
 fprintf(stderr, "enter H5FD_mpio_fapl_copy\n");
 #endif
-
-    /* Clear the error stack */
-    H5Eclear();
 
     if (NULL==(new_fa=H5MM_malloc(sizeof(H5FD_mpio_fapl_t))))
         HRETURN_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed");
@@ -954,9 +959,9 @@ fprintf(stderr, "in H5FD_mpio_fapl_free\n");
     assert(fa);
 
     /* Free the internal communicator and INFO object */
-    assert(MPI_COMM_NULL!=fa->comm);
     if (MPI_INFO_NULL != fa->info)
 	MPI_Info_free(&fa->info);
+    assert(MPI_COMM_NULL!=fa->comm);
     MPI_Comm_free(&fa->comm);
     H5MM_xfree(fa);
 
@@ -1013,7 +1018,7 @@ static H5FD_t *
 H5FD_mpio_open(const char *name, unsigned flags, hid_t fapl_id,
 	       haddr_t UNUSED maxaddr)
 {
-    H5FD_t			*ret_value=NULL;
+    H5FD_t			*ret_value;
     H5FD_mpio_t			*file=NULL;
     MPI_File			fh;
     int				mpi_amode;
@@ -2149,7 +2154,7 @@ haddr_to_MPIOff(haddr_t addr, MPI_Offset *mpi_off/*out*/)
 static herr_t
 H5FD_mpio_comm_info_dup(MPI_Comm comm, MPI_Info info, MPI_Comm *comm_new, MPI_Info *info_new)
 {
-    herr_t ret_value=FAIL;
+    herr_t ret_value=SUCCEED;
     MPI_Comm comm_dup=MPI_COMM_NULL;
     MPI_Info info_dup=MPI_INFO_NULL;
     
@@ -2179,7 +2184,6 @@ fprintf(stderr, "In H5FD_mpio_comm_info_dup: argument comm/info = %d/%ld\n", com
     /* copy them to the return arguments */
     *comm_new = comm_dup;
     *info_new = info_dup;
-    ret_value = SUCCEED;
 
 done:
     if (FAIL == ret_value){
