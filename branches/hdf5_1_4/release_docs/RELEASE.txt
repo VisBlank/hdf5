@@ -1,4 +1,4 @@
-HDF5 version 1.4.5 released on Sat Feb  1 12:48:22 CST 2003
+HDF5 version 1.4.5 released on Sat Feb  1 13:14:23 CST 2003
 ==============================================================================
 
 
@@ -161,13 +161,11 @@ Platforms Tested
     IRIX 6.5                      MIPSpro cc 7.30
     IRIX64 6.5 (64 & n32)         MIPSpro cc 7.3.1.3m
                                   F90 MIPSpro 7.3.1.3m (64 only)
-    Linux 2.4.18                  gcc 2.95.3
-                                  g++ 2.95.3
+    Linux 2.4.18                  gcc 3.2.1
+                                  g++ 3.2.1
                                   Intel(R) C++ Version 6.0
                                   Intel(R) Fortran Compiler Version 6.0
                                   PGI compilers (pgcc, pgf90, pgCC) version 4.0-2
-    Linux 2.2.18smp               gcc 2.95.2
-                                  g++ 2.95.2
                                   pgf90  3.2-4
     OSF1 V5.1                     Compaq C V6.4-014
                                   Compaq Fortran X5.4A-1684
