@@ -13,6 +13,7 @@
   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <string>
+#include <iostream>
 
 #include "H5Include.h"
 #include "H5Exception.h"
@@ -140,7 +141,7 @@ Attribute::~Attribute()
     try {
         resetIdComponent( this ); }
     catch (Exception close_error) { // thrown by p_close
-        throw AttributeIException("Attribute::~Attribute", close_error.getDetailMsg());
+        cout << "Attribute::~Attribute" << close_error.getDetailMsg() << endl;
     }
 }
 

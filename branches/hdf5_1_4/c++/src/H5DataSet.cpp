@@ -13,6 +13,7 @@
   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <string>
+#include <iostream>
 
 #include "H5Include.h"
 #include "H5RefCounter.h"
@@ -216,7 +217,7 @@ DataSet::~DataSet()
     try {
 	resetIdComponent( this ); }
     catch (Exception close_error) { // thrown by p_close
-	throw DataSetIException("DataSet::~DataSet", close_error.getDetailMsg());
+	cout << "DataSet::~DataSet" << close_error.getDetailMsg() << endl;
     }
 }
 

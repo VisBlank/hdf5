@@ -13,6 +13,7 @@
   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <string>
+#include <iostream>
 
 #include "H5Include.h"
 #include "H5RefCounter.h"
@@ -119,7 +120,7 @@ PropList::~PropList()
     try {
         resetIdComponent( this ); }
     catch (Exception close_error) { // thrown by p_close
-        throw PropListIException("PropList::~PropList", close_error.getDetailMsg());
+        cout << "PropList::~PropList" << close_error.getDetailMsg() << endl;
     }
 }  
 

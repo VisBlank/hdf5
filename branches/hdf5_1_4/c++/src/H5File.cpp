@@ -13,6 +13,7 @@
   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <string>
+#include <iostream>
 
 #include "H5Include.h"
 #include "H5RefCounter.h"
@@ -198,7 +199,7 @@ H5File::~H5File()
     try {
         resetIdComponent( this ); }
     catch (Exception close_error) { // thrown by p_close
-        throw FileIException("H5File::~H5File", close_error.getDetailMsg());
+	cout << "H5File::~H5File" << close_error.getDetailMsg() << endl;
     }
 }  
 

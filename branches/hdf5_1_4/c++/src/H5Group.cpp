@@ -13,6 +13,7 @@
   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <string>
+#include <iostream>
 
 #include "H5Include.h"
 #include "H5RefCounter.h"
@@ -98,7 +99,7 @@ Group::~Group()
     try {
         resetIdComponent( this ); }
     catch (Exception close_error) { // thrown by p_close
-        throw GroupIException("Group::~Group", close_error.getDetailMsg());
+        cout << "Group::~Group" << close_error.getDetailMsg() << endl;
     }
 
 }  

@@ -13,6 +13,7 @@
   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <string>
+#include <iostream>
 
 #include "H5Include.h"
 #include "H5Exception.h"
@@ -356,7 +357,7 @@ DataSpace::~DataSpace()
     try {
         resetIdComponent( this ); }
     catch (Exception close_error) { // thrown by p_close
-        throw DataSpaceIException("DataSpace::~DataSpace", close_error.getDetailMsg());
+        cout << "DataSpace::~DataSpace" << close_error.getDetailMsg() << endl;
     }
 }  
 

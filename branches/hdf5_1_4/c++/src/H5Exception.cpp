@@ -220,14 +220,6 @@ IdComponentException::IdComponentException(const string& func_name, const string
 IdComponentException::IdComponentException(const char* func_name, const char* message) : Exception(func_name, message) {}
 IdComponentException::~IdComponentException() {}
 
-// The following are from Java API but not done here:
-// AtomException, BtreeException, DataFiltersException, 
-// ExternalFileListException, FunctionEntryExitException, 
-// HeapException, InternalErrorException, LowLevelIOException, 
-// MetaDataCacheException, ResourceUnavailableException, 
-// SymbolTableException, ObjectHeaderException, FunctionArgumentException,
-// DataStorageException
-
 #ifndef H5_NO_NAMESPACE
 } // end namespace
 #endif

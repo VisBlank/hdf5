@@ -13,6 +13,7 @@
   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <string>
+#include <iostream>
 
 #include "H5Include.h"
 #include "H5RefCounter.h"
@@ -352,7 +353,7 @@ DataType::~DataType()
     try {
         resetIdComponent( this ); }
     catch (Exception close_error) { // thrown by p_close
-        throw DataTypeIException("DataType::~DataType", close_error.getDetailMsg());
+        cout << "DataType::~DataType" << close_error.getDetailMsg() << endl;
     }
 }  
 
