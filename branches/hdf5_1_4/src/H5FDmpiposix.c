@@ -35,9 +35,10 @@
  *                  Issue gpfs_fcntl() calls to hopefully improve performance
  *                  when accessing files on a GPFS file system.
  *
- *              USE_ASYNC_IO
+ *              H5_HAVE_ASYNCIO
  *                  Allow use of POSIX AIO interface.  This is currently a
- *                  kludge to test HDF5 performance under SAF/DSL.
+ *                  kludge to test HDF5 performance under SAF/DSL. [Enabled
+ *                  through --enable-asyncio configure switch.]
  *                  --rpm 2003-01-21
  */
 
@@ -53,7 +54,7 @@
 #ifdef USE_GPFS_HINTS
 #   include <gpfs_fcntl.h>
 #endif
-#if defined(USE_ASYNC_IO) && defined(H5_HAVE_AIO_H)
+#if defined(H5_HAVE_ASYNCIO) && defined(H5_HAVE_AIO_H)
 #   include <aio.h>
 #endif
 
@@ -115,7 +116,7 @@ typedef struct H5FD_mpiposix_t {
 #endif
 } H5FD_mpiposix_t;
 
-#ifdef USE_ASYNC_IO
+#ifdef H5_HAVE_ASYNCIO
 /* If this pointer is non-null then the next call to H5FD_mpiposix_write()
  * with this same pointer for raw data will proceed asynchronously. The
  * pointer gets reset to null once async I/O is triggered. */
@@ -126,7 +127,7 @@ static const void *H5FD_mpiposix_async_buffer_g;
  * should initialize it to zero so it can detect whether an AIO operation
  * was actually started (i.e., by looking at the aio_buf member). */
 static struct aiocb *H5FD_mpiposix_async_aio_g;
-#endif /*USE_ASYNC_IO*/
+#endif /*H5_HAVE_ASYNCIO*/
 
 /*
  * This driver supports systems that have the lseek64() function by defining
@@ -979,7 +980,7 @@ H5FD_mpiposix_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id, 
         buf = (char*)buf + nbytes;
     }
     
-#ifndef USE_ASYNC_IO
+#ifndef H5_HAVE_ASYNCIO
     /* Update current position */
     file->pos = addr;
     file->op = OP_READ;
@@ -996,7 +997,7 @@ done:
     FUNC_LEAVE(ret_value);
 } /* end H5FD_mpiposix_read() */
 
-#ifdef USE_ASYNC_IO
+#ifdef H5_HAVE_ASYNCIO
 /*-------------------------------------------------------------------------
  * Purpose:     If a client calls this function then the next call to
  *              H5FD_mpiposix_write() with the same buffer address for
@@ -1022,7 +1023,7 @@ H5FDmpiposix_async_notify(const void *buffer, struct aiocb *aio)
     H5FD_mpiposix_async_aio_g = aio;
     FUNC_LEAVE(SUCCEED);
 }
-#endif /*USE_ASYNC_IO*/
+#endif /*H5_HAVE_ASYNCIO*/
 
 
 /*-------------------------------------------------------------------------
@@ -1126,7 +1127,7 @@ H5FD_mpiposix_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
 #endif
     }
         
-#ifdef USE_ASYNC_IO
+#ifdef H5_HAVE_ASYNCIO
     /* If the caller requested asynchronous I/O for this buffer then start
      * it asynchronously and reset the trigger. */
     if (H5FD_mpiposix_async_buffer_g==buf && H5FD_MEM_DRAW==type) {
@@ -1153,7 +1154,7 @@ H5FD_mpiposix_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
             HGOTO_ERROR(H5E_IO, H5E_WRITEERROR, FAIL, "async write failed");
         HGOTO_DONE(SUCCEED);
     }
-#endif /*USE_ASYNC_IO*/
+#endif /*H5_HAVE_ASYNCIO*/
         
     /* Seek to the correct location */
     if ((addr!=file->pos || OP_WRITE!=file->op) &&
@@ -1179,7 +1180,7 @@ H5FD_mpiposix_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
         buf = (const char*)buf + nbytes;
     } /* end while */
 
-#ifndef USE_ASYNC_IO
+#ifndef H5_HAVE_ASYNCIO
     /* Update current last file I/O information */
     file->pos = addr;
     file->op = OP_WRITE;
