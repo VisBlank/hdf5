@@ -1274,7 +1274,7 @@ H5Pset_meta_block_size(hid_t fapl_id, hsize_t size)
     }
 
     /* Set values */
-    fapl->meta_block_size = size;
+    H5_ASSIGN_OVERFLOW(fapl->meta_block_size,size,hsize_t,size_t);
 
     FUNC_LEAVE (SUCCEED);
 }
@@ -1441,7 +1441,7 @@ H5Pset_small_data_block_size(hid_t fapl_id, hsize_t size)
     }
 
     /* Set values */
-    fapl->sdata_block_size = size;
+    H5_ASSIGN_OVERFLOW(fapl->sdata_block_size,size,hsize_t,size_t);
 
     FUNC_LEAVE (SUCCEED);
 }

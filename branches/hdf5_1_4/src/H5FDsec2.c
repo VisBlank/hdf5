@@ -715,7 +715,7 @@ H5FD_sec2_write(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id, had
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5FD_sec2_flush(H5FD_t *_file, hid_t dxpl_id)
+H5FD_sec2_flush(H5FD_t *_file, hid_t UNUSED dxpl_id)
 {
     H5FD_sec2_t	*file = (H5FD_sec2_t*)_file;
 #ifdef WIN32

@@ -338,7 +338,7 @@ herr_t H5T_vlen_str_mem_write(const H5D_xfer_t *xfer_parms, H5F_t UNUSED *f, hid
             HRETURN_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed for VL data");
       } /* end else */
 
-   len=(size_t)seq_len*base_size;
+    H5_ASSIGN_OVERFLOW(len,seq_len*base_size,hsize_t,size_t);
     HDmemcpy(*s,buf,len);
     (*s)[len]='\0';
 
