@@ -39,7 +39,7 @@ New Features
   o Configuration
   ================
     * Added "--with-dmalloc" flag, to easily enable support for the 'dmalloc'
-        debugging malloc implementation. -QAK, 2002/07/15
+        debugging malloc implementation. QAK - 2002/07/15
 
   o Library
   =========
@@ -62,7 +62,7 @@ New Features
         The following API functions were added:
             herr_t H5Pset_fapl_mpiposix(hid_t fapl_id, MPI_Comm comm);
             herr_t H5Pget_fapl_mpiposix(hid_t fapl_id, MPI_Comm *comm/*out*/);
-        -QAK, 2002/07/15
+        QAK - 2002/07/15
 
   o Tools
   =======
@@ -78,6 +78,8 @@ New Features
 
 Bug Fixes since HDF5-1.4.4 Release
 ==================================
+    * Fixed metadata corruption problem which could occur when many objects
+        are created in a file during parallel I/O.  QAK - 2002/07/19
 
 
 Performance Improvements

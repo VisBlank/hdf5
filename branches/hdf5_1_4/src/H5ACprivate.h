@@ -68,8 +68,8 @@ typedef enum H5AC_subid_t {
     H5AC_NTYPES		= 5	/*THIS MUST BE LAST!			     */
 } H5AC_subid_t;
 
-typedef void *(*H5AC_load_func_t)(H5F_t*, haddr_t addr, const void *udata1, void *udata2);
-typedef herr_t (*H5AC_flush_func_t)(H5F_t*, hbool_t dest, haddr_t addr, void *thing);
+typedef void *(*H5AC_load_func_t)(H5F_t*, hid_t dxpl, haddr_t addr, const void *udata1, void *udata2);
+typedef herr_t (*H5AC_flush_func_t)(H5F_t*, hid_t dxpl, hbool_t dest, haddr_t addr, void *thing);
 
 typedef struct H5AC_class_t {
     H5AC_subid_t	id;

@@ -19,11 +19,6 @@
  * Purpose:	This is the MPI-2 I/O driver.
  *
  * Limitations:
- *     	H5FD_mpio_read & H5FD_mpio_write
- *		Eventually these should choose collective or independent i/o
- *		based on a parameter that is passed down to it from H5Dwrite,
- *		rather than the access_parms (which are fixed at the open).
- *
  *	H5FD_mpio_read
  *		One implementation of MPI/MPI-IO causes MPI_Get_count
  *		to return (incorrectly) a negative count. I (who?) added code
@@ -1481,6 +1476,12 @@ done:
  *              if the first I/O was a collective I/O using MPI derived types
  *              and the next I/O was an independent I/O.
  *
+ *              Quincey Koziol - 2002/07/18
+ *              Added "block_before_meta_write" dataset transfer flag, which
+ *              is set during writes from a metadata cache flush and indicates
+ *              that all the processes must sync up before (one of them)
+ *              writing metadata.
+ *
  *-------------------------------------------------------------------------
  */
 static herr_t
@@ -1494,6 +1495,7 @@ H5FD_mpio_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
     MPI_Offset 		 	mpi_off, mpi_disp;
     MPI_Status			mpi_stat;
     MPI_Datatype		buf_type, file_type;
+    int			        mpi_code;	/* MPI return code */
     int         		size_i, bytes_written;
     unsigned			use_view_this_time=0;
     herr_t              	ret_value=SUCCEED;
@@ -1576,19 +1578,33 @@ H5FD_mpio_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
             HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_File_set_view failed");
     } /* end if */
     
-    /* Only p<round> will do the actual write if all procs in comm write same data */
-    if ((type!=H5FD_MEM_DRAW) && H5_mpi_1_metawrite_g) {
-        if (file->mpi_rank != file->mpi_round) {
+    /* Metadata specific actions */
+    if(type!=H5FD_MEM_DRAW) {
+        /* Check if we need to syncronize all processes before attempting metadata write
+         * (Prevents race condition where the process writing the metadata goes ahead
+         * and writes the metadata to the file before all the processes have
+         * read the data, "transmitting" data from the "future" to the reading
+         * process. -QAK )
+         */
+        if(xfer_parms->block_before_meta_write) {
+            if (MPI_SUCCESS!= (mpi_code=MPI_Barrier(file->comm)))
+                HMPI_GOTO_ERROR(FAIL, "MPI_Barrier failed", mpi_code);
+        } /* end if */
+
+        /* Only p<round> will do the actual write if all procs in comm write same data */
+        if (H5_mpi_1_metawrite_g) {
+            if (file->mpi_rank != file->mpi_round) {
 #ifdef H5FDmpio_DEBUG
-            if (H5FD_mpio_Debug[(int)'w']) {
-                fprintf(stdout,
-		    "  proc %d: in H5FD_mpio_write (write omitted)\n",
-		    file->mpi_rank );
-            }
+                if (H5FD_mpio_Debug[(int)'w']) {
+                    fprintf(stdout,
+                        "  proc %d: in H5FD_mpio_write (write omitted)\n",
+                        file->mpi_rank );
+                }
 #endif
-            HGOTO_DONE(SUCCEED) /* skip the actual write */
+                HGOTO_DONE(SUCCEED) /* skip the actual write */
+            }
         }
-    }
+    } /* end if */
 
     /* Write the data. */
     assert(H5FD_MPIO_INDEPENDENT==dx->xfer_mode || H5FD_MPIO_COLLECTIVE==dx->xfer_mode);
@@ -1670,18 +1686,6 @@ done:
 
             /* Round-robin rotate to the next process */
             file->mpi_round = (++file->mpi_round)%file->mpi_size;
-#ifdef QAK
-    {
-        int max,min;
-
-        MPI_Allreduce(&file->mpi_round, &max, 1, MPI_INT, MPI_MAX, file->comm);
-        MPI_Allreduce(&file->mpi_round, &min, 1, MPI_INT, MPI_MIN, file->comm);
-        if(max!=file->mpi_round)
-            printf("%s: rank=%d, round=%d, max=%d\n",FUNC,file->mpi_rank,file->mpi_round,max);
-        if(min!=file->mpi_round)
-            printf("%s: rank=%d, round=%d, min=%d\n",FUNC,file->mpi_rank,file->mpi_round,min);
-    }
-#endif /* QAK */
         } /* end if */
     } /* end if */
 

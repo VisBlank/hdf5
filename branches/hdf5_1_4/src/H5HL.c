@@ -62,17 +62,17 @@ typedef struct H5HL_t {
 } H5HL_t;
 
 /* PRIVATE PROTOTYPES */
-static H5HL_t *H5HL_load(H5F_t *f, haddr_t addr, const void *udata1,
+static H5HL_t *H5HL_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *udata1,
 			 void *udata2);
-static herr_t H5HL_flush(H5F_t *f, hbool_t dest, haddr_t addr, H5HL_t *heap);
+static herr_t H5HL_flush(H5F_t *f, hid_t dxpl_id, hbool_t dest, haddr_t addr, H5HL_t *heap);
 
 /*
  * H5HL inherits cache-like properties from H5AC
  */
 static const H5AC_class_t H5AC_LHEAP[1] = {{
     H5AC_LHEAP_ID,
-    (void *(*)(H5F_t*, haddr_t, const void*, void*))H5HL_load,
-    (herr_t (*)(H5F_t*, hbool_t, haddr_t, void*))H5HL_flush,
+    (H5AC_load_func_t)H5HL_load,
+    (H5AC_flush_func_t)H5HL_flush,
 }};
 
 /* Interface initialization */
@@ -205,10 +205,14 @@ H5HL_create(H5F_t *f, size_t size_hint, haddr_t *addr_p/*out*/)
  * Modifications:
  *		Robb Matzke, 1999-07-28
  *		The ADDR argument is passed by value.
+ *
+ *	Quincey Koziol, 2002-7-180
+ *	Added dxpl parameter to allow more control over I/O from metadata
+ *      cache.
  *-------------------------------------------------------------------------
  */
 static H5HL_t *
-H5HL_load(H5F_t *f, haddr_t addr, const void UNUSED *udata1,
+H5HL_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void UNUSED *udata1,
 	  void UNUSED *udata2)
 {
     uint8_t		hdr[52];
@@ -227,7 +231,7 @@ H5HL_load(H5F_t *f, haddr_t addr, const void UNUSED *udata1,
     assert(!udata1);
     assert(!udata2);
 
-    if (H5F_block_read(f, H5FD_MEM_LHEAP, addr, (hsize_t)H5HL_SIZEOF_HDR(f), H5P_DEFAULT,
+    if (H5F_block_read(f, H5FD_MEM_LHEAP, addr, (hsize_t)H5HL_SIZEOF_HDR(f), dxpl_id,
 		       hdr) < 0) {
 	HRETURN_ERROR(H5E_HEAP, H5E_READERROR, NULL,
 		      "unable to read heap header");
@@ -268,7 +272,7 @@ H5HL_load(H5F_t *f, haddr_t addr, const void UNUSED *udata1,
     }
     if (heap->disk_alloc &&
 	H5F_block_read(f, H5FD_MEM_LHEAP, heap->addr, (hsize_t)(heap->disk_alloc),
-		       H5P_DEFAULT, heap->chunk + H5HL_SIZEOF_HDR(f)) < 0) {
+		       dxpl_id, heap->chunk + H5HL_SIZEOF_HDR(f)) < 0) {
 	HGOTO_ERROR(H5E_HEAP, H5E_CANTLOAD, NULL,
 		    "unable to read heap data");
     }
@@ -333,10 +337,14 @@ H5HL_load(H5F_t *f, haddr_t addr, const void UNUSED *udata1,
  *
  * 		Robb Matzke, 1999-07-28
  *		The ADDR argument is passed by value.
+ *
+ *	Quincey Koziol, 2002-7-180
+ *	Added dxpl parameter to allow more control over I/O from metadata
+ *      cache.
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5HL_flush(H5F_t *f, hbool_t destroy, haddr_t addr, H5HL_t *heap)
+H5HL_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5HL_t *heap)
 {
     uint8_t	*p = heap->chunk;
     H5HL_free_t	*fl = heap->freelist;
@@ -404,19 +412,18 @@ H5HL_flush(H5F_t *f, hbool_t destroy, haddr_t addr, H5HL_t *heap)
 	    /* The header and data are contiguous */
 	    if (H5F_block_write(f, H5FD_MEM_LHEAP, addr,
 				(hsize_t)(H5HL_SIZEOF_HDR(f)+heap->disk_alloc),
-				H5P_DEFAULT, heap->chunk) < 0) {
+				dxpl_id, heap->chunk) < 0) {
 		HRETURN_ERROR(H5E_HEAP, H5E_WRITEERROR, FAIL,
 			    "unable to write heap header and data to file");
 	    }
 	} else {
 	    if (H5F_block_write(f, H5FD_MEM_LHEAP, addr, (hsize_t)H5HL_SIZEOF_HDR(f),
-				H5P_DEFAULT, heap->chunk)<0) {
+				dxpl_id, heap->chunk)<0) {
 		HRETURN_ERROR(H5E_HEAP, H5E_WRITEERROR, FAIL,
 			      "unable to write heap header to file");
 	    }
 	    if (H5F_block_write(f, H5FD_MEM_LHEAP, heap->addr, (hsize_t)(heap->disk_alloc),
-				H5P_DEFAULT,
-				heap->chunk + H5HL_SIZEOF_HDR(f)) < 0) {
+				dxpl_id, heap->chunk + H5HL_SIZEOF_HDR(f)) < 0) {
 		HRETURN_ERROR(H5E_HEAP, H5E_WRITEERROR, FAIL,
 			      "unable to write heap data to file");
 	    }

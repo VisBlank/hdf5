@@ -952,13 +952,20 @@ done:
  *
  * Modifications:
  *
+ *              Quincey Koziol - 2002/07/18
+ *              Added "block_before_meta_write" dataset transfer flag, which
+ *              is set during writes from a metadata cache flush and indicates
+ *              that all the processes must sync up before (one of them)
+ *              writing metadata.
+ *
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5FD_mpiposix_write(H5FD_t *_file, H5FD_mem_t type, hid_t UNUSED dxpl_id, haddr_t addr,
+H5FD_mpiposix_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
 		hsize_t size, const void *buf)
 {
     H5FD_mpiposix_t	*file = (H5FD_mpiposix_t*)_file;
+    const H5D_xfer_t	*xfer_parms = NULL;     /* Dataset transfer plist */
     int			mpi_code;	/* MPI return code */
     ssize_t	        nbytes;         /* Number of bytes written each I/O call */
     herr_t             	ret_value=SUCCEED;      /* Return value */
@@ -977,10 +984,33 @@ H5FD_mpiposix_write(H5FD_t *_file, H5FD_mem_t type, hid_t UNUSED dxpl_id, haddr_
     if (addr+size>file->eoa)
         HGOTO_ERROR(H5E_ARGS, H5E_OVERFLOW, FAIL, "addr overflow");
     
-    /* Only p<round> will do the actual write if all procs in comm write same data */
-    if ((type!=H5FD_MEM_DRAW) && H5_mpiposix_1_metawrite_g) {
-        if (file->mpi_rank != file->mpi_round)
-            HGOTO_DONE(SUCCEED) /* skip the actual write */
+    /* Get the dataset transfer property list */
+    if (H5P_DEFAULT == dxpl_id) {
+        xfer_parms = &H5D_xfer_dflt;
+    } /* end if */
+    else if (H5P_DATASET_XFER != H5P_get_class(dxpl_id) ||
+	       NULL == (xfer_parms = H5I_object(dxpl_id))) {
+        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not xfer parms");
+    } /* end if */
+
+    /* Metadata specific actions */
+    if(type!=H5FD_MEM_DRAW) {
+        /* Check if we need to syncronize all processes before attempting metadata write
+         * (Prevents race condition where the process writing the metadata goes ahead
+         * and writes the metadata to the file before all the processes have
+         * read the data, "transmitting" data from the "future" to the reading
+         * process. -QAK )
+         */
+        if(xfer_parms->block_before_meta_write) {
+            if (MPI_SUCCESS!= (mpi_code=MPI_Barrier(file->comm)))
+                HMPI_GOTO_ERROR(FAIL, "MPI_Barrier failed", mpi_code);
+        } /* end if */
+
+        /* Only p<round> will do the actual write if all procs in comm write same data */
+        if (H5_mpiposix_1_metawrite_g) {
+            if (file->mpi_rank != file->mpi_round)
+                HGOTO_DONE(SUCCEED) /* skip the actual write */
+        } /* end if */
     } /* end if */
 
     /* Seek to the correct location */
@@ -1027,18 +1057,6 @@ done:
 
             /* Round-robin rotate to the next process */
             file->mpi_round = (++file->mpi_round)%file->mpi_size;
-#ifdef QAK
-    {
-        int max,min;
-
-        MPI_Allreduce(&file->mpi_round, &max, 1, MPI_INT, MPI_MAX, file->comm);
-        MPI_Allreduce(&file->mpi_round, &min, 1, MPI_INT, MPI_MIN, file->comm);
-        if(max!=file->mpi_round)
-            printf("%s: rank=%d, round=%d, max=%d\n",FUNC,file->mpi_rank,file->mpi_round,max);
-        if(min!=file->mpi_round)
-            printf("%s: rank=%d, round=%d, min=%d\n",FUNC,file->mpi_rank,file->mpi_round,min);
-    }
-#endif /* QAK */
         } /* end if */
     } /* end else */
 

@@ -527,7 +527,7 @@ do_write(results *res, file_descr *fd, parameters *parms, long ndsets,
     unsigned char *buf_p;       /* Current buffer pointer               */
 
     /* POSIX variables */
-    off_t       file_offset;    /* Ffile offset of the next transfer    */
+    off_t       file_offset;    /* File offset of the next transfer    */
     off_t       posix_file_offset;    /* Base file offset of the next transfer      */
 
     /* MPI variables */
@@ -1004,7 +1004,7 @@ done:
  */
 static herr_t
 do_read(results *res, file_descr *fd, parameters *parms, long ndsets,
-         off_t nbytes, size_t buf_size, void *buffer)
+         off_t nbytes, size_t buf_size, void *buffer /*out*/)
 {
     int         ret_code = SUCCESS;
     int         rc;             /*routine return code                   */
@@ -1019,7 +1019,7 @@ do_read(results *res, file_descr *fd, parameters *parms, long ndsets,
     unsigned char *buf_p;       /* Current buffer pointer               */
 
     /* POSIX variables */
-    off_t       file_offset;    /* Ffile offset of the next transfer    */
+    off_t       file_offset;    /* File offset of the next transfer    */
     off_t       posix_file_offset;    /* Base file offset of the next transfer      */
 
     /* MPI variables */

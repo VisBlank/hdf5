@@ -72,6 +72,7 @@ typedef struct H5D_xfer_t {
     unsigned            use_view;       /* Whether to use a view for this I/O */
     MPI_Datatype        btype;          /* MPI type for buffer (memory) */
     MPI_Datatype        ftype;          /* MPI type for file */
+    unsigned            block_before_meta_write;    /* Whether to block before metadata writes */
 #endif /* H5_HAVE_PARALLEL */
 } H5D_xfer_t;
 

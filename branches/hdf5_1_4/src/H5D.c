@@ -99,6 +99,7 @@ H5D_xfer_t	H5D_xfer_dflt = {
     0,                          /* Whether to use a view for this I/O */
     MPI_DATATYPE_NULL,          /* MPI type for buffer (memory) */
     MPI_DATATYPE_NULL,          /* MPI type for file */
+    0,                          /* Whether to block before metadata writes */
 #endif /* H5_HAVE_PARALLEL */
 };
 
