@@ -1290,7 +1290,7 @@ case "$enable_asyncio" in
       AC_MSG_RESULT(yes)
       dnl hardset macro to activate Async I/O.
       dnl should be replaced by HAVE_ASYNCIO or something like that.
-      CPPFLAGS="$CPPFLAGE -DUSE_ASYNC_IO"
+      CPPFLAGS="$CPPFLAGS -DUSE_ASYNC_IO"
       AC_DEFINE(HAVE_ASYNCIO, 1,
 		[Define if the Async IO is defined])
 

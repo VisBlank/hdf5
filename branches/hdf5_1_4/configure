@@ -28701,7 +28701,7 @@ echo $ECHO_N "checking for ASYNCIO... $ECHO_C" >&6
     if test -n "$ASYNCIO"; then
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                  CPPFLAGS="$CPPFLAGE -DUSE_ASYNC_IO"
+                  CPPFLAGS="$CPPFLAGS -DUSE_ASYNC_IO"
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_ASYNCIO 1
