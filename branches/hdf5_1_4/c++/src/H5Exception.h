@@ -83,7 +83,9 @@ class H5_DLLCPP Exception {
 // Because 'string' is not instantiated at compilation time, this
 // warning is displayed; but the class is exported so the warning
 // is harmless
+#if defined(WIN32)
 #pragma warning(disable: 4251)
+#endif
 	string detailMessage;
 	string funcName;
 };
