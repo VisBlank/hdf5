@@ -385,6 +385,9 @@ int main(int argc, char **argv)
 
 	MPI_BANNER("extendible dataset independent write...");
 	extend_writeInd(filenames[2]);
+
+	MPI_BANNER("extendible dataset collective write...");
+	extend_writeAll(filenames[2]);
     }
     else{
 	MPI_BANNER("write tests skipped");
@@ -399,6 +402,9 @@ int main(int argc, char **argv)
 
 	MPI_BANNER("extendible dataset independent read...");
 	extend_readInd(filenames[2]);
+
+	MPI_BANNER("extendible dataset collective read...");
+	extend_readAll(filenames[2]);
     }
     else{
 	MPI_BANNER("read tests skipped");
@@ -408,7 +414,7 @@ int main(int argc, char **argv)
 	MPI_BANNER("collective group and dataset write ...");
         collective_group_write(filenames[5], ngroups);
         if (doread) {
-       	    MPI_BANNER("indepenent group and dataset read ...");
+       	    MPI_BANNER("independent group and dataset read ...");
             independent_group_read(filenames[5], ngroups);
         }
     }

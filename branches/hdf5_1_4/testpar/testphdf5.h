@@ -125,9 +125,11 @@ void test_comm_info_delete(void);
 void dataset_writeInd(char *filename);
 void dataset_writeAll(char *filename);
 void extend_writeInd(char *filename);
+void extend_writeAll(char *filename);
 void dataset_readInd(char *filename);
 void dataset_readAll(char *filename);
 void extend_readInd(char *filename);
+void extend_readAll(char *filename);
 int dataset_vrfy(hssize_t start[], hsize_t count[], hsize_t stride[], hsize_t block[], DATATYPE *dataset, DATATYPE *original);
 
 #endif /* PHDF5TEST_H */

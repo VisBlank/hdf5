@@ -77,6 +77,8 @@ Bug Fixes since HDF5-1.4.5 Release
 ==================================
   o Library
   =========
+    * Don't attempt to perform collective I/O on chunked datasets with
+      parallel I/O.  QAK - 2003/06/05
     * Fixed error in B-tree deletion routine which could cause groups to be
       corrupted when objects are removed from them.
       QAK - 2003/04/11

@@ -1722,6 +1722,30 @@ printf("%s: check 1.0, nelmts=%d\n",FUNC,(int)nelmts);
 
         case H5D_CHUNKED:
             sconv_flags |= H5S_CONV_STORAGE_CHUNKED;
+#ifdef H5_HAVE_PARALLEL
+            /* The following may not handle a collective call correctly
+             * since it does not ensure all processes can handle the write
+             * request according to the MPI collective specification.
+             * Do the collective request via independent mode.
+             */
+            if (doing_mpio && xfer_mode==H5FD_MPIO_COLLECTIVE){
+                /* Kludge: change the xfer_mode to independent, handle the request,
+                 * then xfer_mode before return.
+                 * Better way is to get a temporary data_xfer property with
+                 * INDEPENDENT xfer_mode and pass it downwards.
+                 */
+                xfer_parms->xfer_mode = H5FD_MPIO_INDEPENDENT;
+                xfer_mode_changed++;	/* restore it before return */
+#ifdef H5D_DEBUG
+                if (H5DEBUG(D)) {
+                    fprintf(H5DEBUG(D),
+                        "H5D: Cannot handle this COLLECTIVE write request.  Do it via INDEPENDENT calls\n"
+                        "xfer_parms->xfer_mode was %d, changed to %d\n",
+                        xfer_mode, xfer_parms->xfer_mode);
+                }
+#endif
+            }
+#endif
             break;
 
         default:
@@ -2197,6 +2221,30 @@ H5D_write(H5D_t *dataset, const H5T_t *mem_type, const H5S_t *mem_space,
 
         case H5D_CHUNKED:
             sconv_flags |= H5S_CONV_STORAGE_CHUNKED;
+#ifdef H5_HAVE_PARALLEL
+            /* The following may not handle a collective call correctly
+             * since it does not ensure all processes can handle the write
+             * request according to the MPI collective specification.
+             * Do the collective request via independent mode.
+             */
+            if (doing_mpio && xfer_mode==H5FD_MPIO_COLLECTIVE){
+                /* Kludge: change the xfer_mode to independent, handle the request,
+                 * then xfer_mode before return.
+                 * Better way is to get a temporary data_xfer property with
+                 * INDEPENDENT xfer_mode and pass it downwards.
+                 */
+                xfer_parms->xfer_mode = H5FD_MPIO_INDEPENDENT;
+                xfer_mode_changed++;	/* restore it before return */
+#ifdef H5D_DEBUG
+                if (H5DEBUG(D)) {
+                    fprintf(H5DEBUG(D),
+                        "H5D: Cannot handle this COLLECTIVE write request.  Do it via INDEPENDENT calls\n"
+                        "xfer_parms->xfer_mode was %d, changed to %d\n",
+                        xfer_mode, xfer_parms->xfer_mode);
+                }
+#endif
+            }
+#endif
             break;
 
         default:
