@@ -1734,3 +1734,70 @@ nh5tget_tag_c(hid_t_f* type_id, _fcd tag, int_f* taglen)
   ret_value = 0; 
   return ret_value;
 }
+/*----------------------------------------------------------------------------
+ * Name:        h5tget_member_index_c
+ * Purpose:     Call H5Tget_member_index to get an index of
+ *              the specified datatype filed or member.
+ * Inputs:      type_id - datatype identifier  
+ *              name - name of the datatype within file or  group     
+ *              namelen - name length
+ * Outputs:     index - 0-based index
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  Elena Pourmal
+ *              Thursday, September 26, 2002
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+int_f
+nh5tget_member_index_c (hid_t_f *type_id, _fcd name, int_f *namelen, int_f *index)
+{
+     int ret_value = -1;
+     char *c_name;
+     int c_namelen;
+     hid_t c_type_id;
+     int c_index;
+
+     /*
+      * Convert FORTRAN name to C name
+      */
+     c_namelen = *namelen;
+     c_name = (char *)HD5f2cstring(name, c_namelen); 
+     if (c_name == NULL) return ret_value;
+
+     /*
+      * Call H5Tget_member_index function.
+      */
+     c_type_id = (hid_t)*type_id;
+     c_index = H5Tget_member_index(c_type_id, c_name);
+
+     if (c_index < 0) goto DONE;
+     *index = (int_f)c_index;
+DONE:
+     HDfree(c_name);
+     ret_value = 0;
+     return ret_value;
+}      
+
+/*----------------------------------------------------------------------------
+ * Name:        h5tvlen_create_c
+ * Purpose:     Call H5Tvlen_create to create VL dtatype
+ * Inputs:      type_id - identifier of the base datatype
+ * Outputs:     vltype_id - identifier of the VL datatype
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  Elena Pourmal
+ *              Wednesday, October 23, 2002
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+int_f
+nh5tvlen_create_c(hid_t_f* type_id, hid_t_f *vltype_id)
+{
+  int ret_value = -1;
+  hid_t c_type_id;
+  hid_t c_vltype_id;
+
+  c_type_id = (hid_t)*type_id;
+  c_vltype_id = H5Tvlen_create(c_type_id);
+  if (c_vltype_id < 0 ) return ret_value;
+  *vltype_id = (hid_t_f)c_vltype_id;
+  ret_value = 0; 
+  return ret_value;
+}
