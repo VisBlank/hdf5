@@ -5295,6 +5295,8 @@ H5Sselect_hyperslab(hid_t space_id, H5S_seloper_t op,
             NULL == (space=H5I_object(space_id))) {
         HRETURN_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a data space");
     }
+    if (H5S_SCALAR==H5S_get_simple_extent_type(space))
+        HRETURN_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "hyperslab doesn't support H5S_SCALAR space");
     if(start==NULL || count==NULL) {
         HRETURN_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "hyperslab not specified");
     } /* end if */
