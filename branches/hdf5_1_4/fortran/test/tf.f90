@@ -18,6 +18,10 @@
 !    This file contains subroutines which are used in
 !    all the hdf5 fortran tests
 !
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: check
+!DEC$endif
 
          SUBROUTINE check(string,error,total_error)
             CHARACTER(LEN=*) :: string
