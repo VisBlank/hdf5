@@ -12,19 +12,26 @@
   * access to either file, you may request a copy from hdfhelp@ncsa.uiuc.edu. *
   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/***********************************************************
-*
-* Test program:  dsets
-*
-* Test the dataset interface
-*
-*************************************************************/
+/*****************************************************************************
+   FILE
+   dsets.cpp - HDF5 C++ testing the functionalities associated with the
+        C dataset interface (H5D)
+
+   EXTERNAL ROUTINES/VARIABLES:
+     These routines are in the test directory of the C library:
+        h5_reset() -- in h5test.c, resets the library by closing it
+        h5_fileaccess() -- in h5test.c, returns a file access template
+        h5_fixname() -- in h5test.c, create a file name from a file base name
+        h5_cleanup() -- in h5test.c, cleanup temporary test files
+
+ ***************************************************************************/
 
 #ifdef OLD_HEADER_FILENAME
 #include <iostream.h>
 #else
 #include <iostream>
 #endif
+#include <string>
 
 #include "H5Cpp.h"
 #include "h5test.h"
@@ -33,6 +40,8 @@
 #ifndef H5_NO_NAMESPACE
 using namespace H5;
 #endif
+
+#include "h5cpputil.h"
 
 const char *FILENAME[] = {
     "dataset",
@@ -657,7 +666,7 @@ test_compression(H5File& file)
 
 	// BMR: not sure how to handle this yet
 	if (H5Zregister (H5Z_BOGUS, DSET_BOGUS_NAME, bogus)<0) goto error;
-	if (H5Pset_filter (dscreatplist.getId(), H5Z_BOGUS, 0, 0, NULL)<0) goto error;
+	//if (H5Pset_filter (dscreatplist.getId(), H5Z_BOGUS, 0, 0, NULL)<0) goto error;
 	dscreatplist.setFilter (H5Z_BOGUS, 0, 0, NULL);
 	delete dataset;
 
@@ -783,7 +792,7 @@ test_multiopen (H5File& file)
 /*-------------------------------------------------------------------------
  * Function:	test_types
  *
- * Purpose:	Make some datasets with various types so we can test h5ls.
+ * Purpose:	Test various types - should be moved to dtypes.cpp
  *
  * Return:	Success:	0
  *
@@ -979,44 +988,6 @@ test_types(H5File& file)
 
 
 /*-------------------------------------------------------------------------
- * Function:	test_report
- *
- * Purpose:	Prints out the number of errors for dataset tests if there  
- *		were any failures occurred.  If no failure, test_report
- *		prints out the "All dataset tests passed" message 
- *
- * Return:	if any failure has occurred:	1
- *
- *		if no failure occurs:	0
- *
- * Programmer:	Binh-Minh Ribler (using C code segment for reporting tests)
- *		Friday, February 6, 2001
- *
- * Modifications:
- *
- *-------------------------------------------------------------------------
- */
-int test_report( int nerrors )
-{
-   if (nerrors)
-   {
-      nerrors = MAX(1, nerrors);
-	if (1 == nerrors)
-	    cout << "***** " << nerrors << " DATASET TEST" 
-					<< " FAILED! *****" << endl;
-	else
-	    cout << "***** " << nerrors << " DATASET TESTS" 
-					<< " FAILED! *****" << endl;
-      return 1;
-   }
-   else 
-   {
-      cout << "All dataset tests passed." << endl;
-      return 0;
-   }
-}
-
-/*-------------------------------------------------------------------------
  * Function:	main
  *
  * Purpose:	Tests the dataset interface (H5D)
@@ -1079,11 +1050,11 @@ main(void)
     }
     catch (Exception E) 
     {
-	return( test_report( nerrors ));
+	return(test_report(nerrors, string(" DATASET TESTS")));
     }
     /* use C test utility routine to clean up data files */
     h5_cleanup(FILENAME, fapl_id);
 
     /* print out dsets test results */
-    return( test_report( nerrors ));
+    return(test_report(nerrors, string(" DATASET TESTS")));
 }
