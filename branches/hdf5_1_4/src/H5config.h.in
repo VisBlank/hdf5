@@ -3,6 +3,9 @@
 /* Define to 1 if you have the <aio.h> header file. */
 #undef HAVE_AIO_H
 
+/* Define if the Async IO is defined */
+#undef HAVE_ASYNCIO
+
 /* Define if the __attribute__(()) extension is present */
 #undef HAVE_ATTRIBUTE
 
@@ -130,9 +133,6 @@
 
 /* Define to 1 if you have the `pthread' library (-lpthread). */
 #undef HAVE_LIBPTHREAD
-
-/* Define to 1 if you have the `rt' library (-lrt). */
-#undef HAVE_LIBRT
 
 /* Define to 1 if you have the `silo' library (-lsilo). */
 #undef HAVE_LIBSILO
