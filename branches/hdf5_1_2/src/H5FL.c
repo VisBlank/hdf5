@@ -67,6 +67,44 @@ static H5FL_gc_arr_list_t *H5FL_gc_arr_head=NULL;
 
 
 /*-------------------------------------------------------------------------
+ * Function:	H5FL_malloc
+ *
+ * Purpose:	Attempt to allocate space using malloc.  If malloc fails, garbage
+ *      collect and try again.  If malloc fails again, then return NULL.
+ *
+ * Return:	Success:	non-NULL
+ * 		Failure:	NULL
+ *
+ * Programmer:	Quincey Koziol
+ *              Tuesday, August 1, 2000
+ *
+ * Modifications:
+ * 	
+ *-------------------------------------------------------------------------
+ */
+static void *
+H5FL_malloc(size_t mem_size)
+{
+    void *ret_value=NULL;   /* return value*/
+
+    FUNC_ENTER (H5FL_malloc, NULL);
+
+    /* Attempt to allocate the memory requested */
+    if(NULL==(ret_value=H5MM_malloc(mem_size))) {
+        /* If we can't allocate the memory now, try garbage collecting first */
+        H5FL_garbage_coll();
+
+        /* Now try allocating the memory again */
+        if(NULL==(ret_value=H5MM_malloc(mem_size)))
+            HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed for chunk");
+    } /* end if */
+
+done:
+    FUNC_LEAVE (ret_value);
+}   /* end H5FL_malloc() */
+
+
+/*-------------------------------------------------------------------------
  * Function:	H5FL_init
  *
  * Purpose:	Initialize a free list for a certain type.  Right now, this just
@@ -219,7 +257,7 @@ H5FL_alloc(H5FL_head_t *head, uintn clear)
     } /* end if */
     /* Otherwise allocate a node */
     else {
-        if (NULL==(new_obj = H5MM_malloc(sizeof(H5FL_node_t)+head->size)))
+        if (NULL==(new_obj = H5FL_malloc(sizeof(H5FL_node_t)+head->size)))
             HRETURN_ERROR (H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed");
 
 #ifdef H5FL_DEBUG
@@ -565,7 +603,7 @@ H5FL_blk_alloc(H5FL_blk_head_t *head, size_t size, uintn clear)
     /* No free list available, or there are no nodes on the list, allocate a new node to give to the user */
     else { 
         /* Allocate new node, with room for the page info header and the actual page data */
-		if(NULL==(temp=H5MM_malloc(sizeof(H5FL_blk_list_t)+size)))
+		if(NULL==(temp=H5FL_malloc(sizeof(H5FL_blk_list_t)+size)))
 		    HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed for chunk");
 
         /* Increment the number of blocks allocated */
@@ -1025,7 +1063,7 @@ H5FL_arr_alloc(H5FL_arr_head_t *head, uintn elem, uintn clear)
         } /* end if */
         /* Otherwise allocate a node */
         else {
-            if (NULL==(new_obj = H5MM_malloc(sizeof(H5FL_arr_node_t)+head->size*elem)))
+            if (NULL==(new_obj = H5FL_malloc(sizeof(H5FL_arr_node_t)+head->size*elem)))
                 HRETURN_ERROR (H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed");
 
             /* Increment the number of blocks allocated in list */
