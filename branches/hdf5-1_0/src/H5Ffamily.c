@@ -454,10 +454,13 @@ H5F_fam_write(H5F_low_t *lf, const H5F_access_t *access_parms,
 	
 	/*
 	 * Make sure the logical eof is large enough to handle the request.
+	 * Do not decrease the EOF.
 	 */
 	max_addr = cur_addr;
 	H5F_addr_inc(&max_addr, (hsize_t)nbytes);
-	H5F_low_seteof(lf->u.fam.memb[membno], &max_addr);
+	if (H5F_addr_gt(&max_addr, &(lf->u.fam.memb[membno]->eof))) {
+	    H5F_low_seteof(lf->u.fam.memb[membno], &max_addr);
+	}
 
 	/* Write the data to the member */
 	if (H5F_low_write(lf->u.fam.memb[membno],
