@@ -32,6 +32,15 @@
 #define H5S_VALID_MAX	0x01
 #define H5S_VALID_PERM	0x02
 
+/* Flags for H5S_find */
+#define H5S_CONV_PAR_IO_POSSIBLE        0x0001
+/* The storage options are mutually exclusive */
+/* (2-bits reserved for storage type currently) */
+#define H5S_CONV_STORAGE_COMPACT        0x0000  /* i.e. '0' */
+#define H5S_CONV_STORAGE_CONTIGUOUS     0x0002  /* i.e. '1' */
+#define H5S_CONV_STORAGE_CHUNKED        0x0004  /* i.e. '2' */
+#define H5S_CONV_STORAGE_MASK           0x0006
+
 /* Forward references of common typedefs */
 typedef struct H5S_t H5S_t;
 typedef struct H5S_pnt_node_t H5S_pnt_node_t;
@@ -154,8 +163,7 @@ typedef struct H5S_conv_t {
 		   const struct H5O_fill_t *fill,
 		   const struct H5O_efl_t *efl, size_t elmt_size,
 		   const H5S_t *file_space, const H5S_t *mem_space,
-		   hid_t dxpl_id, void *buf/*out*/,
-		   hbool_t *must_convert/*out*/);
+		   hid_t dxpl_id, void *buf/*out*/);
 
 
     /* Write directly from app buffer to file */
@@ -164,8 +172,7 @@ typedef struct H5S_conv_t {
 		   const struct H5O_fill_t *fill,
 		   const struct H5O_efl_t *efl, size_t elmt_size,
 		   const H5S_t *file_space, const H5S_t *mem_space,
-		   hid_t dxpl_id, const void *buf,
-		   hbool_t *must_convert/*out*/);
+		   hid_t dxpl_id, const void *buf);
     
 #ifdef H5S_DEBUG
     struct {
@@ -201,7 +208,8 @@ __DLLVAR__ const H5S_mconv_t	H5S_HYPER_MCONV[];
 __DLL__ H5S_t *H5S_create(H5S_class_t type);
 __DLL__ H5S_t *H5S_copy(const H5S_t *src);
 __DLL__ herr_t H5S_close(H5S_t *ds);
-__DLL__ H5S_conv_t *H5S_find(const H5S_t *mem_space, const H5S_t *file_space);
+__DLL__ H5S_conv_t *H5S_find(const H5S_t *mem_space, const H5S_t *file_space,
+                unsigned flags);
 __DLL__ H5S_class_t H5S_get_simple_extent_type(const H5S_t *ds);
 __DLL__ hssize_t H5S_get_simple_extent_npoints(const H5S_t *ds);
 __DLL__ hsize_t H5S_get_npoints_max(const H5S_t *ds);
@@ -234,6 +242,9 @@ __DLL__ hssize_t H5S_select_serial_size(const H5S_t *space);
 __DLL__ herr_t H5S_select_serialize(const H5S_t *space, uint8_t *buf);
 __DLL__ herr_t H5S_select_deserialize(H5S_t *space, const uint8_t *buf);
 __DLL__ htri_t H5S_select_contiguous(const H5S_t *space);
+__DLL__ htri_t H5S_select_single(const H5S_t *space);
+__DLL__ htri_t H5S_select_regular(const H5S_t *space);
+__DLL__ htri_t H5S_select_shape_same(const H5S_t *space1, const H5S_t *space2);
 __DLL__ herr_t H5S_select_iterate(void *buf, hid_t type_id, H5S_t *space,
 				  H5D_operator_t op, void *operator_data);
 __DLL__ herr_t H5S_sel_iter_release(const H5S_t *space,
@@ -248,8 +259,7 @@ __DLL__ herr_t H5S_mpio_spaces_read(H5F_t *f,
 				    const struct H5O_efl_t *efl,
 				    size_t elmt_size, const H5S_t *file_space,
 				    const H5S_t *mem_space, hid_t dxpl_id,
-				    void *buf/*out*/,
-				    hbool_t *must_convert /*out*/ );
+				    void *buf/*out*/);
 
 /* MPI-IO function to write directly from app buffer to file rky980813 */
 __DLL__ herr_t H5S_mpio_spaces_write(H5F_t *f,
@@ -259,8 +269,13 @@ __DLL__ herr_t H5S_mpio_spaces_write(H5F_t *f,
 				     const struct H5O_efl_t *efl,
 				     size_t elmt_size, const H5S_t *file_space,
 				     const H5S_t *mem_space, hid_t dxpl_id,
-				     const void *buf,
-				     hbool_t *must_convert /*out*/ );
+				     const void *buf);
+
+/* MPI-IO function to check if a direct I/O transfer is possible between
+ * memory and the file */
+__DLL__ htri_t H5S_mpio_opt_possible(const H5S_t *mem_space,
+                                     const H5S_t *file_space, const unsigned flags);
+
 #ifndef _H5S_IN_H5S_C
 /* Global vars whose value comes from environment variable */
 /* (Defined in H5S.c) */

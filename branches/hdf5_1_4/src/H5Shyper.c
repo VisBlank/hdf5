@@ -4648,10 +4648,12 @@ H5S_hyper_bounds(H5S_t *space, hsize_t *start, hsize_t *end)
 htri_t
 H5S_hyper_select_contiguous(const H5S_t *space)
 {
-    htri_t ret_value=FAIL;  /* return value */
     H5S_hyper_node_t *node;     /* Hyperslab node */
-    unsigned rank;                 /* Dataspace rank */
-    unsigned u;                    /* index variable */
+    unsigned rank;              /* Dataspace rank */
+    unsigned u;                 /* index variable */
+    unsigned small_contiguous,  /* Flag for small contiguous block */
+        large_contiguous;       /* Flag for large contiguous block */
+    htri_t ret_value=FALSE;     /* return value */
 
     FUNC_ENTER (H5S_hyper_select_contiguous, FAIL);
 
@@ -4663,19 +4665,41 @@ H5S_hyper_select_contiguous(const H5S_t *space)
          * For a regular hyperslab to be contiguous, it must have only one
          * block (i.e. count==1 in all dimensions) and the block size must be
          * the same as the dataspace extent's in all but the slowest changing
-         * dimension.
+         * dimension. (dubbed "large contiguous" block)
+         *
+         * OR
+         *
+         * The selection must have only one block (i.e. count==1) and the block
+         * size must be 1 in all but the fastest changing dimension. (dubbed
+         * "small contiguous" block)
          */
-        ret_value=TRUE;	/* assume true and reset if the dimensions don't match */
-        for(u=0; u<space->extent.u.simple.rank; u++) {
-            if(space->select.sel_info.hslab.diminfo[u].count>1) {
-                ret_value=FALSE;
-                break;
-            } /* end if */
-            if(u>0 && space->select.sel_info.hslab.diminfo[u].block!=space->extent.u.simple.size[u]) {
-                ret_value=FALSE;
+
+        /* Initialize flags */
+        large_contiguous=TRUE;	/* assume true and reset if the dimensions don't match */
+        small_contiguous=FALSE;	/* assume false initially */
+
+        /* Check for a "large contigous" block */
+        for(u=1; u<space->extent.u.simple.rank; u++) {
+            if(space->select.sel_info.hslab.diminfo[u].count>1 || space->select.sel_info.hslab.diminfo[u].block!=space->extent.u.simple.size[u]) {
+                large_contiguous=FALSE;
                 break;
             } /* end if */
         } /* end for */
+
+        /* If we didn't find a large contiguous block, check for a small one */
+        if(large_contiguous==FALSE) {
+            small_contiguous=TRUE;
+            for(u=0; u<(space->extent.u.simple.rank-1); u++) {
+                if(space->select.sel_info.hslab.diminfo[u].count>1 || space->select.sel_info.hslab.diminfo[u].block!=1) {
+                    small_contiguous=FALSE;
+                    break;
+                } /* end if */
+            } /* end for */
+        } /* end if */
+
+        /* Indicate true if it's either a large or small contiguous block */
+        if(large_contiguous || small_contiguous)
+            ret_value=TRUE;
     } /* end if */
     else {
         /* If there is more than one hyperslab in the selection, they are not contiguous */
@@ -4689,20 +4713,154 @@ H5S_hyper_select_contiguous(const H5S_t *space)
             node=space->select.sel_info.hslab.hyper_lst->head;
 
             /*
-             * For a hyperslab to be contiguous, it's size must be the same as the
-             * dataspace extent's in all but the slowest changing dimension
+             * For a hyperslab to be contiguous, it must have only one block and
+             * (either it's size must be the same as the dataspace extent's in all
+             * but the slowest changing dimension
+             * OR
+             * block size must be 1 in all but the fastest changing dimension).
              */
-            ret_value=TRUE;	/* assume true and reset if the dimensions don't match */
+            /* Initialize flags */
+            large_contiguous=TRUE;	/* assume true and reset if the dimensions don't match */
+            small_contiguous=FALSE;	/* assume false initially */
+
+            /* Check for a "large contigous" block */
             for(u=1; u<rank; u++) {
                 if(((node->end[u]-node->start[u])+1)!=(hssize_t)space->extent.u.simple.size[u]) {
-                    ret_value=FALSE;
+                    large_contiguous=FALSE;
                     break;
                 } /* end if */
             } /* end for */
+
+            /* If we didn't find a large contiguous block, check for a small one */
+            if(large_contiguous==FALSE) {
+                small_contiguous=TRUE;
+                for(u=0; u<(rank-1); u++) {
+                    if(((node->end[u]-node->start[u])+1)!=1) {
+                        small_contiguous=FALSE;
+                        break;
+                    } /* end if */
+                } /* end for */
+            } /* end if */
+
+            /* Indicate true if it's either a large or small contiguous block */
+            if(large_contiguous || small_contiguous)
+                ret_value=TRUE;
         } /* end else */
     } /* end else */
     FUNC_LEAVE (ret_value);
 }   /* H5S_hyper_select_contiguous() */
+
+
+/*--------------------------------------------------------------------------
+ NAME
+    H5S_hyper_select_single
+ PURPOSE
+    Check if a hyperslab selection is a single block within the dataspace extent.
+ USAGE
+    htri_t H5S_select_single(space)
+        H5S_t *space;           IN: Dataspace pointer to check
+ RETURNS
+    TRUE/FALSE/FAIL
+ DESCRIPTION
+    Checks to see if the current selection in the dataspace is a single block.
+    This is primarily used for reading the entire selection in one swoop.
+ GLOBAL VARIABLES
+ COMMENTS, BUGS, ASSUMPTIONS
+ EXAMPLES
+ REVISION LOG
+--------------------------------------------------------------------------*/
+htri_t
+H5S_hyper_select_single(const H5S_t *space)
+{
+    H5S_hyper_node_t *node;         /* Hyperslab span node */
+    unsigned u;                     /* index variable */
+    htri_t ret_value=FALSE;         /* return value */
+
+    FUNC_ENTER(H5S_hyper_select_single, FAIL);
+
+    assert(space);
+
+    /* Check for a "single" hyperslab selection */
+    if(space->select.sel_info.hslab.diminfo != NULL) {
+        /*
+         * For a regular hyperslab to be single, it must have only one
+         * block (i.e. count==1 in all dimensions)
+         */
+
+        /* Initialize flags */
+        ret_value=TRUE;	/* assume true and reset if the dimensions don't match */
+
+        /* Check for a single block */
+        for(u=0; u<space->extent.u.simple.rank; u++) {
+            if(space->select.sel_info.hslab.diminfo[u].count>1) {
+                ret_value=FALSE;
+                break;
+            } /* end if */
+        } /* end for */
+    } /* end if */
+    else {
+        /*
+         * For a region to be single, it must have only one node
+         */
+        /* Get information for first hyperslab node */
+        node=space->select.sel_info.hslab.hyper_lst->head;
+
+        /* Check if there is only one hyperslab node */
+        if(node->next==NULL)
+            ret_value=TRUE;
+    } /* end else */
+
+    FUNC_LEAVE (ret_value);
+}   /* H5S_hyper_select_single() */
+
+
+/*--------------------------------------------------------------------------
+ NAME
+    H5S_hyper_select_regular
+ PURPOSE
+    Check if a hyperslab selection is "regular"
+ USAGE
+    htri_t H5S_hyper_select_regular(space)
+        const H5S_t *space;     IN: Dataspace pointer to check
+ RETURNS
+    TRUE/FALSE/FAIL
+ DESCRIPTION
+    Checks to see if the current selection in a dataspace is the a regular
+    pattern.
+    This is primarily used for reading the entire selection in one swoop.
+ GLOBAL VARIABLES
+ COMMENTS, BUGS, ASSUMPTIONS
+ EXAMPLES
+ REVISION LOG
+--------------------------------------------------------------------------*/
+htri_t
+H5S_hyper_select_regular(const H5S_t *space)
+{
+    H5S_hyper_node_t *node;     /* Hyperslab span node */
+    htri_t ret_value=FALSE;     /* return value */
+
+    FUNC_ENTER(H5S_hyper_select_regular, FAIL);
+
+    /* Check args */
+    assert(space);
+
+    /* All "single" hyperslab selections are regular */
+    if(space->select.sel_info.hslab.diminfo != NULL)
+        ret_value=TRUE;
+    else {
+        /*
+         * For a region to be regular, it must have only one node
+         */
+        /* Get information for first hyperslab node */
+        node=space->select.sel_info.hslab.hyper_lst->head;
+
+        /* Check if there is only one hyperslab node */
+        if(node->next==NULL)
+            ret_value=TRUE;
+    } /* end else */
+
+    FUNC_LEAVE (ret_value);
+}   /* H5S_hyper_select_regular() */
 
 
 /*-------------------------------------------------------------------------

@@ -1506,11 +1506,11 @@ H5S_set_extent_simple (H5S_t *space, int rank, const hsize_t *dims,
  *-------------------------------------------------------------------------
  */
 H5S_conv_t *
-H5S_find (const H5S_t *mem_space, const H5S_t *file_space)
+H5S_find (const H5S_t *mem_space, const H5S_t *file_space, unsigned flags)
 {
-    size_t	i;
-    htri_t c1,c2;
-    H5S_conv_t	*path;
+    H5S_conv_t	*path;  /* Space conversion path */
+    htri_t opt;         /* Flag whether a selection is optimizable */
+    size_t	i;      /* Index variable */
     
     FUNC_ENTER (H5S_find, NULL);
 
@@ -1524,11 +1524,8 @@ H5S_find (const H5S_t *mem_space, const H5S_t *file_space)
      * We can't do conversion if the source and destination select a
      * different number of data points.
      */
-    if (H5S_get_select_npoints(mem_space) !=
-	H5S_get_select_npoints (file_space)) {
-        HRETURN_ERROR (H5E_DATASPACE, H5E_BADRANGE, NULL,
-		       "memory and file data spaces are different sizes");
-    }
+    if (H5S_get_select_npoints(mem_space) != H5S_get_select_npoints (file_space))
+        HRETURN_ERROR (H5E_DATASPACE, H5E_BADRANGE, NULL, "memory and file data spaces are different sizes");
 
     /*
      * Is this path already present in the data space conversion path table?
@@ -1536,24 +1533,41 @@ H5S_find (const H5S_t *mem_space, const H5S_t *file_space)
      */
     for (i=0; i<H5S_nconv_g; i++) {
         if (H5S_conv_g[i]->f->type==file_space->select.type &&
-            H5S_conv_g[i]->m->type==mem_space->select.type) {
+                H5S_conv_g[i]->m->type==mem_space->select.type) {
+#ifdef H5_HAVE_PARALLEL
             /*
-             * Initialize direct read/write functions
+             * Check if we can set direct MPI-IO read/write functions
              */
-            c1=H5S_select_contiguous(file_space);
-            c2=H5S_select_contiguous(mem_space);
-            if(c1==FAIL || c2==FAIL)
-                HRETURN_ERROR(H5E_DATASPACE, H5E_BADRANGE, NULL,
-                      "invalid check for contiguous dataspace ");
+            opt=H5S_mpio_opt_possible(mem_space,file_space,flags);
+            if(opt==FAIL)
+                HRETURN_ERROR(H5E_DATASPACE, H5E_BADRANGE, NULL, "invalid check for contiguous dataspace ");
 
-            if (c1==TRUE && c2==TRUE) {
-                H5S_conv_g[i]->read = H5S_all_read;
-                H5S_conv_g[i]->write = H5S_all_write;
-            }
+            /* Check if we can use the optimized parallel I/O routines */
+            if(opt==TRUE) {
+                H5S_conv_g[i]->read = H5S_mpio_spaces_read;
+                H5S_conv_g[i]->write = H5S_mpio_spaces_write;
+            } /* end if */
             else {
-                H5S_conv_g[i]->read = NULL;
-                H5S_conv_g[i]->write = NULL;
-            }
+#endif /* H5_HAVE_PARALLEL */
+                /*
+                 * Check if we can set direct "all" read/write functions
+                 */
+                opt=H5S_all_opt_possible(mem_space,file_space,flags);
+                if(opt==FAIL)
+                    HRETURN_ERROR(H5E_DATASPACE, H5E_BADRANGE, NULL, "invalid check for contiguous dataspace ");
+
+                /* Check if we can use the optimized "all" I/O routines */
+                if(opt==TRUE) {
+                    H5S_conv_g[i]->read = H5S_all_read;
+                    H5S_conv_g[i]->write = H5S_all_write;
+                } /* end if */
+                else {
+                    H5S_conv_g[i]->read = NULL;
+                    H5S_conv_g[i]->write = NULL;
+                } /* end else */
+#ifdef H5_HAVE_PARALLEL
+            } /* end else */
+#endif /* H5_HAVE_PARALLEL */
 
             HRETURN(H5S_conv_g[i]);
         }
@@ -1563,36 +1577,56 @@ H5S_find (const H5S_t *mem_space, const H5S_t *file_space)
      * The path wasn't found.  Do we have enough information to create a new
      * path?
      */
-    if (NULL==H5S_fconv_g[file_space->select.type] ||
-            NULL==H5S_mconv_g[mem_space->select.type]) {
-        HRETURN_ERROR(H5E_DATASPACE, H5E_UNSUPPORTED, NULL,
-		      "unable to convert between data space selections");
-    }
+    if (NULL==H5S_fconv_g[file_space->select.type] || NULL==H5S_mconv_g[mem_space->select.type])
+        HRETURN_ERROR(H5E_DATASPACE, H5E_UNSUPPORTED, NULL, "unable to convert between data space selections");
 
     /*
      * Create a new path.
      */
-    if (NULL==(path = H5MM_calloc(sizeof(*path)))) {
-        HRETURN_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL,
-		      "memory allocation failed for data space conversion "
-		      "path");
-    }
+    if (NULL==(path = H5MM_calloc(sizeof(*path))))
+        HRETURN_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed for data space conversion path");
+
+    /* Initialize file & memory conversion functions */
     path->f = H5S_fconv_g[file_space->select.type];
     path->m = H5S_mconv_g[mem_space->select.type];
 
     /*
      * Initialize direct read/write functions
      */
-    c1=H5S_select_contiguous(file_space);
-    c2=H5S_select_contiguous(mem_space);
-    if(c1==FAIL || c2==FAIL)
-        HRETURN_ERROR(H5E_DATASPACE, H5E_BADRANGE, NULL,
-		      "invalid check for contiguous dataspace ");
+#ifdef H5_HAVE_PARALLEL
+    /*
+     * Check if we can set direct MPI-IO read/write functions
+     */
+    opt=H5S_mpio_opt_possible(mem_space,file_space,flags);
+    if(opt==FAIL)
+        HRETURN_ERROR(H5E_DATASPACE, H5E_BADRANGE, NULL, "invalid check for contiguous dataspace ");
 
-    if (c1==TRUE && c2==TRUE) {
-        path->read = H5S_all_read;
-        path->write = H5S_all_write;
-    }
+    /* Check if we can use the optimized parallel I/O routines */
+    if(opt==TRUE) {
+        path->read = H5S_mpio_spaces_read;
+        path->write = H5S_mpio_spaces_write;
+    } /* end if */
+    else {
+#endif /* H5_HAVE_PARALLEL */
+        /*
+         * Check if we can set direct "all" read/write functions
+         */
+        opt=H5S_all_opt_possible(mem_space,file_space,flags);
+        if(opt==FAIL)
+            HRETURN_ERROR(H5E_DATASPACE, H5E_BADRANGE, NULL, "invalid check for contiguous dataspace ");
+
+        /* Check if we can use the optimized "all" I/O routines */
+        if(opt==TRUE) {
+            path->read = H5S_all_read;
+            path->write = H5S_all_write;
+        } /* end if */
+        else {
+            path->read = NULL;
+            path->write = NULL;
+        } /* end else */
+#ifdef H5_HAVE_PARALLEL
+    } /* end else */
+#endif /* H5_HAVE_PARALLEL */
     
     /*
      * Add the new path to the table.
@@ -1601,14 +1635,11 @@ H5S_find (const H5S_t *mem_space, const H5S_t *file_space)
         size_t n = MAX(10, 2*H5S_aconv_g);
         H5S_conv_t **p = H5MM_realloc(H5S_conv_g, n*sizeof(H5S_conv_g[0]));
 
-        if (NULL==p) {
-            HRETURN_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL,
-                  "memory allocation failed for data space conversion "
-                  "path table");
-        }
+        if (NULL==p)
+            HRETURN_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed for data space conversion path table");
         H5S_aconv_g = n;
         H5S_conv_g = p;
-    }
+    } /* end if */
     H5S_conv_g[H5S_nconv_g++] = path;
 
     FUNC_LEAVE(path);

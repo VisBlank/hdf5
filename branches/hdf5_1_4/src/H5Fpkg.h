@@ -206,12 +206,14 @@ __DLL__ herr_t H5F_istore_read(H5F_t *f, hid_t dxpl_id,
 			       const struct H5O_layout_t *layout,
 			       const struct H5O_pline_t *pline,
 			       const struct H5O_fill_t *fill,
+                               const hsize_t size_m[], const hssize_t offset_m[],
 			       const hssize_t offset[], const hsize_t size[],
 			       void *buf/*out*/);
 __DLL__ herr_t H5F_istore_write(H5F_t *f, hid_t dxpl_id,
 				const struct H5O_layout_t *layout,
 				const struct H5O_pline_t *pline,
 				const struct H5O_fill_t *fill,
+                                const hsize_t size_m[], const hssize_t offset_m[],
 				const hssize_t offset[], const hsize_t size[],
 				const void *buf);
 
