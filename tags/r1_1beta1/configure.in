@@ -1,0 +1,393 @@
+dnl Process this file with autoconf to produce configure.  -*-indented-text-*-
+dnl
+dnl Copyright (C) 1997 National Center for Supercomputing Applications.
+dnl                    All rights reserved.
+
+
+
+dnl ----------------------------------------------------------------------
+dnl Initialize configure.
+dnl
+AC_REVISION($Id$)
+AC_INIT(src/H5.c)
+AC_CONFIG_HEADER(src/H5config.h)
+AC_CONFIG_AUX_DIR(bin)
+AC_CANONICAL_HOST
+AC_SUBST(CPPFLAGS)
+
+dnl ----------------------------------------------------------------------
+dnl Check that the cache file was build on the same host as what we're
+dnl running on now.
+dnl
+AC_CACHE_CHECK(for cached host,hdf5_cv_host,hdf5_cv_host="none");
+if test $hdf5_cv_host = "none"; then
+   hdf5_cv_host=$host
+elif test $hdf5_cv_host != $host; then
+   echo "The config.cache file was generated on $hdf5_cv_host but"
+   echo "this is $host.  Please remove that file and try again."
+   AC_MSG_ERROR(config.cache file is invalid)
+fi
+
+
+
+dnl ----------------------------------------------------------------------
+dnl Source any special files that we need.  These files normally aren't
+dnl present but can be used by the maintainers to fine tune things like
+dnl turning on debug or profiling flags for the compiler.  The search order
+dnl is:
+dnl
+dnl	CPU-VENDOR-OS
+dnl	VENDOR-OS
+dnl	CPU-OS
+dnl	CPU-VENDOR
+dnl	OS
+dnl	VENDOR
+dnl	CPU
+dnl
+AC_MSG_CHECKING(for host config file)
+host_config="none"
+for f in $host \
+         $host_vendor-$host_os \
+         $host_cpu-$host_os \
+         $host_cpu-$host_vendor \
+	 $host_os \
+	 $host_vendor \
+	 $host_cpu ; do
+   if test -f config/$f; then
+      host_config=config/$f
+      break
+   fi
+done
+AC_MSG_RESULT($host_config)
+if test $host_config != "none"; then
+   . $host_config
+fi
+
+
+dnl ----------------------------------------------------------------------
+dnl Check for programs.
+dnl
+AC_PROG_CC
+AC_PROG_MAKE_SET
+AC_PROG_INSTALL
+AC_PROG_RANLIB
+
+if test "X$AR" = "X"; then
+   AC_CHECK_PROGS(AR,ar xar,:,$PATH)
+fi
+AC_SUBST(AR)
+
+AC_MSG_CHECKING(for GNU Make)
+if test "`${MAKE-make} --version -f /dev/null 2>/dev/null |\
+  sed -n 1p|cut -c1-8`" = "GNU Make"; then
+   AC_MSG_RESULT(yes)
+   GMAKE=yes
+else
+   AC_MSG_RESULT(no)
+fi
+
+dnl ----------------------------------------------------------------------
+dnl Turn on warning flags for gcc.
+dnl
+if test Xyes = "X$GCC"; then
+   CFLAGS="$CFLAGS -Wall -W -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Winline"
+fi
+
+dnl ----------------------------------------------------------------------
+dnl Production flags?
+dnl
+AC_MSG_CHECKING(for production mode)
+AC_ARG_ENABLE(production,
+  [--enable-production=yes|no  Determines how to run the compiler.])
+
+case "X-$enableval" in
+   X-yes)
+      AC_MSG_RESULT("production")
+      CFLAGS="$CFLAGS $PROD_CFLAGS"
+      CPPFLAGS="$CPPFLAGS $PROD_CPPFLAGS"
+      ;;
+   X-|X-no)
+      AC_MSG_RESULT("development")
+      CFLAGS="$CFLAGS $DEBUG_CFLAGS"
+      CPPFLAGS="$CPPFLAGS $DEBUG_CPPFLAGS"
+      ;;
+   X-pg|X-profile)
+      AC_MSG_RESULT("profile")
+      CFLAGS="$CFLAGS $PROFILE_CFLAGS"
+      CPPFLAGS="$CPPFLAGS $PROFILE_CPPFLAGS"
+      ;;
+   *)
+      AC_MSG_RESULT("user-defined")
+      ;;
+esac
+
+
+dnl ----------------------------------------------------------------------
+dnl Check for libraries.  (none required yet)
+dnl
+AC_CHECK_LIB(m, ceil)
+AC_CHECK_LIB(coug, main)	dnl ...for ASCI/Red
+AC_CHECK_LIB(z, compress2)
+
+dnl ----------------------------------------------------------------------
+dnl Check for header files.
+dnl
+AC_HEADER_STDC
+AC_CHECK_HEADERS(unistd.h zlib.h)
+
+
+dnl ----------------------------------------------------------------------
+dnl Data types and their sizes.
+dnl
+AC_TYPE_OFF_T
+AC_TYPE_SIZE_T
+AC_C_BIGENDIAN
+AC_CHECK_SIZEOF(short, 2)
+AC_CHECK_SIZEOF(int, 4)
+AC_CHECK_SIZEOF(long, 4)
+AC_CHECK_SIZEOF(long long, 8)
+AC_CHECK_SIZEOF(float, 4)
+AC_CHECK_SIZEOF(double, 8)
+AC_CHECK_SIZEOF(long double, 8)
+AC_CHECK_SIZEOF(size_t, 4)
+cat >>confdefs.h <<\EOF
+#include <sys/types.h> /*for off_t definition*/
+EOF
+AC_CHECK_SIZEOF(off_t, 4)
+
+AC_ARG_ENABLE(hsizet,
+  [--disable-hsizet          Datasets can normally be larger than memory
+                             and/or files but some compilers are unable to
+                             handle this (including versions of GCC before
+                             2.8.0).  Disabling the feature causes dataset
+                             sizes to be restricted to the size of core memory,
+                             or 'size_t'.],
+  HSIZET=$enableval)
+AC_MSG_CHECKING(for sizeof hsize_t and hssize_t)
+case $HSIZET in
+    no|small)
+	AC_MSG_RESULT(small)
+	;;
+    *)
+        AC_MSG_RESULT(large)
+        AC_DEFINE(HAVE_LARGE_HSIZET)
+	;;
+esac
+
+dnl ----------------------------------------------------------------------
+dnl How does one figure out the local time zone?  Anyone know of a
+dnl Posix way to do this?
+dnl
+
+dnl First check if `struct tm' has a `tm_gmtoff' member.
+AC_MSG_CHECKING(for tm_gmtoff in struct tm)
+AC_TRY_COMPILE([
+#include <sys/time.h>
+#include <time.h>],[struct tm tm; tm.tm_gmtoff=0;],
+AC_DEFINE(HAVE_TM_GMTOFF)
+AC_MSG_RESULT(yes),
+AC_MSG_RESULT(no))
+
+dnl Check whether the global variable `timezone' is defined.
+AC_MSG_CHECKING(for global timezone variable)
+AC_TRY_LINK([
+#include <sys/time.h>
+#include <time.h>], [timezone=0;],
+AC_DEFINE(HAVE_TIMEZONE)
+AC_MSG_RESULT(yes),
+AC_MSG_RESULT(no))
+
+dnl Check whether `struct timezone' is defined.
+AC_STRUCT_TIMEZONE
+AC_MSG_CHECKING(for struct timezone)
+AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <sys/time.h>
+#include <time.h>],[struct timezone tz; tz.tz_minuteswest=0;],
+AC_DEFINE(HAVE_STRUCT_TIMEZONE)
+AC_MSG_RESULT(yes),
+AC_MSG_RESULT(no))
+
+
+dnl ----------------------------------------------------------------------
+dnl Check for functions.
+dnl
+AC_CHECK_FUNCS(getpwuid gethostname system getrusage fork waitpid)
+AC_CHECK_FUNCS(gettimeofday BSDgettimeofday difftime sigaction)
+
+AC_TRY_COMPILE([#include<sys/types.h>],
+	       [off64_t n = 0;],
+	       AC_CHECK_FUNCS(lseek64 fseek64),
+	       AC_MSG_RESULT([skipping test for lseek64() and fseek64()]))
+
+
+dnl ----------------------------------------------------------------------
+dnl Check compiler characteristics
+dnl
+
+AC_C_CONST
+AC_C_INLINE
+
+AC_MSG_CHECKING(for __attribute__ extension)
+AC_TRY_COMPILE(,[int __attribute__((unused)) f(void){return 1;}],
+		     AC_DEFINE(HAVE_ATTRIBUTE)
+		     AC_MSG_RESULT(yes),
+		     AC_MSG_RESULT(no))
+
+AC_MSG_CHECKING(for __FUNCTION__ extension)
+AC_TRY_COMPILE(,[int f(void){return __FUNCTION__;}],
+		     AC_DEFINE(HAVE_FUNCTION)
+		     AC_MSG_RESULT(yes),
+		     AC_MSG_RESULT(no))
+
+dnl ----------------------------------------------------------------------
+dnl Try to figure out how to print `long long'.  Some machines use `%lld'
+dnl and others use `%qd'.  There may be more!  The final `l' is a
+dnl default in case none of the others work.
+dnl
+AC_MSG_CHECKING(how to print long long)
+AC_CACHE_VAL(hdf5_cv_printf_ll,
+             for hdf5_cv_printf_ll in ll q l; do
+                AC_TRY_RUN([
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+                  main() {char *s=malloc(128);
+	             long long x = (long long)1048576 * (long long)1048576;
+	             sprintf(s,"%${hdf5_cv_printf_ll}d",x);
+	             exit (strcmp(s,"1099511627776"));}],
+		 break)
+	     done)
+AC_MSG_RESULT($hdf5_cv_printf_ll)
+AC_DEFINE_UNQUOTED(PRINTF_LL_WIDTH,"$hdf5_cv_printf_ll")
+
+
+dnl ----------------------------------------------------------------------
+dnl Turn on debugging by setting compiler flags
+dnl
+AC_MSG_CHECKING(for debug flags)
+AC_ARG_ENABLE(debug,
+  [--enable-debug=all        Turn on debugging in all packages.  One may also
+                          specify a comma-separated list of package names
+                          without the leading H5 or the word no.  The default
+                          is most packages.],
+  DEBUG_PKG=$enableval)
+
+all_packages="ac,b,d,e,f,g,hg,hl,i,mf,mm,o,p,s,t,v,z"
+if test X = "X$DEBUG_PKG" -o Xyes = "X$DEBUG_PKG"; then
+   DEBUG_PKG=ac,b,d,e,f,g,hg,i,mm,p,s,t,v,z
+   CPPFLAGS="$CPPFLAGS -UNDEBUG"
+   AC_MSG_RESULT(default ($DEBUG_PKG))
+elif test Xall = "X$DEBUG_PKG"; then
+   DEBUG_PKG=$all_packages
+   CPPFLAGS="$CPPFLAGS -UNDEBUG"
+   AC_MSG_RESULT(all ($DEBUG_PKG))
+elif test Xno = "X$DEBUG_PKG" -o Xnone = "X$DEBUG_PKG"; then
+   AC_MSG_RESULT(none)
+   DEBUG_PKG=
+   CPPFLAGS="$CPPFLAGS -DNDEBUG"
+else
+   AC_MSG_RESULT($DEBUG_PKG)
+fi
+
+if test "X" != "X$DEBUG_PKG"; then
+   for pkg in `echo $DEBUG_PKG | tr 'a-z,' 'A-Z '`; do
+      CPPFLAGS="$CPPFLAGS -DH5${pkg}_DEBUG"
+   done
+fi
+
+dnl ----------------------------------------------------------------------
+dnl Enable tracing of the API
+dnl
+AC_MSG_CHECKING(for API tracing);
+AC_ARG_ENABLE(trace,
+  [--disable-trace           Disable API tracing capability],
+  TRACE=$enableval)
+
+if test X = "X$TRACE" -o Xyes = "X$TRACE"; then
+   AC_MSG_RESULT(yes)
+   CPPFLAGS="$CPPFLAGS -DH5_DEBUG_API"
+else
+   AC_MSG_RESULT(no)
+   CPPFLAGS="$CPPFLAGS -UH5_DEBUG_API"
+fi
+
+dnl ----------------------------------------------------------------------
+dnl Check for parallel support
+dnl
+AC_ARG_ENABLE(parallel,
+  --enable-parallel=mpio    Enable parallel support with MPIO,
+  PARALLEL=$enableval)
+AC_MSG_CHECKING(for parallel support);
+AC_SUBST(RUNTEST)
+
+case "X-$PARALLEL" in
+
+   X-|X-no)
+      # Parallel support is not enabled
+      AC_MSG_RESULT(disabled)
+      ;;
+
+   X-mpio|X-yes)
+      # Use MPIO.  Define HAVE_PARALLEL in src/H5config.h (comes from
+      # ./acconfig.h) and augment the include and library search paths
+      # (it doesn't hurt to have extra paths).  Then check for header
+      # files and libraries. Some extra source files are added to the
+      # list also so we don't have to ifdef out the whole file.
+      AC_MSG_RESULT(mpio)
+      AC_DEFINE(HAVE_PARALLEL)
+      CPPFLAGS="$CPPFLAGS $MPI_INC"
+      CFLAGS="$CFLAGS $MPI_LIB"
+      RUNTEST="$RUNTEST"
+      AC_CHECK_LIB(mpi,main)  dnl Replace `main' with some function
+      AC_CHECK_LIB(mpio,main) dnl Replace `main' with some function
+      ;;
+
+   *)
+      AC_MSG_ERROR(unknown parallel support: $PARALLEL)
+      ;;
+esac
+        
+
+
+dnl ----------------------------------------------------------------------
+dnl Build the Makefiles.  Almost every Makefile.in will begin with the line
+dnl `@COMMENCE@' and end with the line `@CONCLUDE@'.  These lines insert
+dnl various files from the config directory into the Makefile.
+dnl
+AC_SUBST_FILE(COMMENCE) COMMENCE=config/commence
+AC_SUBST_FILE(CONCLUDE) CONCLUDE=config/conclude
+
+if test "X$GCC" = "Xyes" && test "X$GMAKE" = "Xyes"; then
+   AC_SUBST_FILE(DEPEND1) DEPEND1=config/depend
+   AC_SUBST_FILE(DEPEND2) DEPEND2=/dev/null
+else
+   AC_SUBST_FILE(DEPEND1) DEPEND1=src/.distdep
+   AC_SUBST_FILE(DEPEND2) DEPEND2=test/.distdep
+fi
+
+dnl We don't need to say when we're entering directories if we're using
+dnl GNU make becuase make does it for us.
+if test "X$GMAKE" = "Xyes"; then
+   AC_SUBST(SETX) SETX=":"
+else
+   AC_SUBST(SETX) SETX="set -x"
+fi
+
+dnl Where is the root of the source tree.  Give an absolute address so
+dnl we can find it no matter which directory of the distribution is our
+dnl current directory.  The built-in pwd fails on some systems, but the
+dnl /bin/pwd version works OK.
+if test -x /bin/pwd; then
+   pwd=/bin/pwd
+else
+   pwd=pwd
+fi
+AC_SUBST(ROOT) ROOT=`$pwd`
+
+dnl Touch the time-stamp files for src/H5config.h.in and src/H5config.h
+dnl before we generate them or the Makefiles.
+touch ./config/stamp1 ./config/stamp2
+
+AC_OUTPUT(config/depend config/commence config/conclude \
+          Makefile src/Makefile test/Makefile tools/Makefile examples/Makefile)
