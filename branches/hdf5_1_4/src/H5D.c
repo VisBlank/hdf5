@@ -42,7 +42,7 @@
 #endif
 
 #define PABLO_MASK	H5D_mask
-
+#define CONV_BUF_DEFAULT        1024*1024
 /*
  * A dataset is the following struct.
  */
@@ -78,7 +78,7 @@ const H5D_create_t	H5D_create_dflt = {
 /* Default data transfer property list */
 /* Not const anymore because some of the VFL drivers modify this struct - QAK */
 H5D_xfer_t	H5D_xfer_dflt = {
-    1024*1024,			/*Temporary buffer size			    */
+    CONV_BUF_DEFAULT,	        /*Temporary buffer size			    */
     NULL,			/*Type conversion buffer or NULL	    */
     NULL, 			/*Background buffer or NULL		    */
     H5T_BKG_NO,			/*Type of background buffer needed	    */
@@ -1809,6 +1809,10 @@ printf("%s: check 1.2, \n",FUNC);
     src_type_size = H5T_get_size(dataset->type);
     dst_type_size = H5T_get_size(mem_type);
     target_size = xfer_parms->buf_size;
+    if(target_size==CONV_BUF_DEFAULT &&
+        target_size<MAX(src_type_size, dst_type_size))
+        target_size = MAX(src_type_size, dst_type_size);
+
 #ifdef QAK
 printf("%s: check 2.0, src_type_size=%d, dst_type_size=%d, target_size=%d\n",FUNC,(int)src_type_size,(int)dst_type_size,(int)target_size);
 #endif /* QAK */
@@ -2277,6 +2281,10 @@ H5D_write(H5D_t *dataset, const H5T_t *mem_type, const H5S_t *mem_space,
     src_type_size = H5T_get_size(mem_type);
     dst_type_size = H5T_get_size(dataset->type);
     target_size = xfer_parms->buf_size;
+    if(target_size==CONV_BUF_DEFAULT &&
+        target_size<MAX(src_type_size, dst_type_size))
+        target_size = MAX(src_type_size, dst_type_size);
+
 #ifdef QAK
 printf("%s: check 2.0, src_type_size=%d, dst_type_size=%d, target_size=%d\n",FUNC,(int)src_type_size,(int)dst_type_size,(int)target_size);
 #endif /* QAK */
