@@ -1346,6 +1346,8 @@ H5Pcreate_class(hid_t parent, const char *name, unsigned hashsize,
     hid_t	ret_value = FAIL;           /* Return value			*/
 
     FUNC_ENTER(H5Pcreate_class, FAIL);
+    H5TRACE7("i","isIuxxxx",parent,name,hashsize,cls_create,create_data,
+             cls_close,close_data);
 
     /* Check arguments. */
     if (H5P_DEFAULT!=parent && (H5I_GENPROP_CLS!=H5I_get_type(parent)))
