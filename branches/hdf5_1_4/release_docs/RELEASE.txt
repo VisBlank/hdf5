@@ -111,6 +111,8 @@ New Features
 
 Bug Fixes since HDF5-1.4.4 Release
 ==================================
+    * Fixed h5dump bug(cannot dump data and datatype) for VL string. 
+        SLU - 2002/11/18 
     * Fixed error condition where "none" selections were not being handled
         correctly in serial & parallel.  QAK - 2002/10/29
     * Fixed problem where optimized hyperslab routines were incorrectly

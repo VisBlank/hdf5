@@ -1984,6 +1984,75 @@ H5T_detect_class (H5T_t *dt, H5T_class_t cls)
 
 
 /*-------------------------------------------------------------------------
+ * Function:	H5Tis_variable_str
+ *
+ * Purpose:	Check whether a datatype is a variable-length string
+ *
+ * Return:	TRUE (1) or FALSE (0) on success/Negative on failure
+ *
+ * Programmer:	Raymond Lu
+ *		November 4, 2002
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+htri_t
+H5Tis_variable_str(hid_t dtype_id)
+{
+    H5T_t	*dt;            /* Datatype to query */
+    htri_t      ret_value;      /* Return value */
+
+    FUNC_ENTER(H5Tis_variable_str, FAIL);
+    H5TRACE1("b","i",dtype_id);
+    
+    /* Check args */
+    if (H5I_DATATYPE != H5I_get_type(dtype_id) ||
+	NULL == (dt = H5I_object(dtype_id)))
+        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a data type");
+
+    /* Set return value */
+    ret_value=H5T_is_variable_str(dt);
+
+done:
+    FUNC_LEAVE(ret_value);   
+}
+ 
+
+/*-------------------------------------------------------------------------
+ * Function:	H5T_is_variable_str
+ *
+ * Purpose:	Private function of H5Tis_variable_str.
+ *              Check whether a datatype is a variable-length string
+ *		
+ *
+ * Return:	TRUE (1) or FALSE (0) on success/Negative on failure
+ *
+ * Programmer:	Raymond Lu
+ *		November 4, 2002
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+htri_t
+H5T_is_variable_str(H5T_t *dt)
+{
+    htri_t      ret_value=FALSE;        /* Return value */
+
+    FUNC_ENTER(H5T_is_variable_str, FAIL);
+    
+    assert(dt);
+
+    if(H5T_VLEN == dt->type && H5T_VLEN_STRING == dt->u.vlen.type)
+        ret_value = TRUE;
+
+done:
+    FUNC_LEAVE(ret_value);   
+}
+
+
+/*-------------------------------------------------------------------------
  * Function:	H5Tget_size
  *
  * Purpose:	Determines the total size of a data type in bytes.
