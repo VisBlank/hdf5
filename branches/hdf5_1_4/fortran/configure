@@ -998,7 +998,7 @@ Optional Features:
   --enable-static-exec    Build only statically linked executables default=no
   --enable-linux-lfs      Enable support for large (64-bit) files on Linux.
                           [default=check]
-  --enable-parallel=TYPE  Search for MPI-IO and MPI support files
+  --enable-parallel       Search for MPI-IO and MPI support files
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]

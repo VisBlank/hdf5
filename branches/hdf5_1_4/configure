@@ -1017,7 +1017,7 @@ Optional Features:
                           is most packages.
   --enable-trace          Enable API tracing capability. Default=no if debug
                           is disabled.
-  --enable-parallel=TYPE  Search for MPI-IO and MPI support files
+  --enable-parallel       Search for MPI-IO and MPI support files
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
