@@ -579,15 +579,16 @@ Section V:
 Disable gzip compression 
 ============================================
 
-If you would like to gzip compression from the hdf5 library  
+If you would like to remove gzip compression from the hdf5 library  
 follow the steps below.
 
 
     1) Open the H5pubconf.h file from the src directory and remove the 
-    following two lines:
+    following three lines:
 
+		#define H5_HAVE_ZLIB_H 1
 		#define H5_HAVE_LIBZ 1
-		#define H5_HAVE_COMPRESS2
+		#define H5_HAVE_COMPRESSION 1
 
     then save the file.
 	

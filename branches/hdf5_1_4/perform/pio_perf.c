@@ -69,6 +69,7 @@
 #include <mpi.h>
 
 /* our header files */
+#include "H5pubconf.h"
 #include "h5tools_utils.h"
 #include "pio_perf.h"
 
@@ -117,9 +118,9 @@ static const char  *progname = "h5perf";
  * adding more, make sure that they don't clash with each other.
  */
 #if 1
-static const char *s_opts = "a:A:B:cCd:D:e:F:hi:Imno:p:P:stT:wx:X:";
+static const char *s_opts = "a:A:B:cCd:D:e:F:ghi:Imno:p:P:stT:wx:X:";
 #else
-static const char *s_opts = "a:A:bB:cCd:D:e:F:hi:Imno:p:P:stT:wx:X:";
+static const char *s_opts = "a:A:bB:cCd:D:e:F:ghi:Imno:p:P:stT:wx:X:";
 #endif  /* 1 */
 static struct long_options l_opts[] = {
     { "align", require_arg, 'a' },
@@ -162,6 +163,11 @@ static struct long_options l_opts[] = {
     { "debu", require_arg, 'D' },
     { "deb", require_arg, 'D' },
     { "de", require_arg, 'D' },
+#ifdef H5_HAVE_GPFS
+    { "gpfs", no_arg, 'g' },
+    { "gpf", no_arg, 'g' },
+    { "gp", no_arg, 'g' },
+#endif  /* H5_HAVE_GPFS */
     { "help", no_arg, 'h' },
     { "hel", no_arg, 'h' },
     { "he", no_arg, 'h' },
@@ -294,6 +300,7 @@ struct options {
     int h5_no_fill;        	/* Disable HDF5 writing fill values     */
     int h5_write_only;        	/* Perform the write tests only         */
     unsigned h5_use_mpi_posix;  /* Use MPI-posix VFD for HDF5 I/O (instead of MPI-I/O VFD) */
+    unsigned h5_use_gpfs;       /* use the GPFS data shipping hints     */
     int verify;        		/* Verify data correctness              */
 };
 
@@ -436,6 +443,7 @@ run_test_loop(struct options *opts)
     parms.h5_no_fill = opts->h5_no_fill;
     parms.h5_write_only = opts->h5_write_only;
     parms.h5_use_mpi_posix = opts->h5_use_mpi_posix;
+    parms.h5_use_gpfs = opts->h5_use_gpfs;
     parms.verify = opts->verify;
 
     /* start with max_num_procs and decrement it by half for each loop. */
@@ -1063,6 +1071,9 @@ report_parameters(struct options *opts)
     else
         HDfprintf(output, "MPI-I/O driver\n");
 
+    if(opts->h5_use_gpfs)
+        HDfprintf(output, "Using GPFS data shipping hints\n");
+
     HDfprintf(output, "rank %d: Data storage method in HDF5=", rank);
     if(opts->h5_use_chunks)
         HDfprintf(output, "Chunked\n");
@@ -1120,6 +1131,7 @@ parse_command_line(int argc, char *argv[])
     cl_opts->h5_no_fill = FALSE;    /* Write fill values by default */
     cl_opts->h5_write_only = FALSE; /* Do both read and write by default */
     cl_opts->h5_use_mpi_posix = FALSE; /* Don't use MPI-posix VFD for HDF5 I/O by default */
+    cl_opts->h5_use_gpfs = FALSE;   /* GPFS hints turned off by default */
     cl_opts->verify = FALSE;        /* No Verify data correctness by default */
 
     while ((opt = get_option(argc, (const char **)argv, s_opts, l_opts)) != EOF) {
@@ -1242,6 +1254,9 @@ parse_command_line(int argc, char *argv[])
             break;
         case 'F':
             cl_opts->num_files = atoi(opt_arg);
+            break;
+        case 'g':
+            cl_opts->h5_use_gpfs = TRUE;
             break;
         case 'i':
             cl_opts->num_iters = atoi(opt_arg);
@@ -1384,6 +1399,9 @@ usage(const char *prog)
         printf("     -e S, --num-bytes=S         Number of bytes per process per dataset\n");
         printf("                                 [default: 256K]\n");
         printf("     -F N, --num-files=N         Number of files [default: 1]\n");
+#ifdef H5_HAVE_GPFS
+        printf("     -g, --gpfs                  Use GPFS data shipping hints [default: no]\n");
+#endif  /* H5_HAVE_GPFS */
         printf("     -i, --num-iterations        Number of iterations to perform [default: 1]\n");
         printf("     -I, --interleaved           Interleaved block I/O (see below for example)\n");
         printf("                                 [default: Contiguous block I/O]\n");
