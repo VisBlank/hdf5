@@ -347,6 +347,7 @@ H5Pget_fapl_mpio(hid_t fapl_id, MPI_Comm *comm/*out*/, MPI_Info *info/*out*/)
     H5FD_mpio_fapl_t	*fa;
     MPI_Comm	        comm_tmp=MPI_COMM_NULL;
     MPI_Info	        info_tmp=MPI_INFO_NULL;
+    int			mpi_code;		/* mpi return code */
     
     FUNC_ENTER(H5Pget_fapl_mpio, FAIL);
     H5TRACE3("e","ixx",fapl_id,comm,info);
@@ -363,14 +364,14 @@ fprintf(stderr, "in H5Pget_fapl_mpio\n");
         HRETURN_ERROR(H5E_PLIST, H5E_BADVALUE, FAIL, "bad VFL driver info");
 
     if (comm){
-	if (MPI_SUCCESS != MPI_Comm_dup(fa->comm, &comm_tmp))
-	    HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_Comm_dup failed");
+	if (MPI_SUCCESS != (mpi_code=MPI_Comm_dup(fa->comm, &comm_tmp)))
+	    HMPI_GOTO_ERROR(FAIL, "MPI_Comm_dup failed", mpi_code);
     }
     
     if (info){
 	if (MPI_INFO_NULL != fa->info){
-	    if (MPI_SUCCESS != MPI_Info_dup(fa->info, &info_tmp))
-		HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_Info_dup failed");
+	    if (MPI_SUCCESS != (mpi_code=MPI_Info_dup(fa->info, &info_tmp)))
+		HMPI_GOTO_ERROR(FAIL, "MPI_Info_dup failed", mpi_code);
 	}else{
 	    /* do not dup it */
 	    info_tmp = fa->info;
@@ -701,8 +702,9 @@ herr_t
 H5FD_mpio_wait_for_left_neighbor(H5FD_t *_file)
 {
     H5FD_mpio_t	*file = (H5FD_mpio_t*)_file;
-    char msgbuf[1];
-    MPI_Status rcvstat;
+    char	msgbuf[1];
+    MPI_Status	rcvstat;
+    int		mpi_code;
 
     FUNC_ENTER(H5FD_mpio_wait_for_left_neighbor, FAIL);
     assert(file);
@@ -713,8 +715,8 @@ H5FD_mpio_wait_for_left_neighbor(H5FD_t *_file)
 
     /* p0 has no left neighbor; all other procs wait for msg */
     if (file->mpi_rank != 0) {
-        if (MPI_SUCCESS!= MPI_Recv( &msgbuf, 1, MPI_CHAR, file->mpi_rank-1, MPI_ANY_TAG, file->comm, &rcvstat ))
-            HRETURN_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_Recv failed");
+        if (MPI_SUCCESS!= (mpi_code=MPI_Recv( &msgbuf, 1, MPI_CHAR, file->mpi_rank-1, MPI_ANY_TAG, file->comm, &rcvstat )))
+            HMPI_RETURN_ERROR(FAIL, "MPI_Recv failed", mpi_code);
     }
     
     FUNC_LEAVE(SUCCEED);
@@ -752,14 +754,15 @@ H5FD_mpio_signal_right_neighbor(H5FD_t *_file)
 {
     H5FD_mpio_t	*file = (H5FD_mpio_t*)_file;
     char msgbuf[1];
+    int	mpi_code;
 
     FUNC_ENTER(H5FD_mpio_signal_right_neighbor, FAIL);
     assert(file);
     assert(H5FD_MPIO==file->pub.driver_id);
 
     if (file->mpi_rank != (file->mpi_size-1)) {
-        if (MPI_SUCCESS!= MPI_Send(&msgbuf, 0/*empty msg*/, MPI_CHAR, file->mpi_rank+1, 0, file->comm))
-            HRETURN_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_Send failed");
+        if (MPI_SUCCESS!= (mpi_code=MPI_Send(&msgbuf, 0/*empty msg*/, MPI_CHAR, file->mpi_rank+1, 0, file->comm)))
+            HMPI_RETURN_ERROR(FAIL, "MPI_Send failed", mpi_code);
     }
     FUNC_LEAVE(SUCCEED);
 }
@@ -1071,37 +1074,37 @@ H5FD_mpio_open(const char *name, unsigned flags, hid_t fapl_id,
 	HMPI_RETURN_ERROR(NULL, "MPI_File_open failed", mpi_code);
 
     /* Get the MPI rank of this process and the total number of processes */
-    if (MPI_SUCCESS != MPI_Comm_rank (comm_dup, &mpi_rank))
-          HRETURN_ERROR(H5E_INTERNAL, H5E_MPI, NULL, "MPI_Comm_rank failed");
-    if (MPI_SUCCESS != MPI_Comm_size (comm_dup, &mpi_size))
-          HRETURN_ERROR(H5E_INTERNAL, H5E_MPI, NULL, "MPI_Comm_size failed");
+    if (MPI_SUCCESS != (mpi_code=MPI_Comm_rank (comm_dup, &mpi_rank)))
+          HMPI_RETURN_ERROR(NULL, "MPI_Comm_rank failed", mpi_code);
+    if (MPI_SUCCESS != (mpi_code=MPI_Comm_size (comm_dup, &mpi_size)))
+          HMPI_RETURN_ERROR(NULL, "MPI_Comm_size failed", mpi_code);
 
 /*  Following changes in handling file-truncation made be rkyates and ppweidhaas, sep 99  */
 
     /* Only processor p0 will get the filesize and broadcast it. */
     if (mpi_rank == 0) {
       /* Get current file size */
-      if (MPI_SUCCESS != MPI_File_get_size(fh, &size)) {
+      if (MPI_SUCCESS != (mpi_code=MPI_File_get_size(fh, &size))) {
           MPI_File_close(&fh);
-          HRETURN_ERROR(H5E_INTERNAL, H5E_MPI, NULL, "MPI_File_get_size failed");
+          HMPI_RETURN_ERROR(NULL, "MPI_File_get_size failed", mpi_code);
       }
     }
 
     /* Broadcast file-size */
-    if (MPI_SUCCESS != MPI_Bcast(&size, sizeof(MPI_Offset), MPI_BYTE, 0, comm_dup))
-          HRETURN_ERROR(H5E_INTERNAL, H5E_MPI, NULL, "MPI_Bcast failed");
+    if (MPI_SUCCESS != (mpi_code=MPI_Bcast(&size, sizeof(MPI_Offset), MPI_BYTE, 0, comm_dup)))
+          HMPI_RETURN_ERROR(NULL, "MPI_Bcast failed", mpi_code);
 
     /* Only if size > 0, truncate the file - if requested */
     if (size && (flags & H5F_ACC_TRUNC)) {
-        if (MPI_SUCCESS != MPI_File_set_size(fh, (MPI_Offset)0)) {
+        if (MPI_SUCCESS != (mpi_code=MPI_File_set_size(fh, (MPI_Offset)0))) {
             MPI_File_close(&fh);
-            HRETURN_ERROR(H5E_INTERNAL, H5E_MPI, NULL, "MPI_File_set_size failed");
+            HMPI_RETURN_ERROR(NULL, "MPI_File_set_size failed", mpi_code);
         }
 
 	/* Don't let any proc return until all have truncated the file. */
-        if (MPI_SUCCESS!= MPI_Barrier(comm_dup)) {
+        if (MPI_SUCCESS!= (mpi_code=MPI_Barrier(comm_dup))) {
             MPI_File_close(&fh);
-            HRETURN_ERROR(H5E_INTERNAL, H5E_MPI, NULL, "MPI_Barrier failed");
+            HMPI_RETURN_ERROR(NULL, "MPI_Barrier failed", mpi_code);
         }
         size = 0;
     }
@@ -1168,6 +1171,7 @@ static herr_t
 H5FD_mpio_close(H5FD_t *_file)
 {
     H5FD_mpio_t	*file = (H5FD_mpio_t*)_file;
+    int		mpi_code;
 
     FUNC_ENTER(H5FD_mpio_close, FAIL);
 #ifdef H5FDmpio_DEBUG
@@ -1178,8 +1182,8 @@ H5FD_mpio_close(H5FD_t *_file)
     assert(H5FD_MPIO==file->pub.driver_id);
 
     /* MPI_File_close sets argument to MPI_FILE_NULL */
-    if (MPI_SUCCESS != MPI_File_close(&(file->f)/*in,out*/))
-        HRETURN_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_File_close failed");
+    if (MPI_SUCCESS != (mpi_code=MPI_File_close(&(file->f)/*in,out*/)))
+	HMPI_RETURN_ERROR(FAIL, "MPI_File_close failed", mpi_code);
 
     /* Clean up other stuff */
     H5FD_mpio_comm_info_free(&file->comm, &file->info);
@@ -1415,6 +1419,7 @@ H5FD_mpio_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t dxpl_id, haddr_t add
     MPI_Offset			mpi_off, mpi_disp;
     MPI_Status  		mpi_stat;
     MPI_Datatype		buf_type, file_type;
+    int				mpi_code;
     int         		size_i, bytes_read, n;
     unsigned			use_view_this_time=0;
     herr_t              	ret_value=SUCCEED;
@@ -1493,22 +1498,22 @@ H5FD_mpio_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t dxpl_id, haddr_t add
      */
     if (use_view_this_time) {
         /*OKAY: CAST DISCARDS CONST QUALIFIER*/
-        if (MPI_SUCCESS != MPI_File_set_view(file->f, mpi_disp, MPI_BYTE, file_type, (char*)"native",  file->info))
-            HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_File_set_view failed");
+        if (MPI_SUCCESS != (mpi_code=MPI_File_set_view(file->f, mpi_disp, MPI_BYTE, file_type, (char*)"native",  file->info)))
+            HMPI_GOTO_ERROR(FAIL, "MPI_File_set_view failed", mpi_code);
     } /* end if */
     
     /* Read the data. */
     assert(H5FD_MPIO_INDEPENDENT==dx->xfer_mode || H5FD_MPIO_COLLECTIVE==dx->xfer_mode);
     if (H5FD_MPIO_INDEPENDENT==dx->xfer_mode) {
-        if (MPI_SUCCESS!= MPI_File_read_at(file->f, mpi_off, buf, size_i, buf_type, &mpi_stat))
-            HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_File_read_at failed");
+        if (MPI_SUCCESS!= (mpi_code=MPI_File_read_at(file->f, mpi_off, buf, size_i, buf_type, &mpi_stat)))
+            HMPI_GOTO_ERROR(FAIL, "MPI_File_read_at failed", mpi_code);
     } else {
 #ifdef H5FDmpio_DEBUG
 	if (H5FD_mpio_Debug[(int)'t'])
 	    fprintf(stdout, "H5FD_mpio_read: using MPIO collective mode\n");
 #endif
-        if (MPI_SUCCESS!= MPI_File_read_at_all(file->f, mpi_off, buf, size_i, buf_type, &mpi_stat ))
-            HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_File_read_at_all failed");
+        if (MPI_SUCCESS!= (mpi_code=MPI_File_read_at_all(file->f, mpi_off, buf, size_i, buf_type, &mpi_stat )))
+            HMPI_GOTO_ERROR(FAIL, "MPI_File_read_at_all failed", mpi_code);
     }
 
     /* KLUDGE, Robb Matzke, 2000-12-29
@@ -1530,8 +1535,8 @@ H5FD_mpio_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t dxpl_id, haddr_t add
     } /* end if */
     else {
         /* How many bytes were actually read? */
-        if (MPI_SUCCESS != MPI_Get_count(&mpi_stat, MPI_BYTE, &bytes_read))
-            HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_Get_count failed");
+        if (MPI_SUCCESS != (mpi_code=MPI_Get_count(&mpi_stat, MPI_BYTE, &bytes_read)))
+            HMPI_GOTO_ERROR(FAIL, "MPI_Get_count failed", mpi_code);
     } /* end else */
 #ifdef H5FDmpio_DEBUG
     if (H5FD_mpio_Debug[(int)'c'])
@@ -1556,8 +1561,8 @@ H5FD_mpio_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t dxpl_id, haddr_t add
      */
     if (use_view_this_time) {
         /*OKAY: CAST DISCARDS CONST QUALIFIER*/
-        if (MPI_SUCCESS != MPI_File_set_view(file->f, (MPI_Offset)0, MPI_BYTE, MPI_BYTE, (char*)"native",  file->info))
-            HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_File_set_view failed");
+        if (MPI_SUCCESS != (mpi_code=MPI_File_set_view(file->f, (MPI_Offset)0, MPI_BYTE, MPI_BYTE, (char*)"native",  file->info)))
+            HMPI_GOTO_ERROR(FAIL, "MPI_File_set_view failed", mpi_code);
     } /* end if */
     
     /*
@@ -1798,8 +1803,8 @@ H5FD_mpio_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
      */
     if (use_view_this_time) {
         /*OKAY: CAST DISCARDS CONST QUALIFIER*/
-        if (MPI_SUCCESS != MPI_File_set_view(file->f, mpi_disp, MPI_BYTE, file_type, (char*)"native", file->info))
-            HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_File_set_view failed");
+        if (MPI_SUCCESS != (mpi_code=MPI_File_set_view(file->f, mpi_disp, MPI_BYTE, file_type, (char*)"native", file->info)))
+            HMPI_GOTO_ERROR(FAIL, "MPI_File_set_view failed", mpi_code);
     } /* end if */
     
     /* Metadata specific actions */
@@ -1834,16 +1839,16 @@ H5FD_mpio_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
     assert(H5FD_MPIO_INDEPENDENT==dx->xfer_mode || H5FD_MPIO_COLLECTIVE==dx->xfer_mode);
     if (H5FD_MPIO_INDEPENDENT==dx->xfer_mode) {
         /*OKAY: CAST DISCARDS CONST QUALIFIER*/
-        if (MPI_SUCCESS != MPI_File_write_at(file->f, mpi_off, (void*)buf, size_i, buf_type, &mpi_stat))
-            HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_File_write_at failed");
+        if (MPI_SUCCESS != (mpi_code=MPI_File_write_at(file->f, mpi_off, (void*)buf, size_i, buf_type, &mpi_stat)))
+            HMPI_GOTO_ERROR(FAIL, "MPI_File_write_at failed", mpi_code);
     } else {
 #ifdef H5FDmpio_DEBUG
         if (H5FD_mpio_Debug[(int)'t'])
             fprintf(stdout, "H5FD_mpio_write: using MPIO collective mode\n");
 #endif
         /*OKAY: CAST DISCARDS CONST QUALIFIER*/
-        if (MPI_SUCCESS != MPI_File_write_at_all(file->f, mpi_off, (void*)buf, size_i, buf_type, &mpi_stat))
-            HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_File_write_at_all failed");
+        if (MPI_SUCCESS != (mpi_code=MPI_File_write_at_all(file->f, mpi_off, (void*)buf, size_i, buf_type, &mpi_stat)))
+            HMPI_GOTO_ERROR(FAIL, "MPI_File_write_at_all failed", mpi_code);
     }
 
     /* KLUDGE, Robb Matzke, 2000-12-29
@@ -1865,8 +1870,8 @@ H5FD_mpio_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
     } /* end if */
     else {
         /* How many bytes were actually written? */
-        if (MPI_SUCCESS!= MPI_Get_count(&mpi_stat, MPI_BYTE, &bytes_written))
-            HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_Get_count failed");
+        if (MPI_SUCCESS!= (mpi_code=MPI_Get_count(&mpi_stat, MPI_BYTE, &bytes_written)))
+            HMPI_GOTO_ERROR(FAIL, "MPI_Get_count failed", mpi_code);
     } /* end else */
 #ifdef H5FDmpio_DEBUG
     if (H5FD_mpio_Debug[(int)'c'])
@@ -1892,8 +1897,8 @@ H5FD_mpio_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
      */
     if (use_view_this_time) {
         /*OKAY: CAST DISCARDS CONST QUALIFIER*/
-        if (MPI_SUCCESS != MPI_File_set_view(file->f, (MPI_Offset)0, MPI_BYTE, MPI_BYTE, (char*)"native",  file->info))
-            HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_File_set_view failed");
+        if (MPI_SUCCESS != (mpi_code=MPI_File_set_view(file->f, (MPI_Offset)0, MPI_BYTE, MPI_BYTE, (char*)"native",  file->info)))
+            HMPI_GOTO_ERROR(FAIL, "MPI_File_set_view failed", mpi_code);
     } /* end if */
     
     /* Forget the EOF value (see H5FD_mpio_get_eof()) --rpm 1999-08-06 */
@@ -1905,8 +1910,8 @@ done:
         /* if only p<round> writes, need to broadcast the ret_value to other processes */
         if ((type!=H5FD_MEM_DRAW) && H5_mpi_1_metawrite_g) {
             if (MPI_SUCCESS !=
-                MPI_Bcast(&ret_value, sizeof(ret_value), MPI_BYTE, file->mpi_round, file->comm))
-              HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_Bcast failed");
+                (mpi_code=MPI_Bcast(&ret_value, sizeof(ret_value), MPI_BYTE, file->mpi_round, file->comm)))
+              HMPI_GOTO_ERROR(FAIL, "MPI_Bcast failed", mpi_code);
 
             /* Round-robin rotate to the next process */
             file->mpi_round = (++file->mpi_round)%file->mpi_size;
@@ -1986,18 +1991,18 @@ H5FD_mpio_flush(H5FD_t *_file)
         if (0==file->mpi_rank) {
             if (haddr_to_MPIOff(file->eoa-1, &mpi_off)<0)
                 HRETURN_ERROR(H5E_INTERNAL, H5E_BADRANGE, FAIL, "cannot convert from haddr_t to MPI_Offset");
-            if (MPI_SUCCESS != MPI_File_read_at(file->f, mpi_off, &byte, 1, MPI_BYTE, &mpi_stat))
-                HRETURN_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_File_read_at() failed");
-            if (MPI_SUCCESS != MPI_File_write_at(file->f, mpi_off, &byte, 1, MPI_BYTE, &mpi_stat))
-                HRETURN_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_File_write_at() failed");
+            if (MPI_SUCCESS != (mpi_code=MPI_File_read_at(file->f, mpi_off, &byte, 1, MPI_BYTE, &mpi_stat)))
+                HMPI_RETURN_ERROR(FAIL, "MPI_File_read_atfailed", mpi_code);
+            if (MPI_SUCCESS != (mpi_code=MPI_File_write_at(file->f, mpi_off, &byte, 1, MPI_BYTE, &mpi_stat)))
+                HMPI_RETURN_ERROR(FAIL, "MPI_File_write_at failed", mpi_code);
         } /* end if */
 #else /* OLD_WAY */
         if (haddr_to_MPIOff(file->eoa, &mpi_off)<0)
             HRETURN_ERROR(H5E_INTERNAL, H5E_BADRANGE, FAIL, "cannot convert from haddr_t to MPI_Offset");
 
         /* Extend the file's size */
-        if (MPI_SUCCESS != MPI_File_set_size(file->f, mpi_off))
-            HRETURN_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_File_set_size failed");
+        if (MPI_SUCCESS != (mpi_code=MPI_File_set_size(file->f, mpi_off)))
+            HMPI_RETURN_ERROR(FAIL, "MPI_File_set_size failed", mpi_code);
 
         /* Don't let any proc return until all have extended the file.
          * (Prevents race condition where some processes go ahead and write
@@ -2005,8 +2010,8 @@ H5FD_mpio_flush(H5FD_t *_file)
          * it the shorter length, potentially truncating the file and dropping
          * the new data written)
          */
-        if (MPI_SUCCESS!= MPI_Barrier(file->comm))
-            HRETURN_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_Barrier failed");
+        if (MPI_SUCCESS!= (mpi_code=MPI_Barrier(file->comm)))
+            HMPI_RETURN_ERROR(FAIL, "MPI_Barrier failed", mpi_code);
 #endif /* OLD_WAY */
 
         /* Update the 'last' eoa value */
@@ -2136,9 +2141,10 @@ haddr_to_MPIOff(haddr_t addr, MPI_Offset *mpi_off/*out*/)
 static herr_t
 H5FD_mpio_comm_info_dup(MPI_Comm comm, MPI_Info info, MPI_Comm *comm_new, MPI_Info *info_new)
 {
-    herr_t ret_value=SUCCEED;
-    MPI_Comm comm_dup=MPI_COMM_NULL;
-    MPI_Info info_dup=MPI_INFO_NULL;
+    herr_t	ret_value=SUCCEED;
+    MPI_Comm	comm_dup=MPI_COMM_NULL;
+    MPI_Info	info_dup=MPI_INFO_NULL;
+    int		mpi_code;
     
     FUNC_ENTER(H5FD_mpio_comm_info_dup, FAIL);
 
@@ -2153,11 +2159,11 @@ fprintf(stderr, "In H5FD_mpio_comm_info_dup: argument comm/info = %d/%ld\n", com
 	HRETURN_ERROR(H5E_INTERNAL, H5E_BADVALUE, FAIL, "bad pointers");
 
     /* Dup them.  Using temporary variables for error recovery cleanup. */
-    if (MPI_SUCCESS != MPI_Comm_dup(comm, &comm_dup))
-	HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_Comm_dup failed");
+    if (MPI_SUCCESS != (mpi_code=MPI_Comm_dup(comm, &comm_dup)))
+	HMPI_GOTO_ERROR(FAIL, "MPI_Comm_dup failed", mpi_code);
     if (MPI_INFO_NULL != info){
-	if (MPI_SUCCESS != MPI_Info_dup(info, &info_dup))
-	    HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_Info_dup failed");
+	if (MPI_SUCCESS != (mpi_code=MPI_Info_dup(info, &info_dup)))
+	    HMPI_GOTO_ERROR(FAIL, "MPI_Info_dup failed", mpi_code);
     }else{
 	/* No dup, just copy it. */
 	info_dup = info;
