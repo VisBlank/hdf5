@@ -1,0 +1,98 @@
+<html>
+
+<!--
+  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+  * Copyright by the Board of Trustees of the University of Illinois.         *
+  * All rights reserved.                                                      *
+  *                                                                           *
+  * This file is part of HDF5.  The full HDF5 copyright notice, including     *
+  * terms governing use, modification, and redistribution, is contained in    *
+  * the files COPYING and Copyright.html.  COPYING can be found at the root   *
+  * of the source code distribution tree; Copyright.html can be found at the  *
+  * root level of an installed copy of the electronic HDF5 document set and   *
+  * is linked from the top-level documents page.  It can also be found at     *
+  * http://hdf.ncsa.uiuc.edu/HDF5/doc/Copyright.html.  If you do not have     *
+  * access to either file, you may request a copy from hdfhelp@ncsa.uiuc.edu. *
+  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ -->
+
+<head><title>
+FORTRAN General Library API -- h5i
+</title></head>
+
+<body bgcolor="#FFFFFF">
+
+
+
+<center>
+<h1>The FORTRAN 90 API to HDF5<br>h5: General Library</h1>
+</center>
+
+
+<dl>
+
+
+<p>&nbsp;
+<p>&nbsp;
+<hr>
+<p>&nbsp;
+<a name="h5open_f">
+<p>&nbsp;
+</a>
+
+
+<dt><strong>FORTRAN interface:</strong>  &nbsp <strong>h5open_f</strong>
+
+<dt><strong>Purpose:</strong> 
+    Initializes the HDF5 library and the Fortran90 interface.
+
+<pre>
+          SUBROUTINE h5open_f(hdferr) 
+            IMPLICIT NONE
+            INTEGER, INTENT(OUT) :: hdferr      ! Error code
+
+          END SUBROUTINE h5open_f
+</pre>
+
+
+<p>&nbsp;
+<p>&nbsp;
+<hr>
+<p>&nbsp;
+<a name="h5close_f">
+<p>&nbsp;
+</a>
+
+
+<dt><strong>FORTRAN interface:</strong>  &nbsp <strong>h5close_f</strong>
+
+<dt><strong>Purpose:</strong> 
+    Closes the HDF5 library and the Fortran90 interface.
+
+<pre>
+          SUBROUTINE h5close_f(hdferr) 
+            IMPLICIT NONE
+            INTEGER, INTENT(OUT) :: hdferr      ! Error code
+
+          END SUBROUTINE h5close_f
+</pre>
+
+
+</dl>
+
+<p>&nbsp;
+<p>&nbsp;
+<hr>
+
+
+
+<address>
+<a href="mailto:hdfhelp@ncsa.uiuc.edu">HDF Help Desk</a> 
+</address>
+
+Last modified:  19 February 2001
+<br>
+Describes HDF5 Release 1.4.4, July 2002
+
+</body>
+</html>
