@@ -535,6 +535,8 @@ H5O_flush(H5F_t *f, hbool_t destroy, const haddr_t *addr, H5O_t *oh)
     intn	i, id;
     H5O_cont_t	*cont = NULL;
     herr_t	(*encode)(H5F_t*, uint8_t*, const void*) = NULL;
+    uintn combine=0;        /* Whether to combine the object header prefix & the first chunk */
+    haddr_t end_prefix;
 
     FUNC_ENTER(H5O_flush, FAIL);
 
@@ -565,15 +567,23 @@ H5O_flush(H5F_t *f, hbool_t destroy, const haddr_t *addr, H5O_t *oh)
 	/* zero to alignment */
 	HDmemset (p, 0, H5O_SIZEOF_HDR(f)-12);
 
-	/* write the object header header */
+	/* write the object header prefix */
+    /* Check if we can combine the object header prefix & the first chunk into one I/O operation */
+    end_prefix=*addr;   /* Get the address of the prefix */
+    H5F_addr_inc(&end_prefix,H5O_SIZEOF_HDR(f)); /* Compute the end of the prefix */
+    if(oh->chunk[0].dirty && H5F_addr_cmp(&end_prefix,&(oh->chunk[0].addr))==0) {
+        combine=1;
+    } /* end if */
+    else {
 #ifdef HAVE_PARALLEL
-	H5F_mpio_tas_allsame( f->shared->lf, TRUE );	/* only p0 will write */
+        H5F_mpio_tas_allsame( f->shared->lf, TRUE );	/* only p0 will write */
 #endif /* HAVE_PARALLEL */
-	if (H5F_block_write(f, addr, (hsize_t)H5O_SIZEOF_HDR(f), 
-			    &H5F_xfer_dflt, buf) < 0) {
-	    HRETURN_ERROR(H5E_OHDR, H5E_WRITEERROR, FAIL,
-			  "unable to write object header hdr to disk");
-	}
+        if (H5F_block_write(f, addr, (hsize_t)H5O_SIZEOF_HDR(f), 
+                    &H5F_xfer_dflt, buf) < 0) {
+            HRETURN_ERROR(H5E_OHDR, H5E_WRITEERROR, FAIL,
+                  "unable to write object header hdr to disk");
+        }
+    } /* end else */
 	
 	/* encode messages */
 	for (i = 0; i < oh->nmesgs; i++) {
@@ -640,17 +650,43 @@ H5O_flush(H5F_t *f, hbool_t destroy, const haddr_t *addr, H5O_t *oh)
 	/* write each chunk to disk */
 	for (i = 0; i < oh->nchunks; i++) {
 	    if (oh->chunk[i].dirty) {
-		assert(H5F_addr_defined(&(oh->chunk[i].addr)));
+            assert(H5F_addr_defined(&(oh->chunk[i].addr)));
+            if(i==0 && combine) {
+                /* Allocate space for the combined prefix and first chunk */
+                if((p=H5FL_BLK_ALLOC(chunk_image,H5O_SIZEOF_HDR(f)+oh->chunk[i].size,0))==NULL)
+                    HRETURN_ERROR (H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed");
+
+                /* Copy in the prefix */
+                HDmemcpy(p,buf,H5O_SIZEOF_HDR(f));
+
+                /* Copy in the first chunk */
+                HDmemcpy(p+H5O_SIZEOF_HDR(f),oh->chunk[i].image,oh->chunk[i].size);
+
+                /* Write the combined prefix/chunk out */
 #ifdef HAVE_PARALLEL
-		H5F_mpio_tas_allsame( f->shared->lf, TRUE ); /* only p0 write */
+                H5F_mpio_tas_allsame( f->shared->lf, TRUE );	/* only p0 will write */
 #endif /* HAVE_PARALLEL */
-		if (H5F_block_write(f, &(oh->chunk[i].addr),
-				    (hsize_t)(oh->chunk[i].size),
-				    &H5F_xfer_dflt, oh->chunk[i].image) < 0) {
-		    HRETURN_ERROR(H5E_OHDR, H5E_WRITEERROR, FAIL,
-			      "unable to write object header data to disk");
-		}
-		oh->chunk[i].dirty = FALSE;
+                if (H5F_block_write(f, addr, (hsize_t)(H5O_SIZEOF_HDR(f)+oh->chunk[i].size), 
+                            &H5F_xfer_dflt, p) < 0) {
+                    HRETURN_ERROR(H5E_OHDR, H5E_WRITEERROR, FAIL,
+                          "unable to write object header hdr to disk");
+                }
+
+                /* Release the memory for the combined prefix/chunk */
+                p = H5FL_BLK_FREE(chunk_image,p);
+            } /* end if */
+            else {
+#ifdef HAVE_PARALLEL
+                H5F_mpio_tas_allsame( f->shared->lf, TRUE ); /* only p0 write */
+#endif /* HAVE_PARALLEL */
+                if (H5F_block_write(f, &(oh->chunk[i].addr),
+                            (hsize_t)(oh->chunk[i].size),
+                            &H5F_xfer_dflt, oh->chunk[i].image) < 0) {
+                    HRETURN_ERROR(H5E_OHDR, H5E_WRITEERROR, FAIL,
+                          "unable to write object header data to disk");
+                }
+            } /* end else */
+            oh->chunk[i].dirty = FALSE;
 	    }
 	}
 	oh->dirty = FALSE;
