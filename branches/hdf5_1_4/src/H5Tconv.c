@@ -334,9 +334,11 @@ H5FL_BLK_DEFINE_STATIC(array_seq);
 	/* Is alignment required for source or dest? */			      \
 	s_mv = H5T_NATIVE_##STYPE##_ALIGN_g>1 &&			      \
                ((size_t)buf%H5T_NATIVE_##STYPE##_ALIGN_g ||		      \
+     /* Cray */ ((size_t)((ST*)buf)!=(size_t)buf) ||			      \
 		s_stride%H5T_NATIVE_##STYPE##_ALIGN_g);			      \
 	d_mv = H5T_NATIVE_##DTYPE##_ALIGN_g>1 &&			      \
                ((size_t)buf%H5T_NATIVE_##DTYPE##_ALIGN_g ||		      \
+     /* Cray */ ((size_t)((DT*)buf)!=(size_t)buf) ||			      \
                 d_stride%H5T_NATIVE_##DTYPE##_ALIGN_g);			      \
     CI_INC_SRC(s_mv)                                     \
     CI_INC_DST(d_mv)                                     \

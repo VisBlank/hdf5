@@ -170,8 +170,8 @@ precision (detected_t *d)
       INFO.perm[_i] = _j;						      \
    }									      \
    INFO.sign = ('U'!=*(#VAR));						      \
-   ALIGNMENT(TYPE, INFO.align);						      \
    precision (&(INFO));							      \
+   ALIGNMENT(TYPE, INFO);						      \
 }
 
 /*-------------------------------------------------------------------------
@@ -253,14 +253,15 @@ precision (detected_t *d)
 									      \
    _v1 = 1.0;								      \
    INFO.bias = find_bias (INFO.epos, INFO.esize, INFO.perm, &_v1);	      \
-   ALIGNMENT(TYPE, INFO.align);						      \
    precision (&(INFO));							      \
+   ALIGNMENT(TYPE, INFO);						      \
 }
 
 #if defined(H5_HAVE_LONGJMP) && defined(H5_HAVE_SIGNAL)
-#define ALIGNMENT(TYPE,ALIGN) {						      \
+#define ALIGNMENT(TYPE,INFO) {						      \
     char		*volatile _buf=NULL;				      \
-    volatile TYPE	_val=0;						      \
+    volatile TYPE	_val=1;						      \
+    volatile TYPE	_val2;						      \
     volatile size_t	_ano=0;						      \
     void		(*_handler)(int) = signal(SIGBUS, sigbus_handler);    \
     void		(*_handler2)(int) = signal(SIGSEGV, sigsegv_handler);    \
@@ -268,11 +269,25 @@ precision (detected_t *d)
     _buf = malloc(sizeof(TYPE)+align_g[NELMTS(align_g)-1]);		      \
     if (setjmp(jbuf_g)) _ano++;						      \
     if (_ano<NELMTS(align_g)) {						      \
-	*((TYPE*)(_buf+align_g[_ano])) = _val; /*possible SIGBUS or SEGSEGV*/	      \
-	_val = *((TYPE*)(_buf+align_g[_ano]));	/*possible SIGBUS or SEGSEGV*/	      \
-	(ALIGN)=align_g[_ano];						      \
+	*((TYPE*)(_buf+align_g[_ano])) = _val; /*possible SIGBUS or SEGSEGV*/	\
+	_val2 = *((TYPE*)(_buf+align_g[_ano]));	/*possible SIGBUS or SEGSEGV*/	\
+        /* Cray Check: This section helps detect alignment on Cray's */	      \
+        /*              vector machines (like the SV1) which mask off */      \
+        /*              pointer values when pointing to non-word aligned */   \
+        /*              locations with pointers that are supposed to be */    \
+        /*              word aligned. -QAK */                                 \
+        memset(_buf, 0xff, sizeof(TYPE)+align_g[NELMTS(align_g)-1]);	      \
+	if(INFO.perm[0]) /* Big-Endian */				      \
+	    memcpy(_buf+align_g[_ano]+(INFO.size-((INFO.offset+INFO.precision)/8)),((char *)&_val)+(INFO.size-((INFO.offset+INFO.precision)/8)),(INFO.precision/8)); \
+	else /* Little-Endian */					      \
+	    memcpy(_buf+align_g[_ano]+(INFO.offset/8),((char *)&_val)+(INFO.offset/8),(INFO.precision/8)); \
+        _val2 = *((TYPE*)(_buf+align_g[_ano]));				      \
+	if(_val!=_val2)							      \
+	    longjmp(jbuf_g, 1);						      \
+        /* End Cray Check */						      \
+	(INFO.align)=align_g[_ano];						      \
     } else {								      \
-	(ALIGN)=0;							      \
+	(INFO.align)=0;							      \
 	fprintf(stderr, "unable to calculate alignment for %s\n", #TYPE);     \
     }									      \
     free(_buf);								      \
@@ -280,12 +295,12 @@ precision (detected_t *d)
     signal(SIGSEGV, _handler2); /*restore original handler*/		      \
 }
 #else
-#define ALIGNMENT(TYPE,ALIGN) (ALIGN)=0
+#define ALIGNMENT(TYPE,INFO) (INFO.align)=0
 #endif
 
 #if 0
 #if defined(H5_HAVE_FORK) && defined(H5_HAVE_WAITPID)
-#define ALIGNMENT(TYPE,ALIGN) {						      \
+#define ALIGNMENT(TYPE,INFO) {						      \
     char	*_buf;							      \
     TYPE	_val=0;							      \
     size_t	_ano;							      \
@@ -311,7 +326,7 @@ precision (detected_t *d)
 	    exit(1);							      \
 	}								      \
 	if (WIFEXITED(_status) && 0==WEXITSTATUS(_status)) {		      \
-	    ALIGN=align_g[_ano];					      \
+	    INFO.align=align_g[_ano];					      \
 	    break;							      \
 	}								      \
 	if (WIFSIGNALED(_status) && SIGBUS==WTERMSIG(_status)) {	      \
@@ -321,12 +336,12 @@ precision (detected_t *d)
 	break;								      \
     }									      \
     if (_ano>=NELMTS(align_g)) {					      \
-	ALIGN=0;							      \
+	INFO.align=0;							      \
 	fprintf(stderr, "unable to calculate alignment for %s\n", #TYPE);     \
     }									      \
 }
 #else
-#define ALIGNMENT(TYPE,ALIGN) (ALIGN)=0
+#define ALIGNMENT(TYPE,INFO) (INFO.align)=0
 #endif
 #endif
 
