@@ -119,6 +119,7 @@ void multiple_dset_write(char *filename, int ndatasets);
 void multiple_group_write(char *filename, int ngroups);
 void multiple_group_read(char *filename, int ngroups);
 void test_split_comm_access(char *filename);
+void test_comm_info_delete(void);
 void dataset_writeInd(char *filename);
 void dataset_writeAll(char *filename);
 void extend_writeInd(char *filename);

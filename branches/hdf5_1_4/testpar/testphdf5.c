@@ -332,6 +332,7 @@ int main(int argc, char **argv)
 	printf("PHDF5 TESTS START\n");
 	printf("===================================\n");
     }
+    H5open();
     h5_show_hostname();
 
     fapl = H5Pcreate (H5P_FILE_ACCESS);
@@ -342,6 +343,9 @@ int main(int argc, char **argv)
 	    usage();
 	goto finish;
     }
+
+    MPI_BANNER("test_comm_info_delete...");
+    test_comm_info_delete();
 
     if (ndatasets){
 	MPI_BANNER("multiple datasets write ...");
@@ -400,6 +404,10 @@ int main(int argc, char **argv)
     }
 
 finish:
+    /* make sure all processes are finished before final report, cleanup
+     * and exit.
+     */
+    MPI_Barrier(MPI_COMM_WORLD);
     if (MAINPROCESS){		/* only process 0 reports */
 	printf("===================================\n");
 	if (nerrors){
@@ -410,11 +418,18 @@ finish:
 	}
 	printf("===================================\n");
     }
-    MPI_Finalize();
-    if (dowrite)
+    if (dowrite){
 	h5_cleanup(FILENAME, fapl);
-    else
+    } else {
+	/* h5_cleanup would have closed fapl.  Now must do it explicitedly */
 	H5Pclose(fapl);
+    }
+    
+    /* close HDF5 library */
+    H5close();
+
+    /* MPI_Finalize must be called AFTER H5close which may use MPI calls */
+    MPI_Finalize();
     return(nerrors);
 }
 
