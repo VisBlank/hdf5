@@ -653,6 +653,7 @@
 ./c++/config/linux-gnuaout
 ./c++/config/linux-gnulibc1
 ./c++/config/linux-gnulibc2
+./c++/config/powerpc-ibm-aix
 ./c++/config/rs6000-ibm-aix4.x
 ./c++/config/solaris2.x
 
