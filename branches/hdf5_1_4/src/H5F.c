@@ -26,6 +26,7 @@
 #include "H5FDcore.h"		/*temporary in-memory files		  */
 #include "H5FDfamily.h"		/*family of files			  */
 #include "H5FDmpio.h"		/*MPI-2 I/O				  */
+#include "H5FDmpiposix.h"	/*MPI-2 & posix I/O			  */
 #include "H5FDgass.h"           /*GASS I/O                                */
 #include "H5FDstream.h"         /*in-memory files streamed via sockets    */
 #include "H5FDsrb.h"            /*SRB I/O                                 */
@@ -179,7 +180,7 @@ H5F_init_interface(void)
         /* Allow MPI buf-and-file-type optimizations? */
         const char *s = HDgetenv ("HDF5_MPI_1_METAWRITE");
         if (s && HDisdigit(*s)) {
-            H5_mpi_1_metawrite_g = (int)HDstrtol (s, NULL, 0);
+            H5_mpiposix_1_metawrite_g = H5_mpi_1_metawrite_g = (int)HDstrtol (s, NULL, 0);
         }
     }
 #endif
@@ -215,6 +216,7 @@ H5F_init_interface(void)
 	if ((status=H5FD_MULTI)<0) goto end_registration;
 #ifdef H5_HAVE_PARALLEL
 	if ((status=H5FD_MPIO)<0) goto end_registration;
+	if ((status=H5FD_MPIPOSIX)<0) goto end_registration;
 #endif
 #ifdef H5_HAVE_STREAM
 	if ((status=H5FD_STREAM)<0) goto end_registration;

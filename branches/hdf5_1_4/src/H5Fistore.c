@@ -55,8 +55,9 @@
 #include "H5Pprivate.h"
 #include "H5Vprivate.h"
 
-/* MPIO driver needed for special checks */
+/* MPIO & MPIPOSIX drivers needed for special checks */
 #include "H5FDmpio.h"
+#include "H5FDmpiposix.h"
 
 /*
  * Feature: If this constant is defined then every cache preemption and load
@@ -1712,11 +1713,11 @@ H5F_istore_read(H5F_t *f, hid_t dxpl_id, const H5O_layout_t *layout,
 
 #ifdef H5_HAVE_PARALLEL
         /*
-         * If MPIO is used, must bypass the chunk-cache scheme because other
+         * If MPIO or MPIPOSIX is used, must bypass the chunk-cache scheme because other
          * MPI processes could be writing to other elements in the same chunk.
          * Do a direct write-through of only the elements requested.
          */
-            || (IS_H5FD_MPIO(f) && (H5F_ACC_RDWR & f->shared->flags))
+            || ((IS_H5FD_MPIO(f) ||IS_H5FD_MPIPOSIX(f)) && (H5F_ACC_RDWR & f->shared->flags))
 #endif /* H5_HAVE_PARALLEL */
             ) {
             H5O_layout_t	l;	/* temporary layout */
@@ -1893,11 +1894,11 @@ H5F_istore_write(H5F_t *f, hid_t dxpl_id, const H5O_layout_t *layout,
 
 #ifdef H5_HAVE_PARALLEL
         /*
-         * If MPIO is used, must bypass the chunk-cache scheme because other
+         * If MPIO or MPIPOSIX is used, must bypass the chunk-cache scheme because other
          * MPI processes could be writing to other elements in the same chunk.
          * Do a direct write-through of only the elements requested.
          */
-            || (IS_H5FD_MPIO(f) && (H5F_ACC_RDWR & f->shared->flags))
+            || ((IS_H5FD_MPIO(f) ||IS_H5FD_MPIPOSIX(f)) && (H5F_ACC_RDWR & f->shared->flags))
 #endif /* H5_HAVE_PARALLEL */
             ) {
             H5O_layout_t	l;	/* temporary layout */
@@ -2336,10 +2337,23 @@ H5F_istore_allocate(H5F_t *f, hid_t dxpl_id, const H5O_layout_t *layout,
     } /* end else */
 
     /* Retrieve up MPI parameters */
-    if ((mpi_rank=H5FD_mpio_mpi_rank(f->shared->lf))<0)
-        HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "Can't retrieve MPI rank");
-    if ((mpi_size=H5FD_mpio_mpi_size(f->shared->lf))<0)
-        HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "Can't retrieve MPI size");
+    if(IS_H5FD_MPIO(f)) {
+        /* Get the MPI rank & size */
+        if ((mpi_rank=H5FD_mpio_mpi_rank(f->shared->lf))<0)
+            HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "Can't retrieve MPI rank");
+        if ((mpi_size=H5FD_mpio_mpi_size(f->shared->lf))<0)
+            HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "Can't retrieve MPI size");
+    } /* end if */
+    else {
+        /* Sanity Check */
+        assert(IS_H5FD_MPIPOSIX(f));
+
+        /* Get the MPI rank & size */
+        if ((mpi_rank=H5FD_mpiposix_mpi_rank(f->shared->lf))<0)
+            HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "Can't retrieve MPI rank");
+        if ((mpi_size=H5FD_mpiposix_mpi_size(f->shared->lf))<0)
+            HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "Can't retrieve MPI size");
+    } /* end else */
 
     /* Loop over all chunks */
     carry=0;
@@ -2386,8 +2400,17 @@ H5F_istore_allocate(H5F_t *f, hid_t dxpl_id, const H5O_layout_t *layout,
          * still writing out chunks and other processes race ahead to read
          * them in, getting bogus data.
          */
-        if (MPI_Barrier(H5FD_mpio_communicator(f->shared->lf)))
-            HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_Barrier failed");
+        if(IS_H5FD_MPIO(f)) {
+            if (MPI_Barrier(H5FD_mpio_communicator(f->shared->lf)))
+                HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_Barrier failed");
+        } /* end if */
+        else {
+            /* Sanity Check */
+            assert(IS_H5FD_MPIPOSIX(f));
+
+            if (MPI_Barrier(H5FD_mpiposix_communicator(f->shared->lf)))
+                HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_Barrier failed");
+        } /* end else */
     } /* end if */
 
 done:

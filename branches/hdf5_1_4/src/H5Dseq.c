@@ -37,8 +37,9 @@
 #include "H5Pprivate.h"
 #include "H5Vprivate.h"
 
-/* MPIO driver functions are needed for some special checks */
+/* MPIO & MPIPOSIX driver functions are needed for some special checks */
 #include "H5FDmpio.h"
+#include "H5FDmpiposix.h"
 
 /* Interface initialization */
 #define PABLO_MASK	H5Fseq_mask
@@ -95,11 +96,11 @@ H5F_seq_read(H5F_t *f, hid_t dxpl_id, const struct H5O_layout_t *layout,
 
 #ifdef H5_HAVE_PARALLEL
     {
-        /* Get the transfer mode */
+	/* Get the transfer mode for MPIO transfers */
         H5D_xfer_t *dxpl;
         H5FD_mpio_dxpl_t *dx;
 
-        if (H5P_DEFAULT!=dxpl_id && (dxpl=H5I_object(dxpl_id)) &&
+        if (IS_H5FD_MPIO(f) && H5P_DEFAULT!=dxpl_id && (dxpl=H5I_object(dxpl_id)) &&
                 H5FD_MPIO==dxpl->driver_id && (dx=dxpl->driver_info) &&
                 H5FD_MPIO_INDEPENDENT!=dx->xfer_mode) {
             xfer_mode = dx->xfer_mode;
@@ -541,11 +542,11 @@ H5F_seq_write(H5F_t *f, hid_t dxpl_id, const struct H5O_layout_t *layout,
 
 #ifdef H5_HAVE_PARALLEL
     {
-        /* Get the transfer mode */
+	/* Get the transfer mode for MPIO transfers */
         H5D_xfer_t *dxpl;
         H5FD_mpio_dxpl_t *dx;
 
-        if (H5P_DEFAULT!=dxpl_id && (dxpl=H5I_object(dxpl_id)) &&
+        if (IS_H5FD_MPIO(f) && H5P_DEFAULT!=dxpl_id && (dxpl=H5I_object(dxpl_id)) &&
                 H5FD_MPIO==dxpl->driver_id && (dx=dxpl->driver_info) &&
                 H5FD_MPIO_INDEPENDENT!=dx->xfer_mode) {
             xfer_mode = dx->xfer_mode;

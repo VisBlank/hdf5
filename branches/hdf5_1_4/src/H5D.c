@@ -29,11 +29,12 @@
 #include "H5Zprivate.h"		/* Data filters				*/
 
 /*
- * The MPIO driver is needed because there are kludges in this file and
- * places where we check for things that aren't handled by this driver.
+ * The MPIO & MPIPOSIX drivers are needed because there are kludges in this
+ * file and places where we check for things that aren't handled by these
+ * drivers.
  */
 #include "H5FDmpio.h"
-
+#include "H5FDmpiposix.h"
 
 #ifdef H5_HAVE_PARALLEL
 /* Remove this if H5R_DATASET_REGION is no longer used in this file */
@@ -972,8 +973,8 @@ H5D_create(H5G_entry_t *loc, const char *name, const H5T_t *type,
     }
 
 #ifdef H5_HAVE_PARALLEL
-    /* If MPIO is used, no filter support yet. */
-    if (IS_H5FD_MPIO(f) && create_parms->pline.nfilters>0) {
+    /* If MPIO or MPIPOSIX is used, no filter support yet. */
+    if ((IS_H5FD_MPIO(f) || IS_H5FD_MPIPOSIX(f)) && create_parms->pline.nfilters>0) {
         HGOTO_ERROR (H5E_DATASET, H5E_UNSUPPORTED, NULL,
 		     "Parallel IO does not support filters yet");
     }
@@ -1396,8 +1397,8 @@ H5D_open_oid(H5G_entry_t *ent)
     }
 
 #ifdef H5_HAVE_PARALLEL
-    /* If MPIO is used, no filter support yet. */
-    if (IS_H5FD_MPIO(dataset->ent.file) && dataset->create_parms->pline.nfilters>0) {
+    /* If MPIO or MPIPOSIX is used, no filter support yet. */
+    if ((IS_H5FD_MPIO(dataset->ent.file) || IS_H5FD_MPIPOSIX(dataset->ent.file)) && dataset->create_parms->pline.nfilters>0) {
         HGOTO_ERROR (H5E_DATASET, H5E_UNSUPPORTED, NULL,
 		     "Parallel IO does not support filters yet");
     }
@@ -1658,11 +1659,11 @@ H5D_read(H5D_t *dataset, const H5T_t *mem_type, const H5S_t *mem_space,
 	    HGOTO_ERROR (H5E_DATASET, H5E_CANTINIT, FAIL,
 		"unable to retrieve data xfer info");
     }
-    /* Collective access is not permissible without the MPIO driver */
+    /* Collective access is not permissible without the MPIO or MPIPOSIX driver */
     if (doing_mpio && xfer_mode==H5FD_MPIO_COLLECTIVE &&
-	!(IS_H5FD_MPIO(dataset->ent.file)))
+	!(IS_H5FD_MPIO(dataset->ent.file) || IS_H5FD_MPIPOSIX(dataset->ent.file)))
 	    HGOTO_ERROR (H5E_DATASET, H5E_UNSUPPORTED, FAIL,
-		"collective access for MPIO driver only");
+		"collective access for MPIO & MPIPOSIX drivers only");
 #endif
 
 #ifdef QAK
@@ -2074,20 +2075,20 @@ H5D_write(H5D_t *dataset, const H5T_t *mem_type, const H5S_t *mem_space,
     assert(buf);
 
 #ifdef H5_HAVE_PARALLEL
-    /* If MPIO is used, no VL datatype support yet. */
+    /* If MPIO or MPIPOSIX is used, no VL datatype support yet. */
     /* This is because they use the global heap in the file and we don't */
     /* support parallel access of that yet */
-    if (IS_H5FD_MPIO(dataset->ent.file) &&
+    if ((IS_H5FD_MPIO(dataset->ent.file) || IS_H5FD_MPIPOSIX(dataset->ent.file)) &&
 	H5T_get_class(mem_type)==H5T_VLEN) {
         HGOTO_ERROR (H5E_DATASET, H5E_UNSUPPORTED, FAIL,
 		     "Parallel IO does not support writing VL datatypes yet");
     }
 #endif
 #ifdef H5_HAVE_PARALLEL
-    /* If MPIO is used, no dataset region reference support yet. */
+    /* If MPIO or MPIPOSIX is used, no dataset region reference datatype support yet. */
     /* This is because they use the global heap in the file and we don't */
     /* support parallel access of that yet */
-    if (IS_H5FD_MPIO(dataset->ent.file) &&
+    if ((IS_H5FD_MPIO(dataset->ent.file) || IS_H5FD_MPIPOSIX(dataset->ent.file)) &&
 	H5T_get_class(mem_type)==H5T_REFERENCE &&
 	H5T_get_ref_type(mem_type)==H5R_DATASET_REGION) {
         HGOTO_ERROR (H5E_DATASET, H5E_UNSUPPORTED, FAIL,
@@ -2141,9 +2142,9 @@ H5D_write(H5D_t *dataset, const H5T_t *mem_type, const H5S_t *mem_space,
 	    HGOTO_ERROR (H5E_DATASET, H5E_CANTINIT, FAIL,
 		"unable to retrieve data xfer info");
     }
-    /* Collective access is not permissible without the MPIO driver */
+    /* Collective access is not permissible without the MPIO or MPIPOSIX driver */
     if (doing_mpio && xfer_mode==H5FD_MPIO_COLLECTIVE &&
-	!(IS_H5FD_MPIO(dataset->ent.file)))
+	!(IS_H5FD_MPIO(dataset->ent.file) || IS_H5FD_MPIPOSIX(dataset->ent.file)))
 	    HGOTO_ERROR (H5E_DATASET, H5E_UNSUPPORTED, FAIL,
 		"collective access for MPIO driver only");
 #endif
@@ -2748,7 +2749,7 @@ H5D_init_storage(H5D_t *dset, const H5S_t *space)
              * If the dataset is accessed via parallel I/O, allocate file space
              * for all chunks now and initialize each chunk with the fill value.
              */
-            if (IS_H5FD_MPIO(dset->ent.file)) {
+            if (IS_H5FD_MPIO(dset->ent.file) || IS_H5FD_MPIPOSIX(dset->ent.file)) {
                 /* We only handle simple data spaces so far */
                 int		ndims;
                 hsize_t		dim[H5O_LAYOUT_NDIMS];
