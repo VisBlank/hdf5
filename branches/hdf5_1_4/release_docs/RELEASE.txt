@@ -292,6 +292,9 @@ Supported Configuration Features Summary
 Known Problems
 ==============
 
+    * On Linux 2.4 IA64, Fortran test fails for h5dwrite_int_f and 
+      h5dwrite_vl_real_f.
+
     * On Windows, h5dump may abort printing if a VL string is longer than 4096
       bytes due to a compiler problem.  It'll be fixed in v1.6 release.
 
