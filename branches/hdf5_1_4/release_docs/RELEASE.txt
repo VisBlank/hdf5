@@ -255,7 +255,7 @@ Supported Configuration Features Summary
     Solaris2.6         y              x        y        n    n     y
     Solaris2.7 64      y              x        y        n    n     y
     Solaris2.7 32      y              x        y        n    n     y
-    Solaris2.8 64      y              y        n        n    n     y
+    Solaris2.8 64      y              x        n        n    n     y
     Solaris2.8 32      y              x        y        n    n     y
     IRIX6.5            y              x        n        n    n     y
     IRIX64_6.5 64      y              x        y        n    y     y
@@ -317,16 +317,19 @@ Known Problems
       IRIX 6.5 even if they are configured with --enable-static-exec.
 
     * IRIX 6.5 fails to compile if configured with --enable-static-exec.
+
+    * The executables are always dynamic on Solaris 2.7 ans 2.8(64 and n32)
+      even if they are configured with --enable-static-exec.
     
     * The HDF5_MPI_OPT_TYPES optimization code in the parallel HDF5 will cause
       a hang in some cases when chunked storage is used.  This is now set to
       be off by default.  One may turn it on by setting the environment 
       variable HDF5_MPI_OPT_TYPES to a non-zero value such as 1.
 
-    * On IA32 and IA64 systems, if you use a compiler other than GCC (such as
-      Intel's ecc or icc compilers), you will need to modify the generated
-      "libtool" program after configuration is finished. On or around line 104
-      of the libtool file, there are lines which look like:
+    * When Intel compilers are used (icc or ecc), you will need to 
+      modify the generated "libtool" program after configuration is finished.
+      On or around line 104 of the libtool file, there are lines which 
+      look like:
 
           # How to pass a linker flag through the compiler.
           wl=""
@@ -336,8 +339,8 @@ Known Problems
           # How to pass a linker flag through the compiler.
           wl="-Wl,"
 
-    * To build the Fortran library using Intel compilers, one has to 
-          x modify the source code in the fortran/src directory to remove the
+    * To build the Fortran library using Intel compilerso on Linux, one has to 
+          x Use -fpp -DDEC$=DEC_ -DMS$=MS_ compiler flags to disable
             !DEC and !MS compiler directives.
           x The build will fail in the fortran/test directory and then in the
             fortran/examples directory; to proceed, edit the work.pcl files in
@@ -345,8 +348,13 @@ Known Problems
 
                     work.pc
                     ../src/work.pc 
+          x Do the same in fortran/examples directory
 
     * To build the Fortran library on IA64 use
                    setenv CC "ecc -DIA64"
-                   setenv F9X "efc -cl,work.pcl"
+                   setenv F9X "efc -fpp -DDEC$=DEC_ -DMS$=MS_ -cl,work.pcl"
             before running configure and see the steps described above.
+
+    * Fortran external dataset test fails on Linux 2.4
+
+
