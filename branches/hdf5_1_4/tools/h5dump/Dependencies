@@ -40,8 +40,8 @@ h5dump.lo: \
    $(top_srcdir)/src/H5private.h \
    $(top_srcdir)/tools/lib/h5tools.h \
    $(top_srcdir)/tools/lib/h5tools_utils.h
-h5dumptst.lo: \
-   $(srcdir)/h5dumptst.c \
+h5dumpgentest.lo: \
+   $(srcdir)/h5dumpgentest.c \
    $(top_srcdir)/src/hdf5.h \
    $(top_srcdir)/src/H5public.h \
    $(top_builddir)/src/H5pubconf.h \

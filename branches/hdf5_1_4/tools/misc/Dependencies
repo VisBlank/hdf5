@@ -108,7 +108,8 @@ h5repart.lo: \
    $(top_srcdir)/src/H5FDsec2.h \
    $(top_srcdir)/src/H5FDsrb.h \
    $(top_srcdir)/src/H5FDstdio.h \
-   $(top_srcdir)/src/H5FDstream.h
+   $(top_srcdir)/src/H5FDstream.h \
+   $(top_srcdir)/src/H5private.h
 pdb2hdf.lo: \
    $(srcdir)/pdb2hdf.c \
    $(top_srcdir)/src/hdf5.h \
