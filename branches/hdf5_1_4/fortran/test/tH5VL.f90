@@ -214,7 +214,7 @@
           !
           do i = 1, 6 
              do j = 1, 5 
-                vl_real_data(i,j) = -100.
+                vl_real_data(j,i) = -100.
              end do
           end do
 
@@ -262,7 +262,7 @@
           ! Write the dataset.
           !
           CALL h5dwrite_vl_f(dset_id, vltype_id, vl_real_data, data_dims, len, error)
-              CALL check("h5dwrite_f", error, total_error)
+              CALL check("h5dwrite_vl_f", error, total_error)
 
 
           !   
