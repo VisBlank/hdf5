@@ -441,8 +441,16 @@ case "X-$enable_production" in
     CFLAGS="$CFLAGS $PROD_CFLAGS"
     CPPFLAGS="$CPPFLAGS $PROD_CPPFLAGS"
 
+    dnl
     dnl Remove the "-g" (debug) flag from here if in production mode.
-    CFLAGS="`echo $CFLAGS | sed -e s/-g//g`"
+    dnl
+    if test "X$CFLAGS" = "X-g"; then
+      CFLAGS=""
+    fi
+
+    CFLAGS="`echo $CFLAGS | sed -e 's/ -g / /g'`"
+    CFLAGS="`echo $CFLAGS | sed -e 's/^-g / /'`"
+    CFLAGS="`echo $CFLAGS | sed -e 's/ -g$//'`"
     ;;
   X-no)
     enable_production="no"

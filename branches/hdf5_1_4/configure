@@ -7435,7 +7435,13 @@ echo "${ECHO_T}\"production\"" >&6
     CFLAGS="$CFLAGS $PROD_CFLAGS"
     CPPFLAGS="$CPPFLAGS $PROD_CPPFLAGS"
 
-        CFLAGS="`echo $CFLAGS | sed -e s/-g//g`"
+                if test "X$CFLAGS" = "X-g"; then
+      CFLAGS=""
+    fi
+
+    CFLAGS="`echo $CFLAGS | sed -e 's/ -g / /g'`"
+    CFLAGS="`echo $CFLAGS | sed -e 's/^-g / /'`"
+    CFLAGS="`echo $CFLAGS | sed -e 's/ -g$//'`"
     ;;
   X-no)
     enable_production="no"
