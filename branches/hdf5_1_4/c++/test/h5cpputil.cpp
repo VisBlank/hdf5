@@ -26,7 +26,7 @@
 #include <iostream>
 #endif
 
-#ifndef H5_NO_NAMESPACE
+#ifndef H5_NO_STD
 using namespace std;
 #endif
 

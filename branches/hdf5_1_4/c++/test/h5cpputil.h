@@ -24,6 +24,10 @@
 #define _h5cpputil_h
 
 #include <string>
+#ifndef H5_NO_STD
 int test_report (int, const std::string&);
+#else
+int test_report (int, const string&);
+#endif
 
 #endif
