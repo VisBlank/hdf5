@@ -102,7 +102,9 @@ static herr_t
 H5AC_init_interface(void)
 {
     H5P_t *new_plist;           /* New dataset transfer property list created */
+#ifdef H5_HAVE_PARALLEL
     H5D_xfer_t	*xfer_parms;    /* Pointer to copy of default dataset transfer property */
+#endif /* H5_HAVE_PARALLEL */
 
     FUNC_ENTER(H5AC_init_interface, FAIL);
 
