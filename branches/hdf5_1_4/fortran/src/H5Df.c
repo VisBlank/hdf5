@@ -786,7 +786,7 @@ nh5dwrite_vl_integer_c ( hid_t_f *dset_id ,  hid_t_f *mem_type_id, hid_t_f *mem_
 
   c_buf = (hvl_t *)malloc(num_elem * sizeof(hvl_t)); 
   if (c_buf == NULL) return ret_value;
-  tmp = buf; 
+  tmp = (int *)buf; 
   for (i=0; i < num_elem; i++) {
        c_buf[i].len = (size_t)len[i];  
        c_buf[i].p   = tmp;
@@ -1072,7 +1072,7 @@ nh5dwrite_vl_real_c ( hid_t_f *dset_id ,  hid_t_f *mem_type_id, hid_t_f *mem_spa
 
   c_buf = (hvl_t *)malloc(num_elem * sizeof(hvl_t)); 
   if (c_buf == NULL) return ret_value;
-  tmp = buf; 
+  tmp = (float *)buf; 
   for (i=0; i < num_elem; i++) {
        c_buf[i].len = (size_t)len[i];  
        c_buf[i].p   = tmp;
