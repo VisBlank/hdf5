@@ -66,6 +66,11 @@ New Features
 
 Bug Fixes since HDF5-1.4.5 Release
 ==================================
+  o Library
+  =========
+    * -O caused errors in AIX 5.x platforms.  Removed it from
+      --enable-production mode.  AKC - 2003/03/31
+
 
 
 
