@@ -126,9 +126,6 @@ static const H5FD_class_t H5FD_mpio_g = {
     H5FD_FLMAP_SINGLE,				/*fl_map		*/
 };
 
-#ifndef H5FDmpio_DEBUG
-#define H5FDmpio_DEBUG
-#endif
 #ifdef H5FDmpio_DEBUG
 /* Flags to control debug actions in H5Fmpio.
  * Meant to be indexed by characters.
@@ -265,21 +262,23 @@ H5FD_mpio_init(void)
  * 		Modified to store a duplicate of the communicator and INFO
  * 		object argument.  Free the old communicator and Info object
  * 		if previously set.
+ *
+ * 		Albert Cheng, 2003-01-13
+ * 		Removed the comm and Info object duplication here.  They
+ * 		are being dup'ed in H5Pset_driver.
  *-------------------------------------------------------------------------
  */
 herr_t
 H5Pset_fapl_mpio(hid_t fapl_id, MPI_Comm comm, MPI_Info info)
 {
-    herr_t ret_value;
+    herr_t 		ret_value=FAIL;
     H5FD_mpio_fapl_t	fa;
-    MPI_Comm comm_dup=MPI_COMM_NULL;
-    MPI_Info info_dup=MPI_INFO_NULL;
     
     FUNC_ENTER(H5Pset_fapl_mpio, FAIL);
     H5TRACE3("e","iMcMi",fapl_id,comm,info);
 
 #ifdef H5FDmpio_DEBUG
-if (H5FD_mpio_Debug[(int)'a'])
+if (H5FD_mpio_Debug[(int)'t'])
 fprintf(stderr, "in H5Pset_fapl_mpio\n");
 #endif
     /* Check arguments */
@@ -289,17 +288,8 @@ fprintf(stderr, "in H5Pset_fapl_mpio\n");
 	HRETURN_ERROR(H5E_PLIST, H5E_BADTYPE, FAIL, "not a valid communicator");
 
     /* Initialize driver specific properties */
-    if (MPI_SUCCESS != MPI_Comm_dup(comm, &comm_dup))
-	HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_Comm_dup failed");
-    if (MPI_INFO_NULL != info){
-	if (MPI_SUCCESS != MPI_Info_dup(info, &info_dup))
-	    HGOTO_ERROR(H5E_INTERNAL, H5E_MPI, FAIL, "MPI_Info_dup failed");
-    }else{
-	/* do not dup it */
-	info_dup = info;
-    }
-    fa.comm = comm_dup;
-    fa.info = info_dup;
+    fa.comm = comm;
+    fa.info = info;
 
     /* H5Pset_driver will free the old communicator and Info values
      * if set previously.
@@ -307,16 +297,9 @@ fprintf(stderr, "in H5Pset_fapl_mpio\n");
     ret_value= H5Pset_driver(fapl_id, H5FD_MPIO, &fa);
 
 done:
-    if (FAIL == ret_value){
-	/* need to free anything created here */
-	if (MPI_COMM_NULL != comm_dup)
-	    MPI_Comm_free(&comm_dup);
-	if (MPI_INFO_NULL != info_dup)
-	    MPI_Info_free(&info_dup);
-    }
 
 #ifdef H5FDmpio_DEBUG
-if (H5FD_mpio_Debug[(int)'a'])
+if (H5FD_mpio_Debug[(int)'t'])
 fprintf(stderr, "Leaving H5Pset_fapl_mpio\n");
 #endif
     FUNC_LEAVE(ret_value);
@@ -360,7 +343,7 @@ fprintf(stderr, "Leaving H5Pset_fapl_mpio\n");
 herr_t
 H5Pget_fapl_mpio(hid_t fapl_id, MPI_Comm *comm/*out*/, MPI_Info *info/*out*/)
 {
-    herr_t ret_value=SUCCEED;
+    herr_t 		ret_value=SUCCEED;
     H5FD_mpio_fapl_t	*fa;
     MPI_Comm	        comm_tmp=MPI_COMM_NULL;
     MPI_Info	        info_tmp=MPI_INFO_NULL;
@@ -369,7 +352,7 @@ H5Pget_fapl_mpio(hid_t fapl_id, MPI_Comm *comm/*out*/, MPI_Info *info/*out*/)
     H5TRACE3("e","ixx",fapl_id,comm,info);
 
 #ifdef H5FDmpio_DEBUG
-if (H5FD_mpio_Debug[(int)'a'])
+if (H5FD_mpio_Debug[(int)'t'])
 fprintf(stderr, "in H5Pget_fapl_mpio\n");
 #endif
     if (H5P_FILE_ACCESS!=H5Pget_class(fapl_id))
@@ -410,7 +393,7 @@ done:
     }
 
 #ifdef H5FDmpio_DEBUG
-if (H5FD_mpio_Debug[(int)'a'])
+if (H5FD_mpio_Debug[(int)'t'])
 fprintf(stderr, "leaving H5Pget_fapl_mpio\n");
 #endif
     FUNC_LEAVE(ret_value);
@@ -837,13 +820,13 @@ H5FD_mpio_closing(H5FD_t *_file)
 static void *
 H5FD_mpio_fapl_get(H5FD_t *_file)
 {
-    void		*ret_value;
+    void		*ret_value = NULL;
     H5FD_mpio_t		*file = (H5FD_mpio_t*)_file;
     H5FD_mpio_fapl_t	*fa = NULL;
 
     FUNC_ENTER(H5FD_mpio_fapl_get, NULL);
 #ifdef H5FDmpio_DEBUG
-if (H5FD_mpio_Debug[(int)'a'])
+if (H5FD_mpio_Debug[(int)'t'])
 fprintf(stderr, "in H5FD_mpio_fapl_get\n");
 #endif
     assert(file);
@@ -866,7 +849,7 @@ done:
 	    H5MM_xfree(fa);
     }
 #ifdef H5FDmpio_DEBUG
-if (H5FD_mpio_Debug[(int)'a'])
+if (H5FD_mpio_Debug[(int)'t'])
 fprintf(stderr, "leaving H5FD_mpio_fapl_get\n");
 #endif
     FUNC_LEAVE(ret_value);
@@ -892,13 +875,13 @@ fprintf(stderr, "leaving H5FD_mpio_fapl_get\n");
 static void *
 H5FD_mpio_fapl_copy(const void *_old_fa)
 {
-    void		*ret_value;
+    void		*ret_value = NULL;
     const H5FD_mpio_fapl_t *old_fa = (const H5FD_mpio_fapl_t*)_old_fa;
     H5FD_mpio_fapl_t	*new_fa = NULL;
     
     FUNC_ENTER(H5FD_mpio_fapl_copy, NULL);
 #ifdef H5FDmpio_DEBUG
-if (H5FD_mpio_Debug[(int)'a'])
+if (H5FD_mpio_Debug[(int)'t'])
 fprintf(stderr, "enter H5FD_mpio_fapl_copy\n");
 #endif
 
@@ -923,7 +906,7 @@ done:
     }
 
 #ifdef H5FDmpio_DEBUG
-if (H5FD_mpio_Debug[(int)'a'])
+if (H5FD_mpio_Debug[(int)'t'])
 fprintf(stderr, "leaving H5FD_mpio_fapl_copy\n");
 #endif
     FUNC_LEAVE(ret_value);
@@ -953,20 +936,20 @@ H5FD_mpio_fapl_free(void *_fa)
 
     FUNC_ENTER(H5FD_mpio_fapl_free, FAIL);
 #ifdef H5FDmpio_DEBUG
-if (H5FD_mpio_Debug[(int)'a'])
+if (H5FD_mpio_Debug[(int)'t'])
 fprintf(stderr, "in H5FD_mpio_fapl_free\n");
 #endif
     assert(fa);
 
     /* Free the internal communicator and INFO object */
-    if (MPI_INFO_NULL != fa->info)
-	MPI_Info_free(&fa->info);
     assert(MPI_COMM_NULL!=fa->comm);
     MPI_Comm_free(&fa->comm);
+    if (MPI_INFO_NULL != fa->info)
+	MPI_Info_free(&fa->info);
     H5MM_xfree(fa);
 
 #ifdef H5FDmpio_DEBUG
-if (H5FD_mpio_Debug[(int)'a'])
+if (H5FD_mpio_Debug[(int)'t'])
 fprintf(stderr, "leaving H5FD_mpio_fapl_free\n");
 #endif
     FUNC_LEAVE(SUCCEED);
@@ -1018,7 +1001,7 @@ static H5FD_t *
 H5FD_mpio_open(const char *name, unsigned flags, hid_t fapl_id,
 	       haddr_t UNUSED maxaddr)
 {
-    H5FD_t			*ret_value;
+    H5FD_t			*ret_value=NULL;
     H5FD_mpio_t			*file=NULL;
     MPI_File			fh;
     int				mpi_amode;
@@ -1146,7 +1129,6 @@ done:
 	    MPI_Info_free(&info_dup);
 	if (file)
 	    H5MM_xfree(file);
-	
     }
 
 #ifdef H5FDmpio_DEBUG
@@ -2161,7 +2143,7 @@ H5FD_mpio_comm_info_dup(MPI_Comm comm, MPI_Info info, MPI_Comm *comm_new, MPI_In
     FUNC_ENTER(H5FD_mpio_comm_info_dup, FAIL);
 
 #ifdef H5FDmpio_DEBUG
-if (H5FD_mpio_Debug[(int)'a'])
+if (H5FD_mpio_Debug[(int)'t'])
 fprintf(stderr, "In H5FD_mpio_comm_info_dup: argument comm/info = %d/%ld\n", comm, (long)info);
 #endif
     /* Check arguments */
@@ -2195,7 +2177,7 @@ done:
     }
 
 #ifdef H5FDmpio_DEBUG
-if (H5FD_mpio_Debug[(int)'a'])
+if (H5FD_mpio_Debug[(int)'t'])
 fprintf(stderr, "Leaving H5FD_mpio_comm_info_dup\n");
 #endif
     FUNC_LEAVE(ret_value);
@@ -2227,7 +2209,7 @@ H5FD_mpio_comm_info_free(MPI_Comm *comm, MPI_Info *info)
     FUNC_ENTER(H5FD_mpio_comm_info_free, FAIL);
 
 #ifdef H5FDmpio_DEBUG
-if (H5FD_mpio_Debug[(int)'a'])
+if (H5FD_mpio_Debug[(int)'t'])
 fprintf(stderr, "in H5FD_mpio_comm_info_free\n");
 #endif
     /* Check arguments */
@@ -2240,7 +2222,7 @@ fprintf(stderr, "in H5FD_mpio_comm_info_free\n");
 	MPI_Info_free(info);
 
 #ifdef H5FDmpio_DEBUG
-if (H5FD_mpio_Debug[(int)'a'])
+if (H5FD_mpio_Debug[(int)'t'])
 fprintf(stderr, "Leaving H5FD_mpio_comm_info_free\n");
 #endif
     FUNC_LEAVE(SUCCEED);
