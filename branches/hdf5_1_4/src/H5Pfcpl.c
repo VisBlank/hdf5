@@ -398,8 +398,16 @@ H5Pset_istore_k(hid_t plist_id, int ik)
 		      "istore IK value must be positive");
     }
 
+/* Note: This is commented out because the file format does not have a place
+ *      to store the indexed storage B-tree internal 'K' value and changing it
+ *      from the default value will lead to file corruption, unless the format
+ *      support is back-ported into this CVS branch.  If that support is
+ *      backported into this branch, this ifdef can be removed. -QAK
+ */
+#ifdef BUG
     /* Set value */
     plist->btree_k[H5B_ISTORE_ID] = ik;
+#endif /* BUG */
 
     FUNC_LEAVE(SUCCEED);
 }

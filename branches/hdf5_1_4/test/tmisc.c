@@ -124,6 +124,13 @@ typedef struct
 /* Definitions for misc. test #8 */
 #define MISC8_FILE              "tmisc8.h5"
 
+/* Definitions for misc. test #9 */
+#define MISC9_FILE              "tsupern.h5"
+
+/* Definitions for misc. test #10 */
+#define MISC10_DEF_ISTORE_IK        32
+#define MISC10_NEW_ISTORE_IK        64
+
 /****************************************************************
 **
 **  test_misc1(): test unlinking a dataset from a group and immediately
@@ -1041,8 +1048,75 @@ test_misc8(void)
     VERIFY(fid,FAIL,"H5Fopen");
 
     ret=H5Pclose(fapl);
-    CHECK(ret, FAIL, "H5Pset_fapl_core");
+    CHECK(ret, FAIL, "H5Pclose");
 } /* end test_misc8() */
+
+/****************************************************************
+**
+**  test_misc9(): Test that H5Fopen() does not succeed for files
+**      created with later superblock versions
+**
+**      NOTE: This test reads a file (tsupern.h5) created with
+**              gen_new_super.c from a v1.6+ version of the library.
+**      
+****************************************************************/
+static void
+test_misc9(void)
+{
+    char testfile[512]="";
+    char *srcdir = getenv("srcdir");
+    hid_t fid;
+
+    /* Output message about test being performed */
+    MESSAGE(5, ("Testing opening file with new superblock\n"));
+
+    if (srcdir && ((HDstrlen(srcdir) + HDstrlen(MISC9_FILE) + 1) < sizeof(testfile))){
+	HDstrcpy(testfile, srcdir);
+	HDstrcat(testfile, "/");
+    }
+    HDstrcat(testfile, MISC9_FILE);
+
+    H5E_BEGIN_TRY {
+        fid = H5Fopen(testfile, H5F_ACC_RDONLY, H5P_DEFAULT);
+    } H5E_END_TRY;
+    VERIFY(fid,FAIL,"H5Fopen");
+
+} /* end test_misc9() */
+
+/****************************************************************
+**
+**  test_misc10(): Test that the H5Pset_istore_k() routine is
+**      disabled and doesn't allow the indexed storage B-tree
+**      internal 'K' value to be set.
+**
+****************************************************************/
+static void
+test_misc10(void)
+{
+    hid_t fcpl;         /* File creation property list */
+    int istore_ik;      /* Indexed storage B-tree internal 'K' value */
+    herr_t ret;
+
+    /* Output message about test being performed */
+    MESSAGE(5, ("Testing H5Pset_istore_k() disabled\n"));
+
+    /* Create a file creation property list */
+    fcpl = H5Pcreate(H5P_FILE_CREATE);
+    CHECK(fcpl, FAIL, "H5Pcreate");
+
+    /* Set a non-default indexed storage B-tree 'K' value */
+    ret=H5Pset_istore_k(fcpl, MISC10_NEW_ISTORE_IK);
+    CHECK(ret, FAIL, "H5Pset_istore_k");
+
+    /* Get the indexed storage B-tree 'K' value */
+    ret=H5Pget_istore_k(fcpl, &istore_ik);
+    CHECK(ret, FAIL, "H5Pget_istore_k");
+    VERIFY(istore_ik,MISC10_DEF_ISTORE_IK,"H5Pget_istore_k");
+
+    /* Close the property list */
+    ret=H5Pclose(fcpl);
+    CHECK(ret, FAIL, "H5Pclose");
+} /* end test_misc10() */
 
 /****************************************************************
 **
@@ -1063,6 +1137,8 @@ test_misc(void)
     test_misc6();   /* Test object header continuation code */
     test_misc7();   /* Test for sensible datatypes stored on disk */
     test_misc8();   /* Test for opening (not creating) core files */
+    test_misc9();   /* Test opening files with later superblock version # */
+    test_misc10();  /* Test that the H5Pset_istore_k() routine is disabled */
 
 } /* test_misc() */
 

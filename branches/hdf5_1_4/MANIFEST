@@ -987,6 +987,7 @@
 ./test/ttsafe_cancel.c
 ./test/ttsafe_dcreate.c
 ./test/ttsafe_error.c
+./test/tsupern.h5
 ./test/tvlstr.c
 ./test/tvltypes.c
 ./test/unlink.c
