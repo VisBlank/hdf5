@@ -42,6 +42,8 @@ Bug Fixes since HDF5-1.2.2
         a bit.
    * Added bounded garbage collection for the free lists when they run out of
         memory.
+   * Fixed point selections to work properly with both static and dynamicly
+        allocated memory.
 
 Known Problems
 ==============
