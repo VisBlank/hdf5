@@ -30,6 +30,10 @@ static char             RcsId[] = "@(#)$Revision$";
 #include <H5Tprivate.h>     /*data types                      	*/
 #include <H5Zprivate.h>		/*filters				*/
 
+#if defined(HAVE_GETRUSAGE) && defined(linux)
+#include <sys/resource.h>
+#endif
+
 /* We need this on Irix64 even though we've included stdio.h as documented */
 FILE *fdopen(int fd, const char *mode);
 
