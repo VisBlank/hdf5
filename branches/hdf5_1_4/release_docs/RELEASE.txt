@@ -51,6 +51,8 @@ New Features
   =========
     o General
     --------- 
+      * Added preliminary support for asynchronous I/O to mpiposix VFD.
+        RPM - 2003/03/20
       * Added a -force option to h5redeploy.  AKC - 2003/03/04 
 
     o APIs

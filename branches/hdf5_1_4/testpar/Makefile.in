@@ -28,11 +28,11 @@ RUNTEST=$(RUNPARALLEL)
 
 ## Test programs and scripts.
 ##
-TEST_PROGS_PARA=t_mpi
+TEST_PROGS_PARA=t_mpi t_aio
 TEST_SCRIPTS=testph5.sh
 
 ## These are our main targets
-PROGS=$(TEST_PROGS_PARA) testphdf5
+PROGS=$(TEST_PROGS_PARA) testphdf5 t_aio
 
 ## Temporary files
 MOSTLYCLEAN=ParaEg[123].h5f
@@ -41,7 +41,7 @@ DISTCLEAN=go Makefile testph5.sh
 ## Test source files
 TEST_PHDF5_SRC=testphdf5.c t_dset.c t_file.c t_mdset.c t_ph5basic.c
 TEST_PHDF5_OBJ=$(TEST_PHDF5_SRC:.c=.lo)
-TEST_SRC=t_mpi.c $(TEST_PHDF5_SRC)
+TEST_SRC=t_mpi.c $(TEST_PHDF5_SRC) t_aio.c
 TEST_OBJ=$(TEST_SRC:.c=.lo)
 TEST_HDR=testphdf5.h
 
@@ -55,5 +55,8 @@ t_mpi: t_mpi.lo
 
 testphdf5: $(TEST_PHDF5_OBJ)
 	@$(LT_LINK_EXE) $(CFLAGS) -o $@ $(TEST_PHDF5_OBJ) $(LIBH5TEST) $(LIBHDF5) $(LDFLAGS) $(LIBS)
+
+t_aio: t_aio.lo
+	@$(LT_LINK_EXE) $(CFLAGS) -o $@ t_aio.lo $(LIBH5TEST) $(LIBHDF5) $(LDFLAGS) $(LIBS)
 
 @CONCLUDE@

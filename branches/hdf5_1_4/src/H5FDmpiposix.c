@@ -30,7 +30,17 @@
  *              accessed on distributed parallel systems with the file located
  *              on a non-parallel filesystem.
  *
+ * Features:
+ *              USE_GPFS_HINTS
+ *                  Issue gpfs_fcntl() calls to hopefully improve performance
+ *                  when accessing files on a GPFS file system.
+ *
+ *              USE_ASYNC_IO
+ *                  Allow use of POSIX AIO interface.  This is currently a
+ *                  kludge to test HDF5 performance under SAF/DSL.
+ *                  --rpm 2003-01-21
  */
+
 #include "H5private.h"		/*library functions			*/
 #include "H5Eprivate.h"		/*error handling			*/
 #include "H5Fprivate.h"		/*files					*/
@@ -40,16 +50,11 @@
 #include "H5MMprivate.h"        /*memory allocation                     */
 #include "H5Pprivate.h"		/*property lists			*/
 
-/* Features:
- *   USE_GPFS_HINTS -- issue gpfs_fcntl() calls to hopefully improve
- *                     performance when accessing files on a GPFS
- *                     file system.
- *
- *   REPORT_IO      -- if set then report all POSIX file calls to stderr.
- *
- */
 #ifdef USE_GPFS_HINTS
 #   include <gpfs_fcntl.h>
+#endif
+#if defined(USE_ASYNC_IO) && defined(H5_HAVE_AIO_H)
+#   include <aio.h>
 #endif
 
 /*
@@ -109,6 +114,19 @@ typedef struct H5FD_mpiposix_t {
     int fileindexhi;
 #endif
 } H5FD_mpiposix_t;
+
+#ifdef USE_ASYNC_IO
+/* If this pointer is non-null then the next call to H5FD_mpiposix_write()
+ * with this same pointer for raw data will proceed asynchronously. The
+ * pointer gets reset to null once async I/O is triggered. */
+static const void *H5FD_mpiposix_async_buffer_g;
+
+/* The caller supplies an AIO structure that will be filled in with info
+ * about the current async I/O operation that is pending. The caller
+ * should initialize it to zero so it can detect whether an AIO operation
+ * was actually started (i.e., by looking at the aio_buf member). */
+static struct aiocb *H5FD_mpiposix_async_aio_g;
+#endif /*USE_ASYNC_IO*/
 
 /*
  * This driver supports systems that have the lseek64() function by defining
@@ -598,10 +616,11 @@ H5FD_mpiposix_open(const char *name, unsigned flags, hid_t fapl_id,
 
 #ifdef USE_GPFS_HINTS
     {
-        /* Free all byte range tokens. This is a good thing to do if raw data is aligned on 256kB boundaries (a GPFS page is
-         * 256kB). Care should be taken that there aren't too many sub-page writes, or the mmfsd may become overwhelmed.  This
-         * should probably eventually be passed down here as a property. The gpfs_fcntl() will most likely fail if `fd' isn't
-         * on a GPFS file system. */
+        /* Free all byte range tokens. This is a good thing to do if raw data is aligned on
+         * 256kB boundaries (a GPFS page is 256kB). Care should be taken that there aren't too
+         * many sub-page writes, or the mmfsd may become overwhelmed.  This should probably
+         * eventually be passed down here as a property. The gpfs_fcntl() will most likely fail
+         * if `fd' isn't on a GPFS file system. */
         struct {
             gpfsFcntlHeader_t   hdr;
             gpfsFreeRange_t     fr;
@@ -626,10 +645,6 @@ H5FD_mpiposix_open(const char *name, unsigned flags, hid_t fapl_id,
     if (NULL==(file=H5MM_calloc(sizeof(H5FD_mpiposix_t))))
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed");
 
-#ifdef REPORT_IO
-    fprintf(stderr, "open:  rank=%d name=%s file=0x%08lx\n", mpi_rank, name, (unsigned long)file);
-#endif
-
     /* Set the general file information */
     file->fd = fd;
     file->eof = sb.st_size;
@@ -639,7 +654,7 @@ H5FD_mpiposix_open(const char *name, unsigned flags, hid_t fapl_id,
     file->comm = fa->comm;
     file->mpi_rank = mpi_rank;
     file->mpi_size = mpi_size;
-    file->mpi_round = 0;        /* Start metadata writes with process 0 */
+    file->mpi_round = 0;        /* Start metadata writes with process 0. */
 
     /* Reset the last file I/O operation */
     file->pos = HADDR_UNDEF;
@@ -935,15 +950,6 @@ H5FD_mpiposix_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id, 
     if (addr+size>file->eoa)
         HGOTO_ERROR(H5E_ARGS, H5E_OVERFLOW, FAIL, "addr overflow");
 
-#ifdef REPORT_IO
-    {
-        int commrank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &commrank);
-        fprintf(stderr, "read:  rank=%d file=0x%08lx type=%d, addr=%lu size=%lu\n",
-                commrank, (unsigned long)file, (int)type, (unsigned long)addr, (unsigned long)size);
-    }
-#endif
-
     /* Seek to the correct location */
     if ((addr!=file->pos || OP_READ!=file->op) &&
             file_seek(file->fd, (file_offset_t)addr, SEEK_SET)<0)
@@ -973,9 +979,11 @@ H5FD_mpiposix_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id, 
         buf = (char*)buf + nbytes;
     }
     
+#ifndef USE_ASYNC_IO
     /* Update current position */
     file->pos = addr;
     file->op = OP_READ;
+#endif
 
 done:
     /* Check for error */
@@ -987,6 +995,34 @@ done:
 
     FUNC_LEAVE(ret_value);
 } /* end H5FD_mpiposix_read() */
+
+#ifdef USE_ASYNC_IO
+/*-------------------------------------------------------------------------
+ * Purpose:     If a client calls this function then the next call to
+ *              H5FD_mpiposix_write() with the same buffer address for
+ *              raw data will start the write asynchronously.  Passing a
+ *              NULL pointer for BUFFER effectively disables asynchronous
+ *              I/O (without affecting transfers that have already been
+ *              started).
+ *
+ * Return:      Non-negative on success, never fails.
+ *
+ * Programmer:  Robb Matzke
+ *              Tuesday, February 11, 2003
+ *
+ * Modifications:
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5FDmpiposix_async_notify(const void *buffer, struct aiocb *aio)
+{
+    FUNC_ENTER(H5FDmpiposix_async_notify, FAIL);
+    H5TRACE2("e","x*x",buffer,aio);
+    H5FD_mpiposix_async_buffer_g = buffer;
+    H5FD_mpiposix_async_aio_g = aio;
+    FUNC_LEAVE(SUCCEED);
+}
+#endif /*USE_ASYNC_IO*/
 
 
 /*-------------------------------------------------------------------------
@@ -1059,28 +1095,14 @@ H5FD_mpiposix_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
                 HMPI_GOTO_ERROR(FAIL, "MPI_Barrier failed", mpi_code);
         } /* end if */
 
-#if 1
-        /* Only p<round> will do the actual write if all procs in comm write same data */
+        /* Only p<round> will do the actual write if all procs in comm write same data. Note:
+         * if USE_GPFS_HINTS is defined then the file->mpi_round never gets incremented (see
+         * below), which causes all meta data to always be written from the same MPI task. */
         if (H5_mpiposix_1_metawrite_g) {
             if (file->mpi_rank != file->mpi_round)
                 HGOTO_DONE(SUCCEED) /* skip the actual write */
         } /* end if */
-#else
-        /* Only task zero will do the actual write if all tasks in comm write same data */
-        if (H5_mpiposix_1_metawrite_g && 0!=file->mpi_rank)
-            HGOTO_DONE(SUCCEED);
-#endif
     } /* end if */
-
-#ifdef REPORT_IO
-    {
-        int commrank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &commrank);
-        fprintf(stderr, "write: rank=%d file=0x%08lx type=%d, addr=%lu size=%lu %s\n",
-                commrank, (unsigned long)file, (int)type, (unsigned long)addr, (unsigned long)size,
-                0==file->naccess?"(FIRST ACCESS)":"");
-    }
-#endif
 
     if (0==file->naccess++) {
         /* First write access to this file */
@@ -1103,6 +1125,35 @@ H5FD_mpiposix_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
             HGOTO_ERROR(H5E_FILE, H5E_FCNTL, NULL, "failed to send hints to GPFS");
 #endif
     }
+        
+#ifdef USE_ASYNC_IO
+    /* If the caller requested asynchronous I/O for this buffer then start
+     * it asynchronously and reset the trigger. */
+    if (H5FD_mpiposix_async_buffer_g==buf && H5FD_MEM_DRAW==type) {
+        struct aiocb *a = H5FD_mpiposix_async_aio_g;
+        int status;
+        assert(a);
+
+        /* Reset trigger */
+        H5FD_mpiposix_async_buffer_g = NULL;
+        H5FD_mpiposix_async_aio_g = NULL;
+
+        /* Initialize AIO struct and initiate write */
+        a->aio_offset = addr;
+        a->aio_nbytes = size;
+#ifdef H5_HAVE_STRUCT_AIOCB_AIO_FILDES /* POSIX */
+        a->aio_buf = buf;
+        a->aio_fildes = file->fd;
+        status = aio_write(a);
+#else /* AIX-like */
+        a->aio_buf = (char*)buf;
+        status = aio_write(file->fd, a);
+#endif
+        if (status<0)
+            HGOTO_ERROR(H5E_IO, H5E_WRITEERROR, FAIL, "async write failed");
+        HGOTO_DONE(SUCCEED);
+    }
+#endif /*USE_ASYNC_IO*/
         
     /* Seek to the correct location */
     if ((addr!=file->pos || OP_WRITE!=file->op) &&
@@ -1128,9 +1179,11 @@ H5FD_mpiposix_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
         buf = (const char*)buf + nbytes;
     } /* end while */
 
+#ifndef USE_ASYNC_IO
     /* Update current last file I/O information */
     file->pos = addr;
     file->op = OP_WRITE;
+#endif
 
 done:
     /* Check for error */
@@ -1146,8 +1199,16 @@ done:
             if (MPI_SUCCESS != (mpi_code= MPI_Bcast(&ret_value, sizeof(ret_value), MPI_BYTE, file->mpi_round, file->comm)))
                 HMPI_GOTO_ERROR(FAIL, "MPI_Bcast failed", mpi_code);
 
+#ifdef USE_GPFS_HINTS
+            /* Do not round-robin. If GPFS is the underlying file system then it's better if
+             * the same MPI task always does the writing. The reason is that meta data writes
+             * are almost always smaller than a GPFS block and if we round-robin then we'll
+             * probably introduce share of blocks between nodes, which means that mmfsd gets
+             * involved with byte range token preemption and performance takes a nose dive. */
+#else
             /* Round-robin rotate to the next process */
             file->mpi_round = (file->mpi_round+1)%file->mpi_size;
+#endif
         } /* end if */
     } /* end else */
 

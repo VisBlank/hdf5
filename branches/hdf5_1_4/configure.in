@@ -553,7 +553,10 @@ case "$host_cpu-$host_vendor-$host_os" in
     dnl Add POSIX support on Linux systems, so <features.h> defines
     dnl __USE_POSIX, which is required to get the prototype for fdopen
     dnl defined correctly in <stdio.h>
-    CPPFLAGS="-D_POSIX_SOURCE $CPPFLAGS"
+
+    # This is temporarily commented out because it causes <aio.h> to
+    # not compile correctly. --rpm 2003-03-21
+    # CPPFLAGS="-D_POSIX_SOURCE $CPPFLAGS"
 
     dnl Also add BSD support on Linux systems, so <features.h> defines
     dnl __USE_BSD, which is required to get the prototype for strdup
@@ -1255,6 +1258,23 @@ AC_DEFINE(HAVE_TIOCGETD, 1,
 AC_MSG_RESULT(yes),
 AC_MSG_RESULT(no))
 
+dnl ----------------------------------------------------------------------
+dnl Asynchronous I/O comes in at least two different flavors: POSIX, AIX.
+dnl The POSIX struct aiocb has an aio_fildes member while the AIX
+dnl implementation lacks that member but passes a file descriptor as an
+dnl extra argument to aio_read() and aio_write().
+dnl
+AC_CHECK_LIB(rt, aio_write)
+AC_CHECK_HEADERS(aio.h)
+dnl AC_CHECK_MEMBER(struct aiocb.aio_fildes)      # Doesn't work as advertised
+AH_TEMPLATE(HAVE_STRUCT_AIOCB_AIO_FILDES,
+            [Define if the struct aiocb has an aio_fildes member])
+AC_MSG_CHECKING(for aio_fildes in struct aiocb)
+AC_TRY_COMPILE([#include <aio.h>],
+        [struct aiocb x; x.aio_fildes=1;],
+        AC_MSG_RESULT([yes (probably POSIX compliant)])
+           AC_DEFINE(HAVE_STRUCT_AIOCB_AIO_FILDES),
+        AC_MSG_RESULT([no (not POSIX compliant)]))
 
 dnl ----------------------------------------------------------------------
 dnl Check for functions.

@@ -1,5 +1,8 @@
 /* src/H5config.h.in.  Generated from configure.in by autoheader.  */
 
+/* Define to 1 if you have the <aio.h> header file. */
+#undef HAVE_AIO_H
+
 /* Define if the __attribute__(()) extension is present */
 #undef HAVE_ATTRIBUTE
 
@@ -128,6 +131,9 @@
 /* Define to 1 if you have the `pthread' library (-lpthread). */
 #undef HAVE_LIBPTHREAD
 
+/* Define to 1 if you have the `rt' library (-lrt). */
+#undef HAVE_LIBRT
+
 /* Define to 1 if you have the `silo' library (-lsilo). */
 #undef HAVE_LIBSILO
 
@@ -211,6 +217,9 @@
 
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
+
+/* Define if the struct aiocb has an aio_fildes member */
+#undef HAVE_STRUCT_AIOCB_AIO_FILDES
 
 /* Define if `struct text_info' is defined */
 #undef HAVE_STRUCT_TEXT_INFO

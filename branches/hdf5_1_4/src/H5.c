@@ -390,6 +390,11 @@ H5set_free_list_limits(int reg_global_lim, int reg_list_lim, int arr_global_lim,
  *              Accepts the `ttop' word. If enabled then show only the
  *              top level API calls, otherwise show all API calls.  Also
  *              turns on tracing as if the `trace' word was present.
+ *
+ *              Robb Matzke, 2003-03-27
+ *              Accepts the `pertask' word. Any following file descriptor
+ *              number will be incremented by the task's rank in the
+ *              MPI_COMM_WORLD communicator.
  *-------------------------------------------------------------------------
  */
 static void
@@ -398,7 +403,7 @@ H5_debug_mask(const char *s)
     FILE	*stream = stderr;
     char	pkg_name[32], *rest;
     size_t	i;
-    int		clear;
+    int		clear, pertask=0;
 	
     while (s && *s) {
 	if (HDisalpha(*s) || '-'==*s || '+'==*s) {
@@ -432,6 +437,10 @@ H5_debug_mask(const char *s)
 		for (i=0; i<H5_NPKGS; i++) {
 		    H5_debug_g.pkg[i].stream = clear?NULL:stream;
 		}
+            } else if (!HDstrcmp(pkg_name, "pertask")) {
+#ifdef H5_HAVE_PARALLEL
+                MPI_Comm_rank(MPI_COMM_WORLD, &pertask);
+#endif
 	    } else {
 		for (i=0; i<H5_NPKGS; i++) {
 		    if (!HDstrcmp(H5_debug_g.pkg[i].name, pkg_name)) {
@@ -446,7 +455,7 @@ H5_debug_mask(const char *s)
 
 	} else if (HDisdigit(*s)) {
 	    int fd = (int)HDstrtol (s, &rest, 0);
-	    if ((stream=HDfdopen(fd, "w"))) {
+	    if ((stream=HDfdopen(fd+pertask, "w"))) {
 	        HDsetvbuf (stream, NULL, _IOLBF, 0);
             }
 	    s = rest;
