@@ -915,7 +915,7 @@ extend_writeInd(char *filename)
     mem_dataspace = H5Screate_simple (RANK, count, NULL);
     VRFY((mem_dataspace != FAIL), "");
 
-#ifdef DISABLE
+#ifndef DISABLE
     /* Try write to dataset2 beyond its current dim sizes.  Should fail. */
     /* Temporary turn off auto error reporting */
     H5Eget_auto(&old_func, &old_client_data);
