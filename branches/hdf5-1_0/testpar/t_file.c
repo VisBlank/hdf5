@@ -84,16 +84,18 @@ test_split_comm_access(char *filename[])
 /*
  * MPIO independent overlapping writes.
  *
- * First n-1 processes open 1 file
- * Each of the n-1 process write a byte to the file in round-robin
- * fashion.  E.g. process 0 writes byte (0, n-1, n-1+n-1, ...),
- * process 1 write bytes (1, n, n+n-1, ...)
- * Last process (n-1) just waits
- * First n-1 processes finish writing and close the file.
+ * First n-1 processes open 1 file.
+ * Each of the n-1 process writes chunks of data to the file in round-robin
+ * fashion, in a interleaved but not overlapped fashion.  Using increasing
+ * chunk sizes for the benefits of testing different write sizes and also
+ * reducing the numbers of writes.
+ *
+ * Last process (n-1) just waits.
+ * First n-1 processes finish writing and cloose the file.
  * Last process opens the same file and verifies the data.
  */
 
-#define MPIO_TEST_WRITE_SIZE 512*1024     /* 1/2 MB */
+#define MPIO_TEST_WRITE_SIZE 1024*1024     /* 1 MB */
 
 void
 test_mpio_overlap_writes(char *filename[])
@@ -108,7 +110,9 @@ test_mpio_overlap_writes(char *filename[])
     hid_t acc_tpl;		/* File access properties */
     herr_t ret;			/* generic return value */
     int i;
-    char  byte;
+    char  buf[4093];		/* use some prime number for size */
+    int bufsize = sizeof(buf);
+    int stride;
     MPI_Offset  mpi_off;
     MPI_Status  mpi_stat;
 
@@ -135,11 +139,29 @@ test_mpio_overlap_writes(char *filename[])
 		info, &fh);
 	VRFY((mrc==MPI_SUCCESS), "");
 
-	for (mpi_off=mpi_rank; mpi_off < MPIO_TEST_WRITE_SIZE;
-	    mpi_off += (mpi_size - 1)){
-		byte = mpi_off & 0x7f;
-		mrc = MPI_File_write_at(fh, mpi_off, &byte, 1, MPI_BYTE, &mpi_stat);
-		VRFY((mrc==MPI_SUCCESS), "");
+	stride = 1;
+	mpi_off = mpi_rank*stride;
+	while (mpi_off < MPIO_TEST_WRITE_SIZE){
+	    /* make sure the write does not exceed the TEST_WRITE_SIZE */
+	    if (mpi_off+stride > MPIO_TEST_WRITE_SIZE)
+		stride = MPIO_TEST_WRITE_SIZE - mpi_off;
+
+	    /* set data to some trivial pattern for easy verification */
+	    for (i=0; i<stride; i++)
+		buf[i] = (mpi_off+i) & 0x7f;
+	    mrc = MPI_File_write_at(fh, mpi_off, buf, stride, MPI_BYTE,
+		    &mpi_stat);
+	    VRFY((mrc==MPI_SUCCESS), "");
+	    
+	    /* move the offset pointer to last byte written by all processes */
+	    mpi_off += (mpi_size - 1 - mpi_rank) * stride;
+
+	    /* Increase chunk size without exceeding buffer size. */
+	    /* Then move the starting offset for next write. */
+	    stride *= 2;
+	    if (stride > bufsize)
+		stride = bufsize;
+	    mpi_off += mpi_rank*stride;
 	}
 
 	/* close file and free the communicator */
@@ -152,8 +174,8 @@ test_mpio_overlap_writes(char *filename[])
 	mrc = MPI_Barrier(MPI_COMM_WORLD);
 	VRFY((mrc==MPI_SUCCESS), "Sync after writes");
     }else{
-	/* other processes waits till writes are done,
-	 * then open file to verify data.
+	/* last process waits till writes are done,
+	 * then opens file to verify data.
 	 */
 	mrc = MPI_Barrier(MPI_COMM_WORLD);
 	VRFY((mrc==MPI_SUCCESS), "Sync after writes");
@@ -162,12 +184,19 @@ test_mpio_overlap_writes(char *filename[])
 		info, &fh);
 	VRFY((mrc==MPI_SUCCESS), "");
 
-	for (mpi_off=0; mpi_off < MPIO_TEST_WRITE_SIZE; mpi_off++){
-	    mrc = MPI_File_read_at(fh, mpi_off, &byte, 1, MPI_BYTE, &mpi_stat);
+	stride = bufsize;
+	for (mpi_off=0; mpi_off < MPIO_TEST_WRITE_SIZE; mpi_off += bufsize){
+	    /* make sure it does not read beyond end of data */
+	    if (mpi_off+stride > MPIO_TEST_WRITE_SIZE)
+		stride = MPIO_TEST_WRITE_SIZE - mpi_off;
+	    mrc = MPI_File_read_at(fh, mpi_off, buf, stride, MPI_BYTE,
+		    &mpi_stat);
 	    VRFY((mrc==MPI_SUCCESS), "");
-	    if (byte!=(mpi_off & 0x7f))
-		printf("proc %d: found data error, expect %d, got %d\n",
-		    mpi_rank, mpi_off & 0x7f, byte);
+	    for (i=0; i<stride; i++){
+		if (buf[i] != ((mpi_off+i) & 0x7f))
+		    printf("proc %d: found data error at [%d], expect %d, got %d\n",
+		    mpi_rank, mpi_off+i, mpi_off & 0x7f, buf[0]);
+	    }
 	}
 
 	/* close file and free the communicator */

@@ -200,8 +200,10 @@ main(int argc, char **argv)
 	MPI_BANNER("testing dataset using split communicators...");
 	test_split_comm_access(filenames);
 
+#ifdef MPIOTEST
 	MPI_BANNER("testing MPIO independent overlapping writes...");
 	test_mpio_overlap_writes(filenames);
+#endif
 
 	MPI_BANNER("testing dataset independent write...");
 	dataset_writeInd(filenames[0]);
