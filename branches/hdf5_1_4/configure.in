@@ -1267,7 +1267,7 @@ dnl
 AC_SUBST(ASYNCIO) ASYNCIO=yes
 AC_ARG_ENABLE([asyncio],
               [AC_HELP_STRING([--enable-asyncio],
-                              [Build the Async I/O feature 
+                      [Build the Async I/O feature into the MPI-posix driver
                                [default=no]])])
 
 case "$enable_asyncio" in
@@ -1284,6 +1284,9 @@ case "$enable_asyncio" in
 	    AC_MSG_RESULT([yes (probably POSIX compliant)])
 	       AC_DEFINE(HAVE_STRUCT_AIOCB_AIO_FILDES),
 	    AC_MSG_RESULT([no (not POSIX compliant)]))
+    if test -z "$HAVE_STRUCT_AIOCB_AIO_FILDES"; then
+        unset ASYNCIO
+    fi
 
     AC_MSG_CHECKING(for ASYNCIO)
     if test -n "$ASYNCIO"; then
@@ -1293,6 +1296,14 @@ case "$enable_asyncio" in
       CPPFLAGS="$CPPFLAGE -DUSE_ASYNC_IO"
       AC_DEFINE(HAVE_ASYNCIO, 1,
 		[Define if the Async IO is defined])
+
+        dnl Replace "-std=c99" compiler flag (set in config/gnu-flags) with
+        dnl "-std=gnu99" flag, if it is appropriate (i.e. for gcc 3.x).
+        case "$cc_vendor-$cc_version" in
+            gcc-3*)
+                CFLAGS="`echo $CFLAGS | sed -e 's/-std=c99/-std=gnu99/g'`"
+                ;;
+        esac
     else
       AC_MSG_RESULT(no)
     fi
@@ -2014,6 +2025,9 @@ PRINT_N "                        Fortran"
 IF_YES_NO "$HDF_FORTRAN"
 
 PRINT "Features:"
+
+PRINT_N "  Async I/O in MPI-posix driver"
+IF_YES_NO "$ASYNCIO"
 
 PRINT_N "                        dmalloc"
 IF_YES_NO "$HAVE_DMALLOC"

@@ -1011,7 +1011,8 @@ Optional Features:
   --enable-hdf5v1_2       Compile the HDF5 v1.2 compatibility interface
                           [default=no]
   --enable-stream-vfd     Build the Stream Virtual File Driver [default=no]
-  --enable-asyncio        Build the Async I/O feature [default=no]
+  --enable-asyncio        Build the Async I/O feature into the MPI-posix
+                          driver [default=no]
   --enable-debug=all      Turn on debugging in all packages. One may also
                           specify a comma-separated list of package names
                           without the leading H5 or the word no. The default
@@ -4099,7 +4100,7 @@ test "x$enable_libtool_lock" != xno && enable_libtool_lock=yes
 case $host in
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 4102 "configure"' > conftest.$ac_ext
+  echo '#line 4103 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -4640,7 +4641,7 @@ chmod -w .
 save_CFLAGS="$CFLAGS"
 CFLAGS="$CFLAGS -o out/conftest2.$ac_objext"
 compiler_c_o=no
-if { (eval echo configure:4643: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>out/conftest.err; } && test -s out/conftest2.$ac_objext; then
+if { (eval echo configure:4644: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>out/conftest.err; } && test -s out/conftest2.$ac_objext; then
   # The compiler can only warn and ignore the option if not recognized
   # So say no if there are warnings
   if test -s out/conftest.err; then
@@ -6451,7 +6452,7 @@ else
     lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 6454 "configure"
+#line 6455 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -6549,7 +6550,7 @@ else
     lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 6552 "configure"
+#line 6553 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -28694,6 +28695,9 @@ echo "$as_me:$LINENO: result: no (not POSIX compliant)" >&5
 echo "${ECHO_T}no (not POSIX compliant)" >&6
 fi
 rm -f conftest.$ac_objext conftest.$ac_ext
+    if test -z "$HAVE_STRUCT_AIOCB_AIO_FILDES"; then
+        unset ASYNCIO
+    fi
 
     echo "$as_me:$LINENO: checking for ASYNCIO" >&5
 echo $ECHO_N "checking for ASYNCIO... $ECHO_C" >&6
@@ -28706,6 +28710,12 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_ASYNCIO 1
 _ACEOF
 
+
+                        case "$cc_vendor-$cc_version" in
+            gcc-3*)
+                CFLAGS="`echo $CFLAGS | sed -e 's/-std=c99/-std=gnu99/g'`"
+                ;;
+        esac
     else
       echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
@@ -31621,6 +31631,9 @@ PRINT_N "                        Fortran"
 IF_YES_NO "$HDF_FORTRAN"
 
 PRINT "Features:"
+
+PRINT_N "  Async I/O in MPI-posix driver"
+IF_YES_NO "$ASYNCIO"
 
 PRINT_N "                        dmalloc"
 IF_YES_NO "$HAVE_DMALLOC"
