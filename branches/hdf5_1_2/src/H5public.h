@@ -63,14 +63,19 @@ static char             RcsId[] = "@(#)$Revision$";
 
 /*
  * Some compilers can't handle the defined inline macro. This undefines it
- * since it's really not for public consumption anyway.
+ * since it's really not for public consumption anyway. If the user has
+ * already defined the inline macro, then we need to retain that definition.
  */
-#undef inline
+#ifdef inline
+#define inline_defined	1
+#endif
 
 #include <H5config.h>           /*from configure                             */
 
 /* ditto...see above */
+#ifndef inline_defined
 #undef inline
+#endif
 
 #include <sys/types.h>
 #ifdef STDC_HEADERS
