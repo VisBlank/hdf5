@@ -59,6 +59,7 @@
 ./config/irix5.x
 ./config/irix6.x
 ./config/linux-gnu
+./config/linux-gnuaout
 ./config/linux-gnulibc1
 ./config/linux-gnulibc2
 ./config/powerpc-ibm-aix4.x
@@ -518,6 +519,7 @@
 ./fortran/config/irix5.x
 ./fortran/config/irix6.x
 ./fortran/config/linux-gnu
+./fortran/config/linux-gnuaout
 ./fortran/config/linux-gnulibc1
 ./fortran/config/linux-gnulibc2
 ./fortran/config/powerpc-ibm-aix4.x
@@ -644,6 +646,7 @@
 ./c++/config/dependN.in
 ./c++/config/irix6.x
 ./c++/config/linux-gnu
+./c++/config/linux-gnuaout
 ./c++/config/linux-gnulibc1
 ./c++/config/linux-gnulibc2
 ./c++/config/rs6000-ibm-aix4.x
