@@ -68,6 +68,17 @@ New Features
  
     o APIs
     ------
+      * Several missing fortran APIs have been added to the library:
+
+        h5get_libversion_f        h5tget_member_index_f  h5dget_storage_size_f 
+        h5check_version_f         h5tvlen_create_f       h5dvlen_get_max_len_f
+        h5garbage_collect_f                              h5dwrite_vl_f
+        h5dont_atexit_f                                  h5dread_vl_f
+
+      Functions h5dvlen_get_max_len_f, h5dwrite_vl_f, and h5dread_vl_f support
+      VL Length C APIs functionality for integer, real and string datatypes.
+      See HDF5 Reference Manual for the function description.
+      
  
     o Performance
     -------------
