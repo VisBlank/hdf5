@@ -38,8 +38,9 @@ New Features
 ============
   o Configuration
   ================
-    * When using gcc 3.x, we use -std=gnu99 instead of -ansi for compiling.
-      QAK - 2003/04/11
+    * When using gcc 3.x, we use -std=c99 instead of -ansi for compiling.
+      (And when building with USE_ASYNC_IO defined, we use -std=gnu99 instead).
+      QAK - 2003/04/14
     * IA64 platform has its own configure setting and use Intel Compilers as
       the default compilers (were gcc and pgf90 before.)  This also eliminated
       the segmentation fault in the fortran test.  The missing reference of
