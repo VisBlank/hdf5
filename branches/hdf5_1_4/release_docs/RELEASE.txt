@@ -38,13 +38,14 @@ New Features
 ============
   o Configuration
   ================
-    - Fixed error in library when configured with --enable-debug=all.
+    * Fixed error in library when configured with --enable-debug=all.
       QAK - 2003/02/17
 
   o Library
   =========
     o General
     --------- 
+      * Added a -force option to h5redeploy.  AKC - 2003/03/04 
 
     o APIs
     ------
@@ -241,7 +242,7 @@ Known Problems
       SV1 printf precision and the printf precision on other platforms.
 
     * The h5dump tests may fail to match the expected output on some
-      platforms (e.g. SP2 parallel, Windows) where the error messages
+      platforms (e.g. parallel jobs, Windows) where the error messages
       directed to "stderr" do not appear in the "right order" with output
       from stdout.  This is not an error.
 
