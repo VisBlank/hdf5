@@ -157,7 +157,6 @@ typedef struct H5O_fill_t {
     void	*buf;			/*the fill value		     */
 } H5O_fill_t;
 
-
 /*
  * External File List Message
  */
@@ -193,6 +192,22 @@ typedef struct H5O_layout_t {
     unsigned	ndims;			/*num dimensions in stored data	     */
     hsize_t	dim[H5O_LAYOUT_NDIMS];	/*size of data or chunk		     */
 } H5O_layout_t;
+
+/* Enable reading/writing "bogus" messages */
+/* #define H5O_ENABLE_BOGUS */
+
+#ifdef H5O_ENABLE_BOGUS
+/*
+ * "Bogus" Message.
+ */
+#define H5O_BOGUS_ID	0x0009
+H5_DLLVAR const H5O_class_t H5O_BOGUS[1];
+
+#define H5O_BOGUS_VALUE         0xdeadbeef
+typedef struct H5O_bogus_t {
+    unsigned u;                         /* Hold the bogus info */
+} H5O_bogus_t;
+#endif /* H5O_ENABLE_BOGUS */
 
 /*
  * Filter pipeline message.
@@ -294,6 +309,9 @@ H5_DLL void *H5O_read(H5G_entry_t *ent, const H5O_class_t *type,
 H5_DLL int H5O_modify(H5G_entry_t *ent, const H5O_class_t *type,
 			int overwrite, unsigned flags, const void *mesg);
 H5_DLL herr_t H5O_touch(H5G_entry_t *ent, hbool_t force);
+#ifdef H5O_ENABLE_BOGUS
+H5_DLL herr_t H5O_bogus(H5G_entry_t *ent);
+#endif /* H5O_ENABLE_BOGUS */
 H5_DLL herr_t H5O_remove(H5G_entry_t *ent, const H5O_class_t *type,
 			  int sequence);
 H5_DLL herr_t H5O_reset(const H5O_class_t *type, void *native);

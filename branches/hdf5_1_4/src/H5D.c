@@ -1121,6 +1121,14 @@ H5D_create(H5G_entry_t *loc, const char *name, const H5T_t *type,
 		     "unable to update filter header message");
     }
 
+#ifdef H5O_ENABLE_BOGUS
+    /*
+     * Add a "bogus" message.
+     */
+    if (H5O_bogus(&(new_dset->ent))<0)
+        HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, NULL, "unable to update 'bogus' message");
+#endif /* H5O_ENABLE_BOGUS */
+    
     /*
      * Add a modification time message.
      */
