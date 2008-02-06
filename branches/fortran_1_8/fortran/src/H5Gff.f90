@@ -111,18 +111,21 @@
 !				 	Success:  0
 !				 	Failure: -1   
 ! Optional parameters:
-!				NONE
+!               gapl_id         - Group access property list identifier
 !
 ! Programmer:	Elena Pourmal
 !		August 12, 1999	
 !
 ! Modifications: 	Explicit Fortran interfaces were added for 
 !			called C functions (it is needed for Windows
-!			port).  March 5, 2001 
+!			port).  March 5, 2001
+!                   
+!                       Added 1.8 (optional) parameter gapl_id
+!                       February, 2008 M.S. Breitenfeld
 !
 ! Comment:		
 !----------------------------------------------------------------------
-          SUBROUTINE h5gopen_f(loc_id, name, grp_id, hdferr)
+  SUBROUTINE h5gopen_f(loc_id, name, grp_id, hdferr, gapl_id)
 !
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
@@ -130,35 +133,41 @@
 !DEC$endif
 !
            
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier 
-            CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of the group 
-            INTEGER(HID_T), INTENT(OUT) :: grp_id  ! File identifier 
-            INTEGER, INTENT(OUT) :: hdferr         ! Error code 
-
-            INTEGER :: namelen ! Length of the name character string
-
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier 
+    CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of the group 
+    INTEGER(HID_T), INTENT(OUT) :: grp_id  ! File identifier 
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code 
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: gapl_id  ! Group access property list identifier 
+    
+    INTEGER(HID_T) :: gapl_id_default
+    INTEGER :: namelen ! Length of the name character string
+    
 !            INTEGER, EXTERNAL :: h5gopen_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5gopen_c(loc_id, name, namelen, grp_id)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5GOPEN_C'::h5gopen_c
-              !DEC$ ENDIF
-              !DEC$ATTRIBUTES reference :: name
-              INTEGER(HID_T), INTENT(IN) :: loc_id
-              CHARACTER(LEN=*), INTENT(IN) :: name
-              INTEGER :: namelen
-              INTEGER(HID_T), INTENT(OUT) :: grp_id
-              END FUNCTION h5gopen_c
-            END INTERFACE
-  
-            namelen = LEN(name)
-            hdferr = h5gopen_c(loc_id, name, namelen, grp_id) 
+    INTERFACE
+       INTEGER FUNCTION h5gopen_c(loc_id, name, namelen, gapl_id_default, grp_id)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5GOPEN_C'::h5gopen_c
+         !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference :: name
+         INTEGER(HID_T), INTENT(IN) :: loc_id
+         CHARACTER(LEN=*), INTENT(IN) :: name
+         INTEGER :: namelen 
+         INTEGER(HID_T), INTENT(IN) :: gapl_id_default
+         INTEGER(HID_T), INTENT(OUT) :: grp_id
+       END FUNCTION h5gopen_c
+    END INTERFACE
 
-          END SUBROUTINE h5gopen_f
+    gapl_id_default = H5P_DEFAULT_F
+    IF(PRESENT(gapl_id)) gapl_id_default = gapl_id
+  
+    namelen = LEN(name)
+    hdferr = h5gopen_c(loc_id, name, namelen, gapl_id_default, grp_id) 
+    
+  END SUBROUTINE h5gopen_f
 
 !----------------------------------------------------------------------
 ! Name:		h5gclose_f 

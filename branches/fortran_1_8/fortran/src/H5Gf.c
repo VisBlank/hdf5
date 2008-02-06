@@ -86,6 +86,7 @@ DONE:
  * Inputs:      loc_id - file or group identifier
  *              name - name of the group
  *              namelen - name length
+ *              gapl_id - Group access property list identifier 
  * Outputs:     grp_id - group identifier
  * Returns:     0 on success, -1 on failure
  * Programmer:  Elena Pourmal
@@ -93,7 +94,7 @@ DONE:
  * Modifications:
  *---------------------------------------------------------------------------*/
 int_f
-nh5gopen_c(hid_t_f *loc_id, _fcd name, int_f *namelen, hid_t_f *grp_id)
+nh5gopen_c(hid_t_f *loc_id, _fcd name, int_f *namelen, hid_t_f *gapl_id, hid_t_f *grp_id)
 {
      char *c_name = NULL;
      hid_t c_grp_id;
@@ -108,7 +109,7 @@ nh5gopen_c(hid_t_f *loc_id, _fcd name, int_f *namelen, hid_t_f *grp_id)
      /*
       * Call H5Gopen function.
       */
-    if((c_grp_id = H5Gopen2((hid_t)*loc_id, c_name, H5P_DEFAULT)) < 0)
+    if((c_grp_id = H5Gopen2((hid_t)*loc_id, c_name, (hid_t)*gapl_id)) < 0)
         goto DONE;
 
     /* Everything OK, set values to return */
