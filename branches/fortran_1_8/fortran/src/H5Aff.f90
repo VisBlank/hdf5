@@ -16,105 +16,106 @@
 !
 ! This file contains Fortran90 interfaces for H5A functions.
 !
-      MODULE H5A
+MODULE H5A
 
-        USE H5GLOBAL
+  USE H5GLOBAL
 !
 !On Windows there are no big (integer*8) integers, so overloading 
 !for bug #670 does not work. I have to use DEC compilation directives to make
 !Windows DEC Visual Fortran and OSF compilers happy and do right things.
 !						05/01/02 EP
-          
+!!$          INTERFACE h5acreate_f
+!!$             MODULE PROCEDURE h5acreate2_f
+!!$          END INTERFACE
 !
-          INTERFACE h5awrite_f
+  INTERFACE h5awrite_f
 
-            MODULE PROCEDURE h5awrite_integer_scalar 
-            MODULE PROCEDURE h5awrite_integer_1 
-            MODULE PROCEDURE h5awrite_integer_2 
-            MODULE PROCEDURE h5awrite_integer_3 
-            MODULE PROCEDURE h5awrite_integer_4 
-            MODULE PROCEDURE h5awrite_integer_5 
-            MODULE PROCEDURE h5awrite_integer_6 
-            MODULE PROCEDURE h5awrite_integer_7 
-            MODULE PROCEDURE h5awrite_char_scalar 
-            MODULE PROCEDURE h5awrite_char_1 
-            MODULE PROCEDURE h5awrite_char_2 
-            MODULE PROCEDURE h5awrite_char_3 
-            MODULE PROCEDURE h5awrite_char_4 
-            MODULE PROCEDURE h5awrite_char_5 
-            MODULE PROCEDURE h5awrite_char_6 
-            MODULE PROCEDURE h5awrite_char_7 
-            MODULE PROCEDURE h5awrite_real_scalar
-            MODULE PROCEDURE h5awrite_real_1
-            MODULE PROCEDURE h5awrite_real_2
-            MODULE PROCEDURE h5awrite_real_3
-            MODULE PROCEDURE h5awrite_real_4
-            MODULE PROCEDURE h5awrite_real_5
-            MODULE PROCEDURE h5awrite_real_6
-            MODULE PROCEDURE h5awrite_real_7
+     MODULE PROCEDURE h5awrite_integer_scalar 
+     MODULE PROCEDURE h5awrite_integer_1 
+     MODULE PROCEDURE h5awrite_integer_2 
+     MODULE PROCEDURE h5awrite_integer_3 
+     MODULE PROCEDURE h5awrite_integer_4 
+     MODULE PROCEDURE h5awrite_integer_5 
+     MODULE PROCEDURE h5awrite_integer_6 
+     MODULE PROCEDURE h5awrite_integer_7 
+     MODULE PROCEDURE h5awrite_char_scalar 
+     MODULE PROCEDURE h5awrite_char_1 
+     MODULE PROCEDURE h5awrite_char_2 
+     MODULE PROCEDURE h5awrite_char_3 
+     MODULE PROCEDURE h5awrite_char_4 
+     MODULE PROCEDURE h5awrite_char_5 
+     MODULE PROCEDURE h5awrite_char_6 
+     MODULE PROCEDURE h5awrite_char_7 
+     MODULE PROCEDURE h5awrite_real_scalar
+     MODULE PROCEDURE h5awrite_real_1
+     MODULE PROCEDURE h5awrite_real_2
+     MODULE PROCEDURE h5awrite_real_3
+     MODULE PROCEDURE h5awrite_real_4
+     MODULE PROCEDURE h5awrite_real_5
+     MODULE PROCEDURE h5awrite_real_6
+     MODULE PROCEDURE h5awrite_real_7
 ! Comment if on Crays
-            MODULE PROCEDURE h5awrite_double_scalar
-            MODULE PROCEDURE h5awrite_double_1
-            MODULE PROCEDURE h5awrite_double_2
-            MODULE PROCEDURE h5awrite_double_3
-            MODULE PROCEDURE h5awrite_double_4
-            MODULE PROCEDURE h5awrite_double_5
-            MODULE PROCEDURE h5awrite_double_6
-            MODULE PROCEDURE h5awrite_double_7
+     MODULE PROCEDURE h5awrite_double_scalar
+     MODULE PROCEDURE h5awrite_double_1
+     MODULE PROCEDURE h5awrite_double_2
+     MODULE PROCEDURE h5awrite_double_3
+     MODULE PROCEDURE h5awrite_double_4
+     MODULE PROCEDURE h5awrite_double_5
+     MODULE PROCEDURE h5awrite_double_6
+     MODULE PROCEDURE h5awrite_double_7
 ! End commnet if on Crays
 
+  END INTERFACE
 
-          END INTERFACE
+  INTERFACE h5aread_f
 
-          INTERFACE h5aread_f
-
-            MODULE PROCEDURE h5aread_integer_scalar
-            MODULE PROCEDURE h5aread_integer_1 
-            MODULE PROCEDURE h5aread_integer_2 
-            MODULE PROCEDURE h5aread_integer_3 
-            MODULE PROCEDURE h5aread_integer_4 
-            MODULE PROCEDURE h5aread_integer_5 
-            MODULE PROCEDURE h5aread_integer_6 
-            MODULE PROCEDURE h5aread_integer_7 
-            MODULE PROCEDURE h5aread_char_scalar 
-            MODULE PROCEDURE h5aread_char_1 
-            MODULE PROCEDURE h5aread_char_2 
-            MODULE PROCEDURE h5aread_char_3 
-            MODULE PROCEDURE h5aread_char_4 
-            MODULE PROCEDURE h5aread_char_5 
-            MODULE PROCEDURE h5aread_char_6 
-            MODULE PROCEDURE h5aread_char_7 
-            MODULE PROCEDURE h5aread_real_scalar
-            MODULE PROCEDURE h5aread_real_1
-            MODULE PROCEDURE h5aread_real_2
-            MODULE PROCEDURE h5aread_real_3
-            MODULE PROCEDURE h5aread_real_4
-            MODULE PROCEDURE h5aread_real_5
-            MODULE PROCEDURE h5aread_real_6
-            MODULE PROCEDURE h5aread_real_7
+     MODULE PROCEDURE h5aread_integer_scalar
+     MODULE PROCEDURE h5aread_integer_1 
+     MODULE PROCEDURE h5aread_integer_2 
+     MODULE PROCEDURE h5aread_integer_3 
+     MODULE PROCEDURE h5aread_integer_4 
+     MODULE PROCEDURE h5aread_integer_5 
+     MODULE PROCEDURE h5aread_integer_6 
+     MODULE PROCEDURE h5aread_integer_7 
+     MODULE PROCEDURE h5aread_char_scalar 
+     MODULE PROCEDURE h5aread_char_1 
+     MODULE PROCEDURE h5aread_char_2 
+     MODULE PROCEDURE h5aread_char_3 
+     MODULE PROCEDURE h5aread_char_4 
+     MODULE PROCEDURE h5aread_char_5 
+     MODULE PROCEDURE h5aread_char_6 
+     MODULE PROCEDURE h5aread_char_7 
+     MODULE PROCEDURE h5aread_real_scalar
+     MODULE PROCEDURE h5aread_real_1
+     MODULE PROCEDURE h5aread_real_2
+     MODULE PROCEDURE h5aread_real_3
+     MODULE PROCEDURE h5aread_real_4
+     MODULE PROCEDURE h5aread_real_5
+     MODULE PROCEDURE h5aread_real_6
+     MODULE PROCEDURE h5aread_real_7
 ! Comment if on Crays
-            MODULE PROCEDURE h5aread_double_scalar
-            MODULE PROCEDURE h5aread_double_1
-            MODULE PROCEDURE h5aread_double_2
-            MODULE PROCEDURE h5aread_double_3
-            MODULE PROCEDURE h5aread_double_4
-            MODULE PROCEDURE h5aread_double_5
-            MODULE PROCEDURE h5aread_double_6
-            MODULE PROCEDURE h5aread_double_7
+     MODULE PROCEDURE h5aread_double_scalar
+     MODULE PROCEDURE h5aread_double_1
+     MODULE PROCEDURE h5aread_double_2
+     MODULE PROCEDURE h5aread_double_3
+     MODULE PROCEDURE h5aread_double_4
+     MODULE PROCEDURE h5aread_double_5
+     MODULE PROCEDURE h5aread_double_6
+     MODULE PROCEDURE h5aread_double_7
 ! End commnet if on Crays
 !
-          END INTERFACE
-
-      CONTAINS
+  END INTERFACE
+  
+CONTAINS
 
 !----------------------------------------------------------------------
-! Name:		h5acreate_f 
+! Name:		h5acreate2_f 
 !
 ! Purpose: 	Creates a dataset as an attribute of a group, dataset, 
 !		or named datatype 
 !
 ! Inputs:  
-!		obj_id		- identifier of an object (group, dataset,
+!		loc_id		- identifier of an object (group, dataset,
 !				  or named datatype) attribute is attached to
 !		name		- attribute name
 !		type_id		- attribute datatype identifier
@@ -126,7 +127,8 @@
 !				 	Success:  0
 !				 	Failure: -1   
 ! Optional parameters:
-!		creation_prp	- creation property list identifier 			
+!		acpl_id	- Attribute creation property list identifier
+!               appl_id - Attribute access property list identifier			
 !
 ! Programmer:	Elena Pourmal
 !		August 12, 1999	
@@ -136,53 +138,60 @@
 !			port).  February 27, 2001 
 !
 !----------------------------------------------------------------------
-          SUBROUTINE h5acreate_f(obj_id, name, type_id, space_id, attr_id, &
-                                 hdferr, creation_prp) 
+  SUBROUTINE h5acreate_f(loc_id, name, type_id, space_id, attr_id, &
+                                 hdferr, acpl_id, aapl_id ) 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5acreate_f
 !DEC$endif
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: obj_id    ! Object identifier 
-            CHARACTER(LEN=*), INTENT(IN) :: name    ! Attribute name
-            INTEGER(HID_T), INTENT(IN) :: type_id   
-                                           ! Attribute datatype identifier 
-            INTEGER(HID_T), INTENT(IN) :: space_id  
-                                           ! Attribute dataspace identifier
-            INTEGER(HID_T), INTENT(OUT) :: attr_id  ! Attribute identifier 
-            INTEGER, INTENT(OUT) :: hdferr          ! Error code
-            INTEGER(HID_T), OPTIONAL, INTENT(IN) :: creation_prp
-                                                ! Attribute creation property 
-                                                ! list identifier 
-            INTEGER(HID_T) :: creation_prp_default 
-            INTEGER(SIZE_T) :: namelen
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id    ! Object identifier 
+    CHARACTER(LEN=*), INTENT(IN) :: name    ! Attribute name
+    INTEGER(HID_T), INTENT(IN) :: type_id   
+    ! Attribute datatype identifier 
+    INTEGER(HID_T), INTENT(IN) :: space_id  
+    ! Attribute dataspace identifier
+    INTEGER(HID_T), INTENT(OUT) :: attr_id  ! Attribute identifier 
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code:
+                                         ! 0 on success and -1 on failure
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: acpl_id ! Attribute creation property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: aapl_id ! Attribute access property list identifier
+    
+    INTEGER(HID_T) :: acpl_id_default
+    INTEGER(HID_T) :: aapl_id_default 
+    INTEGER(SIZE_T) :: namelen
 !            INTEGER, EXTERNAL :: h5acreate_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5acreate_c(obj_id, name, namelen, type_id, &
-                               space_id, creation_prp_default, attr_id)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5ACREATE_C'::h5acreate_c
-              !DEC$ ENDIF
-              !DEC$ATTRIBUTES reference :: name
-              INTEGER(HID_T), INTENT(IN) :: obj_id
-              CHARACTER(LEN=*), INTENT(IN) :: name
-              INTEGER(SIZE_T) :: namelen
-              INTEGER(HID_T), INTENT(IN) :: type_id
-              INTEGER(HID_T), INTENT(IN) :: space_id
-              INTEGER(HID_T) :: creation_prp_default
-              INTEGER(HID_T), INTENT(OUT) :: attr_id
-              END FUNCTION h5acreate_c
-            END INTERFACE
+    INTERFACE
+       INTEGER FUNCTION h5acreate_c(loc_id, name, namelen, type_id, &
+            space_id, acpl_id_default, aapl_id_default, attr_id)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5ACREATE_C'::h5acreate_c
+         !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference :: name
+         INTEGER(HID_T), INTENT(IN) :: loc_id
+         CHARACTER(LEN=*), INTENT(IN) :: name
+         INTEGER(SIZE_T) :: namelen
+         INTEGER(HID_T), INTENT(IN) :: type_id
+         INTEGER(HID_T), INTENT(IN) :: space_id
+         INTEGER(HID_T) :: acpl_id_default
+         INTEGER(HID_T) :: aapl_id_default
+         INTEGER(HID_T), INTENT(OUT) :: attr_id
+       END FUNCTION h5acreate_c
+    END INTERFACE
+    
+    acpl_id_default = H5P_DEFAULT_F
+    aapl_id_default = H5P_DEFAULT_F
+    namelen = LEN(NAME)
+    IF (PRESENT(acpl_id)) acpl_id_default = acpl_id
+    IF (PRESENT(aapl_id)) aapl_id_default = aapl_id
 
-            creation_prp_default = H5P_DEFAULT_F
-            namelen = LEN(NAME)
-            if (present(creation_prp)) creation_prp_default = creation_prp
-            hdferr = h5acreate_c(obj_id, name, namelen, type_id, space_id, &
-                                 creation_prp_default, attr_id)
-          END SUBROUTINE h5acreate_f
+    hdferr = h5acreate_c(loc_id, name, namelen, type_id, space_id, &
+         acpl_id_default, aapl_id_default, attr_id)
+
+  END SUBROUTINE h5acreate_f
 
 
 !----------------------------------------------------------------------
@@ -211,38 +220,38 @@
 !
 !----------------------------------------------------------------------
 
-          SUBROUTINE h5aopen_name_f(obj_id, name, attr_id, hdferr) 
+  SUBROUTINE h5aopen_name_f(obj_id, name, attr_id, hdferr) 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5aopen_name_f
 !DEC$endif
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: obj_id    ! Object identifier 
-            CHARACTER(LEN=*), INTENT(IN) :: name    ! Attribute name
-            INTEGER(HID_T), INTENT(OUT) :: attr_id  ! Attribute identifier 
-            INTEGER, INTENT(OUT) :: hdferr          ! Error code
-            INTEGER(SIZE_T) :: namelen
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: obj_id    ! Object identifier 
+    CHARACTER(LEN=*), INTENT(IN) :: name    ! Attribute name
+    INTEGER(HID_T), INTENT(OUT) :: attr_id  ! Attribute identifier 
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code
+    INTEGER(SIZE_T) :: namelen
 
 !            INTEGER, EXTERNAL :: h5aopen_name_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5aopen_name_c(obj_id, name, namelen, attr_id)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AOPEN_NAME_C'::h5aopen_name_c
-              !DEC$ ENDIF
-              !DEC$ATTRIBUTES reference :: name
-              INTEGER(HID_T), INTENT(IN) :: obj_id
-              CHARACTER(LEN=*), INTENT(IN) :: name
-              INTEGER(SIZE_T) :: namelen
-              INTEGER(HID_T), INTENT(OUT) :: attr_id
-              END FUNCTION h5aopen_name_c
-            END INTERFACE
-
-            namelen = LEN(name)
-            hdferr = h5aopen_name_c(obj_id, name, namelen, attr_id)
-          END SUBROUTINE h5aopen_name_f
+    INTERFACE
+       INTEGER FUNCTION h5aopen_name_c(obj_id, name, namelen, attr_id)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AOPEN_NAME_C'::h5aopen_name_c
+         !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference :: name
+         INTEGER(HID_T), INTENT(IN) :: obj_id
+         CHARACTER(LEN=*), INTENT(IN) :: name
+         INTEGER(SIZE_T) :: namelen
+         INTEGER(HID_T), INTENT(OUT) :: attr_id
+       END FUNCTION h5aopen_name_c
+    END INTERFACE
+    
+    namelen = LEN(name)
+    hdferr = h5aopen_name_c(obj_id, name, namelen, attr_id)
+  END SUBROUTINE h5aopen_name_f
 
 
 !----------------------------------------------------------------------
@@ -271,386 +280,379 @@
 !
 !----------------------------------------------------------------------
 
-          SUBROUTINE h5aopen_idx_f(obj_id, index, attr_id, hdferr) 
+  SUBROUTINE h5aopen_idx_f(obj_id, index, attr_id, hdferr) 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5aopen_idx_f
 !DEC$endif
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: obj_id    ! Object identifier 
-            INTEGER, INTENT(IN) :: index            ! Attribute index 
-            INTEGER(HID_T), INTENT(OUT) :: attr_id  ! Attribute identifier 
-            INTEGER, INTENT(OUT) :: hdferr          ! Error code
-
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: obj_id    ! Object identifier 
+    INTEGER, INTENT(IN) :: index            ! Attribute index 
+    INTEGER(HID_T), INTENT(OUT) :: attr_id  ! Attribute identifier 
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code
+    
 !            INTEGER, EXTERNAL :: h5aopen_idx_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5aopen_idx_c(obj_id, index, attr_id)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AOPEN_IDX_C'::h5aopen_idx_c
-              !DEC$ ENDIF
-              INTEGER(HID_T), INTENT(IN) :: obj_id
-              INTEGER, INTENT(IN) :: index
-              INTEGER(HID_T), INTENT(OUT) :: attr_id
-              END FUNCTION h5aopen_idx_c
-            END INTERFACE
+    INTERFACE
+       INTEGER FUNCTION h5aopen_idx_c(obj_id, index, attr_id)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AOPEN_IDX_C'::h5aopen_idx_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: obj_id
+         INTEGER, INTENT(IN) :: index
+         INTEGER(HID_T), INTENT(OUT) :: attr_id
+       END FUNCTION h5aopen_idx_c
+    END INTERFACE
+    
+    hdferr = h5aopen_idx_c(obj_id, index, attr_id)
+  END SUBROUTINE h5aopen_idx_f
 
-            hdferr = h5aopen_idx_c(obj_id, index, attr_id)
-          END SUBROUTINE h5aopen_idx_f
 
-
-          SUBROUTINE h5awrite_integer_scalar(attr_id, memtype_id,  buf, dims, hdferr) 
+  SUBROUTINE h5awrite_integer_scalar(attr_id, memtype_id,  buf, dims, hdferr) 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5awrite_integer_scalar
 !DEC$endif
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier 
-            INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
-                                                     ! identifier  (in memory)
-            INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            INTEGER, INTENT(IN) :: buf              ! Attribute data 
-            INTEGER, INTENT(OUT) :: hdferr          ! Error code
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier 
+    INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
+    ! identifier  (in memory)
+    INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
+    INTEGER, INTENT(IN) :: buf              ! Attribute data 
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code
 
 !            INTEGER, EXTERNAL :: h5awrite_integer_s_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5awrite_integer_s_c(attr_id, memtype_id,  buf, dims)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_INTEGER_S_C'::h5awrite_integer_s_c
-              !DEC$ ENDIF
-            INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-              INTEGER(HID_T), INTENT(IN) :: attr_id
-              INTEGER(HID_T), INTENT(IN) :: memtype_id
-              INTEGER, INTENT(IN)::buf
-              END FUNCTION h5awrite_integer_s_c
-            END INTERFACE
+    INTERFACE
+       INTEGER FUNCTION h5awrite_integer_s_c(attr_id, memtype_id,  buf, dims)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_INTEGER_S_C'::h5awrite_integer_s_c
+         !DEC$ ENDIF
+         INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
+         INTEGER(HID_T), INTENT(IN) :: attr_id
+         INTEGER(HID_T), INTENT(IN) :: memtype_id
+         INTEGER, INTENT(IN)::buf
+       END FUNCTION h5awrite_integer_s_c
+    END INTERFACE
+    
+    hdferr = h5awrite_integer_s_c(attr_id, memtype_id,  buf, dims)
+  END SUBROUTINE h5awrite_integer_scalar
 
-            hdferr = h5awrite_integer_s_c(attr_id, memtype_id,  buf, dims)
-          END SUBROUTINE h5awrite_integer_scalar
-
-          SUBROUTINE h5awrite_integer_1(attr_id, memtype_id,  buf, dims, hdferr) 
+  SUBROUTINE h5awrite_integer_1(attr_id, memtype_id,  buf, dims, hdferr) 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5awrite_integer_1
 !DEC$endif
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier 
-            INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
-                                                     ! identifier  (in memory)
-            INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            INTEGER, INTENT(IN) , &
-            DIMENSION(dims(1)) :: buf
-                                                    ! Attribute data 
-            INTEGER, INTENT(OUT) :: hdferr          ! Error code
-
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier 
+    INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
+    ! identifier  (in memory)
+    INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
+    INTEGER, INTENT(IN) , &
+         DIMENSION(dims(1)) :: buf
+    ! Attribute data 
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code
+    
 !            INTEGER, EXTERNAL :: h5awrite_integer_1_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5awrite_integer_1_c(attr_id, memtype_id,  buf, dims)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_INTEGER_1_C'::h5awrite_integer_1_c
-              !DEC$ ENDIF
-            INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-              INTEGER(HID_T), INTENT(IN) :: attr_id
-              INTEGER(HID_T), INTENT(IN) :: memtype_id
-              INTEGER, INTENT(IN), &
-              DIMENSION(dims(1)) :: buf
-              END FUNCTION h5awrite_integer_1_c
-            END INTERFACE
+    INTERFACE
+       INTEGER FUNCTION h5awrite_integer_1_c(attr_id, memtype_id,  buf, dims)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_INTEGER_1_C'::h5awrite_integer_1_c
+         !DEC$ ENDIF
+         INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
+         INTEGER(HID_T), INTENT(IN) :: attr_id
+         INTEGER(HID_T), INTENT(IN) :: memtype_id
+         INTEGER, INTENT(IN), DIMENSION(dims(1)) :: buf
+       END FUNCTION h5awrite_integer_1_c
+    END INTERFACE
 
-            hdferr = h5awrite_integer_1_c(attr_id, memtype_id,  buf, dims)
-          END SUBROUTINE h5awrite_integer_1
+    hdferr = h5awrite_integer_1_c(attr_id, memtype_id,  buf, dims)
+  END SUBROUTINE h5awrite_integer_1
 
 
-          SUBROUTINE h5awrite_integer_2(attr_id, memtype_id,  buf, dims, hdferr) 
+  SUBROUTINE h5awrite_integer_2(attr_id, memtype_id,  buf, dims, hdferr) 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5awrite_integer_2
 !DEC$endif
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier 
-            INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
-                                                     ! identifier  (in memory)
-            INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            INTEGER, INTENT(IN) , &
-            DIMENSION(dims(1),dims(2)) :: buf
-                                                    ! Attribute data 
-            INTEGER, INTENT(OUT) :: hdferr          ! Error code
-
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier 
+    INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
+    ! identifier  (in memory)
+    INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
+    INTEGER, INTENT(IN) , &
+         DIMENSION(dims(1),dims(2)) :: buf
+    ! Attribute data 
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code
+    
 !            INTEGER, EXTERNAL :: h5awrite_integer_2_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5awrite_integer_2_c(attr_id, memtype_id,  buf, dims)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_INTEGER_2_C'::h5awrite_integer_2_c
-              !DEC$ ENDIF
-            INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-              INTEGER(HID_T), INTENT(IN) :: attr_id
-              INTEGER(HID_T), INTENT(IN) :: memtype_id
-              INTEGER, INTENT(IN), &
-              DIMENSION(dims(1),dims(2)) :: buf
-              END FUNCTION h5awrite_integer_2_c
-            END INTERFACE
+    INTERFACE
+       INTEGER FUNCTION h5awrite_integer_2_c(attr_id, memtype_id,  buf, dims)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_INTEGER_2_C'::h5awrite_integer_2_c
+         !DEC$ ENDIF
+         INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
+         INTEGER(HID_T), INTENT(IN) :: attr_id
+         INTEGER(HID_T), INTENT(IN) :: memtype_id
+         INTEGER, INTENT(IN), DIMENSION(dims(1),dims(2)) :: buf
+       END FUNCTION h5awrite_integer_2_c
+    END INTERFACE
 
-            hdferr = h5awrite_integer_2_c(attr_id, memtype_id,  buf, dims)
-          END SUBROUTINE h5awrite_integer_2
+    hdferr = h5awrite_integer_2_c(attr_id, memtype_id,  buf, dims)
+  END SUBROUTINE h5awrite_integer_2
 
 
-          SUBROUTINE h5awrite_integer_3(attr_id, memtype_id,  buf, dims, hdferr) 
+  SUBROUTINE h5awrite_integer_3(attr_id, memtype_id,  buf, dims, hdferr) 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5awrite_integer_3
 !DEC$endif
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier 
-            INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
-                                                     ! identifier  (in memory)
-            INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            INTEGER, INTENT(IN) , &
-            DIMENSION(dims(1),dims(2),dims(3)) :: buf
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier 
+    INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
+    ! identifier  (in memory)
+    INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
+    INTEGER, INTENT(IN), DIMENSION(dims(1),dims(2),dims(3)) :: buf
                                                     ! Attribute data 
-            INTEGER, INTENT(OUT) :: hdferr          ! Error code
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code
 
 !            INTEGER, EXTERNAL :: h5awrite_integer_3_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5awrite_integer_3_c(attr_id, memtype_id,  buf, dims)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_INTEGER_3_C'::h5awrite_integer_3_c
-              !DEC$ ENDIF
-            INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-              INTEGER(HID_T), INTENT(IN) :: attr_id
-              INTEGER(HID_T), INTENT(IN) :: memtype_id
-              INTEGER, INTENT(IN), &
-              DIMENSION(dims(1),dims(2),dims(3)) :: buf
-              END FUNCTION h5awrite_integer_3_c
-            END INTERFACE
+    INTERFACE
+       INTEGER FUNCTION h5awrite_integer_3_c(attr_id, memtype_id,  buf, dims)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_INTEGER_3_C'::h5awrite_integer_3_c
+         !DEC$ ENDIF
+         INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
+         INTEGER(HID_T), INTENT(IN) :: attr_id
+         INTEGER(HID_T), INTENT(IN) :: memtype_id
+         INTEGER, INTENT(IN), DIMENSION(dims(1),dims(2),dims(3)) :: buf
+       END FUNCTION h5awrite_integer_3_c
+    END INTERFACE
+    
+    hdferr = h5awrite_integer_3_c(attr_id, memtype_id,  buf, dims)
+  END SUBROUTINE h5awrite_integer_3
 
-            hdferr = h5awrite_integer_3_c(attr_id, memtype_id,  buf, dims)
-          END SUBROUTINE h5awrite_integer_3
 
-
-          SUBROUTINE h5awrite_integer_4(attr_id, memtype_id,  buf, dims, hdferr) 
+  SUBROUTINE h5awrite_integer_4(attr_id, memtype_id,  buf, dims, hdferr) 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5awrite_integer_4
 !DEC$endif
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier 
-            INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
-                                                     ! identifier  (in memory)
-            INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            INTEGER, INTENT(IN), &
-            DIMENSION(dims(1),dims(2),dims(3),dims(4)) :: buf
-                                                    ! Attribute data 
-            INTEGER, INTENT(OUT) :: hdferr          ! Error code
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier 
+    INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
+    ! identifier  (in memory)
+    INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
+    INTEGER, INTENT(IN), &
+         DIMENSION(dims(1),dims(2),dims(3),dims(4)) :: buf
+    ! Attribute data 
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code
 
 !            INTEGER, EXTERNAL :: h5awrite_integer_4_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5awrite_integer_4_c(attr_id, memtype_id,  buf, dims)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_INTEGER_4_C'::h5awrite_integer_4_c
-              !DEC$ ENDIF
-            INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-              INTEGER(HID_T), INTENT(IN) :: attr_id
-              INTEGER(HID_T), INTENT(IN) :: memtype_id
-              INTEGER, INTENT(IN), &
-              DIMENSION(dims(1),dims(2),dims(3),dims(4)) :: buf
-              END FUNCTION h5awrite_integer_4_c
-            END INTERFACE
+    INTERFACE
+       INTEGER FUNCTION h5awrite_integer_4_c(attr_id, memtype_id,  buf, dims)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_INTEGER_4_C'::h5awrite_integer_4_c
+         !DEC$ ENDIF
+         INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
+         INTEGER(HID_T), INTENT(IN) :: attr_id
+         INTEGER(HID_T), INTENT(IN) :: memtype_id
+         INTEGER, INTENT(IN), DIMENSION(dims(1),dims(2),dims(3),dims(4)) :: buf
+       END FUNCTION h5awrite_integer_4_c
+    END INTERFACE
 
-            hdferr = h5awrite_integer_4_c(attr_id, memtype_id,  buf, dims)
-          END SUBROUTINE h5awrite_integer_4
+    hdferr = h5awrite_integer_4_c(attr_id, memtype_id,  buf, dims)
+  END SUBROUTINE h5awrite_integer_4
 
 
-          SUBROUTINE h5awrite_integer_5(attr_id, memtype_id,  buf, dims, hdferr) 
+  SUBROUTINE h5awrite_integer_5(attr_id, memtype_id,  buf, dims, hdferr) 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5awrite_integer_5
 !DEC$endif
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier 
-            INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
-                                                     ! identifier  (in memory)
-            INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            INTEGER, INTENT(IN), &
-            DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) :: buf
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier 
+    INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
+    ! identifier  (in memory)
+    INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
+    INTEGER, INTENT(IN), DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) :: buf
                                                     ! Attribute data 
-            INTEGER, INTENT(OUT) :: hdferr          ! Error code
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code
 
 !            INTEGER, EXTERNAL :: h5awrite_integer_5_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5awrite_integer_5_c(attr_id, memtype_id,  buf, dims)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_INTEGER_5_C'::h5awrite_integer_5_c
-              !DEC$ ENDIF
-            INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-              INTEGER(HID_T), INTENT(IN) :: attr_id
-              INTEGER(HID_T), INTENT(IN) :: memtype_id
-              INTEGER, INTENT(IN), &
-              DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) :: buf
-              END FUNCTION h5awrite_integer_5_c
-            END INTERFACE
+    INTERFACE
+       INTEGER FUNCTION h5awrite_integer_5_c(attr_id, memtype_id,  buf, dims)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_INTEGER_5_C'::h5awrite_integer_5_c
+         !DEC$ ENDIF
+         INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
+         INTEGER(HID_T), INTENT(IN) :: attr_id
+         INTEGER(HID_T), INTENT(IN) :: memtype_id
+         INTEGER, INTENT(IN), DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) :: buf
+       END FUNCTION h5awrite_integer_5_c
+    END INTERFACE
 
-            hdferr = h5awrite_integer_5_c(attr_id, memtype_id,  buf, dims)
-          END SUBROUTINE h5awrite_integer_5
+    hdferr = h5awrite_integer_5_c(attr_id, memtype_id,  buf, dims)
+  END SUBROUTINE h5awrite_integer_5
 
 
-          SUBROUTINE h5awrite_integer_6(attr_id, memtype_id,  buf, dims, hdferr) 
+  SUBROUTINE h5awrite_integer_6(attr_id, memtype_id,  buf, dims, hdferr) 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5awrite_integer_6
 !DEC$endif
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier 
-            INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
-                                                     ! identifier  (in memory)
-            INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            INTEGER, INTENT(IN), &
-            DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)) :: buf
-                                                    ! Attribute data 
-            INTEGER, INTENT(OUT) :: hdferr          ! Error code
-
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier 
+    INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
+    ! identifier  (in memory)
+    INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
+    INTEGER, INTENT(IN), &
+         DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)) :: buf
+    ! Attribute data 
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code
+    
 !            INTEGER, EXTERNAL :: h5awrite_integer_6_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5awrite_integer_6_c(attr_id, memtype_id,  buf, dims)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_INTEGER_6_C'::h5awrite_integer_6_c
-              !DEC$ ENDIF
-            INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-              INTEGER(HID_T), INTENT(IN) :: attr_id
-              INTEGER(HID_T), INTENT(IN) :: memtype_id
-              INTEGER, INTENT(IN), &
+    INTERFACE
+       INTEGER FUNCTION h5awrite_integer_6_c(attr_id, memtype_id,  buf, dims)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_INTEGER_6_C'::h5awrite_integer_6_c
+         !DEC$ ENDIF
+         INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
+         INTEGER(HID_T), INTENT(IN) :: attr_id
+         INTEGER(HID_T), INTENT(IN) :: memtype_id
+         INTEGER, INTENT(IN), &
               DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)) :: buf
-              END FUNCTION h5awrite_integer_6_c
-            END INTERFACE
+       END FUNCTION h5awrite_integer_6_c
+    END INTERFACE
 
-            hdferr = h5awrite_integer_6_c(attr_id, memtype_id,  buf, dims)
-          END SUBROUTINE h5awrite_integer_6
+    hdferr = h5awrite_integer_6_c(attr_id, memtype_id,  buf, dims)
+  END SUBROUTINE h5awrite_integer_6
 
 
-          SUBROUTINE h5awrite_integer_7(attr_id, memtype_id,  buf, dims, hdferr) 
+  SUBROUTINE h5awrite_integer_7(attr_id, memtype_id,  buf, dims, hdferr) 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5awrite_integer_7
 !DEC$endif
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier 
-            INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
-                                                     ! identifier  (in memory)
-            INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            INTEGER, INTENT(IN), &
-            DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)) :: buf
-                                                    ! Attribute data 
-            INTEGER, INTENT(OUT) :: hdferr          ! Error code
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier 
+    INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
+    ! identifier  (in memory)
+    INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
+    INTEGER, INTENT(IN), &
+         DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)) :: buf
+    ! Attribute data 
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code
 
 !            INTEGER, EXTERNAL :: h5awrite_integer_7_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5awrite_integer_7_c(attr_id, memtype_id,  buf, dims)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_INTEGER_7_C'::h5awrite_integer_7_c
-              !DEC$ ENDIF
-            INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-              INTEGER(HID_T), INTENT(IN) :: attr_id
-              INTEGER(HID_T), INTENT(IN) :: memtype_id
-              INTEGER, INTENT(IN), &
+    INTERFACE
+       INTEGER FUNCTION h5awrite_integer_7_c(attr_id, memtype_id,  buf, dims)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_INTEGER_7_C'::h5awrite_integer_7_c
+         !DEC$ ENDIF
+         INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
+         INTEGER(HID_T), INTENT(IN) :: attr_id
+         INTEGER(HID_T), INTENT(IN) :: memtype_id
+         INTEGER, INTENT(IN), &
               DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)) :: buf
-              END FUNCTION h5awrite_integer_7_c
-            END INTERFACE
+       END FUNCTION h5awrite_integer_7_c
+    END INTERFACE
 
-            hdferr = h5awrite_integer_7_c(attr_id, memtype_id,  buf, dims)
-          END SUBROUTINE h5awrite_integer_7
+    hdferr = h5awrite_integer_7_c(attr_id, memtype_id,  buf, dims)
+  END SUBROUTINE h5awrite_integer_7
 
 
-          SUBROUTINE h5awrite_real_scalar(attr_id, memtype_id,  buf, dims, hdferr) 
+  SUBROUTINE h5awrite_real_scalar(attr_id, memtype_id,  buf, dims, hdferr) 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5awrite_real_scalar
 !DEC$endif
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier 
-            INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
-                                                     ! identifier  (in memory)
-            INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            REAL, INTENT(IN) :: buf                 ! Attribute data 
-            INTEGER, INTENT(OUT) :: hdferr          ! Error code
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier 
+    INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
+    ! identifier  (in memory)
+    INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
+    REAL, INTENT(IN) :: buf                 ! Attribute data 
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code
 
 !            INTEGER, EXTERNAL :: h5awrite_real_s_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5awrite_real_s_c(attr_id, memtype_id,  buf, dims)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_REAL_S_C'::h5awrite_real_s_c
-              !DEC$ ENDIF
-            INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-              INTEGER(HID_T), INTENT(IN) :: attr_id
-              INTEGER(HID_T), INTENT(IN) :: memtype_id
-              REAL, INTENT(IN)::buf
-              END FUNCTION h5awrite_real_s_c
-            END INTERFACE
+    INTERFACE
+       INTEGER FUNCTION h5awrite_real_s_c(attr_id, memtype_id,  buf, dims)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_REAL_S_C'::h5awrite_real_s_c
+         !DEC$ ENDIF
+         INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
+         INTEGER(HID_T), INTENT(IN) :: attr_id
+         INTEGER(HID_T), INTENT(IN) :: memtype_id
+         REAL, INTENT(IN)::buf
+       END FUNCTION h5awrite_real_s_c
+    END INTERFACE
 
-            hdferr = h5awrite_real_s_c(attr_id, memtype_id,  buf, dims)
-          END SUBROUTINE h5awrite_real_scalar
+    hdferr = h5awrite_real_s_c(attr_id, memtype_id,  buf, dims)
+  END SUBROUTINE h5awrite_real_scalar
 
-          SUBROUTINE h5awrite_real_1(attr_id, memtype_id,  buf, dims, hdferr) 
+  SUBROUTINE h5awrite_real_1(attr_id, memtype_id,  buf, dims, hdferr) 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5awrite_real_1
 !DEC$endif
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier 
-            INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
-                                                     ! identifier  (in memory)
-            INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            REAL, INTENT(IN), &
-            DIMENSION(dims(1)) :: buf
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier 
+    INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
+    ! identifier  (in memory)
+    INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
+    REAL, INTENT(IN), &
+         DIMENSION(dims(1)) :: buf
                                                     ! Attribute data 
-            INTEGER, INTENT(OUT) :: hdferr          ! Error code
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code
 
 !            INTEGER, EXTERNAL :: h5awrite_real_1_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5awrite_real_1_c(attr_id, memtype_id,  buf, dims)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_REAL_1_C'::h5awrite_real_1_c
-              !DEC$ ENDIF
-            INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-              INTEGER(HID_T), INTENT(IN) :: attr_id
-              INTEGER(HID_T), INTENT(IN) :: memtype_id
-              REAL, INTENT(IN), &
+    INTERFACE
+       INTEGER FUNCTION h5awrite_real_1_c(attr_id, memtype_id,  buf, dims)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_REAL_1_C'::h5awrite_real_1_c
+         !DEC$ ENDIF
+         INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
+         INTEGER(HID_T), INTENT(IN) :: attr_id
+         INTEGER(HID_T), INTENT(IN) :: memtype_id
+         REAL, INTENT(IN), &
               DIMENSION(dims(1)) :: buf
-              END FUNCTION h5awrite_real_1_c
-            END INTERFACE
+       END FUNCTION h5awrite_real_1_c
+    END INTERFACE
 
-            hdferr = h5awrite_real_1_c(attr_id, memtype_id,  buf, dims)
-          END SUBROUTINE h5awrite_real_1
+    hdferr = h5awrite_real_1_c(attr_id, memtype_id,  buf, dims)
+  END SUBROUTINE h5awrite_real_1
 
 
           SUBROUTINE h5awrite_real_2(attr_id, memtype_id,  buf, dims, hdferr) 
@@ -2772,6 +2774,113 @@
             hdferr = h5aget_name_c(attr_id, size, buf)
           END SUBROUTINE h5aget_name_f
 
+!----------------------------------------------------------------------
+! Name:		h5aget_name_by_idx_f
+!
+! Purpose: 	Gets an attribute name, by attribute index position.  
+!
+! Inputs:  
+!          loc_id   - Location of object to which attribute is attached
+!          obj_name - Name of object to which attribute is attached, relative to location
+!          idx_type - Type of index; Possible values are:
+!
+!                  H5_INDEX_UNKNOWN = -1  - Unknown index type
+!                  H5_INDEX_NAME          - Index on names
+!                  H5_INDEX_CRT_ORDER     - Index on creation order
+!                  H5_INDEX_N	          - Number of indices defined
+!
+!          order    - Order in which to iterate over index; Possible values are:
+!
+!                  H5_ITER_UNKNOWN   - Unknown order
+!                  H5_ITER_INC       - Increasing order
+!                  H5_ITER_DEC       - Decreasing order
+!                  H5_ITER_NATIVE    - No particular order, whatever is fastest
+!                  H5_ITER_N	     - Number of iteration orders
+!
+!          order    - Index traversal order
+!              n    - Attribute’s position in index
+!           size    - Size, in bytes, of attribute name
+!        lapl_id    - Link access property list
+!
+! Outputs:  
+!		name            - Attribute name
+!               name_size_out   - Size of Attribute name returned from function
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!				NONE			
+!
+! Programmer:   M.S. Breitenfeld
+!		January, 2008
+!
+! Modifications: N/A
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5aget_name_by_idx_f(loc_id, obj_name, idx_type, order, &
+       n, name, size, lapl_id, hdferr) 
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5aget_name_by_idx_f
+!DEC$endif
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id      ! Identifer for object to which attribute is attached
+    CHARACTER(LEN=*), INTENT(IN) :: obj_name  ! Name of object, relative to location,
+                                              !  from which attribute is to be removed *TEST* check NULL
+    INTEGER, INTENT(IN) :: idx_type ! Type of index; Possible values are:
+                                    !    H5_INDEX_UNKNOWN_F   - Unknown index type
+                                    !    H5_INDEX_NAME_F       - Index on names
+                                    !    H5_INDEX_CRT_ORDER_F  - Index on creation order
+                                    !    H5_INDEX_N_F 	      - Number of indices defined
+
+    INTEGER, INTENT(IN) :: order    ! Order in which to iterate over index; Possible values are:
+                                    !    H5_ITER_UNKNOWN_F   - Unknown order
+                                    !    H5_ITER_INC_F      - Increasing order
+                                    !    H5_ITER_DEC_F       - Decreasing order
+                                    !    H5_ITER_NATIVE_F    - No particular order, whatever is fastest
+                                    !    H5_ITER_N_F 	    - Number of iteration orders
+
+    INTEGER(HSIZE_T), INTENT(IN) :: n !  Attribute’s position in index
+     
+    CHARACTER(LEN=*), INTENT(OUT) :: name    ! Attribute name
+
+    INTEGER(SIZE_T), INTENT(INOUT) :: size  ! Buffer size ! *TEST* check for 0 value *CHECK* should this return the correct value
+    
+    INTEGER(HID_T), INTENT(IN) :: lapl_id   ! Link access property list
+    INTEGER, INTENT(OUT) :: hdferr    ! Error code:
+                                         ! Returns attribute name size,
+                                         ! -1 if fail
+    INTEGER(SIZE_T) :: obj_namelen
+!
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5aget_name_by_idx_c(loc_id, obj_name, obj_namelen, idx_type, order, &
+            n, name, size, lapl_id)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AGET_NAME_C'::h5aget_name_c
+         !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference :: buf ! *CHECK THIS* is this for (OUT) ?
+
+         INTEGER(HID_T), INTENT(IN) :: loc_id
+         CHARACTER(LEN=*), INTENT(IN) :: obj_name
+         INTEGER, INTENT(IN) :: idx_type
+         INTEGER, INTENT(IN) :: order
+         INTEGER(HSIZE_T), INTENT(IN) :: n
+     
+         CHARACTER(LEN=*), INTENT(OUT) :: name
+         INTEGER(SIZE_T), INTENT(INOUT) :: size
+         INTEGER(HID_T), INTENT(IN) :: lapl_id
+         INTEGER(SIZE_T) :: obj_namelen
+       END FUNCTION h5aget_name_by_idx_c
+    END INTERFACE
+    
+    hdferr = h5aget_name_by_idx_c(loc_id, obj_name, obj_namelen, idx_type, order, &
+            n, name, size, lapl_id)
+
+  END SUBROUTINE h5aget_name_by_idx_f
+
 
 !----------------------------------------------------------------------
 ! Name:		h5aget_num_attrs_f 
@@ -2798,33 +2907,33 @@
 !
 !----------------------------------------------------------------------
 
-          SUBROUTINE h5aget_num_attrs_f(obj_id, attr_num, hdferr) 
+  SUBROUTINE h5aget_num_attrs_f(obj_id, attr_num, hdferr) 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5aget_num_attrs_f
 !DEC$endif
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: obj_id  ! Object identifier 
-            INTEGER, INTENT(OUT) :: attr_num      ! Number of attributes of the
-                                                  ! object
-            INTEGER, INTENT(OUT) :: hdferr         ! Error code
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: obj_id  ! Object identifier 
+    INTEGER, INTENT(OUT) :: attr_num      ! Number of attributes of the
+    ! object
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code
 
 !            INTEGER, EXTERNAL :: h5aget_num_attrs_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5aget_num_attrs_c(obj_id, attr_num)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AGET_NUM_ATTRS_C'::h5aget_num_attrs_c
-              !DEC$ ENDIF
-              INTEGER(HID_T), INTENT(IN) :: obj_id
-              INTEGER, INTENT(OUT) :: attr_num
-              END FUNCTION h5aget_num_attrs_c
-            END INTERFACE
-
-            hdferr = h5aget_num_attrs_c(obj_id, attr_num)
-          END SUBROUTINE h5aget_num_attrs_f
+    INTERFACE
+       INTEGER FUNCTION h5aget_num_attrs_c(obj_id, attr_num)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AGET_NUM_ATTRS_C'::h5aget_num_attrs_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: obj_id
+         INTEGER, INTENT(OUT) :: attr_num
+       END FUNCTION h5aget_num_attrs_c
+    END INTERFACE
+    
+    hdferr = h5aget_num_attrs_c(obj_id, attr_num)
+  END SUBROUTINE h5aget_num_attrs_f
 
 !----------------------------------------------------------------------
 ! Name:		h5adelete_f 
@@ -2852,36 +2961,36 @@
 !
 !----------------------------------------------------------------------
 
-          SUBROUTINE h5adelete_f(obj_id, name, hdferr) 
+  SUBROUTINE h5adelete_f(obj_id, name, hdferr) 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5adelete_f
 !DEC$endif
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: obj_id    ! Object identifier 
-            CHARACTER(LEN=*), INTENT(IN) :: name    ! Attribute name
-            INTEGER, INTENT(OUT) :: hdferr          ! Error code
-            INTEGER(SIZE_T) :: namelen
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: obj_id    ! Object identifier 
+    CHARACTER(LEN=*), INTENT(IN) :: name    ! Attribute name
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code
+    INTEGER(SIZE_T) :: namelen
 
 !            INTEGER, EXTERNAL ::  h5adelete_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5adelete_c(obj_id, name, namelen) 
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5ADELETE_C'::h5adelete_c
-              !DEC$ ENDIF
-              !DEC$ATTRIBUTES reference :: name
-              INTEGER(HID_T), INTENT(IN) :: obj_id
-              CHARACTER(LEN=*), INTENT(IN) :: name
-              INTEGER(SIZE_T) :: namelen
-              END FUNCTION h5adelete_c
-            END INTERFACE
-
-            namelen = LEN(name)
-            hdferr = h5adelete_c(obj_id, name, namelen)
-          END SUBROUTINE h5adelete_f
+    INTERFACE
+       INTEGER FUNCTION h5adelete_c(obj_id, name, namelen) 
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5ADELETE_C'::h5adelete_c
+         !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference :: name
+         INTEGER(HID_T), INTENT(IN) :: obj_id
+         CHARACTER(LEN=*), INTENT(IN) :: name
+         INTEGER(SIZE_T) :: namelen
+       END FUNCTION h5adelete_c
+    END INTERFACE
+    
+    namelen = LEN(name)
+    hdferr = h5adelete_c(obj_id, name, namelen)
+  END SUBROUTINE h5adelete_f
 
 !----------------------------------------------------------------------
 ! Name:		h5aclose_f 
@@ -2907,29 +3016,842 @@
 !
 !----------------------------------------------------------------------
 
-          SUBROUTINE h5aclose_f(attr_id, hdferr) 
+  SUBROUTINE h5aclose_f(attr_id, hdferr) 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5aclose_f
 !DEC$endif
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: attr_id  ! Attribute identifier 
-            INTEGER, INTENT(OUT) :: hdferr         ! Error code:
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: attr_id  ! Attribute identifier 
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code:
 
 !            INTEGER, EXTERNAL :: h5aclose_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5aclose_c(attr_id)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5ACLOSE_C'::h5aclose_c
-              !DEC$ ENDIF
-              INTEGER(HID_T), INTENT(IN) :: attr_id
-              END FUNCTION h5aclose_c
-            END INTERFACE
+    INTERFACE
+       INTEGER FUNCTION h5aclose_c(attr_id)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5ACLOSE_C'::h5aclose_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: attr_id
+       END FUNCTION h5aclose_c
+    END INTERFACE
+    
+    hdferr = h5aclose_c(attr_id)
+  END SUBROUTINE h5aclose_f
 
-            hdferr = h5aclose_c(attr_id)
-          END SUBROUTINE h5aclose_f
+!----------------------------------------------------------------------
+! Name:		h5aget_storage_size_f 
+!
+! Purpose:  	Returns the amount of storage required for an attribute.
+!		
+! Inputs:  
+!		attr_id		- attribute identifier
+! Outputs:  
+!               size            - attribute storage size
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!				NONE			
+!
+! Programmer:	M. S. Breitenfeld
+!		January, 2008	
+!
+! Modifications:  N/A
+!
+!----------------------------------------------------------------------
 
-   END MODULE H5A
+  SUBROUTINE h5aget_storage_size_f(attr_id, size, hdferr) 
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5aget_storage_size_f
+!DEC$endif
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: attr_id  ! Attribute identifier  
+    INTEGER(HSIZE_T), INTENT(OUT) :: size   ! Attribute storage requirement
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code
+
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5aget_storage_size_c(attr_id, size)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AGET_STORAGE_SIZE_C'::h5aget_storage_size_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: attr_id
+         INTEGER(HSIZE_T), INTENT(OUT) :: size
+       END FUNCTION h5aget_storage_size_c
+    END INTERFACE
+    
+    hdferr = h5aget_storage_size_c(attr_id, size)
+  END SUBROUTINE h5aget_storage_size_f
+
+!----------------------------------------------------------------------
+! Name:		h5aget_create_plist_f 
+!
+! Purpose:  	Gets an attribute creation property list identifier
+!		
+! Inputs:  
+!		attr_id		  - Identifier of the attribute
+! Outputs:  
+!               creation_prop_id  - Identifier for the attribute’s creation property
+!		hdferr:		  - error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!				NONE			
+!
+! Programmer:	M. S. Breitenfeld
+!		January, 2008	
+!
+! Modifications:  N/A
+!
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5aget_create_plist_f(attr_id, creation_prop_id, hdferr) 
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5aget_create_plist_f
+!DEC$endif
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: attr_id  ! Identifier of the attribute 
+    INTEGER(HID_T), INTENT(OUT) :: creation_prop_id   ! Identifier for the attribute’s creation property
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code:
+                                         ! 0 on success and -1 on failure
+
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5aget_create_plist_c(attr_id, creation_prop_id)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AGET_CREATE_PLIST_C'::h5aget_create_plist_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: attr_id
+         INTEGER(HID_T), INTENT(OUT) :: creation_prop_id
+       END FUNCTION h5aget_create_plist_c
+    END INTERFACE
+    
+    hdferr = h5aget_create_plist_c(attr_id, creation_prop_id)
+  END SUBROUTINE h5aget_create_plist_f
+
+!----------------------------------------------------------------------
+! Name:		h5arename_by_name_f 
+!
+! Purpose: 	Renames an attribute
+!
+! Inputs:  
+!		loc_id        - Location or object identifier; may be dataset or group
+!		obj_name      - Name of object, relative to location, 
+!                                whose attribute is to be renamed
+!               old_attr_name - Prior attribute name
+!               new_attr_name - New attribute name
+!               lapl_id       - Link access property list identifier
+!
+! Outputs:
+!		hdferr:	      - error code		
+!				 	Success:  0
+!				 	Failure: -1   			
+!
+! Programmer:	M.S. Breitenfeld
+!		January, 2008	
+!
+! Modifications: N/A
+!
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5arename_by_name_f(loc_id, obj_name, old_attr_name, new_attr_name, &
+       lapl_id, hdferr) 
+
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5arename_by_name_f
+!DEC$endif
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id    ! Object identifier 
+    CHARACTER(LEN=*), INTENT(IN) :: obj_name    ! Name of object, relative to location, 
+    !  whose attribute is to be renamed
+    CHARACTER(LEN=*), INTENT(IN) :: old_attr_name ! Prior attribute name
+    CHARACTER(LEN=*), INTENT(IN) :: new_attr_name ! New attribute name
+    INTEGER(HID_T), INTENT(IN) :: lapl_id    ! Link access property list identifier
+    
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code:
+                                         ! 0 on success and -1 on failure
+    
+    INTEGER(SIZE_T) :: obj_namelen
+    INTEGER(SIZE_T) :: old_attr_namelen
+    INTEGER(SIZE_T) :: new_attr_namelen
+    
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5arename_by_name_c(loc_id, obj_name, obj_namelen, &
+            old_attr_name, old_attr_namelen, new_attr_name, new_attr_namelen, &
+            lapl_id)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5ARENAME_BY_NAME_C'::h5arename_by_name_c
+         !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference :: name
+         INTEGER(HID_T), INTENT(IN) :: loc_id
+         CHARACTER(LEN=*), INTENT(IN) :: obj_name
+         INTEGER(SIZE_T) :: obj_namelen
+         CHARACTER(LEN=*), INTENT(IN) :: old_attr_name
+         INTEGER(SIZE_T) :: old_attr_namelen
+         CHARACTER(LEN=*), INTENT(IN) :: new_attr_name
+         INTEGER(SIZE_T) :: new_attr_namelen
+         INTEGER(HID_T), INTENT(IN) :: lapl_id
+         
+       END FUNCTION h5arename_by_name_c
+    END INTERFACE
+
+    obj_namelen = LEN(obj_name)
+    old_attr_namelen = LEN(old_attr_name)
+    new_attr_namelen = LEN(new_attr_name)
+    
+    hdferr = h5arename_by_name_c(loc_id, obj_name, obj_namelen, &
+         old_attr_name, old_attr_namelen, new_attr_name, new_attr_namelen, &
+         lapl_id)
+    
+  END SUBROUTINE h5arename_by_name_f
+
+!----------------------------------------------------------------------
+! Name:		h5aopen_f 
+!
+! Purpose:  	Opens an attribute for an object specified by object 
+!               identifier and attribute name
+!
+! Inputs:  	
+!		obj_id      - Identifer for object to which attribute is attached
+!               attr_name   - Name of attribute to open
+!		aapl_id     - Attribute access property list
+! Outputs:  
+!		attr_id     - attribute identifier
+!		hdferr:     - error code		
+!				 Success:  0
+!				 Failure: -1   
+! Optional parameters:
+!				NONE			
+!
+! Programmer:	M.S. Breitenfeld
+!		January, 2008
+!
+! Modifications: N/A 
+!
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5aopen_f(obj_id, attr_name, aapl_id, attr_id, hdferr) 
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5aopen_f
+!DEC$endif
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: obj_id      ! Object identifier 
+    CHARACTER(LEN=*), INTENT(IN) :: attr_name ! Attribute name 
+    INTEGER(HID_T), INTENT(IN) :: aapl_id     ! Attribute access property list
+    INTEGER(HID_T), INTENT(OUT) :: attr_id    ! Attribute identifier 
+    INTEGER, INTENT(OUT) :: hdferr            ! Error code
+    INTEGER(SIZE_T) :: attr_namelen
+
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5aopen_c(obj_id, attr_name, attr_namelen, aapl_id, attr_id)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AOPEN_C'::h5aopen_c
+         !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference :: name
+         INTEGER(HID_T), INTENT(IN) :: obj_id
+         CHARACTER(LEN=*), INTENT(IN) :: attr_name
+         INTEGER(HID_T), INTENT(IN) :: aapl_id
+         INTEGER(SIZE_T) :: attr_namelen 
+         INTEGER(HID_T), INTENT(OUT) :: attr_id
+       END FUNCTION h5aopen_c
+    END INTERFACE
+
+    attr_namelen = LEN(attr_name)
+    hdferr = h5aopen_c(obj_id, attr_name, attr_namelen, aapl_id, attr_id)
+
+  END SUBROUTINE h5aopen_f
+
+!----------------------------------------------------------------------
+! Name:		h5adelete_by_idx_f 
+!
+! Purpose:  	Deletes an attribute from an object according to index order 
+!
+! Inputs:  	
+!		loc_id     - Location or object identifier; may be dataset or group
+!               obj_name   - Name of object, relative to location, from which attribute is to be removed
+!               idx_type   - Type of index; Possible values are:
+!
+!                  H5_INDEX_UNKNOWN = -1  - Unknown index type
+!                  H5_INDEX_NAME          - Index on names
+!                  H5_INDEX_CRT_ORDER     - Index on creation order
+!                  H5_INDEX_N	          - Number of indices defined
+!                             
+!               order - Order in which to iterate over index; Possible values are:
+!
+!                  H5_ITER_UNKNOWN   - Unknown order
+!                  H5_ITER_INC       - Increasing order
+!                  H5_ITER_DEC       - Decreasing order
+!                  H5_ITER_NATIVE    - No particular order, whatever is fastest
+!                  H5_ITER_N	     - Number of iteration orders
+!
+!               n          - Offset within index
+!               lapl_id    - Link access property list
+! Outputs:
+!		hdferr:     - error code		
+!				 Success:  0
+!				 Failure: -1   
+! Optional parameters:
+!				NONE			
+!
+! Programmer:	M.S. Breitenfeld
+!		January, 2008
+!
+! Modifications: N/A 
+!
+!----------------------------------------------------------------------
+  SUBROUTINE h5adelete_by_idx_f(loc_id, obj_name, idx_type, order, n, lapl_id, hdferr) 
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5adelete_by_idx_f
+!DEC$endif
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id      ! Identifer for object to which attribute is attached
+    CHARACTER(LEN=*), INTENT(IN) :: obj_name  ! Name of object, relative to location, 
+                                              !  from which attribute is to be removed
+    INTEGER, INTENT(IN) :: idx_type           ! Type of index; Possible values are:
+                                              !    H5_INDEX_UNKNOWN_F   - Unknown index type
+                                              !    H5_INDEX_NAME_F      - Index on names
+                                              !    H5_INDEX_CRT_ORDER_F - Index on creation order
+                                              !    H5_INDEX_N_F	      - Number of indices defined
+
+    INTEGER, INTENT(IN) :: order              ! Order in which to iterate over index; Possible values are:
+                                              !    H5_ITER_UNKNOWN_F  - Unknown order
+                                              !    H5_ITER_INC_F      - Increasing order
+                                              !    H5_ITER_DEC_F      - Decreasing order
+                                              !    H5_ITER_NATIVE_F   - No particular order, whatever is fastest
+                                              !    H5_ITER_N_F	    - Number of iteration orders
+!
+    INTEGER(HSIZE_T), INTENT(IN) :: n         ! Offset within index
+    INTEGER(HID_T), INTENT(IN) :: lapl_id     ! Link access property list  
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code:
+                                           ! 0 on success and -1 on failure
+    INTEGER(SIZE_T) :: obj_namelen
+    
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5adelete_by_idx_c(loc_id, obj_name, obj_namelen, idx_type, order, n, lapl_id)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5ADELETE_BY_IDX_C'::h5adelete_by_idx_c
+         !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference :: name
+         INTEGER(HID_T), INTENT(IN) :: loc_id
+         CHARACTER(LEN=*), INTENT(IN) :: obj_name
+         INTEGER, INTENT(IN) :: idx_type
+         INTEGER, INTENT(IN) :: order
+         INTEGER(HSIZE_T), INTENT(IN) :: n 
+         INTEGER(HID_T), INTENT(IN) :: lapl_id
+         INTEGER(SIZE_T) :: obj_namelen
+       END FUNCTION h5adelete_by_idx_c
+    END INTERFACE
+    
+    obj_namelen = LEN(obj_name)
+    hdferr = h5adelete_by_idx_c(loc_id, obj_name, obj_namelen, idx_type, order, n, lapl_id)
+    
+  END SUBROUTINE h5adelete_by_idx_f
+
+!----------------------------------------------------------------------
+! Name:		h5adelete_by_name_f 
+!
+! Purpose:  	Removes an attribute from a specified location
+!
+! Inputs:  	
+!		loc_id     - Identifer for object to which attribute is attached
+!               obj_name   - Name of attribute to open
+!		attr_name  - Attribute access property list
+!               lapl_id    - Link access property list
+! Outputs:
+!		hdferr:     - error code		
+!				 Success:  0
+!				 Failure: -1   
+! Optional parameters:
+!				NONE			
+!
+! Programmer:	M.S. Breitenfeld
+!		January, 2008
+!
+! Modifications: N/A 
+!
+!----------------------------------------------------------------------
+  SUBROUTINE h5adelete_by_name_f(loc_id, obj_name, attr_name, lapl_id, hdferr) 
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5adelete_by_name_f
+!DEC$endif
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id      ! Identifer for object to which attribute is attached
+    CHARACTER(LEN=*), INTENT(IN) :: obj_name  ! Name of object, relative to location, 
+                                              !  from which attribute is to be removed
+    CHARACTER(LEN=*), INTENT(IN) :: attr_name ! Name of attribute to delete
+    INTEGER(HID_T), INTENT(IN) :: lapl_id     ! Link access property list  
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code:
+                                            ! 0 on success and -1 on failure
+    INTEGER(SIZE_T) :: attr_namelen
+    INTEGER(SIZE_T) :: obj_namelen
+
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5adelete_by_name_c(loc_id, obj_name, obj_namelen, attr_name, attr_namelen, lapl_id)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5ADELETE_BY_NAME_C'::h5adelete_by_name_c
+         !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference :: name
+         INTEGER(HID_T), INTENT(IN) :: loc_id
+         CHARACTER(LEN=*), INTENT(IN) :: obj_name
+         CHARACTER(LEN=*), INTENT(IN) :: attr_name
+         INTEGER(HID_T), INTENT(IN) :: lapl_id
+         INTEGER(SIZE_T) :: attr_namelen
+         INTEGER(SIZE_T) :: obj_namelen
+       END FUNCTION h5adelete_by_name_c
+    END INTERFACE
+    
+    obj_namelen = LEN(obj_name)
+    attr_namelen = LEN(attr_name)
+    hdferr = h5adelete_by_name_c(loc_id, obj_name, obj_namelen, attr_name, attr_namelen, lapl_id)
+
+  END SUBROUTINE h5adelete_by_name_f
+
+!----------------------------------------------------------------------
+! Name:		h5aopen_by_idx_f 
+!
+! Purpose:  	Opens an existing attribute that is attached to an object specified by location and name
+!
+! Inputs:  
+!		loc_id      - Location of object to which attribute is attached
+!               obj_name    - Name of object to which attribute is attached, relative to location
+!               idx_type    - Type of index
+!               order       - Index traversal order
+!               n           - Attribute’s position in index
+!               aapl_id     - Attribute access property list
+!               lapl_id     - Link access property list
+! Outputs:
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!				NONE			
+!
+! Programmer:	M.S. Breitenfeld
+!		January, 2008	
+!
+! Modifications: N/A 
+!
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5aopen_by_idx_f(loc_id, obj_name, idx_type, order, n, aapl_id, lapl_id, attr_id, hdferr) 
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5aopen_by_idx_f
+!DEC$endif
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id    ! Object identifier
+    CHARACTER(LEN=*), INTENT(IN) :: obj_name ! Name of object to which attribute is attached
+    INTEGER, INTENT(IN) :: idx_type           ! Type of index; Possible values are:
+                                              !    H5_INDEX_UNKNOWN_F   - Unknown index type
+                                              !    H5_INDEX_NAME_F      - Index on names
+                                              !    H5_INDEX_CRT_ORDER_F - Index on creation order
+                                              !    H5_INDEX_N_F	      - Number of indices defined
+    INTEGER, INTENT(IN) :: order              ! Order in which to iterate over index; Possible values are:
+                                              !    H5_ITER_UNKNOWN_F  - Unknown order
+                                              !    H5_ITER_INC_F      - Increasing order
+                                              !    H5_ITER_DEC_F      - Decreasing order
+                                              !    H5_ITER_NATIVE_F   - No particular order, whatever is fastest
+                 
+    INTEGER(HSIZE_T), INTENT(IN) :: n      ! Attribute’s position in index
+    INTEGER(HID_T), INTENT(IN) :: aapl_id  ! Attribute access property list
+    INTEGER(HID_T), INTENT(IN) :: lapl_id  ! Link access property list
+
+    INTEGER(HID_T), INTENT(OUT) :: attr_id  ! Attribute identifier
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code:
+                                            ! 0 on success and -1 on failure
+    INTEGER(SIZE_T)  :: obj_namelen
+!
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5aopen_by_idx_c(loc_id, obj_name, obj_namelen, idx_type, order, n, aapl_id, lapl_id, attr_id)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AOPEN_IDX_C'::h5aopen_idx_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: loc_id
+         CHARACTER(LEN=*), INTENT(IN) :: obj_name
+         INTEGER, INTENT(IN) :: idx_type
+         INTEGER, INTENT(IN) :: order
+         INTEGER(HSIZE_T), INTENT(IN) :: n
+         INTEGER(HID_T), INTENT(IN) :: aapl_id
+         INTEGER(HID_T), INTENT(IN) :: lapl_id
+         INTEGER(SIZE_T)  :: obj_namelen
+         INTEGER(HID_T), INTENT(OUT) :: attr_id  ! Attribute identifier
+       END FUNCTION h5aopen_by_idx_c
+    END INTERFACE
+
+    obj_namelen = LEN(obj_name)
+
+    hdferr = h5aopen_by_idx_c(loc_id, obj_name, obj_namelen, idx_type, order, n, aapl_id, lapl_id, attr_id)
+
+  END SUBROUTINE h5aopen_by_idx_f
+
+!----------------------------------------------------------------------
+! Name:		h5aget_info_f
+!
+! Purpose:  	Retrieves attribute information, by attribute identifier
+!		
+! Inputs:  
+!		attr_id		- attribute identifier
+!
+! Outputs:  NOTE: In C it is defined as a structure: H5A_info_t
+!
+!    corder_valid   - indicates whether the creation order data is valid for this attribute
+!    corder         - is a positive integer containing the creation order of the attribute        
+!    cset           - indicates the character set used for the attribute’s name          
+!    data_size      - indicates the size, in the number of characters, of the attribute
+!		
+!    hdferr         - error code		
+!				 Success:  0
+!				 Failure: -1   
+! Optional parameters:
+!				NONE			
+!
+! Programmer:	M. S. Breitenfeld
+!		January, 2008	
+!
+! Modifications:  N/A
+!
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5aget_info_f(attr_id, f_corder_valid, corder, cset, data_size,  hdferr) 
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5aget_info_f
+!DEC$endif
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: attr_id  ! Attribute identifier
+
+    LOGICAL, INTENT(OUT) :: f_corder_valid ! Indicates whether the creation order data is valid for this attribute 
+    INTEGER, INTENT(OUT) :: corder ! Is a positive integer containing the creation order of the attribute
+    INTEGER, INTENT(OUT) :: cset ! Indicates the character set used for the attribute’s name
+    INTEGER(HSIZE_T), INTENT(OUT) :: data_size   ! Indicates the size, in the number of characters, of the attribute
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code:
+                                         ! 0 on success and -1 on failure
+
+    INTEGER :: corder_valid
+
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5aget_info_c(attr_id, corder_valid, corder, cset, data_size)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AGET_INFO_C'::h5aget_info_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: attr_id
+
+         INTEGER, INTENT(OUT) :: corder_valid
+         INTEGER, INTENT(OUT) :: corder
+         INTEGER, INTENT(OUT) :: cset
+         INTEGER(HSIZE_T), INTENT(OUT) :: data_size
+       END FUNCTION h5aget_info_c
+    END INTERFACE
+
+    hdferr = h5aget_info_c(attr_id, corder_valid, corder, cset, data_size)
+    
+    f_corder_valid =.FALSE.
+    IF (corder_valid .EQ. 1) f_corder_valid =.TRUE.
+    
+
+
+  END SUBROUTINE h5aget_info_f
+
+!----------------------------------------------------------------------
+! Name:		h5aget_info_by_idx_f
+!
+! Purpose:  	Retrieves attribute information, by attribute index position
+!		
+! Inputs:
+!	loc_id - Location of object to which attribute is attached
+!     obj_name - Name of object to which attribute is attached, relative to location
+!     idx_type - Type of index
+!        order - Index traversal order
+!            n - Attribute’s position in index
+!      lapl_id - Link access property list
+!
+! Outputs:  NOTE: In C it is defined as a structure: H5A_info_t
+!    corder_valid   - indicates whether the creation order data is valid for this attribute
+!    corder         - is a positive integer containing the creation order of the attribute        
+!    cset           - indicates the character set used for the attribute’s name          
+!    data_size      - indicates the size, in the number of characters, of the attribute	
+!    hdferr         - error code		
+!				 Success:  0
+!				 Failure: -1   
+! Optional parameters:
+!				NONE			
+!
+! Programmer:	M. S. Breitenfeld
+!		January, 2008	
+!
+! Modifications:  N/A
+!
+!----------------------------------------------------------------------
+  SUBROUTINE h5aget_info_by_idx_f(loc_id, obj_name, idx_type, order, n, lapl_id, &
+       f_corder_valid, corder, cset, data_size, hdferr) 
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5aget_info_by_idx_f
+!DEC$endif
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id    ! Object identifier
+    CHARACTER(LEN=*), INTENT(IN) :: obj_name ! Name of object to which attribute is attached
+    INTEGER, INTENT(IN) :: idx_type           ! Type of index; Possible values are:
+                                              !    H5_INDEX_UNKNOWN_F   - Unknown index type
+                                              !    H5_INDEX_NAME_F      - Index on names
+                                              !    H5_INDEX_CRT_ORDER_F - Index on creation order
+                                              !    H5_INDEX_N_F	      - Number of indices defined
+    INTEGER, INTENT(IN) :: order              ! Order in which to iterate over index; Possible values are:
+                                              !    H5_ITER_UNKNOWN_F  - Unknown order
+                                              !    H5_ITER_INC_F      - Increasing order
+                                              !    H5_ITER_DEC_F      - Decreasing order
+                                              !    H5_ITER_NATIVE_F   - No particular order, whatever is fastest
+                 
+    INTEGER(HSIZE_T), INTENT(IN) :: n      ! Attribute’s position in index
+
+    INTEGER(HID_T), INTENT(IN) :: lapl_id  ! Link access property list
+
+    LOGICAL, INTENT(OUT) :: f_corder_valid ! Indicates whether the creation order data is valid for this attribute 
+    INTEGER, INTENT(OUT) :: corder ! Is a positive integer containing the creation order of the attribute
+    INTEGER, INTENT(OUT) :: cset ! Indicates the character set used for the attribute’s name
+    INTEGER(HSIZE_T), INTENT(OUT) :: data_size   ! Indicates the size, in the number of characters, of the attribute
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code:
+                                         ! 0 on success and -1 on failure
+    INTEGER :: corder_valid
+    INTEGER(SIZE_T)  :: obj_namelen
+
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5aget_info_by_idx_c(loc_id, obj_name, obj_namelen, idx_type, order, n, lapl_id, &
+            corder_valid, corder, cset, data_size)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AGET_INFO_BY_IDX_C'::h5aget_info_by_idx_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: loc_id
+         CHARACTER(LEN=*), INTENT(IN) :: obj_name
+         INTEGER, INTENT(IN) :: idx_type
+         INTEGER, INTENT(IN) :: order
+         INTEGER(HSIZE_T), INTENT(IN) :: n
+         INTEGER(HID_T), INTENT(IN) :: lapl_id
+         INTEGER, INTENT(OUT) :: corder_valid 
+         INTEGER, INTENT(OUT) :: corder
+         INTEGER, INTENT(OUT) :: cset
+         INTEGER(HSIZE_T), INTENT(OUT) :: data_size
+
+         INTEGER(SIZE_T)  :: obj_namelen
+       END FUNCTION h5aget_info_by_idx_c
+    END INTERFACE
+
+    obj_namelen = LEN(obj_name)
+
+
+    hdferr = h5aget_info_by_idx_c(loc_id, obj_name, obj_namelen, idx_type, order, n, lapl_id, &
+            corder_valid, corder, cset, data_size)
+
+    f_corder_valid =.FALSE.
+    IF (corder_valid .EQ. 1) f_corder_valid =.TRUE.
+    
+  END SUBROUTINE h5aget_info_by_idx_f
+
+!----------------------------------------------------------------------
+! Name:		h5aget_info_by_name_f
+!
+! Purpose:  	Retrieves attribute information, by attribute name
+!		
+! Inputs:
+!	loc_id - Location of object to which attribute is attached
+!     obj_name - Name of object to which attribute is attached, relative to location
+!    attr_name - Attribute name
+!      lapl_id - Link access property list
+!
+! Outputs:  NOTE: In C it is defined as a structure: H5A_info_t
+!    corder_valid   - indicates whether the creation order data is valid for this attribute
+!    corder         - is a positive integer containing the creation order of the attribute        
+!    cset           - indicates the character set used for the attribute’s name          
+!    data_size      - indicates the size, in the number of characters, of the attribute	
+!    hdferr         - error code		
+!				 Success:  0
+!				 Failure: -1   
+! Optional parameters:
+!				NONE			
+!
+! Programmer:	M. S. Breitenfeld
+!		January, 2008	
+!
+! Modifications:  N/A
+!
+!----------------------------------------------------------------------
+  SUBROUTINE h5aget_info_by_name_f(loc_id, obj_name, attr_name, lapl_id, &
+       f_corder_valid, corder, cset, data_size, hdferr) 
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5aget_info_by_name_f
+!DEC$endif
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id    ! Object identifier
+    CHARACTER(LEN=*), INTENT(IN) :: obj_name ! Name of object to which attribute is attached
+    CHARACTER(LEN=*), INTENT(IN) :: attr_name ! Attribute name
+
+    INTEGER(HID_T), INTENT(IN) :: lapl_id  ! Link access property list
+
+    LOGICAL, INTENT(OUT) :: f_corder_valid ! Indicates whether the creation order data is valid for this attribute 
+    INTEGER, INTENT(OUT) :: corder ! Is a positive integer containing the creation order of the attribute
+    INTEGER, INTENT(OUT) :: cset ! Indicates the character set used for the attribute’s name
+    INTEGER(HSIZE_T), INTENT(OUT) :: data_size   ! Indicates the size, in the number of characters, of the attribute
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code:
+                                           ! 0 on success and -1 on failure
+    INTEGER :: corder_valid
+    INTEGER(SIZE_T)  :: obj_namelen
+    INTEGER(SIZE_T)  :: attr_namelen
+
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5aget_info_by_name_c(loc_id, obj_name, obj_namelen, attr_name, attr_namelen, lapl_id, &
+            corder_valid, corder, cset, data_size)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AGET_INFO_BY_NAME_C'::h5aget_info_by_name_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: loc_id
+         CHARACTER(LEN=*), INTENT(IN) :: obj_name
+         INTEGER(SIZE_T), INTENT(IN) :: obj_namelen
+         CHARACTER(LEN=*), INTENT(IN) :: attr_name
+         INTEGER(SIZE_T), INTENT(IN) :: attr_namelen
+         INTEGER(HID_T), INTENT(IN) :: lapl_id
+         INTEGER, INTENT(OUT) :: corder_valid 
+         INTEGER, INTENT(OUT) :: corder
+         INTEGER, INTENT(OUT) :: cset
+         INTEGER(HSIZE_T), INTENT(OUT) :: data_size
+
+       END FUNCTION h5aget_info_by_name_c
+    END INTERFACE
+
+    obj_namelen = LEN(obj_name)
+    attr_namelen = LEN(attr_name)
+
+    hdferr = h5aget_info_by_name_c(loc_id, obj_name, obj_namelen, attr_name, attr_namelen, lapl_id, &
+            corder_valid, corder, cset, data_size)
+
+    f_corder_valid =.FALSE.
+    IF (corder_valid .EQ. 1) f_corder_valid =.TRUE.
+    
+  END SUBROUTINE h5aget_info_by_name_f
+
+!----------------------------------------------------------------------
+! Name:	        H5Acreate_by_name_f	
+!
+! Purpose:  	Creates an attribute attached to a specified object
+!		
+! Inputs:
+!   loc_id   	- Location or object identifier; may be dataset or group
+!   obj_name 	- Name, relative to loc_id, of object that attribute is to be attached to
+!   attr_name   - Attribute name
+!   type_id 	- Attribute datatype identifier
+!   space_id 	- Attribute dataspace identifier
+!   acpl_id 	- Attribute creation property list identifier (Currently not used.)
+!   aapl_id 	- Attribute access property list identifier (Currently not used.)
+!   lapl_id 	- Link access property list
+!
+! Outputs:
+!       attr    - an attribute identifier
+!     hdferr    - error code		
+!		       Success:  0
+!		       Failure: -1 
+! Optional parameters:
+!				NONE			
+!
+! Programmer:	M. S. Breitenfeld
+!		February, 2008	
+!
+! Modifications:  N/A
+!
+!----------------------------------------------------------------------
+  SUBROUTINE h5acreate_by_name_f(loc_id, obj_name, attr_name, type_id, space_id, acpl_id, aapl_id, lapl_id, &
+       attr, hdferr)
+
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5acreate_by_name_f
+!DEC$endif
+
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id    ! Object identifier
+    CHARACTER(LEN=*), INTENT(IN) :: obj_name ! Name of object to which attribute is attached
+    CHARACTER(LEN=*), INTENT(IN) :: attr_name ! Attribute name
+
+    INTEGER(HID_T), INTENT(IN) :: type_id  ! Attribute datatype identifier
+    INTEGER(HID_T), INTENT(IN) :: space_id ! Attribute dataspace identifier
+    INTEGER(HID_T), INTENT(IN) :: acpl_id ! Attribute creation property list identifier (Currently not used.)
+    INTEGER(HID_T), INTENT(IN) :: aapl_id ! Attribute access property list identifier (Currently not used.)
+    INTEGER(HID_T), INTENT(IN) :: lapl_id  ! Link access property list
+
+    INTEGER(HID_T), INTENT(OUT) :: attr ! an attribute identifier
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code
+
+    INTEGER(SIZE_T)  :: obj_namelen
+    INTEGER(SIZE_T)  :: attr_namelen
+
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5acreate_by_name_c(loc_id, obj_name, obj_namelen, attr_name, attr_namelen, &
+            type_id, space_id, acpl_id, aapl_id, lapl_id, attr)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5ACREATE_BY_NAME_C'::h5acreate_by_name_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: loc_id
+         CHARACTER(LEN=*), INTENT(IN) :: obj_name
+         INTEGER(SIZE_T), INTENT(IN) :: obj_namelen
+         CHARACTER(LEN=*), INTENT(IN) :: attr_name
+         INTEGER(SIZE_T), INTENT(IN) :: attr_namelen
+         INTEGER(HID_T), INTENT(IN) :: type_id 
+         INTEGER(HID_T), INTENT(IN) :: space_id
+         INTEGER(HID_T), INTENT(IN) :: acpl_id
+         INTEGER(HID_T), INTENT(IN) :: aapl_id
+         INTEGER(HID_T), INTENT(IN) :: lapl_id
+         INTEGER(HID_T), INTENT(OUT) :: attr
+
+       END FUNCTION h5acreate_by_name_c
+    END INTERFACE
+
+    obj_namelen = LEN(obj_name)
+    attr_namelen = LEN(attr_name)
+
+    hdferr = h5acreate_by_name_c(loc_id, obj_name, obj_namelen, attr_name, attr_namelen, &
+         type_id, space_id, acpl_id, aapl_id, lapl_id, attr)
+
+  END SUBROUTINE h5acreate_by_name_f
+
+END MODULE H5A
+
+
