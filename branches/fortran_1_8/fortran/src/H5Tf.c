@@ -67,13 +67,19 @@ done:
  *              name - name of the datatype within file or  group
  *              namelen - name length
  *              type_id - dataset identifier
+ *              lcpl_id - Link creation property list
+ *              tcpl_id - Datatype creation property list
+ *              tapl_id - Datatype access property list
  * Returns:     0 on success, -1 on failure
  * Programmer:  Elena Pourmal
  *              Saturday, August 14, 1999
  * Modifications:
+ *              - Added passing optional parameters for version 1.8
+ *                M.S. Breitenfeld
  *---------------------------------------------------------------------------*/
 int_f
-nh5tcommit_c(hid_t_f *loc_id, _fcd name, int_f *namelen, hid_t_f *type_id)
+nh5tcommit_c(hid_t_f *loc_id, _fcd name, int_f *namelen, hid_t_f *type_id, 
+	     hid_t_f *lcpl_id, hid_t_f *tcpl_id, hid_t_f *tapl_id)
 {
     char *c_name = NULL;
     int ret_value = -1;
@@ -83,7 +89,7 @@ nh5tcommit_c(hid_t_f *loc_id, _fcd name, int_f *namelen, hid_t_f *type_id)
         goto done;
 
     /* Call H5Tcommit2 function */
-    if(H5Tcommit2((hid_t)*loc_id, c_name, (hid_t)*type_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT) < 0)
+    if(H5Tcommit2((hid_t)*loc_id, c_name, (hid_t)*type_id, (hid_t)*lcpl_id, (hid_t)*tcpl_id, (hid_t)*tapl_id) < 0)
         goto done;
 
     ret_value = 0;

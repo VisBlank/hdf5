@@ -16,11 +16,11 @@
 !
 ! This file contains FORTRAN90 interfaces for H5T functions
 !
-      MODULE H5T
+MODULE H5T
 
-        USE H5GLOBAL
+  USE H5GLOBAL
       
-      CONTAINS
+CONTAINS
 
 !----------------------------------------------------------------------
 ! Name:		h5topen_f 
@@ -48,41 +48,41 @@
 ! Comment:		
 !----------------------------------------------------------------------
 
-          SUBROUTINE h5topen_f(loc_id, name, type_id, hdferr) 
+  SUBROUTINE h5topen_f(loc_id, name, type_id, hdferr) 
 !
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5topen_f
 !DEC$endif
 !
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: loc_id  ! File or group identifier 
-            CHARACTER(LEN=*), INTENT(IN) :: name  
-                                  ! Datatype name within file or group
-            INTEGER(HID_T), INTENT(OUT) :: type_id  ! Datatype identifier 
-            INTEGER, INTENT(OUT) :: hdferr          ! Error code
-            INTEGER :: namelen          ! Name length 
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id  ! File or group identifier 
+    CHARACTER(LEN=*), INTENT(IN) :: name  
+    ! Datatype name within file or group
+    INTEGER(HID_T), INTENT(OUT) :: type_id  ! Datatype identifier 
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code
+    INTEGER :: namelen          ! Name length 
 
 !            INTEGER, EXTERNAL :: h5topen_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5topen_c(loc_id, name, namelen, type_id)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5TOPEN_C'::h5topen_c
-              !DEC$ ENDIF
-              !DEC$ATTRIBUTES reference ::name 
-              INTEGER(HID_T), INTENT(IN) :: loc_id
-              CHARACTER(LEN=*), INTENT(IN) :: name
-              INTEGER :: namelen
-              INTEGER(HID_T), INTENT(OUT) :: type_id
-              END FUNCTION h5topen_c
-            END INTERFACE
-
-            namelen = LEN(name)
-            hdferr = h5topen_c(loc_id, name, namelen, type_id)
-          END SUBROUTINE h5topen_f
+    INTERFACE
+       INTEGER FUNCTION h5topen_c(loc_id, name, namelen, type_id)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5TOPEN_C'::h5topen_c
+         !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference ::name 
+         INTEGER(HID_T), INTENT(IN) :: loc_id
+         CHARACTER(LEN=*), INTENT(IN) :: name
+         INTEGER :: namelen
+         INTEGER(HID_T), INTENT(OUT) :: type_id
+       END FUNCTION h5topen_c
+    END INTERFACE
+    
+    namelen = LEN(name)
+    hdferr = h5topen_c(loc_id, name, namelen, type_id)
+  END SUBROUTINE h5topen_f
 
 !----------------------------------------------------------------------
 ! Name:		h5tcommit_f 
@@ -100,53 +100,84 @@
 !				 	Success:  0
 !				 	Failure: -1   
 ! Optional parameters:
-!				NONE
+!	       lcpl_id          - Link creation property list
+!              tcpl_id          - Datatype creation property list
+!              tapl_id          - Datatype access property list
 !
 ! Programmer:	Elena Pourmal
 !		August 12, 1999	
 !
-! Modifications: 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 7, 2001 
+! Modifications: - Explicit Fortran interfaces were added for 
+!		   called C functions (it is needed for Windows
+!	           port).  March 7, 2001
+!
+!                - Added optional parameters introduced in version 1.8 
+!                  M.S. Breitenfeld
+!
+!
 !
 ! Comment:		
 !----------------------------------------------------------------------
 
-          SUBROUTINE h5tcommit_f(loc_id, name, type_id, hdferr) 
+  SUBROUTINE h5tcommit_f(loc_id, name, type_id, hdferr, &
+       lcpl_id, tcpl_id, tapl_id  ) 
 !
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5tcommit_f
 !DEC$endif
 !
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: loc_id  ! File or group identifier 
-            CHARACTER(LEN=*), INTENT(IN) :: name  
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id  ! File or group identifier 
+    CHARACTER(LEN=*), INTENT(IN) :: name  
                                   ! Datatype name within file or group
-            INTEGER(HID_T), INTENT(IN) :: type_id  ! Datatype identifier 
-            INTEGER, INTENT(OUT) :: hdferr          ! Error code
-            INTEGER :: namelen          ! Name length 
+    INTEGER(HID_T), INTENT(IN) :: type_id  ! Datatype identifier 
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lcpl_id ! Link creation property list
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: tcpl_id ! Datatype creation property list
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: tapl_id ! Datatype access property list
 
-!            INTEGER, EXTERNAL :: h5tcommit_c
+
+    INTEGER :: namelen          ! Name length
+
+    INTEGER(HID_T) :: lcpl_id_default
+    INTEGER(HID_T) :: tcpl_id_default
+    INTEGER(HID_T) :: tapl_id_default
+
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5tcommit_c(loc_id, name, namelen, type_id)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5TCOMMIT_C'::h5tcommit_c
-              !DEC$ ENDIF
-              !DEC$ATTRIBUTES reference ::name 
-              INTEGER(HID_T), INTENT(IN) :: loc_id
-              CHARACTER(LEN=*), INTENT(IN) :: name
-              INTEGER :: namelen
-              INTEGER(HID_T), INTENT(IN) :: type_id
-              END FUNCTION h5tcommit_c
-            END INTERFACE
+    INTERFACE
+       INTEGER FUNCTION h5tcommit_c(loc_id, name, namelen, type_id, &
+            lcpl_id_default, tcpl_id_default, tapl_id_default )
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5TCOMMIT_C'::h5tcommit_c
+         !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference ::name 
+         INTEGER(HID_T), INTENT(IN) :: loc_id
+         CHARACTER(LEN=*), INTENT(IN) :: name
+         INTEGER :: namelen
+         INTEGER(HID_T), INTENT(IN) :: type_id
+         INTEGER(HID_T) :: lcpl_id_default
+         INTEGER(HID_T) :: tcpl_id_default
+         INTEGER(HID_T) :: tapl_id_default
+       END FUNCTION h5tcommit_c
+    END INTERFACE
 
-            namelen = LEN(name)
-            hdferr = h5tcommit_c(loc_id, name, namelen, type_id)
-          END SUBROUTINE h5tcommit_f
+    lcpl_id_default = H5P_DEFAULT_F
+    tcpl_id_default = H5P_DEFAULT_F
+    tapl_id_default = H5P_DEFAULT_F
+
+    IF (PRESENT(lcpl_id)) lcpl_id_default = lcpl_id
+    IF (PRESENT(tcpl_id)) tcpl_id_default = tcpl_id
+    IF (PRESENT(tapl_id)) tapl_id_default = tapl_id
+    
+    namelen = LEN(name)
+
+    hdferr = h5tcommit_c(loc_id, name, namelen, type_id, &
+         lcpl_id_default, tcpl_id_default, tapl_id_default )
+
+  END SUBROUTINE h5tcommit_f
 
 !----------------------------------------------------------------------
 ! Name:		h5tcopy_f 
