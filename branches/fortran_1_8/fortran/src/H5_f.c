@@ -215,13 +215,15 @@ nh5close_types_c( hid_t_f * types, int_f *lentypes,
  *                    Added more FD flags and new H5LIB flags
  *                    Added more FD flags for HDF5 file driver
  *                                  EIP, April 9, 2005
+ *                    Added Generic flags introduced in version 1.8
+ *                                  MSB, January, 2008
  *---------------------------------------------------------------------------*/
 int_f
 nh5init_flags_c( int_f *h5d_flags, int_f *h5f_flags,
                  int_f *h5fd_flags, hid_t_f *h5fd_hid_flags,
-                 int_f *h5g_flags, int_f *h5i_flags,
+                 int_f *h5g_flags, int_f *h5i_flags, int_f *h5o_flags,
                  hid_t_f *h5p_flags, int_f *h5r_flags, int_f *h5s_flags,
-                 int_f *h5t_flags, int_f *h5z_flags)
+                 int_f *h5t_flags, int_f *h5z_flags, int_f *h5_generic_flags)
 {
     int ret_value = -1;
 /*
@@ -250,37 +252,37 @@ nh5init_flags_c( int_f *h5d_flags, int_f *h5f_flags,
 /*
  *  H5F flags
  */
-      h5f_flags[0] = (int_f)H5F_ACC_RDWR;
-      h5f_flags[1] = (int_f)H5F_ACC_RDONLY;
-      h5f_flags[2] = (int_f)H5F_ACC_TRUNC;
-      h5f_flags[3] = (int_f)H5F_ACC_EXCL;
-      h5f_flags[4] = (int_f)H5F_ACC_DEBUG;
-      h5f_flags[5] = (int_f)H5F_SCOPE_LOCAL;
-      h5f_flags[6] = (int_f)H5F_SCOPE_GLOBAL;
-      h5f_flags[7] = (int_f)H5F_CLOSE_DEFAULT;
-      h5f_flags[8] = (int_f)H5F_CLOSE_WEAK;
-      h5f_flags[9] = (int_f)H5F_CLOSE_SEMI;
-      h5f_flags[10] = (int_f)H5F_CLOSE_STRONG;
-      h5f_flags[11] = (int_f)H5F_OBJ_FILE;
-      h5f_flags[12] = (int_f)H5F_OBJ_DATASET;
-      h5f_flags[13] = (int_f)H5F_OBJ_GROUP;
-      h5f_flags[14] = (int_f)H5F_OBJ_DATATYPE;
-      h5f_flags[15] = (int_f)H5F_OBJ_ALL;
+    h5f_flags[0] = (int_f)H5F_ACC_RDWR;
+    h5f_flags[1] = (int_f)H5F_ACC_RDONLY;
+    h5f_flags[2] = (int_f)H5F_ACC_TRUNC;
+    h5f_flags[3] = (int_f)H5F_ACC_EXCL;
+    h5f_flags[4] = (int_f)H5F_ACC_DEBUG;
+    h5f_flags[5] = (int_f)H5F_SCOPE_LOCAL;
+    h5f_flags[6] = (int_f)H5F_SCOPE_GLOBAL;
+    h5f_flags[7] = (int_f)H5F_CLOSE_DEFAULT;
+    h5f_flags[8] = (int_f)H5F_CLOSE_WEAK;
+    h5f_flags[9] = (int_f)H5F_CLOSE_SEMI;
+    h5f_flags[10] = (int_f)H5F_CLOSE_STRONG;
+    h5f_flags[11] = (int_f)H5F_OBJ_FILE;
+    h5f_flags[12] = (int_f)H5F_OBJ_DATASET;
+    h5f_flags[13] = (int_f)H5F_OBJ_GROUP;
+    h5f_flags[14] = (int_f)H5F_OBJ_DATATYPE;
+    h5f_flags[15] = (int_f)H5F_OBJ_ALL;
 
 /*
  *  H5FD flags
  */
-      h5fd_flags[0] = H5FD_MPIO_INDEPENDENT;
-      h5fd_flags[1] = H5FD_MPIO_COLLECTIVE;
-      h5fd_flags[2] = H5FD_MEM_NOLIST;
-      h5fd_flags[3] = H5FD_MEM_DEFAULT;
-      h5fd_flags[4] = H5FD_MEM_SUPER;
-      h5fd_flags[5] = H5FD_MEM_BTREE;
-      h5fd_flags[6] = H5FD_MEM_DRAW;
-      h5fd_flags[7] = H5FD_MEM_GHEAP;
-      h5fd_flags[8] = H5FD_MEM_LHEAP;
-      h5fd_flags[9] = H5FD_MEM_OHDR;
-      h5fd_flags[10] = H5FD_MEM_NTYPES;
+    h5fd_flags[0] = H5FD_MPIO_INDEPENDENT;
+    h5fd_flags[1] = H5FD_MPIO_COLLECTIVE;
+    h5fd_flags[2] = H5FD_MEM_NOLIST;
+    h5fd_flags[3] = H5FD_MEM_DEFAULT;
+    h5fd_flags[4] = H5FD_MEM_SUPER;
+    h5fd_flags[5] = H5FD_MEM_BTREE;
+    h5fd_flags[6] = H5FD_MEM_DRAW;
+    h5fd_flags[7] = H5FD_MEM_GHEAP;
+    h5fd_flags[8] = H5FD_MEM_LHEAP;
+    h5fd_flags[9] = H5FD_MEM_OHDR;
+    h5fd_flags[10] = H5FD_MEM_NTYPES;
 
 /*
  *  H5FD flags of type hid_t
@@ -321,6 +323,48 @@ nh5init_flags_c( int_f *h5d_flags, int_f *h5f_flags,
       h5i_flags[6] = H5I_BADID;
 
 /*
+ *  H5O flags
+ */
+
+/* Flags for object copy (H5Ocopy) */
+      h5o_flags[0] = H5O_COPY_SHALLOW_HIERARCHY_FLAG; /* Copy only immediate members */
+      h5o_flags[1] = H5O_COPY_EXPAND_SOFT_LINK_FLAG; /* Expand soft links into new objects */
+      h5o_flags[2] = H5O_COPY_EXPAND_EXT_LINK_FLAG; /* Expand external links into new objects */
+      h5o_flags[3] = H5O_COPY_EXPAND_REFERENCE_FLAG; /* Copy objects that are pointed by references */
+      h5o_flags[4] = H5O_COPY_WITHOUT_ATTR_FLAG; /* Copy object without copying attributes */
+      h5o_flags[5] = H5O_COPY_PRESERVE_NULL_FLAG; /* Copy NULL messages (empty space) */
+      h5o_flags[6] = H5O_COPY_ALL; /* All object copying flags (for internal checking) */
+
+/* Flags for shared message indexes.
+ * Pass these flags in using the mesg_type_flags parameter in
+ * H5P_set_shared_mesg_index.
+ * (Developers: These flags correspond to object header message type IDs,
+ * but we need to assign each kind of message to a different bit so that
+ * one index can hold multiple types.)
+ */
+      h5o_flags[7] = H5O_SHMESG_NONE_FLAG;  /* No shared messages */
+      h5o_flags[8] = H5O_SHMESG_SDSPACE_FLAG; /* Simple Dataspace Message.  */
+      h5o_flags[9] = H5O_SHMESG_DTYPE_FLAG; /* Datatype Message.  */
+      h5o_flags[10] = H5O_SHMESG_FILL_FLAG; /* Fill Value Message. */
+      h5o_flags[11] = H5O_SHMESG_PLINE_FLAG; /* Filter pipeline message.  */
+      h5o_flags[12] = H5O_SHMESG_ATTR_FLAG; /* Attribute Message.  */
+      h5o_flags[13] = H5O_SHMESG_ALL_FLAG;
+
+/* Object header status flag definitions */
+      h5o_flags[14] = H5O_HDR_CHUNK0_SIZE; /* 2-bit field indicating # of bytes to store the size of chunk 0's data */
+      h5o_flags[15] = H5O_HDR_ATTR_CRT_ORDER_TRACKED; /* Attribute creation order is tracked */
+      h5o_flags[16] = H5O_HDR_ATTR_CRT_ORDER_INDEXED; /* Attribute creation order has index */
+      h5o_flags[17] = H5O_HDR_ATTR_STORE_PHASE_CHANGE; /* Non-default attribute storage phase change values stored */
+      h5o_flags[18] = H5O_HDR_STORE_TIMES; /* Store access, modification, change & birth times for object */
+      h5o_flags[19] = H5O_HDR_ALL_FLAGS; 
+
+/* Maximum shared message values.  Number of indexes is 8 to allow room to add
+ * new types of messages.
+ */
+      h5o_flags[20] = H5O_SHMESG_MAX_NINDEXES;
+      h5o_flags[21] = H5O_SHMESG_MAX_LIST_SIZE;
+
+/*
  *  H5P flags
  */
 
@@ -331,6 +375,8 @@ nh5init_flags_c( int_f *h5d_flags, int_f *h5f_flags,
       h5p_flags[4] = H5P_FILE_MOUNT;
       h5p_flags[5] = H5P_DEFAULT;
       h5p_flags[6] = H5P_ROOT;
+      h5p_flags[7] = H5P_CRT_ORDER_INDEXED;
+      h5p_flags[8] = H5P_CRT_ORDER_TRACKED;
 
 /*
  *  H5R flags
@@ -422,6 +468,30 @@ nh5init_flags_c( int_f *h5d_flags, int_f *h5f_flags,
       h5z_flags[11] = H5Z_FILTER_CONFIG_ENCODE_ENABLED;
       h5z_flags[12] = H5Z_FILTER_CONFIG_DECODE_ENABLED;
       h5z_flags[13] = H5Z_FILTER_ALL;
+/*
+ *  H5A flags
+ */
+
+
+/*
+ *  H5 Generic flags introduced in version 1.8 -MSB-
+ */
+
+      /* H5_index_t enum struct */
+
+      h5_generic_flags[0] = H5_INDEX_UNKNOWN;   /* Unknown index type			*/
+      h5_generic_flags[1] = H5_INDEX_NAME;      /* Index on names 			*/
+      h5_generic_flags[2] = H5_INDEX_CRT_ORDER; /* Index on creation order 		*/
+      h5_generic_flags[3] = H5_INDEX_N;         /* Index on creation order 		*/
+      
+      
+      /* H5_iter_order_t enum struct */
+
+      h5_generic_flags[4] = H5_ITER_UNKNOWN;       /* Unknown order */
+      h5_generic_flags[5] = H5_ITER_INC;           /* Increasing order */
+      h5_generic_flags[6] = H5_ITER_DEC;           /* Decreasing order */
+      h5_generic_flags[7] = H5_ITER_NATIVE;        /* No particular order, whatever is fastest */
+      h5_generic_flags[8] = H5_ITER_N;		   /* Number of iteration orders */
 
     ret_value = 0;
     return ret_value;

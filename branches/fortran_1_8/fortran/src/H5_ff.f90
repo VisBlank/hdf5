@@ -82,11 +82,13 @@
                                 i_H5FD_hid_flags, &
                                 i_H5G_flags, &
                                 i_H5I_flags, &
+                                i_H5O_flags, &
                                 i_H5P_flags, &
                                 i_H5R_flags, &
                                 i_H5S_flags, &
                                 i_H5T_flags, &               
-                                i_H5Z_flags)
+                                i_H5Z_flags, &
+                                i_H5generic_flags)
           USE H5GLOBAL
           INTEGER i_H5F_flags(H5F_FLAGS_LEN)
           INTEGER i_H5G_flags(H5G_FLAGS_LEN)
@@ -94,11 +96,13 @@
           INTEGER i_H5FD_flags(H5FD_FLAGS_LEN)
           INTEGER(HID_T) i_H5FD_hid_flags(H5FD_HID_FLAGS_LEN)
           INTEGER i_H5I_flags(H5I_FLAGS_LEN)
+          INTEGER i_H5O_flags(H5O_FLAGS_LEN)
           INTEGER(HID_T) i_H5P_flags(H5P_FLAGS_LEN)
           INTEGER i_H5R_flags(H5R_FLAGS_LEN)
           INTEGER i_H5S_flags(H5S_FLAGS_LEN)
           INTEGER i_H5T_flags(H5T_FLAGS_LEN)
           INTEGER i_H5Z_flags(H5Z_FLAGS_LEN)
+          INTEGER i_H5generic_flags(H5generic_FLAGS_LEN)
           !DEC$ IF DEFINED(HDF5F90_WINDOWS)
           !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5INIT_FLAGS_C'::h5init_flags_c
           !DEC$ ENDIF
@@ -121,11 +125,13 @@
                                 H5FD_hid_flags, &
                                 H5G_flags, &
                                 H5I_flags, &
+                                H5O_flags, &
                                 H5P_flags, &
                                 H5R_flags, &
                                 H5S_flags, &
                                 H5T_flags, &
-                                H5Z_flags)
+                                H5Z_flags, &
+                                H5generic_flags)
         error_3 = h5init1_flags_c(H5LIB_flags )
         error = error_0 + error_1 + error_2 + error_3
       END SUBROUTINE h5open_f
