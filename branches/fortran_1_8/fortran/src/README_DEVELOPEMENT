@@ -24,3 +24,5 @@ Procedure:
          - must match the size found it H5_f.c
 
 NOTE: To just add a default C value argument, do steps (2a) and (4) 
+
+If you add a new file, be sure to add it to the MANIFEST located in the top directory
