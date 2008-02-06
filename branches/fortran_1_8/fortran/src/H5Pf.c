@@ -3414,3 +3414,165 @@ DONE:
      return ret_value;
 }
 
+/*----------------------------------------------------------------------------
+ * Name:        h5pget_attr_phase_change_c
+ * Purpose:     Calls H5Pget_attr_phase_change
+ *
+ * Inputs:      ocpl_id		- Object (dataset or group) creation property list identifier
+ * Outputs      max_compact     - Maximum number of attributes to be stored in compact storage
+ *              min_dense       - Minimum number of attributes to be stored in dense storage
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              January, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+int_f
+nh5pget_attr_phase_change_c(hid_t_f *ocpl_id, int_f *max_compact, int_f *min_dense )
+{
+  int ret_value = -1;
+  hid_t c_ocpl_id;
+  unsigned c_max_compact;
+  unsigned c_min_dense;
+  herr_t ret;
+  /*
+   * Call H5Pget_attr_phase_change function.
+   */
+  c_ocpl_id = (hid_t)*ocpl_id;
+  ret = H5Pget_attr_phase_change(c_ocpl_id, &c_max_compact,&c_min_dense);
+  if (ret < 0) return ret_value;
+
+  *max_compact = (int_f)c_max_compact;
+  *min_dense = (int_f)c_min_dense;
+  ret_value = 0;
+  return ret_value;
+}
+
+/*----------------------------------------------------------------------------
+ * Name:        h5pget_attr_phase_change_c
+ * Purpose:     Calls H5Pget_attr_phase_change
+ *
+ * Inputs:      ocpl_id		- Object (dataset or group) creation property list identifier
+ * Outputs      crt_order_flags - Flags specifying whether to track and index attribute creation order
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              January, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+int_f
+nh5pset_attr_creation_order_c(hid_t_f *ocpl_id, int_f *crt_order_flags )
+{
+  int ret_value = -1;
+  hid_t c_ocpl_id;
+  unsigned c_crt_order_flags;
+  herr_t ret;
+  /*
+   * Call h5pset_attr_creation_order function.
+   */
+  c_ocpl_id = (hid_t)*ocpl_id;
+  c_crt_order_flags = (unsigned)*crt_order_flags;
+  ret = H5Pset_attr_creation_order(c_ocpl_id, c_crt_order_flags);
+  if (ret < 0) return ret_value;
+
+  ret_value = 0;
+  return ret_value;
+}
+
+/*----------------------------------------------------------------------------
+ * Name:        h5pset_shared_mesg_nindexes_c
+ * Purpose:     Calls h5pset_shared_mesg_nindexes
+ *
+ * Inputs:
+ *       plist_id - file creation property list
+ *       nindexes - Number of shared object header message indexes 
+ *                   available in files created WITH this property list 
+ * 
+ * Outputs:     
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              January, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+int_f
+nh5pset_shared_mesg_nindexes_c(hid_t_f *plist_id, int_f *nindexes )
+{
+  int ret_value = -1;
+  hid_t c_plist_id;
+  unsigned c_nindexes;
+  herr_t ret;
+  /*
+   * Call h5pset_shared_mesg_nindexes function.
+   */
+  c_plist_id = (hid_t)*plist_id;
+  c_nindexes = (unsigned)*nindexes;
+  ret = H5Pset_shared_mesg_nindexes(c_plist_id, c_nindexes );
+  if (ret < 0) return ret_value;
+
+  ret_value = 0;
+  return ret_value;
+}
+
+/*----------------------------------------------------------------------------
+ * Name:        h5pset_shared_mesg_index_c
+ * Purpose:     Calls H5Pset_shared_mesg_index
+ *
+ * Inputs:
+ *            fcpl_id - File creation property list identifier.
+ *          index_num - Index being configured.
+ *    mesg_type_flags - Types of messages that should be stored in this index.
+ *      min_mesg_size - Minimum message size.
+ * 
+ * Outputs:     
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              January, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+int_f
+nh5pset_shared_mesg_index_c(hid_t_f *fcpl_id, int_f *index_num, int_f *mesg_type_flags, int_f *min_mesg_size)
+{
+  int ret_value = -1;
+  herr_t ret;
+  /*
+   * Call h5pset_shared_mesg_index function.
+   */
+  ret = H5Pset_shared_mesg_index((hid_t)*fcpl_id,(unsigned)*index_num, (unsigned)*mesg_type_flags, (unsigned)*min_mesg_size);
+  if (ret < 0) return ret_value;
+
+  ret_value = 0;
+  return ret_value;
+}
+
+/*----------------------------------------------------------------------------
+ * Name:        h5pget_attr_creation_order_c
+ * Purpose:     Calls H5Pget_attr_creation_order_c
+ *
+ * Inputs:
+ *           ocpl_id - Object (group or dataset) creation property list identifier
+ * Outputs:
+ *           crt_order_flags - Flags specifying whether to track and index attribute creation order
+ *
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              February, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+int_f
+nh5pget_attr_creation_order_c(hid_t_f *ocpl_id, int_f *crt_order_flags)
+{
+  int ret_value = -1;
+  herr_t ret;
+
+  unsigned c_crt_order_flags;
+  /*
+   * Call h5pget_attr_creation_order function.
+   */
+
+  ret = H5Pget_attr_creation_order((hid_t)*ocpl_id, &c_crt_order_flags);
+  if (ret < 0) return ret_value;
+
+  *crt_order_flags = (int_f)c_crt_order_flags;
+
+  ret_value = 0;
+  return ret_value;
+}
+

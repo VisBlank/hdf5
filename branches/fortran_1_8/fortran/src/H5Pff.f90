@@ -1943,7 +1943,7 @@
 
             hdferr = h5pget_fapl_core_c(prp_id, increment, backing_store_flag)
             backing_store =.FALSE.
-            if (backing_store_flag .eq. 1) backing_store =.TRUE.
+            IF (backing_store_flag .EQ. 1) backing_store =.TRUE.
           END SUBROUTINE h5pget_fapl_core_f
 
 !----------------------------------------------------------------------
@@ -6387,4 +6387,289 @@
             hdferr = h5premove_filter_c(prp_id, filter)
           END SUBROUTINE h5premove_filter_f
 
-     END MODULE H5P
+!----------------------------------------------------------------------
+! Name:		H5Pget_attr_phase_change_f 
+!
+! Purpose: 	Retrieves attribute storage phase change thresholds 
+!
+! Inputs:  
+!		ocpl_id		- Object (dataset or group) creation property list identifier
+! Outputs:  
+!               max_compact     - Maximum number of attributes to be stored in compact storage
+!                                 (Default: 8)
+!               min_dense       - Minimum number of attributes to be stored in dense storage
+!                                 (Default: 6)
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		January, 2008
+!
+! Modifications: 	
+!
+! Comment:		
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pget_attr_phase_change_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: ocpl_id ! Object (dataset or group) creation property list identifier
+    INTEGER, INTENT(OUT) :: max_compact  ! Maximum number of attributes to be stored in compact storage
+                                         !(Default: 8)
+    INTEGER, INTENT(OUT) :: min_dense  ! Minimum number of attributes to be stored in dense storage
+                                       ! (Default: 6)
+    INTEGER, INTENT(OUT) :: hdferr   ! Error code
+!
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5pget_attr_phase_change_c(ocpl_id, max_compact, min_dense)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_ATTR_PHASE_CHANGE_C'::h5pget_attr_phase_change_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: ocpl_id
+         INTEGER, INTENT(OUT) :: max_compact
+         INTEGER, INTENT(OUT) :: min_dense
+ 
+       END FUNCTION h5pget_attr_phase_change_c
+    END INTERFACE
+    
+    hdferr = h5pget_attr_phase_change_c(ocpl_id, max_compact, min_dense)
+  END SUBROUTINE h5pget_attr_phase_change_f
+
+!----------------------------------------------------------------------
+! Name:		H5Pset_attr_creation_order_f 
+!
+! Purpose: 	Sets tracking and indexing of attribute creation order
+!
+! Inputs:  
+!		ocpl_id		- Object creation property list identifier
+!               crt_order_flags - Flags specifying whether to track and index attribute creation order
+! Outputs:
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		January, 2008
+!
+! Modifications: 	
+!
+! Comment:		
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5pset_attr_creation_order_f(ocpl_id, crt_order_flags , hdferr)
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pset_attr_creation_order_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: ocpl_id ! Object (dataset or group) creation property list identifier
+    INTEGER, INTENT(IN) :: crt_order_flags  ! Flags specifying whether to track and index attribute creation order
+
+    INTEGER, INTENT(OUT) :: hdferr   ! Error code
+!
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION H5Pset_attr_creation_order_c(ocpl_id, crt_order_flags)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_ATTR_PHASE_CHANGE_C'::h5pget_attr_phase_change_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: ocpl_id
+         INTEGER, INTENT(IN) :: crt_order_flags
+ 
+       END FUNCTION H5Pset_attr_creation_order_c
+    END INTERFACE
+    
+    hdferr = H5Pset_attr_creation_order_c(ocpl_id, crt_order_flags)
+  END SUBROUTINE h5pset_attr_creation_order_f
+  
+
+!----------------------------------------------------------------------
+! Name:		H5Pset_shared_mesg_nindexes_f 
+!
+! Purpose: 	Sets number of shared object header message indexes 
+!
+! Inputs:  
+!               plist_id - file creation property list
+!               nindexes - Number of shared object header message indexes to be available in files created with this property list
+! Outputs:
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		January, 2008
+!
+! Modifications: 	
+!
+! Comment:		
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5pset_shared_mesg_nindexes_f( plist_id, nindexes, hdferr)
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pset_shared_mesg_nindexes_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: plist_id ! file creation property list
+    INTEGER, INTENT(IN) :: nindexes ! Number of shared object header message indexes 
+                                     !  available in files created WITH this property list
+    INTEGER, INTENT(OUT) :: hdferr   ! Error code
+!
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5pset_shared_mesg_nindexes_c(plist_id, nindexes)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_SHARED_MESG_NINDEXES_C'::h5pset_shared_mesg_nindexes_c
+         !DEC$ ENDIF
+         
+         INTEGER(HID_T), INTENT(IN) :: plist_id
+         INTEGER, INTENT(IN) :: nindexes
+         
+       END FUNCTION H5pset_shared_mesg_nindexes_c
+    END INTERFACE
+    
+    hdferr = h5pset_shared_mesg_nindexes_c(plist_id, nindexes) 
+
+  END SUBROUTINE h5pset_shared_mesg_nindexes_f
+  
+!----------------------------------------------------------------------
+! Name:		H5Pset_shared_mesg_index_f
+!
+! Purpose: 	Configures the specified shared object header message index
+!
+! Inputs:  
+!            fcpl_id - File creation property list identifier.
+!          index_num - Index being configured.
+!    mesg_type_flags - Types of messages that should be stored in this index.
+!      min_mesg_size - Minimum message size.
+!
+! Outputs:
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		January, 2008
+!
+! Modifications: 	
+!
+! Comment:		
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5pset_shared_mesg_index_f(fcpl_id, index_num, mesg_type_flags, min_mesg_size, hdferr)
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pset_shared_mesg_index_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: fcpl_id ! file creation property list
+    INTEGER, INTENT(IN) :: index_num ! Index being configured.
+    INTEGER, INTENT(IN) :: mesg_type_flags ! Types of messages that should be stored in this index.
+    INTEGER, INTENT(IN) :: min_mesg_size ! Minimum message size.
+    INTEGER, INTENT(OUT) :: hdferr   ! Error code
+!
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5pset_shared_mesg_index_c(fcpl_id, index_num, mesg_type_flags, min_mesg_size)
+
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_SHARED_MESG_INDEX_C'::h5pset_shared_mesg_index_c
+         !DEC$ ENDIF
+         
+         INTEGER(HID_T), INTENT(IN) :: fcpl_id 
+         INTEGER, INTENT(IN) :: index_num
+         INTEGER, INTENT(IN) :: mesg_type_flags
+         INTEGER, INTENT(IN) :: min_mesg_size
+         
+       END FUNCTION H5pset_shared_mesg_index_c
+    END INTERFACE
+    
+    hdferr = h5pset_shared_mesg_index_c(fcpl_id, index_num, mesg_type_flags, min_mesg_size) 
+
+  END SUBROUTINE h5pset_shared_mesg_index_f
+  
+!----------------------------------------------------------------------
+! Name:	      H5Pget_attr_creation_order_f
+!
+! Purpose:    Retrieves tracking and indexing settings for attribute creation order
+!
+! Inputs:
+!             ocpl_id - Object (group or dataset) creation property list identifier
+!
+! Outputs:
+!             crt_order_flags - Flags specifying whether to track and index attribute creation order
+!	      hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		February, 2008
+!
+! Modifications: 	
+!
+! Comment:		
+!----------------------------------------------------------------------
+
+  SUBROUTINE  h5pget_attr_creation_order_f(ocpl_id, crt_order_flags, hdferr)
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pget_attr_creation_order_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: ocpl_id ! Object (group or dataset) creation property list identifier 
+    INTEGER, INTENT(OUT) :: crt_order_flags ! Flags specifying whether to track and index attribute creation order 
+    INTEGER, INTENT(OUT) :: hdferr   ! Error code
+!
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5pget_attr_creation_order_c(ocpl_id, crt_order_flags)
+
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_ATTR_CREATION_ORDER_C'::h5pget_attr_creation_order_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: ocpl_id
+         INTEGER, INTENT(OUT) :: crt_order_flags
+         
+       END FUNCTION H5pget_attr_creation_order_c
+    END INTERFACE
+    
+    hdferr = h5pget_attr_creation_order_c(ocpl_id, crt_order_flags)
+
+  END SUBROUTINE h5pget_attr_creation_order_f
+
+END MODULE H5P
