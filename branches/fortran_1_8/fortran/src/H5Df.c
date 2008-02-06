@@ -30,10 +30,13 @@
  * Returns:     0 on success, -1 on failure
  * Programmer:  Elena Pourmal
  *              Wednesday, August 4, 1999
- * Modifications:
+ * Modifications: 
+ *               - Added optional parameters introduced in version 1.8
+ *                 February, 2008
  *---------------------------------------------------------------------------*/
 int_f
-nh5dcreate_c (hid_t_f *loc_id, _fcd name, int_f *namelen, hid_t_f *type_id, hid_t_f *space_id, hid_t_f *crt_prp,  hid_t_f *dset_id)
+nh5dcreate_c (hid_t_f *loc_id, _fcd name, int_f *namelen, hid_t_f *type_id, hid_t_f *space_id, 
+	      hid_t_f *lcpl_id, hid_t_f *dcpl_id, hid_t_f *dapl_id, hid_t_f *dset_id)
 {
      char *c_name = NULL;
      hid_t c_dset_id;
@@ -48,7 +51,8 @@ nh5dcreate_c (hid_t_f *loc_id, _fcd name, int_f *namelen, hid_t_f *type_id, hid_
      /*
       * Call H5Dcreate2 function.
       */
-     if((c_dset_id = H5Dcreate2((hid_t)*loc_id, c_name, (hid_t)*type_id, (hid_t)*space_id, H5P_DEFAULT, (hid_t)*crt_prp, H5P_DEFAULT)) < 0)
+     if((c_dset_id = H5Dcreate2((hid_t)*loc_id, c_name, (hid_t)*type_id, (hid_t)*space_id, 
+				(hid_t)*lcpl_id, (hid_t)*dcpl_id, (hid_t)*dapl_id)) < 0)
          goto DONE;
      *dset_id = (hid_t_f)c_dset_id;
 
@@ -66,14 +70,15 @@ DONE:
  * Inputs:      loc_id - file or group identifier
  *              name - name of the dataset
  *              namelen - name length
+ *              dapl_id	- Dataset access property list
  * Outputs:     dset_id - dataset identifier
  * Returns:     0 on success, -1 on failure
  * Programmer:  Elena Pourmal
  *              Wednesday, August 4, 1999
- * Modifications:
+ * Modifications: Added 1.8 parameter: dapl_id
  *---------------------------------------------------------------------------*/
 int_f
-nh5dopen_c(hid_t_f *loc_id, _fcd name, int_f *namelen, hid_t_f *dset_id)
+nh5dopen_c(hid_t_f *loc_id, _fcd name, int_f *namelen, hid_t_f *dapl_id, hid_t_f *dset_id)
 {
      char *c_name = NULL;
      hid_t c_dset_id;
@@ -88,7 +93,7 @@ nh5dopen_c(hid_t_f *loc_id, _fcd name, int_f *namelen, hid_t_f *dset_id)
      /*
       * Call H5Dopen2 function.
       */
-     if((c_dset_id = H5Dopen2((hid_t)*loc_id, c_name, H5P_DEFAULT)) < 0)
+     if((c_dset_id = H5Dopen2((hid_t)*loc_id, c_name, (hid_t)*dapl_id)) < 0)
          goto DONE;
 
      *dset_id = (hid_t_f)c_dset_id;

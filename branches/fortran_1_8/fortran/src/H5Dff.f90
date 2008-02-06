@@ -16,111 +16,111 @@
 !
 ! This file contains Fortran90 interfaces for H5D functions.
 ! 
-      MODULE H5D
-        USE H5GLOBAL
+MODULE H5D
+  USE H5GLOBAL
 
-          INTERFACE h5dwrite_f
+  INTERFACE h5dwrite_f
 
-            MODULE PROCEDURE h5dwrite_reference_obj
-            MODULE PROCEDURE h5dwrite_reference_dsetreg
-            MODULE PROCEDURE h5dwrite_integer_scalar
-            MODULE PROCEDURE h5dwrite_integer_1 
-            MODULE PROCEDURE h5dwrite_integer_2 
-            MODULE PROCEDURE h5dwrite_integer_3 
-            MODULE PROCEDURE h5dwrite_integer_4 
-            MODULE PROCEDURE h5dwrite_integer_5 
-            MODULE PROCEDURE h5dwrite_integer_6 
-            MODULE PROCEDURE h5dwrite_integer_7 
-            MODULE PROCEDURE h5dwrite_char_scalar
-            MODULE PROCEDURE h5dwrite_char_1 
-            MODULE PROCEDURE h5dwrite_char_2 
-            MODULE PROCEDURE h5dwrite_char_3 
-            MODULE PROCEDURE h5dwrite_char_4 
-            MODULE PROCEDURE h5dwrite_char_5 
-            MODULE PROCEDURE h5dwrite_char_6 
-            MODULE PROCEDURE h5dwrite_char_7 
-            MODULE PROCEDURE h5dwrite_real_scalar
-            MODULE PROCEDURE h5dwrite_real_1
-            MODULE PROCEDURE h5dwrite_real_2
-            MODULE PROCEDURE h5dwrite_real_3
-            MODULE PROCEDURE h5dwrite_real_4
-            MODULE PROCEDURE h5dwrite_real_5
-            MODULE PROCEDURE h5dwrite_real_6
-            MODULE PROCEDURE h5dwrite_real_7
-! Comment if on Crays
-            MODULE PROCEDURE h5dwrite_double_scalar
-            MODULE PROCEDURE h5dwrite_double_1
-            MODULE PROCEDURE h5dwrite_double_2
-            MODULE PROCEDURE h5dwrite_double_3
-            MODULE PROCEDURE h5dwrite_double_4
-            MODULE PROCEDURE h5dwrite_double_5
-            MODULE PROCEDURE h5dwrite_double_6
-            MODULE PROCEDURE h5dwrite_double_7
-! End comment if on Crays
-          END INTERFACE 
-          
-          INTERFACE h5dread_f
+     MODULE PROCEDURE h5dwrite_reference_obj
+     MODULE PROCEDURE h5dwrite_reference_dsetreg
+     MODULE PROCEDURE h5dwrite_integer_scalar
+     MODULE PROCEDURE h5dwrite_integer_1 
+     MODULE PROCEDURE h5dwrite_integer_2 
+     MODULE PROCEDURE h5dwrite_integer_3 
+     MODULE PROCEDURE h5dwrite_integer_4 
+     MODULE PROCEDURE h5dwrite_integer_5 
+     MODULE PROCEDURE h5dwrite_integer_6 
+     MODULE PROCEDURE h5dwrite_integer_7 
+     MODULE PROCEDURE h5dwrite_char_scalar
+     MODULE PROCEDURE h5dwrite_char_1 
+     MODULE PROCEDURE h5dwrite_char_2 
+     MODULE PROCEDURE h5dwrite_char_3 
+     MODULE PROCEDURE h5dwrite_char_4 
+     MODULE PROCEDURE h5dwrite_char_5 
+     MODULE PROCEDURE h5dwrite_char_6 
+     MODULE PROCEDURE h5dwrite_char_7 
+     MODULE PROCEDURE h5dwrite_real_scalar
+     MODULE PROCEDURE h5dwrite_real_1
+     MODULE PROCEDURE h5dwrite_real_2
+     MODULE PROCEDURE h5dwrite_real_3
+     MODULE PROCEDURE h5dwrite_real_4
+     MODULE PROCEDURE h5dwrite_real_5
+     MODULE PROCEDURE h5dwrite_real_6
+     MODULE PROCEDURE h5dwrite_real_7
+     ! Comment if on Crays
+     MODULE PROCEDURE h5dwrite_double_scalar
+     MODULE PROCEDURE h5dwrite_double_1
+     MODULE PROCEDURE h5dwrite_double_2
+     MODULE PROCEDURE h5dwrite_double_3
+     MODULE PROCEDURE h5dwrite_double_4
+     MODULE PROCEDURE h5dwrite_double_5
+     MODULE PROCEDURE h5dwrite_double_6
+     MODULE PROCEDURE h5dwrite_double_7
+     ! End comment if on Crays
+  END INTERFACE
 
-            MODULE PROCEDURE h5dread_reference_obj
-            MODULE PROCEDURE h5dread_reference_dsetreg
-            MODULE PROCEDURE h5dread_integer_scalar
-            MODULE PROCEDURE h5dread_integer_1 
-            MODULE PROCEDURE h5dread_integer_2 
-            MODULE PROCEDURE h5dread_integer_3 
-            MODULE PROCEDURE h5dread_integer_4 
-            MODULE PROCEDURE h5dread_integer_5 
-            MODULE PROCEDURE h5dread_integer_6 
-            MODULE PROCEDURE h5dread_integer_7 
-            MODULE PROCEDURE h5dread_char_scalar
-            MODULE PROCEDURE h5dread_char_1 
-            MODULE PROCEDURE h5dread_char_2 
-            MODULE PROCEDURE h5dread_char_3 
-            MODULE PROCEDURE h5dread_char_4 
-            MODULE PROCEDURE h5dread_char_5 
-            MODULE PROCEDURE h5dread_char_6 
-            MODULE PROCEDURE h5dread_char_7 
-            MODULE PROCEDURE h5dread_real_scalar
-            MODULE PROCEDURE h5dread_real_1
-            MODULE PROCEDURE h5dread_real_2
-            MODULE PROCEDURE h5dread_real_3
-            MODULE PROCEDURE h5dread_real_4
-            MODULE PROCEDURE h5dread_real_5
-            MODULE PROCEDURE h5dread_real_6
-            MODULE PROCEDURE h5dread_real_7
-! Comment if on Crays
-            MODULE PROCEDURE h5dread_double_scalar
-            MODULE PROCEDURE h5dread_double_1
-            MODULE PROCEDURE h5dread_double_2
-            MODULE PROCEDURE h5dread_double_3
-            MODULE PROCEDURE h5dread_double_4
-            MODULE PROCEDURE h5dread_double_5
-            MODULE PROCEDURE h5dread_double_6
-            MODULE PROCEDURE h5dread_double_7
-! End comment if on Crays
+  INTERFACE h5dread_f
 
-          END INTERFACE 
+     MODULE PROCEDURE h5dread_reference_obj
+     MODULE PROCEDURE h5dread_reference_dsetreg
+     MODULE PROCEDURE h5dread_integer_scalar
+     MODULE PROCEDURE h5dread_integer_1 
+     MODULE PROCEDURE h5dread_integer_2 
+     MODULE PROCEDURE h5dread_integer_3 
+     MODULE PROCEDURE h5dread_integer_4 
+     MODULE PROCEDURE h5dread_integer_5 
+     MODULE PROCEDURE h5dread_integer_6 
+     MODULE PROCEDURE h5dread_integer_7 
+     MODULE PROCEDURE h5dread_char_scalar
+     MODULE PROCEDURE h5dread_char_1 
+     MODULE PROCEDURE h5dread_char_2 
+     MODULE PROCEDURE h5dread_char_3 
+     MODULE PROCEDURE h5dread_char_4 
+     MODULE PROCEDURE h5dread_char_5 
+     MODULE PROCEDURE h5dread_char_6 
+     MODULE PROCEDURE h5dread_char_7 
+     MODULE PROCEDURE h5dread_real_scalar
+     MODULE PROCEDURE h5dread_real_1
+     MODULE PROCEDURE h5dread_real_2
+     MODULE PROCEDURE h5dread_real_3
+     MODULE PROCEDURE h5dread_real_4
+     MODULE PROCEDURE h5dread_real_5
+     MODULE PROCEDURE h5dread_real_6
+     MODULE PROCEDURE h5dread_real_7
+     ! Comment if on Crays
+     MODULE PROCEDURE h5dread_double_scalar
+     MODULE PROCEDURE h5dread_double_1
+     MODULE PROCEDURE h5dread_double_2
+     MODULE PROCEDURE h5dread_double_3
+     MODULE PROCEDURE h5dread_double_4
+     MODULE PROCEDURE h5dread_double_5
+     MODULE PROCEDURE h5dread_double_6
+     MODULE PROCEDURE h5dread_double_7
+     ! End comment if on Crays
 
-          INTERFACE h5dwrite_vl_f
-            MODULE PROCEDURE h5dwrite_vl_integer
-            MODULE PROCEDURE h5dwrite_vl_real
-            MODULE PROCEDURE h5dwrite_vl_string
-          END INTERFACE
+  END INTERFACE
 
-          INTERFACE h5dread_vl_f
-            MODULE PROCEDURE h5dread_vl_integer
-            MODULE PROCEDURE h5dread_vl_real
-            MODULE PROCEDURE h5dread_vl_string
-          END INTERFACE
+  INTERFACE h5dwrite_vl_f
+     MODULE PROCEDURE h5dwrite_vl_integer
+     MODULE PROCEDURE h5dwrite_vl_real
+     MODULE PROCEDURE h5dwrite_vl_string
+  END INTERFACE
 
-          INTERFACE h5dfill_f
-            MODULE PROCEDURE h5dfill_integer
-            MODULE PROCEDURE h5dfill_real
-            MODULE PROCEDURE h5dfill_double
-            MODULE PROCEDURE h5dfill_char
-          END INTERFACE
+  INTERFACE h5dread_vl_f
+     MODULE PROCEDURE h5dread_vl_integer
+     MODULE PROCEDURE h5dread_vl_real
+     MODULE PROCEDURE h5dread_vl_string
+  END INTERFACE
+
+  INTERFACE h5dfill_f
+     MODULE PROCEDURE h5dfill_integer
+     MODULE PROCEDURE h5dfill_real
+     MODULE PROCEDURE h5dfill_double
+     MODULE PROCEDURE h5dfill_char
+  END INTERFACE
 
 
-        CONTAINS
+CONTAINS
           
 !----------------------------------------------------------------------
 ! Name:		h5dcreate_f 
@@ -143,59 +143,90 @@
 ! Programmer:	Elena Pourmal
 !		August 12, 1999	
 !
-! Modifications: 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  February 28, 2001 
+! Modifications: 	
+!                 - Explicit Fortran interfaces were added for 
+!	           called C functions (it is needed for Windows
+!		   port).  February 28, 2001 
+!
+!                 - Added vesion's 1.8 new optional parameters
+!                  February, 2008
 !
 ! Comment:		
 !----------------------------------------------------------------------
   
-          SUBROUTINE h5dcreate_f(loc_id, name, type_id, space_id, dset_id, & 
-                                 hdferr, creation_prp)
+  SUBROUTINE h5dcreate_f(loc_id, name, type_id, space_id, dset_id, & 
+       hdferr, optional_id1, optional_id2, optional_id3)
+
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5dcreate_f
 !DEC$endif
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier 
-            CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of the dataset 
-            INTEGER(HID_T), INTENT(IN) :: type_id  ! Datatype identifier 
-            INTEGER(HID_T), INTENT(IN) :: space_id ! Dataspace identifier 
-            INTEGER(HID_T), INTENT(OUT) :: dset_id ! Dataset identifier 
-            INTEGER, INTENT(OUT) :: hdferr         ! Error code 
-            INTEGER(HID_T), OPTIONAL, INTENT(IN) :: creation_prp 
-                                                   ! Dataset creation propertly
-                                                   ! list identifier
-            INTEGER(HID_T) :: creation_prp_default
-            INTEGER :: namelen                     ! Name length
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier 
+    CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of the dataset 
+    INTEGER(HID_T), INTENT(IN) :: type_id  ! Datatype identifier 
+    INTEGER(HID_T), INTENT(IN) :: space_id ! Dataspace identifier 
+    INTEGER(HID_T), INTENT(OUT) :: dset_id ! Dataset identifier 
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code
 
-!            INTEGER, EXTERNAL :: h5dcreate_c
+    ! NOTE: Optional parameters only take on a meaning depending on how many are present
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: optional_id1 ! lcpl_id_default (v1.8) or dcpl_id_default
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: optional_id2 ! dcpl_id_default (v1.8)
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: optional_id3 ! dapl_id_default (v1.8)
+
+    INTEGER(HID_T) :: lcpl_id_default 
+    INTEGER(HID_T) :: dcpl_id_default
+    INTEGER(HID_T) :: dapl_id_default
+
+    INTEGER :: namelen                     ! Name length
+
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5dcreate_c(loc_id, name, namelen, type_id, &
-                                           space_id, creation_prp_default, dset_id)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DCREATE_C'::h5dcreate_c
-              !DEC$ ENDIF
-              !DEC$ATTRIBUTES reference :: name
-              INTEGER(HID_T), INTENT(IN) :: loc_id
-              CHARACTER(LEN=*), INTENT(IN) :: name
-              INTEGER :: namelen
-              INTEGER(HID_T), INTENT(IN) :: type_id
-              INTEGER(HID_T), INTENT(IN) :: space_id
-              INTEGER(HID_T) :: creation_prp_default
-              INTEGER(HID_T), INTENT(OUT) :: dset_id
-              END FUNCTION h5dcreate_c
-            END INTERFACE
+    INTERFACE
+       INTEGER FUNCTION h5dcreate_c(loc_id, name, namelen, type_id, &
+            space_id, lcpl_id_default, dcpl_id_default, dapl_id_default, dset_id)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DCREATE_C'::h5dcreate_c
+         !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference :: name
+         INTEGER(HID_T), INTENT(IN) :: loc_id
+         CHARACTER(LEN=*), INTENT(IN) :: name
+         INTEGER :: namelen
+         INTEGER(HID_T), INTENT(IN) :: type_id
+         INTEGER(HID_T), INTENT(IN) :: space_id
 
-            creation_prp_default = H5P_DEFAULT_F
-            if (present(creation_prp)) creation_prp_default = creation_prp 
-            namelen = LEN(name)
-            hdferr = h5dcreate_c(loc_id, name, namelen, type_id, space_id, & 
-                                 creation_prp_default, dset_id) 
-          END SUBROUTINE h5dcreate_f
+         INTEGER(HID_T) :: lcpl_id_default 
+         INTEGER(HID_T) :: dcpl_id_default
+         INTEGER(HID_T) :: dapl_id_default
+
+         INTEGER(HID_T), INTENT(OUT) :: dset_id
+       END FUNCTION h5dcreate_c
+    END INTERFACE
+    
+    lcpl_id_default = H5P_DEFAULT_F
+    dcpl_id_default = H5P_DEFAULT_F
+    dapl_id_default = H5P_DEFAULT_F
+    
+    IF( PRESENT(optional_id1).AND.  &
+         PRESENT(optional_id2).AND. &
+         PRESENT(optional_id3)       )THEN ! Version 1.8 Specs.
+
+       lcpl_id_default = optional_id1
+       dcpl_id_default = optional_id2
+       dapl_id_default = optional_id3
+
+    ELSE IF( PRESENT(optional_id1) )THEN ! Pre-Version 1.8 Specs.
+
+       dcpl_id_default = optional_id1
+
+    ENDIF
+
+    namelen = LEN(name)
+    hdferr = h5dcreate_c(loc_id, name, namelen, type_id, space_id, & 
+         lcpl_id_default, dcpl_id_default, dapl_id_default, dset_id)
+ 
+  END SUBROUTINE h5dcreate_f
           
 !----------------------------------------------------------------------
 ! Name:		h5dopen_f 
@@ -211,19 +242,22 @@
 !				 	Success:  0
 !				 	Failure: -1   
 ! Optional parameters:
-!				NONE			
+!	       dapl_id	        - Dataset access property list		
 !
 ! Programmer:	Elena Pourmal
 !		August 12, 1999	
 !
-! Modifications: 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  February 28, 2001 
+! Modifications:  -Explicit Fortran interfaces were added for 
+!		   called C functions (it is needed for Windows
+!		   port).  February 28, 2001 
+!
+!                 -Added 1.8 (optional) parameter dapl_id
+!                  February, 2008, M.S. Breitenfeld
 !
 ! Comment:		
 !----------------------------------------------------------------------
 
-          SUBROUTINE h5dopen_f(loc_id, name, dset_id, hdferr)
+          SUBROUTINE h5dopen_f(loc_id, name, dset_id, hdferr, dapl_id)
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5dopen_f
@@ -231,15 +265,18 @@
             IMPLICIT NONE
             INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier 
             CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of the dataset 
-            INTEGER(HID_T), INTENT(OUT) :: dset_id ! Dataset identifier 
+            INTEGER(HID_T), INTENT(OUT) :: dset_id ! Dataset identifier
+            INTEGER(HID_T), OPTIONAL, INTENT(IN) :: dapl_id ! Dataset access property list
             INTEGER, INTENT(OUT) :: hdferr         ! Error code 
             INTEGER :: namelen                     ! Name length
+
+            INTEGER(HID_T) :: dapl_id_default
 
 !            INTEGER, EXTERNAL :: h5dopen_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
             INTERFACE
-              INTEGER FUNCTION h5dopen_c(loc_id, name, namelen, dset_id)
+              INTEGER FUNCTION h5dopen_c(loc_id, name, namelen, dapl_id_default, dset_id)
               USE H5GLOBAL
               !DEC$ IF DEFINED(HDF5F90_WINDOWS)
               !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DOPEN_C'::h5dopen_c
@@ -248,12 +285,17 @@
               INTEGER(HID_T), INTENT(IN) :: loc_id
               CHARACTER(LEN=*), INTENT(IN) :: name
               INTEGER :: namelen
+              INTEGER(HID_T), INTENT(IN) :: dapl_id_default
               INTEGER(HID_T), INTENT(OUT) :: dset_id
               END FUNCTION h5dopen_c
             END INTERFACE
 
+            dapl_id_default = H5P_DEFAULT_F
+
+            IF(PRESENT(dapl_id)) dapl_id_default = dapl_id
+
             namelen = LEN(name)
-            hdferr = h5dopen_c(loc_id, name, namelen, dset_id) 
+            hdferr = h5dopen_c(loc_id, name, namelen, dapl_id_default, dset_id) 
 
           END SUBROUTINE h5dopen_f
           
