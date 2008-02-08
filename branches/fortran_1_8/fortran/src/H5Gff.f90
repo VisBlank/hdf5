@@ -16,13 +16,19 @@
 !
 ! This file contains Fortran90 interfaces for H5F functions.
 ! 
-      MODULE H5G
-      USE H5GLOBAL
- 
-        CONTAINS
+MODULE H5G
+  USE H5GLOBAL
+
+  PRIVATE:: h5gcreate1_f, h5gcreate2_f
+
+  INTERFACE h5gcreate_f
+     MODULE PROCEDURE h5gcreate1_f, h5gcreate2_f
+  END INTERFACE
+
+CONTAINS
           
 !----------------------------------------------------------------------
-! Name:		h5gcreate_f 
+! Name:		h5gcreate1_f 
 !
 ! Purpose:	Creates a new group. 
 !
@@ -48,7 +54,7 @@
 !
 ! Comment:		
 !----------------------------------------------------------------------
-          SUBROUTINE h5gcreate_f(loc_id, name, grp_id, hdferr, size_hint)
+  SUBROUTINE h5gcreate1_f(loc_id, name, grp_id, hdferr, size_hint)
 !
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
@@ -56,46 +62,133 @@
 !DEC$endif
 !
            
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier 
-            CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of the group 
-            INTEGER(HID_T), INTENT(OUT) :: grp_id  ! Group identifier 
-            INTEGER, INTENT(OUT) :: hdferr         ! Error code 
-            INTEGER(SIZE_T), OPTIONAL, INTENT(IN) :: size_hint 
-                                                   ! Parameter indicating
-                                                   ! the number of bytes
-                                                   ! to reserve for the
-                                                   ! names that will appear
-                                                   ! in the group  
-            INTEGER :: namelen ! Length of the name character string
-            INTEGER(SIZE_T) :: size_hint_default 
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier 
+    CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of the group 
+    INTEGER(HID_T), INTENT(OUT) :: grp_id  ! Group identifier 
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code 
+    INTEGER(SIZE_T), OPTIONAL, INTENT(IN) :: size_hint 
+                                           ! Parameter indicating
+                                           ! the number of bytes
+                                           ! to reserve for the
+                                           ! names that will appear
+                                           ! in the group  
+    INTEGER :: namelen ! Length of the name character string
+    INTEGER(SIZE_T) :: size_hint_default 
 
-!            INTEGER, EXTERNAL :: h5gcreate_c
+    INTEGER(HID_T) :: lcpl_id  ! Property list for link creation
+    INTEGER(HID_T) :: gcpl_id  ! Property list for group creation
+    INTEGER(HID_T) :: gapl_id  ! Property list for group access
+
+
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5gcreate_c(loc_id, name, namelen, &
-                               size_hint_default, grp_id)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5GCREATE_C'::h5gcreate_c
-              !DEC$ ENDIF
-              !DEC$ATTRIBUTES reference :: name
-              INTEGER(HID_T), INTENT(IN) :: loc_id
-              CHARACTER(LEN=*), INTENT(IN) :: name
-              INTEGER :: namelen
-              INTEGER(SIZE_T) :: size_hint_default
-              INTEGER(HID_T), INTENT(OUT) :: grp_id
-              END FUNCTION h5gcreate_c
-            END INTERFACE
+    INTERFACE
+       INTEGER FUNCTION h5gcreate_c(loc_id, name, namelen, &
+            size_hint_default, grp_id, lcpl_id, gcpl_id, gapl_id)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5GCREATE_C'::h5gcreate_c
+         !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference :: name
+         INTEGER(HID_T), INTENT(IN) :: loc_id
+         CHARACTER(LEN=*), INTENT(IN) :: name
+         INTEGER :: namelen
+         INTEGER(SIZE_T) :: size_hint_default
+         INTEGER(HID_T), INTENT(OUT) :: grp_id
+         INTEGER(HID_T) :: lcpl_id
+         INTEGER(HID_T) :: gcpl_id
+         INTEGER(HID_T) :: gapl_id
+       END FUNCTION h5gcreate_c
+    END INTERFACE
 
-            size_hint_default = OBJECT_NAMELEN_DEFAULT_F 
-            if (present(size_hint)) size_hint_default = size_hint 
-            namelen = LEN(name)
-            hdferr = h5gcreate_c(loc_id, name, namelen, size_hint_default, &
-                                 grp_id)
+    size_hint_default = OBJECT_NAMELEN_DEFAULT_F 
+    IF (PRESENT(size_hint)) size_hint_default = size_hint 
+    namelen = LEN(name)
 
-          END SUBROUTINE h5gcreate_f
+    lcpl_id = H5P_DEFAULT_F
+    gcpl_id = H5P_DEFAULT_F
+    gapl_id = H5P_DEFAULT_F
+
+    hdferr = h5gcreate_c(loc_id, name, namelen, size_hint_default, grp_id, &
+         lcpl_id, gcpl_id, gapl_id)
+
+  END SUBROUTINE h5gcreate1_f
+
+!----------------------------------------------------------------------
+! Name:		h5gcreate2_f 
+!
+! Purpose:	Creates a new group. 
+!
+! Inputs:  
+!		loc_id		- location identifier
+!		name		- group name at the specified location
+! Outputs:  
+!		grp_id		- group identifier
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!		size_hint	- a parameter indicating the number of bytes 
+!				  to reserve for the names that will appear 
+!				  in the group
+!
+! Programmer:	Elena Pourmal
+!		August 12, 1999	
+!
+! Modifications: 	Explicit Fortran interfaces were added for 
+!			called C functions (it is needed for Windows
+!			port).  March 5, 2001 
+!
+! Comment:		
+!----------------------------------------------------------------------
+  SUBROUTINE h5gcreate2_f(loc_id, name, lcpl_id, gcpl_id, gapl_id, grp_id, &
+       hdferr)
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5gcreate_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier 
+    CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of the group
+    INTEGER(HID_T), INTENT(IN) :: lcpl_id  ! Property list for link creation
+    INTEGER(HID_T), INTENT(IN) :: gcpl_id  ! Property list for group creation
+    INTEGER(HID_T), INTENT(IN) :: gapl_id  ! Property list for group access
+    INTEGER(HID_T), INTENT(OUT) :: grp_id  ! Group identifier 
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code
+
+    INTEGER :: namelen ! Length of the name character string
+
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5gcreate_c(loc_id, name, namelen, &
+            OBJECT_NAMELEN_DEFAULT_F, grp_id, lcpl_id, gcpl_id, gapl_id)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5GCREATE_C'::h5gcreate_c
+         !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference :: name
+         INTEGER(HID_T), INTENT(IN) :: loc_id
+         CHARACTER(LEN=*), INTENT(IN) :: name
+         INTEGER :: namelen
+         INTEGER(SIZE_T) :: OBJECT_NAMELEN_DEFAULT_F
+         INTEGER(HID_T), INTENT(IN) :: lcpl_id
+         INTEGER(HID_T), INTENT(IN) :: gcpl_id
+         INTEGER(HID_T), INTENT(IN) :: gapl_id
+         INTEGER(HID_T), INTENT(OUT) :: grp_id
+       END FUNCTION h5gcreate_c
+    END INTERFACE
+
+    namelen = LEN(name)
+
+    hdferr = h5gcreate_c(loc_id, name, namelen, OBJECT_NAMELEN_DEFAULT_F, grp_id, &
+         lcpl_id, gcpl_id, gapl_id)
+
+  END SUBROUTINE h5gcreate2_f
+
 
 !----------------------------------------------------------------------
 ! Name:		h5gopen_f 
