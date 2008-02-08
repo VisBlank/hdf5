@@ -975,7 +975,7 @@ nh5aget_name_c(hid_t_f *attr_id, size_t_f *bufsize, _fcd buf)
      /*
       * Allocate buffer to hold name of an attribute
       */
-     if ((c_buf = HDmalloc((size_t)*bufsize +1)) == NULL)
+     if ((c_buf = HDmalloc((size_t)*bufsize)) == NULL)
          HGOTO_DONE(FAIL);
 
      /*
@@ -1045,9 +1045,12 @@ done:
  * Purpose:   Calls H5Arename_by_name
  * Inputs:    loc_id        - Object identifier 
  *            obj_name      - Name of object, relative to location, 
- *                              whose attribute is to be renamed
- *            old_attr_name - Prior attribute name
- *            new_attr_name - New attribute name
+ *                             whose attribute is to be renamed
+ *            obj_name_len      - Object name length
+ *            old_attr_name     - Prior attribute name
+ *            old_attr_name_len - Prior attribute name length
+ *            new_attr_name     - New attribute name
+ *            new_attr_name_len - New attribute name length
  *            lapl_id       - Link access property list identifier
  * Outputs:     N/A
  * Returns:     0 on success, -1 on failure
@@ -1591,4 +1594,174 @@ done:
   if(c_attr_name)
     HDfree(c_attr_name);
   return ret_value;
+}
+
+/*----------------------------------------------------------------------------
+ * Name:        h5aexists_c
+ * Purpose:     CAll h5aexists 
+ * Inputs:
+ *             obj_id - Object identifier
+ *          attr_name - Attribute name
+ * Outputs:
+ *     attr_exists_c  - returns a positive value, for TRUE, or 0 (zero), for FALSE.
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              February, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+int_f
+nh5aexists_c (hid_t_f *obj_id, _fcd name, size_t_f *namelen, hid_t_f *attr_exists)
+{
+  char *c_name = NULL;          /* Buffer to hold C string */
+  int_f ret_value = 0;          /* Return value */
+
+  /*
+   * Convert FORTRAN name to C name
+   */
+  if((c_name = HD5f2cstring(name, (size_t)*namelen)) == NULL)
+    HGOTO_DONE(FAIL);
+
+  /*
+   * Call H5Aexists function.
+   */
+  if((*attr_exists = (hid_t_f)H5Aexists((hid_t)*obj_id, c_name)) < 0)
+         HGOTO_DONE(FAIL);
+
+done:
+    if(c_name)
+        HDfree(c_name);
+    return ret_value;
+}
+
+/*----------------------------------------------------------------------------
+ * Name:        h5aexists_by_name_c
+ * Purpose:     CAll H5Aexists_by_name 
+ * Inputs:
+ *     loc_id - Location identifier
+ *   obj_name - Object name either relative to loc_id, absolute from the file’s root group, or '.' (a dot)
+ *  attr_name - Attribute name
+ *    lapl_id - Link access property list identifier
+ * Outputs:
+ *     attr_exists_c  - returns a positive value, for TRUE, or 0 (zero), for FALSE.
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              February, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+int_f
+nh5aexists_by_name_c (hid_t_f *loc_id, _fcd obj_name, size_t_f *obj_namelen, _fcd attr_name, size_t_f *attr_namelen, 
+		      hid_t_f *lapl_id, hid_t_f *attr_exists)
+{
+  char *c_obj_name = NULL;          /* Buffer to hold object name C string */
+  char *c_attr_name = NULL;          /* Buffer to hold attribute name C string */
+  int_f ret_value = 0;          /* Return value */
+
+  /*
+   * Convert FORTRAN name to C name
+   */
+  if((c_obj_name = HD5f2cstring(obj_name, (size_t)*obj_namelen)) == NULL)
+    HGOTO_DONE(FAIL);
+  if((c_attr_name = HD5f2cstring(attr_name, (size_t)*attr_namelen)) == NULL)
+    HGOTO_DONE(FAIL);
+
+  /*
+   * Call H5Aexists_by_name function.
+   */
+  if((*attr_exists = (hid_t_f)H5Aexists_by_name((hid_t)*loc_id, c_obj_name, c_attr_name, (hid_t)*lapl_id)) < 0)
+         HGOTO_DONE(FAIL);
+
+done:
+    if(c_obj_name)
+        HDfree(c_obj_name);
+    if(c_attr_name)
+        HDfree(c_attr_name);
+    return ret_value;
+}
+
+/*----------------------------------------------------------------------------
+ * Name:        h5aopen_by_name_c
+ * Purpose:     Call H5Aopen_by_name 
+ * Inputs:
+ *     loc_id - Location identifier
+ *   obj_name - Object name either relative to loc_id, absolute from the file’s root group, or '.' (a dot)
+ *  attr_name - Attribute name
+ *    aapl_id - Attribute access property list (Currently unused; should be passed in as H5P_DEFAULT.)
+ *    lapl_id - Link access property list identifier
+ * Outputs:
+ *     attr_id  - attribute identifier
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              February, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+int_f
+nh5aopen_by_name_c (hid_t_f *loc_id, _fcd obj_name, size_t_f *obj_namelen, _fcd attr_name, size_t_f *attr_namelen, 
+		    hid_t_f *aapl_id, hid_t_f *lapl_id, hid_t_f *attr_id)
+{
+  char *c_obj_name = NULL;          /* Buffer to hold object name C string */
+  char *c_attr_name = NULL;          /* Buffer to hold attribute name C string */
+  int_f ret_value = 0;          /* Return value */
+
+  /*
+   * Convert FORTRAN name to C name
+   */
+  if((c_obj_name = HD5f2cstring(obj_name, (size_t)*obj_namelen)) == NULL)
+    HGOTO_DONE(FAIL);
+  if((c_attr_name = HD5f2cstring(attr_name, (size_t)*attr_namelen)) == NULL)
+    HGOTO_DONE(FAIL);
+
+  /*
+   * Call H5Aopen function.
+   */
+  if((*attr_id = (hid_t_f)H5Aopen_by_name((hid_t)*loc_id, c_obj_name, c_attr_name, (hid_t)*aapl_id, (hid_t)*lapl_id)) < 0)
+    HGOTO_DONE(FAIL);
+
+ done:
+  if(c_obj_name)
+    HDfree(c_obj_name);
+  if(c_attr_name)
+    HDfree(c_attr_name);
+  return ret_value;
+}
+
+/*----------------------------------------------------------------------------
+ * Name:      h5arename_c
+ * Purpose:   Calls H5Arename
+ * Inputs:    loc_id            - Object identifier
+ *            old_attr_name     - Prior attribute name
+ *            old_attr_name_len - Prior attribute name length
+ *            new_attr_name     - New attribute name
+ *            new_attr_name_len - New attribute name length
+ * Outputs:     N/A
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M. S. Breitenfeld
+ *              January, 2007
+ * Modifications: N/A
+ *---------------------------------------------------------------------------*/
+
+int_f
+nh5arename_c( hid_t_f *loc_id, 
+		      _fcd old_attr_name, size_t_f *old_attr_namelen,
+		      _fcd new_attr_name, size_t_f *new_attr_namelen)
+{
+  char *c_old_attr_name = NULL;     /* Buffer to hold C string */
+  char *c_new_attr_name = NULL;     /* Buffer to hold C string */
+  int_f ret_value=0;          /* Return value */
+  /*
+   * Convert FORTRAN name to C name
+   */ 
+  if((c_old_attr_name = HD5f2cstring(old_attr_name, (size_t)*old_attr_namelen)) == NULL)
+    HGOTO_DONE(FAIL);  
+  if((c_new_attr_name = HD5f2cstring(new_attr_name, (size_t)*new_attr_namelen)) == NULL)
+    HGOTO_DONE(FAIL);
+
+    if(H5Arename((hid_t)*loc_id,c_old_attr_name,c_new_attr_name) < 0)
+        HGOTO_DONE(FAIL);
+
+done:
+    if(c_old_attr_name)
+      HDfree(c_old_attr_name);
+    if(c_new_attr_name)
+      HDfree(c_new_attr_name);
+    return ret_value;
 }

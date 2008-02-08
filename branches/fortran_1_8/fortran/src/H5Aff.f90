@@ -24,9 +24,6 @@ MODULE H5A
 !for bug #670 does not work. I have to use DEC compilation directives to make
 !Windows DEC Visual Fortran and OSF compilers happy and do right things.
 !						05/01/02 EP
-!!$          INTERFACE h5acreate_f
-!!$             MODULE PROCEDURE h5acreate2_f
-!!$          END INTERFACE
 !
   INTERFACE h5awrite_f
 
@@ -2742,37 +2739,37 @@ CONTAINS
 !----------------------------------------------------------------------
 
 
-          SUBROUTINE h5aget_name_f(attr_id, size, buf, hdferr) 
+  SUBROUTINE h5aget_name_f(attr_id, size, buf, hdferr) 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5aget_name_f
 !DEC$endif
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: attr_id  ! Attribute identifier 
-            INTEGER(SIZE_T), INTENT(IN) :: size            ! Buffer size 
-            CHARACTER(LEN=*), INTENT(INOUT) :: buf   
-                                               ! Buffer to hold attribute name
-            INTEGER, INTENT(OUT) :: hdferr         ! Error code:
-                                                   ! name length is successful,
-                                                   ! -1 if fail
-!            INTEGER, EXTERNAL :: h5aget_name_c
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: attr_id  ! Attribute identifier 
+    INTEGER(SIZE_T), INTENT(IN) :: size    ! Buffer size 
+    CHARACTER(LEN=*), INTENT(INOUT) :: buf   
+                                           ! Buffer to hold attribute name
+    INTEGER, INTENT(OUT) :: hdferr ! Error code:
+                                   ! name length is successful,
+                                   ! -1 if fail
+
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5aget_name_c(attr_id, size, buf)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AGET_NAME_C'::h5aget_name_c
-              !DEC$ ENDIF
-              !DEC$ATTRIBUTES reference :: buf
-              INTEGER(HID_T), INTENT(IN) :: attr_id
-              INTEGER(SIZE_T), INTENT(IN) :: size
-              CHARACTER(LEN=*), INTENT(OUT) :: buf
-              END FUNCTION h5aget_name_c
-            END INTERFACE
-
-            hdferr = h5aget_name_c(attr_id, size, buf)
-          END SUBROUTINE h5aget_name_f
+    INTERFACE
+       INTEGER FUNCTION h5aget_name_c(attr_id, size, buf)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AGET_NAME_C'::h5aget_name_c
+         !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference :: buf
+         INTEGER(HID_T), INTENT(IN) :: attr_id
+         INTEGER(SIZE_T), INTENT(IN) :: size
+         CHARACTER(LEN=*), INTENT(OUT) :: buf
+       END FUNCTION h5aget_name_c
+    END INTERFACE
+    
+    hdferr = h5aget_name_c(attr_id, size, buf)
+  END SUBROUTINE h5aget_name_f
 
 !----------------------------------------------------------------------
 ! Name:		h5aget_name_by_idx_f
@@ -2875,7 +2872,9 @@ CONTAINS
          INTEGER(SIZE_T) :: obj_namelen
        END FUNCTION h5aget_name_by_idx_c
     END INTERFACE
-    
+
+    obj_namelen = LEN(obj_name)
+
     hdferr = h5aget_name_by_idx_c(loc_id, obj_name, obj_namelen, idx_type, order, &
             n, name, size, lapl_id)
 
@@ -3815,7 +3814,8 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: lapl_id  ! Link access property list
 
     INTEGER(HID_T), INTENT(OUT) :: attr ! an attribute identifier
-    INTEGER, INTENT(OUT) :: hdferr         ! Error code
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code:
+                                           ! 0 on success and -1 on failure
 
     INTEGER(SIZE_T)  :: obj_namelen
     INTEGER(SIZE_T)  :: attr_namelen
@@ -3851,6 +3851,278 @@ CONTAINS
          type_id, space_id, acpl_id, aapl_id, lapl_id, attr)
 
   END SUBROUTINE h5acreate_by_name_f
+
+!----------------------------------------------------------------------
+! Name:	        H5Aexists_f	
+!
+! Purpose:  	Determines whether an attribute with a given name exists on an object
+!		
+! Inputs:
+!                 obj_id - Object identifier
+!              attr_name - Attribute name
+!
+! Outputs:
+!       attr_exists  - attribute exists status
+!            hdferr  - error code		
+!		         Success:  0
+!		         Failure: -1 
+! Optional parameters:
+!				NONE			
+!
+! Programmer:	M. S. Breitenfeld
+!		February, 2008	
+!
+! Modifications:  N/A
+!
+!----------------------------------------------------------------------
+  SUBROUTINE h5aexists_f(obj_id, attr_name, attr_exists, hdferr)
+
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5aexists_f
+!DEC$endif
+
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: obj_id     ! Object identifier
+    CHARACTER(LEN=*), INTENT(IN) :: attr_name ! Attribute name
+    LOGICAL, INTENT(OUT) :: attr_exists ! .TRUE. if exists, .FALSE. otherwise
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code:
+                                           ! 0 on success and -1 on failure
+    INTEGER :: attr_exists_c
+    INTEGER(SIZE_T)  :: attr_namelen
+!
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5aexists_c(obj_id, attr_name, attr_namelen, attr_exists_c)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AEXISTS_C'::h5aexists_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: obj_id
+         CHARACTER(LEN=*), INTENT(IN) :: attr_name
+         INTEGER(SIZE_T), INTENT(IN) :: attr_namelen
+         INTEGER(HID_T), INTENT(OUT) :: attr_exists_c
+       END FUNCTION h5aexists_c
+    END INTERFACE
+
+    attr_namelen = LEN(attr_name)
+
+    hdferr = h5aexists_c(obj_id, attr_name, attr_namelen, attr_exists_c)
+
+    attr_exists = .FALSE.
+    IF(attr_exists_c.GT.0) attr_exists = .TRUE. 
+
+  END SUBROUTINE h5aexists_f
+
+!----------------------------------------------------------------------
+! Name:	        H5Aexists_by_name_f	
+!
+! Purpose:  	Determines whether an attribute with a given name exists on an object
+!		
+! Inputs:
+!     loc_id - Location identifier
+!   obj_name - Object name either relative to loc_id, absolute from the file’s root group, or '.' (a dot)
+!  attr_name - Attribute name
+!    lapl_id - Link access property list identifier
+!
+! Outputs:
+!       attr_exists  - attribute exists status
+!            hdferr  - error code		
+!		         Success:  0
+!		         Failure: -1 
+! Optional parameters:
+!				NONE			
+!
+! Programmer:	M. S. Breitenfeld
+!		February, 2008	
+!
+! Modifications:  N/A
+!
+!----------------------------------------------------------------------
+  SUBROUTINE h5aexists_by_name_f(loc_id, obj_name, attr_name, lapl_id, attr_exists, hdferr)
+
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5aexists_by_name_f
+!DEC$endif
+
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id    ! Location identifier
+    CHARACTER(LEN=*), INTENT(IN) :: obj_name ! Object name either relative to loc_id, 
+                                             ! absolute from the file’s root group, or '.'
+    CHARACTER(LEN=*), INTENT(IN) :: attr_name ! Attribute name
+    INTEGER(HID_T), INTENT(IN) :: lapl_id ! Link access property list identifier
+    LOGICAL, INTENT(OUT) :: attr_exists ! .TRUE. if exists, .FALSE. otherwise
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code:
+                                           ! 0 on success and -1 on failure
+    INTEGER :: attr_exists_c
+    INTEGER(SIZE_T)  :: obj_namelen
+    INTEGER(SIZE_T)  :: attr_namelen
+!
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5aexists_by_name_c(loc_id, obj_name, obj_namelen, attr_name, attr_namelen, lapl_id, attr_exists_c)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AEXISTS_by_name_C'::h5aexists_by_name_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: loc_id  
+         CHARACTER(LEN=*), INTENT(IN) :: obj_name
+         INTEGER(SIZE_T), INTENT(IN) :: obj_namelen
+         CHARACTER(LEN=*), INTENT(IN) :: attr_name
+         INTEGER(SIZE_T), INTENT(IN) :: attr_namelen
+         INTEGER(HID_T), INTENT(IN) :: lapl_id
+         INTEGER(HID_T), INTENT(OUT) :: attr_exists_c
+       END FUNCTION h5aexists_by_name_c
+    END INTERFACE
+
+    attr_namelen = LEN(attr_name)
+    obj_namelen = LEN(obj_name)
+
+    hdferr = h5aexists_by_name_c(loc_id, obj_name, obj_namelen, attr_name, attr_namelen, lapl_id, attr_exists_c)
+
+    attr_exists = .FALSE.
+    IF(attr_exists_c.GT.0) attr_exists = .TRUE. 
+
+  END SUBROUTINE h5aexists_by_name_f
+!----------------------------------------------------------------------
+! Name:	        H5Aopen_by_name_f	
+!
+! Purpose:  	Opens an attribute for an object by object name and attribute name.
+!		
+! Inputs:
+!     loc_id - Location from which to find object to which attribute is attached 
+!   obj_name - Object name either relative to loc_id, absolute from the file’s root group, or '.' (a dot)
+!  attr_name - Attribute name
+!    aapl_id - Attribute access property list (Currently unused; should be passed in as H5P_DEFAULT.)
+!    lapl_id - Link access property list identifier
+!
+! Outputs:
+!       attr_id  - attribute identifier
+!        hdferr  - error code		
+!		         Success:  0
+!		         Failure: -1 
+! Optional parameters:
+!				NONE			
+!
+! Programmer:	M. S. Breitenfeld
+!		February, 2008	
+!
+! Modifications:  N/A
+!
+!----------------------------------------------------------------------
+  SUBROUTINE h5aopen_by_name_f(loc_id, obj_name, attr_name, aapl_id, lapl_id, attr_id, hdferr)
+
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport ::  h5aopen_by_name_f
+!DEC$endif
+
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id    ! Location identifier
+    CHARACTER(LEN=*), INTENT(IN) :: obj_name ! Object name either relative to loc_id, 
+                                             ! absolute from the file’s root group, or '.'
+    CHARACTER(LEN=*), INTENT(IN) :: attr_name ! Attribute name
+    INTEGER(HID_T), INTENT(IN) :: aapl_id ! Attribute access property list 
+                                          ! (Currently unused; should be passed in as H5P_DEFAULT.)
+    INTEGER(HID_T), INTENT(IN) :: lapl_id ! Link access property list identifier
+    INTEGER(HID_T), INTENT(OUT) :: attr_id       ! Attribute identifier
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code:
+                                           ! 0 on success and -1 on failure
+    INTEGER(SIZE_T)  :: obj_namelen
+    INTEGER(SIZE_T)  :: attr_namelen
+!
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5aopen_by_name_c(loc_id, obj_name, obj_namelen, attr_name, attr_namelen, aapl_id, lapl_id, attr_id)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AOPEN_by_name_C'::h5aopen_by_name_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: loc_id  
+         CHARACTER(LEN=*), INTENT(IN) :: obj_name
+         INTEGER(SIZE_T), INTENT(IN) :: obj_namelen
+         CHARACTER(LEN=*), INTENT(IN) :: attr_name
+         INTEGER(SIZE_T), INTENT(IN) :: attr_namelen
+         INTEGER(HID_T), INTENT(IN) :: aapl_id
+         INTEGER(HID_T), INTENT(IN) :: lapl_id
+         INTEGER(HID_T), INTENT(OUT) :: attr_id
+       END FUNCTION h5aopen_by_name_c
+    END INTERFACE
+
+    attr_namelen = LEN(attr_name)
+    obj_namelen = LEN(obj_name)
+
+    hdferr = h5aopen_by_name_c(loc_id, obj_name, obj_namelen, attr_name, attr_namelen, aapl_id, lapl_id, attr_id)
+
+  END SUBROUTINE h5aopen_by_name_f
+
+!----------------------------------------------------------------------
+! Name:		h5arename_f 
+!
+! Purpose: 	Renames an attribute
+!
+! Inputs:  
+!		loc_id        - Location or object identifier; may be dataset or group
+!               old_attr_name - Prior attribute name
+!               new_attr_name - New attribute name
+!
+! Outputs:
+!		hdferr:	      - error code		
+!				 	Success:  0
+!				 	Failure: -1   			
+!
+! Programmer:	M.S. Breitenfeld
+!		January, 2008	
+!
+! Modifications: N/A
+!
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5arename_f(loc_id, old_attr_name, new_attr_name, hdferr) 
+
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5arename_f
+!DEC$endif
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id    ! Object identifier
+    CHARACTER(LEN=*), INTENT(IN) :: old_attr_name ! Prior attribute name
+    CHARACTER(LEN=*), INTENT(IN) :: new_attr_name ! New attribute name
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code:
+                                         ! 0 on success and -1 on failure
+    INTEGER(SIZE_T) :: old_attr_namelen
+    INTEGER(SIZE_T) :: new_attr_namelen
+    
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5arename_c(loc_id, &
+            old_attr_name, old_attr_namelen, new_attr_name, new_attr_namelen)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5ARENAME_C'::h5arename_c
+         !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference :: old_attr_name, new_attr_name
+         INTEGER(HID_T), INTENT(IN) :: loc_id
+         CHARACTER(LEN=*), INTENT(IN) :: old_attr_name
+         INTEGER(SIZE_T) :: old_attr_namelen
+         CHARACTER(LEN=*), INTENT(IN) :: new_attr_name
+         INTEGER(SIZE_T) :: new_attr_namelen
+         
+       END FUNCTION h5arename_c
+    END INTERFACE
+
+    old_attr_namelen = LEN(old_attr_name)
+    new_attr_namelen = LEN(new_attr_name)
+    
+    hdferr = h5arename_c(loc_id, &
+         old_attr_name, old_attr_namelen, new_attr_name, new_attr_namelen)
+    
+  END SUBROUTINE h5arename_f
 
 END MODULE H5A
 
