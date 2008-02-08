@@ -35,9 +35,9 @@
  *---------------------------------------------------------------------------*/
 int_f
 nh5gcreate_c(hid_t_f *loc_id, _fcd name, int_f *namelen, size_t_f *size_hint,
-    hid_t_f *grp_id)
+	     hid_t_f *grp_id, hid_t_f *lcpl_id, hid_t_f *gcpl_id, hid_t_f *gapl_id )
 {
-    hid_t gcpl_id = -1;          /* Group creation property list */
+    hid_t c_gcpl_id = -1;          /* Group creation property list */
     char *c_name = NULL;
     hid_t c_grp_id;
     int_f ret_value = -1;
@@ -52,18 +52,18 @@ nh5gcreate_c(hid_t_f *loc_id, _fcd name, int_f *namelen, size_t_f *size_hint,
      * Call H5Gcreate function.
      */
     if(*size_hint == OBJECT_NAMELEN_DEFAULT_F )
-        c_grp_id = H5Gcreate2((hid_t)*loc_id, c_name, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+      c_grp_id = H5Gcreate2((hid_t)*loc_id, c_name,(hid_t)*lcpl_id,(hid_t)*gcpl_id,(hid_t)*gapl_id);
     else {
-        /* Create the group creation property list */
-        if((gcpl_id = H5Pcreate(H5P_GROUP_CREATE)) < 0)
-            goto DONE;
+      /* Create the group creation property list */
+      if((c_gcpl_id = H5Pcreate(H5P_GROUP_CREATE)) < 0)
+	goto DONE;
 
-        /* Set the local heap size hint */
-        if(H5Pset_local_heap_size_hint(gcpl_id, (size_t)*size_hint) < 0)
-            goto DONE;
+      /* Set the local heap size hint */
+      if(H5Pset_local_heap_size_hint(c_gcpl_id, (size_t)*size_hint) < 0)
+	goto DONE;
 
-        /* Create the group */
-        c_grp_id = H5Gcreate2((hid_t)*loc_id, c_name, H5P_DEFAULT, gcpl_id, H5P_DEFAULT);
+      /* Create the group */
+      c_grp_id = H5Gcreate2((hid_t)*loc_id, c_name, H5P_DEFAULT, c_gcpl_id, H5P_DEFAULT);
     }
     if(c_grp_id < 0)
         goto DONE;
@@ -73,8 +73,8 @@ nh5gcreate_c(hid_t_f *loc_id, _fcd name, int_f *namelen, size_t_f *size_hint,
     ret_value = 0;
 
 DONE:
-    if(gcpl_id > 0)
-        H5Pclose(gcpl_id);
+    if(c_gcpl_id > 0)
+        H5Pclose(c_gcpl_id);
     if(c_name)
         HDfree(c_name);
     return ret_value;
