@@ -5688,4 +5688,119 @@ CONTAINS
             hdferr = h5dget_space_status_c(dset_id, flag)
           END SUBROUTINE h5dget_space_status_f
 
-      END MODULE H5D
+!----------------------------------------------------------------------
+! Name:		h5dcreate_anon_f 
+!
+! Purpose: 	Creates a dataset in a file without linking it into the file structure 
+!
+! Inputs:  
+!		loc_id		- Identifier of the file or group within which to create the dataset.
+!		type_id		- Identifier of the datatype to use when creating the dataset.
+!		space_id	- Identifier of the dataspace to use when creating the dataset.
+!               dcpl_id         - Dataset creation property list identifier.
+!               dapl_id  	- Dataset access property list identifier.
+! Outputs:  
+!		dset_id		- dataset identifier
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!
+! Programmer:   M.S. Breitenfeld
+!		February, 2008
+!
+! Modifications:
+!
+! Comment:		
+!----------------------------------------------------------------------
+  
+  SUBROUTINE h5dcreate_anon_f(loc_id, type_id, space_id, dcpl_id, dapl_id, dset_id, hdferr)
+
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5dcreate_anon_f
+!DEC$endif
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier. 
+    INTEGER(HID_T), INTENT(IN) :: type_id  ! Datatype identifier. 
+    INTEGER(HID_T), INTENT(IN) :: space_id ! Dataspace identifier.
+    INTEGER(HID_T), INTENT(IN) :: dcpl_id  ! Dataset creation property list identifier.
+    INTEGER(HID_T), INTENT(IN) :: dapl_id  ! Dataset access property list identifier.
+    INTEGER(HID_T), INTENT(OUT) :: dset_id ! Dataset identifier. 
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code.
+!
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5dcreate_anon_c(loc_id, type_id, space_id, dcpl_id, dapl_id, dset_id)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DCREATE_ANON_C'::h5dcreate_anon_c
+         !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference :: name
+         INTEGER(HID_T), INTENT(IN) :: loc_id 
+         INTEGER(HID_T), INTENT(IN) :: type_id
+         INTEGER(HID_T), INTENT(IN) :: space_id
+         INTEGER(HID_T), INTENT(IN) :: dcpl_id
+         INTEGER(HID_T), INTENT(IN) :: dapl_id
+         INTEGER(HID_T), INTENT(OUT) :: dset_id
+       END FUNCTION h5dcreate_anon_c
+    END INTERFACE
+    
+    hdferr = h5dcreate_anon_c(loc_id, type_id, space_id, dcpl_id, dapl_id, dset_id)
+
+  END SUBROUTINE h5dcreate_anon_f
+
+!----------------------------------------------------------------------
+! Name:		h5dset_exent_f 
+!
+! Purpose: 	Changes the sizes of a dataset’s dimensions. C
+!
+! Inputs:
+!         dset_id - Dataset identifier
+!            size - Array containing the new magnitude of each dimension of the dataset.
+! Outputs:
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!
+! Programmer:   M.S. Breitenfeld
+!		February, 2008
+!
+! Modifications:
+!
+! Comment:		
+!----------------------------------------------------------------------
+  
+  SUBROUTINE h5dset_extent_f(dset_id, size, hdferr)
+
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5dset_extent_f
+!DEC$endif
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: dset_id  ! Dataset identifier 
+    INTEGER(HSIZE_T), INTENT(IN) :: size     ! Array containing the new magnitude of each dimension of the dataset.
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code.
+!
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5dset_extent_c(dset_id, size)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DSET_EXTENT_C'::h5dset_extent_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: dset_id
+         INTEGER(HSIZE_T), INTENT(IN) :: size
+       END FUNCTION h5dset_extent_c
+    END INTERFACE
+    
+    hdferr = h5dset_extent_c(dset_id, size)
+
+  END SUBROUTINE h5dset_extent_f
+
+END MODULE H5D
+
+

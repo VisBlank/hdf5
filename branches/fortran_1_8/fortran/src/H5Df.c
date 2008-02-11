@@ -1951,4 +1951,68 @@ nh5dget_space_status_c ( hid_t_f *dset_id, int_f *flag)
      ret_value = 0;
      return ret_value;
 }
+/*----------------------------------------------------------------------------
+ * Name:        h5dcreate_anon_c
+ * Purpose:     Call H5Dcreate_anon
+ * Inputs:
+ *		loc_id	   - Identifier of the file or group within which to create the dataset.
+ *		type_id	   - Identifier of the datatype to use when creating the dataset.
+ *		space_id   - Identifier of the dataspace to use when creating the dataset.
+ *              dcpl_id    - Dataset creation property list identifier.
+ *              dapl_id    - Dataset access property list identifier.    
+ * Outputs:     
+ *              dset_id - dataset identifier
+ *
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              February, 2008
+ *---------------------------------------------------------------------------*/
+int_f
+nh5dcreate_anon_c (hid_t_f *loc_id, hid_t_f *type_id, hid_t_f *space_id, 
+		   hid_t_f *dcpl_id, hid_t_f *dapl_id, hid_t_f *dset_id)
+{
+  int ret_value = -1;
+  
+  /*
+   * Call H5Dcreate2 function.
+   */
+  if((*dset_id = (hid_t_f)H5Dcreate_anon((hid_t)*loc_id, (hid_t)*type_id, (hid_t)*space_id, 
+					 (hid_t)*dcpl_id, (hid_t)*dapl_id)) < 0)
+    goto DONE;
+  
+  ret_value = 0;
+
+ DONE:
+  return ret_value;
+}
+/*----------------------------------------------------------------------------
+ * Name:        h5dset_extent_c 
+ * Purpose:     call H5Dset_extent
+ * Inputs:      
+ *              dset_id - Dataset identifier
+ *                 size - Array containing the new magnitude of each dimension of the dataset.
+ *
+ * Outputs:
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *		February, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+int_f
+nh5dset_extent_c(hid_t_f *dset_id, hsize_t_f *size)
+{
+  int ret_value = -1; /* Return value */
+  herr_t ret;
+
+
+  /*
+   * Call h5dset_exent
+   */
+  ret = H5Dset_extent((hid_t)*dset_id, (hsize_t)size);
+
+  if (ret < 0) return ret_value;
+  ret_value = 0;
+  return ret_value;
+}
+
 
