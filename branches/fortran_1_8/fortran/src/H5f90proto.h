@@ -222,6 +222,8 @@ H5_FCDLL int_f nh5sselect_select_c ( hid_t_f *space1_id , int_f *op, hid_t_f *sp
 #   define nh5dfill_real_c                  H5_FC_FUNC_(h5dfill_real_c, H5DFILL_REAL_C)
 #   define nh5dfill_double_c                  H5_FC_FUNC_(h5dfill_double_c, H5DFILL_DOUBLE_C)
 #   define nh5dget_space_status_c      H5_FC_FUNC_(h5dget_space_status_c, H5DGET_SPACE_STATUS_C)
+#   define nh5dcreate_anon_c      H5_FC_FUNC_(h5dcreate_anon_c, H5DCREATE_ANON_C)
+#   define nh5dset_extent_c     H5_FC_FUNC_(h5dset_extent_c,H5DSET_EXTENT_C)
 
 
 H5_FCDLL int_f nh5dcreate_c (hid_t_f *loc_id, _fcd name, int_f *namelen, hid_t_f *type_id, hid_t_f *space_id, 
@@ -331,6 +333,9 @@ H5_FCDLL int_f nh5dfill_integer_c(void * fill_value, hid_t_f *fill_type_id, hid_
 H5_FCDLL int_f nh5dfill_real_c(void * fill_value, hid_t_f *fill_type_id, hid_t_f *space_id, void * buf, hid_t_f *mem_type_id);
 H5_FCDLL int_f nh5dfill_double_c(void * fill_value, hid_t_f *fill_type_id, hid_t_f *space_id, void * buf, hid_t_f *mem_type_id);
 H5_FCDLL int_f nh5dget_space_status_c ( hid_t_f *dset_id, int_f *flag);
+H5_FCDLL int_f nh5dcreate_anon_c (hid_t_f *loc_id, hid_t_f *type_id, hid_t_f *space_id, 
+				  hid_t_f *dcpl_id, hid_t_f *dapl_id, hid_t_f *dset_id); /*MSB*/
+H5_FCDLL int_f nh5dset_extent_c(hid_t_f *dset_id, hsize_t_f *size); /*MSB*/
 
 /*
  * Functions from H5Gf.c
