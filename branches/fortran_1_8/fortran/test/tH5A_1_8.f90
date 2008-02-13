@@ -3565,15 +3565,18 @@ SUBROUTINE test_attr_basic_write(fapl, total_error)
   CALL check("h5aopen_f",error,total_error)
   ! /* Verify new attribute name */
 
-  ! Set an extremely small size
-  size = 0
+  ! Set a deliberately small size
+  size = 1
   CALL H5Aget_name_f(attr, size, check_name, error)
   CALL check('H5Aget_name',error,total_error)
+
+!!$  PRINT*,'checkname =', check_name
+!!$
+!!$  check_name ='                  '
 
   ! Now enter with the corrected size
   IF(error.NE.size)THEN
      size = error
-     PRINT*,'SIZE=',size
      CALL H5Aget_name_f(attr, size, check_name, error)
      CALL check('H5Aget_name',error,total_error)
   ENDIF
