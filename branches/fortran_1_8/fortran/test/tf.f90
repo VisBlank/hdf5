@@ -42,7 +42,7 @@ SUBROUTINE VERIFY(string,value,correct_value,total_error)
   INTEGER :: value, correct_value, total_error
   IF (value .NE. correct_value) THEN
      total_error=total_error+1
-     WRITE(*,*) "ERROR: INCORRECT VALIDATION", string
+     WRITE(*,*) "ERROR: INCORRECT VALIDATION ", string
   ENDIF
   RETURN
 END SUBROUTINE verify
@@ -55,9 +55,9 @@ SUBROUTINE verifyLogical(string,value,correct_value,total_error)
   CHARACTER(LEN=*) :: string
   LOGICAL :: value, correct_value
   INTEGER :: total_error
-  IF (value .NE. correct_value) THEN
+  IF (value .NEQV. correct_value) THEN
      total_error = total_error + 1
-     WRITE(*,*) "ERROR: INCORRECT VALIDATION", string
+     WRITE(*,*) "ERROR: INCORRECT VALIDATION ", string
   ENDIF
   RETURN
 END SUBROUTINE verifyLogical

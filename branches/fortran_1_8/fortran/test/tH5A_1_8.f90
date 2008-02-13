@@ -544,10 +544,10 @@ SUBROUTINE test_attr_null_space(fcpl, fapl, total_error)
 
   CALL h5aget_storage_size_f(attr, storage_size, error)
   CALL check("h5aget_storage_size_f",error,total_error)
-  CALL verify("h5aget_storage_size_f",storage_size,0,total_error)
+  CALL VERIFY("h5aget_storage_size_f",INT(storage_size),0,total_error)
 
   CALL h5aget_info_f(attr, f_corder_valid, corder, cset, data_size,  error)
-  CALL verify("h5aget_info_f",data_size,storage_size,total_error)
+  CALL VERIFY("h5aget_info_f",INT(data_size),INT(storage_size),total_error)
 
 
   CALL h5aclose_f(attr,error)
@@ -641,7 +641,7 @@ SUBROUTINE test_attr_create_by_name(new_format,fcpl,fapl, total_error)
 
   IMPLICIT NONE
 
-  INTEGER(HSIZE_T), PARAMETER :: NAME_BUF_SIZE = 7
+  INTEGER(SIZE_T), PARAMETER :: NAME_BUF_SIZE = 7
   LOGICAL :: new_format 
   INTEGER(HID_T), INTENT(IN) :: fcpl
   INTEGER(HID_T), INTENT(IN) :: fapl
@@ -998,7 +998,7 @@ SUBROUTINE test_attr_info_by_idx(new_format, fcpl, fapl, total_error)
      CALL h5fcreate_f(FileName, H5F_ACC_TRUNC_F, fid, error, fcpl, fapl)
      CALL check("h5fcreate_f",error,total_error)
 
-        ! /* Set attribute creation order tracking & indexing for object */
+     ! /* Set attribute creation order tracking & indexing for object */
      IF(new_format)THEN
         IF(use_index(i))THEN
            Input1 = H5P_CRT_ORDER_INDEXED_F
@@ -1204,7 +1204,7 @@ SUBROUTINE attr_info_by_idx_check(obj_id, attrname, n, use_index, total_error )
   INTEGER :: cset ! Indicates the character set used for the attribute’s name
   INTEGER(HSIZE_T) :: data_size   ! indicates the size, in the number of characters
 
-  INTEGER(HSIZE_T) :: NAME_BUF_SIZE = 7
+  INTEGER(SIZE_T) :: NAME_BUF_SIZE = 7
   CHARACTER(LEN=7) :: tmpname
 
 !!$
@@ -1233,7 +1233,7 @@ SUBROUTINE attr_info_by_idx_check(obj_id, attrname, n, use_index, total_error )
        f_corder_valid, corder, cset, data_size, error)
 
   CALL check("h5aget_info_by_idx_f3",error,total_error)
-  CALL verify("h5aget_info_by_idx_f4",corder,n,total_error)
+  CALL VERIFY("h5aget_info_by_idx_f4",corder,INT(n),total_error)
 
   ! /* Verify the name for new link, in increasing creation order */
 
@@ -1265,8 +1265,8 @@ SUBROUTINE attr_info_by_idx_check(obj_id, attrname, n, use_index, total_error )
      ! /* Verify the information for new attribute, in native creation order */
      CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_NATIVE_F, n, H5P_DEFAULT_F, &
           f_corder_valid, corder, cset, data_size, error)
-     CALL check("h5aget_info_by_idx_f7",error,total_error)
-     CALL VERIFY("h5aget_info_by_idx_f8",corder,n,total_error)
+     CALL check("h5aget_info_by_idx_f",error,total_error)
+     CALL VERIFY("h5aget_info_by_idx_f",corder,INT(n),total_error)
 
    ! /* Verify the name for new link, in increasing native order */
    ! CALL HDmemset(tmpname, 0, (size_t))
@@ -1290,8 +1290,8 @@ SUBROUTINE attr_info_by_idx_check(obj_id, attrname, n, use_index, total_error )
   ! CALL HDmemset(ainfo, 0, SIZEOF(ainfo)
   CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_DEC_F, 0_HSIZE_T, H5P_DEFAULT_F, &
        f_corder_valid, corder, cset, data_size, error)
-  CALL check("h5aget_info_by_idx_f11",error,total_error)
-  CALL VERIFY("h5aget_info_by_idx_f12",corder,n,total_error)
+  CALL check("h5aget_info_by_idx_f",error,total_error)
+  CALL VERIFY("h5aget_info_by_idx_f",corder,INT(n),total_error)
 !!$    CALL HDmemset(tmpname, 0, (size_t))
 !!$    ret = H5Aget_name_by_idx(obj_id, ".", H5_INDEX_CRT_ORDER, H5_ITER_DEC, (hsize_t)0, tmpname, (size_t)NAME_BUF_SIZE, H5P_DEFAULT)
 !!$    CALL CHECK(ret, FAIL, "H5Aget_name_by_idx")
@@ -1299,13 +1299,13 @@ SUBROUTINE attr_info_by_idx_check(obj_id, attrname, n, use_index, total_error )
 !!$    CALL HDmemset(ainfo, 0, SIZEOF(ainfo)
   CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_NAME_F, H5_ITER_INC_F, 0_HSIZE_T, H5P_DEFAULT_F, &
        f_corder_valid, corder, cset, data_size, error)
-  CALL check("h5aget_info_by_idx_f13",error,total_error)
-  CALL VERIFY("h5aget_info_by_idx_f14",corder,0,total_error)
+  CALL check("h5aget_info_by_idx_f",error,total_error)
+  CALL VERIFY("h5aget_info_by_idx_f",corder,0,total_error)
 !!$    CALL HDmemset(ainfo, 0, SIZEOF(ainfo)
   CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_NAME_F, H5_ITER_INC_F, n, H5P_DEFAULT_F, &
        f_corder_valid, corder, cset, data_size, error)
-  CALL check("h5aget_info_by_idx_f15",error,total_error)
-  CALL VERIFY("h5aget_info_by_idx_f16",corder,n,total_error)
+  CALL check("h5aget_info_by_idx_f",error,total_error)
+  CALL VERIFY("h5aget_info_by_idx_f",corder,INT(n),total_error)
 !!$    CALL HDmemset(tmpname, 0, (size_t))
 !!$    ret = H5Aget_name_by_idx(obj_id, ".", H5_INDEX_NAME, H5_ITER_INC, n, tmpname, (size_t)NAME_BUF_SIZE, H5P_DEFAULT)
 !!$    CALL CHECK(ret, FAIL, "H5Aget_name_by_idx")
@@ -1313,13 +1313,13 @@ SUBROUTINE attr_info_by_idx_check(obj_id, attrname, n, use_index, total_error )
 !!$    CALL HDmemset(ainfo, 0, SIZEOF(ainfo)
   CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_NAME_F, H5_ITER_DEC_F, n, H5P_DEFAULT_F, &
        f_corder_valid, corder, cset, data_size, error)
-  CALL check("h5aget_info_by_idx_f17",error,total_error)
-  CALL VERIFY("h5aget_info_by_idx_f18",corder,0,total_error)
+  CALL check("h5aget_info_by_idx_f",error,total_error)
+  CALL VERIFY("h5aget_info_by_idx_f",corder,0,total_error)
 !!$    CALL HDmemset(ainfo, 0, SIZEOF(ainfo)
   CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_NAME_F, H5_ITER_DEC_F, 0_HSIZE_T, H5P_DEFAULT_F, &
        f_corder_valid, corder, cset, data_size, error)
-  CALL check("h5aget_info_by_idx_f19",error,total_error)
-  CALL VERIFY("h5aget_info_by_idx_f20",corder,n,total_error)
+  CALL check("h5aget_info_by_idx_f",error,total_error)
+  CALL VERIFY("h5aget_info_by_idx_f",corder,INT(n),total_error)
 !!$    CALL HDmemset(tmpname, 0, (size_t))
 !!$    ret = H5Aget_name_by_idx(obj_id, ".", H5_INDEX_NAME, H5_ITER_DEC, (hsize_t)0, tmpname, (size_t)NAME_BUF_SIZE, H5P_DEFAULT)
 !!$    CALL CHECK(ret, FAIL, "H5Aget_name_by_idx")
@@ -1405,7 +1405,15 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
 
   CHARACTER(LEN=5), PARAMETER :: TYPE1_NAME = "/Type"
 
+  INTEGER, PARAMETER :: SPACE1_DIM1 = 4
+  INTEGER, PARAMETER :: SPACE1_DIM2 = 8
+  INTEGER, PARAMETER :: SPACE1_DIM3 = 10
+
+  INTEGER, DIMENSION(SPACE1_DIM1 * SPACE1_DIM2 * SPACE1_DIM3) :: big_value
+
   INTEGER :: test_shared
+  INTEGER(HSIZE_T), DIMENSION(1) :: adims2 = (/1/) ! Attribute dimension
+  INTEGER     ::   arank = 1                      ! Attribure rank
 
   ! /* Output message about test being performed */
   WRITE(*,*) "Testing Renaming Shared & Unshared Attributes in Compact & Dense Storage"
@@ -1418,7 +1426,7 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
 
   ! /* Create "big" dataspace for "large" attributes */
 
-  CALL h5screate_simple_f(SPACE1_RANK, big_dims, big_sid, error)
+  CALL h5screate_simple_f(arank, adims2, big_sid, error)
   CALL check("h5screate_simple_f",error,total_error)
 
   ! /* Loop over type of shared components */
@@ -1526,6 +1534,7 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
 !!$        VERIFY(is_dense, FALSE, "H5O_is_attr_dense_test");
      ! /* Add attributes to each dataset, until after converting to dense storage */
      
+
      DO u = 0, (max_compact * 2) - 1
 
         ! /* Create attribute name */
@@ -1533,7 +1542,7 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
         attrname = 'attr '//chr2
         
         ! /* Alternate between creating "small" & "big" attributes */
-
+ 
         IF(MOD(u+1,2).EQ.0)THEN
            ! /* Create "small" attribute on first dataset */
 
@@ -1566,17 +1575,17 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
 !!$
            !  Write data into the attribute */
 
-           attr_integer_data(1) = u + 1
            data_dims(1) = 1
-           CALL h5awrite_f(attr,  attr_tid, attr_integer_data, data_dims, error)
+           attr_integer_data(1) = u + 1
+           CALL h5awrite_f(attr, attr_tid, attr_integer_data, data_dims, error)
            CALL check("h5awrite_f",error,total_error)
-
+           
            !  Check refcount for attribute */
 !!$                ret = H5A_get_shared_rc_test(attr, &shared_refcount);
 !!$                CHECK(ret, FAIL, "H5A_get_shared_rc_test");
 !!$                VERIFY(shared_refcount, 1, "H5A_get_shared_rc_test");
         ENDIF
-
+  
         ! /* Close attribute */
         CALL h5aclose_f(attr, error)
         CALL check("h5aclose_f",error,total_error)
@@ -1602,6 +1611,7 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
 !!$                VERIFY(is_shared, FALSE, "H5A_is_shared_test");
 !!$
            ! /* Write data into the attribute */
+           
            attr_integer_data(1) = u + 1
            data_dims(1) = 1
            CALL h5awrite_f(attr, attr_tid, attr_integer_data, data_dims, error)
@@ -1627,8 +1637,8 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
            
            attr_integer_data(1) = u + 1
            data_dims(1) = 1
-           CALL h5awrite_f(attr,  attr_tid, attr_integer_data, data_dims, error)
-           CALL check("h5awrite_f",error,total_error)
+!           CALL h5awrite_f(attr,  attr_tid, attr_integer_data, data_dims, error)
+!           CALL check("h5awrite_f",error,total_error)
 
 
 ! /* Check refcount for attribute */
@@ -1768,7 +1778,7 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
         ! /* Close attribute */
         CALL h5aclose_f(attr, error)
         CALL check("h5aclose_f",error,total_error)
-        
+     
      ENDDO
 
      ! /* Close attribute's datatype */
@@ -1895,7 +1905,7 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
   CHARACTER(LEN=7) :: attrname
 
   INTEGER(SIZE_T) :: size
-  CHARACTER(LEN=7) :: tmpname
+  CHARACTER(LEN=8) :: tmpname
   CHARACTER(LEN=1), PARAMETER :: chr1 = '.'
   
   INTEGER :: idx_type
@@ -1943,6 +1953,7 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
   CALL H5Pget_attr_phase_change_f(dcpl, max_compact, min_dense, error)
   CALL check("H5Pget_attr_phase_change_f",error,total_error)
 
+
   !/* Loop over operating on different indices on link fields */
   DO idx_type = H5_INDEX_NAME_F, H5_INDEX_CRT_ORDER_F
 
@@ -1956,15 +1967,19 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
            IF(idx_type .EQ. H5_INDEX_CRT_ORDER_F)THEN
               IF(order .EQ. H5_ITER_INC_F) THEN
                  IF(use_index(i))THEN
-                    WRITE(*,'(A93)')"Testing Deleting Attribute By Creation Order Index in Increasing Order w/Creation Order Index"
+                    WRITE(*,'(A93)') &
+                         "Testing Deleting Attribute By Creation Order Index in Increasing Order w/Creation Order Index"
                  ELSE
-                    WRITE(*,'(A95)')"Testing Deleting Attribute By Creation Order Index in Increasing Order w/o Creation Order Index"
+                    WRITE(*,'(A95)') &
+                         "Testing Deleting Attribute By Creation Order Index in Increasing Order w/o Creation Order Index"
                  ENDIF
               ELSE
                  IF(use_index(i))THEN
-                    WRITE(*,'(A93)')"Testing Deleting Attribute By Creation Order Index in Decreasing Order w/Creation Order Index"
+                    WRITE(*,'(A93)') &
+                         "Testing Deleting Attribute By Creation Order Index in Decreasing Order w/Creation Order Index"
                  ELSE
-                    WRITE(*,'(A95)')"Testing Deleting Attribute By Creation Order Index in Decreasing Order w/o Creation Order Index"
+                    WRITE(*,'(A95)') &
+                         "Testing Deleting Attribute By Creation Order Index in Decreasing Order w/o Creation Order Index"
                  ENDIF
               ENDIF
            ELSE
@@ -2119,10 +2134,10 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
                    ! /* Verify the name for first attribute in appropriate order */
                    ! HDmemset(tmpname, 0, (size_t)NAME_BUF_SIZE);
 
-                 size = 80 ! CHECK IF TO SMALL
+                 size = 7 ! *CHECK* IF NOT THE SAME SIZE
                  CALL h5aget_name_by_idx_f(my_dataset, ".", idx_type, order,INT(0,hsize_t), &
                       tmpname, size, H5P_DEFAULT_F, error)
-
+                 CALL check('h5aget_name_by_idx_f',error,total_error)
                  IF(order .EQ. H5_ITER_INC_F)THEN
                     WRITE(chr2,'(I2.2)') u + 1
                     attrname = 'attr '//chr2
@@ -2132,12 +2147,17 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
                  ENDIF
                  IF(TRIM(attrname).NE.TRIM(tmpname)) error = -1
                  CALL VERIFY("h5aget_name_by_idx_f",error,0,total_error)
+                 IF(total_error.ne.0) STOP
               ENDDO
 
               ! /* Delete last attribute */
 
               CALL H5Adelete_by_idx_f(my_dataset, ".", idx_type, order, 0_HSIZE_T, H5P_DEFAULT_F, error)
               CALL check("H5Adelete_by_idx_f",error,total_error)
+              IF(total_error.NE.0)THEN
+                 PRINT*,'error',error
+                 STOP
+              ENDIF
 
                 
               ! /* Verify state of attribute storage (empty) */
@@ -2258,7 +2278,7 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
                  ! /* Verify the name for first attribute in appropriate order */
                  ! HDmemset(tmpname, 0, (size_t)NAME_BUF_SIZE);
 
-                 size = 80 ! CHECK IF TO SMALL
+                 size = 7 ! *CHECK* if not the correct size 
                  CALL h5aget_name_by_idx_f(my_dataset, ".", idx_type, order,INT(0,hsize_t), &
                       tmpname, size, H5P_DEFAULT_F, error)
 
@@ -2550,6 +2570,8 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
   CHARACTER(LEN=5), PARAMETER :: TYPE1_NAME = "/Type"
 
   INTEGER :: test_shared
+  INTEGER(HSIZE_T), DIMENSION(1) :: adims2 = (/1/) ! Attribute dimension
+  INTEGER     ::   arank = 1                      ! Attribure rank
 
   ! /* Output message about test being performed */
   WRITE(*,*) "Testing Deleting Shared & Unshared Attributes in Compact & Dense Storage"
@@ -2563,7 +2585,7 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
 
   !/* Create "big" dataspace for "large" attributes */
 
-  CALL h5screate_simple_f(SPACE1_RANK, big_dims, big_sid, error)
+  CALL h5screate_simple_f(arank, adims2, big_sid, error)
   CALL check("h5screate_simple_f",error,total_error)
 
   ! /* Loop over type of shared components */
@@ -3158,7 +3180,7 @@ SUBROUTINE test_attr_dense_verify(loc_id, max_attr, total_error)
      CALL h5aread_f(attr, H5T_NATIVE_INTEGER, value, data_dims, error)
 
      CALL CHECK("H5Aread_F", error, total_error)
-     CALL VERIFY("H5Aread_F", value, u);
+     CALL VERIFY("H5Aread_F", value, u, total_error)
 
      ! /* Close attribute */
      CALL h5aclose_f(attr, error)
@@ -3174,7 +3196,8 @@ SUBROUTINE test_attr_dense_verify(loc_id, max_attr, total_error)
 
      ! /* Open attribute */
 
-     CALL H5Aopen_by_idx_f(loc_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, INT(u,HSIZE_T), H5P_DEFAULT_F, H5P_DEFAULT_F, attr, error)
+     CALL H5Aopen_by_idx_f(loc_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, INT(u,HSIZE_T), &
+          H5P_DEFAULT_F, H5P_DEFAULT_F, attr, error)
 
      ! /* Verify Name */
      
@@ -3191,7 +3214,7 @@ SUBROUTINE test_attr_dense_verify(loc_id, max_attr, total_error)
      data_dims(1) = 1
      CALL h5aread_f(attr, H5T_NATIVE_INTEGER, value, data_dims, error)
      CALL CHECK("H5Aread_f", error, total_error)
-     CALL VERIFY("H5Aread_f", value, u)
+     CALL VERIFY("H5Aread_f", value, u, total_error)
 
 
      ! /* Close attribute */
@@ -3272,14 +3295,14 @@ SUBROUTINE test_attr_corder_create_basic( fcpl, fapl, total_error )
   ! /* Get creation order indexing on object */
   CALL H5Pget_attr_creation_order_f(dcpl, crt_order_flags, error)
   CALL check("H5Pget_attr_creation_order_f",error,total_error)
-  CALL VERIFY("H5Pget_attr_creation_order_f",crt_order_flags , 0)
+  CALL VERIFY("H5Pget_attr_creation_order_f",crt_order_flags , 0, total_error)
 
   ! /* Setting invalid combination of a attribute order creation order indexing on should fail */
   CALL H5Pset_attr_creation_order_f(dcpl, H5P_CRT_ORDER_INDEXED_F, error)
-  CALL VERIFY("H5Pset_attr_creation_order_f",error , -1)
+  CALL VERIFY("H5Pset_attr_creation_order_f",error , -1, total_error)
   CALL H5Pget_attr_creation_order_f(dcpl, crt_order_flags, error)
   CALL check("H5Pget_attr_creation_order_f",error,total_error)
-  CALL VERIFY("H5Pget_attr_creation_order_f",crt_order_flags , 0)
+  CALL VERIFY("H5Pget_attr_creation_order_f",crt_order_flags , 0, total_error)
 
   ! /* Set attribute creation order tracking & indexing for object */
   CALL h5pset_attr_creation_order_f(dcpl, IOR(H5P_CRT_ORDER_TRACKED_F, H5P_CRT_ORDER_INDEXED_F), error)
@@ -3287,7 +3310,8 @@ SUBROUTINE test_attr_corder_create_basic( fcpl, fapl, total_error )
 
   CALL H5Pget_attr_creation_order_f(dcpl, crt_order_flags, error)
   CALL check("H5Pget_attr_creation_order_f",error,total_error)
-  CALL VERIFY("H5Pget_attr_creation_order_f",crt_order_flags , IOR(H5P_CRT_ORDER_TRACKED_F, H5P_CRT_ORDER_INDEXED_F))
+  CALL VERIFY("H5Pget_attr_creation_order_f",crt_order_flags , &
+       IOR(H5P_CRT_ORDER_TRACKED_F, H5P_CRT_ORDER_INDEXED_F), total_error)
 
   ! /* Create dataspace for dataset */
   CALL h5screate_f(H5S_SCALAR_F, sid, error)
@@ -3340,7 +3364,8 @@ SUBROUTINE test_attr_corder_create_basic( fcpl, fapl, total_error )
   ! /* Query the attribute creation properties */
   CALL H5Pget_attr_creation_order_f(dcpl, crt_order_flags, error)
   CALL check("H5Pget_attr_creation_order_f",error,total_error)
-  CALL VERIFY("H5Pget_attr_creation_order_f",crt_order_flags , IOR(H5P_CRT_ORDER_TRACKED_F, H5P_CRT_ORDER_INDEXED_F))
+  CALL VERIFY("H5Pget_attr_creation_order_f",crt_order_flags , &
+       IOR(H5P_CRT_ORDER_TRACKED_F, H5P_CRT_ORDER_INDEXED_F), total_error )
 
   ! /* Close property list */
   CALL h5pclose_f(dcpl, error)
@@ -3407,7 +3432,7 @@ SUBROUTINE test_attr_basic_write(fapl, total_error)
 
   INTEGER, DIMENSION(1) ::  attr_integer_data
   CHARACTER(LEN=7) :: attrname
-  CHARACTER(LEN=20) :: check_name
+  CHARACTER(LEN=25) :: check_name
 
   INTEGER :: order
   INTEGER :: u
@@ -3437,7 +3462,7 @@ SUBROUTINE test_attr_basic_write(fapl, total_error)
   INTEGER(HSIZE_T), DIMENSION(2) :: maxdims1 = (/4,6/) ! maximum dimensions
   INTEGER(HID_T) :: space1_id   ! Dataspace identifiers
 
-  INTEGER(HSIZE_T) :: size 
+  INTEGER(SIZE_T) :: size
 
   attr_data1(1) = 258
   attr_data1(2) = 9987
@@ -3530,7 +3555,7 @@ SUBROUTINE test_attr_basic_write(fapl, total_error)
   CALL h5aget_storage_size_f(attr, attr_size, error)
   CALL check("h5aget_storage_size_f",error,total_error)
 !  PRINT*,attr_size,ATTR1_DIM1,HSIZE_T
-  CALL VERIFY("h5aget_storage_size_f",attr_size, 2*HSIZE_T, total_error)
+  CALL VERIFY("h5aget_storage_size_f", INT(attr_size), 2*HSIZE_T, total_error)
 
 !  attr_size = H5Aget_storage_size(attr);
 !  VERIFY(attr_size, (ATTR1_DIM1 * sizeof(int)), "H5A_get_storage_size");
@@ -3566,6 +3591,9 @@ SUBROUTINE test_attr_basic_write(fapl, total_error)
   ! /* Verify new attribute name */
 
   ! Set a deliberately small size
+
+  check_name = '                         ' ! need to initialize or does not pass test
+
   size = 1
   CALL H5Aget_name_f(attr, size, check_name, error)
   CALL check('H5Aget_name',error,total_error)
@@ -3581,12 +3609,13 @@ SUBROUTINE test_attr_basic_write(fapl, total_error)
      CALL check('H5Aget_name',error,total_error)
   ENDIF
 
-  IF(TRIM(check_name).NE.TRIM(ATTR_TMP_NAME)) THEN
+  IF(TRIM(ADJUSTL(check_name)).NE.TRIM(ADJUSTL(ATTR_TMP_NAME))) THEN
      PRINT*,'.'//TRIM(check_name)//'.',LEN_TRIM(check_name)
      PRINT*,'.'//TRIM(ATTR_TMP_NAME)//'.',LEN_TRIM(ATTR_TMP_NAME)
      WRITE(*,*) 'ERROR: attribute name different: attr_name ='//TRIM(check_name)//'.'
      WRITE(*,*) '                                 should be ='//TRIM(ATTR_TMP_NAME)//'.'
      total_error = total_error + 1
+     stop
   ENDIF
 !!$    attr_name_size = H5Aget_name(attr, (size_t)0, NULL);
 !!$    CHECK(attr_name_size, FAIL, "H5Aget_name");
