@@ -480,21 +480,28 @@ SUBROUTINE test_attr_null_space(fcpl, fapl, total_error)
   INTEGER(HID_T) :: dset1, dset2, dset3
   INTEGER(HID_T) :: my_dataset
   INTEGER :: error
-
-  INTEGER :: value
+  
+  INTEGER :: value_scalar
+  INTEGER, DIMENSION(1) :: value
   INTEGER(HID_T) :: attr        !String Attribute identifier 
   INTEGER(HID_T) :: attr_sid
   INTEGER(HSIZE_T), DIMENSION(7) :: data_dims
+  INTEGER(HSIZE_T) :: data_dims_scalar
+
   INTEGER(HSIZE_T) :: storage_size   ! attributes storage requirements .MSB.
 
   LOGICAL :: f_corder_valid ! Indicates whether the the creation order data is valid for this attribute 
   INTEGER :: corder ! Is a positive integer containing the creation order of the attribute
   INTEGER :: cset ! Indicates the character set used for the attribute’s name
   INTEGER(HSIZE_T) :: data_size   ! indicates the size, in the number of characters
+
+  
+
   data_dims = 0
 
 !  CHARACTER (LEN=NAME_BUF_SIZE) :: attrname
 
+! /* Output message about test being performed */
   WRITE(*,*) "Testing Storing Attributes with 'null' dataspace"
   ! /* Create file */
   CALL h5fcreate_f(FileName, H5F_ACC_TRUNC_F, fid, error, fcpl, fapl)
@@ -505,33 +512,45 @@ SUBROUTINE test_attr_null_space(fcpl, fapl, total_error)
 
 !!$  empty_filesize = h5_get_file_size(FILENAME)
 !!$  IF (empty_filesize < 0) CALL TestErrPrintf("Line %d: file size wrong!\n"C, __LINE__)
-
+  ! /* Re-open file */
   CALL h5fopen_f(FileName, H5F_ACC_RDWR_F, fid, error)
   CALL check("h5open_f",error,total_error)
-
+  ! /* Create dataspace for dataset attributes */
   CALL h5screate_f(H5S_SCALAR_F, sid, error)
   CALL check("h5screate_f",error,total_error)
-
+  ! /* Create "null" dataspace for attribute */
   CALL h5screate_f(H5S_NULL_F, null_sid, error)
   CALL check("h5screate_f",error,total_error)
-
+  ! /* Create a dataset */
   CALL h5dcreate_f(fid, DSET1_NAME, H5T_NATIVE_CHARACTER, sid, &
        dataset, error)
   CALL check("h5dcreate_f",error,total_error)
 !!$  dataset = H5Dcreate2(fid, DSET1_NAME, H5T_NATIVE_UCHAR, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)
 !!$  CALL CHECK(dataset, FAIL, "H5Dcreate2")
+  ! /* Add attribute with 'null' dataspace */
 
+  ! /* Create attribute */
   CALL h5acreate_f(dataset, "null attr", H5T_NATIVE_INTEGER, null_sid, attr, error)
   CALL check("h5acreate_f",error,total_error)
 
 !!$  CALL HDstrcpy(attrname, "null attr")
 !!$  attr = H5Acreate2(dataset, attrname, H5T_NATIVE_UINT, null_sid, H5P_DEFAULT, H5P_DEFAULT)
-
-  value = 103
-  data_dims(1) = 1
+  ! /* Try to read data from the attribute */
+  ! /* (shouldn't fail, but should leave buffer alone) */
+  value(1) = 103
   CALL h5aread_f(attr, H5T_NATIVE_INTEGER, value, data_dims, error)
   CALL check("h5aread_f",error,total_error)
-  CALL verify("h5aread_f",value,103,total_error)
+  CALL verify("h5aread_f",value(1),103,total_error)
+
+! /* Try to read data from the attribute again but*/
+! /* for a scalar */
+
+  value_scalar = 104
+  data_dims(1) = 1
+!  PRINT*,'sending read_f buf =', value_scalar
+  CALL h5aread_f(attr, H5T_NATIVE_INTEGER, value_scalar, data_dims, error)
+  CALL check("h5aread_f",error,total_error)
+  CALL verify("h5aread_f",value_scalar,104,total_error)
 
   CALL h5aget_space_f(attr, attr_sid, error)
   CALL check("h5aget_space_f",error,total_error)
@@ -2147,17 +2166,12 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
                  ENDIF
                  IF(TRIM(attrname).NE.TRIM(tmpname)) error = -1
                  CALL VERIFY("h5aget_name_by_idx_f",error,0,total_error)
-                 IF(total_error.ne.0) STOP
               ENDDO
 
               ! /* Delete last attribute */
 
               CALL H5Adelete_by_idx_f(my_dataset, ".", idx_type, order, 0_HSIZE_T, H5P_DEFAULT_F, error)
               CALL check("H5Adelete_by_idx_f",error,total_error)
-              IF(total_error.NE.0)THEN
-                 PRINT*,'error',error
-                 STOP
-              ENDIF
 
                 
               ! /* Verify state of attribute storage (empty) */
