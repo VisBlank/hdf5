@@ -1463,6 +1463,11 @@ CONTAINS
 !			dims parameter was added to make code portable;
 !			Aprile 4, 2001
 !
+!                       Changed buf intent to INOUT to be consistant
+!                       with how the C functions handles it. The pg
+!                       compiler will return 0 if a buf value is not set.
+!                       February, 2008
+!
 ! Comment:		This function is overloaded to write INTEGER,
 !			REAL, DOUBLE PRECISION and CHARACTER buffers
 !			up to 7 dimensions.	
@@ -1478,7 +1483,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            INTEGER, INTENT(OUT) :: buf             ! Attribute data 
+            INTEGER, INTENT(INOUT) :: buf             ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
 
 !            INTEGER, EXTERNAL :: h5aread_integer_s_c
@@ -1490,13 +1495,12 @@ CONTAINS
               !DEC$ IF DEFINED(HDF5F90_WINDOWS)
               !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AREAD_INTEGER_S_C'::h5aread_integer_s_c
               !DEC$ ENDIF
-            INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
+              INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              INTEGER, INTENT(OUT)::buf
+              INTEGER, INTENT(INOUT)::buf
               END FUNCTION h5aread_integer_s_c
             END INTERFACE
-
             hdferr = h5aread_integer_s_c(attr_id, memtype_id,  buf, dims)
           END SUBROUTINE h5aread_integer_scalar
 
@@ -1510,8 +1514,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            INTEGER, INTENT(OUT), &
-            DIMENSION(dims(1)) :: buf
+            INTEGER, INTENT(INOUT), DIMENSION(dims(1)) :: buf
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
 
 !            INTEGER, EXTERNAL :: h5aread_integer_1_c
@@ -1526,8 +1529,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              INTEGER, INTENT(OUT), &
-              DIMENSION(dims(1)) :: buf
+              INTEGER, INTENT(INOUT), DIMENSION(dims(1)) :: buf
               END FUNCTION h5aread_integer_1_c
             END INTERFACE
 
@@ -1545,8 +1547,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            INTEGER, INTENT(OUT), &
-            DIMENSION(dims(1),dims(2)) :: buf
+            INTEGER, INTENT(INOUT),DIMENSION(dims(1),dims(2)) :: buf
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
 
 !            INTEGER, EXTERNAL :: h5aread_integer_2_c
@@ -1561,8 +1562,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              INTEGER, INTENT(OUT), &
-              DIMENSION(dims(1),dims(2)) :: buf
+              INTEGER, INTENT(INOUT), DIMENSION(dims(1),dims(2)) :: buf
               END FUNCTION h5aread_integer_2_c
             END INTERFACE
 
@@ -1580,8 +1580,8 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            INTEGER, INTENT(OUT), &
-            DIMENSION(dims(1),dims(2),dims(3)) :: buf
+            INTEGER, INTENT(INOUT), &
+                 DIMENSION(dims(1),dims(2),dims(3)) :: buf
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
 
 !            INTEGER, EXTERNAL :: h5aread_integer_3_c
@@ -1596,7 +1596,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              INTEGER, INTENT(OUT), &
+              INTEGER, INTENT(INOUT), &
               DIMENSION(dims(1),dims(2),dims(3)) :: buf
               END FUNCTION h5aread_integer_3_c
             END INTERFACE
@@ -1615,7 +1615,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            INTEGER, INTENT(OUT), &
+            INTEGER, INTENT(INOUT), &
             DIMENSION(dims(1),dims(2),dims(3),dims(4)) :: buf
                                                     ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
@@ -1632,7 +1632,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              INTEGER, INTENT(OUT), &
+              INTEGER, INTENT(INOUT), &
               DIMENSION(dims(1),dims(2),dims(3),dims(4)) :: buf
               END FUNCTION h5aread_integer_4_c
             END INTERFACE
@@ -1651,7 +1651,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            INTEGER, INTENT(OUT), &
+            INTEGER, INTENT(INOUT), &
             DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) :: buf
                                                     ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
@@ -1668,7 +1668,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              INTEGER, INTENT(OUT), &
+              INTEGER, INTENT(INOUT), &
               DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) :: buf
               END FUNCTION h5aread_integer_5_c
             END INTERFACE
@@ -1687,7 +1687,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            INTEGER, INTENT(OUT), &
+            INTEGER, INTENT(INOUT), &
             DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)) :: buf
                                                     ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
@@ -1704,7 +1704,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              INTEGER, INTENT(OUT), &
+              INTEGER, INTENT(INOUT), &
               DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)) :: buf
               END FUNCTION h5aread_integer_6_c
             END INTERFACE
@@ -1723,7 +1723,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            INTEGER, INTENT(OUT), &
+            INTEGER, INTENT(INOUT), &
             DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)) :: buf
                                                     ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
@@ -1740,7 +1740,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              INTEGER, INTENT(OUT), &
+              INTEGER, INTENT(INOUT), &
               DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)) :: buf
               END FUNCTION h5aread_integer_7_c
             END INTERFACE
@@ -1759,7 +1759,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            REAL, INTENT(OUT) :: buf                ! Attribute data 
+            REAL, INTENT(INOUT) :: buf                ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
 
 !            INTEGER, EXTERNAL :: h5aread_real_s_c
@@ -1774,7 +1774,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              REAL, INTENT(OUT)::buf
+              REAL, INTENT(INOUT)::buf
               END FUNCTION h5aread_real_s_c
             END INTERFACE
 
@@ -1791,7 +1791,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            REAL, INTENT(OUT), &
+            REAL, INTENT(INOUT), &
             DIMENSION(dims(1)) :: buf
                                                     ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
@@ -1808,7 +1808,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              REAL, INTENT(OUT), &
+              REAL, INTENT(INOUT), &
               DIMENSION(dims(1)) :: buf
               END FUNCTION h5aread_real_1_c
             END INTERFACE
@@ -1827,7 +1827,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            REAL, INTENT(OUT), &
+            REAL, INTENT(INOUT), &
             DIMENSION(dims(1),dims(2)) :: buf
                                                     ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
@@ -1844,7 +1844,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              REAL, INTENT(OUT), &
+              REAL, INTENT(INOUT), &
               DIMENSION(dims(1),dims(2)) :: buf
               END FUNCTION h5aread_real_2_c
             END INTERFACE
@@ -1863,7 +1863,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            REAL, INTENT(OUT), &
+            REAL, INTENT(INOUT), &
             DIMENSION(dims(1),dims(2),dims(3)) :: buf
                                                     ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
@@ -1880,7 +1880,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              REAL, INTENT(OUT), &
+              REAL, INTENT(INOUT), &
               DIMENSION(dims(1),dims(2),dims(3)) :: buf
               END FUNCTION h5aread_real_3_c
             END INTERFACE
@@ -1899,7 +1899,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            REAL, INTENT(OUT), &
+            REAL, INTENT(INOUT), &
             DIMENSION(dims(1),dims(2),dims(3),dims(4)) :: buf
                                                     ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
@@ -1916,7 +1916,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              REAL, INTENT(OUT), &
+              REAL, INTENT(INOUT), &
               DIMENSION(dims(1),dims(2),dims(3),dims(4)) :: buf
               END FUNCTION h5aread_real_4_c
             END INTERFACE
@@ -1935,7 +1935,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            REAL, INTENT(OUT), &
+            REAL, INTENT(INOUT), &
             DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) :: buf
                                                     ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
@@ -1952,7 +1952,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              REAL, INTENT(OUT), &
+              REAL, INTENT(INOUT), &
               DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) :: buf
               END FUNCTION h5aread_real_5_c
             END INTERFACE
@@ -1971,7 +1971,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            REAL, INTENT(OUT), &
+            REAL, INTENT(INOUT), &
             DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)) :: buf
                                                     ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
@@ -1988,7 +1988,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              REAL, INTENT(OUT), &
+              REAL, INTENT(INOUT), &
               DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)) :: buf
               END FUNCTION h5aread_real_6_c
             END INTERFACE
@@ -2007,7 +2007,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            REAL, INTENT(OUT), &
+            REAL, INTENT(INOUT), &
             DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)) :: buf
                                                     ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
@@ -2024,7 +2024,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              REAL, INTENT(OUT), &
+              REAL, INTENT(INOUT), &
               DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)) :: buf
               END FUNCTION h5aread_real_7_c
             END INTERFACE
@@ -2043,7 +2043,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            DOUBLE PRECISION, INTENT(OUT) :: buf    ! Attribute data 
+            DOUBLE PRECISION, INTENT(INOUT) :: buf    ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
 
 !            INTEGER, EXTERNAL :: h5aread_double_s_c
@@ -2058,7 +2058,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              DOUBLE PRECISION, INTENT(OUT)::buf
+              DOUBLE PRECISION, INTENT(INOUT)::buf
               END FUNCTION h5aread_double_s_c
             END INTERFACE
 
@@ -2075,7 +2075,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            DOUBLE PRECISION, INTENT(OUT), &
+            DOUBLE PRECISION, INTENT(INOUT), &
             DIMENSION(dims(1)) :: buf
                                                     ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
@@ -2092,7 +2092,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              DOUBLE PRECISION, INTENT(OUT), &
+              DOUBLE PRECISION, INTENT(INOUT), &
               DIMENSION(dims(1)) :: buf
               END FUNCTION h5aread_double_1_c
             END INTERFACE
@@ -2111,7 +2111,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            DOUBLE PRECISION, INTENT(OUT), &
+            DOUBLE PRECISION, INTENT(INOUT), &
             DIMENSION(dims(1),dims(2)) :: buf
                                                     ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
@@ -2128,7 +2128,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              DOUBLE PRECISION, INTENT(OUT), &
+              DOUBLE PRECISION, INTENT(INOUT), &
               DIMENSION(dims(1),dims(2)) :: buf
               END FUNCTION h5aread_double_2_c
             END INTERFACE
@@ -2147,7 +2147,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            DOUBLE PRECISION, INTENT(OUT), &
+            DOUBLE PRECISION, INTENT(INOUT), &
             DIMENSION(dims(1),dims(2),dims(3)) :: buf
                                                     ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
@@ -2164,7 +2164,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              DOUBLE PRECISION, INTENT(OUT), &
+              DOUBLE PRECISION, INTENT(INOUT), &
               DIMENSION(dims(1),dims(2),dims(3)) :: buf
               END FUNCTION h5aread_double_3_c
             END INTERFACE
@@ -2183,7 +2183,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            DOUBLE PRECISION, INTENT(OUT), &
+            DOUBLE PRECISION, INTENT(INOUT), &
             DIMENSION(dims(1),dims(2),dims(3),dims(4)) :: buf
                                                     ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
@@ -2200,7 +2200,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              DOUBLE PRECISION, INTENT(OUT), &
+              DOUBLE PRECISION, INTENT(INOUT), &
               DIMENSION(dims(1),dims(2),dims(3),dims(4)) :: buf
               END FUNCTION h5aread_double_4_c
             END INTERFACE
@@ -2219,7 +2219,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            DOUBLE PRECISION, INTENT(OUT), &
+            DOUBLE PRECISION, INTENT(INOUT), &
             DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) :: buf
                                                     ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
@@ -2236,7 +2236,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              DOUBLE PRECISION, INTENT(OUT), &
+              DOUBLE PRECISION, INTENT(INOUT), &
               DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) :: buf
               END FUNCTION h5aread_double_5_c
             END INTERFACE
@@ -2255,7 +2255,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            DOUBLE PRECISION, INTENT(OUT), &
+            DOUBLE PRECISION, INTENT(INOUT), &
             DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)) :: buf
                                                     ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
@@ -2272,7 +2272,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              DOUBLE PRECISION, INTENT(OUT), &
+              DOUBLE PRECISION, INTENT(INOUT), &
               DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)) :: buf
               END FUNCTION h5aread_double_6_c
             END INTERFACE
@@ -2291,7 +2291,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            DOUBLE PRECISION, INTENT(OUT), &
+            DOUBLE PRECISION, INTENT(INOUT), &
             DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)) :: buf
                                                     ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
@@ -2308,7 +2308,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              DOUBLE PRECISION, INTENT(OUT), &
+              DOUBLE PRECISION, INTENT(INOUT), &
               DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)) :: buf
               END FUNCTION h5aread_double_7_c
             END INTERFACE
@@ -2327,7 +2327,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            CHARACTER(LEN=*), INTENT(OUT) :: buf 
+            CHARACTER(LEN=*), INTENT(INOUT) :: buf 
                                                     ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
 
@@ -2344,7 +2344,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              CHARACTER(LEN=*) :: buf
+              CHARACTER(LEN=*), INTENT(INOUT) :: buf
               END FUNCTION h5areadc_s_c
             END INTERFACE
 
@@ -2361,7 +2361,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            CHARACTER(LEN=*), INTENT(OUT), &
+            CHARACTER(LEN=*), INTENT(INOUT), &
             DIMENSION(dims(1)) :: buf
                                                     ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
@@ -2379,8 +2379,8 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              CHARACTER(LEN=*), INTENT(OUT), &
-              DIMENSION(dims(1)) :: buf
+              CHARACTER(LEN=*), INTENT(INOUT), &
+                   DIMENSION(dims(1)) :: buf
               END FUNCTION h5areadc_1_c
             END INTERFACE
 
@@ -2398,8 +2398,8 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            CHARACTER(LEN=*), INTENT(OUT), &
-            DIMENSION(dims(1),dims(2)) :: buf
+            CHARACTER(LEN=*), INTENT(INOUT), &
+                 DIMENSION(dims(1),dims(2)) :: buf
                                                     ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
 
@@ -2416,7 +2416,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              CHARACTER(LEN=*), INTENT(OUT), &
+              CHARACTER(LEN=*), INTENT(INOUT), &
               DIMENSION(dims(1),dims(2)) :: buf
               END FUNCTION h5areadc_2_c
             END INTERFACE
@@ -2435,7 +2435,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            CHARACTER(LEN=*), INTENT(OUT), &
+            CHARACTER(LEN=*), INTENT(INOUT), &
             DIMENSION(dims(1),dims(2),dims(3)) :: buf
                                                     ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
@@ -2453,7 +2453,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              CHARACTER(LEN=*), INTENT(OUT), &
+              CHARACTER(LEN=*), INTENT(INOUT), &
               DIMENSION(dims(1),dims(2),dims(3)) :: buf
               END FUNCTION h5areadc_3_c
             END INTERFACE
@@ -2472,7 +2472,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            CHARACTER(LEN=*), INTENT(OUT), &
+            CHARACTER(LEN=*), INTENT(INOUT), &
             DIMENSION(dims(1),dims(2),dims(3),dims(4)) :: buf
                                                     ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
@@ -2490,7 +2490,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              CHARACTER(LEN=*), INTENT(OUT), &
+              CHARACTER(LEN=*), INTENT(INOUT), &
               DIMENSION(dims(1),dims(2),dims(3),dims(4)) :: buf
               END FUNCTION h5areadc_4_c
             END INTERFACE
@@ -2509,7 +2509,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            CHARACTER(LEN=*), INTENT(OUT), &
+            CHARACTER(LEN=*), INTENT(INOUT), &
             DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) :: buf
                                                     ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
@@ -2527,7 +2527,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              CHARACTER(LEN=*), INTENT(OUT), &
+              CHARACTER(LEN=*), INTENT(INOUT), &
               DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) :: buf
               END FUNCTION h5areadc_5_c
             END INTERFACE
@@ -2546,7 +2546,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            CHARACTER(LEN=*), INTENT(OUT), &
+            CHARACTER(LEN=*), INTENT(INOUT), &
             DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)) :: buf
                                                     ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
@@ -2564,7 +2564,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              CHARACTER(LEN=*), INTENT(OUT), &
+              CHARACTER(LEN=*), INTENT(INOUT), &
               DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)) :: buf
               END FUNCTION h5areadc_6_c
             END INTERFACE
@@ -2583,7 +2583,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
                                                      ! identifier  (in memory)
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
-            CHARACTER(LEN=*), INTENT(OUT), &
+            CHARACTER(LEN=*), INTENT(INOUT), &
             DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)) :: buf
                                                     ! Attribute data 
             INTEGER, INTENT(OUT) :: hdferr          ! Error code
@@ -2601,7 +2601,7 @@ CONTAINS
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
               INTEGER(HID_T), INTENT(IN) :: attr_id
               INTEGER(HID_T), INTENT(IN) :: memtype_id
-              CHARACTER(LEN=*), INTENT(OUT), &
+              CHARACTER(LEN=*), INTENT(INOUT), &
               DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)) :: buf
               END FUNCTION h5areadc_7_c
             END INTERFACE
