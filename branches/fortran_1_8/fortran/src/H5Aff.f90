@@ -106,7 +106,7 @@ MODULE H5A
 CONTAINS
 
 !----------------------------------------------------------------------
-! Name:		h5acreate2_f 
+! Name:		h5acreate_f 
 !
 ! Purpose: 	Creates a dataset as an attribute of a group, dataset, 
 !		or named datatype 
@@ -2767,7 +2767,7 @@ CONTAINS
          CHARACTER(LEN=*), INTENT(OUT) :: buf
        END FUNCTION h5aget_name_c
     END INTERFACE
-    
+
     hdferr = h5aget_name_c(attr_id, size, buf)
   END SUBROUTINE h5aget_name_f
 
@@ -4026,7 +4026,7 @@ CONTAINS
                                              ! absolute from the file’s root group, or '.'
     CHARACTER(LEN=*), INTENT(IN) :: attr_name ! Attribute name
     INTEGER(HID_T), INTENT(IN) :: aapl_id ! Attribute access property list 
-                                          ! (Currently unused; should be passed in as H5P_DEFAULT.)
+                                          ! (Currently unused; should be passed in as H5P_DEFAULT_F)
     INTEGER(HID_T), INTENT(IN) :: lapl_id ! Link access property list identifier
     INTEGER(HID_T), INTENT(OUT) :: attr_id       ! Attribute identifier
     INTEGER, INTENT(OUT) :: hdferr         ! Error code:

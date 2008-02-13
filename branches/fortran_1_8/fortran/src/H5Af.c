@@ -969,29 +969,32 @@ done:
 int_f
 nh5aget_name_c(hid_t_f *attr_id, size_t_f *bufsize, _fcd buf)
 {
-    char *c_buf=NULL;           /* Buffer to hold C string */
-    int_f ret_value=0;          /* Return value */
+  size_t c_bufsize;
+  char *c_buf=NULL;           /* Buffer to hold C string */
+  int_f ret_value=0;          /* Return value */
+    
+  c_bufsize = (size_t)*bufsize + 1;
+  /*
+   * Allocate buffer to hold name of an attribute
+   */
+  if ((c_buf = HDmalloc(c_bufsize)) == NULL)
+    HGOTO_DONE(FAIL);
 
-     /*
-      * Allocate buffer to hold name of an attribute
-      */
-     if ((c_buf = HDmalloc((size_t)*bufsize)) == NULL)
-         HGOTO_DONE(FAIL);
+  /*
+   * Call H5Aget_name function
+   */
+  
+  if ((ret_value = (int_f)H5Aget_name((hid_t)*attr_id, c_bufsize, c_buf)) < 0)
+    HGOTO_DONE(FAIL);
 
-     /*
-      * Call H5Aget_name function
-      */
-     if ((ret_value = (int_f)H5Aget_name((hid_t)*attr_id, (size_t)*bufsize, c_buf)) < 0)
-         HGOTO_DONE(FAIL);
-
-     /*
-      * Convert C name to FORTRAN and place it in the given buffer
-      */
-      HD5packFstring(c_buf, _fcdtocp(buf), (size_t)*bufsize);
+  /*
+   * Convert C name to FORTRAN and place it in the given buffer
+   */
+  HD5packFstring(c_buf, _fcdtocp(buf), c_bufsize);
 
 done:
-      if(c_buf) HDfree(c_buf);
-      return ret_value;
+  if(c_buf) HDfree(c_buf);
+  return ret_value;
 }
 
 /*----------------------------------------------------------------------------
@@ -1279,7 +1282,7 @@ nh5aget_name_by_idx_c (hid_t_f *loc_id, _fcd obj_name, size_t_f *obj_namelen,
      /*
       * Allocate buffer to hold name of an attribute
       */
-     c_buf_size = (size_t)*size + 1;
+    c_buf_size = (size_t)*size + 1; /* check this */
      c_buf = (char *)HDmalloc(c_buf_size);
      if (c_buf == NULL) return ret_value;
 
