@@ -96,9 +96,9 @@ CONTAINS
          INTEGER :: namelen
          INTEGER(SIZE_T) :: size_hint_default
          INTEGER(HID_T), INTENT(OUT) :: grp_id
-         INTEGER(HID_T) :: lcpl_id
-         INTEGER(HID_T) :: gcpl_id
-         INTEGER(HID_T) :: gapl_id
+         INTEGER(HID_T), INTENT(IN) :: lcpl_id
+         INTEGER(HID_T), INTENT(IN) :: gcpl_id
+         INTEGER(HID_T), INTENT(IN) :: gapl_id
        END FUNCTION h5gcreate_c
     END INTERFACE
 
@@ -158,14 +158,14 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: gapl_id  ! Property list for group access
     INTEGER(HID_T), INTENT(OUT) :: grp_id  ! Group identifier 
     INTEGER, INTENT(OUT) :: hdferr         ! Error code
-
+    INTEGER(SIZE_T) :: OBJECT_NAMELEN_DEFAULT ! Dummy argument to pass to c call
     INTEGER :: namelen ! Length of the name character string
 
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
     INTERFACE
        INTEGER FUNCTION h5gcreate_c(loc_id, name, namelen, &
-            OBJECT_NAMELEN_DEFAULT_F, grp_id, lcpl_id, gcpl_id, gapl_id)
+            OBJECT_NAMELEN_DEFAULT, grp_id, lcpl_id, gcpl_id, gapl_id)
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
          !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5GCREATE_C'::h5gcreate_c
@@ -174,7 +174,7 @@ CONTAINS
          INTEGER(HID_T), INTENT(IN) :: loc_id
          CHARACTER(LEN=*), INTENT(IN) :: name
          INTEGER :: namelen
-         INTEGER(SIZE_T) :: OBJECT_NAMELEN_DEFAULT_F
+         INTEGER(SIZE_T) :: OBJECT_NAMELEN_DEFAULT
          INTEGER(HID_T), INTENT(IN) :: lcpl_id
          INTEGER(HID_T), INTENT(IN) :: gcpl_id
          INTEGER(HID_T), INTENT(IN) :: gapl_id
@@ -183,8 +183,9 @@ CONTAINS
     END INTERFACE
 
     namelen = LEN(name)
+    OBJECT_NAMELEN_DEFAULT = OBJECT_NAMELEN_DEFAULT_F
 
-    hdferr = h5gcreate_c(loc_id, name, namelen, OBJECT_NAMELEN_DEFAULT_F, grp_id, &
+    hdferr = h5gcreate_c(loc_id, name, namelen, OBJECT_NAMELEN_DEFAULT, grp_id, &
          lcpl_id, gcpl_id, gapl_id)
 
   END SUBROUTINE h5gcreate2_f

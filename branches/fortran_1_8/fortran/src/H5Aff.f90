@@ -371,6 +371,7 @@ CONTAINS
     END INTERFACE
 
     hdferr = h5awrite_integer_1_c(attr_id, memtype_id,  buf, dims)
+
   END SUBROUTINE h5awrite_integer_1
 
 
@@ -2875,8 +2876,11 @@ CONTAINS
 
     obj_namelen = LEN(obj_name)
 
+
     hdferr = h5aget_name_by_idx_c(loc_id, obj_name, obj_namelen, idx_type, order, &
-            n, name, size, lapl_id)
+         n, name, size, lapl_id)
+
+
 
   END SUBROUTINE h5aget_name_by_idx_f
 

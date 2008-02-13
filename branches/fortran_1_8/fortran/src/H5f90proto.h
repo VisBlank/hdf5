@@ -562,9 +562,8 @@ H5_FCDLL int_f nh5aget_name_by_idx_c (hid_t_f *loc_id, _fcd obj_name, size_t_f *
 H5_FCDLL int_f nh5aget_create_plist_c ( hid_t_f *attr_id, hid_t_f *creation_prop_id ); /* MSB */
 H5_FCDLL int_f nh5aopen_by_idx_c (hid_t_f *loc_id, _fcd obj_name, size_t_f *obj_namelen, 
 		     int_f *idx_type, int_f *order, size_t_f *n, hid_t_f *aapl_id, hid_t_f *lapl_id, hid_t_f *attr_id); /* MSB */
-H5_FCDLL int_f nh5aget_info_c (hid_t *loc_id, int_f *corder_valid, int_f *corder, 
+H5_FCDLL int_f nh5aget_info_c (hid_t_f *loc_id, int_f *corder_valid, int_f *corder, 
 			       int_f *cset, hsize_t_f *data_size ); /* MSB */
-
 H5_FCDLL int_f nh5aget_info_by_idx_c (hid_t_f *loc_id, _fcd obj_name, size_t_f *obj_namelen, 
 				      int_f *idx_type, int_f *order, size_t_f *n, hid_t_f *lapl_id,
 				      int_f *corder_valid, int_f *corder, 
@@ -964,7 +963,6 @@ H5_FCDLL int_f nh5pfill_value_defined_c ( hid_t_f *prp_id , int_f *flag);
 H5_FCDLL int_f nh5pget_attr_phase_change_c (hid_t_f *ocpl_id, int_f *max_compact, int_f *min_dense ); /* MSB */
 H5_FCDLL int_f nh5pset_attr_creation_order_c(hid_t_f *ocpl_id, int_f *crt_order_flags ); /* MSB */
 H5_FCDLL int_f nh5pset_shared_mesg_nindexes_c(hid_t_f *plist_id, int_f *nindexes ); /* MSB */
-H5_FCDLL int_f nh5pset_shared_mesg_index_c(hid_t_f *fcpl_id, int_f *index_num, int_f *mesg_type_flags, int_f *min_mesg_size); /* MSB */
 H5_FCDLL int_f nh5pset_shared_mesg_index_c(hid_t_f *fcpl_id, int_f *index_num, int_f *mesg_type_flags, int_f *min_mesg_size); /* MSB */
 H5_FCDLL int_f nh5pget_attr_creation_order_c(hid_t_f *ocpl_id, int_f *crt_order_flags); /* MSB */
 /*

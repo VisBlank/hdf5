@@ -973,7 +973,7 @@ nh5aget_name_c(hid_t_f *attr_id, size_t_f *bufsize, _fcd buf)
   char *c_buf=NULL;           /* Buffer to hold C string */
   int_f ret_value=0;          /* Return value */
     
-  c_bufsize = (size_t)*bufsize + 1;
+  c_bufsize = (size_t)*bufsize+1;
   /*
    * Allocate buffer to hold name of an attribute
    */
@@ -990,7 +990,7 @@ nh5aget_name_c(hid_t_f *attr_id, size_t_f *bufsize, _fcd buf)
   /*
    * Convert C name to FORTRAN and place it in the given buffer
    */
-  HD5packFstring(c_buf, _fcdtocp(buf), c_bufsize);
+  HD5packFstring(c_buf, _fcdtocp(buf), c_bufsize-1);
 
 done:
   if(c_buf) HDfree(c_buf);
@@ -1279,21 +1279,20 @@ nh5aget_name_by_idx_c (hid_t_f *loc_id, _fcd obj_name, size_t_f *obj_namelen,
     c_idx_type = (H5_index_t)*idx_type;
     c_order = (H5_iter_order_t)*order;
 
-     /*
-      * Allocate buffer to hold name of an attribute
-      */
-    c_buf_size = (size_t)*size + 1; /* check this */
-     c_buf = (char *)HDmalloc(c_buf_size);
-     if (c_buf == NULL) return ret_value;
-
+    /*
+     * Allocate buffer to hold name of an attribute
+     */
+    c_buf_size = (size_t)*size + 1; 
+    c_buf = (char *)HDmalloc(c_buf_size);
+    if (c_buf == NULL) return ret_value;
 
      /*
       * Call H5Aget_name_by_idx function.
       */
      c_size = H5Aget_name_by_idx((hid_t)*loc_id, c_obj_name, c_idx_type, c_order, (hsize_t)*n, c_buf, c_buf_size,(hid_t)*lapl_id);
    
-/*      printf( "The attr name is %s %i \n ", c_buf, c_buf_size ); */
-/*      printf( "The attr name is %i \n ", c_size ); */
+/*      printf( "In C routine, The attr name is %s %i \n ", c_buf, c_buf_size ); */
+/*      printf( "In C routine, The c_size is %i \n ", c_size );  */
 
      if (c_size < 0) goto done;
 
