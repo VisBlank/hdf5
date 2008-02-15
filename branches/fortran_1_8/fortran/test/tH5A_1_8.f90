@@ -1895,15 +1895,15 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
            ELSE
               IF(order .EQ. H5_ITER_INC_F)THEN
                  IF(use_index(i))THEN
-                    WRITE(*,'(A92)')"       - Testing Deleting Attribute By Name Index in Increasing Order w/Creation Order Index"
+                    WRITE(*,'(7X,A86)')"- Testing Deleting Attribute By Name Index in Increasing Order w/Creation Order Index"
                  ELSE
-                    WRITE(*,'(A94)')"       - Testing Deleting Attribute By Name Index in Increasing Order w/o Creation Order Index"
+                    WRITE(*,'(7X,A88)')"- Testing Deleting Attribute By Name Index in Increasing Order w/o Creation Order Index"
                  ENDIF
               ELSE
                  IF(use_index(i))THEN
-                    WRITE(*,'(A93)') "       - Testing Deleting Attribute By Name Index in Decreasing Order w/Creation Order Index"
+                    WRITE(*,'(7X,A86)') "- Testing Deleting Attribute By Name Index in Decreasing Order w/Creation Order Index"
                  ELSE
-                    WRITE(*,'(A95)') "       - Testing Deleting Attribute By Name Index in Decreasing Order w/o Creation Order Index"
+                    WRITE(*,'(7X,A88)') "- Testing Deleting Attribute By Name Index in Decreasing Order w/o Creation Order Index"
                  ENDIF
               ENDIF
            ENDIF
