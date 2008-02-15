@@ -374,7 +374,7 @@ CONTAINS
             INTEGER(HID_T)  :: mem_space_id_default
             INTEGER(HID_T) :: file_space_id_default
             INTEGER(HADDR_T), ALLOCATABLE, DIMENSION(:) :: ref_buf
-            INTEGER :: i,j
+            INTEGER :: j
 
 !            INTEGER, EXTERNAL :: h5dwrite_ref_obj_c
 ! MS FORTRAN needs explicit interface for C functions called here.
@@ -2541,7 +2541,7 @@ CONTAINS
             INTEGER(HID_T)  :: mem_space_id_default 
             INTEGER(HID_T) :: file_space_id_default 
             INTEGER(HADDR_T), ALLOCATABLE, DIMENSION(:) :: ref_buf
-            INTEGER :: i,j  
+            INTEGER :: j  
 
 !            INTEGER, EXTERNAL :: h5dread_ref_obj_c
 ! MS FORTRAN needs explicit interface for C functions called here.
@@ -5257,7 +5257,6 @@ CONTAINS
             INTEGER(HID_T)  :: mem_space_id_default
             INTEGER(HID_T) :: file_space_id_default 
 !            CHARACTER, DIMENSION(dims(1)*dims(2)) :: tmp_buf
-            integer i, j
 
             INTERFACE
               INTEGER FUNCTION h5dwrite_vl_string_c(dset_id, mem_type_id, &
@@ -5787,17 +5786,17 @@ CONTAINS
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
     INTERFACE
-       INTEGER FUNCTION h5dset_extent_c(dset_id, size)
+       INTEGER FUNCTION h5dextend_c(dset_id, size)
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DSET_EXTENT_C'::h5dset_extent_c
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DSET_EXTENT_C'::h5dextend_c
          !DEC$ ENDIF
          INTEGER(HID_T), INTENT(IN) :: dset_id
          INTEGER(HSIZE_T), INTENT(IN) :: size
-       END FUNCTION h5dset_extent_c
+       END FUNCTION h5dextend_c
     END INTERFACE
     
-    hdferr = h5dset_extent_c(dset_id, size)
+    hdferr = h5dextend_c(dset_id, size)
 
   END SUBROUTINE h5dset_extent_f
 

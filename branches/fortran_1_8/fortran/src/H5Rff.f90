@@ -243,7 +243,6 @@
             INTEGER(HID_T), INTENT(OUT) :: obj_id   ! Object identifier 
             INTEGER, INTENT(OUT) :: hdferr         ! Error code 
 
-            INTEGER :: ref_type     ! Reference type 
             INTEGER(HADDR_T) :: ref_f          ! Local buffer to pass reference
 
 !            INTEGER, EXTERNAL :: h5h5rdereference_object_c

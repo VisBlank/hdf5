@@ -1985,34 +1985,5 @@ nh5dcreate_anon_c (hid_t_f *loc_id, hid_t_f *type_id, hid_t_f *space_id,
  DONE:
   return ret_value;
 }
-/*----------------------------------------------------------------------------
- * Name:        h5dset_extent_c 
- * Purpose:     call H5Dset_extent
- * Inputs:      
- *              dset_id - Dataset identifier
- *                 size - Array containing the new magnitude of each dimension of the dataset.
- *
- * Outputs:
- * Returns:     0 on success, -1 on failure
- * Programmer:  M.S. Breitenfeld
- *		February, 2008
- * Modifications:
- *---------------------------------------------------------------------------*/
-int_f
-nh5dset_extent_c(hid_t_f *dset_id, hsize_t_f *size)
-{
-  int ret_value = -1; /* Return value */
-  herr_t ret;
-
-
-  /*
-   * Call h5dset_exent
-   */
-  ret = H5Dset_extent((hid_t)*dset_id, (hsize_t)size);
-
-  if (ret < 0) return ret_value;
-  ret_value = 0;
-  return ret_value;
-}
 
 

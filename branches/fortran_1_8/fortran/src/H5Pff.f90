@@ -6667,7 +6667,7 @@
          
        END FUNCTION H5pget_attr_creation_order_c
     END INTERFACE
-    
+
     hdferr = h5pget_attr_creation_order_c(ocpl_id, crt_order_flags)
 
   END SUBROUTINE h5pget_attr_creation_order_f
