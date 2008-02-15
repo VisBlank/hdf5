@@ -13,152 +13,89 @@
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
 !
-    SUBROUTINE attribute_test_1_8(cleanup, total_error) 
+SUBROUTINE attribute_test_1_8(cleanup, total_error) 
 
 !   This subroutine tests following functionalities: 
 !   h5acreate_f,  h5awrite_f, h5aclose_f,h5aread_f, h5aopen_name_f,
 !   h5aget_name_f,h5aget_space_f, h5aget_type_f,
 ! 
 
-     USE HDF5 ! This module contains all necessary modules 
+  USE HDF5 ! This module contains all necessary modules 
         
-     IMPLICIT NONE
-     LOGICAL, INTENT(IN)  :: cleanup
-     INTEGER, INTENT(OUT) :: total_error 
+  IMPLICIT NONE
+  LOGICAL, INTENT(IN)  :: cleanup
+  INTEGER, INTENT(OUT) :: total_error 
+  
+  CHARACTER(LEN=5), PARAMETER :: filename = "atest"    !File name
+  CHARACTER(LEN=9), PARAMETER :: dsetname = "atestdset"        !Dataset name
+  CHARACTER(LEN=11), PARAMETER :: aname = "attr_string"   !String Attribute name
+  CHARACTER(LEN=14), PARAMETER :: aname2 = "attr_character"!Character Attribute name
+  CHARACTER(LEN=11), PARAMETER :: aname3 = "attr_double"   !DOuble Attribute name
+  CHARACTER(LEN=9), PARAMETER :: aname4 = "attr_real"      !Real Attribute name
+  CHARACTER(LEN=12), PARAMETER :: aname5 = "attr_integer"  !Integer Attribute name
+  CHARACTER(LEN=9), PARAMETER :: aname6 = "attr_null"     !Null Attribute name
+  
+  !
+  !data space rank and dimensions
+  !
+  INTEGER, PARAMETER :: RANK = 2
+  INTEGER, PARAMETER :: NX = 4
+  INTEGER, PARAMETER :: NY = 5
 
-     CHARACTER(LEN=5), PARAMETER :: filename = "atest"    !File name
-     CHARACTER(LEN=80) :: fix_filename 
-     CHARACTER(LEN=9), PARAMETER :: dsetname = "atestdset"        !Dataset name
-     CHARACTER(LEN=11), PARAMETER :: aname = "attr_string"   !String Attribute name
-     CHARACTER(LEN=14), PARAMETER :: aname2 = "attr_character"!Character Attribute name
-     CHARACTER(LEN=11), PARAMETER :: aname3 = "attr_double"   !DOuble Attribute name
-     CHARACTER(LEN=9), PARAMETER :: aname4 = "attr_real"      !Real Attribute name
-     CHARACTER(LEN=12), PARAMETER :: aname5 = "attr_integer"  !Integer Attribute name
-     CHARACTER(LEN=9), PARAMETER :: aname6 = "attr_null"     !Null Attribute name
-    
-     !
-     !data space rank and dimensions
-     !
-     INTEGER, PARAMETER :: RANK = 2
-     INTEGER, PARAMETER :: NX = 4
-     INTEGER, PARAMETER :: NY = 5
+  
 
 
 
-     INTEGER(HID_T) :: file_id       ! File identifier 
-     INTEGER(HID_T) :: dset_id       ! Dataset identifier 
-     INTEGER(HID_T) :: dataspace     ! Dataspace identifier for dataset 
+  !
+  !general purpose integer 
+  !         
+  INTEGER     ::   i, j
+  INTEGER     ::   error ! Error flag
+  
 
-     INTEGER(HID_T) :: attr_id        !String Attribute identifier 
-     INTEGER(HID_T) :: attr2_id       !Character Attribute identifier 
-     INTEGER(HID_T) :: attr3_id       !Double Attribute identifier 
-     INTEGER(HID_T) :: attr4_id       !Real Attribute identifier 
-     INTEGER(HID_T) :: attr5_id       !Integer Attribute identifier 
-     INTEGER(HID_T) :: attr6_id       !Null Attribute identifier 
-     INTEGER(HID_T) :: aspace_id      !String Attribute Dataspace identifier 
-     INTEGER(HID_T) :: aspace2_id     !Character Attribute Dataspace identifier 
-     INTEGER(HID_T) :: aspace3_id     !Double Attribute Dataspace identifier 
-     INTEGER(HID_T) :: aspace4_id     !Real Attribute Dataspace identifier 
-     INTEGER(HID_T) :: aspace5_id     !Integer Attribute Dataspace identifier 
-     INTEGER(HID_T) :: aspace6_id     !Null Attribute Dataspace identifier 
-     INTEGER(HID_T) :: atype_id       !String Attribute Datatype identifier 
-     INTEGER(HID_T) :: atype2_id      !Character Attribute Datatype identifier 
-     INTEGER(HID_T) :: atype3_id      !Double Attribute Datatype identifier 
-     INTEGER(HID_T) :: atype4_id      !Real Attribute Datatype identifier 
-     INTEGER(HID_T) :: atype5_id      !Integer Attribute Datatype identifier 
-     INTEGER(HSIZE_T), DIMENSION(1) :: adims = (/2/) ! Attribute dimension
-     INTEGER(HSIZE_T), DIMENSION(1) :: adims2 = (/1/) ! Attribute dimension
-     INTEGER     ::   arank = 1                      ! Attribure rank
-     INTEGER(SIZE_T) :: attrlen    ! Length of the attribute string
-
-     INTEGER(HID_T) :: attr_space     !Returned String Attribute Space identifier 
-     INTEGER(HID_T) :: attr2_space    !Returned other Attribute Space identifier 
-     INTEGER(HID_T) :: attr_type      !Returned Attribute Datatype identifier
-     INTEGER(HID_T) :: attr2_type      !Returned CHARACTER Attribute Datatype identifier
-     INTEGER(HID_T) :: attr3_type      !Returned DOUBLE Attribute Datatype identifier
-     INTEGER(HID_T) :: attr4_type      !Returned REAL Attribute Datatype identifier
-     INTEGER(HID_T) :: attr5_type      !Returned INTEGER Attribute Datatype identifier
-     INTEGER(HID_T) :: attr6_type      !Returned NULL Attribute Datatype identifier
-     INTEGER        :: num_attrs      !number of attributes  
-     INTEGER(HSIZE_T) :: attr_storage   ! attributes storage requirements .MSB.
-     CHARACTER(LEN=256) :: attr_name    !buffer to put attr_name
-     INTEGER(SIZE_T)    ::  name_size = 80 !attribute name length
-
-     CHARACTER(LEN=35), DIMENSION(2) ::  attr_data  ! String attribute data
-     CHARACTER(LEN=35), DIMENSION(2) ::  aread_data ! Buffer to put read back 
-                                               ! string attr data
-     CHARACTER ::  attr_character_data = 'A'
-     DOUBLE PRECISION,  DIMENSION(1) ::  attr_double_data = 3.459
-     REAL,         DIMENSION(1) ::  attr_real_data = 4.0
-     INTEGER,      DIMENSION(1) ::  attr_integer_data = 5
-     INTEGER(HSIZE_T), DIMENSION(7) :: data_dims
-
-     
-     CHARACTER :: aread_character_data ! variable to put read back Character attr data
-     INTEGER, DIMENSION(1)  :: aread_integer_data ! variable to put read back integer attr data
-     INTEGER, DIMENSION(1)  :: aread_null_data = 7 ! variable to put read back null attr data
-     DOUBLE PRECISION, DIMENSION(1)   :: aread_double_data ! variable to put read back double attr data
-     REAL, DIMENSION(1)  :: aread_real_data ! variable to put read back real attr data
-
-     !
-     !general purpose integer 
-     !         
-     INTEGER     ::   i, j
-     INTEGER     ::   error ! Error flag
-     
-     ! 
-     !The dimensions for the dataset.
-     !
-     INTEGER(HSIZE_T), DIMENSION(2) :: dims = (/NX,NY/)
-
-     !
-     !data buffers 
-     !         
-     INTEGER, DIMENSION(NX,NY) :: data_in, data_out
-
-     ! NEW STARTS HERE
-     INTEGER(HID_T) :: fapl = -1, fapl2 = -1
-     INTEGER(HID_T) :: fcpl = -1, fcpl2 = -1
-     INTEGER(HID_T) :: my_fapl, my_fcpl
-     LOGICAL, DIMENSION(1:2) :: new_format = (/.TRUE.,.FALSE./)
-     LOGICAL, DIMENSION(1:2) :: use_shared = (/.TRUE.,.FALSE./)
-     INTEGER :: ret 
+  
+  ! NEW STARTS HERE
+  INTEGER(HID_T) :: fapl = -1, fapl2 = -1
+  INTEGER(HID_T) :: fcpl = -1, fcpl2 = -1
+  INTEGER(HID_T) :: my_fapl, my_fcpl
+  LOGICAL, DIMENSION(1:2) :: new_format = (/.TRUE.,.FALSE./)
+  LOGICAL, DIMENSION(1:2) :: use_shared = (/.TRUE.,.FALSE./)
 
 
 ! ********************
 ! test_attr equivelent
 ! ********************
 
-     WRITE(*,*) "Testing Attributes"
-
-     CALL H5Pcreate_f(H5P_FILE_ACCESS_F,fapl,error)
-     CALL check("h5Pcreate_f",error,total_error)
-     CALL h5pcopy_f(fapl, fapl2, error)
-     CALL check("h5pcopy_f",error,total_error)
+  WRITE(*,*) "TESTING ATTRIBUTES"
+  
+  CALL H5Pcreate_f(H5P_FILE_ACCESS_F,fapl,error)
+  CALL check("h5Pcreate_f",error,total_error)
+  CALL h5pcopy_f(fapl, fapl2, error)
+  CALL check("h5pcopy_f",error,total_error)
 !!$
 !!$     ret = H5Pset_format_bounds(fapl2, H5F_FORMAT_LATEST, H5F_FORMAT_LATEST)
 !!$     CALL CHECK(ret, FAIL, "H5Pset_format_bounds")
 
 
-     CALL H5Pcreate_f(H5P_FILE_CREATE_F,fcpl,error)
-     CALL check("h5Pcreate_f",error,total_error)
-
-     CALL h5pcopy_f(fcpl, fcpl2, error)
-     CALL check("h5pcopy_f",error,total_error)
+  CALL H5Pcreate_f(H5P_FILE_CREATE_F,fcpl,error)
+  CALL check("h5Pcreate_f",error,total_error)
+  
+  CALL h5pcopy_f(fcpl, fcpl2, error)
+  CALL check("h5pcopy_f",error,total_error)
 
 !!$     ret = H5Pset_shared_mesg_nindexes(fcpl2, (unsigned)1)
 !!$     CALL CHECK_I(ret, "H5Pset_shared_mesg_nindexes")
 !!$     ret = H5Pset_shared_mesg_index(fcpl2, (unsigned)0, H5O_SHMESG_ATTR_FLAG, (unsigned)1)
 !!$     CALL CHECK_I(ret, "H5Pset_shared_mesg_index")
-     DO i = 1, 1 ! 2
-        IF (new_format(i)) THEN
-           WRITE(*,*) "testing with new file format"
-           my_fapl = fapl2
-        ELSE
-           WRITE(*,*) "testing with old file format"
-           my_fapl = fapl
-        END IF
-        CALL test_attr_basic_write(my_fapl, total_error)
+  DO i = 1, 1 ! 2
+     IF (new_format(i)) THEN
+        WRITE(*,*) "     - Testing with new file format"
+        my_fapl = fapl2
+     ELSE
+        WRITE(*,*) "     - Testing with old file format"
+        my_fapl = fapl
+     END IF
+     CALL test_attr_basic_write(my_fapl, total_error)
 !!$        CALL test_attr_basic_read(my_fapl)
 !!$        CALL test_attr_flush(my_fapl)
 !!$        CALL test_attr_plist(my_fapl)
@@ -171,46 +108,46 @@
 !!$        CALL test_attr_iterate(my_fapl)
 !!$        CALL test_attr_delete(my_fapl)
 !!$        CALL test_attr_dtype_shared(my_fapl)
-        IF(new_format(i)) THEN
-           DO j = 1, 1 ! 2
-              IF (use_shared(j)) THEN
-                 WRITE(*,*) "testing with shared attributes"
-                 my_fcpl = fcpl2
-              ELSE
-                 WRITE(*,*) "testing without shared attributes"
-                 my_fcpl = fcpl
-              END IF
+     IF(new_format(i)) THEN
+        DO j = 1, 1 ! 2
+           IF (use_shared(j)) THEN
+              WRITE(*,*) "     - Testing with shared attributes"
+              my_fcpl = fcpl2
+           ELSE
+              WRITE(*,*) "     - Testing without shared attributes"
+              my_fcpl = fcpl
+           END IF
 !!$              CALL test_attr_dense_create(my_fcpl, my_fapl)
-              CALL test_attr_dense_open(my_fcpl, my_fapl, total_error)
+           CALL test_attr_dense_open(my_fcpl, my_fapl, total_error)
 !!$              CALL test_attr_dense_delete(my_fcpl, my_fapl)
 !!$              CALL test_attr_dense_rename(my_fcpl, my_fapl)
 !!$              CALL test_attr_dense_unlink(my_fcpl, my_fapl)
 !!$              CALL test_attr_dense_limits(my_fcpl, my_fapl)
 !!$              CALL test_attr_big(my_fcpl, my_fapl)
-              CALL test_attr_null_space(my_fcpl, my_fapl, total_error)
+           CALL test_attr_null_space(my_fcpl, my_fapl, total_error)
 !!$              CALL test_attr_deprec(fcpl, my_fapl)
-              CALL test_attr_many(new_format(i), my_fcpl, my_fapl, total_error)
-              CALL test_attr_corder_create_basic(my_fcpl, my_fapl, total_error)
-              CALL test_attr_corder_create_compact(my_fcpl, my_fapl, total_error)
+           CALL test_attr_many(new_format(i), my_fcpl, my_fapl, total_error)
+           CALL test_attr_corder_create_basic(my_fcpl, my_fapl, total_error)
+           CALL test_attr_corder_create_compact(my_fcpl, my_fapl, total_error)
 !!$              CALL test_attr_corder_create_dense(my_fcpl, my_fapl)
 !!$              CALL test_attr_corder_create_reopen(my_fcpl, my_fapl)
 !!$              CALL test_attr_corder_transition(my_fcpl, my_fapl)
 !!$              CALL test_attr_corder_delete(my_fcpl, my_fapl)
-              CALL test_attr_info_by_idx(new_format, my_fcpl, my_fapl, total_error)
-              CALL test_attr_delete_by_idx(new_format, my_fcpl, my_fapl, total_error)
+           CALL test_attr_info_by_idx(new_format, my_fcpl, my_fapl, total_error)
+           CALL test_attr_delete_by_idx(new_format, my_fcpl, my_fapl, total_error)
 !!$              CALL test_attr_iterate2(new_format, my_fcpl, my_fapl)
 !!$              CALL test_attr_open_by_idx(new_format, my_fcpl, my_fapl)
 !!$              CALL test_attr_open_by_name(new_format, my_fcpl, my_fapl)
-              CALL test_attr_create_by_name(new_format(i), my_fcpl, my_fapl, total_error)
+           CALL test_attr_create_by_name(new_format(i), my_fcpl, my_fapl, total_error)
              ! /* More complex tests with both "new format" and "shared" attributes */
-              IF( use_shared(j) ) THEN
+           IF( use_shared(j) ) THEN
 !!$                 CALL test_attr_shared_write(my_fcpl, my_fapl)
-                 CALL test_attr_shared_rename(my_fcpl, my_fapl, total_error)
-                 CALL test_attr_shared_delete(my_fcpl, my_fapl, total_error)
+              CALL test_attr_shared_rename(my_fcpl, my_fapl, total_error)
+              CALL test_attr_shared_delete(my_fcpl, my_fapl, total_error)
 !!$                 CALL test_attr_shared_unlink(my_fcpl, my_fapl)
-              END IF
+           END IF
 !!$              CALL test_attr_bug1(my_fcpl, my_fapl)
-           END DO
+        END DO
 !!$        ELSE
 !!$           CALL test_attr_big(fcpl, my_fapl)
 !!$           CALL test_attr_null_space(fcpl, my_fapl)
@@ -223,8 +160,8 @@
 !!$           CALL test_attr_open_by_name(new_format, fcpl, my_fapl)
 !!$           CALL test_attr_create_by_name(new_format, fcpl, my_fapl)
 !!$           CALL test_attr_bug1(fcpl, my_fapl)
-        END IF
-     END DO
+     END IF
+  END DO
 !!$     ret = H5Pclose(fcpl)
 !!$     CALL CHECK(ret, FAIL, "H5Pclose")
 !!$     ret = H5Pclose(fcpl2)
@@ -234,8 +171,8 @@
 !!$     ret = H5Pclose(fapl2)
 !!$     CALL CHECK(ret, FAIL, "H5Pclose") 
 
-     RETURN
-   END SUBROUTINE attribute_test_1_8
+  RETURN
+END SUBROUTINE attribute_test_1_8
 
 SUBROUTINE test_attr_corder_create_compact(fcpl,fapl, total_error)
 
@@ -295,7 +232,7 @@ SUBROUTINE test_attr_corder_create_compact(fcpl,fapl, total_error)
 !!$  INTEGER ::is_empty
 !!$  INTEGER ::is_dense
 !!$
-  WRITE(*,*) "Testing Compact Storage of Attributes with Creation Order Info"
+  WRITE(*,*) "     - Testing Compact Storage of Attributes with Creation Order Info"
   ! /* Create file */
   CALL h5fcreate_f(FileName, H5F_ACC_TRUNC_F, fid, error, fcpl, fapl)
   CALL check("h5fcreate_f",error,total_error)
@@ -466,19 +403,13 @@ SUBROUTINE test_attr_null_space(fcpl, fapl, total_error)
 
   CHARACTER(LEN=8) :: FileName = "tattr.h5"
   INTEGER(HID_T) :: fid
-  INTEGER(HID_T) :: dcpl
   INTEGER(HID_T) :: sid, null_sid
   INTEGER(HID_T) :: dataset
 
   CHARACTER(LEN=8) :: DSET1_NAME = "Dataset1"
-  CHARACTER(LEN=8) :: DSET2_NAME = "Dataset2"
-  CHARACTER(LEN=8) :: DSET3_NAME = "Dataset3"
   INTEGER, PARAMETER :: NUM_DSETS = 3
 
-  INTEGER :: curr_dset
 
-  INTEGER(HID_T) :: dset1, dset2, dset3
-  INTEGER(HID_T) :: my_dataset
   INTEGER :: error
   
   INTEGER :: value_scalar
@@ -486,7 +417,6 @@ SUBROUTINE test_attr_null_space(fcpl, fapl, total_error)
   INTEGER(HID_T) :: attr        !String Attribute identifier 
   INTEGER(HID_T) :: attr_sid
   INTEGER(HSIZE_T), DIMENSION(7) :: data_dims
-  INTEGER(HSIZE_T) :: data_dims_scalar
 
   INTEGER(HSIZE_T) :: storage_size   ! attributes storage requirements .MSB.
 
@@ -502,7 +432,7 @@ SUBROUTINE test_attr_null_space(fcpl, fapl, total_error)
 !  CHARACTER (LEN=NAME_BUF_SIZE) :: attrname
 
 ! /* Output message about test being performed */
-  WRITE(*,*) "Testing Storing Attributes with 'null' dataspace"
+  WRITE(*,*) "     - Testing Storing Attributes with 'null' dataspace"
   ! /* Create file */
   CALL h5fcreate_f(FileName, H5F_ACC_TRUNC_F, fid, error, fcpl, fapl)
   CALL check("h5fcreate_f",error,total_error)
@@ -673,8 +603,7 @@ SUBROUTINE test_attr_create_by_name(new_format,fcpl,fapl, total_error)
   CHARACTER(LEN=8) :: FileName = "tattr.h5"
   INTEGER(HID_T) :: fid
   INTEGER(HID_T) :: dcpl
-  INTEGER(HID_T) :: sid, null_sid
-  INTEGER(HID_T) :: dataset
+  INTEGER(HID_T) :: sid
 
   CHARACTER(LEN=8) :: DSET1_NAME = "Dataset1"
   CHARACTER(LEN=8) :: DSET2_NAME = "Dataset2"
@@ -687,16 +616,9 @@ SUBROUTINE test_attr_create_by_name(new_format,fcpl,fapl, total_error)
   INTEGER(HID_T) :: my_dataset
   INTEGER :: error
 
-  INTEGER :: value
-  INTEGER(HID_T) :: attr        !String Attribute identifier 
-  INTEGER(HID_T) :: attr_sid
+  INTEGER(HID_T) :: attr        !String Attribute identifier
   INTEGER(HSIZE_T), DIMENSION(7) :: data_dims
-  INTEGER(HSIZE_T) :: storage_size   ! attributes storage requirements .MSB.
 
-  LOGICAL :: f_corder_valid ! Indicates whether the the creation order data is valid for this attribute 
-  INTEGER :: corder ! Is a positive integer containing the creation order of the attribute
-  INTEGER :: cset ! Indicates the character set used for the attribute’s name
-  INTEGER(HSIZE_T) :: data_size   ! indicates the size, in the number of characters
 
   CHARACTER(LEN=2) :: chr2
   LOGICAL, DIMENSION(1:2) :: use_index = (/.FALSE.,.TRUE./) 
@@ -723,9 +645,9 @@ SUBROUTINE test_attr_create_by_name(new_format,fcpl,fapl, total_error)
   DO i = 1, 2
      ! /* Print appropriate test message */
      IF(use_index(i))THEN
-        WRITE(*,*) "Testing Creating Attributes By Name w/Creation Order Index"
+        WRITE(*,*) "       - Testing Creating Attributes By Name w/Creation Order Index"
      ELSE
-        WRITE(*,*) "Testing Creating Attributes By Name w/o Creation Order Index"
+        WRITE(*,*) "       - Testing Creating Attributes By Name w/o Creation Order Index"
      ENDIF
      ! /* Create file */
      CALL h5fcreate_f(FileName, H5F_ACC_TRUNC_F, fid, error, fcpl, fapl)
@@ -930,8 +852,7 @@ SUBROUTINE test_attr_info_by_idx(new_format, fcpl, fapl, total_error)
   CHARACTER(LEN=8) :: FileName = "tattr.h5"
   INTEGER(HID_T) :: fid
   INTEGER(HID_T) :: dcpl
-  INTEGER(HID_T) :: sid, null_sid
-  INTEGER(HID_T) :: dataset
+  INTEGER(HID_T) :: sid
 
   CHARACTER(LEN=8) :: DSET1_NAME = "Dataset1"
   CHARACTER(LEN=8) :: DSET2_NAME = "Dataset2"
@@ -944,11 +865,8 @@ SUBROUTINE test_attr_info_by_idx(new_format, fcpl, fapl, total_error)
   INTEGER(HID_T) :: my_dataset
   INTEGER :: error
 
-  INTEGER :: value
-  INTEGER(HID_T) :: attr        !String Attribute identifier 
-  INTEGER(HID_T) :: attr_sid
+  INTEGER(HID_T) :: attr        !String Attribute identifier
   INTEGER(HSIZE_T), DIMENSION(7) :: data_dims
-  INTEGER(HSIZE_T) :: storage_size   ! attributes storage requirements .MSB.
 
   LOGICAL :: f_corder_valid ! Indicates whether the the creation order data is valid for this attribute 
   INTEGER :: corder ! Is a positive integer containing the creation order of the attribute
@@ -963,7 +881,6 @@ SUBROUTINE test_attr_info_by_idx(new_format, fcpl, fapl, total_error)
   CHARACTER(LEN=2) :: chr2
 
   INTEGER :: i, j
-  INTEGER(HSIZE_T) :: nn
 
   INTEGER, DIMENSION(1) ::  attr_integer_data
   CHARACTER(LEN=7) :: attrname
@@ -1008,9 +925,9 @@ SUBROUTINE test_attr_info_by_idx(new_format, fcpl, fapl, total_error)
 
      ! /* Output message about test being performed */
      IF(use_index(i))THEN
-        WRITE(*,'(A63)') "Testing Querying Attribute Info By Index w/Creation Order Index"
+        WRITE(*,'(A72)') "       - Testing Querying Attribute Info By Index w/Creation Order Index"
      ELSE
-        WRITE(*,'(A65)') "Testing Querying Attribute Info By Index w/o Creation Order Index"
+        WRITE(*,'(A74)') "       - Testing Querying Attribute Info By Index w/o Creation Order Index"
      ENDIF
 
      ! /* Create file */
@@ -1371,55 +1288,35 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
 
   CHARACTER(LEN=8) :: DSET1_NAME = "Dataset1"
   CHARACTER(LEN=8) :: DSET2_NAME = "Dataset2"
-  CHARACTER(LEN=8) :: DSET3_NAME = "Dataset3"
   INTEGER, PARAMETER :: NUM_DSETS = 3
 
-  INTEGER :: curr_dset
 
-  INTEGER(HID_T) :: dset1, dset2, dset3
   INTEGER(HID_T) :: dataset, dataset2
-  INTEGER(HID_T) :: my_dataset
 
   INTEGER :: error
 
-  INTEGER :: value
-  INTEGER(HID_T) :: attr        !String Attribute identifier 
-  INTEGER(HID_T) :: attr_sid
+  INTEGER(HID_T) :: attr        !String Attribute identifier
   INTEGER(HID_T) :: attr_tid
   INTEGER(HSIZE_T), DIMENSION(7) :: data_dims
-  INTEGER(HSIZE_T) :: storage_size   ! attributes storage requirements .MSB.
 
-  LOGICAL :: f_corder_valid ! Indicates whether the the creation order data is valid for this attribute 
-  INTEGER :: corder ! Is a positive integer containing the creation order of the attribute
-  INTEGER :: cset ! Indicates the character set used for the attribute’s name
-  INTEGER(HSIZE_T) :: data_size   ! indicates the size, in the number of characters
-  INTEGER(HSIZE_T) :: n
-  LOGICAL, DIMENSION(1:2) :: use_index = (/.FALSE.,.TRUE./)
 
   INTEGER :: max_compact ! Maximum # of links to store in group compactly
   INTEGER :: min_dense   ! Minimum # of links to store in group "densely"
 
   CHARACTER(LEN=2) :: chr2
 
-  INTEGER :: i, j
 
   INTEGER, DIMENSION(1) ::  attr_integer_data
   CHARACTER(LEN=7) :: attrname
   CHARACTER(LEN=11) :: attrname2
 
-  INTEGER(SIZE_T) :: size
-  CHARACTER(LEN=7) :: tmpname
   CHARACTER(LEN=1), PARAMETER :: chr1 = '.'
-  
-  INTEGER :: idx_type
-  INTEGER :: order
-  INTEGER :: u 
-  INTEGER :: Input1
+ 
+  INTEGER :: u
   INTEGER, PARAMETER :: SPACE1_RANK = 3
   INTEGER, PARAMETER :: NX = 20
   INTEGER, PARAMETER :: NY = 5
   INTEGER, PARAMETER :: NZ = 10
-  INTEGER(HSIZE_T), DIMENSION(3) :: big_dims = (/NX,NY,NZ/)
   INTEGER(HID_T) :: my_fcpl
 
   CHARACTER(LEN=5), PARAMETER :: TYPE1_NAME = "/Type"
@@ -1428,14 +1325,13 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
   INTEGER, PARAMETER :: SPACE1_DIM2 = 8
   INTEGER, PARAMETER :: SPACE1_DIM3 = 10
 
-  INTEGER, DIMENSION(SPACE1_DIM1 * SPACE1_DIM2 * SPACE1_DIM3) :: big_value
 
   INTEGER :: test_shared
   INTEGER(HSIZE_T), DIMENSION(1) :: adims2 = (/1/) ! Attribute dimension
   INTEGER     ::   arank = 1                      ! Attribure rank
 
   ! /* Output message about test being performed */
-  WRITE(*,*) "Testing Renaming Shared & Unshared Attributes in Compact & Dense Storage"
+  WRITE(*,*) "     - Testing Renaming Shared & Unshared Attributes in Compact & Dense Storage"
 !!$ /* Initialize "big" attribute data */
 !!$  CALL HDmemset(big_value, 1, SIZEOF(big_value)
 
@@ -1886,7 +1782,6 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
   INTEGER(HID_T) :: fid
   INTEGER(HID_T) :: dcpl
   INTEGER(HID_T) :: sid
-  INTEGER(HID_T) :: dataset
 
   CHARACTER(LEN=8) :: DSET1_NAME = "Dataset1"
   CHARACTER(LEN=8) :: DSET2_NAME = "Dataset2"
@@ -1900,17 +1795,13 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
 
   INTEGER :: error
 
-  INTEGER :: value
-  INTEGER(HID_T) :: attr        !String Attribute identifier 
-  INTEGER(HID_T) :: attr_sid
+  INTEGER(HID_T) :: attr        !String Attribute identifier
   INTEGER(HSIZE_T), DIMENSION(7) :: data_dims
-  INTEGER(HSIZE_T) :: storage_size   ! attributes storage requirements .MSB.
 
   LOGICAL :: f_corder_valid ! Indicates whether the the creation order data is valid for this attribute 
   INTEGER :: corder ! Is a positive integer containing the creation order of the attribute
   INTEGER :: cset ! Indicates the character set used for the attribute’s name
   INTEGER(HSIZE_T) :: data_size   ! indicates the size, in the number of characters
-  INTEGER(HSIZE_T) :: n
   LOGICAL, DIMENSION(1:2) :: use_index = (/.FALSE.,.TRUE./)
 
   INTEGER :: max_compact ! Maximum # of links to store in group compactly
@@ -1918,7 +1809,7 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
 
   CHARACTER(LEN=2) :: chr2
 
-  INTEGER :: i, j
+  INTEGER :: i
 
   INTEGER, DIMENSION(1) ::  attr_integer_data
   CHARACTER(LEN=7) :: attrname
@@ -1986,33 +1877,33 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
            IF(idx_type .EQ. H5_INDEX_CRT_ORDER_F)THEN
               IF(order .EQ. H5_ITER_INC_F) THEN
                  IF(use_index(i))THEN
-                    WRITE(*,'(A93)') &
-                         "Testing Deleting Attribute By Creation Order Index in Increasing Order w/Creation Order Index"
+                    WRITE(*,'(A102)') &
+                         "       - Testing Deleting Attribute By Creation Order Index in Increasing Order w/Creation Order Index"
                  ELSE
-                    WRITE(*,'(A95)') &
-                         "Testing Deleting Attribute By Creation Order Index in Increasing Order w/o Creation Order Index"
+                    WRITE(*,'(A104)') &
+                         "       - Testing Deleting Attribute By Creation Order Index in Increasing Order w/o Creation Order Index"
                  ENDIF
               ELSE
                  IF(use_index(i))THEN
-                    WRITE(*,'(A93)') &
-                         "Testing Deleting Attribute By Creation Order Index in Decreasing Order w/Creation Order Index"
+                    WRITE(*,'(A102)') &
+                         "       - Testing Deleting Attribute By Creation Order Index in Decreasing Order w/Creation Order Index"
                  ELSE
-                    WRITE(*,'(A95)') &
-                         "Testing Deleting Attribute By Creation Order Index in Decreasing Order w/o Creation Order Index"
+                    WRITE(*,'(A104)') &
+                         "       - Testing Deleting Attribute By Creation Order Index in Decreasing Order w/o Creation Order Index"
                  ENDIF
               ENDIF
            ELSE
               IF(order .EQ. H5_ITER_INC_F)THEN
                  IF(use_index(i))THEN
-                    WRITE(*,'(A83)')"Testing Deleting Attribute By Name Index in Increasing Order w/Creation Order Index"
+                    WRITE(*,'(A92)')"       - Testing Deleting Attribute By Name Index in Increasing Order w/Creation Order Index"
                  ELSE
-                    WRITE(*,'(A85)')"Testing Deleting Attribute By Name Index in Increasing Order w/o Creation Order Index"
+                    WRITE(*,'(A94)')"       - Testing Deleting Attribute By Name Index in Increasing Order w/o Creation Order Index"
                  ENDIF
               ELSE
                  IF(use_index(i))THEN
-                    WRITE(*,'(A84)') "Testing Deleting Attribute By Name Index in Decreasing Order w/Creation Order Index"
+                    WRITE(*,'(A93)') "       - Testing Deleting Attribute By Name Index in Decreasing Order w/Creation Order Index"
                  ELSE
-                    WRITE(*,'(A86)') "Testing Deleting Attribute By Name Index in Decreasing Order w/o Creation Order Index"
+                    WRITE(*,'(A95)') "       - Testing Deleting Attribute By Name Index in Decreasing Order w/o Creation Order Index"
                  ENDIF
               ENDIF
            ENDIF
@@ -2531,54 +2422,33 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
 
   CHARACTER(LEN=8) :: DSET1_NAME = "Dataset1"
   CHARACTER(LEN=8) :: DSET2_NAME = "Dataset2"
-  CHARACTER(LEN=8) :: DSET3_NAME = "Dataset3"
   INTEGER, PARAMETER :: NUM_DSETS = 3
 
-  INTEGER :: curr_dset
 
-  INTEGER(HID_T) :: dset1, dset2, dset3
   INTEGER(HID_T) :: dataset, dataset2
-  INTEGER(HID_T) :: my_dataset
 
   INTEGER :: error
 
-  INTEGER :: value
-  INTEGER(HID_T) :: attr        !String Attribute identifier 
-  INTEGER(HID_T) :: attr_sid
+  INTEGER(HID_T) :: attr        !String Attribute identifier
   INTEGER(HID_T) :: attr_tid
   INTEGER(HSIZE_T), DIMENSION(7) :: data_dims
-  INTEGER(HSIZE_T) :: storage_size   ! attributes storage requirements .MSB.
 
-  LOGICAL :: f_corder_valid ! Indicates whether the the creation order data is valid for this attribute 
-  INTEGER :: corder ! Is a positive integer containing the creation order of the attribute
-  INTEGER :: cset ! Indicates the character set used for the attribute’s name
-  INTEGER(HSIZE_T) :: data_size   ! indicates the size, in the number of characters
-  INTEGER(HSIZE_T) :: n
-  LOGICAL, DIMENSION(1:2) :: use_index = (/.FALSE.,.TRUE./)
 
   INTEGER :: max_compact ! Maximum # of links to store in group compactly
   INTEGER :: min_dense   ! Minimum # of links to store in group "densely"
 
   CHARACTER(LEN=2) :: chr2
 
-  INTEGER :: i, j
-
   INTEGER, DIMENSION(1) ::  attr_integer_data
   CHARACTER(LEN=7) :: attrname
 
-  INTEGER(SIZE_T) :: size
-  CHARACTER(LEN=7) :: tmpname
   CHARACTER(LEN=1), PARAMETER :: chr1 = '.'
   
-  INTEGER :: idx_type
-  INTEGER :: order
-  INTEGER :: u 
-  INTEGER :: Input1
+  INTEGER :: u
   INTEGER, PARAMETER :: SPACE1_RANK = 3
   INTEGER, PARAMETER :: NX = 20
   INTEGER, PARAMETER :: NY = 5
   INTEGER, PARAMETER :: NZ = 10
-  INTEGER(HSIZE_T), DIMENSION(3) :: big_dims = (/NX,NY,NZ/)
   INTEGER(HID_T) :: my_fcpl
 
   CHARACTER(LEN=5), PARAMETER :: TYPE1_NAME = "/Type"
@@ -2588,7 +2458,7 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
   INTEGER     ::   arank = 1                      ! Attribure rank
 
   ! /* Output message about test being performed */
-  WRITE(*,*) "Testing Deleting Shared & Unshared Attributes in Compact & Dense Storage"
+  WRITE(*,*) "     - Testing Deleting Shared & Unshared Attributes in Compact & Dense Storage"
 
   ! /* Initialize "big" attribute DATA */
 !!$    HDmemset(big_value, 1, sizeof(big_value));
@@ -2976,24 +2846,10 @@ SUBROUTINE test_attr_dense_open( fcpl, fapl, total_error)
 
   CHARACTER(LEN=8) :: DSET1_NAME = "Dataset1"
 
-  INTEGER :: curr_dset
-
-  INTEGER(HID_T) :: dset1, dset2, dset3
-  INTEGER(HID_T) :: dataset, dataset2
-  INTEGER(HID_T) :: my_dataset
-
   INTEGER :: error
-
-  INTEGER :: value
   INTEGER(HID_T) :: attr        !String Attribute identifier
   INTEGER(HSIZE_T), DIMENSION(7) :: data_dims
-  INTEGER(HSIZE_T) :: storage_size   ! attributes storage requirements .MSB.
 
-  LOGICAL :: f_corder_valid ! Indicates whether the the creation order data is valid for this attribute 
-  INTEGER :: corder ! Is a positive integer containing the creation order of the attribute
-  INTEGER :: cset ! Indicates the character set used for the attribute’s name
-  INTEGER(HSIZE_T) :: data_size   ! indicates the size, in the number of characters
-  INTEGER(HSIZE_T) :: n
 
   INTEGER :: max_compact ! Maximum # of links to store in group compactly
   INTEGER :: min_dense   ! Minimum # of links to store in group "densely"
@@ -3001,18 +2857,15 @@ SUBROUTINE test_attr_dense_open( fcpl, fapl, total_error)
   CHARACTER(LEN=2) :: chr2
 
 
-  INTEGER, DIMENSION(1) ::  attr_integer_data
   CHARACTER(LEN=7) :: attrname
 
-  INTEGER(SIZE_T) :: size
-  
-  INTEGER :: order
+  INTEGER(HID_T) :: dataset
   INTEGER :: u
 
   data_dims = 0
 
   ! /* Output message about test being performed */
-  WRITE(*,*) "Testing Opening Attributes in Dense Storage"
+  WRITE(*,*) "     - Testing Opening Attributes in Dense Storage"
 
   ! /* Create file */
 
@@ -3261,42 +3114,14 @@ SUBROUTINE test_attr_corder_create_basic( fcpl, fapl, total_error )
 
   CHARACTER(LEN=8) :: DSET1_NAME = "Dataset1"
 
-  INTEGER :: curr_dset
-
-  INTEGER(HID_T) :: dset1, dset2, dset3
-  INTEGER(HID_T) :: dataset, dataset2
-  INTEGER(HID_T) :: my_dataset
+  INTEGER(HID_T) :: dataset
 
   INTEGER :: error
 
-  INTEGER :: value
-  INTEGER(HID_T) :: attr        !String Attribute identifier
-  INTEGER(HSIZE_T), DIMENSION(7) :: data_dims
-  INTEGER(HSIZE_T) :: storage_size   ! attributes storage requirements .MSB.
-
-  LOGICAL :: f_corder_valid ! Indicates whether the the creation order data is valid for this attribute 
-  INTEGER :: corder ! Is a positive integer containing the creation order of the attribute
-  INTEGER :: cset ! Indicates the character set used for the attribute’s name
-  INTEGER(HSIZE_T) :: data_size   ! indicates the size, in the number of characters
-  INTEGER(HSIZE_T) :: n
-
-  INTEGER :: max_compact ! Maximum # of links to store in group compactly
-  INTEGER :: min_dense   ! Minimum # of links to store in group "densely"
-
-  CHARACTER(LEN=2) :: chr2
-
-
-  INTEGER, DIMENSION(1) ::  attr_integer_data
-  CHARACTER(LEN=7) :: attrname
-
-  INTEGER(SIZE_T) :: size
-  
-  INTEGER :: order
-  INTEGER :: u
   INTEGER :: crt_order_flags
 
   ! /* Output message about test being performed */
-  WRITE(*,*) "Testing Basic Code for Attributes with Creation Order Info"
+  WRITE(*,*) "     - Testing Basic Code for Attributes with Creation Order Info"
 
   ! /* Create file */
   CALL h5fcreate_f(FileName, H5F_ACC_TRUNC_F, fid, error, fcpl, fapl)
@@ -3412,45 +3237,22 @@ SUBROUTINE test_attr_basic_write(fapl, total_error)
   INTEGER(HID_T), INTENT(IN) :: fapl
   INTEGER, INTENT(INOUT) :: total_error
   CHARACTER(LEN=8) :: FileName = "tattr.h5"
-  INTEGER(HID_T) :: fid,fid1
-  INTEGER(HID_T) :: dcpl
-  INTEGER(HID_T) :: sid, sid1, sid2
+  INTEGER(HID_T) :: fid1
+  INTEGER(HID_T) :: sid1, sid2
 
   CHARACTER(LEN=8) :: DSET1_NAME = "Dataset1"
 
-  INTEGER :: curr_dset
 
-  INTEGER(HID_T) :: dset1, dset2, dset3
-  INTEGER(HID_T) :: dataset, dataset2
-  INTEGER(HID_T) :: my_dataset
+  INTEGER(HID_T) :: dataset
 
   INTEGER :: error
 
-  INTEGER :: value
-  INTEGER(HID_T) :: attr,attr1,attr2        !String Attribute identifier
+  INTEGER(HID_T) :: attr,attr2        !String Attribute identifier
   INTEGER(HID_T) :: group
   INTEGER(HSIZE_T), DIMENSION(7) :: data_dims
-  INTEGER(HSIZE_T) :: storage_size   ! attributes storage requirements .MSB.
 
-  LOGICAL :: f_corder_valid ! Indicates whether the the creation order data is valid for this attribute 
-  INTEGER :: corder ! Is a positive integer containing the creation order of the attribute
-  INTEGER :: cset ! Indicates the character set used for the attribute’s name
-  INTEGER(HSIZE_T) :: data_size   ! indicates the size, in the number of characters
-  INTEGER(HSIZE_T) :: n
-
-  INTEGER :: max_compact ! Maximum # of links to store in group compactly
-  INTEGER :: min_dense   ! Minimum # of links to store in group "densely"
-
-  CHARACTER(LEN=2) :: chr2
-
-
-  INTEGER, DIMENSION(1) ::  attr_integer_data
-  CHARACTER(LEN=7) :: attrname
   CHARACTER(LEN=25) :: check_name
 
-  INTEGER :: order
-  INTEGER :: u
-  INTEGER :: crt_order_flags
 
   INTEGER, PARAMETER :: SPACE1_RANK = 3
   INTEGER, PARAMETER :: NX = 20
@@ -3474,7 +3276,6 @@ SUBROUTINE test_attr_basic_write(fapl, total_error)
   INTEGER     ::   rank1 = 2               ! Dataspace1 rank
   INTEGER(HSIZE_T), DIMENSION(2) :: dims1 = (/4,6/) ! Dataset dimensions
   INTEGER(HSIZE_T), DIMENSION(2) :: maxdims1 = (/4,6/) ! maximum dimensions
-  INTEGER(HID_T) :: space1_id   ! Dataspace identifiers
 
   INTEGER(SIZE_T) :: size
 
@@ -3486,7 +3287,7 @@ SUBROUTINE test_attr_basic_write(fapl, total_error)
   attr_data1a(3) = -99890
 
   ! /* Output message about test being performed */
-  WRITE(*,*) "Testing Basic Scalar Attribute Writing Functions"
+  WRITE(*,*) "     - Testing Basic Scalar Attribute Writing Functions"
 
   ! /* Create file */
   CALL h5fcreate_f(FileName, H5F_ACC_TRUNC_F, fid1, error, H5P_DEFAULT_F, fapl)
@@ -3764,46 +3565,22 @@ SUBROUTINE test_attr_many(new_format, fcpl, fapl, total_error)
   INTEGER, INTENT(IN) :: total_error
   CHARACTER(LEN=8) :: FileName = "tattr.h5"
   INTEGER(HID_T) :: fid
-  INTEGER(HID_T) :: dcpl
   INTEGER(HID_T) :: sid
   INTEGER(HID_T) :: gid
   INTEGER(HID_T) :: aid
 
-  CHARACTER(LEN=8) :: DSET1_NAME = "Dataset1"
 
-  INTEGER :: curr_dset
-
-  INTEGER(HID_T) :: dset1, dset2, dset3
-  INTEGER(HID_T) :: dataset, dataset2
-  INTEGER(HID_T) :: my_dataset
 
   INTEGER :: error
 
-  INTEGER :: value
-  INTEGER(HID_T) :: attr        !String Attribute identifier
   INTEGER(HSIZE_T), DIMENSION(7) :: data_dims
-  INTEGER(HSIZE_T) :: storage_size   ! attributes storage requirements .MSB.
-
-  LOGICAL :: f_corder_valid ! Indicates whether the the creation order data is valid for this attribute 
-  INTEGER :: corder ! Is a positive integer containing the creation order of the attribute
-  INTEGER :: cset ! Indicates the character set used for the attribute’s name
-  INTEGER(HSIZE_T) :: data_size   ! indicates the size, in the number of characters
-  INTEGER(HSIZE_T) :: n
-
-  INTEGER :: max_compact ! Maximum # of links to store in group compactly
-  INTEGER :: min_dense   ! Minimum # of links to store in group "densely"
-
   CHARACTER(LEN=5) :: chr5
 
 
-  INTEGER, DIMENSION(1) ::  attr_integer_data
   CHARACTER(LEN=11) :: attrname
   CHARACTER(LEN=8), PARAMETER :: GROUP1_NAME="/Group1"
-  INTEGER(SIZE_T) :: size
-  
-  INTEGER :: order
+
   INTEGER :: u
-  INTEGER :: crt_order_flags
   INTEGER :: nattr
   LOGICAL :: exists
   INTEGER, DIMENSION(1) ::  attr_data1
@@ -3811,7 +3588,7 @@ SUBROUTINE test_attr_many(new_format, fcpl, fapl, total_error)
   data_dims = 0
 
   ! /* Output message about test being performed */
-  WRITE(*,*) "Testing Storing Many Attributes"
+  WRITE(*,*) "     - Testing Storing Many Attributes"
 
   !/* Create file */
   CALL h5fcreate_f(FileName, H5F_ACC_TRUNC_F, fid, error, fcpl, fapl)
@@ -3956,40 +3733,16 @@ SUBROUTINE attr_open_check(fid, dsetname, obj_id, max_attrs, total_error )
   INTEGER, INTENT(IN) :: max_attrs
   INTEGER, INTENT(INOUT) :: total_error
 
-  INTEGER :: max_compact,min_dense,u
+  INTEGER :: u
   CHARACTER (LEN=8) :: attrname
-
-  CHARACTER(LEN=8) :: FileName = "tattr.h5"
-  INTEGER(HID_T) :: dcpl
-  INTEGER(HID_T) :: sid, null_sid
-  INTEGER(HID_T) :: dataset
-
-  CHARACTER(LEN=8) :: DSET1_NAME = "Dataset1"
-  CHARACTER(LEN=8) :: DSET2_NAME = "Dataset2"
-  CHARACTER(LEN=8) :: DSET3_NAME = "Dataset3"
   INTEGER, PARAMETER :: NUM_DSETS = 3
-
-  INTEGER :: curr_dset
-
-  INTEGER(HID_T) :: dset1, dset2, dset3
-  INTEGER(HID_T) :: my_dataset
   INTEGER :: error
-
-  INTEGER :: value
-  INTEGER(HID_T) :: attr        !String Attribute identifier 
-  INTEGER(HID_T) :: attr_sid
-  INTEGER(HSIZE_T), DIMENSION(7) :: data_dims
-  INTEGER(HSIZE_T) :: storage_size   ! attributes storage requirements .MSB.
-
   LOGICAL :: f_corder_valid ! Indicates whether the the creation order data is valid for this attribute 
   INTEGER :: corder ! Is a positive integer containing the creation order of the attribute
   INTEGER :: cset ! Indicates the character set used for the attribute’s name
   INTEGER(HSIZE_T) :: data_size   ! indicates the size, in the number of characters
 
   CHARACTER(LEN=2) :: chr2
-  LOGICAL, DIMENSION(1:2) :: use_index = (/.FALSE.,.TRUE./) 
-  INTEGER :: Input1
-  INTEGER :: i
   INTEGER(HID_T) attr_id
   ! /* Open each attribute on object by index and check that it's the correct one */
 

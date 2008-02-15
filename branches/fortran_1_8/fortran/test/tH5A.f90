@@ -56,10 +56,7 @@
      INTEGER(HID_T) :: attr5_id       !Integer Attribute identifier 
      INTEGER(HID_T) :: attr6_id       !Null Attribute identifier 
      INTEGER(HID_T) :: aspace_id      !String Attribute Dataspace identifier 
-     INTEGER(HID_T) :: aspace2_id     !Character Attribute Dataspace identifier 
-     INTEGER(HID_T) :: aspace3_id     !Double Attribute Dataspace identifier 
-     INTEGER(HID_T) :: aspace4_id     !Real Attribute Dataspace identifier 
-     INTEGER(HID_T) :: aspace5_id     !Integer Attribute Dataspace identifier 
+     INTEGER(HID_T) :: aspace2_id     !Character Attribute Dataspace identifier
      INTEGER(HID_T) :: aspace6_id     !Null Attribute Dataspace identifier 
      INTEGER(HID_T) :: atype_id       !String Attribute Datatype identifier 
      INTEGER(HID_T) :: atype2_id      !Character Attribute Datatype identifier 
@@ -114,7 +111,7 @@
      !
      !data buffers 
      !         
-     INTEGER, DIMENSION(NX,NY) :: data_in, data_out
+     INTEGER, DIMENSION(NX,NY) :: data_in
 
 
      !

@@ -58,7 +58,6 @@
      CHARACTER(LEN=100) :: name !name to put symbolic object
      CHARACTER(LEN=100) :: commentout !comment to the file
      INTEGER     ::   nmembers
-     INTEGER     :: obj_type
      INTEGER(HSIZE_T), DIMENSION(2) :: data_dims 
      !
      ! Create the file.

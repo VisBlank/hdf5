@@ -42,21 +42,13 @@ PROGRAM fortranlibtest
   INTEGER :: external_total_error = 0
   INTEGER :: multi_file_total_error = 0
   INTEGER :: attribute_total_error = 0
-  INTEGER :: identifier_total_error = 0
-  INTEGER :: group_total_error = 0
-  INTEGER :: error_total_error = 0
-  INTEGER :: vl_total_error = 0
-  INTEGER :: z_total_error = 0
-  INTEGER :: sz_total_error = 0
   INTEGER :: majnum, minnum, relnum
   CHARACTER(LEN=8) error_string
   CHARACTER(LEN=8) :: success = ' PASSED '
   CHARACTER(LEN=8) :: failure = '*FAILED*'
-  CHARACTER(LEN=8) :: skip = '--SKIP--'
   CHARACTER(LEN=4) :: e_format ='(8a)'
   LOGICAL :: cleanup = .TRUE.
   !     LOGICAL :: cleanup = .FALSE.
-  LOGICAL :: szip_flag
 
   CALL h5open_f(error) 
   WRITE(*,*) '                       ==========================                            '
@@ -254,7 +246,7 @@ PROGRAM fortranlibtest
 
   error_string = failure
   CALL attribute_test_1_8(cleanup, attribute_total_error)
-  WRITE(*, fmt = '(15a)', advance = 'no') ' Attribute test'     
+  WRITE(*, fmt = '(15a)', advance = 'no') ' ATTRIBUTE TEST'     
   WRITE(*, fmt = '(55x,a)', advance = 'no')  ' '
   IF (attribute_total_error == 0) error_string = success
   WRITE(*, fmt = e_format) error_string
