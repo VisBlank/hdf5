@@ -21,11 +21,13 @@
 /*----------------------------------------------------------------------------
  * Name:        h5ldelete_c
  * Purpose:     Call h5ldelete_c
- * Inputs:      
+ * Inputs:
+ *
  *    loc_id  - Identifier of the file or group containing the object
  *    name    - Name of the link to delete
  *    lapl_id - Link access property list identifier
  *    namelen - length of name
+ *
  * Returns:     0 on success, -1 on failure
  * Programmer:  M.S. Breitenfeld
  *              January, 2008

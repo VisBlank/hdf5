@@ -59,7 +59,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: lapl_id ! Link access property list identifier
     INTEGER, INTENT(OUT) :: hdferr        ! Error code: 
                                           ! 0 on success and -1 on failure
-    INTEGER :: namelen
+    INTEGER(SIZE_T) :: namelen
 
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
@@ -72,7 +72,7 @@ CONTAINS
          INTEGER(HID_T), INTENT(IN) :: loc_id
          CHARACTER(LEN=*), INTENT(IN) :: name
          INTEGER(HID_T), INTENT(IN) :: lapl_id
-         INTEGER :: namelen
+         INTEGER(SIZE_T) :: namelen
        END FUNCTION h5ldelete_c
     END INTERFACE
 
