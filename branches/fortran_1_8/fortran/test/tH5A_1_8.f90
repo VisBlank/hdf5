@@ -98,7 +98,7 @@ SUBROUTINE attribute_test_1_8(cleanup, total_error)
      CALL test_attr_basic_write(my_fapl, total_error)
 !!$        CALL test_attr_basic_read(my_fapl)
 !!$        CALL test_attr_flush(my_fapl)
-!!$        CALL test_attr_plist(my_fapl)
+!!$        CALL test_attr_plist(my_fapl) ! this is next
 !!$        CALL test_attr_compound_write(my_fapl)
 !!$        CALL test_attr_compound_read(my_fapl)
 !!$        CALL test_attr_scalar_write(my_fapl)
