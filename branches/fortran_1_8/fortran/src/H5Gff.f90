@@ -185,6 +185,7 @@ CONTAINS
     namelen = LEN(name)
     OBJECT_NAMELEN_DEFAULT = OBJECT_NAMELEN_DEFAULT_F
 
+
     hdferr = h5gcreate_c(loc_id, name, namelen, OBJECT_NAMELEN_DEFAULT, grp_id, &
          lcpl_id, gcpl_id, gapl_id)
 
@@ -1032,7 +1033,349 @@ CONTAINS
             
             namelen = LEN(name)
             hdferr = h5gget_comment_c(loc_id, name, namelen, size, buffer)
-          END SUBROUTINE h5gget_comment_f
+  END SUBROUTINE h5gget_comment_f
 
+!----------------------------------------------------------------------
+! Name:		H5Gcreate_anon_f
+!
+! Purpose:	Creates a new empty group without linking it into the file structure. 
+!
+! Inputs:  
+!		loc_id		- Location identifier
+!               gcpl_id   	- Group creation property list identifier
+!               gapl_id         - Group access property list identifier
+! Outputs:  
+!		grp_id		- group identifier
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!
+! Programmer:	M.S. Breitenfeld
+!		February 15, 2008	
+!
+! Modifications: 
+!
+! Comment:		
+!----------------------------------------------------------------------
+  SUBROUTINE h5Gcreate_anon_f(loc_id, gcpl_id, gapl_id, grp_id, hdferr)
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5gcreate_anon_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier
+    INTEGER(HID_T), INTENT(IN) :: gcpl_id  ! Property list for group creation
+    INTEGER(HID_T), INTENT(IN) :: gapl_id  ! Property list for group access
+    INTEGER(HID_T), INTENT(OUT) :: grp_id  ! Group identifier 
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code
+    
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5gcreate_anon_c(loc_id, gcpl_id, gapl_id, grp_id)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5GCREATE_ANON_C'::h5gcreate_anon_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier
+         INTEGER(HID_T), INTENT(IN) :: gcpl_id  ! Property list for group creation
+         INTEGER(HID_T), INTENT(IN) :: gapl_id  ! Property list for group access
+         INTEGER(HID_T), INTENT(OUT) :: grp_id  ! Group identifier
+       END FUNCTION h5gcreate_anon_c
+    END INTERFACE
+    
+    hdferr = h5gcreate_anon_c(loc_id, gcpl_id, gapl_id, grp_id)
+    
+  END SUBROUTINE h5Gcreate_anon_f
 
-      END MODULE H5G
+!----------------------------------------------------------------------
+! Name:		H5Gget_create_plist_f
+!
+! Purpose:	Gets a group creation property list identifier. 
+!
+! Inputs:  
+!		grp_id		- group identifier
+! Outputs:  
+!               gcpl_id   	- Group creation property list identifier
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!
+! Programmer:	M.S. Breitenfeld
+!		February 15, 2008	
+!
+! Modifications: 
+!
+! Comment:		
+!----------------------------------------------------------------------
+  SUBROUTINE h5gget_create_plist_f(grp_id, gcpl_id, hdferr)
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5gget_create_plist_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN)  :: grp_id  ! Group identifier
+    INTEGER(HID_T), INTENT(OUT) :: gcpl_id ! Property list for group creation
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code
+    
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5gget_create_plist_c(grp_id, gcpl_id )
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5GGET_CREATE_PLIST_C'::h5gget_create_plist_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN)  :: grp_id
+         INTEGER(HID_T), INTENT(OUT) :: gcpl_id
+       END FUNCTION h5gget_create_plist_c
+    END INTERFACE
+    
+    hdferr = h5gget_create_plist_c(grp_id, gcpl_id )
+    
+  END SUBROUTINE h5gget_create_plist_f
+
+!----------------------------------------------------------------------
+! Name:		h5gget_info_f
+!
+! Purpose:  	Retrieves information about a group
+!		
+! Inputs:  
+!		group_id - Group identifier
+!
+! Outputs:  NOTE: In C it is defined as a structure: H5G_info_t
+!
+!      storage_type - Type of storage for links in group
+!                       H5G_STORAGE_TYPE_COMPACT: Compact storage
+!                       H5G_STORAGE_TYPE_DENSE: Indexed storage
+!                       H5G_STORAGE_TYPE_SYMBOL_TABLE: Symbol tables, the original HDF5 structure
+!            nlinks - Number of links in group
+!     	 max_corder - Current maximum creation order value for group
+!            hdferr - error code		
+!		          Success:  0
+!		          Failure: -1   
+! Optional parameters:
+!				NONE			
+!
+! Programmer:	M. S. Breitenfeld
+!		February 15, 2008	
+!
+! Modifications:  N/A
+!
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5gget_info_f(group_id, storage_type, nlinks, max_corder,hdferr) 
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5gget_info_f
+!DEC$endif
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: group_id ! Group identifier
+ 
+    INTEGER, INTENT(OUT) :: storage_type ! Type of storage for links in group:
+                                          ! H5G_STORAGE_TYPE_COMPACT: Compact storage
+                                          ! H5G_STORAGE_TYPE_DENSE: Indexed storage
+                                          ! H5G_STORAGE_TYPE_SYMBOL_TABLE: Symbol tables, the original HDF5 structure
+    INTEGER, INTENT(OUT) :: nlinks ! Number of links in group
+    INTEGER, INTENT(OUT) :: max_corder ! Current maximum creation order value for group
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code:
+                                         ! 0 on success and -1 on failure
+
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5gget_info_c(group_id, storage_type, nlinks, max_corder)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AGET_INFO_C'::h5aget_info_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: group_id
+         INTEGER, INTENT(OUT) :: storage_type
+         INTEGER, INTENT(OUT) :: nlinks
+         INTEGER, INTENT(OUT) :: max_corder
+       END FUNCTION h5gget_info_c
+    END INTERFACE
+
+    hdferr = h5gget_info_c(group_id, storage_type, nlinks, max_corder)
+    
+  END SUBROUTINE h5gget_info_f
+
+!----------------------------------------------------------------------
+! Name:		h5gget_info_by_idx_f
+!
+! Purpose:  	Retrieves information about a group, according to the group’s position within an index.
+!		
+! Inputs:
+!          loc_id - File or group identifier
+!      group_name - Name of group containing group for which information is to be retrieved
+!      index_type - Index type
+!           order - Order of the count in the index
+!               n - Position in the index of the group for which information is retrieved
+!         lapl_id - Link access property list
+!
+! Outputs:  NOTE: In C the following are defined as a structure: H5G_info_t
+!
+!      storage_type - Type of storage for links in group
+!                       H5G_STORAGE_TYPE_COMPACT: Compact storage
+!                       H5G_STORAGE_TYPE_DENSE: Indexed storage
+!                       H5G_STORAGE_TYPE_SYMBOL_TABLE: Symbol tables, the original HDF5 structure
+!            nlinks - Number of links in group
+!     	 max_corder - Current maximum creation order value for group
+!            hdferr - error code		
+!		          Success:  0
+!		          Failure: -1   
+! Optional parameters:
+!				NONE			
+!
+! Programmer:	M. S. Breitenfeld
+!		February 18, 2008	
+!
+! Modifications:  N/A
+!
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5gget_info_by_idx_f(loc_id, group_name, index_type, order, n, lapl_id, &
+       storage_type, nlinks, max_corder, hdferr) 
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5gget_info_by_idx_f
+!DEC$endif
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id     ! File or group identifier
+    CHARACTER(LEN=*), INTENT(IN) :: group_name ! Name of group containing group for which information is to be retrieved
+    INTEGER(HID_T), INTENT(IN) :: index_type ! Index type
+    INTEGER(HID_T), INTENT(IN) :: order      ! Order of the count in the index
+    INTEGER(HSIZE_T), INTENT(IN) :: n          ! Position in the index of the group for which information is retrieved
+    INTEGER(HID_T), INTENT(IN) :: lapl_id ! Link access property list
+
+    INTEGER, INTENT(OUT) :: storage_type ! Type of storage for links in group:
+                                          ! H5G_STORAGE_TYPE_COMPACT: Compact storage
+                                          ! H5G_STORAGE_TYPE_DENSE: Indexed storage
+                                          ! H5G_STORAGE_TYPE_SYMBOL_TABLE: Symbol tables, the original HDF5 structure
+    INTEGER, INTENT(OUT) :: nlinks ! Number of links in group
+    INTEGER, INTENT(OUT) :: max_corder ! Current maximum creation order value for group
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code:
+                                         ! 0 on success and -1 on failure
+
+    INTEGER(SIZE_T) :: group_name_len ! length of group name
+
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5gget_info_by_idx_c(loc_id, group_name, group_name_len, index_type, order, n, lapl_id, &
+            storage_type, nlinks, max_corder)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AGET_INFO_BY_IDX_C'::h5aget_info_by_idx_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: loc_id
+         CHARACTER(LEN=*), INTENT(IN) :: group_name
+         INTEGER(HID_T), INTENT(IN) :: index_type
+         INTEGER(HID_T), INTENT(IN) :: order
+         INTEGER(HSIZE_T), INTENT(IN) :: n
+         INTEGER(HID_T), INTENT(IN) :: lapl_id
+         INTEGER, INTENT(OUT) :: storage_type
+         INTEGER, INTENT(OUT) :: nlinks 
+         INTEGER, INTENT(OUT) :: max_corder
+
+         INTEGER(SIZE_T) :: group_name_len
+
+       END FUNCTION h5gget_info_by_idx_c
+    END INTERFACE
+
+    group_name_len = LEN(group_name)
+
+    hdferr = h5gget_info_by_idx_c(loc_id, group_name, group_name_len, &
+         index_type, order, n, lapl_id, &
+         storage_type, nlinks, max_corder)
+    
+  END SUBROUTINE h5gget_info_by_idx_f
+  
+!----------------------------------------------------------------------
+! Name:		h5gget_info_by_name_f
+!
+! Purpose:  	Retrieves information about a group. 
+!		
+! Inputs:
+!          loc_id - File or group identifier
+!      group_name - Name of group containing group for which information is to be retrieved
+!         lapl_id - Link access property list
+!
+! Outputs:  NOTE: In C the following are defined as a structure: H5G_info_t
+!
+!      storage_type - Type of storage for links in group
+!                       H5G_STORAGE_TYPE_COMPACT: Compact storage
+!                       H5G_STORAGE_TYPE_DENSE: Indexed storage
+!                       H5G_STORAGE_TYPE_SYMBOL_TABLE: Symbol tables, the original HDF5 structure
+!            nlinks - Number of links in group
+!     	 max_corder - Current maximum creation order value for group
+!            hdferr - error code		
+!		          Success:  0
+!		          Failure: -1   
+! Optional parameters:
+!				NONE			
+!
+! Programmer:	M. S. Breitenfeld
+!		February 18, 2008	
+!
+! Modifications:  N/A
+!
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5gget_info_by_name_f(loc_id, group_name, lapl_id, &
+       storage_type, nlinks, max_corder, hdferr) 
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5gget_info_by_name_f
+!DEC$endif
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id     ! File or group identifier
+    CHARACTER(LEN=*), INTENT(IN) :: group_name ! Name of group containing group for which information is to be retrieved
+    INTEGER(HID_T), INTENT(IN) :: lapl_id ! Link access property list
+
+    INTEGER, INTENT(OUT) :: storage_type ! Type of storage for links in group:
+                                          ! H5G_STORAGE_TYPE_COMPACT: Compact storage
+                                          ! H5G_STORAGE_TYPE_DENSE: Indexed storage
+                                          ! H5G_STORAGE_TYPE_SYMBOL_TABLE: Symbol tables, the original HDF5 structure
+    INTEGER, INTENT(OUT) :: nlinks ! Number of links in group
+    INTEGER, INTENT(OUT) :: max_corder ! Current maximum creation order value for group
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code:
+                                         ! 0 on success and -1 on failure
+
+    INTEGER(SIZE_T) :: group_name_len ! length of group name
+
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5gget_info_by_name_c(loc_id, group_name, group_name_len, lapl_id, &
+            storage_type, nlinks, max_corder)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AGET_INFO_BY_NAME_C'::h5aget_info_by_name_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: loc_id
+         CHARACTER(LEN=*), INTENT(IN) :: group_name
+         INTEGER(HID_T), INTENT(IN) :: lapl_id
+         INTEGER, INTENT(OUT) :: storage_type
+         INTEGER, INTENT(OUT) :: nlinks 
+         INTEGER, INTENT(OUT) :: max_corder
+
+         INTEGER(SIZE_T) :: group_name_len
+
+       END FUNCTION h5gget_info_by_name_c
+    END INTERFACE
+
+    group_name_len = LEN(group_name)
+
+    hdferr = h5gget_info_by_name_c(loc_id, group_name, group_name_len, lapl_id, &
+         storage_type, nlinks, max_corder)
+    
+  END SUBROUTINE h5gget_info_by_name_f
+
+END MODULE H5G

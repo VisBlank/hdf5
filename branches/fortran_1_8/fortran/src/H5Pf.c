@@ -3448,8 +3448,8 @@ nh5pget_attr_phase_change_c(hid_t_f *ocpl_id, int_f *max_compact, int_f *min_den
 }
 
 /*----------------------------------------------------------------------------
- * Name:        h5pget_attr_phase_change_c
- * Purpose:     Calls H5Pget_attr_phase_change
+ * Name:        h5pset_attr_creation_order_c 
+ * Purpose:     Calls H5Ppset_attr_creation_order
  *
  * Inputs:      ocpl_id		- Object (dataset or group) creation property list identifier
  * Outputs      crt_order_flags - Flags specifying whether to track and index attribute creation order
@@ -3462,17 +3462,16 @@ int_f
 nh5pset_attr_creation_order_c(hid_t_f *ocpl_id, int_f *crt_order_flags )
 {
   int ret_value = -1;
-  hid_t c_ocpl_id;
   unsigned c_crt_order_flags;
   herr_t ret;
   /*
    * Call h5pset_attr_creation_order function.
    */
-  c_ocpl_id = (hid_t)*ocpl_id;
   c_crt_order_flags = (unsigned)*crt_order_flags;
-  ret = H5Pset_attr_creation_order(c_ocpl_id, c_crt_order_flags);
+  ret = H5Pset_attr_creation_order((hid_t)*ocpl_id, c_crt_order_flags);
   if (ret < 0) return ret_value;
 
+  *crt_order_flags = (int_f)c_crt_order_flags;
   ret_value = 0;
   return ret_value;
 }
@@ -3544,7 +3543,7 @@ nh5pset_shared_mesg_index_c(hid_t_f *fcpl_id, int_f *index_num, int_f *mesg_type
 
 /*----------------------------------------------------------------------------
  * Name:        h5pget_attr_creation_order_c
- * Purpose:     Calls H5Pget_attr_creation_order_c
+ * Purpose:     Calls H5Pget_attr_creation_order
  *
  * Inputs:
  *           ocpl_id - Object (group or dataset) creation property list identifier
@@ -3575,4 +3574,130 @@ nh5pget_attr_creation_order_c(hid_t_f *ocpl_id, int_f *crt_order_flags)
   ret_value = 0;
   return ret_value;
 }
+/*----------------------------------------------------------------------------
+ * Name:        h5pset_libver_bounds_c
+ * Purpose:     Calls H5Pset_libver_bounds
+ *
+ * Inputs:
+ *             fapl_id - File access property list identifier
+ *                 low - The earliest version of the library that will be used for writing objects.
+ *                high - The latest version of the library that will be used for writing objects.
+ * Outputs:
+ *
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              February 18, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+int_f
+nh5pset_libver_bounds_c(hid_t_f *fapl_id, int_f *low, int_f *high )
+{
+  int ret_value = -1;
+  herr_t ret;
+
+  /*
+   * Call H5Pset_libver_bounds function.
+   */
+  ret = H5Pset_libver_bounds( (hid_t)*fapl_id, (H5F_libver_t)*low, (H5F_libver_t)*high );
+  if (ret < 0) return ret_value;
+
+  ret_value = 0;
+  return ret_value;
+}
+
+/*----------------------------------------------------------------------------
+ * Name:        h5pset_link_creation_order_c
+ * Purpose:     Calls H5Pset_link_creation_order
+ *
+ * Inputs:      gcpl_id		- Group creation property list identifier
+ *              crt_order_flags - Creation order flag(s)
+ * Outputs:
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              February 18, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+int_f
+nh5pset_link_creation_order_c(hid_t_f *gcpl_id, int_f *crt_order_flags )
+{
+  int ret_value = -1;
+  herr_t ret;
+  /*
+   * Call H5Pset_link_creation_order function.
+   */
+  ret = H5Pset_link_creation_order((hid_t)*gcpl_id, (unsigned)*crt_order_flags);
+  if (ret < 0) return ret_value;
+
+  ret_value = 0;
+  return ret_value;
+}
+
+/*----------------------------------------------------------------------------
+ * Name:        h5pget_link_phase_change_c
+ * Purpose:     Calls H5Pget_link_phase_change
+ *
+ * Inputs:      gcpl_id  	- Group creation property list identifier
+ * Outputs      max_compact     - Maximum number of attributes to be stored in compact storage
+ *              min_dense       - Minimum number of attributes to be stored in dense storage
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              February 20, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+int_f
+nh5pget_link_phase_change_c(hid_t_f *gcpl_id, int_f *max_compact, int_f *min_dense )
+{
+  int ret_value = -1;
+  unsigned c_max_compact;
+  unsigned c_min_dense;
+  herr_t ret;
+
+  /*
+   * Call H5Pget_link_phase_change function.
+   */
+  ret = H5Pget_link_phase_change((hid_t)*gcpl_id, &c_max_compact,&c_min_dense);
+  if (ret < 0) return ret_value;
+
+  *max_compact = (int_f)c_max_compact;
+  *min_dense = (int_f)c_min_dense;
+  ret_value = 0;
+  return ret_value;
+}
+
+/* /\*---------------------------------------------------------------------------- */
+/*  * Name:        h5pget_char_encoding_c  */
+/*  * Purpose:     Calls H5Pget_char_encoding_c  */
+/*  * */
+/*  * Inputs: */
+/*  *           plist_id - Property list identifier */
+/*  *           encodinglen - anticipated len of encoding */
+/*  * Outputs: */
+/*  *           encoding - String encoding character set: */
+/*  *     	                             H5T_CSET_ASCII -> US ASCII */
+/*  *     	                              H5T_CSET_UTF8 -> UTF-8 Unicode encoding */
+/*  * */
+/*  * Returns:     0 on success, -1 on failure */
+/*  * Programmer:  M.S. Breitenfeld */
+/*  *              February, 2008 */
+/*  * Modifications: */
+/*  *---------------------------------------------------------------------------*\/ */
+/* int_f */
+/* nh5pget_char_encoding_c(hid_t_f *plist_id, _fcd encoding, size_t_f *encodinglen) */
+/* { */
+/*   int ret_value = -1; */
+/*   herr_t ret; */
+
+/*   unsigned c_crt_order_flags; */
+/*   /\* */
+/*    * Call h5pget_attr_creation_order function. */
+/*    *\/ */
+
+/*   ret = H5Pget_attr_creation_order((hid_t)*ocpl_id, &c_crt_order_flags); */
+/*   if (ret < 0) return ret_value; */
+
+/*   *crt_order_flags = (int_f)c_crt_order_flags; */
+
+/*   ret_value = 0; */
+/*   return ret_value; */
+/* } */
 

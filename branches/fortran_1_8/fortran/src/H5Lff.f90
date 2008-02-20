@@ -82,4 +82,79 @@ CONTAINS
 
   END SUBROUTINE h5ldelete_f 
 
+!----------------------------------------------------------------------
+! Name:		H5Lcreate_soft_f 
+!
+! Purpose: 	Creates a soft link to an object.
+!
+! Inputs:
+!       target_path - Path to the target object, which is not required to exist.
+!       link_loc_id - The file or group identifier for the new link.
+!       link_name   - The name of the new link.
+!       lcpl_id     - Link creation property list identifier.
+!       lapl_id     - Link access property list identifier.
+! 
+! Outputs: 
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		February 20, 2008
+!
+! Modifications:
+!
+! Comment:		
+!----------------------------------------------------------------------
+  SUBROUTINE h5lcreate_soft_f(target_path, link_loc_id, link_name, lcpl_id, lapl_id, hdferr) 
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5lcreate_soft_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    CHARACTER(LEN=*), INTENT(IN) :: target_path     ! Path to the target object, which is not required to exist.
+    INTEGER(HID_T), INTENT(IN) ::   link_loc_id     ! The file or group identifier for the new link.
+    CHARACTER(LEN=*), INTENT(IN) :: link_name       ! The name of the new link.
+    INTEGER(HID_T), INTENT(IN) ::   lcpl_id         ! Link creation property list identifier.
+    INTEGER(HID_T), INTENT(IN) ::   lapl_id         ! Link access property list identifier.
+    INTEGER, INTENT(OUT) :: hdferr        ! Error code: 
+                                          ! 0 on success and -1 on failure
+    INTEGER(SIZE_T) :: target_path_len
+    INTEGER(SIZE_T) :: link_name_len
+
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5lcreate_soft_c(target_path, target_path_len, &
+            link_loc_id, &
+            link_name,link_name_len, &
+            lcpl_id,lapl_id )
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5LCREATE_SOFT_C'::h5lcreate_soft_c
+         !DEC$ ENDIF
+         CHARACTER(LEN=*), INTENT(IN) :: target_path
+         INTEGER(SIZE_T) :: target_path_len
+         INTEGER(HID_T), INTENT(IN) ::   link_loc_id
+         CHARACTER(LEN=*), INTENT(IN) :: link_name
+         INTEGER(SIZE_T) :: link_name_len
+         INTEGER(HID_T), INTENT(IN) ::   lcpl_id
+         INTEGER(HID_T), INTENT(IN) ::   lapl_id
+       END FUNCTION h5lcreate_soft_c
+    END INTERFACE
+
+    target_path_len = LEN(target_path)
+    link_name_len = LEN(link_name)
+
+    hdferr = h5lcreate_soft_c(target_path, target_path_len,&
+         link_loc_id, &
+         link_name, link_name_len, &
+         lcpl_id, lapl_id )
+
+  END SUBROUTINE h5lcreate_soft_f
+
 END MODULE H5L

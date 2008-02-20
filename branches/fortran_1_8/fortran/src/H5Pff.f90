@@ -6672,4 +6672,240 @@
 
   END SUBROUTINE h5pget_attr_creation_order_f
 
+!----------------------------------------------------------------------
+! Name:	      H5Pset_libver_bounds_f
+!
+! Purpose:    Sets bounds on library versions, and indirectly format versions, to be used when creating objects.
+!
+! Inputs:
+!             fapl_id - File access property list identifier
+!                 low - The earliest version of the library that will be used for writing objects.
+!                high - The latest version of the library that will be used for writing objects.
+!
+! Outputs:
+!	      hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		February 18, 2008
+!
+! Modifications: 	
+!
+! Comment:		
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5pset_libver_bounds_f(fapl_id, low, high, hdferr)
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pset_libver_bounds_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: fapl_id ! File access property list identifier
+    INTEGER(HID_T), INTENT(IN) :: low ! The earliest version of the library that will be used for writing objects.
+                                        ! Currently, low must be one of two pre-defined values:
+                                        !            HDF_LIBVER_EARLIEST_F
+                                        !            HDF_LIBVER_LATEST_F
+    INTEGER(HID_T), INTENT(IN) :: high ! The latest version of the library that will be used for writing objects.
+                                         ! Currently, low must set to the pre-defined value:
+                                         !            HDF_LIBVER_LATEST_F
+    INTEGER, INTENT(OUT) :: hdferr   ! Error code
+!
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5pset_libver_bounds_c(fapl_id, low, high)
+
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_LIBVER_BOUNDS_C'::h5pset_libver_bounds_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: fapl_id
+         INTEGER(HID_T), INTENT(IN) :: low
+         INTEGER(HID_T), INTENT(IN) :: high
+         
+       END FUNCTION H5pset_libver_bounds_c
+    END INTERFACE
+
+    hdferr = h5pset_libver_bounds_c(fapl_id, low, high)
+
+  END SUBROUTINE h5pset_libver_bounds_f
+
+!----------------------------------------------------------------------
+! Name:	      H5Pset_link_creation_order_f 
+!
+! Purpose:    Sets creation order tracking and indexing for links in a group.
+!
+! Inputs:
+!         gcpl_id  	  - Group creation property list identifier
+!         crt_order_flags - Creation order flag(s)
+!
+! Outputs:
+!	      hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		February 18, 2008
+!
+! Modifications: 	
+!
+! Comment:		
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5pset_link_creation_order_f(gcpl_id, crt_order_flags, hdferr)
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pset_libver_bounds_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: gcpl_id ! File access property list identifier
+    INTEGER(HID_T), INTENT(IN) :: crt_order_flags ! Creation order flag(s)
+    INTEGER, INTENT(OUT) :: hdferr   ! Error code
+!
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5pset_link_creation_order_c(gcpl_id, crt_order_flags)
+
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_LINK_CREATION_ORDER_C'::h5pset_link_creation_order_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: gcpl_id
+         INTEGER(HID_T), INTENT(IN) :: crt_order_flags
+         
+       END FUNCTION H5pset_link_creation_order_c
+    END INTERFACE
+
+    hdferr = h5pset_link_creation_order_c(gcpl_id, crt_order_flags)
+
+  END SUBROUTINE h5pset_link_creation_order_f
+
+!----------------------------------------------------------------------
+! Name:		H5Pget_link_phase_change_f
+!
+! Purpose: 	Queries the settings for conversion between compact and dense groups.
+!
+! Inputs:  
+!		gcpl_id  	- Group creation property list identifier
+! Outputs:  
+!               max_compact     - Maximum number of attributes to be stored in compact storage
+!               min_dense       - Minimum number of attributes to be stored in dense storage
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		February 20, 2008
+!
+! Modifications: 	
+!
+! Comment:		
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5pget_link_phase_change_f(gcpl_id, max_compact, min_dense, hdferr)
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pget_link_phase_change_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: gcpl_id ! Group creation property list identifier
+    INTEGER, INTENT(OUT) :: max_compact  ! Maximum number of attributes to be stored in compact storage
+    INTEGER, INTENT(OUT) :: min_dense  ! Minimum number of attributes to be stored in dense storage
+    INTEGER, INTENT(OUT) :: hdferr   ! Error code
+!
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5pget_link_phase_change_c(gcpl_id, max_compact, min_dense)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_LINK_PHASE_CHANGE_C'::h5pget_link_phase_change_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: gcpl_id
+         INTEGER, INTENT(OUT) :: max_compact
+         INTEGER, INTENT(OUT) :: min_dense
+ 
+       END FUNCTION h5pget_link_phase_change_c
+    END INTERFACE
+
+    hdferr = h5pget_link_phase_change_c(gcpl_id, max_compact, min_dense)
+  END SUBROUTINE h5pget_link_phase_change_f
+
+!----------------------------------------------------------------------
+! Name:	      H5Pget_char_encoding 
+!
+! Purpose:    Retrieves the character encoding used to create a string
+!
+! Inputs:
+!             plist_id - Property list identifier
+!
+! Outputs:
+!             encoding - String encoding character set:
+!                           Valid values for encoding are:
+!     	                             H5T_CSET_ASCII -> US ASCII
+!     	                              H5T_CSET_UTF8 -> UTF-8 Unicode encoding
+!	      hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		February, 2008
+!
+! Modifications: 	
+!
+! Comment:		
+!----------------------------------------------------------------------
+!!$
+!!$  SUBROUTINE  h5pget_char_encoding_f(plist_id, encoding, hdferr)
+!!$!
+!!$!This definition is needed for Windows DLLs
+!!$!DEC$if defined(BUILD_HDF5_DLL)
+!!$!DEC$attributes dllexport :: h5pget_attr_creation_order_f
+!!$!DEC$endif
+!!$!
+!!$    IMPLICIT NONE
+!!$    INTEGER(HID_T), INTENT(IN) :: plist_id ! Property list identifier
+!!$    
+!!$    CHARACTER(LEN=*), INTENT(OUT) :: encoding ! String encoding character set (LEN > 14):
+!!$!     	                                            H5T_CSET_ASCII -> US ASCII
+!!$!     	                                            H5T_CSET_UTF8  -> UTF-8 Unicode encoding
+!!$    INTEGER, INTENT(OUT) :: hdferr   ! Error code
+!!$    INTEGER(SIZE_T) :: encodinglen ! Anticipated number of characters in encoding.
+!!$!
+!!$!  MS FORTRAN needs explicit interface for C functions called here.
+!!$!
+!!$    INTERFACE
+!!$       INTEGER FUNCTION h5pget_char_encoding_c(plist_id, encoding, encodinglen)
+!!$
+!!$         USE H5GLOBAL
+!!$         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+!!$         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_CHAR_ENCODING_C'::h5pget_char_encoding_c
+!!$         !DEC$ ENDIF
+!!$         INTEGER(HID_T), INTENT(IN) :: plist_id
+!!$         CHARACTER(LEN=*), INTENT(OUT) :: encoding
+!!$         INTEGER(SIZE_T) :: encodinglen
+!!$         
+!!$       END FUNCTION H5pget_char_encoding_c
+!!$    END INTERFACE
+!!$
+!!$    hdferr = h5pget_char_encoding_c(plist_id, encoding, encodinglen)
+!!$
+!!$  END SUBROUTINE h5pget_char_encoding_f
+
 END MODULE H5P
