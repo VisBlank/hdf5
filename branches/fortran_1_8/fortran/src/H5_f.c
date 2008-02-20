@@ -268,6 +268,8 @@ nh5init_flags_c( int_f *h5d_flags, int_f *h5f_flags,
     h5f_flags[13] = (int_f)H5F_OBJ_GROUP;
     h5f_flags[14] = (int_f)H5F_OBJ_DATATYPE;
     h5f_flags[15] = (int_f)H5F_OBJ_ALL;
+    h5f_flags[16] = (int_f)H5F_LIBVER_EARLIEST;
+    h5f_flags[17] = (int_f)H5F_LIBVER_LATEST;
 
 /*
  *  H5FD flags
@@ -309,6 +311,12 @@ nh5init_flags_c( int_f *h5d_flags, int_f *h5f_flags,
       h5g_flags[5] = H5L_TYPE_ERROR;
       h5g_flags[6] = H5L_TYPE_HARD;
       h5g_flags[7] = H5L_TYPE_SOFT;
+
+      h5g_flags[8] = H5G_STORAGE_TYPE_UNKNOWN;
+      h5g_flags[9] = H5G_STORAGE_TYPE_SYMBOL_TABLE;
+      h5g_flags[10] = H5G_STORAGE_TYPE_COMPACT;
+      h5g_flags[11] = H5G_STORAGE_TYPE_DENSE;
+      
 
 /*
  *  H5I flags
@@ -377,7 +385,17 @@ nh5init_flags_c( int_f *h5d_flags, int_f *h5f_flags,
       h5p_flags[6] = H5P_ROOT;
       h5p_flags[7] = H5P_CRT_ORDER_INDEXED;
       h5p_flags[8] = H5P_CRT_ORDER_TRACKED;
-
+      h5p_flags[9] = H5P_OBJECT_CREATE;
+      h5p_flags[10] = H5P_DATASET_ACCESS;
+      h5p_flags[11] = H5P_GROUP_CREATE;
+      h5p_flags[12] = H5P_GROUP_ACCESS;
+      h5p_flags[13] = H5P_DATATYPE_CREATE;
+      h5p_flags[14] = H5P_DATATYPE_ACCESS;
+      h5p_flags[15] = H5P_STRING_CREATE;
+      h5p_flags[16] = H5P_ATTRIBUTE_CREATE;
+      h5p_flags[17] = H5P_OBJECT_COPY;
+      h5p_flags[18] = H5P_LINK_CREATE;
+      h5p_flags[19] = H5P_LINK_ACCESS;
 /*
  *  H5R flags
  */
