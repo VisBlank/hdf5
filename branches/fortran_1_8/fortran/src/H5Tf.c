@@ -1640,3 +1640,55 @@ nh5tget_member_class_c ( hid_t_f *type_id ,  int_f *member_no, int_f *class )
   *class = (int_f)c_class;
   return ret_value;
 }
+
+/*----------------------------------------------------------------------------
+ * Name:        h5tcommit_anon_c
+ * Purpose:     Call H5Tcommit_anon
+ * Inputs:      loc_id - file or group identifier
+ *              dtype_id - dataset identifier
+ *              tcpl_id - Datatype creation property list
+ *              tapl_id - Datatype access property list
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              February 25, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+int_f
+nh5tcommit_anon_c(hid_t_f *loc_id, hid_t_f *dtype_id, 
+		  hid_t_f *tcpl_id, hid_t_f *tapl_id)
+{
+  int ret_value = -1;
+  
+  /* Call H5Tcommit_anon function */
+  if(H5Tcommit_anon((hid_t)*loc_id, (hid_t)*dtype_id, (hid_t)*tcpl_id, (hid_t)*tapl_id) < 0)
+    goto done;
+  
+  ret_value = 0;
+  
+ done:
+  return ret_value;
+}
+
+/*----------------------------------------------------------------------------
+ * Name:        h5tcommitted_c
+ * Purpose:     Call H5Tcommitted
+ *              dtype_id - dataset identifier
+ * Returns:     a positive value, for TRUE, if the datatype has been committed, 
+ *              or 0 (zero), for FALSE, if the datatype has not been committed. 
+ *		Otherwise returns a negative value.
+ * Programmer:  M.S. Breitenfeld
+ *              February 25, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+int_f
+nh5tcommitted_c(hid_t_f *dtype_id)
+{
+  int_f ret_value;
+  
+  /* Call H5Tcommitted function */
+  
+  ret_value=(int_f)H5Tcommitted((hid_t)*dtype_id);
+
+  return ret_value;
+
+}

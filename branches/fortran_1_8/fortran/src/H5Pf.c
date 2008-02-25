@@ -17,7 +17,6 @@
 
 #include "H5f90.h"
 
-
 /*----------------------------------------------------------------------------
  * Name:        h5pcreate_c
  * Purpose:     Call H5Pcreate to create a property list
@@ -3131,7 +3130,7 @@ nh5pset_fapl_multi_sc ( hid_t_f *prp_id , int_f *flag)
  */
 
   status = H5Pset_fapl_multi(c_prp_id, NULL, NULL, NULL, NULL, relax);
-  if ( status < 0  ) return ret_value;
+  if ( status < 0  ) return ret_value; /* error occurred */
   ret_value = 0;
   return ret_value;
 }
@@ -3660,6 +3659,105 @@ nh5pget_link_phase_change_c(hid_t_f *gcpl_id, int_f *max_compact, int_f *min_den
 
   *max_compact = (int_f)c_max_compact;
   *min_dense = (int_f)c_min_dense;
+  ret_value = 0;
+  return ret_value;
+}
+
+/*----------------------------------------------------------------------------
+ * Name:        h5pget_obj_track_times_c
+ * Purpose:     Call H5Pget_obj_track_times
+ *
+ * Inputs:      plist_id - property list id
+ * Outputs:
+ *              flag     - TRUE/FALSE flag
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              February 22, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+
+int_f
+nh5pget_obj_track_times_c(hid_t_f *plist_id, int_f *flag)
+{
+  int ret_value = -1;
+  hid_t c_prp_id;
+  herr_t status;
+  hbool_t c_track_times=0;
+  herr_t ret;
+
+  /*
+   * Call H5Pget_obj_track_times function.
+   */
+  ret = H5Pget_obj_track_times((hid_t)*plist_id, &c_track_times);
+
+  if (ret < 0) return ret_value; /* error occurred */
+
+  *flag = 0;
+  if(c_track_times > 0) *flag = 1;
+  ret_value = 0;
+  return ret_value;
+}
+
+/*----------------------------------------------------------------------------
+ * Name:        h5pset_obj_track_times_c
+ * Purpose:     Call H5Pset_obj_track_times
+ *
+ * Inputs:      plist_id - property list id
+ *              flag     - TRUE/FALSE flag
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              February 22, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+
+int_f
+nh5pset_obj_track_times_c(hid_t_f *plist_id, int_f *flag)
+{
+  int ret_value = -1;
+  hid_t c_prp_id;
+  herr_t status;
+  hbool_t c_track_times;
+  herr_t ret;
+
+
+  c_track_times = (hbool_t)*flag;
+
+  /*
+   * Call H5Pset_obj_track_times function.
+   */
+  ret = H5Pset_obj_track_times((hid_t)*plist_id, c_track_times);
+
+  if (ret < 0) return ret_value; /* error occurred */
+  ret_value = 0;
+  return ret_value;
+}
+
+/*----------------------------------------------------------------------------
+ * Name:        h5pset_create_intermediate_group_c
+ * Purpose:     Calls H5Pset_create_intermediate_group 
+ *
+ * Inputs:   
+ *		lcpl_id - Link creation property list identifier
+ *   crt_intermed_group - crt_intermed_group specifying whether 
+ *                       to create intermediate groups upon the creation of an object
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              February 22, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+
+int_f
+nh5pset_create_intermediate_group_c(hid_t_f *lcpl_id, int_f *crt_intermed_group)
+{
+  int ret_value = -1;
+  herr_t ret;
+
+  /*
+   * Call H5Pset_create_intermediate_group function.
+   */
+  ret = H5Pset_create_intermediate_group((hid_t)*lcpl_id, (unsigned)*crt_intermed_group);
+
+  if (ret < 0) return ret_value; /* error occurred */
   ret_value = 0;
   return ret_value;
 }

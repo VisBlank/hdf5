@@ -5696,14 +5696,14 @@ CONTAINS
 !		loc_id		- Identifier of the file or group within which to create the dataset.
 !		type_id		- Identifier of the datatype to use when creating the dataset.
 !		space_id	- Identifier of the dataspace to use when creating the dataset.
-!               dcpl_id         - Dataset creation property list identifier.
-!               dapl_id  	- Dataset access property list identifier.
 ! Outputs:  
 !		dset_id		- dataset identifier
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
 ! Optional parameters:
+!               dcpl_id         - Dataset creation property list identifier.
+!               dapl_id  	- Dataset access property list identifier.
 !
 ! Programmer:   M.S. Breitenfeld
 !		February, 2008
@@ -5713,7 +5713,7 @@ CONTAINS
 ! Comment:		
 !----------------------------------------------------------------------
   
-  SUBROUTINE h5dcreate_anon_f(loc_id, type_id, space_id, dcpl_id, dapl_id, dset_id, hdferr)
+  SUBROUTINE h5dcreate_anon_f(loc_id, type_id, space_id, dset_id, hdferr, dcpl_id, dapl_id)
 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
@@ -5723,15 +5723,19 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier. 
     INTEGER(HID_T), INTENT(IN) :: type_id  ! Datatype identifier. 
     INTEGER(HID_T), INTENT(IN) :: space_id ! Dataspace identifier.
-    INTEGER(HID_T), INTENT(IN) :: dcpl_id  ! Dataset creation property list identifier.
-    INTEGER(HID_T), INTENT(IN) :: dapl_id  ! Dataset access property list identifier.
     INTEGER(HID_T), INTENT(OUT) :: dset_id ! Dataset identifier. 
     INTEGER, INTENT(OUT) :: hdferr         ! Error code.
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: dcpl_id  ! Dataset creation property list identifier.
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: dapl_id  ! Dataset access property list identifier.
+
+    INTEGER(HID_T) :: dcpl_id_default
+    INTEGER(HID_T) :: dapl_id_default
+
 !
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
     INTERFACE
-       INTEGER FUNCTION h5dcreate_anon_c(loc_id, type_id, space_id, dcpl_id, dapl_id, dset_id)
+       INTEGER FUNCTION h5dcreate_anon_c(loc_id, type_id, space_id, dcpl_id_default, dapl_id_default, dset_id)
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
          !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DCREATE_ANON_C'::h5dcreate_anon_c
@@ -5740,13 +5744,19 @@ CONTAINS
          INTEGER(HID_T), INTENT(IN) :: loc_id 
          INTEGER(HID_T), INTENT(IN) :: type_id
          INTEGER(HID_T), INTENT(IN) :: space_id
-         INTEGER(HID_T), INTENT(IN) :: dcpl_id
-         INTEGER(HID_T), INTENT(IN) :: dapl_id
+         INTEGER(HID_T) :: dcpl_id_default
+         INTEGER(HID_T) :: dapl_id_default
          INTEGER(HID_T), INTENT(OUT) :: dset_id
        END FUNCTION h5dcreate_anon_c
     END INTERFACE
+
+    dcpl_id_default = H5P_DEFAULT_F
+    dapl_id_default = H5P_DEFAULT_F
+
+    IF(PRESENT(dcpl_id)) dcpl_id_default = dcpl_id
+    IF(PRESENT(dapl_id)) dapl_id_default = dapl_id
     
-    hdferr = h5dcreate_anon_c(loc_id, type_id, space_id, dcpl_id, dapl_id, dset_id)
+    hdferr = h5dcreate_anon_c(loc_id, type_id, space_id, dcpl_id_default, dapl_id_default, dset_id)
 
   END SUBROUTINE h5dcreate_anon_f
 

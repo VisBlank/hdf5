@@ -703,9 +703,8 @@ done:
 int_f
 nh5gget_create_plist_c(hid_t_f *grp_id, hid_t_f *gcpl_id )
 {
-
   int_f ret_value=0; /* Return value */
-  
+
   if ((*gcpl_id = (hid_t_f)H5Gget_create_plist((hid_t)*grp_id)) < 0)
     HGOTO_DONE(FAIL);
 

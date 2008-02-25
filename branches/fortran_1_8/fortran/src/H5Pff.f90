@@ -6846,6 +6846,189 @@
   END SUBROUTINE h5pget_link_phase_change_f
 
 !----------------------------------------------------------------------
+! Name:		H5Pget_obj_track_times_f 
+!
+! Purpose: 	Returns whether times are tracked for an object.
+!
+! Inputs:  
+!		plist_id	- property list id
+!               flag            - object timestamp setting
+!                                 .TRUE.,.FALSE.
+! Outputs:
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		February 22, 2008
+!
+! Modifications: 	
+!
+! Comment:		
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5pget_obj_track_times_f(plist_id, flag, hdferr) 
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pget_obj_track_times_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: plist_id ! Dataset creation property 
+                                         ! list identifier 
+    LOGICAL, INTENT(OUT) :: flag   ! Object timestamp setting
+    INTEGER, INTENT(OUT) :: hdferr ! Error code
+    INTEGER :: status
+!
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5pget_obj_track_times_c(plist_id, status) 
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_OBJ_TRACK_TIMES_C'::h5pget_obj_track_times_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: plist_id ! File creation property list identifier 
+         INTEGER, INTENT(OUT) :: status
+       END FUNCTION h5pget_obj_track_times_c
+    END INTERFACE
+    flag = .TRUE.
+    hdferr = h5pget_obj_track_times_c(plist_id, status) 
+    IF(status.EQ.0) flag = .FALSE.
+
+  END SUBROUTINE h5pget_obj_track_times_f
+
+!----------------------------------------------------------------------
+! Name:		H5Pset_obj_track_times_f 
+!
+! Purpose: 	Set whether the birth, access, modification & change times for
+!               an object are stored.
+! 
+!               Birth time is the time the object was created.  Access time is
+!               the last time that metadata or raw data was read from this
+!               object.  Modification time is the last time the data for
+!               this object was changed (either writing raw data to a dataset
+!               or inserting/modifying/deleting a link in a group).  Change
+!               time is the last time the metadata for this object was written
+!               (adding/modifying/deleting an attribute on an object, extending
+!               the size of a dataset, etc).
+! 
+!               If these times are not tracked, they will be reported as
+!               12:00 AM UDT, Jan. 1, 1970 (i.e. 0 seconds past the UNIX
+!               epoch) when queried.
+!
+! Inputs:  
+!		plist_id	- property list id
+!               flag            - object timestamp setting
+!                                 .TRUE.,.FALSE.
+! Outputs:
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		February 22, 2008
+!
+! Modifications: 	
+!
+! Comment:		
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5pset_obj_track_times_f(plist_id, flag, hdferr) 
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pset_obj_track_times_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: plist_id ! Dataset creation property 
+                                           ! list identifier 
+    LOGICAL, INTENT(IN) :: flag    ! Object timestamp setting
+    INTEGER, INTENT(OUT) :: hdferr ! Error code
+    INTEGER :: status
+!
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5pset_obj_track_times_c(plist_id, status) 
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_OBJ_TRACK_TIMES_C'::h5pset_obj_track_times_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: plist_id ! File creation property list identifier 
+         INTEGER, INTENT(IN) :: status
+       END FUNCTION h5pset_obj_track_times_c
+    END INTERFACE
+
+    status = 0
+    IF(flag) status = 1
+
+    hdferr = h5pset_obj_track_times_c(plist_id, status)
+
+  END SUBROUTINE h5pset_obj_track_times_f
+
+!----------------------------------------------------------------------
+! Name:		H5Pset_create_intermediate_group_f
+!
+! Purpose: 	Specifies in property list whether to create missing intermediate groups.
+!
+! Inputs:  
+!		lcpl_id - Link creation property list identifier
+!               crt_intermed_group - crt_intermed_group specifying whether 
+!                          to create intermediate groups upon the creation of an object
+! Outputs:
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		February 22, 2008
+!
+! Modifications: 	
+!
+! Comment: The long subroutine name (>31) on older f90 compilers may cause problems		
+!--------------------------------------------------------------------------------------
+
+  SUBROUTINE h5pset_create_intermediate_group_f(lcpl_id, crt_intermed_group, hdferr) 
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pset_create_intermediate_group_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: lcpl_id ! Link creation property list identifier
+    INTEGER, INTENT(IN) :: crt_intermed_group  ! specifying whether to create intermediate groups 
+                                               ! upon the creation of an object
+    INTEGER, INTENT(OUT) :: hdferr ! Error code
+!
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5pset_create_intermediate_group_c(lcpl_id, crt_intermed_group) 
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_CREATE_INTERMEDIATE_GROUP_C'::h5pset_create_intermediate_group_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: lcpl_id
+         INTEGER(HID_T), INTENT(IN) :: crt_intermed_group
+       END FUNCTION h5pset_create_intermediate_group_c
+    END INTERFACE
+
+    hdferr = h5pset_create_intermediate_group_c(lcpl_id, crt_intermed_group)
+
+  END SUBROUTINE h5pset_create_intermediate_group_f
+
+
+!----------------------------------------------------------------------
 ! Name:	      H5Pget_char_encoding 
 !
 ! Purpose:    Retrieves the character encoding used to create a string

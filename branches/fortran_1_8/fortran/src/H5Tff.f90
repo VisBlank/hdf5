@@ -3280,4 +3280,150 @@ CONTAINS
           END SUBROUTINE h5tget_member_class_f
 
 !----------------------------------------------------------------------
-      END MODULE H5T
+! Name:		h5tcommit_anon_f 
+!
+! Purpose: 	Commits a transient datatype to a file, 
+!               creating a new named datatype, 
+!               but does not link it into the file structure.	
+!
+! Inputs:
+!        loc_id - A file or group identifier specifying the file 
+!                 in which the new named datatype is to be created.
+!      dtype_id - A datatype identifier.
+!
+! Outputs:
+!	hdferr: - error code		
+!			Success:  0
+!          		Failure: -1   
+! Optional parameters:
+!       tcpl_id - A datatype creation property list identifier.
+!                 (H5P_DEFAULT_F for the default property list.)
+!       tapl_id - A datatype access property list identifier.
+!                 should always be passed as the value H5P_DEFAULT_F.
+!
+! Programmer:	M.S. Breitenfeld
+!		February 25, 2008
+!
+! Modifications:
+!
+! Comment:		
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5tcommit_anon_f(loc_id, dtype_id, hdferr, tcpl_id, tapl_id) 
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5tcommit_anon_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id  ! A file or group identifier specifying 
+                                          ! the file in which the new named datatype 
+                                          ! is to be created.
+    INTEGER(HID_T), INTENT(IN) :: dtype_id  ! Datatype identifier 
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: tcpl_id ! A datatype creation property 
+                                                    ! list identifier.
+                                                    ! (H5P_DEFAULT_F for the default property list.)
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: tapl_id ! A datatype access property list identifier.
+                                                    ! should always be passed as the value H5P_DEFAULT_F.
+    INTEGER(HID_T) :: tcpl_id_default
+    INTEGER(HID_T) :: tapl_id_default
+
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5tcommit_anon_c(loc_id, dtype_id, &
+            tcpl_id_default, tapl_id_default)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5TCOMMIT_ANON_C'::h5tcommit_anon_c
+         !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference ::name 
+         INTEGER(HID_T), INTENT(IN) :: loc_id
+         INTEGER(HID_T), INTENT(IN) :: dtype_id
+         INTEGER(HID_T) :: tcpl_id_default
+         INTEGER(HID_T) :: tapl_id_default
+       END FUNCTION h5tcommit_anon_c
+    END INTERFACE
+
+    tcpl_id_default = H5P_DEFAULT_F
+    tapl_id_default = H5P_DEFAULT_F
+
+    IF(PRESENT(tcpl_id)) tcpl_id_default = tcpl_id
+    IF(PRESENT(tapl_id)) tapl_id_default = tapl_id
+    
+    hdferr = h5tcommit_anon_c(loc_id, dtype_id, & 
+         tcpl_id_default, tapl_id_default )
+
+  END SUBROUTINE h5tcommit_anon_f
+
+!----------------------------------------------------------------------
+! Name:      h5tcommitted_f 
+!
+! Purpose:   Determines whether a datatype is a named type or a transient type.
+!
+! Inputs:
+!      dtype_id - A datatype identifier.
+!
+! Outputs:
+!     committed - .TRUE., if the datatype has been committed
+!                .FALSE., if the datatype has not been committed.
+!	hdferr: - error code		
+!			Success:  0
+!          		Failure: -1   
+! Optional parameters:
+!
+! Programmer:	M.S. Breitenfeld
+!		February 25, 2008
+!
+! Modifications:
+!
+! Comment:		
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5tcommitted_f(dtype_id, committed, hdferr) 
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport ::  h5tcommitted_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: dtype_id  ! A datatype identifier
+    LOGICAL, INTENT(OUT) :: committed ! .TRUE., if the datatype has been committed
+                                      !.FALSE., if the datatype has not been committed.
+    INTEGER, INTENT(OUT) :: hdferr     ! Error code:		
+!			                   Success:  0
+!          		                   Failure: -1  
+
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5tcommitted_c(dtype_id)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5TCOMMITTED_C'::h5tcommitted_c
+         !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference ::name
+         INTEGER(HID_T), INTENT(IN) :: dtype_id
+       END FUNCTION h5tcommitted_c
+    END INTERFACE
+
+    hdferr = h5tcommitted_c(dtype_id)
+
+    IF(hdferr.GT.0)THEN
+       committed = .TRUE.
+       hdferr = 0
+    ELSE IF(hdferr.EQ.0)THEN
+       committed = .FALSE.
+       hdferr = 0
+    ELSE
+       hdferr = -1
+    ENDIF
+       
+
+  END SUBROUTINE h5tcommitted_f
+
+!----------------------------------------------------------------------
+END MODULE H5T
