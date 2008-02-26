@@ -43,10 +43,14 @@
                                          *      serialized to the file.
                                          */
 #define H5FS_CLS_SEPAR_OBJ      0x02    /* Objects in this class shouldn't
-                                         *      participate in merge operations
+                                         *      participate in merge operations.
                                          */
 #define H5FS_CLS_MERGE_SYM      0x04    /* Objects in this class only merge
-                                         *      with other objects in this class
+                                         *      with other objects in this class.
+                                         */
+#define H5FS_CLS_ADJUST_OK      0x08    /* Objects in this class can be merged
+                                         *      without requiring a can_adjust/adjust
+                                         *      callback pair.
                                          */
 
 /* Flags for H5FS_add() */
@@ -123,6 +127,7 @@ struct H5FS_section_info_t {
 /* Free space client IDs for identifying user of free space */
 typedef enum H5FS_client_t {
     H5FS_CLIENT_FHEAP_ID = 0,	/* Free space is used by fractal heap */
+    H5FS_CLIENT_FILE_ID,	/* Free space is used by file */
     H5FS_NUM_CLIENT_ID          /* Number of free space client IDs (must be last)   */
 } H5FS_client_t;
 
@@ -165,12 +170,15 @@ H5_DLL herr_t H5FS_close(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace);
 /* Free space section routines */
 H5_DLL herr_t H5FS_sect_add(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace,
     H5FS_section_info_t *node, unsigned flags, void *op_data);
+H5_DLL herr_t H5FS_sect_try_extend(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace,
+    haddr_t addr, hsize_t size, hsize_t extra_requested);
 H5_DLL herr_t H5FS_sect_remove(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace,
     H5FS_section_info_t *node);
 H5_DLL htri_t H5FS_sect_find(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace,
     hsize_t request, H5FS_section_info_t **node);
 H5_DLL herr_t H5FS_sect_iterate(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace, H5FS_operator_t op, void *op_data);
-H5_DLL herr_t H5FS_get_sect_count(const H5FS_t *fspace, hsize_t *nsects);
+H5_DLL herr_t H5FS_sect_stats(const H5FS_t *fspace, hsize_t *tot_space,
+    hsize_t *nsects);
 H5_DLL herr_t H5FS_sect_change_class(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace,
     H5FS_section_info_t *sect, unsigned new_class);
 

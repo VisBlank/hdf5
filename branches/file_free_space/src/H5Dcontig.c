@@ -416,7 +416,6 @@ H5D_contig_readvv(const H5D_io_info_t *io_info,
         haddr_t sieve_start=HADDR_UNDEF, sieve_end=HADDR_UNDEF;     /* Start & end locations of sieve buffer */
         haddr_t contig_end;             /* End locations of block to write */
         size_t sieve_size=(size_t)-1;   /* size of sieve buffer */
-        haddr_t abs_eoa;	        /* Absolute end of file address		*/
         haddr_t rel_eoa;	        /* Relative end of file address		*/
         hsize_t max_data;               /* Actual maximum size of data to cache */
 
@@ -461,11 +460,8 @@ H5D_contig_readvv(const H5D_io_info_t *io_info,
                     dset_contig->sieve_loc=addr;
 
                     /* Make certain we don't read off the end of the file */
-                    if (HADDR_UNDEF==(abs_eoa=H5F_get_eoa(file)))
+                    if(HADDR_UNDEF == (rel_eoa = H5F_get_eoa(file, H5FD_MEM_DRAW)))
                         HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, FAIL, "unable to determine file size")
-
-                    /* Adjust absolute EOA address to relative EOA address */
-                    rel_eoa=abs_eoa-H5F_get_base_addr(file);
 
                     /* Set up the buffer parameters */
                     max_data=store_contig->dset_size-dset_offset_arr[u];
@@ -538,11 +534,8 @@ H5D_contig_readvv(const H5D_io_info_t *io_info,
                         dset_contig->sieve_loc=addr;
 
                         /* Make certain we don't read off the end of the file */
-                        if (HADDR_UNDEF==(abs_eoa=H5F_get_eoa(file)))
+                        if(HADDR_UNDEF == (rel_eoa = H5F_get_eoa(file, H5FD_MEM_DRAW)))
                             HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, FAIL, "unable to determine file size")
-
-                        /* Adjust absolute EOA address to relative EOA address */
-                        rel_eoa=abs_eoa-H5F_get_base_addr(file);
 
                         /* Only need this when resizing sieve buffer */
                         max_data=store_contig->dset_size-dset_offset_arr[u];
@@ -681,7 +674,6 @@ H5D_contig_writevv(const H5D_io_info_t *io_info,
         haddr_t sieve_start=HADDR_UNDEF, sieve_end=HADDR_UNDEF;     /* Start & end locations of sieve buffer */
         haddr_t contig_end;             /* End locations of block to write */
         size_t sieve_size=(size_t)-1;   /* size of sieve buffer */
-        haddr_t abs_eoa;	        /* Absolute end of file address		*/
         haddr_t rel_eoa;	        /* Relative end of file address		*/
         hsize_t max_data;               /* Actual maximum size of data to cache */
 
@@ -730,11 +722,8 @@ if(dset_contig->sieve_size > size)
                     dset_contig->sieve_loc=addr;
 
                     /* Make certain we don't read off the end of the file */
-                    if (HADDR_UNDEF==(abs_eoa=H5F_get_eoa(file)))
+                    if(HADDR_UNDEF == (rel_eoa = H5F_get_eoa(file, H5FD_MEM_DRAW)))
                         HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, FAIL, "unable to determine file size")
-
-                    /* Adjust absolute EOA address to relative EOA address */
-                    rel_eoa=abs_eoa-H5F_get_base_addr(file);
 
                     /* Set up the buffer parameters */
                     max_data=store_contig->dset_size-dset_offset_arr[u];
@@ -849,11 +838,8 @@ if(dset_contig->sieve_size > size)
                             dset_contig->sieve_loc=addr;
 
                             /* Make certain we don't read off the end of the file */
-                            if (HADDR_UNDEF==(abs_eoa=H5F_get_eoa(file)))
+                            if(HADDR_UNDEF == (rel_eoa = H5F_get_eoa(file, H5FD_MEM_DRAW)))
                                 HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, FAIL, "unable to determine file size")
-
-                            /* Adjust absolute EOA address to relative EOA address */
-                            rel_eoa=abs_eoa-H5F_get_base_addr(file);
 
                             /* Only need this when resizing sieve buffer */
                             max_data=store_contig->dset_size-dset_offset_arr[u];

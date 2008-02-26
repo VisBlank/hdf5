@@ -486,7 +486,7 @@ H5_hash_string(const char *str)
     /* Sanity check */
     HDassert(str);
 
-    while(c = *str++)
+    while((c = *str++))
         hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 
     FUNC_LEAVE_NOAPI(hash)

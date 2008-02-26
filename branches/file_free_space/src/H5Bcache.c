@@ -37,6 +37,7 @@
 #include "H5private.h"		/* Generic Functions			*/
 #include "H5Bpkg.h"		/* B-link trees				*/
 #include "H5Eprivate.h"		/* Error handling		  	*/
+#include "H5MFprivate.h"	/* File memory management		*/
 
 /****************/
 /* Local Macros */
@@ -321,11 +322,12 @@ done:
  *
  *-------------------------------------------------------------------------
  */
-/* ARGSUSED */
 herr_t
-H5B_dest(H5F_t UNUSED *f, H5B_t *bt)
+H5B_dest(H5F_t *f, H5B_t *bt)
 {
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5B_dest)
+    herr_t ret_value = SUCCEED;         /* Return value */
+
+    FUNC_ENTER_NOAPI_NOINIT(H5B_dest)
 
     /*
      * Check arguments.
@@ -333,12 +335,31 @@ H5B_dest(H5F_t UNUSED *f, H5B_t *bt)
     HDassert(bt);
     HDassert(bt->rc_shared);
 
-    H5FL_SEQ_FREE(haddr_t,bt->child);
-    H5FL_BLK_FREE(native_block,bt->native);
-    H5RC_DEC(bt->rc_shared);
-    H5FL_FREE(H5B_t,bt);
+    /* If we're going to free the space on disk, the address must be valid */
+    HDassert(!bt->cache_info.free_file_space_on_destroy || H5F_addr_defined(bt->cache_info.addr));
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    /* Check for freeing file space for B-tree node */
+    if(bt->cache_info.free_file_space_on_destroy) {
+        H5B_shared_t *shared;               /* Pointer to shared B-tree info */
+
+        /* Get the pointer to the shared B-tree info */
+        shared = (H5B_shared_t *)H5RC_GET_OBJ(bt->rc_shared);
+        HDassert(shared);
+
+        /* Release the space on disk */
+        /* (XXX: Nasty usage of internal DXPL value! -QAK) */
+        if(H5MF_xfree(f, H5FD_MEM_BTREE, H5AC_dxpl_id, bt->cache_info.addr, (hsize_t)shared->sizeof_rnode) < 0)
+            HGOTO_ERROR(H5E_BTREE, H5E_CANTFREE, FAIL, "unable to free B-tree node")
+    } /* end if */
+
+    /* Release resources for B-tree node */
+    H5FL_SEQ_FREE(haddr_t, bt->child);
+    H5FL_BLK_FREE(native_block, bt->native);
+    H5RC_DEC(bt->rc_shared);
+    H5FL_FREE(H5B_t, bt);
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5B_dest() */
 
 

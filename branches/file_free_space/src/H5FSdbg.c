@@ -30,6 +30,7 @@
 
 #define H5FS_PACKAGE		/*suppress error about including H5FSpkg  */
 #define H5HF_DEBUGGING          /* Need access to fractal heap debugging routines */
+#define H5MF_DEBUGGING          /* Need access to file space debugging routines */
 
 /***********/
 /* Headers */
@@ -38,6 +39,7 @@
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5FSpkg.h"		/* File free space			*/
 #include "H5HFprivate.h"	/* Fractal heaps			*/
+#include "H5MFprivate.h"	/* File memory management		*/
 
 /****************/
 /* Local Macros */
@@ -273,6 +275,13 @@ H5FS_sects_debug(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, FILE *stream, int
         case H5FS_CLIENT_FHEAP_ID:
             if(H5HF_sects_debug(f, dxpl_id, client_addr, stream, indent + 3, MAX(0, fwidth - 3)) < 0)
                 HGOTO_ERROR(H5E_FSPACE, H5E_SYSTEM, FAIL, "unable to dump fractal heap free space sections")
+            break;
+
+        case H5FS_CLIENT_FILE_ID:
+#ifdef NOT_YET
+            if(H5MF_sects_debug(f, dxpl_id, client_addr, stream, indent + 3, MAX(0, fwidth - 3)) < 0)
+                HGOTO_ERROR(H5E_FSPACE, H5E_SYSTEM, FAIL, "unable to dump file free space sections")
+#endif /* NOT_YET */
             break;
 
         default:

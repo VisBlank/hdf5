@@ -148,7 +148,7 @@ static void test_singleEnd_selElements(hid_t file, hbool_t is_chunked)
     /* Select the elements in the dataset */
     elmts_numb = 12;
 
-    ret = H5Sselect_elements(sid, H5S_SELECT_SET, elmts_numb, da_elmts1);
+    ret = H5Sselect_elements(sid, H5S_SELECT_SET, elmts_numb, (const hsize_t *)da_elmts1);
     CHECK(ret, FAIL, "H5Sselect_elements");
 
     /* Dataspace for memory buffer */
@@ -181,7 +181,7 @@ static void test_singleEnd_selElements(hid_t file, hbool_t is_chunked)
     /* Select the elements in the dataset */
     elmts_numb = 6;
 
-    ret = H5Sselect_elements(sid, H5S_SELECT_SET, elmts_numb, da_elmts2);
+    ret = H5Sselect_elements(sid, H5S_SELECT_SET, elmts_numb, (const hsize_t *)da_elmts2);
     CHECK(ret, FAIL, "H5Sselect_elements");
 
     /* Dataspace for memory buffer */
@@ -214,7 +214,7 @@ static void test_singleEnd_selElements(hid_t file, hbool_t is_chunked)
     /* Select the elements in the dataset */
     elmts_numb = 18;
 
-    ret = H5Sselect_elements(sid, H5S_SELECT_SET, elmts_numb, da_elmts3);
+    ret = H5Sselect_elements(sid, H5S_SELECT_SET, elmts_numb, (const hsize_t *)da_elmts3);
     CHECK(ret, FAIL, "H5Sselect_elements");
 
     /* Dataspace for memory buffer */

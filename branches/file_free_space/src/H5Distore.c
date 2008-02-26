@@ -239,7 +239,7 @@ static int H5D_istore_cmp2(H5F_t *f, hid_t dxpl_id, void *_lt_key, void *_udata,
 			    void *_rt_key);
 static int H5D_istore_cmp3(H5F_t *f, hid_t dxpl_id, void *_lt_key, void *_udata,
 			    void *_rt_key);
-static herr_t H5D_istore_found(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *_lt_key,
+static htri_t H5D_istore_found(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *_lt_key,
 			       void *_udata);
 static H5B_ins_t H5D_istore_insert(H5F_t *f, hid_t dxpl_id, haddr_t addr, void *_lt_key,
 				   hbool_t *lt_key_changed, void *_md_key,
@@ -663,8 +663,8 @@ done:
  *		called with the maximum stored chunk indices less than the
  *		requested chunk indices.
  *
- * Return:	Non-negative on success with information about the chunk
- *		returned through the UDATA argument. Negative on failure.
+ * Return:	Non-negative (TRUE/FALSE) on success with information about the
+ *              chunk returned through the UDATA argument. Negative on failure.
  *
  * Programmer:	Robb Matzke
  *		Thursday, October  9, 1997
@@ -672,14 +672,14 @@ done:
  *-------------------------------------------------------------------------
  */
 /* ARGSUSED */
-static herr_t
+static htri_t
 H5D_istore_found(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, haddr_t addr, const void *_lt_key,
 		 void *_udata)
 {
     H5D_istore_ud1_t	   *udata = (H5D_istore_ud1_t *) _udata;
     const H5D_istore_key_t *lt_key = (const H5D_istore_key_t *) _lt_key;
     unsigned		u;
-    herr_t      ret_value = SUCCEED;       /* Return value */
+    htri_t      ret_value = TRUE;       /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5D_istore_found)
 
@@ -692,7 +692,7 @@ H5D_istore_found(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, haddr_t addr, const void
     /* Is this *really* the requested chunk? */
     for(u = 0; u < udata->common.mesg->u.chunk.ndims; u++)
         if(udata->common.offset[u] >= lt_key->offset[u] + udata->common.mesg->u.chunk.dim[u])
-            HGOTO_DONE(FAIL)
+            HGOTO_DONE(FALSE)
 
     /* Initialize return values */
     HDassert(lt_key->nbytes > 0);
@@ -1878,7 +1878,7 @@ H5D_istore_lock(const H5D_io_info_t *io_info, H5D_istore_ud1_t *udata,
         H5D_istore_ud1_t tmp_udata;		/*B-tree pass-through	*/
         haddr_t chunk_addr;             /* Address of chunk on disk */
 
-        if(udata!=NULL)
+        if(udata != NULL)
             chunk_addr = udata->addr;
         else {
             /* Point at temporary storage for B-tree pass through */
@@ -1888,10 +1888,11 @@ H5D_istore_lock(const H5D_io_info_t *io_info, H5D_istore_ud1_t *udata,
              * Not in the cache.  Read it from the file and count this as a miss
              * if it's in the file or an init if it isn't.
              */
-            chunk_addr = H5D_istore_get_addr(io_info, udata);
+            if(H5D_istore_get_addr(io_info, udata, &chunk_addr) < 0)
+                HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, NULL, "error looking up chunk address")
         } /* end else */
 
-        if (H5F_addr_defined(chunk_addr)) {
+        if(H5F_addr_defined(chunk_addr)) {
             size_t		chunk_alloc = 0;		/*allocated chunk size	*/
 
             /*
@@ -1914,11 +1915,6 @@ H5D_istore_lock(const H5D_io_info_t *io_info, H5D_istore_ud1_t *udata,
 #endif /* H5D_ISTORE_DEBUG */
         } else {
             H5D_fill_value_t	fill_status;
-
-#ifdef OLD_WAY
-            /* Clear the error stack from not finding the chunk on disk */
-            H5E_clear_stack(NULL);
-#endif /* OLD_WAY */
 
             /* Chunk size on disk isn't [likely] the same size as the final chunk
              * size in memory, so allocate memory big enough. */
@@ -2189,9 +2185,9 @@ H5D_istore_if_load(const H5D_io_info_t *io_info, haddr_t caddr)
      * write-through of only the elements requested.
      */
     if(dataset->shared->dcpl_cache.pline.nused==0 &&
-            ((dataset->shared->layout.u.chunk.size > dataset->shared->cache.chunk.nbytes && caddr != HADDR_UNDEF)
+            ((dataset->shared->layout.u.chunk.size > dataset->shared->cache.chunk.nbytes && H5F_addr_defined(caddr))
 #ifdef H5_HAVE_PARALLEL
-            || (io_info->using_mpi_vfd && (H5F_ACC_RDWR & H5F_get_intent(dataset->oloc.file)))
+            || (io_info->using_mpi_vfd && (H5F_ACC_RDWR & H5F_INTENT(dataset->oloc.file)))
 #endif /* H5_HAVE_PARALLEL */
             )) {
         ret_value = FALSE;
@@ -2648,19 +2644,21 @@ done:
  *
  *-------------------------------------------------------------------------
  */
-haddr_t
-H5D_istore_get_addr(const H5D_io_info_t *io_info, H5D_istore_ud1_t *_udata)
+herr_t
+H5D_istore_get_addr(const H5D_io_info_t *io_info, H5D_istore_ud1_t *_udata,
+    haddr_t *addr)
 {
     H5D_istore_ud1_t	tmp_udata;      /* Information about a chunk */
     H5D_istore_ud1_t	*udata;         /* Pointer to information about a chunk */
-    haddr_t	ret_value;		/* Return value */
+    herr_t	ret_value = SUCCEED;	/* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5D_istore_get_addr)
+    FUNC_ENTER_NOAPI(H5D_istore_get_addr, FAIL)
 
     HDassert(io_info);
     HDassert(io_info->dset);
     HDassert(io_info->dset->shared->layout.u.chunk.ndims > 0);
     HDassert(io_info->store->chunk.offset);
+    HDassert(addr);
 
     /* Check for udata struct to return */
     udata = (_udata != NULL ? _udata : &tmp_udata);
@@ -2673,32 +2671,32 @@ H5D_istore_get_addr(const H5D_io_info_t *io_info, H5D_istore_ud1_t *_udata)
     udata->addr = HADDR_UNDEF;
 
     /* Check for cached information */
-    if(!H5D_istore_cinfo_cache_found(&io_info->dset->shared->cache.chunk.last, udata)) {
-        /* Go get the chunk information */
-        if(H5B_find(io_info->dset->oloc.file, io_info->dxpl_id, H5B_ISTORE, io_info->dset->shared->layout.u.chunk.addr, udata) < 0) {
-            /* Note: don't push error on stack, leave that to next higher level,
-             *      since many times the B-tree is searched in order to determine
-             *      if a chunk exists in the B-tree or not. -QAK
-             */
-#ifdef OLD_WAY
-            H5E_clear_stack(NULL);
+    if(H5D_istore_cinfo_cache_found(&io_info->dset->shared->cache.chunk.last, udata)) {
+        /* Update address for caller */
+        *addr = udata->addr;
+    } /* end if */
+    else {
+        htri_t chunk_exists;    /* Whether the chunk exists in the B-tree */
 
-            HGOTO_ERROR(H5E_BTREE, H5E_NOTFOUND, HADDR_UNDEF, "Can't locate chunk info")
-#else /* OLD_WAY */
+        /* Go get the chunk information */
+        if((chunk_exists = H5B_find(io_info->dset->oloc.file, io_info->dxpl_id, H5B_ISTORE, io_info->dset->shared->layout.u.chunk.addr, udata)) < 0)
+            HGOTO_ERROR(H5E_BTREE, H5E_NOTFOUND, FAIL, "Can't locate chunk info")
+        if(chunk_exists) {
+            /* Cache the information retrieved */
+            HDassert(H5F_addr_defined(udata->addr));
+            H5D_istore_cinfo_cache_update(&io_info->dset->shared->cache.chunk.last, udata);
+
+            /* Update address for caller */
+            *addr = udata->addr;
+        } /* end if */
+        else {
             /* Cache the fact that the chunk is not in the B-tree */
             H5D_istore_cinfo_cache_update(&io_info->dset->shared->cache.chunk.last, udata);
 
-            HGOTO_DONE(HADDR_UNDEF)
-#endif /* OLD_WAY */
-        } /* end if */
-
-        /* Cache the information retrieved */
-        HDassert(H5F_addr_defined(udata->addr));
-        H5D_istore_cinfo_cache_update(&io_info->dset->shared->cache.chunk.last, udata);
+            /* Update address for caller */
+            *addr = HADDR_UNDEF;
+        } /* end else */
     } /* end else */
-
-    /* Success!  Set the return value */
-    ret_value = udata->addr;
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -2916,10 +2914,13 @@ H5D_istore_allocate(H5D_t *dset, hid_t dxpl_id, hbool_t full_overwrite)
     /* Loop over all chunks */
     carry = FALSE;
     while(!carry) {
+        haddr_t chunk_addr;     /* Address of the chunk on disk */
         int i;                  /* Local index variable */
 
         /* Check if the chunk exists yet on disk */
-        if(!H5F_addr_defined(H5D_istore_get_addr(&io_info, NULL))) {
+        if(H5D_istore_get_addr(&io_info, NULL, &chunk_addr) < 0)
+            HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "error looking up chunk address")
+        if(!H5F_addr_defined(chunk_addr)) {
             const H5D_rdcc_t *rdcc = &(dset->shared->cache.chunk);  /* Raw data chunk cache */
             H5D_rdcc_ent_t *ent;    /* Cache entry  */
             hbool_t chunk_exists;   /* Flag to indicate whether a chunk exists already */

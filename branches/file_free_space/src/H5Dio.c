@@ -634,7 +634,7 @@ H5D_write(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
     } /* end if */
 
     /* Check if we are allowed to write to this file */
-    if(0==(H5F_get_intent(dataset->oloc.file) & H5F_ACC_RDWR))
+    if(0==(H5F_INTENT(dataset->oloc.file) & H5F_ACC_RDWR))
 	HGOTO_ERROR(H5E_DATASET, H5E_WRITEERROR, FAIL, "no write intent on file")
 
     /* Fill the DXPL cache values for later use */
@@ -1431,7 +1431,8 @@ H5D_chunk_read(H5D_io_info_t *io_info, hsize_t nelmts,
                 store.chunk.index = chunk_info->index;
 
                 /* Load the chunk into cache and lock it. */
-		chunk_addr = H5D_istore_get_addr(io_info, &udata);
+		if(H5D_istore_get_addr(io_info, &udata, &chunk_addr) < 0)
+                    HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "error looking up chunk address")
                 if(H5D_istore_if_load(io_info, chunk_addr)) {
 		    if(NULL == (chunk = H5D_istore_lock(io_info, &udata, FALSE, &idx_hint)))
 			HGOTO_ERROR(H5E_IO, H5E_READERROR, FAIL, "unable to read raw data chunk")
@@ -1552,8 +1553,8 @@ H5D_chunk_read(H5D_io_info_t *io_info, hsize_t nelmts,
         store.chunk.index = chunk_info->index;
 
         /* Load the chunk into cache and lock it. */
-        chunk_addr = H5D_istore_get_addr(io_info, &udata);
-
+        if(H5D_istore_get_addr(io_info, &udata, &chunk_addr) < 0)
+            HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "error looking up chunk address")
         if(H5D_istore_if_load(io_info, chunk_addr)) {
             if(NULL == (chunk = H5D_istore_lock(io_info, &udata, FALSE, &idx_hint)))
                 HGOTO_ERROR(H5E_IO, H5E_READERROR, FAIL, "unable to read raw data chunk")
@@ -1830,8 +1831,8 @@ H5D_chunk_write(H5D_io_info_t *io_info, hsize_t nelmts,
 
                 /* Load the chunk into cache.  But if the whole chunk is written,
                  * simply allocate space instead of load the chunk. */
-                chunk_addr = H5D_istore_get_addr(io_info, &udata);
-
+                if(H5D_istore_get_addr(io_info, &udata, &chunk_addr) < 0)
+                    HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "error looking up chunk address")
                 if(H5D_istore_if_load(io_info, chunk_addr)) {
                     accessed_bytes = chunk_info->chunk_points * dst_type_size;
                     if(accessed_bytes != dataset->shared->layout.u.chunk.size)
@@ -1960,8 +1961,8 @@ H5D_chunk_write(H5D_io_info_t *io_info, hsize_t nelmts,
 
         /* Load the chunk into cache.  But if the whole chunk is written,
          * simply allocate space instead of load the chunk. */
-        chunk_addr = H5D_istore_get_addr(io_info, &udata);
-
+        if(H5D_istore_get_addr(io_info, &udata, &chunk_addr) < 0)
+            HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "error looking up chunk address")
         if(H5D_istore_if_load(io_info, chunk_addr)) {
             accessed_bytes = chunk_info->chunk_points * dst_type_size;
             if(accessed_bytes != dataset->shared->layout.u.chunk.size)

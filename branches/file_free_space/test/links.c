@@ -22,7 +22,9 @@
 
 #include "h5test.h"
 
-#include "H5Lprivate.h"
+#include "H5Fprivate.h"		/* File access				*/
+#include "H5Iprivate.h"		/* IDs			  		*/
+#include "H5Lprivate.h"         /* Links                                */
 
 /*
  * This file needs to access private information from the H5G package.
@@ -1725,6 +1727,10 @@ external_link_root(hid_t fapl, hbool_t new_format)
     if(H5Gclose(gid) < 0) TEST_ERROR
     if(H5Fclose(fid) < 0) TEST_ERROR
     
+    /* Check that all file IDs have been closed */
+    if(H5I_nmembers(H5I_FILE) != 0) TEST_ERROR
+    if(H5F_sfile_assert_num(0) != 0) TEST_ERROR
+
     /* Open first file again with read-only access and check on objects created */
     if((fid = H5Fopen(filename1, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) TEST_ERROR
 
@@ -1745,6 +1751,10 @@ external_link_root(hid_t fapl, hbool_t new_format)
     /* Close first file */
     if(H5Fclose(fid) < 0) TEST_ERROR
 
+    /* Check that all file IDs have been closed */
+    if(H5I_nmembers(H5I_FILE) != 0) TEST_ERROR
+    if(H5F_sfile_assert_num(0) != 0) TEST_ERROR
+
     /* Verify that new objects can't be created through a read-only external
      * link.
      */
@@ -1757,6 +1767,10 @@ external_link_root(hid_t fapl, hbool_t new_format)
 
     /* Close second file again */
     if(H5Fclose(fid) < 0) TEST_ERROR
+
+    /* Check that all file IDs have been closed */
+    if(H5I_nmembers(H5I_FILE) != 0) TEST_ERROR
+    if(H5F_sfile_assert_num(0) != 0) TEST_ERROR
 
     PASSED();
     return 0;

@@ -443,8 +443,8 @@ H5_DLL ssize_t H5D_istore_writevv(const H5D_io_info_t *io_info,
     hsize_t chunk_offset_arr[], size_t mem_max_nseq, size_t *mem_curr_seq,
     size_t mem_len_arr[], hsize_t mem_offset_arr[], haddr_t chunk_addr, void *chunk, 
     const void *buf);
-H5_DLL haddr_t H5D_istore_get_addr(const H5D_io_info_t *io_info,
-    struct H5D_istore_ud1_t *_udata);
+H5_DLL herr_t H5D_istore_get_addr(const H5D_io_info_t *io_info,
+    struct H5D_istore_ud1_t *_udata, haddr_t *addr);
 H5_DLL herr_t H5D_istore_copy(H5F_t *f_src, H5O_layout_t *layout_src,
     H5F_t *f_dst, H5O_layout_t *layout_dst, H5T_t *src_dtype,
     H5O_copy_t *cpy_info, H5O_pline_t *pline, hid_t dxpl_id);

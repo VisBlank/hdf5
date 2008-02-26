@@ -878,7 +878,7 @@ H5S_point_deserialize (H5S_t *space, const uint8_t *buf)
             UINT32DECODE(buf, *tcoord);
 
     /* Select points */
-    if((ret_value=H5S_select_elements(space,op,num_elem,(const hsize_t **)coord))<0)
+    if((ret_value=H5S_select_elements(space,op,num_elem,(const hsize_t *)coord))<0)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTDELETE, FAIL, "can't change selection");
 
 done:

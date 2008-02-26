@@ -133,6 +133,7 @@ H5HF_space_start(H5HF_hdr_t *hdr, hid_t dxpl_id, hbool_t may_create)
             if(NULL == (hdr->fspace = H5FS_create(hdr->f, dxpl_id, &hdr->fs_addr,
                     &fs_create, NELMTS(classes), classes, hdr)))
                 HGOTO_ERROR(H5E_HEAP, H5E_CANTINIT, FAIL, "can't initialize free space info")
+            HDassert(H5F_addr_defined(hdr->fs_addr));
         } /* end if */
     } /* end else */
 
@@ -351,7 +352,7 @@ H5HF_space_close(H5HF_hdr_t *hdr, hid_t dxpl_id)
         hsize_t nsects;         /* Number of sections for this heap */
 
         /* Retrieve the number of sections for this heap */
-        if(H5FS_get_sect_count(hdr->fspace, &nsects) < 0)
+        if(H5FS_sect_stats(hdr->fspace, NULL, &nsects) < 0)
             HGOTO_ERROR(H5E_HEAP, H5E_CANTCOUNT, FAIL, "can't query free space section count")
 #ifdef QAK
 HDfprintf(stderr, "%s: nsects = %Hu\n", FUNC, nsects);

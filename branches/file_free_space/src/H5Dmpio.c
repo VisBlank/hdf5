@@ -870,8 +870,8 @@ H5D_link_chunk_collective_io(H5D_io_info_t *io_info,H5D_chunk_map_t *fm,const vo
             store.chunk.offset = chunk_info->coords;
             store.chunk.index  = chunk_info->index;
 
-            if(HADDR_UNDEF==(chunk_base_addr = H5D_istore_get_addr(io_info,NULL)))
-                HGOTO_ERROR(H5E_STORAGE, H5E_CANTGET, FAIL,"couldn't get chunk info from skipped list");
+            if(H5D_istore_get_addr(io_info, NULL, &chunk_base_addr) < 0)
+                HGOTO_ERROR(H5E_STORAGE, H5E_CANTGET, FAIL, "couldn't get chunk info from skipped list")
 	
 #ifdef H5D_DEBUG
   if(H5DEBUG(D))
@@ -1179,13 +1179,13 @@ H5D_multi_chunk_collective_io(H5D_io_info_t *io_info,H5D_chunk_map_t *fm,const v
 
             /* Load the chunk into cache.  But if the whole chunk is written,
              * simply allocate space instead of load the chunk. */
-            if(HADDR_UNDEF==(caddr = H5D_istore_get_addr(io_info, &udata)))
-                HGOTO_ERROR(H5E_STORAGE, H5E_CANTGET, FAIL,"couldn't get chunk info from skipped list");
+            if(H5D_istore_get_addr(io_info, &udata, &caddr) < 0)
+                HGOTO_ERROR(H5E_STORAGE, H5E_CANTGET, FAIL, "couldn't get chunk info from skipped list")
 
             if(H5D_istore_if_load(io_info, caddr)) {
                 accessed_bytes = chunk_info->chunk_points * H5T_get_size(dataset->shared->type);
                 if((do_write && (accessed_bytes != dataset->shared->layout.u.chunk.size)) || !do_write)
-                    relax=FALSE;
+                    relax = FALSE;
 
 	        if(NULL == (chunk = H5D_istore_lock(io_info, &udata, relax, &idx_hint)))
 		    HGOTO_ERROR(H5E_IO, H5E_READERROR, FAIL, "unable to read raw data chunk")
@@ -1361,8 +1361,8 @@ H5D_multi_chunk_collective_io_no_opt(H5D_io_info_t *io_info,H5D_chunk_map_t *fm,
                 if(H5D_ioinfo_make_ind(io_info) < 0)
                     HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "can't switch to independent I/O")
 
-            if(HADDR_UNDEF==(chunk_addr = H5D_istore_get_addr(io_info, &udata)))
-                HGOTO_ERROR(H5E_STORAGE, H5E_CANTGET, FAIL,"couldn't get chunk info from skipped list");
+            if(H5D_istore_get_addr(io_info, &udata, &chunk_addr) < 0)
+                HGOTO_ERROR(H5E_STORAGE, H5E_CANTGET, FAIL, "couldn't get chunk info from skipped list")
 
             if(make_ind) {/*independent I/O */
                 /* Load the chunk into cache.  But if the whole chunk is written,
@@ -1666,13 +1666,13 @@ H5D_sort_chunk(H5D_io_info_t * io_info,
     store.chunk.offset = chunk_info->coords;
     store.chunk.index  = chunk_info->index;
     i = 0;
-    if(many_chunk_opt == H5D_OBTAIN_ONE_CHUNK_ADDR_IND){
-      if(HADDR_UNDEF==(chunk_addr = H5D_istore_get_addr(io_info,NULL)))
-	  HGOTO_ERROR(H5E_STORAGE, H5E_CANTGET, FAIL,"couldn't get chunk info from skipped list");
+    if(many_chunk_opt == H5D_OBTAIN_ONE_CHUNK_ADDR_IND) {
+        if(H5D_istore_get_addr(io_info, NULL, &chunk_addr) < 0)
+            HGOTO_ERROR(H5E_STORAGE, H5E_CANTGET, FAIL, "couldn't get chunk info from skipped list")
 
 #ifdef H5D_DEBUG
-  if(H5DEBUG(D))
-    HDfprintf(H5DEBUG(D),"coming to obtain each chunk address individually \n");
+        if(H5DEBUG(D))
+            HDfprintf(H5DEBUG(D),"coming to obtain each chunk address individually \n");
 #endif
     }
     else 
@@ -1684,30 +1684,30 @@ H5D_sort_chunk(H5D_io_info_t * io_info,
     chunk_node = H5SL_next(chunk_node);
 
     while(chunk_node) {
-
-            chunk_info         = H5SL_item(chunk_node);
-            store.chunk.offset = chunk_info->coords;
-            store.chunk.index  = chunk_info->index;
+        chunk_info         = H5SL_item(chunk_node);
+        store.chunk.offset = chunk_info->coords;
+        store.chunk.index  = chunk_info->index;
 	    
-	    if(many_chunk_opt == H5D_OBTAIN_ONE_CHUNK_ADDR_IND){
-	      if(HADDR_UNDEF==(chunk_addr = H5D_istore_get_addr(io_info,NULL)))
-		HGOTO_ERROR(H5E_STORAGE, H5E_CANTGET, FAIL,"couldn't get chunk info from skipped list");
-	    }
-	    else 
-	      chunk_addr = total_chunk_addr_array[chunk_info->index];
+        if(many_chunk_opt == H5D_OBTAIN_ONE_CHUNK_ADDR_IND) {
+            if(H5D_istore_get_addr(io_info, NULL, &chunk_addr))
+                HGOTO_ERROR(H5E_STORAGE, H5E_CANTGET, FAIL, "couldn't get chunk info from skipped list")
+        }
+        else 
+            chunk_addr = total_chunk_addr_array[chunk_info->index];
 
-	    if(chunk_addr < chunk_addr_info_array[i].chunk_addr) do_sort = TRUE;
-	    chunk_addr_info_array[i+1].chunk_addr = chunk_addr;
-            chunk_addr_info_array[i+1].chunk_info =*chunk_info;
-            i++;
-            chunk_node = H5SL_next(chunk_node);
+        if(chunk_addr < chunk_addr_info_array[i].chunk_addr)
+            do_sort = TRUE;
+        chunk_addr_info_array[i+1].chunk_addr = chunk_addr;
+        chunk_addr_info_array[i+1].chunk_info = *chunk_info;
+        i++;
+        chunk_node = H5SL_next(chunk_node);
     }
 #ifdef H5D_DEBUG
-  if(H5DEBUG(D))
-    HDfprintf(H5DEBUG(D),"before Qsort\n");
+    if(H5DEBUG(D))
+        HDfprintf(H5DEBUG(D),"before Qsort\n");
 #endif
     if(do_sort)
-	    HDqsort(chunk_addr_info_array,num_chunks,sizeof(chunk_addr_info_array),H5D_cmp_chunk_addr);
+        HDqsort(chunk_addr_info_array,num_chunks,sizeof(chunk_addr_info_array),H5D_cmp_chunk_addr);
 
 done:
 
