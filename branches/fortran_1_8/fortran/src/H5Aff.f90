@@ -2782,23 +2782,22 @@ CONTAINS
 !          obj_name - Name of object to which attribute is attached, relative to location
 !          idx_type - Type of index; Possible values are:
 !
-!                  H5_INDEX_UNKNOWN = -1  - Unknown index type
-!                  H5_INDEX_NAME          - Index on names
-!                  H5_INDEX_CRT_ORDER     - Index on creation order
-!                  H5_INDEX_N	          - Number of indices defined
+!                  H5_INDEX_UNKNOWN_F = -1  - Unknown index type
+!                  H5_INDEX_NAME_F          - Index on names
+!                  H5_INDEX_CRT_ORDER_F     - Index on creation order
+!                  H5_INDEX_N	 _F         - Number of indices defined
 !
 !          order    - Order in which to iterate over index; Possible values are:
 !
-!                  H5_ITER_UNKNOWN   - Unknown order
-!                  H5_ITER_INC       - Increasing order
-!                  H5_ITER_DEC       - Decreasing order
-!                  H5_ITER_NATIVE    - No particular order, whatever is fastest
-!                  H5_ITER_N	     - Number of iteration orders
+!                  H5_ITER_UNKNOWN_F   - Unknown order
+!                  H5_ITER_INC_F       - Increasing order
+!                  H5_ITER_DEC_F       - Decreasing order
+!                  H5_ITER_NATIVE_F    - No particular order, whatever is fastest
+!                  H5_ITER_N_F	     - Number of iteration orders
 !
 !          order    - Index traversal order
 !              n    - Attribute’s position in index
 !           size    - Size, in bytes, of attribute name
-!        lapl_id    - Link access property list
 !
 ! Outputs:  
 !		name            - Attribute name
@@ -2807,7 +2806,7 @@ CONTAINS
 !				 	Success:  0
 !				 	Failure: -1   
 ! Optional parameters:
-!				NONE			
+!        lapl_id    - Link access property list	
 !
 ! Programmer:   M.S. Breitenfeld
 !		January, 2008
@@ -2816,7 +2815,7 @@ CONTAINS
 !----------------------------------------------------------------------
 
   SUBROUTINE h5aget_name_by_idx_f(loc_id, obj_name, idx_type, order, &
-       n, name, size, lapl_id, hdferr) 
+       n, name, size, hdferr, lapl_id) 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5aget_name_by_idx_f
@@ -2844,22 +2843,22 @@ CONTAINS
 
     INTEGER(SIZE_T), INTENT(INOUT) :: size  ! Buffer size ! *TEST* check for 0 value *CHECK* should this return the correct value
     
-    INTEGER(HID_T), INTENT(IN) :: lapl_id   ! Link access property list
     INTEGER, INTENT(OUT) :: hdferr    ! Error code:
                                          ! Returns attribute name size,
                                          ! -1 if fail
     INTEGER(SIZE_T) :: obj_namelen
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id   ! Link access property list
+    INTEGER(HID_T) :: lapl_id_default
 !
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
     INTERFACE
        INTEGER FUNCTION h5aget_name_by_idx_c(loc_id, obj_name, obj_namelen, idx_type, order, &
-            n, name, size, lapl_id)
+            n, name, size, lapl_id_default)
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
          !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AGET_NAME_C'::h5aget_name_c
          !DEC$ ENDIF
-         !DEC$ATTRIBUTES reference :: buf ! *CHECK THIS* is this for (OUT) ?
 
          INTEGER(HID_T), INTENT(IN) :: loc_id
          CHARACTER(LEN=*), INTENT(IN) :: obj_name
@@ -2869,18 +2868,17 @@ CONTAINS
      
          CHARACTER(LEN=*), INTENT(OUT) :: name
          INTEGER(SIZE_T), INTENT(INOUT) :: size
-         INTEGER(HID_T), INTENT(IN) :: lapl_id
+         INTEGER(HID_T) :: lapl_id_default
          INTEGER(SIZE_T) :: obj_namelen
        END FUNCTION h5aget_name_by_idx_c
     END INTERFACE
 
     obj_namelen = LEN(obj_name)
-
+    lapl_id_default = H5P_DEFAULT_F
+    IF(PRESENT(lapl_id)) lapl_id_default = lapl_id
 
     hdferr = h5aget_name_by_idx_c(loc_id, obj_name, obj_namelen, idx_type, order, &
-         n, name, size, lapl_id)
-
-
+         n, name, size, lapl_id_default)
 
   END SUBROUTINE h5aget_name_by_idx_f
 
@@ -3167,7 +3165,7 @@ CONTAINS
 !----------------------------------------------------------------------
 
   SUBROUTINE h5arename_by_name_f(loc_id, obj_name, old_attr_name, new_attr_name, &
-       lapl_id, hdferr) 
+        hdferr, lapl_id) 
 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
@@ -3175,15 +3173,16 @@ CONTAINS
 !DEC$endif
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: loc_id    ! Object identifier 
-    CHARACTER(LEN=*), INTENT(IN) :: obj_name    ! Name of object, relative to location, 
-    !  whose attribute is to be renamed
+    CHARACTER(LEN=*), INTENT(IN) :: obj_name  ! Name of object, relative to location, 
+                                              !  whose attribute is to be renamed
     CHARACTER(LEN=*), INTENT(IN) :: old_attr_name ! Prior attribute name
     CHARACTER(LEN=*), INTENT(IN) :: new_attr_name ! New attribute name
-    INTEGER(HID_T), INTENT(IN) :: lapl_id    ! Link access property list identifier
     
     INTEGER, INTENT(OUT) :: hdferr       ! Error code:
                                          ! 0 on success and -1 on failure
-    
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id ! Link access property list identifier
+
+    INTEGER(HID_T) :: lapl_id_default
     INTEGER(SIZE_T) :: obj_namelen
     INTEGER(SIZE_T) :: old_attr_namelen
     INTEGER(SIZE_T) :: new_attr_namelen
@@ -3193,7 +3192,7 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5arename_by_name_c(loc_id, obj_name, obj_namelen, &
             old_attr_name, old_attr_namelen, new_attr_name, new_attr_namelen, &
-            lapl_id)
+            lapl_id_default)
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
          !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5ARENAME_BY_NAME_C'::h5arename_by_name_c
@@ -3206,7 +3205,7 @@ CONTAINS
          INTEGER(SIZE_T) :: old_attr_namelen
          CHARACTER(LEN=*), INTENT(IN) :: new_attr_name
          INTEGER(SIZE_T) :: new_attr_namelen
-         INTEGER(HID_T), INTENT(IN) :: lapl_id
+         INTEGER(HID_T) :: lapl_id_default
          
        END FUNCTION h5arename_by_name_c
     END INTERFACE
@@ -3214,10 +3213,13 @@ CONTAINS
     obj_namelen = LEN(obj_name)
     old_attr_namelen = LEN(old_attr_name)
     new_attr_namelen = LEN(new_attr_name)
+
+    lapl_id_default = H5P_DEFAULT_F
+    IF(PRESENT(lapl_id)) lapl_id_default=lapl_id
     
     hdferr = h5arename_by_name_c(loc_id, obj_name, obj_namelen, &
          old_attr_name, old_attr_namelen, new_attr_name, new_attr_namelen, &
-         lapl_id)
+         lapl_id_default)
     
   END SUBROUTINE h5arename_by_name_f
 
@@ -3230,14 +3232,13 @@ CONTAINS
 ! Inputs:  	
 !		obj_id      - Identifer for object to which attribute is attached
 !               attr_name   - Name of attribute to open
-!		aapl_id     - Attribute access property list
 ! Outputs:  
 !		attr_id     - attribute identifier
 !		hdferr:     - error code		
 !				 Success:  0
 !				 Failure: -1   
 ! Optional parameters:
-!				NONE			
+!		aapl_id     - Attribute access property list
 !
 ! Programmer:	M.S. Breitenfeld
 !		January, 2008
@@ -3246,23 +3247,27 @@ CONTAINS
 !
 !----------------------------------------------------------------------
 
-  SUBROUTINE h5aopen_f(obj_id, attr_name, aapl_id, attr_id, hdferr) 
+  SUBROUTINE h5aopen_f(obj_id, attr_name, attr_id, hdferr, aapl_id) 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5aopen_f
 !DEC$endif
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: obj_id      ! Object identifier 
-    CHARACTER(LEN=*), INTENT(IN) :: attr_name ! Attribute name 
-    INTEGER(HID_T), INTENT(IN) :: aapl_id     ! Attribute access property list
+    CHARACTER(LEN=*), INTENT(IN) :: attr_name ! Attribute name
     INTEGER(HID_T), INTENT(OUT) :: attr_id    ! Attribute identifier 
-    INTEGER, INTENT(OUT) :: hdferr            ! Error code
+    INTEGER, INTENT(OUT) :: hdferr            ! Error code 		
+                                              !   Success:  0
+                                              !   Failure: -1  
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: aapl_id     ! Attribute access property list
+    INTEGER(HID_T) :: aapl_id_default
+
     INTEGER(SIZE_T) :: attr_namelen
 
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
     INTERFACE
-       INTEGER FUNCTION h5aopen_c(obj_id, attr_name, attr_namelen, aapl_id, attr_id)
+       INTEGER FUNCTION h5aopen_c(obj_id, attr_name, attr_namelen, aapl_id_default, attr_id)
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
          !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AOPEN_C'::h5aopen_c
@@ -3270,14 +3275,18 @@ CONTAINS
          !DEC$ATTRIBUTES reference :: name
          INTEGER(HID_T), INTENT(IN) :: obj_id
          CHARACTER(LEN=*), INTENT(IN) :: attr_name
-         INTEGER(HID_T), INTENT(IN) :: aapl_id
+         INTEGER(HID_T) :: aapl_id_default
          INTEGER(SIZE_T) :: attr_namelen 
          INTEGER(HID_T), INTENT(OUT) :: attr_id
        END FUNCTION h5aopen_c
     END INTERFACE
 
     attr_namelen = LEN(attr_name)
-    hdferr = h5aopen_c(obj_id, attr_name, attr_namelen, aapl_id, attr_id)
+
+    aapl_id_default = H5P_DEFAULT_F
+    IF(PRESENT(aapl_id)) aapl_id_default = aapl_id
+
+    hdferr = h5aopen_c(obj_id, attr_name, attr_namelen, aapl_id_default, attr_id)
 
   END SUBROUTINE h5aopen_f
 
@@ -3455,14 +3464,13 @@ CONTAINS
 !               idx_type    - Type of index
 !               order       - Index traversal order
 !               n           - Attribute’s position in index
-!               aapl_id     - Attribute access property list
-!               lapl_id     - Link access property list
 ! Outputs:
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
 ! Optional parameters:
-!				NONE			
+!               aapl_id     - Attribute access property list
+!               lapl_id     - Link access property list
 !
 ! Programmer:	M.S. Breitenfeld
 !		January, 2008	
@@ -3471,14 +3479,14 @@ CONTAINS
 !
 !----------------------------------------------------------------------
 
-  SUBROUTINE h5aopen_by_idx_f(loc_id, obj_name, idx_type, order, n, aapl_id, lapl_id, attr_id, hdferr) 
+  SUBROUTINE h5aopen_by_idx_f(loc_id, obj_name, idx_type, order, n, attr_id, hdferr, aapl_id, lapl_id) 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5aopen_by_idx_f
 !DEC$endif
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: loc_id    ! Object identifier
-    CHARACTER(LEN=*), INTENT(IN) :: obj_name ! Name of object to which attribute is attached
+    INTEGER(HID_T), INTENT(IN) :: loc_id      ! Object identifier
+    CHARACTER(LEN=*), INTENT(IN) :: obj_name  ! Name of object to which attribute is attached
     INTEGER, INTENT(IN) :: idx_type           ! Type of index; Possible values are:
                                               !    H5_INDEX_UNKNOWN_F   - Unknown index type
                                               !    H5_INDEX_NAME_F      - Index on names
@@ -3491,18 +3499,23 @@ CONTAINS
                                               !    H5_ITER_NATIVE_F   - No particular order, whatever is fastest
                  
     INTEGER(HSIZE_T), INTENT(IN) :: n      ! Attribute’s position in index
-    INTEGER(HID_T), INTENT(IN) :: aapl_id  ! Attribute access property list
-    INTEGER(HID_T), INTENT(IN) :: lapl_id  ! Link access property list
 
     INTEGER(HID_T), INTENT(OUT) :: attr_id  ! Attribute identifier
     INTEGER, INTENT(OUT) :: hdferr          ! Error code:
                                             ! 0 on success and -1 on failure
-    INTEGER(SIZE_T)  :: obj_namelen
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: aapl_id  ! Attribute access property list
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id  ! Link access property list
+
+    INTEGER(SIZE_T) :: obj_namelen
+    INTEGER(HID_T) :: aapl_id_default 
+    INTEGER(HID_T) :: lapl_id_default
+
 !
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
     INTERFACE
-       INTEGER FUNCTION h5aopen_by_idx_c(loc_id, obj_name, obj_namelen, idx_type, order, n, aapl_id, lapl_id, attr_id)
+       INTEGER FUNCTION h5aopen_by_idx_c(loc_id, obj_name, obj_namelen, idx_type, order, n, &
+            aapl_id_default, lapl_id_default, attr_id)
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
          !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AOPEN_IDX_C'::h5aopen_idx_c
@@ -3512,16 +3525,22 @@ CONTAINS
          INTEGER, INTENT(IN) :: idx_type
          INTEGER, INTENT(IN) :: order
          INTEGER(HSIZE_T), INTENT(IN) :: n
-         INTEGER(HID_T), INTENT(IN) :: aapl_id
-         INTEGER(HID_T), INTENT(IN) :: lapl_id
-         INTEGER(SIZE_T)  :: obj_namelen
+         INTEGER(HID_T) :: aapl_id_default
+         INTEGER(HID_T) :: lapl_id_default
+         INTEGER(SIZE_T) :: obj_namelen
          INTEGER(HID_T), INTENT(OUT) :: attr_id  ! Attribute identifier
        END FUNCTION h5aopen_by_idx_c
     END INTERFACE
 
     obj_namelen = LEN(obj_name)
 
-    hdferr = h5aopen_by_idx_c(loc_id, obj_name, obj_namelen, idx_type, order, n, aapl_id, lapl_id, attr_id)
+    aapl_id_default = H5P_DEFAULT_F
+    IF(PRESENT(aapl_id)) aapl_id_default = aapl_id
+    lapl_id_default = H5P_DEFAULT_F
+    IF(PRESENT(lapl_id)) lapl_id_default = lapl_id
+
+    hdferr = h5aopen_by_idx_c(loc_id, obj_name, obj_namelen, idx_type, order, n, &
+         aapl_id_default, lapl_id_default, attr_id)
 
   END SUBROUTINE h5aopen_by_idx_f
 
@@ -3705,7 +3724,6 @@ CONTAINS
 !	loc_id - Location of object to which attribute is attached
 !     obj_name - Name of object to which attribute is attached, relative to location
 !    attr_name - Attribute name
-!      lapl_id - Link access property list
 !
 ! Outputs:  NOTE: In C it is defined as a structure: H5A_info_t
 !    corder_valid   - indicates whether the creation order data is valid for this attribute
@@ -3716,7 +3734,7 @@ CONTAINS
 !				 Success:  0
 !				 Failure: -1   
 ! Optional parameters:
-!				NONE			
+!      lapl_id - Link access property list		
 !
 ! Programmer:	M. S. Breitenfeld
 !		January, 2008	
@@ -3724,8 +3742,8 @@ CONTAINS
 ! Modifications:  N/A
 !
 !----------------------------------------------------------------------
-  SUBROUTINE h5aget_info_by_name_f(loc_id, obj_name, attr_name, lapl_id, &
-       f_corder_valid, corder, cset, data_size, hdferr) 
+  SUBROUTINE h5aget_info_by_name_f(loc_id, obj_name, attr_name, &
+       f_corder_valid, corder, cset, data_size, hdferr, lapl_id) 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5aget_info_by_name_f
@@ -3735,7 +3753,6 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(IN) :: obj_name ! Name of object to which attribute is attached
     CHARACTER(LEN=*), INTENT(IN) :: attr_name ! Attribute name
 
-    INTEGER(HID_T), INTENT(IN) :: lapl_id  ! Link access property list
 
     LOGICAL, INTENT(OUT) :: f_corder_valid ! Indicates whether the creation order data is valid for this attribute 
     INTEGER, INTENT(OUT) :: corder ! Is a positive integer containing the creation order of the attribute
@@ -3746,11 +3763,14 @@ CONTAINS
     INTEGER :: corder_valid
     INTEGER(SIZE_T)  :: obj_namelen
     INTEGER(SIZE_T)  :: attr_namelen
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id  ! Link access property list
+    INTEGER(HID_T) :: lapl_id_default
+    
 
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
     INTERFACE
-       INTEGER FUNCTION h5aget_info_by_name_c(loc_id, obj_name, obj_namelen, attr_name, attr_namelen, lapl_id, &
+       INTEGER FUNCTION h5aget_info_by_name_c(loc_id, obj_name, obj_namelen, attr_name, attr_namelen, lapl_id_default, &
             corder_valid, corder, cset, data_size)
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
@@ -3761,7 +3781,7 @@ CONTAINS
          INTEGER(SIZE_T), INTENT(IN) :: obj_namelen
          CHARACTER(LEN=*), INTENT(IN) :: attr_name
          INTEGER(SIZE_T), INTENT(IN) :: attr_namelen
-         INTEGER(HID_T), INTENT(IN) :: lapl_id
+         INTEGER(HID_T) :: lapl_id_default
          INTEGER, INTENT(OUT) :: corder_valid 
          INTEGER, INTENT(OUT) :: corder
          INTEGER, INTENT(OUT) :: cset
@@ -3773,7 +3793,10 @@ CONTAINS
     obj_namelen = LEN(obj_name)
     attr_namelen = LEN(attr_name)
 
-    hdferr = h5aget_info_by_name_c(loc_id, obj_name, obj_namelen, attr_name, attr_namelen, lapl_id, &
+    lapl_id_default = H5P_DEFAULT_F
+    IF(PRESENT(lapl_id)) lapl_id_default = lapl_id 
+
+    hdferr = h5aget_info_by_name_c(loc_id, obj_name, obj_namelen, attr_name, attr_namelen, lapl_id_default, &
             corder_valid, corder, cset, data_size)
 
     f_corder_valid =.FALSE.
@@ -4027,8 +4050,6 @@ CONTAINS
 !     loc_id - Location from which to find object to which attribute is attached 
 !   obj_name - Object name either relative to loc_id, absolute from the file’s root group, or '.' (a dot)
 !  attr_name - Attribute name
-!    aapl_id - Attribute access property list (Currently unused; should be passed in as H5P_DEFAULT.)
-!    lapl_id - Link access property list identifier
 !
 ! Outputs:
 !       attr_id  - attribute identifier
@@ -4036,7 +4057,8 @@ CONTAINS
 !		         Success:  0
 !		         Failure: -1 
 ! Optional parameters:
-!				NONE			
+!    aapl_id - Attribute access property list (Currently unused; should be passed in as H5P_DEFAULT.)
+!    lapl_id - Link access property list identifier	
 !
 ! Programmer:	M. S. Breitenfeld
 !		February, 2008	
@@ -4044,7 +4066,7 @@ CONTAINS
 ! Modifications:  N/A
 !
 !----------------------------------------------------------------------
-  SUBROUTINE h5aopen_by_name_f(loc_id, obj_name, attr_name, aapl_id, lapl_id, attr_id, hdferr)
+  SUBROUTINE h5aopen_by_name_f(loc_id, obj_name, attr_name, attr_id, hdferr, aapl_id, lapl_id)
 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
@@ -4056,19 +4078,24 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(IN) :: obj_name ! Object name either relative to loc_id, 
                                              ! absolute from the file’s root group, or '.'
     CHARACTER(LEN=*), INTENT(IN) :: attr_name ! Attribute name
-    INTEGER(HID_T), INTENT(IN) :: aapl_id ! Attribute access property list 
-                                          ! (Currently unused; should be passed in as H5P_DEFAULT_F)
-    INTEGER(HID_T), INTENT(IN) :: lapl_id ! Link access property list identifier
-    INTEGER(HID_T), INTENT(OUT) :: attr_id       ! Attribute identifier
+    INTEGER(HID_T), INTENT(OUT) :: attr_id ! Attribute identifier
     INTEGER, INTENT(OUT) :: hdferr         ! Error code:
                                            ! 0 on success and -1 on failure
-    INTEGER(SIZE_T)  :: obj_namelen
-    INTEGER(SIZE_T)  :: attr_namelen
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: aapl_id ! Attribute access property list 
+                                                    ! (Currently unused; should be passed in as H5P_DEFAULT_F)
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id ! Link access property list identifier
+    
+    INTEGER(HID_T) :: aapl_id_default
+    INTEGER(HID_T) :: lapl_id_default
+
+    INTEGER(SIZE_T) :: obj_namelen
+    INTEGER(SIZE_T) :: attr_namelen
 !
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
     INTERFACE
-       INTEGER FUNCTION h5aopen_by_name_c(loc_id, obj_name, obj_namelen, attr_name, attr_namelen, aapl_id, lapl_id, attr_id)
+       INTEGER FUNCTION h5aopen_by_name_c(loc_id, obj_name, obj_namelen, attr_name, attr_namelen, &
+            aapl_id_default, lapl_id_default, attr_id)
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
          !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AOPEN_by_name_C'::h5aopen_by_name_c
@@ -4078,8 +4105,8 @@ CONTAINS
          INTEGER(SIZE_T), INTENT(IN) :: obj_namelen
          CHARACTER(LEN=*), INTENT(IN) :: attr_name
          INTEGER(SIZE_T), INTENT(IN) :: attr_namelen
-         INTEGER(HID_T), INTENT(IN) :: aapl_id
-         INTEGER(HID_T), INTENT(IN) :: lapl_id
+         INTEGER(HID_T) :: aapl_id_default
+         INTEGER(HID_T) :: lapl_id_default
          INTEGER(HID_T), INTENT(OUT) :: attr_id
        END FUNCTION h5aopen_by_name_c
     END INTERFACE
@@ -4087,7 +4114,13 @@ CONTAINS
     attr_namelen = LEN(attr_name)
     obj_namelen = LEN(obj_name)
 
-    hdferr = h5aopen_by_name_c(loc_id, obj_name, obj_namelen, attr_name, attr_namelen, aapl_id, lapl_id, attr_id)
+    aapl_id_default = H5P_DEFAULT_F
+    lapl_id_default = H5P_DEFAULT_F
+    IF(PRESENT(aapl_id)) aapl_id_default = aapl_id
+    IF(PRESENT(lapl_id)) lapl_id_default = lapl_id
+
+    hdferr = h5aopen_by_name_c(loc_id, obj_name, obj_namelen, attr_name, attr_namelen, &
+         aapl_id_default, lapl_id_default, attr_id)
 
   END SUBROUTINE h5aopen_by_name_f
 

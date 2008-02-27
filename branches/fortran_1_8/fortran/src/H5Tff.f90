@@ -3372,7 +3372,7 @@ CONTAINS
 !	hdferr: - error code		
 !			Success:  0
 !          		Failure: -1   
-! Optional parameters:
+! Optional parameters: None
 !
 ! Programmer:	M.S. Breitenfeld
 !		February 25, 2008

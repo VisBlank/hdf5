@@ -255,13 +255,13 @@ SUBROUTINE test_attr_corder_create_compact(fcpl,fapl, total_error)
 
 ! FIX: need to check optional parameters i.e. h5dcreate1/2_f
 
-  CALL h5dcreate_f(fid, DSET1_NAME, H5T_NATIVE_CHARACTER, sid, dset1, error, dcpl )
+  CALL h5dcreate_f(fid, DSET1_NAME, H5T_NATIVE_CHARACTER, sid, dset1, error, creation_prp=dcpl )
   CALL check("h5dcreate_f",error,total_error)
 
   CALL h5dcreate_f(fid, DSET2_NAME, H5T_NATIVE_CHARACTER, sid, dset2, error, dcpl )
   CALL check("h5dcreate_f",error,total_error)
 
-  CALL h5dcreate_f(fid, DSET3_NAME, H5T_NATIVE_CHARACTER, sid, dset3, error, dcpl )
+  CALL h5dcreate_f(fid, DSET3_NAME, H5T_NATIVE_CHARACTER, sid, dset3, error, creation_prp=dcpl )
   CALL check("h5dcreate_f",error,total_error)
 
 !!$  dset1 = H5Dcreate2(fid, DSET1_NAME, H5T_NATIVE_UCHAR, sid, H5P_DEFAULT, dcpl, H5P_DEFAULT)
@@ -290,7 +290,7 @@ SUBROUTINE test_attr_corder_create_compact(fcpl,fapl, total_error)
        
            ! attr = H5Acreate2(my_dataset, attrname, H5T_NATIVE_UINT, sid, H5P_DEFAULT, H5P_DEFAULT);
            ! check with the optional information create2 specs.
-       CALL h5acreate_f(my_dataset, attrname, H5T_NATIVE_INTEGER, sid, attr, error, H5P_DEFAULT_F, H5P_DEFAULT_F)
+       CALL h5acreate_f(my_dataset, attrname, H5T_NATIVE_INTEGER, sid, attr, error)
        CALL check("h5acreate_f",error,total_error)
 
        data_dims(1) = 1 
@@ -366,8 +366,21 @@ SUBROUTINE test_attr_corder_create_compact(fcpl,fapl, total_error)
         attrname = 'attr '//chr2
         ! /* Retrieve information for attribute */
 
-        CALL H5Aget_info_by_name_f(my_dataset, ".", attrname, H5P_DEFAULT_F, &
-             f_corder_valid, corder, cset, data_size, error )
+        CALL H5Aget_info_by_name_f(my_dataset, ".", attrname, &
+             f_corder_valid, corder, cset, data_size, error, lapl_id = H5P_DEFAULT_F ) !with optional
+
+        CALL check("H5Aget_info_by_name_f", error, total_error)
+        
+        ! /* Verify creation order of attribute */
+
+        CALL verifyLogical("H5Aget_info_by_name_f", f_corder_valid, .TRUE., total_error)
+        CALL verify("H5Aget_info_by_name_f", corder, u, total_error)
+
+
+        ! /* Retrieve information for attribute */
+
+        CALL H5Aget_info_by_name_f(my_dataset, ".", attrname, &
+             f_corder_valid, corder, cset, data_size, error) ! without optional
 
         CALL check("H5Aget_info_by_name_f", error, total_error)
         
@@ -452,8 +465,7 @@ SUBROUTINE test_attr_null_space(fcpl, fapl, total_error)
   CALL h5screate_f(H5S_NULL_F, null_sid, error)
   CALL check("h5screate_f",error,total_error)
   ! /* Create a dataset */
-  CALL h5dcreate_f(fid, DSET1_NAME, H5T_NATIVE_CHARACTER, sid, &
-       dataset, error)
+  CALL h5dcreate_f(fid, DSET1_NAME, H5T_NATIVE_CHARACTER, sid, dataset, error)
   CALL check("h5dcreate_f",error,total_error)
 !!$  dataset = H5Dcreate2(fid, DSET1_NAME, H5T_NATIVE_UCHAR, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)
 !!$  CALL CHECK(dataset, FAIL, "H5Dcreate2")
@@ -669,13 +681,13 @@ SUBROUTINE test_attr_create_by_name(new_format,fcpl,fapl, total_error)
 
      ! /* Create datasets */
 
-     CALL h5dcreate_f(fid, DSET1_NAME, H5T_NATIVE_CHARACTER, sid, dset1, error, dcpl )
+     CALL h5dcreate_f(fid, DSET1_NAME, H5T_NATIVE_CHARACTER, sid, dset1, error, creation_prp=dcpl )
      CALL check("h5dcreate_f2",error,total_error)
      
-     CALL h5dcreate_f(fid, DSET2_NAME, H5T_NATIVE_CHARACTER, sid, dset2, error, dcpl )
+     CALL h5dcreate_f(fid, DSET2_NAME, H5T_NATIVE_CHARACTER, sid, dset2, error, creation_prp=dcpl )
      CALL check("h5dcreate_f3",error,total_error)
      
-     CALL h5dcreate_f(fid, DSET3_NAME, H5T_NATIVE_CHARACTER, sid, dset3, error, dcpl )
+     CALL h5dcreate_f(fid, DSET3_NAME, H5T_NATIVE_CHARACTER, sid, dset3, error, creation_prp=dcpl )
      CALL check("h5dcreate_f4",error,total_error)
 
 
@@ -708,8 +720,8 @@ SUBROUTINE test_attr_create_by_name(new_format,fcpl,fapl, total_error)
            ! /* Create attribute */
            WRITE(chr2,'(I2.2)') u
            attrname = 'attr '//chr2
-           CALL H5Acreate_by_name_f(fid, dsetname, attrname, H5T_NATIVE_INTEGER, sid, H5P_DEFAULT_F, H5P_DEFAULT_F, H5P_DEFAULT_F, &
-                attr, error)
+           CALL H5Acreate_by_name_f(fid, dsetname, attrname, H5T_NATIVE_INTEGER, sid, &
+                attr, error, lapl_id=H5P_DEFAULT_F, acpl_id=H5P_DEFAULT_F, aapl_id=H5P_DEFAULT_F) 
            CALL check("H5Acreate_by_name_f",error,total_error)
            
            ! /* Write data into the attribute */
@@ -766,8 +778,8 @@ SUBROUTINE test_attr_create_by_name(new_format,fcpl,fapl, total_error)
            WRITE(chr2,'(I2.2)') u
            attrname = 'attr '//chr2
 
-           CALL H5Acreate_by_name_f(fid, dsetname, attrname, H5T_NATIVE_INTEGER, sid, H5P_DEFAULT_F, H5P_DEFAULT_F, H5P_DEFAULT_F, &
-                attr, error)
+           CALL H5Acreate_by_name_f(fid, dsetname, attrname, H5T_NATIVE_INTEGER, sid, &
+                attr, error, lapl_id=H5P_DEFAULT_F)
            CALL check("H5Acreate_by_name",error,total_error)
 
            ! /* Write data into the attribute */
@@ -980,13 +992,13 @@ SUBROUTINE test_attr_info_by_idx(new_format, fcpl, fapl, total_error)
         ! /* Check for query on non-existant attribute */
 
         n = 0
-        CALL h5aget_info_by_idx_f(my_dataset, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, 0_HSIZE_T, H5P_DEFAULT_F, &
-             f_corder_valid, corder, cset, data_size, error)
+        CALL h5aget_info_by_idx_f(my_dataset, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, 0_HSIZE_T, &
+             f_corder_valid, corder, cset, data_size, error, lapl_id=H5P_DEFAULT_F)
         CALL VERIFY("h5aget_info_by_idx_f",error,-1,total_error)
         
         size = 0
         CALL h5aget_name_by_idx_f(my_dataset, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, &
-             0_HSIZE_T, tmpname, size, H5P_DEFAULT_F, error)
+             0_HSIZE_T, tmpname, size,  error, lapl_id=H5P_DEFAULT_F)
         CALL VERIFY("h5aget_name_by_idx_f",error,-1,total_error)
 
 
@@ -1157,26 +1169,26 @@ SUBROUTINE attr_info_by_idx_check(obj_id, attrname, n, use_index, total_error )
 !!$    old_nerrs = GetTestNumErrs()
 
   ! /* Verify the information for first attribute, in increasing creation order */
-  CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, INT(0,HSIZE_T), H5P_DEFAULT_F, &
+  CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, INT(0,HSIZE_T), &
        f_corder_valid, corder, cset, data_size, error)
   
-  CALL check("h5aget_info_by_idx_f1",error,total_error)
-  CALL verify("h5aget_info_by_idx_f2",corder,0,total_error)
+  CALL check("h5aget_info_by_idx_f",error,total_error)
+  CALL verify("h5aget_info_by_idx_f",corder,0,total_error)
 
   ! /* Verify the information for new attribute, in increasing creation order */
 
-  CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, n, H5P_DEFAULT_F, &
+  CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, n, &
        f_corder_valid, corder, cset, data_size, error)
 
-  CALL check("h5aget_info_by_idx_f3",error,total_error)
-  CALL VERIFY("h5aget_info_by_idx_f4",corder,INT(n),total_error)
+  CALL check("h5aget_info_by_idx_f",error,total_error)
+  CALL VERIFY("h5aget_info_by_idx_f",corder,INT(n),total_error)
 
   ! /* Verify the name for new link, in increasing creation order */
 
 !!$    CALL HDmemset(tmpname, 0, (size_t))
 
   CALL h5aget_name_by_idx_f(obj_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, &
-       n, tmpname, NAME_BUF_SIZE, H5P_DEFAULT_F, error)
+       n, tmpname, NAME_BUF_SIZE, error)
   CALL check("h5aget_name_by_idx_f",error,total_error)
 
   IF(TRIM(attrname).NE.TRIM(tmpname))THEN
@@ -1191,15 +1203,15 @@ SUBROUTINE attr_info_by_idx_check(obj_id, attrname, n, use_index, total_error )
   IF (use_index) THEN
      !  CALL HDmemset(ainfo, 0, SIZEOF(ainfo)
      ! /* Verify the information for first attribute, in native creation order */
-     CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_NATIVE_F, INT(0,HSIZE_T), H5P_DEFAULT_F, &
+     CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_NATIVE_F, INT(0,HSIZE_T), &
           f_corder_valid, corder, cset, data_size, error)
-     CALL check("h5aget_info_by_idx_f5",error,total_error)
-     CALL VERIFY("h5aget_info_by_idx_f6",corder,0,total_error)
+     CALL check("h5aget_info_by_idx_f",error,total_error)
+     CALL VERIFY("h5aget_info_by_idx_f",corder,0,total_error)
 
      ! CALL HDmemset(ainfo, 0, SIZEOF(ainfo)
 
      ! /* Verify the information for new attribute, in native creation order */
-     CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_NATIVE_F, n, H5P_DEFAULT_F, &
+     CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_NATIVE_F, n, &
           f_corder_valid, corder, cset, data_size, error)
      CALL check("h5aget_info_by_idx_f",error,total_error)
      CALL VERIFY("h5aget_info_by_idx_f",corder,INT(n),total_error)
@@ -1207,7 +1219,7 @@ SUBROUTINE attr_info_by_idx_check(obj_id, attrname, n, use_index, total_error )
    ! /* Verify the name for new link, in increasing native order */
    ! CALL HDmemset(tmpname, 0, (size_t))
      CALL h5aget_name_by_idx_f(obj_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_NATIVE_F, &
-          n, tmpname, NAME_BUF_SIZE, H5P_DEFAULT_F, error)
+          n, tmpname, NAME_BUF_SIZE, error)
      CALL check("h5aget_name_by_idx_f",error,total_error)
      IF(TRIM(attrname).NE.TRIM(tmpname))THEN
         WRITE(*,*) "ERROR: attribute name size wrong!"
@@ -1218,13 +1230,13 @@ SUBROUTINE attr_info_by_idx_check(obj_id, attrname, n, use_index, total_error )
 
 
   ! CALL HDmemset(ainfo, 0, SIZEOF(ainfo)
-  CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_DEC_F, n, H5P_DEFAULT_F, &
+  CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_DEC_F, n, &
        f_corder_valid, corder, cset, data_size, error)
-  CALL check("h5aget_info_by_idx_f9",error,total_error)
-  CALL VERIFY("h5aget_info_by_idx_f10",corder,0,total_error)
+  CALL check("h5aget_info_by_idx_f",error,total_error)
+  CALL VERIFY("h5aget_info_by_idx_f",corder,0,total_error)
   
   ! CALL HDmemset(ainfo, 0, SIZEOF(ainfo)
-  CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_DEC_F, 0_HSIZE_T, H5P_DEFAULT_F, &
+  CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_DEC_F, 0_HSIZE_T, &
        f_corder_valid, corder, cset, data_size, error)
   CALL check("h5aget_info_by_idx_f",error,total_error)
   CALL VERIFY("h5aget_info_by_idx_f",corder,INT(n),total_error)
@@ -1233,12 +1245,12 @@ SUBROUTINE attr_info_by_idx_check(obj_id, attrname, n, use_index, total_error )
 !!$    CALL CHECK(ret, FAIL, "H5Aget_name_by_idx")
 !!$    IF (HDstrcmp(attrname, tmpname)) CALL TestErrPrintf("Line %d: attribute name size wrong!\n"C, __LINE__)
 !!$    CALL HDmemset(ainfo, 0, SIZEOF(ainfo)
-  CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_NAME_F, H5_ITER_INC_F, 0_HSIZE_T, H5P_DEFAULT_F, &
+  CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_NAME_F, H5_ITER_INC_F, 0_HSIZE_T, &
        f_corder_valid, corder, cset, data_size, error)
   CALL check("h5aget_info_by_idx_f",error,total_error)
   CALL VERIFY("h5aget_info_by_idx_f",corder,0,total_error)
 !!$    CALL HDmemset(ainfo, 0, SIZEOF(ainfo)
-  CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_NAME_F, H5_ITER_INC_F, n, H5P_DEFAULT_F, &
+  CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_NAME_F, H5_ITER_INC_F, n, &
        f_corder_valid, corder, cset, data_size, error)
   CALL check("h5aget_info_by_idx_f",error,total_error)
   CALL VERIFY("h5aget_info_by_idx_f",corder,INT(n),total_error)
@@ -1247,12 +1259,12 @@ SUBROUTINE attr_info_by_idx_check(obj_id, attrname, n, use_index, total_error )
 !!$    CALL CHECK(ret, FAIL, "H5Aget_name_by_idx")
 !!$    IF (HDstrcmp(attrname, tmpname)) CALL TestErrPrintf("Line %d: attribute name size wrong!\n"C, __LINE__)
 !!$    CALL HDmemset(ainfo, 0, SIZEOF(ainfo)
-  CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_NAME_F, H5_ITER_DEC_F, n, H5P_DEFAULT_F, &
+  CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_NAME_F, H5_ITER_DEC_F, n, &
        f_corder_valid, corder, cset, data_size, error)
   CALL check("h5aget_info_by_idx_f",error,total_error)
   CALL VERIFY("h5aget_info_by_idx_f",corder,0,total_error)
 !!$    CALL HDmemset(ainfo, 0, SIZEOF(ainfo)
-  CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_NAME_F, H5_ITER_DEC_F, 0_HSIZE_T, H5P_DEFAULT_F, &
+  CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_NAME_F, H5_ITER_DEC_F, 0_HSIZE_T, &
        f_corder_valid, corder, cset, data_size, error)
   CALL check("h5aget_info_by_idx_f",error,total_error)
   CALL VERIFY("h5aget_info_by_idx_f",corder,INT(n),total_error)
@@ -1415,9 +1427,9 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
      CALL check("h5Pcreate_f",error,total_error)
 
      ! /* Create datasets */
-     CALL h5dcreate_f(fid, DSET1_NAME, H5T_NATIVE_CHARACTER, sid, dataset, error, dcpl )
+     CALL h5dcreate_f(fid, DSET1_NAME, H5T_NATIVE_CHARACTER, sid, dataset, error, creation_prp=dcpl )
      CALL check("h5dcreate_f",error,total_error)
-     CALL h5dcreate_f(fid, DSET2_NAME, H5T_NATIVE_CHARACTER, sid, dataset2, error, dcpl )
+     CALL h5dcreate_f(fid, DSET2_NAME, H5T_NATIVE_CHARACTER, sid, dataset2, error, creation_prp=dcpl )
      CALL check("h5dcreate_f",error,total_error)
 
      ! /* Check on dataset's message storage status */
@@ -1582,14 +1594,14 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
 
         ! /* Change second dataset's attribute's name */
 
-        CALL H5Arename_by_name_f(fid, DSET2_NAME, attrname, attrname2, H5P_DEFAULT_F, error)
+        CALL H5Arename_by_name_f(fid, DSET2_NAME, attrname, attrname2, error, lapl_id=H5P_DEFAULT_F)
         CALL check("H5Arename_by_name_f",error,total_error)
 
         ! /* Check refcount on attributes now */
 
         ! /* Check refcount on renamed attribute */
 
-        CALL H5Aopen_f(dataset2, attrname2, H5P_DEFAULT_F, attr, error)
+        CALL H5Aopen_f(dataset2, attrname2, attr, error, aapl_id=H5P_DEFAULT_F)
         CALL check("H5Aopen_f",error,total_error)
 
 !!$
@@ -1613,7 +1625,7 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
         CALL check("h5aclose_f",error,total_error)
 
         ! /* Check refcount on original attribute */
-        CALL H5Aopen_f(dataset, attrname, H5P_DEFAULT_F, attr, error)
+        CALL H5Aopen_f(dataset, attrname, attr, error)
         CALL check("H5Aopen",error,total_error)
 
 !!$            if(u % 2) {
@@ -1639,13 +1651,13 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
 
         ! /* Change second dataset's attribute's name back to original */
         
-        CALL H5Arename_by_name_f(fid, DSET2_NAME, attrname2, attrname, H5P_DEFAULT_F, error)
+        CALL H5Arename_by_name_f(fid, DSET2_NAME, attrname2, attrname, error)
         CALL check("H5Arename_by_name_f",error,total_error)
 
         ! /* Check refcount on attributes now */
 
         ! /* Check refcount on renamed attribute */
-        CALL H5Aopen_f(dataset2, attrname, H5P_DEFAULT_F, attr, error)
+        CALL H5Aopen_f(dataset2, attrname, attr, error)
         CALL check("H5Aopen",error,total_error)
 !!$
 !!$            if(u % 2) {
@@ -1671,7 +1683,7 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
         ! /* Check refcount on original attribute */
 
         ! /* Check refcount on renamed attribute */
-        CALL H5Aopen_f(dataset, attrname, H5P_DEFAULT_F, attr, error)
+        CALL H5Aopen_f(dataset, attrname, attr, error)
         CALL check("H5Aopen",error,total_error)
 
 !!$            if(u % 2) {
@@ -1722,14 +1734,14 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
 !!$        } /* end if */
 
      ! /* Unlink datasets with attributes */
-     CALL H5Ldelete_f(fid, DSET1_NAME, H5P_DEFAULT_F, error)
+     CALL H5Ldelete_f(fid, DSET1_NAME, error, H5P_DEFAULT_F)
      CALL check("HLdelete",error,total_error)
-     CALL H5Ldelete_f(fid, DSET2_NAME, H5P_DEFAULT_F, error)
+     CALL H5Ldelete_f(fid, DSET2_NAME, error)
      CALL check("HLdelete",error,total_error)
 
      !/* Unlink committed datatype */
      IF(test_shared == 2)THEN
-        CALL H5Ldelete_f(fid, TYPE1_NAME, H5P_DEFAULT_F, error)
+        CALL H5Ldelete_f(fid, TYPE1_NAME, error)
         CALL check("HLdelete_f",error,total_error)
      ENDIF
 
@@ -1958,7 +1970,7 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
 !!$                VERIFY(is_dense, FALSE, "H5O_is_attr_dense_test");
               
               ! /* Check for deleting non-existant attribute */
-              CALL H5Adelete_by_idx_f(my_dataset, '.', idx_type, order, 0_HSIZE_T, H5P_DEFAULT_F,error)
+              CALL H5Adelete_by_idx_f(my_dataset, '.', idx_type, order, 0_HSIZE_T,error, lapl_id=H5P_DEFAULT_F)
               CALL VERIFY("H5Adelete_by_idx_f",error,-1,total_error)
               
               !    /* Create attributes, up to limit of compact form */
@@ -1998,7 +2010,7 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
 !!$                VERIFY(is_dense, FALSE, "H5O_is_attr_dense_test");
 
               !/* Check for out of bound deletions */
-              CALL H5Adelete_by_idx_f(my_dataset, ".", idx_type, order, INT(u,HSIZE_T), H5P_DEFAULT_F, error)
+              CALL H5Adelete_by_idx_f(my_dataset, ".", idx_type, order, INT(u,HSIZE_T), error, lapl_id=H5P_DEFAULT_F)
               CALL VERIFY("H5Adelete_by_idx_f",error,-1,total_error)
                
            ENDDO
@@ -2023,14 +2035,14 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
                  ! /* Delete first attribute in appropriate order */
                  
                  
-                 CALL H5Adelete_by_idx_f(my_dataset, ".", idx_type, order, 0_HSIZE_T, H5P_DEFAULT_F, error)
+                 CALL H5Adelete_by_idx_f(my_dataset, ".", idx_type, order, 0_HSIZE_T, error)
                  CALL check("H5Adelete_by_idx_f",error,total_error)
                  
 
                  ! /* Verify the attribute information for first attribute in appropriate order */
                  ! HDmemset(&ainfo, 0, sizeof(ainfo));
 
-                 CALL h5aget_info_by_idx_f(my_dataset, ".", idx_type, order, 0_HSIZE_T, H5P_DEFAULT_F, &
+                 CALL h5aget_info_by_idx_f(my_dataset, ".", idx_type, order, 0_HSIZE_T, &
                       f_corder_valid, corder, cset, data_size, error)
                  
                  IF(new_format)THEN
@@ -2046,7 +2058,7 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
 
                  size = 7 ! *CHECK* IF NOT THE SAME SIZE
                  CALL h5aget_name_by_idx_f(my_dataset, ".", idx_type, order,INT(0,hsize_t), &
-                      tmpname, size, H5P_DEFAULT_F, error)
+                      tmpname, size, error, lapl_id=H5P_DEFAULT_F)
                  CALL check('h5aget_name_by_idx_f',error,total_error)
                  IF(order .EQ. H5_ITER_INC_F)THEN
                     WRITE(chr2,'(I2.2)') u + 1
@@ -2061,7 +2073,7 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
 
               ! /* Delete last attribute */
 
-              CALL H5Adelete_by_idx_f(my_dataset, ".", idx_type, order, 0_HSIZE_T, H5P_DEFAULT_F, error)
+              CALL H5Adelete_by_idx_f(my_dataset, ".", idx_type, order, 0_HSIZE_T, error)
               CALL check("H5Adelete_by_idx_f",error,total_error)
 
                 
@@ -2135,7 +2147,7 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
               ENDIF
 
               ! /* Check for out of bound deletion */
-              CALL H5Adelete_by_idx_f(my_dataset, ".", idx_type, order, INT(u,HSIZE_T), H5P_DEFAULT_F, error)
+              CALL H5Adelete_by_idx_f(my_dataset, ".", idx_type, order, INT(u,HSIZE_T), error)
               CALL VERIFY("H5Adelete_by_idx_f",error,-1,total_error)
            ENDDO
 
@@ -2159,7 +2171,7 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
 
                  ! /* Delete first attribute in appropriate order */
 
-                 CALL H5Adelete_by_idx_f(my_dataset, ".", idx_type, order, INT(0,HSIZE_T), H5P_DEFAULT_F, error)
+                 CALL H5Adelete_by_idx_f(my_dataset, ".", idx_type, order, INT(0,HSIZE_T), error)
                  CALL check("H5Adelete_by_idx_f",error,total_error)
 
 
@@ -2167,7 +2179,7 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
 !!$                        HDmemset(&ainfo, 0, sizeof(ainfo));
 
                  
-                 CALL h5aget_info_by_idx_f(my_dataset, ".", idx_type, order, INT(0,HSIZE_T), H5P_DEFAULT_F, &
+                 CALL h5aget_info_by_idx_f(my_dataset, ".", idx_type, order, INT(0,HSIZE_T), &
                       f_corder_valid, corder, cset, data_size, error)
 
                                   
@@ -2185,7 +2197,7 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
 
                  size = 7 ! *CHECK* if not the correct size 
                  CALL h5aget_name_by_idx_f(my_dataset, ".", idx_type, order,INT(0,hsize_t), &
-                      tmpname, size, H5P_DEFAULT_F, error)
+                      tmpname, size, error)
 
                  IF(order .EQ. H5_ITER_INC_F)THEN
                     WRITE(chr2,'(I2.2)') u + 1
@@ -2201,15 +2213,15 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
               ENDDO
               ! /* Delete last attribute */
 
-              CALL H5Adelete_by_idx_f(my_dataset, ".", idx_type, order, INT(0,HSIZE_T), H5P_DEFAULT_F, error)
+              CALL H5Adelete_by_idx_f(my_dataset, ".", idx_type, order, INT(0,HSIZE_T), error, lapl_id=H5P_DEFAULT_F)
               CALL check("H5Adelete_by_idx_f",error,total_error)
               ! /* Verify state of attribute storage (empty) */
 !!$                    is_empty = H5O_is_attr_empty_test(my_dataset);
 !!$                    VERIFY(is_empty, TRUE, "H5O_is_attr_empty_test");
 
               !/* Check for deletion on empty attribute storage again */
-              CALL H5Adelete_by_idx_f(my_dataset, ".", idx_type, order, INT(0,HSIZE_T), H5P_DEFAULT_F, error)
-              CALL VERIFY("H5Adelete_by_idx_fa",error,-1,total_error)
+              CALL H5Adelete_by_idx_f(my_dataset, ".", idx_type, order, INT(0,HSIZE_T), error)
+              CALL VERIFY("H5Adelete_by_idx_f",error,-1,total_error)
            ENDDO
 
            
@@ -2546,10 +2558,10 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
 
      ! /* Create datasets */
 
-     CALL h5dcreate_f(fid, DSET1_NAME, H5T_NATIVE_CHARACTER, sid, dataset, error, dcpl )
+     CALL h5dcreate_f(fid, DSET1_NAME, H5T_NATIVE_CHARACTER, sid, dataset, error, creation_prp=dcpl )
      CALL check("h5dcreate_f",error,total_error)
            
-     CALL h5dcreate_f(fid, DSET2_NAME, H5T_NATIVE_CHARACTER, sid, dataset2, error, dcpl )
+     CALL h5dcreate_f(fid, DSET2_NAME, H5T_NATIVE_CHARACTER, sid, dataset2, error, creation_prp=dcpl )
      CALL check("h5dcreate_f",error,total_error)
 
      ! /* Check on dataset's message storage status */
@@ -2607,7 +2619,7 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
         ELSE
            !  Create "big" attribute on first dataset */
 
-           CALL h5acreate_f(dataset, attrname, attr_tid, big_sid, attr, error, H5P_DEFAULT_F, H5P_DEFAULT_F)
+           CALL h5acreate_f(dataset, attrname, attr_tid, big_sid, attr, error)
            CALL check("h5acreate_f",error,total_error)
 !!$
            !  Check that attribute is shared */
@@ -2649,7 +2661,7 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
 
            !  /* Create "small" attribute on second dataset */
 
-           CALL h5acreate_f(dataset2, attrname, attr_tid, sid, attr, error, H5P_DEFAULT_F, H5P_DEFAULT_F)
+           CALL h5acreate_f(dataset2, attrname, attr_tid, sid, attr, error)
            CALL check("h5acreate_f",error,total_error)
 
            !  /* Check that attribute is not shared */
@@ -2665,7 +2677,7 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
 
            ! /* Create "big" attribute on second dataset */
            
-           CALL h5acreate_f(dataset2, attrname, attr_tid, big_sid, attr, error, H5P_DEFAULT_F, H5P_DEFAULT_F)
+           CALL h5acreate_f(dataset2, attrname, attr_tid, big_sid, attr, error, acpl_id=H5P_DEFAULT_F, aapl_id=H5P_DEFAULT_F)
            CALL check("h5acreate_f",error,total_error)
 
 ! /* Check that attribute is shared */
@@ -2713,14 +2725,14 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
         attrname = 'attr '//chr2
 
         ! /* Delete second dataset's attribute */
-        CALL H5Adelete_by_name_f(fid, DSET2_NAME, attrname, H5P_DEFAULT_F,error)
+        CALL H5Adelete_by_name_f(fid, DSET2_NAME, attrname,error,lapl_id=H5P_DEFAULT_F)
         CALL check("H5Adelete_by_name", error, total_error)
 
 !!$            /* Check refcount on attributes now */
 !!$
 !!$            /* Check refcount on first dataset's attribute */
 
-        CALL h5aopen_f(dataset, attrname, H5P_DEFAULT_F, attr, error)
+        CALL h5aopen_f(dataset, attrname, attr, error, aapl_id=H5P_DEFAULT_F)
         CALL check("h5aopen_f",error,total_error)
 
 !!$
@@ -2774,15 +2786,15 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
 !!$
      ! /* Unlink datasets WITH attributes */
 
-     CALL h5ldelete_f(fid, DSET1_NAME, H5P_DEFAULT_F, error)
+     CALL h5ldelete_f(fid, DSET1_NAME, error, H5P_DEFAULT_F)
      CALL check("H5Ldelete_f", error, total_error)
-     CALL h5ldelete_f(fid, DSET2_NAME, H5P_DEFAULT_F, error)
+     CALL h5ldelete_f(fid, DSET2_NAME, error)
      CALL check("H5Ldelete_f", error, total_error)
 
      ! /* Unlink committed datatype */
 
      IF( test_shared == 2) THEN
-        CALL h5ldelete_f(fid, TYPE1_NAME, H5P_DEFAULT_F, error)
+        CALL h5ldelete_f(fid, TYPE1_NAME, error)
         CALL check("H5Ldelete_f", error, total_error)
      ENDIF
 
@@ -2900,7 +2912,8 @@ SUBROUTINE test_attr_dense_open( fcpl, fapl, total_error)
 
   ! /* Create a dataset */
      
-  CALL h5dcreate_f(fid, DSET1_NAME, H5T_NATIVE_CHARACTER, sid, dataset, error , H5P_DEFAULT_F, dcpl, H5P_DEFAULT_F)
+  CALL h5dcreate_f(fid, DSET1_NAME, H5T_NATIVE_CHARACTER, sid, dataset, error, &
+       lcpl_id=H5P_DEFAULT_F, creation_prp=dcpl, dapl_id=H5P_DEFAULT_F)
   CALL check("h5dcreate_f",error,total_error)
 
   ! /* Retrieve limits for compact/dense attribute storage */
@@ -2922,7 +2935,7 @@ SUBROUTINE test_attr_dense_open( fcpl, fapl, total_error)
      WRITE(chr2,'(I2.2)') u
      attrname = 'attr '//chr2
 
-     CALL h5acreate_f(dataset, attrname, H5T_NATIVE_INTEGER, sid, attr, error, H5P_DEFAULT_F, H5P_DEFAULT_F)
+     CALL h5acreate_f(dataset, attrname, H5T_NATIVE_INTEGER, sid, attr, error, aapl_id=H5P_DEFAULT_F)
      CALL check("h5acreate_f",error,total_error)
 
      ! /* Write data into the attribute */
@@ -2950,7 +2963,7 @@ SUBROUTINE test_attr_dense_open( fcpl, fapl, total_error)
   WRITE(chr2,'(I2.2)') u
   attrname = 'attr '//chr2
 
-  CALL h5acreate_f(dataset, attrname, H5T_NATIVE_INTEGER, sid, attr, error, H5P_DEFAULT_F, H5P_DEFAULT_F)
+  CALL h5acreate_f(dataset, attrname, H5T_NATIVE_INTEGER, sid, attr, error, aapl_id=H5P_DEFAULT_F)
   CALL check("h5acreate_f",error,total_error)
 
   ! /* Check on dataset's attribute storage status */
@@ -2981,7 +2994,7 @@ SUBROUTINE test_attr_dense_open( fcpl, fapl, total_error)
   CALL check("h5dclose_f",error,total_error)
 
   ! /* Unlink dataset with attributes */
-  CALL h5ldelete_f(fid, DSET1_NAME, H5P_DEFAULT_F, error)
+  CALL h5ldelete_f(fid, DSET1_NAME, error, H5P_DEFAULT_F)
   CALL check("H5Ldelete_f", error, total_error)
 
   ! /* Close file */
@@ -3037,7 +3050,7 @@ SUBROUTINE test_attr_dense_verify(loc_id, max_attr, total_error)
      WRITE(chr2,'(I2.2)') u
      attrname = 'attr '//chr2
 
-     CALL h5aopen_f(loc_id, attrname, H5P_DEFAULT_F, attr, error)
+     CALL h5aopen_f(loc_id, attrname, attr, error)
      CALL check("h5aopen_f",error,total_error)
 
      ! /* Read data from the attribute */
@@ -3064,7 +3077,7 @@ SUBROUTINE test_attr_dense_verify(loc_id, max_attr, total_error)
      ! /* Open attribute */
 
      CALL H5Aopen_by_idx_f(loc_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, INT(u,HSIZE_T), &
-          H5P_DEFAULT_F, H5P_DEFAULT_F, attr, error)
+          attr, error, aapl_id=H5P_DEFAULT_F)
 
      ! /* Verify Name */
      
@@ -3157,7 +3170,8 @@ SUBROUTINE test_attr_corder_create_basic( fcpl, fapl, total_error )
   CALL check("h5screate_f",error,total_error)
 
   ! /* Create a dataset */
-  CALL h5dcreate_f(fid, DSET1_NAME, H5T_NATIVE_CHARACTER, sid, dataset, error , H5P_DEFAULT_F, dcpl, H5P_DEFAULT_F)
+  CALL h5dcreate_f(fid, DSET1_NAME, H5T_NATIVE_CHARACTER, sid, dataset, error, &
+       lcpl_id=H5P_DEFAULT_F, dapl_id=H5P_DEFAULT_F, creation_prp=dcpl)
   CALL check("h5dcreate_f",error,total_error)
 
   ! /* Close dataspace */
@@ -3313,7 +3327,7 @@ SUBROUTINE test_attr_basic_write(fapl, total_error)
 
   ! /* Try to create an attribute on the file (should create an attribute on root group) */
 
-  CALL h5acreate_f(fid1, ATTR1_NAME, H5T_NATIVE_INTEGER, sid2, attr, error, H5P_DEFAULT_F, H5P_DEFAULT_F)
+  CALL h5acreate_f(fid1, ATTR1_NAME, H5T_NATIVE_INTEGER, sid2, attr, error, aapl_id=H5P_DEFAULT_F, acpl_id=H5P_DEFAULT_F)
   CALL check("h5acreate_f",error,total_error)
 
   !  /* Close attribute */
@@ -3327,7 +3341,7 @@ SUBROUTINE test_attr_basic_write(fapl, total_error)
 
   ! /* Open attribute again */
   
-  CALL h5aopen_f(group,  ATTR1_NAME, H5P_DEFAULT_F, attr, error)
+  CALL h5aopen_f(group,  ATTR1_NAME, attr, error)
   CALL check("h5aopen_f",error,total_error)
 
 
@@ -3338,7 +3352,6 @@ SUBROUTINE test_attr_basic_write(fapl, total_error)
   ! /* Close root group */
   CALL  H5Gclose_f(group, error)
   CALL check("h5gclose_f",error,total_error)
-
 
   ! /* Create an attribute for the dataset */
 
@@ -3401,7 +3414,7 @@ SUBROUTINE test_attr_basic_write(fapl, total_error)
 
   ! /* Open attribute again */
 
-  CALL h5aopen_f(dataset,  ATTR_TMP_NAME, H5P_DEFAULT_F, attr, error)
+  CALL h5aopen_f(dataset,  ATTR_TMP_NAME, attr, error)
   CALL check("h5aopen_f",error,total_error)
   ! /* Verify new attribute name */
 
@@ -3600,7 +3613,7 @@ SUBROUTINE test_attr_many(new_format, fcpl, fapl, total_error)
 
   ! /* Create group for attributes */
 
-  CALL H5Gcreate_f(fid, GROUP1_NAME, H5P_DEFAULT_F, H5P_DEFAULT_F, H5P_DEFAULT_F, gid, error)
+  CALL H5Gcreate_f(fid, GROUP1_NAME, gid, error) 
   CALL check("H5Gcreate_f", error, total_error)
 
   ! /* Create many attributes */
@@ -3618,7 +3631,7 @@ SUBROUTINE test_attr_many(new_format, fcpl, fapl, total_error)
      CALL H5Aexists_f( gid, attrname, exists, error)
      CALL VerifyLogical("H5Aexists",exists,.FALSE.,total_error )
 
-     CALL H5Aexists_by_name_f(fid, GROUP1_NAME, attrname, H5P_DEFAULT_F, exists, error)
+     CALL H5Aexists_by_name_f(fid, GROUP1_NAME, attrname,  exists, error, lapl_id = H5P_DEFAULT_F)
      CALL VerifyLogical("H5Aexists_by_name_f",exists,.FALSE.,total_error )
 
      CALL h5acreate_f(gid, attrname, H5T_NATIVE_INTEGER, sid, aid, error, H5P_DEFAULT_F, H5P_DEFAULT_F)
@@ -3627,7 +3640,7 @@ SUBROUTINE test_attr_many(new_format, fcpl, fapl, total_error)
      CALL H5Aexists_f(gid, attrname, exists, error)
      CALL VerifyLogical("H5Aexists",exists,.TRUE.,total_error )
 
-     CALL H5Aexists_by_name_f(fid, GROUP1_NAME, attrname, H5P_DEFAULT_F, exists, error)
+     CALL H5Aexists_by_name_f(fid, GROUP1_NAME, attrname, exists, error)
      CALL VerifyLogical("H5Aexists_by_name_f",exists,.TRUE.,total_error )
 
      attr_data1(1) = u
@@ -3642,7 +3655,7 @@ SUBROUTINE test_attr_many(new_format, fcpl, fapl, total_error)
      CALL H5Aexists_f(gid, attrname, exists, error)
      CALL VerifyLogical("H5Aexists",exists,.TRUE.,total_error )
 
-     CALL H5Aexists_by_name_f(fid, GROUP1_NAME, attrname, H5P_DEFAULT_F, exists, error)
+     CALL H5Aexists_by_name_f(fid, GROUP1_NAME, attrname, exists, error)
      CALL VerifyLogical("H5Aexists_by_name_f",exists,.TRUE.,total_error )
 
   ENDDO
@@ -3753,7 +3766,7 @@ SUBROUTINE attr_open_check(fid, dsetname, obj_id, max_attrs, total_error )
      attrname = 'attr '//chr2
      
      
-     CALL h5aopen_f(obj_id, attrname, H5P_DEFAULT_F, attr_id, error)
+     CALL h5aopen_f(obj_id, attrname, attr_id, error)
      CALL check("h5aopen_f",error,total_error)
 
 
@@ -3770,7 +3783,7 @@ SUBROUTINE attr_open_check(fid, dsetname, obj_id, max_attrs, total_error )
 
      ! /* Open the attribute */
 
-     CALL H5Aopen_by_name_f(obj_id, ".", attrname, H5P_DEFAULT_F, H5P_DEFAULT_F, attr_id, error)
+     CALL H5Aopen_by_name_f(obj_id, ".", attrname, attr_id, error, lapl_id=H5P_DEFAULT_F, aapl_id=H5P_DEFAULT_F)
      CALL check("H5Aopen_by_name_f", error, total_error)
 
      CALL h5aget_info_f(attr_id, f_corder_valid, corder, cset, data_size,  error)
@@ -3785,7 +3798,7 @@ SUBROUTINE attr_open_check(fid, dsetname, obj_id, max_attrs, total_error )
 
 
      ! /* Open the attribute */
-     CALL H5Aopen_by_name_f(fid, dsetname, attrname, H5P_DEFAULT_F, H5P_DEFAULT_F, attr_id, error)
+     CALL H5Aopen_by_name_f(fid, dsetname, attrname, attr_id, error)
      CALL check("H5Aopen_by_name_f", error, total_error)
 
 

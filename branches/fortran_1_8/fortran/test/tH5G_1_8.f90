@@ -39,7 +39,9 @@ SUBROUTINE group_test(cleanup, total_error)
   ! /* Check for FAPL to USE */
   my_fapl = fapl2
 
-  CALL group_info(fapl2,total_error)
+!  CALL group_info(fapl2,total_error)
+  
+  CALL timestamps(fapl2, total_error)
 
 END SUBROUTINE group_test
 
@@ -52,7 +54,8 @@ END SUBROUTINE group_test
 ! * Return:      Success:        0
 ! *              Failure:        -1
 ! *
-! * Programmer:  M.S. Breitenfeld
+! * Programmer:  Adapted from C test routines by
+! *              M.S. Breitenfeld
 ! *              February 18, 2008
 ! *
 ! *-------------------------------------------------------------------------
@@ -68,12 +71,13 @@ SUBROUTINE group_info(fapl, total_error)
 
   INTEGER(HID_T) :: gcpl_id ! /* Group creation property list ID */
 
-  INTEGER :: max_compact, min_dense
+  INTEGER :: max_compact ! /* Maximum # of links to store in group compactly */ 
+  INTEGER :: min_dense ! /* Minimum # of links to store in group "densely" */
 
   INTEGER :: idx_type ! /* Type of index to operate on */
-  INTEGER :: order    ! /* Order within in the index */
+  INTEGER :: order, iorder   ! /* Order within in the index */
   LOGICAL, DIMENSION(1:2) :: use_index = (/.FALSE.,.TRUE./) ! /* Use index on creation order values */
-  CHARACTER(LEN =9) :: filename = 'links0.h5' 
+  CHARACTER(LEN =9) :: filename = 'links0.h5' ! /* File name */
   INTEGER :: Input1
   INTEGER(HID_T) :: group_id ! /* Group ID */
   INTEGER(HID_T) :: soft_group_id ! /* Group ID for soft links */
@@ -95,24 +99,7 @@ SUBROUTINE group_info(fapl, total_error)
   CHARACTER(LEN=12), PARAMETER :: CORDER_GROUP_NAME = "corder_group"
   CHARACTER(LEN=17), PARAMETER :: CORDER_SOFT_GROUP_NAME =  "corder_soft_group"
   INTEGER(HID_T) :: file_id ! /* File ID */
-  INTEGER :: error
-
-!!$    hid_t	file_id = (-1); 	/* File ID */
-!!$    hid_t	group_id = (-1);	/* Group ID */
-!!$    hid_t	soft_group_id = (-1);	/* Group ID for soft links */
-!!$    hid_t       gcpl_id = (-1); 	/* Group creation property list ID */
-!!$    H5_index_t idx_type;               /* Type of index to operate on */
-!!$    H5_iter_order_t order;              /* Order within in the index */
-!!$    hbool_t     use_index;              /* Use index on creation order values */
-!!$    unsigned    max_compact;            /* Maximum # of links to store in group compactly */
-!!$    unsigned    min_dense;              /* Minimum # of links to store in group "densely" */
-!!$    H5G_info_t  grp_info;               /* Buffer for querying object's info */
-!!$    char        filename[NAME_BUF_SIZE];/* File name */
-!!$    char        objname[NAME_BUF_SIZE]; /* Object name */
-!!$    char        objname2[NAME_BUF_SIZE]; /* Object name */
-!!$    char        valname[NAME_BUF_SIZE]; /* Link value */
-!!$    herr_t      ret;                    /* Generic return value */
-!!$    unsigned    u, v;                   /* Local index variables */
+  INTEGER :: error ! /* Generic return value */
 
   ! /* Create group creation property list */
   CALL H5Pcreate_f(H5P_GROUP_CREATE_F, gcpl_id, error )
@@ -125,82 +112,82 @@ SUBROUTINE group_info(fapl, total_error)
   ! /* Loop over operating on different indices on link fields */
   DO idx_type = H5_INDEX_NAME_F, H5_INDEX_CRT_ORDER_F
      ! /* Loop over operating in different orders */
-     DO order = H5_ITER_INC_F,  H5_ITER_NATIVE_F
+     DO iorder = H5_ITER_INC_F,  H5_ITER_NATIVE_F
         ! /* Loop over using index for creation order value */
         DO i = 1, 2
-           
            ! /* Print appropriate test message */
            IF(idx_type == H5_INDEX_CRT_ORDER_F)THEN
-              IF(order == H5_ITER_INC_F)THEN
+              IF(iorder == H5_ITER_INC_F)THEN
+                 order = H5_ITER_INC_F
                  IF(use_index(i))THEN
-                    WRITE(*,'(5x,A83)')"query group info by creation order index in increasing order w/creation order index"
+                    WRITE(*,'(5x,A)')"query group info by creation order index in increasing order w/creation order index"
                  ELSE
-                    WRITE(*,'(5x,A85)')"query group info by creation order index in increasing order w/o creation order index"
+                    WRITE(*,'(5x,A)')"query group info by creation order index in increasing order w/o creation order index"
                  ENDIF
-              ELSE IF (order == H5_ITER_DEC_F) THEN
+              ELSE IF (iorder == H5_ITER_DEC_F) THEN
+                 order = H5_ITER_DEC_F
                  IF(use_index(i))THEN
-                    WRITE(*,'(5x,A83)')"query group info by creation order index in decreasing order w/creation order index"
+                    WRITE(*,'(5x,A)')"query group info by creation order index in decreasing order w/creation order index"
                  ELSE
-                    WRITE(*,'(5x,A85)')"query group info by creation order index in decreasing order w/o creation order index"
+                    WRITE(*,'(5x,A)')"query group info by creation order index in decreasing order w/o creation order index"
                  ENDIF
               ELSE
+                 order = H5_ITER_NATIVE_F
                  IF(use_index(i))THEN
-                    WRITE(*,'(5x,A79)')"query group info by creation order index in native order w/creation order index"
+                    WRITE(*,'(5x,A)')"query group info by creation order index in native order w/creation order index"
                  ELSE
-                    WRITE(*,'(5x,A81)')"query group info by creation order index in native order w/o creation order index"
+                    WRITE(*,'(5x,A)')"query group info by creation order index in native order w/o creation order index"
                  ENDIF
               ENDIF
            ELSE
-              IF(order == H5_ITER_INC_F)THEN
+              IF(iorder == H5_ITER_INC_F)THEN
+                 order = H5_ITER_INC_F
                  IF(use_index(i))THEN
-                    WRITE(*,'(5x,A83)')"query group info by creation order index in increasing order w/creation order index"
+                    WRITE(*,'(5x,A)')"query group info by creation order index in increasing order w/creation order index"
                  ELSE
-                    WRITE(*,'(5x,A85)')"query group info by creation order index in increasing order w/o creation order index"
+                    WRITE(*,'(5x,A)')"query group info by creation order index in increasing order w/o creation order index"
                  ENDIF
-              ELSE IF (order == H5_ITER_DEC_F) THEN
+              ELSE IF (iorder == H5_ITER_DEC_F) THEN
+                 order = H5_ITER_DEC_F
                  IF(use_index(i))THEN
-                    WRITE(*,'(5x,A83)')"query group info by creation order index in decreasing order w/creation order index"
+                    WRITE(*,'(5x,A)')"query group info by creation order index in decreasing order w/creation order index"
                  ELSE
-                    WRITE(*,'(5x,A85)')"query group info by creation order index in decreasing order w/o creation order index"
+                    WRITE(*,'(5x,A)')"query group info by creation order index in decreasing order w/o creation order index"
                  ENDIF
               ELSE
+                 order = H5_ITER_NATIVE_F
                  IF(use_index(i))THEN
-                    WRITE(*,'(5x,A79)')"query group info by creation order index in native order w/creation order index"
+                    WRITE(*,'(5x,A)')"query group info by creation order index in native order w/creation order index"
                  ELSE
-                    WRITE(*,'(5x,A81)')"query group info by creation order index in native order w/o creation order index"
+                    WRITE(*,'(5x,A)')"query group info by creation order index in native order w/o creation order index"
                  ENDIF
               ENDIF
            END IF
 
            ! /* Create file */
-
            CALL H5Fcreate_f(filename, H5F_ACC_TRUNC_F, file_id, error, H5P_DEFAULT_F, fapl)
            CALL check("H5Fcreate_f", error, total_error)
 
            ! /* Set creation order tracking & indexing on group */
-
            IF(use_index(i))THEN
               Input1 = H5P_CRT_ORDER_INDEXED_F
            ELSE
               Input1 = 0
            ENDIF
+           CALL H5Pset_link_creation_order_f(gcpl_id, IOR(H5P_CRT_ORDER_TRACKED_F, Input1), error)
+           CALL check("H5Pset_link_creation_order_f", error, total_error)
 
-!           PRINT*,'lkjf',IOR(H5P_CRT_ORDER_TRACKED_F, Input1)
-
-           CALL H5Pset_attr_creation_order_f(gcpl_id, IOR(H5P_CRT_ORDER_TRACKED_F, Input1), error)
-           CALL check("H5Pset_attr_creation_order_f", error, total_error)
-
-           ! /* Create group WITH creation order tracking on */
-
-           CALL H5Gcreate_f(file_id, CORDER_GROUP_NAME, H5P_DEFAULT_F, gcpl_id, H5P_DEFAULT_F, group_id, error)
+           ! /* Create group with creation order tracking on */
+           CALL H5Gcreate_f(file_id, CORDER_GROUP_NAME, group_id, error, gcpl_id=gcpl_id)
            CALL check("H5Gcreate_f", error, total_error)
 
            ! /* Create group with creation order tracking on for soft links */
-           CALL H5Gcreate_f(file_id, CORDER_SOFT_GROUP_NAME, H5P_DEFAULT_F, gcpl_id, H5P_DEFAULT_F, soft_group_id, error)
+           CALL H5Gcreate_f(file_id, CORDER_SOFT_GROUP_NAME, soft_group_id, error, &
+                OBJECT_NAMELEN_DEFAULT_F, H5P_DEFAULT_F, gcpl_id)
            CALL check("H5Gcreate_f", error, total_error)
 
            ! /* Check for out of bound query by index on empty group, should fail */
-           CALL H5Gget_info_by_idx_f(group_id, ".", H5_INDEX_NAME_F, order, INT(0,HSIZE_T), H5P_DEFAULT_F, &
+           CALL H5Gget_info_by_idx_f(group_id, ".", H5_INDEX_NAME_F, order, INT(0,HSIZE_T), &
                 storage_type, nlinks, max_corder, error)
            CALL VERIFY("H5Gget_info_by_idx", error, -1, total_error)
 
@@ -212,7 +199,7 @@ SUBROUTINE group_info(fapl, total_error)
               objname = 'fill '//chr2
 
               ! /* Create hard link, with group object */
-              CALL H5Gcreate_f(group_id, objname, H5P_DEFAULT_F, gcpl_id, H5P_DEFAULT_F, group_id2, error )
+              CALL H5Gcreate_f(group_id, objname, group_id2, error, OBJECT_NAMELEN_DEFAULT_F, H5P_DEFAULT_F, gcpl_id)
               CALL check("H5Gcreate_f", error, total_error)
 
               ! /* Retrieve group's information */
@@ -220,94 +207,85 @@ SUBROUTINE group_info(fapl, total_error)
               CALL check("H5Gget_info_f", error, total_error)
 
               ! /* Check (new/empty) group's information */
-              CALL VERIFY("H5Gget_info_f", INT(storage_type), INT(H5G_STORAGE_TYPE_COMPACT_F), total_error)
-              CALL VERIFY("H5Gget_info_f", INT(max_corder), 0, total_error)
-              CALL VERIFY("H5Gget_info_f", INT(nlinks), 0, total_error)
+              CALL VERIFY("H5Gget_info_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
+              CALL VERIFY("H5Gget_info_f", max_corder, 0, total_error)
+              CALL VERIFY("H5Gget_info_f", nlinks, 0, total_error)
 
               ! /* Retrieve group's information */
-              CALL H5Gget_info_by_name_f(group_id, objname, H5P_DEFAULT_F, storage_type, nlinks, max_corder, error)
+              CALL H5Gget_info_by_name_f(group_id, objname, storage_type, nlinks, max_corder, error)
               CALL check("H5Gget_info_by_name", error, total_error)
 
               ! /* Check (new/empty) group's information */
-              CALL VERIFY("H5Gget_info_f", INT(storage_type), INT(H5G_STORAGE_TYPE_COMPACT_F), total_error)
-              CALL VERIFY("H5Gget_info_f", INT(max_corder), 0, total_error)
-              CALL VERIFY("H5Gget_info_f", INT(nlinks), 0, total_error)
+              CALL VERIFY("H5Gget_info_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
+              CALL VERIFY("H5Gget_info_f", max_corder, 0, total_error)
+              CALL VERIFY("H5Gget_info_f", nlinks, 0, total_error)
 
               ! /* Retrieve group's information */
-              CALL H5Gget_info_by_name_f(group_id2, ".", H5P_DEFAULT_F, storage_type, nlinks, max_corder, error)
+              CALL H5Gget_info_by_name_f(group_id2, ".", storage_type, nlinks, max_corder, error)
               CALL check("H5Gget_info_by_name", error, total_error)
 
               ! /* Check (new/empty) group's information */
-              CALL VERIFY("H5Gget_info_f", INT(storage_type), INT(H5G_STORAGE_TYPE_COMPACT_F), total_error)
-              CALL VERIFY("H5Gget_info_f", INT(max_corder), 0, total_error)
-              CALL VERIFY("H5Gget_info_f", INT(nlinks), 0, total_error)
+              CALL VERIFY("H5Gget_info_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
+              CALL VERIFY("H5Gget_info_f", max_corder, 0, total_error)
+              CALL VERIFY("H5Gget_info_f", nlinks, 0, total_error)
 
               ! /* Create objects in new group created */
               DO v = 0, u
-                 PRINT*,v
                  ! /* Make name for link */
                  WRITE(chr2,'(I2.2)') v
                  objname2 = 'fill '//chr2
 
-                 
-
                  ! /* Create hard link, with group object */
-                 CALL H5Gcreate_f(group_id2, objname2, H5P_DEFAULT_F, H5P_DEFAULT_F, H5P_DEFAULT_F, group_id3, error )
+                 CALL H5Gcreate_f(group_id2, objname2, group_id3, error )
                  CALL check("H5Gcreate_f", error, total_error)
 
                  ! /* Close group created */
                  CALL H5Gclose_f(group_id3, error)
                  CALL check("H5Gclose_f", error, total_error)
-                 
               ENDDO
 
               ! /* Retrieve group's information */
               CALL H5Gget_info_f(group_id2, storage_type, nlinks, max_corder, error)
               CALL check("H5Gget_info_f", error, total_error)
 
-
               ! /* Check (new) group's information */
-              PRINT*,storage_type, H5G_STORAGE_TYPE_COMPACT_F
-              PRINT*,max_corder, u+1
-              PRINT*,nlinks, u+1
-              CALL VERIFY("H5Gget_info_f1", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
+              CALL VERIFY("H5Gget_info_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
               CALL VERIFY("H5Gget_info_f2", max_corder, u+1, total_error)
-              CALL VERIFY("H5Gget_info_f3", nlinks, u+1, total_error)
-              stop
+              CALL VERIFY("H5Gget_info_f", nlinks, u+1, total_error)
 
               ! /* Retrieve group's information */
-              CALL H5Gget_info_by_name_f(group_id, objname, H5P_DEFAULT_F, storage_type, nlinks, max_corder, error)
+              CALL H5Gget_info_by_name_f(group_id, objname, storage_type, nlinks, max_corder, error)
               CALL check("H5Gget_info_by_name_f", error, total_error)
 
               ! /* Check (new) group's information */
-              CALL VERIFY("H5Gget_info_by_name_f1", INT(storage_type), INT(H5G_STORAGE_TYPE_COMPACT_F), total_error)
-              CALL VERIFY("H5Gget_info_by_name_f2", INT(max_corder), u+1, total_error)
-              CALL VERIFY("H5Gget_info_by_name_f3", INT(nlinks), u+1, total_error)
+              CALL VERIFY("H5Gget_info_by_name_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
+              CALL VERIFY("H5Gget_info_by_name_f2",max_corder, u+1, total_error)
+              CALL VERIFY("H5Gget_info_by_name_f", nlinks, u+1, total_error)
 
               ! /* Retrieve group's information */
               CALL H5Gget_info_by_name_f(group_id2, ".", H5P_DEFAULT_F, storage_type, nlinks, max_corder, error)
               CALL check("H5Gget_info_by_name_f", error, total_error)
 
               ! /* Check (new) group's information */
-              CALL VERIFY("H5Gget_info_by_name_f", INT(storage_type), INT(H5G_STORAGE_TYPE_COMPACT_F), total_error)
-              CALL VERIFY("H5Gget_info_by_name_f", INT(max_corder), u+1, total_error)
-              CALL VERIFY("H5Gget_info_by_name_f", INT(nlinks), u+1, total_error)
+              CALL VERIFY("H5Gget_info_by_name_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
+              CALL VERIFY("H5Gget_info_by_name_f2", max_corder, u+1, total_error)
+              CALL VERIFY("H5Gget_info_by_name_f", nlinks, u+1, total_error)
 
               ! /* Retrieve group's information */
               IF(order.NE.H5_ITER_NATIVE_F)THEN
                  IF(order.EQ.H5_ITER_INC_F) THEN
-                    CALL H5Gget_info_by_idx_f(group_id, ".", idx_type, order, INT(u,HSIZE_T), H5P_DEFAULT_F, &
-                         storage_type, nlinks, max_corder, error)
+                    CALL H5Gget_info_by_idx_f(group_id, ".", idx_type, order, INT(u,HSIZE_T), &
+                         storage_type, nlinks, max_corder, error,lapl_id=H5P_DEFAULT_F)
                     CALL check("H5Gget_info_by_idx_f", error, total_error)
                  ELSE
-                    CALL H5Gget_info_by_idx_f(group_id, ".", idx_type, order, INT(0,HSIZE_T), H5P_DEFAULT_F, &
+                    CALL H5Gget_info_by_idx_f(group_id, ".", idx_type, order, INT(0,HSIZE_T), &
                          storage_type, nlinks, max_corder, error)
                     CALL check("H5Gget_info_by_idx_f", error, total_error)
                  ENDIF
               ! /* Check (new) group's information */
-                 CALL VERIFY("H5Gget_info_by_idx_f", INT(storage_type), (H5G_STORAGE_TYPE_COMPACT_F), total_error)
-                 CALL VERIFY("H5Gget_info_by_idx_f", INT(max_corder), u+1, total_error)
-                 CALL VERIFY("H5Gget_info_by_idx_f", INT(nlinks), u+1, total_error)
+                 CALL VERIFY("H5Gget_info_by_idx_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
+                 CALL VERIFY("H5Gget_info_by_idx_f33", max_corder, u+1, total_error)
+                 CALL VERIFY("H5Gget_info_by_idx_f", nlinks, u+1, total_error)
               ENDIF
               ! /* Close group created */
               CALL H5Gclose_f(group_id2, error)
@@ -319,11 +297,11 @@ SUBROUTINE group_info(fapl, total_error)
 
               ! /* Check main group's information */
               CALL VERIFY("H5Gget_info_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
-              CALL VERIFY("H5Gget_info_f", max_corder, u+1, total_error)
+              CALL VERIFY("H5Gget_info_f2", max_corder, u+1, total_error)
               CALL VERIFY("H5Gget_info_f", nlinks, u+1, total_error)
               
               ! /* Retrieve main group's information, by name */
-              CALL H5Gget_info_by_name_f(file_id, CORDER_GROUP_NAME, H5P_DEFAULT_F, storage_type, nlinks, max_corder, error)
+              CALL H5Gget_info_by_name_f(file_id, CORDER_GROUP_NAME, storage_type, nlinks, max_corder, error)
               CALL check("H5Gget_info_by_name_f", error, total_error)
               
               ! /* Check main group's information */
@@ -332,19 +310,18 @@ SUBROUTINE group_info(fapl, total_error)
               CALL VERIFY("H5Gget_info_by_name_f", nlinks, u+1, total_error)
 
               ! /* Retrieve main group's information, by name */
-              CALL H5Gget_info_by_name_f(group_id, ".", H5P_DEFAULT_F, storage_type, nlinks, max_corder, error)
+              CALL H5Gget_info_by_name_f(group_id, ".", storage_type, nlinks, max_corder, error, H5P_DEFAULT_F)
               CALL check("H5Gget_info_by_name_f", error, total_error)
 
               ! /* Check main group's information */
               CALL VERIFY("H5Gget_info_by_name_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
               CALL VERIFY("H5Gget_info_by_name_f", max_corder, u+1, total_error)
               CALL VERIFY("H5Gget_info_by_name_f", nlinks, u+1, total_error)
-
 
               ! /* Create soft link in another group, to objects in main group */
               valname = CORDER_GROUP_NAME//objname
 
-              CALL H5Lcreate_soft_f(valname, soft_group_id, objname, H5P_DEFAULT_F, H5P_DEFAULT_F, error)
+              CALL H5Lcreate_soft_f(valname, soft_group_id, objname, error, H5P_DEFAULT_F, H5P_DEFAULT_F)
               
               ! /* Retrieve soft link group's information, by name */
               CALL H5Gget_info_f(soft_group_id, storage_type, nlinks, max_corder, error)
@@ -513,7 +490,6 @@ SUBROUTINE group_info(fapl, total_error)
               CALL H5Gclose_f(soft_group_id, error)
               CALL check("H5Gclose_f", error, total_error)
            
-
               ! /* Close the file */
               CALL H5Fclose_f(file_id, error)
               CALL check("H5Fclose_f", error, total_error)
@@ -526,4 +502,193 @@ SUBROUTINE group_info(fapl, total_error)
      CALL check("H5Pclose_f", error, total_error)
 
    END SUBROUTINE group_info
+
+!/*-------------------------------------------------------------------------
+! * Function:    timestamps
+! *
+! * Purpose:     Verify that disabling tracking timestamps for an object
+! *              works correctly
+! *
+! *
+! * Programmer:  M.S. Breitenfeld
+! *              February 20, 2008
+! *
+! *-------------------------------------------------------------------------
+! */
+
+   SUBROUTINE timestamps(fapl, total_error)
+
+     USE HDF5 ! This module contains all necessary modules 
+     
+     IMPLICIT NONE
+     INTEGER, INTENT(OUT) :: total_error
+     INTEGER(HID_T), INTENT(IN) :: fapl
+
+     INTEGER(HID_T) :: file_id !/* File ID */
+     INTEGER(HID_T) :: group_id !/* Group ID */
+     INTEGER(HID_T) :: group_id2 !/* Group ID */
+     INTEGER(HID_T) :: gcpl_id !/* Group creation property list ID */
+     INTEGER(HID_T) :: gcpl_id2 !/* Group creation property list ID */
+     CHARACTER(LEN =9) :: filename = 'links9.h5' ! /* File name */
+     ! /* Timestamp macros */
+     CHARACTER(LEN=10), PARAMETER :: TIMESTAMP_GROUP_1="timestamp1"
+     CHARACTER(LEN=10), PARAMETER :: TIMESTAMP_GROUP_2="timestamp2"
+     LOGICAL :: track_times
+
+     INTEGER :: error
+
+     ! /* Print test message */
+     WRITE(*,*) "timestamps on objects"
+
+     ! /* Create group creation property list */
+     CALL H5Pcreate_f(H5P_GROUP_CREATE_F, gcpl_id, error )
+     CALL check("H5Pcreate_f", error, total_error)
+
+     ! /* Query the object timestamp setting */
+     CALL H5Pget_obj_track_times_f(gcpl_id, track_times, error)
+     CALL check("H5Pget_obj_track_times_f", error, total_error)
+
+     !/* Check default timestamp information */
+     CALL VerifyLogical("H5Pget_obj_track_times",track_times,.TRUE.,total_error)
+
+     ! /* Set a non-default object timestamp setting */
+     CALL H5Pset_obj_track_times_f(gcpl_id, .FALSE., error)
+     CALL check("H5Pset_obj_track_times_f", error, total_error)
+
+     ! /* Query the object timestamp setting */
+     CALL H5Pget_obj_track_times_f(gcpl_id, track_times, error)
+     CALL check("H5Pget_obj_track_times_f", error, total_error)
+
+     ! /* Check default timestamp information */
+     CALL VerifyLogical("H5Pget_obj_track_times",track_times,.FALSE.,total_error)
+
+     ! /* Create file */
+     !h5_fixname(FILENAME[0], fapl, filename, sizeof filename);
+     
+     CALL H5Fcreate_f(filename, H5F_ACC_TRUNC_F, file_id, error, H5P_DEFAULT_F, fapl)
+     CALL check("h5fcreate_f",error,total_error)
+
+    ! /* Create group with non-default object timestamp setting */
+     CALL h5gcreate_f(file_id, TIMESTAMP_GROUP_1, group_id, error, &
+          OBJECT_NAMELEN_DEFAULT_F, H5P_DEFAULT_F, gcpl_id, H5P_DEFAULT_F)
+     CALL check("h5fcreate_f",error,total_error)
+
+    ! /* Close the group creation property list */
+     CALL H5Pclose_f(gcpl_id, error)
+     CALL check("H5Pclose_f", error, total_error)
+
+    ! /* Create group with default object timestamp setting */
+     CALL h5gcreate_f(file_id, TIMESTAMP_GROUP_2, group_id2, error, &
+          OBJECT_NAMELEN_DEFAULT_F, H5P_DEFAULT_F, H5P_DEFAULT_F, H5P_DEFAULT_F)
+     CALL check("h5fcreate_f",error,total_error)
+
+    ! /* Retrieve the new groups' creation properties */
+     CALL H5Gget_create_plist_f(group_id, gcpl_id, error)
+     CALL check("H5Gget_create_plist", error, total_error)
+     CALL H5Gget_create_plist_f(group_id2, gcpl_id2, error)
+     CALL check("H5Gget_create_plist", error, total_error)
+
+    ! /* Query & verify the object timestamp settings */
+     CALL H5Pget_obj_track_times_f(gcpl_id, track_times, error)
+     CALL check("H5Pget_obj_track_times_f", error, total_error)
+     CALL VerifyLogical("H5Pget_obj_track_times1",track_times,.FALSE.,total_error)
+     CALL H5Pget_obj_track_times_f(gcpl_id2, track_times, error)
+     CALL check("H5Pget_obj_track_times_f", error, total_error)
+     CALL VerifyLogical("H5Pget_obj_track_times2",track_times,.TRUE.,total_error)
+     
+!    /* Query the object information for each group */
+!    if(H5Oget_info(group_id, &oinfo) < 0) TEST_ERROR
+!    if(H5Oget_info(group_id2, &oinfo2) < 0) TEST_ERROR
+
+!!$    /* Sanity check object information for each group */
+!!$    if(oinfo.atime != 0) TEST_ERROR
+!!$    if(oinfo.mtime != 0) TEST_ERROR
+!!$    if(oinfo.ctime != 0) TEST_ERROR
+!!$    if(oinfo.btime != 0) TEST_ERROR
+!!$    if(oinfo.atime == oinfo2.atime) TEST_ERROR
+!!$    if(oinfo.mtime == oinfo2.mtime) TEST_ERROR
+!!$    if(oinfo.ctime == oinfo2.ctime) TEST_ERROR
+!!$    if(oinfo.btime == oinfo2.btime) TEST_ERROR
+!!$    if((oinfo.hdr.flags & H5O_HDR_STORE_TIMES) != 0) TEST_ERROR
+!!$    if((oinfo2.hdr.flags & H5O_HDR_STORE_TIMES) == 0) TEST_ERROR
+!!$    if(oinfo.hdr.space.total >= oinfo2.hdr.space.total) TEST_ERROR
+!!$    if(oinfo.hdr.space.meta >= oinfo2.hdr.space.meta) TEST_ERROR
+
+     ! /* Close the property lists */
+     CALL H5Pclose_f(gcpl_id, error)
+     CALL check("H5Pclose_f", error, total_error)
+     CALL H5Pclose_f(gcpl_id2, error)
+     CALL check("H5Pclose_f", error, total_error)
+
+     ! /* Close the groups */
+     CALL H5Gclose_f(group_id, error)
+     CALL check("H5Gclose_f", error, total_error)
+     CALL H5Gclose_f(group_id2, error)
+     CALL check("H5Gclose_f", error, total_error)
+
+     !/* Close the file */
+     CALL H5Fclose_f(file_id, error)
+     CALL check("H5Fclose_f", error, total_error)
+
+     !/* Re-open the file */
+
+     CALL h5fopen_f(FileName, H5F_ACC_RDONLY_F, file_id, error, H5P_DEFAULT_F)
+     CALL check("h5fopen_f",error,total_error)
+
+     !/* Open groups */
+     CALL H5Gopen_f(file_id, TIMESTAMP_GROUP_1, group_id, error) ! with no optional param.
+     CALL check("H5Gopen_f", error, total_error)
+     CALL H5Gopen_f(file_id, TIMESTAMP_GROUP_2, group_id2, error, H5P_DEFAULT_F) ! with optional param.
+     CALL check("H5Gopen_f", error, total_error)
+
+    ! /* Retrieve the new groups' creation properties */
+     CALL H5Gget_create_plist_f(group_id, gcpl_id, error)
+     CALL check("H5Gget_create_plist", error, total_error)
+     CALL H5Gget_create_plist_f(group_id2, gcpl_id2, error)
+     CALL check("H5Gget_create_plist", error, total_error)
+
+    ! /* Query & verify the object timestamp settings */
+
+     CALL H5Pget_obj_track_times_f(gcpl_id, track_times, error)
+     CALL check("H5Pget_obj_track_times_f", error, total_error)
+     CALL VerifyLogical("H5Pget_obj_track_times1",track_times,.FALSE.,total_error)
+     CALL H5Pget_obj_track_times_f(gcpl_id2, track_times, error)
+     CALL check("H5Pget_obj_track_times_f", error, total_error)
+     CALL VerifyLogical("H5Pget_obj_track_times2",track_times,.TRUE.,total_error)
+!!$
+!!$    /* Query the object information for each group */
+!!$    if(H5Oget_info(group_id, &oinfo) < 0) TEST_ERROR
+!!$    if(H5Oget_info(group_id2, &oinfo2) < 0) TEST_ERROR
+!!$
+!!$    /* Sanity check object information for each group */
+!!$    if(oinfo.atime != 0) TEST_ERROR
+!!$    if(oinfo.mtime != 0) TEST_ERROR
+!!$    if(oinfo.ctime != 0) TEST_ERROR
+!!$    if(oinfo.btime != 0) TEST_ERROR
+!!$    if(oinfo.atime == oinfo2.atime) TEST_ERROR
+!!$    if(oinfo.mtime == oinfo2.mtime) TEST_ERROR
+!!$    if(oinfo.ctime == oinfo2.ctime) TEST_ERROR
+!!$    if(oinfo.btime == oinfo2.btime) TEST_ERROR
+!!$    if((oinfo.hdr.flags & H5O_HDR_STORE_TIMES) != 0) TEST_ERROR
+!!$    if((oinfo2.hdr.flags & H5O_HDR_STORE_TIMES) == 0) TEST_ERROR
+!!$    if(oinfo.hdr.space.total >= oinfo2.hdr.space.total) TEST_ERROR
+!!$    if(oinfo.hdr.space.meta >= oinfo2.hdr.space.meta) TEST_ERROR
+
+     ! /* Close the property lists */
+     CALL H5Pclose_f(gcpl_id, error)
+     CALL check("H5Pclose_f", error, total_error)
+     CALL H5Pclose_f(gcpl_id2, error)
+     CALL check("H5Pclose_f", error, total_error)
+
+     ! /* Close the groups */
+     CALL H5Gclose_f(group_id, error)
+     CALL check("H5Gclose_f", error, total_error)
+     CALL H5Gclose_f(group_id2, error)
+     CALL check("H5Gclose_f", error, total_error)
+
+     !/* Close the file */
+     CALL H5Fclose_f(file_id, error)
+     CALL check("H5Fclose_f", error, total_error)
+
+   END SUBROUTINE timestamps
 

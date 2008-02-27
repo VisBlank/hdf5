@@ -138,7 +138,9 @@ CONTAINS
 !				 	Success:  0
 !				 	Failure: -1   
 ! Optional parameters:
-!		createion_prp	- dataset creation property list identifier
+!            creation_prp - Dataset creation property list
+!            lcpl_id      - Link creation property list
+!            dapl_id      - Dataset access property list
 !
 ! Programmer:	Elena Pourmal
 !		August 12, 1999	
@@ -155,8 +157,8 @@ CONTAINS
 !----------------------------------------------------------------------
   
   SUBROUTINE h5dcreate_f(loc_id, name, type_id, space_id, dset_id, & 
-       hdferr, optional_id1, optional_id2, optional_id3)
-
+       hdferr, creation_prp, lcpl_id, dapl_id)
+ 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5dcreate_f
@@ -169,12 +171,11 @@ CONTAINS
     INTEGER(HID_T), INTENT(OUT) :: dset_id ! Dataset identifier 
     INTEGER, INTENT(OUT) :: hdferr         ! Error code
 
-    ! NOTE: Optional parameters only take on a meaning depending on how many are present
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: optional_id1 ! lcpl_id_default (v1.8) or dcpl_id_default
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: optional_id2 ! dcpl_id_default (v1.8)
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: optional_id3 ! dapl_id_default (v1.8)
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: creation_prp ! Dataset creation property list
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lcpl_id ! Link creation property list
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: dapl_id ! Dataset access property list
 
-    INTEGER(HID_T) :: lcpl_id_default 
+    INTEGER(HID_T) :: lcpl_id_default
     INTEGER(HID_T) :: dcpl_id_default
     INTEGER(HID_T) :: dapl_id_default
 
@@ -207,20 +208,10 @@ CONTAINS
     lcpl_id_default = H5P_DEFAULT_F
     dcpl_id_default = H5P_DEFAULT_F
     dapl_id_default = H5P_DEFAULT_F
-    
-    IF( PRESENT(optional_id1).AND.  &
-         PRESENT(optional_id2).AND. &
-         PRESENT(optional_id3)       )THEN ! Version 1.8 Specs.
 
-       lcpl_id_default = optional_id1
-       dcpl_id_default = optional_id2
-       dapl_id_default = optional_id3
-
-    ELSE IF( PRESENT(optional_id1) )THEN ! Pre-Version 1.8 Specs.
-
-       dcpl_id_default = optional_id1
-
-    ENDIF
+    IF(PRESENT(dapl_id)) lcpl_id_default = lcpl_id
+    IF(PRESENT(creation_prp)) dcpl_id_default = creation_prp
+    IF(PRESENT(dapl_id)) dapl_id_default = dapl_id
 
     namelen = LEN(name)
     hdferr = h5dcreate_c(loc_id, name, namelen, type_id, space_id, & 
@@ -266,8 +257,8 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier 
             CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of the dataset 
             INTEGER(HID_T), INTENT(OUT) :: dset_id ! Dataset identifier
-            INTEGER(HID_T), OPTIONAL, INTENT(IN) :: dapl_id ! Dataset access property list
             INTEGER, INTENT(OUT) :: hdferr         ! Error code 
+            INTEGER(HID_T), OPTIONAL, INTENT(IN) :: dapl_id ! Dataset access property list
             INTEGER :: namelen                     ! Name length
 
             INTEGER(HID_T) :: dapl_id_default
@@ -291,7 +282,6 @@ CONTAINS
             END INTERFACE
 
             dapl_id_default = H5P_DEFAULT_F
-
             IF(PRESENT(dapl_id)) dapl_id_default = dapl_id
 
             namelen = LEN(name)
@@ -5706,7 +5696,7 @@ CONTAINS
 !               dapl_id  	- Dataset access property list identifier.
 !
 ! Programmer:   M.S. Breitenfeld
-!		February, 2008
+!		February 11, 2008
 !
 ! Modifications:
 !
@@ -5775,7 +5765,7 @@ CONTAINS
 ! Optional parameters:
 !
 ! Programmer:   M.S. Breitenfeld
-!		February, 2008
+!		February 11, 2008
 !
 ! Modifications:
 !
@@ -5790,7 +5780,7 @@ CONTAINS
 !DEC$endif
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id  ! Dataset identifier 
-    INTEGER(HSIZE_T), INTENT(IN) :: size     ! Array containing the new magnitude of each dimension of the dataset.
+    INTEGER(HSIZE_T), INTENT(IN) :: size   ! Array containing new magnitude of each dimension of the dataset.
     INTEGER, INTENT(OUT) :: hdferr         ! Error code.
 !
 !  MS FORTRAN needs explicit interface for C functions called here.
