@@ -3300,18 +3300,18 @@ CONTAINS
 !               obj_name   - Name of object, relative to location, from which attribute is to be removed
 !               idx_type   - Type of index; Possible values are:
 !
-!                  H5_INDEX_UNKNOWN = -1  - Unknown index type
-!                  H5_INDEX_NAME          - Index on names
-!                  H5_INDEX_CRT_ORDER     - Index on creation order
-!                  H5_INDEX_N	          - Number of indices defined
+!                  H5_INDEX_UNKNOWN_F = -1  - Unknown index type
+!                  H5_INDEX_NAME_F          - Index on names
+!                  H5_INDEX_CRT_ORDER_F     - Index on creation order
+!                  H5_INDEX_N_F	            - Number of indices defined
 !                             
 !               order - Order in which to iterate over index; Possible values are:
 !
-!                  H5_ITER_UNKNOWN   - Unknown order
-!                  H5_ITER_INC       - Increasing order
-!                  H5_ITER_DEC       - Decreasing order
-!                  H5_ITER_NATIVE    - No particular order, whatever is fastest
-!                  H5_ITER_N	     - Number of iteration orders
+!                  H5_ITER_UNKNOWN_F   - Unknown order
+!                  H5_ITER_INC_F       - Increasing order
+!                  H5_ITER_DEC_F       - Decreasing order
+!                  H5_ITER_NATIVE_F    - No particular order, whatever is fastest
+!                  H5_ITER_N_F 	       - Number of iteration orders
 !
 !               n          - Offset within index
 ! Outputs:
