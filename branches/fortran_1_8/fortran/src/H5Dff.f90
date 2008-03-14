@@ -119,6 +119,10 @@ MODULE H5D
      MODULE PROCEDURE h5dfill_char
   END INTERFACE
 
+  INTERFACE h5dextend_f
+     MODULE PROCEDURE h5dset_extent_f
+  END INTERFACE
+
 
 CONTAINS
           
@@ -157,7 +161,7 @@ CONTAINS
 !----------------------------------------------------------------------
   
   SUBROUTINE h5dcreate_f(loc_id, name, type_id, space_id, dset_id, & 
-       hdferr, creation_prp, lcpl_id, dapl_id)
+       hdferr, dcpl_id, lcpl_id, dapl_id)
  
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
@@ -171,7 +175,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(OUT) :: dset_id ! Dataset identifier 
     INTEGER, INTENT(OUT) :: hdferr         ! Error code
 
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: creation_prp ! Dataset creation property list
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: dcpl_id ! Dataset creation property list
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lcpl_id ! Link creation property list
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: dapl_id ! Dataset access property list
 
@@ -209,8 +213,8 @@ CONTAINS
     dcpl_id_default = H5P_DEFAULT_F
     dapl_id_default = H5P_DEFAULT_F
 
-    IF(PRESENT(dapl_id)) lcpl_id_default = lcpl_id
-    IF(PRESENT(creation_prp)) dcpl_id_default = creation_prp
+    IF(PRESENT(lcpl_id)) lcpl_id_default = lcpl_id
+    IF(PRESENT(dcpl_id)) dcpl_id_default = dcpl_id
     IF(PRESENT(dapl_id)) dapl_id_default = dapl_id
 
     namelen = LEN(name)
@@ -4737,7 +4741,7 @@ CONTAINS
           END SUBROUTINE h5dget_type_f  
 
 !----------------------------------------------------------------------
-! Name:		h5dextend_f 
+! Name:		h5dset_extent (obsolete name: h5dextend_f) 
 !
 ! Purpose:	Extends a dataset with unlimited dimension.	
 !
@@ -4759,14 +4763,18 @@ CONTAINS
 !			called C functions (it is needed for Windows
 !			port).  February 28, 2001 
 !
+!                       Changed name from the now obsolete h5dextend_f
+!                       to h5dset_extent_f. Provide interface to old name
+!                       for backward compatability. -MSB- March 14, 2008
+!
 ! Comment:		
 !----------------------------------------------------------------------
 
 
-          SUBROUTINE h5dextend_f(dataset_id, size, hdferr) 
+          SUBROUTINE H5Dset_extent_f(dataset_id, size, hdferr) 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
-!DEC$attributes dllexport :: h5dextend_f
+!DEC$attributes dllexport :: H5Dset_extent_f
 !DEC$endif
             IMPLICIT NONE 
             INTEGER(HID_T), INTENT(IN) :: dataset_id      ! Dataset identifier
@@ -4775,22 +4783,22 @@ CONTAINS
                                                           ! dimensions' sizes 
             INTEGER, INTENT(OUT) :: hdferr                ! Error code 
 
-!            INTEGER, EXTERNAL ::  h5dextend_c
+!            INTEGER, EXTERNAL ::  H5Dset_extent_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
             INTERFACE
-              INTEGER FUNCTION h5dextend_c(dataset_id, size)
+              INTEGER FUNCTION H5Dset_extent_c(dataset_id, size)
               USE H5GLOBAL
               !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DEXTEND_C'::h5dextend_c
+              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DSET_EXTENT_C'::H5Dset_extent_c
               !DEC$ ENDIF
               INTEGER(HID_T), INTENT(IN) :: dataset_id
               INTEGER(HSIZE_T), DIMENSION(*), INTENT(IN)  :: size
-              END FUNCTION h5dextend_c
+              END FUNCTION H5Dset_extent_c
             END INTERFACE
 
-            hdferr = h5dextend_c(dataset_id, size)
-          END SUBROUTINE h5dextend_f  
+            hdferr = H5Dset_extent_c(dataset_id, size)
+          END SUBROUTINE H5Dset_extent_f  
 
 
 !----------------------------------------------------------------------
@@ -5749,56 +5757,6 @@ CONTAINS
     hdferr = h5dcreate_anon_c(loc_id, type_id, space_id, dcpl_id_default, dapl_id_default, dset_id)
 
   END SUBROUTINE h5dcreate_anon_f
-
-!----------------------------------------------------------------------
-! Name:		h5dset_exent_f 
-!
-! Purpose: 	Changes the sizes of a dataset’s dimensions. C
-!
-! Inputs:
-!         dset_id - Dataset identifier
-!            size - Array containing the new magnitude of each dimension of the dataset.
-! Outputs:
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! Optional parameters:
-!
-! Programmer:   M.S. Breitenfeld
-!		February 11, 2008
-!
-! Modifications:
-!
-! Comment:		
-!----------------------------------------------------------------------
-  
-  SUBROUTINE h5dset_extent_f(dset_id, size, hdferr)
-
-!This definition is needed for Windows DLLs
-!DEC$if defined(BUILD_HDF5_DLL)
-!DEC$attributes dllexport :: h5dset_extent_f
-!DEC$endif
-    IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id  ! Dataset identifier 
-    INTEGER(HSIZE_T), INTENT(IN) :: size   ! Array containing new magnitude of each dimension of the dataset.
-    INTEGER, INTENT(OUT) :: hdferr         ! Error code.
-!
-!  MS FORTRAN needs explicit interface for C functions called here.
-!
-    INTERFACE
-       INTEGER FUNCTION h5dextend_c(dset_id, size)
-         USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DSET_EXTENT_C'::h5dextend_c
-         !DEC$ ENDIF
-         INTEGER(HID_T), INTENT(IN) :: dset_id
-         INTEGER(HSIZE_T), INTENT(IN) :: size
-       END FUNCTION h5dextend_c
-    END INTERFACE
-    
-    hdferr = h5dextend_c(dset_id, size)
-
-  END SUBROUTINE h5dset_extent_f
 
 END MODULE H5D
 
