@@ -1178,7 +1178,7 @@ done:
 /*----------------------------------------------------------------------------
  * Name:        h5adelete_by_idx_c 
  * Purpose:     Call h5adelete_by_idx 
- * Inputs:      loc_id - 
+ * Inputs:      loc_id - Location or object identifier; may be dataset or group 
  *              obj_name - object identifier
  *              obj_namelen - name length
  *              attr_name - name of the attribute
@@ -1485,11 +1485,11 @@ done:
 /*----------------------------------------------------------------------------
  * Name:        h5aget_info_by_name_c
  * Purpose:     Call  H5Aget_info_by_name
- * Inputs:    loc_id  - Object identifier
+ * Inputs:      loc_id - Object identifier
  *            obj_name - Name of object to which attribute is attached
  *         obj_namelen - name length
- *            attr_name - Attribute name
- *         attr_namelen - attribute name length
+ *           attr_name - Attribute name
+ *        attr_namelen - attribute name length
  *             lapl_id - Link access property list
  * Outputs:   
  *        corder_valid - Indicates whether the the creation order data is valid for this attribute 
