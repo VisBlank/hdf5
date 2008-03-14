@@ -79,7 +79,7 @@ CONTAINS
                                            ! the number of bytes
                                            ! to reserve for the
                                            ! names that will appear
-                                           ! in the group. Set to H5P_DEFAULT_F
+                                           ! in the group. Set to OBJECT_NAMELEN_DEFAULT_F
                                            ! if using any of the optional 
                                            ! parameters lcpl_id, gcpl_id, and/or gapl_id when not
                                            ! using keywords in specifying the optional parameters
