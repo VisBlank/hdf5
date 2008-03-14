@@ -3762,40 +3762,167 @@ nh5pset_create_intermediate_group_c(hid_t_f *lcpl_id, int_f *crt_intermed_group)
   return ret_value;
 }
 
-/* /\*---------------------------------------------------------------------------- */
-/*  * Name:        h5pget_char_encoding_c  */
-/*  * Purpose:     Calls H5Pget_char_encoding_c  */
-/*  * */
-/*  * Inputs: */
-/*  *           plist_id - Property list identifier */
-/*  *           encodinglen - anticipated len of encoding */
-/*  * Outputs: */
-/*  *           encoding - String encoding character set: */
-/*  *     	                             H5T_CSET_ASCII -> US ASCII */
-/*  *     	                              H5T_CSET_UTF8 -> UTF-8 Unicode encoding */
-/*  * */
-/*  * Returns:     0 on success, -1 on failure */
-/*  * Programmer:  M.S. Breitenfeld */
-/*  *              February, 2008 */
-/*  * Modifications: */
-/*  *---------------------------------------------------------------------------*\/ */
-/* int_f */
-/* nh5pget_char_encoding_c(hid_t_f *plist_id, _fcd encoding, size_t_f *encodinglen) */
-/* { */
-/*   int ret_value = -1; */
-/*   herr_t ret; */
+/*----------------------------------------------------------------------------
+ * Name:        h5pget_link_creation_order_c
+ * Purpose:     Calls H5Pget_link_creation_order
+ *
+ * Inputs:
+ *           gcpl_id - Group creation property list identifier
+ * Outputs:
+ *           crt_order_flags - Creation order flag(s)
+ *
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              March 3, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+int_f
+nh5pget_link_creation_order_c(hid_t_f *gcpl_id, int_f *crt_order_flags)
+{
+  int ret_value = -1;
+  herr_t ret;
 
-/*   unsigned c_crt_order_flags; */
-/*   /\* */
-/*    * Call h5pget_attr_creation_order function. */
-/*    *\/ */
+  unsigned c_crt_order_flags;
+  /*
+   * Call h5pget_link_creation_order function.
+   */
 
-/*   ret = H5Pget_attr_creation_order((hid_t)*ocpl_id, &c_crt_order_flags); */
-/*   if (ret < 0) return ret_value; */
+  ret = H5Pget_link_creation_order((hid_t)*gcpl_id, &c_crt_order_flags);
+  if (ret < 0) return ret_value;
 
-/*   *crt_order_flags = (int_f)c_crt_order_flags; */
+  *crt_order_flags = (int_f)c_crt_order_flags;
 
-/*   ret_value = 0; */
-/*   return ret_value; */
-/* } */
+  ret_value = 0;
+  return ret_value;
+}
 
+/*----------------------------------------------------------------------------
+ * Name:     h5pset_char_encoding_c
+ * Purpose:  Calls H5Pset_char_encoding
+ *
+ * Inputs:
+ *           plist_id - Property list identifier
+ *           encoding - String encoding character set:
+ *     	                     H5T_CSET_ASCII_F -> US ASCII
+ *     	                     H5T_CSET_UTF8_F -> UTF-8 Unicode encoding
+ * Outputs:  NONE
+ *
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              March 3, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+int_f
+nh5pset_char_encoding_c(hid_t_f *plist_id, int_f *encoding)
+{
+  int ret_value = -1;
+  herr_t ret;
+
+  /*
+   * Call H5Pset_char_encoding function.
+   */
+  ret = H5Pset_char_encoding((hid_t)*plist_id, (H5T_cset_t)*encoding);
+  if (ret < 0) return ret_value;
+
+  ret_value = 0;
+  return ret_value;
+}
+
+
+/*----------------------------------------------------------------------------
+ * Name:     h5pget_char_encoding_c
+ * Purpose:  Calls H5Pget_char_encoding
+ *
+ * Inputs:
+ *           plist_id - Property list identifier
+ * Outputs:
+ *           encoding - Encoding character set:
+ *     	                  H5T_CSET_ASCII_F -> US ASCII
+ *     	                  H5T_CSET_UTF8_F -> UTF-8 Unicode encoding
+ *
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              March 3, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+int_f
+nh5pget_char_encoding_c(hid_t_f *plist_id, int_f *encoding)
+{
+  int ret_value = -1;
+  H5T_cset_t c_encoding;
+  herr_t ret;
+  /*
+   * Call H5Pget_char_encoding function.
+   */
+  ret = H5Pget_char_encoding((hid_t)*plist_id, &c_encoding);
+  if (ret < 0) return ret_value;
+  
+  *encoding = (int_f)c_encoding;
+  
+  ret_value = 0;
+  return ret_value;
+}
+
+/*----------------------------------------------------------------------------
+ * Name:     h5pset_copy_object_c
+ * Purpose:  Calls H5Pset_copy_object
+ *
+ * Inputs:
+ *    ocp_plist_id - Object copy property list identifier
+ *    copy_options - Copy option(s) to be set
+ *
+ * Outputs:
+ *            NONE
+ *
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              March 3, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+int_f
+nh5pset_copy_object_c(hid_t_f *ocp_plist_id, int_f *copy_options)
+{
+  int ret_value = -1;
+  herr_t ret;
+  /*
+   * Call H5Pset_copy_object function.
+   */
+  ret = H5Pset_copy_object((hid_t)*ocp_plist_id, (unsigned)*copy_options);
+  if (ret < 0) return ret_value;
+  
+  ret_value = 0;
+  return ret_value;
+}
+
+/*----------------------------------------------------------------------------
+ * Name:     h5pget_copy_object_c
+ * Purpose:  Calls H5Pget_copy_object
+ *
+ * Inputs:
+ *    ocp_plist_id - Object copy property list identifier
+ *
+ * Outputs:
+ *    copy_options - Copy option(s) to be get
+ *
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              March 3, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+int_f
+nh5pget_copy_object_c(hid_t_f *ocp_plist_id, int_f *copy_options)
+{
+  int ret_value = -1;
+  unsigned c_copy_options;
+  herr_t ret;
+  /*
+   * Call H5Pget_copy_object function.
+   */
+  ret = H5Pget_copy_object((hid_t)*ocp_plist_id, &c_copy_options);
+  if (ret < 0) return ret_value;
+
+  *copy_options = (int_f)c_copy_options;
+  
+  ret_value = 0;
+  return ret_value;
+}

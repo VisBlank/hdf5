@@ -7027,6 +7027,120 @@
 
   END SUBROUTINE h5pset_create_intermediate_group_f
 
+!----------------------------------------------------------------------
+! Name:	      H5Pget_link_creation_order_f
+!
+! Purpose:    Queries whether link creation order is tracked and/or indexed in a group.
+!
+! Inputs:
+!             gcpl_id - Group creation property list identifier
+!
+! Outputs:
+!             crt_order_flags - Creation order flag(s)
+!	      hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		March 3, 2008
+!
+! Modifications: 	
+!
+! Comment:		
+!----------------------------------------------------------------------
+
+  SUBROUTINE  h5pget_link_creation_order_f(gcpl_id, crt_order_flags, hdferr)
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pget_link_creation_order_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: gcpl_id   ! Group creation property list identifier
+    INTEGER, INTENT(OUT) :: crt_order_flags ! Creation order flag(s)
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code
+!
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5pget_link_creation_order_c(gcpl_id, crt_order_flags)
+
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_LINK_CREATION_ORDER_C'::h5pget_link_creation_order_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: gcpl_id
+         INTEGER, INTENT(OUT) :: crt_order_flags
+         
+       END FUNCTION H5pget_link_creation_order_c
+    END INTERFACE
+
+    hdferr = h5pget_link_creation_order_c(gcpl_id, crt_order_flags)
+
+  END SUBROUTINE h5pget_link_creation_order_f
+
+!----------------------------------------------------------------------
+! Name:	      H5Pset_char_encoding 
+!
+! Purpose:    Sets the character encoding used to encode a string.
+!
+! Inputs:
+!             plist_id - Property list identifier
+!             encoding - Valid values for encoding are:
+!     	                    H5T_CSET_ASCII_F -> US ASCII
+!     	                    H5T_CSET_UTF8_F -> UTF-8 Unicode encoding
+!
+! Outputs:
+!	      hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		March 3, 2008
+!
+! Modifications: 	
+!
+! Comment:		
+!----------------------------------------------------------------------
+
+  SUBROUTINE  h5pset_char_encoding_f(plist_id, encoding, hdferr)
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pset_attr_creation_order_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: plist_id ! Property list identifier
+    
+    INTEGER, INTENT(IN) :: encoding ! String encoding character set:
+!     	                                    H5T_CSET_ASCII_F -> US ASCII
+!     	                                    H5T_CSET_UTF8_F  -> UTF-8 Unicode encoding
+    INTEGER, INTENT(OUT) :: hdferr   ! Error code
+!
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5pset_char_encoding_c(plist_id, encoding)
+
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_CHAR_ENCODING_C'::h5pset_char_encoding_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: plist_id
+         INTEGER, INTENT(IN) :: encoding
+         
+       END FUNCTION H5pset_char_encoding_c
+    END INTERFACE
+
+    hdferr = h5pset_char_encoding_c(plist_id, encoding)
+
+  END SUBROUTINE h5pset_char_encoding_f
 
 !----------------------------------------------------------------------
 ! Name:	      H5Pget_char_encoding 
@@ -7037,58 +7151,165 @@
 !             plist_id - Property list identifier
 !
 ! Outputs:
-!             encoding - String encoding character set:
-!                           Valid values for encoding are:
-!     	                             H5T_CSET_ASCII -> US ASCII
-!     	                              H5T_CSET_UTF8 -> UTF-8 Unicode encoding
-!	      hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
+!             encoding - Valid values for encoding are:
+!     	                    H5T_CSET_ASCII_F -> US ASCII
+!     	                    H5T_CSET_UTF8_F -> UTF-8 Unicode encoding
+!	        hdferr - error code		
+!		            Success:  0
+!		            Failure: -1   
 ! Optional parameters:
 !				NONE
 !
 ! Programmer:	M.S. Breitenfeld
-!		February, 2008
+!		March 3, 2008
 !
 ! Modifications: 	
 !
 ! Comment:		
 !----------------------------------------------------------------------
-!!$
-!!$  SUBROUTINE  h5pget_char_encoding_f(plist_id, encoding, hdferr)
-!!$!
-!!$!This definition is needed for Windows DLLs
-!!$!DEC$if defined(BUILD_HDF5_DLL)
-!!$!DEC$attributes dllexport :: h5pget_attr_creation_order_f
-!!$!DEC$endif
-!!$!
-!!$    IMPLICIT NONE
-!!$    INTEGER(HID_T), INTENT(IN) :: plist_id ! Property list identifier
-!!$    
-!!$    CHARACTER(LEN=*), INTENT(OUT) :: encoding ! String encoding character set (LEN > 14):
-!!$!     	                                            H5T_CSET_ASCII -> US ASCII
-!!$!     	                                            H5T_CSET_UTF8  -> UTF-8 Unicode encoding
-!!$    INTEGER, INTENT(OUT) :: hdferr   ! Error code
-!!$    INTEGER(SIZE_T) :: encodinglen ! Anticipated number of characters in encoding.
-!!$!
-!!$!  MS FORTRAN needs explicit interface for C functions called here.
-!!$!
-!!$    INTERFACE
-!!$       INTEGER FUNCTION h5pget_char_encoding_c(plist_id, encoding, encodinglen)
-!!$
-!!$         USE H5GLOBAL
-!!$         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-!!$         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_CHAR_ENCODING_C'::h5pget_char_encoding_c
-!!$         !DEC$ ENDIF
-!!$         INTEGER(HID_T), INTENT(IN) :: plist_id
-!!$         CHARACTER(LEN=*), INTENT(OUT) :: encoding
-!!$         INTEGER(SIZE_T) :: encodinglen
-!!$         
-!!$       END FUNCTION H5pget_char_encoding_c
-!!$    END INTERFACE
-!!$
-!!$    hdferr = h5pget_char_encoding_c(plist_id, encoding, encodinglen)
-!!$
-!!$  END SUBROUTINE h5pget_char_encoding_f
+
+  SUBROUTINE  h5pget_char_encoding_f(plist_id, encoding, hdferr)
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pget_char_encoding_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: plist_id ! Property list identifier
+    
+    INTEGER, INTENT(OUT) :: encoding ! Valid values for encoding are:
+!     	                                            H5T_CSET_ASCII_F -> US ASCII
+!     	                                            H5T_CSET_UTF8_F  -> UTF-8 Unicode encoding
+    INTEGER, INTENT(OUT) :: hdferr   ! Error code
+!
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5pget_char_encoding_c(plist_id, encoding)
+
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_CHAR_ENCODING_C'::h5pget_char_encoding_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: plist_id
+         INTEGER, INTENT(OUT) :: encoding
+         
+       END FUNCTION H5pget_char_encoding_c
+    END INTERFACE
+
+    hdferr = h5pget_char_encoding_c(plist_id, encoding)
+
+  END SUBROUTINE h5pget_char_encoding_f
+
+!----------------------------------------------------------------------
+! Name:		h5pset_copy_object_f 
+!
+! Purpose: 	Sets properties to be used when an object is copied.
+!
+! Inputs: 
+!               ocp_plist_id - Object copy property list identifier
+!               copy_options - Copy option(s) to be set
+! Outputs:  
+!		hdferr	     - error code		
+!				 Success:  0
+!				 Failure: -1   
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		March 3, 2008
+!
+! Modifications:
+!
+! Comment:		
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5pset_copy_object_f(ocp_plist_id, copy_options, hdferr) 
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pset_copy_object_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: ocp_plist_id ! Object copy property list identifier
+    INTEGER, INTENT(IN) :: copy_options ! Copy option(s) to be set, valid options are:
+                                        !   H5O_COPY_SHALLOW_HIERARCHY_F
+                                        !   H5O_COPY_EXPAND_SOFT_LINK_F 
+                                        !   H5O_COPY_EXPAND_EXT_LINK_F
+                                        !   H5O_COPY_EXPAND_REFERENCE_F
+                                        !   H5O_COPY_WITHOUT_ATTR_FLAG_F
+    INTEGER, INTENT(OUT) :: hdferr      ! Error code
+
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5pset_copy_object_c(ocp_plist_id, copy_options)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_COPY_OBJECT_C'::h5pset_copy_object_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: ocp_plist_id
+         INTEGER, INTENT(IN) :: copy_options
+       END FUNCTION h5pset_copy_object_c
+    END INTERFACE
+    hdferr = h5pset_copy_object_c(ocp_plist_id, copy_options) 
+  END SUBROUTINE h5pset_copy_object_f
+
+!----------------------------------------------------------------------
+! Name:		h5pget_copy_object_f 
+!
+! Purpose: 	Retrieves the properties to be used when an object is copied.
+!
+! Inputs: 
+!               ocp_plist_id - Object copy property list identifier
+! Outputs:  
+!               copy_options - Copy option(s) to be get
+!		hdferr	     - error code		
+!				 Success:  0
+!				 Failure: -1   
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		March 3, 2008
+!
+! Modifications:
+!
+! Comment:		
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5pget_copy_object_f(ocp_plist_id, copy_options, hdferr) 
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pget_copy_object_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: ocp_plist_id ! Object copy property list identifier
+    INTEGER, INTENT(OUT) :: copy_options ! valid copy options returned are:
+                                         !   H5O_COPY_SHALLOW_HIERARCHY_F
+                                         !   H5O_COPY_EXPAND_SOFT_LINK_F 
+                                         !   H5O_COPY_EXPAND_EXT_LINK_F
+                                         !   H5O_COPY_EXPAND_REFERENCE_F
+                                         !   H5O_COPY_WITHOUT_ATTR_FLAG_F
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code
+
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5pget_copy_object_c(ocp_plist_id, copy_options)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_COPY_OBJECT_C'::h5pget_copy_object_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: ocp_plist_id
+         INTEGER, INTENT(OUT) :: copy_options
+       END FUNCTION h5pget_copy_object_c
+    END INTERFACE
+    hdferr = h5pget_copy_object_c(ocp_plist_id, copy_options) 
+  END SUBROUTINE h5pget_copy_object_f
 
 END MODULE H5P
