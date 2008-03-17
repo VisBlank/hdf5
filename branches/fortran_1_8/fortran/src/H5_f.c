@@ -222,7 +222,7 @@ nh5close_types_c( hid_t_f * types, int_f *lentypes,
 int_f
 nh5init_flags_c( int_f *h5d_flags, int_f *h5f_flags,
                  int_f *h5fd_flags, hid_t_f *h5fd_hid_flags,
-                 int_f *h5g_flags, int_f *h5i_flags, int_f *h5o_flags,
+                 int_f *h5g_flags, int_f *h5i_flags, int_f *h5l_flags, int_f *h5o_flags,
                  hid_t_f *h5p_flags, int_f *h5r_flags, int_f *h5s_flags,
                  int_f *h5t_flags, int_f *h5z_flags, int_f *h5_generic_flags)
 {
@@ -271,7 +271,7 @@ nh5init_flags_c( int_f *h5d_flags, int_f *h5f_flags,
     h5f_flags[15] = (int_f)H5F_OBJ_ALL;
     h5f_flags[16] = (int_f)H5F_LIBVER_EARLIEST;
     h5f_flags[17] = (int_f)H5F_LIBVER_LATEST;
-
+                           
 /*
  *  H5FD flags
  */
@@ -308,11 +308,11 @@ nh5init_flags_c( int_f *h5d_flags, int_f *h5f_flags,
     h5g_flags[3] = (int_f)H5O_TYPE_NAMED_DATATYPE;
 /* This value can no longer be returned and all these flags should be updated
  *      to reflect the refinements between links and objects. -QAK */
-/*      h5g_flags[4] = H5G_LINK; */
+/*      h5g_flags[4] = H5G_LINK; */    
     h5g_flags[5] = (int_f)H5L_TYPE_ERROR;
     h5g_flags[6] = (int_f)H5L_TYPE_HARD;
     h5g_flags[7] = (int_f)H5L_TYPE_SOFT;
-    
+
     h5g_flags[8] = (int_f)H5G_STORAGE_TYPE_UNKNOWN;
     h5g_flags[9] = (int_f)H5G_STORAGE_TYPE_SYMBOL_TABLE;
     h5g_flags[10] = (int_f)H5G_STORAGE_TYPE_COMPACT;
@@ -329,7 +329,16 @@ nh5init_flags_c( int_f *h5d_flags, int_f *h5f_flags,
     h5i_flags[4] = (int_f)H5I_DATASET;
     h5i_flags[5] = (int_f)H5I_ATTR;
     h5i_flags[6] = (int_f)H5I_BADID;
-
+/*
+ *  H5L flags
+ */
+    h5l_flags[0] = (int_f)H5L_TYPE_ERROR;
+    h5l_flags[1] = (int_f)H5L_TYPE_HARD;
+    h5l_flags[2] = (int_f)H5L_TYPE_SOFT;
+    h5l_flags[3] = (int_f)H5L_TYPE_EXTERNAL;
+    h5l_flags[4] = (int_f)H5L_SAME_LOC; /* Macro to indicate operation occurs on same location */
+    h5l_flags[5] = (int_f)H5L_LINK_CLASS_T_VERS; /* Current version of the H5L_class_t struct */
+ 
 /*
  *  H5O flags
  */
