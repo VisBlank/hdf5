@@ -28,7 +28,7 @@ SUBROUTINE check(string,error,total_error)
   INTEGER :: error, total_error
   IF (error .LT. 0) THEN
      total_error=total_error+1
-     WRITE(*,*) string, " failed"
+     WRITE(*,*) string, " FAILED"
   ENDIF
   RETURN
 END SUBROUTINE check
@@ -61,6 +61,21 @@ SUBROUTINE verifyLogical(string,value,correct_value,total_error)
   ENDIF
   RETURN
 END SUBROUTINE verifyLogical
+
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: verifyLogical
+!DEC$endif
+SUBROUTINE verifyString(string, value,correct_value,total_error)
+  CHARACTER(LEN=*) :: string
+  CHARACTER(LEN=*) :: value, correct_value
+  INTEGER :: total_error
+  IF (TRIM(value) .NE. TRIM(correct_value)) THEN
+     total_error = total_error + 1
+     WRITE(*,*) "ERROR: INCORRECT VALIDATION ", string
+  ENDIF
+  RETURN
+END SUBROUTINE verifyString
 
 
 !----------------------------------------------------------------------
