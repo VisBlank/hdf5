@@ -865,11 +865,9 @@ SUBROUTINE group_info(fapl, total_error)
     CALL H5Lget_info_f(file_id, "group", &
          cset, corder, f_corder_valid, link_type, address, val_size, &
          error, H5P_DEFAULT_F)
-
+    CALL check("H5Lget_info_f",error,total_error)
 
 !    if(H5Oget_info_by_name(file_id, "group", &oinfo, H5P_DEFAULT) < 0) TEST_ERROR
-
-    
 
     old_cset = cset
     CALL VERIFY("H5Lget_info_f",old_cset,H5T_CSET_UTF8_F,total_error)
