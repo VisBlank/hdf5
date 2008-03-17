@@ -255,13 +255,13 @@ SUBROUTINE test_attr_corder_create_compact(fcpl,fapl, total_error)
 
 ! FIX: need to check optional parameters i.e. h5dcreate1/2_f
 
-  CALL h5dcreate_f(fid, DSET1_NAME, H5T_NATIVE_CHARACTER, sid, dset1, error, creation_prp=dcpl )
+  CALL h5dcreate_f(fid, DSET1_NAME, H5T_NATIVE_CHARACTER, sid, dset1, error, dcpl_id=dcpl )
   CALL check("h5dcreate_f",error,total_error)
 
   CALL h5dcreate_f(fid, DSET2_NAME, H5T_NATIVE_CHARACTER, sid, dset2, error, dcpl )
   CALL check("h5dcreate_f",error,total_error)
 
-  CALL h5dcreate_f(fid, DSET3_NAME, H5T_NATIVE_CHARACTER, sid, dset3, error, creation_prp=dcpl )
+  CALL h5dcreate_f(fid, DSET3_NAME, H5T_NATIVE_CHARACTER, sid, dset3, error, dcpl_id=dcpl )
   CALL check("h5dcreate_f",error,total_error)
 
 !!$  dset1 = H5Dcreate2(fid, DSET1_NAME, H5T_NATIVE_UCHAR, sid, H5P_DEFAULT, dcpl, H5P_DEFAULT)
@@ -681,13 +681,13 @@ SUBROUTINE test_attr_create_by_name(new_format,fcpl,fapl, total_error)
 
      ! /* Create datasets */
 
-     CALL h5dcreate_f(fid, DSET1_NAME, H5T_NATIVE_CHARACTER, sid, dset1, error, creation_prp=dcpl )
+     CALL h5dcreate_f(fid, DSET1_NAME, H5T_NATIVE_CHARACTER, sid, dset1, error, dcpl_id=dcpl )
      CALL check("h5dcreate_f2",error,total_error)
      
-     CALL h5dcreate_f(fid, DSET2_NAME, H5T_NATIVE_CHARACTER, sid, dset2, error, creation_prp=dcpl )
+     CALL h5dcreate_f(fid, DSET2_NAME, H5T_NATIVE_CHARACTER, sid, dset2, error, dcpl_id=dcpl )
      CALL check("h5dcreate_f3",error,total_error)
      
-     CALL h5dcreate_f(fid, DSET3_NAME, H5T_NATIVE_CHARACTER, sid, dset3, error, creation_prp=dcpl )
+     CALL h5dcreate_f(fid, DSET3_NAME, H5T_NATIVE_CHARACTER, sid, dset3, error, dcpl_id=dcpl )
      CALL check("h5dcreate_f4",error,total_error)
 
 
@@ -1427,9 +1427,9 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
      CALL check("h5Pcreate_f",error,total_error)
 
      ! /* Create datasets */
-     CALL h5dcreate_f(fid, DSET1_NAME, H5T_NATIVE_CHARACTER, sid, dataset, error, creation_prp=dcpl )
+     CALL h5dcreate_f(fid, DSET1_NAME, H5T_NATIVE_CHARACTER, sid, dataset, error, dcpl_id=dcpl )
      CALL check("h5dcreate_f",error,total_error)
-     CALL h5dcreate_f(fid, DSET2_NAME, H5T_NATIVE_CHARACTER, sid, dataset2, error, creation_prp=dcpl )
+     CALL h5dcreate_f(fid, DSET2_NAME, H5T_NATIVE_CHARACTER, sid, dataset2, error, dcpl_id=dcpl )
      CALL check("h5dcreate_f",error,total_error)
 
      ! /* Check on dataset's message storage status */
@@ -2558,10 +2558,10 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
 
      ! /* Create datasets */
 
-     CALL h5dcreate_f(fid, DSET1_NAME, H5T_NATIVE_CHARACTER, sid, dataset, error, creation_prp=dcpl )
+     CALL h5dcreate_f(fid, DSET1_NAME, H5T_NATIVE_CHARACTER, sid, dataset, error, dcpl_id=dcpl )
      CALL check("h5dcreate_f",error,total_error)
            
-     CALL h5dcreate_f(fid, DSET2_NAME, H5T_NATIVE_CHARACTER, sid, dataset2, error, creation_prp=dcpl )
+     CALL h5dcreate_f(fid, DSET2_NAME, H5T_NATIVE_CHARACTER, sid, dataset2, error, dcpl_id=dcpl )
      CALL check("h5dcreate_f",error,total_error)
 
      ! /* Check on dataset's message storage status */
@@ -2913,7 +2913,7 @@ SUBROUTINE test_attr_dense_open( fcpl, fapl, total_error)
   ! /* Create a dataset */
      
   CALL h5dcreate_f(fid, DSET1_NAME, H5T_NATIVE_CHARACTER, sid, dataset, error, &
-       lcpl_id=H5P_DEFAULT_F, creation_prp=dcpl, dapl_id=H5P_DEFAULT_F)
+       lcpl_id=H5P_DEFAULT_F, dcpl_id=dcpl, dapl_id=H5P_DEFAULT_F)
   CALL check("h5dcreate_f",error,total_error)
 
   ! /* Retrieve limits for compact/dense attribute storage */
@@ -3171,7 +3171,7 @@ SUBROUTINE test_attr_corder_create_basic( fcpl, fapl, total_error )
 
   ! /* Create a dataset */
   CALL h5dcreate_f(fid, DSET1_NAME, H5T_NATIVE_CHARACTER, sid, dataset, error, &
-       lcpl_id=H5P_DEFAULT_F, dapl_id=H5P_DEFAULT_F, creation_prp=dcpl)
+       lcpl_id=H5P_DEFAULT_F, dapl_id=H5P_DEFAULT_F, dcpl_id=dcpl)
   CALL check("h5dcreate_f",error,total_error)
 
   ! /* Close dataspace */
