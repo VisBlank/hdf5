@@ -1262,18 +1262,21 @@ nh5dget_create_plist_c ( hid_t_f *dset_id , hid_t_f *plist_id)
 
 
 /*----------------------------------------------------------------------------
- * Name:        h5dextend_c
+ * Name:        h5dset_extent_c
  * Purpose:     Call H5Dset_extent to extend dataset with unlimited dimensions
  * Inputs:      dset_id - identifier of the dataset
  * Outputs:     dims - array with the dimension sizes
  * Returns:     0 on success, -1 on failure
  * Programmer:  Elena Pourmal
  *              Thursday, August 19, 1999
- * Modifications:
+ *
+ * Modifications: Changed name from the now obsolete h5dextend
+ *                to h5dset_extent in order to match new fortran interface.
+ *                -MSB- March 14, 2008
  *---------------------------------------------------------------------------*/
 
 int_f
-nh5dextend_c ( hid_t_f *dset_id , hsize_t_f *dims)
+nh5dset_extent_c ( hid_t_f *dset_id , hsize_t_f *dims)
 {
   hid_t c_space_id;
   hsize_t c_dims[H5S_MAX_RANK];
