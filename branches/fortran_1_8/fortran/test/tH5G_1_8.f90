@@ -27,7 +27,6 @@ SUBROUTINE group_test(cleanup, total_error)
   CALL H5Pcreate_f(H5P_FILE_ACCESS_F, fapl, error)
   CALL check("H5Pcreate_f",error, total_error)
 
-  
   ! /* Copy the file access property list */
   CALL H5Pcopy_f(fapl, fapl2, error)
   CALL check("H5Pcopy_f",error, total_error)
@@ -39,9 +38,16 @@ SUBROUTINE group_test(cleanup, total_error)
   ! /* Check for FAPL to USE */
   my_fapl = fapl2
 
-!  CALL group_info(fapl2,total_error)
   
+  CALL mklinks(fapl2, total_error)
+  CALL group_info(fapl2,total_error)
+!  CALL ud_hard_links(fapl2,total_error)
   CALL timestamps(fapl2, total_error)
+  CALL test_move_preserves(fapl2, total_error)
+  CALL delete_by_idx(fapl2, total_error)
+  CALL test_lcpl(fapl, total_error)
+
+  CALL objcopy(fapl, total_error)
 
 END SUBROUTINE group_test
 
@@ -250,7 +256,7 @@ SUBROUTINE group_info(fapl, total_error)
 
               ! /* Check (new) group's information */
               CALL VERIFY("H5Gget_info_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
-              CALL VERIFY("H5Gget_info_f2", max_corder, u+1, total_error)
+              CALL VERIFY("H5Gget_info_f", max_corder, u+1, total_error)
               CALL VERIFY("H5Gget_info_f", nlinks, u+1, total_error)
 
               ! /* Retrieve group's information */
@@ -259,11 +265,11 @@ SUBROUTINE group_info(fapl, total_error)
 
               ! /* Check (new) group's information */
               CALL VERIFY("H5Gget_info_by_name_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
-              CALL VERIFY("H5Gget_info_by_name_f2",max_corder, u+1, total_error)
+              CALL VERIFY("H5Gget_info_by_name_f",max_corder, u+1, total_error)
               CALL VERIFY("H5Gget_info_by_name_f", nlinks, u+1, total_error)
 
               ! /* Retrieve group's information */
-              CALL H5Gget_info_by_name_f(group_id2, ".", H5P_DEFAULT_F, storage_type, nlinks, max_corder, error)
+              CALL H5Gget_info_by_name_f(group_id2, ".", storage_type, nlinks, max_corder, error)
               CALL check("H5Gget_info_by_name_f", error, total_error)
 
               ! /* Check (new) group's information */
@@ -692,3 +698,438 @@ SUBROUTINE group_info(fapl, total_error)
 
    END SUBROUTINE timestamps
 
+!/*-------------------------------------------------------------------------
+! * Function:	mklinks
+! *
+! * Purpose:	Build a file with assorted links.
+! *
+! *
+! * Programmer:	Adapted from C test by:
+! *             M.S. Breitenfeld
+! *
+! * Modifications:
+! *
+! *-------------------------------------------------------------------------
+! */
+
+   SUBROUTINE mklinks(fapl, total_error)
+
+     USE HDF5 ! This module contains all necessary modules 
+     
+     IMPLICIT NONE
+     INTEGER, INTENT(OUT) :: total_error
+     INTEGER(HID_T), INTENT(IN) :: fapl
+
+     INTEGER(HID_T) :: file, scalar, grp, d1
+     CHARACTER(LEN=12), PARAMETER :: filename ='TestLinks.h5'
+     INTEGER(HSIZE_T), DIMENSION(1) :: adims2 = (/1/) ! Attribute dimension
+     INTEGER ::   arank = 1                      ! Attribure rank
+     INTEGER :: error
+
+     WRITE(*,*) "link creation (w/new group format)"
+
+     ! /* Create a file */
+     CALL h5fcreate_f(FileName, H5F_ACC_TRUNC_F, file, error, H5P_DEFAULT_F, fapl)
+     CALL check("h5fcreate_f",error,total_error)
+     CALL h5screate_simple_f(arank, adims2, scalar, error)
+     CALL check("h5screate_simple_f",error,total_error)
+
+     !/* Create a group */
+     CALL H5Gcreate_f(file, "grp1", grp, error) 
+     CALL check("H5Gcreate_f", error, total_error)
+     CALL H5Gclose_f(grp, error)
+     CALL check("h5gclose_f",error,total_error)
+
+     !/* Create a dataset */
+     CALL h5dcreate_f(file, "d1", H5T_NATIVE_INTEGER, scalar, d1, error)
+     CALL check("h5dcreate_f",error,total_error)
+     CALL h5dclose_f(d1, error)
+     CALL check("h5dclose_f",error,total_error)
+
+     !/* Create a hard link */
+     CALL H5Lcreate_hard_f(file, "d1", INT(H5L_SAME_LOC_F,HID_T), "grp1/hard", error)
+     CALL check("H5Lcreate_hard_f", error, total_error)
+     
+     !/* Create a symbolic link */
+     CALL H5Lcreate_soft_f("/d1", file, "grp1/soft",error)
+     CALL check("H5Lcreate_soft_f", error, total_error)
+
+    !/* Create a symbolic link to something that doesn't exist */
+
+     CALL H5Lcreate_soft_f("foobar", file, "grp1/dangle",error)
+
+    !/* Create a recursive symbolic link */
+     CALL H5Lcreate_soft_f("/grp1/recursive", file, "/grp1/recursive",error)
+
+    !/* Close */
+     CALL h5sclose_f(scalar, error)
+     CALL check("h5sclose_f",error,total_error)
+     CALL h5fclose_f(file, error)
+     CALL check("h5fclose_f",error,total_error)
+
+  END SUBROUTINE mklinks
+
+!/*-------------------------------------------------------------------------
+! * Function:    test_move_preserves
+! *
+! * Purpose:     Tests that moving and renaming links preserves their
+! *              properties.
+! *
+! * Programmer:  M.S. Breitenfeld
+! *              March 3, 2008
+! *
+! * Modifications:
+! *
+! *-------------------------------------------------------------------------
+! */
+
+  SUBROUTINE test_move_preserves(fapl_id, total_error)
+
+    USE HDF5 ! This module contains all necessary modules 
+    
+    IMPLICIT NONE
+    INTEGER, INTENT(OUT) :: total_error
+    INTEGER(HID_T), INTENT(IN) :: fapl_id
+
+    INTEGER(HID_T):: file_id
+    INTEGER(HID_T):: group_id
+    INTEGER(HID_T):: fcpl_id ! /* Group creation property list ID */
+    INTEGER(HID_T):: lcpl_id
+    INTEGER(HID_T):: lcpl2_id
+    !H5O_info_t oinfo;
+    !H5L_info_t linfo;
+    INTEGER :: old_cset
+    INTEGER :: old_corder
+    !H5T_cset_t old_cset;
+    !int64_t old_corder;         /* Creation order value of link */
+    !time_t old_modification_time;
+    !time_t curr_time;
+    !unsigned crt_order_flags;   /* Status of creation order info for GCPL */
+    !char filename[1024];
+
+    INTEGER :: crt_order_flags ! /* Status of creation order info for GCPL */
+    CHARACTER(LEN=9), PARAMETER :: filename = 'testmp.h5'
+
+    INTEGER :: cset ! Indicates the character set used for the link’s name. 
+    INTEGER :: corder ! Specifies the link’s creation order position.
+    LOGICAL :: f_corder_valid ! Indicates whether the value in corder is valid.
+    INTEGER :: link_type ! Specifies the link class:
+     	                              !  H5L_LINK_HARD_F      - Hard link
+     	                              !  H5L_LINK_SOFT_F      - Soft link
+     	                              !  H5L_LINK_EXTERNAL_F  - External link
+     	                              !  H5L_LINK_ERROR _F    - Error
+    INTEGER :: address  ! If the link is a hard link, address specifies the file address that the link points to
+    INTEGER(HSIZE_T) :: val_size ! If the link is a symbolic link, val_size will be the length of the link value
+
+    INTEGER :: error
+
+    WRITE(*,*) "moving and copying links preserves their properties (w/new group format)"
+
+    !/* Create a file creation property list with creation order stored for links
+    ! * in the root group
+    ! */
+
+    CALL H5Pcreate_f(H5P_FILE_CREATE_F, fcpl_id, error)
+    CALL check("H5Pcreate_f",error, total_error)
+
+    CALL H5Pget_link_creation_order_f(fcpl_id, crt_order_flags, error)
+    CALL check("H5Pget_link_creation_order_f",error, total_error)
+    CALL VERIFY("H5Pget_link_creation_order_f",crt_order_flags,0, total_error)
+    
+    CALL H5Pset_link_creation_order_f(fcpl_id, H5P_CRT_ORDER_TRACKED_F, error)
+    CALL check("H5Pset_link_creation_order_f", error, total_error)
+ 
+    CALL H5Pget_link_creation_order_f(fcpl_id, crt_order_flags, error)
+    CALL check("H5Pget_link_creation_order_f",error, total_error)
+    CALL VERIFY("H5Pget_link_creation_order_f",crt_order_flags, H5P_CRT_ORDER_TRACKED_F, total_error)
+
+    !/* Create file */
+    !/* (with creation order tracking for the root group) */
+    
+    CALL h5fcreate_f(FileName, H5F_ACC_TRUNC_F, file_id, error, fcpl_id, fapl_id)
+    CALL check("h5fcreate_f",error,total_error)
+
+    !/* Create a link creation property list with the UTF-8 character encoding */
+    CALL H5Pcreate_f(H5P_LINK_CREATE_F, lcpl_id, error)
+    CALL check("H5Pcreate_f",error, total_error)
+
+    CALL H5Pset_char_encoding_f(lcpl_id, H5T_CSET_UTF8_F, error)
+    CALL check("H5Pset_char_encoding_f",error, total_error)
+
+    !/* Create a group with that lcpl */
+    CALL H5Gcreate_f(file_id, "group", group_id, error,lcpl_id=lcpl_id, gcpl_id=H5P_DEFAULT_F, gapl_id=H5P_DEFAULT_F) 
+    CALL check("H5Gcreate_f", error, total_error)
+    CALL H5Gclose_f(group_id, error)
+
+    ! /* Get the group's link's information */
+    CALL H5Lget_info_f(file_id, "group", &
+         cset, corder, f_corder_valid, link_type, address, val_size, &
+         error, H5P_DEFAULT_F)
+
+
+!    if(H5Oget_info_by_name(file_id, "group", &oinfo, H5P_DEFAULT) < 0) TEST_ERROR
+
+    
+
+    old_cset = cset
+    CALL VERIFY("H5Lget_info_f",old_cset,H5T_CSET_UTF8_F,total_error)
+    CALL VerifyLogical("H5Lget_info_f",f_corder_valid,.TRUE.,total_error)
+    old_corder = corder;
+    CALL VERIFY("H5Lget_info_f",old_corder,0,total_error)
+
+!    old_modification_time = oinfo.mtime;
+
+!    /* If this test happens too quickly, the times will all be the same.  Make sure the time changes. */
+!    curr_time = HDtime(NULL);
+!    while(HDtime(NULL) <= curr_time)
+!        ;
+
+!    /* Close the file and reopen it */
+    CALL H5Fclose_f(file_id, error)
+    CALL check("H5Fclose_f", error, total_error)
+    
+!!$    if((file_id = H5Fopen(filename, H5F_ACC_RDWR, fapl_id)) < 0) TEST_ERROR
+!!$
+!!$    /* Get the link's character set & modification time .  They should be unchanged */
+!!$    if(H5Lget_info(file_id, "group", &linfo, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(H5Oget_info_by_name(file_id, "group", &oinfo, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(old_modification_time != oinfo.mtime) TEST_ERROR
+!!$    if(old_cset != linfo.cset) TEST_ERROR
+!!$    if(linfo.corder_valid != TRUE) TEST_ERROR
+!!$    if(old_corder != linfo.corder) TEST_ERROR
+!!$
+!!$    /* Create a new link to the group.  It should have a different creation order value but the same modification time */
+!!$    if(H5Lcreate_hard(file_id, "group", file_id, "group2", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(H5Oget_info_by_name(file_id, "group2", &oinfo, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(old_modification_time != oinfo.mtime) TEST_ERROR
+!!$    if(H5Lget_info(file_id, "group2", &linfo, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(old_corder == linfo.corder) TEST_ERROR
+!!$    if(linfo.corder_valid != TRUE) TEST_ERROR
+!!$    if(linfo.corder != 1) TEST_ERROR
+!!$    if(linfo.cset != H5T_CSET_ASCII) TEST_ERROR
+!!$
+!!$    /* Copy the first link to a UTF-8 name.
+!!$     *  Its creation order value should be different, but modification time
+!!$     * should not change.
+!!$     */
+!!$    if(H5Lcopy(file_id, "group", file_id, "group_copied", lcpl_id, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(H5Oget_info_by_name(file_id, "group_copied", &oinfo, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(old_modification_time != oinfo.mtime) TEST_ERROR
+!!$    if(H5Lget_info(file_id, "group_copied", &linfo, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(linfo.corder_valid != TRUE) TEST_ERROR
+!!$    if(linfo.corder != 2) TEST_ERROR
+!!$
+!!$    /* Check that its character encoding is UTF-8 */
+!!$    if(linfo.cset != H5T_CSET_UTF8) TEST_ERROR
+!!$
+!!$    /* Move the link with the default property list. */
+!!$    if(H5Lmove(file_id, "group_copied", file_id, "group_copied2", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(H5Oget_info_by_name(file_id, "group_copied2", &oinfo, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(old_modification_time != oinfo.mtime) TEST_ERROR
+!!$    if(H5Lget_info(file_id, "group_copied2", &linfo, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(linfo.corder_valid != TRUE) TEST_ERROR
+!!$    if(linfo.corder != 3) TEST_ERROR
+!!$
+!!$    /* Check that its character encoding is not UTF-8 */
+!!$    if(linfo.cset == H5T_CSET_UTF8) TEST_ERROR
+!!$
+!!$    /* Check that the original link is unchanged */
+!!$    if(H5Oget_info_by_name(file_id, "group", &oinfo, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(old_modification_time != oinfo.mtime) TEST_ERROR
+!!$    if(H5Lget_info(file_id, "group", &linfo, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(linfo.corder_valid != TRUE) TEST_ERROR
+!!$    if(old_corder != linfo.corder) TEST_ERROR
+!!$    if(linfo.cset != H5T_CSET_UTF8) TEST_ERROR
+!!$
+!!$    /* Move the first link to a UTF-8 name.
+!!$     *  Its creation order value will change, but modification time should not
+!!$     *  change. */
+!!$    if(H5Lmove(file_id, "group", file_id, "group_moved", lcpl_id, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(H5Oget_info_by_name(file_id, "group_moved", &oinfo, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(old_modification_time != oinfo.mtime) TEST_ERROR
+!!$    if(H5Lget_info(file_id, "group_moved", &linfo, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(linfo.corder_valid != TRUE) TEST_ERROR
+!!$    if(linfo.corder != 4) TEST_ERROR
+!!$
+!!$    /* Check that its character encoding is UTF-8 */
+!!$    if(linfo.cset != H5T_CSET_UTF8) TEST_ERROR
+!!$
+!!$    /* Move the link again using the default property list. */
+!!$    if(H5Lmove(file_id, "group_moved", file_id, "group_moved_again", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(H5Oget_info_by_name(file_id, "group_moved_again", &oinfo, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(old_modification_time != oinfo.mtime) TEST_ERROR
+!!$    if(H5Lget_info(file_id, "group_moved_again", &linfo, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(linfo.corder_valid != TRUE) TEST_ERROR
+!!$    if(linfo.corder != 5) TEST_ERROR
+!!$
+!!$    /* Check that its character encoding is not UTF-8 */
+!!$    if(linfo.cset == H5T_CSET_UTF8) TEST_ERROR
+
+    ! /* Close open IDs */
+     CALL H5Pclose_f(fcpl_id, error)
+     CALL check("H5Pclose_f", error, total_error)
+     CALL H5Pclose_f(lcpl_id, error)
+     CALL check("H5Pclose_f", error, total_error)
+    
+    ! if(H5Fclose(file_id) < 0) TEST_ERROR
+
+   END SUBROUTINE test_move_preserves
+
+!!$!/*-------------------------------------------------------------------------
+!!$! * Function:    ud_hard_links
+!!$! *
+!!$! * Purpose:     Check that the functionality of hard links can be duplicated
+!!$! *              with user-defined links.
+!!$! *
+!!$! *
+!!$! * Programmer:  M.S. Breitenfeld
+!!$! *              February, 2008
+!!$! *
+!!$! *-------------------------------------------------------------------------
+!!$! */
+!!$!
+!!$!/* Callback functions for UD hard links. */
+!!$!/* UD_hard_create increments the object's reference count */
+!!$
+!!$  SUBROUTINE ud_hard_links(fapl, total_error)
+!!$    
+!!$    USE HDF5 ! This module contains all necessary modules 
+!!$     
+!!$    IMPLICIT NONE
+!!$    INTEGER, INTENT(OUT) :: total_error
+!!$    INTEGER(HID_T), INTENT(IN) :: fapl
+!!$
+!!$    INTEGER(HID_T) :: fid ! /* File ID */
+!!$    INTEGER(HID_T) :: gid ! /* Group IDs */
+!!$
+!!$    CHARACTER(LEN=10) :: objname = 'objname.h5' ! /* Object name */
+!!$    CHARACTER(LEN=10), PARAMETER :: filename = 'filname.h5'
+!!$    
+!!$    INTEGER(HSIZE_T) :: name_len ! /* Size of an empty file */
+!!$
+!!$    INTEGER, PARAMETER :: UD_HARD_TYPE=201
+!!$    LOGICAL :: registered
+!!$
+!!$!/* Link information */
+!!$
+!!$!    ssize_t     name_len;                       /* Length of object name */
+!!$!    h5_stat_size_t empty_size;                  /* Size of an empty file */
+!!$
+!!$
+!!$    WRITE(*,*) "user-defined hard link (w/new group format)"
+!!$
+!!$    ! /* Set up filename and create file*/
+!!$
+!!$    CALL h5fcreate_f(FileName, H5F_ACC_TRUNC_F, fid, error, H5P_DEFAULT_F, fapl)
+!!$    CALL check("h5fcreate_f",error,total_error)
+!!$    
+!!$    ! /* Close file */
+!!$    CALL h5fclose_f(fid, error)
+!!$    CALL check("h5fclose_f",error,total_error)
+!!$    
+!!$    ! if((empty_size = h5_get_file_size(filename))<0) TEST_ERROR
+!!$
+!!$    ! /* Create file */
+!!$    CALL h5fcreate_f(FileName, H5F_ACC_TRUNC_F, fid, error, H5P_DEFAULT_F, fapl)
+!!$    CALL check("h5fcreate_f",error,total_error)
+!!$
+!!$    ! /* Check that external links are registered and UD hard links are not */
+!!$
+!!$    CALL H5Lis_registered(H5L_TYPE_EXTERNAL, registered, error)
+!!$    CALL VerifyLogical("H5Lis_registered", registered, .TRUE., total_error)
+!!$
+!!$    CALL H5Lis_registered(UD_HARD_TYPE, registered, error)
+!!$    CALL VerifyLogical("H5Lis_registered", registered, .FALSE., total_error)
+!!$
+!!$    !/* Register "user-defined hard links" with the library */
+!!$!    if(H5Lregister(UD_hard_class) < 0) TEST_ERROR
+!!$
+!!$    /* Check that UD hard links are now registered */
+!!$    if(H5Lis_registered(H5L_TYPE_EXTERNAL) != TRUE) TEST_ERROR
+!!$    if(H5Lis_registered(UD_HARD_TYPE) != TRUE) TEST_ERROR
+!!$
+!!$    /* Create a group for the UD hard link to point to */
+!!$    if((gid = H5Gcreate2(fid, "group", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+!!$
+!!$    /* Get address for the group to give to the hard link */
+!!$    if(H5Lget_info(fid, "group", &li, H5P_DEFAULT) < 0) TEST_ERROR
+!!$
+!!$    if(H5Gclose(gid) < 0) TEST_ERROR
+!!$
+!!$
+!!$    /* Create a user-defined "hard link" to the group using the address we got
+!!$     * from H5Lget_info */
+!!$    if(H5Lcreate_ud(fid, "ud_link", UD_HARD_TYPE, &(li.u.address), sizeof(haddr_t), H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
+!!$
+!!$    /* Close and re-open file to ensure that data is written to disk */
+!!$    if(H5Fclose(fid) < 0) TEST_ERROR
+!!$    if((fid = H5Fopen(filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) TEST_ERROR
+!!$
+!!$    /* Open group through UD link */
+!!$    if((gid = H5Gopen2(fid, "ud_link", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
+!!$
+!!$    /* Check name */
+!!$    if((name_len = H5Iget_name( gid, objname, (size_t)NAME_BUF_SIZE )) < 0) TEST_ERROR
+!!$    if(HDstrcmp(objname, "/group")) TEST_ERROR
+!!$
+!!$    /* Create object in group */
+!!$    if((gid2 = H5Gcreate2(gid, "new_group", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+!!$
+!!$    /* Close groups*/
+!!$    if(H5Gclose(gid2) < 0) TEST_ERROR
+!!$    if(H5Gclose(gid) < 0) TEST_ERROR
+!!$
+!!$    /* Re-open group without using ud link to check that it was created properly */
+!!$    if((gid = H5Gopen2(fid, "group/new_group", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
+!!$
+!!$    /* Check name */
+!!$    if((name_len = H5Iget_name( gid, objname, (size_t)NAME_BUF_SIZE )) < 0) TEST_ERROR
+!!$    if(HDstrcmp(objname, "/group/new_group")) TEST_ERROR
+!!$
+!!$    /* Close opened object */
+!!$    if(H5Gclose(gid) < 0) FAIL_STACK_ERROR
+!!$
+!!$    /* Check that H5Lget_objinfo works on the hard link */
+!!$    if(H5Lget_info(fid, "ud_link", &li, H5P_DEFAULT) < 0) FAIL_STACK_ERROR
+!!$    /* UD hard links have no query function, thus return a "link length" of 0 */
+!!$    if(li.u.val_size != 0) TEST_ERROR
+!!$    if(UD_HARD_TYPE != li.type) {
+!!$	H5_FAILED();
+!!$	puts("    Unexpected link class - should have been a UD hard link");
+!!$	goto error;
+!!$    } /* end if */
+!!$
+!!$    /* Unlink the group pointed to by the UD link.  It shouldn't be
+!!$     * deleted because of the UD link. */
+!!$    if(H5Ldelete(fid, "/group", H5P_DEFAULT) < 0) FAIL_STACK_ERROR
+!!$
+!!$    /* Ensure we can open the group through the UD link */
+!!$    if((gid = H5Gopen2(fid, "ud_link", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
+!!$
+!!$    /* Unlink the group contained within it. */
+!!$    if(H5Ldelete(gid, "new_group", H5P_DEFAULT) < 0) FAIL_STACK_ERROR
+!!$    if(H5Gclose(gid) < 0) FAIL_STACK_ERROR
+!!$
+!!$    /* Now delete the UD link.  This should cause the group to be
+!!$     * deleted, too. */
+!!$    if(H5Ldelete(fid, "ud_link", H5P_DEFAULT) < 0) FAIL_STACK_ERROR
+!!$
+!!$    /* Close file */
+!!$    if(H5Fclose(fid) < 0) FAIL_STACK_ERROR
+!!$
+!!$    /* The file should be empty again. */
+!!$    if(empty_size != h5_get_file_size(filename)) TEST_ERROR
+!!$
+!!$    if(H5Lunregister(UD_HARD_TYPE) < 0) FAIL_STACK_ERROR
+!!$
+!!$    PASSED();
+!!$    return 0;
+!!$
+!!$ error:
+!!$    H5E_BEGIN_TRY {
+!!$    	H5Gclose(gid2);
+!!$    	H5Gclose(gid);
+!!$    	H5Fclose(fid);
+!!$    } H5E_END_TRY;
+!!$    return -1;
+!!$} /* end ud_hard_links() */
