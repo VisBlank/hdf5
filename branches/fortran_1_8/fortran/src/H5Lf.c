@@ -274,7 +274,7 @@ nh5lcreate_hard_c(hid_t_f *obj_loc_id, _fcd obj_name, size_t_f *obj_namelen,
 
 /*----------------------------------------------------------------------------
  * Name:        h5ldelete_by_idx_c 
- * Purpose:     Call h5ldelete_by_idx 
+ * Purpose:     Calls h5ldelete_by_idx 
  * Inputs:
  *          loc_id - File or group identifier specifying location of subject group
  *      group_name - Name of subject group
@@ -331,7 +331,7 @@ done:
 
 /*----------------------------------------------------------------------------
  * Name:        h5lexists_c
- * Purpose:     CAll H5Lexists 
+ * Purpose:     Calls H5Lexists 
  * Inputs:
  *      loc_id - Identifier of the file or group to query.
  *        name - Link name to check

@@ -835,7 +835,7 @@ CONTAINS
        INTEGER FUNCTION H5Lis_registered_c(link_cls_id)
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5LIS_REGISTERED_C'::H5Lis_registered_c
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5LIS_REGISTERED_C'::h5lis_registered_c
          !DEC$ ENDIF
          INTEGER, INTENT(IN) :: link_cls_id  ! User-defined link class identifier
        END FUNCTION H5Lis_registered_c
@@ -907,7 +907,7 @@ CONTAINS
             dest_name, dest_namelen, lcpl_id_default, lapl_id_default) 
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5LMOVE_C'::H5Lmove_c
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5LMOVE_C'::h5lmove_c
          !DEC$ ENDIF
 
          INTEGER(HID_T), INTENT(IN) :: src_loc_id 
@@ -939,7 +939,7 @@ CONTAINS
 !----------------------------------------------------------------------
 ! Name:		h5lget_name_by_idx_f
 !
-! Purpose:      Retrieves name of the n’th link in a group, according to the order within a specified field or index.
+! Purpose:      Retrieves name of the nth link in a group, according to the order within a specified field or index.
 !
 ! Inputs:  
 !   loc_id      - File or group identifier specifying location of subject group
@@ -1023,7 +1023,7 @@ CONTAINS
     IF(PRESENT(lapl_id)) lapl_id_default = lapl_id
 
     PRINT*,'loc_id =', loc_id
-    PRINT*,'index_field, order',index_field, order
+    PRINT*,'index_field, order', index_field, order
     hdferr = h5lget_name_by_idx_c(loc_id, group_name, group_namelen, index_field, order, n, &
              size, name, namelen, lapl_id_default)
     PRINT*,'back from call'
