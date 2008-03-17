@@ -656,7 +656,7 @@ CONTAINS
                                          ! 0 on success and -1 on failure
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id  ! Link access property list
 
-    INTEGER :: link_namelen
+    INTEGER(SIZE_T) :: link_namelen
     INTEGER(HID_T) :: lapl_id_default
     INTEGER :: corder_valid
 
@@ -678,7 +678,7 @@ CONTAINS
          INTEGER, INTENT(OUT) :: address
          INTEGER(HSIZE_T), INTENT(OUT) :: val_size
          INTEGER(HID_T) :: lapl_id_default
-         INTEGER :: link_namelen
+         INTEGER(SIZE_T) :: link_namelen
          INTEGER :: corder_valid
        END FUNCTION h5lget_info_c
     END INTERFACE
