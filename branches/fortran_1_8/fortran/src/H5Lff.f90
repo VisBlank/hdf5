@@ -950,12 +950,12 @@ CONTAINS
 !
 ! Outputs:  
 !   name        - Buffer in which link value is returned
+!    size       - Maximum number of characters of link value to be returned.
 !   hdferr      - error code		
 !		      Success:  0
 !		      Failure: -1
 !
 ! Optional parameters:
-!    size       - Maximum number of characters of link value to be returned.
 !    lapl_id    - List access property list identifier.
 !
 ! Programmer:	M. S. Breitenfeld
@@ -985,12 +985,11 @@ CONTAINS
                                         !    H5_ITER_NATIVE_F   - No particular order, whatever is fastest
     INTEGER(HSIZE_T), INTENT(IN) :: n   ! Attribute’s position in index
     INTEGER(SIZE_T), INTENT(INOUT) :: size   ! Indicates the size, in the number of characters, of the attribute
-                                              ! if size is set to 0, then returns correct size
+                                             ! returns correct size
     CHARACTER(LEN=*), INTENT(OUT) :: name ! Buffer in which link value is returned
     INTEGER, INTENT(OUT) :: hdferr        ! Error code:
                      
     INTEGER(SIZE_T)  :: group_namelen
-    INTEGER(SIZE_T)  :: namelen
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id  ! Link access property list
     INTEGER(HID_T) :: lapl_id_default
 
@@ -998,7 +997,7 @@ CONTAINS
 !
     INTERFACE
        INTEGER FUNCTION h5lget_name_by_idx_c(loc_id, group_name, group_namelen, index_field, order, n, &
-             size, name, namelen, lapl_id_default)
+             size, name, lapl_id_default)
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
          !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5LGET_NAME_BY_IDX_C'::h5lget_name_by_idx_c
@@ -1011,22 +1010,17 @@ CONTAINS
          INTEGER(HSIZE_T), INTENT(IN) :: n
          INTEGER(SIZE_T), INTENT(INOUT) :: size
          CHARACTER(LEN=*), INTENT(OUT) :: name
-         INTEGER(SIZE_T)  :: namelen
          INTEGER(HID_T) :: lapl_id_default
        END FUNCTION h5lget_name_by_idx_c
     END INTERFACE
 
     group_namelen = LEN(group_name)
-    namelen = LEN(name)
 
     lapl_id_default = H5P_DEFAULT_F
     IF(PRESENT(lapl_id)) lapl_id_default = lapl_id
 
-    PRINT*,'loc_id =', loc_id
-    PRINT*,'index_field, order', index_field, order
     hdferr = h5lget_name_by_idx_c(loc_id, group_name, group_namelen, index_field, order, n, &
-             size, name, namelen, lapl_id_default)
-    PRINT*,'back from call'
+             size, name, lapl_id_default)
 
   END SUBROUTINE h5lget_name_by_idx_f
 
