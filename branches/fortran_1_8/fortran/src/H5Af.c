@@ -959,7 +959,7 @@ done:
  * Name:        h5aget_name_c
  * Purpose:     Call H5Aget_name to get attribute's name
  * Inputs:      attr_id - attribute identifier
- *              bufsize -size of the buffer
+ *              bufsize - size of the buffer
  * Outputs:     buf - buffer to hold the name
  * Returns:     0 on success, -1 on failure
  * Programmer:  Elena Pourmal
