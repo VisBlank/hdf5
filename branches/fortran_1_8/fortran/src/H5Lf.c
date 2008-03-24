@@ -579,7 +579,8 @@ done:
  *   lapl_id     - Link access property list
  * Outputs:
  *   name        - Buffer in which link value is returned
- * Returns:     0 on success, -1 on failure
+ *   size        - The size of the link name on success
+ * Returns:      0 on success, -1 on failure
  * Programmer:  M.S. Breitenfeld
  *              March 10, 2008
  * Modifications: N/A
@@ -587,11 +588,10 @@ done:
 int_f
 nh5lget_name_by_idx_c(hid_t_f *loc_id, _fcd group_name, size_t_f *group_namelen,
 		      int_f *index_field, int_f *order, hsize_t_f *n,
-		      size_t_f *size, _fcd name, size_t_f *namelen, hid_t_f *lapl_id)
+		      size_t_f *size, _fcd name, hid_t_f *lapl_id)
 {
     char *c_group_name = NULL;          /* Buffer to hold C string */
     char *c_name = NULL;          /* Buffer to hold C string */
-    size_t *c_namelen;
     int_f ret_value = 0;          /* Return value */
     size_t c_size;
 
@@ -600,29 +600,23 @@ nh5lget_name_by_idx_c(hid_t_f *loc_id, _fcd group_name, size_t_f *group_namelen,
      */
     if((c_group_name = HD5f2cstring(group_name, (size_t)*group_namelen)) == NULL)
       HGOTO_DONE(FAIL);
-/*     /\* if size of name incorrect, get the correct size *\/ */
-/*     if((size_t)*size != (size_t)*namelen) { */
-/*       if(H5Lget_name_by_idx((hid_t)*loc_id, c_group_name, (H5_index_t)*index_field, (H5_iter_order_t)*order, (hsize_t)*n, */
-/* 			    c_name, c_size, (hid_t)*lapl_id) < 0) HGOTO_DONE(FAIL); */
-/*       printf("%i\n",(int_f)c_size); */
-/*       abort(); */
-/*     } /\*end if*\/ */
-/*     else { */
-/*       c_size = (size_t)*size + 1; */
-/*     } /\* end else *\/ */
 
     c_size = (size_t)*size + 1;
+  /*
+   * Allocate buffer to hold name of an attribute
+   */
+    if ((c_name = HDmalloc(c_size)) == NULL)
+      HGOTO_DONE(FAIL);
 
-    if(H5Lget_name_by_idx((hid_t)*loc_id, c_group_name, (H5_index_t)*index_field, (H5_iter_order_t)*order, (hsize_t)*n,
-			  c_name, c_size, (hid_t)*lapl_id) < 0)
+    if((*size = (size_t)H5Lget_name_by_idx((hid_t)*loc_id, c_group_name, (H5_index_t)*index_field, 
+						     (H5_iter_order_t)*order, (hsize_t)*n,c_name, c_size, (hid_t)*lapl_id)) < 0)
       HGOTO_DONE(FAIL);
 
     /*
      * Convert C name to FORTRAN and place it in the given buffer
      */
     if(c_name != NULL)
-      HD5packFstring(c_name, _fcdtocp(c_name), c_size-1);
-    
+      HD5packFstring(c_name, _fcdtocp(name), c_size-1);
 done:
     if(c_group_name) HDfree(c_group_name);
     if(c_name) HDfree(c_name);
