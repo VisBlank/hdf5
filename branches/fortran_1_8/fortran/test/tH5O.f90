@@ -29,6 +29,7 @@ SUBROUTINE test_h5o(cleanup, total_error)
 !!$  test_h5o_refcount();        /* Test incrementing and decrementing reference count */
 !!$  test_h5o_plist();           /* Test object creation properties */
   CALL test_h5o_link(total_error) ! /* Test object link routine */
+
 END SUBROUTINE test_h5o
 
 !/****************************************************************
@@ -140,6 +141,8 @@ SUBROUTINE test_h5o_link(total_error)
         wdata(i,j) = i*j
      ENDDO
   ENDDO
+
+
   
 !!$    ! /* Create a group with no name*/
 !!$    group_id = H5Gcreate_anon(file_id, H5P_DEFAULT, H5P_DEFAULT);
@@ -226,7 +229,6 @@ SUBROUTINE delete_by_idx(fapl, total_error)
   INTEGER(HID_T) :: gcpl_id  ! /* Group creation property list ID */
 
   INTEGER :: idx_type        ! /* Type of index to operate on */
-  INTEGER :: order           ! /* Order within in the index */
   LOGICAL, DIMENSION(1:2) :: use_index = (/.FALSE.,.TRUE./) 
                              ! /* Use index on creation order values */
   INTEGER :: max_compact     ! /* Maximum # of links to store in group compactly */ 
@@ -234,7 +236,7 @@ SUBROUTINE delete_by_idx(fapl, total_error)
 
   CHARACTER(LEN=7) :: objname   ! /* Object name */
   CHARACTER(LEN=8) :: filename = 'file0.h5' ! /* File name */
-  CHARACTER(LEN=10) :: tmpname   ! /* Temporary link name */
+  CHARACTER(LEN=7) :: tmpname   ! /* Temporary link name */
   CHARACTER(LEN=12), PARAMETER :: CORDER_GROUP_NAME = "corder_group"
 
   LOGICAL :: f_corder_valid ! Indicates whether the creation order data is valid for this attribute 
@@ -246,10 +248,9 @@ SUBROUTINE delete_by_idx(fapl, total_error)
   INTEGER :: Input1, i
   INTEGER(HID_T) :: group_id2
 
-  INTEGER :: iorder
+  INTEGER :: iorder ! /* Order within in the index */
   CHARACTER(LEN=2) :: chr2
   INTEGER :: error
-  INTEGER(SIZE_T) :: size_tmp
   !
   !
   !
@@ -257,6 +258,7 @@ SUBROUTINE delete_by_idx(fapl, total_error)
   CHARACTER(LEN=6)  :: filename2
   CHARACTER(LEN=80) :: fix_filename1
   CHARACTER(LEN=80) :: fix_filename2
+  INTEGER(SIZE_T) :: size_tmp
 
   DO i = 1, 80
      fix_filename1(i:i) = " "
@@ -271,7 +273,7 @@ SUBROUTINE delete_by_idx(fapl, total_error)
         DO i = 1, 2
            ! /* Print appropriate test message */
            IF(idx_type == H5_INDEX_CRT_ORDER_F)THEN
-              IF(order == H5_ITER_INC_F)THEN
+              IF(iorder == H5_ITER_INC_F)THEN
                  IF(use_index(i))THEN
                     WRITE(*,'(5x,A)')"deleting links by creation order index in increasing order w/creation order index"
                  ELSE
@@ -285,7 +287,7 @@ SUBROUTINE delete_by_idx(fapl, total_error)
                  ENDIF
               ENDIF
            ELSE
-              IF(order == H5_ITER_INC_F)THEN
+              IF(iorder == H5_ITER_INC_F)THEN
                  IF(use_index(i))THEN
                     WRITE(*,'(5x,A)')"deleting links by name index in increasing order w/creation order index"
                  ELSE
@@ -316,6 +318,7 @@ SUBROUTINE delete_by_idx(fapl, total_error)
            ELSE
               Input1 = 0
            ENDIF
+
            CALL H5Pset_link_creation_order_f(gcpl_id, IOR(H5P_CRT_ORDER_TRACKED_F, Input1), error)
            CALL check("delete_by_idx.H5Pset_link_creation_order_f", error, total_error)
 
@@ -331,7 +334,7 @@ SUBROUTINE delete_by_idx(fapl, total_error)
            ! /* Delete links from one end */
 
            ! /* Check for deletion on empty group */
-           CALL H5Ldelete_by_idx_f(group_id, ".", idx_type, order, INT(0,HSIZE_T), error)
+           CALL H5Ldelete_by_idx_f(group_id, ".", idx_type, iorder, INT(0,HSIZE_T), error)
            CALL VERIFY("delete_by_idx.H5Ldelete_by_idx_f", error, -1, total_error) ! test should fail (error = -1)
            ! /* Create several links, up to limit of compact form */
            DO u = 0, max_compact-1
@@ -355,7 +358,7 @@ SUBROUTINE delete_by_idx(fapl, total_error)
 
            ! /* Check for out of bound deletion */
 
-           CALL H5Ldelete_by_idx_f(group_id, ".", idx_type, order, INT(u,HSIZE_T), error)
+           CALL H5Ldelete_by_idx_f(group_id, ".", idx_type, iorder, INT(u,HSIZE_T), error)
            CALL VERIFY("delete_by_idx.H5Ldelete_by_idx_f", error, -1, total_error) ! test should fail (error = -1)
 
 
@@ -363,15 +366,15 @@ SUBROUTINE delete_by_idx(fapl, total_error)
 
            DO u = 0, (max_compact - 1) -1
               ! /* Delete first link in appropriate order */
-              CALL H5Ldelete_by_idx_f(group_id, ".", idx_type, order, INT(0,HSIZE_T), error)
+              CALL H5Ldelete_by_idx_f(group_id, ".", idx_type, iorder, INT(0,HSIZE_T), error)
               CALL check("delete_by_idx.H5Ldelete_by_idx_f", error, total_error)
               ! /* Verify the link information for first link in appropriate order */
               ! HDmemset(&linfo, 0, sizeof(linfo));
 
-              CALL H5Lget_info_by_idx_f(group_id, ".", idx_type, order, INT(0,HSIZE_T), &
+              CALL H5Lget_info_by_idx_f(group_id, ".", idx_type, iorder, INT(0,HSIZE_T), &
                    f_corder_valid, corder, cset, data_size, error)
 
-              IF(order.EQ.H5_ITER_INC_F)THEN
+              IF(iorder.EQ.H5_ITER_INC_F)THEN
                  CALL VERIFY("delete_by_idx.H5Lget_info_by_idx_f", corder, u+1, total_error)
               ELSE
                  CALL VERIFY("delete_by_idx.H5Lget_info_by_idx_f", corder, (max_compact - (u + 2)), total_error)
@@ -609,6 +612,9 @@ SUBROUTINE link_info_by_idx_check(group_id, linkname, n, &
   INTEGER(HSIZE_T) :: data_size   ! Indicates the size, in the number of characters, of the attribute
 
   CHARACTER(LEN=7) :: tmpname     !/* Temporary link name */
+  CHARACTER(LEN=3) :: tmpname_small !/* to small temporary link name */
+  CHARACTER(LEN=10) :: tmpname_big !/* to big temporary link name */
+
   CHARACTER(LEN=7) :: valname     !/* Link value name */
   CHARACTER(LEN=7) :: tmpval      !/* Temporary link value */
   CHARACTER(LEN=2) :: chr2
@@ -647,14 +653,30 @@ SUBROUTINE link_info_by_idx_check(group_id, linkname, n, &
   ! /* Verify the name for new link, in increasing creation order */
   !  HDmemset(tmpname, 0, (size_t)NAME_BUF_SIZE);
 
+  ! The actual size of tmpname should be 7
+
   ! Try with a size set to zero
-!!$  size_tmp = INT(7,SIZE_T)
-!!$  CALL H5Lget_name_by_idx_f(group_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, INT(n,HSIZE_T), size_tmp, tmpname, error)
-!!$  CALL check("link_info_by_idx_check.H5Lget_name_by_idx_f", error, total_error)
-!!$  PRINT*,linkname, tmpname
-!!$  CALL verifyString("link_info_by_idx_check.H5Lget_name_by_idx_f", linkname, tmpname,  total_error)
-!!$
-!!$  stop
+  size_tmp = INT(LEN(tmpname_small),SIZE_T)
+  CALL H5Lget_name_by_idx_f(group_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, INT(n,HSIZE_T), size_tmp, tmpname_small, error)
+  CALL check("link_info_by_idx_check.H5Lget_name_by_idx_f", error, total_error)
+  CALL verifyString("link_info_by_idx_check.H5Lget_name_by_idx_f", &
+       linkname(1:LEN(tmpname_small)), tmpname_small(1:LEN(tmpname_small)),  total_error)
+  CALL VERIFY("link_info_by_idx_check.H5Lget_name_by_idx_f", size_tmp, 7, total_error)
+
+  ! try it with the correct size
+  size_tmp = INT(LEN(tmpname),SIZE_T)
+  CALL H5Lget_name_by_idx_f(group_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, INT(n,HSIZE_T), size_tmp, tmpname, error)
+  CALL check("link_info_by_idx_check.H5Lget_name_by_idx_f", error, total_error)
+  CALL verifyString("link_info_by_idx_check.H5Lget_name_by_idx_f", &
+       linkname(1:LEN(tmpname)), tmpname(1:LEN(tmpname)),  total_error)
+  CALL VERIFY("link_info_by_idx_check.H5Lget_name_by_idx_f", size_tmp, 7, total_error)
+
+  size_tmp = INT(LEN(tmpname_big),SIZE_T)
+  CALL H5Lget_name_by_idx_f(group_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, INT(n,HSIZE_T), size_tmp, tmpname_big, error)
+  CALL check("link_info_by_idx_check.H5Lget_name_by_idx_f", error, total_error)
+  CALL verifyString("link_info_by_idx_check.H5Lget_name_by_idx_f", &
+       linkname(1:7), tmpname_big(1:7),  total_error)
+  CALL VERIFY("link_info_by_idx_check.H5Lget_name_by_idx_f", size_tmp, 7, total_error)
 
   ! Try with a buffer set to small
 
@@ -1082,10 +1104,10 @@ SUBROUTINE link_info_by_idx_check(group_id, linkname, n, &
 
   CALL H5Pclose_f(lcpl_id, error)
   CALL check("test_lcpl.H5Pclose_f", error, total_error)
-  CALL h5sclose_f(space_id, error)
-  CALL check("test_lcpl.h5sclose_f",error,total_error)
+  CALL H5Sclose_f(space_id, error)
+  CALL check("test_lcpl.h5Sclose_f",error,total_error)
   CALL H5Fclose_f(file_id, error)
-  CALL check("test_lcpl.H5Gclose_f", error, total_error)
+  CALL check("test_lcpl.H5Fclose_f", error, total_error)
 
 END SUBROUTINE test_lcpl
 
@@ -1130,6 +1152,9 @@ SUBROUTINE objcopy(fapl, total_error)
 !!$  CALL test_copy_option(fcpl_src, fcpl_dst, my_fapl, H5O_COPY_WITHOUT_ATTR_FLAG, 
 !!$                       FALSE, "H5Ocopy(): without attributes");
 
+
+
+  CALL lapl_nlinks(fapl2, total_error)
 
 END SUBROUTINE objcopy
 

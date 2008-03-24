@@ -160,16 +160,18 @@ SUBROUTINE attribute_test_1_8(cleanup, total_error)
 !!$           CALL test_attr_open_by_name(new_format, fcpl, my_fapl)
 !!$           CALL test_attr_create_by_name(new_format, fcpl, my_fapl)
 !!$           CALL test_attr_bug1(fcpl, my_fapl)
+
+
+
+
      END IF
   END DO
-!!$     ret = H5Pclose(fcpl)
-!!$     CALL CHECK(ret, FAIL, "H5Pclose")
-!!$     ret = H5Pclose(fcpl2)
-!!$     CALL CHECK(ret, FAIL, "H5Pclose")
-!!$     ret = H5Pclose(fapl)
-!!$     CALL CHECK(ret, FAIL, "H5Pclose")
-!!$     ret = H5Pclose(fapl2)
-!!$     CALL CHECK(ret, FAIL, "H5Pclose") 
+
+  CALL H5Pclose_f(fcpl, error)
+  CALL CHECK("H5Pclose", error,total_error)
+  CALL H5Pclose_f(fcpl2, error)
+  CALL CHECK("H5Pclose", error,total_error)
+
 
   RETURN
 END SUBROUTINE attribute_test_1_8
@@ -3815,5 +3817,253 @@ SUBROUTINE attr_open_check(fid, dsetname, obj_id, max_attrs, total_error )
   ENDDO
 
 END SUBROUTINE attr_open_check
+
+!/*-------------------------------------------------------------------------
+! * Function:    lapl_nlinks
+! *
+! * Purpose:     Check that the maximum number of soft links can be adjusted
+! *              by the user using the Link Access Property List.
+! *
+! * Return:      Success:        0
+! *
+! *              Failure:        -1
+! *
+! * Programmer:  James Laird
+! *              Tuesday, June 6, 2006
+! *
+! * Modifications:
+! *
+! *-------------------------------------------------------------------------
+! */
+
+SUBROUTINE lapl_nlinks( fapl, total_error)
+
+  USE HDF5
+  
+  IMPLICIT NONE
+  INTEGER(HID_T), INTENT(IN) :: fapl
+  INTEGER, INTENT(INOUT) :: total_error
+
+  INTEGER :: error
+
+  INTEGER(HID_T) :: fid = (-1) !/* File ID */
+  INTEGER(HID_T) :: gid = (-1), gid2 = (-1) !/* Group IDs */
+  INTEGER(HID_T) :: plist = (-1) ! /* lapl ID */
+  INTEGER(HID_T) :: tid = (-1), sid = (-1), did = (-1) ! /* Other IDs */
+  INTEGER(HID_T) :: gapl = (-1), dapl = (-1), tapl = (-1) ! /* Other property lists */
+  
+  CHARACTER(LEN=7) :: objname ! /* Object name */
+!  INTEGER(ssize_t) :: name_len ! /* Length of object name */
+  CHARACTER(LEN=7) :: filename = 'link.h5'
+  INTEGER(size_t) ::              nlinks ! /* nlinks for H5Pset_nlinks */
+  INTEGER(hsize_t), DIMENSION(2) :: dims
+  
+  WRITE(*,*) "adjusting nlinks with LAPL (w/new group format)"
+
+
+!!$    /* Make certain test is valid */
+!!$    /* XXX: should probably make a "generic" test that creates the proper
+!!$     *          # of links based on this value - QAK
+!!$     */
+!!$    HDassert(H5L_NUM_LINKS == 16);
+
+  ! /* Create file */
+  CALL h5fcreate_f(FileName, H5F_ACC_TRUNC_F, fid, error, access_prp=fapl)
+  CALL check(" lapl_nlinks.h5fcreate_f",error,total_error)
+
+  ! /* Create group with short name in file (used as target for links) */
+  CALL H5Gcreate_f(fid, "final", gid, error) 
+  CALL check(" lapl_nlinks.H5Gcreate_f", error, total_error)
+  
+  !/* Create chain of soft links to existing object (limited) */
+  CALL H5Lcreate_soft_f("final", fid, "soft1", error)
+  CALL H5Lcreate_soft_f("soft1", fid, "soft2", error)
+  CALL H5Lcreate_soft_f("soft2", fid, "soft3", error)
+  CALL H5Lcreate_soft_f("soft3", fid, "soft4", error)
+  CALL H5Lcreate_soft_f("soft4", fid, "soft5", error)
+  CALL H5Lcreate_soft_f("soft5", fid, "soft6", error)
+  CALL H5Lcreate_soft_f("soft6", fid, "soft7", error)
+  CALL H5Lcreate_soft_f("soft7", fid, "soft8", error)
+  CALL H5Lcreate_soft_f("soft8", fid, "soft9", error)
+  CALL H5Lcreate_soft_f("soft9", fid, "soft10", error)
+  CALL H5Lcreate_soft_f("soft10", fid, "soft11", error)
+  CALL H5Lcreate_soft_f("soft11", fid, "soft12", error)
+  CALL H5Lcreate_soft_f("soft12", fid, "soft13", error)
+  CALL H5Lcreate_soft_f("soft13", fid, "soft14", error)
+  CALL H5Lcreate_soft_f("soft14", fid, "soft15", error)
+  CALL H5Lcreate_soft_f("soft15", fid, "soft16", error)
+  CALL H5Lcreate_soft_f("soft16", fid, "soft17", error)
+
+  !/* Close objects */
+  CALL H5Gclose_f(gid, error)
+  CALL check("h5gclose_f",error,total_error)
+  CALL h5fclose_f(fid, error)
+  CALL check("h5fclose_f",error,total_error)
+
+  !/* Open file */
+  
+  CALL h5fopen_f(FileName, H5F_ACC_RDWR_F, fid, error, fapl)
+  CALL check("h5open_f",error,total_error)
+  
+  !/* Create LAPL with higher-than-usual nlinks value */
+  !/* Create a non-default lapl with udata set to point to the first group */
+  
+  CALL H5Pcreate_f(H5P_LINK_ACCESS_F,plist,error)
+  CALL check("h5Pcreate_f",error,total_error)
+  nlinks = 20
+  CALL H5Pset_nlinks_f(plist, nlinks, error)
+  CALL check("H5Pset_nlinks_f",error,total_error)
+  !/* Ensure that nlinks was set successfully */
+  nlinks = 0
+  CALL H5Pget_nlinks_f(plist, nlinks, error)
+  CALL check("H5Pset_nlinks_f",error,total_error)
+  CALL VERIFY("H5Pset_nlinks_f",nlinks, 20, total_error)
+
+!!$
+!!$    /* Open object through what is normally too many soft links using
+!!$     * new property list */
+!!$    if((gid = H5Oopen(fid, "soft17", plist)) < 0) TEST_ERROR
+!!$
+!!$    /* Check name */
+!!$    if((name_len = H5Iget_name( gid, objname, (size_t)NAME_BUF_SIZE )) < 0) TEST_ERROR
+!!$    if(HDstrcmp(objname, "/soft17")) TEST_ERROR
+!!$
+!!$    /* Create group using soft link */
+!!$    if((gid2 = H5Gcreate2(gid, "new_soft", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+!!$
+!!$    /* Close groups */
+!!$    if(H5Gclose(gid2) < 0) TEST_ERROR
+!!$    if(H5Gclose(gid) < 0) TEST_ERROR
+!!$
+!!$    /* Set nlinks to a smaller number */
+!!$    nlinks = 4;
+!!$    if(H5Pset_nlinks(plist, nlinks) < 0) TEST_ERROR
+!!$
+!!$    /* Ensure that nlinks was set successfully */
+!!$    nlinks = 0;
+!!$    if(H5Pget_nlinks(plist, &nlinks) < 0) TEST_ERROR
+!!$    if(nlinks != 4) TEST_ERROR
+!!$
+!!$    /* Try opening through what is now too many soft links */
+!!$    H5E_BEGIN_TRY {
+!!$        gid = H5Oopen(fid, "soft5", plist);
+!!$    } H5E_END_TRY;
+!!$    if (gid >= 0) {
+!!$	H5_FAILED();
+!!$	puts("    Should have failed for sequence of too many nested links.");
+!!$	goto error;
+!!$    }
+!!$
+!!$    /* Open object through lesser soft link */
+!!$    if((gid = H5Oopen(fid, "soft4", plist)) < 0) TEST_ERROR
+!!$
+!!$    /* Check name */
+!!$    if((name_len = H5Iget_name( gid, objname, (size_t)NAME_BUF_SIZE )) < 0) TEST_ERROR
+!!$    if(HDstrcmp(objname, "/soft4")) TEST_ERROR
+!!$
+!!$
+!!$    /* Test other functions that should use a LAPL */
+!!$    nlinks = 20;
+!!$    if(H5Pset_nlinks(plist, nlinks) < 0) TEST_ERROR
+!!$
+!!$    /* Try copying and moving when both src and dst contain many soft links
+!!$     * using a non-default LAPL
+!!$     */
+!!$    if(H5Lcopy(fid, "soft17", fid, "soft17/newer_soft", H5P_DEFAULT, plist) < 0) TEST_ERROR
+!!$    if(H5Lmove(fid, "soft17/newer_soft", fid, "soft17/newest_soft", H5P_DEFAULT, plist) < 0) TEST_ERROR
+!!$
+!!$    /* H5Olink */
+!!$    if(H5Olink(gid, fid, "soft17/link_to_group", H5P_DEFAULT, plist) < 0) TEST_ERROR
+!!$
+!!$    /* H5Lcreate_hard  and H5Lcreate_soft */
+!!$    if(H5Lcreate_hard(fid, "soft17", fid, "soft17/link2_to_group", H5P_DEFAULT, plist) < 0) TEST_ERROR
+!!$    if(H5Lcreate_soft("/soft4", fid, "soft17/soft_link", H5P_DEFAULT, plist) < 0) TEST_ERROR
+!!$
+!!$    /* H5Ldelete */
+!!$    if(H5Ldelete(fid, "soft17/soft_link", plist) < 0) TEST_ERROR
+!!$
+!!$    /* H5Lget_val and H5Lget_info */
+!!$    if(H5Lget_val(fid, "soft17", NULL, (size_t)0, plist) < 0) TEST_ERROR
+!!$    if(H5Lget_info(fid, "soft17", NULL, plist) < 0) TEST_ERROR
+!!$
+!!$    /* H5Lcreate_external and H5Lcreate_ud */
+!!$    if(H5Lcreate_external("filename", "path", fid, "soft17/extlink", H5P_DEFAULT, plist) < 0) TEST_ERROR
+!!$    if(H5Lregister(UD_rereg_class) < 0) TEST_ERROR
+!!$    if(H5Lcreate_ud(fid, "soft17/udlink", UD_HARD_TYPE, NULL, (size_t)0, H5P_DEFAULT, plist) < 0) TEST_ERROR
+!!$
+!!$    /* Close plist */
+!!$    if(H5Pclose(plist) < 0) TEST_ERROR
+!!$
+!!$
+!!$    /* Create a datatype and dataset as targets inside the group */
+!!$    if((tid = H5Tcopy(H5T_NATIVE_INT)) < 0) TEST_ERROR
+!!$    if(H5Tcommit2(gid, "datatype", tid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(H5Tclose(tid) < 0) TEST_ERROR
+!!$
+!!$    dims[0] = 2;
+!!$    dims[1] = 2;
+!!$    if((sid = H5Screate_simple(2, dims, NULL)) < 0) TEST_ERROR
+!!$    if((did = H5Dcreate2(gid, "dataset", H5T_NATIVE_INT, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+!!$    if(H5Dclose(did) < 0) TEST_ERROR
+!!$
+!!$    /* Close group */
+!!$    if(H5Gclose(gid) < 0) TEST_ERROR
+!!$
+!!$    /* Try to open the objects using too many symlinks with default *APLs */
+!!$    H5E_BEGIN_TRY {
+!!$        if((gid = H5Gopen2(fid, "soft17", H5P_DEFAULT)) >= 0)
+!!$            FAIL_PUTS_ERROR("    Should have failed for too many nested links.")
+!!$        if((tid = H5Topen2(fid, "soft17/datatype", H5P_DEFAULT)) >= 0)
+!!$            FAIL_PUTS_ERROR("    Should have failed for too many nested links.")
+!!$        if((did = H5Dopen2(fid, "soft17/dataset", H5P_DEFAULT)) >= 0)
+!!$            FAIL_PUTS_ERROR("    Should have failed for too many nested links.")
+!!$    } H5E_END_TRY
+!!$
+!!$    /* Create property lists with nlinks set */
+!!$    if((gapl = H5Pcreate(H5P_GROUP_ACCESS)) < 0) TEST_ERROR
+!!$    if((tapl = H5Pcreate(H5P_DATATYPE_ACCESS)) < 0) TEST_ERROR
+!!$    if((dapl = H5Pcreate(H5P_DATASET_ACCESS)) < 0) TEST_ERROR
+!!$
+!!$    nlinks = 20;
+!!$    if(H5Pset_nlinks(gapl, nlinks) < 0) TEST_ERROR 
+!!$    if(H5Pset_nlinks(tapl, nlinks) < 0) TEST_ERROR 
+!!$    if(H5Pset_nlinks(dapl, nlinks) < 0) TEST_ERROR 
+!!$
+!!$    /* We should now be able to use these property lists to open each kind
+!!$     * of object.
+!!$     */
+!!$    if((gid = H5Gopen2(fid, "soft17", gapl)) < 0) FAIL_STACK_ERROR
+!!$    if((tid = H5Topen2(fid, "soft17/datatype", tapl)) < 0) TEST_ERROR
+!!$    if((did = H5Dopen2(fid, "soft17/dataset", dapl)) < 0) TEST_ERROR
+!!$
+!!$    /* Close objects */
+!!$    if(H5Gclose(gid) < 0) TEST_ERROR
+!!$    if(H5Tclose(tid) < 0) TEST_ERROR
+!!$    if(H5Dclose(did) < 0) TEST_ERROR
+!!$
+!!$    /* Close plists */
+!!$    if(H5Pclose(gapl) < 0) TEST_ERROR
+!!$    if(H5Pclose(tapl) < 0) TEST_ERROR
+!!$    if(H5Pclose(dapl) < 0) TEST_ERROR
+!!$
+!!$    /* Unregister UD hard link class */
+!!$    if(H5Lunregister(UD_HARD_TYPE) < 0) TEST_ERROR
+!!$
+!!$    /* Close file */
+!!$    if(H5Fclose(fid) < 0) TEST_ERROR
+!!$
+!!$    PASSED();
+!!$    return 0;
+
+!!$  CALL H5Pclose_f(gapl, error)
+!!$  CALL check("H5Pclose_f", error, total_error)
+!!$  CALL H5Gclose_f(gid, error)
+!!$  CALL check("H5Gclose_f", error, total_error)
+  CALL H5Pclose_f(plist, error)
+  CALL check("H5Pclose_f", error, total_error)
+  CALL H5Fclose_f(fid, error)
+  CALL check("H5Fclose_f", error, total_error)
+
+END SUBROUTINE lapl_nlinks
 
 

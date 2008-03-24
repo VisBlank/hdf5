@@ -49,6 +49,9 @@ SUBROUTINE group_test(cleanup, total_error)
 
   CALL objcopy(fapl, total_error)
 
+  CALL lifecycle(fapl2, total_error)
+  
+
 END SUBROUTINE group_test
 
 !/*-------------------------------------------------------------------------
@@ -730,9 +733,9 @@ SUBROUTINE group_info(fapl, total_error)
 
      ! /* Create a file */
      CALL h5fcreate_f(FileName, H5F_ACC_TRUNC_F, file, error, H5P_DEFAULT_F, fapl)
-     CALL check("h5fcreate_f",error,total_error)
+     CALL check("mklinks.h5fcreate_f",error,total_error)
      CALL h5screate_simple_f(arank, adims2, scalar, error)
-     CALL check("h5screate_simple_f",error,total_error)
+     CALL check("mklinks.h5screate_simple_f",error,total_error)
 
      !/* Create a group */
      CALL H5Gcreate_f(file, "grp1", grp, error) 
@@ -860,6 +863,7 @@ SUBROUTINE group_info(fapl, total_error)
     CALL H5Gcreate_f(file_id, "group", group_id, error,lcpl_id=lcpl_id, gcpl_id=H5P_DEFAULT_F, gapl_id=H5P_DEFAULT_F) 
     CALL check("H5Gcreate_f", error, total_error)
     CALL H5Gclose_f(group_id, error)
+    CALL check("H5Gclose_f", error, total_error)
 
     ! /* Get the group's link's information */
     CALL H5Lget_info_f(file_id, "group", &
@@ -1131,3 +1135,254 @@ SUBROUTINE group_info(fapl, total_error)
 !!$    } H5E_END_TRY;
 !!$    return -1;
 !!$} /* end ud_hard_links() */
+
+!/*-------------------------------------------------------------------------
+! * Function:    lifecycle
+! *
+! * Purpose:     Test that adding links to a group follow proper "lifecycle"
+! *              of empty->compact->symbol table->compact->empty.  (As group
+! *              is created, links are added, then links removed)
+! *
+! * Return:      Success:        0
+! *
+! *              Failure:        -1
+! *
+! * Programmer:  Quincey Koziol
+! *              Monday, October 17, 2005
+! *
+! *-------------------------------------------------------------------------
+! */
+SUBROUTINE lifecycle(fapl2, total_error)
+
+
+  USE HDF5 ! This module contains all necessary modules 
+    
+  IMPLICIT NONE
+  INTEGER, INTENT(OUT) :: total_error
+  INTEGER(HID_T), INTENT(IN) :: fapl2
+  INTEGER :: error
+
+  INTEGER, PARAMETER :: NAME_BUF_SIZE =7
+
+  INTEGER(HID_T) :: fid            !/* File ID */
+  INTEGER(HID_T) :: gid            !/* Group ID */
+  INTEGER(HID_T) :: gid2           !/* Datatype ID */
+  INTEGER(HID_T) :: gcpl           !/* Group creation property list ID */
+  INTEGER(size_t) :: lheap_size_hint !/* Local heap size hint */
+  INTEGER :: max_compact            !/* Maximum # of links to store in group compactly */
+  INTEGER :: min_dense              !/* Minimum # of links to store in group "densely" */
+  INTEGER :: est_num_entries	!/* Estimated # of entries in group */
+  INTEGER :: est_name_len		!/* Estimated length of entry name */
+  INTEGER :: nmsgs		        !/* Number of messages in group's header */
+  CHARACTER(LEN=NAME_BUF_SIZE) :: objname ! /* Object name */
+  CHARACTER(LEN=NAME_BUF_SIZE) :: filename = 'fixx.h5'
+  INTEGER :: empty_size             ! /* Size of an empty file */
+  INTEGER :: u                      ! /* Local index variable */
+  INTEGER(SIZE_T) :: LIFECYCLE_LOCAL_HEAP_SIZE_HINT = 256
+  INTEGER :: LIFECYCLE_MAX_COMPACT = 4
+  INTEGER :: LIFECYCLE_MIN_DENSE = 3
+  INTEGER :: LIFECYCLE_EST_NUM_ENTRIES = 4
+  INTEGER :: LIFECYCLE_EST_NAME_LEN=8
+  CHARACTER(LEN=3) :: LIFECYCLE_TOP_GROUP="top"
+! These value are taken from H5Gprivate.h
+  INTEGER :: H5G_CRT_GINFO_MAX_COMPACT = 8
+  INTEGER :: H5G_CRT_GINFO_MIN_DENSE = 6
+  INTEGER :: H5G_CRT_GINFO_EST_NUM_ENTRIES = 4
+  INTEGER :: H5G_CRT_GINFO_EST_NAME_LEN = 8
+
+  WRITE(*,*) 'group lifecycle'
+
+  ! /* Create file */
+  CALL H5Fcreate_f(filename, H5F_ACC_TRUNC_F, fid, error, access_prp=fapl2)
+  CALL check("H5Fcreate_f",error,total_error)
+
+  !/* Close file */
+  CALL H5Fclose_f(fid,error)
+  CALL check("H5Fclose_f",error,total_error)
+
+  ! /* Get size of file as empty */
+  ! if((empty_size = h5_get_file_size(filename)) < 0) TEST_ERROR
+
+  ! /* Re-open file */
+
+  CALL H5Fopen_f(filename, H5F_ACC_RDWR_F, fid, error,access_prp=fapl2)
+  CALL check("H5Fopen_f",error,total_error)
+
+
+  ! /* Set up group creation property list */
+  CALL H5Pcreate_f(H5P_GROUP_CREATE_F,gcpl,error)
+  CALL check("H5Pcreate_f",error,total_error)
+  
+
+  ! /* Query default group creation property settings */
+  CALL H5Pget_local_heap_size_hint_f(gcpl, lheap_size_hint, error)
+  CALL check("H5Pget_local_heap_size_hint_f",error,total_error)
+  CALL verify("H5Pget_local_heap_size_hint_f", lheap_size_hint,0,total_error)
+
+  CALL H5Pget_link_phase_change_f(gcpl, max_compact, min_dense, error)
+  CALL check("H5Pget_link_phase_change_f", error, total_error)
+  CALL verify("H5Pget_link_phase_change_f", max_compact, H5G_CRT_GINFO_MAX_COMPACT,total_error)
+  CALL verify("H5Pget_link_phase_change_f", min_dense, H5G_CRT_GINFO_MIN_DENSE,total_error)
+
+
+  CALL H5Pget_est_link_info_f(gcpl, est_num_entries, est_name_len, error)
+  CALL check("H5Pget_est_link_info_f", error, total_error)
+  CALL verify("H5Pget_est_link_info_f", est_num_entries, H5G_CRT_GINFO_EST_NUM_ENTRIES,total_error)
+  CALL verify("H5Pget_est_link_info_f", est_name_len, H5G_CRT_GINFO_EST_NAME_LEN,total_error)
+  
+
+  !/* Set GCPL parameters */
+
+  CALL H5Pset_local_heap_size_hint_f(gcpl, LIFECYCLE_LOCAL_HEAP_SIZE_HINT, error)
+  CALL check("H5Pset_local_heap_size_hint_f", error, total_error)
+  CALL H5Pset_link_phase_change_f(gcpl, LIFECYCLE_MAX_COMPACT, LIFECYCLE_MIN_DENSE, error)
+  CALL check("H5Pset_link_phase_change_f", error, total_error)
+  CALL H5Pset_est_link_info_f(gcpl, LIFECYCLE_EST_NUM_ENTRIES, LIFECYCLE_EST_NAME_LEN, error)
+  CALL check("H5Pset_est_link_info_f", error, total_error)
+
+  ! /* Create group for testing lifecycle */
+
+  CALL H5Gcreate_f(fid, LIFECYCLE_TOP_GROUP, gid, error, gcpl_id=gcpl)
+  CALL check("H5Gcreate_f", error, total_error)
+
+  ! /* Query group creation property settings */
+
+  CALL H5Pget_local_heap_size_hint_f(gcpl, lheap_size_hint, error)
+  CALL check("H5Pget_local_heap_size_hint_f",error,total_error)
+  CALL verify("H5Pget_local_heap_size_hint_f", lheap_size_hint,LIFECYCLE_LOCAL_HEAP_SIZE_HINT,total_error)
+
+  CALL H5Pget_link_phase_change_f(gcpl, max_compact, min_dense, error)
+  CALL check("H5Pget_link_phase_change_f", error, total_error)
+  CALL verify("H5Pget_link_phase_change_f", max_compact, LIFECYCLE_MAX_COMPACT,total_error)
+  CALL verify("H5Pget_link_phase_change_f", min_dense, LIFECYCLE_MIN_DENSE,total_error)
+
+  CALL H5Pget_est_link_info_f(gcpl, est_num_entries, est_name_len, error)
+  CALL check("H5Pget_est_link_info_f", error, total_error)
+  CALL verify("H5Pget_est_link_info_f", est_num_entries, LIFECYCLE_EST_NUM_ENTRIES,total_error)
+  CALL verify("H5Pget_est_link_info_f", est_name_len, LIFECYCLE_EST_NAME_LEN,total_error)
+
+
+  ! /* Use internal testing routine to check that the group has no links or symbol table */
+  !  if(H5G_is_empty_test(gid) != TRUE) TEST_ERROR
+
+!!$   /* Create first "bottom" group */
+!!$  sprintf(objname, LIFECYCLE_BOTTOM_GROUP, (unsigned)0);
+!!$  IF((gid2 = H5Gcreate2(gid, objname, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+!!$
+!!$    /* Check on bottom group's status */
+!!$    if(H5G_is_empty_test(gid2) != TRUE) TEST_ERROR
+!!$
+!!$    /* Close bottom group */
+!!$    if(H5Gclose(gid2) < 0) TEST_ERROR
+!!$
+!!$    /* Check on top group's status */
+!!$    if(H5G_is_empty_test(gid) == TRUE) TEST_ERROR
+!!$    if(H5G_has_links_test(gid, &nmsgs) != TRUE) TEST_ERROR
+!!$    if(nmsgs != 1) TEST_ERROR
+!!$
+!!$    /* Create several more bottom groups, to push the top group almost to a symbol table */
+!!$    /* (Start counting at '1', since we've already created one bottom group */
+!!$    for(u = 1; u < LIFECYCLE_MAX_COMPACT; u++) {
+!!$        sprintf(objname, LIFECYCLE_BOTTOM_GROUP, u);
+!!$        if((gid2 = H5Gcreate2(gid, objname, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+!!$
+!!$        /* Check on bottom group's status */
+!!$        if(H5G_is_empty_test(gid2) != TRUE) TEST_ERROR
+!!$
+!!$        /* Close bottom group */
+!!$        if(H5Gclose(gid2) < 0) TEST_ERROR
+!!$    } /* end for */
+!!$
+!!$    /* Check on top group's status */
+!!$    if(H5G_is_empty_test(gid) == TRUE) TEST_ERROR
+!!$    if(H5G_has_links_test(gid, &nmsgs) != TRUE) TEST_ERROR
+!!$    if(nmsgs != LIFECYCLE_MAX_COMPACT) TEST_ERROR
+!!$    if(H5G_is_new_dense_test(gid) != FALSE) TEST_ERROR
+!!$
+!!$    /* Check that the object header is only one chunk and the space has been allocated correctly */
+!!$    if(H5Oget_info(gid, &oinfo) < 0) TEST_ERROR
+!!$    if(oinfo.hdr.space.total != 151) TEST_ERROR
+!!$    if(oinfo.hdr.space.free != 0) TEST_ERROR
+!!$    if(oinfo.hdr.nmesgs != 6) TEST_ERROR
+!!$    if(oinfo.hdr.nchunks != 1) TEST_ERROR
+!!$
+!!$    /* Create one more "bottom" group, which should push top group into using a symbol table */
+!!$    sprintf(objname, LIFECYCLE_BOTTOM_GROUP, u);
+!!$    if((gid2 = H5Gcreate2(gid, objname, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+!!$
+!!$    /* Check on bottom group's status */
+!!$    if(H5G_is_empty_test(gid2) != TRUE) TEST_ERROR
+!!$
+!!$    /* Close bottom group */
+!!$    if(H5Gclose(gid2) < 0) TEST_ERROR
+!!$
+!!$    /* Check on top group's status */
+!!$    if(H5G_is_empty_test(gid) == TRUE) TEST_ERROR
+!!$    if(H5G_has_links_test(gid, NULL) == TRUE) TEST_ERROR
+!!$    if(H5G_is_new_dense_test(gid) != TRUE) TEST_ERROR
+!!$
+!!$    /* Check that the object header is still one chunk and the space has been allocated correctly */
+!!$    if(H5Oget_info(gid, &oinfo) < 0) TEST_ERROR
+!!$    if(oinfo.hdr.space.total != 151) TEST_ERROR
+!!$    if(oinfo.hdr.space.free != 92) TEST_ERROR
+!!$    if(oinfo.hdr.nmesgs != 3) TEST_ERROR
+!!$    if(oinfo.hdr.nchunks != 1) TEST_ERROR
+!!$
+!!$    /* Unlink objects from top group */
+!!$    while(u >= LIFECYCLE_MIN_DENSE) {
+!!$        sprintf(objname, LIFECYCLE_BOTTOM_GROUP, u);
+!!$
+!!$        if(H5Ldelete(gid, objname, H5P_DEFAULT) < 0) FAIL_STACK_ERROR
+!!$
+!!$        u--;
+!!$    } /* end while */
+!!$
+!!$    /* Check on top group's status */
+!!$    if(H5G_is_empty_test(gid) == TRUE) TEST_ERROR
+!!$    if(H5G_has_links_test(gid, NULL) == TRUE) TEST_ERROR
+!!$    if(H5G_is_new_dense_test(gid) != TRUE) TEST_ERROR
+!!$
+!!$    /* Unlink one more object from the group, which should transform back to using links */
+!!$    sprintf(objname, LIFECYCLE_BOTTOM_GROUP, u);
+!!$    if(H5Ldelete(gid, objname, H5P_DEFAULT) < 0) FAIL_STACK_ERROR
+!!$    u--;
+!!$
+!!$    /* Check on top group's status */
+!!$    if(H5G_is_empty_test(gid) == TRUE) TEST_ERROR
+!!$    if(H5G_has_links_test(gid, &nmsgs) != TRUE) TEST_ERROR
+!!$    if(nmsgs != (LIFECYCLE_MIN_DENSE - 1)) TEST_ERROR
+!!$
+!!$    /* Unlink last two objects from top group */
+!!$    sprintf(objname, LIFECYCLE_BOTTOM_GROUP, u);
+!!$    if(H5Ldelete(gid, objname, H5P_DEFAULT) < 0) FAIL_STACK_ERROR
+!!$    u--;
+!!$    sprintf(objname, LIFECYCLE_BOTTOM_GROUP, u);
+!!$    if(H5Ldelete(gid, objname, H5P_DEFAULT) < 0) FAIL_STACK_ERROR
+!!$
+!!$    /* Check on top group's status */
+!!$    if(H5G_is_empty_test(gid) != TRUE) TEST_ERROR
+
+    !/* Close top group */
+    CALL H5Gclose_f(gid, error)
+    CALL check("H5Gclose_f", error, total_error)
+
+    !/* Unlink top group */
+
+    CALL H5Ldelete_f(fid, LIFECYCLE_TOP_GROUP, error)
+    CALL check("H5Ldelete_f", error, total_error)
+    
+    ! /* Close GCPL */
+    CALL H5Pclose_f(gcpl, error)
+    CALL check("H5Pclose_f", error, total_error)
+
+    ! /* Close file */
+    CALL H5Fclose_f(fid,error)
+    CALL check("H5Fclose_f",error,total_error)
+
+!!$    /* Get size of file as empty */
+!!$    if((file_size = h5_get_file_size(filename)) < 0) TEST_ERROR
+!!$
+!!$    /* Verify that file is correct size */
+!!$    if(file_size != empty_size) TEST_ERROR
+
+  END SUBROUTINE lifecycle
