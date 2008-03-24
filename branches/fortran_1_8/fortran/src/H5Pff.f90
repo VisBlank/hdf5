@@ -4665,7 +4665,7 @@
 !----------------------------------------------------------------------
 ! Name:		h5pget_class_name_f 
 !
-! Purpose: 	Queries the ithe name of a class.
+! Purpose: 	Queries the name of a class.
 !
 ! Inputs:  
 !		prp_id		- property list identifier to query
@@ -7312,4 +7312,782 @@
     hdferr = h5pget_copy_object_c(ocp_plist_id, copy_options) 
   END SUBROUTINE h5pget_copy_object_f
 
+!----------------------------------------------------------------------
+! Name:		h5pget_data_transform_f 
+!
+! Purpose: 	Retrieves a data transform expression.
+!
+! Inputs: 
+!               plist_id - Identifier of the property list or class
+! Outputs:  
+!               expression - buffer to hold transform expression
+!		hdferr	   - error code
+!                                       Success:  Actual lenght of the expression
+!                                                 If provided buffer "expression" is 
+!                                                 smaller, than expression will be 
+!                                                 truncated to fit into
+!                                                 provided user buffer
+!				 	Failure: -1
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		March 19, 2008
+!
+! Modifications:
+!
+! Comment: Should hdferr return just 0 or 1 and add another arguement for the size?
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5pget_data_transform_f(plist_id, expression, hdferr, size) 
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pget_data_transform_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: plist_id ! Identifier of the property list or class
+    CHARACTER(LEN=*), INTENT(OUT) :: expression  ! Buffer to hold transform expression
+
+    INTEGER(SIZE_T), INTENT(OUT), OPTIONAL :: size ! registered size of the transform expression
+
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code
+    INTEGER :: expression_len
+    INTEGER(SIZE_T) :: size_default
+    
+
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5pget_data_transform_c(plist_id, expression, expression_len, size_default)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_DATA_TRANSFORM_C'::h5pget_data_transform_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: plist_id 
+         CHARACTER(LEN=*), INTENT(OUT) :: expression 
+         INTEGER(SIZE_T) :: size_default
+         INTEGER :: expression_len
+       END FUNCTION h5pget_data_transform_c
+    END INTERFACE
+
+    size_default = 0
+    expression_len = LEN(expression)
+
+    hdferr = h5pget_data_transform_c(plist_id, expression, expression_len, size_default)
+
+    IF(present(size)) size = size_default
+
+  END SUBROUTINE h5pget_data_transform_f
+
+!----------------------------------------------------------------------
+! Name:		h5pset_data_transform_f 
+!
+! Purpose: 	Sets a data transform expression.
+!
+! Inputs: 
+!               plist_id - Identifier of the property list or class 
+!               expression - buffer to hold transform expression
+! Outputs: 
+!		hdferr	   - error code
+!                                       Success:  0
+!				 	Failure: -1
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		March 19, 2008
+!
+! Modifications:
+!
+! Comment: 
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5pset_data_transform_f(plist_id, expression, hdferr) 
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pset_data_transform_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: plist_id ! Identifier of the property list or class
+    CHARACTER(LEN=*), INTENT(IN) :: expression  ! Buffer to hold transform expression
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code
+    INTEGER :: expression_len
+
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5pset_data_transform_c(plist_id, expression, expression_len)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_DATA_TRANSFORM_C'::h5pset_data_transform_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: plist_id 
+         CHARACTER(LEN=*), INTENT(IN) :: expression
+         INTEGER :: expression_len
+       END FUNCTION h5pset_data_transform_c
+    END INTERFACE
+
+    hdferr = h5pset_data_transform_c(plist_id, expression, expression_len)
+
+  END SUBROUTINE h5pset_data_transform_f
+
+!----------------------------------------------------------------------
+! Name:		H5Pget_local_heap_size_hint_f 
+!
+! Purpose: 	Queries the local heap size hint for original-style groups.
+!
+! Inputs: 
+!               gcpl_id - Group creation property list identifier
+! Outputs:
+!               size_hint - Hint for size of local heap
+!		hdferr	  - error code
+!                                    Success:  0
+!				     Failure: -1
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		March 21, 2008
+!
+! Modifications:
+!
+! Comment: 
+!----------------------------------------------------------------------
+
+  SUBROUTINE H5Pget_local_heap_size_hint_f(gcpl_id, size_hint, hdferr) 
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pget_local_heap_size_hint_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: gcpl_id ! Group creation property list identifier
+    INTEGER(SIZE_T), INTENT(OUT) :: size_hint ! Hint for size of local heap
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code
+
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION H5Pget_local_heap_size_hint_c(gcpl_id, size_hint)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_LOCAL_HEAP_SIZE_HINT_C'::h5pget_local_heap_size_hint_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: gcpl_id
+         INTEGER(SIZE_T), INTENT(OUT) :: size_hint
+       END FUNCTION H5Pget_local_heap_size_hint_c
+    END INTERFACE
+
+    hdferr = H5Pget_local_heap_size_hint_c(gcpl_id, size_hint)
+
+  END SUBROUTINE H5Pget_local_heap_size_hint_f
+
+!----------------------------------------------------------------------
+! Name:		H5Pget_est_link_info_f 
+!
+! Purpose: 	Queries data required to estimate required local heap or object header size.
+!
+! Inputs: 
+!               gcpl_id - Group creation property list identifier
+! Outputs:  
+!       est_num_entries - Estimated number of links to be inserted into group
+!          est_name_len - Estimated average length of link names
+!		hdferr	- error code
+!                                Success:  0
+!				 Failure: -1
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		March 21, 2008
+!
+! Modifications:
+!
+! Comment: 
+!----------------------------------------------------------------------
+
+  SUBROUTINE H5Pget_est_link_info_f(gcpl_id, est_num_entries, est_name_len, hdferr) 
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pget_est_link_info_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: gcpl_id ! Group creation property list identifier  
+    INTEGER, INTENT(OUT) :: est_num_entries ! Estimated number of links to be inserted into group
+    INTEGER, INTENT(OUT) :: est_name_len    ! Estimated average length of link names
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code
+
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION H5Pget_est_link_info_c(gcpl_id, est_num_entries, est_name_len)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_EST_LINK_INFO_C'::h5pget_est_link_info_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: gcpl_id  
+         INTEGER, INTENT(OUT) :: est_num_entries
+         INTEGER, INTENT(OUT) :: est_name_len
+       END FUNCTION H5Pget_est_link_info_c
+    END INTERFACE
+
+    hdferr = H5Pget_est_link_info_c(gcpl_id, est_num_entries, est_name_len)
+
+  END SUBROUTINE H5Pget_est_link_info_f
+
+!----------------------------------------------------------------------
+! Name:		H5Pset_local_heap_size_hint_f 
+!
+! Purpose: 	Sets the local heap size hint for original-style groups.
+!
+! Inputs: 
+!               gcpl_id - Group creation property list identifier
+!               size_hint - Hint for size of local heap
+! Outputs:
+!		hdferr	  - error code
+!                                    Success:  0
+!				     Failure: -1
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		March 21, 2008
+!
+! Modifications:
+!
+! Comment: 
+!----------------------------------------------------------------------
+
+  SUBROUTINE H5Pset_local_heap_size_hint_f(gcpl_id, size_hint, hdferr) 
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pset_local_heap_size_hint_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: gcpl_id ! Group creation property list identifier
+    INTEGER(SIZE_T), INTENT(IN) :: size_hint ! Hint for size of local heap
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code
+
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION H5Pset_local_heap_size_hint_c(gcpl_id, size_hint)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_LOCAL_HEAP_SIZE_HINT_C'::h5pset_local_heap_size_hint_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: gcpl_id
+         INTEGER(SIZE_T), INTENT(IN) :: size_hint
+       END FUNCTION H5Pset_local_heap_size_hint_c
+    END INTERFACE
+
+    hdferr = H5Pset_local_heap_size_hint_c(gcpl_id, size_hint)
+
+  END SUBROUTINE H5Pset_local_heap_size_hint_f
+
+!----------------------------------------------------------------------
+! Name:		H5Pset_est_link_info_f 
+!
+! Purpose: 	Sets estimated number of links and length of link names in a group.
+!
+! Inputs: 
+!               gcpl_id - Group creation property list identifier  
+!       est_num_entries - Estimated number of links to be inserted into group
+!          est_name_len - Estimated average length of link names
+! Outputs:
+!		hdferr	- error code
+!                                Success:  0
+!				 Failure: -1
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		March 21, 2008
+!
+! Modifications:
+!
+! Comment: 
+!----------------------------------------------------------------------
+
+  SUBROUTINE H5Pset_est_link_info_f(gcpl_id, est_num_entries, est_name_len, hdferr) 
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pset_est_link_info_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: gcpl_id ! Group creation property list identifier  
+    INTEGER, INTENT(IN) :: est_num_entries ! Estimated number of links to be inserted into group
+    INTEGER, INTENT(IN) :: est_name_len    ! Estimated average length of link names
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code
+
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION H5Pset_est_link_info_c(gcpl_id, est_num_entries, est_name_len)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_EST_LINK_INFO_C'::h5pset_est_link_info_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: gcpl_id  
+         INTEGER, INTENT(IN) :: est_num_entries
+         INTEGER, INTENT(IN) :: est_name_len
+       END FUNCTION H5Pset_est_link_info_c
+    END INTERFACE
+
+    hdferr = H5Pset_est_link_info_c(gcpl_id, est_num_entries, est_name_len)
+
+  END SUBROUTINE H5Pset_est_link_info_f
+
+!----------------------------------------------------------------------
+! Name:		H5Pset_link_phase_change_f
+!
+! Purpose: 	Sets the parameters for conversion between compact and dense groups.
+!
+! Inputs:  
+!		gcpl_id  	- Group creation property list identifier  
+!               max_compact     - Maximum number of attributes to be stored in compact storage
+!               min_dense       - Minimum number of attributes to be stored in dense storage
+! Outputs:
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		March 21, 2008
+!
+! Modifications: 	
+!
+! Comment:		
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5pset_link_phase_change_f(gcpl_id, max_compact, min_dense, hdferr)
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pset_link_phase_change_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: gcpl_id ! Group creation property list identifier
+    INTEGER, INTENT(IN) :: max_compact  ! Maximum number of attributes to be stored in compact storage
+    INTEGER, INTENT(IN) :: min_dense  ! Minimum number of attributes to be stored in dense storage
+    INTEGER, INTENT(OUT) :: hdferr   ! Error code
+!
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5pset_link_phase_change_c(gcpl_id, max_compact, min_dense)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_LINK_PHASE_CHANGE_C'::h5pset_link_phase_change_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: gcpl_id
+         INTEGER, INTENT(IN) :: max_compact
+         INTEGER, INTENT(IN) :: min_dense
+ 
+       END FUNCTION h5pset_link_phase_change_c
+    END INTERFACE
+
+    hdferr = h5pset_link_phase_change_c(gcpl_id, max_compact, min_dense)
+  END SUBROUTINE h5pset_link_phase_change_f
+
+!----------------------------------------------------------------------
+! Name:		H5Pset_fapl_direct_f
+!
+! Purpose: 	Sets up use of the direct I/O driver.
+!
+! Inputs:  
+!    fapl_id 	- File access property list identifier
+!    alignment 	- Required memory alignment boundary
+!    block_size - File system block size
+!    cbuf_size 	- Copy buffer size
+! Outputs:
+!     hdferr:   - error code		
+!		    Success:  0
+!		    Failure: -1   
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		March 21, 2008
+!
+! Modifications: 	
+!
+! Comment:		
+!----------------------------------------------------------------------
+
+  SUBROUTINE H5Pset_fapl_direct_f(fapl_id, alignment, block_size, cbuf_size, hdferr)
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pset_fapl_direct_f
+!DEC$endif
+!
+    IMPLICIT NONE  
+    INTEGER(HID_T), INTENT(IN) :: fapl_id ! File access property list identifier
+    INTEGER(SIZE_T), INTENT(IN) :: alignment 	  ! Required memory alignment boundary!
+    INTEGER(SIZE_T), INTENT(IN) :: block_size     ! File system block size
+    INTEGER(SIZE_T), INTENT(IN) :: cbuf_size 	  ! Copy buffer size
+    INTEGER, INTENT(OUT) :: hdferr   ! Error code
+!
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION H5Pset_fapl_direct_c(fapl_id, alignment, block_size, cbuf_size)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_LINK_PHASE_CHANGE_C'::h5pset_link_phase_change_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: fapl_id 
+         INTEGER(SIZE_T), INTENT(IN) :: alignment
+         INTEGER(SIZE_T), INTENT(IN) :: block_size
+         INTEGER(SIZE_T), INTENT(IN) :: cbuf_size
+       END FUNCTION H5Pset_fapl_direct_c
+    END INTERFACE
+
+    hdferr = H5Pset_fapl_direct_c(fapl_id, alignment, block_size, cbuf_size)
+  END SUBROUTINE H5Pset_fapl_direct_f
+
+!----------------------------------------------------------------------
+! Name:		H5Pget_fapl_direct_f
+!
+! Purpose: 	Gets up use of the direct I/O driver.
+!
+! Inputs:  
+!    fapl_id 	- File access property list identifier
+! Outputs:
+!    alignment 	- Required memory alignment boundary
+!    block_size - File system block size
+!    cbuf_size 	- Copy buffer size
+!     hdferr:   - error code		
+!		    Success:  0
+!		    Failure: -1   
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		March 21, 2008
+!
+! Modifications: 	
+!
+! Comment:		
+!----------------------------------------------------------------------
+
+  SUBROUTINE H5Pget_fapl_direct_f(fapl_id, alignment, block_size, cbuf_size, hdferr)
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pget_fapl_direct_f
+!DEC$endif
+!
+    IMPLICIT NONE  
+    INTEGER(HID_T), INTENT(IN) :: fapl_id ! File access property list identifier
+    INTEGER(SIZE_T), INTENT(OUT) :: alignment 	  ! Required memory alignment boundary!
+    INTEGER(SIZE_T), INTENT(OUT) :: block_size     ! File system block size
+    INTEGER(SIZE_T), INTENT(OUT) :: cbuf_size 	  ! Copy buffer size
+    INTEGER, INTENT(OUT) :: hdferr   ! Error code
+!
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION H5Pget_fapl_direct_c(fapl_id, alignment, block_size, cbuf_size)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_LINK_PHASE_CHANGE_C'::h5pget_link_phase_change_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: fapl_id 
+         INTEGER(SIZE_T), INTENT(OUT) :: alignment
+         INTEGER(SIZE_T), INTENT(OUT) :: block_size
+         INTEGER(SIZE_T), INTENT(OUT) :: cbuf_size
+       END FUNCTION H5Pget_fapl_direct_c
+    END INTERFACE
+
+    hdferr = H5Pget_fapl_direct_c(fapl_id, alignment, block_size, cbuf_size)
+  END SUBROUTINE H5Pget_fapl_direct_f
+
+!----------------------------------------------------------------------
+! Name:		H5Pset_attr_phase_change_f 
+!
+! Purpose: 	Sets attribute storage phase change thresholds.
+!
+! Inputs:  
+!		ocpl_id		- Object (dataset or group) creation property list identifier
+! Outputs:  
+!               max_compact     - Maximum number of attributes to be stored in compact storage
+!                                 (Default: 8)
+!               min_dense       - Minimum number of attributes to be stored in dense storage
+!                                 (Default: 6)
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		January, 2008
+!
+! Modifications: 	
+!
+! Comment:		
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5pset_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pset_attr_phase_change_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: ocpl_id ! Object (dataset or group) creation property list identifier
+    INTEGER, INTENT(IN) :: max_compact  ! Maximum number of attributes to be stored in compact storage
+                                         !(Default: 8)
+    INTEGER, INTENT(IN) :: min_dense  ! Minimum number of attributes to be stored in dense storage
+                                       ! (Default: 6)
+    INTEGER, INTENT(OUT) :: hdferr   ! Error code
+!
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5pset_attr_phase_change_c(ocpl_id, max_compact, min_dense)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_ATTR_PHASE_CHANGE_C'::h5pset_attr_phase_change_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: ocpl_id
+         INTEGER, INTENT(IN) :: max_compact
+         INTEGER, INTENT(IN) :: min_dense
+ 
+       END FUNCTION h5pset_attr_phase_change_c
+    END INTERFACE
+    
+    hdferr = h5pset_attr_phase_change_c(ocpl_id, max_compact, min_dense)
+
+
+  END SUBROUTINE h5pset_attr_phase_change_f
+
+!----------------------------------------------------------------------
+! Name:		H5Pset_nbit_f 
+!
+! Purpose: 	Sets up the use of the N-Bit filter.
+!
+! Inputs: 
+!               plist_id - Dataset creation property list identifier.
+! Outputs:
+!		hdferr	  - error code
+!                                    Success:  0
+!				     Failure: -1
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		March 21, 2008
+!
+! Modifications:
+!
+! Comment: 
+!----------------------------------------------------------------------
+
+  SUBROUTINE H5Pset_nbit_f(plist_id, hdferr) 
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pset_nbit_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: plist_id ! Dataset creation property list identifier
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code
+
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION H5Pset_nbit_c(plist_id)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_NBIT_C'::h5pset_nbit_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: plist_id
+       END FUNCTION H5Pset_nbit_c
+    END INTERFACE
+
+    hdferr = H5Pset_nbit_c(plist_id)
+
+  END SUBROUTINE H5Pset_nbit_f
+
+!----------------------------------------------------------------------
+! Name:		H5Pset_scaleoffset_f 
+!
+! Purpose: 	Sets up the use of the Scale-Offset filter.
+!
+! Inputs: 
+!               plist_id - Dataset creation property list identifier.
+!             scale_type - Flag indicating compression method.
+!           scale_factor - Parameter related to scale.
+! Outputs:
+!		hdferr	 - error code
+!                                   Success:  0
+!				    Failure: -1
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		March 21, 2008
+!
+! Modifications:
+!
+! Comment: 
+!----------------------------------------------------------------------
+
+  SUBROUTINE H5Pset_scaleoffset_f(plist_id, scale_type, scale_factor, hdferr) 
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pset_scaleoffset_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: plist_id ! Dataset creation property list identifier
+    INTEGER, INTENT(IN) :: scale_type                  ! Flag indicating compression method.
+    INTEGER, INTENT(IN) :: scale_factor                ! parameter related to scale.
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code
+
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION H5Pset_scaleoffset_c(plist_id, scale_type, scale_factor)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_SCALEOFFSET_C'::h5pset_scaleoffset_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: plist_id
+         INTEGER, INTENT(IN) :: scale_type
+         INTEGER, INTENT(IN) :: scale_factor
+       END FUNCTION H5Pset_scaleoffset_c
+    END INTERFACE
+
+    hdferr = H5Pset_scaleoffset_c(plist_id, scale_type, scale_factor)
+
+  END SUBROUTINE H5Pset_scaleoffset_f
+
+!----------------------------------------------------------------------
+! Name:		h5pset_nlinks_f 
+!
+! Purpose: 	Sets maximum number of soft or user-defined link traversals.
+!
+! Inputs: 
+!            lapl_id - File access property list identifier
+!             nlinks - Maximum number of links to traverse
+!
+! Outputs:
+!		hdferr	 - error code
+!                                   Success:  0
+!				    Failure: -1
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		March 24, 2008
+!
+! Modifications:
+!
+! Comment: 
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5pset_nlinks_f(lapl_id, nlinks, hdferr) 
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pset_nlinks_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: lapl_id ! File access property list identifier
+    INTEGER(SIZE_T), INTENT(IN) :: nlinks ! Maximum number of links to traverse
+    INTEGER, INTENT(OUT) :: hdferr        ! Error code
+    
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5pset_nlinks_c(lapl_id, nlinks)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_NLINKS_C'::h5pset_nlinks_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: lapl_id
+         INTEGER(SIZE_T), INTENT(IN) :: nlinks
+       END FUNCTION h5pset_nlinks_c
+    END INTERFACE
+    
+    hdferr = h5pset_nlinks_c(lapl_id, nlinks)
+    
+  END SUBROUTINE h5pset_nlinks_f
+
+!----------------------------------------------------------------------
+! Name:		h5pget_nlinks_f 
+!
+! Purpose:  Gets maximum number of soft or user-defined link traversals.
+!
+! Inputs: 
+!            lapl_id - File access property list identifier
+!             nlinks - Maximum number of links to traverse
+!
+! Outputs:
+!		hdferr	 - error code
+!                                   Success:  0
+!				    Failure: -1
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		March 24, 2008
+!
+! Modifications:
+!
+! Comment: 
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5pget_nlinks_f(lapl_id, nlinks, hdferr) 
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pget_nlinks_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: lapl_id ! File access property list identifier
+    INTEGER(SIZE_T), INTENT(OUT) :: nlinks ! Maximum number of links to traverse
+    INTEGER, INTENT(OUT) :: hdferr        ! Error code
+    
+!  MS FORTRAN needs explicit interface for C functions called here.
+!
+    INTERFACE
+       INTEGER FUNCTION h5pget_nlinks_c(lapl_id, nlinks)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_NLINKS_C'::h5pget_nlinks_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: lapl_id
+         INTEGER(SIZE_T), INTENT(OUT) :: nlinks
+       END FUNCTION h5pget_nlinks_c
+    END INTERFACE
+    
+    hdferr = h5pget_nlinks_c(lapl_id, nlinks)
+    
+  END SUBROUTINE h5pget_nlinks_f
+  
 END MODULE H5P
+
