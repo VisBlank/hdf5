@@ -79,8 +79,8 @@ SUBROUTINE test_h5o_link(total_error)
   CALL H5Pcreate_f(H5P_LINK_CREATE_F, lcpl_id, error)
   CALL check("h5Pcreate_f",error,total_error)
 
-  CALL H5Pset_create_intermediate_group_f(lcpl_id, TRUE, error)
-  CALL check("H5Pset_create_intermediate_group_f",error,total_error)
+  CALL H5Pset_create_intermediate_gr_f(lcpl_id, TRUE, error)
+  CALL check("H5Pset_create_intermediate_gr_f",error,total_error)
 
 
   ! /* Loop over using new group format */
