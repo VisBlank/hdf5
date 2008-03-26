@@ -263,7 +263,7 @@ PROGRAM fortranlibtest
   call test_h5o(cleanup, group_total_error )
 
   CALL dtransform(cleanup, group_total_error)
-
+  CALL test_genprop_basic_class(cleanup, group_total_error)
 
 !!$
 !!$  !     write(*,*)
@@ -391,3 +391,94 @@ SUBROUTINE dtransform(cleanup, total_error)
 
 END SUBROUTINE dtransform
 
+
+!/****************************************************************
+!**
+!**  test_genprop_basic_class(): Test basic generic property list code.
+!**      Tests creating new generic classes.
+!**
+!****************************************************************/
+
+SUBROUTINE test_genprop_basic_class(cleanup, total_error)
+
+  USE HDF5 ! This module contains all necessary modules 
+  
+  IMPLICIT NONE
+  LOGICAL, INTENT(IN)  :: cleanup
+  INTEGER, INTENT(INOUT) :: total_error
+
+  INTEGER(HID_T) :: cid1		!/* Generic Property class ID */
+  INTEGER(HID_T) :: cid2		!/* Generic Property class ID */
+  INTEGER(HID_T) :: cid3		!/* Generic Property class ID */
+
+  CHARACTER(LEN=7) :: CLASS1_NAME = "Class 1"
+  CHARACTER(LEN=7)  :: name              ! /* Name of class */
+  CHARACTER(LEN=10) :: name_big          ! /* Name of class bigger buffer */
+  CHARACTER(LEN=4)  :: name_small        ! /* Name of class smaller buffer*/
+  INTEGER :: error
+  INTEGER :: size
+  LOGICAL :: flag
+
+  !/* Output message about test being performed */
+
+  WRITE(*,*) "Testing Basic Generic Property List Class Creation Functionality"
+
+  ! /* Create a new generic class, derived from the root of the class hierarchy */
+  CALL H5Pcreate_class_f(H5P_ROOT_F, CLASS1_NAME, cid1, error)
+  CALL check("H5Pcreate_class", error, total_error)
+
+  ! /* Check class name */
+  CALL H5Pget_class_name_f(cid1, name, size, error)
+  CALL check("H5Pget_class_name", error, total_error)
+  CALL VERIFY("H5Pget_class_name", size,7,error)
+  CALL verifystring("H5Pget_class_name", name, CLASS1_NAME, error)
+  IF(error.NE.0)THEN
+     WRITE(*,*) 'Class names do not match! name=',name, 'CLASS1_NAME=',CLASS1_NAME
+     total_error = total_error + 1
+  ENDIF  
+  
+  ! /* Check class name smaller buffer*/
+  CALL H5Pget_class_name_f(cid1, name_small, size, error)
+  CALL check("H5Pget_class_name", error, total_error)
+  CALL VERIFY("H5Pget_class_name", size,7,error)
+  CALL verifystring("H5Pget_class_name", name_small(1:4), CLASS1_NAME(1:4), error)
+  IF(error.NE.0)THEN
+     WRITE(*,*) 'Class names do not match! name=',name_small(1:4), 'CLASS1_NAME=',CLASS1_NAME(1:4)
+     total_error = total_error + 1
+  ENDIF
+
+  ! /* Check class name bigger buffer*/
+  CALL H5Pget_class_name_f(cid1, name_big, size, error)
+  CALL check("H5Pget_class_name", error, total_error)
+  CALL VERIFY("H5Pget_class_name", size,7,error)
+  CALL verifystring("H5Pget_class_name", TRIM(name_big), TRIM(CLASS1_NAME), error)
+  IF(error.NE.0)THEN
+     WRITE(*,*) 'Class names do not match! name=',TRIM(name_small), 'CLASS1_NAME=',TRIM(CLASS1_NAME)
+     total_error = total_error + 1
+  ENDIF
+
+  ! /* Check class parent */
+  CALL H5Pget_class_parent_f(cid1, cid2, error)
+  CALL check("H5Pget_class_parent_f", error, total_error)
+
+  ! /* Verify class parent correct */
+  CALL H5Pequal_f(cid2, H5P_ROOT_F, flag, error)
+  CALL check("H5Pequal_f", error, total_error)
+  CALL verifylogical("H5Pequal_f", flag, .TRUE., total_error)
+
+
+  ! /* Make certain false postives aren't being returned */
+  CALL H5Pequal_f(cid2, H5P_FILE_CREATE_F, flag, error)
+  CALL check("H5Pequal_f", error, total_error)
+  CALL verifylogical("H5Pequal_f", flag, .FALSE., total_error)
+
+  !/* Close parent class */
+  CALL H5Pclose_class_f(cid2, error)
+  CALL check("H5Pclose_class_f", error, total_error)
+
+
+  !/* Close class */
+  CALL H5Pclose_class_f(cid1, error)
+  CALL check("H5Pclose_class_f", error, total_error)
+
+END SUBROUTINE test_genprop_basic_class
