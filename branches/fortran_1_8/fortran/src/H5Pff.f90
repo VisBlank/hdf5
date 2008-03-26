@@ -4671,13 +4671,12 @@
 !		prp_id		- property list identifier to query
 ! Outputs:  
 !		name 		- name of a class
-!		hdferr:		- error code		
-!                                       
-!				 	Success:  Actual lenght of the class name
-!                                                 If provided buffer "name" is 
-!                                                 smaller, than name will be 
-!                                                 truncated to fit into
-!                                                 provided user buffer
+!               size            - Actual length of the class name
+!                                 If provided buffer "name" is smaller,
+!                                 than name will be truncated to fit into
+!                                 provided user buffer
+!		hdferr:		- error code
+!				 	Success: 0
 !				 	Failure: -1   
 ! Optional parameters:
 !				NONE
@@ -4685,12 +4684,12 @@
 ! Programmer:	Elena Pourmal
 !	        October 9, 2002	
 !
-! Modifications: 	
+! Modifications: Returned the size of name as an argument	
 !
 ! Comment:		
 !----------------------------------------------------------------------
 
-          SUBROUTINE h5pget_class_name_f(prp_id, name, hdferr) 
+          SUBROUTINE h5pget_class_name_f(prp_id, name, size, hdferr) 
 !
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
@@ -4699,7 +4698,9 @@
 !
             IMPLICIT NONE
             INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
-            CHARACTER(LEN=*), INTENT(INOUT) :: name  ! Buffer to retireve class name
+            CHARACTER(LEN=*), INTENT(OUT) :: name  ! Buffer to retireve class name
+            
+            INTEGER, INTENT(OUT) :: size ! Actual length of the class name
             INTEGER, INTENT(OUT) :: hdferr  ! Error code
             INTEGER :: name_len
 
@@ -4715,8 +4716,13 @@
               INTEGER, INTENT(IN)         :: name_len
               END FUNCTION h5pget_class_name_c
             END INTERFACE
+
             name_len = LEN(name)
-            hdferr = h5pget_class_name_c(prp_id, name , name_len)
+            size = h5pget_class_name_c(prp_id, name, name_len)
+
+            hdferr = 0
+            IF(size.LT.0) hdferr = -1
+
           END SUBROUTINE h5pget_class_name_f
 
 !----------------------------------------------------------------------

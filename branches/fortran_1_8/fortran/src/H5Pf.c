@@ -2710,16 +2710,20 @@ int_f
 nh5pget_class_name_c(hid_t_f *class, _fcd name, int_f *name_len)
 {
      int_f ret_value = -1;
-     hid_t c_class;
-     char* c_name;
+     char *c_name = NULL;          /* Buffer to hold C string */
+     size_t c_size;
 
-
-     c_class = (hid_t)*class;
+     c_size = (size_t)*name_len + 1;
+     /*
+      * Allocate buffer to hold name
+      */
+     if ((c_name = HDmalloc(c_size)) == NULL)
+       goto DONE;
      /*
       * Call H5Pget_class_name function.
       */
-     c_name = H5Pget_class_name(c_class);
-     if( c_name == NULL) goto DONE;
+     c_name = H5Pget_class_name((hid_t)*class);
+     if(c_name == NULL) goto DONE;
 
      HD5packFstring(c_name, _fcdtocp(name), (size_t)*name_len);
      ret_value = (int_f)HDstrlen(c_name);
