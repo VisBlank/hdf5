@@ -7437,6 +7437,7 @@
        END FUNCTION h5pset_data_transform_c
     END INTERFACE
 
+    expression_len = LEN(expression)
     hdferr = h5pset_data_transform_c(plist_id, expression, expression_len)
 
   END SUBROUTINE h5pset_data_transform_f
