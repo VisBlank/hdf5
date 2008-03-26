@@ -264,6 +264,7 @@ PROGRAM fortranlibtest
 
   CALL dtransform(cleanup, group_total_error)
   CALL test_genprop_basic_class(cleanup, group_total_error)
+  total_error = total_error + group_total_error
 
 !!$
 !!$  !     write(*,*)
@@ -367,27 +368,27 @@ SUBROUTINE dtransform(cleanup, total_error)
   CALL H5Pcreate_f(H5P_DATASET_XFER_F, dxpl_id_c_to_f, error)
   CALL check("dtransform.H5Pcreate_f", error, total_error)
   
-  CALL H5Pset_data_transform_f(dxpl_id_c_to_f,c_to_f, error)
+  CALL H5Pset_data_transform_f(dxpl_id_c_to_f, c_to_f, error)
   CALL check("dtransform.H5Pset_data_transform_f", error, total_error)
 
   CALL H5Pget_data_transform_f(dxpl_id_c_to_f, ptrgetTest, error, size=size)
   CALL check("dtransform.H5Pget_data_transform_f",  error, total_error)
   CALL VerifyString("dtransform.H5Pget_data_transform_f", c_to_f, ptrgetTest, total_error)
-  CALL VERIFY("dtransform.H5Pget_data_transform_f", size,15, total_error)
+  CALL VERIFY("dtransform.H5Pget_data_transform_f", INT(size),15, total_error)
 
 ! check case when receiving buffer to small
 
   CALL H5Pget_data_transform_f(dxpl_id_c_to_f, ptrgetTest_small, error, size=size)
   CALL check("dtransform.H5Pget_data_transform_f",  error, total_error)
   CALL VerifyString("dtransform.H5Pget_data_transform_f", c_to_f(1:7), ptrgetTest_small, total_error)
-  CALL VERIFY("dtransform.H5Pget_data_transform_f", size,15, total_error)
+  CALL VERIFY("dtransform.H5Pget_data_transform_f", INT(size),15, total_error)
 
 ! check case when receiving buffer to big
 
   CALL H5Pget_data_transform_f(dxpl_id_c_to_f, ptrgetTest_big, error, size=size)
   CALL check("dtransform.H5Pget_data_transform_f",  error, total_error)
   CALL VerifyString("dtransform.H5Pget_data_transform_f", c_to_f(1:15), ptrgetTest_big(1:15), total_error)
-  CALL VERIFY("dtransform.H5Pget_data_transform_f", size, 15, total_error)
+  CALL VERIFY("dtransform.H5Pget_data_transform_f", INT(size), 15, total_error)
 
 END SUBROUTINE dtransform
 

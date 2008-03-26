@@ -3917,7 +3917,7 @@ SUBROUTINE lapl_nlinks( fapl, total_error)
   nlinks = 0
   CALL H5Pget_nlinks_f(plist, nlinks, error)
   CALL check("H5Pset_nlinks_f",error,total_error)
-  CALL VERIFY("H5Pset_nlinks_f",nlinks, 20, total_error)
+  CALL VERIFY("H5Pset_nlinks_f",INT(nlinks), 20, total_error)
 
 !!$
 !!$    /* Open object through what is normally too many soft links using
