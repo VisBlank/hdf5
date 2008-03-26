@@ -3734,7 +3734,7 @@ nh5pset_obj_track_times_c(hid_t_f *plist_id, int_f *flag)
 }
 
 /*----------------------------------------------------------------------------
- * Name:        h5pset_create_intermediate_group_c
+ * Name:        h5pset_create_intermediate_gr_c
  * Purpose:     Calls H5Pset_create_intermediate_group 
  *
  * Inputs:   
@@ -3748,7 +3748,7 @@ nh5pset_obj_track_times_c(hid_t_f *plist_id, int_f *flag)
  *---------------------------------------------------------------------------*/
 
 int_f
-nh5pset_create_intermediate_group_c(hid_t_f *lcpl_id, int_f *crt_intermed_group)
+nh5pset_create_intermediate_gr_c(hid_t_f *lcpl_id, int_f *crt_intermed_group)
 {
   int ret_value = -1;
   herr_t ret;

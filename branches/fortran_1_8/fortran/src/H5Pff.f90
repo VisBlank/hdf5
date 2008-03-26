@@ -6980,7 +6980,7 @@
   END SUBROUTINE h5pset_obj_track_times_f
 
 !----------------------------------------------------------------------
-! Name:		H5Pset_create_intermediate_group_f
+! Name:		H5Pset_create_intermediate_grp_f
 !
 ! Purpose: 	Specifies in property list whether to create missing intermediate groups.
 !
@@ -7000,14 +7000,15 @@
 !
 ! Modifications: 	
 !
-! Comment: The long subroutine name (>31) on older f90 compilers may cause problems		
+! Comment: The long subroutine name (>31) on older f90 compilers causes problems
+!          so had to shorten the name		
 !--------------------------------------------------------------------------------------
 
-  SUBROUTINE h5pset_create_intermediate_group_f(lcpl_id, crt_intermed_group, hdferr) 
+  SUBROUTINE h5pset_create_intermediate_gr_f(lcpl_id, crt_intermed_group, hdferr) 
 !
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
-!DEC$attributes dllexport :: h5pset_create_intermediate_group_f
+!DEC$attributes dllexport :: h5pset_create_intermediate_gr_f
 !DEC$endif
 !
     IMPLICIT NONE
@@ -7019,19 +7020,19 @@
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
     INTERFACE
-       INTEGER FUNCTION h5pset_create_intermediate_group_c(lcpl_id, crt_intermed_group) 
+       INTEGER FUNCTION h5pset_create_intermediate_gr_c(lcpl_id, crt_intermed_group) 
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_CREATE_INTERMEDIATE_GROUP_C'::h5pset_create_intermediate_group_c
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_CREATE_INTERMEDIATE_GR_C'::h5pset_create_intermediate_gr_c
          !DEC$ ENDIF
          INTEGER(HID_T), INTENT(IN) :: lcpl_id
          INTEGER(HID_T), INTENT(IN) :: crt_intermed_group
-       END FUNCTION h5pset_create_intermediate_group_c
+       END FUNCTION h5pset_create_intermediate_gr_c
     END INTERFACE
 
-    hdferr = h5pset_create_intermediate_group_c(lcpl_id, crt_intermed_group)
+    hdferr = h5pset_create_intermediate_gr_c(lcpl_id, crt_intermed_group)
 
-  END SUBROUTINE h5pset_create_intermediate_group_f
+  END SUBROUTINE h5pset_create_intermediate_gr_f
 
 !----------------------------------------------------------------------
 ! Name:	      H5Pget_link_creation_order_f
