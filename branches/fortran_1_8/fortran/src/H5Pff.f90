@@ -6494,7 +6494,7 @@
        INTEGER FUNCTION H5Pset_attr_creation_order_c(ocpl_id, crt_order_flags)
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_ATTR_PHASE_CHANGE_C'::h5pget_attr_phase_change_c
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_ATTR_CREATION_ORDER_C'::h5pset_attr_creation_order_c
          !DEC$ ENDIF
          INTEGER(HID_T), INTENT(IN) :: ocpl_id
          INTEGER, INTENT(IN) :: crt_order_flags
@@ -7004,11 +7004,11 @@
 !          so had to shorten the name		
 !--------------------------------------------------------------------------------------
 
-  SUBROUTINE h5pset_create_intermediate_gr_f(lcpl_id, crt_intermed_group, hdferr) 
+  SUBROUTINE h5pset_create_inter_gr_f(lcpl_id, crt_intermed_group, hdferr) 
 !
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
-!DEC$attributes dllexport :: h5pset_create_intermediate_gr_f
+!DEC$attributes dllexport :: h5pset_create_inter_gr_f
 !DEC$endif
 !
     IMPLICIT NONE
@@ -7020,19 +7020,19 @@
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
     INTERFACE
-       INTEGER FUNCTION h5pset_create_intermediate_gr_c(lcpl_id, crt_intermed_group) 
+       INTEGER FUNCTION h5pset_create_inter_gr_c(lcpl_id, crt_intermed_group) 
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_CREATE_INTERMEDIATE_GR_C'::h5pset_create_intermediate_gr_c
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_CREATE_INTER_GR_C'::h5pset_create_inter_gr_c
          !DEC$ ENDIF
          INTEGER(HID_T), INTENT(IN) :: lcpl_id
          INTEGER(HID_T), INTENT(IN) :: crt_intermed_group
-       END FUNCTION h5pset_create_intermediate_gr_c
+       END FUNCTION h5pset_create_inter_gr_c
     END INTERFACE
 
-    hdferr = h5pset_create_intermediate_gr_c(lcpl_id, crt_intermed_group)
+    hdferr = h5pset_create_inter_gr_c(lcpl_id, crt_intermed_group)
 
-  END SUBROUTINE h5pset_create_intermediate_gr_f
+  END SUBROUTINE h5pset_create_inter_gr_f
 
 !----------------------------------------------------------------------
 ! Name:	      H5Pget_link_creation_order_f
@@ -7757,7 +7757,7 @@
        INTEGER FUNCTION H5Pset_fapl_direct_c(fapl_id, alignment, block_size, cbuf_size)
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_LINK_PHASE_CHANGE_C'::h5pset_link_phase_change_c
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_FAPL_DIRECT_C'::h5pset_fapl_direct_c
          !DEC$ ENDIF
          INTEGER(HID_T), INTENT(IN) :: fapl_id 
          INTEGER(SIZE_T), INTENT(IN) :: alignment
@@ -7814,7 +7814,7 @@
        INTEGER FUNCTION H5Pget_fapl_direct_c(fapl_id, alignment, block_size, cbuf_size)
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_LINK_PHASE_CHANGE_C'::h5pget_link_phase_change_c
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_FAPL_DIRECT_C'::h5pget_fapl_direct_c
          !DEC$ ENDIF
          INTEGER(HID_T), INTENT(IN) :: fapl_id 
          INTEGER(SIZE_T), INTENT(OUT) :: alignment

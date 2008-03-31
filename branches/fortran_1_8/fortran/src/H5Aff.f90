@@ -2857,7 +2857,7 @@ CONTAINS
             n, name, size, lapl_id_default)
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AGET_NAME_C'::h5aget_name_c
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AGET_NAME_BY_IDX_C'::h5aget_name_by_idx_c
          !DEC$ ENDIF
 
          INTEGER(HID_T), INTENT(IN) :: loc_id
@@ -3518,7 +3518,7 @@ CONTAINS
             aapl_id_default, lapl_id_default, attr_id)
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AOPEN_IDX_C'::h5aopen_idx_c
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AOPEN_BY_IDX_C'::h5aopen_by_idx_c
          !DEC$ ENDIF
          INTEGER(HID_T), INTENT(IN) :: loc_id
          CHARACTER(LEN=*), INTENT(IN) :: obj_name
@@ -4017,7 +4017,7 @@ CONTAINS
        INTEGER FUNCTION h5aexists_by_name_c(loc_id, obj_name, obj_namelen, attr_name, attr_namelen, lapl_id_default, attr_exists_c)
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AEXISTS_by_name_C'::h5aexists_by_name_c
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AEXISTS_BY_NAME_C'::h5aexists_by_name_c
          !DEC$ ENDIF
          INTEGER(HID_T), INTENT(IN) :: loc_id  
          CHARACTER(LEN=*), INTENT(IN) :: obj_name
@@ -4098,7 +4098,7 @@ CONTAINS
             aapl_id_default, lapl_id_default, attr_id)
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AOPEN_by_name_C'::h5aopen_by_name_c
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AOPEN_BY_NAME_C'::h5aopen_by_name_c
          !DEC$ ENDIF
          INTEGER(HID_T), INTENT(IN) :: loc_id  
          CHARACTER(LEN=*), INTENT(IN) :: obj_name

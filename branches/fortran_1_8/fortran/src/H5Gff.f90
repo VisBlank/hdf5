@@ -1223,7 +1223,7 @@ CONTAINS
        INTEGER FUNCTION h5gget_info_c(group_id, storage_type, nlinks, max_corder)
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AGET_INFO_C'::h5aget_info_c
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5GGET_INFO_C'::h5gget_info_c
          !DEC$ ENDIF
          INTEGER(HID_T), INTENT(IN) :: group_id
          INTEGER, INTENT(OUT) :: storage_type
@@ -1302,7 +1302,7 @@ CONTAINS
             storage_type, nlinks, max_corder)
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AGET_INFO_BY_IDX_C'::h5aget_info_by_idx_c
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5GGET_INFO_BY_IDX_C'::h5gget_info_by_idx_c
          !DEC$ ENDIF
          INTEGER(HID_T), INTENT(IN) :: loc_id
          CHARACTER(LEN=*), INTENT(IN) :: group_name
@@ -1390,7 +1390,7 @@ CONTAINS
             storage_type, nlinks, max_corder)
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AGET_INFO_BY_NAME_C'::h5aget_info_by_name_c
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5GGET_INFO_BY_NAME_C'::h5gget_info_by_name_c
          !DEC$ ENDIF
          INTEGER(HID_T), INTENT(IN) :: loc_id
          CHARACTER(LEN=*), INTENT(IN) :: group_name

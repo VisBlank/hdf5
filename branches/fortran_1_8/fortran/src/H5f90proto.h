@@ -852,7 +852,7 @@ H5_FCDLL int_f nh5tcommit_anon_c(hid_t_f *loc_id, hid_t_f *dtype_id, hid_t_f *tc
 #   define nh5pget_link_phase_change_c H5_FC_FUNC_(h5pget_link_phase_change_c, H5PGET_LINK_PHASE_CHANGE_C) /* MSB */
 #   define nh5pget_obj_track_times_c H5_FC_FUNC_(h5pget_obj_track_times_c, H5PGET_OBJ_TRACK_TIMES_C) /* MSB */
 #   define nh5pset_obj_track_times_c H5_FC_FUNC_(h5pset_obj_track_times_c, H5PSET_OBJ_TRACK_TIMES_C) /* MSB */
-#   define nh5pset_create_intermediate_gr_c H5_FC_FUNC_(h5pset_create_intermediate_gr_c,H5PSET_CREATE_INTERMEDIATE_GR_C) /* MSB */
+#   define nh5pset_create_inter_gr_c H5_FC_FUNC_(h5pset_create_inter_gr_c,H5PSET_CREATE_INTER_GR_C) /* MSB */
 #   define nh5pget_link_creation_order_c H5_FC_FUNC_(h5pget_link_creation_order_c,H5PGET_LINK_CREATION_ORDER_C) /* MSB */
 #   define nh5pset_char_encoding_c H5_FC_FUNC_(h5pset_char_encoding_c, H5PSET_CHAR_ENCODING_C) /* MSB */
 #   define nh5pget_char_encoding_c H5_FC_FUNC_(h5pget_char_encoding_c, H5PGET_CHAR_ENCODING_C) /* MSB */
@@ -1007,7 +1007,7 @@ H5_FCDLL int_f nh5pset_link_creation_order_c(hid_t_f *gcpl_id, int_f *crt_order_
 H5_FCDLL int_f nh5pget_link_phase_change_c(hid_t_f *gcpl_id, int_f *max_compact, int_f *min_dense ); /* MSB */
 H5_FCDLL int_f nh5pget_obj_track_times_c(hid_t_f *plist_id, int_f *flag); /* MSB */
 H5_FCDLL int_f nh5pset_obj_track_times_c(hid_t_f *plist_id, int_f *flag); /* MSB */
-H5_FCDLL int_f nh5pset_create_intermediate_group_c(hid_t_f *lcpl_id, int_f *crt_intermed_group); /* MSB */
+H5_FCDLL int_f nh5pset_create_inter_gr_c(hid_t_f *lcpl_id, int_f *crt_intermed_group); /* MSB */
 H5_FCDLL int_f nh5pget_link_creation_order_c(hid_t_f *gcpl_id, int_f *crt_order_flags); /* MSB */
 H5_FCDLL int_f nh5pset_char_encoding_c(hid_t_f *plist_id, int_f *encoding); /* MSB */
 H5_FCDLL int_f nh5pget_char_encoding_c(hid_t_f *plist_id, int_f *encoding); /* MSB */
