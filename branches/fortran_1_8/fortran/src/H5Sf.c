@@ -1027,3 +1027,108 @@ nh5sselect_elements_c ( hid_t_f *space_id , int_f *op, size_t_f *nelements,  hsi
   return ret_value;
 }
 
+/*----------------------------------------------------------------------------
+ * Name:        h5sdecode_c
+ * Purpose:     Call H5Sdecode
+ * Inputs:       
+ *		buf -  Buffer for the data space object to be decoded.
+ *              buf_len - size of buffer
+ *              obj_id - Object_id (non-negative)
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              March 26, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+
+int_f
+nh5sdecode_c ( _fcd buf, size_t_f *buf_len, int_f *obj_id )
+{
+  int ret_value = -1;
+  unsigned char *c_buf = NULL;          /* Buffer to hold C string */
+  hid_t c_obj_id;
+  char *cc_buf = NULL;          /* Buffer to hold C string */
+
+  /*
+   * Convert FORTRAN name to C name
+   */
+  if((cc_buf = HD5f2cstring(buf, (size_t)*buf_len)) == NULL)
+    return ret_value;  
+
+  /*
+   * Call H5Sdecode function.
+   */
+
+  c_buf = (unsigned char*)cc_buf;
+
+  c_obj_id = H5Sdecode(c_buf);
+  if(c_obj_id < 0) 
+    return ret_value;
+
+  *obj_id = (int_f)c_obj_id;
+
+  ret_value = 0;
+
+  return ret_value;
+}
+
+/*----------------------------------------------------------------------------
+ * Name:        h5sencode_c
+ * Purpose:     Call H5Sencode
+ * Inputs:       
+ *            obj_id - Identifier of the object to be encoded.
+ *		 buf - Buffer for the object to be encoded into.
+ *            nalloc - The size of the allocated buffer.
+ *           buf_len - size of buffer
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              March 26, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+
+int_f
+nh5sencode_c (_fcd buf, int_f *buf_len, hid_t_f *obj_id, size_t_f *nalloc )
+{
+  int ret_value = -1;
+  unsigned char *c_buf = NULL;          /* Buffer to hold C string */
+  size_t c_size;
+
+
+  /* return just the size of the allocated buffer;
+   * equivalent to C routine for which 'name' is set equal to NULL
+   */
+
+  if (*nalloc == 0) {
+
+    if(H5Sencode((hid_t)*obj_id, c_buf, &c_size) < 0)
+      return ret_value;
+
+    *nalloc = (size_t_f)c_size;
+
+    ret_value = 0;
+    return ret_value;
+  }
+
+
+  c_size = (size_t)*nalloc + 1;
+  /*
+   * Allocate buffer to hold name
+   */
+  if ((c_buf = HDmalloc(c_size)) == NULL)
+    return ret_value;
+  /*
+   * Call H5Sencode function.
+   */
+  if(H5Sencode((hid_t)*obj_id, c_buf, &c_size) < 0){
+    return ret_value;
+  }
+
+  char *p = (char *)c_buf;
+
+  HD5packFstring(p, _fcdtocp(buf), (size_t)*buf_len-1);
+
+  ret_value = 0;
+
+  if(c_buf) HDfree(c_buf);
+  return ret_value;
+}
+

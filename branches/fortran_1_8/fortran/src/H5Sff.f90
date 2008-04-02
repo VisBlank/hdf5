@@ -1942,4 +1942,117 @@
  
           END SUBROUTINE h5sget_select_type_f
 
-      END MODULE H5S
+!----------------------------------------------------------------------
+! Name:		H5Sdecode_f
+!
+! Purpose:	Decode a binary object description of data space and return a new object handle.
+!
+! Inputs:  
+!		buf -  Buffer for the data space object to be decoded.
+!            obj_id - Object ID
+! Outputs:
+!		hdferr:	- error code		
+!				Success:  0
+!				Failure: -1
+!
+! Optional parameters:		- NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		March 26, 2008
+!
+! Modifications: 	
+!
+! Comment:		
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5sdecode_f(buf, obj_id, hdferr) 
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5sdecode_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    CHARACTER(LEN=*), INTENT(IN) :: buf ! Buffer for the data space object to be decoded.
+    INTEGER, INTENT(OUT) :: obj_id  ! Object ID
+    INTEGER, INTENT(OUT) :: hdferr     ! Error code
+
+    INTEGER(SIZE_T) :: buf_len
+
+    INTERFACE
+       INTEGER FUNCTION h5sdecode_c(buf, buf_len, obj_id)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5SDECODE_C'::h5sdecode_c
+         !DEC$ ENDIF
+         CHARACTER(LEN=*), INTENT(IN) :: buf
+         INTEGER, INTENT(OUT) :: obj_id  ! Object ID
+         INTEGER(SIZE_T) :: buf_len
+       END FUNCTION h5sdecode_c
+    END INTERFACE
+    
+    buf_len = LEN(buf)
+
+    hdferr = h5sdecode_c(buf, buf_len, obj_id)
+    
+  END SUBROUTINE h5sdecode_f
+
+!----------------------------------------------------------------------
+! Name:		H5Sencode_f
+!
+! Purpose:	Encode a data space object description into a binary buffer.
+!
+! Inputs:
+!            obj_id - Identifier of the object to be encoded.
+!		buf - Buffer for the object to be encoded into.
+!            nalloc - The size of the allocated buffer.
+! Outputs:
+!            nalloc - The size of the buffer needed.
+!           hdferr: - error code		
+!	                Success:  0
+!		        Failure: -1
+!
+! Optional parameters:		- NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		March 26, 2008
+!
+! Modifications: 	
+!
+! Comment:		
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5sencode_f(obj_id, buf, nalloc, hdferr) 
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5sencode_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: obj_id ! Identifier of the object to be encoded.
+    CHARACTER(LEN=*), INTENT(OUT) :: buf ! Buffer for the object to be encoded into.
+    INTEGER(SIZE_T), INTENT(INOUT) :: nalloc ! The size of the allocated buffer.
+    INTEGER, INTENT(OUT) :: hdferr     ! Error code
+
+    INTEGER :: buf_len
+
+    INTERFACE
+       INTEGER FUNCTION h5sencode_c(buf, buf_len, obj_id, nalloc)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5SENCODE_C'::h5sencode_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: obj_id
+         CHARACTER(LEN=*), INTENT(OUT) :: buf
+         INTEGER :: buf_len
+         INTEGER(SIZE_T), INTENT(INOUT) :: nalloc
+       END FUNCTION h5sencode_c
+    END INTERFACE
+    
+    buf_len = LEN(buf)
+    hdferr = h5sencode_c(buf, buf_len, obj_id, nalloc)
+    
+  END SUBROUTINE h5sencode_f
+  
+END MODULE H5S
