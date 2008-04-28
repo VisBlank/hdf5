@@ -1951,9 +1951,9 @@
 !		buf -  Buffer for the data space object to be decoded.
 !            obj_id - Object ID
 ! Outputs:
-!		hdferr:	- error code		
-!				Success:  0
-!				Failure: -1
+!           hdferr: - error code		
+!			Success:  0
+!			Failure: -1
 !
 ! Optional parameters:		- NONE
 !
@@ -1977,23 +1977,18 @@
     INTEGER, INTENT(OUT) :: obj_id  ! Object ID
     INTEGER, INTENT(OUT) :: hdferr     ! Error code
 
-    INTEGER(SIZE_T) :: buf_len
-
     INTERFACE
-       INTEGER FUNCTION h5sdecode_c(buf, buf_len, obj_id)
+       INTEGER FUNCTION h5sdecode_c(buf, obj_id)
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
          !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5SDECODE_C'::h5sdecode_c
          !DEC$ ENDIF
          CHARACTER(LEN=*), INTENT(IN) :: buf
          INTEGER, INTENT(OUT) :: obj_id  ! Object ID
-         INTEGER(SIZE_T) :: buf_len
        END FUNCTION h5sdecode_c
     END INTERFACE
-    
-    buf_len = LEN(buf)
 
-    hdferr = h5sdecode_c(buf, buf_len, obj_id)
+    hdferr = h5sdecode_c(buf, obj_id)
     
   END SUBROUTINE h5sdecode_f
 
@@ -2035,24 +2030,82 @@
     INTEGER(SIZE_T), INTENT(INOUT) :: nalloc ! The size of the allocated buffer.
     INTEGER, INTENT(OUT) :: hdferr     ! Error code
 
-    INTEGER :: buf_len
 
     INTERFACE
-       INTEGER FUNCTION h5sencode_c(buf, buf_len, obj_id, nalloc)
+       INTEGER FUNCTION h5sencode_c(buf, obj_id, nalloc)
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
          !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5SENCODE_C'::h5sencode_c
          !DEC$ ENDIF
          INTEGER(HID_T), INTENT(IN) :: obj_id
          CHARACTER(LEN=*), INTENT(OUT) :: buf
-         INTEGER :: buf_len
          INTEGER(SIZE_T), INTENT(INOUT) :: nalloc
        END FUNCTION h5sencode_c
     END INTERFACE
     
-    buf_len = LEN(buf)
-    hdferr = h5sencode_c(buf, buf_len, obj_id, nalloc)
-    
+    hdferr = h5sencode_c(buf, obj_id, nalloc)
+
   END SUBROUTINE h5sencode_f
   
+
+!----------------------------------------------------------------------
+! Name:		h5sextent_equal_f 
+!
+! Purpose: 	Determines whether two dataspace extents are equal.
+!
+! Inputs:  
+!		space1_id - First dataspace identifier.
+!               space2_id - Second dataspace identifier.
+! Outputs:  
+!                   Equal - .TRUE. if equal, .FALSE. if unequal.
+!		  hdferr: - error code		
+!				 Success:  0
+!				 Failure: -1   
+! Optional parameters:
+!				NONE
+!
+! Programmer: M.S. Breitenfeld
+!             April 2, 2008
+!
+! Modifications:
+!
+! Comment:		
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5sextent_equal_f(space1_id, space2_id, equal, hdferr)
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5sextent_equal_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: space1_id ! First dataspace identifier.
+    INTEGER(HID_T), INTENT(IN) :: space2_id ! Second dataspace identifier.
+    LOGICAL, INTENT(OUT) :: Equal ! .TRUE. if equal, .FALSE. if unequal.
+    INTEGER, INTENT(OUT) :: hdferr                ! Error code
+
+    INTEGER(HID_T) :: c_equal
+
+    INTERFACE
+       INTEGER FUNCTION h5sextent_equal_c(space1_id, space2_id, c_equal)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5SEXTENT_EQUAL_C'::h5sextent_equal_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: space1_id
+         INTEGER(HID_T), INTENT(IN) :: space2_id
+         INTEGER(HID_T) :: c_equal
+       END FUNCTION h5sextent_equal_c
+    END INTERFACE
+    
+    hdferr = h5sextent_equal_c(space1_id, space2_id, c_equal)
+
+    
+    equal = .FALSE.
+    IF(c_equal.GT.0) equal = .TRUE. 
+
+    
+  END SUBROUTINE h5sextent_equal_f
+
 END MODULE H5S
