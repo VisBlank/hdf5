@@ -3734,13 +3734,14 @@ nh5pset_obj_track_times_c(hid_t_f *plist_id, int_f *flag)
 }
 
 /*----------------------------------------------------------------------------
- * Name:        h5pset_create_intermediate_gr_c
- * Purpose:     Calls H5Pset_create_intermediate_group 
+ * Name:        h5pset_create_inter_group_c
+ * Purpose:     Calls H5Pset_create_intermediate_group
  *
  * Inputs:   
  *		lcpl_id - Link creation property list identifier
  *   crt_intermed_group - crt_intermed_group specifying whether 
- *                       to create intermediate groups upon the creation of an object
+ *                        to create intermediate groups upon the 
+ *                        creation of an object
  * Returns:     0 on success, -1 on failure
  * Programmer:  M.S. Breitenfeld
  *              February 22, 2008
@@ -3748,7 +3749,7 @@ nh5pset_obj_track_times_c(hid_t_f *plist_id, int_f *flag)
  *---------------------------------------------------------------------------*/
 
 int_f
-nh5pset_create_inter_gr_c(hid_t_f *lcpl_id, int_f *crt_intermed_group)
+nh5pset_create_inter_group_c(hid_t_f *lcpl_id, int_f *crt_intermed_group)
 {
   int ret_value = -1;
   herr_t ret;
@@ -4398,6 +4399,36 @@ nh5pget_nlinks_c(hid_t_f *lapl_id, size_t_f *nlinks)
   if (ret < 0) return ret_value;
 
   *nlinks = (size_t_f)c_nlinks;
+  ret_value = 0;
+  return ret_value;
+}
+
+/*----------------------------------------------------------------------------
+ * Name:        h5pget_create_inter_group_c
+ * Purpose:     Calls H5Pget_create_intermediate_group
+ *
+ * Inputs:   
+ *		lcpl_id - Link creation property list identifier
+ *   crt_intermed_group - Specifying whether to create intermediate groups upon 
+ *                        the creation of an object
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              April 4, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+
+int_f
+nh5pget_create_inter_group_c(hid_t_f *lcpl_id, int_f *crt_intermed_group)
+{
+  int ret_value = -1;
+  herr_t ret;
+
+  /*
+   * Call H5Pget_create_intermediate_group function.
+   */
+  ret = H5Pget_create_intermediate_group((hid_t)*lcpl_id, (unsigned)*crt_intermed_group);
+
+  if (ret < 0) return ret_value; /* error occurred */
   ret_value = 0;
   return ret_value;
 }
