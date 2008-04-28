@@ -439,7 +439,10 @@ SUBROUTINE test_attr_null_space(fcpl, fapl, total_error)
   INTEGER :: corder ! Is a positive integer containing the creation order of the attribute
   INTEGER :: cset ! Indicates the character set used for the attribute’s name
   INTEGER(HSIZE_T) :: data_size   ! indicates the size, in the number of characters
+  
+  LOGICAL :: equal
 
+  ! test: H5Sextent_equal_f
   
 
   data_dims = 0
@@ -491,7 +494,6 @@ SUBROUTINE test_attr_null_space(fcpl, fapl, total_error)
 
   value_scalar = 104
   data_dims(1) = 1
-!  PRINT*,'sending read_f buf =', value_scalar
   CALL h5aread_f(attr, H5T_NATIVE_INTEGER, value_scalar, data_dims, error)
   CALL check("h5aread_f",error,total_error)
   CALL verify("h5aread_f",value_scalar,104,total_error)
@@ -499,9 +501,11 @@ SUBROUTINE test_attr_null_space(fcpl, fapl, total_error)
   CALL h5aget_space_f(attr, attr_sid, error)
   CALL check("h5aget_space_f",error,total_error)
 
-!!$  cmp = H5Sextent_equal(attr_sid, null_sid)
-!!$  CALL CHECK(cmp, FAIL, "H5Sextent_equal")
-!!$  CALL VERIFY(cmp, TRUE, "H5Sextent_equal")
+  CALL H5Sextent_equal_f(attr_sid, null_sid, equal, error)
+  CALL check("H5Sextent_equal_f",error,total_error)
+  CALL Verifylogical("H5Sextent_equal_f",equal,.TRUE.,total_error)
+  
+
 !!$  ret = H5Sclose(attr_sid)
 !!$  CALL CHECK(ret, FAIL, "H5Sclose")
 
@@ -3268,6 +3272,7 @@ SUBROUTINE test_attr_basic_write(fapl, total_error)
   INTEGER(HSIZE_T), DIMENSION(7) :: data_dims
 
   CHARACTER(LEN=25) :: check_name
+  CHARACTER(LEN=18) :: chr_exact_size
 
 
   INTEGER, PARAMETER :: SPACE1_RANK = 3
@@ -3447,6 +3452,15 @@ SUBROUTINE test_attr_basic_write(fapl, total_error)
      total_error = total_error + 1
      stop
   ENDIF
+
+  ! Try with a string buffer that is exactly the correct size
+  size = 18
+  CALL H5Aget_name_f(attr, size, chr_exact_size, error)
+  CALL check('H5Aget_name_f',error,total_error)
+  CALL VerifyString('H5Aget_name_f',chr_exact_size,ATTR_TMP_NAME, total_error)
+
+
+
 !!$    attr_name_size = H5Aget_name(attr, (size_t)0, NULL);
 !!$    CHECK(attr_name_size, FAIL, "H5Aget_name");
 !!$
@@ -3853,10 +3867,11 @@ SUBROUTINE lapl_nlinks( fapl, total_error)
   INTEGER(HID_T) :: gapl = (-1), dapl = (-1), tapl = (-1) ! /* Other property lists */
   
   CHARACTER(LEN=7) :: objname ! /* Object name */
-!  INTEGER(ssize_t) :: name_len ! /* Length of object name */
+  INTEGER(size_t) :: name_len ! /* Length of object name */
   CHARACTER(LEN=7) :: filename = 'link.h5'
   INTEGER(size_t) ::              nlinks ! /* nlinks for H5Pset_nlinks */
   INTEGER(hsize_t), DIMENSION(2) :: dims
+  INTEGER(size_t) :: buf_size = 7
   
   WRITE(*,*) "adjusting nlinks with LAPL (w/new group format)"
 
@@ -3919,86 +3934,108 @@ SUBROUTINE lapl_nlinks( fapl, total_error)
   CALL check("H5Pset_nlinks_f",error,total_error)
   CALL VERIFY("H5Pset_nlinks_f",INT(nlinks), 20, total_error)
 
-!!$
-!!$    /* Open object through what is normally too many soft links using
-!!$     * new property list */
-!!$    if((gid = H5Oopen(fid, "soft17", plist)) < 0) TEST_ERROR
-!!$
-!!$    /* Check name */
-!!$    if((name_len = H5Iget_name( gid, objname, (size_t)NAME_BUF_SIZE )) < 0) TEST_ERROR
-!!$    if(HDstrcmp(objname, "/soft17")) TEST_ERROR
-!!$
-!!$    /* Create group using soft link */
-!!$    if((gid2 = H5Gcreate2(gid, "new_soft", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
-!!$
-!!$    /* Close groups */
-!!$    if(H5Gclose(gid2) < 0) TEST_ERROR
-!!$    if(H5Gclose(gid) < 0) TEST_ERROR
-!!$
-!!$    /* Set nlinks to a smaller number */
-!!$    nlinks = 4;
-!!$    if(H5Pset_nlinks(plist, nlinks) < 0) TEST_ERROR
-!!$
-!!$    /* Ensure that nlinks was set successfully */
-!!$    nlinks = 0;
-!!$    if(H5Pget_nlinks(plist, &nlinks) < 0) TEST_ERROR
-!!$    if(nlinks != 4) TEST_ERROR
-!!$
-!!$    /* Try opening through what is now too many soft links */
-!!$    H5E_BEGIN_TRY {
-!!$        gid = H5Oopen(fid, "soft5", plist);
-!!$    } H5E_END_TRY;
-!!$    if (gid >= 0) {
-!!$	H5_FAILED();
-!!$	puts("    Should have failed for sequence of too many nested links.");
-!!$	goto error;
-!!$    }
-!!$
-!!$    /* Open object through lesser soft link */
-!!$    if((gid = H5Oopen(fid, "soft4", plist)) < 0) TEST_ERROR
-!!$
-!!$    /* Check name */
-!!$    if((name_len = H5Iget_name( gid, objname, (size_t)NAME_BUF_SIZE )) < 0) TEST_ERROR
-!!$    if(HDstrcmp(objname, "/soft4")) TEST_ERROR
-!!$
-!!$
-!!$    /* Test other functions that should use a LAPL */
-!!$    nlinks = 20;
-!!$    if(H5Pset_nlinks(plist, nlinks) < 0) TEST_ERROR
-!!$
-!!$    /* Try copying and moving when both src and dst contain many soft links
-!!$     * using a non-default LAPL
-!!$     */
-!!$    if(H5Lcopy(fid, "soft17", fid, "soft17/newer_soft", H5P_DEFAULT, plist) < 0) TEST_ERROR
-!!$    if(H5Lmove(fid, "soft17/newer_soft", fid, "soft17/newest_soft", H5P_DEFAULT, plist) < 0) TEST_ERROR
-!!$
-!!$    /* H5Olink */
-!!$    if(H5Olink(gid, fid, "soft17/link_to_group", H5P_DEFAULT, plist) < 0) TEST_ERROR
-!!$
-!!$    /* H5Lcreate_hard  and H5Lcreate_soft */
-!!$    if(H5Lcreate_hard(fid, "soft17", fid, "soft17/link2_to_group", H5P_DEFAULT, plist) < 0) TEST_ERROR
-!!$    if(H5Lcreate_soft("/soft4", fid, "soft17/soft_link", H5P_DEFAULT, plist) < 0) TEST_ERROR
-!!$
-!!$    /* H5Ldelete */
-!!$    if(H5Ldelete(fid, "soft17/soft_link", plist) < 0) TEST_ERROR
-!!$
+
+  !/* Open object through what is normally too many soft links using
+  ! * new property list */
+  
+  CALL H5Oopen_f(fid,"soft17",gid,error,plist)
+  CALL check("H5Oopen_f",error,total_error)
+
+  !/* Check name */
+  CALL h5iget_name_f(gid, objname, buf_size, name_len, error)
+  CALL check("h5iget_name_f",error,total_error)
+  CALL VerifyString("h5iget_name_f", TRIM(objname),"/soft17", total_error)
+  !/* Create group using soft link */
+  CALL H5Gcreate_f(gid, "new_soft", gid2, error)
+  CALL check("H5Gcreate_f", error, total_error)
+
+  ! /* Close groups */ 
+  CALL H5Gclose_f(gid2, error)
+  CALL check("H5Gclose_f", error, total_error) 
+  CALL H5Gclose_f(gid, error)
+  CALL check("H5Gclose_f", error, total_error)
+
+
+  !/* Set nlinks to a smaller number */
+  nlinks = 4
+  CALL H5Pset_nlinks_f(plist, nlinks, error)
+  CALL check("H5Pset_nlinks_f", error, total_error)
+
+  !/* Ensure that nlinks was set successfully */
+  nlinks = 0
+
+  CALL H5Pget_nlinks_f(plist, nlinks, error)
+  CALL check("H5Pget_nlinks_f",error,total_error)
+  CALL VERIFY("H5Pget_nlinks_f", nlinks, 4, total_error)
+
+  ! /* Try opening through what is now too many soft links */
+  
+  CALL H5Oopen_f(fid,"soft5",gid,error,plist)
+  CALL VERIFY("H5Oopen_f", error, -1, total_error) ! should fail
+
+  ! /* Open object through lesser soft link */
+  CALL H5Oopen_f(fid,"soft4",gid,error,plist)
+  CALL check("H5Oopen_",error,total_error)
+
+  ! /* Check name */
+  CALL h5iget_name_f(gid, objname, buf_size, name_len, error)
+  CALL check("h5iget_name_f",error,total_error)
+  CALL VerifyString("h5iget_name_f", TRIM(objname),"/soft4", total_error)
+
+  ! /* Test other functions that should use a LAPL */
+  nlinks = 20
+  CALL H5Pset_nlinks_f(plist, nlinks, error)
+  CALL check("H5Pset_nlinks_f", error, total_error)
+
+  !/* Try copying and moving when both src and dst contain many soft links
+  ! * using a non-default LAPL
+  ! */
+  CALL H5Lcopy_f(fid, "soft17", fid, "soft17/newer_soft", error, H5P_DEFAULT_F, plist)
+  CALL check("H5Lcopy_f",error,total_error)
+
+  CALL H5Lmove_f(fid, "soft17/newer_soft", fid, "soft17/newest_soft", error, lapl_id=plist)
+  CALL check("H5Lmove_f",error, total_error)
+
+  ! /* H5Olink */
+  CALL H5Olink_f(gid, fid, "soft17/link_to_group", error, H5P_DEFAULT_F, plist)
+  CALL check("H5Olink_f", error, total_error)
+
+  ! /* H5Lcreate_hard and H5Lcreate_soft */
+  CALL H5Lcreate_hard_f(fid, "soft17", fid, "soft17/link2_to_group", error, H5P_DEFAULT_F, plist)
+  CALL check("H5Lcreate_hard_f", error, total_error)
+
+
+  CALL H5Lcreate_soft_f("/soft4", fid, "soft17/soft_link",error, H5P_DEFAULT_F, plist)
+  CALL check("H5Lcreate_soft_f", error, total_error)
+
+  ! /* H5Ldelete */
+  CALL h5ldelete_f(fid, "soft17/soft_link", error, plist)
+  CALL check("H5Ldelete_f", error, total_error)
+
 !!$    /* H5Lget_val and H5Lget_info */
 !!$    if(H5Lget_val(fid, "soft17", NULL, (size_t)0, plist) < 0) TEST_ERROR
 !!$    if(H5Lget_info(fid, "soft17", NULL, plist) < 0) TEST_ERROR
 !!$
-!!$    /* H5Lcreate_external and H5Lcreate_ud */
-!!$    if(H5Lcreate_external("filename", "path", fid, "soft17/extlink", H5P_DEFAULT, plist) < 0) TEST_ERROR
+
+  ! /* H5Lcreate_external and H5Lcreate_ud */
+  CALL H5Lcreate_external_f("filename", "path", fid, "soft17/extlink", error, H5P_DEFAULT_F, plist)
+  CALL check("H5Lcreate_external_f", error, total_error)
+
 !!$    if(H5Lregister(UD_rereg_class) < 0) TEST_ERROR
 !!$    if(H5Lcreate_ud(fid, "soft17/udlink", UD_HARD_TYPE, NULL, (size_t)0, H5P_DEFAULT, plist) < 0) TEST_ERROR
 !!$
-!!$    /* Close plist */
-!!$    if(H5Pclose(plist) < 0) TEST_ERROR
-!!$
-!!$
-!!$    /* Create a datatype and dataset as targets inside the group */
-!!$    if((tid = H5Tcopy(H5T_NATIVE_INT)) < 0) TEST_ERROR
-!!$    if(H5Tcommit2(gid, "datatype", tid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
-!!$    if(H5Tclose(tid) < 0) TEST_ERROR
+    ! /* Close plist */
+  CALL h5pclose_f(plist, error)
+  CALL check("h5pclose_f", error, total_error)
+
+    ! /* Create a datatype and dataset as targets inside the group */
+  CALL h5tcopy_f(H5T_NATIVE_INTEGER, tid, error)
+  CALL check("h5tcopy_f",error,total_error)
+  CALL h5tcommit_f(gid, "datatype", tid, error)
+  CALL check("test_lcpl.h5tcommit_f", error, total_error)
+  CALL h5tclose_f(tid, error)
+  CALL check("h5tclose_f", error, total_error)
+
 !!$
 !!$    dims[0] = 2;
 !!$    dims[1] = 2;
@@ -4006,8 +4043,10 @@ SUBROUTINE lapl_nlinks( fapl, total_error)
 !!$    if((did = H5Dcreate2(gid, "dataset", H5T_NATIVE_INT, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
 !!$    if(H5Dclose(did) < 0) TEST_ERROR
 !!$
-!!$    /* Close group */
-!!$    if(H5Gclose(gid) < 0) TEST_ERROR
+  !/* Close group */
+  CALL h5gclose_f(gid, error)
+  CALL check("h5gclose_f",error,total_error)
+
 !!$
 !!$    /* Try to open the objects using too many symlinks with default *APLs */
 !!$    H5E_BEGIN_TRY {
@@ -4019,48 +4058,59 @@ SUBROUTINE lapl_nlinks( fapl, total_error)
 !!$            FAIL_PUTS_ERROR("    Should have failed for too many nested links.")
 !!$    } H5E_END_TRY
 !!$
-!!$    /* Create property lists with nlinks set */
-!!$    if((gapl = H5Pcreate(H5P_GROUP_ACCESS)) < 0) TEST_ERROR
-!!$    if((tapl = H5Pcreate(H5P_DATATYPE_ACCESS)) < 0) TEST_ERROR
-!!$    if((dapl = H5Pcreate(H5P_DATASET_ACCESS)) < 0) TEST_ERROR
-!!$
-!!$    nlinks = 20;
-!!$    if(H5Pset_nlinks(gapl, nlinks) < 0) TEST_ERROR 
-!!$    if(H5Pset_nlinks(tapl, nlinks) < 0) TEST_ERROR 
-!!$    if(H5Pset_nlinks(dapl, nlinks) < 0) TEST_ERROR 
-!!$
-!!$    /* We should now be able to use these property lists to open each kind
-!!$     * of object.
-!!$     */
-!!$    if((gid = H5Gopen2(fid, "soft17", gapl)) < 0) FAIL_STACK_ERROR
-!!$    if((tid = H5Topen2(fid, "soft17/datatype", tapl)) < 0) TEST_ERROR
+    ! /* Create property lists with nlinks set */
+  
+  CALL H5Pcreate_f(H5P_GROUP_ACCESS_F,gapl,error)
+  CALL check("h5Pcreate_f",error,total_error) 
+  CALL H5Pcreate_f(H5P_DATATYPE_ACCESS_F,tapl,error)
+  CALL check("h5Pcreate_f",error,total_error) 
+  CALL H5Pcreate_f(H5P_DATASET_ACCESS_F,dapl,error)
+  CALL check("h5Pcreate_f",error,total_error)
+
+
+  nlinks = 20
+  CALL H5Pset_nlinks_f(gapl, nlinks, error)
+  CALL check("H5Pset_nlinks_f", error, total_error)
+  CALL H5Pset_nlinks_f(tapl, nlinks, error)
+  CALL check("H5Pset_nlinks_f", error, total_error)
+  CALL H5Pset_nlinks_f(dapl, nlinks, error)
+  CALL check("H5Pset_nlinks_f", error, total_error)
+
+  !/* We should now be able to use these property lists to open each kind
+  ! * of object.
+  ! */
+
+  CALL H5Gopen_f(fid, "soft17", gid, error, gapl)
+  CALL check("H5Gopen_f",error,total_error)
+
+  CALL H5Topen_f(fid, "soft17/datatype", tid, error, tapl)
+  CALL check("H5Gopen_f",error,total_error)
+  
 !!$    if((did = H5Dopen2(fid, "soft17/dataset", dapl)) < 0) TEST_ERROR
-!!$
-!!$    /* Close objects */
-!!$    if(H5Gclose(gid) < 0) TEST_ERROR
-!!$    if(H5Tclose(tid) < 0) TEST_ERROR
+
+  ! /* Close objects */
+  
+  CALL h5gclose_f(gid, error)
+  CALL check("h5gclose_f",error,total_error)
+  CALL h5tclose_f(tid, error)
+  CALL check("h5tclose_f", error, total_error)
+
 !!$    if(H5Dclose(did) < 0) TEST_ERROR
 !!$
-!!$    /* Close plists */
-!!$    if(H5Pclose(gapl) < 0) TEST_ERROR
-!!$    if(H5Pclose(tapl) < 0) TEST_ERROR
+  ! /* Close plists */
+  
+  CALL h5pclose_f(gapl, error)
+  CALL check("h5pclose_f", error, total_error)
+  CALL h5pclose_f(tapl, error)
+  CALL check("h5pclose_f", error, total_error)
+
 !!$    if(H5Pclose(dapl) < 0) TEST_ERROR
 !!$
 !!$    /* Unregister UD hard link class */
 !!$    if(H5Lunregister(UD_HARD_TYPE) < 0) TEST_ERROR
 !!$
-!!$    /* Close file */
-!!$    if(H5Fclose(fid) < 0) TEST_ERROR
-!!$
-!!$    PASSED();
-!!$    return 0;
 
-!!$  CALL H5Pclose_f(gapl, error)
-!!$  CALL check("H5Pclose_f", error, total_error)
-!!$  CALL H5Gclose_f(gid, error)
-!!$  CALL check("H5Gclose_f", error, total_error)
-  CALL H5Pclose_f(plist, error)
-  CALL check("H5Pclose_f", error, total_error)
+  ! /* Close file */
   CALL H5Fclose_f(fid, error)
   CALL check("H5Fclose_f", error, total_error)
 
