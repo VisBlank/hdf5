@@ -1004,7 +1004,7 @@ done:
  * Outputs:     size    - attributes storage requirements
  * Returns:     0 on success, -1 on failure
  * Programmer:  M. S. Breitenfeld
- *              January, 2007
+ *              January, 2008
  * Modifications: N/A
  *---------------------------------------------------------------------------*/
 
@@ -1027,7 +1027,7 @@ done:
  * Outputs:     creation_prop_id - Identifier for the attribute’s creation property
  * Returns:     0 on success, -1 on failure
  * Programmer:  M. S. Breitenfeld
- *              January, 2007
+ *              January, 2008
  * Modifications: N/A
  *---------------------------------------------------------------------------*/
 
@@ -1058,7 +1058,7 @@ done:
  * Outputs:     N/A
  * Returns:     0 on success, -1 on failure
  * Programmer:  M. S. Breitenfeld
- *              January, 2007
+ *              January, 2008
  * Modifications: N/A
  *---------------------------------------------------------------------------*/
 
@@ -1134,7 +1134,7 @@ done:
 /*----------------------------------------------------------------------------
  * Name:        h5adelete_by_name_c 
  * Purpose:     Call h5adelete_by_name to remove an attribute from a specified location 
- * Inputs:      loc_id
+ * Inputs:      loc_id - identifer for object to which attribute is attached
  *              obj_name - object identifier
  *              obj_namelen - name length
  *              attr_name - name of the attribute
@@ -1737,7 +1737,7 @@ nh5aopen_by_name_c (hid_t_f *loc_id, _fcd obj_name, size_t_f *obj_namelen, _fcd 
  * Outputs:     N/A
  * Returns:     0 on success, -1 on failure
  * Programmer:  M. S. Breitenfeld
- *              January, 2007
+ *              January, 2008
  * Modifications: N/A
  *---------------------------------------------------------------------------*/
 

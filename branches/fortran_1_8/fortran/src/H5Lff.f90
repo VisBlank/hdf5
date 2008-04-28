@@ -60,7 +60,7 @@ CONTAINS
 !
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: src_loc_id  ! Location identifier of the source link
-    CHARACTER(LEN=*), INTENT(IN) ::src_name   ! Name of the link to be copied
+    CHARACTER(LEN=*), INTENT(IN) :: src_name   ! Name of the link to be copied
     INTEGER(HID_T), INTENT(IN) :: dest_loc_id ! Location identifier specifying the destination of the copy
     CHARACTER(LEN=*), INTENT(IN) :: dest_name ! Name to be assigned to the NEW copy
 
@@ -146,9 +146,9 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of the link to delete
     INTEGER, INTENT(OUT) :: hdferr        ! Error code: 
                                           ! 0 on success and -1 on failure
-    INTEGER(SIZE_T) :: namelen
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id ! Link access property list identifier
     INTEGER(HID_T) :: lapl_id_default
+    INTEGER(SIZE_T) :: namelen
     
 
 !  MS FORTRAN needs explicit interface for C functions called here.
@@ -209,12 +209,12 @@ CONTAINS
 !
     IMPLICIT NONE
     CHARACTER(LEN=*), INTENT(IN) :: target_path     ! Path to the target object, which is not required to exist.
-    INTEGER(HID_T), INTENT(IN) ::   link_loc_id     ! The file or group identifier for the new link.
+    INTEGER(HID_T), INTENT(IN) :: link_loc_id     ! The file or group identifier for the new link.
     CHARACTER(LEN=*), INTENT(IN) :: link_name       ! The name of the new link.
     INTEGER, INTENT(OUT) :: hdferr        ! Error code: 
                                           ! 0 on success and -1 on failure
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) ::   lcpl_id         ! Link creation property list identifier.
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) ::   lapl_id         ! Link access property list identifier.
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lcpl_id ! Link creation property list identifier.
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id ! Link access property list identifier.
 
     INTEGER(HID_T) :: lcpl_id_default 
     INTEGER(HID_T) :: lapl_id_default     
@@ -388,8 +388,8 @@ CONTAINS
     INTEGER, INTENT(OUT) :: hdferr        ! Error code: 
                                           ! 0 on success and -1 on failure
 
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) ::   lcpl_id ! Link creation property list identifier.
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) ::   lapl_id ! Link access property list identifier.
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lcpl_id ! Link creation property list identifier.
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id ! Link access property list identifier.
 
     INTEGER(HID_T) :: lcpl_id_default 
     INTEGER(HID_T) :: lapl_id_default
@@ -436,7 +436,7 @@ CONTAINS
 !----------------------------------------------------------------------
 ! Name:		h5ldelete_by_idx_f 
 !
-! Purpose:  	Removes the n’th link in a group.
+! Purpose:  	Removes the nth link in a group.
 ! Inputs:  	
 !		loc_id     - File or group identifier specifying location of subject group
 !               group_name - Name of subject group
@@ -753,9 +753,9 @@ CONTAINS
     INTEGER(HSIZE_T), INTENT(OUT) :: data_size   ! Indicates the size, in the number of characters, of the attribute
     INTEGER, INTENT(OUT) :: hdferr       ! Error code:
                                          ! 0 on success and -1 on failure
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id  ! Link access property list
     INTEGER :: corder_valid
     INTEGER(SIZE_T)  :: group_namelen
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id  ! Link access property list
     INTEGER(HID_T) :: lapl_id_default
 
 !  MS FORTRAN needs explicit interface for C functions called here.
@@ -876,7 +876,7 @@ CONTAINS
 ! Modifications:  N/A
 !
 !----------------------------------------------------------------------
-  SUBROUTINE H5Lmove_f(src_loc_id, src_name, dest_loc_id, dest_name, hdferr, lcpl_id, lapl_id) 
+  SUBROUTINE h5lmove_f(src_loc_id, src_name, dest_loc_id, dest_name, hdferr, lcpl_id, lapl_id) 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: H5Lmove_f
