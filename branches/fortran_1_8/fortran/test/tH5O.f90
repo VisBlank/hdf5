@@ -79,9 +79,8 @@ SUBROUTINE test_h5o_link(total_error)
   CALL H5Pcreate_f(H5P_LINK_CREATE_F, lcpl_id, error)
   CALL check("h5Pcreate_f",error,total_error)
 
-  CALL H5Pset_create_intermediate_gr_f(lcpl_id, TRUE, error)
-  CALL check("H5Pset_create_intermediate_gr_f",error,total_error)
-
+  CALL H5Pset_create_inter_group_f(lcpl_id, TRUE, error)
+  CALL check("H5Pset_create_inter_group_f",error,total_error)
 
   ! /* Loop over using new group format */
   ! for(new_format = FALSE; new_format <= TRUE; new_format++) {
@@ -142,11 +141,11 @@ SUBROUTINE test_h5o_link(total_error)
      ENDDO
   ENDDO
 
+! /* Create a group with no name*/
 
-  
-!!$    ! /* Create a group with no name*/
-!!$    group_id = H5Gcreate_anon(file_id, H5P_DEFAULT, H5P_DEFAULT);
-!!$    CHECK(group_id, FAIL, "H5Gcreate_anon");
+  CALL H5Gcreate_anon_f(file_id, group_id, error)
+  CALL check("H5Gcreate_anon", error, total_error)
+
 !!$    
 !!$    ! /* Link nameless datatype into nameless group */
 !!$    ret = H5Olink(type_id, group_id, "datatype", H5P_DEFAULT, H5P_DEFAULT);
@@ -1050,7 +1049,8 @@ SUBROUTINE link_info_by_idx_check(group_id, linkname, n, &
   
   CALL H5Pset_char_encoding_f(lcpl_id, H5T_CSET_UTF8_F, error)
   CALL check("test_lcpl.H5Pset_char_encoding_f",error, total_error)
-  CALL H5Lcreate_soft_f("test_lcpl.dataset2", file_id, "slink_to_dset2",error,lcpl_id)
+  CALL H5Lcreate_soft_f("dataset2", file_id, "slink_to_dset2",error,lcpl_id)
+  CALL check("H5Lcreate_soft_f", error, total_error)
 
   CALL H5Lget_info_f(file_id, "slink_to_dset2", &
        cset, corder, f_corder_valid, link_type, address, val_size, &
@@ -1155,5 +1155,8 @@ SUBROUTINE objcopy(fapl, total_error)
 
   CALL lapl_nlinks(fapl2, total_error)
 
+
+
 END SUBROUTINE objcopy
+
 
