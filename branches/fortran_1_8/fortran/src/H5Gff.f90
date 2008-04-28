@@ -257,7 +257,6 @@ CONTAINS
 !DEC$attributes dllexport :: h5gopen_f
 !DEC$endif
 !
-           
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of the group 
@@ -1072,14 +1071,14 @@ CONTAINS
 !
 ! Inputs:  
 !		loc_id		- Location identifier
-!               gcpl_id   	- Group creation property list identifier
-!               gapl_id         - Group access property list identifier
 ! Outputs:  
 !		grp_id		- group identifier
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
 ! Optional parameters:
+!               gcpl_id   	- Group creation property list identifier
+!               gapl_id         - Group access property list identifier
 !
 ! Programmer:	M.S. Breitenfeld
 !		February 15, 2008	
@@ -1088,7 +1087,7 @@ CONTAINS
 !
 ! Comment:		
 !----------------------------------------------------------------------
-  SUBROUTINE h5Gcreate_anon_f(loc_id, gcpl_id, gapl_id, grp_id, hdferr)
+  SUBROUTINE h5Gcreate_anon_f(loc_id, grp_id, hdferr, gcpl_id, gapl_id)
 !
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
@@ -1097,27 +1096,34 @@ CONTAINS
 !
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier
-    INTEGER(HID_T), INTENT(IN) :: gcpl_id  ! Property list for group creation
-    INTEGER(HID_T), INTENT(IN) :: gapl_id  ! Property list for group access
     INTEGER(HID_T), INTENT(OUT) :: grp_id  ! Group identifier 
     INTEGER, INTENT(OUT) :: hdferr         ! Error code
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: gcpl_id  ! Property list for group creation
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: gapl_id  ! Property list for group access
+
+    INTEGER(HID_T) :: gcpl_id_default
+    INTEGER(HID_T) :: gapl_id_default
     
-!  MS FORTRAN needs explicit interface for C functions called here.
-!
     INTERFACE
-       INTEGER FUNCTION h5gcreate_anon_c(loc_id, gcpl_id, gapl_id, grp_id)
+       INTEGER FUNCTION h5gcreate_anon_c(loc_id, gcpl_id_default, gapl_id_default, grp_id)
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
          !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5GCREATE_ANON_C'::h5gcreate_anon_c
          !DEC$ ENDIF
          INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier
-         INTEGER(HID_T), INTENT(IN) :: gcpl_id  ! Property list for group creation
-         INTEGER(HID_T), INTENT(IN) :: gapl_id  ! Property list for group access
+         INTEGER(HID_T), INTENT(IN) :: gcpl_id_default  ! Property list for group creation
+         INTEGER(HID_T), INTENT(IN) :: gapl_id_default  ! Property list for group access
          INTEGER(HID_T), INTENT(OUT) :: grp_id  ! Group identifier
        END FUNCTION h5gcreate_anon_c
     END INTERFACE
+
+    gcpl_id_default = H5P_DEFAULT_F 
+    gapl_id_default = H5P_DEFAULT_F 
+
+    IF(PRESENT(gcpl_id)) gcpl_id_default = gcpl_id
+    IF(PRESENT(gapl_id)) gapl_id_default = gapl_id
     
-    hdferr = h5gcreate_anon_c(loc_id, gcpl_id, gapl_id, grp_id)
+    hdferr = h5gcreate_anon_c(loc_id, gcpl_id_default, gapl_id_default, grp_id)
     
   END SUBROUTINE h5Gcreate_anon_f
 
@@ -1200,7 +1206,7 @@ CONTAINS
 !
 !----------------------------------------------------------------------
 
-  SUBROUTINE h5gget_info_f(group_id, storage_type, nlinks, max_corder,hdferr) 
+  SUBROUTINE h5gget_info_f(group_id, storage_type, nlinks, max_corder, hdferr) 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5gget_info_f
@@ -1209,9 +1215,9 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: group_id ! Group identifier
  
     INTEGER, INTENT(OUT) :: storage_type ! Type of storage for links in group:
-                                          ! H5G_STORAGE_TYPE_COMPACT: Compact storage
-                                          ! H5G_STORAGE_TYPE_DENSE: Indexed storage
-                                          ! H5G_STORAGE_TYPE_SYMBOL_TABLE: Symbol tables, the original HDF5 structure
+                                          ! H5G_STORAGE_TYPE_COMPACT_F: Compact storage
+                                          ! H5G_STORAGE_TYPE_DENSE_F: Indexed storage
+                                          ! H5G_STORAGE_TYPE_SYMBOL_TABLE_F: Symbol tables, the original HDF5 structure
     INTEGER, INTENT(OUT) :: nlinks ! Number of links in group
     INTEGER, INTENT(OUT) :: max_corder ! Current maximum creation order value for group
     INTEGER, INTENT(OUT) :: hdferr       ! Error code:
@@ -1283,9 +1289,9 @@ CONTAINS
     INTEGER(HSIZE_T), INTENT(IN) :: n          ! Position in the index of the group for which information is retrieved
 
     INTEGER, INTENT(OUT) :: storage_type ! Type of storage for links in group:
-                                          ! H5G_STORAGE_TYPE_COMPACT: Compact storage
-                                          ! H5G_STORAGE_TYPE_DENSE: Indexed storage
-                                          ! H5G_STORAGE_TYPE_SYMBOL_TABLE: Symbol tables, the original HDF5 structure
+                                          ! H5G_STORAGE_TYPE_COMPACT_F: Compact storage
+                                          ! H5G_STORAGE_TYPE_DENSE_F: Indexed storage
+                                          ! H5G_STORAGE_TYPE_SYMBOL_TABLE_F: Symbol tables, the original HDF5 structure
     INTEGER, INTENT(OUT) :: nlinks ! Number of links in group
     INTEGER, INTENT(OUT) :: max_corder ! Current maximum creation order value for group
     INTEGER, INTENT(OUT) :: hdferr       ! Error code:
@@ -1371,9 +1377,9 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(IN) :: group_name ! Name of group containing group for which information is to be retrieved
 
     INTEGER, INTENT(OUT) :: storage_type ! Type of storage for links in group:
-                                          ! H5G_STORAGE_TYPE_COMPACT: Compact storage
-                                          ! H5G_STORAGE_TYPE_DENSE: Indexed storage
-                                          ! H5G_STORAGE_TYPE_SYMBOL_TABLE: Symbol tables, the original HDF5 structure
+                                          ! H5G_STORAGE_TYPE_COMPACT_F: Compact storage
+                                          ! H5G_STORAGE_TYPE_DENSE_F: Indexed storage
+                                          ! H5G_STORAGE_TYPE_SYMBOL_TABLE_F: Symbol tables, the original HDF5 structure
     INTEGER, INTENT(OUT) :: nlinks ! Number of links in group
     INTEGER, INTENT(OUT) :: max_corder ! Current maximum creation order value for group
     INTEGER, INTENT(OUT) :: hdferr       ! Error code:
