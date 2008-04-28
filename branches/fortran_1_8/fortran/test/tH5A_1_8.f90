@@ -172,6 +172,9 @@ SUBROUTINE attribute_test_1_8(cleanup, total_error)
   CALL H5Pclose_f(fcpl2, error)
   CALL CHECK("H5Pclose", error,total_error)
 
+  IF(cleanup) CALL h5_cleanup_f("tattr", H5P_DEFAULT_F, error)
+  CALL check("h5_cleanup_f", error, total_error)
+
 
   RETURN
 END SUBROUTINE attribute_test_1_8
@@ -3868,13 +3871,12 @@ SUBROUTINE lapl_nlinks( fapl, total_error)
   
   CHARACTER(LEN=7) :: objname ! /* Object name */
   INTEGER(size_t) :: name_len ! /* Length of object name */
-  CHARACTER(LEN=7) :: filename = 'link.h5'
+  CHARACTER(LEN=12) :: filename = 'TestLinks.h5'
   INTEGER(size_t) ::              nlinks ! /* nlinks for H5Pset_nlinks */
   INTEGER(hsize_t), DIMENSION(2) :: dims
   INTEGER(size_t) :: buf_size = 7
   
   WRITE(*,*) "adjusting nlinks with LAPL (w/new group format)"
-
 
 !!$    /* Make certain test is valid */
 !!$    /* XXX: should probably make a "generic" test that creates the proper
@@ -4032,7 +4034,7 @@ SUBROUTINE lapl_nlinks( fapl, total_error)
   CALL h5tcopy_f(H5T_NATIVE_INTEGER, tid, error)
   CALL check("h5tcopy_f",error,total_error)
   CALL h5tcommit_f(gid, "datatype", tid, error)
-  CALL check("test_lcpl.h5tcommit_f", error, total_error)
+  CALL check("h5tcommit_f", error, total_error)
   CALL h5tclose_f(tid, error)
   CALL check("h5tclose_f", error, total_error)
 

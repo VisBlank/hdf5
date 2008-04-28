@@ -210,12 +210,13 @@ END SUBROUTINE test_h5o_link
 ! *
 ! * C Programmer:  Quincey Koziol
 ! *                Tuesday, November 14, 2006
+! *
 ! * Adapted to FORTRAN: M.S. Breitenfeld
 ! *                     March 3, 2008
 ! *
 ! *-------------------------------------------------------------------------
 ! */
-SUBROUTINE delete_by_idx(fapl, total_error)
+SUBROUTINE delete_by_idx(cleanup, fapl, total_error)
 
   USE HDF5 ! This module contains all necessary modules 
   
@@ -258,6 +259,8 @@ SUBROUTINE delete_by_idx(fapl, total_error)
   CHARACTER(LEN=80) :: fix_filename1
   CHARACTER(LEN=80) :: fix_filename2
   INTEGER(SIZE_T) :: size_tmp
+
+  LOGICAL :: cleanup
 
   DO i = 1, 80
      fix_filename1(i:i) = " "
@@ -558,6 +561,9 @@ SUBROUTINE delete_by_idx(fapl, total_error)
            CALL H5Fclose_f(file_id, error)
            CALL check("delete_by_idx.H5Gclose_f", error, total_error)
 
+           IF(cleanup) CALL h5_cleanup_f("file0", H5P_DEFAULT_F, error)
+           CALL check("h5_cleanup_f", error, total_error)
+
         ENDDO
      ENDDO
   ENDDO
@@ -816,13 +822,14 @@ SUBROUTINE link_info_by_idx_check(group_id, linkname, n, &
 ! */
 
 
-  SUBROUTINE test_lcpl(fapl, total_error)
+  SUBROUTINE test_lcpl(cleanup, fapl, total_error)
 
   USE HDF5 ! This module contains all necessary modules 
   
   IMPLICIT NONE
   INTEGER, INTENT(INOUT) :: total_error
   INTEGER(HID_T), INTENT(IN) :: fapl
+  LOGICAL :: cleanup
     
   INTEGER(HID_T) :: file_id
   INTEGER(HID_T) :: group_id
@@ -1107,6 +1114,10 @@ SUBROUTINE link_info_by_idx_check(group_id, linkname, n, &
   CALL check("test_lcpl.h5Sclose_f",error,total_error)
   CALL H5Fclose_f(file_id, error)
   CALL check("test_lcpl.H5Fclose_f", error, total_error)
+
+  IF(cleanup) CALL h5_cleanup_f("tempfile", H5P_DEFAULT_F, error)
+  CALL check("h5_cleanup_f", error, total_error)
+
 
 END SUBROUTINE test_lcpl
 

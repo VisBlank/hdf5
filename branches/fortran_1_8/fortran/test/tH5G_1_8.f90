@@ -42,16 +42,23 @@ SUBROUTINE group_test(cleanup, total_error)
   CALL mklinks(fapl2, total_error)
   CALL cklinks(fapl2, total_error)
 
-  CALL group_info(fapl2,total_error)
+
+
+
+  CALL group_info(cleanup, fapl2,total_error)
 !  CALL ud_hard_links(fapl2,total_error)
-  CALL timestamps(fapl2, total_error)
+  CALL timestamps(cleanup, fapl2, total_error)
   CALL test_move_preserves(fapl2, total_error)
-  CALL delete_by_idx(fapl2, total_error)
-  CALL test_lcpl(fapl, total_error)
+  CALL delete_by_idx(cleanup,fapl2, total_error)
+  CALL test_lcpl(cleanup, fapl, total_error)
 
   CALL objcopy(fapl, total_error)
 
-  CALL lifecycle(fapl2, total_error)
+  CALL lifecycle(cleanup, fapl2, total_error)
+
+  IF(cleanup) CALL h5_cleanup_f("TestLinks", H5P_DEFAULT_F, error)
+  CALL check("h5_cleanup_f", error, total_error)
+
 
 END SUBROUTINE group_test
 
@@ -71,7 +78,7 @@ END SUBROUTINE group_test
 ! *-------------------------------------------------------------------------
 ! */
 
-SUBROUTINE group_info(fapl, total_error)
+SUBROUTINE group_info(cleanup, fapl, total_error)
 
   USE HDF5 ! This module contains all necessary modules 
   
@@ -87,7 +94,8 @@ SUBROUTINE group_info(fapl, total_error)
   INTEGER :: idx_type ! /* Type of index to operate on */
   INTEGER :: order, iorder   ! /* Order within in the index */
   LOGICAL, DIMENSION(1:2) :: use_index = (/.FALSE.,.TRUE./) ! /* Use index on creation order values */
-  CHARACTER(LEN =9) :: filename = 'links0.h5' ! /* File name */
+  CHARACTER(LEN=6), PARAMETER :: prefix = 'links0'
+  CHARACTER(LEN=9), PARAMETER :: filename = prefix//'.h5'  ! /* File name */
   INTEGER :: Input1
   INTEGER(HID_T) :: group_id ! /* Group ID */
   INTEGER(HID_T) :: soft_group_id ! /* Group ID for soft links */
@@ -110,6 +118,8 @@ SUBROUTINE group_info(fapl, total_error)
   CHARACTER(LEN=17), PARAMETER :: CORDER_SOFT_GROUP_NAME =  "corder_soft_group"
   INTEGER(HID_T) :: file_id ! /* File ID */
   INTEGER :: error ! /* Generic return value */
+
+  LOGICAL :: cleanup
 
   ! /* Create group creation property list */
   CALL H5Pcreate_f(H5P_GROUP_CREATE_F, gcpl_id, error )
@@ -511,6 +521,10 @@ SUBROUTINE group_info(fapl, total_error)
      CALL H5Pclose_f(gcpl_id, error)
      CALL check("H5Pclose_f", error, total_error)
 
+     IF(cleanup) CALL h5_cleanup_f(prefix, H5P_DEFAULT_F, error)
+     CALL check("h5_cleanup_f", error, total_error)
+
+
    END SUBROUTINE group_info
 
 !/*-------------------------------------------------------------------------
@@ -526,7 +540,7 @@ SUBROUTINE group_info(fapl, total_error)
 ! *-------------------------------------------------------------------------
 ! */
 
-   SUBROUTINE timestamps(fapl, total_error)
+   SUBROUTINE timestamps(cleanup, fapl, total_error)
 
      USE HDF5 ! This module contains all necessary modules 
      
@@ -539,11 +553,14 @@ SUBROUTINE group_info(fapl, total_error)
      INTEGER(HID_T) :: group_id2 !/* Group ID */
      INTEGER(HID_T) :: gcpl_id !/* Group creation property list ID */
      INTEGER(HID_T) :: gcpl_id2 !/* Group creation property list ID */
-     CHARACTER(LEN =9) :: filename = 'links9.h5' ! /* File name */
+     
+     CHARACTER(LEN=6), PARAMETER :: prefix = 'links9'
+     CHARACTER(LEN=9), PARAMETER :: filename = prefix//'.h5'  ! /* File name */
      ! /* Timestamp macros */
      CHARACTER(LEN=10), PARAMETER :: TIMESTAMP_GROUP_1="timestamp1"
      CHARACTER(LEN=10), PARAMETER :: TIMESTAMP_GROUP_2="timestamp2"
      LOGICAL :: track_times
+     LOGICAL :: cleanup
 
      INTEGER :: error
 
@@ -700,6 +717,10 @@ SUBROUTINE group_info(fapl, total_error)
      CALL H5Fclose_f(file_id, error)
      CALL check("H5Fclose_f", error, total_error)
 
+     IF(cleanup) CALL h5_cleanup_f(prefix, H5P_DEFAULT_F, error)
+     CALL check("h5_cleanup_f", error, total_error)
+
+
    END SUBROUTINE timestamps
 
 !/*-------------------------------------------------------------------------
@@ -812,7 +833,7 @@ SUBROUTINE group_info(fapl, total_error)
     !char filename[1024];
 
     INTEGER :: crt_order_flags ! /* Status of creation order info for GCPL */
-    CHARACTER(LEN=9), PARAMETER :: filename = 'testmp.h5'
+    CHARACTER(LEN=12), PARAMETER :: filename = 'TestLinks.h5'
 
     INTEGER :: cset ! Indicates the character set used for the link’s name. 
     INTEGER :: corder ! Specifies the link’s creation order position.
@@ -1153,7 +1174,7 @@ SUBROUTINE group_info(fapl, total_error)
 ! *
 ! *-------------------------------------------------------------------------
 ! */
-SUBROUTINE lifecycle(fapl2, total_error)
+SUBROUTINE lifecycle(cleanup, fapl2, total_error)
 
 
   USE HDF5 ! This module contains all necessary modules 
@@ -1190,6 +1211,7 @@ SUBROUTINE lifecycle(fapl2, total_error)
   INTEGER :: H5G_CRT_GINFO_MIN_DENSE = 6
   INTEGER :: H5G_CRT_GINFO_EST_NUM_ENTRIES = 4
   INTEGER :: H5G_CRT_GINFO_EST_NAME_LEN = 8
+  logical :: cleanup
 
   WRITE(*,*) 'group lifecycle'
 
@@ -1385,6 +1407,9 @@ SUBROUTINE lifecycle(fapl2, total_error)
 !!$
 !!$    /* Verify that file is correct size */
 !!$    if(file_size != empty_size) TEST_ERROR
+
+    IF(cleanup) CALL h5_cleanup_f("fixx", H5P_DEFAULT_F, error)
+    CALL check("h5_cleanup_f", error, total_error)
 
   END SUBROUTINE lifecycle
 !/*-------------------------------------------------------------------------
