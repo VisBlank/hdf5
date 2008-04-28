@@ -95,6 +95,7 @@ H5_FCDLL int_f nh5fget_filesize_c(hid_t_f *file_id, hsize_t_f *size);
 #   define nh5sselect_elements_c    H5_FC_FUNC_(h5sselect_elements_c, H5SSELECT_ELEMENTS_C)
 #   define nh5sdecode_c    H5_FC_FUNC_(h5sdecode_c, H5SDECODE_C)
 #   define nh5sencode_c    H5_FC_FUNC_(h5sencode_c, H5SENCODE_C)
+#   define nh5sextent_equal_c    H5_FC_FUNC_(h5sextent_equal_c, H5SEXTENT_EQUAL_C)
 
 H5_FCDLL int_f nh5screate_simple_c ( int_f *rank, hsize_t_f *dims, hsize_t_f *maxdims, hid_t_f *space_id );
 H5_FCDLL int_f nh5sclose_c ( hid_t_f *space_id );
@@ -125,8 +126,9 @@ H5_FCDLL int_f nh5sselect_elements_c ( hid_t_f *space_id , int_f *op, size_t_f *
 H5_FCDLL int_f nh5scombine_hyperslab_c ( hid_t_f *space_id , int_f *op, hsize_t_f *start, hsize_t_f *count, hsize_t_f *stride, hsize_t_f *block, hid_t_f *hyper_id);
 H5_FCDLL int_f nh5scombine_select_c ( hid_t_f *space1_id , int_f *op, hid_t_f *space2_id, hid_t_f *ds_id);
 H5_FCDLL int_f nh5sselect_select_c ( hid_t_f *space1_id , int_f *op, hid_t_f *space2_id);
-H5_FCDLL int_f nh5sdecode_c ( _fcd buf, size_t_f *buf_len, int_f *obj_id );
-H5_FCDLL int_f nh5sencode_c (_fcd buf, int_f *buf_len, hid_t_f *obj_id, size_t_f *nalloc );
+H5_FCDLL int_f nh5sdecode_c ( _fcd buf, int_f *obj_id );
+H5_FCDLL int_f nh5sencode_c (_fcd buf, hid_t_f *obj_id, size_t_f *nalloc );
+H5_FCDLL int_f nh5sextent_equal_c ( hid_t_f * space1_id, hid_t_f *space2_id, hid_t_f *c_equal);
 
 /*
  * Functions from H5Df.c
@@ -660,10 +662,13 @@ H5_FCDLL int_f nh5arename_c( hid_t_f *loc_id,
 #   define nh5tis_variable_str_c         H5_FC_FUNC_(h5tis_variable_str_c, H5TIS_VARIABLE_STR_C)
 #   define nh5tget_member_class_c         H5_FC_FUNC_(h5tget_member_class_c, H5TGET_MEMBER_CLASS_C)
 #   define nh5tcommit_anon_c       H5_FC_FUNC_(h5tcommit_anon_c, H5TCOMMIT_ANON_C)
-
+#   define nh5tdecode_c    H5_FC_FUNC_(h5tdecode_c, H5TDECODE_C)
+#   define nh5tencode_c    H5_FC_FUNC_(h5tencode_c, H5TENCODE_C)
+#   define nh5tget_create_plist_c H5_FC_FUNC_(h5tget_create_plist_c, H5TGET_CREATE_PLIST_C)
+#   define nh5tcompiler_conv_c H5_FC_FUNC_(h5tcompiler_conv_c, H5TCOMPILER_CONV_C)
 
 H5_FCDLL int_f nh5tcreate_c(int_f *class, size_t_f *size, hid_t_f *type_id);
-H5_FCDLL int_f nh5topen_c (hid_t_f *loc_id, _fcd name, int_f *namelen, hid_t_f *type_id);
+H5_FCDLL int_f nh5topen_c (hid_t_f *loc_id, _fcd name, int_f *namelen, hid_t_f *type_id, hid_t_f *tapl_id );
 H5_FCDLL int_f nh5tcommit_c (hid_t_f *loc_id, _fcd name, int_f *namelen, hid_t_f *type_id, hid_t_f *lcpl_id, hid_t_f *tcpl_id, hid_t_f *tapl_id);
 H5_FCDLL int_f nh5tclose_c ( hid_t_f *type_id );
 H5_FCDLL int_f nh5tequal_c ( hid_t_f *type1_id , hid_t_f *type2_id, int_f *c_flag);
@@ -719,7 +724,23 @@ H5_FCDLL int_f nh5tvlen_create_c ( hid_t_f *type_id , hid_t_f *vltype_id);
 H5_FCDLL int_f nh5tis_variable_str_c ( hid_t_f *type_id , int_f *flag );
 H5_FCDLL int_f nh5tget_member_class_c ( hid_t_f *type_id ,  int_f *member_no, int_f *class );
 H5_FCDLL int_f nh5tcommit_anon_c(hid_t_f *loc_id, hid_t_f *dtype_id, hid_t_f *tcpl_id, hid_t_f *tapl_id);
+H5_FCDLL int_f nh5tdecode_c ( _fcd buf, int_f *obj_id );
+H5_FCDLL int_f nh5tencode_c (_fcd buf, hid_t_f *obj_id, size_t_f *nalloc );
+H5_FCDLL int_f nh5tget_create_plist_c ( hid_t_f *dtype_id,  hid_t_f *dtpl_id);
+H5_FCDLL int_f nh5tcompiler_conv_c ( hid_t_f *src_id, hid_t_f *dst_id, int_f *c_flag);
 
+
+/*
+ * Functions from H5Of.c
+ */
+
+#   define nh5olink_c       H5_FC_FUNC_(h5olink_c, H5OLINK_C)
+#   define nh5oopen_c       H5_FC_FUNC_(h5oopen_c, H5OOPEN_C)
+
+
+H5_FCDLL int_f nh5oopen_c (hid_t_f *loc_id, _fcd name, size_t_f *namelen, hid_t_f *lapl_id, hid_t_f *obj_id);
+H5_FCDLL int_f nh5olink_c (hid_t_f *object_id, hid_t_f *new_loc_id, _fcd name, size_t_f *namelen,
+			   hid_t_f *lcpl_id, hid_t_f *lapl_id);
 /*
  * Functions from H5Pf.c
  */
@@ -856,7 +877,8 @@ H5_FCDLL int_f nh5tcommit_anon_c(hid_t_f *loc_id, hid_t_f *dtype_id, hid_t_f *tc
 #   define nh5pget_link_phase_change_c H5_FC_FUNC_(h5pget_link_phase_change_c, H5PGET_LINK_PHASE_CHANGE_C) /* MSB */
 #   define nh5pget_obj_track_times_c H5_FC_FUNC_(h5pget_obj_track_times_c, H5PGET_OBJ_TRACK_TIMES_C) /* MSB */
 #   define nh5pset_obj_track_times_c H5_FC_FUNC_(h5pset_obj_track_times_c, H5PSET_OBJ_TRACK_TIMES_C) /* MSB */
-#   define nh5pset_create_inter_gr_c H5_FC_FUNC_(h5pset_create_inter_gr_c,H5PSET_CREATE_INTER_GR_C) /* MSB */
+#   define nh5pset_create_inter_group_c H5_FC_FUNC_(h5pset_create_inter_group_c,H5PSET_CREATE_INTER_GROUP_C) /* MSB */
+#   define nh5pget_create_inter_group_c H5_FC_FUNC_(h5pget_create_inter_group_c,H5PGET_CREATE_INTER_GROUP_C) /* MSB */
 #   define nh5pget_link_creation_order_c H5_FC_FUNC_(h5pget_link_creation_order_c,H5PGET_LINK_CREATION_ORDER_C) /* MSB */
 #   define nh5pset_char_encoding_c H5_FC_FUNC_(h5pset_char_encoding_c, H5PSET_CHAR_ENCODING_C) /* MSB */
 #   define nh5pget_char_encoding_c H5_FC_FUNC_(h5pget_char_encoding_c, H5PGET_CHAR_ENCODING_C) /* MSB */
@@ -1011,7 +1033,8 @@ H5_FCDLL int_f nh5pset_link_creation_order_c(hid_t_f *gcpl_id, int_f *crt_order_
 H5_FCDLL int_f nh5pget_link_phase_change_c(hid_t_f *gcpl_id, int_f *max_compact, int_f *min_dense ); /* MSB */
 H5_FCDLL int_f nh5pget_obj_track_times_c(hid_t_f *plist_id, int_f *flag); /* MSB */
 H5_FCDLL int_f nh5pset_obj_track_times_c(hid_t_f *plist_id, int_f *flag); /* MSB */
-H5_FCDLL int_f nh5pset_create_inter_gr_c(hid_t_f *lcpl_id, int_f *crt_intermed_group); /* MSB */
+H5_FCDLL int_f nh5pset_create_inter_group_c(hid_t_f *lcpl_id, int_f *crt_intermed_group); /* MSB */
+H5_FCDLL int_f nh5pget_create_inter_group_c(hid_t_f *lcpl_id, int_f *crt_intermed_group); /* MSB */
 H5_FCDLL int_f nh5pget_link_creation_order_c(hid_t_f *gcpl_id, int_f *crt_order_flags); /* MSB */
 H5_FCDLL int_f nh5pset_char_encoding_c(hid_t_f *plist_id, int_f *encoding); /* MSB */
 H5_FCDLL int_f nh5pget_char_encoding_c(hid_t_f *plist_id, int_f *encoding); /* MSB */
@@ -1145,6 +1168,7 @@ H5_FCDLL int_f nh5zget_filter_info_c (int_f *filter, int_f *flag);
 # define nh5lis_registered_c H5_FC_FUNC_(h5lis_registered_c, H5LIS_REGISTERED_C) /*MSB*/
 # define nh5lmove_c H5_FC_FUNC_(h5lmove_c, H5LMOVE_C) /* MSB */
 # define nh5lget_name_by_idx_c H5_FC_FUNC_(h5lget_name_by_idx_c, H5LGET_NAME_BY_IDX_C) /* MSB */
+# define nh5lget_val_c H5_FC_FUNC_(h5lget_val_c, H5LGET_VAL_C) /* MSB */
 
 H5_FCDLL int_f nh5lcopy_c(hid_t_f *src_loc_id, _fcd src_name, size_t_f *src_namelen, hid_t_f *dest_loc_id, 
 			  _fcd dest_name, size_t_f *dest_namelen,
@@ -1177,5 +1201,7 @@ H5_FCDLL int_f nh5lmove_c(hid_t_f *src_loc_id, _fcd src_name, size_t_f *src_name
 H5_FCDLL int_f nh5lget_name_by_idx_c(hid_t_f *loc_id, _fcd group_name, size_t_f *group_namelen, 
 				     int_f *index_field, int_f *order, hsize_t_f *n,
 				     size_t_f *size, _fcd name, hid_t_f *lapl_id); /*MSB*/
+H5_FCDLL int_f nh5lget_val_c(hid_t_f *link_loc_id, _fcd link_name, size_t_f *link_namelen, size_t_f *size, 
+			     void *linkval_buff, hid_t_f *lapl_id) ;
 
 #endif /* _H5f90proto_H */
