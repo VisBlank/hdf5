@@ -6980,16 +6980,17 @@
   END SUBROUTINE h5pset_obj_track_times_f
 
 !----------------------------------------------------------------------
-! Name:		H5Pset_create_intermediate_grp_f
+! Name:		H5Pset_create_inter_group_f
 !
 ! Purpose: 	Specifies in property list whether to create missing intermediate groups.
 !
 ! Inputs:  
-!		lcpl_id - Link creation property list identifier
+!		lcpl_id            - Link creation property list identifier
 !               crt_intermed_group - crt_intermed_group specifying whether 
-!                          to create intermediate groups upon the creation of an object
+!                                    to create intermediate groups upon the creation 
+!                                    of an object
 ! Outputs:
-!		hdferr:		- error code		
+!		hdferr:		   - error code		
 !				 	Success:  0
 !				 	Failure: -1   
 ! Optional parameters:
@@ -7004,11 +7005,11 @@
 !          so had to shorten the name		
 !--------------------------------------------------------------------------------------
 
-  SUBROUTINE h5pset_create_inter_gr_f(lcpl_id, crt_intermed_group, hdferr) 
+  SUBROUTINE h5pset_create_inter_group_f(lcpl_id, crt_intermed_group, hdferr) 
 !
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
-!DEC$attributes dllexport :: h5pset_create_inter_gr_f
+!DEC$attributes dllexport :: h5pset_create_inter_group_f
 !DEC$endif
 !
     IMPLICIT NONE
@@ -7020,19 +7021,19 @@
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
     INTERFACE
-       INTEGER FUNCTION h5pset_create_inter_gr_c(lcpl_id, crt_intermed_group) 
+       INTEGER FUNCTION h5pset_create_inter_group_c(lcpl_id, crt_intermed_group) 
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_CREATE_INTER_GR_C'::h5pset_create_inter_gr_c
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_CREATE_INTER_GROUP_C'::h5pset_create_inter_group_c
          !DEC$ ENDIF
          INTEGER(HID_T), INTENT(IN) :: lcpl_id
          INTEGER(HID_T), INTENT(IN) :: crt_intermed_group
-       END FUNCTION h5pset_create_inter_gr_c
+       END FUNCTION h5pset_create_inter_group_c
     END INTERFACE
 
-    hdferr = h5pset_create_inter_gr_c(lcpl_id, crt_intermed_group)
+    hdferr = h5pset_create_inter_group_c(lcpl_id, crt_intermed_group)
 
-  END SUBROUTINE h5pset_create_inter_gr_f
+  END SUBROUTINE h5pset_create_inter_group_f
 
 !----------------------------------------------------------------------
 ! Name:	      H5Pget_link_creation_order_f
@@ -8096,6 +8097,60 @@
     hdferr = h5pget_nlinks_c(lapl_id, nlinks)
     
   END SUBROUTINE h5pget_nlinks_f
-  
+
+!----------------------------------------------------------------------
+! Name:		H5Pget_create_inter_group_f
+!
+! Purpose: 	Determines whether property is set to enable creating missing intermediate groups.
+!
+! Inputs:  
+!		lcpl_id            - Link creation property list identifier
+!               crt_intermed_group - Specifying whether to create intermediate groups upon 
+!                                    the creation of an object
+! Outputs:
+!		hdferr:		   - error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!				NONE
+!
+! Programmer:	M.S. Breitenfeld
+!		April 4, 2008
+!
+! Modifications: 	
+!
+! Comment: The long subroutine name (>31) on older f90 compilers causes problems
+!          so had to shorten the name		
+!--------------------------------------------------------------------------------------
+
+  SUBROUTINE h5pget_create_inter_group_f(lcpl_id, crt_intermed_group, hdferr) 
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pget_create_inter_group_f
+!DEC$endif
+!
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: lcpl_id      ! Link creation property list identifier
+    INTEGER, INTENT(IN) :: crt_intermed_group  ! Flag specifying whether to create intermediate groups 
+                                               ! upon creation of an object
+    INTEGER, INTENT(OUT) :: hdferr ! Error code
+
+    INTERFACE
+       INTEGER FUNCTION h5pget_create_inter_group_c(lcpl_id, crt_intermed_group) 
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_CREATE_INTER_GROUP_C'::h5pget_create_inter_group_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: lcpl_id
+         INTEGER(HID_T), INTENT(IN) :: crt_intermed_group
+       END FUNCTION h5pget_create_inter_group_c
+    END INTERFACE
+
+    hdferr = h5pget_create_inter_group_c(lcpl_id, crt_intermed_group)
+
+  END SUBROUTINE h5pget_create_inter_group_f
+
+
 END MODULE H5P
 
