@@ -154,7 +154,7 @@ CONTAINS
 !	           called C functions (it is needed for Windows
 !		   port).  February 28, 2001 
 !
-!                 - Added vesion's 1.8 new optional parameters
+!                 - Added version's 1.8 new optional parameters
 !                  February, 2008
 !
 ! Comment:		
@@ -4741,7 +4741,7 @@ CONTAINS
           END SUBROUTINE h5dget_type_f  
 
 !----------------------------------------------------------------------
-! Name:		h5dset_extent (obsolete name: h5dextend_f) 
+! Name:		h5dset_extent (instead of obsolete name: h5dextend_f) 
 !
 ! Purpose:	Extends a dataset with unlimited dimension.	
 !
@@ -4764,7 +4764,7 @@ CONTAINS
 !			port).  February 28, 2001 
 !
 !                       Changed name from the now obsolete h5dextend_f
-!                       to h5dset_extent_f. Provide interface to old name
+!                       to h5dset_extent_f. Provided interface to old name
 !                       for backward compatability. -MSB- March 14, 2008
 !
 ! Comment:		
