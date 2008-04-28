@@ -258,7 +258,7 @@ nh5lcreate_hard_c(hid_t_f *obj_loc_id, _fcd obj_name, size_t_f *obj_namelen,
     HGOTO_DONE(FAIL);
 
   /*
-   * Call H5Adelete function.
+   * Call H5Lcreate_hard function.
    */
   if ( H5Lcreate_hard((hid_t)*obj_loc_id, c_obj_name, (hid_t)*link_loc_id, c_link_name, (hid_t)*lcpl_id, (hid_t)*lapl_id) < 0)
     HGOTO_DONE(FAIL);
@@ -772,5 +772,46 @@ done:
   
 /*   return ret_value; */
 /* } */
+
+/*----------------------------------------------------------------------------
+ * Name:        h5lget_val_c
+ * Purpose:     Call H5Lget_val_c
+ * Inputs: 
+ *               link_loc_id - File or group identifier.
+ *                 link_name - Link whose value is to be returned.
+ *             link_name_len - length of link_name
+ *                      size - Maximum number of characters of link value to be returned.
+ *                  lapl_id  - List access property list identifier
+ * Outputs:   
+ *             linkval_buff  - The buffer to hold the returned link value.
+ *
+ * Returns:      0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              April 11, 2008
+ * Modifications: N/A
+ *---------------------------------------------------------------------------*/
+int_f
+nh5lget_val_c(hid_t_f *link_loc_id, _fcd link_name, size_t_f *link_namelen, size_t_f *size, 
+	      void *linkval_buff, hid_t_f *lapl_id)
+{
+  int_f ret_value = 0;       /* Return value */
+  char *c_link_name = NULL; /* Buffer to hold C string */
+
+  /*
+   * Convert FORTRAN name to C name
+   */
+  if((c_link_name = HD5f2cstring(link_name, (size_t)*link_namelen)) == NULL)
+    HGOTO_DONE(FAIL);
+
+  /*
+   * Call H5Lget_val
+   */
+
+  if(H5Lget_val( (hid_t)*link_loc_id, c_link_name, &linkval_buff, (size_t)*size, (hid_t)*lapl_id )< 0)
+    HGOTO_DONE(FAIL);
+
+done:
+    return ret_value;
+}
 
 
