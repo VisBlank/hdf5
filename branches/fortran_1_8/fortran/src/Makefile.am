@@ -48,10 +48,10 @@ endif
 # Source files for the library.
 libhdf5_fortran_la_SOURCES=H5fortran_flags.f90 H5f90global.f90          \
          H5fortran_types.f90 H5_ff.f90 H5Aff.f90 H5Dff.f90 H5Eff.f90    \
-         H5Fff.f90 H5Gff.f90 H5Iff.f90 H5Lff.f90 H5Pff.f90 H5Rff.f90 H5Sff.f90    \
+         H5Fff.f90 H5Gff.f90 H5Iff.f90 H5Lff.f90 H5Off.f90 H5Pff.f90 H5Rff.f90 H5Sff.f90    \
          H5Tff.f90 H5Zff.f90                                            \
          H5f90kit.c H5_f.c H5Af.c H5Df.c H5Ef.c H5Ff.c H5Gf.c           \
-         H5If.c H5Lf.c H5Pf.c H5Rf.c H5Sf.c H5Tf.c H5Zf.c               \
+         H5If.c H5Lf.c H5Of.c H5Pf.c H5Rf.c H5Sf.c H5Tf.c H5Zf.c               \
          $(PARALLEL_COND_SRC)
 
 # h5fc and libhdf5_fortran.settings are generated during configure.
@@ -168,6 +168,7 @@ H5Fff.lo:            $(srcdir)/H5Fff.f90 H5f90global.lo
 H5Gff.lo:            $(srcdir)/H5Gff.f90 H5f90global.lo
 H5Iff.lo:            $(srcdir)/H5Iff.f90 H5f90global.lo
 H5Lff.lo:            $(srcdir)/H5Lff.f90 H5f90global.lo
+H5Off.lo:            $(srcdir)/H5Off.f90 H5f90global.lo
 H5Pff.lo:            $(srcdir)/H5Pff.f90 H5f90global.lo
 H5Rff.lo:            $(srcdir)/H5Rff.f90 H5f90global.lo
 H5Sff.lo:            $(srcdir)/H5Sff.f90 H5f90global.lo
