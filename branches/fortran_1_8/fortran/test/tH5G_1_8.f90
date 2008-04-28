@@ -40,6 +40,8 @@ SUBROUTINE group_test(cleanup, total_error)
 
   
   CALL mklinks(fapl2, total_error)
+  CALL cklinks(fapl2, total_error)
+
   CALL group_info(fapl2,total_error)
 !  CALL ud_hard_links(fapl2,total_error)
   CALL timestamps(fapl2, total_error)
@@ -50,7 +52,6 @@ SUBROUTINE group_test(cleanup, total_error)
   CALL objcopy(fapl, total_error)
 
   CALL lifecycle(fapl2, total_error)
-  
 
 END SUBROUTINE group_test
 
@@ -1386,3 +1387,164 @@ SUBROUTINE lifecycle(fapl2, total_error)
 !!$    if(file_size != empty_size) TEST_ERROR
 
   END SUBROUTINE lifecycle
+!/*-------------------------------------------------------------------------
+! * Function:	cklinks
+! *
+! * Purpose:	Open the file created in the first step and check that the
+! *		links look correct.
+! *
+! * Return:	Success:	0
+! *
+! *		Failure:	-1
+! *
+! * Programmer:	M.S. Breitenfeld
+! *             April 14, 2008
+! *
+! * Modifications: Modified Original C code
+! *
+! *-------------------------------------------------------------------------
+! */
+
+
+  SUBROUTINE cklinks(fapl, total_error)
+
+!    USE ISO_C_BINDING
+  USE HDF5 ! This module contains all necessary modules 
+    
+  IMPLICIT NONE
+  INTEGER, INTENT(OUT) :: total_error
+  INTEGER(HID_T), INTENT(IN) :: fapl
+  INTEGER :: error
+
+  INTEGER(HID_T) :: file
+!    H5O_info_t		oinfo1, oinfo2;
+!    H5L_info_t		linfo2;
+
+  CHARACTER(LEN=12), PARAMETER :: filename ='TestLinks.h5'
+  CHARACTER(LEN=12) :: linkval
+
+!  TYPE(C_PTR) :: linkval
+
+  LOGICAL :: Lexists
+
+
+!!$    if(new_format)
+!!$        TESTING("link queries (w/new group format)")
+!!$    else
+!!$        TESTING("link queries")
+
+  ! /* Open the file */
+  CALL H5Fopen_f(filename, H5F_ACC_RDONLY_F, file, error,access_prp=fapl)
+  CALL check("H5Fopen_f",error,total_error)
+
+
+  ! /* Hard link */
+!!$  IF(H5Oget_info_by_name(file, "d1", &oinfo1, H5P_DEFAULT) < 0) FAIL_STACK_ERROR
+!!$  IF(H5Oget_info_by_name(file, "grp1/hard", &oinfo2, H5P_DEFAULT) < 0) FAIL_STACK_ERROR
+!!$  IF(H5O_TYPE_DATASET != oinfo2.type) {
+!!$	H5_FAILED();
+!!$	printf("    %d: Unexpected object type should have been a dataset\n", __LINE__);
+!!$	TEST_ERROR
+!!$    } /* end if */
+!!$    if(H5F_addr_ne(oinfo1.addr, oinfo2.addr)) {
+!!$	H5_FAILED();
+!!$	puts("    Hard link test failed. Link seems not to point to the ");
+!!$	puts("    expected file location.");
+!!$	TEST_ERROR
+!!$    } /* end if */
+
+  
+  CALL H5Lexists_f(file,"d1",Lexists, error)
+  CALL verifylogical("test_lcpl.H5Lexists", Lexists,.TRUE.,total_error)
+
+  CALL H5Lexists_f(file,"grp1/hard",Lexists, error)
+  CALL verifylogical("test_lcpl.H5Lexists", Lexists,.TRUE.,total_error)
+
+
+!!$    /* Symbolic link */
+!!$    if(H5Oget_info_by_name(file, "grp1/soft", &oinfo2, H5P_DEFAULT) < 0) FAIL_STACK_ERROR
+!!$    if(H5O_TYPE_DATASET != oinfo2.type) {
+!!$	H5_FAILED();
+!!$	printf("    %d: Unexpected object type should have been a dataset\n", __LINE__);
+!!$	TEST_ERROR
+!!$    } /* end if */
+!!$    if(H5F_addr_ne(oinfo1.addr, oinfo2.addr)) {
+!!$	H5_FAILED();
+!!$	puts("    Soft link test failed. Link seems not to point to the ");
+!!$	puts("    expected file location.");
+!!$	TEST_ERROR
+!!$    } /* end if */
+
+!  CALL H5Lget_val(file, "grp1/soft", INT(LEN(linkval), SIZE_T), linkval, error)
+
+
+!!$    if(H5Lget_val(file, "grp1/soft", linkval, sizeof linkval, H5P_DEFAULT) < 0) FAIL_STACK_ERROR
+!!$    if(HDstrcmp(linkval, "/d1")) {
+!!$	H5_FAILED();
+!!$	puts("    Soft link test failed. Wrong link value");
+!!$	TEST_ERROR
+!!$    } /* end if */
+!!$    if(H5Lexists(file, "grp1/soft", H5P_DEFAULT) != TRUE) FAIL_STACK_ERROR
+!!$
+!!$    /* Dangling link */
+!!$    H5E_BEGIN_TRY {
+!!$	status = H5Oget_info_by_name(file, "grp1/dangle", &oinfo2, H5P_DEFAULT);
+!!$    } H5E_END_TRY;
+!!$    if(status >= 0) {
+!!$	H5_FAILED();
+!!$	puts("    H5Oget_info_by_name() should have failed for a dangling link.");
+!!$	TEST_ERROR
+!!$    } /* end if */
+!!$    if(H5Lget_info(file, "grp1/dangle", &linfo2, H5P_DEFAULT) < 0) FAIL_STACK_ERROR
+!!$    if(H5L_TYPE_SOFT != linfo2.type) {
+!!$	H5_FAILED();
+!!$	printf("    %d: Unexpected object type should have been a symbolic link\n", __LINE__);
+!!$	TEST_ERROR
+!!$    } /* end if */
+!!$    if(H5Lget_val(file, "grp1/dangle", linkval, sizeof linkval, H5P_DEFAULT) < 0) {
+!!$	H5_FAILED();
+!!$	printf("    %d: Can't retrieve link value\n", __LINE__);
+!!$	TEST_ERROR
+!!$    } /* end if */
+!!$    if(HDstrcmp(linkval, "foobar")) {
+!!$	H5_FAILED();
+!!$	puts("    Dangling link test failed. Wrong link value");
+!!$	TEST_ERROR
+!!$    } /* end if */
+!!$    if(H5Lexists(file, "grp1/dangle", H5P_DEFAULT) != TRUE) FAIL_STACK_ERROR
+!!$
+!!$    /* Recursive link */
+!!$    H5E_BEGIN_TRY {
+!!$	status = H5Oget_info_by_name(file, "grp1/recursive", &oinfo2, H5P_DEFAULT);
+!!$    } H5E_END_TRY;
+!!$    if(status >= 0) {
+!!$	H5_FAILED();
+!!$	puts("    H5Oget_info_by_name() should have failed for a recursive link.");
+!!$	TEST_ERROR
+!!$    } /* end if */
+!!$    if(H5Lget_info(file, "grp1/recursive", &linfo2, H5P_DEFAULT) < 0) FAIL_STACK_ERROR
+!!$    if(H5L_TYPE_SOFT != linfo2.type) {
+!!$	H5_FAILED();
+!!$	printf("    %d: Unexpected object type should have been a symbolic link\n", __LINE__);
+!!$	TEST_ERROR
+!!$    } /* end if */
+!!$    if(H5Lget_val(file, "grp1/recursive", linkval, sizeof linkval, H5P_DEFAULT) < 0) {
+!!$	H5_FAILED();
+!!$	printf("    %d: Can't retrieve link value\n", __LINE__);
+!!$	TEST_ERROR
+!!$    } /* end if */
+!!$    if(HDstrcmp(linkval, "/grp1/recursive")) {
+!!$	H5_FAILED();
+!!$	puts("   Recursive link test failed. Wrong link value");
+!!$	TEST_ERROR
+!!$    } /* end if */
+!!$
+!!$    /* Non-existant link */
+!!$    if(H5Lexists(file, "foobar", H5P_DEFAULT) == TRUE) FAIL_STACK_ERROR
+
+  ! /* Cleanup */
+    CALL H5Fclose_f(file,error)
+    CALL check("H5Fclose_f",error,total_error)
+
+  END SUBROUTINE cklinks
+
