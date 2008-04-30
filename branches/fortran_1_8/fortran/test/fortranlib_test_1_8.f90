@@ -96,7 +96,7 @@ PROGRAM fortranlibtest
   WRITE(*, fmt = e_format) error_string
   total_error = total_error + group_total_error
 
-  call test_h5o(cleanup, group_total_error )
+  CALL test_h5o(cleanup, group_total_error )
   WRITE(*, fmt = '(15a)', advance = 'no') ' H5O TEST'     
   WRITE(*, fmt = '(55x,a)', advance = 'no')  ' '
   IF (group_total_error == 0) error_string = success
@@ -126,9 +126,6 @@ PROGRAM fortranlibtest
 !  CALL test_hard_query(group_total_error)
 
   total_error = total_error + group_total_error
-
-  
-
 
   WRITE(*,*)
 

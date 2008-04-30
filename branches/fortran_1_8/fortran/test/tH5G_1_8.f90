@@ -2672,7 +2672,7 @@ SUBROUTINE lapl_nlinks( fapl, total_error)
 
   CALL H5Pget_nlinks_f(plist, nlinks, error)
   CALL check("H5Pget_nlinks_f",error,total_error)
-  CALL VERIFY("H5Pget_nlinks_f", nlinks, 4, total_error)
+  CALL VERIFY("H5Pget_nlinks_f", INT(nlinks), 4, total_error)
 
   ! /* Try opening through what is now too many soft links */
   
