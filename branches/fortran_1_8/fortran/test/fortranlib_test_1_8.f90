@@ -15,7 +15,7 @@
 !
 !
 ! 
-!    Testing Fortran functionality.
+!    Testing Fortran wrappers introduced in 1.8 release.
 !
 PROGRAM fortranlibtest
 
@@ -57,7 +57,6 @@ PROGRAM fortranlibtest
   WRITE(*,*) '                       ==========================                            '
   CALL h5get_libversion_f(majnum, minnum, relnum, total_error)
   IF(total_error .EQ. 0) THEN
-
      WRITE(*, '(" FORTRANLIB_TEST is linked with HDF5 Library version ")', advance="NO")
      WRITE(*, '(I1)', advance="NO") majnum
      WRITE(*, '(".")', advance="NO") 
@@ -76,26 +75,6 @@ PROGRAM fortranlibtest
   WRITE(*, fmt = '(49x,a)', advance = 'no') ' ' 
   WRITE(*, fmt = e_format) error_string
   total_error = total_error + fspace_total_error 
-
-  !     write(*,*)
-  !     write(*,*) '========================================='
-  !     write(*,*) 'Testing DATASET Interface                '
-  !     write(*,*) '========================================='
-
-  error_string = failure
-  CALL datasettest(cleanup, dataset_total_error)
-  IF (dataset_total_error == 0) error_string = success
-  WRITE(*, fmt = '(13a)', advance = 'no') ' Dataset test'     
-  WRITE(*, fmt = '(57x,a)', advance = 'no')  ' '
-  WRITE(*, fmt = e_format) error_string
-  total_error = total_error + dataset_total_error 
-  error_string = failure
-  CALL extenddsettest(cleanup, extend_dataset_total_error)
-  IF (extend_dataset_total_error == 0)  error_string = success
-  WRITE(*, fmt = '(24a)', advance = 'no') ' Extendible dataset test'     
-  WRITE(*, fmt = '(46x,a)', advance = 'no') ' '
-  WRITE(*, fmt = e_format) error_string
-  total_error = total_error + extend_dataset_total_error 
 
   !     write(*,*)
   !     write(*,*) '========================================='

@@ -42,11 +42,8 @@ SUBROUTINE group_test(cleanup, total_error)
   CALL mklinks(fapl2, total_error)
   CALL cklinks(fapl2, total_error)
 
-
-
-
   CALL group_info(cleanup, fapl2,total_error)
-!  CALL ud_hard_links(fapl2,total_error)
+! CALL ud_hard_links(fapl2,total_error)
   CALL timestamps(cleanup, fapl2, total_error)
   CALL test_move_preserves(fapl2, total_error)
   CALL delete_by_idx(cleanup,fapl2, total_error)
@@ -1573,3 +1570,1254 @@ SUBROUTINE lifecycle(cleanup, fapl2, total_error)
 
   END SUBROUTINE cklinks
 
+
+!/*-------------------------------------------------------------------------
+! * Function:    delete_by_idx
+! *
+! * Purpose:     Create a group with creation order indices and test deleting
+! *              links by index.
+! *
+! * Return:      Total error
+! *
+! * C Programmer:  Quincey Koziol
+! *                Tuesday, November 14, 2006
+! *
+! * Adapted to FORTRAN: M.S. Breitenfeld
+! *                     March 3, 2008
+! *
+! *-------------------------------------------------------------------------
+! */
+SUBROUTINE delete_by_idx(cleanup, fapl, total_error)
+
+  USE HDF5 ! This module contains all necessary modules 
+  
+  IMPLICIT NONE
+  INTEGER, INTENT(OUT) :: total_error
+  INTEGER(HID_T), INTENT(IN) :: fapl
+
+  INTEGER(HID_T) :: file_id  ! /* File ID */
+  INTEGER(HID_T) :: group_id ! /* Group ID */
+  INTEGER(HID_T) :: gcpl_id  ! /* Group creation property list ID */
+
+  INTEGER :: idx_type        ! /* Type of index to operate on */
+  LOGICAL, DIMENSION(1:2) :: use_index = (/.FALSE.,.TRUE./) 
+                             ! /* Use index on creation order values */
+  INTEGER :: max_compact     ! /* Maximum # of links to store in group compactly */ 
+  INTEGER :: min_dense       ! /* Minimum # of links to store in group "densely" */
+
+  CHARACTER(LEN=7) :: objname   ! /* Object name */
+  CHARACTER(LEN=8) :: filename = 'file0.h5' ! /* File name */
+  CHARACTER(LEN=7) :: tmpname   ! /* Temporary link name */
+  CHARACTER(LEN=12), PARAMETER :: CORDER_GROUP_NAME = "corder_group"
+
+  LOGICAL :: f_corder_valid ! Indicates whether the creation order data is valid for this attribute 
+  INTEGER :: corder ! Is a positive integer containing the creation order of the attribute
+  INTEGER :: cset ! Indicates the character set used for the attribute’s name
+  INTEGER(HSIZE_T) :: data_size   ! Indicates the size, in the number of characters, of the attribute
+
+  INTEGER :: u ! /* Local index variable */
+  INTEGER :: Input1, i
+  INTEGER(HID_T) :: group_id2
+
+  INTEGER :: iorder ! /* Order within in the index */
+  CHARACTER(LEN=2) :: chr2
+  INTEGER :: error
+  !
+  !
+  !
+  CHARACTER(LEN=6)  :: filename1 
+  CHARACTER(LEN=6)  :: filename2
+  CHARACTER(LEN=80) :: fix_filename1
+  CHARACTER(LEN=80) :: fix_filename2
+  INTEGER(SIZE_T) :: size_tmp
+
+  LOGICAL :: cleanup
+
+  DO i = 1, 80
+     fix_filename1(i:i) = " "
+     fix_filename2(i:i) = " "
+  ENDDO
+
+  ! /* Loop over operating on different indices on link fields */
+  DO idx_type = H5_INDEX_NAME_F, H5_INDEX_CRT_ORDER_F
+     ! /* Loop over operating in different orders */
+     DO iorder = H5_ITER_INC_F,  H5_ITER_DEC_F
+        ! /* Loop over using index for creation order value */
+        DO i = 1, 2
+           ! /* Print appropriate test message */
+           IF(idx_type == H5_INDEX_CRT_ORDER_F)THEN
+              IF(iorder == H5_ITER_INC_F)THEN
+                 IF(use_index(i))THEN
+                    WRITE(*,'(5x,A)')"deleting links by creation order index in increasing order w/creation order index"
+                 ELSE
+                    WRITE(*,'(5x,A)')"deleting links by creation order index in increasing order w/o creation order index"
+                 ENDIF
+              ELSE
+                 IF(use_index(i))THEN
+                    WRITE(*,'(5x,A)')"deleting links by creation order index in decreasing order w/creation order index"
+                 ELSE
+                    WRITE(*,'(5x,A)')"deleting links by creation order index in decreasing order w/o creation order index"
+                 ENDIF
+              ENDIF
+           ELSE
+              IF(iorder == H5_ITER_INC_F)THEN
+                 IF(use_index(i))THEN
+                    WRITE(*,'(5x,A)')"deleting links by name index in increasing order w/creation order index"
+                 ELSE
+                    WRITE(*,'(5x,A)')"deleting links by name index in increasing order w/o creation order index"
+                 ENDIF
+              ELSE
+                 IF(use_index(i))THEN
+                    WRITE(*,'(5x,A)')"deleting links by name index in decreasing order w/creation order index"
+                 ELSE
+                    WRITE(*,'(5x,A)')"deleting links by name index in decreasing order w/o creation order index"
+                 ENDIF
+              ENDIF
+           ENDIF
+!           CALL h5_fixname_f(filename1, fix_filename1, H5P_DEFAULT_F, error)
+!           IF(error .NE. 0) STOP
+
+           ! /* Create file */
+           CALL H5Fcreate_f(filename, H5F_ACC_TRUNC_F, file_id, error, access_prp=fapl)
+           CALL check("delete_by_idx.H5Fcreate_f", error, total_error)
+           
+           ! /* Create group creation property list */
+           CALL H5Pcreate_f(H5P_GROUP_CREATE_F, gcpl_id, error )
+           CALL check("delete_by_idx.H5Pcreate_f", error, total_error)
+
+           ! /* Set creation order tracking & indexing on group */
+           IF(use_index(i))THEN
+              Input1 = H5P_CRT_ORDER_INDEXED_F
+           ELSE
+              Input1 = 0
+           ENDIF
+
+           CALL H5Pset_link_creation_order_f(gcpl_id, IOR(H5P_CRT_ORDER_TRACKED_F, Input1), error)
+           CALL check("delete_by_idx.H5Pset_link_creation_order_f", error, total_error)
+
+           ! /* Create group with creation order tracking on */
+           CALL H5Gcreate_f(file_id, CORDER_GROUP_NAME, group_id, error, gcpl_id=gcpl_id)
+           CALL check("delete_by_idx.H5Gcreate_f", error, total_error)
+
+           ! /* Query the group creation properties */
+           CALL H5Pget_link_phase_change_f(gcpl_id, max_compact, min_dense, error)
+           CALL check("delete_by_idx.H5Pget_link_phase_change_f", error, total_error)
+
+
+           ! /* Delete links from one end */
+
+           ! /* Check for deletion on empty group */
+           CALL H5Ldelete_by_idx_f(group_id, ".", idx_type, iorder, INT(0,HSIZE_T), error)
+           CALL VERIFY("delete_by_idx.H5Ldelete_by_idx_f", error, -1, total_error) ! test should fail (error = -1)
+           ! /* Create several links, up to limit of compact form */
+           DO u = 0, max_compact-1
+              ! /* Make name for link */
+              WRITE(chr2,'(I2.2)') u
+              objname = 'fill '//chr2
+
+              ! /* Create hard link, with group object */
+              CALL H5Gcreate_f(group_id, objname, group_id2, error)
+              CALL check("delete_by_idx.H5Gcreate_f", error, total_error)
+              CALL H5Gclose_f(group_id2, error)
+              CALL check("delete_by_idx.H5Gclose_f", error, total_error)
+
+              ! /* Verify link information for new link */
+              CALL link_info_by_idx_check(group_id, objname, u, &
+                   .TRUE., use_index, total_error)
+           ENDDO
+
+           ! /* Verify state of group (compact) */
+           ! IF(H5G_has_links_test(group_id, NULL) != TRUE) TEST_ERROR
+
+           ! /* Check for out of bound deletion */
+
+           CALL H5Ldelete_by_idx_f(group_id, ".", idx_type, iorder, INT(u,HSIZE_T), error)
+           CALL VERIFY("delete_by_idx.H5Ldelete_by_idx_f", error, -1, total_error) ! test should fail (error = -1)
+
+
+           ! /* Delete links from compact group */
+
+           DO u = 0, (max_compact - 1) -1
+              ! /* Delete first link in appropriate order */
+              CALL H5Ldelete_by_idx_f(group_id, ".", idx_type, iorder, INT(0,HSIZE_T), error)
+              CALL check("delete_by_idx.H5Ldelete_by_idx_f", error, total_error)
+              ! /* Verify the link information for first link in appropriate order */
+              ! HDmemset(&linfo, 0, sizeof(linfo));
+
+              CALL H5Lget_info_by_idx_f(group_id, ".", idx_type, iorder, INT(0,HSIZE_T), &
+                   f_corder_valid, corder, cset, data_size, error)
+
+              IF(iorder.EQ.H5_ITER_INC_F)THEN
+                 CALL VERIFY("delete_by_idx.H5Lget_info_by_idx_f", corder, u+1, total_error)
+              ELSE
+                 CALL VERIFY("delete_by_idx.H5Lget_info_by_idx_f", corder, (max_compact - (u + 2)), total_error)
+              ENDIF
+
+              ! /* Verify the name for first link in appropriate order */
+              ! HDmemset(tmpname, 0, (size_t)NAME_BUF_SIZE);
+!!$              size_tmp = 20
+!!$              CALL H5Lget_name_by_idx_f(group_id, ".", idx_type, order, INT(0,HSIZE_T), size_tmp, tmpname, error)
+!!$              CALL check("delete_by_idx.H5Lget_name_by_idx_f", error, total_error)
+!!$
+!!$              IF(order .EQ. H5_ITER_INC_F)THEN
+!!$                 WRITE(chr2,'(I2.2)') u + 1
+!!$              ELSE
+!!$                 WRITE(chr2,'(I2.2)') (max_compact - (u + 2))
+!!$              ENDIF
+!!$              objname = 'fill '//chr2
+!!$              PRINT*,objname, tmpname
+!!$              CALL verifyString("delete_by_idx.H5Lget_name_by_idx_f", objname, tmpname,  total_error)
+           ENDDO
+!!$
+!!$                /* Delete last link */
+!!$                if(H5Ldelete_by_idx(group_id, ".", idx_type, order, (hsize_t)0, H5P_DEFAULT) < 0) TEST_ERROR
+!!$
+!!$                /* Verify state of group (empty) */
+!!$                if(H5G_has_links_test(group_id, NULL) == TRUE) TEST_ERROR
+!!$
+!!$                /* Create more links, to push group into dense form */
+!!$                for(u = 0; u < (max_compact * 2); u++) {
+!!$                    hid_t group_id2;	        /* Group ID */
+!!$
+!!$                    /* Make name for link */
+!!$                    sprintf(objname, "filler %02u", u);
+!!$
+!!$                    /* Create hard link, with group object */
+!!$                    if((group_id2 = H5Gcreate2(group_id, objname, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+!!$                    if(H5Gclose(group_id2) < 0) TEST_ERROR
+!!$
+!!$                    /* Verify state of group (dense) */
+!!$                    if(u >= max_compact)
+!!$                        if(H5G_is_new_dense_test(group_id) != TRUE) TEST_ERROR
+!!$
+!!$                    /* Verify link information for new link */
+!!$                    if(link_info_by_idx_check(group_id, objname, (hsize_t)u, TRUE, use_index) < 0) TEST_ERROR
+!!$                } /* end for */
+!!$
+!!$                /* Check for out of bound deletion again */
+!!$                H5E_BEGIN_TRY {
+!!$                    ret = H5Ldelete_by_idx(group_id, ".", idx_type, order, (hsize_t)u, H5P_DEFAULT);
+!!$                } H5E_END_TRY;
+!!$                if(ret >= 0) TEST_ERROR
+!!$
+!!$                /* Delete links from dense group, in appropriate order */
+!!$                for(u = 0; u < ((max_compact * 2) - 1); u++) {
+!!$                    /* Delete first link in appropriate order */
+!!$                    if(H5Ldelete_by_idx(group_id, ".", idx_type, order, (hsize_t)0, H5P_DEFAULT) < 0) TEST_ERROR
+!!$
+!!$                    /* Verify the link information for first link in appropriate order */
+!!$                    HDmemset(&linfo, 0, sizeof(linfo));
+!!$                    if(H5Lget_info_by_idx(group_id, ".", idx_type, order, (hsize_t)0, &linfo, H5P_DEFAULT) < 0) TEST_ERROR
+!!$                    if(order == H5_ITER_INC) {
+!!$                        if(linfo.corder != (u + 1)) TEST_ERROR
+!!$                    } /* end if */
+!!$                    else {
+!!$                        if(linfo.corder != ((max_compact * 2) - (u + 2))) TEST_ERROR
+!!$                    } /* end else */
+!!$
+!!$                    /* Verify the name for first link in appropriate order */
+!!$                    HDmemset(tmpname, 0, (size_t)NAME_BUF_SIZE);
+!!$                    if(H5Lget_name_by_idx(group_id, ".", idx_type, order, (hsize_t)0, tmpname, (size_t)NAME_BUF_SIZE, H5P_DEFAULT) < 0) TEST_ERROR
+!!$                    if(order == H5_ITER_INC)
+!!$                        sprintf(objname, "filler %02u", (u + 1));
+!!$                    else
+!!$                        sprintf(objname, "filler %02u", ((max_compact * 2) - (u + 2)));
+!!$                    if(HDstrcmp(objname, tmpname)) TEST_ERROR
+!!$                } /* end for */
+!!$
+!!$                /* Delete last link */
+!!$                if(H5Ldelete_by_idx(group_id, ".", idx_type, order, (hsize_t)0, H5P_DEFAULT) < 0) TEST_ERROR
+!!$
+!!$                /* Verify state of group (empty) */
+!!$                if(H5G_has_links_test(group_id, NULL) == TRUE) TEST_ERROR
+!!$                if(H5G_is_new_dense_test(group_id) == TRUE) TEST_ERROR
+!!$
+!!$                /* Check for deletion on empty group again */
+!!$                H5E_BEGIN_TRY {
+!!$                    ret = H5Ldelete_by_idx(group_id, ".", idx_type, order, (hsize_t)0, H5P_DEFAULT);
+!!$                } H5E_END_TRY;
+!!$                if(ret >= 0) TEST_ERROR
+!!$
+!!$
+!!$                /* Delete links in middle */
+!!$
+!!$
+!!$                /* Create more links, to push group into dense form */
+!!$                for(u = 0; u < (max_compact * 2); u++) {
+!!$                    hid_t group_id2;	        /* Group ID */
+!!$
+!!$                    /* Make name for link */
+!!$                    sprintf(objname, "filler %02u", u);
+!!$
+!!$                    /* Create hard link, with group object */
+!!$                    if((group_id2 = H5Gcreate2(group_id, objname, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+!!$                    if(H5Gclose(group_id2) < 0) TEST_ERROR
+!!$
+!!$                    /* Verify state of group (dense) */
+!!$                    if(u >= max_compact)
+!!$                        if(H5G_is_new_dense_test(group_id) != TRUE) TEST_ERROR
+!!$
+!!$                    /* Verify link information for new link */
+!!$                    if(link_info_by_idx_check(group_id, objname, (hsize_t)u, TRUE, use_index) < 0) TEST_ERROR
+!!$                } /* end for */
+!!$
+!!$                /* Delete every other link from dense group, in appropriate order */
+!!$                for(u = 0; u < max_compact; u++) {
+!!$                    /* Delete link */
+!!$                    if(H5Ldelete_by_idx(group_id, ".", idx_type, order, (hsize_t)u, H5P_DEFAULT) < 0) TEST_ERROR
+!!$
+!!$                    /* Verify the link information for current link in appropriate order */
+!!$                    HDmemset(&linfo, 0, sizeof(linfo));
+!!$                    if(H5Lget_info_by_idx(group_id, ".", idx_type, order, (hsize_t)u, &linfo, H5P_DEFAULT) < 0) TEST_ERROR
+!!$                    if(order == H5_ITER_INC) {
+!!$                        if(linfo.corder != ((u * 2) + 1)) TEST_ERROR
+!!$                    } /* end if */
+!!$                    else {
+!!$                        if(linfo.corder != ((max_compact * 2) - ((u * 2) + 2))) TEST_ERROR
+!!$                    } /* end else */
+!!$
+!!$                    /* Verify the name for current link in appropriate order */
+!!$                    HDmemset(tmpname, 0, (size_t)NAME_BUF_SIZE);
+!!$                    if(H5Lget_name_by_idx(group_id, ".", idx_type, order, (hsize_t)u, tmpname, (size_t)NAME_BUF_SIZE, H5P_DEFAULT) < 0) TEST_ERROR
+!!$                    if(order == H5_ITER_INC)
+!!$                        sprintf(objname, "filler %02u", ((u * 2) + 1));
+!!$                    else
+!!$                        sprintf(objname, "filler %02u", ((max_compact * 2) - ((u * 2) + 2)));
+!!$                    if(HDstrcmp(objname, tmpname)) TEST_ERROR
+!!$                } /* end for */
+!!$
+!!$                /* Delete remaining links from dense group, in appropriate order */
+!!$                for(u = 0; u < (max_compact - 1); u++) {
+!!$                    /* Delete link */
+!!$                    if(H5Ldelete_by_idx(group_id, ".", idx_type, order, (hsize_t)0, H5P_DEFAULT) < 0) TEST_ERROR
+!!$
+!!$                    /* Verify the link information for first link in appropriate order */
+!!$                    HDmemset(&linfo, 0, sizeof(linfo));
+!!$                    if(H5Lget_info_by_idx(group_id, ".", idx_type, order, (hsize_t)0, &linfo, H5P_DEFAULT) < 0) TEST_ERROR
+!!$                    if(order == H5_ITER_INC) {
+!!$                        if(linfo.corder != ((u * 2) + 3)) TEST_ERROR
+!!$                    } /* end if */
+!!$                    else {
+!!$                        if(linfo.corder != ((max_compact * 2) - ((u * 2) + 4))) TEST_ERROR
+!!$                    } /* end else */
+!!$
+!!$                    /* Verify the name for first link in appropriate order */
+!!$                    HDmemset(tmpname, 0, (size_t)NAME_BUF_SIZE);
+!!$                    if(H5Lget_name_by_idx(group_id, ".", idx_type, order, (hsize_t)0, tmpname, (size_t)NAME_BUF_SIZE, H5P_DEFAULT) < 0) TEST_ERROR
+!!$                    if(order == H5_ITER_INC)
+!!$                        sprintf(objname, "filler %02u", ((u * 2) + 3));
+!!$                    else
+!!$                        sprintf(objname, "filler %02u", ((max_compact * 2) - ((u * 2) + 4)));
+!!$                    if(HDstrcmp(objname, tmpname)) TEST_ERROR
+!!$                } /* end for */
+!!$
+!!$                /* Delete last link */
+!!$                if(H5Ldelete_by_idx(group_id, ".", idx_type, order, (hsize_t)0, H5P_DEFAULT) < 0) TEST_ERROR
+!!$
+!!$                /* Verify state of group (empty) */
+!!$                if(H5G_has_links_test(group_id, NULL) == TRUE) TEST_ERROR
+!!$                if(H5G_is_new_dense_test(group_id) == TRUE) TEST_ERROR
+!!$
+!!$
+!!$
+           ! /* Close the group */
+           CALL H5Gclose_f(group_id, error)
+           CALL check("delete_by_idx.H5Gclose_f", error, total_error)
+
+           !/* Close the group creation property list */
+           CALL H5Pclose_f(gcpl_id, error)
+           CALL check("delete_by_idx.H5Gclose_f", error, total_error)
+
+           !/* Close the file */
+           CALL H5Fclose_f(file_id, error)
+           CALL check("delete_by_idx.H5Gclose_f", error, total_error)
+
+           IF(cleanup) CALL h5_cleanup_f("file0", H5P_DEFAULT_F, error)
+           CALL check("h5_cleanup_f", error, total_error)
+
+        ENDDO
+     ENDDO
+  ENDDO
+!!$
+!!$    return 0;
+!!$
+!!$error:
+!!$    H5E_BEGIN_TRY {
+!!$        H5Pclose(gcpl_id);
+!!$        H5Gclose(group_id);
+!!$        H5Fclose(file_id);
+!!$    } H5E_END_TRY;
+!!$    return -1;
+!!$} /* end delete_by_idx() */
+
+END SUBROUTINE delete_by_idx
+
+
+
+!/*-------------------------------------------------------------------------
+! * Function:    link_info_by_idx_check
+! *
+! * Purpose:     Support routine for link_info_by_idx, to verify the link
+! *              info is correct for a link
+! *
+! * Note:	This routine assumes that the links have been inserted in the
+! *              group in alphabetical order.
+! *
+! * Return:      Success:        0
+! *              Failure:        -1
+! *
+! * Programmer:  Quincey Koziol
+! *              Tuesday, November  7, 2006
+! *
+! *-------------------------------------------------------------------------
+! */
+SUBROUTINE link_info_by_idx_check(group_id, linkname, n, &
+    hard_link, use_index, total_error)
+
+  USE HDF5 ! This module contains all necessary modules 
+  
+  IMPLICIT NONE
+  INTEGER, INTENT(INOUT) :: total_error
+  INTEGER(HID_T), INTENT(IN) :: group_id
+  CHARACTER(LEN=*), INTENT(IN) :: linkname
+  INTEGER, INTENT(IN) :: n
+  LOGICAL, INTENT(IN) :: hard_link
+  LOGICAL, INTENT(IN) :: use_index
+
+  LOGICAL :: f_corder_valid ! Indicates whether the creation order data is valid for this attribute 
+  INTEGER :: corder ! Is a positive integer containing the creation order of the attribute
+  INTEGER :: cset ! Indicates the character set used for the attribute’s name
+  INTEGER(HSIZE_T) :: data_size   ! Indicates the size, in the number of characters, of the attribute
+
+  CHARACTER(LEN=7) :: tmpname     !/* Temporary link name */
+  CHARACTER(LEN=3) :: tmpname_small !/* to small temporary link name */
+  CHARACTER(LEN=10) :: tmpname_big !/* to big temporary link name */
+
+  CHARACTER(LEN=7) :: valname     !/* Link value name */
+  CHARACTER(LEN=7) :: tmpval      !/* Temporary link value */
+  CHARACTER(LEN=2) :: chr2
+  INTEGER(SIZE_T) :: size_tmp
+  INTEGER :: error
+
+  ! /* Make link value for increasing/native order queries */
+
+  WRITE(chr2,'(I2.2)') n
+  valname = 'valn.'//chr2
+
+  ! /* Verify the link information for first link, in increasing creation order */
+  !  HDmemset(&linfo, 0, sizeof(linfo));
+  CALL H5Lget_info_by_idx_f(group_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, INT(0,HSIZE_T), &
+       f_corder_valid, corder, cset, data_size, error)
+  CALL check("H5Lget_info_by_idx_f", error, total_error)
+  CALL VERIFY("H5Lget_info_by_idx_f", corder, 0, total_error)
+
+  ! /* Verify the link information for new link, in increasing creation order */
+  ! HDmemset(&linfo, 0, sizeof(linfo));
+  CALL H5Lget_info_by_idx_f(group_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, INT(n,HSIZE_T), &
+       f_corder_valid, corder, cset, data_size, error)
+  CALL check("H5Lget_info_by_idx_f", error, total_error)
+  CALL VERIFY("H5Lget_info_by_idx_f", corder, n, total_error)
+
+  ! /* Verify value for new soft link, in increasing creation order */
+!!$  IF(hard_link)THEN
+!!$     ! HDmemset(tmpval, 0, (size_t)NAME_BUF_SIZE);
+!!$     
+!!$     CALL H5Lget_val_by_idx_f(group_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, n, tmpval, INT(7,SIZE_T),error)
+!!$     CALL check("H5Lget_val_by_idx",error,total_error)
+!!$
+!!$!     IF(HDstrcmp(valname, tmpval)) TEST_ERROR
+!!$  ENDIF
+
+  ! /* Verify the name for new link, in increasing creation order */
+  !  HDmemset(tmpname, 0, (size_t)NAME_BUF_SIZE);
+
+  ! The actual size of tmpname should be 7
+
+  size_tmp = INT(3,SIZE_T)
+  CALL H5Lget_name_by_idx_f(group_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, INT(n,HSIZE_T), size_tmp, tmpname_small, error)
+  CALL check("link_info_by_idx_check.H5Lget_name_by_idx_f", error, total_error)
+  CALL verifyString("link_info_by_idx_check.H5Lget_name_by_idx_f", &
+       linkname(1:LEN(tmpname_small)), tmpname_small(1:LEN(tmpname_small)),  total_error)
+  CALL VERIFY("link_info_by_idx_check.H5Lget_name_by_idx_f", INT(size_tmp), 7, total_error)
+
+  ! try it with the correct size
+  size_tmp = INT(LEN(tmpname),SIZE_T)
+  CALL H5Lget_name_by_idx_f(group_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, INT(n,HSIZE_T), size_tmp, tmpname, error)
+  CALL check("link_info_by_idx_check.H5Lget_name_by_idx_f", error, total_error)
+  CALL verifyString("link_info_by_idx_check.H5Lget_name_by_idx_f", &
+       linkname(1:LEN(tmpname)), tmpname(1:LEN(tmpname)),  total_error)
+  CALL VERIFY("link_info_by_idx_check.H5Lget_name_by_idx_f", INT(size_tmp), 7, total_error)
+
+  size_tmp = INT(LEN(tmpname_big),SIZE_T)
+  CALL H5Lget_name_by_idx_f(group_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, INT(n,HSIZE_T), size_tmp, tmpname_big, error)
+  CALL check("link_info_by_idx_check.H5Lget_name_by_idx_f", error, total_error)
+  CALL verifyString("link_info_by_idx_check.H5Lget_name_by_idx_f", &
+       linkname(1:7), tmpname_big(1:7),  total_error)
+  CALL VERIFY("link_info_by_idx_check.H5Lget_name_by_idx_f", INT(size_tmp), 7, total_error)
+
+  ! Try with a buffer set to small
+
+!!$  size_tmp = INT(4,SIZE_T)
+!!$  CALL H5Lget_name_by_idx_f(group_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, INT(n,HSIZE_T), size_tmp, tmpname, error)
+!!$  CALL check("H5Lget_name_by_idx_f", error, total_error)
+!!$  CALL verifyString("H5Lget_name_by_idx_f", linkname, tmpname,  total_error)
+
+
+!!$
+!!$    if(H5Lget_name_by_idx(group_id, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, n, tmpname, (size_t)NAME_BUF_SIZE, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(HDstrcmp(linkname, tmpname)) TEST_ERROR
+
+!!$    /* Don't test "native" order if there is no creation order index, since
+!!$     *  there's not a good way to easily predict the link's order in the name
+!!$     *  index.
+!!$     */
+!!$    if(use_index) {
+!!$        /* Verify the link information for first link, in native creation order (which is increasing) */
+!!$        HDmemset(&linfo, 0, sizeof(linfo));
+!!$        if(H5Lget_info_by_idx(group_id, ".", H5_INDEX_CRT_ORDER, H5_ITER_NATIVE, (hsize_t)0, &linfo, H5P_DEFAULT) < 0) TEST_ERROR
+!!$        if(linfo.corder != 0) TEST_ERROR
+!!$
+!!$        /* Verify the link information for new link, in native creation order (which is increasing) */
+!!$        HDmemset(&linfo, 0, sizeof(linfo));
+!!$        if(H5Lget_info_by_idx(group_id, ".", H5_INDEX_CRT_ORDER, H5_ITER_NATIVE, n, &linfo, H5P_DEFAULT) < 0) TEST_ERROR
+!!$        if(linfo.corder != (int64_t)n) TEST_ERROR
+!!$
+!!$        /* Verify value for new soft link, in native creation order (which is increasing) */
+!!$        if(!hard_link) {
+!!$            HDmemset(tmpval, 0, (size_t)NAME_BUF_SIZE);
+!!$            if(H5Lget_val_by_idx(group_id, ".", H5_INDEX_CRT_ORDER, H5_ITER_NATIVE, n, tmpval, (size_t)NAME_BUF_SIZE, H5P_DEFAULT) < 0) TEST_ERROR
+!!$            if(HDstrcmp(valname, tmpval)) TEST_ERROR
+!!$        } /* end if */
+!!$
+!!$        /* Verify the name for new link, in native creation order (which is increasing) */
+!!$        HDmemset(tmpname, 0, (size_t)NAME_BUF_SIZE);
+!!$        if(H5Lget_name_by_idx(group_id, ".", H5_INDEX_CRT_ORDER, H5_ITER_NATIVE, n, tmpname, (size_t)NAME_BUF_SIZE, H5P_DEFAULT) < 0) TEST_ERROR
+!!$        if(HDstrcmp(linkname, tmpname)) TEST_ERROR
+!!$    } /* end if */
+!!$
+!!$    /* Verify the link information for first link, in decreasing creation order */
+!!$    HDmemset(&linfo, 0, sizeof(linfo));
+!!$    if(H5Lget_info_by_idx(group_id, ".", H5_INDEX_CRT_ORDER, H5_ITER_DEC, n, &linfo, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(linfo.corder != 0) TEST_ERROR
+!!$
+!!$    /* Verify the link information for new link, in decreasing creation order */
+!!$    HDmemset(&linfo, 0, sizeof(linfo));
+!!$    if(H5Lget_info_by_idx(group_id, ".", H5_INDEX_CRT_ORDER, H5_ITER_DEC, (hsize_t)0, &linfo, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(linfo.corder != (int64_t)n) TEST_ERROR
+!!$
+!!$    /* Verify value for new soft link, in decreasing creation order */
+!!$    if(!hard_link) {
+!!$        HDmemset(tmpval, 0, (size_t)NAME_BUF_SIZE);
+!!$        if(H5Lget_val_by_idx(group_id, ".", H5_INDEX_CRT_ORDER, H5_ITER_DEC, (hsize_t)0, tmpval, (size_t)NAME_BUF_SIZE, H5P_DEFAULT) < 0) TEST_ERROR
+!!$        if(HDstrcmp(valname, tmpval)) TEST_ERROR
+!!$    } /* end if */
+!!$
+!!$    /* Verify the name for new link, in decreasing creation order */
+!!$    HDmemset(tmpname, 0, (size_t)NAME_BUF_SIZE);
+!!$    if(H5Lget_name_by_idx(group_id, ".", H5_INDEX_CRT_ORDER, H5_ITER_DEC, (hsize_t)0, tmpname, (size_t)NAME_BUF_SIZE, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(HDstrcmp(linkname, tmpname)) TEST_ERROR
+!!$
+!!$
+!!$    /* Verify the link information for first link, in increasing link name order */
+!!$    HDmemset(&linfo, 0, sizeof(linfo));
+!!$    if(H5Lget_info_by_idx(group_id, ".", H5_INDEX_NAME, H5_ITER_INC, (hsize_t)0, &linfo, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(linfo.corder != 0) TEST_ERROR
+!!$
+!!$    /* Verify the link information for new link, in increasing link name order */
+!!$    HDmemset(&linfo, 0, sizeof(linfo));
+!!$    if(H5Lget_info_by_idx(group_id, ".", H5_INDEX_NAME, H5_ITER_INC, n, &linfo, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(linfo.corder != (int64_t)n) TEST_ERROR
+!!$
+!!$    /* Verify value for new soft link, in increasing link name order */
+!!$    if(!hard_link) {
+!!$        HDmemset(tmpval, 0, (size_t)NAME_BUF_SIZE);
+!!$        if(H5Lget_val_by_idx(group_id, ".", H5_INDEX_NAME, H5_ITER_INC, n, tmpval, (size_t)NAME_BUF_SIZE, H5P_DEFAULT) < 0) TEST_ERROR
+!!$        if(HDstrcmp(valname, tmpval)) TEST_ERROR
+!!$    } /* end if */
+!!$
+!!$    /* Verify the name for new link, in increasing link name order */
+!!$    HDmemset(tmpname, 0, (size_t)NAME_BUF_SIZE);
+!!$    if(H5Lget_name_by_idx(group_id, ".", H5_INDEX_NAME, H5_ITER_INC, n, tmpname, (size_t)NAME_BUF_SIZE, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(HDstrcmp(linkname, tmpname)) TEST_ERROR
+!!$
+!!$    /* Don't test "native" order queries on link name order, since there's not
+!!$     *  a good way to easily predict the order of the links in the name index.
+!!$     */
+!!$
+!!$    /* Verify the link information for first link, in decreasing link name order */
+!!$    HDmemset(&linfo, 0, sizeof(linfo));
+!!$    if(H5Lget_info_by_idx(group_id, ".", H5_INDEX_NAME, H5_ITER_DEC, n, &linfo, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(linfo.corder != 0) TEST_ERROR
+!!$
+!!$    /* Verify the link information for new link, in decreasing link name order */
+!!$    HDmemset(&linfo, 0, sizeof(linfo));
+!!$    if(H5Lget_info_by_idx(group_id, ".", H5_INDEX_NAME, H5_ITER_DEC, (hsize_t)0, &linfo, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(linfo.corder != (int64_t)n) TEST_ERROR
+!!$
+!!$    /* Verify value for new soft link, in decreasing link name order */
+!!$    if(!hard_link) {
+!!$        HDmemset(tmpval, 0, (size_t)NAME_BUF_SIZE);
+!!$        if(H5Lget_val_by_idx(group_id, ".", H5_INDEX_NAME, H5_ITER_DEC, (hsize_t)0, tmpval, (size_t)NAME_BUF_SIZE, H5P_DEFAULT) < 0) TEST_ERROR
+!!$        if(HDstrcmp(valname, tmpval)) TEST_ERROR
+!!$    } /* end if */
+!!$
+!!$    /* Verify the name for new link, in decreasing link name order */
+!!$    HDmemset(tmpname, 0, (size_t)NAME_BUF_SIZE);
+!!$    if(H5Lget_name_by_idx(group_id, ".", H5_INDEX_NAME, H5_ITER_DEC, (hsize_t)0, tmpname, (size_t)NAME_BUF_SIZE, H5P_DEFAULT) < 0) TEST_ERROR
+!!$    if(HDstrcmp(linkname, tmpname)) TEST_ERROR
+!!$
+!!$    /* Success */
+!!$    return(0);
+!!$
+!!$error:
+!!$    /* Failure */
+!!$    return(-1);
+!!$} /* end link_info_by_idx_check() */
+
+  END SUBROUTINE link_info_by_idx_check
+
+
+!/*-------------------------------------------------------------------------
+! * Function:    test_lcpl
+! *
+! * Purpose:     Tests Link Creation Property Lists
+! *
+! * Return:      Success:        0
+! *              Failure:        number of errors
+! *
+! * Programmer:  M.S. Breitenfeld
+! *              Modified C routine
+! *              March 12, 2008
+! *
+! * Modifications:
+! *
+! *-------------------------------------------------------------------------
+! */
+
+
+  SUBROUTINE test_lcpl(cleanup, fapl, total_error)
+
+  USE HDF5 ! This module contains all necessary modules 
+  
+  IMPLICIT NONE
+  INTEGER, INTENT(INOUT) :: total_error
+  INTEGER(HID_T), INTENT(IN) :: fapl
+  LOGICAL :: cleanup
+    
+  INTEGER(HID_T) :: file_id
+  INTEGER(HID_T) :: group_id
+  INTEGER(HID_T) :: space_id, data_space
+  INTEGER(HID_T) :: dset_id
+  INTEGER(HID_T) :: type_id
+  INTEGER(HID_T) :: lcpl_id
+  
+  INTEGER :: cset ! Indicates the character set used for the link’s name. 
+  INTEGER :: corder ! Specifies the link’s creation order position.
+  LOGICAL :: f_corder_valid ! Indicates whether the value in corder is valid.
+  INTEGER :: link_type ! Specifies the link class:
+     	                              !  H5L_LINK_HARD_F      - Hard link
+     	                              !  H5L_LINK_SOFT_F      - Soft link
+     	                              !  H5L_LINK_EXTERNAL_F  - External link
+     	                              !  H5L_LINK_ERROR _F    - Error
+  INTEGER :: address  ! If the link is a hard link, address specifies the file address that the link points to
+  INTEGER(HSIZE_T) :: val_size ! If the link is a symbolic link, val_size will be the length of the link value
+  INTEGER(HSIZE_T) :: data_size   ! Indicates the size, in the number of characters, of the attribute
+
+  CHARACTER(LEN=1024) :: filename = 'tempfile.h5'
+  INTEGER, PARAMETER :: TEST6_DIM1 = 8, TEST6_DIM2 = 7
+  INTEGER(HSIZE_T), DIMENSION(1:2), PARAMETER :: dims = (/TEST6_DIM1,TEST6_DIM2/)
+
+  INTEGER :: encoding
+  INTEGER :: error
+  LOGICAL :: Lexists
+  INTEGER(HSIZE_T), DIMENSION(1:2), PARAMETER :: extend_dim = (/TEST6_DIM1-2,TEST6_DIM2-3/)
+  INTEGER(HSIZE_T), DIMENSION(1:2) :: dimsout, maxdimsout ! dimensions
+
+  INTEGER :: i
+
+  WRITE(*,*) "link creation property lists (w/new group format)"
+
+  
+  !/* Actually, intermediate group creation is tested elsewhere (tmisc).
+  ! * Here we only need to test the character encoding property */
+
+  !/* Create file */
+  !  h5_fixname(FILENAME[0], fapl, filename, sizeof filename);
+  
+  CALL H5Fcreate_f(filename, H5F_ACC_TRUNC_F, file_id, error, H5P_DEFAULT_F, fapl)
+  CALL check("test_lcpl.H5Fcreate_f", error, total_error)
+
+
+  ! /* Create and link a group with the default LCPL */
+  
+  CALL H5Gcreate_f(file_id, "/group", group_id, error)
+  CALL check("test_lcpl.H5Gcreate_f", error, total_error)
+  
+
+  ! /* Check that its character encoding is the default */
+  
+  CALL H5Lget_info_f(file_id, "group", &
+       cset, corder, f_corder_valid, link_type, address, val_size, &
+       error, H5P_DEFAULT_F)
+
+!/* File-wide default character encoding can not yet be set via the file
+! * creation property list and is always ASCII. */
+!#define H5F_DEFAULT_CSET H5T_CSET_ASCII  -- FROM H5Fprivate.h --
+
+  CALL VERIFY("test_lcpl.H5Lget_info_f",cset, H5T_CSET_ASCII_F,total_error)
+
+  ! /* Create and commit a datatype with the default LCPL */
+  CALL h5tcopy_f(H5T_NATIVE_INTEGER, type_id, error)
+  CALL check("test_lcpl.h5tcopy_f",error,total_error)
+  CALL h5tcommit_f(file_id, "/type", type_id, error)
+  CALL check("test_lcpl.h5tcommit_f", error, total_error)
+  CALL h5tclose_f(type_id, error)
+  CALL check("test_lcpl.h5tclose_f", error, total_error)
+  
+
+  ! /* Check that its character encoding is the default */
+  CALL H5Lget_info_f(file_id, "type", &
+       cset, corder, f_corder_valid, link_type, address, val_size, &
+       error)
+  CALL check("test_lcpl.h5tclose_f", error, total_error)
+
+!/* File-wide default character encoding can not yet be set via the file
+! * creation property list and is always ASCII. */
+!#define H5F_DEFAULT_CSET H5T_CSET_ASCII  -- FROM H5Fprivate.h --
+
+  CALL verify("test_lcpl.H5Lget_info_f",cset, H5T_CSET_ASCII_F,total_error)
+
+  !/* Create a dataspace */
+  CALL h5screate_simple_f(2, dims, space_id, error)
+  CALL check("test_lcpl.h5screate_simple_f",error,total_error)
+
+  ! /* Create a dataset using the default LCPL */
+  CALL h5dcreate_f(file_id, "/dataset", H5T_NATIVE_INTEGER, space_id, dset_id, error)
+  CALL check("test_lcpl.h5dcreate_f", error, total_error)
+  CALL h5dclose_f(dset_id, error)
+  CALL check("test_lcpl.h5dclose_f", error, total_error)
+
+  ! Reopen
+
+  CALL H5Dopen_f(file_id, "/dataset", dset_id, error)
+  CALL check("test_lcpl.h5dopen_f", error, total_error)
+
+  !  /* Extend the  dataset */
+  CALL H5Dset_extent_f(dset_id, extend_dim, error)
+  CALL check("test_lcpl.H5Dset_extent_f", error, total_error)
+  !  /* Verify the dataspaces */
+        !
+          !Get dataset's dataspace handle.
+          !
+  CALL h5dget_space_f(dset_id, data_space, error)
+  CALL check("h5dget_space_f",error,total_error)
+
+  CALL h5sget_simple_extent_dims_f(data_space, dimsout, maxdimsout, error)
+  CALL check("test_lcpl.h5sget_simple_extent_dims_f",error, total_error)
+  
+  DO i = 1, 2
+     CALL VERIFY("H5Sget_simple_extent_dims", dimsout(i), extend_dim(i), total_error)
+     CALL VERIFY("H5Sget_simple_extent_dims", maxdimsout(i), dims(i), total_error)
+  ENDDO
+
+  ! /* close data set */
+
+  CALL h5dclose_f(dset_id, error)
+  CALL check("test_lcpl.h5dclose_f", error, total_error) 
+
+  ! /* Check that its character encoding is the default */
+  CALL H5Lget_info_f(file_id, "dataset", &
+       cset, corder, f_corder_valid, link_type, address, val_size, &
+       error)
+  CALL check("test_lcpl.H5Lget_info_f", error, total_error)
+
+!/* File-wide default character encoding can not yet be set via the file
+! * creation property list and is always ASCII. */
+!#define H5F_DEFAULT_CSET H5T_CSET_ASCII  -- FROM H5Fprivate.h --
+
+  CALL verify("test_lcpl.h5tclose_f",cset, H5T_CSET_ASCII_F,total_error)
+
+  !/* Create a link creation property list with the UTF-8 character encoding */
+  CALL H5Pcreate_f(H5P_LINK_CREATE_F,lcpl_id,error)
+  CALL check("test_lcpl.h5Pcreate_f",error,total_error)
+  CALL H5Pset_char_encoding_f(lcpl_id, H5T_CSET_UTF8_F, error)
+  CALL check("test_lcpl.H5Pset_char_encoding_f",error, total_error)
+
+  ! /* Create and link a group with the new LCPL */
+  CALL H5Gcreate_f(file_id, "/group2", group_id, error,lcpl_id=lcpl_id)
+  CALL check("test_lcpl.test_lcpl.H5Gcreate_f", error, total_error)
+  CALL H5Gclose_f(group_id, error)
+  CALL check("test_lcpl.test_lcpl.H5Gclose_f", error, total_error)
+
+
+  !/* Check that its character encoding is UTF-8 */
+  CALL H5Lget_info_f(file_id, "group2", &
+       cset, corder, f_corder_valid, link_type, address, val_size, &
+       error)
+  CALL check("test_lcpl.H5Lget_info_f", error, total_error)
+  CALL verify("test_lcpl.H5Lget_info_f",cset, H5T_CSET_UTF8_F,total_error)
+
+
+  ! /* Create and commit a datatype with the new LCPL */
+
+  CALL h5tcopy_f(H5T_NATIVE_INTEGER, type_id, error)
+  CALL check("test_lcpl.h5tcopy_f",error,total_error)
+  CALL h5tcommit_f(file_id, "/type2", type_id, error, lcpl_id=lcpl_id)
+  CALL check("test_lcpl.h5tcommit_f", error, total_error)
+  CALL h5tclose_f(type_id, error)
+  CALL check("test_lcpl.h5tclose_f", error, total_error)
+
+
+  !/* Check that its character encoding is UTF-8 */
+  CALL H5Lget_info_f(file_id, "type2", &
+       cset, corder, f_corder_valid, link_type, address, val_size, &
+       error)
+  CALL check("test_lcpl.H5Lget_info_f", error, total_error)
+  CALL verify("test_lcpl.H5Lget_info_f",cset, H5T_CSET_UTF8_F,total_error)
+
+  ! /* Create a dataset using the new LCPL */
+  CALL h5dcreate_f(file_id, "/dataset2", H5T_NATIVE_INTEGER, space_id, dset_id, error,lcpl_id=lcpl_id)
+  CALL check("test_lcpl.h5dcreate_f", error, total_error)
+
+  CALL h5dclose_f(dset_id, error)
+  CALL check("test_lcpl.h5dclose_f", error, total_error)
+
+  CALL H5Pget_char_encoding_f(lcpl_id, encoding, error)
+  CALL check("test_lcpl.H5Pget_char_encoding_f", error, total_error)
+  CALL VERIFY("test_lcpl.H5Pget_char_encoding_f", encoding, H5T_CSET_UTF8_F, total_error) 
+
+  ! /* Check that its character encoding is UTF-8 */
+  CALL H5Lget_info_f(file_id, "dataset2", &
+       cset, corder, f_corder_valid, link_type, address, val_size, &
+       error)
+  CALL check("test_lcpl.H5Lget_info_f", error, total_error)
+  CALL verify("test_lcpl.H5Lget_info_f2",cset, H5T_CSET_UTF8_F,total_error)
+
+  ! /* Create a new link to the dataset with a different character encoding. */
+  CALL H5Pclose_f(lcpl_id, error)
+  CALL check("test_lcpl.H5Pclose_f", error, total_error)
+
+  CALL H5Pcreate_f(H5P_LINK_CREATE_F,lcpl_id,error)
+  CALL check("test_lcpl.h5Pcreate_f",error,total_error)
+  CALL H5Pset_char_encoding_f(lcpl_id, H5T_CSET_ASCII_F, error)
+  CALL check("test_lcpl.H5Pset_char_encoding_f",error, total_error)
+  CALL H5Lcreate_hard_f(file_id, "/dataset2", file_id, "/dataset2_link", error, lcpl_id)
+  CALL check("test_lcpl.H5Lcreate_hard_f",error, total_error)
+
+  CALL H5Lexists_f(file_id,"/dataset2_link",Lexists, error)
+  CALL check("test_lcpl.H5Lexists",error, total_error)
+  CALL verifylogical("test_lcpl.H5Lexists", Lexists,.TRUE.,total_error)
+
+  ! /* Check that its character encoding is ASCII */
+  CALL H5Lget_info_f(file_id, "/dataset2_link", &
+       cset, corder, f_corder_valid, link_type, address, val_size, &
+       error)
+  CALL check("test_lcpl.H5Lget_info_f", error, total_error)
+  CALL verify("test_lcpl.H5Lget_info_f",cset, H5T_CSET_ASCII_F,total_error) 
+
+  ! /* Check that the first link's encoding hasn't changed */
+
+  CALL H5Lget_info_f(file_id, "/dataset2", &
+       cset, corder, f_corder_valid, link_type, address, val_size, &
+       error)
+  CALL check("test_lcpl.H5Lget_info_f", error, total_error)
+  CALL verify("test_lcpl.H5Lget_info_f3",cset, H5T_CSET_UTF8_F,total_error)
+
+
+  !/* Make sure that LCPLs work properly for other API calls: */
+  !/* H5Lcreate_soft */
+  
+  CALL H5Pset_char_encoding_f(lcpl_id, H5T_CSET_UTF8_F, error)
+  CALL check("test_lcpl.H5Pset_char_encoding_f",error, total_error)
+  CALL H5Lcreate_soft_f("dataset2", file_id, "slink_to_dset2",error,lcpl_id)
+  CALL check("H5Lcreate_soft_f", error, total_error)
+
+  CALL H5Lget_info_f(file_id, "slink_to_dset2", &
+       cset, corder, f_corder_valid, link_type, address, val_size, &
+       error)
+  CALL check("test_lcpl.H5Lget_info_f", error, total_error)
+  CALL verify("test_lcpl.H5Lget_info_f",cset, H5T_CSET_UTF8_F,total_error)
+
+
+  ! /* H5Lmove */
+  CALL H5Pset_char_encoding_f(lcpl_id, H5T_CSET_ASCII_F, error)
+  CALL check("test_lcpl.H5Pset_char_encoding_f",error, total_error)
+
+  CALL H5Lmove_f(file_id, "slink_to_dset2", file_id, "moved_slink", error, lcpl_id, H5P_DEFAULT_F)
+  CALL check("test_lcpl.H5Lmove_f",error, total_error)
+
+  CALL H5Lget_info_f(file_id, "moved_slink", &
+       cset, corder, f_corder_valid, link_type, address, val_size, &
+       error)
+  CALL check("test_lcpl.H5Lget_info_f", error, total_error)
+  CALL verify("test_lcpl.H5Lget_info_f",cset, H5T_CSET_ASCII_F,total_error)
+
+
+  ! /* H5Lcopy */
+  
+  CALL H5Pset_char_encoding_f(lcpl_id, H5T_CSET_UTF8_F, error)
+  CALL check("test_lcpl.H5Pset_char_encoding_f",error, total_error)
+
+  CALL H5Lcopy_f(file_id, "moved_slink", file_id, "copied_slink", error, lcpl_id)
+  
+  CALL H5Lget_info_f(file_id, "copied_slink", &
+       cset, corder, f_corder_valid, link_type, address, val_size, &
+       error)
+  CALL check("test_lcpl.H5Lget_info_f", error, total_error)
+  CALL verify("test_lcpl.H5Lget_info_f",cset, H5T_CSET_UTF8_F,total_error)
+
+
+  ! /* H5Lcreate_external */
+
+  CALL H5Lcreate_external_f("test_lcpl.filename", "path", file_id, "extlink", error, lcpl_id)
+  CALL check("test_lcpl.H5Lcreate_external_f", error, total_error)
+
+  CALL H5Lget_info_f(file_id, "extlink", &
+       cset, corder, f_corder_valid, link_type, address, val_size, &
+       error)
+  CALL check("test_lcpl.H5Lget_info_f", error, total_error)
+  CALL verify("test_lcpl.H5Lget_info_f",cset, H5T_CSET_UTF8_F,total_error)
+
+
+  ! /* Close open IDs */
+
+  CALL H5Pclose_f(lcpl_id, error)
+  CALL check("test_lcpl.H5Pclose_f", error, total_error)
+  CALL H5Sclose_f(space_id, error)
+  CALL check("test_lcpl.h5Sclose_f",error,total_error)
+  CALL H5Fclose_f(file_id, error)
+  CALL check("test_lcpl.H5Fclose_f", error, total_error)
+
+  IF(cleanup) CALL h5_cleanup_f("tempfile", H5P_DEFAULT_F, error)
+  CALL check("h5_cleanup_f", error, total_error)
+
+
+END SUBROUTINE test_lcpl
+
+SUBROUTINE objcopy(fapl, total_error)
+
+  USE HDF5 ! This module contains all necessary modules 
+  
+  IMPLICIT NONE
+  INTEGER, INTENT(INOUT) :: total_error
+  INTEGER(HID_T), INTENT(IN) :: fapl
+
+  INTEGER(HID_T) :: fapl2, pid
+
+  INTEGER :: flag, cpy_flags
+
+  INTEGER :: error
+
+  flag = H5O_COPY_SHALLOW_HIERARCHY_F
+
+!/* Copy the file access property list */
+  CALL H5Pcopy_f(fapl, fapl2, error)
+  CALL check("H5Pcopy_f", error, total_error)
+
+!/* Set the "use the latest version of the format" bounds for creating objects in the file */
+  CALL H5Pset_libver_bounds_f(fapl2, H5F_LIBVER_LATEST_F, H5F_LIBVER_LATEST_F, error)
+  
+  ! /* create property to pass copy options */
+  CALL h5pcreate_f(H5P_OBJECT_COPY_F, pid, error)
+  CALL check("h5pcreate_f",error, total_error)
+
+  ! /* set options for object copy */
+  CALL H5Pset_copy_object_f(pid, flag, error) 
+  CALL check("H5Pset_copy_object_f",error, total_error)
+
+  ! /* Verify object copy flags */
+  CALL H5Pget_copy_object_f(pid, cpy_flags, error)
+  CALL check("H5Pget_copy_object_f",error, total_error)
+  CALL VERIFY("H5Pget_copy_object_f", cpy_flags, flag, total_error)
+
+!!$
+!!$  CALL test_copy_option(fcpl_src, fcpl_dst, my_fapl, H5O_COPY_WITHOUT_ATTR_FLAG, 
+!!$                       FALSE, "H5Ocopy(): without attributes");
+
+  CALL lapl_nlinks(fapl2, total_error)
+
+END SUBROUTINE objcopy
+
+
+!/*-------------------------------------------------------------------------
+! * Function:    lapl_nlinks
+! *
+! * Purpose:     Check that the maximum number of soft links can be adjusted
+! *              by the user using the Link Access Property List.
+! *
+! * Return:      Success:        0
+! *
+! *              Failure:        -1
+! *
+! * Programmer:  James Laird
+! *              Tuesday, June 6, 2006
+! *
+! * Modifications:
+! *
+! *-------------------------------------------------------------------------
+! */
+
+SUBROUTINE lapl_nlinks( fapl, total_error)
+
+  USE HDF5
+  
+  IMPLICIT NONE
+  INTEGER(HID_T), INTENT(IN) :: fapl
+  INTEGER, INTENT(INOUT) :: total_error
+
+  INTEGER :: error
+
+  INTEGER(HID_T) :: fid = (-1) !/* File ID */
+  INTEGER(HID_T) :: gid = (-1), gid2 = (-1) !/* Group IDs */
+  INTEGER(HID_T) :: plist = (-1) ! /* lapl ID */
+  INTEGER(HID_T) :: tid = (-1), sid = (-1), did = (-1) ! /* Other IDs */
+  INTEGER(HID_T) :: gapl = (-1), dapl = (-1), tapl = (-1) ! /* Other property lists */
+  
+  CHARACTER(LEN=7) :: objname ! /* Object name */
+  INTEGER(size_t) :: name_len ! /* Length of object name */
+  CHARACTER(LEN=12) :: filename = 'TestLinks.h5'
+  INTEGER(size_t) ::              nlinks ! /* nlinks for H5Pset_nlinks */
+  INTEGER(hsize_t), DIMENSION(2) :: dims
+  INTEGER(size_t) :: buf_size = 7
+  
+  WRITE(*,*) "adjusting nlinks with LAPL (w/new group format)"
+
+!!$    /* Make certain test is valid */
+!!$    /* XXX: should probably make a "generic" test that creates the proper
+!!$     *          # of links based on this value - QAK
+!!$     */
+!!$    HDassert(H5L_NUM_LINKS == 16);
+
+  ! /* Create file */
+  CALL h5fcreate_f(FileName, H5F_ACC_TRUNC_F, fid, error, access_prp=fapl)
+  CALL check(" lapl_nlinks.h5fcreate_f",error,total_error)
+
+  ! /* Create group with short name in file (used as target for links) */
+  CALL H5Gcreate_f(fid, "final", gid, error) 
+  CALL check(" lapl_nlinks.H5Gcreate_f", error, total_error)
+  
+  !/* Create chain of soft links to existing object (limited) */
+  CALL H5Lcreate_soft_f("final", fid, "soft1", error)
+  CALL H5Lcreate_soft_f("soft1", fid, "soft2", error)
+  CALL H5Lcreate_soft_f("soft2", fid, "soft3", error)
+  CALL H5Lcreate_soft_f("soft3", fid, "soft4", error)
+  CALL H5Lcreate_soft_f("soft4", fid, "soft5", error)
+  CALL H5Lcreate_soft_f("soft5", fid, "soft6", error)
+  CALL H5Lcreate_soft_f("soft6", fid, "soft7", error)
+  CALL H5Lcreate_soft_f("soft7", fid, "soft8", error)
+  CALL H5Lcreate_soft_f("soft8", fid, "soft9", error)
+  CALL H5Lcreate_soft_f("soft9", fid, "soft10", error)
+  CALL H5Lcreate_soft_f("soft10", fid, "soft11", error)
+  CALL H5Lcreate_soft_f("soft11", fid, "soft12", error)
+  CALL H5Lcreate_soft_f("soft12", fid, "soft13", error)
+  CALL H5Lcreate_soft_f("soft13", fid, "soft14", error)
+  CALL H5Lcreate_soft_f("soft14", fid, "soft15", error)
+  CALL H5Lcreate_soft_f("soft15", fid, "soft16", error)
+  CALL H5Lcreate_soft_f("soft16", fid, "soft17", error)
+
+  !/* Close objects */
+  CALL H5Gclose_f(gid, error)
+  CALL check("h5gclose_f",error,total_error)
+  CALL h5fclose_f(fid, error)
+  CALL check("h5fclose_f",error,total_error)
+
+  !/* Open file */
+  
+  CALL h5fopen_f(FileName, H5F_ACC_RDWR_F, fid, error, fapl)
+  CALL check("h5open_f",error,total_error)
+  
+  !/* Create LAPL with higher-than-usual nlinks value */
+  !/* Create a non-default lapl with udata set to point to the first group */
+  
+  CALL H5Pcreate_f(H5P_LINK_ACCESS_F,plist,error)
+  CALL check("h5Pcreate_f",error,total_error)
+  nlinks = 20
+  CALL H5Pset_nlinks_f(plist, nlinks, error)
+  CALL check("H5Pset_nlinks_f",error,total_error)
+  !/* Ensure that nlinks was set successfully */
+  nlinks = 0
+  CALL H5Pget_nlinks_f(plist, nlinks, error)
+  CALL check("H5Pset_nlinks_f",error,total_error)
+  CALL VERIFY("H5Pset_nlinks_f",INT(nlinks), 20, total_error)
+
+
+  !/* Open object through what is normally too many soft links using
+  ! * new property list */
+  
+  CALL H5Oopen_f(fid,"soft17",gid,error,plist)
+  CALL check("H5Oopen_f",error,total_error)
+
+  !/* Check name */
+  CALL h5iget_name_f(gid, objname, buf_size, name_len, error)
+  CALL check("h5iget_name_f",error,total_error)
+  CALL VerifyString("h5iget_name_f", TRIM(objname),"/soft17", total_error)
+  !/* Create group using soft link */
+  CALL H5Gcreate_f(gid, "new_soft", gid2, error)
+  CALL check("H5Gcreate_f", error, total_error)
+
+  ! /* Close groups */ 
+  CALL H5Gclose_f(gid2, error)
+  CALL check("H5Gclose_f", error, total_error) 
+  CALL H5Gclose_f(gid, error)
+  CALL check("H5Gclose_f", error, total_error)
+
+
+  !/* Set nlinks to a smaller number */
+  nlinks = 4
+  CALL H5Pset_nlinks_f(plist, nlinks, error)
+  CALL check("H5Pset_nlinks_f", error, total_error)
+
+  !/* Ensure that nlinks was set successfully */
+  nlinks = 0
+
+  CALL H5Pget_nlinks_f(plist, nlinks, error)
+  CALL check("H5Pget_nlinks_f",error,total_error)
+  CALL VERIFY("H5Pget_nlinks_f", nlinks, 4, total_error)
+
+  ! /* Try opening through what is now too many soft links */
+  
+  CALL H5Oopen_f(fid,"soft5",gid,error,plist)
+  CALL VERIFY("H5Oopen_f", error, -1, total_error) ! should fail
+
+  ! /* Open object through lesser soft link */
+  CALL H5Oopen_f(fid,"soft4",gid,error,plist)
+  CALL check("H5Oopen_",error,total_error)
+
+  ! /* Check name */
+  CALL h5iget_name_f(gid, objname, buf_size, name_len, error)
+  CALL check("h5iget_name_f",error,total_error)
+  CALL VerifyString("h5iget_name_f", TRIM(objname),"/soft4", total_error)
+
+  ! /* Test other functions that should use a LAPL */
+  nlinks = 20
+  CALL H5Pset_nlinks_f(plist, nlinks, error)
+  CALL check("H5Pset_nlinks_f", error, total_error)
+
+  !/* Try copying and moving when both src and dst contain many soft links
+  ! * using a non-default LAPL
+  ! */
+  CALL H5Lcopy_f(fid, "soft17", fid, "soft17/newer_soft", error, H5P_DEFAULT_F, plist)
+  CALL check("H5Lcopy_f",error,total_error)
+
+  CALL H5Lmove_f(fid, "soft17/newer_soft", fid, "soft17/newest_soft", error, lapl_id=plist)
+  CALL check("H5Lmove_f",error, total_error)
+
+  ! /* H5Olink */
+  CALL H5Olink_f(gid, fid, "soft17/link_to_group", error, H5P_DEFAULT_F, plist)
+  CALL check("H5Olink_f", error, total_error)
+
+  ! /* H5Lcreate_hard and H5Lcreate_soft */
+  CALL H5Lcreate_hard_f(fid, "soft17", fid, "soft17/link2_to_group", error, H5P_DEFAULT_F, plist)
+  CALL check("H5Lcreate_hard_f", error, total_error)
+
+
+  CALL H5Lcreate_soft_f("/soft4", fid, "soft17/soft_link",error, H5P_DEFAULT_F, plist)
+  CALL check("H5Lcreate_soft_f", error, total_error)
+
+  ! /* H5Ldelete */
+  CALL h5ldelete_f(fid, "soft17/soft_link", error, plist)
+  CALL check("H5Ldelete_f", error, total_error)
+
+!!$    /* H5Lget_val and H5Lget_info */
+!!$    if(H5Lget_val(fid, "soft17", NULL, (size_t)0, plist) < 0) TEST_ERROR
+!!$    if(H5Lget_info(fid, "soft17", NULL, plist) < 0) TEST_ERROR
+!!$
+
+  ! /* H5Lcreate_external and H5Lcreate_ud */
+  CALL H5Lcreate_external_f("filename", "path", fid, "soft17/extlink", error, H5P_DEFAULT_F, plist)
+  CALL check("H5Lcreate_external_f", error, total_error)
+
+!!$    if(H5Lregister(UD_rereg_class) < 0) TEST_ERROR
+!!$    if(H5Lcreate_ud(fid, "soft17/udlink", UD_HARD_TYPE, NULL, (size_t)0, H5P_DEFAULT, plist) < 0) TEST_ERROR
+!!$
+    ! /* Close plist */
+  CALL h5pclose_f(plist, error)
+  CALL check("h5pclose_f", error, total_error)
+
+    ! /* Create a datatype and dataset as targets inside the group */
+  CALL h5tcopy_f(H5T_NATIVE_INTEGER, tid, error)
+  CALL check("h5tcopy_f",error,total_error)
+  CALL h5tcommit_f(gid, "datatype", tid, error)
+  CALL check("h5tcommit_f", error, total_error)
+  CALL h5tclose_f(tid, error)
+  CALL check("h5tclose_f", error, total_error)
+
+!!$
+!!$    dims[0] = 2;
+!!$    dims[1] = 2;
+!!$    if((sid = H5Screate_simple(2, dims, NULL)) < 0) TEST_ERROR
+!!$    if((did = H5Dcreate2(gid, "dataset", H5T_NATIVE_INT, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+!!$    if(H5Dclose(did) < 0) TEST_ERROR
+!!$
+  !/* Close group */
+  CALL h5gclose_f(gid, error)
+  CALL check("h5gclose_f",error,total_error)
+
+!!$
+!!$    /* Try to open the objects using too many symlinks with default *APLs */
+!!$    H5E_BEGIN_TRY {
+!!$        if((gid = H5Gopen2(fid, "soft17", H5P_DEFAULT)) >= 0)
+!!$            FAIL_PUTS_ERROR("    Should have failed for too many nested links.")
+!!$        if((tid = H5Topen2(fid, "soft17/datatype", H5P_DEFAULT)) >= 0)
+!!$            FAIL_PUTS_ERROR("    Should have failed for too many nested links.")
+!!$        if((did = H5Dopen2(fid, "soft17/dataset", H5P_DEFAULT)) >= 0)
+!!$            FAIL_PUTS_ERROR("    Should have failed for too many nested links.")
+!!$    } H5E_END_TRY
+!!$
+    ! /* Create property lists with nlinks set */
+  
+  CALL H5Pcreate_f(H5P_GROUP_ACCESS_F,gapl,error)
+  CALL check("h5Pcreate_f",error,total_error) 
+  CALL H5Pcreate_f(H5P_DATATYPE_ACCESS_F,tapl,error)
+  CALL check("h5Pcreate_f",error,total_error) 
+  CALL H5Pcreate_f(H5P_DATASET_ACCESS_F,dapl,error)
+  CALL check("h5Pcreate_f",error,total_error)
+
+
+  nlinks = 20
+  CALL H5Pset_nlinks_f(gapl, nlinks, error)
+  CALL check("H5Pset_nlinks_f", error, total_error)
+  CALL H5Pset_nlinks_f(tapl, nlinks, error)
+  CALL check("H5Pset_nlinks_f", error, total_error)
+  CALL H5Pset_nlinks_f(dapl, nlinks, error)
+  CALL check("H5Pset_nlinks_f", error, total_error)
+
+  !/* We should now be able to use these property lists to open each kind
+  ! * of object.
+  ! */
+
+  CALL H5Gopen_f(fid, "soft17", gid, error, gapl)
+  CALL check("H5Gopen_f",error,total_error)
+
+  CALL H5Topen_f(fid, "soft17/datatype", tid, error, tapl)
+  CALL check("H5Gopen_f",error,total_error)
+  
+!!$    if((did = H5Dopen2(fid, "soft17/dataset", dapl)) < 0) TEST_ERROR
+
+  ! /* Close objects */
+  
+  CALL h5gclose_f(gid, error)
+  CALL check("h5gclose_f",error,total_error)
+  CALL h5tclose_f(tid, error)
+  CALL check("h5tclose_f", error, total_error)
+
+!!$    if(H5Dclose(did) < 0) TEST_ERROR
+!!$
+  ! /* Close plists */
+  
+  CALL h5pclose_f(gapl, error)
+  CALL check("h5pclose_f", error, total_error)
+  CALL h5pclose_f(tapl, error)
+  CALL check("h5pclose_f", error, total_error)
+
+!!$    if(H5Pclose(dapl) < 0) TEST_ERROR
+!!$
+!!$    /* Unregister UD hard link class */
+!!$    if(H5Lunregister(UD_HARD_TYPE) < 0) TEST_ERROR
+!!$
+
+  ! /* Close file */
+  CALL H5Fclose_f(fid, error)
+  CALL check("H5Fclose_f", error, total_error)
+
+END SUBROUTINE lapl_nlinks
