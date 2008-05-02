@@ -3276,7 +3276,7 @@ SUBROUTINE test_attr_basic_write(fapl, total_error)
   CHARACTER(LEN=7), PARAMETER :: ATTR1A_NAME ="Attr1_a"
   CHARACTER(LEN=18), PARAMETER :: ATTR_TMP_NAME = "Attr1_a-1234567890"
 ! int attr_data1a[ATTR1_DIM1]={256,11945,-22107};
-  INTEGER, DIMENSION(ATTR1_DIM1) :: attr_data1
+  INTEGER, DIMENSION(ATTR1_DIM1), PARAMETER :: attr_data1 =(/258,9987,-99890/)
   INTEGER, DIMENSION(ATTR1_DIM1) :: attr_data1a
   INTEGER, DIMENSION(ATTR1_DIM1) :: read_data1
   INTEGER(HSIZE_T) :: attr_size   ! attributes storage requirements .MSB.
@@ -3290,9 +3290,12 @@ SUBROUTINE test_attr_basic_write(fapl, total_error)
 
   INTEGER(SIZE_T) :: size
 
-  attr_data1(1) = 258
-  attr_data1(2) = 9987
-  attr_data1(3) = -99890
+! Not setting it as a parameter but intialize caused error
+! Look into. -Scot-
+!  attr_data1(1) = 258
+!  attr_data1(2) = 9987
+!  attr_data1(3) = -99890
+
   attr_data1a(1) = 258
   attr_data1a(2) = 1087
   attr_data1a(3) = -99890
@@ -3372,8 +3375,6 @@ SUBROUTINE test_attr_basic_write(fapl, total_error)
   ! /* Read attribute information immediately, without closing attribute */
   CALL h5aread_f(attr, H5T_NATIVE_INTEGER, read_data1, data_dims, error)
   CALL check("h5aread_f",error,total_error)
-
-
 
   ! /* Verify values read in */
   DO i = 1, ATTR1_DIM1
