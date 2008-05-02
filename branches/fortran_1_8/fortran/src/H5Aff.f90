@@ -3938,8 +3938,8 @@ CONTAINS
     LOGICAL, INTENT(OUT) :: attr_exists ! .TRUE. if exists, .FALSE. otherwise
     INTEGER, INTENT(OUT) :: hdferr         ! Error code:
                                            ! 0 on success and -1 on failure
-    INTEGER :: attr_exists_c
-    INTEGER(SIZE_T)  :: attr_namelen
+    INTEGER(HID_T) :: attr_exists_c
+    INTEGER(SIZE_T) :: attr_namelen
 !
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
@@ -3951,8 +3951,8 @@ CONTAINS
          !DEC$ ENDIF
          INTEGER(HID_T), INTENT(IN) :: obj_id
          CHARACTER(LEN=*), INTENT(IN) :: attr_name
-         INTEGER(SIZE_T), INTENT(IN) :: attr_namelen
-         INTEGER(HID_T), INTENT(OUT) :: attr_exists_c
+         INTEGER(SIZE_T) :: attr_namelen
+         INTEGER(HID_T) :: attr_exists_c
        END FUNCTION h5aexists_c
     END INTERFACE
 
