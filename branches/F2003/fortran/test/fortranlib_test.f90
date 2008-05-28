@@ -140,6 +140,11 @@ PROGRAM fortranlibtest
   CALL write_test_status(ret_total_error, ' Compound datatype test', total_error)
  
   ret_total_error = 0
+  CALL test_array_compound_atomic(ret_total_error)
+  CALL write_test_status(ret_total_error, ' Testing 1-D Array of Compound Datatypes Functionality', total_error)
+
+
+  ret_total_error = 0
   CALL enumtest(cleanup, ret_total_error)
   CALL write_test_status(ret_total_error, ' Enum datatype test', total_error)
 

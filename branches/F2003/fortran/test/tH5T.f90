@@ -885,3 +885,250 @@
     RETURN
     END SUBROUTINE enumtest 
 
+
+!/****************************************************************
+!**
+!**  test_array_compound_atomic(): Test basic array datatype code.
+!**      Tests 1-D array of compound datatypes (with no array fields)
+!**
+!****************************************************************/
+
+  SUBROUTINE test_array_compound_atomic(total_error)
+    
+    USE HDF5 
+    USE, INTRINSIC :: ISO_C_BINDING
+    IMPLICIT NONE
+    
+    INTEGER, INTENT(OUT) :: total_error
+    ! /* 1-D dataset WITH fixed dimensions */
+    CHARACTER(LEN=6), PARAMETER :: SPACE1_NAME = "Space1"
+    INTEGER, PARAMETER :: SPACE1_RANK = 1
+    INTEGER, PARAMETER :: SPACE1_DIM1 = 4
+    ! /* 1-D array datatype */
+    INTEGER, PARAMETER :: ARRAY1_RANK= 1
+    INTEGER, PARAMETER :: ARRAY1_DIM1= 4
+    CHARACTER(LEN=10), PARAMETER :: FILENAME = "tarray1.h5"
+
+    TYPE s1_t
+       INTEGER(c_int) :: i
+       REAL(c_float) :: f
+    END TYPE s1_t
+    TYPE(s1_t), DIMENSION(:,:), ALLOCATABLE, TARGET :: wdata ! /* Information to write */
+    TYPE(s1_t), DIMENSION(:,:), ALLOCATABLE, TARGET :: rdata ! /* Information read in */
+    INTEGER(hid_t)	:: fid1	!/* HDF5 File IDs		*/
+    INTEGER(hid_t) :: dataset	!/* Dataset ID			*/
+    INTEGER(hid_t)	:: sid1       !/* Dataspace ID			*/
+    INTEGER(hid_t)	:: tid1       !/* Array Datatype ID			*/
+    INTEGER(hid_t)	:: tid2       !/* Compound Datatype ID			*/
+    
+    INTEGER(HSIZE_T), DIMENSION(1) :: sdims1 = (/SPACE1_DIM1/)
+    INTEGER(HSIZE_T), DIMENSION(1) :: tdims1=(/ARRAY1_DIM1/)
+    INTEGER :: ndims ! /* Array rank for reading */
+    INTEGER(HSIZE_T), ALLOCATABLE, DIMENSION(:) :: rdims1 !/* Array dimensions for reading */
+    INTEGER :: nmemb !/* Number of compound members */
+    CHARACTER(LEN=20) :: mname !/* Name of compound field */
+    INTEGER(size_t) :: off   !/* Offset of compound field */
+    INTEGER(hid_t) :: mtid   !/* Datatype ID for field */
+    INTEGER :: i,j      ! /* counting variables */ 
+    INTEGER(SIZE_T) :: type_sizei  ! Size of the integer datatype 
+    INTEGER(SIZE_T) :: type_sizer  ! Size of the real datatype
+    INTEGER(SIZE_T) :: sizeof_compound ! total size of compound
+    INTEGER :: error    ! /* Generic RETURN value */
+    INTEGER(SIZE_T)     ::   offset     ! Member's offset
+    INTEGER :: namelen
+    LOGICAL :: flag
+
+    ALLOCATE( wdata(1:SPACE1_DIM1,1:ARRAY1_DIM1) )
+    ALLOCATE( rdata(1:SPACE1_DIM1,1:ARRAY1_DIM1) )
+      
+    !/* Output message about test being performed */
+    WRITE(*,*) "Testing 1-D Array of Compound Atomic Datatypes Functionality"
+
+    !/* Initialize array data to write */
+    DO i = 1, SPACE1_DIM1
+       DO j = 1, ARRAY1_DIM1
+          wdata(i,j)%i = i * 10 + j
+          wdata(i,j)%f = i * 2.5 + j
+       ENDDO
+    ENDDO
+
+    !/* Create file */
+    CALL h5fcreate_f(FILENAME,H5F_ACC_TRUNC_F,fid1,error)
+    CALL check("h5fcreate_f", error, total_error)    
+
+
+    !/* Create dataspace for datasets */
+    CALL h5screate_simple_f(SPACE1_RANK, sdims1, sid1, error)
+    CALL check("h5screate_simple_f", error, total_error)
+
+
+    !/* Create a compound datatype to refer to */
+    CALL h5tget_size_f(H5T_NATIVE_INTEGER, type_sizei, error)
+    CALL check("h5tget_size_f", error, total_error)
+
+    CALL h5tget_size_f(H5T_NATIVE_REAL, type_sizer, error)
+    CALL check("h5tget_size_f", error, total_error)
+
+    sizeof_compound =  INT(type_sizei + type_sizer, size_t)
+
+    CALL h5tcreate_f(H5T_COMPOUND_F, sizeof_compound, tid2, error)
+    CALL check("h5tcreate_f", error, total_error)
+
+    !/* Insert integer field */  
+    offset = 0
+    CALL h5tinsert_f(tid2, "i", offset, H5T_NATIVE_INTEGER, error)
+    CALL check("h5tinsert_f", error, total_error)
+     
+    !/* Insert float field */
+
+    offset = offset + type_sizei
+    CALL h5tinsert_f(tid2, "f", offset, H5T_NATIVE_REAL, error)
+    CALL check("h5tinsert_f", error, total_error)
+
+
+    ! /* Create an array datatype to refer to */
+    CALL h5tarray_create_f(tid2, ARRAY1_RANK, tdims1, tid1, error)
+    CALL check("h5tarray_create_f", error, total_error)
+
+    !/* Close compound datatype */
+    CALL h5tclose_f(tid2,error)
+    CALL check("h5tclose_f", error, total_error)
+
+
+    !/* Create a dataset */
+    CALL h5dcreate_f(fid1,"Dataset1",tid1, sid1, dataset,error)
+    CALL check("h5dcreate_f", error, total_error)
+
+    !/* Write dataset to disk */
+    CALL h5dwrite_buffer(dataset, tid1, C_LOC(wdata), error )
+    CALL check("h5dwrite_f", error, total_error)
+
+    !/* Close Dataset */ 
+    CALL h5dclose_f(dataset, error)
+    CALL check("h5dclose_f", error, total_error)
+
+    !/* Close datatype */
+    CALL h5tclose_f(tid1,error)
+    CALL check("h5tclose_f", error, total_error)
+
+    !/* Close disk dataspace */
+    CALL h5sclose_f(sid1,error)
+    CALL check("h5sclose_f", error, total_error)
+
+
+    !/* Close file */
+    CALL h5fclose_f(fid1,error)
+    CALL check("h5fclose_f", error, total_error)
+
+
+    !/* Re-open file */
+    CALL h5fopen_f (FILENAME, H5F_ACC_RDONLY_F, fid1, error)
+    CALL check("h5fopen_f", error, total_error)
+
+    !/* Open the dataset */ 
+    CALL h5dopen_f(fid1, "Dataset1", dataset, error)
+    CALL check("h5dopen_f", error, total_error)
+
+
+    !/* Get the datatype */    
+    CALL h5dget_type_f(dataset, tid1, error)
+    CALL check("h5dget_type_f", error, total_error)
+
+    !/* Check the array rank */
+    CALL h5tget_array_ndims_f(tid1, ndims, error)
+    CALL check("h5tget_array_ndims_f", error, total_error)
+    CALL VERIFY("h5tget_array_ndims_f",ndims, ARRAY1_RANK, total_error)
+
+    !/* Get the array dimensions */
+    ALLOCATE(rdims1(1:ndims))
+    CALL h5tget_array_dims_f(tid1, rdims1, error)
+    CALL check("h5tget_array_dims_f", error, total_error)
+
+
+    !/* Check the array dimensions */
+    DO i = 1, ndims
+       CALL VERIFY("h5tget_array_dims_f", rdims1(i), tdims1(i), total_error)
+    ENDDO
+
+    !/* Get the compound datatype */
+    CALL h5tget_super_f(tid1, tid2, error)
+    CALL check("h5tget_super_f", error, total_error)
+
+    !/* Check the number of members */
+    CALL h5tget_nmembers_f(tid2, nmemb, error)
+    CALL check("h5tget_nmembers_f", error, total_error)
+    CALL VERIFY("h5tget_nmembers_f", nmemb, 2, total_error)
+
+    !/* Check the 1st field's name */
+    CALL H5Tget_member_name_f(tid2, 0, mname, namelen,error)
+    CALL check("H5Tget_member_name_f", error, total_error)
+    CALL verifystring("H5Tget_member_name_f",mname(1:namelen),"i", total_error)
+
+    ! /* Check the 1st field's offset */
+    CALL H5Tget_member_offset_f(tid2, 0, off, error)
+    CALL check("H5Tget_member_offset_f", error, total_error)
+    CALL VERIFY("H5Tget_member_offset_f",off,0, total_error)    
+
+    !/* Check the 1st field's datatype */
+    CALL H5Tget_member_type_f(tid2, 0, mtid, error)
+    CALL check("H5Tget_member_type_f", error, total_error)
+
+    CALL H5Tequal_f(mtid, H5T_NATIVE_INTEGER, flag, error)
+    CALL check("H5Tequal_f", error, total_error) 
+    CALL VerifyLogical("H5Tequal_f", flag, .TRUE., total_error)
+
+    CALL h5tclose_f(mtid,error)
+    CALL check("h5tclose_f", error, total_error)
+
+    !/* Check the 2nd field's name */
+    CALL H5Tget_member_name_f(tid2, 1, mname, namelen,error)
+    CALL check("H5Tget_member_name_f", error, total_error)
+    CALL verifystring("H5Tget_member_name_f",mname(1:namelen),"f", total_error)
+
+    ! /* Check the 2nd field's offset */
+    CALL H5Tget_member_offset_f(tid2, 1, off, error)
+    CALL check("H5Tget_member_offset_f", error, total_error)
+    CALL VERIFY("H5Tget_member_offset_f",off,type_sizei, total_error)    
+
+    !/* Check the 2nd field's datatype */
+    CALL H5Tget_member_type_f(tid2, 1, mtid, error)
+    CALL check("H5Tget_member_type_f", error, total_error)
+
+    CALL H5Tequal_f(mtid, H5T_NATIVE_REAL, flag, error)
+    CALL check("H5Tequal_f", error, total_error) 
+    CALL VerifyLogical("H5Tequal_f", flag, .TRUE., total_error)
+
+    CALL h5tclose_f(mtid,error)
+    CALL check("h5tclose_f", error, total_error)
+
+    ! /* Close Compound Datatype */
+    CALL h5tclose_f(tid2, error)
+    CALL check("h5tclose_f", error, total_error)
+
+    !/* Read dataset from disk */
+
+    CALL H5Dread_buffer(dataset, tid1, C_LOC(rdata), error)
+    CALL check("H5Dread_buffer", error, total_error)
+
+    !/* Compare data read in */
+    DO i = 1, SPACE1_DIM1
+       DO j = 1, ARRAY1_DIM1
+          CALL VERIFY('H5Dread_buffer.i',wdata(i,j)%i, rdata(i,j)%i, total_error)
+          CALL VERIFY('H5Dread_buffer.f',wdata(i,j)%f, rdata(i,j)%f, total_error)
+       ENDDO
+    ENDDO
+
+    !/* Close Datatype */
+    CALL h5tclose_f(tid1,error)
+    CALL check("h5tclose_f", error, total_error)
+
+    !/* Close Dataset */
+    CALL h5dclose_f(dataset, error)
+    CALL check("h5dclose_f", error, total_error)
+
+
+    !/* Close file */
+    CALL h5fclose_f(fid1,error)
+    CALL check("h5fclose_f", error, total_error)
+
+  END SUBROUTINE test_array_compound_atomic
