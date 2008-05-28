@@ -5757,6 +5757,117 @@ CONTAINS
 
   END SUBROUTINE h5dcreate_anon_f
 
+  SUBROUTINE h5dwrite_buffer(dset_id, mem_type_id, buf, hdferr, &
+       mem_space_id, file_space_id, xfer_prp)
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5dwrite_buffer
+!DEC$endif
+    USE, INTRINSIC :: ISO_C_BINDING
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
+    TYPE(C_PTR), INTENT(IN) :: buf
+    INTEGER, INTENT(OUT) :: hdferr      ! Error code 
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
+    ! Memory dataspace identfier 
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id 
+    ! File dataspace identfier 
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp 
+    ! Transfer property list identifier 
+    
+    INTEGER(HID_T) :: xfer_prp_default 
+    INTEGER(HID_T)  :: mem_space_id_default 
+    INTEGER(HID_T) :: file_space_id_default 
+    
+    INTERFACE
+       INTEGER FUNCTION h5dwrite_buffer_c(dset_id, mem_type_id, &
+            mem_space_id_default, & 
+            file_space_id_default, &
+            xfer_prp_default, buf)
+         USE H5GLOBAL
+         USE, INTRINSIC :: ISO_C_BINDING
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_BUFFER_C'::h5dwrite_buffer_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: dset_id
+         INTEGER(HID_T), INTENT(IN) :: mem_type_id
+         INTEGER(HID_T)  :: mem_space_id_default
+         INTEGER(HID_T) :: file_space_id_default
+         INTEGER(HID_T) :: xfer_prp_default
+         TYPE(C_PTR), INTENT(IN), VALUE :: buf
+       END FUNCTION h5dwrite_buffer_c
+    END INTERFACE
+
+    xfer_prp_default = H5P_DEFAULT_F
+    mem_space_id_default = H5S_ALL_F
+    file_space_id_default = H5S_ALL_F
+
+    IF (PRESENT(xfer_prp)) xfer_prp_default = xfer_prp 
+    IF (PRESENT(mem_space_id))  mem_space_id_default = mem_space_id 
+    IF (PRESENT(file_space_id)) file_space_id_default = file_space_id 
+
+    hdferr = h5dwrite_buffer_c(dset_id, mem_type_id, mem_space_id_default, &
+         file_space_id_default, xfer_prp_default, buf)
+           
+  END SUBROUTINE h5dwrite_buffer
+
+  SUBROUTINE h5dread_buffer(dset_id, mem_type_id, buf, hdferr, &
+       mem_space_id, file_space_id, xfer_prp)
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5dread_buffer
+!DEC$endif
+
+    USE, INTRINSIC :: ISO_C_BINDING
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
+    TYPE(C_PTR), INTENT(IN) :: buf
+    INTEGER, INTENT(OUT) :: hdferr      ! Error code 
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
+    ! Memory dataspace identfier 
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id 
+    ! File dataspace identfier 
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp 
+    ! Transfer property list identifier 
+    
+    INTEGER(HID_T) :: xfer_prp_default
+    INTEGER(HID_T) :: mem_space_id_default
+    INTEGER(HID_T) :: file_space_id_default
+
+    INTERFACE
+       INTEGER FUNCTION h5dread_buffer_c(dset_id, mem_type_id, &
+            mem_space_id_default, & 
+            file_space_id_default, &
+            xfer_prp_default, buf)
+         USE H5GLOBAL
+         USE, INTRINSIC :: ISO_C_BINDING
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DREAD_BUFFER_C'::h5dread_buffer_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: dset_id
+         INTEGER(HID_T), INTENT(IN) :: mem_type_id
+         INTEGER(HID_T)  :: mem_space_id_default
+         INTEGER(HID_T) :: file_space_id_default
+         INTEGER(HID_T) :: xfer_prp_default
+         TYPE(C_PTR), INTENT(in), VALUE :: buf
+       END FUNCTION h5dread_buffer_c
+    END INTERFACE
+    
+    xfer_prp_default = H5P_DEFAULT_F
+    mem_space_id_default = H5S_ALL_F
+    file_space_id_default = H5S_ALL_F
+    
+    IF (PRESENT(xfer_prp)) xfer_prp_default = xfer_prp 
+    IF (PRESENT(mem_space_id))  mem_space_id_default = mem_space_id 
+    IF (PRESENT(file_space_id)) file_space_id_default = file_space_id 
+    
+    hdferr = h5dread_buffer_c(dset_id, mem_type_id, mem_space_id_default, &
+         file_space_id_default, xfer_prp_default, buf)
+
+  END SUBROUTINE h5dread_buffer
+  
 END MODULE H5D
 
 

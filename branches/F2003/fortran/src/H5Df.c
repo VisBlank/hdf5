@@ -1992,4 +1992,130 @@ nh5dcreate_anon_c (hid_t_f *loc_id, hid_t_f *type_id, hid_t_f *space_id,
   return ret_value;
 }
 
+/*----------------------------------------------------------------------------
+ * Name:        h5dwrite_c
+ * Purpose:     Call H5Dwrite to write a dataset
+ * Inputs:      dset_id - dataset identifier
+ *              mem_type_id - memory datatype identifier
+ *              mem_space_id - memory dataspace identifier
+ *              file_space_id - memory dataspace identifier
+ *              xfer_pr  - identifier of transfer property list
+ *              buf      - data buffer
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              May 28, 2008
+ * Modifications:
+ * 
+ *---------------------------------------------------------------------------*/
+int_f
+nh5dwrite_buffer_c (hid_t_f *dset_id, hid_t_f *mem_type_id, hid_t_f *mem_space_id, 
+		    hid_t_f *file_space_id, hid_t_f *xfer_prp, void *buf)
+{
+  int ret_value = -1;
+  herr_t ret;
+  hid_t c_dset_id;
+  hid_t c_mem_type_id;
+  hid_t c_mem_space_id;
+  hid_t c_file_space_id;
+  hid_t c_xfer_prp;
 
+/*   int i, j; */
+/*   typedef struct { */
+/*     int x; */
+/*     float y; */
+/*   } r_dual_c; */
+
+/*   const r_dual_c *name=buf; */
+
+/*   r_dual_c access[4][4]; */
+
+/*   for ( i=0; i<4; ++i) */
+/*     for (j = 0; j<4; ++j) { */
+/*       access[i][j] = name[i*4+j]; */
+/*     /\* access[i].x = access[i].x + 1; *\/ */
+/*       printf("x = %i \n", access[i][j].x); */
+/*       printf("y = %f \n", access[i][j].y); */
+/*     } */
+
+  /*
+   * Define transfer property
+   */
+  c_xfer_prp = (hid_t)*xfer_prp;
+
+  /*
+   * Call H5Dwrite function.
+   */
+  c_dset_id = (hid_t)*dset_id;
+  c_mem_type_id = (hid_t)*mem_type_id;
+  c_mem_space_id = (hid_t)*mem_space_id;
+  c_file_space_id = (hid_t)*file_space_id;
+  ret = H5Dwrite(c_dset_id, c_mem_type_id, c_mem_space_id, c_file_space_id, c_xfer_prp, buf);
+
+  if (ret < 0) return ret_value;
+  ret_value = 0;
+  return ret_value;
+}
+/*----------------------------------------------------------------------------
+ * Name:        nh5dread_vl_integer_c
+ * Purpose:     Read variable length dataset
+ * Inputs:      dset_id - identifier of the dataset
+ *              mem_type_id - datatype identifier
+ *              mem_space_id - dataspace identifier
+ *              file_space_id - file dataspace identifier
+ *              xfer          - file transfer property
+ *              dims          - one-demnsional array of size 2
+ *                              dims[0] = MAXLENGTH
+ *                              dims[1] = number of elements of VL type
+ * Outputs:     buf           - data buffer
+ *              len           - array element lenghts
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  Elena Pourmal
+ *              Wednesday, October 24, 2002
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+
+int_f
+nh5dread_buffer_c ( hid_t_f *dset_id ,  hid_t_f *mem_type_id, hid_t_f *mem_space_id, 
+		    hid_t_f *file_space_id, hid_t_f *xfer_prp, void *buf)
+{
+  int ret_value = -1;
+  hid_t c_dset_id;
+  hid_t c_mem_type_id;
+  hid_t c_mem_space_id;
+  hid_t c_file_space_id;
+  hid_t c_xfer_prp;
+  herr_t status;
+
+/*   int i, j; */
+/*   typedef struct { */
+/*     int x; */
+/*     float y; */
+/*   } r_dual_c; */
+
+/*   r_dual_c *name=buf; */
+
+/*   r_dual_c access[4][4]; */
+
+  c_dset_id       = (hid_t)*dset_id;
+  c_mem_type_id   = (hid_t)*mem_type_id;
+  c_mem_space_id  = (hid_t)*mem_space_id;
+  c_file_space_id = (hid_t)*file_space_id;
+  c_xfer_prp      = (hid_t)*xfer_prp;
+  /*
+   * Call H5Dread function.
+   */
+  status = H5Dread(c_dset_id, c_mem_type_id, c_mem_space_id, c_file_space_id, c_xfer_prp, buf);
+  if ( status < 0 ) return ret_value;
+ 
+/*   for ( i=0; i<4; ++i) */
+/*     for (j = 0; j<4; ++j) { */
+/*       access[i][j] = name[i*4+j]; */
+/*     /\* access[i].x = access[i].x + 1; *\/ */
+/*       printf("x = %i \n", access[i][j].x); */
+/*       printf("y = %f \n", access[i][j].y); */
+/*      } */
+
+
+  ret_value = 1;
+  return ret_value;
+}

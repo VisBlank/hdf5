@@ -229,6 +229,8 @@ H5_FCDLL int_f nh5sextent_equal_c ( hid_t_f * space1_id, hid_t_f *space2_id, hid
 #   define nh5dfill_double_c                  H5_FC_FUNC_(h5dfill_double_c, H5DFILL_DOUBLE_C)
 #   define nh5dget_space_status_c      H5_FC_FUNC_(h5dget_space_status_c, H5DGET_SPACE_STATUS_C)
 #   define nh5dcreate_anon_c      H5_FC_FUNC_(h5dcreate_anon_c, H5DCREATE_ANON_C)
+#   define nh5dwrite_buffer_c                 H5_FC_FUNC_(h5dwrite_buffer_c, H5DWRITE_BUFFER_C)
+#   define nh5dread_buffer_c                 H5_FC_FUNC_(h5dread_buffer_c, H5DREAD_BUFFER_C)
 
 
 H5_FCDLL int_f nh5dcreate_c (hid_t_f *loc_id, _fcd name, int_f *namelen, hid_t_f *type_id, hid_t_f *space_id, 
@@ -340,6 +342,10 @@ H5_FCDLL int_f nh5dfill_double_c(void * fill_value, hid_t_f *fill_type_id, hid_t
 H5_FCDLL int_f nh5dget_space_status_c ( hid_t_f *dset_id, int_f *flag);
 H5_FCDLL int_f nh5dcreate_anon_c (hid_t_f *loc_id, hid_t_f *type_id, hid_t_f *space_id, 
 				  hid_t_f *dcpl_id, hid_t_f *dapl_id, hid_t_f *dset_id); /*MSB*/
+H5_FCDLL int_f nh5dwrite_buffer_c (hid_t_f *dset_id, hid_t_f *mem_type_id, hid_t_f *mem_space_id, 
+				   hid_t_f *file_space_id, hid_t_f *xfer_prp, void *buf);
+H5_FCDLL int_f nh5dread_buffer_c ( hid_t_f *dset_id ,  hid_t_f *mem_type_id, hid_t_f *mem_space_id, 
+				   hid_t_f *file_space_id, hid_t_f *xfer_prp, void *buf);
 
 /*
  * Functions from H5Gf.c
