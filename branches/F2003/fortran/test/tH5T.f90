@@ -938,6 +938,8 @@
     INTEGER :: namelen
     LOGICAL :: flag
 
+    TYPE(C_PTR) :: f_ptr ! Needed to pass the pointer, for g95 compiler to work
+
     ALLOCATE( wdata(1:SPACE1_DIM1,1:ARRAY1_DIM1) )
     ALLOCATE( rdata(1:SPACE1_DIM1,1:ARRAY1_DIM1) )
       
@@ -1000,7 +1002,8 @@
     CALL check("h5dcreate_f", error, total_error)
 
     !/* Write dataset to disk */
-    CALL h5dwrite_buffer(dataset, tid1, C_LOC(wdata), error )
+    f_ptr = C_LOC(wdata)
+    CALL h5dwrite_buffer(dataset, tid1, f_ptr, error )
     CALL check("h5dwrite_f", error, total_error)
 
     !/* Close Dataset */ 
@@ -1107,7 +1110,8 @@
 
     !/* Read dataset from disk */
 
-    CALL H5Dread_buffer(dataset, tid1, C_LOC(rdata), error)
+    f_ptr = C_LOC(rdata)
+    CALL H5Dread_buffer(dataset, tid1, f_ptr, error)
     CALL check("H5Dread_buffer", error, total_error)
 
     !/* Compare data read in */
