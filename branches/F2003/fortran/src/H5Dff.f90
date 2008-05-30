@@ -5777,7 +5777,7 @@ CONTAINS
     ! Transfer property list identifier 
     
     INTEGER(HID_T) :: xfer_prp_default 
-    INTEGER(HID_T)  :: mem_space_id_default 
+    INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
     
     INTERFACE
@@ -5795,7 +5795,7 @@ CONTAINS
          INTEGER(HID_T)  :: mem_space_id_default
          INTEGER(HID_T) :: file_space_id_default
          INTEGER(HID_T) :: xfer_prp_default
-         TYPE(C_PTR), INTENT(IN), VALUE :: buf
+         TYPE(C_PTR), INTENT(IN) :: buf
        END FUNCTION h5dwrite_buffer_c
     END INTERFACE
 
@@ -5809,7 +5809,7 @@ CONTAINS
 
     hdferr = h5dwrite_buffer_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, buf)
-           
+
   END SUBROUTINE h5dwrite_buffer
 
   SUBROUTINE h5dread_buffer(dset_id, mem_type_id, buf, hdferr, &
@@ -5851,7 +5851,7 @@ CONTAINS
          INTEGER(HID_T)  :: mem_space_id_default
          INTEGER(HID_T) :: file_space_id_default
          INTEGER(HID_T) :: xfer_prp_default
-         TYPE(C_PTR), INTENT(in), VALUE :: buf
+         TYPE(C_PTR), INTENT(in) :: buf
        END FUNCTION h5dread_buffer_c
     END INTERFACE
     
