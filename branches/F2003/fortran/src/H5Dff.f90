@@ -5795,7 +5795,7 @@ CONTAINS
          INTEGER(HID_T)  :: mem_space_id_default
          INTEGER(HID_T) :: file_space_id_default
          INTEGER(HID_T) :: xfer_prp_default
-         TYPE(C_PTR), INTENT(IN) :: buf
+         TYPE(C_PTR), value :: buf
        END FUNCTION h5dwrite_buffer_c
     END INTERFACE
 
@@ -5851,7 +5851,7 @@ CONTAINS
          INTEGER(HID_T)  :: mem_space_id_default
          INTEGER(HID_T) :: file_space_id_default
          INTEGER(HID_T) :: xfer_prp_default
-         TYPE(C_PTR), INTENT(in) :: buf
+         TYPE(C_PTR), value :: buf
        END FUNCTION h5dread_buffer_c
     END INTERFACE
     
