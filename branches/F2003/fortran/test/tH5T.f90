@@ -1047,7 +1047,7 @@
 
     !/* Check the array dimensions */
     DO i = 1, ndims
-       CALL VERIFY("h5tget_array_dims_f", rdims1(i), tdims1(i), total_error)
+       CALL VERIFY("h5tget_array_dims_f", INT(rdims1(i)), INT(tdims1(i)), total_error)
     ENDDO
 
     !/* Get the compound datatype */
@@ -1067,7 +1067,7 @@
     ! /* Check the 1st field's offset */
     CALL H5Tget_member_offset_f(tid2, 0, off, error)
     CALL check("H5Tget_member_offset_f", error, total_error)
-    CALL VERIFY("H5Tget_member_offset_f",off,0, total_error)    
+    CALL VERIFY("H5Tget_member_offset_f",INT(off),0, total_error)    
 
     !/* Check the 1st field's datatype */
     CALL H5Tget_member_type_f(tid2, 0, mtid, error)
@@ -1088,7 +1088,7 @@
     ! /* Check the 2nd field's offset */
     CALL H5Tget_member_offset_f(tid2, 1, off, error)
     CALL check("H5Tget_member_offset_f", error, total_error)
-    CALL VERIFY("H5Tget_member_offset_f",off,type_sizei, total_error)    
+    CALL VERIFY("H5Tget_member_offset_f",INT(off),type_sizei, total_error)    
 
     !/* Check the 2nd field's datatype */
     CALL H5Tget_member_type_f(tid2, 1, mtid, error)
@@ -1113,8 +1113,14 @@
     !/* Compare data read in */
     DO i = 1, SPACE1_DIM1
        DO j = 1, ARRAY1_DIM1
-          CALL VERIFY('H5Dread_buffer.i',wdata(i,j)%i, rdata(i,j)%i, total_error)
-          CALL VERIFY('H5Dread_buffer.f',wdata(i,j)%f, rdata(i,j)%f, total_error)
+          IF(wdata(i,j)%i.NE.rdata(i,j)%i)THEN
+             PRINT*, 'ERROR: Wrong integer data is read back by H5Dread_buffer '
+             total_error = total_error + 1
+          ENDIF
+          IF(wdata(i,j)%f.NE.rdata(i,j)%f)THEN
+             PRINT*, 'ERROR: Wrong real data is read back by H5Dread_buffer '
+             total_error = total_error + 1
+          ENDIF
        ENDDO
     ENDDO
 
