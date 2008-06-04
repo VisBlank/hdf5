@@ -503,7 +503,7 @@ CONTAINS
             IMPLICIT NONE
             INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
             INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
-            INTEGER, INTENT(IN) :: buf ! Data buffer
+            INTEGER, INTENT(IN), TARGET :: buf ! Data buffer
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
             INTEGER, INTENT(OUT) :: hdferr      ! Error code 
             INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
@@ -562,7 +562,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
             INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
-            CHARACTER(LEN=*), INTENT(IN) :: buf ! Data buffer
+            CHARACTER, INTENT(IN), DIMENSION(*), TARGET :: buf ! Data buffer
             INTEGER, INTENT(OUT) :: hdferr      ! Error code 
             INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
                                                 ! Memory dataspace identfier 
@@ -623,7 +623,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
             INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
-            REAL, INTENT(IN) :: buf ! Data buffer
+            REAL, INTENT(IN), TARGET :: buf ! Data buffer
             INTEGER, INTENT(OUT) :: hdferr      ! Error code 
             INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
                                                 ! Memory dataspace identfier 
@@ -682,7 +682,7 @@ CONTAINS
             INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
             INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
             INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
-            DOUBLE PRECISION, INTENT(IN) :: buf ! Data buffer
+            DOUBLE PRECISION, INTENT(IN), TARGET :: buf ! Data buffer
             INTEGER, INTENT(OUT) :: hdferr      ! Error code 
             INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
                                                 ! Memory dataspace identfier 
