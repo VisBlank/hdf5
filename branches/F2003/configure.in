@@ -385,14 +385,15 @@ dnl     FCFLAGS="$FCFLAGS_saved")
   dnl See if the compiler supports the "ISO_C_BINDING" module
   dnl
   AC_MSG_CHECKING([if Fortran compiler supports ISO_C_BINDING module])
-  AC_SUBST(HAVE_ISO_C_BINDING) HAVE_ISO_C_BINDING="no"
+
+  HAVE_ISO_C_BINDING="no"	
   AC_TRY_COMPILE(,[	
       use iso_c_binding	
 	], [AC_MSG_RESULT(yes)
      	HAVE_ISO_C_BINDING="yes"] ,
      AC_MSG_RESULT(no))
-     
-  AC_SUBST(HAVE_ISO_C_BINDING)
+
+  AM_CONDITIONAL([ISO_C_BINDING_CONDITIONAL_F], [test "X$HAVE_ISO_C_BINDING" = "Xyes"])
 
   dnl Change back to the C language
   AC_LANG_POP(Fortran)
