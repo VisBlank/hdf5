@@ -2008,7 +2008,7 @@ nh5dcreate_anon_c (hid_t_f *loc_id, hid_t_f *type_id, hid_t_f *space_id,
  * 
  *---------------------------------------------------------------------------*/
 int_f
-nh5dwrite_buffer_c (hid_t_f *dset_id, hid_t_f *mem_type_id, hid_t_f *mem_space_id, 
+nh5dwrite_f_c (hid_t_f *dset_id, hid_t_f *mem_type_id, hid_t_f *mem_space_id, 
 		    hid_t_f *file_space_id, hid_t_f *xfer_prp, void *buf)
 {
   int ret_value = -1;
@@ -2075,7 +2075,7 @@ nh5dwrite_buffer_c (hid_t_f *dset_id, hid_t_f *mem_type_id, hid_t_f *mem_space_i
  *---------------------------------------------------------------------------*/
 
 int_f
-nh5dread_buffer_c ( hid_t_f *dset_id ,  hid_t_f *mem_type_id, hid_t_f *mem_space_id, 
+nh5dread_f_c ( hid_t_f *dset_id ,  hid_t_f *mem_type_id, hid_t_f *mem_space_id, 
 		    hid_t_f *file_space_id, hid_t_f *xfer_prp, void *buf)
 {
   int ret_value = -1;
