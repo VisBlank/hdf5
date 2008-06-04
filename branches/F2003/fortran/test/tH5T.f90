@@ -925,6 +925,7 @@
     INTEGER(HSIZE_T), DIMENSION(1) :: tdims1=(/ARRAY1_DIM1/)
     INTEGER :: ndims ! /* Array rank for reading */
     INTEGER(HSIZE_T), ALLOCATABLE, DIMENSION(:) :: rdims1 !/* Array dimensions for reading */
+    INTEGER(HSIZE_T), ALLOCATABLE, DIMENSION(:) :: rdims !/* Array dimensions for reading */
     INTEGER :: nmemb !/* Number of compound members */
     CHARACTER(LEN=20) :: mname !/* Name of compound field */
     INTEGER(size_t) :: off   !/* Offset of compound field */
@@ -1002,8 +1003,12 @@
     CALL check("h5dcreate_f", error, total_error)
 
     !/* Write dataset to disk */
+
+    
+    ALLOCATE(rdims(1:2)) ! dummy not needed
+
     f_ptr = C_LOC(wdata)
-    CALL h5dwrite_buffer(dataset, tid1, f_ptr, error )
+    CALL h5dwrite_f(dataset, tid1, f_ptr, rdims, error )
     CALL check("h5dwrite_f", error, total_error)
 
     !/* Close Dataset */ 
@@ -1111,18 +1116,18 @@
     !/* Read dataset from disk */
 
     f_ptr = C_LOC(rdata)
-    CALL H5Dread_buffer(dataset, tid1, f_ptr, error)
-    CALL check("H5Dread_buffer", error, total_error)
+    CALL H5Dread_f(dataset, tid1, f_ptr, rdims1, error)
+    CALL check("H5Dread_f", error, total_error)
 
     !/* Compare data read in */
     DO i = 1, SPACE1_DIM1
        DO j = 1, ARRAY1_DIM1
           IF(wdata(i,j)%i.NE.rdata(i,j)%i)THEN
-             PRINT*, 'ERROR: Wrong integer data is read back by H5Dread_buffer '
+             PRINT*, 'ERROR: Wrong integer data is read back by H5Dread_f '
              total_error = total_error + 1
           ENDIF
           IF(wdata(i,j)%f.NE.rdata(i,j)%f)THEN
-             PRINT*, 'ERROR: Wrong real data is read back by H5Dread_buffer '
+             PRINT*, 'ERROR: Wrong real data is read back by H5Dread_f '
              total_error = total_error + 1
           ENDIF
        ENDDO
