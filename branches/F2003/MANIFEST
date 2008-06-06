@@ -180,6 +180,8 @@
 ./fortran/src/H5Aff.f90
 ./fortran/src/H5Df.c
 ./fortran/src/H5Dff.f90
+./fortran/src/H5Dff_F90.f90
+./fortran/src/H5Dff_F03.f90
 ./fortran/src/H5Ef.c
 ./fortran/src/H5Eff.f90
 ./fortran/src/H5FDmpiof.c
