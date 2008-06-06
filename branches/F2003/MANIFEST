@@ -743,6 +743,7 @@
 ./src/Makefile.in
 ./src/hdf5.h
 ./src/libhdf5.settings.in
+./src/H5win32defs.h
 
 ./test/COPYING
 ./test/Makefile.am
@@ -1295,6 +1296,7 @@
 ./tools/testfiles/tdset-1.ls
 ./tools/testfiles/tgroup-1.ls
 ./tools/testfiles/tgroup-2.ls
+./tools/testfiles/tgroup-3.ls
 ./tools/testfiles/tgroup.ls
 ./tools/testfiles/thlink-1.ls
 ./tools/testfiles/tloop-1.ls
@@ -1454,6 +1456,7 @@
 ./tools/testfiles/h5diff_dtypes.h5
 ./tools/testfiles/h5diff_dset1.h5
 ./tools/testfiles/h5diff_dset2.h5
+./tools/testfiles/h5diff_empty.h5
 ./tools/testfiles/h5diff_hyper1.h5
 ./tools/testfiles/h5diff_attr1.h5
 ./tools/testfiles/h5diff_hyper2.h5
@@ -1516,7 +1519,9 @@
 ./tools/testfiles/h5mkgrp_single_latest.ls
 ./tools/testfiles/h5mkgrp_version.ls
 
-
+#h52jpeg
+./tools/h52jpeg/h52jpeg.c
+./tools/h52jpeg/h52jpegtst.c
 
 # high level libraries
 ./hl/COPYING
@@ -1802,10 +1807,6 @@
 ./windows/fortran/examples/selecteletest/selecteletest.vfproj
 ./windows/fortran/examples/selecteletestdll/selecteletestdll.vfproj
 
-# Windows-maintained Fortran Source
-./windows/fortran/src/H5f90i_gen.h
-./windows/fortran/src/H5fortran_types.f90
-
 # Fortran Tests
 ./windows/fortran/test/checkfortrantests.bat
 ./windows/fortran/test/flush1_fortran/flush1_fortran.vfproj
@@ -1943,7 +1944,6 @@
 
 # Windows-maintainted Source
 ./windows/src/H5pubconf.h
-./windows/src/H5Tinit.c
 
 # Library Test Projects
 ./windows/test/checktests.bat
