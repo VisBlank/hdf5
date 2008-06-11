@@ -896,7 +896,7 @@
   SUBROUTINE test_array_compound_atomic(total_error)
     
     USE HDF5 
-    USE, INTRINSIC :: ISO_C_BINDING
+!   USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
     
     INTEGER, INTENT(OUT) :: total_error
