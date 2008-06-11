@@ -45,12 +45,14 @@ else
    PARALLEL_COND_SRC = HDF5.f90
 endif
 
-# Check if the compiling supports the Fortran 2003 standard
+# Check if the compiler supports the Fortran 2003 standard
 # which includes the intrinsic module iso_c_binding
 if ISO_C_BINDING_CONDITIONAL_F
    H5Dff_PREFIX = H5Dff_F03
+   H5Aff_PREFIX = H5Aff_F03
 else
    H5Dff_PREFIX = H5Dff_F90
+   H5Aff_PREFIX = H5Aff_F90
 endif
 
 # Source files for the library.
@@ -60,7 +62,7 @@ libhdf5_fortran_la_SOURCES=H5fortran_flags.f90 H5f90global.f90          \
           H5Tff.f90 H5Zff.f90                                            \
           H5f90kit.c H5_f.c H5Af.c H5Df.c H5Ef.c H5Ff.c H5Gf.c           \
           H5If.c H5Lf.c H5Of.c H5Pf.c H5Rf.c H5Sf.c H5Tf.c H5Zf.c        \
-          $(H5Dff_PREFIX).f90 $(PARALLEL_COND_SRC)
+          $(H5Aff_PREFIX).f90 $(H5Dff_PREFIX).f90 $(PARALLEL_COND_SRC)
 
 
 # h5fc and libhdf5_fortran.settings are generated during configure.
