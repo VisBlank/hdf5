@@ -1763,3 +1763,53 @@ done:
       HDfree(c_new_attr_name);
     return ret_value;
 }
+/*----------------------------------------------------------------------------
+ * Name:        h5awrite_f_c
+ * Purpose:     Call H5Awrite to write a dataset
+ * Inputs:      attr_id - Identifier of an attribute to write. 
+ *              mem_type_id - Identifier of the attribute datatype (in memory).
+ *              buf      - data pointer buffer
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              June 11, 2008
+ * Modifications:
+ * 
+ *---------------------------------------------------------------------------*/
+int_f
+nh5awrite_f_c (hid_t_f *attr_id, hid_t_f *mem_type_id, void *buf)
+{
+  int ret_value = -1;
+  herr_t ret;
+
+  ret = H5Awrite( (hid_t)*attr_id, (hid_t)*mem_type_id, buf);
+
+  if (ret < 0) return ret_value;
+  ret_value = 0;
+  return ret_value;
+}
+
+/*----------------------------------------------------------------------------
+ * Name:        h5aread_f_c
+ * Purpose:     Call H5Awrite to write a dataset
+ * Inputs:      attr_id - Identifier of an attribute to write. 
+ *              mem_type_id - Identifier of the attribute datatype (in memory).
+ *              buf      - data pointer buffer
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              June 11, 2008
+ * Modifications:
+ * 
+ *---------------------------------------------------------------------------*/
+int_f
+nh5aread_f_c (hid_t_f *attr_id, hid_t_f *mem_type_id, void *buf)
+{
+  int ret_value = -1;
+  herr_t ret;
+
+  ret = H5Aread( (hid_t)*attr_id, (hid_t)*mem_type_id, buf);
+
+  if (ret < 0) return ret_value;
+  ret_value = 0;
+  return ret_value;
+}
+
