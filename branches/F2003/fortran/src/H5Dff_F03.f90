@@ -24,12 +24,15 @@ MODULE H5D_F03
 !       
 !        (2) Unfortunately we are using a generic interface and one of the factors
 !            used in determining the proper routine to select is that of the array 
-!            rank being passed, therefore we can not create just one subroutine for
+!            rank being passed. Therefore, we can not create just one subroutine for
 !            each array type (integer, real, etc...) and use a 
 !            rank 1 array of assumed size to handle multiple ranks, i.e.
 !                          (i.e. integer, dimension(*) :: ... )
 !                          (i.e. real   , dimension(*) :: ... ) etc...
 !
+!        (3) Could not place the USE ISO_C_BINDING here because it may conflict
+!            with the USE ISO_C_BINDING included in the user's program. Moved
+!            the statement instead to each subroutine.
 
   INTERFACE h5dwrite_f
 
