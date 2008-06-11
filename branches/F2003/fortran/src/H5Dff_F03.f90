@@ -18,7 +18,6 @@
 ! 
 MODULE H5D_F03
   USE H5GLOBAL
-  USE, INTRINSIC :: ISO_C_BINDING
 
 ! NOTES: (1) The maximum rank of an array allowed in Fortran is 7, therefore 
 !            we only provide an interface for arrays up to and including rank 7.
@@ -212,6 +211,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_reference_obj
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -251,6 +251,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_reference_dsetreg
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -290,6 +291,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_integer_scalar
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -327,6 +329,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_integer_1
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -366,6 +369,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_integer_2
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -404,6 +408,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_integer_3
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -442,6 +447,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_integer_4
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -480,6 +486,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_integer_5
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -519,6 +526,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_integer_6
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -558,6 +566,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_integer_7
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -597,6 +606,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_char_scalar
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -635,7 +645,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_char_1
     !DEC$endif
-    
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -674,6 +684,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_char_2
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -713,6 +724,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_char_3
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -752,6 +764,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_char_4
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -790,6 +803,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_char_5
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -829,7 +843,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_char_6
     !DEC$endif
-    
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -868,6 +882,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_char_7
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -908,6 +923,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_real_scalar
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -945,6 +961,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_real_1
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -983,6 +1000,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_real_2
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -1022,6 +1040,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_real_3
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -1060,6 +1079,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_real_4
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -1098,6 +1118,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_real_5
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -1136,6 +1157,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_real_6
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -1174,6 +1196,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_real_7
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -1212,6 +1235,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_double_scalar
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -1250,6 +1274,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_double_1
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -1288,6 +1313,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_double_2
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -1326,6 +1352,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_double_3
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -1364,6 +1391,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_double_4
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -1403,6 +1431,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_double_5
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -1441,6 +1470,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_double_6
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -1480,6 +1510,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dwrite_double_7
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -1559,6 +1590,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dread_reference_obj
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -1598,6 +1630,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dread_reference_dsetreg
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -1637,6 +1670,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dread_integer_scalar
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -1675,6 +1709,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dread_integer_1
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -1713,6 +1748,7 @@ CONTAINS
     !DEC$if defined(BUILD_HDF5_DLL)
     !DEC$attributes dllexport :: h5dread_integer_2
     !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -1752,6 +1788,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_integer_3
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -1792,6 +1829,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_integer_4
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -1831,6 +1869,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_integer_5
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -1871,6 +1910,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_integer_6
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -1910,6 +1950,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_integer_7
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -1949,6 +1990,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_char_scalar
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -1988,6 +2030,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_char_1
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -2028,6 +2071,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_char_2
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -2068,6 +2112,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_char_3
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -2108,6 +2153,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_char_4
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -2148,6 +2194,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_char_5
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -2188,6 +2235,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_char_6
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -2228,6 +2276,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_char_7
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -2268,6 +2317,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_real_scalar
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -2306,6 +2356,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_real_1
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -2345,6 +2396,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_real_2
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -2384,6 +2436,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_real_3
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -2423,6 +2476,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_real_4
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -2462,6 +2516,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_real_5
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -2501,6 +2556,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_real_6
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -2540,6 +2596,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_real_7
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -2580,6 +2637,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_double_scalar
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -2619,6 +2677,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_double_1
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -2660,6 +2719,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_double_2
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -2700,6 +2760,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_double_3
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -2740,6 +2801,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_double_4
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -2781,6 +2843,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_double_5
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -2823,6 +2886,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_double_6
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -2864,6 +2928,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dread_double_7
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -3019,6 +3084,7 @@ CONTAINS
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5dwrite_vl_integer
 !DEC$endif
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
@@ -3087,6 +3153,7 @@ CONTAINS
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5dread_vl_integer
 !DEC$endif
+    USE ISO_C_BINDING
 
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
@@ -3522,6 +3589,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dfill_integer
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER, INTENT(IN), TARGET :: fill_value  ! Fill value
     INTEGER(HID_T), INTENT(IN) :: space_id ! Memory dataspace selection identifier
@@ -3575,6 +3643,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dfill_real
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     REAL, INTENT(IN), TARGET :: fill_valuer  ! Fill value
     INTEGER(HID_T), INTENT(IN) :: space_id ! Memory dataspace selection identifier
@@ -3628,6 +3697,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dfill_double
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     DOUBLE PRECISION, INTENT(IN), TARGET :: fill_value  ! Fill value
     INTEGER(HID_T), INTENT(IN) :: space_id ! Memory dataspace selection identifier
@@ -3681,6 +3751,7 @@ CONTAINS
     !DEC$attributes dllexport :: h5dfill_char
     !DEC$endif
 
+    USE ISO_C_BINDING
     IMPLICIT NONE
     CHARACTER, INTENT(IN), TARGET :: fill_value  ! Fill value
     INTEGER(HID_T), INTENT(IN) :: space_id ! Memory dataspace selection identifier
