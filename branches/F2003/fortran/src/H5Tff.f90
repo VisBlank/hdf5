@@ -1956,7 +1956,7 @@ CONTAINS
 !		index		- filed index (0-based)
 ! Outputs:  
 !		member_name	- buffer to hold member's name
-!		namelen		- name lenght
+!		namelen		- name length
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -3119,7 +3119,7 @@ CONTAINS
 !----------------------------------------------------------------------
 ! Name:		h5tvlen_create_f 
 !
-! Purpose: 	Creates a new variable-lenght datatype. 
+! Purpose: 	Creates a new variable-length datatype. 
 !
 ! Inputs:  
 !		type_id		- identifier iof base datatype

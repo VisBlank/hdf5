@@ -7331,7 +7331,7 @@
 ! Outputs:  
 !               expression - buffer to hold transform expression
 !		hdferr	   - error code
-!                                       Success:  Actual lenght of the expression
+!                                       Success:  Actual length of the expression
 !                                                 If provided buffer "expression" is 
 !                                                 smaller, than expression will be 
 !                                                 truncated to fit into
