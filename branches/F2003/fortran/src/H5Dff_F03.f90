@@ -950,7 +950,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(IN), &
-         DIMENSION(dims(1)) :: buf
+         DIMENSION(dims(1)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code 
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
     ! Memory dataspace identfier 
