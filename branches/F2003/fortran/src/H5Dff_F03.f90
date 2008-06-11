@@ -2990,26 +2990,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
 
-    INTERFACE
-       INTEGER FUNCTION h5dwrite_f_c(dset_id, mem_type_id, &
-            mem_space_id_default, &
-            file_space_id_default, &
-            xfer_prp_default, buf)
-         USE H5GLOBAL
-         USE, INTRINSIC :: ISO_C_BINDING
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_F_C'::h5dwrite_f_c
-         !DEC$ ENDIF
-         INTEGER(HID_T), INTENT(IN) :: dset_id
-         INTEGER(HID_T), INTENT(IN) :: mem_type_id
-
-         INTEGER(HID_T)  :: mem_space_id_default
-         INTEGER(HID_T) :: file_space_id_default
-         INTEGER(HID_T) :: xfer_prp_default
-         TYPE(C_PTR), VALUE :: buf
-       END FUNCTION h5dwrite_f_c
-    END INTERFACE
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -3047,25 +3027,6 @@ CONTAINS
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
-
-    INTERFACE
-       INTEGER FUNCTION h5dread_f_c(dset_id, mem_type_id, &
-            mem_space_id_default, &
-            file_space_id_default, &
-            xfer_prp_default, buf)
-         USE H5GLOBAL
-         USE, INTRINSIC :: ISO_C_BINDING
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DREAD_F_C'::h5dread_f_c
-         !DEC$ ENDIF
-         INTEGER(HID_T), INTENT(IN) :: dset_id
-         INTEGER(HID_T), INTENT(IN) :: mem_type_id
-         INTEGER(HID_T)  :: mem_space_id_default
-         INTEGER(HID_T) :: file_space_id_default
-         INTEGER(HID_T) :: xfer_prp_default
-         TYPE(C_PTR), VALUE :: buf
-       END FUNCTION h5dread_f_c
-    END INTERFACE
 
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
