@@ -133,6 +133,190 @@ MODULE H5D_F03
 
 CONTAINS
 
+
+!----------------------------------------------------------------------
+! Name:		h5dread_f 
+!
+! Purpose: 	Reads raw data from the specified dataset into buf, 
+!		converting from file datatype and dataspace to memory 
+!		datatype and dataspace.
+!
+! Inputs:  
+!		dset_id		- dataset identifier
+!		mem_type_id	- memory type identifier
+!		dims		- 1-dim array of size 7; dims(k) has the size 
+!				- of k-th dimension of the buf array
+! Outputs:  
+!		buf		- buffer to read data in
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! Optional parameters:
+!		mem_space_id	- memory dataspace identifier
+!		file_space_id 	- file dataspace identifier
+!		xfer_prp	- trasfer property list identifier	
+!
+! Programmer:	Elena Pourmal
+!		August 12, 1999	
+!
+! Modifications: 	Explicit Fortran interfaces were added for 
+!			called C functions (it is needed for Windows
+!			port).  February 28, 2001 
+!
+!                       dims parameter was added to make code portable;
+!                       n parameter was replaced with dims parameter in
+!			the h5dwrite_reference_obj and h5dwrite_reference_dsetreg
+!			functions.  April 2, 2001
+!
+! Comment:		This function is overloaded to read INTEGER,
+!			REAL, DOUBLE PRECISION and CHARACTER buffers
+!			up to 7 dimensions, and one dimensional buffers
+!			of the TYPE(hobj_ref_t_f) and TYPE(hdset_reg_ref_t_f)
+!			types.	
+!----------------------------------------------------------------------
+  SUBROUTINE h5dread_reference_obj(dset_id, mem_type_id, buf, dims, hdferr, &
+       mem_space_id, file_space_id, xfer_prp)
+    !This definition is needed for Windows DLLs
+    !DEC$if defined(BUILD_HDF5_DLL)
+    !DEC$attributes dllexport :: h5dread_reference_obj
+    !DEC$endif
+
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
+    INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
+    TYPE(hobj_ref_t_f), INTENT(INOUT) , &
+         DIMENSION(dims(1)) :: buf
+    INTEGER, INTENT(OUT) :: hdferr      ! Error code 
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
+    ! Memory dataspace identfier 
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id 
+    ! File dataspace identfier 
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp 
+    ! Transfer property list identifier 
+
+    INTEGER(HID_T) :: xfer_prp_default 
+    INTEGER(HID_T)  :: mem_space_id_default 
+    INTEGER(HID_T) :: file_space_id_default 
+    INTEGER(HADDR_T), ALLOCATABLE, DIMENSION(:) :: ref_buf
+    INTEGER :: j  
+
+    !            INTEGER, EXTERNAL :: h5dread_ref_obj_c
+    ! MS FORTRAN needs explicit interface for C functions called here.
+    !
+    INTERFACE
+       INTEGER FUNCTION h5dread_ref_obj_c(dset_id, mem_type_id,&
+            mem_space_id_default, &
+            file_space_id_default, xfer_prp_default, ref_buf, dims)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DREAD_REF_OBJ_C'::h5dread_ref_obj_c  
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: dset_id   
+         INTEGER(HID_T), INTENT(IN) :: mem_type_id 
+         INTEGER(HID_T) :: xfer_prp_default
+         INTEGER(HID_T)  :: mem_space_id_default
+         INTEGER(HID_T) :: file_space_id_default
+         INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
+         INTEGER(HADDR_T), DIMENSION(*) :: ref_buf
+       END FUNCTION h5dread_ref_obj_c
+    END INTERFACE
+
+    ALLOCATE(ref_buf(dims(1)), stat=hdferr)
+    IF (hdferr .NE. 0) THEN
+       hdferr = -1
+       RETURN
+    ENDIF
+
+    xfer_prp_default = H5P_DEFAULT_F
+    mem_space_id_default = H5S_ALL_F
+    file_space_id_default = H5S_ALL_F
+
+    IF (PRESENT(xfer_prp)) xfer_prp_default = xfer_prp 
+    IF (PRESENT(mem_space_id))  mem_space_id_default = mem_space_id 
+    IF (PRESENT(file_space_id)) file_space_id_default = file_space_id 
+
+    hdferr = h5dread_ref_obj_c(dset_id, mem_type_id, mem_space_id_default, &
+         file_space_id_default, xfer_prp_default, ref_buf, dims)
+    DO j = 1, dims(1)
+       buf(j)%ref = ref_buf(j)
+    ENDDO
+    DEALLOCATE(ref_buf) 
+  END SUBROUTINE h5dread_reference_obj
+
+  SUBROUTINE h5dread_reference_dsetreg(dset_id, mem_type_id, buf, dims, hdferr, &
+       mem_space_id, file_space_id, xfer_prp)
+    !This definition is needed for Windows DLLs
+    !DEC$if defined(BUILD_HDF5_DLL)
+    !DEC$attributes dllexport :: h5dread_reference_dsetreg
+    !DEC$endif
+
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
+    INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
+    TYPE(hdset_reg_ref_t_f), INTENT(INOUT), & 
+         DIMENSION(dims(1)) :: buf
+    INTEGER, INTENT(OUT) :: hdferr      ! Error code 
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
+    ! Memory dataspace identfier 
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id 
+    ! File dataspace identfier 
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp 
+    ! Transfer property list identifier 
+
+    INTEGER(HID_T) :: xfer_prp_default 
+    INTEGER(HID_T)  :: mem_space_id_default
+    INTEGER(HID_T) :: file_space_id_default 
+    INTEGER, ALLOCATABLE, DIMENSION(:) :: ref_buf
+    INTEGER :: i,j 
+
+    !            INTEGER, EXTERNAL :: h5dread_ref_reg_c
+    ! MS FORTRAN needs explicit interface for C functions called here.
+    !
+    INTERFACE
+       INTEGER FUNCTION h5dread_ref_reg_c(dset_id, mem_type_id,&
+            mem_space_id_default, &
+            file_space_id_default, xfer_prp_default, ref_buf, dims)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DREAD_REF_REG_C'::h5dread_ref_reg_c  
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: dset_id   
+         INTEGER(HID_T), INTENT(IN) :: mem_type_id 
+         INTEGER(HID_T) :: xfer_prp_default
+         INTEGER(HID_T)  :: mem_space_id_default
+         INTEGER(HID_T) :: file_space_id_default
+         INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
+         INTEGER, DIMENSION(*) :: ref_buf
+       END FUNCTION h5dread_ref_reg_c
+    END INTERFACE
+
+    ALLOCATE(ref_buf(REF_REG_BUF_LEN*dims(1)), stat=hdferr)
+    IF (hdferr .NE. 0) THEN
+       hdferr = -1
+       RETURN
+    ENDIF
+
+    xfer_prp_default = H5P_DEFAULT_F
+    mem_space_id_default = H5S_ALL_F
+    file_space_id_default = H5S_ALL_F
+
+    IF (PRESENT(xfer_prp)) xfer_prp_default = xfer_prp 
+    IF (PRESENT(mem_space_id))  mem_space_id_default = mem_space_id 
+    IF (PRESENT(file_space_id)) file_space_id_default = file_space_id 
+
+    hdferr = h5dread_ref_reg_c(dset_id, mem_type_id, mem_space_id_default, &
+         file_space_id_default, xfer_prp_default, ref_buf, dims)
+
+    DO j = 1, dims(1)
+       DO i = 1, REF_REG_BUF_LEN  
+          buf(j)%ref(i) = ref_buf(REF_REG_BUF_LEN*(j-1) + i)
+       ENDDO
+    ENDDO
+    DEALLOCATE(ref_buf)
+  END SUBROUTINE h5dread_reference_dsetreg
+
   SUBROUTINE h5dread_integer_scalar(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
 !This definition is needed for Windows DLLs
@@ -2102,6 +2286,149 @@ CONTAINS
 
   END SUBROUTINE h5dread_double_7
 
+
+  SUBROUTINE h5dwrite_reference_obj(dset_id, mem_type_id, buf, dims, hdferr, &
+       mem_space_id, file_space_id, xfer_prp)
+    !This definition is needed for Windows DLLs
+    !DEC$if defined(BUILD_HDF5_DLL)
+    !DEC$attributes dllexport :: h5dwrite_reference_obj
+    !DEC$endif
+
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
+    INTEGER(HSIZE_T), DIMENSION(*), INTENT(IN) :: dims ! size of the bufffer buf
+    TYPE(hobj_ref_t_f), DIMENSION(dims(1)), INTENT(IN) :: buf ! Data buffer
+    INTEGER, INTENT(OUT) :: hdferr      ! Error code 
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
+    ! Memory dataspace identfier 
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id 
+    ! File dataspace identfier 
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp 
+    ! Transfer property list identifier 
+
+    INTEGER(HID_T) :: xfer_prp_default
+    INTEGER(HID_T)  :: mem_space_id_default
+    INTEGER(HID_T) :: file_space_id_default
+    INTEGER(HADDR_T), ALLOCATABLE, DIMENSION(:) :: ref_buf
+    INTEGER :: j
+
+    !            INTEGER, EXTERNAL :: h5dwrite_ref_obj_c
+    ! MS FORTRAN needs explicit interface for C functions called here.
+    !
+    INTERFACE
+       INTEGER FUNCTION h5dwrite_ref_obj_c(dset_id, mem_type_id,&
+            mem_space_id_default, &
+            file_space_id_default, xfer_prp_default, ref_buf, dims)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_REF_OBJ_C'::h5dwrite_ref_obj_c  
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: dset_id   
+         INTEGER(HID_T), INTENT(IN) :: mem_type_id 
+         INTEGER(HID_T) :: xfer_prp_default
+         INTEGER(HID_T)  :: mem_space_id_default
+         INTEGER(HID_T) :: file_space_id_default
+         INTEGER(HADDR_T), DIMENSION(*) :: ref_buf
+         INTEGER(HSIZE_T), DIMENSION(*) :: dims
+       END FUNCTION h5dwrite_ref_obj_c
+    END INTERFACE
+
+    xfer_prp_default = H5P_DEFAULT_F
+    mem_space_id_default = H5S_ALL_F
+    file_space_id_default = H5S_ALL_F
+
+    IF (PRESENT(xfer_prp)) xfer_prp_default = xfer_prp 
+    IF (PRESENT(mem_space_id))  mem_space_id_default = mem_space_id 
+    IF (PRESENT(file_space_id)) file_space_id_default = file_space_id 
+
+    ALLOCATE(ref_buf(dims(1)), stat=hdferr)
+    IF (hdferr .NE. 0 ) THEN
+       hdferr = -1
+       RETURN
+    ELSE
+       DO j = 1, dims(1)
+          ref_buf(j) = buf(j)%ref
+       ENDDO
+    ENDIF
+    hdferr = h5dwrite_ref_obj_c(dset_id, mem_type_id, mem_space_id_default, &
+         file_space_id_default, xfer_prp_default, ref_buf, dims(1))
+    DEALLOCATE(ref_buf)
+
+  END SUBROUTINE h5dwrite_reference_obj
+
+  SUBROUTINE h5dwrite_reference_dsetreg(dset_id, mem_type_id, buf, dims, hdferr, &
+       mem_space_id, file_space_id, xfer_prp)
+    !This definition is needed for Windows DLLs
+    !DEC$if defined(BUILD_HDF5_DLL)
+    !DEC$attributes dllexport :: h5dwrite_reference_dsetreg
+    !DEC$endif
+
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
+    INTEGER(HSIZE_T), DIMENSION(*), INTENT(IN) :: dims ! size of the bufffer buf  
+    TYPE(hdset_reg_ref_t_f), DIMENSION(dims(1)), INTENT(IN) :: buf ! Data buffer
+    INTEGER, INTENT(OUT) :: hdferr      ! Error code 
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
+    ! Memory dataspace identfier 
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id 
+    ! File dataspace identfier 
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp 
+    ! Transfer property list identifier 
+
+    INTEGER(HID_T) :: xfer_prp_default
+    INTEGER(HID_T)  :: mem_space_id_default
+    INTEGER(HID_T) :: file_space_id_default
+    INTEGER, ALLOCATABLE, DIMENSION(:) :: ref_buf
+    INTEGER :: i,j
+
+    !            INTEGER, EXTERNAL :: h5dwrite_ref_reg_c
+    ! MS FORTRAN needs explicit interface for C functions called here.
+    !
+    INTERFACE
+       INTEGER FUNCTION h5dwrite_ref_reg_c(dset_id, mem_type_id,&
+            mem_space_id_default, &
+            file_space_id_default, xfer_prp_default, ref_buf, dims)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_REF_REG_C'::h5dwrite_ref_reg_c  
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: dset_id   
+         INTEGER(HID_T), INTENT(IN) :: mem_type_id 
+         INTEGER(HID_T) :: xfer_prp_default
+         INTEGER(HID_T)  :: mem_space_id_default
+         INTEGER(HID_T) :: file_space_id_default
+         INTEGER, DIMENSION(*) :: ref_buf
+         INTEGER(HSIZE_T), DIMENSION(*) ::  dims
+       END FUNCTION h5dwrite_ref_reg_c
+    END INTERFACE
+
+
+    xfer_prp_default = H5P_DEFAULT_F
+    mem_space_id_default = H5S_ALL_F
+    file_space_id_default = H5S_ALL_F
+
+    IF (PRESENT(xfer_prp)) xfer_prp_default = xfer_prp 
+    IF (PRESENT(mem_space_id))  mem_space_id_default = mem_space_id 
+    IF (PRESENT(file_space_id)) file_space_id_default = file_space_id 
+
+    ALLOCATE(ref_buf(REF_REG_BUF_LEN*dims(1)), stat=hdferr)
+    IF (hdferr .NE. 0 ) THEN
+       hdferr = -1
+       RETURN
+    ELSE
+       DO j = 1, dims(1)
+          DO i = 1, REF_REG_BUF_LEN  
+             ref_buf(REF_REG_BUF_LEN*(j-1) + i) = buf(j)%ref(i)
+          ENDDO
+       ENDDO
+    ENDIF
+    hdferr = h5dwrite_ref_reg_c(dset_id, mem_type_id, mem_space_id_default, &
+         file_space_id_default, xfer_prp_default, ref_buf, dims)
+    DEALLOCATE(ref_buf)
+
+  END SUBROUTINE h5dwrite_reference_dsetreg
 
   SUBROUTINE h5dwrite_integer_scalar(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
@@ -4487,9 +4814,9 @@ CONTAINS
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
 
-    if (present(xfer_prp)) xfer_prp_default = xfer_prp 
-    if (present(mem_space_id))  mem_space_id_default = mem_space_id 
-    if (present(file_space_id)) file_space_id_default = file_space_id 
+    IF (PRESENT(xfer_prp)) xfer_prp_default = xfer_prp 
+    IF (PRESENT(mem_space_id))  mem_space_id_default = mem_space_id 
+    IF (PRESENT(file_space_id)) file_space_id_default = file_space_id 
     !            do i = 1, dims(2)
     !               do j = 1, dims(1)
     !               tmp_buf((i-1)*dims(1) +j) = buf(i)(j:j)

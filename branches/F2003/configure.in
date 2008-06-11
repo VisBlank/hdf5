@@ -393,13 +393,13 @@ dnl     FCFLAGS="$FCFLAGS_saved")
      	HAVE_ISO_C_BINDING="yes"] ,
      AC_MSG_RESULT(no))
 
-  AM_CONDITIONAL([ISO_C_BINDING_CONDITIONAL_F], [test "X$HAVE_ISO_C_BINDING" = "Xyes"])
-
   dnl Change back to the C language
   AC_LANG_POP(Fortran)
 else
   echo "no"
 fi
+
+AM_CONDITIONAL([ISO_C_BINDING_CONDITIONAL_F], [test "X$HAVE_ISO_C_BINDING" = "Xyes"])
 
 dnl ----------------------------------------------------------------------
 dnl Check if they would like the C++ interface compiled
