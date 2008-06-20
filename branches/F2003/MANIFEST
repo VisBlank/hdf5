@@ -200,8 +200,12 @@
 ./fortran/src/H5Off.f90
 ./fortran/src/H5Pf.c
 ./fortran/src/H5Pff.f90
+./fortran/src/H5Pff_F90.f90
+./fortran/src/H5Pff_F03.f90
 ./fortran/src/H5Rf.c
 ./fortran/src/H5Rff.f90
+./fortran/src/H5Rff_F90.f90
+./fortran/src/H5Rff_F03.f90
 ./fortran/src/H5Sf.c
 ./fortran/src/H5Sff.f90
 ./fortran/src/H5Tf.c
