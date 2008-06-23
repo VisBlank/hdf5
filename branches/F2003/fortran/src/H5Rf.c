@@ -109,6 +109,44 @@ nh5rcreate_region_c (int_f *ref, hid_t_f *loc_id, _fcd name, int_f *namelen, hid
 }
 
 /*----------------------------------------------------------------------------
+ * Name:        h5rcreate_ptr_c
+ * Purpose:     Call H5Rcreate to create a reference to dataset region
+ *              region
+ * Inputs:      loc_id - file or group identifier
+ *              name - name of the dataset
+ *              namelen - name length
+ *              space_id - dataset space identifier
+ * Outputs:     ref  - reference to the dataset region
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S Breitenfeld
+ *              June 20, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+int_f
+nh5rcreate_ptr_c (void *ref, hid_t_f *loc_id, _fcd name, int_f *namelen, int_f *ref_type, hid_t_f *space_id)
+{
+     int ret_value = -1;
+     char *c_name;
+     size_t c_namelen;
+
+     /*
+      * Convert FORTRAN name to C name
+      */
+     c_namelen = *namelen;
+     c_name = (char *)HD5f2cstring(name, c_namelen);
+     if (c_name == NULL) return ret_value;
+
+     /*
+      * Call H5Rcreate function.
+      */
+     if(H5Rcreate(ref, (hid_t)*loc_id, c_name, (H5R_type_t)*ref_type, (hid_t)*space_id) >= 0)
+       ret_value = 0;
+
+     HDfree(c_name);
+     return ret_value;
+}
+
+/*----------------------------------------------------------------------------
  * Name:        h5rdereference_region_c
  * Purpose:     Call H5Rdereference to dereference to dataset region
  * Inputs:      dset_id - dataset identifier
@@ -171,6 +209,35 @@ nh5rdereference_object_c (hid_t_f *dset_id, haddr_t_f *ref, hid_t_f *obj_id)
      *obj_id = (hid_t_f)c_obj_id;
      ret_value = 0;
      return ret_value;
+}
+
+/*----------------------------------------------------------------------------
+ * Name:        h5rdereference_ptr_c
+ * Purpose:     Call H5Rdereference
+ * Inputs:      obj_id - Valid identifier for the file containing the 
+ *                       referenced object or any object in that file.
+ *             ref_typ - The reference type of ref.
+ *                 ref - Object reference
+ * Outputs:     ref_obj_id - Identifier of referenced object
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              June 20, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+int_f
+nh5rdereference_ptr_c (hid_t_f *obj_id, int_f *ref_type, void *ref, hid_t_f *ref_obj_id)
+{
+  int ret_value = -1;
+  hid_t c_ref_obj_id;
+
+  /*
+   * Call H5Rdereference function.
+   */
+  c_ref_obj_id = H5Rdereference((hid_t)*obj_id, (H5R_type_t)*ref_type, ref);
+  if(c_ref_obj_id < 0) return ret_value;
+  *ref_obj_id = (hid_t_f)c_ref_obj_id;
+  ret_value = 0;
+  return ret_value;
 }
 
 /*----------------------------------------------------------------------------
@@ -327,6 +394,57 @@ nh5rget_name_region_c (hid_t_f *loc_id, int_f *ref, _fcd name, size_t_f *name_le
       */
      if((c_size=H5Rget_name((hid_t)*loc_id, H5R_DATASET_REGION, &ref_c, c_buf, c_bufsize)) < 0)
          return ret_value;
+     /*
+      * Convert C name to FORTRAN and place it in the given buffer
+      */
+     HD5packFstring(c_buf, _fcdtocp(name), c_bufsize-1); 
+
+     *size_default = (size_t_f)c_size;
+     ret_value = 0;
+     if(c_buf) HDfree(c_buf);
+     
+     return ret_value;
+}
+
+/*----------------------------------------------------------------------------
+ * Name:        h5rget_name_ptr_c
+ * Purpose:     Call H5Rget_name
+ * Inputs: 
+ *       loc_id - Identifier for the dataset containing the reference or for the group that dataset is in.
+ *     ref_type - Type of reference.
+ *          ref - An object or dataset region reference.
+ *
+ * Outputs:     name - A name associated with the referenced object or dataset region.
+ *              size - The size of the name buffer.
+ *
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              June 20, 2008
+ * Modifications:
+ *---------------------------------------------------------------------------*/
+int_f
+nh5rget_name_ptr_c (hid_t_f *loc_id, int_f *ref_type, void *ref, _fcd name, size_t_f *name_len, size_t_f *size_default)
+{
+     hdset_reg_ref_t ref_c;
+     int_f ret_value = -1;
+     ssize_t c_size;
+     size_t c_bufsize;
+     char *c_buf= NULL;  /* Buffer to hold C string */
+
+     c_bufsize = (size_t)*name_len+1;
+     /*
+      * Allocate buffer to hold name of an attribute
+      */
+     if ((c_buf = HDmalloc(c_bufsize)) == NULL)
+       return ret_value;
+
+     /*
+      * Call H5Rget_name function.
+      */
+     if((c_size=H5Rget_name((hid_t)*loc_id, (H5R_type_t)*ref_type, ref, c_buf, c_bufsize)) < 0){
+       if(c_buf) HDfree(c_buf);
+       return ret_value;
+     }
      /*
       * Convert C name to FORTRAN and place it in the given buffer
       */

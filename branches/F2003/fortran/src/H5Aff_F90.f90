@@ -99,7 +99,7 @@ MODULE H5A
      MODULE PROCEDURE h5aread_double_5
      MODULE PROCEDURE h5aread_double_6
      MODULE PROCEDURE h5aread_double_7
-     ! End commnet if on Crays
+     ! End comment if on Crays
      !
   END INTERFACE
 

@@ -324,8 +324,6 @@ nh5pget_chunk_c ( hid_t_f *prp_id, int_f *max_rank, hsize_t_f *dims )
   return ret_value;
 }
 
-
-
 /*----------------------------------------------------------------------------
  * Name:        h5pset_fill_valuec_c
  * Purpose:     Call h5pset_fill_value_c to a character fill value
@@ -2769,7 +2767,7 @@ nh5psetc_c(hid_t_f *plist, _fcd name, int_f *name_len, _fcd value, int_f UNUSED 
  * Modifications:
  *---------------------------------------------------------------------------*/
 int_f
-nh5pset_c(hid_t_f *plist, _fcd name, int_f *name_len, void UNUSED *value)
+nh5pset_c(hid_t_f *plist, _fcd name, int_f *name_len, void *value)
 {
      int_f ret_value = -1;
      hid_t c_plist;
@@ -2777,12 +2775,11 @@ nh5pset_c(hid_t_f *plist, _fcd name, int_f *name_len, void UNUSED *value)
 
      c_name = (char *)HD5f2cstring(name, (size_t)*name_len);
      if (c_name == NULL) goto DONE;
-     c_plist = (hid_t)*plist;
 
      /*
       * Call H5Pset function.
       */
-     if( H5Pset(c_plist, c_name, value) <0) goto DONE;
+     if( H5Pset((hid_t)*plist, c_name, value) <0) goto DONE;
      ret_value = 0;
 
 DONE:
@@ -2853,20 +2850,18 @@ nh5pgetc_c(hid_t_f *plist, _fcd name, int_f *name_len, _fcd value, int_f UNUSED 
  * Modifications:
  *---------------------------------------------------------------------------*/
 int_f
-nh5pget_c(hid_t_f *plist, _fcd name, int_f *name_len, void UNUSED *value)
+nh5pget_c(hid_t_f *plist, _fcd name, int_f *name_len, void *value)
 {
      int_f ret_value = -1;
-     hid_t c_plist;
      char* c_name;
 
      c_name = (char *)HD5f2cstring(name, (size_t)*name_len);
      if (c_name == NULL) goto DONE;
-     c_plist = (hid_t)*plist;
 
      /*
       * Call H5Pset function.
       */
-     if( H5Pget(c_plist, c_name, value) <0) goto DONE;
+     if( H5Pget((hid_t)*plist, c_name, value) <0) goto DONE;
      ret_value = 0;
 
 DONE:

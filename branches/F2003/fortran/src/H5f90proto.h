@@ -1069,22 +1069,28 @@ H5_FCDLL int_f nh5pget_nlinks_c(hid_t_f *lapl_id, size_t_f *nlinks); /* MSB */
  */
 #   define nh5rcreate_object_c     H5_FC_FUNC_(h5rcreate_object_c, H5RCREATE_OBJECT_C)
 #   define nh5rcreate_region_c     H5_FC_FUNC_(h5rcreate_region_c, H5RCREATE_REGION_C)
+#   define nh5rcreate_ptr_c     H5_FC_FUNC_(h5rcreate_ptr_c, H5RCREATE_PTR_C)
 #   define nh5rdereference_region_c H5_FC_FUNC_(h5rdereference_region_c, H5RDEREFERENCE_REGION_C)
 #   define nh5rdereference_object_c H5_FC_FUNC_(h5rdereference_object_c, H5RDEREFERENCE_OBJECT_C)
+#   define nh5rdereference_ptr_c H5_FC_FUNC_(h5rdereference_ptr_c, H5RDEREFERENCE_PTR_C)
 #   define nh5rget_region_region_c H5_FC_FUNC_(h5rget_region_region_c, H5RGET_REGION_REGION_C)
 #   define nh5rget_object_type_obj_c H5_FC_FUNC_(h5rget_object_type_obj_c, H5RGET_OBJECT_TYPE_OBJ_C)
 #   define nh5rget_name_object_c H5_FC_FUNC_(h5rget_name_object_c, H5RGET_NAME_OBJECT_C)
 #   define nh5rget_name_region_c H5_FC_FUNC_(h5rget_name_region_c, H5RGET_NAME_REGION_C)
+#   define nh5rget_name_ptr_c H5_FC_FUNC_(h5rget_name_ptr_c, H5RGET_NAME_ptr_C)
 
 
 H5_FCDLL int_f nh5rcreate_object_c (haddr_t_f *ref, hid_t_f *loc_id, _fcd name, int_f *namelen);
 H5_FCDLL int_f nh5rcreate_region_c (int_f *ref, hid_t_f *loc_id, _fcd name, int_f *namelen, hid_t_f *space_id);
+H5_FCDLL int_f nh5rcreate_ptr_c (void *ref, hid_t_f *loc_id, _fcd name, int_f *namelen, int_f *ref_type, hid_t_f *space_id);
 H5_FCDLL int_f nh5rdereference_region_c (hid_t_f *dset_id, int_f *ref, hid_t_f *obj_id);
 H5_FCDLL int_f nh5rdereference_object_c (hid_t_f *dset_id, haddr_t_f *ref, hid_t_f *obj_id);
+H5_FCDLL int_f nh5rdereference_ptr_c (hid_t_f *obj_id, int_f *ref_type, void *ref, hid_t_f *ref_obj_id);
 H5_FCDLL int_f nh5rget_region_region_c (hid_t_f *dset_id, int_f *ref, hid_t_f *space_id);
 H5_FCDLL int_f nh5rget_object_type_obj_c (hid_t_f *dset_id, haddr_t_f *ref, int_f *obj_type);
 H5_FCDLL int_f nh5rget_name_object_c (hid_t_f *loc_id, haddr_t_f *ref, _fcd name, size_t_f *name_len, size_t_f *size_default);
 H5_FCDLL int_f nh5rget_name_region_c (hid_t_f *loc_id, int_f *ref, _fcd name, size_t_f *name_len, size_t_f *size_default);
+H5_FCDLL int_f nh5rget_name_ptr_c (hid_t_f *loc_id, int_f *ref_type, void *ref, _fcd name, size_t_f *name_len, size_t_f *size_default);
 /*
  * Functions from H5If.c
  */

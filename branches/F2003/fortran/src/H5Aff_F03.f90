@@ -62,6 +62,8 @@ MODULE H5A_F03
      MODULE PROCEDURE h5awrite_double_7
      ! End comment if on Crays
 
+     ! This is the preferred way to call h5awrite
+     ! by passing an address
      MODULE PROCEDURE h5awrite_ptr
 
   END INTERFACE
@@ -103,6 +105,8 @@ MODULE H5A_F03
      MODULE PROCEDURE h5aread_double_7
      ! End comment if on Crays
 
+     ! This is the preferred way to call h5aread
+     ! by passing an address
      MODULE PROCEDURE h5aread_ptr
      !
   END INTERFACE
