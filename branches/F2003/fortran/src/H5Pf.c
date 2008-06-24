@@ -2280,7 +2280,7 @@ nh5pregisterc_c(hid_t_f *class, _fcd name, int_f *name_len, size_t_f *size, _fcd
  * Modifications:
  *---------------------------------------------------------------------------*/
 int_f
-nh5pregister_c(hid_t_f *class, _fcd name, int_f *name_len, size_t_f *size, void UNUSED *value)
+nh5pregister_c(hid_t_f *class, _fcd name, int_f *name_len, size_t_f *size, void *value)
 {
      char* c_name = NULL;
      int_f ret_value = -1;
