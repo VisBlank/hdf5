@@ -430,6 +430,7 @@
        ENDDO
     ENDDO
 
+
     !/* Close Datatype */
     CALL h5tclose_f(tid1,error)
     CALL check("h5tclose_f", error, total_error)
@@ -658,7 +659,6 @@
     CALL h5tget_array_dims_f(tid1, rdims1, error)
     CALL check("h5tget_array_dims_f", error, total_error)
 
-
     ! /* Check the array dimensions */
     DO i = 1, ndims
        CALL VERIFY("h5tget_array_dims_f", INT(rdims1(i)), INT(tdims1(i)), total_error)
@@ -795,6 +795,7 @@
 
     ! /* READ dataset from disk */
     
+    f_ptr = c_null_ptr
     f_ptr = C_LOC(rdata)
     CALL H5Dread_f(dataset, tid1, f_ptr, rdims1, error)
     CALL check("H5Dread_f", error, total_error)
@@ -802,11 +803,13 @@
     ! /* Compare data read in */
     DO i = 1, SPACE1_DIM1
        DO j = 1, ARRAY1_DIM1
+          PRINT*,wdata(i,j)%i,rdata(i,j)%i
           IF(wdata(i,j)%i.NE.rdata(i,j)%i)THEN
              PRINT*, 'ERROR: Wrong integer data is read back by H5Dread_f '
              total_error = total_error + 1
           ENDIF
           DO k = 1, ARRAY2_DIM1
+             PRINT*,wdata(i,j)%f(k), rdata(i,j)%f(k)
              IF(wdata(i,j)%f(k).NE.rdata(i,j)%f(k))THEN
                 PRINT*, 'ERROR: Wrong real array data is read back by H5Dread_f '
                 total_error = total_error + 1
@@ -818,6 +821,7 @@
           ENDDO
        ENDDO
     ENDDO
+    stop
 
     ! /* Close Datatype */
     CALL h5tclose_f(tid1,error)
@@ -980,7 +984,7 @@
        CALL h5tarray_create_f(dtsinfo%datatype(i), ndims(i), dima, array_dt, error)
        CALL check("h5tarray_create_f", error, total_error)
 
-       CALL h5tinsert_f(type, dtsinfo.name(i), dtsinfo%offset(i), array_dt, error)
+       CALL h5tinsert_f(type, dtsinfo%name(i), dtsinfo%offset(i), array_dt, error)
        CALL check("h5tinsert_f", error, total_error)
 
        CALL h5tclose_f(array_dt,error)

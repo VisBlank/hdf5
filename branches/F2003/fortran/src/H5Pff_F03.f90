@@ -92,8 +92,7 @@ MODULE H5P_F03
   END INTERFACE
 
   INTERFACE 
-     FUNCTION h5pget_fill_value_c(prp_id, type_id, fillvalue)
-       USE iso_c_binding
+     INTEGER FUNCTION h5pget_fill_value_c(prp_id, type_id, fillvalue)
        USE H5GLOBAL
        USE, INTRINSIC :: ISO_C_BINDING
        !DEC$ IF DEFINED(HDF5F90_WINDOWS)
@@ -101,15 +100,14 @@ MODULE H5P_F03
        !DEC$ ENDIF
        INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
        INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of 
-       ! of fillvalue datatype
-       ! (in memory) 
+                                             ! of fillvalue datatype
+                                             ! (in memory) 
        TYPE(C_PTR), VALUE :: fillvalue       ! Fillvalue
      END FUNCTION h5pget_fill_value_c
   END INTERFACE
 
   INTERFACE 
-     FUNCTION h5pset_fill_value_c(prp_id, type_id, fillvalue)
-       USE iso_c_binding
+     INTEGER FUNCTION h5pset_fill_value_c(prp_id, type_id, fillvalue)
        USE H5GLOBAL
        USE, INTRINSIC :: ISO_C_BINDING
        !DEC$ IF DEFINED(HDF5F90_WINDOWS)
@@ -117,15 +115,14 @@ MODULE H5P_F03
        !DEC$ ENDIF
        INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
        INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of 
-       ! of fillvalue datatype
-       ! (in memory) 
+                                             ! of fillvalue datatype
+                                             ! (in memory) 
        TYPE(C_PTR), VALUE :: fillvalue       ! Fillvalue
      END FUNCTION h5pset_fill_value_c
   END INTERFACE
 
   INTERFACE
-     FUNCTION h5pset_c(prp_id, name, name_len, value)
-       USE iso_c_binding
+     INTEGER FUNCTION h5pset_c(prp_id, name, name_len, value)
        USE H5GLOBAL
        USE, INTRINSIC :: ISO_C_BINDING
        !DEC$ IF DEFINED(HDF5F90_WINDOWS)
@@ -139,10 +136,9 @@ MODULE H5P_F03
   END INTERFACE
 
   INTERFACE
-     FUNCTION h5pget_c(prp_id, name, name_len, value)
-       USE iso_c_binding
+     INTEGER FUNCTION h5pget_c(prp_id, name, name_len, value)
+       USE ISO_C_BINDING
        USE H5GLOBAL
-       USE, INTRINSIC :: ISO_C_BINDING
        !DEC$ IF DEFINED(HDF5F90_WINDOWS)
        !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_C'::h5pget_c
        !DEC$ ENDIF
@@ -1199,7 +1195,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: plist   ! Property list identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to insert 
     INTEGER(SIZE_T), INTENT(IN) :: size   ! Size of the property value	
-    REAL,   INTENT(IN) :: value           ! Property value
+    REAL,   INTENT(IN), TARGET :: value           ! Property value
     INTEGER, INTENT(OUT) :: hdferr        ! Error code
     INTEGER :: name_len
     TYPE(c_ptr) :: f_ptr

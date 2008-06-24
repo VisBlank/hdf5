@@ -2964,7 +2964,7 @@ CONTAINS
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
-    TYPE(C_PTR), INTENT(IN) :: buf
+    TYPE(C_PTR), INTENT(INOUT) :: buf
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims ! not used
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
@@ -3002,7 +3002,7 @@ CONTAINS
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
-    TYPE(C_PTR), INTENT(IN) :: buf
+    TYPE(C_PTR), INTENT(INOUT) :: buf
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims ! not used
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
