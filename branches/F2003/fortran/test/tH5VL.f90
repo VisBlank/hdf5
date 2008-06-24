@@ -105,6 +105,7 @@
               CALL check("h5dwrite_int_f", error, total_error)
 
 
+
           !   
           ! End access to the dataset and release resources used by it.
           ! 
@@ -153,7 +154,6 @@
                   write(*,*) "h5dread_vl_f returned incorrect data"
               endif
               enddo
-
 
           !
           CALL h5dclose_f(dset_id, error)

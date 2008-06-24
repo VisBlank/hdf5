@@ -87,7 +87,8 @@ am_fortranlib_test_OBJECTS =  \
 	fortranlib_test-tH5Sselect.$(OBJEXT) \
 	fortranlib_test-tH5P.$(OBJEXT) fortranlib_test-tH5A.$(OBJEXT) \
 	fortranlib_test-tH5I.$(OBJEXT) fortranlib_test-tH5G.$(OBJEXT) \
-	fortranlib_test-tH5E.$(OBJEXT)
+	fortranlib_test-tH5E.$(OBJEXT) \
+	fortranlib_test-t_$(ff_PREFIX).$(OBJEXT)
 fortranlib_test_OBJECTS = $(am_fortranlib_test_OBJECTS)
 fortranlib_test_LDADD = $(LDADD)
 fortranlib_test_DEPENDENCIES = libh5test_fortran.la $(LIBH5TEST) \
@@ -97,7 +98,7 @@ fortranlib_test_LINK = $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 am_fortranlib_test_1_8_OBJECTS = fortranlib_test_1_8.$(OBJEXT) \
 	tH5F.$(OBJEXT) tH5O.$(OBJEXT) tH5A_1_8.$(OBJEXT) \
-	tH5G_1_8.$(OBJEXT)
+	tH5G_1_8.$(OBJEXT) t_$(ff_PREFIX).$(OBJEXT)
 fortranlib_test_1_8_OBJECTS = $(am_fortranlib_test_1_8_OBJECTS)
 fortranlib_test_1_8_LDADD = $(LDADD)
 fortranlib_test_1_8_DEPENDENCIES = libh5test_fortran.la $(LIBH5TEST) \
@@ -391,6 +392,11 @@ noinst_LTLIBRARIES = libh5test_fortran.la
 # want to build a shared C library and a static Fortran library.  If so,
 # pass the -static flag to the library linker.
 @FORTRAN_SHARED_CONDITIONAL_FALSE@AM_LDFLAGS = -static
+@ISO_C_BINDING_CONDITIONAL_F_FALSE@ff_PREFIX = F90
+
+# Check if the compiler supports the Fortran 2003 standard
+# which includes the intrinsic module iso_c_binding
+@ISO_C_BINDING_CONDITIONAL_F_TRUE@ff_PREFIX = F03
 
 # Our main targets, the tests themselves
 TEST_PROG = fortranlib_test fflush1 fflush2 fortranlib_test_1_8
@@ -402,10 +408,10 @@ fortranlib_test_FCFLAGS = $(AM_FCFLAGS)
 fortranlib_test_CFLAGS = $(AM_CFLAGS)
 fortranlib_test_SOURCES = fortranlib_test.f90 \
         tH5F.f90 tH5D.f90 tH5R.f90 tH5S.f90 tH5T.f90 tH5VL.f90 tH5Z.f90 \
-        tH5Sselect.f90 tH5P.f90 tH5A.f90 tH5I.f90 tH5G.f90 tH5E.f90
+        tH5Sselect.f90 tH5P.f90 tH5A.f90 tH5I.f90 tH5G.f90 tH5E.f90 t_$(ff_PREFIX).f90
 
 fortranlib_test_1_8_SOURCES = fortranlib_test_1_8.f90 \
-        tH5F.f90 tH5O.f90 tH5A_1_8.f90  tH5G_1_8.f90
+        tH5F.f90 tH5O.f90 tH5A_1_8.f90  tH5G_1_8.f90 t_$(ff_PREFIX).f90
 
 fflush1_SOURCES = fflush1.f90
 fflush2_SOURCES = fflush2.f90
@@ -618,6 +624,12 @@ fortranlib_test-tH5E.o: tH5E.f90
 
 fortranlib_test-tH5E.obj: tH5E.f90
 	$(FC) $(fortranlib_test_FCFLAGS) $(FCFLAGS) -c -o fortranlib_test-tH5E.obj `if test -f 'tH5E.f90'; then $(CYGPATH_W) 'tH5E.f90'; else $(CYGPATH_W) '$(srcdir)/tH5E.f90'; fi`
+
+fortranlib_test-t_$(ff_PREFIX).o: t_$(ff_PREFIX).f90
+	$(FC) $(fortranlib_test_FCFLAGS) $(FCFLAGS) -c -o fortranlib_test-t_$(ff_PREFIX).o `test -f 't_$(ff_PREFIX).f90' || echo '$(srcdir)/'`t_$(ff_PREFIX).f90
+
+fortranlib_test-t_$(ff_PREFIX).obj: t_$(ff_PREFIX).f90
+	$(FC) $(fortranlib_test_FCFLAGS) $(FCFLAGS) -c -o fortranlib_test-t_$(ff_PREFIX).obj `if test -f 't_$(ff_PREFIX).f90'; then $(CYGPATH_W) 't_$(ff_PREFIX).f90'; else $(CYGPATH_W) '$(srcdir)/t_$(ff_PREFIX).f90'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

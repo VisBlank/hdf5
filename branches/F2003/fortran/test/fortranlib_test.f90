@@ -143,6 +143,13 @@ PROGRAM fortranlibtest
   CALL test_array_compound_atomic(ret_total_error)
   CALL write_test_status(ret_total_error, ' Testing 1-D Array of Compound Datatypes Functionality', total_error)
 
+  ret_total_error = 0
+  CALL test_array_compound_array(ret_total_error)
+  CALL write_test_status(ret_total_error, ' Testing 1-D Array of Compound Array Datatypes Functionality', total_error)
+
+  ret_total_error = 0
+  CALL test_array_bkg(ret_total_error)
+  CALL write_test_status(ret_total_error, ' Testing Partial I/O of Array Fields in Compound Datatype FunctionalityT', total_error)
 
   ret_total_error = 0
   CALL enumtest(cleanup, ret_total_error)

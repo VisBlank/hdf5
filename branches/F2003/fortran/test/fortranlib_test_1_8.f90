@@ -88,6 +88,18 @@ PROGRAM fortranlibtest
        ' Testing dataspace encoding and decoding', &
        total_error)
 
+!!$  ret_total_error = 0
+!!$  CALL test_getset_vl(cleanup, ret_total_error)
+!!$  CALL write_test_status(ret_total_error, &
+!!$       ' Testing property lists, with variable-length datatype', &
+!!$       total_error) 
+
+  ret_total_error = 0
+  CALL test_create(ret_total_error)
+  CALL write_test_status(ret_total_error, &
+       ' Testing filling functions', &
+       total_error) 
+
 !  CALL test_hard_query(group_total_error)
 
   WRITE(*,*)
@@ -122,7 +134,6 @@ SUBROUTINE dtransform(cleanup, total_error)
   CHARACTER(LEN=30) :: ptrgetTest_big
 
   INTEGER(SIZE_T) :: size
-
 
   CALL H5Fcreate_f("dtransform.h5", H5F_ACC_TRUNC_F, file_id, error)
   CALL check("dtransform.H5Fcreate_f", error, total_error)
