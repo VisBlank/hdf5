@@ -145,7 +145,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: loc_id   ! Location identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of the object at location specified
     ! by loc_id identifier 
-    TYPE(hobj_ref_t_f), INTENT(OUT), TARGET :: ref   ! Object reference 
+    TYPE(hobj_ref_t_f), INTENT(INOUT), TARGET :: ref   ! Object reference 
     INTEGER, INTENT(OUT) :: hdferr         ! Error code 
 
     INTEGER :: namelen                     ! Name length
@@ -201,7 +201,7 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of the dataset at location specified
     ! by loc_id identifier 
     INTEGER(HID_T), INTENT(IN) :: space_id ! Dataset's dataspace identifier 
-    TYPE(hdset_reg_ref_t_f), INTENT(OUT), TARGET :: ref ! Dataset region reference 
+    TYPE(hdset_reg_ref_t_f), INTENT(INOUT), TARGET :: ref ! Dataset region reference 
     INTEGER, INTENT(OUT) :: hdferr         ! Error code 
 
     INTEGER :: namelen                     ! Name length
@@ -257,7 +257,7 @@ CONTAINS
                                              ! by loc_id identifier 
     INTEGER, INTENT(IN) :: ref_type          ! type of reference
     INTEGER(HID_T), INTENT(IN) :: space_id   ! Dataset's dataspace identifier 
-    TYPE(C_PTR), INTENT(OUT) :: ref          ! Reference created by the function call.
+    TYPE(C_PTR), INTENT(INOUT) :: ref          ! Reference created by the function call.
     INTEGER, INTENT(OUT) :: hdferr           ! Error code 
     
     INTEGER :: namelen                     ! Name length

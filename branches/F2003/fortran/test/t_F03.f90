@@ -1001,7 +1001,9 @@
 
     ALLOCATE(rdims(1:2)) ! dummy not needed
 
-    CALL h5dwrite_f(dataset, type, C_LOC(cf), rdims, error )
+    f_ptr = C_LOC(cf)
+
+    CALL h5dwrite_f(dataset, type, f_ptr, rdims, error )
     CALL check("h5dwrite_f", error, total_error)
 
 
