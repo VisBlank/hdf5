@@ -89,3 +89,20 @@ SUBROUTINE test_array_compound_array(total_error)
   INTEGER, INTENT(INOUT) :: total_error
   
 END SUBROUTINE test_array_compound_array
+
+
+SUBROUTINE test_array_bkg(total_error)
+  
+  IMPLICIT NONE
+  
+  INTEGER, INTENT(INOUT) :: total_error
+  
+END SUBROUTINE test_array_bkg
+
+SUBROUTINE test_create(total_error)
+  
+  IMPLICIT NONE
+  
+  INTEGER, INTENT(INOUT) :: total_error
+  
+END SUBROUTINE test_create
