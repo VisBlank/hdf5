@@ -16,7 +16,7 @@
 !
 ! This file contains Fortran90 interfaces for H5A functions.
 !
-MODULE H5A
+MODULE H5A_F03
 
   USE H5GLOBAL
   !
@@ -2407,6 +2407,6 @@ CONTAINS
     hdferr = h5areadc_7_c(attr_id, memtype_id,  buf, dims)
   END SUBROUTINE h5aread_char_7
 
-END MODULE H5A
+END MODULE H5A_F03
 
 

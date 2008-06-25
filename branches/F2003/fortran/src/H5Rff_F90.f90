@@ -16,7 +16,7 @@
 !
 ! This file contains Fortran90 interfaces for H5R functions.
 ! 
-      MODULE H5R
+      MODULE H5R_F03
         USE H5GLOBAL
 
 ! If you change the value of these parameters, do not forget to change corresponding
@@ -45,19 +45,7 @@
             MODULE PROCEDURE h5rdereference_region_f 
 
           END INTERFACE 
-          
-          INTERFACE h5rget_region_f
-
-            MODULE PROCEDURE h5rget_region_region_f 
-
-          END INTERFACE 
-          
-          INTERFACE h5rget_object_type_f
-
-            MODULE PROCEDURE h5rget_object_type_obj_f
-
-          END INTERFACE 
-          
+   
           INTERFACE h5rget_name_f
 
             MODULE PROCEDURE h5rget_name_object_f
@@ -479,4 +467,4 @@
     
   END SUBROUTINE h5rget_name_region_f
 
-END MODULE H5R
+END MODULE H5R_F03
