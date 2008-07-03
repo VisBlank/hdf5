@@ -991,7 +991,10 @@ H5_FCDLL int_f nh5pset_small_data_block_size_c(hid_t_f *plist, hsize_t_f *size);
 H5_FCDLL int_f nh5pget_small_data_block_size_c(hid_t_f *plist, hsize_t_f *size);
 H5_FCDLL int_f nh5pset_hyper_vector_size_c(hid_t_f *plist, size_t_f *size);
 H5_FCDLL int_f nh5pget_hyper_vector_size_c(hid_t_f *plist, size_t_f *size);
-H5_FCDLL int_f nh5pcreate_class_c(hid_t_f *parent, _fcd name, int_f *name_len, hid_t_f *class);
+H5_FCDLL int_f nh5pcreate_class_c(hid_t_f *parent, _fcd name, int_f *name_len, hid_t_f *class,
+				  H5P_cls_create_func_t create, void *create_data, 
+				  H5P_cls_copy_func_t copy, void *copy_data, 
+				  H5P_cls_close_func_t close, void *close_data);
 H5_FCDLL int_f nh5pregister_c(hid_t_f *class, _fcd name, int_f * name_len, size_t_f *size, void *value);
 H5_FCDLL int_f nh5pregister_integer_c(hid_t_f *class, _fcd name, int_f * name_len, size_t_f *size, void *value);
 H5_FCDLL int_f nh5pregister_real_c(hid_t_f *class, _fcd name, int_f * name_len, size_t_f *size, void *value);

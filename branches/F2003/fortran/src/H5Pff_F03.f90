@@ -1353,5 +1353,107 @@ CONTAINS
     hdferr = h5pinsert_c(plist, name , name_len, size, value)
   END SUBROUTINE h5pinsert_ptr
 
+!----------------------------------------------------------------------
+! Name:		h5pcreate_class_f 
+!
+! Purpose: 	Create a new property list class
+
+!
+! Inputs:  
+!		parent		- Property list identifier of the parent class
+!                                 Possible values include:
+!                                 H5P_ROOT_F
+!                                 H5P_FILE_CREATE_F
+!                                 H5P_FILE_ACCESS_F
+!                                 H5P_DATASET_CREATE_F
+!                                 H5P_DATASET_XFER_F
+!                                 H5P_FILE_MOUNT_F
+!		name 		- name of the class we are creating
+! Outputs:  
+!               class           - porperty list class identifier
+!		hdferr:		- error code		
+!                                       
+!				 	Success: 0 
+!				 	Failure: -1   
+! Optional parameters:
+!     H5P_cls_create_func_t create - Callback routine called when a property list is created
+!     create_data                  - User pointer to any class creation information needed
+!     H5P_cls_copy_func_t   copy   - Callback routine called when a property list is copied
+!     copy_data                    - User pointer to any class copy information needed
+!     H5P_cls_close_func_t  close  - Callback routine called when a property list is being closed
+!     close_data                   - User pointer to any class close information needed
+!
+! Programmer:	Elena Pourmal
+!	        October 9, 2002	
+!
+! Modifications: Added callback arguments
+!                M.S. Breitenfeld, July 3, 2008	
+!
+! Comment:		
+!----------------------------------------------------------------------
+
+  SUBROUTINE h5pcreate_class_f(parent, name, class, hdferr, create, create_data, copy, copy_data, CLOSE, close_data) 
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5pcreate_class_f
+!DEC$endif
+!
+    USE iso_c_binding
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: parent  ! parent property list class 
+                                          ! identifier
+    CHARACTER(LEN=*), INTENT(IN) :: name  ! name of property tocreate 
+    INTEGER(HID_T), INTENT(OUT) :: class  ! property list class identifier
+    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+    TYPE(C_PTR), OPTIONAL :: create_data, copy_data, close_data
+    TYPE(C_FUNPTR), OPTIONAL :: create, copy, close
+    INTEGER :: name_len
+    TYPE(C_PTR) :: create_data_default, copy_data_default, close_data_default
+    TYPE(C_FUNPTR) :: create_default, copy_default, close_default
+    INTERFACE
+       INTEGER FUNCTION h5pcreate_class_c(parent, name, name_len, class, &
+            create, create_data, &
+            copy, copy_data, &
+            close, close_data) 
+         
+         USE iso_c_binding
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDCLOSEF90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PCREATE_CLASS_C'::h5pcreate_class_c
+         !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference :: name
+         INTEGER(HID_T), INTENT(IN) :: parent
+         CHARACTER(LEN=*), INTENT(IN) :: name
+         INTEGER, INTENT(IN)         :: name_len
+         INTEGER(HID_T), INTENT(OUT) :: class
+         TYPE(C_PTR), VALUE :: create_data, copy_data, close_data
+         TYPE(C_FUNPTR), VALUE :: create, copy, close
+       END FUNCTION h5pcreate_class_c
+    END INTERFACE
+    name_len = LEN(name)
+    
+    create_default = c_null_funptr
+    create_data_default = c_null_ptr
+    copy_default = c_null_funptr
+    copy_data_default = c_null_ptr
+    close_default = c_null_funptr
+    close_data_default = c_null_ptr
+    
+    IF(PRESENT(create)) create_default = create
+    IF(PRESENT(create_data)) create_data_default = create_data
+    IF(PRESENT(copy)) copy_default = copy
+    IF(PRESENT(copy_data)) copy_data_default = copy_data
+    IF(PRESENT(close)) close_default = close
+    IF(PRESENT(close_data)) close_data_default = close_data
+    
+    hdferr = h5pcreate_class_c(parent, name , name_len, class, &
+         create_default, create_data_default, &
+         copy_default, copy_data_default, &
+         close_default, close_data_default)
+    
+    
+  END SUBROUTINE h5pcreate_class_f
+
 END MODULE H5P_F03
 

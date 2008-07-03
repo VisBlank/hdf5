@@ -2204,6 +2204,7 @@ nh5pget_hyper_vector_size_c ( hid_t_f *prp_id , size_t_f *size)
   *size = (size_t_f)c_size;
   return ret_value;
 }
+
 /*----------------------------------------------------------------------------
  * Name:        h5pcreate_class_c
  * Purpose:     Call H5Pcreate_class ito create a new property class
@@ -2214,24 +2215,28 @@ nh5pget_hyper_vector_size_c ( hid_t_f *prp_id , size_t_f *size)
  * Returns:     0 on success, -1 on failure
  * Programmer:  Elena Pourmal
  *              October 11, 2002
- * Modifications:
+ *
+ * Modifications: Added the callback parameters (FORTRAN 2003 compilers only)
+ *                M.S. Breitenfeld, July 3, 2008 
  *---------------------------------------------------------------------------*/
 int_f
-nh5pcreate_class_c(hid_t_f *parent, _fcd name, int_f *name_len, hid_t_f *class)
+nh5pcreate_class_c(hid_t_f *parent, _fcd name, int_f *name_len, hid_t_f *class,
+		   H5P_cls_create_func_t create, void *create_data, 
+		   H5P_cls_copy_func_t copy, void *copy_data, 
+		   H5P_cls_close_func_t close, void *close_data)
 {
      int ret_value = -1;
-     hid_t c_parent;
      hid_t c_class;
      char* c_name;
 
      c_name = (char *)HD5f2cstring(name, (size_t)*name_len);
      if (c_name == NULL) goto DONE;
-     c_parent = (hid_t)*parent;
 
      /*
       * Call H5Pcreate_class function.
       */
-     c_class = H5Pcreate_class(c_parent, c_name, NULL, NULL,NULL,NULL,NULL,NULL);
+     c_class = H5Pcreate_class((hid_t)*parent, c_name, create, create_data, copy, copy_data, close, close_data);
+
      if (c_class < 0) goto DONE;
      *class = (hid_t_f)c_class;
      ret_value = 0;
@@ -2240,6 +2245,7 @@ DONE:
      if(c_name != NULL) HDfree(c_name);
      return ret_value;
 }
+
 
 /*----------------------------------------------------------------------------
  * Name:        h5pregisterc_c
