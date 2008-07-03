@@ -156,7 +156,7 @@ CONTAINS
 
     namelen = LEN(name)
 
-    hdferr = h5rcreate_ptr_c(f_ptr, loc_id, name, namelen, 0, -1)
+    hdferr = h5rcreate_ptr_c(f_ptr, loc_id, name, namelen, INT(0), INT(-1,HID_T))
 
   END SUBROUTINE h5rcreate_object_f
 
