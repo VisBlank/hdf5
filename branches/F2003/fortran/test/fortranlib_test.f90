@@ -47,16 +47,16 @@ PROGRAM fortranlibtest
      total_error = total_error + 1
   ENDIF
   WRITE(*,*)
+
 !     CALL h5check_version_f(1,4,4,total_error)
 !     write(*,*) '========================================='
 !     write(*,*) 'Testing FILE Interface                   '
 !     write(*,*) '========================================='
-     
 
   ret_total_error = 0
   CALL mountingtest(cleanup, ret_total_error)
   CALL write_test_status(ret_total_error, ' Mounting test', total_error)
-  
+
   ret_total_error = 0
   CALL reopentest(cleanup, ret_total_error)
   CALL write_test_status(ret_total_error, ' Reopen test', total_error)
@@ -126,6 +126,7 @@ PROGRAM fortranlibtest
   ret_total_error = 0
   CALL test_select_element(cleanup, ret_total_error)
   CALL write_test_status(ret_total_error, ' Element selection test', total_error)
+
 
 !     write(*,*)
 !     write(*,*) '========================================='
@@ -218,6 +219,10 @@ PROGRAM fortranlibtest
   CALL vl_test_real(cleanup, ret_total_error)
   CALL vl_test_string(cleanup, ret_total_error)
   CALL write_test_status(ret_total_error, ' VL test', total_error)
+
+  ret_total_error = 0
+  CALL test_genprop_class_callback(ret_total_error)
+  CALL write_test_status(ret_total_error, ' Test basic generic property list callback functionality', total_error)
   
   WRITE(*,*)
 

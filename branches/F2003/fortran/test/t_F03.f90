@@ -180,6 +180,174 @@
 
   END SUBROUTINE test_create
 
+  MODULE test_genprop_cls_cb1_mod
+
+! Callback subroutine for test_genprop_class_callback
+! and the function H5Pcreate_class_f.
+
+    IMPLICIT NONE
+
+  CONTAINS
+
+    INTEGER FUNCTION test_genprop_cls_cb1_f(list_id, create_data ) bind(C)
+
+      USE HDF5
+      USE ISO_C_BINDING
+      IMPLICIT NONE
+      
+      INTEGER(HID_T), INTENT(IN), VALUE :: list_id
+      
+      TYPE cop_cb_struct_ ! /* Struct for iterations */
+         INTEGER :: count
+         INTEGER(HID_T) :: id
+      END TYPE cop_cb_struct_
+
+      TYPE(cop_cb_struct_) :: create_data
+      
+      create_data%count = create_data%count + 1
+      create_data%id = list_id
+      
+      test_genprop_cls_cb1_f = 0
+      
+    END FUNCTION test_genprop_cls_cb1_f
+
+  END MODULE test_genprop_cls_cb1_mod
+
+  SUBROUTINE test_genprop_class_callback(total_error)
+
+!/****************************************************************
+!**
+!**  test_genprop_class_callback(): Test basic generic property list code.
+!**      Tests callbacks for property lists in a generic class.
+!**
+!**  FORTRAN TESTS:
+!**      Tests function H5Pcreate_class_f with callback.
+!**
+!****************************************************************/
+
+    USE HDF5
+    USE ISO_C_BINDING
+    USE test_genprop_cls_cb1_mod
+    IMPLICIT NONE
+
+    INTEGER, INTENT(INOUT) :: total_error
+    
+    INTEGER(hid_t) :: cid1 !/* Generic Property class ID */
+    INTEGER(hid_t) :: lid1 !/* Generic Property list ID */
+    INTEGER(hid_t) :: lid2 !/* 2nd Generic Property list ID */
+    INTEGER(size_t) :: nprops !/* Number of properties in class */
+
+    TYPE cb_struct
+       INTEGER :: count
+       INTEGER(hid_t) :: id
+    END TYPE cb_struct
+
+    TYPE(cb_struct) :: crt_cb_struct, cls_cb_struct
+
+    CHARACTER(LEN=7) :: CLASS1_NAME = "Class 1"
+    TYPE(C_FUNPTR) :: f1, f3, f5
+    TYPE(C_PTR) :: f2, f4, f6
+
+    CHARACTER(LEN=10) :: PROP1_NAME = "Property 1"
+    INTEGER(SIZE_T) :: PROP1_SIZE = 10
+    CHARACTER(LEN=10) :: PROP2_NAME = "Property 2"
+    INTEGER(SIZE_T) :: PROP2_SIZE = 10
+    CHARACTER(LEN=10) :: PROP3_NAME = "Property 3"
+    INTEGER(SIZE_T) :: PROP3_SIZE = 10
+    CHARACTER(LEN=10) :: PROP4_NAME = "Property 4"
+    INTEGER(SIZE_T) :: PROP4_SIZE = 10
+    INTEGER :: PROP1_DEF_VALUE = 10
+    INTEGER :: PROP2_DEF_VALUE = 10
+    INTEGER :: PROP3_DEF_VALUE = 10
+    INTEGER :: PROP4_DEF_VALUE = 10
+
+    INTEGER :: error ! /* Generic RETURN value	*/
+
+    f1 = C_FUNLOC(test_genprop_cls_cb1_f)
+    f5 = C_FUNLOC(test_genprop_cls_cb1_f)
+
+    f2 = C_LOC(crt_cb_struct)
+    f6 = C_LOC(cls_cb_struct)
+
+    !/* Create a new generic class, derived from the root of the class hierarchy */
+    CALL H5Pcreate_class_f(H5P_ROOT_F,CLASS1_NAME, cid1, error, f1, f2, c_null_funptr, c_null_ptr, f5, f6)
+    CALL check("H5Pcreate_class_f", error, total_error)
+
+    !/* Insert first property into class (with no callbacks) */
+    CALL H5Pregister_f(cid1, PROP1_NAME, PROP1_SIZE, PROP1_DEF_VALUE, error)
+    CALL check("H5Pregister_f", error, total_error)
+    !/* Insert second property into class (with no callbacks) */
+    CALL H5Pregister_f(cid1, PROP2_NAME, PROP2_SIZE, PROP2_DEF_VALUE, error)
+    CALL check("H5Pregister_f", error, total_error)
+    !/* Insert third property into class (with no callbacks) */
+    CALL H5Pregister_f(cid1, PROP3_NAME, PROP3_SIZE, PROP3_DEF_VALUE, error)
+    CALL check("H5Pregister_f", error, total_error)
+
+    !/* Insert fourth property into class (with no callbacks) */
+    CALL H5Pregister_f(cid1, PROP4_NAME, PROP4_SIZE, PROP4_DEF_VALUE, error)
+    CALL check("H5Pregister_f", error, total_error)
+
+    ! /* Check the number of properties in class */
+    CALL H5Pget_nprops_f(cid1, nprops, error)
+    CALL check("H5Pget_nprops_f", error, total_error)
+    CALL VERIFY("H5Pget_nprops_f", INT(nprops), 4, total_error)
+
+    ! /* Initialize class callback structs */
+
+    crt_cb_struct%count = 0
+    crt_cb_struct%id    = -1
+    cls_cb_struct%count = 0
+    cls_cb_struct%id    = -1
+
+    !/* Create a property list from the class */
+    CALL H5Pcreate_f(cid1, lid1, error)
+    CALL check("H5Pcreate", error, total_error)
+
+    !/* Verify that the creation callback occurred */
+    CALL VERIFY("H5Pcreate", INT(crt_cb_struct%count), 1, total_error)
+    CALL VERIFY("H5Pcreate", INT(crt_cb_struct%id), INT(lid1), total_error)
+
+    ! /* Check the number of properties in list */
+    CALL H5Pget_nprops_f(lid1,nprops, error)
+    CALL check("H5Pget_nprops_f", error, total_error)
+    CALL VERIFY("H5Pget_nprops_f", INT(nprops), 4, total_error)
+
+    ! /* Create another property list from the class */
+    CALL H5Pcreate_f(cid1, lid2, error)
+    CALL check("H5Pcreate", error, total_error)
+
+    ! /* Verify that the creation callback occurred */
+    CALL VERIFY("H5Pcreate", INT(crt_cb_struct%count), 2, total_error)
+    CALL VERIFY("H5Pcreate", INT(crt_cb_struct%id), INT(lid2), total_error)
+
+    ! /* Check the number of properties in list */
+    CALL H5Pget_nprops_f(lid2,nprops, error)
+    CALL check("H5Pget_nprops_f", error, total_error)
+    CALL VERIFY("H5Pget_nprops_f", INT(nprops), 4, total_error)
+
+    ! /* Close first list */
+    CALL H5Pclose_f(lid1, error);
+    CALL check("h5pclose", error, total_error)
+
+    !/* Verify that the close callback occurred */
+    CALL VERIFY("H5Pcreate", INT(cls_cb_struct%count), 1, total_error)
+    CALL VERIFY("H5Pcreate", INT(cls_cb_struct%id), INT(lid1), total_error)
+
+    !/* Close second list */
+    CALL H5Pclose_f(lid2, error);
+    CALL check("h5pclose", error, total_error)
+
+    !/* Verify that the close callback occurred */
+    CALL VERIFY("H5Pcreate", INT(cls_cb_struct%count), 2, total_error)
+    CALL VERIFY("H5Pcreate", INT(cls_cb_struct%id), INT(lid2), total_error)
+
+    !/* Close class */
+    CALL H5Pclose_class_f(cid1, error)
+    CALL check("H5Pclose_class_f", error, total_error)
+
+  END SUBROUTINE test_genprop_class_callback
+
+
 
 
 ! *****************************************
@@ -803,13 +971,11 @@
     ! /* Compare data read in */
     DO i = 1, SPACE1_DIM1
        DO j = 1, ARRAY1_DIM1
-          PRINT*,wdata(i,j)%i,rdata(i,j)%i
           IF(wdata(i,j)%i.NE.rdata(i,j)%i)THEN
              PRINT*, 'ERROR: Wrong integer data is read back by H5Dread_f '
              total_error = total_error + 1
           ENDIF
           DO k = 1, ARRAY2_DIM1
-             PRINT*,wdata(i,j)%f(k), rdata(i,j)%f(k)
              IF(wdata(i,j)%f(k).NE.rdata(i,j)%f(k))THEN
                 PRINT*, 'ERROR: Wrong real array data is read back by H5Dread_f '
                 total_error = total_error + 1
@@ -821,7 +987,6 @@
           ENDDO
        ENDDO
     ENDDO
-    stop
 
     ! /* Close Datatype */
     CALL h5tclose_f(tid1,error)
@@ -1072,14 +1237,16 @@
        ENDDO
     ENDDO
 
+    f_ptr = C_LOC(fld)
 
-    CALL h5dwrite_f(dataset, TYPE, C_LOC(fld), rdims, error )
+    CALL h5dwrite_f(dataset, TYPE, f_ptr, rdims, error )
     CALL check("h5dwrite_f", error, total_error)
 
 
     ! /* Read just the field changed */
     
-    CALL H5Dread_f(dataset, TYPE, C_LOC(fldr), rdims1, error)
+    f_ptr = C_LOC(fldr)
+    CALL H5Dread_f(dataset, TYPE, f_ptr, rdims1, error)
     CALL check("H5Dread_f", error, total_error)
 
     DO i = 1, LENGTH
@@ -1101,7 +1268,8 @@
 
     ! /* Read the entire dataset again */
 
-    CALL H5Dread_f(dataset, TYPE, C_LOC(cfr), rdims1, error)
+    f_ptr = C_LOC(cfr)
+    CALL H5Dread_f(dataset, TYPE, f_ptr, rdims1, error)
     CALL check("H5Dread_f", error, total_error)
 
 
@@ -1159,7 +1327,8 @@
        cfr(i)%c(:) = 0
     ENDDO
 
-    CALL H5Dread_f(dataset, TYPE, C_LOC(cfr), rdims1, error)
+    f_ptr = C_LOC(cfr)
+    CALL H5Dread_f(dataset, TYPE, f_ptr, rdims1, error)
     CALL check("H5Dread_f", error, total_error)
 
     !/* Verify correct data */

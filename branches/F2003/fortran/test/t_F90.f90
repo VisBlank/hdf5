@@ -69,6 +69,16 @@ SUBROUTINE test_getset(cleanup, total_error)
 
 END SUBROUTINE test_getset
 
+SUBROUTINE test_genprop_class_callback(total_error)
+
+  IMPLICIT NONE
+  INTEGER, INTENT(INOUT) :: total_error
+
+  RETURN
+
+END SUBROUTINE test_genprop_class_callback
+
+
 ! *****************************************
 ! ***        H 5 T   T E S T S
 ! *****************************************
