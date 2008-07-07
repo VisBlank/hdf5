@@ -242,7 +242,7 @@
        INTEGER(hid_t) :: id
     END TYPE cb_struct
 
-    TYPE(cb_struct) :: crt_cb_struct, cls_cb_struct
+    TYPE(cb_struct), TARGET :: crt_cb_struct, cls_cb_struct
 
     CHARACTER(LEN=7) :: CLASS1_NAME = "Class 1"
     TYPE(C_FUNPTR) :: f1, f3, f5
