@@ -1080,7 +1080,7 @@ H5_FCDLL int_f nh5pget_nlinks_c(hid_t_f *lapl_id, size_t_f *nlinks); /* MSB */
 #   define nh5rget_object_type_obj_c H5_FC_FUNC_(h5rget_object_type_obj_c, H5RGET_OBJECT_TYPE_OBJ_C)
 #   define nh5rget_name_object_c H5_FC_FUNC_(h5rget_name_object_c, H5RGET_NAME_OBJECT_C)
 #   define nh5rget_name_region_c H5_FC_FUNC_(h5rget_name_region_c, H5RGET_NAME_REGION_C)
-#   define nh5rget_name_ptr_c H5_FC_FUNC_(h5rget_name_ptr_c, H5RGET_NAME_ptr_C)
+#   define nh5rget_name_ptr_c H5_FC_FUNC_(h5rget_name_ptr_c, H5RGET_NAME_PTR_C)
 
 
 H5_FCDLL int_f nh5rcreate_object_c (haddr_t_f *ref, hid_t_f *loc_id, _fcd name, int_f *namelen);
