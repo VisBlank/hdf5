@@ -2995,7 +2995,7 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
-!DEC$attributes dllexport :: h5dread_f
+!DEC$attributes dllexport :: h5dread_ptr
 !DEC$endif
 
     USE, INTRINSIC :: ISO_C_BINDING
