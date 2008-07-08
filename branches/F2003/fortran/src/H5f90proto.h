@@ -1188,6 +1188,8 @@ H5_FCDLL int_f nh5zget_filter_info_c (int_f *filter, int_f *flag);
 # define nh5lmove_c H5_FC_FUNC_(h5lmove_c, H5LMOVE_C) /* MSB */
 # define nh5lget_name_by_idx_c H5_FC_FUNC_(h5lget_name_by_idx_c, H5LGET_NAME_BY_IDX_C) /* MSB */
 # define nh5lget_val_c H5_FC_FUNC_(h5lget_val_c, H5LGET_VAL_C) /* MSB */
+# define nh5literate_c H5_FC_FUNC_(h5literate_c, H5LITERATE_C) /* MSB */
+
 
 H5_FCDLL int_f nh5lcopy_c(hid_t_f *src_loc_id, _fcd src_name, size_t_f *src_namelen, hid_t_f *dest_loc_id, 
 			  _fcd dest_name, size_t_f *dest_namelen,
@@ -1222,5 +1224,7 @@ H5_FCDLL int_f nh5lget_name_by_idx_c(hid_t_f *loc_id, _fcd group_name, size_t_f 
 				     size_t_f *size, _fcd name, hid_t_f *lapl_id); /*MSB*/
 H5_FCDLL int_f nh5lget_val_c(hid_t_f *link_loc_id, _fcd link_name, size_t_f *link_namelen, size_t_f *size, 
 			     void *linkval_buff, hid_t_f *lapl_id) ;
+
+H5_FCDLL int_f nh5literate_c(hid_t_f *group_id, int_f *index_type, int_f *order, hsize_t_f *idx, H5L_iterate_t op, void *op_data );
 
 #endif /* _H5f90proto_H */

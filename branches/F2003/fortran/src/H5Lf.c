@@ -775,7 +775,7 @@ done:
 
 /*----------------------------------------------------------------------------
  * Name:        h5lget_val_c
- * Purpose:     Call H5Lget_val_c
+ * Purpose:     Call H5Lget_val
  * Inputs: 
  *               link_loc_id - File or group identifier.
  *                 link_name - Link whose value is to be returned.
@@ -813,5 +813,48 @@ nh5lget_val_c(hid_t_f *link_loc_id, _fcd link_name, size_t_f *link_namelen, size
 done:
     return ret_value;
 }
+
+/*----------------------------------------------------------------------------
+ * Name:        h5literate_c
+ * Purpose:     Call H5Literate
+ * Inputs:   
+ *     group_id - Identifier specifying subject group
+ *   index_type - Type of index which determines the order
+ *        order - Order within index
+ *          idx - Iteration position at which to start
+ *           op - Callback function passing data regarding the link to the calling application
+ *      op_data - User-defined pointer to data required by the application for its processing of the link
+ *
+ * Outputs: 
+ *          idx - Position at which an interrupted iteration may be restarted
+ *
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  M.S. Breitenfeld
+ *              July 8, 2008
+ * Modifications: N/A
+ *---------------------------------------------------------------------------*/
+int_f
+nh5literate_c(hid_t_f *group_id, int_f *index_type, int_f *order, hsize_t_f *idx, H5L_iterate_t op, void *op_data )
+{
+  int_f ret_value = -1;       /* Return value */
+
+  hsize_t idx_c = 0;
+
+  idx_c = (hsize_t)*idx;
+
+  /*
+   * Call H5Linterate
+   */
+
+  if(H5Literate( (hid_t)*group_id, (H5_index_t)*index_type, (H5_iter_order_t)*order, &idx_c, op, op_data)< 0)
+    return ret_value;
+
+  *idx = (hsize_t_f)idx_c;
+
+  ret_value = 0;
+  return ret_value;
+}
+
+
 
 
