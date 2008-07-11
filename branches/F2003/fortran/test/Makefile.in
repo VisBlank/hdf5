@@ -184,6 +184,7 @@ F9XMODEXT = @F9XMODEXT@
 F9XMODFLAG = @F9XMODFLAG@
 F9XSUFFIXFLAG = @F9XSUFFIXFLAG@
 FC = @FC@
+FC2003 = @FC2003@
 FCFLAGS = @FCFLAGS@ @H5_FCFLAGS@
 FCFLAGS_f90 = @FCFLAGS_f90@
 FCLIBS = @FCLIBS@
@@ -204,6 +205,7 @@ HDF5_HL = @HDF5_HL@
 HDF5_INTERFACES = @HDF5_INTERFACES@
 HDF_CXX = @HDF_CXX@
 HDF_FORTRAN = @HDF_FORTRAN@
+HDF_FORTRAN2003 = @HDF_FORTRAN2003@
 HID_T = @HID_T@
 HL = @HL@
 HL_FOR = @HL_FOR@
@@ -392,11 +394,11 @@ noinst_LTLIBRARIES = libh5test_fortran.la
 # want to build a shared C library and a static Fortran library.  If so,
 # pass the -static flag to the library linker.
 @FORTRAN_SHARED_CONDITIONAL_FALSE@AM_LDFLAGS = -static
-@ISO_C_BINDING_CONDITIONAL_F_FALSE@ff_PREFIX = F90
+@FORTRAN_2003_CONDITIONAL_F_FALSE@ff_PREFIX = F90
 
 # Check if the compiler supports the Fortran 2003 standard
-# which includes the intrinsic module iso_c_binding
-@ISO_C_BINDING_CONDITIONAL_F_TRUE@ff_PREFIX = F03
+# which should include the intrinsic module iso_c_binding
+@FORTRAN_2003_CONDITIONAL_F_TRUE@ff_PREFIX = F03
 
 # Our main targets, the tests themselves
 TEST_PROG = fortranlib_test fflush1 fflush2 fortranlib_test_1_8
