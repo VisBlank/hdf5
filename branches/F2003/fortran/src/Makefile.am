@@ -46,8 +46,8 @@ else
 endif
 
 # Check if the compiler supports the Fortran 2003 standard
-# which includes the intrinsic module iso_c_binding
-if ISO_C_BINDING_CONDITIONAL_F
+# which should include the intrinsic module iso_c_binding
+if FORTRAN_2003_CONDITIONAL_F
    H5Dff_PREFIX = H5Dff_F03
    H5Aff_PREFIX = H5Aff_F03
    H5Pff_PREFIX = H5Pff_F03
