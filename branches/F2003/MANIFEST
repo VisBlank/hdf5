@@ -196,6 +196,7 @@
 ./fortran/src/H5Iff.f90
 ./fortran/src/H5Lf.c
 ./fortran/src/H5Lff.f90
+./fortran/src/H5Lff_F03.f90
 ./fortran/src/H5Of.c
 ./fortran/src/H5Off.f90
 ./fortran/src/H5Pf.c
