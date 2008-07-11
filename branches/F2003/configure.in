@@ -129,6 +129,7 @@ dnl EXTERNAL_FILTERS equals all external filters. Default none.
 dnl MPE: whether MPE option is enabled. Default no.
 dnl STATIC_EXEC: whether static-exec is enabled. Default no.
 dnl HDF_FORTRAN: whether Fortran is enabled. Default no.
+dnl HDF_FORTRAN2003: whether Fortran 2003 is enabled. Default no.
 dnl FC: Fortran compiler.
 dnl HDF_CXX: whether C++ is enabled. Default no.
 dnl CXX: C++ compiler.
@@ -149,7 +150,9 @@ AC_SUBST(EXTERNAL_FILTERS)
 AC_SUBST(MPE) MPE=no
 AC_SUBST(STATIC_EXEC) STATIC_EXEC=no
 AC_SUBST(HDF_FORTRAN) HDF_FORTRAN=no
+AC_SUBST(HDF_FORTRAN2003) HDF_FORTRAN2003=no
 AC_SUBST(FC) HDF_FORTRAN=no
+AC_SUBST(FC2003) HDF_FORTRAN2003=no
 AC_SUBST(HDF_CXX) HDF_CXX=no
 AC_SUBST(CXX) HDF_CXX=no
 AC_SUBST(HDF5_HL) HDF5_HL=yes
@@ -312,16 +315,44 @@ dnl ----------------------------------------------------------------------
 dnl Check if they would like the Fortran interface compiled
 dnl
 AC_SUBST([HDF5_INTERFACES]) HDF5_INTERFACES=""
+
 AC_MSG_CHECKING([if Fortran interface enabled])
 AC_ARG_ENABLE([fortran],
               [AC_HELP_STRING([--enable-fortran],
-                              [Compile the Fortran interface [default=no]])],
+                              [Compile the Fortran 77/90/95 interface [default=no]])],
               [HDF_FORTRAN=$enableval])
+
+dnl ----------------------------------------------------------------------
+dnl Check if they would like the Fortran 2003 interface compiled
+dnl
+AC_ARG_ENABLE([fortran2003],
+              [AC_HELP_STRING([--enable-fortran2003],
+                              [Compile the Fortran 2003 interface [default=no]])],
+              [HDF_FORTRAN2003=$enableval])
+
+dnl If Fortran 2003 interface enabled then mark that the general 
+dnl Fortran interface is also enabled
+
+if test "X$HDF_FORTRAN2003" = "Xyes"; then
+ AC_SUBST(FC) HDF_FORTRAN=yes
+fi
 
 if test "X$HDF_FORTRAN" = "Xyes"; then
   echo "yes"
 
   HDF5_INTERFACES="$HDF5_INTERFACES fortran"
+
+  dnl --------------------------------------------------------------------
+  dnl For FORTRAN 2003 compliant compilers
+  dnl
+
+  AC_MSG_CHECKING([if Fortran 2003 interface enabled])
+  if test "X$HDF_FORTRAN2003" = "Xyes"; then
+       echo "yes"
+       HAVE_FORTRAN_2003="yes"
+  else
+       echo "no"
+  fi	
 
   dnl --------------------------------------------------------------------
   dnl HDF5 integer variables for the H5fortran_types.f90 file.
@@ -383,15 +414,18 @@ dnl     FCFLAGS="$FCFLAGS_saved")
 
   dnl --------------------------------------------------------------------
   dnl See if the compiler supports the "ISO_C_BINDING" module
-  dnl
-  AC_MSG_CHECKING([if Fortran compiler supports ISO_C_BINDING module])
+  dnl NOTE:
+  dnl This test is not used, but in the future one might want to 
+  dnl test which features of 2003 are provided and this is an example
+  dnl how to do it.
 
-  HAVE_ISO_C_BINDING="no"	
-  AC_TRY_COMPILE(,[	
-      use iso_c_binding	
-	], [AC_MSG_RESULT(yes)
-     	HAVE_ISO_C_BINDING="yes"] ,
-     AC_MSG_RESULT(no))
+dnl  	AC_MSG_CHECKING([if Fortran compiler supports ISO_C_BINDING module])
+dnl	
+dnl  	AC_TRY_COMPILE(,[	
+dnl      	use iso_c_binding	
+dnl	], [AC_MSG_RESULT(yes)
+dnl     	HAVE_ISO_C_BINDING="yes"] ,
+dnl     AC_MSG_RESULT(no))
 
   dnl Change back to the C language
   AC_LANG_POP(Fortran)
@@ -399,7 +433,7 @@ else
   echo "no"
 fi
 
-AM_CONDITIONAL([ISO_C_BINDING_CONDITIONAL_F], [test "X$HAVE_ISO_C_BINDING" = "Xyes"])
+AM_CONDITIONAL([FORTRAN_2003_CONDITIONAL_F], [test "X$HAVE_FORTRAN_2003" = "Xyes"])
 
 dnl ----------------------------------------------------------------------
 dnl Check if they would like the C++ interface compiled
@@ -754,7 +788,7 @@ dnl Furthermore, the name of the compiler might tell us how to run the
 dnl resulting executable. For `mpif90' the executable should be run with
 dnl `mpirun' from the same directory as mpif90 if it exists.
 dnl
-if test "X$HDF_FORTRAN" = "Xyes"; then
+if test "X$HDF_FORTRAN" = "Xyes" ; then
   dnl Change to the Fortran 90 language
   AC_LANG_PUSH(Fortran)
 
