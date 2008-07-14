@@ -348,10 +348,26 @@ if test "X$HDF_FORTRAN" = "Xyes"; then
 
   AC_MSG_CHECKING([if Fortran 2003 interface enabled])
   if test "X$HDF_FORTRAN2003" = "Xyes"; then
-       echo "yes"
-       HAVE_FORTRAN_2003="yes"
-  else
+
+    dnl -------------------------------------------------------------------
+    dnl As of Sun Studio 12, Sun's Fortran 2003 implemenation is to restrictive
+    dnl on its definition of interoperable. Thus the important function
+    dnl C_LOC(X) does not work when X is a derived type or when X is a 
+    dnl character string with LEN>1. Therefore we do not support the
+    dnl the functions that required Fortran 2003 compliance when using the
+    dnl sun compiler.
+
+    if (${FC} -V 2>&1 | grep 'Sun Fortran') > /dev/null; then
+       HAVE_FORTRAN_2003="no"
        echo "no"
+       echo "     warning: Sun Fortran 2003 compiler NOT supported"
+    else
+       echo "yes"
+       HAVE_FORTRAN_2003="yes"	
+    fi
+
+  else
+    echo "no"
   fi	
 
   dnl --------------------------------------------------------------------
@@ -878,7 +894,6 @@ dnl Fortran.  This prevents building shared libraries and also prevents
 dnl trying to link against shared libraries.
 if test "X${HDF_FORTRAN}" = "Xyes"; then
   H5_FORTRAN_SHARED="yes"
-
   if (${FC} -V 2>&1 | grep '^pgf90') > /dev/null; then
     H5_FORTRAN_SHARED="no"
   fi
@@ -905,6 +920,9 @@ if test "X${HDF_FORTRAN}" = "Xyes"; then
 fi
 
 AM_CONDITIONAL([FORTRAN_SHARED_CONDITIONAL], [test "X$H5_FORTRAN_SHARED" = "Xyes"])
+
+
+	
 
 dnl ----------------------------------------------------------------------
 dnl Shared C++ libraries seem not to work on some platforms (modi4, shanti)
