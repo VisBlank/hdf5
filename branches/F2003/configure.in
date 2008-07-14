@@ -360,7 +360,7 @@ if test "X$HDF_FORTRAN" = "Xyes"; then
     if (${FC} -V 2>&1 | grep 'Sun Fortran') > /dev/null; then
        HAVE_FORTRAN_2003="no"
        echo "no"
-       echo "     warning: Sun Fortran 2003 compiler NOT supported"
+       AC_MSG_WARN([Sun Fortran 2003 compiler not supported; disabling Fortran 2003 features])
     else
        echo "yes"
        HAVE_FORTRAN_2003="yes"	
