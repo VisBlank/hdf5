@@ -16,7 +16,7 @@
 !
 ! This file contains Fortran90 interfaces for H5L functions.
 !
-MODULE H5L
+MODULE H5L_F03
 
   USE H5GLOBAL
 
@@ -95,4 +95,4 @@ CONTAINS
 
   END SUBROUTINE h5literate_f
 
-END MODULE H5L
+END MODULE H5L_F03
