@@ -828,7 +828,7 @@ done:
  * Outputs: 
  *          idx - Position at which an interrupted iteration may be restarted
  *
- * Returns:     0 on success, -1 on failure
+ * Returns:     >0 on success, 0< on failure
  * Programmer:  M.S. Breitenfeld
  *              July 8, 2008
  * Modifications: N/A
@@ -837,7 +837,7 @@ int_f
 nh5literate_c(hid_t_f *group_id, int_f *index_type, int_f *order, hsize_t_f *idx, H5L_iterate_t op, void *op_data )
 {
   int_f ret_value = -1;       /* Return value */
-
+  herr_t func_ret_value; /* H5Linterate return value */
   hsize_t idx_c = 0;
 
   idx_c = (hsize_t)*idx;
@@ -846,12 +846,11 @@ nh5literate_c(hid_t_f *group_id, int_f *index_type, int_f *order, hsize_t_f *idx
    * Call H5Linterate
    */
 
-  if(H5Literate( (hid_t)*group_id, (H5_index_t)*index_type, (H5_iter_order_t)*order, &idx_c, op, op_data)< 0)
-    return ret_value;
+  func_ret_value = H5Literate( (hid_t)*group_id, (H5_index_t)*index_type, (H5_iter_order_t)*order, &idx_c, op, op_data);
 
+  ret_value = (int_f)func_ret_value;
   *idx = (hsize_t_f)idx_c;
 
-  ret_value = 0;
   return ret_value;
 }
 

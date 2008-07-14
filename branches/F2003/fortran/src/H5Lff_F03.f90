@@ -23,7 +23,7 @@ MODULE H5L_F03
 CONTAINS
 
 !----------------------------------------------------------------------
-! Name:		h5linterate_f 
+! Name:		h5literate_f 
 !
 ! Purpose: 	Iterates through links in a group.
 !
@@ -49,7 +49,7 @@ CONTAINS
 !
 ! Comment:		
 !----------------------------------------------------------------------
-  SUBROUTINE h5literate_f(group_id, index_type, order, idx, op, op_data, hdferr) 
+  SUBROUTINE h5literate_f(group_id, index_type, order, idx, op, op_data, return_value, hdferr) 
 !
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
@@ -72,9 +72,16 @@ CONTAINS
     TYPE(C_FUNPTR):: op      ! Callback function passing data regarding the link to the calling application
     TYPE(C_PTR)   :: op_data ! User-defined pointer to data required by the application for its processing of the link
 
+    INTEGER, INTENT(OUT) :: return_value ! Success:   The return value of the first operator that
+ 				         !            returns non-zero, or zero if all members were
+ 				         !            processed with no operator returning non-zero.
+ 
+ 		                         ! Failure:   Negative if something goes wrong within the
+ 				         !            library, or the negative value returned by one
+ 				         !            of the operators.
 
-    INTEGER, INTENT(OUT) :: hdferr        ! Error code: 
-                                          ! 0 on success and -1 on failure
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code: 
+                                         ! 0 on success and -1 on failure
     INTERFACE
        INTEGER FUNCTION h5literate_c(group_id, index_type, order, idx, op, op_data)
          USE ISO_C_BINDING
@@ -91,7 +98,13 @@ CONTAINS
        END FUNCTION h5literate_c
     END INTERFACE
 
-    hdferr = h5literate_c(group_id, index_type, order, idx, op, op_data)
+    return_value = h5literate_c(group_id, index_type, order, idx, op, op_data)
+
+    IF(return_value.GE.0)THEN
+       hdferr = 0
+    ELSE
+       hdferr = -1
+    END IF
 
   END SUBROUTINE h5literate_f
 
