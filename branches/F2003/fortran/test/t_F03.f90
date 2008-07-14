@@ -530,7 +530,7 @@ SUBROUTINE test_iter_group(total_error)
     CALL h5tcreate_f(H5T_COMPOUND_F, sizeof_compound, comp_type_id, error)
     CALL check("h5tcreate_f", error, total_error)
 
-    CALL h5tinsert_f(comp_type_id, "a", 0, H5T_NATIVE_REAL, error)
+    CALL h5tinsert_f(comp_type_id, "a", INT(0,SIZE_T), H5T_NATIVE_REAL, error)
     CALL check("h5tinsert_f", error, total_error)
     CALL h5tinsert_f(comp_type_id, "x", type_sizer, H5T_NATIVE_INTEGER, error)
     CALL check("h5tinsert_f", error, total_error)
