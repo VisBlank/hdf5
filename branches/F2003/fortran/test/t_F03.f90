@@ -31,7 +31,7 @@ MODULE liter_cb_mod
 
   !/* Custom group iteration callback data */
   TYPE iter_info
-     CHARACTER(LEN=80) :: name ! /* The name of the object */
+     CHARACTER(LEN=10) :: name ! /* The name of the object */
      INTEGER :: TYPE         ! /* The TYPE of the object */
      INTEGER :: command !/* The TYPE of RETURN value */
   END TYPE iter_info
@@ -51,7 +51,7 @@ CONTAINS
     IMPLICIT NONE
 
     INTEGER(HID_T) group
-    CHARACTER(LEN=80) :: name
+    CHARACTER(LEN=10) :: name
     INTEGER :: link_info
 
     TYPE(iter_info) :: op_data
@@ -65,7 +65,7 @@ CONTAINS
 !!$    static int count2 = 0;
 
     op_data%name = name
-!    HDstrcpy(info->name, name);
+
 
     SELECT CASE (op_data%command)
 
@@ -140,9 +140,9 @@ SUBROUTINE test_iter_group(total_error)
     INTEGER i                  !/* counting variable */
     INTEGER(hsize_t) idx            !/* Index in the group */
     CHARACTER(LEN=11) :: DATAFILE = "titerate.h5"
-    INTEGER, PARAMETER :: ndatasets = 25
-    CHARACTER(LEN=80) :: name ! /* temporary name buffer */
-    CHARACTER(LEN=80), DIMENSION(1:ndatasets+2) :: lnames ! /* Names of the links created */
+    INTEGER, PARAMETER :: ndatasets = 50
+    CHARACTER(LEN=10) :: name ! /* temporary name buffer */
+    CHARACTER(LEN=10), DIMENSION(1:ndatasets+2) :: lnames ! /* Names of the links created */
 !!$    char dataset_name[NAMELEN];  /* dataset name */
 
     TYPE(iter_info), TARGET :: info
@@ -152,18 +152,16 @@ SUBROUTINE test_iter_group(total_error)
 !!$    herr_t ret;		    /* Generic return value */
 
     INTEGER :: error
+    INTEGER :: ret_value
     TYPE(C_PTR) :: f_ptr
     TYPE(C_FUNPTR) :: f1
     TYPE(C_PTR) :: f2
-    character(LEN=2) :: ichr2
-
-    !/* Output message about test being performed */
-    PRINT*,"Testing Group Iteration Functionality"
+    CHARACTER(LEN=2) :: ichr2
+    CHARACTER(LEN=10) :: ichr10
 
     !/* Get the default FAPL */
     CALL H5Pcreate_f(H5P_FILE_ACCESS_F, fapl, error)
     CALL check("h5pcreate_f", error, total_error)
-
 
     !/* Set the "use the latest version of the format" bounds for creating objects in the file */
     CALL H5Pset_libver_bounds_f(fapl, H5F_LIBVER_LATEST_F, H5F_LIBVER_LATEST_F, error)
@@ -182,18 +180,11 @@ SUBROUTINE test_iter_group(total_error)
     f1 = C_FUNLOC(liter_cb)
     f2 = C_LOC(info)
 
-    CALL H5Literate_f(file, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, f1, f2, error);
+    CALL H5Literate_f(file, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, f1, f2, ret_value, error);
     CALL check("H5Literate_f", error, total_error)
-
-!!$    ret = H5Literate(file, H5_INDEX_NAME, H5_ITER_INC, &idx, liter_cb, &info);
-!!$    VERIFY(ret, SUCCEED, "H5Literate");
 
     CALL H5Tcopy_f(H5T_NATIVE_INTEGER, datatype, error)
     CALL check("H5Tcopy_f", error, total_error)
-
-!!$
-!!$    datatype = H5Tcopy(H5T_NATIVE_INT);
-!!$    CHECK(datatype, FAIL, "H5Tcopy");
 
     CALL H5Screate_f(H5S_SCALAR_F, filespace, error)
     CALL check("H5Screate_f", error, total_error)
@@ -212,36 +203,23 @@ SUBROUTINE test_iter_group(total_error)
        CALL check("H5dclose_f", error, total_error)
 
     ENDDO
-!!$
-!!$    for(i=0; i< NDATASETS; i++) {
-!!$        sprintf(name,"Dataset %d",i);
-!!$        dataset = H5Dcreate2(file, name, datatype, filespace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-!!$        CHECK(dataset, FAIL, "H5Dcreate2");
-!!$
-!!$        /* Keep a copy of the dataset names around for later */
-!!$        lnames[i] = HDstrdup(name);
-!!$        CHECK(lnames[i], NULL, "strdup");
-!!$
-!!$        ret = H5Dclose(dataset);
-!!$        CHECK(ret, FAIL, "H5Dclose");
-!!$    } /* end for */
-!!$
-!!$    /* Create a group and named datatype under root group for testing */
 
-    CALL H5Gcreate_f(file, "grp", grp, error)
+    ! /* Create a group and named datatype under root group for testing */
+
+    CALL H5Gcreate_f(file, "grp0000000", grp, error)
     CALL check("H5Gcreate_f", error, total_error)
 
-    lnames(ndatasets+1) = "grp" 
+    lnames(ndatasets+2) = "grp0000000" 
 
 !!$
 !!$    lnames[NDATASETS] = HDstrdup("grp");
 !!$    CHECK(lnames[NDATASETS], NULL, "strdup");
 !!$
     
-    CALL H5Tcommit_f(file, "dtype", datatype, error)
+    CALL H5Tcommit_f(file, "dtype00000", datatype, error)
     CALL check("H5Tcommit_f", error, total_error)
 
-    lnames(ndatasets+2) = "dtype" 
+    lnames(ndatasets+1) = "dtype00000" 
 
     ! /* Close everything up */
 
@@ -256,123 +234,55 @@ SUBROUTINE test_iter_group(total_error)
 
     CALL H5Fclose_f(file, error)
     CALL check("H5Fclose_f", error, total_error)
- 
-!!$
-!!$    /* Sort the dataset names */
-!!$    HDqsort(lnames, (size_t)(NDATASETS + 2), sizeof(char *), iter_strcmp);
-!!$
 
     ! /* Iterate through the datasets in the root group in various ways */
     CALL H5Fopen_f(DATAFILE, H5F_ACC_RDONLY_F, file, error, access_prp=fapl)
     CALL check("h5fopen_f", error, total_error)
 
+    !/* Test all objects in group, when callback always returns 0 */
+    info%command = 0
+    idx = 0
+    CALL H5Literate_f(file, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, f1, f2, ret_value, error)
+    IF(ret_value.GT.0)THEN
+       PRINT*,"ERROR: Group iteration function didn't return zero correctly!"
+       CALL check("H5Literate_f", error, -1, total_error)
+    ENDIF
 
-    !/* These two functions, H5Oget_info_by_idx and H5Lget_name_by_idx, actually
-    ! * iterate through B-tree for group members in internal library design.
-    ! */
+    !  /* Test all objects in group, when callback always returns 1 */
+    !  /* This also tests the "restarting" ability, because the index changes */
+    
+    info%command = 2
+    idx = 0
+    i = 0
 
-!!$    CALL H5Gopen_f(file, "/", root_group, error)
-!!$    CALL check("h5gopen_f", error, total_error)
+    DO 
+       f1 = C_FUNLOC(liter_cb)
+       f2 = C_LOC(info)
 
-!!$
-!!$    ret = H5Gget_info(root_group, &ginfo);
-!!$    CHECK(ret, FAIL, "H5Gget_info");
-!!$    VERIFY(ginfo.nlinks, (NDATASETS + 2), "H5Gget_info");
-!!$
-!!$    for(i = 0; i< (int)ginfo.nlinks; i++) {
-!!$        H5O_info_t oinfo;               /* Object info */
-!!$
-!!$        ret = (herr_t)H5Lget_name_by_idx(root_group, ".", H5_INDEX_NAME, H5_ITER_INC, (hsize_t)i, dataset_name, (size_t)NAMELEN, H5P_DEFAULT);
-!!$        CHECK(ret, FAIL, "H5Lget_name_by_idx");
-!!$
-!!$        ret = H5Oget_info_by_idx(root_group, ".", H5_INDEX_NAME, H5_ITER_INC, (hsize_t)i, &oinfo, H5P_DEFAULT);
-!!$        CHECK(ret, FAIL, "H5Oget_info_by_idx");
-!!$    } /* end for */
-!!$
-!!$    H5E_BEGIN_TRY {
-!!$        ret = (herr_t)H5Lget_name_by_idx(root_group, ".", H5_INDEX_NAME, H5_ITER_INC, (hsize_t)(NDATASETS+3), dataset_name, (size_t)NAMELEN, H5P_DEFAULT);
-!!$    } H5E_END_TRY;
-!!$    VERIFY(ret, FAIL, "H5Lget_name_by_idx");
-!!$
-!!$    ret = H5Gclose(root_group);
-!!$    CHECK(ret, FAIL, "H5Gclose");
-!!$
-!!$    /* These two functions, H5Oget_info_by_idx and H5Lget_name_by_idx, actually
-!!$     * iterate through B-tree for group members in internal library design.
-!!$     *  (Same as test above, but with the file ID instead of opening the root group)
-!!$     */
-!!$    ret = H5Gget_info(file, &ginfo);
-!!$    CHECK(ret, FAIL, "H5Gget_info");
-!!$    VERIFY(ginfo.nlinks, NDATASETS + 2, "H5Gget_info");
-!!$
-!!$    for(i = 0; i< (int)ginfo.nlinks; i++) {
-!!$        H5O_info_t oinfo;               /* Object info */
-!!$
-!!$        ret = (herr_t)H5Lget_name_by_idx(file, ".", H5_INDEX_NAME, H5_ITER_INC, (hsize_t)i, dataset_name, (size_t)NAMELEN, H5P_DEFAULT);
-!!$        CHECK(ret, FAIL, "H5Lget_name_by_idx");
-!!$
-!!$        ret = H5Oget_info_by_idx(file, ".", H5_INDEX_NAME, H5_ITER_INC, (hsize_t)i, &oinfo, H5P_DEFAULT);
-!!$        CHECK(ret, FAIL, "H5Oget_info_by_idx");
-!!$    } /* end for */
-!!$
-!!$    H5E_BEGIN_TRY {
-!!$        ret = (herr_t)H5Lget_name_by_idx(file, ".", H5_INDEX_NAME, H5_ITER_INC, (hsize_t)(NDATASETS + 3), dataset_name, (size_t)NAMELEN, H5P_DEFAULT);
-!!$    } H5E_END_TRY;
-!!$    VERIFY(ret, FAIL, "H5Lget_name_by_idx");
-!!$
-!!$    /* Test invalid indices for starting iteration */
-!!$    info.command = RET_ZERO;
-!!$    idx = (hsize_t)-1;
-!!$    H5E_BEGIN_TRY {
-!!$        ret = H5Literate(file, H5_INDEX_NAME, H5_ITER_INC, &idx, liter_cb, &info);
-!!$    } H5E_END_TRY;
-!!$    VERIFY(ret, FAIL, "H5Literate");
-!!$
-!!$    /* Test skipping exactly as many entries as in the group */
-!!$    idx = NDATASETS + 2;
-!!$    H5E_BEGIN_TRY {
-!!$        ret = H5Literate(file, H5_INDEX_NAME, H5_ITER_INC, &idx, liter_cb, &info);
-!!$    } H5E_END_TRY;
-!!$    VERIFY(ret, FAIL, "H5Literate");
-!!$
-!!$    /* Test skipping more entries than are in the group */
-!!$    idx = NDATASETS + 3;
-!!$    H5E_BEGIN_TRY {
-!!$        ret = H5Literate(file, H5_INDEX_NAME, H5_ITER_INC, &idx, liter_cb, &info);
-!!$    } H5E_END_TRY;
-!!$    VERIFY(ret, FAIL, "H5Literate");
-!!$
-!!$    /* Test all objects in group, when callback always returns 0 */
-!!$    info.command = RET_ZERO;
-!!$    idx = 0;
-!!$    if((ret = H5Literate(file, H5_INDEX_NAME, H5_ITER_INC, &idx, liter_cb, &info)) > 0)
-!!$        TestErrPrintf("Group iteration function didn't return zero correctly!\n");
-!!$
-!!$    /* Test all objects in group, when callback always returns 1 */
-!!$    /* This also tests the "restarting" ability, because the index changes */
-!!$    info.command = RET_TWO;
-!!$    idx = i = 0;
-!!$    while((ret = H5Literate(file, H5_INDEX_NAME, H5_ITER_INC, &idx, liter_cb, &info)) > 0) {
-!!$        /* Verify return value from iterator gets propagated correctly */
-!!$        VERIFY(ret, 2, "H5Literate");
-!!$
-!!$        /* Increment the number of times "2" is returned */
-!!$        i++;
-!!$
-!!$        /* Verify that the index is the correct value */
-!!$        VERIFY(idx, (hsize_t)i, "H5Literate");
-!!$        if(idx > (NDATASETS + 2))
-!!$            TestErrPrintf("Group iteration function walked too far!\n");
-!!$
-!!$        /* Verify that the correct name is retrieved */
-!!$        if(HDstrcmp(info.name, lnames[(size_t)(idx - 1)]) != 0)
-!!$            TestErrPrintf("Group iteration function didn't return name correctly for link - lnames[%u] = '%s'!\n", (unsigned)(idx - 1), lnames[(size_t)(idx - 1)]);
-!!$    } /* end while */
-!!$    VERIFY(ret, -1, "H5Literate");
-!!$
-!!$    if(i != (NDATASETS + 2))
-!!$        TestErrPrintf("%u: Group iteration function didn't perform multiple iterations correctly!\n", __LINE__);
-!!$
+       CALL H5Literate_f(file, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, f1, f2, ret_value, error)
+       IF(error.LT.0) EXIT
+       ! /* Verify return value from iterator gets propagated correctly */
+       CALL VERIFY("H5Literate", ret_value, 2, total_error)
+       ! /* Increment the number of times "2" is returned */
+       i = i + 1
+       !/* Verify that the index is the correct value */
+       CALL VERIFY("H5Literate", INT(idx), INT(i), total_error)
+       IF(idx .GT.ndatasets+2)THEN
+          PRINT*,"ERROR: Group iteration function walked too far!"
+       ENDIF
+       
+ !/* Verify that the correct name is retrieved */
+       CALL verifystring("H5Literate_f", info%name, lnames(INT(idx)), total_error)
+
+    END DO
+
+    CALL VERIFY("H5Literate_f", error,-1, total_error)
+
+    IF(i .NE. (NDATASETS + 2)) THEN
+       CALL VERIFY("H5Literate_f", i, INT(NDATASETS + 2), total_error)
+       PRINT*,"ERROR: Group iteration function didn't perform multiple iterations correctly"
+    ENDIF
+
     !/* Test all objects in group, when callback changes return value */
     !/* This also tests the "restarting" ability, because the index changes */
 
@@ -384,62 +294,32 @@ SUBROUTINE test_iter_group(total_error)
        f1 = C_FUNLOC(liter_cb)
        f2 = C_LOC(info)
 
-       CALL H5Literate_f(file, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, f1, f2, error)
+       CALL H5Literate_f(file, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, f1, f2, ret_value, error)
        IF(error.LT.0) EXIT
-       CALL VERIFY("H5Literate1", error, 0)
+       CALL VERIFY("H5Literate_f", ret_value, 1, total_error)
 
        !/* Increment the number of times "1" is returned */
        i = i + 1
 
        !/* Verify that the index is the correct value */
-       CALL VERIFY("H5Literate2", INT(idx), INT(i+10), total_error)
+       CALL VERIFY("H5Literate_f", INT(idx), INT(i+10), total_error)
+
        IF(idx .GT.ndatasets+2)THEN
           PRINT*,"Group iteration function walked too far!"
        ENDIF
 
        !/* Verify that the correct name is retrieved */
-
-       PRINT*,idx
-       PRINT*,info%name,lnames(INT(idx))
-
-       CALL verifystring("H5Literate_f3", info%name, lnames(INT(idx)), total_error)
+       CALL verifystring("H5Literate_f", info%name, lnames(INT(idx)), total_error)
     ENDDO
+
+    IF(i .NE. 42 .OR. idx .NE. 52)THEN
+       PRINT*,"ERROR: Group iteration function didn't perform multiple iterations correctly!"
+       CALL check("H5Literate_f",-1,total_error)
+    ENDIF
 
     CALL H5Fclose_f(file, error)
     CALL check("H5Fclose_f", error, total_error)    
        
-
-!!$    info.command = new_format ? RET_CHANGE2 : RET_CHANGE;
-!!$    idx = i = 0;
-!!$    while((ret = H5Literate(file, H5_INDEX_NAME, H5_ITER_INC, &idx, liter_cb, &info)) >= 0) {
-!!$        /* Verify return value from iterator gets propagated correctly */
-!!$        VERIFY(ret, 1, "H5Literate");
-!!$
-!!$        /* Increment the number of times "1" is returned */
-!!$        i++;
-!!$
-!!$        /* Verify that the index is the correct value */
-!!$        VERIFY(idx, (hsize_t)(i + 10), "H5Literate");
-!!$        if(idx > (NDATASETS + 2))
-!!$            TestErrPrintf("Group iteration function walked too far!\n");
-!!$
-!!$        /* Verify that the correct name is retrieved */
-!!$        if(HDstrcmp(info.name, lnames[(size_t)(idx - 1)]) != 0)
-!!$            TestErrPrintf("Group iteration function didn't return name correctly for link - lnames[%u] = '%s'!\n", (unsigned)(idx - 1), lnames[(size_t)(idx - 1)]);
-!!$    } /* end while */
-!!$    VERIFY(ret, -1, "H5Literate");
-!!$
-!!$    if(i != 42 || idx != 52)
-!!$        TestErrPrintf("%u: Group iteration function didn't perform multiple iterations correctly!\n", __LINE__);
-!!$
-!!$    ret = H5Fclose(file);
-!!$    CHECK(ret, FAIL, "H5Fclose");
-!!$
-!!$    /* Free the dataset names */
-!!$    for(i = 0; i< (NDATASETS + 2); i++)
-!!$        HDfree(lnames[i]);
-!!$} /* test_iter_group() */
-
   END SUBROUTINE test_iter_group
 
 ! *****************************************
