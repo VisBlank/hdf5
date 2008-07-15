@@ -58,6 +58,7 @@ else
    H5Aff_PREFIX = H5Aff_F90
    H5Pff_PREFIX = H5Pff_F90
    H5Rff_PREFIX = H5Rff_F90
+   H5Lff_PREFIX = H5Lff_F90
 endif
 
 # Source files for the library.
