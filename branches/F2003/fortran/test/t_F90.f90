@@ -15,6 +15,34 @@
 !
 
 ! *****************************************
+! ***        H 5 L   T E S T S
+! *****************************************
+
+!/*-------------------------------------------------------------------------
+! * Function:	test_iter_group
+! *
+! * Purpose:	Dummy function in replace of Fortran 2003 routines
+! *
+! * Return:	Success:	0
+! *		Failure:	number of errors
+! *
+! * Programmer:	M.S. Breitenfeld
+! *             July 15, 2008
+! *
+! *-------------------------------------------------------------------------
+! */
+
+SUBROUTINE test_iter_group(total_error)
+  
+  IMPLICIT NONE
+  INTEGER, INTENT(INOUT) :: total_error
+
+  RETURN
+
+END SUBROUTINE test_iter_group
+
+
+! *****************************************
 ! ***        H 5 P   T E S T S
 ! *****************************************
 
