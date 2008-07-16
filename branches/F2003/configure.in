@@ -363,6 +363,7 @@ if test "X$HDF_FORTRAN" = "Xyes"; then
 
     if (${FC} -V 2>&1 | grep '^Intel(R) Fortran Compiler') > /dev/null; then
 	echo "yes"
+	HAVE_FORTRAN_2003="yes"
     else	
         HAVE_FORTRAN_2003="no"
         echo "no"
