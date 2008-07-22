@@ -245,7 +245,7 @@ SUBROUTINE test_iter_group(total_error)
     CALL H5Literate_f(file, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, f1, f2, ret_value, error)
     IF(ret_value.GT.0)THEN
        PRINT*,"ERROR: Group iteration function didn't return zero correctly!"
-       CALL check("H5Literate_f", error, -1, total_error)
+       CALL verify("H5Literate_f", error, -1, total_error)
     ENDIF
 
     !  /* Test all objects in group, when callback always returns 1 */
@@ -359,10 +359,10 @@ SUBROUTINE test_iter_group(total_error)
     CHARACTER(LEN=14) :: filename ='test_create.h5'
 
     ! /* compound datatype operations */
-    TYPE comp_datatype
-       REAL*4 :: a
-       INTEGER :: x
-       REAL*8 :: y
+    TYPE, BIND(C) :: comp_datatype
+       REAL(C_FLOAT) :: a
+       INTEGER(C_INT) :: x
+       REAL(C_DOUBLE) :: y
        CHARACTER(LEN=1) :: z
     END TYPE comp_datatype
 
@@ -426,13 +426,19 @@ SUBROUTINE test_iter_group(total_error)
     CALL check("H5Pset_fill_time_f",error, total_error)
   
   ! /* Compound datatype test */
+
     f_ptr = C_LOC(fill_ctype)
 
     CALL H5Pget_fill_value_f(dcpl, comp_type_id, f_ptr, error)
     CALL check("H5Pget_fill_value_f",error, total_error)
 
-    fill_ctype%y = 4444
-    fill_ctype%z = '4'
+    fill_ctype%y = 4444.
+    fill_ctype%z = 'S'
+    fill_ctype%a = 5555.
+    fill_ctype%x = 55
+
+    f_ptr = C_LOC(fill_ctype)
+
     CALL H5Pset_fill_value_f(dcpl, comp_type_id, f_ptr, error)
     CALL check("H5Pget_fill_value_f",error, total_error)
     
@@ -467,9 +473,9 @@ SUBROUTINE test_iter_group(total_error)
     CALL H5Pget_fill_value_f(dcpl, comp_type_id, f_ptr, error)
     CALL check("H5Pget_fill_value_f", error, total_error)
 
-    IF( rd_c%a .NE. 0.           .OR. &
+    IF( rd_c%a .NE. fill_ctype%a .OR. &
         rd_c%y .NE. fill_ctype%y .OR. &
-        rd_c%x .NE. 0.           .OR. &
+        rd_c%x .NE. fill_ctype%x .OR. &
         rd_c%z .NE. fill_ctype%z )THEN
 
        PRINT*,"***ERROR: Got wrong fill value"
