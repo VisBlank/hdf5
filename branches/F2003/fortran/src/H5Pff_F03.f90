@@ -391,8 +391,8 @@ CONTAINS
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of 
-    ! of fillvalue datatype
-    ! (in memory) 
+                                          ! of fillvalue datatype
+                                          ! (in memory) 
     CHARACTER, INTENT(OUT),TARGET :: fillvalue   ! Fillvalue
     INTEGER, INTENT(OUT) :: hdferr  ! Error code
     TYPE(C_PTR) :: f_ptr ! C address
@@ -414,15 +414,14 @@ CONTAINS
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of 
-    ! of fillvalue datatype 
-    ! (in memory)
-    TYPE(C_PTR), INTENT(IN), TARGET :: fillvalue  ! Fillvalue
+                                          ! of fillvalue datatype 
+                                          ! (in memory)
+    TYPE(C_PTR), VALUE :: fillvalue  ! Fillvalue
     INTEGER, INTENT(OUT) :: hdferr  ! Error code
 
     hdferr = h5pset_fill_value_c(prp_id, type_id, fillvalue)
 
   END SUBROUTINE h5pset_fill_value_ptr
-
 
   SUBROUTINE h5pget_fill_value_ptr(prp_id, type_id, fillvalue, hdferr) 
     !
