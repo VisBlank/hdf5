@@ -22,11 +22,13 @@
 ! values in the H5f90.h file. 
       INTEGER, PARAMETER :: REF_REG_BUF_LEN = 3 
 
-      TYPE hobj_ref_t_f
+!      TYPE, bind(C) :: hobj_ref_t_f
+      TYPE :: hobj_ref_t_f
          INTEGER(HADDR_T) ref
       END TYPE hobj_ref_t_f
 
-      TYPE hdset_reg_ref_t_f
+!      TYPE, bind(C) :: hdset_reg_ref_t_f
+      TYPE :: hdset_reg_ref_t_f
          INTEGER ref(REF_REG_BUF_LEN) 
       END TYPE hdset_reg_ref_t_f
 

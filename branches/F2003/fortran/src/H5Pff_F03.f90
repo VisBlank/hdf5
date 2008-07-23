@@ -393,13 +393,33 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of 
                                           ! of fillvalue datatype
                                           ! (in memory) 
-    CHARACTER, INTENT(OUT),TARGET :: fillvalue   ! Fillvalue
+    CHARACTER, INTENT(OUT) :: fillvalue   ! Fillvalue
     INTEGER, INTENT(OUT) :: hdferr  ! Error code
-    TYPE(C_PTR) :: f_ptr ! C address
 
-    f_ptr = C_LOC(fillvalue)
+    INTEGER :: i
+    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
+    INTEGER :: chr_len
+
+    TYPE(C_PTR) :: f_ptr ! C address
+    ! To resolve Issue #1 outlined in the preamble of this file we
+    ! need to pack the character string into an array.
+
+    chr_len = LEN(fillvalue)
+    ALLOCATE(chr(1:chr_len), STAT=hdferr)
+    IF (hdferr .NE. 0) THEN
+       hdferr = -1
+       RETURN
+    ENDIF
+
+    f_ptr = C_LOC(chr)
 
     hdferr = h5pget_fill_value_c(prp_id, type_id, f_ptr)
+
+    DO i = 1, chr_len
+       fillvalue(i:i) = chr(i)
+    ENDDO
+    DEALLOCATE(chr)
+
 
   END SUBROUTINE h5pget_fill_value_char
 
@@ -619,15 +639,35 @@ CONTAINS
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
-    CHARACTER(LEN=*),   INTENT(IN), TARGET :: value ! Property value
+    CHARACTER(LEN=*),   INTENT(IN) :: value ! Property value
     INTEGER, INTENT(OUT) :: hdferr  ! Error code
-    INTEGER :: name_len   
-    TYPE(C_PTR) :: f_ptr
+    INTEGER :: name_len
 
-    f_ptr = C_LOC(value)
+    INTEGER :: i
+    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
+    INTEGER :: chr_len
+
+    TYPE(C_PTR) :: f_ptr
+    ! To resolve Issue #1 outlined in the preamble of this file we
+    ! need to pack the character string into an array.
+
+    chr_len = LEN(value)
+    ALLOCATE(chr(1:chr_len), STAT=hdferr)
+    IF (hdferr .NE. 0) THEN
+       hdferr = -1
+       RETURN
+    ENDIF
+
+    DO i = 1, chr_len
+       chr(i) = value(i:i)
+    ENDDO
+
+    f_ptr = C_LOC(chr)
 
     name_len = LEN(name)
     hdferr = h5pget_c(prp_id, name, name_len, f_ptr)
+
+    DEALLOCATE(chr)
 
   END SUBROUTINE h5pset_char
 
@@ -806,15 +846,31 @@ CONTAINS
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
-    CHARACTER(LEN=*), INTENT(OUT), TARGET :: value ! Property value
+    CHARACTER(LEN=*), INTENT(OUT) :: value ! Property value
     INTEGER, INTENT(OUT) :: hdferr  ! Error code
     INTEGER :: name_len
+
+    INTEGER :: i
+    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
+    INTEGER :: chr_len
     TYPE(C_PTR) :: f_ptr
 
-    f_ptr = C_LOC(value)
+    chr_len = LEN(value)
+    ALLOCATE(chr(1:chr_len), STAT=hdferr)
+    IF (hdferr .NE. 0) THEN
+       hdferr = -1
+       RETURN
+    ENDIF
+    f_ptr = C_LOC(chr)
 
     name_len = LEN(name)
     hdferr = h5pget_c(prp_id, name, name_len, f_ptr)
+
+    DO i = 1, chr_len
+       value(i:i) = chr(i)
+    ENDDO
+
+    DEALLOCATE(chr)
 
   END SUBROUTINE h5pget_char
 
@@ -1050,15 +1106,34 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: class   ! Property list class identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to register
     INTEGER(SIZE_T), INTENT(IN) :: size  ! size of the property value	
-    CHARACTER(LEN=*),   INTENT(IN), TARGET :: value        ! Property value
+    CHARACTER(LEN=*),   INTENT(IN) :: value        ! Property value
     INTEGER, INTENT(OUT) :: hdferr  ! Error code
     INTEGER :: name_len
-    TYPE(C_PTR) :: f_ptr
 
-    f_ptr = C_LOC(value)
+    INTEGER :: i
+    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
+    INTEGER :: chr_len
+
+    TYPE(C_PTR) :: f_ptr
+    ! To resolve Issue #1 outlined in the preamble of this file we
+    ! need to pack the character string into an array.
+
+    chr_len = LEN(value)
+    ALLOCATE(chr(1:chr_len), STAT=hdferr)
+    IF (hdferr .NE. 0) THEN
+       hdferr = -1
+       RETURN
+    ENDIF
+
+    DO i = 1, chr_len
+       chr(i) = value(i:i)
+    ENDDO
+
+    f_ptr = C_LOC(chr)
 
     name_len = LEN(name)
     hdferr = h5pregister_c(class, name, name_len, size, f_ptr)
+    DEALLOCATE(chr)
   END SUBROUTINE h5pregister_char
 
   !----------------------------------------------------------------------
@@ -1294,15 +1369,35 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: plist      ! Property list identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name     ! Name of property to insert 
     INTEGER(SIZE_T), INTENT(IN) :: size      ! Size of property value	
-    CHARACTER(LEN=*),   INTENT(IN), TARGET :: value  ! Property value
+    CHARACTER(LEN=*),   INTENT(IN) :: value  ! Property value
     INTEGER, INTENT(OUT) :: hdferr           ! Error code
     INTEGER :: name_len
-    TYPE(c_ptr) :: f_ptr
 
-    f_ptr = c_loc(value)
+    INTEGER :: i
+    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
+    INTEGER :: chr_len
+
+    TYPE(c_ptr) :: f_ptr
+    ! To resolve Issue #1 outlined in the preamble of this file we
+    ! need to pack the character string into an array.
+
+    chr_len = LEN(value)
+    ALLOCATE(chr(1:chr_len), STAT=hdferr)
+    IF (hdferr .NE. 0) THEN
+       hdferr = -1
+       RETURN
+    ENDIF
+
+    DO i = 1, chr_len
+       chr(i) = value(i:i)
+    ENDDO
+
+    f_ptr = C_LOC(chr)
 
     name_len = LEN(name)
     hdferr = h5pinsert_c(plist, name , name_len, size, f_ptr)
+
+    DEALLOCATE(chr)
 
   END SUBROUTINE h5pinsert_char
 
@@ -1432,11 +1527,11 @@ CONTAINS
     END INTERFACE
     name_len = LEN(name)
     
-    create_default = c_null_funptr
+    create_default = c_null_funptr     !fix:scot
     create_data_default = c_null_ptr
-    copy_default = c_null_funptr
+    copy_default = c_null_funptr    !fix:scot
     copy_data_default = c_null_ptr
-    close_default = c_null_funptr
+    close_default = c_null_funptr   !fix:scot
     close_data_default = c_null_ptr
     
     IF(PRESENT(create)) create_default = create
