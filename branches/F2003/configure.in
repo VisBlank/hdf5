@@ -360,15 +360,16 @@ if test "X$HDF_FORTRAN" = "Xyes"; then
     dnl other compilers have various other problems.....
     dnl Only Intel's fortran compiler has all the features required
 
-
-    if (${FC} -V 2>&1 | grep '^Intel(R) Fortran Compiler') > /dev/null; then
-	echo "yes"
-	HAVE_FORTRAN_2003="yes"
-    else	
-        HAVE_FORTRAN_2003="no"
-        echo "no"
-        AC_MSG_WARN([Only Intel's Fortran 2003 compiler supported; disabling Fortran 2003 features])
-    fi
+    HAVE_FORTRAN_2003="yes"
+	
+dnl    if (${FC} -V 2>&1 | grep '^Intel(R) Fortran Compiler') > /dev/null; then
+dnl	echo "yes"
+dnl	HAVE_FORTRAN_2003="yes"
+dnl    else	
+dnl        HAVE_FORTRAN_2003="no"
+dnl        echo "no"
+dnl        AC_MSG_WARN([Only Intel's Fortran 2003 compiler supported; disabling Fortran 2003 features])
+dnl    fi
 
     dnl 
     dnl    if (${FC} -V 2>&1 | grep 'Sun Fortran') > /dev/null; then
