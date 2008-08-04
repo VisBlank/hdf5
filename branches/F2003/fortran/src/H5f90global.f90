@@ -1,3 +1,5 @@
+! COPYRIGHT
+!
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
@@ -12,6 +14,21 @@
 !   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+!
+! NAME
+!    H5GLOBAL
+!
+! DESCRIPTION
+!    Definitions for reference datatypes.
+!
+! USES
+!    H5FORTRAN_TYPES - This module is generated at run time. See 
+!                      H5fortran_types.f90 for further informaton.
+!
+! NOTES
+!    If you change the values of the variables declared as PARAMETER, 
+!    the corresponding values must be changed in the H5f90.h file
+!
 !
     MODULE H5GLOBAL
       USE H5FORTRAN_TYPES
