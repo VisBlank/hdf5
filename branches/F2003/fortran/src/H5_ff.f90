@@ -15,6 +15,7 @@
 !
 MODULE H5LIB
 
+
 CONTAINS
 !----------------------------------------------------------------------
 ! Name:		h5open_f 
@@ -388,4 +389,20 @@ CONTAINS
     error = h5dont_atexit_c()
     
   END SUBROUTINE h5dont_atexit_f
+
+  INTEGER(SIZE_T) FUNCTION HOFFSETOF(start,END) RESULT(diff)
+    USE, INTRINSIC :: ISO_C_BINDING
+    USE H5GLOBAL
+    IMPLICIT NONE
+
+    TYPE(C_PTR), VALUE, INTENT(IN) :: start, end
+    INTEGER(C_INTPTR_T) :: int_address_start, int_address_end
+
+    int_address_start = TRANSFER(start, int_address_start)
+    int_address_end   = TRANSFER(end  , int_address_end  )
+
+    diff = int_address_end - int_address_start
+
+  END FUNCTION HOFFSETOF
+
 END MODULE H5LIB
