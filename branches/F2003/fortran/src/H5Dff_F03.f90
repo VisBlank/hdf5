@@ -3559,7 +3559,7 @@ CONTAINS
 
   END SUBROUTINE h5dread_double_7
 
-  SUBROUTINE h5dwrite_ptr(dset_id, mem_type_id, buf, dims, hdferr, &
+  SUBROUTINE h5dwrite_ptr(dset_id, mem_type_id, buf, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
@@ -3570,7 +3570,6 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     TYPE(C_PTR), INTENT(INOUT) :: buf
-    INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims ! not used
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
     ! Memory dataspace identfier
@@ -3596,7 +3595,7 @@ CONTAINS
 
   END SUBROUTINE h5dwrite_ptr
 
-  SUBROUTINE h5dread_ptr(dset_id, mem_type_id, buf, dims, hdferr, &
+  SUBROUTINE h5dread_ptr(dset_id, mem_type_id, buf, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
@@ -3608,7 +3607,6 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     TYPE(C_PTR), INTENT(INOUT) :: buf
-    INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims ! not used
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
     ! Memory dataspace identfier

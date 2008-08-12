@@ -15,7 +15,6 @@
 !
 MODULE H5LIB
 
-
 CONTAINS
 !----------------------------------------------------------------------
 ! Name:		h5open_f 
@@ -390,7 +389,15 @@ CONTAINS
     
   END SUBROUTINE h5dont_atexit_f
 
-  INTEGER(SIZE_T) FUNCTION HOFFSETOF(start,END) RESULT(diff)
+!F2003 only code
+
+  INTEGER(SIZE_T) FUNCTION hoffsetof(start,end) RESULT(diff)
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: hoffsetof
+!DEC$endif
+!
     USE, INTRINSIC :: ISO_C_BINDING
     USE H5GLOBAL
     IMPLICIT NONE
@@ -403,6 +410,24 @@ CONTAINS
 
     diff = int_address_end - int_address_start
 
-  END FUNCTION HOFFSETOF
+  END FUNCTION hoffsetof
+
+  INTEGER FUNCTION h5t_typeof(kind) RESULT(TYPE)
+    USE H5GLOBAL
+    IMPLICIT NONE
+    INTEGER, INTENT(in) :: kind
+
+    IF(kind.EQ.Fortran_INTEGER_1)THEN
+       type = H5T_NATIVE_INTEGER_1
+    ELSE IF(kind.EQ.Fortran_INTEGER_2)THEN
+       type = H5T_NATIVE_INTEGER_2
+    ELSE IF(kind.EQ.Fortran_INTEGER_4)THEN
+       type = H5T_NATIVE_INTEGER_4
+    ELSE IF(kind.EQ.Fortran_INTEGER_8)THEN
+       type = H5T_NATIVE_INTEGER_8
+    ENDIF
+
+
+  END FUNCTION h5t_typeof
 
 END MODULE H5LIB

@@ -49,9 +49,9 @@
          INTEGER ref(REF_REG_BUF_LEN) 
       END TYPE hdset_reg_ref_t_f
 
-      INTEGER, PARAMETER :: PREDEF_TYPES_LEN = 6 ! Do not forget to change this
-                                                 ! value when new predefined
-                                                 ! datatypes are added
+      INTEGER, PARAMETER :: PREDEF_TYPES_LEN = 10 ! Do not forget to change this
+                                                  ! value when new predefined
+                                                  ! datatypes are added
       ! Do not forget to change the following line when new predefined 
       ! floating data types are added
       INTEGER, PARAMETER :: FLOATING_TYPES_LEN = 4
@@ -60,7 +60,11 @@
       ! integer data types are added
       INTEGER, PARAMETER :: INTEGER_TYPES_LEN = 17
 
-      INTEGER(HID_T) H5T_NATIVE_INTEGER, &
+      INTEGER(HID_T) H5T_NATIVE_INTEGER_1, &
+           H5T_NATIVE_INTEGER_2, &
+           H5T_NATIVE_INTEGER_4, &
+           H5T_NATIVE_INTEGER_8, &
+           H5T_NATIVE_INTEGER, &
            H5T_NATIVE_REAL, &
            H5T_NATIVE_DOUBLE, &
            H5T_NATIVE_CHARACTER , &
@@ -96,6 +100,11 @@
       EQUIVALENCE (predef_types(4), H5T_NATIVE_CHARACTER)
       EQUIVALENCE (predef_types(5), H5T_STD_REF_OBJ)
       EQUIVALENCE (predef_types(6), H5T_STD_REF_DSETREG)
+      EQUIVALENCE (predef_types(7), H5T_NATIVE_INTEGER_1)
+      EQUIVALENCE (predef_types(8), H5T_NATIVE_INTEGER_2)
+      EQUIVALENCE (predef_types(9), H5T_NATIVE_INTEGER_4)
+      EQUIVALENCE (predef_types(10), H5T_NATIVE_INTEGER_8)
+      
       
       INTEGER(HID_T), DIMENSION(FLOATING_TYPES_LEN) :: floating_types
       EQUIVALENCE (floating_types(1), H5T_IEEE_F32BE )

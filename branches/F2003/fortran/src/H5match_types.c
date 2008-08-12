@@ -154,6 +154,10 @@ int main()
   c_header = fopen(CFILE, "w");
   fort_header = fopen(FFILE, "w");
 
+  int FoundIntSize[4];
+  int i,j, flag;
+  char chr17[17],chr7[7];
+
   /* Write copyright, boilerplate to both files */
   initCfile();
   initFfile();
@@ -361,6 +365,74 @@ int main()
     /* Error: couldn't find a size for int */
     return -1;
 #endif
+
+
+  /* int_1, int_2, int_4, int_5 */
+
+/* Defined different KINDs of integers:                       */
+/* if the integer kind is not available then we assign        */
+/* it a value of the next larger one, but if the next         */
+/* higher one is not available we assigned it the next lowest */
+
+    FoundIntSize[0] = -1;
+    FoundIntSize[1] = -2;
+    FoundIntSize[2] = -4;
+    FoundIntSize[3] = -8;
+
+#if defined H5_FORTRAN_HAS_INTEGER_1
+    FoundIntSize[0] = 1;
+#endif
+#if defined H5_FORTRAN_HAS_INTEGER_2
+    FoundIntSize[1] = 2;
+#endif
+#if defined H5_FORTRAN_HAS_INTEGER_4
+    FoundIntSize[2] = 4;
+#endif
+#if defined H5_FORTRAN_HAS_INTEGER_8
+    FoundIntSize[3] = 8;
+#endif
+
+    for(i=0;i<4;i++) {
+      if( FoundIntSize[i] > 0) /* Found the integer type */
+	{
+	  sprintf(chr17, "Fortran_INTEGER_%d", FoundIntSize[i]);
+	  sprintf(chr7, "int_%d_f", FoundIntSize[i]);
+	  writeToFiles(chr17, chr7, FoundIntSize[i]);
+	}
+      else  /* Did not find the integer type */
+	{
+	  flag = 0; /* flag indicating if found the next highest */
+	  for(j=i+1;j<4;j++)  /* search for next highest */
+	    {
+	      if( FoundIntSize[j] > 0) /* Found the next highest */
+		{
+		  sprintf(chr17, "Fortran_INTEGER_%d", (-1)*FoundIntSize[i]);
+		  sprintf(chr7, "int_%d_f", (-1)*FoundIntSize[i]);
+		  writeToFiles(chr17, chr7, FoundIntSize[j]);
+		  flag = 1;
+		  break;
+		}
+	    }
+	  if(flag == 0) /* No higher one found, so find next lowest */
+	    {
+	      for(j=2;j>-1;j--)  /* Search for next lowest */
+		{
+		  if( FoundIntSize[j] > 0) /* Found the next lowest */
+		    {
+		      sprintf(chr17, "Fortran_INTEGER_%d", (-1)*FoundIntSize[i]);
+		      sprintf(chr7, "int_%d_f", (-1)*FoundIntSize[i]);
+		      writeToFiles(chr17, chr7, FoundIntSize[j]);
+		      flag = 1;
+		      break;
+		    }
+		}
+	    }
+	  if(flag == 0) /* No higher or lower one found, indicating an error */
+	    {
+	     return -1; 
+	    }
+	}
+    }
 
   /* hid_t */
 #if defined H5_FORTRAN_HAS_INTEGER_8 && H5_SIZEOF_HID_T >= 8
