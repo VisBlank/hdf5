@@ -155,8 +155,10 @@ int main()
   fort_header = fopen(FFILE, "w");
 
   int FoundIntSize[4];
+  int FoundRealSize[3];
+  int FoundDoubleSize[2];
   int i,j, flag;
-  char chr17[17],chr7[7];
+  char chrA[20],chrB[20];
 
   /* Write copyright, boilerplate to both files */
   initCfile();
@@ -367,7 +369,7 @@ int main()
 #endif
 
 
-  /* int_1, int_2, int_4, int_5 */
+  /* int_1, int_2, int_4, int_8 */
 
 /* Defined different KINDs of integers:                       */
 /* if the integer kind is not available then we assign        */
@@ -395,9 +397,9 @@ int main()
     for(i=0;i<4;i++) {
       if( FoundIntSize[i] > 0) /* Found the integer type */
 	{
-	  sprintf(chr17, "Fortran_INTEGER_%d", FoundIntSize[i]);
-	  sprintf(chr7, "int_%d_f", FoundIntSize[i]);
-	  writeToFiles(chr17, chr7, FoundIntSize[i]);
+	  sprintf(chrA, "Fortran_INTEGER_%d", FoundIntSize[i]);
+	  sprintf(chrB, "int_%d_f", FoundIntSize[i]);
+	  writeToFiles(chrA, chrB, FoundIntSize[i]);
 	}
       else  /* Did not find the integer type */
 	{
@@ -406,9 +408,9 @@ int main()
 	    {
 	      if( FoundIntSize[j] > 0) /* Found the next highest */
 		{
-		  sprintf(chr17, "Fortran_INTEGER_%d", (-1)*FoundIntSize[i]);
-		  sprintf(chr7, "int_%d_f", (-1)*FoundIntSize[i]);
-		  writeToFiles(chr17, chr7, FoundIntSize[j]);
+		  sprintf(chrA, "Fortran_INTEGER_%d", (-1)*FoundIntSize[i]);
+		  sprintf(chrB, "int_%d_f", (-1)*FoundIntSize[i]);
+		  writeToFiles(chrA, chrB, FoundIntSize[j]);
 		  flag = 1;
 		  break;
 		}
@@ -419,9 +421,9 @@ int main()
 		{
 		  if( FoundIntSize[j] > 0) /* Found the next lowest */
 		    {
-		      sprintf(chr17, "Fortran_INTEGER_%d", (-1)*FoundIntSize[i]);
-		      sprintf(chr7, "int_%d_f", (-1)*FoundIntSize[i]);
-		      writeToFiles(chr17, chr7, FoundIntSize[j]);
+		      sprintf(chrA, "Fortran_INTEGER_%d", (-1)*FoundIntSize[i]);
+		      sprintf(chrB, "int_%d_f", (-1)*FoundIntSize[i]);
+		      writeToFiles(chrA, chrB, FoundIntSize[j]);
 		      flag = 1;
 		      break;
 		    }
@@ -433,6 +435,153 @@ int main()
 	    }
 	}
     }
+
+  /* real_4, real_8, real_16 */
+
+/* Defined different KINDs of reals:                          */
+/* if the REAL kind is not available then we assign           */
+/* it a value of the next larger one, but if the next         */
+/* higher one is not available we assigned it the next lowest */
+
+    FoundRealSize[0] = -4;
+    FoundRealSize[1] = -8;
+    FoundRealSize[2] = -16;
+
+#if defined H5_FORTRAN_HAS_REAL_NATIVE_4
+    FoundRealSize[0] = 4;
+#endif
+#if defined H5_FORTRAN_HAS_REAL_NATIVE_8
+    FoundRealSize[1] = 8;
+#endif
+#if defined H5_FORTRAN_HAS_DOUBLE_NATIVE_8
+    FoundRealSize[1] = 8;
+#endif
+#if defined H5_FORTRAN_HAS_REAL_NATIVE_16
+    FoundRealSize[2] = 16;
+#endif
+#if defined H5_FORTRAN_HAS_DOUBLE_NATIVE_16
+    FoundRealSize[2] = 16;
+#endif
+
+    for(i=0;i<3;i++) {
+      if( FoundRealSize[i] > 0) /* Found the real type */
+	{
+	  if(FoundRealSize[i]>4) {
+	    sprintf(chrA, "Fortran_REAL_%d", FoundRealSize[i]);
+	    sprintf(chrB, "real_%d_f", FoundRealSize[i]);
+	    writeDoubleToFiles(chrA, chrB, FoundRealSize[i]);
+	  }
+	  else {
+	    sprintf(chrA, "Fortran_REAL_%d", FoundRealSize[i]);
+	    sprintf(chrB, "real_%d_f", FoundRealSize[i]);
+	    writeFloatToFiles(chrA, chrB, FoundRealSize[i]);
+	  }
+	}
+      else  /* Did not find the real type */
+	{
+	  flag = 0; /* flag indicating if found the next highest */
+	  for(j=i+1;j<3;j++)  /* search for next highest */
+	    {
+	      if( FoundRealSize[j] > 0) /* Found the next highest */
+		{
+		  sprintf(chrA, "Fortran_REAL_%d", (-1)*FoundRealSize[i]);
+		  sprintf(chrB, "real_%d_f", (-1)*FoundRealSize[i]);
+		  if(FoundRealSize[j]>4) {
+		    writeDoubleToFiles(chrA, chrB, FoundRealSize[j]);
+		    flag = 1;
+		  }
+		  else {
+		    writeFloatToFiles(chrA, chrB, FoundRealSize[j]);
+		  }
+		  flag = 1;
+		  break;
+		}
+	    }
+	  if(flag == 0) /* No higher one found, so find next lowest */
+	    {
+	      for(j=1;j>-1;j--)  /* Search for next lowest */
+		{
+		  if( FoundRealSize[j] > 0) /* Found the next lowest */
+		    {
+		      sprintf(chrA, "Fortran_REAL_%d", (-1)*FoundRealSize[i]);
+		      sprintf(chrB, "real_%d_f", (-1)*FoundRealSize[i]);
+		      if(FoundRealSize[j]>4) {
+			writeDoubleToFiles(chrA, chrB, FoundRealSize[j]);
+		      }
+		      else {
+			writeFloatToFiles(chrA, chrB, FoundRealSize[j]);
+		      }
+		      flag = 1;
+		      break;
+		    }
+		}
+	    }
+	  if(flag == 0) /* No higher or lower one found, indicating an error */
+	    {
+	     return -1; 
+	    }
+	}
+    }
+
+  /* double_8, double_16 */
+
+/* Defined different KINDs of double:                          */
+/* if the DOUBLE kind is not available then we assign           */
+/* it a value of the next larger one, but if the next         */
+/* higher one is not available we assigned it the next lowest */
+
+/*     FoundDoubleSize[0] = -8; */
+/*     FoundDoubleSize[1] = -16; */
+
+/* #if defined H5_FORTRAN_HAS_DOUBLE_NATIVE_8 */
+/*     FoundDoubleSize[0] = 8; */
+/* #endif */
+/* #if defined H5_FORTRAN_HAS_DOUBLE_NATIVE_16 */
+/*     FoundDoubleSize[1] = 16; */
+/* #endif */
+
+
+/*     for(i=0;i<2;i++) { */
+/*       if( FoundDoubleSize[i] > 0) /\* Found the real type *\/ */
+/* 	{ */
+/* 	  sprintf(chrA, "Fortran_DOUBLE_%d", FoundDoubleSize[i]); */
+/* 	  sprintf(chrB, "double_%d_f", FoundDoubleSize[i]); */
+/* 	  writeDoubleToFiles(chrA, chrB, FoundDoubleSize[i]); */
+/* 	} */
+/*       else  /\* Did not find the double type *\/ */
+/* 	{ */
+/* 	  flag = 0; /\* flag indicating if found the next highest *\/ */
+/* 	  for(j=i+1;j<2;j++)  /\* search for next highest *\/ */
+/* 	    { */
+/* 	      if( FoundDoubleSize[j] > 0) /\* Found the next highest *\/ */
+/* 		{ */
+/* 		  sprintf(chrA, "Fortran_DOUBLE_%d", (-1)*FoundDoubleSize[i]); */
+/* 		  sprintf(chrB, "double_%d_f", (-1)*FoundDoubleSize[i]); */
+/* 		  writeDoubleToFiles(chrA, chrB, FoundDoubleSize[j]); */
+/* 		  flag = 1; */
+/* 		  break; */
+/* 		} */
+/* 	    } */
+/* 	  if(flag == 0) /\* No higher one found, so find next lowest *\/ */
+/* 	    { */
+/* 	      for(j=0;j>-1;j--)  /\* Search for next lowest *\/ */
+/* 		{ */
+/* 		  if( FoundDoubleSize[j] > 0) /\* Found the next lowest *\/ */
+/* 		    { */
+/* 		      sprintf(chrA, "Fortran_DOUBLE_%d", (-1)*FoundDoubleSize[i]); */
+/* 		      sprintf(chrB, "double_%d_f", (-1)*FoundDoubleSize[i]); */
+/* 		      writeDoubleToFiles(chrA, chrB, FoundDoubleSize[j]); */
+/* 		      flag = 1; */
+/* 		      break; */
+/* 		    } */
+/* 		} */
+/* 	    } */
+/* 	  if(flag == 0) /\* No higher or lower one found, indicating an error *\/ */
+/* 	    { */
+/* 	     return -1;  */
+/* 	    } */
+/* 	} */
+/*     } */
 
   /* hid_t */
 #if defined H5_FORTRAN_HAS_INTEGER_8 && H5_SIZEOF_HID_T >= 8

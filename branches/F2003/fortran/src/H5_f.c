@@ -115,8 +115,7 @@ nh5init_types_c( hid_t_f * types, hid_t_f * floatingtypes, hid_t_f * integertype
     else if (sizeof(int_1_f) == sizeof(int)) {
       if ((types[6] = (hid_t_f)H5Tcopy(H5T_NATIVE_INT)) < 0) return ret_value;
     } /*end if */
-    else
-      if (sizeof(int_1_f) == sizeof(long_long)) {
+    else if (sizeof(int_1_f) == sizeof(long_long)) {
 	if ((types[6] = (hid_t_f)H5Tcopy(H5T_NATIVE_LLONG)) < 0) return ret_value;
     } /*end else */
 
@@ -129,8 +128,7 @@ nh5init_types_c( hid_t_f * types, hid_t_f * floatingtypes, hid_t_f * integertype
     else if (sizeof(int_2_f) == sizeof(int)) {
       if ((types[7] = (hid_t_f)H5Tcopy(H5T_NATIVE_INT)) < 0) return ret_value;
     } /*end if */
-    else
-      if (sizeof(int_2_f) == sizeof(long_long)) {
+    else if (sizeof(int_2_f) == sizeof(long_long)) {
 	if ((types[7] = (hid_t_f)H5Tcopy(H5T_NATIVE_LLONG)) < 0) return ret_value;
     } /*end else */
 
@@ -143,8 +141,7 @@ nh5init_types_c( hid_t_f * types, hid_t_f * floatingtypes, hid_t_f * integertype
     else if (sizeof(int_4_f) == sizeof(int)) {
       if ((types[8] = (hid_t_f)H5Tcopy(H5T_NATIVE_INT)) < 0) return ret_value;
     } /*end if */
-    else
-      if (sizeof(int_4_f) == sizeof(long_long)) {
+    else if (sizeof(int_4_f) == sizeof(long_long)) {
 	if ((types[8] = (hid_t_f)H5Tcopy(H5T_NATIVE_LLONG)) < 0) return ret_value;
     } /*end else */
 
@@ -157,12 +154,45 @@ nh5init_types_c( hid_t_f * types, hid_t_f * floatingtypes, hid_t_f * integertype
     else if (sizeof(int_8_f) == sizeof(int)) {
       if ((types[9] = (hid_t_f)H5Tcopy(H5T_NATIVE_INT)) < 0) return ret_value;
     } /*end if */
-    else
-      if (sizeof(int_8_f) == sizeof(long_long)) {
+    else if (sizeof(int_8_f) == sizeof(long_long)) {
 	if ((types[9] = (hid_t_f)H5Tcopy(H5T_NATIVE_LLONG)) < 0) return ret_value;
     } /*end else */
 
+    if (sizeof(real_4_f) == sizeof(float)) {
+      if ((types[10] = (hid_t_f)H5Tcopy(H5T_NATIVE_FLOAT)) < 0) return ret_value;
+    } /*end if */
+    else if (sizeof(real_4_f) == sizeof(double)) {
+      if ((types[10] = (hid_t_f)H5Tcopy(H5T_NATIVE_DOUBLE)) < 0) return ret_value;
+    } /*end if */
+#if H5_SIZEOF_LONG_DOUBLE!=0
+    else if (sizeof(real_4_f) == sizeof(long double)) {
+	if ((types[10] = (hid_t_f)H5Tcopy(H5T_NATIVE_LDOUBLE)) < 0) return ret_value;
+    } /*end else */
+#endif
 
+    if (sizeof(real_8_f) == sizeof(float)) {
+      if ((types[11] = (hid_t_f)H5Tcopy(H5T_NATIVE_FLOAT)) < 0) return ret_value;
+    } /*end if */
+    else if (sizeof(real_8_f) == sizeof(double)) {
+      if ((types[11] = (hid_t_f)H5Tcopy(H5T_NATIVE_DOUBLE)) < 0) return ret_value;
+    } /*end if */
+#if H5_SIZEOF_LONG_DOUBLE!=0
+    else if (sizeof(real_8_f) == sizeof(long double)) {
+	if ((types[11] = (hid_t_f)H5Tcopy(H5T_NATIVE_LDOUBLE)) < 0) return ret_value;
+    } /*end else */
+#endif
+
+    if (sizeof(real_16_f) == sizeof(float)) {
+      if ((types[12] = (hid_t_f)H5Tcopy(H5T_NATIVE_FLOAT)) < 0) return ret_value;
+    } /*end if */
+    else if (sizeof(real_16_f) == sizeof(double)) {
+      if ((types[12] = (hid_t_f)H5Tcopy(H5T_NATIVE_DOUBLE)) < 0) return ret_value;
+    } /*end if */
+#if H5_SIZEOF_LONG_DOUBLE!=0
+    else if (sizeof(real_16_f) == sizeof(long double)) {
+	if ((types[12] = (hid_t_f)H5Tcopy(H5T_NATIVE_LDOUBLE)) < 0) return ret_value;
+    } /*end else */
+#endif
 
     if ((floatingtypes[0] = (hid_t_f)H5Tcopy(H5T_IEEE_F32BE)) < 0) return ret_value;
     if ((floatingtypes[1] = (hid_t_f)H5Tcopy(H5T_IEEE_F32LE)) < 0) return ret_value;

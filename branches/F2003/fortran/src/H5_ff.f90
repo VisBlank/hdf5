@@ -391,7 +391,7 @@ CONTAINS
 
 !F2003 only code
 
-  INTEGER(SIZE_T) FUNCTION hoffsetof(start,end) RESULT(diff)
+  INTEGER(SIZE_T) FUNCTION h5offsetof(start,END) RESULT(diff)
 !
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
@@ -410,24 +410,45 @@ CONTAINS
 
     diff = int_address_end - int_address_start
 
-  END FUNCTION hoffsetof
+  END FUNCTION h5offsetof
 
-  INTEGER FUNCTION h5t_typeof(kind) RESULT(TYPE)
+  INTEGER(HID_T) FUNCTION h5kind_to_type(kind, flag) RESULT(h5_type)
+!
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: h5kind_to_type
+!DEC$endif
+!
     USE H5GLOBAL
     IMPLICIT NONE
     INTEGER, INTENT(in) :: kind
+    INTEGER, INTENT(in) :: flag
 
-    IF(kind.EQ.Fortran_INTEGER_1)THEN
-       type = H5T_NATIVE_INTEGER_1
-    ELSE IF(kind.EQ.Fortran_INTEGER_2)THEN
-       type = H5T_NATIVE_INTEGER_2
-    ELSE IF(kind.EQ.Fortran_INTEGER_4)THEN
-       type = H5T_NATIVE_INTEGER_4
-    ELSE IF(kind.EQ.Fortran_INTEGER_8)THEN
-       type = H5T_NATIVE_INTEGER_8
+    IF(flag.EQ.H5_INTEGER_KIND)THEN
+       IF(kind.EQ.Fortran_INTEGER_1)THEN
+          h5_type = H5T_NATIVE_INTEGER_1
+       ELSE IF(kind.EQ.Fortran_INTEGER_2)THEN
+          h5_type = H5T_NATIVE_INTEGER_2
+       ELSE IF(kind.EQ.Fortran_INTEGER_4)THEN
+          h5_type = H5T_NATIVE_INTEGER_4
+       ELSE IF(kind.EQ.Fortran_INTEGER_8)THEN
+          h5_type = H5T_NATIVE_INTEGER_8
+       ENDIF
+    ELSE IF(flag.EQ.H5_REAL_KIND)THEN
+
+       PRINT*,kind,Fortran_REAL_4,H5T_NATIVE_REAL_4
+       PRINT*,kind,Fortran_REAL_8,H5T_NATIVE_REAL_8
+
+       IF(kind.EQ.Fortran_REAL_4)THEN
+          h5_type = H5T_NATIVE_REAL_4
+       ELSE IF(kind.EQ.Fortran_REAL_8)THEN
+          h5_type = H5T_NATIVE_REAL_8
+       ELSE IF(kind.EQ.Fortran_REAL_16)THEN
+          h5_type = H5T_NATIVE_REAL_16
+       ENDIF
+       
     ENDIF
 
-
-  END FUNCTION h5t_typeof
+  END FUNCTION h5kind_to_type
 
 END MODULE H5LIB

@@ -39,7 +39,13 @@
 ! values in the H5f90.h file. 
       INTEGER, PARAMETER :: REF_REG_BUF_LEN = 3 
 
-!      TYPE, bind(C) :: hobj_ref_t_f
+! Parameters used in the function 'h5kind_to_type' located in H5_ff.f90.
+! The flag is used to tell the function whether the kind input variable
+! is for a REAL or INTEGER data type.
+
+      INTEGER, PARAMETER :: H5_REAL_KIND = 1
+      INTEGER, PARAMETER :: H5_INTEGER_KIND = 0
+
       TYPE :: hobj_ref_t_f
          INTEGER(HADDR_T) ref
       END TYPE hobj_ref_t_f
@@ -49,7 +55,7 @@
          INTEGER ref(REF_REG_BUF_LEN) 
       END TYPE hdset_reg_ref_t_f
 
-      INTEGER, PARAMETER :: PREDEF_TYPES_LEN = 10 ! Do not forget to change this
+      INTEGER, PARAMETER :: PREDEF_TYPES_LEN = 13 ! Do not forget to change this
                                                   ! value when new predefined
                                                   ! datatypes are added
       ! Do not forget to change the following line when new predefined 
@@ -104,6 +110,9 @@
       EQUIVALENCE (predef_types(8), H5T_NATIVE_INTEGER_2)
       EQUIVALENCE (predef_types(9), H5T_NATIVE_INTEGER_4)
       EQUIVALENCE (predef_types(10), H5T_NATIVE_INTEGER_8)
+      EQUIVALENCE (predef_types(11), H5T_NATIVE_REAL_4)
+      EQUIVALENCE (predef_types(12), H5T_NATIVE_REAL_8)
+      EQUIVALENCE (predef_types(13), H5T_NATIVE_REAL_16)
       
       
       INTEGER(HID_T), DIMENSION(FLOATING_TYPES_LEN) :: floating_types
