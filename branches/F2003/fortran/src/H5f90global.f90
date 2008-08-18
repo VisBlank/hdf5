@@ -70,6 +70,9 @@
            H5T_NATIVE_INTEGER_2, &
            H5T_NATIVE_INTEGER_4, &
            H5T_NATIVE_INTEGER_8, &
+           H5T_NATIVE_REAL_4, &
+           H5T_NATIVE_REAL_8, &
+           H5T_NATIVE_REAL_16, &
            H5T_NATIVE_INTEGER, &
            H5T_NATIVE_REAL, &
            H5T_NATIVE_DOUBLE, &

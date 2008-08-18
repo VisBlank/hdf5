@@ -436,9 +436,6 @@ CONTAINS
        ENDIF
     ELSE IF(flag.EQ.H5_REAL_KIND)THEN
 
-       PRINT*,kind,Fortran_REAL_4,H5T_NATIVE_REAL_4
-       PRINT*,kind,Fortran_REAL_8,H5T_NATIVE_REAL_8
-
        IF(kind.EQ.Fortran_REAL_4)THEN
           h5_type = H5T_NATIVE_REAL_4
        ELSE IF(kind.EQ.Fortran_REAL_8)THEN

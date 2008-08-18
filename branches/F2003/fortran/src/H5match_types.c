@@ -523,66 +523,6 @@ int main()
 	}
     }
 
-  /* double_8, double_16 */
-
-/* Defined different KINDs of double:                          */
-/* if the DOUBLE kind is not available then we assign           */
-/* it a value of the next larger one, but if the next         */
-/* higher one is not available we assigned it the next lowest */
-
-/*     FoundDoubleSize[0] = -8; */
-/*     FoundDoubleSize[1] = -16; */
-
-/* #if defined H5_FORTRAN_HAS_DOUBLE_NATIVE_8 */
-/*     FoundDoubleSize[0] = 8; */
-/* #endif */
-/* #if defined H5_FORTRAN_HAS_DOUBLE_NATIVE_16 */
-/*     FoundDoubleSize[1] = 16; */
-/* #endif */
-
-
-/*     for(i=0;i<2;i++) { */
-/*       if( FoundDoubleSize[i] > 0) /\* Found the real type *\/ */
-/* 	{ */
-/* 	  sprintf(chrA, "Fortran_DOUBLE_%d", FoundDoubleSize[i]); */
-/* 	  sprintf(chrB, "double_%d_f", FoundDoubleSize[i]); */
-/* 	  writeDoubleToFiles(chrA, chrB, FoundDoubleSize[i]); */
-/* 	} */
-/*       else  /\* Did not find the double type *\/ */
-/* 	{ */
-/* 	  flag = 0; /\* flag indicating if found the next highest *\/ */
-/* 	  for(j=i+1;j<2;j++)  /\* search for next highest *\/ */
-/* 	    { */
-/* 	      if( FoundDoubleSize[j] > 0) /\* Found the next highest *\/ */
-/* 		{ */
-/* 		  sprintf(chrA, "Fortran_DOUBLE_%d", (-1)*FoundDoubleSize[i]); */
-/* 		  sprintf(chrB, "double_%d_f", (-1)*FoundDoubleSize[i]); */
-/* 		  writeDoubleToFiles(chrA, chrB, FoundDoubleSize[j]); */
-/* 		  flag = 1; */
-/* 		  break; */
-/* 		} */
-/* 	    } */
-/* 	  if(flag == 0) /\* No higher one found, so find next lowest *\/ */
-/* 	    { */
-/* 	      for(j=0;j>-1;j--)  /\* Search for next lowest *\/ */
-/* 		{ */
-/* 		  if( FoundDoubleSize[j] > 0) /\* Found the next lowest *\/ */
-/* 		    { */
-/* 		      sprintf(chrA, "Fortran_DOUBLE_%d", (-1)*FoundDoubleSize[i]); */
-/* 		      sprintf(chrB, "double_%d_f", (-1)*FoundDoubleSize[i]); */
-/* 		      writeDoubleToFiles(chrA, chrB, FoundDoubleSize[j]); */
-/* 		      flag = 1; */
-/* 		      break; */
-/* 		    } */
-/* 		} */
-/* 	    } */
-/* 	  if(flag == 0) /\* No higher or lower one found, indicating an error *\/ */
-/* 	    { */
-/* 	     return -1;  */
-/* 	    } */
-/* 	} */
-/*     } */
-
   /* hid_t */
 #if defined H5_FORTRAN_HAS_INTEGER_8 && H5_SIZEOF_HID_T >= 8
       writeToFiles("HID_T", "hid_t_f", 8);
