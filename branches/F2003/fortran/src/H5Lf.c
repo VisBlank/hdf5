@@ -563,6 +563,8 @@ nh5lmove_c(hid_t_f *src_loc_id, _fcd src_name, size_t_f *src_namelen, hid_t_f *d
 	       c_dest_name, (hid_t)*lcpl_id, (hid_t)*lapl_id) < 0)
       HGOTO_DONE(FAIL);
 done:
+    if(c_src_name) HDfree(c_src_name);
+    if(c_dest_name) HDfree(c_dest_name);
     return ret_value;
 }
 
@@ -850,6 +852,58 @@ nh5literate_c(hid_t_f *group_id, int_f *index_type, int_f *order, hsize_t_f *idx
 
   ret_value = (int_f)func_ret_value;
   *idx = (hsize_t_f)idx_c;
+
+  return ret_value;
+}
+
+/*----------------------------------------------------------------------------
+ * Name:        h5literate_by_name_c
+ * Purpose:     Call H5Literate_by_name
+ * Inputs:   
+ *     loc_id - Identifier specifying subject group
+ *         name - Name of subject group
+ *      namelen - Name length
+ *   index_type - Type of index which determines the order
+ *        order - Order within index
+ *          idx - Iteration position at which to start
+ *           op - Callback function passing data regarding the link to the calling application
+ *      op_data - User-defined pointer to data required by the application for its processing of the link
+ *      lapl_id - List access property list identifier
+ *
+ * Outputs: 
+ *          idx - Position at which an interrupted iteration may be restarted
+ *
+ * Returns:     >0 on success, 0< on failure
+ * Programmer:  M.S. Breitenfeld
+ *              Augest 18, 2008
+ * Modifications: N/A
+ *---------------------------------------------------------------------------*/
+int_f
+nh5literate_by_name_c(hid_t_f *loc_id, _fcd name, size_t_f *namelen, int_f *index_type, int_f *order, hsize_t_f *idx, H5L_iterate_t op, void *op_data, hid_t_f *lapl_id)
+{
+  int_f ret_value = -1;       /* Return value */
+  herr_t func_ret_value; /* H5Linterate return value */
+  hsize_t idx_c = 0;
+  char *c_name = NULL;        /* Buffer to hold C string */
+
+  /*
+   * Convert FORTRAN name to C name
+   */
+  if((c_name = HD5f2cstring(name, (size_t)*namelen)) == NULL)
+    return ret_value=-1;
+
+  idx_c = (hsize_t)*idx;
+
+  /*
+   * Call H5Linterate
+   */
+
+  func_ret_value = H5Literate_by_name((hid_t)*loc_id, c_name,(H5_index_t)*index_type,(H5_iter_order_t)*order,&idx_c,op,op_data,(hid_t)*lapl_id);
+
+  ret_value = (int_f)func_ret_value;
+  *idx = (hsize_t_f)idx_c;
+
+  if(c_name) HDfree(c_name);
 
   return ret_value;
 }
