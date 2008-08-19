@@ -180,7 +180,7 @@ SUBROUTINE test_iter_group(total_error)
     f1 = C_FUNLOC(liter_cb)
     f2 = C_LOC(info)
 
-    CALL H5Literate_f(file, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, f1, f2, ret_value, error);
+    CALL H5Literate_f(file, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, f1, f2, ret_value, error)
     CALL check("H5Literate_f", error, total_error)
 
     CALL H5Tcopy_f(H5T_NATIVE_INTEGER, datatype, error)
@@ -787,7 +787,7 @@ SUBROUTINE test_iter_group(total_error)
     ALLOCATE(rdims(1:2)) ! dummy not needed
 
     f_ptr = C_LOC(wdata)
-    CALL h5dwrite_f(dataset, tid1, f_ptr, rdims, error )
+    CALL h5dwrite_f(dataset, tid1, f_ptr, error )
     CALL check("h5dwrite_f", error, total_error)
 
     !/* Close Dataset */ 
@@ -895,7 +895,7 @@ SUBROUTINE test_iter_group(total_error)
     !/* Read dataset from disk */
 
     f_ptr = C_LOC(rdata)
-    CALL H5Dread_f(dataset, tid1, f_ptr, rdims1, error)
+    CALL H5Dread_f(dataset, tid1, f_ptr, error)
     CALL check("H5Dread_f", error, total_error)
 
     !/* Compare data read in */
@@ -1098,7 +1098,7 @@ SUBROUTINE test_iter_group(total_error)
     ALLOCATE(rdims(1:2)) ! dummy not needed
 
     f_ptr = C_LOC(wdata)
-    CALL h5dwrite_f(dataset, tid1, f_ptr, rdims, error )
+    CALL h5dwrite_f(dataset, tid1, f_ptr, error )
     CALL check("h5dwrite_f", error, total_error)
 
     !/* Close Dataset */
@@ -1279,7 +1279,7 @@ SUBROUTINE test_iter_group(total_error)
     
     f_ptr = c_null_ptr
     f_ptr = C_LOC(rdata)
-    CALL H5Dread_f(dataset, tid1, f_ptr, rdims1, error)
+    CALL H5Dread_f(dataset, tid1, f_ptr, error)
     CALL check("H5Dread_f", error, total_error)
 
     ! /* Compare data read in */
@@ -1482,13 +1482,13 @@ SUBROUTINE test_iter_group(total_error)
 
     f_ptr = C_LOC(cf)
 
-    CALL h5dwrite_f(dataset, type, f_ptr, rdims, error )
+    CALL h5dwrite_f(dataset, type, f_ptr, error )
     CALL check("h5dwrite_f", error, total_error)
 
 
     ALLOCATE(rdims1(1:2)) ! dummy not needed
     f_ptr = C_LOC(cfr)
-    CALL H5Dread_f(dataset, type, f_ptr, rdims1, error)
+    CALL H5Dread_f(dataset, type, f_ptr, error)
     CALL check("H5Dread_f", error, total_error)
 
     !/* Verify correct data */
@@ -1553,14 +1553,14 @@ SUBROUTINE test_iter_group(total_error)
 
     f_ptr = C_LOC(fld)
 
-    CALL h5dwrite_f(dataset, TYPE, f_ptr, rdims, error )
+    CALL h5dwrite_f(dataset, TYPE, f_ptr, error )
     CALL check("h5dwrite_f", error, total_error)
 
 
     ! /* Read just the field changed */
     
     f_ptr = C_LOC(fldr)
-    CALL H5Dread_f(dataset, TYPE, f_ptr, rdims1, error)
+    CALL H5Dread_f(dataset, TYPE, f_ptr, error)
     CALL check("H5Dread_f", error, total_error)
 
     DO i = 1, LENGTH
@@ -1583,7 +1583,7 @@ SUBROUTINE test_iter_group(total_error)
     ! /* Read the entire dataset again */
 
     f_ptr = C_LOC(cfr)
-    CALL H5Dread_f(dataset, TYPE, f_ptr, rdims1, error)
+    CALL H5Dread_f(dataset, TYPE, f_ptr, error)
     CALL check("H5Dread_f", error, total_error)
 
 
@@ -1642,7 +1642,7 @@ SUBROUTINE test_iter_group(total_error)
     ENDDO
 
     f_ptr = C_LOC(cfr)
-    CALL H5Dread_f(dataset, TYPE, f_ptr, rdims1, error)
+    CALL H5Dread_f(dataset, TYPE, f_ptr, error)
     CALL check("H5Dread_f", error, total_error)
 
     !/* Verify correct data */

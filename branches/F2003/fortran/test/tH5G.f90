@@ -236,6 +236,7 @@
      CALL h5sclose_f(dspace_id, error)
      CALL check("h5sclose_f", error, total_error)   
 
+
           if(cleanup) CALL h5_cleanup_f(filename, H5P_DEFAULT_F, error)
               CALL check("h5_cleanup_f", error, total_error)
   END SUBROUTINE group_test
