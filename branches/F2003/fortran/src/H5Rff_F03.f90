@@ -16,7 +16,7 @@
 !
 ! This file contains Fortran90 interfaces for H5R functions.
 ! 
-MODULE H5R_F03
+MODULE H5R_PROVISIONAL
   USE H5GLOBAL
 
   ! If you change the value of these parameters, do not forget to change corresponding
@@ -592,4 +592,4 @@ CONTAINS
 
   END SUBROUTINE h5rget_name_ptr_f
 
-END MODULE H5R_F03
+END MODULE H5R_PROVISIONAL

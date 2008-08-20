@@ -48,7 +48,7 @@
 ! CHARACTER, TARGET :: chr
 !
 
-MODULE H5A_F03
+MODULE H5A_PROVISIONAL
 
   USE H5GLOBAL
   !
@@ -83,17 +83,6 @@ MODULE H5A_F03
      MODULE PROCEDURE h5awrite_real_5
      MODULE PROCEDURE h5awrite_real_6
      MODULE PROCEDURE h5awrite_real_7
-     ! Comment if on Crays
-     MODULE PROCEDURE h5awrite_double_scalar
-     MODULE PROCEDURE h5awrite_double_1
-     MODULE PROCEDURE h5awrite_double_2
-     MODULE PROCEDURE h5awrite_double_3
-     MODULE PROCEDURE h5awrite_double_4
-     MODULE PROCEDURE h5awrite_double_5
-     MODULE PROCEDURE h5awrite_double_6
-     MODULE PROCEDURE h5awrite_double_7
-     ! End comment if on Crays
-
      ! This is the preferred way to call h5awrite
      ! by passing an address
      MODULE PROCEDURE h5awrite_ptr
@@ -126,16 +115,6 @@ MODULE H5A_F03
      MODULE PROCEDURE h5aread_real_5
      MODULE PROCEDURE h5aread_real_6
      MODULE PROCEDURE h5aread_real_7
-     ! Comment if on Crays
-     MODULE PROCEDURE h5aread_double_scalar
-     MODULE PROCEDURE h5aread_double_1
-     MODULE PROCEDURE h5aread_double_2
-     MODULE PROCEDURE h5aread_double_3
-     MODULE PROCEDURE h5aread_double_4
-     MODULE PROCEDURE h5aread_double_5
-     MODULE PROCEDURE h5aread_double_6
-     MODULE PROCEDURE h5aread_double_7
-     ! End comment if on Crays
 
      ! This is the preferred way to call h5aread
      ! by passing an address
@@ -2263,6 +2242,6 @@ CONTAINS
 
   END SUBROUTINE h5aread_ptr
 
-END MODULE H5A_F03
+END MODULE H5A_PROVISIONAL
 
 

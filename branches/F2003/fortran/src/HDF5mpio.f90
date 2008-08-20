@@ -13,22 +13,26 @@
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
 !
-    MODULE HDF5
-       USE H5GLOBAL
-       USE H5F
-       USE H5E
-       USE H5G
-       USE H5I
-       USE H5L
-       USE H5S
-       USE H5D
-       USE H5D_F03
-       USE H5A
-       USE H5T
-       USE H5O
-       USE H5P
-       USE H5FDMPIO
-       USE H5R
-       USE H5Z
-       USE H5LIB
-    END MODULE HDF5
+MODULE HDF5
+  USE H5GLOBAL
+  USE H5F
+  USE H5E
+  USE H5G
+  USE H5I
+  USE H5L
+  USE H5L_PROVISIONAL
+  USE H5S
+  USE H5D
+  USE H5D_PROVISIONAL
+  USE H5A
+  USE H5A_PROVISIONAL
+  USE H5T
+  USE H5O
+  USE H5P
+  USE H5P_PROVISIONAL
+  USE H5FDMPIO
+  USE H5R
+  USE H5R_PROVISIONAL
+  USE H5Z
+  USE H5LIB
+END MODULE HDF5

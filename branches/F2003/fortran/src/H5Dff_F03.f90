@@ -16,7 +16,7 @@
 !
 ! This file contains Fortran 2003 interfaces for H5D functions.
 ! 
-MODULE H5D_F03
+MODULE H5D_PROVISIONAL
   USE H5GLOBAL
 
 ! NOTES: (1) The maximum rank of an array allowed in Fortran is 7, therefore 
@@ -95,16 +95,6 @@ MODULE H5D_F03
      MODULE PROCEDURE h5dwrite_real_5
      MODULE PROCEDURE h5dwrite_real_6
      MODULE PROCEDURE h5dwrite_real_7
-     ! Comment if on Crays
-     MODULE PROCEDURE h5dwrite_double_scalar
-     MODULE PROCEDURE h5dwrite_double_1
-     MODULE PROCEDURE h5dwrite_double_2
-     MODULE PROCEDURE h5dwrite_double_3
-     MODULE PROCEDURE h5dwrite_double_4
-     MODULE PROCEDURE h5dwrite_double_5
-     MODULE PROCEDURE h5dwrite_double_6
-     MODULE PROCEDURE h5dwrite_double_7
-     ! End comment if on Crays
 
      ! This is the preferred way to call h5dwrite 
      ! by passing an address
@@ -140,16 +130,6 @@ MODULE H5D_F03
      MODULE PROCEDURE h5dread_real_5
      MODULE PROCEDURE h5dread_real_6
      MODULE PROCEDURE h5dread_real_7
-     ! Comment if on Crays
-     MODULE PROCEDURE h5dread_double_scalar
-     MODULE PROCEDURE h5dread_double_1
-     MODULE PROCEDURE h5dread_double_2
-     MODULE PROCEDURE h5dread_double_3
-     MODULE PROCEDURE h5dread_double_4
-     MODULE PROCEDURE h5dread_double_5
-     MODULE PROCEDURE h5dread_double_6
-     MODULE PROCEDURE h5dread_double_7
-     ! End comment if on Crays
      
      ! This is the preferred way to call h5dread
      ! by passing an address
@@ -204,7 +184,6 @@ MODULE H5D_F03
   INTERFACE h5dfill_f
      MODULE PROCEDURE h5dfill_integer
      MODULE PROCEDURE h5dfill_real
-     MODULE PROCEDURE h5dfill_double
      MODULE PROCEDURE h5dfill_char
   END INTERFACE
 
@@ -3845,6 +3824,6 @@ CONTAINS
 
   END SUBROUTINE h5dfill_char
 
-END MODULE H5D_F03
+END MODULE H5D_PROVISIONAL
 
 

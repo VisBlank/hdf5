@@ -48,28 +48,32 @@ endif
 # Check if the compiler supports the Fortran 2003 standard
 # which should include the intrinsic module iso_c_binding
 if FORTRAN_2003_CONDITIONAL_F
-   H5Dff_PREFIX = H5Dff_F03
-   H5Aff_PREFIX = H5Aff_F03
-   H5Pff_PREFIX = H5Pff_F03
-   H5Rff_PREFIX = H5Rff_F03
-   H5Lff_PREFIX = H5Lff_F03
+   F_STATUS = _F03
 else
-   H5Dff_PREFIX = H5Dff_F90
-   H5Aff_PREFIX = H5Aff_F90
-   H5Pff_PREFIX = H5Pff_F90
-   H5Rff_PREFIX = H5Rff_F90
-   H5Lff_PREFIX = H5Lff_F90
+   F_STATUS = _DEPRECIATED
+endif
+
+#   Condition for including/excluding the DBLE interfaces for when the 
+#   default REAL is of type DOUBLE PRECISION.
+#   We do not include the double precision interfaces if the defaut REAL is
+#   DOUBLE PRECISION since this would lead to a non-unique conflict with the
+#   generic interfaces declared as REAL.
+if FORTRAN_DEFAULT_REALisDBLE_F
+   F_DBLE = Exclude
+else
+   F_DBLE = Include
 endif
 
 # Source files for the library.
-libhdf5_fortran_la_SOURCES=H5fortran_flags.f90 H5f90global.f90          \
+libhdf5_fortran_la_SOURCES=H5fortran_flags.f90 H5f90global.f90 \
           H5fortran_types.f90 H5_ff.f90 H5Aff.f90 H5Dff.f90 H5Eff.f90    \
           H5Fff.f90 H5Gff.f90 H5Iff.f90 H5Lff.f90 H5Off.f90 H5Pff.f90 H5Rff.f90 H5Sff.f90    \
           H5Tff.f90 H5Zff.f90                                            \
+	  H5_DBLE_Interface$(F_DBLE).f90 \
           H5f90kit.c H5_f.c H5Af.c H5Df.c H5Ef.c H5Ff.c H5Gf.c           \
           H5If.c H5Lf.c H5Of.c H5Pf.c H5Rf.c H5Sf.c H5Tf.c H5Zf.c        \
-	  $(H5Aff_PREFIX).f90 $(H5Dff_PREFIX).f90 $(H5Lff_PREFIX).f90 \
-	  $(H5Pff_PREFIX).f90 $(H5Rff_PREFIX).f90 $(PARALLEL_COND_SRC)
+	  H5Aff$(F_STATUS).f90 H5Dff$(F_STATUS).f90 H5Lff$(F_STATUS).f90 \
+	  H5Pff$(F_STATUS).f90 H5Rff$(F_STATUS).f90 $(PARALLEL_COND_SRC)
 
 
 # h5fc and libhdf5_fortran.settings are generated during configure.
@@ -181,11 +185,11 @@ H5test_kind.lo:      $(srcdir)/H5test_kind.f90
 H5_ff.lo:            $(srcdir)/H5_ff.f90 H5f90global.lo
 H5Aff.lo:            $(srcdir)/H5Aff.f90 H5f90global.lo
 H5Dff.lo:            $(srcdir)/H5Dff.f90 H5f90global.lo
-$(H5Dff_PREFIX).lo:  $(srcdir)/$(H5Dff_PREFIX).f90 H5f90global.lo
-$(H5Aff_PREFIX).lo:  $(srcdir)/$(H5Aff_PREFIX).f90 H5f90global.lo
-$(H5Pff_PREFIX).lo:  $(srcdir)/$(H5Pff_PREFIX).f90 H5f90global.lo
-$(H5Rff_PREFIX).lo:  $(srcdir)/$(H5Rff_PREFIX).f90 H5f90global.lo
-$(H5Lff_PREFIX).lo:  $(srcdir)/$(H5Lff_PREFIX).f90 H5f90global.lo
+H5Dff$(F_STATUS).lo:  $(srcdir)/H5Dff$(F_STATUS).f90 H5f90global.lo
+H5Aff$(F_STATUS).lo:  $(srcdir)/H5Aff$(F_STATUS).f90 H5f90global.lo
+H5Pff$(F_STATUS).lo:  $(srcdir)/H5Pff$(F_STATUS).f90 H5f90global.lo
+H5Rff$(F_STATUS).lo:  $(srcdir)/H5Rff$(F_STATUS).f90 H5f90global.lo
+H5Lff$(F_STATUS).lo:  $(srcdir)/H5Lff$(F_STATUS).f90 H5f90global.lo
 H5Eff.lo:            $(srcdir)/H5Eff.f90 H5f90global.lo
 H5Fff.lo:            $(srcdir)/H5Fff.f90 H5f90global.lo
 H5Gff.lo:            $(srcdir)/H5Gff.f90 H5f90global.lo
@@ -197,14 +201,17 @@ H5Rff.lo:            $(srcdir)/H5Rff.f90 H5f90global.lo
 H5Sff.lo:            $(srcdir)/H5Sff.f90 H5f90global.lo
 H5Tff.lo:            $(srcdir)/H5Tff.f90 H5f90global.lo
 H5Zff.lo:            $(srcdir)/H5Zff.f90 H5f90global.lo
-HDF5.lo:             $(srcdir)/HDF5.f90 H5f90global.lo H5Aff.lo      \
-                     H5Dff.lo $(H5Dff_PREFIX).lo $(H5Aff_PREFIX).lo $(H5Lff_PREFIX).lo  $(H5Pff_PREFIX).lo $(H5Rff_PREFIX).lo \
-                     H5Eff.lo H5Fff.lo H5Gff.lo H5Iff.lo H5Lff.lo \
-                     H5Pff.lo H5Rff.lo H5Sff.lo H5Tff.lo H5Zff.lo
+H5_DBLE_Interface$(F_DBLE).lo:  $(srcdir)/H5_DBLE_Interface$(F_DBLE).f90 H5Aff$(F_STATUS).lo H5Dff$(F_STATUS).lo H5Pff$(F_STATUS).lo
+HDF5.lo:             $(srcdir)/HDF5.f90 H5f90global.lo H5Aff.lo H5Aff$(F_STATUS).lo \
+                     H5Dff.lo H5Dff$(F_STATUS).lo  \
+                     H5Eff.lo H5Fff.lo H5Gff.lo H5Iff.lo H5Lff.lo H5Lff$(F_STATUS).lo \
+                     H5Pff.lo H5Pff$(F_STATUS).lo H5Rff$(F_STATUS).lo H5Rff.lo H5Sff.lo H5Tff.lo H5Zff.lo \
+                     H5_DBLE_Interface$(F_DBLE).lo 
 H5FDmpioff.lo:       $(srcdir)/H5FDmpioff.f90 H5f90global.lo
 HDF5mpio.lo:         $(srcdir)/H5FDmpioff.f90 H5f90global.lo H5Aff.lo  \
-                     H5Dff.lo $(H5Dff_PREFIX).lo $(H5Aff_PREFIX).lo $(H5Lff_PREFIX).lo $(H5Pff_PREFIX).lo $(H5Rff_PREFIX).lo \
+                     H5Dff.lo H5Dff$(F_STATUS).lo H5Aff$(F_STATUS).lo H5Lff$(F_STATUS).lo \
+		     H5Pff$(F_STATUS).lo H5Rff$(F_STATUS).lo \
                      H5Eff.lo H5Fff.lo H5Gff.lo H5Iff.lo H5Lff.lo  \
-                     H5Pff.lo H5Rff.lo H5Sff.lo H5Tff.lo H5Zff.lo H5FDmpioff.lo
+                     H5Pff.lo H5Rff.lo H5Sff.lo H5Tff.lo H5Zff.lo H5_DBLE_Interface$(F_DBLE).lo H5FDmpioff.lo  
 
 include $(top_srcdir)/config/conclude.am

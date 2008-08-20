@@ -16,16 +16,13 @@
 !
 ! This file contains Fortran 2003 interfaces for H5P functions.
 !
-MODULE H5P_F03
+MODULE H5P_PROVISIONAL
 
   USE H5GLOBAL
 
   INTERFACE h5pset_fill_value_f
      MODULE PROCEDURE h5pset_fill_value_integer
      MODULE PROCEDURE h5pset_fill_value_real
-     ! Comment if on Crays
-     MODULE PROCEDURE h5pset_fill_value_double
-     ! End comment if on Crays
      MODULE PROCEDURE h5pset_fill_value_char
 
      ! Recommended procedure:
@@ -36,9 +33,6 @@ MODULE H5P_F03
   INTERFACE h5pget_fill_value_f
      MODULE PROCEDURE h5pget_fill_value_integer
      MODULE PROCEDURE h5pget_fill_value_real
-     ! Comment if on Crays
-     MODULE PROCEDURE h5pget_fill_value_double
-     ! End comment if on Crays
      MODULE PROCEDURE h5pget_fill_value_char
 
      ! Recommended procedure:
@@ -49,9 +43,6 @@ MODULE H5P_F03
   INTERFACE h5pset_f
      MODULE PROCEDURE h5pset_integer
      MODULE PROCEDURE h5pset_real
-     ! Comment if on Crays
-     MODULE PROCEDURE h5pset_double
-     ! End comment if on Crays
      MODULE PROCEDURE h5pset_char
      ! Recommended procedure:
      MODULE PROCEDURE h5pset_ptr
@@ -61,9 +52,6 @@ MODULE H5P_F03
   INTERFACE h5pget_f
      MODULE PROCEDURE h5pget_integer
      MODULE PROCEDURE h5pget_real
-     ! Comment if on Crays
-     MODULE PROCEDURE h5pget_double
-     ! End comment if on Crays
      MODULE PROCEDURE h5pget_char
      ! Recommended procedure:
      MODULE PROCEDURE h5pget_ptr
@@ -72,9 +60,6 @@ MODULE H5P_F03
   INTERFACE h5pregister_f
      MODULE PROCEDURE h5pregister_integer
      MODULE PROCEDURE h5pregister_real
-     ! Comment if on Crays
-     MODULE PROCEDURE h5pregister_double
-     ! End comment if on Crays
      MODULE PROCEDURE h5pregister_char
      ! Recommended procedure:
      MODULE PROCEDURE h5pregister_ptr
@@ -83,9 +68,6 @@ MODULE H5P_F03
   INTERFACE h5pinsert_f
      MODULE PROCEDURE h5pinsert_integer
      MODULE PROCEDURE h5pinsert_real
-     ! Comment if on Crays
-     MODULE PROCEDURE h5pinsert_double
-     ! End comment if on Crays
      MODULE PROCEDURE h5pinsert_char
      ! Recommended procedure:
      MODULE PROCEDURE h5pinsert_ptr
@@ -1549,5 +1531,5 @@ CONTAINS
     
   END SUBROUTINE h5pcreate_class_f
 
-END MODULE H5P_F03
+END MODULE H5P_PROVISIONAL
 
