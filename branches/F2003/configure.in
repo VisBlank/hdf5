@@ -345,7 +345,7 @@ if test "X$HDF_FORTRAN" = "Xyes"; then
   dnl --------------------------------------------------------------------
   dnl For FORTRAN 2003 compliant compilers
   dnl
-
+  HAVE_FORTRAN_2003="no"	
   AC_MSG_CHECKING([if Fortran 2003 interface enabled])
   if test "X$HDF_FORTRAN2003" = "Xyes"; then
 
@@ -458,6 +458,35 @@ dnl	], [AC_MSG_RESULT(yes)
 dnl     	HAVE_ISO_C_BINDING="yes"] ,
 dnl     AC_MSG_RESULT(no))
 
+  FORTRAN_DEFAULT_REALisDBLE="no"
+  AC_MSG_CHECKING([if Fortran default REAL is DOUBLE PRECISION])
+  
+  AC_TRY_RUN([
+     MODULE type_mod
+       INTERFACE h5t	
+         MODULE PROCEDURE h5t_real
+         MODULE PROCEDURE h5t_dble
+       END INTERFACE
+     CONTAINS
+       SUBROUTINE h5t_real(r)
+         REAL :: r
+       END SUBROUTINE h5t_real
+       SUBROUTINE h5t_dble(d)
+         DOUBLE PRECISION :: d
+       END SUBROUTINE h5t_dble
+     END MODULE type_mod
+     PROGRAM main
+       USE type_mod
+       REAL :: r
+       DOUBLE PRECISION :: d
+       CALL h5t(r)
+       CALL h5t(d)
+     END PROGRAM main
+                  ],
+   AC_MSG_RESULT(no), 
+   [AC_MSG_RESULT(yes) 
+       FORTRAN_DEFAULT_REALisDBLE="yes"])
+
   dnl Change back to the C language
   AC_LANG_POP(Fortran)
 else
@@ -465,6 +494,8 @@ else
 fi
 
 AM_CONDITIONAL([FORTRAN_2003_CONDITIONAL_F], [test "X$HAVE_FORTRAN_2003" = "Xyes"])
+
+AM_CONDITIONAL([FORTRAN_DEFAULT_REALisDBLE_F], [test "X$FORTRAN_DEFAULT_REALisDBLE" = "Xyes"])
 
 dnl ----------------------------------------------------------------------
 dnl Check if they would like the C++ interface compiled
