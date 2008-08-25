@@ -67,7 +67,7 @@ static herr_t H5MF_sect_simple_merge(H5FS_section_info_t *sect1,
     H5FS_section_info_t *sect2, void *udata);
 static herr_t H5MF_sect_simple_valid(const H5FS_section_class_t *cls,
     const H5FS_section_info_t *sect);
-
+static H5MF_free_section_t *H5MF_sect_simple_split(H5FS_section_info_t *sect, hsize_t frag_size);
 
 /*********************/
 /* Package Variables */
@@ -95,6 +95,7 @@ H5FS_section_class_t H5MF_FSPACE_SECT_CLS_SIMPLE[1] = {{
     H5MF_sect_simple_shrink,		/* Shrink container w/section   */
     H5MF_sect_simple_free,		/* Free section                 */
     H5MF_sect_simple_valid,		/* Check validity of section    */
+    H5MF_sect_simple_split,		/* Split section node for alignment */
     NULL,				/* Dump debugging for section   */
 }};
 
@@ -487,4 +488,34 @@ H5MF_sect_simple_valid(const H5FS_section_class_t UNUSED *cls,
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 }   /* H5MF_sect_simple_valid() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5MF_sect_simple_split
+ *
+ * Purpose:	Split SECT into 2 sections: fragment for alignment & the aligned section
+ *		SECT's addr and size are updated to point to the aligned section
+ *
+ * Return:	Success:	the fragment for aligning sect
+ *		Failure:	null
+ *
+ * Programmer:	Vailin Choi, July 29, 2008
+ *
+ *-------------------------------------------------------------------------
+ */
+static H5MF_free_section_t *
+H5MF_sect_simple_split(H5FS_section_info_t *sect, hsize_t frag_size)
+{
+    H5MF_free_section_t *ret_value=NULL;     /* Return value */
+
+    FUNC_ENTER_NOAPI_NOINIT(H5MF_sect_simple_split)
+    
+    ret_value = H5MF_sect_simple_new(sect->addr, frag_size);
+    sect->addr += frag_size;
+    sect->size -= frag_size;
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5MF_sect_simple_split() */
+
 

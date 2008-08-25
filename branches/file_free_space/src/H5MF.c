@@ -198,6 +198,10 @@ H5MF_init_merge_flags(H5F_t *f)
  *		koziol@hdfgroup.org
  *		Jan  8 2008
  *
+ * Modifications: 
+ *	Vailin Choi, July 29th, 2008
+ *	  Pass values of alignment and threshold to FS_create() for handling alignment
+ *
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -220,7 +224,7 @@ H5MF_alloc_start(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, hbool_t may_create)
         /* Open an existing free space structure for the file */
         HDassert(f->shared->fs_state[type] == H5F_FS_STATE_CLOSED);
         if(NULL == (f->shared->fs_man[type] = H5FS_open(f, dxpl_id, f->shared->fs_addr[type],
-                NELMTS(classes), classes, f)))
+                NELMTS(classes), classes, f, f->shared->alignment, f->shared->threshold)))
             HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINIT, FAIL, "can't initialize free space info")
     } /* end if */
     else {
@@ -239,11 +243,11 @@ H5MF_alloc_start(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, hbool_t may_create)
             HDassert(f->shared->fs_state[type] == H5F_FS_STATE_CLOSED);
 #ifdef LATER
             if(NULL == (f->shared->fs_man[type] = H5FS_create(f, dxpl_id, &f->shared->fs_addr[type],
-                    &fs_create, NELMTS(classes), classes, f)))
+                    &fs_create, NELMTS(classes), classes, f, f->shared->alignment, f->shared->threshold)))
                 HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINIT, FAIL, "can't initialize free space info")
 #else /* LATER */
             if(NULL == (f->shared->fs_man[type] = H5FS_create(f, dxpl_id, NULL,
-                    &fs_create, NELMTS(classes), classes, f)))
+                    &fs_create, NELMTS(classes), classes, f, f->shared->alignment, f->shared->threshold)))
                 HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINIT, FAIL, "can't initialize free space info")
 #endif /* LATER */
         } /* end if */

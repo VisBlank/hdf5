@@ -121,14 +121,18 @@ H5FD_space_init_interface(void)
  *
  * Programmer:  Bill Wendling
  *              Wednesday, 04. December, 2002
+ * 
+ * Modifications:
+ *	Vailin Choi, 29th July 2008
+ *	  Add 2 more parameters for handling alignment: address and size of the fragment
  *
  *-------------------------------------------------------------------------
  */
 static haddr_t
-H5FD_extend(H5FD_t *file, H5FD_mem_t type, hbool_t new_block, hsize_t size)
+H5FD_extend(H5FD_t *file, H5FD_mem_t type, hbool_t new_block, hsize_t size, haddr_t *frag_addr, hsize_t *frag_size)
 {
     haddr_t eoa;                /* Address of end-of-allocated space */
-    hsize_t extra_alloc;        /* Extra space to allocate, to align request */
+    hsize_t extra;        	/* Extra space to allocate, to align request */
     haddr_t ret_value;          /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5FD_extend)
@@ -143,24 +147,27 @@ H5FD_extend(H5FD_t *file, H5FD_mem_t type, hbool_t new_block, hsize_t size)
     eoa = file->cls->get_eoa(file, type);
 
     /* Compute extra space to allocate, if this is a new block and should be aligned */
-    extra_alloc = 0;
+    extra = 0;
     if(new_block && file->alignment > 1 && size >= file->threshold) {
         hsize_t mis_align;              /* Amount EOA is misaligned */
 
         /* Check for EOA already aligned */
-        if((mis_align = (eoa % file->alignment)) > 0)
-            extra_alloc = file->alignment - mis_align;
+        if((mis_align = (eoa % file->alignment)) > 0) {
+            extra = file->alignment - mis_align;
+	    if (frag_addr) *frag_addr = eoa;
+	    if (frag_size) *frag_size = extra;
+	}
     } /* end if */
 
     /* Add in extra allocation amount */
-    size += extra_alloc;
+    size += extra;
 
     /* Check for overflow when extending */
     if(H5F_addr_overflow(eoa, size) || (eoa + size) > file->maxaddr)
         HGOTO_ERROR(H5E_VFL, H5E_NOSPACE, HADDR_UNDEF, "file allocation request failed")
 
     /* Set the [possibly aligned] address to return */
-    ret_value = eoa + extra_alloc;
+    ret_value = eoa + extra;
 
     /* Extend the end-of-allocated space address */
     eoa += size;
@@ -183,10 +190,14 @@ done:
  * Programmer:  Robb Matzke
  *              Wednesday, August  4, 1999
  *
+ * Modification:
+ *	Vailin Choi, 29th July 2008
+ *	  Add two more parameters () for handling alignment: address & size of the fragment
+ *
  *-------------------------------------------------------------------------
  */
 haddr_t
-H5FD_alloc(H5FD_t *file, hid_t dxpl_id, H5FD_mem_t type, hsize_t size)
+H5FD_alloc(H5FD_t *file, hid_t dxpl_id, H5FD_mem_t type, hsize_t size, haddr_t *frag_addr, hsize_t *frag_size)
 {
     haddr_t     ret_value = HADDR_UNDEF;
 
@@ -207,7 +218,7 @@ HDfprintf(stderr, "%s: type = %u, size = %Hu\n", FUNC, (unsigned)type, size);
             HGOTO_ERROR(H5E_VFL, H5E_NOSPACE, HADDR_UNDEF, "driver allocation request failed")
     } /* end if */
     else {
-        if((ret_value = H5FD_extend(file, type, TRUE, size)) == HADDR_UNDEF)
+        if((ret_value = H5FD_extend(file, type, TRUE, size, frag_addr, frag_size)) == HADDR_UNDEF)
             HGOTO_ERROR(H5E_VFL, H5E_NOSPACE, HADDR_UNDEF, "driver eoa update request failed")
     } /* end else */
 
@@ -309,6 +320,10 @@ done:
  * Programmer:  Quincey Koziol
  *              Thursday, 17. January, 2008
  *
+ * Modification:
+ *	Vailin Choi, 29th July 2008
+ *	  Two more parameters were added to FD_extend() for handling alignment
+ *
  *-------------------------------------------------------------------------
  */
 htri_t
@@ -335,7 +350,7 @@ H5FD_try_extend(H5FD_t *file, H5FD_mem_t type, haddr_t blk_end, hsize_t extra_re
     /* Check if the block is exactly at the end of the file */
     if(H5F_addr_eq(blk_end, eoa)) {
         /* Extend the object by extending the underlying file */
-        if(HADDR_UNDEF == H5FD_extend(file, type, FALSE, extra_requested))
+        if(HADDR_UNDEF == H5FD_extend(file, type, FALSE, extra_requested, NULL, NULL))
             HGOTO_ERROR(H5E_RESOURCE, H5E_CANTEXTEND, FAIL, "driver extend request failed")
 
         /* Indicate success */

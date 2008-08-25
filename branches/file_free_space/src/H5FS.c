@@ -91,11 +91,15 @@ H5FL_DEFINE(H5FS_t);
  * Programmer:	Quincey Koziol
  *              Tuesday, March  7, 2006
  *
+ * Modifications:
+ *	Vailin Choi, July 29th, 2008
+ *	  Add two more parameters for handling alignment: alignment & threshhold
+ *
  *-------------------------------------------------------------------------
  */
 H5FS_t *
 H5FS_create(H5F_t *f, hid_t dxpl_id, haddr_t *fs_addr, const H5FS_create_t *fs_create,
-    size_t nclasses, const H5FS_section_class_t *classes[], void *cls_init_udata)
+    size_t nclasses, const H5FS_section_class_t *classes[], void *cls_init_udata, hsize_t alignment, hsize_t threshold)
 {
     H5FS_t *fspace = NULL;      /* New free space structure */
     H5FS_t *ret_value;          /* Return value */
@@ -123,6 +127,9 @@ HDfprintf(stderr, "%s: Creating free space manager, nclasses = %Zu\n", FUNC, ncl
     fspace->expand_percent = fs_create->expand_percent;
     fspace->max_sect_addr = fs_create->max_sect_addr;
     fspace->max_sect_size = fs_create->max_sect_size;
+
+    fspace->alignment = alignment;
+    fspace->threshold = threshold;
 
     /* Check if the free space tracker is supposed to be persistant */
     if(fs_addr) {
@@ -170,11 +177,16 @@ HDfprintf(stderr, "%s: Leaving, ret_value = %d\n", FUNC, ret_value);
  * Programmer:	Quincey Koziol
  *              Tuesday, May  2, 2006
  *
+ * Modfications:
+ *
+ *	Vailin Choi, July 29th, 2008
+ *	  Add two more parameters for handling alignment: alignment & threshhold
+ *
  *-------------------------------------------------------------------------
  */
 H5FS_t *
 H5FS_open(H5F_t *f, hid_t dxpl_id, haddr_t fs_addr, size_t nclasses,
-    const H5FS_section_class_t *classes[], void *cls_init_udata)
+    const H5FS_section_class_t *classes[], void *cls_init_udata, hsize_t alignment, hsize_t threshold)
 {
     H5FS_t *fspace = NULL;      /* New free space structure */
     H5FS_prot_t fs_prot;        /* Information for protecting free space manager */
@@ -210,6 +222,9 @@ HDfprintf(stderr, "%s: fspace->rc = %u\n", FUNC, fspace->rc);
     HDassert(fspace->rc <= 1);
     if(H5FS_incr(f, fspace) < 0)
         HGOTO_ERROR(H5E_FSPACE, H5E_CANTINC, NULL, "unable to increment ref. count on free space header")
+
+    fspace->alignment = alignment;
+    fspace->threshold = threshold;
 
     /* Unlock free space header */
     if(H5AC_unprotect(f, dxpl_id, H5AC_FSPACE_HDR, fs_addr, fspace, H5AC__NO_FLAGS_SET) < 0)
@@ -752,4 +767,3 @@ HDfprintf(stderr, "%s: fspace->tot_sect_count = %Hu\n", "H5FS_assert", fspace->t
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5FS_assert() */
 #endif /* H5FS_DEBUG_ASSERT */
-

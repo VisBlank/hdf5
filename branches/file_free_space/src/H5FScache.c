@@ -1035,6 +1035,10 @@ done:
  * Programmer:	Quincey Koziol
  *              Saturday, March 11, 2006
  *
+ * Modifications: 
+ *	Vailin Choi, July 29th, 2008
+ *	  Add HDassert() to make sure "free" method exists before calling 
+ *
  *-------------------------------------------------------------------------
  */
 static herr_t
@@ -1047,6 +1051,7 @@ H5FS_sinfo_free_sect_cb(void *_sect, void UNUSED *key, void *op_data)
 
     HDassert(sect);
     HDassert(sinfo);
+    HDassert(sinfo->fspace->sect_cls[sect->type].free);
 
     /* Call the section's class 'free' method on the section */
     (*sinfo->fspace->sect_cls[sect->type].free)(sect);

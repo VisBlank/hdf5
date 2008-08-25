@@ -181,6 +181,9 @@ struct H5FS_t {
     hbool_t sinfo_modified;     /* Whether the section info has been modified while locked */
     H5AC_protect_t sinfo_accmode; /* Access mode for protecting the section info */
     size_t max_cls_serial_size; /* Max. additional size of serialized form of section */
+    hsize_t    threshold;      	/* Threshold for alignment              */
+    hsize_t    alignment;      	/* Alignment                            */
+
 
 /* Memory data structures (not stored directly) */
     H5FS_section_class_t *sect_cls; /* Array of section classes for this free list */
@@ -239,6 +242,12 @@ H5_DLL herr_t H5FS_cache_sinfo_dest(H5F_t *f, H5FS_sinfo_t *sinfo);
 H5_DLL herr_t H5FS_assert(const H5FS_t *fspace);
 H5_DLL herr_t H5FS_sect_assert(const H5FS_t *fspace);
 #endif /* H5FS_DEBUG */
+
+/* Testing routines */
+#ifdef H5FS_TESTING
+H5_DLL herr_t H5FS_get_cparam_test(const H5FS_t *fh, H5FS_create_t *cparam);
+H5_DLL int H5FS_cmp_cparam_test(const H5FS_create_t *cparam1, const H5FS_create_t *cparam2);
+#endif /* H5FS_TESTING */
 
 #endif /* _H5FSpkg_H */
 

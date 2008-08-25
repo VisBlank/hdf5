@@ -107,6 +107,7 @@ typedef struct H5FS_section_class_t {
     herr_t (*shrink)(H5FS_section_info_t **, void *);   /* Routine to shrink container */
     herr_t (*free)(H5FS_section_info_t *);              /* Routine to free node */
     herr_t (*valid)(const struct H5FS_section_class_t *, const H5FS_section_info_t *);   /* Routine to check if a section is valid */
+    H5FS_section_info_t *(*split)(const H5FS_section_info_t *, hsize_t);     /* Routine to create the split section */
     herr_t (*debug)(const H5FS_section_info_t *, FILE *, int , int );   /* Routine to dump debugging information about a section */
 } H5FS_section_class_t;
 
@@ -140,6 +141,15 @@ typedef struct H5FS_create_t {
     hsize_t max_sect_size;              /* Maximum size of section to track */
 } H5FS_create_t;
 
+/* Free space statistics info */
+typedef struct H5FS_stat_t {
+    hsize_t tot_space;          /* Total amount of space tracked              */
+    hsize_t tot_sect_count;     /* Total # of sections tracked                */
+    hsize_t serial_sect_count;  /* # of serializable sections tracked         */
+    hsize_t ghost_sect_count;   /* # of un-serializable sections tracked      */
+} H5FS_stat_t;
+
+
 /* Typedef for iteration operations */
 typedef herr_t (*H5FS_operator_t)(const H5FS_section_info_t *sect,
         void *operator_data/*in,out*/);
@@ -160,9 +170,9 @@ H5FL_SEQ_EXTERN(H5FS_section_class_t);
 /* Free space manager routines */
 H5_DLL H5FS_t *H5FS_create(H5F_t *f, hid_t dxpl_id, haddr_t *fs_addr,
     const H5FS_create_t *fs_create, size_t nclasses,
-    const H5FS_section_class_t *classes[], void *cls_init_udata);
+    const H5FS_section_class_t *classes[], void *cls_init_udata, hsize_t alignment, hsize_t threshold);
 H5_DLL H5FS_t *H5FS_open(H5F_t *f, hid_t dxpl_id, haddr_t fs_addr,
-    size_t nclasses, const H5FS_section_class_t *classes[], void *cls_init_udata);
+    size_t nclasses, const H5FS_section_class_t *classes[], void *cls_init_udata, hsize_t alignment, hsize_t threshold);
 H5_DLL herr_t H5FS_size(const H5F_t *f, const H5FS_t *fspace, hsize_t *meta_size);
 H5_DLL herr_t H5FS_delete(H5F_t *f, hid_t dxpl_id, haddr_t fs_addr);
 H5_DLL herr_t H5FS_close(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace);
@@ -181,6 +191,10 @@ H5_DLL herr_t H5FS_sect_stats(const H5FS_t *fspace, hsize_t *tot_space,
     hsize_t *nsects);
 H5_DLL herr_t H5FS_sect_change_class(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace,
     H5FS_section_info_t *sect, unsigned new_class);
+
+/* Statistics routine */
+H5_DLL herr_t H5FS_stat_info(const H5FS_t *fh, H5FS_stat_t *stats);
+
 
 /* Debugging routines for dumping file structures */
 H5_DLL herr_t H5FS_sect_debug(const H5FS_t *fspace, const H5FS_section_info_t *sect,

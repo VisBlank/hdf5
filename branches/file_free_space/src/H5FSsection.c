@@ -40,6 +40,8 @@
 /* Local Macros */
 /****************/
 
+/* #define QAK */
+
 /* Default starting size of section buffer */
 #define H5FS_SINFO_SIZE_DEFAULT  64
 
@@ -87,7 +89,6 @@ static herr_t H5FS_sect_merge(H5FS_t *fspace, H5FS_section_info_t **sect,
     void *op_data);
 static htri_t H5FS_sect_find_node(H5FS_t *fspace, hsize_t request, H5FS_section_info_t **node);
 static herr_t H5FS_sect_serialize_size(H5FS_t *fspace);
-
 
 /*********************/
 /* Package Variables */
@@ -1531,6 +1532,11 @@ done:
  * Programmer:	Quincey Koziol
  *              Monday, March 20, 2006
  *
+ * Modifications:
+ *	Vailin Choi, July 29th, 2008
+ *	  Modified to handle alignment by going through each bin to find
+ *	  a section that is big enough to fulfill "request+fragment for alignment"
+ *
  *-------------------------------------------------------------------------
  */
 static htri_t
@@ -1539,6 +1545,10 @@ H5FS_sect_find_node(H5FS_t *fspace, hsize_t request, H5FS_section_info_t **node)
     H5FS_node_t *fspace_node;        /* Free list size node */
     unsigned bin;                   /* Bin to put the free space section in */
     htri_t ret_value = FALSE;       /* Return value */
+
+    H5SL_node_t *curr_size_node=NULL; 
+    const H5FS_section_class_t *cls;    /* Class of section */
+    hsize_t alignment;
 
     FUNC_ENTER_NOAPI_NOINIT(H5FS_sect_find_node)
 
@@ -1552,38 +1562,110 @@ H5FS_sect_find_node(H5FS_t *fspace, hsize_t request, H5FS_section_info_t **node)
     /* Determine correct bin which holds items of at least the section's size */
     bin = H5V_log2_gen(request);
     HDassert(bin < fspace->sinfo->nbins);
-
-    /* Find the first free space section that is large enough to fulfill request */
-    /* (Since the bins use skip lists to track the sizes of the address-ordered
-     *  lists, this is actually a "best fit" algorithm)
-     */
 #ifdef QAK
 HDfprintf(stderr, "%s: fspace->sinfo->nbins = %u\n", FUNC, fspace->sinfo->nbins);
 HDfprintf(stderr, "%s: bin = %u\n", FUNC, bin);
 #endif /* QAK */
+    alignment = fspace->alignment;
+    if(!((alignment > 1) && (request >= fspace->threshold)))
+	alignment = 0; /* no alignment */
+
     do {
         /* Check if there's any sections in this bin */
-        if(fspace->sinfo->bins[bin].bin_list)
-            /* Look for large enough free space section in this bin */
-            if((fspace_node = H5SL_greater(fspace->sinfo->bins[bin].bin_list, &request))) {
-                const H5FS_section_class_t *cls;    /* Class of section */
+	if(fspace->sinfo->bins[bin].bin_list) {
 
-                /* Take first node off of the list (ie. node w/lowest address) */
-                if(NULL == (*node = H5SL_remove_first(fspace_node->sect_list)))
-                    HGOTO_ERROR(H5E_FSPACE, H5E_CANTREMOVE, FAIL, "can't remove free space node from skip list")
+	    if (!alignment) { /* no alignment */
+		/* Find the first free space section that is large enough to fulfill request */
+		/* (Since the bins use skip lists to track the sizes of the address-ordered
+		 *  lists, this is actually a "best fit" algorithm)
+		 */
+		/* Look for large enough free space section in this bin */
+		if((fspace_node = H5SL_greater(fspace->sinfo->bins[bin].bin_list, &request))) {
+		    /* Take first node off of the list (ie. node w/lowest address) */
+		    if(NULL == (*node = H5SL_remove_first(fspace_node->sect_list)))
+			HGOTO_ERROR(H5E_FSPACE, H5E_CANTREMOVE, FAIL, "can't remove free space node from skip list")
 
-                /* Get section's class */
-                cls = &fspace->sect_cls[(*node)->type];
+		    /* Get section's class */
+		    cls = &fspace->sect_cls[(*node)->type];
+		    /* Decrement # of sections in section size node */
+		    if(H5FS_size_node_decr(fspace->sinfo, bin, fspace_node, cls) < 0)
+			HGOTO_ERROR(H5E_FSPACE, H5E_CANTREMOVE, FAIL, "can't remove free space size node from skip list")
+		    if(H5FS_sect_unlink_rest(fspace, cls, *node) < 0)
+			HGOTO_ERROR(H5E_FSPACE, H5E_CANTFREE, FAIL, "can't remove section from non-size tracking data structures")
+		    /* Indicate that we found a node for the request */
+		    HGOTO_DONE(TRUE)
+		}
+	    } else { /* alignment is set */
+		    /* get the first node of a certain size in this bin */
+		    curr_size_node = H5SL_first(fspace->sinfo->bins[bin].bin_list);
+		    while (curr_size_node != NULL) {
+			H5FS_node_t *curr_fspace_node=NULL;
+			H5SL_node_t *curr_sect_node=NULL;
 
-                /* Decrement # of sections in section size node */
-                if(H5FS_size_node_decr(fspace->sinfo, bin, fspace_node, cls) < 0)
-                    HGOTO_ERROR(H5E_FSPACE, H5E_CANTREMOVE, FAIL, "can't remove free space size node from skip list")
+			/* Get the free space node for free space sections of the same size */
+			curr_fspace_node = H5SL_item(curr_size_node);
 
-                /* Indicate that we found a node for the request */
-                HGOTO_DONE(TRUE)
-            } /* end if */
+			/* Get the Skip list which holds  pointers to actual free list sections */
+			curr_sect_node = H5SL_first(curr_fspace_node->sect_list);
 
-        /* Advance to next larger bin */
+			while(curr_sect_node != NULL) {
+			    H5FS_section_info_t *curr_sect=NULL;
+			    hsize_t mis_align=0, frag_size=0;
+			    H5FS_section_info_t *split_sect=NULL;  
+
+			    /* Get section node */
+			    curr_sect = H5SL_item(curr_sect_node);
+
+			    HDassert(H5F_addr_defined(curr_sect->addr));
+			    HDassert(curr_fspace_node->sect_size == curr_sect->size);
+
+			    cls = &fspace->sect_cls[curr_sect->type];
+
+			    HDassert(alignment);
+			    HDassert(cls);
+
+			    if ((mis_align = curr_sect->addr % alignment))
+				frag_size = alignment - mis_align;
+
+			    if ((curr_sect->size >= (request + frag_size)) && (cls->split)) {
+				/* remove the section with aligned address */
+				if(NULL == (*node = H5SL_remove(curr_fspace_node->sect_list, &curr_sect->addr)))
+				    HGOTO_ERROR(H5E_FSPACE, H5E_CANTREMOVE, FAIL, "can't remove free space node from skip list")
+				/* Decrement # of sections in section size node */
+				if(H5FS_size_node_decr(fspace->sinfo, bin, curr_fspace_node, cls) < 0)
+				    HGOTO_ERROR(H5E_FSPACE, H5E_CANTREMOVE, FAIL, "can't remove free space size node from skip list")
+
+				if(H5FS_sect_unlink_rest(fspace, cls, *node) < 0)
+				    HGOTO_ERROR(H5E_FSPACE, H5E_CANTFREE, FAIL, "can't remove section from non-size tracking data structures")
+
+				/* 
+				 * The split() callback splits NODE into 2 sections:
+			         *  split_sect is the unused fragment for aligning NODE
+				 *  NODE's addr & size are updated to point to the remaining aligned section
+				 * split_sect is re-added to free-space
+				 */
+				if (mis_align) {
+				    split_sect = cls->split(*node, frag_size);
+				    if((H5FS_sect_link(fspace, split_sect, 0) < 0))
+					HGOTO_ERROR(H5E_FSPACE, H5E_CANTINSERT, FAIL, "can't insert free space section into skip list")
+				    /* sanity check */
+				    HDassert(split_sect->addr < (*node)->addr);
+				    HDassert(request <= (*node)->size);
+				}
+				/* Indicate that we found a node for the request */
+				HGOTO_DONE(TRUE)
+			    } 
+
+			    /* Get the next section node in the list */
+			    curr_sect_node = H5SL_next(curr_sect_node);
+			} /* end while of curr_sect_node */
+
+			/* Get the next size node in the bin */
+			curr_size_node = H5SL_next(curr_size_node);
+		    } /* end while of curr_size_node */
+	    }  /* else of alignment */
+	} /* if bin_list */
+	/* Advance to next larger bin */
         bin++;
     } while(bin < fspace->sinfo->nbins);
 
@@ -1604,6 +1686,10 @@ done:
  *
  * Programmer:	Quincey Koziol
  *              Tuesday, March  7, 2006
+ *
+ * Modifications:
+ *	Vailin Choi, July 29th 2008
+ *	  Move H5FS_sect_unlink_rest() to H5FS_sect_find_node()
  *
  *-------------------------------------------------------------------------
  */
@@ -1645,21 +1731,12 @@ HDfprintf(stderr, "%s: fspace->ghost_sect_count = %Hu\n", FUNC, fspace->ghost_se
 
         /* Decrement # of sections on free list, if we found an object */
         if(ret_value > 0) {
-            const H5FS_section_class_t *cls;    /* Class of section */
-
-            /* Get section's class */
-            cls = &fspace->sect_cls[(*node)->type];
-
-            /* Update rest of free space manager data structures for node removal */
-            if(H5FS_sect_unlink_rest(fspace, cls, *node) < 0)
-                HGOTO_ERROR(H5E_FSPACE, H5E_CANTFREE, FAIL, "can't remove section from non-size tracking data structures")
-
             /* Note that we've modified the section info */
             sinfo_modified = TRUE;
 #ifdef QAK
 HDfprintf(stderr, "%s: (*node)->size = %Hu, (*node)->addr = %a, (*node)->type = %u\n", FUNC, (*node)->size, (*node)->addr, (*node)->type);
 #endif /* QAK */
-        } /* end if */
+	}
     } /* end if */
 
 done:
