@@ -26,27 +26,29 @@ if BUILD_PARALLEL_CONDITIONAL
    TEST_PROG_PARA=ph5example
 endif
 
-if FORTRAN_2003_CONDITIONAL_F
-   FORTRAN_F2003_EX1 = rwdset_fortran2003 
-   FORTRAN_F2003_EX2 = nested_derived_type
-endif
-
 # These are the programs that 'make all' or 'make tests' will build and
 # that 'make check' will run.  List them in the order in which they should
 # be run.
 # We don't tell automake about these programs so that it doesn't try to
 # compile them with the regular fortran compiler.
-TEST_PROG=dsetexample fileexample rwdsetexample attrexample groupexample    \
-       grpsexample grpdsetexample hyperslab selectele grpit refobjexample   \
-       refregexample mountexample compound $(FORTRAN_F2003_EX1) $(FORTRAN_F2003_EX2)
-TEST_SCRIPT=testh5fc.sh
+
+TEST_PROG=dsetexample fileexample rwdsetexample attrexample groupexample \
+     grpsexample grpdsetexample hyperslab selectele grpit refobjexample  \
+     refregexample mountexample compound
 
 # List files to be installed here
-INSTALL_FILES=dsetexample.f90 fileexample.f90 rwdsetexample.f90             \
-       attrexample.f90 groupexample.f90 grpsexample.f90 grpdsetexample.f90  \
-       hyperslab.f90 selectele.f90 grpit.f90 refobjexample.f90              \
-       refregexample.f90 mountexample.f90 compound.f90 ph5example.f90 \
-       $(FORTRAN_F2003_EX1).f90 $(FORTRAN_F2003_EX2).f90
+INSTALL_FILES=dsetexample.f90 fileexample.f90 rwdsetexample.f90           \
+     attrexample.f90 groupexample.f90 grpsexample.f90 grpdsetexample.f90  \
+     hyperslab.f90 selectele.f90 grpit.f90 refobjexample.f90              \
+     refregexample.f90 mountexample.f90 compound.f90 ph5example.f90
+
+
+# Add attention tests for Fortran 2003 features
+if FORTRAN_2003_CONDITIONAL_F
+  TEST_PROG +=  rwdset_fortran2003 nested_derived_type
+  INSTALL_FILES +=  rwdset_fortran2003.f90 nested_derived_type.f90
+endif
+TEST_SCRIPT=testh5fc.sh
 
 # Mark this directory as part of the Fortran API
 FORTRAN_API=yes
@@ -93,8 +95,10 @@ refregexample: refregexample.f90
 mountexample: mountexample.f90
 compound: compound.f90
 ph5example: ph5example.f90
-$(FORTRAN_F2003_EX1): $(FORTRAN_F2003_EX1).f90
-$(FORTRAN_F2003_EX2): $(FORTRAN_F2003_EX2).f90
+if FORTRAN_2003_CONDITIONAL_F
+rwdset_fortran2003: rwdset_fortran2003.f90
+nested_derived_type: nested_derived_type.f90
+endif
 
 include $(top_srcdir)/config/examples.am
 include $(top_srcdir)/config/conclude.am
