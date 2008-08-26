@@ -77,12 +77,6 @@ PROGRAM fortranlibtest
        total_error)
 
   ret_total_error = 0
-  CALL test_genprop_basic_class(cleanup, ret_total_error)
-  CALL write_test_status(ret_total_error, &
-       ' Testing basic generic properties', &
-       total_error)
-
-  ret_total_error = 0
   CALL test_h5s_encode(cleanup, ret_total_error)
   CALL write_test_status(ret_total_error, &
        ' Testing dataspace encoding and decoding', &
@@ -94,11 +88,6 @@ PROGRAM fortranlibtest
 !!$       ' Testing property lists, with variable-length datatype', &
 !!$       total_error) 
 
-  ret_total_error = 0
-  CALL test_create(ret_total_error)
-  CALL write_test_status(ret_total_error, &
-       ' Testing filling functions', &
-       total_error) 
 
 !  CALL test_hard_query(group_total_error)
 
