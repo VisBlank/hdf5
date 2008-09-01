@@ -591,5 +591,4 @@ CONTAINS
     IF(PRESENT(size)) size = size_default
 
   END SUBROUTINE h5rget_name_ptr_f
-
 END MODULE H5R_PROVISIONAL

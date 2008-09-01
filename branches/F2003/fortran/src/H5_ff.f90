@@ -15,6 +15,10 @@
 !
 MODULE H5LIB
 
+  USE H5LIB_PROVISIONAL  ! helper functions for Fortran 2003 features:
+                         !       pre-Fortran 2003 - blank file
+                         !       Forttran 2003 - contains functions
+
 CONTAINS
 !----------------------------------------------------------------------
 ! Name:		h5open_f 
@@ -389,28 +393,26 @@ CONTAINS
     
   END SUBROUTINE h5dont_atexit_f
 
-!F2003 only code
-
-  INTEGER(SIZE_T) FUNCTION h5offsetof(start,END) RESULT(diff)
+!----------------------------------------------------------------------
+! Name:		h5kind_to_type
 !
-!This definition is needed for Windows DLLs
-!DEC$if defined(BUILD_HDF5_DLL)
-!DEC$attributes dllexport :: hoffsetof
-!DEC$endif
+! Purpose: 	Converts the KIND to the correct HDF type
 !
-    USE, INTRINSIC :: ISO_C_BINDING
-    USE H5GLOBAL
-    IMPLICIT NONE
-
-    TYPE(C_PTR), VALUE, INTENT(IN) :: start, end
-    INTEGER(C_INTPTR_T) :: int_address_start, int_address_end
-
-    int_address_start = TRANSFER(start, int_address_start)
-    int_address_end   = TRANSFER(end  , int_address_end  )
-
-    diff = int_address_end - int_address_start
-
-  END FUNCTION h5offsetof
+! Inputs:       KIND - Fortran KIND parameter
+!               flag - whether KIND is of type INTEGER or REAL:
+!                              H5_INTEGER_KIND - integer
+!                              H5_REAL_KIND - real
+! Outputs:  
+!	        h5_type - returns the type 
+! Optional parameters:
+!				NONE			
+!
+! Programmer: M.S. Breitenfeld
+!             Augest 25, 2008
+!
+!
+! Comment:		
+!----------------------------------------------------------------------
 
   INTEGER(HID_T) FUNCTION h5kind_to_type(kind, flag) RESULT(h5_type)
 !

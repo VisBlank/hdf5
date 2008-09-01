@@ -66,7 +66,7 @@ endif
 
 # Source files for the library.
 libhdf5_fortran_la_SOURCES=H5fortran_flags.f90 H5f90global.f90 \
-          H5fortran_types.f90 H5_ff.f90 H5Aff.f90 H5Dff.f90 H5Eff.f90    \
+          H5fortran_types.f90 H5_ff$(F_STATUS).f90 H5_ff.f90 H5Aff.f90 H5Dff.f90 H5Eff.f90    \
           H5Fff.f90 H5Gff.f90 H5Iff.f90 H5Lff.f90 H5Off.f90 H5Pff.f90 H5Rff.f90 H5Sff.f90    \
           H5Tff.f90 H5Zff.f90                                            \
 	  H5_DBLE_Interface$(F_DBLE).f90 \
@@ -182,7 +182,8 @@ H5f90global.lo:      $(srcdir)/H5f90global.f90 H5fortran_flags.lo H5fortran_type
 H5fortran_types.lo:  H5fortran_types.f90
 H5fortran_detect.lo: H5fortran_detect.f90
 H5test_kind.lo:      $(srcdir)/H5test_kind.f90
-H5_ff.lo:            $(srcdir)/H5_ff.f90 H5f90global.lo
+H5_ff$(F_STATUS).lo: $(srcdir)/H5_ff$(F_STATUS).f90 H5f90global.lo
+H5_ff.lo:            $(srcdir)/H5_ff.f90 H5f90global.lo H5_ff$(F_STATUS).lo
 H5Aff.lo:            $(srcdir)/H5Aff.f90 H5f90global.lo
 H5Dff.lo:            $(srcdir)/H5Dff.f90 H5f90global.lo
 H5Dff$(F_STATUS).lo:  $(srcdir)/H5Dff$(F_STATUS).f90 H5f90global.lo
