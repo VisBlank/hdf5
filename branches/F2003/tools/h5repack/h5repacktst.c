@@ -71,6 +71,9 @@
 #define FNAME16    "h5repack_ub.h5"
 #define FNAME16OUT "h5repack_ub_out.h5"
 
+#define FNAME_UB   "ublock.bin"
+
+
 
 const char *H5REPACK_FILENAMES[] = {
    "h5repack_big_out",
@@ -123,7 +126,8 @@ int make_attr(hid_t loc_id,int rank,hsize_t *dims,const char *attr_name,hid_t ty
 void make_dset_reg_ref(hid_t loc_id);
 int make_external(hid_t loc_id);
 static int make_userblock(void);
-static int verify_userblock(void);
+static int verify_userblock( const char* filename);
+static int make_userblock_file(void);
 
 
 /*-------------------------------------------------------------------------
@@ -151,6 +155,9 @@ int main (void)
  /* initialize */
  memset(&diff_options, 0, sizeof (diff_opt_t));
  memset(&pack_options, 0, sizeof (pack_opt_t));
+
+ /* set h5diff "contents" mode */
+ diff_options.m_contents = 1;
 
  /* run tests  */
  puts("Testing h5repack:");
@@ -1329,7 +1336,7 @@ if (szip_can_encode) {
   GOERROR;
  if(h5repack_verify(FNAME16OUT, &pack_options) <= 0)
   GOERROR;
- if(verify_userblock() < 0)
+ if(verify_userblock(FNAME16OUT) < 0)
   GOERROR;
  if(h5repack_end(&pack_options) < 0)
   GOERROR;
@@ -1389,6 +1396,100 @@ if (szip_can_encode) {
 #else
  SKIPPED();
 #endif
+
+
+ /*-------------------------------------------------------------------------
+ * test file with userblock
+ *-------------------------------------------------------------------------
+ */
+ TESTING("    file with added userblock");
+
+#ifdef H5_HAVE_FILTER_DEFLATE
+
+ if(h5repack_init(&pack_options, 0) < 0)
+  GOERROR;
+
+ /* add the options for a user block size and user block filename */
+ pack_options.ublock_size = USERBLOCK_SIZE;
+ pack_options.ublock_filename = FNAME_UB;
+ 
+ if(h5repack(FNAME8, FNAME8OUT, &pack_options) < 0)
+  GOERROR;
+ if(h5diff(FNAME8, FNAME8OUT, NULL, NULL, &diff_options) > 0)
+  GOERROR;
+ if(h5repack_verify(FNAME8OUT, &pack_options) <= 0)
+  GOERROR;
+ if(verify_userblock(FNAME8OUT) < 0)
+  GOERROR;
+ if(h5repack_end(&pack_options) < 0)
+  GOERROR;
+
+
+ PASSED();
+#else
+ SKIPPED();
+#endif
+
+
+/*-------------------------------------------------------------------------
+ * test file with aligment
+ *-------------------------------------------------------------------------
+ */
+ TESTING("    file with aligment");
+
+#ifdef H5_HAVE_FILTER_DEFLATE
+
+ if(h5repack_init(&pack_options, 0) < 0)
+  GOERROR;
+
+ /* add the options for aligment */
+ pack_options.alignment = 1;
+ pack_options.threshold = 1;
+ 
+ if(h5repack(FNAME8, FNAME8OUT, &pack_options) < 0)
+  GOERROR;
+ if(h5diff(FNAME8, FNAME8OUT, NULL, NULL, &diff_options) > 0)
+  GOERROR;
+ if(h5repack_verify(FNAME8OUT, &pack_options) <= 0)
+  GOERROR;
+ 
+
+ /* verify aligment */
+ {
+     hsize_t threshold;
+     hsize_t alignment;
+     hid_t fapl;
+     hid_t fid;
+     
+     if (( fid = H5Fopen(FNAME8OUT, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0 )
+         GOERROR;
+     if ((fapl = H5Fget_access_plist(fid)) < 0)
+         GOERROR;
+     if ( H5Pget_alignment(fapl, &threshold, &alignment  )  < 0)
+         GOERROR;
+     if ( threshold != 1 )
+         GOERROR;
+     if ( alignment != 1 )
+         GOERROR;
+     if ( H5Pclose(fapl) < 0)
+         GOERROR;
+     if (H5Fclose(fid) < 0)
+         GOERROR;
+     
+ }
+
+
+ if(h5repack_end(&pack_options) < 0)
+  GOERROR;
+ 
+
+ PASSED();
+#else
+ SKIPPED();
+#endif
+
+
+
 
 
 /*-------------------------------------------------------------------------
@@ -1595,6 +1696,13 @@ int make_testfiles(void)
  *-------------------------------------------------------------------------
  */
  if(make_userblock() < 0)
+  goto out;
+
+ /*-------------------------------------------------------------------------
+ * create a userblock file 
+ *-------------------------------------------------------------------------
+ */
+ if(make_userblock_file() < 0)
   goto out;
 
  return 0;
@@ -2876,7 +2984,7 @@ out:
  *-------------------------------------------------------------------------
  */
 static int
-verify_userblock(void)
+verify_userblock( const char* filename)
 {
     hid_t   fid = -1;
     hid_t   fcpl = -1;
@@ -2887,7 +2995,7 @@ verify_userblock(void)
     size_t  u;                  /* Local index variable */
 
     /* Open file with userblock */
-    if((fid = H5Fopen(FNAME16OUT, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0)
+    if((fid = H5Fopen(filename, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0)
         goto out;
 
     /* Retrieve file creation property list & userblock size */
@@ -2909,7 +3017,7 @@ verify_userblock(void)
 
 
     /* Re-open HDF5 file, as "plain" file */
-    if((fd = HDopen(FNAME16, O_RDONLY, 0)) < 0)
+    if((fd = HDopen(filename, O_RDONLY, 0)) < 0)
         goto out;
 
     /* Read userblock data */
@@ -2937,6 +3045,48 @@ out:
     return -1;
 } /* end verify_userblock() */
 
+
+/*-------------------------------------------------------------------------
+ * Function: make_userblock_file
+ *
+ * Purpose: create a file for the userblock add test
+ *
+ *-------------------------------------------------------------------------
+ */
+static int
+make_userblock_file(void)
+{
+    hid_t   fid = -1;
+    hid_t   fcpl = -1;
+    int     fd = -1;            /* File descriptor for writing userblock */
+    char    ub[USERBLOCK_SIZE]; /* User block data */
+    ssize_t nwritten;           /* # of bytes written */
+    size_t  u;                  /* Local index variable */
+
+    /* initialize userblock data */
+    for(u = 0; u < USERBLOCK_SIZE; u++)
+        ub[u] = 'a' + (u % 26);
+
+    /* open file */
+    if((fd = HDopen(FNAME_UB,O_WRONLY|O_CREAT|O_TRUNC, 0644 )) < 0)
+        goto out;
+
+    /* write userblock data */
+    nwritten = HDwrite(fd, ub, (size_t)USERBLOCK_SIZE);
+    assert(nwritten == USERBLOCK_SIZE);
+
+    /* close file */
+    HDclose(fd);
+
+    return 0;
+
+out:
+    
+    if(fd > 0)
+        HDclose(fd);
+
+    return -1;
+} 
 
 /*-------------------------------------------------------------------------
  * Function: write_dset_in

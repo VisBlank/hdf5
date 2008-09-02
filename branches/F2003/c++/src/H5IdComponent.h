@@ -109,6 +109,10 @@ class H5_DLLCPP IdComponent {
 	// Verifies that the given id is valid.
 	bool p_valid_id(const hid_t obj_id) const;
 
+	// Sets the identifier of this object to a new value. - this one
+	// doesn't increment reference count
+	virtual void p_setId(const hid_t new_id) = 0;
+
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
 }; // end class IdComponent

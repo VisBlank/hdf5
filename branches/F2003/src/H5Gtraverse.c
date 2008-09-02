@@ -194,7 +194,7 @@ H5G_traverse_ud(const H5G_loc_t *grp_loc/*in,out*/, const H5O_link_t *lnk,
     /* Create a group to pass to the user-defined callback */
     if((grp = H5G_open(&grp_loc_copy, dxpl_id)) == NULL)
         HGOTO_ERROR(H5E_SYM, H5E_CANTOPENOBJ, FAIL, "unable to open group")
-    if((cur_grp = H5I_register(H5I_GROUP, grp)) < 0)
+    if((cur_grp = H5I_register(H5I_GROUP, grp, FALSE)) < 0)
         HGOTO_ERROR(H5E_ATOM, H5E_CANTREGISTER, FAIL, "unable to register group")
 
     /* Check for generic default property list and use link access default if so */
@@ -210,7 +210,7 @@ H5G_traverse_ud(const H5G_loc_t *grp_loc/*in,out*/, const H5O_link_t *lnk,
     } /* end else */
 
     /* Copy the property list passed in */
-    if((lapl_id = H5P_copy_plist(lapl)) < 0)
+    if((lapl_id = H5P_copy_plist(lapl, FALSE)) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_BADVALUE, FAIL, "unable to copy property list")
 
     /* Get the underlying property list copy */
@@ -266,22 +266,22 @@ H5G_traverse_ud(const H5G_loc_t *grp_loc/*in,out*/, const H5O_link_t *lnk,
     /* We have a copy of the location and we're holding the file open.
      * Close the open ID the user passed back.
      */
-    if(H5I_dec_ref(cb_return) < 0)
+    if(H5I_dec_ref(cb_return, FALSE) < 0)
         HGOTO_ERROR(H5E_ATOM, H5E_CANTRELEASE, FAIL, "unable to close atom from UD callback")
     cb_return = (-1);
 
 done:
     /* Close location given to callback. */
     if(cur_grp > 0)
-        if(H5I_dec_ref(cur_grp) < 0)
+        if(H5I_dec_ref(cur_grp, FALSE) < 0)
             HDONE_ERROR(H5E_ATOM, H5E_CANTRELEASE, FAIL, "unable to close atom for current location")
 
     if(ret_value < 0 && cb_return > 0)
-        if(H5I_dec_ref(cb_return) < 0)
+        if(H5I_dec_ref(cb_return, FALSE) < 0)
             HDONE_ERROR(H5E_ATOM, H5E_CANTRELEASE, FAIL, "unable to close atom from UD callback")
 
     /* Close the LAPL, if we copied one */
-    if(lapl_id > 0 && H5I_dec_ref(lapl_id) < 0)
+    if(lapl_id > 0 && H5I_dec_ref(lapl_id, FALSE) < 0)
         HDONE_ERROR(H5E_ATOM, H5E_CANTRELEASE, FAIL, "unable to close copied link access property list")
 
     FUNC_LEAVE_NOAPI(ret_value)
@@ -384,7 +384,8 @@ done:
 static herr_t
 H5G_traverse_mount(H5G_loc_t *obj_loc/*in,out*/)
 {
-    H5F_t	*parent = obj_loc->oloc->file;       /* File of object */
+    H5F_t	*parent = obj_loc->oloc->file,      /* File of object */
+            *child = NULL;                      /* Child file */
     unsigned	lt, rt, md = 0;                 /* Binary search indices */
     int cmp;
     H5O_loc_t	*oloc = NULL;           /* Object location for mount points */
@@ -405,11 +406,11 @@ H5G_traverse_mount(H5G_loc_t *obj_loc/*in,out*/)
 	 * table for the parent
 	 */
 	lt = 0;
-	rt = parent->mtab.nmounts;
+	rt = parent->shared->mtab.nmounts;
 	cmp = -1;
 	while(lt < rt && cmp) {
 	    md = (lt + rt) / 2;
-	    oloc = H5G_oloc(parent->mtab.child[md].group);
+	    oloc = H5G_oloc(parent->shared->mtab.child[md].group);
 	    cmp = H5F_addr_cmp(obj_loc->oloc->addr, oloc->addr);
 	    if(cmp < 0)
 		rt = md;
@@ -418,17 +419,28 @@ H5G_traverse_mount(H5G_loc_t *obj_loc/*in,out*/)
 	} /* end while */
 
 	/* Copy root info over to ENT */
-	if(0 == cmp) {
-            /* Get the location for the root group in the child's file */
-	    oloc = H5G_oloc(parent->mtab.child[md].file->shared->root_grp);
+    if(0 == cmp) {
+        /* Get the child file */
+        child = parent->shared->mtab.child[md].file;
+        
+        /* Get the location for the root group in the child's file */
+        oloc = H5G_oloc(child->shared->root_grp);
 
-            /* Copy the entry for the root group */
-            if(H5O_loc_copy(obj_loc->oloc, oloc, H5_COPY_DEEP) < 0)
-                HGOTO_ERROR(H5E_FILE, H5E_CANTCOPY, FAIL, "unable to copy object location")
+        /* Release the mount point */
+        if(H5O_loc_free(obj_loc->oloc) < 0)
+            HGOTO_ERROR(H5E_FILE, H5E_CANTFREE, FAIL, "unable to free object location")
 
-            /* Switch to child's file */
-	    parent = oloc->file;
-	} /* end if */
+        /* Copy the entry for the root group */
+        if(H5O_loc_copy(obj_loc->oloc, oloc, H5_COPY_DEEP) < 0)
+            HGOTO_ERROR(H5E_FILE, H5E_CANTCOPY, FAIL, "unable to copy object location")
+
+        /* In case the shared root group info points to a different file handle
+         * than the child, modify obj_loc */
+        obj_loc->oloc->file = child;
+
+        /* Switch to child's file */
+        parent = child;
+    } /* end if */
     } while(!cmp);
 
 done:

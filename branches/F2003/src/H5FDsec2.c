@@ -240,7 +240,7 @@ H5FD_sec2_init(void)
     FUNC_ENTER_NOAPI(H5FD_sec2_init, FAIL)
 
     if(H5I_VFL != H5I_get_type(H5FD_SEC2_g))
-        H5FD_SEC2_g = H5FD_register(&H5FD_sec2_g, sizeof(H5FD_class_t));
+        H5FD_SEC2_g = H5FD_register(&H5FD_sec2_g, sizeof(H5FD_class_t), FALSE);
 
     /* Set return value */
     ret_value = H5FD_SEC2_g;
@@ -434,11 +434,11 @@ H5FD_sec2_close(H5FD_t *_file)
     if (HDclose(file->fd)<0)
         HSYS_GOTO_ERROR(H5E_IO, H5E_CANTCLOSEFILE, FAIL, "unable to close file")
 
-    H5FL_FREE(H5FD_sec2_t,file);
+    (void)H5FL_FREE(H5FD_sec2_t,file);
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-}
+} /* end H5FD_sec2_close() */
 
 
 /*-------------------------------------------------------------------------

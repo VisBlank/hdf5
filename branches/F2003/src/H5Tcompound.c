@@ -217,7 +217,7 @@ H5Tget_member_type(hid_t type_id, unsigned membno)
 	HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "invalid member number")
     if ((memb_dt=H5T_get_member_type(dt, membno, H5T_COPY_REOPEN))==NULL)
 	HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "unable to retrieve member type")
-    if ((ret_value = H5I_register(H5I_DATATYPE, memb_dt)) < 0)
+    if ((ret_value = H5I_register(H5I_DATATYPE, memb_dt, TRUE)) < 0)
 	HGOTO_ERROR(H5E_DATATYPE, H5E_CANTREGISTER, FAIL, "unable register datatype atom")
 
 done:
@@ -560,8 +560,8 @@ H5T_pack(const H5T_t *dt)
                     HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "unable to pack part of a compound datatype")
 
                 /* Update the member size */
-                dt->shared->u.compnd.memb[i].size = dt->shared->u.compnd.memb[i].type->shared->size;
-	    }
+                dt->shared->u.compnd.memb[i].size = (dt->shared->u.compnd.memb[i].type)->shared->size;
+            }
 
             /* Remove padding between members */
             if(H5T_sort_value(dt, NULL)<0)

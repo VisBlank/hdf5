@@ -95,7 +95,7 @@ int h5repack_init (pack_opt_t *options,
 {
     int k, n;
     memset(options,0,sizeof(pack_opt_t));
-    options->threshold = 1024;
+    options->min_comp = 1024;
     options->verbose   = verbose;
         
     for ( n = 0; n < H5_REPACK_MAX_NFILTERS; n++)
@@ -384,8 +384,12 @@ static int check_options(pack_opt_t *options)
         is present with other objects\n");
     return -1;
     }
-    
-    /* check options for the latest format */
+
+    /*-------------------------------------------------------------------------
+    * check options for the latest format
+    *-------------------------------------------------------------------------
+    */
+
     if (options->grp_compact < 0) {
         error_msg(progname, "invalid maximum number of links to store as header messages\n");
         return -1;
@@ -403,6 +407,37 @@ static int check_options(pack_opt_t *options)
             error_msg(progname, "invalid shared message size\n");
             return -1;
         }
+    }
+
+
+    /*--------------------------------------------------------------------------------
+    * verify new user userblock options; both file name and block size must be present
+    *---------------------------------------------------------------------------------
+    */
+    if ( options->ublock_filename != NULL && options->ublock_size == 0 )
+    {
+        error_msg(progname, "user block size missing for file %s\n",
+            options->ublock_filename);
+        return -1;
+    }
+    
+    if ( options->ublock_filename == NULL && options->ublock_size != 0 )
+    {
+        error_msg(progname, "file name missing for user block\n",
+            options->ublock_filename);
+        return -1;
+    }
+
+
+    /*--------------------------------------------------------------------------------
+    * verify alignment options; threshold is zero default but alignment not
+    *---------------------------------------------------------------------------------
+    */
+       
+    if ( options->alignment == 0 && options->threshold != 0 )
+    {
+        error_msg(progname, "alignment for H5Pset_alignment missing\n");
+        return -1;
     }
     
     return 0;

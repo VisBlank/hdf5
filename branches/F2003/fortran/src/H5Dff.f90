@@ -23,7 +23,6 @@ MODULE H5D
      MODULE PROCEDURE h5dset_extent_f
   END INTERFACE
 
-
   INTERFACE h5dread_vl_f
      MODULE PROCEDURE h5dread_vl_integer
      MODULE PROCEDURE h5dread_vl_real

@@ -235,7 +235,7 @@ done:
         if(table_addr != HADDR_UNDEF)
             H5MF_xfree(f, H5FD_MEM_SOHM_TABLE, dxpl_id, table_addr, (hsize_t)H5SM_TABLE_SIZE(f));
         if(table != NULL)
-            H5FL_FREE(H5SM_master_table_t, table);
+            (void)H5FL_FREE(H5SM_master_table_t, table);
     } /* end if */
 
     FUNC_LEAVE_NOAPI(ret_value)
@@ -638,7 +638,7 @@ done:
         if(list != NULL) {
             if(list->messages != NULL)
                 H5FL_ARR_FREE(H5SM_sohm_t, list->messages);
-            H5FL_FREE(H5SM_list_t, list);
+            (void)H5FL_FREE(H5SM_list_t, list);
         } /* end if */
         if(addr != HADDR_UNDEF)
             H5MF_xfree(f, H5FD_MEM_SOHM_INDEX, dxpl_id, addr, size);
@@ -1582,8 +1582,6 @@ H5SM_delete_from_index(H5F_t *f, hid_t dxpl_id, H5O_t *open_oh,
     H5HF_t         *fheap = NULL;       /* Fractal heap that contains the message */
     size_t          buf_size;           /* Size of the encoded message (out) */
     void            *encoding_buf = NULL; /* The encoded message (out) */
-    H5O_loc_t       oloc;               /* Object location for message in object header */
-    H5O_t           *oh = NULL;         /* Object header for message in object header */
     unsigned        type_id;            /* Message type to operate on */
     herr_t          ret_value = SUCCEED;
 
@@ -1716,15 +1714,6 @@ H5SM_delete_from_index(H5F_t *f, hid_t dxpl_id, H5O_t *open_oh,
     } /* end if */
 
 done:
-    /* Unprotect & close the object header if we opened one */
-    if(oh && oh != open_oh) {
-        if(H5AC_unprotect(oloc.file, dxpl_id, H5AC_OHDR, oloc.addr, oh, H5AC__NO_FLAGS_SET) < 0)
-            HDONE_ERROR(H5E_OHDR, H5E_PROTECT, FAIL, "unable to release object header")
-
-        if(H5O_close(&oloc) < 0)
-            HDONE_ERROR(H5E_OHDR, H5E_CANTRELEASE, FAIL, "unable to close object header")
-    } /* end if */
-
     /* Release the SOHM list */
     if(list && H5AC_unprotect(f, dxpl_id, H5AC_SOHM_LIST, header->index_addr, list, H5AC__DIRTIED_FLAG) < 0)
 	HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close SOHM index")
@@ -2257,7 +2246,7 @@ H5SM_read_mesg(H5F_t *f, const H5SM_sohm_t *mesg, H5HF_t *fheap,
 	        HGOTO_ERROR(H5E_OHDR, H5E_CANTLOAD, FAIL, "unable to open object header")
 
             /* Load the object header from the cache */
-            if(NULL == (oh = H5AC_protect(oloc.file, dxpl_id, H5AC_OHDR, oloc.addr, NULL, NULL, H5AC_READ)))
+            if(NULL == (oh = (H5O_t *)H5AC_protect(oloc.file, dxpl_id, H5AC_OHDR, oloc.addr, NULL, NULL, H5AC_READ)))
 	        HGOTO_ERROR(H5E_OHDR, H5E_CANTLOAD, FAIL, "unable to load object header")
         } /* end if */
         else

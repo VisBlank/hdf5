@@ -340,12 +340,13 @@ H5_FCDLL int_f nh5dfill_integer_c(void * fill_value, hid_t_f *fill_type_id, hid_
 H5_FCDLL int_f nh5dfill_real_c(void * fill_value, hid_t_f *fill_type_id, hid_t_f *space_id, void * buf, hid_t_f *mem_type_id);
 H5_FCDLL int_f nh5dfill_double_c(void * fill_value, hid_t_f *fill_type_id, hid_t_f *space_id, void * buf, hid_t_f *mem_type_id);
 H5_FCDLL int_f nh5dget_space_status_c ( hid_t_f *dset_id, int_f *flag);
-H5_FCDLL int_f nh5dcreate_anon_c (hid_t_f *loc_id, hid_t_f *type_id, hid_t_f *space_id, 
+H5_FCDLL int_f nh5dcreate_anon_c (hid_t_f *loc_id, hid_t_f *type_id, hid_t_f *space_id,
 				  hid_t_f *dcpl_id, hid_t_f *dapl_id, hid_t_f *dset_id); 
 H5_FCDLL int_f nh5dwrite_f_c (hid_t_f *dset_id, hid_t_f *mem_type_id, hid_t_f *mem_space_id, 
 				   hid_t_f *file_space_id, hid_t_f *xfer_prp, void *buf);
 H5_FCDLL int_f nh5dread_f_c ( hid_t_f *dset_id ,  hid_t_f *mem_type_id, hid_t_f *mem_space_id, 
 				   hid_t_f *file_space_id, hid_t_f *xfer_prp, void *buf);
+
 
 /*
  * Functions from H5Gf.c
@@ -386,12 +387,12 @@ H5_FCDLL int_f nh5gset_comment_c (hid_t_f *loc_id, _fcd name, int_f *namelen, _f
 H5_FCDLL int_f nh5gget_comment_c (hid_t_f *loc_id, _fcd name, int_f *namelen, size_t_f *bufsize, _fcd comment);
 H5_FCDLL int_f nh5gcreate_anon_c (hid_t_f *loc_id, hid_t_f *gcpl_id, hid_t_f *gapl_id, hid_t_f *grp_id);
 H5_FCDLL int_f nh5gget_create_plist_c(hid_t_f *grp_id, hid_t_f *gcpl_id );
-H5_FCDLL int_f nh5gget_info_c (hid_t_f *group_id, int_f *storage_type, int_f *nlinks, int_f *max_corder);
+H5_FCDLL int_f nh5gget_info_c (hid_t_f *group_id, int_f *storage_type, int_f *nlinks, int_f *max_corder, int_f *mounted);
 H5_FCDLL int_f nh5gget_info_by_idx_c(hid_t_f *loc_id, _fcd group_name, size_t_f *group_namelen, 
-				     int_f *index_type, int_f *order, hsize_t_f *n, hid_t_f *lapl_id, 
-				     int_f *storage_type, int_f *nlinks, int_f *max_corder); 
-H5_FCDLL int_f nh5gget_info_by_name_c(hid_t_f *loc_id, _fcd group_name, size_t_f *group_namelen, hid_t_f *lapl_id, 
-				      int_f *storage_type, int_f *nlinks, int_f *max_corder); 
+				     int_f *index_type, int_f *order, hsize_t_f *n, hid_t_f *lapl_id,
+				     int_f *storage_type, int_f *nlinks, int_f *max_corder, int_f *mounted);
+H5_FCDLL int_f nh5gget_info_by_name_c(hid_t_f *loc_id, _fcd group_name, size_t_f *group_namelen, hid_t_f *lapl_id,
+				      int_f *storage_type, int_f *nlinks, int_f *max_corder, int_f *mounted);
 
 /*
  * Functions from H5Af.c
