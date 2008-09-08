@@ -43,12 +43,6 @@ CONTAINS
 ! Comment:		
 !----------------------------------------------------------------------
   SUBROUTINE h5open_f(error)
-!
-!This definition is needed for Windows DLLs
-!DEC$if defined(BUILD_HDF5_DLL)
-!DEC$attributes dllexport :: h5open_f
-!DEC$endif
-!
     USE H5GLOBAL
 
     IMPLICIT NONE
@@ -171,12 +165,6 @@ CONTAINS
 !----------------------------------------------------------------------
 
   SUBROUTINE h5close_f(error)
-!
-!This definition is needed for Windows DLLs
-!DEC$if defined(BUILD_HDF5_DLL)
-!DEC$attributes dllexport :: h5close_f
-!DEC$endif
-!
     USE H5GLOBAL
 
     IMPLICIT NONE
@@ -237,12 +225,6 @@ CONTAINS
 !----------------------------------------------------------------------
 
   SUBROUTINE h5get_libversion_f(majnum, minnum, relnum, error)
-!
-!This definition is needed for Windows DLLs
-!DEC$if defined(BUILD_HDF5_DLL)
-!DEC$attributes dllexport :: h5get_libversion_f
-!DEC$endif
-!
     USE H5GLOBAL
     
     IMPLICIT NONE
@@ -283,12 +265,6 @@ CONTAINS
 !----------------------------------------------------------------------
 
   SUBROUTINE h5check_version_f(majnum, minnum, relnum, error)
-!
-!This definition is needed for Windows DLLs
-!DEC$if defined(BUILD_HDF5_DLL)
-!DEC$attributes dllexport :: h5check_version_f
-!DEC$endif
-!
     USE H5GLOBAL
     
     IMPLICIT NONE
@@ -328,12 +304,6 @@ CONTAINS
 !----------------------------------------------------------------------
 
   SUBROUTINE h5garbage_collect_f(error)
-!
-!This definition is needed for Windows DLLs
-!DEC$if defined(BUILD_HDF5_DLL)
-!DEC$attributes dllexport :: h5garbage_collect_f
-!DEC$endif
-!
     USE H5GLOBAL
     
     IMPLICIT NONE
@@ -371,12 +341,6 @@ CONTAINS
 !----------------------------------------------------------------------
 
   SUBROUTINE h5dont_atexit_f(error)
-!
-!This definition is needed for Windows DLLs
-!DEC$if defined(BUILD_HDF5_DLL)
-!DEC$attributes dllexport :: h5dont_atexit_f
-!DEC$endif
-!
     USE H5GLOBAL
     
     IMPLICIT NONE

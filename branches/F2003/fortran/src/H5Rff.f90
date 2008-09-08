@@ -75,13 +75,7 @@ CONTAINS
   !			subroutine.		
   !----------------------------------------------------------------------
 
-  SUBROUTINE h5rget_region_region_f(dset_id, ref, space_id, hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5rget_region_region_f
-    !DEC$endif
-    !
+  SUBROUTINE h5rget_region_region_f(dset_id, ref, space_id, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier 
     TYPE(hdset_reg_ref_t_f), INTENT(IN) :: ref   ! Dataset region reference 
@@ -145,13 +139,7 @@ CONTAINS
   !----------------------------------------------------------------------
 
 
-  SUBROUTINE h5rget_object_type_obj_f(dset_id, ref, obj_type, hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5rget_object_type_obj_f
-    !DEC$endif
-    !
+  SUBROUTINE h5rget_object_type_obj_f(dset_id, ref, obj_type, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier 
     TYPE(hobj_ref_t_f), INTENT(IN) :: ref   ! Object reference 
