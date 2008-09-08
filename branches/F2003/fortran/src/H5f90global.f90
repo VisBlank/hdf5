@@ -52,7 +52,7 @@
 
 !      TYPE, bind(C) :: hdset_reg_ref_t_f
       TYPE :: hdset_reg_ref_t_f
-         INTEGER ref(REF_REG_BUF_LEN) 
+         INTEGER, DIMENSION(1:REF_REG_BUF_LEN) :: ref
       END TYPE hdset_reg_ref_t_f
 
       INTEGER, PARAMETER :: PREDEF_TYPES_LEN = 13 ! Do not forget to change this

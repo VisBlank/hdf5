@@ -271,8 +271,26 @@ CONTAINS
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
+    INTEGER, ALLOCATABLE, DIMENSION(:) :: ref_buf
+    INTEGER :: i,j
     TYPE(C_PTR) :: f_ptr
-
+    INTERFACE
+       INTEGER FUNCTION h5dwrite_ref_reg_c(dset_id, mem_type_id,&
+            mem_space_id_default, &
+            file_space_id_default, xfer_prp_default, ref_buf, dims)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_REF_REG_C'::h5dwrite_ref_reg_c  
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: dset_id   
+         INTEGER(HID_T), INTENT(IN) :: mem_type_id 
+         INTEGER(HID_T) :: xfer_prp_default
+         INTEGER(HID_T)  :: mem_space_id_default
+         INTEGER(HID_T) :: file_space_id_default
+         INTEGER, DIMENSION(*) :: ref_buf
+         INTEGER(HSIZE_T), DIMENSION(*) ::  dims
+       END FUNCTION h5dwrite_ref_reg_c
+    END INTERFACE
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -282,8 +300,22 @@ CONTAINS
     IF(PRESENT(file_space_id)) file_space_id_default = file_space_id 
     f_ptr = C_LOC(buf)
 
-    hdferr = h5dwrite_f_c(dset_id, mem_type_id, mem_space_id_default, &
-         file_space_id_default, xfer_prp_default, f_ptr)
+    ALLOCATE(ref_buf(REF_REG_BUF_LEN*dims(1)), stat=hdferr)
+    IF (hdferr .NE. 0 ) THEN
+       hdferr = -1
+       RETURN
+    ELSE
+       DO j = 1, dims(1)
+          DO i = 1, REF_REG_BUF_LEN  
+             ref_buf(REF_REG_BUF_LEN*(j-1) + i) = buf(j)%ref(i)
+          ENDDO
+       ENDDO
+    ENDIF
+    hdferr = h5dwrite_ref_reg_c(dset_id, mem_type_id, mem_space_id_default, &
+         file_space_id_default, xfer_prp_default, ref_buf, dims)
+    DEALLOCATE(ref_buf)
+!!$    hdferr = h5dwrite_f_c(dset_id, mem_type_id, mem_space_id_default, &
+!!$         file_space_id_default, xfer_prp_default, f_ptr)
 
   END SUBROUTINE h5dwrite_reference_dsetreg
 
@@ -1890,17 +1922,56 @@ CONTAINS
     INTEGER(HID_T) :: file_space_id_default
     TYPE(C_PTR) :: f_ptr
 
+    INTEGER, ALLOCATABLE, DIMENSION(:) :: ref_buf
+    INTEGER :: i,j
+
+    INTERFACE
+       INTEGER FUNCTION h5dread_ref_reg_c(dset_id, mem_type_id,&
+            mem_space_id_default, &
+            file_space_id_default, xfer_prp_default, ref_buf, dims)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DREAD_REF_REG_C'::h5dread_ref_reg_c  
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: dset_id   
+         INTEGER(HID_T), INTENT(IN) :: mem_type_id 
+         INTEGER(HID_T) :: xfer_prp_default
+         INTEGER(HID_T)  :: mem_space_id_default
+         INTEGER(HID_T) :: file_space_id_default
+         INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
+         INTEGER, DIMENSION(*) :: ref_buf
+       END FUNCTION h5dread_ref_reg_c
+    END INTERFACE
+
+    ALLOCATE(ref_buf(REF_REG_BUF_LEN*dims(1)), stat=hdferr)
+    IF (hdferr .NE. 0) THEN
+       hdferr = -1
+       RETURN
+    ENDIF
+
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
 
     IF(PRESENT(xfer_prp)) xfer_prp_default = xfer_prp 
     IF(PRESENT(mem_space_id))  mem_space_id_default = mem_space_id 
-    IF(PRESENT(file_space_id)) file_space_id_default = file_space_id 
-    f_ptr = C_LOC(buf)
+    IF(PRESENT(file_space_id)) file_space_id_default = file_space_id
 
-    hdferr = h5dread_f_c(dset_id, mem_type_id, mem_space_id_default, &
-         file_space_id_default, xfer_prp_default, f_ptr)
+    hdferr = h5dread_ref_reg_c(dset_id, mem_type_id, mem_space_id_default, &
+         file_space_id_default, xfer_prp_default, ref_buf, dims)
+
+    DO j = 1, dims(1)
+       DO i = 1, REF_REG_BUF_LEN  
+          buf(j)%ref(i) = ref_buf(REF_REG_BUF_LEN*(j-1) + i)
+       ENDDO
+    ENDDO
+    DEALLOCATE(ref_buf)
+
+ 
+!!$    f_ptr = C_LOC(buf)
+!!$
+!!$    hdferr = h5dread_f_c(dset_id, mem_type_id, mem_space_id_default, &
+!!$         file_space_id_default, xfer_prp_default, f_ptr)
 
   END SUBROUTINE h5dread_reference_dsetreg
 

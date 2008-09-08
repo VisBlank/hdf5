@@ -199,9 +199,10 @@ CONTAINS
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: loc_id   ! Location identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of the dataset at location specified
-    ! by loc_id identifier 
+                                           ! by loc_id identifier 
     INTEGER(HID_T), INTENT(IN) :: space_id ! Dataset's dataspace identifier 
     TYPE(hdset_reg_ref_t_f), INTENT(INOUT), TARGET :: ref ! Dataset region reference 
+!    TYPE(hdset_reg_ref_t_f), INTENT(OUT):: ref ! Dataset region reference 
     INTEGER, INTENT(OUT) :: hdferr         ! Error code 
 
     INTEGER :: namelen                     ! Name length
@@ -209,10 +210,30 @@ CONTAINS
 
     TYPE(C_PTR) :: f_ptr
 
+!!$    INTERFACE
+!!$       INTEGER FUNCTION h5rcreate_region_c(ref_f, loc_id, name, namelen, space_id)
+!!$         USE H5GLOBAL
+!!$         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+!!$         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5RCREATE_REGION_C':: h5rcreate_region_c
+!!$         !DEC$ ENDIF
+!!$         !DEC$ATTRIBUTES reference :: name 
+!!$         !              INTEGER, PARAMETER :: REF_REG_BUF_LEN = 3 
+!!$         INTEGER :: ref_f(REF_REG_BUF_LEN)
+!!$         INTEGER(HID_T), INTENT(IN) :: loc_id  
+!!$         CHARACTER(LEN=*), INTENT(IN) :: name
+!!$         INTEGER :: namelen
+!!$         INTEGER(HID_T), INTENT(IN) :: space_id 
+!!$       END FUNCTION h5rcreate_region_c
+!!$    END INTERFACE
+
     f_ptr = C_LOC(ref)
 
     namelen = LEN(name)
     hdferr = h5rcreate_ptr_c(f_ptr, loc_id, name, namelen, 1, space_id)
+
+!!$            ref_f = 0
+!!$            hdferr = h5rcreate_region_c(ref_f, loc_id, name, namelen, space_id )
+!!$            ref%ref = ref_f
 
   END SUBROUTINE h5rcreate_region_f
 
