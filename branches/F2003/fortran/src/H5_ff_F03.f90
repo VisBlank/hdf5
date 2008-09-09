@@ -40,12 +40,6 @@ CONTAINS
 ! Comment: 		
 !----------------------------------------------------------------------
   INTEGER(SIZE_T) FUNCTION h5offsetof(start,END) RESULT(offset)
-!
-!This definition is needed for Windows DLLs
-!DEC$if defined(BUILD_HDF5_DLL)
-!DEC$attributes dllexport :: h5offsetof
-!DEC$endif
-!
     USE, INTRINSIC :: ISO_C_BINDING
     USE H5GLOBAL
     IMPLICIT NONE

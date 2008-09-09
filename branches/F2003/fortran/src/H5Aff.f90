@@ -1762,7 +1762,6 @@ CONTAINS
 
 
 !----------------------------------------------------------------------
->>>>>>> .merge-right.r15599
 ! Name:		h5aget_space_f 
 !
 ! Purpose:  	Gets a copy of the dataspace for an attribute.

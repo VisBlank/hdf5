@@ -89,13 +89,7 @@ CONTAINS
 
 
   SUBROUTINE h5pset_fill_value_integer(prp_id, type_id, fillvalue, &
-       hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5pset_fill_value_integer
-    !DEC$endif
-    !
+       hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of 
@@ -124,13 +118,7 @@ CONTAINS
 
 
   SUBROUTINE h5pget_fill_value_integer(prp_id, type_id, fillvalue, &
-       hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5pget_fill_value_integer
-    !DEC$endif
-    !
+       hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of 
@@ -159,13 +147,7 @@ CONTAINS
 
 
   SUBROUTINE h5pset_fill_value_real(prp_id, type_id, fillvalue, &
-       hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5pset_fill_value_real
-    !DEC$endif
-    !
+       hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of 
@@ -194,13 +176,7 @@ CONTAINS
 
 
   SUBROUTINE h5pget_fill_value_real(prp_id, type_id, fillvalue, &
-       hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5pget_fill_value_real
-    !DEC$endif
-    !
+       hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of 
@@ -229,13 +205,7 @@ CONTAINS
 
 
   SUBROUTINE h5pset_fill_value_double(prp_id, type_id, fillvalue, &
-       hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5pset_fill_value_double
-    !DEC$endif
-    !
+       hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of 
@@ -264,13 +234,7 @@ CONTAINS
 
 
   SUBROUTINE h5pget_fill_value_double(prp_id, type_id, fillvalue, &
-       hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5pget_fill_value_double
-    !DEC$endif
-    !
+       hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of 
@@ -298,13 +262,7 @@ CONTAINS
   END SUBROUTINE h5pget_fill_value_double
 
   SUBROUTINE h5pset_fill_value_char(prp_id, type_id, fillvalue, &
-       hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5pset_fill_value_char
-    !DEC$endif
-    !
+       hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of 
@@ -333,13 +291,7 @@ CONTAINS
   END SUBROUTINE h5pset_fill_value_char
 
   SUBROUTINE h5pget_fill_value_char(prp_id, type_id, fillvalue, &
-       hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5pget_fill_value_char
-    !DEC$endif
-    !
+       hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of 
@@ -392,13 +344,7 @@ CONTAINS
   ! Comment:		
   !----------------------------------------------------------------------
 
-  SUBROUTINE h5pset_integer(prp_id, name, value, hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5pset_integer
-    !DEC$endif
-    !
+  SUBROUTINE h5pset_integer(prp_id, name, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
@@ -448,13 +394,7 @@ CONTAINS
   ! Comment:		
   !----------------------------------------------------------------------
 
-  SUBROUTINE h5pset_real(prp_id, name, value, hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5pset_real
-    !DEC$endif
-    !
+  SUBROUTINE h5pset_real(prp_id, name, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
@@ -504,13 +444,7 @@ CONTAINS
   ! Comment:		
   !----------------------------------------------------------------------
 
-  SUBROUTINE h5pset_double(prp_id, name, value, hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5pset_double
-    !DEC$endif
-    !
+  SUBROUTINE h5pset_double(prp_id, name, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
@@ -560,13 +494,7 @@ CONTAINS
   ! Comment:		
   !----------------------------------------------------------------------
 
-  SUBROUTINE h5pset_char(prp_id, name, value, hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5pset_char
-    !DEC$endif
-    !
+  SUBROUTINE h5pset_char(prp_id, name, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
@@ -620,13 +548,7 @@ CONTAINS
   ! Comment:		
   !----------------------------------------------------------------------
 
-  SUBROUTINE h5pget_integer(prp_id, name, value, hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5pget_integer
-    !DEC$endif
-    !
+  SUBROUTINE h5pget_integer(prp_id, name, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
@@ -676,13 +598,7 @@ CONTAINS
   ! Comment:		
   !----------------------------------------------------------------------
 
-  SUBROUTINE h5pget_real(prp_id, name, value, hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5pget_real
-    !DEC$endif
-    !
+  SUBROUTINE h5pget_real(prp_id, name, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
@@ -732,13 +648,7 @@ CONTAINS
   ! Comment:		
   !----------------------------------------------------------------------
 
-  SUBROUTINE h5pget_double(prp_id, name, value, hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5pget_double
-    !DEC$endif
-    !
+  SUBROUTINE h5pget_double(prp_id, name, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
@@ -788,13 +698,7 @@ CONTAINS
   ! Comment:		
   !----------------------------------------------------------------------
 
-  SUBROUTINE h5pget_char(prp_id, name, value, hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5pget_char
-    !DEC$endif
-    !
+  SUBROUTINE h5pget_char(prp_id, name, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
@@ -851,13 +755,7 @@ CONTAINS
   ! Comment:		
   !----------------------------------------------------------------------
 
-  SUBROUTINE h5pregister_integer(class, name, size, value, hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5pregister_integer
-    !DEC$endif
-    !
+  SUBROUTINE h5pregister_integer(class, name, size, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: class   ! Property list class identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to register
@@ -912,13 +810,7 @@ CONTAINS
   ! Comment:		
   !----------------------------------------------------------------------
 
-  SUBROUTINE h5pregister_real(class, name, size, value, hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5pregister_real
-    !DEC$endif
-    !
+  SUBROUTINE h5pregister_real(class, name, size, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: class   ! Property list class identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to register
@@ -973,13 +865,7 @@ CONTAINS
   ! Comment:		
   !----------------------------------------------------------------------
 
-  SUBROUTINE h5pregister_double(class, name, size, value, hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5pregister_double
-    !DEC$endif
-    !
+  SUBROUTINE h5pregister_double(class, name, size, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: class   ! Property list class identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to register
@@ -1034,13 +920,7 @@ CONTAINS
   ! Comment:		
   !----------------------------------------------------------------------
 
-  SUBROUTINE h5pregister_char(class, name, size, value, hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5pregister_char
-    !DEC$endif
-    !
+  SUBROUTINE h5pregister_char(class, name, size, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: class   ! Property list class identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to register
@@ -1098,13 +978,7 @@ CONTAINS
   ! Comment:		
   !----------------------------------------------------------------------
 
-  SUBROUTINE h5pinsert_integer(plist, name, size, value, hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5pinsert_integer
-    !DEC$endif
-    !
+  SUBROUTINE h5pinsert_integer(plist, name, size, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: plist   ! Property list identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to insert 
@@ -1158,13 +1032,7 @@ CONTAINS
   ! Comment:		
   !----------------------------------------------------------------------
 
-  SUBROUTINE h5pinsert_real(plist, name, size, value, hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5pinsert_real
-    !DEC$endif
-    !
+  SUBROUTINE h5pinsert_real(plist, name, size, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: plist   ! Property list identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to insert 
@@ -1218,13 +1086,7 @@ CONTAINS
   ! Comment:		
   !----------------------------------------------------------------------
 
-  SUBROUTINE h5pinsert_double(plist, name, size, value, hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5pinsert_double
-    !DEC$endif
-    !
+  SUBROUTINE h5pinsert_double(plist, name, size, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: plist   ! Property list identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to insert 
@@ -1278,13 +1140,7 @@ CONTAINS
   ! Comment:		
   !----------------------------------------------------------------------
 
-  SUBROUTINE h5pinsert_char(plist, name, size, value, hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5pinsert_char
-    !DEC$endif
-    !
+  SUBROUTINE h5pinsert_char(plist, name, size, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: plist      ! Property list identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name     ! Name of property to insert 
@@ -1349,13 +1205,7 @@ CONTAINS
 ! Comment:		
 !----------------------------------------------------------------------
 
-  SUBROUTINE h5pcreate_class_f(parent, name, class, hdferr) 
-!
-!This definition is needed for Windows DLLs
-!DEC$if defined(BUILD_HDF5_DLL)
-!DEC$attributes dllexport :: h5pcreate_class_f
-!DEC$endif
-!
+  SUBROUTINE h5pcreate_class_f(parent, name, class, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: parent  ! parent property list class 
                                           ! identifier

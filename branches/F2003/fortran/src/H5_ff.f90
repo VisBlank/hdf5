@@ -379,12 +379,6 @@ CONTAINS
 !----------------------------------------------------------------------
 
   INTEGER(HID_T) FUNCTION h5kind_to_type(kind, flag) RESULT(h5_type)
-!
-!This definition is needed for Windows DLLs
-!DEC$if defined(BUILD_HDF5_DLL)
-!DEC$attributes dllexport :: h5kind_to_type
-!DEC$endif
-!
     USE H5GLOBAL
     IMPLICIT NONE
     INTEGER, INTENT(in) :: kind

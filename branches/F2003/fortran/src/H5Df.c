@@ -2087,15 +2087,15 @@ nh5dread_f_c ( hid_t_f *dset_id ,  hid_t_f *mem_type_id, hid_t_f *mem_space_id,
   hid_t c_xfer_prp;
   herr_t status;
 
-  int i, j;
-  typedef struct {
-    int x;
-    float y;
-  } r_dual_c;
+/*   int i, j; */
+/*   typedef struct { */
+/*     int x; */
+/*     float y; */
+/*   } r_dual_c; */
 
-  r_dual_c *name=buf;
+/*   r_dual_c *name=buf; */
 
-  r_dual_c access[4][4];
+/*   r_dual_c access[4][4]; */
 
   c_dset_id       = (hid_t)*dset_id;
   c_mem_type_id   = (hid_t)*mem_type_id;

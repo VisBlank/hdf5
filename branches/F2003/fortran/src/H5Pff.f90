@@ -761,7 +761,6 @@
 ! Comment:		
 !----------------------------------------------------------------------
 
->>>>>>> .merge-right.r15599
           SUBROUTINE h5pget_version_f(prp_id, boot, freelist, &
                                     stab, shhdr, hdferr)
             IMPLICIT NONE
@@ -3831,7 +3830,6 @@
           END SUBROUTINE h5pget_char
 
 !----------------------------------------------------------------------
->>>>>>> .merge-right.r15599
 ! Name:		h5pexist_f 
 !
 ! Purpose: 	Queries whether a property name exists in a property list or class. 
@@ -4316,67 +4314,6 @@
           END SUBROUTINE h5pclose_class_f
 
 !----------------------------------------------------------------------
-! Name:		h5pcreate_class_f 
-!
-! Purpose: 	Create a new property list class
-
-!
-! Inputs:  
-!		parent		- Property list identifier of the parent class
-!                                 Possible values include:
-!                                 H5P_ROOT_F
-!                                 H5P_FILE_CREATE_F
-!                                 H5P_FILE_ACCESS_F
-!                                 H5P_DATASET_CREATE_F
-!                                 H5P_DATASET_XFER_F
-!                                 H5P_FILE_MOUNT_F
-!		name 		- name of the class we are creating
-! Outputs:  
-!               class           - porperty list class identifier
-!		hdferr:		- error code		
-!                                       
-!				 	Success: 0 
-!				 	Failure: -1   
-! Optional parameters:
-!				NONE
-!
-! Programmer:	Elena Pourmal
-!	        October 9, 2002	
-!
-! Modifications: 	
-!
-! Comment:		
-!----------------------------------------------------------------------
-
-          SUBROUTINE h5pcreate_class_f(parent, name, class, hdferr)
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: parent  ! parent property list class 
-                                                  ! identifier
-            CHARACTER(LEN=*), INTENT(IN) :: name  ! name of property tocreate 
-            INTEGER(HID_T), INTENT(OUT) :: class  ! property list class identifier
-            INTEGER, INTENT(OUT) :: hdferr  ! Error code
-            INTEGER :: name_len
-
-            INTERFACE
-              INTEGER FUNCTION h5pcreate_class_c(parent, name, name_len,&
-                                                 class) 
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PCREATE_CLASS_C'::h5pcreate_class_c
-              !DEC$ ENDIF
-              !DEC$ATTRIBUTES reference :: name
-              INTEGER(HID_T), INTENT(IN) :: parent
-              CHARACTER(LEN=*), INTENT(IN) :: name
-              INTEGER, INTENT(IN)         :: name_len
-              INTEGER(HID_T), INTENT(OUT) :: class
-              END FUNCTION h5pcreate_class_c
-            END INTERFACE
-            name_len = LEN(name)
-            hdferr = h5pcreate_class_c(parent, name , name_len, &
-                                       class)
-          END SUBROUTINE h5pcreate_class_f
-
-!----------------------------------------------------------------------
 ! Name:		h5pregister_integer
 !
 ! Purpose: 	Registers a permanent property with a property list class.
@@ -4713,7 +4650,6 @@
           END SUBROUTINE h5pinsert_char
 
 !----------------------------------------------------------------------
->>>>>>> .merge-right.r15599
 ! Name:		h5pset_shuffle_f 
 !
 ! Purpose: 	Sets shuffling filter

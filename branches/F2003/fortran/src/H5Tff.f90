@@ -3339,6 +3339,4 @@ CONTAINS
     hdferr = h5tget_native_type_c(dtype_id, direction, native_dtype_id)
   END SUBROUTINE h5tget_native_type_f
 
-
->>>>>>> .merge-right.r15599
 END MODULE H5T

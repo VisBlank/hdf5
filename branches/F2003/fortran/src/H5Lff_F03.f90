@@ -49,13 +49,7 @@ CONTAINS
 !
 ! Comment:		
 !----------------------------------------------------------------------
-  SUBROUTINE h5literate_f(group_id, index_type, order, idx, op, op_data, return_value, hdferr) 
-!
-!This definition is needed for Windows DLLs
-!DEC$if defined(BUILD_HDF5_DLL)
-!DEC$attributes dllexport :: h5literate_f
-!DEC$endif
-!
+  SUBROUTINE h5literate_f(group_id, index_type, order, idx, op, op_data, return_value, hdferr)
     USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: group_id  ! Identifier specifying subject group
@@ -137,13 +131,7 @@ CONTAINS
 !
 ! Comment:		
 !----------------------------------------------------------------------
-  SUBROUTINE h5literate_by_name_f(loc_id, group_name, index_type, order, idx, op, op_data, return_value, hdferr, lapl_id) 
-!
-!This definition is needed for Windows DLLs
-!DEC$if defined(BUILD_HDF5_DLL)
-!DEC$attributes dllexport :: h5literate_by_name_f
-!DEC$endif
-!
+  SUBROUTINE h5literate_by_name_f(loc_id, group_name, index_type, order, idx, op, op_data, return_value, hdferr, lapl_id)
     USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: loc_id  ! Identifier specifying subject group

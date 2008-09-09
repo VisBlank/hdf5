@@ -133,13 +133,7 @@ CONTAINS
   !			subroutine.		
   !----------------------------------------------------------------------
 
-  SUBROUTINE h5rcreate_object_f(loc_id, name, ref, hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5rcreate_object_f
-    !DEC$endif
-    !
+  SUBROUTINE h5rcreate_object_f(loc_id, name, ref, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: loc_id   ! Location identifier 
@@ -188,13 +182,7 @@ CONTAINS
   !			subroutine.		
   !----------------------------------------------------------------------
 
-  SUBROUTINE h5rcreate_region_f(loc_id, name, space_id, ref, hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5rcreate_region_f
-    !DEC$endif
-    !
+  SUBROUTINE h5rcreate_region_f(loc_id, name, space_id, ref, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: loc_id   ! Location identifier 
@@ -264,13 +252,7 @@ CONTAINS
   !			subroutine where the output is a pointer.		
   !----------------------------------------------------------------------
 
-  SUBROUTINE h5rcreate_ptr_f(loc_id, name, ref_type, space_id, ref, hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5rcreate_ptr_f
-    !DEC$endif
-    !
+  SUBROUTINE h5rcreate_ptr_f(loc_id, name, ref_type, space_id, ref, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: loc_id     ! Location identifier 
@@ -317,13 +299,7 @@ CONTAINS
   !----------------------------------------------------------------------
 
 
-  SUBROUTINE h5rdereference_object_f(obj_id, ref, ref_obj_id, hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5rdereference_object_f
-    !DEC$endif
-    !
+  SUBROUTINE h5rdereference_object_f(obj_id, ref, ref_obj_id, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: obj_id   ! Dataset identifier 
@@ -368,13 +344,7 @@ CONTAINS
   !----------------------------------------------------------------------
 
 
-  SUBROUTINE h5rdereference_region_f(obj_id, ref, ref_obj_id, hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5rdereference_region_f
-    !DEC$endif
-    !
+  SUBROUTINE h5rdereference_region_f(obj_id, ref, ref_obj_id, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: obj_id   ! Dataset identifier 
@@ -417,13 +387,7 @@ CONTAINS
   !			subroutine using pointers.		
   !----------------------------------------------------------------------
 
-  SUBROUTINE h5rdereference_ptr_f(obj_id, ref_type, ref, ref_obj_id, hdferr) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5rdereference_ptr_f
-    !DEC$endif
-    !
+  SUBROUTINE h5rdereference_ptr_f(obj_id, ref_type, ref, ref_obj_id, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: obj_id  ! Valid identifier for the file containing the 
@@ -464,13 +428,7 @@ CONTAINS
   ! Comment:		
   !----------------------------------------------------------------------
 
-  SUBROUTINE h5rget_name_object_f(loc_id,  ref, name, hdferr, size) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5rget_name_object_f
-    !DEC$endif
-    !
+  SUBROUTINE h5rget_name_object_f(loc_id,  ref, name, hdferr, size)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: loc_id   ! Identifier for the dataset containing the reference 
@@ -524,13 +482,7 @@ CONTAINS
   !----------------------------------------------------------------------
 
 
-  SUBROUTINE h5rget_name_region_f(loc_id, ref, name, hdferr, size) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5rget_name_region_f
-    !DEC$endif
-    !
+  SUBROUTINE h5rget_name_region_f(loc_id, ref, name, hdferr, size)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: loc_id   ! Identifier for the dataset containing the reference 
@@ -585,13 +537,7 @@ CONTAINS
   !----------------------------------------------------------------------
 
 
-  SUBROUTINE h5rget_name_ptr_f(loc_id, ref_type, ref, name, hdferr, size) 
-    !
-    !This definition is needed for Windows DLLs
-    !DEC$if defined(BUILD_HDF5_DLL)
-    !DEC$attributes dllexport :: h5rget_name_ptr_f
-    !DEC$endif
-    !
+  SUBROUTINE h5rget_name_ptr_f(loc_id, ref_type, ref, name, hdferr, size)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: loc_id   ! Identifier for the dataset containing the reference 
