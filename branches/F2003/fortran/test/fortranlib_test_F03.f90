@@ -62,6 +62,11 @@ PROGRAM fortranlibtest
   CALL test_array_compound_array(ret_total_error)
   CALL write_test_status(ret_total_error, ' Testing 1-D Array of Compound Array Datatypes Functionality', total_error)
 
+  ret_total_error = 0
+  CALL test_create(ret_total_error)
+  CALL write_test_status(ret_total_error, &
+       ' Testing filling functions', &
+       total_error)
 !DEC$ if defined(H5_VMS)
   GOTO 8
 !DEC$ else
@@ -71,25 +76,19 @@ PROGRAM fortranlibtest
 !DEC$ endif
 8 CONTINUE
 
-  ret_total_error = 0
-  CALL test_iter_group(ret_total_error)
-  CALL write_test_status(ret_total_error, ' Testing Group Iteration Functionality', total_error)
 
   ret_total_error = 0
   CALL test_array_bkg(ret_total_error)
   CALL write_test_status(ret_total_error, ' Testing Partial I/O of Array Fields in Compound Datatype FunctionalityT', total_error)
 
   ret_total_error = 0
-  CALL test_create(ret_total_error)
-  CALL write_test_status(ret_total_error, &
-       ' Testing filling functions', &
-       total_error) 
-
-  ret_total_error = 0
   CALL test_genprop_class_callback(ret_total_error)
   CALL write_test_status(ret_total_error, ' Test basic generic property list callback functionality', total_error)
 
-
+  ret_total_error = 0
+  CALL test_iter_group(ret_total_error)
+  CALL write_test_status(ret_total_error, ' Testing Group Iteration Functionality', total_error)
+ 
 
 !     write(*,*)
 !     write(*,*) '========================================='

@@ -251,7 +251,8 @@ SUBROUTINE refregtest(cleanup, total_error)
   INTEGER(HID_T) :: dsetr_id      ! Dataset identifier 
   INTEGER     ::   error
   TYPE(hdset_reg_ref_t_f) , DIMENSION(1:2), TARGET :: ref     ! Buffers to store references
-  TYPE(hdset_reg_ref_t_f) , DIMENSION(1:2) :: ref_out !
+!  TYPE(hdset_reg_ref_t_f) , DIMENSION(1:2) :: ref_out         !
+  TYPE(hdset_reg_ref_t_f) , DIMENSION(1:2) :: ref_out
   INTEGER(HSIZE_T), DIMENSION(2) :: ref_dim   = (/0,0/)
   INTEGER(HSIZE_T), DIMENSION(2) :: data_dims ! = (/0,0/)
   INTEGER(HSIZE_T), DIMENSION(2) :: dims      = (/2,9/)  ! Datasets dimensions
@@ -310,9 +311,8 @@ SUBROUTINE refregtest(cleanup, total_error)
   CALL check("h5dcreate_f", error, total_error)
   data_dims(1) = 2
   data_dims(2) = 9
-  f_ptr = c_loc(data)
 
-
+!  f_ptr = c_loc(data)
 !  CALL h5dwrite_f(dsetv_id, H5T_NATIVE_INTEGER, f_ptr, error)
 
   CALL h5dwrite_f(dsetv_id, H5T_NATIVE_INTEGER, DATA, data_dims, error)
@@ -338,7 +338,7 @@ SUBROUTINE refregtest(cleanup, total_error)
        start, count, error) 
   CALL check("h5sselect_hyperslab_f", error, total_error)
   ref(1)%ref(:) = 0
-  f_ptr = C_LOC(ref(1))
+!  f_ptr = C_LOC(ref(1))
 !  CALL h5rcreate_f(file_id, dsetnamev, 1, space_id, f_ptr, error) 
   CALL h5rcreate_f(file_id, dsetnamev, space_id, ref(1), error) 
   CALL check("h5rcreate_f", error, total_error)
