@@ -124,10 +124,6 @@ PROGRAM main
 
   CALL h5tarray_create_f(H5T_NATIVE_CHARACTER, 1, tdims1, tid3, hdferr)
 
-
-  PRINT*,H5T_NATIVE_INTEGER,H5T_STD_I8BE,H5T_STD_I8LE,H5T_STD_I16BE,H5T_STD_I16LE,H5T_STD_I32BE,H5T_STD_I32LE
-  PRINT*,H5T_STD_U8BE,H5T_STD_U8LE,H5T_STD_U16BE,H5T_STD_U16LE,H5T_STD_U32BE,H5T_STD_U32LE
-
   CALL H5Tinsert_f(s1_tid, "chr_name", H5OFFSETOF(C_LOC(s1(1)),C_LOC(s1(1)%chr)),tid3, hdferr)
   CALL H5Tinsert_f(s1_tid, "a_name", H5OFFSETOF(C_LOC(s1(1)),C_LOC(s1(1)%a)), h5kind_to_type(int_k1,H5_INTEGER_KIND), hdferr)
   CALL H5Tinsert_f(s1_tid, "c_name", H5OFFSETOF(C_LOC(s1(1)),C_LOC(s1(1)%c)), h5kind_to_type(r_k8,H5_REAL_KIND), hdferr)
