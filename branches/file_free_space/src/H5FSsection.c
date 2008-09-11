@@ -1856,7 +1856,7 @@ H5FS_sect_iterate(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace, H5FS_operator_t op, v
     HDassert(op);
 
 #ifdef QAK
-HDfprintf(stderr, "%s: fspace->hdr->sect_count = %Hu\n", FUNC, fspace->hdr->sect_count);
+HDfprintf(stderr, "%s: fspace->tot_sect_count = %Hu\n", FUNC, fspace->tot_sect_count);
 #endif /* QAK */
 
     /* Set up user data for iterator */
