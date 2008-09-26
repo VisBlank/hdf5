@@ -1128,6 +1128,7 @@ done:
 } /* H5FS_sect_link() */
 
 
+
 /*-------------------------------------------------------------------------
  * Function:	H5FS_sect_merge
  *
@@ -1141,16 +1142,24 @@ done:
  * Programmer:	Quincey Koziol
  *              Wednesday, May 17, 2006
  *
+ * Modifications: Vailin Choi; Sept 25th 2008
+ *	Changes to the "shrinking" part--
+ *	1. Get last section node in merge-list instead of "less-than"
+ *	   node for further iteration
+ *	2. Remove "can-be-shrunk" section from free-space instead of
+ *	   "less-than" section
+ *
  *-------------------------------------------------------------------------
  */
 static herr_t
 H5FS_sect_merge(H5FS_t *fspace, H5FS_section_info_t **sect, void *op_data)
 {
-    H5FS_section_class_t *sect_cls;     /* Section's class */
-    H5FS_section_info_t *tmp_sect_node; /* Temporary free space section */
-    hbool_t modified;                   /* Flag to indicate merge or shrink occurred */
-    htri_t status;                      /* Status value */
-    herr_t ret_value = SUCCEED;         /* Return value */
+    H5FS_section_class_t *sect_cls;      /* Section's class */
+    H5FS_section_info_t *tmp_sect_node;  /* Temporary free space section */
+    hbool_t modified;                    /* Flag to indicate merge or shrink occurred */
+    htri_t status;                       /* Status value */
+    herr_t ret_value = SUCCEED;          /* Return value */
+    hbool_t sect_removed;
 
     FUNC_ENTER_NOAPI_NOINIT(H5FS_sect_merge)
 
@@ -1243,7 +1252,7 @@ H5FS_sect_merge(H5FS_t *fspace, H5FS_section_info_t **sect, void *op_data)
                     } /* end if */
                 } /* end if */
             } /* end if */
-        } while(modified);
+	} while(modified);
     } /* end if */
     HDassert(*sect);
 #ifdef QAK
@@ -1251,6 +1260,7 @@ HDfprintf(stderr, "%s: Done merging, (*sect) = {%a, %Hu, %u, %s}\n", FUNC, (*sec
 #endif /* QAK */
 
     /* Loop until no more shrinking */
+    sect_removed = TRUE;
     do {
         /* Reset 'modification occurred' flag */
         modified = FALSE;
@@ -1261,14 +1271,28 @@ HDfprintf(stderr, "%s: Done merging, (*sect) = {%a, %Hu, %u, %s}\n", FUNC, (*sec
             if((status = (*sect_cls->can_shrink)(*sect, op_data)) < 0)
                 HGOTO_ERROR(H5E_FSPACE, H5E_CANTSHRINK, FAIL, "can't check for shrinking container")
             if(status > 0) {
+		H5SL_node_t *last_node; 
+		H5FS_section_info_t *last_sect_node; /* last free space section */
 #ifdef QAK
 HDfprintf(stderr, "%s: Can shrink!\n", FUNC);
 #endif /* QAK */
-                /* Look for section before section which will shrink */
-                if(fspace->sinfo->merge_list)
-                    tmp_sect_node = H5SL_less(fspace->sinfo->merge_list, &(*sect)->addr);
-                else
-                    tmp_sect_node = NULL;
+
+		/* remove SECT from free-space manager */
+		if (!sect_removed) {
+		    if(H5FS_sect_remove_real(fspace, *sect) < 0)
+			HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, 
+			    "can't remove section from internal data structures")
+		    sect_removed = TRUE;
+		}
+
+		/* get last section in merge_list */
+		last_sect_node = NULL;
+                if(fspace->sinfo->merge_list) 
+		    if (NULL != (last_node = H5SL_last(fspace->sinfo->merge_list))) {
+			last_sect_node = H5SL_item(last_node);
+			if (last_sect_node->addr > (*sect)->addr)
+			    last_sect_node = NULL;
+		    }
 
                 /* Shrink the container */
                 /* (callback can indicate that it has discarded the section by setting *sect to NULL) */
@@ -1276,20 +1300,19 @@ HDfprintf(stderr, "%s: Can shrink!\n", FUNC);
                 if((*sect_cls->shrink)(sect, op_data) < 0)
                     HGOTO_ERROR(H5E_FSPACE, H5E_CANTINSERT, FAIL, "can't shrink free space container")
 
-                /* Check if the new section was removed */
-                if(*sect == NULL && tmp_sect_node) {
-                    /* Remove 'less than' node from data structures */
-                    if(H5FS_sect_remove_real(fspace, tmp_sect_node) < 0)
-                        HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't remove section from internal data structures")
-
-                    *sect = tmp_sect_node;
-                } /* end if */
+                if(*sect == NULL && last_sect_node) {
+		    sect_removed = FALSE;
+                    *sect = last_sect_node;
+		}
 
                 /* Indicate successful merge occurred */
                 modified = TRUE;
             } /* end if */
         } /* end if */
     } while(modified && *sect);
+
+    if ((*sect != NULL) && (!sect_removed))
+	*sect = NULL;
 #ifdef QAK
 HDfprintf(stderr, "%s: Done shrinking\n", FUNC);
 if(*sect)
