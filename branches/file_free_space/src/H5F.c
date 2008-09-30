@@ -994,6 +994,9 @@ done:
  * Programmer:	Robb Matzke
  *		matzke@llnl.gov
  *		Jul 18 1997
+ * Modifications:
+ *		Vailin Choi,  April 2, 2008
+ *		Free f->extpath
  *
  *-------------------------------------------------------------------------
  */
@@ -1087,6 +1090,7 @@ H5F_dest(H5F_t *f, hid_t dxpl_id)
 
     /* Free the non-shared part of the file */
     f->name = H5MM_xfree(f->name);
+    f->extpath = H5MM_xfree(f->extpath);
     f->mtab.child = H5MM_xfree(f->mtab.child);
     f->mtab.nalloc = 0;
     if(H5FO_top_dest(f) < 0)
@@ -1096,6 +1100,8 @@ H5F_dest(H5F_t *f, hid_t dxpl_id)
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5F_dest() */
+
+
 
 
 /*-------------------------------------------------------------------------
@@ -1176,6 +1182,9 @@ H5F_dest(H5F_t *f, hid_t dxpl_id)
  *		Modified H5F_flush call to take one flag instead of
  *		multiple Boolean flags.
  *
+ *		Vailin Choi, 2008-04-02
+ *		To formulate path for later searching of target file for external link
+ *		via H5_build_extpath().
  *-------------------------------------------------------------------------
  */
 H5F_t *
@@ -1372,6 +1381,10 @@ H5F_open(const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_id, hid_t d
             HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "file close degree doesn't match")
     } /* end if */
 
+    /* formulate the absolute path for later search of target file for external link */
+    if (H5_build_extpath(name, &file->extpath) < 0)
+	HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "unable to build extpath")
+    
     /* Success */
     ret_value = file;
 
@@ -2842,4 +2855,3 @@ H5Fget_info(hid_t obj_id, H5F_info_t *finfo)
 done:
     FUNC_LEAVE_API(ret_value)
 } /* end H5Fget_info() */
-

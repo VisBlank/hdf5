@@ -151,7 +151,7 @@ HDfprintf(stderr, "%s: fspace->addr = %a\n", FUNC, fspace->addr);
     sinfo->nbins = H5V_log2_gen(fspace->max_sect_size);
     sinfo->sect_prefix_size = H5FS_SINFO_PREFIX_SIZE(f);
     sinfo->sect_off_size = (fspace->max_sect_addr + 7) / 8;
-    sinfo->sect_len_size = (H5V_log2_gen(fspace->max_sect_size) + 7) / 8;
+    sinfo->sect_len_size = H5V_limit_enc_size((uint64_t)fspace->max_sect_size);
 #ifdef H5FS_SINFO_DEBUG
 HDfprintf(stderr, "%s: fspace->max_sect_size = %Hu\n", FUNC, fspace->max_sect_size);
 HDfprintf(stderr, "%s: fspace->max_sect_addr = %u\n", FUNC, fspace->max_sect_addr);
@@ -493,7 +493,7 @@ HDfprintf(stderr, "%s: fspace->sinfo->serial_size_count = %Zu\n", "H5FS_sect_ser
 HDfprintf(stderr, "%s: fspace->sinfo->serial_size_count = %Zu\n", "H5FS_sect_serialize_size", fspace->sinfo->serial_size_count);
 HDfprintf(stderr, "%s: fspace->serial_sect_count = %Hu\n", "H5FS_sect_serialize_size", fspace->serial_sect_count);
 #endif /* QAK */
-        sect_buf_size += fspace->sinfo->serial_size_count * MAX(1, ((H5V_log2_gen(fspace->serial_sect_count) + 7) / 8));
+        sect_buf_size += fspace->sinfo->serial_size_count * H5V_limit_enc_size((uint64_t)fspace->serial_sect_count);
 
         /* Size for each differently sized serializable section */
         sect_buf_size += fspace->sinfo->serial_size_count * fspace->sinfo->sect_len_size;

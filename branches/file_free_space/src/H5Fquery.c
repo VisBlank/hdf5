@@ -103,6 +103,33 @@ H5F_get_intent(const H5F_t *f)
 
 
 /*-------------------------------------------------------------------------
+ * Function:	H5F_get_extpath
+ *
+ * Purpose:	Retrieve the file's 'extpath' flags
+ *		This is used by H5L_extern_traverse() to retrieve the main file's location
+ *		when searching the target file.
+ *
+ * Return:	'extpath' on success/abort on failure (shouldn't fail)
+ * 
+ * Programmer:	Vailin Choi, April 2, 2008
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+char *
+H5F_get_extpath(const H5F_t *f)
+{
+    /* Use FUNC_ENTER_NOAPI_NOINIT_NOFUNC here to avoid performance issues */
+    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5F_get_extpath)
+
+    HDassert(f);
+
+    FUNC_LEAVE_NOAPI(f->extpath)
+} /* end H5F_get_extpath() */
+
+
+/*-------------------------------------------------------------------------
  * Function:	H5F_get_fcpl
  *
  * Purpose:	Retrieve the value of a file's FCPL.
