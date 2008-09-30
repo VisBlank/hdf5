@@ -1136,7 +1136,6 @@ done:
  *              free space.
  *
  * Return:	Success:	non-negative
- *
  *		Failure:	negative
  *
  * Programmer:	Quincey Koziol
@@ -1154,12 +1153,11 @@ done:
 static herr_t
 H5FS_sect_merge(H5FS_t *fspace, H5FS_section_info_t **sect, void *op_data)
 {
-    H5FS_section_class_t *sect_cls;      /* Section's class */
-    H5FS_section_info_t *tmp_sect_node;  /* Temporary free space section */
-    hbool_t modified;                    /* Flag to indicate merge or shrink occurred */
-    htri_t status;                       /* Status value */
-    herr_t ret_value = SUCCEED;          /* Return value */
-    hbool_t sect_removed;
+    H5FS_section_class_t *sect_cls;     /* Section's class */
+    hbool_t modified;                   /* Flag to indicate merge or shrink occurred */
+    hbool_t remove_sect = FALSE;       /* Whether a section should be removed before shrinking */
+    htri_t status;                      /* Status value */
+    herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5FS_sect_merge)
 
@@ -1172,43 +1170,54 @@ H5FS_sect_merge(H5FS_t *fspace, H5FS_section_info_t **sect, void *op_data)
     /* Loop until no more merging */
     if(fspace->sinfo->merge_list) {
         do {
+            H5SL_node_t *less_sect_node;    /* Skip list node for section less than new section */
+            H5SL_node_t *greater_sect_node; /* Skip list node for section greater than new section */
+            H5FS_section_info_t *tmp_sect;  /* Temporary free space section */
             H5FS_section_class_t *tmp_sect_cls;     /* Temporary section's class */
+            hbool_t greater_sect_node_valid = FALSE;    /* Indicate if 'greater than' section node is valid */
 
             /* Reset 'modification occurred' flag */
             modified = FALSE;
 
             /* Look for neighboring section before new section */
-            tmp_sect_node = H5SL_less(fspace->sinfo->merge_list, &(*sect)->addr);
+            less_sect_node = H5SL_below(fspace->sinfo->merge_list, &(*sect)->addr);
 
             /* Check for node before new node able to merge with new node */
-            if(tmp_sect_node) {
+            if(less_sect_node) {
+                /* Check for node greater than section */
+                greater_sect_node = H5SL_next(less_sect_node);
+                greater_sect_node_valid = TRUE;
+
+                /* Get section for 'less than' skip list node */
+                tmp_sect = H5SL_item(less_sect_node);
+
                 /* Get classes for right & left sections */
-                tmp_sect_cls = &fspace->sect_cls[tmp_sect_node->type];
+                tmp_sect_cls = &fspace->sect_cls[tmp_sect->type];
                 sect_cls = &fspace->sect_cls[(*sect)->type];
 
                 /* Check if sections of the left most class can merge with sections
                  *  of another class & whether the sections are the same type,
                  *  then check for 'can merge' callback
                  */
-                if((!(tmp_sect_cls->flags & H5FS_CLS_MERGE_SYM) || (tmp_sect_node->type == (*sect)->type))
+                if((!(tmp_sect_cls->flags & H5FS_CLS_MERGE_SYM) || (tmp_sect->type == (*sect)->type))
                         && tmp_sect_cls->can_merge) {
                     /* Determine if the sections can merge */
-                    if((status = (*tmp_sect_cls->can_merge)(tmp_sect_node, *sect, op_data)) < 0)
+                    if((status = (*tmp_sect_cls->can_merge)(tmp_sect, *sect, op_data)) < 0)
                         HGOTO_ERROR(H5E_FSPACE, H5E_CANTMERGE, FAIL, "can't check for merging sections")
                     if(status > 0) {
                         /* Sanity check */
                         HDassert(tmp_sect_cls->merge);
 
                         /* Remove 'less than' node from data structures */
-                        if(H5FS_sect_remove_real(fspace, tmp_sect_node) < 0)
+                        if(H5FS_sect_remove_real(fspace, tmp_sect) < 0)
                             HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't remove section from internal data structures")
 
                         /* Merge the two sections together */
-                        if((*tmp_sect_cls->merge)(tmp_sect_node, *sect, op_data) < 0)
+                        if((*tmp_sect_cls->merge)(tmp_sect, *sect, op_data) < 0)
                             HGOTO_ERROR(H5E_FSPACE, H5E_CANTINSERT, FAIL, "can't merge two sections")
 
                         /* Retarget section pointer to 'less than' node that was merged into */
-                        *sect = tmp_sect_node;
+                        *sect = tmp_sect;
 
                         /* Indicate successful merge occurred */
                         modified = TRUE;
@@ -1216,35 +1225,39 @@ H5FS_sect_merge(H5FS_t *fspace, H5FS_section_info_t **sect, void *op_data)
                 } /* end if */
             } /* end if */
 
-            /* Look for section after new (or merged) section */
-            tmp_sect_node = H5SL_greater(fspace->sinfo->merge_list, &(*sect)->addr);
+            /* Look for section after new (or merged) section, if not already determined */
+            if(!greater_sect_node_valid)
+                greater_sect_node = H5SL_above(fspace->sinfo->merge_list, &(*sect)->addr);
 
             /* Check for node after new node able to merge with new node */
-            if(tmp_sect_node) {
+            if(greater_sect_node) {
+                /* Get section for 'greater than' skip list node */
+                tmp_sect = H5SL_item(greater_sect_node);
+
                 /* Get classes for right & left sections */
                 sect_cls = &fspace->sect_cls[(*sect)->type];
-                tmp_sect_cls = &fspace->sect_cls[tmp_sect_node->type];
+                tmp_sect_cls = &fspace->sect_cls[tmp_sect->type];
 
                 /* Check if sections of the left most class can merge with sections
                  *  of another class & whether the sections are the same type,
                  *  then check for 'can merge' callback
                  */
-                if((!(sect_cls->flags & H5FS_CLS_MERGE_SYM) || ((*sect)->type == tmp_sect_node->type))
+                if((!(sect_cls->flags & H5FS_CLS_MERGE_SYM) || ((*sect)->type == tmp_sect->type))
                         && sect_cls->can_merge) {
 
                     /* Determine if the sections can merge */
-                    if((status = (*sect_cls->can_merge)(*sect, tmp_sect_node, op_data)) < 0)
+                    if((status = (*sect_cls->can_merge)(*sect, tmp_sect, op_data)) < 0)
                         HGOTO_ERROR(H5E_FSPACE, H5E_CANTMERGE, FAIL, "can't check for merging sections")
                     if(status > 0) {
                         /* Sanity check */
                         HDassert(sect_cls->merge);
 
                         /* Remove 'greater than' node from data structures */
-                        if(H5FS_sect_remove_real(fspace, tmp_sect_node) < 0)
+                        if(H5FS_sect_remove_real(fspace, tmp_sect) < 0)
                             HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't remove section from internal data structures")
 
                         /* Merge the two sections together */
-                        if((*sect_cls->merge)(*sect, tmp_sect_node, op_data) < 0)
+                        if((*sect_cls->merge)(*sect, tmp_sect, op_data) < 0)
                             HGOTO_ERROR(H5E_FSPACE, H5E_CANTINSERT, FAIL, "can't merge two sections")
 
                         /* Indicate successful merge occurred */
@@ -1260,7 +1273,6 @@ HDfprintf(stderr, "%s: Done merging, (*sect) = {%a, %Hu, %u, %s}\n", FUNC, (*sec
 #endif /* QAK */
 
     /* Loop until no more shrinking */
-    sect_removed = TRUE;
     do {
         /* Reset 'modification occurred' flag */
         modified = FALSE;
@@ -1271,28 +1283,17 @@ HDfprintf(stderr, "%s: Done merging, (*sect) = {%a, %Hu, %u, %s}\n", FUNC, (*sec
             if((status = (*sect_cls->can_shrink)(*sect, op_data)) < 0)
                 HGOTO_ERROR(H5E_FSPACE, H5E_CANTSHRINK, FAIL, "can't check for shrinking container")
             if(status > 0) {
-		H5SL_node_t *last_node; 
-		H5FS_section_info_t *last_sect_node; /* last free space section */
 #ifdef QAK
 HDfprintf(stderr, "%s: Can shrink!\n", FUNC);
 #endif /* QAK */
 
-		/* remove SECT from free-space manager */
-		if (!sect_removed) {
+		/* Remove SECT from free-space manager */
+                /* (only possible to happen on second+ pass through loop) */
+		if(remove_sect) {
 		    if(H5FS_sect_remove_real(fspace, *sect) < 0)
-			HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, 
-			    "can't remove section from internal data structures")
-		    sect_removed = TRUE;
-		}
-
-		/* get last section in merge_list */
-		last_sect_node = NULL;
-                if(fspace->sinfo->merge_list) 
-		    if (NULL != (last_node = H5SL_last(fspace->sinfo->merge_list))) {
-			last_sect_node = H5SL_item(last_node);
-			if (last_sect_node->addr > (*sect)->addr)
-			    last_sect_node = NULL;
-		    }
+			HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't remove section from internal data structures")
+		    remove_sect = FALSE;
+		} /* end if */
 
                 /* Shrink the container */
                 /* (callback can indicate that it has discarded the section by setting *sect to NULL) */
@@ -1300,10 +1301,23 @@ HDfprintf(stderr, "%s: Can shrink!\n", FUNC);
                 if((*sect_cls->shrink)(sect, op_data) < 0)
                     HGOTO_ERROR(H5E_FSPACE, H5E_CANTINSERT, FAIL, "can't shrink free space container")
 
-                if(*sect == NULL && last_sect_node) {
-		    sect_removed = FALSE;
-                    *sect = last_sect_node;
-		}
+                /* If this section was shrunk away, we may need to shrink another section */
+                if(*sect == NULL) {
+                    /* Check for sections on merge list */
+                    if(fspace->sinfo->merge_list)  {
+                        H5SL_node_t *last_node;         /* Last node in merge list */
+
+                        /* Check for last node in the merge list */
+                        if(NULL != (last_node = H5SL_last(fspace->sinfo->merge_list))) {
+                            /* Get the pointer to the last section, from the last node */
+                            *sect = H5SL_item(last_node);
+                            HDassert(*sect);
+
+                            /* Indicate that this section needs to be removed if it causes a shrink */
+                            remove_sect = TRUE;
+                        } /* end if */
+                    } /* end if */
+		} /* end if */
 
                 /* Indicate successful merge occurred */
                 modified = TRUE;
@@ -1311,8 +1325,10 @@ HDfprintf(stderr, "%s: Can shrink!\n", FUNC);
         } /* end if */
     } while(modified && *sect);
 
-    if ((*sect != NULL) && (!sect_removed))
+    /* Check for section that was shrunk away and next section not shrinking */
+    if(remove_sect && (*sect != NULL))
 	*sect = NULL;
+
 #ifdef QAK
 HDfprintf(stderr, "%s: Done shrinking\n", FUNC);
 if(*sect)
@@ -1617,75 +1633,76 @@ HDfprintf(stderr, "%s: bin = %u\n", FUNC, bin);
 			HGOTO_ERROR(H5E_FSPACE, H5E_CANTFREE, FAIL, "can't remove section from non-size tracking data structures")
 		    /* Indicate that we found a node for the request */
 		    HGOTO_DONE(TRUE)
-		}
-	    } else { /* alignment is set */
-		    /* get the first node of a certain size in this bin */
-		    curr_size_node = H5SL_first(fspace->sinfo->bins[bin].bin_list);
-		    while (curr_size_node != NULL) {
-			H5FS_node_t *curr_fspace_node=NULL;
-			H5SL_node_t *curr_sect_node=NULL;
+		} /* end if */
+	    }  /* end if */
+            else { /* alignment is set */
+                /* get the first node of a certain size in this bin */
+                curr_size_node = H5SL_first(fspace->sinfo->bins[bin].bin_list);
+                while (curr_size_node != NULL) {
+                    H5FS_node_t *curr_fspace_node=NULL;
+                    H5SL_node_t *curr_sect_node=NULL;
 
-			/* Get the free space node for free space sections of the same size */
-			curr_fspace_node = H5SL_item(curr_size_node);
+                    /* Get the free space node for free space sections of the same size */
+                    curr_fspace_node = H5SL_item(curr_size_node);
 
-			/* Get the Skip list which holds  pointers to actual free list sections */
-			curr_sect_node = H5SL_first(curr_fspace_node->sect_list);
+                    /* Get the Skip list which holds  pointers to actual free list sections */
+                    curr_sect_node = H5SL_first(curr_fspace_node->sect_list);
 
-			while(curr_sect_node != NULL) {
-			    H5FS_section_info_t *curr_sect=NULL;
-			    hsize_t mis_align=0, frag_size=0;
-			    H5FS_section_info_t *split_sect=NULL;  
+                    while(curr_sect_node != NULL) {
+                        H5FS_section_info_t *curr_sect=NULL;
+                        hsize_t mis_align=0, frag_size=0;
+                        H5FS_section_info_t *split_sect=NULL;  
 
-			    /* Get section node */
-			    curr_sect = H5SL_item(curr_sect_node);
+                        /* Get section node */
+                        curr_sect = H5SL_item(curr_sect_node);
 
-			    HDassert(H5F_addr_defined(curr_sect->addr));
-			    HDassert(curr_fspace_node->sect_size == curr_sect->size);
+                        HDassert(H5F_addr_defined(curr_sect->addr));
+                        HDassert(curr_fspace_node->sect_size == curr_sect->size);
 
-			    cls = &fspace->sect_cls[curr_sect->type];
+                        cls = &fspace->sect_cls[curr_sect->type];
 
-			    HDassert(alignment);
-			    HDassert(cls);
+                        HDassert(alignment);
+                        HDassert(cls);
 
-			    if ((mis_align = curr_sect->addr % alignment))
-				frag_size = alignment - mis_align;
+                        if ((mis_align = curr_sect->addr % alignment))
+                            frag_size = alignment - mis_align;
 
-			    if ((curr_sect->size >= (request + frag_size)) && (cls->split)) {
-				/* remove the section with aligned address */
-				if(NULL == (*node = H5SL_remove(curr_fspace_node->sect_list, &curr_sect->addr)))
-				    HGOTO_ERROR(H5E_FSPACE, H5E_CANTREMOVE, FAIL, "can't remove free space node from skip list")
-				/* Decrement # of sections in section size node */
-				if(H5FS_size_node_decr(fspace->sinfo, bin, curr_fspace_node, cls) < 0)
-				    HGOTO_ERROR(H5E_FSPACE, H5E_CANTREMOVE, FAIL, "can't remove free space size node from skip list")
+                        if ((curr_sect->size >= (request + frag_size)) && (cls->split)) {
+                            /* remove the section with aligned address */
+                            if(NULL == (*node = H5SL_remove(curr_fspace_node->sect_list, &curr_sect->addr)))
+                                HGOTO_ERROR(H5E_FSPACE, H5E_CANTREMOVE, FAIL, "can't remove free space node from skip list")
+                            /* Decrement # of sections in section size node */
+                            if(H5FS_size_node_decr(fspace->sinfo, bin, curr_fspace_node, cls) < 0)
+                                HGOTO_ERROR(H5E_FSPACE, H5E_CANTREMOVE, FAIL, "can't remove free space size node from skip list")
 
-				if(H5FS_sect_unlink_rest(fspace, cls, *node) < 0)
-				    HGOTO_ERROR(H5E_FSPACE, H5E_CANTFREE, FAIL, "can't remove section from non-size tracking data structures")
+                            if(H5FS_sect_unlink_rest(fspace, cls, *node) < 0)
+                                HGOTO_ERROR(H5E_FSPACE, H5E_CANTFREE, FAIL, "can't remove section from non-size tracking data structures")
 
-				/* 
-				 * The split() callback splits NODE into 2 sections:
-			         *  split_sect is the unused fragment for aligning NODE
-				 *  NODE's addr & size are updated to point to the remaining aligned section
-				 * split_sect is re-added to free-space
-				 */
-				if (mis_align) {
-				    split_sect = cls->split(*node, frag_size);
-				    if((H5FS_sect_link(fspace, split_sect, 0) < 0))
-					HGOTO_ERROR(H5E_FSPACE, H5E_CANTINSERT, FAIL, "can't insert free space section into skip list")
-				    /* sanity check */
-				    HDassert(split_sect->addr < (*node)->addr);
-				    HDassert(request <= (*node)->size);
-				}
-				/* Indicate that we found a node for the request */
-				HGOTO_DONE(TRUE)
-			    } 
+                            /* 
+                             * The split() callback splits NODE into 2 sections:
+                             *  split_sect is the unused fragment for aligning NODE
+                             *  NODE's addr & size are updated to point to the remaining aligned section
+                             * split_sect is re-added to free-space
+                             */
+                            if (mis_align) {
+                                split_sect = cls->split(*node, frag_size);
+                                if((H5FS_sect_link(fspace, split_sect, 0) < 0))
+                                    HGOTO_ERROR(H5E_FSPACE, H5E_CANTINSERT, FAIL, "can't insert free space section into skip list")
+                                /* sanity check */
+                                HDassert(split_sect->addr < (*node)->addr);
+                                HDassert(request <= (*node)->size);
+                            }
+                            /* Indicate that we found a node for the request */
+                            HGOTO_DONE(TRUE)
+                        } 
 
-			    /* Get the next section node in the list */
-			    curr_sect_node = H5SL_next(curr_sect_node);
-			} /* end while of curr_sect_node */
+                        /* Get the next section node in the list */
+                        curr_sect_node = H5SL_next(curr_sect_node);
+                    } /* end while of curr_sect_node */
 
-			/* Get the next size node in the bin */
-			curr_size_node = H5SL_next(curr_size_node);
-		    } /* end while of curr_size_node */
+                    /* Get the next size node in the bin */
+                    curr_size_node = H5SL_next(curr_size_node);
+                } /* end while of curr_size_node */
 	    }  /* else of alignment */
 	} /* if bin_list */
 	/* Advance to next larger bin */
