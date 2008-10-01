@@ -25,12 +25,16 @@ PROGRAM fortranlibtest
   INTEGER :: total_error = 0
   INTEGER :: error
   INTEGER :: majnum, minnum, relnum
-  LOGICAL :: cleanup = .TRUE.
-! LOGICAL :: cleanup = .FALSE.
   LOGICAL :: szip_flag
   INTEGER :: ret_total_error
+  LOGICAL :: cleanup, status
 
-  CALL h5open_f(error) 
+  CALL h5open_f(error)
+
+  cleanup = .TRUE.
+  CALL h5_env_nocleanup_f(status)
+  IF(status) cleanup=.FALSE.
+
   WRITE(*,*) '                       ==========================                            '
   WRITE(*,*) '                              FORTRAN tests '
   WRITE(*,*) '                       ==========================                            '
@@ -53,13 +57,13 @@ PROGRAM fortranlibtest
 !     write(*,*) 'Testing FILE Interface                   '
 !     write(*,*) '========================================='
 
-!!$  ret_total_error = 0
-!!$  CALL mountingtest(cleanup, ret_total_error)
-!!$  CALL write_test_status(ret_total_error, ' Mounting test', total_error)
+  ret_total_error = 0
+  CALL mountingtest(cleanup, ret_total_error)
+  CALL write_test_status(ret_total_error, ' Mounting test', total_error)
 
-!!$  ret_total_error = 0
-!!$  CALL reopentest(cleanup, ret_total_error)
-!!$  CALL write_test_status(ret_total_error, ' Reopen test', total_error)
+  ret_total_error = 0
+  CALL reopentest(cleanup, ret_total_error)
+  CALL write_test_status(ret_total_error, ' Reopen test', total_error)
 
 !DEC$ if defined(H5_VMS)
   GOTO 8
@@ -78,7 +82,6 @@ PROGRAM fortranlibtest
 !     write(*,*) '========================================='
 !     write(*,*) 'Testing DATASET Interface                '
 !     write(*,*) '========================================='
-
 
   ret_total_error = 0
   CALL datasettest(cleanup, ret_total_error)
@@ -128,7 +131,18 @@ PROGRAM fortranlibtest
   CALL test_select_element(cleanup, ret_total_error)
   CALL write_test_status(ret_total_error, ' Element selection test', total_error)
 
+  ret_total_error = 0
+  CALL test_select_point(cleanup, ret_total_error)
+  CALL write_test_status(ret_total_error, ' Element selection functions test ', total_error)
 
+  ret_total_error = 0
+  CALL test_select_combine(cleanup, ret_total_error)
+  CALL write_test_status(ret_total_error, ' Selection combinations test ', total_error)
+
+  ret_total_error = 0
+  CALL test_select_bounds(cleanup, ret_total_error)
+  CALL write_test_status(ret_total_error, ' Selection bounds test ', total_error)
+  
 !     write(*,*)
 !     write(*,*) '========================================='
 !     write(*,*) 'Testing DATATYPE interface               '
@@ -145,6 +159,10 @@ PROGRAM fortranlibtest
   CALL enumtest(cleanup, ret_total_error)
   CALL write_test_status(ret_total_error, ' Enum datatype test', total_error)
 
+  ret_total_error = 0
+  CALL test_derived_flt(cleanup, ret_total_error)
+  CALL write_test_status(ret_total_error, ' Derived float datatype test', total_error)
+
 !     write(*,*)
 !     write(*,*) '========================================='
 !     write(*,*) 'Testing PROPERTY interface               ' 
@@ -155,7 +173,6 @@ PROGRAM fortranlibtest
   CALL write_test_status(ret_total_error, ' External dataset test', total_error)
 
   ret_total_error = 0
-  cleanup = .FALSE.
   CALL multi_file_test(cleanup, ret_total_error)
   CALL write_test_status(ret_total_error, ' Multi file driver test', total_error)
 
@@ -208,8 +225,6 @@ PROGRAM fortranlibtest
   CALL vl_test_real(cleanup, ret_total_error)
   CALL vl_test_string(cleanup, ret_total_error)
   CALL write_test_status(ret_total_error, ' VL test', total_error)
-
-
 
   WRITE(*,*)
 

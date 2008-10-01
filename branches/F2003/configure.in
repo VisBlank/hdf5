@@ -26,7 +26,7 @@ dnl
 dnl NOTE: Don't forget to change the version number here when we do a
 dnl release!!!
 dnl
-AC_INIT([HDF5], [1.9.17], [help@hdfgroup.org])
+AC_INIT([HDF5], [1.9.20], [help@hdfgroup.org])
 AC_CONFIG_SRCDIR([src/H5.c])
 AM_CONFIG_HEADER([src/H5config.h])
 
@@ -2141,8 +2141,14 @@ AC_TRY_COMPILE(,[int __attribute__((unused)) x],
                AC_MSG_RESULT([yes]),
                AC_MSG_RESULT([no]))
 
+AC_MSG_CHECKING([for __func__ extension])
+AC_TRY_COMPILE(,[ const char *fname = __func__; ],
+               AC_DEFINE([HAVE_C99_FUNC], [1],
+                         [Define if the compiler understand the __func__ keyword])
+               AC_MSG_RESULT([yes]),
+               AC_MSG_RESULT([no]))
 AC_MSG_CHECKING([for __FUNCTION__ extension])
-AC_TRY_COMPILE(,[(void)__FUNCTION__],
+AC_TRY_COMPILE(,[ const char *fname = __FUNCTION__; ],
                AC_DEFINE([HAVE_FUNCTION], [1],
                          [Define if the compiler understand the __FUNCTION__ keyword])
                AC_MSG_RESULT([yes]),
@@ -2266,7 +2272,9 @@ if test "X-$DEBUG_PKG" = X- ; then
 fi
 
 AC_SUBST([DEBUG_PKG])
-all_packages="ac,b,b2,d,e,f,g,hg,hl,i,mf,mm,o,p,s,t,v,z"
+dnl Removed b2 temporary since b2 code has errors.
+dnl all_packages="ac,b,b2,d,e,f,g,hg,hl,i,mf,mm,o,p,s,t,v,z"
+all_packages="ac,b,d,e,f,g,hg,hl,i,mf,mm,o,p,s,t,v,z"
 case "X-$DEBUG_PKG" in
   X-yes)
     DEBUG_PKG="d,e,f,g,hg,i,mm,o,p,s,t,v,z"
@@ -3883,6 +3891,53 @@ case "X-$STRICT_CHECKS" in
     ;;
 esac
 
+
+dnl ----------------------------------------------------------------------
+dnl Check if pointer alignments are enforced
+dnl
+AC_MSG_CHECKING([if alignment restrictions are strictly enforced])
+AC_RUN_IFELSE([
+    AC_LANG_PROGRAM([
+        #include <stdlib.h>
+        #include <string.h>
+
+        typedef struct {
+            size_t len;
+            void *p;
+        } hvl_t;
+        ], [
+        char *chp = "beefs";
+        char **chpp = malloc (2 * sizeof (char *));
+        char **chpp2;
+        hvl_t vl = { 12345, (void *) chp };
+        hvl_t *vlp;
+        hvl_t *vlp2;
+
+        memcpy ((void *) ((char *) chpp + 1), &chp, sizeof (char *));
+        chpp2 = (char **) ((char *) chpp + 1);
+        if (strcmp (*chpp2, chp)) {
+            free (chpp);
+            return 1;
+        }
+        free (chpp);
+
+        vlp = malloc (2 * sizeof (hvl_t));
+        memcpy ((void *) ((char *) vlp + 1), &vl, sizeof (hvl_t));
+        vlp2 = (hvl_t *) ((char *) vlp + 1);
+        if (vlp2->len != vl.len || vlp2->p != vl.p) {
+            free (vlp);
+            return 1;
+        }
+        free (vlp);
+    ])
+    ], [
+    AC_DEFINE([NO_ALIGNMENT_RESTRICTIONS], [1], [Define if we can violate pointer alignment restrictions])
+    AC_MSG_RESULT([no])
+    ], [
+    AC_MSG_RESULT([yes])
+    ], [
+    AC_MSG_RESULT([unknown, assuming yes])
+    ])
 
 dnl ----------------------------------------------------------------------
 dnl Create automake conditionals to tell automake makefiles which directories

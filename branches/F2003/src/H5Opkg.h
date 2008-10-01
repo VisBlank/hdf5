@@ -43,7 +43,7 @@
  */
 #define H5O_VERSION_2		2
 
-/* The latest version of the format.  Look through the 'flush' 
+/* The latest version of the format.  Look through the 'flush'
  *      and 'size' callback for places to change when updating this. */
 #define H5O_VERSION_LATEST	H5O_VERSION_2
 
@@ -66,13 +66,6 @@
      H5O_ALIGN_VERS((O)->version, X)
 #define H5O_ALIGN_F(F, X)						      \
      H5O_ALIGN_VERS((H5F_USE_LATEST_FORMAT(F) ? H5O_VERSION_LATEST : H5O_VERSION_1), X)
-
-/* Size of signature information (on disk) */
-#define H5O_SIZEOF_MAGIC                4
-
-/* Object header signatures */
-#define H5O_HDR_MAGIC                   "OHDR"          /* Header */
-#define H5O_CHK_MAGIC                   "OCHK"          /* Continuation chunk */
 
 /* Size of checksum (on disk) */
 #define H5O_SIZEOF_CHKSUM               4
@@ -106,7 +99,7 @@
                 4 +		/*reference count	*/		      \
                 4)		/*chunk data size	*/		      \
         :								      \
-            (H5O_SIZEOF_MAGIC +	/*magic number  	*/		      \
+            (H5_SIZEOF_MAGIC +	/*magic number  	*/		      \
                 1 +		/*version number 	*/		      \
                 1 +		/*flags		 	*/		      \
                 (((O)->flags & H5O_HDR_STORE_TIMES) ? (			      \
@@ -155,7 +148,7 @@
             0 +		/*no magic #  */				      \
                 0 	/*no checksum */				      \
         :								      \
-            H5O_SIZEOF_MAGIC + 		/*magic #  */			      \
+            H5_SIZEOF_MAGIC + 		/*magic #  */			      \
                 H5O_SIZEOF_CHKSUM 	/*checksum */			      \
     )
 #define H5O_SIZEOF_CHKHDR_OH(O)						      \
@@ -302,7 +295,7 @@ struct H5O_t {
 };
 
 /* Callback information for copying dataset */
-typedef struct {
+typedef struct H5D_copy_file_ud_t {
     struct H5S_extent_t *src_space_extent;     /* Copy of dataspace extent for dataset */
     H5T_t *src_dtype;                   /* Copy of datatype for dataset */
     H5O_pline_t *src_pline;             /* Copy of filter pipeline for dataet */
@@ -413,7 +406,7 @@ H5_DLLVAR const H5O_msg_class_t H5O_MSG_NAME[1];
  */
 H5_DLLVAR const H5O_msg_class_t H5O_MSG_MTIME[1];
 
-/* Shared Message information message (0x000f) 
+/* Shared Message information message (0x000f)
  * A message for the superblock extension, holding information about
  * the file-wide shared message "SOHM" table
  */
@@ -431,13 +424,13 @@ H5_DLLVAR const H5O_msg_class_t H5O_MSG_STAB[1];
  */
 H5_DLLVAR const H5O_msg_class_t H5O_MSG_MTIME_NEW[1];
 
-/* v1 B-tree 'K' value message (0x0013) 
+/* v1 B-tree 'K' value message (0x0013)
  * A message for the superblock extension, holding information about
  * the file-wide v1 B-tree 'K' values.
  */
 H5_DLLVAR const H5O_msg_class_t H5O_MSG_BTREEK[1];
 
-/* Driver info message (0x0014) 
+/* Driver info message (0x0014)
  * A message for the superblock extension, holding information about
  * the file driver settings
  */
@@ -514,7 +507,7 @@ H5_DLL herr_t H5O_release_mesg(H5F_t *f, hid_t dxpl_id, H5O_t *oh,
     H5O_mesg_t *mesg, hbool_t adj_link);
 
 /* Shared object operators */
-H5_DLL void * H5O_shared_decode(H5F_t *f, hid_t dxpl_id, unsigned *ioflags, 
+H5_DLL void * H5O_shared_decode(H5F_t *f, hid_t dxpl_id, unsigned *ioflags,
     const uint8_t *buf, const H5O_msg_class_t *type);
 H5_DLL herr_t H5O_shared_encode(const H5F_t *f, uint8_t *buf/*out*/, const H5O_shared_t *sh_mesg);
 H5_DLL size_t H5O_shared_size(const H5F_t *f, const H5O_shared_t *sh_mesg);
@@ -522,7 +515,7 @@ H5_DLL herr_t H5O_shared_delete(H5F_t *f, hid_t dxpl_id, H5O_t *open_oh,
     const H5O_msg_class_t *mesg_type, H5O_shared_t *sh_mesg);
 H5_DLL herr_t H5O_shared_link(H5F_t *f, hid_t dxpl_id, H5O_t *open_oh,
     const H5O_msg_class_t *mesg_type, H5O_shared_t *sh_mesg);
-H5_DLL herr_t H5O_shared_copy_file(H5F_t *file_src, H5F_t *file_dst, 
+H5_DLL herr_t H5O_shared_copy_file(H5F_t *file_src, H5F_t *file_dst,
     const H5O_msg_class_t *mesg_type, const void *_native_src, void *_native_dst,
     hbool_t *recompute_size, H5O_copy_t *cpy_info, void *udata, hid_t dxpl_id);
 H5_DLL herr_t H5O_shared_post_copy_file (H5F_t *f, hid_t dxpl_id, H5O_t *oh, void *mesg);

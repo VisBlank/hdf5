@@ -345,7 +345,7 @@ done:
  * Purpose:
  *      This is the guts of creating an attribute.
  * Usage:
- *  hid_t H5A_create (ent, name, type, space)
+ *  hid_t H5A_create(ent, name, type, space)
  *      const H5G_entry_t *ent;   IN: Pointer to symbol table entry for object to attribute
  *      const char *name;   IN: Name of attribute
  *      H5T_t *type;        IN: Datatype of attribute
@@ -363,7 +363,7 @@ hid_t
 H5A_create(const H5G_loc_t *loc, const char *name, const H5T_t *type,
     const H5S_t *space, hid_t acpl_id, hid_t dxpl_id)
 {
-    H5A_t	*attr = NULL;
+    H5A_t	*attr = NULL;   /* Attribute created */
     hssize_t	snelmts;	/* elements in attribute */
     size_t	nelmts;		/* elements in attribute */
     htri_t      tri_ret;        /* htri_t return value */
@@ -392,7 +392,7 @@ H5A_create(const H5G_loc_t *loc, const char *name, const H5T_t *type,
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "dataspace extent has not been set")
 
     /* Build the attribute information */
-    if((attr = H5FL_CALLOC(H5A_t)) == NULL)
+    if(NULL == (attr = H5FL_CALLOC(H5A_t)))
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed for attribute info")
 
     if(NULL == (attr->shared = H5FL_CALLOC(H5A_shared_t)))
@@ -415,10 +415,11 @@ H5A_create(const H5G_loc_t *loc, const char *name, const H5T_t *type,
     /* Copy the attribute name */
     attr->shared->name = H5MM_xstrdup(name);
 
-    /* Copy the attribute's datatype */
-    attr->shared->dt = H5T_copy(type, H5T_COPY_ALL);
+    /* Copy datatype */
+    if(NULL == (attr->shared->dt = H5T_copy(type, H5T_COPY_ALL)))
+        HGOTO_ERROR(H5E_ATTR, H5E_CANTGET, FAIL, "can't get shared datatype info")
 
-    /* Mark any datatypes as being on disk now */
+    /* Mark datatype as being on disk now */
     if(H5T_set_loc(attr->shared->dt, loc->oloc->file, H5T_LOC_DISK) < 0)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "invalid datatype location")
 
@@ -478,7 +479,7 @@ H5A_create(const H5G_loc_t *loc, const char *name, const H5T_t *type,
 
     HDassert(attr->shared->dt_size > 0);
     HDassert(attr->shared->ds_size > 0);
-    attr->shared->data_size = nelmts * H5T_get_size(attr->shared->dt);
+    attr->shared->data_size = nelmts * H5T_GET_SIZE(attr->shared->dt);
 
     /* Hold the symbol table entry (and file) open */
     if(H5O_open(&(attr->shared->oloc)) < 0)
@@ -710,7 +711,7 @@ done:
  *
  * Purpose:
  *      Finishes initializing an attributes the open
- *      
+ *
  * Usage:
  *  herr_t H5A_open_common(loc, name, dxpl_id)
  *      const H5G_loc_t *loc;   IN: Pointer to group location for object
@@ -831,7 +832,7 @@ done:
  * Function:	H5A_open_by_name
  *
  * Purpose:	Open an attribute in an object header, according to it's name
- *      
+ *
  * Return:	Non-negative on success/Negative on failure
  *
  * Programmer:	Quincey Koziol
@@ -912,9 +913,9 @@ done:
 herr_t
 H5Awrite(hid_t attr_id, hid_t dtype_id, const void *buf)
 {
-    H5A_t	   *attr;               /* Attribute object for ID */
-    const H5T_t    *mem_type = NULL;
-    herr_t	    ret_value;
+    H5A_t *attr;                /* Attribute object for ID */
+    H5T_t *mem_type;            /* Memory datatype */
+    herr_t ret_value;           /* Return value */
 
     FUNC_ENTER_API(H5Awrite, FAIL)
     H5TRACE3("e", "ii*x", attr_id, dtype_id, buf);
@@ -981,8 +982,8 @@ H5A_write(H5A_t *attr, const H5T_t *mem_type, const void *buf, hid_t dxpl_id)
     /* If there's actually data elements for the attribute, make a copy of the data passed in */
     if(nelmts > 0) {
         /* Get the memory and file datatype sizes */
-        src_type_size = H5T_get_size(mem_type);
-        dst_type_size = H5T_get_size(attr->shared->dt);
+        src_type_size = H5T_GET_SIZE(mem_type);
+        dst_type_size = H5T_GET_SIZE(attr->shared->dt);
 
         /* Convert memory buffer into disk buffer */
         /* Set up type conversion function */
@@ -997,8 +998,10 @@ H5A_write(H5A_t *attr, const H5T_t *mem_type, const void *buf, hid_t dxpl_id)
 
             /* Get the maximum buffer size needed and allocate it */
             buf_size = nelmts * MAX(src_type_size, dst_type_size);
-            if(NULL == (tconv_buf = H5FL_BLK_MALLOC (attr_buf, buf_size)) || NULL == (bkg_buf = H5FL_BLK_CALLOC(attr_buf, buf_size)))
-                HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed")
+            if(NULL == (tconv_buf = H5FL_BLK_MALLOC(attr_buf, buf_size)))
+                HGOTO_ERROR(H5E_ATTR, H5E_CANTALLOC, FAIL, "memory allocation failed")
+            if(NULL == (bkg_buf = H5FL_BLK_CALLOC(attr_buf, buf_size)))
+                HGOTO_ERROR(H5E_ATTR, H5E_CANTALLOC, FAIL, "memory allocation failed")
 
             /* Copy the user's data into the buffer for conversion */
             HDmemcpy(tconv_buf, buf, (src_type_size * nelmts));
@@ -1043,9 +1046,9 @@ done:
     if(dst_id >= 0)
         (void)H5I_dec_ref(dst_id, FALSE);
     if(tconv_buf && !tconv_owned)
-        H5FL_BLK_FREE(attr_buf, tconv_buf);
+        (void)H5FL_BLK_FREE(attr_buf, tconv_buf);
     if(bkg_buf)
-        H5FL_BLK_FREE(attr_buf, bkg_buf);
+        (void)H5FL_BLK_FREE(attr_buf, bkg_buf);
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5A_write() */
@@ -1070,9 +1073,9 @@ done:
 herr_t
 H5Aread(hid_t attr_id, hid_t dtype_id, void *buf)
 {
-    H5A_t		*attr;                  /* Attribute object for ID */
-    const H5T_t    	*mem_type = NULL;
-    herr_t		ret_value;
+    H5A_t *attr;                /* Attribute object for ID */
+    H5T_t *mem_type;            /* Memory datatype */
+    herr_t ret_value;           /* Return value */
 
     FUNC_ENTER_API(H5Aread, FAIL)
     H5TRACE3("e", "ii*x", attr_id, dtype_id, buf);
@@ -1137,8 +1140,8 @@ H5A_read(const H5A_t *attr, const H5T_t *mem_type, void *buf, hid_t dxpl_id)
 
     if(nelmts > 0) {
         /* Get the memory and file datatype sizes */
-        src_type_size = H5T_get_size(attr->shared->dt);
-        dst_type_size = H5T_get_size(mem_type);
+        src_type_size = H5T_GET_SIZE(attr->shared->dt);
+        dst_type_size = H5T_GET_SIZE(mem_type);
 
         /* Check if the attribute has any data yet, if not, fill with zeroes */
         if(attr->obj_opened && !attr->shared->initialized)
@@ -1157,8 +1160,10 @@ H5A_read(const H5A_t *attr, const H5T_t *mem_type, void *buf, hid_t dxpl_id)
 
                 /* Get the maximum buffer size needed and allocate it */
                 buf_size = nelmts * MAX(src_type_size, dst_type_size);
-                if(NULL == (tconv_buf = H5FL_BLK_MALLOC(attr_buf, buf_size)) || NULL == (bkg_buf = H5FL_BLK_CALLOC(attr_buf, buf_size)))
-                    HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed")
+                if(NULL == (tconv_buf = H5FL_BLK_MALLOC(attr_buf, buf_size)))
+                    HGOTO_ERROR(H5E_ATTR, H5E_NOSPACE, FAIL, "memory allocation failed")
+                if(NULL == (bkg_buf = H5FL_BLK_CALLOC(attr_buf, buf_size)))
+                    HGOTO_ERROR(H5E_ATTR, H5E_NOSPACE, FAIL, "memory allocation failed")
 
                 /* Copy the attribute data into the buffer for conversion */
                 HDmemcpy(tconv_buf, attr->shared->data, (src_type_size * nelmts));
@@ -1187,9 +1192,9 @@ done:
     if(dst_id >= 0)
         (void)H5I_dec_ref(dst_id, FALSE);
     if(tconv_buf)
-        H5FL_BLK_FREE(attr_buf, tconv_buf);
+        (void)H5FL_BLK_FREE(attr_buf, tconv_buf);
     if(bkg_buf)
-	H5FL_BLK_FREE(attr_buf, bkg_buf);
+	(void)H5FL_BLK_FREE(attr_buf, bkg_buf);
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5A_read() */
@@ -1262,7 +1267,7 @@ H5Aget_type(hid_t attr_id)
 {
     H5A_t	*attr;          /* Attribute object for ID */
     H5T_t	*dt = NULL;     /* Copy of attribute's datatype */
-    hid_t	 ret_value;
+    hid_t	 ret_value;     /* Return value */
 
     FUNC_ENTER_API(H5Aget_type, FAIL)
     H5TRACE1("i", "i", attr_id);
@@ -1289,11 +1294,13 @@ H5Aget_type(hid_t attr_id)
 
     /* Atomize */
     if((ret_value = H5I_register(H5I_DATATYPE, dt, TRUE)) < 0)
-        HGOTO_ERROR(H5E_ATOM, H5E_CANTREGISTER, FAIL, "unable to register datatype atom")
+        HGOTO_ERROR(H5E_ATOM, H5E_CANTREGISTER, FAIL, "unable to register datatype ID")
 
 done:
-    if(ret_value < 0 && dt)
-        (void)H5T_close(dt);
+    if(ret_value < 0) {
+        if(dt && H5T_close(dt) < 0)
+            HDONE_ERROR(H5E_DATATYPE, H5E_CLOSEERROR, FAIL, "unable to release datatype")
+    } /* end if */
 
     FUNC_LEAVE_API(ret_value)
 } /* H5Aget_type() */
@@ -1404,7 +1411,7 @@ done:
  NAME
     H5A_get_name
  PURPOSE
-    Private function for H5Aget_name.  Gets a copy of the name for an 
+    Private function for H5Aget_name.  Gets a copy of the name for an
     attribute
  RETURNS
     This function returns the length of the attribute's name (which may be
@@ -2390,7 +2397,7 @@ H5A_free(H5A_t *attr)
 	    HGOTO_ERROR(H5E_ATTR, H5E_CANTRELEASE, FAIL, "can't release dataspace info")
         attr->shared->ds = NULL;
     }
-    if(attr->shared->data) 
+    if(attr->shared->data)
         attr->shared->data = H5FL_BLK_FREE(attr_buf, attr->shared->data);
 
 done:
@@ -2428,7 +2435,7 @@ H5A_close(H5A_t *attr)
     if(attr->obj_opened && (H5O_close(&(attr->shared->oloc)) < 0))
         HGOTO_ERROR(H5E_ATTR, H5E_CANTRELEASE, FAIL, "can't release object header info")
 
-    /* Reference count can be 0.  It only happens when H5A_create fails. */ 
+    /* Reference count can be 0.  It only happens when H5A_create fails. */
     if(1 >= attr->shared->nrefs) {
         /* Free dynamicly allocated items */
         if(H5A_free(attr) < 0)
@@ -2447,7 +2454,7 @@ H5A_close(H5A_t *attr)
         HGOTO_ERROR(H5E_ATTR, H5E_CANTRELEASE, FAIL, "can't release group hier. path")
 
     attr->shared = NULL;
-    H5FL_FREE(H5A_t, attr);
+    (void)H5FL_FREE(H5A_t, attr);
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)

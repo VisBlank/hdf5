@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     {
         print_version("h5import");
         exit(EXIT_SUCCESS);
-        
+
     }
 
  /*
@@ -292,19 +292,19 @@ processDataFile(char *infile, struct Input *in, FILE **strm, hid_t file_id)
  /*-------------------------------------------------------------------------
   * special case for opening binary classes in WIN32
   * "FP" denotes a floating point binary file,
-  * "IN" denotes a signed integer binary file, 
+  * "IN" denotes a signed integer binary file,
   * "UIN" denotes an unsigned integer binary file,
   *-------------------------------------------------------------------------
   */
   if ( in->inputClass == 4 /* "IN" */ ||
        in->inputClass == 3 /* "FP" */ ||
-       in->inputClass == 7 /* "UIN" */ 
-      
+       in->inputClass == 7 /* "UIN" */
+
       )
   {
 
 #ifdef WIN32
-      
+
       if ((*strm = fopen(infile, "rb")) == NULL)
       {
           (void) fprintf(stderr, err1, infile);
@@ -764,8 +764,20 @@ readFloatData(FILE **strm, struct Input *in)
           fp32 = (H5DT_FLOAT32 *) in->data;
         break;
 
+        /* same as TEXTFP */
         case 2: /*TEXTFPE */
-        break;
+            
+            for (i = 0; i < len; i++, fp32++)
+            {
+                if (fscanf(*strm, "%f", fp32) != 1)
+                {
+                    (void) fprintf(stderr, err1);
+                    return (-1);
+                }
+            }
+            
+            fp32 = (H5DT_FLOAT32 *) in->data;
+            break;
 
         case 3: /* FP */
           for (i = 0; i < len; i++, fp32++)
@@ -801,8 +813,20 @@ readFloatData(FILE **strm, struct Input *in)
           fp64 = (H5DT_FLOAT64 *) in->data;
         break;
 
+        /* same as TEXTFP */
         case 2: /*TEXTFPE */
-        break;
+            
+            for (i = 0; i < len; i++, fp64++)
+            {
+                if (fscanf(*strm, "%lf", fp64) != 1)
+                {
+                    (void) fprintf(stderr, err1);
+                    return (-1);
+                }
+            }
+            
+            fp64 = (H5DT_FLOAT64 *) in->data;
+            break;
 
         case 3: /* FP */
           for (i = 0; i < len; i++, fp64++)
@@ -852,20 +876,20 @@ processStrData(FILE **strm, struct Input *in, hid_t file_id)
     char    str[1024];
     char    c;
     int     i = 0, j, nlines = 0, line;
-    
+
 /*-------------------------------------------------------------------------
  * get number of lines in the input file
  *-------------------------------------------------------------------------
  */
 
-    while ( !feof( *strm ) ) 
+    while ( !feof( *strm ) )
     {
         c = fgetc( *strm );
-                   
+
         if ( c == 10 ) /* eol */
         {
             nlines++;
-            
+
         }
     }
 
@@ -890,9 +914,9 @@ processStrData(FILE **strm, struct Input *in, hid_t file_id)
         goto out;
 
     /* disable error reporting */
-    H5E_BEGIN_TRY 
+    H5E_BEGIN_TRY
     {
-        
+
         /* create parent groups */
         if(in->path.count > 1) {
             j = 0;
@@ -913,7 +937,7 @@ processStrData(FILE **strm, struct Input *in, hid_t file_id)
             handle = file_id;
             j = 0;
         }
-        
+
         /*enable error reporting */
     } H5E_END_TRY;
 
@@ -930,11 +954,11 @@ processStrData(FILE **strm, struct Input *in, hid_t file_id)
 
     while(!feof(*strm)) {
         c = fgetc(*strm);
-        
+
         str[i] = c;
-        
+
         i++;
-        
+
         if(c == 10) /* eol */
         {
             char    *str2 = str;
@@ -960,11 +984,11 @@ processStrData(FILE **strm, struct Input *in, hid_t file_id)
 
             i = 0;
             str[ 0 ] = '\0';
-            
+
         }
     }
 
-    
+
     /* close */
     H5Dclose(dset_id);
     H5Sclose(space_id);
@@ -2733,7 +2757,7 @@ help(char *name)
   (void) fprintf(stdout, "\t					  to be created.\n\n");
   (void) fprintf(stdout, "\t               INPUT-CLASS:\n");
   (void) fprintf(stdout, "\t			String denoting the type of input data.\n");
-  (void) fprintf(stdout, "\t			(\"TEXTIN\", \"TEXTFP\", \"TEXTFPE\", \"FP\", \"IN\", \n");
+  (void) fprintf(stdout, "\t			(\"TEXTIN\", \"TEXTFP\", \"FP\", \"IN\", \n");
   (void) fprintf(stdout, "\t			\"STR\", \"TEXTUIN\", \"UIN\"). \n");
   (void) fprintf(stdout, "\t			INPUT-CLASS \"TEXTIN\" denotes an ASCII text \n");
   (void) fprintf(stdout, "\t			file with signed integer data in ASCII form,\n");
@@ -2742,9 +2766,6 @@ help(char *name)
   (void) fprintf(stdout, "\t			\"TEXTFP\" denotes an ASCII text file containing\n");
   (void) fprintf(stdout, "\t			floating point data in the fixed notation\n");
   (void) fprintf(stdout, "\t			(325.34),\n");
-  (void) fprintf(stdout, "\t			\"TEXTFPE\" denotes an ASCII text file containing\n");
-  (void) fprintf(stdout, "\t			floating point data in the scientific notation\n");
-  (void) fprintf(stdout, "\t			(3.2534E+02),\n");
   (void) fprintf(stdout, "\t			\"FP\" denotes a floating point binary file,\n");
   (void) fprintf(stdout, "\t			\"IN\" denotes a signed integer binary file,\n");
   (void) fprintf(stdout, "\t			\"UIN\" denotes an unsigned integer binary file,\n");

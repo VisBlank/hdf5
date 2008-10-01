@@ -302,9 +302,9 @@ HDfprintf(stderr, "%s: Load heap header, addr = %a\n", FUNC, addr);
     p = buf;
 
     /* Magic number */
-    if(HDmemcmp(p, H5HF_HDR_MAGIC, (size_t)H5HF_SIZEOF_MAGIC))
+    if(HDmemcmp(p, H5HF_HDR_MAGIC, (size_t)H5_SIZEOF_MAGIC))
 	HGOTO_ERROR(H5E_HEAP, H5E_CANTLOAD, NULL, "wrong fractal heap header signature")
-    p += H5HF_SIZEOF_MAGIC;
+    p += H5_SIZEOF_MAGIC;
 
     /* Version */
     if(*p++ != H5HF_HDR_VERSION)
@@ -395,7 +395,7 @@ HDfprintf(stderr, "%s: Load heap header, addr = %a\n", FUNC, addr);
         /* Release the space allocated for the I/O pipeline filters */
         H5O_msg_free(H5O_PLINE_ID, pline);
     } /* end if */
-    else 
+    else
         /* Set the heap header's size */
         hdr->heap_size = size;
 
@@ -497,8 +497,8 @@ HDfprintf(stderr, "%s: Flushing heap header, addr = %a, destroy = %u\n", FUNC, a
         p = buf;
 
         /* Magic number */
-        HDmemcpy(p, H5HF_HDR_MAGIC, (size_t)H5HF_SIZEOF_MAGIC);
-        p += H5HF_SIZEOF_MAGIC;
+        HDmemcpy(p, H5HF_HDR_MAGIC, (size_t)H5_SIZEOF_MAGIC);
+        p += H5_SIZEOF_MAGIC;
 
         /* Version # */
         *p++ = H5HF_HDR_VERSION;
@@ -733,7 +733,6 @@ HDfprintf(stderr, "%s: Load indirect block, addr = %a\n", FUNC, addr);
     /* Allocate space for the fractal heap indirect block */
     if(NULL == (iblock = H5FL_CALLOC(H5HF_indirect_t)))
 	HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
-    HDmemset(&iblock->cache_info, 0, sizeof(H5AC_info_t));
 
     /* Get the pointer to the shared heap header */
     hdr = par_info->hdr;
@@ -771,9 +770,9 @@ HDfprintf(stderr, "%s: Load indirect block, addr = %a\n", FUNC, addr);
     p = buf;
 
     /* Magic number */
-    if(HDmemcmp(p, H5HF_IBLOCK_MAGIC, (size_t)H5HF_SIZEOF_MAGIC))
+    if(HDmemcmp(p, H5HF_IBLOCK_MAGIC, (size_t)H5_SIZEOF_MAGIC))
 	HGOTO_ERROR(H5E_HEAP, H5E_CANTLOAD, NULL, "wrong fractal heap indirect block signature")
-    p += H5HF_SIZEOF_MAGIC;
+    p += H5_SIZEOF_MAGIC;
 
     /* Version */
     if(*p++ != H5HF_IBLOCK_VERSION)
@@ -970,8 +969,8 @@ HDfprintf(stderr, "%s: hdr->man_dtable.cparam.width = %u\n", FUNC, hdr->man_dtab
         p = buf;
 
         /* Magic number */
-        HDmemcpy(p, H5HF_IBLOCK_MAGIC, (size_t)H5HF_SIZEOF_MAGIC);
-        p += H5HF_SIZEOF_MAGIC;
+        HDmemcpy(p, H5HF_IBLOCK_MAGIC, (size_t)H5_SIZEOF_MAGIC);
+        p += H5_SIZEOF_MAGIC;
 
         /* Version # */
         *p++ = H5HF_IBLOCK_VERSION;
@@ -1074,7 +1073,7 @@ done:
  */
 /* ARGSUSED */
 herr_t
-H5HF_cache_iblock_dest(H5F_t UNUSED *f, H5HF_indirect_t *iblock)
+H5HF_cache_iblock_dest(H5F_t *f, H5HF_indirect_t *iblock)
 {
     herr_t      ret_value = SUCCEED;    /* Return value */
 
@@ -1085,6 +1084,7 @@ H5HF_cache_iblock_dest(H5F_t UNUSED *f, H5HF_indirect_t *iblock)
      */
     HDassert(iblock);
     HDassert(iblock->rc == 0);
+    HDassert(iblock->hdr);
 #ifdef QAK
 HDfprintf(stderr, "%s: Destroying indirect block\n", FUNC);
 #endif /* QAK */
@@ -1093,7 +1093,6 @@ HDfprintf(stderr, "%s: Destroying indirect block\n", FUNC);
     iblock->hdr->f = f;
 
     /* Decrement reference count on shared info */
-    HDassert(iblock->hdr);
     if(H5HF_hdr_decr(iblock->hdr) < 0)
         HGOTO_ERROR(H5E_HEAP, H5E_CANTDEC, FAIL, "can't decrement reference count on shared heap header")
     if(iblock->parent)
@@ -1316,9 +1315,9 @@ HDfprintf(stderr, "%s: nbytes = %Zu, read_size = %Zu, read_buf = %p\n", FUNC, nb
     p = dblock->blk;
 
     /* Magic number */
-    if(HDmemcmp(p, H5HF_DBLOCK_MAGIC, (size_t)H5HF_SIZEOF_MAGIC))
+    if(HDmemcmp(p, H5HF_DBLOCK_MAGIC, (size_t)H5_SIZEOF_MAGIC))
 	HGOTO_ERROR(H5E_HEAP, H5E_CANTLOAD, NULL, "wrong fractal heap direct block signature")
-    p += H5HF_SIZEOF_MAGIC;
+    p += H5_SIZEOF_MAGIC;
 
     /* Version */
     if(*p++ != H5HF_DBLOCK_VERSION)
@@ -1422,8 +1421,8 @@ H5HF_cache_dblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, 
         p = dblock->blk;
 
         /* Magic number */
-        HDmemcpy(p, H5HF_DBLOCK_MAGIC, (size_t)H5HF_SIZEOF_MAGIC);
-        p += H5HF_SIZEOF_MAGIC;
+        HDmemcpy(p, H5HF_DBLOCK_MAGIC, (size_t)H5_SIZEOF_MAGIC);
+        p += H5_SIZEOF_MAGIC;
 
         /* Version # */
         *p++ = H5HF_DBLOCK_VERSION;
@@ -1625,7 +1624,7 @@ done:
  */
 /* ARGSUSED */
 herr_t
-H5HF_cache_dblock_dest(H5F_t UNUSED *f, H5HF_direct_t *dblock)
+H5HF_cache_dblock_dest(H5F_t *f, H5HF_direct_t *dblock)
 {
     herr_t      ret_value = SUCCEED;    /* Return value */
 

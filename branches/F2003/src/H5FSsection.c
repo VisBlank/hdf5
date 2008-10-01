@@ -464,7 +464,7 @@ HDfprintf(stderr, "%s: sinfo->bins[%u].sect_count = %Zu\n", FUNC, bin, sinfo->bi
             HGOTO_ERROR(H5E_FSPACE, H5E_CANTCLOSEOBJ, FAIL, "can't destroy size tracking node's skip list")
 
         /* Release free space list node */
-        H5FL_FREE(H5FS_node_t, fspace_node);
+        (void)H5FL_FREE(H5FS_node_t, fspace_node);
 
         /* Decrement total number of section sizes managed */
         sinfo->tot_size_count--;
@@ -1766,7 +1766,7 @@ HDfprintf(stderr, "%s: removing object from merge list, sect->type = %u\n", FUNC
     /* Update current space used for free space sections */
     if(H5FS_sect_serialize_size(f, dxpl_id, fspace) < 0)
         HGOTO_ERROR(H5E_FSPACE, H5E_CANTCOMPUTE, FAIL, "can't adjust free space section size on disk")
-    
+
     /* Mark free space sections as dirty */
     if(H5AC_mark_pinned_or_protected_entry_dirty(f, fspace->sinfo) < 0)
         HGOTO_ERROR(H5E_FSPACE, H5E_CANTMARKDIRTY, FAIL, "unable to mark free space sections as dirty")

@@ -164,9 +164,9 @@ H5Dread(hid_t dset_id, hid_t mem_type_id, hid_t mem_space_id,
 	HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "no output buffer")
 
     /* If the buffer is nil, and 0 element is selected, make a fake buffer.
-     * This is for some MPI package like ChaMPIon on NCSA's tungsten which 
-     * doesn't support this feature. 
-     */ 
+     * This is for some MPI package like ChaMPIon on NCSA's tungsten which
+     * doesn't support this feature.
+     */
     if(!buf)
         buf = &fake_char;
 
@@ -254,11 +254,11 @@ H5Dwrite(hid_t dset_id, hid_t mem_type_id, hid_t mem_space_id,
             HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not xfer parms")
     if(!buf && H5S_GET_SELECT_NPOINTS(file_space) != 0)
 	HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "no output buffer")
-    
+
     /* If the buffer is nil, and 0 element is selected, make a fake buffer.
-     * This is for some MPI package like ChaMPIon on NCSA's tungsten which 
-     * doesn't support this feature. 
-     */ 
+     * This is for some MPI package like ChaMPIon on NCSA's tungsten which
+     * doesn't support this feature.
+     */
     if(!buf)
         buf = &fake_char;
 
@@ -698,7 +698,7 @@ H5D_typeinfo_init(const H5D_t *dset, const H5D_dxpl_cache_t *dxpl_cache,
 {
     const H5T_t	*src_type;              /* Source datatype */
     const H5T_t	*dst_type;              /* Destination datatype */
-    herr_t	ret_value = SUCCEED;	/* Return value	*/
+    herr_t ret_value = SUCCEED;	        /* Return value	*/
 
     FUNC_ENTER_NOAPI_NOINIT(H5D_typeinfo_init)
 
@@ -707,7 +707,7 @@ H5D_typeinfo_init(const H5D_t *dset, const H5D_dxpl_cache_t *dxpl_cache,
     HDassert(dset);
 
     /* Initialize type info safely */
-    HDmemset(type_info, 0, sizeof(H5D_type_info_t));
+    HDmemset(type_info, 0, sizeof(*type_info));
 
     /* Get the memory & dataset datatypes */
     if(NULL == (type_info->mem_type = (const H5T_t *)H5I_object_verify(mem_type_id, H5I_DATATYPE)))
@@ -745,7 +745,7 @@ H5D_typeinfo_init(const H5D_t *dset, const H5D_dxpl_cache_t *dxpl_cache,
     type_info->is_conv_noop = H5T_path_noop(type_info->tpath);
     type_info->is_xform_noop = H5Z_xform_noop(dxpl_cache->data_xform_prop);
     if(type_info->is_xform_noop && type_info->is_conv_noop) {
-        type_info->cmpd_subset = H5T_SUBSET_FALSE;
+        type_info->cmpd_subset = NULL;
         type_info->need_bkg = H5T_BKG_NO;
     } /* end if */
     else {

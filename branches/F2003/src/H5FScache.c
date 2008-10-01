@@ -191,9 +191,9 @@ HDfprintf(stderr, "%s: Load free space header, addr = %a\n", FUNC, addr);
     p = hdr;
 
     /* Magic number */
-    if(HDmemcmp(p, H5FS_HDR_MAGIC, (size_t)H5FS_SIZEOF_MAGIC))
+    if(HDmemcmp(p, H5FS_HDR_MAGIC, (size_t)H5_SIZEOF_MAGIC))
 	HGOTO_ERROR(H5E_FSPACE, H5E_CANTLOAD, NULL, "wrong free space header signature")
-    p += H5FS_SIZEOF_MAGIC;
+    p += H5_SIZEOF_MAGIC;
 
     /* Version */
     if(*p++ != H5FS_HDR_VERSION)
@@ -327,8 +327,8 @@ HDfprintf(stderr, "%s: Flushing free space header, addr = %a, destroy = %u\n", F
         p = hdr;
 
         /* Magic number */
-        HDmemcpy(p, H5FS_HDR_MAGIC, (size_t)H5FS_SIZEOF_MAGIC);
-        p += H5FS_SIZEOF_MAGIC;
+        HDmemcpy(p, H5FS_HDR_MAGIC, (size_t)H5_SIZEOF_MAGIC);
+        p += H5_SIZEOF_MAGIC;
 
         /* Version # */
         *p++ = H5FS_HDR_VERSION;
@@ -439,7 +439,7 @@ H5FS_cache_hdr_dest(H5F_t UNUSED *f, H5FS_t *fspace)
         fspace->sect_cls = (H5FS_section_class_t *)H5FL_SEQ_FREE(H5FS_section_class_t, fspace->sect_cls);
 
     /* Free free space info */
-    H5FL_FREE(H5FS_t, fspace);
+    (void)H5FL_FREE(H5FS_t, fspace);
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -555,7 +555,7 @@ HDfprintf(stderr, "%s: Load free space sections, addr = %a\n", FUNC, addr);
     /* Allocate a new free space section info */
     if(NULL == (sinfo = H5FS_sinfo_new(f, fspace)))
 	HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
-    
+
     /* Link free space manager to section info */
     /* (for deserializing sections) */
     HDassert(fspace->sinfo == NULL);
@@ -581,9 +581,9 @@ HDfprintf(stderr, "%s: fspace->sect_size = %Hu\n", FUNC, fspace->sect_size);
     p = buf;
 
     /* Magic number */
-    if(HDmemcmp(p, H5FS_SINFO_MAGIC, (size_t)H5FS_SIZEOF_MAGIC))
+    if(HDmemcmp(p, H5FS_SINFO_MAGIC, (size_t)H5_SIZEOF_MAGIC))
 	HGOTO_ERROR(H5E_FSPACE, H5E_CANTLOAD, NULL, "wrong free space sections signature")
-    p += H5FS_SIZEOF_MAGIC;
+    p += H5_SIZEOF_MAGIC;
 
     /* Version */
     if(*p++ != H5FS_SINFO_VERSION)
@@ -890,8 +890,8 @@ HDfprintf(stderr, "%s: Flushing free space header, addr = %a, destroy = %u\n", F
         p = buf;
 
         /* Magic number */
-        HDmemcpy(p, H5FS_SINFO_MAGIC, (size_t)H5FS_SIZEOF_MAGIC);
-        p += H5FS_SIZEOF_MAGIC;
+        HDmemcpy(p, H5FS_SINFO_MAGIC, (size_t)H5_SIZEOF_MAGIC);
+        p += H5_SIZEOF_MAGIC;
 
         /* Version # */
         *p++ = H5FS_SINFO_VERSION;
@@ -1014,7 +1014,7 @@ H5FS_sinfo_free_node_cb(void *item, void UNUSED *key, void *op_data)
     H5SL_destroy(fspace_node->sect_list, H5FS_sinfo_free_sect_cb, op_data);
 
     /* Release free space list node */
-    H5FL_FREE(H5FS_node_t, fspace_node);
+    (void)H5FL_FREE(H5FS_node_t, fspace_node);
 
     FUNC_LEAVE_NOAPI(0)
 }   /* H5FS_sinfo_free_node_cb() */
@@ -1072,7 +1072,7 @@ H5FS_cache_sinfo_dest(H5F_t *f, H5FS_sinfo_t *sinfo)
         HGOTO_ERROR(H5E_FSPACE, H5E_CANTUNPIN, FAIL, "unable to unpin free space header")
 
     /* Release free space section info */
-    H5FL_FREE(H5FS_sinfo_t, sinfo);
+    (void)H5FL_FREE(H5FS_sinfo_t, sinfo);
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)

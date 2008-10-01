@@ -14,7 +14,7 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
- * Author: Christian Chilan, April 2008 
+ * Author: Christian Chilan, April 2008
  */
 
 #include <sys/types.h>
@@ -123,7 +123,7 @@ static off_t offset[MAX_DIMS];       /* dataset size in bytes     */
 static size_t buf_offset[MAX_DIMS];   /* dataset size in bytes     */
 static int order[MAX_DIMS];        /* dimension access order */
 static size_t      linear_buf_size;        /* linear buffer size     */
-static int         cont_dim;       /* lowest dimension for contiguous POSIX  
+static int         cont_dim;       /* lowest dimension for contiguous POSIX
                                       access */
 static size_t      cont_size;      /* size of contiguous POSIX access */
 static hid_t       fapl;           /* file access list */
@@ -145,7 +145,7 @@ static hid_t       h5dxpl = -1;            /* Dataset transfer property list */
  * Function:        do_sio
  * Purpose:         SIO Engine where IO are executed.
  * Return:          results
- * Programmer:      Christian Chilan, April, 2008 
+ * Programmer:      Christian Chilan, April, 2008
  * Modifications:
  */
     results
@@ -188,7 +188,7 @@ do_sio(parameters param)
         GOTOERROR(FAIL);
     }
 
-    nbytes = param.num_bytes;     
+    nbytes = param.num_bytes;
     linear_buf_size = 1;
 
     for (i=0; i<param.rank; i++){
@@ -218,14 +218,14 @@ do_sio(parameters param)
     }
 
     /* Allocate transfer buffer */
-    buffer2 = malloc(linear_buf_size); 
+    buffer2 = malloc(linear_buf_size);
     if ((buffer = malloc(linear_buf_size)) == NULL){
         HDfprintf(stderr, "malloc for transfer buffer size (%Hd) failed\n",
         (long_long)(linear_buf_size));
         GOTOERROR(FAIL);
     }
 
-    if (sio_debug_level >= 4) 
+    if (sio_debug_level >= 4)
 
     /* output all of the times for all iterations */
         fprintf(output, "Timer details:\n");
@@ -277,7 +277,7 @@ do_sio(parameters param)
         set_time(res.timers, HDF5_GROSS_READ_FIXED_DIMS, STOP);
         VRFY((hrc == SUCCESS), "do_fclose failed");
     }
-    
+
     do_cleanupfile(iot, fname);
 
 done:
@@ -321,8 +321,8 @@ sio_create_filename(iotype iot, const char *base_name, char *fullname, size_t si
     const char *prefix, *suffix="";
     char *ptr, last = '\0';
     size_t i, j;
-    vfdtype vfd; 
-    vfd = param->vfd; 
+    vfdtype vfd;
+    vfd = param->vfd;
 
     if (!base_name || !fullname || size < 1)
     return NULL;
@@ -423,7 +423,7 @@ sio_create_filename(iotype iot, const char *base_name, char *fullname, size_t si
  * Function:        do_write
  * Purpose:         Write the required amount of data to the file.
  * Return:          SUCCESS or FAIL
- * Programmer:      Christian Chilan, April, 2008 
+ * Programmer:      Christian Chilan, April, 2008
  * Modifications:
  */
 static herr_t
@@ -462,7 +462,7 @@ do_write(results *res, file_descr *fd, parameters *parms, void *buffer)
 
             /* determine lowest dimension for contiguous POSIX access */
             cont_dim = rank;
-            
+
             for (i=rank-1; i>=0; i--) {
                 if (parms->buf_size[i]==parms->dset_size[i])
                     cont_dim = i;
@@ -470,7 +470,7 @@ do_write(results *res, file_descr *fd, parameters *parms, void *buffer)
                     break;
             }
 
-            /* determine size of the contiguous POSIX access */ 
+            /* determine size of the contiguous POSIX access */
             cont_size = (!cont_dim)? 1 : parms->buf_size[cont_dim-1];
             for (i=cont_dim; i<rank; i++)
                 cont_size *= parms->buf_size[i];
@@ -487,7 +487,7 @@ do_write(results *res, file_descr *fd, parameters *parms, void *buffer)
             h5count[i] = parms->buf_size[i];
             h5chunk[i] = parms->chk_size[i];
             h5maxdims[i] = H5S_UNLIMITED;
-            
+
         }
 
         if (parms->h5_use_chunks && parms->h5_extendable) {
@@ -500,7 +500,7 @@ do_write(results *res, file_descr *fd, parameters *parms, void *buffer)
         }
 
         hrc = H5Sselect_hyperslab(h5dset_space_id, H5S_SELECT_SET,
-                    h5start, h5stride, h5count, h5block); 
+                    h5start, h5stride, h5count, h5block);
         VRFY((hrc >= 0), "H5Sselect_hyperslab");
 
         /* Create the memory dataspace that corresponds to the xfer buffer */
@@ -514,7 +514,7 @@ do_write(results *res, file_descr *fd, parameters *parms, void *buffer)
             GOTOERROR(FAIL);
         }
 
-        break;        
+        break;
     } /* end switch */
 
 
@@ -564,7 +564,7 @@ do_write(results *res, file_descr *fd, parameters *parms, void *buffer)
 
     /* Perform write */
     hrc = dset_write(rank-1, fd, parms, buffer);
-    
+
     if (hrc < 0) {
         fprintf(stderr, "Error in dataset write\n");
         GOTOERROR(FAIL);
@@ -626,7 +626,7 @@ done:
 
 /*
  * Function:        dset_write
- * Purpose:         Write buffer into the dataset. 
+ * Purpose:         Write buffer into the dataset.
  * Return:          SUCCESS or FAIL
  * Programmer:      Christian Chilan, April, 2008
  * Modifications:
@@ -641,11 +641,11 @@ static herr_t dset_write(int local_dim, file_descr *fd, parameters *parms, void 
     long i,j;
     herr_t hrc;
 
-    /* iterates according to the dimensions in order array */ 
+    /* iterates according to the dimensions in order array */
     for (i=0; i < parms->dset_size[cur_dim]; i += parms->buf_size[cur_dim]){
 
         h5offset[cur_dim] = offset[cur_dim] = i;
-            
+
         if (local_dim > 0){
 
             dset_write(local_dim-1, fd, parms, buffer);
@@ -683,7 +683,7 @@ static herr_t dset_write(int local_dim, file_descr *fd, parameters *parms, void 
                         }
                     }
                 }
-                /* applies offset */               
+                /* applies offset */
                 hrc = H5Soffset_simple(h5dset_space_id, h5offset);
                 VRFY((hrc >= 0), "H5Soffset_simple");
 
@@ -702,7 +702,7 @@ done:
 }
 
 /*
- * Function:        posix_buffer_write 
+ * Function:        posix_buffer_write
  * Purpose:         Write buffer into the POSIX file considering contiguity.
  * Return:          SUCCESS or FAIL
  * Programmer:      Christian Chilan, April, 2008
@@ -766,7 +766,7 @@ done:
  * Function:        do_read
  * Purpose:         Read the required amount of data to the file.
  * Return:          SUCCESS or FAIL
- * Programmer:      Christian Chilan, April, 2008 
+ * Programmer:      Christian Chilan, April, 2008
  * Modifications:
  */
 static herr_t
@@ -797,7 +797,7 @@ do_read(results *res, file_descr *fd, parameters *parms, void *buffer)
     switch (parms->io_type) {
     case POSIXIO:
             cont_dim = rank;
-            
+
             for (i=rank-1; i>=0; i--) {
                 if (parms->buf_size[i]==parms->dset_size[i])
                     cont_dim = i;
@@ -824,7 +824,7 @@ do_read(results *res, file_descr *fd, parameters *parms, void *buffer)
         VRFY((h5dset_space_id >= 0), "H5Screate_simple");
 
         hrc = H5Sselect_hyperslab(h5dset_space_id, H5S_SELECT_SET,
-                    h5start, h5stride, h5count, h5block); 
+                    h5start, h5stride, h5count, h5block);
         VRFY((hrc >= 0), "H5Sselect_hyperslab");
 
         /* Create the memory dataspace that corresponds to the xfer buffer */
@@ -838,7 +838,7 @@ do_read(results *res, file_descr *fd, parameters *parms, void *buffer)
             GOTOERROR(FAIL);
         }
 
-        break;        
+        break;
     } /* end switch */
 
 
@@ -936,12 +936,12 @@ static herr_t dset_read(int local_dim, file_descr *fd, parameters *parms, void *
     long i,j;
     herr_t hrc;
 
-    /* iterate on the current dimension */ 
+    /* iterate on the current dimension */
     for (i=0; i < parms->dset_size[cur_dim]; i += parms->buf_size[cur_dim]){
 
         h5offset[cur_dim] = offset[cur_dim] = i;
-        
-        /* if traverse in order array is incomplete, recurse */     
+
+        /* if traverse in order array is incomplete, recurse */
         if (local_dim > 0){
 
             ret_code = dset_read(local_dim-1, fd, parms, buffer);
@@ -967,7 +967,7 @@ static herr_t dset_read(int local_dim, file_descr *fd, parameters *parms, void *
                 hrc = H5Dread(h5ds_id, ELMT_H5_TYPE, h5mem_space_id,
                     h5dset_space_id, h5dxpl, buffer);
                 VRFY((hrc >= 0), "H5Dread");
-#if 0 
+#if 0
                 for (j=0; j<linear_buf_size; j++) {
                      buf_p = (unsigned char*)buffer;
                      if (buf_p[j]!=buffer2[j])
@@ -1029,7 +1029,7 @@ static herr_t posix_buffer_read(int local_dim, file_descr *fd, parameters *parms
         rc = ((ssize_t)cont_size ==
              POSIXREAD(fd->posixfd, buf_p, cont_size));
         VRFY((rc != 0), "POSIXREAD");
-#if 0 
+#if 0
         for (j=0; j<cont_size; j++) {
             if (buf_p[j]!=buf2_p[j])
                 printf("Inconsistent data in %d\n", j);
@@ -1094,18 +1094,18 @@ do_fopen(parameters *param, char *fname, file_descr *fd /*out*/, int flags)
             GOTOERROR(FAIL);
         }
         break;
-    } 
+    }
 
 done:
     return ret_code;
 }
 
 /*
- * Function:    set_vfd 
- * Purpose:     Sets file driver. 
+ * Function:    set_vfd
+ * Purpose:     Sets file driver.
  * Return:      SUCCESS or FAIL
- * Programmer:  Christian Chilan, April, 2008 
- * Modifications: 
+ * Programmer:  Christian Chilan, April, 2008
+ * Modifications:
  */
 
 hid_t
@@ -1282,7 +1282,7 @@ do_cleanupfile(iotype iot, char *filename)
             }
             H5Pclose(fapl);
             break;
-      }   
+      }
 }
 }
 

@@ -154,7 +154,7 @@ H5SM_table_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void UNUSED *udata1
     size = H5SM_TABLE_SIZE(f) + (table->num_indexes * H5SM_INDEX_HEADER_SIZE(f));
 
     /* Get a pointer to a buffer that's large enough for serialized table */
-    if(NULL == (buf = H5WB_actual(wb, size)))
+    if(NULL == (buf = (uint8_t *)H5WB_actual(wb, size)))
         HGOTO_ERROR(H5E_SOHM, H5E_NOSPACE, NULL, "can't get actual buffer")
 
     /* Read header from disk */
@@ -165,9 +165,9 @@ H5SM_table_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void UNUSED *udata1
     p = buf;
 
     /* Check magic number */
-    if(HDmemcmp(p, H5SM_TABLE_MAGIC, (size_t)H5SM_SIZEOF_MAGIC))
+    if(HDmemcmp(p, H5SM_TABLE_MAGIC, (size_t)H5_SIZEOF_MAGIC))
 	HGOTO_ERROR(H5E_SOHM, H5E_CANTLOAD, NULL, "bad SOHM table signature")
-    p += H5SM_SIZEOF_MAGIC;
+    p += H5_SIZEOF_MAGIC;
 
     /* Don't count the checksum in the table size yet, since it comes after
      * all of the index headers
@@ -233,7 +233,7 @@ done:
         (void)H5SM_table_dest(f, table);
 
     FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5SM_table_load() */ 
+} /* end H5SM_table_load() */
 
 
 /*-------------------------------------------------------------------------
@@ -283,15 +283,15 @@ H5SM_table_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5SM_ma
         size = H5SM_TABLE_SIZE(f) + (H5SM_INDEX_HEADER_SIZE(f) * table->num_indexes);
 
         /* Get a pointer to a buffer that's large enough for serialized table */
-        if(NULL == (buf = H5WB_actual(wb, size)))
+        if(NULL == (buf = (uint8_t *)H5WB_actual(wb, size)))
             HGOTO_ERROR(H5E_SOHM, H5E_NOSPACE, FAIL, "can't get actual buffer")
 
         /* Get temporary pointer to buffer for serialized table */
         p = buf;
 
         /* Encode magic number */
-        HDmemcpy(p, H5SM_TABLE_MAGIC, (size_t)H5SM_SIZEOF_MAGIC);
-        p += H5SM_SIZEOF_MAGIC;
+        HDmemcpy(p, H5SM_TABLE_MAGIC, (size_t)H5_SIZEOF_MAGIC);
+        p += H5_SIZEOF_MAGIC;
 
         /* Encode each index header */
         for(x = 0; x < table->num_indexes; ++x) {
@@ -371,7 +371,7 @@ H5SM_table_dest(H5F_t UNUSED *f, H5SM_master_table_t* table)
 
     H5FL_ARR_FREE(H5SM_index_header_t, table->indexes);
 
-    H5FL_FREE(H5SM_master_table_t, table);
+    (void)H5FL_FREE(H5SM_master_table_t, table);
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5SM_table_dest() */
@@ -493,7 +493,7 @@ H5SM_list_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void UNUSED *udata1,
     size = H5SM_LIST_SIZE(f, header->num_messages);
 
     /* Get a pointer to a buffer that's large enough for serialized list index */
-    if(NULL == (buf = H5WB_actual(wb, size)))
+    if(NULL == (buf = (uint8_t *)H5WB_actual(wb, size)))
         HGOTO_ERROR(H5E_SOHM, H5E_NOSPACE, NULL, "can't get actual buffer")
 
     /* Read list from disk */
@@ -504,9 +504,9 @@ H5SM_list_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void UNUSED *udata1,
     p = buf;
 
     /* Check magic number */
-    if(HDmemcmp(p, H5SM_LIST_MAGIC, (size_t)H5SM_SIZEOF_MAGIC))
+    if(HDmemcmp(p, H5SM_LIST_MAGIC, (size_t)H5_SIZEOF_MAGIC))
         HGOTO_ERROR(H5E_SOHM, H5E_CANTLOAD, NULL, "bad SOHM list signature")
-    p += H5SM_SIZEOF_MAGIC;
+    p += H5_SIZEOF_MAGIC;
 
     /* Read messages into the list array */
     for(x = 0; x < header->num_messages; x++) {
@@ -542,7 +542,7 @@ done:
     if(!ret_value && list) {
         if(list->messages)
             H5FL_ARR_FREE(H5SM_sohm_t, list->messages);
-        H5FL_FREE(H5SM_list_t, list);
+        (void)H5FL_FREE(H5SM_list_t, list);
     } /* end if */
 
     FUNC_LEAVE_NOAPI(ret_value)
@@ -591,15 +591,15 @@ H5SM_list_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5SM_lis
         size = H5SM_LIST_SIZE(f, list->header->num_messages);
 
         /* Get a pointer to a buffer that's large enough for serialized list index */
-        if(NULL == (buf = H5WB_actual(wb, size)))
+        if(NULL == (buf = (uint8_t *)H5WB_actual(wb, size)))
             HGOTO_ERROR(H5E_SOHM, H5E_NOSPACE, FAIL, "can't get actual buffer")
 
         /* Get temporary pointer to buffer for serialized list index */
         p = buf;
 
         /* Encode magic number */
-        HDmemcpy(p, H5SM_LIST_MAGIC, (size_t)H5SM_SIZEOF_MAGIC);
-        p += H5SM_SIZEOF_MAGIC;
+        HDmemcpy(p, H5SM_LIST_MAGIC, (size_t)H5_SIZEOF_MAGIC);
+        p += H5_SIZEOF_MAGIC;
 
         /* Write messages from the messages array to disk */
         mesgs_written = 0;
@@ -661,7 +661,7 @@ H5SM_list_dest(H5F_t UNUSED *f, H5SM_list_t* list)
 
     H5FL_ARR_FREE(H5SM_sohm_t, list->messages);
 
-    H5FL_FREE(H5SM_list_t, list);
+    (void)H5FL_FREE(H5SM_list_t, list);
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5SM_list_dest() */

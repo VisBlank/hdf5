@@ -313,6 +313,9 @@
 /* (from: http://graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2) */
 #  define POWER_OF_TWO(n)	(!(n & (n - 1)) && n)
 
+/* Raise an integer to a power of 2 */
+#  define H5_EXP2(n)		(1 << (n))
+
 /*
  * HDF Boolean type.
  */
@@ -495,7 +498,7 @@ typedef struct {
  * Redefine all the POSIX functions.  We should never see a POSIX
  * function (or any other non-HDF5 function) in the source!
  */
- 
+
  /* Use platform-specific versions if necessary */
 #include "H5win32defs.h"
 
@@ -503,7 +506,7 @@ typedef struct {
     #define HDabort()		abort()
 #endif /* HDabort */
 #ifndef HDabs
-    #define HDabs(X)		abs(X) 
+    #define HDabs(X)		abs(X)
 #endif /* HDabs */
 #ifndef HDaccess
     #define HDaccess(F,M)		access(F, M)
@@ -645,6 +648,9 @@ typedef struct {
 #ifndef HDexp
     #define HDexp(X)		exp(X)
 #endif /* HDexp */
+#ifndef HDexp2
+    #define HDexp2(X)		exp2(X)
+#endif /* HDexp2 */
 #ifndef HDfabs
     #define HDfabs(X)		fabs(X)
 #endif /* HDfabs */

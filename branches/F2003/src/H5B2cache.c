@@ -188,9 +188,9 @@ H5B2_cache_hdr_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *_type, vo
     p = hdr;
 
     /* Magic number */
-    if(HDmemcmp(p, H5B2_HDR_MAGIC, (size_t)H5B2_SIZEOF_MAGIC))
+    if(HDmemcmp(p, H5B2_HDR_MAGIC, (size_t)H5_SIZEOF_MAGIC))
 	HGOTO_ERROR(H5E_BTREE, H5E_CANTLOAD, NULL, "wrong B-tree header signature")
-    p += H5B2_SIZEOF_MAGIC;
+    p += H5_SIZEOF_MAGIC;
 
     /* Version */
     if(*p++ != H5B2_HDR_VERSION)
@@ -198,7 +198,7 @@ H5B2_cache_hdr_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *_type, vo
 
     /* B-tree type */
     if(*p++ != (uint8_t)type->id)
-	HGOTO_ERROR(H5E_BTREE, H5E_CANTLOAD, NULL, "incorrect B-tree type")
+	HGOTO_ERROR(H5E_BTREE, H5E_BADTYPE, NULL, "incorrect B-tree type")
 
     /* Node size (in bytes) */
     UINT32DECODE(p, node_size);
@@ -307,8 +307,8 @@ H5B2_cache_hdr_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5B
         p = hdr;
 
         /* Magic number */
-        HDmemcpy(p, H5B2_HDR_MAGIC, (size_t)H5B2_SIZEOF_MAGIC);
-        p += H5B2_SIZEOF_MAGIC;
+        HDmemcpy(p, H5B2_HDR_MAGIC, (size_t)H5_SIZEOF_MAGIC);
+        p += H5_SIZEOF_MAGIC;
 
         /* Version # */
         *p++ = H5B2_HDR_VERSION;
@@ -392,7 +392,7 @@ H5B2_cache_hdr_dest(H5F_t UNUSED *f, H5B2_t *bt2)
         H5RC_DEC(bt2->shared);
 
     /* Free B-tree header info */
-    H5FL_FREE(H5B2_t, bt2);
+    (void)H5FL_FREE(H5B2_t, bt2);
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5B2_cache_hdr_dest() */
@@ -522,17 +522,17 @@ H5B2_cache_internal_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *_uda
     p = shared->page;
 
     /* Magic number */
-    if(HDmemcmp(p, H5B2_INT_MAGIC, (size_t)H5B2_SIZEOF_MAGIC))
+    if(HDmemcmp(p, H5B2_INT_MAGIC, (size_t)H5_SIZEOF_MAGIC))
         HGOTO_ERROR(H5E_BTREE, H5E_CANTLOAD, NULL, "wrong B-tree internal node signature")
-    p += H5B2_SIZEOF_MAGIC;
+    p += H5_SIZEOF_MAGIC;
 
     /* Version */
     if(*p++ != H5B2_INT_VERSION)
 	HGOTO_ERROR(H5E_BTREE, H5E_CANTLOAD, NULL, "wrong B-tree internal node version")
 
     /* B-tree type */
-    if (*p++ != (uint8_t)shared->type->id)
-	HGOTO_ERROR(H5E_BTREE, H5E_CANTLOAD, NULL, "incorrect B-tree type")
+    if(*p++ != (uint8_t)shared->type->id)
+	HGOTO_ERROR(H5E_BTREE, H5E_BADTYPE, NULL, "incorrect B-tree type")
 
     /* Allocate space for the native keys in memory */
     if((internal->int_native = (uint8_t *)H5FL_FAC_MALLOC(shared->node_info[udata->depth].nat_rec_fac)) == NULL)
@@ -641,8 +641,8 @@ H5B2_cache_internal_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr
         p = shared->page;
 
         /* Magic number */
-        HDmemcpy(p, H5B2_INT_MAGIC, (size_t)H5B2_SIZEOF_MAGIC);
-        p += H5B2_SIZEOF_MAGIC;
+        HDmemcpy(p, H5B2_INT_MAGIC, (size_t)H5_SIZEOF_MAGIC);
+        p += H5_SIZEOF_MAGIC;
 
         /* Version # */
         *p++ = H5B2_INT_VERSION;
@@ -742,7 +742,7 @@ H5B2_cache_internal_dest(H5F_t UNUSED *f, H5B2_internal_t *internal)
         H5RC_DEC(internal->shared);
 
     /* Free B-tree internal node info */
-    H5FL_FREE(H5B2_internal_t, internal);
+    (void)H5FL_FREE(H5B2_internal_t, internal);
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5B2_cache_internal_dest() */
@@ -877,9 +877,9 @@ H5B2_cache_leaf_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *_nrec, v
     p = shared->page;
 
     /* Magic number */
-    if(HDmemcmp(p, H5B2_LEAF_MAGIC, (size_t)H5B2_SIZEOF_MAGIC))
+    if(HDmemcmp(p, H5B2_LEAF_MAGIC, (size_t)H5_SIZEOF_MAGIC))
 	HGOTO_ERROR(H5E_BTREE, H5E_CANTLOAD, NULL, "wrong B-tree leaf node signature")
-    p += H5B2_SIZEOF_MAGIC;
+    p += H5_SIZEOF_MAGIC;
 
     /* Version */
     if(*p++ != H5B2_LEAF_VERSION)
@@ -887,7 +887,7 @@ H5B2_cache_leaf_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *_nrec, v
 
     /* B-tree type */
     if(*p++ != (uint8_t)shared->type->id)
-	HGOTO_ERROR(H5E_BTREE, H5E_CANTLOAD, NULL, "incorrect B-tree type")
+	HGOTO_ERROR(H5E_BTREE, H5E_BADTYPE, NULL, "incorrect B-tree type")
 
     /* Allocate space for the native keys in memory */
     if((leaf->leaf_native = (uint8_t *)H5FL_FAC_MALLOC(shared->node_info[0].nat_rec_fac)) == NULL)
@@ -977,8 +977,8 @@ H5B2_cache_leaf_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5
         p = shared->page;
 
         /* magic number */
-        HDmemcpy(p, H5B2_LEAF_MAGIC, (size_t)H5B2_SIZEOF_MAGIC);
-        p += H5B2_SIZEOF_MAGIC;
+        HDmemcpy(p, H5B2_LEAF_MAGIC, (size_t)H5_SIZEOF_MAGIC);
+        p += H5_SIZEOF_MAGIC;
 
         /* version # */
         *p++ = H5B2_LEAF_VERSION;
@@ -1061,7 +1061,7 @@ H5B2_cache_leaf_dest(H5F_t UNUSED *f, H5B2_leaf_t *leaf)
         H5RC_DEC(leaf->shared);
 
     /* Free B-tree leaf node info */
-    H5FL_FREE(H5B2_leaf_t,leaf);
+    (void)H5FL_FREE(H5B2_leaf_t, leaf);
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5B2_cache_leaf_dest() */

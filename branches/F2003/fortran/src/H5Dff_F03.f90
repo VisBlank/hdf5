@@ -60,7 +60,8 @@ MODULE H5D_PROVISIONAL
 !
 ! CONCLUSION:
 !
-! Therefore compilers that have not extended the standard (gfortran and Sun fortran) require
+! Therefore compilers that have not extended the standard (gfortran and Sun fortran) require the 
+! argument in C_LOC to be of the variant: 
 !
 ! CHARACTER(LEN=1), TARGET :: chr
 !  or
@@ -602,8 +603,8 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
-    CHARACTER(LEN=*), INTENT(IN) :: buf ! Data buffer
-    INTEGER, INTENT(OUT) :: hdferr      ! Error code 
+    CHARACTER(LEN=*), INTENT(IN), TARGET :: buf ! Data buffer
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code 
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
                                             ! Memory dataspace identfier 
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id 
@@ -613,11 +614,6 @@ CONTAINS
     INTEGER(HID_T) :: xfer_prp_default 
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
-
-    INTEGER :: i
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
-
     TYPE(C_PTR) :: f_ptr
 
     xfer_prp_default = H5P_DEFAULT_F
@@ -628,26 +624,10 @@ CONTAINS
     IF(PRESENT(mem_space_id))  mem_space_id_default = mem_space_id 
     IF(PRESENT(file_space_id)) file_space_id_default = file_space_id
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    DO i = 1, chr_len
-       chr(i) = buf(i:i)
-    ENDDO
-
-    f_ptr = C_LOC(chr)
+    f_ptr = C_LOC(buf(1:1))
 
     hdferr = h5dwrite_f_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, f_ptr)
-
-    DEALLOCATE(chr)
 
   END SUBROUTINE h5dwrite_char_scalar
 
@@ -658,7 +638,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
-    CHARACTER(LEN=*), INTENT(IN), DIMENSION(dims(1)) :: buf
+    CHARACTER(LEN=*), INTENT(IN), DIMENSION(dims(1)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code 
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
     ! Memory dataspace identfier 
@@ -670,11 +650,6 @@ CONTAINS
     INTEGER(HID_T) :: xfer_prp_default 
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
-
-    INTEGER :: i1,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
-
     TYPE(C_PTR) :: f_ptr
 
     xfer_prp_default = H5P_DEFAULT_F
@@ -685,30 +660,10 @@ CONTAINS
     IF(PRESENT(mem_space_id))  mem_space_id_default = mem_space_id 
     IF(PRESENT(file_space_id)) file_space_id_default = file_space_id
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*dims(1)), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i1 = 1, dims(1)
-       DO j = 1, chr_len
-          k = k + 1
-          chr(k) = buf(i1)(j:j)
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
+    f_ptr = C_LOC(buf(1)(1:1))
 
     hdferr = h5dwrite_f_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, f_ptr)
-
-    DEALLOCATE(chr)
 
   END SUBROUTINE h5dwrite_char_1
 
@@ -720,7 +675,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(IN), &
-         DIMENSION(dims(1),dims(2)) :: buf
+         DIMENSION(dims(1),dims(2)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code 
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
     ! Memory dataspace identfier 
@@ -732,11 +687,6 @@ CONTAINS
     INTEGER(HID_T) :: xfer_prp_default 
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
-
-    INTEGER :: i1,i2,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
-
     TYPE(C_PTR) :: f_ptr
 
     xfer_prp_default = H5P_DEFAULT_F
@@ -747,32 +697,10 @@ CONTAINS
     IF(PRESENT(mem_space_id))  mem_space_id_default = mem_space_id 
     IF(PRESENT(file_space_id)) file_space_id_default = file_space_id
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*SUM(dims(1:2))), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i2 = 1, dims(2)
-       DO i1 = 1, dims(1)
-          DO j = 1, chr_len
-             k = k + 1
-             chr(k) = buf(i1,i2)(j:j)
-          ENDDO
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
+    f_ptr = C_LOC(buf(1,1)(1:1))
 
     hdferr = h5dwrite_f_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, f_ptr)
-
-    DEALLOCATE(chr)
 
   END SUBROUTINE h5dwrite_char_2
 
@@ -784,7 +712,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(IN), &
-         DIMENSION(dims(1),dims(2),dims(3)) :: buf
+         DIMENSION(dims(1),dims(2),dims(3)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code 
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
     ! Memory dataspace identfier 
@@ -796,10 +724,6 @@ CONTAINS
     INTEGER(HID_T) :: xfer_prp_default 
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default
-
-    INTEGER :: i1,i2,i3,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len 
     TYPE(C_PTR) :: f_ptr
 
     xfer_prp_default = H5P_DEFAULT_F
@@ -810,34 +734,10 @@ CONTAINS
     IF(PRESENT(mem_space_id))  mem_space_id_default = mem_space_id 
     IF(PRESENT(file_space_id)) file_space_id_default = file_space_id
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*SUM(dims(1:3))), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i3 = 1, dims(3)
-       DO i2 = 1, dims(2)
-          DO i1 = 1, dims(1)
-             DO j = 1, chr_len
-                k = k + 1
-                chr(k) = buf(i1,i2,i3)(j:j)
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
+    f_ptr = C_LOC(buf(1,1,1)(1:1))
 
     hdferr = h5dwrite_f_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, f_ptr)
-
-    DEALLOCATE(chr)
 
   END SUBROUTINE h5dwrite_char_3
 
@@ -849,7 +749,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(IN), &
-         DIMENSION(dims(1),dims(2),dims(3),dims(4)) :: buf
+         DIMENSION(dims(1),dims(2),dims(3),dims(4)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code 
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
     ! Memory dataspace identfier 
@@ -860,11 +760,6 @@ CONTAINS
     INTEGER(HID_T) :: xfer_prp_default 
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
-
-    INTEGER :: i1,i2,i3,i4,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
-
     TYPE(C_PTR) :: f_ptr
 
     xfer_prp_default = H5P_DEFAULT_F
@@ -875,35 +770,10 @@ CONTAINS
     IF(PRESENT(mem_space_id))  mem_space_id_default = mem_space_id 
     IF(PRESENT(file_space_id)) file_space_id_default = file_space_id  
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*SUM(dims(1:4))), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i4 = 1, dims(4)
-       DO i3 = 1, dims(3)
-          DO i2 = 1, dims(2)
-             DO i1 = 1, dims(1)
-                DO j = 1, chr_len
-                   k = k + 1
-                   chr(k) = buf(i1,i2,i3,i4)(j:j)
-                ENDDO
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
+    f_ptr = C_LOC(buf(1,1,1,1)(1:1))
 
     hdferr = h5dwrite_f_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, f_ptr)
-    DEALLOCATE(chr)
 
   END SUBROUTINE h5dwrite_char_4
 
@@ -915,22 +785,17 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(IN), &
-         DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) :: buf
-    INTEGER, INTENT(OUT) :: hdferr      ! Error code 
+         DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)), TARGET :: buf
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code 
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
-    ! Memory dataspace identfier 
+                                            ! Memory dataspace identfier 
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id 
-    ! File dataspace identfier 
+                                            ! File dataspace identfier 
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp 
-    ! Transfer property list identifier 
-
+                                            ! Transfer property list identifier 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
-
-    INTEGER :: i1,i2,i3,i4,i5,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
     TYPE(C_PTR) :: f_ptr
 
     xfer_prp_default = H5P_DEFAULT_F
@@ -941,37 +806,9 @@ CONTAINS
     IF(PRESENT(mem_space_id))  mem_space_id_default = mem_space_id 
     IF(PRESENT(file_space_id)) file_space_id_default = file_space_id
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*SUM(dims(1:5))), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i5 = 1, dims(5)
-       DO i4 = 1, dims(4)
-          DO i3 = 1, dims(3)
-             DO i2 = 1, dims(2)
-                DO i1 = 1, dims(1)
-                   DO j = 1, chr_len
-                      k = k + 1
-                      chr(k) = buf(i1,i2,i3,i4,i5)(j:j)
-                   ENDDO
-                ENDDO
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
+    f_ptr = C_LOC(buf(1,1,1,1,1)(1:1))
     hdferr = h5dwrite_f_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, f_ptr)
-
-    DEALLOCATE(chr)
 
   END SUBROUTINE h5dwrite_char_5
 
@@ -983,7 +820,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(IN), &
-         DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)) :: buf
+         DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code 
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
     ! Memory dataspace identfier 
@@ -994,11 +831,7 @@ CONTAINS
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
-    INTEGER(HID_T) :: file_space_id_default 
-
-    INTEGER :: i1,i2,i3,i4,i5,i6,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
+    INTEGER(HID_T) :: file_space_id_default
     TYPE(C_PTR) :: f_ptr
 
     xfer_prp_default = H5P_DEFAULT_F
@@ -1009,40 +842,11 @@ CONTAINS
     IF(PRESENT(mem_space_id))  mem_space_id_default = mem_space_id 
     IF(PRESENT(file_space_id)) file_space_id_default = file_space_id
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*SUM(dims(1:6))), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i6 = 1, dims(6)
-       DO i5 = 1, dims(5)
-          DO i4 = 1, dims(4)
-             DO i3 = 1, dims(3)
-                DO i2 = 1, dims(2)
-                   DO i1 = 1, dims(1)
-                      DO j = 1, chr_len
-                         k = k + 1
-                         chr(k) = buf(i1,i2,i3,i4,i5,i6)(j:j)
-                      ENDDO
-                   ENDDO
-                ENDDO
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
+    f_ptr = C_LOC(buf(1,1,1,1,1,1)(1:1))
 
     hdferr = h5dwrite_f_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, f_ptr)
 
-    DEALLOCATE(chr)
   END SUBROUTINE h5dwrite_char_6
 
   SUBROUTINE h5dwrite_char_7(dset_id, mem_type_id, buf, dims, hdferr, &
@@ -1053,7 +857,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(IN), &
-         DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)) :: buf
+         DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code 
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
     ! Memory dataspace identfier 
@@ -1065,10 +869,6 @@ CONTAINS
     INTEGER(HID_T) :: xfer_prp_default 
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default
-
-    INTEGER :: i1,i2,i3,i4,i5,i6,i7,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len 
     TYPE(C_PTR) :: f_ptr
 
     xfer_prp_default = H5P_DEFAULT_F
@@ -1078,42 +878,11 @@ CONTAINS
     IF(PRESENT(xfer_prp)) xfer_prp_default = xfer_prp 
     IF(PRESENT(mem_space_id))  mem_space_id_default = mem_space_id 
     IF(PRESENT(file_space_id)) file_space_id_default = file_space_id
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
 
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*SUM(dims(1:7))), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i7 = 1, dims(7)
-       DO i6 = 1, dims(6)
-          DO i5 = 1, dims(5)
-             DO i4 = 1, dims(4)
-                DO i3 = 1, dims(3)
-                   DO i2 = 1, dims(2)
-                      DO i1 = 1, dims(1)
-                         DO j = 1, chr_len
-                            k = k + 1
-                            chr(k) = buf(i1,i2,i3,i4,i5,i6,i7)(j:j)
-                         ENDDO
-                      ENDDO
-                   ENDDO
-                ENDDO
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
+    f_ptr = C_LOC(buf(1,1,1,1,1,1,1)(1:1))
 
     hdferr = h5dwrite_f_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, f_ptr)
-
-    DEALLOCATE(chr)
 
   END SUBROUTINE h5dwrite_char_7
 
@@ -2120,7 +1889,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
-    CHARACTER(LEN=*), INTENT(INOUT) :: buf ! Data buffer
+    CHARACTER(LEN=*), INTENT(INOUT), TARGET :: buf ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr      ! Error code 
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
     ! Memory dataspace identfier 
@@ -2132,9 +1901,6 @@ CONTAINS
     INTEGER(HID_T) :: xfer_prp_default 
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default
-    INTEGER :: i
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
     TYPE(C_PTR) :: f_ptr
 
     xfer_prp_default = H5P_DEFAULT_F
@@ -2145,30 +1911,10 @@ CONTAINS
     IF(PRESENT(mem_space_id))  mem_space_id_default = mem_space_id 
     IF(PRESENT(file_space_id)) file_space_id_default = file_space_id
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    DO i = 1, chr_len
-       chr(i) = buf(i:i)
-    ENDDO
-
-    f_ptr = C_LOC(chr)
+    f_ptr = C_LOC(buf(1:1))
 
     hdferr = h5dread_f_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, f_ptr)
-
-    DO i = 1, chr_len
-       buf(i:i) = chr(i)
-    ENDDO
-
-    DEALLOCATE(chr)
 
   END SUBROUTINE h5dread_char_scalar
 
@@ -2180,7 +1926,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(INOUT), &
-         DIMENSION(dims(1)) :: buf
+         DIMENSION(dims(1)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code 
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
     ! Memory dataspace identfier 
@@ -2192,11 +1938,6 @@ CONTAINS
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
-
-    INTEGER :: i1,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
-
     TYPE(C_PTR) :: f_ptr
 
     xfer_prp_default = H5P_DEFAULT_F
@@ -2205,39 +1946,11 @@ CONTAINS
 
     IF(PRESENT(xfer_prp)) xfer_prp_default = xfer_prp 
     IF(PRESENT(mem_space_id))  mem_space_id_default = mem_space_id 
-    IF(PRESENT(file_space_id)) file_space_id_default = file_space_id 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
+    IF(PRESENT(file_space_id)) file_space_id_default = file_space_id
 
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*dims(1)), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i1 = 1, dims(1)
-       DO j = 1, chr_len
-          k = k + 1
-          chr(k) = buf(i1)(j:j)
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
-
+    f_ptr = C_LOC(buf(1)(1:1))
     hdferr = h5dread_f_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, f_ptr)
-
-    k = 0
-    DO i1 = 1, dims(1)
-       DO j = 1, chr_len
-          k = k + 1
-          buf(i1)(j:j) = chr(k)
-       ENDDO
-    ENDDO
-
-    DEALLOCATE(chr)
 
   END SUBROUTINE h5dread_char_1
 
@@ -2249,7 +1962,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(INOUT), &
-         DIMENSION(dims(1),dims(2)) :: buf
+         DIMENSION(dims(1),dims(2)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code 
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
     ! Memory dataspace identfier 
@@ -2260,11 +1973,7 @@ CONTAINS
 
     INTEGER(HID_T) :: xfer_prp_default 
     INTEGER(HID_T) :: mem_space_id_default
-    INTEGER(HID_T) :: file_space_id_default 
-
-    INTEGER :: i1,i2,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
+    INTEGER(HID_T) :: file_space_id_default
     TYPE(C_PTR) :: f_ptr 
 
     xfer_prp_default = H5P_DEFAULT_F
@@ -2275,41 +1984,10 @@ CONTAINS
     IF(PRESENT(mem_space_id))  mem_space_id_default = mem_space_id 
     IF(PRESENT(file_space_id)) file_space_id_default = file_space_id 
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*SUM(dims(1:2))), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i2 = 1, dims(2)
-       DO i1 = 1, dims(1)
-          DO j = 1, chr_len
-             k = k + 1
-             chr(k) = buf(i1,i2)(j:j)
-          ENDDO
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
+    f_ptr = C_LOC(buf(1,1)(1:1))
 
     hdferr = h5dread_f_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, f_ptr)
-    k = 0
-    DO i2 = 1, dims(2)
-       DO i1 = 1, dims(1)
-          DO j = 1, chr_len
-             k = k + 1
-             buf(i1,i2)(j:j) = chr(k)
-          ENDDO
-       ENDDO
-    ENDDO
-
-    DEALLOCATE(chr)
 
   END SUBROUTINE h5dread_char_2
 
@@ -2321,7 +1999,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(INOUT), &
-         DIMENSION(dims(1),dims(2),dims(3)) :: buf
+         DIMENSION(dims(1),dims(2),dims(3)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code 
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
     ! Memory dataspace identfier 
@@ -2332,11 +2010,7 @@ CONTAINS
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default 
-    INTEGER(HID_T) :: file_space_id_default 
-
-    INTEGER :: i1,i2,i3,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len 
+    INTEGER(HID_T) :: file_space_id_default
     TYPE(C_PTR) :: f_ptr
 
     xfer_prp_default = H5P_DEFAULT_F
@@ -2347,43 +2021,9 @@ CONTAINS
     IF(PRESENT(mem_space_id))  mem_space_id_default = mem_space_id 
     IF(PRESENT(file_space_id)) file_space_id_default = file_space_id
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*SUM(dims(1:3))), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i3 = 1, dims(3)
-       DO i2 = 1, dims(2)
-          DO i1 = 1, dims(1)
-             DO j = 1, chr_len
-                k = k + 1
-                chr(k) = buf(i1,i2,i3)(j:j)
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
+    f_ptr = C_LOC(buf(1,1,1)(1:1))
     hdferr = h5dread_f_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, f_ptr)
-    k = 0
-    DO i3 = 1, dims(3)
-       DO i2 = 1, dims(2)
-          DO i1 = 1, dims(1)
-             DO j = 1, chr_len
-                k = k + 1
-                 buf(i1,i2,i3)(j:j) = chr(k)
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-    DEALLOCATE(chr)
 
   END SUBROUTINE h5dread_char_3
 
@@ -2395,7 +2035,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(INOUT), &
-         DIMENSION(dims(1),dims(2),dims(3),dims(4)) :: buf
+         DIMENSION(dims(1),dims(2),dims(3),dims(4)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code 
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
     ! Memory dataspace identfier 
@@ -2406,11 +2046,7 @@ CONTAINS
 
     INTEGER(HID_T) :: xfer_prp_default 
     INTEGER(HID_T) :: mem_space_id_default 
-    INTEGER(HID_T) :: file_space_id_default  
-
-    INTEGER :: i1,i2,i3,i4,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
+    INTEGER(HID_T) :: file_space_id_default
     TYPE(C_PTR) :: f_ptr
     
     xfer_prp_default = H5P_DEFAULT_F
@@ -2420,50 +2056,11 @@ CONTAINS
     IF(PRESENT(xfer_prp)) xfer_prp_default = xfer_prp 
     IF(PRESENT(mem_space_id))  mem_space_id_default = mem_space_id 
     IF(PRESENT(file_space_id)) file_space_id_default = file_space_id
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
 
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*SUM(dims(1:4))), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i4 = 1, dims(4)
-       DO i3 = 1, dims(3)
-          DO i2 = 1, dims(2)
-             DO i1 = 1, dims(1)
-                DO j = 1, chr_len
-                   k = k + 1
-                   chr(k) = buf(i1,i2,i3,i4)(j:j)
-                ENDDO
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
+    f_ptr = C_LOC(buf(1,1,1,1)(1:1))
 
     hdferr = h5dread_f_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, f_ptr)
-
-    k = 0
-    DO i4 = 1, dims(4)
-       DO i3 = 1, dims(3)
-          DO i2 = 1, dims(2)
-             DO i1 = 1, dims(1)
-                DO j = 1, chr_len
-                   k = k + 1
-                   buf(i1,i2,i3,i4)(j:j) = chr(k)
-                ENDDO
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    DEALLOCATE(chr)
 
   END SUBROUTINE h5dread_char_4
 
@@ -2476,7 +2073,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(INOUT), &
-         DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) :: buf
+         DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code 
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
     ! Memory dataspace identfier 
@@ -2488,10 +2085,6 @@ CONTAINS
     INTEGER(HID_T) :: xfer_prp_default 
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default
-
-    INTEGER :: i1,i2,i3,i4,i5,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
     TYPE(C_PTR) :: f_ptr
 
     xfer_prp_default = H5P_DEFAULT_F
@@ -2502,54 +2095,10 @@ CONTAINS
     IF(PRESENT(mem_space_id))  mem_space_id_default = mem_space_id 
     IF(PRESENT(file_space_id)) file_space_id_default = file_space_id
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*SUM(dims(1:5))), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i5 = 1, dims(5)
-       DO i4 = 1, dims(4)
-          DO i3 = 1, dims(3)
-             DO i2 = 1, dims(2)
-                DO i1 = 1, dims(1)
-                   DO j = 1, chr_len
-                      k = k + 1
-                      chr(k) = buf(i1,i2,i3,i4,i5)(j:j)
-                   ENDDO
-                ENDDO
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
+    f_ptr = C_LOC(buf(1,1,1,1,1)(1:1))
 
     hdferr = h5dread_f_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, f_ptr)
-
-    k = 0
-    DO i5 = 1, dims(5)
-       DO i4 = 1, dims(4)
-          DO i3 = 1, dims(3)
-             DO i2 = 1, dims(2)
-                DO i1 = 1, dims(1)
-                   DO j = 1, chr_len
-                      k = k + 1
-                       buf(i1,i2,i3,i4,i5)(j:j) = chr(k)
-                   ENDDO
-                ENDDO
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    DEALLOCATE(chr)
 
   END SUBROUTINE h5dread_char_5
 
@@ -2561,7 +2110,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(INOUT), &
-         DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)) :: buf
+         DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code 
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
     ! Memory dataspace identfier 
@@ -2572,11 +2121,7 @@ CONTAINS
 
     INTEGER(HID_T) :: xfer_prp_default 
     INTEGER(HID_T) :: mem_space_id_default 
-    INTEGER(HID_T) :: file_space_id_default  
-
-    INTEGER :: i1,i2,i3,i4,i5,i6,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
+    INTEGER(HID_T) :: file_space_id_default
     TYPE(C_PTR) :: f_ptr
 
     xfer_prp_default = H5P_DEFAULT_F
@@ -2587,59 +2132,10 @@ CONTAINS
     IF(PRESENT(mem_space_id))  mem_space_id_default = mem_space_id 
     IF(PRESENT(file_space_id)) file_space_id_default = file_space_id
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*SUM(dims(1:6))), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i6 = 1, dims(6)
-       DO i5 = 1, dims(5)
-          DO i4 = 1, dims(4)
-             DO i3 = 1, dims(3)
-                DO i2 = 1, dims(2)
-                   DO i1 = 1, dims(1)
-                      DO j = 1, chr_len
-                         k = k + 1
-                         chr(k) = buf(i1,i2,i3,i4,i5,i6)(j:j)
-                      ENDDO
-                   ENDDO
-                ENDDO
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
+    f_ptr = C_LOC(buf(1,1,1,1,1,1)(1:1))
 
     hdferr = h5dread_f_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, f_ptr)
-
-    k = 0
-    DO i6 = 1, dims(6)
-       DO i5 = 1, dims(5)
-          DO i4 = 1, dims(4)
-             DO i3 = 1, dims(3)
-                DO i2 = 1, dims(2)
-                   DO i1 = 1, dims(1)
-                      DO j = 1, chr_len
-                         k = k + 1
-                         buf(i1,i2,i3,i4,i5,i6)(j:j) = chr(k)
-                      ENDDO
-                   ENDDO
-                ENDDO
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-
-    DEALLOCATE(chr)
 
   END SUBROUTINE h5dread_char_6
 
@@ -2652,7 +2148,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(INOUT), &
-         DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)) , TARGET :: buf
+         DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code 
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id 
     ! Memory dataspace identfier 
@@ -2664,10 +2160,6 @@ CONTAINS
     INTEGER(HID_T) :: xfer_prp_default 
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default
-
-    INTEGER :: i1,i2,i3,i4,i5,i6,i7,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len 
     TYPE(C_PTR) :: f_ptr
 
     xfer_prp_default = H5P_DEFAULT_F
@@ -2677,62 +2169,11 @@ CONTAINS
     IF(PRESENT(xfer_prp)) xfer_prp_default = xfer_prp 
     IF(PRESENT(mem_space_id))  mem_space_id_default = mem_space_id 
     IF(PRESENT(file_space_id)) file_space_id_default = file_space_id
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
 
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*SUM(dims(1:7))), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i7 = 1, dims(7)
-       DO i6 = 1, dims(6)
-          DO i5 = 1, dims(5)
-             DO i4 = 1, dims(4)
-                DO i3 = 1, dims(3)
-                   DO i2 = 1, dims(2)
-                      DO i1 = 1, dims(1)
-                         DO j = 1, chr_len
-                            k = k + 1
-                            chr(k) = buf(i1,i2,i3,i4,i5,i6,i7)(j:j)
-                         ENDDO
-                      ENDDO
-                   ENDDO
-                ENDDO
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
+    f_ptr = C_LOC(buf(1,1,1,1,1,1,1)(1:1))
 
     hdferr = h5dread_f_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, f_ptr)
-
-    k = 0
-    DO i7 = 1, dims(7)
-       DO i6 = 1, dims(6)
-          DO i5 = 1, dims(5)
-             DO i4 = 1, dims(4)
-                DO i3 = 1, dims(3)
-                   DO i2 = 1, dims(2)
-                      DO i1 = 1, dims(1)
-                         DO j = 1, chr_len
-                            k = k + 1
-                            buf(i1,i2,i3,i4,i5,i6,i7)(j:j) = chr(k)
-                         ENDDO
-                      ENDDO
-                   ENDDO
-                ENDDO
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    DEALLOCATE(chr)
 
   END SUBROUTINE h5dread_char_7
 

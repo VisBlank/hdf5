@@ -58,6 +58,9 @@
 /* Define to 1 if you have the `BSDgettimeofday' function. */
 #undef HAVE_BSDGETTIMEOFDAY
 
+/* Define if the compiler understand the __func__ keyword */
+#undef HAVE_C99_FUNC
+
 /* Define if the function stack tracing code is to be compiled in */
 #undef HAVE_CODESTACK
 
@@ -432,6 +435,9 @@
 
 /* Define if your system can handle special collective IO properly. */
 #undef MPI_SPECIAL_COLLECTIVE_IO_WORKS
+
+/* Define if we can violate pointer alignment restrictions */
+#undef NO_ALIGNMENT_RESTRICTIONS
 
 /* Define if deprecated public API symbols are disabled */
 #undef NO_DEPRECATED_SYMBOLS
