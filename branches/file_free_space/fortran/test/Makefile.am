@@ -65,9 +65,10 @@ MOSTLYCLEANFILES=*.tmp
 
 # Mark this directory as part of the Fortran API (this affects output
 # from tests in conclude.am)
-HDF_FORTRAN=yes
+FORTRAN_API=yes
 
 # fflush2 depends on files created by fflush1
 fflush2.chkexe_: fflush1.chkexe_
+
 
 include $(top_srcdir)/config/conclude.am
