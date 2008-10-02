@@ -418,10 +418,8 @@ static herr_t
 H5B_compute_size(const H5F_t *f, const H5B_t *bt, size_t *size_ptr)
 {
     H5B_shared_t        *shared;        /* Pointer to shared B-tree info */
-    size_t	size;
-    herr_t      ret_value = SUCCEED;    /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5B_compute_size)
+    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5B_compute_size)
 
     /* check arguments */
     HDassert(f);
@@ -432,13 +430,8 @@ H5B_compute_size(const H5F_t *f, const H5B_t *bt, size_t *size_ptr)
     HDassert(shared->type);
     HDassert(size_ptr);
 
-    /* Check node's size */
-    if ((size = H5B_nodesize(f, shared, NULL)) == 0)
-        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTGETSIZE, FAIL, "H5B_nodesize() failed")
-
     /* Set size value */
-    *size_ptr = size;
+    *size_ptr = shared->sizeof_rnode;
 
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI(SUCCEED)
 } /* H5B_compute_size() */
