@@ -1513,7 +1513,7 @@ test_extend_cases(hid_t file, hid_t _dcpl, const char *dset_name,
 
     /* Initialize dataspace & hyperslab info */
     for(i = 0, nelmts = 1; i < 5; i++) {
-	hs_size[i] = start_size[i] / 2;
+	hs_size[i] = (start_size[i] + 1) / 2;
 	hs_offset[i] = 0;
 	hs_stride[i] = 2;
 	nelmts *= hs_size[i];
@@ -1532,7 +1532,7 @@ test_extend_cases(hid_t file, hid_t _dcpl, const char *dset_name,
     /* Select elements within file dataspace */ 
     if(H5Sselect_hyperslab(fspace, H5S_SELECT_SET, hs_offset, hs_stride, hs_size, NULL) < 0) TEST_ERROR
 
-    /* Write to all odd data locations */
+    /* Write to all even data locations */
     if(H5Dwrite(dset, dtype, mspace, fspace, H5P_DEFAULT, buf) < 0) TEST_ERROR
 
     /* Close memory dataspace */
@@ -1721,6 +1721,9 @@ test_extend_cases(hid_t file, hid_t _dcpl, const char *dset_name,
 
     /* Verify the element read in is the value written out */
     if(verify_rtn((unsigned)__LINE__, hs_offset, val_rd, buf) < 0) TEST_ERROR
+    
+    /* Set the element back to fillval */
+    if(H5Dwrite(dset, dtype, mspace, fspace, H5P_DEFAULT, fillval) < 0) TEST_ERROR
 
     /* Release any VL components */
     if(H5Dvlen_reclaim(dtype, mspace, H5P_DEFAULT, val_rd) < 0) TEST_ERROR
@@ -1883,8 +1886,8 @@ test_extend(hid_t fapl, const char *base_name, H5D_layout_t layout)
         hsize_t	nelmts;
 
 	nelmts = max_size[0]*max_size[1]*max_size[2]*max_size[3]*max_size[4];
-	if((fd=open(FILE_NAME_RAW, O_RDWR|O_CREAT|O_TRUNC, 0666)) < 0 ||
-	    close(fd) < 0) goto error;
+	if((fd=HDopen(FILE_NAME_RAW, O_RDWR|O_CREAT|O_TRUNC, 0666)) < 0 ||
+	    HDclose(fd) < 0) goto error;
 	if(H5Pset_external(dcpl, FILE_NAME_RAW, (off_t)0, (hsize_t)nelmts*sizeof(int)) < 0)
 	    goto error;
     }

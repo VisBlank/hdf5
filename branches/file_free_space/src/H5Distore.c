@@ -97,7 +97,7 @@
  * The chunk's file address is part of the B-tree and not part of the key.
  */
 typedef struct H5D_istore_key_t {
-    size_t	nbytes;				/*size of stored data	*/
+    uint32_t	nbytes;				/*size of stored data	*/
     hsize_t	offset[H5O_LAYOUT_NDIMS];	/*logical offset to start*/
     unsigned	filter_mask;			/*excluded filters	*/
 } H5D_istore_key_t;
@@ -1022,9 +1022,12 @@ H5D_istore_idx_iterate_cb(H5F_t UNUSED *f, hid_t UNUSED dxpl_id,
     FUNC_ENTER_NOAPI_NOINIT(H5D_istore_idx_iterate_cb)
 
     /* Sanity check for memcpy() */
-    HDassert(offsetof(H5D_chunk_rec_t, nbytes) == offsetof(H5D_istore_key_t, nbytes));
-    HDassert(offsetof(H5D_chunk_rec_t, offset) == offsetof(H5D_istore_key_t, offset));
-    HDassert(offsetof(H5D_chunk_rec_t, filter_mask) == offsetof(H5D_istore_key_t, filter_mask));
+    HDcompile_assert(offsetof(H5D_chunk_rec_t, nbytes) == offsetof(H5D_istore_key_t, nbytes));
+    HDcompile_assert(sizeof(chunk_rec.nbytes) == sizeof(lt_key->nbytes));
+    HDcompile_assert(offsetof(H5D_chunk_rec_t, offset) == offsetof(H5D_istore_key_t, offset));
+    HDcompile_assert(sizeof(chunk_rec.offset) == sizeof(lt_key->offset));
+    HDcompile_assert(offsetof(H5D_chunk_rec_t, filter_mask) == offsetof(H5D_istore_key_t, filter_mask));
+    HDcompile_assert(sizeof(chunk_rec.filter_mask) == sizeof(lt_key->filter_mask));
 
     /* Compose generic chunk record for callback */
     HDmemcpy(&chunk_rec, lt_key, sizeof(*lt_key));
