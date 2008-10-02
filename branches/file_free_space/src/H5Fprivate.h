@@ -417,9 +417,9 @@ H5_DLL unsigned H5F_decr_nopen_objs(H5F_t *f);
 
 /* Functions than retrieve values from the file struct */
 H5_DLL unsigned H5F_get_intent(const H5F_t *f);
-H5_DLL hid_t H5F_get_access_plist(H5F_t *f);
+H5_DLL hid_t H5F_get_access_plist(H5F_t *f, hbool_t app_ref);
 H5_DLL char *H5F_get_extpath(const H5F_t *f);
-H5_DLL hid_t H5F_get_id(H5F_t *file);
+H5_DLL hid_t H5F_get_id(H5F_t *file, hbool_t app_ref);
 H5_DLL unsigned H5F_get_obj_count(const H5F_t *f, unsigned types);
 H5_DLL unsigned H5F_get_obj_ids(const H5F_t *f, unsigned types, int max_objs, hid_t *obj_id_list);
 

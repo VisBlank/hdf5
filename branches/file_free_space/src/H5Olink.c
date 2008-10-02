@@ -38,7 +38,8 @@
 
 
 /* PRIVATE PROTOTYPES */
-static void *H5O_link_decode(H5F_t *f, hid_t dxpl_id, unsigned mesg_flags, const uint8_t *p);
+static void *H5O_link_decode(H5F_t *f, hid_t dxpl_id, unsigned mesg_flags,
+    unsigned *ioflags, const uint8_t *p);
 static herr_t H5O_link_encode(H5F_t *f, hbool_t disable_shared, uint8_t *p, const void *_mesg);
 static void *H5O_link_copy(const void *_mesg, void *_dest);
 static size_t H5O_link_size(const H5F_t *f, hbool_t disable_shared, const void *_mesg);
@@ -116,7 +117,7 @@ H5FL_DEFINE_STATIC(H5O_link_t);
  */
 static void *
 H5O_link_decode(H5F_t *f, hid_t UNUSED dxpl_id, unsigned UNUSED mesg_flags,
-    const uint8_t *p)
+    unsigned UNUSED *ioflags, const uint8_t *p)
 {
     H5O_link_t          *lnk = NULL;    /* Pointer to link message */
     size_t              len = 0;        /* Length of a string in the message */
@@ -627,17 +628,17 @@ H5O_link_delete(H5F_t *f, hid_t dxpl_id, H5O_t UNUSED *open_oh, void *_mesg)
             hid_t file_id;           /* ID for the file the link is located in (passed to user callback) */
 
             /* Get a file ID for the file the link is in */
-            if((file_id = H5F_get_id(f)) < 0)
+            if((file_id = H5F_get_id(f, FALSE)) < 0)
                 HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "unable to get file ID")
 
             /* Call user-defined link's 'delete' callback */
             if((link_class->del_func)(lnk->name, file_id, lnk->u.ud.udata, lnk->u.ud.size) < 0) {
-                H5I_dec_ref(file_id);
+                H5I_dec_ref(file_id, FALSE);
                 HGOTO_ERROR(H5E_OHDR, H5E_CALLBACK, FAIL, "link deletion callback returned failure")
             } /* end if */
 
             /* Release the file ID */
-            if(H5I_dec_ref(file_id) < 0)
+            if(H5I_dec_ref(file_id, FALSE) < 0)
                 HGOTO_ERROR(H5E_OHDR, H5E_CANTCLOSEFILE, FAIL, "can't close file")
         } /* end if */
     } /* end if */

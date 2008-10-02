@@ -452,17 +452,17 @@ H5G_get_name(hid_t id, char *name/*out*/, size_t size, hid_t lapl_id,
 	    hid_t	  file;
 
             /* Retrieve file ID for name search */
-	    if((file = H5I_get_file_id(id)) < 0)
+	    if((file = H5I_get_file_id(id, FALSE)) < 0)
 		HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "can't retrieve file ID")
 
             /* Search for name of object */
 	    if((len = H5G_get_name_by_addr(file, lapl_id, dxpl_id, loc.oloc, name, size)) < 0) {
-                H5I_dec_ref(file);
+                H5I_dec_ref(file, FALSE);
 		HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "can't determine name")
             } /* end if */
 	
             /* Close file ID used for search */
-	    if(H5I_dec_ref(file) < 0)
+	    if(H5I_dec_ref(file, FALSE) < 0)
 		HGOTO_ERROR(H5E_SYM, H5E_CANTCLOSEFILE, FAIL, "can't determine name")
 	} /* end else */
 
@@ -700,19 +700,19 @@ H5G_name_replace_cb(void *obj_ptr, hid_t obj_id, void *key)
         HGOTO_DONE(SUCCEED)     /* No need to look at object, it's path is already invalid */
 
     /* Find the top file in object's mount hier. */
-    if(oloc->file->mtab.parent) {
+    if(oloc->file->parent) {
         /* Check if object is in child file (for mount & unmount operations) */
         if(names->dst_file && oloc->file->shared == names->dst_file->shared)
             obj_in_child = TRUE;
 
         /* Find the "top" file in the chain of mounted files */
-        top_obj_file = oloc->file->mtab.parent;
-        while(top_obj_file->mtab.parent != NULL) {
+        top_obj_file = oloc->file->parent;
+        while(top_obj_file->parent != NULL) {
             /* Check if object is in child mount hier. (for mount & unmount operations) */
             if(names->dst_file && top_obj_file->shared == names->dst_file->shared)
                 obj_in_child = TRUE;
 
-            top_obj_file = top_obj_file->mtab.parent;
+            top_obj_file = top_obj_file->parent;
         } /* end while */
     } /* end if */
     else
@@ -997,8 +997,8 @@ H5G_name_replace(const H5O_link_t *lnk, H5G_names_op_t op, H5F_t *src_file,
             H5G_names_t names;          /* Structure to hold operation information for callback */
 
             /* Find top file in src location's mount hierarchy */
-            while(src_file->mtab.parent)
-                src_file = src_file->mtab.parent;
+            while(src_file->parent)
+                src_file = src_file->parent;
 
             /* Set up common information for callback */
             names.src_file = src_file;

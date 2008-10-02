@@ -760,6 +760,7 @@
 ./test/COPYING
 ./test/Makefile.am
 ./test/Makefile.in
+./test/app_ref.c
 ./test/be_data.h5
 ./test/be_extlink1.h5
 ./test/be_extlink2.h5
@@ -1410,6 +1411,7 @@
 ./tools/h5diff/testfiles/h5diff_16_3.txt
 ./tools/h5diff/testfiles/h5diff_17.txt
 ./tools/h5diff/testfiles/h5diff_18.txt
+./tools/h5diff/testfiles/h5diff_19.txt
 ./tools/h5diff/testfiles/h5diff_20.txt
 ./tools/h5diff/testfiles/h5diff_21.txt
 ./tools/h5diff/testfiles/h5diff_22.txt
@@ -1507,12 +1509,15 @@
 ./tools/h5jam/getub.c
 
 # test files for jam
-./tools/testfiles/twithub.h5
-./tools/testfiles/twithub513.h5
-./tools/testfiles/u10.txt
-./tools/testfiles/u511.txt
-./tools/testfiles/u512.txt
-./tools/testfiles/u513.txt
+./tools/h5jam/testfiles/twithub.h5
+./tools/h5jam/testfiles/u10.txt
+./tools/h5jam/testfiles/tall.h5
+./tools/h5jam/testfiles/u511.txt
+./tools/h5jam/testfiles/u512.txt
+./tools/h5jam/testfiles/twithub513.h5
+./tools/h5jam/testfiles/u513.txt
+
+
 
 # test files for h5copy
 ./tools/h5copy/testfiles/h5copytst.h5
@@ -1529,16 +1534,6 @@
 ./tools/testfiles/h5mkgrp_single.ls
 ./tools/testfiles/h5mkgrp_single_latest.ls
 ./tools/testfiles/h5mkgrp_version.ls
-
-#h52jpeg
-./hl/tools/h52jpeg/testfiles/h52jpegtst.h5
-./hl/tools/h52jpeg/h52jpegtst.c
-./hl/tools/h52jpeg/Makefile.in
-./hl/tools/h52jpeg/h52jpeg.c
-./hl/tools/h52jpeg/image24pixel.txt
-./hl/tools/h52jpeg/image8.txt
-./hl/tools/h52jpeg/Makefile.am
-./hl/tools/h52jpeg/h52jpeg.sh
 
 
 # high level libraries
@@ -1620,6 +1615,8 @@
 ./hl/test/test_table_cray.hdf5
 ./hl/test/usa.wri
 ./hl/test/dtype_file.txt
+
+# tools
 ./hl/tools/COPYING
 ./hl/tools/Makefile.am
 ./hl/tools/Makefile.in
@@ -1635,9 +1632,8 @@
 ./hl/tools/gif2h5/writehdf.c
 ./hl/tools/gif2h5/h52gifgentst.c
 ./hl/tools/gif2h5/h52giftest.sh
-# testfiles
-./hl/tools/testfiles/image1.gif
-./hl/tools/testfiles/h52giftst.h5
+./hl/tools/gif2h5/testfiles/image1.gif
+./hl/tools/gif2h5/testfiles/h52giftst.h5
 
 
 # hl fortran
@@ -1966,6 +1962,8 @@
 # Library Test Projects
 ./windows/test/checktests.bat
 ./windows/test/testerror.bat
+./windows/test/app_ref/app_ref.vcproj
+./windows/test/app_refdll/app_refdll.vcproj
 ./windows/test/big/big.vcproj
 ./windows/test/bigdll/bigdll.vcproj
 ./windows/test/bittests/bittests.vcproj
@@ -2218,6 +2216,8 @@
 ./windows_vnet/proj/hdf5_hl_cpp/hdf5_hl_cpp.vcproj
 ./windows_vnet/proj/hdf5_hl_cppdll/hdf5_hl_cppdll.vcproj
 ./windows_vnet/proj/hdf5_hldll/hdf5_hldll.vcproj
+./windows_vnet/test/app_ref/app_ref.vcproj
+./windows_vnet/test/app_refdll/app_refdll.vcproj
 ./windows_vnet/test/big/big.vcproj
 ./windows_vnet/test/bigdll/bigdll.vcproj
 ./windows_vnet/test/bittests/bittests.vcproj
