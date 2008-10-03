@@ -249,12 +249,12 @@ H5HG_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void UNUSED * udata1,
      * free space than this heap.
      */
     if(!f->shared->cwfs) {
-        f->shared->cwfs = H5MM_malloc(H5HG_NCWFS * sizeof(H5HG_heap_t *));
+        f->shared->cwfs = (H5HG_heap_t **)H5MM_malloc(H5HG_NCWFS * sizeof(H5HG_heap_t *));
         if(NULL == f->shared->cwfs)
             HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
         f->shared->ncwfs = 1;
         f->shared->cwfs[0] = heap;
-    } else if(H5HG_NCWFS==f->shared->ncwfs) {
+    } else if(H5HG_NCWFS == f->shared->ncwfs) {
         int i;          /* Local index variable */
 
         for(i = H5HG_NCWFS - 1; i >= 0; --i)
@@ -264,7 +264,7 @@ H5HG_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void UNUSED * udata1,
                 break;
             } /* end if */
     } else {
-        HDmemmove(f->shared->cwfs + 1, f->shared->cwfs, f->shared->ncwfs * sizeof(H5HG_heap_t*));
+        HDmemmove(f->shared->cwfs + 1, f->shared->cwfs, f->shared->ncwfs * sizeof(H5HG_heap_t *));
         f->shared->ncwfs += 1;
         f->shared->cwfs[0] = heap;
     } /* end else */
@@ -362,7 +362,7 @@ H5HG_dest(H5F_t *f, H5HG_heap_t *heap)
     for(i = 0; i < f->shared->ncwfs; i++)
         if(f->shared->cwfs[i] == heap) {
             f->shared->ncwfs -= 1;
-            HDmemmove(f->shared->cwfs + i, f->shared->cwfs + i + 1, (f->shared->ncwfs - i) * sizeof(H5HG_heap_t*));
+            HDmemmove(f->shared->cwfs + i, f->shared->cwfs + i + 1, (f->shared->ncwfs - i) * sizeof(H5HG_heap_t *));
             break;
         } /* end if */
 
@@ -371,7 +371,7 @@ H5HG_dest(H5F_t *f, H5HG_heap_t *heap)
         heap->chunk = H5FL_BLK_FREE(gheap_chunk, heap->chunk);
     if(heap->obj)
         heap->obj = H5FL_SEQ_FREE(H5HG_obj_t, heap->obj);
-    H5FL_FREE(H5HG_heap_t, heap);
+    (void)H5FL_FREE(H5HG_heap_t, heap);
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)

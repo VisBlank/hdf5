@@ -254,7 +254,7 @@ H5F_super_read(H5F_t *f, hid_t dxpl_id, H5G_loc_t *root_loc)
     lf = shared->lf;
 
     /* Get the shared file creation property list */
-    if(NULL == (c_plist = H5I_object(shared->fcpl_id)))
+    if(NULL == (c_plist = (H5P_genplist_t *)H5I_object(shared->fcpl_id)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "can't get property list")
 
     /* Find the superblock */
@@ -676,7 +676,7 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
     FUNC_ENTER_NOAPI(H5F_super_init, FAIL)
 
     /* Get the shared file creation property list */
-    if(NULL == (plist = H5I_object(f->shared->fcpl_id)))
+    if(NULL == (plist = (H5P_genplist_t *)H5I_object(f->shared->fcpl_id)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list")
 
     /*
@@ -865,7 +865,7 @@ H5F_super_write(H5F_t *f, hid_t dxpl_id)
     FUNC_ENTER_NOAPI(H5F_super_write, FAIL)
 
     /* Get the shared file creation property list */
-    if(NULL == (plist = H5I_object(f->shared->fcpl_id)))
+    if(NULL == (plist = (H5P_genplist_t *)H5I_object(f->shared->fcpl_id)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list")
 
     /* Grab values from property list */

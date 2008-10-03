@@ -403,9 +403,9 @@ H5HL_dest(H5F_t *f, H5HL_t *heap)
     while(heap->freelist) {
         fl = heap->freelist;
         heap->freelist = fl->next;
-        H5FL_FREE(H5HL_free_t, fl);
+        (void)H5FL_FREE(H5HL_free_t, fl);
     } /* end while */
-    H5FL_FREE(H5HL_t, heap);
+    (void)H5FL_FREE(H5HL_t, heap);
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)

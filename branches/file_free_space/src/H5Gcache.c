@@ -161,7 +161,7 @@ H5G_node_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void UNUSED  *_udata1
     size = H5G_node_size_real(f);
 
     /* Get a pointer to a buffer that's large enough for node */
-    if(NULL == (node = H5WB_actual(wb, size)))
+    if(NULL == (node = (uint8_t *)H5WB_actual(wb, size)))
         HGOTO_ERROR(H5E_SYM, H5E_NOSPACE, NULL, "can't get actual buffer")
 
     /* Read the serialized symbol table node. */
@@ -289,7 +289,7 @@ H5G_node_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5G_node_
         size = H5G_node_size_real(f);
 
         /* Get a pointer to a buffer that's large enough for node */
-        if(NULL == (node = H5WB_actual(wb, size)))
+        if(NULL == (node = (uint8_t *)H5WB_actual(wb, size)))
             HGOTO_ERROR(H5E_SYM, H5E_NOSPACE, FAIL, "can't get actual buffer")
 
         /* Get temporary pointer to serialized symbol table node */
@@ -381,8 +381,8 @@ H5G_node_dest(H5F_t *f, H5G_node_t *sym)
 
     /* Release resources */
     if(sym->entry)
-        sym->entry = H5FL_SEQ_FREE(H5G_entry_t, sym->entry);
-    H5FL_FREE(H5G_node_t, sym);
+        sym->entry = (H5G_entry_t *)H5FL_SEQ_FREE(H5G_entry_t, sym->entry);
+    (void)H5FL_FREE(H5G_node_t, sym);
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)

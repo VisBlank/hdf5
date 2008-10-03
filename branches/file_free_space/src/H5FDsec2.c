@@ -441,11 +441,11 @@ HDfprintf(stderr, "%s: file->eof = %a, file->eoa = %a\n", FUNC, file->eof, file-
         HSYS_GOTO_ERROR(H5E_IO, H5E_CANTCLOSEFILE, FAIL, "unable to close file")
 
     /* Release the file info */
-    H5FL_FREE(H5FD_sec2_t,file);
+    (void)H5FL_FREE(H5FD_sec2_t, file);
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-}
+} /* end H5FD_sec2_close() */
 
 
 /*-------------------------------------------------------------------------
