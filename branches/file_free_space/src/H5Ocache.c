@@ -890,7 +890,7 @@ HDfprintf(stderr, "%s: oh->cache_info.free_file_space_on_destroy = %t\n", FUNC, 
     } /* end if */
 
     /* destroy object header */
-    H5FL_FREE(H5O_t, oh);
+    (void)H5FL_FREE(H5O_t, oh);
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)

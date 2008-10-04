@@ -749,7 +749,6 @@ HDfprintf(stderr, "%s: Load indirect block, addr = %a\n", FUNC, addr);
     /* Allocate space for the fractal heap indirect block */
     if(NULL == (iblock = H5FL_CALLOC(H5HF_indirect_t)))
 	HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
-    HDmemset(&iblock->cache_info, 0, sizeof(H5AC_info_t));
 
     /* Get the pointer to the shared heap header */
     hdr = par_info->hdr;
@@ -1100,6 +1099,7 @@ H5HF_cache_iblock_dest(H5F_t *f, H5HF_indirect_t *iblock)
      */
     HDassert(iblock);
     HDassert(iblock->rc == 0);
+    HDassert(iblock->hdr);
 #ifdef QAK
 HDfprintf(stderr, "%s: Destroying indirect block\n", FUNC);
 #endif /* QAK */
@@ -1119,7 +1119,6 @@ HDfprintf(stderr, "%s: Destroying indirect block\n", FUNC);
     iblock->hdr->f = f;
 
     /* Decrement reference count on shared info */
-    HDassert(iblock->hdr);
     if(H5HF_hdr_decr(iblock->hdr) < 0)
         HGOTO_ERROR(H5E_HEAP, H5E_CANTDEC, FAIL, "can't decrement reference count on shared heap header")
     if(iblock->parent)

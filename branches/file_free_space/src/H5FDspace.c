@@ -274,15 +274,18 @@ HDfprintf(stderr, "%s: type = %u, addr = %a, size = %Hu\n", FUNC, (unsigned)type
     if(addr > file->maxaddr || H5F_addr_overflow(addr, size) || (addr + size) > file->maxaddr)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "invalid file free space region to free")
 
+    /* Check for file driver 'free' callback and call it if available */
     if(file->cls->free) {
 #ifdef H5FD_ALLOC_DEBUG
 HDfprintf(stderr, "%s: Letting VFD free space\n", FUNC);
 #endif /* H5FD_ALLOC_DEBUG */
         if((file->cls->free)(file, type, dxpl_id, addr, size) < 0)
             HGOTO_ERROR(H5E_VFL, H5E_CANTFREE, FAIL, "driver free request failed")
+    } /* end if */
     /* Check if this free block is at the end of file allocated space.
-     * Truncate it if this is true. */
-    } else if(file->cls->get_eoa) {
+     * Truncate it if this is true.
+     */
+    else if(file->cls->get_eoa) {
         haddr_t     eoa;
 
         eoa = file->cls->get_eoa(file, type);
@@ -296,7 +299,8 @@ HDfprintf(stderr, "%s: Reducing file size to = %a\n", FUNC, addr);
             if(file->cls->set_eoa(file, type, addr) < 0)
                 HGOTO_ERROR(H5E_VFL, H5E_CANTSET, FAIL, "set end of space allocation request failed")
         } /* end if */
-    } else {
+    } /* end else-if */
+    else {
         /* leak memory */
 #ifdef H5FD_ALLOC_DEBUG
 HDfprintf(stderr, "%s: LEAKED MEMORY!!! type = %u, addr = %a, size = %Hu\n", FUNC, (unsigned)type, addr, size);
