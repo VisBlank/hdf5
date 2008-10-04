@@ -332,6 +332,7 @@ H5B_dest(H5F_t *f, H5B_t *bt)
     /*
      * Check arguments.
      */
+    HDassert(f);
     HDassert(bt);
     HDassert(bt->rc_shared);
 

@@ -615,9 +615,12 @@ H5E_close_msg_cb(void *obj_ptr, hid_t obj_id, void *key)
     HDassert(err_msg);
 
     /* Close the message if it is in the class being closed */
-    if(err_msg->cls == cls)
+    if(err_msg->cls == cls) {
+        if(H5E_close_msg(err_msg) < 0)
+            HGOTO_ERROR(H5E_ERROR, H5E_CANTCLOSEOBJ, FAIL, "unable to close error message")
         if(NULL == H5I_remove(obj_id))
             HGOTO_ERROR(H5E_ERROR, H5E_CANTREMOVE, FAIL, "unable to remove error message")
+    } /* end if */
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -1300,6 +1303,11 @@ H5Epush2(hid_t err_stack, const char *file, const char *func, unsigned line,
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a error message ID")
     if(maj_ptr->cls != min_ptr->cls)
         HGOTO_ERROR(H5E_ARGS, H5E_UNSUPPORTED, FAIL, "major and minor errors not from same error class")
+
+/* Note that the variable-argument parsing for the format is identical in
+ *      the H5E_printf_stack() routine - correct errors and make changes in both
+ *      places. -QAK
+ */
 
     /* Format the description */
     va_start(ap, fmt);

@@ -363,6 +363,7 @@ H5G_node_dest(H5F_t *f, H5G_node_t *sym)
     /*
      * Check arguments.
      */
+    HDassert(f);
     HDassert(sym);
 
     /* Verify that node is clean */

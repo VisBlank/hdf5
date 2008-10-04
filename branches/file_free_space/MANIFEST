@@ -212,6 +212,7 @@
 ./fortran/src/H5f90kit.c
 ./fortran/src/H5f90proto.h
 ./fortran/src/H5test_kind.f90
+./fortran/src/H5test_kind_SIZEOF.f90
 ./fortran/src/H5fortran_flags.f90
 ./fortran/src/H5match_types.c
 ./fortran/src/HDF5.f90
@@ -222,6 +223,7 @@
 ./fortran/src/README_DEVELOPEMENT 	_DO_NOT_DISTRIBUTE_
 ./fortran/src/h5fc.in
 ./fortran/src/libhdf5_fortran.settings.in
+./fortran/src/hdf5_fortrandll.def
 
 ./fortran/test/Makefile.am
 ./fortran/test/Makefile.in
@@ -377,6 +379,7 @@
 ./perform/Makefile.in
 ./perform/benchpar.c
 ./perform/build_h5perf_alone.sh
+./perform/build_h5perf_serial_alone.sh
 ./perform/chunk.c
 ./perform/gen_report.pl
 ./perform/iopipe.c
@@ -495,6 +498,13 @@
 ./src/H5Epubgen.h
 ./src/H5Epublic.h
 ./src/H5Eterm.h
+./src/H5EA.c
+./src/H5EAcache.c
+./src/H5EAhdr.c
+./src/H5EAint.c
+./src/H5EApkg.h
+./src/H5EAprivate.h
+./src/H5EAtest.c
 ./src/H5F.c
 ./src/H5Faccum.c
 ./src/H5Fdbg.c
@@ -781,6 +791,7 @@
 ./test/dt_arith.c
 ./test/dtypes.c
 ./test/dtransform.c
+./test/earray.c
 ./test/enum.c
 ./test/extend.c
 ./test/external.c
@@ -1994,6 +2005,8 @@
 ./windows/test/dtransformdll/dtransformdll.vcproj
 ./windows/test/dtypes/dtypes.vcproj
 ./windows/test/dtypesdll/dtypesdll.vcproj
+./windows/test/earray/earray.vcproj
+./windows/test/earraydll/earraydll.vcproj
 ./windows/test/enum/enum.vcproj
 ./windows/test/enumdll/enumdll.vcproj
 ./windows/test/error_test/error_test.vcproj
@@ -2248,6 +2261,8 @@
 ./windows_vnet/test/dtransformdll/dtransformdll.vcproj
 ./windows_vnet/test/dtypes/dtypes.vcproj
 ./windows_vnet/test/dtypesdll/dtypesdll.vcproj
+./windows_vnet/test/earray/earray.vcproj
+./windows_vnet/test/earraydll/earraydll.vcproj
 ./windows_vnet/test/enum/enum.vcproj
 ./windows_vnet/test/enumdll/enumdll.vcproj
 ./windows_vnet/test/error_test/error_test.vcproj
