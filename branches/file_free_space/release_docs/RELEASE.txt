@@ -1,4 +1,4 @@
-HDF5 version 1.9.18 currently under development
+HDF5 version 1.9.19 currently under development
 ================================================================================
 
 
@@ -89,6 +89,8 @@ New Features
          points to. (PVN - 2008/05/12)
      - h5repack: add a userblock to an HDF5 file during the repack. (PVN - 2008/08/26)
      - h5repack: add 2 options that call H5Pset_alignment in the repacked file. (PVN - 2008/08/29)
+     - h5ls: added capability to traverse through external links when the -r
+         (recursive) flag is given. (NAF - 2008/09/16)
 
 
 
@@ -107,6 +109,8 @@ Bug Fixes since HDF5-1.8.0 release
 
     Library
     -------
+        - Fixed pointer alignment violations that could occur during vlen
+            conversion.  (NAF - 2008/09/16)
         - Fixed problem where library could cause a segmentation fault when
             an invalid location ID was given to H5Giterate(). (QAK - 2008/08/19)
       - Fixed improper shutdown when objects have reference count > 1.  The

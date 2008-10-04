@@ -101,9 +101,9 @@ int h5repack_init (pack_opt_t *options,
     for ( n = 0; n < H5_REPACK_MAX_NFILTERS; n++)
     {
         options->filter_g[n].filtn  = -1;
-        options->filter_g[n].cd_nelmts  = -1;
+        options->filter_g[n].cd_nelmts  = 0;
         for ( k = 0; k < CD_VALUES; k++)
-            options->filter_g[n].cd_values[k] = -1;
+            options->filter_g[n].cd_values[k] = 0;
     }
 
     return (options_table_init(&(options->op_tbl)));
@@ -320,7 +320,8 @@ static int check_options(pack_opt_t *options)
         }
     }
 
-    if (options->all_layout==1 && has_ck){
+    if (options->all_layout==1 && has_ck)
+    {
     error_msg(progname, "invalid chunking input: 'all' option\
         is present with other objects\n");
     return -1;
@@ -379,7 +380,8 @@ static int check_options(pack_opt_t *options)
         } /* j */
     } /* i */
 
-    if (options->all_filter==1 && has_cp){
+    if (options->all_filter==1 && has_cp)
+    {
     error_msg(progname, "invalid compression input: 'all' option\
         is present with other objects\n");
     return -1;
@@ -390,20 +392,25 @@ static int check_options(pack_opt_t *options)
     *-------------------------------------------------------------------------
     */
 
-    if (options->grp_compact < 0) {
+    if (options->grp_compact < 0) 
+    {
         error_msg(progname, "invalid maximum number of links to store as header messages\n");
         return -1;
     }
-    if (options->grp_indexed < 0) {
+    if (options->grp_indexed < 0) 
+    {
         error_msg(progname, "invalid minimum number of links to store in the indexed format\n");
         return -1;
     }
-    if (options->grp_indexed > options->grp_compact) {
+    if (options->grp_indexed > options->grp_compact) 
+    {
         error_msg(progname, "minimum indexed size is greater than the maximum compact size\n");
         return -1;
     }
-    for (i=0; i<8; i++) {
-        if (options->msg_size[i]<0) {
+    for (i=0; i<8; i++) 
+    {
+        if (options->msg_size[i]<0) 
+        {
             error_msg(progname, "invalid shared message size\n");
             return -1;
         }
@@ -411,14 +418,17 @@ static int check_options(pack_opt_t *options)
 
 
     /*--------------------------------------------------------------------------------
-    * verify new user userblock options; both file name and block size must be present
+    * verify new user userblock options; file name must be present
     *---------------------------------------------------------------------------------
     */
     if ( options->ublock_filename != NULL && options->ublock_size == 0 )
     {
-        error_msg(progname, "user block size missing for file %s\n",
-            options->ublock_filename);
-        return -1;
+        if ( options->verbose )
+        {
+            printf("Warning: user block size missing for file %s. Assigning a default size of 1024...\n",
+                options->ublock_filename);
+            options->ublock_size = 1024;
+        }
     }
 
     if ( options->ublock_filename == NULL && options->ublock_size != 0 )
@@ -517,18 +527,18 @@ static int check_objects(const char* fname,
             /* chunk size must be smaller than pixels per block */
             case H5Z_FILTER_SZIP:
             {
-                int     j;
-                int     csize = 1;
-                int     ppb = options->op_tbl->objs[i].filter->cd_values[0];
-                hsize_t dims[H5S_MAX_RANK];
-                int     rank;
-                hid_t   did;
-                hid_t   sid;
+                int      j;
+                hsize_t  csize = 1;
+                unsigned ppb = options->op_tbl->objs[i].filter->cd_values[0];
+                hsize_t  dims[H5S_MAX_RANK];
+                int      rank;
+                hid_t    did;
+                hid_t    sid;
 
                 if(options->op_tbl->objs[i].chunk.rank > 0) {
                     rank = options->op_tbl->objs[i].chunk.rank;
                     for(j = 0; j < rank; j++)
-                        csize *= (int)options->op_tbl->objs[i].chunk.chunk_lengths[j];
+                        csize *= options->op_tbl->objs[i].chunk.chunk_lengths[j];
                 }
                 else {
                     if((did = H5Dopen2(fid, name, H5P_DEFAULT)) < 0)
@@ -541,7 +551,7 @@ static int check_objects(const char* fname,
                     if(H5Sget_simple_extent_dims(sid, dims, NULL) < 0)
                         goto out;
                     for(j = 0; j < rank; j++)
-                        csize *= (int)dims[j];
+                        csize *= dims[j];
                     if(H5Sclose(sid) < 0)
                         goto out;
                     if(H5Dclose(did) < 0)
