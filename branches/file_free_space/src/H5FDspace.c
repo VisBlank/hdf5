@@ -121,7 +121,7 @@ H5FD_space_init_interface(void)
  *
  * Programmer:  Bill Wendling
  *              Wednesday, 04. December, 2002
- * 
+ *
  * Modifications:
  *	Vailin Choi, 29th July 2008
  *	  Add 2 more parameters for handling alignment: address and size of the fragment

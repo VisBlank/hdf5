@@ -1585,7 +1585,7 @@ H5FS_sect_find_node(H5FS_t *fspace, hsize_t request, H5FS_section_info_t **node)
     unsigned bin;                   /* Bin to put the free space section in */
     htri_t ret_value = FALSE;       /* Return value */
 
-    H5SL_node_t *curr_size_node=NULL; 
+    H5SL_node_t *curr_size_node=NULL;
     const H5FS_section_class_t *cls;    /* Class of section */
     hsize_t alignment;
 
@@ -1651,7 +1651,7 @@ HDfprintf(stderr, "%s: bin = %u\n", FUNC, bin);
                     while(curr_sect_node != NULL) {
                         H5FS_section_info_t *curr_sect=NULL;
                         hsize_t mis_align=0, frag_size=0;
-                        H5FS_section_info_t *split_sect=NULL;  
+                        H5FS_section_info_t *split_sect=NULL;
 
                         /* Get section node */
                         curr_sect = H5SL_item(curr_sect_node);
@@ -1678,7 +1678,7 @@ HDfprintf(stderr, "%s: bin = %u\n", FUNC, bin);
                             if(H5FS_sect_unlink_rest(fspace, cls, *node) < 0)
                                 HGOTO_ERROR(H5E_FSPACE, H5E_CANTFREE, FAIL, "can't remove section from non-size tracking data structures")
 
-                            /* 
+                            /*
                              * The split() callback splits NODE into 2 sections:
                              *  split_sect is the unused fragment for aligning NODE
                              *  NODE's addr & size are updated to point to the remaining aligned section
@@ -1694,7 +1694,7 @@ HDfprintf(stderr, "%s: bin = %u\n", FUNC, bin);
                             }
                             /* Indicate that we found a node for the request */
                             HGOTO_DONE(TRUE)
-                        } 
+                        }
 
                         /* Get the next section node in the list */
                         curr_sect_node = H5SL_next(curr_sect_node);
@@ -2128,7 +2128,7 @@ HDfprintf(stderr, "%s: removing object from merge list, sect->type = %u\n", FUNC
     /* Update current space used for free space sections */
     if(H5FS_sect_serialize_size(fspace) < 0)
         HGOTO_ERROR(H5E_FSPACE, H5E_CANTCOMPUTE, FAIL, "can't adjust free space section size on disk")
-    
+
 done:
     /* Release the section info */
     if(sinfo_valid && H5FS_sinfo_unlock(f, dxpl_id, fspace, TRUE) < 0)

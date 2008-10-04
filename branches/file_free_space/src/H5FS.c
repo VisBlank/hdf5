@@ -568,7 +568,7 @@ done:
  *
  * Purpose:     Collect meta storage info used by the free space manager
  *
- * Return:      Success:        non-negative 
+ * Return:      Success:        non-negative
  *              Failure:        negative
  *
  * Programmer:  Vailin Choi
@@ -590,8 +590,8 @@ H5FS_size(const H5F_t *f, const H5FS_t *fspace, hsize_t *meta_size)
 
     /* Get the free space size info */
     *meta_size += H5FS_HEADER_SIZE(f) + (fspace->sinfo ? fspace->sect_size : fspace->alloc_sect_size);
- 
-    FUNC_LEAVE_NOAPI(SUCCEED) 
+
+    FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5FS_size() */
 
 
@@ -600,7 +600,7 @@ H5FS_size(const H5F_t *f, const H5FS_t *fspace, hsize_t *meta_size)
  *
  * Purpose:     Increment reference count on free space header
  *
- * Return:      Success:        non-negative 
+ * Return:      Success:        non-negative
  *              Failure:        negative
  *
  * Programmer:  Quincey Koziol
@@ -633,7 +633,7 @@ HDfprintf(stderr, "%s: Entering, fpace->addr = %a, fspace->rc = %u\n", FUNC, fsp
     fspace->rc++;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value) 
+    FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5FS_incr() */
 
 
@@ -642,7 +642,7 @@ done:
  *
  * Purpose:     Decrement reference count on free space header
  *
- * Return:      Success:        non-negative 
+ * Return:      Success:        non-negative
  *              Failure:        negative
  *
  * Programmer:  Quincey Koziol
@@ -682,7 +682,7 @@ HDfprintf(stderr, "%s: Entering, fpace->addr = %a, fspace->rc = %u\n", FUNC, fsp
     } /* end if */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value) 
+    FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5FS_decr() */
 
 

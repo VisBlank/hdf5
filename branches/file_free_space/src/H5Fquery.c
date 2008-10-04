@@ -110,7 +110,7 @@ H5F_get_intent(const H5F_t *f)
  *		when searching the target file.
  *
  * Return:	'extpath' on success/abort on failure (shouldn't fail)
- * 
+ *
  * Programmer:	Vailin Choi, April 2, 2008
  *
  * Modifications:

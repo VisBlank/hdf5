@@ -24,25 +24,25 @@
 #include "h5test.h"
 
 #define H5MF_PACKAGE
-#include "H5MFpkg.h"	
+#include "H5MFpkg.h"
 
 #define H5FS_PACKAGE
-#include "H5FSpkg.h"	
+#include "H5FSpkg.h"
 
 #define H5F_PACKAGE
-#include "H5Fpkg.h"    
+#include "H5Fpkg.h"
 
 #include "H5FLprivate.h"
 #include "H5Iprivate.h"
-#include "H5Vprivate.h"	
+#include "H5Vprivate.h"
 
 #define FILENAME_LEN		1024
 #define TEST_FSPACE_CLIENT_ID	2
 
-#define TEST_BLOCK_SIZE5	5 
-#define TEST_BLOCK_SIZE10	10 
-#define TEST_BLOCK_SIZE20	20 
-#define TEST_BLOCK_SIZE30	30 
+#define TEST_BLOCK_SIZE5	5
+#define TEST_BLOCK_SIZE10	10
+#define TEST_BLOCK_SIZE20	20
+#define TEST_BLOCK_SIZE30	30
 #define TEST_BLOCK_SIZE40	40
 #define TEST_BLOCK_SIZE50	50
 #define TEST_BLOCK_SIZE80	80
@@ -57,7 +57,7 @@
 #define TEST_BLOCK_SIZE1024	1024
 
 #define TEST_BLOCK_ADDR70	70
-#define TEST_BLOCK_ADDR100	100 
+#define TEST_BLOCK_ADDR100	100
 
 #define TEST_ALIGN1024		1024
 #define TEST_ALIGN4096		4096
@@ -96,22 +96,22 @@ check_stats(const H5FS_t *frsp, const frspace_state_t *state)
         FAIL_STACK_ERROR
 
     if(frspace_stats.tot_space != state->tot_space) {
-        HDfprintf(stdout, "frspace_stats.tot_space = %Hu, state->tot_space = %Zu\n", 
+        HDfprintf(stdout, "frspace_stats.tot_space = %Hu, state->tot_space = %Zu\n",
 	    frspace_stats.tot_space, state->tot_space);
         TEST_ERROR
     } /* end if */
     if(frspace_stats.tot_sect_count != state->tot_sect_count) {
-        HDfprintf(stdout, "frspace_stats.tot_sect_count = %Hu, state->tot_sect_count = %Hu\n", 
+        HDfprintf(stdout, "frspace_stats.tot_sect_count = %Hu, state->tot_sect_count = %Hu\n",
 	    frspace_stats.tot_sect_count, state->tot_sect_count);
         TEST_ERROR
     } /* end if */
     if(frspace_stats.serial_sect_count != state->serial_sect_count) {
-        HDfprintf(stdout, "frspace_stats.serial_sect_count = %Hu, state->serial_sect_count = %Hu\n", 
+        HDfprintf(stdout, "frspace_stats.serial_sect_count = %Hu, state->serial_sect_count = %Hu\n",
 	    frspace_stats.serial_sect_count, state->serial_sect_count);
         TEST_ERROR
     } /* end if */
     if(frspace_stats.ghost_sect_count != state->ghost_sect_count) {
-        HDfprintf(stdout, "frspace_stats.ghost_sect_count = %Hu, state->ghost_sect_count = %Hu\n", 
+        HDfprintf(stdout, "frspace_stats.ghost_sect_count = %Hu, state->ghost_sect_count = %Hu\n",
 	    frspace_stats.ghost_sect_count, state->ghost_sect_count);
         TEST_ERROR
     } /* end if */
@@ -124,7 +124,7 @@ error:
 } /* check_stats() */
 
 
-/* 
+/*
  * To verify that blocks are allocated from file allocation
  *
  * Set up:
@@ -141,9 +141,9 @@ test_mf_eoa(hid_t fapl)
     char		filename[FILENAME_LEN]; /* Filename to use */
     H5F_t		*f = NULL;              /* Internal file object pointer */
     h5_stat_size_t      file_size, new_file_size;      /* file size */
-    H5FD_mem_t 		type;                    
+    H5FD_mem_t 		type;
     haddr_t		addr1, addr2;
-    haddr_t 		ma_addr=HADDR_UNDEF, new_ma_addr=HADDR_UNDEF; 
+    haddr_t 		ma_addr=HADDR_UNDEF, new_ma_addr=HADDR_UNDEF;
     hsize_t 		ma_size=0;
 
     TESTING("H5MM_alloc() of file allocation");
@@ -244,11 +244,11 @@ error:
     return(1);
 } /* test_mf_eoa() */
 
-/* 
+/*
  * To verify that an allocated block from file allocation is shrunk.
  *
  * Set up:
- * 	Turn off using meta/small data aggregator 
+ * 	Turn off using meta/small data aggregator
  * 	There is nothing in free-space manager
  *
  *	Test 1: Allocate a block of 30 from file allocation
@@ -270,9 +270,9 @@ test_mf_eoa_shrink(hid_t fapl)
     H5F_t		*f = NULL;              /* Internal file object pointer */
     h5_stat_size_t      file_size, new_file_size; /* file size */
     htri_t 		status;
-    H5FD_mem_t 		type;                    
+    H5FD_mem_t 		type;
     haddr_t		addr;
-    haddr_t 		ma_addr=HADDR_UNDEF, new_ma_addr=HADDR_UNDEF; 
+    haddr_t 		ma_addr=HADDR_UNDEF, new_ma_addr=HADDR_UNDEF;
     hsize_t 		ma_size=0, new_ma_size=0;
 
     TESTING("H5MF_try_shrink() of file allocation: test 1");
@@ -483,16 +483,16 @@ error:
     return(1);
 } /* test_mf_eoa_shrink() */
 
-/* 
+/*
  * To verify that an allocated block from file allocation is extended.
  *
  * Set up:
- * 	Turn off using meta/small data aggregator 
+ * 	Turn off using meta/small data aggregator
  * 	There is nothing in free-space manager
  *
  * Test 1: Allocate a block of 30
  *	H5MF_try_extend() the block of size 30 by 50: succeed
- *		
+ *
  * Test 2: Allocate a block of 30
  * 	H5MF_try_extend() the block of size 20 by 50: fail
  */
@@ -504,10 +504,10 @@ test_mf_eoa_extend(hid_t fapl)
     char		filename[FILENAME_LEN]; 	/* Filename to use */
     H5F_t		*f = NULL;              	/* Internal file object pointer */
     h5_stat_size_t      file_size, new_file_size;  	/* File size */
-    H5FD_mem_t 		type;                    
+    H5FD_mem_t 		type;
     haddr_t		addr;
     htri_t      	extended;
-    haddr_t 		ma_addr=HADDR_UNDEF, new_ma_addr=HADDR_UNDEF; 
+    haddr_t 		ma_addr=HADDR_UNDEF, new_ma_addr=HADDR_UNDEF;
     hsize_t 		ma_size=0, new_ma_size=0;
 
     TESTING("H5MF_try_extend() of file allocation: test 1");
@@ -658,7 +658,7 @@ error:
 
 /*
  * To verify that the free-space manager is started up via H5MF_alloc_start()
- * 
+ *
  * Set up:
  * 	Turn off using meta/small data aggregator
  */
@@ -670,7 +670,7 @@ test_mf_fs_start(hid_t fapl)
     char		filename[FILENAME_LEN]; /* Filename to use */
     H5F_t		*f = NULL;              /* Internal file object pointer */
     h5_stat_size_t      file_size, new_file_size; /* file size */
-    H5FD_mem_t 		type;         
+    H5FD_mem_t 		type;
     frspace_state_t 	state;
 
 
@@ -744,7 +744,7 @@ error:
 
 /*
  * To verify that a block is allocated/freed from/to the free-space manager
- * 
+ *
  * Set up:
  * 	Turn off using meta/small data aggregator
  *
@@ -755,7 +755,7 @@ error:
  *	Deallocate the block which will be returned to the free-space manager
  * Test 2:
  *	Add section A to free-space manager (addr=70, size=30)
- *	Allocate a block of size=20 
+ *	Allocate a block of size=20
  *	The returned space's address should be same as section A's address
  *	There should still be space of 10 left in the free-space manager
  *	Deallocate the block which will be returned to free-space manager
@@ -778,10 +778,10 @@ test_mf_fs_alloc_free(hid_t fapl)
     H5FD_mem_t 		type;
     H5MF_free_section_t *sect_node = NULL;
     haddr_t		addr;
-    frspace_state_t 	state;          
+    frspace_state_t 	state;
     H5MF_sect_ud_t 	udata;
     H5FS_section_info_t *node;
-    htri_t 		node_found = FALSE;  
+    htri_t 		node_found = FALSE;
 
     TESTING("H5MF_alloc()/H5MF_xfree() of free-space manager:test 1");
 
@@ -867,7 +867,7 @@ test_mf_fs_alloc_free(hid_t fapl)
         TEST_ERROR
 
     /* Remove section A from free-space */
-    if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type], 
+    if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type],
 		    (hsize_t)TEST_BLOCK_SIZE30, (H5FS_section_info_t **)&node)) < 0)
 
     /* Free the free-space section node */
@@ -948,7 +948,7 @@ test_mf_fs_alloc_free(hid_t fapl)
         TEST_ERROR
 
     /* Remove section A from free-space manager */
-    if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type], 
+    if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type],
 		    (hsize_t)TEST_BLOCK_SIZE30, (H5FS_section_info_t **)&node)) < 0)
 	FAIL_STACK_ERROR
 
@@ -1008,10 +1008,10 @@ test_mf_fs_alloc_free(hid_t fapl)
     if(check_stats(f->shared->fs_man[type], &state))
         TEST_ERROR
 
-    /* 
+    /*
      * Allocate a block of 40.
-     * Since free-space manager cannot fulfull the request, 
-     * the block is obtained from file allocation 
+     * Since free-space manager cannot fulfull the request,
+     * the block is obtained from file allocation
      */
     addr = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)(TEST_BLOCK_SIZE40));
 
@@ -1024,7 +1024,7 @@ test_mf_fs_alloc_free(hid_t fapl)
         TEST_ERROR
 
     /* Remove section A from free-space */
-    if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type], 
+    if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type],
 		    (hsize_t)TEST_BLOCK_SIZE30, (H5FS_section_info_t **)&node)) < 0)
 	FAIL_STACK_ERROR
 
@@ -1039,7 +1039,7 @@ test_mf_fs_alloc_free(hid_t fapl)
     /* Free the block of size 40 to free-space */
     H5MF_xfree(f, type, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)(TEST_BLOCK_SIZE40));
 
-    /*  
+    /*
      * Free-space info is the same.
      * The block is returned to free-space.
      * It is shrunk and freed because it is at end of file.
@@ -1085,17 +1085,17 @@ error:
  *		 requested-size (50) is equal to the size of section B
  * Test 2:
  *	Add section A to free-space manager: addr=70, size=30
- *	Allocate a block of size 30 from free-space manager 
+ *	Allocate a block of size 30 from free-space manager
  *	Add section B to free-space manager: addr=100, size=50
  *	Try to extend the allocated block by requested-size=60
- *	Fail: section A adjoins section B (70+30=100 which is section B's address) but 
+ *	Fail: section A adjoins section B (70+30=100 which is section B's address) but
  *	      requested-size (60) > size of section B (50)
  *
  * Test 3:
  *	Add section A to free-space manager: addr=70, size=30
  *	Allocate a block of size 30 from free-space manager
  *	Add section B to free-space manager: addr=100, size=50
- *	Try to extend the allocated block by requested-size=40 
+ *	Try to extend the allocated block by requested-size=40
  *	Succeed: section A adjoins section B (70+30=100 which is section B's address) and
  *		 requested-size (40) < size of section B (50), therefore,
  *		 a section of 10 is left in the free-space manager
@@ -1121,7 +1121,7 @@ test_mf_fs_extend(hid_t fapl)
     frspace_state_t 	state;          	/* State of free space*/
     H5MF_sect_ud_t 	udata;
     H5FS_section_info_t *node;
-    htri_t 		node_found = FALSE;  
+    htri_t 		node_found = FALSE;
     htri_t      	extended;
 
     TESTING("H5MF_try_extend() of free-space manager:test 1");
@@ -1239,7 +1239,7 @@ test_mf_fs_extend(hid_t fapl)
         TEST_ERROR
 
     /* Remove the extended block */
-    if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type], 
+    if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type],
 		    (hsize_t)(TEST_BLOCK_SIZE30+TEST_BLOCK_SIZE50), (H5FS_section_info_t **)&node)) < 0)
 	TEST_ERROR
 
@@ -1349,7 +1349,7 @@ test_mf_fs_extend(hid_t fapl)
         TEST_ERROR
 
     /* Remove the merged sections A & B from free-space */
-    if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type], 
+    if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type],
 		    (hsize_t)(TEST_BLOCK_SIZE30+TEST_BLOCK_SIZE50), (H5FS_section_info_t **)&node)) < 0)
 	TEST_ERROR
 
@@ -1459,7 +1459,7 @@ test_mf_fs_extend(hid_t fapl)
         TEST_ERROR
 
     /* Remove the merged sections A & B from free-space */
-    if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type], 
+    if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type],
 		    (hsize_t)(TEST_BLOCK_SIZE30+TEST_BLOCK_SIZE50), (H5FS_section_info_t **)&node)) < 0)
 	TEST_ERROR
 
@@ -1569,7 +1569,7 @@ test_mf_fs_extend(hid_t fapl)
         TEST_ERROR
 
     /* Remove section A from free-space manger */
-    if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type], 
+    if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type],
 		    (hsize_t)(TEST_BLOCK_SIZE30-10), (H5FS_section_info_t **)&node)) < 0)
 	TEST_ERROR
 
@@ -1578,7 +1578,7 @@ test_mf_fs_extend(hid_t fapl)
 	TEST_ERROR
 
     /* Remove section B from free-space manager */
-    if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type], 
+    if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type],
 		    (hsize_t)TEST_BLOCK_SIZE50, (H5FS_section_info_t **)&node)) < 0)
 	TEST_ERROR
 
@@ -1608,7 +1608,7 @@ error:
     return(1);
 } /* test_mf_fs_extend() */
 
-/* 
+/*
  * To verify that an aggregator is absorbed into a section.
  *
  *	Test 1: To aborb the aggregator onto the beginning of the section
@@ -1616,7 +1616,7 @@ error:
  *		Create a free-space section node with an address that adjoins
  *			the end of meta_aggr and a size to make the aggregator
  *			get absorbed into the section.
- *		The adding of the section to free-space will call H5MF_aggr_absorb(), 
+ *		The adding of the section to free-space will call H5MF_aggr_absorb(),
  *			which will absorb meta_aggr to the section:
  *			  section size + remaining size of aggregator is > aggr->alloc_size,
  *			  section is allowed to absorb an aggregator (allow_sect_absorb is true)
@@ -1627,7 +1627,7 @@ error:
  *		Create a free-space section node with an address that adjoins
  *			the beginning of meta_aggr and a size to make the
  *			aggregator get absorbed into the section.
- *		The adding of the section to free-space will call H5MF_aggr_absorb(), 
+ *		The adding of the section to free-space will call H5MF_aggr_absorb(),
  *			which will absorb meta_aggr to the section:
  *			  section size + remaining size of aggregator is > aggr->alloc_size,
  *			  section is allowed to absorb an aggregator (allow_sect_absorb is true)
@@ -1638,13 +1638,13 @@ test_mf_fs_absorb(hid_t fapl)
     hid_t		file = -1;              /* File ID */
     char		filename[FILENAME_LEN]; /* Filename to use */
     H5F_t		*f = NULL;              /* Internal file object pointer */
-    H5FD_mem_t 		type, stype;                    
+    H5FD_mem_t 		type, stype;
     haddr_t		addr, saddr;
     haddr_t 		ma_addr=HADDR_UNDEF;
     hsize_t 		ma_size=0;
     H5MF_free_section_t *sect_node=NULL;
     H5MF_sect_ud_t 	udata;
-    htri_t 		node_found=FALSE;  
+    htri_t 		node_found=FALSE;
     H5FS_section_info_t *node;
 
     TESTING("A free-space section absorbs an aggregator: test 1");
@@ -1695,7 +1695,7 @@ test_mf_fs_absorb(hid_t fapl)
 	    FAIL_STACK_ERROR
 
     /* Verify that the section did absorb the aggregator */
-    if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type], 
+    if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type],
 		    (hsize_t)TEST_BLOCK_SIZE2048, (H5FS_section_info_t **)&node)) < 0)
 	TEST_ERROR
 
@@ -1758,7 +1758,7 @@ test_mf_fs_absorb(hid_t fapl)
 	    FAIL_STACK_ERROR
 
     /* Verify that the section did absorb the aggregator */
-    if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type], 
+    if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type],
 		    (hsize_t)(ma_size+TEST_BLOCK_SIZE30), (H5FS_section_info_t **)&node)) < 0)
 	TEST_ERROR
 
@@ -1792,7 +1792,7 @@ error:
     return(1);
 } /* test_mf_fs_absorb() */
 
-/* 
+/*
  * To verify that blocks are allocated from the aggregator
  *
  *	Allocate first block (30) from meta_aggr: (nothing in the aggregator)
@@ -1815,7 +1815,7 @@ test_mf_aggr_alloc1(hid_t fapl)
     char		filename[FILENAME_LEN]; /* Filename to use */
     H5F_t		*f = NULL;              /* Internal file object pointer */
     h5_stat_size_t      file_size, new_file_size; /* file size */
-    H5FD_mem_t 		type;                    
+    H5FD_mem_t 		type;
     haddr_t		addr1, addr2;
     haddr_t 		ma_addr=HADDR_UNDEF;
     hsize_t 		ma_size=0;
@@ -1857,7 +1857,7 @@ test_mf_aggr_alloc1(hid_t fapl)
     addr2 = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE50);
 
     H5MF_aggr_query(f, &(f->shared->meta_aggr), &ma_addr, &ma_size);
-    if ((addr2+TEST_BLOCK_SIZE50) != ma_addr) 
+    if ((addr2+TEST_BLOCK_SIZE50) != ma_addr)
 	TEST_ERROR
     if (ma_size != (TEST_BLOCK_SIZE2048 - (TEST_BLOCK_SIZE30 + TEST_BLOCK_SIZE50)))
 	TEST_ERROR
@@ -1907,7 +1907,7 @@ error:
     return(1);
 } /* test_mf_aggr_alloc1() */
 
-/* 
+/*
  * To verify that blocks are allocated from the aggregator
  *
  *	Allocate first block (30) from meta_aggr: (nothing in the aggregator)
@@ -1937,7 +1937,7 @@ test_mf_aggr_alloc2(hid_t fapl)
     char		filename[FILENAME_LEN]; /* Filename to use */
     H5F_t		*f = NULL;              /* Internal file object pointer */
     h5_stat_size_t      file_size, new_file_size; /* file size */
-    H5FD_mem_t 		type;                    
+    H5FD_mem_t 		type;
     haddr_t		addr1, addr2, addr3;
     haddr_t 		ma_addr=HADDR_UNDEF;
     hsize_t 		ma_size=0;
@@ -1977,7 +1977,7 @@ test_mf_aggr_alloc2(hid_t fapl)
     addr2 = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE50);
 
     H5MF_aggr_query(f, &(f->shared->meta_aggr), &ma_addr, &ma_size);
-    if ((addr2+TEST_BLOCK_SIZE50) != ma_addr) 
+    if ((addr2+TEST_BLOCK_SIZE50) != ma_addr)
 	TEST_ERROR
 
     if (ma_size != (TEST_BLOCK_SIZE2048 - (TEST_BLOCK_SIZE30 + TEST_BLOCK_SIZE50)))
@@ -1987,7 +1987,7 @@ test_mf_aggr_alloc2(hid_t fapl)
 
     H5MF_aggr_query(f, &(f->shared->meta_aggr), &ma_addr, &ma_size);
 
-    if ((addr3+TEST_BLOCK_SIZE2058) != ma_addr) 
+    if ((addr3+TEST_BLOCK_SIZE2058) != ma_addr)
 	TEST_ERROR
 
     if (ma_size != (TEST_BLOCK_SIZE2048 - (TEST_BLOCK_SIZE30 + TEST_BLOCK_SIZE50)))
@@ -2037,7 +2037,7 @@ error:
     return(1);
 } /* test_mf_aggr_alloc2() */
 
-/* 
+/*
  * To verify that blocks are allocated from the aggregator
  *
  *	Allocate first block (30) from meta_aggr : (nothing in the aggregator)
@@ -2048,7 +2048,7 @@ error:
  *		There is space of 2018 left in meta_aggr
  *
  *	Allocate second block (50) from meta_aggr:
- *		request-size is <= what is left in meta_aggr 
+ *		request-size is <= what is left in meta_aggr
  *	Result:
  *		The second block of 50 is allocated from what is left in meta_aggr
  *		There is space of 1968 left in meta_aggr
@@ -2060,7 +2060,7 @@ error:
  *		The first block of 30 is allocated from there
  *		There is space of 2018 left in sdata_aggr
  *
- *	Allocate the third block (2058) from meta_aggr:	
+ *	Allocate the third block (2058) from meta_aggr:
  *		request-size is > what is left in meta_aggr and >= meta_aggr->alloc_size
  *		sdata_aggr is at EOA but has not used up more than sdata_aggr->alloc_size
  *	Result: A block of request-size is obtained via file allocation
@@ -2069,7 +2069,7 @@ error:
  *
  *	Allocate fourth block (50) from meta_aggr:
  *		request-size is <= what is left in meta_aggr and < meta_aggr->alloc_size
- *	Result:	
+ *	Result:
  *		The fourth block of 50 is allocated from what is left in meta_aggr
  *		There is space of 1968 left in meta_aggr
  */
@@ -2080,7 +2080,7 @@ test_mf_aggr_alloc3(hid_t fapl)
     char		filename[FILENAME_LEN]; /* Filename to use */
     H5F_t		*f = NULL;              /* Internal file object pointer */
     h5_stat_size_t      file_size, new_file_size; /* file size */
-    H5FD_mem_t 		type, stype;                    
+    H5FD_mem_t 		type, stype;
     haddr_t		addr1, addr2, addr3, addr4, saddr1;
     haddr_t 		ma_addr=HADDR_UNDEF, new_ma_addr=HADDR_UNDEF;
     hsize_t 		ma_size=0, new_ma_size=0;
@@ -2125,7 +2125,7 @@ test_mf_aggr_alloc3(hid_t fapl)
 
     H5MF_aggr_query(f, &(f->shared->meta_aggr), &ma_addr, &ma_size);
 
-    if ((addr2+TEST_BLOCK_SIZE50) != ma_addr) 
+    if ((addr2+TEST_BLOCK_SIZE50) != ma_addr)
 	TEST_ERROR
     if (ma_size != (TEST_BLOCK_SIZE2048 - (TEST_BLOCK_SIZE30 + TEST_BLOCK_SIZE50)))
 	TEST_ERROR
@@ -2134,7 +2134,7 @@ test_mf_aggr_alloc3(hid_t fapl)
     stype = H5FD_MEM_DRAW;
     saddr1 = H5MF_alloc(f, stype, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE30);
     H5MF_aggr_query(f, &(f->shared->sdata_aggr), &sdata_addr, &sdata_size);
-    if ((saddr1+TEST_BLOCK_SIZE30) != sdata_addr) 
+    if ((saddr1+TEST_BLOCK_SIZE30) != sdata_addr)
 	TEST_ERROR
     if (sdata_size != (TEST_BLOCK_SIZE2048 - TEST_BLOCK_SIZE30)) TEST_ERROR
 
@@ -2152,7 +2152,7 @@ test_mf_aggr_alloc3(hid_t fapl)
     addr4 = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE50);
     H5MF_aggr_query(f, &(f->shared->meta_aggr), &ma_addr, &ma_size);
 
-    if ((addr4+TEST_BLOCK_SIZE50) != ma_addr) 
+    if ((addr4+TEST_BLOCK_SIZE50) != ma_addr)
 	TEST_ERROR
     if (ma_size != (TEST_BLOCK_SIZE2048 - (TEST_BLOCK_SIZE30 + TEST_BLOCK_SIZE50 + TEST_BLOCK_SIZE50)))
 	TEST_ERROR
@@ -2187,7 +2187,7 @@ error:
 } /* test_mf_aggr_alloc3() */
 
 
-/* 
+/*
  * To verify that blocks are allocated from the aggregator
  *
  *	Allocate first block (30) from meta_aggr: (nothing in the aggregator)
@@ -2195,7 +2195,7 @@ error:
  *	Result:
  *		A block of meta_aggr->alloc_size is obtained via file allocation
  *		There is space of 2018 left in meta_aggr
- *		The first block of 30 is allocated from there 
+ *		The first block of 30 is allocated from there
  *
  *	Allocate first block (30) from sdata_aggr: (nothing in sdata_aggr)
  *		request-size is > what is left in sdata_aggr and < sdata_aggr->alloc_size
@@ -2212,17 +2212,17 @@ error:
  *	Allocate third block (50) from sdata_aggr :
  *		request-size is > what is left in sdata_aggr and < sdata_aggr->alloc_size
  *	Result:
- *		A block of sdata_aggr->alloc_size is extended via file allocation 
+ *		A block of sdata_aggr->alloc_size is extended via file allocation
  *		The third block of 50 is allocated from there
  *		There is space of 1998 left in the sdata_aggr
  *
  *	Allocate second block (2058) from meta_aggr:
  *		request-size is > what is left in meta_aggr and >= meta_aggr->alloc_size
  *		sdata_aggr is at EOA and has used up more than sdata_aggr->alloc_size
- *	Result: 
+ *	Result:
  *		unused spaced in sdata_aggr is freed to free-space and is shrunk
  *		sdata_aggr is reset to 0
- *		A block of request-size is obtained via file allocation 
+ *		A block of request-size is obtained via file allocation
  *		The new block's address is returned
  *		The block does not adjoin meta_aggr
  *		meta_aggr's info is unchanged
@@ -2234,7 +2234,7 @@ test_mf_aggr_alloc4(hid_t fapl)
     char		filename[FILENAME_LEN]; /* Filename to use */
     H5F_t		*f = NULL;              /* Internal file object pointer */
     h5_stat_size_t      file_size, new_file_size;    /* File size */
-    H5FD_mem_t 		type, stype;                    
+    H5FD_mem_t 		type, stype;
     haddr_t		addr1, addr2, saddr1, saddr2, saddr3;
     haddr_t 		ma_addr=HADDR_UNDEF, new_ma_addr=HADDR_UNDEF, sdata_addr=HADDR_UNDEF;
     hsize_t 		ma_size=0, new_ma_size=0, sdata_size=0;
@@ -2342,7 +2342,7 @@ error:
     return(1);
 } /* test_mf_aggr_alloc4() */
 
-/* 
+/*
  * To verify that blocks are allocated from the aggregator
  *
  *	Allocate first block (30) from meta_aggr: (nothing in the aggregator)
@@ -2371,7 +2371,7 @@ test_mf_aggr_alloc5(hid_t fapl)
     char		filename[FILENAME_LEN]; /* Filename to use */
     H5F_t		*f = NULL;              /* Internal file object pointer */
     h5_stat_size_t      file_size, new_file_size;  /* File size */
-    H5FD_mem_t 		type;                    
+    H5FD_mem_t 		type;
     haddr_t		addr1, addr2, addr3;
     haddr_t 		ma_addr=HADDR_UNDEF, new_ma_addr=HADDR_UNDEF;
     hsize_t 		ma_size=0, new_ma_size=0;
@@ -2454,7 +2454,7 @@ error:
     return(1);
 } /* test_mf_aggr_alloc5() */
 
-/* 
+/*
  * To verify that blocks are allocated from the aggregator
  *
  *	Allocate first block (30) from meta_aggr: (nothing in the aggregator)
@@ -2464,7 +2464,7 @@ error:
  *		The first block of 30 is allocated from there
  *
  *	Allocate second block (50) from meta_aggr:
- *		request-size is <= what is left in meta_aggr 
+ *		request-size is <= what is left in meta_aggr
  *	Result:
  *		The second block of 50 is allocated from what is left in meta_aggr
  *		There is space of 1968 left in meta_aggr
@@ -2479,7 +2479,7 @@ error:
  *	Allocate third block (1970) from meta_aggr:
  *		request-size is > what is left in meta_aggr and < meta_aggr->alloc_size
  *		sdata_aggr is at EOA but has not used up more than sdata_aggr->alloc_size
- *	Result: 
+ *	Result:
  *		A block of meta_aggr->alloc_size is obtained via file allocation.
  *		The block does not adjoin meta_aggr
  *		sdata_aggr is untouched
@@ -2493,11 +2493,11 @@ test_mf_aggr_alloc6(hid_t fapl)
     char		filename[FILENAME_LEN]; /* Filename to use */
     H5F_t		*f = NULL;              /* Internal file object pointer */
     h5_stat_size_t      file_size, new_file_size;  /* file size */
-    H5FD_mem_t 		type, stype;                    
+    H5FD_mem_t 		type, stype;
     haddr_t		addr1, addr2, addr3, saddr1;
     haddr_t 		ma_addr=HADDR_UNDEF, new_ma_addr=HADDR_UNDEF, sdata_addr=HADDR_UNDEF;
     hsize_t 		ma_size=0, new_ma_size=0, sdata_size=0;
-    frspace_state_t 	state;          	
+    frspace_state_t 	state;
 
     TESTING("H5MF_alloc() of meta/sdata aggregator:test 6");
 
@@ -2598,7 +2598,7 @@ error:
     return(1);
 } /* test_mf_aggr_alloc6() */
 
-/* 
+/*
  * To verify that blocks are allocated from the aggregator
  *
  *	Allocate first block (30) from meta_aggr: (nothing in meta_aggr)
@@ -2639,7 +2639,7 @@ error:
  *		A block of meta_aggr->alloc_size is obtained via file allocation
  *		The block does not adjoin meta_aggr
  *		meta_aggr's unused space of [880, 1968] is freed to free-space
- *		meta_aggr is updated to point to the new block 
+ *		meta_aggr is updated to point to the new block
  */
 static int
 test_mf_aggr_alloc7(hid_t fapl)
@@ -2647,12 +2647,12 @@ test_mf_aggr_alloc7(hid_t fapl)
     hid_t		file = -1;              /* File ID */
     char		filename[FILENAME_LEN]; /* Filename to use */
     H5F_t		*f = NULL;              /* Internal file object pointer */
-    h5_stat_size_t      empty_size, file_size;         
-    H5FD_mem_t 		type, stype;                    
+    h5_stat_size_t      empty_size, file_size;
+    H5FD_mem_t 		type, stype;
     haddr_t		addr1, addr2, addr3, saddr1, saddr2, saddr3;
     haddr_t 		ma_addr=HADDR_UNDEF, sdata_addr=HADDR_UNDEF;
     hsize_t 		ma_size=0, sdata_size=0;
-    frspace_state_t 	state;          	
+    frspace_state_t 	state;
 
     TESTING("H5MF_alloc() of meta/sdata aggregator:test 7");
 
@@ -2699,14 +2699,14 @@ test_mf_aggr_alloc7(hid_t fapl)
     stype = H5FD_MEM_DRAW;
     saddr1 = H5MF_alloc(f, stype, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE30);
     H5MF_aggr_query(f, &(f->shared->sdata_aggr), &sdata_addr, &sdata_size);
-    if ((saddr1+TEST_BLOCK_SIZE30) != sdata_addr) 
+    if ((saddr1+TEST_BLOCK_SIZE30) != sdata_addr)
 	TEST_ERROR
 
     /* Allocate the second block from sdata_aggr */
     saddr2 = H5MF_alloc(f, stype, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE2048 - TEST_BLOCK_SIZE30);
 
     H5MF_aggr_query(f, &(f->shared->sdata_aggr), &sdata_addr, &sdata_size);
-    if ((saddr2+(TEST_BLOCK_SIZE2048 - TEST_BLOCK_SIZE30)) != sdata_addr) 
+    if ((saddr2+(TEST_BLOCK_SIZE2048 - TEST_BLOCK_SIZE30)) != sdata_addr)
 	TEST_ERROR
     if (sdata_size != 0) TEST_ERROR
 
@@ -2714,7 +2714,7 @@ test_mf_aggr_alloc7(hid_t fapl)
     saddr3 = H5MF_alloc(f, stype, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE50);
 
     H5MF_aggr_query(f, &(f->shared->sdata_aggr), &sdata_addr, &sdata_size);
-    if ((saddr3+TEST_BLOCK_SIZE50) != sdata_addr) 
+    if ((saddr3+TEST_BLOCK_SIZE50) != sdata_addr)
 	TEST_ERROR
     if (sdata_size != (TEST_BLOCK_SIZE2048 - TEST_BLOCK_SIZE50))
 	TEST_ERROR
@@ -2771,11 +2771,11 @@ error:
     return(1);
 } /* test_mf_aggr_alloc7() */
 
-/* 
+/*
  * To verify that a block can be extended from the aggregator
  *
  *	Test 1: Allocate block A from meta_aggr which is at end of file
- *		Try to extend a block which adjoins the aggregator 
+ *		Try to extend a block which adjoins the aggregator
  *		H5MF_try_extend() succeeds: meta_aggr is extended by extended-request and meta_aggr's info is updated
  *
  *	Test 2: Allocate block A from meta_aggr
@@ -2794,8 +2794,8 @@ test_mf_aggr_extend(hid_t fapl)
     hid_t		file = -1;              /* File ID */
     char		filename[FILENAME_LEN]; /* Filename to use */
     H5F_t		*f = NULL;              /* Internal file object pointer */
-    h5_stat_size_t      empty_size;         
-    H5FD_mem_t 		type, stype;                    
+    h5_stat_size_t      empty_size;
+    H5FD_mem_t 		type, stype;
     haddr_t		new_addr, addr, saddr;
     haddr_t 		ma_addr=HADDR_UNDEF, new_ma_addr=HADDR_UNDEF, sdata_addr=HADDR_UNDEF;
     hsize_t 		ma_size=0, new_ma_size=0, sdata_size=0;
@@ -2905,7 +2905,7 @@ test_mf_aggr_extend(hid_t fapl)
 
     if (new_ma_addr != (addr+TEST_BLOCK_SIZE50))
 	TEST_ERROR
-    if (new_ma_size != (f->shared->meta_aggr.alloc_size-TEST_BLOCK_SIZE50)) 
+    if (new_ma_size != (f->shared->meta_aggr.alloc_size-TEST_BLOCK_SIZE50))
 	TEST_ERROR
 
     /* Restore info for meta_aggr */
@@ -2982,7 +2982,7 @@ error:
     return(1);
 } /* test_mf_aggr_extend() */
 
-/* 
+/*
  * To verify that a block is absorbed into an aggregator
  *
  * MF_try_shrink() only allows blocks to be absorbed into an aggregator
@@ -2994,7 +2994,7 @@ error:
  *	Test 2: H5MF_alloc() block A from meta_aggr
  *		H5MF_alloc() block B from sdata_aggr
  *		H5MF_try_shrink() block B should merge it onto the end of meta_aggr
- *			because H5F_FS_MERGE_METADATA|H5F_FS_MERGE_RAWDATA is on for 
+ *			because H5F_FS_MERGE_METADATA|H5F_FS_MERGE_RAWDATA is on for
  *			sec2 driver's FLMAP_SINGLE
  *
  *	Test 3: H5MF_alloc() block A from meta_aggr
@@ -3009,8 +3009,8 @@ test_mf_aggr_absorb(hid_t fapl)
     hid_t		file = -1;              /* File ID */
     char		filename[FILENAME_LEN]; /* Filename to use */
     H5F_t		*f = NULL;              /* Internal file object pointer */
-    h5_stat_size_t      empty_size;         
-    H5FD_mem_t 		type, stype;                    
+    h5_stat_size_t      empty_size;
+    H5FD_mem_t 		type, stype;
     haddr_t		addr1, addr2, addr3, saddr1;
     haddr_t 		ma_addr=HADDR_UNDEF, new_ma_addr=HADDR_UNDEF;
     haddr_t 		sdata_addr=HADDR_UNDEF, new_sdata_addr=HADDR_UNDEF;
@@ -3145,7 +3145,7 @@ test_mf_aggr_absorb(hid_t fapl)
 
     /* aggregator info should be the same as before */
     H5MF_aggr_query(f, &(f->shared->meta_aggr), &new_ma_addr, &new_ma_size);
-    if (new_ma_addr != ma_addr) TEST_ERROR 
+    if (new_ma_addr != ma_addr) TEST_ERROR
 
     H5MF_xfree(f, type, H5P_DATASET_XFER_DEFAULT, addr1, (hsize_t)TEST_BLOCK_SIZE30);
     H5MF_xfree(f, type, H5P_DATASET_XFER_DEFAULT, addr2, (hsize_t)TEST_BLOCK_SIZE50);
@@ -3165,31 +3165,31 @@ error:
     return(1);
 } /* test_mf_aggr_absorb() */
 
-/* 
+/*
  * To verify that a block allocated from file allocation is aligned, can be shrunk and extended
  *
  * Alignment = 1024 or 4096
  *
- * Test 1: 
+ * Test 1:
  * 	Turn off using meta data aggregator
  * 	Allocate a block of 30 which should be from file allocation
- *	Result: 
+ *	Result:
  *		The return address should be aligned
  *		A fragment [800, 224] or [800, 3296] is freed to free-space
  *		EOA is 1054 or 4126
  *
  * 	Allocate a block of 50 which should be from file allocation
- *	Result: 
+ *	Result:
  *		The return address should be aligned
  *		A fragment [1054, 994] or [4126, 4066] is freed to free-space
  *		EOA is 2098 or 8242
- * Test 2: 
+ * Test 2:
  * 	Turn off using meta data aggregator
  * 	Allocate a block which should be from file allocation
  *	The return address should be aligned
  *	H5MF_try_shrink() the block with aligned address should succeed
  *
- * Test 3: 
+ * Test 3:
  * 	Turn off using meta data aggregator
  * 	Allocate a block which should be from file allocation
  *	The return address should be aligned
@@ -3202,13 +3202,13 @@ test_mf_align_eoa(hid_t fapl, hid_t new_fapl)
     hid_t		fapl1;
     char		filename[FILENAME_LEN]; /* Filename to use */
     H5F_t		*f = NULL;              /* Internal file object pointer */
-    h5_stat_size_t      file_size, new_file_size;         
-    H5FD_mem_t 		type;                    
+    h5_stat_size_t      file_size, new_file_size;
+    H5FD_mem_t 		type;
     haddr_t		addr1, addr2;
     haddr_t 		ma_addr=HADDR_UNDEF;
     hsize_t 		ma_size=0;
     htri_t 		status, extended;
-    frspace_state_t 	state;          
+    frspace_state_t 	state;
     hsize_t		alignment=0, mis_align=0, tmp=0, accum=0;
 
     TESTING("H5MM_alloc() of file allocation with alignment: test 1");
@@ -3347,7 +3347,7 @@ test_mf_align_eoa(hid_t fapl, hid_t new_fapl)
 
     if((new_file_size = h5_get_file_size(filename)) < 0)
         TEST_ERROR
-    
+
     if (new_file_size != (file_size-TEST_BLOCK_SIZE50)) TEST_ERROR
 
     PASSED()
@@ -3390,7 +3390,7 @@ test_mf_align_eoa(hid_t fapl, hid_t new_fapl)
 
     if((new_file_size = h5_get_file_size(filename)) < 0)
         TEST_ERROR
-    
+
     if (new_file_size != (file_size+TEST_BLOCK_SIZE30)) TEST_ERROR
 
     PASSED()
@@ -3406,7 +3406,7 @@ error:
 
 /*
  * To verify that a block allocated from the free-space manager is aligned
- * 
+ *
  * Alignment = 1024 or 4096
  *
  * Test 1:
@@ -3415,7 +3415,7 @@ error:
  *	The returned space's address should be same as section A's address
  *
  * Test 2:
- *	Add section A to free-space manager (addr=70, size=8000): 
+ *	Add section A to free-space manager (addr=70, size=8000):
  *		section A is mis-aligned but the size is big enough for allocation with alignment
  *	Allocate a block of size=600
  *	The returned space should be allocated from section A with an aligned address:
@@ -3444,9 +3444,9 @@ test_mf_align_fs(hid_t fapl, hid_t new_fapl)
     H5FD_mem_t 		type;
     H5MF_free_section_t *sect_node = NULL;
     haddr_t		addr;
-    frspace_state_t 	state;          
+    frspace_state_t 	state;
     H5MF_sect_ud_t 	udata;
-    htri_t 		extended;  
+    htri_t 		extended;
     hsize_t		alignment=0, tmp=0, mis_align=0;
 
     TESTING("H5MF_alloc() of free-space manager with alignment: test 1");
@@ -3649,10 +3649,10 @@ test_mf_align_fs(hid_t fapl, hid_t new_fapl)
 
     if(check_stats(f->shared->fs_man[type], &state))
         TEST_ERROR
-    /* 
+    /*
      * Allocate a block of 40
      * Since free-space manager cannot fulfull the request because of alignment,
-     * the block is obtained from file allocation 
+     * the block is obtained from file allocation
      */
     addr = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)(TEST_BLOCK_SIZE40));
 
@@ -3691,7 +3691,7 @@ error:
     return(1);
 } /* test_mf_align_fs() */
 
-/* 
+/*
  * To verify that blocks allocated from the aggregator are aligned
  *
  * Alignment = 1024 	aggr->alloc_size = 2048
@@ -3718,7 +3718,7 @@ error:
  *		fragment size < (meta_aggr->alloc_size - request-size)
  *		meta_aggr is at EOA
  *	Result:
- *		A block of "meta_aggr->alloc_size" is extended from file allocation for meta_aggr 
+ *		A block of "meta_aggr->alloc_size" is extended from file allocation for meta_aggr
  *		EOA is 5120
  *		The third block of 80 is allocated from the aggregator and should be aligned
  *		Fragment from alignment of aggregator allocation is freed to free-space:[2098, 974]
@@ -3730,12 +3730,12 @@ error:
  *		meta_aggr is at EOA
  *	Result:
  *		A block of aggr->alloc_size + fragment size - (aggr->alloc_size - request-size))
- *			 is extended from file allocation for meta_aggr 
+ *			 is extended from file allocation for meta_aggr
  *		The third block of 1970 is allocated from the aggregator and should be aligned
  *		Fragment from alignment of aggregator allocation is freed to free-space:[3152, 944]
  *		There is space of 1968 left in meta_aggr
  *		EOA is at 8034
- *		
+ *
  *
  * Alignment = 4096 	aggr->alloc_size = 2048
  *
@@ -3754,7 +3754,7 @@ error:
  *		fragment size > (meta_aggr->alloc_size - request-size)
  *		meta_aggr is at EOA
  *	Result:
- *		A block of meta_aggr->alloc_size + (fragment size - (meta_aggr->alloc_size - request-size)) 
+ *		A block of meta_aggr->alloc_size + (fragment size - (meta_aggr->alloc_size - request-size))
  *			is extended from file allocation for the aggregator
  *		The second block of 50 is allocated from the aggregator and should be aligned
  *		Fragment from alignment of aggregator allocation is freed to free-space:[4126, 4066]
@@ -3767,7 +3767,7 @@ error:
  *		fragment size > (meta_aggr->alloc_size - request-size)
  *		meta_aggr is at EOA
  *	Result:
- *		A block of meta_aggr->alloc_size + (fragment size - (meta_aggr->alloc_size - request-size)) 
+ *		A block of meta_aggr->alloc_size + (fragment size - (meta_aggr->alloc_size - request-size))
  *			is extended from file allocation for the aggregator
  *		The third block of 80 is allocated from the aggregator and should be aligned
  *		Fragment from alignment of aggregator allocation is freed to free-space:[8242, 4046]
@@ -3780,7 +3780,7 @@ error:
  *		fragment size > (meta_aggr->alloc_size - request-size)
  *		meta_aggr is at EOA
  *	Result:
- *		A block of meta_aggr->alloc_size + (fragment size - (meta_aggr->alloc_size - request-size)) 
+ *		A block of meta_aggr->alloc_size + (fragment size - (meta_aggr->alloc_size - request-size))
  *			is extended from file allocation for the aggregator
  *		The fourth block of 1970 is allocated from the aggregator and should be aligned
  *		Fragment from alignment of aggregator allocation is freed to free-space:[12368, 4016]
@@ -3797,7 +3797,7 @@ test_mf_align_alloc1(hid_t fapl, hid_t new_fapl)
 
     H5FD_mem_t 		type;
     haddr_t		addr1, addr2, addr3, addr4;
-    frspace_state_t 	state;          
+    frspace_state_t 	state;
     haddr_t 		ma_addr=HADDR_UNDEF;
     hsize_t 		ma_size=0, mis_align=0;
     hsize_t		alignment=0, tmp=0;
@@ -3947,7 +3947,7 @@ error:
     return(1);
 } /* test_mf_align_alloc1() */
 
-/* 
+/*
  * To verify that blocks allocated from the aggregator are aligned
  *
  * Alignment = 1024 	aggr->alloc_size = 2048
@@ -3977,9 +3977,9 @@ error:
  *
  *	Allocate third block (80) from meta_aggr:
  *		request-size+fragment size is > meta_aggr->size
- *		sdata_aggr is at EOA but has not used up more than sdata_aggr->alloc_size 
+ *		sdata_aggr is at EOA but has not used up more than sdata_aggr->alloc_size
  *	Result:
- *		A block of meta_aggr->alloc_size is allocated from file allocation 
+ *		A block of meta_aggr->alloc_size is allocated from file allocation
  *		The unused space in meta_aggr is freed to free-space [2098, 974]
  *		meta_aggr is updated to point to the new block
  *		The third block of 80 is allocated from meta_aggr and should be aligned
@@ -4001,7 +4001,7 @@ error:
  *		request-size < aggr->alloc_size
  *		fragment size > (aggr->alloc_size - request-size)
  *	Result:
- *		A block of aggr->alloc_size + (fragment size - (aggr->alloc_size - request-size)) 
+ *		A block of aggr->alloc_size + (fragment size - (aggr->alloc_size - request-size))
  *			is extended from file allocation for the aggregator
  *		The second block of 50 is allocated from the aggregator and should be aligned
  *		Fragment from alignment of aggregator allocation is freed to free-space:[4126, 4066]
@@ -4023,11 +4023,11 @@ error:
  *	Allocate third block (80) from meta_aggr:
  *		(request-size + fragment size) is > meta_aggr->size
  *		request-size < meta_aggr->alloc_size
- *		sdata_aggr is at EOA but has not used up more than sdata_aggr->alloc_size 
+ *		sdata_aggr is at EOA but has not used up more than sdata_aggr->alloc_size
  *	Result:
  *		A block of meta_aggr->alloc_size is allocated from file allocation for the aggregator
  *		Fragment from alignment of file allocation is freed to free-space:[14336, 2048]
- *		Since this fragment adjoins sdata_aggr and fulfills "absorb" condition, 
+ *		Since this fragment adjoins sdata_aggr and fulfills "absorb" condition,
  *		  the space left in sdata_aggr is absorbed into the fragment and freed to free-space: [12318, 2018]
  *		other_aggr is reset to 0
  *		The third block of 80 is allocated from the aggregator and should be aligned
@@ -4043,8 +4043,8 @@ test_mf_align_alloc2(hid_t fapl, hid_t new_fapl)
     h5_stat_size_t      file_size;              /* File size */
     H5FD_mem_t 		type, stype;
     haddr_t		addr1, addr2, addr3, saddr1;
-    frspace_state_t 	state;          
-    haddr_t 		ma_addr=HADDR_UNDEF, sdata_addr=HADDR_UNDEF; 
+    frspace_state_t 	state;
+    haddr_t 		ma_addr=HADDR_UNDEF, sdata_addr=HADDR_UNDEF;
     hsize_t 		ma_size=0, sdata_size=0, mis_align=0;
     hsize_t		alignment=0, tmp=0;
 
@@ -4123,7 +4123,7 @@ test_mf_align_alloc2(hid_t fapl, hid_t new_fapl)
     if ((addr2 + TEST_BLOCK_SIZE50) != ma_addr)
 	TEST_ERROR
 
-    /* 
+    /*
      * Calculate fragment for alignment of block 30 in sdata_aggr:
      *
      * For alignment = 1024, alloc_size = 2048:
@@ -4156,16 +4156,16 @@ test_mf_align_alloc2(hid_t fapl, hid_t new_fapl)
 
     H5MF_aggr_query(f, &(f->shared->sdata_aggr), &sdata_addr, &sdata_size);
     H5MF_aggr_query(f, &(f->shared->meta_aggr), &ma_addr, &ma_size);
-    
+
     if (sdata_addr != (saddr1 + TEST_BLOCK_SIZE30)) TEST_ERROR
 
-    /* 
+    /*
      * Calculate fragment for the allocation of block 80 from meta_aggr:
      *
-     * For alignment = 1024, alloc_size = 2048: 
+     * For alignment = 1024, alloc_size = 2048:
      * 	fragment for unused space in meta_aggr is freed to free-space
      * For alignment = 4096, alloc_size = 2048:
-     * 	fragment from alignment of file allocation absorbs sdata_aggr's remaining space 
+     * 	fragment from alignment of file allocation absorbs sdata_aggr's remaining space
      */
     mis_align = 0;
     if ((alignment == TEST_ALIGN1024) && (tmp = (ma_addr % alignment)))
@@ -4214,7 +4214,7 @@ error:
     return(1);
 } /* test_mf_align_alloc2() */
 
-/* 
+/*
  * To verify that blocks allocated from the aggregator are aligned
  *
  * Alignment = 1024 	aggr->alloc_size = 2048
@@ -4225,7 +4225,7 @@ error:
  *		A block of meta_aggr->alloc_size is allocated from file allocation for the aggregator
  *		Fragment from alignment of file allocation is freed to free-space:[800, 224]
  *		The first block of 30 is allocated from the aggregator and should be aligned
- *		There is space of 2018 left in meta_aggr 
+ *		There is space of 2018 left in meta_aggr
  *		EOA is 3072
  *
  *	Allocate second block (50) from meta_aggr:
@@ -4233,7 +4233,7 @@ error:
  *	Result:
  *		The second block of 50 is allocated from the aggregator and should be aligned
  *		Fragment from alignment of aggregator allocation is freed to free-space:[1054, 994]
- *		There is space of 974 left in the aggregator 
+ *		There is space of 974 left in the aggregator
  *
  *	Allocate first block (30) from other_aggr: (nothing in other_aggr)
  *		request-size is > what is left in other_aggr->size and < other_aggr->alloc_size
@@ -4270,7 +4270,7 @@ error:
  *		A block of meta_aggr->alloc_size is allocated from file allocation
  *		Fragment from alignment of file allocation is freed to free-space [5200, 944]
  *		The unused space in meta_aggr is freed to free-space [2098, 974]
- *		The meta_aggr is updated to point to the new space 
+ *		The meta_aggr is updated to point to the new space
  *		The block of 1034 is allocated from the new block and should be aligned
  *		There is space of 1014 left in meta_aggr
  *		EOA is 8192
@@ -4291,7 +4291,7 @@ error:
  *		request-size < aggr->alloc_size
  *		fragment size > (aggr->alloc_size - request-size)
  *	Result:
- *		A block of aggr->alloc_size + (fragment size - (aggr->alloc_size - request-size)) 
+ *		A block of aggr->alloc_size + (fragment size - (aggr->alloc_size - request-size))
  *			is extended from file allocation for the aggregator
  *		The second block of 50 is allocated from the aggregator and should be aligned
  *		Fragment from alignment of aggregator allocation is freed to free-space:[4126, 4066]
@@ -4302,7 +4302,7 @@ error:
  *		request-size > sdata_aggr->size and < sdata_aggr->alloc_size
  *		meta_aggr is at EOA and has used up more than meta_aggr->alloc_size
  *	Result:
- *		The remaining space in meta_aggr is freed to free-space [8242, 2018] and shrunk 
+ *		The remaining space in meta_aggr is freed to free-space [8242, 2018] and shrunk
  *			since at EOF
  *		meta_aggr is reset to 0
  *		A block of sdata_aggr->alloc_size is obtained via file allocation
@@ -4316,7 +4316,7 @@ error:
  *		request-size < sdata_aggr->alloc_size
  *		fragment size > (sdata_aggr->alloc_size - request-size)
  *	Result:
- *		A block of sdata_aggr->alloc_size + (fragment size - (sdata_aggr->alloc_size - request-size)) 
+ *		A block of sdata_aggr->alloc_size + (fragment size - (sdata_aggr->alloc_size - request-size))
  *			is extended from file allocation for the aggregator
  *		Fragment from alignment of aggregator allocation is freed to free-space:[12318, 4066]
  *		The second block of 50 is allocated from the aggregator and should be aligned
@@ -4328,7 +4328,7 @@ error:
  *		request-size < sdata_aggr->alloc_size
  *		fragment size > (sdata_aggr->alloc_size - request-size)
  *	Result:
- *		A block of sdata_aggr->alloc_size + (fragment size - (sdata_aggr->alloc_size - request-size) 
+ *		A block of sdata_aggr->alloc_size + (fragment size - (sdata_aggr->alloc_size - request-size)
  *			is allocated from file allocation for the aggregator
  *		Fragment from alignment of aggregator allocation is freed to free-space:[16434, 4046]
  *		The third block of 80 is allocated from the aggregator and should be aligned
@@ -4345,7 +4345,7 @@ error:
  *		A block of meta_aggr->alloc_size is allocated from file allocation
  *		Fragment from alignment of file allocation is freed to free-space [20560, 4016]
  *		EOA is 26624
- *		The meta_aggr is updated to point to the new space 
+ *		The meta_aggr is updated to point to the new space
  *		The block of 1034 is allocated from the new block and should be aligned
  *		There is space of 1014 left in meta_aggr
  */
@@ -4359,8 +4359,8 @@ test_mf_align_alloc3(hid_t fapl, hid_t new_fapl)
     H5FD_mem_t 		type, stype;
     haddr_t		addr1, addr2, addr3;
     haddr_t		saddr1, saddr2, saddr3;
-    frspace_state_t 	state;          
-    haddr_t 		ma_addr=HADDR_UNDEF, sdata_addr=HADDR_UNDEF; 
+    frspace_state_t 	state;
+    haddr_t 		ma_addr=HADDR_UNDEF, sdata_addr=HADDR_UNDEF;
     hsize_t 		ma_size=0, sdata_size=0, mis_align=0;
     hsize_t		alignment=0, tmp=0;
 
@@ -4427,7 +4427,7 @@ test_mf_align_alloc3(hid_t fapl, hid_t new_fapl)
 
     /* Verify that the allocated block is aligned */
     if (addr2 % alignment) TEST_ERROR
-    
+
     /* fragment for alignment of block 50 is freed to free-space */
     if (mis_align) {
         state.tot_space += mis_align;
@@ -4472,7 +4472,7 @@ test_mf_align_alloc3(hid_t fapl, hid_t new_fapl)
 
     H5MF_aggr_query(f, &(f->shared->sdata_aggr), &sdata_addr, &sdata_size);
     if (sdata_addr != (saddr1+TEST_BLOCK_SIZE30)) TEST_ERROR
-    
+
     /* calculate fragment for alignment of block 50 in sdata_aggr */
     mis_align = 0;
     if ((tmp = sdata_addr % alignment))
@@ -4483,7 +4483,7 @@ test_mf_align_alloc3(hid_t fapl, hid_t new_fapl)
 
     /* Verify that the allocated block is aligned */
     if (saddr2 % alignment) TEST_ERROR
-    
+
     /* fragment for alignment of block 50 for sdata_aggr is freed to free-space */
     if (mis_align) {
 	state.tot_space += mis_align;
@@ -4498,7 +4498,7 @@ test_mf_align_alloc3(hid_t fapl, hid_t new_fapl)
     mis_align = 0;
     if ((tmp = sdata_addr % alignment))
 	mis_align = alignment - tmp;
-    
+
     /* Allocate a block of 80 from sdata_aggr */
     saddr3 = H5MF_alloc(f, stype, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE80);
 
@@ -4570,7 +4570,7 @@ error:
 } /* test_mf_align_alloc3() */
 
 
-/* 
+/*
  * To verify that blocks allocated from the aggregator are aligned
  *
  * Alignment = 4096 	aggr->alloc_size = 2048
@@ -4591,7 +4591,7 @@ error:
  *		The second block of 2058 + fragment is extended and merged together with meta_aggr
  *		The block of 2058 is allocated out of the aggregator
  *		Fragment from alignment of aggregator allocation is freed to free-space:[1054, 994]
- *		There is space of 2018 (same as before) left in meta_aggr 
+ *		There is space of 2018 (same as before) left in meta_aggr
  *		EOA is 6124
  *
  *	Allocate third block (5) from meta_aggr:
@@ -4619,7 +4619,7 @@ error:
  *		The second block of 2058 + fragment is extended and merged together with meta_aggr
  *		The block of 2058 is allocated out of the aggregator
  *		Fragment from alignment of aggregator allocation is freed to free-space:[4126, 4066]
- *		There is space of 2018 (same as before) left in meta_aggr 
+ *		There is space of 2018 (same as before) left in meta_aggr
  *		EOA is 12268
  *
  *	Allocate third block (5) from meta_aggr:
@@ -4643,7 +4643,7 @@ test_mf_align_alloc4(hid_t fapl, hid_t new_fapl)
     h5_stat_size_t      file_size;
     H5FD_mem_t 		type;
     haddr_t		addr1, addr2, addr3;
-    frspace_state_t 	state;          
+    frspace_state_t 	state;
     haddr_t 		ma_addr=HADDR_UNDEF;
     hsize_t 		ma_size=0, saved_ma_size=0;
     hsize_t		alignment=0, mis_align=0, tmp=0;
@@ -4762,7 +4762,7 @@ error:
     return(1);
 } /* test_mf_align_alloc4() */
 
-/* 
+/*
  * To verify that blocks allocated from the aggregator are aligned
  *
  * Alignment = 1024 	aggr->alloc_size = 2048
@@ -4773,13 +4773,13 @@ error:
  *		A block of meta_aggr->alloc_size is allocated from file allocation
  *		Fragment from alignment of file allocation is freed to free-space:[800, 224]
  *		The first block of 30 is allocated from meta_aggr and should be aligned
- *		There is space of 2018 left in meta_aggr 
+ *		There is space of 2018 left in meta_aggr
  *		EOA is 3072
  *
  *	Allocate first block (30) from sdata_aggr: (nothing in the aggregator)
  *		A block of sdata_aggr->alloc_size is allocated from file allocation
  *		The first block of 30 is allocated from the aggregator and should be aligned
- *		There is space of 2018 left in sdata_aggr 
+ *		There is space of 2018 left in sdata_aggr
  *		EOA is 5120
  *
  *	Allocate second block (2058) from meta_aggr:
@@ -4798,7 +4798,7 @@ error:
  *		A block of meta_aggr->alloc_size is allocated from file allocation
  *		Fragment from alignment of file allocation is freed to free-space:[800, 3296]
  *		The first block of 30 is allocated from meta_aggr and should be aligned
- *		There is space of 2018 left in meta_aggr 
+ *		There is space of 2018 left in meta_aggr
  *		EOA is 6144
  *
  *	Allocate first block (30) from sdata_aggr: (meta_aggr is empty)
@@ -4806,7 +4806,7 @@ error:
  *	Result:
  *		A block of sdata_aggr->alloc_size is allocated from file allocation
  *		Fragment from alignment of file allocation is freed to free-space:[6144, 2048]
- *		This fragment adjoins meta_aggr and fulfills "absorb" condition, 
+ *		This fragment adjoins meta_aggr and fulfills "absorb" condition,
  *			the remaining space left in meta_aggr is absorbed into the fragment and
  *			freed to free-space: [4126, 2018]
  *		meta_aggr is reset to 0
@@ -4821,7 +4821,7 @@ error:
  *	Result:
  *		A block of 2058 is allocated from file allocation
  *		Fragment from alignment of file allocation is freed to free-space:[10240, 2048]
- *		This fragment adjoins sdata_aggr and fulfills "absorb" condition, 
+ *		This fragment adjoins sdata_aggr and fulfills "absorb" condition,
  *			the remaining space left in sdata_aggr is absorbed into the fragment and
  *			freed to free-space: [8222, 2018]
  *		sdata_aggr is reset to 0
@@ -4837,7 +4837,7 @@ test_mf_align_alloc5(hid_t fapl, hid_t new_fapl)
     h5_stat_size_t      file_size;
     H5FD_mem_t 		type, stype;
     haddr_t		addr1, addr2, saddr1;
-    frspace_state_t 	state;          
+    frspace_state_t 	state;
     haddr_t 		ma_addr=HADDR_UNDEF, new_ma_addr=HADDR_UNDEF;
     haddr_t 		sdata_addr=HADDR_UNDEF, new_sdata_addr=HADDR_UNDEF;
     hsize_t 		ma_size=0, new_ma_size=0, sdata_size=0, new_sdata_size=0;
@@ -4918,7 +4918,7 @@ test_mf_align_alloc5(hid_t fapl, hid_t new_fapl)
     }
 
     H5MF_aggr_query(f, &(f->shared->sdata_aggr), &sdata_addr, &sdata_size);
-    if ((saddr1+TEST_BLOCK_SIZE30) != sdata_addr) TEST_ERROR 
+    if ((saddr1+TEST_BLOCK_SIZE30) != sdata_addr) TEST_ERROR
 
     /* calculate fragment for alignment of block 2058 from meta_aggr */
     mis_align = 0;
@@ -4926,7 +4926,7 @@ test_mf_align_alloc5(hid_t fapl, hid_t new_fapl)
         mis_align = alignment - tmp;
     else if ((alignment == TEST_ALIGN4096) && (tmp = (sdata_addr % alignment)))
         mis_align = alignment - tmp;
-    
+
     /* Allocate a block of 2058 from meta_aggr */
     addr2 = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE2058);
 
@@ -4973,7 +4973,7 @@ error:
 } /* test_mf_align_alloc5() */
 
 
-/* 
+/*
  * To verify that blocks allocated from the aggregator are aligned
  *
  * Alignment = 1024 	aggr->alloc_size = 2048
@@ -5011,17 +5011,17 @@ error:
  *			for sdata_aggr
  *		The third block of 80 is allocated from sdata_aggr and should be aligned
  *		Fragment from alignment of aggregator allocation is freed to free-space:[4146, 974]
- *		There is space of 1968 left in sdata_aggr 
+ *		There is space of 1968 left in sdata_aggr
  *		EOA is 7168
  *
  *	Allocate second block (2058) from meta_aggr:
- *		request-size + fragment size is > meta_aggr->size 
+ *		request-size + fragment size is > meta_aggr->size
  *		request-size is > meta_aggr->alloc_size
  *		sdata_aggr is at EOA and has used up more than sdata_aggr->alloc_size
  *	Result:
  *		The remaining space in sdata_aggr is freed to free-space and shrunk
  *		sdata_aggr is reset to 0
- *		A block of 2058 is allocated from file allocation 
+ *		A block of 2058 is allocated from file allocation
  *		Fragment from alignment of file allocation is freed to free-space:[5200, 944]
  *		EOA is at 8202
  *		meta_aggr is unchanged
@@ -5042,7 +5042,7 @@ error:
  *	Result:
  *		A block of sdata_aggr->alloc_size is allocated from file allocation
  *		Fragment from alignment of file allocation is freed to free-space: [6144, 2048]
- *		This fragment adjoins meta_aggr and fulfills "absorb" condition, 
+ *		This fragment adjoins meta_aggr and fulfills "absorb" condition,
  *			the remaining space left in meta_aggr is absorbed into the fragment and
  *			freed to free-space:[4126, 2018]
  *		meta_aggr is reset to 0
@@ -5055,7 +5055,7 @@ error:
  *		request-size < sdata_aggr->alloc_size
  *		fragment size > (sdata_aggr->alloc_size - request-size)
  *	Result:
- *		A block of sdata_aggr->alloc_size + (fragment size - (sdata_aggr->alloc_size - request-size)) 
+ *		A block of sdata_aggr->alloc_size + (fragment size - (sdata_aggr->alloc_size - request-size))
  *			is extended from file allocation for the aggregator
  *		The second block of 50 is allocated from sdata_aggr and should be aligned
  *		Fragment from alignment of aggregator allocation is freed to free-space:[8222, 4066]
@@ -5071,17 +5071,17 @@ error:
  *			is extended from file allocation for sdata_aggr
  *		The third block of 80 is allocated from sdata_aggr and should be aligned
  *		Fragment from alignment of aggregator allocation is freed to free-space:[12338, 4046]
- *		There is space of 2018 left in sdata_aggr 
+ *		There is space of 2018 left in sdata_aggr
  *		EOA is 18482
  *
  *	Allocate second block (2058) from meta_aggr:
- *		request-size + fragment size is > meta_aggr->size 
+ *		request-size + fragment size is > meta_aggr->size
  *		request-size is > meta_aggr->alloc_size
  *		sdata_aggr is at EOA and has used up more than sdata_aggr->alloc_size
  *	Result:
  *		The remaining space in sdata_aggr is freed to free-space and shrunk: [16464, 2018]
  *		sdata_aggr is reset to 0
- *		A block of 2058 is allocated from file allocation 
+ *		A block of 2058 is allocated from file allocation
  *		Fragment from alignment of file allocation is freed to free-space:[16464, 4016]
  *		EOA is at 22538
  *		meta_aggr is unchanged
@@ -5096,7 +5096,7 @@ test_mf_align_alloc6(hid_t fapl, hid_t new_fapl)
     H5FD_mem_t 		type, stype;
     haddr_t		addr1, addr2;
     haddr_t		saddr1, saddr2, saddr3;
-    frspace_state_t 	state;          
+    frspace_state_t 	state;
     haddr_t 		ma_addr=HADDR_UNDEF, new_ma_addr=HADDR_UNDEF, sdata_addr=HADDR_UNDEF;
     hsize_t 		ma_size=0, new_ma_size=0, sdata_size=0;
     hsize_t		alignment=0, mis_align=0, tmp=0;
@@ -5159,7 +5159,7 @@ test_mf_align_alloc6(hid_t fapl, hid_t new_fapl)
         mis_align = alignment - tmp;
     else if ((alignment == TEST_ALIGN4096) && (tmp = (ma_addr % alignment)))
         mis_align = alignment - tmp;
-    
+
     /* Allocate a block of 30 from sdata_aggr */
     stype = H5FD_MEM_DRAW;
     saddr1 = H5MF_alloc(f, stype, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE30);
@@ -5237,7 +5237,7 @@ test_mf_align_alloc6(hid_t fapl, hid_t new_fapl)
 	state.tot_sect_count += 1;
 	state.serial_sect_count += 1;
     }
-    
+
     H5MF_aggr_query(f, &(f->shared->meta_aggr), &new_ma_addr, &new_ma_size);
     H5MF_aggr_query(f, &(f->shared->sdata_aggr), &sdata_addr, &sdata_size);
 
@@ -5296,7 +5296,7 @@ main(void)
     nerrors += test_mf_fs_start(fapl);
     nerrors += test_mf_fs_alloc_free(fapl);
     nerrors += test_mf_fs_extend(fapl);
-    nerrors += test_mf_fs_absorb(fapl); 
+    nerrors += test_mf_fs_absorb(fapl);
 
     /* interaction with meta/sdata aggregator */
     nerrors += test_mf_aggr_alloc1(fapl);
@@ -5318,7 +5318,7 @@ main(void)
     nerrors += test_mf_fs_start(fapl);
     nerrors += test_mf_fs_alloc_free(fapl);
     nerrors += test_mf_fs_extend(fapl);
-    nerrors += test_mf_fs_absorb(fapl); 
+    nerrors += test_mf_fs_absorb(fapl);
 
     /* interaction with meta/sdata aggregator */
     nerrors += test_mf_aggr_alloc1(fapl);
@@ -5331,8 +5331,8 @@ main(void)
     nerrors += test_mf_aggr_extend(fapl);
     nerrors += test_mf_aggr_absorb(fapl);
 
-    /* 
-     * tests for alignment 
+    /*
+     * tests for alignment
      */
 
     /* set meta/sdata block size = 2048 */
@@ -5370,17 +5370,17 @@ main(void)
     }
 
     if(nerrors)
-        goto error; 
+        goto error;
     puts("All free-space manager tests for file memory passed.");
 
     h5_cleanup(FILENAME, fapl);
 
     return (0);
 
-error:      
+error:
     puts("*** TESTS FAILED ***");
     H5E_BEGIN_TRY {
         H5Pclose(fapl);
-    } H5E_END_TRY; 
+    } H5E_END_TRY;
     return (1);
 } /* main() */

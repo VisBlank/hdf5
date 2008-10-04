@@ -772,7 +772,7 @@ done:
     } /* end if */
 
     FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5FD_sec2_read() */ 
+} /* end H5FD_sec2_read() */
 
 
 /*-------------------------------------------------------------------------

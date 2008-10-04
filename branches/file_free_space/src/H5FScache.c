@@ -628,7 +628,7 @@ HDfprintf(stderr, "%s: Load free space sections, addr = %a\n", FUNC, addr);
     /* Allocate a new free space section info */
     if(NULL == (sinfo = H5FS_sinfo_new(f, fspace)))
 	HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
-    
+
     /* Sanity check address */
     if(H5F_addr_ne(addr, fspace->sect_addr))
 	HGOTO_ERROR(H5E_FSPACE, H5E_CANTLOAD, NULL, "incorrect address for free space sections")
@@ -1035,9 +1035,9 @@ done:
  * Programmer:	Quincey Koziol
  *              Saturday, March 11, 2006
  *
- * Modifications: 
+ * Modifications:
  *	Vailin Choi, July 29th, 2008
- *	  Add HDassert() to make sure "free" method exists before calling 
+ *	  Add HDassert() to make sure "free" method exists before calling
  *
  *-------------------------------------------------------------------------
  */

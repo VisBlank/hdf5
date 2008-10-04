@@ -186,7 +186,7 @@ H5G_obj_create(H5F_t *f, hid_t dxpl_id, const H5O_ginfo_t *ginfo,
                     ginfo_size +
                     (ginfo->est_num_entries * link_size);
     } /* end if */
-    else 
+    else
         hdr_size = 4 + 2 * H5F_SIZEOF_ADDR(f);
 
     /*
@@ -330,7 +330,7 @@ htri_t
 H5G_obj_get_linfo(const H5O_loc_t *grp_oloc, H5O_linfo_t *linfo, hid_t dxpl_id)
 {
     htri_t ret_value;           /* Return value */
-    
+
     FUNC_ENTER_NOAPI(H5G_obj_get_linfo, FAIL)
 
     /* check arguments */

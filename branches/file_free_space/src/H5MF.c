@@ -155,7 +155,7 @@ H5MF_init_merge_flags(H5F_t *f)
                         break;
                     } /* end if */
                 } /* end if */
-            
+
             /* Check for all metadata on same free list */
             if(all_metadata_same)
                 mapping_type = H5MF_AGGR_MERGE_DICHOTOMY;
@@ -198,7 +198,7 @@ H5MF_init_merge_flags(H5F_t *f)
  *		koziol@hdfgroup.org
  *		Jan  8 2008
  *
- * Modifications: 
+ * Modifications:
  *	Vailin Choi, July 29th, 2008
  *	  Pass values of alignment and threshold to FS_create() for handling alignment
  *
@@ -637,7 +637,7 @@ H5MF_get_freespace(H5F_t *f, hid_t dxpl_id)
         /* Increment total free space for types */
         tot_fs_size += type_fs_size;
     } /* end for */
-    
+
     /* Start computing value to return */
     ret_value = tot_fs_size;
 
@@ -808,7 +808,7 @@ HDfprintf(stderr, "%s: Before deleting free space manager\n", FUNC);
             HDassert(!H5F_addr_defined(f->shared->fs_addr[type]));
         } /* end if */
     } /* end for */
-    
+
     /* Retrieve metadata aggregator info, if available */
     H5MF_aggr_query(f, &(f->shared->meta_aggr), &ma_addr, &ma_size);
 #ifdef H5MF_ALLOC_DEBUG_MORE

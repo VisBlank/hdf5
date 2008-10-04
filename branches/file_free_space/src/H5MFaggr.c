@@ -96,7 +96,7 @@ haddr_t
 H5MF_aggr_alloc(H5F_t *f, hid_t dxpl_id, H5F_blk_aggr_t *aggr,
     H5F_blk_aggr_t *other_aggr, H5FD_mem_t type, hsize_t size)
 {
-    haddr_t 	ret_value;      
+    haddr_t 	ret_value;
     hsize_t 	alignment = 0, mis_align = 0;
     haddr_t	frag_addr = 0, eoa_frag_addr = 0;
     hsize_t	frag_size = 0, eoa_frag_size = 0;
@@ -135,14 +135,14 @@ HDfprintf(stderr, "%s: aggr = {%a, %Hu, %Hu}\n", FUNC, aggr->addr, aggr->tot_siz
 
 	if (alignment && aggr->addr > 0 && aggr->size > 0 && (mis_align = aggr->addr % alignment)) {
 	    frag_addr = aggr->addr;
-	    frag_size = alignment - mis_align; 
+	    frag_size = alignment - mis_align;
 	}
 
 	if (HADDR_UNDEF == (eoa = H5F_get_eoa(f, type)))
 	    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, HADDR_UNDEF, "Unable to get eoa")
 
-	alloc_type = aggr->feature_flag == H5FD_FEAT_AGGREGATE_METADATA ? H5FD_MEM_DEFAULT : H5FD_MEM_DRAW;      
-	other_alloc_type = other_aggr->feature_flag == H5FD_FEAT_AGGREGATE_METADATA ? H5FD_MEM_DEFAULT : H5FD_MEM_DRAW;  
+	alloc_type = aggr->feature_flag == H5FD_FEAT_AGGREGATE_METADATA ? H5FD_MEM_DEFAULT : H5FD_MEM_DRAW;
+	other_alloc_type = other_aggr->feature_flag == H5FD_FEAT_AGGREGATE_METADATA ? H5FD_MEM_DEFAULT : H5FD_MEM_DRAW;
 
         /* Check if the space requested is larger than the space left in the block */
         if((size + frag_size) > aggr->size) {
@@ -177,7 +177,7 @@ HDfprintf(stderr, "%s: aggr = {%a, %Hu, %Hu}\n", FUNC, aggr->addr, aggr->tot_siz
                     /* Use the new space allocated, leaving the old block */
                     ret_value = new_space;
                 } /* end else */
-            } /* end if */ 
+            } /* end if */
 	    else {
 		hsize_t ext_size = aggr->alloc_size;
 
@@ -195,7 +195,7 @@ HDfprintf(stderr, "%s: Allocating block\n", FUNC);
 		    aggr->addr += frag_size;
 		    aggr->size += (ext_size - frag_size);
 		    aggr->tot_size += ext_size;
-		} else { 
+		} else {
                     haddr_t unused_addr = HADDR_UNDEF;  /* Address of unused portion */
                     hsize_t unused_size = 0;    	/* Size of unused portion */
 
@@ -231,7 +231,7 @@ HDfprintf(stderr, "%s: Allocating block\n", FUNC);
             } /* end else */
 
 	    /* freeing any possible fragment due to file allocation */
-	    if (eoa_frag_size) 
+	    if (eoa_frag_size)
 		if(H5MF_xfree(f, type, dxpl_id, eoa_frag_addr, eoa_frag_size) < 0)
 		    HGOTO_ERROR(H5E_VFL, H5E_CANTFREE, HADDR_UNDEF, "can't free eoa fragment")
 
@@ -354,7 +354,7 @@ done:
  *-------------------------------------------------------------------------
  */
 htri_t
-H5MF_aggr_can_absorb(const H5F_t *f, const H5F_blk_aggr_t *aggr, 
+H5MF_aggr_can_absorb(const H5F_t *f, const H5F_blk_aggr_t *aggr,
     const H5MF_free_section_t *sect, H5MF_shrink_type_t *shrink)
 {
     htri_t ret_value = FALSE;           /* Return value */

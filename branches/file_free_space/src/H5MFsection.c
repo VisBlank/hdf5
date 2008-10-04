@@ -510,7 +510,7 @@ H5MF_sect_simple_split(H5FS_section_info_t *sect, hsize_t frag_size)
     H5MF_free_section_t *ret_value;     /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5MF_sect_simple_split)
-    
+
     /* Allocate space for new section */
     if(NULL == (ret_value = H5MF_sect_simple_new(sect->addr, frag_size)))
         HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, NULL, "can't initialize free space section")

@@ -13,7 +13,7 @@
  * access to either file, you may request a copy from help@hdfgroup.org.     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/* 
+/*
  * Purpose:	Free-space metadata statistics functions.
  *
  */
@@ -69,10 +69,10 @@
 
 /*-------------------------------------------------------------------------
  * Function:    H5FS_stat_info
- *  
+ *
  * Purpose:     Retrieve metadata statistics for the free-space manager
- *  
- * Return:      Success:        non-negative 
+ *
+ * Return:      Success:        non-negative
  *
  *              Failure:        does not fail
  *

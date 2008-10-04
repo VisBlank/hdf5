@@ -422,7 +422,7 @@ H5G_traverse_mount(H5G_loc_t *obj_loc/*in,out*/)
     if(0 == cmp) {
         /* Get the child file */
         child = parent->shared->mtab.child[md].file;
-        
+
         /* Get the location for the root group in the child's file */
         oloc = H5G_oloc(child->shared->root_grp);
 
@@ -740,7 +740,7 @@ H5G_traverse_real(const H5G_loc_t *_loc, const char *name, unsigned target,
                 if((exists = H5G_obj_get_linfo(grp_loc.oloc, &par_linfo, dxpl_id)) < 0)
                     HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "unable to read object header")
                 if(exists) {
-                    /* Only keep the creation order information from the parent 
+                    /* Only keep the creation order information from the parent
                      *  group's link info
                      */
                     HDmemcpy(&tmp_linfo, &def_linfo, sizeof(H5O_linfo_t));
@@ -818,7 +818,7 @@ done:
         H5G_loc_free(&obj_loc);
     if(group_copy && !(own_loc & H5G_OWN_GRP_LOC))
         H5G_loc_free(&grp_loc);
-    
+
     /* If there's valid information in the link, reset it */
     if(link_valid)
         H5O_msg_reset(H5O_LINK_ID, &lnk);

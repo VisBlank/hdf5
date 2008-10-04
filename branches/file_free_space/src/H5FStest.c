@@ -13,7 +13,7 @@
  * access to either file, you may request a copy from help@hdfgroup.org.     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/* 
+/*
  * Purpose:	Free-space manager testing functions.
  *
  */
@@ -70,7 +70,7 @@
 
 /*-------------------------------------------------------------------------
  * Function:    H5HF_get_cparam_test
- * 
+ *
  * Purpose:     Retrieve the parameters used to create the free-space manager
  *
  * Return:      Success:        non-negative

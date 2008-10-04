@@ -43,7 +43,7 @@
 #include "H5FDmulti.h"		/*multiple files partitioned by mem usage */
 #include "H5FDsec2.h"		/*Posix unbuffered I/O			*/
 #include "H5FDstdio.h"		/* Standard C buffered I/O		*/
-#ifdef H5_HAVE_WINDOWS 
+#ifdef H5_HAVE_WINDOWS
 #include "H5FDwindows.h"        /* Windows buffered I/O     */
 #endif
 #include "H5FDdirect.h"         /*Linux direct I/O			*/
@@ -1392,7 +1392,7 @@ H5F_open(const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_id, hid_t d
     /* formulate the absolute path for later search of target file for external link */
     if (H5_build_extpath(name, &file->extpath) < 0)
 	HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "unable to build extpath")
-    
+
     /* Success */
     ret_value = file;
 
