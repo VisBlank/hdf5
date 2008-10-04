@@ -36,7 +36,7 @@
 #define EARRAY_FILENAME_LEN     1024
 
 /* Extensible array creation values */
-#define ELMT_SIZE               sizeof(haddr_t)
+#define ELMT_SIZE               sizeof(uint64_t)
 #define MAX_NELMTS_BITS         32
 #define IDX_BLK_ELMTS           4
 #define SUP_BLK_MIN_DATA_PTRS   4
@@ -215,7 +215,8 @@ error:
  */
 static int
 reopen_file(hid_t *file, H5F_t **f, hid_t fapl, hid_t dxpl,
-    H5EA_t **ea, haddr_t ea_addr, const earray_test_param_t *tparam)
+    H5EA_t **ea, haddr_t ea_addr, const H5EA_class_t *ea_cls,
+    const earray_test_param_t *tparam)
 {
     /* Check for closing & re-opening the array */
     /* (actually will close & re-open the file as well) */
@@ -243,7 +244,7 @@ reopen_file(hid_t *file, H5F_t **f, hid_t fapl, hid_t dxpl,
 
         /* Re-open array, if given */
         if(ea) {
-            if(NULL == (*ea = H5EA_open(*f, dxpl, ea_addr)))
+            if(NULL == (*ea = H5EA_open(*f, dxpl, ea_addr, ea_cls)))
                 FAIL_STACK_ERROR
         } /* end if */
     } /* end if */
@@ -281,7 +282,7 @@ create_array(H5F_t *f, hid_t dxpl, const H5EA_create_t *cparam,
         FAIL_STACK_ERROR
 
     /* Check status of array */
-    nelmts = 0;
+    nelmts = (hsize_t)ULLONG_MAX;
     if(H5EA_get_nelmts(*ea, &nelmts) < 0)
         FAIL_STACK_ERROR
     if(nelmts > 0)
@@ -359,6 +360,12 @@ shutdown(hid_t file, H5F_t *f, H5EA_t *ea, haddr_t ea_addr)
     /* Close the extensible array */
     if(H5EA_close(ea, H5P_DATASET_XFER_DEFAULT) < 0)
         FAIL_STACK_ERROR
+
+#ifdef QAK
+HDfprintf(stderr, "ea_addr = %a\n", ea_addr);
+H5Fflush(file, H5F_SCOPE_GLOBAL);
+HDsystem("cp earray.h5 earray.h5.save");
+#endif /* QAK */
 
     /* Delete array */
     if(H5EA_delete(f, H5P_DATASET_XFER_DEFAULT, ea_addr) < 0)
@@ -572,11 +579,11 @@ test_reopen(hid_t fapl, H5EA_create_t *cparam, earray_test_param_t *tparam)
         FAIL_STACK_ERROR
 
     /* Check for closing & re-opening the file */
-    if(reopen_file(&file, &f, fapl, H5P_DATASET_XFER_DEFAULT, NULL, HADDR_UNDEF, tparam) < 0)
+    if(reopen_file(&file, &f, fapl, H5P_DATASET_XFER_DEFAULT, NULL, HADDR_UNDEF, NULL, tparam) < 0)
         TEST_ERROR
 
     /* Re-open the array */
-    if(NULL == (ea = H5EA_open(f, H5P_DATASET_XFER_DEFAULT, ea_addr)))
+    if(NULL == (ea = H5EA_open(f, H5P_DATASET_XFER_DEFAULT, ea_addr, cparam->cls)))
         FAIL_STACK_ERROR
 
     /* Verify the creation parameters */
@@ -641,7 +648,7 @@ test_open_twice(hid_t fapl, H5EA_create_t *cparam, earray_test_param_t *tparam)
         TEST_ERROR
 
     /* Open the array again, through the first file handle */
-    if(NULL == (ea2 = H5EA_open(f, H5P_DATASET_XFER_DEFAULT, ea_addr)))
+    if(NULL == (ea2 = H5EA_open(f, H5P_DATASET_XFER_DEFAULT, ea_addr, cparam->cls)))
         FAIL_STACK_ERROR
 
     /* Verify the creation parameters */
@@ -656,7 +663,7 @@ test_open_twice(hid_t fapl, H5EA_create_t *cparam, earray_test_param_t *tparam)
     ea2 = NULL;
 
     /* Check for closing & re-opening the file */
-    if(reopen_file(&file, &f, fapl, H5P_DATASET_XFER_DEFAULT, &ea, ea_addr, tparam) < 0)
+    if(reopen_file(&file, &f, fapl, H5P_DATASET_XFER_DEFAULT, &ea, ea_addr, cparam->cls, tparam) < 0)
         TEST_ERROR
 
     /* Re-open the file */
@@ -668,7 +675,7 @@ test_open_twice(hid_t fapl, H5EA_create_t *cparam, earray_test_param_t *tparam)
         FAIL_STACK_ERROR
 
     /* Open the extensible array through the second file handle */
-    if(NULL == (ea2 = H5EA_open(f2, H5P_DATASET_XFER_DEFAULT, ea_addr)))
+    if(NULL == (ea2 = H5EA_open(f2, H5P_DATASET_XFER_DEFAULT, ea_addr, cparam->cls)))
         FAIL_STACK_ERROR
 
     /* Verify the creation parameters */
@@ -747,7 +754,7 @@ test_delete_open(hid_t fapl, H5EA_create_t *cparam, earray_test_param_t *tparam)
         TEST_ERROR
 
     /* Open the array again */
-    if(NULL == (ea2 = H5EA_open(f, H5P_DATASET_XFER_DEFAULT, ea_addr)))
+    if(NULL == (ea2 = H5EA_open(f, H5P_DATASET_XFER_DEFAULT, ea_addr, cparam->cls)))
         FAIL_STACK_ERROR
 
     /* Request that the array be deleted */
@@ -767,7 +774,7 @@ test_delete_open(hid_t fapl, H5EA_create_t *cparam, earray_test_param_t *tparam)
 
     /* Try re-opening the array again (should fail, as array will be deleted) */
     H5E_BEGIN_TRY {
-        ea2 = H5EA_open(f, H5P_DATASET_XFER_DEFAULT, ea_addr);
+        ea2 = H5EA_open(f, H5P_DATASET_XFER_DEFAULT, ea_addr, cparam->cls);
     } H5E_END_TRY;
     if(ea2) {
         /* Close opened array */
@@ -783,12 +790,12 @@ test_delete_open(hid_t fapl, H5EA_create_t *cparam, earray_test_param_t *tparam)
     ea = NULL;
 
     /* Check for closing & re-opening the file */
-    if(reopen_file(&file, &f, fapl, H5P_DATASET_XFER_DEFAULT, NULL, HADDR_UNDEF, tparam) < 0)
+    if(reopen_file(&file, &f, fapl, H5P_DATASET_XFER_DEFAULT, NULL, HADDR_UNDEF, NULL, tparam) < 0)
         TEST_ERROR
 
     /* Try re-opening the array again (should fail, as array is now deleted) */
     H5E_BEGIN_TRY {
-        ea = H5EA_open(f, H5P_DATASET_XFER_DEFAULT, ea_addr);
+        ea = H5EA_open(f, H5P_DATASET_XFER_DEFAULT, ea_addr, cparam->cls);
     } H5E_END_TRY;
     if(ea) {
         /* Close opened array */
@@ -847,41 +854,93 @@ test_set_first(hid_t fapl, H5EA_create_t *cparam, earray_test_param_t *tparam)
     hid_t	file = -1;              /* File ID */
     H5F_t	*f = NULL;              /* Internal file object pointer */
     H5EA_t      *ea = NULL;             /* Extensible array wrapper */
+    earray_state_t state;               /* State of extensible array */
+    uint64_t    welmt;                  /* Element to write */
+    uint64_t    relmt;                  /* Element to read */
+    hsize_t     nelmts;                 /* Highest element written in array */
     haddr_t     ea_addr = HADDR_UNDEF;  /* Array address in file */
-
-    /* Create file & retrieve pointer to internal file object */
-    if(create_file(fapl, &file, &f) < 0)
-        TEST_ERROR
 
     /*
      * Display testing message
      */
     TESTING("setting first element of array");
 
-    /* Create array */
-    if(create_array(f, H5P_DATASET_XFER_DEFAULT, cparam, &ea, &ea_addr) < 0)
-        TEST_ERROR
+    /* Check for elements in index block */
+    if(cparam->idx_blk_elmts > 0) {
+        /* Create file & retrieve pointer to internal file object */
+        if(create_file(fapl, &file, &f) < 0)
+            TEST_ERROR
 
-    /* Verify the creation parameters */
-    if(verify_cparam(ea, cparam) < 0)
-        TEST_ERROR
+        /* Create array */
+        if(create_array(f, H5P_DATASET_XFER_DEFAULT, cparam, &ea, &ea_addr) < 0)
+            TEST_ERROR
 
-    /* Check for closing & re-opening the file */
-    if(reopen_file(&file, &f, fapl, H5P_DATASET_XFER_DEFAULT, &ea, ea_addr, tparam) < 0)
-        TEST_ERROR
+        /* Verify the creation parameters */
+        if(verify_cparam(ea, cparam) < 0)
+            TEST_ERROR
 
-/* Set first element of array */
+        /* Check for closing & re-opening the file */
+        if(reopen_file(&file, &f, fapl, H5P_DATASET_XFER_DEFAULT, &ea, ea_addr, cparam->cls, tparam) < 0)
+            TEST_ERROR
 
-/* Verify # of elements */
+        /* Verify high-water # of elements written */
+        nelmts = (hsize_t)ULLONG_MAX;
+        if(H5EA_get_nelmts(ea, &nelmts) < 0)
+            FAIL_STACK_ERROR
+        if(nelmts != 0)
+            TEST_ERROR
 
-/* Verify array state */
+        /* Verify array state */
+        HDmemset(&state, 0, sizeof(state));
+        if(check_stats(ea, &state))
+            TEST_ERROR
 
-    /* Close array, delete array, close file & verify file is empty */
-    if(shutdown(file, f, ea, ea_addr) < 0)
-        TEST_ERROR
+        /* Retrieve first element of array (not set yet) */
+        relmt = (uint64_t)0;
+        if(H5EA_get(ea, H5P_DATASET_XFER_DEFAULT, (hsize_t)0, &relmt) < 0)
+            FAIL_STACK_ERROR
 
-    /* All tests passed */
-    PASSED()
+        /* Verify first element is fill value for array */
+        if(relmt != H5EA_TEST_FILL)
+            TEST_ERROR
+
+        /* Set first element of array */
+        welmt = (uint64_t)7;
+        if(H5EA_set(ea, H5P_DATASET_XFER_DEFAULT, (hsize_t)0, &welmt) < 0)
+            FAIL_STACK_ERROR
+
+        /* Verify high-water # of elements written */
+        nelmts = (hsize_t)ULLONG_MAX;
+        if(H5EA_get_nelmts(ea, &nelmts) < 0)
+            FAIL_STACK_ERROR
+        if(nelmts != 1)
+            TEST_ERROR
+
+        /* Verify array state */
+        HDmemset(&state, 0, sizeof(state));
+        if(check_stats(ea, &state))
+            TEST_ERROR
+
+        /* Retrieve first element of array (set now) */
+        relmt = (uint64_t)0;
+        if(H5EA_get(ea, H5P_DATASET_XFER_DEFAULT, (hsize_t)0, &relmt) < 0)
+            FAIL_STACK_ERROR
+
+        /* Verify first element is value written */
+        if(relmt != welmt)
+            TEST_ERROR
+
+        /* Close array, delete array, close file & verify file is empty */
+        if(shutdown(file, f, ea, ea_addr) < 0)
+            TEST_ERROR
+
+        /* All tests passed */
+        PASSED()
+    } /* end if */
+    else {
+        SKIPPED();
+        puts("    No elements stored in index block");
+    } /* end else */
 
     return 0;
 
@@ -894,6 +953,132 @@ error:
 
     return 1;
 } /* test_set_first() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	test_set_iblock
+ *
+ * Purpose:	Set all elements in extensible array's index block
+ *
+ * Return:	Success:	0
+ *		Failure:	1
+ *
+ * Programmer:	Quincey Koziol
+ *              Thursday, September 11, 2008
+ *
+ *-------------------------------------------------------------------------
+ */
+static unsigned
+test_set_iblock(hid_t fapl, H5EA_create_t *cparam, earray_test_param_t *tparam)
+{
+    hid_t	file = -1;              /* File ID */
+    H5F_t	*f = NULL;              /* Internal file object pointer */
+    H5EA_t      *ea = NULL;             /* Extensible array wrapper */
+    earray_state_t state;               /* State of extensible array */
+    uint64_t    welmt;                  /* Element to write */
+    uint64_t    relmt;                  /* Element to read */
+    hsize_t     nelmts;                 /* Highest element written in array */
+    haddr_t     ea_addr = HADDR_UNDEF;  /* Array address in file */
+
+    /*
+     * Display testing message
+     */
+    TESTING("setting index block elements of array");
+
+    /* Check for elements in index block */
+    if(cparam->idx_blk_elmts > 0) {
+        unsigned u;             /* Local index variable */
+
+        /* Create file & retrieve pointer to internal file object */
+        if(create_file(fapl, &file, &f) < 0)
+            TEST_ERROR
+
+        /* Create array */
+        if(create_array(f, H5P_DATASET_XFER_DEFAULT, cparam, &ea, &ea_addr) < 0)
+            TEST_ERROR
+
+        /* Verify the creation parameters */
+        if(verify_cparam(ea, cparam) < 0)
+            TEST_ERROR
+
+        /* Check for closing & re-opening the file */
+        if(reopen_file(&file, &f, fapl, H5P_DATASET_XFER_DEFAULT, &ea, ea_addr, cparam->cls, tparam) < 0)
+            TEST_ERROR
+
+        /* Verify high-water # of elements written */
+        nelmts = (hsize_t)ULLONG_MAX;
+        if(H5EA_get_nelmts(ea, &nelmts) < 0)
+            FAIL_STACK_ERROR
+        if(nelmts != 0)
+            TEST_ERROR
+
+        /* Verify array state */
+        HDmemset(&state, 0, sizeof(state));
+        if(check_stats(ea, &state))
+            TEST_ERROR
+
+        /* Retrieve elements of array in index block (not set yet) */
+        for(u = 0; u < cparam->idx_blk_elmts; u++) {
+            relmt = (uint64_t)0;
+            if(H5EA_get(ea, H5P_DATASET_XFER_DEFAULT, (hsize_t)u, &relmt) < 0)
+                FAIL_STACK_ERROR
+
+            /* Verify first element is fill value for array */
+            if(relmt != H5EA_TEST_FILL)
+                TEST_ERROR
+        } /* end for */
+
+        /* Set elements of array in index block */
+        for(u = 0; u < cparam->idx_blk_elmts; u++) {
+            welmt = (uint64_t)(7 + u);
+            if(H5EA_set(ea, H5P_DATASET_XFER_DEFAULT, (hsize_t)u, &welmt) < 0)
+                FAIL_STACK_ERROR
+
+            /* Verify high-water # of elements written */
+            nelmts = (hsize_t)ULLONG_MAX;
+            if(H5EA_get_nelmts(ea, &nelmts) < 0)
+                FAIL_STACK_ERROR
+            if(nelmts != (u + 1))
+                TEST_ERROR
+
+            /* Verify array state */
+            HDmemset(&state, 0, sizeof(state));
+            if(check_stats(ea, &state))
+                TEST_ERROR
+
+            /* Retrieve first element of array (set now) */
+            relmt = (uint64_t)0;
+            if(H5EA_get(ea, H5P_DATASET_XFER_DEFAULT, (hsize_t)u, &relmt) < 0)
+                FAIL_STACK_ERROR
+
+            /* Verify first element is value written */
+            if(relmt != welmt)
+                TEST_ERROR
+        } /* end for */
+
+        /* Close array, delete array, close file & verify file is empty */
+        if(shutdown(file, f, ea, ea_addr) < 0)
+            TEST_ERROR
+
+        /* All tests passed */
+        PASSED()
+    } /* end if */
+    else {
+        SKIPPED();
+        puts("    No elements stored in index block");
+    } /* end else */
+
+    return 0;
+
+error:
+    H5E_BEGIN_TRY {
+        if(ea)
+            H5EA_close(ea, H5P_DATASET_XFER_DEFAULT);
+	H5Fclose(file);
+    } H5E_END_TRY;
+
+    return 1;
+} /* test_set_iblock() */
 
 
 /*-------------------------------------------------------------------------
@@ -972,7 +1157,7 @@ main(void)
                 /* "Re-open array" testing parameters */
                 case EARRAY_TEST_REOPEN:
                     puts("Testing with reopen array flag set");
-                    tparam.reopen_array = TRUE;
+                    tparam.reopen_array = EARRAY_TEST_REOPEN;
                     break;
 
                 /* An unknown test? */
@@ -988,6 +1173,7 @@ main(void)
 
             /* Basic capacity tests */
             nerrors += test_set_first(fapl, &cparam, &tparam);
+            nerrors += test_set_iblock(fapl, &cparam, &tparam);
         } /* end for */
 
         if(nerrors)
