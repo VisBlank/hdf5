@@ -67,7 +67,8 @@ static herr_t H5MF_sect_simple_merge(H5FS_section_info_t *sect1,
     H5FS_section_info_t *sect2, void *udata);
 static herr_t H5MF_sect_simple_valid(const H5FS_section_class_t *cls,
     const H5FS_section_info_t *sect);
-static H5MF_free_section_t *H5MF_sect_simple_split(H5FS_section_info_t *sect, hsize_t frag_size);
+static H5FS_section_info_t *H5MF_sect_simple_split(H5FS_section_info_t *sect,
+    hsize_t frag_size);
 
 /*********************/
 /* Package Variables */
@@ -503,19 +504,23 @@ H5MF_sect_simple_valid(const H5FS_section_class_t UNUSED *cls,
  *
  *-------------------------------------------------------------------------
  */
-static H5MF_free_section_t *
+static H5FS_section_info_t *
 H5MF_sect_simple_split(H5FS_section_info_t *sect, hsize_t frag_size)
 {
-    H5MF_free_section_t *ret_value=NULL;     /* Return value */
+    H5MF_free_section_t *ret_value;     /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5MF_sect_simple_split)
     
-    ret_value = H5MF_sect_simple_new(sect->addr, frag_size);
+    /* Allocate space for new section */
+    if(NULL == (ret_value = H5MF_sect_simple_new(sect->addr, frag_size)))
+        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, NULL, "can't initialize free space section")
+
+    /* Set new section's info */
     sect->addr += frag_size;
     sect->size -= frag_size;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI((H5FS_section_info_t *)ret_value)
 } /* end H5MF_sect_simple_split() */
 
 
