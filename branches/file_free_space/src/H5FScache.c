@@ -192,9 +192,9 @@ HDfprintf(stderr, "%s: Load free space header, addr = %a\n", FUNC, addr);
     p = hdr;
 
     /* Magic number */
-    if(HDmemcmp(p, H5FS_HDR_MAGIC, (size_t)H5FS_SIZEOF_MAGIC))
+    if(HDmemcmp(p, H5FS_HDR_MAGIC, (size_t)H5_SIZEOF_MAGIC))
 	HGOTO_ERROR(H5E_FSPACE, H5E_CANTLOAD, NULL, "wrong free space header signature")
-    p += H5FS_SIZEOF_MAGIC;
+    p += H5_SIZEOF_MAGIC;
 
     /* Version */
     if(*p++ != H5FS_HDR_VERSION)
@@ -384,8 +384,8 @@ HDfprintf(stderr, "%s: fspace->alloc_sect_size = %Hu, fspace->sect_size = %Hu\n"
         p = hdr;
 
         /* Magic number */
-        HDmemcpy(p, H5FS_HDR_MAGIC, (size_t)H5FS_SIZEOF_MAGIC);
-        p += H5FS_SIZEOF_MAGIC;
+        HDmemcpy(p, H5FS_HDR_MAGIC, (size_t)H5_SIZEOF_MAGIC);
+        p += H5_SIZEOF_MAGIC;
 
         /* Version # */
         *p++ = H5FS_HDR_VERSION;
@@ -649,9 +649,9 @@ HDfprintf(stderr, "%s: fspace->sect_size = %Hu\n", FUNC, fspace->sect_size);
     p = buf;
 
     /* Magic number */
-    if(HDmemcmp(p, H5FS_SINFO_MAGIC, (size_t)H5FS_SIZEOF_MAGIC))
+    if(HDmemcmp(p, H5FS_SINFO_MAGIC, (size_t)H5_SIZEOF_MAGIC))
 	HGOTO_ERROR(H5E_FSPACE, H5E_CANTLOAD, NULL, "wrong free space sections signature")
-    p += H5FS_SIZEOF_MAGIC;
+    p += H5_SIZEOF_MAGIC;
 
     /* Version */
     if(*p++ != H5FS_SINFO_VERSION)
@@ -958,8 +958,8 @@ HDfprintf(stderr, "%s: Flushing free space header, addr = %a, destroy = %u\n", F
         p = buf;
 
         /* Magic number */
-        HDmemcpy(p, H5FS_SINFO_MAGIC, (size_t)H5FS_SIZEOF_MAGIC);
-        p += H5FS_SIZEOF_MAGIC;
+        HDmemcpy(p, H5FS_SINFO_MAGIC, (size_t)H5_SIZEOF_MAGIC);
+        p += H5_SIZEOF_MAGIC;
 
         /* Version # */
         *p++ = H5FS_SINFO_VERSION;

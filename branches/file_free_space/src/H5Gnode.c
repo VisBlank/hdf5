@@ -52,7 +52,7 @@ typedef struct H5G_node_key_t {
 
 /* Private macros */
 
-#define H5G_NODE_SIZEOF_HDR(F) (H5G_NODE_SIZEOF_MAGIC + 4)
+#define H5G_NODE_SIZEOF_HDR(F) (H5_SIZEOF_MAGIC + 4)
 
 /* PRIVATE PROTOTYPES */
 

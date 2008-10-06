@@ -199,8 +199,8 @@ HDmemset(heap->chunk, 0, size);
                      "memory allocation failed");
 
     /* Initialize the header */
-    HDmemcpy (heap->chunk, H5HG_MAGIC, (size_t)H5HG_SIZEOF_MAGIC);
-    p = heap->chunk + H5HG_SIZEOF_MAGIC;
+    HDmemcpy (heap->chunk, H5HG_MAGIC, (size_t)H5_SIZEOF_MAGIC);
+    p = heap->chunk + H5_SIZEOF_MAGIC;
     *p++ = H5HG_VERSION;
     *p++ = 0; /*reserved*/
     *p++ = 0; /*reserved*/
@@ -448,7 +448,7 @@ HDmemset(new_chunk + heap->size, 0, need);
     heap->size += need;
 
     /* Encode the new size of the heap */
-    p = new_chunk + H5HG_SIZEOF_MAGIC + 1 /* version */ + 3 /* reserved */;
+    p = new_chunk + H5_SIZEOF_MAGIC + 1 /* version */ + 3 /* reserved */;
     H5F_ENCODE_LENGTH(f, p, heap->size);
 
     /* Move the pointers to the existing objects to their new locations */

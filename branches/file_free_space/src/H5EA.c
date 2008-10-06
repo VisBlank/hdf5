@@ -47,6 +47,7 @@
 #include "H5private.h"		/* Generic Functions			*/
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5EApkg.h"		/* Extensible Arrays			*/
+#include "H5FLprivate.h"	/* Free Lists                           */
 
 
 /****************/
@@ -263,7 +264,7 @@ HDfprintf(stderr, "%s: Called\n", FUNC);
     HDassert(nelmts);
 
     /* Retrieve the max. index set */
-    *nelmts = ea->hdr->max_idx_set;
+    *nelmts = ea->hdr->stats.max_idx_set;
 
 END_FUNC(PRIV)  /* end H5EA_get_nelmts() */
 
@@ -324,6 +325,11 @@ H5EA_set(const H5EA_t *ea, hid_t dxpl_id, hsize_t idx, const void *elmt))
     /* Local variables */
     H5EA_hdr_t *hdr = ea->hdr;          /* Header for EA */
     H5EA_iblock_t *iblock = NULL;       /* Pointer to index block for EA */
+    H5EA_sblock_t *sblock = NULL;       /* Pointer to super block for EA */
+    H5EA_dblock_t *dblock = NULL;       /* Pointer to data block for EA */
+    unsigned iblock_cache_flags = H5AC__NO_FLAGS_SET;   /* Flags to unprotecting index block */
+    unsigned sblock_cache_flags = H5AC__NO_FLAGS_SET;   /* Flags to unprotecting super block */
+    unsigned dblock_cache_flags = H5AC__NO_FLAGS_SET;   /* Flags to unprotecting data block */
     hbool_t hdr_dirty = FALSE;          /* Whether header information changed */
 
 #ifdef QAK
@@ -350,6 +356,9 @@ HDfprintf(stderr, "%s: Index block address not defined!\n", FUNC, idx);
         if(!H5F_addr_defined(hdr->idx_blk_addr))
             H5E_THROW(H5E_CANTCREATE, "unable to create index block")
 
+        /* Increment count of elements "realized" */
+        hdr->stats.nelmts += hdr->cparam.idx_blk_elmts;
+
         /* Mark the header dirty */
         hdr_dirty = TRUE;
     } /* end if */
@@ -361,19 +370,147 @@ HDfprintf(stderr, "%s: Index block address is: %a\n", FUNC, hdr->idx_blk_addr);
     if(NULL == (iblock = H5EA__iblock_protect(hdr, dxpl_id, H5AC_WRITE)))
         H5E_THROW(H5E_CANTPROTECT, "unable to protect extensible array index block, address = %llu", (unsigned long_long)hdr->idx_blk_addr)
 
-    /* Determine where the element to set falls */
-    if(idx < hdr->idx_blk_elmts) {
+    /* Check if element is in index block */
+    if(idx < hdr->cparam.idx_blk_elmts) {
         /* Set element in index block */
-        HDmemcpy(((uint8_t *)iblock->elmts) + (hdr->cls->nat_elmt_size * idx), elmt, hdr->cls->nat_elmt_size);
+        HDmemcpy(((uint8_t *)iblock->elmts) + (hdr->cparam.cls->nat_elmt_size * idx), elmt, hdr->cparam.cls->nat_elmt_size);
+        iblock_cache_flags |= H5AC__DIRTIED_FLAG;
     } /* end if */
     else {
-HDfprintf(stderr, "%s: Index %Hu not supported yet!\n", FUNC, idx);
-HDassert(0 && "Index location not supported!");
+        unsigned sblk_idx;      /* Which superblock does this index fall in? */
+        size_t dblk_idx;        /* Data block index */
+        hsize_t elmt_idx;       /* Offset of element in super block */
+
+        /* Get super block index where element is located */
+        sblk_idx = H5EA__dblock_sblk_idx(hdr, idx);
+#ifdef QAK
+HDfprintf(stderr, "%s: sblk_idx = %u, iblock->nsblks = %Zu\n", FUNC, sblk_idx, iblock->nsblks);
+#endif /* QAK */
+
+        /* Adjust index to offset in super block */
+        elmt_idx = idx - (hdr->cparam.idx_blk_elmts + hdr->sblk_info[sblk_idx].start_idx);
+#ifdef QAK
+HDfprintf(stderr, "%s: after adjusting for super block elements, elmt_idx = %Hu\n", FUNC, elmt_idx);
+#endif /* QAK */
+
+        /* Check for data block containing element address in the index block */
+        if(sblk_idx < iblock->nsblks) {
+#ifdef QAK
+HDfprintf(stderr, "%s: Element in data block pointed to by address in index block\n", FUNC);
+#endif /* QAK */
+            /* Compute the data block index in index block */
+            dblk_idx = (size_t)(hdr->sblk_info[sblk_idx].start_dblk + (elmt_idx / hdr->sblk_info[sblk_idx].dblk_nelmts));
+#ifdef QAK
+HDfprintf(stderr, "%s: dblk_idx = %u, iblock->ndblk_addrs = %Zu\n", FUNC, dblk_idx, iblock->ndblk_addrs);
+#endif /* QAK */
+            HDassert(dblk_idx < iblock->ndblk_addrs);
+
+            /* Check if the data block has been allocated on disk yet */
+            if(!H5F_addr_defined(iblock->dblk_addrs[dblk_idx])) {
+                haddr_t dblk_addr;        /* Address of data block created */
+
+                /* Create data block */
+                dblk_addr = H5EA__dblock_create(hdr, dxpl_id, hdr->sblk_info[sblk_idx].dblk_nelmts);
+                if(!H5F_addr_defined(dblk_addr))
+                    H5E_THROW(H5E_CANTCREATE, "unable to create extensible array data block")
+
+                /* Set data block address in index block */
+                iblock->dblk_addrs[dblk_idx] = dblk_addr;
+                iblock_cache_flags |= H5AC__DIRTIED_FLAG;
+
+                /* Increment count of elements "realized" and actual data blocks created */
+                hdr->stats.ndata_blks++;
+                hdr->stats.nelmts += hdr->sblk_info[sblk_idx].dblk_nelmts;
+                hdr_dirty = TRUE;
+            } /* end if */
+
+            /* Protect data block */
+            if(NULL == (dblock = H5EA__dblock_protect(hdr, dxpl_id, iblock->dblk_addrs[dblk_idx], hdr->sblk_info[sblk_idx].dblk_nelmts, H5AC_WRITE)))
+                H5E_THROW(H5E_CANTPROTECT, "unable to protect extensible array data block, address = %llu", (unsigned long_long)iblock->dblk_addrs[dblk_idx])
+
+            /* Adjust index to offset in data block */
+            elmt_idx %= hdr->sblk_info[sblk_idx].dblk_nelmts;
+
+            /* Set element in data block */
+            HDmemcpy(((uint8_t *)dblock->elmts) + (hdr->cparam.cls->nat_elmt_size * elmt_idx), elmt, hdr->cparam.cls->nat_elmt_size);
+            dblock_cache_flags |= H5AC__DIRTIED_FLAG;
+        } /* end if */
+        else {
+            unsigned sblk_off;          /* Offset of super block in index block array of super blocks */
+
+            /* Calculate offset of super block in index block's array */
+            sblk_off = sblk_idx - iblock->nsblks;
+
+            /* Check if the super block has been allocated on disk yet */
+            if(!H5F_addr_defined(iblock->sblk_addrs[sblk_off])) {
+                haddr_t sblk_addr;        /* Address of data block created */
+
+                /* Create super block */
+                sblk_addr = H5EA__sblock_create(hdr, dxpl_id, sblk_idx);
+#ifdef QAK
+HDfprintf(stderr, "%s: New super block address is: %a\n", FUNC, sblk_addr);
+#endif /* QAK */
+                if(!H5F_addr_defined(sblk_addr))
+                    H5E_THROW(H5E_CANTCREATE, "unable to create extensible array super block")
+
+                /* Set super block address in index block */
+                iblock->sblk_addrs[sblk_off] = sblk_addr;
+                iblock_cache_flags |= H5AC__DIRTIED_FLAG;
+
+                /* Increment count of actual super blocks created */
+                hdr->stats.nsuper_blks++;
+                hdr_dirty = TRUE;
+            } /* end if */
+
+            /* Protect super block */
+            if(NULL == (sblock = H5EA__sblock_protect(hdr, dxpl_id, iblock->sblk_addrs[sblk_off], sblk_idx, H5AC_WRITE)))
+                H5E_THROW(H5E_CANTPROTECT, "unable to protect extensible array super block, address = %llu", (unsigned long_long)iblock->sblk_addrs[sblk_off])
+
+            /* Compute the data block index in super block */
+            dblk_idx = (size_t)(elmt_idx / sblock->dblk_nelmts);
+#ifdef QAK
+HDfprintf(stderr, "%s: dblk_idx = %u, sblock->ndblks = %Zu\n", FUNC, dblk_idx, sblock->ndblks);
+#endif /* QAK */
+            HDassert(dblk_idx < sblock->ndblks);
+
+            /* Check if the data block has been allocated on disk yet */
+            if(!H5F_addr_defined(sblock->dblk_addrs[dblk_idx])) {
+                haddr_t dblk_addr;        /* Address of data block created */
+
+                /* Create data block */
+                dblk_addr = H5EA__dblock_create(hdr, dxpl_id, sblock->dblk_nelmts);
+                if(!H5F_addr_defined(dblk_addr))
+                    H5E_THROW(H5E_CANTCREATE, "unable to create extensible array data block")
+
+                /* Set data block address in index block */
+                sblock->dblk_addrs[dblk_idx] = dblk_addr;
+                sblock_cache_flags |= H5AC__DIRTIED_FLAG;
+
+                /* Increment count of elements "realized" and actual data blocks created */
+                hdr->stats.ndata_blks++;
+                hdr->stats.nelmts += hdr->sblk_info[sblk_idx].dblk_nelmts;
+                hdr_dirty = TRUE;
+            } /* end if */
+
+            /* Protect data block */
+            if(NULL == (dblock = H5EA__dblock_protect(hdr, dxpl_id, sblock->dblk_addrs[dblk_idx], sblock->dblk_nelmts, H5AC_WRITE)))
+                H5E_THROW(H5E_CANTPROTECT, "unable to protect extensible array data block, address = %llu", (unsigned long_long)sblock->dblk_addrs[dblk_idx])
+
+            /* Adjust index to offset in data block */
+            elmt_idx %= sblock->dblk_nelmts;
+
+            /* Set element in data block */
+            HDmemcpy(((uint8_t *)dblock->elmts) + (hdr->cparam.cls->nat_elmt_size * elmt_idx), elmt, hdr->cparam.cls->nat_elmt_size);
+            dblock_cache_flags |= H5AC__DIRTIED_FLAG;
+        } /* end else */
     } /* end else */
 
     /* Update max. element set in array, if appropriate */
-    if(idx >= hdr->max_idx_set) {
-        hdr->max_idx_set = idx + 1;
+#ifdef QAK
+HDfprintf(stderr, "%s: idx = %Hu, hdr->stats.max_idx_set = %Hu\n", FUNC, idx, hdr->stats.max_idx_set);
+#endif /* QAK */
+    if(idx >= hdr->stats.max_idx_set) {
+        hdr->stats.max_idx_set = idx + 1;
         hdr_dirty = TRUE;
     } /* end if */
 
@@ -383,8 +520,13 @@ CATCH
         if(H5EA__hdr_modified(hdr) < 0)
             H5E_THROW(H5E_CANTMARKDIRTY, "unable to mark extensible array header as modified")
 
-    if(iblock && H5EA__iblock_unprotect(iblock, dxpl_id, H5AC__DIRTIED_FLAG) < 0)
+    /* Release resources */
+    if(iblock && H5EA__iblock_unprotect(iblock, dxpl_id, iblock_cache_flags) < 0)
         H5E_THROW(H5E_CANTUNPROTECT, "unable to release extensible array index block")
+    if(sblock && H5EA__sblock_unprotect(sblock, dxpl_id, sblock_cache_flags) < 0)
+        H5E_THROW(H5E_CANTUNPROTECT, "unable to release extensible array super block")
+    if(dblock && H5EA__dblock_unprotect(dblock, dxpl_id, dblock_cache_flags) < 0)
+        H5E_THROW(H5E_CANTUNPROTECT, "unable to release extensible array data block")
 
 END_FUNC(PRIV)  /* end H5EA_set() */
 
@@ -409,6 +551,8 @@ H5EA_get(const H5EA_t *ea, hid_t dxpl_id, hsize_t idx, void *elmt))
     /* Local variables */
     H5EA_hdr_t *hdr = ea->hdr;          /* Header for EA */
     H5EA_iblock_t *iblock = NULL;       /* Pointer to index block for EA */
+    H5EA_sblock_t *sblock = NULL;       /* Pointer to super block for EA */
+    H5EA_dblock_t *dblock = NULL;       /* Pointer to data block for EA */
 
 #ifdef QAK
 HDfprintf(stderr, "%s: Called\n", FUNC);
@@ -425,12 +569,12 @@ HDfprintf(stderr, "%s: Index %Hu\n", FUNC, idx);
     hdr->f = ea->f;
 
     /* Check for element beyond max. element in array */
-    if(idx >= hdr->max_idx_set) {
+    if(idx >= hdr->stats.max_idx_set) {
 #ifdef QAK
-HDfprintf(stderr, "%s: Element beyond max. index set\n", FUNC, idx);
+HDfprintf(stderr, "%s: Element beyond max. index set, hdr->stats.max_idx_set = %Hu, idx = %Hu\n", FUNC, hdr->stats.max_idx_set, idx);
 #endif /* QAK */
         /* Call the class's 'fill' callback */
-        if((hdr->cls->fill)(elmt, (size_t)1) < 0)
+        if((hdr->cparam.cls->fill)(elmt, (size_t)1) < 0)
             H5E_THROW(H5E_CANTSET, "can't set element to class's fill value")
     } /* end if */
     else {
@@ -442,20 +586,108 @@ HDfprintf(stderr, "%s: Index block address is: %a\n", FUNC, hdr->idx_blk_addr);
         if(NULL == (iblock = H5EA__iblock_protect(hdr, dxpl_id, H5AC_READ)))
             H5E_THROW(H5E_CANTPROTECT, "unable to protect extensible array index block, address = %llu", (unsigned long_long)hdr->idx_blk_addr)
 
-        /* Determine where the element to set falls */
-        if(idx < hdr->idx_blk_elmts) {
+        /* Check if element is in index block */
+        if(idx < hdr->cparam.idx_blk_elmts) {
             /* Get element from index block */
-            HDmemcpy(elmt, ((uint8_t *)iblock->elmts) + (hdr->cls->nat_elmt_size * idx), hdr->cls->nat_elmt_size);
+            HDmemcpy(elmt, ((uint8_t *)iblock->elmts) + (hdr->cparam.cls->nat_elmt_size * idx), hdr->cparam.cls->nat_elmt_size);
         } /* end if */
         else {
-HDfprintf(stderr, "%s: Index %Hu not supported yet!\n", FUNC, idx);
-HDassert(0 && "Index location not supported!");
+            unsigned sblk_idx;      /* Which superblock does this index fall in? */
+            size_t dblk_idx;            /* Data block index */
+            hsize_t elmt_idx;       /* Offset of element in super block */
+
+            /* Get super block index where element is located */
+            sblk_idx = H5EA__dblock_sblk_idx(hdr, idx);
+
+            /* Adjust index to offset in super block */
+            elmt_idx = idx - (hdr->cparam.idx_blk_elmts + hdr->sblk_info[sblk_idx].start_idx);
+#ifdef QAK
+HDfprintf(stderr, "%s: after adjusting for super block elements, elmt_idx = %Hu\n", FUNC, elmt_idx);
+#endif /* QAK */
+
+            /* Check for data block containing element address in the index block */
+            if(sblk_idx < iblock->nsblks) {
+#ifdef QAK
+HDfprintf(stderr, "%s: Element in data block pointed to by address in index block\n", FUNC);
+#endif /* QAK */
+                /* Compute the data block index in index block */
+                dblk_idx = (size_t)(hdr->sblk_info[sblk_idx].start_dblk + (elmt_idx / hdr->sblk_info[sblk_idx].dblk_nelmts));
+#ifdef QAK
+HDfprintf(stderr, "%s: dblk_idx = %u\n", FUNC, dblk_idx);
+#endif /* QAK */
+                HDassert(dblk_idx < iblock->ndblk_addrs);
+
+                /* Check if the data block has been allocated on disk yet */
+                if(!H5F_addr_defined(iblock->dblk_addrs[dblk_idx])) {
+                    /* Call the class's 'fill' callback */
+                    if((hdr->cparam.cls->fill)(elmt, (size_t)1) < 0)
+                        H5E_THROW(H5E_CANTSET, "can't set element to class's fill value")
+                } /* end if */
+                else {
+                    /* Protect data block */
+                    if(NULL == (dblock = H5EA__dblock_protect(hdr, dxpl_id, iblock->dblk_addrs[dblk_idx], hdr->sblk_info[sblk_idx].dblk_nelmts, H5AC_READ)))
+                        H5E_THROW(H5E_CANTPROTECT, "unable to protect extensible array data block, address = %llu", (unsigned long_long)iblock->dblk_addrs[dblk_idx])
+
+                    /* Adjust index to offset in data block */
+                    elmt_idx %= hdr->sblk_info[sblk_idx].dblk_nelmts;
+
+                    /* Retrieve element from data block */
+                    HDmemcpy(elmt, ((uint8_t *)dblock->elmts) + (hdr->cparam.cls->nat_elmt_size * elmt_idx), hdr->cparam.cls->nat_elmt_size);
+                } /* end else */
+            } /* end if */
+            else {
+                unsigned sblk_off;          /* Offset of super block in index block array of super blocks */
+
+                /* Calculate offset of super block in index block's array */
+                sblk_off = sblk_idx - iblock->nsblks;
+
+                /* Check if the super block has been allocated on disk yet */
+                if(!H5F_addr_defined(iblock->sblk_addrs[sblk_off])) {
+                    /* Call the class's 'fill' callback */
+                    if((hdr->cparam.cls->fill)(elmt, (size_t)1) < 0)
+                        H5E_THROW(H5E_CANTSET, "can't set element to class's fill value")
+                } /* end if */
+                else {
+                    /* Protect super block */
+                    if(NULL == (sblock = H5EA__sblock_protect(hdr, dxpl_id, iblock->sblk_addrs[sblk_off], sblk_idx, H5AC_READ)))
+                        H5E_THROW(H5E_CANTPROTECT, "unable to protect extensible array super block, address = %llu", (unsigned long_long)iblock->sblk_addrs[sblk_off])
+
+                    /* Compute the data block index in super block */
+                    dblk_idx = (size_t)(elmt_idx / sblock->dblk_nelmts);
+#ifdef QAK
+HDfprintf(stderr, "%s: dblk_idx = %u, sblock->ndblks = %Zu\n", FUNC, dblk_idx, sblock->ndblks);
+#endif /* QAK */
+                    HDassert(dblk_idx < sblock->ndblks);
+
+                    /* Check if the data block has been allocated on disk yet */
+                    if(!H5F_addr_defined(sblock->dblk_addrs[dblk_idx])) {
+                        /* Call the class's 'fill' callback */
+                        if((hdr->cparam.cls->fill)(elmt, (size_t)1) < 0)
+                            H5E_THROW(H5E_CANTSET, "can't set element to class's fill value")
+                    } /* end if */
+                    else {
+                        /* Protect data block */
+                        if(NULL == (dblock = H5EA__dblock_protect(hdr, dxpl_id, sblock->dblk_addrs[dblk_idx], sblock->dblk_nelmts, H5AC_READ)))
+                            H5E_THROW(H5E_CANTPROTECT, "unable to protect extensible array data block, address = %llu", (unsigned long_long)sblock->dblk_addrs[dblk_idx])
+
+                        /* Adjust index to offset in data block */
+                        elmt_idx %= sblock->dblk_nelmts;
+
+                        /* Retrieve element from data block */
+                        HDmemcpy(elmt, ((uint8_t *)dblock->elmts) + (hdr->cparam.cls->nat_elmt_size * elmt_idx), hdr->cparam.cls->nat_elmt_size);
+                    } /* end else */
+                } /* end else */
+            } /* end else */
         } /* end else */
     } /* end else */
 
 CATCH
     if(iblock && H5EA__iblock_unprotect(iblock, dxpl_id, H5AC__NO_FLAGS_SET) < 0)
         H5E_THROW(H5E_CANTUNPROTECT, "unable to release extensible array index block")
+    if(sblock && H5EA__sblock_unprotect(sblock, dxpl_id, H5AC__NO_FLAGS_SET) < 0)
+        H5E_THROW(H5E_CANTUNPROTECT, "unable to release extensible array super block")
+    if(dblock && H5EA__dblock_unprotect(dblock, dxpl_id, H5AC__NO_FLAGS_SET) < 0)
+        H5E_THROW(H5E_CANTUNPROTECT, "unable to release extensible array data block")
 
 END_FUNC(PRIV)  /* end H5EA_set() */
 

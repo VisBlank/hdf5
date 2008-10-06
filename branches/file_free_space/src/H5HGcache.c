@@ -139,9 +139,9 @@ H5HG_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void UNUSED * udata1,
 	HGOTO_ERROR(H5E_HEAP, H5E_READERROR, NULL, "unable to read global heap collection")
 
     /* Magic number */
-    if(HDmemcmp(heap->chunk, H5HG_MAGIC, (size_t)H5HG_SIZEOF_MAGIC))
+    if(HDmemcmp(heap->chunk, H5HG_MAGIC, (size_t)H5_SIZEOF_MAGIC))
 	HGOTO_ERROR(H5E_HEAP, H5E_CANTLOAD, NULL, "bad global heap collection signature")
-    p = heap->chunk + H5HG_SIZEOF_MAGIC;
+    p = heap->chunk + H5_SIZEOF_MAGIC;
 
     /* Version */
     if(H5HG_VERSION != *p++)

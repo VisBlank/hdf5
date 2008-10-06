@@ -172,7 +172,7 @@ H5G_node_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void UNUSED  *_udata1
     p = node;
 
     /* magic */
-    if(HDmemcmp(p, H5G_NODE_MAGIC, (size_t)H5G_NODE_SIZEOF_MAGIC))
+    if(HDmemcmp(p, H5G_NODE_MAGIC, (size_t)H5_SIZEOF_MAGIC))
 	HGOTO_ERROR(H5E_SYM, H5E_CANTLOAD, NULL, "bad symbol table node signature")
     p += 4;
 
@@ -296,7 +296,7 @@ H5G_node_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5G_node_
         p = node;
 
         /* magic number */
-        HDmemcpy(p, H5G_NODE_MAGIC, (size_t)H5G_NODE_SIZEOF_MAGIC);
+        HDmemcpy(p, H5G_NODE_MAGIC, (size_t)H5_SIZEOF_MAGIC);
         p += 4;
 
         /* version number */
