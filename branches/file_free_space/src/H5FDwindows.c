@@ -974,8 +974,10 @@ H5FD_windows_flush(H5FD_t *_file, hid_t UNUSED dxpl_id, unsigned closing)
     if(file->write_access) {
         /* Flush */
         if(!closing) {
+#ifdef WINDOWS_USE_STDIO
             if(fflush(file->fp) == EOF)
                 HGOTO_ERROR(H5E_IO, H5E_WRITEERROR, FAIL, "fflush failed")
+#endif /* WINDOWS_USE_STDIO */
 
             /* Reset last file I/O information */
             file->pos = HADDR_UNDEF;
