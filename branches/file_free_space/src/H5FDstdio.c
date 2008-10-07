@@ -1010,8 +1010,9 @@ H5FD_stdio_truncate(H5FD_t *_file, hid_t dxpl_id, hbool_t closing)
     if(file->write_access) {
         /* Makes sure that the true file size is the same as the end-of-address. */
         if(file->eoa != file->eof) {
+            int fd = fileno(file->fp);     /* File descriptor for HDF5 file */
+
 #ifdef _WIN32
-            int fd=_fileno(file->fp);     /* File descriptor for HDF5 file */
             HFILE filehandle;   /* Windows file handle */
             LARGE_INTEGER li;   /* 64-bit integer for SetFilePointer() call */
 
@@ -1025,8 +1026,10 @@ H5FD_stdio_truncate(H5FD_t *_file, hid_t dxpl_id, hbool_t closing)
             if(SetEndOfFile((HANDLE)filehandle) == 0)
                 H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_SEEKERROR, "unable to truncate/extend file properly", -1)
 #else /* _WIN32 */
-            int fd = fileno(file->fp);     /* File descriptor for HDF5 file */
+            /* Reset seek offset to beginning of file, so that file isn't re-extended later */
+            rewind(file->fp);
 
+            /* Truncate file to proper length */
             if(-1 == file_truncate(fd, (file_offset_t)file->eoa))
                 H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_SEEKERROR, "unable to truncate/extend file properly", -1)
 #endif /* _WIN32 */
