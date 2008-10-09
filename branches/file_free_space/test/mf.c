@@ -5288,27 +5288,6 @@ main(void)
     if(H5Pset_small_data_block_size(fapl, (hsize_t)TEST_BLOCK_SIZE2048) < 0)
 	TEST_ERROR
 
-    nerrors += test_mf_eoa(fapl);
-    nerrors += test_mf_eoa_shrink(fapl);
-    nerrors += test_mf_eoa_extend(fapl);
-
-    /* interaction with free-space manager */
-    nerrors += test_mf_fs_start(fapl);
-    nerrors += test_mf_fs_alloc_free(fapl);
-    nerrors += test_mf_fs_extend(fapl);
-    nerrors += test_mf_fs_absorb(fapl);
-
-    /* interaction with meta/sdata aggregator */
-    nerrors += test_mf_aggr_alloc1(fapl);
-    nerrors += test_mf_aggr_alloc2(fapl);
-    nerrors += test_mf_aggr_alloc3(fapl);
-    nerrors += test_mf_aggr_alloc4(fapl);
-    nerrors += test_mf_aggr_alloc5(fapl);
-    nerrors += test_mf_aggr_alloc6(fapl);
-    nerrors += test_mf_aggr_alloc7(fapl);
-    nerrors += test_mf_aggr_extend(fapl);
-    nerrors += test_mf_aggr_absorb(fapl);
-
     /* interaction with file allocation */
     nerrors += test_mf_eoa(fapl);
     nerrors += test_mf_eoa_shrink(fapl);
