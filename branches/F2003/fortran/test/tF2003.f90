@@ -1281,7 +1281,10 @@ SUBROUTINE test_iter_group(total_error)
     USE HDF5 
     USE ISO_C_BINDING
     IMPLICIT NONE
-    
+
+    INTEGER, PARAMETER :: r_k4 = SELECTED_REAL_KIND(5)
+    INTEGER, PARAMETER :: r_k8 = SELECTED_REAL_KIND(10)
+
     INTEGER, INTENT(INOUT) :: total_error
 
     INTEGER, PARAMETER :: LENGTH = 5
@@ -1301,11 +1304,10 @@ SUBROUTINE test_iter_group(total_error)
     INTEGER :: i, j
     INTEGER, DIMENSION(1:3) :: ndims = (/1,1,1/)
 
-
     TYPE CmpField_struct
        INTEGER, DIMENSION(1:ALEN) :: a
-       REAL*4, DIMENSION(1:ALEN) :: b
-       REAL*8, DIMENSION(1:ALEN) :: c
+       REAL(KIND=r_k4), DIMENSION(1:ALEN) :: b
+       REAL(KIND=r_k8), DIMENSION(1:ALEN) :: c
     ENDTYPE CmpField_struct
 
     TYPE(CmpField_struct), DIMENSION(1:LENGTH), TARGET :: cf
@@ -1321,7 +1323,7 @@ SUBROUTINE test_iter_group(total_error)
     TYPE(CmpDTSinfo_struct) :: dtsinfo
 
     TYPE fld_t_struct
-       REAL*4, DIMENSION(1:ALEN) :: b
+       REAL(KIND=r_k4), DIMENSION(1:ALEN) :: b
     END TYPE fld_t_struct
  
     INTEGER(SIZE_T) :: type_sizei  ! Size of the integer datatype 
@@ -1339,7 +1341,6 @@ SUBROUTINE test_iter_group(total_error)
 
     INTEGER :: error
     TYPE(c_ptr) :: f_ptr
-
 
 !    /* Initialize the data */
 !    /* ------------------- */
@@ -1361,24 +1362,27 @@ SUBROUTINE test_iter_group(total_error)
     !/* ----------------------- */
     CALL h5tget_size_f(H5T_NATIVE_INTEGER, type_sizei, error)
     CALL check("h5tget_size_f", error, total_error)
-
-    CALL h5tget_size_f(H5T_NATIVE_REAL, type_sizer, error)
-    CALL check("h5tget_size_f", error, total_error)
+    IF(sizeof(cf(1)%b(1)).EQ.4)THEN
+       CALL h5tget_size_f(H5T_NATIVE_REAL_4, type_sizer, error)
+       CALL check("h5tget_size_f", error, total_error)
+    ELSE IF(sizeof(cf(1)%b(1)).EQ.8)THEN
+       CALL h5tget_size_f(H5T_NATIVE_REAL_8, type_sizer, error)
+       CALL check("h5tget_size_f", error, total_error)
+    ENDIF
 
     CALL h5tget_size_f(H5T_NATIVE_DOUBLE, type_sized, error)
     CALL check("h5tget_size_f", error, total_error)
 
-    dtsinfo%offset(1)   = 0
-    
-    dtsinfo%offset(2)   = type_sizei*ALEN
+    dtsinfo%offset(1)   = H5OFFSETOF(C_LOC(cf(1)),C_LOC(cf(1)%a(1)))
+    dtsinfo%offset(2)   = H5OFFSETOF(C_LOC(cf(1)),C_LOC(cf(1)%b(1))) 
+    dtsinfo%offset(3)   = H5OFFSETOF(C_LOC(cf(1)),C_LOC(cf(1)%c(1)))
 
-    dtsinfo%offset(3)   = dtsinfo%offset(2) + type_sizer*ALEN
 
     !/* Initialize the data type IDs */
     !/* ---------------------------- */
     dtsinfo%datatype(1) = H5T_NATIVE_INTEGER;
-    dtsinfo%datatype(2) = H5T_NATIVE_REAL;
-    dtsinfo%datatype(3) = H5T_NATIVE_DOUBLE;
+    dtsinfo%datatype(2) = H5T_NATIVE_REAL_4;
+    dtsinfo%datatype(3) = H5T_NATIVE_REAL_8;
 
 
     !/* Initialize the names of data members */
@@ -1403,9 +1407,7 @@ SUBROUTINE test_iter_group(total_error)
     !/* Create the memory data type */
     !/* --------------------------- */
 
-    sizeof_compound =  INT( (type_sizei + type_sizer + type_sized)*ALEN, size_t)
-
-    CALL h5tcreate_f(H5T_COMPOUND_F, sizeof_compound, type, error)
+    CALL h5tcreate_f(H5T_COMPOUND_F, H5OFFSETOF(C_LOC(cf(1)), C_LOC(cf(2))), type, error)
     CALL check("h5tcreate_f", error, total_error)
 
     !/* Add  members to the compound data type */
@@ -1414,8 +1416,7 @@ SUBROUTINE test_iter_group(total_error)
     DO i = 1, dtsinfo%nsubfields
        CALL h5tarray_create_f(dtsinfo%datatype(i), ndims(i), dima, array_dt, error)
        CALL check("h5tarray_create_f", error, total_error)
-
-       CALL h5tinsert_f(type, dtsinfo%name(i), dtsinfo%offset(i), array_dt, error)
+       CALL H5Tinsert_f(type, dtsinfo%name(i), dtsinfo%offset(i), array_dt, error)
        CALL check("h5tinsert_f", error, total_error)
 
        CALL h5tclose_f(array_dt,error)
@@ -1462,6 +1463,7 @@ SUBROUTINE test_iter_group(total_error)
        ENDDO
     ENDDO
 
+
     !/* Release IDs */
     !/* ----------- */
     CALL h5tclose_f(type,error)
@@ -1485,10 +1487,10 @@ SUBROUTINE test_iter_group(total_error)
 
     sizeof_compound =  INT( type_sizer*ALEN, size_t)
 
-    CALL h5tcreate_f(H5T_COMPOUND_F, sizeof_compound, type, error)
+    CALL h5tcreate_f(H5T_COMPOUND_F, sizeof_compound , type, error)
     CALL check("h5tcreate_f", error, total_error)
 
-    CALL h5tarray_create_f(H5T_NATIVE_REAL, 1, dima, array_dt, error)
+    CALL h5tarray_create_f(H5T_NATIVE_REAL_4, 1, dima, array_dt, error)
     CALL check("h5tarray_create_f", error, total_error)
 
     CALL h5tinsert_f(TYPE, "Two", 0, array_dt, error)
