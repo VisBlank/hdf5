@@ -18,7 +18,7 @@
 !  condition is set in the configure variable "FORTRAN_HAVE_SIZEOF".
 !
 ! COPYRIGHT
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
 !   All rights reserved.                                                      *
@@ -31,7 +31,7 @@
 !   is linked from the top-level documents page.  It can also be found at     *
 !   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
 ! AUTHOR
 !  M.S. Breitenfeld
@@ -39,17 +39,31 @@
 !*****
 
 PROGRAM test_kind
-  INTEGER :: i, j, ii, last, kind_numbers(10)
+  IMPLICIT NONE
+  INTEGER :: i, j, ii, ir, last, ikind_numbers(10),rkind_numbers(10)
   INTEGER :: jr, jd
   last = -1
   ii = 0
-  j = SELECTED_INT_KIND(18)
   DO i = 1,100
      j = SELECTED_INT_KIND(i)
      IF(j .NE. last) THEN
         IF(last .NE. -1) THEN
            ii = ii + 1
-           kind_numbers(ii) = last
+           ikind_numbers(ii) = last
+        ENDIF
+        last = j
+        IF(j .EQ. -1) EXIT
+     ENDIF
+  ENDDO
+
+  last = -1
+  ir = 0
+  DO i = 1,100
+     j = SELECTED_REAL_KIND(i)
+     IF(j .NE. last) THEN
+        IF(last .NE. -1) THEN
+           ir = ir + 1
+           rkind_numbers(ir) = last
         ENDIF
         last = j
         IF(j .EQ. -1) EXIT
@@ -75,19 +89,20 @@ WRITE(*,'(40(A,/))') &
 '!  configure time',& 
 '!',&
 '! COPYRIGHT',&
-'!  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *',&
-'!  *  Copyright by the Board of Trustees of the University of Illinois.        *',&
-'!  *  All rights reserved.                                                     *',&
-'!  *                                                                           *',&
-'!  *  This file is part of HDF5.  The full HDF5 copyright notice, including    *',&
-'!  *  terms governing use, modification, and redistribution, is contained in   *',&
-'!  *  the files COPYING and Copyright.html.  COPYING can be found at the root  *',&
-'!  *  of the source code distribution tree; Copyright.html can be found at the *',&
-'!  *  root level of an installed copy of the electronic HDF5 document set and  *',&
-'!  *  is linked from the top-level documents page.  It can also be found at    *',&
-'!  *  http://hdf.ncsa.uiuc.edu/HDF5/doc/Copyright.html.  If you do not have    *',&
-'!  *  access to either file, you may request a copy from hdfhelp@ncsa.uiuc.edu.*',&
-'!  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *',&
+'! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *',&
+'!   Copyright by The HDF Group.                                               *',&
+'!   Copyright by the Board of Trustees of the University of Illinois.         *',&
+'!   All rights reserved.                                                      *',&
+'!                                                                             *',&
+'!   This file is part of HDF5.  The full HDF5 copyright notice, including     *',&
+'!   terms governing use, modification, and redistribution, is contained in    *',&
+'!   the files COPYING and Copyright.html.  COPYING can be found at the root   *',&
+'!   of the source code distribution tree; Copyright.html can be found at the  *',&
+'!   root level of an installed copy of the electronic HDF5 document set and   *',&
+'!   is linked from the top-level documents page.  It can also be found at     *',&
+'!   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *',&
+'!   access to either file, you may request a copy from help@hdfgroup.org.     *',&
+'! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *',&
 '!',&
 '! AUTHOR',&
 '!  H5test_kind_SIZEOF.f90',&
@@ -104,8 +119,12 @@ WRITE(*,'(40(A,/))') &
   jd = 0
   WRITE(*, "("" CALL d"", i2.2,""()"")") jd
   DO i = 1, ii
-     j = kind_numbers(i)
+     j = ikind_numbers(i)
      WRITE(*, "("" CALL i"", i2.2,""()"")") j
+  ENDDO
+  DO i = 1, ir
+     j = rkind_numbers(i)
+     WRITE(*, "("" CALL r"", i2.2,""()"")") j
   ENDDO
   WRITE(*,*) "END PROGRAM int_kind"
   j = 0
@@ -142,7 +161,7 @@ WRITE(*,'(40(A,/))') &
   WRITE(*,*)"   RETURN"
   WRITE(*,*)"END SUBROUTINE"
   DO i = 1, ii
-     j = kind_numbers(i)
+     j = ikind_numbers(i)
      WRITE(*, "("" SUBROUTINE i"", i2.2,""()"")") j
      WRITE(*,*)"   IMPLICIT NONE"
      WRITE(*,*)"   INTEGER(",j,") :: a"
@@ -151,6 +170,19 @@ WRITE(*,'(40(A,/))') &
      WRITE(*,*)"   a_size = SIZEOF(a)"
      WRITE(*,*)"   WRITE(ichr2,'(I2)') a_size"
      WRITE(*,*)'   WRITE(*,*) "#define H5_FORTRAN_HAS_INTEGER_"'//"//ADJUSTL(ichr2)"
+     WRITE(*,*)"   RETURN"
+     WRITE(*,*)"END SUBROUTINE"
+  ENDDO
+  DO i = 1, ir
+     j = rkind_numbers(i)
+     WRITE(*, "("" SUBROUTINE r"", i2.2,""()"")") j
+     WRITE(*,*)"   IMPLICIT NONE"
+     WRITE(*,*)"   REAL(KIND=",j,") :: a"
+     WRITE(*,*)"   INTEGER :: a_size"
+     WRITE(*,*)"   CHARACTER(LEN=2) :: ichr2"
+     WRITE(*,*)"   a_size = SIZEOF(a)"
+     WRITE(*,*)"   WRITE(ichr2,'(I2)') a_size"
+     WRITE(*,*)'   WRITE(*,*) "#define H5_FORTRAN_HAS_REAL_"'//"//ADJUSTL(ichr2)"
      WRITE(*,*)"   RETURN"
      WRITE(*,*)"END SUBROUTINE"
   ENDDO

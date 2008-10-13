@@ -40,7 +40,7 @@ initCfile(void)
 {
   fprintf(c_header,
     "/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n\
-* Copyright by the Board of Trustees of the University of Illinois.         *\n\
+ * Copyright by the Board of Trustees of the University of Illinois.         *\n\
  * All rights reserved.                                                      *\n\
  *                                                                           *\n\
  * This file is part of HDF5.  The full HDF5 copyright notice, including     *\n\
@@ -111,12 +111,6 @@ void writeFloatTypedef(const char* c_type, unsigned int size)
   fprintf(c_header, "#define c_float_%d %s\n", size, c_type);
 }
 
-/* Define a c_double_x type in the C header */
-void writeDoubleTypedef(const char* c_type, unsigned int size)
-{
-  fprintf(c_header, "#define c_double_%d %s\n", size, c_type);
-}
-
 /* Call this function if there is no matching C type for sizes > 1 */
 void writeTypedefDefault(unsigned int size)
 {
@@ -140,15 +134,6 @@ void writeFloatToFiles(const char* fortran_type, const char* c_type, unsigned in
   fprintf(c_header, "typedef c_float_%d %s;\n", size, c_type);
 }
 
-/* Create matching Fortran and C floating types by writing to both files */
-void writeDoubleToFiles(const char* fortran_type, const char* c_type, unsigned int size)
-{
-  fprintf(fort_header, "        INTEGER, PARAMETER :: %s = %d\n", fortran_type, size);
-
-  fprintf(c_header, "typedef c_double_%d %s;\n", size, c_type);
-}
-
-
 int main()
 {
   /* Open target files */
@@ -157,8 +142,7 @@ int main()
 
   int FoundIntSize[4];
   int FoundRealSize[3];
-  int FoundDoubleSize[2];
-  int i,j, flag;
+  int i,j,flag;
   char chrA[20],chrB[20];
 
   /* Write copyright, boilerplate to both files */
@@ -224,7 +208,7 @@ int main()
 
   /* Define c_float_x */
 
-#if defined H5_FORTRAN_HAS_REAL_NATIVE_4
+#if defined H5_FORTRAN_HAS_REAL_NATIVE_4 || defined H5_FORTRAN_HAS_REAL_4
   if(sizeof(long double) == 4)
     writeFloatTypedef("long double", 4);
   else if(sizeof(double) == 4)
@@ -238,7 +222,7 @@ int main()
    }
 #endif /*H5_FORTRAN_HAS_REAL_NATIVE_4*/
 
-#if defined H5_FORTRAN_HAS_REAL_NATIVE_8
+#if defined H5_FORTRAN_HAS_REAL_NATIVE_8 || defined H5_FORTRAN_HAS_REAL_8
   if(sizeof(long double) == 8)
     writeFloatTypedef("long double", 8);
   else if(sizeof(double) == 8)
@@ -252,7 +236,7 @@ int main()
    }
 #endif /*H5_FORTRAN_HAS_REAL_NATIVE_8*/
 
-#if defined H5_FORTRAN_HAS_REAL_NATIVE_16
+#if defined H5_FORTRAN_HAS_REAL_NATIVE_16 || defined H5_FORTRAN_HAS_REAL_16
   if(sizeof(long double) == 16)
     writeFloatTypedef("long double", 16);
   else if(sizeof(double) == 16)
@@ -265,36 +249,6 @@ int main()
      return -1;
    }
 #endif /*H5_FORTRAN_HAS_REAL_NATIVE_16*/
-
-  /* Define c_double_x */
-
-#if defined H5_FORTRAN_HAS_DOUBLE_NATIVE_8
-  if(sizeof(long double) == 8)
-    writeDoubleTypedef("long double", 8);
-  else if(sizeof(double) == 8)
-   writeDoubleTypedef("double", 8);
-  else if(sizeof(float) == 8)
-   writeDoubleTypedef("float", 8);
-  else
-   { printf("Fortran DOUBLE is 16 bytes, no corresponding C floating type\n");
-     printf("Quitting....\n");
-     return -1;
-   }
-#endif /*H5_FORTRAN_HAS_DOUBLE_NATIVE_8*/
-
-#if defined H5_FORTRAN_HAS_DOUBLE_NATIVE_16
-  if(sizeof(long double) == 16)
-    writeDoubleTypedef("long double", 16);
-  else if(sizeof(double) == 16)
-   writeDoubleTypedef("double", 16);
-  else if(sizeof(float) == 16)
-   writeDoubleTypedef("float", 16);
-  else
-   { printf("Fortran DOUBLE is 16 bytes, no corresponding C floating type\n");
-     printf("Quitting....\n");
-     return -1;
-   }
-#endif /*H5_FORTRAN_HAS_DOUBLE_NATIVE_16*/
 
   /* Now begin defining fortran types. */
   fprintf(c_header, "\n");
@@ -448,35 +402,22 @@ int main()
     FoundRealSize[1] = -8;
     FoundRealSize[2] = -16;
 
-#if defined H5_FORTRAN_HAS_REAL_NATIVE_4
+#if defined H5_FORTRAN_HAS_REAL_4
     FoundRealSize[0] = 4;
 #endif
-#if defined H5_FORTRAN_HAS_REAL_NATIVE_8
+#if defined H5_FORTRAN_HAS_REAL_8
     FoundRealSize[1] = 8;
 #endif
-#if defined H5_FORTRAN_HAS_DOUBLE_NATIVE_8
-    FoundRealSize[1] = 8;
-#endif
-#if defined H5_FORTRAN_HAS_REAL_NATIVE_16
-    FoundRealSize[2] = 16;
-#endif
-#if defined H5_FORTRAN_HAS_DOUBLE_NATIVE_16
+#if defined H5_FORTRAN_HAS_REAL_16
     FoundRealSize[2] = 16;
 #endif
 
     for(i=0;i<3;i++) {
       if( FoundRealSize[i] > 0) /* Found the real type */
 	{
-	  if(FoundRealSize[i]>4) {
-	    sprintf(chrA, "Fortran_REAL_%d", FoundRealSize[i]);
-	    sprintf(chrB, "real_%d_f", FoundRealSize[i]);
-	    writeDoubleToFiles(chrA, chrB, FoundRealSize[i]);
-	  }
-	  else {
-	    sprintf(chrA, "Fortran_REAL_%d", FoundRealSize[i]);
-	    sprintf(chrB, "real_%d_f", FoundRealSize[i]);
-	    writeFloatToFiles(chrA, chrB, FoundRealSize[i]);
-	  }
+	  sprintf(chrA, "Fortran_REAL_%d", FoundRealSize[i]);
+	  sprintf(chrB, "real_%d_f", FoundRealSize[i]);
+	  writeFloatToFiles(chrA, chrB, FoundRealSize[i]);
 	}
       else  /* Did not find the real type */
 	{
@@ -488,12 +429,12 @@ int main()
 		  sprintf(chrA, "Fortran_REAL_%d", (-1)*FoundRealSize[i]);
 		  sprintf(chrB, "real_%d_f", (-1)*FoundRealSize[i]);
 		  if(FoundRealSize[j]>4) {
-		    writeDoubleToFiles(chrA, chrB, FoundRealSize[j]);
+		    writeFloatToFiles(chrA, chrB, FoundRealSize[j]);
 		    flag = 1;
 		  }
-		  else {
-		    writeFloatToFiles(chrA, chrB, FoundRealSize[j]);
-		  }
+		/*   else { */
+/* 		    writeFloatToFiles(chrA, chrB, FoundRealSize[j]); */
+/* 		  } */
 		  flag = 1;
 		  break;
 		}
@@ -507,11 +448,11 @@ int main()
 		      sprintf(chrA, "Fortran_REAL_%d", (-1)*FoundRealSize[i]);
 		      sprintf(chrB, "real_%d_f", (-1)*FoundRealSize[i]);
 		      if(FoundRealSize[j]>4) {
-			writeDoubleToFiles(chrA, chrB, FoundRealSize[j]);
-		      }
-		      else {
 			writeFloatToFiles(chrA, chrB, FoundRealSize[j]);
 		      }
+		     /*  else { */
+/* 			writeFloatToFiles(chrA, chrB, FoundRealSize[j]); */
+/* 		      } */
 		      flag = 1;
 		      break;
 		    }
@@ -554,9 +495,9 @@ int main()
 
   /* double_f */
 #if defined H5_FORTRAN_HAS_DOUBLE_NATIVE_16
-      writeDoubleToFiles("Fortran_DOUBLE", "double_f", 16);
+      writeFloatToFiles("Fortran_DOUBLE", "double_f", 16);
 #elif defined H5_FORTRAN_HAS_DOUBLE_NATIVE_8
-      writeDoubleToFiles("Fortran_DOUBLE", "double_f", 8);
+      writeFloatToFiles("Fortran_DOUBLE", "double_f", 8);
 #else
     /* Error: couldn't find a size for real_f */
     return -1;
