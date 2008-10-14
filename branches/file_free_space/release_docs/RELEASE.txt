@@ -50,6 +50,9 @@ New Features
 
     Library:
     --------
+    - Added two new public routines: H5Pget_elink_fapl() and
+      H5Pset_elink_fapl(). (see bug #1247) (VC - 2008/10/13)
+    - Improved free space tracking in file to be faster. (QAK - 2008/10/06)
     - Added 'mounted' field to H5G_info_t struct. (QAK - 2008/07/15)
 
     Parallel Library:
@@ -93,6 +96,9 @@ New Features
          the same. (PVN - 2008/08/26)
      - h5ls: added capability to traverse through external links when the -r
          (recursive) flag is given. (NAF - 2008/09/16)
+     - h5ls: added -E option to enable traversal of external links.  h5ls will
+         not traverse external links without this flag being set.
+         (NAF - 2008/10/06)
 
 
 
@@ -111,6 +117,14 @@ Bug Fixes since HDF5-1.8.0 release
 
     Library
     -------
+      - Corrected error with family/split/multi VFD not updating driver info
+            when "latest" version of the file format used. (QAK - 2008/10/14)
+      - Corrected alignment+threshold errors to work correctly when metadata
+            aggregation is enabled. (QAK - 2008/10/06)
+      - Changed H5Fget_obj_count and H5Fget_obj_ids to ignore objects registered
+            by the library for internal library use.  (NAF - 2008/10/06)
+      - Fixed potential memory leak during compound conversion.
+            (NAF - 2008/10/06)
       - Changed the return value of H5Fget_obj_count from INT to SSIZE_T. Also
             changed the return value of H5Fget_obj_ids from HERR_T to SSIZE_T and
             the type of the parameter MAX_OBJS from INT to SIZE_T. (SLU - 2008/09/26) 
@@ -153,12 +167,17 @@ Bug Fixes since HDF5-1.8.0 release
 
     Configuration
     -------------
+    - "make DESTDIR=xxx install" failed to install some tools and files
+      (e.g., h5cc and fortran modules). Fixed. AKC - 2008/10/8.
 
     Performance
     -------------
 
     Tools
     -----
+	- Fixed bugs in h5stat:segmemtation fault when printing groups and
+          print warning message when traversal of objects is unsuccessful.
+          (see bug #1253) (VC- 2008/10/13)
         - Fixed bug in h5ls that prevented relative group listings (like
             "h5ls foo.h5/bar") from working correctly (QAK - 2008/06/03)
         - Fixed bug in h5diff that prevented datasets & attributes with
