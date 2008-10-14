@@ -2791,7 +2791,9 @@ main(void)
         goto error;
     puts("All free-space tests passed.");
 
+#ifdef OUT
     h5_cleanup(FILENAME, fapl);
+#endif
     return (0);
 
 error:
