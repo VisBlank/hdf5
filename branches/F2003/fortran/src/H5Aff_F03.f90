@@ -633,32 +633,11 @@ CONTAINS
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
     CHARACTER(LEN=*),INTENT(IN) :: buf ! Attribute data 
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
-
-    INTEGER :: i
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
-
     TYPE(C_PTR) :: f_ptr
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    DO i = 1, chr_len
-       chr(i) = buf(i:i)
-    ENDDO
-
-    f_ptr = C_LOC(chr)
+    f_ptr = C_LOC(buf(1:1))
 
     hdferr = h5awrite_f_c(attr_id, memtype_id, f_ptr)
-
-    DEALLOCATE(chr)
 
   END SUBROUTINE h5awrite_char_scalar
 
@@ -671,39 +650,13 @@ CONTAINS
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims     ! Array to story buf dimension sizes 
     CHARACTER(LEN=*), INTENT(IN), DIMENSION(dims(1)) :: buf ! Attribute data 
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
-
-    INTEGER :: i1,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
-
     TYPE(C_PTR) :: f_ptr
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*dims(1)), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i1 = 1, dims(1)
-       DO j = 1, chr_len
-          k = k + 1
-          chr(k) = buf(i1)(j:j)
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
+    f_ptr = C_LOC(buf(1)(1:1))
 
     hdferr = h5awrite_f_c(attr_id, memtype_id, f_ptr)
 
-    DEALLOCATE(chr)
-
   END SUBROUTINE h5awrite_char_1
-
 
   SUBROUTINE h5awrite_char_2(attr_id, memtype_id,  buf, dims, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
@@ -715,41 +668,12 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(IN), &
          DIMENSION(dims(1),dims(2)) :: buf  ! Attribute data 
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
-
-    INTEGER :: i1,i2,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
-
     TYPE(C_PTR) :: f_ptr
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*SUM(dims(1:2))), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i2 = 1, dims(2)
-       DO i1 = 1, dims(1)
-          DO j = 1, chr_len
-             k = k + 1
-             chr(k) = buf(i1,i2)(j:j)
-          ENDDO
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
-
+    f_ptr = C_LOC(buf(1,1)(1:1))
     hdferr = h5awrite_f_c(attr_id, memtype_id, f_ptr)
 
-    DEALLOCATE(chr)
-
   END SUBROUTINE h5awrite_char_2
-
 
   SUBROUTINE h5awrite_char_3(attr_id, memtype_id,  buf, dims, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
@@ -761,43 +685,13 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3)) :: buf ! Attribute data 
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
-
-    INTEGER :: i1,i2,i3,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
-
     TYPE(C_PTR) :: f_ptr
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*SUM(dims(1:3))), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i3 = 1, dims(3)
-       DO i2 = 1, dims(2)
-          DO i1 = 1, dims(1)
-             DO j = 1, chr_len
-                k = k + 1
-                chr(k) = buf(i1,i2,i3)(j:j)
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
+    f_ptr = C_LOC(buf(1,1,1)(1:1))
 
     hdferr = h5awrite_f_c(attr_id, memtype_id, f_ptr)
 
-    DEALLOCATE(chr)
-
   END SUBROUTINE h5awrite_char_3
-
 
   SUBROUTINE h5awrite_char_4(attr_id, memtype_id,  buf, dims, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
@@ -809,45 +703,13 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4)) :: buf ! Attribute data 
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
-
-    INTEGER :: i1,i2,i3,i4,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
-
     TYPE(C_PTR) :: f_ptr
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*SUM(dims(1:4))), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i4 = 1, dims(4)
-       DO i3 = 1, dims(3)
-          DO i2 = 1, dims(2)
-             DO i1 = 1, dims(1)
-                DO j = 1, chr_len
-                   k = k + 1
-                   chr(k) = buf(i1,i2,i3,i4)(j:j)
-                ENDDO
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
+    f_ptr = C_LOC(buf(1,1,1,1)(1:1))
 
     hdferr = h5awrite_f_c(attr_id, memtype_id, f_ptr)
 
-    DEALLOCATE(chr)
-
   END SUBROUTINE h5awrite_char_4
-
 
   SUBROUTINE h5awrite_char_5(attr_id, memtype_id,  buf, dims, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
@@ -859,44 +721,12 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) :: buf ! Attribute data 
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
-
-    INTEGER :: i1,i2,i3,i4,i5,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
-
     TYPE(C_PTR) :: f_ptr
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*SUM(dims(1:5))), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i5 = 1, dims(5)
-       DO i4 = 1, dims(4)
-          DO i3 = 1, dims(3)
-             DO i2 = 1, dims(2)
-                DO i1 = 1, dims(1)
-                   DO j = 1, chr_len
-                      k = k + 1
-                      chr(k) = buf(i1,i2,i3,i4,i5)(j:j)
-                   ENDDO
-                ENDDO
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
+    f_ptr = C_LOC(buf(1,1,1,1,1)(1:1))
 
     hdferr = h5awrite_f_c(attr_id, memtype_id, f_ptr)
 
-    DEALLOCATE(chr)
   END SUBROUTINE h5awrite_char_5
 
 
@@ -911,101 +741,28 @@ CONTAINS
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)) :: buf
     ! Attribute data 
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
-
-    INTEGER :: i1,i2,i3,i4,i5,i6,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
-
     TYPE(C_PTR) :: f_ptr
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*SUM(dims(1:6))), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i6 = 1, dims(6)
-       DO i5 = 1, dims(5)
-          DO i4 = 1, dims(4)
-             DO i3 = 1, dims(3)
-                DO i2 = 1, dims(2)
-                   DO i1 = 1, dims(1)
-                      DO j = 1, chr_len
-                         k = k + 1
-                         chr(k) = buf(i1,i2,i3,i4,i5,i6)(j:j)
-                      ENDDO
-                   ENDDO
-                ENDDO
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
+    f_ptr = C_LOC(buf(1,1,1,1,1,1)(1:1))
 
     hdferr = h5awrite_f_c(attr_id, memtype_id, f_ptr)
 
-    DEALLOCATE(chr)
   END SUBROUTINE h5awrite_char_6
-
 
   SUBROUTINE h5awrite_char_7(attr_id, memtype_id,  buf, dims, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier 
+    INTEGER(HID_T), INTENT(IN) :: attr_id    ! Attribute identifier 
     INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
-    ! identifier  (in memory)
+                                             ! identifier  (in memory)
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
     CHARACTER(LEN=*), INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)) :: buf ! Attribute data 
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
-
-    INTEGER :: i1,i2,i3,i4,i5,i6,i7,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
-
     TYPE(C_PTR) :: f_ptr
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*SUM(dims(1:7))), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i7 = 1, dims(7)
-       DO i6 = 1, dims(6)
-          DO i5 = 1, dims(5)
-             DO i4 = 1, dims(4)
-                DO i3 = 1, dims(3)
-                   DO i2 = 1, dims(2)
-                      DO i1 = 1, dims(1)
-                         DO j = 1, chr_len
-                            k = k + 1
-                            chr(k) = buf(i1,i2,i3,i4,i5,i6,i7)(j:j)
-                         ENDDO
-                      ENDDO
-                   ENDDO
-                ENDDO
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
-
+    f_ptr = C_LOC(buf(1,1,1,1,1,1,1)(1:1))
     hdferr = h5awrite_f_c(attr_id, memtype_id, f_ptr)
-
-    DEALLOCATE(chr)
 
   END SUBROUTINE h5awrite_char_7
 
@@ -1498,35 +1255,11 @@ CONTAINS
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims ! Array to story buf dimension sizes 
     CHARACTER(LEN=*), INTENT(INOUT) :: buf ! Attribute data 
     INTEGER, INTENT(OUT) :: hdferr         ! Error code
-
-    INTEGER :: i
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
-
     TYPE(C_PTR) :: f_ptr
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    DO i = 1, chr_len
-       chr(i) = buf(i:i)
-    ENDDO
-
-    f_ptr = C_LOC(chr)
+ 
+    f_ptr = C_LOC(buf(1:1))
 
     hdferr = h5aread_f_c(attr_id, memtype_id, f_ptr)
-
-    DO i = 1, chr_len
-       buf(i:i) = chr(i)
-    ENDDO
-
-    DEALLOCATE(chr)
 
   END SUBROUTINE h5aread_char_scalar
 
@@ -1540,44 +1273,11 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(INOUT), &
          DIMENSION(dims(1)), TARGET :: buf ! Attribute data 
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
-
-    INTEGER :: i1,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
-
     TYPE(C_PTR) :: f_ptr
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*dims(1)), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i1 = 1, dims(1)
-       DO j = 1, chr_len
-          k = k + 1
-          chr(k) = buf(i1)(j:j)
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
-
+    f_ptr = C_LOC(buf(1)(1:1))
     hdferr = h5aread_f_c(attr_id, memtype_id, f_ptr)
 
-    k = 0
-    DO i1 = 1, dims(1)
-       DO j = 1, chr_len
-          k = k + 1
-          buf(i1)(j:j) = chr(k)
-       ENDDO
-    ENDDO
-
-    DEALLOCATE(chr)
   END SUBROUTINE h5aread_char_1
 
 
@@ -1590,48 +1290,12 @@ CONTAINS
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
     CHARACTER(LEN=*), INTENT(INOUT), &
          DIMENSION(dims(1),dims(2)) :: buf  ! Attribute data 
-    INTEGER, INTENT(OUT) :: hdferr          ! Error code
-
-    INTEGER :: i1,i2,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
-
+    INTEGER, INTENT(OUT) :: hdferr
     TYPE(C_PTR) :: f_ptr
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*SUM(dims(1:2))), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i2 = 1, dims(2)
-       DO i1 = 1, dims(1)
-          DO j = 1, chr_len
-             k = k + 1
-             chr(k) = buf(i1,i2)(j:j)
-          ENDDO
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
-
+    f_ptr = C_LOC(buf(1,1)(1:1))
     hdferr = h5aread_f_c(attr_id, memtype_id, f_ptr)
-    k = 0
-    DO i2 = 1, dims(2)
-       DO i1 = 1, dims(1)
-          DO j = 1, chr_len
-             k = k + 1
-             buf(i1,i2)(j:j) = chr(k)
-          ENDDO
-       ENDDO
-    ENDDO
 
-    DEALLOCATE(chr)
   END SUBROUTINE h5aread_char_2
 
 
@@ -1640,120 +1304,35 @@ CONTAINS
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier 
     INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
-    ! identifier  (in memory)
+                                             ! identifier  (in memory)
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
     CHARACTER(LEN=*), INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3)) :: buf ! Attribute data 
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
-
-    INTEGER :: i1,i2,i3,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
-
     TYPE(C_PTR) :: f_ptr
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*SUM(dims(1:3))), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i3 = 1, dims(3)
-       DO i2 = 1, dims(2)
-          DO i1 = 1, dims(1)
-             DO j = 1, chr_len
-                k = k + 1
-                chr(k) = buf(i1,i2,i3)(j:j)
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
-
+    f_ptr = C_LOC(buf(1,1,1)(1:1))
     hdferr = h5aread_f_c(attr_id, memtype_id, f_ptr)
 
-    k = 0
-    DO i3 = 1, dims(3)
-       DO i2 = 1, dims(2)
-          DO i1 = 1, dims(1)
-             DO j = 1, chr_len
-                k = k + 1
-                buf(i1,i2,i3)(j:j) = chr(k)
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    DEALLOCATE(chr)
   END SUBROUTINE h5aread_char_3
-
 
   SUBROUTINE h5aread_char_4(attr_id, memtype_id,  buf, dims, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier 
     INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype 
-    ! identifier  (in memory)
+                                             ! identifier  (in memory)
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes 
     CHARACTER(LEN=*), INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4)) :: buf ! Attribute data 
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
-
-    INTEGER :: i1,i2,i3,i4,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
-
     TYPE(C_PTR) :: f_ptr
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*SUM(dims(1:4))), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i4 = 1, dims(4)
-       DO i3 = 1, dims(3)
-          DO i2 = 1, dims(2)
-             DO i1 = 1, dims(1)
-                DO j = 1, chr_len
-                   k = k + 1
-                   chr(k) = buf(i1,i2,i3,i4)(j:j)
-                ENDDO
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
+    f_ptr = C_LOC(buf(1,1,1,1)(1:1))
 
     hdferr = h5aread_f_c(attr_id, memtype_id, f_ptr)
-    k = 0
-    DO i4 = 1, dims(4)
-       DO i3 = 1, dims(3)
-          DO i2 = 1, dims(2)
-             DO i1 = 1, dims(1)
-                DO j = 1, chr_len
-                   k = k + 1
-                   buf(i1,i2,i3,i4)(j:j) = chr(k)
-                ENDDO
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-    DEALLOCATE(chr)
-  END SUBROUTINE h5aread_char_4
 
+  END SUBROUTINE h5aread_char_4
 
   SUBROUTINE h5aread_char_5(attr_id, memtype_id,  buf, dims, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
@@ -1765,60 +1344,11 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) :: buf ! Attribute data 
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
-
-    INTEGER :: i1,i2,i3,i4,i5,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
-
     TYPE(C_PTR) :: f_ptr
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*SUM(dims(1:5))), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i5 = 1, dims(5)
-       DO i4 = 1, dims(4)
-          DO i3 = 1, dims(3)
-             DO i2 = 1, dims(2)
-                DO i1 = 1, dims(1)
-                   DO j = 1, chr_len
-                      k = k + 1
-                      chr(k) = buf(i1,i2,i3,i4,i5)(j:j)
-                   ENDDO
-                ENDDO
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
-
+    f_ptr = C_LOC(buf(1,1,1,1,1)(1:1))
     hdferr = h5aread_f_c(attr_id, memtype_id, f_ptr)
 
-    k = 0
-    DO i5 = 1, dims(5)
-       DO i4 = 1, dims(4)
-          DO i3 = 1, dims(3)
-             DO i2 = 1, dims(2)
-                DO i1 = 1, dims(1)
-                   DO j = 1, chr_len
-                      k = k + 1
-                      buf(i1,i2,i3,i4,i5)(j:j) = chr(k)
-                   ENDDO
-                ENDDO
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    DEALLOCATE(chr)
   END SUBROUTINE h5aread_char_5
 
 
@@ -1832,64 +1362,11 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)) :: buf ! Attribute data 
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
-
-    INTEGER :: i1,i2,i3,i4,i5,i6,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
-
     TYPE(C_PTR) :: f_ptr
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*SUM(dims(1:6))), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i6 = 1, dims(6)
-       DO i5 = 1, dims(5)
-          DO i4 = 1, dims(4)
-             DO i3 = 1, dims(3)
-                DO i2 = 1, dims(2)
-                   DO i1 = 1, dims(1)
-                      DO j = 1, chr_len
-                         k = k + 1
-                         chr(k) = buf(i1,i2,i3,i4,i5,i6)(j:j)
-                      ENDDO
-                   ENDDO
-                ENDDO
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
-
+    f_ptr = C_LOC(buf(1,1,1,1,1,1)(1:1))
     hdferr = h5aread_f_c(attr_id, memtype_id, f_ptr)
 
-    k = 0
-    DO i6 = 1, dims(6)
-       DO i5 = 1, dims(5)
-          DO i4 = 1, dims(4)
-             DO i3 = 1, dims(3)
-                DO i2 = 1, dims(2)
-                   DO i1 = 1, dims(1)
-                      DO j = 1, chr_len
-                         k = k + 1
-                         buf(i1,i2,i3,i4,i5,i6)(j:j) = chr(k)
-                      ENDDO
-                   ENDDO
-                ENDDO
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    DEALLOCATE(chr)
   END SUBROUTINE h5aread_char_6
 
 
@@ -1903,67 +1380,10 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)) :: buf ! Attribute data 
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
-
-    INTEGER :: i1,i2,i3,i4,i5,i6,i7,j,k
-    CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
-    INTEGER :: chr_len
-
     TYPE(C_PTR) :: f_ptr
 
-    ! To resolve Issue #1 outlined in the preamble of this file we
-    ! need to pack the character string into an array.
-
-    chr_len = LEN(buf)
-    ALLOCATE(chr(1:chr_len*SUM(dims(1:7))), STAT=hdferr)
-    IF (hdferr .NE. 0) THEN
-       hdferr = -1
-       RETURN
-    ENDIF
-
-    k = 0
-    DO i7 = 1, dims(7)
-       DO i6 = 1, dims(6)
-          DO i5 = 1, dims(5)
-             DO i4 = 1, dims(4)
-                DO i3 = 1, dims(3)
-                   DO i2 = 1, dims(2)
-                      DO i1 = 1, dims(1)
-                         DO j = 1, chr_len
-                            k = k + 1
-                            chr(k) = buf(i1,i2,i3,i4,i5,i6,i7)(j:j)
-                         ENDDO
-                      ENDDO
-                   ENDDO
-                ENDDO
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    f_ptr = C_LOC(chr)
-
+    f_ptr = C_LOC(buf(1,1,1,1,1,1,1)(1:1))
     hdferr = h5aread_f_c(attr_id, memtype_id, f_ptr)
-    k = 0
-    DO i7 = 1, dims(7)
-       DO i6 = 1, dims(6)
-          DO i5 = 1, dims(5)
-             DO i4 = 1, dims(4)
-                DO i3 = 1, dims(3)
-                   DO i2 = 1, dims(2)
-                      DO i1 = 1, dims(1)
-                         DO j = 1, chr_len
-                            k = k + 1
-                            buf(i1,i2,i3,i4,i5,i6,i7)(j:j) = chr(k)
-                         ENDDO
-                      ENDDO
-                   ENDDO
-                ENDDO
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-
-    DEALLOCATE(chr)
 
   END SUBROUTINE h5aread_char_7
 
