@@ -1,4 +1,18 @@
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+!****h* fortran/src/H5_ff.f90
+!
+! NAME
+!   H5LIB
+!
+! FUNCTION
+!   This module provides fortran specific helper functions for the hdf library
+!
+! USES
+!   H5LIB_PROVISIONAL - This module provides helper functions for Fortran 2003 
+!                       only features. If Fortran 2003 functions are enabled then 
+!                       H5_ff_F03.f90 is compiled, else H5_ff_DEPRECIATED.f90,
+!                       which is just a place holder blank module, is compiled. 
+! COPYRIGHT
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
 !   All rights reserved.                                                      *
@@ -11,12 +25,15 @@
 !   is linked from the top-level documents page.  It can also be found at     *
 !   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
+!
+!*****
+
 MODULE H5LIB
 
   USE H5LIB_PROVISIONAL  ! helper functions for Fortran 2003 features:
-                         !       pre-Fortran 2003 - blank file
+                         !       pre-Fortran 2003 - empty module
                          !       Forttran 2003 - contains functions
 
 CONTAINS

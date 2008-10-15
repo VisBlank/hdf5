@@ -1,4 +1,14 @@
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+!****h* fortran/src/H5_ff_DEPRECIATED.f90
+!
+! NAME
+!   H5LIB
+!
+! FUNCTION
+!   This file is a dummy module for when Fortran 2003 features are not enabled.
+!   It is compiled in place of H5_ff_F03.f90.
+!
+! COPYRIGHT
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
 !   All rights reserved.                                                      *
@@ -11,11 +21,10 @@
 !   is linked from the top-level documents page.  It can also be found at     *
 !   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-! This file contains helper functions for Fortran 2003 features. 
-! Only compiled when Fortran 2003 is not specified as the compiler.
-!
+!*****
+
 MODULE H5LIB_PROVISIONAL
 
 

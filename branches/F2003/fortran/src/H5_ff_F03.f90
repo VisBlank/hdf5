@@ -1,4 +1,15 @@
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+!****h* fortran/src/H5_ff_F03.f90
+!
+! NAME
+!   H5LIB
+!
+! FUNCTION
+!   This file contains helper functions for Fortran 2003 features and is
+!   only compiled when Fortran 2003 features are enabled, otherwise
+!   the file H5_ff_DEPRECIATED.f90 is compiled.
+!
+! COPYRIGHT
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
 !   All rights reserved.                                                      *
@@ -11,12 +22,10 @@
 !   is linked from the top-level documents page.  It can also be found at     *
 !   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-!
-! This file contains helper functions for Fortran 2003 features. 
-! Only compiled when Fortran 2003 is specified as the compiler.
-!
+!*****
+
 MODULE H5LIB_PROVISIONAL
 
 CONTAINS
@@ -29,7 +38,7 @@ CONTAINS
 ! Inputs:       start - starting pointer address
 !                 end - ending pointer address
 ! Outputs:  
-!	       offset - offset  
+!	        offset - offset  
 ! Optional parameters:
 !				NONE			
 !
