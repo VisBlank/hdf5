@@ -1,4 +1,14 @@
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+!****h* fortran/src/HDF5mpio.f90
+!
+! NAME
+!   HDF5
+!  
+! FUNCTION
+!   This is the main module used for linking to the Fortran parallel HDF library.
+!   This file is used instead of HDF5.f90 when compiling the parallel library.
+!
+! COPYRIGHT
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
 !   All rights reserved.                                                      *
@@ -11,8 +21,10 @@
 !   is linked from the top-level documents page.  It can also be found at     *
 !   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
+!*****
+
 MODULE HDF5
   USE H5GLOBAL
   USE H5F

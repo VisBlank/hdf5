@@ -1,4 +1,16 @@
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+!****h* fortran/src/H5Aff_F03.f90
+!
+! NAME
+!   H5A_PROVISIONAL
+!
+! FUNCTION
+!   This file contains Fortran 90 and Fortran 2003 interfaces for H5A functions. 
+!   It contains the same functions as H5Aff_DEPRECIATED.f90 but includes the 
+!   Fortran 2003 functions and the interface listings. This file will be compiled 
+!   instead of H5Aff_DEPRECIATED.f90 if Fortran 2003 functions are enabled.
+!
+! COPYRIGHT
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
 !   All rights reserved.                                                      *
@@ -11,42 +23,46 @@
 !   is linked from the top-level documents page.  It can also be found at     *
 !   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
+! NOTES
 !
-! This file contains Fortran2003 interfaces for H5A functions.
+! (A) C_LOC and character strings according to the Fortran 2003 standard:
 !
-! ISSUE #1 C_LOC and character strings according to the Fortran 2003 standard:
+!     15.1.2.5 C_LOC(X)
 !
-! 15.1.2.5 C_LOC(X)
+!         Argument. X shall either  
 !
-!       Argument. X shall either  
+!       (1) have interoperable type and type parameters and be
+!           (a) a variable that has the TARGET attribute and is interoperable,
+!           (b) an allocated allocatable variable that has the TARGET attribute 
+!               and is not an array of zero size, or
+!           (c) an associated scalar pointer, or
+!       (2) be a nonpolymorphic scalar, have no length type parameters, and be
+!           (a) a nonallocatable, nonpointer variable that has the TARGET attribute,
+!           (b) an allocated allocatable variable that has the TARGET attribute, or
+!           (c) an associated pointer.
 !
-!     (1) have interoperable type and type parameters and be
-!         (a) a variable that has the TARGET attribute and is interoperable,
-!         (b) an allocated allocatable variable that has the TARGET attribute 
-!              and is not an array of zero size, or
-!         (c) an associated scalar pointer, or
-!     (2) be a nonpolymorphic scalar, have no length type parameters, and be
-!         (a) a nonallocatable, nonpointer variable that has the TARGET attribute,
-!         (b) an allocated allocatable variable that has the TARGET attribute, or
-!         (c) an associated pointer.
+!     - When X is a character, for interoperability the standard is:
 !
-! - When X is a character, for interoperability the standard is:
-!
-! 15.2.1 Interoperability of intrinsic types
+!     15.2.1 Interoperability of intrinsic types
 ! 
-!  ...if the type is character, interoperability also requires that the length type parameter 
-!     be omitted or be specified by an initialization expression whose value is one. 
+!       ...if the type is character, interoperability also requires that the length type parameter 
+!       be omitted or be specified by an initialization expression whose value is one. 
 !
-! CONCLUSION:
+!     THEREFORE compilers that have not extended the standard  require
 !
-! Therefore compilers that have not extended the standard (gfortran and Sun fortran) require
+!      CHARACTER(LEN=1), TARGET :: chr
+!        or
+!      CHARACTER, TARGET :: chr
 !
-! CHARACTER(LEN=1), TARGET :: chr
-!  or
-! CHARACTER, TARGET :: chr
+! (B) 
+!                          *** IMPORTANT ***
+!   If you add a new H5A function you must add the function name to the 
+!   Windows dll file 'hdf5_fortrandll.def' in the fortran/src directory.
+!   This is needed for Windows based operating systems.
 !
+!*****
 
 MODULE H5A_PROVISIONAL
 

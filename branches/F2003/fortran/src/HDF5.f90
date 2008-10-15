@@ -4,8 +4,7 @@
 !   HDF5
 !  
 ! FUNCTION
-!   This module is the main module used for linking to the Fortran HDF library. 
-!
+!   This is the main module used for linking to the Fortran HDF library. 
 !
 ! COPYRIGHT
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

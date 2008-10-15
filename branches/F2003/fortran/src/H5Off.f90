@@ -1,4 +1,16 @@
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+!****h* fortran/src/H5Off.f90
+!
+! NAME
+!   H5O
+!  
+! FUNCTION
+!   This file contains Fortran interfaces for H5O functions. It includes
+!   all the functions that are independent on whether the Fortran 2003 functions
+!   are enabled or disabled.
+!   
+!
+! COPYRIGHT
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
 !   All rights reserved.                                                      *
@@ -11,11 +23,16 @@
 !   is linked from the top-level documents page.  It can also be found at     *
 !   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
+! NOTES
+!                          *** IMPORTANT ***
+!   If you add a new H5O function you must add the function name to the 
+!   Windows dll file 'hdf5_fortrandll.def' in the fortran/src directory.
+!   This is needed for Windows based operating systems.
 !
-! This file contains Fortran90 interfaces for H5O functions.
-!
+!*****
+
 MODULE H5O
        
   USE H5GLOBAL

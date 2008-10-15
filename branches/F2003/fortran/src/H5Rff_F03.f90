@@ -1,4 +1,16 @@
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+!****h* fortran/src/H5Rff_F03.f90
+!
+! NAME
+!   H5R_PROVISIONAL
+!
+! FUNCTION
+!   This file contains Fortran 90 and Fortran 2003 interfaces for H5R functions. 
+!   It contains the same functions as H5Rff_DEPRECIATE.f90 but includes the 
+!   Fortran 2003 functions and the interface listings. This file will be compiled 
+!   instead of H5Rff_DEPRECIATE.f90 if Fortran 2003 functions are enabled.
+!
+! COPYRIGHT
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
 !   All rights reserved.                                                      *
@@ -11,11 +23,15 @@
 !   is linked from the top-level documents page.  It can also be found at     *
 !   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
+! NOTES 
+!                          *** IMPORTANT ***
+!   If you add a new H5R function you must add the function name to the 
+!   Windows dll file 'hdf5_fortrandll.def' in the fortran/src directory.
+!   This is needed for Windows based operating systems.
 !
-! This file contains Fortran90 interfaces for H5R functions.
-! 
+!*****
 MODULE H5R_PROVISIONAL
   USE H5GLOBAL
 

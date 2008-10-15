@@ -1,4 +1,16 @@
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+!****h* fortran/src/H5Dff_DEPRECIATED.f90
+!
+! NAME
+!   H5D_PROVISIONAL
+!  
+! FUNCTION
+!   This file contains Fortran 90 interfaces for H5D functions. It contains
+!   the same functions as H5Dff_F03.f90 but excludes the Fortran 2003 functions
+!   and the interface listings. This file will be compiled instead of H5Dff_F03.f90
+!   if Fortran 2003 functions are not enabled.
+!
+! COPYRIGHT
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
 !   All rights reserved.                                                      *
@@ -11,24 +23,29 @@
 !   is linked from the top-level documents page.  It can also be found at     *
 !   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
+! NOTES
+!   (1) The maximum rank of an array allowed in Fortran is 7, therefore 
+!       we only provide an interface for arrays up to and including rank 7.
+!       
+!   (2) Unfortunately we are using a generic interface and one of the factors
+!       used in determining the proper routine to select is that of the array 
+!       rank being passed, therefore we can not create just one subroutine for
+!       each array type (integer, real, etc...) of various ranks and then use a 
+!       rank 1 array of assumed size in the just one subroutine, 
+!                      (i.e. integer, dimension(*) :: ... )
+!                      (i.e. real   , dimension(*) :: ... ) etc...
 !
-! This file contains Fortran90 interfaces for H5D functions.
-! 
+!  (3)
+!                           *** IMPORTANT ***
+!       If you add a new H5D function you must add the function name to the 
+!       Windows dll file 'hdf5_fortrandll.def' in the fortran/src directory.
+!       This is needed for Windows based operating systems.
+!*****
+
 MODULE H5D_PROVISIONAL
   USE H5GLOBAL
-
-! NOTES: (1) The maximum rank of an array allowed in Fortran is 7, therefore 
-!            we only provide an interface for arrays up to and including rank 7.
-!       
-!        (2) Unfortunately we are using a generic interface and one of the factors
-!            used in determining the proper routine to select is that of the array 
-!            rank being passed, therefore we can not create just one subroutine for
-!            each array type (integer, real, etc...) of various ranks and then use a 
-!            rank 1 array of assumed size in the just one subroutine, 
-!                          (i.e. integer, dimension(*) :: ... )
-!                          (i.e. real   , dimension(*) :: ... ) etc...
 
   INTERFACE h5dwrite_f
 

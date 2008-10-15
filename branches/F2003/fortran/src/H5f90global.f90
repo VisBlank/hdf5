@@ -10,7 +10,7 @@
 !   Fortran equivalent C stubs.
 !
 ! NOTES
-!   The size of the C arrays in H5_f.c have to match the values of the variables 
+!   The size of the C arrays in H5_f.c has to match the values of the variables 
 !   declared as PARAMETER, hence if the size of an array in H5_f.c is changed
 !   then the PARAMETER of that corresponding array in Fortran must also be changed.
 !

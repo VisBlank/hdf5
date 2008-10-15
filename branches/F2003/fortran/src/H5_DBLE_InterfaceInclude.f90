@@ -9,10 +9,6 @@
 !   DOUBLE PRECISION since this would lead to a non-unique conflict with the
 !   generic interfaces declared as REAL. Otherwise it is okay to include the interfaces.
 !
-! NOTES
-!   This module contains all the DOUBLE PRECISION interfaces and corresponding subroutines 
-!   from the HDF function catagory H5A, H5D and H5P.
-!
 ! COPYRIGHT
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
 !   Copyright by The HDF Group.                                               *
@@ -29,8 +25,15 @@
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
 !
-! AUTHOR
-!  M.S. Breitenfeld
+! NOTES
+!   (1) This module contains all the DOUBLE PRECISION interfaces and corresponding subroutines 
+!       from the HDF function catagory H5A, H5D and H5P.
+!
+!   (2)
+!                           *** IMPORTANT ***
+!       If you add a new H5A, H5D, H5P function you must add the function name to the 
+!       Windows dll file 'hdf5_fortrandll.def' in the fortran/src directory.
+!       This is needed for Windows based operating systems.
 !
 !*****
 

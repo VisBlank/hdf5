@@ -1,4 +1,13 @@
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+!****h* fortran/src/H5Fff.f90
+!
+! NAME
+!   H5F
+!  
+! FUNCTION
+!   This file contains Fortran interfaces for H5F functions.
+!
+! COPYRIGHT
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
 !   All rights reserved.                                                      *
@@ -11,11 +20,16 @@
 !   is linked from the top-level documents page.  It can also be found at     *
 !   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
+! NOTES
+!                          *** IMPORTANT ***
+!   If you add a new H5F function you must add the function name to the 
+!   Windows dll file 'hdf5_fortrandll.def' in the fortran/src directory.
+!   This is needed for Windows based operating systems.
 !
-! This file contains Fortran90 interfaces for H5F functions.
-! 
+!*****
+
       MODULE H5F
       USE H5GLOBAL
  
