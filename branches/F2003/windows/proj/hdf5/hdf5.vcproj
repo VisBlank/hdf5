@@ -1719,6 +1719,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\H5EAsblock.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\H5EAstat.c"
 				>
 			</File>
@@ -1855,6 +1859,10 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\src\H5Faccum.c"
+				>
 			</File>
 			<File
 				RelativePath="..\..\..\src\H5FD.c"
@@ -2039,6 +2047,10 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\src\H5FDint.c"
+				>
 			</File>
 			<File
 				RelativePath="..\..\..\src\H5FDlog.c"
@@ -2443,6 +2455,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\src\H5Fio.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\H5FL.c"
 				>
 				<FileConfiguration
@@ -2531,6 +2547,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\src\H5Fmpi.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\H5FO.c"
 				>
 				<FileConfiguration
@@ -2575,6 +2595,10 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\src\H5Fquery.c"
+				>
 			</File>
 			<File
 				RelativePath="..\..\..\src\H5FS.c"
@@ -2787,6 +2811,14 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\src\H5FSstat.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\H5FStest.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\H5Fsuper.c"
 				>
 				<FileConfiguration
@@ -2957,6 +2989,10 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\src\H5Gcache.c"
+				>
 			</File>
 			<File
 				RelativePath="..\..\..\src\H5Gcompact.c"
@@ -4277,6 +4313,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\src\H5HGcache.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\H5HGdbg.c"
 				>
 				<FileConfiguration
@@ -4367,6 +4407,10 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\src\H5HLcache.c"
+				>
 			</File>
 			<File
 				RelativePath="..\..\..\src\H5HLdbg.c"
@@ -4635,6 +4679,18 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\src\H5MFaggr.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\H5MFdbg.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\H5MFsection.c"
+				>
 			</File>
 			<File
 				RelativePath="..\..\..\src\H5MM.c"

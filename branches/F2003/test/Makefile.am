@@ -42,7 +42,7 @@ TEST_PROG=testhdf5 lheap ohdr stab gheap cache cache_api \
            fillval mount flush1 flush2 app_ref enum \
            set_extent ttsafe \
            getname vfd ntypes dangle dtransform reserved cross_read \
-	   btree2 fheap earray
+           freespace mf earray btree2 fheap
 
 # List programs to be built when testing here. error_test and err_compat are
 # built at the same time as the other tests, but executed by testerror.sh.
@@ -104,7 +104,7 @@ flush2.chkexe_: flush1.chkexe_
 # the temporary file name in ways that the makefile is not aware of.
 CHECK_CLEANFILES+=cmpd_dset.h5 compact_dataset.h5 dataset.h5 dset_offset.h5 \
             max_compact_dataset.h5 simple.h5 set_local.h5 random_chunks.h5 \
-            huge_chunks.h5 extend.h5 istore.h5 \
+            huge_chunks.h5 extend.h5 istore.h5 extlinks*.h5 frspace.h5 links*.h5 \
             tfile[1-4].h5 th5s[1-3].h5 lheap.h5 fheap.h5 ohdr.h5 stab.h5 \
             extern_[1-3].h5 extern_[1-4][ab].raw gheap[0-4].h5 dt_arith[1-2] \
             links.h5 links[0-6]*.h5 extlinks[0-15].h5 tmp \

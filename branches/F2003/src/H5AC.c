@@ -493,6 +493,7 @@ static const char * H5AC_entry_type_names[H5AC_NTYPES] =
     "shared OH message index",
     "extensible array headers",
     "extensible array index blocks",
+    "extensible array super blocks",
     "extensible array data blocks",
     "test entry"	/* for testing only -- not used for actual files */
 };
@@ -834,7 +835,9 @@ done:
  *
  * Modifications:
  *
- *		None.
+ *		Added 'flags' paramater, to allow freeing file space
+ *
+ *						    QAK - 2/5/08
  *
  *-------------------------------------------------------------------------
  */
@@ -842,15 +845,16 @@ herr_t
 H5AC_expunge_entry(H5F_t *f,
 		   hid_t dxpl_id,
 		   const H5AC_class_t *type,
-		   haddr_t addr)
+		   haddr_t addr,
+                   unsigned flags)
 {
     herr_t   result;
-    herr_t   ret_value=SUCCEED;      /* Return value */
     H5AC_t * cache_ptr = NULL;
 #if H5AC__TRACE_FILE_ENABLED
     char                trace[128] = "";
     FILE *              trace_file_ptr = NULL;
 #endif /* H5AC__TRACE_FILE_ENABLED */
+    herr_t   ret_value = SUCCEED;      /* Return value */
 
     FUNC_ENTER_NOAPI(H5AC_expunge_entry, FAIL)
 
@@ -884,7 +888,8 @@ H5AC_expunge_entry(H5F_t *f,
                                H5AC_noblock_dxpl_id,
                                cache_ptr,
                                type,
-                               addr);
+                               addr,
+                               flags);
 
     if ( result < 0 ) {
 
@@ -1282,6 +1287,10 @@ H5AC_set(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type, haddr_t addr, void *
     HDassert(type->size);
     HDassert(H5F_addr_defined(addr));
     HDassert(thing);
+
+    /* Check for invalid access request */
+    if(0 == (f->intent & H5F_ACC_RDWR))
+	HGOTO_ERROR(H5E_CACHE, H5E_BADVALUE, FAIL, "no write intent on file")
 
 #if H5AC__TRACE_FILE_ENABLED
     /* For the insert, only the addr, size, type id and flags are really
@@ -3133,6 +3142,7 @@ H5AC_validate_config(H5AC_cache_config_t * config_ptr)
 
     if ( ( config_ptr->evictions_enabled == FALSE ) &&
 	 ( ( config_ptr->incr_mode != H5C_incr__off ) ||
+	   ( config_ptr->flash_incr_mode != H5C_flash_incr__off ) ||
 	   ( config_ptr->incr_mode != H5C_decr__off ) ) ) {
 
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, \

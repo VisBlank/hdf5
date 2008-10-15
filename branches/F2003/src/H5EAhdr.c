@@ -209,17 +209,17 @@ HDfprintf(stderr, "%s: hdr->nsblks = %Zu\n", FUNC, hdr->nsblks);
     start_idx = 0;
     start_dblk = 0;
     for(u = 0; u < hdr->nsblks; u++) {
-        hdr->sblk_info[u].ndblks = (hsize_t)H5_EXP2(u / 2);
+        hdr->sblk_info[u].ndblks = (size_t)H5_EXP2(u / 2);
         hdr->sblk_info[u].dblk_nelmts = (size_t)H5_EXP2((u + 1) / 2) * hdr->cparam.data_blk_min_elmts;
         hdr->sblk_info[u].start_idx = start_idx;
         hdr->sblk_info[u].start_dblk = start_dblk;
 #ifdef QAK
-HDfprintf(stderr, "%s: hdr->sblk_info[%Zu] = {%Hu, %Zu, %Hu, %Hu}\n", FUNC, u, hdr->sblk_info[u].ndblks, hdr->sblk_info[u].dblk_nelmts, hdr->sblk_info[u].start_idx, hdr->sblk_info[u].start_dblk);
+HDfprintf(stderr, "%s: hdr->sblk_info[%Zu] = {%Zu, %Zu, %Hu, %Hu}\n", FUNC, u, hdr->sblk_info[u].ndblks, hdr->sblk_info[u].dblk_nelmts, hdr->sblk_info[u].start_idx, hdr->sblk_info[u].start_dblk);
 #endif /* QAK */
 
         /* Advance starting indices for next super block */
-        start_idx += hdr->sblk_info[u].ndblks * hdr->sblk_info[u].dblk_nelmts;
-        start_dblk += hdr->sblk_info[u].ndblks;
+        start_idx += (hsize_t)hdr->sblk_info[u].ndblks * (hsize_t)hdr->sblk_info[u].dblk_nelmts;
+        start_dblk += (hsize_t)hdr->sblk_info[u].ndblks;
     } /* end for */
 
     /* Set size of header on disk */
@@ -614,12 +614,8 @@ HDfprintf(stderr, "%s: hdr->idx_blk_addr = %a\n", FUNC, hdr->idx_blk_addr);
             H5E_THROW(H5E_CANTDELETE, "unable to delete extensible array index block")
     } /* end if */
 
-    /* Release header's disk space */
-    if(H5MF_xfree(hdr->f, H5FD_MEM_EARRAY_HDR, dxpl_id, hdr->addr, (hsize_t)hdr->size) < 0)
-        H5E_THROW(H5E_CANTFREE, "unable to release extensible array header")
-
     /* Finished deleting header */
-    if(H5AC_unprotect(hdr->f, dxpl_id, H5AC_EARRAY_HDR, hdr->addr, hdr, H5AC__DIRTIED_FLAG | H5AC__DELETED_FLAG) < 0)
+    if(H5AC_unprotect(hdr->f, dxpl_id, H5AC_EARRAY_HDR, hdr->addr, hdr, H5AC__DIRTIED_FLAG | H5AC__DELETED_FLAG | H5AC__FREE_FILE_SPACE_FLAG) < 0)
         H5E_THROW(H5E_CANTUNPROTECT, "unable to release extensible array header")
     hdr = NULL;
 

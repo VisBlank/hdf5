@@ -387,19 +387,17 @@ HDfprintf(stderr, "%s: Called\n", FUNC);
         for(u = 0; u < iblock->nsblk_addrs; u++) {
             /* Check for data block existing */
             if(H5F_addr_defined(iblock->sblk_addrs[u])) {
-HDfprintf(stderr, "%s: Deleting super blocks not supported yet!\n", FUNC);
-HDassert(0 && "Deleting super blocks not supported!");
+                /* Delete super block */
+                if(H5EA__sblock_delete(hdr, dxpl_id, iblock->sblk_addrs[u], (unsigned)(u + iblock->nsblks)) < 0)
+                    H5E_THROW(H5E_CANTDELETE, "unable to delete extensible array super block")
+                iblock->sblk_addrs[u] = HADDR_UNDEF;
             } /* end if */
         } /* end for */
     } /* end if */
 
-    /* Release index block's disk space */
-    if(H5MF_xfree(hdr->f, H5FD_MEM_EARRAY_IBLOCK, dxpl_id, hdr->idx_blk_addr, (hsize_t)iblock->size) < 0)
-        H5E_THROW(H5E_CANTFREE, "unable to free extensible array index block")
-
 CATCH
     /* Finished deleting index block in metadata cache */
-    if(iblock && H5EA__iblock_unprotect(iblock, dxpl_id, H5AC__DIRTIED_FLAG | H5AC__DELETED_FLAG) < 0)
+    if(iblock && H5EA__iblock_unprotect(iblock, dxpl_id, H5AC__DIRTIED_FLAG | H5AC__DELETED_FLAG | H5AC__FREE_FILE_SPACE_FLAG) < 0)
         H5E_THROW(H5E_CANTUNPROTECT, "unable to release extensible array index block")
 
 END_FUNC(PKG)   /* end H5EA__iblock_delete() */
