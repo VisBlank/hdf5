@@ -1,7 +1,7 @@
-!****h* fortran/src/H5Dff.f90
+!****h* fortran/src/H5FDmpioff.f90
 !
 ! NAME
-!   H5D
+!   H5FDMPIO
 !  
 ! FUNCTION
 !   This file contains Fortran interfaces for H5P functions needed by 
