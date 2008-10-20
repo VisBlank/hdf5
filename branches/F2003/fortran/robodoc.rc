@@ -1,0 +1,22 @@
+options:
+    --src ./src
+    --doc ./doc/DevelGuide
+    --html
+    --multidoc
+    --index
+    --nodesc
+    --tabsize 8
+    --sections
+    --sectionnameonly
+    --documenttitle "HDF5 FORTRAN Developer's Guide"
+    --cmode		
+ignore files:
+    .svn
+    *~
+    *.o
+    *e
+    *.mod
+accept files:
+    *.c
+    *.f90
+    *.h
