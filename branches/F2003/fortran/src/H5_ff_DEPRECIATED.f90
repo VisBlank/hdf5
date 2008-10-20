@@ -1,4 +1,4 @@
-!****h* fortran/src/H5_ff_DEPRECIATED.f90
+!****h* root/fortran/src/H5_ff_DEPRECIATED.f90
 !
 ! NAME
 !   H5LIB

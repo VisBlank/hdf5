@@ -1,4 +1,4 @@
-!****h* fortran/src/H5test_kind.f90
+!****h* root/fortran/src/H5test_kind.f90
 !
 ! NAME
 !  H5test_kind
@@ -75,7 +75,7 @@ PROGRAM test_kind
 ! Generate program information:
 
 WRITE(*,'(40(A,/))') &
-'!****h* fortran/src/H5fortran_detect.f90',&
+'!****h* root/fortran/src/H5fortran_detect.f90',&
 '!',&
 '! NAME',&
 '!  H5fortran_detect',&

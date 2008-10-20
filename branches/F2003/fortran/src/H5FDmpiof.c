@@ -1,4 +1,4 @@
-/****h* fortran/src/H5Dmpiof.c
+/****h* root/fortran/src/H5Dmpiof.c
  *
  * FUNCTION
  *   This file contains C stubs for Parallel Fortran APIs

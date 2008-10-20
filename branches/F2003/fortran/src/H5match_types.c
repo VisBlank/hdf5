@@ -1,4 +1,4 @@
-/****h* fortran/src/H5match_types.c
+/****h* root/fortran/src/H5match_types.c
  *
  * FUNCTION
  *  C Program to match C types to Fortran types.

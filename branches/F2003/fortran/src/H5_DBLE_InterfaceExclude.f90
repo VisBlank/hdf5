@@ -1,4 +1,4 @@
-!****h* fortran/src/H5_DBLE_InterfaceExclude.f90
+!****h* root/fortran/src/H5_DBLE_InterfaceExclude.f90
 !
 ! NAME
 !   H5_DBLE_INTERFACE

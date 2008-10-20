@@ -1,4 +1,4 @@
-!****h* fortran/src/H5_DBLE_InterfaceInclude.f90
+!****h* root/fortran/src/H5_DBLE_InterfaceInclude.f90
 !
 ! NAME
 !   H5_DBLE_INTERFACE
@@ -32,7 +32,7 @@
 !   (2)
 !                           *** IMPORTANT ***
 !       If you add a new H5A, H5D, H5P function you must add the function name to the 
-!       Windows dll file 'hdf5_fortrandll.def' in the fortran/src directory.
+!       Windows dll file 'hdf5_fortrandll.def' in the root/fortran/src directory.
 !       This is needed for Windows based operating systems.
 !
 !*****

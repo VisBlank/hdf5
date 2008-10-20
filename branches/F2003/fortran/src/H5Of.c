@@ -1,4 +1,4 @@
-/****h* fortran/src/H5Of.c
+/****h* root/fortran/src/H5Of.c
  * FUNCTION
  *   This file contains C stubs for H5O Fortran APIs
  *

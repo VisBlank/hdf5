@@ -1,4 +1,4 @@
-!****h* fortran/src/H5_ff.f90
+!****h* root/fortran/src/H5_ff.f90
 !
 ! NAME
 !   H5LIB
@@ -30,7 +30,7 @@
 ! NOTES
 !                          *** IMPORTANT ***
 !   If you add a new function you must add the function name to the 
-!   Windows dll file 'hdf5_fortrandll.def' in the fortran/src directory.
+!   Windows dll file 'hdf5_fortrandll.def' in the root/fortran/src directory.
 !   This is needed for Windows based operating systems.
 !
 !*****

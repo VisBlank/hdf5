@@ -1,4 +1,4 @@
-!****h* fortran/src/H5Aff_F03.f90
+!****h* root/fortran/src/H5Aff_F03.f90
 !
 ! NAME
 !   H5A_PROVISIONAL
@@ -59,7 +59,7 @@
 ! (B) 
 !                          *** IMPORTANT ***
 !   If you add a new H5A function you must add the function name to the 
-!   Windows dll file 'hdf5_fortrandll.def' in the fortran/src directory.
+!   Windows dll file 'hdf5_fortrandll.def' in the root/fortran/src directory.
 !   This is needed for Windows based operating systems.
 !
 !*****

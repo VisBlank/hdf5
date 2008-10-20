@@ -1,4 +1,4 @@
-/****h* fortran/src/H5f90kit.c
+/****h* root/fortran/src/H5f90kit.c
  * FUNCTION
  *   Routines from HDF4 to deal with C-FORTRAN issues:
  *
