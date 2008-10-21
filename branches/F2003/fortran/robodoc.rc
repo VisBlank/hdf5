@@ -1,10 +1,57 @@
+items:
+ NAME
+ COPYRIGHT
+ SYNOPSIS
+ USAGE 
+ FUNCTION
+ DESCRIPTION
+ PURPOSE
+ AUTHOR 
+ CREATION DATE
+ MODIFICATION HISTORY
+ HISTORY 
+ INPUTS 
+ ARGUMENTS
+ OPTIONS 
+ PARAMETERS
+ SWITCHES
+ OUTPUT 
+ SIDE EFFECTS
+ RESULT
+ RETURN VALUE 
+ EXAMPLE
+ NOTES
+ DIAGNOSTICS 
+ WARNINGS 
+ ERRORS
+ BUGS
+ TODO
+ IDEAS 
+ PORTABILITY
+ SEE ALSO 
+ METHODS
+ NEW METHODS
+ ATTRIBUTES
+ NEW ATTRIBUTES
+ TAGS
+ DERIVED FROM
+ DERIVED BY 
+ USES
+ CHILDREN 
+ USED BY
+ PARENTS
+ COMMANDS
+ SOURCE
+ CONTAINS SUBROUTINES
+ignore items:
+ COPYRIGHT
 options:
-    --src ./src
+    --nogeneratedwith	
+    --src ./
     --doc ./doc/DevelGuide
     --html
     --multidoc
     --index
-    --nodesc
     --tabsize 8
     --sections
     --sectionnameonly
