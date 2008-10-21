@@ -1,4 +1,13 @@
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+!****h* root/fortran/test/tH5S.f90
+!
+! NAME
+!  tH5S.f90
+!
+! FUNCTION
+!  Basic testing of Fortran H5S, Dataspace Interface, APIs.
+!
+! COPYRIGHT
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
 !   All rights reserved.                                                      *
@@ -11,19 +20,20 @@
 !   is linked from the top-level documents page.  It can also be found at     *
 !   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-!
-! 
-!    Testing Dataspace Interface functionality.
-!
-!
-!   The following subroutine tests the following functionalities:
+! NOTES
+!  Tests the following functionalities:
 !   h5screate_f, h5scopy_f, h5screate_simple_f, h5sis_simple_f,   
 !   h5sget_simple_extent_dims_f,h5sget_simple_extent_ndims_f 
 !   h5sget_simple_extent_npoints_f, h5sget_simple_extent_type_f,
 !   h5sextent_copy_f, h5sset_extent_simple_f, h5sset_extent_none_f     
 !
+! CONTAINS SUBROUTINES
+!  dataspace_basic_test
+!
+!*****
+
         SUBROUTINE dataspace_basic_test(cleanup, total_error)
 
         USE HDF5 ! This module contains all necessary modules 

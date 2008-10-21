@@ -1,4 +1,16 @@
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+!****h* root/fortran/test/fflush2.f90
+!
+! NAME
+!  fflush2.f90
+!
+! FUNCTION
+!  This is the second half of a two-part test that makes sure
+!  that a file can be read after an application crashes as long
+!  as the file was flushed first.  This half tries to read the
+!  file created by the first half.
+!
+! COPYRIGHT
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
 !   All rights reserved.                                                      *
@@ -11,14 +23,9 @@
 !   is linked from the top-level documents page.  It can also be found at     *
 !   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-!
-! Purpose:	This is the second half of a two-part test that makes sure
-!		that a file can be read after an application crashes as long
-!		as the file was flushed first.  This half tries to read the
-!		file created by the first half.
-!
+!*****
 
      PROGRAM FFLUSH2EXAMPLE
 

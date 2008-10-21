@@ -1,4 +1,13 @@
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+!****h* root/fortran/test/tH5R.f90
+!
+! NAME
+!  tH5R.f90
+!
+! FUNCTION
+!  Basic testing of Fortran H5R, Reference Interface, APIs.
+!
+! COPYRIGHT
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
 !   All rights reserved.                                                      *
@@ -11,14 +20,16 @@
 !   is linked from the top-level documents page.  It can also be found at     *
 !   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
+! NOTES
+!  Tests h5rcreate_f, h5rdereference_f, h5rget_name_f 
+!  and H5Rget_object_type functions
 !
-! 
-!    Testing Reference Interface functionality.
+! CONTAINS SUBROUTINES
+!  refobjtest, refregtest 
 !
-!    The following subroutine tests h5rcreate_f, h5rdereference_f, h5rget_name_f
-!    and H5Rget_object_type functions
+!*****
 !
 SUBROUTINE refobjtest(cleanup, total_error)
   USE HDF5 ! This module contains all necessary modules 

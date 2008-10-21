@@ -1,4 +1,14 @@
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+!****h* root/fortran/test/fortranlib_test_F03.f90
+!
+! NAME
+!  fortranlib_test_F03.f90
+!
+! FUNCTION
+!  Basic testing of Fortran API's that require Fortran 2003
+!  compliance.
+!
+! COPYRIGHT
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
 !   All rights reserved.                                                      *
@@ -11,12 +21,10 @@
 !   is linked from the top-level documents page.  It can also be found at     *
 !   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-!
-! 
-!    Testing Fortran functionality.
-!
+!*****
+
 PROGRAM fortranlibtest
   
   USE HDF5
@@ -25,12 +33,16 @@ PROGRAM fortranlibtest
   INTEGER :: total_error = 0
   INTEGER :: error
   INTEGER :: majnum, minnum, relnum
-  LOGICAL :: cleanup = .TRUE.
-! LOGICAL :: cleanup = .FALSE.
   LOGICAL :: szip_flag
   INTEGER :: ret_total_error
+  LOGICAL :: cleanup, status
 
-  CALL h5open_f(error) 
+  CALL h5open_f(error)
+
+  cleanup = .TRUE.
+  CALL h5_env_nocleanup_f(status)
+  IF(status) cleanup=.FALSE.
+
   WRITE(*,*) '                       ==============================                            '
   WRITE(*,*) '                              FORTRAN 2003 tests '
   WRITE(*,*) '                       ==============================                            '

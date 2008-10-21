@@ -1,4 +1,13 @@
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+!****h* root/fortran/test/tH5D.f90
+!
+! NAME
+!  tH5D.f90
+!
+! FUNCTION
+!  Basic testing of Fortran H5D APIs.
+!
+! COPYRIGHT
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
 !   All rights reserved.                                                      *
@@ -11,16 +20,19 @@
 !   is linked from the top-level documents page.  It can also be found at     *
 !   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!
+! NOTES
+!  Tests the H5D APIs functionalities of:
+!   h5dcreate_f, h5dopen_f, h5dclose_f, h5dget_space_f, h5dget_type_f,
+!   h5dread_f, and h5dwrite_f
 !
 !
-! 
-!    Testing Dataset Interface functionality.
+! CONTAINS SUBROUTINES
+!  datasettest, extenddsettest
 !
-!
-!    The following subroutine tests the following functionalities:
-!    h5dcreate_f, h5dopen_f, h5dclose_f, h5dget_space_f, h5dget_type_f,
-!    h5dread_f, and h5dwrite_f
+!*****
+
 !
         SUBROUTINE datasettest(cleanup, total_error)
         USE HDF5 ! This module contains all necessary modules 

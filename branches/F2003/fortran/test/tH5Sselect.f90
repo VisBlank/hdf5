@@ -1,4 +1,13 @@
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+!****h* root/fortran/test/tH5Sselect.f90
+!
+! NAME
+!  tH5Sselect.f90
+!
+! FUNCTION
+!  Basic testing of Fortran H5S, Selection-related Dataspace Interface, APIs.
+!
+! COPYRIGHT
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
 !   All rights reserved.                                                      *
@@ -11,20 +20,22 @@
 !   is linked from the top-level documents page.  It can also be found at     *
 !   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-! 
-!    Testing Selection-related Dataspace Interface functionality.
-!
-
-!
-!    The following subroutines tests the following functionalities:
+! NOTES
+!  Tests the following functionalities:
 !    h5sget_select_npoints_f, h5sselect_elements_f, h5sselect_all_f,
 !    h5sselect_none_f, h5sselect_valid_f, h5sselect_hyperslab_f,
 !    h5sget_select_bounds_f, h5sget_select_elem_pointlist_f,
 !    h5sget_select_elem_npoints_f, h5sget_select_hyper_blocklist_f, 
-!    h5sget_select_hyper_nblocks_f, h5sget_select_npoints_f
+!    h5sget_select_hyper_nblocks_f, h5sget_select_npoints_f   
 !
+! CONTAINS SUBROUTINES
+!  test_select_hyperslab, test_select_element, test_basic_select,
+!  test_select_point, test_select_combine, test_select_bounds
+!  
+!
+!*****
 
   SUBROUTINE test_select_hyperslab(cleanup, total_error)
 
