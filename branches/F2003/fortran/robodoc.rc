@@ -43,8 +43,12 @@ items:
  COMMANDS
  SOURCE
  CONTAINS SUBROUTINES
+ OPTIONAL PARAMETERS
+ FILE
 ignore items:
  COPYRIGHT
+headertypes:
+ s Subroutines robo_subroutines
 options:
     --nogeneratedwith	
     --src ./
