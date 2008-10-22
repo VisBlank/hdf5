@@ -17,13 +17,15 @@
 <a class="menuitem" href="../toc_index.html#top">Table of Contents</a>
 <a class="menuitem" href="../robo_sourcefiles.html#top">Sourcefiles</a>
 <a class="menuitem" href="../masterindex.html#top">Index</a>
+<a class="menuitem" href="../robo_functions.html#top">Functions</a>
 <a class="menuitem" href="../robo_modules.html#top">Modules</a>
+<a class="menuitem" href="../robo_programs.html#top">Programs</a>
 <a class="menuitem" href="../robo_subroutines.html#top">Subroutines</a>
 </div> <!-- navigation -->
 <div id="content">
 <hr />
 <a name="ROBODoc2fH5E"></a>
-<a name="robo74"></a><h2>H5E</h2>
+<a name="robo49"></a><h2>H5E</h2>
 
 <p>[ <a href="#robo_top_of_doc">Top</a> ] [ <a href="../robo_modules.html#robo_top_of_doc">Modules</a> ]</p>
 <p class="item_name">NAME</p>
@@ -38,15 +40,15 @@
 <p class="item_name">NOTES</p>
 <pre>                          *** IMPORTANT ***
    If you add a new <strong>H5E</strong> function to the module you must add the function name 
-   to the Windows dll file 'hdf5_fortrandll.def' in the root/fortran/src directory.
+   to the Windows dll file 'hdf5_fortrandll.def' in the ROBODoc directory.
    This is needed for Windows based operating systems.
 </pre>
 
 <hr />
 <a name="H5E2fh5eclear5ff"></a>
-<a name="robo75"></a><h2>h5eclear_f</h2>
+<a name="robo76"></a><h2>h5eclear_f</h2>
 
-<p>[ <a href="#robo_top_of_doc">Top</a> ] [ <a href="#robo74">H5E</a> ] [ <a href="../robo_subroutines.html#robo_top_of_doc">Subroutines</a> ]</p>
+<p>[ <a href="#robo_top_of_doc">Top</a> ] [ <a href="#robo49">H5E</a> ] [ <a href="../robo_subroutines.html#robo_top_of_doc">Subroutines</a> ]</p>
 <p class="item_name">NAME</p>
 <pre>   <strong>h5eclear_f</strong>
 </pre>
@@ -75,9 +77,9 @@
 
 <hr />
 <a name="H5E2fh5eget5fmajor5ff"></a>
-<a name="robo76"></a><h2>h5eget_major_f</h2>
+<a name="robo77"></a><h2>h5eget_major_f</h2>
 
-<p>[ <a href="#robo_top_of_doc">Top</a> ] [ <a href="#robo74">H5E</a> ] [ <a href="../robo_subroutines.html#robo_top_of_doc">Subroutines</a> ]</p>
+<p>[ <a href="#robo_top_of_doc">Top</a> ] [ <a href="#robo49">H5E</a> ] [ <a href="../robo_subroutines.html#robo_top_of_doc">Subroutines</a> ]</p>
 <p class="item_name">NAME</p>
 <pre>   <strong>h5eget_major_f</strong>
 </pre>
@@ -116,9 +118,9 @@
 
 <hr />
 <a name="H5E2fh5eget5fminor5ff"></a>
-<a name="robo77"></a><h2>h5eget_minor_f</h2>
+<a name="robo78"></a><h2>h5eget_minor_f</h2>
 
-<p>[ <a href="#robo_top_of_doc">Top</a> ] [ <a href="#robo74">H5E</a> ] [ <a href="../robo_subroutines.html#robo_top_of_doc">Subroutines</a> ]</p>
+<p>[ <a href="#robo_top_of_doc">Top</a> ] [ <a href="#robo49">H5E</a> ] [ <a href="../robo_subroutines.html#robo_top_of_doc">Subroutines</a> ]</p>
 <p class="item_name">NAME</p>
 <pre>   <strong>h5eget_minor_f</strong>
 </pre>
@@ -146,7 +148,7 @@
 </pre>
 <p class="item_name">SOURCE</p>
 <pre class="source">  SUBROUTINE <strong>h5eget_minor_f</strong><span class="sign">(</span>error_no<span class="sign">,</span> name<span class="sign">,</span> hdferr<span class="sign">)</span>
-    INTEGER<span class="sign">,</span> INTENT<span class="sign">(</span>IN<span class="sign">)</span> <span class="sign">:</span><span class="sign">:</span> error_no <span class="sign">!</span>Major error number
+    INTEGER<span class="sign">,</span> INTENT<span class="sign">(</span>IN<span class="sign">)</span> <span class="sign">:</span><span class="sign">:</span> error_no       <span class="sign">!</span> Major error number
     CHARACTER<span class="sign">(</span>LEN<span class="sign">=</span><span class="sign">*</span><span class="sign">)</span><span class="sign">,</span> INTENT<span class="sign">(</span>OUT<span class="sign">)</span> <span class="sign">:</span><span class="sign">:</span> name <span class="sign">!</span> Character string describing
                                           <span class="sign">!</span> the error
     INTEGER<span class="sign">,</span> INTENT<span class="sign">(</span>OUT<span class="sign">)</span> <span class="sign">:</span><span class="sign">:</span> hdferr        <span class="sign">!</span> Error code
@@ -154,9 +156,9 @@
 
 <hr />
 <a name="H5E2fh5eprint5ff"></a>
-<a name="robo78"></a><h2>h5eprint_f</h2>
+<a name="robo79"></a><h2>h5eprint_f</h2>
 
-<p>[ <a href="#robo_top_of_doc">Top</a> ] [ <a href="#robo74">H5E</a> ] [ <a href="../robo_subroutines.html#robo_top_of_doc">Subroutines</a> ]</p>
+<p>[ <a href="#robo_top_of_doc">Top</a> ] [ <a href="#robo49">H5E</a> ] [ <a href="../robo_subroutines.html#robo_top_of_doc">Subroutines</a> ]</p>
 <p class="item_name">NAME</p>
 <pre>   <strong>h5eprint_f</strong>
 </pre>
@@ -170,7 +172,7 @@
 </pre>
 <p class="item_name">OPTIONAL PARAMETERS</p>
 <pre>       name    - name of the file that
-                 contains print output 
+                 contains print output
 </pre>
 <p class="item_name">AUTHOR</p>
 <pre>   Elena Pourmal
@@ -189,9 +191,9 @@
 
 <hr />
 <a name="H5E2fh5eset5fauto5ff"></a>
-<a name="robo79"></a><h2>h5eset_auto_f</h2>
+<a name="robo80"></a><h2>h5eset_auto_f</h2>
 
-<p>[ <a href="#robo_top_of_doc">Top</a> ] [ <a href="#robo74">H5E</a> ] [ <a href="../robo_subroutines.html#robo_top_of_doc">Subroutines</a> ]</p>
+<p>[ <a href="#robo_top_of_doc">Top</a> ] [ <a href="#robo49">H5E</a> ] [ <a href="../robo_subroutines.html#robo_top_of_doc">Subroutines</a> ]</p>
 <p class="item_name">NAME</p>
 <pre>   <strong>h5eset_auto_f</strong>
 </pre>
@@ -229,7 +231,7 @@
 
 </div> <!-- content -->
 <div id="footer">
-<p>Generated from ./src/H5Eff.f90 on Wed Oct 22 2008 11:25:26
+<p>Generated from ./src/H5Eff.f90 on Wed Oct 22 2008 15:34:43
 </p>
 </div> <!-- footer -->
 </body>
