@@ -1,9 +1,10 @@
-!****h* root/fortran/src/H5Pff_DEPRECIATED.f90
+!****h* ROBODoc/H5P (DEPRECIATED)
 !
 ! NAME
 !   H5P_PROVISIONAL
 !  
 ! FUNCTION
+!
 !   This file contains Fortran 90 interfaces for H5P functions. It contains
 !   the same functions as H5Pff_F03.f90 but excludes the Fortran 2003 functions
 !   and the interface listings. This file will be compiled instead of H5Pff_F03.f90
@@ -28,7 +29,7 @@
 ! NOTES
 !                           *** IMPORTANT ***
 !       If you add a new H5P function you must add the function name to the 
-!       Windows dll file 'hdf5_fortrandll.def' in the root/fortran/src directory.
+!       Windows dll file 'hdf5_fortrandll.def' in the ROBODoc directory.
 !       This is needed for Windows based operating systems.
 !*****
 
@@ -73,50 +74,48 @@ MODULE H5P_PROVISIONAL
   END INTERFACE
 
 CONTAINS
-
-  !----------------------------------------------------------------------
-  ! Name:		h5pset(get)fill_value_f 
-  !
-  ! Purpose: 	Sets(gets) fill value for a dataset creation property list
-  !
-  ! Inputs:  
-  !		prp_id		- dataset creation property list identifier
-  !		type_id		- datatype identifier for fill value
-  !		fillvalue	- fill value
-  ! Outputs:  
-  !	(	type_id		- datatype identifier for fill value )
-  !	(		fillvalue	- fill value )
-  !		hdferr:		- error code		
-  !				 	Success:  0
-  !				 	Failure: -1   
-  ! Optional parameters:
-  !				NONE
-  !
-  ! Programmer:	Elena Pourmal
-  !		August 12, 1999	
-  !
-  ! Modifications: 	Explicit Fortran interfaces were added for 
-  !			called C functions (it is needed for Windows
-  !			port).  March 14, 2001 
-  !
-  ! Comment:	h5pset(get)fill_value_f function is overloaded to support
-  !		INTEGER, REAL, DOUBLE PRECISION and CHARACTER dtatypes.		
-  !----------------------------------------------------------------------
-
-
-  SUBROUTINE h5pset_fill_value_integer(prp_id, type_id, fillvalue, &
-       hdferr)
+!
+!****s* H5P (DEPRECIATED)/h5pset(get)fill_value_f 
+!
+! NAME
+!	h5pset(get)fill_value_f 
+!
+! FUNCTION
+! 	Sets(gets) fill value for a dataset creation property list
+!
+! INPUTS  
+!		prp_id		- dataset creation property list identifier
+!		type_id		- datatype identifier for fill value
+!		fillvalue	- fill value
+! OUTPUT  
+!	(	type_id		- datatype identifier for fill value )
+!	(	fillvalue	- fill value )
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1
+! AUTHOR
+!	Elena Pourmal
+!	August 12, 1999	
+!
+! HISTORY
+! 	Explicit Fortran interfaces were added for 
+!	called C functions (it is needed for Windows
+!	port).  March 14, 2001 
+!
+! NOTES	
+!   h5pset(get)fill_value_f function is overloaded to support
+!   INTEGER, REAL, DOUBLE PRECISION and CHARACTER dtatypes.		
+!
+! SOURCE
+  SUBROUTINE h5pset_fill_value_integer(prp_id, type_id, fillvalue, hdferr)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
+    INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of 
-    ! of fillvalue datatype 
-    ! (in memory)
-    INTEGER, INTENT(IN) :: fillvalue   ! Fillvalue
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
-
-    !            INTEGER, EXTERNAL :: h5pset_fill_value_integer_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
+                                          ! of fillvalue datatype 
+                                          ! (in memory)
+    INTEGER, INTENT(IN) :: fillvalue      ! Fillvalue
+    INTEGER, INTENT(OUT) :: hdferr        ! Error code
+!*****
     INTERFACE
        INTEGER FUNCTION h5pset_fill_value_integer_c(prp_id, type_id, fillvalue)
          USE H5GLOBAL
@@ -138,14 +137,11 @@ CONTAINS
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of 
-    ! of fillvalue datatype
-    ! (in memory) 
+                                          ! of fillvalue datatype
+                                          ! (in memory) 
     INTEGER, INTENT(IN) :: fillvalue   ! Fillvalue
     INTEGER, INTENT(OUT) :: hdferr  ! Error code
 
-    !            INTEGER, EXTERNAL :: h5pget_fill_value_integer_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5pget_fill_value_integer_c(prp_id, type_id, fillvalue)
          USE H5GLOBAL
@@ -165,16 +161,13 @@ CONTAINS
   SUBROUTINE h5pset_fill_value_real(prp_id, type_id, fillvalue, &
        hdferr)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
+    INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of 
-    ! of fillvalue datatype 
-    ! (in memory)
+                                          ! of fillvalue datatype 
+                                          ! (in memory)
     REAL, INTENT(IN) :: fillvalue   ! Fillvalue
     INTEGER, INTENT(OUT) :: hdferr  ! Error code
 
-    !            INTEGER, EXTERNAL :: h5pset_fill_value_real_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5pset_fill_value_real_c(prp_id, type_id, fillvalue)
          USE H5GLOBAL
@@ -194,16 +187,13 @@ CONTAINS
   SUBROUTINE h5pget_fill_value_real(prp_id, type_id, fillvalue, &
        hdferr)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
+    INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of 
-    ! of fillvalue datatype
-    ! (in memory) 
+                                          ! of fillvalue datatype
+                                          ! (in memory) 
     REAL, INTENT(IN) :: fillvalue   ! Fillvalue
     INTEGER, INTENT(OUT) :: hdferr  ! Error code
 
-    !            INTEGER, EXTERNAL :: h5pget_fill_value_real_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5pget_fill_value_real_c(prp_id, type_id, fillvalue)
          USE H5GLOBAL
@@ -225,14 +215,11 @@ CONTAINS
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of 
-    ! of fillvalue datatype 
-    ! (in memory)
+                                          ! of fillvalue datatype 
+                                          ! (in memory)
     DOUBLE PRECISION, INTENT(IN) :: fillvalue   ! Fillvalue
     INTEGER, INTENT(OUT) :: hdferr  ! Error code
 
-    !            INTEGER, EXTERNAL :: h5pset_fill_value_double_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5pset_fill_value_double_c(prp_id, type_id, fillvalue)
          USE H5GLOBAL
@@ -254,14 +241,11 @@ CONTAINS
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of 
-    ! of fillvalue datatype
-    ! (in memory) 
+                                          ! of fillvalue datatype
+                                          ! (in memory) 
     DOUBLE PRECISION, INTENT(IN) :: fillvalue   ! Fillvalue
     INTEGER, INTENT(OUT) :: hdferr  ! Error code
 
-    !            INTEGER, EXTERNAL :: h5pget_fill_value_double_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5pget_fill_value_double_c(prp_id, type_id, fillvalue)
          USE H5GLOBAL
@@ -280,16 +264,13 @@ CONTAINS
   SUBROUTINE h5pset_fill_value_char(prp_id, type_id, fillvalue, &
        hdferr)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
+    INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of 
-    ! of fillvalue datatype 
-    ! (in memory)
-    CHARACTER, INTENT(IN) :: fillvalue   ! Fillvalue
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+                                          ! of fillvalue datatype 
+                                          ! (in memory)
+    CHARACTER, INTENT(IN) :: fillvalue    ! Fillvalue
+    INTEGER, INTENT(OUT) :: hdferr        ! Error code
 
-    !            INTEGER, EXTERNAL :: h5pset_fill_valuec_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5pset_fill_valuec_c(prp_id, type_id, fillvalue)
          USE H5GLOBAL
@@ -309,16 +290,13 @@ CONTAINS
   SUBROUTINE h5pget_fill_value_char(prp_id, type_id, fillvalue, &
        hdferr)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
+    INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of 
-    ! of fillvalue datatype
-    ! (in memory) 
-    CHARACTER, INTENT(IN) :: fillvalue   ! Fillvalue
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+                                          ! of fillvalue datatype
+                                          ! (in memory) 
+    CHARACTER, INTENT(IN) :: fillvalue    ! Fillvalue
+    INTEGER, INTENT(OUT) :: hdferr        ! Error code
 
-    !            INTEGER, EXTERNAL :: h5pget_fill_valuec_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5pget_fill_valuec_c(prp_id, type_id, fillvalue)
          USE H5GLOBAL
@@ -334,38 +312,36 @@ CONTAINS
 
     hdferr = h5pget_fill_valuec_c(prp_id, type_id, fillvalue)
   END SUBROUTINE h5pget_fill_value_char
-
-
-  !----------------------------------------------------------------------
-  ! Name:		h5pset_integer 
-  !
-  ! Purpose: 	Sets a property list value
-  !
-  ! Inputs:  
-  !		prp_id		- iproperty list identifier to modify
-  !		name 		- name of property to modify
-  !		value		- value to set property to
-  ! Outputs:  
-  !		hdferr:		- error code		
-  !				 	Success:  0
-  !				 	Failure: -1   
-  ! Optional parameters:
-  !				NONE
-  !
-  ! Programmer:	Elena Pourmal
-  !	        October 9, 2002	
-  !
-  ! Modifications: 	
-  !
-  ! Comment:		
-  !----------------------------------------------------------------------
-
+!
+!****s* H5P (DEPRECIATED)/h5pset_integer
+!
+! NAME
+!  h5pset_integer 
+!
+! FUNCTION 	
+!  Sets a property list value
+!
+! INPUTS  
+!		prp_id		- iproperty list identifier to modify
+!		name 		- name of property to modify
+!		value		- value to set property to
+! OUTPUT  
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1
+!
+! AUTHOR
+!	Elena Pourmal
+!	October 9, 2002	
+!
+! SOURCE
   SUBROUTINE h5pset_integer(prp_id, name, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
-    INTEGER,   INTENT(IN) :: value ! Property value
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+    INTEGER, INTENT(IN) :: value          ! Property value
+    INTEGER, INTENT(OUT) :: hdferr        ! Error code
+!*****
     INTEGER :: name_len
 
     INTERFACE
@@ -386,36 +362,35 @@ CONTAINS
     hdferr = h5pset_integer_c(prp_id, name , name_len, value)
   END SUBROUTINE h5pset_integer
 
-  !----------------------------------------------------------------------
-  ! Name:		h5pset_real
-  !
-  ! Purpose: 	Sets a property list value
-  !
-  ! Inputs:  
-  !		prp_id		- iproperty list identifier to modify
-  !		name 		- name of property to modify
-  !		value		- value to set property to
-  ! Outputs:  
-  !		hdferr:		- error code		
-  !				 	Success:  0
-  !				 	Failure: -1   
-  ! Optional parameters:
-  !				NONE
-  !
-  ! Programmer:	Elena Pourmal
-  !	        October 9, 2002	
-  !
-  ! Modifications: 	
-  !
-  ! Comment:		
-  !----------------------------------------------------------------------
-
+!
+!****s* H5P (DEPRECIATED)/h5pset_real
+!
+! NAME
+!  h5pset_real
+!
+! FUNCTION 	
+!  Sets a property list value
+!
+! INPUTS  
+!		prp_id		- iproperty list identifier to modify
+!		name 		- name of property to modify
+!		value		- value to set property to
+! OUTPUT  
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1
+! AUTHOR
+!  Elena Pourmal
+!  October 9, 2002	
+!	
+!SOURCE
   SUBROUTINE h5pset_real(prp_id, name, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
-    REAL,   INTENT(IN) :: value ! Property value
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+    REAL, INTENT(IN) :: value             ! Property value
+    INTEGER, INTENT(OUT) :: hdferr        ! Error code
+!*****
     INTEGER :: name_len
 
     INTERFACE
@@ -436,36 +411,37 @@ CONTAINS
     hdferr = h5pset_real_c(prp_id, name , name_len, value)
   END SUBROUTINE h5pset_real
 
-  !----------------------------------------------------------------------
-  ! Name:		h5pset_double
-  !
-  ! Purpose: 	Sets a property list value
-  !
-  ! Inputs:  
-  !		prp_id		- iproperty list identifier to modify
-  !		name 		- name of property to modify
-  !		value		- value to set property to
-  ! Outputs:  
-  !		hdferr:		- error code		
-  !				 	Success:  0
-  !				 	Failure: -1   
-  ! Optional parameters:
-  !				NONE
-  !
-  ! Programmer:	Elena Pourmal
-  !	        October 9, 2002	
-  !
-  ! Modifications: 	
-  !
-  ! Comment:		
-  !----------------------------------------------------------------------
-
+!
+!****s* H5P (DEPRECIATED)/h5pset_double
+!
+! NAME
+!  h5pset_double
+!
+! FUNCTION
+!  Sets a property list value
+!
+! INPUTS  
+!		prp_id		- iproperty list identifier to modify
+!		name 		- name of property to modify
+!		value		- value to set property to
+! OUTPUT  
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! OPTIONAL PARAMETERS
+!				NONE
+!
+! AUTHOR
+!	Elena Pourmal
+!	        October 9, 2002	
+!SOURCE
   SUBROUTINE h5pset_double(prp_id, name, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
     DOUBLE PRECISION,   INTENT(IN) :: value ! Property value
     INTEGER, INTENT(OUT) :: hdferr  ! Error code
+!*****
     INTEGER :: name_len
 
     INTERFACE
@@ -486,36 +462,36 @@ CONTAINS
     hdferr = h5pset_double_c(prp_id, name , name_len, value)
   END SUBROUTINE h5pset_double
 
-  !----------------------------------------------------------------------
-  ! Name:		h5pset_char
-  !
-  ! Purpose: 	Sets a property list value
-  !
-  ! Inputs:  
-  !		prp_id		- iproperty list identifier to modify
-  !		name 		- name of property to modify
-  !		value		- value to set property to
-  ! Outputs:  
-  !		hdferr:		- error code		
-  !				 	Success:  0
-  !				 	Failure: -1   
-  ! Optional parameters:
-  !				NONE
-  !
-  ! Programmer:	Elena Pourmal
-  !	        October 9, 2002	
-  !
-  ! Modifications: 	
-  !
-  ! Comment:		
-  !----------------------------------------------------------------------
-
+!****s* H5P (DEPRECIATED)/h5pset_char
+!
+! NAME
+!  h5pset_char
+!
+! FUNCTION 	
+!  Sets a property list value
+!
+! INPUTS  
+!		prp_id		- iproperty list identifier to modify
+!		name 		- name of property to modify
+!		value		- value to set property to
+! OUTPUT  
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1   
+! OPTIONAL PARAMETERS
+!				NONE
+!
+! AUTHOR
+!	Elena Pourmal
+!	        October 9, 2002	
+!SOURCE
   SUBROUTINE h5pset_char(prp_id, name, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
     CHARACTER(LEN=*),   INTENT(IN) :: value ! Property value
     INTEGER, INTENT(OUT) :: hdferr  ! Error code
+!*****
     INTEGER :: name_len
     INTEGER :: value_len
 
@@ -540,36 +516,34 @@ CONTAINS
     hdferr = h5psetc_c(prp_id, name , name_len, value, value_len)
   END SUBROUTINE h5pset_char
 
-  !----------------------------------------------------------------------
-  ! Name:		h5pget_integer 
-  !
-  ! Purpose: 	Gets a property list value
-  !
-  ! Inputs:  
-  !		prp_id		- iproperty list identifier to modify
-  !		name 		- name of property to modify
-  ! Outputs:  
-  !		value		- value of property
-  !		hdferr:		- error code		
-  !				 	Success:  0
-  !				 	Failure: -1   
-  ! Optional parameters:
-  !				NONE
-  !
-  ! Programmer:	Elena Pourmal
-  !	        October 9, 2002	
-  !
-  ! Modifications: 	
-  !
-  ! Comment:		
-  !----------------------------------------------------------------------
-
+!****s* H5P (DEPRECIATED)/h5pget_integer
+!
+! NAME
+!  h5pget_integer 
+!
+! FUNCTION
+!  Gets a property list value
+!
+! INPUTS  
+!		prp_id		- iproperty list identifier to modify
+!		name 		- name of property to modify
+! OUTPUT  
+!		value		- value of property
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1
+! AUTHOR
+!	Elena Pourmal
+!	October 9, 2002	
+!
+! SOURCE
   SUBROUTINE h5pget_integer(prp_id, name, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
     INTEGER,   INTENT(OUT) :: value ! Property value
     INTEGER, INTENT(OUT) :: hdferr  ! Error code
+!*****
     INTEGER :: name_len
 
     INTERFACE
@@ -590,36 +564,34 @@ CONTAINS
     hdferr = h5pget_integer_c(prp_id, name , name_len, value)
   END SUBROUTINE h5pget_integer
 
-  !----------------------------------------------------------------------
-  ! Name:		h5pget_real
-  !
-  ! Purpose: 	Gets a property list value
-  !
-  ! Inputs:  
-  !		prp_id		- iproperty list identifier to modify
-  !		name 		- name of property to modify
-  ! Outputs:  
-  !		value		- value of property
-  !		hdferr:		- error code		
-  !				 	Success:  0
-  !				 	Failure: -1   
-  ! Optional parameters:
-  !				NONE
-  !
-  ! Programmer:	Elena Pourmal
-  !	        October 9, 2002	
-  !
-  ! Modifications: 	
-  !
-  ! Comment:		
-  !----------------------------------------------------------------------
-
+!
+!****s* H5P (DEPRECIATED)/h5pget_real
+!
+! NAME
+!  h5pget_real
+!
+! FUNCTION
+!  Gets a property list value
+!
+! INPUTS  
+!		prp_id		- iproperty list identifier to modify
+!		name 		- name of property to modify
+! OUTPUT  
+!		value		- value of property
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1
+! AUTHOR
+!	Elena Pourmal
+!	October 9, 2002	
+! SOURCE
   SUBROUTINE h5pget_real(prp_id, name, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
     REAL,   INTENT(OUT) :: value ! Property value
     INTEGER, INTENT(OUT) :: hdferr  ! Error code
+!*****
     INTEGER :: name_len
 
     INTERFACE
@@ -640,36 +612,34 @@ CONTAINS
     hdferr = h5pget_real_c(prp_id, name , name_len, value)
   END SUBROUTINE h5pget_real
 
-  !----------------------------------------------------------------------
-  ! Name:		h5pget_double
-  !
-  ! Purpose: 	Gets a property list value
-  !
-  ! Inputs:  
-  !		prp_id		- iproperty list identifier to modify
-  !		name 		- name of property to modify
-  ! Outputs:  
-  !		value		- value of property
-  !		hdferr:		- error code		
-  !				 	Success:  0
-  !				 	Failure: -1   
-  ! Optional parameters:
-  !				NONE
-  !
-  ! Programmer:	Elena Pourmal
-  !	        October 9, 2002	
-  !
-  ! Modifications: 	
-  !
-  ! Comment:		
-  !----------------------------------------------------------------------
-
+!****s* H5P (DEPRECIATED)/h5pget_double
+!
+! NAME
+!  h5pget_double
+!
+! FUNCTION
+!  Gets a property list value
+!
+! INPUTS  
+!		prp_id		- iproperty list identifier to modify
+!		name 		- name of property to modify
+! OUTPUT  
+!		value		- value of property
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1
+! AUTHOR
+!  Elena Pourmal
+!  October 9, 2002	
+!
+! SOURCE
   SUBROUTINE h5pget_double(prp_id, name, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
     DOUBLE PRECISION,   INTENT(OUT) :: value ! Property value
     INTEGER, INTENT(OUT) :: hdferr  ! Error code
+!*****
     INTEGER :: name_len
 
     INTERFACE
@@ -690,36 +660,36 @@ CONTAINS
     hdferr = h5pget_double_c(prp_id, name , name_len, value)
   END SUBROUTINE h5pget_double
 
-  !----------------------------------------------------------------------
-  ! Name:		h5pget_char
-  !
-  ! Purpose: 	Gets a property list value
-  !
-  ! Inputs:  
-  !		prp_id		- iproperty list identifier to modify
-  !		name 		- name of property to modify
-  ! Outputs:  
-  !		value		- value of property
-  !		hdferr:		- error code		
-  !				 	Success:  0
-  !				 	Failure: -1   
-  ! Optional parameters:
-  !				NONE
-  !
-  ! Programmer:	Elena Pourmal
-  !	        October 9, 2002	
-  !
-  ! Modifications: 	
-  !
-  ! Comment:		
-  !----------------------------------------------------------------------
-
+!
+!****s* H5P (DEPRECIATED)/h5pget_char
+!
+! NAME
+!  h5pget_char
+!
+! FUNCTION 
+!  Gets a property list value
+!
+! INPUTS  
+!		prp_id		- iproperty list identifier to modify
+!		name 		- name of property to modify
+! OUTPUT  
+!		value		- value of property
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1
+!
+! AUTHOR
+!	Elena Pourmal
+!	October 9, 2002
+!
+! SOURCE
   SUBROUTINE h5pget_char(prp_id, name, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
     CHARACTER(LEN=*),   INTENT(OUT) :: value ! Property value
     INTEGER, INTENT(OUT) :: hdferr  ! Error code
+!*****
     INTEGER :: name_len
     INTEGER :: value_len
 
@@ -744,33 +714,32 @@ CONTAINS
     hdferr = h5pgetc_c(prp_id, name , name_len, value, value_len)
   END SUBROUTINE h5pget_char
 
-  !----------------------------------------------------------------------
-  ! Name:		h5pregister_integer
-  !
-  ! Purpose: 	Registers a permanent property with a property list class.
-  !
-  ! Inputs:  
-  !		class		- property list class to register 
-  !                                 permanent property within
-  !		name 		- name of property to register
-  !               size            - size of property in bytes
-  !		value		- default value for property in newly 
-  !                                 created property lists
-  ! Outputs:  
-  !		hdferr:		- error code		
-  !				 	Success:  0
-  !				 	Failure: -1   
-  ! Optional parameters:
-  !				NONE
-  !
-  ! Programmer:	Elena Pourmal
-  !	        October 10, 2002	
-  !
-  ! Modifications: 	
-  !
-  ! Comment:		
-  !----------------------------------------------------------------------
-
+!
+!****s* H5P (DEPRECIATED)/h5pregister_integer
+!
+! NAME
+!  h5pregister_integer
+!
+! FUNCTION
+!  Registers a permanent property with a property list class.
+!
+! INPUTS  
+!		class		- property list class to register 
+!                                 permanent property within
+!		name 		- name of property to register
+!               size            - size of property in bytes
+!		value		- default value for property in newly 
+!                                 created property lists
+! OUTPUT  
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1
+!
+! AUTHOR
+!	Elena Pourmal
+!	        October 10, 2002	
+!
+! SOURCE
   SUBROUTINE h5pregister_integer(class, name, size, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: class   ! Property list class identifier 
@@ -778,6 +747,7 @@ CONTAINS
     INTEGER(SIZE_T), INTENT(IN) :: size   ! Size of the property value	
     INTEGER,   INTENT(IN) :: value        ! Property value
     INTEGER, INTENT(OUT) :: hdferr        ! Error code
+!*****
     INTEGER :: name_len
 
     INTERFACE
@@ -799,33 +769,30 @@ CONTAINS
     hdferr = h5pregister_integer_c(class, name , name_len, size, value)
   END SUBROUTINE h5pregister_integer
 
-  !----------------------------------------------------------------------
-  ! Name:		h5pregister_real
-  !
-  ! Purpose: 	Registers a permanent property with a property list class.
-  !
-  ! Inputs:  
-  !		class		- property list class to register 
-  !                                 permanent property within
-  !		name 		- name of property to register
-  !               size            - size of property in bytes
-  !		value		- default value for property in newly 
-  !                                 created property lists
-  ! Outputs:  
-  !		hdferr:		- error code		
-  !				 	Success:  0
-  !				 	Failure: -1   
-  ! Optional parameters:
-  !				NONE
-  !
-  ! Programmer:	Elena Pourmal
-  !	        October 10, 2002	
-  !
-  ! Modifications: 	
-  !
-  ! Comment:		
-  !----------------------------------------------------------------------
-
+!****s* H5P (DEPRECIATED)/h5pregister_real
+!
+! NAME
+!
+!		h5pregister_real
+!
+! FUNCTION 	Registers a permanent property with a property list class.
+!
+! INPUTS  
+!		class		- property list class to register 
+!                                 permanent property within
+!		name 		- name of property to register
+!               size            - size of property in bytes
+!		value		- default value for property in newly 
+!                                 created property lists
+! OUTPUT  
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1
+!
+! AUTHOR
+!	Elena Pourmal
+!	October 10, 2002	
+! SOURCE
   SUBROUTINE h5pregister_real(class, name, size, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: class   ! Property list class identifier 
@@ -833,6 +800,7 @@ CONTAINS
     INTEGER(SIZE_T), INTENT(IN) :: size   ! size of the property value	
     REAL,   INTENT(IN) :: value           ! Property value
     INTEGER, INTENT(OUT) :: hdferr  ! Error code
+!*****
     INTEGER :: name_len
 
     INTERFACE
@@ -854,33 +822,31 @@ CONTAINS
     hdferr = h5pregister_real_c(class, name , name_len, size, value)
   END SUBROUTINE h5pregister_real
 
-  !----------------------------------------------------------------------
-  ! Name:		h5pregister_double
-  !
-  ! Purpose: 	Registers a permanent property with a property list class.
-  !
-  ! Inputs:  
-  !		class		- property list class to register 
-  !                                 permanent property within
-  !		name 		- name of property to register
-  !               size            - size of property in bytes
-  !		value		- default value for property in newly 
-  !                                 created property lists
-  ! Outputs:  
-  !		hdferr:		- error code		
-  !				 	Success:  0
-  !				 	Failure: -1   
-  ! Optional parameters:
-  !				NONE
-  !
-  ! Programmer:	Elena Pourmal
-  !	        October 10, 2002	
-  !
-  ! Modifications: 	
-  !
-  ! Comment:		
-  !----------------------------------------------------------------------
-
+!
+!****s* H5P (DEPRECIATED)/h5pregister_double
+!
+! NAME
+!  h5pregister_double
+!
+! FUNCTION
+!  Registers a permanent property with a property list class.
+!
+! INPUTS  
+!		class		- property list class to register 
+!                                 permanent property within
+!		name 		- name of property to register
+!               size            - size of property in bytes
+!		value		- default value for property in newly 
+!                                 created property lists
+! OUTPUT  
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1
+! AUTHOR
+!	Elena Pourmal
+!	October 10, 2002	
+!
+! SOURCE
   SUBROUTINE h5pregister_double(class, name, size, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: class   ! Property list class identifier 
@@ -888,6 +854,7 @@ CONTAINS
     INTEGER(SIZE_T), INTENT(IN) :: size  ! size of the property value	
     DOUBLE PRECISION,   INTENT(IN) :: value        ! Property value
     INTEGER, INTENT(OUT) :: hdferr  ! Error code
+!*****
     INTEGER :: name_len
 
     INTERFACE
@@ -909,33 +876,30 @@ CONTAINS
     hdferr = h5pregister_double_c(class, name , name_len, size, value)
   END SUBROUTINE h5pregister_double
 
-  !----------------------------------------------------------------------
-  ! Name:		h5pregister_char
-  !
-  ! Purpose: 	Registers a permanent property with a property list class.
-  !
-  ! Inputs:  
-  !		class		- property list class to register 
-  !                                 permanent property within
-  !		name 		- name of property to register
-  !               size            - size of property in bytes
-  !		value		- default value for property in newly 
-  !                                 created property lists
-  ! Outputs:  
-  !		hdferr:		- error code		
-  !				 	Success:  0
-  !				 	Failure: -1   
-  ! Optional parameters:
-  !				NONE
-  !
-  ! Programmer:	Elena Pourmal
-  !	        October 10, 2002	
-  !
-  ! Modifications: 	
-  !
-  ! Comment:		
-  !----------------------------------------------------------------------
-
+!
+!****s* H5P (DEPRECIATED)/h5pregister_char
+!
+! NAME
+!   h5pregister_char
+!
+! FUNCTION 	
+!   Registers a permanent property with a property list class.
+!
+! INPUTS  
+!		class		- property list class to register 
+!                                 permanent property within
+!		name 		- name of property to register
+!               size            - size of property in bytes
+!		value		- default value for property in newly 
+!                                 created property lists
+! OUTPUT  
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1
+! AUTHOR
+!	Elena Pourmal
+!	October 10, 2002	
+! SOURCE
   SUBROUTINE h5pregister_char(class, name, size, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: class   ! Property list class identifier 
@@ -943,6 +907,7 @@ CONTAINS
     INTEGER(SIZE_T), INTENT(IN) :: size  ! size of the property value	
     CHARACTER(LEN=*),   INTENT(IN) :: value        ! Property value
     INTEGER, INTENT(OUT) :: hdferr  ! Error code
+!*****
     INTEGER :: name_len
     INTEGER :: value_len
 
@@ -969,31 +934,28 @@ CONTAINS
     hdferr = h5pregisterc_c(class, name , name_len, size, value, value_len)
   END SUBROUTINE h5pregister_char
 
-  !----------------------------------------------------------------------
-  ! Name:		h5pinsert_integer
-  !
-  ! Purpose: 	Registers a temporary property with a property list class.
-  !
-  ! Inputs:  
-  !		plist		- property list identifier
-  !		name 		- name of property to insert
-  !               size            - size of property in bytes
-  !		value		- initial value for the property 
-  ! Outputs:  
-  !		hdferr:		- error code		
-  !				 	Success:  0
-  !				 	Failure: -1   
-  ! Optional parameters:
-  !				NONE
-  !
-  ! Programmer:	Elena Pourmal
-  !	        October 10, 2002	
-  !
-  ! Modifications: 	
-  !
-  ! Comment:		
-  !----------------------------------------------------------------------
-
+!
+!****s* H5P (DEPRECIATED)/h5pinsert_integer
+!
+! NAME
+!  h5pinsert_integer
+!
+! FUNCTION
+!  Registers a temporary property with a property list class.
+!
+! INPUTS  
+!		plist		- property list identifier
+!		name 		- name of property to insert
+!               size            - size of property in bytes
+!		value		- initial value for the property 
+! OUTPUT  
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1
+! AUTHOR
+!	Elena Pourmal
+!	October 10, 2002
+! SOURCE
   SUBROUTINE h5pinsert_integer(plist, name, size, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: plist   ! Property list identifier 
@@ -1001,6 +963,7 @@ CONTAINS
     INTEGER(SIZE_T), INTENT(IN) :: size   ! Size of the property value	
     INTEGER,   INTENT(IN) :: value        ! Property value
     INTEGER, INTENT(OUT) :: hdferr        ! Error code
+!*****
     INTEGER :: name_len
 
     INTERFACE
@@ -1022,32 +985,29 @@ CONTAINS
     hdferr = h5pinsert_integer_c(plist, name , name_len, size, value)
   END SUBROUTINE h5pinsert_integer
 
-  !----------------------------------------------------------------------
-  ! Name:		h5pinsert_real
-  !
-  ! Purpose: 	Registers a temporary property with a property list class.
-  !
-  ! Inputs:  
-  !		plist		- property list identifier
-  !                                 permanent property within
-  !		name 		- name of property to insert
-  !               size            - size of property in bytes
-  !		value		- initial value for the property 
-  ! Outputs:  
-  !		hdferr:		- error code		
-  !				 	Success:  0
-  !				 	Failure: -1   
-  ! Optional parameters:
-  !				NONE
-  !
-  ! Programmer:	Elena Pourmal
-  !	        October 10, 2002	
-  !
-  ! Modifications: 	
-  !
-  ! Comment:		
-  !----------------------------------------------------------------------
-
+!
+!****s* H5P (DEPRECIATED)/h5pinsert_real
+!
+! NAME
+!  h5pinsert_real
+!
+! FUNCTION	
+!  Registers a temporary property with a property list class.
+!
+! INPUTS  
+!		plist		- property list identifier
+!                                 permanent property within
+!		name 		- name of property to insert
+!               size            - size of property in bytes
+!		value		- initial value for the property 
+! OUTPUT  
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1
+! AUTHOR
+!	Elena Pourmal
+!	October 10, 2002	
+! SOURCE
   SUBROUTINE h5pinsert_real(plist, name, size, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: plist   ! Property list identifier 
@@ -1055,6 +1015,7 @@ CONTAINS
     INTEGER(SIZE_T), INTENT(IN) :: size   ! Size of the property value	
     REAL,   INTENT(IN) :: value           ! Property value
     INTEGER, INTENT(OUT) :: hdferr        ! Error code
+!*****
     INTEGER :: name_len
 
     INTERFACE
@@ -1076,32 +1037,29 @@ CONTAINS
     hdferr = h5pinsert_real_c(plist, name , name_len, size, value)
   END SUBROUTINE h5pinsert_real
 
-  !----------------------------------------------------------------------
-  ! Name:		h5pinsert_double
-  !
-  ! Purpose: 	Registers a temporary property with a property list class.
-  !
-  ! Inputs:  
-  !		plist		- property list identifier
-  !                                 permanent property within
-  !		name 		- name of property to insert
-  !               size            - size of property in bytes
-  !		value		- initial value for the property 
-  ! Outputs:  
-  !		hdferr:		- error code		
-  !				 	Success:  0
-  !				 	Failure: -1   
-  ! Optional parameters:
-  !				NONE
-  !
-  ! Programmer:	Elena Pourmal
-  !	        October 10, 2002	
-  !
-  ! Modifications: 	
-  !
-  ! Comment:		
-  !----------------------------------------------------------------------
-
+!****s* H5P (DEPRECIATED)/h5pinsert_double
+!
+! NAME
+!
+!		h5pinsert_double
+!
+! FUNCTION 	
+!   Registers a temporary property with a property list class.
+!
+! INPUTS  
+!		plist		- property list identifier
+!                                 permanent property within
+!		name 		- name of property to insert
+!               size            - size of property in bytes
+!		value		- initial value for the property 
+! OUTPUT  
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1
+! AUTHOR
+!	Elena Pourmal
+!	October 10, 2002	
+! SOURCE
   SUBROUTINE h5pinsert_double(plist, name, size, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: plist   ! Property list identifier 
@@ -1109,6 +1067,7 @@ CONTAINS
     INTEGER(SIZE_T), INTENT(IN) :: size   ! Size of the property value	
     DOUBLE PRECISION, INTENT(IN) :: value ! Property value
     INTEGER, INTENT(OUT) :: hdferr        ! Error code
+!*****
     INTEGER :: name_len
 
     INTERFACE
@@ -1130,39 +1089,37 @@ CONTAINS
     hdferr = h5pinsert_double_c(plist, name , name_len, size, value)
   END SUBROUTINE h5pinsert_double
 
-  !----------------------------------------------------------------------
-  ! Name:		h5pinsert_char
-  !
-  ! Purpose: 	Registers a temporary property with a property list class.
-  !
-  ! Inputs:  
-  !		plist		- property list identifier
-  !                                 permanent property within
-  !		name 		- name of property to insert
-  !               size            - size of property in bytes
-  !		value		- initial value for the property 
-  ! Outputs:  
-  !		hdferr:		- error code		
-  !				 	Success:  0
-  !				 	Failure: -1   
-  ! Optional parameters:
-  !				NONE
-  !
-  ! Programmer:	Elena Pourmal
-  !	        October 10, 2002	
-  !
-  ! Modifications: 	
-  !
-  ! Comment:		
-  !----------------------------------------------------------------------
-
-  SUBROUTINE h5pinsert_char(plist, name, size, value, hdferr)
+!
+!****s* H5P (DEPRECIATED)/h5pinsert_char
+!
+! NAME
+!  h5pinsert_char
+!
+! FUNCTION 	
+!  Registers a temporary property with a property list class.
+!
+! INPUTS  
+!		plist		- property list identifier
+!                                 permanent property within
+!		name 		- name of property to insert
+!               size            - size of property in bytes
+!		value		- initial value for the property 
+! OUTPUT  
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1
+! AUTHOR
+!	Elena Pourmal
+!	        October 10, 2002	
+! SOURCE
+SUBROUTINE h5pinsert_char(plist, name, size, value, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: plist      ! Property list identifier 
     CHARACTER(LEN=*), INTENT(IN) :: name     ! Name of property to insert 
     INTEGER(SIZE_T), INTENT(IN) :: size      ! Size of property value	
     CHARACTER(LEN=*),   INTENT(IN) :: value  ! Property value
     INTEGER, INTENT(OUT) :: hdferr           ! Error code
+!*****
     INTEGER :: name_len
     INTEGER :: value_len
 
@@ -1188,13 +1145,16 @@ CONTAINS
     hdferr = h5pinsertc_c(plist, name , name_len, size, value, value_len)
   END SUBROUTINE h5pinsert_char
 
-!----------------------------------------------------------------------
-! Name:		h5pcreate_class_f 
 !
-! Purpose: 	Create a new property list class
-
+!****s* H5P (DEPRECIATED)/h5pcreate_class_f 
 !
-! Inputs:  
+! NAME
+!  h5pcreate_class_f 
+!
+! FUNCTION
+!  Create a new property list class
+!
+! INPUTS  
 !		parent		- Property list identifier of the parent class
 !                                 Possible values include:
 !                                 H5P_ROOT_F
@@ -1204,23 +1164,17 @@ CONTAINS
 !                                 H5P_DATASET_XFER_F
 !                                 H5P_FILE_MOUNT_F
 !		name 		- name of the class we are creating
-! Outputs:  
+! OUTPUT  
 !               class           - porperty list class identifier
 !		hdferr:		- error code		
 !                                       
 !				 	Success: 0 
-!				 	Failure: -1   
-! Optional parameters:
-!				NONE
+!				 	Failure: -1
+! AUTHOR
+!	Elena Pourmal
+!	October 9, 2002	
 !
-! Programmer:	Elena Pourmal
-!	        October 9, 2002	
-!
-! Modifications: 	
-!
-! Comment:		
-!----------------------------------------------------------------------
-
+! SOURCE
   SUBROUTINE h5pcreate_class_f(parent, name, class, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: parent  ! parent property list class 
@@ -1228,6 +1182,7 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(IN) :: name  ! name of property tocreate 
     INTEGER(HID_T), INTENT(OUT) :: class  ! property list class identifier
     INTEGER, INTENT(OUT) :: hdferr  ! Error code
+!*****
     INTEGER :: name_len
 
     INTERFACE
@@ -1249,6 +1204,6 @@ CONTAINS
     hdferr = h5pcreate_class_c(parent, name, name_len, class)
 
   END SUBROUTINE h5pcreate_class_f
-
+   
 END MODULE H5P_PROVISIONAL
 

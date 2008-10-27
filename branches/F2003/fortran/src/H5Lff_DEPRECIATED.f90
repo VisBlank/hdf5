@@ -1,7 +1,7 @@
-!****h* root/fortran/src/H5Lff_DEPRECIATED.f90
+!****h* ROBODoc/H5L (DEPRECIATED)
 !
 ! NAME
-!   H5L_PROVISIONAL
+!   MODULE H5L_PROVISIONAL
 !  
 ! FUNCTION
 !   This file contains Fortran 90 interfaces for H5L functions. It contains
@@ -30,7 +30,7 @@
 !
 !                           *** IMPORTANT ***
 !       If you add a new H5D function you must add the function name to the 
-!       Windows dll file 'hdf5_fortrandll.def' in the root/fortran/src directory.
+!       Windows dll file 'hdf5_fortrandll.def' in the ROBODoc directory.
 !       This is needed for Windows based operating systems.
 !*****
 

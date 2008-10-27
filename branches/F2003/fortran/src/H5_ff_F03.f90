@@ -1,7 +1,7 @@
-!****h* root/fortran/src/H5_ff_F03.f90
+!****h* ROBODoc/H5LIB_PROVISIONAL
 !
 ! NAME
-!   H5LIB
+!   MODULE H5LIB_PROVISIONAL
 !
 ! FUNCTION
 !   This file contains helper functions for Fortran 2003 features and is
@@ -27,40 +27,40 @@
 ! NOTES
 !                          *** IMPORTANT ***
 !   If you add a new function you must add the function name to the 
-!   Windows dll file 'hdf5_fortrandll.def' in the root/fortran/src directory.
+!   Windows dll file 'hdf5_fortrandll.def' in the ROBODoc directory.
 !   This is needed for Windows based operating systems.
 !*****
 
 MODULE H5LIB_PROVISIONAL
 
 CONTAINS
-
-!----------------------------------------------------------------------
-! Name:		h5offsetof 
+!****f* H5LIB_PROVISIONAL/h5offsetof
 !
-! Purpose:	Computes the offset in memory 
+! NAME		
+!  h5offsetof 
 !
-! Inputs:       start - starting pointer address
-!                 end - ending pointer address
-! Outputs:  
-!	        offset - offset  
-! Optional parameters:
-!				NONE			
+! FUNCTION	
+!  Computes the offset in memory 
 !
-! Programmer: M.S. Breitenfeld
-!             Augest 25, 2008
+! INPUTS       
+!  start - starting pointer address
+!    end - ending pointer address
 !
+! OUTPUT  
+! offset - offset			
 !
-! Comment: 		
-!----------------------------------------------------------------------
-  INTEGER(SIZE_T) FUNCTION h5offsetof(start,END) RESULT(offset)
+! AUTHOR 
+!  M.S. Breitenfeld
+!  Augest 25, 2008
+!
+! SOURCE
+  INTEGER(SIZE_T) FUNCTION h5offsetof(start,end) RESULT(offset)
     USE, INTRINSIC :: ISO_C_BINDING
     USE H5GLOBAL
     IMPLICIT NONE
-
     TYPE(C_PTR), VALUE, INTENT(IN) :: start, end
+!*****
     INTEGER(C_INTPTR_T) :: int_address_start, int_address_end
-
     int_address_start = TRANSFER(start, int_address_start)
     int_address_end   = TRANSFER(end  , int_address_end  )
 

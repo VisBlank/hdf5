@@ -1,8 +1,11 @@
-!****h* root/fortran/src/H5Off.f90
+!****h* ROBODoc/H5O
 !
 ! NAME
-!   H5O
-!  
+!   MODULE H5O
+!
+! FILE
+!   fortran/src/H5Off.f90
+!
 ! FUNCTION
 !   This file contains Fortran interfaces for H5O functions. It includes
 !   all the functions that are independent on whether the Fortran 2003 functions
@@ -28,7 +31,7 @@
 ! NOTES
 !                          *** IMPORTANT ***
 !   If you add a new H5O function you must add the function name to the 
-!   Windows dll file 'hdf5_fortrandll.def' in the root/fortran/src directory.
+!   Windows dll file 'hdf5_fortrandll.def' in the ROBODoc directory.
 !   This is needed for Windows based operating systems.
 !
 !*****
@@ -39,29 +42,29 @@ MODULE H5O
      
 CONTAINS
 
-!----------------------------------------------------------------------
-! Name:		h5olink_f 
+!****s* H5O/h5olink_f
 !
-! Purpose:  	Creates a hard link to an object in an HDF5 file.
-!
-! Inputs:  
+! NAME
+!   h5olink_f
+!  
+! FUNCTION
+!   Creates a hard link to an object in an HDF5 file.
+! INPUTS
 !      object_id     - Object to be linked.
 !      new_loc_id    - File or group identifier specifying location at which object is to be linked.
 !      new_link_name - Name of link to be created, relative to new_loc_id.
-! Outputs: 
+! OUTPUT
 !      hdferr:       - error code		
 !	                Success:  0
 !			Failure: -1   
-! Optional parameters:
+! OPTIONAL PARAMETERS
 !      lcpl_id       - Link creation property list identifier.
 !      lapl_id       - Link access property list identifier.
+! AUTHOR
+!      M.S. Breitenfeld
+!      April 21, 2008
 !
-! Programmer:	M.S. Breitenfeld
-!		April 21, 2008
-!
-! Modifications: N/A 
-!
-!----------------------------------------------------------------------
+! SOURCE
 
   SUBROUTINE h5olink_f(object_id, new_loc_id, new_link_name, hdferr, lcpl_id, lapl_id)
     IMPLICIT NONE
@@ -74,6 +77,7 @@ CONTAINS
                                           !   Failure: -1  
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lcpl_id ! Link creation property list identifier.  
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id ! Link creation property list identifier.
+!*****
     INTEGER(HID_T) :: lapl_id_default
     INTEGER(HID_T) :: lcpl_id_default
 
@@ -107,28 +111,28 @@ CONTAINS
 
   END SUBROUTINE h5olink_f
 
-!----------------------------------------------------------------------
-! Name:		h5oopen_f 
+!****s* H5O/h5oopen_f
 !
-! Purpose:  	Opens an object in an HDF5 file by location identifier and path name.O
+! NAME
+!   h5oopen_f
+! FUNCTION
+!   Opens an object in an HDF5 file by location identifier and path name.
 !
-! Inputs:  
-!           loc_id - File or group identifier
-!             name - Path to the object, relative to loc_id.
-! Outputs: 
-!           obj_id - Object identifier for the opened object 
-!      hdferr:     - error code		
-!	                Success:  0
-!			Failure: -1   
-! Optional parameters:
-!          lapl_id - Access property list identifier for the link pointing to the object
+! INPUTS
+!   loc_id - File or group identifier
+!   name   - Path to the object, relative to loc_id.
+! OUTPUT
+!   obj_id - Object identifier for the opened object 
+!  hdferr: - error code		
+!	           Success:  0
+!		   Failure: -1   
+! OPTIONAL PARAMETERS
+!  lapl_id - Access property list identifier for the link pointing to the object
 !
-! Programmer:	M.S. Breitenfeld
-!		April 18, 2008
-!
-! Modifications: N/A 
-!
-!----------------------------------------------------------------------
+! AUTHOR
+!	M.S. Breitenfeld
+!	April 18, 2008
+! SOURCE
 
   SUBROUTINE h5oopen_f(loc_id, name, obj_id, hdferr, lapl_id)
     IMPLICIT NONE
@@ -139,12 +143,10 @@ CONTAINS
                                           !   Success:  0
                                           !   Failure: -1  
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id  ! Attribute access property list
+!*****
     INTEGER(HID_T) :: lapl_id_default
-
     INTEGER(SIZE_T) :: namelen
 
-!  MS FORTRAN needs explicit interface for C functions called here.
-!
     INTERFACE
        INTEGER FUNCTION h5oopen_c(loc_id, name, namelen, lapl_id_default, obj_id)
          USE H5GLOBAL
@@ -167,6 +169,5 @@ CONTAINS
     hdferr = h5oopen_c(loc_id, name, namelen, lapl_id_default, obj_id)
 
   END SUBROUTINE h5oopen_f
-
 
 END MODULE H5O

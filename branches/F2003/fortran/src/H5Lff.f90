@@ -1,4 +1,4 @@
-!****h* root/fortran/src/H5Lff.f90
+!****h* ROBODoc/H5L
 !
 ! NAME
 !   H5L
@@ -28,7 +28,7 @@
 ! NOTES
 !                          *** IMPORTANT ***
 !   If you add a new H5L function you must add the function name to the 
-!   Windows dll file 'hdf5_fortrandll.def' in the root/fortran/src directory.
+!   Windows dll file 'hdf5_fortrandll.def' in the ROBODoc directory.
 !   This is needed for Windows based operating systems.
 !
 !*****
@@ -39,12 +39,16 @@ MODULE H5L
 
 CONTAINS
 
-!----------------------------------------------------------------------
-! Name:		h5lcopy_f 
 !
-! Purpose: 	Copies a link from one location to another.
+!****s* H5L/h5lcopy_f 
 !
-! Inputs:
+! NAME
+!		h5lcopy_f 
+!
+! FUNCTION
+! 	Copies a link from one location to another.
+!
+! INPUTS
 !     src_loc_id - Location identifier of the source link
 !       src_name - Name of the link to be copied
 !    dest_loc_id - Location identifier specifying the destination of the copy
@@ -52,21 +56,19 @@ CONTAINS
 !         loc_id - Identifier of the file or group containing the object
 !           name - Name of the link to delete
 ! 
-! Outputs: 
+! OUTPUT 
 !         hdferr - error code:
 !			Success:  0
 !			Failure: -1   
-! Optional parameters:
+! OPTIONAL PARAMETERS
 !        lcpl_id - Link creation property list identifier
 !        lapl_id - Link access property list identifier
 !
-! Programmer:	M.S. Breitenfeld
-!		February 27, 2008
+! AUTHOR
+!	M.S. Breitenfeld
+!	February 27, 2008
 !
-! Modifications:
-!
-! Comment:		
-!----------------------------------------------------------------------
+! SOURCE
   SUBROUTINE h5lcopy_f(src_loc_id, src_name, dest_loc_id, dest_name, hdferr, &
        lcpl_id, lapl_id)
     IMPLICIT NONE
@@ -79,16 +81,13 @@ CONTAINS
                                           ! 0 on success and -1 on failure
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lcpl_id ! Link creation property list identifier
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id ! Link access property list identifier
-    
+!*****    
     INTEGER(HID_T) :: lcpl_id_default
     INTEGER(HID_T) :: lapl_id_default
 
     INTEGER(SIZE_T) :: src_namelen
     INTEGER(SIZE_T) :: dest_namelen
-    
 
-!  MS FORTRAN needs explicit interface for C functions called here.
-!
     INTERFACE
        INTEGER FUNCTION h5lcopy_c(src_loc_id, src_name, src_namelen, dest_loc_id, dest_name, dest_namelen, &
             lcpl_id_default, lapl_id_default)
@@ -122,29 +121,31 @@ CONTAINS
 
   END SUBROUTINE h5lcopy_f
 
-!----------------------------------------------------------------------
-! Name:		h5ldelete_f 
 !
-! Purpose: 	Removes a link from a group.
+!****s* H5L/h5ldelete_f 
 !
-! Inputs:  
+! NAME
+!		h5ldelete_f 
+!
+! FUNCTION
+! 	Removes a link from a group.
+!
+! INPUTS  
 !         loc_id   - Identifier of the file or group containing the object
 !         name     - Name of the link to delete
 ! 
-! Outputs: 
+! OUTPUT 
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
-! Optional parameters:
+! OPTIONAL PARAMETERS
 !         lapl_id  - Link access property list identifier
 !
-! Programmer:	M.S. Breitenfeld
+! AUTHOR
+!	M.S. Breitenfeld
 !		January, 2008
 !
-! Modifications:
-!
-! Comment:		
-!----------------------------------------------------------------------
+! SOURCE
   SUBROUTINE h5ldelete_f(loc_id, name, hdferr, lapl_id)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: loc_id  ! Identifier of the file or group containing the object
@@ -152,12 +153,10 @@ CONTAINS
     INTEGER, INTENT(OUT) :: hdferr        ! Error code: 
                                           ! 0 on success and -1 on failure
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id ! Link access property list identifier
+!*****
     INTEGER(HID_T) :: lapl_id_default
     INTEGER(SIZE_T) :: namelen
-    
 
-!  MS FORTRAN needs explicit interface for C functions called here.
-!
     INTERFACE
        INTEGER FUNCTION h5ldelete_c(loc_id, name, namelen, lapl_id_default)
          USE H5GLOBAL
@@ -180,31 +179,33 @@ CONTAINS
 
   END SUBROUTINE h5ldelete_f 
 
-!----------------------------------------------------------------------
-! Name:		H5Lcreate_soft_f 
 !
-! Purpose: 	Creates a soft link to an object.
+!****s* H5L/H5Lcreate_soft_f
 !
-! Inputs:
+! NAME
+!		H5Lcreate_soft_f 
+!
+! FUNCTION
+! 	Creates a soft link to an object.
+!
+! INPUTS
 !       target_path - Path to the target object, which is not required to exist.
 !       link_loc_id - The file or group identifier for the new link.
 !       link_name   - The name of the new link.
 ! 
-! Outputs: 
+! OUTPUT 
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
-! Optional parameters:
+! OPTIONAL PARAMETERS
 !       lcpl_id     - Link creation property list identifier.
 !       lapl_id     - Link access property list identifier.
 !
-! Programmer:	M.S. Breitenfeld
+! AUTHOR
+!	M.S. Breitenfeld
 !		February 20, 2008
 !
-! Modifications:
-!
-! Comment:		
-!----------------------------------------------------------------------
+! SOURCE
   SUBROUTINE h5lcreate_soft_f(target_path, link_loc_id, link_name, hdferr, lcpl_id, lapl_id)
     IMPLICIT NONE
     CHARACTER(LEN=*), INTENT(IN) :: target_path     ! Path to the target object, which is not required to exist.
@@ -214,14 +215,12 @@ CONTAINS
                                           ! 0 on success and -1 on failure
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lcpl_id ! Link creation property list identifier.
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id ! Link access property list identifier.
-
+!*****
     INTEGER(HID_T) :: lcpl_id_default 
     INTEGER(HID_T) :: lapl_id_default     
     INTEGER(SIZE_T) :: target_path_len
     INTEGER(SIZE_T) :: link_name_len
 
-!  MS FORTRAN needs explicit interface for C functions called here.
-!
     INTERFACE
        INTEGER FUNCTION h5lcreate_soft_c(target_path, target_path_len, &
             link_loc_id, &
@@ -256,33 +255,35 @@ CONTAINS
 
   END SUBROUTINE h5lcreate_soft_f
 
-!----------------------------------------------------------------------
-! Name:		H5Lcreate_hard_f 
 !
-! Purpose: 	Creates a hard link to an object.
+!****s* H5L/H5Lcreate_hard_f 
 !
-! Inputs:
+! NAME
+!		H5Lcreate_hard_f 
+!
+! FUNCTION
+! 	Creates a hard link to an object.
+!
+! INPUTS
 !
 !    obj_loc_id - The file or group identifier for the target object.
 !      obj_name - Name of the target object, which must already exist.
 !   link_loc_id - The file or group identifier for the new link.
 !     link_name - The name of the new link.
 ! 
-! Outputs: 
+! OUTPUT 
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
-! Optional parameters:
+! OPTIONAL PARAMETERS
 !       lcpl_id     - Link creation property list identifier.
 !       lapl_id     - Link access property list identifier.
 !
-! Programmer:	M.S. Breitenfeld
+! AUTHOR
+!	M.S. Breitenfeld
 !		February 27, 2008
 !
-! Modifications:
-!
-! Comment:		
-!----------------------------------------------------------------------
+! SOURCE
   SUBROUTINE h5lcreate_hard_f(obj_loc_id, obj_name, link_loc_id, link_name, hdferr, lcpl_id, lapl_id)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: obj_loc_id  ! The file or group identifier for the target object.
@@ -295,15 +296,13 @@ CONTAINS
 
     INTEGER(HID_T), OPTIONAL, INTENT(IN) ::   lcpl_id         ! Link creation property list identifier.
     INTEGER(HID_T), OPTIONAL, INTENT(IN) ::   lapl_id         ! Link access property list identifier.
-
+!*****
     INTEGER(HID_T) :: lcpl_id_default 
     INTEGER(HID_T) :: lapl_id_default
    
     INTEGER(SIZE_T) :: obj_namelen 
     INTEGER(SIZE_T) :: link_namelen
 
-!  MS FORTRAN needs explicit interface for C functions called here.
-!
     INTERFACE
        INTEGER FUNCTION h5lcreate_hard_c(obj_loc_id, obj_name, obj_namelen, &
             link_loc_id, link_name, link_namelen, lcpl_id_default, lapl_id_default) 
@@ -335,12 +334,16 @@ CONTAINS
 
   END SUBROUTINE h5lcreate_hard_f
 
-!----------------------------------------------------------------------
-! Name:		H5Lcreate_external_f 
 !
-! Purpose: 	Creates a soft link to an object in a different file.
+!****s* H5L/H5Lcreate_external_f 
 !
-! Inputs:
+! NAME
+!		H5Lcreate_external_f 
+!
+! FUNCTION
+! 	Creates a soft link to an object in a different file.
+!
+! INPUTS
 !
 !    file_name - Name of the file containing the target object. Neither the file nor the target object is 
 !                required to exist. May be the file the link is being created in.
@@ -348,21 +351,18 @@ CONTAINS
 !  link_loc_id - The file or group identifier for the new link.
 !    link_name - The name of the new link.
 ! 
-! Outputs: 
+! OUTPUT 
 !		hdferr:	- error code		
 !  		            Success:  0
 !		            Failure: -1   
-! Optional parameters:
+! OPTIONAL PARAMETERS
 !       lcpl_id     - Link creation property list identifier.
 !       lapl_id     - Link access property list identifier.
 !
-! Programmer:	M.S. Breitenfeld
+! AUTHOR
+!	M.S. Breitenfeld
 !		February 27, 2008
-!
-! Modifications:
-!
-! Comment:		
-!----------------------------------------------------------------------
+! SOURCE
   SUBROUTINE h5lcreate_external_f(file_name, obj_name, link_loc_id, link_name, hdferr, lcpl_id, lapl_id)
     IMPLICIT NONE
     CHARACTER(LEN=*), INTENT(IN) :: file_name  ! Name of the file containing the target object. Neither 
@@ -377,7 +377,7 @@ CONTAINS
 
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lcpl_id ! Link creation property list identifier.
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id ! Link access property list identifier.
-
+!*****
     INTEGER(HID_T) :: lcpl_id_default 
     INTEGER(HID_T) :: lapl_id_default
    
@@ -385,8 +385,6 @@ CONTAINS
     INTEGER(SIZE_T) :: obj_namelen 
     INTEGER(SIZE_T) :: link_namelen
 
-!  MS FORTRAN needs explicit interface for C functions called here.
-!
     INTERFACE
        INTEGER FUNCTION h5lcreate_external_c(file_name, file_namelen, obj_name, obj_namelen, &
             link_loc_id, link_name, link_namelen, lcpl_id_default, lapl_id_default) 
@@ -420,11 +418,15 @@ CONTAINS
 
   END SUBROUTINE h5lcreate_external_f
 
-!----------------------------------------------------------------------
-! Name:		h5ldelete_by_idx_f 
 !
-! Purpose:  	Removes the nth link in a group.
-! Inputs:  	
+!****s* H5L/h5ldelete_by_idx_f 
+!
+! NAME
+!		h5ldelete_by_idx_f 
+!
+! FUNCTION
+!  	Removes the nth link in a group.
+! INPUTS  	
 !		loc_id     - File or group identifier specifying location of subject group
 !               group_name - Name of subject group
 !               index_field   - Type of index; Possible values are:
@@ -443,19 +445,17 @@ CONTAINS
 !                  H5_ITER_N_F	       - Number of iteration orders
 !
 !               n           - Link for which to retrieve information
-! Outputs:
+! OUTPUT
 !		hdferr:     - error code		
 !				 Success:  0
 !				 Failure: -1   
-! Optional parameters:
+! OPTIONAL PARAMETERS
 !               lapl_id    - Link access property list
 !
-! Programmer:	M.S. Breitenfeld
+! AUTHOR
+!	M.S. Breitenfeld
 !		February 29, 2008
-!
-! Modifications: N/A 
-!
-!----------------------------------------------------------------------
+! SOURCE
   SUBROUTINE h5ldelete_by_idx_f(loc_id, group_name, index_field, order, n, hdferr, lapl_id)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: loc_id       ! Identifer for object to which attribute is attached
@@ -476,12 +476,10 @@ CONTAINS
     INTEGER, INTENT(OUT) :: hdferr         ! Error code:
                                            ! 0 on success and -1 on failure
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id     ! Link access property list
-
+!*****
     INTEGER(HID_T) :: lapl_id_default
     INTEGER(SIZE_T) :: group_namelen
-    
-!  MS FORTRAN needs explicit interface for C functions called here.
-!
+
     INTERFACE
        INTEGER FUNCTION h5ldelete_by_idx_c(loc_id, group_name, group_namelen, index_field, order, n, lapl_id_default)
          USE H5GLOBAL
@@ -507,29 +505,32 @@ CONTAINS
     
   END SUBROUTINE h5ldelete_by_idx_f
 
-!----------------------------------------------------------------------
-! Name:	        H5Lexists_f	
 !
-! Purpose:  	Check if a link with a particular name exists in a group.
+!****s* H5L/H5Lexists_f
+!
+! NAME
+!	        H5Lexists_f	
+!
+! FUNCTION
+!  	Check if a link with a particular name exists in a group.
 !		
-! Inputs:
+! INPUTS
 !      loc_id - Identifier of the file or group to query.
 !        name - Link name to check
 !
-! Outputs:
+! OUTPUT
 !   link_exists  - link exists status (.TRUE.,.FALSE.)
 !        hdferr  - error code		
 !	              Success:  0
 !		      Failure: -1 
-! Optional parameters:
+! OPTIONAL PARAMETERS
 !	 lapl_id - Link access property list identifier.		
 !
-! Programmer:	M. S. Breitenfeld
+! AUTHOR
+!	M. S. Breitenfeld
 !		February 29, 2008	
 !
-! Modifications:  N/A
-!
-!----------------------------------------------------------------------
+! SOURCE
   SUBROUTINE h5lexists_f(loc_id, name, link_exists, hdferr, lapl_id)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: loc_id  ! Identifier of the file or group to query.
@@ -539,12 +540,11 @@ CONTAINS
                                           ! 0 on success and -1 on failure
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id 
                                           ! Link access property list identifier.
+!*****
     INTEGER :: link_exists_c
     INTEGER(HID_T) :: lapl_id_default
     INTEGER(SIZE_T)  :: namelen
-!
-!  MS FORTRAN needs explicit interface for C functions called here.
-!
+
     INTERFACE
        INTEGER FUNCTION h5lexists_c(loc_id, name, namelen, lapl_id_default, link_exists_c)
          USE H5GLOBAL
@@ -572,16 +572,20 @@ CONTAINS
 
   END SUBROUTINE h5lexists_f
 
-!----------------------------------------------------------------------
-! Name:		h5lget_info_f
 !
-! Purpose:  	Returns information about a link.
+!****s* H5L/h5lget_info_f
 !
-! Inputs:  
+! NAME
+!		h5lget_info_f
+!
+! FUNCTION
+!  	Returns information about a link.
+!
+! INPUTS  
 !		link_loc_id - File or group identifier.
 !               link_name - Name of the link for which information is being sought  
 !
-! Outputs:  NOTE: In C these are contained in the structure H5L_info_t
+! OUTPUT  NOTE: In C these are contained in the structure H5L_info_t
 !
 !              cset - indicates the character set used for link’s name. 
 !      corder - specifies the link’s creation order position.
@@ -596,16 +600,14 @@ CONTAINS
 !            hdferr - error code		
 !				 Success:  0
 !				 Failure: -1   
-! Optional parameters:
+! OPTIONAL PARAMETERS
 !      lapl_id - Link access property list		
 !
-! Programmer:	M. S. Breitenfeld
-!		February 29, 2008	
+! AUTHOR
+!	M. S. Breitenfeld
+!	February 29, 2008	
 !
-! Modifications:  N/A
-!
-!----------------------------------------------------------------------
-
+! SOURCE
   SUBROUTINE h5lget_info_f(link_loc_id, link_name, &
        cset, corder, f_corder_valid, link_type, address, val_size, &
        hdferr, lapl_id)
@@ -614,7 +616,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: link_loc_id ! File or group identifier.
     CHARACTER(LEN=*), INTENT(IN) :: link_name ! Name of the link for which information is being sought
  
-! Outputs:  NOTE: In C these are contained in the structure H5L_info_t
+! OUTPUT  NOTE: In C these are contained in the structure H5L_info_t
     INTEGER, INTENT(OUT) :: cset ! Indicates the character set used for the link’s name. 
     INTEGER, INTENT(OUT) :: corder ! Specifies the link’s creation order position.
     LOGICAL, INTENT(OUT) :: f_corder_valid ! Indicates whether the value in corder is valid.
@@ -628,13 +630,11 @@ CONTAINS
     INTEGER, INTENT(OUT) :: hdferr       ! Error code:
                                          ! 0 on success and -1 on failure
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id  ! Link access property list
-
+!*****
     INTEGER(SIZE_T) :: link_namelen
     INTEGER(HID_T) :: lapl_id_default
     INTEGER :: corder_valid
 
-!  MS FORTRAN needs explicit interface for C functions called here.
-!
     INTERFACE
        INTEGER FUNCTION h5lget_info_c(link_loc_id, link_name, link_namelen, &
             cset, corder, corder_valid, link_type, address, val_size, &
@@ -671,19 +671,23 @@ CONTAINS
 
   END SUBROUTINE h5lget_info_f
 
-!----------------------------------------------------------------------
-! Name:	   h5lget_info_by_idx_f
 !
-! Purpose:  Retrieves metadata for a link in a group, according to the order within a field or index.
+!****s* H5L/h5lget_info_by_idx_f
+!
+! NAME
+!	   h5lget_info_by_idx_f
+!
+! FUNCTION
+!  Retrieves metadata for a link in a group, according to the order within a field or index.
 !		
-! Inputs:
+! INPUTS
 !	loc_id - File or group identifier specifying location of subject group
 !   group_name - Name of subject group
 !  index_field - Index or field which determines the order
 !        order - Order within field or index
 !            n - Link for which to retrieve information
 !
-! Outputs:  NOTE: In C these are defined as a structure: H5L_info_t
+! OUTPUT  NOTE: In C these are defined as a structure: H5L_info_t
 !    corder_valid   - indicates whether the creation order data is valid for this attribute
 !    corder         - is a positive integer containing the creation order of the attribute        
 !    cset           - indicates the character set used for the attribute’s name          
@@ -691,15 +695,14 @@ CONTAINS
 !    hdferr         - error code		
 !				 Success:  0
 !				 Failure: -1   
-! Optional parameters:
+! OPTIONAL PARAMETERS
 !      lapl_id - Link access property list		
 !
-! Programmer: M.S. Breitenfeld
+! AUTHOR
+! M.S. Breitenfeld
 !	      February 29, 2008	
 !
-! Modifications:  N/A
-!
-!----------------------------------------------------------------------
+! SOURCE
   SUBROUTINE h5lget_info_by_idx_f(loc_id, group_name, index_field, order, n, &
        f_corder_valid, corder, cset, data_size, hdferr, lapl_id)
     IMPLICIT NONE
@@ -723,12 +726,11 @@ CONTAINS
     INTEGER, INTENT(OUT) :: hdferr       ! Error code:
                                          ! 0 on success and -1 on failure
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id  ! Link access property list
+!*****
     INTEGER :: corder_valid
     INTEGER(SIZE_T)  :: group_namelen
     INTEGER(HID_T) :: lapl_id_default
 
-!  MS FORTRAN needs explicit interface for C functions called here.
-!
     INTERFACE
        INTEGER FUNCTION h5lget_info_by_idx_c(loc_id, group_name, group_namelen, index_field, order, n, &
             corder_valid, corder, cset, data_size, lapl_id_default)
@@ -763,29 +765,30 @@ CONTAINS
 
   END SUBROUTINE h5lget_info_by_idx_f
 
-!----------------------------------------------------------------------
-! Name:	   h5lis_registered_f 
 !
-! Purpose:  Determines whether a class of user-defined links is registered.
+!****s* H5L/h5lis_registered_f 
+!
+! NAME
+!	   h5lis_registered_f 
+!
+! FUNCTION
+!  Determines whether a class of user-defined links is registered.
 !		
-! Inputs:
+! INPUTS
 !      link_cls_id - User-defined link class identifier
 !
-! Outputs:
+! OUTPUT
 !       registered - .TRUE. - if the link class has been registered
 !                    .FALSE. - if it is unregistered
 !           hdferr - Error code		
 !		       Success:  0
-!	               Failure: -1   
-! Optional parameters:
-!                      None		
+!	               Failure: -1 	
 !
-! Programmer: M.S. Breitenfeld
-!	      February 29, 2008	
+! AUTHOR
+!   M.S. Breitenfeld
+!   February 29, 2008	
 !
-! Modifications:  N/A
-!
-!----------------------------------------------------------------------
+! SOURCE
   SUBROUTINE h5lis_registered_f(link_cls_id, registered, hdferr)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: link_cls_id  ! User-defined link class identifier
@@ -793,9 +796,7 @@ CONTAINS
                                         ! .FALSE. - if it is unregistered
     INTEGER, INTENT(OUT) :: hdferr      ! Error code:
                                         ! 0 on success and -1 on failure
-!
-!  MS FORTRAN needs explicit interface for C functions called here.
-!
+!*****
     INTERFACE
        INTEGER FUNCTION h5lis_registered_c(link_cls_id)
          USE H5GLOBAL
@@ -816,31 +817,34 @@ CONTAINS
        
   END SUBROUTINE h5lis_registered_f
 
-!----------------------------------------------------------------------
-! Name:	   h5lmove_f
 !
-! Purpose:  Renames a link within an HDF5 file.
+!****s* H5L/h5lmove_f
+!
+! NAME
+!	   h5lmove_f
+!
+! FUNCTION
+!  Renames a link within an HDF5 file.
 !		
-! Inputs:
+! INPUTS
 !    src_loc_id  - Original file or group identifier.
 !    src_name    - Original link name.
 !    dest_loc_id - Destination file or group identifier.
 !    dest_name   - NEW link name.
 !
-! Outputs: 
+! OUTPUT 
 !         hdferr - Error code		
 !		     Success:  0
 !	             Failure: -1   
-! Optional parameters:
+! OPTIONAL PARAMETERS
 !    lcpl_id  - Link creation property list identifier to be associated WITH the NEW link.
 !    lapl_id  - Link access property list identifier to be associated WITH the NEW link.
 !
-! Programmer: M.S. Breitenfeld
+! AUTHOR
+! M.S. Breitenfeld
 !	      March 3, 2008	
 !
-! Modifications:  N/A
-!
-!----------------------------------------------------------------------
+! SOURCE
   SUBROUTINE h5lmove_f(src_loc_id, src_name, dest_loc_id, dest_name, hdferr, lcpl_id, lapl_id)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: src_loc_id  ! Original file or group identifier.
@@ -853,16 +857,13 @@ CONTAINS
                                                     ! to be associated WITH the NEW link.
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id ! Link access property list identifier 
                                                     ! to be associated WITH the NEW link.
-
+!*****
     INTEGER(SIZE_T) :: src_namelen
     INTEGER(SIZE_T) :: dest_namelen
 
     INTEGER(HID_T) :: lcpl_id_default 
     INTEGER(HID_T) :: lapl_id_default 
-    
-!
-!  MS FORTRAN needs explicit interface for C functions called here.
-!
+
     INTERFACE
        INTEGER FUNCTION h5lmove_c(src_loc_id, src_name, src_namelen, dest_loc_id, &
             dest_name, dest_namelen, lcpl_id_default, lapl_id_default) 
@@ -897,34 +898,37 @@ CONTAINS
 
   END SUBROUTINE h5lmove_f
 
-!----------------------------------------------------------------------
-! Name:		h5lget_name_by_idx_f
 !
-! Purpose:      Retrieves name of the nth link in a group, according to the order within a specified field or index.
+!****s* H5L/h5lget_name_by_idx_f
 !
-! Inputs:  
+! NAME
+!		h5lget_name_by_idx_f
+!
+! FUNCTION
+!      Retrieves name of the nth link in a group, according to the order within a specified field or index.
+!
+! INPUTS  
 !   loc_id      - File or group identifier specifying location of subject group
 !   group_name  - Name of subject group
 !   index_field - Index or field which determines the order
 !   order       - Order within field or index
 !   n           - Link for which to retrieve information
 !
-! Outputs:  
+! OUTPUT  
 !   name        - Buffer in which link value is returned
 !   hdferr      - error code		
 !		      Success:  0
 !		      Failure: -1
 !
-! Optional parameters:
+! OPTIONAL PARAMETERS
 !    lapl_id    - List access property list identifier.
 !    size       - Maximum number of characters of link value to be returned.
 !
-! Programmer:	M. S. Breitenfeld
-!		March 10, 2008	
+! AUTHOR
+!	M. S. Breitenfeld
+!	March 10, 2008	
 !
-! Modifications:  N/A
-!
-!----------------------------------------------------------------------
+! SOURCE
   SUBROUTINE h5lget_name_by_idx_f(loc_id, group_name, index_field, order, n, &
         name, hdferr, size, lapl_id)
     IMPLICIT NONE
@@ -944,16 +948,13 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(OUT) :: name ! Buffer in which link value is returned
     INTEGER, INTENT(OUT) :: hdferr        ! Error code:
                                           ! 0 on success and -1 on failure
-                     
+!*****      
     INTEGER(SIZE_T)  :: group_namelen
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id  ! Link access property list
     INTEGER(HID_T) :: lapl_id_default
     INTEGER(SIZE_T), OPTIONAL, INTENT(OUT) :: size   ! Indicates the size, in the number of characters, of the link
     INTEGER(SIZE_T) :: size_default 
 
-
-!  MS FORTRAN needs explicit interface for C functions called here.
-!
     INTERFACE
        INTEGER FUNCTION h5lget_name_by_idx_c(loc_id, group_name, group_namelen, index_field, order, n, &
              size_default, name, lapl_id_default)
@@ -991,14 +992,18 @@ CONTAINS
 
 ! HAS PROBLEM WITH void pointer in C
 
-!!$!----------------------------------------------------------------------
-!!$! Name:		h5lget_val_by_idx_f
 !!$!
-!!$! Purpose:      Returns the link value of a link, according to the order of
+!!$!****s* H5L/
+!!$!
+!!$! NAME
+!!$!		h5lget_val_by_idx_f
+!!$!
+!!$! FUNCTION
+!!$!      Returns the link value of a link, according to the order of
 !!$!               an index.  For symbolic links, this is the path to which the
 !!$!               link points, including the null terminator.  For user-defined
 !!$!               links, it is the link buffer.
-!!$! Inputs:  
+!!$! INPUTS  
 !!$!   loc_id      - File or group identifier specifying location of subject group
 !!$!   group_name  - Name of subject group
 !!$!   index_field - Index or field which determines the order
@@ -1006,7 +1011,7 @@ CONTAINS
 !!$!   n           - Link for which to retrieve information
 !!$!   size       - Maximum number of characters of link value to be returned.
 !!$!
-!!$! Outputs:  NOTE: In C these are defined as a structure: H5L_info_t
+!!$! OUTPUT  NOTE: In C these are defined as a structure: H5L_info_t
 !!$!    corder_valid   - indicates whether the creation order data is valid for this attribute
 !!$!    corder         - is a positive integer containing the creation order of the attribute        
 !!$!    cset           - indicates the character set used for the attribute’s name          
@@ -1014,15 +1019,17 @@ CONTAINS
 !!$!    hdferr         - error code		
 !!$!				 Success:  0
 !!$!				 Failure: -1   
-!!$! Optional parameters:
+!!$! OPTIONAL PARAMETERS
 !!$!    lapl_id      - List access property list identifier.
 !!$!
-!!$! Programmer:	M. S. Breitenfeld
+!!$! AUTHOR
+!!$!	M. S. Breitenfeld
 !!$!		March 3, 2008	
 !!$!
-!!$! Modifications:  N/A
+!!$! HISTORY  N/A
 !!$!
-!!$!----------------------------------------------------------------------
+!!$!
+!!$! SOURCE
 !!$  SUBROUTINE h5lget_val_by_idx_f(loc_id, group_name, index_field, order, n, &
 !!$       f_corder_valid, corder, cset, data_size, hdferr, lapl_id)
 !!$    IMPLICIT NONE
@@ -1050,8 +1057,6 @@ CONTAINS
 !!$    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id  ! Link access property list
 !!$    INTEGER(HID_T) :: lapl_id_default
 !!$
-!!$!  MS FORTRAN needs explicit interface for C functions called here.
-!!$!
 !!$    INTERFACE
 !!$       INTEGER FUNCTION h5lget_val_by_idx_c(loc_id, group_name, group_namelen, index_field, order, n, &
 !!$            corder_valid, corder, cset, data_size, lapl_id_default)
@@ -1086,33 +1091,32 @@ CONTAINS
 !!$    
 !!$  END SUBROUTINE h5lget_val_by_idx_f
 
-
-
-!----------------------------------------------------------------------
-! Name:		h5lget_val_f
-!
-! Purpose:  	Returns the value of a symbolic link.
-!
-! Inputs:  
-!   link_loc_id  - File or group identifier.
-!   link_name    - Link whose value is to be returned.
-!   size         - Maximum number of characters of link value to be returned.
-!
-! Outputs:  
-!   linkval_buff - The buffer to hold the returned link value.
-!         hdferr - error code		
-!				 Success:  0
-!				 Failure: -1   
-! Optional parameters:
-!    lapl_id      - List access property list identifier.
-!
-! Programmer:	M. S. Breitenfeld
-!		March 3, 2008	
-!
-! Modifications:  N/A
-!
-!----------------------------------------------------------------------
-
+!!$!
+!!$!****s* H5L/h5lget_val_f
+!!$!
+!!$! NAME
+!!$!		h5lget_val_f
+!!$!
+!!$! FUNCTION
+!!$!  	Returns the value of a symbolic link.
+!!$!
+!!$! INPUTS  
+!!$!   link_loc_id  - File or group identifier.
+!!$!   link_name    - Link whose value is to be returned.
+!!$!   size         - Maximum number of characters of link value to be returned.
+!!$!
+!!$! OUTPUT  
+!!$!   linkval_buff - The buffer to hold the returned link value.
+!!$!         hdferr - error code		
+!!$!				 Success:  0
+!!$!				 Failure: -1   
+!!$! OPTIONAL PARAMETERS
+!!$!    lapl_id      - List access property list identifier.
+!!$!
+!!$! AUTHOR
+!!$!	M.S. Breitenfeld
+!!$!	March 3, 2008	
+!!$! SOURCE
 !!$  SUBROUTINE h5lget_val_f(link_loc_id, link_name, size, linkval_buff,   &
 !!$       hdferr, lapl_id)
 !!$    IMPLICIT NONE
@@ -1166,35 +1170,41 @@ CONTAINS
 
 
 
-!----------------------------------------------------------------------
-! Name:	    H5Lregistered_f 
-!
-! Purpose:  Registers user-defined link class or changes behavior of existing class.
-!		
-! Inputs: NOTE: In C the following represents struct H5L_class_t:
-!     version      - Version number of this struct 
-!     class_id     - Link class identifier          
-!     comment      - Comment for debugging          
-!     create_func  - Callback during link creation  
-!     move_func    - Callback after moving link     
-!     copy_func    - Callback after copying link    
-!     trav_func    - The main traversal function    
-!     del_func     - Callback for link deletion     
-!     query_func   - Callback for queries           
-!
-! Outputs:
-!           hdferr - Error code		
-!		       Success:  0
-!	               Failure: -1   
-! Optional parameters:
-!                      None		
-!
-! Programmer: M.S. Breitenfeld
-!	      February 29, 2008	
-!
-! Modifications:  N/A
-!
-!----------------------------------------------------------------------
+!!$!
+!!$!****s* H5L/H5Lregistered_f 
+!!$!
+!!$! NAME
+!!$!	    H5Lregistered_f 
+!!$!
+!!$! FUNCTION
+!!$!  Registers user-defined link class or changes behavior of existing class.
+!!$!		
+!!$! INPUTS NOTE: In C the following represents struct H5L_class_t:
+!!$!     version      - Version number of this struct 
+!!$!     class_id     - Link class identifier          
+!!$!     comment      - Comment for debugging          
+!!$!     create_func  - Callback during link creation  
+!!$!     move_func    - Callback after moving link     
+!!$!     copy_func    - Callback after copying link    
+!!$!     trav_func    - The main traversal function    
+!!$!     del_func     - Callback for link deletion     
+!!$!     query_func   - Callback for queries           
+!!$!
+!!$! OUTPUT
+!!$!           hdferr - Error code		
+!!$!		       Success:  0
+!!$!	               Failure: -1   
+!!$! OPTIONAL PARAMETERS
+!!$!                      None		
+!!$!
+!!$! AUTHOR
+!!$! M.S. Breitenfeld
+!!$!	      February 29, 2008	
+!!$!
+!!$! HISTORY  N/A
+!!$!
+!!$!
+!!$! SOURCE
 !!$  SUBROUTINE H5Lregistered_f(version, class_id, comment, create_func, &
 !!$       move_func, copy_func, trav_func, del_func, query_func, hdferr)
 !!$    IMPLICIT NONE
@@ -1216,10 +1226,7 @@ CONTAINS
 !!$    INTEGER :: trav_func_len  
 !!$    INTEGER :: del_func_len
 !!$    INTEGER :: query_func_len
-!!$    
-!!$!
-!!$!  MS FORTRAN needs explicit interface for C functions called here.
-!!$!
+!!$
 !!$    INTERFACE
 !!$       INTEGER FUNCTION H5Lregistered_c(version, class_id, comment, &
 !!$            create_func, create_func_len, &

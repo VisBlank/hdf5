@@ -1,7 +1,10 @@
-!****h* root/fortran/src/H5test_kind_SIZEOF.f90
+!****p* Program/H5test_kind_SIZEOF
 !
 ! NAME
-!  H5test_kind
+!  Executable: H5test_kind
+!
+! FILE
+!  fortran/src/H5test_kind_SIZEOF.f90
 !
 ! FUNCTION
 !  This stand alone program is used at build time to generate the program 
@@ -73,7 +76,7 @@ PROGRAM test_kind
 ! Generate program information:
 
 WRITE(*,'(40(A,/))') &
-'!****h* root/fortran/src/H5fortran_detect.f90',&
+'!****h* ROBODoc/H5fortran_detect.f90',&
 '!',&
 '! NAME',&
 '!  H5fortran_detect',&

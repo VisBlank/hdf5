@@ -1,7 +1,10 @@
-!****h* root/fortran/src/H5Iff.f90
+!****h* ROBODoc/H5I
 !
 ! NAME
-!   H5I
+!   MODULE H5I
+!
+! FILE
+!   fortran/src/H5Iff.f90
 !  
 ! FUNCTION
 !   This file contains Fortran interfaces for H5I functions.
@@ -25,300 +28,281 @@
 ! NOTES
 !                          *** IMPORTANT ***
 !   If you add a new H5I function you must add the function name to the 
-!   Windows dll file 'hdf5_fortrandll.def' in the root/fortran/src directory.
+!   Windows dll file 'hdf5_fortrandll.def' in the ROBODoc directory.
 !   This is needed for Windows based operating systems.
 !
 !*****
 
-      MODULE H5I
+MODULE H5I
 
-        USE H5GLOBAL
+  USE H5GLOBAL
       
-      CONTAINS
+CONTAINS
 
-!----------------------------------------------------------------------
-! Name:		h5iget_type_f 
+!****s* H5I/h5iget_type_f
 !
-! Purpose:	Retrieves the type of an object.  	
+! NAME
+!  h5iget_type_f 
 !
-! Inputs: 	obj_id		- object identifier 
-! Outputs:  
-!		type		- type of the object, possible values:   
-!				  H5I_FILE_F
-!				  H5I_GROUP_F
-!				  H5I_DATATYPE_F
-!				  H5I_DATASPACE_F
-!				  H5I_DATASET_F
-!				  H5I_ATTR_F
-!				  H5I_BADID_F
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! Optional parameters:
-!				NONE
+! FUNCTION
+!  Retrieves the type of an object.  	
 !
-! Programmer:	Elena Pourmal
-!		August 12, 1999	
+! INPUTS 	
+!    obj_id	- object identifier 
+! OUTPUT  
+!	type	- type of the object, possible values:   
+!			  H5I_FILE_F
+!			  H5I_GROUP_F
+!			  H5I_DATATYPE_F
+!			  H5I_DATASPACE_F
+!			  H5I_DATASET_F
+!			  H5I_ATTR_F
+!			  H5I_BADID_F
+!	hdferr: - error code		
+!			 Success:  0
+!			Failure: -1
 !
-! Modifications: 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 5, 2001 
+! AUTHOR	
+!   Elena Pourmal
+!   August 12, 1999	
 !
-! Comment:		
-!----------------------------------------------------------------------
-          SUBROUTINE h5iget_type_f(obj_id, type, hdferr)
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: obj_id  !Object identifier 
-            INTEGER, INTENT(OUT) :: type !type of an object. 
-                                         !possible values are:
-                                         !H5I_FILE_F
-                                         !H5I_GROUP_F
-                                         !H5I_DATATYPE_F
-                                         !H5I_DATASPACE_F
-                                         !H5I_DATASET_F
-                                         !H5I_ATTR_F
-                                         !H5I_BADID_F
-            INTEGER, INTENT(OUT) :: hdferr  ! Error code
+! HISTORY 	
+!   Explicit Fortran interfaces were added for 
+!   called C functions (it is needed for Windows
+!   port).  March 5, 2001 
+!
+! SOURCE
+  SUBROUTINE h5iget_type_f(obj_id, TYPE, hdferr)
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: obj_id  ! Object identifier 
+    INTEGER, INTENT(OUT) :: TYPE ! type of an object. 
+                                 ! possible values are:
+                                 !   H5I_FILE_F
+                                 !   H5I_GROUP_F
+                                 !   H5I_DATATYPE_F
+                                 !   H5I_DATASPACE_F
+                                 !   H5I_DATASET_F
+                                 !   H5I_ATTR_F
+                                 !   H5I_BADID_F
+    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+!*****
+    INTERFACE
+       INTEGER FUNCTION h5iget_type_c(obj_id, TYPE)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5IGET_TYPE_C':: h5iget_type_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: obj_id 
+         INTEGER, INTENT(OUT) :: TYPE
+       END FUNCTION h5iget_type_c
+    END INTERFACE
+    hdferr = h5iget_type_c(obj_id, TYPE)
+  END SUBROUTINE h5iget_type_f
 
-!            INTEGER, EXTERNAL :: h5iget_type_c
-!  Interface is needed for MS FORTRAN
+!****s* H5I/h5iget_name_f
 !
-            INTERFACE
-              INTEGER FUNCTION h5iget_type_c(obj_id, type)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5IGET_TYPE_C':: h5iget_type_c
-              !DEC$ ENDIF
-              INTEGER(HID_T), INTENT(IN) :: obj_id 
-              INTEGER, INTENT(OUT) :: type
-              END FUNCTION h5iget_type_c
-            END INTERFACE
-            hdferr = h5iget_type_c(obj_id, type)
-          END SUBROUTINE h5iget_type_f
-
-!----------------------------------------------------------------------
-! Name:		h5iget_name_f 
+! NAME		
+!  h5iget_name_f 
 !
-! Purpose: 	Gets a name of an object specified by its idetifier.  
+! FUNCTION
+!  Gets a name of an object specified by its idetifier.  
 !
-! Inputs:  
+! INPUTS  
 !		obj_id		- attribute identifier
 !		buf_size	- size of a buffer to read name in
-! Outputs:  
+! OUTPUT  
 !		buf		- buffer to read name in, name will be truncated if
 !                                 buffer is not big enough
 !               name_size       - name size
 !		hdferr:		- error code		
 !				 	Success:  0
-!				 	Failure: -1   
-! Optional parameters:
-!				NONE			
+!				 	Failure: -1	
 !
-! Programmer:	Elena Pourmal
-!		March 12, 2003
-!
-! Modifications: 	
-!
-!----------------------------------------------------------------------
+! AUTHOR	
+!  Elena Pourmal
+!  March 12, 2003
+! SOURCE
+  SUBROUTINE h5iget_name_f(obj_id, buf, buf_size, name_size, hdferr)
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: obj_id      ! Object identifier 
+    INTEGER(SIZE_T), INTENT(IN) :: buf_size   ! Buffer size 
+    CHARACTER(LEN=*), INTENT(OUT) :: buf      ! Buffer to hold object name
+    INTEGER(SIZE_T), INTENT(OUT) :: name_size ! Actual name size
+    INTEGER, INTENT(OUT) :: hdferr            ! Error code:
+                                              !   0 if successful,
+                                              !  -1 if fail
+!*****
+    INTERFACE
+       INTEGER FUNCTION h5iget_name_c(obj_id, buf, buf_size, name_size)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5IGET_NAME_C'::h5iget_name_c
+         !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference :: buf
+         INTEGER(HID_T), INTENT(IN) :: obj_id
+         CHARACTER(LEN=*), INTENT(OUT) :: buf
+         INTEGER(SIZE_T), INTENT(IN) :: buf_size
+         INTEGER(SIZE_T), INTENT(OUT) :: name_size
+       END FUNCTION h5iget_name_c
+    END INTERFACE
+    
+    hdferr = h5iget_name_c(obj_id, buf, buf_size, name_size)
+  END SUBROUTINE h5iget_name_f
 
-
-          SUBROUTINE h5iget_name_f(obj_id, buf, buf_size, name_size, hdferr)
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: obj_id     ! Object identifier 
-            INTEGER(SIZE_T), INTENT(IN) :: buf_size  ! Buffer size 
-            CHARACTER(LEN=*), INTENT(OUT) :: buf   ! Buffer to hold object name
-            INTEGER(SIZE_T), INTENT(OUT) :: name_size ! Actual name size
-            INTEGER, INTENT(OUT) :: hdferr         ! Error code:
-                                                   ! 0 if successful,
-                                                   ! -1 if fail
-!            INTEGER, EXTERNAL :: h5iget_name_c
-!  MS FORTRAN needs explicit interface for C functions called here.
+!****s* H5I/h5iinc_ref_f
 !
-            INTERFACE
-              INTEGER FUNCTION h5iget_name_c(obj_id, buf, buf_size, name_size)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5IGET_NAME_C'::h5iget_name_c
-              !DEC$ ENDIF
-              !DEC$ATTRIBUTES reference :: buf
-              INTEGER(HID_T), INTENT(IN) :: obj_id
-              CHARACTER(LEN=*), INTENT(OUT) :: buf
-              INTEGER(SIZE_T), INTENT(IN) :: buf_size
-              INTEGER(SIZE_T), INTENT(OUT) :: name_size
-              END FUNCTION h5iget_name_c
-            END INTERFACE
-
-            hdferr = h5iget_name_c(obj_id, buf, buf_size, name_size)
-          END SUBROUTINE h5iget_name_f
-
-!----------------------------------------------------------------------
-! Name:		h5iinc_ref_f
+! NAME		
+!  h5iinc_ref_f
 !
-! Purpose:	Increments the reference count of an ID
+! FUNCTION	
+!  Increments the reference count of an ID
 !
-! Inputs: 	obj_id		- object identifier 
-! Outputs:  
+! INPUTS 	
+!          obj_id		- object identifier 
+! OUTPUT  
 !		ref_count       - Current reference count of the ID
 !		hdferr:		- error code		
 !				 	Success:  0
-!				 	Failure: -1   
-! Optional parameters:
-!				NONE
-!
-! Programmer:	Quincey Koziol
-!		December  9, 2003	
-!
-! Modifications:
-!
-! Comment:		
-!----------------------------------------------------------------------
-          SUBROUTINE h5iinc_ref_f(obj_id, ref_count, hdferr)
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: obj_id  !Object identifier 
-            INTEGER, INTENT(OUT) :: ref_count !Current reference count of ID
-            INTEGER, INTENT(OUT) :: hdferr  ! Error code
+!				 	Failure: -1
+! AUTHOR	
+!  Quincey Koziol
+!  December  9, 2003
+!	
+! SOURCE
+  SUBROUTINE h5iinc_ref_f(obj_id, ref_count, hdferr)
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: obj_id  !Object identifier 
+    INTEGER, INTENT(OUT) :: ref_count !Current reference count of ID
+    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+!*****
+    INTERFACE
+       INTEGER FUNCTION h5iinc_ref_c(obj_id, ref_count)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5IINC_REF_C':: h5iinc_ref_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: obj_id 
+         INTEGER, INTENT(OUT) :: ref_count
+       END FUNCTION h5iinc_ref_c
+    END INTERFACE
+    hdferr = h5iinc_ref_c(obj_id, ref_count)
+  END SUBROUTINE h5iinc_ref_f
 
-!            INTEGER, EXTERNAL :: h5iinc_ref_c
-!  Interface is needed for MS FORTRAN
+!****s* H5I/h5idec_ref_f
 !
-            INTERFACE
-              INTEGER FUNCTION h5iinc_ref_c(obj_id, ref_count)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5IINC_REF_C':: h5iinc_ref_c
-              !DEC$ ENDIF
-              INTEGER(HID_T), INTENT(IN) :: obj_id 
-              INTEGER, INTENT(OUT) :: ref_count
-              END FUNCTION h5iinc_ref_c
-            END INTERFACE
-            hdferr = h5iinc_ref_c(obj_id, ref_count)
-          END SUBROUTINE h5iinc_ref_f
-
-!----------------------------------------------------------------------
-! Name:		h5idec_ref_f
+! NAME
+!  h5idec_ref_f
 !
-! Purpose:	Decrements the reference count of an ID
+! FUNCTION
+!  Decrements the reference count of an ID
 !
-! Inputs: 	obj_id		- object identifier 
-! Outputs:  
-!		ref_count       - Current reference count of the ID
-!		hdferr:		- error code		
+! INPUTS
+! 	obj_id		- object identifier 
+! OUTPUT  
+!	ref_count       - Current reference count of the ID
+!	hdferr:		- error code		
 !				 	Success:  0
-!				 	Failure: -1   
-! Optional parameters:
-!				NONE
+!				 	Failure: -1 
+! AUTHOR	
+!  Quincey Koziol
+!  December  9, 2003	
 !
-! Programmer:	Quincey Koziol
-!		December  9, 2003	
-!
-! Modifications:
-!
-! Comment:		
-!----------------------------------------------------------------------
-          SUBROUTINE h5idec_ref_f(obj_id, ref_count, hdferr)
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: obj_id  !Object identifier 
-            INTEGER, INTENT(OUT) :: ref_count !Current reference count of ID
-            INTEGER, INTENT(OUT) :: hdferr  ! Error code
+! SOURCE
+  SUBROUTINE h5idec_ref_f(obj_id, ref_count, hdferr)
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: obj_id ! Object identifier 
+    INTEGER, INTENT(OUT) :: ref_count    ! Current reference count of ID
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code
+!*****
+    INTERFACE
+       INTEGER FUNCTION h5idec_ref_c(obj_id, ref_count)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5IDEC_REF_C':: h5idec_ref_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: obj_id 
+         INTEGER, INTENT(OUT) :: ref_count
+       END FUNCTION h5idec_ref_c
+    END INTERFACE
+    hdferr = h5idec_ref_c(obj_id, ref_count)
+  END SUBROUTINE h5idec_ref_f
 
-!            INTEGER, EXTERNAL :: h5idec_ref_c
-!  Interface is needed for MS FORTRAN
+!****s* H5I/h5iget_ref_f
+! NAME		
+!  h5iget_ref_f
 !
-            INTERFACE
-              INTEGER FUNCTION h5idec_ref_c(obj_id, ref_count)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5IDEC_REF_C':: h5idec_ref_c
-              !DEC$ ENDIF
-              INTEGER(HID_T), INTENT(IN) :: obj_id 
-              INTEGER, INTENT(OUT) :: ref_count
-              END FUNCTION h5idec_ref_c
-            END INTERFACE
-            hdferr = h5idec_ref_c(obj_id, ref_count)
-          END SUBROUTINE h5idec_ref_f
+! FUNCTION
+!  Retrieves the reference count of an ID
+!
+! INPUTS 	
+!  obj_id - object identifier
+! 
+! OUTPUT 
+!  ref_count       - Current reference count of the ID
+!  hdferr:	   - error code		
+!		 	Success:  0
+!		 	Failure: -1
+! AUTHOR	
+!  Quincey Koziol
+!  December  9, 2003
+!
+! SOURCE
+  SUBROUTINE h5iget_ref_f(obj_id, ref_count, hdferr)
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: obj_id  !Object identifier 
+    INTEGER, INTENT(OUT) :: ref_count !Current reference count of ID
+    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+!*****
+    INTERFACE
+       INTEGER FUNCTION h5iget_ref_c(obj_id, ref_count)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5IGET_REF_C':: h5iget_ref_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: obj_id 
+         INTEGER, INTENT(OUT) :: ref_count
+       END FUNCTION h5iget_ref_c
+    END INTERFACE
+    hdferr = h5iget_ref_c(obj_id, ref_count)
+  END SUBROUTINE h5iget_ref_f
+!
+!****s* H5I/h5iget_file_id_f
+! NAME		
+!  h5iget_file_id_f
+!
+! FUNCTION
+!  Obtains file identifier from the object identifier
+!
+! INPUTS
+! 	obj_id		- object identifier 
+! OUTPUT       
+!	file_id         - file identifier
+!	hdferr:		- error code		
+!			 	Success:  0
+!			 	Failure: -1
+!
+! AUTHOR
+!	Elena Pourmal
+!	August 23, 2004
+! SOURCE
+  SUBROUTINE h5iget_file_id_f(obj_id, file_id, hdferr)
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN)  :: obj_id   ! Object identifier 
+    INTEGER(HID_T), INTENT(OUT) :: file_id  ! File identifier
+    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+!*****    
+    INTERFACE
+       INTEGER FUNCTION h5iget_file_id_c(obj_id, file_id)
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5IGET_FILE_ID_C':: h5iget_file_id_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN)  :: obj_id 
+         INTEGER(HID_T), INTENT(OUT) :: file_id 
+       END FUNCTION h5iget_file_id_c
+    END INTERFACE
+    hdferr = h5iget_file_id_c(obj_id, file_id)
+  END SUBROUTINE h5iget_file_id_f
 
-!----------------------------------------------------------------------
-! Name:		h5iget_ref_f
-!
-! Purpose:	Retrieves the reference count of an ID
-!
-! Inputs: 	obj_id		- object identifier 
-! Outputs:  
-!		ref_count       - Current reference count of the ID
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! Optional parameters:
-!				NONE
-!
-! Programmer:	Quincey Koziol
-!		December  9, 2003	
-!
-! Modifications:
-!
-! Comment:		
-!----------------------------------------------------------------------
-          SUBROUTINE h5iget_ref_f(obj_id, ref_count, hdferr)
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: obj_id  !Object identifier 
-            INTEGER, INTENT(OUT) :: ref_count !Current reference count of ID
-            INTEGER, INTENT(OUT) :: hdferr  ! Error code
-
-!            INTEGER, EXTERNAL :: h5iget_ref_c
-!  Interface is needed for MS FORTRAN
-!
-            INTERFACE
-              INTEGER FUNCTION h5iget_ref_c(obj_id, ref_count)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5IGET_REF_C':: h5iget_ref_c
-              !DEC$ ENDIF
-              INTEGER(HID_T), INTENT(IN) :: obj_id 
-              INTEGER, INTENT(OUT) :: ref_count
-              END FUNCTION h5iget_ref_c
-            END INTERFACE
-            hdferr = h5iget_ref_c(obj_id, ref_count)
-          END SUBROUTINE h5iget_ref_f
-
-!----------------------------------------------------------------------
-! Name:		h5iget_file_id_f
-!
-! Purpose:	Obtains file identifier from the object identifier
-!
-! Inputs: 	obj_id		- object identifier 
-! Outputs:       
-!		file_id         - file identifier
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! Optional parameters:
-!				NONE
-!
-! Programmer:	Elena Pourmal
-!		August 23, 2004
-!
-! Modifications:
-!
-! Comment:		
-!----------------------------------------------------------------------
-          SUBROUTINE h5iget_file_id_f(obj_id, file_id, hdferr)
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN)  :: obj_id   ! Object identifier 
-            INTEGER(HID_T), INTENT(OUT) :: file_id  ! File identifier
-            INTEGER, INTENT(OUT) :: hdferr  ! Error code
-
-            INTERFACE
-              INTEGER FUNCTION h5iget_file_id_c(obj_id, file_id)
-              USE H5GLOBAL
-              !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5IGET_FILE_ID_C':: h5iget_file_id_c
-              !DEC$ ENDIF
-              INTEGER(HID_T), INTENT(IN)  :: obj_id 
-              INTEGER(HID_T), INTENT(OUT) :: file_id 
-              END FUNCTION h5iget_file_id_c
-            END INTERFACE
-            hdferr = h5iget_file_id_c(obj_id, file_id)
-          END SUBROUTINE h5iget_file_id_f
-
-      END MODULE H5I
+END MODULE H5I
 

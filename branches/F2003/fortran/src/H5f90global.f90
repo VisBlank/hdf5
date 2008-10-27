@@ -1,7 +1,10 @@
-!****h* root/fortran/src/H5f90global.f90
+!****h* ROBODoc/H5GLOBAL
 !
 ! NAME
-!   H5GLOBAL
+!   MODULE H5GLOBAL
+!
+! FILE
+!   src/fortran/H5f90global.f90
 !  
 ! FUNCTION
 !   This module is used to pass C stubs for H5 Fortran APIs. The C stubs are 

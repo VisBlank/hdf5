@@ -1,11 +1,11 @@
-!****h* root/fortran/src/HDF5mpio.f90
+!****h* ROBODoc/HDF5 (mpio)
 !
 ! NAME
 !   HDF5
 !  
 ! FUNCTION
 !   This is the main module used for linking to the Fortran parallel HDF library.
-!   This file is used instead of HDF5.f90 when compiling the parallel library.
+!   This file replaces HDF5.f90 when compiling the parallel library.
 !
 ! COPYRIGHT
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

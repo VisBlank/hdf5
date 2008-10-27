@@ -1,4 +1,4 @@
-!****h* root/fortran/src/H5Dff_F03.f90
+!****h* ROBODoc/H5D (F03)
 !
 ! NAME
 !   H5D_PROVISIONAL
@@ -74,7 +74,7 @@
 ! (B) 
 !                          *** IMPORTANT ***
 !   If you add a new H5D function you must add the function name to the 
-!   Windows dll file 'hdf5_fortrandll.def' in the root/fortran/src directory.
+!   Windows dll file 'hdf5_fortrandll.def' in the ROBODoc directory.
 !   This is needed for Windows based operating systems.
 !
 !*****
@@ -1464,32 +1464,32 @@ CONTAINS
 
   END SUBROUTINE h5dwrite_double_7
 
-  !----------------------------------------------------------------------
-  ! Name:		h5dread_f 
   !
-  ! Purpose: 	Reads raw data from the specified dataset into buf, 
+  ! NAME		h5dread_f 
+  !
+  ! FUNCTION 	Reads raw data from the specified dataset into buf, 
   !		converting from file datatype and dataspace to memory 
   !		datatype and dataspace.
   !
-  ! Inputs:  
+  ! INPUTS  
   !		dset_id		- dataset identifier
   !		mem_type_id	- memory type identifier
   !		dims		- 1-dim array of size 7; dims(k) has the size 
   !				- of k-th dimension of the buf array
-  ! Outputs:  
+  ! OUTPUT  
   !		buf		- buffer to read data in
   !		hdferr:		- error code		
   !				 	Success:  0
   !				 	Failure: -1   
-  ! Optional parameters:
+  ! OPTIONAL PARAMETERS
   !		mem_space_id	- memory dataspace identifier
   !		file_space_id 	- file dataspace identifier
   !		xfer_prp	- trasfer property list identifier	
   !
-  ! Programmer:	Elena Pourmal
+  ! AUTHOR	Elena Pourmal
   !		August 12, 1999	
   !
-  ! Modifications: 	Explicit Fortran interfaces were added for 
+  ! HISTORY 	Explicit Fortran interfaces were added for 
   !			called C functions (it is needed for Windows
   !			port).  February 28, 2001 
   !
@@ -1498,12 +1498,12 @@ CONTAINS
   !			the h5dwrite_reference_obj and h5dwrite_reference_dsetreg
   !			functions.  April 2, 2001
   !
-  ! Comment:		This function is overloaded to read INTEGER,
+  ! NOTES		This function is overloaded to read INTEGER,
   !			REAL, DOUBLE PRECISION and CHARACTER buffers
   !			up to 7 dimensions, and one dimensional buffers
   !			of the TYPE(hobj_ref_t_f) and TYPE(hdset_reg_ref_t_f)
   !			types.	
-  !----------------------------------------------------------------------
+  !
   SUBROUTINE h5dread_reference_obj(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
@@ -2830,29 +2830,29 @@ CONTAINS
 
   END SUBROUTINE h5dread_ptr
 
-  !----------------------------------------------------------------------
-  ! Name:		h5dfill_integer
   !
-  ! Purpose:      Fills dataspace elements with a fill value in a memory buffer.	
+  ! NAME		h5dfill_integer
+  !
+  ! FUNCTION      Fills dataspace elements with a fill value in a memory buffer.	
   !               Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes 
   !               of the fillvalues and buffers are supported. Buffer and fillvalue
   !               are assumed to have the same datatype.
   !               Only one-dimesional buffers are supported.
   !
-  ! Inputs:  
+  ! INPUTS  
   !		fill_value	- fill value
   !		space_id	- memory space selection identifier
   !		buf		- data buffer iin memory ro apply selection to
   !				- of k-th dimension of the buf array
-  ! Outputs:  
+  ! OUTPUT  
   !		hdferr:		- error code		
   !				 	Success:  0
   !				 	Failure: -1   
   !
-  ! Programmer:	Elena Pourmal
+  ! AUTHOR	Elena Pourmal
   !		March 12, 2003
   !
-  !----------------------------------------------------------------------
+  !
 
   SUBROUTINE h5dfill_integer(fill_value, space_id, buf,  hdferr)
     USE ISO_C_BINDING
@@ -2879,29 +2879,29 @@ CONTAINS
     
   END SUBROUTINE h5dfill_integer
 
-  !----------------------------------------------------------------------
-  ! Name:		h5dfill_real
   !
-  ! Purpose:      Fills dataspace elements with a fill value in a memory buffer.	
+  ! NAME		h5dfill_real
+  !
+  ! FUNCTION      Fills dataspace elements with a fill value in a memory buffer.	
   !               Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes 
   !               of the fillvalues and buffers are supported. Buffer and fillvalue
   !               are assumed to have the same datatype.
   !               Only one-dimesional buffers are supported.
   !
-  ! Inputs:  
+  ! INPUTS  
   !		fill_value	- fill value
   !		space_id	- memory space selection identifier
   !		buf		- data buffer iin memory ro apply selection to
   !				- of k-th dimension of the buf array
-  ! Outputs:  
+  ! OUTPUT  
   !		hdferr:		- error code		
   !				 	Success:  0
   !				 	Failure: -1   
   !
-  ! Programmer:	Elena Pourmal
+  ! AUTHOR	Elena Pourmal
   !		March 12, 2003
   !
-  !----------------------------------------------------------------------
+  !
 
   SUBROUTINE h5dfill_real(fill_valuer, space_id, buf,  hdferr)
     USE ISO_C_BINDING
@@ -2928,29 +2928,29 @@ CONTAINS
 
   END SUBROUTINE h5dfill_real
 
-  !----------------------------------------------------------------------
-  ! Name:		h5dfill_double
   !
-  ! Purpose:      Fills dataspace elements with a fill value in a memory buffer.	
+  ! NAME		h5dfill_double
+  !
+  ! FUNCTION      Fills dataspace elements with a fill value in a memory buffer.	
   !               Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes 
   !               of the fillvalues and buffers are supported. Buffer and fillvalue
   !               are assumed to have the same datatype.
   !               Only one-dimesional buffers are supported.
   !
-  ! Inputs:  
+  ! INPUTS  
   !		fill_value	- fill value
   !		space_id	- memory space selection identifier
   !		buf		- data buffer iin memory ro apply selection to
   !				- of k-th dimension of the buf array
-  ! Outputs:  
+  ! OUTPUT  
   !		hdferr:		- error code		
   !				 	Success:  0
   !				 	Failure: -1   
   !
-  ! Programmer:	Elena Pourmal
+  ! AUTHOR	Elena Pourmal
   !		March 12, 2003
   !
-  !----------------------------------------------------------------------
+  !
 
   SUBROUTINE h5dfill_double(fill_value, space_id, buf,  hdferr)
     USE ISO_C_BINDING
@@ -2977,29 +2977,29 @@ CONTAINS
 
   END SUBROUTINE h5dfill_double
 
-  !----------------------------------------------------------------------
-  ! Name:		h5dfill_char
   !
-  ! Purpose:      Fills dataspace elements with a fill value in a memory buffer.	
+  ! NAME		h5dfill_char
+  !
+  ! FUNCTION      Fills dataspace elements with a fill value in a memory buffer.	
   !               Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes 
   !               of the fillvalues and buffers are supported. Buffer and fillvalue
   !               are assumed to have the same datatype.
   !               Only one-dimesional buffers are supported.
   !
-  ! Inputs:  
+  ! INPUTS  
   !		fill_value	- fill value
   !		space_id	- memory space selection identifier
   !		buf		- data buffer iin memory ro apply selection to
   !				- of k-th dimension of the buf array
-  ! Outputs:  
+  ! OUTPUT  
   !		hdferr:		- error code		
   !				 	Success:  0
   !				 	Failure: -1   
   !
-  ! Programmer:	Elena Pourmal
+  ! AUTHOR	Elena Pourmal
   !		March 12, 2003
   !
-  !----------------------------------------------------------------------
+  !
 
   SUBROUTINE h5dfill_char(fill_value, space_id, buf,  hdferr)
     USE ISO_C_BINDING

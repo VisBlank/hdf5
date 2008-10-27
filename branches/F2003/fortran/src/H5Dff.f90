@@ -1,14 +1,16 @@
-!****h* root/fortran/src/H5Dff.f90
+!****h* ROBODoc/H5D
 !
 ! NAME
-!   H5D
+!   MODULE H5D
+!
+! FILE
+!   fortran/src/H5Dff.f90
 !  
 ! FUNCTION
 !   This file contains Fortran interfaces for H5D functions. It includes
 !   all the functions that are independent on whether the Fortran 2003 functions
 !   are enabled or disabled.
 !   
-!
 ! COPYRIGHT
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
@@ -28,7 +30,7 @@
 ! NOTES
 !                          *** IMPORTANT ***
 !   If you add a new H5D function you must add the function name to the 
-!   Windows dll file 'hdf5_fortrandll.def' in the root/fortran/src directory.
+!   Windows dll file 'hdf5_fortrandll.def' in the ROBODoc directory.
 !   This is needed for Windows based operating systems.
 !
 !*****
@@ -54,30 +56,36 @@ MODULE H5D
 
 CONTAINS
           
-!----------------------------------------------------------------------
-! Name:		h5dcreate_f 
 !
-! Purpose: 	Creates a dataset at the specified location 	
+!****s* H5D/h5dcreate_f 
 !
-! Inputs:  
+! NAME
+!		h5dcreate_f 
+!
+! FUNCTION
+! 	Creates a dataset at the specified location 	
+!
+! INPUTS  
 !		loc_id		- file or group identifier
 !		name		- dataset name
 !		type_id		- dataset datatype identifier
 !		space_id	- dataset dataspace identifier
-! Outputs:  
+! OUTPUT  
 !		dset_id		- dataset identifier
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
-! Optional parameters:
+! OPTIONAL PARAMETERS
 !            creation_prp - Dataset creation property list
 !            lcpl_id      - Link creation property list
 !            dapl_id      - Dataset access property list
 !
-! Programmer:	Elena Pourmal
+! AUTHOR
+!	Elena Pourmal
 !		August 12, 1999	
 !
-! Modifications: 	
+! HISTORY
+! 	
 !                 - Explicit Fortran interfaces were added for 
 !	           called C functions (it is needed for Windows
 !		   port).  February 28, 2001 
@@ -85,9 +93,9 @@ CONTAINS
 !                 - Added version's 1.8 new optional parameters
 !                  February, 2008
 !
-! Comment:		
-!----------------------------------------------------------------------
-  
+! NOTES		
+!
+! SOURCE
   SUBROUTINE h5dcreate_f(loc_id, name, type_id, space_id, dset_id, & 
        hdferr, dcpl_id, lcpl_id, dapl_id)
     IMPLICIT NONE
@@ -97,7 +105,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: space_id ! Dataspace identifier 
     INTEGER(HID_T), INTENT(OUT) :: dset_id ! Dataset identifier 
     INTEGER, INTENT(OUT) :: hdferr         ! Error code
-
+!*****
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: dcpl_id ! Dataset creation property list
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lcpl_id ! Link creation property list
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: dapl_id ! Dataset access property list
@@ -146,35 +154,39 @@ CONTAINS
  
   END SUBROUTINE h5dcreate_f
           
-!----------------------------------------------------------------------
-! Name:		h5dopen_f 
 !
-! Purpose: 	Opens an existing dataset.  	
+!****s* H5D/h5dopen_f 
 !
-! Inputs:  
+! NAME
+!		h5dopen_f 
+!
+! FUNCTION
+! 	Opens an existing dataset.  	
+!
+! INPUTS  
 !		loc_id		- file or group identifier
 !		name		- dataset name
-! Outputs:  
+! OUTPUT  
 !		dset_id		- dataset identifier
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
-! Optional parameters:
+! OPTIONAL PARAMETERS
 !	       dapl_id	        - Dataset access property list		
 !
-! Programmer:	Elena Pourmal
+! AUTHOR
+!	Elena Pourmal
 !		August 12, 1999	
 !
-! Modifications:  -Explicit Fortran interfaces were added for 
+! HISTORY
+!  -Explicit Fortran interfaces were added for 
 !		   called C functions (it is needed for Windows
 !		   port).  February 28, 2001 
 !
 !                 -Added 1.8 (optional) parameter dapl_id
 !                  February, 2008, M.S. Breitenfeld
 !
-! Comment:		
-!----------------------------------------------------------------------
-
+! SOURCE
   SUBROUTINE h5dopen_f(loc_id, name, dset_id, hdferr, dapl_id)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier 
@@ -182,13 +194,11 @@ CONTAINS
     INTEGER(HID_T), INTENT(OUT) :: dset_id ! Dataset identifier
     INTEGER, INTENT(OUT) :: hdferr         ! Error code 
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: dapl_id ! Dataset access property list
+!*****
     INTEGER :: namelen                     ! Name length
     
     INTEGER(HID_T) :: dapl_id_default
     
-!            INTEGER, EXTERNAL :: h5dopen_c
-!  MS FORTRAN needs explicit interface for C functions called here.
-!
     INTERFACE
        INTEGER FUNCTION h5dopen_c(loc_id, name, namelen, dapl_id_default, dset_id)
          USE H5GLOBAL
@@ -212,38 +222,39 @@ CONTAINS
     
   END SUBROUTINE h5dopen_f
           
-!----------------------------------------------------------------------
-! Name:		h5dclose_f 
 !
-! Purpose: 	Closes a dataset.  	
+!****s* H5D/h5dclose_f 
 !
-! Inputs:  
+! NAME
+!		h5dclose_f 
+!
+! FUNCTION
+! 	Closes a dataset.  	
+!
+! INPUTS  
 !		dset_id		- dataset identifier
-! Outputs:  
+! OUTPUT  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
-! Optional parameters:
+! OPTIONAL PARAMETERS
 !				NONE			
 !
-! Programmer:	Elena Pourmal
+! AUTHOR
+!	Elena Pourmal
 !		August 12, 1999	
 !
-! Modifications: 	Explicit Fortran interfaces were added for 
+! HISTORY
+! 	Explicit Fortran interfaces were added for 
 !			called C functions (it is needed for Windows
 !			port).  February 28, 2001 
 !
-! Comment:		
-!----------------------------------------------------------------------
-
+! SOURCE
   SUBROUTINE h5dclose_f(dset_id, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id ! Dataset identifier
     INTEGER, INTENT(OUT) :: hdferr        ! Error code
-    
-!            INTEGER, EXTERNAL :: h5dclose_c
-!  MS FORTRAN needs explicit interface for C functions called here.
-!
+!*****
     INTERFACE
        INTEGER FUNCTION h5dclose_c(dset_id)
          USE H5GLOBAL
@@ -258,40 +269,44 @@ CONTAINS
     
   END SUBROUTINE h5dclose_f
 
-!----------------------------------------------------------------------
-! Name:		h5dget_type_f 
 !
-! Purpose:	Returns an identifier for a copy of the datatype for a 
+!****s* H5D/h5dget_type_f 
+!
+! NAME
+!		h5dget_type_f 
+!
+! FUNCTION
+!	Returns an identifier for a copy of the datatype for a 
 !		dataset.   	
 !
-! Inputs:  
+! INPUTS  
 !		dataset_id	- dataset identifier
-! Outputs:  
+! OUTPUT  
 !		datatype_id	- dataspace identifier
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
-! Optional parameters:
+! OPTIONAL PARAMETERS
 !				NONE			
 !
-! Programmer:	Elena Pourmal
+! AUTHOR
+!	Elena Pourmal
 !		August 12, 1999	
 !
-! Modifications: 	Explicit Fortran interfaces were added for 
+! HISTORY
+! 	Explicit Fortran interfaces were added for 
 !			called C functions (it is needed for Windows
 !			port).  February 28, 2001 
 !
-! Comment:		
-!----------------------------------------------------------------------
-
+! NOTES		
+!
+! SOURCE
   SUBROUTINE h5dget_type_f(dataset_id, datatype_id, hdferr)
     IMPLICIT NONE 
     INTEGER(HID_T), INTENT(IN) :: dataset_id      ! Dataset identifier
     INTEGER(HID_T), INTENT(OUT) :: datatype_id    ! Datatype identifier
-    INTEGER, INTENT(OUT) :: hdferr                ! Error code 
-!            INTEGER, EXTERNAL :: h5dget_type_c
-!  MS FORTRAN needs explicit interface for C functions called here.
-!
+    INTEGER, INTENT(OUT) :: hdferr                ! Error code
+!*****
     INTERFACE
        INTEGER FUNCTION h5dget_type_c (dataset_id, datatype_id)
          USE H5GLOBAL
@@ -306,37 +321,40 @@ CONTAINS
     hdferr = h5dget_type_c (dataset_id, datatype_id)
   END SUBROUTINE h5dget_type_f
 
-!----------------------------------------------------------------------
-! Name:		h5dset_extent (instead of obsolete name: h5dextend_f) 
 !
-! Purpose:	Extends a dataset with unlimited dimension.	
+!****s* H5D/h5dset_extent
 !
-! Inputs:  
+! NAME
+!		h5dset_extent (instead of obsolete name: h5dextend_f) 
+!
+! FUNCTION
+!	Extends a dataset with unlimited dimension.	
+!
+! INPUTS  
 !		dataset_id	- dataset identifier
 !		size		- array containing the new magnitude of 
 !				  each dimension
-! Outputs:  
+! OUTPUT  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
-! Optional parameters:
+! OPTIONAL PARAMETERS
 !				NONE			
 !
-! Programmer:	Elena Pourmal
+! AUTHOR
+!	Elena Pourmal
 !		August 12, 1999	
 !
-! Modifications: 	Explicit Fortran interfaces were added for 
+! HISTORY
+! 	Explicit Fortran interfaces were added for 
 !			called C functions (it is needed for Windows
 !			port).  February 28, 2001 
 !
 !                       Changed name from the now obsolete h5dextend_f
 !                       to h5dset_extent_f. Provided interface to old name
-!                       for backward compatability. -MSB- March 14, 2008
+!                       for backward compatability. -MSB- March 14, 2008	
 !
-! Comment:		
-!----------------------------------------------------------------------
-
-
+! SOURCE
   SUBROUTINE h5dset_extent_f(dataset_id, size, hdferr)
     IMPLICIT NONE 
     INTEGER(HID_T), INTENT(IN) :: dataset_id      ! Dataset identifier
@@ -344,10 +362,7 @@ CONTAINS
     ! Array containing 
     ! dimensions' sizes 
     INTEGER, INTENT(OUT) :: hdferr                ! Error code 
-    
-    !
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
+!*****
     INTERFACE
        INTEGER FUNCTION h5dset_extent_c(dataset_id, size)
          USE H5GLOBAL
@@ -362,43 +377,41 @@ CONTAINS
     hdferr = H5Dset_extent_c(dataset_id, size)
   END SUBROUTINE h5dset_extent_f
 
-
-!----------------------------------------------------------------------
-! Name:		h5dget_create_plist_f 
+!****s* H5D/h5dget_create_plist_f 
 !
-! Purpose:	Returns an identifier for a copy of the dataset creation 
+! NAME
+!		h5dget_create_plist_f 
+!
+! FUNCTION
+!	Returns an identifier for a copy of the dataset creation 
 !		property list for a dataset. 	
 !
-! Inputs:  
+! INPUTS  
 !		dataset_id	- dataset identifier
-! Outputs:  
+! OUTPUT  
 !		plist_id	- creation property list identifier
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
-! Optional parameters:
+! OPTIONAL PARAMETERS
 !				NONE			
 !
-! Programmer:	Elena Pourmal
+! AUTHOR
+!	Elena Pourmal
 !		August 12, 1999	
 !
-! Modifications: 	Explicit Fortran interfaces were added for 
+! HISTORY
+! 	Explicit Fortran interfaces were added for 
 !			called C functions (it is needed for Windows
 !			port).  February 28, 2001 
-!
-! Comment:		
-!----------------------------------------------------------------------
-
+! SOURCE
   SUBROUTINE h5dget_create_plist_f(dataset_id, plist_id, hdferr)
     IMPLICIT NONE 
     INTEGER(HID_T), INTENT(IN) :: dataset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(OUT) :: plist_id    ! Dataset creation
                                                ! property list identifier
     INTEGER, INTENT(OUT) :: hdferr             ! Error code 
-
-!            INTEGER, EXTERNAL :: h5dget_create_plist_c
-!  MS FORTRAN needs explicit interface for C functions called here.
-!
+!*****
     INTERFACE
        INTEGER FUNCTION h5dget_create_plist_c(dataset_id, plist_id)
          USE H5GLOBAL
@@ -413,38 +426,36 @@ CONTAINS
     hdferr = h5dget_create_plist_c(dataset_id, plist_id)
   END SUBROUTINE h5dget_create_plist_f
 
-!----------------------------------------------------------------------
-! Name:		h5dget_storage_size_f 
 !
-! Purpose:	Returns the amount of storage requires by a dataset	
+!****s* H5D/h5dget_storage_size_f 
 !
-! Inputs:  
+! NAME
+!		h5dget_storage_size_f 
+!
+! FUNCTION
+!	Returns the amount of storage requires by a dataset	
+!
+! INPUTS  
 !		dataset_id	- dataset identifier
-! Outputs:  
+! OUTPUT  
 !		size		- datastorage size
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
-! Optional parameters:
+! OPTIONAL PARAMETERS
 !				NONE			
 !
-! Programmer:	Elena Pourmal
+! AUTHOR
+!	Elena Pourmal
 !		October 15, 2002	
-!
-! Modifications: 	
-!
-! Comment:		
-!----------------------------------------------------------------------
-
-
+! SOURCE
   SUBROUTINE h5dget_storage_size_f(dataset_id, size, hdferr)
     IMPLICIT NONE 
-    INTEGER(HID_T), INTENT(IN) :: dataset_id      ! Dataset identifier
-    INTEGER(HSIZE_T),  INTENT(OUT)  :: size
-    ! Amount of storage 
-    ! allocated for dataset
-    INTEGER, INTENT(OUT) :: hdferr                ! Error code 
-    
+    INTEGER(HID_T), INTENT(IN) :: dataset_id ! Dataset identifier
+    INTEGER(HSIZE_T),  INTENT(OUT)  :: size  ! Amount of storage 
+                                             ! allocated for dataset
+    INTEGER, INTENT(OUT) :: hdferr           ! Error code 
+!*****
     INTERFACE
        INTEGER FUNCTION h5dget_storage_size_c(dataset_id, size)
          USE H5GLOBAL
@@ -459,31 +470,32 @@ CONTAINS
     hdferr = h5dget_storage_size_c(dataset_id, size)
   END SUBROUTINE h5dget_storage_size_f
 
-!----------------------------------------------------------------------
-! Name:		h5dvlen_get_max_len_f 
 !
-! Purpose:	Returns maximum length of the VL array elements
+!****s* H5D/h5dvlen_get_max_len_f 
 !
-! Inputs:  
+! NAME
+!		h5dvlen_get_max_len_f 
+!
+! FUNCTION
+!	Returns maximum length of the VL array elements
+!
+! INPUTS  
 !		dataset_id	- dataset identifier
 !		type_id		- datatype identifier
 !		space_id	- dataspace identifier
-! Outputs:  
+! OUTPUT  
 !		size		- buffer size
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
-! Optional parameters:
+! OPTIONAL PARAMETERS
 !				NONE			
 !
-! Programmer:	Elena Pourmal
+! AUTHOR
+!	Elena Pourmal
 !		October 15, 2002	
 !
-! Modifications: 	
-!
-! Comment:		
-!----------------------------------------------------------------------
-
+! SOURCE
   SUBROUTINE h5dvlen_get_max_len_f(dataset_id, type_id, space_id, len,  hdferr)
     IMPLICIT NONE 
     INTEGER(HID_T), INTENT(IN) :: dataset_id      ! Dataset identifier
@@ -491,7 +503,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: space_id        ! Dataspace identifier
     INTEGER(SIZE_T),  INTENT(OUT)  :: len         ! Maximum length of the element
     INTEGER, INTENT(OUT) :: hdferr                ! Error code 
-    
+!*****    
     INTERFACE
        INTEGER FUNCTION h5dvlen_get_max_len_c(dataset_id, type_id, space_id, len)
          USE H5GLOBAL
@@ -508,14 +520,18 @@ CONTAINS
     hdferr = h5dvlen_get_max_len_c(dataset_id, type_id,  space_id, len)
   END SUBROUTINE h5dvlen_get_max_len_f
   
-  !----------------------------------------------------------------------
-  ! Name:		h5dget_space_status_f
   !
-  ! Purpose:      Returns the status of data space allocation. 
+  !****s* H5D/h5dget_space_status_f
   !
-  ! Inputs:  
+  ! NAME
+  !		h5dget_space_status_f
+  !
+  ! FUNCTION
+  !      Returns the status of data space allocation. 
+  !
+  ! INPUTS  
   !		dset_id		- dataset identifier
-  ! Outputs:  
+  ! OUTPUT  
   !               flag            - status; may have one of the following values:
   !				  H5D_SPACE_STS_ERROR_F
   !				  H5D_SPACE_STS_NOT_ALLOCATED_F
@@ -525,20 +541,17 @@ CONTAINS
   !				 	Success:  0
   !				 	Failure: -1   
   !
-  ! Programmer:	Elena Pourmal
-  !		March 12, 2003
+  ! AUTHOR
+  !	Elena Pourmal
+  !	March 12, 2003
   !
-  !----------------------------------------------------------------------
-
+  ! SOURCE
   SUBROUTINE h5dget_space_status_f(dset_id, flag, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id  ! Dataspace identifier
     INTEGER, INTENT(IN)        :: flag     ! Memory buffer to fill in
     INTEGER, INTENT(OUT)       :: hdferr   ! Error code 
-
-    !            INTEGER, EXTERNAL :: h5dget_space_status_c
-    ! MS FORTRAN needs explicit interface for C functions called here.
-    !
+  !*****
     INTERFACE
        INTEGER FUNCTION h5dget_space_status_c(dset_id, flag)
          USE H5GLOBAL
@@ -553,32 +566,32 @@ CONTAINS
     hdferr = h5dget_space_status_c(dset_id, flag)
   END SUBROUTINE h5dget_space_status_f
 
-  !----------------------------------------------------------------------
-  ! Name:		h5dcreate_anon_f 
   !
-  ! Purpose: 	Creates a dataset in a file without linking it into the file structure 
+  !****s* H5D/h5dcreate_anon_f 
   !
-  ! Inputs:  
+  ! NAME
+  !		h5dcreate_anon_f 
+  !
+  ! FUNCTION
+  ! 	Creates a dataset in a file without linking it into the file structure 
+  !
+  ! INPUTS  
   !		loc_id		- Identifier of the file or group within which to create the dataset.
   !		type_id		- Identifier of the datatype to use when creating the dataset.
   !		space_id	- Identifier of the dataspace to use when creating the dataset.
-  ! Outputs:  
+  ! OUTPUT  
   !		dset_id		- dataset identifier
   !		hdferr:		- error code		
   !				 	Success:  0
   !				 	Failure: -1   
-  ! Optional parameters:
+  ! OPTIONAL PARAMETERS
   !               dcpl_id       - Dataset creation property list identifier.
   !               dapl_id  	- Dataset access property list identifier.
   !
-  ! Programmer:   M.S. Breitenfeld
+  ! AUTHOR
+!   M.S. Breitenfeld
   !		  February 11, 2008
-  !
-  ! Modifications:
-  !
-  ! Comment:		
-  !----------------------------------------------------------------------
-
+! SOURCE
   SUBROUTINE h5dcreate_anon_f(loc_id, type_id, space_id, dset_id, hdferr, dcpl_id, dapl_id)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier. 
@@ -588,7 +601,7 @@ CONTAINS
     INTEGER, INTENT(OUT) :: hdferr         ! Error code.
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: dcpl_id  ! Dataset creation property list identifier.
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: dapl_id  ! Dataset access property list identifier.
-
+    !*****
     INTEGER(HID_T) :: dcpl_id_default
     INTEGER(HID_T) :: dapl_id_default
 
@@ -911,7 +924,8 @@ CONTAINS
          !              CHARACTER, INTENT(IN), &
          !              DIMENSION(dims(1)*dims(2)) :: tmp_buf
          CHARACTER(LEN=*), DIMENSION(dims(2)) :: buf
-       END FUNCTION h5dwrite_vl_string_c
+       END FUNCTION
+! h5dwrite_vl_string_c
     END INTERFACE
 
 
@@ -1008,53 +1022,55 @@ CONTAINS
     RETURN 
   END SUBROUTINE h5dread_vl_string
 
-!----------------------------------------------------------------------
-! Name:		h5dget_space_f 
 !
-! Purpose:	Returns an identifier for a copy of the dataspace for a 
+!****s* H5D/h5dget_space_f 
+!
+! NAME
+!		h5dget_space_f 
+!
+! FUNCTION
+!	Returns an identifier for a copy of the dataspace for a 
 !		dataset.   	
 !
-! Inputs:  
+! INPUTS  
 !		dataset_id	- dataset identifier
-! Outputs:  
+! OUTPUT  
 !		dataspace_id	- dataspace identifier
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
-! Optional parameters:
+! OPTIONAL PARAMETERS
 !				NONE			
 !
-! Programmer:	Elena Pourmal
+! AUTHOR
+!	Elena Pourmal
 !		August 12, 1999	
 !
-! Modifications: 	Explicit Fortran interfaces were added for 
+! HISTORY
+! 	Explicit Fortran interfaces were added for 
 !			called C functions (it is needed for Windows
 !			port).  February 28, 2001
 !
-! Comment:		
-!----------------------------------------------------------------------
+! SOURCE
   SUBROUTINE h5dget_space_f(dataset_id, dataspace_id, hdferr)
     IMPLICIT NONE 
     INTEGER(HID_T), INTENT(IN) :: dataset_id      ! Dataset identifier
     INTEGER(HID_T), INTENT(OUT) :: dataspace_id   ! Dataspace identifier
     INTEGER, INTENT(OUT) :: hdferr                ! Error code 
-    
-!            INTEGER, EXTERNAL :: h5dget_space_c
-!  MS FORTRAN needs explicit interface for C functions called here.
-!
+!*****
     INTERFACE
        INTEGER FUNCTION h5dget_space_c(dataset_id, dataspace_id)
-         USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DGET_SPACE_C'::h5dget_space_c
-         !DEC$ ENDIF
-         INTEGER(HID_T), INTENT(IN) :: dataset_id
-         INTEGER(HID_T), INTENT(OUT) :: dataspace_id
-       END FUNCTION h5dget_space_c
-    END INTERFACE
-    
-    hdferr = h5dget_space_c(dataset_id, dataspace_id)
-  END SUBROUTINE h5dget_space_f
+       USE H5GLOBAL
+       !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+       !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DGET_SPACE_C'::h5dget_space_c
+       !DEC$ ENDIF
+       INTEGER(HID_T), INTENT(IN) :: dataset_id
+       INTEGER(HID_T), INTENT(OUT) :: dataspace_id
+     END FUNCTION h5dget_space_c
+  END INTERFACE
+  
+  hdferr = h5dget_space_c(dataset_id, dataspace_id)
+END SUBROUTINE h5dget_space_f
 
 END MODULE H5D
 

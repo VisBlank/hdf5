@@ -1,7 +1,7 @@
-!****h* root/root/fortran/src/HDF5.f90
+!****h* ROBODoc/HDF5
 !
 ! NAME
-!   HDF5
+!   MODULE HDF5
 !  
 ! FUNCTION
 !   This is the main module used for linking to the Fortran HDF library. 
@@ -46,5 +46,4 @@ MODULE HDF5
   USE H5Z
   USE H5_DBLE_INTERFACE
   USE H5LIB
-
 END MODULE HDF5

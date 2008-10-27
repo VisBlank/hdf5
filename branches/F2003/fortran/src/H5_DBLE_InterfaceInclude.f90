@@ -1,8 +1,11 @@
-!****h* root/fortran/src/H5_DBLE_InterfaceInclude.f90
+!****h* ROBODoc/H5_DBLE_INTERFACE(Include)
 !
 ! NAME
-!   H5_DBLE_INTERFACE
+!   MODULE H5_DBLE_INTERFACE
 !  
+! FILE
+!   fortran/src/H5_DBLE_InterfaceInclude.f90
+!
 ! FUNCTION
 !   This module is used for when the default REAL is not of the type DOUBLE PRECISION.
 !   We only do not include the double precision interfaces if the defaut REAL is
@@ -32,7 +35,7 @@
 !   (2)
 !                           *** IMPORTANT ***
 !       If you add a new H5A, H5D, H5P function you must add the function name to the 
-!       Windows dll file 'hdf5_fortrandll.def' in the root/fortran/src directory.
+!       Windows dll file 'hdf5_fortrandll.def' in the ROBODoc directory.
 !       This is needed for Windows based operating systems.
 !
 !*****
@@ -135,9 +138,6 @@ CONTAINS
     DOUBLE PRECISION, INTENT(IN) :: buf     ! Attribute data 
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
 
-    !            INTEGER, EXTERNAL :: h5awrite_double_s_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5awrite_double_s_c(attr_id, memtype_id,  buf, dims)
          USE H5GLOBAL
@@ -1543,29 +1543,29 @@ CONTAINS
 
   END SUBROUTINE h5dread_double_7
 
-  !----------------------------------------------------------------------
-  ! Name:		h5dfill_double
   !
-  ! Purpose:      Fills dataspace elements with a fill value in a memory buffer.	
+  ! NAME		h5dfill_double
+  !
+  ! FUNCTION      Fills dataspace elements with a fill value in a memory buffer.	
   !               Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes 
   !               of the fillvalues and buffers are supported. Buffer and fillvalue
   !               are assumed to have the same datatype.
   !               Only one-dimesional buffers are supported.
   !
-  ! Inputs:  
+  ! INPUTS  
   !		fill_value	- fill value
   !		space_id	- memory space selection identifier
   !		buf		- data buffer iin memory ro apply selection to
   !				- of k-th dimension of the buf array
-  ! Outputs:  
+  ! OUTPUT  
   !		hdferr:		- error code		
   !				 	Success:  0
   !				 	Failure: -1   
   !
-  ! Programmer:	Elena Pourmal
+  ! AUTHOR	Elena Pourmal
   !		March 12, 2003
   !
-  !----------------------------------------------------------------------
+  !
 
   SUBROUTINE h5dfill_double(fill_value, space_id, buf,  hdferr)
     IMPLICIT NONE
@@ -1665,29 +1665,29 @@ CONTAINS
   END SUBROUTINE h5pget_fill_value_double
 
 
-  !----------------------------------------------------------------------
-  ! Name:		h5pset_double
   !
-  ! Purpose: 	Sets a property list value
+  ! NAME		h5pset_double
   !
-  ! Inputs:  
+  ! FUNCTION 	Sets a property list value
+  !
+  ! INPUTS  
   !		prp_id		- iproperty list identifier to modify
   !		name 		- name of property to modify
   !		value		- value to set property to
-  ! Outputs:  
+  ! OUTPUT  
   !		hdferr:		- error code		
   !				 	Success:  0
   !				 	Failure: -1   
-  ! Optional parameters:
+  ! OPTIONAL PARAMETERS
   !				NONE
   !
-  ! Programmer:	Elena Pourmal
+  ! AUTHOR	Elena Pourmal
   !	        October 9, 2002	
   !
-  ! Modifications: 	
+  ! HISTORY 	
   !
-  ! Comment:		
-  !----------------------------------------------------------------------
+  ! NOTES		
+  !
 
   SUBROUTINE h5pset_double(prp_id, name, value, hdferr)
     IMPLICIT NONE
@@ -1716,29 +1716,29 @@ CONTAINS
   END SUBROUTINE h5pset_double
 
 
-  !----------------------------------------------------------------------
-  ! Name:		h5pget_double
   !
-  ! Purpose: 	Gets a property list value
+  ! NAME		h5pget_double
   !
-  ! Inputs:  
+  ! FUNCTION 	Gets a property list value
+  !
+  ! INPUTS  
   !		prp_id		- iproperty list identifier to modify
   !		name 		- name of property to modify
-  ! Outputs:  
+  ! OUTPUT  
   !		value		- value of property
   !		hdferr:		- error code		
   !				 	Success:  0
   !				 	Failure: -1   
-  ! Optional parameters:
+  ! OPTIONAL PARAMETERS
   !				NONE
   !
-  ! Programmer:	Elena Pourmal
+  ! AUTHOR	Elena Pourmal
   !	        October 9, 2002	
   !
-  ! Modifications: 	
+  ! HISTORY 	
   !
-  ! Comment:		
-  !----------------------------------------------------------------------
+  ! NOTES		
+  !
 
   SUBROUTINE h5pget_double(prp_id, name, value, hdferr)
     IMPLICIT NONE
@@ -1767,32 +1767,32 @@ CONTAINS
   END SUBROUTINE h5pget_double
 
 
-  !----------------------------------------------------------------------
-  ! Name:		h5pregister_double
   !
-  ! Purpose: 	Registers a permanent property with a property list class.
+  ! NAME		h5pregister_double
   !
-  ! Inputs:  
+  ! FUNCTION 	Registers a permanent property with a property list class.
+  !
+  ! INPUTS  
   !		class		- property list class to register 
   !                                 permanent property within
   !		name 		- name of property to register
   !               size            - size of property in bytes
   !		value		- default value for property in newly 
   !                                 created property lists
-  ! Outputs:  
+  ! OUTPUT  
   !		hdferr:		- error code		
   !				 	Success:  0
   !				 	Failure: -1   
-  ! Optional parameters:
+  ! OPTIONAL PARAMETERS
   !				NONE
   !
-  ! Programmer:	Elena Pourmal
+  ! AUTHOR	Elena Pourmal
   !	        October 10, 2002	
   !
-  ! Modifications: 	
+  ! HISTORY 	
   !
-  ! Comment:		
-  !----------------------------------------------------------------------
+  ! NOTES		
+  !
 
   SUBROUTINE h5pregister_double(class, name, size, value, hdferr)
     IMPLICIT NONE
@@ -1822,31 +1822,31 @@ CONTAINS
     hdferr = h5pregister_double_c(class, name , name_len, size, value)
   END SUBROUTINE h5pregister_double
 
-  !----------------------------------------------------------------------
-  ! Name:		h5pinsert_double
   !
-  ! Purpose: 	Registers a temporary property with a property list class.
+  ! NAME		h5pinsert_double
   !
-  ! Inputs:  
+  ! FUNCTION 	Registers a temporary property with a property list class.
+  !
+  ! INPUTS  
   !		plist		- property list identifier
   !                                 permanent property within
   !		name 		- name of property to insert
   !               size            - size of property in bytes
   !		value		- initial value for the property 
-  ! Outputs:  
+  ! OUTPUT  
   !		hdferr:		- error code		
   !				 	Success:  0
   !				 	Failure: -1   
-  ! Optional parameters:
+  ! OPTIONAL PARAMETERS
   !				NONE
   !
-  ! Programmer:	Elena Pourmal
+  ! AUTHOR	Elena Pourmal
   !	        October 10, 2002	
   !
-  ! Modifications: 	
+  ! HISTORY 	
   !
-  ! Comment:		
-  !----------------------------------------------------------------------
+  ! NOTES		
+  !
 
   SUBROUTINE h5pinsert_double(plist, name, size, value, hdferr)
     IMPLICIT NONE

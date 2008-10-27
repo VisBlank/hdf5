@@ -1,9 +1,11 @@
-!****h* root/fortran/src/H5Dff_DEPRECIATED.f90
+!****h* ROBODoc/H5D (DEPRECIATED)
 !
 ! NAME
+!
 !   H5D_PROVISIONAL
 !  
 ! FUNCTION
+!
 !   This file contains Fortran 90 interfaces for H5D functions. It contains
 !   the same functions as H5Dff_F03.f90 but excludes the Fortran 2003 functions
 !   and the interface listings. This file will be compiled instead of H5Dff_F03.f90
@@ -40,7 +42,7 @@
 !  (3)
 !                           *** IMPORTANT ***
 !       If you add a new H5D function you must add the function name to the 
-!       Windows dll file 'hdf5_fortrandll.def' in the root/fortran/src directory.
+!       Windows dll file 'hdf5_fortrandll.def' in the ROBODoc directory.
 !       This is needed for Windows based operating systems.
 !*****
 
@@ -116,33 +118,37 @@ MODULE H5D_PROVISIONAL
 
 CONTAINS
 
-
-!----------------------------------------------------------------------
-! Name:		h5dread_f 
+!****s* H5D/h5dread_f 
 !
-! Purpose: 	Reads raw data from the specified dataset into buf, 
-!		converting from file datatype and dataspace to memory 
-!		datatype and dataspace.
+! NAME
+!		h5dread_f 
 !
-! Inputs:  
+! FUNCTION
+! 	Reads raw data from the specified dataset into buf, 
+!	converting from file datatype and dataspace to memory 
+!	datatype and dataspace.
+!
+! INPUTS  
 !		dset_id		- dataset identifier
 !		mem_type_id	- memory type identifier
 !		dims		- 1-dim array of size 7; dims(k) has the size 
 !				- of k-th dimension of the buf array
-! Outputs:  
+! OUTPUT  
 !		buf		- buffer to read data in
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
-! Optional parameters:
+! OPTIONAL PARAMETERS
 !		mem_space_id	- memory dataspace identifier
 !		file_space_id 	- file dataspace identifier
 !		xfer_prp	- trasfer property list identifier	
 !
-! Programmer:	Elena Pourmal
+! AUTHOR
+!	Elena Pourmal
 !		August 12, 1999	
 !
-! Modifications: 	Explicit Fortran interfaces were added for 
+! HISTORY
+! 	Explicit Fortran interfaces were added for 
 !			called C functions (it is needed for Windows
 !			port).  February 28, 2001 
 !
@@ -151,12 +157,12 @@ CONTAINS
 !			the h5dwrite_reference_obj and h5dwrite_reference_dsetreg
 !			functions.  April 2, 2001
 !
-! Comment:		This function is overloaded to read INTEGER,
-!			REAL, DOUBLE PRECISION and CHARACTER buffers
-!			up to 7 dimensions, and one dimensional buffers
-!			of the TYPE(hobj_ref_t_f) and TYPE(hdset_reg_ref_t_f)
-!			types.	
-!----------------------------------------------------------------------
+! NOTES		
+!       This function is overloaded to read INTEGER,
+!	REAL, DOUBLE PRECISION and CHARACTER buffers
+!	up to 7 dimensions, and one dimensional buffers
+!	of the TYPE(hobj_ref_t_f) and TYPE(hdset_reg_ref_t_f) types.	
+!*****
   SUBROUTINE h5dread_reference_obj(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
@@ -179,9 +185,6 @@ CONTAINS
     INTEGER(HADDR_T), ALLOCATABLE, DIMENSION(:) :: ref_buf
     INTEGER :: j  
 
-    !            INTEGER, EXTERNAL :: h5dread_ref_obj_c
-    ! MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dread_ref_obj_c(dset_id, mem_type_id,&
             mem_space_id_default, &
@@ -244,9 +247,6 @@ CONTAINS
     INTEGER, ALLOCATABLE, DIMENSION(:) :: ref_buf
     INTEGER :: i,j 
 
-    !            INTEGER, EXTERNAL :: h5dread_ref_reg_c
-    ! MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dread_ref_reg_c(dset_id, mem_type_id,&
             mem_space_id_default, &
@@ -309,9 +309,6 @@ CONTAINS
     INTEGER(HID_T)  :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
 
-    !            INTEGER, EXTERNAL :: h5dread_integer_s_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dread_integer_s_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -362,9 +359,7 @@ CONTAINS
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T)  :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
-    !
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
+
     INTERFACE
        INTEGER FUNCTION h5dread_integer_1_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -415,9 +410,7 @@ CONTAINS
     INTEGER(HID_T) :: xfer_prp_default 
     INTEGER(HID_T)  :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default 
-    !
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
+
     INTERFACE
        INTEGER FUNCTION h5dread_integer_2_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -641,9 +634,7 @@ CONTAINS
     INTEGER(HID_T)  :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default
 
-    !
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
+
     INTERFACE
        INTEGER FUNCTION h5dread_integer_6_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -699,9 +690,6 @@ CONTAINS
     INTEGER(HID_T)  :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dread_integer_7_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dread_integer_7_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -755,9 +743,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default
 
-    !            INTEGER, EXTERNAL :: h5dreadc_s_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dreadc_s_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -812,9 +797,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
 
-    !            INTEGER, EXTERNAL :: h5dreadc_1_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dreadc_1_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -870,9 +852,7 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dreadc_2_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
+
     INTERFACE
        INTEGER FUNCTION h5dreadc_2_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -928,9 +908,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dreadc_3_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dreadc_3_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -986,9 +963,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dreadc_4_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dreadc_4_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -1044,9 +1018,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default
 
-    !            INTEGER, EXTERNAL :: h5dreadc_5_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dreadc_5_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -1102,9 +1073,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dreadc_6_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dreadc_6_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -1160,9 +1128,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default
 
-    !            INTEGER, EXTERNAL :: h5dreadc_7_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dreadc_7_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -1215,9 +1180,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default
 
-    !            INTEGER, EXTERNAL :: h5dread_real_s_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dread_real_s_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -1326,9 +1288,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default
 
-    !            INTEGER, EXTERNAL :: h5dread_real_2_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dread_real_2_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -1382,9 +1341,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dread_real_3_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dread_real_3_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -1438,9 +1394,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dread_real_4_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dread_real_4_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -1494,9 +1447,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dread_real_5_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dread_real_5_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -1550,9 +1500,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
 
-    !            INTEGER, EXTERNAL :: h5dread_real_6_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dread_real_6_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -1607,9 +1554,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dread_real_7_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dread_real_7_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -1662,9 +1606,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default
 
-    !            INTEGER, EXTERNAL :: h5dread_double_s_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dread_double_s_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -1718,9 +1659,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dread_double_1_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dread_double_1_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -1775,9 +1713,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dread_double_2_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dread_double_2_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -1832,9 +1767,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default
 
-    !            INTEGER, EXTERNAL :: h5dread_double_3_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dread_double_3_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -1890,9 +1822,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dread_double_4_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dread_double_4_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -1947,9 +1876,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dread_double_5_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dread_double_5_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -2005,9 +1931,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dread_double_6_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dread_double_6_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -2063,9 +1986,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dread_double_7_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dread_double_7_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -2121,9 +2041,6 @@ CONTAINS
     INTEGER(HADDR_T), ALLOCATABLE, DIMENSION(:) :: ref_buf
     INTEGER :: j
 
-    !            INTEGER, EXTERNAL :: h5dwrite_ref_obj_c
-    ! MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwrite_ref_obj_c(dset_id, mem_type_id,&
             mem_space_id_default, &
@@ -2186,9 +2103,6 @@ CONTAINS
     INTEGER, ALLOCATABLE, DIMENSION(:) :: ref_buf
     INTEGER :: i,j
 
-    !            INTEGER, EXTERNAL :: h5dwrite_ref_reg_c
-    ! MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwrite_ref_reg_c(dset_id, mem_type_id,&
             mem_space_id_default, &
@@ -2252,9 +2166,6 @@ CONTAINS
     INTEGER(HID_T)  :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
 
-    !            INTEGER, EXTERNAL :: h5dwrite_integer_s_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwrite_integer_s_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -2308,9 +2219,6 @@ CONTAINS
     INTEGER(HID_T)  :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dwrite_integer_1_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwrite_integer_1_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -2365,9 +2273,6 @@ CONTAINS
     INTEGER(HID_T)  :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dwrite_integer_2_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwrite_integer_2_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -2422,9 +2327,6 @@ CONTAINS
     INTEGER(HID_T)  :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default
 
-    !            INTEGER, EXTERNAL :: h5dwrite_integer_3_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwrite_integer_3_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -2480,9 +2382,6 @@ CONTAINS
     INTEGER(HID_T)  :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dwrite_integer_4_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwrite_integer_4_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -2537,9 +2436,6 @@ CONTAINS
     INTEGER(HID_T)  :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
 
-    !            INTEGER, EXTERNAL :: h5dwrite_integer_5_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwrite_integer_5_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -2596,9 +2492,6 @@ CONTAINS
     INTEGER(HID_T)  :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dwrite_integer_6_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwrite_integer_6_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -2654,9 +2547,6 @@ CONTAINS
     INTEGER(HID_T)  :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dwrite_integer_7_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwrite_integer_7_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -2711,9 +2601,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
 
-    !            INTEGER, EXTERNAL :: h5dwritec_s_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwritec_s_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -2768,9 +2655,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dwritec_1_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwritec_1_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -2826,9 +2710,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dwritec_2_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwritec_2_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -2884,9 +2765,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dwritec_3_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwritec_3_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -2942,9 +2820,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dwritec_4_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwritec_4_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -3000,9 +2875,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
 
-    !            INTEGER, EXTERNAL :: h5dwritec_5_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwritec_5_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -3058,9 +2930,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dwritec_6_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwritec_6_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -3116,9 +2985,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dwritec_7_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwritec_7_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -3171,9 +3037,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default
 
-    !            INTEGER, EXTERNAL :: h5dwrite_real_s_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwrite_real_s_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -3226,9 +3089,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dwrite_real_1_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwrite_real_1_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -3283,9 +3143,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dwrite_real_2_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwrite_real_2_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -3339,9 +3196,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default
 
-    !            INTEGER, EXTERNAL :: h5dwrite_real_3_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwrite_real_3_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -3395,9 +3249,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dwrite_real_4_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwrite_real_4_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -3451,9 +3302,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dwrite_real_5_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwrite_real_5_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -3507,9 +3355,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dwrite_real_6_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwrite_real_6_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -3563,9 +3408,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dwrite_real_7_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwrite_real_7_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -3619,9 +3461,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default
 
-    !            INTEGER, EXTERNAL :: h5dwrite_double_s_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwrite_double_s_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -3675,9 +3514,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default
 
-    !            INTEGER, EXTERNAL :: h5dwrite_double_1_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwrite_double_1_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -3732,9 +3568,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dwrite_double_2_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwrite_double_2_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -3789,9 +3622,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dwrite_double_3_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwrite_double_3_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -3846,9 +3676,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
 
-    !            INTEGER, EXTERNAL :: h5dwrite_double_4_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwrite_double_4_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -3903,9 +3730,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dwrite_double_5_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwrite_double_5_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -3961,9 +3785,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dwrite_double_6_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwrite_double_6_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -4019,9 +3840,6 @@ CONTAINS
     INTEGER(HID_T) :: mem_space_id_default 
     INTEGER(HID_T) :: file_space_id_default 
 
-    !            INTEGER, EXTERNAL :: h5dwrite_double_7_c
-    !  MS FORTRAN needs explicit interface for C functions called here.
-    !
     INTERFACE
        INTEGER FUNCTION h5dwrite_double_7_c(dset_id, mem_type_id, &
             mem_space_id_default, & 
@@ -4055,29 +3873,31 @@ CONTAINS
 
   END SUBROUTINE h5dwrite_double_7
 
-  !----------------------------------------------------------------------
-  ! Name:		h5dfill_integer
   !
-  ! Purpose:      Fills dataspace elements with a fill value in a memory buffer.	
+  ! NAME
+  !		h5dfill_integer
+  !
+  ! FUNCTION      Fills dataspace elements with a fill value in a memory buffer.	
   !               Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes 
   !               of the fillvalues and buffers are supported. Buffer and fillvalue
   !               are assumed to have the same datatype.
   !               Only one-dimesional buffers are supported.
   !
-  ! Inputs:  
+  ! INPUTS  
   !		fill_value	- fill value
   !		space_id	- memory space selection identifier
   !		buf		- data buffer iin memory ro apply selection to
   !				- of k-th dimension of the buf array
-  ! Outputs:  
+  ! OUTPUT  
   !		hdferr:		- error code		
   !				 	Success:  0
   !				 	Failure: -1   
   !
-  ! Programmer:	Elena Pourmal
+  ! AUTHOR
+  !	Elena Pourmal
   !		March 12, 2003
   !
-  !----------------------------------------------------------------------
+  !
 
   SUBROUTINE h5dfill_integer(fill_value, space_id, buf,  hdferr)
     IMPLICIT NONE
@@ -4114,29 +3934,31 @@ CONTAINS
 
   END SUBROUTINE h5dfill_integer
 
-  !----------------------------------------------------------------------
-  ! Name:		h5dfill_real
   !
-  ! Purpose:      Fills dataspace elements with a fill value in a memory buffer.	
+  ! NAME
+  !		h5dfill_real
+  !
+  ! FUNCTION      Fills dataspace elements with a fill value in a memory buffer.	
   !               Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes 
   !               of the fillvalues and buffers are supported. Buffer and fillvalue
   !               are assumed to have the same datatype.
   !               Only one-dimesional buffers are supported.
   !
-  ! Inputs:  
+  ! INPUTS  
   !		fill_value	- fill value
   !		space_id	- memory space selection identifier
   !		buf		- data buffer iin memory ro apply selection to
   !				- of k-th dimension of the buf array
-  ! Outputs:  
+  ! OUTPUT  
   !		hdferr:		- error code		
   !				 	Success:  0
   !				 	Failure: -1   
   !
-  ! Programmer:	Elena Pourmal
+  ! AUTHOR
+  !	Elena Pourmal
   !		March 12, 2003
   !
-  !----------------------------------------------------------------------
+  !
 
   SUBROUTINE h5dfill_real(fill_valuer, space_id, buf,  hdferr)
     IMPLICIT NONE
@@ -4172,29 +3994,31 @@ CONTAINS
          buf, mem_type_id)
   END SUBROUTINE h5dfill_real
 
-  !----------------------------------------------------------------------
-  ! Name:		h5dfill_double
   !
-  ! Purpose:      Fills dataspace elements with a fill value in a memory buffer.	
+  ! NAME
+  !		h5dfill_double
+  !
+  ! FUNCTION      Fills dataspace elements with a fill value in a memory buffer.	
   !               Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes 
   !               of the fillvalues and buffers are supported. Buffer and fillvalue
   !               are assumed to have the same datatype.
   !               Only one-dimesional buffers are supported.
   !
-  ! Inputs:  
+  ! INPUTS  
   !		fill_value	- fill value
   !		space_id	- memory space selection identifier
   !		buf		- data buffer iin memory ro apply selection to
   !				- of k-th dimension of the buf array
-  ! Outputs:  
+  ! OUTPUT  
   !		hdferr:		- error code		
   !				 	Success:  0
   !				 	Failure: -1   
   !
-  ! Programmer:	Elena Pourmal
+  ! AUTHOR
+  !	Elena Pourmal
   !		March 12, 2003
   !
-  !----------------------------------------------------------------------
+  !
 
   SUBROUTINE h5dfill_double(fill_value, space_id, buf,  hdferr)
     IMPLICIT NONE
@@ -4231,29 +4055,31 @@ CONTAINS
 
   END SUBROUTINE h5dfill_double
 
-  !----------------------------------------------------------------------
-  ! Name:		h5dfill_char
   !
-  ! Purpose:      Fills dataspace elements with a fill value in a memory buffer.	
+  ! NAME
+  !		h5dfill_char
+  !
+  ! FUNCTION      Fills dataspace elements with a fill value in a memory buffer.	
   !               Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes 
   !               of the fillvalues and buffers are supported. Buffer and fillvalue
   !               are assumed to have the same datatype.
   !               Only one-dimesional buffers are supported.
   !
-  ! Inputs:  
+  ! INPUTS  
   !		fill_value	- fill value
   !		space_id	- memory space selection identifier
   !		buf		- data buffer iin memory ro apply selection to
   !				- of k-th dimension of the buf array
-  ! Outputs:  
+  ! OUTPUT  
   !		hdferr:		- error code		
   !				 	Success:  0
   !				 	Failure: -1   
   !
-  ! Programmer:	Elena Pourmal
+  ! AUTHOR
+  !	Elena Pourmal
   !		March 12, 2003
   !
-  !----------------------------------------------------------------------
+  !
 
   SUBROUTINE h5dfill_char(fill_value, space_id, buf,  hdferr)
     IMPLICIT NONE

@@ -1,9 +1,10 @@
-!****h* root/fortran/src/H5Lff_F03.f90
+!****h* ROBODoc/H5L (F03)
 !
 ! NAME
 !   H5L_PROVISIONAL
 !
 ! FUNCTION
+!
 !   This file contains Fortran 90 and Fortran 2003 interfaces for H5L functions. 
 !   It contains the same functions as H5Lff_DEPRECIATE.f90 but includes the 
 !   Fortran 2003 functions and the interface listings. This file will be compiled 
@@ -28,7 +29,7 @@
 ! NOTES
 !                          *** IMPORTANT ***
 !   If you add a new H5A function you must add the function name to the 
-!   Windows dll file 'hdf5_fortrandll.def' in the root/fortran/src directory.
+!   Windows dll file 'hdf5_fortrandll.def' in the ROBODoc directory.
 !   This is needed for Windows based operating systems.
 !
 !*****
@@ -39,12 +40,15 @@ MODULE H5L_PROVISIONAL
 
 CONTAINS
 
-!----------------------------------------------------------------------
-! Name:		h5literate_f 
+!****s* H5L (F03)/h5literate_f 
 !
-! Purpose: 	Iterates through links in a group.
+! NAME		
+!  h5literate_f 
 !
-! Inputs:
+! FUNCTION
+! 	Iterates through links in a group.
+!
+! INPUTS
 !     group_id - Identifier specifying subject group
 !   index_type - Type of index which determines the order
 !        order - Order within index
@@ -52,20 +56,16 @@ CONTAINS
 !           op - Callback function passing data regarding the link to the calling application
 !      op_data - User-defined pointer to data required by the application for its processing of the link
 ! 
-! Outputs: 
+! OUTPUT 
 !          idx - Position at which an interrupted iteration may be restarted
 !       hdferr - error code:
 !			Success:  0
-!			Failure: -1   
-! Optional parameters:
-!
-! Programmer:	M.S. Breitenfeld
-!		July 8, 2008
-!
-! Modifications:
-!
-! Comment:		
-!----------------------------------------------------------------------
+!			Failure: -1
+! AUTHOR
+!	M.S. Breitenfeld
+!	July 8, 2008
+!	
+! SOURCE
   SUBROUTINE h5literate_f(group_id, index_type, order, idx, op, op_data, return_value, hdferr)
     USE ISO_C_BINDING
     IMPLICIT NONE
@@ -93,8 +93,10 @@ CONTAINS
 
     INTEGER, INTENT(OUT) :: hdferr       ! Error code: 
                                          ! 0 on success and -1 on failure
+!*****
     INTERFACE
-       INTEGER FUNCTION h5literate_c(group_id, index_type, order, idx, op, op_data)
+       INTEGER FUNCTION
+! h5literate_c(group_id, index_type, order, idx, op, op_data)
          USE ISO_C_BINDING
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
@@ -106,7 +108,8 @@ CONTAINS
          INTEGER(HSIZE_T), INTENT(INOUT) :: idx
          TYPE(C_FUNPTR), VALUE :: op
          TYPE(C_PTR), VALUE :: op_data
-       END FUNCTION h5literate_c
+       END FUNCTION
+! h5literate_c
     END INTERFACE
 
     return_value = h5literate_c(group_id, index_type, order, idx, op, op_data)
@@ -119,12 +122,15 @@ CONTAINS
 
   END SUBROUTINE h5literate_f
 
-!----------------------------------------------------------------------
-! Name:		h5literate_by_name_f 
+!****s* H5L (F03)/h5literate_by_name_f 
 !
-! Purpose: 	Iterates through links in a group.
+! NAME		
+!  h5literate_by_name_f 
 !
-! Inputs:
+! FUNCTION
+!  Iterates through links in a group.
+!
+! INPUTS
 !     loc_id   - File or group identifier specifying location of subject group
 !   group_name - Name of subject group 
 !   index_type - Type of index which determines the order
@@ -133,21 +139,19 @@ CONTAINS
 !           op - Callback function passing data regarding the link to the calling application
 !      op_data - User-defined pointer to data required by the application for its processing of the link
 ! 
-! Outputs: 
+! OUTPUT 
 !          idx - Position at which an interrupted iteration may be restarted
 !       hdferr - error code:
 !			Success:  0
 !			Failure: -1   
-! Optional parameters:
+! OPTIONAL PARAMETERS
 !      lapl_id - Link access property list
 !
-! Programmer:	M.S. Breitenfeld
-!		Augest 18, 2008
-!
-! Modifications:
-!
-! Comment:		
-!----------------------------------------------------------------------
+! AUTHOR
+!  M.S. Breitenfeld
+!  Augest 18, 2008
+!	
+! SOURCE
   SUBROUTINE h5literate_by_name_f(loc_id, group_name, index_type, order, idx, op, op_data, return_value, hdferr, lapl_id)
     USE ISO_C_BINDING
     IMPLICIT NONE
@@ -178,12 +182,13 @@ CONTAINS
                                          ! 0 on success and -1 on failure
 
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id ! Link access property list
-
+!*****
     INTEGER(HID_T) :: lapl_id_default
     INTEGER(SIZE_T) :: namelen
 
     INTERFACE
-       INTEGER FUNCTION h5literate_by_name_c(loc_id, name, namelen, index_type, order, idx, op, op_data, lapl_id_default)
+       INTEGER FUNCTION
+! h5literate_by_name_c(loc_id, name, namelen, index_type, order, idx, op, op_data, lapl_id_default)
          USE ISO_C_BINDING
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
@@ -198,7 +203,8 @@ CONTAINS
          TYPE(C_FUNPTR), VALUE :: op
          TYPE(C_PTR), VALUE :: op_data
          INTEGER(HID_T) :: lapl_id_default
-       END FUNCTION h5literate_by_name_c
+       END FUNCTION
+! h5literate_by_name_c
     END INTERFACE
 
     namelen  = LEN(group_name)

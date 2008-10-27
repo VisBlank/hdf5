@@ -1,7 +1,9 @@
-!****h* root/fortran/src/H5Aff_F03.f90
-!
+!****h* ROBODoc/H5A (F03)
 ! NAME
 !   H5A_PROVISIONAL
+!
+! FILE
+!   fortran/src/H5Aff_F03.f90
 !
 ! FUNCTION
 !   This file contains Fortran 90 and Fortran 2003 interfaces for H5A functions. 
@@ -59,7 +61,7 @@
 ! (B) 
 !                          *** IMPORTANT ***
 !   If you add a new H5A function you must add the function name to the 
-!   Windows dll file 'hdf5_fortrandll.def' in the root/fortran/src directory.
+!   Windows dll file 'hdf5_fortrandll.def' in the ROBODoc directory.
 !   This is needed for Windows based operating systems.
 !
 !*****
@@ -67,14 +69,13 @@
 MODULE H5A_PROVISIONAL
 
   USE H5GLOBAL
-  !
-  !On Windows there are no big (integer*8) integers, so overloading 
-  !for bug #670 does not work. I have to use DEC compilation directives to make
-  !Windows DEC Visual Fortran and OSF compilers happy and do right things.
-  !						05/01/02 EP
-  !
+!
+!On Windows there are no big (integer*8) integers, so overloading 
+!for bug #670 does not work. I have to use DEC compilation directives to make
+!Windows DEC Visual Fortran and OSF compilers happy and do right things.
+!						05/01/02 EP
+!
   INTERFACE h5awrite_f
-
      MODULE PROCEDURE h5awrite_integer_scalar 
      MODULE PROCEDURE h5awrite_integer_1 
      MODULE PROCEDURE h5awrite_integer_2 
@@ -135,11 +136,11 @@ MODULE H5A_PROVISIONAL
      ! This is the preferred way to call h5aread
      ! by passing an address
      MODULE PROCEDURE h5aread_ptr
-     !
+
   END INTERFACE
 
-  ! Interface for the function used to pass the C pointer of the buffer
-  ! to the C H5Awrite routine
+! Interface for the function used to pass the C pointer of the buffer
+! to the C H5Awrite routine
 
   INTERFACE
      INTEGER FUNCTION h5awrite_f_c(attr_id, mem_type_id, buf)
@@ -154,8 +155,8 @@ MODULE H5A_PROVISIONAL
      END FUNCTION h5awrite_f_c
   END INTERFACE
 
-  ! Interface for the function used to pass the C pointer of the buffer
-  ! to the C H5Aread routine
+! Interface for the function used to pass the C pointer of the buffer
+! to the C H5Aread routine
 
   INTERFACE
      INTEGER FUNCTION h5aread_f_c(attr_id, mem_type_id, buf)
@@ -766,44 +767,47 @@ CONTAINS
 
   END SUBROUTINE h5awrite_char_7
 
-  !----------------------------------------------------------------------
-  ! Name:		h5aread_f 
-  !
-  ! Purpose:  	Reads an attribute.
-  !
-  ! Inputs:  
-  !		attr_id		- attribute identifier
-  !		memtype_id	- attribute memory type identifier
-  !		dims		- 1D array of size 7, stores sizes of the 
-  !				- buf array dimensions.
-  ! Outputs:  
-  !		buf		- buffer to read attribute data in
-  !		hdferr:		- error code		
-  !				 	Success:  0
-  !				 	Failure: -1   
-  ! Optional parameters:
-  !				NONE			
-  !
-  ! Programmer:	Elena Pourmal
-  !		August 12, 1999	
-  !
-  ! Modifications: 	Explicit Fortran interfaces are added for 
-  !			called C functions (it is needed for Windows
-  !			port).  February 27, 2001 
-  !
-  !			dims parameter was added to make code portable;
-  !			Aprile 4, 2001
-  !
-  !                       Changed buf intent to INOUT to be consistant
-  !                       with how the C functions handles it. The pg
-  !                       compiler will return 0 if a buf value is not set.
-  !                       February, 2008
-  !
-  ! Comment:		This function is overloaded to write INTEGER,
-  !			REAL, DOUBLE PRECISION and CHARACTER buffers
-  !			up to 7 dimensions.	
-  !----------------------------------------------------------------------
-
+!****s* H5A (F03)/h5aread_f 
+!
+! NAME
+!		h5aread_f 
+!
+! FUNCTION
+!  	Reads an attribute.
+!
+! INPUTS  
+!		attr_id		- attribute identifier
+!		memtype_id	- attribute memory type identifier
+!		dims		- 1D array of size 7, stores sizes of the 
+!				- buf array dimensions.
+! OUTPUT  
+!		buf		- buffer to read attribute data in
+!		hdferr:		- error code		
+!				 	Success:  0
+!				 	Failure: -1 
+! AUTHOR
+!	Elena Pourmal
+!	August 12, 1999	
+!
+! HISTORY
+! 	                Explicit Fortran interfaces are added for 
+!			called C functions (it is needed for Windows
+!			port).  February 27, 2001 
+!
+!			dims parameter was added to make code portable;
+!			Aprile 4, 2001
+!
+!                       Changed buf intent to INOUT to be consistant
+!                       with how the C functions handles it. The pg
+!                       compiler will return 0 if a buf value is not set.
+!                       February, 2008
+!
+! NOTES		
+!  This function is overloaded to write INTEGER,
+!  REAL, DOUBLE PRECISION and CHARACTER buffers
+!  up to 7 dimensions.	
+!
+!*****
   SUBROUTINE h5aread_integer_scalar(attr_id, memtype_id,  buf, dims, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE

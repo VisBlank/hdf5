@@ -1,7 +1,10 @@
-!****h* root/fortran/src/H5_DBLE_InterfaceExclude.f90
+!****h* ROBODoc/H5_DBLE_INTERFACE(Exclude)
 !
 ! NAME
-!   H5_DBLE_INTERFACE
+!   MODULE H5_DBLE_INTERFACE
+!
+! FILE
+!   fortran/src/H5_DBLE_InterfaceExclude.f90
 !  
 ! FUNCTION
 !   This module is used for when the default REAL is of type DOUBLE PRECISION.
