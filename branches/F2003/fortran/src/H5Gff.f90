@@ -1,99 +1,99 @@
 !****h* ROBODoc/H5G
 !
 ! NAME
-!   MODULE H5G
-!  
-! FILE
-!   H5Gff.f90
+!  MODULE H5G
+!
+!  FILE
+!  H5Gff.f90
 !
 ! PURPOSE
-!   This file contains Fortran interfaces for H5G functions.
+!  This file contains Fortran interfaces for H5G functions.
 !
 ! COPYRIGHT
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-!   Copyright by The HDF Group.                                               *
-!   Copyright by the Board of Trustees of the University of Illinois.         *
-!   All rights reserved.                                                      *
-!                                                                             *
-!   This file is part of HDF5.  The full HDF5 copyright notice, including     *
-!   terms governing use, modification, and redistribution, is contained in    *
-!   the files COPYING and Copyright.html.  COPYING can be found at the root   *
-!   of the source code distribution tree; Copyright.html can be found at the  *
-!   root level of an installed copy of the electronic HDF5 document set and   *
-!   is linked from the top-level documents page.  It can also be found at     *
-!   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
-!   access to either file, you may request a copy from help@hdfgroup.org.     *
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!  Copyright by The HDF Group.                                               *
+!  Copyright by the Board of Trustees of the University of Illinois.         *
+!  All rights reserved.                                                      *
+!  *
+!  This file is part of HDF5.  The full HDF5 copyright notice, including     *
+!  terms governing use, modification, and redistribution, is contained in    *
+!  the files COPYING and Copyright.html.  COPYING can be found at the root   *
+!  of the source code distribution tree; Copyright.html can be found at the  *
+!  root level of an installed copy of the electronic HDF5 document set and   *
+!  is linked from the top-level documents page.  It can also be found at     *
+!  http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+!  access to either file, you may request a copy from help@hdfgroup.org.     *
+!  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
 ! NOTES
-!                          *** IMPORTANT ***
-!   If you add a new H5G function you must add the function name to the 
-!   Windows dll file 'hdf5_fortrandll.def' in the ROBODoc directory.
-!   This is needed for Windows based operating systems.
+!                         *** IMPORTANT ***
+!  If you add a new H5G function you must add the function name to the
+!  Windows dll file 'hdf5_fortrandll.def' in the ROBODoc directory.
+!  This is needed for Windows based operating systems.
 !
 !*****
 
 MODULE H5G
   USE H5GLOBAL
 
-! PRIVATE :: h5gcreate1_f
+!  PRIVATE :: h5gcreate1_f
 !  PRIVATE :: h5gcreate2_f
 
 !  INTERFACE h5gcreate_f
-!    MODULE PROCEDURE h5gcreate1_f
-!     MODULE PROCEDURE h5gcreate2_f
+!  MODULE PROCEDURE h5gcreate1_f
+!  MODULE PROCEDURE h5gcreate2_f
 !  END INTERFACE
 
 CONTAINS
-          
-!****s* H5G/h5gcreate_f 
+
+!****s* H5G/h5gcreate_f
 !
-! NAME		
-!  h5gcreate_f 
+! NAME
+!  h5gcreate_f
 !
 ! PURPOSE
-!	Creates a new group. 
+!  Creates a new group.
 !
-! INPUTS  
-!		loc_id		- location identifier
-!		name		- group name at the specified location
-! OUTPUTS  
-!		grp_id		- group identifier
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
+! INPUTS
+!  loc_id 	 - location identifier
+!  name 	 - group name at the specified location
+! OUTPUTS
+!  grp_id 	 - group identifier
+!  hdferr:		- error code
+!  Success:  0
+!  Failure: -1
 ! OPTIONAL PARAMETERS
-!		      size_hint	- a parameter indicating the number of bytes 
-!				  to reserve for the names that will appear 
-!				  in the group
-!                       lcpl_id - Property list for link creation
-!                       gcpl_id - Property list for group creation
-!                       gapl_id - Property list for group access
+!  size_hint 	 - a parameter indicating the number of bytes
+!  to reserve for the names that will appear
+!  in the group
+!  lcpl_id 	 - Property list for link creation
+!  gcpl_id 	 - Property list for group creation
+!  gapl_id 	 - Property list for group access
 !
 ! AUTHOR	Elena Pourmal
-!		August 12, 1999	
+!  August 12, 1999
 !
-! HISTORY 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 5, 2001 
+! HISTORY 	Explicit Fortran interfaces were added for
+!  called C functions (it is needed for Windows
+!  port).  March 5, 2001
 !
-!                       Added additional optional paramaters in 1.8
-!                       MSB - February 27, 2008
+!  Added additional optional paramaters in 1.8
+!  MSB 	 - February 27, 2008
 !
 ! SOURCE
   SUBROUTINE h5gcreate_f(loc_id, name, grp_id, hdferr, size_hint, lcpl_id, gcpl_id, gapl_id)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier 
-    CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of the group 
-    INTEGER(HID_T), INTENT(OUT) :: grp_id  ! Group identifier 
-    INTEGER, INTENT(OUT) :: hdferr         ! Error code 
-    INTEGER(SIZE_T), OPTIONAL, INTENT(IN) :: size_hint 
+    INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier
+    CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of the group
+    INTEGER(HID_T), INTENT(OUT) :: grp_id  ! Group identifier
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code
+    INTEGER(SIZE_T), OPTIONAL, INTENT(IN) :: size_hint
                                            ! Parameter indicating
                                            ! the number of bytes
                                            ! to reserve for the
                                            ! names that will appear
                                            ! in the group. Set to OBJECT_NAMELEN_DEFAULT_F
-                                           ! if using any of the optional 
+                                           ! if using any of the optional
                                            ! parameters lcpl_id, gcpl_id, and/or gapl_id when not
                                            ! using keywords in specifying the optional parameters
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lcpl_id  ! Property list for link creation
@@ -105,7 +105,7 @@ CONTAINS
     INTEGER(HID_T) :: gapl_id_default
 
     INTEGER :: namelen ! Length of the name character string
-    INTEGER(SIZE_T) :: size_hint_default 
+    INTEGER(SIZE_T) :: size_hint_default
 
     INTERFACE
        INTEGER FUNCTION h5gcreate_c(loc_id, name, namelen, &
@@ -126,7 +126,7 @@ CONTAINS
        END FUNCTION h5gcreate_c
     END INTERFACE
 
-    size_hint_default = OBJECT_NAMELEN_DEFAULT_F 
+    size_hint_default = OBJECT_NAMELEN_DEFAULT_F
     IF (PRESENT(size_hint)) size_hint_default = size_hint
     lcpl_id_default = H5P_DEFAULT_F
     IF(PRESENT(lcpl_id)) lcpl_id_default = lcpl_id
@@ -142,140 +142,140 @@ CONTAINS
 
   END SUBROUTINE h5gcreate_f
 
-!!$!
-!!$!****s* H5G/
-!!$!
-!!$! NAME
-!!$!  h5gcreate2_f 
-!!$!
-!!$! PURPOSE
-!!$!	Creates a new group. 
-!!$!
-!!$! INPUTS  
-!!$!		loc_id		- location identifier
-!!$!		name		- group name at the specified location
-!!$! OUTPUTS  
-!!$!		grp_id		- group identifier
-!!$!		hdferr:		- error code		
-!!$!				 	Success:  0
-!!$!				 	Failure: -1   
-!!$! OPTIONAL PARAMETERS
-!!$!
-!!$!    lcpl_id  - Property list for link creation
-!!$!    gcpl_id  - Property list for group creation
-!!$!    gapl_id  - Property list for group access
-!!$!
-!!$! AUTHOR	M.S. BREITENFELD
-!!$!		February 27, 2008
-!!$!
-!!$! HISTORY 
-!!$!
-!!$! NOTES Needed to switch the first 2 arguments to avoid conflect
-!!$!          with h5gcreate1_f	
-!!$!
-!!$
-!!$  SUBROUTINE h5gcreate2_f(name, loc_id, grp_id, hdferr, & 
-!!$        lcpl_id, gcpl_id, gapl_id)
-!!$    IMPLICIT NONE 
-!!$    CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of the group
-!!$    INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier
-!!$    INTEGER, INTENT(OUT) :: hdferr         ! Error code
-!!$    INTEGER(HID_T), INTENT(OUT) :: grp_id  ! Group identifier 
-!!$
-!!$    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lcpl_id  ! Property list for link creation
-!!$    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: gcpl_id  ! Property list for group creation
-!!$    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: gapl_id  ! Property list for group access
-!!$
-!!$    INTEGER(HID_T) :: lcpl_id_default
-!!$    INTEGER(HID_T) :: gcpl_id_default
-!!$    INTEGER(HID_T) :: gapl_id_default
-!!$
-!!$    INTEGER(SIZE_T) :: OBJECT_NAME
-!LEN_DEFAULT ! Dummy argument to pass to c call
-!!$    INTEGER :: namelen ! Length of the name character string
-!!$
-!!$!  MS FORTRAN needs explicit interface for C functions called here.
-!!$!
-!!$    INTERFACE
-!!$       INTEGER FUNCTION h5gcreate_c(loc_id, name, namelen, &
-!!$            OBJECT_NAME
-!LEN_DEFAULT, grp_id, lcpl_id_default, gcpl_id_default, gapl_id_default)
-!!$         USE H5GLOBAL
-!!$         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-!!$         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5GCREATE_C'::h5gcreate_c
-!!$         !DEC$ ENDIF
-!!$         !DEC$ATTRIBUTES reference :: name
-!!$         INTEGER(HID_T), INTENT(IN) :: loc_id
-!!$         CHARACTER(LEN=*), INTENT(IN) :: name
-!!$         INTEGER :: namelen
-!!$         INTEGER(SIZE_T) :: OBJECT_NAME
-!LEN_DEFAULT
-!!$         INTEGER(HID_T) :: lcpl_id_default
-!!$         INTEGER(HID_T) :: gcpl_id_default
-!!$         INTEGER(HID_T) :: gapl_id_default
-!!$         INTEGER(HID_T), INTENT(OUT) :: grp_id
-!!$       END FUNCTION h5gcreate_c
-!!$    END INTERFACE
-!!$
-!!$    namelen = LEN(name)
-!!$    OBJECT_NAME
-!LEN_DEFAULT = OBJECT_NAME
-!LEN_DEFAULT_F
-!!$
-!!$    lcpl_id_default = H5P_DEFAULT_F
-!!$    IF(PRESENT(lcpl_id)) lcpl_id_default = lcpl_id
-!!$    gcpl_id_default = H5P_DEFAULT_F
-!!$    IF(PRESENT(gcpl_id)) gcpl_id_default = gcpl_id
-!!$    gapl_id_default = H5P_DEFAULT_F
-!!$    IF(PRESENT(gapl_id)) gapl_id_default = gapl_id
-!!$
-!!$
-!!$    hdferr = h5gcreate_c(loc_id, name, namelen, OBJECT_NAME
-!LEN_DEFAULT, grp_id, &
-!!$         lcpl_id_default, gcpl_id_default, gapl_id_default)
-!!$
-!!$  END SUBROUTINE h5gcreate2_f
+!  !$!
+!  !$!****s* H5G/
+!  !$!
+!  !$! NAME
+!  !$!  h5gcreate2_f
+!  !$!
+!  !$! PURPOSE
+!  !$!	Creates a new group.
+!  !$!
+!  !$! INPUTS
+!  !$!		loc_id		- location identifier
+!  !$!		name		- group name at the specified location
+!  !$! OUTPUTS
+!  !$!		grp_id		- group identifier
+!  !$!		hdferr:		- error code
+!  !$!				 	Success:  0
+!  !$!				 	Failure: -1
+!  !$! OPTIONAL PARAMETERS
+!  !$!
+!  !$!    lcpl_id  - Property list for link creation
+!  !$!    gcpl_id  - Property list for group creation
+!  !$!    gapl_id  - Property list for group access
+!  !$!
+!  !$! AUTHOR	M.S. BREITENFELD
+!  !$!		February 27, 2008
+!  !$!
+!  !$! HISTORY
+!  !$!
+!  !$! NOTES Needed to switch the first 2 arguments to avoid conflect
+!  !$!          with h5gcreate1_f
+!  !$!
+!  !$
+!  !$  SUBROUTINE h5gcreate2_f(name, loc_id, grp_id, hdferr, &
+!  !$        lcpl_id, gcpl_id, gapl_id)
+!  !$    IMPLICIT NONE
+!  !$    CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of the group
+!  !$    INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier
+!  !$    INTEGER, INTENT(OUT) :: hdferr         ! Error code
+!  !$    INTEGER(HID_T), INTENT(OUT) :: grp_id  ! Group identifier
+!  !$
+!  !$    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lcpl_id  ! Property list for link creation
+!  !$    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: gcpl_id  ! Property list for group creation
+!  !$    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: gapl_id  ! Property list for group access
+!  !$
+!  !$    INTEGER(HID_T) :: lcpl_id_default
+!  !$    INTEGER(HID_T) :: gcpl_id_default
+!  !$    INTEGER(HID_T) :: gapl_id_default
+!  !$
+!  !$    INTEGER(SIZE_T) :: OBJECT_NAME
+!  LEN_DEFAULT ! Dummy argument to pass to c call
+!  !$    INTEGER :: namelen ! Length of the name character string
+!  !$
+!  !$!  MS FORTRAN needs explicit interface for C functions called here.
+!  !$!
+!  !$    INTERFACE
+!  !$       INTEGER FUNCTION h5gcreate_c(loc_id, name, namelen, &
+!  !$            OBJECT_NAME
+!  LEN_DEFAULT, grp_id, lcpl_id_default, gcpl_id_default, gapl_id_default)
+!  !$         USE H5GLOBAL
+!  !$         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+!  !$         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5GCREATE_C'::h5gcreate_c
+!  !$         !DEC$ ENDIF
+!  !$         !DEC$ATTRIBUTES reference :: name
+!  !$         INTEGER(HID_T), INTENT(IN) :: loc_id
+!  !$         CHARACTER(LEN=*), INTENT(IN) :: name
+!  !$         INTEGER :: namelen
+!  !$         INTEGER(SIZE_T) :: OBJECT_NAME
+!  LEN_DEFAULT
+!  !$         INTEGER(HID_T) :: lcpl_id_default
+!  !$         INTEGER(HID_T) :: gcpl_id_default
+!  !$         INTEGER(HID_T) :: gapl_id_default
+!  !$         INTEGER(HID_T), INTENT(OUT) :: grp_id
+!  !$       END FUNCTION h5gcreate_c
+!  !$    END INTERFACE
+!  !$
+!  !$    namelen = LEN(name)
+!  !$    OBJECT_NAME
+!  LEN_DEFAULT = OBJECT_NAME
+!  LEN_DEFAULT_F
+!  !$
+!  !$    lcpl_id_default = H5P_DEFAULT_F
+!  !$    IF(PRESENT(lcpl_id)) lcpl_id_default = lcpl_id
+!  !$    gcpl_id_default = H5P_DEFAULT_F
+!  !$    IF(PRESENT(gcpl_id)) gcpl_id_default = gcpl_id
+!  !$    gapl_id_default = H5P_DEFAULT_F
+!  !$    IF(PRESENT(gapl_id)) gapl_id_default = gapl_id
+!  !$
+!  !$
+!  !$    hdferr = h5gcreate_c(loc_id, name, namelen, OBJECT_NAME
+!  LEN_DEFAULT, grp_id, &
+!  !$         lcpl_id_default, gcpl_id_default, gapl_id_default)
+!  !$
+!  !$  END SUBROUTINE h5gcreate2_f
 
 !
 !****s* H5G/h5gopen_f
 !
 ! NAME
-!		h5gopen_f 
+!  h5gopen_f
 !
 ! PURPOSE
-! 	Opens an existing group. 	
+!  Opens an existing group.
 !
-! INPUTS  
-!		loc_id		- location identifier
-!		name 		- name of the group to open
-! OUTPUTS  
-!		grp_id		- group identifier
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
+! INPUTS
+!  loc_id 	 - location identifier
+!  name 	 - name of the group to open
+! OUTPUTS
+!  grp_id 	 - group identifier
+!  hdferr:		- error code
+!  Success:  0
+!  Failure: -1
 ! OPTIONAL PARAMETERS
-!               gapl_id         - Group access property list identifier
+!  gapl_id 	 - Group access property list identifier
 !
-! AUTHOR	
+! AUTHOR
 !  Elena Pourmal
-!  August 12, 1999	
+!  August 12, 1999
 !
-! HISTORY 	
-!  Explicit Fortran interfaces were added for 
+! HISTORY
+!  Explicit Fortran interfaces were added for
 !  called C functions (it is needed for Windows
 !  port).  March 5, 2001
-!                   
+!
 !  Added 1.8 (optional) parameter gapl_id
 !  February, 2008 M.S. Breitenfeld
 !
 ! SOURCE
   SUBROUTINE h5gopen_f(loc_id, name, grp_id, hdferr, gapl_id)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier 
-    CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of the group 
-    INTEGER(HID_T), INTENT(OUT) :: grp_id  ! File identifier 
-    INTEGER, INTENT(OUT) :: hdferr         ! Error code 
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: gapl_id  ! Group access property list identifier 
+    INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier
+    CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of the group
+    INTEGER(HID_T), INTENT(OUT) :: grp_id  ! File identifier
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: gapl_id  ! Group access property list identifier
 !*****
     INTEGER(HID_T) :: gapl_id_default
     INTEGER :: namelen ! Length of the name character string
@@ -289,7 +289,7 @@ CONTAINS
          !DEC$ATTRIBUTES reference :: name
          INTEGER(HID_T), INTENT(IN) :: loc_id
          CHARACTER(LEN=*), INTENT(IN) :: name
-         INTEGER :: namelen 
+         INTEGER :: namelen
          INTEGER(HID_T), INTENT(IN) :: gapl_id_default
          INTEGER(HID_T), INTENT(OUT) :: grp_id
        END FUNCTION h5gopen_c
@@ -297,34 +297,34 @@ CONTAINS
 
     gapl_id_default = H5P_DEFAULT_F
     IF(PRESENT(gapl_id)) gapl_id_default = gapl_id
-  
+
     namelen = LEN(name)
-    hdferr = h5gopen_c(loc_id, name, namelen, gapl_id_default, grp_id) 
-    
+    hdferr = h5gopen_c(loc_id, name, namelen, gapl_id_default, grp_id)
+
   END SUBROUTINE h5gopen_f
 !
-!****s* H5G/h5gclose_f 
+!****s* H5G/h5gclose_f
 !
 ! NAME
-!  h5gclose_f 
+!  h5gclose_f
 !
 ! PURPOSE
-!	Closes the specified group. 	
+!  Closes the specified group.
 !
-! INPUTS  
-!		grp_id		- group identifier
-! OUTPUTS  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1
+! INPUTS
+!  grp_id 	 - group identifier
+! OUTPUTS
+!  hdferr:		- error code
+!  Success:  0
+!  Failure: -1
 ! AUTHOR
-!	Elena Pourmal
-!	August 12, 1999	
+!  Elena Pourmal
+!  August 12, 1999
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!	called C functions (it is needed for Windows
-!	port).  March 5, 2001 
+!  Explicit Fortran interfaces were added for
+!  called C functions (it is needed for Windows
+!  port).  March 5, 2001
 !
 ! SOURCE
   SUBROUTINE h5gclose_f(grp_id, hdferr)
@@ -341,49 +341,49 @@ CONTAINS
          INTEGER(HID_T), INTENT(IN) :: grp_id
        END FUNCTION h5gclose_c
     END INTERFACE
-    
+
     hdferr = h5gclose_c(grp_id)
-    
+
   END SUBROUTINE h5gclose_f
 !
 !****s* H5G/h5gget_obj_info_idx_f
 !
 ! NAME
-!  h5gget_obj_info_idx_f 
+!  h5gget_obj_info_idx_f
 !
 ! PURPOSE
-!	Returns name and type of the group member identified by 
-!	its index. 
+!  Returns name and type of the group member identified by
+!  its index.
 !
-! INPUTS  
-!		loc_id		- location identifier
-!		name		- name of the group at the specified location
-!		idx		- object index (zero-based)
-! OUTPUTS  
-!		obj_name	- object name
-!		obj_type	- object type
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1
+! INPUTS
+!  loc_id 	 - location identifier
+!  name 	 - name of the group at the specified location
+!  idx 	 - object index (zero-based)
+! OUTPUTS
+!  obj_name 	 - object name
+!  obj_type 	 - object type
+!  hdferr:		- error code
+!  Success:  0
+!  Failure: -1
 ! AUTHOR
 !  Elena Pourmal
-!  August 12, 1999	
+!  August 12, 1999
 !
-! HISTORY 	
-!  Explicit Fortran interfaces were added for 
+! HISTORY
+!  Explicit Fortran interfaces were added for
 !  called C functions (it is needed for Windows
-!  port).  March 5, 2001 
+!  port).  March 5, 2001
 !
 ! SOURCE
   SUBROUTINE h5gget_obj_info_idx_f(loc_id, name, idx, &
        obj_name, obj_type, hdferr)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier 
-    CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of the group 
-    INTEGER, INTENT(IN) :: idx             ! Index of member object 
-    CHARACTER(LEN=*), INTENT(OUT) :: obj_name   ! Name of the object 
-    INTEGER, INTENT(OUT) :: obj_type       ! Object type 
-    INTEGER, INTENT(OUT) :: hdferr         ! Error code 
+    INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier
+    CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of the group
+    INTEGER, INTENT(IN) :: idx             ! Index of member object
+    CHARACTER(LEN=*), INTENT(OUT) :: obj_name   ! Name of the object
+    INTEGER, INTENT(OUT) :: obj_type       ! Object type
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code
 !*****
     INTEGER :: namelen ! Length of the name character string
     INTEGER :: obj_namelen ! Length of the obj_name character string
@@ -415,41 +415,41 @@ CONTAINS
   END SUBROUTINE h5gget_obj_info_idx_f
 
 !
-!****s* H5G/h5gn_members_f 
+!****s* H5G/h5gn_members_f
 !
 ! NAME
-!		h5gn_members_f 
+!  h5gn_members_f
 !
 ! PURPOSE
-! 	Returns the number of group members. 	
+!  Returns the number of group members.
 !
-! INPUTS  
-!		loc_id		- location identifier
-!		name		- name of the group at the specified location
-! OUTPUTS  
-!		nmembers	- number of group members
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
+! INPUTS
+!  loc_id 	 - location identifier
+!  name 	 - name of the group at the specified location
+! OUTPUTS
+!  nmembers 	 - number of group members
+!  hdferr:		- error code
+!  Success:  0
+!  Failure: -1
 
 !
 ! AUTHOR
-!	Elena Pourmal
-!		August 12, 1999	
+!  Elena Pourmal
+!  August 12, 1999
 !
 ! HISTORY
-!   	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 5, 2001 
+!  Explicit Fortran interfaces were added for
+!  called C functions (it is needed for Windows
+!  port).  March 5, 2001
 !
 ! SOURCE
   SUBROUTINE h5gn_members_f(loc_id, name, nmembers, hdferr)
             IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier 
-            CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of the group 
+            INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier
+            CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of the group
             INTEGER, INTENT(OUT) :: nmembers       ! Number of members in the
-                                                   ! group 
-            INTEGER, INTENT(OUT) :: hdferr         ! Error code 
+                                                   ! group
+            INTEGER, INTENT(OUT) :: hdferr         ! Error code
 !*****
             INTEGER :: namelen ! Length of the name character string
 
@@ -468,74 +468,74 @@ CONTAINS
             END INTERFACE
 
             namelen = LEN(name)
-            hdferr = h5gn_members_c(loc_id, name, namelen, nmembers) 
+            hdferr = h5gn_members_c(loc_id, name, namelen, nmembers)
 
           END SUBROUTINE h5gn_members_f
 
 !
-!****s* H5G/h5glink_f 
+!****s* H5G/h5glink_f
 !
 ! NAME
-!		h5glink_f 
+!  h5glink_f
 !
 ! PURPOSE
-! 	Creates a link of the specified type from new_name 
-!		to current_name. 	
+!  Creates a link of the specified type from new_name
+!  to current_name.
 !
-! INPUTS  
-!		loc_id		- location identifier
-!		link_type	- link type
-!				  Possible values are:
-!				  H5G_LINK_HARD_F (0) or
-!				  H5G_LINK_SOFT_F (1) 
-!		current_name	- name of the existing object if link is a 
-!				  hard link. Can be anything for the soft link. 
-!		new_name	- new name for the object
-! OUTPUTS  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
+! INPUTS
+!  loc_id 	 - location identifier
+!  link_type 	 - link type
+!  Possible values are:
+!  H5G_LINK_HARD_F (0) or
+!  H5G_LINK_SOFT_F (1)
+!  current_name 	 - name of the existing object if link is a
+!  hard link. Can be anything for the soft link.
+!  new_name 	 - new name for the object
+! OUTPUTS
+!  hdferr:		- error code
+!  Success:  0
+!  Failure: -1
 
 !
 ! AUTHOR
-!	Elena Pourmal
-!		August 12, 1999	
+!  Elena Pourmal
+!  August 12, 1999
 !
 ! HISTORY
-!   	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 5, 2001 
+!  Explicit Fortran interfaces were added for
+!  called C functions (it is needed for Windows
+!  port).  March 5, 2001
 !
 ! SOURCE
   SUBROUTINE h5glink_f(loc_id, link_type, current_name, &
        new_name, hdferr)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier 
+    INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier
     INTEGER, INTENT(IN) :: link_type       ! link type
                                                    ! Possible values are:
                                                    ! H5G_LINK_HARD_F (0) or
-                                                   ! H5G_LINK_SOFT_F (1) 
-            
-    CHARACTER(LEN=*), INTENT(IN) :: current_name   
-                                                   ! Current name of an object 
+                                                   ! H5G_LINK_SOFT_F (1)
+
+    CHARACTER(LEN=*), INTENT(IN) :: current_name
+                                                   ! Current name of an object
     CHARACTER(LEN=*), INTENT(IN) :: new_name ! New name of an object
     INTEGER, INTENT(OUT) :: hdferr         ! Error code
 !*****
-            
+
     INTEGER :: current_namelen ! Lenghth of the current_name string
     INTEGER :: new_namelen     ! Lenghth of the new_name string
 
     INTERFACE
        INTEGER FUNCTION h5glink_c(loc_id, link_type, current_name, &
             current_namelen, new_name, new_namelen)
-                              
+
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
          !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5GLINK_C'::h5glink_c
          !DEC$ ENDIF
          !DEC$ATTRIBUTES reference :: current_name
          !DEC$ATTRIBUTES reference :: new_name
-         INTEGER(HID_T), INTENT(IN) :: loc_id 
+         INTEGER(HID_T), INTENT(IN) :: loc_id
          INTEGER, INTENT(IN) :: link_type
          CHARACTER(LEN=*), INTENT(IN) :: current_name
          INTEGER :: current_namelen
@@ -543,7 +543,7 @@ CONTAINS
          INTEGER :: new_namelen
        END FUNCTION h5glink_c
     END INTERFACE
-    
+
     current_namelen = LEN(current_name)
     new_namelen = LEN(new_name)
     hdferr = h5glink_c(loc_id, link_type, current_name, &
@@ -551,52 +551,52 @@ CONTAINS
   END SUBROUTINE h5glink_f
 
 !
-!****s* H5G/h5glink2_f 
+!****s* H5G/h5glink2_f
 !
 ! NAME
-!		h5glink2_f 
+!  h5glink2_f
 !
 ! PURPOSE
-! 	Creates a link of the specified type from new_name 
-!		to current_name. current_name and new_name are interpreted
-!               releative to current and new location identifiers.	
+!  Creates a link of the specified type from new_name
+!  to current_name. current_name and new_name are interpreted
+!  releative to current and new location identifiers.
 !
-! INPUTS  
-!		cur_loc_id	- location identifier
-!		cur_name	- name of the existing object if link is a 
-!				  hard link. Can be anything for the soft link. 
-!		link_type	- link type
-!				  Possible values are:
-!				  H5G_LINK_HARD_F (0) or
-!				  H5G_LINK_SOFT_F (1) 
-!		new_loc_id	- new location identifier
-!		new_name	- new name for the object
-! OUTPUTS  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
+! INPUTS
+!  cur_loc_id 	 - location identifier
+!  cur_name 	 - name of the existing object if link is a
+!  hard link. Can be anything for the soft link.
+!  link_type 	 - link type
+!  Possible values are:
+!  H5G_LINK_HARD_F (0) or
+!  H5G_LINK_SOFT_F (1)
+!  new_loc_id 	 - new location identifier
+!  new_name 	 - new name for the object
+! OUTPUTS
+!  hdferr:		- error code
+!  Success:  0
+!  Failure: -1
 
 !
 ! AUTHOR
-!	Elena Pourmal
-!		September 25, 2002
+!  Elena Pourmal
+!  September 25, 2002
 !
 ! SOURCE
   SUBROUTINE h5glink2_f(cur_loc_id, cur_name, link_type, new_loc_id, &
        new_name, hdferr)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: cur_loc_id   ! File or group identifier 
-    CHARACTER(LEN=*), INTENT(IN) :: cur_name   
-                                             ! Current name of an object 
+    INTEGER(HID_T), INTENT(IN) :: cur_loc_id   ! File or group identifier
+    CHARACTER(LEN=*), INTENT(IN) :: cur_name
+                                             ! Current name of an object
     INTEGER, INTENT(IN) :: link_type       ! link type
                                                    ! Possible values are:
                                                    ! H5G_LINK_HARD_F (0) or
-                                                   ! H5G_LINK_SOFT_F (1) 
-            
-    INTEGER(HID_T), INTENT(IN) :: new_loc_id ! File or group identifier 
+                                                   ! H5G_LINK_SOFT_F (1)
+
+    INTEGER(HID_T), INTENT(IN) :: new_loc_id ! File or group identifier
     CHARACTER(LEN=*), INTENT(IN) :: new_name ! New name of an object
     INTEGER, INTENT(OUT) :: hdferr         ! Error code
-!*****            
+!*****
 
     INTEGER :: cur_namelen ! Lenghth of the current_name string
     INTEGER :: new_namelen ! Lenghth of the new_name string
@@ -612,8 +612,8 @@ CONTAINS
          !DEC$ ENDIF
          !DEC$ATTRIBUTES reference :: cur_name
          !DEC$ATTRIBUTES reference :: new_name
-         INTEGER(HID_T), INTENT(IN) :: cur_loc_id 
-         INTEGER(HID_T), INTENT(IN) :: new_loc_id 
+         INTEGER(HID_T), INTENT(IN) :: cur_loc_id
+         INTEGER(HID_T), INTENT(IN) :: new_loc_id
          INTEGER, INTENT(IN) :: link_type
          CHARACTER(LEN=*), INTENT(IN) :: cur_name
          CHARACTER(LEN=*), INTENT(IN) :: new_name
@@ -629,41 +629,41 @@ CONTAINS
   END SUBROUTINE h5glink2_f
 
 !
-!****s* H5G/h5gunlink_f 
+!****s* H5G/h5gunlink_f
 !
 ! NAME
-!		h5gunlink_f 
+!  h5gunlink_f
 !
 ! PURPOSE
-! 	Removes the specified name from the group graph and 
-!		decrements the link count for the object to which name 
-!		points	
+!  Removes the specified name from the group graph and
+!  decrements the link count for the object to which name
+!  points
 !
-! INPUTS  
-!		loc_id		- location identifier
-!		name		- name of the object to unlink
-! OUTPUTS  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
+! INPUTS
+!  loc_id 	 - location identifier
+!  name 	 - name of the object to unlink
+! OUTPUTS
+!  hdferr:		- error code
+!  Success:  0
+!  Failure: -1
 
 !
 ! AUTHOR
-!	Elena Pourmal
-!		August 12, 1999	
+!  Elena Pourmal
+!  August 12, 1999
 !
 ! HISTORY
-!   	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 5, 2001 
+!  Explicit Fortran interfaces were added for
+!  called C functions (it is needed for Windows
+!  port).  March 5, 2001
 !
 ! SOURCE
   SUBROUTINE h5gunlink_f(loc_id, name, hdferr)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier 
-    CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of an object 
+    INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier
+    CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of an object
     INTEGER, INTENT(OUT) :: hdferr         ! Error code
-!*****            
+!*****
     INTEGER :: namelen ! Lenghth of the name character string
 
     INTERFACE
@@ -678,47 +678,47 @@ CONTAINS
          INTEGER :: namelen
        END FUNCTION h5gunlink_c
     END INTERFACE
-    
+
     namelen = LEN(name)
     hdferr = h5gunlink_c(loc_id, name, namelen)
   END SUBROUTINE h5gunlink_f
 
 !
-!****s* H5G/h5gmove_f 
+!****s* H5G/h5gmove_f
 !
 ! NAME
-!		h5gmove_f 
+!  h5gmove_f
 !
 ! PURPOSE
-!	Renames an object within an HDF5 file.  	
+!  Renames an object within an HDF5 file.
 !
-! INPUTS  
-!		loc_id		- location identifier
-!		name		- object's name at specified location
-!		new_name	- object's new name
-! OUTPUTS  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
+! INPUTS
+!  loc_id 	 - location identifier
+!  name 	 - object's name at specified location
+!  new_name 	 - object's new name
+! OUTPUTS
+!  hdferr:		- error code
+!  Success:  0
+!  Failure: -1
 
 !
 ! AUTHOR
-!	Elena Pourmal
-!		August 12, 1999	
+!  Elena Pourmal
+!  August 12, 1999
 !
 ! HISTORY
-!   	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 5, 2001 
+!  Explicit Fortran interfaces were added for
+!  called C functions (it is needed for Windows
+!  port).  March 5, 2001
 !
 ! SOURCE
   SUBROUTINE h5gmove_f(loc_id, name, new_name, hdferr)
             IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier 
-            CHARACTER(LEN=*), INTENT(IN) :: name   ! Current name of an object 
+            INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier
+            CHARACTER(LEN=*), INTENT(IN) :: name   ! Current name of an object
             CHARACTER(LEN=*), INTENT(IN) :: new_name ! New name of an object
             INTEGER, INTENT(OUT) :: hdferr         ! Error code
-!*****            
+!*****
             INTEGER :: namelen         ! Lenghth of the current_name string
             INTEGER :: new_namelen     ! Lenghth of the new_name string
 
@@ -737,43 +737,43 @@ CONTAINS
               INTEGER :: new_namelen
               END FUNCTION h5gmove_c
             END INTERFACE
-            
+
             namelen = LEN(name)
             new_namelen = LEN(new_name)
             hdferr = h5gmove_c(loc_id, name, namelen, new_name, new_namelen)
           END SUBROUTINE h5gmove_f
 
 !
-!****s* H5G/h5gmove2_f 
+!****s* H5G/h5gmove2_f
 !
 ! NAME
-!		h5gmove2_f 
+!  h5gmove2_f
 !
 ! PURPOSE
-!	Renames an object within an HDF5 file.  	
+!  Renames an object within an HDF5 file.
 !
-! INPUTS  
-!		src_loc_id	- original location identifier
-!		src_name	- object's name at specified original location
-!		dst_loc_id	- original location identifier
-!		dst_name	- object's new name
-! OUTPUTS  
-!		hdferr:		- error code		
-!				 	Success:  0
+! INPUTS
+!  src_loc_id 	 - original location identifier
+!  src_name 	 - object's name at specified original location
+!  dst_loc_id 	 - original location identifier
+!  dst_name 	 - object's new name
+! OUTPUTS
+!  hdferr:		- error code
+!  Success:  0
 !
 ! AUTHOR
-!	Elena Pourmal
-!		September 25, 2002
+!  Elena Pourmal
+!  September 25, 2002
 !
 ! SOURCE
   SUBROUTINE h5gmove2_f(src_loc_id, src_name, dst_loc_id, dst_name, hdferr)
             IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN)   :: src_loc_id  ! File or group identifier 
-            CHARACTER(LEN=*), INTENT(IN) :: src_name    ! Original name of an object 
-            INTEGER(HID_T), INTENT(IN)   :: dst_loc_id  ! File or group identifier 
+            INTEGER(HID_T), INTENT(IN)   :: src_loc_id  ! File or group identifier
+            CHARACTER(LEN=*), INTENT(IN) :: src_name    ! Original name of an object
+            INTEGER(HID_T), INTENT(IN)   :: dst_loc_id  ! File or group identifier
             CHARACTER(LEN=*), INTENT(IN) :: dst_name    ! New name of an object
             INTEGER, INTENT(OUT)         :: hdferr      ! Error code
-!*****            
+!*****
             INTEGER :: src_namelen         ! Length of the current_name string
             INTEGER :: dst_namelen         ! Lenghth of the new_name string
 
@@ -794,7 +794,7 @@ CONTAINS
               INTEGER :: dst_namelen
               END FUNCTION h5gmove2_c
             END INTERFACE
-            
+
             src_namelen = LEN(src_name)
             dst_namelen = LEN(dst_name)
             hdferr = h5gmove2_c(src_loc_id, src_name, src_namelen,&
@@ -802,49 +802,49 @@ CONTAINS
           END SUBROUTINE h5gmove2_f
 
 !
-!****s* H5G/h5gget_linkval_f 
+!****s* H5G/h5gget_linkval_f
 !
 ! NAME
-!		h5gget_linkval_f 
+!  h5gget_linkval_f
 !
 ! PURPOSE
-! 	Returns the name of the object that the symbolic link 
-! 	points to. 	
+!  Returns the name of the object that the symbolic link
+!  points to.
 !
-! INPUTS  
-!		loc_id		- location identifier
-!		name		- symbolic link to the object whose name 
-!				  is to be returned.  
-!		size		- maximum number of characters to be returned
-! OUTPUTS  
-!		buffer		- a buffer to hold the name of the object 
-!				  being sought 
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
+! INPUTS
+!  loc_id 	 - location identifier
+!  name 	 - symbolic link to the object whose name
+!  is to be returned.
+!  size 	 - maximum number of characters to be returned
+! OUTPUTS
+!  buffer 	 - a buffer to hold the name of the object
+!  being sought
+!  hdferr:		- error code
+!  Success:  0
+!  Failure: -1
 
 !
 ! AUTHOR
-!	Elena Pourmal
-!	August 12, 1999	
+!  Elena Pourmal
+!  August 12, 1999
 !
 ! HISTORY
-!   	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 5, 2001 
+!  Explicit Fortran interfaces were added for
+!  called C functions (it is needed for Windows
+!  port).  March 5, 2001
 !
 ! SOURCE
   SUBROUTINE h5gget_linkval_f(loc_id, name, size, buffer, hdferr)
             IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier 
-            CHARACTER(LEN=*), INTENT(IN) :: name   ! Current name of an object 
+            INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier
+            CHARACTER(LEN=*), INTENT(IN) :: name   ! Current name of an object
             INTEGER(SIZE_T), INTENT(IN) :: size    ! Maximum number of buffer
-            CHARACTER(LEN=size), INTENT(OUT) :: buffer 
+            CHARACTER(LEN=size), INTENT(OUT) :: buffer
                                                    ! Buffer to hold a name of
                                                    ! the object symbolic link
                                                    ! points to
             INTEGER, INTENT(OUT) :: hdferr         ! Error code
-!*****            
+!*****
             INTEGER :: namelen ! Lenghth of the current_name string
 
             INTERFACE
@@ -854,50 +854,50 @@ CONTAINS
               !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5GGET_LINKVAL_C'::h5gget_linkval_c
               !DEC$ ENDIF
               !DEC$ATTRIBUTES reference :: name
-              !DEC$ATTRIBUTES reference :: buffer 
+              !DEC$ATTRIBUTES reference :: buffer
               INTEGER(HID_T), INTENT(IN) :: loc_id
-              CHARACTER(LEN=*), INTENT(IN) :: name 
+              CHARACTER(LEN=*), INTENT(IN) :: name
               INTEGER :: namelen
               INTEGER(SIZE_T), INTENT(IN) :: size
               CHARACTER(LEN=*), INTENT(OUT) :: buffer
               END FUNCTION h5gget_linkval_c
             END INTERFACE
-            
+
             namelen = LEN(name)
             hdferr = h5gget_linkval_c(loc_id, name, namelen, size, buffer)
           END SUBROUTINE h5gget_linkval_f
 
 !
-!****s* H5G/h5gset_comment_f 
+!****s* H5G/h5gset_comment_f
 !
 ! NAME
-!		h5gset_comment_f 
+!  h5gset_comment_f
 !
 ! PURPOSE
-! 	Sets comment for specified object. 	
+!  Sets comment for specified object.
 !
-! INPUTS  
-!		loc_id		- location identifier
-!		name		- name of the object
-!		comment		- comment to set for the object
-! OUTPUTS  
-!		hdferr:		- error code		
-!				 	Success:  0
+! INPUTS
+!  loc_id 	 - location identifier
+!  name 	 - name of the object
+!  comment 	 - comment to set for the object
+! OUTPUTS
+!  hdferr:		- error code
+!  Success:  0
 !
 ! AUTHOR
-!	Elena Pourmal
-!		August 12, 1999	
+!  Elena Pourmal
+!  August 12, 1999
 !
 ! HISTORY
-!   	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 5, 2001 
+!  Explicit Fortran interfaces were added for
+!  called C functions (it is needed for Windows
+!  port).  March 5, 2001
 !
 ! SOURCE
   SUBROUTINE h5gset_comment_f(loc_id, name, comment, hdferr)
             IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier 
-            CHARACTER(LEN=*), INTENT(IN) :: name   ! Current name of an object 
+            INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier
+            CHARACTER(LEN=*), INTENT(IN) :: name   ! Current name of an object
             CHARACTER(LEN=*), INTENT(IN) :: comment ! New name of an object
             INTEGER, INTENT(OUT) :: hdferr         ! Error code
 !*****
@@ -911,8 +911,8 @@ CONTAINS
               !DEC$ IF DEFINED(HDF5F90_WINDOWS)
               !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5GSET_COMMENT_C'::h5gset_comment_c
               !DEC$ ENDIF
-              !DEC$ATTRIBUTES reference :: name 
-              !DEC$ATTRIBUTES reference :: comment 
+              !DEC$ATTRIBUTES reference :: name
+              !DEC$ATTRIBUTES reference :: comment
               INTEGER(HID_T), INTENT(IN) :: loc_id
               CHARACTER(LEN=*), INTENT(IN) :: name
               INTEGER :: namelen
@@ -920,47 +920,47 @@ CONTAINS
               INTEGER :: commentlen
               END FUNCTION h5gset_comment_c
             END INTERFACE
-            
+
             namelen = LEN(name)
             commentlen = LEN(comment)
             hdferr = h5gset_comment_c(loc_id, name, namelen, comment, commentlen)
           END SUBROUTINE h5gset_comment_f
 
 !
-!****s* H5G/h5gget_comment_f 
+!****s* H5G/h5gget_comment_f
 !
 ! NAME
-!		h5gget_comment_f 
+!  h5gget_comment_f
 !
 ! PURPOSE
-!	Retrieves comment for specified object.  	
+!  Retrieves comment for specified object.
 !
-! INPUTS  
-!		loc_id		- location identifier
-!		name		- name of the object at specified location
-!		size		- size of the buffer required to hold comment
-! OUTPUTS  
-!		buffer		- buffer to hold object's comment
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
+! INPUTS
+!  loc_id 	 - location identifier
+!  name 	 - name of the object at specified location
+!  size 	 - size of the buffer required to hold comment
+! OUTPUTS
+!  buffer 	 - buffer to hold object's comment
+!  hdferr:		- error code
+!  Success:  0
+!  Failure: -1
 !
 ! AUTHOR
-!	Elena Pourmal
-!		August 12, 1999	
+!  Elena Pourmal
+!  August 12, 1999
 !
 ! HISTORY
-!   	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 5, 2001 
+!  Explicit Fortran interfaces were added for
+!  called C functions (it is needed for Windows
+!  port).  March 5, 2001
 !
 ! SOURCE
   SUBROUTINE h5gget_comment_f(loc_id, name, size, buffer, hdferr)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier 
-    CHARACTER(LEN=*), INTENT(IN) :: name   ! Current name of an object 
+    INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier
+    CHARACTER(LEN=*), INTENT(IN) :: name   ! Current name of an object
     INTEGER(SIZE_T), INTENT(IN) :: size    ! Maximum number of buffer
-    CHARACTER(LEN=size), INTENT(OUT) :: buffer 
+    CHARACTER(LEN=size), INTENT(OUT) :: buffer
                                            ! Buffer to hold a comment
     INTEGER, INTENT(OUT) :: hdferr         ! Error code
 !*****
@@ -973,8 +973,8 @@ CONTAINS
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
          !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5GGET_COMMENT_C'::h5gget_comment_c
          !DEC$ ENDIF
-         !DEC$ATTRIBUTES reference :: name 
-         !DEC$ATTRIBUTES reference :: buffer 
+         !DEC$ATTRIBUTES reference :: name
+         !DEC$ATTRIBUTES reference :: buffer
          INTEGER(HID_T), INTENT(IN) :: loc_id
          CHARACTER(LEN=*), INTENT(IN) :: name
          INTEGER :: namelen
@@ -982,7 +982,7 @@ CONTAINS
          CHARACTER(LEN=*), INTENT(OUT) :: buffer
        END FUNCTION h5gget_comment_c
     END INTERFACE
-    
+
     namelen = LEN(name)
     hdferr = h5gget_comment_c(loc_id, name, namelen, size, buffer)
   END SUBROUTINE h5gget_comment_f
@@ -991,38 +991,38 @@ CONTAINS
 !****s* H5G/H5Gcreate_anon_f
 !
 ! NAME
-!		H5Gcreate_anon_f
+!  H5Gcreate_anon_f
 !
 ! PURPOSE
-!	Creates a new empty group without linking it into the file structure. 
+!  Creates a new empty group without linking it into the file structure.
 !
-! INPUTS  
-!		loc_id		- Location identifier
-! OUTPUTS  
-!		grp_id		- group identifier
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
+! INPUTS
+!  loc_id 	 - Location identifier
+! OUTPUTS
+!  grp_id 	 - group identifier
+!  hdferr:		- error code
+!  Success:  0
+!  Failure: -1
 ! OPTIONAL PARAMETERS
-!               gcpl_id   	- Group creation property list identifier
-!               gapl_id         - Group access property list identifier
+!  gcpl_id 	 - Group creation property list identifier
+!  gapl_id 	 - Group access property list identifier
 !
 ! AUTHOR
-!	M.S. Breitenfeld
-!	February 15, 2008		
+!  M.S. Breitenfeld
+!  February 15, 2008
 !
 ! SOURCE
   SUBROUTINE h5Gcreate_anon_f(loc_id, grp_id, hdferr, gcpl_id, gapl_id)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier
-    INTEGER(HID_T), INTENT(OUT) :: grp_id  ! Group identifier 
+    INTEGER(HID_T), INTENT(OUT) :: grp_id  ! Group identifier
     INTEGER, INTENT(OUT) :: hdferr         ! Error code
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: gcpl_id  ! Property list for group creation
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: gapl_id  ! Property list for group access
 !*****
     INTEGER(HID_T) :: gcpl_id_default
     INTEGER(HID_T) :: gapl_id_default
-    
+
     INTERFACE
        INTEGER FUNCTION h5gcreate_anon_c(loc_id, gcpl_id_default, gapl_id_default, grp_id)
          USE H5GLOBAL
@@ -1036,35 +1036,35 @@ CONTAINS
        END FUNCTION h5gcreate_anon_c
     END INTERFACE
 
-    gcpl_id_default = H5P_DEFAULT_F 
-    gapl_id_default = H5P_DEFAULT_F 
+    gcpl_id_default = H5P_DEFAULT_F
+    gapl_id_default = H5P_DEFAULT_F
 
     IF(PRESENT(gcpl_id)) gcpl_id_default = gcpl_id
     IF(PRESENT(gapl_id)) gapl_id_default = gapl_id
-    
+
     hdferr = h5gcreate_anon_c(loc_id, gcpl_id_default, gapl_id_default, grp_id)
-    
+
   END SUBROUTINE h5Gcreate_anon_f
 
 !
 !****s* H5G/H5Gget_create_plist_f
 !
 ! NAME
-!		H5Gget_create_plist_f
+!  H5Gget_create_plist_f
 !
 ! PURPOSE
-!	Gets a group creation property list identifier. 
+!  Gets a group creation property list identifier.
 !
-! INPUTS  
-!		grp_id		- group identifier
-! OUTPUTS  
-!               gcpl_id   	- Group creation property list identifier
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1
+! INPUTS
+!  grp_id 	 - group identifier
+! OUTPUTS
+!  gcpl_id 	 - Group creation property list identifier
+!  hdferr:		- error code
+!  Success:  0
+!  Failure: -1
 ! AUTHOR
-!	M.S. Breitenfeld
-!	February 15, 2008	
+!  M.S. Breitenfeld
+!  February 15, 2008
 !
 ! SOURCE
   SUBROUTINE h5gget_create_plist_f(grp_id, gcpl_id, hdferr)
@@ -1083,52 +1083,52 @@ CONTAINS
          INTEGER(HID_T), INTENT(OUT) :: gcpl_id
        END FUNCTION h5gget_create_plist_c
     END INTERFACE
-    
+
     hdferr = h5gget_create_plist_c(grp_id, gcpl_id )
-    
+
   END SUBROUTINE h5gget_create_plist_f
 
 !
 !****s* H5G/h5gget_info_f
 !
 ! NAME
-!		h5gget_info_f
+!  h5gget_info_f
 !
 ! PURPOSE
-!  	Retrieves information about a group
-!		
-! INPUTS  
-!		group_id - Group identifier
+!  Retrieves information about a group
+!
+! INPUTS
+!  group_id 	 - Group identifier
 !
 ! OUTPUTS  NOTE: In C it is defined as a structure: H5G_info_t
 !
-!      storage_type - Type of storage for links in group
-!                       H5G_STORAGE_TYPE_COMPACT: Compact storage
-!                       H5G_STORAGE_TYPE_DENSE: Indexed storage
-!                       H5G_STORAGE_TYPE_SYMBOL_TABLE: Symbol tables, the original HDF5 structure
-!            nlinks - Number of links in group
-!     	 max_corder - Current maximum creation order value for group
-!            hdferr - error code		
-!		          Success:  0
-!		          Failure: -1   
+!  storage_type 	 - Type of storage for links in group
+!  H5G_STORAGE_TYPE_COMPACT: Compact storage
+!  H5G_STORAGE_TYPE_DENSE: Indexed storage
+!  H5G_STORAGE_TYPE_SYMBOL_TABLE: Symbol tables, the original HDF5 structure
+!  nlinks 	 - Number of links in group
+!  max_corder 	 - Current maximum creation order value for group
+!  hdferr 	 - error code
+!  Success:  0
+!  Failure: -1
 ! OPTIONAL PARAMETERS
-!	    mounted - Whether group has a file mounted on it			
+!  mounted 	 - Whether group has a file mounted on it
 !
 ! AUTHOR
-!	M. S. Breitenfeld
-!		February 15, 2008	
+!  M. S. Breitenfeld
+!  February 15, 2008
 !
 ! HISTORY
-!       
-!          - Added 'mounted' paramater
-!            M.S. Breitenfeld
-!            July 16, 2008
+!
+!   	 - Added 'mounted' paramater
+!  M.S. Breitenfeld
+!  July 16, 2008
 !
 ! SOURCE
   SUBROUTINE h5gget_info_f(group_id, storage_type, nlinks, max_corder, hdferr, mounted)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: group_id ! Group identifier
- 
+
     INTEGER, INTENT(OUT) :: storage_type ! Type of storage for links in group:
                                           ! H5G_STORAGE_TYPE_COMPACT_F: Compact storage
                                           ! H5G_STORAGE_TYPE_DENSE_F: Indexed storage
@@ -1158,55 +1158,55 @@ CONTAINS
     hdferr = h5gget_info_c(group_id, storage_type, nlinks, max_corder, mounted_c)
 
     IF(PRESENT(mounted))THEN
-       IF(mounted_c.EQ.0) THEN 
+       IF(mounted_c.EQ.0) THEN
           mounted = .FALSE.
-       ELSE 
+       ELSE
           mounted = .TRUE.
        ENDIF
     ENDIF
-    
+
   END SUBROUTINE h5gget_info_f
 
 !
 !****s* H5G/h5gget_info_by_idx_f
 !
 ! NAME
-!		h5gget_info_by_idx_f
+!  h5gget_info_by_idx_f
 !
 ! PURPOSE
-!  	Retrieves information about a group, according to the group’s position within an index.
-!		
+!  Retrieves information about a group, according to the group’s position within an index.
+!
 ! INPUTS
-!          loc_id - File or group identifier
-!      group_name - Name of group containing group for which information is to be retrieved
-!      index_type - Index type
-!           order - Order of the count in the index
-!               n - Position in the index of the group for which information is retrieved
+!  loc_id 	 - File or group identifier
+!  group_name 	 - Name of group containing group for which information is to be retrieved
+!  index_type 	 - Index type
+!  order 	 - Order of the count in the index
+!  n 	 - Position in the index of the group for which information is retrieved
 !
-! OUTPUTS  
-!   NOTE: In C the following are defined as a structure: H5G_info_t
+! OUTPUTS
+!  NOTE: In C the following are defined as a structure: H5G_info_t
 !
-!      storage_type - Type of storage for links in group
-!                       H5G_STORAGE_TYPE_COMPACT: Compact storage
-!                       H5G_STORAGE_TYPE_DENSE: Indexed storage
-!                       H5G_STORAGE_TYPE_SYMBOL_TABLE: Symbol tables, the original HDF5 structure
-!            nlinks - Number of links in group
-!     	 max_corder - Current maximum creation order value for group
-!            hdferr - error code		
-!		          Success:  0
-!		          Failure: -1   
+!  storage_type 	 - Type of storage for links in group
+!  H5G_STORAGE_TYPE_COMPACT: Compact storage
+!  H5G_STORAGE_TYPE_DENSE: Indexed storage
+!  H5G_STORAGE_TYPE_SYMBOL_TABLE: Symbol tables, the original HDF5 structure
+!  nlinks 	 - Number of links in group
+!  max_corder 	 - Current maximum creation order value for group
+!  hdferr 	 - error code
+!  Success:  0
+!  Failure: -1
 ! OPTIONAL PARAMETERS
-!         lapl_id - Link access property list
-!	  mounted - Whether group has a file mounted on it		
+!  lapl_id 	 - Link access property list
+!  mounted 	 - Whether group has a file mounted on it
 !
 ! AUTHOR
-!	M. S. Breitenfeld
-!	February 18, 2008	
+!  M. S. Breitenfeld
+!  February 18, 2008
 !
 ! HISTORY
-!          - Added 'mounted' paramater
-!            M.S. Breitenfeld
-!            July 16, 2008
+!   	 - Added 'mounted' paramater
+!  M.S. Breitenfeld
+!  July 16, 2008
 !
 ! SOURCE
   SUBROUTINE h5gget_info_by_idx_f(loc_id, group_name, index_type, order, n, &
@@ -1247,7 +1247,7 @@ CONTAINS
          INTEGER(HSIZE_T), INTENT(IN) :: n
          INTEGER(HID_T) :: lapl_id_default
          INTEGER, INTENT(OUT) :: storage_type
-         INTEGER, INTENT(OUT) :: nlinks 
+         INTEGER, INTENT(OUT) :: nlinks
          INTEGER, INTENT(OUT) :: max_corder
 
          INTEGER(SIZE_T) :: group_name_len
@@ -1266,52 +1266,52 @@ CONTAINS
          storage_type, nlinks, max_corder, mounted_c)
 
     IF(PRESENT(mounted))THEN
-       IF(mounted_c.EQ.0) THEN 
+       IF(mounted_c.EQ.0) THEN
           mounted = .FALSE.
-       ELSE 
+       ELSE
           mounted = .TRUE.
        ENDIF
     ENDIF
-    
+
   END SUBROUTINE h5gget_info_by_idx_f
-  
+
 !
 !****s* H5G/h5gget_info_by_name_f
 !
 ! NAME
-!		h5gget_info_by_name_f
+!  h5gget_info_by_name_f
 !
 ! PURPOSE
-!  	Retrieves information about a group. 
-!		
+!  Retrieves information about a group.
+!
 ! INPUTS
-!          loc_id - File or group identifier
-!      group_name - Name of group containing group for which information is to be retrieved
+!  loc_id 	 - File or group identifier
+!  group_name 	 - Name of group containing group for which information is to be retrieved
 !
-! OUTPUTS  
-!   NOTE: In C the following are defined as a structure: H5G_info_t
+! OUTPUTS
+!  NOTE: In C the following are defined as a structure: H5G_info_t
 !
-!      storage_type - Type of storage for links in group
-!                       H5G_STORAGE_TYPE_COMPACT: Compact storage
-!                       H5G_STORAGE_TYPE_DENSE: Indexed storage
-!                       H5G_STORAGE_TYPE_SYMBOL_TABLE: Symbol tables, the original HDF5 structure
-!            nlinks - Number of links in group
-!     	 max_corder - Current maximum creation order value for group
-!            hdferr - error code		
-!		          Success:  0
-!		          Failure: -1   
+!  storage_type 	 - Type of storage for links in group
+!  H5G_STORAGE_TYPE_COMPACT: Compact storage
+!  H5G_STORAGE_TYPE_DENSE: Indexed storage
+!  H5G_STORAGE_TYPE_SYMBOL_TABLE: Symbol tables, the original HDF5 structure
+!  nlinks 	 - Number of links in group
+!  max_corder 	 - Current maximum creation order value for group
+!  hdferr 	 - error code
+!  Success:  0
+!  Failure: -1
 ! OPTIONAL PARAMETERS
-!         lapl_id - Link access property list
-!	  mounted - Whether group has a file mounted on it		
+!  lapl_id 	 - Link access property list
+!  mounted 	 - Whether group has a file mounted on it
 !
 ! AUTHOR
-!	M. S. Breitenfeld
-!	February 18, 2008	
+!  M. S. Breitenfeld
+!  February 18, 2008
 !
 ! HISTORY
-!          - Added 'mounted' paramater
-!            M.S. Breitenfeld
-!            July 16, 2008
+!   	 - Added 'mounted' paramater
+!  M.S. Breitenfeld
+!  July 16, 2008
 ! SOURCE
   SUBROUTINE h5gget_info_by_name_f(loc_id, group_name, &
        storage_type, nlinks, max_corder, hdferr, lapl_id, mounted)
@@ -1331,7 +1331,7 @@ CONTAINS
     LOGICAL, INTENT(OUT), OPTIONAL :: mounted      ! Whether group has a file mounted on it
 !*****
     INTEGER :: mounted_c
-    INTEGER(HID_T) :: lapl_id_default 
+    INTEGER(HID_T) :: lapl_id_default
     INTEGER(SIZE_T) :: group_name_len ! length of group name
 
     INTERFACE
@@ -1345,7 +1345,7 @@ CONTAINS
          CHARACTER(LEN=*), INTENT(IN) :: group_name
          INTEGER(HID_T), INTENT(IN) :: lapl_id_default
          INTEGER, INTENT(OUT) :: storage_type
-         INTEGER, INTENT(OUT) :: nlinks 
+         INTEGER, INTENT(OUT) :: nlinks
          INTEGER, INTENT(OUT) :: max_corder
 
          INTEGER(SIZE_T) :: group_name_len
@@ -1355,7 +1355,7 @@ CONTAINS
     END INTERFACE
 
     group_name_len = LEN(group_name)
-    
+
     lapl_id_default = H5P_DEFAULT_F
     IF(PRESENT(lapl_id)) lapl_id_default = lapl_id
 
@@ -1363,13 +1363,13 @@ CONTAINS
          storage_type, nlinks, max_corder, mounted_c)
 
     IF(PRESENT(mounted))THEN
-       IF(mounted_c.EQ.0) THEN 
+       IF(mounted_c.EQ.0) THEN
           mounted = .FALSE.
-       ELSE 
+       ELSE
           mounted = .TRUE.
        ENDIF
     ENDIF
-    
+
   END SUBROUTINE h5gget_info_by_name_f
 
 END MODULE H5G

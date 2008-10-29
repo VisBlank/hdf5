@@ -939,7 +939,7 @@ done:
  * PURPOSE
  *     Call H5Literate
  * INPUTS
- *   
+ *
  *     group_id - Identifier specifying subject group
  *   index_type - Type of index which determines the order
  *        order - Order within index
@@ -948,7 +948,7 @@ done:
  *      op_data - User-defined pointer to data required by the application for its processing of the link
  *
  * OUTPUTS
- * 
+ *
  *          idx - Position at which an interrupted iteration may be restarted
  *
  * RETURNS
@@ -986,7 +986,7 @@ nh5literate_c(hid_t_f *group_id, int_f *index_type, int_f *order, hsize_t_f *idx
  * PURPOSE
  *     Call H5Literate_by_name
  * INPUTS
- *   
+ *
  *     loc_id - Identifier specifying subject group
  *         name - Name of subject group
  *      namelen - Name length
@@ -998,7 +998,7 @@ nh5literate_c(hid_t_f *group_id, int_f *index_type, int_f *order, hsize_t_f *idx
  *      lapl_id - List access property list identifier
  *
  * OUTPUTS
- * 
+ *
  *          idx - Position at which an interrupted iteration may be restarted
  *
  * RETURNS

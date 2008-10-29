@@ -2095,7 +2095,7 @@ done:
  * PURPOSE
  *     Call H5Awrite to write a dataset
  * INPUTS
- *      attr_id - Identifier of an attribute to write. 
+ *      attr_id - Identifier of an attribute to write.
  *              mem_type_id - Identifier of the attribute datatype (in memory).
  *              buf      - data pointer buffer
  * RETURNS
@@ -2105,7 +2105,7 @@ done:
  *              June 11, 2008
  * HISTORY
  *
- * 
+ *
  * SOURCE
 */
 int_f
@@ -2128,7 +2128,7 @@ nh5awrite_f_c (hid_t_f *attr_id, hid_t_f *mem_type_id, void *buf)
  * PURPOSE
  *     Call H5Awrite to write a dataset
  * INPUTS
- *      attr_id - Identifier of an attribute to write. 
+ *      attr_id - Identifier of an attribute to write.
  *              mem_type_id - Identifier of the attribute datatype (in memory).
  *              buf      - data pointer buffer
  * RETURNS
@@ -2138,7 +2138,7 @@ nh5awrite_f_c (hid_t_f *attr_id, hid_t_f *mem_type_id, void *buf)
  *              June 11, 2008
  * HISTORY
  *
- * 
+ *
  * SOURCE
 */
 int_f

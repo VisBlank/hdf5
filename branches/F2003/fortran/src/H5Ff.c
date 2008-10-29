@@ -532,7 +532,7 @@ nh5fget_obj_count_c ( hid_t_f *file_id , int_f *obj_type, size_t_f * obj_count)
  *              Monday, September 30, 2002
  * HISTORY
  *
- *              Changed type of max_obj to size_t_f; added parameter for the 
+ *              Changed type of max_obj to size_t_f; added parameter for the
  *              number of open objects
  *              Thursday, September 25, 2008 EIP
  * SOURCE

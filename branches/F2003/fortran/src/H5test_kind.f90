@@ -3,39 +3,39 @@
 ! NAME
 !  Executable: H5test_kind
 !
-! FILE
+!  FILE
 !  fortran/src/H5test_kind.f90
-!  
+!
 ! PURPOSE
-!  This stand alone program is used at build time to generate the program 
+!  This stand alone program is used at build time to generate the program
 !  H5fortran_detect.f90. It cycles through all the available KIND parameters for
-!  integers and reals. The appropriate program and subroutines are then generated 
+!  integers and reals. The appropriate program and subroutines are then generated
 !  depending on which of the KIND values are found.
 !
 ! NOTES
-!  This program is depreciated in favor of H5test_kind_SIZEOF.f90 and is only 
+!  This program is depreciated in favor of H5test_kind_SIZEOF.f90 and is only
 !  used when the Fortran intrinsic function SIZEOF is not available. It generates
-!  code that does not make use of SIZEOF in H5fortran_detect.f90 which is less 
+!  code that does not make use of SIZEOF in H5fortran_detect.f90 which is less
 !  portable in comparison to using SIZEOF.
 !
-!  The availability of SIZEOF is checked at configure time and the TRUE/FALSE 
+!  The availability of SIZEOF is checked at configure time and the TRUE/FALSE
 !  condition is set in the configure variable "FORTRAN_HAVE_SIZEOF".
 !
 ! COPYRIGHT
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
-!   Copyright by The HDF Group.                                               *
-!   Copyright by the Board of Trustees of the University of Illinois.         *
-!   All rights reserved.                                                      *
-!                                                                             *
-!   This file is part of HDF5.  The full HDF5 copyright notice, including     *
-!   terms governing use, modification, and redistribution, is contained in    *
-!   the files COPYING and Copyright.html.  COPYING can be found at the root   *
-!   of the source code distribution tree; Copyright.html can be found at the  *
-!   root level of an installed copy of the electronic HDF5 document set and   *
-!   is linked from the top-level documents page.  It can also be found at     *
-!   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
-!   access to either file, you may request a copy from help@hdfgroup.org.     *
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+!  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!  Copyright by The HDF Group.                                               *
+!  Copyright by the Board of Trustees of the University of Illinois.         *
+!  All rights reserved.                                                      *
+!  *
+!  This file is part of HDF5.  The full HDF5 copyright notice, including     *
+!  terms governing use, modification, and redistribution, is contained in    *
+!  the files COPYING and Copyright.html.  COPYING can be found at the root   *
+!  of the source code distribution tree; Copyright.html can be found at the  *
+!  root level of an installed copy of the electronic HDF5 document set and   *
+!  is linked from the top-level documents page.  It can also be found at     *
+!  http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+!  access to either file, you may request a copy from help@hdfgroup.org.     *
+!  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
 ! AUTHOR
 !  Elena Pourma
@@ -75,7 +75,7 @@ PROGRAM test_kind
      ENDIF
   ENDDO
 
-! Generate program information:
+!  Generate program information:
 
 WRITE(*,'(40(A,/))') &
 '!****h* ROBODoc/H5fortran_detect.f90',&
@@ -91,7 +91,7 @@ WRITE(*,'(40(A,/))') &
 '! NOTES',&
 '!  This source code does not make use of the Fortran intrinsic function SIZEOF because',&
 '!  the availability of the intrinsic function was determined to be not available at',&
-'!  configure time',& 
+'!  configure time',&
 '!',&
 '! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *',&
 '!   Copyright by The HDF Group.                                               *',&
@@ -113,7 +113,7 @@ WRITE(*,'(40(A,/))') &
 '!',&
 '!*****'
 
-! Generate a program
+!  Generate a program
 
   WRITE(*,*) "PROGRAM int_kind"
   WRITE(*,*) "WRITE(*,*) "" /*generating header file*/ """
@@ -154,7 +154,7 @@ WRITE(*,'(40(A,/))') &
   WRITE(*,*)"       WRITE(*,*) ""#define H5_FORTRAN_HAS_NATIVE_16"" "
   WRITE(*,*)"   ENDIF"
   WRITE(*,*)"   RETURN"
-  WRITE(*,*)"END SUBROUTINE"    
+  WRITE(*,*)"END SUBROUTINE"
   jr = 0
   WRITE(*, "("" SUBROUTINE r"", i2.2,""()"")") j
   WRITE(*,*)"   IMPLICIT NONE"
@@ -174,7 +174,7 @@ WRITE(*,'(40(A,/))') &
   WRITE(*,*)"       write(*,*) ""#define H5_FORTRAN_HAS_REAL_NATIVE_16"" "
   WRITE(*,*)"   ENDIF"
   WRITE(*,*)"   RETURN"
-  WRITE(*,*)"END SUBROUTINE"    
+  WRITE(*,*)"END SUBROUTINE"
   jd = 0
   WRITE(*, "("" SUBROUTINE d"", i2.2,""()"")") jd
   WRITE(*,*)"   IMPLICIT NONE"
@@ -191,7 +191,7 @@ WRITE(*,'(40(A,/))') &
   WRITE(*,*)"       WRITE(*,*) ""#define H5_FORTRAN_HAS_DOUBLE_NATIVE_16"" "
   WRITE(*,*)"   ENDIF"
   WRITE(*,*)"   RETURN"
-  WRITE(*,*)"END SUBROUTINE"    
+  WRITE(*,*)"END SUBROUTINE"
   DO i = 1, ii
      j = ikind_numbers(i)
      WRITE(*, "("" SUBROUTINE i"", i2.2,""()"")") j
@@ -215,7 +215,7 @@ WRITE(*,'(40(A,/))') &
      WRITE(*,*)"       WRITE(*,*) ""#define H5_FORTRAN_HAS_INTEGER_16"" "
      WRITE(*,*)"   ENDIF"
      WRITE(*,*)"   RETURN"
-     WRITE(*,*)"   END SUBROUTINE"    
+     WRITE(*,*)"   END SUBROUTINE"
   ENDDO
   DO i = 1, ir
      j = rkind_numbers(i)
@@ -237,9 +237,9 @@ WRITE(*,'(40(A,/))') &
      WRITE(*,*)"       write(*,*) ""#define H5_FORTRAN_HAS_REAL_16"" "
      WRITE(*,*)"   ENDIF"
      WRITE(*,*)"   RETURN"
-     WRITE(*,*)"   END SUBROUTINE"    
+     WRITE(*,*)"   END SUBROUTINE"
   ENDDO
 END PROGRAM test_kind
 
-            
+
 

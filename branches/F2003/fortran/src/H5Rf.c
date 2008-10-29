@@ -268,7 +268,7 @@ nh5rdereference_object_c (hid_t_f *dset_id, haddr_t_f *ref, hid_t_f *obj_id)
  * PURPOSE
  *     Call H5Rdereference
  * INPUTS
- *      obj_id - Valid identifier for the file containing the 
+ *      obj_id - Valid identifier for the file containing the
  *                       referenced object or any object in that file.
  *             ref_typ - The reference type of ref.
  *                 ref - Object reference
@@ -508,7 +508,7 @@ nh5rget_name_region_c (hid_t_f *loc_id, int_f *ref, _fcd name, size_t_f *name_le
  * PURPOSE
  *     Call H5Rget_name
  * INPUTS
- * 
+ *
  *       loc_id - Identifier for the dataset containing the reference or for the group that dataset is in.
  *     ref_type - Type of reference.
  *          ref - An object or dataset region reference.

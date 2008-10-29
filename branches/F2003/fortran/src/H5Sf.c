@@ -277,7 +277,7 @@ nh5sget_select_elem_npoints_c( hid_t_f *space_id , hssize_t_f * num_points)
  *  Xiangyang Su
  *              Monday, November 15, 1999
  * HISTORY
- * 
+ *
  *              Transpose dimension arrays because of C-FORTRAN storage order
  *              M.S. Breitenfeld
  * SOURCE

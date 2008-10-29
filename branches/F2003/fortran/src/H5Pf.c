@@ -2767,13 +2767,13 @@ nh5pget_hyper_vector_size_c ( hid_t_f *prp_id , size_t_f *size)
  *
  * HISTORY
  * Added the callback parameters (FORTRAN 2003 compilers only)
- *                M.S. Breitenfeld, July 3, 2008 
+ *                M.S. Breitenfeld, July 3, 2008
  * SOURCE
 */
 int_f
 nh5pcreate_class_c(hid_t_f *parent, _fcd name, int_f *name_len, hid_t_f *class,
-		   H5P_cls_create_func_t create, void *create_data, 
-		   H5P_cls_copy_func_t copy, void *copy_data, 
+		   H5P_cls_create_func_t create, void *create_data,
+		   H5P_cls_copy_func_t copy, void *copy_data,
 		   H5P_cls_close_func_t close, void *close_data)
 /******/
 {

@@ -2309,11 +2309,11 @@ nh5dcreate_anon_c (hid_t_f *loc_id, hid_t_f *type_id, hid_t_f *space_id,
  *              May 28, 2008
  * HISTORY
  *
- * 
+ *
  * SOURCE
 */
 int_f
-nh5dwrite_f_c (hid_t_f *dset_id, hid_t_f *mem_type_id, hid_t_f *mem_space_id, 
+nh5dwrite_f_c (hid_t_f *dset_id, hid_t_f *mem_type_id, hid_t_f *mem_space_id,
 		    hid_t_f *file_space_id, hid_t_f *xfer_prp, void *buf)
 /******/
 {
@@ -2389,7 +2389,7 @@ nh5dwrite_f_c (hid_t_f *dset_id, hid_t_f *mem_type_id, hid_t_f *mem_space_id,
 */
 
 int_f
-nh5dread_f_c ( hid_t_f *dset_id ,  hid_t_f *mem_type_id, hid_t_f *mem_space_id, 
+nh5dread_f_c ( hid_t_f *dset_id ,  hid_t_f *mem_type_id, hid_t_f *mem_space_id,
 		    hid_t_f *file_space_id, hid_t_f *xfer_prp, void *buf)
 /******/
 {
@@ -2424,7 +2424,7 @@ nh5dread_f_c ( hid_t_f *dset_id ,  hid_t_f *mem_type_id, hid_t_f *mem_space_id,
 
   status = H5Dread(c_dset_id, c_mem_type_id, c_mem_space_id, c_file_space_id, c_xfer_prp, buf);
   if ( status < 0 ) return ret_value;
- 
+
 /*   for ( i=0; i<4; ++i) */
 /*     for (j = 0; j<4; ++j) { */
 /*       access[i][j] = name[i*4+j]; */

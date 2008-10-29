@@ -28,7 +28,7 @@
  *  h5init_types_c
  * PURPOSE
  *  Initialize predefined datatypes in Fortran
- * INPUTS            
+ * INPUTS
  *  types - array with the predefined Native Fortran
  *          type, its element and length must be the
  *          same as the types array defined in the
@@ -41,9 +41,9 @@
  *                 type, its element and length must be the
  *                 same as the integertypes array defined in the
  *                 H5f90global.f90
- * RETURNS          
+ * RETURNS
  *  0 on success, -1 on failure
- * AUTHOR        
+ * AUTHOR
  *  Elena Pourmal
  *  Tuesday, August 3, 1999
  * SOURCE
@@ -667,7 +667,7 @@ nh5init1_flags_c(int_f *h5lib_flags)
  * AUTHOR
  *        Elena Pourmal
  *                    Friday, November 17, 2000
- * 
+ *
  * SOURCE
  */
 int_f
