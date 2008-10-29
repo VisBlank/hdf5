@@ -6,7 +6,7 @@
 ! FILE
 !   H5Gff.f90
 !
-! FUNCTION
+! PURPOSE
 !   This file contains Fortran interfaces for H5G functions.
 !
 ! COPYRIGHT
@@ -51,13 +51,13 @@ CONTAINS
 ! NAME		
 !  h5gcreate_f 
 !
-! FUNCTION
+! PURPOSE
 !	Creates a new group. 
 !
 ! INPUTS  
 !		loc_id		- location identifier
 !		name		- group name at the specified location
-! OUTPUT  
+! OUTPUTS  
 !		grp_id		- group identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -148,13 +148,13 @@ CONTAINS
 !!$! NAME
 !!$!  h5gcreate2_f 
 !!$!
-!!$! FUNCTION
+!!$! PURPOSE
 !!$!	Creates a new group. 
 !!$!
 !!$! INPUTS  
 !!$!		loc_id		- location identifier
 !!$!		name		- group name at the specified location
-!!$! OUTPUT  
+!!$! OUTPUTS  
 !!$!		grp_id		- group identifier
 !!$!		hdferr:		- error code		
 !!$!				 	Success:  0
@@ -242,13 +242,13 @@ CONTAINS
 ! NAME
 !		h5gopen_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Opens an existing group. 	
 !
 ! INPUTS  
 !		loc_id		- location identifier
 !		name 		- name of the group to open
-! OUTPUT  
+! OUTPUTS  
 !		grp_id		- group identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -308,12 +308,12 @@ CONTAINS
 ! NAME
 !  h5gclose_f 
 !
-! FUNCTION
+! PURPOSE
 !	Closes the specified group. 	
 !
 ! INPUTS  
 !		grp_id		- group identifier
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -351,7 +351,7 @@ CONTAINS
 ! NAME
 !  h5gget_obj_info_idx_f 
 !
-! FUNCTION
+! PURPOSE
 !	Returns name and type of the group member identified by 
 !	its index. 
 !
@@ -359,7 +359,7 @@ CONTAINS
 !		loc_id		- location identifier
 !		name		- name of the group at the specified location
 !		idx		- object index (zero-based)
-! OUTPUT  
+! OUTPUTS  
 !		obj_name	- object name
 !		obj_type	- object type
 !		hdferr:		- error code		
@@ -420,13 +420,13 @@ CONTAINS
 ! NAME
 !		h5gn_members_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Returns the number of group members. 	
 !
 ! INPUTS  
 !		loc_id		- location identifier
 !		name		- name of the group at the specified location
-! OUTPUT  
+! OUTPUTS  
 !		nmembers	- number of group members
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -478,7 +478,7 @@ CONTAINS
 ! NAME
 !		h5glink_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Creates a link of the specified type from new_name 
 !		to current_name. 	
 !
@@ -491,7 +491,7 @@ CONTAINS
 !		current_name	- name of the existing object if link is a 
 !				  hard link. Can be anything for the soft link. 
 !		new_name	- new name for the object
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -556,7 +556,7 @@ CONTAINS
 ! NAME
 !		h5glink2_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Creates a link of the specified type from new_name 
 !		to current_name. current_name and new_name are interpreted
 !               releative to current and new location identifiers.	
@@ -571,7 +571,7 @@ CONTAINS
 !				  H5G_LINK_SOFT_F (1) 
 !		new_loc_id	- new location identifier
 !		new_name	- new name for the object
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -634,7 +634,7 @@ CONTAINS
 ! NAME
 !		h5gunlink_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Removes the specified name from the group graph and 
 !		decrements the link count for the object to which name 
 !		points	
@@ -642,7 +642,7 @@ CONTAINS
 ! INPUTS  
 !		loc_id		- location identifier
 !		name		- name of the object to unlink
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -689,14 +689,14 @@ CONTAINS
 ! NAME
 !		h5gmove_f 
 !
-! FUNCTION
+! PURPOSE
 !	Renames an object within an HDF5 file.  	
 !
 ! INPUTS  
 !		loc_id		- location identifier
 !		name		- object's name at specified location
 !		new_name	- object's new name
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -749,7 +749,7 @@ CONTAINS
 ! NAME
 !		h5gmove2_f 
 !
-! FUNCTION
+! PURPOSE
 !	Renames an object within an HDF5 file.  	
 !
 ! INPUTS  
@@ -757,7 +757,7 @@ CONTAINS
 !		src_name	- object's name at specified original location
 !		dst_loc_id	- original location identifier
 !		dst_name	- object's new name
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !
@@ -807,7 +807,7 @@ CONTAINS
 ! NAME
 !		h5gget_linkval_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Returns the name of the object that the symbolic link 
 ! 	points to. 	
 !
@@ -816,7 +816,7 @@ CONTAINS
 !		name		- symbolic link to the object whose name 
 !				  is to be returned.  
 !		size		- maximum number of characters to be returned
-! OUTPUT  
+! OUTPUTS  
 !		buffer		- a buffer to hold the name of the object 
 !				  being sought 
 !		hdferr:		- error code		
@@ -873,14 +873,14 @@ CONTAINS
 ! NAME
 !		h5gset_comment_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets comment for specified object. 	
 !
 ! INPUTS  
 !		loc_id		- location identifier
 !		name		- name of the object
 !		comment		- comment to set for the object
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !
@@ -932,14 +932,14 @@ CONTAINS
 ! NAME
 !		h5gget_comment_f 
 !
-! FUNCTION
+! PURPOSE
 !	Retrieves comment for specified object.  	
 !
 ! INPUTS  
 !		loc_id		- location identifier
 !		name		- name of the object at specified location
 !		size		- size of the buffer required to hold comment
-! OUTPUT  
+! OUTPUTS  
 !		buffer		- buffer to hold object's comment
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -993,12 +993,12 @@ CONTAINS
 ! NAME
 !		H5Gcreate_anon_f
 !
-! FUNCTION
+! PURPOSE
 !	Creates a new empty group without linking it into the file structure. 
 !
 ! INPUTS  
 !		loc_id		- Location identifier
-! OUTPUT  
+! OUTPUTS  
 !		grp_id		- group identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -1052,12 +1052,12 @@ CONTAINS
 ! NAME
 !		H5Gget_create_plist_f
 !
-! FUNCTION
+! PURPOSE
 !	Gets a group creation property list identifier. 
 !
 ! INPUTS  
 !		grp_id		- group identifier
-! OUTPUT  
+! OUTPUTS  
 !               gcpl_id   	- Group creation property list identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -1094,13 +1094,13 @@ CONTAINS
 ! NAME
 !		h5gget_info_f
 !
-! FUNCTION
+! PURPOSE
 !  	Retrieves information about a group
 !		
 ! INPUTS  
 !		group_id - Group identifier
 !
-! OUTPUT  NOTE: In C it is defined as a structure: H5G_info_t
+! OUTPUTS  NOTE: In C it is defined as a structure: H5G_info_t
 !
 !      storage_type - Type of storage for links in group
 !                       H5G_STORAGE_TYPE_COMPACT: Compact storage
@@ -1173,7 +1173,7 @@ CONTAINS
 ! NAME
 !		h5gget_info_by_idx_f
 !
-! FUNCTION
+! PURPOSE
 !  	Retrieves information about a group, according to the group’s position within an index.
 !		
 ! INPUTS
@@ -1183,7 +1183,7 @@ CONTAINS
 !           order - Order of the count in the index
 !               n - Position in the index of the group for which information is retrieved
 !
-! OUTPUT  
+! OUTPUTS  
 !   NOTE: In C the following are defined as a structure: H5G_info_t
 !
 !      storage_type - Type of storage for links in group
@@ -1281,14 +1281,14 @@ CONTAINS
 ! NAME
 !		h5gget_info_by_name_f
 !
-! FUNCTION
+! PURPOSE
 !  	Retrieves information about a group. 
 !		
 ! INPUTS
 !          loc_id - File or group identifier
 !      group_name - Name of group containing group for which information is to be retrieved
 !
-! OUTPUT  
+! OUTPUTS  
 !   NOTE: In C the following are defined as a structure: H5G_info_t
 !
 !      storage_type - Type of storage for links in group

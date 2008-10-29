@@ -3,7 +3,7 @@
 ! NAME
 !   MODULE H5Z
 !  
-! FUNCTION
+! PURPOSE
 !   This file contains Fortran interfaces for H5Z functions. It includes
 !   all the functions that are independent on whether the Fortran 2003 functions
 !   are enabled or disabled.
@@ -44,7 +44,7 @@ CONTAINS
 ! NAME		
 !  h5zunregister_f
 !
-! FUNCTION	
+! PURPOSE	
 !  Unregisters specified filetr
 !
 ! INPUTS 	
@@ -52,7 +52,7 @@ CONTAINS
 !                                 H5Z_FILTER_DEFLATE_F 
 !                                 H5Z_FILTER_SHUFFLE_F 
 !                                 H5Z_FILTER_FLETCHER32_F 
-! OUTPUT  
+! OUTPUTS  
 !	hdferr:		- error code		
 !			 	Success:  0
 !			 	Failure: -1
@@ -83,12 +83,12 @@ CONTAINS
 ! NAME		
 !  h5zfilter_avail_f
 !
-! FUNCTION
+! PURPOSE
 !  Queries if filter is available	
 !
 ! INPUTS  
 !  filter		- filter
-! OUTPUT  
+! OUTPUTS  
 !  status		- status; .TRUE. if filter is available, 
 !                                 .FALSE. otherwise
 !  hdferr:		- error code		
@@ -134,13 +134,13 @@ CONTAINS
 ! NAME		
 !  h5zget_filter_info_f
 !
-! FUNCTION      
+! PURPOSE      
 !  Queries if filter has its encoder and/or decoder 
 !  available	
 !
 ! INPUTS  
 !  filter	- filter
-! OUTPUT  
+! OUTPUTS  
 !  config_flags	- Bit vector possibly containing the
 !                 following values:
 !                            H5Z_FILTER_ENCODE_ENABLED_F

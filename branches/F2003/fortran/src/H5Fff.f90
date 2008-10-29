@@ -6,7 +6,7 @@
 ! FILE
 !   H5Fff.f90
 !  
-! FUNCTION
+! PURPOSE
 !   This file contains Fortran interfaces for H5F functions.
 !
 ! COPYRIGHT
@@ -42,7 +42,7 @@ CONTAINS
 ! NAME		
 !  h5fcreate_f 
 !
-! FUNCTION	
+! PURPOSE	
 !  Creates HDF5 files. 
 !
 ! INPUTS  
@@ -50,7 +50,7 @@ CONTAINS
 !		access_flags	- File access flags. Allowable values are: 
 !				  H5F_ACC_TRUNC_F 
 !				  H5F_ACC_EXCL_F 
-! OUTPUT  
+! OUTPUTS  
 !		file_id		- file identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -119,7 +119,7 @@ CONTAINS
 ! NAME		
 !  h5fflush_f 
 !
-! FUNCTION	
+! PURPOSE	
 !  Flushes all buffers associated WITH a file to disk	
 !
 ! INPUTS  
@@ -129,7 +129,7 @@ CONTAINS
 !				  Possible values are:
 !				  H5F_SCOPE_GLOBAL_F
 !				  H5F_SCOPE_LOCAL_F
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -186,7 +186,7 @@ CONTAINS
 ! NAME		
 !  h5fmount_f 
 !
-! FUNCTION	
+! PURPOSE	
 !  Mounts a file. 	
 !
 ! INPUTS  
@@ -195,7 +195,7 @@ CONTAINS
 !		name		- the name of the group onto which the file 
 !				  specified by child_id is to be mounted. 
 !		child_id	- the identifier of the file to be mounted. 
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -255,14 +255,14 @@ CONTAINS
 ! NAME		
 !  h5funmount_f 
 !
-! FUNCTION	
+! PURPOSE	
 !  Unmounts a file. 	
 !
 ! INPUTS  
 !		loc_id		- the identifier for of file or group in 
 !				  which name is defined
 !		name		- the name of the mount point
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -308,7 +308,7 @@ CONTAINS
 ! NAME		
 !  h5fopen_f 
 !
-! FUNCTION	
+! PURPOSE	
 !  Opens HDF5 file. 
 !
 ! INPUTS  
@@ -316,7 +316,7 @@ CONTAINS
 !		access_flags	- File access flags. Allowable values are: 
 !				  H5F_ACC_RDWR_F 
 !				  H5F_ACC_RDONLY_F 
-! OUTPUT  
+! OUTPUTS  
 !		file_id		- file identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -374,13 +374,13 @@ CONTAINS
 ! NAME		
 !  h5freopen_f 
 !
-! FUNCTION	
+! PURPOSE	
 !  Reopens HDF5 file. 
 !
 ! INPUTS  
 !		file_id		- identifier of a file for which an 
 !				  additional identifier is required
-! OUTPUT  
+! OUTPUTS  
 !		ret_file_id	- new file identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -420,13 +420,13 @@ CONTAINS
 ! NAME		
 !  h5fget_create_plist_f
 !
-! FUNCTION	
+! PURPOSE	
 !  Returns a file creation property list identifier.	
 !
 ! INPUTS  
 !		file_id		- identifier of a file to get 
 !				  get creation property list of 
-! OUTPUT  
+! OUTPUTS  
 !		prop_id 	- creation property list identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -468,13 +468,13 @@ CONTAINS
 ! NAME		
 !  h5fget_access_plist_f
 !
-! FUNCTION	
+! PURPOSE	
 !  Returns a file access property list identifier.	
 !
 ! INPUTS  
 !		file_id		- identifier of a file to get 
 !				  get creation property list of 
-! OUTPUT  
+! OUTPUTS  
 !		access_id 	- access property list identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -516,12 +516,12 @@ CONTAINS
 ! NAME		
 !  h5fis_hdf5_f
 !
-! FUNCTION	
+! PURPOSE	
 !  Determines whether a file is in the HDF5 format. 
 !
 ! INPUTS  
 !		name		- name of the file to check
-! OUTPUT  
+! OUTPUTS  
 !		status		- indicates if file is and HDF5 file
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -571,12 +571,12 @@ CONTAINS
 ! NAME		
 !  h5fclose_f
 !
-! FUNCTION	
+! PURPOSE	
 !  Closes HDF5 file.
 !
 ! INPUTS  
 !		file_id		- file identifier
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -614,7 +614,7 @@ CONTAINS
 ! NAME		
 !  h5fget_obj_count_f
 !
-! FUNCTION	
+! PURPOSE	
 !  Gets number of the objects open within a file
 !
 ! INPUTS  
@@ -625,7 +625,7 @@ CONTAINS
 !                                 H5F_OBJ_GROUP_F 
 !                                 H5F_OBJ_DATATYPE_F 
 !                                 H5F_OBJ_ALL_F 
-! OUTPUT  
+! OUTPUTS  
 !               obj_count       - number of open objects
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -669,7 +669,7 @@ CONTAINS
 ! NAME		
 !  h5fget_obj_ids_f
 !
-! FUNCTION	
+! PURPOSE	
 !  Get list of open objects identifiers within a file
 !
 ! INPUTS  
@@ -680,7 +680,7 @@ CONTAINS
 !                                 H5F_OBJ_GROUP_F 
 !                                 H5F_OBJ_DATATYPE_F 
 !                                 H5F_OBJ_ALL_F 
-! OUTPUT  
+! OUTPUTS  
 !               obj_ids         - array of open object identifiers
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -734,12 +734,12 @@ CONTAINS
 ! NAME		
 !  h5fget_freespace_f
 !
-! FUNCTION	
+! PURPOSE	
 !  Get amount of free space within a file
 !
 ! INPUTS  
 !		file_id		- file identifier
-! OUTPUT  
+! OUTPUTS  
 !               free_space      - amount of free space in file
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -777,12 +777,12 @@ CONTAINS
 ! NAME		
 !  h5fget_name_f 
 !
-! FUNCTION 	
+! PURPOSE 	
 !  Gets the name of the file from the object identifier
 !
 ! INPUTS  
 !		obj_id		- object identifier
-! OUTPUT  
+! OUTPUTS  
 !		buf		- buffer to store the read name
 !		size		- actual size of the name
 !		hdferr:		- error code		
@@ -825,12 +825,12 @@ CONTAINS
 ! NAME		
 !  h5fget_filesize_f 
 !
-! FUNCTION 	
+! PURPOSE 	
 !  Retrieves the file size of the HDF5 file.
 !
 ! INPUTS  
 !		file_id		- file identifier
-! OUTPUT  
+! OUTPUTS  
 !		size		- file size 
 !		hdferr:		- error code		
 !				 	Success:  0

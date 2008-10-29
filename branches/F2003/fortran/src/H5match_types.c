@@ -1,6 +1,12 @@
-/****h* root/fortran/src/H5match_types.c
+/****p* Program/H5match_types
  *
- * FUNCTION
+ * NAME
+ *  Executable: H5match_types
+ *
+ * FILE
+ *  fortran/src/H5match_types.c
+ *
+ * PURPOSE
  *  C Program to match C types to Fortran types.
  *  Creates the files H5f90i_gen.h for the C code and 
  *  H5fortran_types.f90 for the Fortran code.

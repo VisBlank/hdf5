@@ -6,7 +6,7 @@
 ! FILE
 !   fortran/src/H5Iff.f90
 !  
-! FUNCTION
+! PURPOSE
 !   This file contains Fortran interfaces for H5I functions.
 !
 ! COPYRIGHT
@@ -44,12 +44,12 @@ CONTAINS
 ! NAME
 !  h5iget_type_f 
 !
-! FUNCTION
+! PURPOSE
 !  Retrieves the type of an object.  	
 !
 ! INPUTS 	
 !    obj_id	- object identifier 
-! OUTPUT  
+! OUTPUTS  
 !	type	- type of the object, possible values:   
 !			  H5I_FILE_F
 !			  H5I_GROUP_F
@@ -104,13 +104,13 @@ CONTAINS
 ! NAME		
 !  h5iget_name_f 
 !
-! FUNCTION
+! PURPOSE
 !  Gets a name of an object specified by its idetifier.  
 !
 ! INPUTS  
 !		obj_id		- attribute identifier
 !		buf_size	- size of a buffer to read name in
-! OUTPUT  
+! OUTPUTS  
 !		buf		- buffer to read name in, name will be truncated if
 !                                 buffer is not big enough
 !               name_size       - name size
@@ -154,12 +154,12 @@ CONTAINS
 ! NAME		
 !  h5iinc_ref_f
 !
-! FUNCTION	
+! PURPOSE	
 !  Increments the reference count of an ID
 !
 ! INPUTS 	
 !          obj_id		- object identifier 
-! OUTPUT  
+! OUTPUTS  
 !		ref_count       - Current reference count of the ID
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -193,12 +193,12 @@ CONTAINS
 ! NAME
 !  h5idec_ref_f
 !
-! FUNCTION
+! PURPOSE
 !  Decrements the reference count of an ID
 !
 ! INPUTS
 ! 	obj_id		- object identifier 
-! OUTPUT  
+! OUTPUTS  
 !	ref_count       - Current reference count of the ID
 !	hdferr:		- error code		
 !				 	Success:  0
@@ -231,13 +231,13 @@ CONTAINS
 ! NAME		
 !  h5iget_ref_f
 !
-! FUNCTION
+! PURPOSE
 !  Retrieves the reference count of an ID
 !
 ! INPUTS 	
 !  obj_id - object identifier
 ! 
-! OUTPUT 
+! OUTPUTS 
 !  ref_count       - Current reference count of the ID
 !  hdferr:	   - error code		
 !		 	Success:  0
@@ -270,12 +270,12 @@ CONTAINS
 ! NAME		
 !  h5iget_file_id_f
 !
-! FUNCTION
+! PURPOSE
 !  Obtains file identifier from the object identifier
 !
 ! INPUTS
 ! 	obj_id		- object identifier 
-! OUTPUT       
+! OUTPUTS       
 !	file_id         - file identifier
 !	hdferr:		- error code		
 !			 	Success:  0

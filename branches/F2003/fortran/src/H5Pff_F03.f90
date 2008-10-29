@@ -3,7 +3,7 @@
 ! NAME
 !   H5P_PROVISIONAL
 !
-! FUNCTION
+! PURPOSE
 !   This file contains Fortran 90 and Fortran 2003 interfaces for H5P functions. 
 !   It contains the same functions as H5Pff_DEPRECIATE.f90 but includes the 
 !   Fortran 2003 functions and the interface listings. This file will be compiled 
@@ -188,14 +188,14 @@ CONTAINS
 ! NAME
 !  h5pset(get)fill_value_f 
 !
-! FUNCTION
+! PURPOSE
 !  Sets(gets) fill value for a dataset creation property list
 !
 ! INPUTS  
 !		prp_id		- dataset creation property list identifier
 !		type_id		- datatype identifier for fill value
 !		fillvalue	- fill value
-! OUTPUT  
+! OUTPUTS  
 !	(	type_id		- datatype identifier for fill value )
 !	(		fillvalue	- fill value )
 !		hdferr:		- error code		
@@ -413,14 +413,14 @@ CONTAINS
 ! NAME
 !   h5pset_integer 
 !
-! FUNCTION
+! PURPOSE
 !   Sets a property list value
 !
 ! INPUTS  
 !		prp_id		- iproperty list identifier to modify
 !		name 		- name of property to modify
 !		value		- value to set property to
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -452,14 +452,14 @@ CONTAINS
 ! NAME
 !  h5pset_real
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets a property list value
 !
 ! INPUTS  
 !		prp_id		- iproperty list identifier to modify
 !		name 		- name of property to modify
 !		value		- value to set property to
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -491,14 +491,14 @@ CONTAINS
 ! NAME
 !  h5pset_double
 !
-! FUNCTION
+! PURPOSE
 !  Sets a property list value
 !
 ! INPUTS  
 !		prp_id		- iproperty list identifier to modify
 !		name 		- name of property to modify
 !		value		- value to set property to
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -531,14 +531,14 @@ CONTAINS
 ! NAME
 !   h5pset_char
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets a property list value
 !
 ! INPUTS  
 !		prp_id		- iproperty list identifier to modify
 !		name 		- name of property to modify
 !		value		- value to set property to
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -593,13 +593,13 @@ CONTAINS
 ! NAME
 !   h5pget_integer 
 !
-! FUNCTION
+! PURPOSE
 ! 	Gets a property list value
 !
 ! INPUTS  
 !		prp_id		- iproperty list identifier to modify
 !		name 		- name of property to modify
-! OUTPUT  
+! OUTPUTS  
 !		value		- value of property
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -632,13 +632,13 @@ CONTAINS
 ! NAME
 !   h5pget_real
 !
-! FUNCTION
+! PURPOSE
 ! 	Gets a property list value
 !
 ! INPUTS  
 !		prp_id		- iproperty list identifier to modify
 !		name 		- name of property to modify
-! OUTPUT  
+! OUTPUTS  
 !		value		- value of property
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -671,13 +671,13 @@ CONTAINS
 ! NAME
 !   h5pget_double
 !
-! FUNCTION
+! PURPOSE
 ! 	Gets a property list value
 !
 ! INPUTS  
 !		prp_id		- iproperty list identifier to modify
 !		name 		- name of property to modify
-! OUTPUT  
+! OUTPUTS  
 !		value		- value of property
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -711,13 +711,13 @@ CONTAINS
 ! NAME
 !   h5pget_char
 !
-! FUNCTION
+! PURPOSE
 ! 	Gets a property list value
 !
 ! INPUTS  
 !		prp_id		- iproperty list identifier to modify
 !		name 		- name of property to modify
-! OUTPUT  
+! OUTPUTS  
 !		value		- value of property
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -796,7 +796,7 @@ CONTAINS
 ! NAME
 !   h5pregister_integer
 !
-! FUNCTION
+! PURPOSE
 !   Registers a permanent property with a property list class.
 !
 ! INPUTS  
@@ -806,7 +806,7 @@ CONTAINS
 !               size            - size of property in bytes
 !		value		- default value for property in newly 
 !                                 created property lists
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -840,7 +840,7 @@ CONTAINS
 ! NAME
 !   h5pregister_real
 !
-! FUNCTION
+! PURPOSE
 ! 	Registers a permanent property with a property list class.
 !
 ! INPUTS  
@@ -850,7 +850,7 @@ CONTAINS
 !               size            - size of property in bytes
 !		value		- default value for property in newly 
 !                                 created property lists
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -883,7 +883,7 @@ CONTAINS
 ! NAME
 !   h5pregister_double
 !
-! FUNCTION
+! PURPOSE
 ! 	Registers a permanent property with a property list class.
 !
 ! INPUTS  
@@ -893,7 +893,7 @@ CONTAINS
 !               size            - size of property in bytes
 !		value		- default value for property in newly 
 !                                 created property lists
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -926,7 +926,7 @@ CONTAINS
 ! NAME
 !   h5pregister_char
 !
-! FUNCTION
+! PURPOSE
 ! 	Registers a permanent property with a property list class.
 !
 ! INPUTS  
@@ -936,7 +936,7 @@ CONTAINS
 !               size            - size of property in bytes
 !		value		- default value for property in newly 
 !                                 created property lists
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -988,7 +988,7 @@ CONTAINS
 ! NAME
 !   h5pregister_ptr
 !
-! FUNCTION
+! PURPOSE
 ! 	Registers a permanent property with a property list class.
 !
 ! INPUTS  
@@ -998,7 +998,7 @@ CONTAINS
 !             size            - size of property in bytes
 !		value		- default value for property in newly 
 !                                 created property lists
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -1027,7 +1027,7 @@ CONTAINS
 ! NAME
 !   h5pinsert_integer
 !
-! FUNCTION
+! PURPOSE
 !   Registers a temporary property with a property list class.
 !
 ! INPUTS  
@@ -1035,7 +1035,7 @@ CONTAINS
 !		name 		- name of property to insert
 !               size            - size of property in bytes
 !		value		- initial value for the property 
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -1068,7 +1068,7 @@ CONTAINS
 ! NAME
 !   h5pinsert_real
 !
-! FUNCTION
+! PURPOSE
 ! 	Registers a temporary property with a property list class.
 !
 ! INPUTS  
@@ -1077,7 +1077,7 @@ CONTAINS
 !		name 		- name of property to insert
 !               size            - size of property in bytes
 !		value		- initial value for the property 
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -1110,7 +1110,7 @@ CONTAINS
 ! NAME
 !   h5pinsert_double
 !
-! FUNCTION
+! PURPOSE
 ! 	Registers a temporary property with a property list class.
 !
 ! INPUTS  
@@ -1119,7 +1119,7 @@ CONTAINS
 !		name 		- name of property to insert
 !               size            - size of property in bytes
 !		value		- initial value for the property 
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -1156,7 +1156,7 @@ CONTAINS
 ! NAME
 !   h5pinsert_char
 !
-! FUNCTION
+! PURPOSE
 ! 	Registers a temporary property with a property list class.
 !
 ! INPUTS  
@@ -1165,7 +1165,7 @@ CONTAINS
 !		name 		- name of property to insert
 !               size            - size of property in bytes
 !		value		- initial value for the property 
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -1218,7 +1218,7 @@ CONTAINS
 ! NAME
 !   h5pinsert_ptr
 !
-! FUNCTION
+! PURPOSE
 !   Registers a temporary property with a property list class.
 !
 ! INPUTS  
@@ -1227,7 +1227,7 @@ CONTAINS
 !		name 		- name of property to insert
 !               size            - size of property in bytes
 !		value		- initial value for the property 
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -1256,7 +1256,7 @@ CONTAINS
 ! NAME
 !   h5pcreate_class_f 
 !
-! FUNCTION
+! PURPOSE
 !   Create a new property list class
 !
 ! INPUTS  
@@ -1269,7 +1269,7 @@ CONTAINS
 !                                 H5P_DATASET_XFER_F
 !                                 H5P_FILE_MOUNT_F
 !		name 		- name of the class we are creating
-! OUTPUT  
+! OUTPUTS  
 !               class           - porperty list class identifier
 !		hdferr:		- error code		
 !                                       

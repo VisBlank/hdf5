@@ -6,7 +6,7 @@
 ! FILE
 !   fortran/src/H5Aff_DEPRECIATED.f90
 !  
-! FUNCTION
+! PURPOSE
 !
 !   This file contains Fortran 90 interfaces for H5A functions. It contains
 !   the same functions as H5Aff_F03.f90 but excludes the Fortran 2003 functions
@@ -1107,14 +1107,14 @@ CONTAINS
   ! NAME
 !		h5aread_f 
   !
-  ! FUNCTION  	Reads an attribute.
+  ! PURPOSE  	Reads an attribute.
   !
   ! INPUTS  
   !		attr_id		- attribute identifier
   !		memtype_id	- attribute memory type identifier
   !		dims		- 1D array of size 7, stores sizes of the 
   !				- buf array dimensions.
-  ! OUTPUT  
+  ! OUTPUTS  
   !		buf		- buffer to read attribute data in
   !		hdferr:		- error code		
   !				 	Success:  0

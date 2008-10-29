@@ -1,5 +1,5 @@
-/****h* root/fortran/src/H5Of.c
- * FUNCTION
+/****h* H5Of/H5Of
+ * PURPOSE
  *   This file contains C stubs for H5O Fortran APIs
  *
  * COPYRIGHT
@@ -24,25 +24,29 @@
 #include "H5f90.h"
 #include "H5Eprivate.h"
 
-/*----------------------------------------------------------------------------
- * Name:        h5olink_c
- * Purpose:     Calls H5Olink
- * Inputs:
+/****if* H5Of/h5olink_c
+ * NAME
+ *  h5olink_c
+ * PURPOSE
+ *  Calls H5Olink
+ * INPUTS
  *      object_id        - Object to be linked.
  *      new_loc_id       - File or group identifier specifying location at which object is to be linked.
  *      name             - Name of link to be created, relative to new_loc_id.
  *      namelen          - Length of buffer for link to be created.
  *      lcpl_id          - Link creation property list identifier.
  *      lapl_id          - Link access property list identifier.
- * Outputs:
- * Returns:     0 on success, -1 on failure
- * Programmer:  M.S. Breitenfeld
- *              April 21, 2008
- * Modifications:
- *---------------------------------------------------------------------------*/
+ * RETURNS
+ *  0 on success, -1 on failure
+ * AUTHOR
+ *  M.S. Breitenfeld
+ *  April 21, 2008
+ * SOURCE
+*/
 int_f
 nh5olink_c (hid_t_f *object_id, hid_t_f *new_loc_id, _fcd name, size_t_f *namelen,
             hid_t_f *lcpl_id, hid_t_f *lapl_id)
+/******/
 {
   char *c_name = NULL;          /* Buffer to hold C string */
   int_f ret_value = 0;          /* Return value */
@@ -66,21 +70,28 @@ nh5olink_c (hid_t_f *object_id, hid_t_f *new_loc_id, _fcd name, size_t_f *namele
   return ret_value;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        h5oopen_c
- * Purpose:     Calls H5Oopen
- * Inputs:      loc_id  - File or group identifier
- *	        name    - Attribute access property list
- *              namelen - Size of name
- *              lapl_id - Link access property list
- * Outputs:     obj_id  - Dataset identifier
- * Returns:     0 on success, -1 on failure
- * Programmer:  M.S. Breitenfeld
- *              April 18, 2008
- * Modifications:
- *---------------------------------------------------------------------------*/
+/****if* H5Of/h5oopen_c
+ * NAME
+ *  h5oopen_c
+ * PURPOSE
+ *  Calls H5Oopen
+ * INPUTS
+ *  loc_id  - File or group identifier
+ *  name    - Attribute access property list
+ *  namelen - Size of name
+ *  lapl_id - Link access property list
+ * OUTPUTS
+ *  obj_id  - Dataset identifier
+ * RETURNS
+ *  0 on success, -1 on failure
+ * AUTHOR
+ *  M.S. Breitenfeld
+ *  April 18, 2008
+ * SOURCE
+*/
 int_f
 nh5oopen_c (hid_t_f *loc_id, _fcd name, size_t_f *namelen, hid_t_f *lapl_id, hid_t_f *obj_id)
+/******/
 {
   char *c_name = NULL;          /* Buffer to hold C string */
   int_f ret_value = 0;          /* Return value */

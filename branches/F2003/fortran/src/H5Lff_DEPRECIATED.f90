@@ -3,7 +3,7 @@
 ! NAME
 !   MODULE H5L_PROVISIONAL
 !  
-! FUNCTION
+! PURPOSE
 !   This file contains Fortran 90 interfaces for H5L functions. It contains
 !   the same functions as H5Lff_F03.f90 but excludes the Fortran 2003 functions
 !   and the interface listings. This file will be compiled instead of H5Lff_F03.f90

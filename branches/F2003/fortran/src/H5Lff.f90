@@ -3,7 +3,7 @@
 ! NAME
 !   H5L
 !  
-! FUNCTION
+! PURPOSE
 !   This file contains Fortran interfaces for H5L functions. It includes
 !   all the functions that are independent on whether the Fortran 2003 functions
 !   are enabled or disabled.
@@ -45,7 +45,7 @@ CONTAINS
 ! NAME
 !		h5lcopy_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Copies a link from one location to another.
 !
 ! INPUTS
@@ -56,7 +56,7 @@ CONTAINS
 !         loc_id - Identifier of the file or group containing the object
 !           name - Name of the link to delete
 ! 
-! OUTPUT 
+! OUTPUTS 
 !         hdferr - error code:
 !			Success:  0
 !			Failure: -1   
@@ -127,14 +127,14 @@ CONTAINS
 ! NAME
 !		h5ldelete_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Removes a link from a group.
 !
 ! INPUTS  
 !         loc_id   - Identifier of the file or group containing the object
 !         name     - Name of the link to delete
 ! 
-! OUTPUT 
+! OUTPUTS 
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -185,7 +185,7 @@ CONTAINS
 ! NAME
 !		H5Lcreate_soft_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Creates a soft link to an object.
 !
 ! INPUTS
@@ -193,7 +193,7 @@ CONTAINS
 !       link_loc_id - The file or group identifier for the new link.
 !       link_name   - The name of the new link.
 ! 
-! OUTPUT 
+! OUTPUTS 
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -261,7 +261,7 @@ CONTAINS
 ! NAME
 !		H5Lcreate_hard_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Creates a hard link to an object.
 !
 ! INPUTS
@@ -271,7 +271,7 @@ CONTAINS
 !   link_loc_id - The file or group identifier for the new link.
 !     link_name - The name of the new link.
 ! 
-! OUTPUT 
+! OUTPUTS 
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -340,7 +340,7 @@ CONTAINS
 ! NAME
 !		H5Lcreate_external_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Creates a soft link to an object in a different file.
 !
 ! INPUTS
@@ -351,7 +351,7 @@ CONTAINS
 !  link_loc_id - The file or group identifier for the new link.
 !    link_name - The name of the new link.
 ! 
-! OUTPUT 
+! OUTPUTS 
 !		hdferr:	- error code		
 !  		            Success:  0
 !		            Failure: -1   
@@ -424,7 +424,7 @@ CONTAINS
 ! NAME
 !		h5ldelete_by_idx_f 
 !
-! FUNCTION
+! PURPOSE
 !  	Removes the nth link in a group.
 ! INPUTS  	
 !		loc_id     - File or group identifier specifying location of subject group
@@ -445,7 +445,7 @@ CONTAINS
 !                  H5_ITER_N_F	       - Number of iteration orders
 !
 !               n           - Link for which to retrieve information
-! OUTPUT
+! OUTPUTS
 !		hdferr:     - error code		
 !				 Success:  0
 !				 Failure: -1   
@@ -511,14 +511,14 @@ CONTAINS
 ! NAME
 !	        H5Lexists_f	
 !
-! FUNCTION
+! PURPOSE
 !  	Check if a link with a particular name exists in a group.
 !		
 ! INPUTS
 !      loc_id - Identifier of the file or group to query.
 !        name - Link name to check
 !
-! OUTPUT
+! OUTPUTS
 !   link_exists  - link exists status (.TRUE.,.FALSE.)
 !        hdferr  - error code		
 !	              Success:  0
@@ -578,14 +578,14 @@ CONTAINS
 ! NAME
 !		h5lget_info_f
 !
-! FUNCTION
+! PURPOSE
 !  	Returns information about a link.
 !
 ! INPUTS  
 !		link_loc_id - File or group identifier.
 !               link_name - Name of the link for which information is being sought  
 !
-! OUTPUT  NOTE: In C these are contained in the structure H5L_info_t
+! OUTPUTS  NOTE: In C these are contained in the structure H5L_info_t
 !
 !              cset - indicates the character set used for link’s name. 
 !      corder - specifies the link’s creation order position.
@@ -616,7 +616,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: link_loc_id ! File or group identifier.
     CHARACTER(LEN=*), INTENT(IN) :: link_name ! Name of the link for which information is being sought
  
-! OUTPUT  NOTE: In C these are contained in the structure H5L_info_t
+! OUTPUTS  NOTE: In C these are contained in the structure H5L_info_t
     INTEGER, INTENT(OUT) :: cset ! Indicates the character set used for the link’s name. 
     INTEGER, INTENT(OUT) :: corder ! Specifies the link’s creation order position.
     LOGICAL, INTENT(OUT) :: f_corder_valid ! Indicates whether the value in corder is valid.
@@ -677,7 +677,7 @@ CONTAINS
 ! NAME
 !	   h5lget_info_by_idx_f
 !
-! FUNCTION
+! PURPOSE
 !  Retrieves metadata for a link in a group, according to the order within a field or index.
 !		
 ! INPUTS
@@ -687,7 +687,7 @@ CONTAINS
 !        order - Order within field or index
 !            n - Link for which to retrieve information
 !
-! OUTPUT  NOTE: In C these are defined as a structure: H5L_info_t
+! OUTPUTS  NOTE: In C these are defined as a structure: H5L_info_t
 !    corder_valid   - indicates whether the creation order data is valid for this attribute
 !    corder         - is a positive integer containing the creation order of the attribute        
 !    cset           - indicates the character set used for the attribute’s name          
@@ -771,13 +771,13 @@ CONTAINS
 ! NAME
 !	   h5lis_registered_f 
 !
-! FUNCTION
+! PURPOSE
 !  Determines whether a class of user-defined links is registered.
 !		
 ! INPUTS
 !      link_cls_id - User-defined link class identifier
 !
-! OUTPUT
+! OUTPUTS
 !       registered - .TRUE. - if the link class has been registered
 !                    .FALSE. - if it is unregistered
 !           hdferr - Error code		
@@ -823,7 +823,7 @@ CONTAINS
 ! NAME
 !	   h5lmove_f
 !
-! FUNCTION
+! PURPOSE
 !  Renames a link within an HDF5 file.
 !		
 ! INPUTS
@@ -832,7 +832,7 @@ CONTAINS
 !    dest_loc_id - Destination file or group identifier.
 !    dest_name   - NEW link name.
 !
-! OUTPUT 
+! OUTPUTS 
 !         hdferr - Error code		
 !		     Success:  0
 !	             Failure: -1   
@@ -904,7 +904,7 @@ CONTAINS
 ! NAME
 !		h5lget_name_by_idx_f
 !
-! FUNCTION
+! PURPOSE
 !      Retrieves name of the nth link in a group, according to the order within a specified field or index.
 !
 ! INPUTS  
@@ -914,7 +914,7 @@ CONTAINS
 !   order       - Order within field or index
 !   n           - Link for which to retrieve information
 !
-! OUTPUT  
+! OUTPUTS  
 !   name        - Buffer in which link value is returned
 !   hdferr      - error code		
 !		      Success:  0
@@ -998,7 +998,7 @@ CONTAINS
 !!$! NAME
 !!$!		h5lget_val_by_idx_f
 !!$!
-!!$! FUNCTION
+!!$! PURPOSE
 !!$!      Returns the link value of a link, according to the order of
 !!$!               an index.  For symbolic links, this is the path to which the
 !!$!               link points, including the null terminator.  For user-defined
@@ -1011,7 +1011,7 @@ CONTAINS
 !!$!   n           - Link for which to retrieve information
 !!$!   size       - Maximum number of characters of link value to be returned.
 !!$!
-!!$! OUTPUT  NOTE: In C these are defined as a structure: H5L_info_t
+!!$! OUTPUTS  NOTE: In C these are defined as a structure: H5L_info_t
 !!$!    corder_valid   - indicates whether the creation order data is valid for this attribute
 !!$!    corder         - is a positive integer containing the creation order of the attribute        
 !!$!    cset           - indicates the character set used for the attribute’s name          
@@ -1097,7 +1097,7 @@ CONTAINS
 !!$! NAME
 !!$!		h5lget_val_f
 !!$!
-!!$! FUNCTION
+!!$! PURPOSE
 !!$!  	Returns the value of a symbolic link.
 !!$!
 !!$! INPUTS  
@@ -1105,7 +1105,7 @@ CONTAINS
 !!$!   link_name    - Link whose value is to be returned.
 !!$!   size         - Maximum number of characters of link value to be returned.
 !!$!
-!!$! OUTPUT  
+!!$! OUTPUTS  
 !!$!   linkval_buff - The buffer to hold the returned link value.
 !!$!         hdferr - error code		
 !!$!				 Success:  0
@@ -1176,7 +1176,7 @@ CONTAINS
 !!$! NAME
 !!$!	    H5Lregistered_f 
 !!$!
-!!$! FUNCTION
+!!$! PURPOSE
 !!$!  Registers user-defined link class or changes behavior of existing class.
 !!$!		
 !!$! INPUTS NOTE: In C the following represents struct H5L_class_t:
@@ -1190,7 +1190,7 @@ CONTAINS
 !!$!     del_func     - Callback for link deletion     
 !!$!     query_func   - Callback for queries           
 !!$!
-!!$! OUTPUT
+!!$! OUTPUTS
 !!$!           hdferr - Error code		
 !!$!		       Success:  0
 !!$!	               Failure: -1   

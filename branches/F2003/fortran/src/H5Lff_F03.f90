@@ -3,7 +3,7 @@
 ! NAME
 !   H5L_PROVISIONAL
 !
-! FUNCTION
+! PURPOSE
 !
 !   This file contains Fortran 90 and Fortran 2003 interfaces for H5L functions. 
 !   It contains the same functions as H5Lff_DEPRECIATE.f90 but includes the 
@@ -45,7 +45,7 @@ CONTAINS
 ! NAME		
 !  h5literate_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Iterates through links in a group.
 !
 ! INPUTS
@@ -56,7 +56,7 @@ CONTAINS
 !           op - Callback function passing data regarding the link to the calling application
 !      op_data - User-defined pointer to data required by the application for its processing of the link
 ! 
-! OUTPUT 
+! OUTPUTS 
 !          idx - Position at which an interrupted iteration may be restarted
 !       hdferr - error code:
 !			Success:  0
@@ -127,7 +127,7 @@ CONTAINS
 ! NAME		
 !  h5literate_by_name_f 
 !
-! FUNCTION
+! PURPOSE
 !  Iterates through links in a group.
 !
 ! INPUTS
@@ -139,7 +139,7 @@ CONTAINS
 !           op - Callback function passing data regarding the link to the calling application
 !      op_data - User-defined pointer to data required by the application for its processing of the link
 ! 
-! OUTPUT 
+! OUTPUTS 
 !          idx - Position at which an interrupted iteration may be restarted
 !       hdferr - error code:
 !			Success:  0

@@ -6,7 +6,7 @@
 ! FILE
 !   fortran/src/H5_ff_DEPRECIATED.f90
 !
-! FUNCTION
+! PURPOSE
 !   This file is a dummy module for when Fortran 2003 features are not enabled.
 !   It is compiled in place of H5_ff_F03.f90 and is empty.
 !

@@ -3,7 +3,7 @@
 ! NAME
 !   MODULE H5LIB_PROVISIONAL
 !
-! FUNCTION
+! PURPOSE
 !   This file contains helper functions for Fortran 2003 features and is
 !   only compiled when Fortran 2003 features are enabled, otherwise
 !   the file H5_ff_DEPRECIATED.f90 is compiled.
@@ -39,14 +39,14 @@ CONTAINS
 ! NAME		
 !  h5offsetof 
 !
-! FUNCTION	
+! PURPOSE	
 !  Computes the offset in memory 
 !
 ! INPUTS       
 !  start - starting pointer address
 !    end - ending pointer address
 !
-! OUTPUT  
+! OUTPUTS  
 ! offset - offset			
 !
 ! AUTHOR 

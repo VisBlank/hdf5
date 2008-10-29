@@ -3,7 +3,7 @@
 ! NAME
 !   MODULE HDF5
 !  
-! FUNCTION
+! PURPOSE
 !   This is the main module used for linking to the Fortran HDF library. 
 !
 ! COPYRIGHT

@@ -3,7 +3,7 @@
 ! NAME
 !   MODULE H5FDMPIO
 !  
-! FUNCTION
+! PURPOSE
 !   This file contains Fortran interfaces for H5P functions needed by 
 !   parallel MPI programs.
 !
@@ -40,7 +40,7 @@ CONTAINS
 ! NAME		
 !  h5pset_fapl_mpio_f 
 !
-! FUNCTION 	
+! PURPOSE 	
 !  Stores MPI IO communicator information to the file 
 !  access property list. 
 !
@@ -48,7 +48,7 @@ CONTAINS
 !		prp_id		- file access property list identifier
 !		comm		- MPI-2 communicator
 !		info		- MPI-2 info object
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -75,12 +75,12 @@ CONTAINS
 ! NAME		
 !  h5pget_fapl_mpio_f 
 !
-! FUNCTION 	
+! PURPOSE 	
 !  Returns MPI communicator information. 	
 !
 ! INPUTS  
 !		prp_id		- file access property list identifier
-! OUTPUT  
+! OUTPUTS  
 !		comm		- MPI-2 communicator
 !		info		- MPI-2 info object
 !		hdferr:		- error code		
@@ -109,7 +109,7 @@ CONTAINS
 ! NAME		
 !  h5pset_dxpl_mpio_f 
 !
-! FUNCTION
+! PURPOSE
 !  Sets data transfer mode. 
 !
 ! INPUTS  
@@ -118,7 +118,7 @@ CONTAINS
 !				  Possible values are:
 !				  H5FD_MPIO_INDEPENDENT_F
 !				  H5FD_MPIO_COLLECTIVE_F
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -143,12 +143,12 @@ CONTAINS
 ! NAME		
 !  h5pget_dxpl_mpio_f 
 !
-! FUNCTION 	
+! PURPOSE 	
 !  Returns the data transfer mode. 
 !
 ! INPUTS  
 !		prp_id		- data transfer property list identifier
-! OUTPUT  
+! OUTPUTS  
 !		data_xfer_mode	- transfer mode
 !				  Possible values are:
 !				  H5FD_MPIO_INDEPENDENT_F
@@ -179,7 +179,7 @@ CONTAINS
 ! NAME		
 !  h5pset_fapl_mpiposix_f 
 !
-! FUNCTION 	
+! PURPOSE 	
 !  Stores MPI IO communicator information to the file 
 !  access property list. 
 !
@@ -187,7 +187,7 @@ CONTAINS
 !		prp_id		- file access property list identifier
 !		comm		- MPI-2 communicator
 !		use_gpfs	- logical flag to use the GPFS hints
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1 
@@ -217,12 +217,12 @@ CONTAINS
 ! NAME		
 !  h5pget_fapl_mpiposix_f 
 !
-! FUNCTION 	
+! PURPOSE 	
 !  Returns MPI communicator information. 	
 !
 ! INPUTS  
 !		prp_id		- file access property list identifier
-! OUTPUT  
+! OUTPUTS  
 !		comm		- MPI-2 communicator
 !		use_gpfs        - flag to use GPFS hints
 !		hdferr:		- error code		

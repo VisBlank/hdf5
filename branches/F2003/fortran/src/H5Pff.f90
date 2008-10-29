@@ -3,7 +3,7 @@
 ! NAME
 !   MODULE H5P
 !  
-! FUNCTION
+! PURPOSE
 !   This file contains Fortran interfaces for H5P functions. It includes
 !   all the functions that are independent on whether the Fortran 2003 functions
 !   are enabled or disabled.
@@ -51,7 +51,7 @@
 ! NAME
 !		h5pcreate_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Creates a new property as an instance of a property 
 !		list class.
 !
@@ -63,7 +63,7 @@
 !				  H5P_DATASET_CREATE_F
 !				  H5P_DATASET_XFER_F
 !				  H5P_FILE_MOUNT_F
-! OUTPUT  
+! OUTPUTS  
 !		prp_id		- property list identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -113,7 +113,7 @@
 ! NAME
 !		h5pset_preserve_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets the dataset transfer property list status to 
 !		TRUE or FALSE for initializing compound datatype
 !		members during write/read operations.
@@ -121,7 +121,7 @@
 ! INPUTS  
 !		prp_id		- property list identifier
 !		flag		- status flag
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -170,12 +170,12 @@
 ! NAME
 !		h5pget_preserve_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Checks status of the dataset transfer property list.
 !
 ! INPUTS  
 !		prp_id		- property list identifier
-! OUTPUT  
+! OUTPUTS  
 !		flag		- status flag
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -227,12 +227,12 @@
 ! NAME
 !		h5pget_class_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Returns the property list class for a property list.
 !
 ! INPUTS  
 !		prp_id		- property list identifier
-! OUTPUT  
+! OUTPUTS  
 !		classtype	- property list class
 !				  Possible values are:
 !				  H5P_ROOT_F
@@ -291,13 +291,13 @@
 ! NAME
 !		h5pcopy_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Copies an existing property list to create a new 
 !		property list
 !
 ! INPUTS  
 !		prp_id		- property list identifier
-! OUTPUT  
+! OUTPUTS  
 !		new_prp_id	- new property list identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -343,13 +343,13 @@
 ! NAME
 !		h5pclose_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Terminates access to a property list. 
 !
 ! INPUTS  
 !		prp_id		- identifier of the property list to 
 !				  terminate access to. 
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -388,7 +388,7 @@
 ! NAME
 !		h5pset_chunk_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets the size of the chunks used to store 
 !		a chunked layout dataset. 
 !
@@ -396,7 +396,7 @@
 !		prp_id		- datatset creation property list identifier
 !		ndims		- number of dimensions for each chunk
 !		dims		- array with dimension sizes for each chunk
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -443,14 +443,14 @@
 ! NAME
 !		h5pget_chunk_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Retrieves the size of chunks for the raw data of a 
 !		chunked layout dataset
 !
 ! INPUTS  
 !		prp_id		- property list identifier
 !		ndims		- size of dims array
-! OUTPUT  
+! OUTPUTS  
 !		dims		- array with dimension sizes for each chunk
 !		hdferr:		- error code		
 !				 	Success:  number of chunk dimensions
@@ -500,13 +500,13 @@
 ! NAME
 !		h5pset_deflate_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets compression method and compression level. 
 !
 ! INPUTS  
 !		prp_id		- property list identifier
 !		level		- compression level
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -549,14 +549,14 @@
 ! NAME
 !		h5pset(get)fill_value_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets(gets) fill value for a dataset creation property list
 !
 ! INPUTS  
 !		prp_id		- dataset creation property list identifier
 !		type_id		- datatype identifier for fill value
 !		fillvalue	- fill value
-! OUTPUT  
+! OUTPUTS  
 !	(	type_id		- datatype identifier for fill value )
 !	(		fillvalue	- fill value )
 !		hdferr:		- error code		
@@ -740,13 +740,13 @@
 ! NAME
 !		h5pget_version_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Retrieves the version information of various objects 
 !		for a file creation property list
 !
 ! INPUTS  
 !		prp_id		- file createion property list identifier
-! OUTPUT  
+! OUTPUTS  
 !		boot		- super block version number
 !		freelist	- global freelist version number
 !		stab		- symbol table version number
@@ -804,13 +804,13 @@
 ! NAME
 !		h5pset_userblock_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets user block size
 !
 ! INPUTS  
 !		prp_id		- file creation property list to modify
 !		size		- size of the user-block in bytes
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -852,12 +852,12 @@
 ! NAME
 !		h5pget_userblock_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Gets user block size.
 !
 ! INPUTS  
 !		prp_id		- file creation property list identifier
-! OUTPUT  
+! OUTPUTS  
 !		block_size	- size of the user block in bytes
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -901,7 +901,7 @@
 ! NAME
 !		h5pset_sizes_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets the byte size of the offsets and lengths used 
 !		to address objects in an HDF5 file.
 !
@@ -909,7 +909,7 @@
 !		prp_id		- file creation property list identifier
 !		sizeof_addr	- size of an object offset in bytes 
 !		sizeof_size	- size of an object length in bytes
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -955,13 +955,13 @@
 ! NAME
 !		h5pget_sizes_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Retrieves the size of the offsets and lengths used 
 !		in an HDF5 file
 !
 ! INPUTS  
 !		prp_id		- file creation property list identifier
-! OUTPUT  
+! OUTPUTS  
 !		sizeof_addr	- size of an object offset in bytes 
 !		sizeof_size	- size of an object length in bytes
 !		hdferr:		- error code		
@@ -1010,7 +1010,7 @@
 ! NAME
 !		h5pset_sym_k_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets the size of parameters used to control the 
 !		symbol table nodes
 !
@@ -1018,7 +1018,7 @@
 !		prp_id		- file creation property list identifier
 !		ik		- symbol table tree rank
 !		lk		- symbol table node size
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -1062,13 +1062,13 @@
 ! NAME
 !		h5pget_sym_k_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Retrieves the size of the symbol table B-tree 1/2 rank
 !		 and the symbol table leaf node 1/2 size. 
 !
 ! INPUTS  
 !		prp_id		- file creation property list identifier
-! OUTPUT  
+! OUTPUTS  
 !		ik		- symbol table tree 1/2 rank
 !		lk		- symbol table node 1/2 size
 !		hdferr:		- error code		
@@ -1115,14 +1115,14 @@
 ! NAME
 !		h5pset_istore_k_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets the size of the parameter used to control the 
 !		B-trees for indexing chunked datasets
 !
 ! INPUTS  
 !		prp_id		- file creation property list identifier
 !		ik		- 1/2 rank of chunked storage B-tree
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -1165,12 +1165,12 @@
 ! NAME
 !		h5pget_istore_k_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Queries the 1/2 rank of an indexed storage B-tree. 
 !
 ! INPUTS  
 !		prp_id		- file creation property list identifier
-! OUTPUT  
+! OUTPUTS  
 !		ik		- 1/2 rank of chunked storage B-tree
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -1214,13 +1214,13 @@
 ! NAME
 !		h5pget_driver_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Returns low-lever driver identifier. 
 !
 ! INPUTS  
 !		prp_id		- file access or data transfer property 
 !				  list identifier. 
-! OUTPUT  
+! OUTPUTS  
 !		driver		- low-level driver identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -1263,12 +1263,12 @@
 ! NAME
 !		h5pset_fapl_stdio_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets the standard I/O driver. 
 !
 ! INPUTS  
 !		prp_id		- file access property list identifier
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -1308,12 +1308,12 @@
 !!$! NAME
 !!$!		h5pget_stdio_f 
 !!$!
-!!$! FUNCTION
+!!$! PURPOSE
 !!$!  	NOT AVAILABLE
 !!$!
 !!$! INPUTS
 !!$!
-!!$! OUTPUT  
+!!$! OUTPUTS  
 !!$!		hdferr:		- error code		
 !!$!				 	Success:  0
 !!$!				 	Failure: -1   
@@ -1347,12 +1347,12 @@
 ! NAME
 !		h5pset_fapl_sec2_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets the sec2 driver. 
 !
 ! INPUTS  
 !		prp_id		- file access property list identifier
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -1391,11 +1391,11 @@
 !!$! NAME
 !!$!		h5pget_sec2_f 
 !!$!
-!!$! FUNCTION
+!!$! PURPOSE
 !!$! 	NOT AVAILABLE
 !!$!
 !!$! INPUTS  
-!!$! OUTPUT  
+!!$! OUTPUTS  
 !!$!		hdferr:		- error code		
 !!$!				 	Success:  0
 !!$!				 	Failure: -1   
@@ -1428,14 +1428,14 @@
 ! NAME
 !		h5pset_alignment_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets alignment properties of a file access property list. 
 !
 ! INPUTS  
 !		prp_id		- file access property list identifier
 !		threshold	- threshold value	
 !		alignment	- alignment value
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -1479,13 +1479,13 @@
 ! NAME
 !		h5pget_alignment_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Retrieves the current settings for alignment 
 !		properties from a file access property list. 
 !
 ! INPUTS  
 !		prp_id		- file access property list identifier
-! OUTPUT  
+! OUTPUTS  
 !		threshold	- threshold value	
 !		alignment	- alignment value
 !		hdferr:		- error code		
@@ -1531,7 +1531,7 @@
 ! NAME
 !		h5pset_fapl_core_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Modifies the file access property list to use the 
 !		H5FD_CORE driver. 
 !
@@ -1539,7 +1539,7 @@
 !		increment	- size, in bytes, of memory increments 
 !		backing_store	- boolean flag indicating whether to write 
 !				  the file contents to disk when the file is closed. 
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -1588,12 +1588,12 @@
 ! NAME
 !		h5pget_fapl_core_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Queries core file driver properties. 
 !
 ! INPUTS  
 !		prp_id		- file access property list identifier
-! OUTPUT  
+! OUTPUTS  
 !		increment	- size, in bytes, of memory increments 
 !		backing_store	- boolean flag indicating whether to write 
 !				  the file contents to disk when the file is closed. 
@@ -1645,7 +1645,7 @@
 ! NAME
 !		h5pset_fapl_family_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets the file access property list to use the family driver. 
 !
 ! INPUTS  
@@ -1653,7 +1653,7 @@
 !		memb_size	- size in bytes of each file member 
 !		memb_plist	- identifier of the file access property 
 !				  list to be used for each family member
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -1699,12 +1699,12 @@
 ! NAME
 !		h5pget_fapl_family_f 
 !
-! FUNCTION
+! PURPOSE
 !	Returns file access property list information.  	
 !
 ! INPUTS  
 !		prp_id		- file access property list identifier
-! OUTPUT  
+! OUTPUTS  
 !		memb_size	- size in bytes of each file member 
 !		memb_plist	- identifier of the file access property 
 !				  list to be used for each family member
@@ -1755,7 +1755,7 @@
 ! NAME
 !		h5pset_cache_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets the meta data cache and raw data chunk 
 !		cache parameters
 !
@@ -1767,7 +1767,7 @@
 !			          data chunk cache 
 !		rdcc_nbytes	- total size of the raw data chunk cache, in bytes 
 !		rdcc_w0		- preemption policy (0 or 1)
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -1818,13 +1818,13 @@
 ! NAME
 !		h5pget_cache_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Queries the meta data cache and raw data chunk cache 
 !		parameters.  
 !
 ! INPUTS  
 !		prp_id		- file access property list identifier
-! OUTPUT  
+! OUTPUTS  
 !		mdc_nelmts	- number of elements (objects) in the meta 
 !				  data cache 
 !		rdcc_nelmts	- number of elements (objects) in the raw 
@@ -1884,7 +1884,7 @@
 ! NAME
 !		h5pset_fapl_split_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Emulates the old split file driver. 
 !
 ! INPUTS  
@@ -1895,7 +1895,7 @@
 !				  list
 !		raw_ext 	- name extension for the raw file filename
 !		raw_plist	- identifier of the raw file access property list
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -1952,11 +1952,11 @@
 !!$! NAME
 !!$!		h5pget_split_f 
 !!$!
-!!$! FUNCTION
+!!$! PURPOSE
 !!$! 	NOT AVAILABLE
 !!$!
 !!$! INPUTS  
-!!$! OUTPUT  
+!!$! OUTPUTS  
 !!$!		hdferr:		- error code		
 !!$!				 	Success:  0
 !!$!				 	Failure: -1   
@@ -2003,14 +2003,14 @@
 ! NAME
 !		h5pset_gc_references_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets garbage collecting references flag. 
 !
 ! INPUTS  
 !		prp_id		- file access property list identifier
 !		gc_reference	- flag for stting garbage collection on 
 !				  and off (1 or 0)
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -2054,12 +2054,12 @@
 ! NAME
 !		h5pget_gc_references_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Returns garbage collecting references setting. 	
 !
 ! INPUTS  
 !		prp_id		- file access property list identifier
-! OUTPUT  
+! OUTPUTS  
 !		gc_reference	- flag for stting garbage collection on 
 !				  and off (1 or 0)
 !		hdferr:		- error code		
@@ -2104,7 +2104,7 @@
 ! NAME
 !		h5pset_layout_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets the type of storage used store the raw data 
 !		for a dataset. 
 !
@@ -2115,7 +2115,7 @@
 !				  H5D_COMPACT_F
 !				  H5D_CONTIGUOUS_F
 !				  H5D_CHUNKED_F
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -2161,12 +2161,12 @@
 ! NAME
 !		h5pget_layout_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Returns the layout of the raw data for a dataset. 
 !
 ! INPUTS  
 !		prp_id		- data creation property list identifier
-! OUTPUT  
+! OUTPUTS  
 !		layout		- type of storage layout for raw data
 !				  possible values are:
 !				  H5D_COMPACT_F
@@ -2217,7 +2217,7 @@
 ! NAME
 !		h5pset_filter_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Adds a filter to the filter pipeline. 
 !
 ! INPUTS  
@@ -2228,7 +2228,7 @@
 !				  properties of the filter
 !		cd_nelmts	- number of elements in cd_values
 !		cd_values	- auxiliary data for the filter
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -2272,13 +2272,13 @@
 ! NAME
 !		h5pget_nfilters_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Returns the number of filters in the pipeline. 
 !
 ! INPUTS  
 !		prp_id		- data creation or transfer property list 
 !				  identifier
-! OUTPUT  
+! OUTPUTS  
 !		nfilters	- number of filters in the pipeline
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -2321,13 +2321,13 @@
 ! NAME
 !		h5pget_filter_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Returns information about a filter in a pipeline
 !
 ! INPUTS  
 !		prp_id		- data creation or transfer property list 
 !				  identifier
-! OUTPUT  
+! OUTPUTS  
 !				  identifier
 !		filter		- filter to be added to the pipeline 
 !		flags		- bit vector specifying certain general
@@ -2396,7 +2396,7 @@
 ! NAME
 !		h5pset_external_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Adds an external file to the list of external files. 
 !
 ! INPUTS   
@@ -2406,7 +2406,7 @@
 !				  file to the location in the file
 !				  where the data starts
 !		bytes		- size of the external file data. 
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -2460,12 +2460,12 @@
 ! NAME
 !		h5pget_external_count_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Returns the number of external files for a dataset. 
 !
 ! INPUTS  
 !		prp_id		- dataset creation property list identifier
-! OUTPUT  
+! OUTPUTS  
 !		count		- number of external files for the 
 !				  specified dataset
 !		hdferr:		- error code		
@@ -2509,12 +2509,12 @@
 ! NAME
 !		h5pget_external_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Returns information about an external file. 
 !
 ! INPUTS  
 !		prp_id		- dataset creation property list identifier
-! OUTPUT  
+! OUTPUTS  
 !		idx		- external file index 
 !		name_size	- maximum size of name array
 !		name		- name of the external file	
@@ -2577,7 +2577,7 @@
 ! NAME
 !		h5pset_btree_ratios_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets B-tree split ratios for a dataset transfer 
 !		property list. 
 !
@@ -2587,7 +2587,7 @@
 !		left		- the B-tree split ratio for left-most nodes 
 !		middle		- the B-tree split ratio for all other nodes
 !		right		- the B-tree split ratio for right-most nodes
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -2635,13 +2635,13 @@
 ! NAME
 !		h5pget_btree_ratios_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Gets B-tree split ratios for a dataset transfer property list
 !
 ! INPUTS  
 !		prp_id		- the dataset transfer property list 
 !				  identifier 
-! OUTPUT  
+! OUTPUTS  
 !		left		- the B-tree split ratio for left-most nodes 
 !		middle		- the B-tree split ratio for all other nodes
 !		right		- the B-tree split ratio for right-most nodes
@@ -2692,12 +2692,12 @@
 ! NAME
 !		h5pget_fclose_degree_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Returns the degree for the file close behavior.
 !
 ! INPUTS  
 !		fapl_id		- file access property list identifier
-! OUTPUT  
+! OUTPUTS  
 !		degree  	- one of the following:
 !				  Possible values are:
 !				  H5F_CLOSE_DEFAULT_F
@@ -2747,7 +2747,7 @@
 ! NAME
 !		h5pset_fclose_degree_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets the degree for the file close behavior.
 !
 ! INPUTS  
@@ -2758,7 +2758,7 @@
 !				  H5F_CLOSE_WEAK_F
 !				  H5F_CLOSE_SEMI_F
 !				  H5F_CLOSE_STRONG_F
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -2804,13 +2804,13 @@
 ! NAME
 !		h5pequal_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Checks if two property lists are eqaul
 !
 ! INPUTS  
 !		plist1_id	- property list identifier
 !		plist2_id	- property list identifier
-! OUTPUT  
+! OUTPUTS  
 !               flag		- flag, possible values
 !				  .TRUE. or .FALSE.
 !		hdferr:		- error code		
@@ -2857,13 +2857,13 @@
 ! NAME
 !		h5pset_buffer_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets sixe for conversion buffer
 !
 ! INPUTS  
 !		plist_id	- data transfer property list identifier
 !               size		- buffer size 
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -2905,12 +2905,12 @@
 ! NAME
 !		h5pget_buffer_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Gets size for conversion buffer
 !
 ! INPUTS  
 !		plist_id	- data transfer property list identifier
-! OUTPUT  
+! OUTPUTS  
 !               size		- buffer size 
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -2951,12 +2951,12 @@
 ! NAME
 !		h5pfill_value_defined_f
 !
-! FUNCTION
+! PURPOSE
 ! 	Check if fill value is defined.
 !
 ! INPUTS  
 !		plist_id	- dataset creation property list identifier
-! OUTPUT  
+! OUTPUTS  
 !               flag            - fill value status flag
 !                                 Possible values are:
 !				    H5D_FILL_VALUE_ERROR_F
@@ -3001,7 +3001,7 @@
 ! NAME
 !		h5pset_alloc_time_f
 !
-! FUNCTION
+! PURPOSE
 ! 	Set space allocation time for dataset during creation.
 !
 ! INPUTS  
@@ -3013,7 +3013,7 @@
 !				    H5D_ALLOC_TIME_EARLY_F
 !				    H5D_ALLOC_TIME_LATE_F
 !				    H5D_ALLOC_TIME_INCR_F
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -3052,12 +3052,12 @@
 ! NAME
 !		h5pget_alloc_time_f
 !
-! FUNCTION
+! PURPOSE
 ! 	Get space allocation time for dataset during creation.
 !
 ! INPUTS  
 !		plist_id	- dataset creation property list identifier
-! OUTPUT  
+! OUTPUTS  
 !               flag            - allocation time flag
 !                                 Possible values are:
 !				    H5D_ALLOC_TIME_ERROR_F
@@ -3101,7 +3101,7 @@
 ! NAME
 !		h5pset_fill_time_f
 !
-! FUNCTION
+! PURPOSE
 ! 	Set fill value writing time for dataset
 !
 ! INPUTS  
@@ -3111,7 +3111,7 @@
 !				    H5D_FILL_TIME_ERROR_F
 !				    H5D_FILL_TIME_ALLOC_F
 !				    H5D_FILL_TIME_NEVER_F
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -3148,12 +3148,12 @@
 ! NAME
 !		h5pget_fill_time_f
 !
-! FUNCTION
+! PURPOSE
 ! 	Get fill value writing time for dataset
 !
 ! INPUTS  
 !		plist_id	- dataset creation property list identifier
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -3196,13 +3196,13 @@
 ! NAME
 !		h5pset_meta_block_size_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets the minimum size of metadata block allocations 
 !
 ! INPUTS  
 !		plist_id	- file access property list identifier
 !               size		- metatdata block size
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -3240,12 +3240,12 @@
 ! NAME
 !		h5pget_meta_block_size_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Gets the minimum size of metadata block allocations 
 !
 ! INPUTS  
 !		plist_id	- file access property list identifier
-! OUTPUT  
+! OUTPUTS  
 !               size		- metatdata block size
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -3285,13 +3285,13 @@
 ! NAME
 !		h5pset_sieve_buf_size_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets the maximum size of the data sieve buffer
 !
 ! INPUTS  
 !		plist_id	- file access property list identifier
 !               size		- sieve buffer size
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -3329,12 +3329,12 @@
 ! NAME
 !		h5pget_sieve_buf_size_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Gets the maximum size of the data sieve buffer
 !
 ! INPUTS  
 !		plist_id	- file access property list identifier
-! OUTPUT  
+! OUTPUTS  
 !               size		- sieve buffer size
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -3374,13 +3374,13 @@
 ! NAME
 !		h5pset_small_data_block_size_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets the minimum size of "small" raw data block
 !
 ! INPUTS  
 !		plist_id	- file access property list identifier
 !               size		- small raw data block size
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -3419,12 +3419,12 @@
 ! NAME
 !		h5pget_small_data_block_size_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Gets the minimum size of "small" raw data block
 !
 ! INPUTS  
 !		plist_id	- file access property list identifier
-! OUTPUT  
+! OUTPUTS  
 !               size		- small raw data block size
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -3464,13 +3464,13 @@
 ! NAME
 !		h5pset_hyper_vector_size_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Set the number of "I/O" vectors (vector size)
 !
 ! INPUTS  
 !		plist_id	- dataset transfer property list identifier
 !               size		- vector size
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -3509,12 +3509,12 @@
 ! NAME
 !		h5pget_hyper_vector_size_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Get the number of "I/O" vectors (vector size)
 !
 ! INPUTS  
 !		plist_id	- dataset transfer property list identifier
-! OUTPUT  
+! OUTPUTS  
 !               size		- vector size
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -3553,14 +3553,14 @@
 ! NAME
 !		h5pset_integer 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets a property list value
 !
 ! INPUTS  
 !		prp_id		- iproperty list identifier to modify
 !		name 		- name of property to modify
 !		value		- value to set property to
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -3604,14 +3604,14 @@
 ! NAME
 !		h5pset_real
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets a property list value
 !
 ! INPUTS  
 !		prp_id		- iproperty list identifier to modify
 !		name 		- name of property to modify
 !		value		- value to set property to
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -3656,14 +3656,14 @@
 ! NAME
 !		h5pset_char
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets a property list value
 !
 ! INPUTS  
 !		prp_id		- iproperty list identifier to modify
 !		name 		- name of property to modify
 !		value		- value to set property to
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -3711,13 +3711,13 @@
 ! NAME
 !		h5pget_integer 
 !
-! FUNCTION
+! PURPOSE
 ! 	Gets a property list value
 !
 ! INPUTS  
 !		prp_id		- iproperty list identifier to modify
 !		name 		- name of property to modify
-! OUTPUT  
+! OUTPUTS  
 !		value		- value of property
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -3762,13 +3762,13 @@
 ! NAME
 !		h5pget_real
 !
-! FUNCTION
+! PURPOSE
 ! 	Gets a property list value
 !
 ! INPUTS  
 !		prp_id		- iproperty list identifier to modify
 !		name 		- name of property to modify
-! OUTPUT  
+! OUTPUTS  
 !		value		- value of property
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -3812,13 +3812,13 @@
 ! NAME
 !		h5pget_char
 !
-! FUNCTION
+! PURPOSE
 ! 	Gets a property list value
 !
 ! INPUTS  
 !		prp_id		- iproperty list identifier to modify
 !		name 		- name of property to modify
-! OUTPUT  
+! OUTPUTS  
 !		value		- value of property
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -3867,13 +3867,13 @@
 ! NAME
 !		h5pexist_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Queries whether a property name exists in a property list or class. 
 !
 ! INPUTS  
 !		prp_id		- iproperty list identifier to query
 !		name 		- name of property to check for
-! OUTPUT  
+! OUTPUTS  
 !               flag            - logical flag
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -3922,13 +3922,13 @@
 ! NAME
 !		h5pget_size_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Queries the size of a property value in bytes.
 !
 ! INPUTS  
 !		prp_id		- property list identifier to query
 !		name 		- name of property to query
-! OUTPUT  
+! OUTPUTS  
 !               size            - size of property in bytes
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -3972,12 +3972,12 @@
 ! NAME
 !		h5pget_npros_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Queries number of properties in property list or class
 !
 ! INPUTS  
 !		prp_id		- iproperty list identifier to query
-! OUTPUT  
+! OUTPUTS  
 !               nprops          - number of properties in property object
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -4014,12 +4014,12 @@
 ! NAME
 !		h5pget_class_name_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Queries the name of a class.
 !
 ! INPUTS  
 !		prp_id		- property list identifier to query
-! OUTPUT  
+! OUTPUTS  
 !		name 		- name of a class
 !               size            - Actual length of the class name
 !                                 If provided buffer "name" is smaller,
@@ -4072,12 +4072,12 @@
 ! NAME
 !		h5pget_class_parent_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Retrieves the parent class of a genric property class. 
 !
 ! INPUTS  
 !		prp_id		- property list identifier to query
-! OUTPUT  
+! OUTPUTS  
 !		parent_id 	- identifier of the parent class
 !		hdferr:		- error code		
 !                                       
@@ -4117,13 +4117,13 @@
 ! NAME
 !		h5pisa_class_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Determines whether a property list is a member of a class. 
 !
 ! INPUTS  
 !		plist		- property list identifier 
 !		pclass		- identifier of the property class
-! OUTPUT  
+! OUTPUTS  
 !               flag            - .TRUE. if a member, .FALSE. otherwise
 !		hdferr:		- error code		
 !                                       
@@ -4168,14 +4168,14 @@
 ! NAME
 !		h5pcopy_prop_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Copies a property from one list or class to another.
 !
 ! INPUTS  
 !		dst_id		- Identifier of the destination property list
 !		src_id		- Identifier of the source property list 
 !		name 		- name of the property to copy
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !                                       
 !				 	Success: 0 
@@ -4220,14 +4220,14 @@
 ! NAME
 !		h5premove_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Removes a property from a property list. 
 
 !
 ! INPUTS  
 !		plid		- Property list identofoer
 !		name 		- name of the property to remove
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !                                       
 !				 	Success: 0 
@@ -4269,14 +4269,14 @@
 ! NAME
 !		h5punregister_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Removes a property from a property list class. 
 
 !
 ! INPUTS  
 !		class		- Property list class identifier
 !		name 		- name of the property to remove
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !                                       
 !				 	Success: 0 
@@ -4318,13 +4318,13 @@
 ! NAME
 !		h5pclose_class_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Closes an existing property list class. 
 
 !
 ! INPUTS  
 !		class		- Property list class identifier
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !                                       
 !				 	Success: 0 
@@ -4360,7 +4360,7 @@
 ! NAME
 !		h5pregister_integer
 !
-! FUNCTION
+! PURPOSE
 ! 	Registers a permanent property with a property list class.
 !
 ! INPUTS  
@@ -4370,7 +4370,7 @@
 !               size            - size of property in bytes
 !		value		- default value for property in newly 
 !                                 created property lists
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -4416,7 +4416,7 @@
 ! NAME
 !		h5pregister_real
 !
-! FUNCTION
+! PURPOSE
 ! 	Registers a permanent property with a property list class.
 !
 ! INPUTS  
@@ -4426,7 +4426,7 @@
 !               size            - size of property in bytes
 !		value		- default value for property in newly 
 !                                 created property lists
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -4472,7 +4472,7 @@
 ! NAME
 !		h5pregister_char
 !
-! FUNCTION
+! PURPOSE
 ! 	Registers a permanent property with a property list class.
 !
 ! INPUTS  
@@ -4482,7 +4482,7 @@
 !               size            - size of property in bytes
 !		value		- default value for property in newly 
 !                                 created property lists
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -4533,7 +4533,7 @@
 ! NAME
 !		h5pinsert_integer
 !
-! FUNCTION
+! PURPOSE
 ! 	Registers a temporary property with a property list class.
 !
 ! INPUTS  
@@ -4541,7 +4541,7 @@
 !		name 		- name of property to insert
 !               size            - size of property in bytes
 !		value		- initial value for the property 
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -4587,7 +4587,7 @@
 ! NAME
 !		h5pinsert_real
 !
-! FUNCTION
+! PURPOSE
 ! 	Registers a temporary property with a property list class.
 !
 ! INPUTS  
@@ -4596,7 +4596,7 @@
 !		name 		- name of property to insert
 !               size            - size of property in bytes
 !		value		- initial value for the property 
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -4643,7 +4643,7 @@
 ! NAME
 !		h5pinsert_char
 !
-! FUNCTION
+! PURPOSE
 ! 	Registers a temporary property with a property list class.
 !
 ! INPUTS  
@@ -4652,7 +4652,7 @@
 !		name 		- name of property to insert
 !               size            - size of property in bytes
 !		value		- initial value for the property 
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -4702,12 +4702,12 @@
 ! NAME
 !		h5pset_shuffle_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets shuffling filter
 !
 ! INPUTS  
 !		prp_id		- dataset creation property list identifier
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -4744,7 +4744,7 @@
 ! NAME
 !		h5pset_edc_check_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Enables/disables error detecting  
 !
 ! INPUTS  
@@ -4752,7 +4752,7 @@
 !               flag            - EDC flag; possible values:
 !                                   H5Z_DISABLE_EDC_F
 !                                   H5Z_ENABLE_EDC_F
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -4791,12 +4791,12 @@
 ! NAME
 !		h5pget_edc_check_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Queries error detecting  
 !
 ! INPUTS  
 !		prp_id		- dataset creation property list identifier
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -4839,13 +4839,13 @@
 ! NAME
 !		h5pset_fletcher32_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets Fletcher32 checksum of EDC for a dataset creation 
 !               property list.
 !
 ! INPUTS  
 !		prp_id		- dataset creation property list identifier
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -4882,13 +4882,13 @@
 ! NAME
 !		h5pset_family_offset_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets offset for family file driver.
 !
 ! INPUTS  
 !		prp_id		- file creation property list identifier
 !               offset		- file offset
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -4927,7 +4927,7 @@
 ! NAME
 !		h5pset_fapl_multi_l 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets up use of the multi-file driver. 
 !
 ! INPUTS  
@@ -4936,7 +4936,7 @@
 !               memb_fapl       - property list for each memory usage type
 !               memb_name       - names of member file
 !               relax           - flag 
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -4998,13 +4998,13 @@
 ! NAME
 !		h5pset_fapl_multi_s 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets up use of the multi-file driver. 
 !
 ! INPUTS  
 !		prp_id		- file creation property list identifier
 !               relax           - flag 
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -5045,12 +5045,12 @@
 ! NAME
 !		h5pget_fapl_multi_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets up use of the multi-file driver. 
 !
 ! INPUTS  
 !		prp_id		- file creation property list identifier
-! OUTPUT  
+! OUTPUTS  
 !               mem_map         - mapping array
 !               memb_fapl       - property list for each memory usage type
 !               memb_name       - names of member file
@@ -5119,14 +5119,14 @@
 ! NAME
 !		h5pset_szip_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets up use of szip compression
 !
 ! INPUTS  
 !		prp_id		- dataset creation property list identifier
 !               options_mask
 !               pixels_per_block - szip parameters
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -5168,13 +5168,13 @@
 ! NAME
 !		h5pall_filters_avail_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Checks if all filters set in the dataset creation
 !               property list are available
 !
 ! INPUTS  
 !		prp_id		- data creation property list identifier
-! OUTPUT  
+! OUTPUTS  
 !               flag            - .TRUE. if all filters are available
 !                                 .FALSE. otherwise
 !		hdferr:		- error code		
@@ -5219,13 +5219,13 @@
 ! NAME
 !		h5pget_filter_by_id_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Returns information about a filter in a pipeline
 !
 ! INPUTS  
 !		prp_id		- data creation or transfer property list 
 !				  identifier
-! OUTPUT  
+! OUTPUTS  
 !		filter_id	- filter identifier
 !		flags		- bit vector specifying certain general
 !				  properties of the filter
@@ -5286,7 +5286,7 @@
 ! NAME
 !		h5pmodify_filter_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Adds a filter to the filter pipeline. 
 !
 ! INPUTS  
@@ -5297,7 +5297,7 @@
 !				  properties of the filter
 !		cd_nelmts	- number of elements in cd_values
 !		cd_values	- auxiliary data for the filter
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -5340,14 +5340,14 @@
 ! NAME
 !		h5premove_filter_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Delete one or more filters from the filter pipeline. 
 !
 ! INPUTS  
 !		prp_id		- data creation or transfer property list 
 !				  identifier
 !		filter		- filter to be removed
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -5386,12 +5386,12 @@
 ! NAME
 !		H5Pget_attr_phase_change_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Retrieves attribute storage phase change thresholds 
 !
 ! INPUTS  
 !		ocpl_id		- Object (dataset or group) creation property list identifier
-! OUTPUT  
+! OUTPUTS  
 !               max_compact     - Maximum number of attributes to be stored in compact storage
 !                                 (Default: 8)
 !               min_dense       - Minimum number of attributes to be stored in dense storage
@@ -5438,13 +5438,13 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !		H5Pset_attr_creation_order_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets tracking and indexing of attribute creation order
 !
 ! INPUTS  
 !		ocpl_id		- Object creation property list identifier
 !               crt_order_flags - Flags specifying whether to track and index attribute creation order
-! OUTPUT
+! OUTPUTS
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -5485,13 +5485,13 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !		H5Pset_shared_mesg_nindexes_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets number of shared object header message indexes 
 !
 ! INPUTS  
 !               plist_id - file creation property list
 !               nindexes - Number of shared object header message indexes to be available in files created with this property list
-! OUTPUT
+! OUTPUTS
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -5533,7 +5533,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !		H5Pset_shared_mesg_index_f
 !
-! FUNCTION
+! PURPOSE
 ! 	Configures the specified shared object header message index
 !
 ! INPUTS  
@@ -5542,7 +5542,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !    mesg_type_flags - Types of messages that should be stored in this index.
 !      min_mesg_size - Minimum message size.
 !
-! OUTPUT
+! OUTPUTS
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -5586,13 +5586,13 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !	      H5Pget_attr_creation_order_f
 !
-! FUNCTION
+! PURPOSE
 !    Retrieves tracking and indexing settings for attribute creation order
 !
 ! INPUTS
 !             ocpl_id - Object (group or dataset) creation property list identifier
 !
-! OUTPUT
+! OUTPUTS
 !             crt_order_flags - Flags specifying whether to track and index attribute creation order
 !	      hdferr:		- error code		
 !				 	Success:  0
@@ -5634,7 +5634,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !	      H5Pset_libver_bounds_f
 !
-! FUNCTION
+! PURPOSE
 !    Sets bounds on library versions, and indirectly format versions, to be used when creating objects.
 !
 ! INPUTS
@@ -5642,7 +5642,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !                 low - The earliest version of the library that will be used for writing objects.
 !                high - The latest version of the library that will be used for writing objects.
 !
-! OUTPUT
+! OUTPUTS
 !	      hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -5690,14 +5690,14 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !	      H5Pset_link_creation_order_f 
 !
-! FUNCTION
+! PURPOSE
 !    Sets creation order tracking and indexing for links in a group.
 !
 ! INPUTS
 !         gcpl_id  	  - Group creation property list identifier
 !         crt_order_flags - Creation order flag(s)
 !
-! OUTPUT
+! OUTPUTS
 !	      hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -5738,12 +5738,12 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !		H5Pget_link_phase_change_f
 !
-! FUNCTION
+! PURPOSE
 ! 	Queries the settings for conversion between compact and dense groups.
 !
 ! INPUTS  
 !		gcpl_id  	- Group creation property list identifier
-! OUTPUT  
+! OUTPUTS  
 !               max_compact     - Maximum number of attributes to be stored in compact storage
 !               min_dense       - Minimum number of attributes to be stored in dense storage
 !		hdferr:		- error code		
@@ -5786,14 +5786,14 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !		H5Pget_obj_track_times_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Returns whether times are tracked for an object.
 !
 ! INPUTS  
 !		plist_id	- property list id
 !               flag            - object timestamp setting
 !                                 .TRUE.,.FALSE.
-! OUTPUT
+! OUTPUTS
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -5835,7 +5835,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !		H5Pset_obj_track_times_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Set whether the birth, access, modification & change times for
 !               an object are stored.
 ! 
@@ -5856,7 +5856,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !		plist_id	- property list id
 !               flag            - object timestamp setting
 !                                 .TRUE.,.FALSE.
-! OUTPUT
+! OUTPUTS
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -5900,7 +5900,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !		H5Pset_create_inter_group_f
 !
-! FUNCTION
+! PURPOSE
 ! 	Specifies in property list whether to create missing intermediate groups.
 !
 ! INPUTS  
@@ -5908,7 +5908,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !               crt_intermed_group - crt_intermed_group specifying whether 
 !                                    to create intermediate groups upon the creation 
 !                                    of an object
-! OUTPUT
+! OUTPUTS
 !		hdferr:		   - error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -5954,13 +5954,13 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !	      H5Pget_link_creation_order_f
 !
-! FUNCTION
+! PURPOSE
 !    Queries whether link creation order is tracked and/or indexed in a group.
 !
 ! INPUTS
 !             gcpl_id - Group creation property list identifier
 !
-! OUTPUT
+! OUTPUTS
 !             crt_order_flags - Creation order flag(s)
 !	      hdferr:		- error code		
 !				 	Success:  0
@@ -6002,7 +6002,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !	      H5Pset_char_encoding 
 !
-! FUNCTION
+! PURPOSE
 !    Sets the character encoding used to encode a string.
 !
 ! INPUTS
@@ -6011,7 +6011,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !     	                    H5T_CSET_ASCII_F -> US ASCII
 !     	                    H5T_CSET_UTF8_F -> UTF-8 Unicode encoding
 !
-! OUTPUT
+! OUTPUTS
 !	      hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -6055,13 +6055,13 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !	      H5Pget_char_encoding 
 !
-! FUNCTION
+! PURPOSE
 !    Retrieves the character encoding used to create a string
 !
 ! INPUTS
 !             plist_id - Property list identifier
 !
-! OUTPUT
+! OUTPUTS
 !             encoding - Valid values for encoding are:
 !     	                    H5T_CSET_ASCII_F -> US ASCII
 !     	                    H5T_CSET_UTF8_F -> UTF-8 Unicode encoding
@@ -6106,13 +6106,13 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !		h5pset_copy_object_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets properties to be used when an object is copied.
 !
 ! INPUTS 
 !               ocp_plist_id - Object copy property list identifier
 !               copy_options - Copy option(s) to be set
-! OUTPUT  
+! OUTPUTS  
 !		hdferr	     - error code		
 !				 Success:  0
 !				 Failure: -1   
@@ -6156,12 +6156,12 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !		h5pget_copy_object_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Retrieves the properties to be used when an object is copied.
 !
 ! INPUTS 
 !               ocp_plist_id - Object copy property list identifier
-! OUTPUT  
+! OUTPUTS  
 !               copy_options - Copy option(s) to be get
 !		hdferr	     - error code		
 !				 Success:  0
@@ -6206,12 +6206,12 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !		h5pget_data_transform_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Retrieves a data transform expression.
 !
 ! INPUTS 
 !               plist_id - Identifier of the property list or class
-! OUTPUT  
+! OUTPUTS  
 !               expression - buffer to hold transform expression
 !		hdferr	   - error code
 !                                       Success:  Actual length of the expression
@@ -6273,13 +6273,13 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !		h5pset_data_transform_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets a data transform expression.
 !
 ! INPUTS 
 !               plist_id - Identifier of the property list or class 
 !               expression - buffer to hold transform expression
-! OUTPUT 
+! OUTPUTS 
 !		hdferr	   - error code
 !                                       Success:  0
 !				 	Failure: -1
@@ -6320,12 +6320,12 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !		H5Pget_local_heap_size_hint_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Queries the local heap size hint for original-style groups.
 !
 ! INPUTS 
 !               gcpl_id - Group creation property list identifier
-! OUTPUT
+! OUTPUTS
 !               size_hint - Hint for size of local heap
 !		hdferr	  - error code
 !                                    Success:  0
@@ -6365,12 +6365,12 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !		H5Pget_est_link_info_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Queries data required to estimate required local heap or object header size.
 !
 ! INPUTS 
 !               gcpl_id - Group creation property list identifier
-! OUTPUT  
+! OUTPUTS  
 !       est_num_entries - Estimated number of links to be inserted into group
 !          est_name_len - Estimated average length of link names
 !		hdferr	- error code
@@ -6413,13 +6413,13 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !		H5Pset_local_heap_size_hint_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets the local heap size hint for original-style groups.
 !
 ! INPUTS 
 !               gcpl_id - Group creation property list identifier
 !               size_hint - Hint for size of local heap
-! OUTPUT
+! OUTPUTS
 !		hdferr	  - error code
 !                                    Success:  0
 !				     Failure: -1
@@ -6455,14 +6455,14 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !		h5pset_est_link_info_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets estimated number of links and length of link names in a group.
 !
 ! INPUTS 
 !               gcpl_id - Group creation property list identifier  
 !       est_num_entries - Estimated number of links to be inserted into group
 !          est_name_len - Estimated average length of link names
-! OUTPUT
+! OUTPUTS
 !		hdferr	- error code
 !                                Success:  0
 !				 Failure: -1
@@ -6502,14 +6502,14 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !		h5pset_link_phase_change_f
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets the parameters for conversion between compact and dense groups.
 !
 ! INPUTS  
 !		gcpl_id  	- Group creation property list identifier  
 !               max_compact     - Maximum number of attributes to be stored in compact storage
 !               min_dense       - Minimum number of attributes to be stored in dense storage
-! OUTPUT
+! OUTPUTS
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -6549,7 +6549,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !		h5pset_fapl_direct_f
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets up use of the direct I/O driver.
 !
 ! INPUTS  
@@ -6557,7 +6557,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !    alignment 	- Required memory alignment boundary
 !    block_size - File system block size
 !    cbuf_size 	- Copy buffer size
-! OUTPUT
+! OUTPUTS
 !     hdferr:   - error code		
 !		    Success:  0
 !		    Failure: -1   
@@ -6597,12 +6597,12 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !		h5pget_fapl_direct_f
 !
-! FUNCTION
+! PURPOSE
 ! 	Gets up use of the direct I/O driver.
 !
 ! INPUTS  
 !    fapl_id 	- File access property list identifier
-! OUTPUT
+! OUTPUTS
 !    alignment 	- Required memory alignment boundary
 !    block_size - File system block size
 !    cbuf_size 	- Copy buffer size
@@ -6646,12 +6646,12 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !		H5Pset_attr_phase_change_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets attribute storage phase change thresholds.
 !
 ! INPUTS  
 !		ocpl_id		- Object (dataset or group) creation property list identifier
-! OUTPUT  
+! OUTPUTS  
 !               max_compact     - Maximum number of attributes to be stored in compact storage
 !                                 (Default: 8)
 !               min_dense       - Minimum number of attributes to be stored in dense storage
@@ -6699,12 +6699,12 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !		H5Pset_nbit_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets up the use of the N-Bit filter.
 !
 ! INPUTS 
 !               plist_id - Dataset creation property list identifier.
-! OUTPUT
+! OUTPUTS
 !		hdferr	  - error code
 !                                    Success:  0
 !				     Failure: -1
@@ -6739,14 +6739,14 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !		h5pset_scaleoffset_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets up the use of the Scale-Offset filter.
 !
 ! INPUTS 
 !               plist_id - Dataset creation property list identifier.
 !             scale_type - Flag indicating compression method.
 !           scale_factor - Parameter related to scale.
-! OUTPUT
+! OUTPUTS
 !		hdferr	 - error code
 !                                   Success:  0
 !				    Failure: -1
@@ -6786,14 +6786,14 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !		h5pset_nlinks_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets maximum number of soft or user-defined link traversals.
 !
 ! INPUTS 
 !            lapl_id - File access property list identifier
 !             nlinks - Maximum number of links to traverse
 !
-! OUTPUT
+! OUTPUTS
 !		hdferr	 - error code
 !                                   Success:  0
 !				    Failure: -1
@@ -6831,14 +6831,14 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !		h5pget_nlinks_f 
 !
-! FUNCTION
+! PURPOSE
 !  Gets maximum number of soft or user-defined link traversals.
 !
 ! INPUTS 
 !            lapl_id - File access property list identifier
 !             nlinks - Maximum number of links to traverse
 !
-! OUTPUT
+! OUTPUTS
 !		hdferr	 - error code
 !                                   Success:  0
 !				    Failure: -1
@@ -6876,14 +6876,14 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! NAME
 !		H5Pget_create_inter_group_f
 !
-! FUNCTION
+! PURPOSE
 ! 	Determines whether property is set to enable creating missing intermediate groups.
 !
 ! INPUTS  
 !		lcpl_id            - Link creation property list identifier
 !               crt_intermed_group - Specifying whether to create intermediate groups upon 
 !                                    the creation of an object
-! OUTPUT
+! OUTPUTS
 !		hdferr:		   - error code		
 !				 	Success:  0
 !				 	Failure: -1   

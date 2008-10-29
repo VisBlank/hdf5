@@ -3,7 +3,7 @@
 ! NAME
 !   H5D_PROVISIONAL
 !
-! FUNCTION
+! PURPOSE
 !   This file contains Fortran 90 and Fortran 2003 interfaces for H5D functions. 
 !   It contains the same functions as H5Dff_DEPRECIATE.f90 but includes the 
 !   Fortran 2003 functions and the interface listings. This file will be compiled 
@@ -1467,7 +1467,7 @@ CONTAINS
   !
   ! NAME		h5dread_f 
   !
-  ! FUNCTION 	Reads raw data from the specified dataset into buf, 
+  ! PURPOSE 	Reads raw data from the specified dataset into buf, 
   !		converting from file datatype and dataspace to memory 
   !		datatype and dataspace.
   !
@@ -1476,7 +1476,7 @@ CONTAINS
   !		mem_type_id	- memory type identifier
   !		dims		- 1-dim array of size 7; dims(k) has the size 
   !				- of k-th dimension of the buf array
-  ! OUTPUT  
+  ! OUTPUTS  
   !		buf		- buffer to read data in
   !		hdferr:		- error code		
   !				 	Success:  0
@@ -2833,7 +2833,7 @@ CONTAINS
   !
   ! NAME		h5dfill_integer
   !
-  ! FUNCTION      Fills dataspace elements with a fill value in a memory buffer.	
+  ! PURPOSE      Fills dataspace elements with a fill value in a memory buffer.	
   !               Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes 
   !               of the fillvalues and buffers are supported. Buffer and fillvalue
   !               are assumed to have the same datatype.
@@ -2844,7 +2844,7 @@ CONTAINS
   !		space_id	- memory space selection identifier
   !		buf		- data buffer iin memory ro apply selection to
   !				- of k-th dimension of the buf array
-  ! OUTPUT  
+  ! OUTPUTS  
   !		hdferr:		- error code		
   !				 	Success:  0
   !				 	Failure: -1   
@@ -2882,7 +2882,7 @@ CONTAINS
   !
   ! NAME		h5dfill_real
   !
-  ! FUNCTION      Fills dataspace elements with a fill value in a memory buffer.	
+  ! PURPOSE      Fills dataspace elements with a fill value in a memory buffer.	
   !               Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes 
   !               of the fillvalues and buffers are supported. Buffer and fillvalue
   !               are assumed to have the same datatype.
@@ -2893,7 +2893,7 @@ CONTAINS
   !		space_id	- memory space selection identifier
   !		buf		- data buffer iin memory ro apply selection to
   !				- of k-th dimension of the buf array
-  ! OUTPUT  
+  ! OUTPUTS  
   !		hdferr:		- error code		
   !				 	Success:  0
   !				 	Failure: -1   
@@ -2931,7 +2931,7 @@ CONTAINS
   !
   ! NAME		h5dfill_double
   !
-  ! FUNCTION      Fills dataspace elements with a fill value in a memory buffer.	
+  ! PURPOSE      Fills dataspace elements with a fill value in a memory buffer.	
   !               Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes 
   !               of the fillvalues and buffers are supported. Buffer and fillvalue
   !               are assumed to have the same datatype.
@@ -2942,7 +2942,7 @@ CONTAINS
   !		space_id	- memory space selection identifier
   !		buf		- data buffer iin memory ro apply selection to
   !				- of k-th dimension of the buf array
-  ! OUTPUT  
+  ! OUTPUTS  
   !		hdferr:		- error code		
   !				 	Success:  0
   !				 	Failure: -1   
@@ -2980,7 +2980,7 @@ CONTAINS
   !
   ! NAME		h5dfill_char
   !
-  ! FUNCTION      Fills dataspace elements with a fill value in a memory buffer.	
+  ! PURPOSE      Fills dataspace elements with a fill value in a memory buffer.	
   !               Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes 
   !               of the fillvalues and buffers are supported. Buffer and fillvalue
   !               are assumed to have the same datatype.
@@ -2991,7 +2991,7 @@ CONTAINS
   !		space_id	- memory space selection identifier
   !		buf		- data buffer iin memory ro apply selection to
   !				- of k-th dimension of the buf array
-  ! OUTPUT  
+  ! OUTPUTS  
   !		hdferr:		- error code		
   !				 	Success:  0
   !				 	Failure: -1   

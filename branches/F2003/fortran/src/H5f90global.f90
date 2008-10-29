@@ -6,7 +6,7 @@
 ! FILE
 !   src/fortran/H5f90global.f90
 !  
-! FUNCTION
+! PURPOSE
 !   This module is used to pass C stubs for H5 Fortran APIs. The C stubs are 
 !   packed into arrays in H5_f.c and these arrays are then passed to Fortran.
 !   This module then uses EQUIVALENCE to assign elements of the arrays to

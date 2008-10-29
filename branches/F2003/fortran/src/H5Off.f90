@@ -6,7 +6,7 @@
 ! FILE
 !   fortran/src/H5Off.f90
 !
-! FUNCTION
+! PURPOSE
 !   This file contains Fortran interfaces for H5O functions. It includes
 !   all the functions that are independent on whether the Fortran 2003 functions
 !   are enabled or disabled.
@@ -47,13 +47,13 @@ CONTAINS
 ! NAME
 !   h5olink_f
 !  
-! FUNCTION
+! PURPOSE
 !   Creates a hard link to an object in an HDF5 file.
 ! INPUTS
 !      object_id     - Object to be linked.
 !      new_loc_id    - File or group identifier specifying location at which object is to be linked.
 !      new_link_name - Name of link to be created, relative to new_loc_id.
-! OUTPUT
+! OUTPUTS
 !      hdferr:       - error code		
 !	                Success:  0
 !			Failure: -1   
@@ -115,13 +115,13 @@ CONTAINS
 !
 ! NAME
 !   h5oopen_f
-! FUNCTION
+! PURPOSE
 !   Opens an object in an HDF5 file by location identifier and path name.
 !
 ! INPUTS
 !   loc_id - File or group identifier
 !   name   - Path to the object, relative to loc_id.
-! OUTPUT
+! OUTPUTS
 !   obj_id - Object identifier for the opened object 
 !  hdferr: - error code		
 !	           Success:  0

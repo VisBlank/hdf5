@@ -1,5 +1,5 @@
-/****h* root/fortran/src/H5Rf.c
- * FUNCTION
+/****h* H5Rf/H5Rf
+ * PURPOSE
  *   This file contains C stubs for H5R Fortran APIs
  *
  * COPYRIGHT
@@ -23,20 +23,29 @@
 
 #include "H5f90.h"
 
-/*----------------------------------------------------------------------------
- * Name:        h5rcreate_object_c
- * Purpose:     Call H5Rcreate to create a reference to an object
- * Inputs:      loc_id - file or group identifier
+/****if* H5Rf/h5rcreate_object_c
+ * NAME
+ *        h5rcreate_object_c
+ * PURPOSE
+ *     Call H5Rcreate to create a reference to an object
+ * INPUTS
+ *      loc_id - file or group identifier
  *              name - name of the dataset
  *              namelen - name length
- * Outputs:     ref  - reference to the object
- * Returns:     0 on success, -1 on failure
- * Programmer:  Elena Pourmal
+ * OUTPUTS
+ *     ref  - reference to the object
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  Elena Pourmal
  *              Wednesday, December 1, 1999
- * Modifications:
- *---------------------------------------------------------------------------*/
+ * HISTORY
+ *
+ * SOURCE
+*/
 int_f
 nh5rcreate_object_c (haddr_t_f *ref, hid_t_f *loc_id, _fcd name, int_f *namelen)
+/******/
 {
      int ret_value = -1;
      hid_t c_loc_id;
@@ -67,22 +76,31 @@ nh5rcreate_object_c (haddr_t_f *ref, hid_t_f *loc_id, _fcd name, int_f *namelen)
      return ret_value;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        h5rcreate_region_c
- * Purpose:     Call H5Rcreate to create a reference to dataset region
+/****if* H5Rf/h5rcreate_region_c
+ * NAME
+ *        h5rcreate_region_c
+ * PURPOSE
+ *     Call H5Rcreate to create a reference to dataset region
  *              region
- * Inputs:      loc_id - file or group identifier
+ * INPUTS
+ *      loc_id - file or group identifier
  *              name - name of the dataset
  *              namelen - name length
  *              space_id - dataset space identifier
- * Outputs:     ref  - reference to the dataset region
- * Returns:     0 on success, -1 on failure
- * Programmer:  Elena Pourmal
+ * OUTPUTS
+ *     ref  - reference to the dataset region
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  Elena Pourmal
  *              Wednesday, December 1, 1999
- * Modifications:
- *---------------------------------------------------------------------------*/
+ * HISTORY
+ *
+ * SOURCE
+*/
 int_f
 nh5rcreate_region_c (int_f *ref, hid_t_f *loc_id, _fcd name, int_f *namelen, hid_t_f *space_id)
+/******/
 {
      int ret_value = -1;
      hid_t c_loc_id;
@@ -114,22 +132,31 @@ nh5rcreate_region_c (int_f *ref, hid_t_f *loc_id, _fcd name, int_f *namelen, hid
      return ret_value;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        h5rcreate_ptr_c
- * Purpose:     Call H5Rcreate to create a reference to dataset region
+/****if* H5Rf/h5rcreate_ptr_c
+ * NAME
+ *        h5rcreate_ptr_c
+ * PURPOSE
+ *     Call H5Rcreate to create a reference to dataset region
  *              region
- * Inputs:      loc_id - file or group identifier
+ * INPUTS
+ *      loc_id - file or group identifier
  *              name - name of the dataset
  *              namelen - name length
  *              space_id - dataset space identifier
- * Outputs:     ref  - reference to the dataset region
- * Returns:     0 on success, -1 on failure
- * Programmer:  M.S Breitenfeld
+ * OUTPUTS
+ *     ref  - reference to the dataset region
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  M.S Breitenfeld
  *              June 20, 2008
- * Modifications:
- *---------------------------------------------------------------------------*/
+ * HISTORY
+ *
+ * SOURCE
+*/
 int_f
 nh5rcreate_ptr_c (void *ref, hid_t_f *loc_id, _fcd name, int_f *namelen, int_f *ref_type, hid_t_f *space_id)
+/******/
 {
      int ret_value = -1;
      char *c_name;
@@ -152,19 +179,28 @@ nh5rcreate_ptr_c (void *ref, hid_t_f *loc_id, _fcd name, int_f *namelen, int_f *
      return ret_value;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        h5rdereference_region_c
- * Purpose:     Call H5Rdereference to dereference to dataset region
- * Inputs:      dset_id - dataset identifier
+/****if* H5Rf/h5rdereference_region_c
+ * NAME
+ *        h5rdereference_region_c
+ * PURPOSE
+ *     Call H5Rdereference to dereference to dataset region
+ * INPUTS
+ *      dset_id - dataset identifier
  *              ref - reference to the dataset region
- * Outputs:     obj_id - dereferenced dataset identifier
- * Returns:     0 on success, -1 on failure
- * Programmer:  Elena Pourmal
+ * OUTPUTS
+ *     obj_id - dereferenced dataset identifier
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  Elena Pourmal
  *              Wednesday, December 1, 1999
- * Modifications:
- *---------------------------------------------------------------------------*/
+ * HISTORY
+ *
+ * SOURCE
+*/
 int_f
 nh5rdereference_region_c (hid_t_f *dset_id, int_f *ref, hid_t_f *obj_id)
+/******/
 {
      int ret_value = -1;
      hid_t c_dset_id;
@@ -185,19 +221,28 @@ nh5rdereference_region_c (hid_t_f *dset_id, int_f *ref, hid_t_f *obj_id)
 }
 
 
-/*----------------------------------------------------------------------------
- * Name:        h5rdereference_object_c
- * Purpose:     Call H5Rdereference to dereference an object
- * Inputs:      dset_id - dataset identifier
+/****if* H5Rf/h5rdereference_object_c
+ * NAME
+ *        h5rdereference_object_c
+ * PURPOSE
+ *     Call H5Rdereference to dereference an object
+ * INPUTS
+ *      dset_id - dataset identifier
  *              ref - reference to an object
- * Outputs:     obj_id - dereferenced  object identifier
- * Returns:     0 on success, -1 on failure
- * Programmer:  Elena Pourmal
+ * OUTPUTS
+ *     obj_id - dereferenced  object identifier
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  Elena Pourmal
  *              Wednesday, December 1, 1999
- * Modifications:
- *---------------------------------------------------------------------------*/
+ * HISTORY
+ *
+ * SOURCE
+*/
 int_f
 nh5rdereference_object_c (hid_t_f *dset_id, haddr_t_f *ref, hid_t_f *obj_id)
+/******/
 {
      int ret_value = -1;
      hid_t c_dset_id;
@@ -217,21 +262,30 @@ nh5rdereference_object_c (hid_t_f *dset_id, haddr_t_f *ref, hid_t_f *obj_id)
      return ret_value;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        h5rdereference_ptr_c
- * Purpose:     Call H5Rdereference
- * Inputs:      obj_id - Valid identifier for the file containing the 
+/****if* H5Rf/h5rdereference_ptr_c
+ * NAME
+ *        h5rdereference_ptr_c
+ * PURPOSE
+ *     Call H5Rdereference
+ * INPUTS
+ *      obj_id - Valid identifier for the file containing the 
  *                       referenced object or any object in that file.
  *             ref_typ - The reference type of ref.
  *                 ref - Object reference
- * Outputs:     ref_obj_id - Identifier of referenced object
- * Returns:     0 on success, -1 on failure
- * Programmer:  M.S. Breitenfeld
+ * OUTPUTS
+ *     ref_obj_id - Identifier of referenced object
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  M.S. Breitenfeld
  *              June 20, 2008
- * Modifications:
- *---------------------------------------------------------------------------*/
+ * HISTORY
+ *
+ * SOURCE
+*/
 int_f
 nh5rdereference_ptr_c (hid_t_f *obj_id, int_f *ref_type, void *ref, hid_t_f *ref_obj_id)
+/******/
 {
   int ret_value = -1;
   hid_t c_ref_obj_id;
@@ -246,19 +300,28 @@ nh5rdereference_ptr_c (hid_t_f *obj_id, int_f *ref_type, void *ref, hid_t_f *ref
   return ret_value;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        h5rget_region_region_object_c
- * Purpose:     Call H5Rget_region to dereference dataspace region
- * Inputs:      dset_id - dataset identifier
+/****if* H5Rf/h5rget_region_region_object_c
+ * NAME
+ *        h5rget_region_region_object_c
+ * PURPOSE
+ *     Call H5Rget_region to dereference dataspace region
+ * INPUTS
+ *      dset_id - dataset identifier
  *              ref - reference to the dataset region
- * Outputs:     space_id - dereferenced  dataset dataspace identifier
- * Returns:     0 on success, -1 on failure
- * Programmer:  Elena Pourmal
+ * OUTPUTS
+ *     space_id - dereferenced  dataset dataspace identifier
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  Elena Pourmal
  *              Wednesday, December 1, 1999
- * Modifications:
- *---------------------------------------------------------------------------*/
+ * HISTORY
+ *
+ * SOURCE
+*/
 int_f
 nh5rget_region_region_c (hid_t_f *dset_id, int_f *ref, hid_t_f *space_id)
+/******/
 {
      int ret_value = -1;
      hid_t c_dset_id;
@@ -278,20 +341,29 @@ nh5rget_region_region_c (hid_t_f *dset_id, int_f *ref, hid_t_f *space_id)
      return ret_value;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        h5rget_object_type_obj_c
- * Purpose:     Call H5Rget_object_type to retrieve the type of the object reference points
+/****if* H5Rf/h5rget_object_type_obj_c
+ * NAME
+ *        h5rget_object_type_obj_c
+ * PURPOSE
+ *     Call H5Rget_object_type to retrieve the type of the object reference points
  *              to
- * Inputs:      dset_id - dataset identifier
+ * INPUTS
+ *      dset_id - dataset identifier
  *              ref - reference to the dataset region
- * Outputs:     obj_type - type of dereferenced object
- * Returns:     0 on success, -1 on failure
- * Programmer:  Elena Pourmal
+ * OUTPUTS
+ *     obj_type - type of dereferenced object
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  Elena Pourmal
  *              Wednesday, December 1, 1999
- * Modifications:
- *---------------------------------------------------------------------------*/
+ * HISTORY
+ *
+ * SOURCE
+*/
 int_f
 nh5rget_object_type_obj_c (hid_t_f *dset_id, haddr_t_f *ref, int_f *obj_type)
+/******/
 {
      H5O_type_t c_obj_type;
      hobj_ref_t ref_c;
@@ -312,23 +384,32 @@ nh5rget_object_type_obj_c (hid_t_f *dset_id, haddr_t_f *ref, int_f *obj_type)
      return ret_value;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        h5rget_name_object_c
- * Purpose:     Call H5Rget_name for an object
- * Inputs:
+/****if* H5Rf/h5rget_name_object_c
+ * NAME
+ *        h5rget_name_object_c
+ * PURPOSE
+ *     Call H5Rget_name for an object
+ * INPUTS
+ *
  *       loc_id - Identifier for the dataset containing the reference or for the group that dataset is in.
  *          ref - An object or dataset region reference.
  *
- * Outputs:     name - A name associated with the referenced object or dataset region.
+ * OUTPUTS
+ *     name - A name associated with the referenced object or dataset region.
  *              size - The size of the name buffer.
  *
- * Returns:     0 on success, -1 on failure
- * Programmer:  M.S. Breitenfeld
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  M.S. Breitenfeld
  *              March 31, 2008
- * Modifications:
- *---------------------------------------------------------------------------*/
+ * HISTORY
+ *
+ * SOURCE
+*/
 int_f
 nh5rget_name_object_c (hid_t_f *loc_id, haddr_t_f *ref, _fcd name, size_t_f *name_len, size_t_f *size_default)
+/******/
 {
      hobj_ref_t ref_c;
      int_f ret_value = -1;
@@ -362,23 +443,32 @@ nh5rget_name_object_c (hid_t_f *loc_id, haddr_t_f *ref, _fcd name, size_t_f *nam
      return ret_value;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        h5rget_name_region_c
- * Purpose:     Call H5Rget_name for a dataset region
- * Inputs:
+/****if* H5Rf/h5rget_name_region_c
+ * NAME
+ *        h5rget_name_region_c
+ * PURPOSE
+ *     Call H5Rget_name for a dataset region
+ * INPUTS
+ *
  *       loc_id - Identifier for the dataset containing the reference or for the group that dataset is in.
  *          ref - An object or dataset region reference.
  *
- * Outputs:     name - A name associated with the referenced object or dataset region.
+ * OUTPUTS
+ *     name - A name associated with the referenced object or dataset region.
  *              size - The size of the name buffer.
  *
- * Returns:     0 on success, -1 on failure
- * Programmer:  M.S. Breitenfeld
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  M.S. Breitenfeld
  *              March 31, 2008
- * Modifications:
- *---------------------------------------------------------------------------*/
+ * HISTORY
+ *
+ * SOURCE
+*/
 int_f
 nh5rget_name_region_c (hid_t_f *loc_id, int_f *ref, _fcd name, size_t_f *name_len, size_t_f *size_default)
+/******/
 {
      hdset_reg_ref_t ref_c;
      int_f ret_value = -1;
@@ -412,24 +502,33 @@ nh5rget_name_region_c (hid_t_f *loc_id, int_f *ref, _fcd name, size_t_f *name_le
      return ret_value;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        h5rget_name_ptr_c
- * Purpose:     Call H5Rget_name
- * Inputs: 
+/****if* H5Rf/h5rget_name_ptr_c
+ * NAME
+ *        h5rget_name_ptr_c
+ * PURPOSE
+ *     Call H5Rget_name
+ * INPUTS
+ * 
  *       loc_id - Identifier for the dataset containing the reference or for the group that dataset is in.
  *     ref_type - Type of reference.
  *          ref - An object or dataset region reference.
  *
- * Outputs:     name - A name associated with the referenced object or dataset region.
+ * OUTPUTS
+ *     name - A name associated with the referenced object or dataset region.
  *              size - The size of the name buffer.
  *
- * Returns:     0 on success, -1 on failure
- * Programmer:  M.S. Breitenfeld
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  M.S. Breitenfeld
  *              June 20, 2008
- * Modifications:
- *---------------------------------------------------------------------------*/
+ * HISTORY
+ *
+ * SOURCE
+*/
 int_f
 nh5rget_name_ptr_c (hid_t_f *loc_id, int_f *ref_type, void *ref, _fcd name, size_t_f *name_len, size_t_f *size_default)
+/******/
 {
      hdset_reg_ref_t ref_c;
      int_f ret_value = -1;

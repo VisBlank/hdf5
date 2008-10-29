@@ -1,5 +1,5 @@
-/****h* root/fortran/src/H5_f.c
- * FUNCTION
+/****ih* H5_f/H5_f
+ * PURPOSE
  *   This file contains C stubs for H5 Fortran APIs
  *
  * COPYRIGHT
@@ -23,31 +23,35 @@
 
 #include "H5f90.h"
 
-/*---------------------------------------------------------------------------
- * Name:              h5init_types_c
- * Purpose:           Initialize predefined datatypes in Fortran
- * Inputs:            types - array with the predefined Native Fortran
- *                            type, its element and length must be the
- *                            same as the types array defined in the
- *                            H5f90global.f90
- *                    floatingtypes - array with the predefined Floating Fortran
- *                                    type, its element and length must be the
- *                                    same as the floatingtypes array defined in the
- *                                    H5f90global.f90
- *                    integertypes - array with the predefined Integer Fortran
- *                                   type, its element and length must be the
- *                                   same as the integertypes array defined in the
- *                                   H5f90global.f90
- * Outputs:           None
- * Returns:           0 on success, -1 on failure
- * Programmer:        Elena Pourmal
- *                    Tuesday, August 3, 1999
- * Modifications:
- *---------------------------------------------------------------------------*/
+/****if* H5_f/h5init_types_c
+ * NAME
+ *  h5init_types_c
+ * PURPOSE
+ *  Initialize predefined datatypes in Fortran
+ * INPUTS            
+ *  types - array with the predefined Native Fortran
+ *          type, its element and length must be the
+ *          same as the types array defined in the
+ *          H5f90global.f90
+ *  floatingtypes - array with the predefined Floating Fortran
+ *                   type, its element and length must be the
+ *                   same as the floatingtypes array defined in the
+ *                   H5f90global.f90
+ *  integertypes - array with the predefined Integer Fortran
+ *                 type, its element and length must be the
+ *                 same as the integertypes array defined in the
+ *                 H5f90global.f90
+ * RETURNS          
+ *  0 on success, -1 on failure
+ * AUTHOR        
+ *  Elena Pourmal
+ *  Tuesday, August 3, 1999
+ * SOURCE
+*/
 int_f
 nh5init_types_c( hid_t_f * types, hid_t_f * floatingtypes, hid_t_f * integertypes )
+/******/
 {
-
     int ret_value = -1;
     hid_t c_type_id;
     size_t tmp_val;
@@ -231,11 +235,13 @@ nh5init_types_c( hid_t_f * types, hid_t_f * floatingtypes, hid_t_f * integertype
     ret_value = 0;
     return ret_value;
 }
-
-/*---------------------------------------------------------------------------
- * Name:              h5close_types_c
- * Purpose:           Closes predefined datatype in Fortran
- * Inputs:            types - array with the predefined Native Fortran
+/****if* H5_f/h5close_types_c
+ * NAME
+ *  h5close_types_c
+ * PURPOSE
+ *  Closes predefined datatype in Fortran
+ * INPUTS
+ *            types - array with the predefined Native Fortran
  *                            type, its element and length must be the
  *                            same as the types array defined in the
  *                            H5f90global.f90
@@ -256,16 +262,18 @@ nh5init_types_c( hid_t_f * types, hid_t_f * floatingtypes, hid_t_f * integertype
  *                    integerlen - length of the floatingtypes array, which must be the
  *                                 same as the length of floatingtypes array defined
  *                                 in the H5f90global.f90
- * Outputs:           None
- * Returns:           0 on success, -1 on failure
- * Programmer:        Elena Pourmal
+ * RETURNS
+ *           0 on success, -1 on failure
+ * AUTHOR
+ *        Elena Pourmal
  *                    Tuesday, August 3, 1999
- * Modifications:
- *---------------------------------------------------------------------------*/
+ * SOURCE
+ */
 int_f
 nh5close_types_c( hid_t_f * types, int_f *lentypes,
                   hid_t_f * floatingtypes, int_f* floatinglen,
                   hid_t_f * integertypes,  int_f * integerlen )
+/******/
 {
 
     int ret_value = -1;
@@ -287,10 +295,13 @@ nh5close_types_c( hid_t_f * types, int_f *lentypes,
     ret_value = 0;
     return ret_value;
 }
-/*---------------------------------------------------------------------------
- * Name:              h5init_flags_c
- * Purpose:           Initialize Fortran flags
- * Inputs:            h5d_flags    - H5D inteface flags
+/****if* H5_f/h5init_flags_c
+ * NAME
+ *              h5init_flags_c
+ * PURPOSE
+ *           Initialize Fortran flags
+ * INPUTS
+ *            h5d_flags    - H5D inteface flags
  *                    h5f_flags    - H5F interface flags
  *                    h5fd_flags    - H5FD interface flags
  *                    h5fd_hid_flags- H5FD interface flags of type hid_t
@@ -302,24 +313,30 @@ nh5close_types_c( hid_t_f * types, int_f *lentypes,
  *                    h5s_flags    - H5S interface flags
  *                    h5t_flags    - H5T interface flags
  *                    h5z_flags    - H5Z interface flags
- * Outputs:           None
- * Returns:           0 on success, -1 on failure
- * Programmer:        Elena Pourmal
+ * OUTPUTS
+ *           None
+ * RETURNS
+ *           0 on success, -1 on failure
+ * AUTHOR
+ *        Elena Pourmal
  *                    Tuesday, August 3, 1999
- * Modifications:     Added Z flags. EIP,  March 12, 2003
+ * HISTORY
+ *     Added Z flags. EIP,  March 12, 2003
  *                    Added more FD flags and new H5LIB flags
  *                    Added more FD flags for HDF5 file driver
  *                                  EIP, April 9, 2005
  *                    Added Generic flags introduced in version 1.8
  *                                  MSB, January, 2008
  *                    Added types in lines h5*_flags = ( )variable to match input
- *---------------------------------------------------------------------------*/
+ * SOURCE
+ */
 int_f
 nh5init_flags_c( int_f *h5d_flags, int_f *h5f_flags,
                  int_f *h5fd_flags, hid_t_f *h5fd_hid_flags,
                  int_f *h5g_flags, int_f *h5i_flags, int_f *h5l_flags, int_f *h5o_flags,
                  hid_t_f *h5p_flags, int_f *h5p_flags_int, int_f *h5r_flags, int_f *h5s_flags,
                  int_f *h5t_flags, int_f *h5z_flags, int_f *h5_generic_flags)
+/******/
 {
     int ret_value = -1;
 /*
@@ -629,6 +646,7 @@ nh5init_flags_c( int_f *h5d_flags, int_f *h5f_flags,
 
 int_f
 nh5init1_flags_c(int_f *h5lib_flags)
+/******/
 {
     int ret_value = -1;
     unsigned prm_1 = H5_SZIP_EC_OPTION_MASK;
@@ -639,16 +657,22 @@ nh5init1_flags_c(int_f *h5lib_flags)
     return ret_value;
 }
 
-/*---------------------------------------------------------------------------
- * Name:              h5open_c
- * Purpose:           Calls H5open call to initialize C HDF5 library
- * Returns:           0 on success, -1 on failure
- * Programmer:        Elena Pourmal
+/****if* H5_f/h5open_c
+ * NAME
+ *              h5open_c
+ * PURPOSE
+ *           Calls H5open call to initialize C HDF5 library
+ * RETURNS
+ *           0 on success, -1 on failure
+ * AUTHOR
+ *        Elena Pourmal
  *                    Friday, November 17, 2000
- * Modifications:
- *---------------------------------------------------------------------------*/
+ * 
+ * SOURCE
+ */
 int_f
 nh5open_c()
+/******/
 {
 
     int ret_value = -1;
@@ -656,16 +680,21 @@ nh5open_c()
     ret_value = 0;
     return ret_value;
 }
-/*---------------------------------------------------------------------------
- * Name:              h5close_c
- * Purpose:           Calls H5close call to close C HDF5 library
- * Returns:           0 on success, -1 on failure
- * Programmer:        Elena Pourmal
+/****if* H5_f/h5close_c
+ * NAME
+ *              h5close_c
+ * PURPOSE
+ *           Calls H5close call to close C HDF5 library
+ * RETURNS
+ *           0 on success, -1 on failure
+ * AUTHOR
+ *        Elena Pourmal
  *                    Friday, November 17, 2000
- * Modifications:
- *---------------------------------------------------------------------------*/
+ * SOURCE
+ */
 int_f
 nh5close_c()
+/******/
 {
 
     int ret_value = -1;
@@ -675,23 +704,31 @@ nh5close_c()
 }
 
 
-/*---------------------------------------------------------------------------
- * Name:              h5get_libversion_c
- * Purpose:           Calls H5get_libversion function
+/****if* H5_f/h5get_libversion_c
+ * NAME
+ *              h5get_libversion_c
+ * PURPOSE
+ *           Calls H5get_libversion function
  *		      to retrieve library version info.
- * Inputs:
+ * INPUTS
+ *
  *                    None
- * Outputs:
+ * OUTPUTS
+ *
  *                    majnum - the major version of the library
  *                    minnum - the minor version of the library
  *                    relnum - the release version of the library
- * Returns:           0 on success, -1 on failure
- * Programmer:        Elena Pourmal
+ * RETURNS
+ *           0 on success, -1 on failure
+ * AUTHOR
+ *        Elena Pourmal
  *                    Tuesday, September 24, 2002
- * Modifications:
- *---------------------------------------------------------------------------*/
+ * SOURCE
+ *
+ */
 int_f
 nh5get_libversion_c( int_f *majnum, int_f *minnum, int_f *relnum)
+/******/
 {
 
     int ret_value = -1;
@@ -707,23 +744,30 @@ nh5get_libversion_c( int_f *majnum, int_f *minnum, int_f *relnum)
 }
 
 
-/*---------------------------------------------------------------------------
- * Name:              h5check_version_c
- * Purpose:           Calls H5check_version function
+/****if* H5_f/h5check_version_c
+ * NAME
+ *              h5check_version_c
+ * PURPOSE
+ *           Calls H5check_version function
  *		      to verify library version info.
- * Inputs:
+ * INPUTS
+ *
  *                    majnum - the major version of the library
  *                    minnum - the minor version of the library
  *                    relnum - the release version of the library
- * Outputs:
+ * OUTPUTS
+ *
  *                    None
- * Returns:           0 on success, aborts on failure
- * Programmer:        Elena Pourmal
+ * RETURNS
+ *           0 on success, aborts on failure
+ * AUTHOR
+ *        Elena Pourmal
  *                    Tuesday, September 24, 2002
- * Modifications:
- *---------------------------------------------------------------------------*/
+ * SOURCE
+ */
 int_f
 nh5check_version_c( int_f *majnum, int_f *minnum, int_f *relnum)
+/******/
 {
 
     int ret_value = -1;
@@ -738,16 +782,21 @@ nh5check_version_c( int_f *majnum, int_f *minnum, int_f *relnum)
     return ret_value;
 }
 
-/*---------------------------------------------------------------------------
- * Name:              h5garbage_collect_c
- * Purpose:           Calls H5garbage_collect to collect on all free-lists of all types
- * Returns:           0 on success, -1 on failure
- * Programmer:        Elena Pourmal
+/****if* H5_f/h5garbage_collect_c
+ * NAME
+ *              h5garbage_collect_c
+ * PURPOSE
+ *           Calls H5garbage_collect to collect on all free-lists of all types
+ * RETURNS
+ *           0 on success, -1 on failure
+ * AUTHOR
+ *        Elena Pourmal
  *                    Tuesday, September 24, 2002
- * Modifications:
- *---------------------------------------------------------------------------*/
+ * SOURCE
+ */
 int_f
 nh5garbage_collect_c()
+/******/
 {
 
     int ret_value = -1;
@@ -756,16 +805,21 @@ nh5garbage_collect_c()
     return ret_value;
 }
 
-/*---------------------------------------------------------------------------
- * Name:              h5dont_atexit_c
- * Purpose:           Calls H5dont_atexit not to install atexit cleanup routine
- * Returns:           0 on success, -1 on failure
- * Programmer:        Elena Pourmal
+/****if* H5_f/h5dont_atexit_c
+ * NAME
+ *              h5dont_atexit_c
+ * PURPOSE
+ *           Calls H5dont_atexit not to install atexit cleanup routine
+ * RETURNS
+ *           0 on success, -1 on failure
+ * AUTHOR
+ *        Elena Pourmal
  *                    Tuesday, September 24, 2002
- * Modifications:
- *---------------------------------------------------------------------------*/
+ * SOURCE
+ */
 int_f
 nh5dont_atexit_c()
+/******/
 {
 
     int ret_value = -1;

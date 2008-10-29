@@ -3,7 +3,7 @@
 ! NAME
 !   HDF5
 !  
-! FUNCTION
+! PURPOSE
 !   This is the main module used for linking to the Fortran parallel HDF library.
 !   This file replaces HDF5.f90 when compiling the parallel library.
 !

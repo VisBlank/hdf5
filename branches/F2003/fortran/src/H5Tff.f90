@@ -3,7 +3,7 @@
 ! NAME
 !   H5T
 !  
-! FUNCTION
+! PURPOSE
 !   This file contains Fortran interfaces for H5T functions. It includes
 !   all the functions that are independent on whether the Fortran 2003 functions
 !   are enabled or disabled.
@@ -45,13 +45,13 @@ CONTAINS
 ! NAME
 !		h5topen_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Opens named datatype. 	
 !
 ! INPUTS  
 !		loc_id		- location identifier
 !		name		- a datatype name
-! OUTPUT  
+! OUTPUTS  
 !		type_id		- datatype identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -112,7 +112,7 @@ CONTAINS
 ! NAME
 !		h5tcommit_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Commits a transient datatype to a file, creating a 
 !	new named datatype. 	
 !
@@ -121,7 +121,7 @@ CONTAINS
 !		name		- name of the datatype to be stored
 !				  at the specified location
 !		type_id		- identifier of a datatype to be stored
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -201,12 +201,12 @@ CONTAINS
 ! NAME
 !		h5tcopy_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	iCreates a copy of exisiting datatype.	
 !
 ! INPUTS  
 !		type_id		- datatype identifier
-! OUTPUT  
+! OUTPUTS  
 !		new_type_id	- identifier of datatype's copy
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -248,14 +248,14 @@ CONTAINS
 ! NAME
 !		h5tequal_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Determines whether two datatype identifiers refer 
 !		to the same datatype. 	
 !
 ! INPUTS  
 !		type1_id	- datatype identifier
 !		type2_id	- datatype identifier
-! OUTPUT  
+! OUTPUTS  
 !		flag		- TRUE/FALSE flag to indicate
 !				  if two datatypes are equal
 !		hdferr:		- error code		
@@ -302,12 +302,12 @@ CONTAINS
 ! NAME
 !		h5tclose_f 
 !
-! FUNCTION
+! PURPOSE
 !	Releases a datatype.  	
 !
 ! INPUTS  
 !		type_id		- datatype identifier
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -348,12 +348,12 @@ CONTAINS
 ! NAME
 !		h5tget_class_f 
 !
-! FUNCTION
+! PURPOSE
 !	Returns the datatype class identifier.  	
 !
 ! INPUTS  
 !		type_id		- datatype identifier
-! OUTPUT  
+! OUTPUTS  
 !		class		- class, possible values are:
 !					 H5T_NO_CLASS_F (-1)
 !					 H5T_INTEGER_F  (0)
@@ -418,12 +418,12 @@ CONTAINS
 ! NAME
 !		h5tget_size_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Returns the size of a datatype. 	
 !
 ! INPUTS  
 !		type_id		- datatype identifier
-! OUTPUT  
+! OUTPUTS  
 !		size		- datatype size
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -467,13 +467,13 @@ CONTAINS
 ! NAME
 !		h5tset_size_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets the total size for an atomic datatype.	
 !
 ! INPUTS  
 !		type_id		- datatype identifier
 !		size		- size of the datatype
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -517,12 +517,12 @@ CONTAINS
 ! NAME
 !		h5tget_order_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Returns the byte order of an atomic datatype. 	
 !
 ! INPUTS  
 !		type_id		- datatype identifier
-! OUTPUT  
+! OUTPUTS  
 !		order		- byte order for the datatype, possible
 !				  values are:
 !					 H5T_ORDER_LE_F
@@ -571,7 +571,7 @@ CONTAINS
 ! NAME
 !		h5tset_order_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets the byte ordering of an atomic datatype. 	
 !
 ! INPUTS  
@@ -581,7 +581,7 @@ CONTAINS
 !					 H5T_ORDER_LE_F
 !					 H5T_ORDER_BE_F
 !					 H5T_ORDER_VAX_F (not implemented yet)
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -625,12 +625,12 @@ CONTAINS
 ! NAME
 !		h5tget_precision_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Returns the precision of an atomic datatype. 	
 !
 ! INPUTS  
 !		type_id		- datatype identifier
-! OUTPUT  
+! OUTPUTS  
 !		precision	- precision of the datatype
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -674,13 +674,13 @@ CONTAINS
 ! NAME
 !		h5tset_precision_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets the precision of an atomic datatype. 	
 !
 ! INPUTS  
 !		type_id		- datatype identifier
 !		precision	- datatype precision
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -723,12 +723,12 @@ CONTAINS
 ! NAME
 !		h5tget_offset_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Retrieves the bit offset of the first significant bit. 	
 !
 ! INPUTS  
 !		type_id		- datatype identifier
-! OUTPUT  
+! OUTPUTS  
 !		offset		- offset value
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -770,13 +770,13 @@ CONTAINS
 ! NAME
 !		h5tset_offset_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets the bit offset of the first significant bit. 	
 !
 ! INPUTS  
 !		type_id		- datatype identifier
 !		offset		- offset value
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -817,13 +817,13 @@ CONTAINS
 ! NAME
 !		h5tget_pad_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Retrieves the padding type of the least and 
 !		most-significant bit padding. 
 !
 ! INPUTS  
 !		type_id		- datatype identifier
-! OUTPUT  
+! OUTPUTS  
 !		lsbpad		- least-significant bit padding type 
 !		msbpad		- most-significant bit padding type 
 !					 Possible values of padding type are:
@@ -884,7 +884,7 @@ CONTAINS
 ! NAME
 !		h5tset_pad_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets the least and most-significant bits padding types. 
 !
 ! INPUTS  
@@ -897,7 +897,7 @@ CONTAINS
 !					 H5T_PAD_ONE_F = 1
 !					 H5T_PAD_BACKGROUND_F = 2
 !					 H5T_PAD_NPAD_F      = 3
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -949,12 +949,12 @@ CONTAINS
 ! NAME
 !		h5tget_sign_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Retrieves the sign type for an integer type. 
 !
 ! INPUTS  
 !		type_id		- datatype identifier
-! OUTPUT  
+! OUTPUTS  
 !		sign		- sign type 
 !					Possible values are:
 !					Unsigned integer type H5T_SGN_NONE_F = 0
@@ -1008,7 +1008,7 @@ CONTAINS
 ! NAME
 !		h5tset_sign_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets the sign proprety for an integer type. 
 !
 ! INPUTS  
@@ -1019,7 +1019,7 @@ CONTAINS
 !					Two's complement signed integer type
 !					H5T_SGN_2_F = 1
 !					or error value: H5T_SGN_ERROR_F=-1 
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -1067,12 +1067,12 @@ CONTAINS
 ! NAME
 !		h5tget_fields_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Retrieves floating point datatype bit field information. 
 !
 ! INPUTS  
 !		type_id		- datatype identifier
-! OUTPUT  
+! OUTPUTS  
 !		spos		- sign bit-position
 !		epos		- exponent bit-position
 !		esize		- size of exponent in bits
@@ -1128,7 +1128,7 @@ CONTAINS
 ! NAME
 !		h5tset_fields_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets locations and sizes of floating point bit fields. 
 !
 ! INPUTS  
@@ -1139,7 +1139,7 @@ CONTAINS
 !		mpos		- mantissa position
 !		msize		- size of mantissa in bits
 !		hdferr:		- error code		
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -1188,12 +1188,12 @@ CONTAINS
 ! NAME
 !		h5tget_ebias_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Retrieves the exponent bias of a floating-point type. 
 !
 ! INPUTS  
 !		type_id		- datatype identifier
-! OUTPUT  
+! OUTPUTS  
 !		ebias		- datatype exponent bias
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -1235,13 +1235,13 @@ CONTAINS
 ! NAME
 !		h5tset_ebias_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets the exponent bias of a floating-point type. 
 !
 ! INPUTS  
 !		type_id		- datatype identifier
 !		ebias		- datatype exponent bias
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -1282,13 +1282,13 @@ CONTAINS
 ! NAME
 !		h5tget_norm_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Retrieves mantissa normalization of a floating-point 
 !		datatype. 
 !
 ! INPUTS  
 !		type_id		- datatype identifier
-! OUTPUT  
+! OUTPUTS  
 !		norm		- normalization types, valid values are:
 !					H5T_NORM_IMPLIED_F(0)
 !					H5T_NORM_MSBSET_F(1)
@@ -1338,7 +1338,7 @@ CONTAINS
 ! NAME
 !		h5tset_norm_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets the mantissa normalization of a floating-point datatype. 
 !
 ! INPUTS  
@@ -1347,7 +1347,7 @@ CONTAINS
 !					H5T_NORM_IMPLIED_F(0)
 !					H5T_NORM_MSBSET_F(1)
 !					H5T_NORM_NONE_F(2)
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -1393,13 +1393,13 @@ CONTAINS
 ! NAME
 !		h5tget_inpad_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Retrieves the internal padding type for unused bits 
 !		in floating-point datatypes. 
 !
 ! INPUTS  
 !		type_id		- datatype identifier
-! OUTPUT  
+! OUTPUTS  
 !		padtype		- padding type for unused bits
 !				  Possible values of padding type are:
 !					 H5T_PAD_ZERO_F = 0
@@ -1450,7 +1450,7 @@ CONTAINS
 ! NAME
 !		h5tset_inpad_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Fills unused internal floating point bits. 
 !
 ! INPUTS  
@@ -1460,7 +1460,7 @@ CONTAINS
 !					 H5T_PAD_ZERO_F = 0
 !					 H5T_PAD_ONE_F = 1
 !					 H5T_PAD_BACKGROUND_F = 2
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -1505,12 +1505,12 @@ CONTAINS
 ! NAME
 !		h5tget_cset_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Retrieves the character set type of a string datatype. 
 !
 ! INPUTS  
 !		type_id		- datatype identifier
-! OUTPUT  
+! OUTPUTS  
 !		cset		- character set type of a string datatype
 !				  Possible values of padding type are:
 !				                  H5T_CSET_ASCII_F = 0
@@ -1555,7 +1555,7 @@ CONTAINS
 ! NAME
 !		h5tset_cset_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets character set to be used. 
 !
 ! INPUTS  
@@ -1563,7 +1563,7 @@ CONTAINS
 !		cset		- character set type of a string datatype
 !				  Possible values of padding type are:
 !				                  H5T_CSET_ASCII_F = 0
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -1605,12 +1605,12 @@ CONTAINS
 ! NAME
 !		h5tget_strpad_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Retrieves the storage mechanism for a string datatype. 
 !
 ! INPUTS  
 !		type_id		- datatype identifier
-! OUTPUT  
+! OUTPUTS  
 !		strpad		- storage method for a string datatype
 !				  Possible values are:
 !				  H5T_STR_NULLTERM_F, 
@@ -1656,7 +1656,7 @@ CONTAINS
 ! NAME
 !		h5tset_strpad_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Defines the storage mechanism for character strings. 
 !
 ! INPUTS  
@@ -1667,7 +1667,7 @@ CONTAINS
 !				  H5T_STR_NULLPAD_F, 
 !				  H5T_STR_SPACEPAD_F
 !				  H5T_STR_ERROR_F
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -1707,12 +1707,12 @@ CONTAINS
 ! NAME
 !		h5tget_nmembers_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Retrieves the number of fields in a compound datatype. 
 !
 ! INPUTS  
 !		type_id		- datatype identifier
-! OUTPUT  
+! OUTPUTS  
 !		num_members	- number of members	
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -1755,13 +1755,13 @@ CONTAINS
 ! NAME
 !		h5tget_member_name_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Retrieves the name of a field of a compound datatype. 
 !
 ! INPUTS  
 !		type_id		- datatype identifier
 !		index		- filed index (0-based)
-! OUTPUT  
+! OUTPUTS  
 !		member_name	- buffer to hold member's name
 !		namelen		- name length
 !		hdferr:		- error code		
@@ -1809,13 +1809,13 @@ CONTAINS
 ! NAME
 !		h5tget_member_offset_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Retrieves the offset of a field of a compound datatype. 
 !
 ! INPUTS  
 !		type_id		- datatype identifier
 !		member_no 	- number of the field
-! OUTPUT  
+! OUTPUTS  
 !		offset		- byte offset of the requested field
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -1858,14 +1858,14 @@ CONTAINS
 ! NAME
 !		h5tget_member_index_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Retrieves the index of a compound or enumeration datatype member. 
 !
 ! INPUTS  
 !		type_id		- datatype identifier
 !		name		- name of the field or member whose index to
 !                                 to be retrieved from the datatype.
-! OUTPUT  
+! OUTPUTS  
 !               index           - 0-based index of the filed or member (0 to N-1)
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -1910,11 +1910,11 @@ CONTAINS
 !!$! NAME
 !!$!		h5tget_member_dim_f 
 !!$!
-!!$! FUNCTION
+!!$! PURPOSE
 !!$! 	This function is not supported in hdf5-1.4.* 
 !!$!
 !!$! INPUTS  
-!!$! OUTPUT  
+!!$! OUTPUTS  
 !!$!		hdferr:		- error code		
 !!$!				 	Success:  0
 !!$!				 	Failure: -1   
@@ -1954,12 +1954,12 @@ CONTAINS
 ! NAME
 !		h5tget_array_dims_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Returns sizes of array dimensions.
 !
 ! INPUTS  
 !		type_id		- array datatype identifier
-! OUTPUT  
+! OUTPUTS  
 !		dims		- buffer to store array datatype
 !				  dimensions
 !		hdferr:		- error code		
@@ -2004,12 +2004,12 @@ CONTAINS
 ! NAME
 !		h5tget_array_ndims_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Returns the rank of an array datatype. 
 !
 ! INPUTS  
 !		type_id		- array datatype identifier
-! OUTPUT  
+! OUTPUTS  
 !		ndims		- number of array dimensions
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -2051,12 +2051,12 @@ CONTAINS
 ! NAME
 !		h5tget_super_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Returns the base datatype from which a datatype is derived. 
 !
 ! INPUTS  
 !		type_id		- datatype identifier
-! OUTPUT  
+! OUTPUTS  
 !		base_type_id	- identifier of the base type		
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -2099,14 +2099,14 @@ CONTAINS
 ! NAME
 !		h5tget_member_type_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Returns the datatype of the specified member. 
 !
 ! INPUTS  
 !		type_id		- compound datatype identifier
 !		field_idx	- field index (0-based)
 !
-! OUTPUT  
+! OUTPUTS  
 !		datatype	- idnetifier of the member's datatype
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -2150,7 +2150,7 @@ CONTAINS
 ! NAME
 !		h5tcreate_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Creates a new dataype
 !
 ! INPUTS  
@@ -2159,7 +2159,7 @@ CONTAINS
 !					 H5T_ENUM_F   
 !					 H5T_OPAQUE_F
 !		size		- datattype size
-! OUTPUT  
+! OUTPUTS  
 !		type_id		- datatype identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -2205,7 +2205,7 @@ CONTAINS
 ! NAME
 !		h5tinsert_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Adds a new member to a compound datatype. 
 !
 ! INPUTS  
@@ -2214,7 +2214,7 @@ CONTAINS
 !		offset		- start of the member in an instance of 
 !				  the compound datatype
 !		field_id	- datatype identifier of the field to insert
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -2265,12 +2265,12 @@ CONTAINS
 ! NAME
 !		h5tpack_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Recursively removes padding from within a compound datatype. 
 !
 ! INPUTS  
 !		type_id		- compound datatype identifier
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -2309,11 +2309,11 @@ CONTAINS
 !!$! NAME
 !!$!		h5tinsert_array_f 
 !!$!
-!!$! FUNCTION
+!!$! PURPOSE
 !!$! 	This function is not available on hdf5-1.4.*
 !!$!
 !!$! INPUTS  
-!!$! OUTPUT  
+!!$! OUTPUTS  
 !!$!		hdferr:		- error code		
 !!$!				 	Success:  0
 !!$!				 	Failure: -1   
@@ -2359,7 +2359,7 @@ CONTAINS
 ! NAME
 !		h5tarray_create_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Creates an array datatype object. 
 !
 ! INPUTS  
@@ -2367,7 +2367,7 @@ CONTAINS
 !				  base datatype
 !		rank		- rank of the array
 !		dims		- array dimension sizes
-! OUTPUT  
+! OUTPUTS  
 !		type_id		- array datatype identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -2413,12 +2413,12 @@ CONTAINS
 ! NAME
 !		h5tenum_create_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Creates a new enumeration datatype. 
 !
 ! INPUTS  
 !		parent_id	- datatype identifier for base datatype		
-! OUTPUT  
+! OUTPUTS  
 !		new_type_id	- datatype identifier for the enumeration
 !				  datatype
 !		hdferr:		- error code		
@@ -2464,12 +2464,12 @@ CONTAINS
 ! NAME
 !		h5tenaum_insert_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Inserts a new enumeration datatype member. 
 !
 ! INPUTS  
 !		type_id		- datatype identifier
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -2516,7 +2516,7 @@ CONTAINS
 ! NAME
 !		h5tenum_nameof_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Returns the symbol name corresponding to a specified 
 !    		member of an enumeration datatype. 
 !
@@ -2524,7 +2524,7 @@ CONTAINS
 !		type_id		- datatype identifier
 !		value		- value of the enumeration datatype 
 !		namelen		- name buffer size
-! OUTPUT  
+! OUTPUTS  
 !		name		- buffer to hold symbol name
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -2571,14 +2571,14 @@ CONTAINS
 ! NAME
 !		h5tenum_valuof_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Returns the value corresponding to a specified 
 !		member of an enumeration datatype. 
 !
 ! INPUTS  
 !		type_id		- datatype identifier
 !		name		- symbol name
-! OUTPUT  
+! OUTPUTS  
 !		value		- value of the enumeration datatype
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -2627,13 +2627,13 @@ CONTAINS
 ! NAME
 !		h5tget_member_value_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Returns the value of an enumeration datatype member. 
 !
 ! INPUTS  
 !		type_id		- datatype identifier
 !		member_no	- number of the enumeration datatype member
-! OUTPUT  
+! OUTPUTS  
 !		value		- value of the enumeration datatype
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -2677,14 +2677,14 @@ CONTAINS
 ! NAME
 !		h5tset_tag_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Tags an opaque datatype. 
 !
 ! INPUTS  
 !		type_id		- identifier for opaque datatype
 !		tag		- unique ASCII string with which the opaque 
 !				  datatype is to be tagged. 
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -2730,12 +2730,12 @@ CONTAINS
 ! NAME
 !		h5tget_tag_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Gets the tag associated with an opaque datatype. 
 !
 ! INPUTS  
 !		type_id		- identifier for opaque datatype
-! OUTPUT  
+! OUTPUTS  
 !		tag		- unique ASCII string associated with opaque
 !				  datatype
 !		hdferr:		- error code		
@@ -2781,12 +2781,12 @@ CONTAINS
 ! NAME
 !		h5tvlen_create_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Creates a new variable-length datatype. 
 !
 ! INPUTS  
 !		type_id		- identifier iof base datatype
-! OUTPUT  
+! OUTPUTS  
 !		vltype_id	- identifier for VL datatype
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -2826,12 +2826,12 @@ CONTAINS
 ! NAME
 !		h5tis_variable_str_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Determines whether a dattype is a variable string.
 !
 ! INPUTS  
 !		type_id	-  	- datartpe identifier
-! OUTPUT  
+! OUTPUTS  
 !		status		- flag to indicate if datatype
 !				  is a variable string
 !		hdferr:		- error code		
@@ -2876,13 +2876,13 @@ CONTAINS
 ! NAME
 !		h5tget_member_class_f 
 !
-! FUNCTION
+! PURPOSE
 !      Returns datatype class of compound datatype member.
 !
 ! INPUTS  
 !		type_id	-  	- datartpe identifier
 !               member_no       - index of compound datatype member
-! OUTPUT  
+! OUTPUTS  
 !               class           - class type for compound dadtype member
 !                                 Can be one of the follwoing classes:
 !                                 H5T_NO_CLASS_F (error)
@@ -2935,7 +2935,7 @@ CONTAINS
 ! NAME
 !		h5tcommit_anon_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Commits a transient datatype to a file, 
 !               creating a new named datatype, 
 !               but does not link it into the file structure.	
@@ -2945,7 +2945,7 @@ CONTAINS
 !                 in which the new named datatype is to be created.
 !      dtype_id - A datatype identifier.
 !
-! OUTPUT
+! OUTPUTS
 !	hdferr: - error code		
 !			Success:  0
 !          		Failure: -1   
@@ -3007,13 +3007,13 @@ CONTAINS
 ! NAME
 !      h5tcommitted_f 
 !
-! FUNCTION
+! PURPOSE
 !   Determines whether a datatype is a named type or a transient type.
 !
 ! INPUTS
 !      dtype_id - A datatype identifier.
 !
-! OUTPUT
+! OUTPUTS
 !     committed - .TRUE., if the datatype has been committed
 !                .FALSE., if the datatype has not been committed.
 !	hdferr: - error code		
@@ -3064,12 +3064,12 @@ CONTAINS
 ! NAME
 !		H5Tdecode_f
 !
-! FUNCTION
+! PURPOSE
 !	Decode a binary object description of data type and return a new object handle.
 ! INPUTS  
 !		buf -  Buffer for the data space object to be decoded.
 !            obj_id - Object ID
-! OUTPUT
+! OUTPUTS
 !           hdferr: - error code		
 !			Success:  0
 !			Failure: -1
@@ -3106,14 +3106,14 @@ CONTAINS
 ! NAME
 !		H5Tencode_f
 !
-! FUNCTION
+! PURPOSE
 !	Encode a data type object description into a binary buffer.
 !
 ! INPUTS
 !            obj_id - Identifier of the object to be encoded.
 !		buf - Buffer for the object to be encoded into.
 !            nalloc - The size of the allocated buffer.
-! OUTPUT
+! OUTPUTS
 !            nalloc - The size of the buffer needed.
 !           hdferr: - error code		
 !	                Success:  0
@@ -3155,12 +3155,12 @@ CONTAINS
 ! NAME
 !		h5tget_create_plist_f 
 !
-! FUNCTION
+! PURPOSE
 !  	Returns a copy of a datatype creation property list.
 !		
 ! INPUTS  
 !		dtype_id   - Datatype identifier
-! OUTPUT  
+! OUTPUTS  
 !               dtpl_id    - Datatype property list identifier
 !		hdferr:    - Error code		
 !				 Success:  0
@@ -3198,13 +3198,13 @@ CONTAINS
 ! NAME
 !		h5tcompiler_conv_f 
 !
-! FUNCTION
+! PURPOSE
 !  	Check whether the library’s default conversion is hard conversion.R
 !		
 ! INPUTS  
 !           src_id - Identifier for the source datatype.
 !           dst_id - Identifier for the destination datatype.
-! OUTPUT  
+! OUTPUTS  
 !           flag - TRUE for compiler conversion, FALSE for library conversion
 !          hdferr: - Error code		
 !			Success:  0
@@ -3249,7 +3249,7 @@ CONTAINS
 ! NAME
 !		h5tget_native_type_f 
 !
-! FUNCTION
+! PURPOSE
 !  	Returns the native datatype of a specified datatype.
 !		
 ! INPUTS  
@@ -3261,7 +3261,7 @@ CONTAINS
 !                    H5T_DIR_DESCEND     = 2     /*in descendent order             */
 !               * NOTE: In C it is defined as a structure: H5T_direction_t
 !
-! OUTPUT  
+! OUTPUTS  
 !               native_dtype_id  - The native datatype identifier for the specified dataset datatype
 !		hdferr:          - Error code		
 !				     Success:  0

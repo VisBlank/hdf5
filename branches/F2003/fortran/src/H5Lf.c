@@ -1,5 +1,5 @@
-/****h* root/fortran/src/H5Lf.c
- * FUNCTION
+/****h* H5Lf/H5Lf
+ * PURPOSE
  *   This file contains C stubs for H5L Fortran APIs
  *
  * COPYRIGHT
@@ -24,10 +24,13 @@
 #include "H5f90.h"
 #include "H5Eprivate.h"
 
-/*----------------------------------------------------------------------------
- * Name:        h5lcopy_c
- * Purpose:     Call H5Lcopy
- * Inputs:
+/****if* H5Lf/h5lcopy_c
+ * NAME
+ *        h5lcopy_c
+ * PURPOSE
+ *     Call H5Lcopy
+ * INPUTS
+ *
  *     src_loc_id - Location identifier of the source link
  *       src_name - Name of the link to be copied
  *    src_namelen - length of the name
@@ -39,16 +42,21 @@
  *        lcpl_id - Link creation property list identifier
  *        lapl_id - Link access property list identifier
  *
- * Returns:     0 on success, -1 on failure
- * Programmer:  M.S. Breitenfeld
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  M.S. Breitenfeld
  *              January, 2008
- * Modifications:
- *---------------------------------------------------------------------------*/
+ * HISTORY
+ *
+ * SOURCE
+*/
 
 int_f
 nh5lcopy_c(hid_t_f *src_loc_id, _fcd src_name, size_t_f *src_namelen, hid_t_f *dest_loc_id,
 	     _fcd dest_name, size_t_f *dest_namelen,
 	     hid_t_f *lcpl_id, hid_t_f *lapl_id)
+/******/
 {
   char *c_src_name = NULL;
   char *c_dest_name = NULL;
@@ -78,10 +86,13 @@ done:
   return ret_value;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        h5lcreate_external_c
- * Purpose:     Call H5Lcreate_external_c
- * Inputs:
+/****if* H5Lf/h5lcreate_external_c
+ * NAME
+ *        h5lcreate_external_c
+ * PURPOSE
+ *     Call H5Lcreate_external_c
+ * INPUTS
+ *
  *    file_name - Name of the file containing the target object. Neither the file nor the target object is
  *                required to exist. May be the file the link is being created in.
  *     obj_name - Path within the target file to the target object.
@@ -90,17 +101,19 @@ done:
  *      lcpl_id - Link creation property list identifier.
  *      lapl_id - Link access property list identifier.
  *
- * Returns:     0 on success, -1 on failure
- * Programmer:  M.S. Breitenfeld
- *              February 29, 2008
- * Modifications:
- *---------------------------------------------------------------------------*/
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  M.S. Breitenfeld
+ *  February 29, 2008
+ * SOURCE
+*/
 
 int_f
 nh5lcreate_external_c(_fcd file_name, size_t_f *file_namelen, _fcd obj_name, size_t_f *obj_namelen,
 		      hid_t_f *link_loc_id, _fcd link_name, size_t_f *link_namelen,
 		      hid_t_f *lcpl_id, hid_t_f *lapl_id)
-
+/******/
 {
   char *c_file_name = NULL;
   char *c_obj_name = NULL;
@@ -135,24 +148,30 @@ done:
   return ret_value;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        h5ldelete_c
- * Purpose:     Call H5Ldelete
- * Inputs:
+/****if* H5Lf/h5ldelete_c
+ * NAME
+ *        h5ldelete_c
+ * PURPOSE
+ *     Call H5Ldelete
+ * INPUTS
+ *
  *
  *    loc_id  - Identifier of the file or group containing the object
  *    name    - Name of the link to delete
  *    lapl_id - Link access property list identifier
  *    namelen - length of name
  *
- * Returns:     0 on success, -1 on failure
- * Programmer:  M.S. Breitenfeld
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  M.S. Breitenfeld
  *              January, 2008
- * Modifications:
- *---------------------------------------------------------------------------*/
+ * SOURCE
+*/
 
 int_f
 nh5ldelete_c ( hid_t_f *loc_id, _fcd name, size_t_f *namelen, hid_t_f *lapl_id )
+/******/
 {
   char *c_name = NULL;
   int ret_value = 0;
@@ -176,10 +195,13 @@ done:
     return ret_value;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        h5lcreate_soft_c
- * Purpose:     Call H5Lcreate_soft
- * Inputs:
+/****if* H5Lf/h5lcreate_soft_c
+ * NAME
+ *        h5lcreate_soft_c
+ * PURPOSE
+ *     Call H5Lcreate_soft
+ * INPUTS
+ *
  *
  *       target_path - Path to the target object, which is not required to exist.
  *       link_loc_id - The file or group identifier for the new link.
@@ -187,17 +209,20 @@ done:
  *       lcpl_id     - Link creation property list identifier.
  *       lapl_id     - Link access property list identifier.
  *
- * Returns:     0 on success, -1 on failure
- * Programmer:  M.S. Breitenfeld
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  M.S. Breitenfeld
  *              February 20, 2008
- * Modifications:
- *---------------------------------------------------------------------------*/
+ * SOURCE
+*/
 
 int_f
 nh5lcreate_soft_c(_fcd target_path, size_t_f *target_path_len,
 		  hid_t_f *link_loc_id,
 		  _fcd link_name, size_t_f *link_name_len,
 		  hid_t_f *lcpl_id, hid_t_f *lapl_id )
+/******/
 {
   char *c_target_path = NULL;
   char *c_link_name = NULL;
@@ -226,10 +251,13 @@ nh5lcreate_soft_c(_fcd target_path, size_t_f *target_path_len,
     return ret_value;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        h5lcreate_hard_c
- * Purpose:     Call H5Lcreate_hard
- * Inputs:
+/****if* H5Lf/h5lcreate_hard_c
+ * NAME
+ *        h5lcreate_hard_c
+ * PURPOSE
+ *     Call H5Lcreate_hard
+ * INPUTS
+ *
  *       obj_loc_id  - The file or group identifier for the target object.
  *       obj_name    - Name of the target object, which must already exist.
  *       obj_namelen - Name length
@@ -239,17 +267,19 @@ nh5lcreate_soft_c(_fcd target_path, size_t_f *target_path_len,
  *       lcpl_id     - Link creation property list identifier.
  *       lapl_id     - Link access property list identifier.
  *
- * Returns:     0 on success, -1 on failure
- * Programmer:  M.S. Breitenfeld
- *              February 27, 2008
- * Modifications:
- *---------------------------------------------------------------------------*/
-
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  M.S. Breitenfeld
+ *  February 27, 2008
+ * SOURCE
+*/
 int_f
 nh5lcreate_hard_c(hid_t_f *obj_loc_id, _fcd obj_name, size_t_f *obj_namelen,
 		  hid_t_f *link_loc_id,
 		  _fcd link_name, size_t_f *link_namelen,
 		  hid_t_f *lcpl_id, hid_t_f *lapl_id )
+/******/
 {
   char *c_obj_name = NULL;
   char *c_link_name = NULL;
@@ -278,10 +308,13 @@ nh5lcreate_hard_c(hid_t_f *obj_loc_id, _fcd obj_name, size_t_f *obj_namelen,
     return ret_value;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        h5ldelete_by_idx_c
- * Purpose:     Calls h5ldelete_by_idx
- * Inputs:
+/****if* H5Lf/h5ldelete_by_idx_c
+ * NAME
+ *        h5ldelete_by_idx_c
+ * PURPOSE
+ *     Calls h5ldelete_by_idx
+ * INPUTS
+ *
  *          loc_id - File or group identifier specifying location of subject group
  *      group_name - Name of subject group
  *   group_namelen - Name length
@@ -299,15 +332,21 @@ nh5lcreate_hard_c(hid_t_f *obj_loc_id, _fcd obj_name, size_t_f *obj_namelen,
  *               n - Link for which to retrieve information
  *         lapl_id - Link access property list
  *
- * Outputs:     N/A
- * Returns:     0 on success, -1 on failure
- * Programmer:  M.S. Breitenfeld
+ * OUTPUTS
+ *     N/A
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  M.S. Breitenfeld
  *              February 29, 2008
- * Modifications: N/A
- *---------------------------------------------------------------------------*/
+ * HISTORY
+ * N/A
+ * SOURCE
+*/
 int_f
 nh5ldelete_by_idx_c (hid_t_f *loc_id, _fcd group_name, size_t_f *group_namelen,
 		     int_f *index_field, int_f *order, hsize_t_f *n, hid_t_f *lapl_id)
+/******/
 {
     char *c_group_name = NULL;          /* Buffer to hold C string */
     H5_index_t c_index_field;
@@ -335,22 +374,31 @@ done:
     return ret_value;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        h5lexists_c
- * Purpose:     Calls H5Lexists
- * Inputs:
+/****if* H5Lf/h5lexists_c
+ * NAME
+ *        h5lexists_c
+ * PURPOSE
+ *     Calls H5Lexists
+ * INPUTS
+ *
  *      loc_id - Identifier of the file or group to query.
  *        name - Link name to check
  *     lapl_id - Link access property list identifier.
- * Outputs:
+ * OUTPUTS
+ *
  *     link_exists_c  - returns a positive value, for TRUE, or 0 (zero), for FALSE.
- * Returns:     0 on success, -1 on failure
- * Programmer:  M.S. Breitenfeld
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  M.S. Breitenfeld
  *              February 29, 2008
- * Modifications:
- *---------------------------------------------------------------------------*/
+ * HISTORY
+ *
+ * SOURCE
+*/
 int_f
 nh5lexists_c (hid_t_f *loc_id, _fcd name, size_t_f *namelen, hid_t_f *lapl_id, int_f *link_exists)
+/******/
 {
   char *c_name = NULL;          /* Buffer to hold C string */
   int_f ret_value = 0;          /* Return value */
@@ -373,15 +421,19 @@ done:
     return ret_value;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        h5lget_info_c
- * Purpose:     Call  H5Lget_info
- * Inputs:
+/****if* H5Lf/h5lget_info_c
+ * NAME
+ *        h5lget_info_c
+ * PURPOSE
+ *     Call  H5Lget_info
+ * INPUTS
+ *
  *		link_loc_id - File or group identifier.
  *                link_name - Name of the link for which information is being sought
  *             link_namelen - Name length
  *                  lapl_id - Link access property list
- * Outputs:
+ * OUTPUTS
+ *
  *
  *              cset - indicates the character set used for link’s name.
  *            corder - specifies the link’s creation order position.
@@ -394,16 +446,21 @@ done:
  *           address - If the link is a hard link, address specifies the file address that the link points to
  *          val_size - If the link is a symbolic link, val_size will be the length of the link value
  *
- * Returns:     0 on success, -1 on failure
- * Programmer:  M.S. Breitenfeld
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  M.S. Breitenfeld
  *              January, 2008
- * Modifications: N/A
- *---------------------------------------------------------------------------*/
+ * HISTORY
+ * N/A
+ * SOURCE
+*/
 int_f
 nh5lget_info_c (hid_t_f *link_loc_id, _fcd link_name, size_t_f *link_namelen,
 		int_f *cset, int_f *corder, int_f *corder_valid, int_f *link_type,
 		int_f *address, hsize_t_f *val_size,
 		hid_t_f *lapl_id)
+/******/
 {
     char *c_link_name = NULL;          /* Buffer to hold C string */
     int_f ret_value = 0;          /* Return value */
@@ -434,10 +491,13 @@ done:
     return ret_value;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        h5lget_info_by_idx_c
- * Purpose:     Call  H5Lget_info_by_idx
- * Inputs:
+/****if* H5Lf/h5lget_info_by_idx_c
+ * NAME
+ *        h5lget_info_by_idx_c
+ * PURPOSE
+ *     Call  H5Lget_info_by_idx
+ * INPUTS
+ *
  *	loc_id  - File or group identifier specifying location of subject group
  *   group_name - Name of subject group
  *group_namelen - Name length
@@ -445,21 +505,27 @@ done:
  *        order - Order within field or index
  *            n - Link for which to retrieve information
  *      lapl_id - Link access property list
- * Outputs:
+ * OUTPUTS
+ *
  *        corder_valid - Indicates whether the the creation order data is valid for this attribute
  *              corder - Is a positive integer containing the creation order of the attribute
  *                cset - Indicates the character set used for the attribute’s name
  *           data_size - indicates the size, in the number of characters, of the attribute
  *
- * Returns:     0 on success, -1 on failure
- * Programmer:  M.S. Breitenfeld
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  M.S. Breitenfeld
  *              January, 2008
- * Modifications: N/A
- *---------------------------------------------------------------------------*/
+ * HISTORY
+ * N/A
+ * SOURCE
+*/
 int_f
 nh5lget_info_by_idx_c(hid_t_f *loc_id, _fcd group_name, size_t_f *group_namelen,
 		      int_f *index_field, int_f *order, hsize_t_f *n,
 		      int_f *corder_valid, int_f *corder, int_f *cset, hsize_t_f *data_size, hid_t_f *lapl_id)
+/******/
 {
     char *c_group_name = NULL;          /* Buffer to hold C string */
     H5_index_t c_index_field;
@@ -495,21 +561,30 @@ done:
     return ret_value;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        H5Lis_registered_c
- * Purpose:     Call H5Lis_registered
- * Inputs:
- *  link_cls_id - User-defined link class identifier
- * Outputs:     NONE
+/****if* H5Lf/H5Lis_registered_c
+ * NAME
+ *        H5Lis_registered_c
+ * PURPOSE
+ *     Call H5Lis_registered
+ * INPUTS
  *
- * Returns:     Returns a positive value if the link class has been registered
+ *  link_cls_id - User-defined link class identifier
+ * OUTPUTS
+ *     NONE
+ *
+ * RETURNS
+ *     Returns a positive value if the link class has been registered
  *              and zero if it is unregistered. Otherwise returns a negative value
- * Programmer:  M.S. Breitenfeld
+ * AUTHOR
+ *  M.S. Breitenfeld
  *              March 3, 2008
- * Modifications: N/A
- *---------------------------------------------------------------------------*/
+ * HISTORY
+ * N/A
+ * SOURCE
+*/
 int_f
 nh5lis_registered_c(int_f *link_cls_id)
+/******/
 {
   int_f ret_value = 0;      /* Return value */
   H5L_type_t c_link_cls_id; /* User-defined link class identifier */
@@ -528,27 +603,33 @@ nh5lis_registered_c(int_f *link_cls_id)
 }
 
 
-/*----------------------------------------------------------------------------
- * Name:        h5lmove_c
- * Purpose:     Call  H5Lmove
- * Inputs:
+/****if* H5Lf/h5lmove_c
+ * NAME
+ *        h5lmove_c
+ * PURPOSE
+ *     Call  H5Lmove
+ * INPUTS
+ *
  *    src_loc_id   - Original file or group identifier.
  *    src_name     - Original link name.
  *    src_namelen  - name length
  *    dest_loc_id  - Destination file or group identifier.
  *    dest_name    - NEW link name.
  *    dest_namelen - name length
- * Outputs:
+ * OUTPUTS
  *
- * Returns:     0 on success, -1 on failure
- * Programmer:  M.S. Breitenfeld
+ *
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  M.S. Breitenfeld
  *              March 3, 2008
- * Modifications: N/A
- *---------------------------------------------------------------------------*/
+ * SOURCE
+*/
 int_f
 nh5lmove_c(hid_t_f *src_loc_id, _fcd src_name, size_t_f *src_namelen, hid_t_f *dest_loc_id,
 	   _fcd dest_name, size_t_f *dest_namelen, hid_t_f *lcpl_id, hid_t_f *lapl_id)
-
+/******/
 {
     char *c_src_name = NULL;  /* Buffer to hold C string */
     char *c_dest_name = NULL; /* Buffer to hold C string */
@@ -574,10 +655,13 @@ done:
     return ret_value;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        h5lget_name_by_idx_c
- * Purpose:     Call  H5Lget_name_by_idx
- * Inputs:
+/****if* H5Lf/h5lget_name_by_idx_c
+ * NAME
+ *        h5lget_name_by_idx_c
+ * PURPOSE
+ *     Call  H5Lget_name_by_idx
+ * INPUTS
+ *
  *   loc_id      - File or group identifier specifying location of subject group
  *   group_name  - Name of subject group
  *   index_field - Index or field which determines the order
@@ -585,18 +669,22 @@ done:
  *   n           - Link for which to retrieve information
  *   size        - Maximum number of characters of link value to be returned.
  *   lapl_id     - Link access property list
- * Outputs:
+ * OUTPUTS
+ *
  *   name        - Buffer in which link value is returned
  *   size        - The size of the link name on success
- * Returns:      0 on success, -1 on failure
- * Programmer:  M.S. Breitenfeld
+ * RETURNS
+ *      0 on success, -1 on failure
+ * AUTHOR
+ *  M.S. Breitenfeld
  *              March 10, 2008
- * Modifications: N/A
- *---------------------------------------------------------------------------*/
+ * SOURCE
+*/
 int_f
 nh5lget_name_by_idx_c(hid_t_f *loc_id, _fcd group_name, size_t_f *group_namelen,
 		      int_f *index_field, int_f *order, hsize_t_f *n,
 		      size_t_f *size, _fcd name, hid_t_f *lapl_id)
+/******/
 {
     char *c_group_name = NULL;          /* Buffer to hold C string */
     char *c_name = NULL;          /* Buffer to hold C string */
@@ -631,23 +719,31 @@ done:
     return ret_value;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        h5lget_val_c
- * Purpose:     Call  H5Lget_val
- * Inputs:
- *		link_loc_id - File or group identifier.
- *                link_name - Name of the link for which valrmation is being sought
- *             link_namelen - Name length
- *                     size - Maximum number of characters of link value to be returned.
- *                  lapl_id - Link access property list
- * Outputs:
- *             linkval_buff - The buffer to hold the returned link value.
- *
- * Returns:     0 on success, -1 on failure
- * Programmer:  M.S. Breitenfeld
- *              March 3, 2008
- * Modifications: N/A
- *---------------------------------------------------------------------------*/
+/* /\****if* H5Lf/h5lget_val_c */
+/*  * NAME */
+/*  *        h5lget_val_c */
+/*  * PURPOSE */
+/*  *     Call  H5Lget_val */
+/*  * INPUTS */
+/*  * */
+/*  *		link_loc_id - File or group identifier. */
+/*  *                link_name - Name of the link for which valrmation is being sought */
+/*  *             link_namelen - Name length */
+/*  *                     size - Maximum number of characters of link value to be returned. */
+/*  *                  lapl_id - Link access property list */
+/*  * OUTPUTS */
+/*  * */
+/*  *             linkval_buff - The buffer to hold the returned link value. */
+/*  * */
+/*  * RETURNS */
+/*  *     0 on success, -1 on failure */
+/*  * AUTHOR */
+/*  *  M.S. Breitenfeld */
+/*  *              March 3, 2008 */
+/*  * HISTORY */
+/*  * N/A */
+/*  * SOURCE */
+/* *\/ */
 /* int_f */
 /* nh5lget_val_c (hid_t_f *link_loc_id, _fcd link_name, size_t_f *link_namelen, */
 /* 	       size_t_f *size, _fcd linkval_buff, */
@@ -678,34 +774,42 @@ done:
 /* } */
 
 
-/*----------------------------------------------------------------------------
- * Name:        H5Lregistered_c
- * Purpose:     Call H5Lregistered
- * Inputs:
- *
- * Inputs:
- *     version         - Version number of this struct
- *     class_id        - Link class identifier
- *     comment         - Comment for debugging
- *     comment_len     - Comment for debugging
- *     create_func     - Callback during link creation
- *     create_func_len - length
- *    move_func        - Callback after moving link
- *    move_func_len    - length
- *     copy_func       - Callback after copying link
- *     copy_func_len   - length
- *     trav_func       - The main traversal function
- *     trav_func_len   - length
- *     del_func        - Callback for link deletion
- *     del_func_len    - length
- *     query_func      - Callback for queries
- *     query_func_len  - length
- *
- * Returns:     0 on success, -1 on failure
- * Programmer:  M.S. Breitenfeld
- *              February 3, 2008
- * Modifications:
- *---------------------------------------------------------------------------*/
+/* /\****if* H5Lf/ */
+/*  * NAME */
+/*  *        H5Lregistered_c */
+/*  * PURPOSE */
+/*  *     Call H5Lregistered */
+/*  * INPUTS */
+/*  * */
+/*  * */
+/*  * INPUTS */
+/*  * */
+/*  *     version         - Version number of this struct */
+/*  *     class_id        - Link class identifier */
+/*  *     comment         - Comment for debugging */
+/*  *     comment_len     - Comment for debugging */
+/*  *     create_func     - Callback during link creation */
+/*  *     create_func_len - length */
+/*  *    move_func        - Callback after moving link */
+/*  *    move_func_len    - length */
+/*  *     copy_func       - Callback after copying link */
+/*  *     copy_func_len   - length */
+/*  *     trav_func       - The main traversal function */
+/*  *     trav_func_len   - length */
+/*  *     del_func        - Callback for link deletion */
+/*  *     del_func_len    - length */
+/*  *     query_func      - Callback for queries */
+/*  *     query_func_len  - length */
+/*  * */
+/*  * RETURNS */
+/*  *     0 on success, -1 on failure */
+/*  * AUTHOR */
+/*  *  M.S. Breitenfeld */
+/*  *              February 3, 2008 */
+/*  * HISTORY */
+/*  * */
+/*  * SOURCE */
+/* *\/ */
 
 /* int_f */
 
@@ -781,26 +885,33 @@ done:
 /*   return ret_value; */
 /* } */
 
-/*----------------------------------------------------------------------------
- * Name:        h5lget_val_c
- * Purpose:     Call H5Lget_val
- * Inputs:
+/****if* H5Lf/h5lget_val_c
+ * NAME
+ *        h5lget_val_c
+ * PURPOSE
+ *     Call H5Lget_val
+ * INPUTS
+ *
  *               link_loc_id - File or group identifier.
  *                 link_name - Link whose value is to be returned.
  *             link_name_len - length of link_name
  *                      size - Maximum number of characters of link value to be returned.
  *                  lapl_id  - List access property list identifier
- * Outputs:
+ * OUTPUTS
+ *
  *             linkval_buff  - The buffer to hold the returned link value.
  *
- * Returns:      0 on success, -1 on failure
- * Programmer:  M.S. Breitenfeld
+ * RETURNS
+ *      0 on success, -1 on failure
+ * AUTHOR
+ *  M.S. Breitenfeld
  *              April 11, 2008
- * Modifications: N/A
- *---------------------------------------------------------------------------*/
+ * SOURCE
+*/
 int_f
 nh5lget_val_c(hid_t_f *link_loc_id, _fcd link_name, size_t_f *link_namelen, size_t_f *size,
 	      void *linkval_buff, hid_t_f *lapl_id)
+/******/
 {
   int_f ret_value = 0;       /* Return value */
   char *c_link_name = NULL; /* Buffer to hold C string */
@@ -822,10 +933,13 @@ done:
     return ret_value;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        h5literate_c
- * Purpose:     Call H5Literate
- * Inputs:   
+/****if* H5Lf/h5literate_c
+ * NAME
+ *        h5literate_c
+ * PURPOSE
+ *     Call H5Literate
+ * INPUTS
+ *   
  *     group_id - Identifier specifying subject group
  *   index_type - Type of index which determines the order
  *        order - Order within index
@@ -833,16 +947,20 @@ done:
  *           op - Callback function passing data regarding the link to the calling application
  *      op_data - User-defined pointer to data required by the application for its processing of the link
  *
- * Outputs: 
+ * OUTPUTS
+ * 
  *          idx - Position at which an interrupted iteration may be restarted
  *
- * Returns:     >0 on success, 0< on failure
- * Programmer:  M.S. Breitenfeld
+ * RETURNS
+ *     >0 on success, 0< on failure
+ * AUTHOR
+ *  M.S. Breitenfeld
  *              July 8, 2008
- * Modifications: N/A
- *---------------------------------------------------------------------------*/
+ * SOURCE
+*/
 int_f
 nh5literate_c(hid_t_f *group_id, int_f *index_type, int_f *order, hsize_t_f *idx, H5L_iterate_t op, void *op_data )
+/******/
 {
   int_f ret_value = -1;       /* Return value */
   herr_t func_ret_value; /* H5Linterate return value */
@@ -862,10 +980,13 @@ nh5literate_c(hid_t_f *group_id, int_f *index_type, int_f *order, hsize_t_f *idx
   return ret_value;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        h5literate_by_name_c
- * Purpose:     Call H5Literate_by_name
- * Inputs:   
+/****if* H5Lf/h5literate_by_name_c
+ * NAME
+ *        h5literate_by_name_c
+ * PURPOSE
+ *     Call H5Literate_by_name
+ * INPUTS
+ *   
  *     loc_id - Identifier specifying subject group
  *         name - Name of subject group
  *      namelen - Name length
@@ -876,16 +997,20 @@ nh5literate_c(hid_t_f *group_id, int_f *index_type, int_f *order, hsize_t_f *idx
  *      op_data - User-defined pointer to data required by the application for its processing of the link
  *      lapl_id - List access property list identifier
  *
- * Outputs: 
+ * OUTPUTS
+ * 
  *          idx - Position at which an interrupted iteration may be restarted
  *
- * Returns:     >0 on success, 0< on failure
- * Programmer:  M.S. Breitenfeld
+ * RETURNS
+ *     >0 on success, 0< on failure
+ * AUTHOR
+ *  M.S. Breitenfeld
  *              Augest 18, 2008
- * Modifications: N/A
- *---------------------------------------------------------------------------*/
+ * SOURCE
+*/
 int_f
 nh5literate_by_name_c(hid_t_f *loc_id, _fcd name, size_t_f *namelen, int_f *index_type, int_f *order, hsize_t_f *idx, H5L_iterate_t op, void *op_data, hid_t_f *lapl_id)
+/******/
 {
   int_f ret_value = -1;       /* Return value */
   herr_t func_ret_value; /* H5Linterate return value */

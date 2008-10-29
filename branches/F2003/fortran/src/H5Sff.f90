@@ -6,7 +6,7 @@
 ! FILE
 !   fortran/src/H5Sff.f90
 !  
-! FUNCTION
+! PURPOSE
 !   This file contains Fortran interfaces for H5S functions. It includes
 !   all the functions that are independent on whether the Fortran 2003 functions
 !   are enabled or disabled.
@@ -47,12 +47,12 @@ CONTAINS
 ! NAME
 !		h5screate_simple_f 
 !
-! FUNCTION 	Creates a new simple data space and opens it for access	.
+! PURPOSE 	Creates a new simple data space and opens it for access	.
 !
 ! INPUTS  
 !		rank		- number of dimensions
 !		dims		- an array of the size of each dimension
-! OUTPUT  
+! OUTPUTS  
 !		space_id	- dataspace identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -119,12 +119,12 @@ CONTAINS
 ! NAME
 !		h5sclose_f 
 !
-! FUNCTION 	
+! PURPOSE 	
 !  Releases and terminates access to a dataspace.	
 !
 ! INPUTS  
 !		space_id	- identifier of dataspace to release
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -163,12 +163,12 @@ CONTAINS
 ! NAME
 !		h5screate_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Creates a new dataspace of a specified type. 	
 !
 ! INPUTS  
 !		classtype	- the type of the dataspace to be created
-! OUTPUT  
+! OUTPUTS  
 !		space_id	- dataspace identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -221,12 +221,12 @@ CONTAINS
 ! NAME
 !		h5scopy_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Creates an exact copy of a dataspace.	
 !
 ! INPUTS  
 !		space_id	- dataspace identifier
-! OUTPUT  
+! OUTPUTS  
 !		new_space_id	- identifier of dataspace's copy
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -275,12 +275,12 @@ CONTAINS
 ! NAME
 !		h5sget_select_hyper_nblocks_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Get number of hyperslab blocks.	
 !
 ! INPUTS  
 !		space_id	- dataspace identifier
-! OUTPUT  
+! OUTPUTS  
 !		num_blocks	- number of hyperslab blocks in the current
 !				  hyperslab selection
 !		hdferr:		- error code		
@@ -326,14 +326,14 @@ CONTAINS
 ! NAME
 !		h5sget_select_hyper_blocklist_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Gets the list of hyperslab blocks currently selected. 	
 !
 ! INPUTS  
 !		space_id	- dataspace identifier
 !		startblock	- hyperslab block to start with
 !		num_blocks	- number of blocks to get
-! OUTPUT  
+! OUTPUTS  
 !		buf		- buffer to hold block list
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -391,13 +391,13 @@ CONTAINS
 ! NAME
 !		h5sget_select_bounds_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Gets the bounding box containing the current selection. 	
 !
 ! INPUTS  
 !		space_id	- dataspace identifier
 !		
-! OUTPUT  
+! OUTPUTS  
 !		start		- starting coordinates of bounding box
 !		end		- ending coordinates of bounding box
 !		hdferr:		- error code		
@@ -448,12 +448,12 @@ CONTAINS
 ! NAME
 !		h5sget_select_elem_npoints_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Gets the number of element points in the current selection	
 !
 ! INPUTS  
 !		space_id	- dataspace identifier
-! OUTPUT  
+! OUTPUTS  
 !		num_points	- number of element points in the current 
 !				  dataspace selection
 !		hdferr:		- error code		
@@ -499,14 +499,14 @@ CONTAINS
 ! NAME
 !		h5sget_select_elem_pointlist_f
 !
-! FUNCTION
+! PURPOSE
 !	Gets the list of element points currently selected.  	
 !
 ! INPUTS  
 !		space_id	- dataspace identifier
 !		startpoint	- element point to start with 
 !		num_points	- number of elemnt points to get
-! OUTPUT  
+! OUTPUTS  
 !		buf		- buffer with element points selected
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -558,7 +558,7 @@ CONTAINS
 ! NAME
 !		h5sselect_elements_f 
 !
-! FUNCTION
+! PURPOSE
 !	Selects elements to be included in the selection for 
 !		a dataspace 	
 !
@@ -571,7 +571,7 @@ CONTAINS
 !		num_elements	- number of elements to be selected
 !		coord		- 2D (rank x num_elements) array with the 
 !				  elements coordinates
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -647,13 +647,13 @@ CONTAINS
 ! NAME
 !		h5sselect_all_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Selects the entire dataspace. 	
 !
 ! INPUTS  
 !		space_id	- identifier for the dataspace in which
 !				  selection being made
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -692,13 +692,13 @@ CONTAINS
 ! NAME
 !		h5sselect_none_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Resets the selection region to include no elements. 	
 !
 ! INPUTS  
 !		space_id	- the identifier for the dataspace in which 
 !                                 the selection is being reset. 
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -740,14 +740,14 @@ CONTAINS
 ! NAME
 !		h5sselect_valid_f 
 !
-! FUNCTION
+! PURPOSE
 !	Verifies that the selection is within the extent of 
 !		the dataspace.  	
 !
 ! INPUTS  
 !		space_id	- identifier for the dataspace for which 
 !				  selection is verified
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -797,12 +797,12 @@ CONTAINS
 ! NAME
 !		h5sget_simple_extent_npoints_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Determines the number of elements in a dataspace. 	
 !
 ! INPUTS  
 !		space_id	- dataspace identifier
-! OUTPUT  
+! OUTPUTS  
 !		npoints		- number of elements in the dataspace
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -848,12 +848,12 @@ CONTAINS
 ! NAME
 !		h5sget_select_npoints_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Determines the number of elements in a dataspace selection. 	
 !
 ! INPUTS 
 !		space_id	- dataspace identifier 
-! OUTPUT  
+! OUTPUTS  
 !		npoints		- number of points in the dataspace selection
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -895,12 +895,12 @@ CONTAINS
 ! NAME
 !		h5sget_simple_extent_ndims_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Determines the dimensionality of a dataspace	
 !
 ! INPUTS  
 !		space_id	- dataspace identifier
-! OUTPUT  
+! OUTPUTS  
 !		rank		- number of dataspace dimensions
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -941,12 +941,12 @@ CONTAINS
 ! NAME
 !		h5sget_simple_extent_dims_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Retrieves dataspace dimension size and maximum size. 	
 !
 ! INPUTS  
 !		space_id	- dataspace identifier
-! OUTPUT  
+! OUTPUTS  
 !		dims		- array to store size of each dimension
 !		maxdims		- array to store maximum size of each 
 !				  dimension
@@ -997,12 +997,12 @@ CONTAINS
 ! NAME
 !		h5sget_simple_extent_type_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Determine the current class of a dataspace	
 !
 ! INPUTS  
 !		space_id	- dataspace identifier
-! OUTPUT  
+! OUTPUTS  
 !		classtype	- class type, possible values are:
 !				  H5S_NO_CLASS_F (-1)
 !				  H5S_SCALAR_F (0)
@@ -1052,7 +1052,7 @@ CONTAINS
 ! NAME
 !		h5sset_extent_simple_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Sets or resets the size of an existing dataspace. 	
 !
 ! INPUTS  
@@ -1061,7 +1061,7 @@ CONTAINS
 !		current_size	- array with the new sizes of dimensions
 !		maximum_size	- array with the new maximum sizes of 
 !				  dimensions
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -1113,12 +1113,12 @@ CONTAINS
 ! NAME
 !		h5sis_simple_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Determines whether a dataspace is a simple dataspace. 	
 !
 ! INPUTS  
 !		space_id	- dataspace identifier
-! OUTPUT  
+! OUTPUTS  
 !		status		- flag to indicate if dataspace
 !				  is simple or not 
 !		hdferr:		- error code		
@@ -1167,14 +1167,14 @@ CONTAINS
 ! NAME
 !		h5soffset_simple_f 
 !
-! FUNCTION
+! PURPOSE
 !	Sets the offset of a simple dataspace.  	
 !
 ! INPUTS  
 !		space_id	- dataspace identifier
 !		offset		- the offset at which to position the 
 !				  selection 
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -1220,7 +1220,7 @@ CONTAINS
 ! NAME
 !		h5sextent_copy_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Copies the extent of a dataspace. 	
 !
 ! INPUTS  
@@ -1228,7 +1228,7 @@ CONTAINS
 !				  the extent is copied 
 !		source_space_id	- the identifier for the dataspace from 
 !				  which the extent is copied
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -1277,12 +1277,12 @@ CONTAINS
 ! NAME
 !		h5sset_extent_none_f 
 !
-! FUNCTION
+! PURPOSE
 !	Removes the extent from a dataspace.  	
 !
 ! INPUTS  
 !		space_id	- dataspace identifier
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -1321,7 +1321,7 @@ CONTAINS
 ! NAME
 !		h5sselect_hyperslab_f 
 !
-! FUNCTION
+! PURPOSE
 !	Selects a hyperslab region to add to the current selected 
 !		region 	
 !
@@ -1333,7 +1333,7 @@ CONTAINS
 !		start		- array with hyperslab offsets
 !		count		- number of blocks included in the 
 !				  hyperslab
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -1450,7 +1450,7 @@ CONTAINS
 !!$! NAME
 !!$!		h5scombine_hyperslab_f 
 !!$!
-!!$! FUNCTION
+!!$! PURPOSE
 !!$!	Combine a hyperslab selection with the current 
 !!$!               selection for a dataspace 
 !!$!
@@ -1469,7 +1469,7 @@ CONTAINS
 !!$!		start		- array with hyperslab offsets
 !!$!		count		- number of blocks included in the 
 !!$!				  hyperslab
-!!$! OUTPUT  
+!!$! OUTPUTS  
 !!$!               hyper_id        - identifier for the new hyperslab
 !!$!		hdferr:		- error code		
 !!$!				 	Success:  0
@@ -1597,7 +1597,7 @@ CONTAINS
 !!$! NAME
 !!$!		h5scombine_select_f 
 !!$!
-!!$! FUNCTION
+!!$! PURPOSE
 !!$!	Combine two hyperslab selections with an operation 
 !!$!               and return a dataspace with resulting selection.
 !!$!
@@ -1614,7 +1614,7 @@ CONTAINS
 !!$!				  H5S_SELECT_APPEND_F 
 !!$!				  H5S_SELECT_PREPEND_F 
 !!$!		space2_id	- dataspace of selection to use 
-!!$! OUTPUT  
+!!$! OUTPUTS  
 !!$!               ds_id           - idataspace identifier with the new selection
 !!$!		hdferr:		- error code		
 !!$!				 	Success:  0
@@ -1677,7 +1677,7 @@ CONTAINS
 !!$! NAME
 !!$!		h5sselect_select_f 
 !!$!
-!!$! FUNCTION
+!!$! PURPOSE
 !!$!	Refine a hyperslab selection with an operation 
 !!$!               using second hyperslab
 !!$!
@@ -1695,7 +1695,7 @@ CONTAINS
 !!$!				  H5S_SELECT_PREPEND_F 
 !!$!		space2_id	- dataspace of selection to use 
 !!$!				  
-!!$! OUTPUT  
+!!$! OUTPUTS  
 !!$!		hdferr:		- error code		
 !!$!				 	Success:  0
 !!$!				 	Failure: -1   
@@ -1755,12 +1755,12 @@ CONTAINS
 ! NAME
 !  h5sget_select_type_f 
 !
-! FUNCTION
+! PURPOSE
 !	Retrieve the type of selection
 !
 ! INPUTS  
 !		space_id	- dataspace iidentifier with selection
-! OUTPUT  
+! OUTPUTS  
 !		type    	- flag, valid values are:
 !				  H5S_SEL_ERROR_F 
 !				  H5S_SEL_NONE_F 
@@ -1808,13 +1808,13 @@ CONTAINS
 ! NAME
 !		H5Sdecode_f
 !
-! FUNCTION
+! PURPOSE
 !	Decode a binary object description of data space and return a new object handle.
 !
 ! INPUTS  
 !		buf -  Buffer for the data space object to be decoded.
 !            obj_id - Object ID
-! OUTPUT
+! OUTPUTS
 !           hdferr: - error code		
 !			Success:  0
 !			Failure: -1
@@ -1850,14 +1850,14 @@ CONTAINS
 ! NAME
 !		H5Sencode_f
 !
-! FUNCTION
+! PURPOSE
 !	Encode a data space object description into a binary buffer.
 !
 ! INPUTS
 !            obj_id - Identifier of the object to be encoded.
 !		buf - Buffer for the object to be encoded into.
 !            nalloc - The size of the allocated buffer.
-! OUTPUT
+! OUTPUTS
 !            nalloc - The size of the buffer needed.
 !           hdferr: - error code		
 !	                Success:  0
@@ -1896,13 +1896,13 @@ CONTAINS
 ! NAME
 !  h5sextent_equal_f 
 !
-! FUNCTION
+! PURPOSE
 !  Determines whether two dataspace extents are equal.
 !
 ! INPUTS  
 !		space1_id - First dataspace identifier.
 !               space2_id - Second dataspace identifier.
-! OUTPUT  
+! OUTPUTS  
 !                   Equal - .TRUE. if equal, .FALSE. if unequal.
 !		  hdferr: - error code		
 !				 Success:  0

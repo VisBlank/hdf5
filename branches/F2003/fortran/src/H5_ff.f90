@@ -3,7 +3,7 @@
 ! NAME
 !   MODULE H5LIB
 !
-! FUNCTION
+! PURPOSE
 !   This module provides fortran specific helper functions for the HDF library
 !
 ! USES
@@ -48,10 +48,10 @@ CONTAINS
 ! NAME		
 !  h5open_f 
 !
-! FUNCTION	
+! PURPOSE	
 !  Initializes the HDF5 library and Fortran90 interface.   	
 !
-! OUTPUT  
+! OUTPUTS  
 !		error:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
@@ -166,10 +166,10 @@ CONTAINS
 ! NAME
 !  h5close_f 
 !
-! FUNCTION
+! PURPOSE
 !  Closes the HDF5 library and Fortran90 interface.   	
 ! 
-! OUTPUT  
+! OUTPUTS  
 !		error:		- error code		
 !				 	Success:  0
 !				 	Failure: -1	
@@ -227,10 +227,10 @@ CONTAINS
 ! NAME		
 !  h5get_libversion_f 
 !
-! FUNCTION	
+! PURPOSE	
 !  Returns the HDF5 LIbrary release number
 ! 
-! OUTPUT  
+! OUTPUTS  
 !		majnum:		- major version of the library
 !		minum:		- minor version of the library
 !		relnum:		- release version of the library
@@ -266,14 +266,14 @@ CONTAINS
 ! NAME		
 !  h5check_version_f 
 !
-! FUNCTION	
+! PURPOSE	
 !  Verifies that library versions are consistent.
 !
 ! INPUTS  
 !		majnum:		- major version of the library
 !		minum:		- minor version of the library
 !		relnum:		- release version of the library
-! OUTPUT  
+! OUTPUTS  
 !		error:		- error code		
 !				 	Success:  0
 !				 	Failure:  application aborts
@@ -306,10 +306,10 @@ CONTAINS
 ! NAME		
 !  h5garbage_collect_f 
 !
-! FUNCTION	
+! PURPOSE	
 !  Garbage collects on all free-lists of all types.
 ! 
-! OUTPUT  
+! OUTPUTS  
 !		error:		- error code		
 !				 	Success:  0
 !				 	Failure: -1	
@@ -340,10 +340,10 @@ CONTAINS
 ! NAME		
 !  h5dont_atexit_f 
 !
-! FUNCTION	
+! PURPOSE	
 !  Instructs library not to install atexit cleanup routine. 
 ! 
-! OUTPUT  
+! OUTPUTS  
 !		error:		- error code		
 !				 	Success:  0
 !				 	Failure: -1 	
@@ -375,7 +375,7 @@ CONTAINS
 ! NAME		
 !  h5kind_to_type
 !
-! FUNCTION 	
+! PURPOSE 	
 !  Converts the KIND to the correct HDF type
 !
 ! INPUTS       
@@ -383,7 +383,7 @@ CONTAINS
 !  flag    - whether KIND is of type INTEGER or REAL:
 !                 H5_INTEGER_KIND - integer
 !                 H5_REAL_KIND - real
-! OUTPUT  
+! OUTPUTS  
 !  h5_type - returns the type
 !
 ! AUTHOR 

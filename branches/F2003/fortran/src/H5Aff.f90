@@ -3,7 +3,7 @@
 ! NAME
 !   MODULE H5A
 !  
-! FUNCTION
+! PURPOSE
 !   This file contains Fortran interfaces for H5A functions. It includes
 !   all the functions that are independent on whether the Fortran 2003 functions
 !   are enabled or disabled.
@@ -51,7 +51,7 @@ CONTAINS
 ! NAME
 !		h5acreate_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Creates a dataset as an attribute of a group, dataset, 
 !		or named datatype 
 !
@@ -62,7 +62,7 @@ CONTAINS
 !		type_id		- attribute datatype identifier
 !		space_id	- attribute dataspace identifier
 !
-! OUTPUT  
+! OUTPUTS  
 !		attr_id		- attribute identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -138,14 +138,14 @@ CONTAINS
 ! NAME
 !		h5aopen_name_f 
 !
-! FUNCTION
+! PURPOSE
 !  	Opens an attribute specified by name. 
 !
 ! INPUTS  	
 !		obj_id 		- identifier of a group, dataset, or named 
 !				  datatype atttribute to be attached to
 !		name		- attribute name
-! OUTPUT  
+! OUTPUTS  
 !		attr_id		- attribute identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -199,14 +199,14 @@ CONTAINS
 ! NAME
 !		h5aopen_idx_f 
 !
-! FUNCTION
+! PURPOSE
 !  	Opens the attribute specified by its index.
 !
 ! INPUTS  
 !		obj_id		- identifier of a group, dataset, or named
 !				  datatype an attribute to be attached to
 !		index		- index of the attribute to open (zero-based)
-! OUTPUT  
+! OUTPUTS  
 !		attr_id		- attribute identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -962,7 +962,7 @@ CONTAINS
 ! NAME
 !		h5aread_f 
 !
-! FUNCTION
+! PURPOSE
 !  	Reads an attribute.
 !
 ! INPUTS  
@@ -970,7 +970,7 @@ CONTAINS
 !		memtype_id	- attribute memory type identifier
 !		dims		- 1D array of size 7, stores sizes of the 
 !				- buf array dimensions.
-! OUTPUT  
+! OUTPUTS  
 !		buf		- buffer to read attribute data in
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -1719,12 +1719,12 @@ CONTAINS
 ! NAME
 !		h5aget_space_f 
 !
-! FUNCTION
+! PURPOSE
 !  	Gets a copy of the dataspace for an attribute.
 !
 ! INPUTS  
 !		attr_id		- attribute identifier
-! OUTPUT  
+! OUTPUTS  
 !		space_id	- attribite dataspace identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -1771,12 +1771,12 @@ CONTAINS
 ! NAME
 !		h5aget_type_f 
 !
-! FUNCTION
+! PURPOSE
 !  	Gets an attribute datatype.
 !
 ! INPUTS  
 !		attr_id 	- attribute identifier
-! OUTPUT  
+! OUTPUTS  
 !		type_id		- attribute datatype identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -1822,13 +1822,13 @@ CONTAINS
 ! NAME
 !		h5aget_name_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Gets an attribute name.  
 !
 ! INPUTS  
 !		attr_id		- attribute identifier
 !		size		- size of a buffer to read name in
-! OUTPUT  
+! OUTPUTS  
 !		buf		- buffer to read name in
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -1879,7 +1879,7 @@ CONTAINS
 ! NAME
 !		h5aget_name_by_idx_f
 !
-! FUNCTION
+! PURPOSE
 ! 	Gets an attribute name, by attribute index position.  
 !
 ! INPUTS  
@@ -1903,7 +1903,7 @@ CONTAINS
 !          order    - Index traversal order
 !              n    - Attribute’s position in index
 !
-! OUTPUT  
+! OUTPUTS  
 !		name            - Attribute name
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -1993,13 +1993,13 @@ CONTAINS
 ! NAME
 !		h5aget_num_attrs_f 
 !
-! FUNCTION
+! PURPOSE
 !  	Determines the number of attributes attached to an object.
 !
 ! INPUTS  
 !		obj_id		- object (group, dataset, or named datatype)
 !				  identifier
-! OUTPUT  
+! OUTPUTS  
 !		attr_num	- number of attributes attached to the object
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -2045,14 +2045,14 @@ CONTAINS
 ! NAME
 !		h5adelete_f 
 !
-! FUNCTION
+! PURPOSE
 !  	Deletes an attribute of an object (group, dataset or
 !		named datatype)
 !
 ! INPUTS  
 !		obj_id		- object identifier
 !		name		- attribute name
-! OUTPUT  
+! OUTPUTS  
 !
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -2098,12 +2098,12 @@ CONTAINS
 ! NAME
 !		h5aclose_f 
 !
-! FUNCTION
+! PURPOSE
 !  	Closes the specified attribute.
 !		
 ! INPUTS  
 !		attr_id		- attribute identifier
-! OUTPUT  
+! OUTPUTS  
 !
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -2143,12 +2143,12 @@ CONTAINS
 ! NAME
 !		h5aget_storage_size_f 
 !
-! FUNCTION
+! PURPOSE
 !  	Returns the amount of storage required for an attribute.
 !		
 ! INPUTS  
 !		attr_id		- attribute identifier
-! OUTPUT  
+! OUTPUTS  
 !               size            - attribute storage size
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -2185,12 +2185,12 @@ CONTAINS
 ! NAME
 !		h5aget_create_plist_f 
 !
-! FUNCTION
+! PURPOSE
 !  	Gets an attribute creation property list identifier
 !		
 ! INPUTS  
 !		attr_id		  - Identifier of the attribute
-! OUTPUT  
+! OUTPUTS  
 !               creation_prop_id  - Identifier for the attribute’s creation property
 !		hdferr:		  - error code		
 !				 	Success:  0
@@ -2229,7 +2229,7 @@ CONTAINS
 ! NAME
 !		h5arename_by_name_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Renames an attribute
 !
 ! INPUTS  
@@ -2240,7 +2240,7 @@ CONTAINS
 !               new_attr_name - New attribute name
 !               lapl_id       - Link access property list identifier
 !
-! OUTPUT
+! OUTPUTS
 !		hdferr:	      - error code		
 !				 	Success:  0
 !				 	Failure: -1   			
@@ -2308,14 +2308,14 @@ CONTAINS
 ! NAME
 !		h5aopen_f 
 !
-! FUNCTION
+! PURPOSE
 !  	Opens an attribute for an object specified by object 
 !               identifier and attribute name
 !
 ! INPUTS  	
 !		obj_id      - Identifer for object to which attribute is attached
 !               attr_name   - Name of attribute to open
-! OUTPUT  
+! OUTPUTS  
 !		attr_id     - attribute identifier
 !		hdferr:     - error code		
 !				 Success:  0
@@ -2372,7 +2372,7 @@ CONTAINS
 ! NAME
 !		h5adelete_by_idx_f 
 !
-! FUNCTION
+! PURPOSE
 !  	Deletes an attribute from an object according to index order 
 !
 ! INPUTS  	
@@ -2394,7 +2394,7 @@ CONTAINS
 !                  H5_ITER_N_F 	       - Number of iteration orders
 !
 !               n          - Offset within index
-! OUTPUT
+! OUTPUTS
 !		hdferr:     - error code		
 !				 Success:  0
 !				 Failure: -1   
@@ -2462,7 +2462,7 @@ CONTAINS
 ! NAME
 !		h5adelete_by_name_f 
 !
-! FUNCTION
+! PURPOSE
 !  	Removes an attribute from a specified location
 !
 ! INPUTS  	
@@ -2470,7 +2470,7 @@ CONTAINS
 !               obj_name   - Name of attribute to open
 !		attr_name  - Attribute access property list
 !               lapl_id    - Link access property list
-! OUTPUT
+! OUTPUTS
 !		hdferr:     - error code		
 !				 Success:  0
 !				 Failure: -1		
@@ -2527,7 +2527,7 @@ CONTAINS
 ! NAME
 !		h5aopen_by_idx_f 
 !
-! FUNCTION
+! PURPOSE
 !  	Opens an existing attribute that is attached to an object specified by location and name
 !
 ! INPUTS  
@@ -2536,7 +2536,7 @@ CONTAINS
 !               idx_type    - Type of index
 !               order       - Index traversal order
 !               n           - Attribute’s position in index
-! OUTPUT
+! OUTPUTS
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -2613,13 +2613,13 @@ CONTAINS
 ! NAME
 !		h5aget_info_f
 !
-! FUNCTION
+! PURPOSE
 !  	Retrieves attribute information, by attribute identifier
 !		
 ! INPUTS  
 !		attr_id		- attribute identifier
 !
-! OUTPUT  
+! OUTPUTS  
 !    NOTE: In C it is defined as a structure: H5A_info_t
 !
 !    corder_valid   - indicates whether the creation order data is valid for this attribute
@@ -2675,7 +2675,7 @@ CONTAINS
 ! NAME
 !		h5aget_info_by_idx_f
 !
-! FUNCTION
+! PURPOSE
 !  	Retrieves attribute information, by attribute index position
 !		
 ! INPUTS
@@ -2685,7 +2685,7 @@ CONTAINS
 !        order - Index traversal order
 !            n - Attribute’s position in index
 !
-! OUTPUT  NOTE: In C it is defined as a structure: H5A_info_t
+! OUTPUTS  NOTE: In C it is defined as a structure: H5A_info_t
 !    corder_valid   - indicates whether the creation order data is valid for this attribute
 !    corder         - is a positive integer containing the creation order of the attribute        
 !    cset           - indicates the character set used for the attribute’s name          
@@ -2773,7 +2773,7 @@ CONTAINS
 ! NAME
 !		h5aget_info_by_name_f
 !
-! FUNCTION
+! PURPOSE
 !  	Retrieves attribute information, by attribute name
 !		
 ! INPUTS
@@ -2781,7 +2781,7 @@ CONTAINS
 !     obj_name - Name of object to which attribute is attached, relative to location
 !    attr_name - Attribute name
 !
-! OUTPUT  NOTE: In C it is defined as a structure: H5A_info_t
+! OUTPUTS  NOTE: In C it is defined as a structure: H5A_info_t
 !    corder_valid   - indicates whether the creation order data is valid for this attribute
 !    corder         - is a positive integer containing the creation order of the attribute        
 !    cset           - indicates the character set used for the attribute’s name          
@@ -2854,12 +2854,12 @@ CONTAINS
   END SUBROUTINE h5aget_info_by_name_f
 
 !
-!****s* H5A/H5Acreate_by_name_f
+!****s* H5A/h5acreate_by_name_f
 !
 ! NAME
-!	        H5Acreate_by_name_f	
+!	        h5acreate_by_name_f	
 !
-! FUNCTION
+! PURPOSE
 !  	Creates an attribute attached to a specified object
 !		
 ! INPUTS
@@ -2869,7 +2869,7 @@ CONTAINS
 !   type_id 	- Attribute datatype identifier
 !   space_id 	- Attribute dataspace identifier
 !
-! OUTPUT
+! OUTPUTS
 !       attr    - an attribute identifier
 !     hdferr    - error code		
 !		       Success:  0
@@ -2886,20 +2886,17 @@ CONTAINS
   SUBROUTINE h5acreate_by_name_f(loc_id, obj_name, attr_name, type_id, space_id, attr, hdferr, &
        acpl_id, aapl_id, lapl_id)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: loc_id    ! Object identifier
-    CHARACTER(LEN=*), INTENT(IN) :: obj_name ! Name of object to which attribute is attached
-    CHARACTER(LEN=*), INTENT(IN) :: attr_name ! Attribute name
+    INTEGER(HID_T),   INTENT(IN)  :: loc_id
+    CHARACTER(LEN=*), INTENT(IN)  :: obj_name 
+    CHARACTER(LEN=*), INTENT(IN)  :: attr_name
+    INTEGER(HID_T),   INTENT(IN)  :: type_id
+    INTEGER(HID_T),   INTENT(IN)  :: space_id
+    INTEGER(HID_T),   INTENT(OUT) :: attr
+    INTEGER,          INTENT(OUT) :: hdferr
 
-    INTEGER(HID_T), INTENT(IN) :: type_id  ! Attribute datatype identifier
-    INTEGER(HID_T), INTENT(IN) :: space_id ! Attribute dataspace identifier
-
-    INTEGER(HID_T), INTENT(OUT) :: attr ! an attribute identifier
-    INTEGER, INTENT(OUT) :: hdferr         ! Error code:
-                                           ! 0 on success and -1 on failure
-
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: acpl_id ! Attribute creation property list identifier (Currently not used.)
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: aapl_id ! Attribute access property list identifier (Currently not used.)
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id ! Link access property list
+    INTEGER(HID_T),   INTENT(IN), OPTIONAL :: acpl_id 
+    INTEGER(HID_T),   INTENT(IN), OPTIONAL :: aapl_id
+    INTEGER(HID_T),   INTENT(IN), OPTIONAL :: lapl_id
 !*****
     INTEGER(SIZE_T)  :: obj_namelen
     INTEGER(SIZE_T)  :: attr_namelen
@@ -2951,14 +2948,14 @@ CONTAINS
 ! NAME
 !	        H5Aexists_f	
 !
-! FUNCTION
+! PURPOSE
 !  	Determines whether an attribute with a given name exists on an object
 !		
 ! INPUTS
 !                 obj_id - Object identifier
 !              attr_name - Attribute name
 !
-! OUTPUT
+! OUTPUTS
 !       attr_exists  - attribute exists status
 !            hdferr  - error code		
 !		         Success:  0
@@ -3008,7 +3005,7 @@ CONTAINS
 ! NAME
 !	        H5Aexists_by_name_f	
 !
-! FUNCTION
+! PURPOSE
 !  	Determines whether an attribute with a given name exists on an object
 !		
 ! INPUTS
@@ -3016,7 +3013,7 @@ CONTAINS
 !   obj_name - Object name either relative to loc_id, absolute from the file’s root group, or '.' (a dot)
 !  attr_name - Attribute name
 !
-! OUTPUT
+! OUTPUTS
 !       attr_exists  - attribute exists status
 !            hdferr  - error code		
 !		         Success:  0
@@ -3080,7 +3077,7 @@ CONTAINS
 ! NAME
 !	        H5Aopen_by_name_f	
 !
-! FUNCTION
+! PURPOSE
 !  	Opens an attribute for an object by object name and attribute name.
 !		
 ! INPUTS
@@ -3088,7 +3085,7 @@ CONTAINS
 !   obj_name - Object name either relative to loc_id, absolute from the file’s root group, or '.' (a dot)
 !  attr_name - Attribute name
 !
-! OUTPUT
+! OUTPUTS
 !       attr_id  - attribute identifier
 !        hdferr  - error code		
 !		         Success:  0
@@ -3157,7 +3154,7 @@ CONTAINS
 ! NAME
 !		h5arename_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Renames an attribute
 !
 ! INPUTS  
@@ -3165,7 +3162,7 @@ CONTAINS
 !               old_attr_name - Prior attribute name
 !               new_attr_name - New attribute name
 !
-! OUTPUT
+! OUTPUTS
 !		hdferr:	      - error code		
 !				 	Success:  0
 !				 	Failure: -1   			

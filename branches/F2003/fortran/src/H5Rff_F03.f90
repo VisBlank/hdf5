@@ -6,7 +6,7 @@
 ! FILE
 !   fortran/src/H5Rff_F03.f90
 !
-! FUNCTION
+! PURPOSE
 !   This file contains Fortran 90 and Fortran 2003 interfaces for H5R functions. 
 !   It contains the same functions as H5Rff_DEPRECIATE.f90 but includes the 
 !   Fortran 2003 functions and the interface listings. This file will be compiled 
@@ -130,13 +130,13 @@ CONTAINS
 ! NAME		
 !  h5rcreate_object_f 
 !
-! FUNCTION 	
+! PURPOSE 	
 !  Creates reference to the object
 !
 ! INPUTS  
 !		loc_id		- location identifier
 !		name		- name of the object at the specified location
-! OUTPUT  
+! OUTPUTS  
 !		ref		- reference to the specified object
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -181,14 +181,14 @@ CONTAINS
 ! NAME		
 !  h5rcreate_region_f 
 !
-! FUNCTION 	
+! PURPOSE 	
 !  Creates reference to the dataset region
 !
 ! INPUTS  
 !		loc_id		- location identifier
 !		name		- name of the dataset at the specified location
 !		space_id	- dataspace identifier that describes selected region
-! OUTPUT  
+! OUTPUTS  
 !		ref		- reference to the dataset region
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -254,7 +254,7 @@ CONTAINS
   ! NAME       
   !  h5rcreate_ptr_f 
   !
-  ! FUNCTION 	
+  ! PURPOSE 	
   !  Creates a reference.
   !
   ! INPUTS  
@@ -262,7 +262,7 @@ CONTAINS
   !		name		- name of the dataset at the specified location
   !             ref_type        - type of reference
   !		space_id	- dataspace identifier that describes selected region
-  ! OUTPUT  
+  ! OUTPUTS  
   !		ref		- reference created by the function call.
   !		hdferr:		- error code		
   !				 	Success:  0
@@ -300,14 +300,14 @@ CONTAINS
 ! NAME		
 !  h5rdereference_object_f
 !
-! FUNCTION 	
+! PURPOSE 	
 !  Opens the HDF5 object referenced
 !
 ! INPUTS  
 !		dset_id		- identifier of the dataset containing 
 !				  reference		
 !		ref		- reference to open
-! OUTPUT  
+! OUTPUTS  
 !		obj_id		- object_identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -346,14 +346,14 @@ CONTAINS
 ! NAME		
 !  h5rdereference_region_f
 !
-! FUNCTION 	
+! PURPOSE 	
 !  Opens the dataset region
 !
 ! INPUTS  
 !		dset_id		- identifier of the dataset containing 
 !				  reference to teh regions		
 !		ref		- reference to open
-! OUTPUT  
+! OUTPUTS  
 !		obj_id		- dataspace identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -393,7 +393,7 @@ CONTAINS
   ! NAME       
   !  h5rdereference_ptr_f
   !
-  ! FUNCTION 	
+  ! PURPOSE 	
   !  Opens the HDF5 object referenced.
   !
   ! INPUTS  
@@ -401,7 +401,7 @@ CONTAINS
   !                        referenced object or any object in that file.
   !             ref_type - the reference type of ref.
   !             ref      - Reference to open.
-  ! OUTPUT 
+  ! OUTPUTS 
   !           ref_obj_id - identifier of referenced object
   !		hdferr:	 - error code		
   !				Success:  0
@@ -434,14 +434,14 @@ CONTAINS
 ! NAME		
 !  h5rget_name_object_f
 !
-! FUNCTION 	
+! PURPOSE 	
 !  Retrieves a name of a referenced object.
 !
 ! INPUTS
 !       loc_id - Identifier for the dataset containing the reference or for the group that dataset is in.
 !       ref    - An object or dataset region reference.
 !
-! OUTPUT  
+! OUTPUTS  
 !       name - A name associated with the referenced object or dataset region.
 !
 !    hdferr: - error code		
@@ -489,7 +489,7 @@ CONTAINS
 ! NAME		
 !  h5rget_name_region_f
 !
-! FUNCTION 	
+! PURPOSE 	
 !  Retrieves a name of a dataset region.
 !
 ! INPUTS
@@ -497,7 +497,7 @@ CONTAINS
 !           for the group that dataset is in.
 !     ref - An object or dataset region reference.
 !
-! OUTPUT  
+! OUTPUTS  
 !    name - A name associated with the referenced object or dataset region.
 !  hdferr - error code		
 !		Success:  0
@@ -542,7 +542,7 @@ CONTAINS
   ! NAME       
   !  h5rget_name_ptr_f
   !
-  ! FUNCTION 	
+  ! PURPOSE 	
   !  Retrieves a name of a referenced object. 
   !
   ! INPUTS
@@ -551,7 +551,7 @@ CONTAINS
   !  ref_type - Type of reference.
   !       ref - An object or dataset region reference.
   !
-  ! OUTPUT  
+  ! OUTPUTS  
   !      name - A name associated with the referenced object or dataset ptr.
   !
   !    hdferr - error code		

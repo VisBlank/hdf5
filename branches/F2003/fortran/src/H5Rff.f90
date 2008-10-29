@@ -6,7 +6,7 @@
 ! FILE
 !   fortran/src/H5Rff.f90
 !  
-! FUNCTION
+! PURPOSE
 !   This file contains Fortran interfaces for H5R functions. It includes
 !   all the functions that are independent on whether the Fortran 2003 functions
 !   are enabled or disabled.
@@ -72,14 +72,14 @@ CONTAINS
 ! NAME
 ! h5rget_region_region_f
 !
-! FUNCTION 
+! PURPOSE 
 !	Retrieves a dataspace with the specified region selected
 !
 ! INPUTS  
 !		dset_id		- identifier of the dataset containing 
 !				  reference to the regions		
 !		ref		- reference to open
-! OUTPUT  
+! OUTPUTS  
 !		space_id	- dataspace identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -128,14 +128,14 @@ CONTAINS
 ! NAME		
 !  h5rget_object_type_obj_f
 !
-! FUNCTION 	
+! PURPOSE 	
 !  Retrieves the type of object that an object reference points to.	
 !
 ! INPUTS  
 !		dset_id		- identifier of the dataset containing 
 !				  reference to the objects
 !		ref		- reference to open
-! OUTPUT  
+! OUTPUTS  
 !		obj_type	- object_type, possible values:
 !					  H5G_UNKNOWN_F     (-1)
 !					  H5G_GROUP_F        0

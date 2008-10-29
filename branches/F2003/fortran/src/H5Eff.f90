@@ -6,7 +6,7 @@
 ! FILE
 !   fortran/src/H5Eff.f90
 !  
-! FUNCTION
+! PURPOSE
 !   This Module contains Fortran interfaces for H5E functions.
 !
 ! COPYRIGHT
@@ -50,10 +50,10 @@ CONTAINS
 ! NAME
 !   h5eclear_f
 !  
-! FUNCTION
+! PURPOSE
 !   Clears the error stack for the current thread.
 !
-! OUTPUT
+! OUTPUTS
 !	hdferr: - error code		
 !		    Success:  0
 !		    Failure: -1
@@ -89,10 +89,10 @@ CONTAINS
 ! NAME
 !   h5eprint_f
 !  
-! FUNCTION
+! PURPOSE
 !   Prints the error stack in a default manner.
 !
-! OUTPUT
+! OUTPUTS
 !	hdferr: - error code		
 !		    Success:  0
 !		    Failure: -1
@@ -148,14 +148,14 @@ CONTAINS
 ! NAME
 !   h5eget_major_f
 !  
-! FUNCTION
+! PURPOSE
 !   Returns a character string describing an error specified 
 !   by a major error number.
 !
 ! INPUTS
 !   error_no	- major error number 
 ! 
-! OUTPUT 
+! OUTPUTS 
 !   name	- character string describing the error
 !   namelen	- number of characters in the name buffer
 !   hdferr:	- error code		
@@ -199,14 +199,14 @@ CONTAINS
 ! NAME
 !   h5eget_minor_f
 !  
-! FUNCTION
+! PURPOSE
 !   Returns a character string describing an error specified 
 !   by a minor error number.
 !
 ! INPUTS
 !   error_no	- minor error number 
 ! 
-! OUTPUT 
+! OUTPUTS 
 !   name	- character string describing the error
 !   hdferr:	- error code		
 !			Success:  0
@@ -246,14 +246,14 @@ CONTAINS
 ! NAME
 !   h5eset_auto_f
 !  
-! FUNCTION
+! PURPOSE
 !   Turns automatic error printing on or off.
 !
 ! INPUTS  
 !   printflag	- flag to turn automatic error
 !		- Possible values are:
 !		- 1 (on), 0 (off)
-! OUTPUT 
+! OUTPUTS 
 !   hdferr:	- error code		
 !			Success:  0
 !			Failure: -1

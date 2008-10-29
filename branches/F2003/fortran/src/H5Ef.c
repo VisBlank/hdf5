@@ -1,5 +1,5 @@
-/****h* root/fortran/src/H5Ef.c
- * FUNCTION
+/****h* H5Ef/H5Ef
+ * PURPOSE
  *   This file contains C stubs for H5E Fortran APIs
  *
  * COPYRIGHT
@@ -23,19 +23,27 @@
 #include "H5f90.h"
 
 
-/*----------------------------------------------------------------------------
- * Name:        h5eclear_c
- * Purpose:     Call H5Eclear to clear the error stack for the current thread
- * Inputs:
- * Outputs:
- * Returns:     0 on success, -1 on failure
- * Programmer:  Xiangyang Su
+/****if* H5Ef/h5eclear_c
+ * NAME
+ *        h5eclear_c
+ * PURPOSE
+ *     Call H5Eclear to clear the error stack for the current thread
+ * INPUTS
+ *
+ * OUTPUTS
+ *
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  Xiangyang Su
  *              Wednesday, March 29, 2000
- * Modifications:
- *---------------------------------------------------------------------------*/
-
+ * HISTORY
+ *
+ * SOURCE
+*/
 int_f
 nh5eclear_c( )
+/******/
 {
   int ret_val = -1;
   herr_t status;
@@ -49,20 +57,29 @@ nh5eclear_c( )
   return ret_val;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        h5eprint_c1
- * Purpose:     Call H5Eprint to print the error stack in a default manner.
- * Inputs:      name - file name
+/****if* H5Ef/h5eprint_c1
+ * NAME
+ *        h5eprint_c1
+ * PURPOSE
+ *     Call H5Eprint to print the error stack in a default manner.
+ * INPUTS
+ *      name - file name
  *              namelen - length of name
- * Outputs:
- * Returns:     0 on success, -1 on failure
- * Programmer:  Xiangyang Su
+ * OUTPUTS
+ *
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  Xiangyang Su
  *              Wednesday, March 29, 2000
- * Modifications: Bug fix: Added call to close the file with the error messages
+ * HISTORY
+ * Bug fix: Added call to close the file with the error messages
  *                EP 11/26/01
- *---------------------------------------------------------------------------*/
+ * SOURCE
+*/
 int_f
 nh5eprint_c1(_fcd name, int_f* namelen)
+/******/
 {
   int ret_val = -1;
   herr_t status;
@@ -87,19 +104,27 @@ DONE:
 }
 
 
-/*----------------------------------------------------------------------------
- * Name:        h5eprint_c2
- * Purpose:     Call H5Eprint to print the error stack to stderr
+/****if* H5Ef/h5eprint_c2
+ * NAME
+ *        h5eprint_c2
+ * PURPOSE
+ *     Call H5Eprint to print the error stack to stderr
  *              in a default manner.
- * Inputs:
- * Outputs:
- * Returns:     0 on success, -1 on failure
- * Programmer:  Xiangyang Su
+ * INPUTS
+ *
+ * OUTPUTS
+ *
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  Xiangyang Su
  *              Wednesday, March 29, 2000
- * Modifications:
- *---------------------------------------------------------------------------*/
+ *
+ * SOURCE
+*/
 int_f
 nh5eprint_c2()
+/******/
 {
   int ret_val = -1;
   herr_t status;
@@ -112,19 +137,28 @@ nh5eprint_c2()
   return ret_val;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        h5eget_major_c
- * Purpose:     Call H5Eget_major to get a character string
+/****if* H5Ef/h5eget_major_c
+ * NAME
+ *        h5eget_major_c
+ * PURPOSE
+ *     Call H5Eget_major to get a character string
  *              describing an error specified by a major error number.
- * Inputs:      error_no - Major error number
- * Outputs:     name - character string describing the error
- * Returns:     0 on success, -1 on failure
- * Programmer:  Xiangyang Su
+ * INPUTS
+ *      error_no - Major error number
+ * OUTPUTS
+ *     name - character string describing the error
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  Xiangyang Su
  *              Wednesday, March 29, 2000
- * Modifications:
- *---------------------------------------------------------------------------*/
+ * HISTORY
+ *
+ * SOURCE
+*/
 int_f
 nh5eget_major_c(int_f* error_no, _fcd name, size_t_f* namelen)
+/******/
 {
   int ret_val = -1;
   char *c_name = NULL;
@@ -146,19 +180,28 @@ nh5eget_major_c(int_f* error_no, _fcd name, size_t_f* namelen)
   return ret_val;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        h5eget_minor_c
- * Purpose:     Call H5Eget_minor to get a character string
+/****if* H5Ef/h5eget_minor_c
+ * NAME
+ *        h5eget_minor_c
+ * PURPOSE
+ *     Call H5Eget_minor to get a character string
  *              describing an error specified by a minor error number.
- * Inputs:      error_no - Major error number
- * Outputs:     name - character string describing the error
- * Returns:     0 on success, -1 on failure
- * Programmer:  Xiangyang Su
+ * INPUTS
+ *      error_no - Major error number
+ * OUTPUTS
+ *     name - character string describing the error
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  Xiangyang Su
  *              Wednesday, March 29, 2000
- * Modifications:
- *---------------------------------------------------------------------------*/
+ * HISTORY
+ *
+ * SOURCE
+*/
 int_f
 nh5eget_minor_c(int_f* error_no, _fcd name, size_t_f* namelen)
+/******/
 {
   int ret_val = -1;
   char *c_name = NULL;
@@ -180,18 +223,27 @@ nh5eget_minor_c(int_f* error_no, _fcd name, size_t_f* namelen)
   return ret_val;
 }
 
-/*----------------------------------------------------------------------------
- * Name:        h5eset_auto_c
- * Purpose:     Call H5Eset_auto to turn automatic error printing on or off.
- * Inputs:      printflag - flag to turn automatic error printing on or off.
- * Outputs:
- * Returns:     0 on success, -1 on failure
- * Programmer:  Elena Pourmal
+/****if* H5Ef/h5eset_auto_c
+ * NAME
+ *        h5eset_auto_c
+ * PURPOSE
+ *     Call H5Eset_auto to turn automatic error printing on or off.
+ * INPUTS
+ *      printflag - flag to turn automatic error printing on or off.
+ * OUTPUTS
+ *
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  Elena Pourmal
  *              Friday, November 17, 2000
- * Modifications:  major bug fix. Function never disabled printing.
- *---------------------------------------------------------------------------*/
+ * HISTORY
+ *  major bug fix. Function never disabled printing.
+ * SOURCE
+*/
 int_f
 nh5eset_auto_c(int_f* printflag)
+/******/
 {
   int ret_val = -1;
   herr_t status = -1;

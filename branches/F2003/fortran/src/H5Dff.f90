@@ -6,7 +6,7 @@
 ! FILE
 !   fortran/src/H5Dff.f90
 !  
-! FUNCTION
+! PURPOSE
 !   This file contains Fortran interfaces for H5D functions. It includes
 !   all the functions that are independent on whether the Fortran 2003 functions
 !   are enabled or disabled.
@@ -62,7 +62,7 @@ CONTAINS
 ! NAME
 !		h5dcreate_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Creates a dataset at the specified location 	
 !
 ! INPUTS  
@@ -70,7 +70,7 @@ CONTAINS
 !		name		- dataset name
 !		type_id		- dataset datatype identifier
 !		space_id	- dataset dataspace identifier
-! OUTPUT  
+! OUTPUTS  
 !		dset_id		- dataset identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -160,13 +160,13 @@ CONTAINS
 ! NAME
 !		h5dopen_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Opens an existing dataset.  	
 !
 ! INPUTS  
 !		loc_id		- file or group identifier
 !		name		- dataset name
-! OUTPUT  
+! OUTPUTS  
 !		dset_id		- dataset identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -228,12 +228,12 @@ CONTAINS
 ! NAME
 !		h5dclose_f 
 !
-! FUNCTION
+! PURPOSE
 ! 	Closes a dataset.  	
 !
 ! INPUTS  
 !		dset_id		- dataset identifier
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -275,13 +275,13 @@ CONTAINS
 ! NAME
 !		h5dget_type_f 
 !
-! FUNCTION
+! PURPOSE
 !	Returns an identifier for a copy of the datatype for a 
 !		dataset.   	
 !
 ! INPUTS  
 !		dataset_id	- dataset identifier
-! OUTPUT  
+! OUTPUTS  
 !		datatype_id	- dataspace identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -327,14 +327,14 @@ CONTAINS
 ! NAME
 !		h5dset_extent (instead of obsolete name: h5dextend_f) 
 !
-! FUNCTION
+! PURPOSE
 !	Extends a dataset with unlimited dimension.	
 !
 ! INPUTS  
 !		dataset_id	- dataset identifier
 !		size		- array containing the new magnitude of 
 !				  each dimension
-! OUTPUT  
+! OUTPUTS  
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
@@ -382,13 +382,13 @@ CONTAINS
 ! NAME
 !		h5dget_create_plist_f 
 !
-! FUNCTION
+! PURPOSE
 !	Returns an identifier for a copy of the dataset creation 
 !		property list for a dataset. 	
 !
 ! INPUTS  
 !		dataset_id	- dataset identifier
-! OUTPUT  
+! OUTPUTS  
 !		plist_id	- creation property list identifier
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -432,12 +432,12 @@ CONTAINS
 ! NAME
 !		h5dget_storage_size_f 
 !
-! FUNCTION
+! PURPOSE
 !	Returns the amount of storage requires by a dataset	
 !
 ! INPUTS  
 !		dataset_id	- dataset identifier
-! OUTPUT  
+! OUTPUTS  
 !		size		- datastorage size
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -476,14 +476,14 @@ CONTAINS
 ! NAME
 !		h5dvlen_get_max_len_f 
 !
-! FUNCTION
+! PURPOSE
 !	Returns maximum length of the VL array elements
 !
 ! INPUTS  
 !		dataset_id	- dataset identifier
 !		type_id		- datatype identifier
 !		space_id	- dataspace identifier
-! OUTPUT  
+! OUTPUTS  
 !		size		- buffer size
 !		hdferr:		- error code		
 !				 	Success:  0
@@ -526,12 +526,12 @@ CONTAINS
   ! NAME
   !		h5dget_space_status_f
   !
-  ! FUNCTION
+  ! PURPOSE
   !      Returns the status of data space allocation. 
   !
   ! INPUTS  
   !		dset_id		- dataset identifier
-  ! OUTPUT  
+  ! OUTPUTS  
   !               flag            - status; may have one of the following values:
   !				  H5D_SPACE_STS_ERROR_F
   !				  H5D_SPACE_STS_NOT_ALLOCATED_F
@@ -572,14 +572,14 @@ CONTAINS
   ! NAME
   !		h5dcreate_anon_f 
   !
-  ! FUNCTION
+  ! PURPOSE
   ! 	Creates a dataset in a file without linking it into the file structure 
   !
   ! INPUTS  
   !		loc_id		- Identifier of the file or group within which to create the dataset.
   !		type_id		- Identifier of the datatype to use when creating the dataset.
   !		space_id	- Identifier of the dataspace to use when creating the dataset.
-  ! OUTPUT  
+  ! OUTPUTS  
   !		dset_id		- dataset identifier
   !		hdferr:		- error code		
   !				 	Success:  0
@@ -1028,13 +1028,13 @@ CONTAINS
 ! NAME
 !		h5dget_space_f 
 !
-! FUNCTION
+! PURPOSE
 !	Returns an identifier for a copy of the dataspace for a 
 !		dataset.   	
 !
 ! INPUTS  
 !		dataset_id	- dataset identifier
-! OUTPUT  
+! OUTPUTS  
 !		dataspace_id	- dataspace identifier
 !		hdferr:		- error code		
 !				 	Success:  0
