@@ -17,9 +17,9 @@
 !  declared as PARAMETER, hence if the size of an array in H5_f.c is changed
 !  then the PARAMETER of that corresponding array in Fortran must also be changed.
 !
-!  USES
+! USES
 !  H5FORTRAN_TYPES 	 - This module is generated at run time. See
-!  H5fortran_types.f90 for further informaton.
+!                          H5fortran_types.f90 for further informaton.
 ! COPYRIGHT
 !  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !  Copyright by The HDF Group.                                               *
@@ -227,6 +227,7 @@ MODULE H5GLOBAL
   INTEGER :: H5F_OBJ_ALL_F
   INTEGER :: H5F_LIBVER_EARLIEST_F
   INTEGER :: H5F_LIBVER_LATEST_F
+  INTEGER :: H5F_UNLIMITED_F
 
   EQUIVALENCE(H5F_flags(1), H5F_ACC_RDWR_F)
   EQUIVALENCE(H5F_flags(2), H5F_ACC_RDONLY_F)
@@ -246,6 +247,7 @@ MODULE H5GLOBAL
   EQUIVALENCE(H5F_flags(16), H5F_OBJ_ALL_F)
   EQUIVALENCE(H5F_flags(17), H5F_LIBVER_EARLIEST_F)
   EQUIVALENCE(H5F_flags(18), H5F_LIBVER_LATEST_F)
+  EQUIVALENCE(H5F_flags(19), H5F_UNLIMITED_F)
   !
   ! H5generic flags declaration
   !
@@ -757,7 +759,7 @@ MODULE H5GLOBAL
   !
   ! H5Z flags declaration
   !
-  INTEGER, PARAMETER :: H5Z_FLAGS_LEN = 14
+  INTEGER, PARAMETER :: H5Z_FLAGS_LEN = 16
   INTEGER H5Z_flags(H5Z_FLAGS_LEN)
   !DEC$if defined(BUILD_HDF5_DLL)
   !DEC$ ATTRIBUTES DLLEXPORT :: /H5Z_FLAGS/
@@ -778,6 +780,8 @@ MODULE H5GLOBAL
   INTEGER :: H5Z_FLAG_OPTIONAL_F
   INTEGER :: H5Z_FILTER_ENCODE_ENABLED_F
   INTEGER :: H5Z_FILTER_DECODE_ENABLED_F
+  INTEGER :: H5Z_FILTER_NBIT_F
+  INTEGER :: H5Z_FILTER_SCALEOFFSET_F
 
   EQUIVALENCE(H5Z_flags(1), H5Z_FILTER_ERROR_F)
   EQUIVALENCE(H5Z_flags(2), H5Z_FILTER_NONE_F)
@@ -793,6 +797,8 @@ MODULE H5GLOBAL
   EQUIVALENCE(H5Z_flags(12), H5Z_FILTER_ENCODE_ENABLED_F)
   EQUIVALENCE(H5Z_flags(13), H5Z_FILTER_DECODE_ENABLED_F)
   EQUIVALENCE(H5Z_flags(14), H5Z_FILTER_ALL_F)
+  EQUIVALENCE(H5Z_flags(15), H5Z_FILTER_NBIT_F)
+  EQUIVALENCE(H5Z_flags(16), H5Z_FILTER_SCALEOFFSET_F)
 
 
   !
