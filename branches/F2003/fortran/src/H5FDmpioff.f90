@@ -8,20 +8,20 @@
 !  parallel MPI programs.
 !
 ! COPYRIGHT
-!  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-!  Copyright by The HDF Group.                                               *
-!  Copyright by the Board of Trustees of the University of Illinois.         *
-!  All rights reserved.                                                      *
-!  *
-!  This file is part of HDF5.  The full HDF5 copyright notice, including     *
-!  terms governing use, modification, and redistribution, is contained in    *
-!  the files COPYING and Copyright.html.  COPYING can be found at the root   *
-!  of the source code distribution tree; Copyright.html can be found at the  *
-!  root level of an installed copy of the electronic HDF5 document set and   *
-!  is linked from the top-level documents page.  It can also be found at     *
-!  http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
-!  access to either file, you may request a copy from help@hdfgroup.org.     *
-!  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!   Copyright by The HDF Group.                                               *
+!   Copyright by the Board of Trustees of the University of Illinois.         *
+!   All rights reserved.                                                      *
+!                                                                             *
+!   This file is part of HDF5.  The full HDF5 copyright notice, including     *
+!   terms governing use, modification, and redistribution, is contained in    *
+!   the files COPYING and Copyright.html.  COPYING can be found at the root   *
+!   of the source code distribution tree; Copyright.html can be found at the  *
+!   root level of an installed copy of the electronic HDF5 document set and   *
+!   is linked from the top-level documents page.  It can also be found at     *
+!   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+!   access to either file, you may request a copy from help@hdfgroup.org.     *
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
 ! NOTES
 !                         *** IMPORTANT ***
@@ -49,9 +49,7 @@ CONTAINS
 !  comm 	 - MPI-2 communicator
 !  info 	 - MPI-2 info object
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  November, 2000
@@ -83,9 +81,7 @@ CONTAINS
 ! OUTPUTS
 !  comm 	 - MPI-2 communicator
 !  info 	 - MPI-2 info object
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -113,15 +109,12 @@ CONTAINS
 !  Sets data transfer mode.
 !
 ! INPUTS
-!  prp_id 	 - data transfer property list identifier
-!  data_xfer_mode 	 - transfer mode
-!  Possible values are:
-!  H5FD_MPIO_INDEPENDENT_F
-!  H5FD_MPIO_COLLECTIVE_F
+!  prp_id 	  - data transfer property list identifier
+!  data_xfer_mode - transfer mode; possible values are:
+!                     H5FD_MPIO_INDEPENDENT_F
+!                     H5FD_MPIO_COLLECTIVE_F
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  November, 2000
@@ -149,19 +142,16 @@ CONTAINS
 ! INPUTS
 !  prp_id 	 - data transfer property list identifier
 ! OUTPUTS
-!  data_xfer_mode 	 - transfer mode
-!  Possible values are:
-!  H5FD_MPIO_INDEPENDENT_F
-!  H5FD_MPIO_COLLECTIVE_F
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  data_xfer_mode- transfer mode; possible values are:
+!                     H5FD_MPIO_INDEPENDENT_F
+!                     H5FD_MPIO_COLLECTIVE_F
+!  hdferr 	 - Returns 0 if successful and -1 if fails
+!
 ! AUTHOR
 !  Elena Pourmal
 !  November, 2000
 !
 ! SOURCE
-
   SUBROUTINE h5pget_dxpl_mpio_f(prp_id, data_xfer_mode, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id   ! Property list identifier
@@ -188,9 +178,7 @@ CONTAINS
 !  comm 	 - MPI-2 communicator
 !  use_gpfs 	 - logical flag to use the GPFS hints
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -225,9 +213,7 @@ CONTAINS
 ! OUTPUTS
 !  comm 	 - MPI-2 communicator
 !  use_gpfs 	 - flag to use GPFS hints
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  May 6, 2003

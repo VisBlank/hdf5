@@ -10,20 +10,20 @@
 !
 !
 ! COPYRIGHT
-!  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-!  Copyright by The HDF Group.                                               *
-!  Copyright by the Board of Trustees of the University of Illinois.         *
-!  All rights reserved.                                                      *
-!  *
-!  This file is part of HDF5.  The full HDF5 copyright notice, including     *
-!  terms governing use, modification, and redistribution, is contained in    *
-!  the files COPYING and Copyright.html.  COPYING can be found at the root   *
-!  of the source code distribution tree; Copyright.html can be found at the  *
-!  root level of an installed copy of the electronic HDF5 document set and   *
-!  is linked from the top-level documents page.  It can also be found at     *
-!  http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
-!  access to either file, you may request a copy from help@hdfgroup.org.     *
-!  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!   Copyright by The HDF Group.                                               *
+!   Copyright by the Board of Trustees of the University of Illinois.         *
+!   All rights reserved.                                                      *
+!                                                                             *
+!   This file is part of HDF5.  The full HDF5 copyright notice, including     *
+!   terms governing use, modification, and redistribution, is contained in    *
+!   the files COPYING and Copyright.html.  COPYING can be found at the root   *
+!   of the source code distribution tree; Copyright.html can be found at the  *
+!   root level of an installed copy of the electronic HDF5 document set and   *
+!   is linked from the top-level documents page.  It can also be found at     *
+!   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+!   access to either file, you may request a copy from help@hdfgroup.org.     *
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
 ! NOTES
 !                         *** IMPORTANT ***
@@ -63,9 +63,7 @@ CONTAINS
 !
 ! OUTPUTS
 !  attr_id 	 - attribute identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !  acpl_id 	 - Attribute creation property list identifier
 !  appl_id 	 - Attribute access property list identifier
@@ -142,15 +140,11 @@ CONTAINS
 !
 ! INPUTS
 !  obj_id 	 - identifier of a group, dataset, or named
-!  datatype atttribute to be attached to
+!                  datatype atttribute to be attached to
 !  name 	 - attribute name
 ! OUTPUTS
 !  attr_id 	 - attribute identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-! OPTIONAL PARAMETERS
-!  NONE
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -203,13 +197,11 @@ CONTAINS
 !
 ! INPUTS
 !  obj_id 	 - identifier of a group, dataset, or named
-!  datatype an attribute to be attached to
+!                  datatype an attribute to be attached to
 !  index 	 - index of the attribute to open (zero-based)
 ! OUTPUTS
 !  attr_id 	 - attribute identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -948,12 +940,10 @@ CONTAINS
 !  attr_id 	 - attribute identifier
 !  memtype_id 	 - attribute memory type identifier
 !  dims 	 - 1D array of size 7, stores sizes of the
-!   	 - buf array dimensions.
+!   	         - buf array dimensions.
 ! OUTPUTS
-!  buf 	 - buffer to read attribute data in
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  buf 	         - buffer to read attribute data in
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -1703,9 +1693,7 @@ CONTAINS
 !  attr_id 	 - attribute identifier
 ! OUTPUTS
 !  space_id 	 - attribite dataspace identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -1753,9 +1741,7 @@ CONTAINS
 !  attr_id 	 - attribute identifier
 ! OUTPUTS
 !  type_id 	 - attribute datatype identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -1802,10 +1788,8 @@ CONTAINS
 !  attr_id 	 - attribute identifier
 !  size 	 - size of a buffer to read name in
 ! OUTPUTS
-!  buf 	 - buffer to read name in
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  buf 	         - buffer to read name in
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -1857,28 +1841,23 @@ CONTAINS
 !  loc_id 	 - Location of object to which attribute is attached
 !  obj_name 	 - Name of object to which attribute is attached, relative to location
 !  idx_type 	 - Type of index; Possible values are:
-!
-!  H5_INDEX_UNKNOWN_F = -1  - Unknown index type
-!  H5_INDEX_NAME_F 	 - Index on names
-!  H5_INDEX_CRT_ORDER_F 	 - Index on creation order
-!  H5_INDEX_N_F 	 - Number of indices defined
+!                   H5_INDEX_UNKNOWN_F = -1  - Unknown index type
+!                   H5_INDEX_NAME_F 	     - Index on names
+!                   H5_INDEX_CRT_ORDER_F     - Index on creation order
+!                   H5_INDEX_N_F 	     - Number of indices defined
 !
 !  order 	 - Order in which to iterate over index; Possible values are:
-!
-!  H5_ITER_UNKNOWN_F 	 - Unknown order
-!  H5_ITER_INC_F 	 - Increasing order
-!  H5_ITER_DEC_F 	 - Decreasing order
-!  H5_ITER_NATIVE_F 	 - No particular order, whatever is fastest
-!  H5_ITER_N_F 	 - Number of iteration orders
-!
+!                   H5_ITER_UNKNOWN_F 	 - Unknown order
+!                   H5_ITER_INC_F 	 - Increasing order
+!                   H5_ITER_DEC_F 	 - Decreasing order
+!                   H5_ITER_NATIVE_F 	 - No particular order, whatever is fastest
+!                   H5_ITER_N_F 	 - Number of iteration orders
 !  order 	 - Index traversal order
-!  n 	 - Attribute’s position in index
+!  n 	         - Attribute’s position in index
 !
 ! OUTPUTS
 !  name 	 - Attribute name
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !  lapl_id 	 - Link access property list
 !  size 	 - Size, in bytes, of attribute name
@@ -1972,9 +1951,7 @@ CONTAINS
 !  identifier
 ! OUTPUTS
 !  attr_num 	 - number of attributes attached to the object
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -2023,9 +2000,7 @@ CONTAINS
 !  name 	 - attribute name
 ! OUTPUTS
 !
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -2074,9 +2049,7 @@ CONTAINS
 !  attr_id 	 - attribute identifier
 ! OUTPUTS
 !
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -2119,9 +2092,7 @@ CONTAINS
 !  attr_id 	 - attribute identifier
 ! OUTPUTS
 !  size 	 - attribute storage size
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  M. S. Breitenfeld
 !  January, 2008
@@ -2158,12 +2129,10 @@ CONTAINS
 !  Gets an attribute creation property list identifier
 !
 ! INPUTS
-!  attr_id 	 - Identifier of the attribute
+!  attr_id 	    - Identifier of the attribute
 ! OUTPUTS
-!  creation_prop_id 	 - Identifier for the attribute’s creation property
-!  hdferr:		  - error code
-!  Success:  0
-!  Failure: -1
+!  creation_prop_id - Identifier for the attribute’s creation property
+!  hdferr 	    - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  M. S. Breitenfeld
@@ -2204,15 +2173,13 @@ CONTAINS
 ! INPUTS
 !  loc_id 	 - Location or object identifier; may be dataset or group
 !  obj_name 	 - Name of object, relative to location,
-!  whose attribute is to be renamed
-!  old_attr_name 	 - Prior attribute name
-!  new_attr_name 	 - New attribute name
+!                  whose attribute is to be renamed
+!  old_attr_name - Prior attribute name
+!  new_attr_name - New attribute name
 !  lapl_id 	 - Link access property list identifier
 !
 ! OUTPUTS
-!  hdferr:	      - error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  M.S. Breitenfeld
@@ -2286,11 +2253,10 @@ CONTAINS
 !  attr_name 	 - Name of attribute to open
 ! OUTPUTS
 !  attr_id 	 - attribute identifier
-!  hdferr:     - error code
-!  Success:  0
-!  Failure: -1
+
 ! OPTIONAL PARAMETERS
 !  aapl_id 	 - Attribute access property list
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  M.S. Breitenfeld
@@ -2348,25 +2314,21 @@ CONTAINS
 !  loc_id 	 - Location or object identifier; may be dataset or group
 !  obj_name 	 - Name of object, relative to location, from which attribute is to be removed
 !  idx_type 	 - Type of index; Possible values are:
-!
-!  H5_INDEX_UNKNOWN_F = -1  - Unknown index type
-!  H5_INDEX_NAME_F 	 - Index on names
-!  H5_INDEX_CRT_ORDER_F 	 - Index on creation order
-!  H5_INDEX_N_F 	 - Number of indices defined
+!                   H5_INDEX_UNKNOWN_F = -1  - Unknown index type
+!                   H5_INDEX_NAME_F 	     - Index on names
+!                   H5_INDEX_CRT_ORDER_F     - Index on creation order
+!                   H5_INDEX_N_F 	     - Number of indices defined
 !
 !  order 	 - Order in which to iterate over index; Possible values are:
+!                   H5_ITER_UNKNOWN_F 	 - Unknown order
+!                   H5_ITER_INC_F 	 - Increasing order
+!                   H5_ITER_DEC_F 	 - Decreasing order
+!                   H5_ITER_NATIVE_F 	 - No particular order, whatever is fastest
+!                   H5_ITER_N_F 	 - Number of iteration orders
 !
-!  H5_ITER_UNKNOWN_F 	 - Unknown order
-!  H5_ITER_INC_F 	 - Increasing order
-!  H5_ITER_DEC_F 	 - Decreasing order
-!  H5_ITER_NATIVE_F 	 - No particular order, whatever is fastest
-!  H5_ITER_N_F 	 - Number of iteration orders
-!
-!  n 	 - Offset within index
+!  n 	         - Offset within index
 ! OUTPUTS
-!  hdferr:     - error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !  lapl_id 	 - Link access property list
 !
@@ -2440,9 +2402,7 @@ CONTAINS
 !  attr_name 	 - Attribute access property list
 !  lapl_id 	 - Link access property list
 ! OUTPUTS
-!  hdferr:     - error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  M.S. Breitenfeld
@@ -2504,11 +2464,9 @@ CONTAINS
 !  obj_name 	 - Name of object to which attribute is attached, relative to location
 !  idx_type 	 - Type of index
 !  order 	 - Index traversal order
-!  n 	 - Attribute’s position in index
+!  n 	         - Attribute’s position in index
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !  aapl_id 	 - Attribute access property list
 !  lapl_id 	 - Link access property list
@@ -2591,14 +2549,11 @@ CONTAINS
 ! OUTPUTS
 !  NOTE: In C it is defined as a structure: H5A_info_t
 !
-!  corder_valid 	 - indicates whether the creation order data is valid for this attribute
+!  corder_valid  - indicates whether the creation order data is valid for this attribute
 !  corder 	 - is a positive integer containing the creation order of the attribute
 !  cset 	 - indicates the character set used for the attribute’s name
 !  data_size 	 - indicates the size, in the number of characters, of the attribute
-!
-!  hdferr 	 - error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  M. S. Breitenfeld
 !  January, 2008
@@ -2652,16 +2607,14 @@ CONTAINS
 !  obj_name 	 - Name of object to which attribute is attached, relative to location
 !  idx_type 	 - Type of index
 !  order 	 - Index traversal order
-!  n 	 - Attribute’s position in index
+!  n 	         - Attribute’s position in index
 !
 ! OUTPUTS  NOTE: In C it is defined as a structure: H5A_info_t
-!  corder_valid 	 - indicates whether the creation order data is valid for this attribute
+!  corder_valid  - indicates whether the creation order data is valid for this attribute
 !  corder 	 - is a positive integer containing the creation order of the attribute
 !  cset 	 - indicates the character set used for the attribute’s name
 !  data_size 	 - indicates the size, in the number of characters, of the attribute
-!  hdferr 	 - error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !  lapl_id 	 - Link access property list
 !
@@ -2751,13 +2704,11 @@ CONTAINS
 !  attr_name 	 - Attribute name
 !
 ! OUTPUTS  NOTE: In C it is defined as a structure: H5A_info_t
-!  corder_valid 	 - indicates whether the creation order data is valid for this attribute
+!  corder_valid  - indicates whether the creation order data is valid for this attribute
 !  corder 	 - is a positive integer containing the creation order of the attribute
 !  cset 	 - indicates the character set used for the attribute’s name
 !  data_size 	 - indicates the size, in the number of characters, of the attribute
-!  hdferr 	 - error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !  lapl_id 	 - Link access property list
 !
@@ -2840,9 +2791,7 @@ CONTAINS
 !
 ! OUTPUTS
 !  attr 	 - an attribute identifier
-!  hdferr 	 - error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !  acpl_id 	 - Attribute creation property list identifier (Currently not used.)
 !  aapl_id 	 - Attribute access property list identifier (Currently not used.)
@@ -2926,9 +2875,7 @@ CONTAINS
 !
 ! OUTPUTS
 !  attr_exists 	 - attribute exists status
-!  hdferr 	 - error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  M. S. Breitenfeld
@@ -2984,9 +2931,7 @@ CONTAINS
 !
 ! OUTPUTS
 !  attr_exists 	 - attribute exists status
-!  hdferr 	 - error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !  lapl_id 	 - Link access property list identifier
 !
@@ -3056,9 +3001,7 @@ CONTAINS
 !
 ! OUTPUTS
 !  attr_id 	 - attribute identifier
-!  hdferr 	 - error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !  aapl_id 	 - Attribute access property list (Currently unused; should be passed in as H5P_DEFAULT.)
 !  lapl_id 	 - Link access property list identifier
@@ -3128,13 +3071,11 @@ CONTAINS
 !
 ! INPUTS
 !  loc_id 	 - Location or object identifier; may be dataset or group
-!  old_attr_name 	 - Prior attribute name
-!  new_attr_name 	 - New attribute name
+!  old_attr_name - Prior attribute name
+!  new_attr_name - New attribute name
 !
 ! OUTPUTS
-!  hdferr:	      - error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  M.S. Breitenfeld

@@ -10,20 +10,20 @@
 !  This file contains Fortran interfaces for H5F functions.
 !
 ! COPYRIGHT
-!  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-!  Copyright by The HDF Group.                                               *
-!  Copyright by the Board of Trustees of the University of Illinois.         *
-!  All rights reserved.                                                      *
-!  *
-!  This file is part of HDF5.  The full HDF5 copyright notice, including     *
-!  terms governing use, modification, and redistribution, is contained in    *
-!  the files COPYING and Copyright.html.  COPYING can be found at the root   *
-!  of the source code distribution tree; Copyright.html can be found at the  *
-!  root level of an installed copy of the electronic HDF5 document set and   *
-!  is linked from the top-level documents page.  It can also be found at     *
-!  http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
-!  access to either file, you may request a copy from help@hdfgroup.org.     *
-!  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!   Copyright by The HDF Group.                                               *
+!   Copyright by the Board of Trustees of the University of Illinois.         *
+!   All rights reserved.                                                      *
+!                                                                             *
+!   This file is part of HDF5.  The full HDF5 copyright notice, including     *
+!   terms governing use, modification, and redistribution, is contained in    *
+!   the files COPYING and Copyright.html.  COPYING can be found at the root   *
+!   of the source code distribution tree; Copyright.html can be found at the  *
+!   root level of an installed copy of the electronic HDF5 document set and   *
+!   is linked from the top-level documents page.  It can also be found at     *
+!   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+!   access to either file, you may request a copy from help@hdfgroup.org.     *
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
 ! NOTES
 !                         *** IMPORTANT ***
@@ -47,16 +47,15 @@ CONTAINS
 !
 ! INPUTS
 !  name 	 - name of the file to create
-!  access_flags 	 - File access flags. Allowable values are:
-!  H5F_ACC_TRUNC_F
-!  H5F_ACC_EXCL_F
+!  access_flags  - File access flags. Allowable values are:
+!                   H5F_ACC_TRUNC_F
+!                   H5F_ACC_EXCL_F
 ! OUTPUTS
 !  file_id 	 - file identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
+!
 ! OPTIONAL PARAMETERS
-!  creation_prp 	 - file creation property list identifier
+!  creation_prp  - file creation property list identifier
 !  access_prp 	 - file access property list identifier
 !
 ! AUTHOR
@@ -123,18 +122,15 @@ CONTAINS
 !  Flushes all buffers associated WITH a file to disk
 !
 ! INPUTS
-!  object_id 	 - identifier of object used to identify
-!  the file.
+!  object_id 	 - identifier of object used to identify the file.
 !  scope 	 - specifies the scope of the flushing action.
-!  Possible values are:
-!  H5F_SCOPE_GLOBAL_F
-!  H5F_SCOPE_LOCAL_F
+!                  Possible values are:
+!                    H5F_SCOPE_GLOBAL_F
+!                    H5F_SCOPE_LOCAL_F
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
-!  creation_prp 	 - file creation property list identifier
+!  creation_prp  - file creation property list identifier
 !  access_prp 	 - file access property list identifier
 !
 ! AUTHOR
@@ -191,14 +187,12 @@ CONTAINS
 !
 ! INPUTS
 !  loc_id 	 - the identifier for of file or group in
-!  which name is defined
+!                  which name is defined
 !  name 	 - the name of the group onto which the file
-!  specified by child_id is to be mounted.
+!                  specified by child_id is to be mounted.
 !  child_id 	 - the identifier of the file to be mounted.
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !  access_prp 	 - the identifier of the property list to be used
 !
@@ -260,12 +254,10 @@ CONTAINS
 !
 ! INPUTS
 !  loc_id 	 - the identifier for of file or group in
-!  which name is defined
+!                  which name is defined
 !  name 	 - the name of the mount point
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -313,14 +305,12 @@ CONTAINS
 !
 ! INPUTS
 !  name 	 - name of the file to acecss
-!  access_flags 	 - File access flags. Allowable values are:
-!  H5F_ACC_RDWR_F
-!  H5F_ACC_RDONLY_F
+!  access_flags  - File access flags. Allowable values are:
+!                   H5F_ACC_RDWR_F
+!                   H5F_ACC_RDONLY_F
 ! OUTPUTS
 !  file_id 	 - file identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !  access_prp 	 - file access property list identifier
 !
@@ -379,12 +369,10 @@ CONTAINS
 !
 ! INPUTS
 !  file_id 	 - identifier of a file for which an
-!  additional identifier is required
+!                  additional identifier is required
 ! OUTPUTS
 !  ret_file_id 	 - new file identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -424,13 +412,10 @@ CONTAINS
 !  Returns a file creation property list identifier.
 !
 ! INPUTS
-!  file_id 	 - identifier of a file to get
-!  get creation property list of
+!  file_id 	 - identifier of a file to creation property list of
 ! OUTPUTS
 !  prop_id 	 - creation property list identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -472,13 +457,10 @@ CONTAINS
 !  Returns a file access property list identifier.
 !
 ! INPUTS
-!  file_id 	 - identifier of a file to get
-!  get creation property list of
+!  file_id 	 - identifier of a file to creation property list of
 ! OUTPUTS
 !  access_id 	 - access property list identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -523,9 +505,7 @@ CONTAINS
 !  name 	 - name of the file to check
 ! OUTPUTS
 !  status 	 - indicates if file is and HDF5 file
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -577,9 +557,7 @@ CONTAINS
 ! INPUTS
 !  file_id 	 - file identifier
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -620,16 +598,14 @@ CONTAINS
 ! INPUTS
 !  file_id 	 - file identifier
 !  obj_type 	 - type of the object; possible values are:
-!  H5F_OBJ_FILE_F
-!  H5F_OBJ_DATASET_F
-!  H5F_OBJ_GROUP_F
-!  H5F_OBJ_DATATYPE_F
-!  H5F_OBJ_ALL_F
+!                    H5F_OBJ_FILE_F
+!                    H5F_OBJ_DATASET_F
+!                    H5F_OBJ_GROUP_F
+!                    H5F_OBJ_DATATYPE_F
+!                    H5F_OBJ_ALL_F
 ! OUTPUTS
 !  obj_count 	 - number of open objects
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  September 30, 2002
@@ -675,16 +651,14 @@ CONTAINS
 ! INPUTS
 !  file_id 	 - file identifier
 !  obj_type 	 - type of the object; possible values are:
-!  H5F_OBJ_FILE_F
-!  H5F_OBJ_DATASET_F
-!  H5F_OBJ_GROUP_F
-!  H5F_OBJ_DATATYPE_F
-!  H5F_OBJ_ALL_F
+!                    H5F_OBJ_FILE_F
+!                    H5F_OBJ_DATASET_F
+!                    H5F_OBJ_GROUP_F
+!                    H5F_OBJ_DATATYPE_F
+!                    H5F_OBJ_ALL_F
 ! OUTPUTS
 !  obj_ids 	 - array of open object identifiers
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !  num_objs 	 - number of open objects
 !
@@ -741,9 +715,7 @@ CONTAINS
 !  file_id 	 - file identifier
 ! OUTPUTS
 !  free_space 	 - amount of free space in file
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Quincey Koziol
@@ -783,11 +755,9 @@ CONTAINS
 ! INPUTS
 !  obj_id 	 - object identifier
 ! OUTPUTS
-!  buf 	 - buffer to store the read name
+!  buf 	         - buffer to store the read name
 !  size 	 - actual size of the name
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  July 6, 2004
@@ -832,9 +802,7 @@ CONTAINS
 !  file_id 	 - file identifier
 ! OUTPUTS
 !  size 	 - file size
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !
 ! AUTHOR

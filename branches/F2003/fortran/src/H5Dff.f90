@@ -12,20 +12,20 @@
 !  are enabled or disabled.
 !
 ! COPYRIGHT
-!  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-!  Copyright by The HDF Group.                                               *
-!  Copyright by the Board of Trustees of the University of Illinois.         *
-!  All rights reserved.                                                      *
-!  *
-!  This file is part of HDF5.  The full HDF5 copyright notice, including     *
-!  terms governing use, modification, and redistribution, is contained in    *
-!  the files COPYING and Copyright.html.  COPYING can be found at the root   *
-!  of the source code distribution tree; Copyright.html can be found at the  *
-!  root level of an installed copy of the electronic HDF5 document set and   *
-!  is linked from the top-level documents page.  It can also be found at     *
-!  http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
-!  access to either file, you may request a copy from help@hdfgroup.org.     *
-!  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!   Copyright by The HDF Group.                                               *
+!   Copyright by the Board of Trustees of the University of Illinois.         *
+!   All rights reserved.                                                      *
+!                                                                             *
+!   This file is part of HDF5.  The full HDF5 copyright notice, including     *
+!   terms governing use, modification, and redistribution, is contained in    *
+!   the files COPYING and Copyright.html.  COPYING can be found at the root   *
+!   of the source code distribution tree; Copyright.html can be found at the  *
+!   root level of an installed copy of the electronic HDF5 document set and   *
+!   is linked from the top-level documents page.  It can also be found at     *
+!   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+!   access to either file, you may request a copy from help@hdfgroup.org.     *
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
 ! NOTES
 !                         *** IMPORTANT ***
@@ -72,11 +72,9 @@ CONTAINS
 !  space_id 	 - dataset dataspace identifier
 ! OUTPUTS
 !  dset_id 	 - dataset identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
-!  creation_prp 	 - Dataset creation property list
+!  creation_prp  - Dataset creation property list
 !  lcpl_id 	 - Link creation property list
 !  dapl_id 	 - Dataset access property list
 !
@@ -92,8 +90,6 @@ CONTAINS
 !
 !   	 - Added version's 1.8 new optional parameters
 !  February, 2008
-!
-! NOTES
 !
 ! SOURCE
   SUBROUTINE h5dcreate_f(loc_id, name, type_id, space_id, dset_id, &
@@ -168,9 +164,7 @@ CONTAINS
 !  name 	 - dataset name
 ! OUTPUTS
 !  dset_id 	 - dataset identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !  dapl_id 	 - Dataset access property list
 !
@@ -234,11 +228,7 @@ CONTAINS
 ! INPUTS
 !  dset_id 	 - dataset identifier
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-! OPTIONAL PARAMETERS
-!  NONE
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -283,11 +273,7 @@ CONTAINS
 !  dataset_id 	 - dataset identifier
 ! OUTPUTS
 !  datatype_id 	 - dataspace identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-! OPTIONAL PARAMETERS
-!  NONE
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -333,13 +319,9 @@ CONTAINS
 ! INPUTS
 !  dataset_id 	 - dataset identifier
 !  size 	 - array containing the new magnitude of
-!  each dimension
+!                  each dimension
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-! OPTIONAL PARAMETERS
-!  NONE
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -390,11 +372,7 @@ CONTAINS
 !  dataset_id 	 - dataset identifier
 ! OUTPUTS
 !  plist_id 	 - creation property list identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-! OPTIONAL PARAMETERS
-!  NONE
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -439,11 +417,7 @@ CONTAINS
 !  dataset_id 	 - dataset identifier
 ! OUTPUTS
 !  size 	 - datastorage size
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-! OPTIONAL PARAMETERS
-!  NONE
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -485,9 +459,7 @@ CONTAINS
 !  space_id 	 - dataspace identifier
 ! OUTPUTS
 !  size 	 - buffer size
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !  NONE
 !
@@ -520,32 +492,30 @@ CONTAINS
     hdferr = h5dvlen_get_max_len_c(dataset_id, type_id,  space_id, len)
   END SUBROUTINE h5dvlen_get_max_len_f
 
-  !
-  !****s* H5D/h5dget_space_status_f
-  !
-  ! NAME
-  !		h5dget_space_status_f
-  !
-  ! PURPOSE
-  !      Returns the status of data space allocation.
-  !
-  ! INPUTS
-  !		dset_id		- dataset identifier
-  ! OUTPUTS
-  !               flag            - status; may have one of the following values:
-  !				  H5D_SPACE_STS_ERROR_F
-  !				  H5D_SPACE_STS_NOT_ALLOCATED_F
-  !				  H5D_SPACE_STS_PART_ALLOCATED_F
-  !				  H5D_SPACE_STS_ALLOCATED_F
-  !		hdferr:		- error code
-  !				 	Success:  0
-  !				 	Failure: -1
-  !
-  ! AUTHOR
-  !	Elena Pourmal
-  !	March 12, 2003
-  !
-  ! SOURCE
+!
+!****s* H5D/h5dget_space_status_f
+!
+! NAME
+!  h5dget_space_status_f
+!
+! PURPOSE
+!  Returns the status of data space allocation.
+!
+! INPUTS
+!  dset_id	 - dataset identifier
+! OUTPUTS
+!  flag          - status; may have one of the following values:
+!		    H5D_SPACE_STS_ERROR_F
+!		    H5D_SPACE_STS_NOT_ALLOCATED_F
+!		    H5D_SPACE_STS_PART_ALLOCATED_F
+!		    H5D_SPACE_STS_ALLOCATED_F
+!  hdferr 	 - Returns 0 if successful and -1 if fails
+!
+! AUTHOR
+!	Elena Pourmal
+!	March 12, 2003
+!
+! SOURCE
   SUBROUTINE h5dget_space_status_f(dset_id, flag, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id  ! Dataspace identifier
@@ -566,31 +536,29 @@ CONTAINS
     hdferr = h5dget_space_status_c(dset_id, flag)
   END SUBROUTINE h5dget_space_status_f
 
-  !
-  !****s* H5D/h5dcreate_anon_f
-  !
-  ! NAME
-  !		h5dcreate_anon_f
-  !
-  ! PURPOSE
-  ! 	Creates a dataset in a file without linking it into the file structure
-  !
-  ! INPUTS
-  !		loc_id		- Identifier of the file or group within which to create the dataset.
-  !		type_id		- Identifier of the datatype to use when creating the dataset.
-  !		space_id	- Identifier of the dataspace to use when creating the dataset.
-  ! OUTPUTS
-  !		dset_id		- dataset identifier
-  !		hdferr:		- error code
-  !				 	Success:  0
-  !				 	Failure: -1
-  ! OPTIONAL PARAMETERS
-  !               dcpl_id       - Dataset creation property list identifier.
-  !               dapl_id  	- Dataset access property list identifier.
-  !
-  ! AUTHOR
+!
+!****s* H5D/h5dcreate_anon_f
+!
+! NAME
+!  h5dcreate_anon_f
+!
+! PURPOSE
+!  Creates a dataset in a file without linking it into the file structure
+!
+! INPUTS
+!  loc_id	 - Identifier of the file or group within which to create the dataset.
+!  type_id	 - Identifier of the datatype to use when creating the dataset.
+!  space_id	 - Identifier of the dataspace to use when creating the dataset.
+! OUTPUTS
+!  dset_id	 - dataset identifier
+!  hdferr 	 - Returns 0 if successful and -1 if fails
+! OPTIONAL PARAMETERS
+!  dcpl_id       - Dataset creation property list identifier.
+!  dapl_id  	 - Dataset access property list identifier.
+!
+! AUTHOR
 !  M.S. Breitenfeld
-  !		  February 11, 2008
+!		  February 11, 2008
 ! SOURCE
   SUBROUTINE h5dcreate_anon_f(loc_id, type_id, space_id, dset_id, hdferr, dcpl_id, dapl_id)
     IMPLICIT NONE
@@ -1035,12 +1003,8 @@ CONTAINS
 ! INPUTS
 !  dataset_id 	 - dataset identifier
 ! OUTPUTS
-!  dataspace_id 	 - dataspace identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-! OPTIONAL PARAMETERS
-!  NONE
+!  dataspace_id  - dataspace identifier
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal

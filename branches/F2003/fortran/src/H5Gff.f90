@@ -10,20 +10,20 @@
 !  This file contains Fortran interfaces for H5G functions.
 !
 ! COPYRIGHT
-!  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-!  Copyright by The HDF Group.                                               *
-!  Copyright by the Board of Trustees of the University of Illinois.         *
-!  All rights reserved.                                                      *
-!  *
-!  This file is part of HDF5.  The full HDF5 copyright notice, including     *
-!  terms governing use, modification, and redistribution, is contained in    *
-!  the files COPYING and Copyright.html.  COPYING can be found at the root   *
-!  of the source code distribution tree; Copyright.html can be found at the  *
-!  root level of an installed copy of the electronic HDF5 document set and   *
-!  is linked from the top-level documents page.  It can also be found at     *
-!  http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
-!  access to either file, you may request a copy from help@hdfgroup.org.     *
-!  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!   Copyright by The HDF Group.                                               *
+!   Copyright by the Board of Trustees of the University of Illinois.         *
+!   All rights reserved.                                                      *
+!                                                                             *
+!   This file is part of HDF5.  The full HDF5 copyright notice, including     *
+!   terms governing use, modification, and redistribution, is contained in    *
+!   the files COPYING and Copyright.html.  COPYING can be found at the root   *
+!   of the source code distribution tree; Copyright.html can be found at the  *
+!   root level of an installed copy of the electronic HDF5 document set and   *
+!   is linked from the top-level documents page.  It can also be found at     *
+!   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+!   access to either file, you may request a copy from help@hdfgroup.org.     *
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
 ! NOTES
 !                         *** IMPORTANT ***
@@ -59,21 +59,20 @@ CONTAINS
 !  name 	 - group name at the specified location
 ! OUTPUTS
 !  grp_id 	 - group identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
-!  size_hint 	 - a parameter indicating the number of bytes
-!  to reserve for the names that will appear
-!  in the group
+!  size_hint 	 - a parameter indicating the number of bytes to
+!                  reserve for the names that will appear in the group
 !  lcpl_id 	 - Property list for link creation
 !  gcpl_id 	 - Property list for group creation
 !  gapl_id 	 - Property list for group access
 !
-! AUTHOR	Elena Pourmal
+! AUTHOR	
+!  Elena Pourmal
 !  August 12, 1999
 !
-! HISTORY 	Explicit Fortran interfaces were added for
+! HISTORY 	
+!  Explicit Fortran interfaces were added for
 !  called C functions (it is needed for Windows
 !  port).  March 5, 2001
 !
@@ -250,9 +249,7 @@ CONTAINS
 !  name 	 - name of the group to open
 ! OUTPUTS
 !  grp_id 	 - group identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !  gapl_id 	 - Group access property list identifier
 !
@@ -314,9 +311,7 @@ CONTAINS
 ! INPUTS
 !  grp_id 	 - group identifier
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -358,13 +353,11 @@ CONTAINS
 ! INPUTS
 !  loc_id 	 - location identifier
 !  name 	 - name of the group at the specified location
-!  idx 	 - object index (zero-based)
+!  idx 	         - object index (zero-based)
 ! OUTPUTS
 !  obj_name 	 - object name
 !  obj_type 	 - object type
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -428,10 +421,7 @@ CONTAINS
 !  name 	 - name of the group at the specified location
 ! OUTPUTS
 !  nmembers 	 - number of group members
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -484,18 +474,14 @@ CONTAINS
 !
 ! INPUTS
 !  loc_id 	 - location identifier
-!  link_type 	 - link type
-!  Possible values are:
-!  H5G_LINK_HARD_F (0) or
-!  H5G_LINK_SOFT_F (1)
-!  current_name 	 - name of the existing object if link is a
-!  hard link. Can be anything for the soft link.
+!  link_type 	 - link type; possible values are:
+!                    H5G_LINK_HARD_F (0)
+!                    H5G_LINK_SOFT_F (1)
+!  current_name  - name of the existing object if link is a
+!                  hard link. Can be anything for the soft link
 !  new_name 	 - new name for the object
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -564,18 +550,14 @@ CONTAINS
 ! INPUTS
 !  cur_loc_id 	 - location identifier
 !  cur_name 	 - name of the existing object if link is a
-!  hard link. Can be anything for the soft link.
-!  link_type 	 - link type
-!  Possible values are:
-!  H5G_LINK_HARD_F (0) or
-!  H5G_LINK_SOFT_F (1)
+!                  hard link. Can be anything for the soft link.
+!  link_type 	 - link type; possible values are:
+!                    H5G_LINK_HARD_F (0)
+!                    H5G_LINK_SOFT_F (1)
 !  new_loc_id 	 - new location identifier
 !  new_name 	 - new name for the object
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -643,10 +625,7 @@ CONTAINS
 !  loc_id 	 - location identifier
 !  name 	 - name of the object to unlink
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -697,10 +676,7 @@ CONTAINS
 !  name 	 - object's name at specified location
 !  new_name 	 - object's new name
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -758,9 +734,7 @@ CONTAINS
 !  dst_loc_id 	 - original location identifier
 !  dst_name 	 - object's new name
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  September 25, 2002
@@ -814,15 +788,12 @@ CONTAINS
 ! INPUTS
 !  loc_id 	 - location identifier
 !  name 	 - symbolic link to the object whose name
-!  is to be returned.
+!                  is to be returned.
 !  size 	 - maximum number of characters to be returned
 ! OUTPUTS
 !  buffer 	 - a buffer to hold the name of the object
 !  being sought
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -881,8 +852,7 @@ CONTAINS
 !  name 	 - name of the object
 !  comment 	 - comment to set for the object
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -941,9 +911,7 @@ CONTAINS
 !  size 	 - size of the buffer required to hold comment
 ! OUTPUTS
 !  buffer 	 - buffer to hold object's comment
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -1000,9 +968,7 @@ CONTAINS
 !  loc_id 	 - Location identifier
 ! OUTPUTS
 !  grp_id 	 - group identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !  gcpl_id 	 - Group creation property list identifier
 !  gapl_id 	 - Group access property list identifier
@@ -1059,9 +1025,7 @@ CONTAINS
 !  grp_id 	 - group identifier
 ! OUTPUTS
 !  gcpl_id 	 - Group creation property list identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  M.S. Breitenfeld
 !  February 15, 2008
@@ -1100,17 +1064,14 @@ CONTAINS
 ! INPUTS
 !  group_id 	 - Group identifier
 !
-! OUTPUTS  NOTE: In C it is defined as a structure: H5G_info_t
-!
-!  storage_type 	 - Type of storage for links in group
-!  H5G_STORAGE_TYPE_COMPACT: Compact storage
-!  H5G_STORAGE_TYPE_DENSE: Indexed storage
-!  H5G_STORAGE_TYPE_SYMBOL_TABLE: Symbol tables, the original HDF5 structure
+! OUTPUTS  
+!  storage_type  - Type of storage for links in group
+!                    H5G_STORAGE_TYPE_COMPACT: Compact storage
+!                    H5G_STORAGE_TYPE_DENSE: Indexed storage
+!                    H5G_STORAGE_TYPE_SYMBOL_TABLE: Symbol tables, the original HDF5 structure
 !  nlinks 	 - Number of links in group
 !  max_corder 	 - Current maximum creation order value for group
-!  hdferr 	 - error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !  mounted 	 - Whether group has a file mounted on it
 !
@@ -1118,11 +1079,14 @@ CONTAINS
 !  M. S. Breitenfeld
 !  February 15, 2008
 !
+! NOTES
+!  In C the output is defined as a structure: H5G_info_t
+!
 ! HISTORY
 !
-!   	 - Added 'mounted' paramater
-!  M.S. Breitenfeld
-!  July 16, 2008
+!  - Added 'mounted' paramater
+!    M.S. Breitenfeld
+!    July 16, 2008
 !
 ! SOURCE
   SUBROUTINE h5gget_info_f(group_id, storage_type, nlinks, max_corder, hdferr, mounted)
@@ -1181,30 +1145,29 @@ CONTAINS
 !  group_name 	 - Name of group containing group for which information is to be retrieved
 !  index_type 	 - Index type
 !  order 	 - Order of the count in the index
-!  n 	 - Position in the index of the group for which information is retrieved
+!  n 	         - Position in the index of the group for which information is retrieved
 !
 ! OUTPUTS
-!  NOTE: In C the following are defined as a structure: H5G_info_t
-!
-!  storage_type 	 - Type of storage for links in group
-!  H5G_STORAGE_TYPE_COMPACT: Compact storage
-!  H5G_STORAGE_TYPE_DENSE: Indexed storage
-!  H5G_STORAGE_TYPE_SYMBOL_TABLE: Symbol tables, the original HDF5 structure
+!  storage_type  - Type of storage for links in group
+!                    H5G_STORAGE_TYPE_COMPACT: Compact storage
+!                    H5G_STORAGE_TYPE_DENSE: Indexed storage
+!                    H5G_STORAGE_TYPE_SYMBOL_TABLE: Symbol tables, the original HDF5 structure
 !  nlinks 	 - Number of links in group
 !  max_corder 	 - Current maximum creation order value for group
-!  hdferr 	 - error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !  lapl_id 	 - Link access property list
 !  mounted 	 - Whether group has a file mounted on it
+!
+! NOTES
+!  In C the output is defined as a structure: H5G_info_t
 !
 ! AUTHOR
 !  M. S. Breitenfeld
 !  February 18, 2008
 !
 ! HISTORY
-!   	 - Added 'mounted' paramater
+!  Added 'mounted' paramater
 !  M.S. Breitenfeld
 !  July 16, 2008
 !
@@ -1289,27 +1252,27 @@ CONTAINS
 !  group_name 	 - Name of group containing group for which information is to be retrieved
 !
 ! OUTPUTS
-!  NOTE: In C the following are defined as a structure: H5G_info_t
 !
-!  storage_type 	 - Type of storage for links in group
-!  H5G_STORAGE_TYPE_COMPACT: Compact storage
-!  H5G_STORAGE_TYPE_DENSE: Indexed storage
-!  H5G_STORAGE_TYPE_SYMBOL_TABLE: Symbol tables, the original HDF5 structure
+!  storage_type  - Type of storage for links in group
+!                    H5G_STORAGE_TYPE_COMPACT: Compact storage
+!                    H5G_STORAGE_TYPE_DENSE: Indexed storage
+!                    H5G_STORAGE_TYPE_SYMBOL_TABLE: Symbol tables, the original HDF5 structure
 !  nlinks 	 - Number of links in group
 !  max_corder 	 - Current maximum creation order value for group
-!  hdferr 	 - error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !  lapl_id 	 - Link access property list
 !  mounted 	 - Whether group has a file mounted on it
+!
+! NOTES
+!  In C the output is defined as a structure: H5G_info_t
 !
 ! AUTHOR
 !  M. S. Breitenfeld
 !  February 18, 2008
 !
 ! HISTORY
-!   	 - Added 'mounted' paramater
+!  Added 'mounted' paramater
 !  M.S. Breitenfeld
 !  July 16, 2008
 ! SOURCE

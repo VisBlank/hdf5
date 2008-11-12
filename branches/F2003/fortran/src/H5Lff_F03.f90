@@ -95,8 +95,7 @@ CONTAINS
                                          ! 0 on success and -1 on failure
 !*****
     INTERFACE
-       INTEGER FUNCTION
-!  h5literate_c(group_id, index_type, order, idx, op, op_data)
+       INTEGER FUNCTION h5literate_c(group_id, index_type, order, idx, op, op_data)
          USE ISO_C_BINDING
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
@@ -187,8 +186,7 @@ CONTAINS
     INTEGER(SIZE_T) :: namelen
 
     INTERFACE
-       INTEGER FUNCTION
-!  h5literate_by_name_c(loc_id, name, namelen, index_type, order, idx, op, op_data, lapl_id_default)
+       INTEGER FUNCTION h5literate_by_name_c(loc_id, name, namelen, index_type, order, idx, op, op_data, lapl_id_default)
          USE ISO_C_BINDING
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
