@@ -618,6 +618,9 @@ nh5init_flags_c( int_f *h5d_flags, int_f *h5f_flags,
       h5z_flags[13] = (int_f)H5Z_FILTER_ALL;
       h5z_flags[14] = (int_f)H5Z_FILTER_NBIT;
       h5z_flags[15] = (int_f)H5Z_FILTER_SCALEOFFSET;
+      h5z_flags[16] = (int_f)H5Z_SO_FLOAT_DSCALE;
+      h5z_flags[17] = (int_f)H5Z_SO_FLOAT_ESCALE;
+      h5z_flags[18] = (int_f)H5Z_SO_INT;
 /*
  *  H5A flags
  */
