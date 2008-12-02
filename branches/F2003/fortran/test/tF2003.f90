@@ -1,4 +1,14 @@
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+!****h* root/fortran/test/tF2003.f90
+!
+! NAME
+!  tF2003.f90
+!
+! FUNCTION
+!  Test FORTRAN HDF5 APIs which are dependent on the FORTRAN 2003
+!  features. Tests H5L, H5P, H5T APIs. 
+!
+! COPYRIGHT
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
 !   All rights reserved.                                                      *
@@ -11,8 +21,17 @@
 !   is linked from the top-level documents page.  It can also be found at     *
 !   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
+! USES
+!  liter_cb_mod, test_genprop_cls_cb1_mod
+!
+! CONTAINS SUBROUTINES
+!  test_iter_group, test_create, test_genprop_class_callback,
+!  test_array_compound_atomic, test_array_compound_array,
+!  test_array_bkg 
+!
+!*****
 
 ! *****************************************
 ! ***        H 5 L   T E S T S
@@ -50,9 +69,24 @@ CONTAINS
     USE ISO_C_BINDING
     IMPLICIT NONE
 
-    INTEGER(HID_T) group
+    INTEGER(HID_T), VALUE :: group
     CHARACTER(LEN=10) :: name
-    INTEGER :: link_info
+
+    TYPE union_t
+       INTEGER(haddr_t) :: address
+       INTEGER(size_t) :: val_size
+    END TYPE union_t
+
+    TYPE H5L_info_t
+       INTEGER(c_int) :: type ! H5L_type_t     type
+!       LOGICAL(c_bool) :: corder_valid ! hbool_t        corder_valid
+       INTEGER(c_int64_t) :: corder ! int64_t        corder;
+       INTEGER(c_int) :: cset ! H5T_cset_t     cset;
+       TYPE(union_t) :: u
+
+    END TYPE H5L_info_t
+
+    TYPE (H5L_info_t) :: link_info
 
     TYPE(iter_info) :: op_data
 
@@ -65,7 +99,6 @@ CONTAINS
 !!$    static int count2 = 0;
 
     op_data%name = name
-
 
     SELECT CASE (op_data%command)
 
@@ -180,6 +213,7 @@ SUBROUTINE test_iter_group(total_error)
     info%command = 0
     f1 = C_FUNLOC(liter_cb)
     f2 = C_LOC(info)
+
 
     CALL H5Literate_f(file, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, f1, f2, ret_value, error)
     CALL check("H5Literate_f", error, total_error)
@@ -394,10 +428,10 @@ SUBROUTINE test_iter_group(total_error)
 
   ! /* Create a compound datatype */
 
-
     CALL h5tcreate_f(H5T_COMPOUND_F, INT(SIZEOF(fill_ctype),size_t), comp_type_id, error)
     CALL check("h5tcreate_f", error, total_error)
-    CALL h5tinsert_f(comp_type_id, "a", H5OFFSETOF(C_LOC(fill_ctype), C_LOC(fill_ctype%a)), H5T_NATIVE_REAL, error)
+    h5off = H5OFFSETOF(C_LOC(fill_ctype), C_LOC(fill_ctype%a))
+    CALL h5tinsert_f(comp_type_id, "a", h5off , H5T_NATIVE_REAL, error)
     CALL check("h5tinsert_f", error, total_error)
     CALL h5tinsert_f(comp_type_id, "x", H5OFFSETOF(C_LOC(fill_ctype), C_LOC(fill_ctype%x)), H5T_NATIVE_INTEGER, error)
     CALL check("h5tinsert_f", error, total_error)
@@ -662,7 +696,7 @@ SUBROUTINE test_iter_group(total_error)
 !**  Tests 1-D array of compound datatypes (with no array fields)
 !**
 !****************************************************************/
-
+!
   SUBROUTINE test_array_compound_atomic(total_error)
     
     USE HDF5 
@@ -895,14 +929,14 @@ SUBROUTINE test_iter_group(total_error)
     CALL check("h5fclose_f", error, total_error)
 
   END SUBROUTINE test_array_compound_atomic
-
-!/****************************************************************
-!**
-!**  test_array_compound_array(): Test basic array datatype code.
-!**      Tests 1-D array of compound datatypes (with array fields)
-!**
-!****************************************************************/
-
+!!$
+!!$!/****************************************************************
+!!$!**
+!!$!**  test_array_compound_array(): Test basic array datatype code.
+!!$!**      Tests 1-D array of compound datatypes (with array fields)
+!!$!**
+!!$!****************************************************************/
+!!$
   SUBROUTINE test_array_compound_array(total_error)
     
     USE HDF5 
@@ -1267,15 +1301,15 @@ SUBROUTINE test_iter_group(total_error)
     CALL h5fclose_f(fid1,error)
     CALL check("h5fclose_f", error, total_error)
   END SUBROUTINE test_array_compound_array
-
-!/****************************************************************
-!**
-!**  test_array_bkg(): Test basic array datatype code.
-!**      Tests reading compound datatype with array fields and
-!**          writing partial fields.
-!**
-!****************************************************************/
-
+!!$
+!!$!/****************************************************************
+!!$!**
+!!$!**  test_array_bkg(): Test basic array datatype code.
+!!$!**      Tests reading compound datatype with array fields and
+!!$!**          writing partial fields.
+!!$!**
+!!$!****************************************************************/
+!!$
   SUBROUTINE test_array_bkg(total_error)
     
     USE HDF5 

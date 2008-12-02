@@ -1,4 +1,13 @@
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+!****h* root/fortran/test/tH5A_1_8.f90
+!
+! NAME
+!  tH5A_1_8.f90
+!
+! FUNCTION
+!  Basic testing of Fortran H5A APIs introduced in 1.8.
+!
+! COPYRIGHT
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
 !   All rights reserved.                                                      *
@@ -11,8 +20,17 @@
 !   is linked from the top-level documents page.  It can also be found at     *
 !   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
+! CONTAINS SUBROUTINES
+!  attribute_test_1_8, test_attr_corder_create_compact, test_attr_null_space,
+!  test_attr_create_by_name, test_attr_info_by_idx, attr_info_by_idx_check,
+!  test_attr_shared_rename, test_attr_delete_by_idx, test_attr_shared_delete,
+!  test_attr_dense_open, test_attr_dense_verify, test_attr_corder_create_basic,
+!  test_attr_basic_write, test_attr_many, attr_open_check, 
+!
+!*****
+
 SUBROUTINE attribute_test_1_8(cleanup, total_error) 
 
 !   This subroutine tests following 1.8 functionalities:

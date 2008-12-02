@@ -1,4 +1,13 @@
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+!****h* root/fortran/test/tf.f90
+!
+! NAME
+!  tf.f90
+!
+! FUNCTION
+!  Contains subroutines which are needed in all the hdf5 fortran tests
+!
+! COPYRIGHT
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
 !   All rights reserved.                                                      *
@@ -11,14 +20,13 @@
 !   is linked from the top-level documents page.  It can also be found at     *
 !   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
+! CONTAINS SUBROUTINES
+!  write_test_status, check, verify, verifyLogical, verifyString, h5_fixname_f,
+!  h5_cleanup_f, h5_exit_f, h5_env_nocleanup_f
 !
-! 
-!    This file contains subroutines which are used in
-!    all the hdf5 fortran tests
-!
-
+!*****
 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)

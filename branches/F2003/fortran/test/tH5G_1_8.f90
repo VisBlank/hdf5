@@ -1,4 +1,13 @@
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+!****h* root/fortran/test/tH5G_1_8.f90
+!
+! NAME
+!  tH5G_1_8.f90
+!
+! FUNCTION
+!  Basic testing of Fortran H5G APIs introduced in 1.8.
+!
+! COPYRIGHT
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
 !   All rights reserved.                                                      *
@@ -11,8 +20,14 @@
 !   is linked from the top-level documents page.  It can also be found at     *
 !   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
+! CONTAINS SUBROUTINES
+!  group_test, group_info, timestamps, mklinks, test_move_preserves, lifecycle
+!  cklinks, delete_by_idx, link_info_by_idx_check, test_lcpl, objcopy, 
+!  lapl_nlinks
+!
+!*****
 SUBROUTINE group_test(cleanup, total_error)
   USE HDF5 ! This module contains all necessary modules 
   

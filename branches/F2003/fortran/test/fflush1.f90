@@ -1,7 +1,7 @@
 !****h* root/fortran/test/fflush1.f90
 !
 ! NAME
-!  fflush1.f90
+!  FFLUSH1EXAMPLE
 !
 ! FUNCTION
 !  This is the first half of a two-part test that makes sure
