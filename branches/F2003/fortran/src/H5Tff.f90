@@ -1,7 +1,7 @@
 !****h* ROBODoc/H5T
 !
 ! NAME
-!  H5T
+!  MODULE H5T
 !
 ! PURPOSE
 !  This file contains Fortran interfaces for H5T functions. It includes
@@ -10,20 +10,20 @@
 !
 !
 ! COPYRIGHT
-!  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-!  Copyright by The HDF Group.                                               *
-!  Copyright by the Board of Trustees of the University of Illinois.         *
-!  All rights reserved.                                                      *
-!  *
-!  This file is part of HDF5.  The full HDF5 copyright notice, including     *
-!  terms governing use, modification, and redistribution, is contained in    *
-!  the files COPYING and Copyright.html.  COPYING can be found at the root   *
-!  of the source code distribution tree; Copyright.html can be found at the  *
-!  root level of an installed copy of the electronic HDF5 document set and   *
-!  is linked from the top-level documents page.  It can also be found at     *
-!  http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
-!  access to either file, you may request a copy from help@hdfgroup.org.     *
-!  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!   Copyright by The HDF Group.                                               *
+!   Copyright by the Board of Trustees of the University of Illinois.         *
+!   All rights reserved.                                                      *
+!                                                                             *
+!   This file is part of HDF5.  The full HDF5 copyright notice, including     *
+!   terms governing use, modification, and redistribution, is contained in    *
+!   the files COPYING and Copyright.html.  COPYING can be found at the root   *
+!   of the source code distribution tree; Copyright.html can be found at the  *
+!   root level of an installed copy of the electronic HDF5 document set and   *
+!   is linked from the top-level documents page.  It can also be found at     *
+!   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+!   access to either file, you may request a copy from help@hdfgroup.org.     *
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
 ! NOTES
 !                         *** IMPORTANT ***
@@ -53,9 +53,7 @@ CONTAINS
 !  name 	 - a datatype name
 ! OUTPUTS
 !  type_id 	 - datatype identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !  tapl_id 	 - datatype access property list identifier.
 !
@@ -105,7 +103,6 @@ CONTAINS
 
     hdferr = h5topen_c(loc_id, name, namelen, type_id, tapl_id_default)
   END SUBROUTINE h5topen_f
-
 !
 !****s* H5T/h5tcommit_f
 !
@@ -119,12 +116,10 @@ CONTAINS
 ! INPUTS
 !  loc_id 	 - location identifier
 !  name 	 - name of the datatype to be stored
-!  at the specified location
+!                  at the specified location
 !  type_id 	 - identifier of a datatype to be stored
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !  lcpl_id 	 - Link creation property list
 !  tcpl_id 	 - Datatype creation property list
@@ -136,11 +131,11 @@ CONTAINS
 !
 ! HISTORY
 !   	 - Explicit Fortran interfaces were added for
-!  called C functions (it is needed for Windows
-!  port).  March 7, 2001
+!          called C functions (it is needed for Windows
+!          port).  March 7, 2001
 !
 !   	 - Added optional parameters introduced in version 1.8
-!  M.S. Breitenfeld
+!          M.S. Breitenfeld
 !
 ! SOURCE
   SUBROUTINE h5tcommit_f(loc_id, name, type_id, hdferr, &
@@ -194,7 +189,6 @@ CONTAINS
          lcpl_id_default, tcpl_id_default, tapl_id_default )
 
   END SUBROUTINE h5tcommit_f
-
 !
 !****s* H5T/h5tcopy_f
 !
@@ -202,15 +196,13 @@ CONTAINS
 !  h5tcopy_f
 !
 ! PURPOSE
-!  iCreates a copy of exisiting datatype.
+!  Creates a copy of exisiting datatype.
 !
 ! INPUTS
 !  type_id 	 - datatype identifier
 ! OUTPUTS
 !  new_type_id 	 - identifier of datatype's copy
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -241,7 +233,6 @@ CONTAINS
 
             hdferr = h5tcopy_c(type_id, new_type_id)
           END SUBROUTINE h5tcopy_f
-
 !
 !****s* H5T/h5tequal_f
 !
@@ -257,10 +248,8 @@ CONTAINS
 !  type2_id 	 - datatype identifier
 ! OUTPUTS
 !  flag 	 - TRUE/FALSE flag to indicate
-!  if two datatypes are equal
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!                  if two datatypes are equal
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -295,7 +284,6 @@ CONTAINS
             hdferr = h5tequal_c(type1_id, type2_id, c_flag)
             if(c_flag .gt. 0) flag = .TRUE.
           END SUBROUTINE h5tequal_f
-
 !
 !****s* H5T/h5tclose_f
 !
@@ -308,11 +296,7 @@ CONTAINS
 ! INPUTS
 !  type_id 	 - datatype identifier
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-! OPTIONAL PARAMETERS
-!  NONE
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -341,7 +325,6 @@ CONTAINS
 
             hdferr = h5tclose_c(type_id)
           END SUBROUTINE h5tclose_f
-
 !
 !****s* H5T/h5tget_class_f
 !
@@ -355,21 +338,17 @@ CONTAINS
 !  type_id 	 - datatype identifier
 ! OUTPUTS
 !  class 	 - class, possible values are:
-!  H5T_NO_CLASS_F (-1)
-!  H5T_INTEGER_F  (0)
-!  H5T_FLOAT_F (1)
-!  H5T_TIME_F  (2)
-!  H5T_STRING_F (3)
-!  H5T_BITFIELD_F (4)
-!  H5T_OPAQUE_F (5)
-!  H5T_COMPOUND_F (6)
-!  H5T_REFERENCE_F (7)
-!  H5T_ENUM_F (8)
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-! OPTIONAL PARAMETERS
-!  NONE
+!                   H5T_NO_CLASS_F (-1)
+!                   H5T_INTEGER_F  (0)
+!                   H5T_FLOAT_F (1)
+!                   H5T_TIME_F  (2)
+!                   H5T_STRING_F (3)
+!                   H5T_BITFIELD_F (4)
+!                   H5T_OPAQUE_F (5)
+!                   H5T_COMPOUND_F (6)
+!                   H5T_REFERENCE_F (7)
+!                   H5T_ENUM_F (8)
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -411,7 +390,6 @@ CONTAINS
 
           hdferr = h5tget_class_c(type_id, class)
           END SUBROUTINE h5tget_class_f
-
 !
 !****s* H5T/h5tget_size_f
 !
@@ -425,11 +403,7 @@ CONTAINS
 !  type_id 	 - datatype identifier
 ! OUTPUTS
 !  size 	 - datatype size
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-! OPTIONAL PARAMETERS
-!  NONE
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -474,11 +448,7 @@ CONTAINS
 !  type_id 	 - datatype identifier
 !  size 	 - size of the datatype
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-! OPTIONAL PARAMETERS
-!  NONE
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -524,13 +494,11 @@ CONTAINS
 !  type_id 	 - datatype identifier
 ! OUTPUTS
 !  order 	 - byte order for the datatype, possible
-!  values are:
-!  H5T_ORDER_LE_F
-!  H5T_ORDER_BE_F
-!  H5T_ORDER_VAX_F (not implemented yet)
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!                  values are:
+!                    H5T_ORDER_LE_F
+!                    H5T_ORDER_BE_F
+!                    H5T_ORDER_VAX_F (not implemented yet)
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -576,15 +544,12 @@ CONTAINS
 !
 ! INPUTS
 !  type_id 	 - datatype identifier
-!  order 	 - datatype byte order
-!  Possible values are:
-!  H5T_ORDER_LE_F
-!  H5T_ORDER_BE_F
-!  H5T_ORDER_VAX_F (not implemented yet)
+!  order 	 - datatype byte order Possible values are:
+!                    H5T_ORDER_LE_F
+!                    H5T_ORDER_BE_F
+!                    H5T_ORDER_VAX_F (not implemented yet)
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -632,11 +597,7 @@ CONTAINS
 !  type_id 	 - datatype identifier
 ! OUTPUTS
 !  precision 	 - precision of the datatype
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-! OPTIONAL PARAMETERS
-!  NONE
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -681,11 +642,7 @@ CONTAINS
 !  type_id 	 - datatype identifier
 !  precision 	 - datatype precision
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-! OPTIONAL PARAMETERS
-!  NONE
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -730,9 +687,7 @@ CONTAINS
 !  type_id 	 - datatype identifier
 ! OUTPUTS
 !  offset 	 - offset value
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -777,9 +732,7 @@ CONTAINS
 !  type_id 	 - datatype identifier
 !  offset 	 - offset value
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -826,17 +779,14 @@ CONTAINS
 ! OUTPUTS
 !  lsbpad 	 - least-significant bit padding type
 !  msbpad 	 - most-significant bit padding type
-!  Possible values of padding type are:
-!  H5T_PAD_ERROR_F      = -1
-!  H5T_PAD_ZERO_F = 0
-!  H5T_PAD_ONE_F = 1
-!  H5T_PAD_BACKGROUND_F = 2
-!  H5T_PAD_NPAD_F      = 3
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-! OPTIONAL PARAMETERS
-!  NONE
+!                  Possible values of padding type are:
+!                    H5T_PAD_ERROR_F      = -1
+!                    H5T_PAD_ZERO_F = 0
+!                    H5T_PAD_ONE_F = 1
+!                    H5T_PAD_BACKGROUND_F = 2
+!                    H5T_PAD_NPAD_F      = 3
+!  hdferr 	 - Returns 0 if successful and -1 if fails
+
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -891,18 +841,14 @@ CONTAINS
 !  type_id 	 - datatype identifier
 !  lsbpad 	 - least-significant bit padding type
 !  msbpad 	 - most-significant bit padding type
-!  Possible values of padding type are:
-!  H5T_PAD_ERROR_F      = -1
-!  H5T_PAD_ZERO_F = 0
-!  H5T_PAD_ONE_F = 1
-!  H5T_PAD_BACKGROUND_F = 2
-!  H5T_PAD_NPAD_F      = 3
+!                  Possible values of padding type are:
+!                    H5T_PAD_ERROR_F      = -1
+!                    H5T_PAD_ZERO_F = 0
+!                    H5T_PAD_ONE_F = 1
+!                    H5T_PAD_BACKGROUND_F = 2
+!                    H5T_PAD_NPAD_F      = 3
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-! OPTIONAL PARAMETERS
-!  NONE
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -956,16 +902,13 @@ CONTAINS
 !  type_id 	 - datatype identifier
 ! OUTPUTS
 !  sign 	 - sign type
-!  Possible values are:
-!  Unsigned integer type H5T_SGN_NONE_F = 0
-!  Two's complement signed integer type
-!  H5T_SGN_2_F = 1
-!  or error value: H5T_SGN_ERROR_F=-1
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-! OPTIONAL PARAMETERS
-!  NONE
+!                  Possible values are:
+!                    - Unsigned integer type 
+!                        H5T_SGN_NONE_F = 0
+!                    - Two's complement signed integer type
+!                        H5T_SGN_2_F = 1
+!                    - error value: H5T_SGN_ERROR_F=-1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -1014,17 +957,14 @@ CONTAINS
 ! INPUTS
 !  type_id 	 - datatype identifier
 !  sign 	 - sign type
-!  Possible values are:
-!  Unsigned integer type H5T_SGN_NONE_F = 0
-!  Two's complement signed integer type
-!  H5T_SGN_2_F = 1
-!  or error value: H5T_SGN_ERROR_F=-1
+!                  Possible values are:
+!                    - Unsigned integer type 
+!                        H5T_SGN_NONE_F = 0
+!                    - Two's complement signed integer type
+!                        H5T_SGN_2_F = 1
+!                    - error value: H5T_SGN_ERROR_F=-1
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-! OPTIONAL PARAMETERS
-!  NONE
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -1078,11 +1018,7 @@ CONTAINS
 !  esize 	 - size of exponent in bits
 !  mpos 	 - mantissa position
 !  msize 	 - size of mantissa in bits
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-! OPTIONAL PARAMETERS
-!  NONE
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -1138,11 +1074,8 @@ CONTAINS
 !  esize 	 - size of exponent in bits
 !  mpos 	 - mantissa position
 !  msize 	 - size of mantissa in bits
-!  hdferr:		- error code
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -1195,9 +1128,7 @@ CONTAINS
 !  type_id 	 - datatype identifier
 ! OUTPUTS
 !  ebias 	 - datatype exponent bias
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -1242,9 +1173,7 @@ CONTAINS
 !  type_id 	 - datatype identifier
 !  ebias 	 - datatype exponent bias
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -1290,12 +1219,10 @@ CONTAINS
 !  type_id 	 - datatype identifier
 ! OUTPUTS
 !  norm 	 - normalization types, valid values are:
-!  H5T_NORM_IMPLIED_F(0)
-!  H5T_NORM_MSBSET_F(1)
-!  H5T_NORM_NONE_F(2)
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!                    H5T_NORM_IMPLIED_F(0)
+!                    H5T_NORM_MSBSET_F(1)
+!                    H5T_NORM_NONE_F(2)
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -1344,13 +1271,11 @@ CONTAINS
 ! INPUTS
 !  type_id 	 - datatype identifier
 !  norm 	 - normalization types, valid values are:
-!  H5T_NORM_IMPLIED_F(0)
-!  H5T_NORM_MSBSET_F(1)
-!  H5T_NORM_NONE_F(2)
+!                    H5T_NORM_IMPLIED_F(0)
+!                    H5T_NORM_MSBSET_F(1)
+!                    H5T_NORM_NONE_F(2)
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -1401,13 +1326,11 @@ CONTAINS
 !  type_id 	 - datatype identifier
 ! OUTPUTS
 !  padtype 	 - padding type for unused bits
-!  Possible values of padding type are:
-!  H5T_PAD_ZERO_F = 0
-!  H5T_PAD_ONE_F = 1
-!  H5T_PAD_BACKGROUND_F = 2
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!                  Possible values of padding type are:
+!                    H5T_PAD_ZERO_F = 0
+!                    H5T_PAD_ONE_F = 1
+!                    H5T_PAD_BACKGROUND_F = 2
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -1456,14 +1379,12 @@ CONTAINS
 ! INPUTS
 !  type_id 	 - datatype identifier
 !  padtype 	 - padding type for unused bits
-!  Possible values of padding type are:
-!  H5T_PAD_ZERO_F = 0
-!  H5T_PAD_ONE_F = 1
-!  H5T_PAD_BACKGROUND_F = 2
+!                  Possible values of padding type are:
+!                    H5T_PAD_ZERO_F = 0
+!                    H5T_PAD_ONE_F = 1
+!                    H5T_PAD_BACKGROUND_F = 2
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -1512,11 +1433,9 @@ CONTAINS
 !  type_id 	 - datatype identifier
 ! OUTPUTS
 !  cset 	 - character set type of a string datatype
-!  Possible values of padding type are:
-!  H5T_CSET_ASCII_F = 0
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!                  Possible values of padding type are:
+!                  H5T_CSET_ASCII_F = 0
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -1561,12 +1480,10 @@ CONTAINS
 ! INPUTS
 !  type_id 	 - datatype identifier
 !  cset 	 - character set type of a string datatype
-!  Possible values of padding type are:
-!  H5T_CSET_ASCII_F = 0
+!                  Possible values of padding type are:
+!                  H5T_CSET_ASCII_F = 0
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -1612,14 +1529,12 @@ CONTAINS
 !  type_id 	 - datatype identifier
 ! OUTPUTS
 !  strpad 	 - storage method for a string datatype
-!  Possible values are:
-!  H5T_STR_NULLTERM_F,
-!  H5T_STR_NULLPAD_F,
-!  H5T_STR_SPACEPAD_F
-!  H5T_STR_ERROR_F
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!                  Possible values are:
+!                    H5T_STR_NULLTERM_F,
+!                    H5T_STR_NULLPAD_F,
+!                    H5T_STR_SPACEPAD_F
+!                    H5T_STR_ERROR_F
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -1662,15 +1577,13 @@ CONTAINS
 ! INPUTS
 !  type_id 	 - datatype identifier
 !  strpad 	 - storage method for a string datatype
-!  Possible values are:
-!  H5T_STR_NULLTERM_F,
-!  H5T_STR_NULLPAD_F,
-!  H5T_STR_SPACEPAD_F
-!  H5T_STR_ERROR_F
+!                  Possible values are:
+!                    H5T_STR_NULLTERM_F,
+!                    H5T_STR_NULLPAD_F,
+!                    H5T_STR_SPACEPAD_F
+!                    H5T_STR_ERROR_F
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -1714,9 +1627,7 @@ CONTAINS
 !  type_id 	 - datatype identifier
 ! OUTPUTS
 !  num_members 	 - number of members
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -1764,9 +1675,7 @@ CONTAINS
 ! OUTPUTS
 !  member_name 	 - buffer to hold member's name
 !  namelen 	 - name length
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -1817,9 +1726,7 @@ CONTAINS
 !  member_no 	 - number of the field
 ! OUTPUTS
 !  offset 	 - byte offset of the requested field
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -1867,9 +1774,7 @@ CONTAINS
 !  to be retrieved from the datatype.
 ! OUTPUTS
 !  index 	 - 0-based index of the filed or member (0 to N-1)
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -1960,11 +1865,8 @@ CONTAINS
 ! INPUTS
 !  type_id 	 - array datatype identifier
 ! OUTPUTS
-!  dims 	 - buffer to store array datatype
-!  dimensions
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  dims 	 - buffer to store array datatype dimensions
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -2011,9 +1913,7 @@ CONTAINS
 !  type_id 	 - array datatype identifier
 ! OUTPUTS
 !  ndims 	 - number of array dimensions
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -2058,9 +1958,7 @@ CONTAINS
 !  type_id 	 - datatype identifier
 ! OUTPUTS
 !  base_type_id 	 - identifier of the base type
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -2108,9 +2006,7 @@ CONTAINS
 !
 ! OUTPUTS
 !  datatype 	 - idnetifier of the member's datatype
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -2155,15 +2051,13 @@ CONTAINS
 !
 ! INPUTS
 !  class 	 - datatype class, possible values are:
-!  H5T_COMPOUND_F
-!  H5T_ENUM_F
-!  H5T_OPAQUE_F
+!                    H5T_COMPOUND_F
+!                    H5T_ENUM_F
+!                    H5T_OPAQUE_F
 !  size 	 - datattype size
 ! OUTPUTS
 !  type_id 	 - datatype identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -2212,12 +2106,10 @@ CONTAINS
 !  type_id 	 - compound dattype identifier
 !  name 	 - name of the field to insert
 !  offset 	 - start of the member in an instance of
-!  the compound datatype
+!                  the compound datatype
 !  field_id 	 - datatype identifier of the field to insert
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -2271,9 +2163,7 @@ CONTAINS
 ! INPUTS
 !  type_id 	 - compound datatype identifier
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -2364,14 +2254,12 @@ CONTAINS
 !
 ! INPUTS
 !  base_id 	 - datatype identifier for the array
-!  base datatype
+!                  base datatype
 !  rank 	 - rank of the array
 !  dims 	 - array dimension sizes
 ! OUTPUTS
 !  type_id 	 - array datatype identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -2419,11 +2307,8 @@ CONTAINS
 ! INPUTS
 !  parent_id 	 - datatype identifier for base datatype
 ! OUTPUTS
-!  new_type_id 	 - datatype identifier for the enumeration
-!  datatype
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  new_type_id 	 - datatype identifier for the enumeration datatype
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -2470,9 +2355,7 @@ CONTAINS
 ! INPUTS
 !  type_id 	 - datatype identifier
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -2526,9 +2409,7 @@ CONTAINS
 !  namelen 	 - name buffer size
 ! OUTPUTS
 !  name 	 - buffer to hold symbol name
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -2538,6 +2419,12 @@ CONTAINS
 !  Explicit Fortran interfaces were added for
 !  called C functions (it is needed for Windows
 !  port).  March 7, 2001
+!
+! NOTE
+!   According to the standard: Because an INTENT(OUT) variable is considered undefined 
+!   on entry to the procedure, any default initialization specified for its type will 
+!   be applied. So we need to blank out the "name" to be portable and eliminate any 
+!   characters the "name' may contain upon entry, depending on compiler implementation.
 ! SOURCE
   SUBROUTINE h5tenum_nameof_f(type_id,  value, namelen, name, hdferr)
             IMPLICIT NONE
@@ -2562,6 +2449,8 @@ CONTAINS
               END FUNCTION h5tenum_nameof_c
             END INTERFACE
 
+            name(1:LEN(name)) = ' '
+
             hdferr = h5tenum_nameof_c(type_id, value, name, namelen)
           END SUBROUTINE h5tenum_nameof_f
 
@@ -2580,9 +2469,7 @@ CONTAINS
 !  name 	 - symbol name
 ! OUTPUTS
 !  value 	 - value of the enumeration datatype
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -2635,9 +2522,7 @@ CONTAINS
 !  member_no 	 - number of the enumeration datatype member
 ! OUTPUTS
 !  value 	 - value of the enumeration datatype
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -2682,12 +2567,10 @@ CONTAINS
 !
 ! INPUTS
 !  type_id 	 - identifier for opaque datatype
-!  tag 	 - unique ASCII string with which the opaque
-!  datatype is to be tagged.
+!  tag 	         - unique ASCII string with which the opaque
+!                  datatype is to be tagged.
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -2736,11 +2619,9 @@ CONTAINS
 ! INPUTS
 !  type_id 	 - identifier for opaque datatype
 ! OUTPUTS
-!  tag 	 - unique ASCII string associated with opaque
-!  datatype
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  tag 	         - unique ASCII string associated with opaque
+!                  datatype
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -2788,9 +2669,7 @@ CONTAINS
 !  type_id 	 - identifier iof base datatype
 ! OUTPUTS
 !  vltype_id 	 - identifier for VL datatype
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -2830,13 +2709,11 @@ CONTAINS
 !  Determines whether a dattype is a variable string.
 !
 ! INPUTS
-!  type_id 	 -  	- datartpe identifier
+!  type_id 	 - datartpe identifier
 ! OUTPUTS
 !  status 	 - flag to indicate if datatype
-!  is a variable string
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!                  is a variable string
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -2880,26 +2757,24 @@ CONTAINS
 !  Returns datatype class of compound datatype member.
 !
 ! INPUTS
-!  type_id 	 -  	- datartpe identifier
+!  type_id 	 - datartpe identifier
 !  member_no 	 - index of compound datatype member
 ! OUTPUTS
 !  class 	 - class type for compound dadtype member
-!  Can be one of the follwoing classes:
-!  H5T_NO_CLASS_F (error)
-!  H5T_INTEGER_F
-!  H5T_FLOAT_F
-!  H5T_TIME_F
-!  H5T_STRING_F
-!  H5T_BITFIELD_F
-!  H5T_OPAQUE_F
-!  H5T_COMPOUND_F
-!  H5T_REFERENCE_F
-!  H5T_ENUM_F
-!  H5T_VLEN_F
-!  H5T_ARRAY_F
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!                  Valid classes:
+!                    H5T_NO_CLASS_F (error)
+!                    H5T_INTEGER_F
+!                    H5T_FLOAT_F
+!                    H5T_TIME_F
+!                    H5T_STRING_F
+!                    H5T_BITFIELD_F
+!                    H5T_OPAQUE_F
+!                    H5T_COMPOUND_F
+!                    H5T_REFERENCE_F
+!                    H5T_ENUM_F
+!                    H5T_VLEN_F
+!                    H5T_ARRAY_F
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -2942,18 +2817,16 @@ CONTAINS
 !
 ! INPUTS
 !  loc_id 	 - A file or group identifier specifying the file
-!  in which the new named datatype is to be created.
+!                  in which the new named datatype is to be created.
 !  dtype_id 	 - A datatype identifier.
 !
 ! OUTPUTS
-!  hdferr: - error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !  tcpl_id 	 - A datatype creation property list identifier.
-!  (H5P_DEFAULT_F for the default property list.)
+!                  (H5P_DEFAULT_F for the default property list.)
 !  tapl_id 	 - A datatype access property list identifier.
-!  should always be passed as the value H5P_DEFAULT_F.
+!                  should always be passed as the value H5P_DEFAULT_F.
 !
 ! AUTHOR
 !  M.S. Breitenfeld
@@ -3015,10 +2888,8 @@ CONTAINS
 !
 ! OUTPUTS
 !  committed 	 - .TRUE., if the datatype has been committed
-!  .FALSE., if the datatype has not been committed.
-!  hdferr: - error code
-!  Success:  0
-!  Failure: -1
+!                  .FALSE., if the datatype has not been committed.
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  M.S. Breitenfeld
 !  February 25, 2008
@@ -3067,12 +2938,10 @@ CONTAINS
 ! PURPOSE
 !  Decode a binary object description of data type and return a new object handle.
 ! INPUTS
-!  buf 	 -  Buffer for the data space object to be decoded.
+!  buf 	         -  Buffer for the data space object to be decoded.
 !  obj_id 	 - Object ID
 ! OUTPUTS
-!  hdferr: - error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  M.S. Breitenfeld
@@ -3111,15 +2980,11 @@ CONTAINS
 !
 ! INPUTS
 !  obj_id 	 - Identifier of the object to be encoded.
-!  buf 	 - Buffer for the object to be encoded into.
+!  buf 	         - Buffer for the object to be encoded into.
 !  nalloc 	 - The size of the allocated buffer.
 ! OUTPUTS
 !  nalloc 	 - The size of the buffer needed.
-!  hdferr: - error code
-!  Success:  0
-!  Failure: -1
-!
-! OPTIONAL PARAMETERS		- NONE
+!  hdferr 	 - Returns 0 if successful and -1 if fails.
 !
 ! AUTHOR
 !  M.S. Breitenfeld
@@ -3162,9 +3027,7 @@ CONTAINS
 !  dtype_id 	 - Datatype identifier
 ! OUTPUTS
 !  dtpl_id 	 - Datatype property list identifier
-!  hdferr:    - Error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  M.S. Breitenfeld
@@ -3206,9 +3069,7 @@ CONTAINS
 !  dst_id 	 - Identifier for the destination datatype.
 ! OUTPUTS
 !  flag 	 - TRUE for compiler conversion, FALSE for library conversion
-!  hdferr: - Error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  M.S. Breitenfeld
@@ -3254,18 +3115,16 @@ CONTAINS
 !
 ! INPUTS
 !  dtype_id 	 - Datatype identifier for the dataset datatype.
-!  *
+!  
 !  direction 	 - Direction of search:
-!  H5T_DIR_DEFAULT     = 0,    /*default direction is inscendent */
-!  H5T_DIR_ASCEND      = 1,    /*in inscendent order             */
-!  H5T_DIR_DESCEND     = 2     /*in descendent order             */
+!                  H5T_DIR_DEFAULT     = 0,    /*default direction is inscendent */
+!                  H5T_DIR_ASCEND      = 1,    /*in inscendent order             */
+!                  H5T_DIR_DESCEND     = 2     /*in descendent order             */
 !  * NOTE: In C it is defined as a structure: H5T_direction_t
 !
 ! OUTPUTS
-!  native_dtype_id 	 - The native datatype identifier for the specified dataset datatype
-!  hdferr:          - Error code
-!  Success:  0
-!  Failure: -1
+!  native_dtype_id - The native datatype identifier for the specified dataset datatype
+!  hdferr 	   - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  M.S. Breitenfeld
 !  June 18, 2008
