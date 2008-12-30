@@ -115,7 +115,9 @@ nh5init_types_c( hid_t_f * types, hid_t_f * floatingtypes, hid_t_f * integertype
 */
     if ((types[4] = (hid_t_f)H5Tcopy(H5T_STD_REF_OBJ)) < 0) return ret_value;
     if ((types[5] = (hid_t_f)H5Tcopy(H5T_STD_REF_DSETREG)) < 0) return ret_value;
-
+    /*
+     * FIND H5T_NATIVE_INTEGER_1
+     */
     if (sizeof(int_1_f) == sizeof(char)) {
       if ((types[6] = (hid_t_f)H5Tcopy(H5T_NATIVE_CHAR)) < 0) return ret_value;
     } /*end if */
@@ -128,7 +130,9 @@ nh5init_types_c( hid_t_f * types, hid_t_f * floatingtypes, hid_t_f * integertype
     else if (sizeof(int_1_f) == sizeof(long_long)) {
 	if ((types[6] = (hid_t_f)H5Tcopy(H5T_NATIVE_LLONG)) < 0) return ret_value;
     } /*end else */
-
+    /*
+     * FIND H5T_NATIVE_INTEGER_2
+     */
     if (sizeof(int_2_f) == sizeof(char)) {
       if ((types[7] = (hid_t_f)H5Tcopy(H5T_NATIVE_CHAR)) < 0) return ret_value;
     } /*end if */
@@ -141,7 +145,9 @@ nh5init_types_c( hid_t_f * types, hid_t_f * floatingtypes, hid_t_f * integertype
     else if (sizeof(int_2_f) == sizeof(long_long)) {
 	if ((types[7] = (hid_t_f)H5Tcopy(H5T_NATIVE_LLONG)) < 0) return ret_value;
     } /*end else */
-
+    /*
+     * FIND H5T_NATIVE_INTEGER_4
+     */
     if (sizeof(int_4_f) == sizeof(char)) {
       if ((types[8] = (hid_t_f)H5Tcopy(H5T_NATIVE_CHAR)) < 0) return ret_value;
     } /*end if */
@@ -154,7 +160,9 @@ nh5init_types_c( hid_t_f * types, hid_t_f * floatingtypes, hid_t_f * integertype
     else if (sizeof(int_4_f) == sizeof(long_long)) {
 	if ((types[8] = (hid_t_f)H5Tcopy(H5T_NATIVE_LLONG)) < 0) return ret_value;
     } /*end else */
-
+    /*
+     * FIND H5T_NATIVE_INTEGER_8
+     */
     if (sizeof(int_8_f) == sizeof(char)) {
       if ((types[9] = (hid_t_f)H5Tcopy(H5T_NATIVE_CHAR)) < 0) return ret_value;
     } /*end if */
@@ -167,7 +175,9 @@ nh5init_types_c( hid_t_f * types, hid_t_f * floatingtypes, hid_t_f * integertype
     else if (sizeof(int_8_f) == sizeof(long_long)) {
 	if ((types[9] = (hid_t_f)H5Tcopy(H5T_NATIVE_LLONG)) < 0) return ret_value;
     } /*end else */
-
+    /*
+     * FIND H5T_NATIVE_REAL_4
+     */
     if (sizeof(real_4_f) == sizeof(float)) {
       if ((types[10] = (hid_t_f)H5Tcopy(H5T_NATIVE_FLOAT)) < 0) return ret_value;
     } /*end if */
@@ -179,7 +189,9 @@ nh5init_types_c( hid_t_f * types, hid_t_f * floatingtypes, hid_t_f * integertype
 	if ((types[10] = (hid_t_f)H5Tcopy(H5T_NATIVE_LDOUBLE)) < 0) return ret_value;
     } /*end else */
 #endif
-
+    /*
+     * FIND H5T_NATIVE_REAL_8
+     */
     if (sizeof(real_8_f) == sizeof(float)) {
       if ((types[11] = (hid_t_f)H5Tcopy(H5T_NATIVE_FLOAT)) < 0) return ret_value;
     } /*end if */
@@ -191,7 +203,9 @@ nh5init_types_c( hid_t_f * types, hid_t_f * floatingtypes, hid_t_f * integertype
 	if ((types[11] = (hid_t_f)H5Tcopy(H5T_NATIVE_LDOUBLE)) < 0) return ret_value;
     } /*end else */
 #endif
-
+    /*
+     * FIND H5T_NATIVE_REAL_16
+     */
     if (sizeof(real_16_f) == sizeof(float)) {
       if ((types[12] = (hid_t_f)H5Tcopy(H5T_NATIVE_FLOAT)) < 0) return ret_value;
     } /*end if */
@@ -203,6 +217,13 @@ nh5init_types_c( hid_t_f * types, hid_t_f * floatingtypes, hid_t_f * integertype
 	if ((types[12] = (hid_t_f)H5Tcopy(H5T_NATIVE_LDOUBLE)) < 0) return ret_value;
     } /*end else */
 #endif
+    /*
+     * FIND H5T_NATIVE_B_8
+     */
+    types[13] = (hid_t_f)H5T_NATIVE_B8;
+    types[14] = (hid_t_f)H5T_NATIVE_B16;
+    types[15] = (hid_t_f)H5T_NATIVE_B32;
+    types[16] = (hid_t_f)H5T_NATIVE_B64;   
 
     if ((floatingtypes[0] = (hid_t_f)H5Tcopy(H5T_IEEE_F32BE)) < 0) return ret_value;
     if ((floatingtypes[1] = (hid_t_f)H5Tcopy(H5T_IEEE_F32LE)) < 0) return ret_value;
@@ -225,6 +246,15 @@ nh5init_types_c( hid_t_f * types, hid_t_f * floatingtypes, hid_t_f * integertype
     if ((integertypes[13] = (hid_t_f)H5Tcopy(H5T_STD_U32LE)) < 0) return ret_value;
     if ((integertypes[14] = (hid_t_f)H5Tcopy(H5T_STD_U64BE)) < 0) return ret_value;
     if ((integertypes[15] = (hid_t_f)H5Tcopy(H5T_STD_U64LE)) < 0) return ret_value;
+    if ((integertypes[16] = (hid_t_f)H5Tcopy(H5T_STD_B8BE)) < 0) return ret_value;
+    if ((integertypes[17] = (hid_t_f)H5Tcopy(H5T_STD_B8LE)) < 0) return ret_value;
+    if ((integertypes[18] = (hid_t_f)H5Tcopy(H5T_STD_B16BE)) < 0) return ret_value;
+    if ((integertypes[19] = (hid_t_f)H5Tcopy(H5T_STD_B16LE)) < 0) return ret_value;
+    if ((integertypes[20] = (hid_t_f)H5Tcopy(H5T_STD_B32BE)) < 0) return ret_value;
+    if ((integertypes[21] = (hid_t_f)H5Tcopy(H5T_STD_B32LE)) < 0) return ret_value;
+    if ((integertypes[22] = (hid_t_f)H5Tcopy(H5T_STD_B64BE)) < 0) return ret_value;
+    if ((integertypes[23] = (hid_t_f)H5Tcopy(H5T_STD_B64LE)) < 0) return ret_value;
+
 /*
  *  Define Fortran H5T_STRING type to store non-fixed size strings
  */
@@ -563,8 +593,6 @@ nh5init_flags_c( int_f *h5d_flags, int_f *h5f_flags,
 /*
  *  H5T flags
  */
-
-
       h5t_flags[0] = (int_f)H5T_NO_CLASS;
       h5t_flags[1] = (int_f)H5T_INTEGER;
       h5t_flags[2] = (int_f)H5T_FLOAT;
@@ -601,7 +629,6 @@ nh5init_flags_c( int_f *h5d_flags, int_f *h5f_flags,
 /*
  *  H5Z flags
  */
-
       h5z_flags[0] = (int_f)H5Z_FILTER_ERROR;
       h5z_flags[1] = (int_f)H5Z_FILTER_NONE;
       h5z_flags[2] = (int_f)H5Z_FILTER_DEFLATE;
@@ -621,6 +648,7 @@ nh5init_flags_c( int_f *h5d_flags, int_f *h5f_flags,
       h5z_flags[16] = (int_f)H5Z_SO_FLOAT_DSCALE;
       h5z_flags[17] = (int_f)H5Z_SO_FLOAT_ESCALE;
       h5z_flags[18] = (int_f)H5Z_SO_INT;
+      h5z_flags[19] = (int_f)H5Z_SO_INT_MINBITS_DEFAULT;
 /*
  *  H5A flags
  */
