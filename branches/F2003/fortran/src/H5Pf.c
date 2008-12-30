@@ -1821,21 +1821,19 @@ DONE:
 
 /****if* H5Pf/h5pget_nfilters_c
  * NAME
- *        h5pget_nfilters_c
+ *  h5pget_nfilters_c
  * PURPOSE
- *     Call H5Pget_nfilters to get the number of filters
- *              in the pipeline
+ *  Call H5Pget_nfilters to get the number of filters
+ *  in the pipeline
  * INPUTS
- *      prp_id - property list identifier
+ *  prp_id   - property list identifier
  * OUTPUTS
- *     nfilters - number of filters defined in the filter pipline
+ *  nfilters - number of filters defined in the filter pipline
  * RETURNS
- *     0 on success, -1 on failure
+ *  0 on success, -1 on failure
  * AUTHOR
  *  Xiangyang Su
- *              Friday, February 25, 2000
- * HISTORY
- *
+ *  Friday, February 25, 2000
  * SOURCE
 */
 int_f
@@ -1860,29 +1858,28 @@ nh5pget_nfilters_c (hid_t_f *prp_id, int_f* nfilters)
 
 /****if* H5Pf/h5pget_filter_c
  * NAME
- *        h5pget_filter_c
+ *  h5pget_filter_c
  * PURPOSE
- *     Call H5Pget_filter2 to get information about a filter
- *              in a pipeline
+ *  Call H5Pget_filter2 to get information about a filter
+ *  in a pipeline
  * INPUTS
- *      prp_id - property list identifier
- *              filter_number - Sequence number within the filter
- *                              pipeline of the filter for which
- *                              information is sought.
- *              namelen - Anticipated number of characters in name.
- *OUTPUT
- *      flags - Bit vector specifying certain general
- *                      properties of the filter.
- *              cd_nelmts - Number of elements in cd_value
- *              cd_values - Auxiliary data for the filter.
- *              name - Name of the filter
- *              filter_id - filter identification number
+ *         prp_id - property list identifier
+ *  filter_number - Sequence number within the filter
+ *                  pipeline of the filter for which
+ *                  information is sought.
+ *        namelen - Anticipated number of characters in name.
+ * OUTPUT
+ *          flags - Bit vector specifying certain general
+ *                  properties of the filter.
+ *      cd_nelmts - Number of elements in cd_value
+ *      cd_values - Auxiliary data for the filter.
+ *      name      - Name of the filter
+ *      filter_id - filter identification number
  * RETURNS
- *     0 on success, -1 on failure
+ *  0 on success, -1 on failure
  * AUTHOR
  *  Xiangyang Su
- *              Friday, February 25, 2000
- * HISTORY
+ *  Friday, February 25, 2000
  *
  * SOURCE
 */
@@ -1891,7 +1888,7 @@ nh5pget_filter_c(hid_t_f *prp_id, int_f* filter_number, int_f* flags, size_t_f* 
 /******/
 {
     unsigned int  c_flags;
-    size_t c_cd_nelmts;
+    size_t c_cd_nelmts = 0;
     size_t c_cd_nelmts_in = (size_t)*cd_nelmts;
     H5Z_filter_t c_filter;
     unsigned int *c_cd_values = NULL;
@@ -5350,24 +5347,20 @@ nh5pset_nbit_c(hid_t_f *plist_id )
 }
 /****if* H5Pf/h5pset_scaleoffset_c
  * NAME
- *        h5pset_scaleoffset_c
+ *  h5pset_scaleoffset_c
  * PURPOSE
- *     Calls H5Pset_scaleoffset
+ *  Calls H5Pset_scaleoffset
  *
  * INPUTS
- *
- *      plist_id - Dataset creation property list identifier
- *    scale_type - Flag indicating compression method.
+ *  plist_id     - Dataset creation property list identifier
+ *  scale_type   - Flag indicating compression method.
  *  scale_factor - Parameter related to scale.
- * OUTPUTS
  *
  * RETURNS
- *     0 on success, -1 on failure
+ *  0 on success, -1 on failure
  * AUTHOR
  *  M.S. Breitenfeld
- *              March 21, 2008
- * HISTORY
- *
+ *  March 21, 2008
  * SOURCE
 */
 int_f
@@ -5391,23 +5384,18 @@ nh5pset_scaleoffset_c(hid_t_f *plist_id, int_f *scale_type, int_f *scale_factor 
 
 /****if* H5Pf/h5pset_nlinks
  * NAME
- *        h5pset_nlinks
+ *  h5pset_nlinks
  * PURPOSE
- *     Calls H5Pset_nlinks
+ *  Calls H5Pset_nlinks
  *
  * INPUTS
- *
- *            lapl_id - File access property list identifier
- *             nlinks - Maximum number of links to traverse
- * OUTPUTS
- *
+ *  lapl_id - File access property list identifier
+ *  nlinks  - Maximum number of links to traverse
  * RETURNS
- *     0 on success, -1 on failure
+ *  0 on success, -1 on failure
  * AUTHOR
  *  M.S. Breitenfeld
- *              March 24, 2008
- * HISTORY
- *
+ *  March 24, 2008
  * SOURCE
 */
 int_f
