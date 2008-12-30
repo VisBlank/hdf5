@@ -73,7 +73,7 @@ libhdf5_fortran_la_SOURCES=H5f90global.f90 \
           H5f90kit.c H5_f.c H5Af.c H5Df.c H5Ef.c H5Ff.c H5Gf.c           \
           H5If.c H5Lf.c H5Of.c H5Pf.c H5Rf.c H5Sf.c H5Tf.c H5Zf.c        \
 	  H5Aff$(F_STATUS).f90 H5Dff$(F_STATUS).f90 H5Lff$(F_STATUS).f90 \
-	  H5Pff$(F_STATUS).f90 H5Rff$(F_STATUS).f90 $(PARALLEL_COND_SRC)
+	  H5Off$(F_STATUS).f90 H5Pff$(F_STATUS).f90 H5Rff$(F_STATUS).f90 H5Tff$(F_STATUS).f90 $(PARALLEL_COND_SRC)
 
 
 
@@ -194,11 +194,13 @@ H5_ff.lo:            $(srcdir)/H5_ff.f90 H5f90global.lo H5_ff$(F_STATUS).lo
 H5test_kind_SIZEOF.lo:      $(srcdir)/H5test_kind_SIZEOF.f90
 H5Aff.lo:            $(srcdir)/H5Aff.f90 H5f90global.lo
 H5Dff.lo:            $(srcdir)/H5Dff.f90 H5f90global.lo
-H5Dff$(F_STATUS).lo:  $(srcdir)/H5Dff$(F_STATUS).f90 H5f90global.lo
 H5Aff$(F_STATUS).lo:  $(srcdir)/H5Aff$(F_STATUS).f90 H5f90global.lo
+H5Dff$(F_STATUS).lo:  $(srcdir)/H5Dff$(F_STATUS).f90 H5f90global.lo
+H5Lff$(F_STATUS).lo:  $(srcdir)/H5Lff$(F_STATUS).f90 H5f90global.lo
+H5Off$(F_STATUS).lo:  $(srcdir)/H5Off$(F_STATUS).f90 H5f90global.lo
 H5Pff$(F_STATUS).lo:  $(srcdir)/H5Pff$(F_STATUS).f90 H5f90global.lo
 H5Rff$(F_STATUS).lo:  $(srcdir)/H5Rff$(F_STATUS).f90 H5f90global.lo
-H5Lff$(F_STATUS).lo:  $(srcdir)/H5Lff$(F_STATUS).f90 H5f90global.lo
+H5Tff$(F_STATUS).lo:  $(srcdir)/H5Tff$(F_STATUS).f90 H5f90global.lo
 H5Eff.lo:            $(srcdir)/H5Eff.f90 H5f90global.lo
 H5Fff.lo:            $(srcdir)/H5Fff.f90 H5f90global.lo
 H5Gff.lo:            $(srcdir)/H5Gff.f90 H5f90global.lo
@@ -214,13 +216,15 @@ H5_DBLE_Interface$(F_DBLE).lo:  $(srcdir)/H5_DBLE_Interface$(F_DBLE).f90 H5Aff$(
 HDF5.lo:             $(srcdir)/HDF5.f90 H5f90global.lo H5Aff.lo H5Aff$(F_STATUS).lo \
                      H5Dff.lo H5Dff$(F_STATUS).lo  \
                      H5Eff.lo H5Fff.lo H5Gff.lo H5Iff.lo H5Lff.lo H5Lff$(F_STATUS).lo \
-                     H5Pff.lo H5Pff$(F_STATUS).lo H5Rff$(F_STATUS).lo H5Rff.lo H5Sff.lo H5Tff.lo H5Zff.lo \
+	             H5Off.lo H5Off$(F_STATUS).lo H5Pff.lo H5Pff$(F_STATUS).lo H5Rff$(F_STATUS).lo H5Rff.lo \
+                     H5Sff.lo H5Tff.lo H5Tff$(F_STATUS).lo H5Zff.lo \
                      H5_DBLE_Interface$(F_DBLE).lo 
 H5FDmpioff.lo:       $(srcdir)/H5FDmpioff.f90 H5f90global.lo
-HDF5mpio.lo:         $(srcdir)/H5FDmpioff.f90 H5f90global.lo H5Aff.lo  \
-                     H5Dff.lo H5Dff$(F_STATUS).lo H5Aff$(F_STATUS).lo H5Lff$(F_STATUS).lo \
-		     H5Pff$(F_STATUS).lo H5Rff$(F_STATUS).lo \
-                     H5Eff.lo H5Fff.lo H5Gff.lo H5Iff.lo H5Lff.lo  \
-                     H5Pff.lo H5Rff.lo H5Sff.lo H5Tff.lo H5Zff.lo H5_DBLE_Interface$(F_DBLE).lo H5FDmpioff.lo
+HDF5mpio.lo:         $(srcdir)/H5FDmpioff.f90 H5f90global.lo H5Aff.lo H5Aff$(F_STATUS).lo \
+                     H5Dff.lo H5Dff$(F_STATUS).lo \
+		     H5Eff.lo H5Fff.lo H5Gff.lo H5Iff.lo H5Lff.lo H5Lff$(F_STATUS).lo \
+		     H5Off.lo H5Off$(F_STATUS).lo H5Pff.lo H5Pff$(F_STATUS).lo H5Rff$(F_STATUS).lo H5Rff.lo \
+                     H5Sff.lo H5Tff.lo H5Tff$(F_STATUS).lo H5Zff.lo \
+	             H5_DBLE_Interface$(F_DBLE).lo H5FDmpioff.lo
 
 include $(top_srcdir)/config/conclude.am
