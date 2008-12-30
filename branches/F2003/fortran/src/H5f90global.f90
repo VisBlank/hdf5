@@ -3,7 +3,7 @@
 ! NAME
 !  MODULE H5GLOBAL
 !
-!  FILE
+! FILE
 !  src/fortran/H5f90global.f90
 !
 ! PURPOSE
@@ -21,20 +21,20 @@
 !  H5FORTRAN_TYPES 	 - This module is generated at run time. See
 !                          H5fortran_types.f90 for further informaton.
 ! COPYRIGHT
-!  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-!  Copyright by The HDF Group.                                               *
-!  Copyright by the Board of Trustees of the University of Illinois.         *
-!  All rights reserved.                                                      *
-!  *
-!  This file is part of HDF5.  The full HDF5 copyright notice, including     *
-!  terms governing use, modification, and redistribution, is contained in    *
-!  the files COPYING and Copyright.html.  COPYING can be found at the root   *
-!  of the source code distribution tree; Copyright.html can be found at the  *
-!  root level of an installed copy of the electronic HDF5 document set and   *
-!  is linked from the top-level documents page.  It can also be found at     *
-!  http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
-!  access to either file, you may request a copy from help@hdfgroup.org.     *
-!  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!   Copyright by The HDF Group.                                               *
+!   Copyright by the Board of Trustees of the University of Illinois.         *
+!   All rights reserved.                                                      *
+!                                                                             *
+!   This file is part of HDF5.  The full HDF5 copyright notice, including     *
+!   terms governing use, modification, and redistribution, is contained in    *
+!   the files COPYING and Copyright.html.  COPYING can be found at the root   *
+!   of the source code distribution tree; Copyright.html can be found at the  *
+!   root level of an installed copy of the electronic HDF5 document set and   *
+!   is linked from the top-level documents page.  It can also be found at     *
+!   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+!   access to either file, you may request a copy from help@hdfgroup.org.     *
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -64,7 +64,7 @@ MODULE H5GLOBAL
      INTEGER, DIMENSION(1:REF_REG_BUF_LEN) :: ref
   END TYPE hdset_reg_ref_t_f
 
-  INTEGER, PARAMETER :: PREDEF_TYPES_LEN = 13 ! Do not forget to change this
+  INTEGER, PARAMETER :: PREDEF_TYPES_LEN = 17 ! Do not forget to change this
                                               ! value when new predefined
                                               ! datatypes are added
 
@@ -74,7 +74,7 @@ MODULE H5GLOBAL
 
   ! Do not forget to change the following line when new predefined
   ! integer data types are added
-  INTEGER, PARAMETER :: INTEGER_TYPES_LEN = 17
+  INTEGER, PARAMETER :: INTEGER_TYPES_LEN = 25
 
   INTEGER(HID_T) H5T_NATIVE_INTEGER_1, &
        H5T_NATIVE_INTEGER_2, &
@@ -109,8 +109,19 @@ MODULE H5GLOBAL
        H5T_STD_U32LE,   &
        H5T_STD_U64BE,   &
        H5T_STD_U64LE,   &
-       H5T_STRING
-
+       H5T_STRING,      &
+       H5T_STD_B8BE,    &
+       H5T_STD_B8LE,    &
+       H5T_STD_B16BE,   &
+       H5T_STD_B16LE,   &
+       H5T_STD_B32BE,   &
+       H5T_STD_B32LE,   &
+       H5T_STD_B64BE,   &
+       H5T_STD_B64LE,   &
+       H5T_NATIVE_B8,   &
+       H5T_NATIVE_B16,  &
+       H5T_NATIVE_B32,  &
+       H5T_NATIVE_B64
 
   INTEGER(HID_T), DIMENSION(PREDEF_TYPES_LEN) :: predef_types
   EQUIVALENCE (predef_types(1), H5T_NATIVE_INTEGER)
@@ -126,7 +137,10 @@ MODULE H5GLOBAL
   EQUIVALENCE (predef_types(11), H5T_NATIVE_REAL_4)
   EQUIVALENCE (predef_types(12), H5T_NATIVE_REAL_8)
   EQUIVALENCE (predef_types(13), H5T_NATIVE_REAL_16)
-
+  EQUIVALENCE (predef_types(14), H5T_NATIVE_B8 )
+  EQUIVALENCE (predef_types(15), H5T_NATIVE_B16)
+  EQUIVALENCE (predef_types(16), H5T_NATIVE_B32)
+  EQUIVALENCE (predef_types(17), H5T_NATIVE_B64)  
 
   INTEGER(HID_T), DIMENSION(FLOATING_TYPES_LEN) :: floating_types
   EQUIVALENCE (floating_types(1), H5T_IEEE_F32BE )
@@ -152,6 +166,14 @@ MODULE H5GLOBAL
   EQUIVALENCE (integer_types(15), H5T_STD_U64BE)
   EQUIVALENCE (integer_types(16), H5T_STD_U64LE)
   EQUIVALENCE (integer_types(17), H5T_STRING)
+  EQUIVALENCE (integer_types(18), H5T_STD_B8BE)
+  EQUIVALENCE (integer_types(19), H5T_STD_B8LE)
+  EQUIVALENCE (integer_types(20), H5T_STD_B16BE)
+  EQUIVALENCE (integer_types(21), H5T_STD_B16LE)
+  EQUIVALENCE (integer_types(22), H5T_STD_B32BE)
+  EQUIVALENCE (integer_types(23), H5T_STD_B32LE)
+  EQUIVALENCE (integer_types(24), H5T_STD_B64BE)
+  EQUIVALENCE (integer_types(25), H5T_STD_B64LE)
 
 
   !      COMMON /PREDEFINED_TYPES/ H5T_NATIVE_INTEGER, &
@@ -676,8 +698,6 @@ MODULE H5GLOBAL
   EQUIVALENCE(H5S_flags(18), H5S_SEL_POINTS_F)
   EQUIVALENCE(H5S_flags(19), H5S_SEL_HYPERSLABS_F)
   EQUIVALENCE(H5S_flags(20), H5S_SEL_ALL_F)
-
-
   !
   ! H5T flags declaration
   !
@@ -688,39 +708,39 @@ MODULE H5GLOBAL
   !DEC$endif
   COMMON /H5T_FLAGS/ H5T_flags
 
-  INTEGER ::  H5T_NO_CLASS_F
-  INTEGER ::  H5T_INTEGER_F
-  INTEGER ::  H5T_FLOAT_F
-  INTEGER ::  H5T_TIME_F
-  INTEGER ::  H5T_STRING_F
-  INTEGER ::  H5T_BITFIELD_F
-  INTEGER ::  H5T_OPAQUE_F
-  INTEGER ::  H5T_COMPOUND_F
-  INTEGER ::  H5T_REFERENCE_F
-  INTEGER ::  H5T_ENUM_F
-  INTEGER ::  H5T_VLEN_F
-  INTEGER ::  H5T_ARRAY_F
-  INTEGER ::  H5T_ORDER_LE_F
-  INTEGER ::  H5T_ORDER_BE_F
-  INTEGER ::  H5T_ORDER_VAX_F
-  INTEGER ::  H5T_PAD_ZERO_F
-  INTEGER ::  H5T_PAD_ONE_F
-  INTEGER ::  H5T_PAD_BACKGROUND_F
-  INTEGER ::  H5T_PAD_ERROR_F
-  INTEGER ::  H5T_SGN_NONE_F
-  INTEGER ::  H5T_SGN_2_F
-  INTEGER ::  H5T_SGN_ERROR_F
-  INTEGER ::  H5T_NORM_IMPLIED_F
-  INTEGER ::  H5T_NORM_MSBSET_F
-  INTEGER ::  H5T_NORM_NONE_F
-  INTEGER ::  H5T_CSET_ASCII_F
-  INTEGER ::  H5T_CSET_UTF8_F
-  INTEGER ::  H5T_STR_NULLTERM_F
-  INTEGER ::  H5T_STR_NULLPAD_F
-  INTEGER ::  H5T_STR_SPACEPAD_F
-  INTEGER ::  H5T_STR_ERROR_F
-  INTEGER ::  H5T_DIR_ASCEND_F
-  INTEGER ::  H5T_DIR_DESCEND_F
+  INTEGER :: H5T_NO_CLASS_F
+  INTEGER :: H5T_INTEGER_F
+  INTEGER :: H5T_FLOAT_F
+  INTEGER :: H5T_TIME_F
+  INTEGER :: H5T_STRING_F
+  INTEGER :: H5T_BITFIELD_F
+  INTEGER :: H5T_OPAQUE_F
+  INTEGER :: H5T_COMPOUND_F
+  INTEGER :: H5T_REFERENCE_F
+  INTEGER :: H5T_ENUM_F
+  INTEGER :: H5T_VLEN_F
+  INTEGER :: H5T_ARRAY_F
+  INTEGER :: H5T_ORDER_LE_F
+  INTEGER :: H5T_ORDER_BE_F
+  INTEGER :: H5T_ORDER_VAX_F
+  INTEGER :: H5T_PAD_ZERO_F
+  INTEGER :: H5T_PAD_ONE_F
+  INTEGER :: H5T_PAD_BACKGROUND_F
+  INTEGER :: H5T_PAD_ERROR_F
+  INTEGER :: H5T_SGN_NONE_F
+  INTEGER :: H5T_SGN_2_F
+  INTEGER :: H5T_SGN_ERROR_F
+  INTEGER :: H5T_NORM_IMPLIED_F
+  INTEGER :: H5T_NORM_MSBSET_F
+  INTEGER :: H5T_NORM_NONE_F
+  INTEGER :: H5T_CSET_ASCII_F
+  INTEGER :: H5T_CSET_UTF8_F
+  INTEGER :: H5T_STR_NULLTERM_F
+  INTEGER :: H5T_STR_NULLPAD_F
+  INTEGER :: H5T_STR_SPACEPAD_F
+  INTEGER :: H5T_STR_ERROR_F
+  INTEGER :: H5T_DIR_ASCEND_F
+  INTEGER :: H5T_DIR_DESCEND_F
 
   EQUIVALENCE(H5T_flags(1), H5T_NO_CLASS_F)
   EQUIVALENCE(H5T_flags(2), H5T_INTEGER_F)
@@ -755,11 +775,10 @@ MODULE H5GLOBAL
   EQUIVALENCE(H5T_flags(31), H5T_ARRAY_F)
   EQUIVALENCE(H5T_flags(32), H5T_DIR_ASCEND_F)
   EQUIVALENCE(H5T_flags(33), H5T_DIR_DESCEND_F)
-
   !
   ! H5Z flags declaration
   !
-  INTEGER, PARAMETER :: H5Z_FLAGS_LEN = 19
+  INTEGER, PARAMETER :: H5Z_FLAGS_LEN = 20
   INTEGER H5Z_flags(H5Z_FLAGS_LEN)
   !DEC$if defined(BUILD_HDF5_DLL)
   !DEC$ ATTRIBUTES DLLEXPORT :: /H5Z_FLAGS/
@@ -785,6 +804,7 @@ MODULE H5GLOBAL
   INTEGER :: H5Z_SO_FLOAT_DSCALE_F
   INTEGER :: H5Z_SO_FLOAT_ESCALE_F
   INTEGER :: H5Z_SO_INT_F
+  INTEGER :: H5Z_SO_INT_MINBITS_DEFAULT_F
 
   EQUIVALENCE(H5Z_flags(1), H5Z_FILTER_ERROR_F)
   EQUIVALENCE(H5Z_flags(2), H5Z_FILTER_NONE_F)
@@ -805,6 +825,7 @@ MODULE H5GLOBAL
   EQUIVALENCE(H5Z_flags(17), H5Z_SO_FLOAT_DSCALE_F)
   EQUIVALENCE(H5Z_flags(18), H5Z_SO_FLOAT_ESCALE_F)
   EQUIVALENCE(H5Z_flags(19), H5Z_SO_INT_F)
+  EQUIVALENCE(H5Z_flags(20), H5Z_SO_INT_MINBITS_DEFAULT_F)
 
   !
   ! H5 Library flags declaration
