@@ -123,6 +123,8 @@ MODULE H5R_PROVISIONAL
      END FUNCTION h5rcreate_ptr_c
   END INTERFACE
 
+  
+
 CONTAINS
 
 !****s* H5R (F03)/h5rcreate_object_f
@@ -260,13 +262,16 @@ CONTAINS
   ! INPUTS
   !		loc_id		- location identifier
   !		name		- name of the dataset at the specified location
-  !             ref_type        - type of reference
-  !		space_id	- dataspace identifier that describes selected region
+  !             ref_type        - type of reference:
+  !                                 H5R_OBJECT
+  !                                 H5T_STD_REF_DSETREG
   ! OUTPUTS
   !		ref		- reference created by the function call.
   !		hdferr:		- error code
   !				 	Success:  0
   !				 	Failure: -1
+  ! OPTIONAL
+  !		space_id	- dataspace identifier that describes selected region
   !
   ! AUTHOR
   !  M.S. Breitenfeld
@@ -278,21 +283,24 @@ CONTAINS
   !  subroutine where the output is a pointer.
   !
   ! SOURCE
-  SUBROUTINE h5rcreate_ptr_f(loc_id, name, ref_type, space_id, ref, hdferr)
+  SUBROUTINE h5rcreate_ptr_f(loc_id, name, ref_type, ref, hdferr, space_id)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: loc_id     ! Location identifier
     CHARACTER(LEN=*), INTENT(IN) :: name     ! Name of the dataset at location specified
                                              ! by loc_id identifier
     INTEGER, INTENT(IN) :: ref_type          ! type of reference
-    INTEGER(HID_T), INTENT(IN) :: space_id   ! Dataset's dataspace identifier
     TYPE(C_PTR), INTENT(INOUT) :: ref        ! Reference created by the function call.
     INTEGER, INTENT(OUT) :: hdferr           ! Error code
+    INTEGER(HID_T), INTENT(IN), OPTIONAL :: space_id   ! Dataset's dataspace identifier
 !*****
     INTEGER :: namelen                       ! Name length
+    INTEGER(HID_T) :: space_id_c
 
     namelen = LEN(name)
-    hdferr = h5rcreate_ptr_c(ref, loc_id, name, namelen, ref_type, space_id)
+    space_id_c = -1
+    IF(PRESENT(space_id)) space_id_c =  space_id
+    hdferr = h5rcreate_ptr_c(ref, loc_id, name, namelen, ref_type, space_id_c)
 
   END SUBROUTINE h5rcreate_ptr_f
 !****s* H5R (F03)/h5rdereference_object_f
@@ -589,4 +597,66 @@ CONTAINS
     IF(PRESENT(size)) size = size_default
 
   END SUBROUTINE h5rget_name_ptr_f
+
+  !****s* H5R (F03)/h5rget_obj_type_f
+  !
+  ! NAME
+  !  h5rget_obj_type_f
+  !
+  ! PURPOSE
+  !  Retrieves the type of object that an object reference points to.
+  !
+  ! INPUTS
+  !  loc_id   - Identifier for the dataset containing the reference or
+  !             for the group that dataset is in.
+  !  ref_type - Type of reference to query.
+  !  ref      - Reference to query.
+  !
+  ! OUTPUTS
+  !  obj_type - Type of referenced object. 
+  !               H5G_UNKNOWN_F (-1)
+  !               H5G_LINK_F      0
+  !               H5G_GROUP_F     1
+  !               H5G_DATASET_F   2
+  !               H5G_TYPE_F      3
+  !              
+  !    hdferr - error code
+  !		  Success:  0
+  !		  Failure: -1
+  !
+  ! AUTHOR
+  !  M.S. Breitenfeld
+  !  Decemeber 17, 2008
+  !
+  ! SOURCE
+  SUBROUTINE h5rget_obj_type_f(loc_id, ref_type, ref, obj_type, hdferr)
+    USE, INTRINSIC :: ISO_C_BINDING
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id
+    INTEGER, INTENT(IN) :: ref_type
+    TYPE(C_PTR), INTENT(IN) :: ref
+    INTEGER, INTENT(OUT) :: obj_type
+    INTEGER, INTENT(OUT) :: hdferr
+    !*****
+
+    INTERFACE
+       INTEGER FUNCTION h5rget_obj_type_c(loc_id, ref_type, ref, obj_type)
+         USE, INTRINSIC :: ISO_C_BINDING
+         USE H5GLOBAL
+         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5RGET_OBJ_TYPE_C':: h5rget_obj_type_c
+         !DEC$ ENDIF
+         INTEGER(HID_T), INTENT(IN) :: loc_id
+         INTEGER, INTENT(IN) :: ref_type
+         TYPE(C_PTR), VALUE :: ref
+         INTEGER :: obj_type
+       END FUNCTION h5rget_obj_type_c
+    END INTERFACE
+
+    hdferr = h5rget_obj_type_c(loc_id, ref_type, ref, obj_type)
+
+  END SUBROUTINE h5rget_obj_type_f
+
+
+
 END MODULE H5R_PROVISIONAL
