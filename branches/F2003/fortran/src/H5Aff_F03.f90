@@ -2,8 +2,8 @@
 ! NAME
 !  H5A_PROVISIONAL
 !
-!  FILE
-!  fortran/src/H5Aff_F03.f90
+! FILE
+!  src/fortran/src/H5Aff_F03.f90
 !
 ! PURPOSE
 !  This file contains Fortran 90 and Fortran 2003 interfaces for H5A functions.
@@ -11,7 +11,8 @@
 !  Fortran 2003 functions and the interface listings. This file will be compiled
 !  instead of H5Aff_DEPRECIATED.f90 if Fortran 2003 functions are enabled.
 !
-! COPYRIGHT! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+! COPYRIGHT
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
 !   All rights reserved.                                                      *
@@ -35,16 +36,16 @@
 !  Argument. X shall either
 !
 !  (1) have interoperable type and type parameters and be
-!  (a) a variable that has the TARGET attribute and is interoperable,
-!  (b) an allocated allocatable variable that has the TARGET attribute
-!  and is not an array of zero size, or
-!  (c) an associated scalar pointer, or
+!    (a) a variable that has the TARGET attribute and is interoperable,
+!    (b) an allocated allocatable variable that has the TARGET attribute
+!        and is not an array of zero size, or
+!    (c) an associated scalar pointer, or
 !  (2) be a nonpolymorphic scalar, have no length type parameters, and be
-!  (a) a nonallocatable, nonpointer variable that has the TARGET attribute,
-!  (b) an allocated allocatable variable that has the TARGET attribute, or
-!  (c) an associated pointer.
+!    (a) a nonallocatable, nonpointer variable that has the TARGET attribute,
+!    (b) an allocated allocatable variable that has the TARGET attribute, or
+!    (c) an associated pointer.
 !
-!   	 - When X is a character, for interoperability the standard is:
+!  - When X is a character, for interoperability the standard is:
 !
 !  15.2.1 Interoperability of intrinsic types
 !
@@ -631,7 +632,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype
                                              ! identifier  (in memory)
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
-    CHARACTER(LEN=*),INTENT(IN) :: buf ! Attribute data
+    CHARACTER(LEN=*), INTENT(IN), TARGET :: buf ! Attribute data
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
     TYPE(C_PTR) :: f_ptr
 
@@ -648,7 +649,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype
                                              ! identifier  (in memory)
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims     ! Array to story buf dimension sizes
-    CHARACTER(LEN=*), INTENT(IN), DIMENSION(dims(1)) :: buf ! Attribute data
+    CHARACTER(LEN=*), INTENT(IN), DIMENSION(dims(1)), TARGET :: buf ! Attribute data
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
     TYPE(C_PTR) :: f_ptr
 
@@ -666,7 +667,7 @@ CONTAINS
                                              ! identifier  (in memory)
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
     CHARACTER(LEN=*), INTENT(IN), &
-         DIMENSION(dims(1),dims(2)) :: buf  ! Attribute data
+         DIMENSION(dims(1),dims(2)), TARGET :: buf  ! Attribute data
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
     TYPE(C_PTR) :: f_ptr
 
@@ -683,7 +684,7 @@ CONTAINS
     ! identifier  (in memory)
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
     CHARACTER(LEN=*), INTENT(IN), &
-         DIMENSION(dims(1),dims(2),dims(3)) :: buf ! Attribute data
+         DIMENSION(dims(1),dims(2),dims(3)), TARGET :: buf ! Attribute data
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
     TYPE(C_PTR) :: f_ptr
 
@@ -701,7 +702,7 @@ CONTAINS
     ! identifier  (in memory)
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
     CHARACTER(LEN=*), INTENT(IN), &
-         DIMENSION(dims(1),dims(2),dims(3),dims(4)) :: buf ! Attribute data
+         DIMENSION(dims(1),dims(2),dims(3),dims(4)), TARGET :: buf ! Attribute data
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
     TYPE(C_PTR) :: f_ptr
 
@@ -719,7 +720,7 @@ CONTAINS
                                              ! identifier  (in memory)
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
     CHARACTER(LEN=*), INTENT(IN), &
-         DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) :: buf ! Attribute data
+         DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)), TARGET :: buf ! Attribute data
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
     TYPE(C_PTR) :: f_ptr
 
@@ -738,7 +739,7 @@ CONTAINS
     ! identifier  (in memory)
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
     CHARACTER(LEN=*), INTENT(IN), &
-         DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)) :: buf
+         DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)), TARGET :: buf
     ! Attribute data
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
     TYPE(C_PTR) :: f_ptr
@@ -757,7 +758,7 @@ CONTAINS
                                              ! identifier  (in memory)
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
     CHARACTER(LEN=*), INTENT(IN), &
-         DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)) :: buf ! Attribute data
+         DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)), TARGET :: buf ! Attribute data
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
     TYPE(C_PTR) :: f_ptr
 
@@ -1254,7 +1255,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype
                                              ! identifier  (in memory)
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims ! Array to story buf dimension sizes
-    CHARACTER(LEN=*), INTENT(INOUT) :: buf ! Attribute data
+    CHARACTER(LEN=*), INTENT(INOUT), TARGET :: buf ! Attribute data
     INTEGER, INTENT(OUT) :: hdferr         ! Error code
     TYPE(C_PTR) :: f_ptr
 
@@ -1290,7 +1291,7 @@ CONTAINS
                                              ! identifier  (in memory)
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
     CHARACTER(LEN=*), INTENT(INOUT), &
-         DIMENSION(dims(1),dims(2)) :: buf  ! Attribute data
+         DIMENSION(dims(1),dims(2)), TARGET :: buf  ! Attribute data
     INTEGER, INTENT(OUT) :: hdferr
     TYPE(C_PTR) :: f_ptr
 
@@ -1308,7 +1309,7 @@ CONTAINS
                                              ! identifier  (in memory)
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
     CHARACTER(LEN=*), INTENT(INOUT), &
-         DIMENSION(dims(1),dims(2),dims(3)) :: buf ! Attribute data
+         DIMENSION(dims(1),dims(2),dims(3)), TARGET :: buf ! Attribute data
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
     TYPE(C_PTR) :: f_ptr
 
@@ -1325,7 +1326,7 @@ CONTAINS
                                              ! identifier  (in memory)
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
     CHARACTER(LEN=*), INTENT(INOUT), &
-         DIMENSION(dims(1),dims(2),dims(3),dims(4)) :: buf ! Attribute data
+         DIMENSION(dims(1),dims(2),dims(3),dims(4)), TARGET :: buf ! Attribute data
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
     TYPE(C_PTR) :: f_ptr
 
@@ -1343,7 +1344,7 @@ CONTAINS
                                              ! identifier  (in memory)
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
     CHARACTER(LEN=*), INTENT(INOUT), &
-         DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) :: buf ! Attribute data
+         DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)), TARGET :: buf ! Attribute data
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
     TYPE(C_PTR) :: f_ptr
 
@@ -1361,7 +1362,7 @@ CONTAINS
                                              ! identifier  (in memory)
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
     CHARACTER(LEN=*), INTENT(INOUT), &
-         DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)) :: buf ! Attribute data
+         DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)), TARGET :: buf ! Attribute data
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
     TYPE(C_PTR) :: f_ptr
 
@@ -1379,7 +1380,7 @@ CONTAINS
                                              ! identifier  (in memory)
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
     CHARACTER(LEN=*), INTENT(INOUT), &
-         DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)) :: buf ! Attribute data
+         DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)), TARGET :: buf ! Attribute data
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
     TYPE(C_PTR) :: f_ptr
 
@@ -1388,26 +1389,24 @@ CONTAINS
 
   END SUBROUTINE h5aread_char_7
 
-  SUBROUTINE h5awrite_ptr(attr_id, mem_type_id, buf, dims, hdferr)
+  SUBROUTINE h5awrite_ptr(attr_id, mem_type_id, buf, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     TYPE(C_PTR), INTENT(IN), TARGET :: buf
-    INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims ! not used
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
 
     hdferr = h5awrite_f_c(attr_id, mem_type_id, buf)
 
   END SUBROUTINE h5awrite_ptr
 
-  SUBROUTINE h5aread_ptr(attr_id, mem_type_id, buf, dims, hdferr)
+  SUBROUTINE h5aread_ptr(attr_id, mem_type_id, buf, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     TYPE(C_PTR), INTENT(IN), TARGET :: buf
-    INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims ! not used
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
 
     hdferr = h5aread_f_c(attr_id, mem_type_id, buf)

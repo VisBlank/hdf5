@@ -3,7 +3,7 @@
 ! NAME
 !  H5A_PROVISIONAL
 !
-!  FILE
+! FILE
 !  fortran/src/H5Aff_DEPRECIATED.f90
 !
 ! PURPOSE

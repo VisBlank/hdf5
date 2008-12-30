@@ -167,7 +167,7 @@ MODULE H5D_PROVISIONAL
        !DEC$ ENDIF
        INTEGER(HID_T), INTENT(IN) :: dset_id
        INTEGER(HID_T), INTENT(IN) :: mem_type_id
-       INTEGER(HID_T)  :: mem_space_id_default
+       INTEGER(HID_T) :: mem_space_id_default
        INTEGER(HID_T) :: file_space_id_default
        INTEGER(HID_T) :: xfer_prp_default
        TYPE(C_PTR), VALUE :: buf
