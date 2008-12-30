@@ -25,13 +25,13 @@
 
 /****if* H5Rf/h5rcreate_object_c
  * NAME
- *        h5rcreate_object_c
+ *     h5rcreate_object_c
  * PURPOSE
  *     Call H5Rcreate to create a reference to an object
  * INPUTS
- *      loc_id - file or group identifier
- *              name - name of the dataset
- *              namelen - name length
+ *     loc_id - file or group identifier
+ *       name - name of the dataset
+ *    namelen - name length
  * OUTPUTS
  *     ref  - reference to the object
  * RETURNS
@@ -39,8 +39,6 @@
  * AUTHOR
  *  Elena Pourmal
  *              Wednesday, December 1, 1999
- * HISTORY
- *
  * SOURCE
 */
 int_f
@@ -134,23 +132,21 @@ nh5rcreate_region_c (int_f *ref, hid_t_f *loc_id, _fcd name, int_f *namelen, hid
 
 /****if* H5Rf/h5rcreate_ptr_c
  * NAME
- *        h5rcreate_ptr_c
+ *  h5rcreate_ptr_c
  * PURPOSE
- *     Call H5Rcreate to create a reference to dataset region
- *              region
+ *  Call H5Rcreate to create a reference to dataset region
  * INPUTS
- *      loc_id - file or group identifier
- *              name - name of the dataset
- *              namelen - name length
- *              space_id - dataset space identifier
+ *  loc_id    - file or group identifier
+ *  name      - name of the dataset
+ *  namelen   - name length
+ *  space_id  - dataset space identifier
  * OUTPUTS
- *     ref  - reference to the dataset region
+ *  ref       - reference to the dataset region
  * RETURNS
- *     0 on success, -1 on failure
+ *  0 on success, -1 on failure
  * AUTHOR
- *  M.S Breitenfeld
- *              June 20, 2008
- * HISTORY
+ *  M.S. Breitenfeld
+ *  June 20, 2008
  *
  * SOURCE
 */
@@ -530,7 +526,6 @@ int_f
 nh5rget_name_ptr_c (hid_t_f *loc_id, int_f *ref_type, void *ref, _fcd name, size_t_f *name_len, size_t_f *size_default)
 /******/
 {
-     hdset_reg_ref_t ref_c;
      int_f ret_value = -1;
      ssize_t c_size;
      size_t c_bufsize;
@@ -560,4 +555,49 @@ nh5rget_name_ptr_c (hid_t_f *loc_id, int_f *ref_type, void *ref, _fcd name, size
      if(c_buf) HDfree(c_buf);
 
      return ret_value;
+}
+
+/****if* H5Rf/h5rget_obj_type_c
+ * NAME
+ *   h5rget_obj_type_c
+ * PURPOSE
+ *   Call H5Rget_obj_type
+ * INPUTS
+ *   loc_id   - Identifier for the dataset containing the reference or
+ *              for the group that dataset is in.
+ *   ref_type - Type of reference to query.
+ *   ref      - Reference to query.
+ *
+ * OUTPUTS
+ *   obj_type - Type of referenced object. 
+ *                H5G_UNKNOWN_F (-1)
+ *                H5G_LINK_F      0
+ *                H5G_GROUP_F     1
+ *                H5G_DATASET_F   2
+ *                H5G_TYPE_F      3
+ * RETURNS
+ *   0 on success, -1 on failure
+ * AUTHOR
+ *   M.S. Breitenfeld
+ *   December 17, 2008
+ *
+ * SOURCE
+*/
+int_f
+nh5rget_obj_type_c (hid_t_f *loc_id, int_f *ref_type, void *ref, int_f *obj_type)
+/******/
+{
+  int_f ret_value = -1;
+  H5O_type_t obj_type_c;
+
+  /*
+   * Call H5Rget_obj_type function.
+   */
+  if((H5Rget_obj_type((hid_t)*loc_id, (H5R_type_t)*ref_type, ref, &obj_type_c)) < 0)
+    return ret_value;
+
+  *obj_type = (int_f)obj_type_c;
+
+  ret_value = 0;
+  return ret_value;
 }
