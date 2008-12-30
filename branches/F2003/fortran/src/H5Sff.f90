@@ -13,20 +13,20 @@
 !
 !
 ! COPYRIGHT
-!  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-!  Copyright by The HDF Group.                                               *
-!  Copyright by the Board of Trustees of the University of Illinois.         *
-!  All rights reserved.                                                      *
-!  *
-!  This file is part of HDF5.  The full HDF5 copyright notice, including     *
-!  terms governing use, modification, and redistribution, is contained in    *
-!  the files COPYING and Copyright.html.  COPYING can be found at the root   *
-!  of the source code distribution tree; Copyright.html can be found at the  *
-!  root level of an installed copy of the electronic HDF5 document set and   *
-!  is linked from the top-level documents page.  It can also be found at     *
-!  http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
-!  access to either file, you may request a copy from help@hdfgroup.org.     *
-!  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!   Copyright by The HDF Group.                                               *
+!   Copyright by the Board of Trustees of the University of Illinois.         *
+!   All rights reserved.                                                      *
+!                                                                             *
+!   This file is part of HDF5.  The full HDF5 copyright notice, including     *
+!   terms governing use, modification, and redistribution, is contained in    *
+!   the files COPYING and Copyright.html.  COPYING can be found at the root   *
+!   of the source code distribution tree; Copyright.html can be found at the  *
+!   root level of an installed copy of the electronic HDF5 document set and   *
+!   is linked from the top-level documents page.  It can also be found at     *
+!   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+!   access to either file, you may request a copy from help@hdfgroup.org.     *
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
 ! NOTES
 !                         *** IMPORTANT ***
@@ -50,16 +50,13 @@ CONTAINS
 ! PURPOSE 	Creates a new simple data space and opens it for access	.
 !
 ! INPUTS
-!  rank 	 - number of dimensions
-!  dims 	 - an array of the size of each dimension
+!  rank        - number of dimensions
+!  dims        - an array of the size of each dimension
 ! OUTPUTS
-!  space_id 	 - dataspace identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  space_id    - dataspace identifier
+!  hdferr      - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
-!  maxdims 	 - an array of the maximum size of each
-!  dimension
+!  maxdims     - an array of the maximum size of each dimension
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -123,11 +120,9 @@ CONTAINS
 !  Releases and terminates access to a dataspace.
 !
 ! INPUTS
-!  space_id 	 - identifier of dataspace to release
+!  space_id    - identifier of dataspace to release
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr      - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -167,14 +162,10 @@ CONTAINS
 !  Creates a new dataspace of a specified type.
 !
 ! INPUTS
-!  classtype 	 - the type of the dataspace to be created
+!  classtype   - the type of the dataspace to be created
 ! OUTPUTS
-!  space_id 	 - dataspace identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-! OPTIONAL PARAMETERS
-!  NONE
+!  space_id    - dataspace identifier
+!  hdferr      - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -227,12 +218,8 @@ CONTAINS
 ! INPUTS
 !  space_id 	 - dataspace identifier
 ! OUTPUTS
-!  new_space_id 	 - identifier of dataspace's copy
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-! OPTIONAL PARAMETERS
-!  NONE
+!  new_space_id  - identifier of dataspace's copy
+!  hdferr        - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -279,13 +266,11 @@ CONTAINS
 !  Get number of hyperslab blocks.
 !
 ! INPUTS
-!  space_id 	 - dataspace identifier
+!  space_id    - dataspace identifier
 ! OUTPUTS
-!  num_blocks 	 - number of hyperslab blocks in the current
-!  hyperslab selection
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  num_blocks  - number of hyperslab blocks in the current
+!                hyperslab selection
+!  hdferr      - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -330,16 +315,12 @@ CONTAINS
 !  Gets the list of hyperslab blocks currently selected.
 !
 ! INPUTS
-!  space_id 	 - dataspace identifier
-!  startblock 	 - hyperslab block to start with
-!  num_blocks 	 - number of blocks to get
+!  space_id    - dataspace identifier
+!  startblock  - hyperslab block to start with
+!  num_blocks  - number of blocks to get
 ! OUTPUTS
-!  buf 	 - buffer to hold block list
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-! OPTIONAL PARAMETERS
-!  NONE
+!  buf 	       - buffer to hold block list
+!  hdferr      - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -395,14 +376,12 @@ CONTAINS
 !  Gets the bounding box containing the current selection.
 !
 ! INPUTS
-!  space_id 	 - dataspace identifier
+!  space_id    - dataspace identifier
 !
 ! OUTPUTS
-!  start 	 - starting coordinates of bounding box
-!  end 	 - ending coordinates of bounding box
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  start       - starting coordinates of bounding box
+!  end 	       - ending coordinates of bounding box
+!  hdferr      - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !  NONE
 !
@@ -455,10 +434,8 @@ CONTAINS
 !  space_id 	 - dataspace identifier
 ! OUTPUTS
 !  num_points 	 - number of element points in the current
-!  dataspace selection
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!                  dataspace selection
+!  hdferr        - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -503,14 +480,12 @@ CONTAINS
 !  Gets the list of element points currently selected.
 !
 ! INPUTS
-!  space_id 	 - dataspace identifier
-!  startpoint 	 - element point to start with
-!  num_points 	 - number of elemnt points to get
+!  space_id    - dataspace identifier
+!  startpoint  - element point to start with
+!  num_points  - number of elemnt points to get
 ! OUTPUTS
-!  buf 	 - buffer with element points selected
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  buf 	       - buffer with element points selected
+!  hdferr      - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -565,16 +540,16 @@ CONTAINS
 ! INPUTS
 !  space_id 	 - dataspace identifier
 !  operator 	 - flag, valid values are:
-!  H5S_SELECT_SET_F (0)
-!  H5S_SELECT_OR_F (1)
+!                   H5S_SELECT_SET_F 
+!                   H5S_SELECT_APPEND_F 
+!                   H5S_SELECT_PREPEND_F
 !  rank 	 - number of dataspace dimensions
-!  num_elements 	 - number of elements to be selected
+!  num_elements  - number of elements to be selected
 !  coord 	 - 2D (rank x num_elements) array with the
-!  elements coordinates
+!                  elements coordinates ( 1-based); in C the
+!                  array is stored in 2D as (num_element x rank)
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr        - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -587,18 +562,12 @@ CONTAINS
   SUBROUTINE h5sselect_elements_f(space_id, OPERATOR, rank, &
        num_elements, coord, hdferr)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: space_id ! Dataspace identifier
-    INTEGER, INTENT(IN) :: OPERATOR    ! Flag, valid values are:
-                                       ! H5S_SELECT_SET_F (0)
-                                       ! H5S_SELECT_OR_F (1)
-    INTEGER, INTENT(IN) :: rank     ! Number of dataspace dimensions
-    INTEGER(SIZE_T), INTENT(IN) :: num_elements  ! Number of elements to be
-                                                 ! selected
-    INTEGER(HSIZE_T), DIMENSION(rank,num_elements), INTENT(IN) :: coord
-                                          ! Array with the coordinates
-                                          ! of the selected elements
-                                          ! coord(rank, num_elements)
-    INTEGER, INTENT(OUT) :: hdferr     ! Error code
+    INTEGER(HID_T),   INTENT(IN)                                :: space_id
+    INTEGER,          INTENT(IN)                                :: OPERATOR
+    INTEGER,          INTENT(IN)                                :: rank
+    INTEGER(SIZE_T),  INTENT(IN)                                :: num_elements
+    INTEGER(HSIZE_T), INTENT(IN) , DIMENSION(rank,num_elements) :: coord
+    INTEGER,          INTENT(OUT)                               :: hdferr 
 !*****
     INTEGER(HSIZE_T), ALLOCATABLE, DIMENSION(:,:) :: c_coord
     INTEGER :: error, i,j
@@ -651,12 +620,10 @@ CONTAINS
 !  Selects the entire dataspace.
 !
 ! INPUTS
-!  space_id 	 - identifier for the dataspace in which
-!  selection being made
+!  space_id    - Identifier for the dataspace in which
+!                selection being made
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr      - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -696,14 +663,10 @@ CONTAINS
 !  Resets the selection region to include no elements.
 !
 ! INPUTS
-!  space_id 	 - the identifier for the dataspace in which
-!  the selection is being reset.
+!  space_id    - the identifier for the dataspace in which
+!                the selection is being reset.
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-! OPTIONAL PARAMETERS
-!  NONE
+!  hdferr      - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -748,11 +711,7 @@ CONTAINS
 !  space_id 	 - identifier for the dataspace for which
 !  selection is verified
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-! OPTIONAL PARAMETERS
-!  NONE
+!  hdferr      - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -804,11 +763,7 @@ CONTAINS
 !  space_id 	 - dataspace identifier
 ! OUTPUTS
 !  npoints 	 - number of elements in the dataspace
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-! OPTIONAL PARAMETERS
-!  NONE
+!  hdferr      - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -855,9 +810,7 @@ CONTAINS
 !  space_id 	 - dataspace identifier
 ! OUTPUTS
 !  npoints 	 - number of points in the dataspace selection
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr      - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -902,9 +855,7 @@ CONTAINS
 !  space_id 	 - dataspace identifier
 ! OUTPUTS
 !  rank 	 - number of dataspace dimensions
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr      - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -950,9 +901,7 @@ CONTAINS
 !  dims 	 - array to store size of each dimension
 !  maxdims 	 - array to store maximum size of each
 !  dimension
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr      - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -1008,9 +957,7 @@ CONTAINS
 !  H5S_SCALAR_F (0)
 !  H5S_SIMPLE_F (1)
 !  H5S_NULL_F   (2)
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr      - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -1062,9 +1009,7 @@ CONTAINS
 !  maximum_size 	 - array with the new maximum sizes of
 !  dimensions
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr      - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -1121,9 +1066,7 @@ CONTAINS
 ! OUTPUTS
 !  status 	 - flag to indicate if dataspace
 !  is simple or not
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr      - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -1175,9 +1118,7 @@ CONTAINS
 !  offset 	 - the offset at which to position the
 !  selection
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr      - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !  NONE
 !
@@ -1229,9 +1170,7 @@ CONTAINS
 !  source_space_id 	 - the identifier for the dataspace from
 !  which the extent is copied
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr      - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !  NONE
 !
@@ -1283,9 +1222,7 @@ CONTAINS
 ! INPUTS
 !  space_id 	 - dataspace identifier
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr      - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -1334,9 +1271,7 @@ CONTAINS
 !  count 	 - number of blocks included in the
 !  hyperslab
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr      - Returns 0 if successful and -1 if fails
 ! OPTIONAL PARAMETERS
 !  stride 	 - array with hyperslab strides
 !  block 	 - array with hyperslab block sizes
@@ -1762,14 +1697,12 @@ CONTAINS
 !  space_id 	 - dataspace iidentifier with selection
 ! OUTPUTS
 !  type 	 - flag, valid values are:
-!  H5S_SEL_ERROR_F
-!  H5S_SEL_NONE_F
-!  H5S_SEL_POINTS_F
-!  H5S_SEL_HYPERSLABS_F
-!  H5S_SEL_ALL_F
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!                    H5S_SEL_ERROR_F
+!                    H5S_SEL_NONE_F
+!                    H5S_SEL_POINTS_F
+!                    H5S_SEL_HYPERSLABS_F
+!                    H5S_SEL_ALL_F
+!  hdferr      - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  October 7, 2002
@@ -1815,9 +1748,7 @@ CONTAINS
 !  buf 	 -  Buffer for the data space object to be decoded.
 !  obj_id 	 - Object ID
 ! OUTPUTS
-!  hdferr: - error code
-!  Success:  0
-!  Failure: -1
+!  hdferr      - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  M.S. Breitenfeld
@@ -1859,9 +1790,7 @@ CONTAINS
 !  nalloc 	 - The size of the allocated buffer.
 ! OUTPUTS
 !  nalloc 	 - The size of the buffer needed.
-!  hdferr: - error code
-!  Success:  0
-!  Failure: -1
+!  hdferr      - Returns 0 if successful and -1 if fails.
 !
 ! AUTHOR
 !  M.S. Breitenfeld
@@ -1904,9 +1833,7 @@ CONTAINS
 !  space2_id 	 - Second dataspace identifier.
 ! OUTPUTS
 !  Equal 	 - .TRUE. if equal, .FALSE. if unequal.
-!  hdferr: - error code
-!  Success:  0
-!  Failure: -1
+!  hdferr      - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  M.S. Breitenfeld
 !  April 2, 2008
