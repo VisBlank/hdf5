@@ -5581,7 +5581,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !
 ! NOTES
 !  The long subroutine name (>31) on older f90 compilers causes problems
-!  so had to shorten the name
+!  so the name was shorten
 !
 ! SOURCE
   SUBROUTINE h5pset_create_inter_group_f(lcpl_id, crt_intermed_group, hdferr)
