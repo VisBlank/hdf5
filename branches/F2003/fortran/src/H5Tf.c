@@ -2381,3 +2381,41 @@ nh5tget_native_type_c(hid_t_f *dtype_id, int_f *direction, hid_t_f *native_dtype
   return ret_value;
 }
 
+/****if* H5Tf/h5tconvert_c
+ * NAME
+ *        h5tconvert_c
+ * PURPOSE
+ *     Call H5Tconvert
+ * INPUTS
+ *
+ *  src_id     - Identifier for the source datatype.
+ *  dst_id     - Identifier for the destination datatype.
+ *  nelmts     - Size of array buf.
+ *  buf        - Array containing pre-conversion values.
+ *  background - Optional background buffer.
+ *  plist_id   - Dataset transfer property list identifier.
+ *
+ * OUTPUTS
+ *  buf        - Array containing post-conversion values.
+ *
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  M.S. Breitenfeld
+ *  December 8, 2008
+ *
+ * SOURCE
+*/
+int_f
+nh5tconvert_c(hid_t_f *src_id, hid_t_f *dst_id, size_t_f *nelmts, void *buf, void *background, hid_t_f *plist_id)
+/******/
+{
+  int ret_value = -1;
+  hid_t status;
+
+  status = H5Tconvert( (hid_t)*src_id, (hid_t)*dst_id, (size_t)*nelmts, buf, background, (hid_t)*plist_id );
+  if ( status < 0  ) return ret_value;
+  ret_value = 0;
+  return ret_value;
+}
+
