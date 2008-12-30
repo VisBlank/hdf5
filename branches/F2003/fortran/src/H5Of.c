@@ -114,3 +114,128 @@ nh5oopen_c (hid_t_f *loc_id, _fcd name, size_t_f *namelen, hid_t_f *lapl_id, hid
   return ret_value;
 }
 
+/****if* H5Of/h5oclose_c
+ * NAME
+ *   h5oclose_c
+ * PURPOSE
+ *   Call H5Oclose
+ * INPUTS
+ *   object_id   - Object identifier  
+ * RETURNS
+ *   0 on success, -1 on failure
+ * AUTHOR
+ *   M.S. Breitenfeld
+ *   December 17, 2008
+ * SOURCE
+*/
+int_f
+nh5oclose_c ( hid_t_f *object_id )
+/******/
+{
+  int_f ret_value=0;          /* Return value */
+  
+  if (H5Oclose((hid_t)*object_id) < 0)
+    HGOTO_DONE(FAIL);
+  
+ done:
+  return ret_value;
+}
+
+/****if* H5Of/h5ovisit_c
+ * NAME
+ *  h5ovisit_c
+ * PURPOSE
+ *  Calls H5Ovisit
+ * INPUTS
+ *    object_id - Identifier specifying subject group
+ *   index_type - Type of index which determines the order
+ *        order - Order within index
+ *          idx - Iteration position at which to start
+ *           op - Callback function passing data regarding the link to the calling application
+ *      op_data - User-defined pointer to data required by the application for its processing of the link
+ *
+ * OUTPUTS
+ *          idx - Position at which an interrupted iteration may be restarted
+ *
+ * RETURNS
+ *     >0 on success, 0< on failure
+ * AUTHOR
+ *  M.S. Breitenfeld
+ *  November 19, 2008
+ * SOURCE
+*/
+int_f
+nh5ovisit_c(hid_t_f *group_id, int_f *index_type, int_f *order, H5O_iterate_t op, void *op_data )
+/******/
+{
+  int_f ret_value = -1;       /* Return value */
+  herr_t func_ret_value; /* H5Linterate return value */
+
+  /*
+   * Call H5Ovisit
+   */
+  func_ret_value = H5Ovisit( (hid_t)*group_id, (H5_index_t)*index_type, (H5_iter_order_t)*order, op, op_data);
+
+  ret_value = (int_f)func_ret_value;
+
+  return ret_value;
+}
+
+/****if* H5Of/H5Oget_info_by_name_c
+ * NAME
+ *  H5Oget_info_by_name_c
+ * PURPOSE
+ *  Calls H5Oget_info_by_name
+ * INPUTS
+ *  loc_id       - File or group identifier specifying location of group in which object is located.
+ *  name         - Name of group, relative to loc_id.
+ *  namelen      - Name length.
+ *  lapl_id      - Link access property list.
+ * OUTPUTS
+ *  corder_valid - Indicates whether the the creation order data is valid for this attribute.
+ *  corder       - Is a positive integer containing the creation order of the attribute.
+ *  cset         - Indicates the character set used for the attribute’s name.
+ *  data_size    - indicates the size, in the number of characters, of the attribute.
+ *
+ * RETURNS
+ *  0 on success, -1 on failure
+ * AUTHOR
+ *  M.S. Breitenfeld
+ *  December 1, 2008
+ * SOURCE
+*/
+/* int_f */
+/* nh5oget_info_by_name_c (hid_t_f *loc_id, _fcd name, size_t_f *namelen,hid_t_f *lapl_id, */
+/* 			int_f *corder_valid, int_f *corder, */
+/* 			int_f *cset, hsize_t_f *data_size ) */
+/* /\******\/ */
+/* { */
+/*   char *c_name = NULL;          /\* Buffer to hold C string *\/ */
+/*   int_f ret_value = 0;          /\* Return value *\/ */
+/*   H5O_info_t Oinfo; */
+  
+/*   /\* */
+/*    * Convert FORTRAN name to C name */
+/*    *\/ */
+/*   if((c_name = HD5f2cstring(name, (size_t)*namelen)) == NULL) */
+/*     HGOTO_DONE(FAIL); */
+
+/*   /\* */
+/*    * Call H5Oinfo_by_name function. */
+/*    *\/ */
+/*   if(H5Oget_info_by_name((hid_t)*loc_id, c_name, */
+/* 			 &Oinfo, (hid_t)*lapl_id) < 0) */
+/*     HGOTO_DONE(FAIL); */
+
+/*   /\* Unpack the structure *\/ */
+
+/*   *corder_valid = 0; */
+/*   if(Oinfo.corder_valid > 0) *corder_valid = 1; */
+
+/*   *corder = (int_f)Oinfo.corder; */
+/*   *cset = (int_f)Oinfo.cset; */
+/*   *data_size = (hsize_t)Oinfo.data_size; */
+
+/*  done: */
+/*   return ret_value; */
+/* } */
