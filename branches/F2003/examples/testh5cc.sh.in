@@ -118,6 +118,7 @@ EOF
 # An HDF5 sample program that calls hdf5 functions.
 cat > $hdf5main <<EOF
 #include "hdf5.h"
+#define H5_USE_16_API
 #define H5FILE_NAME        "tmp.h5"
 int
 main (void)
@@ -134,7 +135,7 @@ main (void)
 
     printf("HDF5 C Sample program ran successfully. File %s generated.\n", H5FILE_NAME);
     remove(H5FILE_NAME);
- 
+
     return 0;
 }     
 EOF

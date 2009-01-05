@@ -75,8 +75,6 @@ libhdf5_fortran_la_SOURCES=H5f90global.f90 \
 	  H5Aff$(F_STATUS).f90 H5Dff$(F_STATUS).f90 H5Lff$(F_STATUS).f90 \
 	  H5Off$(F_STATUS).f90 H5Pff$(F_STATUS).f90 H5Rff$(F_STATUS).f90 H5Tff$(F_STATUS).f90 $(PARALLEL_COND_SRC)
 
-
-
 # h5fc and libhdf5_fortran.settings are generated during configure.
 # Remove them only when distclean.
 DISTCLEANFILES=h5fc libhdf5_fortran.settings
@@ -114,10 +112,6 @@ uninstall-local:
 # Also install and uninstall (uninstall-local above) h5fc script
 install-exec-local:
 	@$(INSTALL) h5fc $(DESTDIR)$(bindir)/$(H5FC_NAME)
-
-# Install libhdf5_fortran.settings in lib directory
-settingsdir=$(libdir)
-settings_DATA=libhdf5_fortran.settings
 
 # Custom rule for installing h5fc, since it will be named h5pfc if hdf5
 # is configured for parallel mode

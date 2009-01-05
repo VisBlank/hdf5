@@ -28,7 +28,7 @@
 ! NOTES
 !                         *** IMPORTANT ***
 !  If you add a new H5T function you must add the function name to the
-!  Windows dll file 'hdf5_fortrandll.def' in the ROBODoc directory.
+!  Windows dll file 'hdf5_fortrandll.def' in the fortran/src directory.
 !  This is needed for Windows based operating systems.
 !
 !*****
@@ -2960,6 +2960,7 @@ CONTAINS
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
          !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5TDECODE_C'::h5tdecode_c
          !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference :: buf
          CHARACTER(LEN=*), INTENT(IN) :: buf
          INTEGER(HID_T), INTENT(OUT) :: obj_id  ! Object ID
        END FUNCTION h5tdecode_c
@@ -3004,6 +3005,7 @@ CONTAINS
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
          !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5TENCODE_C'::h5tencode_c
          !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference :: buf
          INTEGER(HID_T), INTENT(IN) :: obj_id
          CHARACTER(LEN=*), INTENT(OUT) :: buf
          INTEGER(SIZE_T), INTENT(INOUT) :: nalloc

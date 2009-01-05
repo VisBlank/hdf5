@@ -3,7 +3,7 @@
 ! NAME
 !  MODULE H5R_PROVISIONAL
 !
-!  FILE
+! FILE
 !  fortran/src/H5Rff_DEPRECIATED.f90
 !
 ! PURPOSE
@@ -31,7 +31,7 @@
 ! NOTES
 !                         *** IMPORTANT ***
 !  If you add a new H5R function you must add the function name to the
-!  Windows dll file 'hdf5_fortrandll.def' in the ROBODoc directory.
+!  Windows dll file 'hdf5_fortrandll.def' in the fortran/src directory.
 !  This is needed for Windows based operating systems.
 !*****
 
@@ -362,6 +362,7 @@ CONTAINS
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
          !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5RGET_NAME_OBJECT_C':: h5rget_name_object_c
          !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference :: name
          INTEGER(HID_T), INTENT(IN) :: loc_id
          INTEGER(SIZE_T)  :: size_default
          CHARACTER(LEN=*), INTENT(OUT) :: name
@@ -427,6 +428,7 @@ CONTAINS
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
          !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5RGET_NAME_REGION_C':: h5rget_name_region_c
          !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference :: name
          INTEGER(HID_T), INTENT(IN) :: loc_id
          INTEGER(SIZE_T)  :: size_default
          CHARACTER(LEN=*), INTENT(OUT) :: name

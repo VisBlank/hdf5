@@ -13,25 +13,25 @@
 !
 !
 ! COPYRIGHT
-!  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-!  Copyright by The HDF Group.                                               *
-!  Copyright by the Board of Trustees of the University of Illinois.         *
-!  All rights reserved.                                                      *
-!  *
-!  This file is part of HDF5.  The full HDF5 copyright notice, including     *
-!  terms governing use, modification, and redistribution, is contained in    *
-!  the files COPYING and Copyright.html.  COPYING can be found at the root   *
-!  of the source code distribution tree; Copyright.html can be found at the  *
-!  root level of an installed copy of the electronic HDF5 document set and   *
-!  is linked from the top-level documents page.  It can also be found at     *
-!  http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
-!  access to either file, you may request a copy from help@hdfgroup.org.     *
-!  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!   Copyright by The HDF Group.                                               *
+!   Copyright by the Board of Trustees of the University of Illinois.         *
+!   All rights reserved.                                                      *
+!                                                                             *
+!   This file is part of HDF5.  The full HDF5 copyright notice, including     *
+!   terms governing use, modification, and redistribution, is contained in    *
+!   the files COPYING and Copyright.html.  COPYING can be found at the root   *
+!   of the source code distribution tree; Copyright.html can be found at the  *
+!   root level of an installed copy of the electronic HDF5 document set and   *
+!   is linked from the top-level documents page.  It can also be found at     *
+!   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+!   access to either file, you may request a copy from help@hdfgroup.org.     *
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
 ! NOTES
 !                         *** IMPORTANT ***
 !  If you add a new H5R function you must add the function name to the
-!  Windows dll file 'hdf5_fortrandll.def' in the ROBODoc directory.
+!  Windows dll file 'hdf5_fortrandll.def' in the fortran/src directory.
 !  This is needed for Windows based operating systems.
 !
 !*****
@@ -77,18 +77,17 @@ CONTAINS
 !
 ! INPUTS
 !  dset_id 	 - identifier of the dataset containing
-!  reference to the regions
-!  ref 	 - reference to open
+!                  reference to the regions
+!  ref 	         - reference to open
 ! OUTPUTS
 !  space_id 	 - dataspace identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
 !
-! HISTORY 	Explicit Fortran interfaces were added for
+! HISTORY 	
+!  Explicit Fortran interfaces were added for
 !  called C functions (it is needed for Windows
 !  port).  February 28, 2001
 !
@@ -133,19 +132,16 @@ CONTAINS
 !
 ! INPUTS
 !  dset_id 	 - identifier of the dataset containing
-!  reference to the objects
-!  ref 	 - reference to open
+!                  reference to the objects
+!  ref 	         - reference to open
 ! OUTPUTS
 !  obj_type 	 - object_type, possible values:
-!  H5G_UNKNOWN_F     (-1)
-!  H5G_GROUP_F        0
-!  H5G_DATASET_F      1
-!  H5G_TYPE_F         2
-!  H5G_LINK_F         3
-!
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!                    H5G_UNKNOWN_F     (-1)
+!                    H5G_GROUP_F        0
+!                    H5G_DATASET_F      1
+!                    H5G_TYPE_F         2
+!                    H5G_LINK_F         3
+!  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal

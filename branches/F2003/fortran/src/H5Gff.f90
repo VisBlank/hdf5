@@ -3,8 +3,8 @@
 ! NAME
 !  MODULE H5G
 !
-!  FILE
-!  H5Gff.f90
+! FILE
+!  fortran/src/H5Gff.f90
 !
 ! PURPOSE
 !  This file contains Fortran interfaces for H5G functions.
@@ -28,7 +28,7 @@
 ! NOTES
 !                         *** IMPORTANT ***
 !  If you add a new H5G function you must add the function name to the
-!  Windows dll file 'hdf5_fortrandll.def' in the ROBODoc directory.
+!  Windows dll file 'hdf5_fortrandll.def' in the fortran/src directory.
 !  This is needed for Windows based operating systems.
 !
 !*****
@@ -77,7 +77,7 @@ CONTAINS
 !  port).  March 5, 2001
 !
 !  Added additional optional paramaters in 1.8
-!  MSB 	 - February 27, 2008
+!  MSB - February 27, 2008
 !
 ! SOURCE
   SUBROUTINE h5gcreate_f(loc_id, name, grp_id, hdferr, size_hint, lcpl_id, gcpl_id, gapl_id)
@@ -141,99 +141,99 @@ CONTAINS
 
   END SUBROUTINE h5gcreate_f
 
-!  !$!
-!  !$!****s* H5G/
-!  !$!
-!  !$! NAME
-!  !$!  h5gcreate2_f
-!  !$!
-!  !$! PURPOSE
-!  !$!	Creates a new group.
-!  !$!
-!  !$! INPUTS
-!  !$!		loc_id		- location identifier
-!  !$!		name		- group name at the specified location
-!  !$! OUTPUTS
-!  !$!		grp_id		- group identifier
-!  !$!		hdferr:		- error code
-!  !$!				 	Success:  0
-!  !$!				 	Failure: -1
-!  !$! OPTIONAL PARAMETERS
-!  !$!
-!  !$!    lcpl_id  - Property list for link creation
-!  !$!    gcpl_id  - Property list for group creation
-!  !$!    gapl_id  - Property list for group access
-!  !$!
-!  !$! AUTHOR	M.S. BREITENFELD
-!  !$!		February 27, 2008
-!  !$!
-!  !$! HISTORY
-!  !$!
-!  !$! NOTES Needed to switch the first 2 arguments to avoid conflect
-!  !$!          with h5gcreate1_f
-!  !$!
-!  !$
-!  !$  SUBROUTINE h5gcreate2_f(name, loc_id, grp_id, hdferr, &
-!  !$        lcpl_id, gcpl_id, gapl_id)
-!  !$    IMPLICIT NONE
-!  !$    CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of the group
-!  !$    INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier
-!  !$    INTEGER, INTENT(OUT) :: hdferr         ! Error code
-!  !$    INTEGER(HID_T), INTENT(OUT) :: grp_id  ! Group identifier
-!  !$
-!  !$    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lcpl_id  ! Property list for link creation
-!  !$    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: gcpl_id  ! Property list for group creation
-!  !$    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: gapl_id  ! Property list for group access
-!  !$
-!  !$    INTEGER(HID_T) :: lcpl_id_default
-!  !$    INTEGER(HID_T) :: gcpl_id_default
-!  !$    INTEGER(HID_T) :: gapl_id_default
-!  !$
-!  !$    INTEGER(SIZE_T) :: OBJECT_NAME
+!!$!
+!!$!****s* H5G/
+!!$!
+!!$! NAME
+!!$!  h5gcreate2_f
+!!$!
+!!$! PURPOSE
+!!$!	Creates a new group.
+!!$!
+!!$! INPUTS
+!!$!		loc_id		- location identifier
+!!$!		name		- group name at the specified location
+!!$! OUTPUTS
+!!$!		grp_id		- group identifier
+!!$!		hdferr:		- error code
+!!$!				 	Success:  0
+!!$!				 	Failure: -1
+!!$! OPTIONAL PARAMETERS
+!!$!
+!!$!    lcpl_id  - Property list for link creation
+!!$!    gcpl_id  - Property list for group creation
+!!$!    gapl_id  - Property list for group access
+!!$!
+!!$! AUTHOR	M.S. BREITENFELD
+!!$!		February 27, 2008
+!!$!
+!!$! HISTORY
+!!$!
+!!$! NOTES Needed to switch the first 2 arguments to avoid conflect
+!!$!          with h5gcreate1_f
+!!$!
+!!$
+!!$  SUBROUTINE h5gcreate2_f(name, loc_id, grp_id, hdferr, &
+!!$        lcpl_id, gcpl_id, gapl_id)
+!!$    IMPLICIT NONE
+!!$    CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of the group
+!!$    INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier
+!!$    INTEGER, INTENT(OUT) :: hdferr         ! Error code
+!!$    INTEGER(HID_T), INTENT(OUT) :: grp_id  ! Group identifier
+!!$
+!!$    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lcpl_id  ! Property list for link creation
+!!$    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: gcpl_id  ! Property list for group creation
+!!$    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: gapl_id  ! Property list for group access
+!!$
+!!$    INTEGER(HID_T) :: lcpl_id_default
+!!$    INTEGER(HID_T) :: gcpl_id_default
+!!$    INTEGER(HID_T) :: gapl_id_default
+!!$
+!!$    INTEGER(SIZE_T) :: OBJECT_NAME
 !  LEN_DEFAULT ! Dummy argument to pass to c call
-!  !$    INTEGER :: namelen ! Length of the name character string
-!  !$
-!  !$!  MS FORTRAN needs explicit interface for C functions called here.
-!  !$!
-!  !$    INTERFACE
-!  !$       INTEGER FUNCTION h5gcreate_c(loc_id, name, namelen, &
-!  !$            OBJECT_NAME
+!!$    INTEGER :: namelen ! Length of the name character string
+!!$
+!!$!  MS FORTRAN needs explicit interface for C functions called here.
+!!$!
+!!$    INTERFACE
+!!$       INTEGER FUNCTION h5gcreate_c(loc_id, name, namelen, &
+!!$            OBJECT_NAME
 !  LEN_DEFAULT, grp_id, lcpl_id_default, gcpl_id_default, gapl_id_default)
-!  !$         USE H5GLOBAL
-!  !$         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-!  !$         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5GCREATE_C'::h5gcreate_c
-!  !$         !DEC$ ENDIF
-!  !$         !DEC$ATTRIBUTES reference :: name
-!  !$         INTEGER(HID_T), INTENT(IN) :: loc_id
-!  !$         CHARACTER(LEN=*), INTENT(IN) :: name
-!  !$         INTEGER :: namelen
-!  !$         INTEGER(SIZE_T) :: OBJECT_NAME
+!!$         USE H5GLOBAL
+!!$         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
+!!$         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5GCREATE_C'::h5gcreate_c
+!!$         !DEC$ ENDIF
+!!$         !DEC$ATTRIBUTES reference :: name
+!!$         INTEGER(HID_T), INTENT(IN) :: loc_id
+!!$         CHARACTER(LEN=*), INTENT(IN) :: name
+!!$         INTEGER :: namelen
+!!$         INTEGER(SIZE_T) :: OBJECT_NAME
 !  LEN_DEFAULT
-!  !$         INTEGER(HID_T) :: lcpl_id_default
-!  !$         INTEGER(HID_T) :: gcpl_id_default
-!  !$         INTEGER(HID_T) :: gapl_id_default
-!  !$         INTEGER(HID_T), INTENT(OUT) :: grp_id
-!  !$       END FUNCTION h5gcreate_c
-!  !$    END INTERFACE
-!  !$
-!  !$    namelen = LEN(name)
-!  !$    OBJECT_NAME
+!!$         INTEGER(HID_T) :: lcpl_id_default
+!!$         INTEGER(HID_T) :: gcpl_id_default
+!!$         INTEGER(HID_T) :: gapl_id_default
+!!$         INTEGER(HID_T), INTENT(OUT) :: grp_id
+!!$       END FUNCTION h5gcreate_c
+!!$    END INTERFACE
+!!$
+!!$    namelen = LEN(name)
+!!$    OBJECT_NAME
 !  LEN_DEFAULT = OBJECT_NAME
 !  LEN_DEFAULT_F
-!  !$
-!  !$    lcpl_id_default = H5P_DEFAULT_F
-!  !$    IF(PRESENT(lcpl_id)) lcpl_id_default = lcpl_id
-!  !$    gcpl_id_default = H5P_DEFAULT_F
-!  !$    IF(PRESENT(gcpl_id)) gcpl_id_default = gcpl_id
-!  !$    gapl_id_default = H5P_DEFAULT_F
-!  !$    IF(PRESENT(gapl_id)) gapl_id_default = gapl_id
-!  !$
-!  !$
-!  !$    hdferr = h5gcreate_c(loc_id, name, namelen, OBJECT_NAME
+!!$
+!!$    lcpl_id_default = H5P_DEFAULT_F
+!!$    IF(PRESENT(lcpl_id)) lcpl_id_default = lcpl_id
+!!$    gcpl_id_default = H5P_DEFAULT_F
+!!$    IF(PRESENT(gcpl_id)) gcpl_id_default = gcpl_id
+!!$    gapl_id_default = H5P_DEFAULT_F
+!!$    IF(PRESENT(gapl_id)) gapl_id_default = gapl_id
+!!$
+!!$
+!!$    hdferr = h5gcreate_c(loc_id, name, namelen, OBJECT_NAME
 !  LEN_DEFAULT, grp_id, &
-!  !$         lcpl_id_default, gcpl_id_default, gapl_id_default)
-!  !$
-!  !$  END SUBROUTINE h5gcreate2_f
+!!$         lcpl_id_default, gcpl_id_default, gapl_id_default)
+!!$
+!!$  END SUBROUTINE h5gcreate2_f
 
 !
 !****s* H5G/h5gopen_f
@@ -935,14 +935,12 @@ CONTAINS
     INTEGER :: namelen ! Lenghth of the current_name string
 
     INTERFACE
-       INTEGER FUNCTION h5gget_comment_c(loc_id, name, namelen, &
-                                                size, buffer)
+       INTEGER FUNCTION h5gget_comment_c(loc_id, name, namelen, size, buffer)
          USE H5GLOBAL
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
          !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5GGET_COMMENT_C'::h5gget_comment_c
          !DEC$ ENDIF
-         !DEC$ATTRIBUTES reference :: name
-         !DEC$ATTRIBUTES reference :: buffer
+         !DEC$ATTRIBUTES reference :: name, buffer
          INTEGER(HID_T), INTENT(IN) :: loc_id
          CHARACTER(LEN=*), INTENT(IN) :: name
          INTEGER :: namelen
@@ -953,6 +951,7 @@ CONTAINS
 
     namelen = LEN(name)
     hdferr = h5gget_comment_c(loc_id, name, namelen, size, buffer)
+
   END SUBROUTINE h5gget_comment_f
 
 !
@@ -1203,6 +1202,8 @@ CONTAINS
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
          !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5GGET_INFO_BY_IDX_C'::h5gget_info_by_idx_c
          !DEC$ ENDIF
+         
+         !DEC$ATTRIBUTES reference :: group_name
          INTEGER(HID_T), INTENT(IN) :: loc_id
          CHARACTER(LEN=*), INTENT(IN) :: group_name
          INTEGER, INTENT(IN) :: index_type
@@ -1304,6 +1305,7 @@ CONTAINS
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
          !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5GGET_INFO_BY_NAME_C'::h5gget_info_by_name_c
          !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference :: group_name
          INTEGER(HID_T), INTENT(IN) :: loc_id
          CHARACTER(LEN=*), INTENT(IN) :: group_name
          INTEGER(HID_T), INTENT(IN) :: lapl_id_default

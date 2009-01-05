@@ -354,7 +354,6 @@ func_init_failed:							      \
 #define H5EA_METADATA_PREFIX_SIZE(c) (                                        \
     H5_SIZEOF_MAGIC   /* Signature */                                         \
     + 1 /* Version */                                                         \
-    + 1 /* Array type */                                                      \
     + ((c) ? H5EA_SIZEOF_CHKSUM : 0) /* Metadata checksum */                  \
     )
 
@@ -364,11 +363,13 @@ func_init_failed:							      \
     H5EA_METADATA_PREFIX_SIZE(TRUE)                                           \
                                                                               \
     /* General heap information */                                            \
+    + 1 /* Array type */                                                      \
     + 1 /* Element Size */                                                    \
     + 1 /* Max. # of elements bits */                                         \
     + 1 /* # of elements to store in index block */                           \
     + 1 /* Min. # elements per data block */                                  \
     + 1 /* Min. # of data block pointers for a super block */                 \
+    + 1 /* Log2(Max. # of elements in data block page) - i.e. # of bits needed to store max. # of elements in data block page */ \
                                                                               \
     /* Extensible Array Header statistics fields */                           \
     + (h)->sizeof_size /* Max. index set */				      \
@@ -385,6 +386,10 @@ func_init_failed:							      \
     /* General metadata fields */                                             \
     H5EA_METADATA_PREFIX_SIZE(TRUE)                                           \
                                                                               \
+    /* Sanity-checking fields */					      \
+    + 1 /* Array type */                                                      \
+    + (i)->hdr->sizeof_addr          /* File address of array owning the block */ \
+                                                                              \
     /* Extensible Array Index Block specific fields */			      \
     + ((size_t)(i)->hdr->cparam.idx_blk_elmts * (size_t)(i)->hdr->cparam.raw_elmt_size) /* Elements in index block  */ \
     + ((i)->ndblk_addrs * (i)->hdr->sizeof_addr) /* Data block addresses in index block  */ \
@@ -396,19 +401,48 @@ func_init_failed:							      \
     /* General metadata fields */                                             \
     H5EA_METADATA_PREFIX_SIZE(TRUE)                                           \
                                                                               \
+    /* Sanity-checking fields */					      \
+    + 1 /* Array type */                                                      \
+    + (s)->hdr->sizeof_addr          /* File address of array owning the block */ \
+    + (s)->hdr->arr_off_size         /* Offset of the block in the array */   \
+                                                                              \
     /* Extensible Array Super Block specific fields */			      \
+    + ((s)->ndblks * (s)->dblk_page_init_size) /* Data block 'page init' bitmasks in super block (can be 0 if no pages) */ \
     + ((s)->ndblks * (s)->hdr->sizeof_addr) /* Data block addresses in super block  */ \
+    )
+
+/* Size of the extensible array data block prefix on disk */
+#define H5EA_DBLOCK_PREFIX_SIZE(d)  (					      \
+    /* General metadata fields */                                             \
+    H5EA_METADATA_PREFIX_SIZE(TRUE)                                           \
+                                                                              \
+    /* Sanity-checking fields */					      \
+    + 1 /* Array type */                                                      \
+    + (d)->hdr->sizeof_addr          /* File address of array owning the block */ \
+    + (d)->hdr->arr_off_size         /* Offset of the block in the array */   \
     )
 
 /* Size of the extensible array data block on disk */
 #define H5EA_DBLOCK_SIZE(d)     (					      \
-    /* General metadata fields */                                             \
-    H5EA_METADATA_PREFIX_SIZE(TRUE)                                           \
+    /* Data block prefix size  */                                             \
+    H5EA_DBLOCK_PREFIX_SIZE(d)                                                \
                                                                               \
     /* Extensible Array Data Block specific fields */			      \
-    + ((d)->nelmts * (size_t)(d)->hdr->cparam.raw_elmt_size) /* Elements in index block  */  \
+    + ((d)->nelmts * (size_t)(d)->hdr->cparam.raw_elmt_size) /* Elements in data block  */  \
+    + ((d)->npages * H5EA_SIZEOF_CHKSUM)        /* Checksum for each page */  \
     )
 
+/* Size of the extensible array data block page on disk */
+#define H5EA_DBLK_PAGE_SIZE(p)     (					      \
+    + ((p)->hdr->dblk_page_nelmts * (size_t)(p)->hdr->cparam.raw_elmt_size) /* Elements in data block page */  \
+    + H5EA_SIZEOF_CHKSUM                        /* Checksum for each page */  \
+    )
+
+/* Compute the # of bytes required to store an offset into a given buffer size */
+#define H5EA_SIZEOF_OFFSET_BITS(b)      (((b) + 7) / 8)
+
+/* Compute the first super block index that will hold a certain # of data block pointers */
+#define H5EA_SBLK_FIRST_IDX(m)          (2 * H5V_log2_of2((uint32_t)m))
 
 /****************************/
 /* Package Private Typedefs */
@@ -454,10 +488,14 @@ typedef struct H5EA_hdr_t {
     hbool_t pending_delete;             /* Array is pending deletion */
     size_t sizeof_addr;                 /* Size of file addresses */
     size_t sizeof_size;                 /* Size of file sizes */
+    unsigned char arr_off_size;         /* Size of array offsets (in bytes) */
 
     /* Super block information (not stored) */
     size_t nsblks;                      /* Number of superblocks needed for array */
     H5EA_sblk_info_t *sblk_info;        /* Array of information for each super block */
+
+    /* Data block information (not stored) */
+    size_t dblk_page_nelmts;            /* # of elements per data block page */
 } H5EA_hdr_t;
 
 /* The extensible array index block information */
@@ -488,7 +526,9 @@ typedef struct H5EA_sblock_t {
     H5AC_info_t cache_info;
 
     /* Extensible array information (stored) */
-    haddr_t     *dblk_addrs;    /* Buffer for addresses of data blocks in super block */
+    hsize_t     block_off;      /* Offset of the block within the array's address space */
+    haddr_t     *dblk_addrs;    /* Addresses of data blocks in super block */
+    uint8_t     *page_init;     /* Bitmap of whether a data block page is initialized */
 
     /* Internal array information (not stored) */
     size_t      rc;             /* Reference count of objects using this block */
@@ -500,6 +540,9 @@ typedef struct H5EA_sblock_t {
     unsigned    idx;            /* Super block index within the extensible array */
     size_t      ndblks;         /* # of data block addresses that are in super block */
     size_t      dblk_nelmts;    /* # of elements for data blocks reachable through this super block */
+    size_t      dblk_npages;    /* # of pages in each data block */
+    size_t      dblk_page_init_size;    /* Size of 'page init' bitmask for each data block */
+    size_t      dblk_page_size; /* Size of a data block page */
 } H5EA_sblock_t;
 
 /* The extensible array data block information */
@@ -508,6 +551,7 @@ typedef struct H5EA_dblock_t {
     H5AC_info_t cache_info;
 
     /* Extensible array information (stored) */
+    hsize_t     block_off;      /* Offset of the block within the array's address space */
     void        *elmts;         /* Buffer for elements stored in data block  */
 
     /* Internal array information (not stored) */
@@ -517,7 +561,25 @@ typedef struct H5EA_dblock_t {
 
     /* Computed/cached values (not stored) */
     size_t      nelmts;         /* Number of elements in block                */
+    size_t      npages;         /* Nummber of pages in a block (zero if not paged) */
 } H5EA_dblock_t;
+
+/* The extensible array data block page information */
+typedef struct H5EA_dbk_page_t {
+    /* Information for H5AC cache functions, _must_ be first field in structure */
+    H5AC_info_t cache_info;
+
+    /* Extensible array information (stored) */
+    void        *elmts;         /* Buffer for elements stored in data block page */
+
+    /* Internal array information (not stored) */
+    H5EA_hdr_t	*hdr;	        /* Shared array header info	              */
+    haddr_t     addr;           /* Address of this data block page on disk    */
+    size_t      size;           /* Size of data block page on disk	      */
+
+    /* Computed/cached values (not stored) */
+    /* <none> */
+} H5EA_dblk_page_t;
 
 /* Extensible array */
 struct H5EA_t {
@@ -541,6 +603,9 @@ H5_DLLVAR const H5AC_class_t H5AC_EARRAY_SBLOCK[1];
 
 /* H5EA data block inherits cache-like properties from H5AC */
 H5_DLLVAR const H5AC_class_t H5AC_EARRAY_DBLOCK[1];
+
+/* H5EA data block page inherits cache-like properties from H5AC */
+H5_DLLVAR const H5AC_class_t H5AC_EARRAY_DBLK_PAGE[1];
 
 /* Internal extensible array testing class */
 #ifdef H5EA_TESTING
@@ -590,7 +655,7 @@ H5_DLL herr_t H5EA__sblock_dest(H5F_t *f, H5EA_sblock_t *sblock);
 /* Data block routines */
 H5_DLL H5EA_dblock_t *H5EA__dblock_alloc(H5EA_hdr_t *hdr, size_t nelmts);
 H5_DLL haddr_t H5EA__dblock_create(H5EA_hdr_t *hdr, hid_t dxpl_id,
-    size_t nelmts);
+    hsize_t dblk_off, size_t nelmts);
 H5_DLL unsigned H5EA__dblock_sblk_idx(const H5EA_hdr_t *hdr, hsize_t idx);
 H5_DLL H5EA_dblock_t *H5EA__dblock_protect(H5EA_hdr_t *hdr, hid_t dxpl_id,
     haddr_t dblk_addr, size_t dblk_nelmts, H5AC_protect_t rw);
@@ -599,6 +664,16 @@ H5_DLL herr_t H5EA__dblock_unprotect(H5EA_dblock_t *dblock, hid_t dxpl_id,
 H5_DLL herr_t H5EA__dblock_delete(H5EA_hdr_t *hdr, hid_t dxpl_id,
     haddr_t dblk_addr, size_t dblk_nelmts);
 H5_DLL herr_t H5EA__dblock_dest(H5F_t *f, H5EA_dblock_t *dblock);
+
+/* Data block page routines */
+H5_DLL H5EA_dblk_page_t *H5EA__dblk_page_alloc(H5EA_hdr_t *hdr);
+H5_DLL herr_t H5EA__dblk_page_create(H5EA_hdr_t *hdr, hid_t dxpl_id,
+    haddr_t addr);
+H5_DLL H5EA_dblk_page_t *H5EA__dblk_page_protect(H5EA_hdr_t *hdr, hid_t dxpl_id,
+    haddr_t dblk_page_addr, H5AC_protect_t rw);
+H5_DLL herr_t H5EA__dblk_page_unprotect(H5EA_dblk_page_t *dblk_page,
+    hid_t dxpl_id, unsigned cache_flags);
+H5_DLL herr_t H5EA__dblk_page_dest(H5EA_dblk_page_t *dblk_page);
 
 /* Debugging routines for dumping file structures */
 H5_DLL herr_t H5EA__hdr_debug(H5F_t *f, hid_t dxpl_id, haddr_t addr,

@@ -408,7 +408,7 @@ SUBROUTINE test_iter_group(total_error)
     INTEGER(SIZE_T) :: type_sizec  ! Size of the double datatype
     INTEGER(SIZE_T) :: sizeof_compound ! total size of compound
     INTEGER :: error
-
+    INTEGER(SIZE_T) :: h5off
     TYPE(C_PTR) :: f_ptr
 
     !/*

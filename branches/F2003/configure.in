@@ -26,7 +26,7 @@ dnl
 dnl NOTE: Don't forget to change the version number here when we do a
 dnl release!!!
 dnl
-AC_INIT([HDF5], [1.9.20], [help@hdfgroup.org])
+AC_INIT([HDF5], [1.9.27], [help@hdfgroup.org])
 AC_CONFIG_SRCDIR([src/H5.c])
 AM_CONFIG_HEADER([src/H5config.h])
 
@@ -1751,17 +1751,17 @@ esac
 if test "x$HAVE_SZLIB" = "xyes" -a "x$HAVE_SZLIB_H" = "xyes"; then
     dnl SZLIB library is available.  Check if it can encode
     AC_MSG_CHECKING([for szlib encoder])
-    
-    AC_CACHE_VAL([hdf5_cv_szlib_functional],
-        [AC_TRY_RUN([
-        #include <szlib.h>
-        
-        int main(void)
-        {   
-            SZ_encoder_enabled();
-            exit(0);
-        }
-        ], [hdf5_cv_szlib_functional=yes], [hdf5_cv_szlib_functional=no],)])
+
+    dnl Set LD_LIBRARY_PATH so encoder test can find the library and run.
+    dnl Also add LL_PATH substitution to Makefiles so they can use the 
+    dnl path as well, for testing examples.
+    if test -z "$LD_LIBRARY_PATH"; then
+    export LD_LIBRARY_PATH="$szlib_lib"
+    else
+    export LD_LIBRARY_PATH="$szlib_lib:$LD_LIBRARY_PATH"
+    fi
+
+    AC_SUBST([LL_PATH]) LL_PATH="$LD_LIBRARY_PATH"
     
     AC_CACHE_VAL([hdf5_cv_szlib_can_encode],
         [AC_TRY_RUN([
@@ -1777,13 +1777,9 @@ if test "x$HAVE_SZLIB" = "xyes" -a "x$HAVE_SZLIB_H" = "xyes"; then
         }
         ], [hdf5_cv_szlib_can_encode=yes], [hdf5_cv_szlib_can_encode=no],)])
     
-    if test ${hdf5_cv_szlib_functional} = "no"; then
-        hdf5_cv_szlib_can_encode=broken
-    else
-        AC_DEFINE(HAVE_FILTER_SZIP, 1, 
-                [Define if support for szip filter is enabled])
-        USE_FILTER_SZIP="yes"
-    fi
+    AC_DEFINE(HAVE_FILTER_SZIP, 1, 
+            [Define if support for szip filter is enabled])
+    USE_FILTER_SZIP="yes"
     
     if test ${hdf5_cv_szlib_can_encode} = "yes"; then
         AC_MSG_RESULT([yes])
@@ -1791,9 +1787,6 @@ if test "x$HAVE_SZLIB" = "xyes" -a "x$HAVE_SZLIB_H" = "xyes"; then
     if test ${hdf5_cv_szlib_can_encode} = "no"; then
         AC_MSG_RESULT([no])
     fi 
-    if test ${hdf5_cv_szlib_can_encode} = "broken"; then
-        AC_MSG_RESULT([shared szlib doesn't work. disabling szip.])
-    fi
     
     dnl Add "szip" to external filter list
     if test ${hdf5_cv_szlib_can_encode} = "yes"; then
@@ -1810,6 +1803,8 @@ if test "x$HAVE_SZLIB" = "xyes" -a "x$HAVE_SZLIB_H" = "xyes"; then
     fi
 
 fi
+
+AM_CONDITIONAL([BUILD_SZIP_CONDITIONAL], [test "X$USE_FILTER_SZIP" = "Xyes"])
 
 dnl Checkpoint the cache
 AC_CACHE_SAVE
@@ -2272,9 +2267,7 @@ if test "X-$DEBUG_PKG" = X- ; then
 fi
 
 AC_SUBST([DEBUG_PKG])
-dnl Removed b2 temporary since b2 code has errors.
-dnl all_packages="ac,b,b2,d,e,f,g,hg,hl,i,mf,mm,o,p,s,t,v,z"
-all_packages="ac,b,d,e,f,g,hg,hl,i,mf,mm,o,p,s,t,v,z"
+all_packages="ac,b,b2,d,e,f,g,hg,hl,i,mf,mm,o,p,s,t,v,z"
 case "X-$DEBUG_PKG" in
   X-yes)
     DEBUG_PKG="d,e,f,g,hg,i,mm,o,p,s,t,v,z"
@@ -3842,7 +3835,7 @@ AC_ARG_WITH([default-api-version],
 if test "X$withval" = "Xv16"; then
     AC_MSG_RESULT([v16])
     DEFAULT_API_VERSION=v16
-    AC_DEFINE([USE_16_API], [1],
+    AC_DEFINE([USE_16_API_DEFAULT], [1],
               [Define using v1.6 public API symbols by default])
 elif test "X$withval" = "Xv18"; then
     AC_MSG_RESULT([v18])
@@ -4030,7 +4023,6 @@ AC_CONFIG_FILES([src/libhdf5.settings
                  c++/examples/testh5c++.sh
                  fortran/Makefile
                  fortran/src/h5fc
-                 fortran/src/libhdf5_fortran.settings
                  fortran/src/Makefile
                  fortran/test/Makefile
                  fortran/testpar/Makefile

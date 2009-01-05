@@ -74,8 +74,8 @@ const char *FILENAME[] = {
     "tmp/extlinks14",	/* 35: */
     "tmp/extlinks15",	/* 36: */
     "extlinks16A",	/* 37: */ /* TESTS for H5P_set_elink_fapl */
-    "extlinks16B",	/* 38: */ 
-    "extlinks17",	/* 39: */ 
+    "extlinks16B",	/* 38: */
+    "extlinks17",	/* 39: */
     NULL
 };
 
@@ -3478,7 +3478,7 @@ external_link_chdir(hid_t fapl, hbool_t new_format)
  *
  * Purpose:     To verify that the external linked target file with physical layout
  *		different from the parent can be successfully opened.
- *	
+ *
  *		1. target link: "extlinks16"
  * 		2. target file: "extlinks16"
  *		3. main file: Linux:"/CWD/tmp/extlinks0"; Window: "<cur drive>:/CWD/tmp/extlinks0"
@@ -3503,9 +3503,9 @@ static int
 external_set_elink_fapl1(hid_t fapl, hbool_t new_format)
 {
     hid_t	fid=(-1);
-    hid_t	fidA=(-1), fidB=(-1); 
-    hid_t	gidA=(-1), gidB=(-1);	
-    hid_t	oidA=(-1), oidB=(-1);	                
+    hid_t	fidA=(-1), fidB=(-1);
+    hid_t	gidA=(-1), gidB=(-1);
+    hid_t	oidA=(-1), oidB=(-1);
     char	filename1[NAME_BUF_SIZE],
     		filename2A[NAME_BUF_SIZE],
     		filename2B[NAME_BUF_SIZE],
@@ -3524,15 +3524,15 @@ external_set_elink_fapl1(hid_t fapl, hbool_t new_format)
     else
         TESTING("H5Pset/get_elink_fapl() with different physical layouts")
 
-    if ((HDmkdir(TMPDIR, (mode_t)0755) < 0 && errno != EEXIST) || 
+    if ((HDmkdir(TMPDIR, (mode_t)0755) < 0 && errno != EEXIST) ||
 	(HDgetcwd(cwdpath, NAME_BUF_SIZE)==NULL))
 	TEST_ERROR
 
-    /* 
-     * set up name for main file: 
-     *	 Linux: "/CWD/tmp/extlinks0" 
+    /*
+     * set up name for main file:
+     *	 Linux: "/CWD/tmp/extlinks0"
      *   Windows: "<cur drive>:/CWD/tmp/extlinks0"
-     */ 
+     */
     HDstrcpy(tmpname, cwdpath);
     HDstrcat(tmpname, "/");
     HDstrcat(tmpname, FILENAME[13]);
@@ -3567,7 +3567,7 @@ external_set_elink_fapl1(hid_t fapl, hbool_t new_format)
     sprintf(sv[H5FD_MEM_SUPER], "%%s-%c.h5", 's');
     memb_name[H5FD_MEM_SUPER] = sv[H5FD_MEM_SUPER];
     memb_addr[H5FD_MEM_SUPER] = 0;
-    
+
     sprintf(sv[H5FD_MEM_BTREE],  "%%s-%c.h5", 'b');
     memb_name[H5FD_MEM_BTREE] = sv[H5FD_MEM_BTREE];
     memb_addr[H5FD_MEM_BTREE] = HADDR_MAX/6;
@@ -3615,10 +3615,10 @@ external_set_elink_fapl1(hid_t fapl, hbool_t new_format)
     if((fid=H5Fcreate(filename1, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
 
     /* Create external link to target file A:/A */
-    if(H5Lcreate_external(filename2A, "/A", fid, "ext_linkA", H5P_DEFAULT, H5P_DEFAULT) < 0) 
+    if(H5Lcreate_external(filename2A, "/A", fid, "ext_linkA", H5P_DEFAULT, H5P_DEFAULT) < 0)
 	TEST_ERROR
     /* Create external link to target file B:/B */
-    if(H5Lcreate_external(filename2B, "/B", fid, "ext_linkB", H5P_DEFAULT, H5P_DEFAULT) < 0) 
+    if(H5Lcreate_external(filename2B, "/B", fid, "ext_linkB", H5P_DEFAULT, H5P_DEFAULT) < 0)
 	TEST_ERROR
 
     /* Set file access property list for link access to use the family driver */
@@ -3681,7 +3681,7 @@ external_set_elink_fapl1(hid_t fapl, hbool_t new_format)
  * Function:    external_set_elink_fapl2: test 11
  *
  * Purpose:     To verify that processing done to the external linked target object is
- *		correctly handled when the parent and target files have the same 
+ *		correctly handled when the parent and target files have the same
  *		physical layout but different access methods.
  *
  * 		1. target link: "extlinks17"
@@ -3726,15 +3726,15 @@ external_set_elink_fapl2(hid_t fapl, hbool_t new_format)
     else
         TESTING("H5Pset/get_elink_fapl() with same physical layout")
 
-    if ((HDmkdir(TMPDIR, (mode_t)0755) < 0 && errno != EEXIST) || 
+    if ((HDmkdir(TMPDIR, (mode_t)0755) < 0 && errno != EEXIST) ||
 	(HDgetcwd(cwdpath, NAME_BUF_SIZE)==NULL))
 	TEST_ERROR
 
-    /* 
-     * set up name for main file: 
-     *	 Linux: "/CWD/tmp/extlinks0" 
+    /*
+     * set up name for main file:
+     *	 Linux: "/CWD/tmp/extlinks0"
      *   Windows: "<cur drive>:/CWD/tmp/extlinks0"
-     */ 
+     */
     HDstrcpy(tmpname, cwdpath);
     HDstrcat(tmpname, "/");
     HDstrcat(tmpname, FILENAME[13]);
@@ -3762,7 +3762,7 @@ external_set_elink_fapl2(hid_t fapl, hbool_t new_format)
     if(H5Pset_alloc_time(dcpl, H5D_ALLOC_TIME_LATE) < 0) TEST_ERROR;
 
     /* create "Dataset" in group "A" of target file */
-    if((dset = H5Dcreate2(gid, "Dataset", H5T_NATIVE_INT, space, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0) 
+    if((dset = H5Dcreate2(gid, "Dataset", H5T_NATIVE_INT, space, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0)
 	TEST_ERROR
 
     /* closing for target file */
@@ -3779,7 +3779,7 @@ external_set_elink_fapl2(hid_t fapl, hbool_t new_format)
     if((fid=H5Fcreate(filename1, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
 
     /* Create external link to target file: ext_link->extlinks17:/A/Dataset */
-    if(H5Lcreate_external(filename2, "/A/Dataset", fid, "ext_link", H5P_DEFAULT, H5P_DEFAULT) < 0) 
+    if(H5Lcreate_external(filename2, "/A/Dataset", fid, "ext_link", H5P_DEFAULT, H5P_DEFAULT) < 0)
 	TEST_ERROR
 
     /* create fapl to be a "core" file without backing store */
@@ -7752,6 +7752,90 @@ error:
     } H5E_END_TRY;
     return -1;
 } /* end obj_visit_by_name() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    visit_obj_stop_cb
+ *
+ * Purpose:     Callback routine for visiting objects in a file
+ *
+ * Return:      1 (H5_ITER_STOP)
+ *
+ * Programmer:  Neil Fortner
+ *              Sunday, November 2, 2008
+ *
+ *-------------------------------------------------------------------------
+ */
+static int
+visit_obj_stop_cb(hid_t UNUSED group_id, const char UNUSED *name, const H5O_info_t UNUSED *oinfo,
+    void *_op_data)
+{
+    unsigned *op_data = (unsigned *)_op_data;
+
+    /* Increment the number of visited objects */
+    (*op_data)++;
+
+    return(H5_ITER_STOP);
+} /* end visit_obj_stop_cb() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    obj_visit_stop
+ *
+ * Purpose:     Test that the object visiting routine stops iteration
+ *              properly on the starting object.
+ *
+ * Return:      Success:        0
+ *              Failure:        -1
+ *
+ * Programmer:  Neil Fortner
+ *              Sunday, November 2, 2008
+ *
+ *-------------------------------------------------------------------------
+ */
+static int
+obj_visit_stop(hid_t fapl, hbool_t new_format)
+{
+    unsigned    nvisited;           /* User-data for visiting */
+    hid_t       fid = -1;
+    herr_t      ret;                /* Return value */
+
+    if(new_format)
+        TESTING("stopping object iteration (w/new group format)")
+    else
+        TESTING("stopping object iteration")
+
+    /* Construct "interesting" file to visit */
+    if((fid = build_visit_file(fapl)) < 0) TEST_ERROR
+
+    /* Start iteration.  The callback should only be called once because it
+     * returns H5_ITER_STOP
+     */
+    nvisited = 0;
+    if((ret = H5Ovisit(fid, H5_INDEX_NAME, H5_ITER_INC, visit_obj_stop_cb, &nvisited)) < 0)
+        FAIL_STACK_ERROR
+    if(ret != H5_ITER_STOP) TEST_ERROR
+    if(nvisited != 1) TEST_ERROR
+
+    /* Same test with H5Ovisit_by_name */
+    nvisited = 0;
+    if((ret = H5Ovisit_by_name(fid, "/", H5_INDEX_NAME, H5_ITER_INC, visit_obj_stop_cb,
+        &nvisited, H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
+    if(ret != H5_ITER_STOP) TEST_ERROR
+    if(nvisited != 1) TEST_ERROR
+
+    /* Close file created */
+    if(H5Fclose(fid) < 0) TEST_ERROR
+
+    PASSED();
+    return 0;
+
+error:
+    H5E_BEGIN_TRY {
+        H5Fclose(fid);
+    } H5E_END_TRY;
+    return -1;
+} /* end obj_visit_stop() */
 
 
 /*-------------------------------------------------------------------------
@@ -12286,6 +12370,7 @@ main(void)
         nerrors += link_visit_by_name(my_fapl, new_format) < 0 ? 1 : 0;
         nerrors += obj_visit(my_fapl, new_format) < 0 ? 1 : 0;
         nerrors += obj_visit_by_name(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += obj_visit_stop(my_fapl, new_format) < 0 ? 1 : 0;
 
         /* Keep this test last, it's testing files that are used above */
         /* do not do this for files used by external link tests */

@@ -48,6 +48,7 @@
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5EApkg.h"		/* Extensible Arrays			*/
 #include "H5FLprivate.h"	/* Free Lists                           */
+#include "H5Vprivate.h"         /* Vector functions			*/
 
 
 /****************/
@@ -327,9 +328,11 @@ H5EA_set(const H5EA_t *ea, hid_t dxpl_id, hsize_t idx, const void *elmt))
     H5EA_iblock_t *iblock = NULL;       /* Pointer to index block for EA */
     H5EA_sblock_t *sblock = NULL;       /* Pointer to super block for EA */
     H5EA_dblock_t *dblock = NULL;       /* Pointer to data block for EA */
+    H5EA_dblk_page_t *dblk_page = NULL; /* Pointer to data block page for EA */
     unsigned iblock_cache_flags = H5AC__NO_FLAGS_SET;   /* Flags to unprotecting index block */
     unsigned sblock_cache_flags = H5AC__NO_FLAGS_SET;   /* Flags to unprotecting super block */
     unsigned dblock_cache_flags = H5AC__NO_FLAGS_SET;   /* Flags to unprotecting data block */
+    unsigned dblk_page_cache_flags = H5AC__NO_FLAGS_SET;   /* Flags to unprotecting data block page */
     hbool_t hdr_dirty = FALSE;          /* Whether header information changed */
 
 #ifdef QAK
@@ -408,9 +411,11 @@ HDfprintf(stderr, "%s: dblk_idx = %u, iblock->ndblk_addrs = %Zu\n", FUNC, dblk_i
             /* Check if the data block has been allocated on disk yet */
             if(!H5F_addr_defined(iblock->dblk_addrs[dblk_idx])) {
                 haddr_t dblk_addr;        /* Address of data block created */
+                hsize_t dblk_off;         /* Offset of data block in array */
 
                 /* Create data block */
-                dblk_addr = H5EA__dblock_create(hdr, dxpl_id, hdr->sblk_info[sblk_idx].dblk_nelmts);
+                dblk_off = hdr->sblk_info[sblk_idx].start_idx + (dblk_idx * hdr->sblk_info[sblk_idx].dblk_nelmts);
+                dblk_addr = H5EA__dblock_create(hdr, dxpl_id, dblk_off, hdr->sblk_info[sblk_idx].dblk_nelmts);
                 if(!H5F_addr_defined(dblk_addr))
                     H5E_THROW(H5E_CANTCREATE, "unable to create extensible array data block")
 
@@ -436,7 +441,8 @@ HDfprintf(stderr, "%s: dblk_idx = %u, iblock->ndblk_addrs = %Zu\n", FUNC, dblk_i
             dblock_cache_flags |= H5AC__DIRTIED_FLAG;
         } /* end if */
         else {
-            unsigned sblk_off;          /* Offset of super block in index block array of super blocks */
+            unsigned sblk_off;  /* Offset of super block in index block array of super blocks */
+            void *elmts;        /* Buffer for elements */
 
             /* Calculate offset of super block in index block's array */
             sblk_off = sblk_idx - iblock->nsblks;
@@ -476,9 +482,11 @@ HDfprintf(stderr, "%s: dblk_idx = %u, sblock->ndblks = %Zu\n", FUNC, dblk_idx, s
             /* Check if the data block has been allocated on disk yet */
             if(!H5F_addr_defined(sblock->dblk_addrs[dblk_idx])) {
                 haddr_t dblk_addr;        /* Address of data block created */
+                hsize_t dblk_off;         /* Offset of data block in array */
 
                 /* Create data block */
-                dblk_addr = H5EA__dblock_create(hdr, dxpl_id, sblock->dblk_nelmts);
+                dblk_off = hdr->sblk_info[sblk_idx].start_idx + (dblk_idx * hdr->sblk_info[sblk_idx].dblk_nelmts);
+                dblk_addr = H5EA__dblock_create(hdr, dxpl_id, dblk_off, sblock->dblk_nelmts);
                 if(!H5F_addr_defined(dblk_addr))
                     H5E_THROW(H5E_CANTCREATE, "unable to create extensible array data block")
 
@@ -492,16 +500,80 @@ HDfprintf(stderr, "%s: dblk_idx = %u, sblock->ndblks = %Zu\n", FUNC, dblk_idx, s
                 hdr_dirty = TRUE;
             } /* end if */
 
-            /* Protect data block */
-            if(NULL == (dblock = H5EA__dblock_protect(hdr, dxpl_id, sblock->dblk_addrs[dblk_idx], sblock->dblk_nelmts, H5AC_WRITE)))
-                H5E_THROW(H5E_CANTPROTECT, "unable to protect extensible array data block, address = %llu", (unsigned long_long)sblock->dblk_addrs[dblk_idx])
-
+#ifdef QAK
+if(sblock->dblk_npages)
+    HDfprintf(stderr, "%s: Check 1.0: elmt_idx = %Hu\n", FUNC, elmt_idx);
+#endif /* QAK */
             /* Adjust index to offset in data block */
             elmt_idx %= sblock->dblk_nelmts;
+#ifdef QAK
+if(sblock->dblk_npages)
+    HDfprintf(stderr, "%s: Check 2.0: elmt_idx = %Hu\n", FUNC, elmt_idx);
+#endif /* QAK */
+
+            /* Check if the data block is paged */
+            if(sblock->dblk_npages) {
+                haddr_t dblk_page_addr;         /* Address of data block page */
+                size_t page_idx;                /* Index of page within data block */
+                size_t page_init_idx;           /* Index of 'page init' bit */
+
+                /* Compute page index */
+                page_idx = (size_t)elmt_idx / hdr->dblk_page_nelmts;
+
+                /* Compute 'page init' index */
+                page_init_idx = (dblk_idx * sblock->dblk_npages) + page_idx;
+
+                /* Adjust index to offset in data block page */
+                elmt_idx %= hdr->dblk_page_nelmts;
+
+                /* Compute data block page address */
+                dblk_page_addr = sblock->dblk_addrs[dblk_idx] +
+                        H5EA_DBLOCK_PREFIX_SIZE(sblock) + 
+                        (page_idx * sblock->dblk_page_size);
+#ifdef QAK
+HDfprintf(stderr, "%s: sblock->addr = %a\n", FUNC, sblock->addr);
+HDfprintf(stderr, "%s: sblock->dblk_addrs[%Zu] = %a\n", FUNC, dblk_idx, sblock->dblk_addrs[dblk_idx]);
+HDfprintf(stderr, "%s: H5EA_DBLOCK_PREFIX_SIZE(sblock) = %u\n", FUNC, (unsigned)H5EA_DBLOCK_PREFIX_SIZE(sblock));
+HDfprintf(stderr, "%s: sblock->page_init[%Zu] = %t\n", FUNC, page_init_idx, H5V_bit_get(sblock->page_init, page_init_idx));
+HDfprintf(stderr, "%s: page_idx = %Zu, elmt_idx = %Hu, dblk_page_addr = %a\n", FUNC, page_idx, elmt_idx, dblk_page_addr);
+HDfprintf(stderr, "%s: sblock->dblk_page_size = %Zu\n", FUNC, sblock->dblk_page_size);
+#endif /* QAK */
+
+                /* Check if page has been initialized yet */
+                if(!H5V_bit_get(sblock->page_init, page_init_idx)) {
+                    /* Create the data block page */
+                    if(H5EA__dblk_page_create(hdr, dxpl_id, dblk_page_addr) < 0)
+                        H5E_THROW(H5E_CANTCREATE, "unable to create data block page")
+
+                    /* Mark data block page as initialized in super block */
+                    H5V_bit_set(sblock->page_init, page_init_idx, TRUE);
+                    sblock_cache_flags |= H5AC__DIRTIED_FLAG;
+                } /* end if */
+
+                /* Protect data block page */
+                if(NULL == (dblk_page = H5EA__dblk_page_protect(hdr, dxpl_id, dblk_page_addr, H5AC_WRITE)))
+                    H5E_THROW(H5E_CANTPROTECT, "unable to protect extensible array data block page, address = %llu", (unsigned long_long)dblk_page_addr)
+
+                /* Set pointer to elements */
+                elmts = dblk_page->elmts;
+            } /* end if */
+            else {
+                /* Protect data block */
+                if(NULL == (dblock = H5EA__dblock_protect(hdr, dxpl_id, sblock->dblk_addrs[dblk_idx], sblock->dblk_nelmts, H5AC_WRITE)))
+                    H5E_THROW(H5E_CANTPROTECT, "unable to protect extensible array data block, address = %llu", (unsigned long_long)sblock->dblk_addrs[dblk_idx])
+
+                /* Set pointer to elements */
+                elmts = dblock->elmts;
+            } /* end else */
 
             /* Set element in data block */
-            HDmemcpy(((uint8_t *)dblock->elmts) + (hdr->cparam.cls->nat_elmt_size * elmt_idx), elmt, hdr->cparam.cls->nat_elmt_size);
-            dblock_cache_flags |= H5AC__DIRTIED_FLAG;
+            HDmemcpy(((uint8_t *)elmts) + (hdr->cparam.cls->nat_elmt_size * elmt_idx), elmt, hdr->cparam.cls->nat_elmt_size);
+
+            /* Mark data block/data block page as dirty now */
+            if(sblock->dblk_npages)
+                dblk_page_cache_flags |= H5AC__DIRTIED_FLAG;
+            else
+                dblock_cache_flags |= H5AC__DIRTIED_FLAG;
         } /* end else */
     } /* end else */
 
@@ -527,6 +599,8 @@ CATCH
         H5E_THROW(H5E_CANTUNPROTECT, "unable to release extensible array super block")
     if(dblock && H5EA__dblock_unprotect(dblock, dxpl_id, dblock_cache_flags) < 0)
         H5E_THROW(H5E_CANTUNPROTECT, "unable to release extensible array data block")
+    if(dblk_page && H5EA__dblk_page_unprotect(dblk_page, dxpl_id, dblk_page_cache_flags) < 0)
+        H5E_THROW(H5E_CANTUNPROTECT, "unable to release extensible array data block page")
 
 END_FUNC(PRIV)  /* end H5EA_set() */
 
@@ -553,6 +627,7 @@ H5EA_get(const H5EA_t *ea, hid_t dxpl_id, hsize_t idx, void *elmt))
     H5EA_iblock_t *iblock = NULL;       /* Pointer to index block for EA */
     H5EA_sblock_t *sblock = NULL;       /* Pointer to super block for EA */
     H5EA_dblock_t *dblock = NULL;       /* Pointer to data block for EA */
+    H5EA_dblk_page_t *dblk_page = NULL; /* Pointer to data block page for EA */
 
 #ifdef QAK
 HDfprintf(stderr, "%s: Called\n", FUNC);
@@ -666,15 +741,81 @@ HDfprintf(stderr, "%s: dblk_idx = %u, sblock->ndblks = %Zu\n", FUNC, dblk_idx, s
                             H5E_THROW(H5E_CANTSET, "can't set element to class's fill value")
                     } /* end if */
                     else {
-                        /* Protect data block */
-                        if(NULL == (dblock = H5EA__dblock_protect(hdr, dxpl_id, sblock->dblk_addrs[dblk_idx], sblock->dblk_nelmts, H5AC_READ)))
-                            H5E_THROW(H5E_CANTPROTECT, "unable to protect extensible array data block, address = %llu", (unsigned long_long)sblock->dblk_addrs[dblk_idx])
+                        void *elmts;        /* Buffer for elements */
 
+#ifdef QAK
+if(sblock->dblk_npages)
+    HDfprintf(stderr, "%s: Check 1.0: elmt_idx = %Hu\n", FUNC, elmt_idx);
+#endif /* QAK */
                         /* Adjust index to offset in data block */
                         elmt_idx %= sblock->dblk_nelmts;
+#ifdef QAK
+if(sblock->dblk_npages)
+    HDfprintf(stderr, "%s: Check 2.0: elmt_idx = %Hu\n", FUNC, elmt_idx);
+#endif /* QAK */
+
+                        /* Check if the data block is paged */
+                        if(sblock->dblk_npages) {
+                            size_t page_idx;                /* Index of page within data block */
+                            size_t page_init_idx;           /* Index of 'page init' bit */
+
+                            /* Compute page index */
+                            page_idx = (size_t)elmt_idx / hdr->dblk_page_nelmts;
+
+                            /* Compute 'page init' index */
+                            page_init_idx = (dblk_idx * sblock->dblk_npages) + page_idx;
+
+#ifdef QAK
+HDfprintf(stderr, "%s: sblock->addr = %a\n", FUNC, sblock->addr);
+HDfprintf(stderr, "%s: sblock->dblk_addrs[%Zu] = %a\n", FUNC, dblk_idx, sblock->dblk_addrs[dblk_idx]);
+HDfprintf(stderr, "%s: H5EA_DBLOCK_PREFIX_SIZE(sblock) = %u\n", FUNC, (unsigned)H5EA_DBLOCK_PREFIX_SIZE(sblock));
+HDfprintf(stderr, "%s: sblock->page_init[%Zu] = %t\n", FUNC, page_init_idx, H5V_bit_get(sblock->page_init, page_init_idx));
+HDfprintf(stderr, "%s: page_idx = %Zu\n", FUNC, page_idx);
+HDfprintf(stderr, "%s: sblock->dblk_page_size = %Zu\n", FUNC, sblock->dblk_page_size);
+#endif /* QAK */
+
+                            /* Check if page has been initialized yet */
+                            if(!H5V_bit_get(sblock->page_init, page_init_idx)) {
+                                /* Call the class's 'fill' callback */
+                                if((hdr->cparam.cls->fill)(elmt, (size_t)1) < 0)
+                                    H5E_THROW(H5E_CANTSET, "can't set element to class's fill value")
+
+                                /* We've retrieved the value, leave now */
+                                H5_LEAVE(SUCCEED)
+                            } /* end if */
+                            else {
+                                haddr_t dblk_page_addr;     /* Address of data block page */
+
+                                /* Adjust index to offset in data block page */
+                                elmt_idx %= hdr->dblk_page_nelmts;
+
+                                /* Compute data block page address */
+                                dblk_page_addr = sblock->dblk_addrs[dblk_idx] +
+                                        H5EA_DBLOCK_PREFIX_SIZE(sblock) +
+                                        (page_idx * sblock->dblk_page_size);
+#ifdef QAK
+HDfprintf(stderr, "%s: elmt_idx = %Hu, dblk_page_addr = %a\n", FUNC, elmt_idx, dblk_page_addr);
+#endif /* QAK */
+
+                                /* Protect data block page */
+                                if(NULL == (dblk_page = H5EA__dblk_page_protect(hdr, dxpl_id, dblk_page_addr, H5AC_READ)))
+                                    H5E_THROW(H5E_CANTPROTECT, "unable to protect extensible array data block page, address = %llu", (unsigned long_long)dblk_page_addr)
+
+                                /* Set pointer to elements */
+                                elmts = dblk_page->elmts;
+                            } /* end else */
+                        } /* end if */
+                        else {
+                            /* Protect data block */
+                            if(NULL == (dblock = H5EA__dblock_protect(hdr, dxpl_id, sblock->dblk_addrs[dblk_idx], sblock->dblk_nelmts, H5AC_READ)))
+                                H5E_THROW(H5E_CANTPROTECT, "unable to protect extensible array data block, address = %llu", (unsigned long_long)sblock->dblk_addrs[dblk_idx])
+
+                            /* Set pointer to elements */
+                            elmts = dblock->elmts;
+                        } /* end else */
 
                         /* Retrieve element from data block */
-                        HDmemcpy(elmt, ((uint8_t *)dblock->elmts) + (hdr->cparam.cls->nat_elmt_size * elmt_idx), hdr->cparam.cls->nat_elmt_size);
+                        HDmemcpy(elmt, ((uint8_t *)elmts) + (hdr->cparam.cls->nat_elmt_size * elmt_idx), hdr->cparam.cls->nat_elmt_size);
                     } /* end else */
                 } /* end else */
             } /* end else */
@@ -688,6 +829,8 @@ CATCH
         H5E_THROW(H5E_CANTUNPROTECT, "unable to release extensible array super block")
     if(dblock && H5EA__dblock_unprotect(dblock, dxpl_id, H5AC__NO_FLAGS_SET) < 0)
         H5E_THROW(H5E_CANTUNPROTECT, "unable to release extensible array data block")
+    if(dblk_page && H5EA__dblk_page_unprotect(dblk_page, dxpl_id, H5AC__NO_FLAGS_SET) < 0)
+        H5E_THROW(H5E_CANTUNPROTECT, "unable to release extensible array data block page")
 
 END_FUNC(PRIV)  /* end H5EA_set() */
 

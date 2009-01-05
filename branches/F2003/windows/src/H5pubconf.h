@@ -475,13 +475,13 @@
 #define H5_PACKAGE_NAME "HDF5"
 
 /* Define to the full name and version of this package. */
-#define H5_PACKAGE_STRING "HDF5 1.9.20"
+#define H5_PACKAGE_STRING "HDF5 1.9.27"
 
 /* Define to the one symbol short name of this package. */
 #define H5_PACKAGE_TARNAME "hdf5"
 
 /* Define to the version of this package. */
-#define H5_PACKAGE_VERSION "1.9.20"
+#define H5_PACKAGE_VERSION "1.9.27"
 
 /* Width for printf() for type `long long' or `__int64', use `ll' */
 #define H5_PRINTF_LL_WIDTH "I64"
@@ -630,7 +630,7 @@
 /* #undef H5_ULONG_TO_FP_BOTTOM_BIT_ACCURATE */
 
 /* Define using v1.6 public API symbols by default */
-/* #undef H5_USE_16_API */
+/* #undef H5_USE_16_API_DEFAULT */
 
 /* Define if a memory checking tool will be used on the library, to cause
    library to be very picky about memory operations and also disable the
@@ -638,7 +638,7 @@
 /* #undef H5_USING_MEMCHECKER */
 
 /* Version number of package */
-#define H5_VERSION "1.9.20"
+#define H5_VERSION "1.9.27"
 
 /* Define if vsnprintf() returns the correct value for formatted strings that
    don't fit into size allowed */

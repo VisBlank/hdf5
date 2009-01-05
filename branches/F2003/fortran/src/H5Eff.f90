@@ -28,7 +28,7 @@
 ! NOTES
 !                         *** IMPORTANT ***
 !  If you add a new H5E function to the module you must add the function name
-!  to the Windows dll file 'hdf5_fortrandll.def' in the ROBODoc directory.
+!  to the Windows dll file 'hdf5_fortrandll.def' in the fortran/src directory.
 !  This is needed for Windows based operating systems.
 !
 !*****
@@ -66,12 +66,10 @@ CONTAINS
 !  port).  April 6, 2001
 !
 ! SOURCE
-
   SUBROUTINE h5eclear_f(hdferr)
     IMPLICIT NONE
     INTEGER, INTENT(OUT) :: hdferr  ! Error code
 !*****
-
     INTERFACE
        INTEGER FUNCTION h5eclear_c()
          USE H5GLOBAL
@@ -106,7 +104,6 @@ CONTAINS
 !  port).  April 6, 2001
 !
 ! SOURCE
-
   SUBROUTINE h5eprint_f(hdferr, name)
     CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: name ! File name
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
@@ -245,9 +242,10 @@ CONTAINS
 !  Turns automatic error printing on or off.
 !
 ! INPUTS
-!  printflag 	 - flag to turn automatic error
-!   	         - Possible values are:
-!   	             -1 (on), 0 (off)
+!  printflag 	 - Flag to turn automatic error printing on or off;
+!                  possible values are:
+!                    printon (1)
+!                    printoff(0)
 ! OUTPUTS
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !

@@ -347,17 +347,14 @@ out:
  *
  * Date: May 9, 2003
  *
- * Modifications:
- *
- * Jan 2005 Leon Arber, larber@uiuc.edu
+ * Modifications: Jan 2005 Leon Arber, larber@uiuc.edu
  *    Added support for parallel diffing
  *
- * Aug 2008 Pedro Vicente, pvn@hdfgroup.org
- *    Added a "contents" mode check.
- *    If this mode is present, objects in both files must match (must be exactly the same)
- *    If this does not happen, the tool returns an error code of 1
- *    (instead of the success code of 0)
- *
+ * Pedro Vicente, pvn@hdfgroup.org, Nov 4, 2008
+ *    Compare the graph and make h5diff return 1 for difference if
+ * 1) the number of objects in file1 is not the same as in file2
+ * 2) the graph does not match, i.e same names (absolute path)
+ * 3) objects with the same name are not of the same type
  *-------------------------------------------------------------------------
  */
 hsize_t diff_match(hid_t file1_id,
@@ -450,31 +447,40 @@ hsize_t diff_match(hid_t file1_id,
 
 
     /*-------------------------------------------------------------------------
-    * contents mode. we do an "absolute" compare criteria, the number of objects
-    * in file1 must be the same as in file2
+    * regarding the return value of h5diff (0, no difference in files, 1 difference )
+    * 1) the number of objects in file1 must be the same as in file2
+    * 2) the graph must match, i.e same names (absolute path)
+    * 3) objects with the same name must be of the same type
     *-------------------------------------------------------------------------
-    */
-    if ( options->m_contents )
+    */     
+       
+    /* number of different objects */
+    if ( info1->nused != info2->nused )
     {
-        /* assume equal contents initially */
-        options->contents = 1;
-
-        /* number of different objects */
-        if ( info1->nused != info2->nused )
+        options->contents = 0;
+    }
+    
+    /* objects in one file and not the other */
+    for( i = 0; i < table->nobjs; i++)
+    {
+        if( table->objs[i].flags[0] != table->objs[i].flags[1] )
         {
             options->contents = 0;
         }
+    }
 
-
-        for( i = 0; i < table->nobjs; i++)
+    /* objects with the same name but different HDF5 types */
+    for( i = 0; i < table->nobjs; i++) 
+    {
+        if ( table->objs[i].flags[0] && table->objs[i].flags[1] )
         {
-            if( table->objs[i].flags[0] != table->objs[i].flags[1] )
+            if ( table->objs[i].type != table->objs[i].type )
             {
                 options->contents = 0;
             }
         }
-
     }
+
 
 
     /*-------------------------------------------------------------------------

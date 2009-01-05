@@ -27,7 +27,7 @@
 ! NOTES
 !                         *** IMPORTANT ***
 !  If you add a new H5P function you must add the function name to the
-!  Windows dll file 'hdf5_fortrandll.def' in the ROBODoc directory.
+!  Windows dll file 'hdf5_fortrandll.def' in the fortran/src directory.
 !  This is needed for Windows based operating systems.
 !
 !*****
@@ -5890,7 +5890,8 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
          !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_DATA_TRANSFORM_C'::h5pget_data_transform_c
          !DEC$ ENDIF
-         INTEGER(HID_T), INTENT(IN) :: plist_id
+         !DEC$ATTRIBUTES reference :: expression
+         INTEGER(HID_T), INTENT(IN) :: plist_id 
          CHARACTER(LEN=*), INTENT(OUT) :: expression
          INTEGER(SIZE_T) :: size_default
          INTEGER :: expression_len
@@ -5939,6 +5940,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
          !DEC$ IF DEFINED(HDF5F90_WINDOWS)
          !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_DATA_TRANSFORM_C'::h5pset_data_transform_c
          !DEC$ ENDIF
+         !DEC$ATTRIBUTES reference :: expression
          INTEGER(HID_T), INTENT(IN) :: plist_id
          CHARACTER(LEN=*), INTENT(IN) :: expression
          INTEGER :: expression_len
