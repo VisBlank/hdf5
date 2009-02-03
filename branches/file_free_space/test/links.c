@@ -35,6 +35,7 @@
 /* File for external link test.  Created with gen_udlinks.c */
 #define LINKED_FILE  "be_extlink2.h5"
 
+#ifdef H5_VMS
 const char *FILENAME[] = {
     "links0",
     "links1",
@@ -48,10 +49,60 @@ const char *FILENAME[] = {
     "links6",  /* 9 */
     "links7",  /* 10 */
     "links8",  /* 11 */
-    "extlinks0",  	/* 12: main files */
-    "tmp/extlinks0",  	/* 13: */
-    "extlinks1",  	/* 14: target files */
-    "tmp/extlinks1",  	/* 15: */
+    "extlinks0",	/* 12: main files */
+    "[.tmp]extlinks0",	/* 13: */
+    "extlinks1",	/* 14: target files */
+    "[.tmp]extlinks1",	/* 15: */
+    "extlinks2",	/* 16: */
+    "[.tmp]extlinks2",	/* 17: */
+    "extlinks3",	/* 18: */
+    "[.tmp]extlinks3",	/* 19: */
+    "extlinks4",	/* 20: */
+    "[.tmp]extlinks4",	/* 21: */
+    "extlinks5",	/* 22: */
+    "[.tmp]extlinks6",	/* 23: */
+    "extlinks7",	/* 24: */
+    "[.tmp]extlinks7",	/* 25: */
+    "[.tmp]extlinks8",	/* 26: */
+    "extlinks9",	/* 27: */
+    "[.tmp]extlinks9",	/* 28: */
+    "extlinks10",	/* 29: */ /* TESTS for windows */
+    "[.tmp]extlinks10",	/* 30: */
+    "[.tmp]extlinks11",	/* 31: */
+    "[.tmp]extlinks12",	/* 32: */
+    "extlinks13",	/* 33: */
+    "[.tmp]extlinks13",	/* 34: */
+    "[.tmp]extlinks14",	/* 35: */
+    "[.tmp]extlinks15",	/* 36: */
+    "extlinks16A",	/* 37: */ /* TESTS for H5P_set_elink_fapl */
+    "extlinks16B",	/* 38: */
+    "extlinks17",	/* 39: */
+    "extlinks18A",	/* 40: */
+    "extlinks18B",	/* 41: */
+    "extlinks19A",	/* 42: */
+    "extlinks19B",	/* 43: */
+    NULL
+};
+
+#define TMPDIR          "[.tmp]"
+#else
+const char *FILENAME[] = {
+    "links0",
+    "links1",
+    "links2",
+    "links3",
+    "links4a", /* 4 */
+    "links4b", /* 5 */
+    "links4c", /* 6 */
+    "links4d", /* 7 */
+    "links5",  /* 8 */
+    "links6",  /* 9 */
+    "links7",  /* 10 */
+    "links8",  /* 11 */
+    "extlinks0",	/* 12: main files */
+    "tmp/extlinks0",	/* 13: */
+    "extlinks1",	/* 14: target files */
+    "tmp/extlinks1",	/* 15: */
     "extlinks2",	/* 16: */
     "tmp/extlinks2",	/* 17: */
     "extlinks3",	/* 18: */
@@ -74,12 +125,18 @@ const char *FILENAME[] = {
     "tmp/extlinks14",	/* 35: */
     "tmp/extlinks15",	/* 36: */
     "extlinks16A",	/* 37: */ /* TESTS for H5P_set_elink_fapl */
-    "extlinks16B",	/* 38: */ 
-    "extlinks17",	/* 39: */ 
+    "extlinks16B",	/* 38: */
+    "extlinks17",	/* 39: */
+    "extlinks18A",	/* 40: */
+    "extlinks18B",	/* 41: */
+    "extlinks19A",	/* 42: */
+    "extlinks19B",	/* 43: */
     NULL
 };
 
-#define TMPDIR		"tmp"
+#define TMPDIR          "tmp"
+#endif
+
 #define FAMILY_SIZE	1024
 #define CORE_INCREMENT  1024
 #define NUM400		400
@@ -111,6 +168,8 @@ const char *FILENAME[] = {
 
 #define LE_FILENAME "le_extlink1.h5"
 #define BE_FILENAME "be_extlink1.h5"
+
+#define ELINK_CB_FAM_SIZE (hsize_t) 100
 
 #define H5L_DIM1 100
 #define H5L_DIM2 100
@@ -2112,7 +2171,7 @@ external_link_mult(hid_t fapl, hbool_t new_format)
  *-------------------------------------------------------------------------
  */
 static int
-external_link_self(hid_t fapl, hbool_t new_format)
+external_link_self(const char *env_h5_drvr, hid_t fapl, hbool_t new_format)
 {
     hid_t	fid = (-1);     		/* File ID */
     hid_t	gid = (-1), gid2 = (-1);	/* Group IDs */
@@ -2128,117 +2187,127 @@ external_link_self(hid_t fapl, hbool_t new_format)
     else
         TESTING("external link to self")
 
-    /* Set up filename */
-    h5_fixname(FILENAME[1], fapl, filename1, sizeof filename1);
-    h5_fixname(FILENAME[2], fapl, filename2, sizeof filename1);
-    h5_fixname(FILENAME[3], fapl, filename3, sizeof filename1);
-
-    /* Create file */
-    if((fid = H5Fcreate(filename1, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
-
-    /* Create an lcpl with intermediate group creation set */
-    if((lcpl_id = H5Pcreate(H5P_LINK_CREATE)) < 0) TEST_ERROR
-    if(H5Pset_create_intermediate_group(lcpl_id, TRUE) < 0) TEST_ERROR
-
-    /* Create a series of groups within the file: /A/B and /X/Y/Z */
-    if((gid = H5Gcreate2(fid, "A/B", lcpl_id, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
-    if(H5Gclose(gid) < 0) TEST_ERROR
-    if((gid = H5Gcreate2(fid, "X/Y", lcpl_id, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
-    if(H5Gclose(gid) < 0) TEST_ERROR
-
-    if(H5Pclose (lcpl_id) < 0) TEST_ERROR
-
-    /* Create external link to own root group*/
-    if(H5Lcreate_external(filename1, "/X", fid, "A/B/C", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
-
-    /* Open object through external link */
-    if((gid = H5Gopen2(fid, "A/B/C/", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
-
-    /* Check name */
-    if((name_len = H5Iget_name( gid, objname, (size_t)NAME_BUF_SIZE )) < 0) TEST_ERROR
-    if(HDstrcmp(objname, "/X")) TEST_ERROR
-
-    /* Create object through external link */
-    if((gid2 = H5Gcreate2(gid, "new_group", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
-
-    /* Close created group */
-    if(H5Gclose(gid2) < 0) TEST_ERROR
-
-    /* Close object opened through external link */
-    if(H5Gclose(gid) < 0) TEST_ERROR
-
-    /* Check on object created */
-    if((gid = H5Gopen2(fid, "X/new_group", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
-
-    /* Check name */
-    if((name_len = H5Iget_name( gid, objname, (size_t)NAME_BUF_SIZE )) < 0) TEST_ERROR
-    if(HDstrcmp(objname, "/X/new_group")) TEST_ERROR
-
-    /* Close opened object */
-    if(H5Gclose(gid) < 0) TEST_ERROR
-
-    /* Close first file */
-    if(H5Fclose(fid) < 0) TEST_ERROR
-
-
-    /* Complicate things. Use this file as an intermediate file in a chain
-     * of external links that will go: file2 -> file1 -> file1 -> file3
+    /* Skip test when using core VFD, since it doesn't re-open file when linking
+     *  to same file.
      */
+    if(HDstrcmp(env_h5_drvr, "core")) {
+        /* Set up filename */
+        h5_fixname(FILENAME[1], fapl, filename1, sizeof filename1);
+        h5_fixname(FILENAME[2], fapl, filename2, sizeof filename1);
+        h5_fixname(FILENAME[3], fapl, filename3, sizeof filename1);
 
-    /* Create file2 with an external link to file1  */
-    if((fid=H5Fcreate(filename2, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
+        /* Create file */
+        if((fid = H5Fcreate(filename1, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
 
-    if(H5Lcreate_external(filename1, "/A", fid, "ext_link", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
+        /* Create an lcpl with intermediate group creation set */
+        if((lcpl_id = H5Pcreate(H5P_LINK_CREATE)) < 0) TEST_ERROR
+        if(H5Pset_create_intermediate_group(lcpl_id, TRUE) < 0) TEST_ERROR
 
-    /* Close file2 */
-    if(H5Fclose(fid) < 0) TEST_ERROR
+        /* Create a series of groups within the file: /A/B and /X/Y/Z */
+        if((gid = H5Gcreate2(fid, "A/B", lcpl_id, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+        if(H5Gclose(gid) < 0) TEST_ERROR
+        if((gid = H5Gcreate2(fid, "X/Y", lcpl_id, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+        if(H5Gclose(gid) < 0) TEST_ERROR
 
-    /* Create file3 as a target */
-    if((fid=H5Fcreate(filename3, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
-    if((gid = H5Gcreate2(fid, "end", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
-    if(H5Gclose(gid) < 0) TEST_ERROR
-    if(H5Fclose(fid) < 0) TEST_ERROR
+        if(H5Pclose (lcpl_id) < 0) TEST_ERROR
 
-    /* Open file1 and create an extlink pointing to file3 */
-    if((fid=H5Fopen(filename1, H5F_ACC_RDWR, fapl)) < 0) TEST_ERROR
+        /* Create external link to own root group*/
+        if(H5Lcreate_external(filename1, "/X", fid, "A/B/C", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
 
-    if(H5Lcreate_external(filename3, "/", fid, "/X/Y/Z", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
+        /* Open object through external link */
+        if((gid = H5Gopen2(fid, "A/B/C/", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
 
-    /* Close file1 */
-    if(H5Fclose(fid) < 0) TEST_ERROR
+        /* Check name */
+        if((name_len = H5Iget_name( gid, objname, (size_t)NAME_BUF_SIZE )) < 0) TEST_ERROR
+        if(HDstrcmp(objname, "/X")) TEST_ERROR
+
+        /* Create object through external link */
+        if((gid2 = H5Gcreate2(gid, "new_group", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+
+        /* Close created group */
+        if(H5Gclose(gid2) < 0) TEST_ERROR
+
+        /* Close object opened through external link */
+        if(H5Gclose(gid) < 0) TEST_ERROR
+
+        /* Check on object created */
+        if((gid = H5Gopen2(fid, "X/new_group", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
+
+        /* Check name */
+        if((name_len = H5Iget_name( gid, objname, (size_t)NAME_BUF_SIZE )) < 0) TEST_ERROR
+        if(HDstrcmp(objname, "/X/new_group")) TEST_ERROR
+
+        /* Close opened object */
+        if(H5Gclose(gid) < 0) TEST_ERROR
+
+        /* Close first file */
+        if(H5Fclose(fid) < 0) TEST_ERROR
 
 
-    /* Re-open file2 and traverse through file1 (with its recursive extlink) to file3 */
-    if((fid=H5Fopen(filename2, H5F_ACC_RDWR, fapl)) < 0) TEST_ERROR
+        /* Complicate things. Use this file as an intermediate file in a chain
+         * of external links that will go: file2 -> file1 -> file1 -> file3
+         */
 
-    if((gid = H5Gopen2(fid, "ext_link/B/C/Y/Z/end", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
+        /* Create file2 with an external link to file1  */
+        if((fid=H5Fcreate(filename2, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
 
-    /* Create object through external link */
-    if((gid2 = H5Gcreate2(gid, "newer_group", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+        if(H5Lcreate_external(filename1, "/A", fid, "ext_link", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
 
-    /* Cleanup */
-    if(H5Gclose(gid2) < 0) TEST_ERROR
-    if(H5Gclose(gid) < 0) TEST_ERROR
-    if(H5Fclose(fid) < 0) TEST_ERROR
+        /* Close file2 */
+        if(H5Fclose(fid) < 0) TEST_ERROR
 
-    /* Open up file3 and make sure the object was created successfully */
-    if((fid = H5Fopen(filename3, H5F_ACC_RDWR, fapl)) < 0) FAIL_STACK_ERROR
+        /* Create file3 as a target */
+        if((fid=H5Fcreate(filename3, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
+        if((gid = H5Gcreate2(fid, "end", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+        if(H5Gclose(gid) < 0) TEST_ERROR
+        if(H5Fclose(fid) < 0) TEST_ERROR
 
-    if((gid = H5Gopen2(fid, "end/newer_group", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
+        /* Open file1 and create an extlink pointing to file3 */
+        if((fid=H5Fopen(filename1, H5F_ACC_RDWR, fapl)) < 0) TEST_ERROR
 
-    /* Cleanup */
-    if(H5Gclose(gid) < 0) TEST_ERROR
-    if(H5Fclose(fid) < 0) TEST_ERROR
+        if(H5Lcreate_external(filename3, "/", fid, "/X/Y/Z", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
 
-    PASSED();
+        /* Close file1 */
+        if(H5Fclose(fid) < 0) TEST_ERROR
+
+
+        /* Re-open file2 and traverse through file1 (with its recursive extlink) to file3 */
+        if((fid=H5Fopen(filename2, H5F_ACC_RDWR, fapl)) < 0) TEST_ERROR
+
+        if((gid = H5Gopen2(fid, "ext_link/B/C/Y/Z/end", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
+
+        /* Create object through external link */
+        if((gid2 = H5Gcreate2(gid, "newer_group", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+
+        /* Cleanup */
+        if(H5Gclose(gid2) < 0) TEST_ERROR
+        if(H5Gclose(gid) < 0) TEST_ERROR
+        if(H5Fclose(fid) < 0) TEST_ERROR
+
+        /* Open up file3 and make sure the object was created successfully */
+        if((fid = H5Fopen(filename3, H5F_ACC_RDWR, fapl)) < 0) FAIL_STACK_ERROR
+
+        if((gid = H5Gopen2(fid, "end/newer_group", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
+
+        /* Cleanup */
+        if(H5Gclose(gid) < 0) TEST_ERROR
+        if(H5Fclose(fid) < 0) TEST_ERROR
+
+        PASSED();
+    } /* end if */
+    else {
+	SKIPPED();
+	puts("    Current VFD can't reopen same file through external link");
+    } /* end else */
+
     return 0;
 
  error:
     H5E_BEGIN_TRY {
-    	H5Fclose (gid2);
-    	H5Fclose (gid);
-    	H5Pclose (lcpl_id);
-    	H5Fclose (fid);
+    	H5Fclose(gid2);
+    	H5Fclose(gid);
+    	H5Pclose(lcpl_id);
+    	H5Fclose(fid);
     } H5E_END_TRY;
     return -1;
 } /* end external_link_self() */
@@ -2269,7 +2338,7 @@ external_link_self(hid_t fapl, hbool_t new_format)
  *-------------------------------------------------------------------------
  */
 static int
-external_link_pingpong(hid_t fapl, hbool_t new_format)
+external_link_pingpong(const char *env_h5_drvr, hid_t fapl, hbool_t new_format)
 {
     hid_t	fid = (-1);     		/* File ID */
     hid_t	gid = (-1), gid2 = (-1);	/* Group IDs */
@@ -2283,85 +2352,94 @@ external_link_pingpong(hid_t fapl, hbool_t new_format)
     else
         TESTING("external links back and forth")
 
-    /* Set up filenames */
-    h5_fixname(FILENAME[3], fapl, filename1, sizeof filename1);
-    h5_fixname(FILENAME[4], fapl, filename2, sizeof filename2);
+    /* Skip test when using core VFD, since it doesn't re-open file when linking
+     *  to same file.
+     */
+    if(HDstrcmp(env_h5_drvr, "core")) {
+        /* Set up filenames */
+        h5_fixname(FILENAME[3], fapl, filename1, sizeof filename1);
+        h5_fixname(FILENAME[4], fapl, filename2, sizeof filename2);
 
-    /* Create first file */
-    if((fid=H5Fcreate(filename1, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
+        /* Create first file */
+        if((fid=H5Fcreate(filename1, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
 
-    /* Create external links for chain */
-    if(H5Lcreate_external(filename2, "/link2", fid, "link1", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
-    if(H5Lcreate_external(filename2, "/link4", fid, "link3", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
-    if(H5Lcreate_external(filename2, "/link6", fid, "link5", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
+        /* Create external links for chain */
+        if(H5Lcreate_external(filename2, "/link2", fid, "link1", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
+        if(H5Lcreate_external(filename2, "/link4", fid, "link3", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
+        if(H5Lcreate_external(filename2, "/link6", fid, "link5", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
 
-    /* Create final object */
-    if((gid = H5Gcreate2(fid, "final", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
-    if(H5Gclose(gid) < 0) TEST_ERROR
+        /* Create final object */
+        if((gid = H5Gcreate2(fid, "final", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+        if(H5Gclose(gid) < 0) TEST_ERROR
 
-    /* Close file */
-    if(H5Fclose(fid) < 0) TEST_ERROR
+        /* Close file */
+        if(H5Fclose(fid) < 0) TEST_ERROR
 
-    /* Create second file */
-    if((fid=H5Fcreate(filename2, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
+        /* Create second file */
+        if((fid=H5Fcreate(filename2, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
 
-    /* Create external links for chain */
-    if(H5Lcreate_external(filename1, "/link3", fid, "link2", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
-    if(H5Lcreate_external(filename1, "/link5", fid, "link4", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
-    if(H5Lcreate_external(filename1, "/final", fid, "link6", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
+        /* Create external links for chain */
+        if(H5Lcreate_external(filename1, "/link3", fid, "link2", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
+        if(H5Lcreate_external(filename1, "/link5", fid, "link4", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
+        if(H5Lcreate_external(filename1, "/final", fid, "link6", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
 
-    /* Close file */
-    if(H5Fclose(fid) < 0) TEST_ERROR
-
-
-    /* Open first file */
-    if((fid=H5Fopen(filename1, H5F_ACC_RDWR, fapl)) < 0) TEST_ERROR
-
-    /* Open object through external link */
-    if((gid = H5Gopen2(fid, "link1", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
-
-    /* Check name */
-    if((name_len = H5Iget_name( gid, objname, (size_t)NAME_BUF_SIZE )) < 0) TEST_ERROR
-    if(HDstrcmp(objname, "/final")) TEST_ERROR
-
-    /* Create object in external file */
-    if((gid2 = H5Gcreate2(gid, "new_group", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
-
-    /* Close group in external file */
-    if(H5Gclose(gid2) < 0) TEST_ERROR
-
-    /* Close external object (lets first file close) */
-    if(H5Gclose(gid) < 0) TEST_ERROR
-
-    /* Close first file */
-    if(H5Fclose(fid) < 0) TEST_ERROR
+        /* Close file */
+        if(H5Fclose(fid) < 0) TEST_ERROR
 
 
-    /* Open first file again and check on object created */
-    if((fid = H5Fopen(filename1, H5F_ACC_RDONLY, fapl)) < 0) TEST_ERROR
+        /* Open first file */
+        if((fid=H5Fopen(filename1, H5F_ACC_RDWR, fapl)) < 0) TEST_ERROR
 
-    /* Open object created through external link */
-    if((gid = H5Gopen2(fid, "/final/new_group", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
+        /* Open object through external link */
+        if((gid = H5Gopen2(fid, "link1", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
 
-    /* Check name */
-    if((name_len = H5Iget_name( gid, objname, (size_t)NAME_BUF_SIZE )) < 0) TEST_ERROR
-    if(HDstrcmp(objname, "/final/new_group")) TEST_ERROR
+        /* Check name */
+        if((name_len = H5Iget_name( gid, objname, (size_t)NAME_BUF_SIZE )) < 0) TEST_ERROR
+        if(HDstrcmp(objname, "/final")) TEST_ERROR
 
-    /* Close opened object */
-    if(H5Gclose(gid) < 0) TEST_ERROR
+        /* Create object in external file */
+        if((gid2 = H5Gcreate2(gid, "new_group", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
 
-    /* Close first file */
-    if(H5Fclose(fid) < 0) TEST_ERROR
+        /* Close group in external file */
+        if(H5Gclose(gid2) < 0) TEST_ERROR
+
+        /* Close external object (lets first file close) */
+        if(H5Gclose(gid) < 0) TEST_ERROR
+
+        /* Close first file */
+        if(H5Fclose(fid) < 0) TEST_ERROR
 
 
-    PASSED();
+        /* Open first file again and check on object created */
+        if((fid = H5Fopen(filename1, H5F_ACC_RDONLY, fapl)) < 0) TEST_ERROR
+
+        /* Open object created through external link */
+        if((gid = H5Gopen2(fid, "/final/new_group", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
+
+        /* Check name */
+        if((name_len = H5Iget_name( gid, objname, (size_t)NAME_BUF_SIZE )) < 0) TEST_ERROR
+        if(HDstrcmp(objname, "/final/new_group")) TEST_ERROR
+
+        /* Close opened object */
+        if(H5Gclose(gid) < 0) TEST_ERROR
+
+        /* Close first file */
+        if(H5Fclose(fid) < 0) TEST_ERROR
+
+        PASSED();
+    } /* end if */
+    else {
+	SKIPPED();
+	puts("    Current VFD can't reopen same file through external link");
+    } /* end else */
+
     return 0;
 
  error:
     H5E_BEGIN_TRY {
-    	H5Gclose (gid2);
-    	H5Gclose (gid);
-    	H5Fclose (fid);
+    	H5Gclose(gid2);
+    	H5Gclose(gid);
+    	H5Fclose(fid);
     } H5E_END_TRY;
     return -1;
 } /* end external_link_pingpong() */
@@ -2800,6 +2878,37 @@ external_link_prefix(hid_t fapl, hbool_t new_format)
 
 
 /*-------------------------------------------------------------------------
+ * Function:    fix_ext_filename
+ *
+ * Purpose:     Internal function to append path to file name.  It handles
+ *              path name of Unix, Windows, and OpenVMS.
+ *
+ * Return:      void
+ *
+ * Programmer:  Raymond Lu
+ *              14 Jan. 2009
+ *-------------------------------------------------------------------------
+ */
+static void 
+fix_ext_filename(char *path_name, char *cwd, const char *file_name)
+{
+    HDstrcpy(path_name, cwd);
+
+#ifdef H5_VMS
+    if(file_name[0] == '[') {
+        char *tmp = file_name;
+        path_name[strlen(cwd)-1] = '\0';
+        HDstrcat(path_name, ++tmp);
+    } else
+        HDstrcat(path_name, file_name);
+#else
+    HDstrcat(path_name, "/");
+    HDstrcat(path_name, file_name);
+#endif
+}
+
+
+/*-------------------------------------------------------------------------
  * Function:    external_link_abs_mainpath: test 3
  *
  * Purpose:     1. target link: "extlinks3"
@@ -2846,10 +2955,9 @@ external_link_abs_mainpath(hid_t fapl, hbool_t new_format)
      * set up name for main file:
      *	Linux: "/CWD/tmp/extlinks0"
      *  Window: "<cur drive>:/CWD/tmp/extlinks0"
+     *  OpenVMS: "<cur disk>$<partition>:[CWD.tmp]extlinks0"
      */
-    HDstrcpy(tmpname, cwdpath);
-    HDstrcat(tmpname, "/");
-    HDstrcat(tmpname, FILENAME[13]);
+    fix_ext_filename(tmpname, cwdpath, FILENAME[13]);
     h5_fixname(tmpname, fapl, filename1, sizeof filename1);
 
     /* Create the target file */
@@ -3027,9 +3135,7 @@ external_link_cwd(hid_t fapl, hbool_t new_format)
      *	 Linux: "/CWD/tmp/extlinks0"
      *   Windows: "<cur drive>:/CWD/tmp/extlinks0"
      */
-    HDstrcpy(tmpname, cwdpath);
-    HDstrcat(tmpname, "/");
-    HDstrcat(tmpname, FILENAME[13]);
+    fix_ext_filename(tmpname, cwdpath, FILENAME[13]);
     h5_fixname(tmpname, fapl, filename1, sizeof filename1);
 
     /* Create the target file */
@@ -3122,9 +3228,7 @@ external_link_abstar(hid_t fapl, hbool_t new_format)
      *   Linux: "/CWD/tmp/extlinks6"
      *	 Windows: "<cur drive>:/CWD/tmp/extlinks6"
      */
-    HDstrcpy(tmpname, cwdpath);
-    HDstrcat(tmpname, "/");
-    HDstrcat(tmpname, FILENAME[23]);
+    fix_ext_filename(tmpname, cwdpath, FILENAME[23]);
     h5_fixname(tmpname, fapl, filename2, sizeof filename2);
 
     /* set up name for target file: "tmp/extlinks6" */
@@ -3221,9 +3325,7 @@ external_link_abstar_cur(hid_t fapl, hbool_t new_format)
       *   Linux: "/CWD/tmp/extlinks7"
       *	  Windows: "<cur drive>:/CWD/tmp/extlinks7"
       */
-    HDstrcpy(tmpname, cwdpath);
-    HDstrcat(tmpname, "/");
-    HDstrcat(tmpname, FILENAME[25]);
+    fix_ext_filename(tmpname, cwdpath, FILENAME[25]);
     h5_fixname(tmpname, fapl, filename2, sizeof filename2);
 
     /* Create the target file */
@@ -3459,7 +3561,7 @@ external_link_chdir(hid_t fapl, hbool_t new_format)
  *
  * Purpose:     To verify that the external linked target file with physical layout
  *		different from the parent can be successfully opened.
- *	
+ *
  *		1. target link: "extlinks16"
  * 		2. target file: "extlinks16"
  *		3. main file: Linux:"/CWD/tmp/extlinks0"; Window: "<cur drive>:/CWD/tmp/extlinks0"
@@ -3484,9 +3586,9 @@ static int
 external_set_elink_fapl1(hid_t fapl, hbool_t new_format)
 {
     hid_t	fid=(-1);
-    hid_t	fidA=(-1), fidB=(-1); 
-    hid_t	gidA=(-1), gidB=(-1);	
-    hid_t	oidA=(-1), oidB=(-1);	                
+    hid_t	fidA=(-1), fidB=(-1);
+    hid_t	gidA=(-1), gidB=(-1);
+    hid_t	oidA=(-1), oidB=(-1);
     char	filename1[NAME_BUF_SIZE],
     		filename2A[NAME_BUF_SIZE],
     		filename2B[NAME_BUF_SIZE],
@@ -3505,18 +3607,16 @@ external_set_elink_fapl1(hid_t fapl, hbool_t new_format)
     else
         TESTING("H5Pset/get_elink_fapl() with different physical layouts")
 
-    if ((HDmkdir(TMPDIR, (mode_t)0755) < 0 && errno != EEXIST) || 
+    if ((HDmkdir(TMPDIR, (mode_t)0755) < 0 && errno != EEXIST) ||
 	(HDgetcwd(cwdpath, NAME_BUF_SIZE)==NULL))
 	TEST_ERROR
 
-    /* 
-     * set up name for main file: 
-     *	 Linux: "/CWD/tmp/extlinks0" 
+    /*
+     * set up name for main file:
+     *	 Linux: "/CWD/tmp/extlinks0"
      *   Windows: "<cur drive>:/CWD/tmp/extlinks0"
-     */ 
-    HDstrcpy(tmpname, cwdpath);
-    HDstrcat(tmpname, "/");
-    HDstrcat(tmpname, FILENAME[13]);
+     */
+    fix_ext_filename(tmpname, cwdpath, FILENAME[13]);
     h5_fixname(tmpname, fapl, filename1, sizeof filename1);
 
     /* create "family" fapl */
@@ -3548,7 +3648,7 @@ external_set_elink_fapl1(hid_t fapl, hbool_t new_format)
     sprintf(sv[H5FD_MEM_SUPER], "%%s-%c.h5", 's');
     memb_name[H5FD_MEM_SUPER] = sv[H5FD_MEM_SUPER];
     memb_addr[H5FD_MEM_SUPER] = 0;
-    
+
     sprintf(sv[H5FD_MEM_BTREE],  "%%s-%c.h5", 'b');
     memb_name[H5FD_MEM_BTREE] = sv[H5FD_MEM_BTREE];
     memb_addr[H5FD_MEM_BTREE] = HADDR_MAX/6;
@@ -3596,10 +3696,10 @@ external_set_elink_fapl1(hid_t fapl, hbool_t new_format)
     if((fid=H5Fcreate(filename1, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
 
     /* Create external link to target file A:/A */
-    if(H5Lcreate_external(filename2A, "/A", fid, "ext_linkA", H5P_DEFAULT, H5P_DEFAULT) < 0) 
+    if(H5Lcreate_external(filename2A, "/A", fid, "ext_linkA", H5P_DEFAULT, H5P_DEFAULT) < 0)
 	TEST_ERROR
     /* Create external link to target file B:/B */
-    if(H5Lcreate_external(filename2B, "/B", fid, "ext_linkB", H5P_DEFAULT, H5P_DEFAULT) < 0) 
+    if(H5Lcreate_external(filename2B, "/B", fid, "ext_linkB", H5P_DEFAULT, H5P_DEFAULT) < 0)
 	TEST_ERROR
 
     /* Set file access property list for link access to use the family driver */
@@ -3662,7 +3762,7 @@ external_set_elink_fapl1(hid_t fapl, hbool_t new_format)
  * Function:    external_set_elink_fapl2: test 11
  *
  * Purpose:     To verify that processing done to the external linked target object is
- *		correctly handled when the parent and target files have the same 
+ *		correctly handled when the parent and target files have the same
  *		physical layout but different access methods.
  *
  * 		1. target link: "extlinks17"
@@ -3707,18 +3807,16 @@ external_set_elink_fapl2(hid_t fapl, hbool_t new_format)
     else
         TESTING("H5Pset/get_elink_fapl() with same physical layout")
 
-    if ((HDmkdir(TMPDIR, (mode_t)0755) < 0 && errno != EEXIST) || 
+    if ((HDmkdir(TMPDIR, (mode_t)0755) < 0 && errno != EEXIST) ||
 	(HDgetcwd(cwdpath, NAME_BUF_SIZE)==NULL))
 	TEST_ERROR
 
-    /* 
-     * set up name for main file: 
-     *	 Linux: "/CWD/tmp/extlinks0" 
+    /*
+     * set up name for main file:
+     *	 Linux: "/CWD/tmp/extlinks0"
      *   Windows: "<cur drive>:/CWD/tmp/extlinks0"
-     */ 
-    HDstrcpy(tmpname, cwdpath);
-    HDstrcat(tmpname, "/");
-    HDstrcat(tmpname, FILENAME[13]);
+     */
+    fix_ext_filename(tmpname, cwdpath, FILENAME[13]);
     h5_fixname(tmpname, fapl, filename1, sizeof filename1);
 
     /* create fapl for the target file to be a "core" file */
@@ -3743,7 +3841,7 @@ external_set_elink_fapl2(hid_t fapl, hbool_t new_format)
     if(H5Pset_alloc_time(dcpl, H5D_ALLOC_TIME_LATE) < 0) TEST_ERROR;
 
     /* create "Dataset" in group "A" of target file */
-    if((dset = H5Dcreate2(gid, "Dataset", H5T_NATIVE_INT, space, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0) 
+    if((dset = H5Dcreate2(gid, "Dataset", H5T_NATIVE_INT, space, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0)
 	TEST_ERROR
 
     /* closing for target file */
@@ -3760,7 +3858,7 @@ external_set_elink_fapl2(hid_t fapl, hbool_t new_format)
     if((fid=H5Fcreate(filename1, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
 
     /* Create external link to target file: ext_link->extlinks17:/A/Dataset */
-    if(H5Lcreate_external(filename2, "/A/Dataset", fid, "ext_link", H5P_DEFAULT, H5P_DEFAULT) < 0) 
+    if(H5Lcreate_external(filename2, "/A/Dataset", fid, "ext_link", H5P_DEFAULT, H5P_DEFAULT) < 0)
 	TEST_ERROR
 
     /* create fapl to be a "core" file without backing store */
@@ -3926,6 +4024,284 @@ external_set_elink_fapl3(hbool_t new_format)
     } H5E_END_TRY;
     return -1;
 } /* end external_set_elink_fapl3() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    external_set_elink_acc_flags
+ *
+ * Purpose:     Verify functionality of H5P_set/get_elink_acc_flags
+ *
+ * Return:      Success:        0
+ *              Failure:        -1
+ *
+ * Programmer:  Neil Fortner
+ *              Jan. 5, 2009
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+static int
+external_set_elink_acc_flags(hid_t fapl, hbool_t new_format)
+{
+    hid_t       file1, file2, group, subgroup, gapl;
+    char        filename1[NAME_BUF_SIZE],
+                filename2[NAME_BUF_SIZE];
+    unsigned    flags;
+
+    if(new_format)
+        TESTING("H5Pset/get_elink_acc_flags() (w/new group format)")
+    else
+        TESTING("H5Pset/get_elink_acc_flags()")
+
+    /* Create parent and target files, and external link */
+    h5_fixname(FILENAME[40], fapl, filename1, sizeof filename1);
+    h5_fixname(FILENAME[41], fapl, filename2, sizeof filename2);
+    if ((file1 = H5Fcreate(filename1, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
+    if ((file2 = H5Fcreate(filename2, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
+    if (H5Lcreate_external(filename2, "/", file1, "ext_link", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
+
+    /* Close file2, leave file1 open (should be read-write) */
+    if (H5Fclose(file2) < 0) TEST_ERROR
+
+    /* Create new gapl, and set elink access flags to be H5F_ACC_RDONLY */
+    if ((gapl = H5Pcreate(H5P_GROUP_ACCESS)) < 0) TEST_ERROR
+    if (H5Pset_elink_acc_flags(gapl, H5F_ACC_RDONLY) < 0) TEST_ERROR
+
+    /* Verify "get" routine functionality */
+    if (H5Pget_elink_acc_flags(gapl, &flags) < 0) TEST_ERROR
+    if (flags != H5F_ACC_RDONLY) TEST_ERROR
+
+    /* Attempt to create a group through the external link using gapl (should fail) */
+    H5E_BEGIN_TRY {
+        group = H5Gcreate2(file1, "/ext_link/group", H5P_DEFAULT, H5P_DEFAULT, gapl);
+    } H5E_END_TRY;
+    if (group != FAIL) TEST_ERROR
+
+    /* Close file1 and reopen with read only access */
+    if (H5Fclose(file1) < 0) TEST_ERROR
+    if ((file1 = H5Fopen(filename1, H5F_ACC_RDONLY, fapl)) < 0) TEST_ERROR
+
+    /* Set elink access flags on gapl to be H5F_ACC_RDWR */
+    if (H5Pset_elink_acc_flags(gapl, H5F_ACC_RDWR) < 0) TEST_ERROR
+
+    /* Create a group through the external link using gapl (should succeed) */
+    if ((group = H5Gcreate2(file1, "/ext_link/group", H5P_DEFAULT, H5P_DEFAULT, gapl)) < 0) TEST_ERROR
+
+    /* Unset elink access flags on gapl */
+    if (H5Pset_elink_acc_flags(gapl, H5F_ACC_DEFAULT) < 0) TEST_ERROR
+
+    /* Attempt to create a group through the external link using gapl (should fail) */
+    H5E_BEGIN_TRY {
+        subgroup = H5Gcreate2(file1, "/ext_link/group/subgroup", H5P_DEFAULT, H5P_DEFAULT, gapl);
+    } H5E_END_TRY;
+    if (subgroup != FAIL) TEST_ERROR
+
+    /* Close file1 and group */
+    if (H5Gclose(group) < 0) TEST_ERROR
+    if (H5Fclose(file1) < 0) TEST_ERROR
+
+    /* Verify that H5Fcreate and H5Fopen reject H5F_ACC_DEFAULT */
+    H5E_BEGIN_TRY {
+        file1 = H5Fcreate(filename1, H5F_ACC_DEFAULT, H5P_DEFAULT, fapl);
+    } H5E_END_TRY;
+    if (file1 != FAIL) TEST_ERROR
+    H5E_BEGIN_TRY {
+        file1 = H5Fcreate(filename1, H5F_ACC_TRUNC | H5F_ACC_DEFAULT, H5P_DEFAULT, fapl);
+    } H5E_END_TRY;
+    if (file1 != FAIL) TEST_ERROR
+    H5E_BEGIN_TRY {
+        file1 = H5Fopen(filename1, H5F_ACC_DEFAULT, fapl);
+    } H5E_END_TRY;
+    if (file1 != FAIL) TEST_ERROR
+    H5E_BEGIN_TRY {
+        file1 = H5Fopen(filename1, H5F_ACC_RDWR | H5F_ACC_DEFAULT, fapl);
+    } H5E_END_TRY;
+    if (file1 != FAIL) TEST_ERROR
+
+    /* Close gapl */
+    if (H5Pclose(gapl) < 0) TEST_ERROR
+
+    PASSED();
+    return 0;
+
+ error:
+    H5E_BEGIN_TRY {
+        H5Gclose(group);
+        H5Gclose(subgroup);
+        H5Fclose(file1);
+        H5Fclose(file2);
+        H5Pclose(gapl);
+    } H5E_END_TRY;
+    return -1;
+} /* end external_set_elink_acc_flags() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    external_set_elink_cb
+ *
+ * Purpose:     Verify functionality of H5P_set/get_elink_cb
+ *
+ * Return:      Success:        0
+ *              Failure:        -1
+ *
+ * Programmer:  Neil Fortner
+ *              Jan. 5, 2009
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+ /* User data structure for callback function */
+typedef struct {
+    const char  *parent_file;   /* Expected parent file name */
+    const char  *target_file;   /* Expected target file name */
+    hid_t       base_fapl;      /* Base fapl for family driver */
+    hsize_t     fam_size;       /* Size of family files */
+    int         code;           /* Code to control the actions taken by the callback */
+} set_elink_cb_t;
+
+/* Callback function */
+static herr_t
+external_set_elink_cb_cb(const char *parent_file, const char *parent_group,
+    const char *target_file, const char *target_obj, unsigned *flags,
+    hid_t fapl, void *_op_data)
+{
+    set_elink_cb_t  *op_data = (set_elink_cb_t *)_op_data;
+
+    /* Verify file and object names are correct */
+    if (HDstrcmp(parent_file, op_data->parent_file)) return FAIL;
+    if (HDstrcmp(parent_group, "/group1")) return FAIL;
+    if (HDstrcmp(target_file, op_data->target_file)) return FAIL;
+    if (HDstrcmp(target_obj, "/")) return FAIL;
+
+    /* Set flags to be read-write */
+    *flags = (*flags & ~H5F_ACC_RDONLY) | H5F_ACC_RDWR;
+
+    /* Set family file driver on fapl */
+    if (H5Pset_fapl_family(fapl, op_data->fam_size, op_data->base_fapl) < 0) return FAIL;
+
+    /* Codes to cause an invalid condition (and verify that an error is issued */
+    if (op_data->code == 1)
+        return FAIL;
+    if (op_data->code == 2)
+        *flags = H5F_ACC_DEFAULT;
+
+    return 0;
+}
+
+/* Main test function */
+static int
+external_set_elink_cb(hid_t fapl, hbool_t new_format)
+{
+    hid_t       file1, file2, group, gapl, fam_fapl, ret_fapl, base_driver;
+    set_elink_cb_t op_data,
+                *op_data_p;
+    H5L_elink_traverse_t cb;
+    char        filename1[NAME_BUF_SIZE],
+                filename2[NAME_BUF_SIZE];
+    unsigned    flags;
+
+    if(new_format)
+        TESTING("H5Pset/get_elink_cb() (w/new group format)")
+    else
+        TESTING("H5Pset/get_elink_cb()")
+
+    /* Build user data for callback */
+    op_data.parent_file = filename1;
+    op_data.target_file = filename2;
+    /* Core file driver has issues when used as the member file driver for a family file */
+    /* Family file driver cannot be used with family or multi drivers for member files */
+    /* Also disable parellel member drivers, because IS_H5FD_MPI whould report FALSE, causing problems */
+    base_driver = H5Pget_driver(fapl);
+    op_data.base_fapl = (base_driver == H5FD_FAMILY || base_driver ==  H5FD_MULTI
+            || base_driver == H5FD_MPIO || base_driver == H5FD_MPIPOSIX
+            || base_driver == H5FD_CORE) ? H5P_DEFAULT : fapl;
+    op_data.fam_size = ELINK_CB_FAM_SIZE;
+    op_data.code = 0;
+
+    /* Create family fapl */
+    if ((fam_fapl = H5Pcopy(fapl)) < 0) TEST_ERROR
+    if (H5Pset_fapl_family(fam_fapl, op_data.fam_size, op_data.base_fapl) < 0) TEST_ERROR
+
+    /* Create parent and target files, group, and external link */
+    h5_fixname(FILENAME[40], fapl, filename1, sizeof filename1);
+    h5_fixname(FILENAME[41], fam_fapl, filename2, sizeof filename2);
+    if ((file1 = H5Fcreate(filename1, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
+    if ((file2 = H5Fcreate(filename2, H5F_ACC_TRUNC, H5P_DEFAULT, fam_fapl)) < 0) TEST_ERROR
+    if ((group = H5Gcreate2(file1, "group1",H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+    if (H5Lcreate_external(filename2, "/", group, "ext_link", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
+
+    /* Close files and group */
+    if (H5Fclose(file1) < 0) TEST_ERROR
+    if (H5Fclose(file2) < 0) TEST_ERROR
+    if (H5Gclose(group) < 0) TEST_ERROR
+
+    /* Create new gapl, and set elink callback */
+    if ((gapl = H5Pcreate(H5P_GROUP_ACCESS)) < 0) TEST_ERROR
+    if (H5Pset_elink_cb(gapl, external_set_elink_cb_cb, &op_data) < 0) TEST_ERROR
+
+    /* Verify "get" routine functionality */
+    if (H5Pget_elink_cb(gapl, &cb, (void **) &op_data_p) < 0) TEST_ERROR
+    if (cb != external_set_elink_cb_cb) TEST_ERROR
+    if (op_data_p != &op_data) TEST_ERROR
+
+    /* Open file1 with read only access */
+    if ((file1 = H5Fopen(filename1, H5F_ACC_RDONLY, fapl)) < 0) TEST_ERROR
+
+    /* Create a group through the external link using gapl */
+    if ((group = H5Gcreate2(file1, "/group1/ext_link/group2", H5P_DEFAULT, H5P_DEFAULT, gapl)) < 0) TEST_ERROR
+
+    /* Verify that the correct parameters have been set on file2 (somewhat
+     * redundant as the library would be unable to create the group otherwise)
+     */
+    if ((file2 = H5Iget_file_id(group)) < 0) TEST_ERROR
+    if (H5Fget_intent(file2, &flags) < 0) TEST_ERROR
+    if (!(flags & H5F_ACC_RDWR)) TEST_ERROR
+    if ((ret_fapl = H5Fget_access_plist(file2)) < 0) TEST_ERROR
+    if (H5FD_FAMILY != H5Pget_driver(ret_fapl)) TEST_ERROR
+
+    if (H5Gclose(group) < 0) TEST_ERROR
+    if (H5Fclose(file2) < 0) TEST_ERROR
+    if (H5Pclose(ret_fapl) < 0) TEST_ERROR
+    if (H5Pclose(fam_fapl) < 0) TEST_ERROR
+
+    /* Modify the user data structure to cause the callback to fail next time */
+    op_data.code = 1;
+
+    /* Attempt to reopen group2 (should fail) */
+    H5E_BEGIN_TRY {
+        group = H5Gopen2(file1, "/group1/ext_link/group2", gapl);
+    } H5E_END_TRY;
+    if (group != FAIL) TEST_ERROR
+
+    /* Modify the user data structure to cause the callback to return invalid flags */
+    op_data.code = 2;
+
+    /* Attempt to reopen group2 (should fail) */
+    H5E_BEGIN_TRY {
+        group = H5Gopen2(file1, "/group1/ext_link/group2", gapl);
+    } H5E_END_TRY;
+    if (group != FAIL) TEST_ERROR
+
+    /* Close */
+    if (H5Fclose(file1) < 0) TEST_ERROR
+    if (H5Pclose(gapl) < 0) TEST_ERROR
+
+    PASSED();
+    return 0;
+
+ error:
+    H5E_BEGIN_TRY {
+        H5Gclose(group);
+        H5Fclose(file1);
+        H5Fclose(file2);
+        H5Pclose(gapl);
+        H5Pclose(ret_fapl);
+        H5Pclose(fam_fapl);
+    } H5E_END_TRY;
+    return -1;
+} /* end external_set_elink_cb() */
 
 
 #ifdef H5_HAVE_WINDOW_PATH
@@ -5314,7 +5690,7 @@ error:
  *-------------------------------------------------------------------------
  */
 static int
-external_link_closing(hid_t fapl, hbool_t new_format)
+external_link_closing(const char *env_h5_drvr, hid_t fapl, hbool_t new_format)
 {
     hid_t       fid1 = (-1), fid2 = (-1), fid3 = (-1), fid4=(-1);
     hid_t       gid=(-1), tid=(-1), tid2=(-1), sid=(-1), did=(-1);
@@ -5334,184 +5710,195 @@ external_link_closing(hid_t fapl, hbool_t new_format)
     else
         TESTING("that external files are closed during traversal")
 
-    /* In this test, external links will go from file1 to file2 and from
-     * file2 to file3.
-     * Test that all functions that can traverse external files close
-     * the files they open.
-     * Test that providing unusual paths containing external links can't
-     * make HDF5 forget to close a file it opened.
+    /* Skip test when using core VFD, since it doesn't re-open file when linking
+     *  to same file.
      */
+    if(HDstrcmp(env_h5_drvr, "core")) {
+        /* In this test, external links will go from file1 to file2 and from
+         * file2 to file3.
+         * Test that all functions that can traverse external files close
+         * the files they open.
+         * Test that providing unusual paths containing external links can't
+         * make HDF5 forget to close a file it opened.
+         */
 
-    /* Set up filenames */
-    h5_fixname(FILENAME[3], fapl, filename1, sizeof filename1);
-    h5_fixname(FILENAME[4], fapl, filename2, sizeof filename2);
-    h5_fixname(FILENAME[5], fapl, filename3, sizeof filename3);
-    h5_fixname(FILENAME[6], fapl, filename4, sizeof filename4);
+        /* Set up filenames */
+        h5_fixname(FILENAME[3], fapl, filename1, sizeof filename1);
+        h5_fixname(FILENAME[4], fapl, filename2, sizeof filename2);
+        h5_fixname(FILENAME[5], fapl, filename3, sizeof filename3);
+        h5_fixname(FILENAME[6], fapl, filename4, sizeof filename4);
 
-    /* Create four files */
-    if((fid1 = H5Fcreate(filename1, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
-    if((fid2 = H5Fcreate(filename2, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
-    if((fid3 = H5Fcreate(filename3, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
-    if((fid4 = H5Fcreate(filename4, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
+        /* Create four files */
+        if((fid1 = H5Fcreate(filename1, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
+        if((fid2 = H5Fcreate(filename2, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
+        if((fid3 = H5Fcreate(filename3, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
+        if((fid4 = H5Fcreate(filename4, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
 
-    /* Create a dataspace and a datatype so we can create/commit a dataset/datatype in the files */
-    dims[0] = 2;
-    dims[1] = 2;
-    if((sid = H5Screate_simple(2, dims, NULL)) < 0) TEST_ERROR
-    if((tid = H5Tcopy(H5T_NATIVE_INT)) < 0) TEST_ERROR
-    if((tid2 = H5Tcopy(H5T_NATIVE_INT)) < 0) TEST_ERROR
+        /* Create a dataspace and a datatype so we can create/commit a dataset/datatype in the files */
+        dims[0] = 2;
+        dims[1] = 2;
+        if((sid = H5Screate_simple(2, dims, NULL)) < 0) TEST_ERROR
+        if((tid = H5Tcopy(H5T_NATIVE_INT)) < 0) TEST_ERROR
+        if((tid2 = H5Tcopy(H5T_NATIVE_INT)) < 0) TEST_ERROR
 
-    /* Create external links from each file to the next */
-    if(H5Lcreate_external(filename2, "/", fid1, "elink", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
-    if(H5Lcreate_external(filename3, "/", fid2, "elink", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
-    if(H5Lcreate_external(filename4, "/", fid3, "elink", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
+        /* Create external links from each file to the next */
+        if(H5Lcreate_external(filename2, "/", fid1, "elink", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
+        if(H5Lcreate_external(filename3, "/", fid2, "elink", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
+        if(H5Lcreate_external(filename4, "/", fid3, "elink", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
 
-    /* Close all files but the first */
-    if(H5Fclose(fid4) < 0) TEST_ERROR
-    if(H5Fclose(fid3) < 0) TEST_ERROR
-    if(H5Fclose(fid2) < 0) TEST_ERROR
+        /* Close all files but the first */
+        if(H5Fclose(fid4) < 0) TEST_ERROR
+        if(H5Fclose(fid3) < 0) TEST_ERROR
+        if(H5Fclose(fid2) < 0) TEST_ERROR
 
-    /* Test creating each kind of object */
-    if((gid = H5Gcreate2(fid1, "elink/elink/elink/group1", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
-    if(H5Tcommit2(fid1, "elink/elink/elink/type1", tid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
-    if((did = H5Dcreate2(fid1, "elink/elink/elink/dataset1", tid2, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
-    /* Close objects */
-    if(H5Gclose(gid) < 0) TEST_ERROR
-    if(H5Tclose(tid) < 0) TEST_ERROR
-    if(H5Dclose(did) < 0) TEST_ERROR
+        /* Test creating each kind of object */
+        if((gid = H5Gcreate2(fid1, "elink/elink/elink/group1", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+        if(H5Tcommit2(fid1, "elink/elink/elink/type1", tid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
+        if((did = H5Dcreate2(fid1, "elink/elink/elink/dataset1", tid2, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
 
-    /* Test that getting info works */
-    if(H5Lget_info(fid1, "elink/elink/elink/type1", &li, H5P_DEFAULT) < 0) TEST_ERROR
-    if(H5Lget_info(fid1, "elink/elink/elink", &li, H5P_DEFAULT) < 0) TEST_ERROR
-    if(H5Oget_info_by_name(fid1, "elink/elink/elink/type1", &oi, H5P_DEFAULT) < 0) TEST_ERROR
-    if(H5Oget_info_by_name(fid1, "elink/elink/elink", &oi, H5P_DEFAULT) < 0) TEST_ERROR
+        /* Close objects */
+        if(H5Gclose(gid) < 0) TEST_ERROR
+        if(H5Tclose(tid) < 0) TEST_ERROR
+        if(H5Dclose(did) < 0) TEST_ERROR
 
-    /* Test move */
-    if(H5Lmove(fid1, "elink/elink/elink/group1", fid1,
-        "elink/elink/elink/group1_moved", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
+        /* Test that getting info works */
+        if(H5Lget_info(fid1, "elink/elink/elink/type1", &li, H5P_DEFAULT) < 0) TEST_ERROR
+        if(H5Lget_info(fid1, "elink/elink/elink", &li, H5P_DEFAULT) < 0) TEST_ERROR
+        if(H5Oget_info_by_name(fid1, "elink/elink/elink/type1", &oi, H5P_DEFAULT) < 0) TEST_ERROR
+        if(H5Oget_info_by_name(fid1, "elink/elink/elink", &oi, H5P_DEFAULT) < 0) TEST_ERROR
 
-    /* Open file 4 so we can do some fancy things */
-    if((fid4 = H5Fopen(filename4, H5F_ACC_RDWR, fapl)) < 0) FAIL_STACK_ERROR
-    if(H5Lmove(fid1, "elink/elink/elink/type1", fid4,
-        "type1_moved", H5P_DEFAULT, H5P_DEFAULT) < 0) FAIL_STACK_ERROR
-    if(H5Lmove(fid4, "dataset1", fid1,
-        "elink/elink/elink/dataset1_moved", H5P_DEFAULT, H5P_DEFAULT) < 0) FAIL_STACK_ERROR
+        /* Test move */
+        if(H5Lmove(fid1, "elink/elink/elink/group1", fid1,
+            "elink/elink/elink/group1_moved", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
 
-    /* Close file 4 again */
-    if(H5Fclose(fid4) < 0) FAIL_STACK_ERROR
+        /* Open file 4 so we can do some fancy things */
+        if((fid4 = H5Fopen(filename4, H5F_ACC_RDWR, fapl)) < 0) FAIL_STACK_ERROR
+        if(H5Lmove(fid1, "elink/elink/elink/type1", fid4,
+            "type1_moved", H5P_DEFAULT, H5P_DEFAULT) < 0) FAIL_STACK_ERROR
+        if(H5Lmove(fid4, "dataset1", fid1,
+            "elink/elink/elink/dataset1_moved", H5P_DEFAULT, H5P_DEFAULT) < 0) FAIL_STACK_ERROR
 
-    /* Test copy (as of this test, it uses the same code as move) */
-    if(H5Lcopy(fid1, "elink/elink/elink", fid1,
-      "elink/elink/elink_copied", H5P_DEFAULT, H5P_DEFAULT) < 0) FAIL_STACK_ERROR
-    if(H5Lcopy(fid1, "elink/elink/elink", fid1,
-      "elink/elink/elink/elink_copied2", H5P_DEFAULT, H5P_DEFAULT) < 0) FAIL_STACK_ERROR
+        /* Close file 4 again */
+        if(H5Fclose(fid4) < 0) FAIL_STACK_ERROR
 
-    /* Test H5Gset and get comment */
-    if(H5Oset_comment_by_name(fid1, "elink/elink/elink/group1_moved", "comment", H5P_DEFAULT) < 0) FAIL_STACK_ERROR
-    if(H5Oget_comment_by_name(fid1, "elink/elink/elink/group1_moved", buf, sizeof(buf), H5P_DEFAULT) < 0) FAIL_STACK_ERROR
-    if(HDstrcmp(buf, "comment")) TEST_ERROR
+        /* Test copy (as of this test, it uses the same code as move) */
+        if(H5Lcopy(fid1, "elink/elink/elink", fid1,
+          "elink/elink/elink_copied", H5P_DEFAULT, H5P_DEFAULT) < 0) FAIL_STACK_ERROR
+        if(H5Lcopy(fid1, "elink/elink/elink", fid1,
+          "elink/elink/elink/elink_copied2", H5P_DEFAULT, H5P_DEFAULT) < 0) FAIL_STACK_ERROR
 
-    /* Test H5*open */
-    if((gid = H5Gopen2(fid1, "elink/elink/elink/group1_moved", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
-    if((tid = H5Topen2(fid1, "elink/elink/elink/type1_moved", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
-    if((did = H5Dopen2(fid1, "elink/elink/elink/dataset1_moved", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
-    /* Close objects */
-    if(H5Gclose(gid) < 0) FAIL_STACK_ERROR
-    if(H5Tclose(tid) < 0) FAIL_STACK_ERROR
-    if(H5Dclose(did) < 0) FAIL_STACK_ERROR
+        /* Test H5Gset and get comment */
+        if(H5Oset_comment_by_name(fid1, "elink/elink/elink/group1_moved", "comment", H5P_DEFAULT) < 0) FAIL_STACK_ERROR
+        if(H5Oget_comment_by_name(fid1, "elink/elink/elink/group1_moved", buf, sizeof(buf), H5P_DEFAULT) < 0) FAIL_STACK_ERROR
+        if(HDstrcmp(buf, "comment")) TEST_ERROR
 
-    /* Test H5*open2 */
-    if((gid = H5Gopen2(fid1, "elink/elink/elink/group1_moved", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
-    if((tid = H5Topen2(fid1, "elink/elink/elink/type1_moved", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
-    if((did = H5Dopen2(fid1, "elink/elink/elink/dataset1_moved", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
-    /* Close objects */
-    if(H5Gclose(gid) < 0) FAIL_STACK_ERROR
-    if(H5Tclose(tid) < 0) FAIL_STACK_ERROR
-    if(H5Dclose(did) < 0) FAIL_STACK_ERROR
+        /* Test H5*open */
+        if((gid = H5Gopen2(fid1, "elink/elink/elink/group1_moved", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
+        if((tid = H5Topen2(fid1, "elink/elink/elink/type1_moved", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
+        if((did = H5Dopen2(fid1, "elink/elink/elink/dataset1_moved", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
+        /* Close objects */
+        if(H5Gclose(gid) < 0) FAIL_STACK_ERROR
+        if(H5Tclose(tid) < 0) FAIL_STACK_ERROR
+        if(H5Dclose(did) < 0) FAIL_STACK_ERROR
 
-    /* Test H5Oopen */
-    if((did = H5Oopen(fid1, "elink/elink/elink/dataset1_moved", H5P_DEFAULT)) < 0) TEST_ERROR
-    if(H5Dclose(did) < 0) TEST_ERROR
+        /* Test H5*open2 */
+        if((gid = H5Gopen2(fid1, "elink/elink/elink/group1_moved", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
+        if((tid = H5Topen2(fid1, "elink/elink/elink/type1_moved", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
+        if((did = H5Dopen2(fid1, "elink/elink/elink/dataset1_moved", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
+        /* Close objects */
+        if(H5Gclose(gid) < 0) FAIL_STACK_ERROR
+        if(H5Tclose(tid) < 0) FAIL_STACK_ERROR
+        if(H5Dclose(did) < 0) FAIL_STACK_ERROR
 
-    /* Test H5Fmount */
-    if((gid = H5Gcreate2(fid1, "elink/elink/elink/mnt", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
-    if(H5Gclose(gid) < 0) TEST_ERROR
-    H5E_BEGIN_TRY {
-        if(H5Fmount(fid1, "elink/elink/elink/mnt", fid1, H5P_DEFAULT) >= 0) TEST_ERROR
-        if(H5Funmount(fid1, "elink/elink/elink/mnt") >= 0) TEST_ERROR
-    } H5E_END_TRY
+        /* Test H5Oopen */
+        if((did = H5Oopen(fid1, "elink/elink/elink/dataset1_moved", H5P_DEFAULT)) < 0) TEST_ERROR
+        if(H5Dclose(did) < 0) TEST_ERROR
 
-    /* Test H5Rcreate */
-    if(H5Rcreate(&obj_ref, fid1, "elink/elink/elink/type1_moved", H5R_OBJECT, (-1)) < 0) TEST_ERROR
+        /* Test H5Fmount */
+        if((gid = H5Gcreate2(fid1, "elink/elink/elink/mnt", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+        if(H5Gclose(gid) < 0) TEST_ERROR
+        H5E_BEGIN_TRY {
+            if(H5Fmount(fid1, "elink/elink/elink/mnt", fid1, H5P_DEFAULT) >= 0) TEST_ERROR
+            if(H5Funmount(fid1, "elink/elink/elink/mnt") >= 0) TEST_ERROR
+        } H5E_END_TRY
 
-    /* Test unlink */
-    if(H5Ldelete(fid1, "elink/elink/elink/group1_moved", H5P_DEFAULT) < 0) TEST_ERROR
-    if(H5Ldelete(fid1, "elink/elink/elink/type1_moved", H5P_DEFAULT) < 0) TEST_ERROR
-    if(H5Ldelete(fid1, "elink/elink/elink/dataset1_moved", H5P_DEFAULT) < 0) TEST_ERROR
-    if(H5Ldelete(fid1, "elink/elink/elink_copied", H5P_DEFAULT) < 0) TEST_ERROR
-    if(H5Ldelete(fid1, "elink/elink/elink/elink_copied2", H5P_DEFAULT) < 0) TEST_ERROR
+        /* Test H5Rcreate */
+        if(H5Rcreate(&obj_ref, fid1, "elink/elink/elink/type1_moved", H5R_OBJECT, (-1)) < 0) TEST_ERROR
 
-    /* We've tested that the various functions above don't leave files open.
-     * Now test that we can't confuse HDF5 by giving unusual paths with external links
-     */
-    /* Create an external link that points to another external link */
-    if((fid2 = H5Fopen(filename2, H5F_ACC_RDWR, fapl)) < 0) TEST_ERROR
-    if(H5Lcreate_external(filename3, "/elink", fid2, "elink2",
-          H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
-    if(H5Fclose(fid2) < 0) TEST_ERROR
+        /* Test unlink */
+        if(H5Ldelete(fid1, "elink/elink/elink/group1_moved", H5P_DEFAULT) < 0) TEST_ERROR
+        if(H5Ldelete(fid1, "elink/elink/elink/type1_moved", H5P_DEFAULT) < 0) TEST_ERROR
+        if(H5Ldelete(fid1, "elink/elink/elink/dataset1_moved", H5P_DEFAULT) < 0) TEST_ERROR
+        if(H5Ldelete(fid1, "elink/elink/elink_copied", H5P_DEFAULT) < 0) TEST_ERROR
+        if(H5Ldelete(fid1, "elink/elink/elink/elink_copied2", H5P_DEFAULT) < 0) TEST_ERROR
 
-    /* Do an external link traversal that recursively calls another external link. */
-    if((gid = H5Gcreate2(fid1, "elink/elink2/group2", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
-    if(H5Gclose(gid) < 0) TEST_ERROR
+        /* We've tested that the various functions above don't leave files open.
+         * Now test that we can't confuse HDF5 by giving unusual paths with external links
+         */
+        /* Create an external link that points to another external link */
+        if((fid2 = H5Fopen(filename2, H5F_ACC_RDWR, fapl)) < 0) TEST_ERROR
+        if(H5Lcreate_external(filename3, "/elink", fid2, "elink2",
+              H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
+        if(H5Fclose(fid2) < 0) TEST_ERROR
 
-    /* Create two more groups so that the last three elements in the path are
-     * all within the same external file
-     */
-    if((gid = H5Gcreate2(fid1, "elink/elink2/group2/group3", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
-    if(H5Gclose(gid) < 0) TEST_ERROR
-    if((gid = H5Gcreate2(fid1, "elink/elink2/group2/group3/group4", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
-    if(H5Gclose(gid) < 0) TEST_ERROR
-    if(H5Oget_info_by_name(fid1, "elink/elink2/group2/group3/group4", &oi, H5P_DEFAULT) < 0) TEST_ERROR
+        /* Do an external link traversal that recursively calls another external link. */
+        if((gid = H5Gcreate2(fid1, "elink/elink2/group2", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+        if(H5Gclose(gid) < 0) TEST_ERROR
 
-    /* Add a few regular groups and a soft link in file2 using intermediate group creation */
-    if((lcpl_id = H5Pcreate(H5P_LINK_CREATE)) < 0) TEST_ERROR
-    if(H5Pset_create_intermediate_group(lcpl_id, TRUE) < 0) TEST_ERROR
-    if(H5Lcreate_soft("/elink2", fid1, "elink/file2group1/file2group2/slink",
-              lcpl_id, H5P_DEFAULT) < 0) TEST_ERROR
+        /* Create two more groups so that the last three elements in the path are
+         * all within the same external file
+         */
+        if((gid = H5Gcreate2(fid1, "elink/elink2/group2/group3", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+        if(H5Gclose(gid) < 0) TEST_ERROR
+        if((gid = H5Gcreate2(fid1, "elink/elink2/group2/group3/group4", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+        if(H5Gclose(gid) < 0) TEST_ERROR
+        if(H5Oget_info_by_name(fid1, "elink/elink2/group2/group3/group4", &oi, H5P_DEFAULT) < 0) TEST_ERROR
 
-    /* Try to traverse this path.  There are three soft traversals in a row;
-     * slink points to (file2)/elink2, which points to (file3)/elink, which
-     * points to file 4.
-     */
-    if((gid = H5Gcreate2(fid1, "elink/file2group1/file2group2/slink/group3", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
-    if(H5Gclose(gid) < 0) TEST_ERROR
-    if(H5Lget_info(fid1, "elink/file2group1/file2group2/slink/group3", &li, H5P_DEFAULT) < 0) TEST_ERROR
+        /* Add a few regular groups and a soft link in file2 using intermediate group creation */
+        if((lcpl_id = H5Pcreate(H5P_LINK_CREATE)) < 0) TEST_ERROR
+        if(H5Pset_create_intermediate_group(lcpl_id, TRUE) < 0) TEST_ERROR
+        if(H5Lcreate_soft("/elink2", fid1, "elink/file2group1/file2group2/slink",
+                  lcpl_id, H5P_DEFAULT) < 0) TEST_ERROR
 
-    /* Some simpler tests */
-    if((gid = H5Gcreate2(fid1, "elink/file2group3", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
-    if(H5Gclose(gid) < 0) TEST_ERROR
-    if(H5Lget_info(fid1, "elink/file2group3", &li, H5P_DEFAULT) < 0) TEST_ERROR
-    if(H5Lget_info(fid1, "elink/elink", &li, H5P_DEFAULT) < 0) TEST_ERROR
+        /* Try to traverse this path.  There are three soft traversals in a row;
+         * slink points to (file2)/elink2, which points to (file3)/elink, which
+         * points to file 4.
+         */
+        if((gid = H5Gcreate2(fid1, "elink/file2group1/file2group2/slink/group3", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+        if(H5Gclose(gid) < 0) TEST_ERROR
+        if(H5Lget_info(fid1, "elink/file2group1/file2group2/slink/group3", &li, H5P_DEFAULT) < 0) TEST_ERROR
+
+        /* Some simpler tests */
+        if((gid = H5Gcreate2(fid1, "elink/file2group3", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+        if(H5Gclose(gid) < 0) TEST_ERROR
+        if(H5Lget_info(fid1, "elink/file2group3", &li, H5P_DEFAULT) < 0) TEST_ERROR
+        if(H5Lget_info(fid1, "elink/elink", &li, H5P_DEFAULT) < 0) TEST_ERROR
 
 
-    /* Close file1, the only file that should still be open */
-    if(H5Fclose(fid1) < 0) TEST_ERROR
+        /* Close file1, the only file that should still be open */
+        if(H5Fclose(fid1) < 0) TEST_ERROR
 
-    /* Re-create each file. If they are hanging open, these creates will fail */
-    if((fid1 = H5Fcreate(filename1, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
-    if((fid2 = H5Fcreate(filename2, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
-    if((fid3 = H5Fcreate(filename3, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
-    if((fid4 = H5Fcreate(filename4, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
+        /* Re-create each file. If they are hanging open, these creates will fail */
+        if((fid1 = H5Fcreate(filename1, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
+        if((fid2 = H5Fcreate(filename2, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
+        if((fid3 = H5Fcreate(filename3, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
+        if((fid4 = H5Fcreate(filename4, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
 
-    /* Cleanup */
-    if(H5Sclose(sid) < 0) TEST_ERROR
-    if(H5Tclose(tid2) < 0) TEST_ERROR
-    if(H5Fclose(fid4) < 0) TEST_ERROR
-    if(H5Fclose(fid3) < 0) TEST_ERROR
-    if(H5Fclose(fid2) < 0) TEST_ERROR
-    if(H5Fclose(fid1) < 0) TEST_ERROR
+        /* Cleanup */
+        if(H5Sclose(sid) < 0) TEST_ERROR
+        if(H5Tclose(tid2) < 0) TEST_ERROR
+        if(H5Fclose(fid4) < 0) TEST_ERROR
+        if(H5Fclose(fid3) < 0) TEST_ERROR
+        if(H5Fclose(fid2) < 0) TEST_ERROR
+        if(H5Fclose(fid1) < 0) TEST_ERROR
 
-    PASSED();
+        PASSED();
+    } /* end if */
+    else {
+	SKIPPED();
+	puts("    Current VFD can't reopen same file through external link");
+    } /* end else */
+
     return 0;
 
 error:
@@ -5546,7 +5933,7 @@ error:
  *-------------------------------------------------------------------------
  */
 static int
-external_link_endian(hid_t fapl, hbool_t new_format)
+external_link_endian(hbool_t new_format)
 {
     hid_t	fid = (-1);     		/* File ID */
     hid_t	gid = (-1), gid2 = (-1);	/* Group IDs */
@@ -5554,72 +5941,61 @@ external_link_endian(hid_t fapl, hbool_t new_format)
     char      * srcdir = getenv("srcdir");      /* The source directory */
     char        pathbuf[NAME_BUF_SIZE];         /* Path to the files */
     char        namebuf[NAME_BUF_SIZE];
-    const char  *envval = NULL;
 
     if(new_format)
         TESTING("endianness of external links (w/new group format)")
     else
         TESTING("endianness of external links")
 
-    envval = HDgetenv("HDF5_DRIVER");
-    if(envval == NULL)
-        envval = "nomatch";
-    if(HDstrcmp(envval, "split") && HDstrcmp(envval, "multi") && HDstrcmp(envval, "family")) {
+    /*
+     * Create the name of the file to open (in case we are using the --srcdir
+     * option and the file is in a different directory from this test).
+     */
+    if (srcdir && ((HDstrlen(srcdir) + 2) < sizeof(pathbuf)) )
+    {
+        HDstrcpy(pathbuf, srcdir);
+        HDstrcat(pathbuf, "/");
+    }
+    else
+        HDstrcpy(pathbuf, "");
 
-        /*
-         * Create the name of the file to open (in case we are using the --srcdir
-         * option and the file is in a different directory from this test).
-         */
-        if (srcdir && ((HDstrlen(srcdir) + 2) < sizeof(pathbuf)) )
-        {
-            HDstrcpy(pathbuf, srcdir);
-            HDstrcat(pathbuf, "/");
-        }
-        else
-            HDstrcpy(pathbuf, "");
+    /* Create a link access property list with the path to the srcdir */
+    if((lapl_id = H5Pcreate(H5P_LINK_ACCESS)) < 0) TEST_ERROR
+    if(H5Pset_elink_prefix(lapl_id, pathbuf) < 0) TEST_ERROR
 
-        /* Create a link access property list with the path to the srcdir */
-        if((lapl_id = H5Pcreate(H5P_LINK_ACCESS)) < 0) TEST_ERROR
-        if(H5Pset_elink_prefix(lapl_id, pathbuf) < 0) TEST_ERROR
+    if(HDstrlen(pathbuf) + HDstrlen(LE_FILENAME) >= sizeof(namebuf)) TEST_ERROR
+    HDstrcpy(namebuf, pathbuf);
+    HDstrcat(namebuf, LE_FILENAME);
 
-        if(HDstrlen(pathbuf) + HDstrlen(LE_FILENAME) >= sizeof(namebuf)) TEST_ERROR
-        HDstrcpy(namebuf, pathbuf);
-        HDstrcat(namebuf, LE_FILENAME);
+    /* Test LE file; try to open a group through the external link */
+    if((fid = H5Fopen(namebuf, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) TEST_ERROR
+    if((gid = H5Oopen(fid, "ext_link", lapl_id)) < 0) TEST_ERROR
 
-        /* Test LE file; try to open a group through the external link */
-        if((fid = H5Fopen(namebuf, H5F_ACC_RDONLY, fapl)) < 0) TEST_ERROR
-        if((gid = H5Oopen(fid, "ext_link", lapl_id)) < 0) TEST_ERROR
+    /* Open a group in the external file using that group ID */
+    if((gid2 = H5Gopen2(gid, "subgroup", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
 
-        /* Open a group in the external file using that group ID */
-        if((gid2 = H5Gopen2(gid, "subgroup", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
+    /* Close the IDs */
+    if(H5Gclose(gid2) < 0) TEST_ERROR
+    if(H5Gclose(gid) < 0) TEST_ERROR
+    if(H5Fclose(fid) < 0) TEST_ERROR
 
-        /* Close the IDs */
-        if(H5Gclose(gid2) < 0) TEST_ERROR
-        if(H5Gclose(gid) < 0) TEST_ERROR
-        if(H5Fclose(fid) < 0) TEST_ERROR
+    if(HDstrlen(pathbuf) + HDstrlen(BE_FILENAME) >= sizeof(namebuf)) TEST_ERROR
+    HDstrcpy(namebuf, pathbuf);
+    HDstrcat(namebuf, BE_FILENAME);
 
-        if(HDstrlen(pathbuf) + HDstrlen(BE_FILENAME) >= sizeof(namebuf)) TEST_ERROR
-        HDstrcpy(namebuf, pathbuf);
-        HDstrcat(namebuf, BE_FILENAME);
+    /* Test BE file; try to open a group through the external link */
+    if((fid = H5Fopen(namebuf, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) TEST_ERROR
+    if((gid = H5Oopen(fid, "ext_link", lapl_id)) < 0) TEST_ERROR
 
-        /* Test BE file; try to open a group through the external link */
-        if((fid = H5Fopen(namebuf, H5F_ACC_RDONLY, fapl)) < 0) TEST_ERROR
-        if((gid = H5Oopen(fid, "ext_link", lapl_id)) < 0) TEST_ERROR
+    /* Open a group in the external file using that group ID */
+    if((gid2 = H5Gopen2(gid, "subgroup", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
 
-        /* Open a group in the external file using that group ID */
-        if((gid2 = H5Gopen2(gid, "subgroup", H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
+    /* Close the IDs */
+    if(H5Gclose(gid2) < 0) TEST_ERROR
+    if(H5Gclose(gid) < 0) TEST_ERROR
+    if(H5Fclose(fid) < 0) TEST_ERROR
 
-        /* Close the IDs */
-        if(H5Gclose(gid2) < 0) TEST_ERROR
-        if(H5Gclose(gid) < 0) TEST_ERROR
-        if(H5Fclose(fid) < 0) TEST_ERROR
-
-        PASSED();
-    } /* end if */
-    else {
-	SKIPPED();
-	puts("    Current VFD doesn't apply to existing test files");
-    } /* end else */
+    PASSED();
 
     return 0;
 
@@ -7733,6 +8109,90 @@ error:
     } H5E_END_TRY;
     return -1;
 } /* end obj_visit_by_name() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    visit_obj_stop_cb
+ *
+ * Purpose:     Callback routine for visiting objects in a file
+ *
+ * Return:      1 (H5_ITER_STOP)
+ *
+ * Programmer:  Neil Fortner
+ *              Sunday, November 2, 2008
+ *
+ *-------------------------------------------------------------------------
+ */
+static int
+visit_obj_stop_cb(hid_t UNUSED group_id, const char UNUSED *name, const H5O_info_t UNUSED *oinfo,
+    void *_op_data)
+{
+    unsigned *op_data = (unsigned *)_op_data;
+
+    /* Increment the number of visited objects */
+    (*op_data)++;
+
+    return(H5_ITER_STOP);
+} /* end visit_obj_stop_cb() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    obj_visit_stop
+ *
+ * Purpose:     Test that the object visiting routine stops iteration
+ *              properly on the starting object.
+ *
+ * Return:      Success:        0
+ *              Failure:        -1
+ *
+ * Programmer:  Neil Fortner
+ *              Sunday, November 2, 2008
+ *
+ *-------------------------------------------------------------------------
+ */
+static int
+obj_visit_stop(hid_t fapl, hbool_t new_format)
+{
+    unsigned    nvisited;           /* User-data for visiting */
+    hid_t       fid = -1;
+    herr_t      ret;                /* Return value */
+
+    if(new_format)
+        TESTING("stopping object iteration (w/new group format)")
+    else
+        TESTING("stopping object iteration")
+
+    /* Construct "interesting" file to visit */
+    if((fid = build_visit_file(fapl)) < 0) TEST_ERROR
+
+    /* Start iteration.  The callback should only be called once because it
+     * returns H5_ITER_STOP
+     */
+    nvisited = 0;
+    if((ret = H5Ovisit(fid, H5_INDEX_NAME, H5_ITER_INC, visit_obj_stop_cb, &nvisited)) < 0)
+        FAIL_STACK_ERROR
+    if(ret != H5_ITER_STOP) TEST_ERROR
+    if(nvisited != 1) TEST_ERROR
+
+    /* Same test with H5Ovisit_by_name */
+    nvisited = 0;
+    if((ret = H5Ovisit_by_name(fid, "/", H5_INDEX_NAME, H5_ITER_INC, visit_obj_stop_cb,
+        &nvisited, H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
+    if(ret != H5_ITER_STOP) TEST_ERROR
+    if(nvisited != 1) TEST_ERROR
+
+    /* Close file created */
+    if(H5Fclose(fid) < 0) TEST_ERROR
+
+    PASSED();
+    return 0;
+
+error:
+    H5E_BEGIN_TRY {
+        H5Fclose(fid);
+    } H5E_END_TRY;
+    return -1;
+} /* end obj_visit_stop() */
 
 
 /*-------------------------------------------------------------------------
@@ -12158,164 +12618,167 @@ error:
 int
 main(void)
 {
-    const char  *envval = NULL;
+    hid_t	fapl, fapl2;    /* File access property lists */
+    int	nerrors = 0;
+    hbool_t new_format;     /* Whether to use the new format or not */
+    const char  *envval;
 
     envval = HDgetenv("HDF5_DRIVER");
     if(envval == NULL)
         envval = "nomatch";
-    if(HDstrcmp(envval, "core")) {
-        hid_t	fapl, fapl2;    /* File access property lists */
-        int	nerrors = 0;
-        hbool_t new_format;     /* Whether to use the new format or not */
 
-	h5_reset();
-	fapl = h5_fileaccess();
+    h5_reset();
+    fapl = h5_fileaccess();
 
-        /* Copy the file access property list */
-        if((fapl2 = H5Pcopy(fapl)) < 0) TEST_ERROR
+    /* Copy the file access property list */
+    if((fapl2 = H5Pcopy(fapl)) < 0) TEST_ERROR
 
-        /* Set the "use the latest version of the format" bounds for creating objects in the file */
-        if(H5Pset_libver_bounds(fapl2, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) TEST_ERROR
+    /* Set the "use the latest version of the format" bounds for creating objects in the file */
+    if(H5Pset_libver_bounds(fapl2, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) TEST_ERROR
 
-        /* Loop over using new group format */
-        for(new_format = FALSE; new_format <= TRUE; new_format++) {
-            hid_t my_fapl;
+    /* Loop over using new group format */
+    for(new_format = FALSE; new_format <= TRUE; new_format++) {
+        hid_t my_fapl;
 
-            /* Check for FAPL to use */
-            if(new_format)
-                my_fapl = fapl2;
-            else
-                my_fapl = fapl;
+        /* Check for FAPL to use */
+        if(new_format)
+            my_fapl = fapl2;
+        else
+            my_fapl = fapl;
 
-            /* General tests... (on both old & new format groups */
+        /* General tests... (on both old & new format groups */
 
-            nerrors += mklinks(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += cklinks(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += new_links(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += ck_new_links(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += long_links(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += toomany(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += mklinks(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += cklinks(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += new_links(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += ck_new_links(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += long_links(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += toomany(my_fapl, new_format) < 0 ? 1 : 0;
 
-            /* Test new H5L link creation routine */
-            nerrors += test_lcpl(my_fapl, new_format);
-            nerrors += test_move(my_fapl, new_format);
-            nerrors += test_copy(my_fapl, new_format);
-            nerrors += test_move_preserves(my_fapl, new_format);
+        /* Test new H5L link creation routine */
+        nerrors += test_lcpl(my_fapl, new_format);
+        nerrors += test_move(my_fapl, new_format);
+        nerrors += test_copy(my_fapl, new_format);
+        nerrors += test_move_preserves(my_fapl, new_format);
 #ifndef H5_NO_DEPRECATED_SYMBOLS
-            nerrors += test_deprec(my_fapl, new_format);
+        nerrors += test_deprec(my_fapl, new_format);
 #endif /* H5_NO_DEPRECATED_SYMBOLS */
 #ifndef H5_CANNOT_OPEN_TWICE
-            nerrors += external_link_root(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_root(my_fapl, new_format) < 0 ? 1 : 0;
 #endif /* H5_CANNOT_OPEN_TWICE */
-            nerrors += external_link_path(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += external_link_mult(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_path(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_mult(my_fapl, new_format) < 0 ? 1 : 0;
 #ifndef H5_CANNOT_OPEN_TWICE
-            nerrors += external_link_self(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += external_link_pingpong(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += external_link_toomany(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_self(envval, my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_pingpong(envval, my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_toomany(my_fapl, new_format) < 0 ? 1 : 0;
 #endif /* H5_CANNOT_OPEN_TWICE */
-            nerrors += external_link_dangling(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += external_link_recursive(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += external_link_query(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += external_link_unlink_compact(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += external_link_unlink_dense(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += external_link_move(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += external_link_ride(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_dangling(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_recursive(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_query(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_unlink_compact(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_unlink_dense(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_move(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_ride(my_fapl, new_format) < 0 ? 1 : 0;
 #ifndef H5_CANNOT_OPEN_TWICE
-            nerrors += external_link_closing(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_closing(envval, my_fapl, new_format) < 0 ? 1 : 0;
 #endif /* H5_CANNOT_OPEN_TWICE */
-            nerrors += external_link_endian(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += external_link_strong(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_endian(new_format) < 0 ? 1 : 0;
+        nerrors += external_link_strong(my_fapl, new_format) < 0 ? 1 : 0;
 
-	    /* tests for external link */
-            nerrors += external_link_env(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += external_link_prefix(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += external_link_abs_mainpath(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += external_link_rel_mainpath(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += external_link_cwd(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += external_link_abstar(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += external_link_abstar_cur(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += external_link_reltar(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += external_link_chdir(my_fapl, new_format) < 0 ? 1 : 0;
-	    nerrors += external_set_elink_fapl1(my_fapl, new_format) < 0 ? 1 : 0;
-	    nerrors += external_set_elink_fapl2(my_fapl, new_format) < 0 ? 1 : 0;
-	    nerrors += external_set_elink_fapl3(new_format) < 0 ? 1 : 0;
+        /* tests for external link */
+        nerrors += external_link_env(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_prefix(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_abs_mainpath(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_rel_mainpath(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_cwd(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_abstar(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_abstar_cur(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_reltar(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_chdir(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_set_elink_fapl1(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_set_elink_fapl2(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_set_elink_fapl3(new_format) < 0 ? 1 : 0;
+        nerrors += external_set_elink_acc_flags(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_set_elink_cb(my_fapl, new_format) < 0 ? 1 : 0;
 
 #ifdef H5_HAVE_WINDOW_PATH
-            nerrors += external_link_win1(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += external_link_win2(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += external_link_win3(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += external_link_win4(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += external_link_win5(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += external_link_win6(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_win1(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_win2(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_win3(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_win4(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_win5(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_link_win6(my_fapl, new_format) < 0 ? 1 : 0;
 #endif
-            /* These tests assume that external links are a form of UD links,
-             * so assume that everything that passed for external links
-             * above has already been tested for UD links.
-             */
-            if(new_format == TRUE) {
-                nerrors += ud_hard_links(fapl2) < 0 ? 1 : 0;     /* requires new format groups */
-                nerrors += ud_link_reregister(fapl2) < 0 ? 1 : 0;        /* requires new format groups */
-            } /* end if */
-            nerrors += ud_callbacks(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += ud_link_errors(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += lapl_udata(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += lapl_nlinks(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += linkinfo(my_fapl, new_format) < 0 ? 1 : 0;
+        /* These tests assume that external links are a form of UD links,
+         * so assume that everything that passed for external links
+         * above has already been tested for UD links.
+         */
+        if(new_format == TRUE) {
+            nerrors += ud_hard_links(fapl2) < 0 ? 1 : 0;     /* requires new format groups */
+            nerrors += ud_link_reregister(fapl2) < 0 ? 1 : 0;        /* requires new format groups */
+        } /* end if */
 
-            /* Misc. extra tests, useful for both new & old format files */
-            nerrors += link_visit(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += link_visit_by_name(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += obj_visit(my_fapl, new_format) < 0 ? 1 : 0;
-            nerrors += obj_visit_by_name(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += ud_callbacks(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += ud_link_errors(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += lapl_udata(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += lapl_nlinks(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += linkinfo(my_fapl, new_format) < 0 ? 1 : 0;
 
-            /* Keep this test last, it's testing files that are used above */
-	    /* do not do this for files used by external link tests */
-            nerrors += check_all_closed(my_fapl, new_format, EXTSTOP) < 0 ? 1 : 0;
-        } /* end for */
+        /* Misc. extra tests, useful for both new & old format files */
+        nerrors += link_visit(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += link_visit_by_name(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += obj_visit(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += obj_visit_by_name(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += obj_visit_stop(my_fapl, new_format) < 0 ? 1 : 0;
 
-        /* New group revision feature tests */
-        nerrors += corder_create_empty(fapl2) < 0 ? 1 : 0;
+        /* Keep this test last, it's testing files that are used above */
+        /* do not do this for files used by external link tests */
+        nerrors += check_all_closed(my_fapl, new_format, EXTSTOP) < 0 ? 1 : 0;
+    } /* end for */
+
+    /* New group revision feature tests */
+    nerrors += corder_create_empty(fapl2) < 0 ? 1 : 0;
 /* XXX: when creation order indexing is fully working, go back and add checks
 *      to these tests to make certain that the creation order values are
 *      correct.
 */
-        nerrors += corder_create_compact(fapl2) < 0 ? 1 : 0;
-        nerrors += corder_create_dense(fapl2) < 0 ? 1 : 0;
-        nerrors += corder_transition(fapl2) < 0 ? 1 : 0;
-        nerrors += corder_delete(fapl2) < 0 ? 1 : 0;
-        nerrors += link_info_by_idx(fapl2) < 0 ? 1 : 0;
-        nerrors += delete_by_idx(fapl2) < 0 ? 1 : 0;
-        nerrors += link_iterate(fapl2) < 0 ? 1 : 0;
-        nerrors += open_by_idx(fapl2) < 0 ? 1 : 0;
-        nerrors += object_info(fapl2) < 0 ? 1 : 0;
-        nerrors += group_info(fapl2) < 0 ? 1 : 0;
-        nerrors += timestamps(fapl2) < 0 ? 1 : 0;
+    nerrors += corder_create_compact(fapl2) < 0 ? 1 : 0;
+    nerrors += corder_create_dense(fapl2) < 0 ? 1 : 0;
+    nerrors += corder_transition(fapl2) < 0 ? 1 : 0;
+    nerrors += corder_delete(fapl2) < 0 ? 1 : 0;
+    nerrors += link_info_by_idx(fapl2) < 0 ? 1 : 0;
+    nerrors += delete_by_idx(fapl2) < 0 ? 1 : 0;
+    nerrors += link_iterate(fapl2) < 0 ? 1 : 0;
+    nerrors += open_by_idx(fapl2) < 0 ? 1 : 0;
+    nerrors += object_info(fapl2) < 0 ? 1 : 0;
+    nerrors += group_info(fapl2) < 0 ? 1 : 0;
+    nerrors += timestamps(fapl2) < 0 ? 1 : 0;
 
-        /* Test new API calls on old-style groups */
-        nerrors += link_info_by_idx_old(fapl) < 0 ? 1 : 0;
-        nerrors += delete_by_idx_old(fapl) < 0 ? 1 : 0;
-        nerrors += link_iterate_old(fapl) < 0 ? 1 : 0;
-        nerrors += open_by_idx_old(fapl) < 0 ? 1 : 0;
-        nerrors += object_info_old(fapl) < 0 ? 1 : 0;
-        nerrors += group_info_old(fapl) < 0 ? 1 : 0;
+    /* Test new API calls on old-style groups */
+    nerrors += link_info_by_idx_old(fapl) < 0 ? 1 : 0;
+    nerrors += delete_by_idx_old(fapl) < 0 ? 1 : 0;
+    nerrors += link_iterate_old(fapl) < 0 ? 1 : 0;
+    nerrors += open_by_idx_old(fapl) < 0 ? 1 : 0;
+    nerrors += object_info_old(fapl) < 0 ? 1 : 0;
+    nerrors += group_info_old(fapl) < 0 ? 1 : 0;
 
-        /* Close 2nd FAPL */
-	H5Pclose(fapl2);
+    /* Close 2nd FAPL */
+    H5Pclose(fapl2);
 
-	/* Results */
-	if(nerrors) {
-	    printf("***** %d LINK TEST%s FAILED! *****\n",
-		    nerrors, 1 == nerrors ? "" : "S");
-	    exit(1);
-	}
-	printf("All link tests passed.\n");
-	h5_cleanup(FILENAME, fapl);
-	/* clean up tmp directory created by external link tests */
-	HDrmdir(TMPDIR);
+    /* Results */
+    if(nerrors) {
+        printf("***** %d LINK TEST%s FAILED! *****\n",
+                nerrors, 1 == nerrors ? "" : "S");
+        exit(1);
     }
-    else
-        puts("All link tests skipped - Incompatible with current Virtual File Driver");
+    printf("All link tests passed.\n");
+
+    h5_cleanup(FILENAME, fapl);
+
+    /* clean up tmp directory created by external link tests */
+    HDrmdir(TMPDIR);
+
     return 0;
 
 error:

@@ -55,7 +55,8 @@ const char *FILENAME[] = {
 #define CONFIG_SHARE_SRC 1
 #define CONFIG_SHARE_DST 2
 #define CONFIG_NEW_FORMAT 4
-#define MAX_CONFIGURATION 7
+#define CONFIG_DENSE 8
+#define MAX_CONFIGURATION 15
 
 #define FILE_EXT 		"objcopy_ext.dat"
 /* The fill_old.h5 is generated from gen_old_fill.c in HDF5 'test' directory
@@ -69,6 +70,7 @@ const char *FILENAME[] = {
 #define NAME_DATATYPE_VL 	"vlen of int"
 #define NAME_DATATYPE_VL_VL 	"vlen of vlen of int"
 #define NAME_DATASET_SIMPLE 	"dataset_simple"
+#define NAME_DATASET_SIMPLE2    "dataset_simple_copy"
 #define NAME_DATASET_COMPOUND 	"dataset_compound"
 #define NAME_DATASET_CHUNKED 	"dataset_chunked"
 #define NAME_DATASET_COMPACT 	"dataset_compact"
@@ -104,7 +106,6 @@ const char *FILENAME[] = {
 #define NAME_OLD_FORMAT		"/dset1"
 
 #define NAME_BUF_SIZE   1024
-#define NUM_ATTRIBUTES 4
 #define ATTR_NAME_LEN 80
 #define DIM_SIZE_1 12
 #define DIM_SIZE_2  6
@@ -115,6 +116,8 @@ const char *FILENAME[] = {
 #define NUM_DATASETS  10
 
 char src_obj_full_name[215];  /* the full path + name of the object to be copied */
+
+int num_attributes_g;         /* Number of attributes created */
 
 /* Table containing object id and object name */
 /* (Used for detecting duplicate objects when comparing groups */
@@ -159,7 +162,7 @@ addr_insert(H5O_info_t *oi)
     /* Extend the table */
     if(idtab_g.nobjs >= idtab_g.nalloc) {
         idtab_g.nalloc = MAX(256, 2*idtab_g.nalloc);
-        idtab_g.obj = HDrealloc(idtab_g.obj, idtab_g.nalloc * sizeof(idtab_g.obj[0]));
+        idtab_g.obj = (haddr_t *)HDrealloc(idtab_g.obj, idtab_g.nalloc * sizeof(idtab_g.obj[0]));
     } /* end if */
 
     /* Insert the entry */
@@ -485,7 +488,7 @@ test_copy_attach_attribute_vl(hid_t loc_id)
         buf[i].len = i*3+1;
         buf[i].p = (int *)HDmalloc(buf[i].len * sizeof(int));
         for(j = 0; j < buf[i].len; j++)
-            ((int *)buf[i].p)[j] = j+1;
+            ((int *)buf[i].p)[j] = (int)(j + 1);
     } /* end for */
 
     if((aid = H5Acreate2(loc_id, "vlen attribute", tid, sid, H5P_DEFAULT, H5P_DEFAULT)) < 0)
@@ -535,7 +538,7 @@ test_copy_attach_attributes(hid_t loc_id, hid_t type_id)
     if((sid = H5Screate_simple(1, &dim1, NULL)) < 0 )
         goto done;
 
-    for (i=0; i<NUM_ATTRIBUTES; i++) {
+    for (i=0; i<num_attributes_g; i++) {
         sprintf(attr_name, "%d attr", i);
 
         /* Set attribute data */
@@ -588,7 +591,7 @@ test_copy_attach_paired_attributes(hid_t loc_id, hid_t loc_id2, hid_t type_id)
 
     if((sid = H5Screate_simple(1, &dim1, NULL)) < 0 ) goto done;
 
-    for (i=0; i<NUM_ATTRIBUTES; i++) {
+    for (i=0; i<num_attributes_g; i++) {
         sprintf(attr_name, "%d attr", i);
 
         /* Set attribute data */
@@ -785,7 +788,7 @@ compare_std_attributes(hid_t oid, hid_t oid2, hid_t pid)
         unsigned i;             /* Local index variable */
 
         /* Compare the number of attributes */
-        if(oinfo1.num_attrs != oinfo1.num_attrs) TEST_ERROR
+        if(oinfo1.num_attrs != oinfo2.num_attrs) TEST_ERROR
 
         /* Check the attributes are equal */
         for(i = 0; i < (unsigned)oinfo1.num_attrs; i++) {
@@ -849,8 +852,8 @@ compare_data(hid_t parent1, hid_t parent2, hid_t pid, hid_t tid, size_t nelmts,
         if((base_tid = H5Tget_super(tid)) < 0) TEST_ERROR
 
         /* Loop over elements in buffers */
-        vl_buf1 = buf1;
-        vl_buf2 = buf2;
+        vl_buf1 = (const hvl_t *)buf1;
+        vl_buf2 = (const hvl_t *)buf2;
         for(u = 0; u < nelmts; u++, vl_buf1++, vl_buf2++) {
             /* Check vlen lengths */
             if(vl_buf1->len != vl_buf2->len) TEST_ERROR
@@ -872,8 +875,8 @@ compare_data(hid_t parent1, hid_t parent2, hid_t pid, hid_t tid, size_t nelmts,
             const hobj_ref_t *ref_buf1, *ref_buf2;      /* Aliases for buffers to compare */
 
             /* Loop over elements in buffers */
-            ref_buf1 = buf1;
-            ref_buf2 = buf2;
+            ref_buf1 = (const hobj_ref_t *)buf1;
+            ref_buf2 = (const hobj_ref_t *)buf2;
             for(u = 0; u < nelmts; u++, ref_buf1++, ref_buf2++) {
                 hid_t obj1_id, obj2_id;         /* IDs for objects referenced */
                 H5O_type_t obj1_type, obj2_type; /* Types of objects referenced */
@@ -928,8 +931,8 @@ compare_data(hid_t parent1, hid_t parent2, hid_t pid, hid_t tid, size_t nelmts,
             const hdset_reg_ref_t *ref_buf1, *ref_buf2;      /* Aliases for buffers to compare */
 
             /* Loop over elements in buffers */
-            ref_buf1 = buf1;
-            ref_buf2 = buf2;
+            ref_buf1 = (const hdset_reg_ref_t *)buf1;
+            ref_buf2 = (const hdset_reg_ref_t *)buf2;
             for(u = 0; u < nelmts; u++, ref_buf1++, ref_buf2++) {
                 hid_t obj1_id, obj2_id;         /* IDs for objects referenced */
                 hid_t obj1_sid, obj2_sid;       /* Dataspace IDs for objects referenced */
@@ -1776,6 +1779,112 @@ error:
     } H5E_END_TRY;
     return 1;
 } /* end test_copy_dataset_simple */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    test_copy_dataset_simple_samefile
+ *
+ * Purpose:     Create a simple dataset in SRC file and copy it to SRC file
+ *
+ * Return:      Success:        0
+ *              Failure:        number of errors
+ *
+ * Programmer:  Neil Fortner
+ *              Thursday, January 15, 2009
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+static int
+test_copy_dataset_simple_samefile(hid_t fcpl, hid_t fapl, int config)
+{
+    hid_t fid = -1;                             /* File ID */
+    hid_t sid = -1;                             /* Dataspace ID */
+    hid_t did = -1, did2 = -1;                  /* Dataset IDs */
+    int buf[DIM_SIZE_1][DIM_SIZE_2];            /* Buffer for writing data */
+    hsize_t dim2d[2];                           /* Dataset dimensions */
+    int i, j;                                   /* local index variables */
+    char filename[NAME_BUF_SIZE];
+
+    TESTING("H5Ocopy(): simple dataset within the same file");
+
+    /* Initialize write buffer */
+    for (i=0; i<DIM_SIZE_1; i++)
+        for (j=0; j<DIM_SIZE_2; j++)
+            buf[i][j] = 10000 + 100*i+j;
+
+    /* Initialize the filenames */
+    h5_fixname(FILENAME[0], fapl, filename, sizeof filename);
+
+    /* Reset file address checking info */
+    addr_reset();
+
+    /* create source file */
+    if((fid = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) TEST_ERROR
+
+    /* Set dataspace dimensions */
+    dim2d[0] = DIM_SIZE_1;
+    dim2d[1] = DIM_SIZE_2;
+
+    /* create 2D dataspace */
+    if((sid = H5Screate_simple(2, dim2d, NULL)) < 0) TEST_ERROR
+
+    /* create 2D int dataset at SRC file */
+    if((did = H5Dcreate2(fid, NAME_DATASET_SIMPLE, H5T_NATIVE_INT, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+
+    /* write data into file */
+    if(H5Dwrite(did, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, buf) < 0) TEST_ERROR
+
+    /* close dataspace */
+    if(H5Sclose(sid) < 0) TEST_ERROR
+
+    /* attach attributes to the dataset */
+    if(test_copy_attach_attributes(did, H5T_NATIVE_INT) < 0) TEST_ERROR
+
+    /* close the dataset */
+    if(H5Dclose(did) < 0) TEST_ERROR
+
+    /* close the SRC file */
+    if(H5Fclose(fid) < 0) TEST_ERROR
+
+
+    /* open the source file with read-write */
+    if((fid = H5Fopen(filename, H5F_ACC_RDWR, fapl)) < 0) TEST_ERROR
+
+    /* copy the dataset from SRC to DST */
+    if(H5Ocopy(fid, NAME_DATASET_SIMPLE, fid, NAME_DATASET_SIMPLE2, H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
+
+    /* open the dataset for copy */
+    if((did = H5Dopen2(fid, NAME_DATASET_SIMPLE, H5P_DEFAULT)) < 0) TEST_ERROR
+
+    /* open the destination dataset */
+    if((did2 = H5Dopen2(fid, NAME_DATASET_SIMPLE2, H5P_DEFAULT)) < 0) TEST_ERROR
+
+    /* Check if the datasets are equal */
+    if(compare_datasets(did, did2, H5P_DEFAULT, buf) != TRUE) TEST_ERROR
+
+    /* close the destination dataset */
+    if(H5Dclose(did2) < 0) TEST_ERROR
+
+    /* close the source dataset */
+    if(H5Dclose(did) < 0) TEST_ERROR
+
+    /* close the SRC file */
+    if(H5Fclose(fid) < 0) TEST_ERROR
+
+    PASSED();
+    return 0;
+
+error:
+    H5E_BEGIN_TRY {
+    	H5Dclose(did2);
+    	H5Dclose(did);
+    	H5Sclose(sid);
+    	H5Fclose(fid);
+    } H5E_END_TRY;
+    return 1;
+} /* end test_copy_dataset_simple_samefile */
 
 
 /*-------------------------------------------------------------------------
@@ -3495,7 +3604,7 @@ test_copy_dataset_contig_vl(hid_t fcpl_src, hid_t fcpl_dst, hid_t fapl)
         buf[i].len = i+1;
         buf[i].p = (int *)HDmalloc(buf[i].len * sizeof(int));
         for(j = 0; j < buf[i].len; j++)
-            ((int *)buf[i].p)[j] = i*10+j;
+            ((int *)buf[i].p)[j] = (int)(i * 10 + j);
     } /* end for */
 
     /* Initialize the filenames */
@@ -3626,7 +3735,7 @@ test_copy_dataset_chunked_vl(hid_t fcpl_src, hid_t fcpl_dst, hid_t fapl)
         buf[i].len = i+1;
         buf[i].p = (int *)HDmalloc(buf[i].len * sizeof(int));
         for(j = 0; j < buf[i].len; j++)
-            ((int *)buf[i].p)[j] = i*10+j;
+            ((int *)buf[i].p)[j] = (int)(i * 10 + j);
     } /* end for */
 
     /* Initialize the filenames */
@@ -3763,7 +3872,7 @@ test_copy_dataset_compact_vl(hid_t fcpl_src, hid_t fcpl_dst, hid_t fapl)
         buf[i].len = i+1;
         buf[i].p = (int *)HDmalloc(buf[i].len * sizeof(int));
         for(j = 0; j < buf[i].len; j++)
-            ((int *)buf[i].p)[j] = i*10+j;
+            ((int *)buf[i].p)[j] = (int)(i * 10 + j);
     } /* end for */
 
     /* Initialize the filenames */
@@ -4020,7 +4129,7 @@ test_copy_dataset_compressed_vl(hid_t fcpl_src, hid_t fcpl_dst, hid_t fapl)
     /* set initial data values */
     for (i = 0; i < DIM_SIZE_1; i++) {
         for (j = 0; j < DIM_SIZE_2; j++) {
-            buf[i][j].len = j + 1;
+            buf[i][j].len = (size_t)(j + 1);
             buf[i][j].p = (int *)HDmalloc(buf[i][j].len * sizeof(int));
             for (k = 0; k < (int)buf[i][j].len; k++)
                 ((int *)buf[i][j].p)[k] = i * 10000 + j * 100 + k;
@@ -5625,7 +5734,7 @@ test_copy_old_layout(hid_t fcpl_dst, hid_t fapl)
     addr_reset();
 
     /* open source file (read-only) */
-    if((fid_src = H5Fopen(src_filename, H5F_ACC_RDONLY, fapl)) < 0) TEST_ERROR
+    if((fid_src = H5Fopen(src_filename, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) TEST_ERROR
 
     /* create destination file */
     if((fid_dst = H5Fcreate(dst_filename, H5F_ACC_TRUNC, fcpl_dst, fapl)) < 0) TEST_ERROR
@@ -5706,7 +5815,7 @@ test_copy_dataset_compact_named_vl(hid_t fcpl_src, hid_t fcpl_dst, hid_t fapl)
         buf[i].len = i+1;
         buf[i].p = (int *)HDmalloc(buf[i].len * sizeof(int));
         for(j = 0; j < buf[i].len; j++)
-            ((int *)buf[i].p)[j] = i*10+j;
+            ((int *)buf[i].p)[j] = (int)(i * 10 + j);
     } /* end for */
 
     /* Initialize the filenames */
@@ -5853,7 +5962,7 @@ test_copy_dataset_contig_named_vl(hid_t fcpl_src, hid_t fcpl_dst, hid_t fapl)
         buf[i].len = i+1;
         buf[i].p = (int *)HDmalloc(buf[i].len * sizeof(int));
         for(j = 0; j < buf[i].len; j++)
-            ((int *)buf[i].p)[j] = i*10+j;
+            ((int *)buf[i].p)[j] = (int)(i * 10 + j);
     } /* end for */
 
     /* Initialize the filenames */
@@ -5994,7 +6103,7 @@ test_copy_dataset_chunked_named_vl(hid_t fcpl_src, hid_t fcpl_dst, hid_t fapl)
         buf[i].len = i+1;
         buf[i].p = (int *)HDmalloc(buf[i].len * sizeof(int));
         for(j = 0; j < buf[i].len; j++)
-            ((int *)buf[i].p)[j] = i*10+j;
+            ((int *)buf[i].p)[j] = (int)(i * 10 + j);
     } /* end for */
 
     /* Initialize the filenames */
@@ -6143,7 +6252,7 @@ test_copy_dataset_compressed_named_vl(hid_t fcpl_src, hid_t fcpl_dst, hid_t fapl
         buf[i].len = i+1;
         buf[i].p = (int *)HDmalloc(buf[i].len * sizeof(int));
         for(j = 0; j < buf[i].len; j++)
-            ((int *)buf[i].p)[j] = i*10+j;
+            ((int *)buf[i].p)[j] = (int)(i * 10 + j);
     } /* end for */
 
     /* Initialize the filenames */
@@ -6296,7 +6405,7 @@ test_copy_dataset_compact_vl_vl(hid_t fcpl_src, hid_t fcpl_dst, hid_t fapl)
             return 1;
         } /* end if */
         buf[i].len=i+1;
-        for(tvl=buf[i].p,j=0; j<(i+1); j++, tvl++) {
+        for(tvl = (hvl_t *)buf[i].p,j=0; j<(i+1); j++, tvl++) {
             tvl->p=HDmalloc((j+1)*sizeof(unsigned int));
             if(tvl->p==NULL) {
                 TestErrPrintf("Cannot allocate memory for VL data! i=%u, j=%u\n",i,j);
@@ -6451,7 +6560,7 @@ test_copy_dataset_contig_vl_vl(hid_t fcpl_src, hid_t fcpl_dst, hid_t fapl)
             TEST_ERROR
         } /* end if */
         buf[i].len=i+1;
-        for(tvl=buf[i].p,j=0; j<(i+1); j++, tvl++) {
+        for(tvl = (hvl_t *)buf[i].p,j=0; j<(i+1); j++, tvl++) {
             tvl->p=HDmalloc((j+1)*sizeof(unsigned int));
             if(tvl->p==NULL) {
                 TestErrPrintf("Cannot allocate memory for VL data! i=%u, j=%u\n",i,j);
@@ -6606,7 +6715,7 @@ test_copy_dataset_chunked_vl_vl(hid_t fcpl_src, hid_t fcpl_dst, hid_t fapl)
             TEST_ERROR
         } /* end if */
         buf[i].len=i+1;
-        for(tvl=buf[i].p,j=0; j<(i+1); j++, tvl++) {
+        for(tvl = (hvl_t *)buf[i].p,j=0; j<(i+1); j++, tvl++) {
             tvl->p=HDmalloc((j+1)*sizeof(unsigned int));
             if(tvl->p==NULL) {
                 TestErrPrintf("Cannot allocate memory for VL data! i=%u, j=%u\n",i,j);
@@ -6762,7 +6871,7 @@ test_copy_dataset_compressed_vl_vl(hid_t fcpl_src, hid_t fcpl_dst, hid_t fapl)
             TEST_ERROR
         } /* end if */
         buf[i].len=i+1;
-        for(tvl=buf[i].p,j=0; j<(i+1); j++, tvl++) {
+        for(tvl = (hvl_t *)buf[i].p,j=0; j<(i+1); j++, tvl++) {
             tvl->p=HDmalloc((j+1)*sizeof(unsigned int));
             if(tvl->p==NULL) {
                 TestErrPrintf("Cannot allocate memory for VL data! i=%u, j=%u\n",i,j);
@@ -6998,9 +7107,7 @@ test_copy_option(hid_t fcpl_src, hid_t fcpl_dst, hid_t fapl, unsigned flag, hboo
         if(attach_reg_ref_attr(fid_src, gid_ref) < 0) TEST_ERROR
 
         /* create a dataset of region references */
-/*
         if(create_reg_ref_dataset(fid_src, gid_ref) < 0) TEST_ERROR
-*/
 
         /* Close group holding reference objects */
         if(H5Gclose(gid_ref) < 0) TEST_ERROR
@@ -7150,93 +7257,134 @@ error:
 int
 main(void)
 {
-    const char *envval;
+    int     nerrors = 0;
+    hid_t	fapl, fapl2;
+    hid_t   fcpl_shared, ocpl;
+    unsigned    max_compact, min_dense;
+    int     configuration;  /* Configuration of tests. */
+    int	ExpressMode;
 
-    /* Don't run this test using the core, split, or multi file drivers */
-    envval = HDgetenv("HDF5_DRIVER");
-    if(envval == NULL)
-        envval = "nomatch";
+    /* Setup */
+    h5_reset();
+    fapl = h5_fileaccess();
 
-    if(HDstrcmp(envval, "stdio") && HDstrcmp(envval, "split") && HDstrcmp(envval, "multi") && HDstrcmp(envval, "family")) {
-        int     nerrors = 0;
-        hid_t	fapl, fapl2;
-        hid_t   fcpl_shared;
-        int     configuration;  /* Configuration of tests. */
-        int	ExpressMode;
+    ExpressMode = GetTestExpress();
+    if (ExpressMode > 1)
+        printf("***Express test mode on.  Some tests may be skipped\n");
 
-	/* Setup */
-	h5_reset();
-	fapl = h5_fileaccess();
+    /* Copy the file access property list */
+    if((fapl2 = H5Pcopy(fapl)) < 0) TEST_ERROR
 
-        ExpressMode = GetTestExpress();
-        if (ExpressMode > 1)
-	    printf("***Express test mode on.  Some tests may be skipped\n");
+    /* Set the "use the latest version of the format" bounds for creating objects in the file */
+    if(H5Pset_libver_bounds(fapl2, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) TEST_ERROR
 
-        /* Copy the file access property list */
-        if((fapl2 = H5Pcopy(fapl)) < 0) TEST_ERROR
+    /* Create an FCPL with sharing enabled */
+    if((fcpl_shared = H5Pcreate(H5P_FILE_CREATE)) < 0) TEST_ERROR
+    if(H5Pset_shared_mesg_nindexes(fcpl_shared, 1) < 0) TEST_ERROR
+    if(H5Pset_shared_mesg_index(fcpl_shared, 0, H5O_SHMESG_ALL_FLAG, (size_t) 10) < 0) TEST_ERROR
 
-        /* Set the "use the latest version of the format" bounds for creating objects in the file */
-        if(H5Pset_libver_bounds(fapl2, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) TEST_ERROR
+    /* Obtain the default attribute storage phase change values */
+    if((ocpl = H5Pcreate(H5P_OBJECT_CREATE)) < 0) TEST_ERROR
+    if(H5Pget_attr_phase_change(ocpl, &max_compact, &min_dense) < 0) TEST_ERROR
+    if(H5Pclose(ocpl) < 0) TEST_ERROR
 
-        /* Create an FCPL with sharing enabled */
-        if((fcpl_shared = H5Pcreate(H5P_FILE_CREATE)) < 0) TEST_ERROR
-        if(H5Pset_shared_mesg_nindexes(fcpl_shared, 1) < 0) TEST_ERROR
-        if(H5Pset_shared_mesg_index(fcpl_shared, 0, H5O_SHMESG_ALL_FLAG, (size_t) 10) < 0) TEST_ERROR
+    /* Test in all configurations */
+    for(configuration = 0; configuration <= MAX_CONFIGURATION; configuration++) {
+        hid_t my_fapl;
+        hid_t fcpl_src;
+        hid_t fcpl_dst;
 
-        /* Test in all configurations */
-        for(configuration = 0; configuration <= MAX_CONFIGURATION; configuration++) {
-            hid_t my_fapl;
-            hid_t fcpl_src;
-            hid_t fcpl_dst;
+        /* Test with and without shared messages */
+        if(configuration & CONFIG_SHARE_SRC) {
+            puts("\nTesting with shared src messages:");
+            fcpl_src = fcpl_shared;
+        }
+        else {
+            puts("\nTesting without shared src messages:");
+            fcpl_src = H5P_DEFAULT;
+        }
+        if(configuration & CONFIG_SHARE_DST) {
+            puts("Testing with shared dst messages:");
+            fcpl_dst = fcpl_shared;
+        }
+        else {
+            puts("Testing without shared dst messages:");
+            fcpl_dst = H5P_DEFAULT;
+        }
 
-            /* Test with and without shared messages */
-            if(configuration & CONFIG_SHARE_SRC) {
-                puts("\nTesting with shared src messages:");
-                fcpl_src = fcpl_shared;
-            }
-            else {
-                puts("\nTesting without shared src messages:");
-                fcpl_src = H5P_DEFAULT;
-            }
-            if(configuration & CONFIG_SHARE_DST) {
-                puts("Testing with shared dst messages:");
-                fcpl_dst = fcpl_shared;
-            }
-            else {
-                puts("Testing without shared dst messages:");
-                fcpl_dst = H5P_DEFAULT;
-            }
+        /* Set the FAPL for the type of format */
+        if(configuration & CONFIG_NEW_FORMAT) {
+            puts("Testing with new group format:");
+            my_fapl = fapl2;
+        } /* end if */
+        else {
+            puts("Testing with old group format:");
+            my_fapl = fapl;
+        } /* end else */
 
-            /* Set the FAPL for the type of format */
-            if(configuration & CONFIG_NEW_FORMAT) {
-                puts("Testing with new group format:");
-                my_fapl = fapl2;
-            } /* end if */
-            else {
-                puts("Testing with old group format:");
-                my_fapl = fapl;
-            } /* end else */
+        /* Test with and without dense attributes */
+        if(configuration & CONFIG_DENSE) {
+            puts("Testing with dense attributes:");
+            num_attributes_g = max_compact + 1;
+        }
+        else {
+            puts("Testing without dense attributes:");
+            num_attributes_g = MAX(min_dense, 2) - 1;
+        }
 
+        /* The tests... */
+        nerrors += test_copy_dataset_simple(fcpl_src, fcpl_dst, my_fapl);
+        nerrors += test_copy_dataset_simple_samefile(fcpl_src, my_fapl, configuration);
+        nerrors += test_copy_dataset_simple_empty(fcpl_src, fcpl_dst, my_fapl);
+        nerrors += test_copy_dataset_compound(fcpl_src, fcpl_dst, my_fapl);
+        nerrors += test_copy_dataset_chunked(fcpl_src, fcpl_dst, my_fapl);
+        nerrors += test_copy_dataset_chunked_empty(fcpl_src, fcpl_dst, my_fapl);
+        nerrors += test_copy_dataset_chunked_sparse(fcpl_src, fcpl_dst, my_fapl);
+        nerrors += test_copy_dataset_compressed(fcpl_src, fcpl_dst, my_fapl);
+        nerrors += test_copy_dataset_compact(fcpl_src, fcpl_dst, my_fapl);
+        nerrors += test_copy_dataset_multi_ohdr_chunks(fcpl_src, fcpl_dst, my_fapl);
+        nerrors += test_copy_dataset_attr_named_dtype(fcpl_src, fcpl_dst, my_fapl);
 
-            /* The tests... */
+        nerrors += test_copy_group_empty(fcpl_src, fcpl_dst, my_fapl);
+        nerrors += test_copy_root_group(fcpl_src, fcpl_dst, my_fapl);
+        nerrors += test_copy_group(fcpl_src, fcpl_dst, my_fapl);
+        nerrors += test_copy_group_deep(fcpl_src, fcpl_dst, my_fapl);
+        nerrors += test_copy_group_loop(fcpl_src, fcpl_dst, my_fapl);
+        nerrors += test_copy_group_wide_loop(fcpl_src, fcpl_dst, my_fapl);
+        nerrors += test_copy_group_links(fcpl_src, fcpl_dst, my_fapl);
+        nerrors += test_copy_soft_link(fcpl_src, fcpl_dst, my_fapl);
+#ifndef H5_CANNOT_OPEN_TWICE
+        nerrors += test_copy_ext_link(fcpl_src, fcpl_dst, my_fapl);
+#endif /* H5_CANNOT_OPEN_TWICE */
+        nerrors += test_copy_exist(fcpl_src, fcpl_dst, my_fapl);
+        nerrors += test_copy_path(fcpl_src, fcpl_dst, my_fapl);
+
+        nerrors += test_copy_option(fcpl_src, fcpl_dst, my_fapl, H5O_COPY_WITHOUT_ATTR_FLAG,
+                   FALSE, "H5Ocopy(): without attributes");
+        nerrors += test_copy_option(fcpl_src, fcpl_dst, my_fapl, 0, TRUE,
+                   "H5Ocopy(): with missing groups");
+        nerrors += test_copy_option(fcpl_src, fcpl_dst, my_fapl, H5O_COPY_EXPAND_SOFT_LINK_FLAG,
+                   FALSE, "H5Ocopy(): expand soft link");
+        nerrors += test_copy_option(fcpl_src, fcpl_dst, my_fapl, H5O_COPY_SHALLOW_HIERARCHY_FLAG,
+                   FALSE, "H5Ocopy(): shallow group copy");
+        nerrors += test_copy_option(fcpl_src, fcpl_dst, my_fapl, H5O_COPY_EXPAND_REFERENCE_FLAG,
+                   FALSE, "H5Ocopy(): expand object reference");
+        nerrors += test_copy_option(fcpl_src, fcpl_dst, my_fapl, H5O_COPY_PRESERVE_NULL_FLAG,
+                   FALSE, "H5Ocopy(): preserve NULL messages");
+        nerrors += test_copy_option(fcpl_src, fcpl_dst, my_fapl, H5O_COPY_WITHOUT_ATTR_FLAG |
+                   H5O_COPY_PRESERVE_NULL_FLAG, TRUE, "H5Ocopy(): preserve NULL messages");
+
+        /* Tests that do not use attributes and do not need to be tested
+         * multiple times for different attribute configurations */
+        if(configuration < CONFIG_DENSE) {
             nerrors += test_copy_named_datatype(fcpl_src, fcpl_dst, my_fapl);
             nerrors += test_copy_named_datatype_vl(fcpl_src, fcpl_dst, my_fapl);
             nerrors += test_copy_named_datatype_vl_vl(fcpl_src, fcpl_dst, my_fapl);
-            nerrors += test_copy_dataset_simple(fcpl_src, fcpl_dst, my_fapl);
-            nerrors += test_copy_dataset_simple_empty(fcpl_src, fcpl_dst, my_fapl);
-            nerrors += test_copy_dataset_compound(fcpl_src, fcpl_dst, my_fapl);
-            nerrors += test_copy_dataset_chunked(fcpl_src, fcpl_dst, my_fapl);
 
-            nerrors += test_copy_dataset_chunked_empty(fcpl_src, fcpl_dst, my_fapl);
-            nerrors += test_copy_dataset_chunked_sparse(fcpl_src, fcpl_dst, my_fapl);
-            nerrors += test_copy_dataset_compressed(fcpl_src, fcpl_dst, my_fapl);
-            nerrors += test_copy_dataset_compact(fcpl_src, fcpl_dst, my_fapl);
             nerrors += test_copy_dataset_external(fcpl_src, fcpl_dst, my_fapl);
             nerrors += test_copy_dataset_named_dtype(fcpl_src, fcpl_dst, my_fapl);
             nerrors += test_copy_dataset_named_dtype_hier(fcpl_src, fcpl_dst, my_fapl);
             nerrors += test_copy_dataset_named_dtype_hier_outside(fcpl_src, fcpl_dst, my_fapl);
-            nerrors += test_copy_dataset_multi_ohdr_chunks(fcpl_src, fcpl_dst, my_fapl);
-            nerrors += test_copy_dataset_attr_named_dtype(fcpl_src, fcpl_dst, my_fapl);
 
             nerrors += test_copy_dataset_contig_vl(fcpl_src, fcpl_dst, my_fapl);
             nerrors += test_copy_dataset_chunked_vl(fcpl_src, fcpl_dst, my_fapl);
@@ -7251,69 +7399,34 @@ main(void)
             nerrors += test_copy_dataset_contig_vl_vl(fcpl_src, fcpl_dst, my_fapl);
             nerrors += test_copy_dataset_chunked_vl_vl(fcpl_src, fcpl_dst, my_fapl);
             nerrors += test_copy_dataset_compressed_vl_vl(fcpl_src, fcpl_dst, my_fapl);
-            nerrors += test_copy_group_empty(fcpl_src, fcpl_dst, my_fapl);
-            nerrors += test_copy_root_group(fcpl_src, fcpl_dst, my_fapl);
-            nerrors += test_copy_group(fcpl_src, fcpl_dst, my_fapl);
-            if (ExpressMode > 1 && !HDstrcmp(envval, "direct")) {
-                /* This test case with Direct driver has a poor performance on
-                 * NCSA copper, though it works.  Skip it for now and worry
-                 * about the performance later.
-                 */
-                printf("***Express test mode on.  test_copy_group_deep is skipped");
-                SKIPPED();
-            } else
-                nerrors += test_copy_group_deep(fcpl_src, fcpl_dst, my_fapl);
-            nerrors += test_copy_group_loop(fcpl_src, fcpl_dst, my_fapl);
-            nerrors += test_copy_group_wide_loop(fcpl_src, fcpl_dst, my_fapl);
-            nerrors += test_copy_group_links(fcpl_src, fcpl_dst, my_fapl);
-            nerrors += test_copy_soft_link(fcpl_src, fcpl_dst, my_fapl);
-#ifndef H5_CANNOT_OPEN_TWICE
-            nerrors += test_copy_ext_link(fcpl_src, fcpl_dst, my_fapl);
-#endif /* H5_CANNOT_OPEN_TWICE */
-            nerrors += test_copy_exist(fcpl_src, fcpl_dst, my_fapl);
-            nerrors += test_copy_path(fcpl_src, fcpl_dst, my_fapl);
+
             nerrors += test_copy_same_file_named_datatype(fcpl_src, my_fapl);
             nerrors += test_copy_old_layout(fcpl_dst, my_fapl);
-            nerrors += test_copy_option(fcpl_src, fcpl_dst, my_fapl, H5O_COPY_WITHOUT_ATTR_FLAG,
-                       FALSE, "H5Ocopy(): without attributes");
-            nerrors += test_copy_option(fcpl_src, fcpl_dst, my_fapl, 0, TRUE,
-                       "H5Ocopy(): with missing groups");
-            nerrors += test_copy_option(fcpl_src, fcpl_dst, my_fapl, H5O_COPY_EXPAND_SOFT_LINK_FLAG,
-                       FALSE, "H5Ocopy(): expand soft link");
-            nerrors += test_copy_option(fcpl_src, fcpl_dst, my_fapl, H5O_COPY_SHALLOW_HIERARCHY_FLAG,
-                       FALSE, "H5Ocopy(): shallow group copy");
-            nerrors += test_copy_option(fcpl_src, fcpl_dst, my_fapl, H5O_COPY_EXPAND_REFERENCE_FLAG,
-                       FALSE, "H5Ocopy(): expand object reference");
-            nerrors += test_copy_option(fcpl_src, fcpl_dst, my_fapl, H5O_COPY_PRESERVE_NULL_FLAG,
-                       FALSE, "H5Ocopy(): preserve NULL messages");
-            nerrors += test_copy_option(fcpl_src, fcpl_dst, my_fapl, H5O_COPY_WITHOUT_ATTR_FLAG |
-                       H5O_COPY_PRESERVE_NULL_FLAG, TRUE, "H5Ocopy(): preserve NULL messages");
+        }
 
 /* TODO: not implemented
-            nerrors += test_copy_option(my_fapl, H5O_COPY_EXPAND_EXT_LINK_FLAG, FALSE, "H5Ocopy: expand external link");
-            nerrors += test_copy_mount(my_fapl);
- */
-        } /* end for */
+        nerrors += test_copy_option(my_fapl, H5O_COPY_EXPAND_EXT_LINK_FLAG, FALSE, "H5Ocopy: expand external link");
+        nerrors += test_copy_mount(my_fapl);
+*/
+    } /* end for */
 
-	/* Reset file address checking info */
-	addr_reset();
+    /* Reset file address checking info */
+    addr_reset();
 
-	/* Results */
-	if(nerrors) {
-	    printf("***** %d OBJECT COPY TEST%s FAILED! *****\n",
-		    nerrors, (1 == nerrors ? "" : "S"));
-	    exit(1);
-	} /* end if */
-
-	puts ("All object copying tests passed.");
-
-	h5_cleanup(FILENAME, fapl);
+    /* Results */
+    if(nerrors) {
+        printf("***** %d OBJECT COPY TEST%s FAILED! *****\n",
+                nerrors, (1 == nerrors ? "" : "S"));
+        exit(1);
     } /* end if */
-    else
-        puts("All object copying tests skipped - Incompatible with current Virtual File Driver");
+
+    puts ("All object copying tests passed.");
+
+    h5_cleanup(FILENAME, fapl);
 
     return 0;
 
 error:
     return 1;
 } /* main */
+

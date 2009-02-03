@@ -53,6 +53,10 @@
 /* Max. # of bits for max. nelmts index */
 #define H5EA_MAX_NELMTS_IDX_MAX 64
 
+/* # of elements in a data block for a particular super block */
+#define H5EA_SBLK_DBLK_NELMTS(s, m)                                           \
+    (size_t)H5_EXP2(((s) + 1) / 2) * (m)
+
 
 /******************/
 /* Local Typedefs */
@@ -125,6 +129,9 @@ H5EA__hdr_alloc(H5F_t *f, const H5EA_class_t *cls))
     if(NULL == (hdr = H5FL_CALLOC(H5EA_hdr_t)))
 	H5E_THROW(H5E_CANTALLOC, "memory allocation failed for extensible array shared header")
 
+    /* Set non-zero internal fields */
+    hdr->addr = HADDR_UNDEF;
+
     /* Set the internal parameters for the array */
     hdr->f = f;
     hdr->sizeof_addr = H5F_SIZEOF_ADDR(f);
@@ -132,6 +139,10 @@ H5EA__hdr_alloc(H5F_t *f, const H5EA_class_t *cls))
 
     /* Set the class of the array */
     hdr->cparam.cls = cls;
+
+    /* Create the callback context */
+    if(NULL == (hdr->cb_ctx = (*cls->crt_context)(f)))
+	H5E_THROW(H5E_CANTCREATE, "unable to create extensible array client callback context")
 
     /* Set the return value */
     ret_value = hdr;
@@ -197,6 +208,8 @@ H5EA__hdr_init(H5EA_hdr_t *hdr))
 
     /* Compute general information */
     hdr->nsblks = 1 + (hdr->cparam.max_nelmts_bits - H5V_log2_of2(hdr->cparam.data_blk_min_elmts));
+    hdr->dblk_page_nelmts = (size_t)1 << hdr->cparam.max_dblk_page_nelmts_bits;
+    hdr->arr_off_size = (unsigned char)H5EA_SIZEOF_OFFSET_BITS(hdr->cparam.max_nelmts_bits);
 #ifdef QAK
 HDfprintf(stderr, "%s: hdr->nsblks = %Zu\n", FUNC, hdr->nsblks);
 #endif /* QAK */
@@ -210,7 +223,7 @@ HDfprintf(stderr, "%s: hdr->nsblks = %Zu\n", FUNC, hdr->nsblks);
     start_dblk = 0;
     for(u = 0; u < hdr->nsblks; u++) {
         hdr->sblk_info[u].ndblks = (size_t)H5_EXP2(u / 2);
-        hdr->sblk_info[u].dblk_nelmts = (size_t)H5_EXP2((u + 1) / 2) * hdr->cparam.data_blk_min_elmts;
+        hdr->sblk_info[u].dblk_nelmts = H5EA_SBLK_DBLK_NELMTS(u, hdr->cparam.data_blk_min_elmts);
         hdr->sblk_info[u].start_idx = start_idx;
         hdr->sblk_info[u].start_dblk = start_dblk;
 #ifdef QAK
@@ -222,8 +235,8 @@ HDfprintf(stderr, "%s: hdr->sblk_info[%Zu] = {%Zu, %Zu, %Hu, %Hu}\n", FUNC, u, h
         start_dblk += (hsize_t)hdr->sblk_info[u].ndblks;
     } /* end for */
 
-    /* Set size of header on disk */
-    hdr->size = H5EA_HEADER_SIZE(hdr);
+    /* Set size of header on disk (locally and in statistics) */
+    hdr->stats.hdr_size = hdr->size = H5EA_HEADER_SIZE(hdr);
 
 CATCH
 
@@ -295,7 +308,7 @@ HDfprintf(stderr, "%s: nelmts = %Zu, hdr->data_blk_min_elmts = %u, idx = %u\n", 
 CATCH
     if(!ret_value)
         if(elmts)
-            (void)H5FL_fac_free(hdr->elmt_fac.fac[idx], elmts);
+            (void)H5FL_FAC_FREE(hdr->elmt_fac.fac[idx], elmts);
 
 END_FUNC(PKG)   /* end H5EA__hdr_alloc_elmts() */
 
@@ -358,7 +371,7 @@ haddr_t, HADDR_UNDEF, HADDR_UNDEF,
 H5EA__hdr_create(H5F_t *f, hid_t dxpl_id, const H5EA_create_t *cparam))
 
     /* Local variables */
-    H5EA_hdr_t *hdr;            /* Extensible array header */
+    H5EA_hdr_t *hdr = NULL;     /* Extensible array header */
 
 #ifdef QAK
 HDfprintf(stderr, "%s: Called\n", FUNC);
@@ -369,19 +382,37 @@ HDfprintf(stderr, "%s: Called\n", FUNC);
     HDassert(cparam);
 
 #ifndef NDEBUG
+{
+    unsigned sblk_idx;          /* Super block index for first "actual" super block */
+    size_t dblk_nelmts;         /* Number of data block elements */
+    size_t dblk_page_nelmts;    /* Number of elements in a data block page */
+
     /* Check for valid parameters */
     if(cparam->raw_elmt_size == 0)
 	H5E_THROW(H5E_BADVALUE, "element size must be greater than zero")
     if(cparam->max_nelmts_bits == 0)
-	H5E_THROW(H5E_BADVALUE, "max. # of nelmts bitsmust be greater than zero")
+	H5E_THROW(H5E_BADVALUE, "max. # of elements bits must be greater than zero")
     if(cparam->max_nelmts_bits > H5EA_MAX_NELMTS_IDX_MAX)
-	H5E_THROW(H5E_BADVALUE, "element size must be <= %u", (unsigned)H5EA_MAX_NELMTS_IDX_MAX)
+	H5E_THROW(H5E_BADVALUE, "max. # of elements bits must be <= %u", (unsigned)H5EA_MAX_NELMTS_IDX_MAX)
     if(cparam->sup_blk_min_data_ptrs < 2)
 	H5E_THROW(H5E_BADVALUE, "min # of data block pointers in super block must be >= two")
     if(!POWER_OF_TWO(cparam->sup_blk_min_data_ptrs))
-	H5E_THROW(H5E_BADVALUE, "min # of data block pointers in super block not power of two")
+	H5E_THROW(H5E_BADVALUE, "min # of data block pointers in super block must be power of two")
     if(!POWER_OF_TWO(cparam->data_blk_min_elmts))
-	H5E_THROW(H5E_BADVALUE, "min # of elements per data block not power of two")
+	H5E_THROW(H5E_BADVALUE, "min # of elements per data block must be power of two")
+    dblk_page_nelmts = (size_t)1 << cparam->max_dblk_page_nelmts_bits;
+    if(dblk_page_nelmts < cparam->idx_blk_elmts)
+	H5E_THROW(H5E_BADVALUE, "# of elements per data block page must be greater than # of elements in index block")
+
+    /* Compute the number of elements in data blocks for first actual super block */
+    sblk_idx = H5EA_SBLK_FIRST_IDX(cparam->sup_blk_min_data_ptrs);
+    dblk_nelmts = H5EA_SBLK_DBLK_NELMTS(sblk_idx, cparam->data_blk_min_elmts);
+    if(dblk_page_nelmts < dblk_nelmts)
+	H5E_THROW(H5E_BADVALUE, "max. # of elements per data block page bits must be > # of elements in first data block from super block")
+        
+    if(cparam->max_dblk_page_nelmts_bits > cparam->max_nelmts_bits)
+	H5E_THROW(H5E_BADVALUE, "max. # of elements per data block page bits must be <= max. # of elements bits")
+}
 #endif /* NDEBUG */
 
     /* Allocate space for the shared information */
@@ -410,6 +441,16 @@ HDfprintf(stderr, "%s: Called\n", FUNC);
     ret_value = hdr->addr;
 
 CATCH
+    if(!H5F_addr_defined(ret_value))
+        if(hdr) {
+            /* Release header's disk space */
+            if(H5F_addr_defined(hdr->addr) && H5MF_xfree(f, H5FD_MEM_EARRAY_HDR, dxpl_id, hdr->addr, (hsize_t)hdr->size) < 0)
+                H5E_THROW(H5E_CANTFREE, "unable to free extensible array header")
+
+            /* Destroy header */
+            if(H5EA__hdr_dest(hdr) < 0)
+                H5E_THROW(H5E_CANTFREE, "unable to destroy extensible array header")
+        } /* end if */
 
 END_FUNC(PKG)   /* end H5EA__hdr_create() */
 
@@ -649,6 +690,11 @@ H5EA__hdr_dest(H5EA_hdr_t *hdr))
     HDassert(hdr);
     HDassert(hdr->rc == 0);
 
+    /* Destroy the callback context */
+    if((*hdr->cparam.cls->dst_context)(hdr->cb_ctx) < 0)
+	H5E_THROW(H5E_CANTRELEASE, "unable to destroy extensible array client callback context")
+    hdr->cb_ctx = NULL;
+
     /* Check for data block element buffer factory info to free */
     if(hdr->elmt_fac.fac) {
         unsigned u;         /* Local index variable */
@@ -675,7 +721,7 @@ H5EA__hdr_dest(H5EA_hdr_t *hdr))
         hdr->sblk_info = (H5EA_sblk_info_t *)H5FL_SEQ_FREE(H5EA_sblk_info_t, hdr->sblk_info);
 
     /* Free the shared info itself */
-    (void)H5FL_FREE(H5EA_hdr_t, hdr);
+    hdr = H5FL_FREE(H5EA_hdr_t, hdr);
 
 CATCH
 

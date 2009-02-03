@@ -310,8 +310,8 @@ H5F_get_access_plist(H5F_t *f, hbool_t app_ref)
     /* Copy properties of the file access property list */
     if(H5P_set(new_plist, H5F_ACS_META_CACHE_INIT_CONFIG_NAME, &(f->shared->mdc_initCacheCfg)) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set initial metadata cache resize config.")
-    if(H5P_set(new_plist, H5F_ACS_DATA_CACHE_ELMT_SIZE_NAME, &(f->shared->rdcc_nelmts)) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set data cache element size")
+    if(H5P_set(new_plist, H5F_ACS_DATA_CACHE_NUM_SLOTS_NAME, &(f->shared->rdcc_nslots)) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set data cache number of slots")
     if(H5P_set(new_plist, H5F_ACS_DATA_CACHE_BYTE_SIZE_NAME, &(f->shared->rdcc_nbytes)) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set data cache byte size")
     if(H5P_set(new_plist, H5F_ACS_PREEMPT_READ_CHUNKS_NAME, &(f->shared->rdcc_w0)) < 0)
@@ -394,7 +394,7 @@ H5Fget_obj_count(hid_t file_id, unsigned types)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "not an object type")
 
     /* H5F_get_obj_count doesn't fail */
-    ret_value = H5F_get_obj_count(f, types, TRUE);
+    ret_value = (ssize_t)H5F_get_obj_count(f, types, TRUE);
 
 done:
     FUNC_LEAVE_API(ret_value)
@@ -468,7 +468,7 @@ H5Fget_obj_ids(hid_t file_id, unsigned types, size_t max_objs, hid_t *oid_list)
     HDassert(oid_list);
  
     /* H5F_get_objects doesn't fail */
-    ret_value = H5F_get_obj_ids(f, types, max_objs, oid_list, TRUE);
+    ret_value = (ssize_t)H5F_get_obj_ids(f, types, max_objs, oid_list, TRUE);
 
 done:
     FUNC_LEAVE_API(ret_value)
@@ -923,10 +923,10 @@ H5F_new(H5F_file_t *shared, hid_t fcpl_id, hid_t fapl_id, H5FD_t *lf)
             HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not file access property list")
         if(H5P_get(plist, H5F_ACS_META_CACHE_INIT_CONFIG_NAME, &(f->shared->mdc_initCacheCfg)) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get initial metadata cache resize config")
-        if(H5P_get(plist, H5F_ACS_DATA_CACHE_ELMT_SIZE_NAME, &(f->shared->rdcc_nelmts)) < 0)
-            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get data cache element size")
+        if(H5P_get(plist, H5F_ACS_DATA_CACHE_NUM_SLOTS_NAME, &(f->shared->rdcc_nslots)) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get data cache number of slots")
         if(H5P_get(plist, H5F_ACS_DATA_CACHE_BYTE_SIZE_NAME, &(f->shared->rdcc_nbytes)) < 0)
-            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get data cache cache size")
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get data cache byte size")
         if(H5P_get(plist, H5F_ACS_PREEMPT_READ_CHUNKS_NAME, &(f->shared->rdcc_w0)) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get preempt read chunk")
         if(H5P_get(plist, H5F_ACS_ALIGN_THRHD_NAME, &(f->shared->threshold)) < 0)
@@ -967,7 +967,7 @@ H5F_new(H5F_file_t *shared, hid_t fcpl_id, hid_t fapl_id, H5FD_t *lf)
          * and set the version # of the superblock to 1 if it is a non-default
          * value.
          */
-        else if(f->shared->btree_k[H5B_ISTORE_ID] != HDF5_BTREE_ISTORE_IK_DEF)
+        else if(f->shared->btree_k[H5B_CHUNK_ID] != HDF5_BTREE_CHUNK_IK_DEF)
             super_vers = HDF5_SUPERBLOCK_VERSION_1;
 
         /* If a newer superblock version is required, set it here */
@@ -2330,6 +2330,47 @@ H5F_decr_nopen_objs(H5F_t *f)
 
 
 /*-------------------------------------------------------------------------
+ * Function:	H5F_addr_encode_len
+ *
+ * Purpose:	Encodes an address into the buffer pointed to by *PP and
+ *		then increments the pointer to the first byte after the
+ *		address.  An undefined value is stored as all 1's.
+ *
+ * Return:	void
+ *
+ * Programmer:	Robb Matzke
+ *		Friday, November  7, 1997
+ *
+ *-------------------------------------------------------------------------
+ */
+void
+H5F_addr_encode_len(size_t addr_len, uint8_t **pp/*in,out*/, haddr_t addr)
+{
+    unsigned    u;              /* Local index variable */
+
+    /* Use FUNC_ENTER_NOAPI_NOINIT_NOFUNC here to avoid performance issues */
+    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5F_addr_encode_len)
+
+    HDassert(addr_len);
+    HDassert(pp && *pp);
+
+    if(H5F_addr_defined(addr)) {
+	for(u = 0; u < addr_len; u++) {
+	    *(*pp)++ = (uint8_t)(addr & 0xff);
+	    addr >>= 8;
+	} /* end for */
+	HDassert("overflow" && 0 == addr);
+    } /* end if */
+    else {
+	for(u = 0; u < addr_len; u++)
+	    *(*pp)++ = 0xff;
+    } /* end else */
+
+    FUNC_LEAVE_NOAPI_VOID
+} /* end H5F_addr_encode_len() */
+
+
+/*-------------------------------------------------------------------------
  * Function:	H5F_addr_encode
  *
  * Purpose:	Encodes an address into the buffer pointed to by *PP and
@@ -2341,31 +2382,88 @@ H5F_decr_nopen_objs(H5F_t *f)
  * Programmer:	Robb Matzke
  *		Friday, November  7, 1997
  *
- * Modifications:
- *		Robb Matzke, 1999-07-28
- *		The ADDR argument is passed by value.
  *-------------------------------------------------------------------------
  */
 void
 H5F_addr_encode(const H5F_t *f, uint8_t **pp/*in,out*/, haddr_t addr)
 {
-    unsigned		    i;
+    /* Use FUNC_ENTER_NOAPI_NOINIT_NOFUNC here to avoid performance issues */
+    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5F_addr_encode)
 
-    assert(f);
-    assert(pp && *pp);
+    HDassert(f);
 
-    if (H5F_addr_defined(addr)) {
-	for (i=0; i<H5F_SIZEOF_ADDR(f); i++) {
-	    *(*pp)++ = (uint8_t)(addr & 0xff);
-	    addr >>= 8;
-	}
-	assert("overflow" && 0 == addr);
+    H5F_addr_encode_len(H5F_SIZEOF_ADDR(f), pp, addr);
 
-    } else {
-	for (i=0; i<H5F_SIZEOF_ADDR(f); i++)
-	    *(*pp)++ = 0xff;
-    }
-}
+    FUNC_LEAVE_NOAPI_VOID
+} /* end H5F_addr_encode() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5F_addr_decode_len
+ *
+ * Purpose:	Decodes an address from the buffer pointed to by *PP and
+ *		updates the pointer to point to the next byte after the
+ *		address.
+ *
+ *		If the value read is all 1's then the address is returned
+ *		with an undefined value.
+ *
+ * Return:	void
+ *
+ * Programmer:	Robb Matzke
+ *		Friday, November  7, 1997
+ *
+ *-------------------------------------------------------------------------
+ */
+void
+H5F_addr_decode_len(size_t addr_len, const uint8_t **pp/*in,out*/, haddr_t *addr_p/*out*/)
+{
+    hbool_t	    all_zero = TRUE;    /* True if address was all zeroes */
+    unsigned	    u;          /* Local index variable */
+
+    /* Use FUNC_ENTER_NOAPI_NOINIT_NOFUNC here to avoid performance issues */
+    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5F_addr_decode_len)
+
+    HDassert(addr_len);
+    HDassert(pp && *pp);
+    HDassert(addr_p);
+
+    /* Reset value in destination */
+    *addr_p = 0;
+
+    /* Decode bytes from address */
+    for(u = 0; u < addr_len; u++) {
+        uint8_t	    c;          /* Local decoded byte */
+
+        /* Get decoded byte (and advance pointer) */
+	c = *(*pp)++;
+
+        /* Check for non-undefined address byte value */
+	if(c != 0xff)
+            all_zero = FALSE;
+
+	if(u < sizeof(*addr_p)) {
+            haddr_t	    tmp = c;    /* Local copy of address, for casting */
+
+            /* Shift decoded byte to correct position */
+	    tmp <<= (u * 8);	/*use tmp to get casting right */
+
+            /* Merge into already decoded bytes */
+	    *addr_p |= tmp;
+	} /* end if */
+        else
+            if(!all_zero)
+                HDassert(0 == **pp);	/*overflow */
+    } /* end for */
+
+    /* If 'all_zero' is still TRUE, the address was entirely composed of '0xff'
+     *  bytes, which is the encoded form of 'HADDR_UNDEF', so set the destination
+     *  to that value */
+    if(all_zero)
+        *addr_p = HADDR_UNDEF;
+
+    FUNC_LEAVE_NOAPI_VOID
+} /* end H5F_addr_decode_len() */
 
 
 /*-------------------------------------------------------------------------
@@ -2383,40 +2481,20 @@ H5F_addr_encode(const H5F_t *f, uint8_t **pp/*in,out*/, haddr_t addr)
  * Programmer:	Robb Matzke
  *		Friday, November  7, 1997
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 void
 H5F_addr_decode(const H5F_t *f, const uint8_t **pp/*in,out*/, haddr_t *addr_p/*out*/)
 {
-    unsigned		    i;
-    haddr_t		    tmp;
-    uint8_t		    c;
-    hbool_t		    all_zero = TRUE;
+    /* Use FUNC_ENTER_NOAPI_NOINIT_NOFUNC here to avoid performance issues */
+    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5F_addr_decode)
 
-    assert(f);
-    assert(pp && *pp);
-    assert(addr_p);
+    HDassert(f);
 
-    *addr_p = 0;
+    H5F_addr_decode_len(H5F_SIZEOF_ADDR(f), pp, addr_p);
 
-    for (i=0; i<H5F_SIZEOF_ADDR(f); i++) {
-	c = *(*pp)++;
-	if (c != 0xff)
-            all_zero = FALSE;
-
-	if (i<sizeof(*addr_p)) {
-	    tmp = c;
-	    tmp <<= (i * 8);	/*use tmp to get casting right */
-	    *addr_p |= tmp;
-	} else if (!all_zero) {
-	    assert(0 == **pp);	/*overflow */
-	}
-    }
-    if (all_zero)
-        *addr_p = HADDR_UNDEF;
-}
+    FUNC_LEAVE_NOAPI_VOID
+} /* end H5F_addr_decode() */
 
 
 /*-------------------------------------------------------------------------

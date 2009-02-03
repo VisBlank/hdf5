@@ -57,7 +57,7 @@ else
 endif
 
 # Source files for the library.
-libhdf5_fortran_la_SOURCES=H5fortran_flags.f90 H5f90global.f90          \
+libhdf5_fortran_la_SOURCES= H5f90global.f90          \
          H5fortran_types.f90 H5_ff.f90 H5Aff.f90 H5Dff.f90 H5Eff.f90    \
          H5Fff.f90 H5Gff.f90 H5Iff.f90 H5Lff.f90 H5Off.f90 H5Pff.f90 H5Rff.f90 H5Sff.f90    \
          H5Tff.f90 H5Zff.f90                                            \
@@ -66,9 +66,9 @@ libhdf5_fortran_la_SOURCES=H5fortran_flags.f90 H5f90global.f90          \
          H5If.c H5Lf.c H5Of.c H5Pf.c H5Rf.c H5Sf.c H5Tf.c H5Zf.c        \
          $(PARALLEL_COND_SRC)
 
-# h5fc and libhdf5_fortran.settings are generated during configure.
-# Remove them only when distclean.
-DISTCLEANFILES=h5fc libhdf5_fortran.settings
+# h5fc is generated during configure.
+# Remove it only when distclean.
+DISTCLEANFILES=h5fc
 
 # H5fortran_types.f90 and H5f90i.h are automatically generaed by
 # H5match_types, and must be cleaned explicitly.  H5fort_type_defines.h
@@ -103,10 +103,6 @@ uninstall-local:
 # Also install and uninstall (uninstall-local above) h5fc script
 install-exec-local:
 	@$(INSTALL) h5fc $(DESTDIR)$(bindir)/$(H5FC_NAME)
-
-# Install libhdf5_fortran.settings in lib directory
-settingsdir=$(libdir)
-settings_DATA=libhdf5_fortran.settings
 
 # Custom rule for installing h5fc, since it will be named h5pfc if hdf5
 # is configured for parallel mode
@@ -174,8 +170,7 @@ FORTRAN_API=yes
 # determining this automagically (like we do with the C files). So, when
 # doing a parallel make, some modules could be made way before the
 # modules they depend upon are actually made. *sigh*
-H5fortran_flags.lo:  $(srcdir)/H5fortran_flags.f90
-H5f90global.lo:      $(srcdir)/H5f90global.f90 H5fortran_flags.lo H5fortran_types.lo
+H5f90global.lo:      $(srcdir)/H5f90global.f90 H5fortran_types.lo
 H5fortran_types.lo:  H5fortran_types.f90
 H5fortran_detect.lo: H5fortran_detect.f90
 H5test_kind.lo:      $(srcdir)/H5test_kind.f90

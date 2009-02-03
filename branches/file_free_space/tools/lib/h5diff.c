@@ -197,7 +197,7 @@ hsize_t h5diff(const char *fname1,
 
     if(options->m_quiet && (options->m_verbose || options->m_report))
     {
-        printf("Error: -q (quiet mode) cannot be added to verbose or report modes\n");
+        parallel_print("Error: -q (quiet mode) cannot be added to verbose or report modes\n");
         options->err_stat=1;
         return 0;
     } /* end if */
@@ -213,7 +213,7 @@ hsize_t h5diff(const char *fname1,
         /* open the files */
         if((file1_id = H5Fopen(fname1, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0)
         {
-            printf("h5diff: <%s>: unable to open file\n", fname1);
+            parallel_print("h5diff: <%s>: unable to open file\n", fname1);
             options->err_stat = 1;
 
 #ifdef H5_HAVE_PARALLEL
@@ -225,7 +225,7 @@ hsize_t h5diff(const char *fname1,
         } /* end if */
         if((file2_id = H5Fopen(fname2, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0)
         {
-            printf("h5diff: <%s>: unable to open file\n", fname2);
+            parallel_print("h5diff: <%s>: unable to open file\n", fname2);
             options->err_stat = 1;
 
 #ifdef H5_HAVE_PARALLEL
@@ -250,7 +250,7 @@ hsize_t h5diff(const char *fname1,
     *-------------------------------------------------------------------------
     */
     if(h5trav_getinfo(file1_id, info1) < 0 || h5trav_getinfo(file2_id, info2) < 0) {
-        printf("Error: Could not get file contents\n");
+        parallel_print("Error: Could not get file contents\n");
         options->err_stat = 1;
 #ifdef H5_HAVE_PARALLEL
         if(g_Parallel)
@@ -347,17 +347,14 @@ out:
  *
  * Date: May 9, 2003
  *
- * Modifications:
- *
- * Jan 2005 Leon Arber, larber@uiuc.edu
+ * Modifications: Jan 2005 Leon Arber, larber@uiuc.edu
  *    Added support for parallel diffing
  *
- * Aug 2008 Pedro Vicente, pvn@hdfgroup.org
- *    Added a "contents" mode check.
- *    If this mode is present, objects in both files must match (must be exactly the same)
- *    If this does not happen, the tool returns an error code of 1
- *    (instead of the success code of 0)
- *
+ * Pedro Vicente, pvn@hdfgroup.org, Nov 4, 2008
+ *    Compare the graph and make h5diff return 1 for difference if
+ * 1) the number of objects in file1 is not the same as in file2
+ * 2) the graph does not match, i.e same names (absolute path)
+ * 3) objects with the same name are not of the same type
  *-------------------------------------------------------------------------
  */
 hsize_t diff_match(hid_t file1_id,
@@ -434,47 +431,56 @@ hsize_t diff_match(hid_t file1_id,
     */
     if(options->m_verbose)
     {
-        printf("\n");
-        printf("file1     file2\n");
-        printf("---------------------------------------\n");
+        parallel_print("\n");
+        parallel_print("file1     file2\n");
+        parallel_print("---------------------------------------\n");
         for(i = 0; i < table->nobjs; i++) {
             char c1, c2;
 
             c1 = (table->objs[i].flags[0]) ? 'x' : ' ';
             c2 = (table->objs[i].flags[1]) ? 'x' : ' ';
-            printf("%5c %6c    %-15s\n", c1, c2, table->objs[i].name);
+            parallel_print("%5c %6c    %-15s\n", c1, c2, table->objs[i].name);
         } /* end for */
-        printf ("\n");
+        parallel_print ("\n");
     } /* end if */
 
 
 
     /*-------------------------------------------------------------------------
-    * contents mode. we do an "absolute" compare criteria, the number of objects
-    * in file1 must be the same as in file2
+    * regarding the return value of h5diff (0, no difference in files, 1 difference )
+    * 1) the number of objects in file1 must be the same as in file2
+    * 2) the graph must match, i.e same names (absolute path)
+    * 3) objects with the same name must be of the same type
     *-------------------------------------------------------------------------
-    */
-    if ( options->m_contents )
+    */     
+       
+    /* number of different objects */
+    if ( info1->nused != info2->nused )
     {
-        /* assume equal contents initially */
-        options->contents = 1;
-
-        /* number of different objects */
-        if ( info1->nused != info2->nused )
+        options->contents = 0;
+    }
+    
+    /* objects in one file and not the other */
+    for( i = 0; i < table->nobjs; i++)
+    {
+        if( table->objs[i].flags[0] != table->objs[i].flags[1] )
         {
             options->contents = 0;
         }
+    }
 
-
-        for( i = 0; i < table->nobjs; i++)
+    /* objects with the same name but different HDF5 types */
+    for( i = 0; i < table->nobjs; i++) 
+    {
+        if ( table->objs[i].flags[0] && table->objs[i].flags[1] )
         {
-            if( table->objs[i].flags[0] != table->objs[i].flags[1] )
+            if ( table->objs[i].type != table->objs[i].type )
             {
                 options->contents = 0;
             }
         }
-
     }
+
 
 
     /*-------------------------------------------------------------------------
@@ -840,10 +846,12 @@ hsize_t diff_compare(hid_t file1_id,
     /* objects are not the same type */
     if (info1->paths[i].type != info2->paths[j].type)
     {
-        if (options->m_verbose)
-            parallel_print("Comparison not possible: <%s> is of type %s and <%s> is of type %s\n",
+        if (options->m_verbose||options->m_list_not_cmp)
+        {
+            parallel_print("<%s> is of type %s and <%s> is of type %s\n",
             obj1_name, get_type(info1->paths[i].type), obj2_name,
             get_type(info2->paths[j].type));
+        }
         options->not_cmp=1;
         return 0;
     }
@@ -1135,7 +1143,7 @@ hsize_t diff(hid_t file1_id,
 
         default:
             if(options->m_verbose)
-                printf("Comparison not supported: <%s> and <%s> are of type %s\n",
+                parallel_print("Comparison not supported: <%s> and <%s> are of type %s\n",
                     path1, path2, get_type(type) );
             options->not_cmp = 1;
             break;

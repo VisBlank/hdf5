@@ -1,4 +1,4 @@
-HDF5 version 1.9.20 currently under development
+HDF5 version 1.9.30 currently under development
 ================================================================================
 
 
@@ -10,8 +10,8 @@ tested and known problems in HDF5-1.9.x.
 For more details check the HISTORY*.txt files in the HDF5 source.
 
 
-Links to HDF5 1.9.x source code can be found on THG's development 
-FTP server at the following location:
+Links to HDF5 1.9.x source code can be found on The HDF Group's 
+development FTP server at the following location:
      ftp://ftp.hdfgroup.uiuc.edu/pub/outgoing/hdf5/snapshots
 User documentation for the snapshot can be accessed directly at this location: 
      http://www.hdfgroup.uiuc.edu/HDF5/doc_dev_snapshot/H5_dev/
@@ -39,9 +39,10 @@ New Features
 
     Configuration:
     -------------
+    - Configuration suite now uses Libtool 2.2.6a. MAM 2008/10/24
 
-    - Configuration suite now uses Autoconf 2.61, Automake 1.10.1, and 
-      Libtool 2.2.2 (MAM - 2008/05/05)
+    - Configuration suite now uses Autoconf 2.61, Automake 1.10.1. 
+      MAM 2008/05/05. 
 
     - The new configure option "--disable-sharedlib-rpath" disables
       embedding the '-Wl,-rpath' information into executables when
@@ -50,6 +51,19 @@ New Features
 
     Library:
     --------
+    - Added support for dense attributes to H5Ocopy. (XCao/NAF - 2009/01/29)
+    - Added H5Pset_elink_cb and H5Pget_elink_cb functions to support a
+      user-defined callback function for external link traversal.
+      (NAF - 2009/01/08)
+    - Added H5Pset_elink_acc_flags and H5Pget_elink_acc_flags functions to
+      allow the user to specify the file access flags used to open the target
+      file of an external link. (NAF - 2009/01/08)
+    - Added H5Pset_chunk_cache() and H5Pget_chunk_cache() functions to allow
+      individual rdcc configuration for each dataset.  Added
+      H5Dget_access_plist() function to retrieve a dataset access property
+      list from a dataset. (NAF - 2008/11/12)
+    - Added H5Iis_valid() function to check if an id is valid without producing
+      an error message. (NAF - 2008/11/5)
     - Added two new public routines: H5Pget_elink_fapl() and
       H5Pset_elink_fapl(). (see bug #1247) (VC - 2008/10/13)
     - Improved free space tracking in file to be faster. (QAK - 2008/10/06)
@@ -92,19 +106,30 @@ New Features
          points to. (PVN - 2008/05/12)
      - h5repack: add a userblock to an HDF5 file during the repack. (PVN - 2008/08/26)
      - h5repack: add 2 options that call H5Pset_alignment in the repacked file. (PVN - 2008/08/29)
-     - h5diff: new mode (-c contents), that checks if the objects in both files are 
-         the same. (PVN - 2008/08/26)
      - h5ls: added capability to traverse through external links when the -r
          (recursive) flag is given. (NAF - 2008/09/16)
      - h5ls: added -E option to enable traversal of external links.  h5ls will
          not traverse external links without this flag being set.
          (NAF - 2008/10/06)
-
+     - h5diff: added support for long double (PVN - 2008/10/28)
+     - h5dump: binary output defaults to NATIVE with -b optionally accepting
+            the form of binary output (NATIVE, FILE, BE, LE). (PVN - 2008/10/30)
+     - h5diff: return 1 for file differences when both file graphs differ by any object. 
+            Error return code was changed to 2 from -1. (PVN - 2008/10/30)
+     - h5import: TEXTFPE (scientific format) was deprecated. Use TEXTFP 
+            instead (PVN - 2008/10/30)
+     - h5repack: When user doesn't specify a chunk size, h5repack now defines a default 
+            chunk size as the same size of the size of the hyperslab used to read the chunks. 
+            The size of the hyperslabs are defined as the size of each dimension or a 
+            predefined constant, whatever is smaller. This assures that the chunk 
+            read fits in the chunk cache. (PVN - 2008/11/21)
 
 
 
     High-Level APIs:
     ------
+     - Table: In version 3.0 of Table, "NROWS" (used to store number of records) was 
+           deprecated (PVN - 2008/11/24)
     
     Documentation 
     ------------- 
@@ -117,30 +142,46 @@ Bug Fixes since HDF5-1.8.0 release
 
     Library
     -------
+      - Fixed a bug that could cause problems when copying an object with a shared
+            message in its own object header. (NAF - 2009/01/29)
+      - Changed H5Tset_order to properly reject H5T_ORDER_NONE for most
+            datatypes. (NAF - 2009/01/27)
+      - Fixed a bug where H5Tpack wouldn't remove trailing space from an
+            otherwise packed compound type. (NAF - 2009/01/14)
+      - Fixed up some old v2 btree assertions that get run in debug mode that
+            were previously failing on compilation, and removed some of the 
+            more heavily outdated and non-rewritable ones. (MAM - 2008/12/15)
+      - Fixed a bug that could cause problems when "automatically" unmounting
+            multiple files. (NAF - 2008/11/17)
+      - H5Ovisit and H5Ovisit_by_name will now properly terminate when the
+            callback function returns a positive value on the starting object.
+            (NAF - 2008/11/03)
+      - Fixed an error where a null message could be created that was larger
+            than could be written to the file. (NAF - 2008/10/23)
       - Corrected error with family/split/multi VFD not updating driver info
             when "latest" version of the file format used. (QAK - 2008/10/14)
       - Corrected alignment+threshold errors to work correctly when metadata
             aggregation is enabled. (QAK - 2008/10/06)
       - Changed H5Fget_obj_count and H5Fget_obj_ids to ignore objects registered
-            by the library for internal library use.  (NAF - 2008/10/06)
+            by the library for internal library use. (NAF - 2008/10/06)
       - Fixed potential memory leak during compound conversion.
             (NAF - 2008/10/06)
       - Changed the return value of H5Fget_obj_count from INT to SSIZE_T. Also
             changed the return value of H5Fget_obj_ids from HERR_T to SSIZE_T and
             the type of the parameter MAX_OBJS from INT to SIZE_T. (SLU - 2008/09/26) 
       - Fixed an issue that could cause data to be improperly overwritten
-            during compound type conversion.  (NAF - 2008/09/19)
+            during compound type conversion. (NAF - 2008/09/19)
       - Fixed pointer alignment violations that could occur during vlen
-            conversion.  (NAF - 2008/09/16)
+            conversion. (NAF - 2008/09/16)
       - Fixed problem where library could cause a segmentation fault when
             an invalid location ID was given to H5Giterate(). (QAK - 2008/08/19)
       - Fixed improper shutdown when objects have reference count > 1.  The
             library now tracks reference count due to the application separately
-            from that due to internal library routines.  (NAF - 2008/08/19)
+            from that due to internal library routines. (NAF - 2008/08/19)
       - Fixed assertion failure caused by incorrect array datatype version.
             (NAF - 2008/08/08)
       - Fixed an issue where mount point traversal would fail when using
-            multiple handles for the child.  (NAF - 2008/08/07)
+            multiple handles for the child. (NAF - 2008/08/07)
       - Fixed an issue where mount points were inaccessible when using multiple
             file handles for the parent.  The mount table is now in the shared
             file structure (the parent pointer is still in the top structure).
@@ -152,6 +193,9 @@ Bug Fixes since HDF5-1.8.0 release
             attribute structure.  SLU - 2008/07/22
       - Fixed issue where a group could have a file mounted on it twice.
             (QAK - 2008/07/15)
+      - Fixed a Windows-specific issue in the ohdr test which was causing users
+        in some timezones to get false errors.  This a deficiency in the Windows
+        mktime() function, and has been handled properly.  SJW  - 2008/06/19
       - Fixed the problem with the searching of target file for H5Lcreate_external().
 	    The searching pattern will depend on whether the target file's
 	    pathname is an absolute or a relative path. Please see the description
@@ -163,10 +207,22 @@ Bug Fixes since HDF5-1.8.0 release
             (QAK - 2008/03/13)
       - Fixed bug in H5Aget_num_attrs() routine to handle invalid location
             ID correctly.  (QAK - 2008/03/11)
+      - H5Dset_extent: when shrinking dimensions, some chunks were not deleted.  
+            (PVN - 2009/01/8)
+      - Added code to maintain a min_clean_fraction in the metadata cache when
+            in serial mode. (MAM - 2009/01/9)
+
 
 
     Configuration
     -------------
+    - Fixed error with 'make check install' failing due to h5dump
+      needing other tools built first. MAM - 2008/10/24.
+    - When using shared szip, it is no longer necessary to specify
+      the path to the shared szip libraries in LD_LIBRARY_PATH. MAM - 
+      2008/10/24.
+    - The file libhdf5_fortran.settings is not installed since its content
+      is included in libhdf5.settings now. AKC - 2008/10/21
     - "make DESTDIR=xxx install" failed to install some tools and files
       (e.g., h5cc and fortran modules). Fixed. AKC - 2008/10/8.
 
@@ -175,6 +231,12 @@ Bug Fixes since HDF5-1.8.0 release
 
     Tools
     -----
+        - zip_perf.c had missing argument on one of the open() calls. Fixed.
+            (AKC - 2008/12/9)
+        - h5dump now checks for uniqueness of committed datatypes.
+            (NAF - 2008/10/15)
+        - Fixed unnecessary indentation of committed datatypes in h5dump.
+            (NAF - 2008/10/15)
 	- Fixed bugs in h5stat:segmemtation fault when printing groups and
           print warning message when traversal of objects is unsuccessful.
           (see bug #1253) (VC- 2008/10/13)

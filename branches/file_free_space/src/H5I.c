@@ -233,6 +233,7 @@ H5Iregister_type(size_t hash_size, unsigned reserved, H5I_free_t free_func)
     H5I_type_t ret_value;       /* Return value */
 
     FUNC_ENTER_API(H5Iregister_type, H5I_BADID)
+    H5TRACE3("It", "zIux", hash_size, reserved, free_func);
 
     /* Call H5I_register_type with a value of 0 to get a new type */
     ret_value = H5I_register_type((H5I_type_t)0, hash_size, reserved, free_func);
@@ -1841,6 +1842,54 @@ H5I_get_type_ref(H5I_type_t type)
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5I_get_type_ref() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5Iis_valid
+ *
+ * Purpose:	Check if the given id is valid.  And id is valid if it is in
+ *          use and has an application reference count of at least 1.
+ *
+ * Return:	Success: TRUE if the id is valid, FALSE otherwise.
+ *
+ *          Failure:	Negative (never fails currently)
+ *
+ * Programmer:  Neil Fortner
+ *              Friday, October 31, 2008 (boo)
+ *
+ *-------------------------------------------------------------------------
+ */
+htri_t
+H5Iis_valid(hid_t id)
+{
+    H5I_id_type_t   *type_ptr;          /* ptr to ID's type */
+    H5I_id_info_t   *id_ptr;            /* ptr to the ID */
+    H5I_type_t      type;               /* ID's type */
+    htri_t          ret_value = TRUE;   /* Return value */
+
+    FUNC_ENTER_API(H5Iis_valid, FAIL)
+    H5TRACE1("t", "i", id);
+
+    type = H5I_TYPE(id);
+    /* Check for conditions that would cause H5I_find_id to throw an assertion */
+    if (type <= H5I_BADID || type >= H5I_next_type)
+        HGOTO_DONE(FALSE);
+
+    type_ptr = H5I_id_type_list_g[type];
+    if (!type_ptr || type_ptr->count <= 0)
+        ret_value = FALSE;
+
+    /* Find the ID */
+    else if (NULL == (id_ptr = H5I_find_id(id)))
+        ret_value = FALSE;
+
+    /* Check if the found id is an internal id */
+    else if (!id_ptr->app_count)
+        ret_value = FALSE;
+
+done:
+    FUNC_LEAVE_API(ret_value)
+} /* end H5Iis_valid() */
 
 
 /*-------------------------------------------------------------------------

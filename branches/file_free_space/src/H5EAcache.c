@@ -62,6 +62,7 @@
 #define H5EA_IBLOCK_BUF_SIZE    512
 #define H5EA_SBLOCK_BUF_SIZE    512
 #define H5EA_DBLOCK_BUF_SIZE    512
+#define H5EA_DBLK_PAGE_BUF_SIZE 512
 
 
 /******************/
@@ -99,6 +100,11 @@ static herr_t H5EA__cache_dblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy,
 static herr_t H5EA__cache_dblock_clear(H5F_t *f, H5EA_dblock_t *dblock, hbool_t destroy);
 static herr_t H5EA__cache_dblock_size(const H5F_t *f, const H5EA_dblock_t *dblock, size_t *size_ptr);
 static herr_t H5EA__cache_dblock_dest(H5F_t *f, H5EA_dblock_t *dblock);
+static H5EA_dblk_page_t *H5EA__cache_dblk_page_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *udata, void *udata2);
+static herr_t H5EA__cache_dblk_page_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5EA_dblk_page_t *dblk_page, unsigned * flags_ptr);
+static herr_t H5EA__cache_dblk_page_clear(H5F_t *f, H5EA_dblk_page_t *dblk_page, hbool_t destroy);
+static herr_t H5EA__cache_dblk_page_size(const H5F_t *f, const H5EA_dblk_page_t *dblk_page, size_t *size_ptr);
+static herr_t H5EA__cache_dblk_page_dest(H5F_t *f, H5EA_dblk_page_t *dblk_page);
 
 
 /*********************/
@@ -143,6 +149,16 @@ const H5AC_class_t H5AC_EARRAY_DBLOCK[1] = {{
     (H5AC_dest_func_t)H5EA__cache_dblock_dest,
     (H5AC_clear_func_t)H5EA__cache_dblock_clear,
     (H5AC_size_func_t)H5EA__cache_dblock_size,
+}};
+
+/* H5EA data block page inherits cache-like properties from H5AC */
+const H5AC_class_t H5AC_EARRAY_DBLK_PAGE[1] = {{
+    H5AC_EARRAY_DBLK_PAGE_ID,
+    (H5AC_load_func_t)H5EA__cache_dblk_page_load,
+    (H5AC_flush_func_t)H5EA__cache_dblk_page_flush,
+    (H5AC_dest_func_t)H5EA__cache_dblk_page_dest,
+    (H5AC_clear_func_t)H5EA__cache_dblk_page_clear,
+    (H5AC_size_func_t)H5EA__cache_dblk_page_size,
 }};
 
 
@@ -235,13 +251,40 @@ H5EA__cache_hdr_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *_cls,
     hdr->cparam.idx_blk_elmts = *p++;          /* # of elements to store in index block */
     hdr->cparam.data_blk_min_elmts = *p++;     /* Min. # of elements per data block */
     hdr->cparam.sup_blk_min_data_ptrs = *p++;  /* Min. # of data block pointers for a super block */
+    hdr->cparam.max_dblk_page_nelmts_bits = *p++;  /* Log2(Max. # of elements in data block page) - i.e. # of bits needed to store max. # of elements in data block page */
+
+    /* Array statistics */
+    hdr->stats.hdr_size = size;                         /* Size of header in file */
+    H5F_DECODE_LENGTH(f, p, hdr->stats.nsuper_blks);    /* Number of super blocks created */
+    H5F_DECODE_LENGTH(f, p, hdr->stats.super_blk_size); /* Size of super blocks created */
+    H5F_DECODE_LENGTH(f, p, hdr->stats.ndata_blks);     /* Number of data blocks created */
+    H5F_DECODE_LENGTH(f, p, hdr->stats.data_blk_size);  /* Size of data blocks created */
+    H5F_DECODE_LENGTH(f, p, hdr->stats.max_idx_set);    /* Max. index set (+1) */
+    H5F_DECODE_LENGTH(f, p, hdr->stats.nelmts);         /* Number of elements 'realized' */
 
     /* Internal information */
     H5F_addr_decode(f, &p, &hdr->idx_blk_addr); /* Address of index block */
-    H5F_DECODE_LENGTH(f, p, hdr->stats.max_idx_set);    /* Max. index set (+1) */
-    H5F_DECODE_LENGTH(f, p, hdr->stats.nsuper_blks);    /* Number of super blocks created */
-    H5F_DECODE_LENGTH(f, p, hdr->stats.ndata_blks);     /* Number of data blocks created */
-    H5F_DECODE_LENGTH(f, p, hdr->stats.nelmts);         /* Number of elements 'realized' */
+
+    /* Index block statistics */
+    if(H5F_addr_defined(hdr->idx_blk_addr)) {
+        H5EA_iblock_t iblock;           /* Fake index block for computing size */
+
+        /* Set index block count for file */
+        hdr->stats.nindex_blks = 1;
+
+        /* Set up fake index block for computing size on disk */
+        iblock.hdr = hdr;
+        iblock.nsblks = H5EA_SBLK_FIRST_IDX(hdr->cparam.sup_blk_min_data_ptrs);
+        iblock.ndblk_addrs = 2 * ((size_t)hdr->cparam.sup_blk_min_data_ptrs - 1);
+        iblock.nsblk_addrs = hdr->nsblks - iblock.nsblks;
+
+        /* Compute size of index block in file */
+        hdr->stats.index_blk_size = H5EA_IBLOCK_SIZE(&iblock);
+    } /* end if */
+    else {
+        hdr->stats.nindex_blks = 0;       /* Number of index blocks in file */
+        hdr->stats.index_blk_size = 0;    /* Size of index blocks in file */
+    } /* end else */
 
     /* Sanity check */
     /* (allow for checksum not decoded yet) */
@@ -343,13 +386,18 @@ H5EA__cache_hdr_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr,
         *p++ = hdr->cparam.idx_blk_elmts;          /* # of elements to store in index block */
         *p++ = hdr->cparam.data_blk_min_elmts;     /* Min. # of elements per data block */
         *p++ = hdr->cparam.sup_blk_min_data_ptrs;  /* Min. # of data block pointers for a super block */
+        *p++ = hdr->cparam.max_dblk_page_nelmts_bits;  /* Log2(Max. # of elements in data block page) - i.e. # of bits needed to store max. # of elements in data block page */
+
+        /* Array statistics */
+        H5F_ENCODE_LENGTH(f, p, hdr->stats.nsuper_blks);    /* Number of super blocks created */
+        H5F_ENCODE_LENGTH(f, p, hdr->stats.super_blk_size); /* Size of super blocks created */
+        H5F_ENCODE_LENGTH(f, p, hdr->stats.ndata_blks);     /* Number of data blocks created */
+        H5F_ENCODE_LENGTH(f, p, hdr->stats.data_blk_size);  /* Size of data blocks created */
+        H5F_ENCODE_LENGTH(f, p, hdr->stats.max_idx_set);    /* Max. index set (+1) */
+        H5F_ENCODE_LENGTH(f, p, hdr->stats.nelmts);         /* Number of elements 'realized' */
 
         /* Internal information */
         H5F_addr_encode(f, &p, hdr->idx_blk_addr);  /* Address of index block */
-        H5F_ENCODE_LENGTH(f, p, hdr->stats.max_idx_set);    /* Max. index set (+1) */
-        H5F_ENCODE_LENGTH(f, p, hdr->stats.nsuper_blks);    /* Number of super blocks created */
-        H5F_ENCODE_LENGTH(f, p, hdr->stats.ndata_blks);     /* Number of data blocks created */
-        H5F_ENCODE_LENGTH(f, p, hdr->stats.nelmts);         /* Number of elements 'realized' */
 
         /* Compute metadata checksum */
         metadata_chksum = H5_checksum_metadata(buf, (size_t)(p - buf), 0);
@@ -519,6 +567,7 @@ H5EA__cache_iblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr,
     const uint8_t	*p;             /* Pointer into raw data buffer */
     uint32_t            stored_chksum;  /* Stored metadata checksum value */
     uint32_t            computed_chksum; /* Computed metadata checksum value */
+    haddr_t             arr_addr;       /* Address of array header in the file */
 
     /* Sanity check */
     HDassert(f);
@@ -559,6 +608,11 @@ H5EA__cache_iblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr,
     if(*p++ != H5EA_IBLOCK_VERSION)
 	H5E_THROW(H5E_VERSION, "wrong extensible array index block version")
 
+    /* Address of header for array that owns this block (just for file integrity checks) */
+    H5F_addr_decode(f, &p, &arr_addr);
+    if(H5F_addr_ne(arr_addr, hdr->addr))
+	H5E_THROW(H5E_BADVALUE, "wrong extensible array header address")
+
     /* Extensible array type */
     if(*p++ != (uint8_t)hdr->cparam.cls->id)
 	H5E_THROW(H5E_BADTYPE, "incorrect extensible array class")
@@ -568,7 +622,7 @@ H5EA__cache_iblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr,
     /* Decode elements in index block */
     if(hdr->cparam.idx_blk_elmts > 0) {
         /* Convert from raw elements on disk into native elements in memory */
-        if((hdr->cparam.cls->decode)(p, iblock->elmts, (size_t)hdr->cparam.idx_blk_elmts) < 0)
+        if((hdr->cparam.cls->decode)(p, iblock->elmts, (size_t)hdr->cparam.idx_blk_elmts, hdr->cb_ctx) < 0)
             H5E_THROW(H5E_CANTDECODE, "can't decode extensible array index elements")
         p += (hdr->cparam.idx_blk_elmts * hdr->cparam.raw_elmt_size);
     } /* end if */
@@ -681,6 +735,9 @@ H5EA__cache_iblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr,
         /* Version # */
         *p++ = H5EA_IBLOCK_VERSION;
 
+        /* Address of array header for array which owns this block */
+        H5F_addr_encode(f, &p, iblock->hdr->addr);
+
         /* Extensible array type */
         *p++ = iblock->hdr->cparam.cls->id;
 
@@ -689,7 +746,7 @@ H5EA__cache_iblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr,
         /* Encode elements in index block */
         if(iblock->hdr->cparam.idx_blk_elmts > 0) {
             /* Convert from native elements in memory into raw elements on disk */
-            if((iblock->hdr->cparam.cls->encode)(p, iblock->elmts, (size_t)iblock->hdr->cparam.idx_blk_elmts) < 0)
+            if((iblock->hdr->cparam.cls->encode)(p, iblock->elmts, (size_t)iblock->hdr->cparam.idx_blk_elmts, iblock->hdr->cb_ctx) < 0)
                 H5E_THROW(H5E_CANTENCODE, "can't encode extensible array index elements")
             p += (iblock->hdr->cparam.idx_blk_elmts * iblock->hdr->cparam.raw_elmt_size);
         } /* end if */
@@ -880,6 +937,8 @@ H5EA__cache_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr,
     const uint8_t	*p;             /* Pointer into raw data buffer */
     uint32_t            stored_chksum;  /* Stored metadata checksum value */
     uint32_t            computed_chksum; /* Computed metadata checksum value */
+    haddr_t             arr_addr;       /* Address of array header in the file */
+    size_t              u;              /* Local index variable */
 
     /* Sanity check */
     HDassert(f);
@@ -921,20 +980,32 @@ H5EA__cache_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr,
     if(*p++ != H5EA_SBLOCK_VERSION)
 	H5E_THROW(H5E_VERSION, "wrong extensible array super block version")
 
+    /* Address of header for array that owns this block (just for file integrity checks) */
+    H5F_addr_decode(f, &p, &arr_addr);
+    if(H5F_addr_ne(arr_addr, hdr->addr))
+	H5E_THROW(H5E_BADVALUE, "wrong extensible array header address")
+
+    /* Offset of block within the array's address space */
+    UINT64DECODE_VAR(p, sblock->block_off, hdr->arr_off_size);
+
     /* Extensible array type */
     if(*p++ != (uint8_t)hdr->cparam.cls->id)
 	H5E_THROW(H5E_BADTYPE, "incorrect extensible array class")
 
     /* Internal information */
 
-    /* Decode data block addresses */
-    if(sblock->ndblks > 0) {
-        size_t u;               /* Local index variable */
+    /* Check for 'page init' bitmasks for this super block */
+    if(sblock->dblk_npages > 0) {
+        size_t tot_page_init_size = sblock->ndblks * sblock->dblk_page_init_size;        /* Compute total size of 'page init' buffer */
 
-        /* Decode addresses of data blocks in super block */
-        for(u = 0; u < sblock->ndblks; u++)
-            H5F_addr_decode(f, &p, &sblock->dblk_addrs[u]);
+        /* Retrieve the 'page init' bitmasks */
+        HDmemcpy(sblock->page_init, p, tot_page_init_size);
+        p += tot_page_init_size;
     } /* end if */
+
+    /* Decode data block addresses */
+    for(u = 0; u < sblock->ndblks; u++)
+        H5F_addr_decode(f, &p, &sblock->dblk_addrs[u]);
 
     /* Sanity check */
     /* (allow for checksum not decoded yet) */
@@ -1004,6 +1075,7 @@ H5EA__cache_sblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr,
         uint8_t *p;             /* Pointer into raw data buffer */
         size_t	size;           /* Index block size on disk */
         uint32_t metadata_chksum; /* Computed metadata checksum value */
+        size_t u;               /* Local index variable */
 
         /* Wrap the local buffer for serialized info */
         if(NULL == (wb = H5WB_wrap(ser_buf, sizeof(ser_buf))))
@@ -1026,19 +1098,29 @@ H5EA__cache_sblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr,
         /* Version # */
         *p++ = H5EA_SBLOCK_VERSION;
 
+        /* Address of array header for array which owns this block */
+        H5F_addr_encode(f, &p, sblock->hdr->addr);
+
+        /* Offset of block in array */
+        UINT64ENCODE_VAR(p, sblock->block_off, sblock->hdr->arr_off_size);
+
         /* Extensible array type */
         *p++ = sblock->hdr->cparam.cls->id;
 
         /* Internal information */
 
-        /* Encode data block addresses */
-        if(sblock->ndblks > 0) {
-            size_t u;               /* Local index variable */
+        /* Check for 'page init' bitmasks for this super block */
+        if(sblock->dblk_npages > 0) {
+            size_t tot_page_init_size = sblock->ndblks * sblock->dblk_page_init_size;        /* Compute total size of 'page init' buffer */
 
-            /* Encode addresses of data blocks in super block */
-            for(u = 0; u < sblock->ndblks; u++)
-                H5F_addr_encode(f, &p, sblock->dblk_addrs[u]);
+            /* Store the 'page init' bitmasks */
+            HDmemcpy(p, sblock->page_init, tot_page_init_size);
+            p += tot_page_init_size;
         } /* end if */
+
+        /* Encode addresses of data blocks in super block */
+        for(u = 0; u < sblock->ndblks; u++)
+            H5F_addr_encode(f, &p, sblock->dblk_addrs[u]);
 
         /* Compute metadata checksum */
         metadata_chksum = H5_checksum_metadata(buf, (size_t)(p - buf), 0);
@@ -1207,6 +1289,7 @@ H5EA__cache_dblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr,
     const uint8_t	*p;             /* Pointer into raw data buffer */
     uint32_t            stored_chksum;  /* Stored metadata checksum value */
     uint32_t            computed_chksum; /* Computed metadata checksum value */
+    haddr_t             arr_addr;       /* Address of array header in the file */
 
     /* Sanity check */
     HDassert(f);
@@ -1226,7 +1309,10 @@ H5EA__cache_dblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr,
 	H5E_THROW(H5E_CANTINIT, "can't wrap buffer")
 
     /* Compute the size of the extensible array data block on disk */
-    size = H5EA_DBLOCK_SIZE(dblock);
+    if(!dblock->npages)
+        size = H5EA_DBLOCK_SIZE(dblock);
+    else
+        size = H5EA_DBLOCK_PREFIX_SIZE(dblock);
 
     /* Get a pointer to a buffer that's large enough for serialized info */
     if(NULL == (buf = (uint8_t *)H5WB_actual(wb, size)))
@@ -1248,24 +1334,35 @@ H5EA__cache_dblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr,
     if(*p++ != H5EA_DBLOCK_VERSION)
 	H5E_THROW(H5E_VERSION, "wrong extensible array data block version")
 
+    /* Address of header for array that owns this block (just for file integrity checks) */
+    H5F_addr_decode(f, &p, &arr_addr);
+    if(H5F_addr_ne(arr_addr, hdr->addr))
+	H5E_THROW(H5E_BADVALUE, "wrong extensible array header address")
+
+    /* Offset of block within the array's address space */
+    UINT64DECODE_VAR(p, dblock->block_off, hdr->arr_off_size);
+
     /* Extensible array type */
     if(*p++ != (uint8_t)hdr->cparam.cls->id)
 	H5E_THROW(H5E_BADTYPE, "incorrect extensible array class")
 
     /* Internal information */
 
-    /* Decode elements in data block */
-    /* Convert from raw elements on disk into native elements in memory */
-    if((hdr->cparam.cls->decode)(p, dblock->elmts, *nelmts) < 0)
-        H5E_THROW(H5E_CANTDECODE, "can't decode extensible array data elements")
-    p += (*nelmts * hdr->cparam.raw_elmt_size);
+    /* Only decode elements if the data block is not paged */
+    if(!dblock->npages) {
+        /* Decode elements in data block */
+        /* Convert from raw elements on disk into native elements in memory */
+        if((hdr->cparam.cls->decode)(p, dblock->elmts, *nelmts, hdr->cb_ctx) < 0)
+            H5E_THROW(H5E_CANTDECODE, "can't decode extensible array data elements")
+        p += (*nelmts * hdr->cparam.raw_elmt_size);
+    } /* end if */
 
     /* Sanity check */
     /* (allow for checksum not decoded yet) */
     HDassert((size_t)(p - buf) == (size - H5EA_SIZEOF_CHKSUM));
 
-    /* Save the data block's size */
-    dblock->size = size;
+    /* Set the data block's size */
+    dblock->size = H5EA_DBLOCK_SIZE(dblock);
 
     /* Compute checksum on data block */
     computed_chksum = H5_checksum_metadata(buf, (size_t)(p - buf), 0);
@@ -1274,7 +1371,7 @@ H5EA__cache_dblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr,
     UINT32DECODE(p, stored_chksum);
 
     /* Sanity check */
-    HDassert((size_t)(p - buf) == dblock->size);
+    HDassert((size_t)(p - buf) == size);
 
     /* Verify checksum */
     if(stored_chksum != computed_chksum)
@@ -1334,7 +1431,10 @@ H5EA__cache_dblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr,
             H5E_THROW(H5E_CANTINIT, "can't wrap buffer")
 
         /* Compute the size of the data block on disk */
-        size = dblock->size;
+        if(!dblock->npages)
+            size = dblock->size;
+        else
+            size = H5EA_DBLOCK_PREFIX_SIZE(dblock);
 
         /* Get a pointer to a buffer that's large enough for serialized info */
         if(NULL == (buf = (uint8_t *)H5WB_actual(wb, size)))
@@ -1350,17 +1450,26 @@ H5EA__cache_dblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr,
         /* Version # */
         *p++ = H5EA_DBLOCK_VERSION;
 
+        /* Address of array header for array which owns this block */
+        H5F_addr_encode(f, &p, dblock->hdr->addr);
+
+        /* Offset of block in array */
+        UINT64ENCODE_VAR(p, dblock->block_off, dblock->hdr->arr_off_size);
+
         /* Extensible array type */
         *p++ = dblock->hdr->cparam.cls->id;
 
         /* Internal information */
 
-        /* Encode elements in data block */
+        /* Only encode elements if the data block is not paged */
+        if(!dblock->npages) {
+            /* Encode elements in data block */
 
-        /* Convert from native elements in memory into raw elements on disk */
-        if((dblock->hdr->cparam.cls->encode)(p, dblock->elmts, dblock->nelmts) < 0)
-            H5E_THROW(H5E_CANTENCODE, "can't encode extensible array data elements")
-        p += (dblock->nelmts * dblock->hdr->cparam.raw_elmt_size);
+            /* Convert from native elements in memory into raw elements on disk */
+            if((dblock->hdr->cparam.cls->encode)(p, dblock->elmts, dblock->nelmts, dblock->hdr->cb_ctx) < 0)
+                H5E_THROW(H5E_CANTENCODE, "can't encode extensible array data elements")
+            p += (dblock->nelmts * dblock->hdr->cparam.raw_elmt_size);
+        } /* end if */
 
         /* Compute metadata checksum */
         metadata_chksum = H5_checksum_metadata(buf, (size_t)(p - buf), 0);
@@ -1448,7 +1557,10 @@ H5EA__cache_dblock_size(const H5F_t UNUSED *f, const H5EA_dblock_t *dblock,
     HDassert(size_ptr);
 
     /* Set size value */
-    *size_ptr = dblock->size;
+    if(!dblock->npages)
+        *size_ptr = dblock->size;
+    else
+        *size_ptr = H5EA_DBLOCK_PREFIX_SIZE(dblock);
 
 END_FUNC(STATIC)   /* end H5EA__cache_dblock_size() */
 
@@ -1487,6 +1599,7 @@ H5EA__cache_dblock_dest(H5F_t *f, H5EA_dblock_t *dblock))
         HDassert(H5F_addr_eq(dblock->addr, dblock->cache_info.addr));
 
         /* Release the space on disk */
+        /* (Includes space for pages!) */
         /* (XXX: Nasty usage of internal DXPL value! -QAK) */
         if(H5MF_xfree(f, H5FD_MEM_EARRAY_DBLOCK, H5AC_dxpl_id, dblock->cache_info.addr, (hsize_t)dblock->size) < 0)
             H5E_THROW(H5E_CANTFREE, "unable to free extensible array data block")
@@ -1499,4 +1612,298 @@ H5EA__cache_dblock_dest(H5F_t *f, H5EA_dblock_t *dblock))
 CATCH
 
 END_FUNC(STATIC)   /* end H5EA__cache_dblock_dest() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5EA__cache_dblk_page_load
+ *
+ * Purpose:	Loads an extensible array data block page from the disk.
+ *
+ * Return:	Success:	Pointer to a new extensible array data block page
+ *		Failure:	NULL
+ *
+ * Programmer:	Quincey Koziol
+ *		koziol@hdfgroup.org
+ *		Nov 20 2008
+ *
+ *-------------------------------------------------------------------------
+ */
+BEGIN_FUNC(STATIC, ERR,
+H5EA_dblk_page_t *, NULL, NULL,
+H5EA__cache_dblk_page_load(H5F_t *f, hid_t dxpl_id, haddr_t addr,
+    const void UNUSED *udata1, void *_hdr))
+
+    /* Local variables */
+    H5EA_hdr_t          *hdr = (H5EA_hdr_t *)_hdr;  /* Shared extensible array information */
+    H5EA_dblk_page_t	*dblk_page = NULL; /* Data block page info */
+    size_t		size;           /* Data block page size */
+    H5WB_t              *wb = NULL;     /* Wrapped buffer for data block page data */
+    uint8_t             dblk_page_buf[H5EA_DBLK_PAGE_BUF_SIZE]; /* Buffer for data block page */
+    uint8_t		*buf;           /* Pointer to data block page buffer */
+    const uint8_t	*p;             /* Pointer into raw data buffer */
+    uint32_t            stored_chksum;  /* Stored metadata checksum value */
+    uint32_t            computed_chksum; /* Computed metadata checksum value */
+
+    /* Sanity check */
+    HDassert(f);
+    HDassert(H5F_addr_defined(addr));
+    HDassert(hdr);
+#ifdef QAK
+HDfprintf(stderr, "%s: addr = %a\n", FUNC, addr);
+#endif /* QAK */
+
+    /* Allocate the extensible array data block page */
+    if(NULL == (dblk_page = H5EA__dblk_page_alloc(hdr)))
+	H5E_THROW(H5E_CANTALLOC, "memory allocation failed for extensible array data block page")
+
+    /* Set the extensible array data block's information */
+    dblk_page->addr = addr;
+
+    /* Wrap the local buffer for serialized info */
+    if(NULL == (wb = H5WB_wrap(dblk_page_buf, sizeof(dblk_page_buf))))
+	H5E_THROW(H5E_CANTINIT, "can't wrap buffer")
+
+    /* Compute the size of the extensible array data block page on disk */
+    size = H5EA_DBLK_PAGE_SIZE(dblk_page);
+
+    /* Get a pointer to a buffer that's large enough for serialized info */
+    if(NULL == (buf = (uint8_t *)H5WB_actual(wb, size)))
+	H5E_THROW(H5E_CANTGET, "can't get actual buffer")
+
+    /* Read data block page from disk */
+    if(H5F_block_read(f, H5FD_MEM_EARRAY_DBLK_PAGE, addr, size, dxpl_id, buf) < 0)
+	H5E_THROW(H5E_READERROR, "can't read extensible array data block page")
+
+    /* Get temporary pointer to serialized header */
+    p = buf;
+
+    /* Internal information */
+
+    /* Decode elements in data block page */
+    /* Convert from raw elements on disk into native elements in memory */
+    if((hdr->cparam.cls->decode)(p, dblk_page->elmts, hdr->dblk_page_nelmts, hdr->cb_ctx) < 0)
+        H5E_THROW(H5E_CANTDECODE, "can't decode extensible array data elements")
+    p += (hdr->dblk_page_nelmts * hdr->cparam.raw_elmt_size);
+
+    /* Sanity check */
+    /* (allow for checksum not decoded yet) */
+    HDassert((size_t)(p - buf) == (size - H5EA_SIZEOF_CHKSUM));
+
+    /* Set the data block page's size */
+    dblk_page->size = size;
+
+    /* Compute checksum on data block */
+    computed_chksum = H5_checksum_metadata(buf, (size_t)(p - buf), 0);
+
+    /* Metadata checksum */
+    UINT32DECODE(p, stored_chksum);
+
+    /* Sanity check */
+    HDassert((size_t)(p - buf) == dblk_page->size);
+
+    /* Verify checksum */
+    if(stored_chksum != computed_chksum)
+{
+HDfprintf(stderr, "%s: stored_chksum = %8x, computed_chksum = %8x\n", FUNC, stored_chksum, computed_chksum);
+	H5E_THROW(H5E_BADVALUE, "incorrect metadata checksum for extensible array data block page")
+}
+
+    /* Set return value */
+    ret_value = dblk_page;
+
+CATCH
+
+    /* Release resources */
+    if(wb && H5WB_unwrap(wb) < 0)
+	H5E_THROW(H5E_CLOSEERROR, "can't close wrapped buffer")
+    if(!ret_value)
+        if(dblk_page && H5EA__cache_dblk_page_dest(f, dblk_page) < 0)
+            H5E_THROW(H5E_CANTFREE, "unable to destroy extensible array data block page")
+
+END_FUNC(STATIC)   /* end H5EA__cache_dblk_page_load() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5EA__cache_dblk_page_flush
+ *
+ * Purpose:	Flushes a dirty extensible array data block page to disk.
+ *
+ * Return:	Non-negative on success/Negative on failure
+ *
+ * Programmer:	Quincey Koziol
+ *		koziol@hdfgroup.org
+ *		Nov 20 2008
+ *
+ *-------------------------------------------------------------------------
+ */
+BEGIN_FUNC(STATIC, ERR,
+herr_t, SUCCEED, FAIL,
+H5EA__cache_dblk_page_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr,
+    H5EA_dblk_page_t *dblk_page, unsigned UNUSED * flags_ptr))
+
+    /* Local variables */
+    H5WB_t *wb = NULL;                  /* Wrapped buffer for serializing data */
+    uint8_t ser_buf[H5EA_DBLK_PAGE_BUF_SIZE]; /* Serialization buffer */
+
+    /* Sanity check */
+    HDassert(f);
+    HDassert(H5F_addr_defined(addr));
+    HDassert(dblk_page);
+    HDassert(dblk_page->hdr);
+
+    if(dblk_page->cache_info.is_dirty) {
+        uint8_t	*buf;           /* Temporary raw data buffer */
+        uint8_t *p;             /* Pointer into raw data buffer */
+        size_t	size;           /* Index block size on disk */
+        uint32_t metadata_chksum; /* Computed metadata checksum value */
+
+        /* Wrap the local buffer for serialized info */
+        if(NULL == (wb = H5WB_wrap(ser_buf, sizeof(ser_buf))))
+            H5E_THROW(H5E_CANTINIT, "can't wrap buffer")
+
+        /* Compute the size of the data block on disk */
+        size = dblk_page->size;
+
+        /* Get a pointer to a buffer that's large enough for serialized info */
+        if(NULL == (buf = (uint8_t *)H5WB_actual(wb, size)))
+            H5E_THROW(H5E_CANTGET, "can't get actual buffer")
+
+        /* Get temporary pointer to serialized info */
+        p = buf;
+
+        /* Internal information */
+
+        /* Encode elements in data block page */
+
+        /* Convert from native elements in memory into raw elements on disk */
+        if((dblk_page->hdr->cparam.cls->encode)(p, dblk_page->elmts, dblk_page->hdr->dblk_page_nelmts, dblk_page->hdr->cb_ctx) < 0)
+            H5E_THROW(H5E_CANTENCODE, "can't encode extensible array data elements")
+        p += (dblk_page->hdr->dblk_page_nelmts * dblk_page->hdr->cparam.raw_elmt_size);
+
+        /* Compute metadata checksum */
+        metadata_chksum = H5_checksum_metadata(buf, (size_t)(p - buf), 0);
+
+        /* Metadata checksum */
+        UINT32ENCODE(p, metadata_chksum);
+
+	/* Write the data block */
+        HDassert((size_t)(p - buf) == size);
+	if(H5F_block_write(f, H5FD_MEM_EARRAY_DBLK_PAGE, addr, size, dxpl_id, buf) < 0)
+            H5E_THROW(H5E_WRITEERROR, "unable to save extensible array data block page to disk")
+
+	dblk_page->cache_info.is_dirty = FALSE;
+    } /* end if */
+
+    if(destroy)
+        if(H5EA__cache_dblk_page_dest(f, dblk_page) < 0)
+            H5E_THROW(H5E_CANTFREE, "unable to destroy extensible array data block page")
+
+CATCH
+
+    /* Release resources */
+    if(wb && H5WB_unwrap(wb) < 0)
+	H5E_THROW(H5E_CLOSEERROR, "can't close wrapped buffer")
+
+END_FUNC(STATIC)   /* end H5EA__cache_dblk_page_flush() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5EA__cache_dblk_page_clear
+ *
+ * Purpose:	Mark a extensible array data block page in memory as non-dirty.
+ *
+ * Return:	Non-negative on success/Negative on failure
+ *
+ * Programmer:	Quincey Koziol
+ *		koziol@hdfgroup.org
+ *		Nov 20 2008
+ *
+ *-------------------------------------------------------------------------
+ */
+BEGIN_FUNC(STATIC, ERR,
+herr_t, SUCCEED, FAIL,
+H5EA__cache_dblk_page_clear(H5F_t *f, H5EA_dblk_page_t *dblk_page, hbool_t destroy))
+
+    /* Sanity check */
+    HDassert(dblk_page);
+
+    /* Reset the dirty flag */
+    dblk_page->cache_info.is_dirty = FALSE;
+
+    if(destroy)
+        if(H5EA__cache_dblk_page_dest(f, dblk_page) < 0)
+            H5E_THROW(H5E_CANTFREE, "unable to destroy extensible array data block page")
+
+CATCH
+
+END_FUNC(STATIC)   /* end H5EA__cache_dblk_page_clear() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5EA__cache_dblk_page_size
+ *
+ * Purpose:	Compute the size in bytes of a extensible array data block page
+ *		on disk, and return it in *size_ptr.  On failure,
+ *		the value of *size_ptr is undefined.
+ *
+ * Return:	Non-negative on success/Negative on failure
+ *
+ * Programmer:	Quincey Koziol
+ *		koziol@hdfgroup.org
+ *		Nov 20 2008
+ *
+ *-------------------------------------------------------------------------
+ */
+/* ARGSUSED */
+BEGIN_FUNC(STATIC, NOERR,
+herr_t, SUCCEED, -,
+H5EA__cache_dblk_page_size(const H5F_t UNUSED *f, const H5EA_dblk_page_t *dblk_page,
+    size_t *size_ptr))
+
+    /* Sanity check */
+    HDassert(f);
+    HDassert(dblk_page);
+    HDassert(size_ptr);
+
+    /* Set size value */
+    *size_ptr = dblk_page->size;
+
+END_FUNC(STATIC)   /* end H5EA__cache_dblk_page_size() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5EA__cache_dblk_page_dest
+ *
+ * Purpose:	Destroys an extensible array data block page in memory.
+ *
+ * Note:	Does _not_ free the space for the page on disk, that is
+ *              handled through the data block that "owns" the page.
+ *
+ * Return:	Non-negative on success/Negative on failure
+ *
+ * Programmer:	Quincey Koziol
+ *		koziol@hdfgroup.org
+ *		Nov 20 2008
+ *
+ *-------------------------------------------------------------------------
+ */
+/* ARGSUSED */
+BEGIN_FUNC(STATIC, ERR,
+herr_t, SUCCEED, FAIL,
+H5EA__cache_dblk_page_dest(H5F_t UNUSED *f, H5EA_dblk_page_t *dblk_page))
+
+    /* Sanity check */
+    HDassert(f);
+    HDassert(dblk_page);
+
+    /* Verify that data block page is clean */
+    HDassert(dblk_page->cache_info.is_dirty == FALSE);
+
+    /* Release the data block page */
+    if(H5EA__dblk_page_dest(dblk_page) < 0)
+        H5E_THROW(H5E_CANTFREE, "can't free extensible array data block page")
+
+CATCH
+
+END_FUNC(STATIC)   /* end H5EA__cache_dblk_page_dest() */
 

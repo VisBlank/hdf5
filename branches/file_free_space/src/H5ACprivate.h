@@ -65,7 +65,8 @@ typedef enum {
     H5AC_EARRAY_HDR_ID,	/*extensible array header		     */
     H5AC_EARRAY_IBLOCK_ID, /*extensible array index block	     */
     H5AC_EARRAY_SBLOCK_ID, /*extensible array super block	     */
-    H5AC_EARRAY_DBLOCK_ID, /*extensible array index block	     */
+    H5AC_EARRAY_DBLOCK_ID, /*extensible array data block	     */
+    H5AC_EARRAY_DBLK_PAGE_ID, /*extensible array data block page     */
     H5AC_TEST_ID,	/*test entry -- not used for actual files    */
     H5AC_NTYPES		/* Number of types, must be last             */
 } H5AC_type_t;
@@ -207,8 +208,8 @@ extern hid_t H5AC_ind_dxpl_id;
   /* char        trace_file_name[]      = */ "",                              \
   /* hbool_t     evictions_enabled      = */ TRUE,                            \
   /* hbool_t     set_initial_size       = */ TRUE,                            \
-  /* size_t      initial_size           = */ ( 1 * 1024 * 1024),              \
-  /* double      min_clean_fraction     = */ 0.5,                             \
+  /* size_t      initial_size           = */ ( 2 * 1024 * 1024),              \
+  /* double      min_clean_fraction     = */ 0.3,                             \
   /* size_t      max_size               = */ (16 * 1024 * 1024),              \
   /* size_t      min_size               = */ ( 1 * 1024 * 1024),              \
   /* long int    epoch_length           = */ 50000,                           \

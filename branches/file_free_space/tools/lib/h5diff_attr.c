@@ -150,11 +150,6 @@ hsize_t diff_attr(hid_t loc1_id,
             options)!=1)
         {
 
-            if (options->m_verbose)
-                printf("Comparison not possible for attribute <%s>\n",
-                name1);
-
-            options->not_cmp=1;
 
             if (H5Tclose(ftype1_id)<0)
                 goto error;
@@ -190,7 +185,7 @@ hsize_t diff_attr(hid_t loc1_id,
         buf1=(void *) HDmalloc((unsigned)(nelmts1*msize1));
         buf2=(void *) HDmalloc((unsigned)(nelmts1*msize2));
         if ( buf1==NULL || buf2==NULL){
-            printf( "cannot read into memory\n" );
+            parallel_print( "cannot read into memory\n" );
             goto error;
         }
         if (H5Aread(attr1_id,mtype1_id,buf1)<0)
