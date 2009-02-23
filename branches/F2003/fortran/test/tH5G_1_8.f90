@@ -1557,10 +1557,13 @@ SUBROUTINE link_info_by_idx_check(group_id, linkname, n, &
   CALL check("h5screate_simple_f",error,total_error)
   CALL h5pcreate_f(H5P_DATASET_CREATE_F, crp_list, error)
   CALL h5pset_chunk_f(crp_list, 2, dims, error)
+  CALL h5pcreate_f(H5P_DATASET_CREATE_F, crp_list, error)
+  CALL h5pset_chunk_f(crp_list, 2, dims, error)
 
   ! /* Create a dataset using the default LCPL */
   CALL h5dcreate_f(file_id, "/dataset", H5T_NATIVE_INTEGER, space_id, dset_id, error, crp_list)
   CALL check("h5dcreate_f", error, total_error)
+
   CALL h5dclose_f(dset_id, error)
   CALL check("h5dclose_f", error, total_error)
 
