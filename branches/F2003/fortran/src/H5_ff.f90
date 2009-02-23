@@ -40,7 +40,7 @@ MODULE H5LIB
   USE H5LIB_PROVISIONAL  ! helper functions for Fortran 2003 features:
                          !       pre-Fortran 2003 - empty module
                          !       Forttran 2003 - contains functions
-
+  USE H5GLOBAL
 CONTAINS
 
 !****s* H5LIB/h5open_f
