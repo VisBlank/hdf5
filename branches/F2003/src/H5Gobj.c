@@ -317,8 +317,8 @@ H5G_obj_ent_encode(const H5F_t *f, uint8_t **pp, const H5O_loc_t *oloc)
  * Purpose:     Retrieves the "link info" message for an object.  Also
  *              sets the number of links correctly, if it isn't set up yet.
  *
- * Return:	Success:	Ptr to message in native format.
- *              Failure:        NULL
+ * Return:	Success:	TRUE/FALSE whether message was found & retrieved
+ *              Failure:        FAIL if error occurred
  *
  * Programmer:  Quincey Koziol
  *              koziol@hdfgroup.org
@@ -1066,9 +1066,6 @@ H5G_obj_remove_by_idx(H5O_loc_t *grp_oloc, H5RS_str_t *grp_full_path_r,
         } /* end else */
     } /* end if */
     else {
-        /* Clear error stack from not finding the link info message */
-        H5E_clear_stack(NULL);
-
         /* Can only perform name lookups on groups with symbol tables */
         if(idx_type != H5_INDEX_NAME)
             HGOTO_ERROR(H5E_SYM, H5E_BADVALUE, FAIL, "no creation order index to query")

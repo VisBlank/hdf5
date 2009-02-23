@@ -62,9 +62,11 @@ typedef struct H5EA_class_t {
     size_t nat_elmt_size;       /* Size of native (memory) element */
 
     /* Extensible array client callback methods */
+    void *(*crt_context)(const H5F_t *f);       /* Create context for other callbacks */
+    herr_t (*dst_context)(void *ctx);           /* Destroy context */
     herr_t (*fill)(void *nat_blk, size_t nelmts);    /* Fill array of elements with encoded form of "missing element" value */
-    herr_t (*encode)(void *raw, const void *elmt, size_t nelmts);   /* Encode elements from native form to disk storage form */
-    herr_t (*decode)(const void *raw, void *elmt, size_t nelmts);   /* Decode elements from disk storage form to native form */
+    herr_t (*encode)(void *raw, const void *elmt, size_t nelmts, void *ctx);   /* Encode elements from native form to disk storage form */
+    herr_t (*decode)(const void *raw, void *elmt, size_t nelmts, void *ctx);   /* Decode elements from disk storage form to native form */
     herr_t (*debug)(FILE *stream, int indent, int fwidth, hsize_t idx, const void *elmt); /* Print an element for debugging */
 } H5EA_class_t;
 
@@ -81,9 +83,17 @@ typedef struct H5EA_create_t {
 
 /* Extensible array metadata statistics info */
 typedef struct H5EA_stat_t {
-    hsize_t max_idx_set;        /* Highest element index stored (+1 - i.e. if element 0 has been set, this value with be '1', if no elements have been stored, this value will be '0') */
+    /* Non-stored (i.e. computed) fields */
+    hsize_t hdr_size;           /* Size of header */
+    hsize_t nindex_blks;        /* # of index blocks (should be 0 or 1) */
+    hsize_t index_blk_size;     /* Size of index blocks allocated */
+
+    /* Stored fields */
     hsize_t nsuper_blks;        /* # of super blocks */
+    hsize_t super_blk_size;     /* Size of super blocks allocated */
     hsize_t ndata_blks;         /* # of data blocks */
+    hsize_t data_blk_size;      /* Size of data blocks allocated */
+    hsize_t max_idx_set;        /* Highest element index stored (+1 - i.e. if element 0 has been set, this value with be '1', if no elements have been stored, this value will be '0') */
     hsize_t nelmts;             /* # of elements "realized" */
 } H5EA_stat_t;
 

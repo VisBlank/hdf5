@@ -82,6 +82,7 @@ MODULE H5R_PROVISIONAL
        !DEC$ IF DEFINED(HDF5F90_WINDOWS)
        !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5RGET_NAME_PTR_C':: h5rget_name_ptr_c
        !DEC$ ENDIF
+       !DEC$ATTRIBUTES reference :: name
        INTEGER(HID_T), INTENT(IN) :: loc_id
        INTEGER, INTENT(IN) :: ref_type
        TYPE(C_PTR), INTENT(IN), VALUE :: ref

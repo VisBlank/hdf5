@@ -28,6 +28,7 @@
 #include "H5Sprivate.h"		/* Dataspaces 				*/
 #include "H5Zprivate.h"		/* Data filters				*/
 
+
 /**************************/
 /* Library Private Macros */
 /**************************/
@@ -43,8 +44,6 @@
 
 /* ========  Dataset creation property names ======== */
 #define H5D_CRT_LAYOUT_NAME        "layout"             /* Storage layout */
-#define H5D_CRT_CHUNK_DIM_NAME     "chunk_ndims"        /* Chunk dimensionality */
-#define H5D_CRT_CHUNK_SIZE_NAME    "chunk_size"         /* Chunk size */
 #define H5D_CRT_FILL_VALUE_NAME    "fill_value"         /* Fill value */
 #define H5D_CRT_ALLOC_TIME_STATE_NAME "alloc_time_state" /* Space allocation time state */
 #define H5D_CRT_EXT_FILE_LIST_NAME "efl"                /* External file list */
@@ -108,6 +107,7 @@
 #define H5D_VLEN_FREE           NULL
 #define H5D_VLEN_FREE_INFO      NULL
 
+
 /****************************/
 /* Library Private Typedefs */
 /****************************/
@@ -139,9 +139,11 @@ typedef struct H5D_dcpl_cache_t {
     H5O_efl_t efl;              /* External file list info (H5D_CRT_EXT_FILE_LIST_NAME) */
 } H5D_dcpl_cache_t;
 
+
 /*****************************/
 /* Library Private Variables */
 /*****************************/
+
 
 /******************************/
 /* Library Private Prototypes */
@@ -164,6 +166,7 @@ H5_DLL herr_t H5D_contig_delete(H5F_t *f, hid_t dxpl_id,
     const H5O_layout_t *layout);
 
 /* Functions that operate on chunked storage */
+H5_DLL herr_t H5D_chunk_idx_reset(H5O_layout_t *layout);
 H5_DLL herr_t H5D_chunk_delete(H5F_t *f, hid_t dxpl_id, H5O_layout_t *layout);
 
 /* Functions that operate on indexed storage */

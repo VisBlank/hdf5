@@ -175,19 +175,13 @@
 ./fortran/examples/testh5fc.sh.in
 
 ./fortran/src/H5_f.c
-./fortran/src/H5_ff_DEPRECIATED.f90
-./fortran/src/H5_ff_F03.f90
 ./fortran/src/H5_ff.f90
 ./fortran/src/H5_DBLE_InterfaceInclude.f90
 ./fortran/src/H5_DBLE_InterfaceExclude.f90
 ./fortran/src/H5Af.c
 ./fortran/src/H5Aff.f90
-./fortran/src/H5Aff_DEPRECIATED.f90
-./fortran/src/H5Aff_F03.f90
 ./fortran/src/H5Df.c
 ./fortran/src/H5Dff.f90
-./fortran/src/H5Dff_DEPRECIATED.f90
-./fortran/src/H5Dff_F03.f90
 ./fortran/src/H5Ef.c
 ./fortran/src/H5Eff.f90
 ./fortran/src/H5FDmpiof.c
@@ -200,25 +194,16 @@
 ./fortran/src/H5Iff.f90
 ./fortran/src/H5Lf.c
 ./fortran/src/H5Lff.f90
-./fortran/src/H5Lff_F03.f90
 ./fortran/src/H5Of.c
 ./fortran/src/H5Off.f90
-./fortran/src/H5Off_DEPREICATED.f90
-./fortran/src/H5Off_F03.f90
 ./fortran/src/H5Pf.c
 ./fortran/src/H5Pff.f90
-./fortran/src/H5Pff_DEPRECIATED.f90
-./fortran/src/H5Pff_F03.f90
 ./fortran/src/H5Rf.c
 ./fortran/src/H5Rff.f90
-./fortran/src/H5Rff_DEPRECIATED.f90
-./fortran/src/H5Rff_F03.f90
 ./fortran/src/H5Sf.c
 ./fortran/src/H5Sff.f90
 ./fortran/src/H5Tf.c
 ./fortran/src/H5Tff.f90
-./fortran/src/H5Tff_DEPRECIATED.f90
-./fortran/src/H5Tff_F03.f90
 ./fortran/src/H5Zf.c
 ./fortran/src/H5Zff.f90
 ./fortran/src/H5f90.h
@@ -1322,8 +1307,6 @@
 ./tools/testfiles/tfpformat.ddl
 ./tools/testfiles/tfpformat.h5
 
-
-
 # Expected output from h5ls tests
 ./tools/testfiles/nosuchfile.ls
 ./tools/testfiles/help-1.ls
@@ -1344,6 +1327,9 @@
 ./tools/testfiles/tslink-1.ls
 ./tools/testfiles/tstr-1.ls
 ./tools/testfiles/tattr2.ls
+./tools/testfiles/tdatareg.ls
+./tools/testfiles/tvldtypes2.ls
+
 
 #additional test input and output for h5dump XML
 ./tools/testfiles/tall.h5.xml
@@ -1422,6 +1408,8 @@
 ./tools/testfiles/torderattr1.h5.xml
 
 
+
+#test files for h5diff
 ./tools/h5diff/testfiles/h5diff_10.txt
 ./tools/h5diff/testfiles/h5diff_11.txt
 ./tools/h5diff/testfiles/h5diff_12.txt
@@ -1484,39 +1472,48 @@
 ./tools/h5diff/testfiles/h5diff_100.txt
 ./tools/h5diff/testfiles/h5diff_101.txt
 ./tools/h5diff/testfiles/h5diff_102.txt
+./tools/h5diff/testfiles/h5diff_200.txt
+./tools/h5diff/testfiles/h5diff_201.txt
+./tools/h5diff/testfiles/h5diff_202.txt
+./tools/h5diff/testfiles/h5diff_203.txt
+./tools/h5diff/testfiles/h5diff_204.txt
+./tools/h5diff/testfiles/h5diff_205.txt
+./tools/h5diff/testfiles/h5diff_206.txt
+./tools/h5diff/testfiles/h5diff_207.txt
 
 
-./tools/testfiles/h5diff_basic1.h5
-./tools/testfiles/h5diff_basic2.h5
-./tools/testfiles/h5diff_dtypes.h5
-./tools/testfiles/h5diff_dset1.h5
-./tools/testfiles/h5diff_dset2.h5
-./tools/testfiles/h5diff_empty.h5
-./tools/testfiles/h5diff_hyper1.h5
-./tools/testfiles/h5diff_attr1.h5
-./tools/testfiles/h5diff_hyper2.h5
-./tools/testfiles/h5diff_attr2.h5
-./tools/testfiles/h5diff_types.h5
+./tools/h5diff/testfiles/h5diff_basic1.h5
+./tools/h5diff/testfiles/h5diff_basic2.h5
+./tools/h5diff/testfiles/h5diff_dtypes.h5
+./tools/h5diff/testfiles/h5diff_dset1.h5
+./tools/h5diff/testfiles/h5diff_dset2.h5
+./tools/h5diff/testfiles/h5diff_empty.h5
+./tools/h5diff/testfiles/h5diff_hyper1.h5
+./tools/h5diff/testfiles/h5diff_attr1.h5
+./tools/h5diff/testfiles/h5diff_hyper2.h5
+./tools/h5diff/testfiles/h5diff_attr2.h5
+./tools/h5diff/testfiles/h5diff_types.h5
 
 
 
 #test files for h5repack
-./tools/testfiles/h5repack_fill.h5
-./tools/testfiles/h5repack_objs.h5
-./tools/testfiles/h5repack_attr.h5
-./tools/testfiles/h5repack_hlink.h5
-./tools/testfiles/h5repack_layout.h5
-./tools/testfiles/h5repack_early.h5
-./tools/testfiles/h5repack_szip.h5
-./tools/testfiles/h5repack_deflate.h5
-./tools/testfiles/h5repack_shuffle.h5
-./tools/testfiles/h5repack_fletcher.h5
-./tools/testfiles/h5repack_filters.h5
-./tools/testfiles/h5repack_nbit.h5
-./tools/testfiles/h5repack_soffset.h5
-./tools/testfiles/info.h5repack
-./tools/testfiles/h5repack_ext.bin
-./tools/testfiles/h5repack_ext.h5
+./tools/h5repack/testfiles/h5repack_fill.h5
+./tools/h5repack/testfiles/h5repack_objs.h5
+./tools/h5repack/testfiles/h5repack_attr.h5
+./tools/h5repack/testfiles/h5repack_hlink.h5
+./tools/h5repack/testfiles/h5repack_layout.h5
+./tools/h5repack/testfiles/h5repack_layouto.h5
+./tools/h5repack/testfiles/h5repack_early.h5
+./tools/h5repack/testfiles/h5repack_szip.h5
+./tools/h5repack/testfiles/h5repack_deflate.h5
+./tools/h5repack/testfiles/h5repack_shuffle.h5
+./tools/h5repack/testfiles/h5repack_fletcher.h5
+./tools/h5repack/testfiles/h5repack_filters.h5
+./tools/h5repack/testfiles/h5repack_nbit.h5
+./tools/h5repack/testfiles/h5repack_soffset.h5
+./tools/h5repack/testfiles/h5repack.info
+./tools/h5repack/testfiles/h5repack_ext.bin
+./tools/h5repack/testfiles/h5repack_ext.h5
 ./tools/h5repack/testfiles/ublock.bin
 
 
@@ -1531,16 +1528,19 @@
 ./tools/h5jam/getub.c
 
 # test files for jam
-./tools/testfiles/twithub.h5
-./tools/testfiles/twithub513.h5
-./tools/testfiles/u10.txt
-./tools/testfiles/u511.txt
-./tools/testfiles/u512.txt
-./tools/testfiles/u513.txt
+./tools/h5jam/testfiles/twithub.h5
+./tools/h5jam/testfiles/u10.txt
+./tools/h5jam/testfiles/tall.h5
+./tools/h5jam/testfiles/u511.txt
+./tools/h5jam/testfiles/u512.txt
+./tools/h5jam/testfiles/twithub513.h5
+./tools/h5jam/testfiles/u513.txt
+
+
 
 # test files for h5copy
-./tools/testfiles/h5copytst.h5
-./tools/testfiles/h5copytst.out.ls
+./tools/h5copy/testfiles/h5copytst.h5
+./tools/h5copy/testfiles/h5copytst.out.ls
 
 # test files for h5mkgrp
 ./tools/testfiles/h5mkgrp_help.ls
@@ -1634,6 +1634,8 @@
 ./hl/test/test_table_cray.hdf5
 ./hl/test/usa.wri
 ./hl/test/dtype_file.txt
+
+# tools
 ./hl/tools/COPYING
 ./hl/tools/Makefile.am
 ./hl/tools/Makefile.in
@@ -1649,9 +1651,8 @@
 ./hl/tools/gif2h5/writehdf.c
 ./hl/tools/gif2h5/h52gifgentst.c
 ./hl/tools/gif2h5/h52giftest.sh
-# testfiles
-./hl/tools/testfiles/image1.gif
-./hl/tools/testfiles/h52giftst.h5
+./hl/tools/gif2h5/testfiles/image1.gif
+./hl/tools/gif2h5/testfiles/h52giftst.h5
 
 
 # hl fortran

@@ -35,6 +35,7 @@
 /* File for external link test.  Created with gen_udlinks.c */
 #define LINKED_FILE  "be_extlink2.h5"
 
+#ifdef H5_VMS
 const char *FILENAME[] = {
     "links0",
     "links1",
@@ -48,10 +49,60 @@ const char *FILENAME[] = {
     "links6",  /* 9 */
     "links7",  /* 10 */
     "links8",  /* 11 */
-    "extlinks0",  	/* 12: main files */
-    "tmp/extlinks0",  	/* 13: */
-    "extlinks1",  	/* 14: target files */
-    "tmp/extlinks1",  	/* 15: */
+    "extlinks0",	/* 12: main files */
+    "[.tmp]extlinks0",	/* 13: */
+    "extlinks1",	/* 14: target files */
+    "[.tmp]extlinks1",	/* 15: */
+    "extlinks2",	/* 16: */
+    "[.tmp]extlinks2",	/* 17: */
+    "extlinks3",	/* 18: */
+    "[.tmp]extlinks3",	/* 19: */
+    "extlinks4",	/* 20: */
+    "[.tmp]extlinks4",	/* 21: */
+    "extlinks5",	/* 22: */
+    "[.tmp]extlinks6",	/* 23: */
+    "extlinks7",	/* 24: */
+    "[.tmp]extlinks7",	/* 25: */
+    "[.tmp]extlinks8",	/* 26: */
+    "extlinks9",	/* 27: */
+    "[.tmp]extlinks9",	/* 28: */
+    "extlinks10",	/* 29: */ /* TESTS for windows */
+    "[.tmp]extlinks10",	/* 30: */
+    "[.tmp]extlinks11",	/* 31: */
+    "[.tmp]extlinks12",	/* 32: */
+    "extlinks13",	/* 33: */
+    "[.tmp]extlinks13",	/* 34: */
+    "[.tmp]extlinks14",	/* 35: */
+    "[.tmp]extlinks15",	/* 36: */
+    "extlinks16A",	/* 37: */ /* TESTS for H5P_set_elink_fapl */
+    "extlinks16B",	/* 38: */
+    "extlinks17",	/* 39: */
+    "extlinks18A",	/* 40: */
+    "extlinks18B",	/* 41: */
+    "extlinks19A",	/* 42: */
+    "extlinks19B",	/* 43: */
+    NULL
+};
+
+#define TMPDIR          "[.tmp]"
+#else
+const char *FILENAME[] = {
+    "links0",
+    "links1",
+    "links2",
+    "links3",
+    "links4a", /* 4 */
+    "links4b", /* 5 */
+    "links4c", /* 6 */
+    "links4d", /* 7 */
+    "links5",  /* 8 */
+    "links6",  /* 9 */
+    "links7",  /* 10 */
+    "links8",  /* 11 */
+    "extlinks0",	/* 12: main files */
+    "tmp/extlinks0",	/* 13: */
+    "extlinks1",	/* 14: target files */
+    "tmp/extlinks1",	/* 15: */
     "extlinks2",	/* 16: */
     "tmp/extlinks2",	/* 17: */
     "extlinks3",	/* 18: */
@@ -76,10 +127,16 @@ const char *FILENAME[] = {
     "extlinks16A",	/* 37: */ /* TESTS for H5P_set_elink_fapl */
     "extlinks16B",	/* 38: */
     "extlinks17",	/* 39: */
+    "extlinks18A",	/* 40: */
+    "extlinks18B",	/* 41: */
+    "extlinks19A",	/* 42: */
+    "extlinks19B",	/* 43: */
     NULL
 };
 
-#define TMPDIR		"tmp"
+#define TMPDIR          "tmp"
+#endif
+
 #define FAMILY_SIZE	1024
 #define CORE_INCREMENT  1024
 #define NUM400		400
@@ -111,6 +168,8 @@ const char *FILENAME[] = {
 
 #define LE_FILENAME "le_extlink1.h5"
 #define BE_FILENAME "be_extlink1.h5"
+
+#define ELINK_CB_FAM_SIZE (hsize_t) 100
 
 #define H5L_DIM1 100
 #define H5L_DIM2 100
@@ -2819,6 +2878,37 @@ external_link_prefix(hid_t fapl, hbool_t new_format)
 
 
 /*-------------------------------------------------------------------------
+ * Function:    fix_ext_filename
+ *
+ * Purpose:     Internal function to append path to file name.  It handles
+ *              path name of Unix, Windows, and OpenVMS.
+ *
+ * Return:      void
+ *
+ * Programmer:  Raymond Lu
+ *              14 Jan. 2009
+ *-------------------------------------------------------------------------
+ */
+static void 
+fix_ext_filename(char *path_name, char *cwd, const char *file_name)
+{
+    HDstrcpy(path_name, cwd);
+
+#ifdef H5_VMS
+    if(file_name[0] == '[') {
+        char *tmp = file_name;
+        path_name[strlen(cwd)-1] = '\0';
+        HDstrcat(path_name, ++tmp);
+    } else
+        HDstrcat(path_name, file_name);
+#else
+    HDstrcat(path_name, "/");
+    HDstrcat(path_name, file_name);
+#endif
+}
+
+
+/*-------------------------------------------------------------------------
  * Function:    external_link_abs_mainpath: test 3
  *
  * Purpose:     1. target link: "extlinks3"
@@ -2865,10 +2955,9 @@ external_link_abs_mainpath(hid_t fapl, hbool_t new_format)
      * set up name for main file:
      *	Linux: "/CWD/tmp/extlinks0"
      *  Window: "<cur drive>:/CWD/tmp/extlinks0"
+     *  OpenVMS: "<cur disk>$<partition>:[CWD.tmp]extlinks0"
      */
-    HDstrcpy(tmpname, cwdpath);
-    HDstrcat(tmpname, "/");
-    HDstrcat(tmpname, FILENAME[13]);
+    fix_ext_filename(tmpname, cwdpath, FILENAME[13]);
     h5_fixname(tmpname, fapl, filename1, sizeof filename1);
 
     /* Create the target file */
@@ -3046,9 +3135,7 @@ external_link_cwd(hid_t fapl, hbool_t new_format)
      *	 Linux: "/CWD/tmp/extlinks0"
      *   Windows: "<cur drive>:/CWD/tmp/extlinks0"
      */
-    HDstrcpy(tmpname, cwdpath);
-    HDstrcat(tmpname, "/");
-    HDstrcat(tmpname, FILENAME[13]);
+    fix_ext_filename(tmpname, cwdpath, FILENAME[13]);
     h5_fixname(tmpname, fapl, filename1, sizeof filename1);
 
     /* Create the target file */
@@ -3141,9 +3228,7 @@ external_link_abstar(hid_t fapl, hbool_t new_format)
      *   Linux: "/CWD/tmp/extlinks6"
      *	 Windows: "<cur drive>:/CWD/tmp/extlinks6"
      */
-    HDstrcpy(tmpname, cwdpath);
-    HDstrcat(tmpname, "/");
-    HDstrcat(tmpname, FILENAME[23]);
+    fix_ext_filename(tmpname, cwdpath, FILENAME[23]);
     h5_fixname(tmpname, fapl, filename2, sizeof filename2);
 
     /* set up name for target file: "tmp/extlinks6" */
@@ -3240,9 +3325,7 @@ external_link_abstar_cur(hid_t fapl, hbool_t new_format)
       *   Linux: "/CWD/tmp/extlinks7"
       *	  Windows: "<cur drive>:/CWD/tmp/extlinks7"
       */
-    HDstrcpy(tmpname, cwdpath);
-    HDstrcat(tmpname, "/");
-    HDstrcat(tmpname, FILENAME[25]);
+    fix_ext_filename(tmpname, cwdpath, FILENAME[25]);
     h5_fixname(tmpname, fapl, filename2, sizeof filename2);
 
     /* Create the target file */
@@ -3533,9 +3616,7 @@ external_set_elink_fapl1(hid_t fapl, hbool_t new_format)
      *	 Linux: "/CWD/tmp/extlinks0"
      *   Windows: "<cur drive>:/CWD/tmp/extlinks0"
      */
-    HDstrcpy(tmpname, cwdpath);
-    HDstrcat(tmpname, "/");
-    HDstrcat(tmpname, FILENAME[13]);
+    fix_ext_filename(tmpname, cwdpath, FILENAME[13]);
     h5_fixname(tmpname, fapl, filename1, sizeof filename1);
 
     /* create "family" fapl */
@@ -3735,9 +3816,7 @@ external_set_elink_fapl2(hid_t fapl, hbool_t new_format)
      *	 Linux: "/CWD/tmp/extlinks0"
      *   Windows: "<cur drive>:/CWD/tmp/extlinks0"
      */
-    HDstrcpy(tmpname, cwdpath);
-    HDstrcat(tmpname, "/");
-    HDstrcat(tmpname, FILENAME[13]);
+    fix_ext_filename(tmpname, cwdpath, FILENAME[13]);
     h5_fixname(tmpname, fapl, filename1, sizeof filename1);
 
     /* create fapl for the target file to be a "core" file */
@@ -3945,6 +4024,284 @@ external_set_elink_fapl3(hbool_t new_format)
     } H5E_END_TRY;
     return -1;
 } /* end external_set_elink_fapl3() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    external_set_elink_acc_flags
+ *
+ * Purpose:     Verify functionality of H5P_set/get_elink_acc_flags
+ *
+ * Return:      Success:        0
+ *              Failure:        -1
+ *
+ * Programmer:  Neil Fortner
+ *              Jan. 5, 2009
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+static int
+external_set_elink_acc_flags(hid_t fapl, hbool_t new_format)
+{
+    hid_t       file1, file2, group, subgroup, gapl;
+    char        filename1[NAME_BUF_SIZE],
+                filename2[NAME_BUF_SIZE];
+    unsigned    flags;
+
+    if(new_format)
+        TESTING("H5Pset/get_elink_acc_flags() (w/new group format)")
+    else
+        TESTING("H5Pset/get_elink_acc_flags()")
+
+    /* Create parent and target files, and external link */
+    h5_fixname(FILENAME[40], fapl, filename1, sizeof filename1);
+    h5_fixname(FILENAME[41], fapl, filename2, sizeof filename2);
+    if ((file1 = H5Fcreate(filename1, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
+    if ((file2 = H5Fcreate(filename2, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
+    if (H5Lcreate_external(filename2, "/", file1, "ext_link", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
+
+    /* Close file2, leave file1 open (should be read-write) */
+    if (H5Fclose(file2) < 0) TEST_ERROR
+
+    /* Create new gapl, and set elink access flags to be H5F_ACC_RDONLY */
+    if ((gapl = H5Pcreate(H5P_GROUP_ACCESS)) < 0) TEST_ERROR
+    if (H5Pset_elink_acc_flags(gapl, H5F_ACC_RDONLY) < 0) TEST_ERROR
+
+    /* Verify "get" routine functionality */
+    if (H5Pget_elink_acc_flags(gapl, &flags) < 0) TEST_ERROR
+    if (flags != H5F_ACC_RDONLY) TEST_ERROR
+
+    /* Attempt to create a group through the external link using gapl (should fail) */
+    H5E_BEGIN_TRY {
+        group = H5Gcreate2(file1, "/ext_link/group", H5P_DEFAULT, H5P_DEFAULT, gapl);
+    } H5E_END_TRY;
+    if (group != FAIL) TEST_ERROR
+
+    /* Close file1 and reopen with read only access */
+    if (H5Fclose(file1) < 0) TEST_ERROR
+    if ((file1 = H5Fopen(filename1, H5F_ACC_RDONLY, fapl)) < 0) TEST_ERROR
+
+    /* Set elink access flags on gapl to be H5F_ACC_RDWR */
+    if (H5Pset_elink_acc_flags(gapl, H5F_ACC_RDWR) < 0) TEST_ERROR
+
+    /* Create a group through the external link using gapl (should succeed) */
+    if ((group = H5Gcreate2(file1, "/ext_link/group", H5P_DEFAULT, H5P_DEFAULT, gapl)) < 0) TEST_ERROR
+
+    /* Unset elink access flags on gapl */
+    if (H5Pset_elink_acc_flags(gapl, H5F_ACC_DEFAULT) < 0) TEST_ERROR
+
+    /* Attempt to create a group through the external link using gapl (should fail) */
+    H5E_BEGIN_TRY {
+        subgroup = H5Gcreate2(file1, "/ext_link/group/subgroup", H5P_DEFAULT, H5P_DEFAULT, gapl);
+    } H5E_END_TRY;
+    if (subgroup != FAIL) TEST_ERROR
+
+    /* Close file1 and group */
+    if (H5Gclose(group) < 0) TEST_ERROR
+    if (H5Fclose(file1) < 0) TEST_ERROR
+
+    /* Verify that H5Fcreate and H5Fopen reject H5F_ACC_DEFAULT */
+    H5E_BEGIN_TRY {
+        file1 = H5Fcreate(filename1, H5F_ACC_DEFAULT, H5P_DEFAULT, fapl);
+    } H5E_END_TRY;
+    if (file1 != FAIL) TEST_ERROR
+    H5E_BEGIN_TRY {
+        file1 = H5Fcreate(filename1, H5F_ACC_TRUNC | H5F_ACC_DEFAULT, H5P_DEFAULT, fapl);
+    } H5E_END_TRY;
+    if (file1 != FAIL) TEST_ERROR
+    H5E_BEGIN_TRY {
+        file1 = H5Fopen(filename1, H5F_ACC_DEFAULT, fapl);
+    } H5E_END_TRY;
+    if (file1 != FAIL) TEST_ERROR
+    H5E_BEGIN_TRY {
+        file1 = H5Fopen(filename1, H5F_ACC_RDWR | H5F_ACC_DEFAULT, fapl);
+    } H5E_END_TRY;
+    if (file1 != FAIL) TEST_ERROR
+
+    /* Close gapl */
+    if (H5Pclose(gapl) < 0) TEST_ERROR
+
+    PASSED();
+    return 0;
+
+ error:
+    H5E_BEGIN_TRY {
+        H5Gclose(group);
+        H5Gclose(subgroup);
+        H5Fclose(file1);
+        H5Fclose(file2);
+        H5Pclose(gapl);
+    } H5E_END_TRY;
+    return -1;
+} /* end external_set_elink_acc_flags() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    external_set_elink_cb
+ *
+ * Purpose:     Verify functionality of H5P_set/get_elink_cb
+ *
+ * Return:      Success:        0
+ *              Failure:        -1
+ *
+ * Programmer:  Neil Fortner
+ *              Jan. 5, 2009
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+ /* User data structure for callback function */
+typedef struct {
+    const char  *parent_file;   /* Expected parent file name */
+    const char  *target_file;   /* Expected target file name */
+    hid_t       base_fapl;      /* Base fapl for family driver */
+    hsize_t     fam_size;       /* Size of family files */
+    int         code;           /* Code to control the actions taken by the callback */
+} set_elink_cb_t;
+
+/* Callback function */
+static herr_t
+external_set_elink_cb_cb(const char *parent_file, const char *parent_group,
+    const char *target_file, const char *target_obj, unsigned *flags,
+    hid_t fapl, void *_op_data)
+{
+    set_elink_cb_t  *op_data = (set_elink_cb_t *)_op_data;
+
+    /* Verify file and object names are correct */
+    if (HDstrcmp(parent_file, op_data->parent_file)) return FAIL;
+    if (HDstrcmp(parent_group, "/group1")) return FAIL;
+    if (HDstrcmp(target_file, op_data->target_file)) return FAIL;
+    if (HDstrcmp(target_obj, "/")) return FAIL;
+
+    /* Set flags to be read-write */
+    *flags = (*flags & ~H5F_ACC_RDONLY) | H5F_ACC_RDWR;
+
+    /* Set family file driver on fapl */
+    if (H5Pset_fapl_family(fapl, op_data->fam_size, op_data->base_fapl) < 0) return FAIL;
+
+    /* Codes to cause an invalid condition (and verify that an error is issued */
+    if (op_data->code == 1)
+        return FAIL;
+    if (op_data->code == 2)
+        *flags = H5F_ACC_DEFAULT;
+
+    return 0;
+}
+
+/* Main test function */
+static int
+external_set_elink_cb(hid_t fapl, hbool_t new_format)
+{
+    hid_t       file1, file2, group, gapl, fam_fapl, ret_fapl, base_driver;
+    set_elink_cb_t op_data,
+                *op_data_p;
+    H5L_elink_traverse_t cb;
+    char        filename1[NAME_BUF_SIZE],
+                filename2[NAME_BUF_SIZE];
+    unsigned    flags;
+
+    if(new_format)
+        TESTING("H5Pset/get_elink_cb() (w/new group format)")
+    else
+        TESTING("H5Pset/get_elink_cb()")
+
+    /* Build user data for callback */
+    op_data.parent_file = filename1;
+    op_data.target_file = filename2;
+    /* Core file driver has issues when used as the member file driver for a family file */
+    /* Family file driver cannot be used with family or multi drivers for member files */
+    /* Also disable parellel member drivers, because IS_H5FD_MPI whould report FALSE, causing problems */
+    base_driver = H5Pget_driver(fapl);
+    op_data.base_fapl = (base_driver == H5FD_FAMILY || base_driver ==  H5FD_MULTI
+            || base_driver == H5FD_MPIO || base_driver == H5FD_MPIPOSIX
+            || base_driver == H5FD_CORE) ? H5P_DEFAULT : fapl;
+    op_data.fam_size = ELINK_CB_FAM_SIZE;
+    op_data.code = 0;
+
+    /* Create family fapl */
+    if ((fam_fapl = H5Pcopy(fapl)) < 0) TEST_ERROR
+    if (H5Pset_fapl_family(fam_fapl, op_data.fam_size, op_data.base_fapl) < 0) TEST_ERROR
+
+    /* Create parent and target files, group, and external link */
+    h5_fixname(FILENAME[40], fapl, filename1, sizeof filename1);
+    h5_fixname(FILENAME[41], fam_fapl, filename2, sizeof filename2);
+    if ((file1 = H5Fcreate(filename1, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
+    if ((file2 = H5Fcreate(filename2, H5F_ACC_TRUNC, H5P_DEFAULT, fam_fapl)) < 0) TEST_ERROR
+    if ((group = H5Gcreate2(file1, "group1",H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
+    if (H5Lcreate_external(filename2, "/", group, "ext_link", H5P_DEFAULT, H5P_DEFAULT) < 0) TEST_ERROR
+
+    /* Close files and group */
+    if (H5Fclose(file1) < 0) TEST_ERROR
+    if (H5Fclose(file2) < 0) TEST_ERROR
+    if (H5Gclose(group) < 0) TEST_ERROR
+
+    /* Create new gapl, and set elink callback */
+    if ((gapl = H5Pcreate(H5P_GROUP_ACCESS)) < 0) TEST_ERROR
+    if (H5Pset_elink_cb(gapl, external_set_elink_cb_cb, &op_data) < 0) TEST_ERROR
+
+    /* Verify "get" routine functionality */
+    if (H5Pget_elink_cb(gapl, &cb, (void **) &op_data_p) < 0) TEST_ERROR
+    if (cb != external_set_elink_cb_cb) TEST_ERROR
+    if (op_data_p != &op_data) TEST_ERROR
+
+    /* Open file1 with read only access */
+    if ((file1 = H5Fopen(filename1, H5F_ACC_RDONLY, fapl)) < 0) TEST_ERROR
+
+    /* Create a group through the external link using gapl */
+    if ((group = H5Gcreate2(file1, "/group1/ext_link/group2", H5P_DEFAULT, H5P_DEFAULT, gapl)) < 0) TEST_ERROR
+
+    /* Verify that the correct parameters have been set on file2 (somewhat
+     * redundant as the library would be unable to create the group otherwise)
+     */
+    if ((file2 = H5Iget_file_id(group)) < 0) TEST_ERROR
+    if (H5Fget_intent(file2, &flags) < 0) TEST_ERROR
+    if (!(flags & H5F_ACC_RDWR)) TEST_ERROR
+    if ((ret_fapl = H5Fget_access_plist(file2)) < 0) TEST_ERROR
+    if (H5FD_FAMILY != H5Pget_driver(ret_fapl)) TEST_ERROR
+
+    if (H5Gclose(group) < 0) TEST_ERROR
+    if (H5Fclose(file2) < 0) TEST_ERROR
+    if (H5Pclose(ret_fapl) < 0) TEST_ERROR
+    if (H5Pclose(fam_fapl) < 0) TEST_ERROR
+
+    /* Modify the user data structure to cause the callback to fail next time */
+    op_data.code = 1;
+
+    /* Attempt to reopen group2 (should fail) */
+    H5E_BEGIN_TRY {
+        group = H5Gopen2(file1, "/group1/ext_link/group2", gapl);
+    } H5E_END_TRY;
+    if (group != FAIL) TEST_ERROR
+
+    /* Modify the user data structure to cause the callback to return invalid flags */
+    op_data.code = 2;
+
+    /* Attempt to reopen group2 (should fail) */
+    H5E_BEGIN_TRY {
+        group = H5Gopen2(file1, "/group1/ext_link/group2", gapl);
+    } H5E_END_TRY;
+    if (group != FAIL) TEST_ERROR
+
+    /* Close */
+    if (H5Fclose(file1) < 0) TEST_ERROR
+    if (H5Pclose(gapl) < 0) TEST_ERROR
+
+    PASSED();
+    return 0;
+
+ error:
+    H5E_BEGIN_TRY {
+        H5Gclose(group);
+        H5Fclose(file1);
+        H5Fclose(file2);
+        H5Pclose(gapl);
+        H5Pclose(ret_fapl);
+        H5Pclose(fam_fapl);
+    } H5E_END_TRY;
+    return -1;
+} /* end external_set_elink_cb() */
 
 
 #ifdef H5_HAVE_WINDOW_PATH
@@ -7230,7 +7587,7 @@ linkinfo(hid_t fapl, hbool_t new_format)
     	H5Fclose (fid);
     } H5E_END_TRY;
     return -1;
-} /* end ud_hard_links() */
+} /* end linkinfo() */
 
 
 /*-------------------------------------------------------------------------
@@ -12342,6 +12699,8 @@ main(void)
         nerrors += external_set_elink_fapl1(my_fapl, new_format) < 0 ? 1 : 0;
         nerrors += external_set_elink_fapl2(my_fapl, new_format) < 0 ? 1 : 0;
         nerrors += external_set_elink_fapl3(new_format) < 0 ? 1 : 0;
+        nerrors += external_set_elink_acc_flags(my_fapl, new_format) < 0 ? 1 : 0;
+        nerrors += external_set_elink_cb(my_fapl, new_format) < 0 ? 1 : 0;
 
 #ifdef H5_HAVE_WINDOW_PATH
         nerrors += external_link_win1(my_fapl, new_format) < 0 ? 1 : 0;
@@ -12359,6 +12718,7 @@ main(void)
             nerrors += ud_hard_links(fapl2) < 0 ? 1 : 0;     /* requires new format groups */
             nerrors += ud_link_reregister(fapl2) < 0 ? 1 : 0;        /* requires new format groups */
         } /* end if */
+
         nerrors += ud_callbacks(my_fapl, new_format) < 0 ? 1 : 0;
         nerrors += ud_link_errors(my_fapl, new_format) < 0 ? 1 : 0;
         nerrors += lapl_udata(my_fapl, new_format) < 0 ? 1 : 0;

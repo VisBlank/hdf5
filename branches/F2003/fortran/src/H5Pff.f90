@@ -5942,6 +5942,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
          !DEC$ ENDIF
          !DEC$ATTRIBUTES reference :: expression
          INTEGER(HID_T), INTENT(IN) :: plist_id
+
          CHARACTER(LEN=*), INTENT(IN) :: expression
          INTEGER :: expression_len
        END FUNCTION h5pset_data_transform_c

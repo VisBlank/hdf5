@@ -728,6 +728,7 @@ CONTAINS
          !DEC$ ENDIF
          !DEC$ATTRIBUTES reference :: group_name
          INTEGER(HID_T), INTENT(IN) :: loc_id
+
          CHARACTER(LEN=*), INTENT(IN) :: group_name
          INTEGER(SIZE_T)  :: group_namelen
          INTEGER, INTENT(IN) :: index_field
@@ -862,6 +863,7 @@ CONTAINS
          !DEC$ ENDIF
          !DEC$ATTRIBUTES reference :: src_name, dest_name
          INTEGER(HID_T), INTENT(IN) :: src_loc_id
+
          CHARACTER(LEN=*), INTENT(IN) :: src_name
          INTEGER(SIZE_T) :: src_namelen
          INTEGER(HID_T), INTENT(IN) :: dest_loc_id
@@ -951,6 +953,7 @@ CONTAINS
          !DEC$ ENDIF
          !DEC$ATTRIBUTES reference :: group_name, name
          INTEGER(HID_T), INTENT(IN) :: loc_id
+
          CHARACTER(LEN=*), INTENT(IN) :: group_name
          INTEGER(SIZE_T)  :: group_namelen
          INTEGER, INTENT(IN) :: index_field
