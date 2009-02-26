@@ -138,7 +138,7 @@ static int   not_comparable;
  */
 static hsize_t diff_region(hid_t obj1_id, hid_t obj2_id,hid_t region1_id, hid_t region2_id, diff_opt_t *options);
 static hbool_t all_zero(const void *_mem, size_t size);
-static int     ull2float(unsigned long_long ull_value, float *f_value);
+static int     ull2float(unsigned long long ull_value, float *f_value);
 static hsize_t character_compare(unsigned char *mem1,unsigned char *mem2,hsize_t i,unsigned u,int rank,hsize_t *dims,hsize_t *acc,hsize_t *pos,diff_opt_t *options,const char *obj1,const char *obj2,int *ph);
 static hsize_t character_compare_opt(unsigned char *mem1,unsigned char *mem2,hsize_t i,int rank,hsize_t *dims,hsize_t *acc,hsize_t *pos,diff_opt_t *options,const char *obj1,const char *obj2,int *ph);
 static hbool_t equal_float(float value, float expected, diff_opt_t *options);
@@ -156,13 +156,22 @@ static void h5diff_print_char(char ch);
  * NaN detection
  *-------------------------------------------------------------------------
  */
+
+#if H5_SIZEOF_LONG_DOUBLE !=0
 typedef enum dtype_t
 {
-    FLT_FLOAT, FLT_DOUBLE,
-#if H5_SIZEOF_LONG_DOUBLE !=0
-    FLT_LDOUBLE,
-#endif
+    FLT_FLOAT, 
+    FLT_DOUBLE,
+    FLT_LDOUBLE
 } dtype_t;
+#else
+
+typedef enum dtype_t
+{
+    FLT_FLOAT, 
+    FLT_DOUBLE
+} dtype_t;
+#endif
 
 static int my_isnan(dtype_t type, void *val);
 
@@ -356,9 +365,9 @@ hsize_t diff_array( void *_mem1,
  * H5T_COMPOUND
  *  Recursively call this function for each member
  * H5T_ARRAY
- *  Recursively call this function for each element 
+ *  Recursively call this function for each element
  * H5T_VLEN
- *  Recursively call this function for each element 
+ *  Recursively call this function for each element
  * H5T_STRING
  *  compare byte by byte in a cycle from 0 to type_size. this type_size is the
  *  value obtained by the get_size function but it is the string lenght for
@@ -1588,12 +1597,12 @@ hsize_t diff_datum(void       *_mem1,
 
         else if (H5Tequal(m_type, H5T_NATIVE_LLONG))
         {
-            long_long        temp1_llong;
-            long_long        temp2_llong;
-            assert(type_size==sizeof(long_long));
+            long long        temp1_llong;
+            long long        temp2_llong;
+            assert(type_size==sizeof(long long));
 
-            memcpy(&temp1_llong, mem1, sizeof(long_long));
-            memcpy(&temp2_llong, mem2, sizeof(long_long));
+            memcpy(&temp1_llong, mem1, sizeof(long long));
+            memcpy(&temp2_llong, mem2, sizeof(long long));
             /* -d and !-p */
             if (options->d && !options->p)
             {
@@ -1686,16 +1695,16 @@ hsize_t diff_datum(void       *_mem1,
 
         else if (H5Tequal(m_type, H5T_NATIVE_ULLONG))
         {
-            unsigned long_long        temp1_ullong;
-            unsigned long_long        temp2_ullong;
-            assert(type_size==sizeof(unsigned long_long));
+            unsigned long long        temp1_ullong;
+            unsigned long long        temp2_ullong;
+            assert(type_size==sizeof(unsigned long long));
 
-            memcpy(&temp1_ullong, mem1, sizeof(unsigned long_long));
-            memcpy(&temp2_ullong, mem2, sizeof(unsigned long_long));
+            memcpy(&temp1_ullong, mem1, sizeof(unsigned long long));
+            memcpy(&temp2_ullong, mem2, sizeof(unsigned long long));
             /* -d and !-p */
             if (options->d && !options->p)
             {
-                if ( PDIFF(temp1_ullong,temp2_ullong) > (unsigned long_long)options->delta)
+                if ( PDIFF(temp1_ullong,temp2_ullong) > (unsigned long long)options->delta)
                 {
                     if ( print_data(options) )
                     {
@@ -1758,7 +1767,7 @@ hsize_t diff_datum(void       *_mem1,
 
                 else
 
-                    if ( per > options->percent && PDIFF(temp1_ullong,temp2_ullong) > (unsigned long_long)options->delta )
+                    if ( per > options->percent && PDIFF(temp1_ullong,temp2_ullong) > (unsigned long long)options->delta )
                     {
 
                         if ( print_data(options) )
@@ -4777,8 +4786,8 @@ hsize_t diff_llong(unsigned char *mem1,
 
 {
  hsize_t       nfound=0;          /* number of differences found */
- long_long     temp1_llong;
- long_long     temp2_llong;
+ long long     temp1_llong;
+ long long     temp2_llong;
  hsize_t       i;
  double        per;
  int           both_zero;
@@ -4789,8 +4798,8 @@ hsize_t diff_llong(unsigned char *mem1,
 
      for ( i = 0; i < nelmts; i++)
      {
-         memcpy(&temp1_llong, mem1, sizeof(long_long));
-         memcpy(&temp2_llong, mem2, sizeof(long_long));
+         memcpy(&temp1_llong, mem1, sizeof(long long));
+         memcpy(&temp2_llong, mem2, sizeof(long long));
 
          if (ABS( temp1_llong-temp2_llong) > options->delta)
          {
@@ -4802,8 +4811,8 @@ hsize_t diff_llong(unsigned char *mem1,
              }
              nfound++;
          }
-         mem1+=sizeof(long_long);
-         mem2+=sizeof(long_long);
+         mem1+=sizeof(long long);
+         mem2+=sizeof(long long);
          if (options->n && nfound>=options->count)
              return nfound;
      }
@@ -4816,8 +4825,8 @@ hsize_t diff_llong(unsigned char *mem1,
 
      for ( i = 0; i < nelmts; i++)
      {
-         memcpy(&temp1_llong, mem1, sizeof(long_long));
-         memcpy(&temp2_llong, mem2, sizeof(long_long));
+         memcpy(&temp1_llong, mem1, sizeof(long long));
+         memcpy(&temp2_llong, mem2, sizeof(long long));
 
          PER(temp1_llong,temp2_llong);
 
@@ -4844,8 +4853,8 @@ hsize_t diff_llong(unsigned char *mem1,
                  }
                  nfound++;
              }
-             mem1+=sizeof(long_long);
-             mem2+=sizeof(long_long);
+             mem1+=sizeof(long long);
+             mem2+=sizeof(long long);
              if (options->n && nfound>=options->count)
                  return nfound;
      }
@@ -4859,8 +4868,8 @@ hsize_t diff_llong(unsigned char *mem1,
 
      for ( i = 0; i < nelmts; i++)
      {
-         memcpy(&temp1_llong, mem1, sizeof(long_long));
-         memcpy(&temp2_llong, mem2, sizeof(long_long));
+         memcpy(&temp1_llong, mem1, sizeof(long long));
+         memcpy(&temp2_llong, mem2, sizeof(long long));
 
          PER(temp1_llong,temp2_llong);
 
@@ -4887,8 +4896,8 @@ hsize_t diff_llong(unsigned char *mem1,
                  }
                  nfound++;
              }
-             mem1+=sizeof(long_long);
-             mem2+=sizeof(long_long);
+             mem1+=sizeof(long long);
+             mem2+=sizeof(long long);
              if (options->n && nfound>=options->count)
                  return nfound;
      }
@@ -4899,8 +4908,8 @@ hsize_t diff_llong(unsigned char *mem1,
 
      for ( i = 0; i < nelmts; i++)
      {
-         memcpy(&temp1_llong, mem1, sizeof(long_long));
-         memcpy(&temp2_llong, mem2, sizeof(long_long));
+         memcpy(&temp1_llong, mem1, sizeof(long long));
+         memcpy(&temp2_llong, mem2, sizeof(long long));
 
          if (temp1_llong != temp2_llong)
          {
@@ -4913,8 +4922,8 @@ hsize_t diff_llong(unsigned char *mem1,
              nfound++;
          }
 
-         mem1+=sizeof(long_long);
-         mem2+=sizeof(long_long);
+         mem1+=sizeof(long long);
+         mem2+=sizeof(long long);
          if (options->n && nfound>=options->count)
              return nfound;
      } /* nelmts */
@@ -4950,8 +4959,8 @@ hsize_t diff_ullong(unsigned char *mem1,
 
 {
  hsize_t             nfound=0;          /* number of differences found */
- unsigned long_long  temp1_ullong;
- unsigned long_long  temp2_ullong;
+ unsigned long long  temp1_ullong;
+ unsigned long long  temp2_ullong;
  hsize_t             i;
  float               f1, f2;
  double              per;
@@ -4963,10 +4972,10 @@ hsize_t diff_ullong(unsigned char *mem1,
 
      for ( i = 0; i < nelmts; i++)
      {
-         memcpy(&temp1_ullong, mem1, sizeof(unsigned long_long));
-         memcpy(&temp2_ullong, mem2, sizeof(unsigned long_long));
+         memcpy(&temp1_ullong, mem1, sizeof(unsigned long long));
+         memcpy(&temp2_ullong, mem2, sizeof(unsigned long long));
 
-         if ( PDIFF(temp1_ullong,temp2_ullong) > (unsigned long_long) options->delta)
+         if ( PDIFF(temp1_ullong,temp2_ullong) > (unsigned long long) options->delta)
          {
              if ( print_data(options) )
              {
@@ -4976,8 +4985,8 @@ hsize_t diff_ullong(unsigned char *mem1,
              }
              nfound++;
          }
-         mem1+=sizeof(unsigned long_long);
-         mem2+=sizeof(unsigned long_long);
+         mem1+=sizeof(unsigned long long);
+         mem2+=sizeof(unsigned long long);
          if (options->n && nfound>=options->count)
              return nfound;
      }
@@ -4990,8 +4999,8 @@ hsize_t diff_ullong(unsigned char *mem1,
 
      for ( i = 0; i < nelmts; i++)
      {
-         memcpy(&temp1_ullong, mem1, sizeof(unsigned long_long));
-         memcpy(&temp2_ullong, mem2, sizeof(unsigned long_long));
+         memcpy(&temp1_ullong, mem1, sizeof(unsigned long long));
+         memcpy(&temp2_ullong, mem2, sizeof(unsigned long long));
 
          ull2float(temp1_ullong,&f1);
          ull2float(temp2_ullong,&f2);
@@ -5020,8 +5029,8 @@ hsize_t diff_ullong(unsigned char *mem1,
                  }
                  nfound++;
              }
-             mem1+=sizeof(unsigned long_long);
-             mem2+=sizeof(unsigned long_long);
+             mem1+=sizeof(unsigned long long);
+             mem2+=sizeof(unsigned long long);
              if (options->n && nfound>=options->count)
                  return nfound;
      }
@@ -5035,8 +5044,8 @@ hsize_t diff_ullong(unsigned char *mem1,
 
      for ( i = 0; i < nelmts; i++)
      {
-         memcpy(&temp1_ullong, mem1, sizeof(unsigned long_long));
-         memcpy(&temp2_ullong, mem2, sizeof(unsigned long_long));
+         memcpy(&temp1_ullong, mem1, sizeof(unsigned long long));
+         memcpy(&temp2_ullong, mem2, sizeof(unsigned long long));
 
          ull2float(temp1_ullong,&f1);
          ull2float(temp2_ullong,&f2);
@@ -5055,7 +5064,7 @@ hsize_t diff_ullong(unsigned char *mem1,
 
          else
 
-             if ( per > options->percent && PDIFF(temp1_ullong,temp2_ullong) > (unsigned long_long)options->delta )
+             if ( per > options->percent && PDIFF(temp1_ullong,temp2_ullong) > (unsigned long long)options->delta )
              {
                  if ( print_data(options) )
                  {
@@ -5065,8 +5074,8 @@ hsize_t diff_ullong(unsigned char *mem1,
                  }
                  nfound++;
              }
-             mem1+=sizeof(unsigned long_long);
-             mem2+=sizeof(unsigned long_long);
+             mem1+=sizeof(unsigned long long);
+             mem2+=sizeof(unsigned long long);
              if (options->n && nfound>=options->count)
                  return nfound;
      }
@@ -5077,8 +5086,8 @@ hsize_t diff_ullong(unsigned char *mem1,
 
      for ( i = 0; i < nelmts; i++)
      {
-         memcpy(&temp1_ullong, mem1, sizeof(unsigned long_long));
-         memcpy(&temp2_ullong, mem2, sizeof(unsigned long_long));
+         memcpy(&temp1_ullong, mem1, sizeof(unsigned long long));
+         memcpy(&temp2_ullong, mem2, sizeof(unsigned long long));
 
          if (temp1_ullong != temp2_ullong)
          {
@@ -5091,8 +5100,8 @@ hsize_t diff_ullong(unsigned char *mem1,
              nfound++;
          }
 
-         mem1+=sizeof(unsigned long_long);
-         mem2+=sizeof(unsigned long_long);
+         mem1+=sizeof(unsigned long long);
+         mem2+=sizeof(unsigned long long);
          if (options->n && nfound>=options->count)
              return nfound;
      } /* nelmts */
@@ -5107,7 +5116,7 @@ hsize_t diff_ullong(unsigned char *mem1,
 /*-------------------------------------------------------------------------
  * Function:    ull2float
  *
- * Purpose:     convert unsigned long_long to float
+ * Purpose:     convert unsigned long long to float
  *
  * Programmer:  pvn
  *              Mar 22, 2006
@@ -5117,7 +5126,7 @@ hsize_t diff_ullong(unsigned char *mem1,
  *-------------------------------------------------------------------------
  */
 static
-int ull2float(unsigned long_long ull_value, float *f_value)
+int ull2float(unsigned long long ull_value, float *f_value)
 {
  hid_t          dxpl_id;
  unsigned char  *buf;
@@ -5573,7 +5582,7 @@ void print_pos( int        *ph,       /* print header */
         parallel_print("[ " );
         for ( i = 0; i < rank; i++)
         {
-            parallel_print(HSIZE_T_FORMAT, (unsigned long_long)pos[i]);
+            parallel_print(HSIZE_T_FORMAT, (unsigned long long)pos[i]);
             parallel_print(" ");
         }
         parallel_print("]" );
@@ -5651,7 +5660,7 @@ void print_char_pos( int        *ph,       /* print header */
         
         for ( i = 0; i < rank; i++)
         {
-            parallel_print(HSIZE_T_FORMAT, (unsigned long_long)pos[i]);
+            parallel_print(HSIZE_T_FORMAT, (unsigned long long)pos[i]);
             parallel_print(" ");
         }
         
