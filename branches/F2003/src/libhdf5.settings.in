@@ -31,8 +31,8 @@ Compiling Options:
 Languages:
 ----------
                         Fortran: @HDF_FORTRAN@
-@BUILD_FORTRAN_CONDITIONAL_TRUE@               Fortran Compiler: @FC@
-@BUILD_FORTRAN_CONDITIONAL_TRUE@                  Fortran Flags: @FCFLAGS@
+@BUILD_FORTRAN_CONDITIONAL_TRUE@               Fortran Compiler: @FC@ @FCFLAGS@
+@FORTRAN_2003_CONDITIONAL_F_TRUE@          Fortran 2003 Features: enabled
                             C++: @HDF_CXX@
 @BUILD_CXX_CONDITIONAL_TRUE@                   C++ Compiler: @CXX@
 @BUILD_CXX_CONDITIONAL_TRUE@                      C++ Flags: @CXXFLAGS@
