@@ -363,49 +363,36 @@ if test "X$HDF_FORTRAN" = "Xyes"; then
     dnl other compilers have various other problems.....
     dnl Only Intel and g95 fortran compilers have all the features required
 
+dnl    echo "yes"	
     HAVE_FORTRAN_2003="yes"
-	
-  if (${FC} -V 2>&1 | grep '^Intel(R) Fortran') > /dev/null; then
-    if (${FC} -v 2>&1 | grep '^Version 9.') > /dev/null; then
-      HAVE_FORTRAN_2003="no"
-      echo "no"
-      AC_MSG_WARN([Only Intel Fortran Compiler, Version > 10. supported; disabling Fortran 2003 features])
-    else
-      echo "yes"
-      HAVE_FORTRAN_2003="yes"
-    fi
-  else
-    if (${FC} -V 2>&1 | grep 'G95') > /dev/null; then
-     if (${FC} -v 2>&1 | grep '^g95 0.8') > /dev/null; then
-       HAVE_FORTRAN_2003="no"
-       echo "no"
-       AC_MSG_WARN([Only G95 Fortran Compiler, Version > .9 supported; disabling Fortran 2003 features])
-     else
-       echo "yes"
-       HAVE_FORTRAN_2003="yes"
-     fi
-    fi
-  fi
 
-
-dnl    if (${FC} -V 2>&1 | grep '^Intel(R) Fortran Compiler') > /dev/null; then
-dnl	echo "yes"
-dnl	HAVE_FORTRAN_2003="yes"
-dnl    else	
-dnl        HAVE_FORTRAN_2003="no"
+dnl    if (${FC} -V 2>&1 | grep '^Intel(R) Fortran') > /dev/null; then
+dnl      if (${FC} -v 2>&1 | grep '^Version 9.') > /dev/null; then
 dnl        echo "no"
-dnl        AC_MSG_WARN([Only Intel's Fortran 2003 compiler supported; disabling Fortran 2003 features])
+dnl        AC_MSG_WARN([Only Intel Fortran Compiler, Version > 10.1 supported; disabling Fortran 2003 features])
+dnl      else
+dnl        echo "yes"
+dnl        HAVE_FORTRAN_2003="yes"
+dnl      fi
+dnl      if (${FC} -v 2>&1 | grep '^Version 10.0') > /dev/null; then
+dnl        echo "no"
+dnl        AC_MSG_WARN([Only Intel Fortran Compiler, Version > 10.1 supported; disabling Fortran 2003 features])
+dnl      else
+dnl        echo "yes"
+dnl        HAVE_FORTRAN_2003="yes"
+dnl      fi
+dnl    else	
+dnl     if (${FC} -V 2>&1 | grep 'G95') > /dev/null; then
+dnl       if (${FC} -v 2>&1 | grep '^g95 0.8') > /dev/null; then
+dnl         echo "no"
+dnl         AC_MSG_WARN([Only G95 Fortran Compiler, Version > .9 supported; disabling Fortran 2003 features])
+dnl       else
+dnl         echo "yes"
+dnl         HAVE_FORTRAN_2003="yes"
+dnl       fi
+dnl     fi
 dnl    fi
 
-    dnl 
-    dnl    if (${FC} -V 2>&1 | grep 'Sun Fortran') > /dev/null; then
-    dnl       HAVE_FORTRAN_2003="no"
-    dnl       echo "no"
-    dnl       AC_MSG_WARN([Sun Fortran 2003 compiler not supported; disabling Fortran 2003 features])
-    dnl    else
-    dnl       echo "yes"
-    dnl       HAVE_FORTRAN_2003="yes"	
-    dnl    fi
     AC_MSG_RESULT(yes)
   else
     AC_MSG_RESULT(no)
