@@ -341,7 +341,6 @@ static void report_parameters(struct options *opts);
 int
 main(int argc, char **argv)
 {
-    int ret;
     int exit_value = EXIT_SUCCESS;
     struct options *opts = NULL;
 
@@ -397,7 +396,6 @@ run_test_loop(struct options *opts)
 {
     parameters parms;
     int i;
-    int doing_sio;      /* if this process is doing SIO */
     size_t      buf_bytes;
     /* load options into parameter structure */
     parms.num_files = opts->num_files;
@@ -450,7 +448,6 @@ run_test(iotype iot, parameters parms, struct options *opts)
 {
     results         res;
     register int    i, ret_value = SUCCESS;
-    int             comm_size;
     off_t           raw_size;
     minmax         *write_sys_mm_table=NULL;
     minmax         *write_mm_table=NULL;
@@ -989,7 +986,6 @@ parse_command_line(int argc, char *argv[])
                 const char *end = opt_arg;
                 while (end && *end != '\0') {
                     char buf[10];
-                    int i;
 
                     memset(buf, '\0', sizeof(buf));
 
@@ -1029,7 +1025,6 @@ parse_command_line(int argc, char *argv[])
 
                 while (end && *end != '\0') {
                     char buf[10];
-                    int i;
 
                     memset(buf, '\0', sizeof(buf));
 
@@ -1058,7 +1053,6 @@ parse_command_line(int argc, char *argv[])
 
                 while (end && *end != '\0') {
                     char buf[10];
-                    int i;
 
                     memset(buf, '\0', sizeof(buf));
 
@@ -1117,7 +1111,6 @@ parse_command_line(int argc, char *argv[])
 
                 while (end && *end != '\0') {
                     char buf[10];
-                    int i;
 
                     memset(buf, '\0', sizeof(buf));
 
@@ -1186,7 +1179,6 @@ parse_command_line(int argc, char *argv[])
 
                 while (end && *end != '\0') {
                     char buf[10];
-                    int i;
 
                     memset(buf, '\0', sizeof(buf));
 
@@ -1215,7 +1207,6 @@ parse_command_line(int argc, char *argv[])
 
                 while (end && *end != '\0') {
                     char buf[10];
-                    int i;
 
                     memset(buf, '\0', sizeof(buf));
 

@@ -102,8 +102,6 @@ nh5init_types_c( hid_t_f * types, hid_t_f * floatingtypes, hid_t_f * integertype
     if(H5Tset_strpad(c_type_id, H5T_STR_SPACEPAD) < 0) return ret_value;
     types[3] = (hid_t_f)c_type_id;
 
-
-
 /*
     if ((types[3] = H5Tcopy(H5T_C_S1)) < 0) return ret_value;
     if(H5Tset_strpad(types[3],H5T_STR_NULLTERM) < 0) return ret_value;
@@ -220,10 +218,10 @@ nh5init_types_c( hid_t_f * types, hid_t_f * floatingtypes, hid_t_f * integertype
     /*
      * FIND H5T_NATIVE_B_8
      */
-    types[13] = (hid_t_f)H5T_NATIVE_B8;
-    types[14] = (hid_t_f)H5T_NATIVE_B16;
-    types[15] = (hid_t_f)H5T_NATIVE_B32;
-    types[16] = (hid_t_f)H5T_NATIVE_B64;   
+    if ((types[13] = (hid_t_f)H5Tcopy(H5T_NATIVE_B8))  < 0) return ret_value;
+    if ((types[14] = (hid_t_f)H5Tcopy(H5T_NATIVE_B16)) < 0) return ret_value;
+    if ((types[15] = (hid_t_f)H5Tcopy(H5T_NATIVE_B32)) < 0) return ret_value;
+    if ((types[16] = (hid_t_f)H5Tcopy(H5T_NATIVE_B64)) < 0) return ret_value;  
 
     if ((floatingtypes[0] = (hid_t_f)H5Tcopy(H5T_IEEE_F32BE)) < 0) return ret_value;
     if ((floatingtypes[1] = (hid_t_f)H5Tcopy(H5T_IEEE_F32LE)) < 0) return ret_value;
@@ -245,15 +243,15 @@ nh5init_types_c( hid_t_f * types, hid_t_f * floatingtypes, hid_t_f * integertype
     if ((integertypes[12] = (hid_t_f)H5Tcopy(H5T_STD_U32BE)) < 0) return ret_value;
     if ((integertypes[13] = (hid_t_f)H5Tcopy(H5T_STD_U32LE)) < 0) return ret_value;
     if ((integertypes[14] = (hid_t_f)H5Tcopy(H5T_STD_U64BE)) < 0) return ret_value;
-    if ((integertypes[15] = (hid_t_f)H5Tcopy(H5T_STD_U64LE)) < 0) return ret_value;
-    if ((integertypes[16] = (hid_t_f)H5Tcopy(H5T_STD_B8BE)) < 0) return ret_value;
-    if ((integertypes[17] = (hid_t_f)H5Tcopy(H5T_STD_B8LE)) < 0) return ret_value;
-    if ((integertypes[18] = (hid_t_f)H5Tcopy(H5T_STD_B16BE)) < 0) return ret_value;
-    if ((integertypes[19] = (hid_t_f)H5Tcopy(H5T_STD_B16LE)) < 0) return ret_value;
-    if ((integertypes[20] = (hid_t_f)H5Tcopy(H5T_STD_B32BE)) < 0) return ret_value;
-    if ((integertypes[21] = (hid_t_f)H5Tcopy(H5T_STD_B32LE)) < 0) return ret_value;
-    if ((integertypes[22] = (hid_t_f)H5Tcopy(H5T_STD_B64BE)) < 0) return ret_value;
-    if ((integertypes[23] = (hid_t_f)H5Tcopy(H5T_STD_B64LE)) < 0) return ret_value;
+    if ((integertypes[15] = (hid_t_f)H5Tcopy(H5T_STD_U64LE)) < 0) return ret_value;	
+    if ((integertypes[17] = (hid_t_f)H5Tcopy(H5T_STD_B8BE)) < 0) return ret_value;
+    if ((integertypes[18] = (hid_t_f)H5Tcopy(H5T_STD_B8LE)) < 0) return ret_value;
+    if ((integertypes[19] = (hid_t_f)H5Tcopy(H5T_STD_B16BE)) < 0) return ret_value;
+    if ((integertypes[20] = (hid_t_f)H5Tcopy(H5T_STD_B16LE)) < 0) return ret_value;
+    if ((integertypes[21] = (hid_t_f)H5Tcopy(H5T_STD_B32BE)) < 0) return ret_value;
+    if ((integertypes[22] = (hid_t_f)H5Tcopy(H5T_STD_B32LE)) < 0) return ret_value;
+    if ((integertypes[23] = (hid_t_f)H5Tcopy(H5T_STD_B64BE)) < 0) return ret_value;
+    if ((integertypes[24] = (hid_t_f)H5Tcopy(H5T_STD_B64LE)) < 0) return ret_value;
 
 /*
  *  Define Fortran H5T_STRING type to store non-fixed size strings
@@ -271,32 +269,32 @@ nh5init_types_c( hid_t_f * types, hid_t_f * floatingtypes, hid_t_f * integertype
  * PURPOSE
  *  Closes predefined datatype in Fortran
  * INPUTS
- *            types - array with the predefined Native Fortran
- *                            type, its element and length must be the
- *                            same as the types array defined in the
- *                            H5f90global.f90
- *                    lentypes - length of the types array, which must be the
- *                               same as the length of types array defined
- *                               in the H5f90global.f90
- *                    floatingtypes - array with the predefined Floating Fortran
- *                                    type, its element and length must be the
- *                                    same as the floatingtypes array defined in the
- *                                    H5f90global.f90
- *                    floatinglen - length of the floatingtypes array, which must be the
- *                                  same as the length of floatingtypes array defined
- *                                  in the H5f90global.f90
- *                    integertypes - array with the predefined Integer Fortran
- *                                   type, its element and length must be the
- *                                   same as the integertypes array defined in the
- *                                   H5f90global.f90
- *                    integerlen - length of the floatingtypes array, which must be the
- *                                 same as the length of floatingtypes array defined
- *                                 in the H5f90global.f90
+ *  types         - array with the predefined Native Fortran
+ *                  type, its element and length must be the
+ *                  same as the types array defined in the
+ *                  H5f90global.f90
+ *  lentypes      - length of the types array, which must be the
+ *                  same as the length of types array defined
+ *                  in the H5f90global.f90
+ *  floatingtypes - array with the predefined Floating Fortran
+ *                  type, its element and length must be the
+ *                  same as the floatingtypes array defined in the
+ *                  H5f90global.f90
+ *  floatinglen   - length of the floatingtypes array, which must be the
+ *                  same as the length of floatingtypes array defined
+ *                  in the H5f90global.f90
+ *  integertypes  - array with the predefined Integer Fortran
+ *                  type, its element and length must be the
+ *                  same as the integertypes array defined in the
+ *                  H5f90global.f90
+ *  integerlen    - length of the floatingtypes array, which must be the
+ *                  same as the length of floatingtypes array defined
+ *                  in the H5f90global.f90
  * RETURNS
- *           0 on success, -1 on failure
+ *   0 on success, -1 on failure
  * AUTHOR
- *        Elena Pourmal
- *                    Tuesday, August 3, 1999
+ *   Elena Pourmal
+ *   Tuesday, August 3, 1999
  * SOURCE
  */
 int_f
@@ -305,7 +303,6 @@ nh5close_types_c( hid_t_f * types, int_f *lentypes,
                   hid_t_f * integertypes,  int_f * integerlen )
 /******/
 {
-
     int ret_value = -1;
     hid_t c_type_id;
     int i;

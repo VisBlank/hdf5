@@ -1,4 +1,4 @@
-HDF5 version 1.9.34 currently under development
+HDF5 version 1.9.35 currently under development
 ================================================================================
 
 
@@ -142,6 +142,9 @@ Bug Fixes since HDF5-1.8.0 release
 
     Library
     -------
+      - Removed the long_long #define and replaced all instances with 
+            "long long". This caused problems with third party products. All 
+            currently supported compliers support the type. (ADB - 2009/03/05)
       - Fixed various bugs that could prevent the fill value from being written
             in certain rare cases. (NAF - 2009/02/26)
       - Fixed a bug that prevented more than one dataset chunk from being cached
@@ -227,6 +230,13 @@ Bug Fixes since HDF5-1.8.0 release
 
     Configuration
     -------------
+    - The --includedir=DIR configuration option now works as intended, and can
+      be used to specify the location to install C header files. The default
+      location remains unchanged, residing at ${prefix}/include. 
+      MAM - 2009/03/10 - BZ #1381
+    - Configure no longer removes the '-g' flag from CFLAGS when in production
+      mode if it has been explicitly set in the CFLAGS environment variable 
+      prior to configuration. MAM - 2009/03/09 - BZ #1401.
     - Fixed error with 'make check install' failing due to h5dump
       needing other tools built first. MAM - 2008/10/24.
     - When using shared szip, it is no longer necessary to specify

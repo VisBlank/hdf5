@@ -96,7 +96,6 @@
               write(*,*) "Cannot modify filename"
               CALL h5_exit_f (1)
           endif
-	  print *, "filename=", filename, "fix_filename=", fix_filename
      CALL h5fopen_f(fix_filename, H5F_ACC_RDONLY_F, file_id, error)
           CALL check("h5fopen_f",error,total_error)
 
@@ -142,7 +141,6 @@
      !In case error happens, exit.
      !
      IF (error == -1) CALL h5_exit_f (1)
-    
      !
      !Close the datatype
      !
