@@ -34,19 +34,19 @@ endif
 
 TEST_PROG=dsetexample fileexample rwdsetexample attrexample groupexample \
      grpsexample grpdsetexample hyperslab selectele grpit refobjexample  \
-     refregexample mountexample compound
+     refregexample mountexample
 
 # List files to be installed here
 INSTALL_FILES=dsetexample.f90 fileexample.f90 rwdsetexample.f90           \
      attrexample.f90 groupexample.f90 grpsexample.f90 grpdsetexample.f90  \
      hyperslab.f90 selectele.f90 grpit.f90 refobjexample.f90              \
-     refregexample.f90 mountexample.f90 compound.f90 ph5example.f90
+     refregexample.f90 mountexample.f90  ph5example.f90
 
 
 # Add attention tests for Fortran 2003 features
 if FORTRAN_2003_CONDITIONAL_F
-  TEST_PROG +=  rwdset_fortran2003 nested_derived_type
-  INSTALL_FILES +=  rwdset_fortran2003.f90 nested_derived_type.f90
+  TEST_PROG +=  rwdset_fortran2003 nested_derived_type compound
+  INSTALL_FILES +=  rwdset_fortran2003.f90 nested_derived_type.f90 compound.f90
 endif
 TEST_SCRIPT=testh5fc.sh
 
@@ -93,11 +93,11 @@ grpit: grpit.f90
 refobjexample: refobjexample.f90
 refregexample: refregexample.f90
 mountexample: mountexample.f90
-compound: compound.f90
 ph5example: ph5example.f90
 if FORTRAN_2003_CONDITIONAL_F
 rwdset_fortran2003: rwdset_fortran2003.f90
 nested_derived_type: nested_derived_type.f90
+compound: compound.f90
 endif
 
 include $(top_srcdir)/config/examples.am

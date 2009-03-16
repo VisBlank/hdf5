@@ -58,8 +58,8 @@ DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/examples.am
 
 # Add attention tests for Fortran 2003 features
-@FORTRAN_2003_CONDITIONAL_F_TRUE@am__append_1 = rwdset_fortran2003 nested_derived_type
-@FORTRAN_2003_CONDITIONAL_F_TRUE@am__append_2 = rwdset_fortran2003.f90 nested_derived_type.f90
+@FORTRAN_2003_CONDITIONAL_F_TRUE@am__append_1 = rwdset_fortran2003 nested_derived_type compound
+@FORTRAN_2003_CONDITIONAL_F_TRUE@am__append_2 = rwdset_fortran2003.f90 nested_derived_type.f90 compound.f90
 TESTS =
 subdir = fortran/examples
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -333,15 +333,14 @@ CHECK_CLEANFILES = *.chkexe *.chklog *.clog *.h5
 # compile them with the regular fortran compiler.
 TEST_PROG = dsetexample fileexample rwdsetexample attrexample \
 	groupexample grpsexample grpdsetexample hyperslab selectele \
-	grpit refobjexample refregexample mountexample compound \
-	$(am__append_1)
+	grpit refobjexample refregexample mountexample $(am__append_1)
 
 # List files to be installed here
 INSTALL_FILES = dsetexample.f90 fileexample.f90 rwdsetexample.f90 \
 	attrexample.f90 groupexample.f90 grpsexample.f90 \
 	grpdsetexample.f90 hyperslab.f90 selectele.f90 grpit.f90 \
 	refobjexample.f90 refregexample.f90 mountexample.f90 \
-	compound.f90 ph5example.f90 $(am__append_2)
+	ph5example.f90 $(am__append_2)
 TEST_SCRIPT = testh5fc.sh
 
 # Mark this directory as part of the Fortran API
@@ -594,10 +593,10 @@ grpit: grpit.f90
 refobjexample: refobjexample.f90
 refregexample: refregexample.f90
 mountexample: mountexample.f90
-compound: compound.f90
 ph5example: ph5example.f90
 @FORTRAN_2003_CONDITIONAL_F_TRUE@rwdset_fortran2003: rwdset_fortran2003.f90
 @FORTRAN_2003_CONDITIONAL_F_TRUE@nested_derived_type: nested_derived_type.f90
+@FORTRAN_2003_CONDITIONAL_F_TRUE@compound: compound.f90
 
 # How to create EXAMPLEDIR if it doesn't already exist
 $(EXAMPLEDIR):
