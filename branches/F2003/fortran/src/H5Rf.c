@@ -593,7 +593,7 @@ nh5rget_obj_type_c (hid_t_f *loc_id, int_f *ref_type, void *ref, int_f *obj_type
   /*
    * Call H5Rget_obj_type function.
    */
-  if((H5Rget_obj_type((hid_t)*loc_id, (H5R_type_t)*ref_type, ref, &obj_type_c)) < 0)
+  if((H5Rget_obj_type2((hid_t)*loc_id, (H5R_type_t)*ref_type, ref, &obj_type_c)) < 0)
     return ret_value;
 
   *obj_type = (int_f)obj_type_c;
