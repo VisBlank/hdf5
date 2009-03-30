@@ -330,74 +330,7 @@ AC_ARG_ENABLE([fortran2003],
                               [Compile the Fortran 2003 interface [default=no]])],
               [HDF_FORTRAN2003=$enableval])
 
-dnl If Fortran 2003 interface enabled then mark that the general 
-dnl Fortran interface is also enabled
 
-if test "X$HDF_FORTRAN2003" = "Xyes"; then
- AC_SUBST(FC) HDF_FORTRAN=yes
-fi
-
-HAVE_SIZEOF="no"
-FORTRAN_DEFAULT_REALisDBLE="no"
-
-if test "X$HDF_FORTRAN" = "Xyes"; then
-  echo "yes"
-
-  HDF5_INTERFACES="$HDF5_INTERFACES fortran"
-
-  dnl --------------------------------------------------------------------
-  dnl For FORTRAN 2003 compliant compilers
-  dnl
-  HAVE_FORTRAN_2003="no"	
-  AC_MSG_CHECKING([if Fortran 2003 interface enabled])
-  if test "X$HDF_FORTRAN2003" = "Xyes"; then
-
-    dnl -------------------------------------------------------------------
-    dnl As of Sun Studio 12, Sun's Fortran 2003 implemenation is to restrictive
-    dnl on its definition of interoperable. Thus the important function
-    dnl C_LOC(X) does not work when X is a derived type or when X is a 
-    dnl character string with LEN>1. Therefore we do not support the
-    dnl the functions that required Fortran 2003 compliance when using the
-    dnl sun compiler.
-
-    dnl other compilers have various other problems.....
-    dnl Only Intel and g95 fortran compilers have all the features required
-
-dnl    echo "yes"	
-    HAVE_FORTRAN_2003="yes"
-
-dnl    if (${FC} -V 2>&1 | grep '^Intel(R) Fortran') > /dev/null; then
-dnl      if (${FC} -v 2>&1 | grep '^Version 9.') > /dev/null; then
-dnl        echo "no"
-dnl        AC_MSG_WARN([Only Intel Fortran Compiler, Version > 10.1 supported; disabling Fortran 2003 features])
-dnl      else
-dnl        echo "yes"
-dnl        HAVE_FORTRAN_2003="yes"
-dnl      fi
-dnl      if (${FC} -v 2>&1 | grep '^Version 10.0') > /dev/null; then
-dnl        echo "no"
-dnl        AC_MSG_WARN([Only Intel Fortran Compiler, Version > 10.1 supported; disabling Fortran 2003 features])
-dnl      else
-dnl        echo "yes"
-dnl        HAVE_FORTRAN_2003="yes"
-dnl      fi
-dnl    else	
-dnl     if (${FC} -V 2>&1 | grep 'G95') > /dev/null; then
-dnl       if (${FC} -v 2>&1 | grep '^g95 0.8') > /dev/null; then
-dnl         echo "no"
-dnl         AC_MSG_WARN([Only G95 Fortran Compiler, Version > .9 supported; disabling Fortran 2003 features])
-dnl       else
-dnl         echo "yes"
-dnl         HAVE_FORTRAN_2003="yes"
-dnl       fi
-dnl     fi
-dnl    fi
-
-    AC_MSG_RESULT(yes)
-  else
-    AC_MSG_RESULT(no)
-    dnl echo "no"
-  fi	
 
   dnl --------------------------------------------------------------------
   dnl HDF5 integer variables for the H5fortran_types.f90 file.
@@ -457,20 +390,87 @@ dnl  ], AC_MSG_RESULT(yes),
 dnl     AC_MSG_RESULT(no)
 dnl     FCFLAGS="$FCFLAGS_saved")
 
-  dnl --------------------------------------------------------------------
-  dnl See if the compiler supports the "ISO_C_BINDING" module
-  dnl NOTE:
-  dnl This test is not used, but in the future one might want to 
-  dnl test which features of 2003 are provided and this is an example
-  dnl how to do it.
+dnl If Fortran 2003 interface enabled then mark that the general 
+dnl Fortran interface is also enabled
 
-dnl  	AC_MSG_CHECKING([if Fortran compiler supports ISO_C_BINDING module])
-dnl	
-dnl  	AC_TRY_COMPILE(,[	
-dnl      	use iso_c_binding	
-dnl	], [AC_MSG_RESULT(yes)
-dnl     	HAVE_ISO_C_BINDING="yes"] ,
-dnl     AC_MSG_RESULT(no))
+if test "X$HDF_FORTRAN2003" = "Xyes"; then
+ AC_SUBST(FC) HDF_FORTRAN=yes
+fi
+
+HAVE_SIZEOF="no"
+FORTRAN_DEFAULT_REALisDBLE="no"
+
+if test "X$HDF_FORTRAN" = "Xyes"; then
+  echo "yes"
+
+  HDF5_INTERFACES="$HDF5_INTERFACES fortran"
+
+  dnl --------------------------------------------------------------------
+  dnl For FORTRAN 2003 compliant compilers
+  dnl
+  HAVE_FORTRAN_2003="no"
+  HAVE_ISO_C_BINDING="no"
+  if test "X$HDF_FORTRAN2003" = "Xyes"; then
+
+dnl Checking if the compiler supports the ISO_C_BINDING module, if it does
+dnl not then don't bother checking any other fortran 2003 features and
+dnl disable fortran 2003.
+
+  	AC_MSG_CHECKING([if Fortran compiler supports ISO_C_BINDING module])
+	
+  	AC_TRY_COMPILE(,[
+      	    USE iso_c_binding
+	], [AC_MSG_RESULT(yes)
+     	HAVE_ISO_C_BINDING="yes"] ,
+     	AC_MSG_RESULT(no))
+		
+	if test "X$HAVE_ISO_C_BINDING" = "Xyes"; then
+	
+		dnl -------------------------------------------------------------------
+          	dnl As of Sun Studio 12, Sun's Fortran 2003 implemenation is to restrictive
+    		dnl on its definition of interoperable. Thus the important function
+    		dnl C_LOC(X) does not work when X is a derived type or when X is a 
+    		dnl character string with LEN>1. Therefore we do not support the
+    		dnl the functions that required Fortran 2003 compliance when using the
+    		dnl sun compiler.
+
+    		dnl other compilers have various other problems.....
+    		dnl Only Intel and g95 fortran compilers have all the features required
+
+		dnl    echo "yes"	
+    		HAVE_FORTRAN_2003="yes"
+
+		dnl    if (${FC} -V 2>&1 | grep '^Intel(R) Fortran') > /dev/null; then
+		dnl      if (${FC} -v 2>&1 | grep '^Version 9.') > /dev/null; then
+		dnl        echo "no"
+		dnl        AC_MSG_WARN([Only Intel Fortran Compiler, Version > 10.1 supported; disabling Fortran 2003 features])
+		dnl      else
+		dnl        echo "yes"
+		dnl        HAVE_FORTRAN_2003="yes"
+		dnl      fi
+		dnl      if (${FC} -v 2>&1 | grep '^Version 10.0') > /dev/null; then
+		dnl        echo "no"
+		dnl        AC_MSG_WARN([Only Intel Fortran Compiler, Version > 10.1 supported; disabling Fortran 2003 features])
+		dnl      else
+		dnl        echo "yes"
+		dnl        HAVE_FORTRAN_2003="yes"
+		dnl      fi
+		dnl    else	
+		dnl     if (${FC} -V 2>&1 | grep 'G95') > /dev/null; then
+		dnl       if (${FC} -v 2>&1 | grep '^g95 0.8') > /dev/null; then
+		dnl         echo "no"
+		dnl         AC_MSG_WARN([Only G95 Fortran Compiler, Version > .9 supported; disabling Fortran 2003 features])
+		dnl       else
+		dnl         echo "yes"
+		dnl         HAVE_FORTRAN_2003="yes"
+		dnl       fi
+		dnl     fi
+		dnl    fi
+	else
+    		echo "configure: WARNING: unsupported fortran 2003 compiler; disabling fortran 2003 features"
+	fi
+  fi	
+
 
 dnl --------------------------------------------------------------------
 dnl See if the fortran compiler supports the intrinsic function "SIZEOF"
