@@ -241,7 +241,7 @@ END SUBROUTINE refobjtest
 ! 
 SUBROUTINE refregtest(cleanup, total_error)
   USE HDF5 ! This module contains all necessary modules
-  use iso_c_binding
+!  use iso_c_binding  ! NOTE: if this is uncommented, then need to move subroutine into another file.
   IMPLICIT NONE
   LOGICAL, INTENT(IN)  :: cleanup
   INTEGER, INTENT(OUT) :: total_error 
@@ -276,7 +276,7 @@ SUBROUTINE refregtest(cleanup, total_error)
   INTEGER , DIMENSION(2,9) ::  data_out = 0 
   INTEGER(HSIZE_T) , DIMENSION(2,3) :: coord
   INTEGER(SIZE_T) ::num_points = 3  ! Number of selected points
-  type(c_ptr) :: f_ptr
+!  type(c_ptr) :: f_ptr
   coord = RESHAPE((/1,1,2,7,1,9/), (/2,3/))   ! Coordinates of selected points
   DATA = RESHAPE ((/1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6/), (/2,9/))
 
