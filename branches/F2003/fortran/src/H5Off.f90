@@ -86,9 +86,9 @@ CONTAINS
        INTEGER FUNCTION h5olink_c(object_id, new_loc_id, new_link_name, new_link_namelen, &
             lcpl_id_default, lapl_id_default)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5OLINK_C'::h5olink_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5OLINK_C'::h5olink_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: new_link_name
          INTEGER(HID_T), INTENT(IN) :: object_id
          INTEGER(HID_T), INTENT(IN) :: new_loc_id
@@ -149,9 +149,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5oopen_c(loc_id, name, namelen, lapl_id_default, obj_id)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5OOPEN_C'::h5oopen_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5OOPEN_C'::h5oopen_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: name
          INTEGER(HID_T), INTENT(IN) :: loc_id
          CHARACTER(LEN=*), INTENT(IN) :: name
@@ -196,9 +196,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5oclose_c(object_id)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ OBJECTIBUTES C,reference,decorate,alias:'H5OCLOSE_C'::h5oclose_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$OBJECTIBUTES C,reference,decorate,alias:'H5OCLOSE_C'::h5oclose_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: object_id
        END FUNCTION h5oclose_c
     END INTERFACE
@@ -312,9 +312,9 @@ CONTAINS
 !!$       INTEGER FUNCTION h5oget_info_by_name_c(loc_id, name, namelen, lapl_id_default, &
 !!$            corder_valid, corder, cset, data_size)
 !!$         USE H5GLOBAL
-!!$         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-!!$         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5OGET_INFO_BY_NAME_C'::h5oget_info_by_name_c
-!!$         !DEC$ ENDIF
+!!$         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+!!$         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5OGET_INFO_BY_NAME_C'::h5oget_info_by_name_c
+!!$         !DEC$ENDIF
 !!$         INTEGER(HID_T)  , INTENT(IN)  :: loc_id
 !!$         CHARACTER(LEN=*), INTENT(IN)  :: name
 !!$         INTEGER(SIZE_T) , INTENT(IN)  :: namelen

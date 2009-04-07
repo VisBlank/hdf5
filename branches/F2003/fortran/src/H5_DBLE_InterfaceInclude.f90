@@ -141,9 +141,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5awrite_double_s_c(attr_id, memtype_id,  buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_DOUBLE_S_C'::h5awrite_double_s_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_DOUBLE_S_C'::h5awrite_double_s_c
+         !DEC$ENDIF
          INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
          INTEGER(HID_T), INTENT(IN) :: attr_id
          INTEGER(HID_T), INTENT(IN) :: memtype_id
@@ -170,9 +170,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5awrite_double_1_c(attr_id, memtype_id,  buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_DOUBLE_1_C'::h5awrite_double_1_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_DOUBLE_1_C'::h5awrite_double_1_c
+         !DEC$ENDIF
          INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
          INTEGER(HID_T), INTENT(IN) :: attr_id
          INTEGER(HID_T), INTENT(IN) :: memtype_id
@@ -202,9 +202,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5awrite_double_2_c(attr_id, memtype_id,  buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_DOUBLE_2_C'::h5awrite_double_2_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_DOUBLE_2_C'::h5awrite_double_2_c
+         !DEC$ENDIF
          INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
          INTEGER(HID_T), INTENT(IN) :: attr_id
          INTEGER(HID_T), INTENT(IN) :: memtype_id
@@ -234,9 +234,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5awrite_double_3_c(attr_id, memtype_id,  buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_DOUBLE_3_C'::h5awrite_double_3_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_DOUBLE_3_C'::h5awrite_double_3_c
+         !DEC$ENDIF
          INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
          INTEGER(HID_T), INTENT(IN) :: attr_id
          INTEGER(HID_T), INTENT(IN) :: memtype_id
@@ -266,9 +266,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5awrite_double_4_c(attr_id, memtype_id,  buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_DOUBLE_4_C'::h5awrite_double_4_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_DOUBLE_4_C'::h5awrite_double_4_c
+         !DEC$ENDIF
          INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
          INTEGER(HID_T), INTENT(IN) :: attr_id
          INTEGER(HID_T), INTENT(IN) :: memtype_id
@@ -298,9 +298,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5awrite_double_5_c(attr_id, memtype_id,  buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_DOUBLE_5_C'::h5awrite_double_5_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_DOUBLE_5_C'::h5awrite_double_5_c
+         !DEC$ENDIF
          INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
          INTEGER(HID_T), INTENT(IN) :: attr_id
          INTEGER(HID_T), INTENT(IN) :: memtype_id
@@ -330,9 +330,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5awrite_double_6_c(attr_id, memtype_id,  buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_DOUBLE_6_C'::h5awrite_double_6_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_DOUBLE_6_C'::h5awrite_double_6_c
+         !DEC$ENDIF
          INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
          INTEGER(HID_T), INTENT(IN) :: attr_id
          INTEGER(HID_T), INTENT(IN) :: memtype_id
@@ -362,9 +362,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5awrite_double_7_c(attr_id, memtype_id,  buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_DOUBLE_7_C'::h5awrite_double_7_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_DOUBLE_7_C'::h5awrite_double_7_c
+         !DEC$ENDIF
          INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
          INTEGER(HID_T), INTENT(IN) :: attr_id
          INTEGER(HID_T), INTENT(IN) :: memtype_id
@@ -392,9 +392,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5aread_double_s_c(attr_id, memtype_id,  buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AREAD_DOUBLE_S_C'::h5aread_double_s_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5AREAD_DOUBLE_S_C'::h5aread_double_s_c
+         !DEC$ENDIF
          INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
          INTEGER(HID_T), INTENT(IN) :: attr_id
          INTEGER(HID_T), INTENT(IN) :: memtype_id
@@ -422,9 +422,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5aread_double_1_c(attr_id, memtype_id,  buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AREAD_DOUBLE_1_C'::h5aread_double_1_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5AREAD_DOUBLE_1_C'::h5aread_double_1_c
+         !DEC$ENDIF
          INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
          INTEGER(HID_T), INTENT(IN) :: attr_id
          INTEGER(HID_T), INTENT(IN) :: memtype_id
@@ -454,9 +454,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5aread_double_2_c(attr_id, memtype_id,  buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AREAD_DOUBLE_2_C'::h5aread_double_2_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5AREAD_DOUBLE_2_C'::h5aread_double_2_c
+         !DEC$ENDIF
          INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
          INTEGER(HID_T), INTENT(IN) :: attr_id
          INTEGER(HID_T), INTENT(IN) :: memtype_id
@@ -486,9 +486,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5aread_double_3_c(attr_id, memtype_id,  buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AREAD_DOUBLE_3_C'::h5aread_double_3_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5AREAD_DOUBLE_3_C'::h5aread_double_3_c
+         !DEC$ENDIF
          INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
          INTEGER(HID_T), INTENT(IN) :: attr_id
          INTEGER(HID_T), INTENT(IN) :: memtype_id
@@ -518,9 +518,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5aread_double_4_c(attr_id, memtype_id,  buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AREAD_DOUBLE_4_C'::h5aread_double_4_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5AREAD_DOUBLE_4_C'::h5aread_double_4_c
+         !DEC$ENDIF
          INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
          INTEGER(HID_T), INTENT(IN) :: attr_id
          INTEGER(HID_T), INTENT(IN) :: memtype_id
@@ -550,9 +550,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5aread_double_5_c(attr_id, memtype_id,  buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AREAD_DOUBLE_5_C'::h5aread_double_5_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5AREAD_DOUBLE_5_C'::h5aread_double_5_c
+         !DEC$ENDIF
          INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
          INTEGER(HID_T), INTENT(IN) :: attr_id
          INTEGER(HID_T), INTENT(IN) :: memtype_id
@@ -582,9 +582,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5aread_double_6_c(attr_id, memtype_id,  buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AREAD_DOUBLE_6_C'::h5aread_double_6_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5AREAD_DOUBLE_6_C'::h5aread_double_6_c
+         !DEC$ENDIF
          INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
          INTEGER(HID_T), INTENT(IN) :: attr_id
          INTEGER(HID_T), INTENT(IN) :: memtype_id
@@ -614,9 +614,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5aread_double_7_c(attr_id, memtype_id,  buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AREAD_DOUBLE_7_C'::h5aread_double_7_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5AREAD_DOUBLE_7_C'::h5aread_double_7_c
+         !DEC$ENDIF
          INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
          INTEGER(HID_T), INTENT(IN) :: attr_id
          INTEGER(HID_T), INTENT(IN) :: memtype_id
@@ -660,9 +660,9 @@ CONTAINS
             file_space_id_default, &
             xfer_prp_default, buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_DOUBLE_S_C'::h5dwrite_double_s_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_DOUBLE_S_C'::h5dwrite_double_s_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dset_id
          INTEGER(HID_T), INTENT(IN) :: mem_type_id
          INTEGER(HID_T)  :: mem_space_id_default
@@ -716,9 +716,9 @@ CONTAINS
             file_space_id_default, &
             xfer_prp_default, buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_DOUBLE_1_C'::h5dwrite_double_1_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_DOUBLE_1_C'::h5dwrite_double_1_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dset_id
          INTEGER(HID_T), INTENT(IN) :: mem_type_id
          INTEGER(HID_T)  :: mem_space_id_default
@@ -773,9 +773,9 @@ CONTAINS
             file_space_id_default, &
             xfer_prp_default, buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_DOUBLE_2_C'::h5dwrite_double_2_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_DOUBLE_2_C'::h5dwrite_double_2_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dset_id
          INTEGER(HID_T), INTENT(IN) :: mem_type_id
          INTEGER(HID_T)  :: mem_space_id_default
@@ -830,9 +830,9 @@ CONTAINS
             file_space_id_default, &
             xfer_prp_default, buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_DOUBLE_3_C'::h5dwrite_double_3_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_DOUBLE_3_C'::h5dwrite_double_3_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dset_id
          INTEGER(HID_T), INTENT(IN) :: mem_type_id
          INTEGER(HID_T)  :: mem_space_id_default
@@ -887,9 +887,9 @@ CONTAINS
             file_space_id_default, &
             xfer_prp_default, buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_DOUBLE_4_C'::h5dwrite_double_4_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_DOUBLE_4_C'::h5dwrite_double_4_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dset_id
          INTEGER(HID_T), INTENT(IN) :: mem_type_id
          INTEGER(HID_T)  :: mem_space_id_default
@@ -944,9 +944,9 @@ CONTAINS
             file_space_id_default, &
             xfer_prp_default, buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_DOUBLE_5_C'::h5dwrite_double_5_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_DOUBLE_5_C'::h5dwrite_double_5_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dset_id
          INTEGER(HID_T), INTENT(IN) :: mem_type_id
          INTEGER(HID_T)  :: mem_space_id_default
@@ -1002,9 +1002,9 @@ CONTAINS
             file_space_id_default, &
             xfer_prp_default, buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_DOUBLE_6_C'::h5dwrite_double_6_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_DOUBLE_6_C'::h5dwrite_double_6_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dset_id
          INTEGER(HID_T), INTENT(IN) :: mem_type_id
          INTEGER(HID_T)  :: mem_space_id_default
@@ -1060,9 +1060,9 @@ CONTAINS
             file_space_id_default, &
             xfer_prp_default, buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_DOUBLE_7_C'::h5dwrite_double_7_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_DOUBLE_7_C'::h5dwrite_double_7_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dset_id
          INTEGER(HID_T), INTENT(IN) :: mem_type_id
          INTEGER(HID_T)  :: mem_space_id_default
@@ -1115,9 +1115,9 @@ CONTAINS
             file_space_id_default, &
             xfer_prp_default, buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DREAD_DOUBLE_S_C'::h5dread_double_s_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DREAD_DOUBLE_S_C'::h5dread_double_s_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dset_id
          INTEGER(HID_T), INTENT(IN) :: mem_type_id
          INTEGER(HID_T)  :: mem_space_id_default
@@ -1171,9 +1171,9 @@ CONTAINS
             file_space_id_default, &
             xfer_prp_default, buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DREAD_DOUBLE_1_C'::h5dread_double_1_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DREAD_DOUBLE_1_C'::h5dread_double_1_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dset_id
          INTEGER(HID_T), INTENT(IN) :: mem_type_id
          INTEGER(HID_T)  :: mem_space_id_default
@@ -1228,9 +1228,9 @@ CONTAINS
             file_space_id_default, &
             xfer_prp_default, buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DREAD_DOUBLE_2_C'::h5dread_double_2_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DREAD_DOUBLE_2_C'::h5dread_double_2_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dset_id
          INTEGER(HID_T), INTENT(IN) :: mem_type_id
          INTEGER(HID_T)  :: mem_space_id_default
@@ -1285,9 +1285,9 @@ CONTAINS
             file_space_id_default, &
             xfer_prp_default, buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DREAD_DOUBLE_3_C'::h5dread_double_3_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DREAD_DOUBLE_3_C'::h5dread_double_3_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dset_id
          INTEGER(HID_T), INTENT(IN) :: mem_type_id
          INTEGER(HID_T)  :: mem_space_id_default
@@ -1343,9 +1343,9 @@ CONTAINS
             file_space_id_default, &
             xfer_prp_default, buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DREAD_DOUBLE_4_C'::h5dread_double_4_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DREAD_DOUBLE_4_C'::h5dread_double_4_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dset_id
          INTEGER(HID_T), INTENT(IN) :: mem_type_id
          INTEGER(HID_T)  :: mem_space_id_default
@@ -1400,9 +1400,9 @@ CONTAINS
             file_space_id_default, &
             xfer_prp_default, buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DREAD_DOUBLE_5_C'::h5dread_double_5_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DREAD_DOUBLE_5_C'::h5dread_double_5_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dset_id
          INTEGER(HID_T), INTENT(IN) :: mem_type_id
          INTEGER(HID_T)  :: mem_space_id_default
@@ -1458,9 +1458,9 @@ CONTAINS
             file_space_id_default, &
             xfer_prp_default, buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DREAD_DOUBLE_6_C'::h5dread_double_6_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DREAD_DOUBLE_6_C'::h5dread_double_6_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dset_id
          INTEGER(HID_T), INTENT(IN) :: mem_type_id
          INTEGER(HID_T)  :: mem_space_id_default
@@ -1516,9 +1516,9 @@ CONTAINS
             file_space_id_default, &
             xfer_prp_default, buf, dims)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DREAD_DOUBLE_7_C'::h5dread_double_7_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DREAD_DOUBLE_7_C'::h5dread_double_7_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dset_id
          INTEGER(HID_T), INTENT(IN) :: mem_type_id
          INTEGER(HID_T)  :: mem_space_id_default
@@ -1584,9 +1584,9 @@ CONTAINS
        INTEGER FUNCTION h5dfill_double_c(fill_value, fill_type_id, space_id, &
             buf, mem_type_id)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DFILL_DOUBLE_C'::h5dfill_double_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DFILL_DOUBLE_C'::h5dfill_double_c
+         !DEC$ENDIF
          DOUBLE PRECISION, INTENT(IN) :: fill_value  ! Fill value
          INTEGER(HID_T) :: fill_type_id ! Fill value datatype identifier
          INTEGER(HID_T), INTENT(IN) :: space_id ! Memory dataspace selection identifier
@@ -1623,9 +1623,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pset_fill_value_double_c(prp_id, type_id, fillvalue)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_FILL_VALUE_DOUBLE_C'::h5pset_fill_value_double_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PSET_FILL_VALUE_DOUBLE_C'::h5pset_fill_value_double_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: prp_id
          INTEGER(HID_T), INTENT(IN) :: type_id
          DOUBLE PRECISION, INTENT(IN) :: fillvalue
@@ -1652,9 +1652,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pget_fill_value_double_c(prp_id, type_id, fillvalue)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_FILL_VALUE_DOUBLE_C'::h5pget_fill_value_double_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PGET_FILL_VALUE_DOUBLE_C'::h5pget_fill_value_double_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: prp_id
          INTEGER(HID_T), INTENT(IN) :: type_id
          DOUBLE PRECISION :: fillvalue
@@ -1700,9 +1700,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pset_double_c(prp_id, name, name_len, value)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_DOUBLE_C'::h5pset_double_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PSET_DOUBLE_C'::h5pset_double_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: name
          INTEGER(HID_T), INTENT(IN) :: prp_id
          CHARACTER(LEN=*), INTENT(IN) :: name
@@ -1751,9 +1751,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pget_double_c(prp_id, name, name_len, value)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_DOUBLE_C'::h5pget_double_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PGET_DOUBLE_C'::h5pget_double_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: name
          INTEGER(HID_T), INTENT(IN) :: prp_id
          CHARACTER(LEN=*), INTENT(IN) :: name
@@ -1806,9 +1806,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pregister_double_c(class, name, name_len, size, value)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PREGISTER_DOUBLE_C'::h5pregister_double_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PREGISTER_DOUBLE_C'::h5pregister_double_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: name
          INTEGER(HID_T), INTENT(IN) :: class
          CHARACTER(LEN=*), INTENT(IN) :: name
@@ -1860,9 +1860,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pinsert_double_c(plist, name, name_len, size, value)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PINSERT_DOUBLE_C'::h5pinsert_double_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PINSERT_DOUBLE_C'::h5pinsert_double_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: name
          INTEGER(HID_T), INTENT(IN) :: plist
          CHARACTER(LEN=*), INTENT(IN) :: name

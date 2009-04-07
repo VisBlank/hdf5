@@ -146,9 +146,9 @@ MODULE H5A_PROVISIONAL
      INTEGER FUNCTION h5awrite_f_c(attr_id, mem_type_id, buf)
        USE H5GLOBAL
        USE, INTRINSIC :: ISO_C_BINDING
-       !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-       !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_F_C'::h5awrite_f_c
-       !DEC$ ENDIF
+       !DEC$IF DEFINED(HDF5F90_WINDOWS)
+       !DEC$ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_F_C'::h5awrite_f_c
+       !DEC$ENDIF
        INTEGER(HID_T), INTENT(IN) :: attr_id
        INTEGER(HID_T), INTENT(IN) :: mem_type_id
        TYPE(C_PTR), VALUE :: buf
@@ -162,9 +162,9 @@ MODULE H5A_PROVISIONAL
      INTEGER FUNCTION h5aread_f_c(attr_id, mem_type_id, buf)
        USE H5GLOBAL
        USE, INTRINSIC :: ISO_C_BINDING
-       !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-       !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5AREAD_F_C'::h5aread_f_c
-       !DEC$ ENDIF
+       !DEC$IF DEFINED(HDF5F90_WINDOWS)
+       !DEC$ATTRIBUTES C,reference,decorate,alias:'H5AREAD_F_C'::h5aread_f_c
+       !DEC$ENDIF
        INTEGER(HID_T), INTENT(IN) :: attr_id
        INTEGER(HID_T), INTENT(IN) :: mem_type_id
        TYPE(C_PTR), VALUE :: buf

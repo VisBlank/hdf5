@@ -119,9 +119,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pset_fill_value_integer_c(prp_id, type_id, fillvalue)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_FILL_VALUE_INTEGER_C'::h5pset_fill_value_integer_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PSET_FILL_VALUE_INTEGER_C'::h5pset_fill_value_integer_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: prp_id
          INTEGER(HID_T), INTENT(IN) :: type_id
          INTEGER, INTENT(IN) :: fillvalue
@@ -145,9 +145,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pget_fill_value_integer_c(prp_id, type_id, fillvalue)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_FILL_VALUE_INTEGER_C'::h5pget_fill_value_integer_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PGET_FILL_VALUE_INTEGER_C'::h5pget_fill_value_integer_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: prp_id
          INTEGER(HID_T), INTENT(IN) :: type_id
          INTEGER :: fillvalue
@@ -171,9 +171,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pset_fill_value_real_c(prp_id, type_id, fillvalue)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_FILL_VALUE_REAL_C'::h5pset_fill_value_real_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PSET_FILL_VALUE_REAL_C'::h5pset_fill_value_real_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: prp_id
          INTEGER(HID_T), INTENT(IN) :: type_id
          REAL, INTENT(IN) :: fillvalue
@@ -197,9 +197,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pget_fill_value_real_c(prp_id, type_id, fillvalue)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_FILL_VALUE_REAL_C'::h5pget_fill_value_real_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PGET_FILL_VALUE_REAL_C'::h5pget_fill_value_real_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: prp_id
          INTEGER(HID_T), INTENT(IN) :: type_id
          REAL :: fillvalue
@@ -223,9 +223,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pset_fill_value_double_c(prp_id, type_id, fillvalue)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_FILL_VALUE_DOUBLE_C'::h5pset_fill_value_double_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PSET_FILL_VALUE_DOUBLE_C'::h5pset_fill_value_double_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: prp_id
          INTEGER(HID_T), INTENT(IN) :: type_id
          DOUBLE PRECISION, INTENT(IN) :: fillvalue
@@ -249,9 +249,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pget_fill_value_double_c(prp_id, type_id, fillvalue)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_FILL_VALUE_DOUBLE_C'::h5pget_fill_value_double_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PGET_FILL_VALUE_DOUBLE_C'::h5pget_fill_value_double_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: prp_id
          INTEGER(HID_T), INTENT(IN) :: type_id
          DOUBLE PRECISION :: fillvalue
@@ -274,9 +274,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pset_fill_valuec_c(prp_id, type_id, fillvalue)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_FILL_VALUEC_C'::h5pset_fill_valuec_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PSET_FILL_VALUEC_C'::h5pset_fill_valuec_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: fillvalue
          INTEGER(HID_T), INTENT(IN) :: prp_id
          INTEGER(HID_T), INTENT(IN) :: type_id
@@ -300,9 +300,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pget_fill_valuec_c(prp_id, type_id, fillvalue)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_FILL_VALUEC_C'::h5pget_fill_valuec_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PGET_FILL_VALUEC_C'::h5pget_fill_valuec_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: fillvalue
          INTEGER(HID_T), INTENT(IN) :: prp_id
          INTEGER(HID_T), INTENT(IN) :: type_id
@@ -347,9 +347,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pset_integer_c(prp_id, name, name_len, value)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_INTEGER_C'::h5pset_integer_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PSET_INTEGER_C'::h5pset_integer_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: name
          INTEGER(HID_T), INTENT(IN) :: prp_id
          CHARACTER(LEN=*), INTENT(IN) :: name
@@ -396,9 +396,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pset_real_c(prp_id, name, name_len, value)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_REAL_C'::h5pset_real_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PSET_REAL_C'::h5pset_real_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: name
          INTEGER(HID_T), INTENT(IN) :: prp_id
          CHARACTER(LEN=*), INTENT(IN) :: name
@@ -447,9 +447,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pset_double_c(prp_id, name, name_len, value)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_DOUBLE_C'::h5pset_double_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PSET_DOUBLE_C'::h5pset_double_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: name
          INTEGER(HID_T), INTENT(IN) :: prp_id
          CHARACTER(LEN=*), INTENT(IN) :: name
@@ -498,9 +498,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5psetc_c(prp_id, name, name_len, value, value_len)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSETC_C'::h5psetc_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PSETC_C'::h5psetc_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: name
          !DEC$ATTRIBUTES reference :: value
          INTEGER(HID_T), INTENT(IN) :: prp_id
@@ -549,9 +549,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pget_integer_c(prp_id, name, name_len, value)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_INTEGER_C'::h5pget_integer_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PGET_INTEGER_C'::h5pget_integer_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: name
          INTEGER(HID_T), INTENT(IN) :: prp_id
          CHARACTER(LEN=*), INTENT(IN) :: name
@@ -597,9 +597,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pget_real_c(prp_id, name, name_len, value)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_REAL_C'::h5pget_real_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PGET_REAL_C'::h5pget_real_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: name
          INTEGER(HID_T), INTENT(IN) :: prp_id
          CHARACTER(LEN=*), INTENT(IN) :: name
@@ -645,9 +645,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pget_double_c(prp_id, name, name_len, value)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_DOUBLE_C'::h5pget_double_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PGET_DOUBLE_C'::h5pget_double_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: name
          INTEGER(HID_T), INTENT(IN) :: prp_id
          CHARACTER(LEN=*), INTENT(IN) :: name
@@ -696,9 +696,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pgetc_c(prp_id, name, name_len, value, value_len)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGETC_C'::h5pgetc_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PGETC_C'::h5pgetc_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: name
          !DEC$ATTRIBUTES reference :: value
          INTEGER(HID_T), INTENT(IN) :: prp_id
@@ -753,9 +753,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pregister_integer_c(class, name, name_len, size, value)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PREGISTER_INTEGER_C'::h5pregister_integer_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PREGISTER_INTEGER_C'::h5pregister_integer_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: name
          INTEGER(HID_T), INTENT(IN) :: class
          CHARACTER(LEN=*), INTENT(IN) :: name
@@ -806,9 +806,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pregister_real_c(class, name, name_len, size, value)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PREGISTER_REAL_C'::h5pregister_real_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PREGISTER_REAL_C'::h5pregister_real_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: name
          INTEGER(HID_T), INTENT(IN) :: class
          CHARACTER(LEN=*), INTENT(IN) :: name
@@ -860,9 +860,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pregister_double_c(class, name, name_len, size, value)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PREGISTER_DOUBLE_C'::h5pregister_double_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PREGISTER_DOUBLE_C'::h5pregister_double_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: name
          INTEGER(HID_T), INTENT(IN) :: class
          CHARACTER(LEN=*), INTENT(IN) :: name
@@ -915,9 +915,9 @@ CONTAINS
        INTEGER FUNCTION h5pregisterc_c(class, name, name_len, size, value, &
             value_len)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PREGISTERC_C'::h5pregisterc_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PREGISTERC_C'::h5pregisterc_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: name
          !DEC$ATTRIBUTES reference :: value
          INTEGER(HID_T), INTENT(IN) :: class
@@ -969,9 +969,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pinsert_integer_c(plist, name, name_len, size, value)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PINSERT_INTEGER_C'::h5pinsert_integer_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PINSERT_INTEGER_C'::h5pinsert_integer_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: name
          INTEGER(HID_T), INTENT(IN) :: plist
          CHARACTER(LEN=*), INTENT(IN) :: name
@@ -1021,9 +1021,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pinsert_real_c(plist, name, name_len, size, value)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PINSERT_REAL_C'::h5pinsert_real_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PINSERT_REAL_C'::h5pinsert_real_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: name
          INTEGER(HID_T), INTENT(IN) :: plist
          CHARACTER(LEN=*), INTENT(IN) :: name
@@ -1073,9 +1073,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5pinsert_double_c(plist, name, name_len, size, value)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PINSERT_DOUBLE_C'::h5pinsert_double_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PINSERT_DOUBLE_C'::h5pinsert_double_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: name
          INTEGER(HID_T), INTENT(IN) :: plist
          CHARACTER(LEN=*), INTENT(IN) :: name
@@ -1126,9 +1126,9 @@ SUBROUTINE h5pinsert_char(plist, name, size, value, hdferr)
     INTERFACE
        INTEGER FUNCTION h5pinsertc_c(plist, name, name_len, size, value, value_len)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PINSERTC_C'::h5pinsertc_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PINSERTC_C'::h5pinsertc_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: name
          !DEC$ATTRIBUTES reference :: value
          INTEGER(HID_T), INTENT(IN) :: plist
@@ -1189,9 +1189,9 @@ SUBROUTINE h5pinsert_char(plist, name, size, value, hdferr)
        INTEGER FUNCTION h5pcreate_class_c(parent, name, name_len,&
             class)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PCREATE_CLASS_C'::h5pcreate_class_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PCREATE_CLASS_C'::h5pcreate_class_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: name
          INTEGER(HID_T), INTENT(IN) :: parent
          CHARACTER(LEN=*), INTENT(IN) :: name

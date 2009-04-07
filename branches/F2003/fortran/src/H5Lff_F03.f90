@@ -101,9 +101,9 @@ CONTAINS
        INTEGER FUNCTION h5literate_c(group_id, index_type, order, idx, op, op_data)
          USE ISO_C_BINDING
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5LITERATE_C'::h5literate_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5LITERATE_C'::h5literate_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: group_id
          INTEGER, INTENT(IN) :: index_type
          INTEGER, INTENT(IN) :: order
@@ -191,9 +191,9 @@ CONTAINS
        INTEGER FUNCTION h5literate_by_name_c(loc_id, name, namelen, index_type, order, idx, op, op_data, lapl_id_default)
          USE ISO_C_BINDING
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5LITERATE_BY_NAME_C'::h5literate_by_name_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5LITERATE_BY_NAME_C'::h5literate_by_name_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: loc_id
          CHARACTER(LEN=*) :: name
          INTEGER(SIZE_T) :: namelen

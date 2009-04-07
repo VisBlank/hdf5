@@ -94,9 +94,9 @@ MODULE H5P_PROVISIONAL
      INTEGER FUNCTION h5pget_fill_value_c(prp_id, type_id, fillvalue)
        USE H5GLOBAL
        USE, INTRINSIC :: ISO_C_BINDING
-       !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-       !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_FILL_VALUE_C'::h5pget_fill_value_c
-       !DEC$ ENDIF
+       !DEC$IF DEFINED(HDF5F90_WINDOWS)
+       !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PGET_FILL_VALUE_C'::h5pget_fill_value_c
+       !DEC$ENDIF
        INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier
        INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of
                                              ! of fillvalue datatype
@@ -109,9 +109,9 @@ MODULE H5P_PROVISIONAL
      INTEGER FUNCTION h5pset_fill_value_c(prp_id, type_id, fillvalue)
        USE H5GLOBAL
        USE, INTRINSIC :: ISO_C_BINDING
-       !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-       !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_FILL_VALUE_C'::h5pset_fill_value_c
-       !DEC$ ENDIF
+       !DEC$IF DEFINED(HDF5F90_WINDOWS)
+       !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PSET_FILL_VALUE_C'::h5pset_fill_value_c
+       !DEC$ENDIF
        INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier
        INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of
                                              ! of fillvalue datatype
@@ -124,9 +124,9 @@ MODULE H5P_PROVISIONAL
      INTEGER FUNCTION h5pset_c(prp_id, name, name_len, value)
        USE H5GLOBAL
        USE, INTRINSIC :: ISO_C_BINDING
-       !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-       !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PSET_C'::h5pset_c
-       !DEC$ ENDIF
+       !DEC$IF DEFINED(HDF5F90_WINDOWS)
+       !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PSET_C'::h5pset_c
+       !DEC$ENDIF
        INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier
        CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
        INTEGER :: name_len
@@ -138,9 +138,9 @@ MODULE H5P_PROVISIONAL
      INTEGER FUNCTION h5pget_c(prp_id, name, name_len, value)
        USE ISO_C_BINDING
        USE H5GLOBAL
-       !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-       !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PGET_C'::h5pget_c
-       !DEC$ ENDIF
+       !DEC$IF DEFINED(HDF5F90_WINDOWS)
+       !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PGET_C'::h5pget_c
+       !DEC$ENDIF
        INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier
        CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
        INTEGER :: name_len
@@ -152,9 +152,9 @@ MODULE H5P_PROVISIONAL
      INTEGER FUNCTION h5pregister_c(class, name, name_len, size, value)
        USE iso_c_binding
        USE H5GLOBAL
-       !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-       !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PREGISTER_C'::h5pregister_c
-       !DEC$ ENDIF
+       !DEC$IF DEFINED(HDF5F90_WINDOWS)
+       !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PREGISTER_C'::h5pregister_c
+       !DEC$ENDIF
        !DEC$ATTRIBUTES reference :: name
        INTEGER(HID_T), INTENT(IN) :: class
        CHARACTER(LEN=*), INTENT(IN) :: name
@@ -168,9 +168,9 @@ MODULE H5P_PROVISIONAL
      INTEGER FUNCTION h5pinsert_c(plist, name, name_len, size, value)
        USE iso_c_binding
        USE H5GLOBAL
-       !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-       !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PINSERT_C'::h5pinsert_c
-       !DEC$ ENDIF
+       !DEC$IF DEFINED(HDF5F90_WINDOWS)
+       !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PINSERT_C'::h5pinsert_c
+       !DEC$ENDIF
        !DEC$ATTRIBUTES reference :: name
        INTEGER(HID_T), INTENT(IN) :: plist
        CHARACTER(LEN=*), INTENT(IN) :: name
@@ -1314,9 +1314,9 @@ CONTAINS
 
          USE iso_c_binding
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDCLOSEF90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5PCREATE_CLASS_C'::h5pcreate_class_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDCLOSEF90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PCREATE_CLASS_C'::h5pcreate_class_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: name
          INTEGER(HID_T), INTENT(IN) :: parent
          CHARACTER(LEN=*), INTENT(IN) :: name

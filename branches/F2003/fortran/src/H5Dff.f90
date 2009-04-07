@@ -118,9 +118,9 @@ CONTAINS
        INTEGER FUNCTION h5dcreate_c(loc_id, name, namelen, type_id, &
             space_id, lcpl_id_default, dcpl_id_default, dapl_id_default, dset_id)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DCREATE_C'::h5dcreate_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DCREATE_C'::h5dcreate_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: name
          INTEGER(HID_T), INTENT(IN) :: loc_id
          CHARACTER(LEN=*), INTENT(IN) :: name
@@ -196,9 +196,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5dopen_c(loc_id, name, namelen, dapl_id_default, dset_id)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DOPEN_C'::h5dopen_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DOPEN_C'::h5dopen_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: name
          INTEGER(HID_T), INTENT(IN) :: loc_id
          CHARACTER(LEN=*), INTENT(IN) :: name
@@ -248,9 +248,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5dclose_c(dset_id)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DCLOSE_C'::h5dclose_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DCLOSE_C'::h5dclose_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dset_id
        END FUNCTION h5dclose_c
     END INTERFACE
@@ -296,9 +296,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5dget_type_c (dataset_id, datatype_id)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DGET_TYPE_C'::h5dget_type_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DGET_TYPE_C'::h5dget_type_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dataset_id
          INTEGER(HID_T), INTENT(OUT) :: datatype_id
        END FUNCTION h5dget_type_c
@@ -348,9 +348,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5dset_extent_c(dataset_id, size)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DSET_EXTENT_C'::h5dset_extent_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DSET_EXTENT_C'::h5dset_extent_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dataset_id
          INTEGER(HSIZE_T), DIMENSION(*), INTENT(IN)  :: size
        END FUNCTION h5dset_extent_c
@@ -393,9 +393,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5dget_create_plist_c(dataset_id, plist_id)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DGET_CREATE_PLIST_C'::h5dget_create_plist_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DGET_CREATE_PLIST_C'::h5dget_create_plist_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dataset_id
          INTEGER(HID_T), INTENT(OUT) :: plist_id
        END FUNCTION h5dget_create_plist_c
@@ -433,9 +433,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5dget_storage_size_c(dataset_id, size)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DGET_STORAGE_SIZE_C'::h5dget_storage_size_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DGET_STORAGE_SIZE_C'::h5dget_storage_size_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dataset_id
          INTEGER(HSIZE_T), INTENT(OUT)  :: size
        END FUNCTION h5dget_storage_size_c
@@ -479,9 +479,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5dvlen_get_max_len_c(dataset_id, type_id, space_id, len)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DVLEN_GET_MAX_LEN_C'::h5dvlen_get_max_len_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DVLEN_GET_MAX_LEN_C'::h5dvlen_get_max_len_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dataset_id
          INTEGER(HID_T), INTENT(IN) :: type_id
          INTEGER(HID_T), INTENT(IN) :: space_id
@@ -525,9 +525,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5dget_space_status_c(dset_id, flag)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DGET_SPACE_STATUS_C'::h5dget_space_status_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DGET_SPACE_STATUS_C'::h5dget_space_status_c
+         !DEC$ENDIF
          INTEGER(HID_T) :: dset_id
          INTEGER        :: flag
        END FUNCTION h5dget_space_status_c
@@ -579,9 +579,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5dcreate_anon_c(loc_id, type_id, space_id, dcpl_id_default, dapl_id_default, dset_id)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DCREATE_ANON_C'::h5dcreate_anon_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DCREATE_ANON_C'::h5dcreate_anon_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: loc_id
          INTEGER(HID_T), INTENT(IN) :: type_id
          INTEGER(HID_T), INTENT(IN) :: space_id
@@ -631,9 +631,9 @@ CONTAINS
             file_space_id_default, &
             xfer_prp_default, buf, dims, len)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_VL_INTEGER_C'::h5dwrite_vl_integer_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_VL_INTEGER_C'::h5dwrite_vl_integer_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dset_id
          INTEGER(HID_T), INTENT(IN) :: mem_type_id
          INTEGER(HID_T)  :: mem_space_id_default
@@ -693,9 +693,9 @@ CONTAINS
             file_space_id_default, &
             xfer_prp_default, buf, dims, len)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DREAD_VL_INTEGER_C'::h5dread_vl_integer_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DREAD_VL_INTEGER_C'::h5dread_vl_integer_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dset_id
          INTEGER(HID_T), INTENT(IN) :: mem_type_id
          INTEGER(HID_T)  :: mem_space_id_default
@@ -753,9 +753,9 @@ CONTAINS
             file_space_id_default, &
             xfer_prp_default, buf, dims, len)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_VL_REAL_C'::h5dwrite_vl_real_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_VL_REAL_C'::h5dwrite_vl_real_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dset_id
          INTEGER(HID_T), INTENT(IN) :: mem_type_id
          INTEGER(HID_T)  :: mem_space_id_default
@@ -816,9 +816,9 @@ CONTAINS
             file_space_id_default, &
             xfer_prp_default, buf, dims, len)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DREAD_VL_REAL_C'::h5dread_vl_real_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DREAD_VL_REAL_C'::h5dread_vl_real_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dset_id
          INTEGER(HID_T), INTENT(IN) :: mem_type_id
          INTEGER(HID_T)  :: mem_space_id_default
@@ -878,9 +878,9 @@ CONTAINS
             !                                          xfer_prp_default, tmp_buf, dims, str_len)
             xfer_prp_default, buf, dims, str_len)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_VL_STRING_C'::h5dwrite_vl_string_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DWRITE_VL_STRING_C'::h5dwrite_vl_string_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: buf
          INTEGER(HID_T), INTENT(IN) :: dset_id
          INTEGER(HID_T), INTENT(IN) :: mem_type_id
@@ -951,9 +951,9 @@ CONTAINS
             !                                          xfer_prp_default, tmp_buf, dims, str_len)
             xfer_prp_default, buf, dims, str_len)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DREAD_VL_STRING_C'::h5dread_vl_string_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DREAD_VL_STRING_C'::h5dread_vl_string_c
+         !DEC$ENDIF
          !DEC$ATTRIBUTES reference :: buf
          INTEGER(HID_T), INTENT(IN) :: dset_id
          INTEGER(HID_T), INTENT(IN) :: mem_type_id
@@ -1025,9 +1025,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5dget_space_c(dataset_id, dataspace_id)
        USE H5GLOBAL
-       !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-       !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5DGET_SPACE_C'::h5dget_space_c
-       !DEC$ ENDIF
+       !DEC$IF DEFINED(HDF5F90_WINDOWS)
+       !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DGET_SPACE_C'::h5dget_space_c
+       !DEC$ENDIF
        INTEGER(HID_T), INTENT(IN) :: dataset_id
        INTEGER(HID_T), INTENT(OUT) :: dataspace_id
      END FUNCTION h5dget_space_c

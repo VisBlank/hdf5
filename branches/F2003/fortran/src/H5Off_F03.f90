@@ -96,9 +96,9 @@ CONTAINS
        INTEGER FUNCTION h5ovisit_c(group_id, index_type, order, op, op_data)
          USE ISO_C_BINDING
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5OVISIT_C'::h5ovisit_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5OVISIT_C'::h5ovisit_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: group_id
          INTEGER, INTENT(IN) :: index_type
          INTEGER, INTENT(IN) :: order

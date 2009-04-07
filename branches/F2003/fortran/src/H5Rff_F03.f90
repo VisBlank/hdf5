@@ -79,9 +79,9 @@ MODULE H5R_PROVISIONAL
      INTEGER FUNCTION h5rget_name_ptr_c(loc_id, ref_type, ref, name, name_len, size_default)
        USE, INTRINSIC :: ISO_C_BINDING
        USE H5GLOBAL
-       !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-       !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5RGET_NAME_PTR_C':: h5rget_name_ptr_c
-       !DEC$ ENDIF
+       !DEC$IF DEFINED(HDF5F90_WINDOWS)
+       !DEC$ATTRIBUTES C,reference,decorate,alias:'H5RGET_NAME_PTR_C':: h5rget_name_ptr_c
+       !DEC$ENDIF
        !DEC$ATTRIBUTES reference :: name
        INTEGER(HID_T), INTENT(IN) :: loc_id
        INTEGER, INTENT(IN) :: ref_type
@@ -97,9 +97,9 @@ MODULE H5R_PROVISIONAL
      INTEGER FUNCTION h5rdereference_ptr_c(obj_id, ref_type, ref, ref_obj_id)
        USE H5GLOBAL
        USE, INTRINSIC :: ISO_C_BINDING
-       !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-       !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5RDEREFERENCE_PTR_C':: h5rdereference_ptr_c
-       !DEC$ ENDIF
+       !DEC$IF DEFINED(HDF5F90_WINDOWS)
+       !DEC$ATTRIBUTES C,reference,decorate,alias:'H5RDEREFERENCE_PTR_C':: h5rdereference_ptr_c
+       !DEC$ENDIF
        INTEGER(HID_T), INTENT(IN) :: obj_id
        INTEGER, INTENT(IN) :: ref_type
        TYPE(C_PTR), INTENT(IN), VALUE :: ref
@@ -111,9 +111,9 @@ MODULE H5R_PROVISIONAL
      INTEGER FUNCTION h5rcreate_ptr_c(ref, loc_id, name, namelen, ref_type, space_id)
        USE, INTRINSIC :: ISO_C_BINDING
        USE H5GLOBAL
-       !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-       !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5RCREATE_PTR_C':: h5rcreate_ptr_c
-       !DEC$ ENDIF
+       !DEC$IF DEFINED(HDF5F90_WINDOWS)
+       !DEC$ATTRIBUTES C,reference,decorate,alias:'H5RCREATE_PTR_C':: h5rcreate_ptr_c
+       !DEC$ENDIF
        !DEC$ATTRIBUTES reference :: name
        TYPE(C_PTR), VALUE :: ref
        INTEGER(HID_T), INTENT(IN) :: loc_id
@@ -228,9 +228,9 @@ CONTAINS
 !  !$    INTERFACE
 !  !$       INTEGER FUNCTION h5rcreate_region_c(ref_f, loc_id, name, namelen, space_id)
 !  !$         USE H5GLOBAL
-!  !$         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-!  !$         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5RCREATE_REGION_C':: h5rcreate_region_c
-!  !$         !DEC$ ENDIF
+!  !$         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+!  !$         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5RCREATE_REGION_C':: h5rcreate_region_c
+!  !$         !DEC$ENDIF
 !  !$         !DEC$ATTRIBUTES reference :: name
 !  !$         !              INTEGER, PARAMETER :: REF_REG_BUF_LEN = 3
 !  !$         INTEGER :: ref_f(REF_REG_BUF_LEN)
@@ -644,9 +644,9 @@ CONTAINS
        INTEGER FUNCTION h5rget_obj_type_c(loc_id, ref_type, ref, obj_type)
          USE, INTRINSIC :: ISO_C_BINDING
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5RGET_OBJ_TYPE_C':: h5rget_obj_type_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5RGET_OBJ_TYPE_C':: h5rget_obj_type_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: loc_id
          INTEGER, INTENT(IN) :: ref_type
          TYPE(C_PTR), VALUE :: ref

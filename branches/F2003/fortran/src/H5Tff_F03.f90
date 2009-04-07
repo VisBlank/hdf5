@@ -81,9 +81,9 @@ CONTAINS
        INTEGER FUNCTION h5tconvert_c(src_id, dst_id, nelmts, buf, background, plist_id)
          USE ISO_C_BINDING
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5TCONVERT_C'::H5Tconvert_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5TCONVERT_C'::H5Tconvert_c
+         !DEC$ENDIF
          INTEGER(HID_T) , INTENT(IN)           :: src_id
          INTEGER(HID_T) , INTENT(IN)           :: dst_id
          INTEGER(SIZE_T), INTENT(IN)           :: nelmts

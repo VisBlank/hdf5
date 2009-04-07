@@ -107,9 +107,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5rget_region_region_c(dset_id, ref_f, space_id)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5RGET_REGION_REGION_C':: h5rget_region_region_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5RGET_REGION_REGION_C':: h5rget_region_region_c
+         !DEC$ENDIF
          INTEGER(HID_T), INTENT(IN) :: dset_id
          !              INTEGER, PARAMETER :: REF_REG_BUF_LEN = 3
          INTEGER :: ref_f(REF_REG_BUF_LEN)
@@ -173,9 +173,9 @@ CONTAINS
     INTERFACE
        INTEGER FUNCTION h5rget_object_type_obj_c(dset_id, ref_f, obj_type)
          USE H5GLOBAL
-         !DEC$ IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5RGET_OBJECT_TYPE_OBJ_C':: h5rget_object_type_obj_c
-         !DEC$ ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5RGET_OBJECT_TYPE_OBJ_C':: h5rget_object_type_obj_c
+         !DEC$ENDIF
          !              INTEGER, PARAMETER :: REF_OBJ_BUF_LEN = 2
          INTEGER(HID_T), INTENT(IN) :: dset_id
          INTEGER(HADDR_T) :: ref_f
