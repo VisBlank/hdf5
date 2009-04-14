@@ -77,10 +77,8 @@ H5_DLL herr_t H5MF_aggr_reset(H5F_t *file, hid_t dxpl_id, H5F_blk_aggr_t *aggr);
 
 /* Debugging routines */
 #ifdef H5MF_DEBUGGING
-#ifdef NOT_YET
 H5_DLL herr_t H5MF_sects_debug(H5F_t *f, hid_t dxpl_id, haddr_t addr,
     FILE *stream, int indent, int fwidth);
-#endif /* NOT_YET */
 #endif /* H5MF_DEBUGGING */
 
 #endif /* end _H5MFprivate_H */

@@ -287,6 +287,8 @@ done:
  *              entry is resized or renamed as a result of the flush.
  *              *flags_ptr is set to H5C_CALLBACK__NO_FLAGS_SET on entry.
  *
+ * Modifications: Vailin Choi; Feb 2009
+ *	Remove two sanity checks to allow defined sect_addr for zero serial_sect_count
  *
  *-------------------------------------------------------------------------
  */
@@ -339,10 +341,7 @@ HDfprintf(stderr, "%s: fspace->alloc_sect_size = %Hu, fspace->sect_size = %Hu\n"
                 if(H5FS_cache_sinfo_flush(f, dxpl_id, FALSE, fspace->sect_addr, fspace->sinfo, NULL) < 0)
                     HGOTO_ERROR(H5E_FSPACE, H5E_CANTFLUSH, FAIL, "unable to save free space section info to disk")
             } /* end if */
-            else {
-                /* Sanity check that section info doesn't have address */
-                HDassert(!H5F_addr_defined(fspace->sect_addr));
-            } /* end else */
+
 #ifdef QAK
 HDfprintf(stderr, "%s: Check 2.0\n", FUNC);
 HDfprintf(stderr, "%s: fspace->sect_addr = %a, fspace->sinfo = %p\n", FUNC, fspace->sect_addr, fspace->sinfo);
@@ -353,15 +352,9 @@ HDfprintf(stderr, "%s: fspace->alloc_sect_size = %Hu, fspace->sect_size = %Hu\n"
             fspace->sinfo->dirty = FALSE;
         } /* end if */
     } /* end if */
-    else {
-        /* Just sanity checks... */
-        if(fspace->serial_sect_count > 0)
-            /* Sanity check that section info has address */
-            HDassert(H5F_addr_defined(fspace->sect_addr));
-        else
-            /* Sanity check that section info doesn't have address */
-            HDassert(!H5F_addr_defined(fspace->sect_addr));
-    } /* end else */
+    else if(fspace->serial_sect_count > 0)
+	/* Sanity check that section info has address */
+	HDassert(H5F_addr_defined(fspace->sect_addr));
 
     if(fspace->cache_info.is_dirty) {
         uint8_t	*hdr;                   /* Pointer to header buffer */

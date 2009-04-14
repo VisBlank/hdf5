@@ -166,6 +166,7 @@ typedef struct H5O_copy_t {
 #define H5O_REFCOUNT_ID 0x0016          /* Reference count message.  */
 #define H5O_UNKNOWN_ID  0x0017          /* Placeholder message ID for unknown message.  */
                                         /* (this should never exist in a file) */
+#define H5O_FSINFO_ID   0x0018          /* Free-space manager info message.  */
 
 
 /* Shared object message types.
@@ -535,6 +536,14 @@ typedef uint32_t H5O_refcount_t;        /* Contains # of links to object, if >1 
  */
 typedef unsigned H5O_unknown_t;         /* Original message type ID */
 
+/*
+ * Free-space manager info Message.
+ * Contains addresses of free-space managers for file memory
+ * (Data structure in memory)
+ */
+typedef struct H5O_fsinfo_t {
+    haddr_t     fs_addr[H5FD_MEM_NTYPES-1];       /* Addresses of free-space managers */
+} H5O_fsinfo_t;
 
 /* Typedef for "application" iteration operations */
 typedef herr_t (*H5O_operator_t)(const void *mesg/*in*/, unsigned idx,
@@ -593,6 +602,7 @@ H5_DLL herr_t H5O_get_nlinks(const H5O_loc_t *loc, hid_t dxpl_id, hsize_t *nlink
 H5_DLL void *H5O_obj_create(H5F_t *f, H5O_type_t obj_type, void *crt_info, H5G_loc_t *obj_loc, hid_t dxpl_id);
 H5_DLL haddr_t H5O_get_oh_addr(const H5O_t *oh);
 H5_DLL herr_t H5O_get_rc_and_type(const H5O_loc_t *oloc, hid_t dxpl_id, unsigned *rc, H5O_type_t *otype);
+
 
 /* Object header message routines */
 H5_DLL herr_t H5O_msg_create(const H5O_loc_t *loc, unsigned type_id, unsigned mesg_flags,

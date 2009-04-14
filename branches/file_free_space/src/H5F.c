@@ -1817,10 +1817,6 @@ H5F_flush(H5F_t *f, hid_t dxpl_id, H5F_scope_t scope, unsigned flags)
     if(H5F_accum_flush(f, dxpl_id) < 0)
         HGOTO_ERROR(H5E_IO, H5E_CANTFLUSH, FAIL, "unable to flush metadata accumulator")
 
-    /* Flush out the metadata accumulator */
-    if(H5F_accum_flush(f, dxpl_id) < 0)
-        HGOTO_ERROR(H5E_IO, H5E_CANTFLUSH, FAIL, "unable to flush metadata accumulator")
-
     /* Flush file buffers to disk. */
     if(H5FD_flush(f->shared->lf, dxpl_id, (unsigned)((flags & H5F_FLUSH_CLOSING) > 0)) < 0)
         HGOTO_ERROR(H5E_IO, H5E_WRITEERROR, FAIL, "low level flush failed")

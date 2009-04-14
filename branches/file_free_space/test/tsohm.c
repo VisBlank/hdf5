@@ -2375,11 +2375,13 @@ static void test_sohm_size2(int close_reopen)
      * of space; at least as much as the list index and less than a normal
      * file.
      */
+    /* Give it some overhead */
     if((list_index_small.attrs2 - list_index_small.attrs1) >
-            (btree_index.attrs2 - btree_index.attrs1))
+	    (btree_index.attrs2 - btree_index.attrs1) * OVERHEAD_ALLOWED)
         VERIFY(0, 1, "h5_get_file_size");
+    /* Give it some overhead */
     if((list_index_med.attrs2 - list_index_med.attrs1) >
-            (btree_index.attrs2 - btree_index.attrs1))
+	    (btree_index.attrs2 - btree_index.attrs1) * OVERHEAD_ALLOWED)
         VERIFY(0, 1, "h5_get_file_size");
     if((list_index_big.attrs2 - list_index_big.attrs1) >
             (list_index_med.attrs2 - list_index_med.attrs1))
@@ -2445,11 +2447,13 @@ static void test_sohm_size2(int close_reopen)
      * the same rate or slightly faster than files with just one index
      * and one heap.
      */
-     if((mult_index_med.dsets1 - mult_index_med.second_dset) !=
-            (list_index_med.dsets1 - list_index_med.second_dset))
+    /* Give it some overhead and change from != to < */
+    if(((mult_index_med.dsets1 - mult_index_med.second_dset) * OVERHEAD_ALLOWED) <
+	    (list_index_med.dsets1 - list_index_med.second_dset))
         VERIFY((mult_index_med.dsets1 - mult_index_med.second_dset), (list_index_med.dsets1 - list_index_med.second_dset), "h5_get_file_size");
-     if((mult_index_btree.dsets1 - mult_index_btree.second_dset) !=
-            (btree_index.dsets1 - btree_index.second_dset))
+    /* Give it some overhead and change from != to < */
+    if(((mult_index_btree.dsets1 - mult_index_btree.second_dset) * OVERHEAD_ALLOWED) <
+	    (btree_index.dsets1 - btree_index.second_dset))
         VERIFY((mult_index_btree.dsets1 - mult_index_btree.second_dset), (btree_index.dsets1 - btree_index.second_dset), "h5_get_file_size");
 
      if((mult_index_med.dsets2 - mult_index_med.dsets1) >
@@ -2477,12 +2481,14 @@ static void test_sohm_size2(int close_reopen)
      * this happens because it's hard to predict exactly how much space this
      * will take.
      */
-     if((mult_index_med.attrs2 - mult_index_med.attrs1) !=
-            (list_index_med.attrs2 - list_index_med.attrs1))
-        VERIFY(0, 1, "h5_get_file_size");
-     if((mult_index_btree.attrs2 - mult_index_btree.attrs1) !=
-            (btree_index.attrs2 - btree_index.attrs1))
-        VERIFY(0, 1, "h5_get_file_size");
+    /* change from != to < */
+    if((mult_index_med.attrs2 - mult_index_med.attrs1) <
+	    (list_index_med.attrs2 - list_index_med.attrs1))
+	VERIFY(0, 1, "h5_get_file_size");
+    /* change from != to < */
+    if((mult_index_btree.attrs2 - mult_index_btree.attrs1) <
+	    (btree_index.attrs2 - btree_index.attrs1))
+	VERIFY(0, 1, "h5_get_file_size");
 
     /* The final file size for both of the multiple index files should be
      * smaller than a normal file but bigger than any of the one-index files.

@@ -131,7 +131,7 @@ H5FS_debug(H5F_t *f, hid_t dxpl_id, haddr_t addr, FILE *stream, int indent, int 
     HDfprintf(stream, "%*s%-*s %s\n", indent, "", fwidth,
 	      "Free space client:",
 	      (fspace->client == H5FS_CLIENT_FHEAP_ID ? "Fractal heap" :
-	      (fspace->client == H5FS_CLIENT_FILE_ID ? "File Memory Management" : "Unknown")));
+	      (fspace->client == H5FS_CLIENT_FILE_ID ? "File" : "Unknown")));
     HDfprintf(stream, "%*s%-*s %Hu\n", indent, "", fwidth,
 	      "Total free space tracked:",
 	      fspace->tot_space);
@@ -286,10 +286,8 @@ H5FS_sects_debug(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, FILE *stream, int
             break;
 
         case H5FS_CLIENT_FILE_ID:
-#ifdef NOT_YET
-            if(H5MF_sects_debug(f, dxpl_id, client_addr, stream, indent + 3, MAX(0, fwidth - 3)) < 0)
-                HGOTO_ERROR(H5E_FSPACE, H5E_SYSTEM, FAIL, "unable to dump file free space sections")
-#endif /* NOT_YET */
+	    if(H5MF_sects_debug(f, dxpl_id, fs_addr, stream, indent + 3, MAX(0, fwidth - 3)) < 0)
+		HGOTO_ERROR(H5E_FSPACE, H5E_SYSTEM, FAIL, "unable to dump file free space sections")
             break;
 
         default:

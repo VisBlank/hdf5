@@ -125,6 +125,7 @@ const H5O_msg_class_t *const H5O_msg_class_g[] = {
     H5O_MSG_AINFO,		/*0x0015 Attribute information		*/
     H5O_MSG_REFCOUNT,		/*0x0016 Object's ref. count		*/
     H5O_MSG_UNKNOWN,		/*0x0017 Placeholder for unknown message */
+    H5O_MSG_FSINFO,		/*0x0018 Free-space manager info message */
 };
 
 /* Header object ID to class mapping */
@@ -2917,5 +2918,3 @@ done:
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5O_visit() */
-
-
