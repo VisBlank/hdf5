@@ -30,7 +30,7 @@ lib_LTLIBRARIES=libhdf5_hl.la
 # Add libtool numbers to the HDF5 hl library (from config/lt_vers.am)
 libhdf5_hl_la_LDFLAGS= -version-info $(LT_VERS_INTERFACE):$(LT_VERS_REVISION):$(LT_VERS_AGE)
 
-libhdf5_hl_la_SOURCES=H5DS.c H5IM.c H5LT.c H5LTanalyze.c H5LTparse.c H5PT.c H5TB.c
+libhdf5_hl_la_SOURCES=H5DS.c H5HLerror.c H5HLint.c H5IM.c H5LT.c H5LTanalyze.c H5LTparse.c H5PT.c H5TB.c
 
 # Public header files (to be installed)
 include_HEADERS=hdf5_hl.h H5IMpublic.h H5LTpublic.h H5TBpublic.h H5DSpublic.h H5PTpublic.h

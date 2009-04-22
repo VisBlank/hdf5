@@ -13,12 +13,24 @@
 * access to either file, you may request a copy from help@hdfgroup.org.     *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include <string.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <stdio.h>
-#include "H5LTprivate.h"
+/**********************/
+/* Module Declaration */
+/**********************/
 
+#define H5LT_MODULE
+
+/***********************/
+/* Other Packages Used */
+/***********************/
+
+/***********/
+/* Headers */
+/***********/
+//#include <string.h>
+#include <stdlib.h>
+//#include <assert.h>
+//#include <stdio.h>
+#include "H5LTpkg.h"            /* Lite */
 
 /* For Lex and Yacc */
 #define         COL             3
@@ -29,8 +41,49 @@ int  input_len;
 char *myinput;
 int  indent = 0;
 
+/******************/
+/* Local Typedefs */
+/******************/
+
+hid_t   H5_MY_PKG_ERR;
+
+#define ERR_CLS_NAME            "H5LT"
+#define PROG_NAME               "HDF5:LT"
+
+/********************/
+/* Package Typedefs */
+/********************/
+#define AT() 		printf ("	 at %s:%d in %s()...\n",	      \
+				__FILE__, __LINE__, __FUNCTION__);
+#define H5_FAILED()	{puts("*FAILED*");fflush(stdout);}
+#define TEST_ERROR      {H5_FAILED(); AT(); goto error;}
+
+/********************/
+/* Local Prototypes */
+/********************/
 
 
+/*********************/
+/* Package Variables */
+/*********************/
+
+/* Package initialization flag */
+hbool_t H5_H5LT_init_g = FALSE;
+
+/* High-Level API error class */
+hid_t H5HL_ERR_CLS_g = (-1);
+
+/* Major error codes */
+hid_t H5E_LT_g = (-1);
+
+/*****************************/
+/* Library Private Variables */
+/*****************************/
+
+
+/*******************/
+/* Local Variables */
+/*******************/
 
 /*-------------------------------------------------------------------------
 *
@@ -38,6 +91,44 @@ int  indent = 0;
 *
 *-------------------------------------------------------------------------
 */
+
+/*-------------------------------------------------------------------------
+ * Function: H5LT__pkg_init
+ *
+ * Purpose: Package initialization 
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Quincey Koziol
+ *
+ * Date: April 14, 2009
+ *
+ *-------------------------------------------------------------------------
+ */
+
+BEGIN_FUNC(PKGINIT, NOERR,
+herr_t, SUCCEED, -,
+H5LT__pkg_init(void))
+
+    char lib_str[256];
+
+    sprintf(lib_str, "%d.%d.%d",H5_VERS_MAJOR, H5_VERS_MINOR, H5_VERS_RELEASE);
+
+    /* Perform any package initialization actions (like registering the
+     *  package's major error code, etc) here */
+
+    if((H5HL_ERR_CLS_g = H5Eregister_class(ERR_CLS_NAME, PROG_NAME, lib_str)) < 0)
+      TEST_ERROR;
+
+    return 0;
+
+error:
+    return -1;
+
+END_FUNC(PKGINIT)
+
+
+
 static herr_t H5LT_get_attribute_mem(hid_t loc_id,
                                      const char *obj_name,
                                      const char *attr_name,
@@ -639,43 +730,77 @@ out:
 *
 *-------------------------------------------------------------------------
 */
-
-herr_t H5LTget_dataset_ndims( hid_t loc_id,
-                             const char *dset_name,
-                             int *rank )
-{
+BEGIN_FUNC(PUB, ERR,
+herr_t, SUCCEED, FAIL,
+H5LTget_dataset_ndims( hid_t loc_id,
+		       const char *dset_name,
+		       int *rank ) )
+  
     hid_t       did = -1;
     hid_t       sid = -1;
+    herr_t      status;
 
     /* Open the dataset. */
-    if((did = H5Dopen2(loc_id, dset_name, H5P_DEFAULT)) < 0)
-        return -1;
+    H5E_BEGIN_TRY {
+      did = H5Dopen2(loc_id, dset_name, H5P_DEFAULT);
+    } H5E_END_TRY;
+
+    if(did < 0) {
+       H5_MY_PKG_ERR = H5E_DATASET;
+       H5E_THROW(H5E_NOTFOUND, "H5LT: Failed to open the dataset")
+    } /* end if */
 
     /* Get the dataspace handle */
-    if((sid = H5Dget_space(did)) < 0)
-        goto out;
+    H5E_BEGIN_TRY {
+      sid = H5Dget_space(did);
+    } H5E_END_TRY;
+
+    if(sid < 0) {
+       H5_MY_PKG_ERR = H5E_DATASET;
+       H5E_THROW(H5E_BADSELECT, "H5LT: Failed to get dataspace handle")
+    } /* end if */
 
     /* Get rank */
-    if((*rank = H5Sget_simple_extent_ndims(sid)) < 0)
-        goto out;
+    H5E_BEGIN_TRY {
+      *rank = H5Sget_simple_extent_ndims(sid);
+    } H5E_END_TRY;
+
+    if(rank < 0) {
+       H5_MY_PKG_ERR = H5E_DATASET;
+       H5E_THROW(H5E_BADSELECT, "H5LT: Failed to get dataspace rank")
+    } /* end if */
+
 
     /* Terminate access to the dataspace */
-    if(H5Sclose(sid) < 0)
-        goto out;
+    H5E_BEGIN_TRY {
+      status = H5Sclose(sid);
+    } H5E_END_TRY;
+
+    if(status < 0) {
+       H5_MY_PKG_ERR = H5E_DATASET;
+       H5E_THROW(H5E_CLOSEERROR, "H5LT: Failed to close dataspace")
+    } /* end if */
 
     /* End access to the dataset */
-    if(H5Dclose(did))
-        return -1;
-
-    return 0;
-
-out:
     H5E_BEGIN_TRY {
-        H5Dclose(did);
-        H5Sclose(sid);
+      status = H5Dclose(did);
     } H5E_END_TRY;
-    return -1;
-}
+
+    if(status < 0) {
+       H5_MY_PKG_ERR = H5E_DATASET;
+       H5E_THROW(H5E_CLOSEERROR, "H5LT: Failed to close dataset")
+    } /* end if */
+
+CATCH
+    /* Close appropriate items */
+    if(sid > 0)
+        if(H5Sclose(sid) < 0)
+            H5E_THROW(H5E_CLOSEERROR, "H5LT: Failed to close dataspace")
+    if(did > 0)
+        if(H5Dclose(did) < 0)
+            H5E_THROW(H5E_CLOSEERROR, "H5LT: Unable to close file dataset")
+
+END_FUNC(PUB)
 
 
 /*-------------------------------------------------------------------------
