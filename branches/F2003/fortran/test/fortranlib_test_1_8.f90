@@ -99,7 +99,6 @@ PROGRAM fortranlibtest
 !!$       ' Testing property lists, with variable-length datatype', &
 !!$       total_error) 
 
-
 !  CALL test_hard_query(group_total_error)
 
   WRITE(*,*)

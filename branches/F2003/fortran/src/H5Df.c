@@ -2437,3 +2437,37 @@ nh5dread_f_c ( hid_t_f *dset_id ,  hid_t_f *mem_type_id, hid_t_f *mem_space_id,
   ret_value = 1;
   return ret_value;
 }
+/****if* H5Df/nh5dget_access_plist_c
+ * NAME
+ *     nh5dget_access_plist_c
+ * PURPOSE
+ *     Call H5Dget_access_plist
+ * INPUTS
+ *     dset_id   - dataset identifier
+ * OUTPUTS
+ *     plist_id  - the dataset access property list identifier
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *     M. Scot Breitenfeld
+ *     April 13, 2009
+ *
+ * SOURCE
+*/
+
+int_f
+nh5dget_access_plist_c (hid_t_f *dset_id, hid_t_f *plist_id)
+/******/
+{
+  int ret_value = -1;
+  /*
+   * Call H5Dget_access_plist function.
+   */
+  if((*plist_id = (hid_t_f)H5Dget_access_plist((hid_t)*dset_id)) < 0)
+    goto DONE;
+
+  ret_value = 0;
+  
+ DONE:
+  return ret_value;
+}

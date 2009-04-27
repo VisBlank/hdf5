@@ -1036,6 +1036,48 @@ CONTAINS
   hdferr = h5dget_space_c(dataset_id, dataspace_id)
 END SUBROUTINE h5dget_space_f
 
+!****s* H5D/h5dget_access_plist_f
+!
+! NAME
+!  h5dget_access_plist_f
+!
+! PURPOSE
+!  Returns a copy of the dataset creation property list.
+!
+! INPUTS
+!  dset_id       - Dataset identifier
+!
+! OUTPUTS
+!
+!  plist_id	 - Dataset access property list identifier
+!  hdferr 	 - Returns 0 if successful and -1 if fails
+!
+! AUTHOR   
+!  M. Scot Breitenfeld
+!  April 13, 2009
+!
+! SOURCE
+SUBROUTINE h5dget_access_plist_f(dset_id, plist_id, hdferr)
+  IMPLICIT NONE
+  INTEGER(HID_T), INTENT(IN)  :: dset_id
+  INTEGER(HID_T), INTENT(OUT) :: plist_id 
+  INTEGER       , INTENT(OUT) :: hdferr  
+!*****
+  INTERFACE
+     INTEGER FUNCTION h5dget_access_plist_c(dset_id, plist_id)
+       USE H5GLOBAL
+       !DEC$IF DEFINED(HDF5F90_WINDOWS)
+       !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DGET_ACCESS_PLIST_C'::h5dget_access_plist_c
+       !DEC$ENDIF
+       INTEGER(HID_T), INTENT(IN) :: dset_id
+       INTEGER(HID_T), INTENT(OUT) :: plist_id
+     END FUNCTION h5dget_access_plist_c
+  END INTERFACE
+  
+  hdferr = h5dget_access_plist_c(dset_id, plist_id)
+  
+END SUBROUTINE h5dget_access_plist_f
+
 END MODULE H5D
 
 
