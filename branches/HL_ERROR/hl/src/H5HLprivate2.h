@@ -245,6 +245,11 @@ func									      \
 /* Open function */							      \
 {									      \
     ret_typ ret_value = ret_init;					      \
+    hbool_t err_occured = FALSE;                                              \
+    H5E_auto2_t efunc2;					                      \
+    void *H5E_saved_edata;						      \
+    /*     (void)H5Eget_auto2(H5E_DEFAULT, &efunc2, &H5E_saved_edata);    */           \
+    (void)H5Eset_auto2(H5E_DEFAULT, NULL, NULL);			      \
     H5_GLUE(FUNC_ERR_VAR_, use_err)(ret_typ, err)			      \
     H5_GLUE(FUNC_ENTER_, scope)
 
@@ -291,9 +296,11 @@ func_init_failed:							      \
 
 /* Use this macro when leaving all functions */
 #define END_FUNC(scope)							      \
+     if(err_occured == TRUE)                                                  \
+       (void)H5Eset_auto2(H5E_DEFAULT, efunc2, H5E_saved_edata);	      \       
     /* Scope-specific function conclusion */				      \
     H5_GLUE(FUNC_LEAVE_, scope)						      \
-                                                                              \
+    H5Eunregister_class(H5HL_ERR_CLS_g);				      \
     /* Leave routine */							      \
     return(ret_value);							      \
                                                                               \
@@ -329,7 +336,8 @@ func_init_failed:							      \
  * The return value is assigned to a variable `ret_value' and control branches
  * to the `catch_except' label, if we're not already past it.
  */
-#define H5E_THROW(...) {						      \
+#define H5E_THROW(...) {						      \ 
+    err_occured = TRUE;                                                       \
     H5E_PRINTF(__VA_ARGS__);						      \
     H5_LEAVE(fail_value)						      \
 }

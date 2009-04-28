@@ -106,8 +106,8 @@ hid_t H5E_LT_g = (-1);
  *-------------------------------------------------------------------------
  */
 
-BEGIN_FUNC(PKGINIT, NOERR,
-herr_t, SUCCEED, -,
+BEGIN_FUNC(PKGINIT, ERR,
+herr_t, SUCCEED, FAIL,
 H5LT__pkg_init(void))
 
     char lib_str[256];
@@ -117,13 +117,13 @@ H5LT__pkg_init(void))
     /* Perform any package initialization actions (like registering the
      *  package's major error code, etc) here */
 
-    if((H5HL_ERR_CLS_g = H5Eregister_class(ERR_CLS_NAME, PROG_NAME, lib_str)) < 0)
-      TEST_ERROR;
+    H5HL_ERR_CLS_g = H5Eregister_class(ERR_CLS_NAME, PROG_NAME, lib_str);
+    if(H5HL_ERR_CLS_g < 0) {
+       H5_MY_PKG_ERR = H5E_ERROR;
+       H5E_THROW(H5E_CANTREGISTER, "H5LT: Failed to register new error class")
+    } /* end if */
 
-    return 0;
-
-error:
-    return -1;
+    CATCH
 
 END_FUNC(PKGINIT)
 
@@ -741,9 +741,8 @@ H5LTget_dataset_ndims( hid_t loc_id,
     herr_t      status;
 
     /* Open the dataset. */
-    H5E_BEGIN_TRY {
-      did = H5Dopen2(loc_id, dset_name, H5P_DEFAULT);
-    } H5E_END_TRY;
+
+    did = H5Dopen2(loc_id, dset_name, H5P_DEFAULT);
 
     if(did < 0) {
        H5_MY_PKG_ERR = H5E_DATASET;
@@ -751,54 +750,34 @@ H5LTget_dataset_ndims( hid_t loc_id,
     } /* end if */
 
     /* Get the dataspace handle */
-    H5E_BEGIN_TRY {
-      sid = H5Dget_space(did);
-    } H5E_END_TRY;
+    sid = H5Dget_space(did);
 
     if(sid < 0) {
-       H5_MY_PKG_ERR = H5E_DATASET;
+       H5_MY_PKG_ERR = H5E_DATASPACE;
        H5E_THROW(H5E_BADSELECT, "H5LT: Failed to get dataspace handle")
     } /* end if */
 
     /* Get rank */
-    H5E_BEGIN_TRY {
-      *rank = H5Sget_simple_extent_ndims(sid);
-    } H5E_END_TRY;
+    *rank = H5Sget_simple_extent_ndims(sid);
 
-    if(rank < 0) {
+    if(*rank < 0) {
        H5_MY_PKG_ERR = H5E_DATASET;
        H5E_THROW(H5E_BADSELECT, "H5LT: Failed to get dataspace rank")
     } /* end if */
 
-
-    /* Terminate access to the dataspace */
-    H5E_BEGIN_TRY {
-      status = H5Sclose(sid);
-    } H5E_END_TRY;
-
-    if(status < 0) {
-       H5_MY_PKG_ERR = H5E_DATASET;
-       H5E_THROW(H5E_CLOSEERROR, "H5LT: Failed to close dataspace")
-    } /* end if */
-
-    /* End access to the dataset */
-    H5E_BEGIN_TRY {
-      status = H5Dclose(did);
-    } H5E_END_TRY;
-
-    if(status < 0) {
-       H5_MY_PKG_ERR = H5E_DATASET;
-       H5E_THROW(H5E_CLOSEERROR, "H5LT: Failed to close dataset")
-    } /* end if */
-
 CATCH
     /* Close appropriate items */
-    if(sid > 0)
-        if(H5Sclose(sid) < 0)
-            H5E_THROW(H5E_CLOSEERROR, "H5LT: Failed to close dataspace")
-    if(did > 0)
-        if(H5Dclose(did) < 0)
-            H5E_THROW(H5E_CLOSEERROR, "H5LT: Unable to close file dataset")
+if(sid > 0)
+  if(H5Sclose(sid) < 0) {
+    H5_MY_PKG_ERR = H5E_DATASPACE;
+    H5E_THROW(H5E_CLOSEERROR, "H5LT: Failed to close dataspace") 
+      } /*end if */
+if(did > 0) {
+  if(H5Dclose(did) < 0) {
+    H5_MY_PKG_ERR = H5E_DATASET;
+    H5E_THROW(H5E_CLOSEERROR, "H5LT: Unable to close file dataset") 
+      } /*end if */
+}
 
 END_FUNC(PUB)
 
