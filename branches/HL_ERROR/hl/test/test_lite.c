@@ -96,12 +96,11 @@ static int test_dsets( void )
     if ( ( dataset_id = H5Dopen2(file_id, DSET0_NAME, H5P_DEFAULT) ) < 0 )
         goto out;
 
-    if (H5LTget_dataset_ndims(-1,DSET0_NAME, rank ))
-      goto out;
-
-
     if ( H5Dread ( dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, data_int_out ) < 0 )
         goto out;
+
+    if ( H5LTget_dataset_ndims(file_id, DSET0_NAME, &rank ))
+      goto out;
 
     if ( H5Dclose( dataset_id ) < 0 )
         goto out;
