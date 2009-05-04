@@ -47,9 +47,6 @@ int  indent = 0;
 
 hid_t   H5_MY_PKG_ERR;
 
-#define ERR_CLS_NAME            "H5LT"
-#define PROG_NAME               "HDF5:LT"
-
 /********************/
 /* Package Typedefs */
 /********************/
@@ -110,18 +107,19 @@ BEGIN_FUNC(PKGINIT, ERR,
 herr_t, SUCCEED, FAIL,
 H5LT__pkg_init(void))
 
-    char lib_str[256];
 
-    sprintf(lib_str, "%d.%d.%d",H5_VERS_MAJOR, H5_VERS_MINOR, H5_VERS_RELEASE);
+/*     char lib_str[256]; */
+
+/*     sprintf(lib_str, "%d.%d.%d",H5_VERS_MAJOR, H5_VERS_MINOR, H5_VERS_RELEASE); */
 
     /* Perform any package initialization actions (like registering the
      *  package's major error code, etc) here */
 
-    H5HL_ERR_CLS_g = H5Eregister_class(ERR_CLS_NAME, PROG_NAME, lib_str);
-    if(H5HL_ERR_CLS_g < 0) {
-       H5_MY_PKG_ERR = H5E_ERROR;
-       H5E_THROW(H5E_CANTREGISTER, "H5LT: Failed to register new error class")
-    } /* end if */
+/*     H5HL_ERR_CLS_g = H5Eregister_class(ERR_CLS_NAME, PROG_NAME, lib_str); */
+/*     if(H5HL_ERR_CLS_g < 0) { */
+/*        H5_MY_PKG_ERR = H5E_ERROR; */
+/*        H5E_THROW(H5E_CANTREGISTER, "H5LT: Failed to register new error class") */
+/*     } /\* end if *\/ */
 
     CATCH
 
@@ -739,6 +737,7 @@ H5LTget_dataset_ndims( hid_t loc_id,
     hid_t       did = -1;
     hid_t       sid = -1;
     herr_t      status;
+    hid_t       current_stack_id = -1;
 
     /* Open the dataset. */
 
@@ -748,7 +747,6 @@ H5LTget_dataset_ndims( hid_t loc_id,
        H5_MY_PKG_ERR = H5E_DATASET;
        H5E_THROW(H5E_NOTFOUND, "H5LT: Failed to open the dataset")
     } /* end if */
-
     /* Get the dataspace handle */
     sid = H5Dget_space(did);
 
@@ -766,18 +764,19 @@ H5LTget_dataset_ndims( hid_t loc_id,
     } /* end if */
 
 CATCH
-    /* Close appropriate items */
+
+/* save the current error stack before closing */
+current_stack_id = H5Eget_current_stack();
+
+/* Close appropriate items, if error occurs it will not be reported */
 if(sid > 0)
-  if(H5Sclose(sid) < 0) {
-    H5_MY_PKG_ERR = H5E_DATASPACE;
-    H5E_THROW(H5E_CLOSEERROR, "H5LT: Failed to close dataspace") 
-      } /*end if */
-if(did > 0) {
-  if(H5Dclose(did) < 0) {
-    H5_MY_PKG_ERR = H5E_DATASET;
-    H5E_THROW(H5E_CLOSEERROR, "H5LT: Unable to close file dataset") 
-      } /*end if */
-}
+  status = H5Sclose(sid);
+
+if(did > 0)
+ status = H5Dclose(did);
+
+/* retrieve the error stack */
+status = H5Eset_current_stack(current_stack_id);
 
 END_FUNC(PUB)
 

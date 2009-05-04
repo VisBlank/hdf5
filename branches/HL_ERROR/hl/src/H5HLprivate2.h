@@ -72,6 +72,9 @@
 #define H5_GLUE3(x,y,z)    x##y##z
 #define H5_GLUE4(w,x,y,z)  w##x##y##z
 
+
+
+
 /************************************************/
 /* Revisions to FUNC_ENTER/LEAVE & Error Macros */
 /************************************************/
@@ -152,6 +155,7 @@ extern hbool_t H5HL_api_entered_g;    /* Has library already been entered throug
 
 /* extern global variables */
 extern hbool_t H5HL_libinit_g;    /* Has the library been initialized? */
+                                                                \
 
 /* Use FUNC to safely handle variations of C99 __func__ keyword handling */
 #ifdef H5_HAVE_C99_FUNC
@@ -187,7 +191,6 @@ extern hbool_t H5HL_libinit_g;    /* Has the library been initialized? */
                                                                               \
     /* Enter scope for this type of function */				      \
     {{
-
 #define H5_PUBLIC_ENTER(pkg, pkg_init)					      \
     FUNC_ENTER_NAME_CHECK(H5_IS_PUB(FUNC))				      \
                                                                               \
@@ -202,7 +205,8 @@ extern hbool_t H5HL_libinit_g;    /* Has the library been initialized? */
             H5E_PRINTF(H5E_CANTINIT, "interface initialization failed");      \
             ret_value = fail_value;					      \
             goto func_init_failed;					      \
-        } /* end if */						              \
+        } /* end if */                                                        \
+	atexit( H5HL_close);			                              \
     } /* end if */						              \
                                                                               \
     /* Initialize this interface if desired */				      \
@@ -298,7 +302,6 @@ func_init_failed:							      \
     (void)H5Eset_auto2(H5E_DEFAULT, efunc2, H5E_saved_edata);	              \       
     /* Scope-specific function conclusion */				      \
     H5_GLUE(FUNC_LEAVE_, scope)						      \
-    /* H5Eunregister_class(H5HL_ERR_CLS_g); */				      \
     /* Leave routine */							      \
     return(ret_value);							      \
                                                                               \
@@ -346,5 +349,8 @@ func_init_failed:							      \
 
 /* Private functions */
 herr_t H5HL_init_library(void);
+
+void H5HL_close(void);
+
 #endif /* _H5HLprivate2_H */
 
