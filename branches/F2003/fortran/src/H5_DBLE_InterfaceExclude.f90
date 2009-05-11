@@ -32,7 +32,7 @@
 !  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !
 !*****
 

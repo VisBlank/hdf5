@@ -178,7 +178,7 @@ CONTAINS
 !  port).  February 28, 2001
 !
 !   	 -Added 1.8 (optional) parameter dapl_id
-!  February, 2008, M.S. Breitenfeld
+!  February, 2008, M. Scot Breitenfeld
 !
 ! SOURCE
   SUBROUTINE h5dopen_f(loc_id, name, dset_id, hdferr, dapl_id)
@@ -557,7 +557,7 @@ CONTAINS
 !  dapl_id  	 - Dataset access property list identifier.
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !		  February 11, 2008
 ! SOURCE
   SUBROUTINE h5dcreate_anon_f(loc_id, type_id, space_id, dset_id, hdferr, dcpl_id, dapl_id)

@@ -387,7 +387,7 @@ CONTAINS
 !  h5_type 	 - returns the type
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  Augest 25, 2008
 !
 ! SOURCE

@@ -275,7 +275,7 @@ CONTAINS
   !		space_id	- dataspace identifier that describes selected region
   !
   ! AUTHOR
-  !  M.S. Breitenfeld
+  !  M. Scot Breitenfeld
   !  June 20, 2008
   !
   !
@@ -417,7 +417,7 @@ CONTAINS
   !				Failure: -1
   !
   ! AUTHOR
-  !  M.S. Breitenfeld
+  !  M. Scot Breitenfeld
   !  June 20, 2008
   !
   ! NOTES		This is a module procedure for the h5rdereference_f
@@ -461,7 +461,7 @@ CONTAINS
 !  size 	 - The size of the name buffer.
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  March 28, 2008
 !
 ! SOURCES
@@ -516,7 +516,7 @@ CONTAINS
 !  size 	 - The size of the name buffer.
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  March 28, 2008
 !
 ! SOURCE
@@ -571,7 +571,7 @@ CONTAINS
   !      size - The size of the name buffer.
   !
   ! AUTHOR
-  !  M.S. Breitenfeld
+  !  M. Scot Breitenfeld
   !  March 28, 2008
   !
   ! SOURCE
@@ -626,7 +626,7 @@ CONTAINS
   !		  Failure: -1
   !
   ! AUTHOR
-  !  M.S. Breitenfeld
+  !  M. Scot Breitenfeld
   !  Decemeber 17, 2008
   !
   ! SOURCE

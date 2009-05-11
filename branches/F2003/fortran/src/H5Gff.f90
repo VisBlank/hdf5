@@ -164,7 +164,7 @@ CONTAINS
 !!$!    gcpl_id  - Property list for group creation
 !!$!    gapl_id  - Property list for group access
 !!$!
-!!$! AUTHOR	M.S. BREITENFELD
+!!$! AUTHOR	M. Scot Breitenfeld
 !!$!		February 27, 2008
 !!$!
 !!$! HISTORY
@@ -263,7 +263,7 @@ CONTAINS
 !  port).  March 5, 2001
 !
 !  Added 1.8 (optional) parameter gapl_id
-!  February, 2008 M.S. Breitenfeld
+!  February, 2008 M. Scot Breitenfeld
 !
 ! SOURCE
   SUBROUTINE h5gopen_f(loc_id, name, grp_id, hdferr, gapl_id)
@@ -973,7 +973,7 @@ CONTAINS
 !  gapl_id 	 - Group access property list identifier
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February 15, 2008
 !
 ! SOURCE
@@ -1026,7 +1026,7 @@ CONTAINS
 !  gcpl_id 	 - Group creation property list identifier
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February 15, 2008
 !
 ! SOURCE
@@ -1075,7 +1075,7 @@ CONTAINS
 !  mounted 	 - Whether group has a file mounted on it
 !
 ! AUTHOR
-!  M. S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February 15, 2008
 !
 ! NOTES
@@ -1084,7 +1084,7 @@ CONTAINS
 ! HISTORY
 !
 !  - Added 'mounted' paramater
-!    M.S. Breitenfeld
+!    M. Scot Breitenfeld
 !    July 16, 2008
 !
 ! SOURCE
@@ -1162,12 +1162,12 @@ CONTAINS
 !  In C the output is defined as a structure: H5G_info_t
 !
 ! AUTHOR
-!  M. S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February 18, 2008
 !
 ! HISTORY
 !  Added 'mounted' paramater
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  July 16, 2008
 !
 ! SOURCE
@@ -1269,12 +1269,12 @@ CONTAINS
 !  In C the output is defined as a structure: H5G_info_t
 !
 ! AUTHOR
-!  M. S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February 18, 2008
 !
 ! HISTORY
 !  Added 'mounted' paramater
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  July 16, 2008
 ! SOURCE
   SUBROUTINE h5gget_info_by_name_f(loc_id, group_name, &

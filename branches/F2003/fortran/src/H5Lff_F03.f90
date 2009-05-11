@@ -65,7 +65,7 @@ CONTAINS
 !  Success:  0
 !  Failure: -1
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  July 8, 2008
 !
 ! SOURCE
@@ -149,7 +149,7 @@ CONTAINS
 !  lapl_id 	 - Link access property list
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  Augest 18, 2008
 !
 ! SOURCE

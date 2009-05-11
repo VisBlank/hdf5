@@ -62,7 +62,7 @@ CONTAINS
 !  lapl_id 	 - Link access property list identifier
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February 27, 2008
 !
 ! SOURCE
@@ -138,7 +138,7 @@ CONTAINS
 !  lapl_id 	 - Link access property list identifier
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  January, 2008
 !
 ! SOURCE
@@ -197,7 +197,7 @@ CONTAINS
 !  lapl_id 	 - Link access property list identifier.
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February 20, 2008
 !
 ! SOURCE
@@ -274,7 +274,7 @@ CONTAINS
 !  lapl_id 	 - Link access property list identifier.
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February 27, 2008
 !
 ! SOURCE
@@ -353,7 +353,7 @@ CONTAINS
 !  lapl_id 	 - Link access property list identifier.
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February 27, 2008
 ! SOURCE
   SUBROUTINE h5lcreate_external_f(file_name, obj_name, link_loc_id, link_name, hdferr, lcpl_id, lapl_id)
@@ -443,7 +443,7 @@ CONTAINS
 !  lapl_id 	 - Link access property list
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February 29, 2008
 ! SOURCE
   SUBROUTINE h5ldelete_by_idx_f(loc_id, group_name, index_field, order, n, hdferr, lapl_id)
@@ -515,7 +515,7 @@ CONTAINS
 !  lapl_id 	 - Link access property list identifier.
 !
 ! AUTHOR
-!  M. S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February 29, 2008
 !
 ! SOURCE
@@ -591,7 +591,7 @@ CONTAINS
 !  lapl_id 	 - Link access property list
 !
 ! AUTHOR
-!  M. S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February 29, 2008
 !
 ! SOURCE
@@ -687,7 +687,7 @@ CONTAINS
 !  lapl_id 	 - Link access property list
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February 29, 2008
 !
 ! SOURCE
@@ -775,7 +775,7 @@ CONTAINS
 !  Failure: -1
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February 29, 2008
 !
 ! SOURCE
@@ -831,7 +831,7 @@ CONTAINS
 !  lapl_id 	 - Link access property list identifier to be associated WITH the NEW link.
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  March 3, 2008
 !
 ! SOURCE
@@ -914,7 +914,7 @@ CONTAINS
 !  size 	 - Maximum number of characters of link value to be returned.
 !
 ! AUTHOR
-!  M. S. Breitenfeld
+!  M. Scot Breitenfeld
 !  March 10, 2008
 !
 ! SOURCE
@@ -1014,7 +1014,7 @@ CONTAINS
 !!$!    lapl_id      - List access property list identifier.
 !!$!
 !!$! AUTHOR
-!!$!	M. S. Breitenfeld
+!!$!	M. Scot Breitenfeld
 !!$!		March 3, 2008
 !!$!
 !!$! HISTORY  N/A
@@ -1105,7 +1105,7 @@ CONTAINS
 !!$!    lapl_id      - List access property list identifier.
 !!$!
 !!$! AUTHOR
-!!$!	M.S. Breitenfeld
+!!$!	M. Scot Breitenfeld
 !!$!	March 3, 2008
 !!$! SOURCE
 !!$  SUBROUTINE h5lget_val_f(link_loc_id, link_name, size, linkval_buff,   &
@@ -1189,7 +1189,7 @@ CONTAINS
 !!$!                      None
 !!$!
 !!$! AUTHOR
-!!$! M.S. Breitenfeld
+!!$! M. Scot Breitenfeld
 !!$!	      February 29, 2008
 !!$!
 !!$! HISTORY  N/A

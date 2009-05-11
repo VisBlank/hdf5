@@ -1003,7 +1003,7 @@ CONTAINS
 !  Success:  0
 !  Failure: -1
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  June 24, 2008
 ! SOURCE
   SUBROUTINE h5pregister_ptr(class, name, size, value, hdferr)
@@ -1232,7 +1232,7 @@ CONTAINS
 !  Success:  0
 !  Failure: -1
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  June 24, 2008
 ! SOURCE
   SUBROUTINE h5pinsert_ptr(plist, name, size, value, hdferr)
@@ -1289,7 +1289,7 @@ CONTAINS
 !
 ! HISTORY
 !  Added callback arguments
-!  M.S. Breitenfeld, July 3, 2008
+!  M. Scot Breitenfeld, July 3, 2008
 !
 ! SOURCE
   SUBROUTINE h5pcreate_class_f(parent, name, class, hdferr, create, create_data, copy, copy_data, CLOSE, close_data)

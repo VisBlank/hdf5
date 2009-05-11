@@ -5097,7 +5097,7 @@
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  January, 2008
 !
 ! SOURCE
@@ -5143,7 +5143,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !  hdferr 	   - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  January, 2008
 !
 ! SOURCE
@@ -5185,7 +5185,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  January, 2008
 !
 ! SOURCE
@@ -5233,7 +5233,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  January, 2008
 !
 ! SOURCE
@@ -5282,7 +5282,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !  hdferr 	   - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February, 2008
 !
 ! SOURCE
@@ -5327,7 +5327,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February 18, 2008
 !
 ! SOURCE
@@ -5378,7 +5378,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !  hdferr 	   - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February 18, 2008
 !
 ! SOURCE
@@ -5423,7 +5423,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February 20, 2008
 !
 ! SOURCE
@@ -5468,7 +5468,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February 22, 2008
 !
 ! SOURCE
@@ -5528,7 +5528,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February 22, 2008
 !
 ! SOURCE
@@ -5576,7 +5576,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February 22, 2008
 !
 ! NOTES
@@ -5624,7 +5624,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !  hdferr 	    - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  March 3, 2008
 !
 ! SOURCE
@@ -5671,7 +5671,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  March 3, 2008
 !
 ! SOURCE
@@ -5721,7 +5721,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  March 3, 2008
 !
 ! SOURCE
@@ -5768,7 +5768,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  March 3, 2008
 !
 ! HISTORY
@@ -5815,7 +5815,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  March 3, 2008
 !
 ! SOURCE
@@ -5865,7 +5865,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !                    Failure:  -1
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  March 19, 2008
 !
 ! NOTES 
@@ -5923,7 +5923,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  March 19, 2008
 ! SOURCE
   SUBROUTINE h5pset_data_transform_f(plist_id, expression, hdferr)
@@ -5969,7 +5969,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  March 21, 2008
 !
 ! SOURCE
@@ -6012,7 +6012,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  March 21, 2008
 !
 ! SOURCE
@@ -6056,7 +6056,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  March 21, 2008
 ! SOURCE
   SUBROUTINE h5pset_local_heap_size_hint_f(gcpl_id, size_hint, hdferr)
@@ -6098,7 +6098,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  March 21, 2008
 ! SOURCE
   SUBROUTINE h5pset_est_link_info_f(gcpl_id, est_num_entries, est_name_len, hdferr)
@@ -6142,7 +6142,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  March 21, 2008
 !
 ! SOURCE
@@ -6187,7 +6187,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  March 21, 2008
 !
 ! SOURCE
@@ -6233,7 +6233,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  March 21, 2008
 !
 ! SOURCE
@@ -6280,7 +6280,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  January, 2008
 !
 ! SOURCE
@@ -6325,7 +6325,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! OUTPUTS
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  March 21, 2008
 !
 ! SOURCE
@@ -6367,7 +6367,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  March 21, 2008
 ! SOURCE
   SUBROUTINE h5pset_scaleoffset_f(plist_id, scale_type, scale_factor, hdferr)
@@ -6411,7 +6411,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  March 24, 2008
 ! SOURCE
   SUBROUTINE h5pset_nlinks_f(lapl_id, nlinks, hdferr)
@@ -6453,7 +6453,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  March 24, 2008
 ! SOURCE
   SUBROUTINE h5pget_nlinks_f(lapl_id, nlinks, hdferr)
@@ -6494,7 +6494,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 ! OUTPUTS
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  April 4, 2008
 !
 !

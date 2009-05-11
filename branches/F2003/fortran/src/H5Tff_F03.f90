@@ -60,7 +60,7 @@ CONTAINS
 !  hdferr     - error code:
 !                 0 on success and -1 on failure
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  Decemember 8, 2008
 !
 ! SOURCE

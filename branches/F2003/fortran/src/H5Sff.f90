@@ -1751,7 +1751,7 @@ CONTAINS
 !  hdferr      - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  March 26, 2008
 ! SOURCE
   SUBROUTINE h5sdecode_f(buf, obj_id, hdferr)
@@ -1794,7 +1794,7 @@ CONTAINS
 !  hdferr      - Returns 0 if successful and -1 if fails.
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  March 26, 2008
 ! SOURCE
   SUBROUTINE h5sencode_f(obj_id, buf, nalloc, hdferr)
@@ -1837,7 +1837,7 @@ CONTAINS
 !  Equal 	 - .TRUE. if equal, .FALSE. if unequal.
 !  hdferr      - Returns 0 if successful and -1 if fails
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  April 2, 2008
 !
 ! SOURCE

@@ -337,7 +337,7 @@ CONTAINS
 !  size 	 - The size of the name buffer.
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  March 28, 2008
 !
 ! SOURCES
@@ -404,7 +404,7 @@ CONTAINS
 !  size 	 - The size of the name buffer.
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  March 28, 2008
 !
 ! SOURCE

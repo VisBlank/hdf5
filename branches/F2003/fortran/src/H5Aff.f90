@@ -417,7 +417,7 @@ CONTAINS
 !  size 	 - Size, in bytes, of attribute name
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  January, 2008
 !
 ! SOURCE
@@ -648,7 +648,7 @@ CONTAINS
 !  size 	 - attribute storage size
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
-!  M. S. Breitenfeld
+!  M. Scot Breitenfeld
 !  January, 2008
 !
 ! SOURCE
@@ -689,7 +689,7 @@ CONTAINS
 !  hdferr 	    - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M. S. Breitenfeld
+!  M. Scot Breitenfeld
 !  January, 2008
 !
 ! SOURCE
@@ -736,7 +736,7 @@ CONTAINS
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  January, 2008
 !
 ! SOURCE
@@ -813,7 +813,7 @@ CONTAINS
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  January, 2008
 !
 ! SOURCE
@@ -887,7 +887,7 @@ CONTAINS
 !  lapl_id 	 - Link access property list
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  January, 2008
 !
 ! SOURCE
@@ -959,7 +959,7 @@ CONTAINS
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  January, 2008
 !
 ! SOURCE
@@ -1026,7 +1026,7 @@ CONTAINS
 !  lapl_id 	 - Link access property list
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  January, 2008
 !
 ! SOURCE
@@ -1110,7 +1110,7 @@ CONTAINS
 !  data_size 	 - indicates the size, in the number of characters, of the attribute
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
-!  M. S. Breitenfeld
+!  M. Scot Breitenfeld
 !  January, 2008
 ! SOURCE
   SUBROUTINE h5aget_info_f(attr_id, f_corder_valid, corder, cset, data_size,  hdferr)
@@ -1174,7 +1174,7 @@ CONTAINS
 !  lapl_id 	 - Link access property list
 !
 ! AUTHOR
-!  M. S. Breitenfeld
+!  M. Scot Breitenfeld
 !  January, 2008
 !
 ! SOURCE
@@ -1269,7 +1269,7 @@ CONTAINS
 !  lapl_id 	 - Link access property list
 !
 ! AUTHOR
-!  M. S. Breitenfeld
+!  M. Scot Breitenfeld
 !  January, 2008
 !
 ! SOURCE
@@ -1355,7 +1355,7 @@ CONTAINS
 !  lapl_id 	 - Link access property list
 !
 ! AUTHOR
-!  M. S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February, 2008
 ! SOURCE
   SUBROUTINE h5acreate_by_name_f(loc_id, obj_name, attr_name, type_id, space_id, attr, hdferr, &
@@ -1436,7 +1436,7 @@ CONTAINS
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M. S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February, 2008
 !
 ! SOURCE
@@ -1495,7 +1495,7 @@ CONTAINS
 !  lapl_id 	 - Link access property list identifier
 !
 ! AUTHOR
-!  M. S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February, 2008
 !
 ! SOURCE
@@ -1567,7 +1567,7 @@ CONTAINS
 !  lapl_id 	 - Link access property list identifier
 !
 ! AUTHOR
-!  M. S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February, 2008
 ! SOURCE
   SUBROUTINE h5aopen_by_name_f(loc_id, obj_name, attr_name, attr_id, hdferr, aapl_id, lapl_id)
@@ -1639,7 +1639,7 @@ CONTAINS
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  January, 2008
 !
 ! HISTORY

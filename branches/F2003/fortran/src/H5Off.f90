@@ -61,7 +61,7 @@ CONTAINS
 !  lcpl_id 	 - Link creation property list identifier.
 !  lapl_id 	 - Link access property list identifier.
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  April 21, 2008
 !
 ! SOURCE
@@ -130,7 +130,7 @@ CONTAINS
 !  lapl_id 	 - Access property list identifier for the link pointing to the object
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  April 18, 2008
 ! SOURCE
   SUBROUTINE h5oopen_f(loc_id, name, obj_id, hdferr, lapl_id)
@@ -184,7 +184,7 @@ CONTAINS
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  December 17, 2008
 !
 ! SOURCE
@@ -288,7 +288,7 @@ CONTAINS
 !  lapl_id 	  - Link access property list
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  December 1, 2008
 !
 ! SOURCE

@@ -135,7 +135,7 @@ CONTAINS
 !          port).  March 7, 2001
 !
 !   	 - Added optional parameters introduced in version 1.8
-!          M.S. Breitenfeld
+!          M. Scot Breitenfeld
 !
 ! SOURCE
   SUBROUTINE h5tcommit_f(loc_id, name, type_id, hdferr, &
@@ -2829,7 +2829,7 @@ CONTAINS
 !                  should always be passed as the value H5P_DEFAULT_F.
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February 25, 2008
 !
 ! SOURCE
@@ -2891,7 +2891,7 @@ CONTAINS
 !                  .FALSE., if the datatype has not been committed.
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  February 25, 2008
 !
 ! SOURCE
@@ -2944,7 +2944,7 @@ CONTAINS
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  April 9, 2008
 !
 ! SOURCE
@@ -2988,7 +2988,7 @@ CONTAINS
 !  hdferr 	 - Returns 0 if successful and -1 if fails.
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  April 9, 2008
 ! SOURCE
   SUBROUTINE h5tencode_f(obj_id, buf, nalloc, hdferr)
@@ -3032,7 +3032,7 @@ CONTAINS
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  April 9, 2008
 !
 ! SOURCE
@@ -3074,7 +3074,7 @@ CONTAINS
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  April 9, 2008
 ! SOURCE
   SUBROUTINE h5tcompiler_conv_f( src_id, dst_id, flag, hdferr)
@@ -3128,7 +3128,7 @@ CONTAINS
 !  native_dtype_id - The native datatype identifier for the specified dataset datatype
 !  hdferr 	   - Returns 0 if successful and -1 if fails
 ! AUTHOR
-!  M.S. Breitenfeld
+!  M. Scot Breitenfeld
 !  June 18, 2008
 ! SOURCE
   SUBROUTINE h5tget_native_type_f(dtype_id, direction, native_dtype_id, hdferr)
