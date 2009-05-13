@@ -1,4 +1,4 @@
-HDF5 version 1.8.3 released on Mon May  4 09:21:00 CDT 2009
+HDF5 version 1.8.3 released on Wed May 13 10:58:40 CDT 2009
 ================================================================================
 
 INTRODUCTION
