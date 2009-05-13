@@ -109,9 +109,12 @@ H5HL_init_library(void)
   sprintf(lib_str, "%d.%d.%d",H5_VERS_MAJOR, H5_VERS_MINOR, H5_VERS_RELEASE);
     
   /* H5LT error class */
+  H5HL_ERR_CLS_g = H5Eregister_class("H5HL", "HDF5:HL", lib_str);
+  /* H5LT major error class message */
+  H5E_HL_g= H5Ecreate_msg(H5HL_ERR_CLS_g, H5E_MAJOR, "Failure in High-Level API");
 
-  H5HL_ERR_CLS_g = H5Eregister_class("H5LT", "HDF5:LT", lib_str);
-
+  /* register close function for atexit */
+  atexit(H5HL_close);
   return SUCCEED;
 } /* end H5HL_init_library() */
 
@@ -127,6 +130,7 @@ H5HL_init_library(void)
  *
  *-------------------------------------------------------------------------
  */
-void H5HL_close(void) {    
+void H5HL_close(void) {
+  H5Eclose_msg(H5E_HL_g);
   H5Eunregister_class(H5HL_ERR_CLS_g);
     }

@@ -206,7 +206,6 @@ extern hbool_t H5HL_libinit_g;    /* Has the library been initialized? */
             ret_value = fail_value;					      \
             goto func_init_failed;					      \
         } /* end if */                                                        \
-	atexit( H5HL_close);			                              \
     } /* end if */						              \
                                                                               \
     /* Initialize this interface if desired */				      \
@@ -237,7 +236,7 @@ extern hbool_t H5HL_libinit_g;    /* Has the library been initialized? */
 #define FUNC_ERR_VAR_ERR(ret_typ, err)					      \
     hbool_t past_catch = FALSE;						      \
     ret_typ fail_value = err;
-#define FUNC_ERR_VAR_ERRCATCH(ret_typ, err)					      \
+#define FUNC_ERR_VAR_ERRCATCH(ret_typ, err)				      \
     hbool_t past_catch = FALSE;
 #define FUNC_ERR_VAR_NOERR(ret_typ, err)
 
