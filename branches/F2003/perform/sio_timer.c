@@ -1,6 +1,5 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Copyright by The HDF Group.                                               *
- * Copyright by the Board of Trustees of the University of Illinois.         *
  * All rights reserved.                                                      *
  *                                                                           *
  * This file is part of HDF5.  The full HDF5 copyright notice, including     *
@@ -102,7 +101,7 @@ set_time(sio_time *pt, timer_type t, int start_stop)
 {
     if (pt) {
             if (start_stop == START) {
-                gettimeofday(&pt->sys_timer[t], NULL);
+                HDgettimeofday(&pt->sys_timer[t], NULL);
 
 		/* When we start the timer for HDF5_FINE_WRITE_FIXED_DIMS or HDF5_FINE_READ_FIXED_DIMS
 		 * we compute the time it took to only open the file */
@@ -115,7 +114,7 @@ set_time(sio_time *pt, timer_type t, int start_stop)
             } else {
                 struct timeval sys_t;
 
-                gettimeofday(&sys_t, NULL);
+                HDgettimeofday(&sys_t, NULL);
                 pt->total_time[t] += sub_time(&sys_t, &(pt->sys_timer[t]));
 
 /*                    ((double)sys_t.tv_sec +
