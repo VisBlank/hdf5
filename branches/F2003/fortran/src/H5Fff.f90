@@ -108,7 +108,7 @@ CONTAINS
 
     IF (PRESENT(creation_prp)) creation_prp_default = creation_prp
     IF (PRESENT(access_prp))   access_prp_default   = access_prp
-    namelen = LEN(name)
+    namelen = LEN_TRIM(name)
     hdferr = h5fcreate_c(name, namelen, access_flags, &
          creation_prp_default, access_prp_default, file_id)
 
@@ -239,7 +239,7 @@ CONTAINS
 
     access_prp_default = H5P_DEFAULT_F
     IF (PRESENT(access_prp))   access_prp_default   = access_prp
-    namelen = LEN(name)
+    namelen = LEN_TRIM(name)
     hdferr = h5fmount_c(loc_id, name, namelen, child_id, access_prp_default)
 
   END SUBROUTINE h5fmount_f
@@ -291,7 +291,7 @@ CONTAINS
        END FUNCTION h5funmount_c
     END INTERFACE
 
-    namelen = LEN(name)
+    namelen = LEN_TRIM(name)
     hdferr = h5funmount_c(loc_id, name, namelen)
 
   END SUBROUTINE h5funmount_f
@@ -355,7 +355,7 @@ CONTAINS
 
     access_prp_default = H5P_DEFAULT_F
     IF (PRESENT(access_prp))   access_prp_default   = access_prp
-    namelen = LEN(name)
+    namelen = LEN_TRIM(name)
     hdferr = h5fopen_c(name, namelen, access_flags, &
                                access_prp_default, file_id)
   END SUBROUTINE h5fopen_f
@@ -540,7 +540,7 @@ CONTAINS
        END FUNCTION h5fis_hdf5_c
     END INTERFACE
 
-    namelen = LEN(name)
+    namelen = LEN_TRIM(name)
     hdferr = h5fis_hdf5_c(name, namelen, flag)
     status = .TRUE.
     IF (flag .EQ. 0) status = .FALSE.
@@ -787,7 +787,7 @@ CONTAINS
          CHARACTER(LEN=*), INTENT(OUT) :: buf
        END FUNCTION h5fget_name_c
     END INTERFACE
-    buflen = LEN(buf)
+    buflen = LEN_TRIM(buf)
     hdferr = h5fget_name_c(obj_id, size, buf, buflen)
   END SUBROUTINE h5fget_name_f
 !****s* H5F/h5fget_filesize_f
