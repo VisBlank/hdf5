@@ -18,8 +18,8 @@
 #include "h5tools_utils.h"
 
 extern char  *progname;
-static int has_layout(hid_t pid, pack_info_t *obj);
-static int has_filters(hid_t pid, hid_t tid, int nfilters, filter_info_t *filter);
+static int verify_layout(hid_t pid, pack_info_t *obj);
+static int verify_filters(hid_t pid, hid_t tid, int nfilters, filter_info_t *filter);
 
 
 /*-------------------------------------------------------------------------
@@ -82,7 +82,7 @@ int h5repack_verify(const char *fname,
         * filter check
         *-------------------------------------------------------------------------
         */
-        if(has_filters(pid, tid, obj->nfilters, obj->filter) <= 0)
+        if(verify_filters(pid, tid, obj->nfilters, obj->filter) <= 0)
                 ok = 0;
 
 
@@ -90,7 +90,7 @@ int h5repack_verify(const char *fname,
         * layout check
         *-------------------------------------------------------------------------
         */
-        if((obj->layout != -1) && (has_layout(pid, obj) == 0))
+        if((obj->layout != -1) && (verify_layout(pid, obj) == 0))
             ok = 0;
 
        /*-------------------------------------------------------------------------
@@ -151,7 +151,7 @@ int h5repack_verify(const char *fname,
                 if(options->all_filter == 1)
                 {
 
-                    if(has_filters(pid, tid, options->n_filter_g, options->filter_g) <= 0)
+                    if(verify_filters(pid, tid, options->n_filter_g, options->filter_g) <= 0)
                         ok = 0;
                 }
 
@@ -165,7 +165,7 @@ int h5repack_verify(const char *fname,
                     init_packobject(&pack);
                     pack.layout = options->layout_g;
                     pack.chunk = options->chunk_g;
-                    if(has_layout(pid, &pack) == 0)
+                    if(verify_layout(pid, &pack) == 0)
                         ok = 0;
                 }
 
@@ -215,13 +215,13 @@ error:
 
 
 /*-------------------------------------------------------------------------
- * Function: has_layout
+ * Function: verify_layout
  *
  * Purpose: verify which layout is present in the property list DCPL_ID
  *
  *  H5D_COMPACT	  	= 0
  *  H5D_CONTIGUOUS	= 1
- *  H5D_CHUNKED		  = 2
+ *  H5D_CHUNKED		= 2
  *
  * Return: 1 has, 0 does not, -1 error
  *
@@ -232,8 +232,8 @@ error:
  *-------------------------------------------------------------------------
  */
 
-int has_layout(hid_t pid,
-               pack_info_t *obj)
+int verify_layout(hid_t pid,
+                  pack_info_t *obj)
 {
     hsize_t      chsize[64];     /* chunk size in elements */
     H5D_layout_t layout;         /* layout */
@@ -241,17 +241,13 @@ int has_layout(hid_t pid,
     int          rank;           /* rank */
     int          i;              /* index */
 
-    /* if no information about the input layout is requested return exit */
-    if (obj==NULL)
-        return 1;
-
     /* check if we have filters in the input object */
     if ((nfilters = H5Pget_nfilters(pid)) < 0)
         return -1;
 
-    /* a non chunked layout was requested on a filtered object; avoid the test */
+    /* a non chunked layout was requested on a filtered object */
     if (nfilters && obj->layout!=H5D_CHUNKED)
-        return 1;
+        return 0;
 
     /* get layout */
     if ((layout = H5Pget_layout(pid)) < 0)
@@ -275,7 +271,7 @@ int has_layout(hid_t pid,
 }
 
 /*-------------------------------------------------------------------------
- * Function: h5repack_cmpdcpl
+ * Function: h5repack_cmp_pl
  *
  * Purpose: compare 2 files for identical property lists of all objects
  *
@@ -288,17 +284,20 @@ int has_layout(hid_t pid,
  *-------------------------------------------------------------------------
  */
 
-int h5repack_cmpdcpl(const char *fname1,
+int h5repack_cmp_pl(const char *fname1,
                      const char *fname2)
 {
-    hid_t         fid1=-1;       /* file ID */
-    hid_t         fid2=-1;       /* file ID */
-    hid_t         dset1=-1;      /* dataset ID */
-    hid_t         dset2=-1;      /* dataset ID */
-    hid_t         dcpl1=-1;      /* dataset creation property list ID */
-    hid_t         dcpl2=-1;      /* dataset creation property list ID */
-    trav_table_t  *travt1=NULL;
-    trav_table_t  *travt2=NULL;
+    hid_t         fid1=-1;         /* file ID */
+    hid_t         fid2=-1;         /* file ID */
+    hid_t         dset1=-1;        /* dataset ID */
+    hid_t         dset2=-1;        /* dataset ID */
+    hid_t         gid=-1;          /* group ID */
+    hid_t         dcpl1=-1;        /* dataset creation property list ID */
+    hid_t         dcpl2=-1;        /* dataset creation property list ID */
+    hid_t         gcplid=-1;       /* group creation property list */
+    unsigned      crt_order_flag1; /* group creation order flag */
+    unsigned      crt_order_flag2; /* group creation order flag */
+    trav_table_t  *trav=NULL;
     int           ret=1;
     unsigned int  i;
 
@@ -330,26 +329,57 @@ int h5repack_cmpdcpl(const char *fname1,
     * get file table list of objects
     *-------------------------------------------------------------------------
     */
-    trav_table_init(&travt1);
-    trav_table_init(&travt2);
-    if(h5trav_gettable(fid1, travt1) < 0)
+    trav_table_init(&trav);
+    if(h5trav_gettable(fid1, trav) < 0)
         goto error;
-    if(h5trav_gettable(fid2, travt2) < 0)
-        goto error;
-
-
+  
    /*-------------------------------------------------------------------------
     * traverse the suppplied object list
     *-------------------------------------------------------------------------
     */
-
-    for(i = 0; i < travt1->nobjs; i++)
+    for(i = 0; i < trav->nobjs; i++)
     {
-        if(travt1->objs[i].type == H5TRAV_TYPE_DATASET)
+
+        if(trav->objs[i].type == H5TRAV_TYPE_GROUP)
         {
-            if((dset1 = H5Dopen2(fid1, travt1->objs[i].name, H5P_DEFAULT)) < 0)
+
+            if ((gid = H5Gopen2(fid1, trav->objs[i].name, H5P_DEFAULT)) < 0)
                 goto error;
-            if((dset2 = H5Dopen2(fid2, travt1->objs[i].name, H5P_DEFAULT)) < 0)
+            if ((gcplid = H5Gget_create_plist(gid)) < 0)
+                goto error;
+            if (H5Pget_link_creation_order(gcplid, &crt_order_flag1) < 0)
+                goto error;
+            if (H5Pclose(gcplid) < 0)
+                goto error;
+            if (H5Gclose(gid) < 0)
+                goto error;
+
+            if ((gid = H5Gopen2(fid2, trav->objs[i].name, H5P_DEFAULT)) < 0)
+                goto error;
+            if ((gcplid = H5Gget_create_plist(gid)) < 0)
+                goto error;
+            if (H5Pget_link_creation_order(gcplid, &crt_order_flag2) < 0)
+                goto error;
+            if (H5Pclose(gcplid) < 0)
+                goto error;
+            if (H5Gclose(gid) < 0)
+                goto error;
+
+            if ( crt_order_flag1 != crt_order_flag2 )
+            {
+                error_msg(progname, "property lists for <%s> are different\n",trav->objs[i].name);
+                goto error;
+            }
+
+        }
+
+
+
+        else if(trav->objs[i].type == H5TRAV_TYPE_DATASET)
+        {
+            if((dset1 = H5Dopen2(fid1, trav->objs[i].name, H5P_DEFAULT)) < 0)
+                goto error;
+            if((dset2 = H5Dopen2(fid2, trav->objs[i].name, H5P_DEFAULT)) < 0)
                 goto error;
             if((dcpl1 = H5Dget_create_plist(dset1)) < 0)
                 goto error;
@@ -365,7 +395,7 @@ int h5repack_cmpdcpl(const char *fname1,
 
             if(ret == 0)
             {
-                error_msg(progname, "property lists for <%s> are different\n",travt1->objs[i].name);
+                error_msg(progname, "property lists for <%s> are different\n",trav->objs[i].name);
                 goto error;
             }
 
@@ -389,8 +419,7 @@ int h5repack_cmpdcpl(const char *fname1,
     *-------------------------------------------------------------------------
     */
 
-    trav_table_free(travt1);
-    trav_table_free(travt2);
+    trav_table_free(trav);
 
    /*-------------------------------------------------------------------------
     * close
@@ -415,8 +444,9 @@ error:
         H5Dclose(dset2);
         H5Fclose(fid1);
         H5Fclose(fid2);
-        trav_table_free(travt1);
-        trav_table_free(travt2);
+        H5Pclose(gcplid);
+        H5Gclose(gid);
+        trav_table_free(trav);
     } H5E_END_TRY;
     return -1;
 
@@ -424,7 +454,7 @@ error:
 
 
 /*-------------------------------------------------------------------------
- * Function: has_filters
+ * Function: verify_filters
  *
  * Purpose: verify if all requested filters in the array FILTER obtained
  *  from user input are present in the property list PID obtained from
@@ -443,7 +473,7 @@ error:
  */
 
 static 
-int has_filters(hid_t pid, hid_t tid, int nfilters, filter_info_t *filter)
+int verify_filters(hid_t pid, hid_t tid, int nfilters, filter_info_t *filter)
 {
     int           nfilters_dcpl;  /* number of filters in DCPL*/
     unsigned      filt_flags;     /* filter flags */

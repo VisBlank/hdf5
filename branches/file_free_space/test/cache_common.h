@@ -19,17 +19,23 @@
  *		This file contains common #defines, type definitions, and
  *		externs for tests of the cache implemented in H5C.c
  */
-#include "h5test.h"
-#include "H5Iprivate.h"
-#include "H5ACprivate.h"
+#ifndef _CACHE_COMMON_H
+#define _CACHE_COMMON_H
 
 #define H5C_PACKAGE             /*suppress error about including H5Cpkg   */
-
-#include "H5Cpkg.h"
-
 #define H5F_PACKAGE             /*suppress error about including H5Fpkg   */
 
+/* Include library header files */
+#include "H5ACprivate.h"
+#include "H5Cpkg.h"
 #include "H5Fpkg.h"
+#include "H5Iprivate.h"
+
+/* Include test header files */
+#include "h5test.h"
+
+/* Macro to make error reporting easier */
+#define CACHE_ERROR(s)      {failure_mssg = "Line #" H5_TOSTRING(__LINE__) ": " s ; pass = FALSE; goto done;}
 
 #define NO_CHANGE       -1
 
@@ -45,8 +51,9 @@
 #define HUGE_ENTRY_TYPE		7
 #define MONSTER_ENTRY_TYPE	8
 #define VARIABLE_ENTRY_TYPE	9
+#define NOTIFY_ENTRY_TYPE	10
 
-#define NUMBER_OF_ENTRY_TYPES   10
+#define NUMBER_OF_ENTRY_TYPES   11
 
 #define PICO_ENTRY_SIZE		(size_t)1
 #define NANO_ENTRY_SIZE		(size_t)4
@@ -58,6 +65,7 @@
 #define HUGE_ENTRY_SIZE		(size_t)(16 * 1024)
 #define MONSTER_ENTRY_SIZE	(size_t)(64 * 1024)
 #define VARIABLE_ENTRY_SIZE	(size_t)(10 * 1024)
+#define NOTIFY_ENTRY_SIZE	(size_t)1
 
 #define NUM_PICO_ENTRIES	(10 * 1024)
 #define NUM_NANO_ENTRIES	(10 * 1024)
@@ -69,6 +77,7 @@
 #define NUM_HUGE_ENTRIES	(10 * 1024)
 #define NUM_MONSTER_ENTRIES	(10 * 1024)
 #define NUM_VARIABLE_ENTRIES	(10 * 1024)
+#define NUM_NOTIFY_ENTRIES	(10 * 1024)
 
 #define MAX_ENTRIES		(10 * 1024)
 
@@ -91,9 +100,11 @@
                                       (HUGE_ENTRY_SIZE * NUM_HUGE_ENTRIES))
 #define VARIABLE_BASE_ADDR	(haddr_t)(MONSTER_BASE_ADDR + \
 				     (MONSTER_ENTRY_SIZE * NUM_MONSTER_ENTRIES))
+#define NOTIFY_BASE_ADDR	(haddr_t)(VARIABLE_BASE_ADDR + \
+				     (VARIABLE_ENTRY_SIZE * NUM_VARIABLE_ENTRIES))
 
-#define PICO_ALT_BASE_ADDR	(haddr_t)(VARIABLE_BASE_ADDR + \
-			           (VARIABLE_ENTRY_SIZE * NUM_VARIABLE_ENTRIES))
+#define PICO_ALT_BASE_ADDR	(haddr_t)(NOTIFY_BASE_ADDR + \
+			           (NOTIFY_ENTRY_SIZE * NUM_NOTIFY_ENTRIES))
 #define NANO_ALT_BASE_ADDR	(haddr_t)(PICO_ALT_BASE_ADDR + \
                                       (PICO_ENTRY_SIZE * NUM_PICO_ENTRIES))
 #define MICRO_ALT_BASE_ADDR	(haddr_t)(NANO_ALT_BASE_ADDR + \
@@ -112,6 +123,8 @@
                                       (HUGE_ENTRY_SIZE * NUM_HUGE_ENTRIES))
 #define VARIABLE_ALT_BASE_ADDR	(haddr_t)(MONSTER_ALT_BASE_ADDR + \
                                      (MONSTER_ENTRY_SIZE * NUM_MONSTER_ENTRIES))
+#define NOTIFY_ALT_BASE_ADDR	(haddr_t)(VARIABLE_ALT_BASE_ADDR + \
+                                     (VARIABLE_ENTRY_SIZE * NUM_VARIABLE_ENTRIES))
 
 #define MAX_PINS	8	/* Maximum number of entries that can be
 				 * directly pinned by a single entry.
@@ -121,7 +134,8 @@
 #define FLUSH_OP__DIRTY		1
 #define FLUSH_OP__RESIZE	2
 #define FLUSH_OP__RENAME	3
-#define FLUSH_OP__MAX_OP	3
+#define FLUSH_OP__ORDER		4
+#define FLUSH_OP__MAX_OP	4
 
 #define MAX_FLUSH_OPS		10	/* Maximum number of flush operations
 					 * that can be associated with a
@@ -138,6 +152,7 @@ typedef struct flush_op
 					 *   FLUSH_OP__DIRTY
 					 *   FLUSH_OP__RESIZE
 					 *   FLUSH_OP__RENAME
+					 *   FLUSH_OP__ORDER
 					 */
     int			type;		/* type code of the cache entry that
 					 * is the target of the operation.
@@ -177,6 +192,10 @@ typedef struct flush_op
 					 * FLUSH_OP__RENAME operation.
 					 * Unused elsewhere.
 					 */
+    unsigned          * order_ptr;      /* Pointer to outside counter for
+                                         * recording the order of entries
+                                         * flushed.
+                                         */
 } flush_op;
 
 typedef struct test_entry_t
@@ -287,6 +306,19 @@ typedef struct test_entry_t
     hbool_t               destroyed;    /* entry has been destroyed since the
                                          * last time it was reset.
                                          */
+    int                 flush_dep_par_type; /* Entry type of flush dependency parent */
+    int                 flush_dep_par_idx; /* Index of flush dependency parent */
+    uint64_t            child_flush_dep_height_rc[H5C__NUM_FLUSH_DEP_HEIGHTS];
+                                        /* flush dependency heights of flush
+                                         * dependency children
+                                         */
+    unsigned            flush_dep_height; /* flush dependency height of entry */
+    hbool_t		pinned_from_client;	/* entry was pinned by client call */
+    hbool_t		pinned_from_cache;	/* entry was pinned by cache internally */
+    unsigned            flush_order;    /* Order that entry was flushed in */
+
+    unsigned            notify_after_insert_count;    /* Count of times that entry was inserted in cache */
+    unsigned            notify_before_evict_count;    /* Count of times that entry was removed in cache */
 } test_entry_t;
 
 /* The following is a cut down copy of the hash table manipulation
@@ -451,6 +483,14 @@ struct expected_entry_status
     hbool_t		cleared;
     hbool_t		flushed;
     hbool_t		destroyed;
+    int                 flush_dep_par_type; /* Entry type of flush dependency parent */
+    int                 flush_dep_par_idx; /* Index of flush dependency parent */
+    uint64_t            child_flush_dep_height_rc[H5C__NUM_FLUSH_DEP_HEIGHTS];
+                                        /* flush dependency heights of flush
+                                         * dependency children
+                                         */
+    unsigned            flush_dep_height; /* flush dependency height of entry */
+    int                 flush_order;    /* flush order of entry */
 };
 
 
@@ -500,6 +540,7 @@ herr_t large_clear(H5F_t * f, void *  thing, hbool_t dest);
 herr_t huge_clear(H5F_t * f, void *  thing, hbool_t dest);
 herr_t monster_clear(H5F_t * f, void *  thing, hbool_t dest);
 herr_t variable_clear(H5F_t * f, void *  thing, hbool_t dest);
+herr_t notify_clear(H5F_t * f, void *  thing, hbool_t dest);
 
 
 herr_t pico_dest(H5F_t * f, void * thing);
@@ -512,6 +553,7 @@ herr_t large_dest(H5F_t * f, void * thing);
 herr_t huge_dest(H5F_t * f, void *  thing);
 herr_t monster_dest(H5F_t * f, void *  thing);
 herr_t variable_dest(H5F_t * f, void *  thing);
+herr_t notify_dest(H5F_t * f, void *  thing);
 
 
 herr_t pico_flush(H5F_t *f, hid_t dxpl_id, hbool_t dest,
@@ -533,6 +575,8 @@ herr_t huge_flush(H5F_t *f, hid_t dxpl_id, hbool_t dest,
 herr_t monster_flush(H5F_t *f, hid_t dxpl_id, hbool_t dest,
                      haddr_t addr, void *thing, unsigned * flags_ptr);
 herr_t variable_flush(H5F_t *f, hid_t dxpl_id, hbool_t dest,
+                      haddr_t addr, void *thing, unsigned * flags_ptr);
+herr_t notify_flush(H5F_t *f, hid_t dxpl_id, hbool_t dest,
                       haddr_t addr, void *thing, unsigned * flags_ptr);
 
 
@@ -556,6 +600,8 @@ void * monster_load(H5F_t *f, hid_t dxpl_id, haddr_t addr,
                     const void *udata1, void *udata2);
 void * variable_load(H5F_t *f, hid_t dxpl_id, haddr_t addr,
                      const void *udata1, void *udata2);
+void * notify_load(H5F_t *f, hid_t dxpl_id, haddr_t addr,
+                     const void *udata1, void *udata2);
 
 
 herr_t pico_size(H5F_t * f, void * thing, size_t * size_ptr);
@@ -568,6 +614,9 @@ herr_t large_size(H5F_t * f, void * thing, size_t * size_ptr);
 herr_t huge_size(H5F_t * f, void * thing, size_t * size_ptr);
 herr_t monster_size(H5F_t * f, void * thing, size_t * size_ptr);
 herr_t variable_size(H5F_t * f, void * thing, size_t * size_ptr);
+herr_t notify_size(H5F_t * f, void * thing, size_t * size_ptr);
+
+herr_t notify_notify(H5C_notify_action_t action, void *thing);
 
 /* callback table extern */
 
@@ -582,7 +631,8 @@ void add_flush_op(int target_type,
                   int type,
                   int idx,
                   hbool_t flag,
-                  size_t size);
+                  size_t size,
+                  unsigned * order);
 
 
 void addr_to_type_and_index(haddr_t addr,
@@ -631,6 +681,10 @@ void protect_entry(H5C_t * cache_ptr,
 void protect_entry_ro(H5C_t * cache_ptr,
                       int32_t type,
                       int32_t idx);
+
+void pin_entry(H5C_t * cache_ptr,
+                 int32_t type,
+                 int32_t idx);
 
 hbool_t entry_in_cache(H5C_t * cache_ptr,
                        int32_t type,
@@ -783,4 +837,18 @@ void verify_entry_status(H5C_t * cache_ptr,
                          struct expected_entry_status expected[]);
 
 void verify_unprotected(void);
+
+void create_flush_dependency(H5C_t * cache_ptr,
+             int32_t parent_type,
+             int32_t parent_idx,
+             int32_t child_type,
+             int32_t child_idx);
+
+void destroy_flush_dependency(H5C_t * cache_ptr,
+             int32_t parent_type,
+             int32_t parent_idx,
+             int32_t child_type,
+             int32_t child_idx);
+
+#endif /* _CACHE_COMMON_H */
 

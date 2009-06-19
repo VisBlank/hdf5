@@ -63,6 +63,9 @@ set file12=h5repack_nbit.h5
 set file13=h5repack_soffset.h5
 rem A file with an older version of the layout message (copy of test/tlayouto.h5)
 set file14=h5repack_layouto.h5
+set file15=h5repack_named_dtypes.h5
+rem located in common testfiles folder
+set file16=tfamilyPERCENT05d.h5
 
 
 set nerrors=0
@@ -83,7 +86,9 @@ rem
             set test_msg=!test_msg! %%~nxa
         ) )
     )
-    set test_msg=!test_msg!                                                                
+    rem We need to replace PERCENT here with "%" for tests that use a percent
+    rem sign.  --SJW 5/12/08
+    set test_msg=!test_msg:PERCENT=%%!                                                                
     echo.%test_msg:~0,69% %1
     
     exit /b
@@ -100,7 +105,9 @@ rem
             set test_msg=!test_msg! %%~nxa
         ) )
     )
-    set test_msg=!test_msg!                                                                
+    rem We need to replace PERCENT here with "%" for tests that use a percent
+    rem sign.  --SJW 5/12/08
+    set test_msg=!test_msg:PERCENT=%%!                                                                
     echo.%test_msg:~0,69% %1
     
     exit /b
@@ -116,7 +123,8 @@ rem was unavailable)
 rem Call the h5diff tool
 rem
 :difftest
-    %h5diff_bin% -q %*
+    set params=%*
+    %h5diff_bin% -q !params:PERCENT=%%!
     if %errorlevel% neq 0 (
         call :verify *FAILED* %*
         set /a nerrors=!nerrors!+1
@@ -194,6 +202,40 @@ rem
     
     exit /b
     
+rem same as TOOLTEST, but it uses the common testfiles at $srcdir/../testfiles/
+rem used to test the family driver, where these files reside
+rem
+:tooltest1 
+
+    rem Run test.
+    set infile=%CD%\..\testfiles\%1
+    rem Linux uses a $path variable here, but it is unneccessary, and will
+    rem corrupt our Windows PATH if we use it.  --SJW 8/28/07
+    rem set path=%CD%
+    rem set outfile=%path%\out.%1
+    set outfile=%CD%\out.%1
+    
+    rem We define %params% here because Windows `shift` command doesn't affect
+    rem the %* variable.  --SJW 8/28/07
+    if "%2"=="" (
+        set params=
+    ) else (
+        set params=%*
+        set params=!params:* =!
+    )
+    %h5repack_bin% %params% !infile:PERCENT=%%! !outfile:PERCENT=%%!
+    
+    if %errorlevel% neq 0 (
+        call :testing *FAILED* %*
+        set /a nerrors=!nerrors!+1
+    ) else (
+        call :testing PASSED %*
+        call :difftest %infile% %outfile%
+    )
+    del /f !outfile:PERCENT=%%!
+    
+    exit /b
+
     
 rem This is a Windows-specific function that detects if the filter passed
 rem should be enabled for this test script.  It searches H5pubconf.h for the
@@ -548,8 +590,10 @@ rem
     call :tooltest %arg9%
 
     rem Native option
-    set arg=%file1% -n
-    call :tooltest %arg%
+    rem Do not use FILE1, as the named dtype will be converted to native, and h5diff will
+    rem report a difference.
+    call :tooltest %file0% -n
+    call :tooltest %file2% -n
 
 
     rem latest file format with long switches. use FILE4=h5repack_layout.h5 (no filters)
@@ -600,6 +644,16 @@ rem
     rem       to new version and be readable, etc.)
     call :tooltest %file14%
     
+    rem test for datum size > H5TOOLS_MALLOCSIZE
+    set arg=%file1% -f GZIP=1
+    call :tooltest %arg%
+    
+    rem Check repacking file with committed datatypes in odd configurations
+    call :tooltest %file15%
+
+    rem tests family driver (file is located in common testfiles folder, uses TOOLTEST1
+    call :tooltest1 %file16%
+
     
     if %nerrors% equ 0 (
         echo.All %h5repack% tests passed.

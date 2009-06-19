@@ -91,7 +91,7 @@ static herr_t TEST_sect_can_shrink(const H5FS_section_info_t *, void *);
 static herr_t TEST_sect_shrinking(H5FS_section_info_t **, void *);
 
 static unsigned test_fs_create(hid_t fapl);
-static unsigned test_fs_sect_add(fapl);
+static unsigned test_fs_sect_add(hid_t fapl);
 static unsigned test_fs_sect_merge(hid_t fapl);
 static unsigned test_fs_sect_shrink(hid_t fapl);
 static unsigned test_fs_sect_find(hid_t fapl);
@@ -2066,7 +2066,6 @@ test_fs_sect_change_class(hid_t fapl)
     TEST_free_section_t	*sect_node1=NULL, *sect_node2=NULL, *sect_node3=NULL;
     unsigned		init_flags=0;
     TEST_free_section_t 	*node;
-    htri_t 			node_found = FALSE;
 
     TESTING("the change of section class via H5FS_sect_change_class() in free-space: Test 1");
 
@@ -2140,8 +2139,8 @@ test_fs_sect_change_class(hid_t fapl)
     if(check_stats(f, frsp, &state))
         TEST_ERROR
 
-    if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, frsp,
-		    (hsize_t)TEST_SECT_SIZE30, (H5FS_section_info_t **)&node)) < 0)
+    if(H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, frsp,
+		    (hsize_t)TEST_SECT_SIZE30, (H5FS_section_info_t **)&node) < 0)
 	FAIL_STACK_ERROR
 
     if (node->sect_info.type != TEST_FSPACE_SECT_TYPE_NONE)
@@ -2245,8 +2244,8 @@ test_fs_sect_change_class(hid_t fapl)
 	    TEST_ERROR
 
     /* verify that section B has changed class */
-    if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, frsp,
-		    (hsize_t)TEST_SECT_SIZE50, (H5FS_section_info_t **)&node)) < 0)
+    if(H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, frsp,
+		    (hsize_t)TEST_SECT_SIZE50, (H5FS_section_info_t **)&node) < 0)
 	FAIL_STACK_ERROR
 
     if (node->sect_info.type != TEST_FSPACE_SECT_TYPE)
@@ -2256,8 +2255,8 @@ test_fs_sect_change_class(hid_t fapl)
 	TEST_ERROR
 
     /* verify that section C has changed class */
-    if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, frsp,
-		    (hsize_t)TEST_SECT_SIZE80, (H5FS_section_info_t **)&node)) < 0)
+    if(H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, frsp,
+		    (hsize_t)TEST_SECT_SIZE80, (H5FS_section_info_t **)&node) < 0)
 	FAIL_STACK_ERROR
 
     if (node->sect_info.type != TEST_FSPACE_SECT_TYPE)

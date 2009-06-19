@@ -893,6 +893,7 @@ H5F_new(H5F_file_t *shared, hid_t fcpl_id, hid_t fapl_id, H5FD_t *lf)
 	f->shared->driver_addr = HADDR_UNDEF;
 	f->shared->accum.loc = HADDR_UNDEF;
         f->shared->lf = lf;
+        f->shared->root_addr = HADDR_UNDEF;
 
 	/*
 	 * Copy the file creation and file access property lists into the
@@ -948,6 +949,7 @@ H5F_new(H5F_file_t *shared, hid_t fcpl_id, hid_t fapl_id, H5FD_t *lf)
         f->shared->maxaddr = H5FD_get_maxaddr(lf);
         if(!H5F_addr_defined(f->shared->maxaddr))
             HGOTO_ERROR(H5E_FILE, H5E_BADVALUE, NULL, "bad maximum address from VFD")
+        f->shared->tmp_addr = f->shared->maxaddr;
         if(H5FD_get_feature_flags(lf, &f->shared->feature_flags) < 0)
             HGOTO_ERROR(H5E_FILE, H5E_CANTGET, NULL, "can't get feature flags from VFD")
         if(H5FD_get_fs_type_map(lf, f->shared->fs_type_map) < 0)
@@ -1114,6 +1116,9 @@ H5F_dest(H5F_t *f, hid_t dxpl_id)
         /* Free mount table */
         f->shared->mtab.child = (H5F_mount_t *)H5MM_xfree(f->shared->mtab.child);
         f->shared->mtab.nalloc = 0;
+
+        /* Free root group symbol table entry, if any */
+        f->shared->root_ent = (H5G_entry_t *)H5MM_xfree(f->shared->root_ent);
 
         /* Destroy shared file struct */
         f->shared = (H5F_file_t *)H5FL_FREE(H5F_file_t, f->shared);
@@ -1366,7 +1371,7 @@ H5F_open(const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_id, hid_t d
         /* (This must be after the space for the superblock is allocated in
          *      the file, since the superblock must be at offset 0)
          */
-        if(H5G_mkroot(file, dxpl_id, NULL) < 0)
+        if(H5G_mkroot(file, dxpl_id, TRUE) < 0)
             HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "unable to create/open root group")
 
         /* Write the superblock to the file */
@@ -1376,21 +1381,12 @@ H5F_open(const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_id, hid_t d
         if(H5F_super_write(file, dxpl_id) < 0)
             HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "unable to write file superblock")
     } else if (1 == shared->nrefs) {
-        H5G_loc_t           root_loc;           /*root location                 */
-        H5O_loc_t           root_oloc;          /*root object location          */
-        H5G_name_t          root_path;          /*root group hier. path         */
-
-        /* Set up root location to fill in */
-        root_loc.oloc = &root_oloc;
-        root_loc.path = &root_path;
-        H5G_loc_reset(&root_loc);
-
 	/* Read the superblock if it hasn't been read before. */
-        if(H5F_super_read(file, dxpl_id, &root_loc) < 0)
+        if(H5F_super_read(file, dxpl_id) < 0)
 	    HGOTO_ERROR(H5E_FILE, H5E_READERROR, NULL, "unable to read superblock")
 
 	/* Open the root group */
-	if(H5G_mkroot(file, dxpl_id, &root_loc) < 0)
+	if(H5G_mkroot(file, dxpl_id, FALSE) < 0)
 	    HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to read root group")
     } /* end if */
 

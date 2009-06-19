@@ -147,8 +147,10 @@ typedef struct H5FD_stdio_t {
 #define REGION_OVERFLOW(A,Z)	(ADDR_OVERFLOW(A) || SIZE_OVERFLOW(Z) || \
     HADDR_UNDEF==(A)+(Z) || (file_offset_t)((A)+(Z))<(file_offset_t)(A))
 
+#ifndef H5_HAVE_FSEEKO
 /* Define big file as 2GB */
 #define BIG_FILE 0x80000000UL
+#endif
 
 /* Prototypes */
 static H5FD_t *H5FD_stdio_open(const char *name, unsigned flags,
@@ -563,7 +565,9 @@ H5FD_stdio_alloc(H5FD_t *_file, H5FD_mem_t /*UNUSED*/ type, hid_t /*UNUSED*/ dxp
 {
     H5FD_stdio_t	*file = (H5FD_stdio_t*)_file;
     haddr_t		addr;
+#ifndef H5_HAVE_FSEEKO
     static const char   *func = "H5FD_stdio_alloc";  /* Function Name for error reporting */
+#endif
     haddr_t ret_value;          /* Return value */
 
     /* Shut compiler up */

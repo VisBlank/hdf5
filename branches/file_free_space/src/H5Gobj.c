@@ -221,97 +221,6 @@ done:
 
 
 /*-------------------------------------------------------------------------
- * Function:    H5G_obj_ent_decode
- *
- * Purpose:     Decodes a symbol table entry into a object location
- *
- * Return:      Success:        Non-negative with *pp pointing to the first byte
- *                              following the symbol table entry.
- *
- *              Failure:        Negative
- *
- * Programmer:  Quincey Koziol
- *              koziol@ncsa.uiuc.edu
- *              Sep 26 2005
- *
- *-------------------------------------------------------------------------
- */
-herr_t
-H5G_obj_ent_decode(H5F_t *f, const uint8_t **pp, H5O_loc_t *oloc)
-{
-    const uint8_t	*p_ret = *pp;
-
-    FUNC_ENTER_NOAPI_NOFUNC(H5G_obj_ent_decode)
-
-    /* check arguments */
-    HDassert(f);
-    HDassert(pp);
-    HDassert(oloc);
-
-    /* Set file pointer for root object location */
-    oloc->file = f;
-    oloc->holding_file = FALSE;
-
-    /* decode header */
-    *pp += H5F_SIZEOF_SIZE(f);          /* Skip over local heap address */
-    H5F_addr_decode(f, pp, &(oloc->addr));
-    *pp += 4;                           /* Skip over "cache type" */
-    *pp += 4;                           /* Reserved */
-
-    /* Set decode pointer */
-    *pp = p_ret + H5G_SIZEOF_ENTRY(f);
-
-    FUNC_LEAVE_NOAPI(SUCCEED)
-} /* end H5G_obj_ent_decode() */
-
-
-/*-------------------------------------------------------------------------
- * Function:    H5G_obj_ent_encode
- *
- * Purpose:     Encodes the specified object location into a symbol table
- *              entry in the buffer pointed to by *pp.
- *
- * Return:      Success:        Non-negative, with *pp pointing to the first byte
- *                              after the symbol table entry.
- *
- *              Failure:        Negative
- *
- * Programmer:  Quincey Koziol
- *              koziol@ncsa.uiuc.edu
- *              Sep 26 2005
- *
- *-------------------------------------------------------------------------
- */
-herr_t
-H5G_obj_ent_encode(const H5F_t *f, uint8_t **pp, const H5O_loc_t *oloc)
-{
-    uint8_t		*p_ret = *pp + H5G_SIZEOF_ENTRY(f);
-
-    FUNC_ENTER_NOAPI_NOFUNC(H5G_obj_ent_encode)
-
-    /* check arguments */
-    HDassert(f);
-    HDassert(pp);
-
-    /* encode header */
-    H5F_ENCODE_LENGTH(f, *pp, 0);           /* No name for root group */
-    if(oloc)
-        H5F_addr_encode(f, pp, oloc->addr);
-    else
-        H5F_addr_encode(f, pp, HADDR_UNDEF);
-    UINT32ENCODE(*pp, H5G_NOTHING_CACHED);
-    UINT32ENCODE(*pp, 0); /*reserved*/
-
-    /* fill with zero */
-    while(*pp < p_ret)
-        *(*pp)++ = 0;
-    *pp = p_ret;
-
-    FUNC_LEAVE_NOAPI(SUCCEED)
-} /* end H5G_obj_ent_encode() */
-
-
-/*-------------------------------------------------------------------------
  * Function:    H5G_obj_get_linfo
  *
  * Purpose:     Retrieves the "link info" message for an object.  Also
@@ -897,8 +806,8 @@ H5G_obj_remove_update_linfo(H5O_loc_t *oloc, H5O_linfo_t *linfo, hid_t dxpl_id)
                     HGOTO_ERROR(H5E_SYM, H5E_CANTNEXT, FAIL, "error iterating over links")
 
                 /* Get a pointer to the object header itself */
-                if((oh = H5O_protect(oloc, dxpl_id)) == NULL)
-                    HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, FAIL, "unable to protect dataset object header")
+                if(NULL == (oh = H5O_pin(oloc, dxpl_id)))
+                    HGOTO_ERROR(H5E_SYM, H5E_CANTPIN, FAIL, "unable to pin group object header")
 
                 /* Inspect links in table for ones that can't be converted back
                  * into link message form (currently only links which can't fit
@@ -916,8 +825,8 @@ H5G_obj_remove_update_linfo(H5O_loc_t *oloc, H5O_linfo_t *linfo, hid_t dxpl_id)
                     for(u = 0; u < linfo->nlinks; u++)
                         if(H5O_msg_append_oh(oloc->file, dxpl_id, oh, H5O_LINK_ID, 0, H5O_UPDATE_TIME, &(ltable.lnks[u])) < 0) {
                             /* Release object header */
-                            if(H5O_unprotect(oloc, oh) < 0)
-                                HDONE_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, "unable to unprotect dataset object header")
+                            if(H5O_unpin(oloc, oh) < 0)
+                                HDONE_ERROR(H5E_SYM, H5E_CANTUNPIN, FAIL, "unable to unpin group object header")
 
                             HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, FAIL, "can't create message")
                         } /* end if */
@@ -928,8 +837,8 @@ H5G_obj_remove_update_linfo(H5O_loc_t *oloc, H5O_linfo_t *linfo, hid_t dxpl_id)
                 } /* end if */
 
                 /* Release object header */
-                if(H5O_unprotect(oloc, oh) < 0)
-                    HDONE_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, "unable to unprotect dataset object header")
+                if(H5O_unpin(oloc, oh) < 0)
+                    HGOTO_ERROR(H5E_SYM, H5E_CANTUNPIN, FAIL, "unable to unpin group object header")
 
                 /* Free link table information */
                 if(H5G_link_release_table(&ltable) < 0)

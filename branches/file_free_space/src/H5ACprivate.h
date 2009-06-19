@@ -118,6 +118,9 @@ typedef enum {
  *
  * CLEAR:	Just marks object as non-dirty.
  *
+ * NOTIFY:	Notify client that an action on an entry has taken/will take
+ *              place
+ *
  * SIZE:	Report the size (on disk) of the specified cache object.
  *		Note that the space allocated on disk may not be contiguous.
  */
@@ -126,10 +129,16 @@ typedef enum {
 #define H5AC_CALLBACK__SIZE_CHANGED_FLAG	H5C_CALLBACK__SIZE_CHANGED_FLAG
 #define H5AC_CALLBACK__RENAMED_FLAG             H5C_CALLBACK__RENAMED_FLAG
 
+/* Aliases for 'notify action' type & values */
+typedef H5C_notify_action_t     H5AC_notify_action_t;
+#define H5AC_NOTIFY_ACTION_AFTER_INSERT H5C_NOTIFY_ACTION_AFTER_INSERT
+#define H5AC_NOTIFY_ACTION_BEFORE_EVICT H5C_NOTIFY_ACTION_BEFORE_EVICT
+
 typedef H5C_load_func_t		H5AC_load_func_t;
 typedef H5C_flush_func_t	H5AC_flush_func_t;
 typedef H5C_dest_func_t		H5AC_dest_func_t;
 typedef H5C_clear_func_t	H5AC_clear_func_t;
+typedef H5C_notify_func_t	H5AC_notify_func_t;
 typedef H5C_size_func_t		H5AC_size_func_t;
 
 typedef H5C_class_t		H5AC_class_t;
@@ -199,6 +208,7 @@ extern hid_t H5AC_ind_dxpl_id;
 
 /* Default cache configuration. */
 
+#ifdef H5_HAVE_PARALLEL
 #define H5AC__DEFAULT_CACHE_CONFIG                                            \
 {                                                                             \
   /* int         version                = */ H5C__CURR_AUTO_SIZE_CTL_VER,     \
@@ -210,7 +220,7 @@ extern hid_t H5AC_ind_dxpl_id;
   /* hbool_t     set_initial_size       = */ TRUE,                            \
   /* size_t      initial_size           = */ ( 2 * 1024 * 1024),              \
   /* double      min_clean_fraction     = */ 0.3,                             \
-  /* size_t      max_size               = */ (16 * 1024 * 1024),              \
+  /* size_t      max_size               = */ (32 * 1024 * 1024),              \
   /* size_t      min_size               = */ ( 1 * 1024 * 1024),              \
   /* long int    epoch_length           = */ 50000,                           \
   /* enum H5C_cache_incr_mode incr_mode = */ H5C_incr__threshold,             \
@@ -232,6 +242,41 @@ extern hid_t H5AC_ind_dxpl_id;
   /* double      empty_reserve          = */ 0.1,                             \
   /* int	 dirty_bytes_threshold  = */ (256 * 1024)                     \
 }
+#else /* H5_HAVE_PARALLEL */
+#define H5AC__DEFAULT_CACHE_CONFIG                                            \
+{                                                                             \
+  /* int         version                = */ H5C__CURR_AUTO_SIZE_CTL_VER,     \
+  /* hbool_t     rpt_fcn_enabled        = */ FALSE,                           \
+  /* hbool_t     open_trace_file        = */ FALSE,                           \
+  /* hbool_t     close_trace_file       = */ FALSE,                           \
+  /* char        trace_file_name[]      = */ "",                              \
+  /* hbool_t     evictions_enabled      = */ TRUE,                            \
+  /* hbool_t     set_initial_size       = */ TRUE,                            \
+  /* size_t      initial_size           = */ ( 2 * 1024 * 1024),              \
+  /* double      min_clean_fraction     = */ 0.01,                            \
+  /* size_t      max_size               = */ (32 * 1024 * 1024),              \
+  /* size_t      min_size               = */ ( 1 * 1024 * 1024),              \
+  /* long int    epoch_length           = */ 50000,                           \
+  /* enum H5C_cache_incr_mode incr_mode = */ H5C_incr__threshold,             \
+  /* double      lower_hr_threshold     = */ 0.9,                             \
+  /* double      increment              = */ 2.0,                             \
+  /* hbool_t     apply_max_increment    = */ TRUE,                            \
+  /* size_t      max_increment          = */ (4 * 1024 * 1024),               \
+  /* enum H5C_cache_flash_incr_mode       */                                  \
+  /*                    flash_incr_mode = */ H5C_flash_incr__add_space,       \
+  /* double      flash_multiple         = */ 1.4,                             \
+  /* double      flash_threshold        = */ 0.25,                            \
+  /* enum H5C_cache_decr_mode decr_mode = */ H5C_decr__age_out_with_threshold,\
+  /* double      upper_hr_threshold     = */ 0.999,                           \
+  /* double      decrement              = */ 0.9,                             \
+  /* hbool_t     apply_max_decrement    = */ TRUE,                            \
+  /* size_t      max_decrement          = */ (1 * 1024 * 1024),               \
+  /* int         epochs_before_eviction = */ 3,                               \
+  /* hbool_t     apply_empty_reserve    = */ TRUE,                            \
+  /* double      empty_reserve          = */ 0.1,                             \
+  /* int	 dirty_bytes_threshold  = */ (256 * 1024)                     \
+}
+#endif /* H5_HAVE_PARALLEL */
 
 
 /*
@@ -266,6 +311,8 @@ extern hid_t H5AC_ind_dxpl_id;
 #define H5AC_ES__IS_DIRTY	0x0002
 #define H5AC_ES__IS_PROTECTED	0x0004
 #define H5AC_ES__IS_PINNED	0x0008
+#define H5AC_ES__IS_FLUSH_DEP_PARENT	0x0010
+#define H5AC_ES__IS_FLUSH_DEP_CHILD	0x0020
 
 
 /* external function declarations: */
@@ -275,8 +322,10 @@ H5_DLL herr_t H5AC_create(const H5F_t *f, H5AC_cache_config_t *config_ptr);
 H5_DLL herr_t H5AC_get_entry_status(H5F_t * f, haddr_t addr,
 				    unsigned * status_ptr);
 H5_DLL herr_t H5AC_set(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type,
-                       haddr_t addr, void *thing, unsigned int flags);
+    haddr_t addr, void *thing, unsigned int flags);
 H5_DLL herr_t H5AC_pin_protected_entry(H5F_t * f, void *  thing);
+H5_DLL herr_t H5AC_create_flush_dependency(H5F_t *f, void *parent_thing,
+    void *child_thing);
 H5_DLL void * H5AC_protect(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type,
                            haddr_t addr, const void *udata1, void *udata2,
                            H5AC_protect_t rw);
@@ -285,6 +334,8 @@ H5_DLL herr_t H5AC_resize_pinned_entry(H5F_t * f,
                                        size_t  new_size);
 H5_DLL herr_t H5AC_unpin_entry(H5F_t * f,
 		               void *  thing);
+H5_DLL herr_t H5AC_destroy_flush_dependency(H5F_t *f, void *parent_thing,
+    void *child_thing);
 H5_DLL herr_t H5AC_unprotect(H5F_t *f, hid_t dxpl_id,
                              const H5AC_class_t *type, haddr_t addr,
 			     void *thing, unsigned flags);

@@ -57,6 +57,7 @@
 ./bin/locate_sw
 ./bin/ltmain.sh
 ./bin/make_err
+./bin/make_overflow
 ./bin/make_vers
 ./bin/makehelp
 ./bin/missing
@@ -427,6 +428,8 @@
 ./src/H5err.txt
 ./src/H5config.h.in
 ./src/H5detect.c
+./src/H5overflow.txt
+./src/H5overflow.h
 ./src/H5private.h
 ./src/H5public.h
 ./src/H5system.c
@@ -582,6 +585,7 @@
 ./src/H5Gpkg.h
 ./src/H5Gprivate.h
 ./src/H5Gpublic.h
+./src/H5Groot.c
 ./src/H5Gstab.c
 ./src/H5Gtest.c
 ./src/H5Gtraverse.c
@@ -790,6 +794,7 @@
 ./test/cache_common.c
 ./test/cache_common.h
 ./test/cmpd_dset.c
+./test/corrupt_stab_msg.h5
 ./test/cross_read.c
 ./test/dangle.c
 ./test/deflate.h5
@@ -1307,6 +1312,7 @@
 ./tools/testfiles/tfpformat.ddl
 ./tools/testfiles/tfpformat.h5
 
+
 # Expected output from h5ls tests
 ./tools/testfiles/nosuchfile.ls
 ./tools/testfiles/help-1.ls
@@ -1517,6 +1523,7 @@
 ./tools/h5repack/testfiles/h5repack_ext.bin
 ./tools/h5repack/testfiles/h5repack_ext.h5
 ./tools/h5repack/testfiles/ublock.bin
+./tools/h5repack/testfiles/h5repack_named_dtypes.h5
 
 
 # jam utility and tests
@@ -1740,7 +1747,7 @@
 ./vms/tools/h5repack/make.com
 ./vms/tools/h5stat/make.com
 ./vms/tools/lib/make.com
-./vms/tools/lib/misc.com
+./vms/tools/misc/make.com
 ./vms/tools/testfiles/tattr-3.ddl
 ./vms/tools/testfiles/tdset-2.ddl
 ./vms/tools/testfiles/tgroup-2.ddl
@@ -1953,6 +1960,8 @@
 
 # Performance Tests
 ./windows/perform/checkperformtests.bat
+./windows/perform/perf_serialdll/perf_serialdll.vcproj
+./windows/perform/perf_serial/perf_serial.vcproj
 
 # Project Files
 ./windows/proj/all/all.sln

@@ -1,4 +1,4 @@
-HDF5 version 1.9.34 currently under development
+HDF5 version 1.9.42 currently under development
 ================================================================================
 
 
@@ -39,6 +39,11 @@ New Features
 
     Configuration:
     -------------
+    - Added libtool version numbers to generated c++, fortran, and 
+      hl libraries. MAM 2009/04/19.
+    - Regenerated Makefile.ins using Automake 1.10.2. MAM 2009/04/19.
+    - Added a Make target of check-all-install to test the correctness of
+      installing via the prefix= or $DESTDIR options. AKC - 2009/04/14
     - Configuration suite now uses Libtool 2.2.6a. MAM 2008/10/24
 
     - Configuration suite now uses Autoconf 2.61, Automake 1.10.1. 
@@ -51,6 +56,10 @@ New Features
 
     Library:
     --------
+    - Separated "factory" free list class from block free lists. These free
+      lists are dynamically created and manage blocks of a fixed size.
+      H5set_free_list_limits() will use the same settings specified for block
+      free lists for factory free lists. (NAF - 2009/04/08)
     - Added support for dense attributes to H5Ocopy. (XCao/NAF - 2009/01/29)
     - Added H5Pset_elink_cb and H5Pget_elink_cb functions to support a
       user-defined callback function for external link traversal.
@@ -71,9 +80,22 @@ New Features
 
     Parallel Library:
     -----------------
+    - Modified parallel tests to run with arbitrary number of processes. The
+      modified tests are testphdf5 (parallel dataset access), t_chunk_alloc 
+      (chunk allocation), and t_posix_compliant (posix compliance). The rest of
+      the parallel tests already use in the code the number of processes
+      available in the communicator. (CMC - 2009/04/28) 
 
     Fortran Library:
     ----------------
+
+        - Added for the C APIs the Fortran wrappers:
+            h5dget_access_plist_f
+            h5iis_valid_f
+            h5pset_chunk_cache_f
+            h5pget_chunk_cache_f 
+          (MSB - 2009/04/17)
+
 
     C++ Library:
     ------------
@@ -97,7 +119,11 @@ New Features
 
     Tools:
     ------
-
+     - h5diff new flag, -c, --compare, list objects that are not comparable.
+        PVN - 2009/4/10 - 1368
+     - h5diff new flag, -N, --nan, avoids NaNs detection. PVN - 2009/4/10
+     - h5dump correctly specifies XML dtd / schema urls (ADB - 2009/4/3 - 1519)
+     - h5repack now handles group creation order. (PVN - 2009/4/2 - 1402)
      - h5dump: added a printing of the compression ratio of uncompressed and compressed 
          sizes for cases where compression  filters are present. (PVN - 2008/05/01)
      - h5dump: added an option to allow a user defined formatting string for printf 
@@ -123,13 +149,12 @@ New Features
             The size of the hyperslabs are defined as the size of each dimension or a 
             predefined constant, whatever is smaller. This assures that the chunk 
             read fits in the chunk cache. (PVN - 2008/11/21)
-
-
-
+    
     High-Level APIs:
     ------
      - Table: In version 3.0 of Table, "NROWS" (used to store number of records) was 
            deprecated (PVN - 2008/11/24)
+
     
     Documentation 
     ------------- 
@@ -142,24 +167,52 @@ Bug Fixes since HDF5-1.8.0 release
 
     Library
     -------
+      - Fixed an issue with committed compound datatypes containing a vlen.
+            Also fixed memory leaks involving committed datatypes.
+            (NAF - 2009/06/10 - 1593)
+      - Added versioning to H5Z_class_t struct to allow compatibility with 1.6
+            API. (NAF - 2009/04/20 - 1533)
+      - Fixed a problem with using data transforms with non-native types in the
+            file. (NAF - 2009/04/20 - 1548)
+      - Added direct.h include file to windows section of H5private.h 
+            to fix _getcwd() warning. (ADB - 2009/04/14 - 1536)
+      - Fixed a bug that prevented external links from working after calling
+            H5close(). (NAF - 2009/04/10 - 1539)
+      - Modified library to write cached symbol table information to the
+            superblock, to allow library versions 1.3.0 to 1.6.3 to read files
+            created by this version. (NAF - 2009/04/08 - 1423)
+      - Changed skip lists to use a deterministic algorithm.  The library should
+            now never call rand() or srand(). (NAF - 2009/04/08 - 503)
+      - Fixed a bug where H5Lcopy and H5Lmove wouldn't create intermediate
+            groups when that property was set. (NAF - 2009/04/07 - 1526)
+      - Fixed a bug that caused files with a user block to grow by the size of
+            the user block every time they were opened.
+            (NAF - 2009/03/26 - 1499)
+      - Fixed a rare problem that could occur with files using the old (pre 1.4)
+            array datatype. (NAF - 2009/03/23)
+      - Modified library to be able to open files with corrupt root group symbol
+            table messages, and correct these errors if they are found.  Such
+            files can only be successfully opened with write access.
+            (NAF - 2009/03/23 - 1189)
       - Removed the long_long #define and replaced all instances with 
             "long long". This caused problems with third party products. All 
             currently supported compliers support the type. (ADB - 2009/03/05)
       - Fixed various bugs that could prevent the fill value from being written
-            in certain rare cases. (NAF - 2009/02/26)
+            in certain rare cases. (NAF - 2009/02/26 - 1469)
       - Fixed a bug that prevented more than one dataset chunk from being cached
-            at a time. (NAF - 2009/02/12)
+            at a time. (NAF - 2009/02/12 - 1015)
       - Fixed an assertion failure caused by opening an attribute multiple times
-            through multiple file handles. (NAF - 2009/02/12)
+            through multiple file handles. (NAF - 2009/02/12 - 1420)
       - Fixed a problem that could prevent the user from adding attributes (or
-            any object header message) in some circumstances. (NAF - 2009/02/12)
+            any object header message) in some circumstances.
+            (NAF - 2009/02/12 - 1427)
       - Fixed a bug that could cause problems when an attribute was added to a
             committed datatype using the committed datatype's datatype.
             (NAF - 2009/02/12)
       - Fixed a bug that could cause problems when copying an object with a
             shared message in its own object header. (NAF - 2009/01/29)
       - Changed H5Tset_order to properly reject H5T_ORDER_NONE for most
-            datatypes. (NAF - 2009/01/27)
+            datatypes. (NAF - 2009/01/27 - 1443)
       - Fixed a bug where H5Tpack wouldn't remove trailing space from an
             otherwise packed compound type. (NAF - 2009/01/14)
       - Fixed up some old v2 btree assertions that get run in debug mode that
@@ -230,6 +283,13 @@ Bug Fixes since HDF5-1.8.0 release
 
     Configuration
     -------------
+    - The --includedir=DIR configuration option now works as intended, and can
+      be used to specify the location to install C header files. The default
+      location remains unchanged, residing at ${prefix}/include. 
+      MAM - 2009/03/10 - BZ #1381
+    - Configure no longer removes the '-g' flag from CFLAGS when in production
+      mode if it has been explicitly set in the CFLAGS environment variable 
+      prior to configuration. MAM - 2009/03/09 - BZ #1401.
     - Fixed error with 'make check install' failing due to h5dump
       needing other tools built first. MAM - 2008/10/24.
     - When using shared szip, it is no longer necessary to specify
@@ -242,9 +302,19 @@ Bug Fixes since HDF5-1.8.0 release
 
     Performance
     -------------
+      - perf_serial test added to Windows projects and check batch file. 
+        (ADB - 2009/06/11)
 
     Tools
     -----
+        - Fixed many problems that could occur when using h5repack with named
+            datatypes. (NAF - 2009/4/20 - 1516/1466)
+        - h5dump, h5diff, h5repack were not reading (by hyperslabs) datasets 
+            that have a datatype datum size greater than H5TOOLS_BUFSIZE, a 
+            constant defined as 1024Kb, such as array types with large 
+            dimensions (PVN - 2009/4/1 - 1501)
+        - h5import: By selecting a compression type, a big endian byte order was being 
+            selected (PVN - 2009/3/11 - 1462)
         - zip_perf.c had missing argument on one of the open() calls. Fixed.
             (AKC - 2008/12/9)
         - h5dump now checks for uniqueness of committed datatypes.
@@ -270,6 +340,20 @@ Bug Fixes since HDF5-1.8.0 release
         - h5dump: when doing binary output (-b), the stdout printing of attributes 
            was done incorrectly. Removed printing of attributes when doing binary 
            output. PVN - 2008/06/05
+
+    High-Level APIs:
+     ------
+      - Dimension scales: The scale index return value in H5DSiterate_scales was not always 
+          incremented. (PVN - 2009/4/8 - 1538)
+
+    Fortran High-Level APIs:
+     ------
+      - Lite: The h5ltget_dataset_info_f function (gets information about a dataset) 
+           was not correctly returning the dimension array. (PVN - 2009/3/23)
+      - Lite: the h5ltread_dataset_string_f and h5ltget_attribute_string_f functions 
+           had memory problems with the g95 fortran compiler. (PVN � 5/13/2009) 1522
+
+
 
 
 
@@ -457,6 +541,11 @@ SuSe Linux 2.6.5
 
 Known Problems
 ==============
+* Parallel tests failed with 16 processes with data inconsistency at testphdf5
+  / dataset_readAll. Parallel tests also failed with 32 and 64 processes with
+  collective abort of all ranks at t_posix_compliant / allwrite_allread_blocks
+  with MPI IO. (CMC - 2009/04/28)
+
 * We discovered two problems when running collective IO parallel HDF5 tests 
   with chunking storage on  ChaMPIon MPI compiler on tungsten, a linux 
   cluster at NCSA.

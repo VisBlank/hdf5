@@ -98,6 +98,11 @@ int aux_assign_obj(const char* name,            /* object name from traverse lis
                 for ( i=0; i<tmp.chunk.rank; i++)
                     tmp.chunk.chunk_lengths[i]=options->chunk_g.chunk_lengths[i];
                 break;
+            case H5D_LAYOUT_ERROR:
+            case H5D_COMPACT:
+            case H5D_CONTIGUOUS:
+            case H5D_NLAYOUTS:
+                break;
             default:
                 break;
             }/*switch*/
@@ -111,6 +116,11 @@ int aux_assign_obj(const char* name,            /* object name from traverse lis
                 tmp.chunk.rank = options->op_tbl->objs[idx].chunk.rank;
                 for ( i=0; i<tmp.chunk.rank; i++)
                     tmp.chunk.chunk_lengths[i]=options->op_tbl->objs[idx].chunk.chunk_lengths[i];
+                break;
+            case H5D_LAYOUT_ERROR:
+            case H5D_COMPACT:
+            case H5D_CONTIGUOUS:
+            case H5D_NLAYOUTS:
                 break;
             default:
                 break;
@@ -162,6 +172,11 @@ int aux_assign_obj(const char* name,            /* object name from traverse lis
                 tmp.chunk.rank=options->chunk_g.rank;
                 for ( i=0; i<tmp.chunk.rank; i++)
                     tmp.chunk.chunk_lengths[i]=options->chunk_g.chunk_lengths[i];
+                break;
+            case H5D_LAYOUT_ERROR:
+            case H5D_COMPACT:
+            case H5D_CONTIGUOUS:
+            case H5D_NLAYOUTS:
                 break;
             default:
                 break;
@@ -296,14 +311,19 @@ int apply_filters(const char* name,    /* object name from traverse list */
             * determine the strip mine size. The strip mine is
             * a hyperslab whose size is manageable.
             */
+
+            
             
             sm_nbytes = msize;
             for ( i = rank; i > 0; --i) 
             {
-                sm_size[i - 1] = MIN(dims[i - 1], H5TOOLS_BUFSIZE / sm_nbytes);
+                hsize_t size = H5TOOLS_BUFSIZE / sm_nbytes;
+                if ( size == 0) /* datum size > H5TOOLS_BUFSIZE */
+                    size = 1;
+                sm_size[i - 1] = MIN(dims[i - 1], size);
                 sm_nbytes *= sm_size[i - 1];
                 assert(sm_nbytes > 0);
-              
+
             }
 
             for ( i = 0; i < rank; i++)
@@ -425,12 +445,20 @@ int apply_filters(const char* name,    /* object name from traverse list */
         if (H5Pset_layout(dcpl_id, obj.layout)<0)
             return -1;
 
-        if (H5D_CHUNKED==obj.layout) { /* set up chunk */
+        if (H5D_CHUNKED == obj.layout) 
+        { 
             if(H5Pset_chunk(dcpl_id, obj.chunk.rank, obj.chunk.chunk_lengths)<0)
                 return -1;
         }
-        else if (H5D_COMPACT==obj.layout) {
+        else if (H5D_COMPACT == obj.layout) 
+        {
             if (H5Pset_alloc_time(dcpl_id, H5D_ALLOC_TIME_EARLY)<0)
+                return -1;
+        }
+        /* remove filters for the H5D_CONTIGUOUS case */
+        else if (H5D_CONTIGUOUS == obj.layout) 
+        {
+            if (H5Premove_filter(dcpl_id,H5Z_FILTER_ALL)<0)
                 return -1;
         }
 

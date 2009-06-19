@@ -104,8 +104,8 @@ static H5_iter_order_t sort_order     = H5_ITER_INC; /*sort_order [ascending | d
  **/
 
 /* module-scoped variables for XML option */
-#define DEFAULT_XSD     "http://hdfgroup.org/DTDs/HDF5-File.xsd"
-#define DEFAULT_DTD     "http://hdfgroup.org/DTDs/HDF5-File.dtd"
+#define DEFAULT_XSD     "http://www.hdfgroup.org/DTDs/HDF5-File.xsd"
+#define DEFAULT_DTD     "http://www.hdfgroup.org/DTDs/HDF5-File.dtd"
 
 static int              doxml = 0;
 static int              useschema = 1;
@@ -649,7 +649,9 @@ usage(const char *prog)
     fprintf(stdout, "     -o F, --output=F     Output raw data into file F\n");
     fprintf(stdout, "     -b B, --binary=B     Binary file output, of form B\n");
     fprintf(stdout, "     -t P, --datatype=P   Print the specified named datatype\n");
-    fprintf(stdout, "     -w N, --width=N      Set the number of columns of output\n");
+    fprintf(stdout, "     -w N, --width=N      Set the number of columns of output. A value of 0 (zero)\n");
+    fprintf(stdout, "                          sets the number of columns to the maximum (65535).\n");
+    fprintf(stdout, "                          Default width is 80 columns.\n");
     fprintf(stdout, "     -m T, --format=T     Set the floating point output format\n");
     fprintf(stdout, "     -q Q, --sort_by=Q    Sort groups and attributes by index Q\n");
     fprintf(stdout, "     -z Z, --sort_order=Z Sort groups and attributes by order Z\n");
@@ -2377,7 +2379,12 @@ dump_data(hid_t obj_id, int obj_data, struct subset_t *sset, int display_index)
         outputformat->fmt_float = fp_format;
     }
 
-    outputformat->line_ncols = nCols;
+    if (nCols==0) {
+        outputformat->line_ncols = 65535;
+        outputformat->line_per_line = 1;
+    }
+    else
+        outputformat->line_ncols = nCols;
     outputformat->do_escape=display_escape;
     /* print the matrix indices */
     outputformat->pindex=display_index;
@@ -4389,8 +4396,8 @@ main(int argc, const char *argv[])
 
                 printf("<%sHDF5-File xmlns:%s=\"http://hdfgroup.org/DTDs/HDF5-File\" "
                     "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
-                    "xsi:schemaLocation=\"http://hdfgroup.org/DTDs/HDF5File "
-                    "http://hdfgroup.org/DTDs/HDF5-File.xsd\">\n",xmlnsprefix,ns);
+                    "xsi:schemaLocation=\"http://hdfgroup.org/DTDs/HDF5-File "
+                    "http://www.hdfgroup.org/DTDs/HDF5-File.xsd\">\n",xmlnsprefix,ns);
             }
         } else {
                 printf("<!DOCTYPE HDF5-File PUBLIC \"HDF5-File.dtd\" \"%s\">\n",
@@ -5363,7 +5370,12 @@ xml_dump_data(hid_t obj_id, int obj_data, struct subset_t UNUSED * sset, int UNU
     int                     depth;
     int                     stdindent = COL;    /* should be 3 */
 
-    outputformat->line_ncols = nCols;
+    if (nCols==0) {
+        outputformat->line_ncols = 65535;
+        outputformat->line_per_line = 1;
+    }
+    else
+        outputformat->line_ncols = nCols;
     indent += COL;
 
     /*
