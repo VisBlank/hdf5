@@ -457,8 +457,9 @@ H5D_get_space_status(H5D_t *dset, H5D_space_status_t *allocation, hid_t dxpl_id)
 {
     H5S_t      *space;              /* Dataset's dataspace */
     hsize_t     space_allocated;    /* The number of bytes allocated for chunks */
-    hssize_t    total_elem;         /* The total number of elements in dataspace */
-    size_t      type_size;          /* The size of the datatype for the dataset */
+    hssize_t    snelmts;            /* Temporary holder for number of elements in dataspace */
+    hsize_t     nelmts;             /* Number of elements in dataspace */
+    size_t      dt_size;            /* Size of datatype */
     hsize_t     full_size;          /* The number of bytes in the dataset when fully populated */
     herr_t      ret_value = SUCCEED;
 
@@ -471,16 +472,20 @@ H5D_get_space_status(H5D_t *dset, H5D_space_status_t *allocation, hid_t dxpl_id)
     HDassert(space);
 
     /* Get the total number of elements in dataset's dataspace */
-    if((total_elem=H5S_GET_EXTENT_NPOINTS(space)) < 0)
-	HGOTO_ERROR(H5E_DATASET, H5E_CANTCOUNT, FAIL, "unable to get # of dataspace elements")
+    if((snelmts = H5S_GET_EXTENT_NPOINTS(space)) < 0)
+        HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "unable to retrieve number of elements in dataspace")
+    nelmts = (hsize_t)snelmts;
 
     /* Get the size of the dataset's datatype */
-    if((type_size = H5T_get_size(dset->shared->type)) == 0)
-	HGOTO_ERROR(H5E_DATASET, H5E_CANTCOUNT, FAIL, "unable to get size of datatype")
+    if(0 == (dt_size = H5T_GET_SIZE(dset->shared->type)))
+        HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "unable to retrieve size of datatype")
 
     /* Compute the maximum size of the dataset in bytes */
-    H5_CHECK_OVERFLOW(total_elem,hssize_t,hsize_t);
-    full_size=((hsize_t)total_elem)*type_size;
+    full_size = nelmts * dt_size;
+
+    /* Check for overflow during multiplication */
+    if(nelmts != (full_size / dt_size))
+        HGOTO_ERROR(H5E_DATASET, H5E_OVERFLOW, FAIL, "size of dataset's storage overflowed")
 
     /* Difficult to error check, since the error value is 0 and 0 is a valid value... :-/ */
     space_allocated = H5D_get_storage_size(dset, dxpl_id);
@@ -839,8 +844,8 @@ H5D_update_oh_info(H5F_t *file, hid_t dxpl_id, H5D_t *dset)
     HDassert(file == dset->oloc.file);
 
     /* Get a pointer to the object header itself */
-    if((oh = H5O_protect(oloc, dxpl_id)) == NULL)
-        HGOTO_ERROR(H5E_DATASET, H5E_CANTPROTECT, FAIL, "unable to protect dataset object header")
+    if(NULL == (oh = H5O_pin(oloc, dxpl_id)))
+        HGOTO_ERROR(H5E_DATASET, H5E_CANTPIN, FAIL, "unable to pin dataset object header")
 
     /* Write new fill value message */
     if(H5O_msg_append_oh(file, dxpl_id, oh, H5O_FILL_NEW_ID, H5O_MSG_FLAG_CONSTANT, 0, fill_prop) < 0)
@@ -976,8 +981,8 @@ H5D_update_oh_info(H5F_t *file, hid_t dxpl_id, H5D_t *dset)
 done:
     /* Release pointer to object header itself */
     if(oloc != NULL && oh != NULL)
-        if(H5O_unprotect(oloc, oh) < 0)
-            HDONE_ERROR(H5E_DATASET, H5E_CANTUNPROTECT, FAIL, "unable to unprotect dataset object header")
+        if(H5O_unpin(oloc, oh) < 0)
+            HDONE_ERROR(H5E_DATASET, H5E_CANTUNPIN, FAIL, "unable to unpin dataset object header")
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5D_update_oh_info() */
@@ -1132,7 +1137,7 @@ H5D_create(H5F_t *file, hid_t type_id, const H5S_t *space, hid_t dcpl_id,
         HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, NULL, "unable to initialize I/O operations")
 
     /* Create the layout information for the new dataset */
-    if((new_dset->shared->layout.ops->new)(file, dapl_id, dxpl_id, new_dset, dc_plist) < 0)
+    if((new_dset->shared->layout.ops->construct)(file, dapl_id, dxpl_id, new_dset, dc_plist) < 0)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, NULL, "unable to initialize layout information")
 
     /* Indicate that the layout information was initialized */
@@ -1392,10 +1397,29 @@ H5D_open_oid(H5D_t *dataset, hid_t dapl_id, hid_t dxpl_id)
              * truncate the dimension sizes to 32-bits of information. - QAK 5/26/04
              */
             if(dataset->shared->layout.version < 3) {
-                hssize_t tmp_size;                      /* Temporary holder for raw data size */
+                hssize_t snelmts;                   /* Temporary holder for number of elements in dataspace */
+                hsize_t nelmts;                     /* Number of elements in dataspace */
+                size_t dt_size;                     /* Size of datatype */
+                hsize_t tmp_size;                   /* Temporary holder for raw data size */
 
-                tmp_size = H5S_GET_EXTENT_NPOINTS(dataset->shared->space) * H5T_get_size(dataset->shared->type);
-                H5_ASSIGN_OVERFLOW(dataset->shared->layout.u.contig.size, tmp_size, hssize_t, hsize_t);
+                /* Retrieve the number of elements in the dataspace */
+                if((snelmts = H5S_GET_EXTENT_NPOINTS(dataset->shared->space)) < 0)
+                    HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "unable to retrieve number of elements in dataspace")
+                nelmts = (hsize_t)snelmts;
+
+                /* Get the datatype's size */
+                if(0 == (dt_size = H5T_GET_SIZE(dataset->shared->type)))
+                    HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "unable to retrieve size of datatype")
+
+                /* Compute the size of the dataset's contiguous storage */
+                tmp_size = nelmts * dt_size;
+
+                /* Check for overflow during multiplication */
+                if(nelmts != (tmp_size / dt_size))
+                    HGOTO_ERROR(H5E_DATASET, H5E_OVERFLOW, FAIL, "size of dataset's storage overflowed")
+
+                /* Assign the dataset's contiguous storage size */
+                dataset->shared->layout.u.contig.size = tmp_size;
             } /* end if */
 
             /* Get the sieve buffer size for this dataset */
@@ -2386,8 +2410,8 @@ H5D_flush_real(H5D_t *dataset, hid_t dxpl_id, unsigned flags)
         unsigned update_flags = H5O_UPDATE_TIME;        /* Modification time flag */
 
         /* Get a pointer to the dataset's object header */
-        if((oh = H5O_protect(&dataset->oloc, dxpl_id)) == NULL)
-            HGOTO_ERROR(H5E_DATASET, H5E_CANTPROTECT, FAIL, "unable to protect dataset object header")
+        if(NULL == (oh = H5O_pin(&dataset->oloc, dxpl_id)))
+            HGOTO_ERROR(H5E_DATASET, H5E_CANTPIN, FAIL, "unable to pin dataset object header")
 
         /* Update the layout on disk, if it's been changed */
         if(dataset->shared->layout_dirty) {
@@ -2455,8 +2479,8 @@ H5D_flush_real(H5D_t *dataset, hid_t dxpl_id, unsigned flags)
 done:
     /* Release pointer to object header */
     if(oh != NULL)
-        if(H5O_unprotect(&(dataset->oloc), oh) < 0)
-            HDONE_ERROR(H5E_DATASET, H5E_CANTUNPROTECT, FAIL, "unable to unprotect dataset object header")
+        if(H5O_unpin(&(dataset->oloc), oh) < 0)
+            HDONE_ERROR(H5E_DATASET, H5E_CANTUNPIN, FAIL, "unable to unpin dataset object header")
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5D_flush_real() */

@@ -1,4 +1,4 @@
-HDF5 version 1.9.39 currently under development
+HDF5 version 1.9.42 currently under development
 ================================================================================
 
 
@@ -80,6 +80,11 @@ New Features
 
     Parallel Library:
     -----------------
+    - Modified parallel tests to run with arbitrary number of processes. The
+      modified tests are testphdf5 (parallel dataset access), t_chunk_alloc 
+      (chunk allocation), and t_posix_compliant (posix compliance). The rest of
+      the parallel tests already use in the code the number of processes
+      available in the communicator. (CMC - 2009/04/28) 
 
     Fortran Library:
     ----------------
@@ -162,6 +167,9 @@ Bug Fixes since HDF5-1.8.0 release
 
     Library
     -------
+      - Fixed an issue with committed compound datatypes containing a vlen.
+            Also fixed memory leaks involving committed datatypes.
+            (NAF - 2009/06/10 - 1593)
       - Added versioning to H5Z_class_t struct to allow compatibility with 1.6
             API. (NAF - 2009/04/20 - 1533)
       - Fixed a problem with using data transforms with non-native types in the
@@ -294,6 +302,8 @@ Bug Fixes since HDF5-1.8.0 release
 
     Performance
     -------------
+      - perf_serial test added to Windows projects and check batch file. 
+        (ADB - 2009/06/11)
 
     Tools
     -----
@@ -339,7 +349,9 @@ Bug Fixes since HDF5-1.8.0 release
     Fortran High-Level APIs:
      ------
       - Lite: The h5ltget_dataset_info_f function (gets information about a dataset) 
-           was not correctly returning the dimension array (PVN - 2009/3/23)
+           was not correctly returning the dimension array. (PVN - 2009/3/23)
+      - Lite: the h5ltread_dataset_string_f and h5ltget_attribute_string_f functions 
+           had memory problems with the g95 fortran compiler. (PVN � 5/13/2009) 1522
 
 
 
@@ -529,6 +541,11 @@ SuSe Linux 2.6.5
 
 Known Problems
 ==============
+* Parallel tests failed with 16 processes with data inconsistency at testphdf5
+  / dataset_readAll. Parallel tests also failed with 32 and 64 processes with
+  collective abort of all ranks at t_posix_compliant / allwrite_allread_blocks
+  with MPI IO. (CMC - 2009/04/28)
+
 * We discovered two problems when running collective IO parallel HDF5 tests 
   with chunking storage on  ChaMPIon MPI compiler on tungsten, a linux 
   cluster at NCSA.

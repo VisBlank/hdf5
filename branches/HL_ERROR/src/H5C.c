@@ -2048,6 +2048,7 @@ if ( (cache_ptr)->index_size !=                                             \
                         (cache_ptr)->pel_tail_ptr, 			  \
 			(cache_ptr)->pel_len,                             \
                         (cache_ptr)->pel_size, (fail_val))                \
+        HDassert( (cache_ptr)->pel_len >= 0 );                            \
                                                                           \
     } else {                                                              \
                                                                           \
@@ -2110,6 +2111,7 @@ if ( (cache_ptr)->index_size !=                                             \
                         (cache_ptr)->pel_tail_ptr, 			  \
 			(cache_ptr)->pel_len,                             \
                         (cache_ptr)->pel_size, (fail_val))                \
+        HDassert( (cache_ptr)->pel_len >= 0 );                            \
                                                                           \
     } else {                                                              \
                                                                           \
@@ -2475,6 +2477,7 @@ if ( (cache_ptr)->index_size !=                                             \
     H5C__DLL_REMOVE((entry_ptr), (cache_ptr)->pel_head_ptr,            \
                     (cache_ptr)->pel_tail_ptr, (cache_ptr)->pel_len,   \
                     (cache_ptr)->pel_size, (fail_val))                 \
+    HDassert( (cache_ptr)->pel_len >= 0 );                             \
                                                                        \
     /* modified LRU specific code */                                   \
                                                                        \
@@ -2527,6 +2530,7 @@ if ( (cache_ptr)->index_size !=                                             \
     H5C__DLL_REMOVE((entry_ptr), (cache_ptr)->pel_head_ptr,            \
                     (cache_ptr)->pel_tail_ptr, (cache_ptr)->pel_len,   \
                     (cache_ptr)->pel_size, (fail_val))                 \
+    HDassert( (cache_ptr)->pel_len >= 0 );                             \
                                                                        \
     /* modified LRU specific code */                                   \
                                                                        \
@@ -2798,7 +2802,7 @@ static herr_t H5C_epoch_marker_flush(H5F_t *f, hid_t dxpl_id, hbool_t dest,
 				     unsigned *flags_ptr);
 static herr_t H5C_epoch_marker_dest(H5F_t *f, void *thing);
 static herr_t H5C_epoch_marker_clear(H5F_t *f, void *thing, hbool_t dest);
-static herr_t H5C_epoch_marker_notify(H5C_notify_action_t action, void *thing, void *udata);
+static herr_t H5C_epoch_marker_notify(H5C_notify_action_t action, void *thing);
 static herr_t H5C_epoch_marker_size(const H5F_t *f, const void *thing, size_t *size_ptr);
 
 const H5C_class_t epoch_marker_class =
@@ -2891,8 +2895,7 @@ done:
 
 static herr_t
 H5C_epoch_marker_notify(H5C_notify_action_t UNUSED action,
-                       void UNUSED * thing,
-                       void UNUSED * udata)
+                       void UNUSED * thing)
 {
     herr_t ret_value = FAIL;      /* Return value */
 
@@ -7779,12 +7782,12 @@ H5C_unpin_entry_from_client(H5C_t *		  cache_ptr,
     if(!entry_ptr->pinned_from_client)
         HGOTO_ERROR(H5E_CACHE, H5E_CANTUNPIN, FAIL, "Entry wasn't pinned by cache client")
 
-    /* If requested, update the replacement policy if the entry is not protected */
-    if(update_rp && !entry_ptr->is_protected)
-        H5C__UPDATE_RP_FOR_UNPIN(cache_ptr, entry_ptr, FAIL)
-
     /* Check if the entry is not pinned from a flush dependency */
     if(!entry_ptr->pinned_from_cache) {
+        /* If requested, update the replacement policy if the entry is not protected */
+        if(update_rp && !entry_ptr->is_protected)
+            H5C__UPDATE_RP_FOR_UNPIN(cache_ptr, entry_ptr, FAIL)
+
         /* Unpin the entry now */
         entry_ptr->is_pinned = FALSE;
 

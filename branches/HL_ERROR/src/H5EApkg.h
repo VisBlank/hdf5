@@ -32,14 +32,12 @@
 #include "H5EAprivate.h"
 
 /* Other private headers needed by this file */
-#include "H5ACprivate.h"	/* Metadata cache			*/
 #include "H5FLprivate.h"	/* Free Lists                           */
 
 /************************************************/
 /* Revisions to FUNC_ENTER/LEAVE & Error Macros */
 /************************************************/
 
-#ifndef NDEBUG
 /* `S' is the name of a function which is being tested to check if it's */
 /*      a public API function */
 #define H5_IS_PUB(S) (((HDisdigit(S[1]) || HDisupper(S[1])) && HDislower(S[2])) || \
@@ -58,6 +56,7 @@
     ((HDisdigit(S[2]) || HDisupper(S[2])) && '_' == S[3] && '_' == S[4] && HDislower(S[5])) || \
     ((HDisdigit(S[3]) || HDisupper(S[3])) && '_' == S[4] && '_' == S[5] && HDislower(S[6])))
 
+#ifndef NDEBUG
 #define FUNC_ENTER_NAME_CHECK(asrt)					      \
     {					          			      \
         static hbool_t func_check = FALSE;          			      \
@@ -72,13 +71,11 @@
     } /* end scope */
 #else /* NDEBUG */
 #define FUNC_ENTER_NAME_CHECK(asrt)
-#define H5_IS_PUB(S)
-#define H5_IS_PRIV(S)
-#define H5_IS_PKG(S)
 #endif /* NDEBUG */
 
-/* Macro for referencing package initialization variables */
+/* Macros for referencing package initialization symbols */
 #define H5_PACKAGE_INIT_VAR(x) H5_GLUE3(H5_, x, _init_g)
+#define H5_PACKAGE_INIT_FUNC(x) H5_GLUE(x, __pkg_init)
 
 /* Macros to check if a package is initialized */
 #define H5_CHECK_PACKAGE_INIT_REG_YES(asrt)       HDassert(H5_PACKAGE_INIT_VAR(pkg));
@@ -98,14 +95,18 @@
     } /* end if */
 #define H5_PKG_NO_INIT(pkg)
 
-/* Macros to declare package initialization variable, if a package initialization routine is defined */
+/* Macros to declare package initialization symbols, if a package initialization routine is defined */
 #define H5_PKG_YES_INIT_VAR(pkg) extern hbool_t H5_PACKAGE_INIT_VAR(H5_MY_PKG);
 #define H5_PKG_NO_INIT_VAR(pkg)
+#define H5_PKG_YES_INIT_FUNC(pkg) extern herr_t H5_PACKAGE_INIT_FUNC(pkg)(void);
+#define H5_PKG_NO_INIT_FUNC(pkg)
 
-/* Declare package initialization variable (if in a package) */
+/* Declare package initialization symbols (if in a package) */
 #define H5_DECLARE_PKG_VAR(pkg_init, pkg) H5_GLUE3(H5_PKG_, pkg_init, _INIT_VAR)(pkg)
+#define H5_DECLARE_PKG_FUNC(pkg_init, pkg) H5_GLUE3(H5_PKG_, pkg_init, _INIT_FUNC)(pkg)
 #ifdef H5_MY_PKG
 H5_DECLARE_PKG_VAR(H5_MY_PKG_INIT, H5_MY_PKG)
+H5_DECLARE_PKG_FUNC(H5_MY_PKG_INIT, H5_MY_PKG)
 #endif /* H5_MY_PKG */
 
 /* API re-entrance variable */
@@ -226,6 +227,13 @@ func									      \
 #define H5_PRIV_FUNC_INIT_FAILED(pkg_init) H5_GLUE3(H5_PRIV_, pkg_init, _FUNC_INIT_FAILED)
 
 /* Macros for leaving different scopes of routines */
+#define FUNC_LEAVE_PKGINIT					       	      \
+    /* Leave scope for this type of function */				      \
+    }									      \
+                                                                              \
+    /* Pop the name of this function off the function stack */		      \
+    H5_POP_FUNC
+
 #define FUNC_LEAVE_STATIC					       	      \
     /* Leave scope for this type of function */				      \
     }									      \
@@ -615,6 +623,12 @@ typedef struct H5EA_sblock_load_ud_t {
     unsigned sblk_idx;          /* Index of super block */
 } H5EA_sblock_load_ud_t;
 
+#ifdef H5EA_TESTING
+typedef struct H5EA__ctx_cb_t {
+    herr_t (*encode)(const void *elmt, size_t nelmts, void *udata);   /* Perform action during encode step */
+    void *udata;                /* User data for encode action */
+} H5EA__ctx_cb_t;
+#endif /* H5EA_TESTING */
 
 /*****************************/
 /* Package Private Variables */

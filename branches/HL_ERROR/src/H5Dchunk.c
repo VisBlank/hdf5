@@ -146,7 +146,7 @@ typedef struct H5D_chunk_it_ud4_t {
 /********************/
 
 /* Chunked layout operation callbacks */
-static herr_t H5D_chunk_new(H5F_t *f, hid_t dapl_id, hid_t dxpl_id, H5D_t *dset,
+static herr_t H5D_chunk_construct(H5F_t *f, hid_t dapl_id, hid_t dxpl_id, H5D_t *dset,
     const H5P_genplist_t *dc_plist);
 static herr_t H5D_chunk_io_init(const H5D_io_info_t *io_info,
     const H5D_type_info_t *type_info, hsize_t nelmts, const H5S_t *file_space,
@@ -189,7 +189,7 @@ static herr_t H5D_chunk_mem_cb(void *elem, hid_t type_id, unsigned ndims,
 
 /* Chunked storage layout I/O ops */
 const H5D_layout_ops_t H5D_LOPS_CHUNK[1] = {{
-    H5D_chunk_new,
+    H5D_chunk_construct,
     H5D_chunk_is_space_alloc,
     H5D_chunk_io_init,
     H5D_chunk_read,
@@ -242,7 +242,7 @@ H5FL_DEFINE_STATIC(H5D_chunk_prune_stack_t);
 
 
 /*-------------------------------------------------------------------------
- * Function:	H5D_chunk_new
+ * Function:	H5D_chunk_construct
  *
  * Purpose:	Constructs new chunked layout information for dataset
  *
@@ -254,7 +254,7 @@ H5FL_DEFINE_STATIC(H5D_chunk_prune_stack_t);
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5D_chunk_new(H5F_t *f, hid_t dapl_id, hid_t dxpl_id, H5D_t *dset,
+H5D_chunk_construct(H5F_t *f, hid_t dapl_id, hid_t dxpl_id, H5D_t *dset,
     const H5P_genplist_t *dc_plist)
 {
     const H5T_t *type = dset->shared->type;     /* Convenience pointer to dataset's datatype */
@@ -264,7 +264,7 @@ H5D_chunk_new(H5F_t *f, hid_t dapl_id, hid_t dxpl_id, H5D_t *dset,
     unsigned u;                 /* Local index variable */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5D_chunk_new)
+    FUNC_ENTER_NOAPI_NOINIT(H5D_chunk_construct)
 
     /* Sanity checks */
     HDassert(f);
@@ -320,7 +320,7 @@ H5D_chunk_new(H5F_t *f, hid_t dapl_id, hid_t dxpl_id, H5D_t *dset,
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5D_chunk_new() */
+} /* end H5D_chunk_construct() */
 
 
 /*-------------------------------------------------------------------------
@@ -2159,12 +2159,12 @@ H5D_chunk_flush_entry(const H5D_t *dset, hid_t dxpl_id, const H5D_dxpl_cache_t *
         udata.common.mesg = &dset->shared->layout;
         udata.common.offset = ent->offset;
         udata.filter_mask = 0;
-        udata.nbytes = ent->chunk_size;
+        udata.nbytes = dset->shared->layout.u.chunk.size;
         udata.addr = ent->chunk_addr;
 
         /* Should the chunk be filtered before writing it to disk? */
         if(dset->shared->dcpl_cache.pline.nused) {
-            size_t alloc = ent->alloc_size;     /* Bytes allocated for BUF	*/
+            size_t alloc = udata.nbytes;        /* Bytes allocated for BUF	*/
             size_t nbytes;                      /* Chunk size (in bytes) */
 
             if(!reset) {
@@ -2173,10 +2173,10 @@ H5D_chunk_flush_entry(const H5D_t *dset, hid_t dxpl_id, const H5D_dxpl_cache_t *
                  * the pipeline because we'll want to save the original buffer
                  * for later.
                  */
-                H5_ASSIGN_OVERFLOW(alloc, ent->chunk_size, uint32_t, size_t);
+                H5_ASSIGN_OVERFLOW(alloc, udata.nbytes, uint32_t, size_t);
                 if(NULL == (buf = H5MM_malloc(alloc)))
                     HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed for pipeline")
-                HDmemcpy(buf, ent->chunk, ent->chunk_size);
+                HDmemcpy(buf, ent->chunk, udata.nbytes);
             } /* end if */
             else {
                 /*
@@ -2193,6 +2193,11 @@ H5D_chunk_flush_entry(const H5D_t *dset, hid_t dxpl_id, const H5D_dxpl_cache_t *
             if(H5Z_pipeline(&(dset->shared->dcpl_cache.pline), 0, &(udata.filter_mask), dxpl_cache->err_detect,
                      dxpl_cache->filter_cb, &nbytes, &alloc, &buf) < 0)
                 HGOTO_ERROR(H5E_PLINE, H5E_CANTFILTER, FAIL, "output pipeline failed")
+#if H5_SIZEOF_SIZE_T > 4
+            /* Check for the chunk expanding too much to encode in a 32-bit value */
+            if(nbytes > ((size_t)0xffffffff))
+                HGOTO_ERROR(H5E_DATASET, H5E_BADRANGE, FAIL, "chunk too large for 32-bit length")
+#endif /* H5_SIZEOF_SIZE_T > 4 */
             H5_ASSIGN_OVERFLOW(udata.nbytes, nbytes, size_t, uint32_t);
 
             /* Indicate that the chunk must go through 'insert' method */
@@ -2320,7 +2325,7 @@ H5D_chunk_cache_evict(const H5D_t *dset, hid_t dxpl_id, const H5D_dxpl_cache_t *
     /* Remove from cache */
     rdcc->slot[ent->idx] = NULL;
     ent->idx = UINT_MAX;
-    rdcc->nbytes_used -= ent->chunk_size;
+    rdcc->nbytes_used -= dset->shared->layout.u.chunk.size;
     --rdcc->nused;
 
     /* Free */
@@ -2390,8 +2395,8 @@ H5D_chunk_cache_prune(const H5D_t *dset, hid_t dxpl_id,
 	for(i = 0; i < nmeth && (rdcc->nbytes_used + size) > total; i++) {
 	    if(0 == i && p[0] && !p[0]->locked &&
                     ((0 == p[0]->rd_count && 0 == p[0]->wr_count) ||
-                     (0 == p[0]->rd_count && p[0]->chunk_size == p[0]->wr_count) ||
-                     (p[0]->chunk_size == p[0]->rd_count && 0 == p[0]->wr_count))) {
+                     (0 == p[0]->rd_count && dset->shared->layout.u.chunk.size == p[0]->wr_count) ||
+                     (dset->shared->layout.u.chunk.size == p[0]->rd_count && 0 == p[0]->wr_count))) {
 		/*
 		 * Method 0: Preempt entries that have been completely written
 		 * and/or completely read but not entries that are partially
@@ -2625,8 +2630,6 @@ H5D_chunk_lock(const H5D_io_info_t *io_info, H5D_chunk_ud_t *udata,
         ent->locked = 0;
         ent->dirty = FALSE;
         ent->chunk_addr = chunk_addr;
-        H5_ASSIGN_OVERFLOW(ent->chunk_size, chunk_size, size_t, uint32_t);
-        ent->alloc_size = chunk_size;
         for(u = 0; u < layout->u.chunk.ndims; u++)
             ent->offset[u] = io_info->store->chunk.offset[u];
         H5_ASSIGN_OVERFLOW(ent->rd_count, chunk_size, size_t, uint32_t);
@@ -2761,8 +2764,6 @@ H5D_chunk_unlock(const H5D_io_info_t *io_info, const H5D_chunk_ud_t *udata,
             HDmemcpy(x.offset, io_info->store->chunk.offset, layout->u.chunk.ndims * sizeof(x.offset[0]));
             HDassert(layout->u.chunk.size > 0);
             x.chunk_addr = udata->addr;
-            x.chunk_size = layout->u.chunk.size;
-            H5_ASSIGN_OVERFLOW(x.alloc_size, x.chunk_size, uint32_t, size_t);
             x.chunk = (uint8_t *)chunk;
 
             if(H5D_chunk_flush_entry(io_info->dset, io_info->dxpl_id, io_info->dxpl_cache, &x, TRUE) < 0)
@@ -3055,6 +3056,11 @@ H5D_chunk_allocate(H5D_t *dset, hid_t dxpl_id, hbool_t full_overwrite)
            /* Push the chunk through the filters */
            if(H5Z_pipeline(pline, 0, &filter_mask, dxpl_cache->err_detect, dxpl_cache->filter_cb, &orig_chunk_size, &buf_size, &fb_info.fill_buf) < 0)
                HGOTO_ERROR(H5E_PLINE, H5E_WRITEERROR, FAIL, "output pipeline failed")
+#if H5_SIZEOF_SIZE_T > 4
+            /* Check for the chunk expanding too much to encode in a 32-bit value */
+            if(orig_chunk_size > ((size_t)0xffffffff))
+                HGOTO_ERROR(H5E_DATASET, H5E_BADRANGE, FAIL, "chunk too large for 32-bit length")
+#endif /* H5_SIZEOF_SIZE_T > 4 */
        } /* end if */
     } /* end if */
 
@@ -3118,6 +3124,12 @@ H5D_chunk_allocate(H5D_t *dset, hid_t dxpl_id, hbool_t full_overwrite)
                         /* Push the chunk through the filters */
                         if(H5Z_pipeline(pline, 0, &filter_mask, dxpl_cache->err_detect, dxpl_cache->filter_cb, &nbytes, &buf_size, &fb_info.fill_buf) < 0)
                             HGOTO_ERROR(H5E_PLINE, H5E_WRITEERROR, FAIL, "output pipeline failed")
+
+#if H5_SIZEOF_SIZE_T > 4
+                        /* Check for the chunk expanding too much to encode in a 32-bit value */
+                        if(nbytes > ((size_t)0xffffffff))
+                            HGOTO_ERROR(H5E_DATASET, H5E_BADRANGE, FAIL, "chunk too large for 32-bit length")
+#endif /* H5_SIZEOF_SIZE_T > 4 */
 
                         /* Keep the number of bytes the chunk turned in to */
                         chunk_size = nbytes;
@@ -3637,7 +3649,7 @@ H5D_chunk_prune_by_extent(H5D_t *dset, hid_t dxpl_id, const hsize_t *old_dims)
                 HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, H5_ITER_ERROR, "memory allocation failed for stack node")
 
             /* Set up chunk record for fill routine */
-            tmp_stack->rec.nbytes = ent->chunk_size;
+            tmp_stack->rec.nbytes = dset->shared->layout.u.chunk.size;
             HDmemcpy(tmp_stack->rec.offset, ent->offset, sizeof(tmp_stack->rec.offset));
             tmp_stack->rec.filter_mask = 0; /* Since the chunk is already in cache this doesn't matter */
             tmp_stack->rec.chunk_addr = ent->chunk_addr;
@@ -3826,7 +3838,7 @@ H5D_chunk_delete(H5F_t *f, hid_t dxpl_id, H5O_layout_t *layout)
     idx_info.layout = layout;
 
     /* Delete the chunked storage information in the file */
-    if((layout->u.chunk.ops->delete)(&idx_info) < 0)
+    if((layout->u.chunk.ops->idx_delete)(&idx_info) < 0)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTDELETE, FAIL, "unable to delete chunk index")
 
 done:
@@ -4085,6 +4097,11 @@ H5D_chunk_copy_cb(const H5D_chunk_rec_t *chunk_rec, void *_udata)
     if(has_filters && (is_vlen || fix_ref) ) {
         if(H5Z_pipeline(pline, 0, &(udata_dst.filter_mask), H5Z_NO_EDC, cb_struct, &nbytes, &buf_size, &buf) < 0)
             HGOTO_ERROR(H5E_PLINE, H5E_CANTFILTER, H5_ITER_ERROR, "output pipeline failed")
+#if H5_SIZEOF_SIZE_T > 4
+        /* Check for the chunk expanding too much to encode in a 32-bit value */
+        if(nbytes > ((size_t)0xffffffff))
+            HGOTO_ERROR(H5E_DATASET, H5E_BADRANGE, FAIL, "chunk too large for 32-bit length")
+#endif /* H5_SIZEOF_SIZE_T > 4 */
         H5_ASSIGN_OVERFLOW(udata_dst.nbytes, nbytes, size_t, uint32_t);
 	udata->buf = buf;
 	udata->buf_size = buf_size;

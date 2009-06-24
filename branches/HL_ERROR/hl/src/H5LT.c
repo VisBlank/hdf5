@@ -1878,6 +1878,7 @@ herr_t H5LTdtype_to_text(hid_t dtype, char *str, H5LT_lang_t lang_type, size_t *
         if((ret = H5LT_dtype_to_text(dtype, &text_str, lang_type, &str_len, 1)) < 0)
             goto out;
         *len = strlen(text_str) + 1;
+        free(text_str);
     } else if(len && str) {
         if((ret = H5LT_dtype_to_text(dtype, &str, lang_type, len, 0)) < 0)
             goto out;
@@ -2162,6 +2163,9 @@ next:
                 break;
             }
         case H5T_OPAQUE:
+            {
+            char *tag;
+
             /* Print lead-in */
             sprintf(*dt_str, "H5T_OPAQUE {\n");
             indent += COL;
@@ -2171,7 +2175,12 @@ next:
             strcat(*dt_str, tmp_str);
 
             indentation(indent + COL, *dt_str);
-            sprintf(tmp_str, "OPQ_TAG \"%s\";\n", H5Tget_tag(dtype));
+            tag = H5Tget_tag(dtype);
+            if(tag) {
+                sprintf(tmp_str, "OPQ_TAG \"%s\";\n", tag);
+                free(tag);
+            } else
+                sprintf(tmp_str, "OPQ_TAG \"\";\n");
             strcat(*dt_str, tmp_str);
 
             /* Print closing */
@@ -2180,6 +2189,7 @@ next:
             strcat(*dt_str, "}");
 
             break;
+            }
         case H5T_ENUM:
             {
                 hid_t super;
