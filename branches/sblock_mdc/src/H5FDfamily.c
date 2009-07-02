@@ -92,7 +92,7 @@ static hsize_t H5FD_family_sb_size(H5FD_t *_file);
 static herr_t H5FD_family_sb_encode(H5FD_t *_file, char *name/*out*/,
 		     unsigned char *buf/*out*/);
 static herr_t H5FD_family_sb_decode(H5FD_t *_file, const char *name,
-                    const unsigned char *buf);
+                    const unsigned char *buf, hbool_t * dirtied/*out*/);
 static H5FD_t *H5FD_family_open(const char *name, unsigned flags,
 				hid_t fapl_id, haddr_t maxaddr);
 static herr_t H5FD_family_close(H5FD_t *_file);
@@ -658,10 +658,16 @@ H5FD_family_sb_encode(H5FD_t *_file, char *name/*out*/, unsigned char *buf/*out*
  *
  * Modifications:
  *
+ *              Mike McGreevy, June 8, 2009
+ *              Added in additional out parameter used to indicate
+ *              that the superblock will need to be dirtied after
+ *              decoding if the h5repart tool has changed the
+ *              member file size.
+ *
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5FD_family_sb_decode(H5FD_t *_file, const char UNUSED *name, const unsigned char *buf)
+H5FD_family_sb_decode(H5FD_t *_file, const char UNUSED *name, const unsigned char *buf, hbool_t * dirtied/*out*/)
 {
     H5FD_family_t	*file = (H5FD_family_t*)_file;
     uint64_t            msize;
@@ -678,6 +684,7 @@ H5FD_family_sb_decode(H5FD_t *_file, const char UNUSED *name, const unsigned cha
      * flushed to the files and updated to this new size */
     if(file->mem_newsize) {
         file->memb_size = file->pmem_size = file->mem_newsize;
+        *dirtied = TRUE;
         HGOTO_DONE(ret_value)
     } /* end if */
 

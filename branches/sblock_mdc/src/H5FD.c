@@ -563,10 +563,15 @@ done:
  *
  * Modifications:
  *
+ *              Mike McGreevy, June 8, 2009
+ *              Added 'dirtied' out parameter used to indicate if the
+ *              superblock should be marked as dirty in the cache immediately
+ *              after reading it from a file.
+ *
  *-------------------------------------------------------------------------
  */
 herr_t
-H5FD_sb_decode(H5FD_t *file, const char *name, const uint8_t *buf)
+H5FD_sb_decode(H5FD_t *file, const char *name, const uint8_t *buf, hbool_t * dirtied/*out*/)
 {
     herr_t      ret_value=SUCCEED;       /* Return value */
 
@@ -574,7 +579,7 @@ H5FD_sb_decode(H5FD_t *file, const char *name, const uint8_t *buf)
 
     assert(file && file->cls);
     if(file->cls->sb_decode &&
-            (file->cls->sb_decode)(file, name, buf) < 0)
+            (file->cls->sb_decode)(file, name, buf, dirtied/*out*/) < 0)
 	HGOTO_ERROR(H5E_VFL, H5E_CANTINIT, FAIL, "driver sb_decode request failed")
 
 done:

@@ -117,23 +117,17 @@ typedef struct H5F_mtab_t {
  */
 typedef struct H5F_file_t {
     H5FD_t	*lf; 		/* Lower level file handle for I/O	*/
+    haddr_t     super_addr;     /* Address of superblock signature      */
     unsigned	nrefs;		/* Ref count for times file is opened	*/
-    uint8_t	status_flags;	/* File status flags			*/
-    unsigned	flags;		/* Access Permissions for file		*/
-    H5F_mtab_t	mtab;		/* File mount table		*/
-
-    /* Cached values from FCPL/superblock */
-    unsigned	sym_leaf_k;	/* Size of leaves in symbol tables      */
-    unsigned    btree_k[H5B_NUM_BTREE_ID];  /* B-tree key values for each type  */
+    unsigned	flags;		/* Access Permissions for file          */
+    H5F_mtab_t	mtab;		/* File mount table                     */
     size_t	sizeof_addr;	/* Size of addresses in file            */
     size_t	sizeof_size;	/* Size of offsets in file              */
-    haddr_t	base_addr;	/* Absolute base address for rel.addrs. */
-                                /* (superblock for file is at this offset) */
-    haddr_t	extension_addr;	/* Relative address of superblock extension	*/
+
+    /* Cached values from FCPL/superblock */
     haddr_t	sohm_addr;	/* Relative address of shared object header message table */
     unsigned	sohm_vers;	/* Version of shared message table on disk */
     unsigned	sohm_nindexes;	/* Number of shared messages indexes in the table */
-    haddr_t	driver_addr;	/* File driver information block address*/
     unsigned long feature_flags; /* VFL Driver feature Flags            */
     haddr_t	maxaddr;	/* Maximum address for file             */
 
@@ -158,8 +152,6 @@ typedef struct H5F_file_t {
     int	ncwfs;			/* Num entries on cwfs list		*/
     struct H5HG_heap_t **cwfs;	/* Global heap cache			*/
     struct H5G_t *root_grp;	/* Open root group			*/
-    H5G_entry_t *root_ent;      /* Root group symbol table entry        */
-    haddr_t     root_addr;      /* Root group address                   */
     H5FO_t *open_objs;          /* Open objects in file                 */
     H5RC_t *grp_btree_shared;   /* Ref-counted group B-tree node info   */
 
@@ -179,6 +171,24 @@ typedef struct H5F_file_t {
     /* Metadata accumulator information */
     H5F_meta_accum_t accum;     /* Metadata accumulator info           */
 } H5F_file_t;
+
+/* Structure specifically to store superblock. This was originally
+ * maintained entirely within H5F_file_t, but is now being duplicated
+ * here because the superblock is now handled by the cache */
+struct H5F_super_t {
+    H5AC_info_t cache_info;     /* Cache entry information structure          */
+    unsigned    super_vers;     /* Superblock version                         */
+    uint8_t     status_flags;   /* File status flags                          */
+    unsigned    sym_leaf_k;     /* Size of leaves in symbol tables            */
+    unsigned    btree_k[H5B_NUM_BTREE_ID]; /* B-tree key values for each type */
+    haddr_t     base_addr;      /* Absolute base address for rel.addrs.       */
+                                /* (superblock for file is at this offset)    */
+    haddr_t     extension_addr; /* Relative address of superblock extension   */
+    haddr_t     driver_addr;    /* File driver information block address      */
+    haddr_t     root_addr;      /* Root group address                         */
+    H5G_entry_t *root_ent;      /* Root group symbol table entry              */
+    haddr_t     eoa;            /* End of allocation address                  */
+};
 
 /*
  * This is the top-level file descriptor.  One of these structures is
@@ -211,6 +221,10 @@ H5FL_EXTERN(H5F_t);
 /* Declare a free list to manage the H5F_file_t struct */
 H5FL_EXTERN(H5F_file_t);
 
+/* Declare a free list to manage the H5F_super_t struct */
+H5FL_EXTERN(H5F_super_t);
+
+H5_DLLVAR const H5AC_class_t H5AC_SUPERBLOCK[1];
 
 /******************************/
 /* Package Private Prototypes */
@@ -227,8 +241,7 @@ H5_DLL herr_t H5F_mount_count_ids(H5F_t *f, unsigned *nopen_files, unsigned *nop
 
 /* Superblock related routines */
 H5_DLL herr_t H5F_super_init(H5F_t *f, hid_t dxpl_id);
-H5_DLL herr_t H5F_super_write(H5F_t *f, hid_t dxpl_id);
-H5_DLL herr_t H5F_super_read(H5F_t *f, hid_t dxpl_id);
+H5_DLL herr_t H5F_super_read(H5F_t *f, hid_t dxpl_id, hbool_t dirty_sblock_after_read);
 H5_DLL herr_t H5F_super_ext_size(H5F_t *f, hid_t dxpl_id, hsize_t *super_ext_info);
 
 /* Metadata accumulator routines */
@@ -255,4 +268,12 @@ H5_DLL herr_t H5F_get_maxaddr_test(hid_t file_id, haddr_t *maxaddr);
 #endif /* H5F_TESTING */
 
 #endif /* _H5Fpkg_H */
+
+
+
+
+
+
+
+
 

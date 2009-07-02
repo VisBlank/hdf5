@@ -80,6 +80,9 @@ H5FL_DEFINE(H5F_t);
 /* Declare a free list to manage the H5F_file_t struct */
 H5FL_DEFINE(H5F_file_t);
 
+/* Declare a free list to manage the H5F_super_t struct */
+H5FL_DEFINE(H5F_super_t);
+
 
 /*-------------------------------------------------------------------------
  * Function:	H5F_init
@@ -859,6 +862,11 @@ done:
  *		new instance of H5F_file_t is created.  lf should be
  *		NULL if shared isn't, and vise versa.
  *
+ *              Mike McGreevy, May 26, 2009
+ *              - Added initialization information for the superblock address.
+ *              - Removed initialization for various fields now kept in
+ *                the superblock (it's been moved into H5F_super_init).
+ *
  *-------------------------------------------------------------------------
  */
 static H5F_t *
@@ -877,23 +885,20 @@ H5F_new(H5F_file_t *shared, hid_t fcpl_id, hid_t fapl_id, H5FD_t *lf)
 	f->shared = shared;
     } /* end if */
     else {
-        unsigned super_vers = HDF5_SUPERBLOCK_VERSION_DEF;      /* Superblock version for file */
         H5P_genplist_t *plist;          /* Property list */
-        size_t u;                       /* Local index variable */
+        size_t u;                       /* Local index variable */    
 
         HDassert(lf != NULL);
         if(NULL == (f->shared = H5FL_CALLOC(H5F_file_t)))
             HGOTO_ERROR(H5E_FILE, H5E_NOSPACE, NULL, "can't allocate shared file structure")
-	f->shared->base_addr = HADDR_UNDEF;
-	f->shared->extension_addr = HADDR_UNDEF;
+    
+        f->shared->super_addr = HADDR_UNDEF;
 	f->shared->sohm_addr = HADDR_UNDEF;
 	f->shared->sohm_vers = HDF5_SHAREDHEADER_VERSION;
         for(u = 0; u < NELMTS(f->shared->fs_addr); u++)
             f->shared->fs_addr[u] = HADDR_UNDEF;
-	f->shared->driver_addr = HADDR_UNDEF;
 	f->shared->accum.loc = HADDR_UNDEF;
         f->shared->lf = lf;
-        f->shared->root_addr = HADDR_UNDEF;
 
 	/*
 	 * Copy the file creation and file access property lists into the
@@ -909,10 +914,6 @@ H5F_new(H5F_file_t *shared, hid_t fcpl_id, hid_t fapl_id, H5FD_t *lf)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get byte number for address")
         if(H5P_get(plist, H5F_CRT_OBJ_BYTE_NUM_NAME, &f->shared->sizeof_size) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get byte number for object size")
-        if(H5P_get(plist, H5F_CRT_SYM_LEAF_NAME, &f->shared->sym_leaf_k) < 0)
-            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get byte number for object size")
-        if(H5P_get(plist, H5F_CRT_BTREE_RANK_NAME, &f->shared->btree_k[0]) < 0)
-            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "unable to get rank for btree internal nodes")
         if(H5P_get(plist, H5F_CRT_SHMSG_NINDEXES_NAME, &f->shared->sohm_nindexes)<0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get number of SOHM indexes")
         HDassert(f->shared->sohm_nindexes < 255);
@@ -966,29 +967,6 @@ H5F_new(H5F_file_t *shared, hid_t fcpl_id, hid_t fapl_id, H5FD_t *lf)
          *      we make it work. - QAK)
          */
         f->shared->use_tmp_space = !(IS_H5FD_MPI(f));
-
-        /* Bump superblock version if we are to use the latest version of the format */
-        if(f->shared->latest_format)
-            super_vers = HDF5_SUPERBLOCK_VERSION_LATEST;
-        /* Bump superblock version to create superblock extension for SOHM info */
-        else if(f->shared->sohm_nindexes > 0)
-            super_vers = HDF5_SUPERBLOCK_VERSION_2;
-        /* Check for non-default indexed storage B-tree internal 'K' value
-         * and set the version # of the superblock to 1 if it is a non-default
-         * value.
-         */
-        else if(f->shared->btree_k[H5B_CHUNK_ID] != HDF5_BTREE_CHUNK_IK_DEF)
-            super_vers = HDF5_SUPERBLOCK_VERSION_1;
-
-        /* If a newer superblock version is required, set it here */
-        if(super_vers != HDF5_SUPERBLOCK_VERSION_DEF) {
-            H5P_genplist_t *c_plist;              /* Property list */
-
-            if(NULL == (c_plist = (H5P_genplist_t *)H5I_object(f->shared->fcpl_id)))
-                HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not property list")
-            if(H5P_set(c_plist, H5F_CRT_SUPER_VERS_NAME, &super_vers) < 0)
-                HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, NULL, "unable to set superblock version")
-        } /* end if */
 
 	/*
 	 * Create a metadata cache with the specified number of elements.
@@ -1044,15 +1022,21 @@ done:
  *		Vailin Choi,  April 2, 2008
  *		Free f->extpath
  *
+ *              Mike McGreevy, June 2, 2009
+ *              - Added protect/unprotect calls to access superblock in order
+ *                to unpin it before destroying it from cache.
+ *              - Removed code that frees root group symbol table entry. This
+ *                has been moved to the superblock destroy cache callback.
+ *
  *-------------------------------------------------------------------------
  */
 static herr_t
 H5F_dest(H5F_t *f, hid_t dxpl_id)
 {
     herr_t	   ret_value = SUCCEED;
+    H5F_super_t *  sblock = NULL;
 
     FUNC_ENTER_NOAPI_NOINIT(H5F_dest)
-
     /* Sanity check */
     HDassert(f);
     HDassert(f->shared);
@@ -1068,6 +1052,20 @@ H5F_dest(H5F_t *f, hid_t dxpl_id)
             /* Dump debugging info */
             H5AC_stats(f);
 #endif /* H5AC_DUMP_STATS_ON_CLOSE */
+
+            HDassert(f->shared->super_addr != HADDR_UNDEF);
+
+            /* Look up the superblock */
+            if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, NULL, NULL, H5AC_READ)))
+                HDONE_ERROR(H5E_CACHE, H5E_CANTPROTECT, FAIL, "unable to load superblock")
+
+            /* Unpin the superblock, since we're about to destroy the cache */
+            if(H5AC_unpin_entry(f, sblock) <0)
+                HDONE_ERROR(H5E_FSPACE, H5E_CANTUNPIN, FAIL, "unable to unpin superblock")
+
+            /* Release the superblock */
+            if(sblock && H5AC_unprotect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, H5AC__NO_FLAGS_SET) <0)
+                HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
 
             /* Flush and invalidate all caches */
             if(H5F_flush(f, dxpl_id, H5F_SCOPE_LOCAL, H5F_FLUSH_INVALIDATE | H5F_FLUSH_CLOSING) < 0)
@@ -1096,6 +1094,7 @@ H5F_dest(H5F_t *f, hid_t dxpl_id)
                 HDONE_ERROR(H5E_FILE, H5E_CANTRELEASE, FAIL, "problems closing file")
             f->shared->root_grp = NULL;
         } /* end if */
+
         if(H5AC_dest(f, dxpl_id))
             /* Push error, but keep going*/
             HDONE_ERROR(H5E_FILE, H5E_CANTRELEASE, FAIL, "problems closing file")
@@ -1126,9 +1125,6 @@ H5F_dest(H5F_t *f, hid_t dxpl_id)
         /* Free mount table */
         f->shared->mtab.child = (H5F_mount_t *)H5MM_xfree(f->shared->mtab.child);
         f->shared->mtab.nalloc = 0;
-
-        /* Free root group symbol table entry, if any */
-        f->shared->root_ent = (H5G_entry_t *)H5MM_xfree(f->shared->root_ent);
 
         /* Destroy shared file struct */
         f->shared = (H5F_file_t *)H5FL_FREE(H5F_file_t, f->shared);
@@ -1234,6 +1230,11 @@ H5F_dest(H5F_t *f, hid_t dxpl_id)
  *		Vailin Choi, 2008-04-02
  *		To formulate path for later searching of target file for external link
  *		via H5_build_extpath().
+ *
+ *              Mike McGreevy, April 14, 2009
+ *              Changed calls to functions that read and write the 
+ *              superblock, as this is now handled by the cache callbacks.
+ *
  *-------------------------------------------------------------------------
  */
 H5F_t *
@@ -1247,6 +1248,7 @@ H5F_open(const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_id, hid_t d
     H5P_genplist_t     *a_plist;            /*file access property list     */
     H5F_close_degree_t  fc_degree;          /*file close degree             */
     H5F_t              *ret_value;          /*actual return value           */
+    hbool_t           dirty_sblock = FALSE; /* sblock bool                  */
 
     FUNC_ENTER_NOAPI(H5F_open, NULL)
 
@@ -1358,6 +1360,12 @@ H5F_open(const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_id, hid_t d
     if(H5P_exist_plist(a_plist, H5F_ACS_FAMILY_TO_SEC2_NAME) > 0) {
         if(H5P_get(a_plist, H5F_ACS_FAMILY_TO_SEC2_NAME, &shared->fam_to_sec2) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get property of changing family to sec2")
+
+        /* We need to tell the superblock to dirty itself after loading in order
+         * to flush this change of driver appropriately */
+        if (shared->fam_to_sec2 == TRUE) {
+            dirty_sblock = TRUE;   
+        }
     } /* end if */
     else
         shared->fam_to_sec2 = FALSE;
@@ -1384,15 +1392,19 @@ H5F_open(const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_id, hid_t d
         if(H5G_mkroot(file, dxpl_id, TRUE) < 0)
             HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "unable to create/open root group")
 
-        /* Write the superblock to the file */
+        /* Flush the cache */
+        /* Note: This will also write the superblock to the file, since it
+         * was just inserted into the cache 
+         */
         /* (This must be after the root group is created, since the root
          *      group's symbol table entry is part of the superblock)
          */
-        if(H5F_super_write(file, dxpl_id) < 0)
-            HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "unable to write file superblock")
+        if(H5AC_flush(file, dxpl_id, 0) < 0)
+            HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "unable to flush metadata cache")
+
     } else if (1 == shared->nrefs) {
 	/* Read the superblock if it hasn't been read before. */
-        if(H5F_super_read(file, dxpl_id) < 0)
+        if(H5F_super_read(file, dxpl_id, dirty_sblock) < 0)
 	    HGOTO_ERROR(H5E_FILE, H5E_READERROR, NULL, "unable to read superblock")
 
 	/* Open the root group */
@@ -1745,6 +1757,12 @@ done:
  *		matzke@llnl.gov
  *		Aug 29 1997
  *
+ * Modifications:
+ *
+ *              Mike McGreevy, April 14, 2009
+ *              Removed function call that writes the superblock to disk.
+ *              This now happens during the cache flush.
+ *
  *-------------------------------------------------------------------------
  */
 static herr_t
@@ -1805,13 +1823,6 @@ H5F_flush(H5F_t *f, hid_t dxpl_id, H5F_scope_t scope, unsigned flags)
     if(H5FD_truncate(f->shared->lf, dxpl_id, (unsigned)((flags & H5F_FLUSH_CLOSING) > 0)) < 0)
         HGOTO_ERROR(H5E_IO, H5E_WRITEERROR, FAIL, "low level truncate failed")
 
-    /* Write the superblock to disk */
-    /* (needs to happen before metadata flush (H5AC_flush), since the information
-     *  in the superblock extension may be updated - 2008/10/14, QAK)
-     */
-    if(H5F_super_write(f, dxpl_id) < 0)
-        HGOTO_ERROR(H5E_CACHE, H5E_WRITEERROR, FAIL, "unable to write superblock to file")
-
     /* Flush (and invalidate, if requested) the entire metadata cache */
     H5AC_flags = 0;
     if((flags & H5F_FLUSH_INVALIDATE) != 0 )
@@ -1865,7 +1876,6 @@ H5F_close(H5F_t *f)
     herr_t	        ret_value = SUCCEED;    /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5F_close)
-
     /* Sanity check */
     HDassert(f);
     HDassert(f->file_id > 0);   /* This routine should only be called when a file ID's ref count drops to zero */
@@ -2925,6 +2935,13 @@ done:
  *
  * Programmer:  Vailin Choi
  *              July 11, 2007
+ *
+ * Modifications:
+ *
+ *              Mike McGreevy, June 2, 2009
+ *              Added protect/unprotect calls in order to access the 
+ *              superblock, now stored in the cache.
+ *
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -2932,6 +2949,7 @@ H5Fget_info(hid_t obj_id, H5F_info_t *finfo)
 {
     H5F_t *f;                           /* Top file in mount hierarchy */
     herr_t ret_value = SUCCEED;         /* Return value */
+    H5F_super_t * sblock = NULL;
 
     FUNC_ENTER_API(H5Fget_info, FAIL)
     H5TRACE2("e", "i*x", obj_id, finfo);
@@ -2961,10 +2979,18 @@ H5Fget_info(hid_t obj_id, H5F_info_t *finfo)
     /* Reset file info struct */
     HDmemset(finfo, 0, sizeof(H5F_info_t));
 
+    /* Look up the superblock */
+    if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, NULL, NULL, H5AC_READ)))
+        HGOTO_ERROR(H5E_CACHE, H5E_CANTPROTECT, FAIL, "unable to load superblock")
+
     /* Check for superblock extension info */
-    if(H5F_addr_defined(f->shared->extension_addr))
+    if(H5F_addr_defined(sblock->extension_addr))
         if(H5F_super_ext_size(f, H5AC_ind_dxpl_id, &finfo->super_ext_size) < 0)
             HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "Unable to retrieve superblock extension size")
+
+    /* Release the superblock */
+    if(sblock && H5AC_unprotect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, H5AC__NO_FLAGS_SET) <0)
+        HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
 
     /* Check for SOHM info */
     if(H5F_addr_defined(f->shared->sohm_addr))

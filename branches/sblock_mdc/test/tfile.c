@@ -21,6 +21,7 @@
 *
 *************************************************************/
 
+#include <langinfo.h>
 #include "hdf5.h"
 #include "testhdf5.h"
 
@@ -1981,6 +1982,59 @@ test_userblock_file_size(void)
 
 /****************************************************************
 **
+**  test_rw_noupdate(): low-level file test routine.
+**      This test checks to ensure that opening and closing a file 
+**      with read/write permissions does not write anything to the 
+**      file if the file does not change.
+**
+**  Programmer: Mike McGreevy
+**              mamcgree@hdfgroup.org
+**              June 29, 2009
+**
+*****************************************************************/
+static void
+test_rw_noupdate(void)
+{
+    hid_t file_id;
+    struct stat inode;
+    struct tm *tm;
+    char date_str1[256];
+    char date_str2[256];
+    herr_t ret = 0; /* Generic return value */
+
+    /* Output message about test being performed */
+    MESSAGE(5, ("Testing to verify that nothing is written if nothing is changed.\n"));
+
+    /* Create and Close File */
+    file_id = H5Fcreate(FILE1, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    H5Fclose(file_id);
+
+    /* Determine File's Initial Timestamp */
+    stat(FILE1, &inode);
+    tm = localtime(&inode.st_mtime);
+    strftime(date_str1, sizeof(date_str1), nl_langinfo(D_T_FMT), tm);
+
+    /* Wait for 1 second */
+    /* This ensures a system time difference between the two file accesses */
+    sleep(1);
+
+    /* Open and Close File With Read/Write Permission */
+    file_id = H5Fopen(FILE1, H5F_ACC_RDWR, H5P_DEFAULT);
+    H5Fclose(file_id);
+
+    /* Determine File's New Timestamp */
+    stat(FILE1, &inode);
+    tm = localtime(&inode.st_mtime);
+    strftime(date_str2, sizeof(date_str2), nl_langinfo(D_T_FMT), tm);
+
+    /* Ensure That Timestamps Are Equal */
+    if ((strcmp(date_str1, date_str2)) != 0) ret = -1;
+    CHECK(ret, FAIL, "Timestamp");
+
+} /* end test_rw_noupdate() */
+
+/****************************************************************
+**
 **  test_cached_stab_info(): low-level file test routine.
 **      This test checks that new files are created with cached
 **      symbol table information in the superblock (when using
@@ -2057,6 +2111,7 @@ test_file(void)
     test_file_double_datatype_open();   /* Test opening same named datatype from two files works properly */
 #endif /*H5_CANNOT_OPEN_TWICE*/
     test_userblock_file_size(); /* Tests that files created with a userblock have the correct size */
+    test_rw_noupdate();         /* Test to ensure that RW permissions don't write the file unless dirtied */
     test_cached_stab_info();    /* Tests that files are created with cached stab info in the superblock */
 }				/* test_file() */
 

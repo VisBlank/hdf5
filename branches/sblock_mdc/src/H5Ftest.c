@@ -131,6 +131,12 @@ done:
  * Programmer:	Neil Fortner
  *	        Mar  31, 2009
  *
+ * Modifications:
+ *
+ *              Mike McGreevy, June 5, 2009
+ *              Added protect/unprotect calls in order to access the
+ *              superblock from the metadata cache.
+ *
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -138,6 +144,7 @@ H5F_check_cached_stab_test(hid_t file_id)
 {
     H5F_t	*file;                  /* File info */
     herr_t	ret_value = SUCCEED;    /* Return value */
+    H5F_super_t *sblock = NULL;
 
     FUNC_ENTER_NOAPI_NOINIT(H5F_check_cached_stab_test)
 
@@ -145,9 +152,17 @@ H5F_check_cached_stab_test(hid_t file_id)
     if(NULL == (file = (H5F_t *)H5I_object_verify(file_id, H5I_FILE)))
 	HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a file")
 
+    /* Look up the superblock */
+    if(NULL == (sblock = (H5F_super_t *)H5AC_protect(file, H5AC_dxpl_id, H5AC_SUPERBLOCK, file->shared->super_addr, NULL, NULL, H5AC_READ)))
+        HGOTO_ERROR(H5E_CACHE, H5E_CANTPROTECT, FAIL, "unable to load superblock")
+
     /* Verify the cached stab info */
-    if(H5G_verify_cached_stab_test(H5G_oloc(file->shared->root_grp), file->shared->root_ent) < 0)
+    if(H5G_verify_cached_stab_test(H5G_oloc(file->shared->root_grp), sblock->root_ent) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "unable to verify cached symbol table info")
+
+    /* Release the superblock */
+    if(sblock && H5AC_unprotect(file, H5AC_dxpl_id, H5AC_SUPERBLOCK, file->shared->super_addr, sblock, H5AC__NO_FLAGS_SET) <0)
+        HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)

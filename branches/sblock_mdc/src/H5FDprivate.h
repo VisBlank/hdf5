@@ -41,7 +41,7 @@ H5_DLL int H5FD_term_interface(void);
 H5_DLL H5FD_class_t *H5FD_get_class(hid_t id);
 H5_DLL hsize_t H5FD_sb_size(H5FD_t *file);
 H5_DLL herr_t H5FD_sb_encode(H5FD_t *file, char *name/*out*/, uint8_t *buf);
-H5_DLL herr_t H5FD_sb_decode(H5FD_t *file, const char *name, const uint8_t *buf);
+H5_DLL herr_t H5FD_sb_decode(H5FD_t *file, const char *name, const uint8_t *buf, hbool_t * dirtied/*out*/);
 H5_DLL void *H5FD_fapl_get(H5FD_t *file);
 H5_DLL herr_t H5FD_fapl_open(struct H5P_genplist_t *plist, hid_t driver_id, const void *driver_info);
 H5_DLL herr_t H5FD_fapl_copy(hid_t driver_id, const void *fapl, void **copied_fapl);

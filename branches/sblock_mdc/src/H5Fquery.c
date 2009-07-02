@@ -253,18 +253,37 @@ H5F_sizeof_size(const H5F_t *f)
  *		slu@ncsa.uiuc.edu
  *		Oct 14 2001
  *
+ * Modifications:
+ *
+ *              Mike McGreevy, June 5, 2009
+ *              Added protect/unprotect calls in order to access the 
+ *              superblock from the metadata cache.
+ *
  *-------------------------------------------------------------------------
  */
 unsigned
 H5F_sym_leaf_k(const H5F_t *f)
 {
-    /* Use FUNC_ENTER_NOAPI_NOINIT_NOFUNC here to avoid performance issues */
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5F_sym_leaf_k)
+    H5F_super_t *sblock = NULL;
+    unsigned ret_value;
+
+    FUNC_ENTER_NOAPI_NOINIT(H5F_sym_leaf_k)
 
     HDassert(f);
     HDassert(f->shared);
 
-    FUNC_LEAVE_NOAPI(f->shared->sym_leaf_k)
+    /* Look up superblock */
+    if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, NULL, NULL, H5AC_READ)))
+        HDONE_ERROR(H5E_OHDR, H5E_CANTPROTECT, FAIL, "unable to load superblock")
+
+    /* Set return value */
+    ret_value = sblock->sym_leaf_k;
+
+    /* Release superblock */
+    if(sblock && H5AC_unprotect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, H5AC__NO_FLAGS_SET) <0)
+        HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock") 
+
+    FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5F_sym_leaf_k() */
 
 
@@ -284,19 +303,40 @@ H5F_sym_leaf_k(const H5F_t *f)
  *		slu@ncsa.uiuc.edu
  *		Oct 14 2001
  *
+ * Modifications:
+ *
+ *              Mike McGreevy, June 5, 2009
+ *              Added protect/unprotect calls in order to access the 
+ *              superblock from the metadata cache.
+ *
  *-------------------------------------------------------------------------
  */
 unsigned
 H5F_Kvalue(const H5F_t *f, const H5B_class_t *type)
 {
-    /* Use FUNC_ENTER_NOAPI_NOINIT_NOFUNC here to avoid performance issues */
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5F_Kvalue)
+    H5F_super_t *sblock = NULL;
+    unsigned ret_value;
+
+    FUNC_ENTER_NOAPI_NOINIT(H5F_Kvalue)
 
     HDassert(f);
     HDassert(f->shared);
     HDassert(type);
 
-    FUNC_LEAVE_NOAPI(f->shared->btree_k[type->id])
+    /* Look up the superblock */
+    if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, NULL, NULL, H5AC_READ)))
+        HDONE_ERROR(H5E_CACHE, H5E_CANTPROTECT, FAIL, "unable to load superblock")
+
+    HDassert(sblock->btree_k[type->id]);
+
+    /* Set return value */
+    ret_value = sblock->btree_k[type->id];
+
+    /* Release the superblock */
+    if(sblock && H5AC_unprotect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, H5AC__NO_FLAGS_SET) <0)
+        HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
+
+    FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5F_Kvalue() */
 
 
@@ -405,18 +445,36 @@ H5F_rdcc_w0(const H5F_t *f)
  * Programmer:	Raymond Lu <slu@ncsa.uiuc.edu>
  *		December 20, 2002
  *
+ * Modifications:     
+ *
+ *              Mike McGreevy, June 5, 2009
+ *              Added protect/unprotect calls in order to access the 
+ *              superblock from the metadata cache.
+ *
  *-------------------------------------------------------------------------
  */
 haddr_t
 H5F_get_base_addr(const H5F_t *f)
 {
-    /* Use FUNC_ENTER_NOAPI_NOINIT_NOFUNC here to avoid performance issues */
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5F_get_base_addr)
+    H5F_super_t * sblock = NULL;
+    haddr_t ret_value;
+    
+    FUNC_ENTER_NOAPI_NOINIT(H5F_get_base_addr)
 
     HDassert(f);
-    HDassert(f->shared);
+    
+    /* Look up superblock */
+    if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, NULL, NULL, H5AC_READ)))
+        HDONE_ERROR(H5E_OHDR, H5E_CANTPROTECT, FAIL, "unable to load superblock")
 
-    FUNC_LEAVE_NOAPI(f->shared->base_addr)
+    /* Set return value */
+    ret_value = sblock->base_addr;
+
+    /* Release superblock */
+    if(sblock && H5AC_unprotect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, H5AC__NO_FLAGS_SET)<0)
+        HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
+
+    FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5F_get_base_addr() */
 
 

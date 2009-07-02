@@ -35,6 +35,9 @@
 /* Main file structure */
 typedef struct H5F_t H5F_t;
 
+/* Superblock structure */
+typedef struct H5F_super_t H5F_super_t;
+
 /* Block aggregation structure */
 typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
 
@@ -243,17 +246,19 @@ typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
                                  ((O1) >= (O2) && (O1) < ((O2) + (L2))))
 
 /* If the module using this macro is allowed access to the private variables, access them directly */
+/* Note: This does not apply to fields stored in the superblock, as they must be accessed via a 
+ * protect call into the metadata cache, so they will always use the access function. */
 #ifdef H5F_PACKAGE
 #define H5F_INTENT(F)           ((F)->intent)
 #define H5F_FCPL(F)             ((F)->shared->fcpl_id)
 #define H5F_SIZEOF_ADDR(F)      ((F)->shared->sizeof_addr)
 #define H5F_SIZEOF_SIZE(F)      ((F)->shared->sizeof_size)
-#define H5F_SYM_LEAF_K(F)       ((F)->shared->sym_leaf_k)
-#define H5F_KVALUE(F,T)         ((F)->shared->btree_k[(T)->id])
+#define H5F_SYM_LEAF_K(F)       (H5F_sym_leaf_k(F))
+#define H5F_KVALUE(F,T)         (H5F_Kvalue(F,T))
 #define H5F_RDCC_NSLOTS(F)      ((F)->shared->rdcc_nslots)
 #define H5F_RDCC_NBYTES(F)      ((F)->shared->rdcc_nbytes)
 #define H5F_RDCC_W0(F)          ((F)->shared->rdcc_w0)
-#define H5F_BASE_ADDR(F)        ((F)->shared->base_addr)
+#define H5F_BASE_ADDR(F)        (H5F_get_base_addr(F))
 #define H5F_GRP_BTREE_SHARED(F) ((F)->shared->grp_btree_shared)
 #define H5F_SIEVE_BUF_SIZE(F)   ((F)->shared->sieve_buf_size)
 #define H5F_GC_REF(F)           ((F)->shared->gc_ref)

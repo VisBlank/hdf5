@@ -43,6 +43,13 @@
  * Programmer:	Robb Matzke
  *		matzke@llnl.gov
  *		Aug  1 1997
+ * 
+ * Modifications:
+ * 
+ *              Mike McGreevy, June 2, 2009
+ *              Added protect/unprotect calls in order to access the
+ *              various fields in the superblock (now stored in the
+ *              metadata cache).
  *
  *-------------------------------------------------------------------------
  */
@@ -53,6 +60,7 @@ H5F_debug(H5F_t *f, FILE *stream, int indent, int fwidth)
     hsize_t userblock_size;             /* Userblock size */
     unsigned super_vers;                /* Superblock version # */
     herr_t ret_value = SUCCEED;         /* Return value */
+    H5F_super_t * sblock = NULL;        /* Superblock */
 
     FUNC_ENTER_NOAPI(H5F_debug, FAIL)
 
@@ -61,6 +69,11 @@ H5F_debug(H5F_t *f, FILE *stream, int indent, int fwidth)
     HDassert(stream);
     HDassert(indent >= 0);
     HDassert(fwidth >= 0);
+    HDassert(f->shared->super_addr != HADDR_UNDEF);
+
+    /* Look up superblock */
+    if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, NULL, NULL, H5AC_READ)))
+        HGOTO_ERROR(H5E_CACHE, H5E_CANTPROTECT, FAIL, "unable to load superblock") 
 
     /* Get property list */
     if(NULL == (plist = (H5P_genplist_t *)H5I_object(f->shared->fcpl_id)))
@@ -82,7 +95,7 @@ H5F_debug(H5F_t *f, FILE *stream, int indent, int fwidth)
     HDfprintf(stream, "%*s%-*s %u\n", indent, "", fwidth,
 	      "File open reference count:", f->shared->nrefs);
     HDfprintf(stream, "%*s%-*s %a (abs)\n", indent, "", fwidth,
-	      "Address of super block:", f->shared->base_addr);
+	      "Address of super block:", sblock->base_addr);
     HDfprintf(stream, "%*s%-*s %Hu bytes\n", indent, "", fwidth,
 	      "Size of userblock:", userblock_size);
 
@@ -102,13 +115,13 @@ H5F_debug(H5F_t *f, FILE *stream, int indent, int fwidth)
     HDfprintf(stream, "%*s%-*s %u bytes\n", indent, "", fwidth,
 	      "Size of file lengths (hsize_t type):", (unsigned) f->shared->sizeof_size);
     HDfprintf(stream, "%*s%-*s %u\n", indent, "", fwidth,
-	      "Symbol table leaf node 1/2 rank:", f->shared->sym_leaf_k);
+	      "Symbol table leaf node 1/2 rank:", sblock->sym_leaf_k);
     HDfprintf(stream, "%*s%-*s %u\n", indent, "", fwidth,
-	      "Symbol table internal node 1/2 rank:", f->shared->btree_k[H5B_SNODE_ID]);
+	      "Symbol table internal node 1/2 rank:", sblock->btree_k[H5B_SNODE_ID]);
     HDfprintf(stream, "%*s%-*s 0x%02x\n", indent, "", fwidth,
-	      "File status flags:", (unsigned)(f->shared->status_flags));
+	      "File status flags:", (unsigned)(sblock->status_flags));
     HDfprintf(stream, "%*s%-*s %a (rel)\n", indent, "", fwidth,
-	      "Superblock extension address:", f->shared->extension_addr);
+	      "Superblock extension address:", sblock->extension_addr);
     HDfprintf(stream, "%*s%-*s %a (rel)\n", indent, "", fwidth,
 	      "Shared object header message table address:", f->shared->sohm_addr);
     HDfprintf(stream, "%*s%-*s %u\n", indent, "", fwidth,
@@ -117,14 +130,14 @@ H5F_debug(H5F_t *f, FILE *stream, int indent, int fwidth)
 	      "Number of shared object header message indexes:", (unsigned) f->shared->sohm_nindexes);
 
     HDfprintf(stream, "%*s%-*s %a (rel)\n", indent, "", fwidth,
-	      "Address of driver information block:", f->shared->driver_addr);
+	      "Address of driver information block:", sblock->driver_addr);
 
     HDfprintf(stream, "%*s%-*s %s\n", indent, "", fwidth,
 	      "Root group symbol table entry:",
 	      f->shared->root_grp ? "" : "(none)");
     if(f->shared->root_grp) {
-        if(f->shared->root_ent) /* Use real root group symbol table entry */
-            H5G_ent_debug(f, f->shared->root_ent, stream, indent + 3,
+        if(sblock->root_ent) /* Use real root group symbol table entry */
+            H5G_ent_debug(f, sblock->root_ent, stream, indent + 3,
                 MAX(0, fwidth - 3), NULL);
         else {
             H5O_loc_t *root_oloc;   /* Root object location */
@@ -144,6 +157,10 @@ H5F_debug(H5F_t *f, FILE *stream, int indent, int fwidth)
             H5G_ent_debug(f, &root_ent, stream, indent + 3, MAX(0, fwidth - 3), NULL);
         }
     } /* end if */
+
+    /* Release superblock */
+    if(sblock && H5AC_unprotect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, H5AC__NO_FLAGS_SET) <0)
+        HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)

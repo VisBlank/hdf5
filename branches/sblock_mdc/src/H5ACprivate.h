@@ -68,6 +68,7 @@ typedef enum {
     H5AC_EARRAY_DBLOCK_ID, /*extensible array data block	     */
     H5AC_EARRAY_DBLK_PAGE_ID, /*extensible array data block page     */
     H5AC_TEST_ID,	/*test entry -- not used for actual files    */
+    H5AC_SUPERBLOCK_ID, /* file superblock                           */
     H5AC_NTYPES		/* Number of types, must be last             */
 } H5AC_type_t;
 

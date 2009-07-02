@@ -119,7 +119,7 @@ static hsize_t H5FD_multi_sb_size(H5FD_t *file);
 static herr_t H5FD_multi_sb_encode(H5FD_t *file, char *name/*out*/,
 				   unsigned char *buf/*out*/);
 static herr_t H5FD_multi_sb_decode(H5FD_t *file, const char *name,
-				   const unsigned char *buf);
+				   const unsigned char *buf, hbool_t *dirtied/*out*/);
 static void *H5FD_multi_fapl_get(H5FD_t *file);
 static void *H5FD_multi_fapl_copy(const void *_old_fa);
 static herr_t H5FD_multi_fapl_free(void *_fa);
@@ -842,7 +842,7 @@ H5FD_multi_sb_encode(H5FD_t *_file, char *name/*out*/,
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5FD_multi_sb_decode(H5FD_t *_file, const char *name, const unsigned char *buf)
+H5FD_multi_sb_decode(H5FD_t *_file, const char *name, const unsigned char *buf, hbool_t *dirtied/*out*/)
 {
     H5FD_multi_t	*file = (H5FD_multi_t*)_file;
     char		x[2*H5FD_MEM_NTYPES*8];
