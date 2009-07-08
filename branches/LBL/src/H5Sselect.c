@@ -1334,162 +1334,380 @@ H5S_get_select_type(const H5S_t *space)
     Assumes that there is only a single "block" for hyperslab selections.
  EXAMPLES
  REVISION LOG
+    Modified function to view identical shapes with different dimensions 
+    as being the same under some circumstances.
 --------------------------------------------------------------------------*/
 htri_t
-H5S_select_shape_same(const H5S_t *space1, const H5S_t *space2)
+H5S_select_shape_same(const H5S_t *space1, 
+                      const H5S_t *space2)
 {
-    H5S_sel_iter_t iter1;               /* Selection #1 iteration info */
-    H5S_sel_iter_t iter2;               /* Selection #2 iteration info */
-    hbool_t iter1_init = 0;             /* Selection #1 iteration info has been initialized */
-    hbool_t iter2_init = 0;             /* Selection #2 iteration info has been initialized */
-    unsigned u;                         /* Index variable */
-    htri_t ret_value = TRUE;            /* Return value */
+    H5S_sel_iter_t iter_a;    /* Selection a iteration info */
+    H5S_sel_iter_t iter_b;    /* Selection b iteration info */
+    hbool_t iter_a_init = 0;  /* Selection a iteration info has been initialized */
+    hbool_t iter_b_init = 0;  /* Selection b iteration info has been initialized */
+    const H5S_t * space_a = NULL;
+    const H5S_t * space_b = NULL;
+    int i;
+    int j;
+    unsigned space_a_rank;
+    unsigned space_b_rank;
+    htri_t ret_value = TRUE; /* Return value */
 
     FUNC_ENTER_NOAPI(H5S_select_shape_same, FAIL)
 
     /* Check args */
-    HDassert(space1);
-    HDassert(space2);
+    HDassert ( space1 != NULL );
+    HDassert ( space2 != NULL );
 
     /* Special case for one or both dataspaces being scalar */
-    if(space1->extent.rank == 0 || space2->extent.rank == 0) {
+    if ( space1->extent.rank == 0 || space2->extent.rank == 0 ) {
+
         /* Check for different number of elements selected */
-        if(H5S_GET_SELECT_NPOINTS(space1) != H5S_GET_SELECT_NPOINTS(space2))
+        if ( H5S_GET_SELECT_NPOINTS(space1) != H5S_GET_SELECT_NPOINTS(space2) ) {
+
             HGOTO_DONE(FALSE)
+        }
     } /* end if */
     else {
-        /* Check for different dimensionality */
-        if(space1->extent.rank != space2->extent.rank)
-            HGOTO_DONE(FALSE)
+
+        /* need to be able to handle spaces of different rank:
+         *
+         * To simplify logic, let space_a point to the element of the set
+         * {space1, space2} with the largest rank or space1 if the ranks 
+         * are identical.
+         *
+         * Similarly, let space_b point to the element of {space1, space2}
+         * with the smallest rank, or space2 if they are identical.
+         *
+         * Let:  space_a_rank be the rank of space_a, 
+         *       space_b_rank be the rank of space_b,
+         *       delta_rank = space_a_rank - space_b_rank.
+         *
+         * Set all this up below.
+         */
+
+        if ( space1->extent.rank >= space2->extent.rank ) {
+
+            space_a = space1;
+            space_a_rank = space_a->extent.rank;
+
+            space_b = space2;
+            space_b_rank = space_b->extent.rank;
+
+        } else {
+
+            space_a = space2;
+            space_a_rank = space_a->extent.rank;
+
+            space_b = space1;
+            space_b_rank = space_b->extent.rank;
+
+        }
+
+        HDassert( space_a_rank >= space_b_rank );
+        HDassert( space_b_rank > 0 );
+
 
         /* Check for different number of elements selected */
-        if(H5S_GET_SELECT_NPOINTS(space1) != H5S_GET_SELECT_NPOINTS(space2))
+        if ( H5S_GET_SELECT_NPOINTS(space_a) != H5S_GET_SELECT_NPOINTS(space_b) ) {
+
             HGOTO_DONE(FALSE)
+        }
 
         /* Check for "easy" cases before getting into generalized block iteration code */
-        if(H5S_GET_SELECT_TYPE(space1)==H5S_SEL_ALL && H5S_GET_SELECT_TYPE(space2)==H5S_SEL_ALL) {
-            hsize_t dims1[H5O_LAYOUT_NDIMS];             /* End point of selection block in dataspace #1 */
-            hsize_t dims2[H5O_LAYOUT_NDIMS];             /* End point of selection block in dataspace #2 */
+        if ( ( H5S_GET_SELECT_TYPE(space_a) == H5S_SEL_ALL ) && 
+             ( H5S_GET_SELECT_TYPE(space_b) == H5S_SEL_ALL ) ) {
 
-            if(H5S_get_simple_extent_dims(space1, dims1, NULL)<0)
-                HGOTO_ERROR (H5E_DATASPACE, H5E_CANTGET, FAIL, "unable to get dimensionality");
-            if(H5S_get_simple_extent_dims(space2, dims2, NULL)<0)
-                HGOTO_ERROR (H5E_DATASPACE, H5E_CANTGET, FAIL, "unable to get dimensionality");
+            hsize_t dims1[H5O_LAYOUT_NDIMS]; /* End point of selection block in dataspace #1 */
+            hsize_t dims2[H5O_LAYOUT_NDIMS]; /* End point of selection block in dataspace #2 */
 
-            /* Check that the sizes are the same */
-            for (u=0; u<space1->extent.rank; u++)
-                if(dims1[u]!=dims2[u])
+            if ( H5S_get_simple_extent_dims(space_a, dims1, NULL) < 0 ) {
+
+                HGOTO_ERROR(H5E_DATASPACE, H5E_CANTGET, FAIL, \
+                            "unable to get dimensionality");
+            }
+
+            if ( H5S_get_simple_extent_dims(space_b, dims2, NULL) < 0 ) {
+
+                HGOTO_ERROR(H5E_DATASPACE, H5E_CANTGET, FAIL, \
+                            "unable to get dimensionality");
+            }
+
+            i = space_a_rank - 1;
+            j = space_b_rank - 1;
+
+            /* recall that space_a_rank >= space_b_rank. 
+             *
+             * In the following while loop, we test to see if space_a and space_b
+             * have identical size in all dimensions they have in common.
+             */
+            while ( j >= 0 ) {
+
+                if ( dims1[i] != dims2[j] ) {
+
                     HGOTO_DONE(FALSE);
+                }
+
+                i--;
+                j--;
+            }
+
+            /* Since we are selecting the entire spaces, we must also verify that space_a 
+             * has size 1 in all dimensions that it does not share with space_b.
+             */
+
+            while ( i >= 0 ) {
+
+                if ( dims1[i] != 1 ) {
+
+                    HGOTO_DONE(FALSE);
+                }
+
+                i--;
+            }
         } /* end if */
-        else if(H5S_GET_SELECT_TYPE(space1)==H5S_SEL_NONE || H5S_GET_SELECT_TYPE(space2)==H5S_SEL_NONE) {
+        else if ( ( H5S_GET_SELECT_TYPE(space1)==H5S_SEL_NONE ) || 
+                  ( H5S_GET_SELECT_TYPE(space2)==H5S_SEL_NONE ) ) {
+
             HGOTO_DONE(TRUE);
-        } /* end if */
-        else if((H5S_GET_SELECT_TYPE(space1)==H5S_SEL_HYPERSLABS && space1->select.sel_info.hslab->diminfo_valid)
-                && (H5S_GET_SELECT_TYPE(space2)==H5S_SEL_HYPERSLABS && space2->select.sel_info.hslab->diminfo_valid)) {
 
-            /* Check that the shapes are the same */
-            for (u=0; u<space1->extent.rank; u++) {
-                if(space1->select.sel_info.hslab->opt_diminfo[u].stride!=space2->select.sel_info.hslab->opt_diminfo[u].stride)
+        } /* end if */
+        else if ( ( H5S_GET_SELECT_TYPE(space_a) == H5S_SEL_HYPERSLABS ) 
+                  && 
+                  ( space_a->select.sel_info.hslab->diminfo_valid ) 
+                  && 
+                  ( H5S_GET_SELECT_TYPE(space_b) == H5S_SEL_HYPERSLABS )
+                  && 
+                  ( space_b->select.sel_info.hslab->diminfo_valid ) ) {
+
+
+            i = space_a_rank - 1;
+            j = space_b_rank - 1;
+
+            /* check that the shapes are the same in the common dimensions, and that
+             * block == 1 in all dimensions that appear only in space_a.
+             */
+            while ( j >= 0 ) {
+
+                if ( space_a->select.sel_info.hslab->opt_diminfo[i].stride != 
+                     space_b->select.sel_info.hslab->opt_diminfo[j].stride ) {
+
                     HGOTO_DONE(FALSE);
-                if(space1->select.sel_info.hslab->opt_diminfo[u].count!=space2->select.sel_info.hslab->opt_diminfo[u].count)
+                }
+
+                if ( space_a->select.sel_info.hslab->opt_diminfo[i].count !=
+                     space_b->select.sel_info.hslab->opt_diminfo[j].count ) {
+
                     HGOTO_DONE(FALSE);
-                if(space1->select.sel_info.hslab->opt_diminfo[u].block!=space2->select.sel_info.hslab->opt_diminfo[u].block)
+                }
+
+                if ( space_a->select.sel_info.hslab->opt_diminfo[i].block != 
+                     space_b->select.sel_info.hslab->opt_diminfo[j].block ) {
+
                     HGOTO_DONE(FALSE);
-            } /* end for */
+                }
+
+                i--;
+                j--;
+            }
+
+            while ( i >= 0 ) {
+
+                if ( space_a->select.sel_info.hslab->opt_diminfo[i].block != 1 ) {
+
+                    HGOTO_DONE(FALSE);
+                }
+
+                i--;
+            }
         } /* end if */
         /* Iterate through all the blocks in the selection */
         else {
-            hsize_t start1[H5O_LAYOUT_NDIMS];      /* Start point of selection block in dataspace #1 */
-            hsize_t start2[H5O_LAYOUT_NDIMS];      /* Start point of selection block in dataspace #2 */
-            hsize_t end1[H5O_LAYOUT_NDIMS];        /* End point of selection block in dataspace #1 */
-            hsize_t end2[H5O_LAYOUT_NDIMS];        /* End point of selection block in dataspace #2 */
-            hsize_t off1[H5O_LAYOUT_NDIMS];        /* Offset of selection #1 blocks */
-            hsize_t off2[H5O_LAYOUT_NDIMS];        /* Offset of selection #2 blocks */
-            htri_t status1,status2;         /* Status from next block checks */
-            unsigned first_block=1;         /* Flag to indicate the first block */
+
+            hsize_t start_a[H5O_LAYOUT_NDIMS]; /* Start point of selection block in dataspace a */
+            hsize_t start_b[H5O_LAYOUT_NDIMS]; /* Start point of selection block in dataspace b */
+            hsize_t end_a[H5O_LAYOUT_NDIMS];   /* End point of selection block in dataspace a */
+            hsize_t end_b[H5O_LAYOUT_NDIMS];   /* End point of selection block in dataspace b */
+            hsize_t off_a[H5O_LAYOUT_NDIMS];   /* Offset of selection a blocks */
+            hsize_t off_b[H5O_LAYOUT_NDIMS];   /* Offset of selection b blocks */
+            htri_t status_a, status_b;         /* Status from next block checks */
+            unsigned first_block=1;            /* Flag to indicate the first block */
 
             /* Initialize iterator for each dataspace selection
              * Use '0' for element size instead of actual element size to indicate
              * that the selection iterator shouldn't be "flattened", since we
              * aren't actually going to be doing I/O with the iterators.
              */
-            if(H5S_select_iter_init(&iter1, space1, (size_t)0) < 0)
-                HGOTO_ERROR (H5E_DATASPACE, H5E_CANTINIT, FAIL, "unable to initialize selection iterator");
-            iter1_init = 1;
-            if(H5S_select_iter_init(&iter2, space2, (size_t)0) < 0)
-                HGOTO_ERROR (H5E_DATASPACE, H5E_CANTINIT, FAIL, "unable to initialize selection iterator");
-            iter2_init = 1;
+            if(H5S_select_iter_init(&iter_a, space_a, (size_t)0) < 0)
+                HGOTO_ERROR (H5E_DATASPACE, H5E_CANTINIT, FAIL, \
+                             "unable to initialize selection iterator a");
+            iter_a_init = 1;
+            if(H5S_select_iter_init(&iter_b, space_b, (size_t)0) < 0)
+                HGOTO_ERROR (H5E_DATASPACE, H5E_CANTINIT, FAIL, \
+                             "unable to initialize selection iterator b");
+            iter_b_init = 1;
 
             /* Iterate over all the blocks in each selection */
             while(1) {
                 /* Get the current block for each selection iterator */
-                if(H5S_SELECT_ITER_BLOCK(&iter1,start1,end1)<0)
-                    HGOTO_ERROR (H5E_DATASPACE, H5E_CANTGET, FAIL, "unable to get iterator block");
-                if(H5S_SELECT_ITER_BLOCK(&iter2,start2,end2)<0)
-                    HGOTO_ERROR (H5E_DATASPACE, H5E_CANTGET, FAIL, "unable to get iterator block");
+                if ( H5S_SELECT_ITER_BLOCK(&iter_a, start_a, end_a) < 0 ) {
 
-                /* The first block only compares the sizes and sets the relative offsets for later blocks */
-                if(first_block) {
-                    /* If the block sizes from each selection doesn't match, get out */
-                    for (u=0; u<space1->extent.rank; u++) {
-                        if((end1[u]-start1[u])!=(end2[u]-start2[u]))
+                    HGOTO_ERROR (H5E_DATASPACE, H5E_CANTGET, FAIL, \
+                                 "unable to get iterator block a");
+                }
+                if ( H5S_SELECT_ITER_BLOCK(&iter_b, start_b, end_b) < 0 ) {
+
+                    HGOTO_ERROR (H5E_DATASPACE, H5E_CANTGET, FAIL, \
+                                 "unable to get iterator block b");
+                }
+
+                /* The first block only compares the sizes and sets the 
+                 * relative offsets for later blocks 
+                 */
+                if ( first_block ) {
+
+                    /* If the block sizes in the common dimensions from 
+                     * each selection don't match, get out
+                     */
+
+                    i = space_a_rank - 1;
+                    j = space_b_rank - 1;
+
+                    while ( j >= 0 ) {
+
+                        if ( (end_a[i] - start_a[i]) != (end_b[j] - start_b[j]) ) {
+
                             HGOTO_DONE(FALSE);
+                        }
 
                         /* Set the relative locations of the selections */
-                        off1[u]=start1[u];
-                        off2[u]=start2[u];
-                    } /* end for */
+                        off_a[i] = start_a[i];
+                        off_b[j] = start_b[j];
+
+                        i--;
+                        j--;
+                    }
+
+                    /* similarly, if the block size in any dimension that appears only
+                     * in space_a is not equal to 1, get out.
+                     */
+
+                    while ( i >= 0 ) {
+
+                        if ( (end_a[i] - start_a[i]) != 0 ) {
+
+                            HGOTO_DONE(FALSE);
+                        }
+
+                        /* Set the relative locations of the selections */
+                        off_a[i] = start_a[i];
+
+                        i--;
+                    }
 
                     /* Reset "first block" flag */
                     first_block=0;
                 } /* end if */
                 else {
                     /* Check over the blocks for each selection */
-                    for (u=0; u<space1->extent.rank; u++) {
+
+                    i = space_a_rank - 1;
+                    j = space_b_rank - 1;
+
+                    /* for dimensions that space_a and space_b have in common: */
+                    while ( j >= 0 ) {
+
                         /* Check if the blocks are in the same relative location */
-                        if((start1[u]-off1[u])!=(start2[u]-off2[u]))
+                        if ( (start_a[i] - off_a[i]) != (start_b[j] - off_b[j]) ) {
+
                             HGOTO_DONE(FALSE);
+                        }
 
                         /* If the block sizes from each selection doesn't match, get out */
-                        if((end1[u]-start1[u])!=(end2[u]-start2[u]))
+                        if ( (end_a[i] - start_a[i]) != (end_b[j] - start_b[j]) ) {
+
                             HGOTO_DONE(FALSE);
-                    } /* end for */
+                        }
+
+                        i--;
+                        j--;
+                    }
+
+                    /* For dimensions that appear only in space_a: */
+                    while ( i >= 0 ) {
+
+                        /* If the block size isn't 1, get out */
+                        if ( (end_a[i] - start_a[i]) != 0 ) {
+
+                            HGOTO_DONE(FALSE);
+                        }
+
+                        i--;
+                    }
                 } /* end else */
 
                 /* Check if we are able to advance to the next selection block */
-                if((status1=H5S_SELECT_ITER_HAS_NEXT_BLOCK(&iter1))<0)
-                    HGOTO_ERROR (H5E_DATASPACE, H5E_CANTNEXT, FAIL, "unable to check iterator block");
-                if((status2=H5S_SELECT_ITER_HAS_NEXT_BLOCK(&iter2))<0)
-                    HGOTO_ERROR (H5E_DATASPACE, H5E_CANTNEXT, FAIL, "unable to check iterator block");
+                if ( (status_a = H5S_SELECT_ITER_HAS_NEXT_BLOCK(&iter_a)) < 0 ) {
+
+                    HGOTO_ERROR (H5E_DATASPACE, H5E_CANTNEXT, FAIL, \
+                                 "unable to check iterator block a");
+                }
+
+                if ( (status_b = H5S_SELECT_ITER_HAS_NEXT_BLOCK(&iter_b)) < 0 ) {
+
+                    HGOTO_ERROR (H5E_DATASPACE, H5E_CANTNEXT, FAIL, \
+                                 "unable to check iterator block b");
+                }
 
                 /* Did we run out of blocks at the same time? */
-                if(status1==FALSE && status2==FALSE)
+                if ( ( status_a == FALSE ) && ( status_b == FALSE ) ) {
+
                     break;
-                else if(status1!=status2) {
+
+                } else if ( status_a != status_b ) {
+
                     HGOTO_DONE(FALSE);
+
                 } /* end if */
                 else {
                     /* Advance to next block in selection iterators */
-                    if(H5S_SELECT_ITER_NEXT_BLOCK(&iter1)<0)
-                        HGOTO_ERROR (H5E_DATASPACE, H5E_CANTNEXT, FAIL, "unable to advance to next iterator block");
-                    if(H5S_SELECT_ITER_NEXT_BLOCK(&iter2)<0)
-                        HGOTO_ERROR (H5E_DATASPACE, H5E_CANTNEXT, FAIL, "unable to advance to next iterator block");
+                    if ( H5S_SELECT_ITER_NEXT_BLOCK(&iter_a) < 0 ) {
+
+                        HGOTO_ERROR (H5E_DATASPACE, H5E_CANTNEXT, FAIL, \
+                                     "unable to advance to next iterator block a");
+                    }
+
+                    if ( H5S_SELECT_ITER_NEXT_BLOCK(&iter_b) < 0 ) {
+
+                        HGOTO_ERROR (H5E_DATASPACE, H5E_CANTNEXT, FAIL, \
+                                     "unable to advance to next iterator block b");
+                    }
                 } /* end else */
             } /* end while */
         } /* end else */
     } /* end else */
 
 done:
-    if(iter1_init) {
-        if (H5S_SELECT_ITER_RELEASE(&iter1)<0)
-            HDONE_ERROR (H5E_DATASPACE, H5E_CANTRELEASE, FAIL, "unable to release selection iterator");
+    if ( iter_a_init ) {
+
+        if ( H5S_SELECT_ITER_RELEASE(&iter_a) < 0 ) {
+
+            HDONE_ERROR (H5E_DATASPACE, H5E_CANTRELEASE, FAIL, \
+                         "unable to release selection iterator a");
+        }
     } /* end if */
-    if(iter2_init) {
-        if (H5S_SELECT_ITER_RELEASE(&iter2)<0)
-            HDONE_ERROR (H5E_DATASPACE, H5E_CANTRELEASE, FAIL, "unable to release selection iterator");
+
+    if ( iter_b_init) {
+
+        if ( H5S_SELECT_ITER_RELEASE(&iter_b) < 0 ) {
+
+            HDONE_ERROR (H5E_DATASPACE, H5E_CANTRELEASE, FAIL, \
+                         "unable to release selection iterator b");
+        }
     } /* end if */
 
     FUNC_LEAVE_NOAPI(ret_value)
+
 }   /* H5S_select_shape_same() */
 
 
