@@ -75,6 +75,11 @@ hbool_t H5HL_libinit_g = FALSE;
 /* HL-HDF5 API Entered variable */
 hbool_t H5HL_api_entered_g = FALSE;
 
+/* High-Level API error class */
+hid_t H5HL_ERR_CLS_g = (-1);
+
+/* Major error codes */
+hid_t H5E_HL_g = (-1);
 
 /*******************/
 /* Local Variables */
