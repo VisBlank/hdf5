@@ -113,10 +113,10 @@ $ CALL TOOLTEST  "in64.txt -c textpfe.conf -o" test15.h5
 $
 $
 $ ! Delete temporary files
-$ del *_out.h5;*
+$ del *.h5;*
 $ del *.h5importtxt;*
-$ del b*.h5;*
-$ del txti*.h5;*
+$ del *.bin;*
+$ del *.txt;*
 $ del *.dif;*
 $ !
 $ 
