@@ -139,6 +139,13 @@ typedef struct H5D_dcpl_cache_t {
     H5O_efl_t efl;              /* External file list info (H5D_CRT_EXT_FILE_LIST_NAME) */
 } H5D_dcpl_cache_t;
 
+/* Callback information for copying dataset */
+typedef struct H5D_copy_file_ud_t {
+    struct H5S_extent_t *src_space_extent;     /* Copy of dataspace extent for dataset */
+    H5T_t *src_dtype;                   /* Copy of datatype for dataset */
+    H5O_pline_t *src_pline;             /* Copy of filter pipeline for dataet */
+} H5D_copy_file_ud_t;
+
 
 /*****************************/
 /* Library Private Variables */
@@ -163,12 +170,12 @@ H5_DLL herr_t H5D_vlen_reclaim(hid_t type_id, H5S_t *space, hid_t plist_id,
 
 /* Functions that operate on contiguous storage */
 H5_DLL herr_t H5D_contig_delete(H5F_t *f, hid_t dxpl_id,
-    const H5O_layout_t *layout);
+    const H5O_storage_t *store);
 
 /* Functions that operate on chunked storage */
-H5_DLL herr_t H5D_chunk_idx_reset(H5O_layout_t *layout, hbool_t reset_addr);
+H5_DLL herr_t H5D_chunk_idx_reset(H5O_storage_chunk_t *storage, hbool_t reset_addr);
 H5_DLL herr_t H5D_chunk_delete(H5F_t *f, hid_t dxpl_id, H5O_t *oh,
-    H5O_layout_t *layout);
+    H5O_storage_t *store);
 
 /* Functions that operate on indexed storage */
 H5_DLL herr_t H5D_btree_debug(H5F_t *f, hid_t dxpl_id, haddr_t addr, FILE * stream,
