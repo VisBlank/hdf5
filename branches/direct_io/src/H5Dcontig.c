@@ -657,6 +657,7 @@ for(u = 0; u < mem_max_nseq; u++)
         size_t sieve_size = (size_t)-1;   /* size of sieve buffer */
         haddr_t rel_eoa;	        /* Relative end of file address		*/
         hsize_t max_data;               /* Actual maximum size of data to cache */
+        H5FD_direct_fapl_t *direct_info = H5F_DIRECT_INFO(io_info->dset->oloc.file);  
 
         /* Set offsets in sequence lists */
         u = *dset_curr_seq;
@@ -692,7 +693,7 @@ for(u = 0; u < mem_max_nseq; u++)
                 } /* end if */
                 else {
                     /* Allocate room for the data sieve buffer */
-                    if (NULL==(dset_contig->sieve_buf=H5FL_BLK_MALLOC(sieve_buf,dset_contig->sieve_buf_size)))
+                    if(H5MM_aligned_malloc(&(dset_contig->sieve_buf), dset_contig->sieve_buf_size, FALSE, direct_info) < 0)
                         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed")
 
                     /* Determine the new sieve buffer size & location */
@@ -914,6 +915,7 @@ H5D_contig_writevv(const H5D_io_info_t *io_info,
         size_t sieve_size=(size_t)-1;   /* size of sieve buffer */
         haddr_t rel_eoa;	        /* Relative end of file address		*/
         hsize_t max_data;               /* Actual maximum size of data to cache */
+        H5FD_direct_fapl_t *direct_info = H5F_DIRECT_INFO(file);  
 
         /* Set offsets in sequence lists */
         u=*dset_curr_seq;
@@ -949,8 +951,9 @@ H5D_contig_writevv(const H5D_io_info_t *io_info,
                 } /* end if */
                 else {
                     /* Allocate room for the data sieve buffer */
-                    if(NULL == (dset_contig->sieve_buf = H5FL_BLK_MALLOC(sieve_buf, dset_contig->sieve_buf_size)))
+                    if(H5MM_aligned_malloc(&(dset_contig->sieve_buf), dset_contig->sieve_buf_size, FALSE, direct_info) < 0)
                         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed")
+
 #ifdef H5_CLEAR_MEMORY
 if(dset_contig->sieve_size > size)
     HDmemset(dset_contig->sieve_buf + size, 0, (dset_contig->sieve_size - size));
@@ -1125,39 +1128,39 @@ if(dset_contig->sieve_size > size)
         } /* end for */
     } /* end if */
     else {
-        /* Work through all the sequences */
-        for(u = *dset_curr_seq, v = *mem_curr_seq; u < dset_max_nseq && v < mem_max_nseq; ) {
-            /* Choose smallest buffer to write */
-            if(mem_len_arr[v] < dset_len_arr[u])
-                size = mem_len_arr[v];
-            else
-                size = dset_len_arr[u];
+	/* Work through all the sequences */
+	for(u = *dset_curr_seq, v = *mem_curr_seq; u < dset_max_nseq && v < mem_max_nseq; ) {
+	    /* Choose smallest buffer to write */
+	    if(mem_len_arr[v] < dset_len_arr[u])
+		size = mem_len_arr[v];
+	    else
+		size = dset_len_arr[u];
 
-            /* Compute offset on disk */
-            addr = store_contig->dset_addr + dset_offset_arr[u];
+	    /* Compute offset on disk */
+	    addr = store_contig->dset_addr + dset_offset_arr[u];
 
-            /* Compute offset in memory */
-            buf = (const unsigned char *)io_info->u.wbuf + mem_offset_arr[v];
+	    /* Compute offset in memory */
+	    buf = (const unsigned char *)io_info->u.wbuf + mem_offset_arr[v];
 
-            /* Write data */
-            if(H5F_block_write(file, H5FD_MEM_DRAW, addr, size, io_info->dxpl_id, buf) < 0)
-                HGOTO_ERROR(H5E_IO, H5E_WRITEERROR, FAIL, "block write failed")
+	    /* Write data */
+	    if(H5F_block_write(file, H5FD_MEM_DRAW, addr, size, io_info->dxpl_id, buf) < 0)
+		HGOTO_ERROR(H5E_IO, H5E_WRITEERROR, FAIL, "block write failed")
 
-            /* Update memory information */
-            mem_len_arr[v] -= size;
-            mem_offset_arr[v] += size;
-            if(mem_len_arr[v] == 0)
-                v++;
+	    /* Update memory information */
+	    mem_len_arr[v] -= size;
+	    mem_offset_arr[v] += size;
+	    if(mem_len_arr[v] == 0)
+		v++;
 
-            /* Update file information */
-            dset_len_arr[u] -= size;
-            dset_offset_arr[u] += size;
-            if(dset_len_arr[u] == 0)
-                u++;
+	    /* Update file information */
+	    dset_len_arr[u] -= size;
+	    dset_offset_arr[u] += size;
+	    if(dset_len_arr[u] == 0)
+		u++;
 
-            /* Increment number of bytes copied */
-            total_size += size;
-        } /* end for */
+	    /* Increment number of bytes copied */
+	    total_size += size;
+	} /* end for */
     } /* end else */
 
     /* Update current sequence vectors */

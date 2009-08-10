@@ -717,6 +717,35 @@ H5F_is_tmp_addr(const H5F_t *f, haddr_t addr)
 
 
 /*-------------------------------------------------------------------------
+ * Function:	H5F_get_direct_info_id
+ *
+ * Purpose:	Quick and dirty routine to retrieve the file's 'driver_id' value
+ *          (Mainly added to stop non-file routines from poking about in the
+ *          H5F_t data structure)
+ *
+ * Return:	'driver_id' on success/abort on failure (shouldn't fail)
+ *
+ * Programmer:	Quincey Koziol <koziol@ncsa.uiuc.edu>
+ *		October 10, 2000
+ *
+ *-------------------------------------------------------------------------
+ */
+H5FD_direct_fapl_t*
+H5F_get_direct_info(const H5F_t *f)
+{
+    /* Use FUNC_ENTER_NOAPI_NOINIT_NOFUNC here to avoid performance issues */
+    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5F_get_direct_info)
+
+    HDassert(f);
+    HDassert(f->shared);
+    HDassert(f->shared->lf);
+
+    FUNC_LEAVE_NOAPI(f->shared->direct_info)
+} /* end H5F_get_driver_id() */
+
+
+
+/*-------------------------------------------------------------------------
  * Function:	H5F_use_tmp_space
  *
  * Purpose:	Quick and dirty routine to determine if using temporary

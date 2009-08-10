@@ -33,7 +33,7 @@
 /*Macros for Direct VFD*/
 #define MBOUNDARY	512
 #define FBSIZE		(4*KB)
-#define CBSIZE		(8*KB)
+#define CBSIZE		(64*KB)
 #define THRESHOLD 	1
 #define DSET1_NAME	"dset1"
 #define DSET1_DIM1      1024

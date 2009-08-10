@@ -80,6 +80,8 @@ H5FL_DEFINE(H5F_t);
 /* Declare a free list to manage the H5F_file_t struct */
 H5FL_DEFINE(H5F_file_t);
 
+/* Declare a free list to manage the H5FD_direct_fapl_t struct */
+H5FL_DEFINE(H5FD_direct_fapl_t);
 
 /*-------------------------------------------------------------------------
  * Function:	H5F_init
@@ -864,7 +866,7 @@ done:
 static H5F_t *
 H5F_new(H5F_file_t *shared, hid_t fcpl_id, hid_t fapl_id, H5FD_t *lf)
 {
-    H5F_t	*f = NULL, *ret_value;
+    H5F_t	*f = NULL, *ret_value = NULL;
 
     FUNC_ENTER_NOAPI_NOINIT(H5F_new)
 
@@ -956,6 +958,28 @@ H5F_new(H5F_file_t *shared, hid_t fcpl_id, hid_t fapl_id, H5FD_t *lf)
         if(H5MF_init_merge_flags(f) < 0)
             HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "problem initializing free space merge flags")
         f->shared->tmp_addr = f->shared->maxaddr;
+
+        /* Retrieve the information for the Direct IO */
+        if(H5FD_DIRECT==H5P_get_driver(plist)) {
+            H5FD_direct_fapl_t *direct_info;
+
+            if(NULL == (f->shared->direct_info = H5FL_CALLOC(H5FD_direct_fapl_t)))
+                HGOTO_ERROR(H5E_FILE, H5E_NOSPACE, NULL, "can't allocate structure for direct I/O")
+       
+            if (NULL==(direct_info=H5P_get_driver_info(plist)))
+                HGOTO_ERROR(H5E_PLIST, H5E_BADVALUE, FAIL, "bad driver info")
+
+            f->shared->direct_info->mboundary = direct_info->mboundary;
+            f->shared->direct_info->fbsize = direct_info->fbsize;
+            f->shared->direct_info->cbsize = direct_info->cbsize;
+            f->shared->direct_info->must_align = direct_info->must_align;
+
+            /* Make sure the sieve buffer size is the same as the copy buffer size for the direct IO */
+            if (f->shared->direct_info->must_align && ((f->shared->sieve_buf_size % f->shared->direct_info->fbsize) || 
+                (f->shared->sieve_buf_size != f->shared->direct_info->cbsize)))
+                HGOTO_ERROR(H5E_PLIST, H5E_BADVALUE, FAIL, "sieve buffer size for Direct I/O should be aligned to file block")
+        }
+
         /* Disable temp. space allocation for parallel I/O (for now) */
         /* (When we've arranged to have the relocated metadata addresses (and
          *      sizes) broadcast during the "end of epoch" metadata operations,
@@ -1129,6 +1153,9 @@ H5F_dest(H5F_t *f, hid_t dxpl_id)
 
         /* Free root group symbol table entry, if any */
         f->shared->root_ent = (H5G_entry_t *)H5MM_xfree(f->shared->root_ent);
+
+        /* Free structure for Direct I/O */
+        f->shared->direct_info = (H5FD_direct_fapl_t *)H5MM_xfree(f->shared->direct_info);
 
         /* Destroy shared file struct */
         f->shared = (H5F_file_t *)H5FL_FREE(H5F_file_t, f->shared);

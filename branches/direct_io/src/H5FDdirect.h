@@ -39,7 +39,7 @@ extern "C" {
  * Application can set these values through the function H5Pset_fapl_direct. */
 #define MBOUNDARY_DEF		4096
 #define FBSIZE_DEF		4096
-#define CBSIZE_DEF		16*1024*1024
+#define CBSIZE_DEF		64*1024
 
 H5_DLL hid_t H5FD_direct_init(void);
 H5_DLL void H5FD_direct_term(void);

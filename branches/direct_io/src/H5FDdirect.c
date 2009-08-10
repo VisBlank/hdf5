@@ -49,14 +49,6 @@ static hid_t H5FD_DIRECT_g = 0;
 #define OP_READ		1
 #define OP_WRITE	2
 
-/* Driver-specific file access properties */
-typedef struct H5FD_direct_fapl_t {
-    size_t	mboundary;	/* Memory boundary for alignment		*/
-    size_t	fbsize;		/* File system block size			*/
-    size_t	cbsize;		/* Maximal buffer size for copying user data	*/
-    hbool_t     must_align;     /* Decides if data alignment is required        */
-} H5FD_direct_fapl_t;
-
 /*
  * The description of a file belonging to this driver. The `eoa' and `eof'
  * determine the amount of hdf5 address space in use and the high-water mark
@@ -199,7 +191,7 @@ static const H5FD_class_t H5FD_direct_g = {
     H5FD_direct_get_handle,                     /*get_handle            */
     H5FD_direct_read,				/*read			*/
     H5FD_direct_write,				/*write			*/
-    NULL,					/*flush			*/
+    H5FD_direct_truncate,			/*flush (same as truncate)*/
     H5FD_direct_truncate,			/*truncate		*/
     NULL,                                       /*lock                  */
     NULL,                                       /*unlock                */
@@ -978,7 +970,7 @@ H5FD_direct_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id, ha
 	     * copy buffer size. Make a bigger buffer for aligned I/O if size is
 	     * smaller than maximal copy buffer. */
 	    if(size < _cbsize)
-	    	alloc_size = ((size / _fbsize) * _fbsize) + _fbsize;
+	    	alloc_size = (((addr+size-(addr-addr%_fbsize)) / _fbsize) * _fbsize) + _fbsize;
 	    else
 	    	alloc_size = _cbsize;
 	    if (HDposix_memalign(&copy_buf, _boundary, alloc_size) != 0)
@@ -1144,7 +1136,7 @@ H5FD_direct_write(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id, h
 	     * smaller than maximal copy buffer.
 	     */
 	    if(size < _cbsize)
-	    	alloc_size = ((size / _fbsize) * _fbsize) + _fbsize;
+	    	alloc_size = (((addr+size-(addr-addr%_fbsize)) / _fbsize) * _fbsize) + _fbsize;
 	    else
 		alloc_size = _cbsize;
 
@@ -1253,6 +1245,14 @@ done:
  * Programmer:	Raymond Lu
  *              Thursday, 21 September 2006
  *
+ * Modification:
+ *              Raymond Lu
+ *              7 August 2009
+ *              Put this function as the flush function.  In H5F_flush
+ *              in H5F.c, after the call of H5FD_truncate, there're calls of
+ *              H5F_super_write and H5F_accum_flush.  They write some 
+ *              metadata again where the Direct driver may extend the file 
+ *              size.     
  *-------------------------------------------------------------------------
  */
 static herr_t

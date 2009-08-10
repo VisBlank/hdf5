@@ -1442,9 +1442,10 @@ H5D_open_oid(H5D_t *dataset, hid_t dapl_id, hid_t dxpl_id)
                 /* Assign the dataset's contiguous storage size */
                 dataset->shared->layout.u.contig.size = tmp_size;
             } /* end if */
-
+           
             /* Get the sieve buffer size for this dataset */
             dataset->shared->cache.contig.sieve_buf_size = H5F_SIEVE_BUF_SIZE(dataset->oloc.file);
+            
             break;
 
         case H5D_CHUNKED:
@@ -1590,8 +1591,7 @@ H5D_close(H5D_t *dataset)
         /* Free the data sieve buffer, if it's been allocated */
         if(dataset->shared->cache.contig.sieve_buf) {
             HDassert(dataset->shared->layout.type != H5D_COMPACT);      /* We should never have a sieve buffer for compact storage */
-
-            dataset->shared->cache.contig.sieve_buf = (unsigned char *)H5FL_BLK_FREE(sieve_buf,dataset->shared->cache.contig.sieve_buf);
+            dataset->shared->cache.contig.sieve_buf = (unsigned char *)H5MM_xfree(dataset->shared->cache.contig.sieve_buf);
         } /* end if */
 
         /* Free cached information for each kind of dataset */

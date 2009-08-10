@@ -38,6 +38,14 @@ typedef struct H5F_t H5F_t;
 /* Block aggregation structure */
 typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
 
+/* File access properties for Direct IO */
+typedef struct H5FD_direct_fapl_t {
+    size_t	mboundary;	/* Memory boundary for alignment		*/
+    size_t	fbsize;		/* File system block size			*/
+    size_t	cbsize;		/* Maximal buffer size for copying user data	*/
+    hbool_t     must_align;     /* Decides if data alignment is required        */
+} H5FD_direct_fapl_t;
+
 /*===----------------------------------------------------------------------===
  *                              Flush Flags
  *===----------------------------------------------------------------------===
@@ -267,6 +275,7 @@ typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
 #define H5F_GET_FILENO(F,FILENUM) ((FILENUM) = (F)->shared->lf->fileno)
 #define H5F_USE_TMP_SPACE(F)    ((F)->shared->use_tmp_space)
 #define H5F_IS_TMP_ADDR(F, ADDR) (H5F_addr_le((F)->shared->tmp_addr, (ADDR)))
+#define H5F_DIRECT_INFO(F)      ((F)->shared->direct_info)
 #else /* H5F_PACKAGE */
 #define H5F_INTENT(F)           (H5F_get_intent(F))
 #define H5F_FCPL(F)             (H5F_get_fcpl(F))
@@ -291,6 +300,7 @@ typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
 #define H5F_GET_FILENO(F,FILENUM) (H5F_get_fileno((F), &(FILENUM)))
 #define H5F_USE_TMP_SPACE(F)    (H5F_use_tmp_space(F))
 #define H5F_IS_TMP_ADDR(F, ADDR) (H5F_is_tmp_addr((F), (ADDR)))
+#define H5F_DIRECT_INFO(F)      (H5F_get_direct_info(F))
 #endif /* H5F_PACKAGE */
 
 
@@ -498,6 +508,7 @@ H5_DLL hbool_t H5F_use_latest_format(const H5F_t *f);
 H5_DLL H5F_close_degree_t H5F_get_fc_degree(const H5F_t *f);
 H5_DLL hbool_t H5F_store_msg_crt_idx(const H5F_t *f);
 H5_DLL hbool_t H5F_is_tmp_addr(const H5F_t *f, haddr_t addr);
+H5_DLL H5FD_direct_fapl_t* H5F_get_direct_info(const H5F_t *f);
 
 /* Functions that retrieve values from VFD layer */
 H5_DLL hbool_t H5F_has_feature(const H5F_t *f, unsigned feature);

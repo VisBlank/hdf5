@@ -178,6 +178,8 @@ typedef struct H5F_file_t {
 
     /* Metadata accumulator information */
     H5F_meta_accum_t accum;     /* Metadata accumulator info           */
+
+    H5FD_direct_fapl_t *direct_info;    /* Information for Direct IO */
 } H5F_file_t;
 
 /*

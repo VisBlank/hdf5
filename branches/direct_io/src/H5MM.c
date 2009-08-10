@@ -66,6 +66,74 @@ H5MM_malloc(size_t size)
 
 
 /*-------------------------------------------------------------------------
+ * Function:	H5MM_aligned_malloc
+ *
+ * Purpose:	Just like the POSIX version of malloc(3). This routine
+ *		specifically checks for allocations of 0 bytes and fails
+ *              in that case.  This routine is not called when NDEBUG is
+ *		defined.
+ *
+ * Return:	Success:	The actual size of the allocated buffer 
+ *
+ *		Failure:	Negative
+ *
+ * Programmer:	Raymond Lu
+ *		songyulu@hdfgroup.org
+ *		4 August 2009
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+ssize_t
+H5MM_aligned_malloc(void** buffer, size_t size, hbool_t initialize, H5FD_direct_fapl_t *align_info)
+{
+    size_t  alloc_size;
+    size_t  fbsize, cbsize, boundary;
+    char    error_msg[1024];
+    ssize_t ret_value = SUCCEED;
+ 
+    /* Use FUNC_ENTER_NOAPI here to avoid performance issues */
+    FUNC_ENTER_NOAPI(H5MM_aligned_malloc, FAIL);
+
+    assert(size);
+
+    /* If Direct IO isn't used or it doesn't require alignment, 
+     * simply allocate a buffer according to the actual size */
+    if(!align_info || !align_info->must_align) {
+        if(initialize)
+            *buffer = HDcalloc(1, size);
+        else
+            *buffer = HDmalloc(size); 
+
+        ret_value = (ssize_t)size;
+        HGOTO_DONE(ret_value);        
+    }
+
+    fbsize = align_info->fbsize;
+    cbsize = align_info->cbsize;
+    boundary = align_info->mboundary;
+
+    /* Make sure the size is a multiple of file block size.  It can be bigger than
+     * the copy buffer size because the conversion may require a bigger size (see
+     * the H5D_typeinfo_init in H5Dio.c) */
+    alloc_size = ((size / fbsize) * fbsize) + fbsize;
+
+    if (HDposix_memalign(buffer, boundary, alloc_size) != 0)
+        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, FAIL, "HDposix_memalign failed")
+    
+    if(initialize)
+        HDmemset(*buffer, 0, alloc_size);
+ 
+    ret_value = (ssize_t)alloc_size;
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value);
+} /* end H5MM_malloc() */
+
+
+
+/*-------------------------------------------------------------------------
  * Function:	H5MM_calloc
  *
  * Purpose:	Similar to the POSIX version of calloc(3), except this routine

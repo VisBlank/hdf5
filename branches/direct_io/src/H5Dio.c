@@ -28,6 +28,7 @@
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5FLprivate.h"	/* Free Lists                           */
 #include "H5Iprivate.h"		/* IDs			  		*/
+#include "H5MMprivate.h"	/* Memory Management                    */
 
 #ifdef H5_HAVE_PARALLEL
 /* Remove this if H5R_DATASET_REGION is no longer used in this file */
@@ -694,6 +695,7 @@ H5D_typeinfo_init(const H5D_t *dset, const H5D_dxpl_cache_t *dxpl_cache,
 {
     const H5T_t	*src_type;              /* Source datatype */
     const H5T_t	*dst_type;              /* Destination datatype */
+    H5FD_direct_fapl_t *direct_info = H5F_DIRECT_INFO(dset->oloc.file);  
     herr_t ret_value = SUCCEED;	        /* Return value	*/
 
     FUNC_ENTER_NOAPI_NOINIT(H5D_typeinfo_init)
@@ -745,7 +747,7 @@ H5D_typeinfo_init(const H5D_t *dset, const H5D_dxpl_cache_t *dxpl_cache,
         type_info->need_bkg = H5T_BKG_NO;
     } /* end if */
     else {
-        size_t	target_size;		/* Desired buffer size	*/
+        ssize_t	target_size;		/* Desired buffer size	*/
 
         /* Check if the datatypes are compound subsets of one another */
         type_info->cmpd_subset = H5T_path_compound_subset(type_info->tpath);
@@ -788,13 +790,6 @@ H5D_typeinfo_init(const H5D_t *dset, const H5D_dxpl_cache_t *dxpl_cache,
                 HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, "temporary buffer max size is too small")
         } /* end if */
 
-        /* Compute the number of elements that will fit into buffer */
-        type_info->request_nelmts = target_size / type_info->max_type_size;
-
-        /* Sanity check elements in temporary buffer */
-        if(type_info->request_nelmts == 0)
-            HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, "temporary buffer max size is too small")
-
         /*
          * Get a temporary buffer for type conversion unless the app has already
          * supplied one through the xfer properties. Instead of allocating a
@@ -804,12 +799,21 @@ H5D_typeinfo_init(const H5D_t *dset, const H5D_dxpl_cache_t *dxpl_cache,
          */
         if(NULL == (type_info->tconv_buf = (uint8_t *)dxpl_cache->tconv_buf)) {
             /* Allocate temporary buffer */
-            if(NULL == (type_info->tconv_buf = H5FL_BLK_MALLOC(type_conv, target_size)))
+            if((target_size = H5MM_aligned_malloc(&(type_info->tconv_buf), target_size, FALSE, direct_info)) < 0)
                 HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed for type conversion")
+
             type_info->tconv_buf_allocated = TRUE;
         } /* end if */
+
+        /* Compute the number of elements that will fit into buffer */
+        type_info->request_nelmts = target_size / type_info->max_type_size;
+
+        /* Sanity check elements in temporary buffer */
+        if(type_info->request_nelmts == 0)
+            HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, "temporary buffer max size is too small")
+
         if(type_info->need_bkg && NULL == (type_info->bkg_buf = (uint8_t *)dxpl_cache->bkgr_buf)) {
-            size_t	bkg_size;		/* Desired background buffer size	*/
+            ssize_t	bkg_size;		/* Desired background buffer size	*/
 
             /* Compute the background buffer size */
             /* (don't try to use buffers smaller than the default size) */
@@ -819,8 +823,9 @@ H5D_typeinfo_init(const H5D_t *dset, const H5D_dxpl_cache_t *dxpl_cache,
 
             /* Allocate background buffer */
             /* (Need calloc()-like call since memory needs to be initialized) */
-            if(NULL == (type_info->bkg_buf = H5FL_BLK_CALLOC(type_conv, bkg_size)))
+            if((bkg_size = H5MM_aligned_malloc(&(type_info->bkg_buf), bkg_size, TRUE, direct_info)) < 0)
                 HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed for background conversion")
+
             type_info->bkg_buf_allocated = TRUE;
         } /* end if */
     } /* end else */
@@ -988,13 +993,12 @@ H5D_typeinfo_term(const H5D_type_info_t *type_info)
     /* Check for releasing datatype conversion & background buffers */
     if(type_info->tconv_buf_allocated) {
         HDassert(type_info->tconv_buf);
-        (void)H5FL_BLK_FREE(type_conv, type_info->tconv_buf);
+        H5MM_xfree(type_info->tconv_buf);
     } /* end if */
     if(type_info->bkg_buf_allocated) {
         HDassert(type_info->bkg_buf);
-        (void)H5FL_BLK_FREE(type_conv, type_info->bkg_buf);
+        H5MM_xfree(type_info->bkg_buf);
     } /* end if */
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5D_typeinfo_term() */
-
