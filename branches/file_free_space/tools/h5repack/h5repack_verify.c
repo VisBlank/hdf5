@@ -602,3 +602,122 @@ int verify_filters(hid_t pid, hid_t tid, int nfilters, filter_info_t *filter)
     return 1;
 }
 
+/*-------------------------------------------------------------------------
+ * Function: h5repack_vfy_free
+ *
+ * Purpose: verify that file space strategy and free space threshold
+ *	    are set as expected
+ *
+ * Return: 1 success
+ * 	  -1 failure
+ *
+ * Programmer: Vailin Choi; July 7th, 2009
+ *-------------------------------------------------------------------------
+ */
+int h5repack_vfy_free(const char *in_fname, const char *out_fname, pack_opt_t *options)
+{
+    hid_t       fidin;  	/* file ID */
+    hid_t       fidout;  	/* file ID */
+    hid_t       fcpl_in;  	/* file creation property */
+    hid_t   	fcpl_out;  	/* file creation property */
+    H5F_file_space_type_t	in_strat, out_strat;	/* file space handling strategy */
+    hsize_t	 		in_thresh, out_thresh;	/* free space section threshold */
+    int       	ok = 1;
+
+    /* open the input file */
+    if((fidin = H5Fopen(in_fname, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0 )
+	goto error;
+
+    /* open the output file */
+    if((fidout = H5Fopen(out_fname, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0 )
+	goto error;
+
+    /* Get file creation property list for input file */
+    if((fcpl_in = H5Fget_create_plist(fidin)) < 0)
+    {
+	error_msg(progname, "failed to retrieve file creation property list\n");
+	goto error;
+    }
+
+    /* Get file creation property list for output file */
+    if((fcpl_out = H5Fget_create_plist(fidout)) < 0)
+    {
+	error_msg(progname, "failed to retrieve file creation property list\n");
+	goto error;
+    }
+
+    /* Get file space management info for input file */
+    if(H5Pget_file_space(fcpl_in, &in_strat, &in_thresh) < 0)
+    {
+	error_msg(progname, "failed to retrieve file space strategy & threshold\n");
+	goto error;
+    }
+
+    /* Get file space management info for output file */
+    if(H5Pget_file_space(fcpl_out, &out_strat, &out_thresh) < 0)
+    {
+	error_msg(progname, "failed to retrieve file space strategy & threshold\n");
+	goto error;
+    }
+
+    /* 
+     * If the strategy option is not set, 
+     * file space handling strategy should be the same for both 
+     * input & output files.
+     * If the strategy option is set,	
+     * the output file's file space handling strategy should be the same
+     * as what is set via the strategy option 
+     */
+    if(!options->fs_strategy && out_strat != in_strat) {
+	error_msg(progname, "file space strategy not set as unexpected\n");
+	goto error;
+
+    } 
+    else if(options->fs_strategy && out_strat!= options->fs_strategy) 
+    {
+	error_msg(progname, "file space strategy not set as unexpectec\n");
+	goto error;
+    }
+
+    /* 
+     * If the threshold option is not set, 
+     * the free space section threshold should be the same for both 
+     * input & output files.
+     * If the threshold option is set,	
+     * the output file's free space section threshold should be the same
+     * as what is set via the threshold option.
+     */
+    if(!options->fs_threshold && out_thresh != in_thresh) {
+	error_msg(progname, "free space threshold not set as unexpected\n");
+	goto error;
+
+    } 
+    else if(options->fs_threshold && out_thresh != options->fs_threshold) 
+    {
+	error_msg(progname, "free space threshold not set as unexpectec\n");
+	goto error;
+    }
+
+    if (H5Pclose(fcpl_in) < 0)
+	goto error;
+
+    if (H5Pclose(fcpl_out) < 0)
+	goto error;
+
+    if (H5Fclose(fidin) < 0)
+	goto error;
+
+    if (H5Fclose(fidout) < 0)
+	goto error;
+
+    return ok;
+
+error:
+    H5E_BEGIN_TRY {
+        H5Pclose(fcpl_in);
+        H5Pclose(fcpl_out);
+        H5Fclose(fidin);
+        H5Fclose(fidout);
+    } H5E_END_TRY;
+    return -1;
+}

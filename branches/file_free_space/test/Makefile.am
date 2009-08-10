@@ -61,7 +61,7 @@ check_PROGRAMS=$(TEST_PROG) error_test err_compat testmeta
 # so do not appear in this list.
 BUILD_ALL_PROGS=gen_bad_ohdr gen_bogus gen_cross gen_deflate gen_filters gen_new_array \
     gen_new_fill gen_new_group gen_new_mtime gen_new_super gen_noencoder \
-    gen_nullspace gen_udlinks space_overflow
+    gen_nullspace gen_udlinks space_overflow gen_filespace
 
 if BUILD_ALL_CONDITIONAL
   noinst_PROGRAMS=$(BUILD_ALL_PROGS)
@@ -106,7 +106,7 @@ CHECK_CLEANFILES+=cmpd_dset.h5 compact_dataset.h5 dataset.h5 dset_offset.h5 \
             max_compact_dataset.h5 simple.h5 set_local.h5 random_chunks.h5 \
             huge_chunks.h5 chunk_cache.h5 big_chunk.h5 \
             chunk_expand.h5 extend.h5 istore.h5 extlinks*.h5 frspace.h5 \
-            links*.h5 tfile[1-4].h5 th5s[1-3].h5 lheap.h5 fheap.h5 ohdr.h5 \
+            links*.h5 tfile[1-5].h5 th5s[1-3].h5 lheap.h5 fheap.h5 ohdr.h5 \
             stab.h5 extern_[1-3].h5 extern_[1-4][ab].raw gheap[0-4].h5 \
             dt_arith[1-2] links.h5 links[0-6]*.h5 extlinks[0-15].h5 tmp \
 	    big.data big[0-9][0-9][0-9][0-9][0-9].h5  \

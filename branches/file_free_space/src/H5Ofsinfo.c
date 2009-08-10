@@ -19,7 +19,7 @@
  *                      Feb 2009
  *			Vailin Choi
  *
- * Purpose:             Free-space manager info message.
+ * Purpose:             Free space manager info message.
  *
  *-------------------------------------------------------------------------
  */
@@ -37,10 +37,6 @@ static herr_t H5O_fsinfo_encode(H5F_t *f, hbool_t disable_shared, uint8_t *p, co
 static void *H5O_fsinfo_copy(const void *_mesg, void *_dest);
 static size_t H5O_fsinfo_size(const H5F_t *f, hbool_t disable_shared, const void *_mesg);
 static herr_t H5O_fsinfo_free(void *mesg);
-static herr_t H5O_fsinfo_delete(H5F_t *f, hid_t dxpl_id, H5O_t UNUSED *open_oh, void *_mesg);
-static void * H5O_fsinfo_copy_file(H5F_t UNUSED *file_src, void *native_src, H5F_t *file_dst,
-    hbool_t UNUSED *recompute_size, H5O_copy_t *cpy_info, void UNUSED *udata, hid_t dxpl_id);
-static herr_t H5O_fsinfo_post_copy_file(const H5O_link_t *src_lnk, void *_udata);
 static herr_t H5O_fsinfo_debug(H5F_t *f, hid_t dxpl_id, const void *_mesg,
     FILE * stream, int indent, int fwidth);
 
@@ -109,16 +105,25 @@ H5O_fsinfo_decode(H5F_t *f, hid_t UNUSED dxpl_id, H5O_t UNUSED *open_oh,
     if(NULL == (fsinfo = H5FL_CALLOC(H5O_fsinfo_t)))
 	HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
 
-    /* Addresses of free-space managers */
-    for(type = H5FD_MEM_SUPER; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type))
-	H5F_addr_decode(f, &p, &(fsinfo->fs_addr[type-1]));
+    fsinfo->strategy = *p++;	/* file space strategy */
+    H5F_DECODE_LENGTH(f, p, fsinfo->threshold);	/* free space section size threshold */
+
+    /* Addresses of free space managers: only exist for H5F_FILE_SPACE_ALL_PERSIST */
+    if(fsinfo->strategy == H5F_FILE_SPACE_ALL_PERSIST) {
+	for(type = H5FD_MEM_SUPER; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type))
+	    H5F_addr_decode(f, &p, &(fsinfo->fs_addr[type-1]));
+    } /* end if */
+    else {
+	for(type = H5FD_MEM_SUPER; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type))
+	    fsinfo->fs_addr[type-1] = HADDR_UNDEF;
+    } /* end else */
 
     /* Set return value */
     ret_value = fsinfo;
 
 done:
     if(ret_value == NULL && fsinfo != NULL)
-        H5FL_FREE(H5O_fsinfo_t, fsinfo);
+        fsinfo = H5FL_FREE(H5O_fsinfo_t, fsinfo);
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5O_fsinfo_decode() */
@@ -148,12 +153,15 @@ H5O_fsinfo_encode(H5F_t *f, hbool_t UNUSED disable_shared, uint8_t *p, const voi
     HDassert(p);
     HDassert(fsinfo);
 
-    /* Message version */
-    *p++ = H5O_FSINFO_VERSION;
+    *p++ = H5O_FSINFO_VERSION;	/* message version */
+    *p++ = fsinfo->strategy;	/* file space strategy */
+    H5F_ENCODE_LENGTH(f, p, fsinfo->threshold); /* free-space section size threshold */
 
-    /* Addresses of free-space managers */
-    for(type = H5FD_MEM_SUPER; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type))
-	H5F_addr_encode(f, &p, fsinfo->fs_addr[type-1]);
+    /* Addresses of free space managers: only exist for H5F_FILE_SPACE_ALL_PERSIST */
+    if(fsinfo->strategy == H5F_FILE_SPACE_ALL_PERSIST) {
+	for(type = H5FD_MEM_SUPER; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type))
+	    H5F_addr_encode(f, &p, fsinfo->fs_addr[type-1]);
+    } /* end if */
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5O_fsinfo_encode() */
@@ -214,13 +222,20 @@ done:
 static size_t
 H5O_fsinfo_size(const H5F_t *f, hbool_t UNUSED disable_shared, const void *_mesg)
 {
+    const H5O_fsinfo_t   *fsinfo = (const H5O_fsinfo_t *)_mesg;
+    size_t fs_addr_size = 0;
     size_t ret_value;   /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5O_fsinfo_size)
 
-    /* Set return value */
-    ret_value = 1                       		/* Version */
-                + (H5FD_MEM_NTYPES-1) * H5F_SIZEOF_ADDR(f); /* Addresses of free-space managers */
+
+    /* Addresses of free-space managers exist only for H5F_FILE_SPACE_ALL_PERSIST type */
+    if(H5F_FILE_SPACE_ALL_PERSIST == fsinfo->strategy)
+	fs_addr_size = (H5FD_MEM_NTYPES - 1) * H5F_SIZEOF_ADDR(f);
+
+    ret_value = 2                       /* Version & strategy */
+		+ H5F_SIZEOF_SIZE(f)	/* Threshold */
+                + fs_addr_size;		/* Addresses of free-space managers */
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5O_fsinfo_size() */
@@ -277,9 +292,17 @@ H5O_fsinfo_debug(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, const void *_mesg, FILE 
     HDassert(indent >= 0);
     HDassert(fwidth >= 0);
 
-    for(type = H5FD_MEM_SUPER; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type))
-	HDfprintf(stream, "%*s%-*s %a\n", indent, "", fwidth,
-	    "Free-space manager address:", fsinfo->fs_addr[type-1]);
+    HDfprintf(stream, "%*s%-*s %u\n", indent, "", fwidth,
+              "File space strategy:", fsinfo->strategy);
+
+    HDfprintf(stream, "%*s%-*s %Hu\n", indent, "", fwidth,
+              "Free space section threshold:", fsinfo->threshold);
+
+    if(fsinfo->strategy == H5F_FILE_SPACE_ALL_PERSIST) {
+	for(type = H5FD_MEM_SUPER; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type))
+	    HDfprintf(stream, "%*s%-*s %a\n", indent, "", fwidth,
+		"Free space manager address:", fsinfo->fs_addr[type-1]);
+    } /* end if */
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5O_fsinfo_debug() */

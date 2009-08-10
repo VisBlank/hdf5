@@ -10,10 +10,14 @@ File information
 	# of unique other: 0
 	Max. # of links to object: 1
 	Max. # of objects in group: 16
-Object header size: (total/unused)
-	Groups: 48/8
-	Datasets: 4936/1344
 Storage information:
+	Superblock: 96
+	Superblock extension: 0
+	User block: 0
+	Object headers: (total/unused)
+		Groups: 48/8
+		Datasets: 4936/1344
+		Datatypes: 80/0
 	Groups:
 		B-tree/List: 1200
 		Heap: 288
@@ -26,7 +30,9 @@ Storage information:
 		Header: 0
 		B-tree/List: 0
 		Heap: 0
-	Superblock extension: 0
+	Free space managers:
+		Header: 0
+		Amount of free space: 0
 Small groups:
 	Total # of small groups: 0
 Group bins:
@@ -75,3 +81,7 @@ Small # of attributes:
 Attribute bins:
 	Total # of objects with attributes: 0
 	Max. # of attributes to objects: 0
+Small size free-space sections (< 10 bytes):
+	Total # of small size sections: 0
+Free-space section bins:
+	Total # of sections: 0

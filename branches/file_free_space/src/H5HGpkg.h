@@ -83,9 +83,9 @@ H5FL_BLK_EXTERN(gheap_chunk);
  * largest data type is eight bytes.
  */
 #define H5HG_ALIGNMENT	8
-#define H5HG_ALIGN(X)	(H5HG_ALIGNMENT*(((X)+H5HG_ALIGNMENT-1)/	      \
+#define H5HG_ALIGN(X)	(H5HG_ALIGNMENT * (((X) + H5HG_ALIGNMENT - 1) /	      \
 					 H5HG_ALIGNMENT))
-#define H5HG_ISALIGNED(X) ((X)==H5HG_ALIGN(X))
+#define H5HG_ISALIGNED(X) ((X) == H5HG_ALIGN(X))
 
 /*
  * The size of the collection header, always a multiple of the alignment so
@@ -114,8 +114,8 @@ H5FL_BLK_EXTERN(gheap_chunk);
  * some overhead and each message has some overhead.  The `+2' accounts for
  * rounding and for the free space object.
  */
-#define H5HG_NOBJS(f,z) (int)((((z)-H5HG_SIZEOF_HDR(f))/		      \
-			       H5HG_SIZEOF_OBJHDR(f)+2))
+#define H5HG_NOBJS(f, z) (int)((((z) - H5HG_SIZEOF_HDR(f)) /		     \
+			       H5HG_SIZEOF_OBJHDR(f) + 2))
 
 
 /****************************/

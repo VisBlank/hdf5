@@ -77,6 +77,8 @@
 #define FNAME17OUT  "h5repack_named_dtypes_out.h5"
 
 #define FNAME_UB   "ublock.bin"
+ 
+#define TEST_THRESHOLD2        2	/* Free space section threshold */
 
 
 
@@ -153,6 +155,8 @@ int main (void)
 {
     pack_opt_t  pack_options;
     diff_opt_t  diff_options;
+    hsize_t			fs_size = 0;	/* free space section threshold */
+    H5F_file_space_type_t	fs_type = 0;	/* file space handling strategy */
 #if defined (H5_HAVE_FILTER_SZIP)
     int szip_can_encode = 0;
 #endif
@@ -178,6 +182,11 @@ int main (void)
     *-------------------------------------------------------------------------
     */
 
+#ifdef TEMP
+    for(fs_type = 0; fs_type < H5F_FILE_SPACE_NTYPES; H5_INC_ENUM(H5F_file_space_type_t, fs_type)) {
+#endif
+
+
     /*-------------------------------------------------------------------------
     * file with fill values
     *-------------------------------------------------------------------------
@@ -186,6 +195,9 @@ int main (void)
     TESTING("    copy of datasets (fill values)");
     if (h5repack_init (&pack_options, 0) < 0)
         GOERROR;
+    /* fs_type = H5F_FILE_SPACE_ALL_PERSIST; fs_size = 0 */
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME0,FNAME0OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME0,FNAME0OUT,NULL,NULL,&diff_options) >0)
@@ -193,6 +205,8 @@ int main (void)
     if (h5repack_verify(FNAME0OUT,&pack_options)<=0)
         GOERROR;
     if (h5repack_cmp_pl(FNAME0,FNAME0OUT)<=0)
+        GOERROR;
+    if (h5repack_vfy_free(FNAME0, FNAME0OUT, &pack_options)<=0)
         GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
@@ -206,6 +220,8 @@ int main (void)
     TESTING("    copy of datasets (all datatypes)");
     if (h5repack_init (&pack_options, 0) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME1,FNAME1OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME1,FNAME1OUT,NULL,NULL,&diff_options) >0)
@@ -213,6 +229,8 @@ int main (void)
     if (h5repack_verify(FNAME1OUT,&pack_options)<=0)
         GOERROR;
     if (h5repack_cmp_pl(FNAME1,FNAME1OUT)<=0)
+        GOERROR;
+    if (h5repack_vfy_free(FNAME1, FNAME1OUT, &pack_options)<=0)
         GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
@@ -226,6 +244,8 @@ int main (void)
     TESTING("    copy of datasets (attributes)");
     if (h5repack_init (&pack_options, 0) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME2,FNAME2OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME2,FNAME2OUT,NULL,NULL,&diff_options) >0)
@@ -233,6 +253,8 @@ int main (void)
     if (h5repack_verify(FNAME2OUT,&pack_options)<=0)
         GOERROR;
     if (h5repack_cmp_pl(FNAME2,FNAME2OUT)<=0)
+        GOERROR;
+    if (h5repack_vfy_free(FNAME2, FNAME2OUT, &pack_options)<=0)
         GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
@@ -245,6 +267,8 @@ int main (void)
     TESTING("    copy of datasets (hardlinks)");
     if (h5repack_init (&pack_options, 0) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME3,FNAME3OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME3,FNAME3OUT,NULL,NULL,&diff_options) >0)
@@ -252,6 +276,8 @@ int main (void)
     if (h5repack_verify(FNAME3OUT,&pack_options)<=0)
         GOERROR;
     if (h5repack_cmp_pl(FNAME3,FNAME3OUT)<=0)
+        GOERROR;
+    if (h5repack_vfy_free(FNAME3, FNAME3OUT, &pack_options)<=0)
         GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
@@ -265,11 +291,15 @@ int main (void)
     TESTING("    copy of allocation early file");
     if (h5repack_init (&pack_options, 0) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME5,FNAME5OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME5,FNAME5OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME5OUT,&pack_options)<=0)
+        GOERROR;
+    if (h5repack_vfy_free(FNAME5, FNAME5OUT, &pack_options)<=0)
         GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
@@ -295,6 +325,8 @@ int main (void)
 
     if (h5repack_init (&pack_options, 0) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack_addfilter("dset1:GZIP=9",&pack_options) < 0)
         GOERROR;
     if (h5repack_addlayout("dset1:CHUNK=20x10",&pack_options) < 0)
@@ -304,6 +336,8 @@ int main (void)
     if (h5diff(FNAME4,FNAME4OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME4OUT,&pack_options)<=0)
+        GOERROR;
+    if (h5repack_vfy_free(FNAME4, FNAME4OUT, &pack_options)<=0)
         GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
@@ -323,6 +357,8 @@ int main (void)
 
     if (h5repack_init (&pack_options, 0) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack_addfilter("GZIP=1",&pack_options) < 0)
         GOERROR;
     if (h5repack_addlayout("CHUNK=20x10",&pack_options) < 0)
@@ -332,6 +368,8 @@ int main (void)
     if (h5diff(FNAME4,FNAME4OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME4OUT,&pack_options)<=0)
+        GOERROR;
+    if (h5repack_vfy_free(FNAME4, FNAME4OUT, &pack_options)<=0)
         GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
@@ -361,6 +399,8 @@ int main (void)
     if (szip_can_encode) {
         if (h5repack_init (&pack_options, 0) < 0)
             GOERROR;
+	if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+	    GOERROR;
         if (h5repack_addfilter("dset2:SZIP=8,EC",&pack_options) < 0)
             GOERROR;
         if (h5repack_addlayout("dset2:CHUNK=20x10",&pack_options) < 0)
@@ -371,6 +411,8 @@ int main (void)
             GOERROR;
         if (h5repack_verify(FNAME4OUT,&pack_options)<=0)
             GOERROR;
+	if (h5repack_vfy_free(FNAME4, FNAME4OUT, &pack_options)<=0)
+	    GOERROR;
         if (h5repack_end (&pack_options) < 0)
             GOERROR;
 
@@ -393,6 +435,8 @@ int main (void)
     if (szip_can_encode) {
         if (h5repack_init (&pack_options, 0) < 0)
             GOERROR;
+	if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+	    GOERROR;
         if (h5repack_addfilter("SZIP=8,NN",&pack_options) < 0)
             GOERROR;
         if (h5repack(FNAME4,FNAME4OUT,&pack_options) < 0)
@@ -401,6 +445,8 @@ int main (void)
             GOERROR;
         if (h5repack_verify(FNAME4OUT,&pack_options)<=0)
             GOERROR;
+	if (h5repack_vfy_free(FNAME4, FNAME4OUT, &pack_options)<=0)
+	    GOERROR;
         if (h5repack_end (&pack_options) < 0)
             GOERROR;
 
@@ -424,6 +470,8 @@ int main (void)
 
     if (h5repack_init (&pack_options, 0) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack_addfilter("dset1:SHUF",&pack_options) < 0)
         GOERROR;
     if (h5repack_addlayout("dset1:CHUNK=20x10",&pack_options) < 0)
@@ -434,6 +482,8 @@ int main (void)
         GOERROR;
     if (h5repack_verify(FNAME4OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME4, FNAME4OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
 
@@ -453,6 +503,8 @@ int main (void)
 
     if (h5repack_init (&pack_options, 0) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack_addfilter("SHUF",&pack_options) < 0)
         GOERROR;
     if (h5repack_addlayout("CHUNK=20x10",&pack_options) < 0)
@@ -463,6 +515,8 @@ int main (void)
         GOERROR;
     if (h5repack_verify(FNAME4OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME4, FNAME4OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
 
@@ -482,6 +536,8 @@ int main (void)
 
     if (h5repack_init (&pack_options, 0) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack_addfilter("dset1:FLET",&pack_options) < 0)
         GOERROR;
     if (h5repack_addlayout("dset1:CHUNK=20x10",&pack_options) < 0)
@@ -492,6 +548,8 @@ int main (void)
         GOERROR;
     if (h5repack_verify(FNAME4OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME4, FNAME4OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
 
@@ -512,6 +570,8 @@ int main (void)
 
     if (h5repack_init (&pack_options, 0) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack_addfilter("FLET",&pack_options) < 0)
         GOERROR;
     if (h5repack_addlayout("CHUNK=20x10",&pack_options) < 0)
@@ -522,6 +582,8 @@ int main (void)
         GOERROR;
     if (h5repack_verify(FNAME4OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME4, FNAME4OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
 
@@ -539,6 +601,8 @@ int main (void)
     */
 
     if (h5repack_init (&pack_options, 0) < 0)
+        GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
         GOERROR;
     if (h5repack_addlayout("dset1:CHUNK 20x10",&pack_options) < 0)
         GOERROR;
@@ -565,12 +629,16 @@ int main (void)
         GOERROR;
 #endif
 
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME4,FNAME4OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME4,FNAME4OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME4OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME4, FNAME4OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
 
@@ -588,12 +656,17 @@ int main (void)
         GOERROR;
     if (h5repack_addlayout("dset1:CHUNK=20x10",&pack_options) < 0)
         GOERROR;
+    /* fs_type = H5F_FILE_SPACE_ALL; fs_size = 1 */
+    if (h5repack_addfree(H5_INC_ENUM(H5F_file_space_type_t, fs_type), ++fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME4,FNAME4OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME4,FNAME4OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME4OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME4, FNAME4OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
     PASSED();
@@ -608,12 +681,16 @@ int main (void)
         GOERROR;
     if (h5repack_addlayout("CHUNK=20x10",&pack_options) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME4,FNAME4OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME4,FNAME4OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME4OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME4, FNAME4OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
 
@@ -629,12 +706,16 @@ int main (void)
         GOERROR;
     if (h5repack_addlayout("dset1:CONTI",&pack_options) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME4,FNAME4OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME4,FNAME4OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME4OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME4, FNAME4OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
 
@@ -656,6 +737,8 @@ int main (void)
         GOERROR;
     if (h5repack_verify(FNAME4OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME4, FNAME4OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
 
@@ -689,6 +772,9 @@ int main (void)
         GOERROR;
     if (h5repack_addlayout("dset1:COMPA",&pack_options) < 0)
         GOERROR;
+    /* fs_type = H5F_FILE_SPACE_AGGR_VFD; fs_size = 2 */
+    if (h5repack_addfree(H5_INC_ENUM(H5F_file_space_type_t, fs_type), ++fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME4,FNAME4OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME4,FNAME4OUT,NULL,NULL,&diff_options) >0)
@@ -710,12 +796,16 @@ int main (void)
         GOERROR;
     if (h5repack_addlayout("COMPA",&pack_options) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME4,FNAME4OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME4,FNAME4OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME4OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME4, FNAME4OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
 
@@ -732,12 +822,16 @@ int main (void)
         GOERROR;
     if (h5repack_addlayout("dset_compact:CONTI",&pack_options) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME4,FNAME4OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME4,FNAME4OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME4OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME4, FNAME4OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
     PASSED();
@@ -752,12 +846,16 @@ int main (void)
         GOERROR;
     if (h5repack_addlayout("dset_compact:CHUNK=2x5",&pack_options) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME4,FNAME4OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME4,FNAME4OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME4OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME4, FNAME4OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
     PASSED();
@@ -772,12 +870,16 @@ int main (void)
         GOERROR;
     if (h5repack_addlayout("dset_compact:COMPA",&pack_options) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME4,FNAME4OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME4,FNAME4OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME4OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME4, FNAME4OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
     PASSED();
@@ -791,12 +893,16 @@ int main (void)
         GOERROR;
     if (h5repack_addlayout("dset_contiguous:COMPA",&pack_options) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME4,FNAME4OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME4,FNAME4OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME4OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME4, FNAME4OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
     PASSED();
@@ -810,12 +916,16 @@ int main (void)
         GOERROR;
     if (h5repack_addlayout("dset_contiguous:CHUNK=3x6",&pack_options) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME4,FNAME4OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME4,FNAME4OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME4OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME4, FNAME4OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
     PASSED();
@@ -830,12 +940,16 @@ int main (void)
         GOERROR;
     if (h5repack_addlayout("dset_contiguous:CONTI",&pack_options) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME4,FNAME4OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME4,FNAME4OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME4OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME4, FNAME4OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
     PASSED();
@@ -849,12 +963,16 @@ int main (void)
         GOERROR;
     if (h5repack_addlayout("dset_chunk:COMPA",&pack_options) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME4,FNAME4OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME4,FNAME4OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME4OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME4, FNAME4OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
     PASSED();
@@ -869,12 +987,16 @@ int main (void)
         GOERROR;
     if (h5repack_addlayout("dset_chunk:CONTI",&pack_options) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME4,FNAME4OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME4,FNAME4OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME4OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME4, FNAME4OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
     PASSED();
@@ -888,12 +1010,16 @@ int main (void)
         GOERROR;
     if (h5repack_addlayout("dset_chunk:CHUNK=18x13",&pack_options) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME4,FNAME4OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME4,FNAME4OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME4OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME4, FNAME4OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
     PASSED();
@@ -916,6 +1042,8 @@ int main (void)
     if (szip_can_encode) {
         if (h5repack_init (&pack_options, 0) < 0)
             GOERROR;
+	if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+	    GOERROR;
         if (h5repack(FNAME7,FNAME7OUT,&pack_options) < 0)
             GOERROR;
         if (h5diff(FNAME7,FNAME7OUT,NULL,NULL,&diff_options) >0)
@@ -924,6 +1052,8 @@ int main (void)
             GOERROR;
         if (h5repack_cmp_pl(FNAME7,FNAME7OUT)<=0)
             GOERROR;
+	if (h5repack_vfy_free(FNAME7, FNAME7OUT, &pack_options)<=0)
+	    GOERROR;
         if (h5repack_end (&pack_options) < 0)
             GOERROR;
 
@@ -943,12 +1073,16 @@ int main (void)
             GOERROR;
         if (h5repack_addfilter("dset_szip:NONE",&pack_options) < 0)
             GOERROR;
+	if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+	    GOERROR;
         if (h5repack(FNAME7,FNAME7OUT,&pack_options) < 0)
             GOERROR;
         if (h5diff(FNAME7,FNAME7OUT,NULL,NULL,&diff_options) >0)
             GOERROR;
         if (h5repack_verify(FNAME7OUT,&pack_options)<=0)
             GOERROR;
+	if (h5repack_vfy_free(FNAME7, FNAME7OUT, &pack_options)<=0)
+	    GOERROR;
         if (h5repack_end (&pack_options) < 0)
             GOERROR;
 
@@ -966,12 +1100,16 @@ int main (void)
 #ifdef H5_HAVE_FILTER_DEFLATE
     if (h5repack_init (&pack_options, 0) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME8,FNAME8OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME8,FNAME8OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME8OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME8, FNAME8OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
 
@@ -988,12 +1126,16 @@ int main (void)
         GOERROR;
     if (h5repack_addfilter("dset_deflate:NONE",&pack_options) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME8,FNAME8OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME8,FNAME8OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME8OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME8, FNAME8OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
 
@@ -1009,12 +1151,16 @@ int main (void)
 #ifdef H5_HAVE_FILTER_SHUFFLE
     if (h5repack_init (&pack_options, 0) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME9,FNAME9OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME9,FNAME9OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME9OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME9, FNAME9OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
 
@@ -1030,12 +1176,16 @@ int main (void)
         GOERROR;
     if (h5repack_addfilter("dset_shuffle:NONE",&pack_options) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME9,FNAME9OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME9,FNAME9OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME9OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME9, FNAME9OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
 
@@ -1049,12 +1199,16 @@ int main (void)
 #ifdef H5_HAVE_FILTER_FLETCHER32
     if (h5repack_init (&pack_options, 0) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME10,FNAME10OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME10,FNAME10OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME10OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME10, FNAME10OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
 
@@ -1070,12 +1224,16 @@ int main (void)
         GOERROR;
     if (h5repack_addfilter("dset_fletcher32:NONE",&pack_options) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME10,FNAME10OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME10,FNAME10OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME10OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME10, FNAME10OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
 
@@ -1090,12 +1248,16 @@ int main (void)
 #ifdef H5_HAVE_FILTER_NBIT
     if (h5repack_init (&pack_options, 0) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME12,FNAME12OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME12,FNAME12OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME12OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME12, FNAME12OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
 
@@ -1111,12 +1273,16 @@ int main (void)
         GOERROR;
     if (h5repack_addfilter("dset_nbit:NONE",&pack_options) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME12,FNAME12OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME12,FNAME12OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME12OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME12, FNAME12OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
 
@@ -1133,12 +1299,16 @@ int main (void)
         GOERROR;
     if (h5repack_addfilter("dset_int31:NBIT",&pack_options) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME12,FNAME12OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME12,FNAME12OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME12OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME12, FNAME12OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
 
@@ -1153,12 +1323,16 @@ int main (void)
 #ifdef H5_HAVE_FILTER_SCALEOFFSET
     if (h5repack_init (&pack_options, 0) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME13,FNAME13OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME13,FNAME13OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME13OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME13, FNAME13OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
 
@@ -1174,12 +1348,16 @@ int main (void)
         GOERROR;
     if (h5repack_addfilter("dset_scaleoffset:NONE",&pack_options) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME13,FNAME13OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME13,FNAME13OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME13OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME13, FNAME13OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
 
@@ -1196,12 +1374,16 @@ int main (void)
         GOERROR;
     if (h5repack_addfilter("dset_none:SOFF=31,IN",&pack_options) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME13,FNAME13OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME13,FNAME13OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME13OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME13, FNAME13OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
 
@@ -1234,12 +1416,16 @@ int main (void)
             GOERROR;
         if (h5repack_addfilter("dset_deflate:SZIP=8,NN",&pack_options) < 0)
             GOERROR;
+	if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+	    GOERROR;
         if (h5repack(FNAME11,FNAME11OUT,&pack_options) < 0)
             GOERROR;
         if (h5diff(FNAME11,FNAME11OUT,NULL,NULL,&diff_options) >0)
             GOERROR;
         if (h5repack_verify(FNAME11OUT,&pack_options)<=0)
             GOERROR;
+	if (h5repack_vfy_free(FNAME11, FNAME11OUT, &pack_options)<=0)
+	    GOERROR;
         if (h5repack_end (&pack_options) < 0)
             GOERROR;
 
@@ -1262,12 +1448,16 @@ int main (void)
             GOERROR;
         if (h5repack_addfilter("dset_szip:GZIP=1",&pack_options) < 0)
             GOERROR;
+        if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+            GOERROR;
         if (h5repack(FNAME11,FNAME11OUT,&pack_options) < 0)
             GOERROR;
         if (h5diff(FNAME11,FNAME11OUT,NULL,NULL,&diff_options) >0)
             GOERROR;
         if (h5repack_verify(FNAME11OUT,&pack_options)<=0)
             GOERROR;
+	if (h5repack_vfy_free(FNAME11, FNAME11OUT, &pack_options)<=0)
+	    GOERROR;
         if (h5repack_end (&pack_options) < 0)
             GOERROR;
 
@@ -1294,12 +1484,16 @@ int main (void)
         GOERROR;
     if (h5repack_addfilter("NONE",&pack_options) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME11,FNAME11OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME11,FNAME11OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME11OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME11, FNAME11OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
 
@@ -1315,12 +1509,17 @@ int main (void)
     TESTING("    big file");
     if (h5repack_init (&pack_options, 0) < 0)
         GOERROR;
+    /* fs_type = H5F_FILE_SPACE_VFD; fs_size = 3 */
+    if (h5repack_addfree(H5_INC_ENUM(H5F_file_space_type_t, fs_type), fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME14,FNAME14OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME14,FNAME14OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME14OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME14, FNAME14OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
     PASSED();
@@ -1332,12 +1531,16 @@ int main (void)
     TESTING("    external datasets");
     if (h5repack_init (&pack_options, 0) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME15,FNAME15OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME15,FNAME15OUT,NULL,NULL,&diff_options) > 0)
         GOERROR;
     if (h5repack_verify(FNAME15OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME15, FNAME15OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
     PASSED();
@@ -1349,6 +1552,8 @@ int main (void)
     TESTING("    file with userblock");
     if(h5repack_init(&pack_options, 0) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if(h5repack(FNAME16, FNAME16OUT, &pack_options) < 0)
         GOERROR;
     if(h5diff(FNAME16, FNAME16OUT, NULL, NULL, &diff_options) > 0)
@@ -1357,6 +1562,8 @@ int main (void)
         GOERROR;
     if(verify_userblock(FNAME16OUT) < 0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME16, FNAME16OUT, &pack_options)<=0)
+	GOERROR;
     if(h5repack_end(&pack_options) < 0)
         GOERROR;
     PASSED();
@@ -1376,12 +1583,16 @@ int main (void)
     pack_options.msg_size[2] = 30;
     pack_options.msg_size[3] = 40;
     pack_options.msg_size[4] = 50;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME1,FNAME1OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME1,FNAME1OUT,NULL,NULL,&diff_options) > 0)
         GOERROR;
     if (h5repack_verify(FNAME1OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME1, FNAME1OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
     PASSED();
@@ -1402,12 +1613,16 @@ int main (void)
         GOERROR;
     if (h5repack_addfilter("SHUF",&pack_options) < 0)
         GOERROR;
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if (h5repack(FNAME11,FNAME11OUT,&pack_options) < 0)
         GOERROR;
     if (h5diff(FNAME11,FNAME11OUT,NULL,NULL,&diff_options) >0)
         GOERROR;
     if (h5repack_verify(FNAME11OUT,&pack_options)<=0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME11, FNAME11OUT, &pack_options)<=0)
+	GOERROR;
     if (h5repack_end (&pack_options) < 0)
         GOERROR;
 
@@ -1432,6 +1647,8 @@ int main (void)
     pack_options.ublock_size = USERBLOCK_SIZE;
     pack_options.ublock_filename = FNAME_UB;
 
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if(h5repack(FNAME8, FNAME8OUT, &pack_options) < 0)
         GOERROR;
     if(h5diff(FNAME8, FNAME8OUT, NULL, NULL, &diff_options) > 0)
@@ -1440,6 +1657,8 @@ int main (void)
         GOERROR;
     if(verify_userblock(FNAME8OUT) < 0)
         GOERROR;
+    if (h5repack_vfy_free(FNAME8, FNAME8OUT, &pack_options)<=0)
+	GOERROR;
     if(h5repack_end(&pack_options) < 0)
         GOERROR;
 
@@ -1465,13 +1684,16 @@ int main (void)
     pack_options.alignment = 1;
     pack_options.threshold = 1;
 
+    if (h5repack_addfree(fs_type, fs_size, &pack_options) < 0)
+        GOERROR;
     if(h5repack(FNAME8, FNAME8OUT, &pack_options) < 0)
         GOERROR;
     if(h5diff(FNAME8, FNAME8OUT, NULL, NULL, &diff_options) > 0)
         GOERROR;
     if(h5repack_verify(FNAME8OUT, &pack_options) <= 0)
         GOERROR;
-
+    if (h5repack_vfy_free(FNAME8, FNAME8OUT, &pack_options)<=0)
+	GOERROR;
 
     /* verify aligment */
     {
@@ -1507,7 +1729,6 @@ int main (void)
     SKIPPED();
 #endif
 
-
     /*-------------------------------------------------------------------------
     * test file with userblock
     *-------------------------------------------------------------------------
@@ -1528,8 +1749,6 @@ int main (void)
 
 
     PASSED();
-
-
 
     /*-------------------------------------------------------------------------
     * clean temporary test files

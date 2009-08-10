@@ -241,6 +241,23 @@ int h5repack_addlayout(const char* str,
     return 0;
 }
 
+/*-------------------------------------------------------------------------
+ * Function: h5repack_addfree
+ *
+ * Purpose: add file space strategy and threshold 
+ *
+ * Return: 0, ok, -1, fail
+ *
+ *-------------------------------------------------------------------------
+ */
+
+int h5repack_addfree(H5F_file_space_type_t strategy, hsize_t threshold, pack_opt_t *options)
+{
+    options->fs_strategy = strategy;
+    options->fs_threshold = threshold;
+
+    return 0;
+}
 
 /*-------------------------------------------------------------------------
 * Function: check_options

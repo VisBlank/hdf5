@@ -97,7 +97,7 @@ static unsigned test_fs_sect_shrink(hid_t fapl);
 static unsigned test_fs_sect_find(hid_t fapl);
 static unsigned test_fs_sect_change_class(hid_t fapl);
 static unsigned test_fs_sect_extend(hid_t fapl);
-static unsigned test_fs_sect_extend(hid_t fapl);
+static unsigned test_fs_sect_iterate(hid_t fapl);
 
 
 H5FS_section_class_t TEST_FSPACE_SECT_CLS[1] = {{

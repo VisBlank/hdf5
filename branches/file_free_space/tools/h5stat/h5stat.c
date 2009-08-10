@@ -26,6 +26,7 @@
 #define SIZE_SMALL_GROUPS       10
 #define SIZE_SMALL_ATTRS	10
 #define SIZE_SMALL_DSETS        10
+#define SIZE_SMALL_SECTS        10
 
 #define  H5_NFILTERS_IMPL        8     /* Number of currently implemented filters + one to
                                           accommodate for user-define filters + one
@@ -51,7 +52,7 @@ typedef struct iter_t {
 
     unsigned long uniq_groups;          /* Number of unique groups */
     unsigned long uniq_dsets;           /* Number of unique datasets */
-    unsigned long uniq_types;           /* Number of unique named datatypes */
+    unsigned long uniq_dtypes;          /* Number of unique named datatypes */
     unsigned long uniq_links;           /* Number of unique links */
     unsigned long uniq_others;          /* Number of other unique objects */
 
@@ -64,11 +65,11 @@ typedef struct iter_t {
 
     hsize_t  max_attrs;                 		/* Maximum attributes from a group */
     unsigned long num_small_attrs[SIZE_SMALL_ATTRS];    /* Size of small attributes tracked */
-    unsigned attr_nbins;
-    unsigned long *attr_bins;
+    unsigned attr_nbins;                /* Number of bins for attribute counts */
+    unsigned long *attr_bins;           /* Pointer to array of bins for attribute counts */
 
-    unsigned long max_dset_rank;        /* Maximum rank of dataset */
-    unsigned long dset_rank_count[H5S_MAX_RANK];     /* Number of datasets of each rank */
+    unsigned max_dset_rank;             /* Maximum rank of dataset */
+    unsigned long dset_rank_count[H5S_MAX_RANK];   /* Number of datasets of each rank */
     hsize_t max_dset_dims;              /* Maximum dimension size of dataset */
     unsigned long small_dset_dims[SIZE_SMALL_DSETS];    /* Size of dimensions of small datasets tracked */
     unsigned long dset_layouts[H5D_NLAYOUTS];           /* Type of storage for each dataset */
@@ -79,14 +80,22 @@ typedef struct iter_t {
     unsigned long *dset_dim_bins;       /* Pointer to array of bins for dataset dimensions */
     ohdr_info_t dset_ohdr_info;         /* Object header information for datasets */
     hsize_t dset_storage_size;          /* Size of raw data for datasets */
-    hsize_t groups_btree_storage_size;     /* btree size for group */
-    hsize_t groups_heap_storage_size;      /* heap size for group */
-    hsize_t attrs_btree_storage_size;      /* btree size for attributes (1.8) */
-    hsize_t attrs_heap_storage_size;       /* fractal heap size for attributes (1.8) */
-    hsize_t SM_hdr_storage_size;           /* header size for SOHM table (1.8) */
-    hsize_t SM_index_storage_size;         /* index (btree & list) size for SOHM table (1.8) */
-    hsize_t SM_heap_storage_size;          /* fractal heap size for SOHM table (1.8) */
-    hsize_t super_ext_size;	   	   /* superblock extension size */
+    ohdr_info_t dtype_ohdr_info;        /* Object header information for datatypes */
+    hsize_t groups_btree_storage_size;  /* btree size for group */
+    hsize_t groups_heap_storage_size;   /* heap size for group */
+    hsize_t attrs_btree_storage_size;   /* btree size for attributes (1.8) */
+    hsize_t attrs_heap_storage_size;    /* fractal heap size for attributes (1.8) */
+    hsize_t SM_hdr_storage_size;        /* header size for SOHM table (1.8) */
+    hsize_t SM_index_storage_size;      /* index (btree & list) size for SOHM table (1.8) */
+    hsize_t SM_heap_storage_size;	/* fractal heap size for SOHM table (1.8) */
+    hsize_t super_size;	   	   	/* superblock size */
+    hsize_t super_ext_size;	   	/* superblock extension size */
+    hsize_t ublk_size;	   		/* user block size (if exists) */
+    hsize_t free_space;                	/* amount of freespace in the file */
+    hsize_t free_hdr;                	/* free space manager header in the file */
+    unsigned long num_small_sects[SIZE_SMALL_SECTS];   /* Size of small free-space sections */
+    unsigned sect_nbins;               /* Number of bins for free-space section sizes */
+    unsigned long *sect_bins;          /* Pointer to array of bins for free-space section sizes */
     hsize_t datasets_btree_storage_size;   /* btree size for chunked dataset */
     unsigned long nexternal;            /* Number of external files for a dataset */
     int           local;                /* Flag to indicate iteration over the object*/
@@ -103,6 +112,7 @@ static int        display_dset = FALSE;
 static int        display_dtype_metadata = FALSE;
 static int        display_object = FALSE;
 static int        display_attr = FALSE;
+static int        display_free_sections = FALSE;
 
 /* a structure for handling the order command-line parameters come in */
 struct handler_t {
@@ -110,7 +120,7 @@ struct handler_t {
 };
 
 
-static const char *s_opts ="AFfhGgDdTO:V";
+static const char *s_opts ="ADdFfhGgsTO:V";
 static struct long_options l_opts[] = {
     {"help", no_arg, 'h'},
     {"hel", no_arg, 'h'},
@@ -178,6 +188,14 @@ static struct long_options l_opts[] = {
     { "att", no_arg, 'A' },
     { "at", no_arg, 'A' },
     { "a", no_arg, 'A' },
+    { "freespace", no_arg, 's' },
+    { "freespac", no_arg, 's' },
+    { "freespa", no_arg, 's' },
+    { "freesp", no_arg, 's' },
+    { "frees", no_arg, 's' },
+    { "free", no_arg, 's' },
+    { "fre", no_arg, 's' },
+    { "fr", no_arg, 's' },
     { NULL, 0, '\0' }
 };
 
@@ -192,13 +210,6 @@ leave(int ret)
 static void usage(const char *prog)
 {
      fflush(stdout);
-     fprintf(stdout, "\n");
-     fprintf(stdout, "This tool is under development. For detailed information\n");
-     fprintf(stdout, "please see the specification document at\n");
-     fprintf(stdout, "http://hdf.ncsa.uiuc.edu/RFC/h5stat/h5stat-spec.pdf\n");
-     fprintf(stdout, "\n");
-     fprintf(stdout, "Please send your comments and questions to help@hdfgroup.org\n");
-     fprintf(stdout, "\n");
      fprintf(stdout, "Usage: %s [OPTIONS] file\n", prog);
      fprintf(stdout, "\n");
      fprintf(stdout, "      OPTIONS\n");
@@ -212,7 +223,7 @@ static void usage(const char *prog)
      fprintf(stdout, "     -D, --dsetmetadata    Print dataset metadata\n");
      fprintf(stdout, "     -T, --dtypemetadata   Print datatype metadata\n");
      fprintf(stdout, "     -A, --attribute       Print attribute information\n");
-     fprintf(stdout, "\n");
+     fprintf(stdout, "     -s, --freespace       Print free-space information\n");
 }
 
 
@@ -277,7 +288,7 @@ attribute_stats(iter_t *iter, const H5O_info_t *oi)
     /* Add attribute count to proper bin */
     bin = ceil_log10((unsigned long)oi->num_attrs);
     if((bin + 1) > iter->attr_nbins) {
-	iter->attr_bins = realloc(iter->attr_bins, (bin + 1) * sizeof(unsigned long));
+	iter->attr_bins = (unsigned long *)realloc(iter->attr_bins, (bin + 1) * sizeof(unsigned long));
         assert(iter->attr_bins);
 
 	/* Initialize counts for intermediate bins */
@@ -349,7 +360,7 @@ group_stats(iter_t *iter, const char *name, const H5O_info_t *oi)
     bin = ceil_log10((unsigned long)ginfo.nlinks);
     if((bin + 1) > iter->group_nbins) {
         /* Allocate more storage for info about dataset's datatype */
-        iter->group_bins = realloc(iter->group_bins, (bin + 1) * sizeof(unsigned long));
+        iter->group_bins = (unsigned long *)realloc(iter->group_bins, (bin + 1) * sizeof(unsigned long));
         assert(iter->group_bins);
 
 	/* Initialize counts for intermediate bins */
@@ -451,7 +462,7 @@ dataset_stats(iter_t *iter, const char *name, const H5O_info_t *oi)
 
     /* Check for larger rank of dataset */
     if((unsigned)ndims > iter->max_dset_rank)
-        iter->max_dset_rank = ndims;
+        iter->max_dset_rank = (unsigned)ndims;
 
     /* Track the number of datasets with each rank */
     (iter->dset_rank_count[ndims])++;
@@ -466,7 +477,7 @@ dataset_stats(iter_t *iter, const char *name, const H5O_info_t *oi)
        bin = ceil_log10((unsigned long)dims[0]);
        if((bin + 1) > iter->dset_dim_nbins) {
           /* Allocate more storage for info about dataset's datatype */
-          iter->dset_dim_bins = realloc(iter->dset_dim_bins, (bin + 1) * sizeof(unsigned long));
+          iter->dset_dim_bins = (unsigned long *)realloc(iter->dset_dim_bins, (bin + 1) * sizeof(unsigned long));
           assert(iter->dset_dim_bins);
 
           /* Initialize counts for intermediate bins */
@@ -503,7 +514,7 @@ dataset_stats(iter_t *iter, const char *name, const H5O_info_t *oi)
         iter->dset_ntypes++;
 
         /* Allocate more storage for info about dataset's datatype */
-        iter->dset_type_info = realloc(iter->dset_type_info, iter->dset_ntypes * sizeof(dtype_info_t));
+        iter->dset_type_info = (dtype_info_t *)realloc(iter->dset_type_info, iter->dset_ntypes * sizeof(dtype_info_t));
         assert(iter->dset_type_info);
 
         /* Initialize information about datatype */
@@ -537,7 +548,7 @@ dataset_stats(iter_t *iter, const char *name, const H5O_info_t *oi)
     assert (num_ext >= 0);
 
     if(num_ext)
-        iter->nexternal = iter->nexternal + num_ext;
+        iter->nexternal += (unsigned long)num_ext;
 
     /* Track different filters */
     if((nfltr = H5Pget_nfilters(dcpl)) >= 0) {
@@ -560,6 +571,31 @@ dataset_stats(iter_t *iter, const char *name, const H5O_info_t *oi)
 
      return 0;
 }  /* end dataset_stats() */
+
+/*-------------------------------------------------------------------------
+ * Function: datatype_stats
+ *
+ * Purpose: Gather statistics about the datatype
+ *
+ * Return:  Success: 0
+ *          Failure: -1
+ *
+ * Programmer:    Vailin Choi; July 7th, 2009
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+datatype_stats(iter_t *iter, const H5O_info_t *oi)
+{
+    /* Gather statistics about this type of object */
+    iter->uniq_dtypes++;
+
+    /* Get object header information */
+    iter->dtype_ohdr_info.total_size += oi->hdr.space.total;
+    iter->dtype_ohdr_info.free_size += oi->hdr.space.free;
+
+     return 0;
+}  /* end datatype_stats() */
 
 
 /*-------------------------------------------------------------------------
@@ -598,8 +634,7 @@ obj_stats(const char *path, const H5O_info_t *oi, const char *already_visited,
                 break;
 
             case H5O_TYPE_NAMED_DATATYPE:
-                /* Gather statistics about this type of object */
-                iter->uniq_types++;
+		datatype_stats(iter, oi);
                 break;
 
             default:
@@ -648,6 +683,66 @@ lnk_stats(const char UNUSED *path, const H5L_info_t *li, void *_iter)
     return 0;
 } /* end lnk_stats() */
 
+/*-------------------------------------------------------------------------
+ * Function: freespace_stats
+ *
+ * Purpose: Gather statistics for free space sections in the file
+ *
+ * Return: Success: 0
+ *  	   Failure: -1
+ *
+ * Programmer:  Vailin Choi; July 7th, 2009
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+freespace_stats(hid_t fid, iter_t *iter)
+{
+    H5F_sect_info_t *sect_info = NULL;    /* Free space sections */
+    ssize_t 	nsects;                   /* Number of free space sections */
+    size_t 	u;                        /* Local index variable */
+
+    /* Query section information */
+    if((nsects = H5Fget_free_sections(fid, H5FD_MEM_DEFAULT, 0, NULL)) < 0)
+	return(FAIL);
+    else if(nsects) {
+	if(NULL == (sect_info = (H5F_sect_info_t *)calloc((size_t)nsects, sizeof(H5F_sect_info_t))))
+	    return(FAIL);
+	nsects = H5Fget_free_sections(fid, H5FD_MEM_DEFAULT, (size_t)nsects, sect_info);
+	assert(nsects);
+    } /* end else-if */
+
+    for(u = 0; u < (size_t)nsects; u++) {
+        unsigned 	bin;       /* "bin" the number of objects falls in */
+
+	if(sect_info[u].size < SIZE_SMALL_SECTS)
+	    (iter->num_small_sects[(size_t)sect_info[u].size])++;
+
+        /* Add section size to proper bin */
+        bin = ceil_log10((unsigned long)sect_info[u].size);
+        if(bin >= iter->sect_nbins) {
+            /* Allocate more storage for section info */
+            iter->sect_bins = (unsigned long *)realloc(iter->sect_bins, (bin + 1) * sizeof(unsigned long));
+            assert(iter->sect_bins);
+
+            /* Initialize counts for intermediate bins */
+            while(iter->sect_nbins < bin)
+                iter->sect_bins[iter->sect_nbins++] = 0;
+            iter->sect_nbins++;
+
+            /* Initialize count for this bin */
+            iter->sect_bins[bin] = 1;
+        } /* end if */
+        else
+            (iter->sect_bins[bin])++;
+    } /* end for */
+
+    if(sect_info)
+        free(sect_info);
+
+    return 0;
+} /* end freespace_stats() */
+
 
 /*-------------------------------------------------------------------------
  * Function: parse_command_line
@@ -661,10 +756,6 @@ lnk_stats(const char UNUSED *path, const H5L_info_t *li, void *_iter)
  * Programmer: Elena Pourmal
  *             Saturday, August 12, 2006
  *
- * Modifications:
- *    	Vailin Choi 12 July 2007
- *	Added 'A' option to display attribute info
- *
  *-------------------------------------------------------------------------
  */
 static struct handler_t *
@@ -674,7 +765,7 @@ parse_command_line(int argc, const char *argv[])
     struct handler_t   *hand;
 
     /* Allocate space to hold the command line info */
-    hand = calloc((size_t)argc, sizeof(struct handler_t));
+    hand = (struct handler_t *)calloc((size_t)argc, sizeof(struct handler_t));
 
     /* parse command line options */
     while ((opt = get_option(argc, argv, s_opts, l_opts)) != EOF) {
@@ -715,6 +806,11 @@ parse_command_line(int argc, const char *argv[])
             case 'd':
                 display_all = FALSE;
                 display_dset = TRUE;
+                break;
+
+	    case 's':
+                display_all = FALSE;
+                display_free_sections = TRUE;
                 break;
 
             case 'h':
@@ -801,7 +897,7 @@ print_file_info(const iter_t *iter)
     printf("File information\n");
     printf("\t# of unique groups: %lu\n", iter->uniq_groups);
     printf("\t# of unique datasets: %lu\n", iter->uniq_dsets);
-    printf("\t# of unique named dataypes: %lu\n", iter->uniq_types);
+    printf("\t# of unique named dataypes: %lu\n", iter->uniq_dtypes);
     printf("\t# of unique links: %lu\n", iter->uniq_links);
     printf("\t# of unique other: %lu\n", iter->uniq_others);
     printf("\tMax. # of links to object: %lu\n", iter->max_links);
@@ -823,26 +919,24 @@ print_file_info(const iter_t *iter)
  * Programmer: Elena Pourmal
  *             Saturday, August 12, 2006
  *
- * Modifications:
- *         Vailin Choi 12 July 2007
- *         Print storage info for:
- *         1.  btree/heap storage for groups and attributes
- *         2.  btree storage for chunked dataset
- *         3.  hdr/btree/list/heap storage for SOHM table
- *         4.  superblock extension size
- *
  *-------------------------------------------------------------------------
  */
 static herr_t
 print_file_metadata(const iter_t *iter)
 {
-    printf("Object header size: (total/unused)\n");
-    HDfprintf(stdout, "\tGroups: %Hu/%Hu\n", iter->group_ohdr_info.total_size,
-                                             iter->group_ohdr_info.free_size);
-    HDfprintf(stdout, "\tDatasets: %Hu/%Hu\n", iter->dset_ohdr_info.total_size,
-                                               iter->dset_ohdr_info.free_size);
-
     printf("Storage information:\n");
+    HDfprintf(stdout, "\tSuperblock: %Hu\n", iter->super_size);
+    HDfprintf(stdout, "\tSuperblock extension: %Hu\n", iter->super_ext_size);
+    HDfprintf(stdout, "\tUser block: %Hu\n", iter->ublk_size);
+
+    HDfprintf(stdout, "\tObject headers: (total/unused)\n");
+    HDfprintf(stdout, "\t\tGroups: %Hu/%Hu\n", iter->group_ohdr_info.total_size,
+                                             iter->group_ohdr_info.free_size);
+    HDfprintf(stdout, "\t\tDatasets: %Hu/%Hu\n", iter->dset_ohdr_info.total_size,
+                                               iter->dset_ohdr_info.free_size);
+    HDfprintf(stdout, "\t\tDatatypes: %Hu/%Hu\n", iter->dtype_ohdr_info.total_size,
+                                               iter->dtype_ohdr_info.free_size);
+
     HDfprintf(stdout, "\tGroups:\n");
     HDfprintf(stdout, "\t\tB-tree/List: %Hu\n", iter->groups_btree_storage_size);
     HDfprintf(stdout, "\t\tHeap: %Hu\n", iter->groups_heap_storage_size);
@@ -859,7 +953,9 @@ print_file_metadata(const iter_t *iter)
     HDfprintf(stdout, "\t\tB-tree/List: %Hu\n", iter->SM_index_storage_size);
     HDfprintf(stdout, "\t\tHeap: %Hu\n", iter->SM_heap_storage_size);
 
-    HDfprintf(stdout, "\tSuperblock extension: %Hu\n", iter->super_ext_size);
+    HDfprintf(stdout, "\tFree space managers:\n");
+    HDfprintf(stdout, "\t\tHeader: %Hu\n", iter->free_hdr);
+    HDfprintf(stdout, "\t\tAmount of free space: %Hu\n", iter->free_space);
 
     return 0;
 }
@@ -999,7 +1095,7 @@ print_dataset_info(const iter_t *iter)
 
     if(iter->uniq_dsets > 0) {
         printf("Dataset dimension information:\n");
-        printf("\tMax. rank of datasets: %lu\n", iter->max_dset_rank);
+        printf("\tMax. rank of datasets: %u\n", iter->max_dset_rank);
         printf("\tDataset ranks:\n");
         for(u = 0; u < H5S_MAX_RANK; u++)
             if(iter->dset_rank_count[u] > 0)
@@ -1080,6 +1176,53 @@ print_dataset_info(const iter_t *iter)
 
 
 /*-------------------------------------------------------------------------
+ * Function: print_freespace_info
+ *
+ * Purpose: Prints information about free space in the file
+ *
+ * Return: Success: 0
+ *
+ * Failure: Never fails
+ *
+ * Programmer: Vailin Choi; July 7th, 2009
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+print_freespace_info(const iter_t *iter)
+{
+    unsigned long power;        /* Temporary "power" for bins */
+    unsigned long total;        /* Total count for various statistics */
+    unsigned u;                 /* Local index variable */
+
+    printf("Small size free-space sections (< %u bytes):\n", (unsigned)SIZE_SMALL_SECTS);
+    total = 0;
+    for(u = 0; u < SIZE_SMALL_SECTS; u++) {
+        if(iter->num_small_sects[u] > 0) {
+            printf("\t# of sections of size %u: %lu\n", u, iter->num_small_sects[u]);
+            total += iter->num_small_sects[u];
+        } /* end if */
+    } /* end for */
+    printf("\tTotal # of small size sections: %lu\n", total);
+
+    printf("Free-space section bins:\n");
+
+    total = 0;
+    power = 1;
+    for(u = 1; u < iter->sect_nbins; u++) {
+        if(iter->sect_bins[u] > 0) {
+           printf("\t# of sections of size %lu - %lu: %lu\n", power, (power * 10) - 1,
+                    iter->sect_bins[u]);
+           total += iter->sect_bins[u];
+        } /* end if */
+        power *= 10;
+    } /* end for */
+    printf("\tTotal # of sections: %lu\n", total);
+
+    return 0;
+} /* print_freespace_info() */
+
+/*-------------------------------------------------------------------------
  * Function: print_file_statistics
  *
  * Purpose: Prints file statistics
@@ -1090,8 +1233,6 @@ print_dataset_info(const iter_t *iter)
  *
  * Programmer: Elena Pourmal
  *             Saturday, August 12, 2006
- *
- * Modifications:
  *
  *-------------------------------------------------------------------------
  */
@@ -1105,6 +1246,7 @@ print_file_statistics(const iter_t *iter)
         display_dset = TRUE;
         display_dtype_metadata = TRUE;
         display_attr = TRUE;
+	display_free_sections = TRUE;
     }
 
     if(display_file)          print_file_info(iter);
@@ -1112,6 +1254,7 @@ print_file_statistics(const iter_t *iter)
     if(display_group)         print_group_info(iter);
     if(display_dset)          print_dataset_info(iter);
     if(display_attr)          print_attr_info(iter);
+    if(display_free_sections) print_freespace_info(iter);
 }
 
 
@@ -1163,15 +1306,6 @@ print_statistics(const char *name, const iter_t *iter)
         print_file_statistics(iter);
 }
 
-/*-------------------------------------------------------------------------
- * 
- * Modifications:
- *	bug #1253; Oct 6th 2008; Vailin Choi
- *	Call print_statistics() when objects/links are successfully traversed.
- *	Otherwise, return warning message.
- *
- *-------------------------------------------------------------------------
- */
 
 int
 main(int argc, const char *argv[])
@@ -1179,6 +1313,7 @@ main(int argc, const char *argv[])
     iter_t          	iter;
     const char     	*fname = NULL;
     hid_t           	fid;
+    hid_t           	fcpl;
     struct handler_t   *hand;
     H5F_info_t      	finfo;
 
@@ -1210,11 +1345,24 @@ main(int argc, const char *argv[])
     if(H5Fget_info(fid, &finfo) < 0)
 	warn_msg(progname, "Unable to retrieve SOHM info\n");
     else {
-	iter.super_ext_size = finfo.super_ext_size;
+	iter.super_size = finfo.super.super_size;
+	iter.super_ext_size = finfo.super.super_ext_size;
 	iter.SM_hdr_storage_size = finfo.sohm.hdr_size;
 	iter.SM_index_storage_size = finfo.sohm.msgs_info.index_size;
 	iter.SM_heap_storage_size = finfo.sohm.msgs_info.heap_size;
+	iter.free_space = finfo.free.tot_space;
+	iter.free_hdr = finfo.free.hdr_size;
     } /* end else */
+
+    if((fcpl = H5Fget_create_plist(fid)) < 0)
+	warn_msg(progname, "Unable to retrieve file creation property\n");
+
+    if(H5Pget_userblock(fcpl, &iter.ublk_size) < 0)
+        warn_msg(progname, "Unable to retrieve userblock size\n");
+
+    /* get information for free-space sections */
+    if(freespace_stats(fid, &iter) < 0)
+        warn_msg(progname, "Unable to retrieve freespace info\n");
 
     /* Walk the objects or all file */
     if(display_object) {

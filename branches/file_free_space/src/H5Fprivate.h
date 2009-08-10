@@ -359,6 +359,8 @@ typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
 #define H5F_CRT_SHMSG_INDEX_MINSIZE_NAME "shmsg_message_minsize" /* Minimum size of messages in each index */
 #define H5F_CRT_SHMSG_LIST_MAX_NAME  "shmsg_list_max"   /* Shared message list maximum size */
 #define H5F_CRT_SHMSG_BTREE_MIN_NAME "shmsg_btree_min"  /* Shared message B-tree minimum size */
+#define H5F_CRT_FILE_SPACE_STRATEGY_NAME "file_space_strategy"  /* File space handling strategy */
+#define H5F_CRT_FREE_SPACE_THRESHOLD_NAME "free_space_threshold"  /* Free space section threshold */
 
 
 
@@ -409,6 +411,11 @@ typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
                                                     if it is changed, the code
                                                     must compensate. -QAK
                                                  */
+
+/* Default file space handling strategy */
+#define H5F_FILE_SPACE_STRATEGY_DEF	        H5F_FILE_SPACE_ALL
+/* Default free space section threshold used by free-space managers */
+#define H5F_FREE_SPACE_THRESHOLD_DEF	        1
 
 /* Macros to define signatures of all objects in the file */
 
@@ -498,6 +505,7 @@ H5_DLL hbool_t H5F_use_latest_format(const H5F_t *f);
 H5_DLL H5F_close_degree_t H5F_get_fc_degree(const H5F_t *f);
 H5_DLL hbool_t H5F_store_msg_crt_idx(const H5F_t *f);
 H5_DLL hbool_t H5F_is_tmp_addr(const H5F_t *f, haddr_t addr);
+H5_DLL hbool_t H5F_use_tmp_space(const H5F_t *f);
 
 /* Functions that retrieve values from VFD layer */
 H5_DLL hbool_t H5F_has_feature(const H5F_t *f, unsigned feature);

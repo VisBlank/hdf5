@@ -785,8 +785,9 @@ H5FS_alloc_sect(H5F_t *f, H5FS_t *fspace, hid_t dxpl_id)
     HDassert(fspace);
 
     if(!H5F_addr_defined(fspace->sect_addr) && fspace->sinfo && fspace->serial_sect_count > 0) {
-	/* Allocate space for the section info in file */
-	if(HADDR_UNDEF == (fspace->sect_addr = H5MF_alloc(f, H5FD_MEM_FSPACE_SINFO, dxpl_id, fspace->sect_size)))
+	/* Allocate space for section info from aggregator/vfd */
+	/* (The original version called H5MF_alloc(), but that may cause sect_size to change again) */
+	if(HADDR_UNDEF == (fspace->sect_addr = H5MF_aggr_vfd_alloc(f, H5FD_MEM_FSPACE_SINFO, dxpl_id, fspace->sect_size)))
 	    HGOTO_ERROR(H5E_FSPACE, H5E_NOSPACE, FAIL, "file allocation failed for section info")
 
 	fspace->alloc_sect_size = fspace->sect_size;

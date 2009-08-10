@@ -10,23 +10,29 @@ File information
 	# of unique other: 0
 	Max. # of links to object: 1
 	Max. # of objects in group: 35001
-Object header size: (total/unused)
-	Groups: 5145147/3220092
-	Datasets: 414/312
 Storage information:
+	Superblock: 48
+	Superblock extension: 119
+	User block: 0
+	Object headers: (total/unused)
+		Groups: 5145147/3220092
+		Datasets: 414/312
+		Datatypes: 0/0
 	Groups:
 		B-tree/List: 470054
-		Heap: 739102
+		Heap: 739045
 	Attributes:
 		B-tree/List: 2598
-		Heap: 4442
+		Heap: 4431
 	Chunked datasets:
 		B-tree: 0
 	Shared Messages:
 		Header: 0
 		B-tree/List: 0
 		Heap: 0
-	Superblock extension: 0
+	Free space managers:
+		Header: 1350
+		Amount of free space: 4463
 Small groups:
 	# of groups of size 0: 35000
 	Total # of small groups: 35000
@@ -71,3 +77,15 @@ Attribute bins:
 	# of objects with 100 - 999 attributes: 1
 	Total # of objects with attributes: 1
 	Max. # of attributes to objects: 100
+Small size free-space sections (< 10 bytes):
+	# of sections of size 1: 1
+	# of sections of size 2: 12
+	# of sections of size 3: 3
+	# of sections of size 7: 1
+	# of sections of size 8: 2
+	Total # of small size sections: 19
+Free-space section bins:
+	# of sections of size 1 - 9: 19
+	# of sections of size 10 - 99: 44
+	# of sections of size 100 - 999: 18
+	Total # of sections: 81

@@ -553,12 +553,15 @@ typedef uint32_t H5O_refcount_t;        /* Contains # of links to object, if >1 
 typedef unsigned H5O_unknown_t;         /* Original message type ID */
 
 /*
- * Free-space manager info Message.
- * Contains addresses of free-space managers for file memory
+ * Free space manager info Message.
+ * Contains file space management info and 
+ * addresses of free space managers for file memory
  * (Data structure in memory)
  */
 typedef struct H5O_fsinfo_t {
-    haddr_t     fs_addr[H5FD_MEM_NTYPES-1];       /* Addresses of free-space managers */
+    H5F_file_space_type_t strategy;	/* File space strategy */
+    hsize_t		  threshold;	/* Free space section threshold */
+    haddr_t     	  fs_addr[H5FD_MEM_NTYPES-1]; /* Addresses of free space managers */
 } H5O_fsinfo_t;
 
 /* Typedef for "application" iteration operations */

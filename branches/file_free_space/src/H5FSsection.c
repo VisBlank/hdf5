@@ -27,6 +27,7 @@
 
 #define H5FS_PACKAGE		/*suppress error about including H5FSpkg  */
 
+
 /***********/
 /* Headers */
 /***********/
@@ -36,14 +37,10 @@
 #include "H5MFprivate.h"	/* File memory management		*/
 #include "H5Vprivate.h"		/* Vectors and arrays 			*/
 
+
 /****************/
 /* Local Macros */
 /****************/
-
-/* #define QAK */
-
-/* Default starting size of section buffer */
-#define H5FS_SINFO_SIZE_DEFAULT  64
 
 
 /******************/
@@ -86,6 +83,7 @@ static herr_t H5FS_sect_merge(H5FS_t *fspace, H5FS_section_info_t **sect,
     void *op_data);
 static htri_t H5FS_sect_find_node(H5FS_t *fspace, hsize_t request, H5FS_section_info_t **node);
 static herr_t H5FS_sect_serialize_size(H5FS_t *fspace);
+
 
 /*********************/
 /* Package Variables */
@@ -178,8 +176,9 @@ done:
         /* Release bins for skip lists */
         if(sinfo->bins)
             sinfo->bins = H5FL_SEQ_FREE(H5FS_bin_t, sinfo->bins);
+
         /* Release free space section info */
-        H5FL_FREE(H5FS_sinfo_t, sinfo);
+        sinfo = H5FL_FREE(H5FS_sinfo_t, sinfo);
     } /* end if */
 
     FUNC_LEAVE_NOAPI(ret_value)
@@ -1553,6 +1552,67 @@ done:
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5FS_sect_try_extend() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5FS_sect_try_merge
+ *
+ * Purpose:	Try to merge/shrink a block 
+ *
+ * Return:	TRUE:		merged/shrunk
+ *		FALSE: 	 	not merged/not shrunk
+ *		Failure:	negative
+ *
+ * Programmer:	Vailin Choi; June 10, 2009
+ *
+ *-------------------------------------------------------------------------
+ */
+htri_t
+H5FS_sect_try_merge(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace, H5FS_section_info_t *sect,
+    unsigned flags, void *op_data)
+{
+    hbool_t sinfo_valid = FALSE;        /* Whether the section info is valid */
+    hbool_t sinfo_modified = FALSE;     /* Whether the section info was modified */
+    hsize_t saved_fs_size;		/* copy the free-space section size */
+    htri_t ret_value = FALSE;           /* Return value */
+
+    FUNC_ENTER_NOAPI(H5FS_sect_try_merge, FAIL)
+
+    /* Check arguments. */
+    HDassert(f);
+    HDassert(fspace);
+    HDassert(sect);
+    HDassert(H5F_addr_defined(sect->addr));
+    HDassert(sect->size);
+
+    /* Get a pointer to the section info */
+    if(H5FS_sinfo_lock(f, dxpl_id, fspace, H5AC_WRITE) < 0)
+	HGOTO_ERROR(H5E_FSPACE, H5E_CANTGET, FAIL, "can't get section info")
+    sinfo_valid = TRUE;
+    saved_fs_size = sect->size;
+
+    /* Attempt to merge/shrink section with existing sections */
+    if(H5FS_sect_merge(fspace, &sect, op_data) < 0)
+	HGOTO_ERROR(H5E_FSPACE, H5E_CANTMERGE, FAIL, "can't merge sections")
+
+    if(!sect) {/* section is shrunk and/or merged away completely */
+	sinfo_modified = TRUE;
+	HGOTO_DONE(TRUE)
+    } /* end if */
+    else if(sect->size > saved_fs_size) { /* section is merged */
+	if(H5FS_sect_link(fspace, sect, flags) < 0)
+	    HGOTO_ERROR(H5E_FSPACE, H5E_CANTINSERT, FAIL, "can't insert free space section into skip list")
+	sinfo_modified = TRUE;
+	HGOTO_DONE(TRUE)
+    } /* end if */
+
+done:
+    /* Release the section info */
+    if(sinfo_valid && H5FS_sinfo_unlock(f, dxpl_id, fspace, sinfo_modified) < 0)
+        HDONE_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't release section info")
+
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* H5FS_sect_try_merge() */
 
 
 /*-------------------------------------------------------------------------

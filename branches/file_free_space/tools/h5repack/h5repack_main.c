@@ -38,7 +38,7 @@ const char  *outfile = NULL;
  * Command-line options: The user can specify short or long-named
  * parameters.
  */
-static const char *s_opts = "hVvf:l:m:e:nLc:d:s:u:b:t:a:i:o:";
+static const char *s_opts = "hVvf:l:m:e:nLc:d:s:u:b:t:a:i:o:S:T";
 static struct long_options l_opts[] = {
     { "help", no_arg, 'h' },
     { "version", no_arg, 'V' },
@@ -58,6 +58,8 @@ static struct long_options l_opts[] = {
     { "alignment", require_arg, 'a' },
     { "infile", require_arg, 'i' },   /* -i for backward compability */
     { "outfile", require_arg, 'o' },  /* -o for backward compability */
+    { "fs_strategy", require_arg, 'S' },
+    { "fs_threshold", require_arg, 'T' },
     { NULL, 0, '\0' }
 };
 
@@ -180,19 +182,28 @@ static void usage(const char *prog)
  printf("   -a A, --alignment=A     Alignment value for H5Pset_alignment\n");
  printf("   -f FILT, --filter=FILT  Filter type\n");
  printf("   -l LAYT, --layout=LAYT  Layout type\n");
+ printf("   -S STRGY, --strategy=STRGY  File space strategy type\n");
+ printf("   -T THRD, --threshold=THRD   Free space section threshold\n");
 
  printf("\n");
 
- printf("  M - is an integer greater than 1, size of dataset in bytes (default is 1024) \n");
- printf("  E - is a filename.\n");
- printf("  S - is an integer\n");
- printf("  U - is a filename.\n");
- printf("  T - is an integer\n");
- printf("  A - is an integer greater than zero\n");
- printf("  B - is the user block size, any value that is 512 or greater and is\n");
+ printf("    M - is an integer greater than 1, size of dataset in bytes (default is 1024) \n");
+ printf("    E - is a filename.\n");
+ printf("    S - is an integer\n");
+ printf("    U - is a filename.\n");
+ printf("    T - is an integer\n");
+ printf("    A - is an integer greater than zero\n");
+ printf("    B - is the user block size, any value that is 512 or greater and is\n");
  printf("        a power of 2 (1024 default)\n");
- printf("  F - is the shared object header message type, any of <dspace|dtype|fill|\n");
+ printf("    F - is the shared object header message type, any of <dspace|dtype|fill|\n");
  printf("        pline|attr>. If F is not specified, S applies to all messages\n");
+ printf("STRGY - is an integer value, listed below: (default is 2)\n");
+ printf("        1, to use persistent free space managers, aggregators and virtual file driver for allocation\n");
+ printf("        2, to use non-persistent free space managers, aggregators and virtual file driver for allocation\n");
+ printf("        3, to use aggregators and virtual file driver for allocation\n");
+ printf("        4, to use virtual file driver for allocation\n");
+ printf("THRD  - is an integer greater than zero, the minimum size of free space\n");
+ printf("         sections to track, in bytes (default is 1) \n");
 
  printf("\n");
 
@@ -411,13 +422,12 @@ void parse_command_line(int argc, const char **argv, pack_opt_t* options)
 
         case 'b':
 
-            options->ublock_size = atol( opt_arg );
+            options->ublock_size = (hsize_t)atol( opt_arg );
             break;
 
         case 't':
 
-            options->threshold = atol( opt_arg );
-          
+            options->threshold = (hsize_t)atol( opt_arg );
             break;
 
         case 'a':
@@ -430,6 +440,15 @@ void parse_command_line(int argc, const char **argv, pack_opt_t* options)
             }
             break;
 
+        case 'S':
+
+            options->fs_strategy = atol( opt_arg );
+            break;
+
+        case 'T':
+
+            options->fs_threshold = (hsize_t)atol( opt_arg );
+            break;
         } /* switch */
 
 
