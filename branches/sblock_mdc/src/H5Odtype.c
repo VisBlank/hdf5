@@ -17,6 +17,7 @@
 #define H5T_PACKAGE		/*prevent warning from including H5Tpkg   */
 
 #include "H5private.h"		/* Generic Functions			*/
+#include "H5Dprivate.h"		/* Datasets				*/
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5Fprivate.h"		/* Files				*/
 #include "H5FLprivate.h"	/* Free Lists				*/
@@ -452,8 +453,9 @@ H5O_dtype_decode_helper(H5F_t *f, unsigned *ioflags/*in,out*/, const uint8_t **p
 
             /* Set extra information for object references, so the hobj_ref_t gets swizzled correctly */
             if(dt->shared->u.atomic.u.r.rtype == H5R_OBJECT) {
-                /* This type is on disk */
-                dt->shared->u.atomic.u.r.loc = H5T_LOC_DISK;
+                /* Mark location this type as undefined for now.  The caller function should
+                 * decide the location. */
+                dt->shared->u.atomic.u.r.loc = H5T_LOC_BADLOC;
 
                 /* This type needs conversion */
                 dt->shared->force_conv = TRUE;
@@ -518,8 +520,10 @@ H5O_dtype_decode_helper(H5F_t *f, unsigned *ioflags/*in,out*/, const uint8_t **p
                 ioflags, "vlen", FAIL)
 
             dt->shared->force_conv=TRUE;
-            /* Mark this type as on disk */
-            if(H5T_set_loc(dt, f, H5T_LOC_DISK) < 0)
+
+            /* Mark location this type as undefined for now.  The caller function should
+             * decide the location. */
+            if(H5T_set_loc(dt, f, H5T_LOC_BADLOC) < 0)
                 HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "invalid datatype location")
             break;
 
@@ -575,8 +579,8 @@ done:
     if(ret_value < 0) {
         if(dt != NULL) {
             if(dt->shared != NULL)
-                H5FL_FREE(H5T_shared_t, dt->shared);
-            H5FL_FREE(H5T_t, dt);
+                dt->shared = H5FL_FREE(H5T_shared_t, dt->shared);
+            dt = H5FL_FREE(H5T_t, dt);
         } /* end if */
     } /* end if */
 
