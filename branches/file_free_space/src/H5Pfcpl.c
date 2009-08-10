@@ -768,7 +768,7 @@ H5Pset_shared_mesg_index(hid_t plist_id, unsigned index_num, unsigned mesg_type_
     herr_t      ret_value = SUCCEED;       /* Return value */
 
     FUNC_ENTER_API(H5Pset_shared_mesg_index, FAIL)
-    H5TRACE4("e", "iIuIuIu", plist_id, index_num, mesg_type_flags, min_mesg_size)
+    H5TRACE4("e", "iIuIuIu", plist_id, index_num, mesg_type_flags, min_mesg_size);
 
     /* Check arguments */
     if(mesg_type_flags > H5O_SHMESG_ALL_FLAG)
