@@ -287,6 +287,7 @@ HDfprintf(stderr, "%s: fspace->sect_addr = %a\n", FUNC, fspace->sect_addr);
 #endif /* H5FS_DEBUG */
     if(fspace->serial_sect_count > 0) {
         unsigned sinfo_status = 0;      /* Free space section info's status in the metadata cache */
+
         /* Sanity check */
         HDassert(H5F_addr_defined(fspace->sect_addr));
         HDassert(fspace->alloc_sect_size > 0);
@@ -391,7 +392,6 @@ HDfprintf(stderr, "%s: Real sections to store in file\n", FUNC);
 	    else
 		/* Sanity check that section info has address */
 		HDassert(H5F_addr_defined(fspace->sect_addr));
-
 
             /* Cache the free space section info */
             if(H5AC_set(f, dxpl_id, H5AC_FSPACE_SINFO, fspace->sect_addr, fspace->sinfo, H5AC__NO_FLAGS_SET) < 0)
@@ -744,7 +744,6 @@ H5FS_alloc_hdr(H5F_t *f, H5FS_t *fspace, haddr_t *fs_addr, hid_t dxpl_id)
     HDassert(fspace);
 
     if(!H5F_addr_defined(fspace->addr)) {
-
 	/* Allocate space for the free space header */
 	if(HADDR_UNDEF == (fspace->addr = H5MF_alloc(f, H5FD_MEM_FSPACE_HDR, dxpl_id, (hsize_t)H5FS_HEADER_SIZE(f))))
 	    HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "file allocation failed for free space header")
@@ -752,7 +751,7 @@ H5FS_alloc_hdr(H5F_t *f, H5FS_t *fspace, haddr_t *fs_addr, hid_t dxpl_id)
 	/* Cache the new free space header (pinned) */
 	if(H5AC_set(f, dxpl_id, H5AC_FSPACE_HDR, fspace->addr, fspace, H5AC__PIN_ENTRY_FLAG) < 0)
 	    HGOTO_ERROR(H5E_FSPACE, H5E_CANTINIT, FAIL, "can't add free space header to cache")
-    }
+    } /* end if */
 
     if(fs_addr)
 	*fs_addr = fspace->addr;
@@ -801,7 +800,7 @@ H5FS_alloc_sect(H5F_t *f, H5FS_t *fspace, hid_t dxpl_id)
 	    HGOTO_ERROR(H5E_FSPACE, H5E_CANTINIT, FAIL, "can't add free space sections to cache")
 
 	fspace->sinfo = NULL;
-    }
+    } /* end if */
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)

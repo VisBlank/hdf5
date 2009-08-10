@@ -217,6 +217,114 @@ done:
 
 
 /*-------------------------------------------------------------------------
+ * Function:    H5F_super_ext_create
+ *
+ * Purpose:     Create the superblock extension
+ *
+ * Return:      Success:        non-negative on success
+ *              Failure:        Negative
+ *
+ * Programmer:  Vailin Choi; Feb 2009
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+H5F_super_ext_create(H5F_t *f, hid_t dxpl_id, H5O_loc_t *ext_ptr)
+{
+    herr_t ret_value = SUCCEED;         /* Return value */
+
+    FUNC_ENTER_NOAPI_NOINIT(H5F_super_ext_create)
+
+    /* Sanity check */
+    HDassert(f);
+    HDassert(ext_ptr);
+    HDassert(!H5F_addr_defined(f->shared->extension_addr));
+
+    H5O_loc_reset(ext_ptr);
+    if(H5O_create(f, dxpl_id, 0, H5P_GROUP_CREATE_DEFAULT, ext_ptr) < 0)
+	HGOTO_ERROR(H5E_OHDR, H5E_CANTCREATE, FAIL, "unable to create superblock extension")
+
+    /* Record the address of the superblock extension */
+    f->shared->extension_addr = ext_ptr->addr;
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* H5F_super_ext_create() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    H5F_super_ext_open
+ *
+ * Purpose:     Open an existing superblock extension
+ *
+ * Return:      Success:        non-negative on success
+ *              Failure:        Negative
+ *
+ * Programmer:  Vailin Choi; Feb 2009
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+H5F_super_ext_open(H5F_t *f, H5O_loc_t *ext_ptr)
+{
+    herr_t ret_value = SUCCEED;         /* Return value */
+
+    FUNC_ENTER_NOAPI_NOINIT(H5F_super_ext_open)
+
+    /* Sanity check */
+    HDassert(f);
+    HDassert(ext_ptr);
+    HDassert(H5F_addr_defined(f->shared->extension_addr));
+
+    /* Set up "fake" object location for superblock extension */
+    H5O_loc_reset(ext_ptr);
+    ext_ptr->file = f;
+    ext_ptr->addr = f->shared->extension_addr;
+
+    /* Open the superblock extension object header */
+    if(H5O_open(ext_ptr) < 0)
+	HGOTO_ERROR(H5E_OHDR, H5E_CANTOPENFILE, FAIL, "unable to open superblock extension")
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* H5F_super_ext_open() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:   H5F_super_ext_close
+ *              
+ * Purpose:    Close superblock extension
+ *
+ * Return:     Success:        non-negative on success
+ *             Failure:        Negative
+ *
+ * Programmer:  Vailin Choi; Feb 2009
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t 
+H5F_super_ext_close(H5F_t *f, H5O_loc_t *ext_ptr)
+{
+    herr_t ret_value = SUCCEED;         /* Return value */
+
+    FUNC_ENTER_NOAPI_NOINIT(H5F_super_ext_close)
+
+    /* Sanity check */
+    HDassert(f);
+    HDassert(ext_ptr);
+
+    /* Twiddle the number of open objects to avoid closing the file. */
+    f->nopen_objs++;
+    if(H5O_close(ext_ptr) < 0)
+        HGOTO_ERROR(H5E_OHDR, H5E_CANTRELEASE, FAIL, "unable to close superblock extension")
+    f->nopen_objs--;
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* H5F_super_ext_close() */
+
+
+/*-------------------------------------------------------------------------
  * Function:    H5F_super_read
  *
  * Purpose:     Reads the superblock from the file or from the BUF. If
@@ -591,7 +699,7 @@ H5F_super_read(H5F_t *f, hid_t dxpl_id)
 
         /* Open the superblock extension */
 	if(H5F_super_ext_open(f, &ext_loc) < 0)
-            HGOTO_ERROR(H5E_FILE, H5E_CANTRELEASE, FAIL, "unable to start file's superblock extension")
+            HGOTO_ERROR(H5E_FILE, H5E_CANTOPENOBJ, FAIL, "unable to start file's superblock extension")
 
         /* Check for the extension having a 'driver info' message */
         if((status = H5O_msg_exists(&ext_loc, H5O_DRVINFO_ID, dxpl_id)) < 0)
@@ -1049,7 +1157,7 @@ H5F_super_write(H5F_t *f, hid_t dxpl_id)
 
             /* Open the superblock extension */
             if(H5F_super_ext_open(f, &ext_loc) < 0)
-                HGOTO_ERROR(H5E_FILE, H5E_CANTRELEASE, FAIL, "unable to start file's superblock extension")
+                HGOTO_ERROR(H5E_FILE, H5E_CANTOPENOBJ, FAIL, "unable to start file's superblock extension")
 
             /* Write driver info information to the superblock extension */
             drvinfo.len = driver_size;
@@ -1106,132 +1214,29 @@ H5F_super_size(H5F_t *f, hid_t dxpl_id, hsize_t *super_size, hsize_t *super_ext_
     if(super_size)
 	*super_size = H5F_SUPERBLOCK_SIZE(super_vers, f);
 
-    if(H5F_addr_defined(f->shared->extension_addr) && super_ext_size) {
-	/* Set up "fake" object location for superblock extension */
-	H5O_loc_reset(&ext_loc);
-	ext_loc.file = f;
-	ext_loc.addr = f->shared->extension_addr;
+    /* Set the superblock extension size */
+    if(super_ext_size) {
+        if(H5F_addr_defined(f->shared->extension_addr)) {
+            /* Set up "fake" object location for superblock extension */
+            H5O_loc_reset(&ext_loc);
+            ext_loc.file = f;
+            ext_loc.addr = f->shared->extension_addr;
 
-	/* Get object header info for superblock extension */
-	if(H5O_get_info(&ext_loc, dxpl_id, FALSE, &oinfo) < 0)
-	    HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "unable to retrieve superblock extension info")
+            /* Get object header info for superblock extension */
+            if(H5O_get_info(&ext_loc, dxpl_id, FALSE, &oinfo) < 0)
+                HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "unable to retrieve superblock extension info")
 
-	/* Set the superblock extension size */
-	*super_ext_size = oinfo.hdr.space.total;
+            /* Set the superblock extension size */
+            *super_ext_size = oinfo.hdr.space.total;
+        } /* end if */
+        else
+            /* Set the superblock extension size to zero */
+            *super_ext_size = (hsize_t)0;
     } /* end if */
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5F_super_size() */
-
-
-/*-------------------------------------------------------------------------
- * Function:    H5F_super_ext_create
- *
- * Purpose:     Create the superblock extension
- *
- * Return:      Success:        non-negative on success
- *              Failure:        Negative
- *
- * Programmer:  Vailin Choi; Feb 2009
- *
- *-------------------------------------------------------------------------
- */
-static herr_t
-H5F_super_ext_create(H5F_t *f, hid_t dxpl_id, H5O_loc_t *ext_ptr)
-{
-    herr_t ret_value = SUCCEED;         /* Return value */
-
-    FUNC_ENTER_NOAPI_NOINIT(H5F_super_ext_create)
-
-    /* Sanity check */
-    HDassert(f);
-    HDassert(ext_ptr);
-    HDassert(!H5F_addr_defined(f->shared->extension_addr));
-
-    H5O_loc_reset(ext_ptr);
-    if(H5O_create(f, dxpl_id, 0, H5P_GROUP_CREATE_DEFAULT, ext_ptr) < 0)
-	HGOTO_ERROR(H5E_OHDR, H5E_CANTCREATE, FAIL, "unable to create superblock extension")
-
-    /* Record the address of the superblock extension */
-    f->shared->extension_addr = ext_ptr->addr;
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
-} /* H5F_super_ext_create() */
-
-
-/*-------------------------------------------------------------------------
- * Function:    H5F_super_ext_open
- *
- * Purpose:     Open an existing superblock extension
- *
- * Return:      Success:        non-negative on success
- *              Failure:        Negative
- *
- * Programmer:  Vailin Choi; Feb 2009
- *
- *-------------------------------------------------------------------------
- */
-static herr_t
-H5F_super_ext_open(H5F_t *f, H5O_loc_t *ext_ptr)
-{
-    herr_t ret_value = SUCCEED;         /* Return value */
-
-    FUNC_ENTER_NOAPI_NOINIT(H5F_super_ext_open)
-
-    /* Sanity check */
-    HDassert(f);
-    HDassert(ext_ptr);
-    HDassert(H5F_addr_defined(f->shared->extension_addr));
-
-    H5O_loc_reset(ext_ptr);
-
-    /* Set up "fake" object location for superblock extension */
-    ext_ptr->file = f;
-    ext_ptr->addr = f->shared->extension_addr;
-
-    /* Open the superblock extension object header */
-    if(H5O_open(ext_ptr) < 0)
-	HGOTO_ERROR(H5E_OHDR, H5E_CANTOPENFILE, FAIL, "unable to open superblock extension")
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
-} /* H5F_super_ext_open() */
-
-
-/*-------------------------------------------------------------------------
- * Function:   H5F_super_ext_close
- *              
- * Purpose:    Close superblock extension
- *
- * Return:     Success:        non-negative on success
- *             Failure:        Negative
- *
- * Programmer:  Vailin Choi; Feb 2009
- *
- *-------------------------------------------------------------------------
- */
-static herr_t 
-H5F_super_ext_close(H5F_t *f, H5O_loc_t *ext_ptr)
-{
-    herr_t ret_value = SUCCEED;         /* Return value */
-
-    FUNC_ENTER_NOAPI_NOINIT(H5F_super_ext_close)
-
-    /* Sanity check */
-    HDassert(f);
-    HDassert(ext_ptr);
-
-    /* Twiddle the number of open objects to avoid closing the file. */
-    f->nopen_objs++;
-    if(H5O_close(ext_ptr) < 0)
-        HGOTO_ERROR(H5E_OHDR, H5E_CANTRELEASE, FAIL, "unable to close superblock extension")
-    f->nopen_objs--;
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
-} /* H5F_super_ext_close() */
 
 
 /*-------------------------------------------------------------------------

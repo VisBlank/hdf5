@@ -74,6 +74,7 @@ typedef struct {
     size_t sect_idx;            /* the current count of sections */
 } H5MF_sect_iter_ud_t;
 
+
 /********************/
 /* Package Typedefs */
 /********************/
@@ -82,6 +83,7 @@ typedef struct {
 /********************/
 /* Local Prototypes */
 /********************/
+
 
 /*********************/
 /* Package Variables */
@@ -351,6 +353,66 @@ done:
 
 
 /*-------------------------------------------------------------------------
+ * Function:    H5MF_aggr_vfd_alloc
+ *
+ * Purpose:     Allocate SIZE bytes of file memory via H5MF_aggr_alloc() 
+ *		and return the relative address where that contiguous chunk 
+ *		of file memory exists.
+ *		The TYPE argument describes the purpose for which the storage
+ *		is being requested.
+ *
+ * Return:      Success:        The file address of new chunk.
+ *              Failure:        HADDR_UNDEF
+ *
+ * Programmer:  Vailin Choi; July 1st, 2009
+ *		(The coding is from H5MF_alloc().)
+ *
+ *-------------------------------------------------------------------------
+ */
+haddr_t
+H5MF_aggr_vfd_alloc(H5F_t *f, H5FD_mem_t alloc_type, hid_t dxpl_id, hsize_t size)
+{
+    haddr_t	ret_value;              /* Return value */
+
+    FUNC_ENTER_NOAPI(H5MF_aggr_vfd_alloc, HADDR_UNDEF)
+#ifdef H5MF_ALLOC_DEBUG
+HDfprintf(stderr, "%s: alloc_type = %u, size = %Hu\n", FUNC, (unsigned)alloc_type, size);
+#endif /* H5MF_ALLOC_DEBUG */
+
+    /* check arguments */
+    HDassert(f);
+    HDassert(f->shared);
+    HDassert(f->shared->lf);
+    HDassert(size > 0);
+
+    /* Couldn't find anything from the free space manager, go allocate some */
+    if(alloc_type != H5FD_MEM_DRAW) {
+        /* Handle metadata differently from "raw" data */
+        if(HADDR_UNDEF == (ret_value = H5MF_aggr_alloc(f, dxpl_id, &(f->shared->meta_aggr), &(f->shared->sdata_aggr), alloc_type, size)))
+            HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, HADDR_UNDEF, "can't allocate metadata")
+    } /* end if */
+    else {
+        /* Allocate "raw" data */
+        if(HADDR_UNDEF == (ret_value = H5MF_aggr_alloc(f, dxpl_id, &(f->shared->sdata_aggr), &(f->shared->meta_aggr), alloc_type, size)))
+            HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, HADDR_UNDEF, "can't allocate raw data")
+    } /* end else */
+
+    /* Sanity check for overlapping into file's temporary allocation space */
+    HDassert(H5F_addr_le((ret_value + size), f->shared->tmp_addr));
+
+done:
+#ifdef H5MF_ALLOC_DEBUG
+HDfprintf(stderr, "%s: Leaving: ret_value = %a, size = %Hu\n", FUNC, ret_value, size);
+#endif /* H5MF_ALLOC_DEBUG */
+#ifdef H5MF_ALLOC_DEBUG_DUMP
+H5MF_sects_dump(f, dxpl_id, stderr);
+#endif /* H5MF_ALLOC_DEBUG_DUMP */
+
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5MF_aggr_vfd_alloc() */
+
+
+/*-------------------------------------------------------------------------
  * Function:    H5MF_alloc
  *
  * Purpose:     Allocate SIZE bytes of file memory and return the relative
@@ -392,8 +454,9 @@ HDfprintf(stderr, "%s: alloc_type = %u, size = %Hu\n", FUNC, (unsigned)alloc_typ
             f->shared->fs_strategy == H5F_FILE_SPACE_ALL_PERSIST) {
         /* Check if the free space manager for the file has been initialized */
         if(!f->shared->fs_man[fs_type])
-	    if(H5F_addr_defined(f->shared->fs_addr[fs_type]) && H5MF_alloc_open(f, dxpl_id, fs_type) < 0)
-                HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINIT, HADDR_UNDEF, "can't initialize file free space")
+	    if(H5F_addr_defined(f->shared->fs_addr[fs_type]))
+                if(H5MF_alloc_open(f, dxpl_id, fs_type) < 0)
+                    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINIT, HADDR_UNDEF, "can't initialize file free space")
 
         /* Search for large enough space in the free space manager */
         if(f->shared->fs_man[fs_type]) {
@@ -468,66 +531,6 @@ H5MF_sects_dump(f, dxpl_id, stderr);
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5MF_alloc() */
-
-
-/*-------------------------------------------------------------------------
- * Function:    H5MF_aggr_vfd_alloc
- *
- * Purpose:     Allocate SIZE bytes of file memory via H5MF_aggr_alloc() 
- *		and return the relative address where that contiguous chunk 
- *		of file memory exists.
- *		The TYPE argument describes the purpose for which the storage
- *		is being requested.
- *
- * Return:      Success:        The file address of new chunk.
- *              Failure:        HADDR_UNDEF
- *
- * Programmer:  Vailin Choi; July 1st, 2009
- *		(The coding is from H5MF_alloc().)
- *
- *-------------------------------------------------------------------------
- */
-haddr_t
-H5MF_aggr_vfd_alloc(H5F_t *f, H5FD_mem_t alloc_type, hid_t dxpl_id, hsize_t size)
-{
-    haddr_t	ret_value;              /* Return value */
-
-    FUNC_ENTER_NOAPI(H5MF_aggr_vfd_alloc, HADDR_UNDEF)
-#ifdef H5MF_ALLOC_DEBUG
-HDfprintf(stderr, "%s: alloc_type = %u, size = %Hu\n", FUNC, (unsigned)alloc_type, size);
-#endif /* H5MF_ALLOC_DEBUG */
-
-    /* check arguments */
-    HDassert(f);
-    HDassert(f->shared);
-    HDassert(f->shared->lf);
-    HDassert(size > 0);
-
-    /* Couldn't find anything from the free space manager, go allocate some */
-    if(alloc_type != H5FD_MEM_DRAW) {
-        /* Handle metadata differently from "raw" data */
-        if(HADDR_UNDEF == (ret_value = H5MF_aggr_alloc(f, dxpl_id, &(f->shared->meta_aggr), &(f->shared->sdata_aggr), alloc_type, size)))
-            HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, HADDR_UNDEF, "can't allocate metadata")
-    } /* end if */
-    else {
-        /* Allocate "raw" data */
-        if(HADDR_UNDEF == (ret_value = H5MF_aggr_alloc(f, dxpl_id, &(f->shared->sdata_aggr), &(f->shared->meta_aggr), alloc_type, size)))
-            HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, HADDR_UNDEF, "can't allocate raw data")
-    } /* end else */
-
-    /* Sanity check for overlapping into file's temporary allocation space */
-    HDassert(H5F_addr_le((ret_value + size), f->shared->tmp_addr));
-
-done:
-#ifdef H5MF_ALLOC_DEBUG
-HDfprintf(stderr, "%s: Leaving: ret_value = %a, size = %Hu\n", FUNC, ret_value, size);
-#endif /* H5MF_ALLOC_DEBUG */
-#ifdef H5MF_ALLOC_DEBUG_DUMP
-H5MF_sects_dump(f, dxpl_id, stderr);
-#endif /* H5MF_ALLOC_DEBUG_DUMP */
-
-    FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5MF_aggr_vfd_alloc() */
 
 
 /*-------------------------------------------------------------------------
@@ -797,8 +800,9 @@ HDfprintf(stderr, "%s: Entering: alloc_type = %u, addr = %a, size = %Hu, extra_r
 
             /* Check if the free space for the file has been initialized */
             if(!f->shared->fs_man[fs_type])
-                if(H5F_addr_defined(f->shared->fs_addr[fs_type]) && H5MF_alloc_open(f, dxpl_id, fs_type) < 0)
-                    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINIT, FAIL, "can't initialize file free space")
+                if(H5F_addr_defined(f->shared->fs_addr[fs_type]))
+                    if(H5MF_alloc_open(f, dxpl_id, fs_type) < 0)
+                        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINIT, FAIL, "can't initialize file free space")
 
             /* Check for test block able to block in free space manager */
             if(f->shared->fs_man[fs_type])
@@ -861,7 +865,7 @@ H5MF_get_freespace(H5F_t *f, hid_t dxpl_id, hsize_t *tot_space, hsize_t *meta_si
 
     /* Retrieve 'small data' aggregator info, if available */
     if(H5MF_aggr_query(f, &(f->shared->sdata_aggr), &sda_addr, &sda_size) < 0)
-        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTGET, FAIL, "can't query metadata aggregator stats")
+        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTGET, FAIL, "can't query small data aggregator stats")
 
     /* Iterate over all the free space types that have managers and get each free list's space */
     for(type = H5FD_MEM_DEFAULT; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type)) {
@@ -1021,10 +1025,12 @@ H5MF_free_aggrs(H5F_t *f, hid_t dxpl_id)
     HDassert(f->shared->lf);
 
     /* Retrieve metadata aggregator info, if available */
-    H5MF_aggr_query(f, &(f->shared->meta_aggr), &ma_addr, &ma_size);
+    if(H5MF_aggr_query(f, &(f->shared->meta_aggr), &ma_addr, &ma_size) < 0)
+        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTGET, FAIL, "can't query metadata aggregator stats")
 
     /* Retrieve 'small data' aggregator info, if available */
-    H5MF_aggr_query(f, &(f->shared->sdata_aggr), &sda_addr, &sda_size);
+    if(H5MF_aggr_query(f, &(f->shared->sdata_aggr), &sda_addr, &sda_size) < 0)
+        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTGET, FAIL, "can't query small data aggregator stats")
 
     /* Make certain we release the aggregator that's later in the file first */
     /* (so the file shrinks properly) */
