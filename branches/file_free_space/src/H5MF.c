@@ -334,14 +334,14 @@ H5MF_alloc_start(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type)
     HDassert(f->shared);
 
     /* Check if the free space manager exists already */
-    if(H5F_addr_defined(f->shared->fs_addr[fs_type])) {
+    if(H5F_addr_defined(f->shared->fs_addr[type])) {
         /* Open existing free space manager */
-        if(H5MF_alloc_open(f, dxpl_id, fs_type) < 0)
+        if(H5MF_alloc_open(f, dxpl_id, type) < 0)
             HGOTO_ERROR(H5E_RESOURCE, H5E_CANTOPENOBJ, FAIL, "can't initialize file free space")
     } /* end if */
     else {
         /* Create new free space manager */
-        if(H5MF_alloc_create(f, dxpl_id, fs_type) < 0)
+        if(H5MF_alloc_create(f, dxpl_id, type) < 0)
             HGOTO_ERROR(H5E_RESOURCE, H5E_CANTCREATE, FAIL, "can't initialize file free space")
     } /* end else */
 
