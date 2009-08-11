@@ -1144,7 +1144,6 @@ H5F_super_write(H5F_t *f, hid_t dxpl_id)
         /* Check for driver info message */
         H5_ASSIGN_OVERFLOW(driver_size, H5FD_sb_size(f->shared->lf), hsize_t, size_t);
         if(driver_size > 0) {
-            H5O_loc_t ext_loc;      /* "Object location" for superblock extension */
             H5O_drvinfo_t drvinfo;      /* Driver info */
             uint8_t dbuf[H5F_MAX_DRVINFOBLOCK_SIZE];  /* Driver info block encoding buffer */
 
@@ -1155,19 +1154,11 @@ H5F_super_write(H5F_t *f, hid_t dxpl_id)
             if(H5FD_sb_encode(f->shared->lf, drvinfo.name, dbuf) < 0)
                 HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "unable to encode driver information")
 
-            /* Open the superblock extension */
-            if(H5F_super_ext_open(f, &ext_loc) < 0)
-                HGOTO_ERROR(H5E_FILE, H5E_CANTOPENOBJ, FAIL, "unable to start file's superblock extension")
-
             /* Write driver info information to the superblock extension */
             drvinfo.len = driver_size;
             drvinfo.buf = dbuf;
-            if(H5O_msg_write(&ext_loc, H5O_DRVINFO_ID, H5O_MSG_FLAG_DONTSHARE, H5O_UPDATE_TIME, &drvinfo, dxpl_id) < 0)
-                HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "unable to update driver info header message")
-
-            /* Close superblock extension */
-	    if(H5F_super_ext_close(f, &ext_loc) < 0)
-		HGOTO_ERROR(H5E_FILE, H5E_CANTRELEASE, FAIL, "unable to close file's superblock extension")
+	    if(H5F_super_ext_write_msg(f, dxpl_id, &drvinfo, H5O_DRVINFO_ID, FALSE) < 0)
+                HGOTO_ERROR(H5E_FILE, H5E_WRITEERROR, FAIL, "unable to update driver info header message")
         } /* end if */
     } /* end if */
 
@@ -1250,7 +1241,7 @@ done:
  *
  *-------------------------------------------------------------------------
  */
-htri_t
+herr_t
 H5F_super_ext_write_msg(H5F_t *f, hid_t dxpl_id, void *mesg, unsigned id, hbool_t may_create)
 {
     H5O_loc_t 	ext_loc; 	/* "Object location" for superblock extension */
@@ -1265,16 +1256,17 @@ H5F_super_ext_write_msg(H5F_t *f, hid_t dxpl_id, void *mesg, unsigned id, hbool_
 	    HGOTO_ERROR(H5E_FILE, H5E_CANTOPENOBJ, FAIL, "unable to open file's superblock extension")
     } /* end if */
     else {
+        HDassert(may_create);
 	if(H5F_super_ext_create(f, dxpl_id, &ext_loc) < 0)
 	    HGOTO_ERROR(H5E_FILE, H5E_CANTCREATE, FAIL, "unable to create file's superblock extension")
     } /* end else */
-
     HDassert(H5F_addr_defined(ext_loc.addr));
 
     /* Check if message with ID does not exist in the object header */
     if((status = H5O_msg_exists(&ext_loc, id, dxpl_id)) < 0)
 	HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "unable to check object header for message or message exists")
 
+    /* Check for creating vs. writing */
     if(may_create) {
 	if(status)
 	    HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "Message should not exist")
@@ -1312,7 +1304,7 @@ done:
  *
  *-------------------------------------------------------------------------
  */
-htri_t
+herr_t
 H5F_super_ext_remove_msg(H5F_t *f, hid_t dxpl_id, unsigned id)
 {
     htri_t 	status;       	/* Indicate whether the message exists or not */
@@ -1343,7 +1335,7 @@ H5F_super_ext_remove_msg(H5F_t *f, hid_t dxpl_id, unsigned id)
 	if(H5O_get_info(&ext_loc, dxpl_id, FALSE, &oinfo) < 0)
 	    HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "unable to retrieve superblock extension info")
 
-	/* If the object header is an empty base chunk, remove it */
+	/* If the object header is an empty base chunk, remove superblock extension */
 	if(oinfo.hdr.nchunks == 1) {
 	    if((null_count = H5O_msg_count(&ext_loc, H5O_NULL_ID, dxpl_id)) < 0)
 		HGOTO_ERROR(H5E_SYM, H5E_CANTCOUNT, FAIL, "unable to count messages")
@@ -1352,9 +1344,9 @@ H5F_super_ext_remove_msg(H5F_t *f, hid_t dxpl_id, unsigned id)
 		if(H5O_delete(f, dxpl_id, ext_loc.addr) < 0)
 		    HGOTO_ERROR(H5E_SYM, H5E_CANTCOUNT, FAIL, "unable to count messages")
 		f->shared->extension_addr = HADDR_UNDEF;
-	    }
-	}
-    }
+	    } /* end if */
+	} /* end if */
+    } /* end if */
 
     /* Close superblock extension object header */
     if(H5F_super_ext_close(f, &ext_loc) < 0)

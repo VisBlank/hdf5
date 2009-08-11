@@ -1074,13 +1074,13 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
     if(H5P_get(c_plist, H5F_CRT_SUPER_VERS_NAME, &super_vers) < 0)
 	HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get superblock version")
 
+    /* Check to remove free-space manager info message from superblock extension */
+    if(H5F_addr_defined(f->shared->extension_addr))
+        if(H5F_super_ext_remove_msg(f, dxpl_id, H5O_FSINFO_ID) < 0)
+            HGOTO_ERROR(H5E_RESOURCE, H5E_CANTRELEASE, FAIL, "error in removing message from superblock extension")
+
     /* Making free-space managers persistent for superblock version >= 2 */
     if(super_vers >= HDF5_SUPERBLOCK_VERSION_2 && f->shared->fs_strategy == H5F_FILE_SPACE_ALL_PERSIST) {
-	/* Check to remove free-space manager info message from superblock extension */
-	if(H5F_addr_defined(f->shared->extension_addr))
-            if(H5F_super_ext_remove_msg(f, dxpl_id, H5O_FSINFO_ID) < 0)
-                HGOTO_ERROR(H5E_FILE, H5E_CANTRELEASE, FAIL, "error in removing message from superblock extension")
-
 	/* Free free-space manager header and/or section info header */
 	for(type = H5FD_MEM_SUPER; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type)) {
 	    H5FS_stat_t	fs_stat;	/* Information for free-space manager */
@@ -1092,14 +1092,14 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
 
 		/* Query the free space manager's information */
                 if(H5FS_stat_info(f, f->shared->fs_man[type], &fs_stat) < 0)
-		    HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't get free-space info")
+		    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTGET, FAIL, "can't get free-space info")
 
 		/* Check if the free space manager has space in the file */
                 if(H5F_addr_defined(fs_stat.addr) || H5F_addr_defined(fs_stat.sect_addr)) {
 		    /* Delete the free space manager in the file */
                      /* (will re-allocate later) */
                     if(H5FS_free(f, f->shared->fs_man[type], dxpl_id) < 0)
-			HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't release free-space headers")
+			HGOTO_ERROR(H5E_RESOURCE, H5E_CANTRELEASE, FAIL, "can't release free-space headers")
 		    f->shared->fs_addr[type] = HADDR_UNDEF;
 		} /* end if */
 	    } /* end iif */
@@ -1112,7 +1112,7 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
 	/* Write free-space manager info message to superblock extension object header */
 	/* Create the superblock extension object header in advance if needed */
 	if(H5F_super_ext_write_msg(f, dxpl_id, &fsinfo, H5O_FSINFO_ID, TRUE) < 0)
-	    HGOTO_ERROR(H5E_FILE, H5E_CANTRELEASE, FAIL, "error in writing message to superblock extension")
+	    HGOTO_ERROR(H5E_RESOURCE, H5E_WRITEERROR, FAIL, "error in writing message to superblock extension")
 
 	/* Re-allocate free-space manager header and/or section info header */
 	for(type = H5FD_MEM_SUPER; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type)) {
@@ -1147,7 +1147,7 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
 	/* Update the free space manager info message in superblock extension object header */
 	if(update)
             if(H5F_super_ext_write_msg(f, dxpl_id, &fsinfo, H5O_FSINFO_ID, FALSE) < 0)
-	        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTRELEASE, FAIL, "error in writing message to superblock extension")
+	        HGOTO_ERROR(H5E_RESOURCE, H5E_WRITEERROR, FAIL, "error in writing message to superblock extension")
 
 	/* Final close of free-space managers */
 	for(type = H5FD_MEM_DEFAULT; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type)) {
@@ -1161,12 +1161,6 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
 	} /* end for */
     } /* end if */
     else {  /* super_vers can be 0, 1, 2 */
-
-	/* Check to remove free-space manager info message from superblock extension if exists */
-	if(H5F_addr_defined(f->shared->extension_addr))
-            if(H5F_super_ext_remove_msg(f, dxpl_id, H5O_FSINFO_ID) < 0)
-	        HGOTO_ERROR(H5E_FILE, H5E_CANTRELEASE, FAIL, "error in removing message from superblock extension")
-
 	/* Iterate over all the free space types that have managers and get each free list's space */
 	for(type = H5FD_MEM_DEFAULT; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type)) {
 #ifdef H5MF_ALLOC_DEBUG_MORE
@@ -1228,7 +1222,7 @@ HDfprintf(stderr, "%s: Before deleting free space manager\n", FUNC);
 
 	    /* Write free-space manager info message to superblock extension object header if needed */
 	    if(H5F_super_ext_write_msg(f, dxpl_id, &fsinfo, H5O_FSINFO_ID, TRUE) < 0)
-		HGOTO_ERROR(H5E_FILE, H5E_CANTRELEASE, FAIL, "error in writing message to superblock extension")
+		HGOTO_ERROR(H5E_RESOURCE, H5E_WRITEERROR, FAIL, "error in writing message to superblock extension")
 	} /* end if */
     } /* end else */
 

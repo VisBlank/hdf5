@@ -232,8 +232,8 @@ H5_DLL herr_t H5F_super_init(H5F_t *f, hid_t dxpl_id);
 H5_DLL herr_t H5F_super_write(H5F_t *f, hid_t dxpl_id);
 H5_DLL herr_t H5F_super_read(H5F_t *f, hid_t dxpl_id);
 H5_DLL herr_t H5F_super_size(H5F_t *f, hid_t dxpl_id, hsize_t *super_size, hsize_t *super_ext_size);
-H5_DLL htri_t H5F_super_ext_write_msg(H5F_t *f, hid_t dxpl_id, void *mesg, unsigned id, hbool_t may_create);
-H5_DLL htri_t H5F_super_ext_remove_msg(H5F_t *f, hid_t dxpl_id, unsigned id);
+H5_DLL herr_t H5F_super_ext_write_msg(H5F_t *f, hid_t dxpl_id, void *mesg, unsigned id, hbool_t may_create);
+H5_DLL herr_t H5F_super_ext_remove_msg(H5F_t *f, hid_t dxpl_id, unsigned id);
 
 /* Metadata accumulator routines */
 H5_DLL htri_t H5F_accum_read(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type,
