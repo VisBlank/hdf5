@@ -43,6 +43,7 @@
 #include "H5Oprivate.h"         /* Object header messages               */
 #include "H5RCprivate.h"	/* Reference counted object functions	*/
 
+
 /*
  * Feature: Define this constant on the compiler command-line if you want to
  *	    see some debugging messages on the debug stream.
@@ -66,6 +67,12 @@
 /* Free space section+aggregator merge flags */
 #define H5F_FS_MERGE_METADATA           0x01    /* Section can merge with metadata aggregator */
 #define H5F_FS_MERGE_RAWDATA            0x02    /* Section can merge with small 'raw' data aggregator */
+
+/* Macro to abstract checking whether file is using a free space manager */
+#define H5F_HAVE_FREE_SPACE_MANAGER(F)  \
+    ((F)->shared->fs_strategy == H5F_FILE_SPACE_ALL ||                        \
+            (F)->shared->fs_strategy == H5F_FILE_SPACE_ALL_PERSIST)
+
 
 /* Structure for metadata & "small [raw] data" block aggregation fields */
 struct H5F_blk_aggr_t {

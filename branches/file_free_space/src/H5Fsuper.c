@@ -1182,10 +1182,6 @@ done:
 herr_t
 H5F_super_size(H5F_t *f, hid_t dxpl_id, hsize_t *super_size, hsize_t *super_ext_size)
 {
-    H5O_loc_t ext_loc;                  /* "Object location" for superblock extension */
-    H5O_info_t oinfo;                   /* Object info for superblock extension */
-    H5P_genplist_t *plist;           	/* File creation property list */
-    unsigned        super_vers;       	/* Superblock version          */
     herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI(H5F_super_size, FAIL)
@@ -1193,21 +1189,29 @@ H5F_super_size(H5F_t *f, hid_t dxpl_id, hsize_t *super_size, hsize_t *super_ext_
     /* Sanity check */
     HDassert(f);
 
-    /* Get the shared file creation property list */
-    if(NULL == (plist = (H5P_genplist_t *)H5I_object(f->shared->fcpl_id)))
-        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list")
-
-    /* Grab values from property list */
-    if(H5P_get(plist, H5F_CRT_SUPER_VERS_NAME, &super_vers) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get superblock version")
-
     /* Set the superblock size */
-    if(super_size)
+    if(super_size) {
+        H5P_genplist_t *plist;           	/* File creation property list */
+        unsigned        super_vers;       	/* Superblock version          */
+
+        /* Get the shared file creation property list */
+        if(NULL == (plist = (H5P_genplist_t *)H5I_object(f->shared->fcpl_id)))
+            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list")
+
+        /* Grab values from property list */
+        if(H5P_get(plist, H5F_CRT_SUPER_VERS_NAME, &super_vers) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get superblock version")
+
+        /* Set the superblock size */
 	*super_size = H5F_SUPERBLOCK_SIZE(super_vers, f);
+    } /* end if */
 
     /* Set the superblock extension size */
     if(super_ext_size) {
         if(H5F_addr_defined(f->shared->extension_addr)) {
+            H5O_loc_t ext_loc;                  /* "Object location" for superblock extension */
+            H5O_info_t oinfo;                   /* Object info for superblock extension */
+
             /* Set up "fake" object location for superblock extension */
             H5O_loc_reset(&ext_loc);
             ext_loc.file = f;

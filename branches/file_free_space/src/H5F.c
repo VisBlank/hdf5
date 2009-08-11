@@ -2982,7 +2982,7 @@ H5Fget_info(hid_t obj_id, H5F_info_t *finfo)
 
     /* Get the size of the superblock and any superblock extensions */
     if(H5F_super_size(f, H5AC_ind_dxpl_id, &finfo->super.super_size, &finfo->super.super_ext_size) < 0)
-	HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "Unable to retrieve superblock size")
+	HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "Unable to retrieve superblock sizes")
 
     /* Get the size of any persistent free space */
     if(H5MF_get_freespace(f, H5AC_ind_dxpl_id, &finfo->free.tot_space, &finfo->free.hdr_size) < 0)

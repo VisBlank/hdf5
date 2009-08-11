@@ -426,8 +426,7 @@ HDfprintf(stderr, "%s: alloc_type = %u, size = %Hu\n", FUNC, (unsigned)alloc_typ
     fs_type = H5MF_ALLOC_TO_FS_TYPE(f, alloc_type);
 
     /* Check if we are using the free space manager for this file */
-    if(f->shared->fs_strategy == H5F_FILE_SPACE_ALL || 
-            f->shared->fs_strategy == H5F_FILE_SPACE_ALL_PERSIST) {
+    if(H5F_HAVE_FREE_SPACE_MANAGER(f)) {
         /* Check if the free space manager for the file has been initialized */
         if(!f->shared->fs_man[fs_type] && H5F_addr_defined(f->shared->fs_addr[fs_type]))
             if(H5MF_alloc_open(f, dxpl_id, fs_type) < 0)
@@ -647,16 +646,15 @@ HDfprintf(stderr, "%s: dropping addr = %a, size = %Hu, on the floor!\n", FUNC, a
 
         /* If we are deleting the free space manager, leave now, to avoid
          *  [re-]starting it.
-	 * or if file space strategy type is  
-	 *   H5F_FILE_SPACE_AGGR_VFD or type is H5F_FILE_SPACE_VFD, 
-	 *   drop free space section on the floor.
+	 * or if file space strategy type is not using a free space manager
+	 *   (H5F_FILE_SPACE_AGGR_VFD or H5F_FILE_SPACE_VFD), drop free space
+         *   section on the floor.
          *
          * Note: this drops the space to free on the floor...
          *
          */
         if(f->shared->fs_state[fs_type] == H5F_FS_STATE_DELETING || 
-	        f->shared->fs_strategy == H5F_FILE_SPACE_AGGR_VFD ||
-	        f->shared->fs_strategy == H5F_FILE_SPACE_VFD) {
+	        !H5F_HAVE_FREE_SPACE_MANAGER(f)) {
 #ifdef H5MF_ALLOC_DEBUG_MORE
 HDfprintf(stderr, "%s: dropping addr = %a, size = %Hu, on the floor!\n", FUNC, addr, size);
 #endif /* H5MF_ALLOC_DEBUG_MORE */
