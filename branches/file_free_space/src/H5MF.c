@@ -83,6 +83,10 @@ typedef struct {
 /* Local Prototypes */
 /********************/
 
+/* Allocator routines */
+static herr_t H5MF_alloc_create(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type);
+static herr_t H5MF_alloc_close(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type);
+
 
 /*********************/
 /* Package Variables */
@@ -215,10 +219,6 @@ H5MF_init_merge_flags(H5F_t *f)
  *		koziol@hdfgroup.org
  *		Jan  8 2008
  *
- * Modifications: 
- *	Vailin choi; March 2nd, 2009
- *  	  Split H5MF_alloc_start() into H5MF_alloc_open() and H5MF_alloc_create()
- *
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -253,44 +253,6 @@ done:
 
 
 /*-------------------------------------------------------------------------
- * Function:    H5MF_alloc_close
- *
- * Purpose:     Close an existing free space manager of TYPE for file
- *
- * Return:      Success:        non-negative
- *              Failure:        negative
- *
- * Programmer: Vailin Choi; July 1st, 2009
- *
- *-------------------------------------------------------------------------
- */
-herr_t
-H5MF_alloc_close(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type)
-{
-    herr_t ret_value = SUCCEED;         /* Return value */
-
-    FUNC_ENTER_NOAPI_NOINIT(H5MF_alloc_close)
-
-    /*
-     * Check arguments.
-     */
-    HDassert(f);
-    HDassert(f->shared);
-    HDassert(f->shared->fs_man[type]);
-    HDassert(f->shared->fs_state[type] != H5F_FS_STATE_CLOSED);
-
-    /* Close an existing free space structure for the file */
-    if(H5FS_close(f, dxpl_id, f->shared->fs_man[type]) < 0)
-        HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't release free space info")
-    f->shared->fs_man[type] = NULL;
-    f->shared->fs_state[type] = H5F_FS_STATE_CLOSED;
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5MF_alloc_close() */
-
-
-/*-------------------------------------------------------------------------
  * Function:	H5MF_alloc_create
  *
  * Purpose:	Create free space manager of TYPE for the file by creating 
@@ -303,16 +265,9 @@ done:
  *		koziol@hdfgroup.org
  *		Jan  8 2008
  *
- * Modifications:
- *	Vailin Choi, July 29th, 2008
- *	  Pass values of alignment and threshold to FS_create() for handling alignment
- *
- *	Vailin choi; March 2nd, 2009
- *	  Split H5MF_alloc_start() into H5MF_alloc_open() and H5MF_alloc_create()
- *
  *-------------------------------------------------------------------------
  */
-herr_t
+static herr_t
 H5MF_alloc_create(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type)
 {
     const H5FS_section_class_t *classes[] = { /* Free space section classes implemented for file */
@@ -352,63 +307,85 @@ done:
 
 
 /*-------------------------------------------------------------------------
- * Function:    H5MF_aggr_vfd_alloc
+ * Function:	H5MF_alloc_start
  *
- * Purpose:     Allocate SIZE bytes of file memory via H5MF_aggr_alloc() 
- *		and return the relative address where that contiguous chunk 
- *		of file memory exists.
- *		The TYPE argument describes the purpose for which the storage
- *		is being requested.
+ * Purpose:	Open or create a free space manager of a given type
  *
- * Return:      Success:        The file address of new chunk.
- *              Failure:        HADDR_UNDEF
+ * Return:	Success:	non-negative
+ *		Failure:	negative
  *
- * Programmer:  Vailin Choi; July 1st, 2009
- *		(The coding is from H5MF_alloc().)
+ * Programmer:	Quincey Koziol
+ *		koziol@hdfgroup.org
+ *		Jan  8 2008
  *
  *-------------------------------------------------------------------------
  */
-haddr_t
-H5MF_aggr_vfd_alloc(H5F_t *f, H5FD_mem_t alloc_type, hid_t dxpl_id, hsize_t size)
+herr_t
+H5MF_alloc_start(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type)
 {
-    haddr_t	ret_value;              /* Return value */
+    herr_t ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_NOAPI(H5MF_aggr_vfd_alloc, HADDR_UNDEF)
-#ifdef H5MF_ALLOC_DEBUG
-HDfprintf(stderr, "%s: alloc_type = %u, size = %Hu\n", FUNC, (unsigned)alloc_type, size);
-#endif /* H5MF_ALLOC_DEBUG */
+    FUNC_ENTER_NOAPI_NOINIT(H5MF_alloc_start)
 
-    /* check arguments */
+    /*
+     * Check arguments.
+     */
     HDassert(f);
     HDassert(f->shared);
-    HDassert(f->shared->lf);
-    HDassert(size > 0);
 
-    /* Couldn't find anything from the free space manager, go allocate some */
-    if(alloc_type != H5FD_MEM_DRAW) {
-        /* Handle metadata differently from "raw" data */
-        if(HADDR_UNDEF == (ret_value = H5MF_aggr_alloc(f, dxpl_id, &(f->shared->meta_aggr), &(f->shared->sdata_aggr), alloc_type, size)))
-            HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, HADDR_UNDEF, "can't allocate metadata")
+    /* Check if the free space manager exists already */
+    if(H5F_addr_defined(f->shared->fs_addr[fs_type])) {
+        /* Open existing free space manager */
+        if(H5MF_alloc_open(f, dxpl_id, fs_type) < 0)
+            HGOTO_ERROR(H5E_RESOURCE, H5E_CANTOPENOBJ, FAIL, "can't initialize file free space")
     } /* end if */
     else {
-        /* Allocate "raw" data */
-        if(HADDR_UNDEF == (ret_value = H5MF_aggr_alloc(f, dxpl_id, &(f->shared->sdata_aggr), &(f->shared->meta_aggr), alloc_type, size)))
-            HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, HADDR_UNDEF, "can't allocate raw data")
+        /* Create new free space manager */
+        if(H5MF_alloc_create(f, dxpl_id, fs_type) < 0)
+            HGOTO_ERROR(H5E_RESOURCE, H5E_CANTCREATE, FAIL, "can't initialize file free space")
     } /* end else */
 
-    /* Sanity check for overlapping into file's temporary allocation space */
-    HDassert(H5F_addr_le((ret_value + size), f->shared->tmp_addr));
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5MF_alloc_start() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    H5MF_alloc_close
+ *
+ * Purpose:     Close an existing free space manager of TYPE for file
+ *
+ * Return:      Success:        non-negative
+ *              Failure:        negative
+ *
+ * Programmer: Vailin Choi; July 1st, 2009
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+H5MF_alloc_close(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type)
+{
+    herr_t ret_value = SUCCEED;         /* Return value */
+
+    FUNC_ENTER_NOAPI_NOINIT(H5MF_alloc_close)
+
+    /*
+     * Check arguments.
+     */
+    HDassert(f);
+    HDassert(f->shared);
+    HDassert(f->shared->fs_man[type]);
+    HDassert(f->shared->fs_state[type] != H5F_FS_STATE_CLOSED);
+
+    /* Close an existing free space structure for the file */
+    if(H5FS_close(f, dxpl_id, f->shared->fs_man[type]) < 0)
+        HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't release free space info")
+    f->shared->fs_man[type] = NULL;
+    f->shared->fs_state[type] = H5F_FS_STATE_CLOSED;
 
 done:
-#ifdef H5MF_ALLOC_DEBUG
-HDfprintf(stderr, "%s: Leaving: ret_value = %a, size = %Hu\n", FUNC, ret_value, size);
-#endif /* H5MF_ALLOC_DEBUG */
-#ifdef H5MF_ALLOC_DEBUG_DUMP
-H5MF_sects_dump(f, dxpl_id, stderr);
-#endif /* H5MF_ALLOC_DEBUG_DUMP */
-
     FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5MF_aggr_vfd_alloc() */
+} /* end H5MF_alloc_close() */
 
 
 /*-------------------------------------------------------------------------
@@ -452,10 +429,9 @@ HDfprintf(stderr, "%s: alloc_type = %u, size = %Hu\n", FUNC, (unsigned)alloc_typ
     if(f->shared->fs_strategy == H5F_FILE_SPACE_ALL || 
             f->shared->fs_strategy == H5F_FILE_SPACE_ALL_PERSIST) {
         /* Check if the free space manager for the file has been initialized */
-        if(!f->shared->fs_man[fs_type])
-	    if(H5F_addr_defined(f->shared->fs_addr[fs_type]))
-                if(H5MF_alloc_open(f, dxpl_id, fs_type) < 0)
-                    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINIT, HADDR_UNDEF, "can't initialize file free space")
+        if(!f->shared->fs_man[fs_type] && H5F_addr_defined(f->shared->fs_addr[fs_type]))
+            if(H5MF_alloc_open(f, dxpl_id, fs_type) < 0)
+                HGOTO_ERROR(H5E_RESOURCE, H5E_CANTOPENOBJ, HADDR_UNDEF, "can't initialize file free space")
 
         /* Search for large enough space in the free space manager */
         if(f->shared->fs_man[fs_type]) {
@@ -691,11 +667,8 @@ HDfprintf(stderr, "%s: dropping addr = %a, size = %Hu, on the floor!\n", FUNC, a
          *  space isn't at the end of the file, so start up (or create)
          *  the file space manager
          */
-	if(H5F_addr_defined(f->shared->fs_addr[fs_type])) {
-	    if(H5MF_alloc_open(f, dxpl_id, fs_type) < 0)
-                HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINIT, FAIL, "can't initialize file free space")
-	} else if(H5MF_alloc_create(f, dxpl_id, fs_type) < 0)
-	    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINIT, FAIL, "can't initialize file free space")
+        if(H5MF_alloc_start(f, dxpl_id, fs_type) < 0)
+            HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINIT, FAIL, "can't initialize file free space")
     } /* end if */
 
     /* Create free space section for block */
@@ -724,10 +697,12 @@ HDfprintf(stderr, "%s: After H5FS_sect_add()\n", FUNC);
 #endif /* H5MF_ALLOC_DEBUG_MORE */
     } /* end if */
     else {
+        htri_t merged;          /* Whether node was merged */
+
         /* Try to merge the section that is smaller than threshold */
-	if((ret_value = H5FS_sect_try_merge(f, dxpl_id, f->shared->fs_man[fs_type], (H5FS_section_info_t *)node, H5FS_ADD_RETURNED_SPACE, &udata)) < 0)
+	if((merged = H5FS_sect_try_merge(f, dxpl_id, f->shared->fs_man[fs_type], (H5FS_section_info_t *)node, H5FS_ADD_RETURNED_SPACE, &udata)) < 0)
 	    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINSERT, FAIL, "can't merge section to file free space")
-	else if(ret_value == TRUE) /* successfully merged */
+	else if(merged == TRUE) /* successfully merged */
 	    /* Indicate that the node was used */
             node = NULL;
     } /* end else */
@@ -759,10 +734,6 @@ H5MF_sects_dump(f, dxpl_id, stderr);
  *
  * Programmer:	Quincey Koziol
  *              Friday, June 11, 2004
- *
- * Modifications:
- *	Vailin Choi; March 2nd, 2009
- *  	  Use H5MF_alloc_open() instead of H5MF_alloc_start()
  *
  *-------------------------------------------------------------------------
  */
@@ -798,10 +769,9 @@ HDfprintf(stderr, "%s: Entering: alloc_type = %u, addr = %a, size = %Hu, extra_r
             fs_type = H5MF_ALLOC_TO_FS_TYPE(f, alloc_type);
 
             /* Check if the free space for the file has been initialized */
-            if(!f->shared->fs_man[fs_type])
-                if(H5F_addr_defined(f->shared->fs_addr[fs_type]))
-                    if(H5MF_alloc_open(f, dxpl_id, fs_type) < 0)
-                        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINIT, FAIL, "can't initialize file free space")
+            if(!f->shared->fs_man[fs_type] && H5F_addr_defined(f->shared->fs_addr[fs_type]))
+                if(H5MF_alloc_open(f, dxpl_id, fs_type) < 0)
+                    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINIT, FAIL, "can't initialize file free space")
 
             /* Check for test block able to block in free space manager */
             if(f->shared->fs_man[fs_type])
@@ -1107,8 +1077,9 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
     /* Making free-space managers persistent for superblock version >= 2 */
     if(super_vers >= HDF5_SUPERBLOCK_VERSION_2 && f->shared->fs_strategy == H5F_FILE_SPACE_ALL_PERSIST) {
 	/* Check to remove free-space manager info message from superblock extension */
-	if(H5F_addr_defined(f->shared->extension_addr) && H5F_super_ext_remove_msg(f, dxpl_id, H5O_FSINFO_ID) < 0)
-	    HGOTO_ERROR(H5E_FILE, H5E_CANTRELEASE, FAIL, "error in removing message from superblock extension")
+	if(H5F_addr_defined(f->shared->extension_addr))
+            if(H5F_super_ext_remove_msg(f, dxpl_id, H5O_FSINFO_ID) < 0)
+                HGOTO_ERROR(H5E_FILE, H5E_CANTRELEASE, FAIL, "error in removing message from superblock extension")
 
 	/* Free free-space manager header and/or section info header */
 	for(type = H5FD_MEM_SUPER; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type)) {
@@ -1148,7 +1119,7 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
 	    H5FS_stat_t	fs_stat;		/* Information for free-space manager */
 
 	    /* Check for active free space manager of this type */
-            if (f->shared->fs_man[type]) {
+            if(f->shared->fs_man[type]) {
 		/* Re-query free space manager info for this type */
                 if(H5FS_stat_info(f, f->shared->fs_man[type], &fs_stat) < 0)
 		    HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't get free-space info")
@@ -1180,8 +1151,8 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
 
 	/* Final close of free-space managers */
 	for(type = H5FD_MEM_DEFAULT; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type)) {
-	    if (f->shared->fs_man[type]) {
-		if (H5FS_close(f, dxpl_id, f->shared->fs_man[type]) < 0)
+	    if(f->shared->fs_man[type]) {
+		if(H5FS_close(f, dxpl_id, f->shared->fs_man[type]) < 0)
 		    HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't close free space manager")
 		f->shared->fs_man[type] = NULL;
 		f->shared->fs_state[type] = H5F_FS_STATE_CLOSED;
@@ -1206,7 +1177,7 @@ HDfprintf(stderr, "%s: Check 1.0 - f->shared->fs_man[%u] = %p, f->shared->fs_add
 #ifdef H5MF_ALLOC_DEBUG_MORE
 HDfprintf(stderr, "%s: Before closing free space manager\n", FUNC);
 #endif /* H5MF_ALLOC_DEBUG_MORE */
-		if (H5FS_close(f, dxpl_id, f->shared->fs_man[type]) < 0)
+		if(H5FS_close(f, dxpl_id, f->shared->fs_man[type]) < 0)
 		    HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't release free space info")
 		f->shared->fs_man[type] = NULL;
 		f->shared->fs_state[type] = H5F_FS_STATE_CLOSED;

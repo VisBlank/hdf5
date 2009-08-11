@@ -401,7 +401,7 @@ init_sect_node(TEST_free_section_t *sect_node, haddr_t addr, hsize_t size, unsig
  * Verify statistics for the free-space manager
  */
 static int
-check_stats(H5F_t *f, H5FS_t *frsp, frspace_state_t *state)
+check_stats(const H5F_t *f, const H5FS_t *frsp, frspace_state_t *state)
 {
     H5FS_stat_t frspace_stats;             /* Statistics about the heap */
 

@@ -1024,11 +1024,8 @@ test_mf_fs_start(hid_t fapl)
     /* Start up free-space manager */
     type = H5FD_MEM_SUPER;
 
-    if(H5F_addr_defined(f->shared->fs_addr[type])) {
-	if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-	    TEST_ERROR
-    } else if(H5MF_alloc_create(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-	TEST_ERROR
+    if(H5MF_alloc_start(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+        TEST_ERROR
 
     if (f->shared->fs_state[type] != H5F_FS_STATE_OPEN)
 	TEST_ERROR
@@ -1136,11 +1133,8 @@ test_mf_fs_alloc_free(hid_t fapl)
 
     type = H5FD_MEM_SUPER;
 
-    if(H5F_addr_defined(f->shared->fs_addr[type])) {
-	if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-	    TEST_ERROR
-    } else if(H5MF_alloc_create(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-	TEST_ERROR
+    if(H5MF_alloc_start(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+        TEST_ERROR
 
     if (f->shared->fs_state[type] != H5F_FS_STATE_OPEN)
 	TEST_ERROR
@@ -1224,11 +1218,8 @@ test_mf_fs_alloc_free(hid_t fapl)
 
     type = H5FD_MEM_SUPER;
 
-    if(H5F_addr_defined(f->shared->fs_addr[type])) {
-	if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-	    TEST_ERROR
-    } else if(H5MF_alloc_create(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-	TEST_ERROR
+    if(H5MF_alloc_start(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+        TEST_ERROR
 
     if (f->shared->fs_state[type] != H5F_FS_STATE_OPEN)
 	TEST_ERROR
@@ -1311,11 +1302,8 @@ test_mf_fs_alloc_free(hid_t fapl)
 
     type = H5FD_MEM_SUPER;
 
-    if(H5F_addr_defined(f->shared->fs_addr[type])) {
-	if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-	    TEST_ERROR
-    } else if(H5MF_alloc_create(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-	TEST_ERROR
+    if(H5MF_alloc_start(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+        TEST_ERROR
 
     if (f->shared->fs_state[type] != H5F_FS_STATE_OPEN)
 	TEST_ERROR
@@ -1491,11 +1479,8 @@ test_mf_fs_extend(hid_t fapl)
 
     type = H5FD_MEM_SUPER;
 
-    if(H5F_addr_defined(f->shared->fs_addr[type])) {
-	if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-	    TEST_ERROR
-    } else if(H5MF_alloc_create(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-	TEST_ERROR
+    if(H5MF_alloc_start(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+        TEST_ERROR
 
     if (f->shared->fs_state[type] != H5F_FS_STATE_OPEN)
 	TEST_ERROR
@@ -1611,11 +1596,8 @@ test_mf_fs_extend(hid_t fapl)
 
     type = H5FD_MEM_SUPER;
 
-    if(H5F_addr_defined(f->shared->fs_addr[type])) {
-	if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-	    TEST_ERROR
-    } else if(H5MF_alloc_create(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-	TEST_ERROR
+    if(H5MF_alloc_start(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+        TEST_ERROR
 
     if (f->shared->fs_state[type] != H5F_FS_STATE_OPEN)
 	TEST_ERROR
@@ -1726,11 +1708,8 @@ test_mf_fs_extend(hid_t fapl)
 
     type = H5FD_MEM_SUPER;
 
-    if(H5F_addr_defined(f->shared->fs_addr[type])) {
-	if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-	    TEST_ERROR
-    } else if(H5MF_alloc_create(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-	TEST_ERROR
+    if(H5MF_alloc_start(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+        TEST_ERROR
 
     if (f->shared->fs_state[type] != H5F_FS_STATE_OPEN)
 	TEST_ERROR
@@ -1841,11 +1820,8 @@ test_mf_fs_extend(hid_t fapl)
 
     type = H5FD_MEM_SUPER;
 
-    if(H5F_addr_defined(f->shared->fs_addr[type])) {
-	if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-	    TEST_ERROR
-    } else if(H5MF_alloc_create(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-	TEST_ERROR
+    if(H5MF_alloc_start(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+        TEST_ERROR
 
     if (f->shared->fs_state[type] != H5F_FS_STATE_OPEN)
 	TEST_ERROR
@@ -2027,11 +2003,8 @@ test_mf_fs_absorb(const char *env_h5_drvr, hid_t fapl)
 
         type = H5FD_MEM_SUPER;
 
-	if(H5F_addr_defined(f->shared->fs_addr[type])) {
-	    if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-		TEST_ERROR
-	} else if(H5MF_alloc_create(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-	    TEST_ERROR
+        if(H5MF_alloc_start(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+            TEST_ERROR
 
         if (f->shared->fs_state[type] != H5F_FS_STATE_OPEN)
             TEST_ERROR
@@ -2099,11 +2072,8 @@ test_mf_fs_absorb(const char *env_h5_drvr, hid_t fapl)
 
         type = H5FD_MEM_SUPER;
 
-	if(H5F_addr_defined(f->shared->fs_addr[type])) {
-	    if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-		TEST_ERROR
-	} else if(H5MF_alloc_create(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-	    TEST_ERROR
+        if(H5MF_alloc_start(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+            TEST_ERROR
 
         if (f->shared->fs_state[type] != H5F_FS_STATE_OPEN)
             TEST_ERROR
@@ -4050,11 +4020,8 @@ test_mf_align_fs(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
 
     type = H5FD_MEM_SUPER;
 
-    if(H5F_addr_defined(f->shared->fs_addr[type])) {
-	if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-	    TEST_ERROR
-    } else if(H5MF_alloc_create(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-	TEST_ERROR
+    if(H5MF_alloc_start(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+        TEST_ERROR
 
     if (f->shared->fs_state[type] != H5F_FS_STATE_OPEN)
 	TEST_ERROR
@@ -4122,11 +4089,8 @@ test_mf_align_fs(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
 
     type = H5FD_MEM_SUPER;
 
-    if(H5F_addr_defined(f->shared->fs_addr[type])) {
-	if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-	    TEST_ERROR
-    } else if(H5MF_alloc_create(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-	TEST_ERROR
+    if(H5MF_alloc_start(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+        TEST_ERROR
 
     if (f->shared->fs_state[type] != H5F_FS_STATE_OPEN)
 	TEST_ERROR
@@ -4214,11 +4178,8 @@ test_mf_align_fs(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
 
         type = H5FD_MEM_SUPER;
 
-	if(H5F_addr_defined(f->shared->fs_addr[type])) {
-	    if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-		TEST_ERROR
-	} else if(H5MF_alloc_create(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-	    TEST_ERROR
+        if(H5MF_alloc_start(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+            TEST_ERROR
 
         if (f->shared->fs_state[type] != H5F_FS_STATE_OPEN)
             TEST_ERROR

@@ -341,9 +341,6 @@ done:
  * Programmer:	Quincey Koziol
  *              Tuesday, March  7, 2006
  *
- * Modifications: Vailin Choi; Feb 2009
- *	Remove sanity check to allow defined sect_addr for zero serial_sect_count
- *
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -475,9 +472,12 @@ HDfprintf(stderr, "%s: Section info is NOT for file free space\n", FUNC);
         /* Reset the header's pointer to the section info */
         fspace->sinfo = NULL;
     } /* end if */
-    else if(fspace->serial_sect_count > 0)
-	/* Sanity check that section info has address */
-	HDassert(H5F_addr_defined(fspace->sect_addr));
+    else {
+        /* Just sanity checks... */
+        if(fspace->serial_sect_count > 0)
+            /* Sanity check that section info has address */
+            HDassert(H5F_addr_defined(fspace->sect_addr));
+    } /* end else */
 
     /* Decrement the reference count on the free space manager header */
     if(H5FS_decr(f, fspace) < 0)

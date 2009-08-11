@@ -1595,16 +1595,20 @@ H5FS_sect_try_merge(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace, H5FS_section_info_t
     if(H5FS_sect_merge(fspace, &sect, op_data) < 0)
 	HGOTO_ERROR(H5E_FSPACE, H5E_CANTMERGE, FAIL, "can't merge sections")
 
-    if(!sect) {/* section is shrunk and/or merged away completely */
+    /* Check if section is shrunk and/or merged away completely */
+    if(!sect) {
 	sinfo_modified = TRUE;
 	HGOTO_DONE(TRUE)
     } /* end if */
-    else if(sect->size > saved_fs_size) { /* section is merged */
-	if(H5FS_sect_link(fspace, sect, flags) < 0)
-	    HGOTO_ERROR(H5E_FSPACE, H5E_CANTINSERT, FAIL, "can't insert free space section into skip list")
-	sinfo_modified = TRUE;
-	HGOTO_DONE(TRUE)
-    } /* end if */
+    else {
+        /* Check if section is merged */
+        if(sect->size > saved_fs_size) {
+            if(H5FS_sect_link(fspace, sect, flags) < 0)
+                HGOTO_ERROR(H5E_FSPACE, H5E_CANTINSERT, FAIL, "can't insert free space section into skip list")
+            sinfo_modified = TRUE;
+            HGOTO_DONE(TRUE)
+        } /* end if */
+    } /* end else */
 
 done:
     /* Release the section info */
