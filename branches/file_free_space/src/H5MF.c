@@ -43,7 +43,6 @@
 #include "H5Pprivate.h"         /* Property lists                       */
 
 
-
 /****************/
 /* Local Macros */
 /****************/

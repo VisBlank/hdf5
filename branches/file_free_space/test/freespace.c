@@ -181,7 +181,7 @@ const H5FS_section_class_t *test_classes[] = {
 
 static void init_cparam(H5FS_create_t *);
 static void init_sect_node(TEST_free_section_t *, haddr_t, hsize_t, unsigned, H5FS_section_state_t);
-static int check_stats(H5F_t *, H5FS_t *, frspace_state_t *);
+static int check_stats(const H5F_t *, const H5FS_t *, frspace_state_t *);
 
 #define	NUM_SECTIONS	1000
 

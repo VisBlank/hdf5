@@ -93,10 +93,11 @@ typedef struct frspace_state_t {
 } frspace_state_t;
 
 
-static int check_stats(H5F_t *, H5FS_t *, frspace_state_t *);
+static int check_stats(const H5F_t *, const H5FS_t *, frspace_state_t *);
 static unsigned test_mf_eoa(const char *env_h5_drvr, hid_t fapl);
 static unsigned test_mf_eoa_shrink(const char *env_h5_drvr, hid_t fapl);
 static unsigned test_mf_eoa_extend(const char *env_h5_drvr, hid_t fapl);
+static unsigned test_mf_tmp(const char *env_h5_drvr, hid_t fapl);
 static unsigned test_mf_fs_start(hid_t fapl);
 static unsigned test_mf_fs_alloc_free(hid_t fapl);
 static unsigned test_mf_fs_extend(hid_t fapl);
@@ -128,7 +129,7 @@ static unsigned test_mf_fs_drivers(hid_t fapl);
  * Verify statistics for the free-space manager
  */
 static int
-check_stats(H5F_t *f, H5FS_t *frsp, frspace_state_t *state)
+check_stats(const H5F_t *f, const H5FS_t *frsp, frspace_state_t *state)
 {
     H5FS_stat_t frspace_stats;             /* Statistics about the heap */
 

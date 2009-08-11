@@ -79,13 +79,10 @@
  * Programmer:  Vailin Choi
  *		August 25th, 2008
  *
- * Modifications: Vailin Choi; Feb 2008
- *	Add more information to be retrieved
- *
  *-------------------------------------------------------------------------
  */
 herr_t
-H5FS_stat_info(H5F_t *f, H5FS_t *frsp, H5FS_stat_t *stats)
+H5FS_stat_info(const H5F_t *f, const H5FS_t *frsp, H5FS_stat_t *stats)
 {
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5FS_stat_info)
 
