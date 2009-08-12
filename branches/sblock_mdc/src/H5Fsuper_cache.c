@@ -140,6 +140,9 @@ const H5AC_class_t H5AC_SUPERBLOCK[1] = {{
 /* Library Private Variables */
 /*****************************/
 
+/* Declare extern the free list to manage the H5F_super_t struct */
+H5FL_EXTERN(H5F_super_t);
+
 
 /*******************/
 /* Local Variables */

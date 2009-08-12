@@ -623,7 +623,7 @@ H5F_super_unpin(H5F_t *f, hid_t dxpl_id)
     H5F_super_t * sblock = NULL;        /* superblock object */
     herr_t ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_NOAPI(H5F_super_ext_size, FAIL)
+    FUNC_ENTER_NOAPI(H5F_super_unpin, FAIL)
 
     /* Sanity check */
     HDassert(f);
