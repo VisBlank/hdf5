@@ -264,8 +264,8 @@ H5F_sizeof_size(const H5F_t *f)
 unsigned
 H5F_sym_leaf_k(const H5F_t *f)
 {
-    H5F_super_t *sblock = NULL;
-    unsigned ret_value;
+    H5F_super_t *sblock = NULL;         /* File's superblock */
+    unsigned ret_value;                 /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5F_sym_leaf_k)
 
@@ -274,14 +274,15 @@ H5F_sym_leaf_k(const H5F_t *f)
 
     /* Look up superblock */
     if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, NULL, NULL, H5AC_READ)))
-        HDONE_ERROR(H5E_OHDR, H5E_CANTPROTECT, FAIL, "unable to load superblock")
+        HGOTO_ERROR(H5E_OHDR, H5E_CANTPROTECT, UFAIL, "unable to load superblock")
 
     /* Set return value */
     ret_value = sblock->sym_leaf_k;
 
+done:
     /* Release superblock */
-    if(sblock && H5AC_unprotect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, H5AC__NO_FLAGS_SET) <0)
-        HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock") 
+    if(sblock && H5AC_unprotect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, H5AC__NO_FLAGS_SET) < 0)
+        HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, UFAIL, "unable to close superblock") 
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5F_sym_leaf_k() */
@@ -314,8 +315,8 @@ H5F_sym_leaf_k(const H5F_t *f)
 unsigned
 H5F_Kvalue(const H5F_t *f, const H5B_class_t *type)
 {
-    H5F_super_t *sblock = NULL;
-    unsigned ret_value;
+    H5F_super_t *sblock = NULL;         /* File's superblock */
+    unsigned ret_value;                 /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5F_Kvalue)
 
@@ -325,16 +326,17 @@ H5F_Kvalue(const H5F_t *f, const H5B_class_t *type)
 
     /* Look up the superblock */
     if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, NULL, NULL, H5AC_READ)))
-        HDONE_ERROR(H5E_CACHE, H5E_CANTPROTECT, FAIL, "unable to load superblock")
+        HGOTO_ERROR(H5E_CACHE, H5E_CANTPROTECT, UFAIL, "unable to load superblock")
 
     HDassert(sblock->btree_k[type->id]);
 
     /* Set return value */
     ret_value = sblock->btree_k[type->id];
 
+done:
     /* Release the superblock */
-    if(sblock && H5AC_unprotect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, H5AC__NO_FLAGS_SET) <0)
-        HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
+    if(sblock && H5AC_unprotect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, H5AC__NO_FLAGS_SET) < 0)
+        HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, UFAIL, "unable to close superblock")
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5F_Kvalue() */
@@ -456,23 +458,24 @@ H5F_rdcc_w0(const H5F_t *f)
 haddr_t
 H5F_get_base_addr(const H5F_t *f)
 {
-    H5F_super_t * sblock = NULL;
-    haddr_t ret_value;
+    H5F_super_t * sblock = NULL;        /* File's superblock */
+    haddr_t ret_value;                  /* Return value */
     
     FUNC_ENTER_NOAPI_NOINIT(H5F_get_base_addr)
 
     HDassert(f);
-    
+
     /* Look up superblock */
     if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, NULL, NULL, H5AC_READ)))
-        HDONE_ERROR(H5E_OHDR, H5E_CANTPROTECT, FAIL, "unable to load superblock")
+        HGOTO_ERROR(H5E_OHDR, H5E_CANTPROTECT, HADDR_UNDEF, "unable to load superblock")
 
     /* Set return value */
     ret_value = sblock->base_addr;
 
+done:
     /* Release superblock */
-    if(sblock && H5AC_unprotect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, H5AC__NO_FLAGS_SET)<0)
-        HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
+    if(sblock && H5AC_unprotect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, H5AC__NO_FLAGS_SET) < 0)
+        HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, HADDR_UNDEF, "unable to close superblock")
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5F_get_base_addr() */

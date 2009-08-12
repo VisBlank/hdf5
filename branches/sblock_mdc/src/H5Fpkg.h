@@ -121,10 +121,10 @@ typedef struct H5F_file_t {
     unsigned	nrefs;		/* Ref count for times file is opened	*/
     unsigned	flags;		/* Access Permissions for file          */
     H5F_mtab_t	mtab;		/* File mount table                     */
-    size_t	sizeof_addr;	/* Size of addresses in file            */
-    size_t	sizeof_size;	/* Size of offsets in file              */
 
     /* Cached values from FCPL/superblock */
+    size_t	sizeof_addr;	/* Size of addresses in file            */
+    size_t	sizeof_size;	/* Size of offsets in file              */
     haddr_t	sohm_addr;	/* Relative address of shared object header message table */
     unsigned	sohm_vers;	/* Version of shared message table on disk */
     unsigned	sohm_nindexes;	/* Number of shared messages indexes in the table */
@@ -211,6 +211,7 @@ struct H5F_t {
     unsigned            nmounts;        /* Number of children mounted to this file */
 };
 
+
 /*****************************/
 /* Package Private Variables */
 /*****************************/
@@ -221,10 +222,8 @@ H5FL_EXTERN(H5F_t);
 /* Declare a free list to manage the H5F_file_t struct */
 H5FL_EXTERN(H5F_file_t);
 
-/* Declare a free list to manage the H5F_super_t struct */
-H5FL_EXTERN(H5F_super_t);
-
 H5_DLLVAR const H5AC_class_t H5AC_SUPERBLOCK[1];
+
 
 /******************************/
 /* Package Private Prototypes */
@@ -243,6 +242,7 @@ H5_DLL herr_t H5F_mount_count_ids(H5F_t *f, unsigned *nopen_files, unsigned *nop
 H5_DLL herr_t H5F_super_init(H5F_t *f, hid_t dxpl_id);
 H5_DLL herr_t H5F_super_read(H5F_t *f, hid_t dxpl_id, hbool_t dirty_sblock_after_read);
 H5_DLL herr_t H5F_super_ext_size(H5F_t *f, hid_t dxpl_id, hsize_t *super_ext_info);
+H5_DLL herr_t H5F_super_unpin(H5F_t *f, hid_t dxpl_id);
 
 /* Metadata accumulator routines */
 H5_DLL htri_t H5F_accum_read(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type,
@@ -268,12 +268,4 @@ H5_DLL herr_t H5F_get_maxaddr_test(hid_t file_id, haddr_t *maxaddr);
 #endif /* H5F_TESTING */
 
 #endif /* _H5Fpkg_H */
-
-
-
-
-
-
-
-
 

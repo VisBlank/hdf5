@@ -115,13 +115,9 @@
 
 /* Metadata cache (H5AC) callbacks */
 static H5F_super_t *H5F_super_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *udata1, void *udata2);
-
 static herr_t H5F_super_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5F_super_t *sblock);
-
 static herr_t H5F_super_dest(H5F_t *f, H5F_super_t * sblock);
-
 static herr_t H5F_super_clear(H5F_t *f, H5F_super_t *sblock, hbool_t destroy);
-
 static herr_t H5F_super_size(const H5F_t *f, const H5F_super_t *sblock, size_t *size_ptr);
 
 
@@ -148,6 +144,7 @@ const H5AC_class_t H5AC_SUPERBLOCK[1] = {{
 /*******************/
 /* Local Variables */
 /*******************/
+
 
 
 /*-------------------------------------------------------------------------
@@ -181,9 +178,8 @@ H5F_super_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *udata1, void *
     size_t              variable_size;      /*variable sizeof superblock    */
     uint8_t            *p;                  /* Temporary pointer into encoding buffer */
     unsigned            super_vers;         /* Superblock version          */
+    hbool_t * dirtied = (hbool_t *)udata2;  /* set up dirtied out value */
     H5F_super_t *       ret_value = NULL;
-
-    hbool_t * dirtied = (hbool_t *)udata2; /* set up dirtied out value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5F_super_load)
 
@@ -501,9 +497,8 @@ H5F_super_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *udata1, void *
         HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to determine file size")
 
     /* (Account for the stored EOA being absolute offset -QAK) */
-    if((eof + sblock->base_addr) < stored_eoa) {
+    if((eof + sblock->base_addr) < stored_eoa)
         HGOTO_ERROR(H5E_FILE, H5E_TRUNCATED, NULL, "truncated file")
-    }
 
     /*
      * Tell the file driver how much address space has already been
@@ -585,7 +580,6 @@ H5F_super_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *udata1, void *
             /* Set non-default v1 B-tree 'K' value info from file */
             sblock->btree_k[H5B_CHUNK_ID] = btreek.btree_k[H5B_CHUNK_ID];
             sblock->btree_k[H5B_SNODE_ID] = btreek.btree_k[H5B_SNODE_ID];
-HDassert(sblock->btree_k[H5B_SNODE_ID]);
             sblock->sym_leaf_k = btreek.sym_leaf_k;
 
             /* Set non-default v1 B-tree 'K' values in the property list */
@@ -598,7 +592,6 @@ HDassert(sblock->btree_k[H5B_SNODE_ID]);
             /* No non-default v1 B-tree 'K' value info in file, use defaults */
             sblock->btree_k[H5B_CHUNK_ID] = HDF5_BTREE_CHUNK_IK_DEF;
             sblock->btree_k[H5B_SNODE_ID] = HDF5_BTREE_SNODE_IK_DEF;
-HDassert(sblock->btree_k[H5B_SNODE_ID]);
             sblock->sym_leaf_k = H5F_CRT_SYM_LEAF_DEF;
         } /* end if */
 
@@ -830,7 +823,6 @@ H5F_super_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5F_supe
 
         /* Reset the dirty flag.  */
         sblock->cache_info.is_dirty = FALSE;
-
     } /* end if */
 
     if(destroy)

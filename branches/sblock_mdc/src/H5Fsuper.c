@@ -122,6 +122,9 @@
 /* Library Private Variables */
 /*****************************/
 
+/* Declare a free list to manage the H5F_super_t struct */
+H5FL_DEFINE(H5F_super_t);
+
 
 /*******************/
 /* Local Variables */
@@ -245,10 +248,10 @@ H5F_super_read(H5F_t *f, hid_t dxpl_id, hbool_t dirty_sblock_after_read)
     H5F_file_t         *shared;             /* shared part of `file'                        */
     H5FD_t             *lf;                 /* file driver part of `shared'                 */
     H5F_super_t *       sblock = NULL;      /* superblock structure                         */
-    herr_t              ret_value = SUCCEED; /* return value                                */
     hbool_t             dirtied = FALSE;    /* Bool for sblock protect call                 */
     H5AC_protect_t      rw;                 /* read/write permissions for file              */
     unsigned            sblock_flags;       /* flags used in superblock unprotect call      */
+    herr_t              ret_value = SUCCEED; /* return value                                */
 
     FUNC_ENTER_NOAPI(H5F_super_read, FAIL)
 
@@ -265,7 +268,7 @@ H5F_super_read(H5F_t *f, hid_t dxpl_id, hbool_t dirty_sblock_after_read)
         HGOTO_ERROR(H5E_FILE, H5E_NOTHDF5, FAIL, "unable to find file signature")
 
     /* Determine file intent for superblock protect */
-    if (H5F_INTENT(f) & H5F_ACC_RDWR)
+    if(H5F_INTENT(f) & H5F_ACC_RDWR)
         rw = H5AC_WRITE;
     else
         rw = H5AC_READ;
@@ -279,15 +282,13 @@ H5F_super_read(H5F_t *f, hid_t dxpl_id, hbool_t dirty_sblock_after_read)
         HGOTO_ERROR(H5E_FSPACE, H5E_CANTPIN, FAIL, "unable to pin superblock")
 
 done:
-
-    if ((rw == H5AC_WRITE) && ((dirtied) || dirty_sblock_after_read)) {
+    if((rw == H5AC_WRITE) && ((dirtied) || dirty_sblock_after_read))
         sblock_flags = H5AC__DIRTIED_FLAG;
-    } else {
+    else
         sblock_flags = H5AC__NO_FLAGS_SET;
-    }
 
     /* Release the superblock */
-    if(sblock && H5AC_unprotect(f, dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, sblock_flags) <0)
+    if(sblock && H5AC_unprotect(f, dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, sblock_flags) < 0)
         HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
 
     FUNC_LEAVE_NOAPI(ret_value)
@@ -336,7 +337,7 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
 
     /* Allocate space for the superblock */
     if(NULL == (sblock = H5FL_CALLOC(H5F_super_t)))
-        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
+        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed")
 
     /* Initialize various address information */
     sblock->base_addr = HADDR_UNDEF;
@@ -350,11 +351,11 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
 
     /* Initialize sym_leaf_k */
     if(H5P_get(plist, H5F_CRT_SYM_LEAF_NAME, &sblock->sym_leaf_k) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get byte number for object size")
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get byte number for object size")
 
     /* Initialize btree_k */
     if(H5P_get(plist, H5F_CRT_BTREE_RANK_NAME, &sblock->btree_k[0]) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "unable to get rank for btree internal nodes")
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get rank for btree internal nodes")
 
     /* Bump superblock version if we are to use the latest version of the format */
     if(f->shared->latest_format)
@@ -374,9 +375,9 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
         H5P_genplist_t *c_plist;              /* Property list */
 
         if(NULL == (c_plist = (H5P_genplist_t *)H5I_object(f->shared->fcpl_id)))
-            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not property list")
+            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not property list")
         if(H5P_set(c_plist, H5F_CRT_SUPER_VERS_NAME, &super_vers) < 0)
-            HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, NULL, "unable to set superblock version")
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set superblock version")
     } /* end if */
 
     /*
@@ -601,4 +602,46 @@ H5F_super_ext_size(H5F_t *f, hid_t dxpl_id, hsize_t *super_ext_size)
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5F_super_ext_size() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    H5F_super_unpin
+ *
+ * Purpose:     Unpin the superblock
+ *
+ * Return:      Success:        non-negative on success
+ *              Failure:        Negative
+ *
+ * Programmer:  Quincey Koziol
+ *              August 10, 2009
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5F_super_unpin(H5F_t *f, hid_t dxpl_id)
+{
+    H5F_super_t * sblock = NULL;        /* superblock object */
+    herr_t ret_value = SUCCEED;         /* Return value */
+
+    FUNC_ENTER_NOAPI(H5F_super_ext_size, FAIL)
+
+    /* Sanity check */
+    HDassert(f);
+    HDassert(H5F_addr_defined(f->shared->super_addr));
+
+    /* Look up the superblock */
+    if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, NULL, NULL, H5AC_READ)))
+        HGOTO_ERROR(H5E_CACHE, H5E_CANTPROTECT, FAIL, "unable to load superblock")
+
+    /* Unpin the superblock, since we're about to destroy the cache */
+    if(H5AC_unpin_entry(f, sblock) < 0)
+        HGOTO_ERROR(H5E_FSPACE, H5E_CANTUNPIN, FAIL, "unable to unpin superblock")
+
+done:
+    /* Release the superblock */
+    if(sblock && H5AC_unprotect(f, dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, H5AC__NO_FLAGS_SET) < 0)
+        HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
+
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* H5F_super_unpin() */
 
