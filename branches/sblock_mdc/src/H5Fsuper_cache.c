@@ -114,11 +114,11 @@
 /********************/
 
 /* Metadata cache (H5AC) callbacks */
-static H5F_super_t *H5F_super_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *udata1, void *udata2);
-static herr_t H5F_super_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5F_super_t *sblock);
-static herr_t H5F_super_dest(H5F_t *f, H5F_super_t * sblock);
-static herr_t H5F_super_clear(H5F_t *f, H5F_super_t *sblock, hbool_t destroy);
-static herr_t H5F_super_size(const H5F_t *f, const H5F_super_t *sblock, size_t *size_ptr);
+static H5F_super_t *H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *udata1, void *udata2);
+static herr_t H5F_sblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5F_super_t *sblock);
+static herr_t H5F_sblock_dest(H5F_t *f, H5F_super_t * sblock);
+static herr_t H5F_sblock_clear(H5F_t *f, H5F_super_t *sblock, hbool_t destroy);
+static herr_t H5F_sblock_size(const H5F_t *f, const H5F_super_t *sblock, size_t *size_ptr);
 
 
 /*********************/
@@ -128,12 +128,12 @@ static herr_t H5F_super_size(const H5F_t *f, const H5F_super_t *sblock, size_t *
 /* H5F inherits cache-like properties from H5AC */
 const H5AC_class_t H5AC_SUPERBLOCK[1] = {{
     H5AC_SUPERBLOCK_ID,
-    (H5AC_load_func_t)H5F_super_load,
-    (H5AC_flush_func_t)H5F_super_flush,
-    (H5AC_dest_func_t)H5F_super_dest,
-    (H5AC_clear_func_t)H5F_super_clear,
+    (H5AC_load_func_t)H5F_sblock_load,
+    (H5AC_flush_func_t)H5F_sblock_flush,
+    (H5AC_dest_func_t)H5F_sblock_dest,
+    (H5AC_clear_func_t)H5F_sblock_clear,
     (H5AC_notify_func_t)NULL,
-    (H5AC_size_func_t)H5F_super_size,
+    (H5AC_size_func_t)H5F_sblock_size,
 }};
 
 /*****************************/
@@ -151,7 +151,7 @@ H5FL_EXTERN(H5F_super_t);
 
 
 /*-------------------------------------------------------------------------
- * Function:    H5F_super_load
+ * Function:    H5F_sblock_load
  *
  * Purpose:     Loads the superblock from the file, and deserializes
  *              its information into the H5F_super_t structure.
@@ -166,7 +166,7 @@ H5FL_EXTERN(H5F_super_t);
  *-------------------------------------------------------------------------
  */
 static H5F_super_t *
-H5F_super_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *udata1, void *udata2/*out*/)
+H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *udata1, void *udata2/*out*/)
 {
     H5F_super_t        *sblock = NULL;
     uint8_t             sbuf[H5F_MAX_SUPERBLOCK_SIZE];     /* Buffer for superblock */
@@ -184,7 +184,7 @@ H5F_super_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *udata1, void *
     hbool_t * dirtied = (hbool_t *)udata2;  /* set up dirtied out value */
     H5F_super_t *       ret_value = NULL;
 
-    FUNC_ENTER_NOAPI_NOINIT(H5F_super_load)
+    FUNC_ENTER_NOAPI_NOINIT(H5F_sblock_load)
 
     /* Short cuts */
     shared = f->shared;
@@ -535,14 +535,9 @@ H5F_super_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *udata1, void *
                 HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to set end-of-address marker for file")
         } /* end if */
 
-        /* Set up "fake" object location for superblock extension */
-        H5O_loc_reset(&ext_loc);
-        ext_loc.file = f;
-        ext_loc.addr = sblock->extension_addr;
-
         /* Open the superblock extension */
-        if(H5O_open(&ext_loc) < 0)
-            HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to open superblock extension")
+	if(H5F_super_ext_open(f, sblock, &ext_loc) < 0)
+            HGOTO_ERROR(H5E_FILE, H5E_CANTOPENOBJ, NULL, "unable to open file's superblock extension")
 
         /* Check for the extension having a 'driver info' message */
         if((status = H5O_msg_exists(&ext_loc, H5O_DRVINFO_ID, dxpl_id)) < 0)
@@ -598,13 +593,9 @@ H5F_super_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *udata1, void *
             sblock->sym_leaf_k = H5F_CRT_SYM_LEAF_DEF;
         } /* end if */
 
-        /* Close the extension.  Twiddle the number of open objects to avoid
-         * closing the file (since this will be the only open object).
-         */
-        f->nopen_objs++;
-        if(H5O_close(&ext_loc) < 0)
-            HGOTO_ERROR(H5E_OHDR, H5E_CANTOPENFILE, NULL, "unable to close superblock extension")
-        f->nopen_objs--;
+        /* Close superblock extension */
+	if(H5F_super_ext_close(f, &ext_loc) < 0)
+	    HGOTO_ERROR(H5E_FILE, H5E_CANTRELEASE, NULL, "unable to close file's superblock extension")
     } /* end if */
 
     /* Set return value */
@@ -613,11 +604,11 @@ H5F_super_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *udata1, void *
 done:
 
     FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5F_super_load() */
+} /* end H5F_sblock_load() */
 
 
 /*-------------------------------------------------------------------------
- * Function:    H5F_super_flush
+ * Function:    H5F_sblock_flush
  *
  * Purpose:     Flushes the superblock.
  *
@@ -631,7 +622,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5F_super_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5F_super_t *sblock)
+H5F_sblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5F_super_t *sblock)
 {
     H5WB_t *wb = NULL;                          /* wrapped buffer for superblock data */
     H5P_genplist_t *plist;                      /* File creation property list */
@@ -643,7 +634,7 @@ H5F_super_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5F_supe
     unsigned        super_vers;                 /* Superblock version              */
     herr_t          ret_value = SUCCEED;
 
-    FUNC_ENTER_NOAPI_NOINIT(H5F_super_flush)
+    FUNC_ENTER_NOAPI_NOINIT(H5F_sblock_flush)
 
     /* check arguments */
         /* code */
@@ -788,7 +779,6 @@ H5F_super_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5F_supe
             /* Check for driver info message */
             H5_ASSIGN_OVERFLOW(driver_size, H5FD_sb_size(f->shared->lf), hsize_t, size_t);
             if(driver_size > 0) {
-                H5O_loc_t ext_loc;      /* "Object location" for superblock extension */
                 H5O_drvinfo_t drvinfo;      /* Driver info */
                 uint8_t dbuf[H5F_MAX_DRVINFOBLOCK_SIZE];  /* Driver info block encoding buffer */
     
@@ -799,28 +789,11 @@ H5F_super_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5F_supe
                 if(H5FD_sb_encode(f->shared->lf, drvinfo.name, dbuf) < 0)
                     HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "unable to encode driver information")
     
-                /* Set up "fake" object location for superblock extension */
-                H5O_loc_reset(&ext_loc);
-                ext_loc.file = f;
-                ext_loc.addr = sblock->extension_addr;
-    
-                /* Open the superblock extension */
-                if(H5O_open(&ext_loc) < 0)
-                    HGOTO_ERROR(H5E_OHDR, H5E_CANTOPENFILE, FAIL, "unable to open superblock extension")
-    
                 /* Write driver info information to the superblock extension */
                 drvinfo.len = driver_size;
                 drvinfo.buf = dbuf;
-                if(H5O_msg_write(&ext_loc, H5O_DRVINFO_ID, H5O_MSG_FLAG_DONTSHARE, H5O_UPDATE_TIME, &drvinfo, dxpl_id) < 0)
-                    HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "unable to update driver info header message")
-    
-                /* Close the extension.  Twiddle the number of open objects to avoid
-                 * closing the file (since this will be the only open object).
-                 */
-                f->nopen_objs++;
-                if(H5O_close(&ext_loc) < 0)
-                    HGOTO_ERROR(H5E_OHDR, H5E_CANTOPENFILE, FAIL, "unable to close superblock extension")
-                f->nopen_objs--;
+                if(H5F_super_ext_write_msg(f, dxpl_id, &drvinfo, H5O_DRVINFO_ID, FALSE) < 0)
+                    HGOTO_ERROR(H5E_FILE, H5E_WRITEERROR, FAIL, "unable to update driver info header message")
             } /* end if */
         } /* end if */
 
@@ -829,16 +802,16 @@ H5F_super_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5F_supe
     } /* end if */
 
     if(destroy)
-        if(H5F_super_dest(f, sblock) < 0)
+        if(H5F_sblock_dest(f, sblock) < 0)
             HGOTO_ERROR(H5E_FSPACE, H5E_CLOSEERROR, FAIL, "can't close superblock")
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5F_super_flush() */
+} /* end H5F_sblock_flush() */
 
 
 /*-------------------------------------------------------------------------
- * Function:    H5F_super_dest
+ * Function:    H5F_sblock_dest
  *
  * Purpose:     Frees memory used by the superblock.
  *
@@ -850,9 +823,9 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5F_super_dest(H5F_t UNUSED *f, H5F_super_t* sblock)
+H5F_sblock_dest(H5F_t UNUSED *f, H5F_super_t* sblock)
 {
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5F_super_dest)
+    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5F_sblock_dest)
 
     /* Sanity check */
     HDassert(sblock);
@@ -864,11 +837,11 @@ H5F_super_dest(H5F_t UNUSED *f, H5F_super_t* sblock)
     sblock = (H5F_super_t *)H5MM_xfree(sblock);
 
     FUNC_LEAVE_NOAPI(SUCCEED)
-} /* end H5F_super_dest() */
+} /* end H5F_sblock_dest() */
 
 
 /*-------------------------------------------------------------------------
- * Function:    H5F_super_clear
+ * Function:    H5F_sblock_clear
  *
  * Purpose:     Mark the superblock as no longer being dirty.
  *
@@ -880,11 +853,11 @@ H5F_super_dest(H5F_t UNUSED *f, H5F_super_t* sblock)
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5F_super_clear(H5F_t *f, H5F_super_t *sblock, hbool_t destroy)
+H5F_sblock_clear(H5F_t *f, H5F_super_t *sblock, hbool_t destroy)
 {
     herr_t ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5F_super_clear)
+    FUNC_ENTER_NOAPI_NOINIT(H5F_sblock_clear)
     /*
      * Check arguments.
      */
@@ -894,16 +867,16 @@ H5F_super_clear(H5F_t *f, H5F_super_t *sblock, hbool_t destroy)
     sblock->cache_info.is_dirty = FALSE;
 
     if(destroy)
-        if(H5F_super_dest(f, sblock) < 0)
+        if(H5F_sblock_dest(f, sblock) < 0)
             HGOTO_ERROR(H5E_SOHM, H5E_CANTFREE, FAIL, "unable to delete superblock")
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5F_super_clear() */
+} /* end H5F_sblock_clear() */
 
 
 /*-------------------------------------------------------------------------
- * Function:    H5F_super_size
+ * Function:    H5F_sblock_size
  *
  * Purpose:     Returns the size of the superblock encoded on disk.
  *
@@ -915,9 +888,9 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5F_super_size(const H5F_t *f, const H5F_super_t *sblock, size_t *size_ptr)
+H5F_sblock_size(const H5F_t *f, const H5F_super_t *sblock, size_t *size_ptr)
 {
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5F_super_size)
+    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5F_sblock_size)
 
     /* check arguments */
     HDassert(f);
@@ -928,5 +901,5 @@ H5F_super_size(const H5F_t *f, const H5F_super_t *sblock, size_t *size_ptr)
     *size_ptr = H5F_SUPERBLOCK_SIZE(sblock->super_vers, f);
 
     FUNC_LEAVE_NOAPI(SUCCEED)
-} /* end H5F_super_size() */
+} /* end H5F_sblock_size() */
 

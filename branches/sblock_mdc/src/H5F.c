@@ -2519,6 +2519,7 @@ hssize_t
 H5Fget_freespace(hid_t file_id)
 {
     H5F_t      *file;           /* File object for file ID */
+    hsize_t	tot_space;	/* Amount of free space in the file */
     hssize_t    ret_value;      /* Return value */
 
     FUNC_ENTER_API(H5Fget_freespace, FAIL)
@@ -2529,8 +2530,10 @@ H5Fget_freespace(hid_t file_id)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "not a file ID")
 
     /* Go get the actual amount of free space in the file */
-    if((ret_value = H5MF_get_freespace(file, H5AC_ind_dxpl_id)) < 0)
+    if(H5MF_get_freespace(file, H5AC_ind_dxpl_id, &tot_space, NULL) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "unable to check free space for file")
+
+    ret_value = (hssize_t)tot_space;
 
 done:
     FUNC_LEAVE_API(ret_value)
@@ -2978,9 +2981,8 @@ H5Fget_info(hid_t obj_id, H5F_info_t *finfo)
         HGOTO_ERROR(H5E_CACHE, H5E_CANTPROTECT, FAIL, "unable to load superblock")
 
     /* Check for superblock extension info */
-    if(H5F_addr_defined(sblock->extension_addr))
-        if(H5F_super_ext_size(f, H5AC_ind_dxpl_id, &finfo->super_ext_size) < 0)
-            HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "Unable to retrieve superblock extension size")
+    if(H5F_super_size(f, H5AC_ind_dxpl_id, NULL, &finfo->super_ext_size) < 0)
+        HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "Unable to retrieve superblock sizes")
 
     /* Check for SOHM info */
     if(H5F_addr_defined(f->shared->sohm_addr))

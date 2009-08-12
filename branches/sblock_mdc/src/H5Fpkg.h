@@ -43,6 +43,7 @@
 #include "H5Oprivate.h"         /* Object header messages               */
 #include "H5RCprivate.h"	/* Reference counted object functions	*/
 
+
 /*
  * Feature: Define this constant on the compiler command-line if you want to
  *	    see some debugging messages on the debug stream.
@@ -66,6 +67,10 @@
 /* Free space section+aggregator merge flags */
 #define H5F_FS_MERGE_METADATA           0x01    /* Section can merge with metadata aggregator */
 #define H5F_FS_MERGE_RAWDATA            0x02    /* Section can merge with small 'raw' data aggregator */
+
+/* Macro to abstract checking whether file is using a free space manager */
+#define H5F_HAVE_FREE_SPACE_MANAGER(F)  TRUE    /* Currently always have a free space manager */
+
 
 /* Structure for metadata & "small [raw] data" block aggregation fields */
 struct H5F_blk_aggr_t {
@@ -241,8 +246,14 @@ H5_DLL herr_t H5F_mount_count_ids(H5F_t *f, unsigned *nopen_files, unsigned *nop
 /* Superblock related routines */
 H5_DLL herr_t H5F_super_init(H5F_t *f, hid_t dxpl_id);
 H5_DLL herr_t H5F_super_read(H5F_t *f, hid_t dxpl_id, hbool_t dirty_sblock_after_read);
-H5_DLL herr_t H5F_super_ext_size(H5F_t *f, hid_t dxpl_id, hsize_t *super_ext_info);
+H5_DLL herr_t H5F_super_size(H5F_t *f, hid_t dxpl_id, hsize_t *super_size, hsize_t *super_ext_size);
 H5_DLL herr_t H5F_super_unpin(H5F_t *f, hid_t dxpl_id);
+
+/* Superblock extension related routines */
+H5_DLL herr_t H5F_super_ext_create(H5F_t *f, hid_t dxpl_id, H5F_super_t *sblock, H5O_loc_t *ext_ptr);
+H5_DLL herr_t H5F_super_ext_open(H5F_t *f, const H5F_super_t *block, H5O_loc_t *ext_ptr);
+H5_DLL herr_t H5F_super_ext_write_msg(H5F_t *f, hid_t dxpl_id, void *mesg, unsigned id, hbool_t may_create);
+H5_DLL herr_t H5F_super_ext_close(H5F_t *f, H5O_loc_t *ext_ptr);
 
 /* Metadata accumulator routines */
 H5_DLL htri_t H5F_accum_read(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type,
