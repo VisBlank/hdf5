@@ -146,17 +146,13 @@ H5MF_sects_dump(f, dxpl_id, stderr);
  * Programmer:  Quincey Koziol
  *              Thursday, December 13, 2007
  *
- *      Mike McGreevy, June 2, 2009
- *        Add protect/unprotect calls in order to update superblock
- *        when the EOA value changes.
- *
  *-------------------------------------------------------------------------
  */
 haddr_t
 H5MF_aggr_alloc(H5F_t *f, hid_t dxpl_id, H5F_blk_aggr_t *aggr,
     H5F_blk_aggr_t *other_aggr, H5FD_mem_t type, hsize_t size)
 {
-    haddr_t 	ret_value;
+    H5F_super_t *sblock = NULL;         /* File's superblock */
     hsize_t 	alignment = 0, mis_align = 0;
     haddr_t	frag_addr = 0, eoa_frag_addr = 0;
     hsize_t	frag_size = 0, eoa_frag_size = 0;
@@ -165,7 +161,7 @@ H5MF_aggr_alloc(H5F_t *f, hid_t dxpl_id, H5F_blk_aggr_t *aggr,
     H5FD_mem_t 	alloc_type, other_alloc_type;
     haddr_t     current_eoa;
     haddr_t     new_eoa;
-    H5F_super_t *sblock = NULL;
+    haddr_t 	ret_value;              /* Return value */
 
     FUNC_ENTER_NOAPI(H5MF_aggr_alloc, HADDR_UNDEF)
 #ifdef H5MF_AGGR_DEBUG
@@ -662,12 +658,6 @@ H5MF_aggr_query(const H5F_t *f, const H5F_blk_aggr_t *aggr, haddr_t *addr,
  *
  * Programmer:  Quincey Koziol
  *              Thursday, December 13, 2007
- *
- * Modifications:
- *
- *              Mike McGreevy, June 2, 2009
- *              Add protect/unprotect calls in order to update superblock
- *              when the EOA value changes.
  *
  *-------------------------------------------------------------------------
  */

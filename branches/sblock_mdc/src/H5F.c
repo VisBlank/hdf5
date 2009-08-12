@@ -843,27 +843,6 @@ done:
  *		matzke@llnl.gov
  *		Jul 18 1997
  *
- * Modifications:
- *
- *		Raymond Lu, Oct 14, 2001
- *		Changed the file creation and access property list to the
- *		new generic property list.
- *
- *		J Mainzer, Mar 10, 2005
- *		Updated for the new metadata cache, and associated
- *		property list changes.
- *
- *		J Mainzer, Jun 30, 2005
- *		Added lf parameter so the shared->lf field can be
- *		initialized prior to the call to H5AC_create() if a
- *		new instance of H5F_file_t is created.  lf should be
- *		NULL if shared isn't, and vise versa.
- *
- *              Mike McGreevy, May 26, 2009
- *              - Added initialization information for the superblock address.
- *              - Removed initialization for various fields now kept in
- *                the superblock (it's been moved into H5F_super_init).
- *
  *-------------------------------------------------------------------------
  */
 static H5F_t *
@@ -1015,15 +994,6 @@ done:
  * Programmer:	Robb Matzke
  *		matzke@llnl.gov
  *		Jul 18 1997
- * Modifications:
- *		Vailin Choi,  April 2, 2008
- *		Free f->extpath
- *
- *              Mike McGreevy, June 2, 2009
- *              - Added protect/unprotect calls to access superblock in order
- *                to unpin it before destroying it from cache.
- *              - Removed code that frees root group symbol table entry. This
- *                has been moved to the superblock destroy cache callback.
  *
  *-------------------------------------------------------------------------
  */
@@ -1183,47 +1153,6 @@ H5F_dest(H5F_t *f, hid_t dxpl_id)
  * Programmer:	Robb Matzke
  *		Tuesday, September 23, 1997
  *
- * Modifications:
- *		Albert Cheng, 1998-02-05
- *		Added the access_parms argument to pass down access template
- *		information.
- *
- * 		Robb Matzke, 1998-02-18
- *		The H5F_access_t changed to allow more generality.  The low
- *		level driver is part of the file access template so the TYPE
- *		argument has been removed.
- *
- * 		Robb Matzke, 1999-08-02
- *		Rewritten to use the virtual file layer.
- *
- * 		Robb Matzke, 1999-08-16
- *		Added decoding of file driver information block, which uses a
- *		formerly reserved address slot in the boot block in order to
- *		be compatible with previous versions of the file format.
- *
- * 		Robb Matzke, 1999-08-20
- *		Optimizations for opening a file. If the driver can't
- *		determine when two file handles refer to the same file then
- *		we open the file in one step.  Otherwise if the first attempt
- *		to open the file fails then we skip the second attempt if the
- *		arguments would be the same.
- *
- *		Raymond Lu, 2001-10-14
- *		Changed the file creation and access property lists to the
- *		new generic property list.
- *
- *		Bill Wendling, 2003-03-18
- *		Modified H5F_flush call to take one flag instead of
- *		multiple Boolean flags.
- *
- *		Vailin Choi, 2008-04-02
- *		To formulate path for later searching of target file for external link
- *		via H5_build_extpath().
- *
- *              Mike McGreevy, April 14, 2009
- *              Changed calls to functions that read and write the 
- *              superblock, as this is now handled by the cache callbacks.
- *
  *-------------------------------------------------------------------------
  */
 H5F_t *
@@ -1379,17 +1308,6 @@ H5F_open(const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_id, hid_t d
          */
         if(H5G_mkroot(file, dxpl_id, TRUE) < 0)
             HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "unable to create/open root group")
-
-        /* Flush the cache */
-        /* Note: This will also write the superblock to the file, since it
-         * was just inserted into the cache 
-         */
-        /* (This must be after the root group is created, since the root
-         *      group's symbol table entry is part of the superblock)
-         */
-        if(H5AC_flush(file, dxpl_id, 0) < 0)
-            HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, NULL, "unable to flush metadata cache")
-
     } else if (1 == shared->nrefs) {
 	/* Read the superblock if it hasn't been read before. */
         if(H5F_super_read(file, dxpl_id, dirty_sblock) < 0)
@@ -1461,33 +1379,6 @@ done:
  *		Failure:	FAIL
  *
  * Programmer:	Unknown
- *
- * Modifications:
- * 		Robb Matzke, 1997-07-18
- *		File struct creation and destruction is through H5F_new() and
- *		H5F_dest(). Writing the root symbol table entry is done with
- *		H5G_encode().
- *
- *  		Robb Matzke, 1997-08-29
- *		Moved creation of the boot block to H5F_flush().
- *
- *  		Robb Matzke, 1997-09-23
- *		Most of the work is now done by H5F_open() since H5Fcreate()
- *		and H5Fopen() originally contained almost identical code.
- *
- * 		Robb Matzke, 1998-02-18
- *		Better error checking for the creation and access property
- *		lists. It used to be possible to swap the two and core the
- *		library.  Also, zero is no longer valid as a default property
- *		list; one must use H5P_DEFAULT instead.
- *
- * 		Robb Matzke, 1999-08-02
- *		The file creation and file access property lists are passed
- *		to the H5F_open() as object IDs.
- *
- *		Raymond Lu, 2001-10-14
- *              Changed the file creation and access property list to the
- * 		new generic property list.
  *
  *-------------------------------------------------------------------------
  */
@@ -1650,14 +1541,6 @@ done:
  * Programmer:	Robb Matzke
  *              Thursday, August  6, 1998
  *
- * Modifications:
- * 		Robb Matzke, 1998-10-16
- *		Added the `scope' argument.
- *
- *		Bill Wendling, 2003-03-18
- *		Modified H5F_flush call to take one flag instead of
- *		several Boolean flags.
- *
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -1749,12 +1632,6 @@ done:
  * Programmer:	Robb Matzke
  *		matzke@llnl.gov
  *		Aug 29 1997
- *
- * Modifications:
- *
- *              Mike McGreevy, April 14, 2009
- *              Removed function call that writes the superblock to disk.
- *              This now happens during the cache flush.
  *
  *-------------------------------------------------------------------------
  */
@@ -2933,19 +2810,12 @@ done:
  * Programmer:  Vailin Choi
  *              July 11, 2007
  *
- * Modifications:
- *
- *              Mike McGreevy, June 2, 2009
- *              Added protect/unprotect calls in order to access the 
- *              superblock, now stored in the cache.
- *
  *-------------------------------------------------------------------------
  */
 herr_t
 H5Fget_info(hid_t obj_id, H5F_info_t *finfo)
 {
     H5F_t *f;                           /* Top file in mount hierarchy */
-    H5F_super_t * sblock = NULL;        /* File superblock */
     herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_API(H5Fget_info, FAIL)
@@ -2976,10 +2846,6 @@ H5Fget_info(hid_t obj_id, H5F_info_t *finfo)
     /* Reset file info struct */
     HDmemset(finfo, 0, sizeof(H5F_info_t));
 
-    /* Look up the superblock */
-    if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, NULL, NULL, H5AC_READ)))
-        HGOTO_ERROR(H5E_CACHE, H5E_CANTPROTECT, FAIL, "unable to load superblock")
-
     /* Check for superblock extension info */
     if(H5F_super_size(f, H5AC_ind_dxpl_id, NULL, &finfo->super_ext_size) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "Unable to retrieve superblock sizes")
@@ -2990,10 +2856,6 @@ H5Fget_info(hid_t obj_id, H5F_info_t *finfo)
             HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "Unable to retrieve SOHM btree & heap storage info")
 
 done:
-    /* Release the superblock */
-    if(sblock && H5AC_unprotect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, H5AC__NO_FLAGS_SET) <0)
-        HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
-
     FUNC_LEAVE_API(ret_value)
 } /* end H5Fget_info() */
 

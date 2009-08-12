@@ -561,13 +561,6 @@ done:
  * Programmer:	Robb Matzke
  *              Monday, August 16, 1999
  *
- * Modifications:
- *
- *              Mike McGreevy, June 8, 2009
- *              Added 'dirtied' out parameter used to indicate if the
- *              superblock should be marked as dirty in the cache immediately
- *              after reading it from a file.
- *
  *-------------------------------------------------------------------------
  */
 herr_t

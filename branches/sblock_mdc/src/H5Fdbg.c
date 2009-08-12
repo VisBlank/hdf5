@@ -43,13 +43,6 @@
  * Programmer:	Robb Matzke
  *		matzke@llnl.gov
  *		Aug  1 1997
- * 
- * Modifications:
- * 
- *              Mike McGreevy, June 2, 2009
- *              Added protect/unprotect calls in order to access the
- *              various fields in the superblock (now stored in the
- *              metadata cache).
  *
  *-------------------------------------------------------------------------
  */
@@ -155,12 +148,12 @@ H5F_debug(H5F_t *f, FILE *stream, int indent, int fwidth)
 
             /* Display root group symbol table entry info */
             H5G_ent_debug(f, &root_ent, stream, indent + 3, MAX(0, fwidth - 3), NULL);
-        }
+        } /* end else */
     } /* end if */
 
 done:
     /* Release superblock */
-    if(sblock && H5AC_unprotect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, H5AC__NO_FLAGS_SET) <0)
+    if(sblock && H5AC_unprotect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, H5AC__NO_FLAGS_SET) < 0)
         HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
 
     FUNC_LEAVE_NOAPI(ret_value)

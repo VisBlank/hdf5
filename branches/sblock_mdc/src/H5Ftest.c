@@ -131,20 +131,14 @@ done:
  * Programmer:	Neil Fortner
  *	        Mar  31, 2009
  *
- * Modifications:
- *
- *              Mike McGreevy, June 5, 2009
- *              Added protect/unprotect calls in order to access the
- *              superblock from the metadata cache.
- *
  *-------------------------------------------------------------------------
  */
 herr_t
 H5F_check_cached_stab_test(hid_t file_id)
 {
     H5F_t	*file;                  /* File info */
+    H5F_super_t *sblock = NULL;         /* File's superblock */
     herr_t	ret_value = SUCCEED;    /* Return value */
-    H5F_super_t *sblock = NULL;
 
     FUNC_ENTER_NOAPI_NOINIT(H5F_check_cached_stab_test)
 
@@ -160,11 +154,11 @@ H5F_check_cached_stab_test(hid_t file_id)
     if(H5G_verify_cached_stab_test(H5G_oloc(file->shared->root_grp), sblock->root_ent) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "unable to verify cached symbol table info")
 
+done:
     /* Release the superblock */
     if(sblock && H5AC_unprotect(file, H5AC_dxpl_id, H5AC_SUPERBLOCK, file->shared->super_addr, sblock, H5AC__NO_FLAGS_SET) <0)
         HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
 
-done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5F_check_cached_stab_test() */
 

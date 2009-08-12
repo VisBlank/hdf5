@@ -91,15 +91,6 @@ H5G_rootof(H5F_t *f)
  *              koziol@ncsa.uiuc.edu
  *              Sep 26 2005
  *
- * Modifications:     
- *
- *              Mike McGreevy, May 5, 2009
- *              Added in H5G_super_t * parameter so that this 
- *              function can access superblock fields. It's called from
- *              a state in which the superblock has already been protected
- *              from the cache, hence the passing of the pointer as opposed
- *              to looking it up within this function itself.
- *
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -149,15 +140,6 @@ done:
  *              koziol@ncsa.uiuc.edu
  *              Sep 26 2005
  *
- * Modifications:     
- *
- *              Mike McGreevy, May 5, 2009
- *              Added in H5G_super_t * parameter so that this 
- *              function can access superblock fields. It's called from
- *              a state in which the superblock has already been protected
- *              from the cache, hence the passing of the pointer as opposed
- *              to looking it up within this function itself.
- *
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -202,12 +184,6 @@ done:
  *		matzke@llnl.gov
  *		Aug 11 1997
  *
- * Modifications:
- *
- *              Mike McGreevy, June 5, 2009
- *              Added protect/unprotect calls in order to access the
- *              superblock, now stored in the cache.
- *
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -215,27 +191,18 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
 {
     H5G_loc_t   root_loc;               /* Root location information */
     htri_t      stab_exists = -1;       /* Whether the symbol table exists */
-    herr_t ret_value = SUCCEED;         /* Return value */
     H5F_super_t * sblock = NULL;        /* Superblock Object */
-    H5AC_protect_t rw;
-    unsigned sblock_flags;
-    hbool_t sblock_dirtied = FALSE;
+    unsigned sblock_flags = H5AC__NO_FLAGS_SET; /* Flags for unprotecting superblock */
+    herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI(H5G_mkroot, FAIL)
-
-    /* Determine file intent for superblock protect call */
-    if(H5F_INTENT(f) & H5F_ACC_RDWR)
-        rw = H5AC_WRITE;
-    else
-        rw = H5AC_READ;
 
     /* check args */
     HDassert(f);
 
     /* Check if the root group is already initialized */
-    if(f->shared->root_grp) {
+    if(f->shared->root_grp)
         HGOTO_DONE(SUCCEED)
-    }
 
     /* Create information needed for group nodes */
     if(H5G_node_init(f) < 0)
@@ -266,7 +233,6 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
         H5O_ginfo_t     ginfo;          /* Group info parameters */
         H5O_linfo_t     linfo;          /* Link info parameters */
         unsigned        super_vers;     /* Superblock version */
-        sblock_dirtied = TRUE;
 
         /* Get the file creation property list */
         /* (Which is a sub-class of the group creation property class) */
@@ -291,20 +257,23 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
 	if(1 != H5O_link(root_loc.oloc, 1, dxpl_id))
 	    HGOTO_ERROR(H5E_SYM, H5E_LINKCOUNT, FAIL, "internal error (wrong link count)")
 
-        if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, NULL, NULL, rw))) {
+        /* Protect the superblock */
+        if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, NULL, NULL, H5AC_WRITE)))
             HGOTO_ERROR(H5E_CACHE, H5E_CANTPROTECT, FAIL, "unable to load superblock")
-        }
+
+        /* Mark superblock dirty, so root group info is flushed */
+        sblock_flags |= H5AC__DIRTIED_FLAG;
 
         /* Create the root group symbol table entry */
         HDassert(!sblock->root_ent);
         if(super_vers < HDF5_SUPERBLOCK_VERSION_2) {
             /* Allocate space for the root group symbol table entry */
-            if(NULL == (sblock->root_ent = (H5G_entry_t *) H5MM_calloc(sizeof(H5G_entry_t))))
+            if(NULL == (sblock->root_ent = (H5G_entry_t *)H5MM_calloc(sizeof(H5G_entry_t))))
                 HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, FAIL, "can't allocate space for symbol table entry")
- 
+
             /* Indicate that the superblock has been dirtied, and will thus 
              * need to be marked as such in the cache. 
-             */           
+             */
 
             /* Initialize the root group symbol table entry */
             sblock->root_ent->dirty = TRUE;
@@ -315,8 +284,15 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
         } /* end if */
     } /* end if */
     else {
+        H5AC_protect_t rw;              /* Permissions for protecting superblock */
 
-        /* Look up superblock */
+        /* Determine how to protect superblock */
+        if(H5F_INTENT(f) & H5F_ACC_RDWR)
+            rw = H5AC_WRITE;
+        else
+            rw = H5AC_READ;
+
+        /* Protect superblock */
         if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, NULL, NULL, rw)))
             HGOTO_ERROR(H5E_CACHE, H5E_CANTPROTECT, FAIL, "unable to load superblock")
 
@@ -339,10 +315,8 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
                 HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "can't check if symbol table message exists")
 
             /* Remove the cache if the stab does not exist */
-            if(!stab_exists) {
+            if(!stab_exists)
                 sblock->root_ent->type = H5G_NOTHING_CACHED;
-                sblock_dirtied = TRUE;
-            }
 #ifndef H5_STRICT_FORMAT_CHECKS
             /* If symbol table information is cached, check if we should replace the
             * symbol table message with the cached symbol table information */
@@ -361,7 +335,6 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
 #endif /* H5_STRICT_FORMAT_CHECKS */
         } /* end if */
     } /* end else */
-
 
     /* Cache the root group's symbol table information in the root group symbol
      * table entry.  It will have been allocated by now if it needs to be
@@ -387,7 +360,7 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
             sblock->root_ent->type = H5G_CACHED_STAB;
             sblock->root_ent->cache.stab.btree_addr = stab.btree_addr;
             sblock->root_ent->cache.stab.heap_addr = stab.heap_addr;
-            sblock_dirtied = TRUE;
+            sblock_flags |= H5AC__DIRTIED_FLAG;
         } /* end if */
     } /* end if */
 
@@ -410,17 +383,12 @@ done:
                 f->shared->root_grp->shared = H5FL_FREE(H5G_shared_t, f->shared->root_grp->shared);
             f->shared->root_grp = H5FL_FREE(H5G_t, f->shared->root_grp);
         } /* end if */
-        if (sblock) sblock->root_ent = (H5G_entry_t *) H5MM_xfree(sblock->root_ent);
+        if(sblock)
+            sblock->root_ent = (H5G_entry_t *)H5MM_xfree(sblock->root_ent);
         H5G_name_free(root_loc.path);
     } /* end if */
 
-    /* indicate if we should dirty the superblock */
-    if ((rw == H5AC_WRITE) && sblock_dirtied)
-        sblock_flags = H5AC__DIRTIED_FLAG;
-    else
-        sblock_flags = H5AC__NO_FLAGS_SET;    
-
-    if(sblock && H5AC_unprotect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, sblock_flags) <0)
+    if(sblock && H5AC_unprotect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, sblock_flags) < 0)
         HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
 
     FUNC_LEAVE_NOAPI(ret_value)

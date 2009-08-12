@@ -113,8 +113,6 @@ H5F_get_intent(const H5F_t *f)
  *
  * Programmer:	Vailin Choi, April 2, 2008
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 char *
@@ -253,12 +251,6 @@ H5F_sizeof_size(const H5F_t *f)
  *		slu@ncsa.uiuc.edu
  *		Oct 14 2001
  *
- * Modifications:
- *
- *              Mike McGreevy, June 5, 2009
- *              Added protect/unprotect calls in order to access the 
- *              superblock from the metadata cache.
- *
  *-------------------------------------------------------------------------
  */
 unsigned
@@ -303,12 +295,6 @@ done:
  * Programmer:	Raymond Lu
  *		slu@ncsa.uiuc.edu
  *		Oct 14 2001
- *
- * Modifications:
- *
- *              Mike McGreevy, June 5, 2009
- *              Added protect/unprotect calls in order to access the 
- *              superblock from the metadata cache.
  *
  *-------------------------------------------------------------------------
  */
@@ -446,12 +432,6 @@ H5F_rdcc_w0(const H5F_t *f)
  *
  * Programmer:	Raymond Lu <slu@ncsa.uiuc.edu>
  *		December 20, 2002
- *
- * Modifications:     
- *
- *              Mike McGreevy, June 5, 2009
- *              Added protect/unprotect calls in order to access the 
- *              superblock from the metadata cache.
  *
  *-------------------------------------------------------------------------
  */

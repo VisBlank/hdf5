@@ -340,13 +340,6 @@ done:
  *              wendling@ncsa.uiuc.edu
  *              Sept 12, 2003
  *
- * Modifications:
- *
- *              Mike McGreevy, May 26, 2009
- *              Moved primary functional code out of H5F_super_read
- *              and into cache callbacks. This function now calls
- *              H5AC_protect which will read the superblock from disk.
- *
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -416,21 +409,12 @@ done:
  *              koziol@ncsa.uiuc.edu
  *              Sept 15, 2003
  *
- * Modifications:
- *
- *              Mike McGreevy, May 26, 2009
- *              Some property list initialization routine was moved
- *              from H5F_open() to here, since the superblock won't exist
- *              until this function is called. After initialization, the 
- *              superblock is then added to the cache, as opposed to
- *              the shared file structure.
- *
  *-------------------------------------------------------------------------
  */
 herr_t
 H5F_super_init(H5F_t *f, hid_t dxpl_id)
 {
-    H5F_super_t *   sblock;             /* superblock cache structure                 */
+    H5F_super_t    *sblock = NULL;      /* Superblock cache structure                 */
     H5P_genplist_t *plist;              /* File creation property list                */
     hsize_t         userblock_size;     /* Size of userblock, in bytes                */
     hsize_t         superblock_size;    /* Size of superblock, in bytes               */
@@ -512,7 +496,7 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
     /* Grab superblock version from property list */
     if(H5P_get(plist, H5F_CRT_SUPER_VERS_NAME, &super_vers) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get superblock version")
-    
+
     /* Save a local copy of the superblock version number */
     sblock->super_vers = super_vers;
 

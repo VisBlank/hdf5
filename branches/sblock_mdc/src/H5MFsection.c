@@ -386,19 +386,15 @@ done:
  * Programmer:	Quincey Koziol
  *              Tuesday, January  8, 2008
  *
- *              Mike McGreevy, June 16, 2009
- *              Add protect/unprotect calls in order to update superblock
- *              when the EOA value changes.
- *
  *-------------------------------------------------------------------------
  */
 herr_t
 H5MF_sect_simple_shrink(H5FS_section_info_t **_sect, void *_udata)
 {
+    H5F_super_t *sblock = NULL;         /* File's superblock */
     H5MF_free_section_t **sect = (H5MF_free_section_t **)_sect;   /* File free section */
     H5MF_sect_ud_t *udata = (H5MF_sect_ud_t *)_udata;   /* User data for callback */
     herr_t ret_value = SUCCEED;         /* Return value */
-    H5F_super_t *sblock = NULL;
 
     FUNC_ENTER_NOAPI_NOINIT(H5MF_sect_simple_shrink)
 
@@ -423,11 +419,6 @@ H5MF_sect_simple_shrink(H5FS_section_info_t **_sect, void *_udata)
 
         /* Update EOA in superblock */
         sblock->eoa = H5FD_get_eoa(udata->f->shared->lf, udata->alloc_type);
-
-        /* Release superblock */
-        if(H5AC_unprotect(udata->f, H5AC_dxpl_id, H5AC_SUPERBLOCK, udata->f->shared->super_addr, sblock, H5AC__DIRTIED_FLAG) <0)
-            HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
-
     } /* end if */
     else {
         /* Sanity check */
@@ -449,6 +440,10 @@ H5MF_sect_simple_shrink(H5FS_section_info_t **_sect, void *_udata)
     } /* end if */
 
 done:
+    /* Release superblock */
+    if(sblock && H5AC_unprotect(udata->f, H5AC_dxpl_id, H5AC_SUPERBLOCK, udata->f->shared->super_addr, sblock, H5AC__DIRTIED_FLAG) < 0)
+        HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5MF_sect_simple_shrink() */
 

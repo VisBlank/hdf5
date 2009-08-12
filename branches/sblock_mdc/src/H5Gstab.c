@@ -816,9 +816,6 @@ done:
  *		koziol@ncsa.uiuc.edu
  *		Sep 20 2005
  *
- *              Mike McGreevy, July 1, 2009
- *              Added in additional error check for bad address value.
- *
  *-------------------------------------------------------------------------
  */
 htri_t

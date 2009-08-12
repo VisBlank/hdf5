@@ -656,14 +656,6 @@ H5FD_family_sb_encode(H5FD_t *_file, char *name/*out*/, unsigned char *buf/*out*
  * Programmer:	Raymond Lu
  *              Tuesday, May 10, 2005
  *
- * Modifications:
- *
- *              Mike McGreevy, June 8, 2009
- *              Added in additional out parameter used to indicate
- *              that the superblock will need to be dirtied after
- *              decoding if the h5repart tool has changed the
- *              member file size.
- *
  *-------------------------------------------------------------------------
  */
 static herr_t

@@ -1518,11 +1518,6 @@ done:
  *		matzke@llnl.gov
  *		Aug  5 1997
  *
- * Modifications:
- *
- *              Mike McGreevy, July 1, 2009
- *              Added in additional error check for bad address value.
- *
  *-------------------------------------------------------------------------
  */
 int
