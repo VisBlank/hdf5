@@ -32,8 +32,6 @@
 #include "H5Fpkg.h"             /* File access                          */
 #include "H5FDprivate.h"	/* File drivers                         */
 #include "H5Iprivate.h"		/* IDs                                  */
-#include "H5MFprivate.h"	/* File memory management               */
-#include "H5MMprivate.h"	/* Memory management                    */
 #include "H5Pprivate.h"		/* Property lists                       */
 #include "H5SMprivate.h"        /* Shared Object Header Messages        */
 
@@ -497,10 +495,6 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
     if(H5FD_set_base_addr(f->shared->lf, sblock->base_addr) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "failed to set base address for file driver")
 
-    /* Grab superblock version from property list */
-    if(H5P_get(plist, H5F_CRT_SUPER_VERS_NAME, &super_vers) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get superblock version")
-
     /* Save a local copy of the superblock version number */
     sblock->super_vers = super_vers;
 
@@ -671,15 +665,14 @@ done:
  * Return:      Success:        non-negative on success
  *              Failure:        Negative
  *
- * Programmer:  Quincey Koziol
- *              August 10, 2009
+ * Programmer:  Vailin Choi
+ *              July 11, 2007
  *
  *-------------------------------------------------------------------------
  */
 herr_t
 H5F_super_size(H5F_t *f, hid_t dxpl_id, hsize_t *super_size, hsize_t *super_ext_size)
 {
-    H5F_super_t * sblock;       /* File's superblock */
     herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI(H5F_super_size, FAIL)
@@ -689,23 +682,20 @@ H5F_super_size(H5F_t *f, hid_t dxpl_id, hsize_t *super_size, hsize_t *super_ext_
     HDassert(f->shared);
     HDassert(f->shared->sblock);
 
-    /* Set convenience pointer */
-    sblock = f->shared->sblock;
-
     /* Set the superblock size */
     if(super_size)
-	*super_size = H5F_SUPERBLOCK_SIZE(sblock->super_vers, f);
+	*super_size = H5F_SUPERBLOCK_SIZE(f->shared->sblock->super_vers, f);
 
     /* Set the superblock extension size */
     if(super_ext_size) {
-        if(H5F_addr_defined(sblock->extension_addr)) {
+        if(H5F_addr_defined(f->shared->sblock->extension_addr)) {
             H5O_loc_t ext_loc;                  /* "Object location" for superblock extension */
             H5O_info_t oinfo;                   /* Object info for superblock extension */
 
             /* Set up "fake" object location for superblock extension */
             H5O_loc_reset(&ext_loc);
             ext_loc.file = f;
-            ext_loc.addr = sblock->extension_addr;
+            ext_loc.addr = f->shared->sblock->extension_addr;
 
             /* Get object header info for superblock extension */
             if(H5O_get_info(&ext_loc, dxpl_id, FALSE, &oinfo) < 0)

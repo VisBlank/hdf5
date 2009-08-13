@@ -35,9 +35,6 @@
 /* Main file structure */
 typedef struct H5F_t H5F_t;
 
-/* Superblock structure */
-typedef struct H5F_super_t H5F_super_t;
-
 /* Block aggregation structure */
 typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
 

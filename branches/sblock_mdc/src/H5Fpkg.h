@@ -116,7 +116,7 @@ typedef struct H5F_mtab_t {
 /* Structure specifically to store superblock. This was originally
  * maintained entirely within H5F_file_t, but is now extracted
  * here because the superblock is now handled by the cache */
-struct H5F_super_t {
+typedef struct H5F_super_t {
     H5AC_info_t cache_info;     /* Cache entry information structure          */
     unsigned    super_vers;     /* Superblock version                         */
     uint8_t     status_flags;   /* File status flags                          */
@@ -129,7 +129,7 @@ struct H5F_super_t {
     haddr_t     root_addr;      /* Root group address                         */
     H5G_entry_t *root_ent;      /* Root group symbol table entry              */
     haddr_t     eoa;            /* End of allocation address                  */
-};
+} H5F_super_t;
 
 /*
  * Define the structure to store the file information for HDF5 files. One of

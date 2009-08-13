@@ -76,99 +76,6 @@ H5G_rootof(H5F_t *f)
 
 
 /*-------------------------------------------------------------------------
- * Function:    H5G_root_ent_decode
- *
- * Purpose:     Decodes the root group symbol table entry into the file
- *              structure, and updates the root group address in the file
- *              structure.
- *
- * Return:      Success:        Non-negative with *pp pointing to the first byte
- *                              following the symbol table entry.
- *
- *              Failure:        Negative
- *
- * Programmer:  Quincey Koziol
- *              koziol@ncsa.uiuc.edu
- *              Sep 26 2005
- *
- *-------------------------------------------------------------------------
- */
-herr_t
-H5G_root_ent_decode(H5F_t *f, H5F_super_t *sblock, const uint8_t **pp)
-{
-    const uint8_t	*p_ret = *pp + H5G_SIZEOF_ENTRY(f);
-    herr_t          ret_value = SUCCEED;         /* Return value */
-
-    FUNC_ENTER_NOAPI(H5G_root_ent_decode, FAIL)
-
-    /* check arguments */
-    HDassert(f);
-    HDassert(pp);
-
-    /* Allocate space for the root group symbol table entry */
-    HDassert(!sblock->root_ent);
-    if(NULL == (sblock->root_ent = (H5G_entry_t *)H5MM_calloc(sizeof(H5G_entry_t))))
-        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, FAIL, "can't allocate space for symbol table entry")
-
-    /* decode the root group symbol table entry */
-    if(H5G_ent_decode_vec(f, pp, sblock->root_ent, 1) < 0)
-        HGOTO_ERROR(H5E_SYM, H5E_CANTDECODE, FAIL, "can't decode symbol table entry")
-
-    /* Set the root group address to the correct value */
-    sblock->root_addr = sblock->root_ent->header;
-
-    /* Set decode pointer */
-    *pp = p_ret;
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5G_root_ent_decode() */
-
-
-/*-------------------------------------------------------------------------
- * Function:    H5G_root_ent_encode
- *
- * Purpose:     Encodes the root group symbol table entry into the buffer
- *              pointed to by *pp.
- *
- * Return:      Success:        Non-negative, with *pp pointing to the first byte
- *                              after the symbol table entry.
- *
- *              Failure:        Negative
- *
- * Programmer:  Quincey Koziol
- *              koziol@ncsa.uiuc.edu
- *              Sep 26 2005
- *
- *-------------------------------------------------------------------------
- */
-herr_t
-H5G_root_ent_encode(H5F_t *f, H5F_super_t *sblock, uint8_t **pp)
-{
-    uint8_t		*p_ret = *pp + H5G_SIZEOF_ENTRY(f);
-    herr_t              ret_value = SUCCEED;         /* Return value */
-
-    FUNC_ENTER_NOAPI(H5G_root_ent_encode, FAIL)
-
-    /* check arguments */
-    HDassert(f);
-    HDassert(f->shared);
-    HDassert(sblock->root_ent);
-    HDassert(pp);
-
-    /* Encode entry */
-    if(H5G_ent_encode_vec(f, pp, sblock->root_ent, 1) < 0)
-        HGOTO_ERROR(H5E_SYM, H5E_CANTENCODE, FAIL, "can't encode symbol table entry")
-
-    /* Set encode pointer */
-    *pp = p_ret;
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5G_root_ent_encode() */
-
-
-/*-------------------------------------------------------------------------
  * Function:	H5G_mkroot
  *
  * Purpose:	Creates a root group in an empty file and opens it.  If a
@@ -233,7 +140,6 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
         H5P_genplist_t *fc_plist;       /* File creation property list */
         H5O_ginfo_t     ginfo;          /* Group info parameters */
         H5O_linfo_t     linfo;          /* Link info parameters */
-        unsigned        super_vers;     /* Superblock version */
 
         /* Get the file creation property list */
         /* (Which is a sub-class of the group creation property class) */
@@ -248,10 +154,6 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
         if(H5P_get(fc_plist, H5G_CRT_LINK_INFO_NAME, &linfo) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get link info")
 
-        /* Get the superblock version */
-        if(H5P_get(fc_plist, H5F_CRT_SUPER_VERS_NAME, &super_vers) < 0)
-            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get superblock version")
-
         /* Create root group */
 	if(H5G_obj_create(f, dxpl_id, &ginfo, &linfo, f->shared->fcpl_id, root_loc.oloc/*out*/) < 0)
 	    HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, FAIL, "unable to create group entry")
@@ -263,14 +165,10 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
 
         /* Create the root group symbol table entry */
         HDassert(!f->shared->sblock->root_ent);
-        if(super_vers < HDF5_SUPERBLOCK_VERSION_2) {
+        if(f->shared->sblock->super_vers < HDF5_SUPERBLOCK_VERSION_2) {
             /* Allocate space for the root group symbol table entry */
             if(NULL == (f->shared->sblock->root_ent = (H5G_entry_t *)H5MM_calloc(sizeof(H5G_entry_t))))
                 HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, FAIL, "can't allocate space for symbol table entry")
-
-            /* Indicate that the superblock has been dirtied, and will thus 
-             * need to be marked as such in the cache. 
-             */
 
             /* Initialize the root group symbol table entry */
             f->shared->sblock->root_ent->dirty = TRUE;
