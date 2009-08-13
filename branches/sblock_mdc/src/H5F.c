@@ -1020,13 +1020,19 @@ H5F_dest(H5F_t *f, hid_t dxpl_id)
             H5AC_stats(f);
 #endif /* H5AC_DUMP_STATS_ON_CLOSE */
 
+            /* Flush all caches and indicate we are closing the file */
+            if(H5F_flush(f, dxpl_id, H5F_SCOPE_LOCAL, H5F_FLUSH_CLOSING) < 0)
+                /* Push error, but keep going*/
+                HDONE_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "unable to flush cache")
+
             /* Unpin the superblock, since we're about to destroy the cache */
-            if(H5F_super_unpin(f, dxpl_id) < 0)
+            if(H5AC_unpin_entry(f, f->shared->sblock) < 0)
                 /* Push error, but keep going*/
                 HDONE_ERROR(H5E_FSPACE, H5E_CANTUNPIN, FAIL, "unable to unpin superblock")
 
-            /* Flush and invalidate all caches */
-            if(H5F_flush(f, dxpl_id, H5F_SCOPE_LOCAL, H5F_FLUSH_INVALIDATE | H5F_FLUSH_CLOSING) < 0)
+            /* Flush all caches and indicate all cached objects should be invalidated */
+            /* (The caches should already be clean and we should just be invalidating objects) */
+            if(H5F_flush(f, dxpl_id, H5F_SCOPE_LOCAL, H5F_FLUSH_INVALIDATE) < 0)
                 /* Push error, but keep going*/
                 HDONE_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "unable to flush cache")
         } /* end if */

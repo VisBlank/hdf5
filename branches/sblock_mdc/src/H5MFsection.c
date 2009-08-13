@@ -391,9 +391,9 @@ done:
 herr_t
 H5MF_sect_simple_shrink(H5FS_section_info_t **_sect, void *_udata)
 {
-    H5F_super_t *sblock = NULL;         /* File's superblock */
     H5MF_free_section_t **sect = (H5MF_free_section_t **)_sect;   /* File free section */
     H5MF_sect_ud_t *udata = (H5MF_sect_ud_t *)_udata;   /* User data for callback */
+    hbool_t sblock_dirty = FALSE;       /* Whether superblock was dirtied */
     herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5MF_sect_simple_shrink)
@@ -405,20 +405,18 @@ H5MF_sect_simple_shrink(H5FS_section_info_t **_sect, void *_udata)
 
     /* Check for shrinking file */
     if(H5MF_SHRINK_EOA == udata->shrink) {
-
+        /* Sanity check */
         HDassert(H5F_INTENT(udata->f) & H5F_ACC_RDWR);
-        HDassert(udata->f->shared->super_addr != HADDR_UNDEF);
-
-        /* Look up superblock */
-        if(NULL == (sblock = (H5F_super_t *)H5AC_protect(udata->f, H5AC_dxpl_id, H5AC_SUPERBLOCK, udata->f->shared->super_addr, NULL, NULL, H5AC_WRITE)))
-            HGOTO_ERROR(H5E_CACHE, H5E_CANTPROTECT, FAIL, "unable to load superblock") 
 
         /* Release section's space at EOA with file driver */
         if(H5FD_free(udata->f->shared->lf, udata->dxpl_id, udata->alloc_type, (*sect)->sect_info.addr, (*sect)->sect_info.size) < 0)
             HGOTO_ERROR(H5E_RESOURCE, H5E_CANTFREE, FAIL, "driver free request failed")
 
         /* Update EOA in superblock */
-        sblock->eoa = H5FD_get_eoa(udata->f->shared->lf, udata->alloc_type);
+        udata->f->shared->sblock->eoa = H5FD_get_eoa(udata->f->shared->lf, udata->alloc_type);
+
+        /* Mark superblock dirty */
+        sblock_dirty = TRUE;
     } /* end if */
     else {
         /* Sanity check */
@@ -440,9 +438,10 @@ H5MF_sect_simple_shrink(H5FS_section_info_t **_sect, void *_udata)
     } /* end if */
 
 done:
-    /* Release superblock */
-    if(sblock && H5AC_unprotect(udata->f, H5AC_dxpl_id, H5AC_SUPERBLOCK, udata->f->shared->super_addr, sblock, H5AC__DIRTIED_FLAG) < 0)
-        HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
+    /* Mark superblock dirty in cache, if necessary */
+    if(sblock_dirty)
+        if(H5AC_mark_pinned_or_protected_entry_dirty(udata->f, udata->f->shared->sblock) < 0)
+            HDONE_ERROR(H5E_FILE, H5E_CANTMARKDIRTY, FAIL, "unable to mark superblock as dirty")
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5MF_sect_simple_shrink() */

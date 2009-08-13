@@ -152,7 +152,7 @@ haddr_t
 H5MF_aggr_alloc(H5F_t *f, hid_t dxpl_id, H5F_blk_aggr_t *aggr,
     H5F_blk_aggr_t *other_aggr, H5FD_mem_t type, hsize_t size)
 {
-    H5F_super_t *sblock = NULL;         /* File's superblock */
+    hbool_t     sblock_dirty = FALSE;   /* Whether superblock was dirtied */
     hsize_t 	alignment = 0, mis_align = 0;
     haddr_t	frag_addr = 0, eoa_frag_addr = 0;
     hsize_t	frag_size = 0, eoa_frag_size = 0;
@@ -237,22 +237,15 @@ HDfprintf(stderr, "%s: aggr = {%a, %Hu, %Hu}\n", FUNC, aggr->addr, aggr->tot_siz
                             other_aggr->size = 0;
 		    } /* end if */
 
-                    HDassert(H5F_INTENT(f) & H5F_ACC_RDWR);
-                    HDassert(f->shared->super_addr != HADDR_UNDEF);
-
-                    /* Look up the superblock */
-                    if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, NULL, NULL, H5AC_WRITE)))
-                        HGOTO_ERROR(H5E_CACHE, H5E_CANTPROTECT, FAIL, "unable to load superblock") 
-
+                    /* Allocate space from the VFD (i.e. at the end of the file) */
 		    if(HADDR_UNDEF == (new_space = H5FD_alloc(f->shared->lf, dxpl_id, type, size, &eoa_frag_addr, &eoa_frag_size)))
 			HGOTO_ERROR(H5E_VFL, H5E_CANTALLOC, HADDR_UNDEF, "can't allocate aggregation block")
 
                     /* Update EOA value in superblock */
-                    sblock->eoa = H5FD_get_eoa(f->shared->lf, type);
+                    f->shared->sblock->eoa = H5FD_get_eoa(f->shared->lf, type);
 
-                    /* Release superblock */
-                    if(H5AC_unprotect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, H5AC__DIRTIED_FLAG) <0)
-                        HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock") 
+                    /* Mark superblock dirty */
+                    sblock_dirty = TRUE;
 
                     /* Use the new space allocated, leaving the old block */
                     ret_value = new_space;
@@ -294,36 +287,24 @@ HDfprintf(stderr, "%s: Allocating block\n", FUNC);
                             other_aggr->size = 0;
 		    } /* end if */
 
-                    HDassert(H5F_INTENT(f) & H5F_ACC_RDWR);
+                    /* Get current EOA value */
+                    current_eoa = H5FD_get_eoa(f->shared->lf, alloc_type);
 
-                    /* Look up the superblock */
-                    if (f->shared->super_addr != HADDR_UNDEF) {
-                        /* In some cases, superblock might already be
-                         * protected, in which case we can ignore a 
-                         * failed call to H5AC_protect. The EOA will
-                         * get updated as a result of the already
-                         * protected superblock, so we don't
-                         * necessarily need to do it again here.
-                         */
-                        if(NULL != (sblock = (H5F_super_t *)H5AC_protect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, NULL, NULL, H5AC_WRITE)))
-                            current_eoa = (haddr_t *)H5FD_get_eoa(f->shared->lf, alloc_type);
-                    }    
-
+                    /* Allocate space from the VFD (i.e. at the end of the file) */
 		    if(HADDR_UNDEF == (new_space = H5FD_alloc(f->shared->lf, dxpl_id, alloc_type, aggr->alloc_size, &eoa_frag_addr, &eoa_frag_size)))
 			HGOTO_ERROR(H5E_VFL, H5E_CANTALLOC, HADDR_UNDEF, "can't allocate aggregation block")
 
-                    /* Set EOA value in, and release, superblock */
-                    if (sblock) {
-                        new_eoa = H5FD_get_eoa(f->shared->lf, alloc_type);
-                        if ((current_eoa != new_eoa)) {
-                            sblock->eoa = new_eoa;
-                            if(H5AC_unprotect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, H5AC__DIRTIED_FLAG) <0)
-                                HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock") 
-                        } else {
-                            if(H5AC_unprotect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, H5AC__NO_FLAGS_SET) <0)
-                                HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
-                        }
-                    }
+                    /* Get new EOA value */
+                    new_eoa = H5FD_get_eoa(f->shared->lf, alloc_type);
+
+                    /* Check if EOA changed */
+                    if(!H5F_addr_eq(current_eoa, new_eoa)) {
+                        /* Update EOA value in superblock */
+                        f->shared->sblock->eoa = new_eoa;
+
+                        /* Mark superblock dirty */
+                        sblock_dirty = TRUE;
+                    } /* end if */
 
                     /* Return the unused portion of the block to a free list */
                     if(aggr->size > 0)
@@ -342,12 +323,12 @@ HDfprintf(stderr, "%s: Allocating block\n", FUNC);
 		aggr->addr += size;
             } /* end else */
 
-	    /* freeing any possible fragment due to file allocation */
+	    /* Freeing any possible fragment due to file allocation */
 	    if(eoa_frag_size)
 		if(H5MF_xfree(f, type, dxpl_id, eoa_frag_addr, eoa_frag_size) < 0)
 		    HGOTO_ERROR(H5E_VFL, H5E_CANTFREE, HADDR_UNDEF, "can't free eoa fragment")
 
-	    /* freeing any possible fragment due to alignment in the block after extension */
+	    /* Freeing any possible fragment due to alignment in the block after extension */
 	    if(extended && frag_size)
 		if(H5MF_xfree(f, type, dxpl_id, frag_addr, frag_size) < 0)
 		    HGOTO_ERROR(H5E_VFL, H5E_CANTFREE, HADDR_UNDEF, "can't free aggregation fragment")
@@ -369,26 +350,19 @@ HDfprintf(stderr, "%s: Allocating block\n", FUNC);
         if(H5F_addr_gt((eoa + size), f->shared->tmp_addr))
             HGOTO_ERROR(H5E_RESOURCE, H5E_BADRANGE, HADDR_UNDEF, "'normal' file space allocation request will overlap into 'temporary' file space")
 
-        HDassert(H5F_INTENT(f) & H5F_ACC_RDWR);
-
-        /* Look up superblock */
-        if(f->shared->super_addr != HADDR_UNDEF) {
-            if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, NULL, NULL, H5AC_WRITE)))
-                HGOTO_ERROR(H5E_CACHE, H5E_CANTPROTECT, FAIL, "unable to load superblock")
-        } /* end if */
-
         /* Allocate data from the file */
         if(HADDR_UNDEF == (ret_value = H5FD_alloc(f->shared->lf, dxpl_id, type, size, &eoa_frag_addr, &eoa_frag_size)))
             HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, HADDR_UNDEF, "can't allocate file space")
 
-        /* Set EOA in and release superblock */
-        if(NULL != sblock) {
-            sblock->eoa = H5FD_get_eoa(f->shared->lf, type);
-            if(H5AC_unprotect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, H5AC__DIRTIED_FLAG) <0)
-                HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
-        } /* end if */
+        /* Update EOA value in superblock */
+        f->shared->sblock->eoa = H5FD_get_eoa(f->shared->lf, type);
 
+        /* Mark superblock dirty */
+        sblock_dirty = TRUE;
+
+        /* Check if fragment was generated */
 	if(eoa_frag_size)
+            /* Put fragment on the free list */
 	    if(H5MF_xfree(f, type, dxpl_id, eoa_frag_addr, eoa_frag_size) < 0)
 		HGOTO_ERROR(H5E_VFL, H5E_CANTFREE, HADDR_UNDEF, "can't free eoa fragment")
     } /* end else */
@@ -400,6 +374,12 @@ done:
 #ifdef H5MF_AGGR_DEBUG
 HDfprintf(stderr, "%s: ret_value = %a\n", FUNC, ret_value);
 #endif /* H5MF_AGGR_DEBUG */
+
+    /* Mark superblock dirty in cache, if necessary */
+    if(sblock_dirty)
+        if(H5AC_mark_pinned_or_protected_entry_dirty(f, f->shared->sblock) < 0)
+            HDONE_ERROR(H5E_FILE, H5E_CANTMARKDIRTY, HADDR_UNDEF, "unable to mark superblock as dirty")
+
     if(alignment)
 	HDassert(!(ret_value % alignment));
     FUNC_LEAVE_NOAPI(ret_value)
@@ -664,9 +644,8 @@ H5MF_aggr_query(const H5F_t *f, const H5F_blk_aggr_t *aggr, haddr_t *addr,
 herr_t
 H5MF_aggr_reset(H5F_t *f, hid_t dxpl_id, H5F_blk_aggr_t *aggr)
 {
-    H5F_super_t *sblock = NULL; /* superblock */
-    unsigned sblock_flags = H5AC__NO_FLAGS_SET; /* Metadata cache flags for superblock */
     H5FD_mem_t alloc_type;      /* Type of file memory to work with */
+    hbool_t sblock_dirty = FALSE;       /* Whether superblock was dirtied */
     herr_t ret_value = SUCCEED;	/* Return value */
 
     FUNC_ENTER_NOAPI(H5MF_aggr_reset, FAIL)
@@ -724,24 +703,21 @@ HDfprintf(stderr, "%s: tmp_addr = %a, tmp_size = %Hu\n", FUNC, tmp_addr, tmp_siz
 
                 /* Set EOA in superblock, if it's been modified */
                 if(!H5F_addr_eq(new_eoa, current_eoa)) {
-                    HDassert(f->shared->super_addr != HADDR_UNDEF);
+                    /* Update EOA value in superblock */
+                    f->shared->sblock->eoa = new_eoa;
 
-                    /* Look up superblock */
-                    if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, NULL, NULL, rw)))
-                        HGOTO_ERROR(H5E_CACHE, H5E_CANTPROTECT, FAIL, "unable to load superblock") 
-
-                    sblock->eoa = new_eoa;
-                    sblock_flags |= H5AC__DIRTIED_FLAG;
+                    /* Mark superblock dirty */
+                    sblock_dirty = TRUE;
                 } /* end if */
             } /* end if */
         } /* end if */
     } /* end if */
 
 done:
-    /* If superblock was protected, free it now */
-    if(sblock)
-        if(H5AC_unprotect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, sblock_flags) < 0)
-            HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
+    /* Mark superblock dirty in cache, if necessary */
+    if(sblock_dirty)
+        if(H5AC_mark_pinned_or_protected_entry_dirty(f, f->shared->sblock) < 0)
+            HDONE_ERROR(H5E_FILE, H5E_CANTMARKDIRTY, FAIL, "unable to mark superblock as dirty")
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5MF_aggr_reset() */

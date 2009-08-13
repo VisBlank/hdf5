@@ -386,6 +386,9 @@ H5F_super_read(H5F_t *f, hid_t dxpl_id, hbool_t dirty_sblock_after_read)
     if(H5AC_pin_protected_entry(f, sblock) < 0)
         HGOTO_ERROR(H5E_FSPACE, H5E_CANTPIN, FAIL, "unable to pin superblock")
 
+    /* Set the pointer to the pinned superblock */
+    f->shared->sblock = sblock;
+
 done:
     /* Release the superblock */
     if(sblock && H5AC_unprotect(f, dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, sblock_flags) < 0)
@@ -415,6 +418,7 @@ herr_t
 H5F_super_init(H5F_t *f, hid_t dxpl_id)
 {
     H5F_super_t    *sblock = NULL;      /* Superblock cache structure                 */
+    hbool_t         sblock_in_cache = FALSE;    /* Whether the superblock has been inserted into the metadata cache */
     H5P_genplist_t *plist;              /* File creation property list                */
     hsize_t         userblock_size;     /* Size of userblock, in bytes                */
     hsize_t         superblock_size;    /* Size of superblock, in bytes               */
@@ -523,11 +527,22 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
      */
     if(super_vers < HDF5_SUPERBLOCK_VERSION_2)
         superblock_size += driver_size;
-    super_addr = H5MF_alloc(f, H5FD_MEM_SUPER, dxpl_id, superblock_size);
-    if(HADDR_UNDEF == super_addr)
-        HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "unable to allocate file space for userblock and/or superblock")
-    if(0 != super_addr)
-        HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "file driver failed to allocate userblock and/or superblock at address zero")
+
+    /* Reserve space in the file for the superblock, instead of allocating it */
+    if(H5FD_set_eoa(f->shared->lf, H5FD_MEM_SUPER, superblock_size) < 0)
+        HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "unable to set EOA value for superblock")
+
+    /* Set the superblock's address, it must be immediately after any userblock */
+    super_addr = (haddr_t)0;
+
+    /* Insert superblock into cache, pinned */
+    if(H5AC_set(f, dxpl_id, H5AC_SUPERBLOCK, super_addr, sblock, H5AC__PIN_ENTRY_FLAG) < 0)
+        HGOTO_ERROR(H5E_CACHE, H5E_CANTINS, FAIL, "can't add superblock to cache")
+    sblock_in_cache = TRUE;
+
+    /* Keep a copy of the superblock info */
+    f->shared->sblock = sblock;
+    f->shared->super_addr = super_addr;
 
     /*
      * Determine if we will need a superblock extension
@@ -619,57 +634,33 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
 	    HGOTO_ERROR(H5E_FILE, H5E_CANTRELEASE, FAIL, "unable to close file's superblock extension")
     } /* end if */
 
-    if(H5AC_set(f, dxpl_id, H5AC_SUPERBLOCK, super_addr, sblock, H5AC__PIN_ENTRY_FLAG) < 0)
-        HGOTO_ERROR(H5E_CACHE, H5E_CANTINS, FAIL, "can't add superblock to cache")
-
-    /* Keep a local copy of the superblock location */
-    f->shared->super_addr = super_addr;
-
 done:
+    /* Cleanup on failure */
+    if(ret_value < 0) {
+        /* Check if the superblock has been allocated yet */
+        if(sblock) {
+            /* Check if we've cached it already */
+            if(sblock_in_cache) {
+                /* Unpin superblock in cache */
+                if(H5AC_unpin_entry(f, sblock) < 0)
+                    HDONE_ERROR(H5E_FILE, H5E_CANTUNPIN, FAIL, "unable to unpin superblock")
+
+                /* Evict the superblock from the cache */
+                if(H5AC_expunge_entry(f, dxpl_id, H5AC_SUPERBLOCK, super_addr, H5AC__NO_FLAGS_SET) < 0)
+                    HDONE_ERROR(H5E_FILE, H5E_CANTEXPUNGE, FAIL, "unable to expunge superblock")
+            } /* end if */
+            else
+                /* Free superblock */
+                sblock = (H5F_super_t *)H5FL_FREE(H5F_super_t, sblock);
+
+            /* Reset variables in file structure */
+            f->shared->sblock = NULL;
+            f->shared->super_addr = HADDR_UNDEF;
+        } /* end if */
+    } /* end if */
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5F_super_init() */
-
-
-/*-------------------------------------------------------------------------
- * Function:    H5F_super_unpin
- *
- * Purpose:     Unpin the superblock
- *
- * Return:      Success:        non-negative on success
- *              Failure:        Negative
- *
- * Programmer:  Quincey Koziol
- *              August 10, 2009
- *
- *-------------------------------------------------------------------------
- */
-herr_t
-H5F_super_unpin(H5F_t *f, hid_t dxpl_id)
-{
-    H5F_super_t * sblock = NULL;        /* Superblock object */
-    herr_t ret_value = SUCCEED;         /* Return value */
-
-    FUNC_ENTER_NOAPI(H5F_super_unpin, FAIL)
-
-    /* Sanity check */
-    HDassert(f);
-    HDassert(H5F_addr_defined(f->shared->super_addr));
-
-    /* Look up the superblock */
-    if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, NULL, NULL, H5AC_READ)))
-        HGOTO_ERROR(H5E_CACHE, H5E_CANTPROTECT, FAIL, "unable to load superblock")
-
-    /* Unpin the superblock, since we're about to destroy the cache */
-    if(H5AC_unpin_entry(f, sblock) < 0)
-        HGOTO_ERROR(H5E_FSPACE, H5E_CANTUNPIN, FAIL, "unable to unpin superblock")
-
-done:
-    /* Release the superblock */
-    if(sblock && H5AC_unprotect(f, dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, H5AC__NO_FLAGS_SET) < 0)
-        HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
-
-    FUNC_LEAVE_NOAPI(ret_value)
-} /* H5F_super_unpin() */
 
 
 /*-------------------------------------------------------------------------
@@ -688,17 +679,18 @@ done:
 herr_t
 H5F_super_size(H5F_t *f, hid_t dxpl_id, hsize_t *super_size, hsize_t *super_ext_size)
 {
-    H5F_super_t * sblock = NULL;        /* superblock object */
+    H5F_super_t * sblock;       /* File's superblock */
     herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI(H5F_super_size, FAIL)
 
     /* Sanity check */
     HDassert(f);
+    HDassert(f->shared);
+    HDassert(f->shared->sblock);
 
-    /* Look up the superblock */
-    if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, NULL, NULL, H5AC_READ)))
-        HGOTO_ERROR(H5E_CACHE, H5E_CANTPROTECT, FAIL, "unable to load superblock")
+    /* Set convenience pointer */
+    sblock = f->shared->sblock;
 
     /* Set the superblock size */
     if(super_size)
@@ -728,10 +720,6 @@ H5F_super_size(H5F_t *f, hid_t dxpl_id, hsize_t *super_size, hsize_t *super_ext_
     } /* end if */
 
 done:
-    /* Release the superblock */
-    if(sblock && H5AC_unprotect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, H5AC__NO_FLAGS_SET) < 0)
-        HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
-
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5F_super_size() */
 
@@ -750,28 +738,28 @@ done:
 herr_t
 H5F_super_ext_write_msg(H5F_t *f, hid_t dxpl_id, void *mesg, unsigned id, hbool_t may_create)
 {
-    H5F_super_t * sblock = NULL; /* Superblock object */
-    unsigned    sblock_flags = H5AC__NO_FLAGS_SET;      /* Flags used in superblock unprotect call      */
+    hbool_t     sblock_dirty = FALSE;   /* Whether superblock was dirtied */
     H5O_loc_t 	ext_loc; 	/* "Object location" for superblock extension */
     htri_t 	status;       	/* Indicate whether the message exists or not */
     herr_t 	ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5F_super_ext_write_msg)
 
-    /* Look up the superblock */
-    if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, NULL, NULL, H5AC_WRITE)))
-        HGOTO_ERROR(H5E_CACHE, H5E_CANTPROTECT, FAIL, "unable to load superblock")
+    /* Sanity checks */
+    HDassert(f);
+    HDassert(f->shared);
+    HDassert(f->shared->sblock);
 
     /* Open/create the superblock extension object header */
-    if(H5F_addr_defined(sblock->extension_addr)) {
-	if(H5F_super_ext_open(f, sblock, &ext_loc) < 0)
+    if(H5F_addr_defined(f->shared->sblock->extension_addr)) {
+	if(H5F_super_ext_open(f, f->shared->sblock, &ext_loc) < 0)
 	    HGOTO_ERROR(H5E_FILE, H5E_CANTOPENOBJ, FAIL, "unable to open file's superblock extension")
     } /* end if */
     else {
         HDassert(may_create);
-	if(H5F_super_ext_create(f, dxpl_id, sblock, &ext_loc) < 0)
+	if(H5F_super_ext_create(f, dxpl_id, f->shared->sblock, &ext_loc) < 0)
 	    HGOTO_ERROR(H5E_FILE, H5E_CANTCREATE, FAIL, "unable to create file's superblock extension")
-        sblock_flags |= H5AC__DIRTIED_FLAG;
+        sblock_dirty = TRUE;
     } /* end else */
     HDassert(H5F_addr_defined(ext_loc.addr));
 
@@ -802,9 +790,10 @@ H5F_super_ext_write_msg(H5F_t *f, hid_t dxpl_id, void *mesg, unsigned id, hbool_
 	HGOTO_ERROR(H5E_FILE, H5E_CANTRELEASE, FAIL, "unable to close file's superblock extension")
 
 done:
-    /* Release the superblock */
-    if(sblock && H5AC_unprotect(f, dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, sblock_flags) < 0)
-        HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
+    /* Mark superblock dirty in cache, if necessary */
+    if(sblock_dirty)
+        if(H5AC_mark_pinned_or_protected_entry_dirty(f, f->shared->sblock) < 0)
+            HDONE_ERROR(H5E_FILE, H5E_CANTMARKDIRTY, FAIL, "unable to mark superblock as dirty")
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5F_super_ext_write_msg() */

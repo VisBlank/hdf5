@@ -694,10 +694,6 @@ H5HG_read(H5F_t *f, hid_t dxpl_id, H5HG_t *hobj, void *object/*out*/,
     HDassert(f);
     HDassert(hobj);
 
-    /* Check for valid heap address */
-    if (hobj->addr == 0)
-        HGOTO_ERROR(H5E_HEAP, H5E_READERROR, NULL, "Invalid heap address")
-
     /* Load the heap */
     if(NULL == (heap = (H5HG_heap_t *)H5AC_protect(f, dxpl_id, H5AC_GHEAP, hobj->addr, NULL, NULL, H5AC_READ)))
 	HGOTO_ERROR(H5E_HEAP, H5E_CANTLOAD, NULL, "unable to load heap")

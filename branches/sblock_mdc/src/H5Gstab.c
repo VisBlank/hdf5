@@ -839,10 +839,6 @@ H5G_stab_lookup(H5O_loc_t *grp_oloc, const char *name, H5O_link_t *lnk,
     if(NULL == H5O_msg_read(grp_oloc, H5O_STAB_ID, &stab, dxpl_id))
         HGOTO_ERROR(H5E_SYM, H5E_BADMESG, FAIL, "can't read message")
 
-    /* Check for valid symbol table address */
-    if (stab.heap_addr == 0)
-        HGOTO_ERROR(H5E_SYM, H5E_READERROR, FAIL, "invalid address of symbol table heap");
-
     /* Pin the heap down in memory */
     if(NULL == (heap = H5HL_protect(grp_oloc->file, dxpl_id, stab.heap_addr, H5AC_READ)))
         HGOTO_ERROR(H5E_SYM, H5E_PROTECT, FAIL, "unable to protect symbol table heap")

@@ -711,11 +711,10 @@ htri_t
 H5MF_try_extend(H5F_t *f, hid_t dxpl_id, H5FD_mem_t alloc_type, haddr_t addr,
     hsize_t size, hsize_t extra_requested)
 {
-    H5F_super_t *sblock = NULL; /* File's superblock */
-    unsigned    sblock_flags = H5AC__NO_FLAGS_SET;       /* flags used in superblock unprotect call      */
     haddr_t     end;            /* End of block to extend */
     haddr_t     current_eoa;    /* EOA before trying to extend */
     haddr_t     new_eoa;        /* EOA after extending */
+    hbool_t     sblock_dirty = FALSE;       /* Whether superblock was dirtied */
     htri_t	ret_value;      /* Return value */
 
     FUNC_ENTER_NOAPI(H5MF_try_extend, FAIL)
@@ -723,17 +722,15 @@ H5MF_try_extend(H5F_t *f, hid_t dxpl_id, H5FD_mem_t alloc_type, haddr_t addr,
 HDfprintf(stderr, "%s: Entering: alloc_type = %u, addr = %a, size = %Hu, extra_requested = %Hu\n", FUNC, (unsigned)alloc_type, addr, size, extra_requested);
 #endif /* H5MF_ALLOC_DEBUG */
 
+    /* Sanity check */
+    HDassert(f);
+    HDassert(H5F_INTENT(f) & H5F_ACC_RDWR);
+
     /* Compute end of block to extend */
     end = addr + size;
 
-    HDassert(H5F_INTENT(f) & H5F_ACC_RDWR);
-
-    /* Look up superblock */
-    if(f->shared->super_addr != HADDR_UNDEF) {
-        if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, NULL, NULL, H5AC_WRITE)))
-            HGOTO_ERROR(H5E_CACHE, H5E_CANTPROTECT, FAIL, "unable to load superblock") 
-        current_eoa = H5FD_get_eoa(f->shared->lf, alloc_type);
-    } /* end if */
+    /* Get current EOA value */
+    current_eoa = H5FD_get_eoa(f->shared->lf, alloc_type);
 
     /* Check if the block is exactly at the end of the file */
     if((ret_value = H5FD_try_extend(f->shared->lf, alloc_type, end, extra_requested)) < 0)
@@ -763,17 +760,16 @@ HDfprintf(stderr, "%s: Entering: alloc_type = %u, addr = %a, size = %Hu, extra_r
         } /* end if */
     } /* end if */
 
-    /* Check for updating superblock */
-    if(sblock) {
-        /* Get new EOA from file driver */
-        new_eoa = H5FD_get_eoa(f->shared->lf, alloc_type);
+    /* Get new EOA from file driver */
+    new_eoa = H5FD_get_eoa(f->shared->lf, alloc_type);
 
-        /* Check if EOA was modified */
-        if(!H5F_addr_eq(new_eoa, current_eoa)) {
-            /* Update EOA in superblock & mark it dirty */
-            sblock->eoa = new_eoa;
-            sblock_flags |= H5AC__DIRTIED_FLAG;
-        } /* end if */
+    /* Check if EOA was modified */
+    if(!H5F_addr_eq(new_eoa, current_eoa)) {
+        /* Update EOA in superblock & mark it dirty */
+        f->shared->sblock->eoa = new_eoa;
+
+        /* Mark superblock dirty */
+        sblock_dirty = TRUE;
     } /* end if */
 
 done:
@@ -783,8 +779,11 @@ HDfprintf(stderr, "%s: Leaving: ret_value = %t\n", FUNC, ret_value);
 #ifdef H5MF_ALLOC_DEBUG_DUMP
 H5MF_sects_dump(f, dxpl_id, stderr);
 #endif /* H5MF_ALLOC_DEBUG_DUMP */
-    if(sblock && H5AC_unprotect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, sblock_flags) < 0)
-        HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
+
+    /* Mark superblock dirty in cache, if necessary */
+    if(sblock_dirty)
+        if(H5AC_mark_pinned_or_protected_entry_dirty(f, f->shared->sblock) < 0)
+            HDONE_ERROR(H5E_FILE, H5E_CANTMARKDIRTY, FAIL, "unable to mark superblock as dirty")
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5MF_try_extend() */

@@ -13,7 +13,7 @@
  * access to either file, you may request a copy from help@hdfgroup.org.     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
- /*-------------------------------------------------------------------------
+/*-------------------------------------------------------------------------
  *
  * Created:		H5Gobj.c
  *			Apr  8 2009
@@ -107,7 +107,7 @@ H5G_root_ent_decode(H5F_t *f, H5F_super_t *sblock, const uint8_t **pp)
 
     /* Allocate space for the root group symbol table entry */
     HDassert(!sblock->root_ent);
-    if(NULL == (sblock->root_ent = (H5G_entry_t *) H5MM_calloc(sizeof(H5G_entry_t))))
+    if(NULL == (sblock->root_ent = (H5G_entry_t *)H5MM_calloc(sizeof(H5G_entry_t))))
         HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, FAIL, "can't allocate space for symbol table entry")
 
     /* decode the root group symbol table entry */
@@ -191,14 +191,15 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
 {
     H5G_loc_t   root_loc;               /* Root location information */
     htri_t      stab_exists = -1;       /* Whether the symbol table exists */
-    H5F_super_t * sblock = NULL;        /* Superblock Object */
-    unsigned sblock_flags = H5AC__NO_FLAGS_SET; /* Flags for unprotecting superblock */
-    herr_t ret_value = SUCCEED;         /* Return value */
+    hbool_t     sblock_dirty = FALSE;   /* Whether superblock was dirtied */
+    herr_t      ret_value = SUCCEED;    /* Return value */
 
     FUNC_ENTER_NOAPI(H5G_mkroot, FAIL)
 
     /* check args */
     HDassert(f);
+    HDassert(f->shared);
+    HDassert(f->shared->sblock);
 
     /* Check if the root group is already initialized */
     if(f->shared->root_grp)
@@ -257,18 +258,14 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
 	if(1 != H5O_link(root_loc.oloc, 1, dxpl_id))
 	    HGOTO_ERROR(H5E_SYM, H5E_LINKCOUNT, FAIL, "internal error (wrong link count)")
 
-        /* Protect the superblock */
-        if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, NULL, NULL, H5AC_WRITE)))
-            HGOTO_ERROR(H5E_CACHE, H5E_CANTPROTECT, FAIL, "unable to load superblock")
-
         /* Mark superblock dirty, so root group info is flushed */
-        sblock_flags |= H5AC__DIRTIED_FLAG;
+        sblock_dirty = TRUE;
 
         /* Create the root group symbol table entry */
-        HDassert(!sblock->root_ent);
+        HDassert(!f->shared->sblock->root_ent);
         if(super_vers < HDF5_SUPERBLOCK_VERSION_2) {
             /* Allocate space for the root group symbol table entry */
-            if(NULL == (sblock->root_ent = (H5G_entry_t *)H5MM_calloc(sizeof(H5G_entry_t))))
+            if(NULL == (f->shared->sblock->root_ent = (H5G_entry_t *)H5MM_calloc(sizeof(H5G_entry_t))))
                 HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, FAIL, "can't allocate space for symbol table entry")
 
             /* Indicate that the superblock has been dirtied, and will thus 
@@ -276,28 +273,16 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
              */
 
             /* Initialize the root group symbol table entry */
-            sblock->root_ent->dirty = TRUE;
-            sblock->root_ent->type = H5G_NOTHING_CACHED; /* We will cache the stab later */
-            sblock->root_ent->name_off = 0;  /* No name (yet) */
-            sblock->root_ent->header = root_loc.oloc->addr;
-            sblock->root_ent->file = root_loc.oloc->file;
+            f->shared->sblock->root_ent->dirty = TRUE;
+            f->shared->sblock->root_ent->type = H5G_NOTHING_CACHED; /* We will cache the stab later */
+            f->shared->sblock->root_ent->name_off = 0;  /* No name (yet) */
+            f->shared->sblock->root_ent->header = root_loc.oloc->addr;
+            f->shared->sblock->root_ent->file = root_loc.oloc->file;
         } /* end if */
     } /* end if */
     else {
-        H5AC_protect_t rw;              /* Permissions for protecting superblock */
-
-        /* Determine how to protect superblock */
-        if(H5F_INTENT(f) & H5F_ACC_RDWR)
-            rw = H5AC_WRITE;
-        else
-            rw = H5AC_READ;
-
-        /* Protect superblock */
-        if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, NULL, NULL, rw)))
-            HGOTO_ERROR(H5E_CACHE, H5E_CANTPROTECT, FAIL, "unable to load superblock")
-
         /* Create root group object location from f */
-        root_loc.oloc->addr = sblock->root_addr;
+        root_loc.oloc->addr = f->shared->sblock->root_addr;
         root_loc.oloc->file = f;
 
 	/*
@@ -307,7 +292,7 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
 	    HGOTO_ERROR(H5E_SYM, H5E_CANTOPENOBJ, FAIL, "unable to open root group")
 
         /* Actions to take if the symbol table information is cached */
-        if(sblock->root_ent && sblock->root_ent->type == H5G_CACHED_STAB) {
+        if(f->shared->sblock->root_ent && f->shared->sblock->root_ent->type == H5G_CACHED_STAB) {
             /* Check for the situation where the symbol table is cached but does
              * not exist.  This can happen if, for example, an external link is
              * added to the root group. */
@@ -316,7 +301,7 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
 
             /* Remove the cache if the stab does not exist */
             if(!stab_exists)
-                sblock->root_ent->type = H5G_NOTHING_CACHED;
+                f->shared->sblock->root_ent->type = H5G_NOTHING_CACHED;
 #ifndef H5_STRICT_FORMAT_CHECKS
             /* If symbol table information is cached, check if we should replace the
             * symbol table message with the cached symbol table information */
@@ -324,8 +309,8 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
                 H5O_stab_t      cached_stab;
 
                 /* Retrieve the cached symbol table information */
-                cached_stab.btree_addr = sblock->root_ent->cache.stab.btree_addr;
-                cached_stab.heap_addr = sblock->root_ent->cache.stab.heap_addr;
+                cached_stab.btree_addr = f->shared->sblock->root_ent->cache.stab.btree_addr;
+                cached_stab.heap_addr = f->shared->sblock->root_ent->cache.stab.heap_addr;
 
                 /* Check if the symbol table message is valid, and replace with the
                 * cached symbol table if necessary */
@@ -341,8 +326,8 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
      * present, so we don't need to check the superblock version.  We do this if
      * we have write access, the root entry has been allocated (i.e.
      * super_vers < 2) and the stab info is not already cached. */
-    if((H5F_INTENT(f) & H5F_ACC_RDWR) && stab_exists != FALSE && sblock->root_ent
-            && sblock->root_ent->type != H5G_CACHED_STAB) {
+    if((H5F_INTENT(f) & H5F_ACC_RDWR) && stab_exists != FALSE && f->shared->sblock->root_ent
+            && f->shared->sblock->root_ent->type != H5G_CACHED_STAB) {
         H5O_stab_t      stab;           /* Symbol table */
 
         /* Check if the stab message exists.  It's possible for the root group
@@ -357,10 +342,12 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
                 HGOTO_ERROR(H5E_SYM, H5E_BADMESG, FAIL, "unable to read symbol table message")
 
             /* Update the root group symbol table entry */
-            sblock->root_ent->type = H5G_CACHED_STAB;
-            sblock->root_ent->cache.stab.btree_addr = stab.btree_addr;
-            sblock->root_ent->cache.stab.heap_addr = stab.heap_addr;
-            sblock_flags |= H5AC__DIRTIED_FLAG;
+            f->shared->sblock->root_ent->type = H5G_CACHED_STAB;
+            f->shared->sblock->root_ent->cache.stab.btree_addr = stab.btree_addr;
+            f->shared->sblock->root_ent->cache.stab.heap_addr = stab.heap_addr;
+
+            /* Mark superblock dirty, so root group info is flushed */
+            sblock_dirty = TRUE;
         } /* end if */
     } /* end if */
 
@@ -372,6 +359,8 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
      * exists.  Don't count either the superblock extension or the root group
      * in the number of open objects in the file.
      */
+    HDassert((1 == f->nopen_objs) ||
+            (2 == f->nopen_objs && HADDR_UNDEF != f->shared->sblock->extension_addr));
     f->nopen_objs--;
 
 done:
@@ -383,13 +372,15 @@ done:
                 f->shared->root_grp->shared = H5FL_FREE(H5G_shared_t, f->shared->root_grp->shared);
             f->shared->root_grp = H5FL_FREE(H5G_t, f->shared->root_grp);
         } /* end if */
-        if(sblock)
-            sblock->root_ent = (H5G_entry_t *)H5MM_xfree(sblock->root_ent);
+        if(f->shared->sblock)
+            f->shared->sblock->root_ent = (H5G_entry_t *)H5MM_xfree(f->shared->sblock->root_ent);
         H5G_name_free(root_loc.path);
     } /* end if */
 
-    if(sblock && H5AC_unprotect(f, H5AC_dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, sblock, sblock_flags) < 0)
-        HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
+    /* Mark superblock dirty in cache, if necessary */
+    if(sblock_dirty)
+        if(H5AC_mark_pinned_or_protected_entry_dirty(f, f->shared->sblock) < 0)
+            HDONE_ERROR(H5E_FILE, H5E_CANTMARKDIRTY, FAIL, "unable to mark superblock as dirty")
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5G_mkroot() */

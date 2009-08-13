@@ -285,9 +285,8 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *udata1, void 
         if(H5P_get(c_plist, H5F_CRT_BTREE_RANK_NAME, btree_k) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "unable to get rank for btree internal nodes")
         UINT16DECODE(p, btree_k[H5B_SNODE_ID]);
-        if(btree_k[H5B_SNODE_ID] == 0) {
+        if(btree_k[H5B_SNODE_ID] == 0)
             HGOTO_ERROR(H5E_FILE, H5E_BADRANGE, NULL, "bad 1/2 rank for btree internal nodes")
-        }
         /*
          * Delay setting the value in the property list until we've checked
          * for the indexed storage B-tree internal 'K' value later.
@@ -313,7 +312,6 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *udata1, void 
         else
             btree_k[H5B_CHUNK_ID] = HDF5_BTREE_CHUNK_IK_DEF;
 
-
         /* Set the B-tree internal node values, etc */
         if(H5P_set(c_plist, H5F_CRT_BTREE_RANK_NAME, btree_k) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, NULL, "unable to set rank for btree internal nodes")
@@ -326,7 +324,7 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *udata1, void 
         H5F_addr_decode(f, (const uint8_t **)&p, &sblock->driver_addr/*out*/);
 
         /* Decode the symbol table entry */
-        if(H5G_root_ent_decode(f,sblock,(const uint8_t **)&p)<0)
+        if(H5G_root_ent_decode(f, sblock, (const uint8_t **)&p) < 0)
             HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to read root symbol entry")
 
         /*
@@ -393,7 +391,6 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *udata1, void 
             /* Check if driver matches driver information saved. Unfortunately, we can't push this
              * function to each specific driver because we're checking if the driver is correct.
              */
-
             if(!HDstrncmp(drv_name, "NCSAfami", (size_t)8) && HDstrcmp(lf->cls->name, "family"))
                 HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "family driver should be used")
             if(!HDstrncmp(drv_name, "NCSAmult", (size_t)8) && HDstrcmp(lf->cls->name, "multi"))
@@ -413,7 +410,6 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *udata1, void 
     else {
         uint32_t computed_chksum;       /* Computed checksum  */
         uint32_t read_chksum;           /* Checksum read from file  */
-        unsigned        btree_k[H5B_NUM_BTREE_ID];  /* B-tree internal node 'K' values */
 
         /* Size of file addresses */
         sizeof_addr = *p++;
@@ -475,13 +471,9 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *udata1, void 
         if(H5FD_set_base_addr(lf, sblock->base_addr) < 0)
             HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "failed to set base address for file driver")
 
-        /* get current node values */
-        if(H5P_get(c_plist, H5F_CRT_BTREE_RANK_NAME, btree_k) < 0)
+        /* Get the B-tree internal node values, etc */
+        if(H5P_get(c_plist, H5F_CRT_BTREE_RANK_NAME, sblock->btree_k) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "unable to get rank for btree internal nodes")
-
-        /* Set the B-tree internal node values, etc */
-        HDmemcpy(sblock->btree_k, btree_k, sizeof(unsigned) * (size_t)H5B_NUM_BTREE_ID);    /* Keep a local copy also */
-
     } /* end else */
 
     /*
@@ -637,9 +629,8 @@ H5F_sblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5F_sup
     FUNC_ENTER_NOAPI_NOINIT(H5F_sblock_flush)
 
     /* check arguments */
-        /* code */
-        /* code */
-        /* code */
+    HDassert(f);
+    HDassert(sblock);
 
     if(sblock->cache_info.is_dirty) {
         /* Get the shared file creation property list */
@@ -834,7 +825,7 @@ H5F_sblock_dest(H5F_t UNUSED *f, H5F_super_t* sblock)
     sblock->root_ent = (H5G_entry_t *)H5MM_xfree(sblock->root_ent);
 
     /* Free superblock */
-    sblock = (H5F_super_t *)H5MM_xfree(sblock);
+    sblock = (H5F_super_t *)H5FL_FREE(H5F_super_t, sblock);
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5F_sblock_dest() */
@@ -858,6 +849,7 @@ H5F_sblock_clear(H5F_t *f, H5F_super_t *sblock, hbool_t destroy)
     herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5F_sblock_clear)
+
     /*
      * Check arguments.
      */
@@ -868,7 +860,7 @@ H5F_sblock_clear(H5F_t *f, H5F_super_t *sblock, hbool_t destroy)
 
     if(destroy)
         if(H5F_sblock_dest(f, sblock) < 0)
-            HGOTO_ERROR(H5E_SOHM, H5E_CANTFREE, FAIL, "unable to delete superblock")
+            HGOTO_ERROR(H5E_FILE, H5E_CANTFREE, FAIL, "unable to delete superblock")
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)

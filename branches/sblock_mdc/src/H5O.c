@@ -1535,10 +1535,6 @@ H5O_link(const H5O_loc_t *loc, int adjust, hid_t dxpl_id)
     HDassert(loc->file);
     HDassert(H5F_addr_defined(loc->addr));
 
-    /* Check for valid header address */
-    if (loc->addr == 0)
-        HGOTO_ERROR(H5E_OHDR, H5E_READERROR, FAIL, "Bad object header address")
-
     /* get header */
     oh_acc = adjust ? H5AC_WRITE : H5AC_READ;
     if(NULL == (oh = (H5O_t *)H5AC_protect(loc->file, dxpl_id, H5AC_OHDR, loc->addr, NULL, NULL, oh_acc)))
