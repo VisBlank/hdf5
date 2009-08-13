@@ -71,6 +71,58 @@
 /* Macro to abstract checking whether file is using a free space manager */
 #define H5F_HAVE_FREE_SPACE_MANAGER(F)  TRUE    /* Currently always have a free space manager */
 
+/* Macros for encoding/decoding superblock */
+#define H5F_MAX_DRVINFOBLOCK_SIZE  1024         /* Maximum size of superblock driver info buffer */
+#define H5F_DRVINFOBLOCK_HDR_SIZE 16            /* Size of superblock driver info header */
+
+/* Superblock sizes for various versions */
+#define H5F_SIZEOF_CHKSUM 4     /* Checksum size in the file */
+
+/* Fixed-size portion at the beginning of all superblocks */
+#define H5F_SUPERBLOCK_FIXED_SIZE ( H5F_SIGNATURE_LEN                   \
+        + 1) /* superblock version */
+
+/* Macros for computing variable-size superblock size */
+#define H5F_SUPERBLOCK_VARLEN_SIZE_COMMON                               \
+        (2  /* freespace, and root group versions */			\
+        + 1 /* reserved */                                              \
+        + 3 /* shared header vers, size of address, size of lengths */  \
+        + 1 /* reserved */                                              \
+        + 4 /* group leaf k, group internal k */                        \
+        + 4) /* consistency flags */
+#define H5F_SUPERBLOCK_VARLEN_SIZE_V0(f)                                \
+        ( H5F_SUPERBLOCK_VARLEN_SIZE_COMMON /* Common variable-length info */ \
+        + H5F_SIZEOF_ADDR(f) /* base address */                         \
+        + H5F_SIZEOF_ADDR(f) /* <unused> */				\
+        + H5F_SIZEOF_ADDR(f) /* EOF address */                          \
+        + H5F_SIZEOF_ADDR(f) /* driver block address */                 \
+        + H5G_SIZEOF_ENTRY(f)) /* root group ptr */
+#define H5F_SUPERBLOCK_VARLEN_SIZE_V1(f)                                \
+        ( H5F_SUPERBLOCK_VARLEN_SIZE_COMMON /* Common variable-length info */ \
+        + 2 /* indexed B-tree internal k */                             \
+        + 2 /* reserved */                                              \
+        + H5F_SIZEOF_ADDR(f) /* base address */                         \
+        + H5F_SIZEOF_ADDR(f) /* <unused> */				\
+        + H5F_SIZEOF_ADDR(f) /* EOF address */                          \
+        + H5F_SIZEOF_ADDR(f) /* driver block address */                 \
+        + H5G_SIZEOF_ENTRY(f)) /* root group ptr */
+#define H5F_SUPERBLOCK_VARLEN_SIZE_V2(f)                                \
+        ( 2 /* size of address, size of lengths */                      \
+        + 1 /* consistency flags */                                     \
+        + H5F_SIZEOF_ADDR(f) /* base address */                         \
+        + H5F_SIZEOF_ADDR(f) /* superblock extension address */         \
+        + H5F_SIZEOF_ADDR(f) /* EOF address */                          \
+        + H5F_SIZEOF_ADDR(f) /* root group object header address */     \
+        + H5F_SIZEOF_CHKSUM) /* superblock checksum (keep this last) */
+#define H5F_SUPERBLOCK_VARLEN_SIZE(v, f) (				\
+        (v == 0 ? H5F_SUPERBLOCK_VARLEN_SIZE_V0(f) : 0)			\
+        + (v == 1 ? H5F_SUPERBLOCK_VARLEN_SIZE_V1(f) : 0)               \
+        + (v == 2 ? H5F_SUPERBLOCK_VARLEN_SIZE_V2(f) : 0))
+
+/* Total size of superblock, depends on superblock version */
+#define H5F_SUPERBLOCK_SIZE(v, f) ( H5F_SUPERBLOCK_FIXED_SIZE           \
+        + H5F_SUPERBLOCK_VARLEN_SIZE(v, f))
+
 
 /* Structure for metadata & "small [raw] data" block aggregation fields */
 struct H5F_blk_aggr_t {
@@ -124,7 +176,7 @@ typedef struct H5F_super_t {
     unsigned    btree_k[H5B_NUM_BTREE_ID]; /* B-tree key values for each type */
     haddr_t     base_addr;      /* Absolute base address for rel.addrs.       */
                                 /* (superblock for file is at this offset)    */
-    haddr_t     extension_addr; /* Relative address of superblock extension   */
+    haddr_t     ext_addr;       /* Relative address of superblock extension   */
     haddr_t     driver_addr;    /* File driver information block address      */
     haddr_t     root_addr;      /* Root group address                         */
     H5G_entry_t *root_ent;      /* Root group symbol table entry              */
@@ -250,8 +302,7 @@ H5_DLL herr_t H5F_super_read(H5F_t *f, hid_t dxpl_id, hbool_t dirty_sblock_after
 H5_DLL herr_t H5F_super_size(H5F_t *f, hid_t dxpl_id, hsize_t *super_size, hsize_t *super_ext_size);
 
 /* Superblock extension related routines */
-H5_DLL herr_t H5F_super_ext_create(H5F_t *f, hid_t dxpl_id, H5F_super_t *sblock, H5O_loc_t *ext_ptr);
-H5_DLL herr_t H5F_super_ext_open(H5F_t *f, const H5F_super_t *block, H5O_loc_t *ext_ptr);
+H5_DLL herr_t H5F_super_ext_open(H5F_t *f, haddr_t ext_addr, H5O_loc_t *ext_ptr);
 H5_DLL herr_t H5F_super_ext_write_msg(H5F_t *f, hid_t dxpl_id, void *mesg, unsigned id, hbool_t may_create);
 H5_DLL herr_t H5F_super_ext_close(H5F_t *f, H5O_loc_t *ext_ptr);
 

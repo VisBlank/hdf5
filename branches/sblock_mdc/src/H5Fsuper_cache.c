@@ -40,60 +40,8 @@
 /* Local Macros */
 /****************/
 
-/* Superblock sizes for various versions */
-#define H5F_SIZEOF_CHKSUM 4     /* Checksum size in the file */
-
-/* Fixed-size portion at the beginning of all superblocks */
-#define H5F_SUPERBLOCK_FIXED_SIZE ( H5F_SIGNATURE_LEN                   \
-        + 1) /* superblock version */
-
-/* Macros for computing variable-size superblock size */
-#define H5F_SUPERBLOCK_VARLEN_SIZE_COMMON                               \
-        (2  /* freespace, and root group versions */			\
-        + 1 /* reserved */                                              \
-        + 3 /* shared header vers, size of address, size of lengths */  \
-        + 1 /* reserved */                                              \
-        + 4 /* group leaf k, group internal k */                        \
-        + 4) /* consistency flags */
-#define H5F_SUPERBLOCK_VARLEN_SIZE_V0(f)                                \
-        ( H5F_SUPERBLOCK_VARLEN_SIZE_COMMON /* Common variable-length info */ \
-        + H5F_SIZEOF_ADDR(f) /* base address */                         \
-        + H5F_SIZEOF_ADDR(f) /* <unused> */				\
-        + H5F_SIZEOF_ADDR(f) /* EOF address */                          \
-        + H5F_SIZEOF_ADDR(f) /* driver block address */                 \
-        + H5G_SIZEOF_ENTRY(f)) /* root group ptr */
-#define H5F_SUPERBLOCK_VARLEN_SIZE_V1(f)                                \
-        ( H5F_SUPERBLOCK_VARLEN_SIZE_COMMON /* Common variable-length info */ \
-        + 2 /* indexed B-tree internal k */                             \
-        + 2 /* reserved */                                              \
-        + H5F_SIZEOF_ADDR(f) /* base address */                         \
-        + H5F_SIZEOF_ADDR(f) /* <unused> */				\
-        + H5F_SIZEOF_ADDR(f) /* EOF address */                          \
-        + H5F_SIZEOF_ADDR(f) /* driver block address */                 \
-        + H5G_SIZEOF_ENTRY(f)) /* root group ptr */
-#define H5F_SUPERBLOCK_VARLEN_SIZE_V2(f)                                \
-        ( 2 /* size of address, size of lengths */                      \
-        + 1 /* consistency flags */                                     \
-        + H5F_SIZEOF_ADDR(f) /* base address */                         \
-        + H5F_SIZEOF_ADDR(f) /* superblock extension address */         \
-        + H5F_SIZEOF_ADDR(f) /* EOF address */                          \
-        + H5F_SIZEOF_ADDR(f) /* root group object header address */     \
-        + H5F_SIZEOF_CHKSUM) /* superblock checksum (keep this last) */
-#define H5F_SUPERBLOCK_VARLEN_SIZE(v, f) (				\
-        (v == 0 ? H5F_SUPERBLOCK_VARLEN_SIZE_V0(f) : 0)			\
-        + (v == 1 ? H5F_SUPERBLOCK_VARLEN_SIZE_V1(f) : 0)               \
-        + (v == 2 ? H5F_SUPERBLOCK_VARLEN_SIZE_V2(f) : 0))
-
-/* Total size of superblock, depends on superblock version */
-#define H5F_SUPERBLOCK_SIZE(v, f) ( H5F_SUPERBLOCK_FIXED_SIZE           \
-        + H5F_SUPERBLOCK_VARLEN_SIZE(v, f))
-
-/* Driver info block macros */
-#define H5F_DRVINFOBLOCK_HDR_SIZE 16
-
 /* Maximum size of super-block buffers */
 #define H5F_MAX_SUPERBLOCK_SIZE  134
-#define H5F_MAX_DRVINFOBLOCK_SIZE  1024
 
 
 /******************/
@@ -316,7 +264,7 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, const void UNUSED 
 
         /* Remainder of "variable-sized" portion of superblock */
         H5F_addr_decode(f, (const uint8_t **)&p, &sblock->base_addr/*out*/);
-        H5F_addr_decode(f, (const uint8_t **)&p, &sblock->extension_addr/*out*/);
+        H5F_addr_decode(f, (const uint8_t **)&p, &sblock->ext_addr/*out*/);
         H5F_addr_decode(f, (const uint8_t **)&p, &stored_eoa/*out*/);
         H5F_addr_decode(f, (const uint8_t **)&p, &sblock->driver_addr/*out*/);
 
@@ -441,7 +389,7 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, const void UNUSED 
 
         /* Base, superblock extension, end of file & root group object header addresses */
         H5F_addr_decode(f, (const uint8_t **)&p, &sblock->base_addr/*out*/);
-        H5F_addr_decode(f, (const uint8_t **)&p, &sblock->extension_addr/*out*/);
+        H5F_addr_decode(f, (const uint8_t **)&p, &sblock->ext_addr/*out*/);
         H5F_addr_decode(f, (const uint8_t **)&p, &stored_eoa/*out*/);
         H5F_addr_decode(f, (const uint8_t **)&p, &sblock->root_addr/*out*/);
 
@@ -509,7 +457,7 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, const void UNUSED 
         HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to set end-of-address marker for file")
 
     /* Read the file's superblock extension, if there is one. */
-    if(H5F_addr_defined(sblock->extension_addr)) {
+    if(H5F_addr_defined(sblock->ext_addr)) {
         H5O_loc_t ext_loc;      /* "Object location" for superblock extension */
         H5O_btreek_t btreek;    /* v1 B-tree 'K' value message from superblock extension */
         H5O_drvinfo_t drvinfo;  /* Driver info message from superblock extension */
@@ -523,17 +471,17 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, const void UNUSED 
         /* Check for superblock extension being located "outside" the stored
          *      'eoa' value, which can occur with the split/multi VFD.
          */
-        if(H5F_addr_gt(sblock->extension_addr, stored_eoa)) {
+        if(H5F_addr_gt(sblock->ext_addr, stored_eoa)) {
             /* Set the 'eoa' for the object header memory type large enough
              *  to give some room for a reasonably sized superblock extension.
              *  (This is _rather_ a kludge -QAK)
              */
-            if(H5FD_set_eoa(lf, H5FD_MEM_OHDR, (haddr_t)(sblock->extension_addr + 1024)) < 0)
+            if(H5FD_set_eoa(lf, H5FD_MEM_OHDR, (haddr_t)(sblock->ext_addr + 1024)) < 0)
                 HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to set end-of-address marker for file")
         } /* end if */
 
         /* Open the superblock extension */
-	if(H5F_super_ext_open(f, sblock, &ext_loc) < 0)
+	if(H5F_super_ext_open(f, sblock->ext_addr, &ext_loc) < 0)
             HGOTO_ERROR(H5E_FILE, H5E_CANTOPENOBJ, NULL, "unable to open file's superblock extension")
 
         /* Check for the extension having a 'driver info' message */
@@ -670,7 +618,7 @@ H5F_sblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5F_sup
             } /* end if */
     
             H5F_addr_encode(f, &p, sblock->base_addr);
-            H5F_addr_encode(f, &p, sblock->extension_addr);
+            H5F_addr_encode(f, &p, sblock->ext_addr);
             rel_eoa = H5FD_get_eoa(f->shared->lf, H5FD_MEM_SUPER);
             sblock->eoa = rel_eoa;
             H5F_addr_encode(f, &p, (rel_eoa + sblock->base_addr));
@@ -728,7 +676,7 @@ H5F_sblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5F_sup
     
             /* Base, superblock extension & end of file addresses */
             H5F_addr_encode(f, &p, sblock->base_addr);
-            H5F_addr_encode(f, &p, sblock->extension_addr);
+            H5F_addr_encode(f, &p, sblock->ext_addr);
             rel_eoa = H5FD_get_eoa(f->shared->lf, H5FD_MEM_SUPER);
             sblock->eoa = rel_eoa;
             H5F_addr_encode(f, &p, (rel_eoa + sblock->base_addr));
@@ -762,7 +710,7 @@ H5F_sblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5F_sup
             HGOTO_ERROR(H5E_IO, H5E_WRITEERROR, FAIL, "unable to write superblock")
     
         /* Check for newer version of superblock format & superblock extension */
-        if(sblock->super_vers >= HDF5_SUPERBLOCK_VERSION_2 && H5F_addr_defined(sblock->extension_addr)) {
+        if(sblock->super_vers >= HDF5_SUPERBLOCK_VERSION_2 && H5F_addr_defined(sblock->ext_addr)) {
             /* Check for driver info message */
             H5_ASSIGN_OVERFLOW(driver_size, H5FD_sb_size(f->shared->lf), hsize_t, size_t);
             if(driver_size > 0) {

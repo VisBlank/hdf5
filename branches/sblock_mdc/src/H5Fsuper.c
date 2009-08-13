@@ -40,60 +40,6 @@
 /* Local Macros */
 /****************/
 
-/* Superblock sizes for various versions */
-#define H5F_SIZEOF_CHKSUM 4     /* Checksum size in the file */
-
-/* Fixed-size portion at the beginning of all superblocks */
-#define H5F_SUPERBLOCK_FIXED_SIZE ( H5F_SIGNATURE_LEN                   \
-        + 1) /* superblock version */
-
-/* Macros for computing variable-size superblock size */
-#define H5F_SUPERBLOCK_VARLEN_SIZE_COMMON                               \
-        (2  /* freespace, and root group versions */			\
-        + 1 /* reserved */                                              \
-        + 3 /* shared header vers, size of address, size of lengths */  \
-        + 1 /* reserved */                                              \
-        + 4 /* group leaf k, group internal k */                        \
-        + 4) /* consistency flags */
-#define H5F_SUPERBLOCK_VARLEN_SIZE_V0(f)                                \
-        ( H5F_SUPERBLOCK_VARLEN_SIZE_COMMON /* Common variable-length info */ \
-        + H5F_SIZEOF_ADDR(f) /* base address */                         \
-        + H5F_SIZEOF_ADDR(f) /* <unused> */				\
-        + H5F_SIZEOF_ADDR(f) /* EOF address */                          \
-        + H5F_SIZEOF_ADDR(f) /* driver block address */                 \
-        + H5G_SIZEOF_ENTRY(f)) /* root group ptr */
-#define H5F_SUPERBLOCK_VARLEN_SIZE_V1(f)                                \
-        ( H5F_SUPERBLOCK_VARLEN_SIZE_COMMON /* Common variable-length info */ \
-        + 2 /* indexed B-tree internal k */                             \
-        + 2 /* reserved */                                              \
-        + H5F_SIZEOF_ADDR(f) /* base address */                         \
-        + H5F_SIZEOF_ADDR(f) /* <unused> */				\
-        + H5F_SIZEOF_ADDR(f) /* EOF address */                          \
-        + H5F_SIZEOF_ADDR(f) /* driver block address */                 \
-        + H5G_SIZEOF_ENTRY(f)) /* root group ptr */
-#define H5F_SUPERBLOCK_VARLEN_SIZE_V2(f)                                \
-        ( 2 /* size of address, size of lengths */                      \
-        + 1 /* consistency flags */                                     \
-        + H5F_SIZEOF_ADDR(f) /* base address */                         \
-        + H5F_SIZEOF_ADDR(f) /* superblock extension address */         \
-        + H5F_SIZEOF_ADDR(f) /* EOF address */                          \
-        + H5F_SIZEOF_ADDR(f) /* root group object header address */     \
-        + H5F_SIZEOF_CHKSUM) /* superblock checksum (keep this last) */
-#define H5F_SUPERBLOCK_VARLEN_SIZE(v, f) (				\
-        (v == 0 ? H5F_SUPERBLOCK_VARLEN_SIZE_V0(f) : 0)			\
-        + (v == 1 ? H5F_SUPERBLOCK_VARLEN_SIZE_V1(f) : 0)               \
-        + (v == 2 ? H5F_SUPERBLOCK_VARLEN_SIZE_V2(f) : 0))
-
-/* Total size of superblock, depends on superblock version */
-#define H5F_SUPERBLOCK_SIZE(v, f) ( H5F_SUPERBLOCK_FIXED_SIZE           \
-        + H5F_SUPERBLOCK_VARLEN_SIZE(v, f))
-
-/* Driver info block macros */
-#define H5F_DRVINFOBLOCK_HDR_SIZE 16
-
-/* Maximum size of super-block buffers */
-#define H5F_MAX_DRVINFOBLOCK_SIZE  1024
-
 
 /******************/
 /* Local Typedefs */
@@ -108,6 +54,7 @@
 /********************/
 /* Local Prototypes */
 /********************/
+static herr_t H5F_super_ext_create(H5F_t *f, hid_t dxpl_id, H5O_loc_t *ext_ptr);
 
 
 /*********************/
@@ -226,8 +173,8 @@ done:
  *
  *-------------------------------------------------------------------------
  */
-herr_t
-H5F_super_ext_create(H5F_t *f, hid_t dxpl_id, H5F_super_t *sblock, H5O_loc_t *ext_ptr)
+static herr_t
+H5F_super_ext_create(H5F_t *f, hid_t dxpl_id, H5O_loc_t *ext_ptr)
 {
     herr_t ret_value = SUCCEED;         /* Return value */
 
@@ -235,15 +182,17 @@ H5F_super_ext_create(H5F_t *f, hid_t dxpl_id, H5F_super_t *sblock, H5O_loc_t *ex
 
     /* Sanity check */
     HDassert(f);
+    HDassert(f->shared);
+    HDassert(f->shared->sblock);
+    HDassert(!H5F_addr_defined(f->shared->sblock->ext_addr));
     HDassert(ext_ptr);
-    HDassert(!H5F_addr_defined(sblock->extension_addr));
 
     H5O_loc_reset(ext_ptr);
     if(H5O_create(f, dxpl_id, 0, H5P_GROUP_CREATE_DEFAULT, ext_ptr) < 0)
 	HGOTO_ERROR(H5E_OHDR, H5E_CANTCREATE, FAIL, "unable to create superblock extension")
 
     /* Record the address of the superblock extension */
-    sblock->extension_addr = ext_ptr->addr;
+    f->shared->sblock->ext_addr = ext_ptr->addr;
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -263,7 +212,7 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5F_super_ext_open(H5F_t *f, const H5F_super_t *sblock, H5O_loc_t *ext_ptr)
+H5F_super_ext_open(H5F_t *f, haddr_t ext_addr, H5O_loc_t *ext_ptr)
 {
     herr_t ret_value = SUCCEED;         /* Return value */
 
@@ -271,18 +220,17 @@ H5F_super_ext_open(H5F_t *f, const H5F_super_t *sblock, H5O_loc_t *ext_ptr)
 
     /* Sanity check */
     HDassert(f);
-    HDassert(sblock);
-    HDassert(H5F_addr_defined(sblock->extension_addr));
+    HDassert(H5F_addr_defined(ext_addr));
     HDassert(ext_ptr);
 
     /* Set up "fake" object location for superblock extension */
     H5O_loc_reset(ext_ptr);
     ext_ptr->file = f;
-    ext_ptr->addr = sblock->extension_addr;
+    ext_ptr->addr = ext_addr;
 
     /* Open the superblock extension object header */
     if(H5O_open(ext_ptr) < 0)
-	HGOTO_ERROR(H5E_OHDR, H5E_CANTOPENFILE, FAIL, "unable to open superblock extension")
+	HGOTO_ERROR(H5E_OHDR, H5E_CANTOPENOBJ, FAIL, "unable to open superblock extension")
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -315,7 +263,7 @@ H5F_super_ext_close(H5F_t *f, H5O_loc_t *ext_ptr)
     /* Twiddle the number of open objects to avoid closing the file. */
     f->nopen_objs++;
     if(H5O_close(ext_ptr) < 0)
-        HGOTO_ERROR(H5E_OHDR, H5E_CANTRELEASE, FAIL, "unable to close superblock extension")
+        HGOTO_ERROR(H5E_OHDR, H5E_CANTCLOSEOBJ, FAIL, "unable to close superblock extension")
     f->nopen_objs--;
 
 done:
@@ -434,7 +382,7 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
 
     /* Initialize various address information */
     sblock->base_addr = HADDR_UNDEF;
-    sblock->extension_addr = HADDR_UNDEF;
+    sblock->ext_addr = HADDR_UNDEF;
     sblock->driver_addr = HADDR_UNDEF;
     sblock->root_addr = HADDR_UNDEF;
 
@@ -578,7 +526,7 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
          * be tuned if more information is added to the superblock
          * extension.
          */
-	if(H5F_super_ext_create(f, dxpl_id, sblock, &ext_loc) < 0)
+	if(H5F_super_ext_create(f, dxpl_id, &ext_loc) < 0)
             HGOTO_ERROR(H5E_FILE, H5E_CANTRELEASE, FAIL, "unable to start file's superblock extension")
 
         /* Create the Shared Object Header Message table and register it with
@@ -688,14 +636,14 @@ H5F_super_size(H5F_t *f, hid_t dxpl_id, hsize_t *super_size, hsize_t *super_ext_
 
     /* Set the superblock extension size */
     if(super_ext_size) {
-        if(H5F_addr_defined(f->shared->sblock->extension_addr)) {
+        if(H5F_addr_defined(f->shared->sblock->ext_addr)) {
             H5O_loc_t ext_loc;                  /* "Object location" for superblock extension */
             H5O_info_t oinfo;                   /* Object info for superblock extension */
 
             /* Set up "fake" object location for superblock extension */
             H5O_loc_reset(&ext_loc);
             ext_loc.file = f;
-            ext_loc.addr = f->shared->sblock->extension_addr;
+            ext_loc.addr = f->shared->sblock->ext_addr;
 
             /* Get object header info for superblock extension */
             if(H5O_get_info(&ext_loc, dxpl_id, FALSE, &oinfo) < 0)
@@ -741,13 +689,13 @@ H5F_super_ext_write_msg(H5F_t *f, hid_t dxpl_id, void *mesg, unsigned id, hbool_
     HDassert(f->shared->sblock);
 
     /* Open/create the superblock extension object header */
-    if(H5F_addr_defined(f->shared->sblock->extension_addr)) {
-	if(H5F_super_ext_open(f, f->shared->sblock, &ext_loc) < 0)
+    if(H5F_addr_defined(f->shared->sblock->ext_addr)) {
+	if(H5F_super_ext_open(f, f->shared->sblock->ext_addr, &ext_loc) < 0)
 	    HGOTO_ERROR(H5E_FILE, H5E_CANTOPENOBJ, FAIL, "unable to open file's superblock extension")
     } /* end if */
     else {
         HDassert(may_create);
-	if(H5F_super_ext_create(f, dxpl_id, f->shared->sblock, &ext_loc) < 0)
+	if(H5F_super_ext_create(f, dxpl_id, &ext_loc) < 0)
 	    HGOTO_ERROR(H5E_FILE, H5E_CANTCREATE, FAIL, "unable to create file's superblock extension")
         sblock_dirty = TRUE;
     } /* end else */

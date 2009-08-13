@@ -106,7 +106,7 @@ H5F_debug(H5F_t *f, FILE *stream, int indent, int fwidth)
     HDfprintf(stream, "%*s%-*s 0x%02x\n", indent, "", fwidth,
 	      "File status flags:", (unsigned)(f->shared->sblock->status_flags));
     HDfprintf(stream, "%*s%-*s %a (rel)\n", indent, "", fwidth,
-	      "Superblock extension address:", f->shared->sblock->extension_addr);
+	      "Superblock extension address:", f->shared->sblock->ext_addr);
     HDfprintf(stream, "%*s%-*s %a (rel)\n", indent, "", fwidth,
 	      "Shared object header message table address:", f->shared->sohm_addr);
     HDfprintf(stream, "%*s%-*s %u\n", indent, "", fwidth,

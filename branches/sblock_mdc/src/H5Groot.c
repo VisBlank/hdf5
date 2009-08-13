@@ -258,7 +258,7 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
      * in the number of open objects in the file.
      */
     HDassert((1 == f->nopen_objs) ||
-            (2 == f->nopen_objs && HADDR_UNDEF != f->shared->sblock->extension_addr));
+            (2 == f->nopen_objs && HADDR_UNDEF != f->shared->sblock->ext_addr));
     f->nopen_objs--;
 
 done:
