@@ -289,29 +289,18 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5F_super_read(H5F_t *f, hid_t dxpl_id, hbool_t dirty_sblock_after_read)
+H5F_super_read(H5F_t *f, hid_t dxpl_id)
 {
-    H5P_genplist_t     *c_plist;            /* File creation property list                  */
-    H5F_file_t         *shared;             /* shared part of `file'                        */
-    H5FD_t             *lf;                 /* file driver part of `shared'                 */
     H5F_super_t *       sblock = NULL;      /* superblock structure                         */
-    hbool_t             dirtied = FALSE;    /* Bool for sblock protect call                 */
-    H5AC_protect_t      rw;                 /* read/write permissions for file              */
     unsigned            sblock_flags = H5AC__NO_FLAGS_SET;       /* flags used in superblock unprotect call      */
+    H5AC_protect_t      rw;                 /* read/write permissions for file              */
+    hbool_t             dirtied = FALSE;    /* Bool for sblock protect call                 */
     herr_t              ret_value = SUCCEED; /* return value                                */
 
     FUNC_ENTER_NOAPI(H5F_super_read, FAIL)
 
-    /* Short cuts */
-    shared = f->shared;
-    lf = shared->lf;
-
-    /* Get the shared file creation property list */
-    if(NULL == (c_plist = (H5P_genplist_t *)H5I_object(shared->fcpl_id)))
-        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "can't get property list")
-
     /* Find the superblock */
-    if(HADDR_UNDEF == (f->shared->super_addr = H5F_locate_signature(lf, dxpl_id)))
+    if(HADDR_UNDEF == (f->shared->super_addr = H5F_locate_signature(f->shared->lf, dxpl_id)))
         HGOTO_ERROR(H5E_FILE, H5E_NOTHDF5, FAIL, "unable to find file signature")
 
     /* Determine file intent for superblock protect */
@@ -324,8 +313,8 @@ H5F_super_read(H5F_t *f, hid_t dxpl_id, hbool_t dirty_sblock_after_read)
     if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, dxpl_id, H5AC_SUPERBLOCK, f->shared->super_addr, NULL, &dirtied, rw)))
         HGOTO_ERROR(H5E_CACHE, H5E_CANTPROTECT, FAIL, "unable to load superblock")
     
-    /* Mark the superblock dirty if it was modified during loading */
-    if((rw == H5AC_WRITE) && ((dirtied) || dirty_sblock_after_read))
+    /* Mark the superblock dirty if it was modified during loading or VFD indicated to do so */
+    if((H5AC_WRITE == rw) && (dirtied || H5F_HAS_FEATURE(f, H5FD_FEAT_DIRTY_SBLK_LOAD)))
         sblock_flags |= H5AC__DIRTIED_FLAG;
 
     /* Pin the superblock in the cache */

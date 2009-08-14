@@ -190,6 +190,20 @@ typedef enum H5F_mem_t	H5FD_mem_t;
      * and then sub-allocate "small" raw data requests from that larger block.
      */
 #define H5FD_FEAT_AGGREGATE_SMALLDATA   0x00000010
+    /*
+     * Defining the H5FD_FEAT_IGNORE_DRVRINFO for a VFL driver means that
+     * the library will ignore the driver info that is encoded in the file
+     * for the VFL driver.  (This will cause the driver info to be eliminated
+     * from the file when it is flushed/closed, if the file is opened R/W).
+     */
+#define H5FD_FEAT_IGNORE_DRVRINFO       0x00000020
+    /*
+     * Defining the H5FD_FEAT_DIRTY_SBLK_LOAD for a VFL driver means that
+     * the library will mark the superblock dirty when the file is opened
+     * R/W.  This will cause the driver info to be re-encoded when the file
+     * is flushed/closed.
+     */
+#define H5FD_FEAT_DIRTY_SBLK_LOAD       0x00000040
 
 
 /* Forward declaration */
@@ -203,7 +217,7 @@ typedef struct H5FD_class_t {
     hsize_t (*sb_size)(H5FD_t *file);
     herr_t  (*sb_encode)(H5FD_t *file, char *name/*out*/,
                          unsigned char *p/*out*/);
-    herr_t  (*sb_decode)(H5FD_t *f, const char *name, const unsigned char *p, hbool_t *dirtied/*out*/);
+    herr_t  (*sb_decode)(H5FD_t *f, const char *name, const unsigned char *p);
     size_t  fapl_size;
     void *  (*fapl_get)(H5FD_t *file);
     void *  (*fapl_copy)(const void *fapl);

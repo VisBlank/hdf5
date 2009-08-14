@@ -126,8 +126,8 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, const void UNUSED 
     size_t              variable_size;      /*variable sizeof superblock    */
     uint8_t            *p;                  /* Temporary pointer into encoding buffer */
     unsigned            super_vers;         /* Superblock version          */
-    hbool_t * dirtied = (hbool_t *)udata2;  /* set up dirtied out value */
-    H5F_super_t *       ret_value = NULL;
+    hbool_t            *dirtied = (hbool_t *)udata2;  /* Set up dirtied out value */
+    H5F_super_t        *ret_value;          /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5F_sblock_load)
 
@@ -306,8 +306,13 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, const void UNUSED 
          *  undefined to let the library ignore the family driver information saved
          *  in the superblock.
          */
-        if(shared->fam_to_sec2)
+        if(H5F_HAS_FEATURE(f, H5FD_FEAT_IGNORE_DRVRINFO)) {
+            /* Eliminate the driver info */
             sblock->driver_addr = HADDR_UNDEF;
+
+            /* Indicate that the superblock should be marked dirty */
+            *dirtied = TRUE;
+        } /* end if */
 
         /* Decode the optional driver information block */
         if(H5F_addr_defined(sblock->driver_addr)) {
@@ -356,7 +361,7 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, const void UNUSED 
                 HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to read file driver information")
 
             /* Decode driver information */
-            if(H5FD_sb_decode(lf, drv_name, p, dirtied) < 0)
+            if(H5FD_sb_decode(lf, drv_name, p) < 0)
                 HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to decode driver information")
         } /* end if */
     } /* end if */
@@ -488,24 +493,31 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, const void UNUSED 
         if((status = H5O_msg_exists(&ext_loc, H5O_DRVINFO_ID, dxpl_id)) < 0)
             HGOTO_ERROR(H5E_FILE, H5E_CANTGET, NULL, "unable to read object header")
         if(status) {
-            /* Retrieve the 'driver info' structure */
-            if(NULL == H5O_msg_read(&ext_loc, H5O_DRVINFO_ID, &drvinfo, dxpl_id))
-                HGOTO_ERROR(H5E_FILE, H5E_CANTGET, NULL, "driver info message not present")
+            /* Check for ignoring the driver info for this file */
+            if(H5F_HAS_FEATURE(f, H5FD_FEAT_IGNORE_DRVRINFO)) {
+                /* Indicate that the superblock should be marked dirty */
+                *dirtied = TRUE;
+            } /* end if */
+            else {
+                /* Retrieve the 'driver info' structure */
+                if(NULL == H5O_msg_read(&ext_loc, H5O_DRVINFO_ID, &drvinfo, dxpl_id))
+                    HGOTO_ERROR(H5E_FILE, H5E_CANTGET, NULL, "driver info message not present")
 
-            /* Check if driver matches driver information saved. Unfortunately, we can't push this
-             * function to each specific driver because we're checking if the driver is correct.
-             */
-            if(!HDstrncmp(drvinfo.name, "NCSAfami", (size_t)8) && HDstrcmp(lf->cls->name, "family"))
-                HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "family driver should be used")
-            if(!HDstrncmp(drvinfo.name, "NCSAmult", (size_t)8) && HDstrcmp(lf->cls->name, "multi"))
-                HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "multi driver should be used")
+                /* Check if driver matches driver information saved. Unfortunately, we can't push this
+                 * function to each specific driver because we're checking if the driver is correct.
+                 */
+                if(!HDstrncmp(drvinfo.name, "NCSAfami", (size_t)8) && HDstrcmp(lf->cls->name, "family"))
+                    HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "family driver should be used")
+                if(!HDstrncmp(drvinfo.name, "NCSAmult", (size_t)8) && HDstrcmp(lf->cls->name, "multi"))
+                    HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "multi driver should be used")
 
-            /* Decode driver information */
-            if(H5FD_sb_decode(lf, drvinfo.name, drvinfo.buf, dirtied) < 0)
-                HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to decode driver information")
+                /* Decode driver information */
+                if(H5FD_sb_decode(lf, drvinfo.name, drvinfo.buf) < 0)
+                    HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to decode driver information")
 
-            /* Reset driver info message */
-            H5O_msg_reset(H5O_DRVINFO_ID, &drvinfo);
+                /* Reset driver info message */
+                H5O_msg_reset(H5O_DRVINFO_ID, &drvinfo);
+            } /* end else */
         } /* end if */
 
         /* Read in the shared OH message information if there is any */
@@ -711,24 +723,27 @@ H5F_sblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5F_sup
     
         /* Check for newer version of superblock format & superblock extension */
         if(sblock->super_vers >= HDF5_SUPERBLOCK_VERSION_2 && H5F_addr_defined(sblock->ext_addr)) {
-            /* Check for driver info message */
-            H5_ASSIGN_OVERFLOW(driver_size, H5FD_sb_size(f->shared->lf), hsize_t, size_t);
-            if(driver_size > 0) {
-                H5O_drvinfo_t drvinfo;      /* Driver info */
-                uint8_t dbuf[H5F_MAX_DRVINFOBLOCK_SIZE];  /* Driver info block encoding buffer */
-    
-                /* Sanity check */
-                HDassert(driver_size <= H5F_MAX_DRVINFOBLOCK_SIZE);
-    
-                /* Encode driver-specific data */
-                if(H5FD_sb_encode(f->shared->lf, drvinfo.name, dbuf) < 0)
-                    HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "unable to encode driver information")
-    
-                /* Write driver info information to the superblock extension */
-                drvinfo.len = driver_size;
-                drvinfo.buf = dbuf;
-                if(H5F_super_ext_write_msg(f, dxpl_id, &drvinfo, H5O_DRVINFO_ID, FALSE) < 0)
-                    HGOTO_ERROR(H5E_FILE, H5E_WRITEERROR, FAIL, "unable to update driver info header message")
+            /* Check for ignoring the driver info for this file */
+            if(!H5F_HAS_FEATURE(f, H5FD_FEAT_IGNORE_DRVRINFO)) {
+                /* Check for driver info message */
+                H5_ASSIGN_OVERFLOW(driver_size, H5FD_sb_size(f->shared->lf), hsize_t, size_t);
+                if(driver_size > 0) {
+                    H5O_drvinfo_t drvinfo;      /* Driver info */
+                    uint8_t dbuf[H5F_MAX_DRVINFOBLOCK_SIZE];  /* Driver info block encoding buffer */
+        
+                    /* Sanity check */
+                    HDassert(driver_size <= H5F_MAX_DRVINFOBLOCK_SIZE);
+        
+                    /* Encode driver-specific data */
+                    if(H5FD_sb_encode(f->shared->lf, drvinfo.name, dbuf) < 0)
+                        HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "unable to encode driver information")
+        
+                    /* Write driver info information to the superblock extension */
+                    drvinfo.len = driver_size;
+                    drvinfo.buf = dbuf;
+                    if(H5F_super_ext_write_msg(f, dxpl_id, &drvinfo, H5O_DRVINFO_ID, FALSE) < 0)
+                        HGOTO_ERROR(H5E_FILE, H5E_WRITEERROR, FAIL, "unable to update driver info header message")
+                } /* end if */
             } /* end if */
         } /* end if */
 

@@ -1171,7 +1171,6 @@ H5F_open(const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_id, hid_t d
     H5FD_class_t       *drvr;               /*file driver class info        */
     H5P_genplist_t     *a_plist;            /*file access property list     */
     H5F_close_degree_t  fc_degree;          /*file close degree             */
-    hbool_t             dirty_sblock = FALSE; /* sblock bool                */
     H5F_t              *ret_value;          /*actual return value           */
 
     FUNC_ENTER_NOAPI(H5F_open, NULL)
@@ -1272,27 +1271,6 @@ H5F_open(const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_id, hid_t d
     file->intent = flags;
     file->name = H5MM_xstrdup(name);
 
-    /* Get the file access property list, for future queries */
-    if(NULL == (a_plist = (H5P_genplist_t *)H5I_object(fapl_id)))
-        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not file access property list")
-
-    /* This step is for h5repart tool only. If user wants to change file driver from
-     * family to sec2 while using h5repart, this private property should be set so that
-     * in the later step, the library can ignore the family driver information saved
-     * in the superblock.
-     */
-    if(H5P_exist_plist(a_plist, H5F_ACS_FAMILY_TO_SEC2_NAME) > 0) {
-        if(H5P_get(a_plist, H5F_ACS_FAMILY_TO_SEC2_NAME, &shared->fam_to_sec2) < 0)
-            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get property of changing family to sec2")
-
-        /* We need to tell the superblock to dirty itself after loading in order
-         * to flush this change of driver appropriately */
-        if(shared->fam_to_sec2)
-            dirty_sblock = TRUE;   
-    } /* end if */
-    else
-        shared->fam_to_sec2 = FALSE;
-
     /*
      * Read or write the file superblock, depending on whether the file is
      * empty or not.
@@ -1316,13 +1294,17 @@ H5F_open(const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_id, hid_t d
             HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "unable to create/open root group")
     } else if (1 == shared->nrefs) {
 	/* Read the superblock if it hasn't been read before. */
-        if(H5F_super_read(file, dxpl_id, dirty_sblock) < 0)
+        if(H5F_super_read(file, dxpl_id) < 0)
 	    HGOTO_ERROR(H5E_FILE, H5E_READERROR, NULL, "unable to read superblock")
 
 	/* Open the root group */
 	if(H5G_mkroot(file, dxpl_id, FALSE) < 0)
 	    HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to read root group")
     } /* end if */
+
+    /* Get the file access property list, for future queries */
+    if(NULL == (a_plist = (H5P_genplist_t *)H5I_object(fapl_id)))
+        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not file access property list")
 
     /*
      * Decide the file close degree.  If it's the first time to open the

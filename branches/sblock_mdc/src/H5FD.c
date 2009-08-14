@@ -555,7 +555,6 @@ done:
  * Purpose:	Decodes the driver information block.
  *
  * Return:	Success:	Non-negative
- *
  *		Failure:	Negative
  *
  * Programmer:	Robb Matzke
@@ -564,20 +563,19 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5FD_sb_decode(H5FD_t *file, const char *name, const uint8_t *buf, hbool_t * dirtied/*out*/)
+H5FD_sb_decode(H5FD_t *file, const char *name, const uint8_t *buf)
 {
-    herr_t      ret_value=SUCCEED;       /* Return value */
+    herr_t      ret_value = SUCCEED;    /* Return value */
 
     FUNC_ENTER_NOAPI(H5FD_sb_decode, FAIL)
 
-    assert(file && file->cls);
-    if(file->cls->sb_decode &&
-            (file->cls->sb_decode)(file, name, buf, dirtied/*out*/) < 0)
+    HDassert(file && file->cls);
+    if(file->cls->sb_decode && (file->cls->sb_decode)(file, name, buf) < 0)
 	HGOTO_ERROR(H5E_VFL, H5E_CANTINIT, FAIL, "driver sb_decode request failed")
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-}
+} /* end H5FD_sb_decode() */
 
 
 /*-------------------------------------------------------------------------
