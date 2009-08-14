@@ -417,7 +417,7 @@ H5FD_try_extend(H5FD_t *file, H5FD_mem_t type, H5F_t *f, haddr_t blk_end,
     hsize_t extra_requested)
 {
     haddr_t eoa;                /* End of allocated space in file */
-    htri_t ret_value;           /* Return value */
+    htri_t ret_value = FALSE;   /* Return value */
 
     FUNC_ENTER_NOAPI(H5FD_try_extend, FAIL)
 
