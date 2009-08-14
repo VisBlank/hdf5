@@ -690,6 +690,7 @@ HDfprintf(stderr, "%s: Before H5FS_sect_add()\n", FUNC);
 	if(H5FS_sect_add(f, dxpl_id, f->shared->fs_man[fs_type], (H5FS_section_info_t *)node, H5FS_ADD_RETURNED_SPACE, &udata) < 0)
 	    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINSERT, FAIL, "can't add section to file free space")
 	node = NULL;
+    node = NULL;
 #ifdef H5MF_ALLOC_DEBUG_MORE
 HDfprintf(stderr, "%s: After H5FS_sect_add()\n", FUNC);
 #endif /* H5MF_ALLOC_DEBUG_MORE */
