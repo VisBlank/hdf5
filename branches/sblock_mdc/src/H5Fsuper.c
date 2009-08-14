@@ -595,6 +595,40 @@ done:
 
 
 /*-------------------------------------------------------------------------
+ * Function:    H5F_super_dirty
+ *
+ * Purpose:     Mark the file's superblock dirty
+ *
+ * Return:      Success:        non-negative on success
+ *              Failure:        Negative
+ *
+ * Programmer:  Quincey Kozil
+ *              August 14, 2009
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5F_super_dirty(H5F_t *f)
+{
+    herr_t ret_value = SUCCEED;         /* Return value */
+
+    FUNC_ENTER_NOAPI(H5F_super_dirty, FAIL)
+
+    /* Sanity check */
+    HDassert(f);
+    HDassert(f->shared);
+    HDassert(f->shared->sblock);
+
+    /* Mark superblock dirty in cache, so change to EOA will get encoded */
+    if(H5AC_mark_pinned_or_protected_entry_dirty(f, f->shared->sblock) < 0)
+        HGOTO_ERROR(H5E_FILE, H5E_CANTMARKDIRTY, FAIL, "unable to mark superblock as dirty")
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* H5F_super_dirty() */
+
+
+/*-------------------------------------------------------------------------
  * Function:    H5F_super_size
  *
  * Purpose:     Get storage size of the superblock and superblock extension

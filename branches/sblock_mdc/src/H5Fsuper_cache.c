@@ -632,7 +632,6 @@ H5F_sblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5F_sup
             H5F_addr_encode(f, &p, sblock->base_addr);
             H5F_addr_encode(f, &p, sblock->ext_addr);
             rel_eoa = H5FD_get_eoa(f->shared->lf, H5FD_MEM_SUPER);
-            sblock->eoa = rel_eoa;
             H5F_addr_encode(f, &p, (rel_eoa + sblock->base_addr));
             H5F_addr_encode(f, &p, sblock->driver_addr);
             
@@ -690,7 +689,6 @@ H5F_sblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5F_sup
             H5F_addr_encode(f, &p, sblock->base_addr);
             H5F_addr_encode(f, &p, sblock->ext_addr);
             rel_eoa = H5FD_get_eoa(f->shared->lf, H5FD_MEM_SUPER);
-            sblock->eoa = rel_eoa;
             H5F_addr_encode(f, &p, (rel_eoa + sblock->base_addr));
     
             /* Retrieve information for root group */

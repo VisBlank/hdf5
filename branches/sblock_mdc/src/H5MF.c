@@ -712,9 +712,6 @@ H5MF_try_extend(H5F_t *f, hid_t dxpl_id, H5FD_mem_t alloc_type, haddr_t addr,
     hsize_t size, hsize_t extra_requested)
 {
     haddr_t     end;            /* End of block to extend */
-    haddr_t     current_eoa;    /* EOA before trying to extend */
-    haddr_t     new_eoa;        /* EOA after extending */
-    hbool_t     sblock_dirty = FALSE;       /* Whether superblock was dirtied */
     htri_t	ret_value;      /* Return value */
 
     FUNC_ENTER_NOAPI(H5MF_try_extend, FAIL)
@@ -729,11 +726,8 @@ HDfprintf(stderr, "%s: Entering: alloc_type = %u, addr = %a, size = %Hu, extra_r
     /* Compute end of block to extend */
     end = addr + size;
 
-    /* Get current EOA value */
-    current_eoa = H5FD_get_eoa(f->shared->lf, alloc_type);
-
     /* Check if the block is exactly at the end of the file */
-    if((ret_value = H5FD_try_extend(f->shared->lf, alloc_type, end, extra_requested)) < 0)
+    if((ret_value = H5FD_try_extend(f->shared->lf, alloc_type, f, end, extra_requested)) < 0)
         HGOTO_ERROR(H5E_RESOURCE, H5E_CANTEXTEND, FAIL, "error extending file")
     else if(ret_value == FALSE) {
         H5F_blk_aggr_t *aggr;   /* Aggregator to use */
@@ -760,18 +754,6 @@ HDfprintf(stderr, "%s: Entering: alloc_type = %u, addr = %a, size = %Hu, extra_r
         } /* end if */
     } /* end if */
 
-    /* Get new EOA from file driver */
-    new_eoa = H5FD_get_eoa(f->shared->lf, alloc_type);
-
-    /* Check if EOA was modified */
-    if(!H5F_addr_eq(new_eoa, current_eoa)) {
-        /* Update EOA in superblock & mark it dirty */
-        f->shared->sblock->eoa = new_eoa;
-
-        /* Mark superblock dirty */
-        sblock_dirty = TRUE;
-    } /* end if */
-
 done:
 #ifdef H5MF_ALLOC_DEBUG
 HDfprintf(stderr, "%s: Leaving: ret_value = %t\n", FUNC, ret_value);
@@ -779,11 +761,6 @@ HDfprintf(stderr, "%s: Leaving: ret_value = %t\n", FUNC, ret_value);
 #ifdef H5MF_ALLOC_DEBUG_DUMP
 H5MF_sects_dump(f, dxpl_id, stderr);
 #endif /* H5MF_ALLOC_DEBUG_DUMP */
-
-    /* Mark superblock dirty in cache, if necessary */
-    if(sblock_dirty)
-        if(H5AC_mark_pinned_or_protected_entry_dirty(f, f->shared->sblock) < 0)
-            HDONE_ERROR(H5E_FILE, H5E_CANTMARKDIRTY, FAIL, "unable to mark superblock as dirty")
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5MF_try_extend() */

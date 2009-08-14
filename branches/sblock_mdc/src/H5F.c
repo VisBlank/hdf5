@@ -1029,6 +1029,7 @@ H5F_dest(H5F_t *f, hid_t dxpl_id)
             if(H5AC_unpin_entry(f, f->shared->sblock) < 0)
                 /* Push error, but keep going*/
                 HDONE_ERROR(H5E_FSPACE, H5E_CANTUNPIN, FAIL, "unable to unpin superblock")
+            f->shared->sblock = NULL;
 
             /* Flush all caches and indicate all cached objects should be invalidated */
             /* (The caches should already be clean and we should just be invalidating objects) */

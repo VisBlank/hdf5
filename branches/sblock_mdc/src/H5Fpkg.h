@@ -180,7 +180,6 @@ typedef struct H5F_super_t {
     haddr_t     driver_addr;    /* File driver information block address      */
     haddr_t     root_addr;      /* Root group address                         */
     H5G_entry_t *root_ent;      /* Root group symbol table entry              */
-    haddr_t     eoa;            /* End of allocation address                  */
 } H5F_super_t;
 
 /*

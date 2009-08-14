@@ -393,7 +393,6 @@ H5MF_sect_simple_shrink(H5FS_section_info_t **_sect, void *_udata)
 {
     H5MF_free_section_t **sect = (H5MF_free_section_t **)_sect;   /* File free section */
     H5MF_sect_ud_t *udata = (H5MF_sect_ud_t *)_udata;   /* User data for callback */
-    hbool_t sblock_dirty = FALSE;       /* Whether superblock was dirtied */
     herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5MF_sect_simple_shrink)
@@ -409,14 +408,8 @@ H5MF_sect_simple_shrink(H5FS_section_info_t **_sect, void *_udata)
         HDassert(H5F_INTENT(udata->f) & H5F_ACC_RDWR);
 
         /* Release section's space at EOA with file driver */
-        if(H5FD_free(udata->f->shared->lf, udata->dxpl_id, udata->alloc_type, (*sect)->sect_info.addr, (*sect)->sect_info.size) < 0)
+        if(H5FD_free(udata->f->shared->lf, udata->dxpl_id, udata->alloc_type, udata->f, (*sect)->sect_info.addr, (*sect)->sect_info.size) < 0)
             HGOTO_ERROR(H5E_RESOURCE, H5E_CANTFREE, FAIL, "driver free request failed")
-
-        /* Update EOA in superblock */
-        udata->f->shared->sblock->eoa = H5FD_get_eoa(udata->f->shared->lf, udata->alloc_type);
-
-        /* Mark superblock dirty */
-        sblock_dirty = TRUE;
     } /* end if */
     else {
         /* Sanity check */
@@ -438,11 +431,6 @@ H5MF_sect_simple_shrink(H5FS_section_info_t **_sect, void *_udata)
     } /* end if */
 
 done:
-    /* Mark superblock dirty in cache, if necessary */
-    if(sblock_dirty)
-        if(H5AC_mark_pinned_or_protected_entry_dirty(udata->f, udata->f->shared->sblock) < 0)
-            HDONE_ERROR(H5E_FILE, H5E_CANTMARKDIRTY, FAIL, "unable to mark superblock as dirty")
-
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5MF_sect_simple_shrink() */
 
