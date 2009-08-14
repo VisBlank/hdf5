@@ -21,7 +21,6 @@
 *
 *************************************************************/
 
-#include <langinfo.h>
 #include "hdf5.h"
 #include "testhdf5.h"
 
@@ -1352,7 +1351,7 @@ test_file_ishdf5(void)
 
     /* Create non-HDF5 file and check it */
     fd=HDopen(FILE1, O_RDWR|O_CREAT|O_TRUNC, 0666);
-    CHECK(ret, FAIL, "HDopen");
+    CHECK(fd, FAIL, "HDopen");
 
     /* Initialize information to write */
     for(u=0; u<1024; u++)
@@ -1981,59 +1980,6 @@ test_userblock_file_size(void)
 
 /****************************************************************
 **
-**  test_rw_noupdate(): low-level file test routine.
-**      This test checks to ensure that opening and closing a file 
-**      with read/write permissions does not write anything to the 
-**      file if the file does not change.
-**
-**  Programmer: Mike McGreevy
-**              mamcgree@hdfgroup.org
-**              June 29, 2009
-**
-*****************************************************************/
-static void
-test_rw_noupdate(void)
-{
-    hid_t file_id;
-    struct stat inode;
-    struct tm *tm;
-    char date_str1[256];
-    char date_str2[256];
-    herr_t ret = 0; /* Generic return value */
-
-    /* Output message about test being performed */
-    MESSAGE(5, ("Testing to verify that nothing is written if nothing is changed.\n"));
-
-    /* Create and Close File */
-    file_id = H5Fcreate(FILE1, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-    H5Fclose(file_id);
-
-    /* Determine File's Initial Timestamp */
-    stat(FILE1, &inode);
-    tm = localtime(&inode.st_mtime);
-    strftime(date_str1, sizeof(date_str1), nl_langinfo(D_T_FMT), tm);
-
-    /* Wait for 1 second */
-    /* This ensures a system time difference between the two file accesses */
-    sleep(1);
-
-    /* Open and Close File With Read/Write Permission */
-    file_id = H5Fopen(FILE1, H5F_ACC_RDWR, H5P_DEFAULT);
-    H5Fclose(file_id);
-
-    /* Determine File's New Timestamp */
-    stat(FILE1, &inode);
-    tm = localtime(&inode.st_mtime);
-    strftime(date_str2, sizeof(date_str2), nl_langinfo(D_T_FMT), tm);
-
-    /* Ensure That Timestamps Are Equal */
-    if ((strcmp(date_str1, date_str2)) != 0) ret = -1;
-    CHECK(ret, FAIL, "Timestamp");
-
-} /* end test_rw_noupdate() */
-
-/****************************************************************
-**
 **  test_cached_stab_info(): low-level file test routine.
 **      This test checks that new files are created with cached
 **      symbol table information in the superblock (when using
@@ -2080,6 +2026,59 @@ test_cached_stab_info(void)
 
 /****************************************************************
 **
+**  test_rw_noupdate(): low-level file test routine.
+**      This test checks to ensure that opening and closing a file 
+**      with read/write permissions does not write anything to the 
+**      file if the file does not change.
+**
+**  Programmer: Mike McGreevy
+**              mamcgree@hdfgroup.org
+**              June 29, 2009
+**
+*****************************************************************/
+static void
+test_rw_noupdate(void)
+{
+    hid_t file_id;      /* HDF5 File ID */
+    h5_stat_t sb1, sb2; /* Info from 'stat' call */
+    double diff;        /* Difference in modification times */
+    herr_t ret;         /* Generic return value */
+
+    /* Output message about test being performed */
+    MESSAGE(5, ("Testing to verify that nothing is written if nothing is changed.\n"));
+
+    /* Create and Close File */
+    file_id = H5Fcreate(FILE1, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    CHECK(file_id, FAIL, "H5Fcreate");
+    ret = H5Fclose(file_id);
+    CHECK(ret, FAIL, "H5Fclose");
+
+    /* Determine File's Initial Timestamp */
+    ret = HDstat(FILE1, &sb1);
+    VERIFY(ret, 0, "HDfstat");
+
+    /* Wait for 2 seconds */
+    /* This ensures a system time difference between the two file accesses */
+    HDsleep(2);
+
+    /* Open and Close File With Read/Write Permission */
+    file_id = H5Fopen(FILE1, H5F_ACC_RDWR, H5P_DEFAULT);
+    CHECK(file_id, FAIL, "H5Fopen");
+    ret = H5Fclose(file_id);
+    CHECK(ret, FAIL, "H5Fclose");
+
+    /* Determine File's New Timestamp */
+    ret = HDstat(FILE1, &sb2);
+    VERIFY(ret, 0, "HDstat");
+
+    /* Ensure That Timestamps Are Equal */
+    diff = HDdifftime(sb2.st_mtime, sb1.st_mtime);
+    ret = (diff > 0.0);
+    VERIFY(ret, 0, "Timestamp");
+} /* end test_rw_noupdate() */
+
+/****************************************************************
+**
 **  test_file(): Main low-level file I/O test routine.
 **
 ****************************************************************/
@@ -2110,8 +2109,8 @@ test_file(void)
     test_file_double_datatype_open();   /* Test opening same named datatype from two files works properly */
 #endif /*H5_CANNOT_OPEN_TWICE*/
     test_userblock_file_size(); /* Tests that files created with a userblock have the correct size */
-    test_rw_noupdate();         /* Test to ensure that RW permissions don't write the file unless dirtied */
     test_cached_stab_info();    /* Tests that files are created with cached stab info in the superblock */
+    test_rw_noupdate();         /* Test to ensure that RW permissions don't write the file unless dirtied */
 } /* test_file() */
 
 
