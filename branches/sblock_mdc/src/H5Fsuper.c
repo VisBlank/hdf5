@@ -602,7 +602,7 @@ done:
  * Return:      Success:        non-negative on success
  *              Failure:        Negative
  *
- * Programmer:  Quincey Kozil
+ * Programmer:  Quincey Koziol
  *              August 14, 2009
  *
  *-------------------------------------------------------------------------
