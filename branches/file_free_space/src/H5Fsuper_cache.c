@@ -559,7 +559,7 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, const void UNUSED 
 
             /* Retrieve the 'free-space manager info' structure */
 	    if(NULL == H5O_msg_read(&ext_loc, H5O_FSINFO_ID, &fsinfo, dxpl_id))
-                HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "unable to get free-space manager info message")
+                HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, NULL, "unable to get free-space manager info message")
 
 	    if(shared->fs_strategy != fsinfo.strategy) {
 		shared->fs_strategy = fsinfo.strategy;
@@ -595,7 +595,6 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, const void UNUSED 
     ret_value = sblock;
 
 done:
-
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5F_sblock_load() */
 

@@ -40,7 +40,6 @@
 #include "H5Fpkg.h"             /* File access				*/
 #include "H5MFpkg.h"		/* File memory management		*/
 #include "H5Vprivate.h"		/* Vectors and arrays 			*/
-#include "H5Pprivate.h"         /* Property lists                       */
 
 
 /****************/
@@ -1050,10 +1049,6 @@ herr_t
 H5MF_close(H5F_t *f, hid_t dxpl_id)
 {
     H5FD_mem_t type;                    /* Memory type for iteration */
-    H5P_genplist_t *c_plist;		/* File creation property list  */
-    H5O_fsinfo_t fsinfo;		/* Free space manager info message */
-    hbool_t update = FALSE;		/* To update info for the message */
-    unsigned super_vers = HDF5_SUPERBLOCK_VERSION_DEF;	/* Superblock version for file */
     herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI(H5MF_close, FAIL)
@@ -1067,24 +1062,20 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
     HDassert(f->shared->lf);
 
     /* Free the space in aggregators */
-    /* For space not at EOF, it may be put into free space managers */
+    /* (for space not at EOF, it may be put into free space managers) */
     if(H5MF_free_aggrs(f, dxpl_id) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTFREE, FAIL, "can't free aggregators")
 
-    if(NULL == (c_plist = H5P_object_verify(f->shared->fcpl_id, H5P_FILE_CREATE)))
-        HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "can't find object for ID")
-
-    /* Get superblock version */
-    if(H5P_get(c_plist, H5F_CRT_SUPER_VERS_NAME, &super_vers) < 0)
-	HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get superblock version")
-
-    /* Check to remove free-space manager info message from superblock extension */
-    if(H5F_addr_defined(f->shared->sblock->ext_addr))
-        if(H5F_super_ext_remove_msg(f, dxpl_id, H5O_FSINFO_ID) < 0)
-            HGOTO_ERROR(H5E_RESOURCE, H5E_CANTRELEASE, FAIL, "error in removing message from superblock extension")
-
     /* Making free-space managers persistent for superblock version >= 2 */
-    if(super_vers >= HDF5_SUPERBLOCK_VERSION_2 && f->shared->fs_strategy == H5F_FILE_SPACE_ALL_PERSIST) {
+    if(f->shared->sblock->super_vers >= HDF5_SUPERBLOCK_VERSION_2 && f->shared->fs_strategy == H5F_FILE_SPACE_ALL_PERSIST) {
+        H5O_fsinfo_t fsinfo;		/* Free space manager info message */
+        hbool_t update = FALSE;		/* To update info for the message */
+
+        /* Check to remove free-space manager info message from superblock extension */
+        if(H5F_addr_defined(f->shared->sblock->ext_addr))
+            if(H5F_super_ext_remove_msg(f, dxpl_id, H5O_FSINFO_ID) < 0)
+                HGOTO_ERROR(H5E_RESOURCE, H5E_CANTRELEASE, FAIL, "error in removing message from superblock extension")
+
 	/* Free free-space manager header and/or section info header */
 	for(type = H5FD_MEM_SUPER; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type)) {
 	    H5FS_stat_t	fs_stat;	/* Information for free-space manager */
@@ -1214,22 +1205,10 @@ HDfprintf(stderr, "%s: Before deleting free space manager\n", FUNC);
 		HDassert(!H5F_addr_defined(f->shared->fs_addr[type]));
 	    } /* end if */
 	} /* end for */
-
-        /* Check for non-default free space settings */
-	if(!(f->shared->fs_strategy == H5F_FILE_SPACE_STRATEGY_DEF && 
-                f->shared->fs_threshold == H5F_FREE_SPACE_THRESHOLD_DEF)) {
-	    HDassert(super_vers >= HDF5_SUPERBLOCK_VERSION_2);
-
-            /* Set up free space manager info struct */
-	    fsinfo.strategy = f->shared->fs_strategy;
-	    fsinfo.threshold = f->shared->fs_threshold;
-
-	    /* Write free-space manager info message to superblock extension object header if needed */
-	    if(H5F_super_ext_write_msg(f, dxpl_id, &fsinfo, H5O_FSINFO_ID, TRUE) < 0)
-		HGOTO_ERROR(H5E_RESOURCE, H5E_WRITEERROR, FAIL, "error in writing message to superblock extension")
-	} /* end if */
     } /* end else */
 
+    /* Free the space in aggregators (again) */
+    /* (in case any free space information re-started them) */
     if(H5MF_free_aggrs(f, dxpl_id) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTFREE, FAIL, "can't free aggregators")
 

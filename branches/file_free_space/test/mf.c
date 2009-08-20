@@ -165,41 +165,6 @@ error:
     return(1);
 } /* check_stats() */
 
-#define MULTI_SETUP(memb_map, memb_fapl, memb_name, memb_addr, sv)	{	\
-    H5FD_mem_t mt;								\
-    HDmemset(memb_map, 0,  sizeof memb_map);					\
-    HDmemset(memb_fapl, 0, sizeof memb_fapl);					\
-    HDmemset(memb_name, 0, sizeof memb_name);					\
-    HDmemset(memb_addr, 0, sizeof memb_addr);					\
-    HDmemset(sv, 0, sizeof sv);							\
-    for (mt = 0; mt < H5FD_MEM_NTYPES; mt++) {					\
-	memb_map[mt] = H5FD_MEM_SUPER;						\
-	memb_fapl[mt] = H5P_DEFAULT;						\
-    }										\
-    memb_map[H5FD_MEM_BTREE] = H5FD_MEM_BTREE;					\
-    memb_map[H5FD_MEM_DRAW] = H5FD_MEM_DRAW;					\
-    memb_map[H5FD_MEM_GHEAP] = H5FD_MEM_GHEAP;					\
-    memb_map[H5FD_MEM_LHEAP] = H5FD_MEM_LHEAP;					\
-    sprintf(sv[H5FD_MEM_SUPER], "%%s-%c.h5", 's');				\
-    memb_name[H5FD_MEM_SUPER] = sv[H5FD_MEM_SUPER];				\
-    memb_addr[H5FD_MEM_SUPER] = 0;						\
-    sprintf(sv[H5FD_MEM_BTREE],  "%%s-%c.h5", 'b');				\
-    memb_name[H5FD_MEM_BTREE] = sv[H5FD_MEM_BTREE];				\
-    memb_addr[H5FD_MEM_BTREE] = HADDR_MAX/6;					\
-    sprintf(sv[H5FD_MEM_DRAW], "%%s-%c.h5", 'r');				\
-    memb_name[H5FD_MEM_DRAW] = sv[H5FD_MEM_DRAW];				\
-    memb_addr[H5FD_MEM_DRAW] = HADDR_MAX/3;					\
-    sprintf(sv[H5FD_MEM_GHEAP], "%%s-%c.h5", 'g');				\
-    memb_name[H5FD_MEM_GHEAP] = sv[H5FD_MEM_GHEAP];				\
-    memb_addr[H5FD_MEM_GHEAP] = HADDR_MAX/2;					\
-    sprintf(sv[H5FD_MEM_LHEAP], "%%s-%c.h5", 'l');				\
-    memb_name[H5FD_MEM_LHEAP] = sv[H5FD_MEM_LHEAP];				\
-    memb_addr[H5FD_MEM_LHEAP] = HADDR_MAX*2/3;					\
-    sprintf(sv[H5FD_MEM_OHDR], "%%s-%c.h5", 'o');				\
-    memb_name[H5FD_MEM_OHDR] = sv[H5FD_MEM_OHDR];				\
-    memb_addr[H5FD_MEM_OHDR] = HADDR_MAX*5/6;					\
-}
-
 /*
  * To verify that blocks are allocated from file allocation
  *
@@ -6662,6 +6627,41 @@ error:
     } H5E_END_TRY;
     return(1);
 } /* test_mf_fs_multi() */
+
+#define MULTI_SETUP(memb_map, memb_fapl, memb_name, memb_addr, sv)	{	\
+    H5FD_mem_t mt;								\
+    HDmemset(memb_map, 0,  sizeof memb_map);					\
+    HDmemset(memb_fapl, 0, sizeof memb_fapl);					\
+    HDmemset(memb_name, 0, sizeof memb_name);					\
+    HDmemset(memb_addr, 0, sizeof memb_addr);					\
+    HDmemset(sv, 0, sizeof sv);							\
+    for (mt = 0; mt < H5FD_MEM_NTYPES; mt++) {					\
+	memb_map[mt] = H5FD_MEM_SUPER;						\
+	memb_fapl[mt] = H5P_DEFAULT;						\
+    }										\
+    memb_map[H5FD_MEM_BTREE] = H5FD_MEM_BTREE;					\
+    memb_map[H5FD_MEM_DRAW] = H5FD_MEM_DRAW;					\
+    memb_map[H5FD_MEM_GHEAP] = H5FD_MEM_GHEAP;					\
+    memb_map[H5FD_MEM_LHEAP] = H5FD_MEM_LHEAP;					\
+    sprintf(sv[H5FD_MEM_SUPER], "%%s-%c.h5", 's');				\
+    memb_name[H5FD_MEM_SUPER] = sv[H5FD_MEM_SUPER];				\
+    memb_addr[H5FD_MEM_SUPER] = 0;						\
+    sprintf(sv[H5FD_MEM_BTREE],  "%%s-%c.h5", 'b');				\
+    memb_name[H5FD_MEM_BTREE] = sv[H5FD_MEM_BTREE];				\
+    memb_addr[H5FD_MEM_BTREE] = HADDR_MAX/6;					\
+    sprintf(sv[H5FD_MEM_DRAW], "%%s-%c.h5", 'r');				\
+    memb_name[H5FD_MEM_DRAW] = sv[H5FD_MEM_DRAW];				\
+    memb_addr[H5FD_MEM_DRAW] = HADDR_MAX/3;					\
+    sprintf(sv[H5FD_MEM_GHEAP], "%%s-%c.h5", 'g');				\
+    memb_name[H5FD_MEM_GHEAP] = sv[H5FD_MEM_GHEAP];				\
+    memb_addr[H5FD_MEM_GHEAP] = HADDR_MAX/2;					\
+    sprintf(sv[H5FD_MEM_LHEAP], "%%s-%c.h5", 'l');				\
+    memb_name[H5FD_MEM_LHEAP] = sv[H5FD_MEM_LHEAP];				\
+    memb_addr[H5FD_MEM_LHEAP] = HADDR_MAX*2/3;					\
+    sprintf(sv[H5FD_MEM_OHDR], "%%s-%c.h5", 'o');				\
+    memb_name[H5FD_MEM_OHDR] = sv[H5FD_MEM_OHDR];				\
+    memb_addr[H5FD_MEM_OHDR] = HADDR_MAX*5/6;					\
+}
 
 /*
  * Tests to verify that file's free-space managers are persistent or going away

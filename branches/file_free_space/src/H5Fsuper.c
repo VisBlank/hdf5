@@ -490,6 +490,12 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
         HDassert(super_vers >= HDF5_SUPERBLOCK_VERSION_2);
         need_ext = TRUE;
     } /* end if */
+    /* Files with non-default free space settings always need the superblock extension */
+    else if(f->shared->fs_strategy != H5F_FILE_SPACE_STRATEGY_DEF ||
+            f->shared->fs_threshold != H5F_FREE_SPACE_THRESHOLD_DEF) {
+        HDassert(super_vers >= HDF5_SUPERBLOCK_VERSION_2);
+        need_ext = TRUE;
+    } /* end if */
     /* If we're going to use a version of the superblock format which allows
      *  for the superblock extension, check for non-default values to store
      *  in it.
@@ -565,6 +571,18 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
             if(H5O_msg_create(&ext_loc, H5O_DRVINFO_ID, H5O_MSG_FLAG_DONTSHARE, H5O_UPDATE_TIME, &drvinfo, dxpl_id) < 0)
                 HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "unable to update driver info header message")
         } /* end if */
+
+        /* Check for non-default free space settings */
+	if(f->shared->fs_strategy != H5F_FILE_SPACE_STRATEGY_DEF ||
+                f->shared->fs_threshold != H5F_FREE_SPACE_THRESHOLD_DEF) {
+            H5O_fsinfo_t fsinfo;		/* Free space manager info message */
+
+	    /* Write free-space manager info message to superblock extension object header if needed */
+	    fsinfo.strategy = f->shared->fs_strategy;
+	    fsinfo.threshold = f->shared->fs_threshold;
+            if(H5O_msg_create(&ext_loc, H5O_FSINFO_ID, H5O_MSG_FLAG_DONTSHARE, H5O_UPDATE_TIME, &fsinfo, dxpl_id) < 0)
+                HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "unable to update free-space info header message")
+	} /* end if */
 
         /* Close superblock extension */
 	if(H5F_super_ext_close(f, &ext_loc) < 0)

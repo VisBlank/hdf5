@@ -232,6 +232,8 @@ typedef struct H5F_file_t {
     H5RC_t *grp_btree_shared;   /* Ref-counted group B-tree node info   */
 
     /* File space allocation information */
+    H5F_file_space_type_t fs_strategy;	/* File space handling strategy		*/
+    hsize_t               fs_threshold;	/* Free space section threshold 	*/
     hbool_t     use_tmp_space;  /* Whether temp. file space allocation is allowed */
     haddr_t	tmp_addr;       /* Next address to use for temp. space in the file */
     unsigned fs_aggr_merge[H5FD_MEM_NTYPES];    /* Flags for whether free space can merge with aggregator(s) */
@@ -246,8 +248,6 @@ typedef struct H5F_file_t {
 
     /* Metadata accumulator information */
     H5F_meta_accum_t accum;     /* Metadata accumulator info           	*/
-    H5F_file_space_type_t fs_strategy;	/* File space handling strategy		*/
-    hsize_t               fs_threshold;	/* Free space section threshold 	*/
 } H5F_file_t;
 
 /*
