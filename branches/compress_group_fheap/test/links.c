@@ -8602,7 +8602,7 @@ static int
 link_filters(hid_t fapl, hbool_t new_format)
 {
     hid_t       fid = -1, gid1 = -1, gid2 = -1, gcpl1 = -1, gcpl2 = -1, fcpl = -1;
-    unsigned    cd_nelmts = 1;
+    size_t      cd_nelmts = 1;
     unsigned    cd_value = 2112;
     unsigned    cd_value_out;
     unsigned    flags_out;
