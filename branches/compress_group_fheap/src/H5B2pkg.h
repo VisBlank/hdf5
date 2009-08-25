@@ -144,6 +144,8 @@ typedef struct H5B2_shared_t {
     unsigned    merge_percent;  /* Percent full at which to merge the node, when deleting */
     size_t      node_size;      /* Size of B-tree nodes, in bytes             */
     size_t      rrec_size;      /* Size of "raw" (on disk) record, in bytes   */
+    size_t      nrec_size;      /* Size of native (memory) record */
+    void        *udata;         /* User-defined data */
 
     /* Dynamic information (stored) */
     unsigned	depth;		/* B-tree's overall depth                     */
@@ -266,7 +268,8 @@ H5_DLL herr_t H5B2_iterate_size_node(H5F_t *f, hid_t dxpl_id, H5RC_t *bt2_shared
 
 /* Routines for locating records */
 H5_DLL int H5B2_locate_record(const H5B2_class_t *type, unsigned nrec,
-    size_t *rec_off, const uint8_t *native, const void *udata, unsigned *idx);
+    size_t *rec_off, const uint8_t *native, const void *udata, unsigned *idx,
+    const void *btree_udata);
 H5_DLL herr_t H5B2_neighbor_internal(H5F_t *f, hid_t dxpl_id, H5RC_t *bt2_shared,
     unsigned depth, H5B2_node_ptr_t *curr_node_ptr, void *neighbor_loc,
     H5B2_compare_t comp, void *udata, H5B2_found_t op, void *op_data);

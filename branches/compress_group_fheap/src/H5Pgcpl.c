@@ -28,6 +28,7 @@
 /* Module Setup */
 /****************/
 #define H5P_PACKAGE		/*suppress error about including H5Ppkg	  */
+#define H5Z_PACKAGE		/*suppress error about including H5Zpkg	  */
 
 /***********/
 /* Headers */
@@ -36,6 +37,7 @@
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5Iprivate.h"		/* IDs			  		*/
 #include "H5Ppkg.h"		/* Property lists		  	*/
+#include "H5Zpkg.h"		/* Data filters				*/
 
 
 /****************/
@@ -59,6 +61,11 @@
 
 /* Property class callbacks */
 static herr_t H5P_gcrt_reg_prop(H5P_genclass_t *pclass);
+static herr_t H5P_gcrt_copy(hid_t new_plist_t, hid_t old_plist_t, void *copy_data);
+static herr_t H5P_gcrt_close(hid_t dxpl_id, void *close_data);
+static int H5P_ginfo_cmp(const void *ginfo1, const void *ginfo2, size_t size);
+
+static int H5P_fheap_cparam_cmp(const H5HF_cparam_t *cparam1, const H5HF_cparam_t *cparam2);
 
 
 /*********************/
@@ -74,9 +81,9 @@ const H5P_libclass_t H5P_CLS_GCRT[1] = {{
     H5P_gcrt_reg_prop,		/* Default property registration routine */
     NULL,		        /* Class creation callback      */
     NULL,		        /* Class creation callback info */
-    NULL,			/* Class copy callback          */
+    H5P_gcrt_copy,			/* Class copy callback          */
     NULL,		        /* Class copy callback info     */
-    NULL,			/* Class close callback         */
+    H5P_gcrt_close,			/* Class close callback         */
     NULL 		        /* Class close callback info    */
 }};
 
@@ -114,7 +121,7 @@ H5P_gcrt_reg_prop(H5P_genclass_t *pclass)
 
     /* Register group info property */
     if(H5P_register(pclass, H5G_CRT_GROUP_INFO_NAME, H5G_CRT_GROUP_INFO_SIZE,
-             &ginfo, NULL, NULL, NULL, NULL, NULL, NULL, NULL) < 0)
+             &ginfo, NULL, NULL, NULL, NULL, NULL, H5G_CRT_GROUP_INFO_CMP, NULL) < 0)
          HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class")
 
     /* Register link info property */
@@ -125,6 +132,98 @@ H5P_gcrt_reg_prop(H5P_genclass_t *pclass)
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5P_gcrt_reg_prop() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:       H5P_gcrt_copy
+ *
+ * Purpose:        Callback routine which is called whenever any group
+ *                 creation property list is copied.  This routine copies
+ *                 the properties from the old list to the new list.
+ *
+ * Return:         Success:        Non-negative
+ *                 Failure:        Negative
+ *
+ * Programmer:     Neil Fortner
+ *                 Wednesday, May 6, 2009
+ *
+ *-------------------------------------------------------------------------
+ */
+/* ARGSUSED */
+static herr_t
+H5P_gcrt_copy(hid_t dst_plist_id, hid_t src_plist_id, void UNUSED *copy_data)
+{
+    H5O_ginfo_t    src_ginfo, dst_ginfo;        /* Source & destination ginfo */
+    H5P_genplist_t *src_plist;                  /* Pointer to source property list */
+    H5P_genplist_t *dst_plist;                  /* Pointer to destination property list */
+    herr_t         ret_value = SUCCEED;         /* Return value */
+
+    FUNC_ENTER_NOAPI_NOINIT(H5P_gcrt_copy)
+
+    /* Verify property list IDs */
+    if(NULL == (dst_plist = (H5P_genplist_t *)H5I_object(dst_plist_id)))
+        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a group creation property list")
+    if(NULL == (src_plist = (H5P_genplist_t *)H5I_object(src_plist_id)))
+        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a group creation property list")
+
+    /* Get the group info property from the old property list */
+    if(H5P_get(src_plist, H5G_CRT_GROUP_INFO_NAME, &src_ginfo) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get group info")
+
+    /* Make copy of group info */
+    if(NULL == H5O_msg_copy(H5O_GINFO_ID, &src_ginfo, &dst_ginfo))
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTINIT, FAIL, "can't copy group info")
+
+    /* Set the group info property for the destination property list */
+    if(H5P_set(dst_plist, H5G_CRT_GROUP_INFO_NAME, &dst_ginfo) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set group info")
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5P_gcrt_copy() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5P_gcrt_close
+ *
+ * Purpose:	Callback routine which is called whenever any dataset create
+ *              property list is closed.  This routine performs any generic
+ *              cleanup needed on the properties the library put into the list.
+ *
+ * Return:	Success:	Non-negative
+ *		Failure:	Negative
+ *
+ * Programmer:	Neil Fortner
+ *              Wednesday, May 6, 2009
+ *
+ *-------------------------------------------------------------------------
+ */
+/* ARGSUSED */
+static herr_t
+H5P_gcrt_close(hid_t dcpl_id, void UNUSED *close_data)
+{
+    H5O_ginfo_t     ginfo;              /* I/O pipeline */
+    H5P_genplist_t *plist;              /* Property list */
+    herr_t ret_value = SUCCEED;         /* Return value */
+
+    FUNC_ENTER_NOAPI_NOINIT(H5P_gcrt_close)
+
+    /* Check arguments */
+    if(NULL == (plist = (H5P_genplist_t *)H5I_object(dcpl_id)))
+        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a group creation property list")
+
+    /* Get the link name pipeline property from the old property list */
+    if(H5P_get(plist, H5G_CRT_GROUP_INFO_NAME, &ginfo) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get group info")
+
+    /* Clean up any values set for the link name pipeline in the ginfo
+     * message */
+    if(H5O_msg_reset(H5O_GINFO_ID, &ginfo) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTFREE, FAIL, "can't release group info")
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5P_gcrt_close() */
 
 
 /*-------------------------------------------------------------------------
@@ -506,4 +605,320 @@ H5Pget_link_creation_order(hid_t plist_id, unsigned *crt_order_flags /*out*/)
 done:
     FUNC_LEAVE_API(ret_value)
 } /* end H5Pget_link_creation_order() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5Pset_fheap_cparams
+ *
+ * Purpose:	Sets the fractal heap creation parameters for the fractal
+ *              heap in plist_id of type specified by type.  Currently
+ *              only supports fractal heaps for group links.  Once support
+ *              for other types is added, this will probably be moved to
+ *              H5Pocpl.c.
+ *
+ * Return:	Non-negative on success/Negative on failure
+ *
+ * Programmer:	Neil Fortner
+ *              Monday, June 1, 2009
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5Pset_fheap_cparams(hid_t plist_id, H5HF_type_t type, const H5HF_cparam_t *cparam)
+{
+    H5P_genplist_t      *plist;                 /* Property list pointer */
+    H5O_ginfo_t         ginfo;                  /* Group info */
+    H5HF_cparam_t       cparam_def = H5G_CRT_FHEAP_CPARAM_DEF; /* Default fheap creation params */
+    herr_t              ret_value = SUCCEED;    /* return value */
+
+    FUNC_ENTER_API(H5Pset_fheap_cparams, FAIL)
+    H5TRACE3("e", "iHt*Hc", plist_id, type, cparam);
+
+    /* Check args */
+    if(!cparam)
+        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "structure not supplied")
+    if(cparam->version != H5HF_CPARAM_VERSION_1)
+        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "invalid version number for structure")
+    if(type <= H5HF_TYPE_UNKNOWN || type >= H5HF_TYPE_NTYPES)
+        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "invalid fractal heap type")
+
+    /* Get the plist structure */
+    if(NULL == (plist = H5P_object_verify(plist_id, H5P_GROUP_CREATE)))
+        HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "can't find object for ID")
+
+    /* Get the group info property to modify */
+    if(H5P_get(plist, H5G_CRT_GROUP_INFO_NAME, &ginfo) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get group info")
+
+    /* Modify the fractal heap creation parameters, and mark them as stored if
+     * they are different from the default parameters */
+    ginfo.fheap_cparam = *cparam;
+    if(H5P_fheap_cparam_cmp(&ginfo.fheap_cparam, &cparam_def))
+        ginfo.store_fheap_cparam = TRUE;
+    else
+        ginfo.store_fheap_cparam = FALSE;
+
+    /* Put the updated group info back into the property list */
+    if(H5P_set(plist, H5G_CRT_GROUP_INFO_NAME, &ginfo) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set group info")
+
+done:
+    FUNC_LEAVE_API(ret_value)
+} /* end H5Pset_fheap_cparams() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5Pget_fheap_cparams
+ *
+ * Purpose:	Gets the fractal heap creation parameters for the fractal
+ *              heap in plist_id of type specified by type.  Currently
+ *              only supports fractal heaps for group links.  Once support
+ *              for other types is added, this will probably be moved to
+ *              H5Pocpl.c.
+ *
+ * Return:	TRUE if fheap creation params are set to be stored
+ *              FALSE if not
+ *              Negative on failure
+ *
+ * Programmer:	Neil Fortner
+ *              Monday, June 1, 2009
+ *
+ *-------------------------------------------------------------------------
+ */
+htri_t
+H5Pget_fheap_cparams(hid_t plist_id, H5HF_type_t type, H5HF_cparam_t *cparam)
+{
+    H5P_genplist_t      *plist;                 /* Property list pointer */
+    H5O_ginfo_t         ginfo;                  /* Group info */
+    htri_t              ret_value;              /* return value */
+
+    FUNC_ENTER_API(H5Pget_fheap_cparams, FAIL)
+    H5TRACE3("t", "iHt*Hc", plist_id, type, cparam);
+
+    /* Check args */
+    if(!cparam)
+        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "structure not supplied")
+    if(type <= H5HF_TYPE_UNKNOWN || type >= H5HF_TYPE_NTYPES)
+        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "invalid fractal heap type")
+
+    /* Get the plist structure */
+    if(NULL == (plist = H5P_object_verify(plist_id, H5P_GROUP_CREATE)))
+        HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "can't find object for ID")
+
+    /* Get the group info property to query */
+    if(H5P_get(plist, H5G_CRT_GROUP_INFO_NAME, &ginfo) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get group info")
+
+    /* Update the user supplied cparam struct */
+    *cparam = ginfo.fheap_cparam;
+
+    /* Check if fheap creation params are set to be stored, set return value */
+    ret_value = ginfo.store_fheap_cparam != FALSE;
+
+done:
+    FUNC_LEAVE_API(ret_value)
+} /* end H5Pget_fheap_cparams() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5P_gcpl_set_pline
+ *
+ * Purpose:	Sets the group link pipeline on a group creation property
+ *              list.
+ *
+ * Return:	Non-negative on success/Negative on failure
+ *
+ * Programmer:	Neil Fortner
+ *              Monday, July 20, 2009
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5P_gcpl_set_pline(H5P_genplist_t *plist, const H5O_pline_t *pline)
+{
+    H5O_ginfo_t         ginfo;                  /* Group info */
+    herr_t              ret_value=SUCCEED;      /* return value */
+
+    FUNC_ENTER_NOAPI(H5P_gcpl_set_pline, FAIL)
+
+    /* Check arguments */
+    HDassert(plist);
+    HDassert(pline);
+
+    /* Get the group info from the gcpl */
+    if(H5P_get(plist, H5G_CRT_GROUP_INFO_NAME, &ginfo) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get group info")
+
+    /* Copy the pline into the group info struct */
+    /* No need to free/reset the pline as the functions that call this should
+     * handle it through the H5Z* functions -NAF */
+    ginfo.pline = *pline;
+
+    /* Set the group info on the gcpl */
+    if(H5P_set(plist, H5G_CRT_GROUP_INFO_NAME, &ginfo) < 0)
+        HGOTO_ERROR(H5E_PLINE, H5E_CANTINIT, FAIL, "unable to set group info")
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5P_gcpl_set_pline() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5P_gcpl_get_pline
+ *
+ * Purpose:	Gets the group link pipeline from a group creation
+ *              property list.  This pipeline is a *shallow* copy of the
+ *              pipeline in the gcpl, so it must be reset properly if it
+ *              is to be replaced by a different pipeline.  Modifying
+ *              this pipeline and passing it back to H5P_gcpl_set_pline
+ *              is OK.
+ *
+ * Return:	Non-negative on success/Negative on failure
+ *
+ * Programmer:	Neil Fortner
+ *              Monday, July 20, 2009
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5P_gcpl_get_pline(const H5P_genplist_t *plist, H5O_pline_t *pline)
+{
+    H5O_ginfo_t         ginfo;                  /* Group info */
+    herr_t              ret_value=SUCCEED;      /* return value */
+
+    FUNC_ENTER_NOAPI(H5P_gcpl_get_pline, FAIL)
+
+    /* Check arguments */
+    HDassert(plist);
+    HDassert(pline);
+
+    /* Get the group info from the gcpl */
+    if(H5P_get(plist, H5G_CRT_GROUP_INFO_NAME, &ginfo) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get group info")
+
+    /* Retrieve the pline from the group info struct */
+    *pline = ginfo.pline;
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5P_gcpl_get_pline() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:       H5P_fheap_cparam_cmp
+ *
+ * Purpose:        Callback routine which is called whenever a group info
+ *                 property in a property list is compared.
+ *
+ * Return:         positive if VALUE1 is greater than VALUE2, negative if
+ *                      VALUE2 is greater than VALUE1 and zero if VALUE1 and
+ *                      VALUE2 are equal.
+ *
+ * Programmer:     Neil Fortner
+ *                 Monday, May 18, 2009
+ *
+ *-------------------------------------------------------------------------
+ */
+static int
+H5P_fheap_cparam_cmp(const H5HF_cparam_t *cparam1, const H5HF_cparam_t *cparam2)
+{
+    herr_t ret_value = 0; /* Return value */
+
+    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5P_fheap_cparam_cmp)
+
+    if(cparam1->version < cparam2->version) HGOTO_DONE(-1)
+    if(cparam1->version > cparam2->version) HGOTO_DONE(1)
+
+    if(cparam1->width < cparam2->width) HGOTO_DONE(-1)
+    if(cparam1->width > cparam2->width) HGOTO_DONE(1)
+
+    if(cparam1->start_block_size < cparam2->start_block_size) HGOTO_DONE(-1)
+    if(cparam1->start_block_size > cparam2->start_block_size) HGOTO_DONE(1)
+
+    if(cparam1->max_direct_size < cparam2->max_direct_size) HGOTO_DONE(-1)
+    if(cparam1->max_direct_size > cparam2->max_direct_size) HGOTO_DONE(1)
+
+    if(cparam1->max_index < cparam2->max_index) HGOTO_DONE(-1)
+    if(cparam1->max_index > cparam2->max_index) HGOTO_DONE(1)
+
+    if(cparam1->start_root_rows < cparam2->start_root_rows) HGOTO_DONE(-1)
+    if(cparam1->start_root_rows > cparam2->start_root_rows) HGOTO_DONE(1)
+
+    if(!cparam1->checksum_dblocks && cparam2->checksum_dblocks) HGOTO_DONE(-1)
+    if(cparam1->checksum_dblocks && !cparam2->checksum_dblocks) HGOTO_DONE(1)
+
+    if(cparam1->max_man_size < cparam2->max_man_size) HGOTO_DONE(-1)
+    if(cparam1->max_man_size > cparam2->max_man_size) HGOTO_DONE(1)
+
+    if(cparam1->id_len < cparam2->id_len) HGOTO_DONE(-1)
+    if(cparam1->id_len > cparam2->id_len) HGOTO_DONE(1)
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5P_fheap_cparam_cmp() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:       H5P_ginfo_cmp
+ *
+ * Purpose:        Callback routine which is called whenever a group info
+ *                 property in a property list is compared.
+ *
+ * Return:         positive if VALUE1 is greater than VALUE2, negative if
+ *                      VALUE2 is greater than VALUE1 and zero if VALUE1 and
+ *                      VALUE2 are equal.
+ *
+ * Programmer:     Neil Fortner
+ *                 Monday, May 18, 2009
+ *
+ *-------------------------------------------------------------------------
+ */
+static int
+H5P_ginfo_cmp(const void *_ginfo1, const void *_ginfo2, size_t UNUSED size)
+{
+    const H5O_ginfo_t *ginfo1 = (const H5O_ginfo_t *)_ginfo1,     /* Create local aliases for values */
+        *ginfo2 = (const H5O_ginfo_t *)_ginfo2;
+    herr_t ret_value = 0; /* Return value */
+
+    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5P_ginfo_cmp)
+
+    /* Compare fields in top level of ginfo struct */
+    if(ginfo1->version < ginfo2->version)  HGOTO_DONE(-1)
+    if(ginfo1->version > ginfo2->version)  HGOTO_DONE(1)
+
+    if(ginfo1->lheap_size_hint < ginfo2->lheap_size_hint)  HGOTO_DONE(-1)
+    if(ginfo1->lheap_size_hint > ginfo2->lheap_size_hint)  HGOTO_DONE(1)
+
+    if(!ginfo1->store_link_phase_change && ginfo2->store_link_phase_change)  HGOTO_DONE(-1)
+    if(ginfo1->store_link_phase_change && !ginfo2->store_link_phase_change)  HGOTO_DONE(1)
+
+    if(ginfo1->max_compact < ginfo2->max_compact)  HGOTO_DONE(-1)
+    if(ginfo1->max_compact > ginfo2->max_compact)  HGOTO_DONE(1)
+
+    if(ginfo1->min_dense < ginfo2->min_dense)  HGOTO_DONE(-1)
+    if(ginfo1->min_dense > ginfo2->min_dense)  HGOTO_DONE(1)
+
+    if(!ginfo1->store_est_entry_info && ginfo2->store_est_entry_info)  HGOTO_DONE(-1)
+    if(ginfo1->store_est_entry_info && !ginfo2->store_est_entry_info)  HGOTO_DONE(1)
+
+    if(ginfo1->est_num_entries < ginfo2->est_num_entries)  HGOTO_DONE(-1)
+    if(ginfo1->est_num_entries > ginfo2->est_num_entries)  HGOTO_DONE(1)
+
+    if(ginfo1->est_name_len < ginfo2->est_name_len)  HGOTO_DONE(-1)
+    if(ginfo1->est_name_len > ginfo2->est_name_len)  HGOTO_DONE(1)
+
+    if(!ginfo1->store_fheap_cparam && ginfo2->store_fheap_cparam)  HGOTO_DONE(-1)
+    if(ginfo1->store_fheap_cparam && !ginfo2->store_fheap_cparam)  HGOTO_DONE(1)
+
+    /* Compare the fheap creation parameters */
+    ret_value = H5P_fheap_cparam_cmp(&ginfo1->fheap_cparam, &ginfo2->fheap_cparam);
+
+    /* Compare the pipeline */
+    if(ret_value == 0)
+        ret_value = H5P_pipeline_cmp(&(((const H5O_ginfo_t *) ginfo1)->pline),
+                &(((const H5O_ginfo_t *) ginfo2)->pline), sizeof(H5O_pline_t));
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5P_ginfo_cmp() */
 

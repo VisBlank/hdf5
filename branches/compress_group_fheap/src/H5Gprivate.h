@@ -86,17 +86,47 @@
 #define H5G_CRT_GINFO_EST_NUM_ENTRIES           4
 #define H5G_CRT_GINFO_EST_NAME_LEN              8
 
+/* Fractal heap creation parameters for "dense" link storage */
+#define H5G_CRT_GINFO_STORE_FHEAP_CPARAM        FALSE
+#define H5G_CRT_FHEAP_MAN_WIDTH                 4
+#define H5G_CRT_FHEAP_MAN_START_BLOCK_SIZE      512
+#define H5G_CRT_FHEAP_MAN_MAX_DIRECT_SIZE       (64 * 1024)
+#define H5G_CRT_FHEAP_MAN_MAX_INDEX             32
+#define H5G_CRT_FHEAP_MAN_START_ROOT_ROWS       1
+#define H5G_CRT_FHEAP_CHECKSUM_DBLOCKS          TRUE
+#define H5G_CRT_FHEAP_MAX_MAN_SIZE              (4 * 1024)
+#define H5G_CRT_FHEAP_ID_LEN                    0
+#define H5G_CRT_FHEAP_CPARAM_DEF {                                             \
+    H5HF_CPARAM_VERSION_1,                                                     \
+    H5G_CRT_FHEAP_MAN_WIDTH,                                                   \
+    H5G_CRT_FHEAP_MAN_START_BLOCK_SIZE,                                        \
+    H5G_CRT_FHEAP_MAN_MAX_DIRECT_SIZE,                                         \
+    H5G_CRT_FHEAP_MAN_MAX_INDEX,                                               \
+    H5G_CRT_FHEAP_MAN_START_ROOT_ROWS,                                         \
+    H5G_CRT_FHEAP_CHECKSUM_DBLOCKS,                                            \
+    H5G_CRT_FHEAP_MAX_MAN_SIZE,                                                \
+    H5G_CRT_FHEAP_ID_LEN                                                       \
+}
+
+/* Definitions for group link name filter pipeline */
+#define H5G_CRT_LINK_PIPELINE_DEF  {{0, NULL, H5O_NULL_ID, {{0, HADDR_UNDEF}}}, H5O_PLINE_VERSION_1, 0, 0, NULL}
+
 /* Definitions for group info settings */
 #define H5G_CRT_GROUP_INFO_NAME                 "group info"
 #define H5G_CRT_GROUP_INFO_SIZE                 sizeof(H5O_ginfo_t)
-#define H5G_CRT_GROUP_INFO_DEF                  {H5G_CRT_GINFO_LHEAP_SIZE_HINT, \
+#define H5G_CRT_GROUP_INFO_DEF                  {H5O_GINFO_VERSION_0, \
+                                                    H5G_CRT_GINFO_LHEAP_SIZE_HINT, \
                                                     H5G_CRT_GINFO_STORE_LINK_PHASE_CHANGE, \
                                                     H5G_CRT_GINFO_MAX_COMPACT, \
                                                     H5G_CRT_GINFO_MIN_DENSE, \
                                                     H5G_CRT_GINFO_STORE_EST_ENTRY_INFO, \
                                                     H5G_CRT_GINFO_EST_NUM_ENTRIES, \
-                                                    H5G_CRT_GINFO_EST_NAME_LEN \
+                                                    H5G_CRT_GINFO_EST_NAME_LEN, \
+                                                    H5G_CRT_GINFO_STORE_FHEAP_CPARAM, \
+                                                    H5G_CRT_FHEAP_CPARAM_DEF, \
+                                                    H5G_CRT_LINK_PIPELINE_DEF \
                                                 }
+#define H5G_CRT_GROUP_INFO_CMP  H5P_ginfo_cmp
 
 /* If the module using this macro is allowed access to the private variables, access them directly */
 #ifdef H5G_PACKAGE

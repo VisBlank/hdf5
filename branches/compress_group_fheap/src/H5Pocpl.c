@@ -53,6 +53,53 @@
 /* Definitions for object header flags */
 #define H5O_CRT_OHDR_FLAGS_SIZE         sizeof(uint8_t)
 
+/* Macros for functions that modify a filter pipeline on either a gcpl or dcpl.
+ * Must include H5P_OCPL_GET_PLINE and either H5P_OCPL_CLOSE_PLINE.
+ * H5P_OCPL_SET_PLINE is optional, but must be between H5P_OCPL_GET_PLINE and
+ * H5P_OCPL_CLOSE_PLINE if present. */
+/* H5P_OCPL_FILTER_START: Retrieves the pipeline, PLINE, from PLIST_ID, which is
+ * either a gcpl or a dcpl. */
+#define H5P_OCPL_GET_PLINE(PLIST_ID, PLINE, ERR)                            \
+{                                                                              \
+    H5P_genplist_t  *_plist;    /* Property list */                            \
+    htri_t          _is_dcpl;   /* Whether PLIST_ID is a dcpl */               \
+                                                                               \
+    /* Check if plist ID is a dcpl */                                          \
+    if((_is_dcpl = H5P_isa_class(PLIST_ID, H5P_DATASET_CREATE)) < 0)           \
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTREGISTER, ERR, "unable to compare property list classes") \
+    if(_is_dcpl) {                                                             \
+        /* Get the plist structure (we already know it's a property list) */   \
+        if(NULL == (_plist = (H5P_genplist_t *) H5I_object(PLIST_ID)))         \
+            HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, ERR, "can't find object for ID") \
+                                                                               \
+        /* Get the filter pipeline from the dcpl */                            \
+        if((H5P_dcpl_get_pline(_plist, &(PLINE))) == ERR)                      \
+            HGOTO_ERROR(H5E_PLINE, H5E_CANTINIT, ERR, "can't get pipeline from dcpl") \
+    } else {                                                                   \
+        /* Get the plist structure, and verify it's a gcpl */                  \
+        if(NULL == (_plist = H5P_object_verify(PLIST_ID, H5P_GROUP_CREATE)))   \
+            HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, ERR, "can't find object for ID") \
+                                                                               \
+        /* Get the filter pipeline from the gcpl */                            \
+        if((H5P_gcpl_get_pline(_plist, &(PLINE))) == ERR)                      \
+            HGOTO_ERROR(H5E_PLINE, H5E_CANTINIT, ERR, "can't get pipeline from gcpl") \
+    } /* end else */
+
+/* H5P_OCPL_SET_PLINE: Sets the pipeline, PLINE on the property list passed to
+ * H5P_OCPL_GET_PLINE. */
+#define H5P_OCPL_SET_PLINE(PLINE, ERR)                                        \
+    if(_is_dcpl) {                                                             \
+        /* Set the filter pipeline on the dcpl */                              \
+        if((H5P_dcpl_set_pline(_plist, &(PLINE))) == ERR)                      \
+            HGOTO_ERROR(H5E_PLINE, H5E_CANTINIT, ERR, "can't get pipeline from dcpl") \
+    } else                                                                     \
+        /* Set the filter pipeline on the gcpl */                              \
+        if((H5P_gcpl_set_pline(_plist, &(PLINE))) == ERR)                      \
+            HGOTO_ERROR(H5E_PLINE, H5E_CANTINIT, ERR, "can't get pipeline from gcpl")
+
+/* H5P_OCPL_CLOSE_PLINE: Closes the scope from H5P_OCPL_GET_PLINE. */
+#define H5P_OCPL_CLOSE_PLINE                                            \
+} /* end scope from H5P_OCPL_FILTER_START */
 
 /******************/
 /* Local Typedefs */
@@ -436,4 +483,748 @@ H5Pget_obj_track_times(hid_t plist_id, hbool_t *track_times)
 done:
     FUNC_LEAVE_API(ret_value)
 } /* end H5Pget_obj_track_times() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    H5Pmodify_filter
+ *
+ * Purpose:     Modifies the specified FILTER in the
+ *              transient or permanent output filter pipeline
+ *              depending on whether PLIST is a dataset creation or dataset
+ *              transfer property list.  The FLAGS argument specifies certain
+ *              general properties of the filter and is documented below.
+ *              The CD_VALUES is an array of CD_NELMTS integers which are
+ *              auxiliary data for the filter.  The integer vlues will be
+ *              stored in the dataset object header as part of the filter
+ *              information.
+ *
+ *              The FLAGS argument is a bit vector of the following fields:
+ *
+ *              H5Z_FLAG_OPTIONAL(0x0001)
+ *              If this bit is set then the filter is optional.  If the
+ *              filter fails during an H5Dwrite() operation then the filter
+ *              is just excluded from the pipeline for the chunk for which it
+ *              failed; the filter will not participate in the pipeline
+ *              during an H5Dread() of the chunk.  If this bit is clear and
+ *              the filter fails then the entire I/O operation fails.
+ *      If this bit is set but encoding is disabled for a filter,
+ *      attempting to write will generate an error.
+ *
+ * Note:        This function currently supports only the permanent filter
+ *              pipeline.  That is, PLIST_ID must be a dataset creation
+ *              property list.
+ *
+ * Return:      Non-negative on success/Negative on failure
+ *
+ * Programmer:  Quincey Koziol
+ *              Friday, April  5, 2003
+ *
+ * Modifications:
+ *
+ *              Neil Fortner
+ *              Thursday, March 26, 2009
+ *              Overloaded to accept gcpl's as well as dcpl's and moved to
+ *              H5Pocpl.c
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5Pmodify_filter(hid_t plist_id, H5Z_filter_t filter, unsigned int flags,
+               size_t cd_nelmts, const unsigned int cd_values[/*cd_nelmts*/])
+{
+    H5O_pline_t         pline;          /* Filter pipeline */
+    herr_t ret_value = SUCCEED;         /* return value */
+
+    FUNC_ENTER_API(H5Pmodify_filter, FAIL)
+    H5TRACE5("e", "iZfIuz*[a3]Iu", plist_id, filter, flags, cd_nelmts, cd_values);
+
+    /* Check args */
+    if (filter<0 || filter>H5Z_FILTER_MAX)
+        HGOTO_ERROR (H5E_ARGS, H5E_BADVALUE, FAIL, "invalid filter identifier")
+    if (flags & ~((unsigned)H5Z_FLAG_DEFMASK))
+        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "invalid flags")
+    if (cd_nelmts>0 && !cd_values)
+        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "no client data values supplied")
+
+    /* Get the pipeline from the appropriate type of property list */
+    H5P_OCPL_GET_PLINE(plist_id, pline, FAIL)
+
+    /* Modify the filter parameters of the I/O pipeline */
+    if(H5Z_modify(&pline, filter, flags, cd_nelmts, cd_values) < 0)
+        HGOTO_ERROR(H5E_PLINE, H5E_CANTINIT, FAIL, "unable to add filter to pipeline")
+
+    /* Set the modified pipeline on the property list, and close the scope from
+     * H5P_OCPL_GET_PLINE */
+    H5P_OCPL_SET_PLINE(pline, FAIL)
+    H5P_OCPL_CLOSE_PLINE
+
+done:
+    FUNC_LEAVE_API(ret_value)
+} /* end H5Pmodify_filter() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5Pset_filter
+ *
+ * Purpose:	Adds the specified FILTER and corresponding properties to the
+ *		end of the data or link output filter pipeline
+ *		depending on whether PLIST is a dataset creation or group
+ *		creation property list.  The FLAGS argument specifies certain
+ *		general properties of the filter and is documented below.
+ *		The CD_VALUES is an array of CD_NELMTS integers which are
+ *		auxiliary data for the filter.  The integer vlues will be
+ *		stored in the dataset object header as part of the filter
+ *		information.
+ *
+ * 		The FLAGS argument is a bit vector of the following fields:
+ *
+ * 		H5Z_FLAG_OPTIONAL(0x0001)
+ *		If this bit is set then the filter is optional.  If the
+ *		filter fails during an H5Dwrite() operation then the filter
+ *		is just excluded from the pipeline for the chunk for which it
+ *		failed; the filter will not participate in the pipeline
+ *		during an H5Dread() of the chunk.  If this bit is clear and
+ *		the filter fails then the entire I/O operation fails.
+ *      If this bit is set but encoding is disabled for a filter,
+ *      attempting to write will generate an error.
+ *
+ * Return:	Non-negative on success/Negative on failure
+ *
+ * Programmer:	Robb Matzke
+ *              Wednesday, April 15, 1998
+ *
+ * Modifications:
+ *
+ *              Raymond Lu
+ *              Tuesday, October 2, 2001
+ *              Changed the way to check parameter and set property for
+ *              generic property list.
+ *
+ *              Neil Fortner
+ *              Wednesday, May 20, 2009
+ *              Overloaded to accept gcpl's as well as dcpl's and moved to
+ *              H5Pocpl.c
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5Pset_filter(hid_t plist_id, H5Z_filter_t filter, unsigned int flags,
+	       size_t cd_nelmts, const unsigned int cd_values[/*cd_nelmts*/])
+{
+    H5O_pline_t     pline;              /* Filter pipeline */
+    herr_t          ret_value=SUCCEED;  /* return value */
+
+    FUNC_ENTER_API(H5Pset_filter, FAIL)
+    H5TRACE5("e", "iZfIuz*[a3]Iu", plist_id, filter, flags, cd_nelmts, cd_values);
+
+    /* Check args */
+    if (filter<0 || filter>H5Z_FILTER_MAX)
+        HGOTO_ERROR (H5E_ARGS, H5E_BADVALUE, FAIL, "invalid filter identifier")
+    if (flags & ~((unsigned)H5Z_FLAG_DEFMASK))
+        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "invalid flags")
+    if (cd_nelmts>0 && !cd_values)
+        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "no client data values supplied")
+
+    /* Get the pipeline from the appropriate type of property list */
+    H5P_OCPL_GET_PLINE(plist_id, pline, FAIL)
+
+    /* Add the filter to the I/O pipeline */
+    if(H5Z_append(&pline, filter, flags, cd_nelmts, cd_values) < 0)
+        HGOTO_ERROR(H5E_PLINE, H5E_CANTINIT, FAIL, "unable to add filter to pipeline")
+
+    /* Set the modified pipeline on the property list, and close the scope from
+     * H5P_OCPL_GET_PLINE */
+    H5P_OCPL_SET_PLINE(pline, FAIL)
+    H5P_OCPL_CLOSE_PLINE
+
+done:
+    FUNC_LEAVE_API(ret_value)
+} /* end H5Pset_filter() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5Pget_nfilters
+ *
+ * Purpose:	Returns the number of filters in the data or link
+ *		pipeline depending on whether PLIST_ID is a dataset creation
+ *		or group creation property list.  In each pipeline the
+ *		filters are numbered from zero through N-1 where N is the
+ *		value returned by this function.  During output to the file
+ *		the filters of a pipeline are applied in increasing order
+ *		(the inverse is true for input).
+ *
+ * Return:	Success:	Number of filters or zero if there are none.
+ *
+ *		Failure:	Negative
+ *
+ * Programmer:	Robb Matzke
+ *              Tuesday, August  4, 1998
+ *
+ * Modifications:
+ *
+ *              Neil Fortner
+ *              Wednesday, May 20, 2009
+ *              Overloaded to accept gcpl's as well as dcpl's and moved to
+ *              H5Pocpl.c
+ *
+ *-------------------------------------------------------------------------
+ */
+int
+H5Pget_nfilters(hid_t plist_id)
+{
+    H5O_pline_t     pline;          /* Filter pipeline */
+    int             ret_value;      /* return value */
+
+    FUNC_ENTER_API(H5Pget_nfilters, FAIL)
+    H5TRACE1("Is", "i", plist_id);
+
+    /* Get the pipeline from the appropriate type of property list */
+    H5P_OCPL_GET_PLINE(plist_id, pline, FAIL)
+
+    /* Set return value */
+    ret_value=(int)(pline.nused);
+
+    /* Close the scope from H5P_OCPL_GET_PLINE */
+    H5P_OCPL_CLOSE_PLINE
+
+done:
+    FUNC_LEAVE_API(ret_value)
+} /* end H5Pget_nfilters */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5Pget_filter2
+ *
+ * Purpose:	This is the query counterpart of H5Pset_filter() and returns
+ *		information about a particular filter number in a permanent
+ *		or transient pipeline depending on whether PLIST_ID is a
+ *		dataset creation or transfer property list.  On input,
+ *		CD_NELMTS indicates the number of entries in the CD_VALUES
+ *		array allocated by the caller while on exit it contains the
+ *		number of values defined by the filter.  FILTER_CONFIG is a bit
+ *      field contaning encode/decode flags from H5Zpublic.h.  The IDX
+ *      should be a value between zero and N-1 as described for
+ *      H5Pget_nfilters() and the function will return failure if the
+ *      filter number is out of range.
+ *
+ * Return:	Success:	Filter identification number.
+ *
+ *		Failure:	H5Z_FILTER_ERROR (Negative)
+ *
+ * Programmer:	Robb Matzke
+ *              Wednesday, April 15, 1998
+ *
+ * Modifications:
+ *
+ *              Neil Fortner
+ *              Wednesday, May 20, 2009
+ *              Overloaded to accept gcpl's as well as dcpl's and moved to
+ *              H5Pocpl.c
+ *
+ *-------------------------------------------------------------------------
+ */
+H5Z_filter_t
+H5Pget_filter2(hid_t plist_id, unsigned idx, unsigned int *flags/*out*/,
+	       size_t *cd_nelmts/*in_out*/, unsigned cd_values[]/*out*/,
+	       size_t namelen, char name[]/*out*/,
+               unsigned *filter_config /*out*/)
+{
+    H5O_pline_t     pline;              /* Filter pipeline */
+    const H5Z_filter_info_t *filter;    /* Pointer to filter information */
+    H5Z_filter_t    ret_value;          /* return value */
+
+    FUNC_ENTER_API(H5Pget_filter2, H5Z_FILTER_ERROR)
+    H5TRACE8("Zf", "iIux*zxzxx", plist_id, idx, flags, cd_nelmts, cd_values,
+             namelen, name, filter_config);
+
+    /* Check args */
+    if(cd_nelmts || cd_values) {
+        /*
+         * It's likely that users forget to initialize this on input, so
+         * we'll check that it has a reasonable value.  The actual number
+         * is unimportant because the H5O layer will detect when a message
+         * is too large.
+         */
+        if(cd_nelmts && *cd_nelmts > 256)
+            HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, H5Z_FILTER_ERROR, "probable uninitialized *cd_nelmts argument")
+        if(cd_nelmts && *cd_nelmts > 0 && !cd_values)
+            HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, H5Z_FILTER_ERROR, "client data values not supplied")
+
+        /*
+         * If cd_nelmts is null but cd_values is non-null then just ignore
+         * cd_values
+         */
+        if(!cd_nelmts)
+            cd_values = NULL;
+    } /* end if */
+
+    /* Get the pipeline from the appropriate type of property list */
+    H5P_OCPL_GET_PLINE(plist_id, pline, FAIL)
+
+    /* Check index */
+    if(idx >= pline.nused)
+        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, H5Z_FILTER_ERROR, "filter number is invalid")
+
+    /* Set pointer to particular filter to query */
+    filter = &pline.filter[idx];
+
+    /* Get filter information */
+    if(H5P_get_filter(filter, flags, cd_nelmts, cd_values, namelen, name, filter_config) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, H5Z_FILTER_ERROR, "can't get filter info")
+
+    /* Set return value */
+    ret_value = filter->id;
+
+    /* Close the scope from H5P_OCPL_GET_PLINE */
+    H5P_OCPL_CLOSE_PLINE
+
+done:
+    FUNC_LEAVE_API(ret_value)
+} /* end H5Pget_filter2() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5Pget_filter_by_id2
+ *
+ * Purpose:	This is an additional query counterpart of H5Pset_filter() and
+ *              returns information about a particular filter in a permanent
+ *		or transient pipeline depending on whether PLIST_ID is a
+ *		dataset creation or transfer property list.  On input,
+ *		CD_NELMTS indicates the number of entries in the CD_VALUES
+ *		array allocated by the caller while on exit it contains the
+ *		number of values defined by the filter.  FILTER_CONFIG is a bit
+ *      field contaning encode/decode flags from H5Zpublic.h.  The ID
+ *      should be the filter ID to retrieve the parameters for.  If the
+ *      filter is not set for the property list, an error will be returned.
+ *
+ * Return:	Success:	Non-negative
+ *		Failure:	Negative
+ *
+ * Programmer:	Quincey Koziol
+ *              Friday, April  5, 2003
+ *
+ * Modifications:
+ *
+ *              Neil Fortner
+ *              Thursday, May 21, 2009
+ *              Overloaded to accept gcpl's as well as dcpl's and moved to
+ *              H5Pocpl.c
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5Pget_filter_by_id2(hid_t plist_id, H5Z_filter_t id, unsigned int *flags/*out*/,
+    size_t *cd_nelmts/*in_out*/, unsigned cd_values[]/*out*/,
+    size_t namelen, char name[]/*out*/, unsigned *filter_config)
+{
+    H5O_pline_t     pline;                  /* Filter pipeline */
+    const H5Z_filter_info_t *filter;        /* Pointer to filter information */
+    herr_t          ret_value = SUCCEED;    /* Return value */
+
+    FUNC_ENTER_API(H5Pget_filter_by_id2, FAIL)
+    H5TRACE8("e", "iZfx*zxzx*Iu", plist_id, id, flags, cd_nelmts, cd_values,
+             namelen, name, filter_config);
+
+    /* Check args */
+    if(cd_nelmts || cd_values) {
+        /*
+         * It's likely that users forget to initialize this on input, so
+         * we'll check that it has a reasonable value.  The actual number
+         * is unimportant because the H5O layer will detect when a message
+         * is too large.
+         */
+        if(cd_nelmts && *cd_nelmts > 256)
+            HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "probable uninitialized *cd_nelmts argument")
+        if(cd_nelmts && *cd_nelmts > 0 && !cd_values)
+            HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "client data values not supplied")
+
+        /*
+         * If cd_nelmts is null but cd_values is non-null then just ignore
+         * cd_values
+         */
+        if(!cd_nelmts)
+            cd_values = NULL;
+    } /* end if */
+
+    /* Get the pipeline from the appropriate type of property list */
+    H5P_OCPL_GET_PLINE(plist_id, pline, FAIL)
+
+    /* Get pointer to filter in pipeline */
+    if(NULL == (filter = H5Z_filter_info(&pline, id)))
+        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "filter ID is invalid")
+
+    /* Get filter information */
+    if(H5P_get_filter(filter, flags, cd_nelmts, cd_values, namelen, name, filter_config) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, H5Z_FILTER_ERROR, "can't get filter info")
+
+    /* Close the scope from H5P_OCPL_GET_PLINE */
+    H5P_OCPL_CLOSE_PLINE
+
+done:
+    FUNC_LEAVE_API(ret_value)
+} /* end H5Pget_filter_by_id2() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5Pall_filters_avail
+ *
+ * Purpose:	This is a query routine to verify that all the filters set
+ *              in the dataset creation property list are available currently.
+ *
+ * Return:	Success:	TRUE if all filters available, FALSE if one or
+ *                              more filters not currently available.
+ *		Failure:	FAIL on error
+ *
+ * Programmer:	Quincey Koziol
+ *              Tuesday, April  8, 2003
+ *
+ * Modifications:
+ *
+ *              Neil Fortner
+ *              Thursday, May 21, 2009
+ *              Overloaded to accept gcpl's as well as dcpl's and moved to
+ *              H5Pocpl.c
+ *
+ *-------------------------------------------------------------------------
+ */
+htri_t
+H5Pall_filters_avail(hid_t plist_id)
+{
+    H5O_pline_t     pline;          /* Filter pipeline */
+    htri_t          ret_value;      /* Return value */
+
+    FUNC_ENTER_API(H5Pall_filters_avail, FAIL)
+    H5TRACE1("t", "i", plist_id);
+
+    /* Get the pipeline from the appropriate type of property list */
+    H5P_OCPL_GET_PLINE(plist_id, pline, FAIL)
+
+    /* Check if all filters are available */
+    if((ret_value = H5Z_all_filters_avail(&pline)) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_NOTFOUND, FAIL, "can't check pipeline information")
+
+    /* Close the scope from H5P_OCPL_GET_PLINE */
+    H5P_OCPL_CLOSE_PLINE
+
+done:
+    FUNC_LEAVE_API(ret_value)
+} /* end H5Pall_filters_avail() */
+
+
+/*-------------------------------------------------------------------------
+ * Function: H5Premove_filter
+ *
+ * Purpose: Deletes a filter from the dataset creation property list;
+ *  deletes all filters if FILTER is H5Z_FILTER_NONE
+ *
+ * Return: Non-negative on success/Negative on failure
+ *
+ * Programmer:  Pedro Vicente
+ *              January 26, 2004
+ *
+ * Modifications:
+ *
+ *              Neil Fortner
+ *              Thursday, May 21, 2009
+ *              Overloaded to accept gcpl's as well as dcpl's and moved to
+ *              H5Pocpl.c
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5Premove_filter(hid_t plist_id, H5Z_filter_t filter)
+{
+    H5O_pline_t     pline;                  /* Filter pipeline */
+    herr_t          ret_value = SUCCEED;    /* return value          */
+
+    FUNC_ENTER_API(H5Premove_filter, FAIL)
+    H5TRACE2("e", "iZf", plist_id, filter);
+
+    /* Get the pipeline from the appropriate type of property list */
+    H5P_OCPL_GET_PLINE(plist_id, pline, FAIL)
+
+    /* Check if there are any filters */
+    if (pline.filter) {
+        /* Delete filter */
+        if(H5Z_delete(&pline, filter) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, H5Z_FILTER_ERROR, "can't delete filter")
+
+        /* Set the modified pipeline on the property list */
+        H5P_OCPL_SET_PLINE(pline, FAIL)
+    } /* end if */
+
+    /* Close the scope from H5P_OCPL_GET_PLINE */
+    H5P_OCPL_CLOSE_PLINE
+
+done:
+    FUNC_LEAVE_API(ret_value)
+} /* end H5Premove_filter() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    H5Pset_deflate
+ *
+ * Purpose:     Sets the compression method for a dataset or group link
+ *              filter pipeline (depending on whether PLIST_ID is a dataset
+ *              creation or group creation property list) to H5Z_FILTER_DEFLATE
+ *              and the compression level to LEVEL which should be a value
+ *              between zero and nine, inclusive.  Lower compression levels
+ *              are faster but result in less compression.  This is the same
+ *              algorithm as used by the GNU gzip program.
+ *
+ * Return:      Non-negative on success/Negative on failure
+ *
+ * Programmer:	Robb Matzke
+ *              Wednesday, April 15, 1998
+ *
+ * Modifications:
+ *
+ *              Raymond Lu
+ *              Tuesday, October 2, 2001
+ *              Changed the way to check parameter and set property for
+ *              generic property list.
+ *
+ *              Neil Fortner
+ *              Thursday, March 26, 2009
+ *              Overloaded to accept gcpl's as well as dcpl's and moved to
+ *              H5Pocpl.c
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5Pset_deflate(hid_t plist_id, unsigned level)
+{
+    H5O_pline_t     pline;                  /* Filter pipeline */
+    herr_t          ret_value = SUCCEED;    /* return value */
+
+    FUNC_ENTER_API(H5Pset_deflate, FAIL)
+    H5TRACE2("e", "iIu", plist_id, level);
+
+    /* Check arguments */
+    if(level > 9)
+        HGOTO_ERROR (H5E_ARGS, H5E_BADVALUE, FAIL, "invalid deflate level")
+
+    /* Get the pipeline from the appropriate type of property list */
+    H5P_OCPL_GET_PLINE(plist_id, pline, FAIL)
+
+    /* Add the filter */
+    if(H5Z_append(&pline, H5Z_FILTER_DEFLATE, H5Z_FLAG_OPTIONAL, (size_t)1, &level) < 0)
+        HGOTO_ERROR(H5E_PLINE, H5E_CANTINIT, FAIL, "unable to add deflate filter to pipeline")
+
+    /* Set the modified pipeline on the property list, and close the scope from
+     * H5P_OCPL_GET_PLINE */
+    H5P_OCPL_SET_PLINE(pline, FAIL)
+    H5P_OCPL_CLOSE_PLINE
+
+done:
+    FUNC_LEAVE_API(ret_value)
+} /* end H5Pset_deflate() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    H5Pset_fletcher32
+ *
+ * Purpose:     Sets Fletcher32 checksum of EDC for a dataset creation
+ *              property list or group creation property list.
+ *
+ * Return:      Non-negative on success/Negative on failure
+ *
+ * Programmer:	Raymond Lu
+ *              Dec 19, 2002
+ *
+ * Modifications:
+ *
+ *              Neil Fortner
+ *              Wednesday, May 6, 2009
+ *              Overloaded to accept gcpl's as well as dcpl's and moved to
+ *              H5Pocpl.c
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5Pset_fletcher32(hid_t plist_id)
+{
+    H5O_pline_t     pline;              /* Filter pipeline */
+    herr_t          ret_value=SUCCEED;  /* return value */
+
+    FUNC_ENTER_API(H5Pset_fletcher32, FAIL)
+    H5TRACE1("e", "i", plist_id);
+
+    /* Get the pipeline from the appropriate type of property list */
+    H5P_OCPL_GET_PLINE(plist_id, pline, FAIL)
+
+    /* Add the Fletcher32 checksum as a filter */
+    if(H5Z_append(&pline, H5Z_FILTER_FLETCHER32, H5Z_FLAG_MANDATORY, (size_t)0, NULL) < 0)
+        HGOTO_ERROR(H5E_PLINE, H5E_CANTINIT, FAIL, "unable to add fletcher32 filter to pipeline")
+
+    /* Set the modified pipeline on the property list, and close the scope from
+     * H5P_OCPL_GET_PLINE */
+    H5P_OCPL_SET_PLINE(pline, FAIL)
+    H5P_OCPL_CLOSE_PLINE
+
+done:
+    FUNC_LEAVE_API(ret_value)
+} /* end H5Pset_fletcher32() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5P_get_filter
+ *
+ * Purpose:	Internal component of H5Pget_filter & H5Pget_filter_id
+ *
+ * Return:	Non-negative on success/Negative on failure
+ *
+ * Programmer:	Quincey Koziol
+ *              Monday, October 23, 2006
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5P_get_filter(const H5Z_filter_info_t *filter, unsigned int *flags/*out*/,
+    size_t *cd_nelmts/*in_out*/, unsigned cd_values[]/*out*/,
+    size_t namelen, char name[]/*out*/,
+    unsigned *filter_config /*out*/)
+{
+    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5P_get_filter)
+
+    /* Check arguments */
+    HDassert(filter);
+
+    /* Filter flags */
+    if(flags)
+        *flags = filter->flags;
+
+    /* Filter parameters */
+    if(cd_values) {
+        size_t	i;                      /* Local index variable */
+
+        for(i = 0; i < filter->cd_nelmts && i < *cd_nelmts; i++)
+            cd_values[i] = filter->cd_values[i];
+    } /* end if */
+
+    /* Number of filter parameters */
+    if(cd_nelmts)
+        *cd_nelmts = filter->cd_nelmts;
+
+    /* Filter name */
+    if(namelen > 0 && name) {
+        const char *s = filter->name;
+
+        /* If there's no name on the filter, use the class's filter name */
+        if(!s) {
+            H5Z_class2_t *cls = H5Z_find(filter->id);
+
+            if(cls)
+                s = cls->name;
+        } /* end if */
+
+        /* Check for actual name */
+        if(s) {
+            HDstrncpy(name, s, namelen);
+            name[namelen - 1] = '\0';
+        } /* end if */
+        else {
+            /* Check for unknown library filter */
+            /* (probably from a future version of the library) */
+            if(filter->id < 256) {
+                HDstrncpy(name, "Unknown library filter", namelen);
+                name[namelen - 1] = '\0';
+            } /* end if */
+            else
+                name[0] = '\0';
+        } /* end if */
+    } /* end if */
+
+    /* Filter configuration (assume filter ID has already been checked) */
+    if(filter_config)
+        H5Zget_filter_info(filter->id, filter_config);
+
+    FUNC_LEAVE_NOAPI(SUCCEED)
+} /* end H5P_get_filter() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:       H5P_pipeline_cmp
+ *
+ * Purpose:        Callback routine which is called whenever a filter pipeline
+ *                 property in a property list is compared.
+ *
+ * Return:         positive if VALUE1 is greater than VALUE2, negative if
+ *                      VALUE2 is greater than VALUE1 and zero if VALUE1 and
+ *                      VALUE2 are equal.
+ *
+ * Programmer:     Quincey Koziol
+ *                 Wednesday, January 7, 2004
+ *
+ *-------------------------------------------------------------------------
+ */
+int
+H5P_pipeline_cmp(const void *_pline1, const void *_pline2, size_t UNUSED size)
+{
+    const H5O_pline_t *pline1 = (const H5O_pline_t *)_pline1,     /* Create local aliases for values */
+        *pline2 = (const H5O_pline_t *)_pline2;
+    int cmp_value;              /* Value from comparison */
+    herr_t ret_value = 0; /* Return value */
+
+    FUNC_ENTER_NOAPI_NOFUNC(H5P_pipeline_cmp)
+
+    /* Sanity check */
+    HDassert(pline1);
+    HDassert(pline2);
+    HDassert(size == sizeof(H5O_pline_t));
+
+    /* Check the number of allocated pipeline entries */
+    if(pline1->nalloc < pline2->nalloc) HGOTO_DONE(-1);
+    if(pline1->nalloc > pline2->nalloc) HGOTO_DONE(1);
+
+    /* Check the number of used pipeline entries */
+    if(pline1->nused < pline2->nused) HGOTO_DONE(-1);
+    if(pline1->nused > pline2->nused) HGOTO_DONE(1);
+
+    /* Check the filter entry information */
+    if(pline1->filter == NULL && pline2->filter != NULL) HGOTO_DONE(-1);
+    if(pline1->filter != NULL && pline2->filter == NULL) HGOTO_DONE(1);
+    if(pline1->filter != NULL && pline1->nused > 0) {
+        size_t u;       /* Local index variable */
+
+        /* Loop through all filters, comparing them */
+        for(u = 0; u < pline1->nused; u++) {
+            /* Check the ID of the filter */
+            if(pline1->filter[u].id < pline2->filter[u].id) HGOTO_DONE(-1);
+            if(pline1->filter[u].id > pline2->filter[u].id) HGOTO_DONE(1);
+
+            /* Check the flags for the filter */
+            if(pline1->filter[u].flags < pline2->filter[u].flags) HGOTO_DONE(-1);
+            if(pline1->filter[u].flags > pline2->filter[u].flags) HGOTO_DONE(1);
+
+            /* Check the name of the filter */
+            if(pline1->filter[u].name == NULL && pline2->filter[u].name != NULL) HGOTO_DONE(-1);
+            if(pline1->filter[u].name != NULL && pline2->filter[u].name == NULL) HGOTO_DONE(1);
+            if(pline1->filter[u].name != NULL)
+                if((cmp_value = HDstrcmp(pline1->filter[u].name, pline2->filter[u].name)) != 0)
+                    HGOTO_DONE(cmp_value);
+
+            /* Check the number of parameters for the filter */
+            if(pline1->filter[u].cd_nelmts < pline2->filter[u].cd_nelmts) HGOTO_DONE(-1);
+            if(pline1->filter[u].cd_nelmts > pline2->filter[u].cd_nelmts) HGOTO_DONE(1);
+
+            /* Check the filter parameter information */
+            if(pline1->filter[u].cd_values == NULL && pline2->filter[u].cd_values != NULL) HGOTO_DONE(-1);
+            if(pline1->filter[u].cd_values != NULL && pline2->filter[u].cd_values == NULL) HGOTO_DONE(1);
+            if(pline1->filter[u].cd_values != NULL && pline1->filter[u].cd_nelmts > 0) {
+                size_t v;       /* Local index variable */
+
+                /* Loop through all parameters, comparing them */
+                for(v = 0; v < pline1->filter[u].cd_nelmts; v++) {
+                    /* Check each parameter for the filter */
+                    if(pline1->filter[u].cd_values[v] < pline2->filter[u].cd_values[v]) HGOTO_DONE(-1);
+                    if(pline1->filter[u].cd_values[v] > pline2->filter[u].cd_values[v]) HGOTO_DONE(1);
+                } /* end for */
+            } /* end if */
+        } /* end for */
+    } /* end if */
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5P_pipeline_cmp() */
 

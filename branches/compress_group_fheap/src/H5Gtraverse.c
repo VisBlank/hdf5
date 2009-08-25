@@ -709,13 +709,13 @@ H5G_traverse_real(const H5G_loc_t *_loc, const char *name, unsigned target,
         if(!lookup_status) {
             /* If an intermediate group doesn't exist & flag is set, create the group */
             if(target & H5G_CRT_INTMD_GROUP) {
-                const H5O_ginfo_t def_ginfo = H5G_CRT_GROUP_INFO_DEF;   /* Default group info settings */
+                H5O_ginfo_t def_ginfo = H5G_CRT_GROUP_INFO_DEF;         /* Default group info settings */
                 const H5O_linfo_t def_linfo = H5G_CRT_LINK_INFO_DEF;    /* Default link info settings */
                 H5O_ginfo_t	par_ginfo;	/* Group info settings for parent group */
                 H5O_linfo_t	par_linfo;	/* Link info settings for parent group */
                 H5O_linfo_t	tmp_linfo;	/* Temporary link info settings */
                 htri_t          exists;         /* Whether a group or link info message exists */
-                const H5O_ginfo_t *ginfo;	/* Group info settings for new group */
+                H5O_ginfo_t *ginfo;	        /* Group info settings for new group */
                 const H5O_linfo_t *linfo;	/* Link info settings for new group */
 
                 /* Check for the parent group having a group info message */

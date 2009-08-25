@@ -44,6 +44,19 @@
 /* Local Macros */
 /****************/
 
+/* Macro to check if we can apply all filters in the pipeline.  Use whenever
+ * performing a write operation */
+ #define H5HF_MAN_WRITE_CHECK_PLINE(HDR, ERR)                                  \
+{                                                                              \
+    if(!((HDR)->checked_filters)) {                                              \
+        if((HDR)->pline.nused)                                                \
+            if(H5Z_can_apply(-1, -1, &((HDR)->pline)) < 0)                       \
+                HGOTO_ERROR(H5E_ARGS, H5E_CANTINIT, ERR, "I/O filters can't operate on this heap") \
+                                                                               \
+        (HDR)->checked_filters = TRUE;                                         \
+    } /* end if */                                                             \
+}
+
 
 /******************/
 /* Local Typedefs */
@@ -115,6 +128,9 @@ HDfprintf(stderr, "%s: obj_size = %Zu\n", FUNC, obj_size);
     HDassert(obj_size > 0);
     HDassert(obj);
     HDassert(id);
+
+    /* Check pipeline */
+    H5HF_MAN_WRITE_CHECK_PLINE(hdr, FAIL)
 
     /* Look for free space */
     if((node_found = H5HF_space_find(hdr, dxpl_id, (hsize_t)obj_size, &sec_node)) < 0)
@@ -274,6 +290,8 @@ H5HF_man_op_real(H5HF_hdr_t *hdr, hid_t dxpl_id, const uint8_t *id,
     if(op_flags & H5HF_OP_MODIFY) {
         dblock_access = H5AC_WRITE;
         dblock_cache_flags = H5AC__DIRTIED_FLAG;
+        /* Check pipeline */
+        H5HF_MAN_WRITE_CHECK_PLINE(hdr, FAIL)
     } /* end if */
     else {
         dblock_access = H5AC_READ;
@@ -451,6 +469,9 @@ H5HF_man_write(H5HF_hdr_t *hdr, hid_t dxpl_id, const uint8_t *id,
     HDassert(id);
     HDassert(obj);
 
+    /* Check pipeline */
+    H5HF_MAN_WRITE_CHECK_PLINE(hdr, FAIL)
+
     /* Call the internal 'op' routine routine */
     /* (Casting away const OK - QAK) */
     if(H5HF_man_op_real(hdr, dxpl_id, id, H5HF_op_write, (void *)obj, H5HF_OP_MODIFY) < 0)
@@ -532,6 +553,9 @@ H5HF_man_remove(H5HF_hdr_t *hdr, hid_t dxpl_id, const uint8_t *id)
      */
     HDassert(hdr);
     HDassert(id);
+
+    /* Check pipeline */
+    H5HF_MAN_WRITE_CHECK_PLINE(hdr, FAIL)
 
     /* Skip over the flag byte */
     id++;

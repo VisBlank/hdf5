@@ -75,6 +75,16 @@ typedef enum H5B2_compare_t {
     H5B2_COMPARE_GREATER          /* Records with keys greater than query value */
 } H5B2_compare_t;
 
+/* Structure containing general info about a B-tree to use for setting udata and
+ * native record size */
+typedef struct H5B2_udata_info_t {
+    const H5F_t *f;             /* File the B-tree is in */
+    size_t      node_size;      /* Size of B-tree nodes, in bytes */
+    size_t      rrec_size;      /* Size of "raw" (on disk) record, in bytes */
+    unsigned    split_percent;  /* Percent full at which to split the node, when inserting */
+    unsigned    merge_percent;  /* Percent full at which to merge the node, when deleting */
+} H5B2_udata_info_t;
+
 /*
  * Each class of object that can be pointed to by a B-tree has a
  * variable of this type that contains class variables and methods.
@@ -82,23 +92,28 @@ typedef enum H5B2_compare_t {
 typedef struct H5B2_class_t H5B2_class_t;
 struct H5B2_class_t {
     H5B2_subid_t id;		/* ID of B-tree class, as found in file */
-    size_t nrec_size;           /* Size of native (memory) record */
+    size_t nrec_size_def;       /* Default size of native (memory) record */
 
-    /* Store & retrieve record from application to B-tree 'native' form */
-    herr_t (*store)(void *nrecord, const void *udata);                  /*  Store record in native record table */
-    herr_t (*retrieve)(void *udata, const void *nrecord);               /*  Retrieve record in native record table */
+    /* Set B-tree specific user data, and adjust native record size */
+    herr_t (*set_udata)(const H5B2_udata_info_t *info, size_t *nrec_size, void **udata);
+
+    /* Free B-tree specific user data */
+    herr_t (*free_udata)(void *udata);
+
+    /* Store record from application to B-tree 'native' form */
+    herr_t (*store)(void *nrecord, const void *udata, const void *store_udata); /*  Store record in native record table */
 
     /* Compare records, according to a key */
-    herr_t (*compare)(const void *rec1, const void *rec2);              /*  Compare two native records */
+    herr_t (*compare)(const void *rec1, const void *rec2, const void *udata); /*  Compare two native records */
 
     /* Encode & decode record values */
-    herr_t (*encode)(const H5F_t *f, uint8_t *raw, const void *record); /*  Encode record from native form to disk storage form */
-    herr_t (*decode)(const H5F_t *f, const uint8_t *raw, void *record); /*  Decode record from disk storage form to native form */
+    herr_t (*encode)(uint8_t *raw, const void *record, const void *udata); /*  Encode record from native form to disk storage form */
+    herr_t (*decode)(const uint8_t *raw, void *record, const void *udata); /*  Decode record from disk storage form to native form */
 
     /* Debug record values */
-    herr_t (*debug)(FILE *stream, const H5F_t *f, hid_t dxpl_id,        /* Print a record for debugging */
+    herr_t (*debug)(FILE *stream, hid_t dxpl_id,        /* Print a record for debugging */
         int indent, int fwidth, const void *record,
-        const void *udata);
+        const void *udata, const void *debug_udata);
 };
 
 /* v2 B-tree metadata statistics info */

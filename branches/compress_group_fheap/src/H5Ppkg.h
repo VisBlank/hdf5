@@ -178,6 +178,14 @@ H5_DLL char *H5P_get_class_path(H5P_genclass_t *pclass);
 H5_DLL H5P_genclass_t *H5P_open_class_path(const char *path);
 H5_DLL H5P_genclass_t *H5P_get_class_parent(const H5P_genclass_t *pclass);
 H5_DLL herr_t H5P_close_class(void *_pclass);
+H5_DLL herr_t H5P_get_filter(const H5Z_filter_info_t *filter,
+    unsigned int *flags, size_t *cd_nelmts, unsigned cd_values[],
+    size_t namelen, char name[], unsigned *filter_config);
+H5_DLL int H5P_pipeline_cmp(const void *value1, const void *value2, size_t size);
+H5_DLL herr_t H5P_dcpl_set_pline(H5P_genplist_t *plist, const H5O_pline_t *pline);
+H5_DLL herr_t H5P_dcpl_get_pline(const H5P_genplist_t *plist, H5O_pline_t *pline);
+H5_DLL herr_t H5P_gcpl_set_pline(H5P_genplist_t *plist, const H5O_pline_t *pline);
+H5_DLL herr_t H5P_gcpl_get_pline(const H5P_genplist_t *plist, H5O_pline_t *pline);
 
 /* Testing functions */
 #ifdef H5P_TESTING

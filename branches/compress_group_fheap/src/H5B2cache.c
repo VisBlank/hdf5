@@ -571,12 +571,12 @@ H5B2_cache_internal_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *_uda
     native = internal->int_native;
     for(u = 0; u < internal->nrec; u++) {
         /* Decode record */
-        if((shared->type->decode)(f, p, native) < 0)
+        if((shared->type->decode)(p, native, shared->udata) < 0)
             HGOTO_ERROR(H5E_BTREE, H5E_CANTDECODE, NULL, "unable to decode B-tree record")
 
         /* Move to next record */
         p += shared->rrec_size;
-        native += shared->type->nrec_size;
+        native += shared->nrec_size;
     } /* end for */
 
     /* Deserialize node pointers for internal node */
@@ -676,12 +676,12 @@ H5B2_cache_internal_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr
         native = internal->int_native;
         for(u = 0; u < internal->nrec; u++) {
             /* Encode record */
-            if((shared->type->encode)(f, p, native) < 0)
+            if((shared->type->encode)(p, native, shared->udata) < 0)
                 HGOTO_ERROR(H5E_BTREE, H5E_CANTENCODE, FAIL, "unable to encode B-tree record")
 
             /* Move to next record */
             p += shared->rrec_size;
-            native += shared->type->nrec_size;
+            native += shared->nrec_size;
         } /* end for */
 
         /* Serialize node pointers for internal node */
@@ -933,12 +933,12 @@ H5B2_cache_leaf_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *_nrec, v
     native = leaf->leaf_native;
     for(u = 0; u < leaf->nrec; u++) {
         /* Decode record */
-        if((shared->type->decode)(f, p, native) < 0)
+        if((shared->type->decode)(p, native, shared->udata) < 0)
             HGOTO_ERROR(H5E_BTREE, H5E_CANTENCODE, NULL, "unable to decode B-tree record")
 
         /* Move to next record */
         p += shared->rrec_size;
-        native += shared->type->nrec_size;
+        native += shared->nrec_size;
     } /* end for */
 
     /* Compute checksum on internal node */
@@ -1024,12 +1024,12 @@ H5B2_cache_leaf_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5
         native = leaf->leaf_native;
         for(u = 0; u < leaf->nrec; u++) {
             /* Encode record */
-            if((shared->type->encode)(f, p, native) < 0)
+            if((shared->type->encode)(p, native, shared->udata) < 0)
                 HGOTO_ERROR(H5E_BTREE, H5E_CANTENCODE, FAIL, "unable to encode B-tree record")
 
             /* Move to next record */
             p += shared->rrec_size;
-            native += shared->type->nrec_size;
+            native += shared->nrec_size;
         } /* end for */
 
         /* Compute metadata checksum */

@@ -965,11 +965,11 @@ H5D_create(H5F_t *file, hid_t type_id, const H5S_t *space, hid_t dcpl_id,
         H5O_fill_t      *fill;          /* Dataset's fill value info */
 
         /* Check if the filters in the DCPL can be applied to this dataset */
-        if(H5Z_can_apply(new_dset->shared->dcpl_id, new_dset->shared->type_id) < 0)
+        if(H5Z_can_apply(new_dset->shared->dcpl_id, new_dset->shared->type_id, NULL) < 0)
             HGOTO_ERROR(H5E_ARGS, H5E_CANTINIT, NULL, "I/O filters can't operate on this dataset")
 
         /* Make the "set local" filter callbacks for this dataset */
-        if(H5Z_set_local(new_dset->shared->dcpl_id, new_dset->shared->type_id) < 0)
+        if(H5Z_set_local(new_dset->shared->dcpl_id, new_dset->shared->type_id, NULL) < 0)
             HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, NULL, "unable to set local filter parameters")
 
         /* Get new dataset's property list object */
@@ -1009,7 +1009,7 @@ H5D_create(H5F_t *file, hid_t type_id, const H5S_t *space, hid_t dcpl_id,
     /* Set the latest version of the layout, pline & fill messages, if requested */
     if(H5F_USE_LATEST_FORMAT(file)) {
         /* Set the latest version for the I/O pipeline message */
-        if(H5Z_set_latest_version(&new_dset->shared->dcpl_cache.pline) < 0)
+        if(H5O_pline_set_latest_version(&new_dset->shared->dcpl_cache.pline) < 0)
             HGOTO_ERROR(H5E_DATASET, H5E_CANTSET, NULL, "can't set latest version of I/O filter pipeline")
 
         /* Set the latest version for the fill value message */
@@ -2058,7 +2058,7 @@ H5D_check_filters(H5D_t *dataset)
             if(fill->fill_time == H5D_FILL_TIME_ALLOC ||
                     (fill->fill_time == H5D_FILL_TIME_IFSET && fill_status == H5D_FILL_VALUE_USER_DEFINED)) {
                 /* Filters must have encoding enabled. Ensure that all filters can be applied */
-                if(H5Z_can_apply(dataset->shared->dcpl_id, dataset->shared->type_id) < 0)
+                if(H5Z_can_apply(dataset->shared->dcpl_id, dataset->shared->type_id, NULL) < 0)
                     HGOTO_ERROR(H5E_PLINE, H5E_CANAPPLY, FAIL, "can't apply filters")
 
                 dataset->shared->checked_filters = TRUE;

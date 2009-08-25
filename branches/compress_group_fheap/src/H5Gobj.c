@@ -125,7 +125,7 @@ static herr_t H5G_obj_remove_update_linfo(H5O_loc_t *oloc, H5O_linfo_t *linfo,
  *-------------------------------------------------------------------------
  */
 herr_t
-H5G_obj_create(H5F_t *f, hid_t dxpl_id, const H5O_ginfo_t *ginfo,
+H5G_obj_create(H5F_t *f, hid_t dxpl_id, H5O_ginfo_t *ginfo,
     const H5O_linfo_t *linfo, hid_t gcpl_id, H5O_loc_t *oloc/*out*/)
 {
     size_t hdr_size;                    /* Size of object header to request */
@@ -147,7 +147,13 @@ H5G_obj_create(H5F_t *f, hid_t dxpl_id, const H5O_ginfo_t *ginfo,
 
     /* Check for using the latest version of the group format */
     /* (add more checks for creating "new format" groups when needed) */
-    if(H5F_USE_LATEST_FORMAT(f) || linfo->track_corder)
+    if(H5F_USE_LATEST_FORMAT(f) || ginfo->pline.nused || ginfo->store_fheap_cparam) {
+        use_latest_format = TRUE;
+
+        /* Upgrade ginfo message to latest to allow encoding of pipeline */
+        if(H5O_ginfo_set_latest_version(ginfo) < 0)
+            HGOTO_ERROR(H5E_LINK, H5E_CANTSET, FAIL, "can't upgrade group info encoding")
+    } else if(linfo->track_corder)
         use_latest_format = TRUE;
     else
         use_latest_format = FALSE;
@@ -424,8 +430,10 @@ H5G_obj_insert(const H5O_loc_t *grp_oloc, const char *name, H5O_link_t *obj_lnk,
             H5O_mesg_operator_t op;             /* Message operator */
 
             /* The group doesn't currently have "dense" storage for links */
-            if(H5G_dense_create(grp_oloc->file, dxpl_id, &linfo) < 0)
+            if(H5G_dense_create(grp_oloc->file, dxpl_id, &linfo, &ginfo) < 0) {
+                H5O_msg_reset(H5O_GINFO_ID, &ginfo);
                 HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, FAIL, "unable to create 'dense' form of new format group")
+            } /* end if */
 
             /* Set up user data for object header message iteration */
             udata.f = grp_oloc->file;
@@ -435,15 +443,23 @@ H5G_obj_insert(const H5O_loc_t *grp_oloc, const char *name, H5O_link_t *obj_lnk,
             /* Iterate over the 'link' messages, inserting them into the dense link storage  */
             op.op_type = H5O_MESG_OP_APP;
             op.u.app_op = H5G_obj_compact_to_dense_cb;
-            if(H5O_msg_iterate(grp_oloc, H5O_LINK_ID, &op, &udata, dxpl_id) < 0)
+            if(H5O_msg_iterate(grp_oloc, H5O_LINK_ID, &op, &udata, dxpl_id) < 0) {
+                H5O_msg_reset(H5O_GINFO_ID, &ginfo);
                 HGOTO_ERROR(H5E_SYM, H5E_NOTFOUND, FAIL, "error iterating over links")
+            } /* end if */
 
             /* Remove all the 'link' messages */
-            if(H5O_msg_remove(grp_oloc, H5O_LINK_ID, H5O_ALL, FALSE, dxpl_id) < 0)
+            if(H5O_msg_remove(grp_oloc, H5O_LINK_ID, H5O_ALL, FALSE, dxpl_id) < 0) {
+                H5O_msg_reset(H5O_GINFO_ID, &ginfo);
                 HGOTO_ERROR(H5E_SYM, H5E_CANTDELETE, FAIL, "unable to delete link messages")
+            } /* end if */
 
             use_new_dense = TRUE;
         } /* end else */
+
+        /* Free any space used by the ginfo message */
+        if(H5O_msg_reset(H5O_GINFO_ID, &ginfo) < 0)
+            HGOTO_ERROR(H5E_SYM, H5E_CANTFREE, FAIL, "can't release group info")
     } /* end if */
     else {
         /* Check for new-style link information */

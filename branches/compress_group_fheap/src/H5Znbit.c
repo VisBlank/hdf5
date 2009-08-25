@@ -789,7 +789,7 @@ H5Z_set_local_nbit(hid_t dcpl_id, hid_t type_id, hid_t space_id)
         HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "can't find object for ID")
 
     /* Get the filter's current parameters */
-    if(H5P_get_filter_by_id(dcpl_plist, H5Z_FILTER_NBIT, &flags, &cd_nelmts, cd_values, (size_t)0, NULL, NULL) < 0)
+    if(H5P_get_filter_by_id_dcpl(dcpl_plist, H5Z_FILTER_NBIT, &flags, &cd_nelmts, cd_values, (size_t)0, NULL, NULL) < 0)
 	HGOTO_ERROR(H5E_PLINE, H5E_CANTGET, FAIL, "can't get nbit parameters")
 
     /* Get dataspace */
@@ -840,7 +840,7 @@ H5Z_set_local_nbit(hid_t dcpl_id, hid_t type_id, hid_t space_id)
     cd_values[1] = need_not_compress;
 
     /* Modify the filter's parameters for this dataset */
-    if(H5P_modify_filter(dcpl_plist, H5Z_FILTER_NBIT, flags, cd_values_actual_nparms, cd_values) < 0)
+    if(H5P_modify_filter_dcpl(dcpl_plist, H5Z_FILTER_NBIT, flags, cd_values_actual_nparms, cd_values) < 0)
 	HGOTO_ERROR(H5E_PLINE, H5E_CANTSET, FAIL, "can't set local nbit parameters")
 
 done:

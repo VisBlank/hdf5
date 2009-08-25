@@ -168,6 +168,18 @@ H5B2_shared_init (H5F_t *f, H5B2_t *bt2, const H5B2_class_t *type,
     shared->merge_percent = merge_percent;
     shared->node_size = node_size;
     shared->rrec_size = rrec_size;
+    shared->nrec_size = type->nrec_size_def;
+    if(type->set_udata) {
+        H5B2_udata_info_t udata_info;
+
+        udata_info.f = f;
+        udata_info.node_size = node_size;
+        udata_info.rrec_size = rrec_size;
+        udata_info.split_percent = split_percent;
+        udata_info.merge_percent = merge_percent;
+        if((type->set_udata)(&udata_info, &(shared->nrec_size), &(shared->udata)) < 0)
+            HGOTO_ERROR(H5E_BTREE, H5E_CANTINIT, FAIL, "unable to set b-tree user data")
+    } /* end if */
 
     /* Assign common type information */
     shared->type = type;
@@ -190,7 +202,7 @@ HDmemset(shared->page, 0, shared->node_size);
     shared->node_info[0].merge_nrec = (shared->node_info[0].max_nrec * shared->merge_percent) / 100;
     shared->node_info[0].cum_max_nrec = shared->node_info[0].max_nrec;
     shared->node_info[0].cum_max_nrec_size = 0;
-    if((shared->node_info[0].nat_rec_fac = H5FL_fac_init(type->nrec_size * shared->node_info[0].max_nrec)) == NULL)
+    if((shared->node_info[0].nat_rec_fac = H5FL_fac_init(shared->nrec_size * shared->node_info[0].max_nrec)) == NULL)
 	HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINIT, FAIL, "can't create node native key block factory")
     shared->node_info[0].node_ptr_fac = NULL;
 
@@ -202,7 +214,7 @@ HDmemset(shared->page, 0, shared->node_size);
     /* Initialize offsets in native key block */
     /* (uses leaf # of records because its the largest) */
     for(u = 0; u < shared->node_info[0].max_nrec; u++)
-        shared->nat_off[u] = type->nrec_size * u;
+        shared->nat_off[u] = shared->nrec_size * u;
 
     /* Compute size to store # of records in each node */
     /* (uses leaf # of records because its the largest) */
@@ -225,7 +237,7 @@ HDmemset(shared->page, 0, shared->node_size);
             u_max_nrec_size = H5V_limit_enc_size((uint64_t)shared->node_info[u].cum_max_nrec);
             H5_ASSIGN_OVERFLOW(/* To: */ shared->node_info[u].cum_max_nrec_size, /* From: */ u_max_nrec_size, /* From: */ unsigned, /* To: */ uint8_t)
 
-            if((shared->node_info[u].nat_rec_fac = H5FL_fac_init(shared->type->nrec_size * shared->node_info[u].max_nrec)) == NULL)
+            if((shared->node_info[u].nat_rec_fac = H5FL_fac_init(shared->nrec_size * shared->node_info[u].max_nrec)) == NULL)
                 HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINIT, FAIL, "can't create node native key block factory")
             if((shared->node_info[u].node_ptr_fac = H5FL_fac_init(sizeof(H5B2_node_ptr_t) * (shared->node_info[u].max_nrec + 1))) == NULL)
                 HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINIT, FAIL, "can't create internal 'branch' node node pointer block factory")
@@ -295,6 +307,11 @@ H5B2_shared_free(void *_shared)
         shared->node_info = H5FL_SEQ_FREE(H5B2_node_info_t, shared->node_info);
     } /* end if */
 
+    /* Free the user data */
+    if(shared->type->free_udata)
+        if((shared->type->free_udata)(shared->udata) < 0)
+            HGOTO_ERROR(H5E_RESOURCE, H5E_CANTRELEASE, FAIL, "can't free B-tree user data")
+
     /* Free the shared B-tree info itself */
     shared = H5FL_FREE(H5B2_shared_t, shared);
 
@@ -326,7 +343,8 @@ done:
  */
 int
 H5B2_locate_record(const H5B2_class_t *type, unsigned nrec, size_t *rec_off,
-    const uint8_t *native, const void *udata, unsigned *idx)
+    const uint8_t *native, const void *udata, unsigned *idx,
+    const void *btree_udata)
 {
     unsigned	lo = 0, hi;     /* Low & high index values */
     unsigned    my_idx = 0;     /* Final index value */
@@ -337,7 +355,7 @@ H5B2_locate_record(const H5B2_class_t *type, unsigned nrec, size_t *rec_off,
     hi = nrec;
     while(lo < hi && cmp) {
 	my_idx = (lo + hi) / 2;
-	if((cmp = (type->compare)(udata, native + rec_off[my_idx])) < 0)
+	if((cmp = (type->compare)(udata, native + rec_off[my_idx], btree_udata)) < 0)
 	    hi = my_idx;
 	else
 	    lo = my_idx + 1;
@@ -392,7 +410,7 @@ H5B2_split1(H5F_t *f, hid_t dxpl_id, unsigned depth, H5B2_node_ptr_t *curr_node_
 
     /* Slide records in parent node up one space, to make room for promoted record */
     if(idx < internal->nrec) {
-        HDmemmove(H5B2_INT_NREC(internal, shared, idx + 1), H5B2_INT_NREC(internal, shared, idx), shared->type->nrec_size * (internal->nrec - idx));
+        HDmemmove(H5B2_INT_NREC(internal, shared, idx + 1), H5B2_INT_NREC(internal, shared, idx), shared->nrec_size * (internal->nrec - idx));
         HDmemmove(&(internal->node_ptrs[idx + 2]), &(internal->node_ptrs[idx + 1]), sizeof(H5B2_node_ptr_t) * (internal->nrec - idx));
     } /* end if */
 
@@ -463,7 +481,7 @@ H5B2_split1(H5F_t *f, hid_t dxpl_id, unsigned depth, H5B2_node_ptr_t *curr_node_
     /* Copy "upper half" of records to new child */
     HDmemcpy(H5B2_NAT_NREC(right_native, shared, 0),
             H5B2_NAT_NREC(left_native, shared, mid_record + 1),
-            shared->type->nrec_size * (old_node_nrec - (mid_record + 1)));
+            shared->nrec_size * (old_node_nrec - (mid_record + 1)));
 
     /* Copy "upper half" of node pointers, if the node is an internal node */
     if(depth > 1)
@@ -471,7 +489,7 @@ H5B2_split1(H5F_t *f, hid_t dxpl_id, unsigned depth, H5B2_node_ptr_t *curr_node_
                 sizeof(H5B2_node_ptr_t) * (old_node_nrec - mid_record));
 
     /* Copy "middle" record to internal node */
-    HDmemcpy(H5B2_INT_NREC(internal, shared, idx), H5B2_NAT_NREC(left_native, shared, mid_record), shared->type->nrec_size);
+    HDmemcpy(H5B2_INT_NREC(internal, shared, idx), H5B2_NAT_NREC(left_native, shared, mid_record), shared->nrec_size);
 
     /* Update record counts in child nodes */
     internal->node_ptrs[idx].node_nrec = *left_nrec = mid_record;
@@ -587,7 +605,7 @@ H5B2_split_root(H5F_t *f, hid_t dxpl_id, H5B2_t *bt2, unsigned *bt2_flags_ptr)
         shared->node_info[shared->depth - 1].cum_max_nrec) + shared->node_info[shared->depth].max_nrec;
     u_max_nrec_size = H5V_limit_enc_size((uint64_t)shared->node_info[shared->depth].cum_max_nrec);
     H5_ASSIGN_OVERFLOW(/* To: */ shared->node_info[shared->depth].cum_max_nrec_size, /* From: */ u_max_nrec_size, /* From: */ unsigned, /* To: */ uint8_t)
-    if((shared->node_info[shared->depth].nat_rec_fac = H5FL_fac_init(shared->type->nrec_size * shared->node_info[shared->depth].max_nrec)) == NULL)
+    if((shared->node_info[shared->depth].nat_rec_fac = H5FL_fac_init(shared->nrec_size * shared->node_info[shared->depth].max_nrec)) == NULL)
 	HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINIT, FAIL, "can't create node native key block factory")
     if((shared->node_info[shared->depth].node_ptr_fac = H5FL_fac_init(sizeof(H5B2_node_ptr_t) * (shared->node_info[shared->depth].max_nrec + 1))) == NULL)
 	HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINIT, FAIL, "can't create internal 'branch' node node pointer block factory")
@@ -727,17 +745,17 @@ H5B2_redistribute2(H5F_t *f, hid_t dxpl_id, unsigned depth, H5B2_internal_t *int
         unsigned move_nrec = *right_nrec - new_right_nrec;      /* Number of records to move from right node to left */
 
         /* Copy record from parent node down into left child */
-        HDmemcpy(H5B2_NAT_NREC(left_native,shared,*left_nrec),H5B2_INT_NREC(internal,shared,idx),shared->type->nrec_size);
+        HDmemcpy(H5B2_NAT_NREC(left_native,shared,*left_nrec),H5B2_INT_NREC(internal,shared,idx),shared->nrec_size);
 
         /* See if we need to move records from right node */
         if(move_nrec>1)
-            HDmemcpy(H5B2_NAT_NREC(left_native,shared,(*left_nrec+1)),H5B2_NAT_NREC(right_native,shared,0),shared->type->nrec_size*(move_nrec-1));
+            HDmemcpy(H5B2_NAT_NREC(left_native,shared,(*left_nrec+1)),H5B2_NAT_NREC(right_native,shared,0),shared->nrec_size*(move_nrec-1));
 
         /* Move record from right node into parent node */
-        HDmemcpy(H5B2_INT_NREC(internal,shared,idx),H5B2_NAT_NREC(right_native,shared,(move_nrec-1)),shared->type->nrec_size);
+        HDmemcpy(H5B2_INT_NREC(internal,shared,idx),H5B2_NAT_NREC(right_native,shared,(move_nrec-1)),shared->nrec_size);
 
         /* Slide records in right node down */
-        HDmemmove(H5B2_NAT_NREC(right_native,shared,0),H5B2_NAT_NREC(right_native,shared,move_nrec),shared->type->nrec_size*new_right_nrec);
+        HDmemmove(H5B2_NAT_NREC(right_native,shared,0),H5B2_NAT_NREC(right_native,shared,move_nrec),shared->nrec_size*new_right_nrec);
 
         /* Handle node pointers, if we have an internal node */
         if(depth>1) {
@@ -770,17 +788,17 @@ H5B2_redistribute2(H5F_t *f, hid_t dxpl_id, unsigned depth, H5B2_internal_t *int
         /* Slide records in right node up */
         HDmemmove(H5B2_NAT_NREC(right_native,shared,move_nrec),
                 H5B2_NAT_NREC(right_native,shared,0),
-                shared->type->nrec_size*(*right_nrec));
+                shared->nrec_size*(*right_nrec));
 
         /* Copy record from parent node down into right child */
-        HDmemcpy(H5B2_NAT_NREC(right_native,shared,(move_nrec-1)),H5B2_INT_NREC(internal,shared,idx),shared->type->nrec_size);
+        HDmemcpy(H5B2_NAT_NREC(right_native,shared,(move_nrec-1)),H5B2_INT_NREC(internal,shared,idx),shared->nrec_size);
 
         /* See if we need to move records from left node */
         if(move_nrec>1)
-            HDmemcpy(H5B2_NAT_NREC(right_native,shared,0),H5B2_NAT_NREC(left_native,shared,((*left_nrec-move_nrec)+1)),shared->type->nrec_size*(move_nrec-1));
+            HDmemcpy(H5B2_NAT_NREC(right_native,shared,0),H5B2_NAT_NREC(left_native,shared,((*left_nrec-move_nrec)+1)),shared->nrec_size*(move_nrec-1));
 
         /* Move record from left node into parent node */
-        HDmemcpy(H5B2_INT_NREC(internal,shared,idx),H5B2_NAT_NREC(left_native,shared,(*left_nrec-move_nrec)),shared->type->nrec_size);
+        HDmemcpy(H5B2_INT_NREC(internal,shared,idx),H5B2_NAT_NREC(left_native,shared,(*left_nrec-move_nrec)),shared->nrec_size);
 
         /* Handle node pointers, if we have an internal node */
         if(depth>1) {
@@ -970,20 +988,20 @@ H5B2_redistribute3(H5F_t *f, hid_t dxpl_id, unsigned depth,
             unsigned moved_middle_nrec = 0;      /* Number of records moved into left node */
 
             /* Move left parent record down to left node */
-            HDmemcpy(H5B2_NAT_NREC(left_native,shared,*left_nrec),H5B2_INT_NREC(internal,shared,idx-1),shared->type->nrec_size);
+            HDmemcpy(H5B2_NAT_NREC(left_native,shared,*left_nrec),H5B2_INT_NREC(internal,shared,idx-1),shared->nrec_size);
 
             /* Move records from middle node into left node */
             if((new_left_nrec - 1) > *left_nrec) {
                 moved_middle_nrec = new_left_nrec-(*left_nrec + 1);
-                HDmemcpy(H5B2_NAT_NREC(left_native, shared, *left_nrec + 1),H5B2_NAT_NREC(middle_native, shared, 0), shared->type->nrec_size * moved_middle_nrec);
+                HDmemcpy(H5B2_NAT_NREC(left_native, shared, *left_nrec + 1),H5B2_NAT_NREC(middle_native, shared, 0), shared->nrec_size * moved_middle_nrec);
             } /* end if */
 
             /* Move record from middle node up to parent node */
-            HDmemcpy(H5B2_INT_NREC(internal,shared,idx-1),H5B2_NAT_NREC(middle_native,shared,moved_middle_nrec),shared->type->nrec_size);
+            HDmemcpy(H5B2_INT_NREC(internal,shared,idx-1),H5B2_NAT_NREC(middle_native,shared,moved_middle_nrec),shared->nrec_size);
             moved_middle_nrec++;
 
             /* Slide records in middle node down */
-            HDmemmove(H5B2_NAT_NREC(middle_native,shared,0),H5B2_NAT_NREC(middle_native,shared,moved_middle_nrec),shared->type->nrec_size*(*middle_nrec-moved_middle_nrec));
+            HDmemmove(H5B2_NAT_NREC(middle_native,shared,0),H5B2_NAT_NREC(middle_native,shared,moved_middle_nrec),shared->nrec_size*(*middle_nrec-moved_middle_nrec));
 
             /* Move node pointers also if this is an internal node */
             if(depth>1) {
@@ -1014,17 +1032,17 @@ H5B2_redistribute3(H5F_t *f, hid_t dxpl_id, unsigned depth,
             unsigned right_nrec_move = new_right_nrec-*right_nrec; /* Number of records to move out of right node */
 
             /* Slide records in right node up */
-            HDmemmove(H5B2_NAT_NREC(right_native,shared,right_nrec_move),H5B2_NAT_NREC(right_native,shared,0),shared->type->nrec_size*(*right_nrec));
+            HDmemmove(H5B2_NAT_NREC(right_native,shared,right_nrec_move),H5B2_NAT_NREC(right_native,shared,0),shared->nrec_size*(*right_nrec));
 
             /* Move right parent record down to right node */
-            HDmemcpy(H5B2_NAT_NREC(right_native,shared,right_nrec_move-1),H5B2_INT_NREC(internal,shared,idx),shared->type->nrec_size);
+            HDmemcpy(H5B2_NAT_NREC(right_native,shared,right_nrec_move-1),H5B2_INT_NREC(internal,shared,idx),shared->nrec_size);
 
             /* Move records from middle node into right node */
             if(right_nrec_move>1)
-                HDmemcpy(H5B2_NAT_NREC(right_native,shared,0),H5B2_NAT_NREC(middle_native,shared,((curr_middle_nrec-right_nrec_move)+1)),shared->type->nrec_size*(right_nrec_move-1));
+                HDmemcpy(H5B2_NAT_NREC(right_native,shared,0),H5B2_NAT_NREC(middle_native,shared,((curr_middle_nrec-right_nrec_move)+1)),shared->nrec_size*(right_nrec_move-1));
 
             /* Move record from middle node up to parent node */
-            HDmemcpy(H5B2_INT_NREC(internal,shared,idx),H5B2_NAT_NREC(middle_native,shared,(curr_middle_nrec-right_nrec_move)),shared->type->nrec_size);
+            HDmemcpy(H5B2_INT_NREC(internal,shared,idx),H5B2_NAT_NREC(middle_native,shared,(curr_middle_nrec-right_nrec_move)),shared->nrec_size);
 
             /* Move node pointers also if this is an internal node */
             if(depth>1) {
@@ -1053,17 +1071,17 @@ H5B2_redistribute3(H5F_t *f, hid_t dxpl_id, unsigned depth,
             unsigned left_nrec_move = *left_nrec-new_left_nrec; /* Number of records to move out of left node */
 
             /* Slide middle records up */
-            HDmemmove(H5B2_NAT_NREC(middle_native,shared,left_nrec_move),H5B2_NAT_NREC(middle_native,shared,0),shared->type->nrec_size*curr_middle_nrec);
+            HDmemmove(H5B2_NAT_NREC(middle_native,shared,left_nrec_move),H5B2_NAT_NREC(middle_native,shared,0),shared->nrec_size*curr_middle_nrec);
 
             /* Move left parent record down to middle node */
-            HDmemcpy(H5B2_NAT_NREC(middle_native,shared,left_nrec_move-1),H5B2_INT_NREC(internal,shared,idx-1),shared->type->nrec_size);
+            HDmemcpy(H5B2_NAT_NREC(middle_native,shared,left_nrec_move-1),H5B2_INT_NREC(internal,shared,idx-1),shared->nrec_size);
 
             /* Move left records to middle node */
             if(left_nrec_move>1)
-                HDmemmove(H5B2_NAT_NREC(middle_native,shared,0),H5B2_NAT_NREC(left_native,shared,new_left_nrec+1),shared->type->nrec_size*(left_nrec_move-1));
+                HDmemmove(H5B2_NAT_NREC(middle_native,shared,0),H5B2_NAT_NREC(left_native,shared,new_left_nrec+1),shared->nrec_size*(left_nrec_move-1));
 
             /* Move left parent record up from left node */
-            HDmemcpy(H5B2_INT_NREC(internal,shared,idx-1),H5B2_NAT_NREC(left_native,shared,new_left_nrec),shared->type->nrec_size);
+            HDmemcpy(H5B2_INT_NREC(internal,shared,idx-1),H5B2_NAT_NREC(left_native,shared,new_left_nrec),shared->nrec_size);
 
             /* Move node pointers also if this is an internal node */
             if(depth>1) {
@@ -1092,16 +1110,16 @@ H5B2_redistribute3(H5F_t *f, hid_t dxpl_id, unsigned depth,
             unsigned right_nrec_move = *right_nrec-new_right_nrec; /* Number of records to move out of right node */
 
             /* Move right parent record down to middle node */
-            HDmemcpy(H5B2_NAT_NREC(middle_native,shared,curr_middle_nrec),H5B2_INT_NREC(internal,shared,idx),shared->type->nrec_size);
+            HDmemcpy(H5B2_NAT_NREC(middle_native,shared,curr_middle_nrec),H5B2_INT_NREC(internal,shared,idx),shared->nrec_size);
 
             /* Move right records to middle node */
-            HDmemmove(H5B2_NAT_NREC(middle_native,shared,(curr_middle_nrec+1)),H5B2_NAT_NREC(right_native,shared,0),shared->type->nrec_size*(right_nrec_move-1));
+            HDmemmove(H5B2_NAT_NREC(middle_native,shared,(curr_middle_nrec+1)),H5B2_NAT_NREC(right_native,shared,0),shared->nrec_size*(right_nrec_move-1));
 
             /* Move right parent record up from right node */
-            HDmemcpy(H5B2_INT_NREC(internal,shared,idx),H5B2_NAT_NREC(right_native,shared,right_nrec_move-1),shared->type->nrec_size);
+            HDmemcpy(H5B2_INT_NREC(internal,shared,idx),H5B2_NAT_NREC(right_native,shared,right_nrec_move-1),shared->nrec_size);
 
             /* Slide right records down */
-            HDmemmove(H5B2_NAT_NREC(right_native,shared,0),H5B2_NAT_NREC(right_native,shared,right_nrec_move),shared->type->nrec_size*new_right_nrec);
+            HDmemmove(H5B2_NAT_NREC(right_native,shared,0),H5B2_NAT_NREC(right_native,shared,right_nrec_move),shared->nrec_size*new_right_nrec);
 
             /* Move node pointers also if this is an internal node */
             if(depth>1) {
@@ -1155,25 +1173,25 @@ H5B2_redistribute3(H5F_t *f, hid_t dxpl_id, unsigned depth,
     HDfprintf(stderr,"%s: Internal records:\n",FUNC);
     for(u=0; u<internal->nrec; u++) {
         HDfprintf(stderr,"%s: u=%u\n",FUNC,u);
-        (shared->type->debug)(stderr,f,dxpl_id,3,4,H5B2_INT_NREC(internal,shared,u),NULL);
+        (shared->type->debug)(stderr,dxpl_id,3,4,H5B2_INT_NREC(internal,shared,u),shared->udata,NULL);
     } /* end for */
 
     HDfprintf(stderr,"%s: Left Child records:\n",FUNC);
     for(u=0; u<*left_nrec; u++) {
         HDfprintf(stderr,"%s: u=%u\n",FUNC,u);
-        (shared->type->debug)(stderr,f,dxpl_id,3,4,H5B2_NAT_NREC(left_native,shared,u),NULL);
+        (shared->type->debug)(stderr,dxpl_id,3,4,H5B2_NAT_NREC(left_native,shared,u),shared->udata,NULL);
     } /* end for */
 
     HDfprintf(stderr,"%s: Middle Child records:\n",FUNC);
     for(u=0; u<*middle_nrec; u++) {
         HDfprintf(stderr,"%s: u=%u\n",FUNC,u);
-        (shared->type->debug)(stderr,f,dxpl_id,3,4,H5B2_NAT_NREC(middle_native,shared,u),NULL);
+        (shared->type->debug)(stderr,dxpl_id,3,4,H5B2_NAT_NREC(middle_native,shared,u),shared->udata,NULL);
     } /* end for */
 
     HDfprintf(stderr,"%s: Right Child records:\n",FUNC);
     for(u=0; u<*right_nrec; u++) {
         HDfprintf(stderr,"%s: u=%u\n",FUNC,u);
-        (shared->type->debug)(stderr,f,dxpl_id,3,4,H5B2_NAT_NREC(right_native,shared,u),NULL);
+        (shared->type->debug)(stderr,dxpl_id,3,4,H5B2_NAT_NREC(right_native,shared,u),shared->udata,NULL);
     } /* end for */
 
     for(u=0; u<internal->nrec+1; u++)
@@ -1310,10 +1328,10 @@ H5B2_merge2(H5F_t *f, hid_t dxpl_id, unsigned depth,
     /* Redistribute records into left node */
     {
         /* Copy record from parent node to proper location */
-        HDmemcpy(H5B2_NAT_NREC(left_native,shared,*left_nrec),H5B2_INT_NREC(internal,shared,idx),shared->type->nrec_size);
+        HDmemcpy(H5B2_NAT_NREC(left_native,shared,*left_nrec),H5B2_INT_NREC(internal,shared,idx),shared->nrec_size);
 
         /* Copy records from right node to left node */
-        HDmemcpy(H5B2_NAT_NREC(left_native,shared,*left_nrec+1),H5B2_NAT_NREC(right_native,shared,0),shared->type->nrec_size*(*right_nrec));
+        HDmemcpy(H5B2_NAT_NREC(left_native,shared,*left_nrec+1),H5B2_NAT_NREC(right_native,shared,0),shared->nrec_size*(*right_nrec));
 
         /* Copy node pointers from right node into left node */
         if(depth>1)
@@ -1331,7 +1349,7 @@ H5B2_merge2(H5F_t *f, hid_t dxpl_id, unsigned depth,
 
     /* Slide records in parent node down, to eliminate demoted record */
     if((idx+1) < internal->nrec) {
-        HDmemmove(H5B2_INT_NREC(internal,shared,idx),H5B2_INT_NREC(internal,shared,idx+1),shared->type->nrec_size*(internal->nrec-(idx+1)));
+        HDmemmove(H5B2_INT_NREC(internal,shared,idx),H5B2_INT_NREC(internal,shared,idx+1),shared->nrec_size*(internal->nrec-(idx+1)));
         HDmemmove(&(internal->node_ptrs[idx+1]),&(internal->node_ptrs[idx+2]),sizeof(H5B2_node_ptr_t)*(internal->nrec-(idx+1)));
     } /* end if */
 
@@ -1489,16 +1507,16 @@ H5B2_merge3(H5F_t *f, hid_t dxpl_id, unsigned depth,
         middle_moved_nrec = middle_nrec_move;
 
         /* Copy record from parent node to proper location in left node */
-        HDmemcpy(H5B2_NAT_NREC(left_native,shared,*left_nrec),H5B2_INT_NREC(internal,shared,idx-1),shared->type->nrec_size);
+        HDmemcpy(H5B2_NAT_NREC(left_native,shared,*left_nrec),H5B2_INT_NREC(internal,shared,idx-1),shared->nrec_size);
 
         /* Copy records from middle node to left node */
-        HDmemcpy(H5B2_NAT_NREC(left_native,shared,*left_nrec+1),H5B2_NAT_NREC(middle_native,shared,0),shared->type->nrec_size*(middle_nrec_move-1));
+        HDmemcpy(H5B2_NAT_NREC(left_native,shared,*left_nrec+1),H5B2_NAT_NREC(middle_native,shared,0),shared->nrec_size*(middle_nrec_move-1));
 
         /* Copy record from middle node to proper location in parent node */
-        HDmemcpy(H5B2_INT_NREC(internal,shared,idx-1),H5B2_NAT_NREC(middle_native,shared,(middle_nrec_move-1)),shared->type->nrec_size);
+        HDmemcpy(H5B2_INT_NREC(internal,shared,idx-1),H5B2_NAT_NREC(middle_native,shared,(middle_nrec_move-1)),shared->nrec_size);
 
         /* Slide records in middle node down */
-        HDmemmove(H5B2_NAT_NREC(middle_native,shared,0),H5B2_NAT_NREC(middle_native,shared,middle_nrec_move),shared->type->nrec_size*(*middle_nrec-middle_nrec_move));
+        HDmemmove(H5B2_NAT_NREC(middle_native,shared,0),H5B2_NAT_NREC(middle_native,shared,middle_nrec_move),shared->nrec_size*(*middle_nrec-middle_nrec_move));
 
         /* Move node pointers also if this is an internal node */
         if(depth>1) {
@@ -1523,10 +1541,10 @@ H5B2_merge3(H5F_t *f, hid_t dxpl_id, unsigned depth,
     /* Redistribute records into middle node */
     {
         /* Copy record from parent node to proper location in middle node */
-        HDmemcpy(H5B2_NAT_NREC(middle_native,shared,*middle_nrec),H5B2_INT_NREC(internal,shared,idx),shared->type->nrec_size);
+        HDmemcpy(H5B2_NAT_NREC(middle_native,shared,*middle_nrec),H5B2_INT_NREC(internal,shared,idx),shared->nrec_size);
 
         /* Copy records from right node to middle node */
-        HDmemcpy(H5B2_NAT_NREC(middle_native,shared,*middle_nrec+1),H5B2_NAT_NREC(right_native,shared,0),shared->type->nrec_size*(*right_nrec));
+        HDmemcpy(H5B2_NAT_NREC(middle_native,shared,*middle_nrec+1),H5B2_NAT_NREC(right_native,shared,0),shared->nrec_size*(*right_nrec));
 
         /* Move node pointers also if this is an internal node */
         if(depth>1)
@@ -1547,7 +1565,7 @@ H5B2_merge3(H5F_t *f, hid_t dxpl_id, unsigned depth,
 
     /* Slide records in parent node down, to eliminate demoted record */
     if((idx+1) < internal->nrec) {
-        HDmemmove(H5B2_INT_NREC(internal,shared,idx),H5B2_INT_NREC(internal,shared,idx+1),shared->type->nrec_size*(internal->nrec-(idx+1)));
+        HDmemmove(H5B2_INT_NREC(internal,shared,idx),H5B2_INT_NREC(internal,shared,idx+1),shared->nrec_size*(internal->nrec-(idx+1)));
         HDmemmove(&(internal->node_ptrs[idx+1]),&(internal->node_ptrs[idx+2]),sizeof(H5B2_node_ptr_t)*(internal->nrec-(idx+1)));
     } /* end if */
 
@@ -1661,9 +1679,9 @@ H5B2_swap_leaf(H5F_t *f, hid_t dxpl_id, unsigned depth,
     } /* end else */
 
     /* Swap records (use disk page as temporary buffer) */
-    HDmemcpy(shared->page, H5B2_NAT_NREC(child_native,shared,0), shared->type->nrec_size);
-    HDmemcpy(H5B2_NAT_NREC(child_native,shared,0), swap_loc, shared->type->nrec_size);
-    HDmemcpy(swap_loc, shared->page, shared->type->nrec_size);
+    HDmemcpy(shared->page, H5B2_NAT_NREC(child_native,shared,0), shared->nrec_size);
+    HDmemcpy(H5B2_NAT_NREC(child_native,shared,0), swap_loc, shared->nrec_size);
+    HDmemcpy(swap_loc, shared->page, shared->nrec_size);
 
     /* Mark parent as dirty */
     *internal_flags_ptr |= H5AC__DIRTIED_FLAG;
@@ -1736,18 +1754,18 @@ H5B2_insert_leaf(H5F_t *f, hid_t dxpl_id, H5RC_t *bt2_shared,
         idx = 0;
     else {
         /* Find correct location to insert this record */
-        if((cmp = H5B2_locate_record(shared->type, leaf->nrec, shared->nat_off, leaf->leaf_native, udata, &idx)) == 0)
+        if((cmp = H5B2_locate_record(shared->type, leaf->nrec, shared->nat_off, leaf->leaf_native, udata, &idx, shared->udata)) == 0)
             HGOTO_ERROR(H5E_BTREE, H5E_EXISTS, FAIL, "record is already in B-tree")
         if(cmp > 0)
             idx++;
 
         /* Make room for new record */
         if(idx < leaf->nrec)
-            HDmemmove(H5B2_LEAF_NREC(leaf, shared, idx + 1), H5B2_LEAF_NREC(leaf, shared, idx), shared->type->nrec_size * (leaf->nrec-idx));
+            HDmemmove(H5B2_LEAF_NREC(leaf, shared, idx + 1), H5B2_LEAF_NREC(leaf, shared, idx), shared->nrec_size * (leaf->nrec-idx));
     } /* end else */
 
     /* Make callback to store record in native form */
-    if((shared->type->store)(H5B2_LEAF_NREC(leaf, shared, idx), udata) < 0)
+    if((shared->type->store)(H5B2_LEAF_NREC(leaf, shared, idx), shared->udata, udata) < 0)
         HGOTO_ERROR(H5E_BTREE, H5E_CANTINSERT, FAIL, "unable to insert record into leaf node")
 
     /* Update record count for node pointer to current node */
@@ -1815,7 +1833,7 @@ H5B2_insert_internal(H5F_t *f, hid_t dxpl_id, H5RC_t *bt2_shared,
         size_t      split_nrec; /* Number of records to split node at */
 
         /* Locate node pointer for child */
-        if((cmp = H5B2_locate_record(shared->type, internal->nrec, shared->nat_off, internal->int_native, udata, &idx)) == 0)
+        if((cmp = H5B2_locate_record(shared->type, internal->nrec, shared->nat_off, internal->int_native, udata, &idx, shared->udata)) == 0)
             HGOTO_ERROR(H5E_BTREE, H5E_EXISTS, FAIL, "record is already in B-tree")
         if(cmp > 0)
             idx++;
@@ -1871,7 +1889,7 @@ H5B2_insert_internal(H5F_t *f, hid_t dxpl_id, H5RC_t *bt2_shared,
 
             /* Locate node pointer for child (after split/redistribute) */
 /* Actually, this can be easily updated (for 2-node redistrib.) and shouldn't require re-searching */
-            if((cmp = H5B2_locate_record(shared->type, internal->nrec, shared->nat_off, internal->int_native, udata, &idx)) == 0)
+            if((cmp = H5B2_locate_record(shared->type, internal->nrec, shared->nat_off, internal->int_native, udata, &idx, shared->udata)) == 0)
                 HGOTO_ERROR(H5E_BTREE, H5E_EXISTS, FAIL, "record is already in B-tree")
             if(cmp > 0)
                 idx++;
@@ -1953,7 +1971,7 @@ H5B2_create_leaf(H5F_t *f, hid_t dxpl_id, H5RC_t *bt2_shared, H5B2_node_ptr_t *n
     if((leaf->leaf_native = (uint8_t *)H5FL_FAC_MALLOC(shared->node_info[0].nat_rec_fac)) == NULL)
 	HGOTO_ERROR (H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed for B-tree leaf native keys")
 #ifdef H5_CLEAR_MEMORY
-HDmemset(leaf->leaf_native, 0, shared->type->nrec_size * shared->node_info[0].max_nrec);
+HDmemset(leaf->leaf_native, 0, shared->nrec_size * shared->node_info[0].max_nrec);
 #endif /* H5_CLEAR_MEMORY */
 
     /* Set number of records */
@@ -2026,7 +2044,7 @@ H5B2_create_internal(H5F_t *f, hid_t dxpl_id, H5RC_t *bt2_shared,
     if((internal->int_native = (uint8_t *)H5FL_FAC_MALLOC(shared->node_info[depth].nat_rec_fac)) == NULL)
         HGOTO_ERROR (H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed for B-tree internal native keys")
 #ifdef H5_CLEAR_MEMORY
-HDmemset(internal->int_native, 0, shared->type->nrec_size * shared->node_info[depth].max_nrec);
+HDmemset(internal->int_native, 0, shared->nrec_size * shared->node_info[depth].max_nrec);
 #endif /* H5_CLEAR_MEMORY */
 
     /* Allocate space for the node pointers in memory */
@@ -2180,7 +2198,7 @@ H5B2_iterate_node(H5F_t *f, hid_t dxpl_id, H5RC_t *bt2_shared, unsigned depth,
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed for B-tree internal native keys")
 
     /* Copy the native keys */
-    HDmemcpy(native, node_native, (shared->type->nrec_size * curr_node->node_nrec));
+    HDmemcpy(native, node_native, (shared->nrec_size * curr_node->node_nrec));
 
     /* Unlock the node */
     if(H5AC_unprotect(f, dxpl_id, curr_node_class, curr_node->addr, node, H5AC__NO_FLAGS_SET) < 0)
@@ -2266,7 +2284,7 @@ H5B2_remove_leaf(H5F_t *f, hid_t dxpl_id, H5RC_t *bt2_shared,
     HDassert(leaf->nrec == curr_node_ptr->node_nrec);
 
     /* Find correct location to remove this record */
-    if(H5B2_locate_record(shared->type, leaf->nrec, shared->nat_off, leaf->leaf_native, udata, &idx) != 0)
+    if(H5B2_locate_record(shared->type, leaf->nrec, shared->nat_off, leaf->leaf_native, udata, &idx, shared->udata) != 0)
         HGOTO_ERROR(H5E_BTREE, H5E_NOTFOUND, FAIL, "record is not in B-tree")
 
     /* Make 'remove' callback if there is one */
@@ -2283,7 +2301,7 @@ H5B2_remove_leaf(H5F_t *f, hid_t dxpl_id, H5RC_t *bt2_shared,
     if(leaf->nrec > 0) {
         /* Pack record out of leaf */
         if(idx < leaf->nrec)
-            HDmemmove(H5B2_LEAF_NREC(leaf, shared, idx), H5B2_LEAF_NREC(leaf, shared, (idx + 1)), shared->type->nrec_size * (leaf->nrec-idx));
+            HDmemmove(H5B2_LEAF_NREC(leaf, shared, idx), H5B2_LEAF_NREC(leaf, shared, (idx + 1)), shared->nrec_size * (leaf->nrec-idx));
     } /* end if */
     else {
         /* Let the cache know that the object is deleted */
@@ -2397,7 +2415,7 @@ H5B2_remove_internal(H5F_t *f, hid_t dxpl_id, H5RC_t *bt2_shared,
         if(swap_loc)
             idx = 0;
         else {
-            cmp = H5B2_locate_record(shared->type, internal->nrec, shared->nat_off, internal->int_native, udata, &idx);
+            cmp = H5B2_locate_record(shared->type, internal->nrec, shared->nat_off, internal->int_native, udata, &idx, shared->udata);
             if(cmp >= 0)
                 idx++;
         } /* end else */
@@ -2459,7 +2477,7 @@ H5B2_remove_internal(H5F_t *f, hid_t dxpl_id, H5RC_t *bt2_shared,
                 idx = 0;
             else {
 /* Actually, this can be easily updated (for 2-node redistrib.) and shouldn't require re-searching */
-                cmp = H5B2_locate_record(shared->type, internal->nrec, shared->nat_off, internal->int_native, udata, &idx);
+                cmp = H5B2_locate_record(shared->type, internal->nrec, shared->nat_off, internal->int_native, udata, &idx, shared->udata);
                 if(cmp >= 0)
                     idx++;
             } /* end else */
@@ -2575,7 +2593,7 @@ H5B2_remove_leaf_by_idx(H5F_t *f, hid_t dxpl_id, H5RC_t *bt2_shared,
     if(leaf->nrec > 0) {
         /* Pack record out of leaf */
         if(idx < leaf->nrec)
-            HDmemmove(H5B2_LEAF_NREC(leaf, shared, idx), H5B2_LEAF_NREC(leaf, shared, (idx + 1)), shared->type->nrec_size * (leaf->nrec-idx));
+            HDmemmove(H5B2_LEAF_NREC(leaf, shared, idx), H5B2_LEAF_NREC(leaf, shared, (idx + 1)), shared->nrec_size * (leaf->nrec-idx));
     } /* end if */
     else {
         /* Let the cache know that the object is deleted */
@@ -2918,7 +2936,7 @@ H5B2_neighbor_leaf(H5F_t *f, hid_t dxpl_id, H5RC_t *bt2_shared,
 
 
     /* Locate node pointer for child */
-    cmp = H5B2_locate_record(shared->type, leaf->nrec, shared->nat_off, leaf->leaf_native, udata, &idx);
+    cmp = H5B2_locate_record(shared->type, leaf->nrec, shared->nat_off, leaf->leaf_native, udata, &idx, shared->udata);
     if(cmp > 0)
         idx++;
     else
@@ -3011,7 +3029,7 @@ H5B2_neighbor_internal(H5F_t *f, hid_t dxpl_id, H5RC_t *bt2_shared,
     HDassert(shared);
 
     /* Locate node pointer for child */
-    cmp = H5B2_locate_record(shared->type, internal->nrec, shared->nat_off, internal->int_native, udata, &idx);
+    cmp = H5B2_locate_record(shared->type, internal->nrec, shared->nat_off, internal->int_native, udata, &idx, shared->udata);
     if(cmp > 0)
         idx++;
 

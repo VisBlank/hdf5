@@ -236,17 +236,17 @@ H5_DLLVAR const H5B2_class_t H5SM_INDEX[1];
 H5_DLL ssize_t H5SM_get_index(const H5SM_master_table_t *table, unsigned type_id);
 
 /* Encode and decode routines, used for B-tree and cache encoding/decoding */
-H5_DLL herr_t H5SM_message_encode(const H5F_t *f, uint8_t *raw,
-    const void *native);
-H5_DLL herr_t H5SM_message_decode(const H5F_t *f, const uint8_t *raw,
-    void *native);
+H5_DLL herr_t H5SM_message_encode(uint8_t *raw, const void *native,
+    const void *udata);
+H5_DLL herr_t H5SM_message_decode(const uint8_t *raw, void *native,
+    const void *udata);
 
 /* Callbacks to give to B-tree traversals */
 /* H5SM_message_compare is in H5SMbtree2.c, but is also used by list code
  * in H5SM.c.
  */
-H5_DLL herr_t H5SM_message_compare(const void *rec1,
-                                   const void *rec2);
+H5_DLL herr_t H5SM_message_compare(const void *rec1, const void *rec2,
+    const void *udata);
 
 /* H5B2_remove_t callback to add messages to a list index */
 H5_DLL herr_t H5SM_btree_convert_to_list_op(const void * record, void *op_data);

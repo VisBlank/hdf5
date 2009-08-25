@@ -33,6 +33,7 @@
 
 /* Public headers needed by this file */
 #include "H5Dpublic.h"          /* Dataset functions                    */
+#include "H5HFpublic.h"         /* Fractal heap functions               */
 #include "H5Lpublic.h"		/* Link functions                       */
 #include "H5Spublic.h"		/* Dataspace functions			*/
 
@@ -420,13 +421,55 @@ typedef struct H5O_bogus_t {
 #endif /* H5O_ENABLE_BOGUS */
 
 /*
+ * Filter pipeline message.
+ * (Data structure in memory)
+ *
+ * Must be before group info struct definition - NAF
+ */
+/* The initial version of the format */
+#define H5O_PLINE_VERSION_1	1
+
+/* This version encodes the message fields more efficiently */
+/* (Drops the reserved bytes, doesn't align the name and doesn't encode the
+ *      filter name at all if it's a filter provided by the library)
+ */
+#define H5O_PLINE_VERSION_2	2
+
+/* The latest version of the format.  Look through the 'encode' and 'size'
+ *      callbacks for places to change when updating this. */
+#define H5O_PLINE_VERSION_LATEST H5O_PLINE_VERSION_2
+typedef struct H5O_pline_t {
+    H5O_shared_t        sh_loc;         /* Shared message info (must be first) */
+
+    unsigned	version;	        /* Encoding version number */
+    size_t	nalloc;			/*num elements in `filter' array     */
+    size_t	nused;			/*num filters defined		     */
+    H5Z_filter_info_t *filter;		/*array of filters		     */
+} H5O_pline_t;
+
+/*
  * Group info message.
  * (Contains constant information about a group)
+ */
+/* First version of group info information */
+#define H5O_GINFO_VERSION_0 	0
+
+/* Current version of group info information.  Adds filter pipeline for link
+ * fractal heap. */
+#define H5O_GINFO_VERSION_1 	1
+
+/* The latest version of the format.  Look through the 'encode' and 'size'
+ *      callbacks for places to change when updating this. */
+#define H5O_GINFO_VERSION_LATEST H5O_GINFO_VERSION_1
+/*
  * (Data structure in memory)
  * (if the fields in this struct are changed, remember to change the default
  *      group info structure in src/H5Gprivate.h - QAK)
+ * (also remember to change H5P_ginfo_cmp in H5Pgcpl.c - NAF)
  */
 typedef struct H5O_ginfo_t {
+    unsigned    version;                /* Encoding version number */
+
     /* "Old" format group info (not stored) */
     uint32_t    lheap_size_hint;        /* Local heap size hint              */
 
@@ -441,20 +484,13 @@ typedef struct H5O_ginfo_t {
     hbool_t     store_est_entry_info;   /* Whether to store the est. entry values */
     uint16_t	est_num_entries;	/* Estimated # of entries in group   */
     uint16_t	est_name_len;		/* Estimated length of entry name    */
+
+    /* (fractal heap creation info) */
+    hbool_t     store_fheap_cparam;     /* Whether to store fheap creation params.
+                                         * Does not affect pipeline */
+    H5HF_cparam_t fheap_cparam;         /* Fractal heap creation parameters */
+    struct H5O_pline_t pline;           /* I/O filter pipeline for links in fractal heap. */
 } H5O_ginfo_t;
-
-/*
- * Filter pipeline message.
- * (Data structure in memory)
- */
-typedef struct H5O_pline_t {
-    H5O_shared_t        sh_loc;         /* Shared message info (must be first) */
-
-    unsigned	version;	        /* Encoding version number */
-    size_t	nalloc;			/*num elements in `filter' array     */
-    size_t	nused;			/*num filters defined		     */
-    H5Z_filter_info_t *filter;		/*array of filters		     */
-} H5O_pline_t;
 
 /*
  * Object name message.
@@ -687,6 +723,12 @@ H5_DLL herr_t H5O_fill_set_latest_version(H5O_fill_t *fill);
 /* Link operators */
 H5_DLL herr_t H5O_link_delete(H5F_t *f, hid_t dxpl_id, H5O_t *open_oh,
     void *_mesg);
+
+/* Group info operators */
+H5_DLL herr_t H5O_ginfo_set_latest_version(H5O_ginfo_t *ginfo);
+
+/* Filter pipeline operators */
+H5_DLL herr_t H5O_pline_set_latest_version(H5O_pline_t *pline);
 
 /* Shared message operators */
 H5_DLL herr_t H5O_set_shared(H5O_shared_t *dst, const H5O_shared_t *src);

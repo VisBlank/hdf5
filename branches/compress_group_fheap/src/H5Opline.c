@@ -665,3 +665,30 @@ H5O_pline_debug(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, const void *mesg, FILE *s
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5O_pline_debug() */
 
+
+/*-------------------------------------------------------------------------
+ * Function:    H5O_pline_set_latest_version
+ *
+ * Purpose:     Set the encoding for a I/O filter pipeline to the latest version.
+ *
+ * Return:	Non-negative on success/Negative on failure
+ *
+ * Programmer:  Quincey Koziol
+ *              Tuesday, July 24, 2007
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5O_pline_set_latest_version(H5O_pline_t *pline)
+{
+    FUNC_ENTER_NOAPI_NOFUNC(H5O_pline_set_latest_version)
+
+    /* Sanity check */
+    HDassert(pline);
+
+    /* Set encoding of I/O pipeline to latest version */
+    pline->version = H5O_PLINE_VERSION_LATEST;
+
+    FUNC_LEAVE_NOAPI(SUCCEED)
+} /* end H5O_pline_set_latest_version() */
+

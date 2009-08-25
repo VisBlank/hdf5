@@ -47,7 +47,7 @@
 #define H5D_CRT_FILL_VALUE_NAME    "fill_value"         /* Fill value */
 #define H5D_CRT_ALLOC_TIME_STATE_NAME "alloc_time_state" /* Space allocation time state */
 #define H5D_CRT_EXT_FILE_LIST_NAME "efl"                /* External file list */
-#define H5D_CRT_DATA_PIPELINE_NAME "pline"              /* Data filter pipeline */
+#define H5D_CRT_DATA_PIPELINE_NAME "data_pline"         /* Data filter pipeline */
 
 /* ========  Dataset access property names ======== */
 #define H5D_ACS_DATA_CACHE_NUM_SLOTS_NAME   "rdcc_nslots"   /* Size of raw data chunk cache(slots) */

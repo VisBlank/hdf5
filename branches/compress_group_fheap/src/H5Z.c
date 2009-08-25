@@ -495,63 +495,75 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5Z_prelude_callback(hid_t dcpl_id, hid_t type_id, H5Z_prelude_type_t prelude_type)
+H5Z_prelude_callback(hid_t dcpl_id, hid_t type_id, const H5O_pline_t *pline_ptr,
+    H5Z_prelude_type_t prelude_type)
 {
+    hbool_t dset_target;          /* Whether the pipeline is operating on a dataset */
     herr_t ret_value = SUCCEED;   /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5Z_prelude_callback)
 
-    HDassert(H5I_GENPROP_LST == H5I_get_type(dcpl_id));
-    HDassert(H5I_DATATYPE == H5I_get_type(type_id));
+    dset_target = !(dcpl_id < 0 && type_id < 0 && pline_ptr);
+
+    HDassert(!dset_target || H5I_GENPROP_LST == H5I_get_type(dcpl_id));
+    HDassert(!dset_target || H5I_DATATYPE == H5I_get_type(type_id));
 
     /* Check if the property list is non-default */
-    if(dcpl_id != H5P_DATASET_CREATE_DEFAULT) {
+    if(!dset_target || dcpl_id != H5P_DATASET_CREATE_DEFAULT) {
         H5P_genplist_t 	*dc_plist;      /* Dataset creation property list object */
         H5O_layout_t    dcpl_layout;    /* Dataset's layout information */
 
-        /* Get dataset creation property list object */
-        if(NULL == (dc_plist = (H5P_genplist_t *)H5I_object(dcpl_id)))
-            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "can't get dataset creation property list")
+        if(dset_target) {
+            /* Get dataset creation property list object */
+            if(NULL == (dc_plist = (H5P_genplist_t *)H5I_object(dcpl_id)))
+                HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "can't get dataset creation property list")
 
-        /* Get layout information */
-        if(H5P_get(dc_plist, H5D_CRT_LAYOUT_NAME, &dcpl_layout) < 0)
-            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't retrieve layout")
+            /* Get layout information */
+            if(H5P_get(dc_plist, H5D_CRT_LAYOUT_NAME, &dcpl_layout) < 0)
+                HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't retrieve layout")
+        } /* end if */
 
         /* Check if the dataset is chunked */
-        if(H5D_CHUNKED == dcpl_layout.type) {
-            H5O_pline_t     dcpl_pline;     /* Dataset's I/O pipeline information */
+        if(!dset_target || H5D_CHUNKED == dcpl_layout.type) {
+            H5O_pline_t     pline;     /* Object's I/O pipeline information */
 
-            /* Get I/O pipeline information */
-            if(H5P_get(dc_plist, H5D_CRT_DATA_PIPELINE_NAME, &dcpl_pline) < 0)
-                HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't retrieve pipeline filter")
+            if(!pline_ptr) {
+                /* Get I/O pipeline information - assume it is a dataset */
+                if(H5P_get(dc_plist, H5D_CRT_DATA_PIPELINE_NAME, &pline) < 0)
+                    HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't retrieve pipeline filter")
+            } else
+                pline = *pline_ptr;
 
             /* Check if the chunks have filters */
-            if(dcpl_pline.nused > 0) {
+            if(pline.nused > 0) {
                 hsize_t chunk_dims[H5O_LAYOUT_NDIMS];      /* Size of chunk dimensions */
                 H5S_t *space;           /* Dataspace describing chunk */
                 hid_t space_id;         /* ID for dataspace describing chunk */
                 size_t u;               /* Local index variable */
 
-                /* Create a data space for a chunk & set the extent */
-                for(u = 0; u < dcpl_layout.u.chunk.ndims; u++)
-                    chunk_dims[u] = dcpl_layout.u.chunk.dim[u];
-                if(NULL == (space = H5S_create_simple(dcpl_layout.u.chunk.ndims, chunk_dims, NULL)))
-                    HGOTO_ERROR(H5E_DATASPACE, H5E_CANTCREATE, FAIL, "can't create simple dataspace")
+                if(dset_target) {
+                    /* Create a data space for a chunk & set the extent */
+                    for(u = 0; u < dcpl_layout.u.chunk.ndims; u++)
+                        chunk_dims[u] = dcpl_layout.u.chunk.dim[u];
+                    if(NULL == (space = H5S_create_simple(dcpl_layout.u.chunk.ndims, chunk_dims, NULL)))
+                        HGOTO_ERROR(H5E_DATASPACE, H5E_CANTCREATE, FAIL, "can't create simple dataspace")
 
-                /* Get ID for dataspace to pass to filter routines */
-                if((space_id = H5I_register(H5I_DATASPACE, space, FALSE)) < 0) {
-                    (void)H5S_close(space);
-                    HGOTO_ERROR(H5E_ATOM, H5E_CANTREGISTER, FAIL, "unable to register dataspace ID")
-                } /* end if */
+                    /* Get ID for dataspace to pass to filter routines */
+                    if((space_id = H5I_register(H5I_DATASPACE, space, FALSE)) < 0) {
+                        (void)H5S_close(space);
+                        HGOTO_ERROR(H5E_ATOM, H5E_CANTREGISTER, FAIL, "unable to register dataspace ID")
+                    } /* end if */
+                } else
+                    space_id = -1;
 
                 /* Iterate over filters */
-                for(u = 0; u < dcpl_pline.nused; u++) {
+                for(u = 0; u < pline.nused; u++) {
                     H5Z_class2_t	*fclass;        /* Individual filter information */
 
                     /* Get filter information */
-                    if(NULL == (fclass = H5Z_find(dcpl_pline.filter[u].id))) {
+                    if(NULL == (fclass = H5Z_find(pline.filter[u].id))) {
                         /* Ignore errors from optional filters */
-                        if(dcpl_pline.filter[u].flags & H5Z_FLAG_OPTIONAL)
+                        if(pline.filter[u].flags & H5Z_FLAG_OPTIONAL)
                             H5E_clear_stack(NULL);
                         else
                             HGOTO_ERROR(H5E_PLINE, H5E_NOTFOUND, FAIL, "required filter was not located")
@@ -573,7 +585,7 @@ H5Z_prelude_callback(hid_t dcpl_id, hid_t type_id, H5Z_prelude_type_t prelude_ty
                                     /* Check return value */
                                     if(status <= 0) {
                                         /* We're leaving, so close dataspace */
-                                        if(H5I_dec_ref(space_id, FALSE) < 0)
+                                        if(dset_target && H5I_dec_ref(space_id, FALSE) < 0)
                                             HGOTO_ERROR(H5E_PLINE, H5E_CANTRELEASE, FAIL, "unable to close dataspace")
 
                                         /* Indicate filter can't apply to this combination of parameters */
@@ -592,7 +604,7 @@ H5Z_prelude_callback(hid_t dcpl_id, hid_t type_id, H5Z_prelude_type_t prelude_ty
                                     /* Make callback to filter's "set local" function */
                                     if((fclass->set_local)(dcpl_id, type_id, space_id)<0) {
                                         /* We're leaving, so close dataspace */
-                                        if(H5I_dec_ref(space_id, FALSE)<0)
+                                        if(dset_target && H5I_dec_ref(space_id, FALSE)<0)
                                             HGOTO_ERROR (H5E_PLINE, H5E_CANTRELEASE, FAIL, "unable to close dataspace")
 
                                         /* Indicate error during filter callback */
@@ -608,7 +620,7 @@ H5Z_prelude_callback(hid_t dcpl_id, hid_t type_id, H5Z_prelude_type_t prelude_ty
                 } /* end for */
 
                 /* Close dataspace */
-                if(H5I_dec_ref(space_id, FALSE) < 0)
+                if(dset_target && H5I_dec_ref(space_id, FALSE) < 0)
                     HGOTO_ERROR (H5E_PLINE, H5E_CANTRELEASE, FAIL, "unable to close dataspace")
             } /* end if */
         } /* end if */
@@ -639,17 +651,14 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5Z_can_apply(hid_t dcpl_id, hid_t type_id)
+H5Z_can_apply(hid_t dcpl_id, hid_t type_id, const H5O_pline_t *pline)
 {
     herr_t ret_value = SUCCEED;   /* Return value */
 
     FUNC_ENTER_NOAPI(H5Z_can_apply, FAIL)
 
-    HDassert(H5I_GENPROP_LST == H5I_get_type(dcpl_id));
-    HDassert(H5I_DATATYPE == H5I_get_type(type_id));
-
     /* Make "can apply" callbacks for filters in pipeline */
-    if(H5Z_prelude_callback(dcpl_id, type_id, H5Z_PRELUDE_CAN_APPLY) < 0)
+    if(H5Z_prelude_callback(dcpl_id, type_id, pline, H5Z_PRELUDE_CAN_APPLY) < 0)
         HGOTO_ERROR(H5E_PLINE, H5E_CANAPPLY, FAIL, "unable to apply filter")
 
 done:
@@ -677,17 +686,14 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5Z_set_local(hid_t dcpl_id, hid_t type_id)
+H5Z_set_local(hid_t dcpl_id, hid_t type_id, const H5O_pline_t *pline)
 {
     herr_t ret_value = SUCCEED;   /* Return value */
 
     FUNC_ENTER_NOAPI(H5Z_set_local, FAIL)
 
-    HDassert(H5I_GENPROP_LST == H5I_get_type(dcpl_id));
-    HDassert(H5I_DATATYPE == H5I_get_type(type_id));
-
     /* Make "set local" callbacks for filters in pipeline */
-    if(H5Z_prelude_callback(dcpl_id, type_id, H5Z_PRELUDE_SET_LOCAL) < 0)
+    if(H5Z_prelude_callback(dcpl_id, type_id, pline, H5Z_PRELUDE_SET_LOCAL) < 0)
         HGOTO_ERROR(H5E_PLINE, H5E_SETLOCAL, FAIL, "local filter parameters not set")
 
 done:
@@ -1295,34 +1301,4 @@ H5Zget_filter_info(H5Z_filter_t filter, unsigned int *filter_config_flags)
 done:
     FUNC_LEAVE_API(ret_value)
 } /* end H5Zget_filter_info() */
-
-
-/*-------------------------------------------------------------------------
- * Function:    H5Z_set_latest_version
- *
- * Purpose:     Set the encoding for a I/O filter pipeline to the latest version.
- *
- * Return:	Non-negative on success/Negative on failure
- *
- * Programmer:  Quincey Koziol
- *              Tuesday, July 24, 2007
- *
- *-------------------------------------------------------------------------
- */
-herr_t
-H5Z_set_latest_version(H5O_pline_t *pline)
-{
-    herr_t ret_value = SUCCEED;         /* Return value */
-
-    FUNC_ENTER_NOAPI(H5Z_set_latest_version, FAIL)
-
-    /* Sanity check */
-    HDassert(pline);
-
-    /* Set encoding of I/O pipeline to latest version */
-    pline->version = H5O_PLINE_VERSION_LATEST;
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5Z_set_latest_version() */
 

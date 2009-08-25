@@ -71,44 +71,6 @@
 
 
 /*-------------------------------------------------------------------------
- * Function:	H5HF_get_cparam_test
- *
- * Purpose:	Retrieve the parameters used to create the fractal heap
- *
- * Return:	Success:	non-negative
- *
- *		Failure:	negative
- *
- * Programmer:	Quincey Koziol
- *              Friday, February 24, 2006
- *
- *-------------------------------------------------------------------------
- */
-herr_t
-H5HF_get_cparam_test(const H5HF_t *fh, H5HF_create_t *cparam)
-{
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5HF_get_cparam_test)
-
-    /* Check arguments. */
-    HDassert(fh);
-    HDassert(cparam);
-
-    /* Get fractal heap creation parameters */
-    if(fh->hdr->id_len == (unsigned)(1 + fh->hdr->heap_off_size + fh->hdr->heap_len_size))
-        cparam->id_len = 0;
-    else if(fh->hdr->id_len == (1 + fh->hdr->sizeof_size + fh->hdr->sizeof_addr))
-        cparam->id_len = 1;
-    else
-        cparam->id_len = fh->hdr->id_len;
-    cparam->max_man_size = fh->hdr->max_man_size;
-    HDmemcpy(&(cparam->managed), &(fh->hdr->man_dtable.cparam), sizeof(H5HF_dtable_cparam_t));
-    H5O_msg_copy(H5O_PLINE_ID, &(fh->hdr->pline), &(cparam->pline));
-
-    FUNC_LEAVE_NOAPI(SUCCEED)
-} /* H5HF_get_cparam_test() */
-
-
-/*-------------------------------------------------------------------------
  * Function:	H5HF_cmp_cparam_test
  *
  * Purpose:	Compare the parameters used to create the fractal heap
@@ -124,7 +86,7 @@ H5HF_get_cparam_test(const H5HF_t *fh, H5HF_create_t *cparam)
 int
 H5HF_cmp_cparam_test(const H5HF_create_t *cparam1, const H5HF_create_t *cparam2)
 {
-    int ret_value;         /* Return value */
+    int ret_value = 0;         /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5HF_cmp_cparam_test)
 
@@ -133,8 +95,26 @@ H5HF_cmp_cparam_test(const H5HF_create_t *cparam1, const H5HF_create_t *cparam2)
     HDassert(cparam2);
 
     /* Compare doubling table parameters */
-    if((ret_value = HDmemcmp(&(cparam1->managed), &(cparam2->managed), sizeof(H5HF_dtable_cparam_t))))
-        HGOTO_DONE(ret_value)
+    if(cparam1->managed.width < cparam2->managed.width)
+        HGOTO_DONE(-1)
+    else if(cparam1->managed.width > cparam2->managed.width)
+        HGOTO_DONE(1)
+    if(cparam1->managed.start_block_size < cparam2->managed.start_block_size)
+        HGOTO_DONE(-1)
+    else if(cparam1->managed.start_block_size > cparam2->managed.start_block_size)
+        HGOTO_DONE(1)
+    if(cparam1->managed.max_direct_size < cparam2->managed.max_direct_size)
+        HGOTO_DONE(-1)
+    else if(cparam1->managed.max_direct_size > cparam2->managed.max_direct_size)
+        HGOTO_DONE(1)
+    if(cparam1->managed.max_index < cparam2->managed.max_index)
+        HGOTO_DONE(-1)
+    else if(cparam1->managed.max_index > cparam2->managed.max_index)
+        HGOTO_DONE(1)
+    if(cparam1->managed.start_root_rows < cparam2->managed.start_root_rows)
+        HGOTO_DONE(-1)
+    else if(cparam1->managed.start_root_rows > cparam2->managed.start_root_rows)
+        HGOTO_DONE(1)
 
     /* Compare other general parameters for heap */
     if(cparam1->max_man_size < cparam2->max_man_size)
