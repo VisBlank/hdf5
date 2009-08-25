@@ -80,7 +80,7 @@ H5_DLL ssize_t H5MF_get_free_sections(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type,
 H5_DLL haddr_t H5MF_alloc_tmp(H5F_t *f, hsize_t size);
 
 /* 'block aggregator' routines */
-H5_DLL herr_t H5MF_aggr_reset(H5F_t *file, hid_t dxpl_id, H5F_blk_aggr_t *aggr);
+H5_DLL herr_t H5MF_free_aggrs(H5F_t *f, hid_t dxpl_id);
 
 /* Debugging routines */
 #ifdef H5MF_DEBUGGING
