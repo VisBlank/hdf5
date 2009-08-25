@@ -2986,7 +2986,6 @@ test_get_cparam(hid_t fapl)
     unsigned    deflate_level = 5;      /* Level for deflate filter */
     haddr_t     fh1_addr;               /* Address of fractal heap */
     haddr_t     fh2_addr;               /* Address of fractal heap */
-    //int i;
 
     /* Set the filename to use for this test (dependent on fapl) */
     h5_fixname(FILENAME[0], fapl, filename, sizeof(filename));
