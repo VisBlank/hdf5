@@ -311,21 +311,23 @@
 ./fortran/src/h5fc.in
 ./fortran/src/hdf5_fortrandll.def
 ./fortran/src/H5_ff_F03.f90
+./fortran/src/H5_ff_DEPRECIATED.f90
+./fortran/src/H5Aff_DEPRECIATED.f90
 ./fortran/src/H5Dff_DEPRECIATED.f90
+./fortran/src/H5Eff_DEPRECIATED.f90
 ./fortran/src/H5Lff_DEPRECIATED.f90
+./fortran/src/H5Off_DEPRECIATED.f90
 ./fortran/src/H5Pff_DEPRECIATED.f90
 ./fortran/src/H5Rff_DEPRECIATED.f90
-./fortran/src/H5Dff_F03.f90
 ./fortran/src/H5Tff_DEPRECIATED.f90
+./fortran/src/H5Dff_F03.f90
+./fortran/src/H5Eff_F03.f90
 ./fortran/src/H5Lff_F03.f90
 ./fortran/src/H5Pff_F03.f90
 ./fortran/src/H5Rff_F03.f90
 ./fortran/src/H5Tff_F03.f90
-./fortran/src/H5Aff_DEPRECIATED.f90
-./fortran/src/H5Off_DEPRECIATED.f90
 ./fortran/src/H5Aff_F03.f90
 ./fortran/src/H5Off_F03.f90
-./fortran/src/H5_ff_DEPRECIATED.f90
 
 ./fortran/test/Makefile.am
 ./fortran/test/Makefile.in
