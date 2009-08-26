@@ -3,7 +3,7 @@
 ! NAME
 !  MODULE H5E
 !
-!  FILE
+! FILE
 !  fortran/src/H5Eff.f90
 !
 ! PURPOSE
@@ -55,7 +55,8 @@ CONTAINS
 !
 ! OUTPUTS
 !  hdferr 	 - Returns 0 if successful and -1 if fails
-!
+! OPTIONAL PARAMETERS
+!  estack_id     - Error Stack id
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -65,20 +66,32 @@ CONTAINS
 !  called C functions (it is needed for Windows
 !  port).  April 6, 2001
 !
+!  Added optional error stack identifier in order to bring
+!  the function in line with the h5eclear2 routine.
+!  MSB, July 9, 2009
+!
 ! SOURCE
-  SUBROUTINE h5eclear_f(hdferr)
+  SUBROUTINE h5eclear_f(hdferr, estack_id)
     IMPLICIT NONE
     INTEGER, INTENT(OUT) :: hdferr  ! Error code
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: estack_id
 !*****
+    INTEGER(HID_T) :: estack_id_default
+
     INTERFACE
-       INTEGER FUNCTION h5eclear_c()
+       INTEGER FUNCTION h5eclear_c(estack_id_default)
          USE H5GLOBAL
          !DEC$IF DEFINED(HDF5F90_WINDOWS)
          !DEC$ATTRIBUTES C,reference,decorate,alias:'H5ECLEAR_C'::h5eclear_c
          !DEC$ENDIF
+         INTEGER(HID_T) :: estack_id_default
        END FUNCTION h5eclear_c
     END INTERFACE
-    hdferr = h5eclear_c()
+
+    estack_id_default = H5E_DEFAULT_F
+    IF(PRESENT(estack_id)) estack_id_default = estack_id
+
+    hdferr = h5eclear_c(estack_id_default)
   END SUBROUTINE h5eclear_f
 
 !****s* H5E/h5eprint_f
@@ -233,52 +246,6 @@ CONTAINS
 
     hdferr = h5eget_minor_c(error_no, name)
   END SUBROUTINE h5eget_minor_f
-!****s* H5E/h5eset_auto_f
-!
-! NAME
-!  h5eset_auto_f
-!
-! PURPOSE
-!  Turns automatic error printing on or off.
-!
-! INPUTS
-!  printflag 	 - Flag to turn automatic error printing on or off;
-!                  possible values are:
-!                    printon (1)
-!                    printoff(0)
-! OUTPUTS
-!  hdferr 	 - Returns 0 if successful and -1 if fails
-!
-! AUTHOR
-!  Elena Pourmal
-!  August 12, 1999
-!
-! HISTORY
-!  Explicit Fortran interfaces were added for
-!  called C functions (it is needed for Windows
-!  port).  April 6, 2001
-!
-! SOURCE
-  SUBROUTINE h5eset_auto_f(printflag, hdferr)
-    INTEGER, INTENT(IN) :: printflag  ! flag to turn automatic error
-                                      ! printing on or off
-                                      ! possible values are:
-                                      !     printon (1)
-                                      !     printoff(0)
-    INTEGER, INTENT(OUT) :: hdferr    ! Error code
-!*****
-    INTERFACE
-       INTEGER FUNCTION h5eset_auto_c(printflag)
-         USE H5GLOBAL
-         !DEC$IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5ESET_AUTO_C'::h5eset_auto_c
-         !DEC$ENDIF
-         INTEGER :: printflag
-       END FUNCTION h5eset_auto_c
-    END INTERFACE
-
-    hdferr = h5eset_auto_c(printflag)
-  END SUBROUTINE h5eset_auto_f
 
 END MODULE H5E
 

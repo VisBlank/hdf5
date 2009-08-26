@@ -42,16 +42,15 @@
  * SOURCE
 */
 int_f
-nh5eclear_c( )
+nh5eclear_c(hid_t_f *estack_id )
 /******/
 {
   int ret_val = -1;
   herr_t status;
-
   /*
    * Call H5Eclear function.
    */
-  status = H5Eclear2(H5E_DEFAULT);
+  status = H5Eclear2((hid_t)*estack_id);
   if(status < 0) return ret_val;
   ret_val = 0;
   return ret_val;
@@ -252,6 +251,120 @@ nh5eset_auto_c(int_f* printflag)
     status = H5Eset_auto2(H5E_DEFAULT, H5Eprint2, stderr);
   else if (*printflag == 0)
     status = H5Eset_auto2(H5E_DEFAULT, NULL, NULL);
+  if (status >= 0) ret_val = 0;
+  return ret_val;
+}
+
+
+/****if* H5Ef/h5eset_auto2_c
+ * NAME
+ *   h5eset_auto2_c
+ * PURPOSE
+ *   Calls H5Eset_auto2
+ * INPUTS
+ *   estack_id    - Error stack identifier.
+ *   func 	 - Function to be called upon an error condition.
+ *   client_data - Data passed to the error function.
+ *   
+ * RETURNS
+ *   0 on success, -1 on failure
+ * AUTHOR
+ *   M. Scot Breitenfeld
+ *   July 22, 2009
+ * SOURCE
+*/
+/* int_f */
+/* nh5eset_auto2_c(hid_t_f *estack_id, H5E_auto2_t *func, void *client_data) */
+/* /\******\/ */
+/* { */
+/*   int ret_val = -1; */
+/*   herr_t status = -1; */
+
+/*   status = H5Eset_auto2((hid_t)*estack_id, *func, client_data); */
+/*   if (status >= 0) ret_val = 0; */
+/*   return ret_val; */
+/* } */
+
+int_f
+nh5eset_auto2_c(int_f *printflag, hid_t_f *estack_id, H5E_auto2_t func, void *client_data)
+/******/
+{
+  int ret_val = -1;
+  herr_t status = -1;
+
+  if (*printflag == 1 && *estack_id == -1)
+    status = H5Eset_auto2(H5E_DEFAULT, H5Eprint2, stderr);
+  else if (*printflag == 1)
+    status = H5Eset_auto2((hid_t)*estack_id, func, client_data);
+  else if (*printflag == 0)
+    status = H5Eset_auto2(H5E_DEFAULT, NULL, NULL);
+  if (status >= 0) ret_val = 0;
+
+  return ret_val;
+}
+
+/****if* H5Ef/h5eget_auto_c
+ * NAME
+ *  h5eget_auto_c
+ * PURPOSE
+ *  Calls H5Eget_auto2
+ * INPUTS
+ *  estack_id    - Error stack identifier
+ * OUTPUTS
+ *  func          - The function currently set to be called upon an error condition.
+ *  client_data  - Data currently set to be passed to the error function.
+ * RETURNS
+ *  0 on success, -1 on failure
+ * AUTHOR
+ *  M. Scot Breitenfeld
+ *  July 10, 2009
+ * NOTE
+ *  if func is the default H5Eprint or H5Eprint2 then need to use the Fortran callback function
+ *  associated  with H5Eprint*.
+ * SOURCE
+*/
+int_f
+nh5eget_auto_c(hid_t_f *estack_id, H5E_auto2_t *func, void **client_data, int_f *ret_func)
+/******/
+{
+  int ret_val = -1;
+  herr_t status = -1;
+  void *old_data;
+  H5E_auto2_t func2;
+  hid_t dataset;
+     
+  *ret_func = -1;
+
+/*   H5E_BEGIN_TRY { */
+/*     dataset = H5Dcreate2(-1, "tmp", H5T_STD_I32BE, -1, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT); */
+/*   } H5E_END_TRY; */
+
+/*    status = H5Eset_auto2(H5E_DEFAULT, (H5E_auto2_t)H5Eprint2, NULL); */
+
+/*   printf(" %d \n", (int)status); */
+  status = H5Eget_auto2((hid_t)*estack_id, &func, &client_data);
+
+/*   printf(" %d \n", (int)status); */
+  
+  if(client_data != NULL)
+    printf("error \n");
+#ifdef H5_USE_16_API
+  if (func == (H5E_auto_t)H5Eprint) 
+    *ret_func = 0;
+#else /* H5_USE_16_API */
+  if (func == (H5E_auto2_t)H5Eprint2)
+    *ret_func = 0;
+#endif /* H5_USE_16_API */
+
+/* #ifdef H5_USE_16_API */
+/*   if (func == (H5E_auto_t)H5Eprint) */
+/*     *ret_func = 0; */
+/* #else /\* H5_USE_16_API *\/ */
+/*   if (func == (H5E_auto2_t)H5Eprint2) */
+/*     *ret_func = 0; */ /* printf("%p %p \n",func,(H5E_auto2_t)H5Eprint2); */
+/* #endif /\* H5_USE_16_API *\/ */
+
+/*   printf(" ret %d \n", ret_val); */
   if (status >= 0) ret_val = 0;
   return ret_val;
 }

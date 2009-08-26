@@ -324,41 +324,45 @@ nh5close_types_c( hid_t_f * types, int_f *lentypes,
 }
 /****if* H5_f/h5init_flags_c
  * NAME
- *              h5init_flags_c
+ *  h5init_flags_c
  * PURPOSE
- *           Initialize Fortran flags
+ *  Initialize Fortran flags
  * INPUTS
- *            h5d_flags    - H5D inteface flags
- *                    h5f_flags    - H5F interface flags
- *                    h5fd_flags    - H5FD interface flags
- *                    h5fd_hid_flags- H5FD interface flags of type hid_t
- *                    h5g_flags    - H5G interface flags
- *                    h5i_flags    - H5I interface flags
- *                    h5p_flags    - H5P interface flags
- *                    h5p_flags_int    - H5P intger interface flags
- *                    h5r_flags    - H5R interface flags
- *                    h5s_flags    - H5S interface flags
- *                    h5t_flags    - H5T interface flags
- *                    h5z_flags    - H5Z interface flags
+ *  h5d_flags      - H5D inteface flags
+ *  h5e_flags      - H5E inteface flags
+ *  h5e_hid_flags  - H5E inteface flags of type hid_t
+ *  h5f_flags      - H5F interface flags
+ *  h5fd_flags     - H5FD interface flags
+ *  h5fd_hid_flags - H5FD interface flags of type hid_t
+ *  h5g_flags      - H5G interface flags
+ *  h5i_flags      - H5I interface flags
+ *  h5p_flags      - H5P interface flags
+ *  h5p_flags_int  - H5P interface flags of type integer
+ *  h5r_flags      - H5R interface flags
+ *  h5s_flags      - H5S interface flags
+ *  h5t_flags      - H5T interface flags
+ *  h5z_flags      - H5Z interface flags
  * OUTPUTS
- *           None
+ *  None
  * RETURNS
- *           0 on success, -1 on failure
+ *  0 on success, -1 on failure
  * AUTHOR
- *        Elena Pourmal
- *                    Tuesday, August 3, 1999
+ *  Elena Pourmal
+ *  Tuesday, August 3, 1999
  * HISTORY
- *     Added Z flags. EIP,  March 12, 2003
- *                    Added more FD flags and new H5LIB flags
- *                    Added more FD flags for HDF5 file driver
- *                                  EIP, April 9, 2005
- *                    Added Generic flags introduced in version 1.8
- *                                  MSB, January, 2008
- *                    Added types in lines h5*_flags = ( )variable to match input
+ *  Added Z flags. EIP,  March 12, 2003
+ *  Added more FD flags and new H5LIB flags
+ *  Added more FD flags for HDF5 file driver
+ *           EIP, April 9, 2005
+ *  Added Generic flags introduced in version 1.8
+ *           MSB, January, 2008
+ *  Added types in lines h5*_flags = ( )variable to match input
+ *  Added E flags. 
+ *           MSB, July 9, 2009
  * SOURCE
  */
 int_f
-nh5init_flags_c( int_f *h5d_flags, int_f *h5f_flags,
+nh5init_flags_c( int_f *h5d_flags, int_f *h5e_flags, hid_t_f *h5e_hid_flags, int_f *h5f_flags,
                  int_f *h5fd_flags, hid_t_f *h5fd_hid_flags,
                  int_f *h5g_flags, int_f *h5i_flags, int_f *h5l_flags, int_f *h5o_flags,
                  hid_t_f *h5p_flags, int_f *h5p_flags_int, int_f *h5r_flags, int_f *h5s_flags,
@@ -391,6 +395,15 @@ nh5init_flags_c( int_f *h5d_flags, int_f *h5f_flags,
     h5d_flags[19] = (int_f)H5D_CHUNK_CACHE_NSLOTS_DEFAULT;
     h5d_flags[20] = (int_f)H5D_CHUNK_CACHE_NBYTES_DEFAULT;
     h5d_flags[21] = (int_f)H5D_CHUNK_CACHE_W0_DEFAULT;
+
+/*
+ *  H5E flags
+ */
+    h5e_hid_flags[0] = (hid_t_f)H5E_DEFAULT;
+    h5e_flags[0] = (int_f)H5E_MAJOR;
+    h5e_flags[1] = (int_f)H5E_MINOR;
+    h5e_flags[2] = (int_f)H5E_WALK_UPWARD;
+    h5e_flags[3] = (int_f)H5E_WALK_DOWNWARD;
 
 /*
  *  H5F flags

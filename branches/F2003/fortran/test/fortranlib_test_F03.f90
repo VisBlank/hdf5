@@ -58,6 +58,11 @@ PROGRAM fortranlibtest
   ELSE
      total_error = total_error + 1
   ENDIF
+
+  ret_total_error = 0
+  CALL test_error(ret_total_error)
+  CALL write_test_status(ret_total_error, ' Test error API based on data I/O', total_error)
+
   WRITE(*,*)
 !     write(*,*)
 !     write(*,*) '========================================='
@@ -98,6 +103,7 @@ PROGRAM fortranlibtest
 !  CALL test_iter_group(ret_total_error)
   CALL write_test_status(ret_total_error, ' Testing Group Iteration Functionality', total_error)
  
+
 
 !     write(*,*)
 !     write(*,*) '========================================='
