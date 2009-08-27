@@ -122,7 +122,7 @@ H5O_ginfo_decode(H5F_t *f, hid_t dxpl_id, H5O_t *open_oh,
 
     /* Version of message */
     ginfo->version = *p++;
-    if(ginfo->version < H5O_GINFO_VERSION_0 || ginfo->version > H5O_GINFO_VERSION_LATEST)
+    if(ginfo->version > H5O_GINFO_VERSION_LATEST)
         HGOTO_ERROR(H5E_OHDR, H5E_CANTLOAD, NULL, "bad version number for message")
 
     /* Get the flags for the group */
@@ -132,7 +132,7 @@ H5O_ginfo_decode(H5F_t *f, hid_t dxpl_id, H5O_t *open_oh,
     ginfo->store_link_phase_change = (flags & H5O_GINFO_STORE_PHASE_CHANGE) ? TRUE : FALSE;
     ginfo->store_est_entry_info = (flags & H5O_GINFO_STORE_EST_ENTRY_INFO) ? TRUE : FALSE;
     if(ginfo->version < H5O_GINFO_VERSION_1 && 
-            (flags & ~(H5O_GINFO_STORE_PHASE_CHANGE | H5O_GINFO_STORE_EST_ENTRY_INFO))))
+            (flags & ~(H5O_GINFO_STORE_PHASE_CHANGE | H5O_GINFO_STORE_EST_ENTRY_INFO)))
         HGOTO_ERROR(H5E_OHDR, H5E_CANTLOAD, NULL, "bad flag value for message version")
 
     /* Get the max. # of links to store compactly & the min. # of links to store densely */
@@ -159,7 +159,7 @@ H5O_ginfo_decode(H5F_t *f, hid_t dxpl_id, H5O_t *open_oh,
     ginfo->fheap_cparam.version = H5HF_CPARAM_VERSION_1;
     if(flags & H5O_GINFO_STORE_FHEAP_CPARAM) {
         /* Sanity check */
-        HDassert(ginfo->version > = H5O_GINFO_VERSION_1);
+        HDassert(ginfo->version >= H5O_GINFO_VERSION_1);
 
         /* Set the flag to indicate that the fractal heap's creation parameters are stored */
         ginfo->store_fheap_cparam = TRUE;
@@ -202,7 +202,7 @@ H5O_ginfo_decode(H5F_t *f, hid_t dxpl_id, H5O_t *open_oh,
     /* Decode the filter pipeline info (if present) */
     if(flags & H5O_GINFO_STORE_PLINE) {
         /* Sanity check */
-        HDassert(ginfo->version > = H5O_GINFO_VERSION_1);
+        HDassert(ginfo->version >= H5O_GINFO_VERSION_1);
 
         /* Decode the pipeline message */
         if(NULL == (pline = (H5O_pline_t *) H5O_MSG_PLINE->decode(f, dxpl_id, open_oh, 0, ioflags, p)))

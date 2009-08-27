@@ -49,7 +49,7 @@ typedef enum H5HF_type_t {
 
 /* Creation parameters for fractal heaps */
 typedef struct H5HF_cparam_t {
-    int         version;        /* Version of this struct */
+    unsigned    version;        /* Version of this struct */
     unsigned    width;          /* Number of columns in the table (must be power of 2) */
     size_t      start_block_size; /* Starting block size for table (must be power of 2) */
     size_t      max_direct_size; /* Maximum size of a direct block (must be power of 2) */

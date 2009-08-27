@@ -376,7 +376,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static void *
-H5O_linfo_copy_file(H5F_t *file_src, void *native_src, H5F_t *file_dst,
+H5O_linfo_copy_file(H5F_t UNUSED *file_src, void *native_src, H5F_t *file_dst,
     hbool_t UNUSED *recompute_size, H5O_copy_t *cpy_info, void *udata,
     hid_t dxpl_id)
 {
@@ -411,38 +411,10 @@ H5O_linfo_copy_file(H5F_t *file_src, void *native_src, H5F_t *file_dst,
         /* (XXX: should probably get the "creation" parameters for the source group's
          *      dense link storage components and use those - QAK)
          */
-        /* fheap creation parameters are now preserved, bt2 parameters are not
-         * as they are still fixed currently -NAF
-         */
         if(H5F_addr_defined(linfo_src->fheap_addr)) {
-            H5HF_t          *src_fheap;     /* Source fractal heap */
-            H5HF_create_t   fheap_cparam;   /* fheap creation parameters */
-
-            /* Get the source fractal heap */
-            if(NULL == (src_fheap = H5HF_open(file_src, dxpl_id, linfo_src->fheap_addr)))
-                HGOTO_ERROR(H5E_HEAP, H5E_CANTOPENOBJ, NULL, "unable to open fractal heap")
-
-            /* Get the source fractal heap's creation parameters */
-            if(H5HF_get_cparam(src_fheap, &fheap_cparam) < 0) {
-                H5HF_close(src_fheap, dxpl_id);
-                HGOTO_ERROR(H5E_HEAP, H5E_CANTGET, NULL, "unable to get fractal heap creation parameters")
-            } /* end if */
-
-            /* Close the source fractal heap */
-            if(H5HF_close(src_fheap, dxpl_id) < 0) {
-                H5O_msg_reset(H5O_PLINE_ID, &(fheap_cparam.pline));
-                HGOTO_ERROR(H5E_HEAP, H5E_CLOSEERROR, NULL, "can't close fractal heap")
-            } /* end if */
-
             /* Create the dense link storage */
-            if(H5G_dense_create(file_dst, dxpl_id, linfo_dst, ginfo_src) < 0) {
-                H5O_msg_reset(H5O_PLINE_ID, &(fheap_cparam.pline));
+            if(H5G_dense_create(file_dst, dxpl_id, linfo_dst, ginfo_src) < 0)
                 HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, NULL, "unable to create 'dense' form of new format group")
-            } /* end if */
-
-            /* Free the pipeline message */
-            if(H5O_msg_reset(H5O_PLINE_ID, &(fheap_cparam.pline)) < 0)
-                HGOTO_ERROR(H5E_DATASET, H5E_CANTFREE, NULL, "can't release pipeline")
         } /* end if */
     } /* end else */
 
