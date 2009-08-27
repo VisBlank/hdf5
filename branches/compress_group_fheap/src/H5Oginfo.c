@@ -56,7 +56,7 @@ const H5O_msg_class_t H5O_MSG_GINFO[1] = {{
     H5O_ginfo_encode,        	/*encode message                */
     H5O_ginfo_copy,          	/*copy the native value         */
     H5O_ginfo_size,          	/*size of symbol table entry    */
-    H5O_ginfo_reset,         	/*default reset method          */
+    H5O_ginfo_reset,         	/*reset method                  */
     H5O_ginfo_free,	        /* free method			*/
     NULL,	        	/* file delete method		*/
     NULL,			/* link method			*/
@@ -131,10 +131,8 @@ H5O_ginfo_decode(H5F_t *f, hid_t dxpl_id, H5O_t *open_oh,
         HGOTO_ERROR(H5E_OHDR, H5E_CANTLOAD, NULL, "bad flag value for message")
     ginfo->store_link_phase_change = (flags & H5O_GINFO_STORE_PHASE_CHANGE) ? TRUE : FALSE;
     ginfo->store_est_entry_info = (flags & H5O_GINFO_STORE_EST_ENTRY_INFO) ? TRUE : FALSE;
-    ginfo->store_fheap_cparam = (flags & H5O_GINFO_STORE_FHEAP_CPARAM) ? TRUE : FALSE;
-    if(ginfo->version < H5O_GINFO_VERSION_1 && (ginfo->store_fheap_cparam
-            || ginfo->fheap_cparam.checksum_dblocks
-            || (flags & H5O_GINFO_STORE_PLINE)))
+    if(ginfo->version < H5O_GINFO_VERSION_1 && 
+            (flags & ~(H5O_GINFO_STORE_PHASE_CHANGE | H5O_GINFO_STORE_EST_ENTRY_INFO))))
         HGOTO_ERROR(H5E_OHDR, H5E_CANTLOAD, NULL, "bad flag value for message version")
 
     /* Get the max. # of links to store compactly & the min. # of links to store densely */
@@ -159,7 +157,13 @@ H5O_ginfo_decode(H5F_t *f, hid_t dxpl_id, H5O_t *open_oh,
 
     /* Decode the fractal heap creation parameters (if present) */
     ginfo->fheap_cparam.version = H5HF_CPARAM_VERSION_1;
-    if(ginfo->store_fheap_cparam) {
+    if(flags & H5O_GINFO_STORE_FHEAP_CPARAM) {
+        /* Sanity check */
+        HDassert(ginfo->version > = H5O_GINFO_VERSION_1);
+
+        /* Set the flag to indicate that the fractal heap's creation parameters are stored */
+        ginfo->store_fheap_cparam = TRUE;
+
         /* Table width */
         UINT16DECODE(p, ginfo->fheap_cparam.width);
 
@@ -196,11 +200,12 @@ H5O_ginfo_decode(H5F_t *f, hid_t dxpl_id, H5O_t *open_oh,
     } /* end else */
 
     /* Decode the filter pipeline info (if present) */
-    if(ginfo->version >= H5O_GINFO_VERSION_1 && flags & H5O_GINFO_STORE_PLINE) {
-            /* Decode the pipeline message */
-        if(NULL == (pline = (H5O_pline_t *) H5O_MSG_PLINE->decode(f, dxpl_id, open_oh,
-                /*((flags & H5O_GINFO_PLINE_SHARED) ? H5O_MSG_FLAG_SHARED : 0)*/ 0,
-                ioflags, p)))
+    if(flags & H5O_GINFO_STORE_PLINE) {
+        /* Sanity check */
+        HDassert(ginfo->version > = H5O_GINFO_VERSION_1);
+
+        /* Decode the pipeline message */
+        if(NULL == (pline = (H5O_pline_t *) H5O_MSG_PLINE->decode(f, dxpl_id, open_oh, 0, ioflags, p)))
             HGOTO_ERROR(H5E_OHDR, H5E_CANTDECODE, NULL, "can't decode heap pipeline")
 
         /* Copy the pipeline information to the ginfo struct */
@@ -273,16 +278,6 @@ H5O_ginfo_encode(H5F_t *f, hbool_t UNUSED disable_shared, uint8_t *p, const void
         /* The flag to indicate if the pipeline message is encoded */
         flags |= ginfo->pline.nused ? H5O_GINFO_STORE_PLINE : 0;
     } /* end if */
-
-#if 0 /* sharing of the pline message in the ginfo message is not supported yet */
-        htri_t              is_pline_shared;    /* If the pipeline message is shared */
-
-        if((is_pline_shared = H5O_msg_is_shared(H5O_PLINE_ID, &ginfo->pline)) < 0)
-            HGOTO_ERROR(H5E_OHDR, H5E_BADMESG, FAIL, "can't determine if pipeline is shared")
-
-        flags |= is_pline_shared ? H5O_GINFO_PLINE_SHARED : 0;
-    } /* end if */
-#endif
 
     *p++ = flags;
 

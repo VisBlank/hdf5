@@ -81,9 +81,9 @@ const H5P_libclass_t H5P_CLS_GCRT[1] = {{
     H5P_gcrt_reg_prop,		/* Default property registration routine */
     NULL,		        /* Class creation callback      */
     NULL,		        /* Class creation callback info */
-    H5P_gcrt_copy,			/* Class copy callback          */
+    H5P_gcrt_copy,		/* Class copy callback          */
     NULL,		        /* Class copy callback info     */
-    H5P_gcrt_close,			/* Class close callback         */
+    H5P_gcrt_close,		/* Class close callback         */
     NULL 		        /* Class close callback info    */
 }};
 

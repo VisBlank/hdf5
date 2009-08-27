@@ -292,9 +292,8 @@ H5G_dense_create(H5F_t *f, hid_t dxpl_id, H5O_linfo_t *linfo,
     fheap_create.pline = ginfo->pline;
 
     /* Create fractal heap for storing links */
-    if(NULL == (fheap = H5HF_create(f, dxpl_id, &fheap_create))) {
+    if(NULL == (fheap = H5HF_create(f, dxpl_id, &fheap_create)))
         HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, FAIL, "unable to create fractal heap")
-    } /* end if */
 
     /* Retrieve the heap's address in the file */
     if(H5HF_get_heap_addr(fheap, &(linfo->fheap_addr)) < 0)

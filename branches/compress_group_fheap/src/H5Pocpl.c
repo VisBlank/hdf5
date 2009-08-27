@@ -54,10 +54,10 @@
 #define H5O_CRT_OHDR_FLAGS_SIZE         sizeof(uint8_t)
 
 /* Macros for functions that modify a filter pipeline on either a gcpl or dcpl.
- * Must include H5P_OCPL_GET_PLINE and either H5P_OCPL_CLOSE_PLINE.
+ * Must include H5P_OCPL_GET_PLINE and H5P_OCPL_CLOSE_PLINE.
  * H5P_OCPL_SET_PLINE is optional, but must be between H5P_OCPL_GET_PLINE and
  * H5P_OCPL_CLOSE_PLINE if present. */
-/* H5P_OCPL_FILTER_START: Retrieves the pipeline, PLINE, from PLIST_ID, which is
+/* H5P_OCPL_GET_PLINE: Retrieves the pipeline, PLINE, from PLIST_ID, which is
  * either a gcpl or a dcpl. */
 #define H5P_OCPL_GET_PLINE(PLIST_ID, PLINE, ERR)                            \
 {                                                                              \
@@ -73,7 +73,7 @@
             HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, ERR, "can't find object for ID") \
                                                                                \
         /* Get the filter pipeline from the dcpl */                            \
-        if((H5P_dcpl_get_pline(_plist, &(PLINE))) == ERR)                      \
+        if((H5P_dcpl_get_pline(_plist, &(PLINE))) < 0)                         \
             HGOTO_ERROR(H5E_PLINE, H5E_CANTINIT, ERR, "can't get pipeline from dcpl") \
     } else {                                                                   \
         /* Get the plist structure, and verify it's a gcpl */                  \
@@ -81,25 +81,25 @@
             HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, ERR, "can't find object for ID") \
                                                                                \
         /* Get the filter pipeline from the gcpl */                            \
-        if((H5P_gcpl_get_pline(_plist, &(PLINE))) == ERR)                      \
+        if((H5P_gcpl_get_pline(_plist, &(PLINE))) < 0)                         \
             HGOTO_ERROR(H5E_PLINE, H5E_CANTINIT, ERR, "can't get pipeline from gcpl") \
     } /* end else */
 
 /* H5P_OCPL_SET_PLINE: Sets the pipeline, PLINE on the property list passed to
  * H5P_OCPL_GET_PLINE. */
-#define H5P_OCPL_SET_PLINE(PLINE, ERR)                                        \
+#define H5P_OCPL_SET_PLINE(PLINE, ERR)                                         \
     if(_is_dcpl) {                                                             \
         /* Set the filter pipeline on the dcpl */                              \
-        if((H5P_dcpl_set_pline(_plist, &(PLINE))) == ERR)                      \
+        if((H5P_dcpl_set_pline(_plist, &(PLINE))) < 0)                         \
             HGOTO_ERROR(H5E_PLINE, H5E_CANTINIT, ERR, "can't get pipeline from dcpl") \
     } else                                                                     \
         /* Set the filter pipeline on the gcpl */                              \
-        if((H5P_gcpl_set_pline(_plist, &(PLINE))) == ERR)                      \
+        if((H5P_gcpl_set_pline(_plist, &(PLINE))) < 0)                         \
             HGOTO_ERROR(H5E_PLINE, H5E_CANTINIT, ERR, "can't get pipeline from gcpl")
 
 /* H5P_OCPL_CLOSE_PLINE: Closes the scope from H5P_OCPL_GET_PLINE. */
 #define H5P_OCPL_CLOSE_PLINE                                            \
-} /* end scope from H5P_OCPL_FILTER_START */
+} /* end scope from H5P_OCPL_GET_PLINE */
 
 /******************/
 /* Local Typedefs */
