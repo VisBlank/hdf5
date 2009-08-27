@@ -65,11 +65,12 @@ typedef struct H5HF_huge_btree2_udata_t {
 /* Local Prototypes */
 /********************/
 
-/* v2 B-tree driver callbacks */
+/* Common routines for v2 B-tree driver callbacks */
 static herr_t H5HF_huge_btree2_shared_set_udata(const H5B2_udata_info_t *info,
     size_t *nrec_size, void **_udata);
 static herr_t H5HF_huge_btree2_shared_free_udata(void *udata);
 
+/* v2 B-tree driver callbacks */
 static herr_t H5HF_huge_btree2_indir_store(void *native, const void *udata,
     const void *store_udata);
 static herr_t H5HF_huge_btree2_indir_compare(const void *rec1, const void *rec2,
