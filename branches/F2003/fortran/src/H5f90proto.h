@@ -349,8 +349,6 @@ H5_FCDLL int_f nh5dwrite_f_c (hid_t_f *dset_id, hid_t_f *mem_type_id, hid_t_f *m
 				   hid_t_f *file_space_id, hid_t_f *xfer_prp, void *buf);
 H5_FCDLL int_f nh5dread_f_c ( hid_t_f *dset_id ,  hid_t_f *mem_type_id, hid_t_f *mem_space_id, 
 				   hid_t_f *file_space_id, hid_t_f *xfer_prp, void *buf);
-H5_FCDLL int_f nh5dcreate_anon_c (hid_t_f *loc_id, hid_t_f *type_id, hid_t_f *space_id,
-				  hid_t_f *dcpl_id, hid_t_f *dapl_id, hid_t_f *dset_id);
 /*
  * Functions from H5Gf.c
  */
@@ -1175,11 +1173,11 @@ H5_FCDLL int_f nh5open_c(void);
 H5_FCDLL int_f nh5close_c(void);
 H5_FCDLL int_f nh5init_types_c(hid_t_f *types, hid_t_f * floatingtypes, hid_t_f * integertypes);
 H5_FCDLL int_f nh5close_types_c(hid_t_f *types, int_f *lentypes, hid_t_f * floatingtypes, int_f * floatinglen, hid_t_f * integertypes,  int_f * integerlen);
-H5_FCDLL int_f nh5init_flags_c( int_f *h5d_flags, int_f *h5f_flags,
-				int_f *h5fd_flags, hid_t_f *h5fd_hid_flags,
-				int_f *h5g_flags, int_f *h5i_flags, int_f *h5l_flags, int_f *h5o_flags,
-				hid_t_f *h5p_flags, int_f *h5p_flags_int, int_f *h5r_flags, int_f *h5s_flags,
-				int_f *h5t_flags, int_f *h5z_flags, int_f *h5_generic_flags);
+H5_FCDLL int_f nh5init_flags_c(int_f *h5d_flags, int_f *h5e_flags, hid_t_f *h5e_hid_flags, int_f *h5f_flags,
+			       int_f *h5fd_flags, hid_t_f *h5fd_hid_flags,
+			       int_f *h5g_flags, int_f *h5i_flags, int_f *h5l_flags, int_f *h5o_flags,
+			       hid_t_f *h5p_flags, int_f *h5p_flags_int, int_f *h5r_flags, int_f *h5s_flags,
+			       int_f *h5t_flags, int_f *h5z_flags, int_f *h5_generic_flags);
 H5_FCDLL int_f nh5init1_flags_c(int_f *h5lib_flags);
 H5_FCDLL int_f nh5get_libversion_c(int_f *majnum, int_f *minnum, int_f *relnum);
 H5_FCDLL int_f nh5check_version_c(int_f *majnum, int_f *minnum, int_f *relnum);
