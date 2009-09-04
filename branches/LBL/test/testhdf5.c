@@ -44,6 +44,7 @@ main(int argc, char *argv[])
     TestInit(argv[0], NULL, NULL);
 
     /* Tests are generally arranged from least to most complexity... */
+#if 1 /* JRM */
     AddTest("config", test_configure, cleanup_configure, "Configure definitions", NULL);
     AddTest("metadata", test_metadata, cleanup_metadata, "Encoding/decoding metadata", NULL);
     AddTest("checksum", test_checksum, cleanup_checksum, "Checksum algorithm", NULL);
@@ -57,7 +58,11 @@ main(int argc, char *argv[])
     AddTest("coords",  test_coords,  cleanup_coords,  "Dataspace coordinates", NULL);
     AddTest("sohm", test_sohm, cleanup_sohm,  "Shared Object Header Messages", NULL);
     AddTest("attr", test_attr, cleanup_attr,  "Attributes", NULL);
+#endif /* JRM */
+#if 1 /* JRM */
     AddTest("select", test_select, cleanup_select,  "Selections", NULL);
+#endif /* JRM */
+#if 1 /* JRM */
     AddTest("time", test_time, cleanup_time,  "Time Datatypes", NULL);
     AddTest("reference", test_reference, cleanup_reference,  "References", NULL);
     AddTest("vltypes", test_vltypes, cleanup_vltypes,  "Variable-Length Datatypes", NULL);
@@ -68,6 +73,7 @@ main(int argc, char *argv[])
     AddTest("unicode", test_unicode, cleanup_unicode,  "UTF-8 Encoding", NULL);
     AddTest("id", test_ids, NULL,  "User-Created Identifiers", NULL);
     AddTest("misc", test_misc, cleanup_misc,  "Miscellaneous", NULL);
+#endif /* JRM */
 
     /* Display testing information */
     TestInfo(argv[0]);

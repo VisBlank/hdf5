@@ -214,6 +214,12 @@ H5_DLL herr_t H5S_get_select_offset(const H5S_t *space, hsize_t *offset);
 H5_DLL herr_t H5S_select_offset(H5S_t *space, const hssize_t *offset);
 H5_DLL herr_t H5S_select_copy(H5S_t *dst, const H5S_t *src, hbool_t share_selection);
 H5_DLL htri_t H5S_select_shape_same(const H5S_t *space1, const H5S_t *space2);
+H5_DLL herr_t H5S_select_construct_projection(H5S_t *base_space,
+                                              H5S_t ** new_space_ptr,
+                                              int new_space_rank,
+                                              const void * buf,
+                                              void ** adj_buf_ptr,
+                                              hsize_t element_size);
 H5_DLL herr_t H5S_select_release(H5S_t *ds);
 H5_DLL herr_t H5S_select_get_seq_list(const H5S_t *space, unsigned flags,
     H5S_sel_iter_t *iter, size_t maxseq, size_t maxbytes,

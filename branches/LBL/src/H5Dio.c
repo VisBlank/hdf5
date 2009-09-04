@@ -291,6 +291,38 @@ H5D_read(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
     H5D_io_info_t io_info;              /* Dataset I/O info     */
     H5D_type_info_t type_info;          /* Datatype info for operation */
     hbool_t type_info_init = FALSE;     /* Whether the datatype info has been initialized */
+#if 1 /* JRM */
+    hbool_t shape_same = FALSE;         /* Whether H5S_select_shape_same() was called and */
+                                        /* returned TRUE when run on the mem_space and    */
+                                        /* file_space                                     */
+    H5S_t * projected_mem_space = NULL; /* If not NULL, ptr to dataspace containing a     */
+                                        /* projection of the supplied mem_space to a new  */
+                                        /* data space with rank equal to that of          */
+                                        /* file_space.                                    */
+                                        /*                                                */
+                                        /* This field is only used if                     */
+                                        /* H5S_select_shape_same() returns TRUE when      */
+                                        /* comparing the mem_space and the data_space,    */
+                                        /* and the mem_space have different rank.         */
+                                        /*                                                */
+                                        /* Note that if this variable is used, the        */
+                                        /* projected mem space must be discarded at the   */
+                                        /* end of the function to avoid a memory leak.    */
+    const H5S_t * base_mem_space = NULL;/* If the projected mem space is constructed,     */
+                                        /* variable is used to store the address of the   */
+                                        /* supplied mem space.                            */
+    void * adj_buf = NULL;              /* Non NULL iff projected_mem_space is not NULL   */
+                                        /* Pointer to the location in *buf corresponding  */
+                                        /* to the beginning of the projected mem space.   */
+    const void * base_buf = NULL;       /* If the base memory space is computed, this     */
+                                        /* field is used to store the base address of the */
+                                        /* supplied in memory buffer.                     */
+    size_t element_size = 0;		/* size of an element in the supplied data set.   */
+                                        /* this value is used to compute the offset from  */
+                                        /* the beginning of the supplied buffer to the    */
+                                        /* first element in the projected data space (if  */
+                                        /* one is computed).                              */
+#endif /* JRM */
     H5D_storage_t store;                /*union of EFL and chunk pointer in file space */
     hssize_t	snelmts;                /*total number of elmts	(signed) */
     hsize_t	nelmts;                 /*total number of elmts	*/
@@ -339,6 +371,55 @@ H5D_read(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "file dataspace does not have extent set")
     if(!(H5S_has_extent(mem_space)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "memory dataspace does not have extent set")
+
+    /* H5S_select_shape_same() has been modified to accept topologically identical
+     * selections with different rank as having the same shape (if the most rapidly
+     * changing coordinates match up), but the I/O code still has difficulties
+     * with the notion.
+     *
+     * To solve this, we check to see if H5S_select_shape_same() returns true, and
+     * if the ranks of the mem and file spaces are different.  If the are, construct
+     * a new mem space that is equivalent to the old mem space, and use that instead.
+     *
+     * Note that in general, this requires us to touch up the memory buffer as well.
+     */
+#if 1 /* JRM */
+    if ( TRUE == H5S_select_shape_same(mem_space, file_space) ) {
+
+        shape_same = TRUE;
+#if 0 /* JRM */
+        HDfprintf(stdout, "%s: mem/file extent dims = %d/%d.\n", 
+                  FUNC,
+                  H5S_GET_EXTENT_NDIMS(mem_space), 
+                  H5S_GET_EXTENT_NDIMS(file_space));
+#endif /* JRM */
+        if ( H5S_GET_EXTENT_NDIMS(mem_space) != H5S_GET_EXTENT_NDIMS(file_space) ) {
+
+            base_mem_space = mem_space;
+            base_buf = buf;
+#if 1 /* JRM */
+            element_size = type_info.dst_type_size;
+#else /* JRM */
+            element_size = H5T_GET_SIZE(dataset->shared->type);
+#endif /* JRM */
+            if ( SUCCEED != H5S_select_construct_projection(base_mem_space,
+                                                &projected_mem_space,
+                                                H5S_GET_EXTENT_NDIMS(file_space),
+                                                buf,
+                                                &adj_buf,
+                                                element_size) ) {
+
+                HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, \
+                            "unable to construct projected mem space.")
+
+            } else {
+
+                mem_space = projected_mem_space;
+                buf = adj_buf;
+            }
+        }
+    }
+#endif /* JRM */
 
     /* Retrieve dataset properties */
     /* <none needed in the general case> */
@@ -416,8 +497,16 @@ done:
     /* Shut down datatype info for operation */
     if(type_info_init && H5D_typeinfo_term(&type_info) < 0)
         HDONE_ERROR(H5E_DATASET, H5E_CANTCLOSEOBJ, FAIL, "unable to shut down type info")
+#if 1 /* JRM */
+    /* discard projected mem space if it was created */
+    if ( projected_mem_space != NULL ) {
+
+        H5S_close(projected_mem_space);
+    }
+#endif /* JRM */
 
     FUNC_LEAVE_NOAPI(ret_value)
+
 } /* end H5D_read() */
 
 
@@ -442,6 +531,38 @@ H5D_write(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
     H5D_io_info_t io_info;              /* Dataset I/O info     */
     H5D_type_info_t type_info;          /* Datatype info for operation */
     hbool_t type_info_init = FALSE;     /* Whether the datatype info has been initialized */
+#if 1 /* JRM */
+    hbool_t shape_same = FALSE;         /* Whether H5S_select_shape_same() was called and */
+                                        /* returned TRUE when run on the mem_space and    */
+                                        /* file_space                                     */
+    H5S_t * projected_mem_space = NULL; /* If not NULL, ptr to dataspace containing a     */
+                                        /* projection of the supplied mem_space to a new  */
+                                        /* data space with rank equal to that of          */
+                                        /* file_space.                                    */
+                                        /*                                                */
+                                        /* This field is only used if                     */
+                                        /* H5S_select_shape_same() returns TRUE when      */
+                                        /* comparing the mem_space and the data_space,    */
+                                        /* and the mem_space have different rank.         */
+                                        /*                                                */
+                                        /* Note that if this variable is used, the        */
+                                        /* projected mem space must be discarded at the   */
+                                        /* end of the function to avoid a memory leak.    */
+    const H5S_t * base_mem_space = NULL;/* If the projected mem space is constructed,     */
+                                        /* variable is used to store the address of the   */
+                                        /* supplied mem space.                            */
+    void * adj_buf = NULL;              /* Non NULL iff projected_mem_space is not NULL   */
+                                        /* Pointer to the location in *buf corresponding  */
+                                        /* to the beginning of the projected mem space.   */
+    const void * base_buf = NULL;       /* If the base memory space is computed, this     */
+                                        /* field is used to store the base address of the */
+                                        /* supplied in memory buffer.                     */
+    size_t element_size = 0;		/* size of an element in the supplied data set.   */
+                                        /* this value is used to compute the offset from  */
+                                        /* the beginning of the supplied buffer to the    */
+                                        /* first element in the projected data space (if  */
+                                        /* one is computed).                              */
+#endif /* JRM */
     H5D_storage_t store;                /*union of EFL and chunk pointer in file space */
     hssize_t	snelmts;                /*total number of elmts	(signed) */
     hsize_t	nelmts;                 /*total number of elmts	*/
@@ -515,6 +636,55 @@ H5D_write(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
         file_space = dataset->shared->space;
     if(!mem_space)
         mem_space = file_space;
+
+    /* H5S_select_shape_same() has been modified to accept topologically identical 
+     * selections with different rank as having the same shape (if the most rapidly
+     * changing coordinates match up), but the I/O code still has difficulties
+     * with the notion.
+     *
+     * To solve this, we check to see if H5S_select_shape_same() returns true, and 
+     * if the ranks of the mem and file spaces are different.  If the are, construct
+     * a new mem space that is equivalent to the old mem space, and use that instead.
+     *
+     * Note that in general, this requires us to touch up the memory buffer as well.
+     */
+#if 1 /* JRM */
+    if ( TRUE == H5S_select_shape_same(mem_space, file_space) ) {
+
+        shape_same = TRUE;
+#if 0 /* JRM */
+        HDfprintf(stdout, "%s: mem/file extent dims = %d/%d.\n", 
+                  FUNC,
+                  H5S_GET_EXTENT_NDIMS(mem_space), 
+                  H5S_GET_EXTENT_NDIMS(file_space));
+#endif /* JRM */
+        if ( H5S_GET_EXTENT_NDIMS(mem_space) != H5S_GET_EXTENT_NDIMS(file_space) ) {
+
+            base_mem_space = mem_space;
+            base_buf = buf;
+#if 1 /* JRM */
+            element_size = type_info.src_type_size;
+#else /* JRM */
+            element_size = H5T_GET_SIZE(dataset->shared->type);
+#endif /* JRM */
+            if ( SUCCEED != H5S_select_construct_projection(base_mem_space,
+                                                &projected_mem_space,
+                                                H5S_GET_EXTENT_NDIMS(file_space),
+                                                buf,
+                                                &adj_buf,
+                                                element_size) ) {
+
+                HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, \
+                            "unable to construct projected mem space.")
+
+            } else {
+                
+                mem_space = projected_mem_space;
+                buf = adj_buf;
+            }
+        }
+    }
+#endif /* JRM */
     if((snelmts = H5S_GET_SELECT_NPOINTS(mem_space)) < 0)
 	HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "src dataspace has invalid selection")
     H5_ASSIGN_OVERFLOW(nelmts, snelmts, hssize_t, hsize_t);
@@ -604,7 +774,13 @@ done:
     /* Shut down datatype info for operation */
     if(type_info_init && H5D_typeinfo_term(&type_info) < 0)
         HDONE_ERROR(H5E_DATASET, H5E_CANTCLOSEOBJ, FAIL, "unable to shut down type info")
+#if 1 /* JRM */
+    /* discard projected mem space if it was created */
+    if ( projected_mem_space != NULL ) {
 
+        H5S_close(projected_mem_space);
+    }
+#endif /* JRM */
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5D_write() */
 

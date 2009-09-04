@@ -919,7 +919,11 @@ done:
  EXAMPLES
  REVISION LOG
 --------------------------------------------------------------------------*/
+#if 0 /* JRM */
 static herr_t
+#else /* JRM */
+herr_t
+#endif /* JRM */
 H5S_get_select_elem_pointlist(H5S_t *space, hsize_t startpoint, hsize_t numpoints, hsize_t *buf)
 {
     H5S_pnt_node_t *node;       /* Point node */

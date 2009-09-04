@@ -1858,7 +1858,11 @@ H5S_hyper_span_nblocks(H5S_hyper_span_info_t *spans)
  EXAMPLES
  REVISION LOG
 --------------------------------------------------------------------------*/
+#if 0 /* JRM */
 static hsize_t
+#else /* JRM */
+hsize_t
+#endif /* JRM */
 H5S_get_select_hyper_nblocks(H5S_t *space)
 {
     hsize_t ret_value;         /* return value */
@@ -2427,7 +2431,11 @@ done:
  EXAMPLES
  REVISION LOG
 --------------------------------------------------------------------------*/
+#if 0 /* JRM */
 static herr_t
+#else /* JRM */
+herr_t
+#endif /* JRM */
 H5S_get_select_hyper_blocklist(H5S_t *space, hbool_t internal, hsize_t startblock, hsize_t numblocks, hsize_t *buf)
 {
     H5S_hyper_dim_t *diminfo;               /* Alias for dataspace's diminfo information */
