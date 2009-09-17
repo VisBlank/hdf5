@@ -2603,6 +2603,535 @@ test_select_hyper_contig_dr(hid_t dset_type, hid_t xfer_plist)
 
 /****************************************************************
 **
+**  test_sekect_hyper_checker_board_dr__select_checker_board():  
+**	Given an n-cube data space with each edge of length 
+**	edge_size, and a checker_edge_size either select a checker
+**	board selection of the entire cube(if sel_rank == n),
+**	or select a checker board selection of a
+**	sel_rank dimensional slice through n-cube parallel to the 
+**      sel_rank fastest changing indicies, with origin (in the
+**	higher indicies) as indicated by the start array.
+**
+**	Note that this function, like all its relatives, is
+**	hard coded to presume a maximum n-cube rank of 5.
+**	While this maximum is declared as a constant, increasing
+**	it will require extensive coding in addition to changing
+**      the value of the constant.
+**
+**					JRM -- 9/9/09
+**
+****************************************************************/
+
+#define TEST_SELECT_HYPER_CHECKER_BOARD_DR__SELECT_CHECKER_BOARD__DEBUG 0
+
+static void
+test_select_hyper_checker_board_dr__select_checker_board(
+                                 const hid_t tgt_n_cube_sid,
+                                 const int tgt_n_cube_rank,
+                                 const int edge_size,
+                                 const int checker_edge_size,
+                                 const int sel_rank,
+                                 hsize_t sel_start[])
+{
+#if TEST_SELECT_HYPER_CHECKER_BOARD_DR__SELECT_CHECKER_BOARD__DEBUG /* JRM */
+    const char *	fcnName = 
+			"test_select_hyper_checker_board_dr__select_checker_board():";
+#endif /* JRM */
+    hbool_t		first_selection = TRUE;
+    int                 i, j, k, l, m;
+    int			n_cube_offset;
+    int			sel_offset;
+    const int		test_max_rank = 5;  /* must update code if this changes */
+    hsize_t		base_count;
+    hsize_t             offset_count;
+    hsize_t     	start[SS_DR_MAX_RANK];
+    hsize_t     	stride[SS_DR_MAX_RANK];
+    hsize_t     	count[SS_DR_MAX_RANK];
+    hsize_t     	block[SS_DR_MAX_RANK];
+    herr_t      	ret;            /* Generic return value */
+
+    HDassert( edge_size >= 6 );
+    HDassert( 0 < checker_edge_size );
+    HDassert( checker_edge_size <= edge_size );
+    HDassert( 0 < sel_rank );
+    HDassert( sel_rank <= tgt_n_cube_rank );
+    HDassert( tgt_n_cube_rank <= test_max_rank );
+    HDassert( test_max_rank <= SS_DR_MAX_RANK );
+
+    sel_offset = test_max_rank - sel_rank;
+    HDassert( sel_offset >= 0 );
+
+    n_cube_offset = test_max_rank - tgt_n_cube_rank;
+    HDassert( n_cube_offset >= 0 );
+    HDassert( n_cube_offset <= sel_offset );
+
+#if TEST_SELECT_HYPER_CHECKER_BOARD_DR__SELECT_CHECKER_BOARD__DEBUG /* JRM */
+    HDfprintf(stdout, "%s edge_size/checker_edge_size = %d/%d\n",
+              fcnName, edge_size, checker_edge_size);
+    HDfprintf(stdout, "%s sel_rank/sel_offset = %d/%d.\n", 
+              fcnName, sel_rank, sel_offset);
+    HDfprintf(stdout, "%s tgt_n_cube_rank/n_cube_offset = %d/%d.\n", 
+              fcnName, tgt_n_cube_rank, n_cube_offset);
+#endif /* JRM */
+
+    /* First, compute the base count (which assumes start == 0
+     * for the associated offset) and offset_count (which
+     * assumes start == checker_edge_size for the associated
+     * offset).
+     *
+     * Note that the following computation depends on the C99
+     * requirement that integer division discard any fraction
+     * (truncation towards zero) to function correctly. As we
+     * now require C99, this shouldn't be a problem, but noting
+     * it may save us some pain if we are ever obliged to support
+     * pre-C99 compilers again.
+     */
+
+    base_count = edge_size / (checker_edge_size * 2);
+
+    if ( (edge_size % (checker_edge_size * 2)) > 0 ) {
+
+        base_count++;
+    }
+
+    offset_count = (edge_size - checker_edge_size) / (checker_edge_size * 2);
+
+    if ( ((edge_size - checker_edge_size) % (checker_edge_size * 2)) > 0 ) {
+
+        offset_count++;
+    }
+
+    /* Now set up the stride and block arrays, and portions of the start
+     * and count arrays that will not be altered during the selection of 
+     * the checker board.
+     */
+    i = 0;
+    while ( i < n_cube_offset ) {
+
+        /* these values should never be used */
+        start[i] = 0;
+        stride[i] = 0;
+        count[i] = 0;
+        block[i] = 0;
+
+        i++;
+    }
+
+    while ( i < sel_offset ) {
+
+        start[i] = sel_start[i];
+        stride[i] = 2 * edge_size;
+        count[i] = 1;
+        block[i] = 1;
+
+        i++;
+    }
+
+    while ( i < test_max_rank ) {
+
+        stride[i] = 2 * checker_edge_size;
+        block[i] = checker_edge_size;
+
+        i++;
+    }
+   
+    i = 0;
+    do {
+        if ( 0 >= sel_offset ) {
+
+            if ( i == 0 ) {
+
+                start[0] = 0;
+                count[0] = base_count;
+
+            } else {
+
+                start[0] = checker_edge_size;
+                count[0] = offset_count;
+
+            }
+        }
+
+        j = 0;
+        do { 
+            if ( 1 >= sel_offset ) {
+
+                if ( j == 0 ) {
+
+                    start[1] = 0;
+                    count[1] = base_count;
+
+                } else {
+
+                    start[1] = checker_edge_size;
+                    count[1] = offset_count;
+
+                }
+            }
+
+            k = 0;
+            do {
+                if ( 2 >= sel_offset ) {
+
+                    if ( k == 0 ) {
+
+                        start[2] = 0;
+                        count[2] = base_count;
+
+                    } else {
+
+                        start[2] = checker_edge_size;
+                        count[2] = offset_count;
+
+                    }
+                }
+
+                l = 0;
+                do {
+                    if ( 3 >= sel_offset ) {
+
+                        if ( l == 0 ) {
+
+                            start[3] = 0;
+                            count[3] = base_count;
+
+                        } else {
+
+                            start[3] = checker_edge_size;
+                            count[3] = offset_count;
+
+                        }
+                    }
+
+                    m = 0;
+                    do {
+                        if ( 4 >= sel_offset ) {
+
+                            if ( m == 0 ) {
+
+                                start[4] = 0;
+                                count[4] = base_count;
+
+                            } else {
+
+                                start[4] = checker_edge_size;
+                                count[4] = offset_count;
+
+                            }
+                        }
+
+                        if ( ((i + j + k + l + m) % 2) == 0 ) {
+
+#if TEST_SELECT_HYPER_CHECKER_BOARD_DR__SELECT_CHECKER_BOARD__DEBUG /* JRM */
+                            HDfprintf(stdout, "%s i/j/k/l/m = %d/%d/%d/%d/%d\n",
+                                      fcnName, i, j, k, l, m);
+                            HDfprintf(stdout, 
+                                      "%s start = %d %d %d %d %d.\n", 
+                                      fcnName, (int)start[0], (int)start[1], 
+                                      (int)start[2], (int)start[3], (int)start[4]);
+                            HDfprintf(stdout, 
+                                      "%s stride = %d %d %d %d %d.\n", 
+                                      fcnName, (int)stride[0], (int)stride[1], 
+                                      (int)stride[2], (int)stride[3], (int)stride[4]);
+                            HDfprintf(stdout, 
+                                      "%s count = %d %d %d %d %d.\n", 
+                                      fcnName, (int)count[0], (int)count[1], 
+                                      (int)count[2], (int)count[3], (int)count[4]);
+                            HDfprintf(stdout, 
+                                      "%s block = %d %d %d %d %d.\n", 
+                                      fcnName, (int)block[0], (int)block[1], 
+                                      (int)block[2], (int)block[3], (int)block[4]);
+                            HDfprintf(stdout, "%s n-cube extent dims = %d.\n", 
+                                      fcnName, 
+                                      H5Sget_simple_extent_ndims(tgt_n_cube_sid));
+                            HDfprintf(stdout, "%s selection rank = %d.\n", 
+                                      fcnName, sel_rank);
+#endif /* JRM */
+
+                            if ( first_selection ) {
+
+                                first_selection = FALSE; 
+
+                                ret = H5Sselect_hyperslab
+                                      (
+                                        tgt_n_cube_sid, 
+                                        H5S_SELECT_SET,
+                                        &(start[n_cube_offset]), 
+                                        &(stride[n_cube_offset]), 
+                                        &(count[n_cube_offset]), 
+                                        &(block[n_cube_offset])
+                                      );
+    
+                                CHECK(ret, FAIL, "H5Sselect_hyperslab");
+
+                            } else {
+
+                                ret = H5Sselect_hyperslab
+                                      (
+                                        tgt_n_cube_sid, 
+                                        H5S_SELECT_OR,
+                                        &(start[n_cube_offset]), 
+                                        &(stride[n_cube_offset]), 
+                                        &(count[n_cube_offset]), 
+                                        &(block[n_cube_offset])
+                                      );
+    
+                                CHECK(ret, FAIL, "H5Sselect_hyperslab");
+
+                            }
+                        }
+
+                        m++;
+
+                    } while ( ( m <= 1 ) &&
+                              ( 4 >= sel_offset ) );
+
+                    l++;
+
+                } while ( ( l <= 1 ) &&
+                          ( 3 >= sel_offset ) );
+
+                k++;
+
+            } while ( ( k <= 1 ) &&
+                      ( 2 >= sel_offset ) );
+
+            j++;
+
+        } while ( ( j <= 1 ) &&
+                  ( 1 >= sel_offset ) );
+
+
+        i++;
+
+    } while ( ( i <= 1 ) &&
+              ( 0 >= sel_offset ) );
+
+
+    /* Wierdness alert:
+     *
+     * Some how, it seems that selections can extend beyond the
+     * boundaries of the target data space -- hence the following
+     * code to manually clip the selection back to the data space
+     * proper.
+     */
+
+    for ( i = 0; i < test_max_rank; i++ ) {
+
+        start[i]  = 0;
+        stride[i] = edge_size;
+        count[i]  = 1;
+        block[i]  = edge_size;
+    }
+
+    ret = H5Sselect_hyperslab(tgt_n_cube_sid, H5S_SELECT_AND,
+                              start, stride, count, block);
+    CHECK(ret, FAIL, "H5Sselect_hyperslab");
+
+    return;
+
+} /* test_select_hyper_checker_board_dr__select_checker_board() */
+
+
+/****************************************************************
+**
+**  test_sekect_hyper_checker_board_dr__verify_data(): 
+**
+**	Examine the supplied buffer to see if it contains the 
+**	expected data.  Return TRUE if it does, and FALSE 
+**      otherwise.
+**
+**	The supplied buffer is presumed to contain the results
+**	of read or writing a checkerboard selection of an 
+**	n-cube, or a checkerboard selection of an m (1 <= m < n)
+**	dimensional slice through an n-cube parallel to the 
+**      fastest changing indicies.  
+**
+**	It is further presumed that the buffer was zeroed before
+**	the read, and that the n-cube was initialize with the 
+**      natural numbers listed in order from the origin along 
+**      the fastest changing axis.
+**
+**      Thus for a 10x10x10 3-cube, the value stored in location
+**	(x, y, z) (assuming that z is the fastest changing index
+**	and x the slowest) is assumed to be:
+**
+**		(10 * 10 * x) + (10 * y) + z
+**
+**	Thus, if the buffer contains the result of reading a 
+**	checker board selection of a 10x10x10 3-cube, location
+**	(x, y, z) will contain zero if it is not in a checker,
+**	and 100x + 10y + z if (x, y, z) is in a checker.
+**
+**	If the buffer contains the result of reading a 3 
+**	dimensional slice (parallel to the three fastest changing
+**	indicies) through an n cube (n > 3), then the expected 
+**	values in the buffer will be the same, save that we will
+**	add a constant determined by the origin of the 3-cube 
+**	in the n-cube.
+**
+**	Finally, the function presumes that the first element 
+**	of the buffer resides either at the origin of either
+**	a selected or an unselected checker.
+**
+****************************************************************/
+
+#define TEST_SELECT_HYPER_CHECKER_BOARD_DR__VERIFY_DATA__DEBUG 0
+
+static hbool_t
+test_select_hyper_checker_board_dr__verify_data(uint16_t * buf_ptr,
+                                                const int rank,
+                                                const int edge_size,
+                                                const int checker_edge_size,
+                                                uint16_t first_expected_val,
+                                                hbool_t buf_starts_in_checker)
+{
+#if TEST_SELECT_HYPER_CHECKER_BOARD_DR__VERIFY_DATA__DEBUG
+    const char *	fcnName = 
+			"test_select_hyper_checker_board_dr__verify_data():";
+#endif
+    hbool_t good_data = TRUE;
+    hbool_t in_checker;
+    hbool_t start_in_checker[5];
+    uint16_t expected_value;
+    uint16_t * val_ptr;
+    int i, j, k, l, m;  // to track position in n-cube
+    int v, w, x, y, z;  // to track position in checker
+    const int test_max_rank = 5; // code changes needed if this is increased
+
+    HDassert( buf_ptr != NULL );
+    HDassert( 0 < rank );
+    HDassert( rank <= test_max_rank );
+    HDassert( edge_size >= 6 );
+    HDassert( 0 < checker_edge_size );
+    HDassert( checker_edge_size <= edge_size );
+    HDassert( test_max_rank <= SS_DR_MAX_RANK );
+
+#if TEST_SELECT_HYPER_CHECKER_BOARD_DR__VERIFY_DATA__DEBUG /* JRM */
+    HDfprintf(stdout, "%s rank = %d.\n", fcnName, rank);
+    HDfprintf(stdout, "%s edge_size = %d.\n", fcnName, edge_size);
+    HDfprintf(stdout, "%s checker_edge_size = %d.\n", fcnName, checker_edge_size);
+    HDfprintf(stdout, "%s first_expected_val = %d.\n", fcnName, (int)first_expected_val);
+    HDfprintf(stdout, "%s starts_in_checker = %d.\n", fcnName, (int)buf_starts_in_checker);
+#endif
+
+    val_ptr = buf_ptr;
+    expected_value = first_expected_val;
+
+    i = 0;
+    v = 0;
+    start_in_checker[0] = buf_starts_in_checker;
+    do
+    {
+        if ( v >= checker_edge_size ) {
+
+            start_in_checker[0] = ! start_in_checker[0];
+            v = 0;
+        }
+
+        j = 0;
+        w = 0;
+        start_in_checker[1] = start_in_checker[0];
+        do
+        {
+            if ( w >= checker_edge_size ) {
+
+                start_in_checker[1] = ! start_in_checker[1];
+                w = 0;
+            }
+
+            k = 0;
+            x = 0;
+            start_in_checker[2] = start_in_checker[1];
+            do
+            {
+                if ( x >= checker_edge_size ) {
+
+                    start_in_checker[2] = ! start_in_checker[2];
+                    x = 0;
+                }
+
+                l = 0;
+                y = 0;
+                start_in_checker[3] = start_in_checker[2];
+                do
+                { 
+                    if ( y >= checker_edge_size ) {
+
+                        start_in_checker[3] = ! start_in_checker[3];
+                        y = 0;
+                    }
+
+                    m = 0;
+                    z = 0;
+#if TEST_SELECT_HYPER_CHECKER_BOARD_DR__VERIFY_DATA__DEBUG /* JRM */
+                    HDfprintf(stdout, "%d, %d, %d, %d, %d:", i, j, k, l, m);
+#endif
+                    in_checker = start_in_checker[3];
+                    do
+                    {
+#if TEST_SELECT_HYPER_CHECKER_BOARD_DR__VERIFY_DATA__DEBUG /* JRM */
+                        HDfprintf(stdout, " %d", (int)(*val_ptr));
+#endif
+                        if ( z >= checker_edge_size ) {
+
+                            in_checker = ! in_checker;
+                            z = 0;
+                        }
+         
+                        if ( in_checker ) {
+                   
+                            if ( *val_ptr != expected_value ) {
+
+                                good_data = FALSE;
+                            }
+ 
+                            // zero out buffer for re-use
+                            *val_ptr = 0;
+
+                        } else if ( *val_ptr != 0 ) {
+
+                            good_data = FALSE;
+ 
+                            // zero out buffer for re-use
+                            *val_ptr = 0;
+
+                        }
+
+                        val_ptr++;
+                        expected_value++;
+                        m++;
+                        z++;
+ 
+                    } while ( ( rank >= (test_max_rank - 4) ) &&
+                              ( m < edge_size ) );
+#if TEST_SELECT_HYPER_CHECKER_BOARD_DR__VERIFY_DATA__DEBUG /* JRM */
+                    HDfprintf(stdout, "\n");
+#endif
+                    l++;
+                    y++;
+                } while ( ( rank >= (test_max_rank - 3) ) &&
+                          ( l < edge_size ) );
+                k++;
+                x++;
+            } while ( ( rank >= (test_max_rank - 2) ) &&
+                      ( k < edge_size ) );
+            j++;
+            w++;
+        } while ( ( rank >= (test_max_rank - 1) ) &&
+                  ( j < edge_size ) );
+        i++;
+        v++;
+    } while ( ( rank >= test_max_rank ) &&
+              ( i < edge_size ) );
+
+    return(good_data);
+
+} /* test_select_hyper_checker_board_dr__verify_data() */
+
+
+/****************************************************************
+**
 **  test_select_hyper_checker_board_dr__run_test(): Test H5S 
 **      (dataspace) selection code with checker board source and 
 **	target selections having different ranks but the same 
@@ -2623,11 +3152,13 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
                                              hid_t dset_type, 
                                              hid_t xfer_plist)
 {
+#if TEST_SELECT_HYPER_CHECKER_BOARD_DR__RUN_TEST__DEBUG
     const char *	fcnName = 
 			"test_select_hyper_checker_board_dr__run_test():";
+#endif
     char		test_desc_0[128];
     char		test_desc_1[128];
-    hbool_t		in_checker;
+    hbool_t		data_ok;
     hbool_t		start_in_checker[5];
     hbool_t		mis_match;
     hid_t		fid1;			/* HDF5 File IDs		*/
@@ -2643,14 +3174,12 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
     hid_t		large_cube_dcpl_id = H5P_DEFAULT;
     hid_t		small_cube_dataset;	/* Dataset ID			*/
     hid_t		large_cube_dataset;	/* Dataset ID			*/
-    int			delta_rank;
     int			large_rank_offset;
     int			small_rank_offset;
     const int		test_max_rank = 5;  /* must update code if this changes */
-    int                 i, j, k, l, m, n, q, r, s, t, w, x, y, z;
+    int                 i, j, k, l, m, n;
     int                 start_index;
     int                 stop_index;
-    int			failures;
     uint16_t		expected_value;
     uint16_t	      * small_cube_buf_0;
     uint16_t	      * small_cube_buf_1;
@@ -2665,26 +3194,7 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
     size_t              large_cube_size = 1;
     hsize_t		dims[SS_DR_MAX_RANK];
     hsize_t		chunk_dims[SS_DR_MAX_RANK];
-    hsize_t     	base_start[4];
-    hsize_t     	base_stride[4];
-    hsize_t     	base_count[4];
-    hsize_t     	base_block[4];
-    hsize_t     	start[SS_DR_MAX_RANK];
-    hsize_t     	stride[SS_DR_MAX_RANK];
-    hsize_t     	count[SS_DR_MAX_RANK];
-    hsize_t     	block[SS_DR_MAX_RANK];
-    hsize_t     	start_0[SS_DR_MAX_RANK];
-    hsize_t     	stride_0[SS_DR_MAX_RANK];
-    hsize_t     	count_0[SS_DR_MAX_RANK];
-    hsize_t     	block_0[SS_DR_MAX_RANK];
-    hsize_t     	start_1[SS_DR_MAX_RANK];
-    hsize_t     	stride_1[SS_DR_MAX_RANK];
-    hsize_t     	count_1[SS_DR_MAX_RANK];
-    hsize_t     	block_1[SS_DR_MAX_RANK];
-    hsize_t	      * start_ptr;
-    hsize_t	      * stride_ptr;
-    hsize_t	      * count_ptr;
-    hsize_t	      * block_ptr;
+    hsize_t     	sel_start[SS_DR_MAX_RANK];
     htri_t      	check;          /* Shape comparison return value */
     herr_t      	ret;            /* Generic return value */
 
@@ -2799,7 +3309,7 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
     CHECK(mem_small_cube_sid, FAIL, "H5Screate_simple");
 
     full_file_small_cube_sid = H5Screate_simple(small_rank, dims, NULL);
-    CHECK(file_small_cube_sid, FAIL, "H5Screate_simple");
+    CHECK(full_file_small_cube_sid, FAIL, "H5Screate_simple");
 
     mem_small_cube_sid = H5Screate_simple(small_rank, dims, NULL);
     CHECK(mem_small_cube_sid, FAIL, "H5Screate_simple");
@@ -2813,7 +3323,7 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
     CHECK(mem_large_cube_sid, FAIL, "H5Screate_simple");
 
     full_file_large_cube_sid = H5Screate_simple(large_rank, dims, NULL);
-    CHECK(file_large_cube_sid, FAIL, "H5Screate_simple");
+    CHECK(full_file_large_cube_sid, FAIL, "H5Screate_simple");
 
     mem_large_cube_sid = H5Screate_simple(large_rank, dims, NULL);
     CHECK(mem_large_cube_sid, FAIL, "H5Screate_simple");
@@ -3011,102 +3521,6 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
     }
 
 
-    /* the next step will be to read checker board selection from the on 
-     * disk data sets into in memory data spaces of different rank.  Before 
-     * we do this, we must set up the values we will need to construct the
-     * desired selections on the fly.
-     */
-
-   /* first set up start, stride, count, and block arrays to select the 
-    * entire data spaces.  We need this to clip selections to the data 
-    * spaces proper to avoid false negatives in calls to H5S_select_shape_same().
-    */
-   for ( i = 0; i < SS_DR_MAX_RANK; i++ ) {
-
-        start[i]  = 0;
-        stride[i] = edge_size;
-        count[i]  = 1;
-        block[i]  = edge_size;
-    }
-
-    /* now set up the values that we will use to construct the start_0, stride_0,
-     * count_0, block_0, start_1, stride_1, count_1, and block_1 arrays, that 
-     * we will use repeatedly in setting up checker board selections.
-     */
-    base_start[0] = 0;
-    base_start[1] = checker_edge_size;
-
-    base_stride[0] = 2 * checker_edge_size;
-    base_stride[1] = 2 * checker_edge_size;
-
-    /* Note that the following computation depends on the C99
-     * requirement that integer division discard any fraction
-     * (truncation towards zero) to function correctly. As we
-     * now require C99, this shouldn't be a problem, but noting
-     * it may save us some pain if we are ever obliged to support
-     * pre-C99 compilers again.
-     */
-
-    base_count[0] = edge_size / (checker_edge_size * 2);
-
-    if ( (edge_size % (checker_edge_size * 2)) > 0 ) {
-
-        base_count[0]++;
-    }
-
-    base_count[1] = (edge_size - checker_edge_size) / (checker_edge_size * 2);
-
-    if ( ((edge_size - checker_edge_size) % (checker_edge_size * 2)) > 0 ) {
-
-        base_count[1]++;
-    }
-
-    base_block[0] = checker_edge_size;
-    base_block[1] = checker_edge_size;
-
-
-    /* copy the values into the start_0, stride_0, count_0, block_0, 
-     * start_1, stride_1, count_1, and block_1 arrays.
-     */
-    for ( i = 0; i < SS_DR_MAX_RANK; i++ ) {
-
-        start_0[i]  = base_start[0];
-        stride_0[i] = base_stride[0];
-        count_0[i]  = base_count[0];
-        block_0[i]  = base_block[0];
-
-        start_1[i]  = base_start[1];
-        stride_1[i] = base_stride[1];
-        count_1[i]  = base_count[1];
-        block_1[i]  = base_block[1];
-    }
-
-    /* Modify the stride_0, count_0, block_0, stride_1, count_1, block_1,
-     * stride_2, count_2, block_2, stride_3, count_3, and block_3
-     * arrays in the dimension that only appear in the large cube to 
-     * cause the selection to be of thickness 1 in these dimensions.
-     */
-    for ( i = 0; i < small_rank_offset; i++ ) {
- 
-        stride_0[i] = 2 * edge_size;
-        count_0[i]  = 1;
-        block_0[i]  = 1;
-
-        stride_1[i] = 2 * edge_size;
-        count_1[i]  = 1;
-        block_1[i]  = 1;
-    }
-
-    /* finally, force the checker board pattern onto a single
-     * plane by setting start_1[i] = 0 for i greater than 
-     * small_rank_offset and less than test_max_rank - 2.
-     */
-    for ( i = small_rank_offset; i < (test_max_rank - 2); i++ ) {
-    
-        start_1[i] = 0;
-    }
-
-
     /* first, verify that we can read from disk correctly using selections
      * of different rank that H5S_select_shape_same() views as being of the
      * same shape.
@@ -3119,50 +3533,18 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
      * in memory small small cube
      */
 
-    
-    ret = H5Sselect_hyperslab(mem_small_cube_sid, 
-                              H5S_SELECT_SET,
-                              &(start_0[small_rank_offset]), 
-                              &(stride_0[small_rank_offset]), 
-                              &(count_0[small_rank_offset]), 
-                              &(block_0[small_rank_offset]));
-    CHECK(ret, FAIL, "H5Sselect_hyperslab");
+    sel_start[0] = sel_start[1] = sel_start[2] = sel_start[3] = sel_start[4] = 0;
 
-    /* if small_rank == 1, or if edge_size == checker_edge_size, we
-     * are done, as either there is no added dimension in which
-     * to place offset selected "checkers".
-     *
-     * Otherwise, set up start, stride, count and block, and
-     * make the additional selection.
-     */
-
-    if ( ( small_rank > 1 ) && ( checker_edge_size < edge_size ) ) {
-
-        ret = H5Sselect_hyperslab(mem_small_cube_sid, 
-                                  H5S_SELECT_OR,
-                                  &(start_1[small_rank_offset]), 
-                                  &(stride_1[small_rank_offset]), 
-                                  &(count_1[small_rank_offset]), 
-                                  &(block_1[small_rank_offset]));
-        CHECK(ret, FAIL, "H5Sselect_hyperslab");
-    }
-
-    /* Wierdness alert:
-     *
-     * Some how, it seems that selections can extend beyond the
-     * boundaries of the target data space -- hence the following
-     * code to manually clip the selection back to the data space
-     * proper.
-     */
-
-    ret = H5Sselect_hyperslab(mem_small_cube_sid, H5S_SELECT_AND,
-                              start, stride, count, block);
-    CHECK(ret, FAIL, "H5Sselect_hyperslab");
-
+    test_select_hyper_checker_board_dr__select_checker_board(mem_small_cube_sid,
+                                                             small_rank,
+                                                             edge_size,
+                                                             checker_edge_size,
+                                                             small_rank,
+                                                             sel_start);
 
     /* now read slices from the large, on disk cube into the small cube. 
-     * Note how we adjust start_0 and start_1 only in the dimesions peculiar
-     * to the large cube.
+     * Note how we adjust sel_start only in the dimesions peculiar to the 
+     * large cube.
      */
 
     /* zero the buffer that we will be using for reading */
@@ -3185,7 +3567,7 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
     do {
         if ( 0 < small_rank_offset ) {
 
-            start_0[0] = start_1[0] = i;
+            sel_start[0] = i;
         }
 
         j = 0;
@@ -3193,7 +3575,7 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
         do {
             if ( 1 < small_rank_offset ) {
 
-                start_0[1] = start_1[1] = j;
+                sel_start[1] = j;
             }
 
             k = 0;
@@ -3201,7 +3583,7 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
             do {
                 if ( 2 < small_rank_offset ) {
 
-                    start_0[2] = start_1[2] = k;
+                    sel_start[2] = k;
                 }
 
                 l = 0;
@@ -3209,7 +3591,7 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
                 do {
                     if ( 3 < small_rank_offset ) {
 
-                        start_0[3] = start_1[3] = l;
+                        sel_start[3] = l;
                     }
 
                     /* we know that small_rank >= 1 and that large_rank > small_rank
@@ -3217,52 +3599,21 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
                      * need for another inner loop.
                      */
 
-                    HDassert( ( start_0[0] == 0 ) || ( 0 < small_rank_offset ) );
-                    HDassert( ( start_0[1] == 0 ) || ( 1 < small_rank_offset ) );
-                    HDassert( ( start_0[2] == 0 ) || ( 2 < small_rank_offset ) );
-                    HDassert( ( start_0[3] == 0 ) || ( 3 < small_rank_offset ) );
-                    HDassert( ( start_0[4] == 0 ) || ( 4 < small_rank_offset ) );
+                    HDassert( ( sel_start[0] == 0 ) || ( 0 < small_rank_offset ) );
+                    HDassert( ( sel_start[1] == 0 ) || ( 1 < small_rank_offset ) );
+                    HDassert( ( sel_start[2] == 0 ) || ( 2 < small_rank_offset ) );
+                    HDassert( ( sel_start[3] == 0 ) || ( 3 < small_rank_offset ) );
+                    HDassert( ( sel_start[4] == 0 ) || ( 4 < small_rank_offset ) );
 
-                    HDassert( ( start_1[0] == 0 ) || ( 0 < small_rank_offset ) );
-                    HDassert( ( start_1[1] == 0 ) || ( 1 < small_rank_offset ) );
-                    HDassert( ( start_1[2] == 0 ) || ( 2 < small_rank_offset ) );
-                    HDassert( ( start_1[3] == checker_edge_size ) || 
-                              ( 3 < small_rank_offset ) );
-                    HDassert( ( start_1[4] == checker_edge_size ) || 
-                              ( 4 < small_rank_offset ) );
-
-                    ret = H5Sselect_hyperslab(file_large_cube_sid, 
-                                              H5S_SELECT_SET,
-                                              &(start_0[large_rank_offset]), 
-                                              &(stride_0[large_rank_offset]), 
-                                              &(count_0[large_rank_offset]), 
-                                              &(block_0[large_rank_offset]));
-                    CHECK(ret, FAIL, "H5Sselect_hyperslab");
-
-                    if ( ( small_rank > 1 ) && ( checker_edge_size < edge_size ) ) {
-
-                        ret = H5Sselect_hyperslab(file_large_cube_sid, 
-                                                  H5S_SELECT_OR,
-                                                  &(start_1[large_rank_offset]), 
-                                                  &(stride_1[large_rank_offset]), 
-                                                  &(count_1[large_rank_offset]), 
-                                                  &(block_1[large_rank_offset]));
-                        CHECK(ret, FAIL, "H5Sselect_hyperslab");
-
-                     }
-
-
-                    /* Wierdness alert:
-                     *
-                     * Some how, it seems that selections can extend beyond the
-                     * boundaries of the target data space -- hence the following
-                     * code to manually clip the selection back to the data space
-                     * proper.
-                     */
-
-                    ret = H5Sselect_hyperslab(mem_small_cube_sid, H5S_SELECT_AND,
-                                              start, stride, count, block);
-                    CHECK(ret, FAIL, "H5Sselect_hyperslab");
+                    test_select_hyper_checker_board_dr__select_checker_board
+                    (
+                      file_large_cube_sid,
+                      large_rank,
+                      edge_size,
+                      checker_edge_size,
+                      small_rank,
+                      sel_start
+                    );
 
                     /* verify that H5S_select_shape_same() reports the two 
                      * selections as having the same shape.
@@ -3271,17 +3622,12 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
                                                        file_large_cube_sid);
                     VERIFY(check, TRUE, "H5S_select_shape_same_test");
 
-
                     /* Read selection from disk */
 #if TEST_SELECT_HYPER_CHECKER_BOARD_DR__RUN_TEST__DEBUG /* JRM */
                     HDfprintf(stdout, 
-                              "%s start_0 = %d %d %d %d %d.\n", 
-                              fcnName, start_0[0], start_0[1], 
-                              start_0[2], start_0[3], start_0[4]);
-                    HDfprintf(stdout, 
-                              "%s start_1 = %d %d %d %d %d.\n", 
-                              fcnName, start_1[0], start_1[1], 
-                              start_1[2], start_1[3], start_1[4]);
+                              "%s sel_start = %d %d %d %d %d.\n", 
+                              fcnName, sel_start[0], sel_start[1], 
+                              sel_start[2], sel_start[3], sel_start[4]);
                     HDfprintf(stdout, "%s start_in_checker[0] = %d.\n",
                               fcnName, (int)(start_in_checker[0]));
                     HDfprintf(stdout, "%s mem/file extent dims = %d/%d.\n", 
@@ -3297,126 +3643,23 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
                                   small_cube_buf_1);
                     CHECK(ret, FAIL, "H5Dread");
 
+                    expected_value = (uint16_t)
+                                     ((i * edge_size * edge_size * edge_size * edge_size) +
+                                      (j * edge_size * edge_size * edge_size) +
+                                      (k * edge_size * edge_size) +
+                                      (l * edge_size));
 
-                    /* verify that expected data is retrieved.
-                     * While it hasn't been tested thoughout the possible
-                     * range, the following algorithm should work for 
-                     * any positive checker_edge_size.
-                     */
+                    data_ok = test_select_hyper_checker_board_dr__verify_data
+                              (
+                                small_cube_buf_1,
+                                small_rank,
+                                edge_size,
+                                checker_edge_size,
+                                expected_value,
+                                (const hbool_t)TRUE
+                              );
 
-                    mis_match = FALSE;
-                    ptr_1 = small_cube_buf_1;
-                    expected_value = (i * edge_size * edge_size * edge_size * edge_size) +
-                                     (j * edge_size * edge_size * edge_size) +
-                                     (k * edge_size * edge_size) +
-                                     (l * edge_size);
-                    q = 0;
-                    w = 0;
-                    start_in_checker[1] = start_in_checker[0];
-                    do
-                    {
-                        if ( w >= checker_edge_size ) {
-
-                            start_in_checker[1] = ! start_in_checker[1];
-                            w = 0;
-                        }
-
-                        start_in_checker[2] = start_in_checker[1];
-                        r = 0;
-                        x = 0;
-                        do
-                        {
-                            if ( x >= checker_edge_size ) {
-
-                                start_in_checker[2] = ! start_in_checker[2];
-                                x = 0;
-                            }
-
-                            start_in_checker[3] = start_in_checker[2];
-                            s = 0;
-                            y = 0;
-                            do
-                            {
-                                if ( y >= checker_edge_size ) {
-
-                                    start_in_checker[3] = ! start_in_checker[3];
-                                    y = 0;
-                                }
-#if TEST_SELECT_HYPER_CHECKER_BOARD_DR__RUN_TEST__DEBUG /* JRM */
-                                HDfprintf(stdout, "%d, %d, %d, %d:", q, r, s, t);
-#endif
-                                in_checker = start_in_checker[3];
-                                t = 0;
-                                z = 0;
-                                do
-                                {
-#if TEST_SELECT_HYPER_CHECKER_BOARD_DR__RUN_TEST__DEBUG /* JRM */
-                                    HDfprintf(stdout, " %d", (int)(*ptr_1));
-#endif
-                                    if ( z >= checker_edge_size ) {
-
-                                        in_checker = ! in_checker;
-                                        z = 0;
-                                    }
-           
-                                    if ( in_checker ) {
-
-                                        if ( *ptr_1 != expected_value ) {
-
-                                            mis_match = TRUE;
-#if 0
-                                            HDfprintf(stdout, "%d(%d) at %d %d %d %d.\n",
-                                                      (int)(*ptr_1), (int)expected_value,
-                                                      w, x, y, z);
-#endif
-                                        }
-
-                                    } else {
-
-                                        if ( *ptr_1 != 0 ) {
-
-                                            mis_match = TRUE;
-#if 0
-                                            HDfprintf(stdout, "0(%d) at %d %d %d %d.\n",
-                                                      (int)(*ptr_1), w, x, y, z);
-#endif
-                                        }
-                                    }
-
-                                    /* zero out the buffer in preparation for the 
-                                     * next test.
-                                     */
-                                    *ptr_1 = 0;
-
-                                    ptr_1++;
-                                    expected_value++;
-                                    t++;
-                                    z++;
-
-                                } while ( ( small_rank >= (test_max_rank - 4) ) &&
-                                          ( t < edge_size ) );
-#if TEST_SELECT_HYPER_CHECKER_BOARD_DR__RUN_TEST__DEBUG /* JRM */
-                                    HDfprintf(stdout, "\n");
-#endif
-
-                                s++;
-                                y++;
-
-                            } while ( ( small_rank >= (test_max_rank - 3) ) &&
-                                      ( s < edge_size ) );
-
-                            r++;
-                            x++;
-
-                        } while ( ( small_rank >= (test_max_rank - 2) ) &&
-                                  ( r < edge_size ) );
-
-                        q++;
-                        w++;
-                    } while ( ( small_rank >= (test_max_rank - 1) ) &&
-                              ( q < edge_size ) );
-
-                    if ( mis_match ) { 
+                    if ( ! data_ok ) { 
 
                         TestErrPrintf("small cube read from largecube has bad data! Line=%d\n",__LINE__);
                     }
@@ -3424,7 +3667,7 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
                     else {
                         HDfprintf(stdout, "%s data checks out OK.\n", fcnName);
                     }
-#endif /* JRM */
+#endif /* TEST_SELECT_HYPER_CHECKER_BOARD_DR__RUN_TEST__DEBUG */ /* JRM */
                     l++;
 
                 } while ( ( large_rank >= (test_max_rank - 3) ) && 
@@ -3450,46 +3693,15 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
      */
 
     /* select a checker board in the file small cube dataspace */
-    
-    ret = H5Sselect_hyperslab(file_small_cube_sid, 
-                              H5S_SELECT_SET,
-                              &(start_0[small_rank_offset]), 
-                              &(stride_0[small_rank_offset]), 
-                              &(count_0[small_rank_offset]), 
-                              &(block_0[small_rank_offset]));
-    CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    /* if small_rank == 1, or if edge_size == checker_edge_size, we
-     * are done, as either there is no added dimension in which
-     * to place offset selected "checkers".
-     *
-     * Otherwise, set up start, stride, count and block, and
-     * make the additional selection.
-     */
+    sel_start[0] = sel_start[1] = sel_start[2] = sel_start[3] = sel_start[4] = 0;
 
-    if ( ( small_rank > 1 ) && ( checker_edge_size < edge_size ) ) {
-
-        ret = H5Sselect_hyperslab(file_small_cube_sid, 
-                                  H5S_SELECT_OR,
-                                  &(start_1[small_rank_offset]), 
-                                  &(stride_1[small_rank_offset]), 
-                                  &(count_1[small_rank_offset]), 
-                                  &(block_1[small_rank_offset]));
-        CHECK(ret, FAIL, "H5Sselect_hyperslab");
-    }
-
-    /* Wierdness alert:
-     *
-     * Some how, it seems that selections can extend beyond the
-     * boundaries of the target data space -- hence the following
-     * code to manually clip the selection back to the data space
-     * proper.
-     */
-
-    ret = H5Sselect_hyperslab(file_small_cube_sid, H5S_SELECT_AND,
-                              start, stride, count, block);
-    CHECK(ret, FAIL, "H5Sselect_hyperslab");
-
+    test_select_hyper_checker_board_dr__select_checker_board(file_small_cube_sid,
+                                                             small_rank,
+                                                             edge_size,
+                                                             checker_edge_size,
+                                                             small_rank,
+                                                             sel_start);
 
 
 #if TEST_SELECT_HYPER_CHECKER_BOARD_DR__RUN_TEST__DEBUG /* JRM */
@@ -3511,7 +3723,7 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
     do {
         if ( 0 < small_rank_offset ) {
 
-            start_0[0] = start_1[0] = i;
+            sel_start[0] = i;
         }
 
         j = 0;
@@ -3519,7 +3731,7 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
         do {
             if ( 1 < small_rank_offset ) {
 
-                start_0[1] = start_1[1] = j;
+                sel_start[1] = j;
             }
 
             k = 0;
@@ -3527,7 +3739,7 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
             do {
                 if ( 2 < small_rank_offset ) {
 
-                    start_0[2] = start_1[2] = k;
+                    sel_start[2] = k;
                 }
 
                 l = 0;
@@ -3535,7 +3747,7 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
                 do {
                     if ( 3 < small_rank_offset ) {
 
-                        start_0[3] = start_1[3] = l;
+                        sel_start[3] = l;
                     }
 
                     /* we know that small_rank >= 1 and that large_rank > small_rank
@@ -3543,53 +3755,21 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
                      * need for another inner loop.
                      */
 
-                    HDassert( ( start_0[0] == 0 ) || ( 0 < small_rank_offset ) );
-                    HDassert( ( start_0[1] == 0 ) || ( 1 < small_rank_offset ) );
-                    HDassert( ( start_0[2] == 0 ) || ( 2 < small_rank_offset ) );
-                    HDassert( ( start_0[3] == 0 ) || ( 3 < small_rank_offset ) );
-                    HDassert( ( start_0[4] == 0 ) || ( 4 < small_rank_offset ) );
+                    HDassert( ( sel_start[0] == 0 ) || ( 0 < small_rank_offset ) );
+                    HDassert( ( sel_start[1] == 0 ) || ( 1 < small_rank_offset ) );
+                    HDassert( ( sel_start[2] == 0 ) || ( 2 < small_rank_offset ) );
+                    HDassert( ( sel_start[3] == 0 ) || ( 3 < small_rank_offset ) );
+                    HDassert( ( sel_start[4] == 0 ) || ( 4 < small_rank_offset ) );
 
-                    HDassert( ( start_1[0] == checker_edge_size ) || 
-                              ( 0 < small_rank_offset ) );
-                    HDassert( ( start_1[1] == checker_edge_size ) || 
-                              ( 1 < small_rank_offset ) );
-                    HDassert( ( start_1[2] == checker_edge_size ) || 
-                              ( 2 < small_rank_offset ) );
-                    HDassert( ( start_1[3] == checker_edge_size ) || 
-                              ( 3 < small_rank_offset ) );
-                    HDassert( ( start_1[4] == checker_edge_size ) || 
-                              ( 4 < small_rank_offset ) );
-
-                    ret = H5Sselect_hyperslab(mem_large_cube_sid, 
-                                              H5S_SELECT_SET,
-                                              &(start_0[large_rank_offset]), 
-                                              &(stride_0[large_rank_offset]), 
-                                              &(count_0[large_rank_offset]), 
-                                              &(block_0[large_rank_offset]));
-                    CHECK(ret, FAIL, "H5Sselect_hyperslab");
-
-                    if ( ( small_rank > 1 ) && ( checker_edge_size < edge_size ) ) {
-
-                        ret = H5Sselect_hyperslab(mem_large_cube_sid, 
-                                                  H5S_SELECT_OR,
-                                                  &(start_1[large_rank_offset]), 
-                                                  &(stride_1[large_rank_offset]), 
-                                                  &(count_1[large_rank_offset]), 
-                                                  &(block_1[large_rank_offset]));
-                        CHECK(ret, FAIL, "H5Sselect_hyperslab");
-                    }
-
-                    /* Wierdness alert:
-                     *
-                     * Some how, it seems that selections can extend beyond the
-                     * boundaries of the target data space -- hence the following
-                     * code to manually clip the selection back to the data space
-                     * proper.
-                     */
-
-                    ret = H5Sselect_hyperslab(mem_large_cube_sid, H5S_SELECT_AND,
-                                              start, stride, count, block);
-                    CHECK(ret, FAIL, "H5Sselect_hyperslab");
+                    test_select_hyper_checker_board_dr__select_checker_board
+                    (
+                      mem_large_cube_sid,
+                      large_rank,
+                      edge_size,
+                      checker_edge_size,
+                      small_rank,
+                      sel_start
+                    );
 
                     /* verify that H5S_select_shape_same() reports the two 
                      * selections as having the same shape.
@@ -3602,13 +3782,9 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
                     /* Read selection from disk */
 #if TEST_SELECT_HYPER_CHECKER_BOARD_DR__RUN_TEST__DEBUG /* JRM */
                     HDfprintf(stdout, 
-                              "%s start_0 = %d %d %d %d %d.\n", 
-                              fcnName, (int)start_0[0], (int)start_0[1], 
-                              (int)start_0[2], (int)start_0[3], (int)start_0[4]);
-                    HDfprintf(stdout, 
-                              "%s start_1 = %d %d %d %d %d.\n", 
-                              fcnName, (int)start_1[0], (int)start_1[1], 
-                              (int)start_1[2], (int)start_1[3], (int)start_1[4]);
+                              "%s sel_start = %d %d %d %d %d.\n", 
+                              fcnName, (int)sel_start[0], (int)sel_start[1], 
+                              (int)sel_start[2], (int)sel_start[3], (int)sel_start[4]);
                     HDfprintf(stdout, "%s start_in_checker[0] = %d.\n",
                               fcnName, (int)(start_in_checker[0]));
                     HDfprintf(stdout, "%s mem/file extent dims = %d/%d.\n", 
@@ -3628,6 +3804,7 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
                     /* verify that the expected data and only the 
                      * expected data was read.
                      */
+                    data_ok = TRUE;
                     ptr_1 = large_cube_buf_1;
                     expected_value = 0;
                     start_index = (i * edge_size * edge_size * edge_size * edge_size) +
@@ -3645,105 +3822,26 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
                     
                         if ( *ptr_1 != 0 ) {
 
-                            mis_match = TRUE;
+                            data_ok = FALSE;
                         }
                         ptr_1++;
                     }
                     HDassert( n == start_index );
 
-                    /* verify that the slice contains the expected data */
-                    q = 0;
-                    w = 0;
-                    start_in_checker[1] = start_in_checker[0];
-                    do
-                    {
-                        if ( w >= checker_edge_size ) {
+                    data_ok &= test_select_hyper_checker_board_dr__verify_data
+                               (
+                                 ptr_1,
+                                 small_rank,
+                                 edge_size,
+                                 checker_edge_size,
+                                 (uint16_t)0,
+                                 (const hbool_t)TRUE
+                              );
 
-                            start_in_checker[1] = ! start_in_checker[1];
-                            w = 0;
-                        }
-
-                        start_in_checker[2] = start_in_checker[1];
-                        r = 0;
-                        x = 0;
-                        do
-                        {
-                            if ( x >= checker_edge_size ) {
-
-                                start_in_checker[2] = ! start_in_checker[2];
-                                x = 0;
-                            }
-
-                            start_in_checker[3] = start_in_checker[2];
-                            s = 0;
-                            y = 0;
-                            do
-                            {
-                                if ( y >= checker_edge_size ) {
-
-                                    start_in_checker[3] = ! start_in_checker[3];
-                                    y = 0;
-                                }
-
-                                in_checker = start_in_checker[3];
-                                t = 0;
-                                z = 0;
-                                do
-                                {
-                                    if ( z >= checker_edge_size ) {
-
-                                        in_checker = ! in_checker;
-                                        z = 0;
-                                    }
-           
-                                    if ( in_checker ) {
-
-                                        if ( *ptr_1 != expected_value ) {
-
-                                            mis_match = TRUE;
-                                        }
-
-                                        /* zero out the buffer in preparation for the 
-                                         * next test.
-                                         */
-                                        *ptr_1 = 0;
-
-                                    } else {
-
-                                        if ( *ptr_1 != 0 ) {
-
-                                            mis_match = TRUE;
-                                        }
-                                    }
-
-                                    n++;
-                                    ptr_1++;
-                                    expected_value++;
-                                    t++;
-                                    z++;
-
-                                } while ( ( small_rank >= (test_max_rank - 4) ) &&
-                                          ( t < edge_size ) );
-
-                                s++;
-                                y++;
-
-                            } while ( ( small_rank >= (test_max_rank - 3) ) &&
-                                      ( s < edge_size ) );
-
-                            r++;
-                            x++;
-
-                        } while ( ( small_rank >= (test_max_rank - 2) ) &&
-                                  ( r < edge_size ) );
-
-                        q++;
-                        w++;
-                    } while ( ( small_rank >= (test_max_rank - 1) ) &&
-                              ( q < edge_size ) );
+                    ptr_1 += small_cube_size;
+                    n += small_cube_size;
 
                     HDassert( n == stop_index + 1 );
-
 
                     /* verify that the large cube contains only zeros after the slice */
                     for ( n = stop_index + 1; n < (int)large_cube_size; n++ ) {
@@ -3763,7 +3861,7 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
                     else {
                         HDfprintf(stdout, "%s data checks out OK.\n", fcnName);
                     }
-#endif /* JRM */
+#endif /* TEST_SELECT_HYPER_CHECKER_BOARD_DR__RUN_TEST__DEBUG */ /* JRM */
                     l++;
 
                 } while ( ( large_rank >= (test_max_rank - 3) ) && 
@@ -3795,46 +3893,15 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
      */ 
 
     /* select a checker board in the file small cube dataspace */
-    
-    ret = H5Sselect_hyperslab(file_small_cube_sid, 
-                              H5S_SELECT_SET,
-                              &(start_0[small_rank_offset]), 
-                              &(stride_0[small_rank_offset]), 
-                              &(count_0[small_rank_offset]), 
-                              &(block_0[small_rank_offset]));
-    CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    /* if small_rank == 1, or if edge_size == checker_edge_size, we
-     * are done, as either there is no added dimension in which
-     * to place offset selected "checkers".
-     *
-     * Otherwise, set up start, stride, count and block, and
-     * make the additional selection.
-     */
+    sel_start[0] = sel_start[1] = sel_start[2] = sel_start[3] = sel_start[4] = 0;
 
-    if ( ( small_rank > 1 ) && ( checker_edge_size < edge_size ) ) {
-
-        ret = H5Sselect_hyperslab(file_small_cube_sid, 
-                                  H5S_SELECT_OR,
-                                  &(start_1[small_rank_offset]), 
-                                  &(stride_1[small_rank_offset]), 
-                                  &(count_1[small_rank_offset]), 
-                                  &(block_1[small_rank_offset]));
-        CHECK(ret, FAIL, "H5Sselect_hyperslab");
-    }
-
-    /* Wierdness alert:
-     *
-     * Some how, it seems that selections can extend beyond the
-     * boundaries of the target data space -- hence the following
-     * code to manually clip the selection back to the data space
-     * proper.
-     */
-
-    ret = H5Sselect_hyperslab(file_small_cube_sid, H5S_SELECT_AND,
-                              start, stride, count, block);
-    CHECK(ret, FAIL, "H5Sselect_hyperslab");
-
+    test_select_hyper_checker_board_dr__select_checker_board(file_small_cube_sid,
+                                                             small_rank,
+                                                             edge_size,
+                                                             checker_edge_size,
+                                                             small_rank,
+                                                             sel_start);
 
 
 #if TEST_SELECT_HYPER_CHECKER_BOARD_DR__RUN_TEST__DEBUG /* JRM */
@@ -3847,7 +3914,7 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
     do {
         if ( 0 < small_rank_offset ) {
 
-            start_0[0] = start_1[0] = i;
+            sel_start[0] = i;
         }
 
         j = 0;
@@ -3855,7 +3922,7 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
         do {
             if ( 1 < small_rank_offset ) {
 
-                start_0[1] = start_1[1] = j;
+                sel_start[1] = j;
             }
 
             k = 0;
@@ -3863,7 +3930,7 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
             do {
                 if ( 2 < small_rank_offset ) {
 
-                    start_0[2] = start_1[2] = k;
+                    sel_start[2] = k;
                 }
 
                 l = 0;
@@ -3871,7 +3938,7 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
                 do {
                     if ( 3 < small_rank_offset ) {
 
-                        start_0[3] = start_1[3] = l;
+                        sel_start[3] = l;
                     }
 
                     /* zero out the on disk small cube */
@@ -3889,53 +3956,21 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
                      * need for another inner loop.
                      */
 
-                    HDassert( ( start_0[0] == 0 ) || ( 0 < small_rank_offset ) );
-                    HDassert( ( start_0[1] == 0 ) || ( 1 < small_rank_offset ) );
-                    HDassert( ( start_0[2] == 0 ) || ( 2 < small_rank_offset ) );
-                    HDassert( ( start_0[3] == 0 ) || ( 3 < small_rank_offset ) );
-                    HDassert( ( start_0[4] == 0 ) || ( 4 < small_rank_offset ) );
+                    HDassert( ( sel_start[0] == 0 ) || ( 0 < small_rank_offset ) );
+                    HDassert( ( sel_start[1] == 0 ) || ( 1 < small_rank_offset ) );
+                    HDassert( ( sel_start[2] == 0 ) || ( 2 < small_rank_offset ) );
+                    HDassert( ( sel_start[3] == 0 ) || ( 3 < small_rank_offset ) );
+                    HDassert( ( sel_start[4] == 0 ) || ( 4 < small_rank_offset ) );
 
-                    HDassert( ( start_1[0] == checker_edge_size ) || 
-                              ( 0 < small_rank_offset ) );
-                    HDassert( ( start_1[1] == checker_edge_size ) || 
-                              ( 1 < small_rank_offset ) );
-                    HDassert( ( start_1[2] == checker_edge_size ) || 
-                              ( 2 < small_rank_offset ) );
-                    HDassert( ( start_1[3] == checker_edge_size ) || 
-                              ( 3 < small_rank_offset ) );
-                    HDassert( ( start_1[4] == checker_edge_size ) || 
-                              ( 4 < small_rank_offset ) );
-
-                    ret = H5Sselect_hyperslab(mem_large_cube_sid, 
-                                              H5S_SELECT_SET,
-                                              &(start_0[large_rank_offset]), 
-                                              &(stride_0[large_rank_offset]), 
-                                              &(count_0[large_rank_offset]), 
-                                              &(block_0[large_rank_offset]));
-                    CHECK(ret, FAIL, "H5Sselect_hyperslab");
-
-                    if ( ( small_rank > 1 ) && ( checker_edge_size < edge_size ) ) {
-
-                        ret = H5Sselect_hyperslab(mem_large_cube_sid, 
-                                                  H5S_SELECT_OR,
-                                                  &(start_1[large_rank_offset]), 
-                                                  &(stride_1[large_rank_offset]), 
-                                                  &(count_1[large_rank_offset]), 
-                                                  &(block_1[large_rank_offset]));
-                        CHECK(ret, FAIL, "H5Sselect_hyperslab");
-                    }
-
-                    /* Wierdness alert:
-                     *
-                     * Some how, it seems that selections can extend beyond the
-                     * boundaries of the target data space -- hence the following
-                     * code to manually clip the selection back to the data space
-                     * proper.
-                     */
-
-                    ret = H5Sselect_hyperslab(mem_large_cube_sid, H5S_SELECT_AND,
-                                              start, stride, count, block);
-                    CHECK(ret, FAIL, "H5Sselect_hyperslab");
+                    test_select_hyper_checker_board_dr__select_checker_board
+                    (
+                      mem_large_cube_sid,
+                      large_rank,
+                      edge_size,
+                      checker_edge_size,
+                      small_rank,
+                      sel_start
+                    );
 
                     /* verify that H5S_select_shape_same() reports the two 
                      * selections as having the same shape.
@@ -3950,15 +3985,9 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
                      */
 #if TEST_SELECT_HYPER_CHECKER_BOARD_DR__RUN_TEST__DEBUG /* JRM */
                     HDfprintf(stdout, 
-                              "%s start_0 = %d %d %d %d %d.\n", 
-                              fcnName, (int)start_0[0], (int)start_0[1], 
-                              (int)start_0[2], (int)start_0[3], (int)start_0[4]);
-                    HDfprintf(stdout, 
-                              "%s start_1 = %d %d %d %d %d.\n", 
-                              fcnName, (int)start_1[0], (int)start_1[1], 
-                              (int)start_1[2], (int)start_1[3], (int)start_1[4]);
-                    HDfprintf(stdout, "%s start_in_checker[0] = %d.\n",
-                              fcnName, (int)(start_in_checker[0]));
+                              "%s sel_start = %d %d %d %d %d.\n", 
+                              fcnName, (int)sel_start[0], (int)sel_start[1], 
+                              (int)sel_start[2], (int)sel_start[3], (int)sel_start[4]);
                     HDfprintf(stdout, "%s mem/file extent dims = %d/%d.\n", 
                               fcnName, 
                               H5Sget_simple_extent_ndims(mem_large_cube_sid),
@@ -3982,115 +4011,32 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
                                   small_cube_buf_1);
                     CHECK(ret, FAIL, "H5Dread");
 
+                    expected_value = (uint16_t)
+                                     ((i * edge_size * edge_size * edge_size * edge_size) +
+                                      (j * edge_size * edge_size * edge_size) +
+                                      (k * edge_size * edge_size) +
+                                      (l * edge_size));
 
-                    /* verify that expected data is retrieved */
-                    mis_match = FALSE;
-                    ptr_1 = small_cube_buf_1;
-                    expected_value = (i * edge_size * edge_size * edge_size * edge_size) +
-                                     (j * edge_size * edge_size * edge_size) +
-                                     (k * edge_size * edge_size) +
-                                     (l * edge_size);
+                    data_ok = test_select_hyper_checker_board_dr__verify_data
+                              (
+                                small_cube_buf_1,
+                                small_rank,
+                                edge_size,
+                                checker_edge_size,
+                                expected_value,
+                                (const hbool_t)TRUE
+                              );
 
-                    q = 0;
-                    w = 0;
-                    start_in_checker[1] = start_in_checker[0];
-                    do
-                    {
-                        if ( w >= checker_edge_size ) {
+                    if ( ! data_ok ) { 
 
-                            start_in_checker[1] = ! start_in_checker[1];
-                            w = 0;
-                        }
-
-                        start_in_checker[2] = start_in_checker[1];
-                        r = 0;
-                        x = 0;
-                        do
-                        {
-                            if ( x >= checker_edge_size ) {
-
-                                start_in_checker[2] = ! start_in_checker[2];
-                                x = 0;
-                            }
-
-                            start_in_checker[3] = start_in_checker[2];
-                            s = 0;
-                            y = 0;
-                            do
-                            {
-                                if ( y >= checker_edge_size ) {
-
-                                    start_in_checker[3] = ! start_in_checker[3];
-                                    y = 0;
-                                }
-
-                                in_checker = start_in_checker[3];
-                                t = 0;
-                                z = 0;
-                                do
-                                {
-                                    if ( z >= checker_edge_size ) {
-
-                                        in_checker = ! in_checker;
-                                        z = 0;
-                                    }
-           
-                                    if ( in_checker ) {
-
-                                        if ( *ptr_1 != expected_value ) {
-
-                                            mis_match = TRUE;
-                                        }
-
-                                    } else {
-
-                                        if ( *ptr_1 != 0 ) {
-
-                                            mis_match = TRUE;
-                                        }
-                                    }
-
-                                    /* zero out the buffer in preparation for the 
-                                     * next test.
-                                     */
-                                    *ptr_1 = 0;
-
-                                    ptr_1++;
-                                    expected_value++;
-                                    t++;
-                                    z++;
-
-                                } while ( ( small_rank >= (test_max_rank - 4) ) &&
-                                          ( t < edge_size ) );
-
-                                s++;
-                                y++;
-
-                            } while ( ( small_rank >= (test_max_rank - 3) ) &&
-                                      ( s < edge_size ) );
-
-                            r++;
-                            x++;
-
-                        } while ( ( small_rank >= (test_max_rank - 2) ) &&
-                                  ( r < edge_size ) );
-
-                        q++;
-                        w++;
-                    } while ( ( small_rank >= (test_max_rank - 1) ) &&
-                              ( q < edge_size ) );
-
-                    if ( mis_match ) {
-
-                        TestErrPrintf("small cube data don't match! Line=%d\n",__LINE__);
+                        TestErrPrintf("small cube read from largecube has bad data! Line=%d\n",__LINE__);
                     }
 #if TEST_SELECT_HYPER_CHECKER_BOARD_DR__RUN_TEST__DEBUG /* JRM */
                     else {
                         HDfprintf(stdout, "%s data checks out OK.\n", fcnName);
                     }
-#endif /* JRM */
+#endif /* TEST_SELECT_HYPER_CHECKER_BOARD_DR__RUN_TEST__DEBUG */ /* JRM */
                     l++;
-
                 } while ( ( large_rank >= (test_max_rank - 3) ) && 
                           ( small_rank <= (test_max_rank - 4) ) && 
                           ( l < edge_size ) );
@@ -4117,45 +4063,15 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
      */
 
     /* select a checker board in the in memory small cube dataspace */
-    
-    ret = H5Sselect_hyperslab(mem_small_cube_sid, 
-                              H5S_SELECT_SET,
-                              &(start_0[small_rank_offset]), 
-                              &(stride_0[small_rank_offset]), 
-                              &(count_0[small_rank_offset]), 
-                              &(block_0[small_rank_offset]));
-    CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    /* if small_rank == 1, or if edge_size == checker_edge_size, we
-     * are done, as either there is no added dimension in which
-     * to place offset selected "checkers".
-     *
-     * Otherwise, set up start, stride, count and block, and
-     * make the additional selection.
-     */
+    sel_start[0] = sel_start[1] = sel_start[2] = sel_start[3] = sel_start[4] = 0;
 
-    if ( ( small_rank > 1 ) && ( checker_edge_size < edge_size ) ) {
-
-        ret = H5Sselect_hyperslab(mem_small_cube_sid, 
-                                  H5S_SELECT_OR,
-                                  &(start_1[small_rank_offset]), 
-                                  &(stride_1[small_rank_offset]), 
-                                  &(count_1[small_rank_offset]), 
-                                  &(block_1[small_rank_offset]));
-        CHECK(ret, FAIL, "H5Sselect_hyperslab");
-    }
-
-    /* Wierdness alert:
-     *
-     * Some how, it seems that selections can extend beyond the
-     * boundaries of the target data space -- hence the following
-     * code to manually clip the selection back to the data space
-     * proper.
-     */
-
-    ret = H5Sselect_hyperslab(mem_small_cube_sid, H5S_SELECT_AND,
-                              start, stride, count, block);
-    CHECK(ret, FAIL, "H5Sselect_hyperslab");
+    test_select_hyper_checker_board_dr__select_checker_board(mem_small_cube_sid,
+                                                             small_rank,
+                                                             edge_size,
+                                                             checker_edge_size,
+                                                             small_rank,
+                                                             sel_start);
 
 #if TEST_SELECT_HYPER_CHECKER_BOARD_DR__RUN_TEST__DEBUG /* JRM */
     HDfprintf(stdout, "%s writing small cube to slices of large cube on disk.\n",
@@ -4167,7 +4083,7 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
     do {
         if ( 0 < small_rank_offset ) {
 
-            start_0[0] = start_1[0] = i;
+            sel_start[0] = i;
         }
 
         j = 0;
@@ -4175,7 +4091,7 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
         do {
             if ( 1 < small_rank_offset ) {
 
-                start_0[1] = start_1[1] = j;
+                sel_start[1] = j;
             }
 
             k = 0;
@@ -4183,7 +4099,7 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
             do {
                 if ( 2 < small_rank_offset ) {
 
-                    start_0[2] = start_1[2] = k;
+                    sel_start[2] = k;
                 }
 
                 l = 0;
@@ -4191,7 +4107,7 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
                 do {
                     if ( 3 < small_rank_offset ) {
 
-                        start_0[3] = start_1[3] = l;
+                        sel_start[3] = l;
                     }
 
                     /* zero out the on disk cube */
@@ -4208,53 +4124,22 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
                      * need for another inner loop.
                      */
 
-                    HDassert( ( start_0[0] == 0 ) || ( 0 < small_rank_offset ) );
-                    HDassert( ( start_0[1] == 0 ) || ( 1 < small_rank_offset ) );
-                    HDassert( ( start_0[2] == 0 ) || ( 2 < small_rank_offset ) );
-                    HDassert( ( start_0[3] == 0 ) || ( 3 < small_rank_offset ) );
-                    HDassert( ( start_0[4] == 0 ) || ( 4 < small_rank_offset ) );
+                    HDassert( ( sel_start[0] == 0 ) || ( 0 < small_rank_offset ) );
+                    HDassert( ( sel_start[1] == 0 ) || ( 1 < small_rank_offset ) );
+                    HDassert( ( sel_start[2] == 0 ) || ( 2 < small_rank_offset ) );
+                    HDassert( ( sel_start[3] == 0 ) || ( 3 < small_rank_offset ) );
+                    HDassert( ( sel_start[4] == 0 ) || ( 4 < small_rank_offset ) );
 
-                    HDassert( ( start_1[0] == checker_edge_size ) || 
-                              ( 0 < small_rank_offset ) );
-                    HDassert( ( start_1[1] == checker_edge_size ) || 
-                              ( 1 < small_rank_offset ) );
-                    HDassert( ( start_1[2] == checker_edge_size ) || 
-                              ( 2 < small_rank_offset ) );
-                    HDassert( ( start_1[3] == checker_edge_size ) || 
-                              ( 3 < small_rank_offset ) );
-                    HDassert( ( start_1[4] == checker_edge_size ) || 
-                              ( 4 < small_rank_offset ) );
 
-                    ret = H5Sselect_hyperslab(file_large_cube_sid, 
-                                              H5S_SELECT_SET,
-                                              &(start_0[large_rank_offset]), 
-                                              &(stride_0[large_rank_offset]), 
-                                              &(count_0[large_rank_offset]), 
-                                              &(block_0[large_rank_offset]));
-                    CHECK(ret, FAIL, "H5Sselect_hyperslab");
-
-                    if ( ( small_rank > 1 ) && ( checker_edge_size < edge_size ) ) {
-
-                        ret = H5Sselect_hyperslab(file_large_cube_sid, 
-                                                  H5S_SELECT_OR,
-                                                  &(start_1[large_rank_offset]), 
-                                                  &(stride_1[large_rank_offset]), 
-                                                  &(count_1[large_rank_offset]), 
-                                                  &(block_1[large_rank_offset]));
-                        CHECK(ret, FAIL, "H5Sselect_hyperslab");
-                    }
-
-                    /* Wierdness alert:
-                     *
-                     * Some how, it seems that selections can extend beyond the
-                     * boundaries of the target data space -- hence the following
-                     * code to manually clip the selection back to the data space
-                     * proper.
-                     */
-
-                    ret = H5Sselect_hyperslab(file_large_cube_sid, H5S_SELECT_AND,
-                                              start, stride, count, block);
-                    CHECK(ret, FAIL, "H5Sselect_hyperslab");
+                    test_select_hyper_checker_board_dr__select_checker_board
+                    (
+                      file_large_cube_sid,
+                      large_rank,
+                      edge_size,
+                      checker_edge_size,
+                      small_rank,
+                      sel_start
+                    );
 
                     /* verify that H5S_select_shape_same() reports the two 
                      * selections as having the same shape.
@@ -4270,13 +4155,9 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
                      */
 #if TEST_SELECT_HYPER_CHECKER_BOARD_DR__RUN_TEST__DEBUG /* JRM */
                     HDfprintf(stdout, 
-                              "%s start_0 = %d %d %d %d %d.\n", 
-                              fcnName, (int)start_0[0], (int)start_0[1], 
-                              (int)start_0[2], (int)start_0[3], (int)start_0[4]);
-                    HDfprintf(stdout, 
-                              "%s start_1 = %d %d %d %d %d.\n", 
-                              fcnName, (int)start_1[0], (int)start_1[1], 
-                              (int)start_1[2], (int)start_1[3], (int)start_1[4]);
+                              "%s sel_start = %d %d %d %d %d.\n", 
+                              fcnName, (int)sel_start[0], (int)sel_start[1], 
+                              (int)sel_start[2], (int)sel_start[3], (int)sel_start[4]);
                     HDfprintf(stdout, "%s start_in_checker[0] = %d.\n",
                               fcnName, (int)(start_in_checker[0]));
                     HDfprintf(stdout, "%s mem/file extent dims = %d/%d.\n", 
@@ -4332,98 +4213,20 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
                     HDassert( n == start_index );
 
                     /* verify that the slice contains the expected data */
-                    q = 0;
-                    w = 0;
-                    start_in_checker[1] = start_in_checker[0];
-                    do
-                    {
-                        if ( w >= checker_edge_size ) {
+                    data_ok &= test_select_hyper_checker_board_dr__verify_data
+                               (
+                                 ptr_1,
+                                 small_rank,
+                                 edge_size,
+                                 checker_edge_size,
+                                 (uint16_t)0,
+                                 (const hbool_t)TRUE
+                              );
 
-                            start_in_checker[1] = ! start_in_checker[1];
-                            w = 0;
-                        }
-
-                        start_in_checker[2] = start_in_checker[1];
-                        r = 0;
-                        x = 0;
-                        do
-                        {
-                            if ( x >= checker_edge_size ) {
-
-                                start_in_checker[2] = ! start_in_checker[2];
-                                x = 0;
-                            }
-
-                            start_in_checker[3] = start_in_checker[2];
-                            s = 0;
-                            y = 0;
-                            do
-                            {
-                                if ( y >= checker_edge_size ) {
-
-                                    start_in_checker[3] = ! start_in_checker[3];
-                                    y = 0;
-                                }
-
-                                in_checker = start_in_checker[3];
-                                t = 0;
-                                z = 0;
-                                do
-                                {
-                                    if ( z >= checker_edge_size ) {
-
-                                        in_checker = ! in_checker;
-                                        z = 0;
-                                    }
-           
-                                    if ( in_checker ) {
-
-                                        if ( *ptr_1 != expected_value ) {
-
-                                            mis_match = TRUE;
-                                        }
-
-                                        /* zero out the buffer in preparation for the 
-                                         * next test.
-                                         */
-                                        *ptr_1 = 0;
-
-                                    } else {
-
-                                        if ( *ptr_1 != 0 ) {
-
-                                            mis_match = TRUE;
-                                        }
-                                    }
-
-                                    n++;
-                                    ptr_1++;
-                                    expected_value++;
-                                    t++;
-                                    z++;
-
-                                } while ( ( small_rank >= (test_max_rank - 4) ) &&
-                                          ( t < edge_size ) );
-
-                                s++;
-                                y++;
-
-                            } while ( ( small_rank >= (test_max_rank - 3) ) &&
-                                      ( s < edge_size ) );
-
-                            r++;
-                            x++;
-
-                        } while ( ( small_rank >= (test_max_rank - 2) ) &&
-                                  ( r < edge_size ) );
-
-                        q++;
-                        w++;
-                    } while ( ( small_rank >= (test_max_rank - 1) ) &&
-                              ( q < edge_size ) );
+                    ptr_1 += small_cube_size;
+                    n += small_cube_size;
 
                     HDassert( n == stop_index + 1 );
-
 
                     /* verify that the large cube contains only zeros after the slice */
                     for ( n = stop_index + 1; n < (int)large_cube_size; n++ ) {
@@ -4521,14 +4324,14 @@ test_select_hyper_checker_board_dr(hid_t dset_type, hid_t xfer_plist)
     int test_num = 0;
     int checker_edge_size = 2;
     int chunk_edge_size = 0;
-    int edge_size = 8;
+    int edge_size = 6;
     int small_rank = 0;
     int large_rank = 0;
 
     /* Output message about test being performed */
     MESSAGE(5, ("Testing Checker Board Hyperslabs With Different Rank I/O Functionality\n"));
 #if 1
-    for ( large_rank = 1; large_rank <= 3; large_rank++ ) {
+    for ( large_rank = 1; large_rank <= 5; large_rank++ ) {
 
         for ( small_rank = 1; small_rank < large_rank; small_rank++ ) {
 #endif
@@ -4542,8 +4345,9 @@ test_select_hyper_checker_board_dr(hid_t dset_type, hid_t xfer_plist)
                                                          xfer_plist);
 
             test_num++;
-            chunk_edge_size = 3;
 #if 1
+            chunk_edge_size = 3;
+
             test_select_hyper_checker_board_dr__run_test(test_num,
                                                          edge_size,
                                                          checker_edge_size,
