@@ -572,7 +572,7 @@ H5O_pline_pre_copy_file(H5F_t UNUSED *file_src, const void *mesg_src,
     hbool_t UNUSED *deleted, const H5O_copy_t UNUSED *cpy_info, void *_udata)
 {
     const H5O_pline_t *pline_src = (const H5O_pline_t *)mesg_src;    /* Source datatype */
-    H5D_copy_file_ud_t *udata = (H5D_copy_file_ud_t *)_udata;   /* Dataset copying user data */
+    H5O_copy_file_ud_common_t *udata = (H5O_copy_file_ud_common_t *)_udata; /* Object copying user data */
     herr_t             ret_value = SUCCEED;                     /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5O_pline_pre_copy_file)
@@ -580,7 +580,7 @@ H5O_pline_pre_copy_file(H5F_t UNUSED *file_src, const void *mesg_src,
     /* check args */
     HDassert(pline_src);
 
-    /* If the user data is non-NULL, assume we are copying a dataset
+    /* If the user data is non-NULL, assume we are copying a dataset or group
      * and make a copy of the filter pipeline for later in
      * the object copying process.
      */

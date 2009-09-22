@@ -47,7 +47,7 @@
 #define H5D_CRT_FILL_VALUE_NAME    "fill_value"         /* Fill value */
 #define H5D_CRT_ALLOC_TIME_STATE_NAME "alloc_time_state" /* Space allocation time state */
 #define H5D_CRT_EXT_FILE_LIST_NAME "efl"                /* External file list */
-#define H5D_CRT_DATA_PIPELINE_NAME "data_pline"         /* Data filter pipeline */
+#define H5D_CRT_DATA_PIPELINE_NAME H5O_CRT_PIPELINE_NAME /* Data filter pipeline */
 
 /* ========  Dataset access property names ======== */
 #define H5D_ACS_DATA_CACHE_NUM_SLOTS_NAME   "rdcc_nslots"   /* Size of raw data chunk cache(slots) */
@@ -139,11 +139,11 @@ typedef struct H5D_dcpl_cache_t {
     H5O_efl_t efl;              /* External file list info (H5D_CRT_EXT_FILE_LIST_NAME) */
 } H5D_dcpl_cache_t;
 
-/* Callback information for copying dataset */
+/* Callback information for copying datasets */
 typedef struct H5D_copy_file_ud_t {
+    H5O_copy_file_ud_common_t common;   /* Shared information (must be first) */
     struct H5S_extent_t *src_space_extent;     /* Copy of dataspace extent for dataset */
     H5T_t *src_dtype;                   /* Copy of datatype for dataset */
-    H5O_pline_t *src_pline;             /* Copy of filter pipeline for dataet */
 } H5D_copy_file_ud_t;
 
 

@@ -125,15 +125,12 @@ H5_DLL herr_t H5HF_op(H5HF_t *fh, hid_t dxpl_id, const void *id,
 H5_DLL herr_t H5HF_remove(H5HF_t *fh, hid_t dxpl_id, const void *id);
 H5_DLL herr_t H5HF_close(H5HF_t *fh, hid_t dxpl_id);
 H5_DLL herr_t H5HF_delete(H5F_t *f, hid_t dxpl_id, haddr_t fh_addr);
-H5_DLL herr_t H5HF_get_cparam(const H5HF_t *fh, H5HF_create_t *cparam);
 
 /* Statistics routines */
 H5_DLL herr_t H5HF_stat_info(const H5HF_t *fh, H5HF_stat_t *stats);
 H5_DLL herr_t H5HF_size(const H5HF_t *fh, hid_t dxpl_id, hsize_t *heap_size/*out*/);
 
 /* Debugging routines */
-H5_DLL herr_t H5HF_cparam_debug(const H5HF_cparam_t *cparam, FILE * stream,
-    int indent, int fwidth);
 #ifdef H5HF_DEBUGGING
 H5_DLL herr_t H5HF_sects_debug(H5F_t *f, hid_t dxpl_id, haddr_t addr,
     FILE *stream, int indent, int fwidth);

@@ -48,9 +48,9 @@
  * performing a write operation */
  #define H5HF_MAN_WRITE_CHECK_PLINE(HDR, ERR)                                  \
 {                                                                              \
-    if(!((HDR)->checked_filters)) {                                              \
-        if((HDR)->pline.nused)                                                \
-            if(H5Z_can_apply(-1, -1, &((HDR)->pline)) < 0)                       \
+    if(!((HDR)->checked_filters)) {                                            \
+        if((HDR)->pline.nused)                                                 \
+            if(H5Z_can_apply_direct(&((HDR)->pline)) < 0)                      \
                 HGOTO_ERROR(H5E_ARGS, H5E_CANTINIT, ERR, "I/O filters can't operate on this heap") \
                                                                                \
         (HDR)->checked_filters = TRUE;                                         \

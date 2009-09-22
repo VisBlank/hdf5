@@ -25,7 +25,6 @@
 /***********/
 #include "H5private.h"		/* Generic Functions			*/
 #include "H5Eprivate.h"		/* Error handling		  	*/
-#include "H5MMprivate.h"	/* Memory management			*/
 #include "H5Opkg.h"             /* Object Headers                       */
 #include "H5SMpkg.h"            /* Shared object header messages        */
 
@@ -52,15 +51,10 @@ typedef struct H5SM_compare_udata_t {
 /********************/
 
 /* v2 B-tree callbacks */
-static herr_t H5SM_btree_set_udata(const H5B2_udata_info_t *info,
-    size_t *nrec_size, void **_udata);
-static herr_t H5SM_btree_free_udata(void *udata);
 static herr_t H5SM_btree_compare_cb(const void *obj, size_t obj_len, void *_udata);
-static herr_t H5SM_btree_store(void *native, const void *udata,
-    const void *store_udata);
-static herr_t H5SM_btree_debug(FILE *stream, hid_t dxpl_id, int indent,
-    int fwidth, const void *record, const void *_udata,
-    const void *_debug_udata);
+static herr_t H5SM_btree_store(void *native, const void *udata);
+static herr_t H5SM_btree_debug(FILE *stream, const H5F_t *f, hid_t dxpl_id,
+    int indent, int fwidth, const void *record, const void *_udata);
 
 
 /*****************************/
@@ -70,8 +64,6 @@ static herr_t H5SM_btree_debug(FILE *stream, hid_t dxpl_id, int indent,
 const H5B2_class_t H5SM_INDEX[1]={{   /* B-tree class information */
     H5B2_SOHM_INDEX_ID,               /* Type of B-tree */
     sizeof(H5SM_sohm_t),              /* Size of native record */
-    H5SM_btree_set_udata,             /* Set udata callback */
-    H5SM_btree_free_udata,            /* Free udata callback */
     H5SM_btree_store,                 /* Record storage callback */
     H5SM_message_compare,             /* Record comparison callback */
     H5SM_message_encode,              /* Record encoding callback */
@@ -82,65 +74,6 @@ const H5B2_class_t H5SM_INDEX[1]={{   /* B-tree class information */
 /*******************/
 /* Local Variables */
 /*******************/
-
-
-/*-------------------------------------------------------------------------
- * Function:	H5SM_btree_set_udata
- *
- * Purpose:	Sets the user data for this B-tree.  Currently this is
- *              just the size of addresses in the file.
- *
- * Return:	Negative on error, non-negative on success
- *
- * Programmer:	Neil Fortner
- *              Thursday, July 2, 2009
- *
- *-------------------------------------------------------------------------
- */
-static herr_t
-H5SM_btree_set_udata(const H5B2_udata_info_t *info, size_t UNUSED *nrec_size,
-    void **udata)
-{
-    size_t  *sizeof_addr;
-    herr_t  ret_value = SUCCEED;
-
-    FUNC_ENTER_NOAPI_NOINIT(H5SM_btree_set_udata)
-
-    /* Allocate space for udata */
-    if(NULL == (sizeof_addr = (size_t *)H5MM_malloc(sizeof(size_t))))
-        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed")
-
-    /* Compute size of addresses, link to main udata pointer */
-    *sizeof_addr = H5F_SIZEOF_ADDR(info->f);
-    *udata = (void *)sizeof_addr;
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5SM_btree_set_udata */
-
-
-/*-------------------------------------------------------------------------
- * Function:	H5SM_btree_free_udata
- *
- * Purpose:	Frees the user data for this B-tree.
- *
- * Return:	Negative on error, non-negative on success
- *
- * Programmer:	Neil Fortner
- *              Monday, July 13, 2009
- *
- *-------------------------------------------------------------------------
- */
-static herr_t
-H5SM_btree_free_udata(void *udata)
-{
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5SM_btree_free_udata)
-
-    HDassert(udata);
-    H5MM_free(udata);
-
-    FUNC_LEAVE_NOAPI(SUCCEED)
-} /* end H5SM_btree_free_udata */
 
 
 /*-------------------------------------------------------------------------
@@ -258,7 +191,7 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5SM_message_compare(const void *rec1, const void *rec2, const void UNUSED *_udata)
+H5SM_message_compare(const void *rec1, const void *rec2)
 {
     const H5SM_mesg_key_t *key = (const H5SM_mesg_key_t *) rec1;
     const H5SM_sohm_t *mesg = (const H5SM_sohm_t *) rec2;
@@ -360,9 +293,9 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5SM_btree_store(void *native, const void UNUSED *udata, const void *store_udata)
+H5SM_btree_store(void *native, const void *udata)
 {
-    const H5SM_mesg_key_t *key = (const H5SM_mesg_key_t *)store_udata;
+    const H5SM_mesg_key_t *key = (const H5SM_mesg_key_t *)udata;
 
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5SM_btree_store)
 
@@ -387,9 +320,8 @@ H5SM_btree_store(void *native, const void UNUSED *udata, const void *store_udata
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5SM_btree_debug(FILE *stream, hid_t UNUSED dxpl_id, int indent, int fwidth,
-    const void *record, const void UNUSED *_udata,
-    const void UNUSED *_debug_udata)
+H5SM_btree_debug(FILE *stream, const H5F_t UNUSED *f, hid_t UNUSED dxpl_id,
+    int indent, int fwidth, const void *record, const void UNUSED *_udata)
 {
     const H5SM_sohm_t *sohm = (const H5SM_sohm_t *)record;
 

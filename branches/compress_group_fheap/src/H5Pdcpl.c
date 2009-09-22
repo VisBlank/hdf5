@@ -1167,118 +1167,6 @@ done:
 
 
 /*-------------------------------------------------------------------------
- * Function:	H5P_modify_filter_dcpl
- *
- * Purpose:	Modifies the specified FILTER in the
- *		transient or permanent output filter pipeline
- *		depending on whether PLIST is a dataset creation or dataset
- *		transfer property list.  The FLAGS argument specifies certain
- *		general properties of the filter and is documented below.
- *		The CD_VALUES is an array of CD_NELMTS integers which are
- *		auxiliary data for the filter.  The integer vlues will be
- *		stored in the dataset object header as part of the filter
- *		information.
- *
- * 		The FLAGS argument is a bit vector of the following fields:
- *
- * 		H5Z_FLAG_OPTIONAL(0x0001)
- *		If this bit is set then the filter is optional.  If the
- *		filter fails during an H5Dwrite() operation then the filter
- *		is just excluded from the pipeline for the chunk for which it
- *		failed; the filter will not participate in the pipeline
- *		during an H5Dread() of the chunk.  If this bit is clear and
- *		the filter fails then the entire I/O operation fails.
- *      If this bit is set but encoding is disabled for a filter,
- *      attempting to write will generate an error.
- *
- * Note:	This function currently supports only the permanent filter
- *		pipeline.  That is, PLIST_ID must be a dataset creation
- *		property list.
- *
- * Return:	Non-negative on success/Negative on failure
- *
- * Programmer:	Quincey Koziol
- *              Wednesday, October 17, 2007
- *
- *-------------------------------------------------------------------------
- */
-herr_t
-H5P_modify_filter_dcpl(H5P_genplist_t *plist, H5Z_filter_t filter, unsigned flags,
-    size_t cd_nelmts, const unsigned cd_values[/*cd_nelmts*/])
-{
-    H5O_pline_t         pline;
-    herr_t ret_value = SUCCEED;   /* return value */
-
-    FUNC_ENTER_NOAPI(H5P_modify_filter_dcpl, FAIL)
-
-    /* Get the pipeline property to append to */
-    if(H5P_get(plist, H5D_CRT_DATA_PIPELINE_NAME, &pline) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get pipeline")
-
-    /* Modify the filter parameters of the I/O pipeline */
-    if(H5Z_modify(&pline, filter, flags, cd_nelmts, cd_values) < 0)
-        HGOTO_ERROR(H5E_PLINE, H5E_CANTINIT, FAIL, "unable to add filter to pipeline")
-
-    /* Put the I/O pipeline information back into the property list */
-    if(H5P_set(plist, H5D_CRT_DATA_PIPELINE_NAME, &pline) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set pipeline")
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5P_modify_filter_dcpl() */
-
-
-/*-------------------------------------------------------------------------
- * Function:	H5P_get_filter_by_id_dcpl
- *
- * Purpose:	This is an additional query counterpart of H5Pset_filter() and
- *              returns information about a particular filter in a permanent
- *		or transient pipeline depending on whether PLIST_ID is a
- *		dataset creation or transfer property list.  On input,
- *		CD_NELMTS indicates the number of entries in the CD_VALUES
- *		array allocated by the caller while on exit it contains the
- *		number of values defined by the filter.  FILTER_CONFIG is a bit
- *      field contaning encode/decode flags from H5Zpublic.h.  The ID
- *      should be the filter ID to retrieve the parameters for.  If the
- *      filter is not set for the property list, an error will be returned.
- *
- * Return:	Success:	Non-negative
- *		Failure:	Negative
- *
- * Programmer:	Quincey Koziol
- *              Wednesday, October 17, 2007
- *
- *-------------------------------------------------------------------------
- */
-herr_t
-H5P_get_filter_by_id_dcpl(H5P_genplist_t *plist, H5Z_filter_t id, unsigned int *flags/*out*/,
-    size_t *cd_nelmts/*in_out*/, unsigned cd_values[]/*out*/,
-    size_t namelen, char name[]/*out*/, unsigned *filter_config)
-{
-    H5O_pline_t         pline;  /* Filter pipeline */
-    H5Z_filter_info_t *filter;  /* Pointer to filter information */
-    herr_t ret_value = SUCCEED;   /* Return value */
-
-    FUNC_ENTER_NOAPI(H5P_get_filter_by_id_dcpl, FAIL)
-
-    /* Get pipeline info */
-    if(H5P_get(plist, H5D_CRT_DATA_PIPELINE_NAME, &pline) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get pipeline")
-
-    /* Get pointer to filter in pipeline */
-    if(NULL == (filter = H5Z_filter_info(&pline, id)))
-        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "filter ID is invalid")
-
-    /* Get filter information */
-    if(H5P_get_filter(filter, flags, cd_nelmts, cd_values, namelen, name, filter_config) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, H5Z_FILTER_ERROR, "can't get filter info")
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5P_get_filter_by_id_dcpl() */
-
-
-/*-------------------------------------------------------------------------
  * Function:	H5Pset_szip
  *
  * Purpose:	Sets the compression method for a permanent or transient
@@ -1527,77 +1415,6 @@ H5Pset_scaleoffset(hid_t plist_id, H5Z_SO_scale_type_t scale_type, int scale_fac
 done:
     FUNC_LEAVE_API(ret_value)
 } /* end H5Pset_scaleoffset() */
-
-
-/*-------------------------------------------------------------------------
- * Function:	H5P_dcpl_set_pline
- *
- * Purpose:	Sets the data pipeline on a dataset creation property
- *              list.
- *
- * Return:	Non-negative on success/Negative on failure
- *
- * Programmer:	Neil Fortner
- *              Monday, July 20, 2009
- *
- *-------------------------------------------------------------------------
- */
-herr_t
-H5P_dcpl_set_pline(H5P_genplist_t *plist, const H5O_pline_t *pline)
-{
-    herr_t              ret_value=SUCCEED;      /* return value */
-
-    FUNC_ENTER_NOAPI(H5P_dcpl_set_pline, FAIL)
-
-    /* Check arguments */
-    HDassert(plist);
-    HDassert(pline);
-
-    /* Set the pipeline on the dcpl */
-    /* No need to free/reset the pline as the functions that call this should
-     * handle it through the H5Z* functions -NAF */
-    if(H5P_set(plist, H5D_CRT_DATA_PIPELINE_NAME, pline) < 0)
-        HGOTO_ERROR(H5E_PLINE, H5E_CANTINIT, FAIL, "unable to set pipeline")
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5P_dcpl_set_pline() */
-
-
-/*-------------------------------------------------------------------------
- * Function:	H5P_dcpl_get_pline
- *
- * Purpose:	Gets the data pipeline on a dataset creation property
- *              list.  This pipeline is a *shallow* copy of the pipeline
- *              in the dcpl, so it must be reset properly if it is to be
- *              replaced by a different pipeline.  Modifying this
- *              pipeline and passing it back to H5P_dcpl_set_pline is OK.
- *
- * Return:	Non-negative on success/Negative on failure
- *
- * Programmer:	Neil Fortner
- *              Monday, July 20, 2009
- *
- *-------------------------------------------------------------------------
- */
-herr_t
-H5P_dcpl_get_pline(const H5P_genplist_t *plist, H5O_pline_t *pline)
-{
-    herr_t              ret_value=SUCCEED;      /* return value */
-
-    FUNC_ENTER_NOAPI(H5P_dcpl_get_pline, FAIL)
-
-    /* Check arguments */
-    HDassert(plist);
-    HDassert(pline);
-
-    /* Get the pipeline from the dcpl */
-    if(H5P_get(plist, H5D_CRT_DATA_PIPELINE_NAME, pline) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get pipeline")
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5P_dcpl_get_pline() */
 
 
 /*-------------------------------------------------------------------------
@@ -2318,7 +2135,7 @@ H5Pget_filter_by_id1(hid_t plist_id, H5Z_filter_t id, unsigned int *flags/*out*/
         HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "can't find object for ID")
 
     /* Get filter info */
-    if(H5P_get_filter_by_id_dcpl(plist, id, flags, cd_nelmts, cd_values, namelen, name, NULL) < 0)
+    if(H5P_get_filter_by_id(plist, id, flags, cd_nelmts, cd_values, namelen, name, NULL) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, H5Z_FILTER_ERROR, "can't get filter info")
 
 done:

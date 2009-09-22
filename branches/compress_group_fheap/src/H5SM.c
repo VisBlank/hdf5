@@ -1468,7 +1468,7 @@ H5SM_find_in_list(const H5SM_list_t *list, const H5SM_mesg_key_t *key, size_t *e
      */
     for(x = 0; x < list->header->list_max; x++) {
         if(key && (list->messages[x].location != H5SM_NO_LOC) &&
-                (0 == H5SM_message_compare(key, &(list->messages[x]), NULL)))
+                (0 == H5SM_message_compare(key, &(list->messages[x]))))
             HGOTO_DONE(x)
         else if(empty_pos && list->messages[x].location == H5SM_NO_LOC) {
             /* Note position */
@@ -1865,9 +1865,9 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5SM_message_encode(uint8_t *raw, const void *_nrecord, const void *udata)
+H5SM_message_encode(const H5F_t *f, uint8_t *raw, const void *_nrecord)
 {
-    const H5SM_sohm_t   *message = (const H5SM_sohm_t *)_nrecord;
+    const H5SM_sohm_t *message = (const H5SM_sohm_t *)_nrecord;
 
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5SM_message_encode)
 
@@ -1884,7 +1884,7 @@ H5SM_message_encode(uint8_t *raw, const void *_nrecord, const void *udata)
         *raw++ = 0;     /* reserved (possible flags byte) */
         *raw++ = message->msg_type_id;
         UINT16ENCODE(raw, message->u.mesg_loc.index);
-        H5F_addr_encode_len(*(const size_t *)udata, &raw, message->u.mesg_loc.oh_addr);
+        H5F_addr_encode(f, &raw, message->u.mesg_loc.oh_addr);
     } /* end else */
 
     FUNC_LEAVE_NOAPI(SUCCEED)
@@ -1905,7 +1905,7 @@ H5SM_message_encode(uint8_t *raw, const void *_nrecord, const void *udata)
  *-------------------------------------------------------------------------
  */
 herr_t
-H5SM_message_decode(const uint8_t *raw, void *_nrecord, const void *udata)
+H5SM_message_decode(const H5F_t UNUSED *f, const uint8_t *raw, void *_nrecord)
 {
     H5SM_sohm_t *message = (H5SM_sohm_t *)_nrecord;
 
@@ -1924,7 +1924,7 @@ H5SM_message_decode(const uint8_t *raw, void *_nrecord, const void *udata)
         raw++;          /* reserved */
         message->msg_type_id = *raw++;
         UINT16DECODE(raw, message->u.mesg_loc.index);
-        H5F_addr_decode_len(*(const size_t *)udata, &raw, &message->u.mesg_loc.oh_addr);
+        H5F_addr_decode(f, &raw, &message->u.mesg_loc.oh_addr);
     } /* end else */
 
     FUNC_LEAVE_NOAPI(SUCCEED)

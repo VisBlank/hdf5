@@ -730,6 +730,7 @@ H5_DLL herr_t H5HF_op_write(const void *obj, size_t obj_len, void *op_data);
 
 /* Testing routines */
 #ifdef H5HF_TESTING
+H5_DLL herr_t H5HF_get_cparam_test(const H5HF_t *fh, H5HF_create_t *cparam);
 H5_DLL int H5HF_cmp_cparam_test(const H5HF_create_t *cparam1, const H5HF_create_t *cparam2);
 H5_DLL unsigned H5HF_get_max_root_rows(const H5HF_t *fh);
 H5_DLL unsigned H5HF_get_dtable_width_test(const H5HF_t *fh);

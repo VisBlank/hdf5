@@ -1723,49 +1723,9 @@ static herr_t		H5_INTERFACE_INIT_FUNC(void);
 #define H5_INTERFACE_INIT(err)
 #endif /* H5_INTERFACE_INIT_FUNC */
 
-/* Macros for using or emulating variable-length arrays */
-#define H5_VLA_SUPPORTED
-#ifdef H5_VLA_SUPPORTED
-#define H5_VLA_ALLOC(TYPE,NAME,LEN,ERR) TYPE NAME[LEN];
-#define H5_VLA_DECLARE_STACK
-#define H5_VLA_FREE_STACK
-#else /* H5_VLA_SUPPORTED */
-/* Stack for freeing dynamically allocated "variable-length arrays" for
- * compilers that do not support C99 variable length arrays */
-typedef struct H5_vla_stack_t {
-    struct H5_vla_stack_t *next;
-    void *vla;
-} H5_vla_stack_t;
-#define H5_VLA_ALLOC(TYPE,NAME,LEN,ERR)                                        \
-TYPE *NAME = (TYPE *)HDmalloc((LEN) * sizeof(TYPE));                           \
-if(!NAME)                                                                      \
-    HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, ERR, "memory allocation failed")    \
-{                                                                              \
-    H5_vla_stack_t *tmp_stack_ptr = (H5_vla_stack_t *)HDmalloc(sizeof(H5_vla_stack_t)); \
-    if(!tmp_stack_ptr) {                                                       \
-        HDfree(NAME);                                                       \
-        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, ERR, "memory allocation failed") \
-    }                                                                          \
-    tmp_stack_ptr->next = vla_stack;                                           \
-    vla_stack = tmp_stack_ptr;                                                 \
-    vla_stack->vla = NAME;                                                     \
-}
-#define H5_VLA_DECLARE_STACK H5_vla_stack_t *vla_stack = NULL;
-#define H5_VLA_FREE_STACK {                                                    \
-    H5_vla_stack_t *tmp_stack_ptr;                                             \
-    while(vla_stack) {                                                         \
-        tmp_stack_ptr = vla_stack;                                             \
-        vla_stack = vla_stack->next;                                           \
-        HDfree(tmp_stack_ptr->vla);                                            \
-        HDfree(tmp_stack_ptr);                                                 \
-    }                                                                          \
-}
-#endif /* H5_VLA_SUPPORTED */
-
 
 #ifndef NDEBUG
 #define FUNC_ENTER_COMMON_NOFUNC(func_name,asrt)                              \
-    H5_VLA_DECLARE_STACK                                                      \
     static hbool_t func_check = FALSE;          			      \
 									      \
     if(!func_check) {			   				      \
@@ -1779,7 +1739,7 @@ if(!NAME)                                                                      \
         func_check = TRUE;						      \
     } /* end if */
 #else /* NDEBUG */
-#define FUNC_ENTER_COMMON_NOFUNC(func_name,asrt) H5_VLA_DECLARE_STACK
+#define FUNC_ENTER_COMMON_NOFUNC(func_name,asrt)
 #endif /* NDEBUG */
 
 #define FUNC_ENTER_COMMON(func_name,asrt)                                     \
@@ -1957,7 +1917,6 @@ if(!NAME)                                                                      \
         H5_POP_FUNC                                                           \
         if(err_occurred)						      \
            (void)H5E_dump_api_stack(TRUE);				      \
-        H5_VLA_FREE_STACK						      \
         FUNC_LEAVE_API_THREADSAFE                                             \
         return (ret_value);						      \
     } /*end scope from end of FUNC_ENTER*/                                    \
@@ -1968,7 +1927,6 @@ if(!NAME)                                                                      \
         H5TRACE_RETURN(ret_value);					      \
         if(err_occurred)						      \
            (void)H5E_dump_api_stack(TRUE);				      \
-        H5_VLA_FREE_STACK						      \
         FUNC_LEAVE_API_THREADSAFE                                             \
         return (ret_value);						      \
     } /*end scope from end of FUNC_ENTER*/                                    \
@@ -1976,14 +1934,12 @@ if(!NAME)                                                                      \
 
 #define FUNC_LEAVE_NOAPI(ret_value)                                           \
         H5_POP_FUNC                                                          \
-        H5_VLA_FREE_STACK						      \
         return (ret_value);						      \
     } /*end scope from end of FUNC_ENTER*/                                    \
 } /*end scope from beginning of FUNC_ENTER*/
 
 #define FUNC_LEAVE_NOAPI_VOID                                                 \
         H5_POP_FUNC                                                          \
-        H5_VLA_FREE_STACK						      \
         return;						                      \
     } /*end scope from end of FUNC_ENTER*/                                    \
 } /*end scope from beginning of FUNC_ENTER*/
@@ -2274,6 +2230,15 @@ func_init_failed:							      \
 
 /* Compile-time "assert" macro */
 #define HDcompile_assert(e)     do { enum { compile_assert__ = 1 / (e) }; } while(0)
+
+/**************************************************************/
+/* Other symbols needed by multiple "private" package headers */
+/**************************************************************/
+
+/* Common object copying udata (right now only used for groups and datasets */
+typedef struct H5O_copy_file_ud_common_t {
+    struct H5O_pline_t *src_pline;      /* Copy of filter pipeline for object */
+} H5O_copy_file_ud_common_t;
 
 /* Private functions, not part of the publicly documented API */
 H5_DLL herr_t H5_init_library(void);

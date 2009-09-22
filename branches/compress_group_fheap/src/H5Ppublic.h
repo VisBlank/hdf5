@@ -28,7 +28,6 @@
 #include "H5Dpublic.h"
 #include "H5Fpublic.h"
 #include "H5FDpublic.h"
-#include "H5HFpublic.h"
 #include "H5Ipublic.h"
 #include "H5Lpublic.h"
 #include "H5MMpublic.h"
@@ -371,10 +370,6 @@ H5_DLL herr_t H5Pset_est_link_info(hid_t plist_id, unsigned est_num_entries, uns
 H5_DLL herr_t H5Pget_est_link_info(hid_t plist_id, unsigned *est_num_entries /* out */, unsigned *est_name_len /* out */);
 H5_DLL herr_t H5Pset_link_creation_order(hid_t plist_id, unsigned crt_order_flags);
 H5_DLL herr_t H5Pget_link_creation_order(hid_t plist_id, unsigned *crt_order_flags /* out */);
-H5_DLL herr_t H5Pset_fheap_cparams(hid_t plist_id, H5HF_type_t type,
-    const H5HF_cparam_t *cparam);
-H5_DLL htri_t H5Pget_fheap_cparams(hid_t plist_id, H5HF_type_t type,
-    H5HF_cparam_t *cparam);
 
 /* String creation property list (STRCPL) routines */
 H5_DLL herr_t H5Pset_char_encoding(hid_t plist_id, H5T_cset_t encoding);

@@ -460,7 +460,7 @@ H5D_write(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
 
     /* All filters in the DCPL must have encoding enabled. */
     if(!dataset->shared->checked_filters) {
-        if(H5Z_can_apply(dataset->shared->dcpl_id, dataset->shared->type_id, NULL) < 0)
+        if(H5Z_can_apply(dataset->shared->dcpl_id, dataset->shared->type_id) < 0)
             HGOTO_ERROR(H5E_PLINE, H5E_CANAPPLY, FAIL, "can't apply filters")
 
         dataset->shared->checked_filters = TRUE;

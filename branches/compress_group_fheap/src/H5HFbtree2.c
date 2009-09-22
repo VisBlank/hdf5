@@ -38,7 +38,6 @@
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5HFpkg.h"		/* Fractal heaps			*/
 #include "H5MFprivate.h"	/* File memory management		*/
-#include "H5MMprivate.h"	/* Memory management			*/
 
 
 /****************/
@@ -49,11 +48,6 @@
 /******************/
 /* Local Typedefs */
 /******************/
-/* Static udata for b-tree 2 callbacks */
-typedef struct H5HF_huge_btree2_udata_t {
-    size_t  sizeof_addr;    /* Size of addresses in the file */
-    size_t  sizeof_size;    /* Size of offsets in the file */
-} H5HF_huge_btree2_udata_t;
 
 
 /********************/
@@ -65,59 +59,42 @@ typedef struct H5HF_huge_btree2_udata_t {
 /* Local Prototypes */
 /********************/
 
-/* Common routines for v2 B-tree driver callbacks */
-static herr_t H5HF_huge_btree2_shared_set_udata(const H5B2_udata_info_t *info,
-    size_t *nrec_size, void **_udata);
-static herr_t H5HF_huge_btree2_shared_free_udata(void *udata);
-
 /* v2 B-tree driver callbacks */
-static herr_t H5HF_huge_btree2_indir_store(void *native, const void *udata,
-    const void *store_udata);
-static herr_t H5HF_huge_btree2_indir_compare(const void *rec1, const void *rec2,
-    const void *udata);
-static herr_t H5HF_huge_btree2_indir_encode(uint8_t *raw, const void *native,
-    const void *udata);
-static herr_t H5HF_huge_btree2_indir_decode(const uint8_t *raw, void *native,
-    const void *udata);
-static herr_t H5HF_huge_btree2_indir_debug(FILE *stream, hid_t dxpl_id,
-    int indent, int fwidth, const void *record, const void *_udata,
-    const void *_debug_udata);
+static herr_t H5HF_huge_btree2_indir_store(void *native, const void *udata);
+static herr_t H5HF_huge_btree2_indir_compare(const void *rec1, const void *rec2);
+static herr_t H5HF_huge_btree2_indir_encode(const H5F_t *f, uint8_t *raw,
+    const void *native);
+static herr_t H5HF_huge_btree2_indir_decode(const H5F_t *f, const uint8_t *raw,
+    void *native);
+static herr_t H5HF_huge_btree2_indir_debug(FILE *stream, const H5F_t *f, hid_t dxpl_id,
+    int indent, int fwidth, const void *record, const void *_udata);
 
-static herr_t H5HF_huge_btree2_filt_indir_store(void *native, const void *udata,
-    const void *store_udata);
-static herr_t H5HF_huge_btree2_filt_indir_compare(const void *rec1, const void *rec2,
-    const void *udata);
-static herr_t H5HF_huge_btree2_filt_indir_encode(uint8_t *raw, const void *native,
-    const void *udata);
-static herr_t H5HF_huge_btree2_filt_indir_decode(const uint8_t *raw, void *native,
-    const void *udata);
-static herr_t H5HF_huge_btree2_filt_indir_debug(FILE *stream, hid_t dxpl_id,
-    int indent, int fwidth, const void *record, const void *_udata,
-    const void *_debug_udata);
+static herr_t H5HF_huge_btree2_filt_indir_store(void *native, const void *udata);
+static herr_t H5HF_huge_btree2_filt_indir_compare(const void *rec1, const void *rec2);
+static herr_t H5HF_huge_btree2_filt_indir_encode(const H5F_t *f, uint8_t *raw,
+    const void *native);
+static herr_t H5HF_huge_btree2_filt_indir_decode(const H5F_t *f, const uint8_t *raw,
+    void *native);
+static herr_t H5HF_huge_btree2_filt_indir_debug(FILE *stream, const H5F_t *f, hid_t dxpl_id,
+    int indent, int fwidth, const void *record, const void *_udata);
 
-static herr_t H5HF_huge_btree2_dir_store(void *native, const void *udata,
-    const void *store_udata);
-static herr_t H5HF_huge_btree2_dir_compare(const void *rec1, const void *rec2,
-    const void *udata);
-static herr_t H5HF_huge_btree2_dir_encode(uint8_t *raw, const void *native,
-    const void *udata);
-static herr_t H5HF_huge_btree2_dir_decode(const uint8_t *raw, void *native,
-    const void *udata);
-static herr_t H5HF_huge_btree2_dir_debug(FILE *stream, hid_t dxpl_id,
-    int indent, int fwidth, const void *record, const void *_udata,
-    const void *_debug_udata);
+static herr_t H5HF_huge_btree2_dir_store(void *native, const void *udata);
+static herr_t H5HF_huge_btree2_dir_compare(const void *rec1, const void *rec2);
+static herr_t H5HF_huge_btree2_dir_encode(const H5F_t *f, uint8_t *raw,
+    const void *native);
+static herr_t H5HF_huge_btree2_dir_decode(const H5F_t *f, const uint8_t *raw,
+    void *native);
+static herr_t H5HF_huge_btree2_dir_debug(FILE *stream, const H5F_t *f, hid_t dxpl_id,
+    int indent, int fwidth, const void *record, const void *_udata);
 
-static herr_t H5HF_huge_btree2_filt_dir_store(void *native, const void *udata,
-    const void *store_udata);
-static herr_t H5HF_huge_btree2_filt_dir_compare(const void *rec1, const void *rec2,
-    const void *udata);
-static herr_t H5HF_huge_btree2_filt_dir_encode(uint8_t *raw, const void *native,
-    const void *udata);
-static herr_t H5HF_huge_btree2_filt_dir_decode(const uint8_t *raw, void *native,
-    const void *udata);
-static herr_t H5HF_huge_btree2_filt_dir_debug(FILE *stream, hid_t dxpl_id,
-    int indent, int fwidth, const void *record, const void *_udata,
-    const void *_debug_udata);
+static herr_t H5HF_huge_btree2_filt_dir_store(void *native, const void *udata);
+static herr_t H5HF_huge_btree2_filt_dir_compare(const void *rec1, const void *rec2);
+static herr_t H5HF_huge_btree2_filt_dir_encode(const H5F_t *f, uint8_t *raw,
+    const void *native);
+static herr_t H5HF_huge_btree2_filt_dir_decode(const H5F_t *f, const uint8_t *raw,
+    void *native);
+static herr_t H5HF_huge_btree2_filt_dir_debug(FILE *stream, const H5F_t *f, hid_t dxpl_id,
+    int indent, int fwidth, const void *record, const void *_udata);
 
 /*********************/
 /* Package Variables */
@@ -126,8 +103,6 @@ static herr_t H5HF_huge_btree2_filt_dir_debug(FILE *stream, hid_t dxpl_id,
 const H5B2_class_t H5HF_BT2_INDIR[1]={{     /* B-tree class information */
     H5B2_FHEAP_HUGE_INDIR_ID,           /* Type of B-tree */
     sizeof(H5HF_huge_bt2_indir_rec_t),  /* Size of native record */
-    H5HF_huge_btree2_shared_set_udata,  /* Set udata callback */
-    H5HF_huge_btree2_shared_free_udata, /* Free udata callback */
     H5HF_huge_btree2_indir_store,       /* Record storage callback */
     H5HF_huge_btree2_indir_compare,     /* Record comparison callback */
     H5HF_huge_btree2_indir_encode,      /* Record encoding callback */
@@ -139,8 +114,6 @@ const H5B2_class_t H5HF_BT2_INDIR[1]={{     /* B-tree class information */
 const H5B2_class_t H5HF_BT2_FILT_INDIR[1]={{     /* B-tree class information */
     H5B2_FHEAP_HUGE_FILT_INDIR_ID,              /* Type of B-tree */
     sizeof(H5HF_huge_bt2_filt_indir_rec_t),     /* Size of native record */
-    H5HF_huge_btree2_shared_set_udata,          /* Set udata callback */
-    H5HF_huge_btree2_shared_free_udata,         /* Free udata callback */
     H5HF_huge_btree2_filt_indir_store,          /* Record storage callback */
     H5HF_huge_btree2_filt_indir_compare,        /* Record comparison callback */
     H5HF_huge_btree2_filt_indir_encode,         /* Record encoding callback */
@@ -152,8 +125,6 @@ const H5B2_class_t H5HF_BT2_FILT_INDIR[1]={{     /* B-tree class information */
 const H5B2_class_t H5HF_BT2_DIR[1]={{     /* B-tree class information */
     H5B2_FHEAP_HUGE_DIR_ID,             /* Type of B-tree */
     sizeof(H5HF_huge_bt2_dir_rec_t),    /* Size of native record */
-    H5HF_huge_btree2_shared_set_udata,  /* Set udata callback */
-    H5HF_huge_btree2_shared_free_udata, /* Free udata callback */
     H5HF_huge_btree2_dir_store,         /* Record storage callback */
     H5HF_huge_btree2_dir_compare,       /* Record comparison callback */
     H5HF_huge_btree2_dir_encode,        /* Record encoding callback */
@@ -165,8 +136,6 @@ const H5B2_class_t H5HF_BT2_DIR[1]={{     /* B-tree class information */
 const H5B2_class_t H5HF_BT2_FILT_DIR[1]={{     /* B-tree class information */
     H5B2_FHEAP_HUGE_FILT_DIR_ID,        /* Type of B-tree */
     sizeof(H5HF_huge_bt2_filt_dir_rec_t),/* Size of native record */
-    H5HF_huge_btree2_shared_set_udata,  /* Set udata callback */
-    H5HF_huge_btree2_shared_free_udata, /* Free udata callback */
     H5HF_huge_btree2_filt_dir_store,    /* Record storage callback */
     H5HF_huge_btree2_filt_dir_compare,  /* Record comparison callback */
     H5HF_huge_btree2_filt_dir_encode,   /* Record encoding callback */
@@ -182,66 +151,6 @@ const H5B2_class_t H5HF_BT2_FILT_DIR[1]={{     /* B-tree class information */
 /*******************/
 /* Local Variables */
 /*******************/
-
-
-/*-------------------------------------------------------------------------
- * Function:	H5HF_huge_btree2_shared_set_udata
- *
- * Purpose:	Sets the user data for this B-tree.  Currently this is
- *              just the file pointer.
- *
- * Return:	Negative on error, non-negative on success
- *
- * Programmer:	Neil Fortner
- *              Thursday, July 2, 2009
- *
- *-------------------------------------------------------------------------
- */
-static herr_t
-H5HF_huge_btree2_shared_set_udata(const H5B2_udata_info_t *info,
-    size_t UNUSED *nrec_size, void **udata)
-{
-    H5HF_huge_btree2_udata_t    *bt2_udata;
-    herr_t                      ret_value = SUCCEED;
-
-    FUNC_ENTER_NOAPI_NOINIT(H5HF_huge_btree2_shared_set_udata)
-
-    /* Allocate space for udata */
-    if(NULL == (bt2_udata = (H5HF_huge_btree2_udata_t *)H5MM_malloc(sizeof(H5HF_huge_btree2_udata_t))))
-        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed")
-
-    /* Compute size of addresses and offsets, link to main udata pointer */
-    bt2_udata->sizeof_addr = H5F_SIZEOF_ADDR(info->f);
-    bt2_udata->sizeof_size = H5F_SIZEOF_SIZE(info->f);
-    *udata = (void *)bt2_udata;
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5HF_huge_btree2_shared_set_udata */
-
-
-/*-------------------------------------------------------------------------
- * Function:	H5HF_huge_btree2_shared_free_udata
- *
- * Purpose:	Frees the user data for this B-tree.
- *
- * Return:	Negative on error, non-negative on success
- *
- * Programmer:	Neil Fortner
- *              Monday, July 13, 2009
- *
- *-------------------------------------------------------------------------
- */
-static herr_t
-H5HF_huge_btree2_shared_free_udata(void *udata)
-{
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5HF_huge_btree2_shared_free_udata)
-
-    HDassert(udata);
-    H5MM_free(udata);
-
-    FUNC_LEAVE_NOAPI(SUCCEED)
-} /* end H5HF_huge_btree2_shared_free_udata */
 
 
 /*-------------------------------------------------------------------------
@@ -323,12 +232,11 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5HF_huge_btree2_indir_store(void *nrecord, const void UNUSED *udata,
-    const void *store_udata)
+H5HF_huge_btree2_indir_store(void *nrecord, const void *udata)
 {
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5HF_huge_btree2_indir_store)
 
-    *(H5HF_huge_bt2_indir_rec_t *)nrecord = *(const H5HF_huge_bt2_indir_rec_t *)store_udata;
+    *(H5HF_huge_bt2_indir_rec_t *)nrecord = *(const H5HF_huge_bt2_indir_rec_t *)udata;
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* H5HF_huge_btree2_indir_store() */
@@ -349,8 +257,7 @@ H5HF_huge_btree2_indir_store(void *nrecord, const void UNUSED *udata,
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5HF_huge_btree2_indir_compare(const void *_rec1, const void *_rec2,
-    const void UNUSED *udata)
+H5HF_huge_btree2_indir_compare(const void *_rec1, const void *_rec2)
 {
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5HF_huge_btree2_indir_compare)
 
@@ -381,18 +288,16 @@ HDfprintf(stderr, "%s: rec2 = {%a, %Hu, %Hu}\n", "H5HF_huge_btree2_indir_compare
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5HF_huge_btree2_indir_encode(uint8_t *raw, const void *_nrecord,
-    const void *_udata)
+H5HF_huge_btree2_indir_encode(const H5F_t *f, uint8_t *raw, const void *_nrecord)
 {
-    const H5HF_huge_btree2_udata_t *udata = (const H5HF_huge_btree2_udata_t *)_udata;
     const H5HF_huge_bt2_indir_rec_t *nrecord = (const H5HF_huge_bt2_indir_rec_t *)_nrecord;
 
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5HF_huge_btree2_indir_encode)
 
     /* Encode the record's fields */
-    H5F_addr_encode_len(udata->sizeof_addr, &raw, nrecord->addr);
-    H5F_ENCODE_LENGTH_LEN(raw, nrecord->len, udata->sizeof_size);
-    H5F_ENCODE_LENGTH_LEN(raw, nrecord->id, udata->sizeof_size);
+    H5F_addr_encode(f, &raw, nrecord->addr);
+    H5F_ENCODE_LENGTH(f, raw, nrecord->len);
+    H5F_ENCODE_LENGTH(f, raw, nrecord->id);
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* H5HF_huge_btree2_indir_encode() */
@@ -412,18 +317,16 @@ H5HF_huge_btree2_indir_encode(uint8_t *raw, const void *_nrecord,
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5HF_huge_btree2_indir_decode(const uint8_t *raw, void *_nrecord,
-    const void *_udata)
+H5HF_huge_btree2_indir_decode(const H5F_t *f, const uint8_t *raw, void *_nrecord)
 {
-    const H5HF_huge_btree2_udata_t *udata = (const H5HF_huge_btree2_udata_t *)_udata;
     H5HF_huge_bt2_indir_rec_t *nrecord = (H5HF_huge_bt2_indir_rec_t *)_nrecord;
 
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5HF_huge_btree2_indir_decode)
 
     /* Decode the record's fields */
-    H5F_addr_decode_len(udata->sizeof_addr, &raw, &nrecord->addr);
-    H5F_DECODE_LENGTH_LEN(raw, nrecord->len, udata->sizeof_size);
-    H5F_DECODE_LENGTH_LEN(raw, nrecord->id, udata->sizeof_size);
+    H5F_addr_decode(f, &raw, &nrecord->addr);
+    H5F_DECODE_LENGTH(f, raw, nrecord->len);
+    H5F_DECODE_LENGTH(f, raw, nrecord->id);
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* H5HF_huge_btree2_indir_decode() */
@@ -443,9 +346,9 @@ H5HF_huge_btree2_indir_decode(const uint8_t *raw, void *_nrecord,
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5HF_huge_btree2_indir_debug(FILE *stream, hid_t UNUSED dxpl_id, int indent,
-    int fwidth, const void *_nrecord, const void UNUSED *_udata,
-    const void UNUSED *_debug_udata)
+H5HF_huge_btree2_indir_debug(FILE *stream, const H5F_t UNUSED *f, hid_t UNUSED dxpl_id,
+    int indent, int fwidth, const void *_nrecord,
+    const void UNUSED *_udata)
 {
     const H5HF_huge_bt2_indir_rec_t *nrecord = (const H5HF_huge_bt2_indir_rec_t *)_nrecord;
 
@@ -539,12 +442,11 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5HF_huge_btree2_filt_indir_store(void *nrecord, const void UNUSED *udata,
-    const void *store_udata)
+H5HF_huge_btree2_filt_indir_store(void *nrecord, const void *udata)
 {
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5HF_huge_btree2_filt_indir_store)
 
-    *(H5HF_huge_bt2_filt_indir_rec_t *)nrecord = *(const H5HF_huge_bt2_filt_indir_rec_t *)store_udata;
+    *(H5HF_huge_bt2_filt_indir_rec_t *)nrecord = *(const H5HF_huge_bt2_filt_indir_rec_t *)udata;
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* H5HF_huge_btree2_filt_indir_store() */
@@ -565,8 +467,7 @@ H5HF_huge_btree2_filt_indir_store(void *nrecord, const void UNUSED *udata,
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5HF_huge_btree2_filt_indir_compare(const void *_rec1, const void *_rec2,
-    const void UNUSED *udata)
+H5HF_huge_btree2_filt_indir_compare(const void *_rec1, const void *_rec2)
 {
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5HF_huge_btree2_filt_indir_compare)
 
@@ -597,20 +498,18 @@ HDfprintf(stderr, "%s: rec2 = {%a, %Hu, %x, %Hu, %Hu}\n", "H5HF_huge_btree2_filt
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5HF_huge_btree2_filt_indir_encode(uint8_t *raw, const void *_nrecord,
-    const void *_udata)
+H5HF_huge_btree2_filt_indir_encode(const H5F_t *f, uint8_t *raw, const void *_nrecord)
 {
-    const H5HF_huge_btree2_udata_t *udata = (const H5HF_huge_btree2_udata_t *)_udata;
     const H5HF_huge_bt2_filt_indir_rec_t *nrecord = (const H5HF_huge_bt2_filt_indir_rec_t *)_nrecord;
 
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5HF_huge_btree2_filt_indir_encode)
 
     /* Encode the record's fields */
-    H5F_addr_encode_len(udata->sizeof_addr, &raw, nrecord->addr);
-    H5F_ENCODE_LENGTH_LEN(raw, nrecord->len, udata->sizeof_size);
+    H5F_addr_encode(f, &raw, nrecord->addr);
+    H5F_ENCODE_LENGTH(f, raw, nrecord->len);
     UINT32ENCODE(raw, nrecord->filter_mask);
-    H5F_ENCODE_LENGTH_LEN(raw, nrecord->obj_size, udata->sizeof_size);
-    H5F_ENCODE_LENGTH_LEN(raw, nrecord->id, udata->sizeof_size);
+    H5F_ENCODE_LENGTH(f, raw, nrecord->obj_size);
+    H5F_ENCODE_LENGTH(f, raw, nrecord->id);
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* H5HF_huge_btree2_filt_indir_encode() */
@@ -630,20 +529,18 @@ H5HF_huge_btree2_filt_indir_encode(uint8_t *raw, const void *_nrecord,
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5HF_huge_btree2_filt_indir_decode(const uint8_t *raw, void *_nrecord,
-    const void *_udata)
+H5HF_huge_btree2_filt_indir_decode(const H5F_t *f, const uint8_t *raw, void *_nrecord)
 {
-    const H5HF_huge_btree2_udata_t *udata = (const H5HF_huge_btree2_udata_t *)_udata;
     H5HF_huge_bt2_filt_indir_rec_t *nrecord = (H5HF_huge_bt2_filt_indir_rec_t *)_nrecord;
 
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5HF_huge_btree2_filt_indir_decode)
 
     /* Decode the record's fields */
-    H5F_addr_decode_len(udata->sizeof_addr, &raw, &nrecord->addr);
-    H5F_DECODE_LENGTH_LEN(raw, nrecord->len, udata->sizeof_size);
+    H5F_addr_decode(f, &raw, &nrecord->addr);
+    H5F_DECODE_LENGTH(f, raw, nrecord->len);
     UINT32DECODE(raw, nrecord->filter_mask);
-    H5F_DECODE_LENGTH_LEN(raw, nrecord->obj_size, udata->sizeof_size);
-    H5F_DECODE_LENGTH_LEN(raw, nrecord->id, udata->sizeof_size);
+    H5F_DECODE_LENGTH(f, raw, nrecord->obj_size);
+    H5F_DECODE_LENGTH(f, raw, nrecord->id);
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* H5HF_huge_btree2_filt_indir_decode() */
@@ -663,9 +560,9 @@ H5HF_huge_btree2_filt_indir_decode(const uint8_t *raw, void *_nrecord,
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5HF_huge_btree2_filt_indir_debug(FILE *stream, hid_t UNUSED dxpl_id,
-    int indent, int fwidth, const void *_nrecord, const void UNUSED *_udata,
-    const void UNUSED *_debug_udata)
+H5HF_huge_btree2_filt_indir_debug(FILE *stream, const H5F_t UNUSED *f, hid_t UNUSED dxpl_id,
+    int indent, int fwidth, const void *_nrecord,
+    const void UNUSED *_udata)
 {
     const H5HF_huge_bt2_filt_indir_rec_t *nrecord = (const H5HF_huge_bt2_filt_indir_rec_t *)_nrecord;
 
@@ -726,12 +623,11 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5HF_huge_btree2_dir_store(void *nrecord, const void UNUSED *udata,
-    const void *store_udata)
+H5HF_huge_btree2_dir_store(void *nrecord, const void *udata)
 {
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5HF_huge_btree2_dir_store)
 
-    *(H5HF_huge_bt2_dir_rec_t *)nrecord = *(const H5HF_huge_bt2_dir_rec_t *)store_udata;
+    *(H5HF_huge_bt2_dir_rec_t *)nrecord = *(const H5HF_huge_bt2_dir_rec_t *)udata;
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* H5HF_huge_btree2_dir_store() */
@@ -752,8 +648,7 @@ H5HF_huge_btree2_dir_store(void *nrecord, const void UNUSED *udata,
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5HF_huge_btree2_dir_compare(const void *_rec1, const void *_rec2,
-    const void UNUSED *udata)
+H5HF_huge_btree2_dir_compare(const void *_rec1, const void *_rec2)
 {
     const H5HF_huge_bt2_dir_rec_t *rec1 = (const H5HF_huge_bt2_dir_rec_t *)_rec1;
     const H5HF_huge_bt2_dir_rec_t *rec2 = (const H5HF_huge_bt2_dir_rec_t *)_rec2;
@@ -794,17 +689,15 @@ HDfprintf(stderr, "%s: rec2 = {%a, %Hu}\n", "H5HF_huge_btree2_dir_compare", rec2
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5HF_huge_btree2_dir_encode(uint8_t *raw, const void *_nrecord,
-    const void *_udata)
+H5HF_huge_btree2_dir_encode(const H5F_t *f, uint8_t *raw, const void *_nrecord)
 {
-    const H5HF_huge_btree2_udata_t *udata = (const H5HF_huge_btree2_udata_t *)_udata;
     const H5HF_huge_bt2_dir_rec_t *nrecord = (const H5HF_huge_bt2_dir_rec_t *)_nrecord;
 
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5HF_huge_btree2_dir_encode)
 
     /* Encode the record's fields */
-    H5F_addr_encode_len(udata->sizeof_addr, &raw, nrecord->addr);
-    H5F_ENCODE_LENGTH_LEN(raw, nrecord->len, udata->sizeof_size);
+    H5F_addr_encode(f, &raw, nrecord->addr);
+    H5F_ENCODE_LENGTH(f, raw, nrecord->len);
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* H5HF_huge_btree2_dir_encode() */
@@ -824,17 +717,15 @@ H5HF_huge_btree2_dir_encode(uint8_t *raw, const void *_nrecord,
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5HF_huge_btree2_dir_decode(const uint8_t *raw, void *_nrecord,
-    const void *_udata)
+H5HF_huge_btree2_dir_decode(const H5F_t *f, const uint8_t *raw, void *_nrecord)
 {
-    const H5HF_huge_btree2_udata_t *udata = (const H5HF_huge_btree2_udata_t *)_udata;
     H5HF_huge_bt2_dir_rec_t *nrecord = (H5HF_huge_bt2_dir_rec_t *)_nrecord;
 
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5HF_huge_btree2_dir_decode)
 
     /* Decode the record's fields */
-    H5F_addr_decode_len(udata->sizeof_addr, &raw, &nrecord->addr);
-    H5F_DECODE_LENGTH_LEN(raw, nrecord->len, udata->sizeof_size);
+    H5F_addr_decode(f, &raw, &nrecord->addr);
+    H5F_DECODE_LENGTH(f, raw, nrecord->len);
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* H5HF_huge_btree2_dir_decode() */
@@ -854,9 +745,9 @@ H5HF_huge_btree2_dir_decode(const uint8_t *raw, void *_nrecord,
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5HF_huge_btree2_dir_debug(FILE *stream, hid_t UNUSED dxpl_id, int indent,
-    int fwidth, const void *_nrecord, const void UNUSED *_udata,
-    const void UNUSED *_debug_udata)
+H5HF_huge_btree2_dir_debug(FILE *stream, const H5F_t UNUSED *f, hid_t UNUSED dxpl_id,
+    int indent, int fwidth, const void *_nrecord,
+    const void UNUSED *_udata)
 {
     const H5HF_huge_bt2_dir_rec_t *nrecord = (const H5HF_huge_bt2_dir_rec_t *)_nrecord;
 
@@ -949,12 +840,11 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5HF_huge_btree2_filt_dir_store(void *nrecord, const void UNUSED *udata,
-    const void *store_udata)
+H5HF_huge_btree2_filt_dir_store(void *nrecord, const void *udata)
 {
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5HF_huge_btree2_filt_dir_store)
 
-    *(H5HF_huge_bt2_filt_dir_rec_t *)nrecord = *(const H5HF_huge_bt2_filt_dir_rec_t *)store_udata;
+    *(H5HF_huge_bt2_filt_dir_rec_t *)nrecord = *(const H5HF_huge_bt2_filt_dir_rec_t *)udata;
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* H5HF_huge_btree2_filt_dir_store() */
@@ -975,8 +865,7 @@ H5HF_huge_btree2_filt_dir_store(void *nrecord, const void UNUSED *udata,
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5HF_huge_btree2_filt_dir_compare(const void *_rec1, const void *_rec2,
-    const void UNUSED *udata)
+H5HF_huge_btree2_filt_dir_compare(const void *_rec1, const void *_rec2)
 {
     const H5HF_huge_bt2_filt_dir_rec_t *rec1 = (const H5HF_huge_bt2_filt_dir_rec_t *)_rec1;
     const H5HF_huge_bt2_filt_dir_rec_t *rec2 = (const H5HF_huge_bt2_filt_dir_rec_t *)_rec2;
@@ -1017,19 +906,17 @@ HDfprintf(stderr, "%s: rec2 = {%a, %Hu, %x, %Hu}\n", "H5HF_huge_btree2_filt_dir_
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5HF_huge_btree2_filt_dir_encode(uint8_t *raw, const void *_nrecord,
-    const void *_udata)
+H5HF_huge_btree2_filt_dir_encode(const H5F_t *f, uint8_t *raw, const void *_nrecord)
 {
-    const H5HF_huge_btree2_udata_t *udata = (const H5HF_huge_btree2_udata_t *)_udata;
     const H5HF_huge_bt2_filt_dir_rec_t *nrecord = (const H5HF_huge_bt2_filt_dir_rec_t *)_nrecord;
 
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5HF_huge_btree2_filt_dir_encode)
 
     /* Encode the record's fields */
-    H5F_addr_encode_len(udata->sizeof_addr, &raw, nrecord->addr);
-    H5F_ENCODE_LENGTH_LEN(raw, nrecord->len, udata->sizeof_size);
+    H5F_addr_encode(f, &raw, nrecord->addr);
+    H5F_ENCODE_LENGTH(f, raw, nrecord->len);
     UINT32ENCODE(raw, nrecord->filter_mask);
-    H5F_ENCODE_LENGTH_LEN(raw, nrecord->obj_size, udata->sizeof_size);
+    H5F_ENCODE_LENGTH(f, raw, nrecord->obj_size);
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* H5HF_huge_btree2_filt_dir_encode() */
@@ -1049,19 +936,17 @@ H5HF_huge_btree2_filt_dir_encode(uint8_t *raw, const void *_nrecord,
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5HF_huge_btree2_filt_dir_decode(const uint8_t *raw, void *_nrecord,
-    const void *_udata)
+H5HF_huge_btree2_filt_dir_decode(const H5F_t *f, const uint8_t *raw, void *_nrecord)
 {
-    const H5HF_huge_btree2_udata_t *udata = (const H5HF_huge_btree2_udata_t *)_udata;
     H5HF_huge_bt2_filt_dir_rec_t *nrecord = (H5HF_huge_bt2_filt_dir_rec_t *)_nrecord;
 
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5HF_huge_btree2_filt_dir_decode)
 
     /* Decode the record's fields */
-    H5F_addr_decode_len(udata->sizeof_addr, &raw, &nrecord->addr);
-    H5F_DECODE_LENGTH_LEN(raw, nrecord->len, udata->sizeof_size);
+    H5F_addr_decode(f, &raw, &nrecord->addr);
+    H5F_DECODE_LENGTH(f, raw, nrecord->len);
     UINT32DECODE(raw, nrecord->filter_mask);
-    H5F_DECODE_LENGTH_LEN(raw, nrecord->obj_size, udata->sizeof_size);
+    H5F_DECODE_LENGTH(f, raw, nrecord->obj_size);
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* H5HF_huge_btree2_filt_dir_decode() */
@@ -1081,9 +966,8 @@ H5HF_huge_btree2_filt_dir_decode(const uint8_t *raw, void *_nrecord,
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5HF_huge_btree2_filt_dir_debug(FILE *stream, hid_t UNUSED dxpl_id, int indent,
-    int fwidth, const void *_nrecord, const void UNUSED *_udata,
-    const void UNUSED *_debug_udata)
+H5HF_huge_btree2_filt_dir_debug(FILE *stream, const H5F_t UNUSED *f, hid_t UNUSED dxpl_id,
+    int indent, int fwidth, const void *_nrecord, const void UNUSED *_udata)
 {
     const H5HF_huge_bt2_filt_dir_rec_t *nrecord = (const H5HF_huge_bt2_filt_dir_rec_t *)_nrecord;
 

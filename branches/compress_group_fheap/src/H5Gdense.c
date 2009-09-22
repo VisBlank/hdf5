@@ -45,6 +45,15 @@
 /* Local Macros */
 /****************/
 
+/* Fractal heap creation parameters for "dense" link storage */
+#define H5G_FHEAP_MAN_WIDTH                     4
+#define H5G_FHEAP_MAN_START_BLOCK_SIZE          512
+#define H5G_FHEAP_MAN_MAX_DIRECT_SIZE           (64 * 1024)
+#define H5G_FHEAP_MAN_MAX_INDEX                 32
+#define H5G_FHEAP_MAN_START_ROOT_ROWS           1
+#define H5G_FHEAP_CHECKSUM_DBLOCKS              TRUE
+#define H5G_FHEAP_MAX_MAN_SIZE                  (4 * 1024)
+
 /* v2 B-tree creation macros for 'name' field index */
 #define H5G_NAME_BT2_NODE_SIZE          512
 #define H5G_NAME_BT2_MERGE_PERC         40
@@ -79,7 +88,6 @@ typedef struct {
     hid_t       dxpl_id;                /* DXPL for operation                */
     H5HF_t      *fheap;                 /* Fractal heap handle               */
     hsize_t     count;                  /* # of links examined               */
-    H5_index_t  idx_type;               /* Primary index for removing link   */
 
     /* downward (from application) */
     hsize_t     skip;                   /* Number of links to skip           */
@@ -165,7 +173,6 @@ typedef struct {
     H5F_t       *f;                     /* Pointer to file that fractal heap is in */
     hid_t       dxpl_id;                /* DXPL for operation                */
     H5HF_t      *fheap;                 /* Fractal heap handle               */
-    H5_index_t  idx_type;               /* Primary index for removing link   */
 
     /* downward (from application) */
     char        *name;                  /* Name buffer to fill               */
@@ -201,7 +208,6 @@ typedef struct {
     H5F_t       *f;                     /* Pointer to file that fractal heap is in */
     hid_t       dxpl_id;                /* DXPL for operation                */
     H5HF_t      *fheap;                 /* Fractal heap handle               */
-    H5_index_t  idx_type;               /* Primary index for link            */
 
     /* upward */
     H5O_link_t  *lnk;                   /* Pointer to link                   */
@@ -262,10 +268,10 @@ typedef struct {
  */
 herr_t
 H5G_dense_create(H5F_t *f, hid_t dxpl_id, H5O_linfo_t *linfo,
-    H5O_ginfo_t *ginfo)
+    const H5O_pline_t *pline)
 {
+    H5HF_create_t fheap_cparam;         /* Fractal heap creation parameters */
     H5HF_t *fheap;                      /* Fractal heap handle */
-    H5HF_create_t fheap_create;         /* Fractal heap creation parameters */
     size_t fheap_id_len;                /* Fractal heap ID length */
     size_t bt2_rrec_size;               /* v2 B-tree raw record size */
     herr_t ret_value = SUCCEED;         /* Return value */
@@ -278,21 +284,21 @@ H5G_dense_create(H5F_t *f, hid_t dxpl_id, H5O_linfo_t *linfo,
     HDassert(f);
     HDassert(linfo);
 
-    /* Build internal fheap creation struct */
-    fheap_create.managed.width = ginfo->fheap_cparam.width;
-    fheap_create.managed.start_block_size = ginfo->fheap_cparam.start_block_size;
-    fheap_create.managed.max_direct_size = ginfo->fheap_cparam.max_direct_size;
-    fheap_create.managed.max_index = ginfo->fheap_cparam.max_index;
-    fheap_create.managed.start_root_rows = ginfo->fheap_cparam.start_root_rows;
-    fheap_create.checksum_dblocks = ginfo->fheap_cparam.checksum_dblocks;
-    fheap_create.max_man_size = ginfo->fheap_cparam.max_man_size;
-    fheap_create.id_len = ginfo->fheap_cparam.id_len;
-
-    /* Shallow copy of pipeline message - H5HF_create will make its own copy. */
-    fheap_create.pline = ginfo->pline;
+    /* Set fractal heap creation parameters */
+/* XXX: Give some control of these to applications? */
+    HDmemset(&fheap_cparam, 0, sizeof(fheap_cparam));
+    fheap_cparam.managed.width = H5G_FHEAP_MAN_WIDTH;
+    fheap_cparam.managed.start_block_size = H5G_FHEAP_MAN_START_BLOCK_SIZE;
+    fheap_cparam.managed.max_direct_size = H5G_FHEAP_MAN_MAX_DIRECT_SIZE;
+    fheap_cparam.managed.max_index = H5G_FHEAP_MAN_MAX_INDEX;
+    fheap_cparam.managed.start_root_rows = H5G_FHEAP_MAN_START_ROOT_ROWS;
+    fheap_cparam.checksum_dblocks = H5G_FHEAP_CHECKSUM_DBLOCKS;
+    fheap_cparam.max_man_size = H5G_FHEAP_MAX_MAN_SIZE;
+    if(pline)
+        fheap_cparam.pline = *pline;
 
     /* Create fractal heap for storing links */
-    if(NULL == (fheap = H5HF_create(f, dxpl_id, &fheap_create)))
+    if(NULL == (fheap = H5HF_create(f, dxpl_id, &fheap_cparam)))
         HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, FAIL, "unable to create fractal heap")
 
     /* Retrieve the heap's address in the file */
@@ -305,6 +311,7 @@ HDfprintf(stderr, "%s: linfo->fheap_addr = %a\n", FUNC, linfo->fheap_addr);
     /* Retrieve the heap's ID length in the file */
     if(H5HF_get_id_len(fheap, &fheap_id_len) < 0)
         HGOTO_ERROR(H5E_SYM, H5E_CANTGETSIZE, FAIL, "can't get fractal heap ID length")
+    HDassert(fheap_id_len == H5G_DENSE_FHEAP_ID_LEN);
 #ifdef QAK
 HDfprintf(stderr, "%s: fheap_id_len = %Zu\n", FUNC, fheap_id_len);
 #endif /* QAK */
@@ -362,10 +369,9 @@ herr_t
 H5G_dense_insert(H5F_t *f, hid_t dxpl_id, const H5O_linfo_t *linfo,
     const H5O_link_t *lnk)
 {
-    H5G_bt2_ud_ins_t *udata;            /* User data for v2 B-tree insertion */
+    H5G_bt2_ud_ins_t udata;             /* User data for v2 B-tree insertion */
     H5HF_t *fheap = NULL;               /* Fractal heap handle */
     size_t link_size;                   /* Size of serialized link in the heap */
-    size_t fheap_id_len;                /* Fractal heap ID length */
     H5WB_t *wb = NULL;                  /* Wrapped buffer for link data */
     uint8_t link_buf[H5G_LINK_BUF_SIZE];        /* Buffer for serializing link */
     void *link_ptr = NULL;              /* Pointer to serialized link */
@@ -407,42 +413,32 @@ HDfprintf(stderr, "%s: HDstrlen(lnk->name) = %Zu, link_size = %Zu\n", FUNC, HDst
     if(NULL == (fheap = H5HF_open(f, dxpl_id, linfo->fheap_addr)))
         HGOTO_ERROR(H5E_SYM, H5E_CANTOPENOBJ, FAIL, "unable to open fractal heap")
 
-    /* Retrieve the heap's ID length in the file */
-    if(H5HF_get_id_len(fheap, &fheap_id_len) < 0)
-        HGOTO_ERROR(H5E_SYM, H5E_CANTGETSIZE, FAIL, "can't get fractal heap ID length")
+    /* Insert the serialized link into the fractal heap */
+    if(H5HF_insert(fheap, dxpl_id, link_size, link_ptr, udata.id) < 0)
+        HGOTO_ERROR(H5E_SYM, H5E_CANTINSERT, FAIL, "unable to insert link into fractal heap")
 
-    {
-        H5_VLA_ALLOC(uint8_t, udata_buf, sizeof(H5G_bt2_ud_ins_t) + fheap_id_len, FAIL)
+    /* Create the callback information for v2 B-tree record insertion */
+    udata.common.f = f;
+    udata.common.dxpl_id = dxpl_id;
+    udata.common.fheap = fheap;
+    udata.common.name = lnk->name;
+    udata.common.name_hash = H5_checksum_lookup3(lnk->name, HDstrlen(lnk->name), 0);
+    udata.common.corder = lnk->corder;
+    udata.common.found_op = NULL;
+    udata.common.found_op_data = NULL;
+    /* udata.id already set in H5HF_insert() call */
 
-        udata = (H5G_bt2_ud_ins_t *)udata_buf;
+    /* Insert link into 'name' tracking v2 B-tree */
+    if(H5B2_insert(f, dxpl_id, H5G_BT2_NAME, linfo->name_bt2_addr, &udata) < 0)
+        HGOTO_ERROR(H5E_SYM, H5E_CANTINSERT, FAIL, "unable to insert record into v2 B-tree")
 
-        /* Insert the serialized link into the fractal heap */
-        if(H5HF_insert(fheap, dxpl_id, link_size, link_ptr, udata->id) < 0)
-            HGOTO_ERROR(H5E_SYM, H5E_CANTINSERT, FAIL, "unable to insert link into fractal heap")
-
-        /* Create the callback information for v2 B-tree record insertion */
-        udata->common.f = f;
-        udata->common.dxpl_id = dxpl_id;
-        udata->common.fheap = fheap;
-        udata->common.name = lnk->name;
-        udata->common.name_hash = H5_checksum_lookup3(lnk->name, HDstrlen(lnk->name), 0);
-        udata->common.corder = lnk->corder;
-        udata->common.found_op = NULL;
-        udata->common.found_op_data = NULL;
-        /* udata->id already set in H5HF_insert() call */
-
-        /* Insert link into 'name' tracking v2 B-tree */
-        if(H5B2_insert(f, dxpl_id, H5G_BT2_NAME, linfo->name_bt2_addr, udata) < 0)
+    /* Check if we should create a creation order index v2 B-tree record */
+    if(linfo->index_corder) {
+        /* Insert the record into the creation order index v2 B-tree */
+        HDassert(H5F_addr_defined(linfo->corder_bt2_addr));
+        if(H5B2_insert(f, dxpl_id, H5G_BT2_CORDER, linfo->corder_bt2_addr, &udata) < 0)
             HGOTO_ERROR(H5E_SYM, H5E_CANTINSERT, FAIL, "unable to insert record into v2 B-tree")
-
-        /* Check if we should create a creation order index v2 B-tree record */
-        if(linfo->index_corder) {
-            /* Insert the record into the creation order index v2 B-tree */
-            HDassert(H5F_addr_defined(linfo->corder_bt2_addr));
-            if(H5B2_insert(f, dxpl_id, H5G_BT2_CORDER, linfo->corder_bt2_addr, udata) < 0)
-                HGOTO_ERROR(H5E_SYM, H5E_CANTINSERT, FAIL, "unable to insert record into v2 B-tree")
-        } /* end if */
-    }
+    } /* end if */
 
 done:
     /* Release resources */
@@ -605,28 +601,12 @@ done:
 static herr_t
 H5G_dense_lookup_by_idx_bt2_cb(const void *_record, void *_bt2_udata)
 {
+    const H5G_dense_bt2_name_rec_t *record = (const H5G_dense_bt2_name_rec_t *)_record;
     H5G_bt2_ud_lbi_t *bt2_udata = (H5G_bt2_ud_lbi_t *)_bt2_udata;         /* User data for callback */
-    H5G_fh_ud_lbi_t fh_udata;           /* User data for fractal heap 'op' callback */
-    const uint8_t *heap_id;             /* Heap ID for link */
-    int ret_value = H5_ITER_CONT;       /* Return value */
+    H5G_fh_ud_lbi_t fh_udata;          /* User data for fractal heap 'op' callback */
+    int ret_value = H5_ITER_CONT;     /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5G_dense_lookup_by_idx_bt2_cb)
-
-    /* Determine the index being used */
-    if(bt2_udata->idx_type == H5_INDEX_NAME) {
-        const H5G_dense_bt2_name_rec_t *record = (const H5G_dense_bt2_name_rec_t *)_record;
-
-        /* Set the heap ID to operate on */
-        heap_id = record->id;
-    } /* end if */
-    else {
-        const H5G_dense_bt2_corder_rec_t *record = (const H5G_dense_bt2_corder_rec_t *)_record;
-
-        HDassert(bt2_udata->idx_type == H5_INDEX_CRT_ORDER);
-
-        /* Set the heap ID to operate on */
-        heap_id = record->id;
-    } /* end else */
 
     /* Prepare user data for callback */
     /* down */
@@ -635,7 +615,7 @@ H5G_dense_lookup_by_idx_bt2_cb(const void *_record, void *_bt2_udata)
     fh_udata.lnk = bt2_udata->lnk;
 
     /* Call fractal heap 'op' routine, to copy the link information */
-    if(H5HF_op(bt2_udata->fheap, bt2_udata->dxpl_id, heap_id,
+    if(H5HF_op(bt2_udata->fheap, bt2_udata->dxpl_id, record->id,
             H5G_dense_lookup_by_idx_fh_cb, &fh_udata) < 0)
         HGOTO_ERROR(H5E_SYM, H5E_CANTOPERATE, H5_ITER_ERROR, "link found callback failed")
 
@@ -704,7 +684,6 @@ H5G_dense_lookup_by_idx(H5F_t *f, hid_t dxpl_id, const H5O_linfo_t *linfo,
     if(order == H5_ITER_NATIVE && !H5F_addr_defined(bt2_addr)) {
         bt2_addr = linfo->name_bt2_addr;
         bt2_class = H5G_BT2_NAME;
-        idx_type = H5_INDEX_NAME;
         HDassert(H5F_addr_defined(bt2_addr));
     } /* end if */
 
@@ -720,7 +699,6 @@ H5G_dense_lookup_by_idx(H5F_t *f, hid_t dxpl_id, const H5O_linfo_t *linfo,
         udata.f = f;
         udata.dxpl_id = dxpl_id;
         udata.fheap = fheap;
-        udata.idx_type = idx_type;
         udata.lnk = lnk;
 
         /* Find & copy the link in the appropriate index */
@@ -906,27 +884,11 @@ done:
 static herr_t
 H5G_dense_iterate_bt2_cb(const void *_record, void *_bt2_udata)
 {
+    const H5G_dense_bt2_name_rec_t *record = (const H5G_dense_bt2_name_rec_t *)_record;
     H5G_bt2_ud_it_t *bt2_udata = (H5G_bt2_ud_it_t *)_bt2_udata;         /* User data for callback */
-    const uint8_t *heap_id;             /* Heap ID for link */
     herr_t ret_value = H5_ITER_CONT;         /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5G_dense_iterate_bt2_cb)
-
-    /* Determine the index being used */
-    if(bt2_udata->idx_type == H5_INDEX_NAME) {
-        const H5G_dense_bt2_name_rec_t *record = (const H5G_dense_bt2_name_rec_t *)_record;
-
-        /* Set the heap ID to operate on */
-        heap_id = record->id;
-    } /* end if */
-    else {
-        const H5G_dense_bt2_corder_rec_t *record = (const H5G_dense_bt2_corder_rec_t *)_record;
-
-        HDassert(bt2_udata->idx_type == H5_INDEX_CRT_ORDER);
-
-        /* Set the heap ID to operate on */
-        heap_id = record->id;
-    } /* end else */
 
     /* Check for skipping links */
     if(bt2_udata->skip > 0)
@@ -940,7 +902,7 @@ H5G_dense_iterate_bt2_cb(const void *_record, void *_bt2_udata)
         fh_udata.dxpl_id = bt2_udata->dxpl_id;
 
         /* Call fractal heap 'op' routine, to copy the link information */
-        if(H5HF_op(bt2_udata->fheap, bt2_udata->dxpl_id, heap_id,
+        if(H5HF_op(bt2_udata->fheap, bt2_udata->dxpl_id, record->id,
                 H5G_dense_iterate_fh_cb, &fh_udata) < 0)
             HGOTO_ERROR(H5E_SYM, H5E_CANTOPERATE, H5_ITER_ERROR, "heap op callback failed")
 
@@ -1025,7 +987,6 @@ H5G_dense_iterate(H5F_t *f, hid_t dxpl_id, const H5O_linfo_t *linfo,
         HDassert(H5F_addr_defined(linfo->name_bt2_addr));
         bt2_addr = linfo->name_bt2_addr;
         bt2_class = H5G_BT2_NAME;
-        idx_type = H5_INDEX_NAME;
     } /* end if */
 
     /* Check on iteration order */
@@ -1044,7 +1005,6 @@ H5G_dense_iterate(H5F_t *f, hid_t dxpl_id, const H5O_linfo_t *linfo,
         udata.fheap = fheap;
         udata.skip = skip;
         udata.count = 0;
-        udata.idx_type = idx_type;
         udata.op = op;
         udata.op_data = op_data;
 
@@ -1139,28 +1099,12 @@ done:
 static herr_t
 H5G_dense_get_name_by_idx_bt2_cb(const void *_record, void *_bt2_udata)
 {
+    const H5G_dense_bt2_name_rec_t *record = (const H5G_dense_bt2_name_rec_t *)_record;
     H5G_bt2_ud_gnbi_t *bt2_udata = (H5G_bt2_ud_gnbi_t *)_bt2_udata;         /* User data for callback */
-    H5G_fh_ud_gnbi_t fh_udata;          /* User data for fractal heap 'op' callback */
-    const uint8_t *heap_id;             /* Heap ID for link */
+    H5G_fh_ud_gnbi_t fh_udata;         /* User data for fractal heap 'op' callback */
     herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5G_dense_get_name_by_idx_bt2_cb)
-
-    /* Determine the index being used */
-    if(bt2_udata->idx_type == H5_INDEX_NAME) {
-        const H5G_dense_bt2_name_rec_t *record = (const H5G_dense_bt2_name_rec_t *)_record;
-
-        /* Set the heap ID to operate on */
-        heap_id = record->id;
-    } /* end if */
-    else {
-        const H5G_dense_bt2_corder_rec_t *record = (const H5G_dense_bt2_corder_rec_t *)_record;
-
-        HDassert(bt2_udata->idx_type == H5_INDEX_CRT_ORDER);
-
-        /* Set the heap ID to operate on */
-        heap_id = record->id;
-    } /* end else */
 
     /* Prepare user data for callback */
     /* down */
@@ -1170,7 +1114,7 @@ H5G_dense_get_name_by_idx_bt2_cb(const void *_record, void *_bt2_udata)
     fh_udata.name_size = bt2_udata->name_size;
 
     /* Call fractal heap 'op' routine, to perform user callback */
-    if(H5HF_op(bt2_udata->fheap, bt2_udata->dxpl_id, heap_id,
+    if(H5HF_op(bt2_udata->fheap, bt2_udata->dxpl_id, record->id,
             H5G_dense_get_name_by_idx_fh_cb, &fh_udata) < 0)
         HGOTO_ERROR(H5E_SYM, H5E_CANTOPERATE, FAIL, "link found callback failed")
 
@@ -1242,7 +1186,6 @@ H5G_dense_get_name_by_idx(H5F_t *f, hid_t dxpl_id, H5O_linfo_t *linfo,
     if(order == H5_ITER_NATIVE && !H5F_addr_defined(bt2_addr)) {
         bt2_addr = linfo->name_bt2_addr;
         bt2_class = H5G_BT2_NAME;
-        idx_type = H5_INDEX_NAME;
         HDassert(H5F_addr_defined(bt2_addr));
     } /* end if */
 
@@ -1258,7 +1201,6 @@ H5G_dense_get_name_by_idx(H5F_t *f, hid_t dxpl_id, H5O_linfo_t *linfo,
         udata.f = f;
         udata.dxpl_id = dxpl_id;
         udata.fheap = fheap;
-        udata.idx_type = idx_type;
         udata.name = name;
         udata.name_size = size;
 
@@ -1664,7 +1606,6 @@ H5G_dense_remove_by_idx(H5F_t *f, hid_t dxpl_id, const H5O_linfo_t *linfo,
     if(order == H5_ITER_NATIVE && !H5F_addr_defined(bt2_addr)) {
         bt2_addr = linfo->name_bt2_addr;
         bt2_class = H5G_BT2_NAME;
-        idx_type = H5_INDEX_NAME;
         HDassert(H5F_addr_defined(bt2_addr));
     } /* end if */
  

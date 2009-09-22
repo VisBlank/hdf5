@@ -291,8 +291,8 @@ H5B2_int_debug(H5F_t *f, hid_t dxpl_id, haddr_t addr, FILE *stream, int indent, 
         HDfprintf(stream, "%*s%-*s\n", indent + 3, "", MAX(0, fwidth - 3),
                   temp_str);
         HDassert(H5B2_INT_NREC(internal, shared, u));
-        (void)(type->debug)(stream, dxpl_id, indent + 6, MAX (0, fwidth-6),
-            H5B2_INT_NREC(internal,shared,u), shared->udata, NULL);
+        (void)(type->debug)(stream, f, dxpl_id, indent + 6, MAX (0, fwidth-6),
+            H5B2_INT_NREC(internal,shared,u), NULL);
     } /* end for */
 
     /* Print final node pointer */
@@ -409,8 +409,8 @@ H5B2_leaf_debug(H5F_t *f, hid_t dxpl_id, haddr_t addr, FILE *stream, int indent,
         HDfprintf(stream, "%*s%-*s\n", indent + 3, "", MAX(0, fwidth - 3),
                   temp_str);
         HDassert(H5B2_LEAF_NREC(leaf, shared, u));
-        (void)(type->debug)(stream, dxpl_id, indent+6, MAX (0, fwidth-6),
-            H5B2_LEAF_NREC(leaf,shared,u), shared->udata, NULL);
+        (void)(type->debug)(stream, f, dxpl_id, indent+6, MAX (0, fwidth-6),
+            H5B2_LEAF_NREC(leaf,shared,u), NULL);
     } /* end for */
 
 done:

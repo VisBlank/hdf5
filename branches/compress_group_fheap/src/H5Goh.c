@@ -82,7 +82,7 @@ const H5O_obj_class_t H5O_OBJ_GROUP[1] = {{
 }};
 
 /* Declare the external free list to manage the H5O_ginfo_t struct */
-H5FL_EXTERN(H5O_ginfo_t);
+H5FL_DEFINE(H5G_copy_file_ud_t);
 
 
 /*-------------------------------------------------------------------------
@@ -110,7 +110,7 @@ H5O_group_get_copy_file_udata(void)
     /* Allocate space for the 'copy file' user data for copying groups.
      * Currently this is only a ginfo, so there is no specific struct type for
      * this operation. */
-    if(NULL == (ret_value = H5FL_CALLOC(H5O_ginfo_t)))
+    if(NULL == (ret_value = H5FL_CALLOC(H5G_copy_file_ud_t)))
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
 
 done:
@@ -132,20 +132,20 @@ done:
  *-------------------------------------------------------------------------
  */
 static void
-H5O_group_free_copy_file_udata(void *udata)
+H5O_group_free_copy_file_udata(void *_udata)
 {
-    H5O_ginfo_t *ginfo = (H5O_ginfo_t *)udata;
+    H5G_copy_file_ud_t *udata = (H5G_copy_file_ud_t *)_udata;
 
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5O_group_free_copy_file_udata)
 
     /* Sanity check */
-    HDassert(ginfo);
+    HDassert(udata);
 
-    /* Reset the ginfo struct (free nested data structs) */
-    H5O_msg_reset(H5O_GINFO_ID, ginfo);
+    /* Free the ginfo struct (including nested data structs) */
+    H5O_msg_free(H5O_PLINE_ID, udata->common.src_pline);
 
     /* Release space for 'copy file' user data (ginfo struct) */
-    (void)H5FL_FREE(H5O_ginfo_t, ginfo);
+    (void)H5FL_FREE(H5G_copy_file_ud_t, udata);
 
     FUNC_LEAVE_NOAPI_VOID
 } /* end H5O_group_free_copy_file_udata() */

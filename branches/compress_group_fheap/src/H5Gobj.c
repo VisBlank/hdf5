@@ -125,8 +125,9 @@ static herr_t H5G_obj_remove_update_linfo(H5O_loc_t *oloc, H5O_linfo_t *linfo,
  *-------------------------------------------------------------------------
  */
 herr_t
-H5G_obj_create(H5F_t *f, hid_t dxpl_id, H5O_ginfo_t *ginfo,
-    const H5O_linfo_t *linfo, hid_t gcpl_id, H5O_loc_t *oloc/*out*/)
+H5G_obj_create(H5F_t *f, hid_t dxpl_id, const H5O_ginfo_t *ginfo,
+    const H5O_linfo_t *linfo, const H5O_pline_t *pline, hid_t gcpl_id,
+    H5O_loc_t *oloc/*out*/)
 {
     size_t hdr_size;                    /* Size of object header to request */
     hbool_t use_latest_format;          /* Flag indicating the new group format should be used */
@@ -147,13 +148,8 @@ H5G_obj_create(H5F_t *f, hid_t dxpl_id, H5O_ginfo_t *ginfo,
 
     /* Check for using the latest version of the group format */
     /* (add more checks for creating "new format" groups when needed) */
-    if(H5F_USE_LATEST_FORMAT(f) || ginfo->pline.nused || ginfo->store_fheap_cparam) {
-        use_latest_format = TRUE;
-
-        /* Upgrade ginfo message to latest to allow encoding of pipeline */
-        if(H5O_ginfo_set_latest_version(ginfo) < 0)
-            HGOTO_ERROR(H5E_LINK, H5E_CANTSET, FAIL, "can't upgrade group info encoding")
-    } else if(linfo->track_corder)
+    if(H5F_USE_LATEST_FORMAT(f) || linfo->track_corder
+            || (pline && pline->nused))
         use_latest_format = TRUE;
     else
         use_latest_format = FALSE;
@@ -170,6 +166,7 @@ H5G_obj_create(H5F_t *f, hid_t dxpl_id, H5O_ginfo_t *ginfo,
         char null_char = '\0';              /* Character for creating null string */
         size_t ginfo_size;                  /* Size of the group info message */
         size_t linfo_size;                  /* Size of the link info message */
+        size_t pline_size = 0;              /* Size of the pipeline message */
         size_t link_size;                   /* Size of a link message */
 
         /* Calculate message size infomation, for creating group's object header */
@@ -178,6 +175,11 @@ H5G_obj_create(H5F_t *f, hid_t dxpl_id, H5O_ginfo_t *ginfo,
 
         ginfo_size = H5O_msg_size_f(f, gcpl_id, H5O_GINFO_ID, ginfo, (size_t)0);
         HDassert(ginfo_size);
+
+        if(pline && pline->nused) {
+            pline_size = H5O_msg_size_f(f, gcpl_id, H5O_PLINE_ID, pline, (size_t)0);
+            HDassert(pline_size);
+        } /* end if */
 
         lnk.type = H5L_TYPE_HARD;
         lnk.corder = 0;
@@ -190,6 +192,7 @@ H5G_obj_create(H5F_t *f, hid_t dxpl_id, H5O_ginfo_t *ginfo,
         /* Compute size of header to use for creation */
         hdr_size = linfo_size +
                     ginfo_size +
+                    pline_size +
                     (ginfo->est_num_entries * link_size);
     } /* end if */
     else
@@ -210,8 +213,13 @@ H5G_obj_create(H5F_t *f, hid_t dxpl_id, H5O_ginfo_t *ginfo,
             HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, FAIL, "can't create message")
 
         /* Insert group info message */
-        if(H5O_msg_create(oloc, H5O_GINFO_ID, H5O_MSG_FLAG_CONSTANT, H5O_UPDATE_TIME, ginfo, dxpl_id) < 0)
+        if(H5O_msg_create(oloc, H5O_GINFO_ID, H5O_MSG_FLAG_CONSTANT, 0, ginfo, dxpl_id) < 0)
             HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, FAIL, "can't create message")
+
+        /* Insert pipeline message */
+        if(pline && pline->nused)
+            if(H5O_msg_create(oloc, H5O_PLINE_ID, H5O_MSG_FLAG_CONSTANT, H5O_UPDATE_TIME, pline, dxpl_id) < 0)
+                HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, FAIL, "can't create message")
     } /* end if */
     else {
         H5O_stab_t	stab;		/* Symbol table message	*/
@@ -426,14 +434,30 @@ H5G_obj_insert(const H5O_loc_t *grp_oloc, const char *name, H5O_link_t *obj_lnk,
         else if(linfo.nlinks < ginfo.max_compact && link_msg_size < H5O_MESG_MAX_SIZE)
             use_new_dense = FALSE;
         else {
+            H5O_pline_t         pline;          /* Pipeline message */
+            htri_t              pline_exists;   /* Whether the pipeline message exists */
             H5G_obj_oh_it_ud1_t	udata;          /* User data for iteration */
             H5O_mesg_operator_t op;             /* Message operator */
 
+            /* Get the pipeline message, if it exists */
+            if((pline_exists = H5O_msg_exists(grp_oloc, H5O_PLINE_ID, dxpl_id)) < 0)
+                HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "unable to read object header")
+            if(pline_exists)
+                if(NULL == H5O_msg_read(grp_oloc, H5O_PLINE_ID, &pline, dxpl_id))
+                    HGOTO_ERROR(H5E_SYM, H5E_BADMESG, FAIL, "can't get link pipeline")
+
             /* The group doesn't currently have "dense" storage for links */
-            if(H5G_dense_create(grp_oloc->file, dxpl_id, &linfo, &ginfo) < 0) {
-                H5O_msg_reset(H5O_GINFO_ID, &ginfo);
+            if(H5G_dense_create(grp_oloc->file, dxpl_id, &linfo,
+                    pline_exists ? &pline : NULL) < 0) {
+                if(pline_exists)
+                    H5O_msg_reset(H5O_PLINE_ID, &pline);
                 HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, FAIL, "unable to create 'dense' form of new format group")
             } /* end if */
+
+            /* Free any space used by the pipeline message */
+            if(pline_exists)
+                if(H5O_msg_reset(H5O_PLINE_ID, &pline) < 0)
+                    HGOTO_ERROR(H5E_SYM, H5E_CANTFREE, FAIL, "can't release pipeline")
 
             /* Set up user data for object header message iteration */
             udata.f = grp_oloc->file;
@@ -443,23 +467,15 @@ H5G_obj_insert(const H5O_loc_t *grp_oloc, const char *name, H5O_link_t *obj_lnk,
             /* Iterate over the 'link' messages, inserting them into the dense link storage  */
             op.op_type = H5O_MESG_OP_APP;
             op.u.app_op = H5G_obj_compact_to_dense_cb;
-            if(H5O_msg_iterate(grp_oloc, H5O_LINK_ID, &op, &udata, dxpl_id) < 0) {
-                H5O_msg_reset(H5O_GINFO_ID, &ginfo);
+            if(H5O_msg_iterate(grp_oloc, H5O_LINK_ID, &op, &udata, dxpl_id) < 0)
                 HGOTO_ERROR(H5E_SYM, H5E_NOTFOUND, FAIL, "error iterating over links")
-            } /* end if */
 
             /* Remove all the 'link' messages */
-            if(H5O_msg_remove(grp_oloc, H5O_LINK_ID, H5O_ALL, FALSE, dxpl_id) < 0) {
-                H5O_msg_reset(H5O_GINFO_ID, &ginfo);
+            if(H5O_msg_remove(grp_oloc, H5O_LINK_ID, H5O_ALL, FALSE, dxpl_id) < 0)
                 HGOTO_ERROR(H5E_SYM, H5E_CANTDELETE, FAIL, "unable to delete link messages")
-            } /* end if */
 
             use_new_dense = TRUE;
         } /* end else */
-
-        /* Free any space used by the ginfo message */
-        if(H5O_msg_reset(H5O_GINFO_ID, &ginfo) < 0)
-            HGOTO_ERROR(H5E_SYM, H5E_CANTFREE, FAIL, "can't release group info")
     } /* end if */
     else {
         /* Check for new-style link information */

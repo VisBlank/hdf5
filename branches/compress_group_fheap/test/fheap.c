@@ -1866,7 +1866,7 @@ test_create(hid_t fapl, H5HF_create_t *cparam, fheap_test_param_t UNUSED *tparam
     /* Query the type of address mapping */
     TESTING("query heap creation parameters");
     HDmemset(&test_cparam, 0, sizeof(H5HF_create_t));
-    if(H5HF_get_cparam(fh, &test_cparam) < 0)
+    if(H5HF_get_cparam_test(fh, &test_cparam) < 0)
         FAIL_STACK_ERROR
     if(H5HF_cmp_cparam_test(cparam, &test_cparam))
         TEST_ERROR
@@ -2002,7 +2002,7 @@ test_reopen(hid_t fapl, H5HF_create_t *cparam, fheap_test_param_t UNUSED *tparam
 
     /* Query the creation parameters */
     HDmemset(&test_cparam, 0, sizeof(H5HF_create_t));
-    if(H5HF_get_cparam(fh, &test_cparam) < 0)
+    if(H5HF_get_cparam_test(fh, &test_cparam) < 0)
         FAIL_STACK_ERROR
     if(H5HF_cmp_cparam_test(cparam, &test_cparam))
         TEST_ERROR
@@ -2122,7 +2122,7 @@ test_open_twice(hid_t fapl, H5HF_create_t *cparam, fheap_test_param_t UNUSED *tp
 
     /* Verify the creation parameters */
     HDmemset(&test_cparam, 0, sizeof(H5HF_create_t));
-    if(H5HF_get_cparam(fh2, &test_cparam) < 0)
+    if(H5HF_get_cparam_test(fh2, &test_cparam) < 0)
         FAIL_STACK_ERROR
     if(H5HF_cmp_cparam_test(cparam, &test_cparam))
         TEST_ERROR
@@ -2150,7 +2150,7 @@ test_open_twice(hid_t fapl, H5HF_create_t *cparam, fheap_test_param_t UNUSED *tp
 
     /* Verify the creation parameters */
     HDmemset(&test_cparam, 0, sizeof(H5HF_create_t));
-    if(H5HF_get_cparam(fh2, &test_cparam) < 0)
+    if(H5HF_get_cparam_test(fh2, &test_cparam) < 0)
         FAIL_STACK_ERROR
     if(H5HF_cmp_cparam_test(cparam, &test_cparam))
         TEST_ERROR
@@ -2286,7 +2286,7 @@ test_delete_open(hid_t fapl, H5HF_create_t *cparam, fheap_test_param_t UNUSED *t
 
     /* Verify the creation parameters */
     HDmemset(&test_cparam, 0, sizeof(H5HF_create_t));
-    if(H5HF_get_cparam(fh2, &test_cparam) < 0)
+    if(H5HF_get_cparam_test(fh2, &test_cparam) < 0)
         FAIL_STACK_ERROR
     if(H5HF_cmp_cparam_test(cparam, &test_cparam))
         TEST_ERROR
@@ -2792,7 +2792,7 @@ test_filtered_create(hid_t fapl, H5HF_create_t *cparam)
 
     /* Query the heap creation parameters */
     HDmemset(&test_cparam, 0, sizeof(H5HF_create_t));
-    if(H5HF_get_cparam(fh, &test_cparam) < 0)
+    if(H5HF_get_cparam_test(fh, &test_cparam) < 0)
         FAIL_STACK_ERROR
     if(H5HF_cmp_cparam_test(&tmp_cparam, &test_cparam))
         FAIL_STACK_ERROR
@@ -2956,211 +2956,6 @@ error:
     } H5E_END_TRY;
     return(1);
 } /* test_size() */
-
-
-/*-------------------------------------------------------------------------
- * Function:	test_get_cparam
- *
- * Purpose:	Test querying heap creation parameters
- *
- * Return:	Success:	0
- *		Failure:	1
- *
- * Programmer:	Neil Fortner
- *              Friday, June 12, 2009
- *
- *-------------------------------------------------------------------------
- */
-static unsigned
-test_get_cparam(hid_t fapl)
-{
-    hid_t	file = -1;              /* File ID */
-    hid_t       dxpl = H5P_DATASET_XFER_DEFAULT;     /* DXPL to use */
-    char	filename[FHEAP_FILENAME_LEN];         /* Filename to use */
-    H5F_t	*f = NULL;              /* Internal file object pointer */
-    H5HF_t      *fh1 = NULL;            /* Fractal heap wrapper */
-    H5HF_t      *fh2 = NULL;            /* Fractal heap wrapper */
-    H5HF_create_t cparam1;              /* Creation parameters */
-    H5HF_create_t cparam2;              /* Creation parameters */
-    H5HF_create_t cparam_out;           /* Creation parameters */
-    unsigned    deflate_level = 5;      /* Level for deflate filter */
-    haddr_t     fh1_addr;               /* Address of fractal heap */
-    haddr_t     fh2_addr;               /* Address of fractal heap */
-
-    /* Set the filename to use for this test (dependent on fapl) */
-    h5_fixname(FILENAME[0], fapl, filename, sizeof(filename));
-
-    /* Create the file to work on */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0)
-        FAIL_STACK_ERROR
-
-    /* Get a pointer to the internal file object */
-    if(NULL == (f = (H5F_t *)H5I_object(file)))
-        FAIL_STACK_ERROR
-
-    /* Display testing message */
-    TESTING("querying heap creation parameters")
-
-
-    /* Set creation parameters */
-    cparam1.managed.width = 2;
-    cparam1.managed.start_block_size = 64;
-    cparam1.managed.max_direct_size = 512;
-    cparam1.managed.max_index = 16;
-    cparam1.managed.start_root_rows = 11;
-    cparam1.checksum_dblocks = FALSE;
-    cparam1.max_man_size = 128;
-    cparam1.id_len = 8;
-    HDmemset(&cparam1.pline, 0, sizeof(cparam1.pline));
-    cparam1.pline.version = H5O_PLINE_VERSION_1;
-    cparam1.pline.sh_loc.u.loc.oh_addr = HADDR_UNDEF;
-    cparam2.managed.width = 8;
-    cparam2.managed.start_block_size = 1024;
-    cparam2.managed.max_direct_size = 32*1024;
-    cparam2.managed.max_index = 32;
-    cparam2.managed.start_root_rows = 13;
-    cparam2.checksum_dblocks = TRUE;
-    cparam2.max_man_size = 1024;
-    cparam2.id_len = 16;
-    HDmemset(&cparam2.pline, 0, sizeof(cparam2.pline));
-    cparam2.pline.version = H5O_PLINE_VERSION_1;
-    cparam2.pline.sh_loc.u.loc.oh_addr = HADDR_UNDEF;
-    if(H5Z_append(&cparam2.pline, H5Z_FILTER_DEFLATE, H5Z_FLAG_OPTIONAL, (size_t)1, &deflate_level) < 0)
-        FAIL_STACK_ERROR
-
-    /* Create heaps */
-    if(NULL == (fh1 = H5HF_create(f, dxpl, &cparam1)))
-        FAIL_STACK_ERROR
-    if(NULL == (fh2 = H5HF_create(f, dxpl, &cparam2)))
-        FAIL_STACK_ERROR
-
-    /* Get heaps' addresses */
-    if(H5HF_get_heap_addr(fh1, &fh1_addr) < 0)
-        FAIL_STACK_ERROR
-    if(!H5F_addr_defined(fh1_addr))
-        TEST_ERROR
-    if(H5HF_get_heap_addr(fh2, &fh2_addr) < 0)
-        FAIL_STACK_ERROR
-    if(!H5F_addr_defined(fh2_addr))
-        TEST_ERROR
-
-    /* Get heaps' cparams, verify they are unchanged */
-    if(H5HF_get_cparam(fh1, &cparam_out) < 0)
-        FAIL_STACK_ERROR
-    if(H5HF_cmp_cparam_test(&cparam1, &cparam_out))
-        TEST_ERROR
-    H5O_msg_reset(H5O_PLINE_ID, &cparam_out.pline);
-    if(H5HF_get_cparam(fh2, &cparam_out) < 0)
-        FAIL_STACK_ERROR
-    if(H5HF_cmp_cparam_test(&cparam2, &cparam_out))
-        TEST_ERROR
-    H5O_msg_reset(H5O_PLINE_ID, &cparam_out.pline);
-
-    /* Insert an object in each heap */
-    if(add_obj(fh1, dxpl, (size_t)0, (size_t)10, NULL, NULL) < 0)
-        TEST_ERROR
-    if(add_obj(fh2, dxpl, (size_t)0, (size_t)10, NULL, NULL) < 0)
-        TEST_ERROR
-
-    /* Get heaps' cparams, verify they are unchanged */
-    if(H5HF_get_cparam(fh1, &cparam_out) < 0)
-        FAIL_STACK_ERROR
-    if(H5HF_cmp_cparam_test(&cparam1, &cparam_out))
-        TEST_ERROR
-    H5O_msg_reset(H5O_PLINE_ID, &cparam_out.pline);
-    if(H5HF_get_cparam(fh2, &cparam_out) < 0)
-        FAIL_STACK_ERROR
-    if(H5HF_cmp_cparam_test(&cparam2, &cparam_out))
-        TEST_ERROR
-    H5O_msg_reset(H5O_PLINE_ID, &cparam_out.pline);
-
-    /* Close the fractal heaps */
-    if(H5HF_close(fh1, dxpl) < 0)
-        FAIL_STACK_ERROR
-    fh1 = NULL;
-    if(H5HF_close(fh2, dxpl) < 0)
-        FAIL_STACK_ERROR
-    fh2 = NULL;
-
-    /* Close the file */
-    if(H5Fclose(file) < 0)
-        FAIL_STACK_ERROR
-
-
-    /* Re-open the file */
-    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl)) < 0)
-        FAIL_STACK_ERROR
-
-    /* Get a pointer to the internal file object */
-    if(NULL == (f = (H5F_t *)H5I_object(file)))
-        FAIL_STACK_ERROR
-
-    /* Re-open the heaps */
-    if(NULL == (fh1 = H5HF_open(f, H5P_DATASET_XFER_DEFAULT, fh1_addr)))
-        FAIL_STACK_ERROR
-    if(NULL == (fh2 = H5HF_open(f, H5P_DATASET_XFER_DEFAULT, fh2_addr)))
-        FAIL_STACK_ERROR
-
-    /* Get heaps' cparams, verify they are unchanged */
-    if(H5HF_get_cparam(fh1, &cparam_out) < 0)
-        FAIL_STACK_ERROR
-    if(H5HF_cmp_cparam_test(&cparam1, &cparam_out))
-        TEST_ERROR
-    H5O_msg_reset(H5O_PLINE_ID, &cparam_out.pline);
-    if(H5HF_get_cparam(fh2, &cparam_out) < 0)
-        FAIL_STACK_ERROR
-    if(H5HF_cmp_cparam_test(&cparam2, &cparam_out))
-        TEST_ERROR
-    H5O_msg_reset(H5O_PLINE_ID, &cparam_out.pline);
-
-    /* Insert another object in each heap */
-    if(add_obj(fh1, dxpl, (size_t)1, (size_t)10, NULL, NULL) < 0)
-        TEST_ERROR
-    if(add_obj(fh2, dxpl, (size_t)1, (size_t)10, NULL, NULL) < 0)
-        TEST_ERROR
-
-    /* Get heaps' cparams, verify they are unchanged */
-    if(H5HF_get_cparam(fh1, &cparam_out) < 0)
-        FAIL_STACK_ERROR
-    if(H5HF_cmp_cparam_test(&cparam1, &cparam_out))
-        TEST_ERROR
-    H5O_msg_reset(H5O_PLINE_ID, &cparam_out.pline);
-    if(H5HF_get_cparam(fh2, &cparam_out) < 0)
-        FAIL_STACK_ERROR
-    if(H5HF_cmp_cparam_test(&cparam2, &cparam_out))
-        TEST_ERROR
-    H5O_msg_reset(H5O_PLINE_ID, &cparam_out.pline);
-
-    /* Close the fractal heaps */
-    if(H5HF_close(fh1, H5P_DATASET_XFER_DEFAULT) < 0)
-        FAIL_STACK_ERROR
-    if(H5HF_close(fh2, H5P_DATASET_XFER_DEFAULT) < 0)
-        FAIL_STACK_ERROR
-
-
-    /* Close the file */
-    if(H5Fclose(file) < 0)
-        FAIL_STACK_ERROR
-
-    H5O_msg_reset(H5O_PLINE_ID, &cparam2.pline);
-
-    /* All tests passed */
-    PASSED()
-
-    return(0);
-
-error:
-    H5E_BEGIN_TRY {
-        if(fh1)
-            H5HF_close(fh1, dxpl);
-        if(fh2)
-            H5HF_close(fh2, dxpl);
-	H5Fclose(file);
-	H5O_msg_reset(H5O_PLINE_ID, &cparam2.pline);
-	H5O_msg_reset(H5O_PLINE_ID, &cparam_out.pline);
-    } H5E_END_TRY;
-    return(1);
-} /* test_get_cparam() */
 
 #ifndef QAK2
 
@@ -16095,7 +15890,6 @@ curr_test = FHEAP_TEST_NORMAL;
         nerrors += test_id_limits(fapl, &small_cparam);
         nerrors += test_filtered_create(fapl, &small_cparam);
         nerrors += test_size(fapl, &small_cparam);
-        nerrors += test_get_cparam(fapl);
 #else /* QAK */
 HDfprintf(stderr, "Uncomment tests!\n");
 #endif /* QAK */

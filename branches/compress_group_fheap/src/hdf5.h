@@ -29,7 +29,6 @@
 #include "H5Fpublic.h"		/* Files				*/
 #include "H5FDpublic.h"		/* File drivers				*/
 #include "H5Gpublic.h"		/* Groups				*/
-#include "H5HFpublic.h"		/* Fractal heaps			*/
 #include "H5Ipublic.h"		/* ID management			*/
 #include "H5Lpublic.h"		/* Links				*/
 #include "H5MMpublic.h"		/* Memory management			*/

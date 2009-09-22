@@ -43,6 +43,9 @@
 /* Package Private Macros */
 /**************************/
 
+/* Standard length of fractal heap ID for link */
+#define H5G_DENSE_FHEAP_ID_LEN  7
+
 /*
  * During name lookups (see H5G_traverse()) we sometimes want information about
  * a symbolic link or a mount point.  The normal operation is to follow the
@@ -261,15 +264,17 @@ typedef struct H5G_bt_it_bt_t {
 /* (fractal heap & v2 B-tree info) */
 
 /* Typedef for native 'name' field index records in the v2 B-tree */
+/* (Keep 'id' field first so generic record handling in callbacks works) */
 typedef struct H5G_dense_bt2_name_rec_t {
+    uint8_t id[H5G_DENSE_FHEAP_ID_LEN]; /* Heap ID for link */
     uint32_t hash;                      /* Hash of 'name' field value */
-    uint8_t id[];                       /* Heap ID for link */
 } H5G_dense_bt2_name_rec_t;
 
 /* Typedef for native 'creation order' field index records in the v2 B-tree */
+/* (Keep 'id' field first so generic record handling in callbacks works) */
 typedef struct H5G_dense_bt2_corder_rec_t {
+    uint8_t id[H5G_DENSE_FHEAP_ID_LEN]; /* Heap ID for link */
     int64_t corder;                     /* 'creation order' field value */
-    uint8_t id[];                       /* Heap ID for link */
 } H5G_dense_bt2_corder_rec_t;
 
 /*
@@ -296,7 +301,7 @@ typedef struct H5G_bt2_ud_common_t {
 typedef struct H5G_bt2_ud_ins_t {
     /* downward */
     H5G_bt2_ud_common_t common;         /* Common info for B-tree user data (must be first) */
-    uint8_t id[];                       /* Heap ID of link to insert         */
+    uint8_t id[H5G_DENSE_FHEAP_ID_LEN]; /* Heap ID of link to insert         */
 } H5G_bt2_ud_ins_t;
 
 /* Typedef for path traversal operations */
@@ -497,7 +502,7 @@ H5_DLL H5G_obj_t H5G_compact_get_type_by_idx(H5O_loc_t *oloc, hid_t dxpl_id,
 H5_DLL herr_t H5G_dense_build_table(H5F_t *f, hid_t dxpl_id, const H5O_linfo_t *linfo,
     H5_index_t idx_type, H5_iter_order_t order, H5G_link_table_t *ltable);
 H5_DLL herr_t H5G_dense_create(H5F_t *f, hid_t dxpl_id, H5O_linfo_t *linfo,
-    H5O_ginfo_t *ginfo);
+    const H5O_pline_t *pline);
 H5_DLL herr_t H5G_dense_insert(H5F_t *f, hid_t dxpl_id,
     const H5O_linfo_t *linfo, const H5O_link_t *lnk);
 H5_DLL htri_t H5G_dense_lookup(H5F_t *f, hid_t dxpl_id,
@@ -524,8 +529,9 @@ H5_DLL H5G_obj_t H5G_dense_get_type_by_idx(H5F_t  *f, hid_t dxpl_id,
 #endif /* H5_NO_DEPRECATED_SYMBOLS */
 
 /* Functions that understand group objects */
-H5_DLL herr_t H5G_obj_create(H5F_t *f, hid_t dxpl_id, H5O_ginfo_t *ginfo,
-    const H5O_linfo_t *linfo, hid_t gcpl_id, H5O_loc_t *oloc/*out*/);
+H5_DLL herr_t H5G_obj_create(H5F_t *f, hid_t dxpl_id, const H5O_ginfo_t *ginfo,
+    const H5O_linfo_t *linfo, const H5O_pline_t *pline, hid_t gcpl_id,
+    H5O_loc_t *oloc/*out*/);
 H5_DLL htri_t H5G_obj_get_linfo(const H5O_loc_t *grp_oloc, H5O_linfo_t *linfo,
     hid_t dxpl_id);
 H5_DLL herr_t H5G_obj_insert(const H5O_loc_t *grp_oloc, const char *name,

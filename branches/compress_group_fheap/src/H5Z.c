@@ -491,124 +491,161 @@ done:
  *              dimensions are what the I/O filter will actually see
  *
  * Modifications:
+ *              Neil Fortner
+ *              Tuesday, September 22, 2009
+ *              Refactored code dealing with the dcpl to
+ *              H5Z_prepare_prelude callback_dcpl to support filters on
+ *              fractal heaps.
  *
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5Z_prelude_callback(hid_t dcpl_id, hid_t type_id, const H5O_pline_t *pline_ptr,
-    H5Z_prelude_type_t prelude_type)
+H5Z_prelude_callback(const H5O_pline_t *pline, hid_t dcpl_id, hid_t type_id,
+    hid_t space_id, H5Z_prelude_type_t prelude_type)
 {
-    hbool_t dset_target;            /* Whether the pipeline is operating on a dataset */
-    hid_t space_id = -1;            /* ID for dataspace describing chunk */
-    herr_t ret_value = SUCCEED;     /* Return value */
+    H5Z_class2_t    *fclass;                /* Individual filter information */
+    size_t          u;                      /* Local index variable */
+    herr_t          ret_value = SUCCEED;    /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5Z_prelude_callback)
 
-    dset_target = !(dcpl_id < 0 && type_id < 0 && pline_ptr);
+    HDassert(pline->nused > 0);
 
-    HDassert(!dset_target || H5I_GENPROP_LST == H5I_get_type(dcpl_id));
-    HDassert(!dset_target || H5I_DATATYPE == H5I_get_type(type_id));
+    /* Iterate over filters */
+    for(u = 0; u < pline->nused; u++) {
+        /* Get filter information */
+        if(NULL == (fclass = H5Z_find(pline->filter[u].id))) {
+            /* Ignore errors from optional filters */
+            if(pline->filter[u].flags & H5Z_FLAG_OPTIONAL)
+                H5E_clear_stack(NULL);
+            else
+                HGOTO_ERROR(H5E_PLINE, H5E_NOTFOUND, FAIL, "required filter was not located")
+        } /* end if */
+        else {
+            /* Make correct callback */
+            switch(prelude_type) {
+                case H5Z_PRELUDE_CAN_APPLY:
+                    /* Check if filter is configured to be able to encode */
+                    if(!fclass->encoder_present)
+                        HGOTO_ERROR(H5E_PLINE, H5E_NOENCODER, FAIL, "Filter present but encoding is disabled.");
+
+
+                    /* Check if there is a "can apply" callback */
+                    if(fclass->can_apply) {
+                        /* Make callback to filter's "can apply" function */
+                        herr_t status = (fclass->can_apply)(dcpl_id, type_id, space_id);
+
+                        /* Check return value */
+                        if(status <= 0) {
+                            /* Indicate filter can't apply to this combination of parameters */
+                            if(status == 0)
+                                HGOTO_ERROR(H5E_PLINE, H5E_CANAPPLY, FAIL, "filter parameters not appropriate")
+                            /* Indicate error during filter callback */
+                            else
+                                HGOTO_ERROR(H5E_PLINE, H5E_CANAPPLY, FAIL, "error during user callback")
+                        } /* end if */
+                    } /* end if */
+                    break;
+
+                case H5Z_PRELUDE_SET_LOCAL:
+                    /* Check if there is a "set local" callback */
+                    if(fclass->set_local) {
+                        /* Make callback to filter's "set local" function */
+                        if((fclass->set_local)(dcpl_id, type_id, space_id) < 0)
+                            /* Indicate error during filter callback */
+                            HGOTO_ERROR(H5E_PLINE, H5E_SETLOCAL, FAIL, "error during user callback")
+                    } /* end if */
+                    break;
+
+                default:
+                    HDassert("invalid prelude type" && 0);
+            } /* end switch */
+        } /* end else */
+    } /* end for */
+
+done:
+
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5Z_prelude_callback() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5Z_prepare_prelude_callback_dcpl
+ *
+ * Purpose:	Prepares to make a dataset creation "prelude" callback
+ *              for the "can_apply" or "set_local" routines.
+ *
+ * Return:	Non-negative on success/Negative on failure
+ *
+ * Programmer:	Quincey Koziol
+ *              Friday, April 4, 2003
+ *
+ * Notes:
+ *              The chunk dimensions are used to create a dataspace, instead
+ *              of passing in the dataset's dataspace, since the chunk
+ *              dimensions are what the I/O filter will actually see
+ *
+ * Modifications:
+ *              Neil Fortner
+ *              Tuesday, September 22, 2009
+ *              Function refactored from H5Z_prelude callback to support
+ *              filters on fractal heaps.
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+H5Z_prepare_prelude_callback_dcpl(hid_t dcpl_id, hid_t type_id, H5Z_prelude_type_t prelude_type)
+{
+    hid_t space_id = -1;            /* ID for dataspace describing chunk */
+    herr_t ret_value = SUCCEED;     /* Return value */
+
+    FUNC_ENTER_NOAPI_NOINIT(H5Z_prepare_prelude_callback_dcpl)
+
+    HDassert(H5I_GENPROP_LST == H5I_get_type(dcpl_id));
+    HDassert(H5I_DATATYPE == H5I_get_type(type_id));
 
     /* Check if the property list is non-default */
-    if(!dset_target || dcpl_id != H5P_DATASET_CREATE_DEFAULT) {
+    if(dcpl_id != H5P_DATASET_CREATE_DEFAULT) {
         H5P_genplist_t 	*dc_plist;      /* Dataset creation property list object */
         H5O_layout_t    dcpl_layout;    /* Dataset's layout information */
 
-        if(dset_target) {
-            /* Get dataset creation property list object */
-            if(NULL == (dc_plist = (H5P_genplist_t *)H5I_object(dcpl_id)))
-                HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "can't get dataset creation property list")
+        /* Get dataset creation property list object */
+        if(NULL == (dc_plist = (H5P_genplist_t *)H5I_object(dcpl_id)))
+            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "can't get dataset creation property list")
 
-            /* Get layout information */
-            if(H5P_get(dc_plist, H5D_CRT_LAYOUT_NAME, &dcpl_layout) < 0)
-                HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't retrieve layout")
-        } /* end if */
+        /* Get layout information */
+        if(H5P_get(dc_plist, H5D_CRT_LAYOUT_NAME, &dcpl_layout) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't retrieve layout")
 
         /* Check if the dataset is chunked */
-        if(!dset_target || H5D_CHUNKED == dcpl_layout.type) {
-            H5O_pline_t     pline;     /* Object's I/O pipeline information */
+        if(H5D_CHUNKED == dcpl_layout.type) {
+            H5O_pline_t     dcpl_pline;     /* Object's I/O pipeline information */
 
-            if(!pline_ptr) {
-                /* Get I/O pipeline information - assume it is a dataset */
-                if(H5P_get(dc_plist, H5D_CRT_DATA_PIPELINE_NAME, &pline) < 0)
-                    HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't retrieve pipeline filter")
-            } else
-                pline = *pline_ptr;
+            /* Get I/O pipeline information */
+            if(H5P_get(dc_plist, H5O_CRT_PIPELINE_NAME, &dcpl_pline) < 0)
+                HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't retrieve pipeline filter")
 
             /* Check if the chunks have filters */
-            if(pline.nused > 0) {
+            if(dcpl_pline.nused > 0) {
                 hsize_t chunk_dims[H5O_LAYOUT_NDIMS];      /* Size of chunk dimensions */
                 H5S_t *space;           /* Dataspace describing chunk */
                 size_t u;               /* Local index variable */
 
-                if(dset_target) {
-                    /* Create a data space for a chunk & set the extent */
-                    for(u = 0; u < dcpl_layout.u.chunk.ndims; u++)
-                        chunk_dims[u] = dcpl_layout.u.chunk.dim[u];
-                    if(NULL == (space = H5S_create_simple(dcpl_layout.u.chunk.ndims, chunk_dims, NULL)))
-                        HGOTO_ERROR(H5E_DATASPACE, H5E_CANTCREATE, FAIL, "can't create simple dataspace")
+                /* Create a data space for a chunk & set the extent */
+                for(u = 0; u < dcpl_layout.u.chunk.ndims; u++)
+                    chunk_dims[u] = dcpl_layout.u.chunk.dim[u];
+                if(NULL == (space = H5S_create_simple(dcpl_layout.u.chunk.ndims, chunk_dims, NULL)))
+                    HGOTO_ERROR(H5E_DATASPACE, H5E_CANTCREATE, FAIL, "can't create simple dataspace")
 
-                    /* Get ID for dataspace to pass to filter routines */
-                    if((space_id = H5I_register(H5I_DATASPACE, space, FALSE)) < 0) {
-                        (void)H5S_close(space);
-                        HGOTO_ERROR(H5E_ATOM, H5E_CANTREGISTER, FAIL, "unable to register dataspace ID")
-                    } /* end if */
-                } else
-                    space_id = -1;
+                /* Get ID for dataspace to pass to filter routines */
+                if((space_id = H5I_register(H5I_DATASPACE, space, FALSE)) < 0) {
+                    (void)H5S_close(space);
+                    HGOTO_ERROR(H5E_ATOM, H5E_CANTREGISTER, FAIL, "unable to register dataspace ID")
+                } /* end if */
 
-                /* Iterate over filters */
-                for(u = 0; u < pline.nused; u++) {
-                    H5Z_class2_t	*fclass;        /* Individual filter information */
-
-                    /* Get filter information */
-                    if(NULL == (fclass = H5Z_find(pline.filter[u].id))) {
-                        /* Ignore errors from optional filters */
-                        if(pline.filter[u].flags & H5Z_FLAG_OPTIONAL)
-                            H5E_clear_stack(NULL);
-                        else
-                            HGOTO_ERROR(H5E_PLINE, H5E_NOTFOUND, FAIL, "required filter was not located")
-                    } /* end if */
-                    else {
-                        /* Make correct callback */
-                        switch(prelude_type) {
-                            case H5Z_PRELUDE_CAN_APPLY:
-                                /* Check if filter is configured to be able to encode */
-                                if(!fclass->encoder_present)
-                                    HGOTO_ERROR(H5E_PLINE, H5E_NOENCODER, FAIL, "Filter present but encoding is disabled.");
-
-
-                                /* Check if there is a "can apply" callback */
-                                if(fclass->can_apply) {
-                                    /* Make callback to filter's "can apply" function */
-                                    herr_t status = (fclass->can_apply)(dcpl_id, type_id, space_id);
-
-                                    /* Check return value */
-                                    if(status <= 0) {
-                                        /* Indicate filter can't apply to this combination of parameters */
-                                        if(status == 0)
-                                            HGOTO_ERROR(H5E_PLINE, H5E_CANAPPLY, FAIL, "filter parameters not appropriate")
-                                        /* Indicate error during filter callback */
-                                        else
-                                            HGOTO_ERROR(H5E_PLINE, H5E_CANAPPLY, FAIL, "error during user callback")
-                                    } /* end if */
-                                } /* end if */
-                                break;
-
-                            case H5Z_PRELUDE_SET_LOCAL:
-                                /* Check if there is a "set local" callback */
-                                if(fclass->set_local) {
-                                    /* Make callback to filter's "set local" function */
-                                    if((fclass->set_local)(dcpl_id, type_id, space_id) < 0)
-                                        /* Indicate error during filter callback */
-                                        HGOTO_ERROR(H5E_PLINE, H5E_SETLOCAL, FAIL, "error during user callback")
-                                } /* end if */
-                                break;
-
-                            default:
-                                HDassert("invalid prelude type" && 0);
-                        } /* end switch */
-                    } /* end else */
-                } /* end for */
+                /* Make the callbacks */
+                if(H5Z_prelude_callback(&dcpl_pline, dcpl_id, type_id, space_id, prelude_type) < 0)
+                    HGOTO_ERROR(H5E_PLINE, H5E_CANAPPLY, FAIL, "unable to apply filter")
             } /* end if */
         } /* end if */
     } /* end if */
@@ -618,7 +655,7 @@ done:
         HDONE_ERROR(H5E_PLINE, H5E_CANTRELEASE, FAIL, "unable to close dataspace")
 
     FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5Z_prelude_callback() */
+} /* end H5Z_prepare_prelude_callback_dcpl() */
 
 
 /*-------------------------------------------------------------------------
@@ -641,14 +678,14 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5Z_can_apply(hid_t dcpl_id, hid_t type_id, const H5O_pline_t *pline)
+H5Z_can_apply(hid_t dcpl_id, hid_t type_id)
 {
     herr_t ret_value = SUCCEED;   /* Return value */
 
     FUNC_ENTER_NOAPI(H5Z_can_apply, FAIL)
 
     /* Make "can apply" callbacks for filters in pipeline */
-    if(H5Z_prelude_callback(dcpl_id, type_id, pline, H5Z_PRELUDE_CAN_APPLY) < 0)
+    if(H5Z_prepare_prelude_callback_dcpl(dcpl_id, type_id, H5Z_PRELUDE_CAN_APPLY) < 0)
         HGOTO_ERROR(H5E_PLINE, H5E_CANAPPLY, FAIL, "unable to apply filter")
 
 done:
@@ -676,19 +713,88 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5Z_set_local(hid_t dcpl_id, hid_t type_id, const H5O_pline_t *pline)
+H5Z_set_local(hid_t dcpl_id, hid_t type_id)
 {
     herr_t ret_value = SUCCEED;   /* Return value */
 
     FUNC_ENTER_NOAPI(H5Z_set_local, FAIL)
 
     /* Make "set local" callbacks for filters in pipeline */
-    if(H5Z_prelude_callback(dcpl_id, type_id, pline, H5Z_PRELUDE_SET_LOCAL) < 0)
+    if(H5Z_prepare_prelude_callback_dcpl(dcpl_id, type_id, H5Z_PRELUDE_SET_LOCAL) < 0)
         HGOTO_ERROR(H5E_PLINE, H5E_SETLOCAL, FAIL, "local filter parameters not set")
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5Z_set_local() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5Z_can_apply_direct
+ *
+ * Purpose:	Checks if all the filters defined in the pipeline can be
+ *              applied to an opaque byte stream (currently only a group).
+ *              The pipeline is assumed to have at least one filter.
+ *
+ * Return:	Non-negative on success/Negative on failure
+ *
+ * Programmer:	Neil Fortner
+ *              Tuesday, September 22, 2009
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5Z_can_apply_direct(const H5O_pline_t *pline)
+{
+    herr_t ret_value = SUCCEED;   /* Return value */
+
+    FUNC_ENTER_NOAPI(H5Z_can_apply_direct, FAIL)
+
+    HDassert(pline->nused > 0);
+
+    /* Make "can apply" callbacks for filters in pipeline */
+    if(H5Z_prelude_callback(pline, -1, -1, -1, H5Z_PRELUDE_CAN_APPLY) < 0)
+        HGOTO_ERROR(H5E_PLINE, H5E_CANAPPLY, FAIL, "unable to apply filter")
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5Z_can_apply_direct() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5Z_set_local_direct
+ *
+ * Purpose:	Makes callbacks to modify local settings for filters on a
+ *              new opaque object.  The pipeline is assumed to have at
+ *              least one filter.
+ *
+ * Return:	Non-negative on success/Negative on failure
+ *
+ * Programmer:	Neil Fortner
+ *              Tuesday, September 22, 2009
+ *
+ * Notes:
+ *              This callback will almost certainly not do anything
+ *              useful, other than to make certain that the filter will
+ *              accept opque data.
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5Z_set_local_direct(const H5O_pline_t *pline)
+{
+    herr_t ret_value = SUCCEED;   /* Return value */
+
+    FUNC_ENTER_NOAPI(H5Z_set_local_direct, FAIL)
+
+    HDassert(pline->nused > 0);
+
+    /* Make "set local" callbacks for filters in pipeline */
+    if(H5Z_prelude_callback(pline, -1, -1, -1, H5Z_PRELUDE_SET_LOCAL) < 0)
+        HGOTO_ERROR(H5E_PLINE, H5E_SETLOCAL, FAIL, "local filter parameters not set")
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5Z_set_local_direct() */
 
 
 /*-------------------------------------------------------------------------
