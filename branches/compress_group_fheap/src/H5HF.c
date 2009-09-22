@@ -932,48 +932,3 @@ done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5HF_delete() */
 
-
-/*-------------------------------------------------------------------------
- * Function:	H5HF_get_cparam
- *
- * Purpose:	Retrieve the createion parameters used to create a fractal
- *              heap.  The pipeline message returned in cparam must be
- *              reset by the calling function when it is done being used.
- *
- * Return:	SUCCEED/FAIL
- *
- * Programmer:	Neil Fortner
- *		May 28 2009
- *
- *-------------------------------------------------------------------------
- */
-herr_t
-H5HF_get_cparam(const H5HF_t *fh, H5HF_create_t *cparam)
-{
-    herr_t ret_value = SUCCEED;     /* Return value */
-
-    FUNC_ENTER_NOAPI(H5HF_get_cparam, FAIL)
-
-    /*
-     * Check arguments.
-     */
-    HDassert(fh);
-    HDassert(cparam);
-
-    /* Retrieve creation parameters */
-    cparam->managed = fh->hdr->man_dtable.cparam;
-    cparam->checksum_dblocks = fh->hdr->checksum_dblocks;
-    cparam->max_man_size = fh->hdr->max_man_size;
-    if(fh->hdr->id_len == (unsigned)(1 + fh->hdr->heap_off_size + fh->hdr->heap_len_size))
-        cparam->id_len = 0;
-    else if(fh->hdr->id_len == (1 + fh->hdr->sizeof_size + fh->hdr->sizeof_addr))
-        cparam->id_len = 1;
-    else
-        cparam->id_len = fh->hdr->id_len;
-    if(NULL == H5O_msg_copy(H5O_PLINE_ID, &(fh->hdr->pline), &(cparam->pline)))
-        HGOTO_ERROR(H5E_HEAP, H5E_CANTCOPY, FAIL, "can't copy I/O filter pipeline")
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5HF_get_cparam */
-

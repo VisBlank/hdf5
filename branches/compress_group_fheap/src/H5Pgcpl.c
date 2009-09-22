@@ -170,13 +170,11 @@ H5P_gcrt_copy(hid_t dst_plist_id, hid_t src_plist_id, void UNUSED *copy_data)
     if(H5P_get(src_plist, H5G_CRT_LINK_PIPELINE_NAME, &src_pline) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get pipeline")
 
-    /* Make copy of data pipeline */
+    /* Make copy of link pipeline */
     if(NULL == H5O_msg_copy(H5O_PLINE_ID, &src_pline, &dst_pline))
         HGOTO_ERROR(H5E_PLIST, H5E_CANTINIT, FAIL, "can't copy link pipeline")
 
-    /* Set the layout, fill value, external file list, and data pipeline
-     *  properties for the destination property list
-     */
+    /* Set the link pipeline property for the destination property list */
     if(H5P_set(dst_plist, H5G_CRT_LINK_PIPELINE_NAME, &dst_pline) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set pipeline")
 
