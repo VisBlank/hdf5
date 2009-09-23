@@ -15,3 +15,4 @@ Usage: h5stat [OPTIONS] file
      -T, --dtypemetadata   Print datatype metadata
      -A, --attribute       Print attribute information
      -s, --freespace       Print free-space information
+     -S, --Summary         Print summary of storage information

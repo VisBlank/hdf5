@@ -90,8 +90,8 @@ int h5repack(const char* infile,
 *-------------------------------------------------------------------------
 */
 
-int h5repack_init (pack_opt_t *options,
-                   int verbose)
+int 
+h5repack_init(pack_opt_t *options, int verbose, H5F_file_space_type_t strategy, hsize_t threshold)
 {
     int k, n;
     memset(options,0,sizeof(pack_opt_t));
@@ -105,6 +105,9 @@ int h5repack_init (pack_opt_t *options,
         for ( k = 0; k < CD_VALUES; k++)
             options->filter_g[n].cd_values[k] = 0;
     }
+
+    options->fs_strategy = strategy;
+    options->fs_threshold = threshold;
 
     return (options_table_init(&(options->op_tbl)));
 }
@@ -238,24 +241,6 @@ int h5repack_addlayout(const char* str,
         options->op_tbl);
 
     free(obj_list);
-    return 0;
-}
-
-/*-------------------------------------------------------------------------
- * Function: h5repack_addfree
- *
- * Purpose: add file space strategy and threshold 
- *
- * Return: 0, ok, -1, fail
- *
- *-------------------------------------------------------------------------
- */
-
-int h5repack_addfree(H5F_file_space_type_t strategy, hsize_t threshold, pack_opt_t *options)
-{
-    options->fs_strategy = strategy;
-    options->fs_threshold = threshold;
-
     return 0;
 }
 

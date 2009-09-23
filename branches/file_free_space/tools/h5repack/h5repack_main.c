@@ -38,7 +38,7 @@ const char  *outfile = NULL;
  * Command-line options: The user can specify short or long-named
  * parameters.
  */
-static const char *s_opts = "hVvf:l:m:e:nLc:d:s:u:b:t:a:i:o:S:T";
+static const char *s_opts = "hVvf:l:m:e:nLc:d:s:u:b:t:a:i:o:S:T:";
 static struct long_options l_opts[] = {
     { "help", no_arg, 'h' },
     { "version", no_arg, 'V' },
@@ -106,7 +106,7 @@ int main(int argc, const char **argv)
     int           ret=-1;
     
     /* initialize options  */
-    h5repack_init (&options,0);        
+    h5repack_init (&options, 0, 0, (hsize_t)0);        
     
     parse_command_line(argc, argv, &options);
     
@@ -182,8 +182,8 @@ static void usage(const char *prog)
  printf("   -a A, --alignment=A     Alignment value for H5Pset_alignment\n");
  printf("   -f FILT, --filter=FILT  Filter type\n");
  printf("   -l LAYT, --layout=LAYT  Layout type\n");
- printf("   -S STRGY, --strategy=STRGY  File space strategy type\n");
- printf("   -T THRD, --threshold=THRD   Free space section threshold\n");
+ printf("   -S STRGY, --fs_strategy=STRGY  File-space-handling strategy\n");
+ printf("   -T THRD, --fs_threshold=THRD   Free-space section threshold\n");
 
  printf("\n");
 
@@ -197,57 +197,61 @@ static void usage(const char *prog)
  printf("        a power of 2 (1024 default)\n");
  printf("    F - is the shared object header message type, any of <dspace|dtype|fill|\n");
  printf("        pline|attr>. If F is not specified, S applies to all messages\n");
- printf("STRGY - is an integer value, listed below: (default is 2)\n");
- printf("        1, to use persistent free space managers, aggregators and virtual file driver for allocation\n");
- printf("        2, to use non-persistent free space managers, aggregators and virtual file driver for allocation\n");
- printf("        3, to use aggregators and virtual file driver for allocation\n");
- printf("        4, to use virtual file driver for allocation\n");
- printf("THRD  - is an integer greater than zero, the minimum size of free space\n");
- printf("         sections to track, in bytes (default is 1) \n");
-
+ printf("\n");
+ printf("    STRGY is an integer value listed below:\n");
+ printf("        1: Use persistent free-space managers, aggregators and virtual file driver for allocation\n");
+ printf("        2: Use non-persistent free-space managers, aggregators and virtual file driver for allocation\n");
+ printf("        3: Use aggregators and virtual file driver for allocation\n");
+ printf("        4: Use virtual file driver for allocation\n");
+ printf("        A value of 0 retains the existing file-space-handling strategy used in the library.\n");
+ printf("        The library default is 2.\n");
+ printf("\n");
+ printf("    THRD is the minimum size of free-space sections to track by the free-space managers.\n");
+ printf("        A value of 0 retains the existing free-space section threshold used in the library.\n");
+ printf("        The library default is 1.\n");
  printf("\n");
 
- printf("  FILT - is a string with the format:\n");
+ printf("    FILT - is a string with the format:\n");
  printf("\n");
- printf("    <list of objects>:<name of filter>=<filter parameters>\n");
+ printf("      <list of objects>:<name of filter>=<filter parameters>\n");
  printf("\n");
- printf("    <list of objects> is a comma separated list of object names, meaning apply\n");
- printf("      compression only to those objects. If no names are specified, the filter\n");
- printf("      is applied to all objects\n");
- printf("    <name of filter> can be:\n");
- printf("      GZIP, to apply the HDF5 GZIP filter (GZIP compression)\n");
- printf("      SZIP, to apply the HDF5 SZIP filter (SZIP compression)\n");
- printf("      SHUF, to apply the HDF5 shuffle filter\n");
- printf("      FLET, to apply the HDF5 checksum filter\n");
- printf("      NBIT, to apply the HDF5 NBIT filter (NBIT compression)\n");
- printf("      SOFF, to apply the HDF5 Scale/Offset filter\n");
- printf("      NONE, to remove all filters\n");
- printf("    <filter parameters> is optional filter parameter information\n");
- printf("      GZIP=<deflation level> from 1-9\n");
- printf("      SZIP=<pixels per block,coding> pixels per block is a even number in\n");
+ printf("      <list of objects> is a comma separated list of object names, meaning apply\n");
+ printf("        compression only to those objects. If no names are specified, the filter\n");
+ printf("        is applied to all objects\n");
+ printf("      <name of filter> can be:\n");
+ printf("        GZIP, to apply the HDF5 GZIP filter (GZIP compression)\n");
+ printf("        SZIP, to apply the HDF5 SZIP filter (SZIP compression)\n");
+ printf("        SHUF, to apply the HDF5 shuffle filter\n");
+ printf("        FLET, to apply the HDF5 checksum filter\n");
+ printf("        NBIT, to apply the HDF5 NBIT filter (NBIT compression)\n");
+ printf("        SOFF, to apply the HDF5 Scale/Offset filter\n");
+ printf("        NONE, to remove all filters\n");
+ printf("      <filter parameters> is optional filter parameter information\n");
+ printf("        GZIP=<deflation level> from 1-9\n");
+ printf("        SZIP=<pixels per block,coding> pixels per block is a even number in\n");
  printf("            2-32 and coding method is either EC or NN\n");
- printf("      SHUF (no parameter)\n");
- printf("      FLET (no parameter)\n");
- printf("      NBIT (no parameter)\n");
- printf("      SOFF=<scale_factor,scale_type> scale_factor is an integer and scale_type\n");
+ printf("        SHUF (no parameter)\n");
+ printf("        FLET (no parameter)\n");
+ printf("        NBIT (no parameter)\n");
+ printf("        SOFF=<scale_factor,scale_type> scale_factor is an integer and scale_type\n");
  printf("            is either IN or DS\n");
- printf("      NONE (no parameter)\n");
+ printf("        NONE (no parameter)\n");
  printf("\n");
- printf("  LAYT - is a string with the format:\n");
+ printf("    LAYT - is a string with the format:\n");
  printf("\n");
- printf("    <list of objects>:<layout type>=<layout parameters>\n");
+ printf("      <list of objects>:<layout type>=<layout parameters>\n");
  printf("\n");
- printf("    <list of objects> is a comma separated list of object names, meaning that\n");
- printf("      layout information is supplied for those objects. If no names are\n");
- printf("      specified, the layout type is applied to all objects\n");
- printf("    <layout type> can be:\n");
- printf("      CHUNK, to apply chunking layout\n");
- printf("      COMPA, to apply compact layout\n");
- printf("      CONTI, to apply continuous layout\n");
- printf("    <layout parameters> is optional layout information\n");
- printf("      CHUNK=DIM[xDIM...xDIM], the chunk size of each dimension\n");
- printf("      COMPA (no parameter)\n");
- printf("      CONTI (no parameter)\n");
+ printf("      <list of objects> is a comma separated list of object names, meaning that\n");
+ printf("        layout information is supplied for those objects. If no names are\n");
+ printf("        specified, the layout type is applied to all objects\n");
+ printf("      <layout type> can be:\n");
+ printf("        CHUNK, to apply chunking layout\n");
+ printf("        COMPA, to apply compact layout\n");
+ printf("        CONTI, to apply continuous layout\n");
+ printf("      <layout parameters> is optional layout information\n");
+ printf("        CHUNK=DIM[xDIM...xDIM], the chunk size of each dimension\n");
+ printf("        COMPA (no parameter)\n");
+ printf("        CONTI (no parameter)\n");
  printf("\n");
  printf("Examples of use:\n");
  printf("\n");

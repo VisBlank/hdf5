@@ -6812,6 +6812,8 @@ test_filespace_strategy_threshold(hid_t fapl_new)
     haddr_t	tmp_addr;		/* Temporary variable for address */
     H5F_file_space_type_t fs_type;	/* File space handling strategy */
     hsize_t	fs_threshold;		/* Free space section threshold */
+    hsize_t tot_space, saved_tot_space; /* Total amount of free space */
+    hsize_t tot_sect_count, saved_tot_sect_count;	/* # of free-space sections */
 
     TESTING("file space strategy and threshold");
 
@@ -6861,6 +6863,16 @@ test_filespace_strategy_threshold(hid_t fapl_new)
 	    if(H5MF_xfree(f, type, H5P_DATASET_XFER_DEFAULT, addr5, (hsize_t)TEST_BLOCK_SIZE5) < 0)
 		FAIL_STACK_ERROR
 
+	    /* Retrieve the total amount of free space and # of free-space sections */
+	    if(f->shared->fs_man[type] && 
+		H5FS_sect_stats(f->shared->fs_man[type], &saved_tot_space, &saved_tot_sect_count) < 0)
+		    FAIL_STACK_ERROR
+
+	    /* H5F_FILE_SPACE_AGGR_VFD and H5F_FILE_SPACE_VFD: should not have free-space manager */
+	    if(fs_type > H5F_FILE_SPACE_ALL && f->shared->fs_man[type])
+		TEST_ERROR
+		
+	    /* Close the file */
 	    if(H5Fclose(file) < 0)
 		FAIL_STACK_ERROR
 
@@ -6876,6 +6888,19 @@ test_filespace_strategy_threshold(hid_t fapl_new)
 		case H5F_FILE_SPACE_ALL_PERSIST:
 		    if(fs_threshold <= TEST_BLOCK_SIZE5) {
 			if(!H5F_addr_defined(f->shared->fs_addr[type]))
+			    TEST_ERROR
+
+			/* Open the free-space manager */
+			if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+			    FAIL_STACK_ERROR
+
+			/* Retrieve the total amount of free space and # of free-space sections */
+			if(H5FS_sect_stats(f->shared->fs_man[type], &tot_space, &tot_sect_count) < 0)
+			    FAIL_STACK_ERROR
+
+			/* Verify that tot_space should be >= saved_tot_space */
+			/* Verify that tot_sect_count should be >= saved_tot_sect_count */
+			if(tot_space < saved_tot_space || tot_sect_count < saved_tot_sect_count)
 			    TEST_ERROR
 
 			/* Retrieve block #5 from H5FD_MEM_SUPER free-space manager */
@@ -6895,22 +6920,15 @@ test_filespace_strategy_threshold(hid_t fapl_new)
 		case H5F_FILE_SPACE_VFD:
 		    if(H5F_addr_defined(f->shared->fs_addr[type]))
 			TEST_ERROR
-		    /* Retrieve block #5 from H5FD_MEM_SUPER free-space manager */
-		    if(HADDR_UNDEF == 
-			(tmp_addr = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE5)))
-			FAIL_STACK_ERROR
-		    /* Address should be different from before */
-		    if(tmp_addr == addr3 || tmp_addr < addr6)
-			TEST_ERROR
 		    break;
 
 		default:
 		    break;
 	    } /* end switch */
 
+	    /* Closing */
 	    if(H5Fclose(file) < 0)
 		FAIL_STACK_ERROR
-
 	    if(H5Pclose(fcpl) < 0) 
 		FAIL_STACK_ERROR
 

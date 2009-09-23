@@ -5,18 +5,18 @@ Filename: h5stat_tsohm.h5
 File information
 	# of unique groups: 1
 	# of unique datasets: 3
-	# of unique named dataypes: 0
+	# of unique named datatypes: 0
 	# of unique links: 0
 	# of unique other: 0
 	Max. # of links to object: 1
 	Max. # of objects in group: 3
-Storage information:
+Storage information (in bytes):
 	Superblock: 48
 	Superblock extension: 40
 	User block: 0
 	Object headers: (total/unused)
 		Groups: 51/2
-		Datasets: 852/447
+		Datasets(exclude compact data): 852/447
 		Datatypes: 0/0
 	Groups:
 		B-tree/List: 872
@@ -25,12 +25,14 @@ Storage information:
 		B-tree/List: 0
 		Heap: 0
 	Chunked datasets:
-		B-tree: 0
+		Index: 0
+	Datasets:
+		Heap: 0
 	Shared Messages:
 		Header: 38
 		B-tree/List: 550
 		Heap: 1316
-	Free space managers:
+	Free-space managers:
 		Header: 0
 		Amount of free space: 0
 Small groups:
@@ -49,6 +51,7 @@ Dataset dimension information:
 		Total small datasets: 0
 Dataset storage information:
 	Total raw data size: 0
+	Total external raw data size: 0
 Dataset layout information:
 	Dataset layout counts[COMPACT]: 0
 	Dataset layout counts[CONTIG]: 0

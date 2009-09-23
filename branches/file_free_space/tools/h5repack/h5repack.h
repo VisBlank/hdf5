@@ -127,16 +127,13 @@ typedef struct {
 extern "C" {
 #endif
 
-int h5repack           (const char* infile, const char* outfile, pack_opt_t *options);
-int h5repack_addfilter (const char* str, pack_opt_t *options);
-int h5repack_addlayout (const char* str, pack_opt_t *options);
-int h5repack_addfree(H5F_file_space_type_t strategy, hsize_t threshold, pack_opt_t *options);
-int h5repack_init      (pack_opt_t *options, int verbose);
-int h5repack_end       (pack_opt_t *options);
-int h5repack_verify    (const char *fname,pack_opt_t *options);
-int h5repack_cmp_pl   (const char *fname1,
-                        const char *fname2);
-int h5repack_vfy_free(const char *in_fname, const char *out_fname, pack_opt_t *options);
+int h5repack(const char* infile, const char* outfile, pack_opt_t *options);
+int h5repack_addfilter(const char* str, pack_opt_t *options);
+int h5repack_addlayout(const char* str, pack_opt_t *options);
+int h5repack_init(pack_opt_t *options, int verbose, H5F_file_space_type_t strategy, hsize_t threshold);
+int h5repack_end(pack_opt_t *options);
+int h5repack_verify(const char *in_fname, const char *out_fname, pack_opt_t *options);
+int h5repack_cmp_pl(const char *fname1, const char *fname2);
 
 
 #ifdef __cplusplus

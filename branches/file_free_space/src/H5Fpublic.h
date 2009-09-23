@@ -101,17 +101,19 @@ typedef enum H5F_close_degree_t {
 } H5F_close_degree_t;
 
 /* Current "global" information about file */
-/* (just size info currently) */
 typedef struct H5F_info_t {
     struct {
+	unsigned	vers;		/* Superblock version # */
 	hsize_t		super_size;	/* Superblock size */
 	hsize_t		super_ext_size;	/* Superblock extension size */
     } super;
     struct {
+	unsigned	vers;		/* Version # of file/free space management */
 	hsize_t		hdr_size;	/* Free space manager header size */
 	hsize_t		tot_space;	/* Amount of free space in the file */
     } free;
     struct {
+	unsigned	vers;		/* Version # of shared object header info */
 	hsize_t		hdr_size;       /* Shared object header message header size */
 	H5_ih_info_t	msgs_info;      /* Shared object header message index & heap size */
     } sohm;

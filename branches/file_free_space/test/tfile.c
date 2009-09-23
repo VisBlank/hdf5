@@ -98,18 +98,22 @@
 #define USERBLOCK_SIZE      ((hsize_t) 512)
 
 /* Declarations for test_filespace_*() */
-#define NELMTS(X)               (sizeof(X)/sizeof(X[0]))	/* # of elements */
-#define FILE5			"tfile5.h5"	/* Test file */
-#define DSETNAME 		"dset"		/* Name of dataset */
-#define READ_OLD_BUFSIZE	1024		/* Buffer for holding file data */
-#define TEST_THRESHOLD10        10		/* Free space section threshold */
 #define FILENAME_LEN    	1024		/* length of file name */
 #define CORE_INCREMENT  	1024		/* core file */
 #define FAMILY_SIZE     	1024		/* family file */
+#define DSETNAME 		"dset"		/* Name of dataset */
+#define NELMTS(X)               (sizeof(X)/sizeof(X[0]))	/* # of elements */
+#define READ_OLD_BUFSIZE	1024		/* Buffer for holding file data */
+#define FILE5			"tfile5.h5"	/* Test file */
+#define TEST_THRESHOLD10        10		/* Free space section threshold */
 
 const char *OLD_FILENAME[] = {  /* Files created under 1.6 branch and 1.8 branch */
     "filespace_1_6.h5",	/* 1.6 HDF5 file */
     "filespace_1_8.h5"	/* 1.8 HDF5 file */
+};
+const char *FILESPACE_NAME[] = {
+    "tfilespace",
+    NULL
 };
 
 const char *FILENAME[] = {
@@ -120,6 +124,7 @@ const char *FILENAME[] = {
     "family_tfile",
     NULL
 };
+
 
 static void
 create_objects(hid_t, hid_t, hid_t *, hid_t *, hid_t *, hid_t *);
@@ -2519,15 +2524,15 @@ test_free_sections(hid_t fapl, char *fname)
     hid_t    dcpl;      	/* Dataset creation property list */
     unsigned u;         	/* Local index variable */
     char     name[32];  	/* Dataset name */
-    ssize_t  nsects;        	/* # of free-space sections */
-    size_t   saved_nsects;     	/* saved copy for the # of free-space sections */
-    hsize_t  i;			/* local index variable */
+    hssize_t nsects;        	/* # of free-space sections */
+    hssize_t saved_nsects;   	/* saved copy for the # of free-space sections */
+    int	     i;			/* local index variable */
     hsize_t  total;        	/* sum of the free-space section sizes */
     hsize_t  last_size;        	/* size of last free-space section */
     H5F_sect_info_t *sect_info;	/* array to hold the free-space information */
+    H5F_sect_info_t *saved_sect_info;	/* array to hold the free-space information */
     herr_t   ret;		/* return value */
 
-    
     /* Create file-creation template */
     fcpl = H5Pcreate(H5P_FILE_CREATE);
     CHECK(fcpl, FAIL, "H5Pcreate");
@@ -2592,58 +2597,69 @@ test_free_sections(hid_t fapl, char *fname)
     CHECK(free_space, FAIL, "H5Fget_freespace");
 
     /* Get the # of free-space sections in the file */
-    nsects = H5Fget_free_sections(file, H5FD_MEM_DEFAULT, (size_t)0, NULL);
-    CHECK(nsects, FAIL, "H5Fget_free_sections");
-
-    /* saved a copy */
-    saved_nsects = (size_t)nsects;
+    saved_nsects = H5Fget_free_sections(file, H5FD_MEM_DEFAULT, (size_t)0, NULL);
+    CHECK(saved_nsects, FAIL, "H5Fget_free_sections");
 
     /* Allocate storage for the free space section information */
-    sect_info = (H5F_sect_info_t *)HDcalloc((size_t)saved_nsects, sizeof(H5F_sect_info_t));
-    CHECK(sect_info, NULL, "HDcalloc");
+    saved_sect_info = (H5F_sect_info_t *)HDcalloc((size_t)saved_nsects, sizeof(H5F_sect_info_t));
+    CHECK(saved_sect_info, NULL, "HDcalloc");
 
     /* Should return failure when nsects is 0 with a nonnull sect_info */
-    nsects = H5Fget_free_sections(file, H5FD_MEM_DEFAULT, (size_t)0, sect_info);
+    nsects = H5Fget_free_sections(file, H5FD_MEM_DEFAULT, (size_t)0, saved_sect_info);
     VERIFY(nsects, FAIL, "H5Fget_free_sections");
 
     /* Verify the correct # of free-space sections */
-    nsects = H5Fget_free_sections(file, H5FD_MEM_DEFAULT, saved_nsects, sect_info);
+    nsects = H5Fget_free_sections(file, H5FD_MEM_DEFAULT, (size_t)saved_nsects, saved_sect_info);
     VERIFY(nsects, saved_nsects, "H5Fget_free_sections");
     
     /* Verify the amount of free-space is correct */
     total = 0;
-    for(i = 0; i < (hsize_t)nsects; i++)
-	total += sect_info[i].size;
+    for(i = 0; i < nsects; i++)
+	total += saved_sect_info[i].size;
     VERIFY(free_space, total, "H5Fget_free_sections");
 
-    /* saved the last section's size */
-    last_size = sect_info[nsects-1].size;
+    /* save the last section's size */
+    last_size = saved_sect_info[nsects-1].size;
 
-    /* clear memory for sect_info */
-    HDmemset(sect_info, 0, ((size_t)saved_nsects * sizeof(H5F_sect_info_t)));
+    /* Allocate storage for -1 free space section information */
+    sect_info = (H5F_sect_info_t *)HDcalloc((size_t)(saved_nsects - 1), sizeof(H5F_sect_info_t));
+    CHECK(sect_info, NULL, "HDcalloc");
 
-    /* Retrieve free-space info for -1 sections */
-    nsects = H5Fget_free_sections(file, H5FD_MEM_DEFAULT, (saved_nsects - 1), sect_info);
+    /* Retrieve free space info for -1 sections */
+    nsects = H5Fget_free_sections(file, H5FD_MEM_DEFAULT, (size_t)(saved_nsects - 1), sect_info);
     VERIFY(nsects, saved_nsects, "H5Fget_free_sections");
 
     /* Verify the amount of free-space is correct */
     total = 0;
-    for(i = 0; i < (hsize_t)nsects; i++)
+    for(i = 0; i < (saved_nsects - 1); i++) {
+	VERIFY(sect_info[i].addr, saved_sect_info[i].addr, "H5Fget_free_sections");
+	VERIFY(sect_info[i].size, saved_sect_info[i].size, "H5Fget_free_sections");
 	total += sect_info[i].size;
-    VERIFY(((hsize_t)free_space - last_size), total, "H5Fget_free_sections");
+    }
 
-    /* clear memory for sect_info */
-    HDmemset(sect_info, 0, ((size_t)saved_nsects * sizeof(H5F_sect_info_t)));
+    VERIFY(((hsize_t)free_space - last_size), total, "H5Fget_free_sections");
+    HDfree(sect_info);
+
+    /* Allocate storage for +1 free space section information */
+    sect_info = (H5F_sect_info_t *)HDcalloc((size_t)(saved_nsects + 1), sizeof(H5F_sect_info_t));
+    CHECK(sect_info, NULL, "HDcalloc");
 
     /* Retrieve free-space info for +1 sections */
-    nsects = H5Fget_free_sections(file, H5FD_MEM_DEFAULT, (saved_nsects + 1), sect_info);
+    nsects = H5Fget_free_sections(file, H5FD_MEM_DEFAULT, (size_t)(saved_nsects + 1), sect_info);
     VERIFY(nsects, saved_nsects, "H5Fget_free_sections");
 
-    /* Verify the amount of free-space is correct */
+    /* Verify free-space info is correct */
     total = 0;
-    for(i = 0; i < (hsize_t)nsects; i++)
+    for(i = 0; i < nsects; i++) {
+	VERIFY(sect_info[i].addr, saved_sect_info[i].addr, "H5Fget_free_sections");
+	VERIFY(sect_info[i].size, saved_sect_info[i].size, "H5Fget_free_sections");
 	total += sect_info[i].size;
+    }
+
+    VERIFY(sect_info[nsects].addr, 0, "H5Fget_free_sections");
+    VERIFY(sect_info[nsects].size, 0, "H5Fget_free_sections");
     VERIFY(free_space, total, "H5Fget_free_sections");
+    HDfree(sect_info);
 
     /* Verify that there is no free-space section for this type */
     nsects = H5Fget_free_sections(file, H5FD_MEM_BTREE, (size_t)0, NULL);
@@ -2655,6 +2671,8 @@ test_free_sections(hid_t fapl, char *fname)
 
     ret = H5Pclose(fcpl);
     CHECK(fcpl, FAIL, "H5Pclose");
+
+    HDfree(saved_sect_info);
 
 } /* end test_free_sections() */
 
@@ -2679,8 +2697,7 @@ test_filespace_sects(void)
     /* SEC2 */
     MESSAGE(5, ("Testing File free space information for a sec2 file\n"));
 
-    fapl_sec2 = h5_fileaccess();
-    CHECK(fapl_sec2, FAIL, "h5_fileaccess");
+    fapl_sec2 = H5Pcreate(H5P_FILE_ACCESS);
 
     ret = H5Pset_fapl_sec2(fapl_sec2);
     CHECK(ret, FAIL, "H5Pset_fapl_sec2");
@@ -2698,7 +2715,7 @@ test_filespace_sects(void)
     /* SPLIT */
     MESSAGE(5, ("Testing File free space information for a split file\n"));
 
-    fapl_split = h5_fileaccess();
+    fapl_split = H5Pcreate(H5P_FILE_ACCESS);
     CHECK(fapl_split, FAIL, "h5_fileaccess");
 
     ret = H5Pset_fapl_split(fapl_split, "-m.h5", H5P_DEFAULT, "-r.h5", H5P_DEFAULT);
@@ -2717,7 +2734,7 @@ test_filespace_sects(void)
     /* STDIO */
     MESSAGE(5, ("Testing File free space information for a stdio file\n"));
 
-    fapl_stdio = h5_fileaccess();
+    fapl_stdio = H5Pcreate(H5P_FILE_ACCESS);
     CHECK(fapl_stdio, FAIL, "h5_fileaccess");
 
     ret = H5Pset_fapl_stdio(fapl_stdio);
@@ -2735,7 +2752,7 @@ test_filespace_sects(void)
     /* CORE */
     MESSAGE(5, ("Testing File free space information for a core file\n"));
 
-    fapl_core = h5_fileaccess();
+    fapl_core = H5Pcreate(H5P_FILE_ACCESS);
     CHECK(fapl_core, FAIL, "h5_fileaccess");
 
     ret = H5Pset_fapl_core(fapl_core, (size_t)CORE_INCREMENT, TRUE);
@@ -2754,7 +2771,7 @@ test_filespace_sects(void)
     /* FAMILY */
     MESSAGE(5, ("Testing File free space information for a family file\n"));
 
-    fapl_family = h5_fileaccess();
+    fapl_family = H5Pcreate(H5P_FILE_ACCESS);
     CHECK(fapl_family, FAIL, "h5_fileaccess");
 
     ret = H5Pset_fapl_family(fapl_family, (hsize_t)FAMILY_SIZE, H5P_DEFAULT);
@@ -2785,6 +2802,7 @@ test_filespace_info(void)
     hid_t	fid1, fid2; 		/* HDF5 File IDs	*/
     hid_t	fapl, new_fapl;		/* File access property */
     hid_t	fcpl, fcpl1, fcpl2;	/* File creation property */
+    char        filename[FILENAME_LEN];	/* Filename to use */
     H5F_file_space_type_t	strategy, fs_type, def_type;	/* File space handling strategy */
     hsize_t	threshold, fs_size, def_size;			/* Free space section threshold */
     hbool_t 	new_format;		/* new format or old format */
@@ -2794,6 +2812,8 @@ test_filespace_info(void)
     MESSAGE(5, ("Testing File Space Management public routines: H5Pget/set_file_space()\n"));
 
     fapl = h5_fileaccess();
+    h5_fixname(FILESPACE_NAME[0], fapl, filename, sizeof filename);
+
     new_fapl = H5Pcopy(fapl);
     CHECK(new_fapl, FAIL, "H5Pcopy");
 
@@ -2847,7 +2867,7 @@ test_filespace_info(void)
 		VERIFY(threshold, (hsize_t)(fs_size ? fs_size : def_size), "H5Pget_file_space");
 
 		/* Create the file with the specified file space info */
-		fid1 = H5Fcreate(FILE1, H5F_ACC_TRUNC, fcpl1, my_fapl);
+		fid1 = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl1, my_fapl);
 		CHECK(ret, FAIL, "H5Fcreate");
 
 		/* Close the file */
@@ -2855,7 +2875,7 @@ test_filespace_info(void)
 		CHECK(ret, FAIL, "H5Fclose");
 
 		/* Re-open the file */
-		fid2 = H5Fopen(FILE1, H5F_ACC_RDWR, H5P_DEFAULT);
+		fid2 = H5Fopen(filename, H5F_ACC_RDWR, my_fapl);
 		CHECK(ret, FAIL, "H5Fopen");
 
 		/* Get the file's creation property */
@@ -2882,6 +2902,9 @@ test_filespace_info(void)
 		CHECK(ret, FAIL, "H5Pclose");
 	    } /* end for file space strategy type */
 	} /* end for free space threshold */
+
+	h5_cleanup(FILESPACE_NAME, my_fapl);
+
     } /* end for new/old format */
 
     /* Close the file creation property list */

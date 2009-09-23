@@ -2842,6 +2842,11 @@ H5Fget_info(hid_t obj_id, H5F_info_t *finfo)
         if(H5SM_ih_size(f, H5AC_ind_dxpl_id, finfo) < 0)
             HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "Unable to retrieve SOHM btree & heap storage info")
 
+    /* Set version # fields */
+    finfo->super.vers = f->shared->sblock->super_vers;
+    finfo->sohm.vers = f->shared->sohm_vers;
+    finfo->free.vers = HDF5_FREESPACE_VERSION; 
+
 done:
     FUNC_LEAVE_API(ret_value)
 } /* end H5Fget_info() */

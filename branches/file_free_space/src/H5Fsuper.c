@@ -694,8 +694,8 @@ H5F_super_size(H5F_t *f, hid_t dxpl_id, hsize_t *super_size, hsize_t *super_ext_
     /* Set the superblock extension size */
     if(super_ext_size) {
         if(H5F_addr_defined(f->shared->sblock->ext_addr)) {
-            H5O_loc_t ext_loc;                  /* "Object location" for superblock extension */
-            H5O_info_t oinfo;                   /* Object info for superblock extension */
+            H5O_loc_t ext_loc;          /* "Object location" for superblock extension */
+            H5O_hdr_info_t hdr_info;    /* Object info for superblock extension */
 
             /* Set up "fake" object location for superblock extension */
             H5O_loc_reset(&ext_loc);
@@ -703,11 +703,11 @@ H5F_super_size(H5F_t *f, hid_t dxpl_id, hsize_t *super_size, hsize_t *super_ext_
             ext_loc.addr = f->shared->sblock->ext_addr;
 
             /* Get object header info for superblock extension */
-            if(H5O_get_info(&ext_loc, dxpl_id, FALSE, &oinfo) < 0)
+            if(H5O_get_hdr_info(&ext_loc, dxpl_id, &hdr_info) < 0)
                 HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "unable to retrieve superblock extension info")
 
             /* Set the superblock extension size */
-            *super_ext_size = oinfo.hdr.space.total;
+            *super_ext_size = hdr_info.space.total;
         } /* end if */
         else
             /* Set the superblock extension size to zero */
@@ -826,21 +826,21 @@ H5F_super_ext_remove_msg(H5F_t *f, hid_t dxpl_id, unsigned id)
     if((status = H5O_msg_exists(&ext_loc, id, dxpl_id)) < 0)
 	HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "unable to check object header for message")
     else if(status) { /* message exists */
-	H5O_info_t 	oinfo;
+	H5O_hdr_info_t 	hdr_info;       /* Object header info for superblock extension */
 
 	/* Remove the message */
 	if(H5O_msg_remove(&ext_loc, id, H5O_ALL, TRUE, dxpl_id) < 0)
 	    HGOTO_ERROR(H5E_OHDR, H5E_CANTDELETE, FAIL, "unable to delete free-space manager info message")
 
-	/* Get info for the object header */
-	if(H5O_get_info(&ext_loc, dxpl_id, FALSE, &oinfo) < 0)
+	/* Get info for the superblock extension's object header */
+	if(H5O_get_hdr_info(&ext_loc, dxpl_id, &hdr_info) < 0)
 	    HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "unable to retrieve superblock extension info")
 
 	/* If the object header is an empty base chunk, remove superblock extension */
-	if(oinfo.hdr.nchunks == 1) {
+	if(hdr_info.nchunks == 1) {
 	    if((null_count = H5O_msg_count(&ext_loc, H5O_NULL_ID, dxpl_id)) < 0)
 		HGOTO_ERROR(H5E_SYM, H5E_CANTCOUNT, FAIL, "unable to count messages")
-	    else if((unsigned)null_count == oinfo.hdr.nmesgs) {
+	    else if((unsigned)null_count == hdr_info.nmesgs) {
 		HDassert(H5F_addr_defined(ext_loc.addr));
 		if(H5O_delete(f, dxpl_id, ext_loc.addr) < 0)
 		    HGOTO_ERROR(H5E_SYM, H5E_CANTCOUNT, FAIL, "unable to count messages")
