@@ -824,6 +824,7 @@
 ./test/family_v16_00001.h5
 ./test/family_v16_00002.h5
 ./test/family_v16_00003.h5
+./test/farray.c
 ./test/fheap.c
 ./test/freespace.c
 ./test/fill_old.h5
@@ -878,12 +879,15 @@
 ./test/tbad_msg_count.h5
 ./test/tbogus.h5
 ./test/tchecksum.c
+./test/tcheck_version.c
 ./test/tconfig.c
 ./test/tcoords.c
+./test/testcheck_version.sh.in
 ./test/testerror.sh.in
 ./test/testframe.c
 ./test/testhdf5.c
 ./test/testhdf5.h
+./test/testlibinfo.sh.in
 ./test/testmeta.c
 ./test/tfile.c
 ./test/tgenprop.c
@@ -1511,16 +1515,16 @@
 ./tools/h5diff/testfiles/h5diff_207.txt
 
 
+./tools/h5diff/testfiles/h5diff_attr1.h5
+./tools/h5diff/testfiles/h5diff_attr2.h5
 ./tools/h5diff/testfiles/h5diff_basic1.h5
 ./tools/h5diff/testfiles/h5diff_basic2.h5
-./tools/h5diff/testfiles/h5diff_dtypes.h5
 ./tools/h5diff/testfiles/h5diff_dset1.h5
 ./tools/h5diff/testfiles/h5diff_dset2.h5
+./tools/h5diff/testfiles/h5diff_dtypes.h5
 ./tools/h5diff/testfiles/h5diff_empty.h5
 ./tools/h5diff/testfiles/h5diff_hyper1.h5
-./tools/h5diff/testfiles/h5diff_attr1.h5
 ./tools/h5diff/testfiles/h5diff_hyper2.h5
-./tools/h5diff/testfiles/h5diff_attr2.h5
 ./tools/h5diff/testfiles/h5diff_types.h5
 
 
@@ -2056,6 +2060,8 @@
 ./windows/test/extenddll/extenddll.vcproj
 ./windows/test/external/external.vcproj
 ./windows/test/externaldll/externaldll.vcproj
+./windows/test/farray/farray.vcproj
+./windows/test/farraydll/farraydll.vcproj
 ./windows/test/fheap/fheap.vcproj
 ./windows/test/fheapdll/fheapdll.vcproj
 ./windows/test/fillval/fillval.vcproj
