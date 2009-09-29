@@ -173,7 +173,8 @@ H5HG_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void UNUSED * udata1,
     nalloc = H5HG_NOBJS(f, heap->size);
     if(NULL == (heap->obj = H5FL_SEQ_MALLOC(H5HG_obj_t, nalloc)))
 	HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
-    heap->obj[0].size = heap->obj[0].nrefs = 0;
+    heap->obj[0].nrefs = 0;
+    heap->obj[0].size = 0;
     heap->obj[0].begin = NULL;
 
     heap->nalloc = nalloc;
@@ -243,6 +244,8 @@ H5HG_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void UNUSED * udata1,
         heap->nused = max_idx + 1;
     else
         heap->nused = 1;
+
+    HDassert(max_idx < heap->nused);
 
     /*
      * Add the new heap to the CWFS list, removing some other entry if

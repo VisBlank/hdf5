@@ -74,8 +74,7 @@
 /****************************/
 /* Define the shared attribute structure */
 typedef struct H5A_shared_t {
-    unsigned    version;    /* Version to encode attribute with */
-    hbool_t     initialized;/* Indicate whether the attribute has been modified */
+    uint8_t     version;    /* Version to encode attribute with */
 
     char        *name;      /* Attribute's name */
     H5T_cset_t  encoding;   /* Character encoding of attribute name */

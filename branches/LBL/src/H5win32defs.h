@@ -47,7 +47,7 @@ typedef __int64             h5_stat_size_t;
     #ifdef __cplusplus
         extern "C" {
     #endif /* __cplusplus */
-    int HDgettimeofday(struct timeval *tv, void *tz);
+    H5_DLL int HDgettimeofday(struct timeval *tv, void *tz);
     #ifdef __cplusplus
         }
     #endif /* __cplusplus */
@@ -60,6 +60,7 @@ typedef __int64             h5_stat_size_t;
 #define HDopen(S,F,M)       _open(S,F|_O_BINARY,M)
 #define HDread(F,M,Z)       _read(F,M,Z)
 #define HDsetvbuf(F,S,M,Z)  setvbuf(F,S,M,(Z>1?Z:2))
+#define HDsleep(S)          Sleep(S*1000)
 #define HDstrcasecmp(A,B)   _stricmp(A,B)
 #define HDstrtoull(S,R,N)   _strtoui64(S,R,N)
 #define HDstrdup(S)         _strdup(S)
