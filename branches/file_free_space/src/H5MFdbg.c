@@ -196,7 +196,6 @@ H5MF_sects_debug(H5F_t *f, hid_t dxpl_id, haddr_t fs_addr, FILE *stream, int ind
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-
 } /* H5MF_sects_debug() */
 
 #ifdef H5MF_ALLOC_DEBUG_DUMP

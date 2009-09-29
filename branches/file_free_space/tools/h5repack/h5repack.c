@@ -244,6 +244,7 @@ int h5repack_addlayout(const char* str,
     return 0;
 }
 
+
 /*-------------------------------------------------------------------------
 * Function: check_options
 *

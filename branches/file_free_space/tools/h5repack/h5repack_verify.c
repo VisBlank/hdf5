@@ -680,3 +680,4 @@ int verify_filters(hid_t pid, hid_t tid, int nfilters, filter_info_t *filter)
 
     return 1;
 }
+

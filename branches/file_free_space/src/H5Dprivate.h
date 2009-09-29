@@ -180,5 +180,6 @@ H5_DLL herr_t H5D_chunk_delete(H5F_t *f, hid_t dxpl_id, H5O_t *oh,
 /* Functions that operate on indexed storage */
 H5_DLL herr_t H5D_btree_debug(H5F_t *f, hid_t dxpl_id, haddr_t addr, FILE * stream,
 				int indent, int fwidth, unsigned ndims);
+
 #endif /* _H5Dprivate_H */
 
