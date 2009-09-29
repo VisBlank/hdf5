@@ -2995,9 +2995,9 @@ test_select_hyper_checker_board_dr__verify_data(uint16_t * buf_ptr,
     hbool_t start_in_checker[5];
     uint16_t expected_value;
     uint16_t * val_ptr;
-    int i, j, k, l, m;  // to track position in n-cube
-    int v, w, x, y, z;  // to track position in checker
-    const int test_max_rank = 5; // code changes needed if this is increased
+    int i, j, k, l, m;  /* to track position in n-cube */
+    int v, w, x, y, z;  /* to track position in checker */
+    const int test_max_rank = 5; /* code changes needed if this is increased */
 
     HDassert( buf_ptr != NULL );
     HDassert( 0 < rank );
@@ -3086,14 +3086,14 @@ test_select_hyper_checker_board_dr__verify_data(uint16_t * buf_ptr,
                                 good_data = FALSE;
                             }
  
-                            // zero out buffer for re-use
+                            /* zero out buffer for re-use */
                             *val_ptr = 0;
 
                         } else if ( *val_ptr != 0 ) {
 
                             good_data = FALSE;
  
-                            // zero out buffer for re-use
+                            /* zero out buffer for re-use */
                             *val_ptr = 0;
 
                         }
@@ -3656,7 +3656,7 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
                                 edge_size,
                                 checker_edge_size,
                                 expected_value,
-                                (const hbool_t)TRUE
+                                (hbool_t)TRUE
                               );
 
                     if ( ! data_ok ) { 
@@ -3835,7 +3835,7 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
                                  edge_size,
                                  checker_edge_size,
                                  (uint16_t)0,
-                                 (const hbool_t)TRUE
+                                 (hbool_t)TRUE
                               );
 
                     ptr_1 += small_cube_size;
@@ -4024,7 +4024,7 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
                                 edge_size,
                                 checker_edge_size,
                                 expected_value,
-                                (const hbool_t)TRUE
+                                (hbool_t)TRUE
                               );
 
                     if ( ! data_ok ) { 
@@ -4220,7 +4220,7 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
                                  edge_size,
                                  checker_edge_size,
                                  (uint16_t)0,
-                                 (const hbool_t)TRUE
+                                 (hbool_t)TRUE
                               );
 
                     ptr_1 += small_cube_size;
@@ -9808,24 +9808,24 @@ test_shape_same_dr__smoke_check_1(void)
     small_cube_xy_slice_2_sid = H5Screate_simple(3, small_cube_dims, NULL);
     CHECK(small_cube_xy_slice_2_sid, FAIL, "H5Screate_simple");
 
-    start[0] = 0;	// x
-    start[1] = 0;	// y
-    start[2] = 0;	// z
+    start[0] = 0;	/* x */
+    start[1] = 0;	/* y */
+    start[2] = 0;	/* z */
 
-    // stride is a bit silly here, since we are only selecting a single 
-    // contiguous plane, but include it anyway, with values large enough
-    // to ensure that we will only get the single block selected.
-    stride[0] = 20;	// x
-    stride[1] = 20;	// y
-    stride[2] = 20;	// z
+    /* stride is a bit silly here, since we are only selecting a single  */
+    /* contiguous plane, but include it anyway, with values large enough */
+    /* to ensure that we will only get the single block selected. */
+    stride[0] = 20;	/* x */
+    stride[1] = 20;	/* y */
+    stride[2] = 20;	/* z */
 
-    count[0] = 1;	// x
-    count[1] = 1;	// y
-    count[2] = 1;	// z
+    count[0] = 1;	/* x */
+    count[1] = 1;	/* y */
+    count[2] = 1;	/* z */
 
-    block[0] = 10;	// x
-    block[1] = 10;	// y
-    block[2] =  1;	// z
+    block[0] = 10;	/* x */
+    block[1] = 10;	/* y */
+    block[2] =  1;	/* z */
 
     ret = H5Sselect_hyperslab(small_cube_xy_slice_0_sid, H5S_SELECT_SET,
                               start, stride, count, block);
@@ -9855,24 +9855,24 @@ test_shape_same_dr__smoke_check_1(void)
     small_cube_xz_slice_2_sid = H5Screate_simple(3, small_cube_dims, NULL);
     CHECK(small_cube_xz_slice_2_sid, FAIL, "H5Screate_simple");
 
-    start[0] = 0;	// x
-    start[1] = 0;	// y
-    start[2] = 0;	// z
+    start[0] = 0;	/* x */
+    start[1] = 0;	/* y */
+    start[2] = 0;	/* z */
 
-    // stride is a bit silly here, since we are only selecting a single 
-    // contiguous chunk, but include it anyway, with values large enough
-    // to ensure that we will only get the single chunk.
-    stride[0] = 20;	// x
-    stride[1] = 20;	// y
-    stride[2] = 20;	// z
+    /* stride is a bit silly here, since we are only selecting a single  */
+    /* contiguous chunk, but include it anyway, with values large enough */
+    /* to ensure that we will only get the single chunk. */
+    stride[0] = 20;	/* x */
+    stride[1] = 20;	/* y */
+    stride[2] = 20;	/* z */
 
-    count[0] = 1;	// x
-    count[1] = 1;	// y
-    count[2] = 1;	// z
+    count[0] = 1;	/* x */
+    count[1] = 1;	/* y */
+    count[2] = 1;	/* z */
 
-    block[0] = 10;	// x
-    block[1] =  1;	// y
-    block[2] = 10;	// z
+    block[0] = 10;	/* x */
+    block[1] =  1;	/* y */
+    block[2] = 10;	/* z */
 
     ret = H5Sselect_hyperslab(small_cube_xz_slice_0_sid, H5S_SELECT_SET,
                               start, stride, count, block);
@@ -9908,24 +9908,24 @@ test_shape_same_dr__smoke_check_1(void)
     small_cube_yz_slice_4_sid = H5Screate_simple(3, small_cube_dims, NULL);
     CHECK(small_cube_yz_slice_4_sid, FAIL, "H5Screate_simple");
 
-    start[0] = 0;	// x
-    start[1] = 0;	// y
-    start[2] = 0;	// z
+    start[0] = 0;	/* x */
+    start[1] = 0;	/* y */
+    start[2] = 0;	/* z */
 
-    // stride is a bit silly here, since we are only selecting a single 
-    // contiguous chunk, but include it anyway, with values large enough
-    // to ensure that we will only get the single chunk.
-    stride[0] = 20;	// x
-    stride[1] = 20;	// y
-    stride[2] = 20;	// z
+    /* stride is a bit silly here, since we are only selecting a single  */
+    /* contiguous chunk, but include it anyway, with values large enough */
+    /* to ensure that we will only get the single chunk. */
+    stride[0] = 20;	/* x */
+    stride[1] = 20;	/* y */
+    stride[2] = 20;	/* z */
 
-    count[0] = 1;	// x
-    count[1] = 1;	// y
-    count[2] = 1;	// z
+    count[0] = 1;	/* x */
+    count[1] = 1;	/* y */
+    count[2] = 1;	/* z */
 
-    block[0] =  1;	// x
-    block[1] = 10;	// y
-    block[2] = 10;	// z
+    block[0] =  1;	/* x */
+    block[1] = 10;	/* y */
+    block[2] = 10;	/* z */
 
     ret = H5Sselect_hyperslab(small_cube_yz_slice_0_sid, H5S_SELECT_SET,
                               start, stride, count, block);
@@ -10121,33 +10121,33 @@ test_shape_same_dr__smoke_check_2(void)
     small_square_sid = H5Screate_simple(2, small_cube_dims, NULL);
     CHECK(small_square_sid, FAIL, "H5Screate_simple");
 
-    start[0] = 0;	// x
-    start[1] = 0;	// y
+    start[0] = 0;	/* x */
+    start[1] = 0;	/* y */
 
-    stride[0] = 4;	// x
-    stride[1] = 4;	// y
+    stride[0] = 4;	/* x */
+    stride[1] = 4;	/* y */
 
-    count[0] = 3;	// x
-    count[1] = 3;	// y
+    count[0] = 3;	/* x */
+    count[1] = 3;	/* y */
 
-    block[0] = 2;	// x
-    block[1] = 2;	// y
+    block[0] = 2;	/* x */
+    block[1] = 2;	/* y */
 
     ret = H5Sselect_hyperslab(small_square_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    start[0] = 2;	// x
-    start[1] = 2;	// y
+    start[0] = 2;	/* x */
+    start[1] = 2;	/* y */
 
-    stride[0] = 4;	// x
-    stride[1] = 4;	// y
+    stride[0] = 4;	/* x */
+    stride[1] = 4;	/* y */
 
-    count[0] = 2;	// x
-    count[1] = 2;	// y
+    count[0] = 2;	/* x */
+    count[1] = 2;	/* y */
 
-    block[0] = 2;	// x
-    block[1] = 2;	// y
+    block[0] = 2;	/* x */
+    block[1] = 2;	/* y */
 
     ret = H5Sselect_hyperslab(small_square_sid, H5S_SELECT_OR,
                               start, stride, count, block);
@@ -10166,21 +10166,21 @@ test_shape_same_dr__smoke_check_2(void)
     CHECK(small_cube_xy_slice_2_sid, FAIL, "H5Screate_simple");
 
 
-    start[0] = 0;	// x
-    start[1] = 0;	// y
-    start[2] = 0;	// z
+    start[0] = 0;	/* x */
+    start[1] = 0;	/* y */
+    start[2] = 0;	/* z */
 
-    stride[0] =  4;	// x
-    stride[1] =  4;	// y 
-    stride[2] =  20;	// z -- large enough that there will only be one slice
+    stride[0] =  4;	/* x */
+    stride[1] =  4;	/* y  */
+    stride[2] =  20;	/* z -- large enough that there will only be one slice */
 
-    count[0] = 3;	// x
-    count[1] = 3;	// y
-    count[2] = 1;	// z
+    count[0] = 3;	/* x */
+    count[1] = 3;	/* y */
+    count[2] = 1;	/* z */
 
-    block[0] = 2;	// x
-    block[1] = 2;	// y
-    block[2] = 1;	// z
+    block[0] = 2;	/* x */
+    block[1] = 2;	/* y */
+    block[2] = 1;	/* z */
 
     ret = H5Sselect_hyperslab(small_cube_xy_slice_0_sid, H5S_SELECT_SET,
                               start, stride, count, block);
@@ -10199,21 +10199,21 @@ test_shape_same_dr__smoke_check_2(void)
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
 
-    start[0] = 2;	// x
-    start[1] = 2;	// y
-    start[2] = 0;	// z
+    start[0] = 2;	/* x */
+    start[1] = 2;	/* y */
+    start[2] = 0;	/* z */
 
-    stride[0] =  4;	// x
-    stride[1] =  4;	// y 
-    stride[2] =  20;	// z -- large enough that there will only be one slice
+    stride[0] =  4;	/* x */
+    stride[1] =  4;	/* y  */
+    stride[2] =  20;	/* z -- large enough that there will only be one slice */
 
-    count[0] = 2;	// x
-    count[1] = 2;	// y
-    count[2] = 1;	// z
+    count[0] = 2;	/* x */
+    count[1] = 2;	/* y */
+    count[2] = 1;	/* z */
 
-    block[0] = 2;	// x
-    block[1] = 2;	// y
-    block[2] = 1;	// z
+    block[0] = 2;	/* x */
+    block[1] = 2;	/* y */
+    block[2] = 1;	/* z */
 
     ret = H5Sselect_hyperslab(small_cube_xy_slice_0_sid, H5S_SELECT_OR,
                               start, stride, count, block);
@@ -10244,21 +10244,21 @@ test_shape_same_dr__smoke_check_2(void)
     CHECK(small_cube_xz_slice_2_sid, FAIL, "H5Screate_simple");
 
 
-    start[0] = 0;	// x
-    start[1] = 0;	// y
-    start[2] = 0;	// z
+    start[0] = 0;	/* x */
+    start[1] = 0;	/* y */
+    start[2] = 0;	/* z */
 
-    stride[0] =  4;	// x
-    stride[1] = 20;	// y -- large enough that there will only be one slice
-    stride[2] =  4;	// z
+    stride[0] =  4;	/* x */
+    stride[1] = 20;	/* y -- large enough that there will only be one slice */
+    stride[2] =  4;	/* z */
 
-    count[0] = 3;	// x
-    count[1] = 1;	// y
-    count[2] = 3;	// z
+    count[0] = 3;	/* x */
+    count[1] = 1;	/* y */
+    count[2] = 3;	/* z */
 
-    block[0] = 2;	// x
-    block[1] = 1;	// y
-    block[2] = 2;	// z
+    block[0] = 2;	/* x */
+    block[1] = 1;	/* y */
+    block[2] = 2;	/* z */
 
     ret = H5Sselect_hyperslab(small_cube_xz_slice_0_sid, H5S_SELECT_SET,
                               start, stride, count, block);
@@ -10276,21 +10276,21 @@ test_shape_same_dr__smoke_check_2(void)
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    start[0] = 2;	// x
-    start[1] = 0;	// y
-    start[2] = 2;	// z
+    start[0] = 2;	/* x */
+    start[1] = 0;	/* y */
+    start[2] = 2;	/* z */
 
-    stride[0] =  4;	// x
-    stride[1] = 20;	// y -- large enough that there will only be one slice
-    stride[2] =  4;	// z
+    stride[0] =  4;	/* x */
+    stride[1] = 20;	/* y -- large enough that there will only be one slice */
+    stride[2] =  4;	/* z */
 
-    count[0] = 2;	// x
-    count[1] = 1;	// y
-    count[2] = 2;	// z
+    count[0] = 2;	/* x */
+    count[1] = 1;	/* y */
+    count[2] = 2;	/* z */
 
-    block[0] = 2;	// x
-    block[1] = 1;	// y
-    block[2] = 2;	// z
+    block[0] = 2;	/* x */
+    block[1] = 1;	/* y */
+    block[2] = 2;	/* z */
 
     ret = H5Sselect_hyperslab(small_cube_xz_slice_0_sid, H5S_SELECT_OR,
                               start, stride, count, block);
@@ -10323,21 +10323,21 @@ test_shape_same_dr__smoke_check_2(void)
     small_cube_yz_slice_3_sid = H5Screate_simple(3, small_cube_dims, NULL);
     CHECK(small_cube_yz_slice_3_sid, FAIL, "H5Screate_simple");
 
-    start[0] = 0;	// x
-    start[1] = 0;	// y
-    start[2] = 0;	// z
+    start[0] = 0;	/* x */
+    start[1] = 0;	/* y */
+    start[2] = 0;	/* z */
 
-    stride[0] = 20;	// x -- large enough that there will only be one slice
-    stride[1] =  4;	// y 
-    stride[2] =  4;	// z
+    stride[0] = 20;	/* x -- large enough that there will only be one slice */
+    stride[1] =  4;	/* y  */
+    stride[2] =  4;	/* z */
 
-    count[0] = 1;	// x
-    count[1] = 3;	// y
-    count[2] = 3;	// z
+    count[0] = 1;	/* x */
+    count[1] = 3;	/* y */
+    count[2] = 3;	/* z */
 
-    block[0] = 1;	// x
-    block[1] = 2;	// y
-    block[2] = 2;	// z
+    block[0] = 1;	/* x */
+    block[1] = 2;	/* y */
+    block[2] = 2;	/* z */
 
     ret = H5Sselect_hyperslab(small_cube_yz_slice_0_sid, H5S_SELECT_SET,
                               start, stride, count, block);
@@ -10362,21 +10362,21 @@ test_shape_same_dr__smoke_check_2(void)
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
 
-    start[0] = 0;	// x
-    start[1] = 2;	// y
-    start[2] = 2;	// z
+    start[0] = 0;	/* x */
+    start[1] = 2;	/* y */
+    start[2] = 2;	/* z */
 
-    stride[0] = 20;	// x -- large enough that there will only be one slice
-    stride[1] =  4;	// y 
-    stride[2] =  4;	// z
+    stride[0] = 20;	/* x -- large enough that there will only be one slice */
+    stride[1] =  4;	/* y */
+    stride[2] =  4;	/* z */
 
-    count[0] = 1;	// x
-    count[1] = 2;	// y
-    count[2] = 2;	// z
+    count[0] = 1;	/* x */
+    count[1] = 2;	/* y */
+    count[2] = 2;	/* z */
 
-    block[0] = 1;	// x
-    block[1] = 2;	// y
-    block[2] = 2;	// z
+    block[0] = 1;	/* x */
+    block[1] = 2;	/* y */
+    block[2] = 2;	/* z */
 
     ret = H5Sselect_hyperslab(small_cube_yz_slice_0_sid, H5S_SELECT_OR,
                               start, stride, count, block);
@@ -10396,10 +10396,11 @@ test_shape_same_dr__smoke_check_2(void)
 
     start[0] = 4;
 
-    // This test gets the right answer, but it fails the shape same
-    // test in an unexpected point.  Bring this up with Quincey, as 
-    // the oddness looks like it is not related to my code.
-    //                                      -- JRM
+    /* This test gets the right answer, but it fails the shape same
+     * test in an unexpected point.  Bring this up with Quincey, as 
+     * the oddness looks like it is not related to my code.
+     *                                      -- JRM
+     */
     ret = H5Sselect_hyperslab(small_cube_yz_slice_3_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -10552,49 +10553,49 @@ test_shape_same_dr__smoke_check_3(void)
     small_square_sid = H5Screate_simple(2, small_cube_dims, NULL);
     CHECK(small_square_sid, FAIL, "H5Screate_simple");
 
-    start[0] = 2;	// x
-    start[1] = 3;	// y
+    start[0] = 2;	/* x */
+    start[1] = 3;	/* y */
 
-    stride[0] = 20;	// x
-    stride[1] = 20;	// y
+    stride[0] = 20;	/* x */
+    stride[1] = 20;	/* y */
 
-    count[0] = 1;	// x
-    count[1] = 1;	// y
+    count[0] = 1;	/* x */
+    count[1] = 1;	/* y */
 
-    block[0] = 2;	// x
-    block[1] = 4;	// y
+    block[0] = 2;	/* x */
+    block[1] = 4;	/* y */
 
     ret = H5Sselect_hyperslab(small_square_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    start[0] = 3;	// x
-    start[1] = 6;	// y
+    start[0] = 3;	/* x */
+    start[1] = 6;	/* y */
 
-    stride[0] = 20;	// x
-    stride[1] = 20;	// y
+    stride[0] = 20;	/* x */
+    stride[1] = 20;	/* y */
 
-    count[0] = 1;	// x
-    count[1] = 1;	// y
+    count[0] = 1;	/* x */
+    count[1] = 1;	/* y */
 
-    block[0] = 4;	// x
-    block[1] = 2;	// y
+    block[0] = 4;	/* x */
+    block[1] = 2;	/* y */
 
     ret = H5Sselect_hyperslab(small_square_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    start[0] = 5;	// x
-    start[1] = 3;	// y
+    start[0] = 5;	/* x */
+    start[1] = 3;	/* y */
 
-    stride[0] = 20;	// x
-    stride[1] = 20;	// y
+    stride[0] = 20;	/* x */
+    stride[1] = 20;	/* y */
 
-    count[0] = 1;	// x
-    count[1] = 1;	// y
+    count[0] = 1;	/* x */
+    count[1] = 1;	/* y */
 
-    block[0] = 2;	// x
-    block[1] = 2;	// y
+    block[0] = 2;	/* x */
+    block[1] = 2;	/* y */
 
     ret = H5Sselect_hyperslab(small_square_sid, H5S_SELECT_OR,
                               start, stride, count, block);
@@ -10613,109 +10614,109 @@ test_shape_same_dr__smoke_check_3(void)
     CHECK(small_cube_xy_slice_2_sid, FAIL, "H5Screate_simple");
 
 
-    start[0] = 2;	// x
-    start[1] = 3;	// y
-    start[2] = 5;	// z
+    start[0] = 2;	/* x */
+    start[1] = 3;	/* y */
+    start[2] = 5;	/* z */
 
-    stride[0] =  20;	// x
-    stride[1] =  20;	// y 
-    stride[2] =  20;	// z
+    stride[0] =  20;	/* x */
+    stride[1] =  20;	/* y */
+    stride[2] =  20;	/* z */
 
-    count[0] = 1;	// x
-    count[1] = 1;	// y
-    count[2] = 1;	// z
+    count[0] = 1;	/* x */
+    count[1] = 1;	/* y */
+    count[2] = 1;	/* z */
 
-    block[0] = 2;	// x
-    block[1] = 4;	// y
-    block[2] = 1;	// z
+    block[0] = 2;	/* x */
+    block[1] = 4;	/* y */
+    block[2] = 1;	/* z */
 
     ret = H5Sselect_hyperslab(small_cube_xy_slice_0_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    // move the starting point to the origin
-    start[0] -= 1;	// x
-    start[1] -= 2;	// y
+    /* move the starting point to the origin */
+    start[0] -= 1;	/* x */
+    start[1] -= 2;	/* y */
 
     ret = H5Sselect_hyperslab(small_cube_xy_slice_1_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    // move the irregular selection to the upper right hand corner
-    start[0] += 5;	// x
-    start[1] += 5;	// y
+    /* move the irregular selection to the upper right hand corner */
+    start[0] += 5;	/* x */
+    start[1] += 5;	/* y */
 
     ret = H5Sselect_hyperslab(small_cube_xy_slice_2_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    start[0] = 3;	// x
-    start[1] = 6;	// y
-    start[2] = 5;	// z
+    start[0] = 3;	/* x */
+    start[1] = 6;	/* y */
+    start[2] = 5;	/* z */
 
-    stride[0] =  20;	// x
-    stride[1] =  20;	// y 
-    stride[2] =  20;	// z
+    stride[0] =  20;	/* x */
+    stride[1] =  20;	/* y  */
+    stride[2] =  20;	/* z */
 
-    count[0] = 1;	// x
-    count[1] = 1;	// y
-    count[2] = 1;	// z
+    count[0] = 1;	/* x */
+    count[1] = 1;	/* y */
+    count[2] = 1;	/* z */
 
-    block[0] = 4;	// x
-    block[1] = 2;	// y
-    block[2] = 1;	// z
+    block[0] = 4;	/* x */
+    block[1] = 2;	/* y */
+    block[2] = 1;	/* z */
 
     ret = H5Sselect_hyperslab(small_cube_xy_slice_0_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    // move the starting point to the origin
-    start[0] -= 1;	// x
-    start[1] -= 2;	// y
+    /* move the starting point to the origin */
+    start[0] -= 1;	/* x */
+    start[1] -= 2;	/* y */
 
     ret = H5Sselect_hyperslab(small_cube_xy_slice_1_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    // move the irregular selection to the upper right hand corner
-    start[0] += 5;	// x
-    start[1] += 5;	// y
+    /* move the irregular selection to the upper right hand corner */
+    start[0] += 5;	/* x */
+    start[1] += 5;	/* y */
 
     ret = H5Sselect_hyperslab(small_cube_xy_slice_2_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    start[0] = 5;	// x
-    start[1] = 3;	// y
-    start[2] = 5;	// z
+    start[0] = 5;	/* x */
+    start[1] = 3;	/* y */
+    start[2] = 5;	/* z */
 
-    stride[0] =  20;	// x
-    stride[1] =  20;	// y 
-    stride[2] =  20;	// z
+    stride[0] =  20;	/* x */
+    stride[1] =  20;	/* y */
+    stride[2] =  20;	/* z */
 
-    count[0] = 1;	// x
-    count[1] = 1;	// y
-    count[2] = 1;	// z
+    count[0] = 1;	/* x */
+    count[1] = 1;	/* y */
+    count[2] = 1;	/* z */
 
-    block[0] = 2;	// x
-    block[1] = 2;	// y
-    block[2] = 1;	// z
+    block[0] = 2;	/* x */
+    block[1] = 2;	/* y */
+    block[2] = 1;	/* z */
 
     ret = H5Sselect_hyperslab(small_cube_xy_slice_0_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    // move the starting point to the origin
-    start[0] -= 1;	// x
-    start[1] -= 2;	// y
+    /* move the starting point to the origin */
+    start[0] -= 1;	/* x
+    start[1] -= 2;	/* y
 
     ret = H5Sselect_hyperslab(small_cube_xy_slice_1_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    // move the irregular selection to the upper right hand corner
-    start[0] += 5;	// x
-    start[1] += 5;	// y
+    /* move the irregular selection to the upper right hand corner */
+    start[0] += 5;	/* x */
+    start[1] += 5;	/* y */
 
     ret = H5Sselect_hyperslab(small_cube_xy_slice_2_sid, H5S_SELECT_OR,
                               start, stride, count, block);
@@ -10733,109 +10734,109 @@ test_shape_same_dr__smoke_check_3(void)
     small_cube_xz_slice_2_sid = H5Screate_simple(3, small_cube_dims, NULL);
     CHECK(small_cube_xz_slice_2_sid, FAIL, "H5Screate_simple");
 
-    start[0] = 2;	// x
-    start[1] = 5;	// y
-    start[2] = 3;	// z
+    start[0] = 2;	/* x */
+    start[1] = 5;	/* y */
+    start[2] = 3;	/* z */
 
-    stride[0] = 20;	// x
-    stride[1] = 20;	// y
-    stride[2] = 20;	// z
+    stride[0] = 20;	/* x */
+    stride[1] = 20;	/* y */
+    stride[2] = 20;	/* z */
 
-    count[0] = 1;	// x
-    count[1] = 1;	// y
-    count[2] = 1;	// z
+    count[0] = 1;	/* x */
+    count[1] = 1;	/* y */
+    count[2] = 1;	/* z */
 
-    block[0] = 2;	// x
-    block[1] = 1;	// y
-    block[2] = 4;	// z
+    block[0] = 2;	/* x */
+    block[1] = 1;	/* y */
+    block[2] = 4;	/* z */
 
     ret = H5Sselect_hyperslab(small_cube_xz_slice_0_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    // move the starting point to the origin
-    start[0] -= 1;	// x
-    start[2] -= 2;	// y
+    /* move the starting point to the origin */
+    start[0] -= 1;	/* x */
+    start[2] -= 2;	/* y */
 
     ret = H5Sselect_hyperslab(small_cube_xz_slice_1_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    // move the irregular selection to the upper right hand corner
-    start[0] += 5;	// x
-    start[2] += 5;	// y
+    /* move the irregular selection to the upper right hand corner */
+    start[0] += 5;	/* x */
+    start[2] += 5;	/* y */
 
     ret = H5Sselect_hyperslab(small_cube_xz_slice_2_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    start[0] = 3;	// x
-    start[1] = 5;	// y
-    start[2] = 6;	// z
+    start[0] = 3;	/* x */
+    start[1] = 5;	/* y */
+    start[2] = 6;	/* z */
 
-    stride[0] = 20;	// x
-    stride[1] = 20;	// y
-    stride[2] = 20;	// z
+    stride[0] = 20;	/* x */
+    stride[1] = 20;	/* y */
+    stride[2] = 20;	/* z */
 
-    count[0] = 1;	// x
-    count[1] = 1;	// y
-    count[2] = 1;	// z
+    count[0] = 1;	/* x */
+    count[1] = 1;	/* y */
+    count[2] = 1;	/* z */
 
-    block[0] = 4;	// x
-    block[1] = 1;	// y
-    block[2] = 2;	// z
+    block[0] = 4;	/* x */
+    block[1] = 1;	/* y */
+    block[2] = 2;	/* z */
 
     ret = H5Sselect_hyperslab(small_cube_xz_slice_0_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    // move the starting point to the origin
-    start[0] -= 1;	// x
-    start[2] -= 2;	// y
+    /* move the starting point to the origin */
+    start[0] -= 1;	/* x */
+    start[2] -= 2;	/* y */
 
     ret = H5Sselect_hyperslab(small_cube_xz_slice_1_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    // move the irregular selection to the upper right hand corner
-    start[0] += 5;	// x
-    start[2] += 5;	// y
+    /* move the irregular selection to the upper right hand corner */
+    start[0] += 5;	/* x */
+    start[2] += 5;	/* y */
 
     ret = H5Sselect_hyperslab(small_cube_xz_slice_2_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    start[0] = 5;	// x
-    start[1] = 5;	// y
-    start[2] = 3;	// z
+    start[0] = 5;	/* x */
+    start[1] = 5;	/* y */
+    start[2] = 3;	/* z */
 
-    stride[0] = 20;	// x
-    stride[1] = 20;	// y
-    stride[2] = 20;	// z
+    stride[0] = 20;	/* x */
+    stride[1] = 20;	/* y */
+    stride[2] = 20;	/* z */
 
-    count[0] = 1;	// x
-    count[1] = 1;	// y
-    count[2] = 1;	// z
+    count[0] = 1;	/* x */
+    count[1] = 1;	/* y */
+    count[2] = 1;	/* z */
 
-    block[0] = 2;	// x
-    block[1] = 1;	// y
-    block[2] = 2;	// z
+    block[0] = 2;	/* x */
+    block[1] = 1;	/* y */
+    block[2] = 2;	/* z */
 
     ret = H5Sselect_hyperslab(small_cube_xz_slice_0_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    // move the starting point to the origin
-    start[0] -= 1;	// x
-    start[2] -= 2;	// y
+    /* move the starting point to the origin */
+    start[0] -= 1;	/* x */
+    start[2] -= 2;	/* y */
 
     ret = H5Sselect_hyperslab(small_cube_xz_slice_1_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    // move the irregular selection to the upper right hand corner
-    start[0] += 5;	// x
-    start[2] += 5;	// y
+    /* move the irregular selection to the upper right hand corner */
+    start[0] += 5;	/* x */
+    start[2] += 5;	/* y */
 
     ret = H5Sselect_hyperslab(small_cube_xz_slice_2_sid, H5S_SELECT_OR,
                               start, stride, count, block);
@@ -10853,109 +10854,109 @@ test_shape_same_dr__smoke_check_3(void)
     small_cube_yz_slice_2_sid = H5Screate_simple(3, small_cube_dims, NULL);
     CHECK(small_cube_yz_slice_2_sid, FAIL, "H5Screate_simple");
 
-    start[0] = 8;	// x
-    start[1] = 2;	// y
-    start[2] = 3;	// z
+    start[0] = 8;	/* x */
+    start[1] = 2;	/* y */
+    start[2] = 3;	/* z */
 
-    stride[0] = 20;	// x -- large enough that there will only be one slice
-    stride[1] = 20;	// y 
-    stride[2] = 20;	// z
+    stride[0] = 20;	/* x -- large enough that there will only be one slice */
+    stride[1] = 20;	/* y */
+    stride[2] = 20;	/* z */
 
-    count[0] = 1;	// x
-    count[1] = 1;	// y
-    count[2] = 1;	// z
+    count[0] = 1;	/* x */
+    count[1] = 1;	/* y */
+    count[2] = 1;	/* z */
 
-    block[0] = 1;	// x
-    block[1] = 2;	// y
-    block[2] = 4;	// z
+    block[0] = 1;	/* x */
+    block[1] = 2;	/* y */
+    block[2] = 4;	/* z */
 
     ret = H5Sselect_hyperslab(small_cube_yz_slice_0_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    // move the starting point to the origin
-    start[1] -= 1;	// x
-    start[2] -= 2;	// y
+    /* move the starting point to the origin */
+    start[1] -= 1;	/* x */
+    start[2] -= 2;	/* y */
 
     ret = H5Sselect_hyperslab(small_cube_yz_slice_1_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    // move the irregular selection to the upper right hand corner
-    start[0] += 5;	// x
-    start[2] += 5;	// y
+    /* move the irregular selection to the upper right hand corner */
+    start[0] += 5;	/* x */
+    start[2] += 5;	/* y */
 
     ret = H5Sselect_hyperslab(small_cube_yz_slice_2_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    start[0] = 8;	// x
-    start[1] = 3;	// y
-    start[2] = 6;	// z
+    start[0] = 8;	/* x */
+    start[1] = 3;	/* y */
+    start[2] = 6;	/* z */
 
-    stride[0] = 20;	// x
-    stride[1] = 20;	// y 
-    stride[2] = 20;	// z
+    stride[0] = 20;	/* x */
+    stride[1] = 20;	/* y */
+    stride[2] = 20;	/* z */
 
-    count[0] = 1;	// x
-    count[1] = 1;	// y
-    count[2] = 1;	// z
+    count[0] = 1;	/* x */
+    count[1] = 1;	/* y */
+    count[2] = 1;	/* z */
 
-    block[0] = 1;	// x
-    block[1] = 4;	// y
-    block[2] = 2;	// z
+    block[0] = 1;	/* x */
+    block[1] = 4;	/* y */
+    block[2] = 2;	/* z */
 
     ret = H5Sselect_hyperslab(small_cube_yz_slice_0_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    // move the starting point to the origin
-    start[1] -= 1;	// x
-    start[2] -= 2;	// y
+    /* move the starting point to the origin */
+    start[1] -= 1;	/* x */
+    start[2] -= 2;	/* y */
 
     ret = H5Sselect_hyperslab(small_cube_yz_slice_1_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    // move the irregular selection to the upper right hand corner
-    start[0] += 5;	// x
-    start[2] += 5;	// y
+    /* move the irregular selection to the upper right hand corner */
+    start[0] += 5;	/* x */
+    start[2] += 5;	/* y */
 
     ret = H5Sselect_hyperslab(small_cube_yz_slice_2_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    start[0] = 8;	// x
-    start[1] = 5;	// y
-    start[2] = 3;	// z
+    start[0] = 8;	/* x */
+    start[1] = 5;	/* y */
+    start[2] = 3;	/* z */
 
-    stride[0] = 20;	// x
-    stride[1] = 20;	// y 
-    stride[2] = 20;	// z
+    stride[0] = 20;	/* x */
+    stride[1] = 20;	/* y */
+    stride[2] = 20;	/* z */
 
-    count[0] = 1;	// x
-    count[1] = 1;	// y
-    count[2] = 1;	// z
+    count[0] = 1;	/* x */
+    count[1] = 1;	/* y */
+    count[2] = 1;	/* z */
 
-    block[0] = 1;	// x
-    block[1] = 2;	// y
-    block[2] = 2;	// z
+    block[0] = 1;	/* x */
+    block[1] = 2;	/* y */
+    block[2] = 2;	/* z */
 
     ret = H5Sselect_hyperslab(small_cube_yz_slice_0_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    // move the starting point to the origin
-    start[1] -= 1;	// x
-    start[2] -= 2;	// y
+    /* move the starting point to the origin */
+    start[1] -= 1;	/* x */
+    start[2] -= 2;	/* y */
 
     ret = H5Sselect_hyperslab(small_cube_yz_slice_1_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    // move the irregular selection to the upper right hand corner
-    start[0] += 5;	// x
-    start[2] += 5;	// y
+    /* move the irregular selection to the upper right hand corner */
+    start[0] += 5;	/* x */
+    start[2] += 5;	/* y */
 
     ret = H5Sselect_hyperslab(small_cube_yz_slice_2_sid, H5S_SELECT_OR,
                               start, stride, count, block);
