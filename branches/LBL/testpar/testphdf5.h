@@ -237,6 +237,7 @@ void coll_irregular_simple_chunk_write(void);
 void coll_irregular_complex_chunk_read(void);
 void coll_irregular_complex_chunk_write(void);
 void io_mode_confusion(void);
+void contig_hyperslab_dr_pio_test(void);
 #ifdef H5_HAVE_FILTER_DEFLATE
 void compress_readAll(void);
 #endif /* H5_HAVE_FILTER_DEFLATE */
