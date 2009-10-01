@@ -101,23 +101,23 @@ typedef enum H5F_close_degree_t {
 } H5F_close_degree_t;
 
 /* Current "global" information about file */
-typedef struct H5F_info_t {
+typedef struct H5F_info2_t {
     struct {
-	unsigned	vers;		/* Superblock version # */
+	unsigned	version;	/* Superblock version # */
 	hsize_t		super_size;	/* Superblock size */
 	hsize_t		super_ext_size;	/* Superblock extension size */
     } super;
     struct {
-	unsigned	vers;		/* Version # of file/free space management */
-	hsize_t		hdr_size;	/* Free space manager header size */
+	unsigned	version;	/* Version # of file free space management */
+	hsize_t		meta_size;	/* Free space manager metadata size */
 	hsize_t		tot_space;	/* Amount of free space in the file */
     } free;
     struct {
-	unsigned	vers;		/* Version # of shared object header info */
+	unsigned	version;	/* Version # of shared object header info */
 	hsize_t		hdr_size;       /* Shared object header message header size */
 	H5_ih_info_t	msgs_info;      /* Shared object header message index & heap size */
     } sohm;
-} H5F_info_t;
+} H5F_info2_t;
 
 /*
  * Types of allocation requests. The values larger than H5FD_MEM_DEFAULT
@@ -195,9 +195,35 @@ H5_DLL herr_t H5Fget_mdc_size(hid_t file_id,
                               int * cur_num_entries_ptr);
 H5_DLL herr_t H5Freset_mdc_hit_rate_stats(hid_t file_id);
 H5_DLL ssize_t H5Fget_name(hid_t obj_id, char *name, size_t size);
-H5_DLL herr_t H5Fget_info(hid_t obj_id, H5F_info_t *bh_info);
+H5_DLL herr_t H5Fget_info2(hid_t obj_id, H5F_info2_t *finfo);
 H5_DLL ssize_t H5Fget_free_sections(hid_t file_id, H5F_mem_t type,
     size_t nsects, H5F_sect_info_t *sect_info/*out*/);
+
+/* Symbols defined for compatibility with previous versions of the HDF5 API.
+ *
+ * Use of these symbols is deprecated.
+ */
+#ifndef H5_NO_DEPRECATED_SYMBOLS
+
+/* Macros */
+
+
+/* Typedefs */
+
+/* Current "global" information about file */
+typedef struct H5F_info1_t {
+    hsize_t		super_ext_size;	/* Superblock extension size */
+    struct {
+	hsize_t		hdr_size;       /* Shared object header message header size */
+	H5_ih_info_t	msgs_info;      /* Shared object header message index & heap size */
+    } sohm;
+} H5F_info1_t;
+
+
+/* Function prototypes */
+H5_DLL herr_t H5Fget_info1(hid_t obj_id, H5F_info1_t *finfo);
+
+#endif /* H5_NO_DEPRECATED_SYMBOLS */
 
 #ifdef __cplusplus
 }

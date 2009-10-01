@@ -1797,14 +1797,8 @@ test_misc11(void)
     unsigned    sym_ik;         /* Symbol table B-tree initial 'K' value */
     unsigned    istore_ik;      /* Indexed storage B-tree initial 'K' value */
     unsigned    sym_lk;         /* Symbol table B-tree leaf 'K' value */
-#ifndef H5_NO_DEPRECATED_SYMBOLS
-    unsigned super;             /* Superblock version # */
-    unsigned freelist;          /* Free list version # */
-    unsigned stab;              /* Symbol table entry version # */
-    unsigned shhdr;             /* Shared object header version # */
-#endif /* H5_NO_DEPRECATED_SYMBOLS */
     unsigned nindexes;          /* Shared message number of indexes */
-    H5F_info_t	finfo;		/* global information about file */
+    H5F_info2_t	finfo;		/* global information about file */
     H5F_file_space_type_t       strategy;	/* File/free space strategy */
     hsize_t	threshold;	/* Free-space section threshold */
     herr_t      ret;            /* Generic return value */
@@ -1820,29 +1814,12 @@ test_misc11(void)
     file= H5Fcreate(MISC11_FILE, H5F_ACC_TRUNC , H5P_DEFAULT, H5P_DEFAULT);
     CHECK(file, FAIL, "H5Fcreate");
 
-#ifdef H5_NO_DEPRECATED_SYMBOLS
-    ret = H5Fget_info(file, &finfo);
-    CHECK(ret, FAIL, "H5Fget_info");
-    VERIFY(finfo.super.vers, 0,"H5Pget_version");
-    VERIFY(finfo.free.vers, 0,"H5Pget_version");
-    VERIFY(finfo.sohm.vers, 0,"H5Pget_version");
-#else 
-    /* Get the file's dataset creation property list */
-    fcpl =  H5Fget_create_plist(file);
-    CHECK(fcpl, FAIL, "H5Fget_create_plist");
-
     /* Get the file's version information */
-    ret=H5Pget_version(fcpl, &super, &freelist, &stab, &shhdr);
-    CHECK(ret, FAIL, "H5Pget_version");
-    VERIFY(super,0,"H5Pget_version");
-    VERIFY(freelist,0,"H5Pget_version");
-    VERIFY(stab,0,"H5Pget_version");
-    VERIFY(shhdr,0,"H5Pget_version");
-
-    /* Close FCPL */
-    ret=H5Pclose(fcpl);
-    CHECK(ret, FAIL, "H5Pclose");
-#endif /* H5_NO_DEPRECATED_SYMBOLS */
+    ret = H5Fget_info2(file, &finfo);
+    CHECK(ret, FAIL, "H5Fget_info2");
+    VERIFY(finfo.super.version, 0,"H5Fget_info2");
+    VERIFY(finfo.free.version, 0,"H5Fget_info2");
+    VERIFY(finfo.sohm.version, 0,"H5Fget_info2");
 
     /* Close file */
     ret=H5Fclose(file);
@@ -1884,29 +1861,12 @@ test_misc11(void)
     ret=H5Pclose(fcpl);
     CHECK(ret, FAIL, "H5Pclose");
 
-#ifdef H5_NO_DEPRECATED_SYMBOLS
-    ret = H5Fget_info(file, &finfo);
-    CHECK(ret, FAIL, "H5Fget_info");
-    VERIFY(finfo.super.vers, 2,"H5Pget_version");
-    VERIFY(finfo.free.vers, 0,"H5Pget_version");
-    VERIFY(finfo.sohm.vers, 0,"H5Pget_version");
-#else
-    /* Get the file's dataset creation property list */
-    fcpl =  H5Fget_create_plist(file);
-    CHECK(fcpl, FAIL, "H5Fget_create_plist");
-
     /* Get the file's version information */
-    ret=H5Pget_version(fcpl, &super, &freelist, &stab, &shhdr);
-    CHECK(ret, FAIL, "H5Pget_version");
-    VERIFY(super,2,"H5Pget_version");
-    VERIFY(freelist,0,"H5Pget_version");
-    VERIFY(stab,0,"H5Pget_version");
-    VERIFY(shhdr,0,"H5Pget_version");
-
-    /* Close FCPL */
-    ret=H5Pclose(fcpl);
-    CHECK(ret, FAIL, "H5Pclose");
-#endif
+    ret = H5Fget_info2(file, &finfo);
+    CHECK(ret, FAIL, "H5Fget_info2");
+    VERIFY(finfo.super.version, 2,"H5Fget_info2");
+    VERIFY(finfo.free.version, 0,"H5Fget_info2");
+    VERIFY(finfo.sohm.version, 0,"H5Fget_info2");
 
     /* Close file */
     ret=H5Fclose(file);
@@ -1920,21 +1880,12 @@ test_misc11(void)
     fcpl =  H5Fget_create_plist(file);
     CHECK(fcpl, FAIL, "H5Fget_create_plist");
 
-#ifdef H5_NO_DEPRECATED_SYMBOLS
-    ret = H5Fget_info(file, &finfo);
-    CHECK(ret, FAIL, "H5Fget_info");
-    VERIFY(finfo.super.vers, 2,"H5Pget_version");
-    VERIFY(finfo.free.vers, 0,"H5Pget_version");
-    VERIFY(finfo.sohm.vers, 0,"H5Pget_version");
-#else
     /* Get the file's version information */
-    ret=H5Pget_version(fcpl, &super, &freelist, &stab, &shhdr);
-    CHECK(ret, FAIL, "H5Pget_version");
-    VERIFY(super,2,"H5Pget_version");
-    VERIFY(freelist,0,"H5Pget_version");
-    VERIFY(stab,0,"H5Pget_version");
-    VERIFY(shhdr,0,"H5Pget_version");
-#endif
+    ret = H5Fget_info2(file, &finfo);
+    CHECK(ret, FAIL, "H5Fget_info2");
+    VERIFY(finfo.super.version, 2,"H5Fget_info2");
+    VERIFY(finfo.free.version, 0,"H5Fget_info2");
+    VERIFY(finfo.sohm.version, 0,"H5Fget_info2");
 
     /* Retrieve all the property values & check them */
     ret=H5Pget_userblock(fcpl,&userblock);
@@ -1959,12 +1910,10 @@ test_misc11(void)
     CHECK(ret, FAIL, "H5Pget_shared_mesg_nindexes");
     VERIFY(nindexes, MISC11_NINDEXES, "H5Pget_shared_mesg_nindexes");
 
-#ifdef H5_NO_DEPRECATED_SYMBOLS
     ret = H5Pget_file_space(fcpl, &strategy, &threshold);
     CHECK(ret, FAIL, "H5Pget_file_space");
     VERIFY(strategy, 4, "H5Pget_file_space");
     VERIFY(threshold, 1, "H5Pget_file_space");
-#endif
 
     /* Close file */
     ret=H5Fclose(file);
@@ -5200,7 +5149,6 @@ test_misc(void)
     test_misc26();      /* Test closing property lists with long filter pipelines */
     test_misc27();      /* Test opening file with object that has bad # of object header messages */
     test_misc28();      /* Test that chunks are cached appropriately */
-
 
 } /* test_misc() */
 

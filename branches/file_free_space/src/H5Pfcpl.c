@@ -929,6 +929,7 @@ H5Pset_file_space(hid_t plist_id, H5F_file_space_type_t strategy, hsize_t thresh
     herr_t      ret_value = SUCCEED;    /* Return value */
 
     FUNC_ENTER_API(H5Pset_file_space, FAIL)
+    H5TRACE3("e", "iFfh", plist_id, strategy, threshold);
 
     if((unsigned)strategy >= H5F_FILE_SPACE_NTYPES)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "invalid strategy")
@@ -970,6 +971,7 @@ H5Pget_file_space(hid_t plist_id, H5F_file_space_type_t *strategy, hsize_t *thre
     herr_t      ret_value = SUCCEED;    /* Return value */
 
     FUNC_ENTER_API(H5Pget_file_space, FAIL)
+    H5TRACE3("e", "i*Ff*h", plist_id, strategy, threshold);
 
     /* Get the plist structure */
     if(NULL == (plist = H5P_object_verify(plist_id,H5P_FILE_CREATE)))

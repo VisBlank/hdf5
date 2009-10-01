@@ -517,6 +517,7 @@
 ./src/H5F.c
 ./src/H5Faccum.c
 ./src/H5Fdbg.c
+./src/H5Fdeprec.c
 ./src/H5Ffake.c
 ./src/H5Fio.c
 ./src/H5Fmount.c

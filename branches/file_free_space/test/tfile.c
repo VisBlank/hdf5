@@ -3061,6 +3061,147 @@ test_filespace_compatible(void)
 
 /****************************************************************
 **
+**  test_deprec(): 
+**	Test deprecated functionality.
+**
+****************************************************************/
+#ifndef H5_NO_DEPRECATED_SYMBOLS
+static void
+test_deprec(void)
+{
+    hid_t       file;           /* File IDs for old & new files */
+    hid_t       fcpl;           /* File creation property list */
+    unsigned    super;          /* Superblock version # */
+    unsigned    freelist;       /* Free list version # */
+    unsigned    stab;           /* Symbol table entry version # */
+    unsigned    shhdr;          /* Shared object header version # */
+    H5F_info1_t	finfo;		/* global information about file */
+    herr_t      ret;            /* Generic return value */
+
+    /* Output message about test being performed */
+    MESSAGE(5, ("Testing deprecated routines\n"));
+
+    /* Creating a file with the default file creation property list should
+     * create a version 0 superblock
+     */
+
+    /* Create file with default file creation property list */
+    file= H5Fcreate(FILE1, H5F_ACC_TRUNC , H5P_DEFAULT, H5P_DEFAULT);
+    CHECK(file, FAIL, "H5Fcreate");
+
+    /* Get the file's version information */
+    ret = H5Fget_info1(file, &finfo);
+    CHECK(ret, FAIL, "H5Fget_info1");
+    VERIFY(finfo.super_ext_size, 0,"H5Fget_info1");
+    VERIFY(finfo.sohm.hdr_size, 0,"H5Fget_info1");
+    VERIFY(finfo.sohm.msgs_info.index_size, 0,"H5Fget_info1");
+    VERIFY(finfo.sohm.msgs_info.heap_size, 0,"H5Fget_info1");
+
+    /* Get the file's dataset creation property list */
+    fcpl =  H5Fget_create_plist(file);
+    CHECK(fcpl, FAIL, "H5Fget_create_plist");
+
+    /* Get the file's version information */
+    ret=H5Pget_version(fcpl, &super, &freelist, &stab, &shhdr);
+    CHECK(ret, FAIL, "H5Pget_version");
+    VERIFY(super,0,"H5Pget_version");
+    VERIFY(freelist,0,"H5Pget_version");
+    VERIFY(stab,0,"H5Pget_version");
+    VERIFY(shhdr,0,"H5Pget_version");
+
+    /* Close FCPL */
+    ret=H5Pclose(fcpl);
+    CHECK(ret, FAIL, "H5Pclose");
+
+    /* Close file */
+    ret=H5Fclose(file);
+    CHECK(ret, FAIL, "H5Fclose");
+
+
+    /* Create a file creation property list */
+    fcpl = H5Pcreate(H5P_FILE_CREATE);
+    CHECK(fcpl, FAIL, "H5Pcreate");
+
+    /* Set a property in the FCPL that will push the superblock version up */
+    ret = H5Pset_file_space(fcpl, H5F_FILE_SPACE_VFD, 0);
+    CHECK(ret, FAIL, "H5Pset_file_space");
+
+    /* Creating a file with the non-default file creation property list should
+     * create a version 2 superblock
+     */
+
+    /* Create file with custom file creation property list */
+    file= H5Fcreate(FILE1, H5F_ACC_TRUNC , fcpl, H5P_DEFAULT);
+    CHECK(file, FAIL, "H5Fcreate");
+
+    /* Close FCPL */
+    ret=H5Pclose(fcpl);
+    CHECK(ret, FAIL, "H5Pclose");
+
+    /* Get the file's version information */
+    ret = H5Fget_info1(file, &finfo);
+    CHECK(ret, FAIL, "H5Fget_info1");
+    VERIFY(finfo.super_ext_size, 40,"H5Fget_info1");
+    VERIFY(finfo.sohm.hdr_size, 0,"H5Fget_info1");
+    VERIFY(finfo.sohm.msgs_info.index_size, 0,"H5Fget_info1");
+    VERIFY(finfo.sohm.msgs_info.heap_size, 0,"H5Fget_info1");
+
+    /* Get the file's dataset creation property list */
+    fcpl =  H5Fget_create_plist(file);
+    CHECK(fcpl, FAIL, "H5Fget_create_plist");
+
+    /* Get the file's version information */
+    ret=H5Pget_version(fcpl, &super, &freelist, &stab, &shhdr);
+    CHECK(ret, FAIL, "H5Pget_version");
+    VERIFY(super,2,"H5Pget_version");
+    VERIFY(freelist,0,"H5Pget_version");
+    VERIFY(stab,0,"H5Pget_version");
+    VERIFY(shhdr,0,"H5Pget_version");
+
+    /* Close FCPL */
+    ret=H5Pclose(fcpl);
+    CHECK(ret, FAIL, "H5Pclose");
+
+    /* Close file */
+    ret=H5Fclose(file);
+    CHECK(ret, FAIL, "H5Fclose");
+
+    /* Re-open the file */
+    file = H5Fopen(FILE1, H5F_ACC_RDONLY, H5P_DEFAULT);
+    CHECK(file, FAIL, "H5Fcreate");
+
+    /* Get the file's version information */
+    ret = H5Fget_info1(file, &finfo);
+    CHECK(ret, FAIL, "H5Fget_info1");
+    VERIFY(finfo.super_ext_size, 40,"H5Fget_info1");
+    VERIFY(finfo.sohm.hdr_size, 0,"H5Fget_info1");
+    VERIFY(finfo.sohm.msgs_info.index_size, 0,"H5Fget_info1");
+    VERIFY(finfo.sohm.msgs_info.heap_size, 0,"H5Fget_info1");
+
+    /* Get the file's creation property list */
+    fcpl =  H5Fget_create_plist(file);
+    CHECK(fcpl, FAIL, "H5Fget_create_plist");
+
+    /* Get the file's version information */
+    ret=H5Pget_version(fcpl, &super, &freelist, &stab, &shhdr);
+    CHECK(ret, FAIL, "H5Pget_version");
+    VERIFY(super,2,"H5Pget_version");
+    VERIFY(freelist,0,"H5Pget_version");
+    VERIFY(stab,0,"H5Pget_version");
+    VERIFY(shhdr,0,"H5Pget_version");
+
+    /* Close FCPL */
+    ret=H5Pclose(fcpl);
+    CHECK(ret, FAIL, "H5Pclose");
+
+    /* Close file */
+    ret=H5Fclose(file);
+    CHECK(ret, FAIL, "H5Fclose");
+} /* test_deprec */
+#endif /* H5_NO_DEPRECATED_SYMBOLS */
+
+/****************************************************************
+**
 **  test_file(): Main low-level file I/O test routine.
 **
 ****************************************************************/
@@ -3097,6 +3238,9 @@ test_file(void)
     test_filespace_sects();     /* Test file free space section information */
     test_filespace_info();	/* Test file creation public routines:H5Pget/set_file_space */
     test_filespace_compatible();/* Test compatibility for file space management */
+#ifndef H5_NO_DEPRECATED_SYMBOLS
+    test_deprec();              /* Test deprecated routines */
+#endif /* H5_NO_DEPRECATED_SYMBOLS */
 } /* test_file() */
 
 

@@ -3074,10 +3074,10 @@ dump_fcpl(hid_t fid)
     unsigned istore_ik; /* indexed storage B-tree internal 'K' value */
     H5F_file_space_type_t  fs_strategy;	/* file space strategy */
     hsize_t  fs_threshold;		/* free-space section threshold */
-    H5F_info_t finfo;	/* file information */
+    H5F_info2_t finfo;	/* file information */
 
     fcpl=H5Fget_create_plist(fid);
-    H5Fget_info(fid, &finfo);
+    H5Fget_info2(fid, &finfo);
     H5Pget_userblock(fcpl,&userblock);
     H5Pget_sizes(fcpl,&off_size,&len_size);
     H5Pget_sym_k(fcpl,&sym_ik,&sym_lk);
@@ -3094,13 +3094,13 @@ dump_fcpl(hid_t fid)
     */
     printf("%s %s\n",SUPER_BLOCK, BEGIN);
     indentation(indent + COL);
-    printf("%s %u\n","SUPERBLOCK_VERSION", finfo.super.vers);
+    printf("%s %u\n","SUPERBLOCK_VERSION", finfo.super.version);
     indentation(indent + COL);
-    printf("%s %u\n","FREELIST_VERSION", finfo.free.vers);
+    printf("%s %u\n","FREELIST_VERSION", finfo.free.version);
     indentation(indent + COL);
     printf("%s %u\n","SYMBOLTABLE_VERSION", 0);  /* Retain this for backward compatibility, for now (QAK) */
     indentation(indent + COL);
-    printf("%s %u\n","OBJECTHEADER_VERSION", finfo.sohm.vers);
+    printf("%s %u\n","OBJECTHEADER_VERSION", finfo.sohm.version);
     indentation(indent + COL);
     HDfprintf(stdout,"%s %Hd\n","OFFSET_SIZE", (long long)off_size);
     indentation(indent + COL);

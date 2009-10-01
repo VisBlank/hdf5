@@ -1396,7 +1396,7 @@ main(int argc, const char *argv[])
     hid_t           	fid;
     hid_t           	fcpl;
     struct handler_t   *hand;
-    H5F_info_t      	finfo;
+    H5F_info2_t      	finfo;
 
     /* Disable error reporting */
     H5Eset_auto2(H5E_DEFAULT, NULL, NULL);
@@ -1426,9 +1426,9 @@ main(int argc, const char *argv[])
 	warn_msg(progname, "Unable to retrieve file size\n");
      assert(iter.filesize >= 0);
 	
-    /* Get storge info for SOHM's btree/list/heap and superblock extension */
-    if(H5Fget_info(fid, &finfo) < 0)
-	warn_msg(progname, "Unable to retrieve SOHM info\n");
+    /* Get storge info for file-level structures */
+    if(H5Fget_info2(fid, &finfo) < 0)
+	warn_msg(progname, "Unable to retrieve file info\n");
     else {
 	iter.super_size = finfo.super.super_size;
 	iter.super_ext_size = finfo.super.super_ext_size;
@@ -1436,7 +1436,7 @@ main(int argc, const char *argv[])
 	iter.SM_index_storage_size = finfo.sohm.msgs_info.index_size;
 	iter.SM_heap_storage_size = finfo.sohm.msgs_info.heap_size;
 	iter.free_space = finfo.free.tot_space;
-	iter.free_hdr = finfo.free.hdr_size;
+	iter.free_hdr = finfo.free.meta_size;
     } /* end else */
 
     if((fcpl = H5Fget_create_plist(fid)) < 0)
