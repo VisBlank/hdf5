@@ -48,7 +48,7 @@ static herr_t H5Z_scaleoffset_set_parms_fillval(H5P_genplist_t *dcpl_plist,
     int need_convert, hid_t dxpl_id);
 static herr_t H5Z_set_local_scaleoffset(hid_t dcpl_id, hid_t type_id, hid_t space_id);
 static size_t H5Z_filter_scaleoffset(unsigned flags, size_t cd_nelmts,
-    const unsigned cd_values[], size_t nbytes, size_t *buf_size, void **buf);
+    const unsigned cd_values[], size_t nbytes, size_t *buf_size, void **buf, hid_t UNUSED plist_id);
 static void H5Z_scaleoffset_convert(void *buf, unsigned d_nelmts, size_t dtype_size);
 static unsigned H5Z_scaleoffset_log2(unsigned long long num);
 static void H5Z_scaleoffset_precompress_i(void *data, unsigned d_nelmts,
@@ -908,7 +908,7 @@ done:
  */
 static size_t
 H5Z_filter_scaleoffset (unsigned flags, size_t cd_nelmts, const unsigned cd_values[],
-                        size_t nbytes, size_t *buf_size, void **buf)
+                        size_t nbytes, size_t *buf_size, void **buf, hid_t plist_id)
 {
     size_t ret_value = 0;           /* return value */
     size_t size_out  = 0;           /* size of output buffer */
@@ -1087,6 +1087,18 @@ H5Z_filter_scaleoffset (unsigned flags, size_t cd_nelmts, const unsigned cd_valu
     }
     /* output; compress */
     else {
+        H5P_genplist_t 	*filter_plist = NULL;       /* Filter property list */
+        H5FD_direct_fapl_t direct_info;
+
+        if(H5P_DEFAULT != plist_id) {
+            /* Get filter property list object */
+            if(NULL == (filter_plist = (H5P_genplist_t *)H5I_object(plist_id)))
+                HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, 0, "can't get filter property list")
+
+            if(H5P_get(filter_plist, H5Z_DIRECT_IO_NAME, &direct_info) < 0)
+                HGOTO_ERROR(H5E_DATASET, H5E_CANTSET, 0, "can't set direct IO info")
+        }
+
         assert(nbytes == d_nelmts * p.size);
 
         /* before preprocess, convert to memory endianness order if needed */
@@ -1118,8 +1130,13 @@ H5Z_filter_scaleoffset (unsigned flags, size_t cd_nelmts, const unsigned cd_valu
         size_out = buf_offset + nbytes * p.minbits / (p.size * 8) + 1; /* may be 1 larger */
 
         /* allocate memory space for compressed buffer */
-        if(NULL==(outbuf = H5MM_malloc(size_out)))
-            HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, 0, "memory allocation failed for scaleoffset compression")
+        if(H5P_DEFAULT == plist_id) {
+            if(NULL==(outbuf = H5MM_malloc(size_out)))
+                HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, 0, "memory allocation failed for nbit compression")
+        } else {
+            if(H5MM_aligned_malloc(&outbuf, size_out, FALSE, &direct_info) < 0)
+                HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, 0, "unable to allocate deflate destination buffer")
+        }
 
         /* store minbits and minval in the front of output compressed buffer
          * store byte by byte from least significant byte to most significant byte

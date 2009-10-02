@@ -1374,7 +1374,7 @@ HDfprintf(stderr, "%s: read_size = %Zu, read_buf = %p\n", FUNC, read_size, read_
         /* Push direct block data through I/O filter pipeline */
         nbytes = read_size;
         if(H5Z_pipeline(&(hdr->pline), H5Z_FLAG_REVERSE, &filter_mask, H5Z_ENABLE_EDC,
-                 filter_cb, &nbytes, &read_size, &read_buf) < 0)
+                 filter_cb, &nbytes, &read_size, &read_buf, H5P_DEFAULT) < 0)
             HGOTO_ERROR(H5E_HEAP, H5E_CANTFILTER, NULL, "output pipeline failed")
 #ifdef QAK
 HDfprintf(stderr, "%s: nbytes = %Zu, read_size = %Zu, read_buf = %p\n", FUNC, nbytes, read_size, read_buf);
@@ -1550,7 +1550,7 @@ H5HF_cache_dblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, 
             /* Push direct block data through I/O filter pipeline */
             nbytes = write_size;
             if(H5Z_pipeline(&(hdr->pline), 0, &filter_mask, H5Z_ENABLE_EDC,
-                     filter_cb, &nbytes, &write_size, &write_buf) < 0)
+                     filter_cb, &nbytes, &write_size, &write_buf, H5P_DEFAULT) < 0)
                 HGOTO_ERROR(H5E_HEAP, H5E_WRITEERROR, FAIL, "output pipeline failed")
 #ifdef QAK
 HDfprintf(stderr, "%s: nbytes = %Zu, write_size = %Zu, write_buf = %p\n", FUNC, nbytes, write_size, write_buf);

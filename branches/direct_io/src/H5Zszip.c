@@ -36,8 +36,8 @@
 /* Local function prototypes */
 static herr_t H5Z_can_apply_szip(hid_t dcpl_id, hid_t type_id, hid_t space_id);
 static herr_t H5Z_set_local_szip(hid_t dcpl_id, hid_t type_id, hid_t space_id);
-static size_t H5Z_filter_szip (unsigned flags, size_t cd_nelmts,
-    const unsigned cd_values[], size_t nbytes, size_t *buf_size, void **buf);
+static size_t H5Z_filter_szip (unsigned flags, size_t cd_nelmts, const unsigned cd_values[], 
+    size_t nbytes, size_t *buf_size, void **buf, hid_t UNUSED plist_id);
 
 /* This message derives from H5Z */
 H5Z_class2_t H5Z_SZIP[1] = {{
@@ -276,7 +276,7 @@ done:
  */
 static size_t
 H5Z_filter_szip (unsigned flags, size_t cd_nelmts, const unsigned cd_values[],
-    size_t nbytes, size_t *buf_size, void **buf)
+    size_t nbytes, size_t *buf_size, void **buf, hid_t plist_id)
 {
     size_t ret_value = 0;       /* Return value */
     size_t size_out  = 0;       /* Size of output buffer */
@@ -338,10 +338,28 @@ H5Z_filter_szip (unsigned flags, size_t cd_nelmts, const unsigned cd_values[],
     /* Output; compress */
     else {
         unsigned char *dst = NULL;    /* Temporary pointer to new output buffer */
+        H5P_genplist_t 	*filter_plist = NULL;       /* Filter property list */
+        H5FD_direct_fapl_t direct_info;
+
+        if(H5P_DEFAULT != plist_id) {
+            /* Get filter property list object */
+            if(NULL == (filter_plist = (H5P_genplist_t *)H5I_object(plist_id)))
+                HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, 0, "can't get filter property list")
+
+            if(H5P_get(filter_plist, H5Z_DIRECT_IO_NAME, &direct_info) < 0)
+                HGOTO_ERROR(H5E_DATASET, H5E_CANTSET, 0, "can't set direct IO info")
+        }
 
         /* Allocate space for the compressed buffer & header (assume data won't get bigger) */
-        if(NULL==(dst=outbuf = H5MM_malloc(nbytes+4)))
-            HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, 0, "unable to allocate szip destination buffer")
+        if(H5P_DEFAULT == plist_id) {
+            if(NULL==(dst=outbuf = H5MM_malloc(nbytes+4)))
+                HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, 0, "memory allocation failed")
+        } else {
+            if(H5MM_aligned_malloc(&outbuf, nbytes+4, FALSE, &direct_info) < 0)
+                HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, 0, "unable to allocate destination buffer")
+           
+            dst = outbuf;
+        }
 
         /* Encode the uncompressed length */
         H5_CHECK_OVERFLOW(nbytes,size_t,uint32_t);

@@ -24,6 +24,8 @@
 #include "H5private.h"		/* Generic Functions			*/
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5Fprivate.h"         /* File access                          */
+#include "H5Pprivate.h"		/* Property lists			*/
+#include "H5Iprivate.h"		/* IDs			                */
 #include "H5MMprivate.h"	/* Memory management			*/
 #include "H5Zpkg.h"		/* Data filters				*/
 
@@ -31,7 +33,7 @@
 
 /* Local function prototypes */
 static size_t H5Z_filter_fletcher32 (unsigned flags, size_t cd_nelmts,
-    const unsigned cd_values[], size_t nbytes, size_t *buf_size, void **buf);
+    const unsigned cd_values[], size_t nbytes, size_t *buf_size, void **buf, hid_t UNUSED plist_id);
 
 /* This message derives from H5Z */
 const H5Z_class2_t H5Z_FLETCHER32[1] = {{
@@ -74,8 +76,7 @@ const H5Z_class2_t H5Z_FLETCHER32[1] = {{
  */
 /* ARGSUSED */
 static size_t
-H5Z_filter_fletcher32 (unsigned flags, size_t UNUSED cd_nelmts, const unsigned UNUSED cd_values[],
-                     size_t nbytes, size_t *buf_size, void **buf)
+H5Z_filter_fletcher32 (unsigned flags, size_t UNUSED cd_nelmts, const unsigned UNUSED cd_values[], size_t nbytes, size_t *buf_size, void **buf, hid_t plist_id)
 {
     void    *outbuf = NULL;     /* Pointer to new buffer */
     unsigned char *src = (unsigned char*)(*buf);
@@ -135,12 +136,31 @@ H5Z_filter_fletcher32 (unsigned flags, size_t UNUSED cd_nelmts, const unsigned U
         ret_value = nbytes-FLETCHER_LEN;
     } else { /* Write */
         unsigned char *dst;     /* Temporary pointer to destination buffer */
+        H5P_genplist_t 	*filter_plist = NULL;       /* Filter property list */
+        H5FD_direct_fapl_t direct_info;
+
+        if(H5P_DEFAULT != plist_id) {
+            /* Get filter property list object */
+            if(NULL == (filter_plist = (H5P_genplist_t *)H5I_object(plist_id)))
+                HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, 0, "can't get filter property list")
+
+            if(H5P_get(filter_plist, H5Z_DIRECT_IO_NAME, &direct_info) < 0)
+                HGOTO_ERROR(H5E_DATASET, H5E_CANTSET, 0, "can't set direct IO info")
+        }
 
         /* Compute checksum (can't fail) */
         fletcher = H5_checksum_fletcher32(src, nbytes);
 
-	if (NULL==(dst=outbuf=H5MM_malloc(nbytes+FLETCHER_LEN)))
-	    HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, 0, "unable to allocate Fletcher32 checksum destination buffer")
+        /* Allocate output buffer */
+        if(H5P_DEFAULT == plist_id) {
+	    if (NULL==(dst=outbuf=H5MM_malloc(nbytes+FLETCHER_LEN)))
+	        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, 0, "unable to allocate Fletcher32 checksum destination buffer")
+        } else {
+            if(H5MM_aligned_malloc(&outbuf, nbytes+FLETCHER_LEN, FALSE, &direct_info) < 0)
+                HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, 0, "unable to allocate deflate destination buffer")
+
+            dst = (unsigned char *)outbuf;
+        }
 
         /* Copy raw data */
         HDmemcpy((void*)dst, (void*)(*buf), nbytes);
@@ -153,10 +173,10 @@ H5Z_filter_fletcher32 (unsigned flags, size_t UNUSED cd_nelmts, const unsigned U
  	H5MM_xfree(*buf);
 
         /* Set return values */
-        *buf_size = nbytes + FLETCHER_LEN;
 	*buf = outbuf;
 	outbuf = NULL;
-	ret_value = *buf_size;
+        *buf_size = nbytes + FLETCHER_LEN;
+	ret_value = nbytes + FLETCHER_LEN;
     }
 
 done:
@@ -165,4 +185,3 @@ done:
     FUNC_LEAVE_NOAPI(ret_value)
 }
 #endif /* H5_HAVE_FILTER_FLETCHER32 */
-

@@ -972,7 +972,7 @@ herr_t
 H5Z_pipeline(const H5O_pline_t *pline, unsigned flags,
  	     unsigned *filter_mask/*in,out*/, H5Z_EDC_t edc_read,
              H5Z_cb_t cb_struct, size_t *nbytes/*in,out*/,
-             size_t *buf_size/*in,out*/, void **buf/*in,out*/)
+             size_t *buf_size/*in,out*/, void **buf/*in,out*/, hid_t plist_id)
 {
     size_t	i, idx, new_nbytes;
     int fclass_idx;             /* Index of filter class in global table */
@@ -1013,7 +1013,7 @@ H5Z_pipeline(const H5O_pline_t *pline, unsigned flags,
             tmp_flags=flags|(pline->filter[idx].flags);
             tmp_flags|=(edc_read== H5Z_DISABLE_EDC) ? H5Z_FLAG_SKIP_EDC : 0;
 	    new_nbytes = (fclass->filter)(tmp_flags, pline->filter[idx].cd_nelmts,
-                                        pline->filter[idx].cd_values, *nbytes, buf_size, buf);
+                                  pline->filter[idx].cd_values, *nbytes, buf_size, buf, plist_id);
 
 #ifdef H5Z_DEBUG
 	    H5_timer_end(&(fstats->stats[1].timer), &timer);
@@ -1054,7 +1054,7 @@ H5Z_pipeline(const H5O_pline_t *pline, unsigned flags,
 	    H5_timer_begin(&timer);
 #endif
 	    new_nbytes = (fclass->filter)(flags|(pline->filter[idx].flags), pline->filter[idx].cd_nelmts,
-					pline->filter[idx].cd_values, *nbytes, buf_size, buf);
+			        pline->filter[idx].cd_values, *nbytes, buf_size, buf, plist_id);
 #ifdef H5Z_DEBUG
 	    H5_timer_end(&(fstats->stats[0].timer), &timer);
 	    fstats->stats[0].total += MAX(*nbytes, new_nbytes);

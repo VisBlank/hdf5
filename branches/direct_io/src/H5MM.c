@@ -117,7 +117,10 @@ H5MM_aligned_malloc(void** buffer, size_t size, hbool_t initialize, H5FD_direct_
     /* Make sure the size is a multiple of file block size.  It can be bigger than
      * the copy buffer size because the conversion may require a bigger size (see
      * the H5D_typeinfo_init in H5Dio.c) */
-    alloc_size = ((size / fbsize) * fbsize) + fbsize;
+    if(size % fbsize > 0)
+        alloc_size = ((size / fbsize) * fbsize) + fbsize;
+    else
+        alloc_size = size;
 
     if (HDposix_memalign(buffer, boundary, alloc_size) != 0)
         HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, FAIL, "HDposix_memalign failed")

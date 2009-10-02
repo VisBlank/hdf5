@@ -200,7 +200,7 @@ typedef herr_t (*H5Z_set_local_func_t)(hid_t dcpl_id, hid_t type_id, hid_t space
  */
 typedef size_t (*H5Z_func_t)(unsigned int flags, size_t cd_nelmts,
 			     const unsigned int cd_values[], size_t nbytes,
-			     size_t *buf_size, void **buf);
+			     size_t *buf_size, void **buf, hid_t plist_id);
 
 /*
  * The filter table maps filter identification numbers to structs that

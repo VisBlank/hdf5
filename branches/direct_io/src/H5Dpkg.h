@@ -408,6 +408,7 @@ typedef struct H5D_shared_t {
     H5D_dcpl_cache_t    dcpl_cache;     /* Cached DCPL values */
     H5O_layout_t        layout;         /* Data layout                  */
     hbool_t             checked_filters;/* TRUE if dataset passes can_apply check */
+    hid_t               filter_plist_id;/* Access property list for filter pipeline */
 
     /* Buffered/cached information for types of raw data storage*/
     struct {

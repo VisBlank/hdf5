@@ -23,6 +23,8 @@
 
 #include "H5private.h"		/* Generic Functions			*/
 #include "H5Eprivate.h"		/* Error handling		  	*/
+#include "H5Pprivate.h"		/* Property lists			*/
+#include "H5Iprivate.h"		/* Property lists			*/
 #include "H5MMprivate.h"	/* Memory management			*/
 #include "H5Zpkg.h"		/* Data filters				*/
 
@@ -34,7 +36,7 @@
 
 /* Local function prototypes */
 static size_t H5Z_filter_deflate (unsigned flags, size_t cd_nelmts,
-    const unsigned cd_values[], size_t nbytes, size_t *buf_size, void **buf);
+    const unsigned cd_values[], size_t nbytes, size_t *buf_size, void **buf, hid_t UNUSED plist_id);
 
 /* This message derives from H5Z */
 const H5Z_class2_t H5Z_DEFLATE[1] = {{
@@ -70,7 +72,7 @@ const H5Z_class2_t H5Z_DEFLATE[1] = {{
 static size_t
 H5Z_filter_deflate (unsigned flags, size_t cd_nelmts,
 		    const unsigned cd_values[], size_t nbytes,
-		    size_t *buf_size, void **buf)
+		    size_t *buf_size, void **buf, hid_t plist_id)
 {
     void	*outbuf = NULL;         /* Pointer to new buffer */
     int		status;                 /* Status from zlib operation */
@@ -159,13 +161,31 @@ H5Z_filter_deflate (unsigned flags, size_t cd_nelmts,
 	uLongf	     z_dst_nbytes = (uLongf)H5Z_DEFLATE_SIZE_ADJUST(nbytes);
 	uLong	     z_src_nbytes = (uLong)nbytes;
         int          aggression;     /* Compression aggression setting */
+        H5P_genplist_t 	*filter_plist = NULL;       /* Filter property list */
+        H5FD_direct_fapl_t direct_info;
+
+        if(H5P_DEFAULT != plist_id) {
+            /* Get filter property list object */
+            if(NULL == (filter_plist = (H5P_genplist_t *)H5I_object(plist_id)))
+                HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, 0, "can't get filter property list")
+
+            if(H5P_get(filter_plist, H5Z_DIRECT_IO_NAME, &direct_info) < 0)
+                HGOTO_ERROR(H5E_DATASET, H5E_CANTSET, 0, "can't set direct IO info")
+        }
 
         /* Set the compression aggression level */
         H5_ASSIGN_OVERFLOW(aggression,cd_values[0],unsigned,int);
 
         /* Allocate output (compressed) buffer */
-	if (NULL==(z_dst=outbuf=H5MM_malloc(z_dst_nbytes)))
-	    HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, 0, "unable to allocate deflate destination buffer")
+        if(H5P_DEFAULT == plist_id) {
+	    if (NULL==(z_dst=outbuf=H5MM_malloc(z_dst_nbytes)))
+	        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, 0, "unable to allocate deflate destination buffer")
+        } else {
+            if(H5MM_aligned_malloc(&outbuf, z_dst_nbytes, FALSE, &direct_info) < 0)
+                HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, 0, "unable to allocate deflate destination buffer")
+
+            z_dst = (Bytef*)outbuf;
+        }
 
         /* Perform compression from the source to the destination buffer */
 	status = compress2 (z_dst, &z_dst_nbytes, z_src, z_src_nbytes, aggression);

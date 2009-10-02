@@ -38,8 +38,11 @@
 #define DSET1_NAME	"dset1"
 #define DSET1_DIM1      1024
 #define DSET1_DIM2      32
+#define CHUNK_DIM1      128
+#define CHUNK_DIM2      16
 #define DSET2_NAME	"dset2"
 #define DSET2_DIM       4
+#define DSET3_NAME	"dset3"
 
 const char *FILENAME[] = {
     "sec2_file",
@@ -149,11 +152,14 @@ test_direct(void)
 {
 #ifdef H5_HAVE_DIRECT
     hid_t       file=(-1), fapl, access_fapl = -1;
-    hid_t	dset1=-1, dset2=-1, space1=-1, space2=-1;
+    hid_t       dcpl_id;
+    hid_t	dset1=-1, dset2=-1, dset3=-1;
+    hid_t       space1=-1, space2=-1;
     char        filename[1024];
     int         *fhandle=NULL;
     hsize_t     file_size;
     hsize_t	dims1[2], dims2[1];
+    hsize_t     chunk_size[2] = {CHUNK_DIM1, CHUNK_DIM2};  /* Chunk dimensions */
     size_t	mbound;
     size_t	fbsize;
     size_t	cbsize;
@@ -303,6 +309,45 @@ test_direct(void)
             TEST_ERROR;
 	} /* end if */
 
+    /* Create the dset3 with Fletcher32 checksum enabled, to test Direct IO with filter. */
+    if((dcpl_id = H5Pcreate(H5P_DATASET_CREATE)) < 0)
+        TEST_ERROR;
+
+    if(H5Pset_chunk (dcpl_id, 2, chunk_size) < 0)
+        TEST_ERROR;
+
+    if(H5Pset_fletcher32(dcpl_id) < 0)
+        TEST_ERROR;
+
+    if((dset3 = H5Dcreate2(file, DSET3_NAME, H5T_NATIVE_INT, space1, H5P_DEFAULT, dcpl_id, H5P_DEFAULT)) < 0)
+        TEST_ERROR;
+
+    /* Write the data to the dset3 */
+    if(H5Dwrite(dset3, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, points) < 0)
+        TEST_ERROR;
+
+    if(H5Dclose(dset3) < 0)
+        TEST_ERROR;
+
+    if((dset3 = H5Dopen2(file, DSET3_NAME, H5P_DEFAULT)) < 0)
+        TEST_ERROR;
+
+    /* Read the data back from dset1 */
+    if(H5Dread(dset3, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, check) < 0)
+        TEST_ERROR;
+
+    /* Check that the values read are the same as the values written */
+    p1 = points;
+    p2 = check;
+    for(i = 0; i < DSET1_DIM1; i++)
+	for(j = 0; j < DSET1_DIM2; j++)
+	    if(*p1++ != *p2++) {
+		H5_FAILED();
+		printf("    Read different values than written in data set 1.\n");
+		printf("    At index %d,%d\n", i, j);
+        	TEST_ERROR;
+	    } /* end if */
+
     if(H5Sclose(space1) < 0)
         TEST_ERROR;
     if(H5Dclose(dset1) < 0)
@@ -310,6 +355,10 @@ test_direct(void)
     if(H5Sclose(space2) < 0)
         TEST_ERROR;
     if(H5Dclose(dset2) < 0)
+        TEST_ERROR;
+    if(H5Dclose(dset3) < 0)
+        TEST_ERROR;
+    if(H5Pclose(dcpl_id) < 0)
         TEST_ERROR;
     if(H5Fclose(file) < 0)
         TEST_ERROR;
@@ -329,6 +378,8 @@ error:
         H5Dclose(dset1);
         H5Sclose(space2);
         H5Dclose(dset2);
+        H5Dclose(dset3);
+        H5Pclose(dcpl_id);
         H5Fclose(file);
     } H5E_END_TRY;
     return -1;

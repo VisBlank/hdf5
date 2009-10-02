@@ -144,7 +144,6 @@ typedef struct H5D_dcpl_cache_t {
 /* Library Private Variables */
 /*****************************/
 
-
 /******************************/
 /* Library Private Prototypes */
 /******************************/

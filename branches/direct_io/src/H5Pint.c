@@ -88,7 +88,8 @@ hid_t H5P_CLS_ATTRIBUTE_CREATE_g    = FAIL;
 hid_t H5P_CLS_OBJECT_COPY_g         = FAIL;
 hid_t H5P_CLS_LINK_CREATE_g         = FAIL;
 hid_t H5P_CLS_LINK_ACCESS_g         = FAIL;
-hid_t H5P_CLS_STRING_CREATE_g         = FAIL;
+hid_t H5P_CLS_STRING_CREATE_g       = FAIL;
+hid_t H5P_CLS_PIPELINE_ACCESS_g     = FAIL;
 
 /*
  * Predefined property lists for each predefined class. These are initialized
@@ -108,6 +109,7 @@ hid_t H5P_LST_ATTRIBUTE_CREATE_g    = FAIL;
 hid_t H5P_LST_OBJECT_COPY_g         = FAIL;
 hid_t H5P_LST_LINK_CREATE_g         = FAIL;
 hid_t H5P_LST_LINK_ACCESS_g         = FAIL;
+hid_t H5P_LST_PIPELINE_ACCESS_g     = FAIL;
 
 /* Root property list class library initialization object */
 const H5P_libclass_t H5P_CLS_ROOT[1] = {{
@@ -187,6 +189,7 @@ H5_DLLVAR const H5P_libclass_t H5P_CLS_DXFR[1];         /* Data transfer */
 H5_DLLVAR const H5P_libclass_t H5P_CLS_FMNT[1];         /* File mount */
 H5_DLLVAR const H5P_libclass_t H5P_CLS_ACRT[1];         /* Attribute creation */
 H5_DLLVAR const H5P_libclass_t H5P_CLS_LCRT[1];         /* Link creation */
+H5_DLLVAR const H5P_libclass_t H5P_CLS_PACC[1];         /* Filter access */
 
 
 /*****************************/
@@ -223,7 +226,8 @@ static H5P_libclass_t const * const init_class[] = {
     H5P_CLS_TCRT,       /* Datatype creation */
     H5P_CLS_TACC,       /* Datatype access */
     H5P_CLS_ACRT,       /* Attribute creation */
-    H5P_CLS_LCRT        /* Link creation */
+    H5P_CLS_LCRT,       /* Link creation */
+    H5P_CLS_PACC        /* Filter access */
 };
 
 /* Declare a free list to manage the H5P_genclass_t struct */
@@ -482,6 +486,7 @@ H5P_term_interface(void)
                         H5P_LST_OBJECT_COPY_g =
                         H5P_LST_LINK_CREATE_g =
                         H5P_LST_LINK_ACCESS_g =
+                        H5P_LST_PIPELINE_ACCESS_g =
                         H5P_LST_FILE_MOUNT_g = (-1);
                 } /* end if */
             } /* end if */
@@ -508,6 +513,7 @@ H5P_term_interface(void)
                         H5P_CLS_OBJECT_COPY_g =
                         H5P_CLS_LINK_CREATE_g =
                         H5P_CLS_LINK_ACCESS_g =
+                        H5P_CLS_PIPELINE_ACCESS_g =
                         H5P_CLS_FILE_MOUNT_g = (-1);
                 } /* end if */
             } /* end if */

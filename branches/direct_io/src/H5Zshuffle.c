@@ -29,7 +29,7 @@
 /* Local function prototypes */
 static herr_t H5Z_set_local_shuffle(hid_t dcpl_id, hid_t type_id, hid_t space_id);
 static size_t H5Z_filter_shuffle(unsigned flags, size_t cd_nelmts,
-    const unsigned cd_values[], size_t nbytes, size_t *buf_size, void **buf);
+    const unsigned cd_values[], size_t nbytes, size_t *buf_size, void **buf, hid_t UNUSED plist_id);
 
 /* This message derives from H5Z */
 const H5Z_class2_t H5Z_SHUFFLE[1] = {{
@@ -125,7 +125,7 @@ done:
  */
 static size_t
 H5Z_filter_shuffle(unsigned flags, size_t cd_nelmts, const unsigned cd_values[],
-                   size_t nbytes, size_t *buf_size, void **buf)
+                   size_t nbytes, size_t *buf_size, void **buf, hid_t UNUSED plist_id)
 {
     void *dest = NULL;          /* Buffer to deposit [un]shuffled bytes into */
     unsigned char *_src=NULL;   /* Alias for source buffer */

@@ -1034,6 +1034,7 @@ H5D_create(H5F_t *file, hid_t type_id, const H5S_t *space, hid_t dcpl_id,
     H5P_genplist_t 	*dc_plist = NULL;       /* New Property list */
     hbool_t             has_vl_type = FALSE;    /* Flag to indicate a VL-type for dataset */
     hbool_t             layout_init = FALSE;    /* Flag to indicate that chunk information was initialized */
+    H5O_layout_t        *layout;                /* Dataset's layout information */
     H5G_loc_t           dset_loc;               /* Dataset location */
     H5D_t		*ret_value;             /* Return value */
 
@@ -1086,9 +1087,10 @@ H5D_create(H5F_t *file, hid_t type_id, const H5S_t *space, hid_t dcpl_id,
     /* Set the dataset's checked_filters flag to enable writing */
     new_dset->shared->checked_filters = TRUE;
 
+    layout = &new_dset->shared->layout;
+
     /* Check if the dataset has a non-default DCPL & get important values, if so */
     if(new_dset->shared->dcpl_id != H5P_DATASET_CREATE_DEFAULT) {
-        H5O_layout_t    *layout;        /* Dataset's layout information */
         H5O_pline_t     *pline;         /* Dataset's I/O pipeline information */
         H5O_fill_t      *fill;          /* Dataset's fill value info */
 
@@ -1108,7 +1110,6 @@ H5D_create(H5F_t *file, hid_t type_id, const H5S_t *space, hid_t dcpl_id,
         pline = &new_dset->shared->dcpl_cache.pline;
         if(H5P_get(dc_plist, H5D_CRT_DATA_PIPELINE_NAME, pline) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't retrieve pipeline filter")
-        layout = &new_dset->shared->layout;
         if(H5P_get(dc_plist, H5D_CRT_LAYOUT_NAME, layout) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't retrieve layout")
         if(pline->nused > 0 && H5D_CHUNKED != layout->type)
@@ -1133,6 +1134,21 @@ H5D_create(H5F_t *file, hid_t type_id, const H5S_t *space, hid_t dcpl_id,
         if(H5P_get(dc_plist, H5D_CRT_EXT_FILE_LIST_NAME, &new_dset->shared->dcpl_cache.efl) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't retrieve external file list")
     } /* end if */
+
+    if(layout->type == H5D_CHUNKED) {
+        H5P_genplist_t 	*filter_plist = NULL;       /* Filter property list */
+        H5FD_direct_fapl_t *direct_info = H5F_DIRECT_INFO(file);  
+
+        new_dset->shared->filter_plist_id = H5Pcreate(H5P_PIPELINE_ACCESS);
+
+        /* Get filter property list object */
+        if(NULL == (filter_plist = (H5P_genplist_t *)H5I_object(new_dset->shared->filter_plist_id)))
+            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "can't get filter property list")
+
+        if(direct_info && 
+                H5P_set(filter_plist, H5Z_DIRECT_IO_NAME, direct_info) < 0)
+            HGOTO_ERROR(H5E_DATASET, H5E_CANTSET, NULL, "can't set direct IO info")
+    }
 
     /* Set the latest version of the layout, pline & fill messages, if requested */
     if(H5F_USE_LATEST_FORMAT(file)) {
@@ -1324,7 +1340,9 @@ static herr_t
 H5D_open_oid(H5D_t *dataset, hid_t dapl_id, hid_t dxpl_id)
 {
     H5P_genplist_t *plist;              /* Property list */
+    H5P_genplist_t *filter_plist;       /* Filter property list */
     H5O_fill_t *fill_prop;              /* Pointer to dataset's fill value info */
+    H5FD_direct_fapl_t *direct_info;
     unsigned alloc_time_state;          /* Allocation time state */
     htri_t msg_exists;                  /* Whether a particular type of message exists */
     herr_t ret_value = SUCCEED;		/* Return value */
@@ -1452,6 +1470,19 @@ H5D_open_oid(H5D_t *dataset, hid_t dapl_id, hid_t dxpl_id)
             /* Initialize the chunk cache for the dataset */
             if(H5D_chunk_init(dataset->oloc.file, dxpl_id, dataset, dapl_id) < 0)
                 HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, "can't initialize chunk cache")
+
+            dataset->shared->filter_plist_id = H5Pcreate(H5P_PIPELINE_ACCESS);
+
+            /* Get filter property list object */
+            if(NULL == (filter_plist = (H5P_genplist_t *)H5I_object(dataset->shared->filter_plist_id)))
+                HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "can't get filter property list")
+
+            direct_info = H5F_DIRECT_INFO(dataset->oloc.file);
+  
+            if(direct_info && 
+                    H5P_set(filter_plist, H5Z_DIRECT_IO_NAME, direct_info) < 0)
+                HGOTO_ERROR(H5E_DATASET, H5E_CANTSET, FAIL, "can't set direct IO info")
+
             break;
 
         case H5D_COMPACT:
@@ -1622,6 +1653,9 @@ H5D_close(H5D_t *dataset)
                 /* Flush and destroy chunks in the cache */
                 if(H5D_chunk_dest(dataset->oloc.file, H5AC_dxpl_id, dataset) < 0)
                     HGOTO_ERROR(H5E_DATASET, H5E_CANTRELEASE, FAIL, "unable to destroy chunk cache")
+
+                /* Close the property list for filter pipeline */
+                H5Pclose(dataset->shared->filter_plist_id);
                 break;
 
             case H5D_COMPACT:
