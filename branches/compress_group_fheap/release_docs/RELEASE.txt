@@ -1,4 +1,4 @@
-HDF5 version 1.9.47 currently under development
+HDF5 version 1.9.48 currently under development
 ================================================================================
 
 
@@ -65,10 +65,8 @@ New Features
       suppress the warning message totally if $HDF5_DISABLE_VERSION_CHECK is 2
       or higher. (Old behavior treated 3 or higher the same as 1, that is
       print a warning and allows the program to continue. (AKC - 2009/9/28)
-    - Added a new feature that have the library information in the file
-      libhdf5.settings embedded in the hdf5 library and statically linked
-      executables.  If a user does not care for the extra library information
-      in the executable, he may turn it off by --disable-embedded-libinfo
+    - If a user does not care for the extra library information insert
+      in the executables, he may turn it off by --disable-embedded-libinfo
       during configure. (AKC - 2009/9/15)
     - Corrected problem where library would re-write the superblock in a file
       opened for R/W access, even when no changes were made to the file.
@@ -193,6 +191,8 @@ Bug Fixes since HDF5-1.8.0 release
 
     Library
     -------
+      - Fixed an assertion failure that occurred when H5Ocopy was called on a
+            dataset using a vlen inside a compound. (NAF - 2009/10/02 - 1597)
       - Fixed incorrect return value for H5Pget_filter_by_id1/2 in H5Ppublic.h.
             (NAF - 2009/09/25 - 1620)
       - Fixed a bug where properties weren't being compared with the registered
@@ -315,6 +315,14 @@ Bug Fixes since HDF5-1.8.0 release
 
     Configuration
     -------------
+    - Added $(EXEEXT) extension to H5detect when it's executed in the 
+      src/Makfile to generate H5Tinit.c so it works correctly on platforms 
+      that require the full extension when running executables.
+      MAM - 2009/10/01 - BZ #1613
+    - Configure will now set FC and CXX to "no" when fortran and c++
+      are not being compiled, respectively, so configure will not run
+      some of the compiler tests for these languages when they are not
+      being used. MAM - 2009/10/01
     - The PathScale compiler (v3.2) was mistaken as gcc v4.2.0 but it fails to
       recognize some gcc options. Fixed. (see bug 1301). AKC - 2009/7/28 -
     - The --enable-static-exec flag has been fixed and will now generate
@@ -382,6 +390,8 @@ Bug Fixes since HDF5-1.8.0 release
 
     High-Level APIs:
      ------
+      - H5DSis_attached failed to account for different platform types. Added a
+          get native type call. (ADB - 2009/9/29 - 1562)
       - Dimension scales: The scale index return value in H5DSiterate_scales was not always 
           incremented. (PVN - 2009/4/8 - 1538)
 

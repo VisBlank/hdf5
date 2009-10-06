@@ -26,7 +26,7 @@ dnl
 dnl NOTE: Don't forget to change the version number here when we do a
 dnl release!!!
 dnl
-AC_INIT([HDF5], [1.9.47], [help@hdfgroup.org])
+AC_INIT([HDF5], [1.9.48], [help@hdfgroup.org])
 AC_CONFIG_SRCDIR([src/H5.c])
 AM_CONFIG_HEADER([src/H5config.h])
 
@@ -433,6 +433,7 @@ dnl compile the DOUBLE PRECISION interfaces.
   AC_LANG_POP(Fortran)
 else
   echo "no"
+  FC="no"
 fi
 
 AM_CONDITIONAL([FORTRAN_HAVE_SIZEOF], [test "X$HAVE_SIZEOF" = "Xyes"])
@@ -559,6 +560,7 @@ int main(void) {
   ])
 else
   echo "no"
+  CXX="no"
 fi
 
 dnl Change back to the C language
@@ -3809,10 +3811,10 @@ dnl
 AC_SUBST([DEFAULT_API_VERSION])
 AC_MSG_CHECKING([which version of public symbols to use by default])
 AC_ARG_WITH([default-api-version],
-            [AC_HELP_STRING([--with-default-api-version=(v16|v18)],
+            [AC_HELP_STRING([--with-default-api-version=(v16|v18|v110)],
                             [Specify default release version of public symbols
-                             [default=v18]])],,
-            withval=v18)
+                             [default=v110]])],,
+            withval=v110)
 
 if test "X$withval" = "Xv16"; then
     AC_MSG_RESULT([v16])
@@ -3822,13 +3824,16 @@ if test "X$withval" = "Xv16"; then
 elif test "X$withval" = "Xv18"; then
     AC_MSG_RESULT([v18])
     DEFAULT_API_VERSION=v18
+elif test "X$withval" = "Xv110"; then
+    AC_MSG_RESULT([v110])
+    DEFAULT_API_VERSION=v110
 else
     AC_MSG_ERROR([invalid version of public symbols given])
 fi
 
 dnl It's an error to try to disable deprecated public API symbols while
 dnl choosing an older version of the public API as the default.
-if test "X${DEFAULT_API_VERSION}" != "Xv18" -a "X${DEPRECATED_SYMBOLS}" = "Xno" ; then
+if test "X${DEFAULT_API_VERSION}" != "Xv110" -a "X${DEPRECATED_SYMBOLS}" = "Xno" ; then
   AC_MSG_ERROR([Removing old public API symbols not allowed when using them as default public API symbols])
 fi
 
