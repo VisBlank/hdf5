@@ -460,6 +460,11 @@ typedef enum {
     H5_COPY_DEEP        /* Deep copy from source to destination, including duplicating fields pointed to */
 } H5_copy_depth_t;
 
+/* Common object copying udata (right now only used for groups and datasets) */
+typedef struct H5O_copy_file_ud_common_t {
+    struct H5O_pline_t *src_pline;      /* Copy of filter pipeline for object */
+} H5O_copy_file_ud_common_t;
+
 /* Unique object "position" */
 typedef struct {
     unsigned long fileno;       /* The unique identifier for the file of the object */
@@ -2231,15 +2236,6 @@ func_init_failed:							      \
 
 /* Compile-time "assert" macro */
 #define HDcompile_assert(e)     do { enum { compile_assert__ = 1 / (e) }; } while(0)
-
-/**************************************************************/
-/* Other symbols needed by multiple "private" package headers */
-/**************************************************************/
-
-/* Common object copying udata (right now only used for groups and datasets */
-typedef struct H5O_copy_file_ud_common_t {
-    struct H5O_pline_t *src_pline;      /* Copy of filter pipeline for object */
-} H5O_copy_file_ud_common_t;
 
 /* Private functions, not part of the publicly documented API */
 H5_DLL herr_t H5_init_library(void);

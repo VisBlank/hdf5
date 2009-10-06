@@ -209,7 +209,7 @@ H5G_obj_create(H5F_t *f, hid_t dxpl_id, const H5O_ginfo_t *ginfo,
     /* Check for format of group to create */
     if(use_latest_format) {
         /* Insert link info message */
-        if(H5O_msg_create(oloc, H5O_LINFO_ID, 0, 0, linfo, dxpl_id) < 0)
+        if(H5O_msg_create(oloc, H5O_LINFO_ID, 0, H5O_UPDATE_TIME, linfo, dxpl_id) < 0)
             HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, FAIL, "can't create message")
 
         /* Insert group info message */
@@ -218,7 +218,7 @@ H5G_obj_create(H5F_t *f, hid_t dxpl_id, const H5O_ginfo_t *ginfo,
 
         /* Insert pipeline message */
         if(pline && pline->nused)
-            if(H5O_msg_create(oloc, H5O_PLINE_ID, H5O_MSG_FLAG_CONSTANT, H5O_UPDATE_TIME, pline, dxpl_id) < 0)
+            if(H5O_msg_create(oloc, H5O_PLINE_ID, H5O_MSG_FLAG_CONSTANT, 0, pline, dxpl_id) < 0)
                 HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, FAIL, "can't create message")
     } /* end if */
     else {
@@ -434,7 +434,8 @@ H5G_obj_insert(const H5O_loc_t *grp_oloc, const char *name, H5O_link_t *obj_lnk,
         else if(linfo.nlinks < ginfo.max_compact && link_msg_size < H5O_MESG_MAX_SIZE)
             use_new_dense = FALSE;
         else {
-            H5O_pline_t         pline;          /* Pipeline message */
+            H5O_pline_t         tmp_pline;      /* Pipeline message */
+            H5O_pline_t         *pline = NULL;  /* Pointer to pipeline message */
             htri_t              pline_exists;   /* Whether the pipeline message exists */
             H5G_obj_oh_it_ud1_t	udata;          /* User data for iteration */
             H5O_mesg_operator_t op;             /* Message operator */
@@ -442,21 +443,22 @@ H5G_obj_insert(const H5O_loc_t *grp_oloc, const char *name, H5O_link_t *obj_lnk,
             /* Get the pipeline message, if it exists */
             if((pline_exists = H5O_msg_exists(grp_oloc, H5O_PLINE_ID, dxpl_id)) < 0)
                 HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "unable to read object header")
-            if(pline_exists)
-                if(NULL == H5O_msg_read(grp_oloc, H5O_PLINE_ID, &pline, dxpl_id))
+            if(pline_exists) {
+                pline = &tmp_pline;
+                if(NULL == H5O_msg_read(grp_oloc, H5O_PLINE_ID, pline, dxpl_id))
                     HGOTO_ERROR(H5E_SYM, H5E_BADMESG, FAIL, "can't get link pipeline")
+            } /* end if */
 
             /* The group doesn't currently have "dense" storage for links */
-            if(H5G_dense_create(grp_oloc->file, dxpl_id, &linfo,
-                    pline_exists ? &pline : NULL) < 0) {
+            if(H5G_dense_create(grp_oloc->file, dxpl_id, &linfo, pline) < 0) {
                 if(pline_exists)
-                    H5O_msg_reset(H5O_PLINE_ID, &pline);
+                    H5O_msg_reset(H5O_PLINE_ID, pline);
                 HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, FAIL, "unable to create 'dense' form of new format group")
             } /* end if */
 
             /* Free any space used by the pipeline message */
             if(pline_exists)
-                if(H5O_msg_reset(H5O_PLINE_ID, &pline) < 0)
+                if(H5O_msg_reset(H5O_PLINE_ID, pline) < 0)
                     HGOTO_ERROR(H5E_SYM, H5E_CANTFREE, FAIL, "can't release pipeline")
 
             /* Set up user data for object header message iteration */
