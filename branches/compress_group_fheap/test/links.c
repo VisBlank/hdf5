@@ -8792,8 +8792,8 @@ link_filters(hid_t fapl, hbool_t new_format)
     /* But only if the deflate filter is available */
     if((tri_ret = H5Zfilter_avail(H5Z_FILTER_DEFLATE)) < 0) TEST_ERROR
     if(tri_ret) {
-        hsize_t filesize_filtered;
-        hsize_t filesize_unfiltered;
+        h5_stat_size_t filesize_filtered;
+        h5_stat_size_t filesize_unfiltered;
 
         /* Create gcpl, force use of dense storage */
         if((fcpl = H5Pcreate(H5P_FILE_CREATE)) < 0) TEST_ERROR
@@ -8811,13 +8811,9 @@ link_filters(hid_t fapl, hbool_t new_format)
         if(H5Lcreate_soft("/", fid, "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", H5P_DEFAULT, H5P_DEFAULT) < 0)
             TEST_ERROR
 
-        /* Close file, reopen, get file size */
+        /* Close file, get file size */
         if(H5Fclose(fid) < 0) TEST_ERROR
-        if((fid = H5Fopen(filename, H5F_ACC_RDONLY, fapl)) < 0) TEST_ERROR
-        if(H5Fget_filesize(fid, &filesize_unfiltered) < 0) TEST_ERROR
-
-        /* Closef file */
-        if(H5Fclose(fid) < 0) TEST_ERROR
+        filesize_unfiltered = h5_get_file_size(filename, fapl);
 
         /* Set deflate fitler */
         if(H5Pset_deflate(fcpl, 6) < 0) TEST_ERROR
@@ -8832,10 +8828,9 @@ link_filters(hid_t fapl, hbool_t new_format)
         if(H5Lcreate_soft("/", fid, "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", H5P_DEFAULT, H5P_DEFAULT) < 0)
             TEST_ERROR
 
-        /* Close file, reopen, get file size */
+        /* Close file, get file size */
         if(H5Fclose(fid) < 0) TEST_ERROR
-        if((fid = H5Fopen(filename, H5F_ACC_RDONLY, fapl)) < 0) TEST_ERROR
-        if(H5Fget_filesize(fid, &filesize_filtered) < 0) TEST_ERROR
+        filesize_filtered = h5_get_file_size(filename, fapl);
 
         /* Check that the file size is smaller with the filter */
         if((double)filesize_filtered
@@ -8843,7 +8838,6 @@ link_filters(hid_t fapl, hbool_t new_format)
             TEST_ERROR
 
         /* Close */
-        if(H5Fclose(fid) < 0) TEST_ERROR
         if(H5Pclose(fcpl) < 0) TEST_ERROR
     } /* end if */
 
@@ -13315,7 +13309,6 @@ main(void)
             my_fapl = fapl;
 
         /* General tests... (on both old & new format groups */
-
         nerrors += mklinks(my_fapl, new_format) < 0 ? 1 : 0;
         nerrors += cklinks(my_fapl, new_format) < 0 ? 1 : 0;
         nerrors += new_links(my_fapl, new_format) < 0 ? 1 : 0;
@@ -13369,7 +13362,6 @@ main(void)
         nerrors += external_set_elink_fapl3(new_format) < 0 ? 1 : 0;
         nerrors += external_set_elink_acc_flags(my_fapl, new_format) < 0 ? 1 : 0;
         nerrors += external_set_elink_cb(my_fapl, new_format) < 0 ? 1 : 0;
-
 #ifdef H5_HAVE_WINDOW_PATH
         nerrors += external_link_win1(my_fapl, new_format) < 0 ? 1 : 0;
         nerrors += external_link_win2(my_fapl, new_format) < 0 ? 1 : 0;
@@ -13381,6 +13373,7 @@ main(void)
         nerrors += external_link_win8(my_fapl, new_format) < 0 ? 1 : 0;
         nerrors += external_link_win9(my_fapl, new_format) < 0 ? 1 : 0;
 #endif
+
         /* These tests assume that external links are a form of UD links,
          * so assume that everything that passed for external links
          * above has already been tested for UD links.
@@ -13389,7 +13382,6 @@ main(void)
             nerrors += ud_hard_links(fapl2) < 0 ? 1 : 0;     /* requires new format groups */
             nerrors += ud_link_reregister(fapl2) < 0 ? 1 : 0;        /* requires new format groups */
         } /* end if */
-
         nerrors += ud_callbacks(my_fapl, new_format) < 0 ? 1 : 0;
         nerrors += ud_link_errors(my_fapl, new_format) < 0 ? 1 : 0;
         nerrors += lapl_udata(my_fapl, new_format) < 0 ? 1 : 0;
