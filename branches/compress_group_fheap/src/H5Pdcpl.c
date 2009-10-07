@@ -2136,7 +2136,7 @@ H5Pget_filter_by_id1(hid_t plist_id, H5Z_filter_t id, unsigned int *flags/*out*/
 
     /* Get filter info */
     if(H5P_get_filter_by_id(plist, id, flags, cd_nelmts, cd_values, namelen, name, NULL) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, H5Z_FILTER_ERROR, "can't get filter info")
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get filter info")
 
 done:
     FUNC_LEAVE_API(ret_value)
