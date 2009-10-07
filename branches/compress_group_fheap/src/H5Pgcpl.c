@@ -59,8 +59,6 @@
 
 /* Property class callbacks */
 static herr_t H5P_gcrt_reg_prop(H5P_genclass_t *pclass);
-static herr_t H5P_gcrt_copy(hid_t new_plist_t, hid_t old_plist_t, void *copy_data);
-static herr_t H5P_gcrt_close(hid_t dxpl_id, void *close_data);
 
 
 /*********************/
@@ -76,9 +74,9 @@ const H5P_libclass_t H5P_CLS_GCRT[1] = {{
     H5P_gcrt_reg_prop,		/* Default property registration routine */
     NULL,		        /* Class creation callback      */
     NULL,		        /* Class creation callback info */
-    H5P_gcrt_copy,		/* Class copy callback          */
+    NULL,			/* Class copy callback          */
     NULL,		        /* Class copy callback info     */
-    H5P_gcrt_close,		/* Class close callback         */
+    NULL,			/* Class close callback         */
     NULL 		        /* Class close callback info    */
 }};
 
@@ -110,7 +108,6 @@ H5P_gcrt_reg_prop(H5P_genclass_t *pclass)
 {
     H5O_ginfo_t ginfo = H5G_CRT_GROUP_INFO_DEF;     /* Default group info settings */
     H5O_linfo_t linfo = H5G_CRT_LINK_INFO_DEF;      /* Default link info settings */
-    H5O_pline_t pline = H5G_CRT_LINK_PIPELINE_DEF;  /* Default I/O pipeline setting */
     herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5P_gcrt_reg_prop)
@@ -125,104 +122,9 @@ H5P_gcrt_reg_prop(H5P_genclass_t *pclass)
              &linfo, NULL, NULL, NULL, NULL, NULL, NULL, NULL) < 0)
          HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class")
 
-    /* Register the data pipeline property */
-    if(H5P_register(pclass, H5G_CRT_LINK_PIPELINE_NAME, H5G_CRT_LINK_PIPELINE_SIZE, &pline, NULL, NULL, NULL, NULL, NULL, H5G_CRT_LINK_PIPELINE_CMP, NULL) < 0)
-       HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class")
-
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5P_gcrt_reg_prop() */
-
-
-/*-------------------------------------------------------------------------
- * Function:       H5P_gcrt_copy
- *
- * Purpose:        Callback routine which is called whenever any group
- *                 creation property list is copied.  This routine copies
- *                 the properties from the old list to the new list.
- *
- * Return:         Success:        Non-negative
- *                 Failure:        Negative
- *
- * Programmer:     Neil Fortner
- *                 Monday, September 21, 2009
- *
- *-------------------------------------------------------------------------
- */
-/* ARGSUSED */
-static herr_t
-H5P_gcrt_copy(hid_t dst_plist_id, hid_t src_plist_id, void UNUSED *copy_data)
-{
-    H5O_pline_t    src_pline, dst_pline;        /* Source & destination pipelines */
-    H5P_genplist_t *src_plist;                  /* Pointer to source property list */
-    H5P_genplist_t *dst_plist;                  /* Pointer to destination property list */
-    herr_t         ret_value = SUCCEED;         /* Return value */
-
-    FUNC_ENTER_NOAPI_NOINIT(H5P_gcrt_copy)
-
-    /* Verify property list IDs */
-    if(NULL == (dst_plist = (H5P_genplist_t *)H5I_object(dst_plist_id)))
-        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataset creation property list")
-    if(NULL == (src_plist = (H5P_genplist_t *)H5I_object(src_plist_id)))
-        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataset creation property list")
-
-    /* Get the link pipeline property from the old property list */
-    if(H5P_get(src_plist, H5G_CRT_LINK_PIPELINE_NAME, &src_pline) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get pipeline")
-
-    /* Make copy of link pipeline */
-    if(NULL == H5O_msg_copy(H5O_PLINE_ID, &src_pline, &dst_pline))
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTINIT, FAIL, "can't copy link pipeline")
-
-    /* Set the link pipeline property for the destination property list */
-    if(H5P_set(dst_plist, H5G_CRT_LINK_PIPELINE_NAME, &dst_pline) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set pipeline")
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5P_gcrt_copy() */
-
-
-/*-------------------------------------------------------------------------
- * Function:	H5P_gcrt_close
- *
- * Purpose:	Callback routine which is called whenever any group create
- *              property list is closed.  This routine performs any generic
- *              cleanup needed on the properties the library put into the list.
- *
- * Return:	Success:	Non-negative
- *		Failure:	Negative
- *
- * Programmer:     Neil Fortner
- *                 Monday, September 21, 2009
- *
- *-------------------------------------------------------------------------
- */
-/* ARGSUSED */
-static herr_t
-H5P_gcrt_close(hid_t dcpl_id, void UNUSED *close_data)
-{
-    H5O_pline_t     pline;              /* I/O pipeline */
-    H5P_genplist_t *plist;              /* Property list */
-    herr_t ret_value = SUCCEED;         /* Return value */
-
-    FUNC_ENTER_NOAPI_NOINIT(H5P_gcrt_close)
-
-    /* Check arguments */
-    if(NULL == (plist = (H5P_genplist_t *)H5I_object(dcpl_id)))
-        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataset creation property list")
-
-    /* Get the link pipeline property from the old property list */
-    if(H5P_get(plist, H5G_CRT_LINK_PIPELINE_NAME, &pline) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get pipeline")
-
-    /* Clean up any values set for the link pipeline */
-    if(H5O_msg_reset(H5O_PLINE_ID, &pline) < 0)
-        HGOTO_ERROR(H5E_DATASET, H5E_CANTFREE, FAIL, "can't release pipeline info")
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5P_gcrt_close() */
 
 
 /*-------------------------------------------------------------------------

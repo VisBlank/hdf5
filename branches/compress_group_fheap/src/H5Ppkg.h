@@ -181,7 +181,6 @@ H5_DLL herr_t H5P_close_class(void *_pclass);
 H5_DLL herr_t H5P_get_filter(const H5Z_filter_info_t *filter,
     unsigned int *flags, size_t *cd_nelmts, unsigned cd_values[],
     size_t namelen, char name[], unsigned *filter_config);
-H5_DLL int H5P_pipeline_cmp(const void *value1, const void *value2, size_t size);
 
 /* Testing functions */
 #ifdef H5P_TESTING

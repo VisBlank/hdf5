@@ -156,7 +156,7 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get link info")
 
         /* Get the pipeline property */
-        if(H5P_get(fc_plist, H5G_CRT_LINK_PIPELINE_NAME, &pline) < 0)
+        if(H5P_get(fc_plist, H5O_CRT_PIPELINE_NAME, &pline) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get group info")
 
         /* Create root group */

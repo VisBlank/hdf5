@@ -493,7 +493,7 @@ H5Gget_create_plist(hid_t group_id)
             HGOTO_ERROR(H5E_SYM, H5E_BADMESG, FAIL, "can't get link pipeline")
 
         /* Set the pipeline for the property list */
-        if(H5P_set(new_plist, H5G_CRT_LINK_PIPELINE_NAME, &pline) < 0)
+        if(H5P_set(new_plist, H5O_CRT_PIPELINE_NAME, &pline) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set link pipeline")
     } /* end if */
 
@@ -887,7 +887,7 @@ H5G_create(H5F_t *file, hid_t gcpl_id, hid_t dxpl_id)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get group info")
 
     /* Get the pipeline property */
-    if(H5P_get(gc_plist, H5G_CRT_LINK_PIPELINE_NAME, &pline) < 0)
+    if(H5P_get(gc_plist, H5O_CRT_PIPELINE_NAME, &pline) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get group info")
 
     /* Create the group object header */

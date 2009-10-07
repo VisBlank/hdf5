@@ -98,12 +98,6 @@
                                                     H5G_CRT_GINFO_EST_NAME_LEN \
                                                 }
 
-/* Definitions for link filter pipeline */
-#define H5G_CRT_LINK_PIPELINE_NAME H5O_CRT_PIPELINE_NAME
-#define H5G_CRT_LINK_PIPELINE_SIZE sizeof(H5O_pline_t)
-#define H5G_CRT_LINK_PIPELINE_DEF  {{0, NULL, H5O_NULL_ID, {{0, HADDR_UNDEF}}}, H5O_PLINE_VERSION_1, 0, 0, NULL}
-#define H5G_CRT_LINK_PIPELINE_CMP  H5P_pipeline_cmp
-
 /* If the module using this macro is allowed access to the private variables, access them directly */
 #ifdef H5G_PACKAGE
 #define H5G_MOUNTED(G)              ((G)->shared->mounted)
