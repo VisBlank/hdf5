@@ -854,10 +854,6 @@ H5G_t *
 H5G_create(H5F_t *file, hid_t gcpl_id, hid_t dxpl_id)
 {
     H5G_t	*grp = NULL;	/*new group			*/
-    H5P_genplist_t  *gc_plist;  /* Property list created */
-    H5O_ginfo_t ginfo;          /* Group info */
-    H5O_linfo_t linfo;          /* Link info */
-    H5O_pline_t pline;          /* Pipeline */
     unsigned    oloc_init = 0;  /* Flag to indicate that the group object location was created successfully */
     H5G_t	*ret_value;	/* Return value */
 
@@ -874,24 +870,8 @@ H5G_create(H5F_t *file, hid_t gcpl_id, hid_t dxpl_id)
     if(NULL == (grp->shared = H5FL_CALLOC(H5G_shared_t)))
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
 
-    /* Get the property list */
-    if(NULL == (gc_plist = (H5P_genplist_t *)H5I_object(gcpl_id)))
-        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not a property list")
-
-    /* Get the group info property */
-    if(H5P_get(gc_plist, H5G_CRT_GROUP_INFO_NAME, &ginfo) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get group info")
-
-    /* Get the link info property */
-    if(H5P_get(gc_plist, H5G_CRT_LINK_INFO_NAME, &linfo) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get group info")
-
-    /* Get the pipeline property */
-    if(H5P_get(gc_plist, H5O_CRT_PIPELINE_NAME, &pline) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get group info")
-
     /* Create the group object header */
-    if(H5G_obj_create(file, dxpl_id, &ginfo, &linfo, &pline, gcpl_id, &(grp->oloc)/*out*/) < 0)
+    if(H5G_obj_create(file, dxpl_id, gcpl_id, &(grp->oloc)/*out*/) < 0)
         HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, NULL, "unable to create group object header")
     oloc_init = 1;    /* Indicate that the object location information is valid */
 

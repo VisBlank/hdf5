@@ -529,7 +529,9 @@ H5_DLL H5G_obj_t H5G_dense_get_type_by_idx(H5F_t  *f, hid_t dxpl_id,
 #endif /* H5_NO_DEPRECATED_SYMBOLS */
 
 /* Functions that understand group objects */
-H5_DLL herr_t H5G_obj_create(H5F_t *f, hid_t dxpl_id, const H5O_ginfo_t *ginfo,
+H5_DLL herr_t H5G_obj_create(H5F_t *f, hid_t dxpl_id, hid_t gcpl_id,
+    H5O_loc_t *oloc/*out*/);
+H5_DLL herr_t H5G_obj_create_real(H5F_t *f, hid_t dxpl_id, const H5O_ginfo_t *ginfo,
     const H5O_linfo_t *linfo, const H5O_pline_t *pline, hid_t gcpl_id,
     H5O_loc_t *oloc/*out*/);
 H5_DLL htri_t H5G_obj_get_linfo(const H5O_loc_t *grp_oloc, H5O_linfo_t *linfo,

@@ -80,7 +80,6 @@
 #define H5O_CRT_ATTR_MAX_COMPACT_DEF    8
 #define H5O_CRT_ATTR_MIN_DENSE_DEF      6
 #define H5O_CRT_OHDR_FLAGS_DEF          H5O_HDR_STORE_TIMES
-#define H5O_CRT_PIPELINE_DEF            {{0, NULL, H5O_NULL_ID, {{0, HADDR_UNDEF}}}, H5O_PLINE_VERSION_1, 0, 0, NULL}
 
 /* Object header status flag definitions */
 #define H5O_HDR_CHUNK0_1                0x00    /* Use 1-byte value for chunk #0 size */

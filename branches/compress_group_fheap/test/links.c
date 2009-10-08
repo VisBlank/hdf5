@@ -8601,7 +8601,9 @@ static size_t link_filter_filter(unsigned int flags, size_t cd_nelmts,
 static int
 link_filters(hid_t fapl, hbool_t new_format)
 {
-    hid_t       fid = -1, gid1 = -1, gid2 = -1, gcpl1 = -1, gcpl2 = -1, fcpl = -1;
+    hid_t       fid = -1, fcpl = -1;
+    hid_t       gid1 = -1, gid2 = -1, gcpl1 = -1, gcpl2 = -1;
+    hid_t       lcpl = -1;
     size_t      cd_nelmts = 1;
     unsigned    cd_value = 2112;
     unsigned    cd_value_out;
@@ -8657,7 +8659,7 @@ link_filters(hid_t fapl, hbool_t new_format)
     filter_class.set_local = link_filter_set_local;
     filter_class.filter = link_filter_filter;
     if(H5Zregister(&filter_class) < 0) TEST_ERROR
-    if(H5Pset_filter(gcpl1, H5Z_FILTER_RESERVED + 42, 0, 1, &cd_value) < 0)
+    if(H5Pset_filter(gcpl1, H5Z_FILTER_RESERVED + 42, 0, (size_t)1, &cd_value) < 0)
         TEST_ERROR
     nfilters++;
 
@@ -8745,14 +8747,14 @@ link_filters(hid_t fapl, hbool_t new_format)
 
     /* Test H5Pget_filter_by_id2 and H5Pget_filter2 */
     if(H5Pget_filter_by_id2(gcpl2, H5Z_FILTER_RESERVED + 42, &flags_out,
-            &cd_nelmts, &cd_value_out, 24, name_out, &filter_config_out) < 0)
+            &cd_nelmts, &cd_value_out, (size_t)24, name_out, &filter_config_out) < 0)
         TEST_ERROR
     if(flags_out != 0 || cd_value_out != cd_value
             || HDstrcmp(filter_class.name, name_out)
             || filter_config_out != (H5Z_FILTER_CONFIG_ENCODE_ENABLED
             | H5Z_FILTER_CONFIG_DECODE_ENABLED))
         TEST_ERROR
-    if(H5Pget_filter2(gcpl2, 2, &flags_out, &cd_nelmts, &cd_value_out, 24,
+    if(H5Pget_filter2(gcpl2, 2, &flags_out, &cd_nelmts, &cd_value_out, (size_t)24,
             name_out, &filter_config_out) < 0)
         TEST_ERROR
     if(flags_out != 0 || cd_value_out != cd_value
@@ -8763,10 +8765,10 @@ link_filters(hid_t fapl, hbool_t new_format)
 
     /* Test H5Pmodify_filter */
     cd_value++;
-    if(H5Pmodify_filter(gcpl2, H5Z_FILTER_RESERVED + 42, 0, 1, &cd_value) < 0)
+    if(H5Pmodify_filter(gcpl2, H5Z_FILTER_RESERVED + 42, 0, (size_t)1, &cd_value) < 0)
         TEST_ERROR
     if(H5Pget_filter_by_id2(gcpl2, H5Z_FILTER_RESERVED + 42, &flags_out,
-            &cd_nelmts, &cd_value_out, 24, name_out, &filter_config_out) < 0)
+            &cd_nelmts, &cd_value_out, (size_t)24, name_out, &filter_config_out) < 0)
         TEST_ERROR
     if(flags_out != 0 || cd_value_out != cd_value
             || HDstrcmp(filter_class.name, name_out)
@@ -8778,7 +8780,7 @@ link_filters(hid_t fapl, hbool_t new_format)
     if(H5Premove_filter(gcpl2, H5Z_FILTER_RESERVED + 42) < 0) TEST_ERROR
     H5E_BEGIN_TRY {
         status = H5Pget_filter_by_id2(gcpl2, H5Z_FILTER_RESERVED + 42,
-                &flags_out, &cd_nelmts, &cd_value_out, 24, name_out,
+                &flags_out, &cd_nelmts, &cd_value_out, (size_t)24, name_out,
                 &filter_config_out);
     } H5E_END_TRY
     if(status >= 0) TEST_ERROR
@@ -8786,6 +8788,47 @@ link_filters(hid_t fapl, hbool_t new_format)
     /* Close remaining ids */
     if(H5Pclose(gcpl1) < 0) TEST_ERROR
     if(H5Pclose(gcpl2) < 0) TEST_ERROR
+
+    /* Now create an object in the compressed group, creating intermediate
+     * groups, to verify that the filter pipeline is inherited for the groups
+     * that are created along the way */
+    /* Reopen file */
+    if((fid = H5Fopen(filename, H5F_ACC_RDWR, fapl)) < 0) TEST_ERROR
+
+    /* Create lcpl, setting the "create intermediate groups" flag */
+    if((lcpl = H5Pcreate(H5P_LINK_CREATE)) < 0) TEST_ERROR
+    if(H5Pset_create_intermediate_group(lcpl, (unsigned)TRUE) < 0) TEST_ERROR
+
+    /* Create new group, with missing intermediate groups, in compressed group */
+    if((gid1 = H5Gcreate2(fid, "group1/group2/group3/group4", lcpl, H5P_DEFAULT, H5P_DEFAULT)) < 0)
+        TEST_ERROR
+
+    /* Close LCPL ID */
+    if(H5Pclose(lcpl) < 0) TEST_ERROR
+
+    /* Verify that new group doesn't have filters */
+    if((gcpl1 = H5Gget_create_plist(gid1)) < 0) TEST_ERROR
+    if(H5Pget_nfilters(gcpl1) != 0) TEST_ERROR
+
+    /* Close group & GCPL IDs */
+    if(H5Pclose(gcpl1) < 0) TEST_ERROR
+    if(H5Gclose(gid1) < 0) TEST_ERROR
+
+    /* Open intermediate groups that were created and verify that they have filters */
+    if((gid1 = H5Gopen2(fid, "group1/group2", H5P_DEFAULT)) < 0) TEST_ERROR
+    if((gcpl1 = H5Gget_create_plist(gid1)) < 0) TEST_ERROR
+    if(H5Pget_nfilters(gcpl1) != nfilters) TEST_ERROR
+    if(H5Pclose(gcpl1) < 0) TEST_ERROR
+    if(H5Gclose(gid1) < 0) TEST_ERROR
+    if((gid1 = H5Gopen2(fid, "group1/group2/group3", H5P_DEFAULT)) < 0) TEST_ERROR
+    if((gcpl1 = H5Gget_create_plist(gid1)) < 0) TEST_ERROR
+    if(H5Pget_nfilters(gcpl1) != nfilters) TEST_ERROR
+    if(H5Pclose(gcpl1) < 0) TEST_ERROR
+    if(H5Gclose(gid1) < 0) TEST_ERROR
+
+    /* Close file */
+    if(H5Fclose(fid) < 0) TEST_ERROR
+
 
     /* Now create the same file with and without deflate, and verify that the
      * file size is smaller with deflate */
@@ -8849,6 +8892,7 @@ error:
         H5Gclose(gid1);
         H5Gclose(gid2);
         H5Fclose(fid);
+        H5Pclose(lcpl);
         H5Pclose(gcpl1);
         H5Pclose(gcpl2);
         H5Pclose(fcpl);

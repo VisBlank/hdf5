@@ -125,12 +125,12 @@ static herr_t H5G_obj_remove_update_linfo(H5O_loc_t *oloc, H5O_linfo_t *linfo,
  *-------------------------------------------------------------------------
  */
 herr_t
-H5G_obj_create(H5F_t *f, hid_t dxpl_id, const H5O_ginfo_t *ginfo,
-    const H5O_linfo_t *linfo, const H5O_pline_t *pline, hid_t gcpl_id,
-    H5O_loc_t *oloc/*out*/)
+H5G_obj_create(H5F_t *f, hid_t dxpl_id, hid_t gcpl_id, H5O_loc_t *oloc/*out*/)
 {
-    size_t hdr_size;                    /* Size of object header to request */
-    hbool_t use_latest_format;          /* Flag indicating the new group format should be used */
+    H5P_genplist_t  *gc_plist;          /* Group creation property list */
+    H5O_ginfo_t ginfo;                  /* Group info */
+    H5O_linfo_t linfo;                  /* Link info */
+    H5O_pline_t pline;                  /* Pipeline */
     herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI(H5G_obj_create, FAIL)
@@ -139,7 +139,64 @@ H5G_obj_create(H5F_t *f, hid_t dxpl_id, const H5O_ginfo_t *ginfo,
      * Check arguments.
      */
     HDassert(f);
+    HDassert(oloc);
+
+    /* Get the property list */
+    if(NULL == (gc_plist = (H5P_genplist_t *)H5I_object(gcpl_id)))
+        HGOTO_ERROR(H5E_SYM, H5E_BADTYPE, FAIL, "not a property list")
+
+    /* Get the group info property */
+    if(H5P_get(gc_plist, H5G_CRT_GROUP_INFO_NAME, &ginfo) < 0)
+        HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "can't get group info")
+
+    /* Get the link info property */
+    if(H5P_get(gc_plist, H5G_CRT_LINK_INFO_NAME, &linfo) < 0)
+        HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "can't get group info")
+
+    /* Get the pipeline property */
+    if(H5P_get(gc_plist, H5O_CRT_PIPELINE_NAME, &pline) < 0)
+        HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "can't get group info")
+
+    /* Call the "real" group creation routine now */
+    if(H5G_obj_create_real(f, dxpl_id, &ginfo, &linfo, &pline, gcpl_id, oloc) < 0)
+        HGOTO_ERROR(H5E_SYM, H5E_CANTCREATE, FAIL, "unable to create group")
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5G_obj_create() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    H5G_obj_create_real
+ *
+ * Purpose:     Create an object header for a group and update object location info
+ *
+ * Return:      Non-negative on success/Negative on failure
+ *
+ * Programmer:  Quincey Koziol
+ *              koziol@ncsa.uiuc.edu
+ *              Sep 29 2005
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5G_obj_create_real(H5F_t *f, hid_t dxpl_id, const H5O_ginfo_t *ginfo,
+    const H5O_linfo_t *linfo, const H5O_pline_t *pline, hid_t gcpl_id,
+    H5O_loc_t *oloc/*out*/)
+{
+    size_t hdr_size;                    /* Size of object header to request */
+    hbool_t use_latest_format;          /* Flag indicating the new group format should be used */
+    herr_t ret_value = SUCCEED;         /* Return value */
+
+    FUNC_ENTER_NOAPI(H5G_obj_create_real, FAIL)
+
+    /*
+     * Check arguments.
+     */
+    HDassert(f);
     HDassert(ginfo);
+    HDassert(linfo);
+    HDassert(pline);
     HDassert(oloc);
 
     /* Check for invalid access request */
@@ -231,7 +288,7 @@ H5G_obj_create(H5F_t *f, hid_t dxpl_id, const H5O_ginfo_t *ginfo,
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5G_obj_create() */
+} /* end H5G_obj_create_real() */
 
 
 /*-------------------------------------------------------------------------
@@ -383,6 +440,8 @@ herr_t
 H5G_obj_insert(const H5O_loc_t *grp_oloc, const char *name, H5O_link_t *obj_lnk,
     hbool_t adj_link, hid_t dxpl_id)
 {
+    H5O_pline_t tmp_pline;      /* Pipeline message */
+    H5O_pline_t *pline = NULL;  /* Pointer to pipeline message */
     H5O_linfo_t linfo;		/* Link info message */
     htri_t linfo_exists;        /* Whether the link info message exists */
     hbool_t use_old_format;     /* Whether to use 'old format' (symbol table) for insertions or not */
@@ -434,8 +493,6 @@ H5G_obj_insert(const H5O_loc_t *grp_oloc, const char *name, H5O_link_t *obj_lnk,
         else if(linfo.nlinks < ginfo.max_compact && link_msg_size < H5O_MESG_MAX_SIZE)
             use_new_dense = FALSE;
         else {
-            H5O_pline_t         tmp_pline;      /* Pipeline message */
-            H5O_pline_t         *pline = NULL;  /* Pointer to pipeline message */
             htri_t              pline_exists;   /* Whether the pipeline message exists */
             H5G_obj_oh_it_ud1_t	udata;          /* User data for iteration */
             H5O_mesg_operator_t op;             /* Message operator */
@@ -444,22 +501,14 @@ H5G_obj_insert(const H5O_loc_t *grp_oloc, const char *name, H5O_link_t *obj_lnk,
             if((pline_exists = H5O_msg_exists(grp_oloc, H5O_PLINE_ID, dxpl_id)) < 0)
                 HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "unable to read object header")
             if(pline_exists) {
-                pline = &tmp_pline;
-                if(NULL == H5O_msg_read(grp_oloc, H5O_PLINE_ID, pline, dxpl_id))
+                if(NULL == H5O_msg_read(grp_oloc, H5O_PLINE_ID, &tmp_pline, dxpl_id))
                     HGOTO_ERROR(H5E_SYM, H5E_BADMESG, FAIL, "can't get link pipeline")
+                pline = &tmp_pline;
             } /* end if */
 
             /* The group doesn't currently have "dense" storage for links */
-            if(H5G_dense_create(grp_oloc->file, dxpl_id, &linfo, pline) < 0) {
-                if(pline_exists)
-                    H5O_msg_reset(H5O_PLINE_ID, pline);
+            if(H5G_dense_create(grp_oloc->file, dxpl_id, &linfo, pline) < 0)
                 HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, FAIL, "unable to create 'dense' form of new format group")
-            } /* end if */
-
-            /* Free any space used by the pipeline message */
-            if(pline_exists)
-                if(H5O_msg_reset(H5O_PLINE_ID, pline) < 0)
-                    HGOTO_ERROR(H5E_SYM, H5E_CANTFREE, FAIL, "can't release pipeline")
 
             /* Set up user data for object header message iteration */
             udata.f = grp_oloc->file;
@@ -563,6 +612,10 @@ H5G_obj_insert(const H5O_loc_t *grp_oloc, const char *name, H5O_link_t *obj_lnk,
     } /* end if */
 
 done:
+    /* Free any space used by the pipeline message */
+    if(pline && H5O_msg_reset(H5O_PLINE_ID, pline) < 0)
+        HDONE_ERROR(H5E_SYM, H5E_CANTFREE, FAIL, "can't release pipeline")
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5G_obj_insert() */
 
