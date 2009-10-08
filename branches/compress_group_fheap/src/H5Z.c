@@ -490,13 +490,6 @@ done:
  *              of passing in the dataset's dataspace, since the chunk
  *              dimensions are what the I/O filter will actually see
  *
- * Modifications:
- *              Neil Fortner
- *              Tuesday, September 22, 2009
- *              Refactored code dealing with the dcpl to
- *              H5Z_prepare_prelude callback_dcpl to support filters on
- *              fractal heaps.
- *
  *-------------------------------------------------------------------------
  */
 static herr_t
@@ -584,12 +577,6 @@ done:
  *              The chunk dimensions are used to create a dataspace, instead
  *              of passing in the dataset's dataspace, since the chunk
  *              dimensions are what the I/O filter will actually see
- *
- * Modifications:
- *              Neil Fortner
- *              Tuesday, September 22, 2009
- *              Function refactored from H5Z_prelude callback to support
- *              filters on fractal heaps.
  *
  *-------------------------------------------------------------------------
  */

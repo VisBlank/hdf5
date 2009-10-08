@@ -244,7 +244,7 @@ H5P_ocrt_close(hid_t dcpl_id, void UNUSED *close_data)
 
     /* Clean up any values set for the link pipeline */
     if(H5O_msg_reset(H5O_PLINE_ID, &pline) < 0)
-        HGOTO_ERROR(H5E_DATASET, H5E_CANTFREE, FAIL, "can't release pipeline info")
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTFREE, FAIL, "can't release pipeline info")
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -1488,7 +1488,7 @@ H5Pget_filter1(hid_t plist_id, unsigned idx, unsigned int *flags/*out*/,
     } /* end if */
 
     /* Get the plist structure */
-    if(NULL == (plist = H5P_object_verify(plist_id, H5P_DATASET_CREATE)))
+    if(NULL == (plist = H5P_object_verify(plist_id, H5P_OBJECT_CREATE)))
         HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, H5Z_FILTER_ERROR, "can't find object for ID")
 
     /* Get pipeline info */
@@ -1569,7 +1569,7 @@ H5Pget_filter_by_id1(hid_t plist_id, H5Z_filter_t id, unsigned int *flags/*out*/
     } /* end if */
 
     /* Get the plist structure */
-    if(NULL == (plist = H5P_object_verify(plist_id, H5P_DATASET_CREATE)))
+    if(NULL == (plist = H5P_object_verify(plist_id, H5P_OBJECT_CREATE)))
         HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "can't find object for ID")
 
     /* Get filter info */
