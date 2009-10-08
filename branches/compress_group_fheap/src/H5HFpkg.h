@@ -322,7 +322,6 @@ typedef struct H5HF_hdr_t {
     H5O_pline_t pline;          /* I/O filter pipeline for heap objects */
     size_t      pline_root_direct_size;    /* Size of filtered root direct block */
     unsigned    pline_root_direct_filter_mask; /* I/O filter mask for filtered root direct block */
-    hbool_t     checked_filters; /* TRUE if pipeline passes can_apply checks */
 
     /* Statistics for heap (stored in header) */
     hsize_t     man_size;       /* Total amount of 'managed' space in heap */
@@ -355,6 +354,7 @@ typedef struct H5HF_hdr_t {
     uint8_t     huge_id_size; /* Size of 'huge' heap IDs (in bytes) */
     uint8_t     heap_off_size; /* Size of heap offsets (in bytes) */
     uint8_t     heap_len_size; /* Size of heap ID lengths (in bytes) */
+    hbool_t     checked_filters; /* TRUE if pipeline passes can_apply checks */
 } H5HF_hdr_t;
 
 /* Common indirect block doubling table entry */
