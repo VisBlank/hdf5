@@ -36,10 +36,17 @@
 #define CBSIZE		(64*KB)
 #define THRESHOLD 	1
 #define DSET1_NAME	"dset1"
+#ifdef TMP 
 #define DSET1_DIM1      1024
 #define DSET1_DIM2      32
 #define CHUNK_DIM1      128
 #define CHUNK_DIM2      16
+#else /* make some partial chunk data */
+#define DSET1_DIM1      1024
+#define DSET1_DIM2      32
+#define CHUNK_DIM1      200
+#define CHUNK_DIM2      10
+#endif
 #define DSET2_NAME	"dset2"
 #define DSET2_DIM       4
 #define DSET3_NAME	"dset3"
@@ -152,7 +159,7 @@ test_direct(void)
 {
 #ifdef H5_HAVE_DIRECT
     hid_t       file=(-1), fapl, access_fapl = -1;
-    hid_t       dcpl_id;
+    hid_t       dcpl_id, dxpl_id;
     hid_t	dset1=-1, dset2=-1, dset3=-1;
     hid_t       space1=-1, space2=-1;
     char        filename[1024];
@@ -191,6 +198,11 @@ test_direct(void)
 
     if(H5Pset_alignment(fapl, (hsize_t)THRESHOLD, (hsize_t)FBSIZE) < 0)
 	TEST_ERROR;
+
+    /* Turn off the sieve buffer.  Chunked dataset doesn't use it.  Just
+     * make sure it is OK. */
+    if(H5Pset_sieve_buf_size(fapl, 0) < 0)
+        TEST_ERROR;
 
     H5E_BEGIN_TRY {
         file=H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl);
@@ -317,13 +329,19 @@ test_direct(void)
         TEST_ERROR;
 
     if(H5Pset_fletcher32(dcpl_id) < 0)
+        TEST_ERROR;  
+
+    if((dxpl_id = H5Pcreate(H5P_DATASET_XFER)) < 0)
+        TEST_ERROR;
+
+    if(H5Pset_buffer(dxpl_id, 1000000, NULL, NULL) < 0)
         TEST_ERROR;
 
     if((dset3 = H5Dcreate2(file, DSET3_NAME, H5T_NATIVE_INT, space1, H5P_DEFAULT, dcpl_id, H5P_DEFAULT)) < 0)
         TEST_ERROR;
 
     /* Write the data to the dset3 */
-    if(H5Dwrite(dset3, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, points) < 0)
+    if(H5Dwrite(dset3, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, dxpl_id, points) < 0)
         TEST_ERROR;
 
     if(H5Dclose(dset3) < 0)
@@ -333,7 +351,7 @@ test_direct(void)
         TEST_ERROR;
 
     /* Read the data back from dset1 */
-    if(H5Dread(dset3, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, check) < 0)
+    if(H5Dread(dset3, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, dxpl_id, check) < 0)
         TEST_ERROR;
 
     /* Check that the values read are the same as the values written */
@@ -360,6 +378,8 @@ test_direct(void)
         TEST_ERROR;
     if(H5Pclose(dcpl_id) < 0)
         TEST_ERROR;
+    if(H5Pclose(dxpl_id) < 0)
+        TEST_ERROR;
     if(H5Fclose(file) < 0)
         TEST_ERROR;
     if(points)
@@ -380,6 +400,7 @@ error:
         H5Dclose(dset2);
         H5Dclose(dset3);
         H5Pclose(dcpl_id);
+        H5Pclose(dxpl_id);
         H5Fclose(file);
     } H5E_END_TRY;
     return -1;

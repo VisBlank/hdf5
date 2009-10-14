@@ -192,7 +192,7 @@ H5D_nonexistent_readvv(const H5D_io_info_t *io_info,
 /* Helper routines */
 static herr_t H5D_chunk_set_info_real(H5O_layout_t *layout, unsigned ndims,
     const hsize_t *curr_dims);
-static void *H5D_chunk_alloc(size_t size, const H5O_pline_t *pline);
+static void* H5D_chunk_alloc(size_t size, const H5D_alloc_info_t *alloc_info);
 static void *H5D_chunk_xfree(void *chk, const H5O_pline_t *pline);
 static herr_t H5D_chunk_cinfo_cache_update(H5D_chunk_cached_t *last,
     const H5D_chunk_ud_t *udata);
@@ -841,21 +841,30 @@ done:
  *
  *-------------------------------------------------------------------------
  */
-static void *
-H5D_chunk_alloc(size_t size, const H5O_pline_t *pline)
+static void*
+H5D_chunk_alloc(size_t size, const H5D_alloc_info_t *alloc_info)
 {
-    void *ret_value = NULL;		/* Return value */
-
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5D_chunk_alloc)
+    void *ret_value = NULL;
+ 
+    FUNC_ENTER_NOAPI(H5D_chunk_alloc, NULL);
 
     HDassert(size);
-    HDassert(pline);
+    HDassert(alloc_info);
 
-    if(pline->nused > 0)
+#ifndef H5_HAVE_DIRECT
+    if(alloc_info->pline->nused > 0)
         ret_value = H5MM_malloc(size);
     else
         ret_value = H5FL_BLK_MALLOC(chunk, size);
 
+    if(!ret_value)
+        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed for raw data chunk")
+#else
+    if(H5MM_aligned_malloc(&ret_value, size, alloc_info->initialize, alloc_info->align_info) < 0)
+        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed for raw data chunk")
+#endif
+
+done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5D_chunk_alloc() */
 
@@ -882,10 +891,14 @@ H5D_chunk_xfree(void *chk, const H5O_pline_t *pline)
     HDassert(pline);
 
     if(chk) {
+#ifndef H5_HAVE_DIRECT
         if(pline->nused > 0)
             H5MM_xfree(chk);
         else
             (void)H5FL_BLK_FREE(chunk, chk);
+#else
+        H5MM_xfree(chk);
+#endif
     } /* end if */
 
     FUNC_LEAVE_NOAPI(NULL)
@@ -2250,6 +2263,8 @@ H5D_chunk_flush_entry(const H5D_t *dset, hid_t dxpl_id, const H5D_dxpl_cache_t *
 {
     void	*buf = NULL;	        /* Temporary buffer		*/
     hbool_t	point_of_no_return = FALSE;
+    H5FD_direct_fapl_t  *direct_info = H5F_DIRECT_INFO(dset->oloc.file);
+    const H5O_pline_t  *pline = &(dset->shared->dcpl_cache.pline);    /* I/O pipeline info */
     herr_t	ret_value = SUCCEED;	/* Return value			*/
 
     FUNC_ENTER_NOAPI_NOINIT(H5D_chunk_flush_entry)
@@ -2276,6 +2291,7 @@ H5D_chunk_flush_entry(const H5D_t *dset, hid_t dxpl_id, const H5D_dxpl_cache_t *
         if(dset->shared->dcpl_cache.pline.nused) {
             size_t alloc = udata.nbytes;        /* Bytes allocated for BUF	*/
             size_t nbytes;                      /* Chunk size (in bytes) */
+            H5D_alloc_info_t alloc_info = {pline, FALSE, direct_info};
 
             if(!reset) {
                 /*
@@ -2284,8 +2300,9 @@ H5D_chunk_flush_entry(const H5D_t *dset, hid_t dxpl_id, const H5D_dxpl_cache_t *
                  * for later.
                  */
                 H5_ASSIGN_OVERFLOW(alloc, udata.nbytes, uint32_t, size_t);
-                if(NULL == (buf = H5MM_malloc(alloc)))
-                    HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed for pipeline")
+	        if(!(buf = H5D_chunk_alloc(alloc, &alloc_info)))
+                    HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed for the chunk")
+
                 HDmemcpy(buf, ent->chunk, udata.nbytes);
             } /* end if */
             else {
@@ -2590,6 +2607,8 @@ H5D_chunk_lock(const H5D_io_info_t *io_info, H5D_chunk_ud_t *udata,
     const H5O_pline_t  *pline = &(dset->shared->dcpl_cache.pline);    /* I/O pipeline info */
     const H5O_layout_t *layout = &(dset->shared->layout);       /* Dataset layout */
     const H5O_fill_t    *fill = &(dset->shared->dcpl_cache.fill);    /* Fill value info */
+    H5FD_direct_fapl_t  *direct_info = H5F_DIRECT_INFO(io_info->dset->oloc.file);
+    H5D_alloc_info_t    alloc_info = {pline, FALSE, direct_info};
     H5D_fill_buf_info_t fb_info;                /* Dataset's fill buffer info */
     hbool_t             fb_info_init = FALSE;   /* Whether the fill value buffer has been initialized */
     H5D_rdcc_t		*rdcc = &(dset->shared->cache.chunk);   /*raw data chunk cache*/
@@ -2643,7 +2662,7 @@ H5D_chunk_lock(const H5D_io_info_t *io_info, H5D_chunk_ud_t *udata,
          */
         rdcc->stats.nhits++;
 
-        if(NULL == (chunk = H5D_chunk_alloc(chunk_size, pline)))
+	if(!(chunk = H5D_chunk_alloc(chunk_size, &alloc_info)))
             HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed for raw data chunk")
 
         /* In the case that some dataset functions look through this data,
@@ -2666,7 +2685,8 @@ H5D_chunk_lock(const H5D_io_info_t *io_info, H5D_chunk_ud_t *udata,
             /* Chunk size on disk isn't [likely] the same size as the final chunk
              * size in memory, so allocate memory big enough. */
             H5_ASSIGN_OVERFLOW(chunk_alloc, udata->nbytes, uint32_t, size_t);
-            if(NULL == (chunk = H5D_chunk_alloc(chunk_alloc, pline)))
+
+	    if(!(chunk = H5D_chunk_alloc(chunk_alloc, &alloc_info)))
                 HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed for raw data chunk")
             if(H5F_block_read(dset->oloc.file, H5FD_MEM_DRAW, chunk_addr, chunk_alloc, io_info->dxpl_id, chunk) < 0)
                 HGOTO_ERROR(H5E_IO, H5E_READERROR, NULL, "unable to read raw data chunk")
@@ -2687,7 +2707,7 @@ H5D_chunk_lock(const H5D_io_info_t *io_info, H5D_chunk_ud_t *udata,
 
             /* Chunk size on disk isn't [likely] the same size as the final chunk
              * size in memory, so allocate memory big enough. */
-            if(NULL == (chunk = H5D_chunk_alloc(chunk_size, pline)))
+	    if(!(chunk = H5D_chunk_alloc(chunk_size, &alloc_info)))
                 HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed for raw data chunk")
 
             if(H5P_is_fill_value_defined(fill, &fill_status) < 0)
@@ -3071,6 +3091,8 @@ H5D_chunk_allocate(H5D_t *dset, hid_t dxpl_id, hbool_t full_overwrite)
     unsigned    filter_mask = 0; /* Filter mask for chunks that have them */
     const H5O_layout_t *layout = &(dset->shared->layout);       /* Dataset layout */
     const H5O_pline_t *pline = &(dset->shared->dcpl_cache.pline);    /* I/O pipeline info */
+    H5FD_direct_fapl_t *direct_info = H5F_DIRECT_INFO(dset->oloc.file);
+    H5D_alloc_info_t alloc_info = {pline, FALSE, direct_info};
     const H5O_fill_t *fill = &(dset->shared->dcpl_cache.fill);    /* Fill value info */
     H5D_fill_value_t fill_status; /* The fill value status */
     hbool_t     should_fill = FALSE; /* Whether fill values should be written */
@@ -3155,7 +3177,7 @@ H5D_chunk_allocate(H5D_t *dset, hid_t dxpl_id, hbool_t full_overwrite)
         /* (delay allocating fill buffer for VL datatypes until refilling) */
         /* (casting away const OK - QAK) */
         if(H5D_fill_init(&fb_info, NULL, (hbool_t)(pline->nused > 0),
-                (H5MM_allocate_t)H5D_chunk_alloc, (void *)pline,
+                (H5MM_allocate_t)H5D_chunk_alloc, &alloc_info,
                 (H5MM_free_t)H5D_chunk_xfree, (void *)pline,
                 &dset->shared->dcpl_cache.fill, dset->shared->type,
                 dset->shared->type_id, (size_t)0, orig_chunk_size, data_dxpl_id) < 0)

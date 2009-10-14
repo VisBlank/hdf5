@@ -93,42 +93,43 @@ H5MM_aligned_malloc(void** buffer, size_t size, hbool_t initialize, H5FD_direct_
     char    error_msg[1024];
     ssize_t ret_value = SUCCEED;
  
-    /* Use FUNC_ENTER_NOAPI here to avoid performance issues */
     FUNC_ENTER_NOAPI(H5MM_aligned_malloc, FAIL);
 
     assert(size);
 
-    /* If Direct IO isn't used or it doesn't require alignment, 
-     * simply allocate a buffer according to the actual size */
-    if(!align_info || !align_info->must_align) {
-        if(initialize)
-            *buffer = HDcalloc(1, size);
-        else
-            *buffer = HDmalloc(size); 
+#ifdef H5_HAVE_DIRECT
+    if(align_info && align_info->must_align) {
+        fbsize = align_info->fbsize;
+        cbsize = align_info->cbsize;
+        boundary = align_info->mboundary;
 
-        ret_value = (ssize_t)size;
+        /* Make sure the size is a multiple of file block size.  It can be bigger than
+         * the copy buffer size because the conversion may require a bigger size (see
+         * the H5D_typeinfo_init in H5Dio.c) */
+        if(size % fbsize > 0)
+            alloc_size = ((size / fbsize) * fbsize) + fbsize;
+        else
+            alloc_size = size;
+
+        if (HDposix_memalign(buffer, boundary, alloc_size) != 0)
+            HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, FAIL, "HDposix_memalign failed")
+    
+        if(initialize)
+            HDmemset(*buffer, 0, alloc_size);
+ 
+        ret_value = (ssize_t)alloc_size;
         HGOTO_DONE(ret_value);        
     }
+#endif
 
-    fbsize = align_info->fbsize;
-    cbsize = align_info->cbsize;
-    boundary = align_info->mboundary;
-
-    /* Make sure the size is a multiple of file block size.  It can be bigger than
-     * the copy buffer size because the conversion may require a bigger size (see
-     * the H5D_typeinfo_init in H5Dio.c) */
-    if(size % fbsize > 0)
-        alloc_size = ((size / fbsize) * fbsize) + fbsize;
-    else
-        alloc_size = size;
-
-    if (HDposix_memalign(buffer, boundary, alloc_size) != 0)
-        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, FAIL, "HDposix_memalign failed")
-    
+    /* If Direct IO isn't used or it doesn't require alignment, 
+     * simply allocate a buffer according to the actual size */
     if(initialize)
-        HDmemset(*buffer, 0, alloc_size);
- 
-    ret_value = (ssize_t)alloc_size;
+        *buffer = HDcalloc(1, size);
+    else
+        *buffer = HDmalloc(size); 
+
+    ret_value = (ssize_t)size;
 
 done:
     FUNC_LEAVE_NOAPI(ret_value);

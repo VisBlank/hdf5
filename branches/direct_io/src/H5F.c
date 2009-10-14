@@ -967,17 +967,19 @@ H5F_new(H5F_file_t *shared, hid_t fcpl_id, hid_t fapl_id, H5FD_t *lf)
                 HGOTO_ERROR(H5E_FILE, H5E_NOSPACE, NULL, "can't allocate structure for direct I/O")
        
             if (NULL==(direct_info=H5P_get_driver_info(plist)))
-                HGOTO_ERROR(H5E_PLIST, H5E_BADVALUE, FAIL, "bad driver info")
+                HGOTO_ERROR(H5E_PLIST, H5E_BADVALUE, NULL, "bad driver info")
 
             f->shared->direct_info->mboundary = direct_info->mboundary;
             f->shared->direct_info->fbsize = direct_info->fbsize;
             f->shared->direct_info->cbsize = direct_info->cbsize;
             f->shared->direct_info->must_align = direct_info->must_align;
 
-            /* Make sure the sieve buffer size is the same as the copy buffer size for the direct IO */
-            if (f->shared->direct_info->must_align && ((f->shared->sieve_buf_size % f->shared->direct_info->fbsize) || 
+            /* Make sure the sieve buffer size is the same as the copy buffer size for the 
+             * direct IO. The sieve buffer can be turned off - size is 0. */
+            if (f->shared->direct_info->must_align && f->shared->sieve_buf_size && 
+                ((f->shared->sieve_buf_size % f->shared->direct_info->fbsize) || 
                 (f->shared->sieve_buf_size != f->shared->direct_info->cbsize)))
-                HGOTO_ERROR(H5E_PLIST, H5E_BADVALUE, FAIL, "sieve buffer size for Direct I/O should be aligned to file block")
+                HGOTO_ERROR(H5E_PLIST, H5E_BADVALUE, NULL, "sieve buffer size for Direct I/O should be aligned to file block")
         }
 
         /* Disable temp. space allocation for parallel I/O (for now) */

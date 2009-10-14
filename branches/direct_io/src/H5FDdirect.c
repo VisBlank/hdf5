@@ -562,9 +562,12 @@ H5FD_direct_open(const char *name, unsigned flags, hid_t fapl_id, haddr_t maxadd
      * is to handle correctly the case that the file is in a different file system
      * than the one where the program is running.
      */
-    buf1 = (int*)HDmalloc(sizeof(int));
+    buf1 = (int*)HDcalloc(1, sizeof(int));
     if (HDposix_memalign(&buf2, file->fa.mboundary, file->fa.fbsize) != 0)
 	HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, NULL, "HDposix_memalign failed")
+
+    /* Initialize the buffer.  Just try to make Purify happy. */
+    HDmemset(buf2, 0, file->fa.fbsize);
 
     if(o_flags &= O_CREAT) {
         if(write(file->fd, (void*)buf1, sizeof(int))<0) {
@@ -969,6 +972,7 @@ H5FD_direct_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id, ha
 		buf = (char*)buf + nbytes;
 	    }
     } else if(_must_align && ((addr%_fbsize==0) && ((size_t)buf%_boundary==0) && (size%_fbsize>0))) {
+            /* The case that the chunk buffer is allocated aligned in the filters. */
 	    if(size % _fbsize > 0)
 		alloc_size = ((size / _fbsize) * _fbsize) + _fbsize;
 	    else
@@ -1150,48 +1154,16 @@ H5FD_direct_write(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id, h
 		buf = (const char*)buf + nbytes;
 	    }
     } else if(_must_align && ((addr%_fbsize==0) && ((size_t)buf%_boundary==0) && (size%_fbsize>0))) {
-#ifdef TMP
-	    /* allocate memory needed for the Direct IO option up to the maximal
-	     * copy buffer size. Make a bigger buffer for aligned I/O if size is
-	     * smaller than maximal copy buffer.
-	     */
-	    /* Make sure the size is a multiple of file block size.  It can be bigger than
-	     * the copy buffer size because the conversion may require a bigger size (see
-	     * the H5D_typeinfo_init in H5Dio.c) */
-	    if(size % _fbsize > 0)
-		alloc_size = ((size / _fbsize) * _fbsize) + _fbsize;
-	    else
-		alloc_size = size;
-
-            
-	    if(size % _fbsize > 0) {
-	        /* look for the right position for reading the data */
-	        if(file_seek(file->fd, (file_offset_t)addr+size, SEEK_SET) < 0)
-		    HSYS_GOTO_ERROR(H5E_IO, H5E_SEEKERROR, FAIL, "unable to seek to proper position")
-
-	        do {
-		    nbytes = read(file->fd, buf+size, alloc_size-size);
-		} while (-1==nbytes && EINTR==errno);
-
-		if (-1==nbytes) /* error */
-		    HSYS_GOTO_ERROR(H5E_IO, H5E_READERROR, FAIL, "file read failed")
-            }
-
-	    /*look for the aligned position for writing the data*/
-	    if(file_seek(file->fd, (file_offset_t)addr, SEEK_SET) < 0)
-	        HSYS_GOTO_ERROR(H5E_IO, H5E_SEEKERROR, FAIL, "unable to seek to proper position")
-
-	    do {
-	        nbytes = HDwrite(file->fd, buf, alloc_size);
-	    } while (-1==nbytes && EINTR==errno);
-
-	    if (-1==nbytes) /* error */
-	        HSYS_GOTO_ERROR(H5E_IO, H5E_WRITEERROR, FAIL, "file write failed")
-#else
+            /* The case that the chunk buffer is allocated aligned in the filters.  It needs to 
+             * pad some data in the last block. */
 	    alloc_size = _fbsize;
 
 	    if (HDposix_memalign(&copy_buf, _boundary, alloc_size) != 0)
 		HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, FAIL, "HDposix_memalign failed")
+
+            /* Initialize this buffer.  Just try to make Purify happy if no data is in the
+             * file to read in. */
+            HDmemset(copy_buf, 0, alloc_size);
 
 	    /* look for the right position for reading the data */
 	    if(file_seek(file->fd, (file_offset_t)(copy_addr + ((size / _fbsize) * _fbsize)), SEEK_SET) < 0)
@@ -1225,7 +1197,6 @@ H5FD_direct_write(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id, h
 
 	    if(copy_buf)
 	    	HDfree(copy_buf);
-#endif
     } else {
 	    /* allocate memory needed for the Direct IO option up to the maximal
 	     * copy buffer size. Make a bigger buffer for aligned I/O if size is

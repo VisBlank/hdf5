@@ -260,6 +260,13 @@ typedef struct H5D_chunk_ud_t {
     haddr_t	addr;			/*file address of chunk */
 } H5D_chunk_ud_t;
 
+/* For chunk allocation to accomodate Direct IO requirements. */
+typedef struct H5D_alloc_info_t {
+    H5O_pline_t *pline;
+    hbool_t initialize;
+    H5FD_direct_fapl_t *align_info;  
+} H5D_alloc_info_t;
+
 /* Typedef for "generic" chunk callbacks */
 typedef int (*H5D_chunk_cb_func_t)(const H5D_chunk_rec_t *chunk_rec,
     void *udata);
