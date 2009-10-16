@@ -45,10 +45,10 @@
  */
 #ifndef NDEBUG
 H5_DLL void *H5MM_malloc(size_t size);
-H5_DLL ssize_t
-H5MM_aligned_malloc(void** buffer, size_t size, hbool_t initialize, H5FD_direct_fapl_t *align_info);
 H5_DLL void *H5MM_calloc(size_t size);
 #endif /* NDEBUG */
+H5_DLL ssize_t
+H5MM_aligned_malloc(void** buffer, size_t size, hbool_t initialize, H5FD_direct_fapl_t *align_info);
 H5_DLL void *H5MM_realloc(void *mem, size_t size);
 H5_DLL char *H5MM_xstrdup(const char *s);
 H5_DLL char *H5MM_strdup(const char *s);

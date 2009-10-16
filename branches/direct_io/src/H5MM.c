@@ -66,6 +66,40 @@ H5MM_malloc(size_t size)
 
 
 /*-------------------------------------------------------------------------
+ * Function:	H5MM_calloc
+ *
+ * Purpose:	Similar to the POSIX version of calloc(3), except this routine
+ *              just takes a 'size' parameter. This routine
+ *		specifically checks for allocations of 0 bytes and fails
+ *              in that case.  This routine is not called when NDEBUG is
+ *		defined.
+ *
+ * Return:	Success:	Ptr to new memory
+ *
+ *		Failure:	NULL
+ *
+ * Programmer:	Quincey Koziol
+ *		koziol@ncsa.uiuc.edu
+ *		Nov  8 2003
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+void *
+H5MM_calloc(size_t size)
+{
+    /* Use FUNC_ENTER_NOAPI_NOINIT_NOFUNC here to avoid performance issues */
+    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5MM_calloc);
+
+    assert(size);
+
+    FUNC_LEAVE_NOAPI(HDcalloc(1,size));
+} /* end H5MM_calloc() */
+#endif /* NDEBUG */
+
+
+/*-------------------------------------------------------------------------
  * Function:	H5MM_aligned_malloc
  *
  * Purpose:	Just like the POSIX version of malloc(3). This routine
@@ -133,42 +167,7 @@ H5MM_aligned_malloc(void** buffer, size_t size, hbool_t initialize, H5FD_direct_
 
 done:
     FUNC_LEAVE_NOAPI(ret_value);
-} /* end H5MM_malloc() */
-
-
-
-/*-------------------------------------------------------------------------
- * Function:	H5MM_calloc
- *
- * Purpose:	Similar to the POSIX version of calloc(3), except this routine
- *              just takes a 'size' parameter. This routine
- *		specifically checks for allocations of 0 bytes and fails
- *              in that case.  This routine is not called when NDEBUG is
- *		defined.
- *
- * Return:	Success:	Ptr to new memory
- *
- *		Failure:	NULL
- *
- * Programmer:	Quincey Koziol
- *		koziol@ncsa.uiuc.edu
- *		Nov  8 2003
- *
- * Modifications:
- *
- *-------------------------------------------------------------------------
- */
-void *
-H5MM_calloc(size_t size)
-{
-    /* Use FUNC_ENTER_NOAPI_NOINIT_NOFUNC here to avoid performance issues */
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5MM_calloc);
-
-    assert(size);
-
-    FUNC_LEAVE_NOAPI(HDcalloc(1,size));
-} /* end H5MM_calloc() */
-#endif /* NDEBUG */
+} /* end H5MM_aligned_malloc() */
 
 
 /*-------------------------------------------------------------------------
