@@ -64,12 +64,7 @@
  * is about the best guess.
  */
 #ifndef HDF5_PARAPREFIX
-#ifdef __PUMAGON__
-/* For the PFS of TFLOPS */
-#define HDF5_PARAPREFIX "pfs:/pfs_grande/multi/tmp_1"
-#else
 #define HDF5_PARAPREFIX ""
-#endif
 #endif
 char	*paraprefix = NULL;	/* for command line option para-prefix */
 #ifdef H5_HAVE_PARALLEL
@@ -976,30 +971,28 @@ print_func(const char *format, ...)
  */
 int h5_szip_can_encode(void )
 {
+    unsigned int filter_config_flags;
 
- herr_t       status;
- unsigned int filter_config_flags;
-
-   status =H5Zget_filter_info(H5Z_FILTER_SZIP, &filter_config_flags);
-   if ((filter_config_flags &
-          (H5Z_FILTER_CONFIG_ENCODE_ENABLED|H5Z_FILTER_CONFIG_DECODE_ENABLED)) == 0) {
-    /* filter present but neither encode nor decode is supported (???) */
-    return -1;
-   } else if ((filter_config_flags &
-          (H5Z_FILTER_CONFIG_ENCODE_ENABLED|H5Z_FILTER_CONFIG_DECODE_ENABLED)) ==
-    H5Z_FILTER_CONFIG_DECODE_ENABLED) {
-     /* decoder only: read but not write */
-    return 0;
-   } else if ((filter_config_flags &
-          (H5Z_FILTER_CONFIG_ENCODE_ENABLED|H5Z_FILTER_CONFIG_DECODE_ENABLED)) ==
-    H5Z_FILTER_CONFIG_ENCODE_ENABLED) {
-     /* encoder only: write but not read (???) */
-     return -1;
-   } else if ((filter_config_flags &
-          (H5Z_FILTER_CONFIG_ENCODE_ENABLED|H5Z_FILTER_CONFIG_DECODE_ENABLED)) ==
-          (H5Z_FILTER_CONFIG_ENCODE_ENABLED|H5Z_FILTER_CONFIG_DECODE_ENABLED)) {
-    return 1;
-   }
+    H5Zget_filter_info(H5Z_FILTER_SZIP, &filter_config_flags);
+    if ((filter_config_flags &
+            (H5Z_FILTER_CONFIG_ENCODE_ENABLED|H5Z_FILTER_CONFIG_DECODE_ENABLED)) == 0) {
+        /* filter present but neither encode nor decode is supported (???) */
+        return -1;
+    } else if ((filter_config_flags &
+            (H5Z_FILTER_CONFIG_ENCODE_ENABLED|H5Z_FILTER_CONFIG_DECODE_ENABLED)) ==
+            H5Z_FILTER_CONFIG_DECODE_ENABLED) {
+        /* decoder only: read but not write */
+        return 0;
+    } else if ((filter_config_flags &
+            (H5Z_FILTER_CONFIG_ENCODE_ENABLED|H5Z_FILTER_CONFIG_DECODE_ENABLED)) ==
+            H5Z_FILTER_CONFIG_ENCODE_ENABLED) {
+        /* encoder only: write but not read (???) */
+        return -1;
+    } else if ((filter_config_flags &
+            (H5Z_FILTER_CONFIG_ENCODE_ENABLED|H5Z_FILTER_CONFIG_DECODE_ENABLED)) ==
+            (H5Z_FILTER_CONFIG_ENCODE_ENABLED|H5Z_FILTER_CONFIG_DECODE_ENABLED)) {
+        return 1;
+    }
    return(-1);
 }
 #endif /* H5_HAVE_FILTER_SZIP */

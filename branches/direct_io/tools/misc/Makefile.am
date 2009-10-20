@@ -24,7 +24,7 @@ include $(top_srcdir)/config/commence.am
 INCLUDES=-I$(top_srcdir)/src -I$(top_srcdir)/tools/lib
 
 #test script and program
-TEST_PROG=h5repart_gentest
+TEST_PROG=h5repart_gentest talign
 TEST_SCRIPT=testh5repart.sh $(srcdir)/testh5mkgrp.sh
 
 check_PROGRAMS=$(TEST_PROG) repart_test
@@ -36,9 +36,9 @@ bin_PROGRAMS=h5debug h5repart h5mkgrp
 bin_SCRIPTS=h5redeploy
 
 # Add h5debug, h5repart, and h5mkgrp specific linker flags here
-h5debug_LDFLAGS = $(LT_STATIC_EXEC)
-h5repart_LDFLAGS = $(LT_STATIC_EXEC)
-h5mkgrp_LDFLAGS = $(LT_STATIC_EXEC)
+h5debug_LDFLAGS = $(LT_STATIC_EXEC) $(AM_LDFLAGS)
+h5repart_LDFLAGS = $(LT_STATIC_EXEC) $(AM_LDFLAGS)
+h5mkgrp_LDFLAGS = $(LT_STATIC_EXEC) $(AM_LDFLAGS)
 
 # Tell automake to clean h5redeploy script
 CLEANFILES=h5redeploy

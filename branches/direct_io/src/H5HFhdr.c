@@ -43,6 +43,7 @@
 /* Local Macros */
 /****************/
 
+#ifndef NDEBUG
 /* Limit on the size of the max. direct block size */
 /* (This is limited to 32-bits currently, because I think it's unlikely to
  *      need to be larger, the 32-bit limit for H5V_log2_of2(n), and
@@ -55,6 +56,8 @@
  *      need to be larger, and its encoded with a maxiumum of 16-bits  - QAK)
  */
 #define H5HF_WIDTH_LIMIT (64 * 1024)
+#endif /* NDEBUG */
+
 
 /******************/
 /* Local Typedefs */
@@ -219,7 +222,7 @@ H5HF_hdr_finish_init_phase1(H5HF_hdr_t *hdr)
     HDassert(hdr);
 
     /* Compute/cache some values */
-    hdr->heap_off_size = H5HF_SIZEOF_OFFSET_BITS(hdr->man_dtable.cparam.max_index);
+    hdr->heap_off_size = (uint8_t)H5HF_SIZEOF_OFFSET_BITS(hdr->man_dtable.cparam.max_index);
     if(H5HF_dtable_init(&hdr->man_dtable) < 0)
 	HGOTO_ERROR(H5E_HEAP, H5E_CANTINIT, FAIL, "can't initialize doubling table info")
 
@@ -420,6 +423,17 @@ H5HF_hdr_create(H5F_t *f, hid_t dxpl_id, const H5HF_create_t *cparam)
      *  length is already set in that case (its stored in the header on disk))
      */
     if(cparam->pline.nused > 0) {
+        /* Check if the filters in the DCPL can be applied to this dataset */
+        if(H5Z_can_apply_direct(&(cparam->pline)) < 0)
+            HGOTO_ERROR(H5E_HEAP, H5E_CANTINIT, HADDR_UNDEF, "I/O filters can't operate on this heap")
+
+        /* Mark the filters as checked */
+        hdr->checked_filters = TRUE;
+
+        /* Make the "set local" filter callbacks for this dataset */
+        if(H5Z_set_local_direct(&(cparam->pline)) < 0)
+            HGOTO_ERROR(H5E_HEAP, H5E_CANTINIT, HADDR_UNDEF, "unable to set local filter parameters")
+
         /* Copy the I/O filter pipeline from the creation parameters to the header */
         if(NULL == H5O_msg_copy(H5O_PLINE_ID, &(cparam->pline), &(hdr->pline)))
             HGOTO_ERROR(H5E_HEAP, H5E_CANTCOPY, HADDR_UNDEF, "can't copy I/O filter pipeline")
@@ -427,7 +441,7 @@ H5HF_hdr_create(H5F_t *f, hid_t dxpl_id, const H5HF_create_t *cparam)
         /* Pay attention to the latest version flag for the file */
         if(H5F_USE_LATEST_FORMAT(hdr->f))
             /* Set the latest version for the I/O pipeline message */
-            if(H5Z_set_latest_version(&(hdr->pline)) < 0)
+            if(H5O_pline_set_latest_version(&(hdr->pline)) < 0)
                 HGOTO_ERROR(H5E_HEAP, H5E_CANTSET, HADDR_UNDEF, "can't set latest version of I/O filter pipeline")
 
         /* Compute the I/O filters' encoded size */
@@ -443,9 +457,13 @@ HDfprintf(stderr, "%s: hdr->filter_len = %u\n", FUNC, hdr->filter_len);
             + 4                                 /* Size of filter mask for filtered root direct block */
             + hdr->filter_len;                  /* Size of encoded I/O filter info */
     } /* end if */
-    else
+    else {
         /* Set size of header on disk */
         hdr->heap_size = H5HF_HEADER_SIZE(hdr);
+
+        /* Mark filters as checked, for performance reasons */
+        hdr->checked_filters = TRUE;
+    } /* end else */
 
     /* Set the length of IDs in the heap */
     /* (This code is not in the "finish init phase" routines because those

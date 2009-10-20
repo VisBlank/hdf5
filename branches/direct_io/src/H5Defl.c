@@ -50,7 +50,6 @@
 
 /* Layout operation callbacks */
 static herr_t H5D_efl_construct(H5F_t *f, H5D_t *dset);
-static hbool_t H5D_efl_is_space_alloc(const H5O_layout_t *layout);
 static herr_t H5D_efl_io_init(const H5D_io_info_t *io_info, const H5D_type_info_t *type_info,
     hsize_t nelmts, const H5S_t *file_space, const H5S_t *mem_space,
     H5D_chunk_map_t *cm);
@@ -86,6 +85,7 @@ const H5D_layout_ops_t H5D_LOPS_EFL[1] = {{
 #endif /* H5_HAVE_PARALLEL */
     H5D_efl_readvv,
     H5D_efl_writevv,
+    NULL,
     NULL
 }};
 
@@ -158,7 +158,7 @@ H5D_efl_construct(H5F_t *f, H5D_t *dset)
 
     /* Compute the total size of dataset */
     tmp_size = H5S_GET_EXTENT_NPOINTS(dset->shared->space) * dt_size;
-    H5_ASSIGN_OVERFLOW(dset->shared->layout.u.contig.size, tmp_size, hssize_t, hsize_t);
+    H5_ASSIGN_OVERFLOW(dset->shared->layout.storage.u.contig.size, tmp_size, hssize_t, hsize_t);
 
     /* Get the sieve buffer size for this dataset */
     dset->shared->cache.contig.sieve_buf_size = H5F_SIEVE_BUF_SIZE(f);
@@ -180,15 +180,15 @@ done:
  *
  *-------------------------------------------------------------------------
  */
-static hbool_t
-H5D_efl_is_space_alloc(const H5O_layout_t UNUSED *layout)
+hbool_t
+H5D_efl_is_space_alloc(const H5O_storage_t UNUSED *storage)
 {
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5D_efl_is_space_alloc)
 
     /* Sanity checks */
-    HDassert(layout);
+    HDassert(storage);
 
-    /* EFL storage is currently treated as allocated */
+    /* EFL storage is currently always treated as allocated */
     FUNC_LEAVE_NOAPI(TRUE)
 } /* end H5D_efl_is_space_alloc() */
 
@@ -555,3 +555,37 @@ done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5D_efl_writevv() */
 
+
+/*-------------------------------------------------------------------------
+ * Function:    H5D_efl_bh_size
+ *
+ * Purpose:     Retrieve the amount of heap storage used for External File
+ *		List message
+ *
+ * Return:      Success:        Non-negative
+ *              Failure:        negative
+ *
+ * Programmer:  Vailin Choi; August 2009
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5D_efl_bh_info(H5F_t *f, hid_t dxpl_id, H5O_efl_t *efl, hsize_t *heap_size)
+{
+    herr_t ret_value = SUCCEED;         /* Return value */
+
+    FUNC_ENTER_NOAPI(H5D_efl_bh_info, FAIL)
+
+    /* Check args */
+    HDassert(f);
+    HDassert(efl);
+    HDassert(H5F_addr_defined(efl->heap_addr));
+    HDassert(heap_size);
+
+    /* Get the size of the local heap for EFL's file list */
+    if(H5HL_heapsize(f, dxpl_id, efl->heap_addr, heap_size) < 0)
+        HGOTO_ERROR(H5E_EFL, H5E_CANTINIT, FAIL, "unable to retrieve local heap info")
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5D_chunk_bh_info() */

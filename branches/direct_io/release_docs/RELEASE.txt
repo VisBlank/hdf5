@@ -1,4 +1,4 @@
-HDF5 version 1.9.44 currently under development
+HDF5 version 1.9.50 currently under development
 ================================================================================
 
 
@@ -39,6 +39,8 @@ New Features
 
     Configuration:
     -------------
+    - Configuration suite now uses Automake 1.11 and Autoconf 2.64.
+      MAM 2009/08/11.
     - Changed default Gnu fortran compiler from g95 to gfortran since
       gfortran is more likely installed with gcc now. -AKC 2009/07/19- 
     - Added libtool version numbers to generated c++, fortran, and 
@@ -58,6 +60,17 @@ New Features
 
     Library:
     --------
+    - The embedded library information is displayed by H5check_version() if a
+      version mismatch is detected.  Also changed H5check_version() to
+      suppress the warning message totally if $HDF5_DISABLE_VERSION_CHECK is 2
+      or higher. (Old behavior treated 3 or higher the same as 1, that is
+      print a warning and allows the program to continue. (AKC - 2009/9/28)
+    - If a user does not care for the extra library information insert
+      in the executables, he may turn it off by --disable-embedded-libinfo
+      during configure. (AKC - 2009/9/15)
+    - Corrected problem where library would re-write the superblock in a file
+      opened for R/W access, even when no changes were made to the file.
+      (QAK - 2009/08/20, Bz#1473)
     - Separated "factory" free list class from block free lists. These free
       lists are dynamically created and manage blocks of a fixed size.
       H5set_free_list_limits() will use the same settings specified for block
@@ -121,9 +134,13 @@ New Features
 
     Tools:
     ------
+     - h5dump subsetting now allows default for count. Also trailing ; in short form
+       can be omitted after last specified value. (ADB - 2009/09/04)
+     - h5dump/h5ls now can display data in region references 
+       using new -R, --region flag.  (ADB - 2009/09/04)
      - h5diff new flag, -c, --compare, list objects that are not comparable.
-        PVN - 2009/4/10 - 1368
-     - h5diff new flag, -N, --nan, avoids NaNs detection. PVN - 2009/4/10
+        (PVN - 2009/4/10 - 1368)
+     - h5diff new flag, -N, --nan, avoids NaNs detection. (PVN - 2009/4/10)
      - h5dump correctly specifies XML dtd / schema urls (ADB - 2009/4/3 - 1519)
      - h5repack now handles group creation order. (PVN - 2009/4/2 - 1402)
      - h5dump: added a printing of the compression ratio of uncompressed and compressed 
@@ -151,6 +168,12 @@ New Features
             The size of the hyperslabs are defined as the size of each dimension or a 
             predefined constant, whatever is smaller. This assures that the chunk 
             read fits in the chunk cache. (PVN - 2008/11/21)
+     - h5diff: h5diff treats two INFINITY values different. Fixed by checking  (value==expect) 
+            before call ABS(...) at h5diff_array.c This will make that (INF==INF) is true 
+            (INF is treated as an number instead of NaN) (PC -- 2009/07/28)
+     - h5diff: add option "--use-system-epsilon" to print difference if (|a-b| > EPSILON)
+            Change default to use strict equality (PC -- 2009/09/12)
+
     
     High-Level APIs:
     ------
@@ -163,12 +186,21 @@ New Features
 
 Support for new platforms, languages and compilers.
 =======================================
+    - PathScale compilers are recognized and can build the HDF5 library
+      properly. AKC - 2009/7/28 -
 
 Bug Fixes since HDF5-1.8.0 release
 ==================================
 
     Library
     -------
+      - Fixed incorrect return value for H5Pget_preserve. AKC - 2009/10/08 - 1628
+      - Fixed an assertion failure that occurred when H5Ocopy was called on a
+            dataset using a vlen inside a compound. (NAF - 2009/10/02 - 1597)
+      - Fixed incorrect return value for H5Pget_filter_by_id1/2 in H5Ppublic.h.
+            (NAF - 2009/09/25 - 1620)
+      - Fixed a bug where properties weren't being compared with the registered
+            compare callback. (NAF - 2009/09/25 - 1555)
       - Fixed a bug where H5Pget_fitler_by_id would succeed when called for a
             filter that wasn't present. (NAF - 2009/06/25 - 1250)
       - Fixed an issue with committed compound datatypes containing a vlen.
@@ -287,6 +319,28 @@ Bug Fixes since HDF5-1.8.0 release
 
     Configuration
     -------------
+    - Removed the following config files, as we no longer support them:
+        config/dec-osf*, config/hpux11.00, config/irix5.x, 
+        config/powerpc-ibm-aix4.x config/rs6000-ibm-aix5.x config/unicos*
+      MAM - 2009/10/08
+    - Modified configure and make process to properly preserve user's CFLAGS
+      (and company) environment variables. Build will now properly use
+      automake's AM_CFLAGS for any compiler flags set by the configure
+      process. Configure will no longer modify CFLAGS directly, nor will 
+      setting CFLAGS during make completely replace what configure has set up.
+      MAM - 2009/10/08
+    - Support for TFLOPS, config/intel-osf1, is removed since the TFLOPS
+      machine has long retired. AKC - 2009/10/06.
+    - Added $(EXEEXT) extension to H5detect when it's executed in the 
+      src/Makfile to generate H5Tinit.c so it works correctly on platforms 
+      that require the full extension when running executables.
+      MAM - 2009/10/01 - BZ #1613
+    - Configure will now set FC and CXX to "no" when fortran and c++
+      are not being compiled, respectively, so configure will not run
+      some of the compiler tests for these languages when they are not
+      being used. MAM - 2009/10/01
+    - The PathScale compiler (v3.2) was mistaken as gcc v4.2.0 but it fails to
+      recognize some gcc options. Fixed. (see bug 1301). AKC - 2009/7/28 -
     - The --enable-static-exec flag has been fixed and will now generate
       static executables within the installed bin directory when used.
       MAM - 2009/07/23 - BZ #1583
@@ -314,6 +368,8 @@ Bug Fixes since HDF5-1.8.0 release
 
     Tools
     -----
+        - h5dump/h5ls display buffer resize fixed in tools library.  
+            (ADB - 2009/07/21 - 1520)
         - Fixed many problems that could occur when using h5repack with named
             datatypes. (NAF - 2009/4/20 - 1516/1466)
         - h5dump, h5diff, h5repack were not reading (by hyperslabs) datasets 
@@ -350,6 +406,8 @@ Bug Fixes since HDF5-1.8.0 release
 
     High-Level APIs:
      ------
+      - H5DSis_attached failed to account for different platform types. Added a
+          get native type call. (ADB - 2009/9/29 - 1562)
       - Dimension scales: The scale index return value in H5DSiterate_scales was not always 
           incremented. (PVN - 2009/4/8 - 1538)
 
@@ -548,6 +606,11 @@ SuSe Linux 2.6.5
 
 Known Problems
 ==============
+* The PathScale MPI implementation, accessing a Panasas file system, would
+  cause H5Fcreate() with H5F_ACC_EXCL to fail even when the file is not
+  existing. This is due to the MPI_File_open() call failing if the amode has
+  the MPI_MODE_EXCL bit set. (See bug 1468 for details.) AKC - 2009/8/11
+ 
 * Parallel tests failed with 16 processes with data inconsistency at testphdf5
   / dataset_readAll. Parallel tests also failed with 32 and 64 processes with
   collective abort of all ranks at t_posix_compliant / allwrite_allread_blocks
@@ -664,17 +727,6 @@ Known Problems
         warning: ANSI C does not support `long long'
   
   This warning is innocuous and can be safely ignored.
-
-
-* The Stream VFD was not tested yet under Windows. It is not supported
-  in the TFLOPS machine.
-
-
-* The ./dsets tests failed in the TFLOPS machine if the test program,
-  dsets.c, is compiled with the -O option.  The hdf5 library still works
-  correctly with the -O option.  The test program works fine if it is
-  compiled with -O1 or -O0.  Only -O (same as -O2) causes the test
-  program to fail.
 
 * Certain platforms give false negatives when testing h5ls:
     - Cray J90 and Cray T90IEEE give errors during testing when displaying

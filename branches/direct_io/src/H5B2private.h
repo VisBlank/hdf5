@@ -84,9 +84,8 @@ struct H5B2_class_t {
     H5B2_subid_t id;		/* ID of B-tree class, as found in file */
     size_t nrec_size;           /* Size of native (memory) record */
 
-    /* Store & retrieve record from application to B-tree 'native' form */
+    /* Store record from application to B-tree 'native' form */
     herr_t (*store)(void *nrecord, const void *udata);                  /*  Store record in native record table */
-    herr_t (*retrieve)(void *udata, const void *nrecord);               /*  Retrieve record in native record table */
 
     /* Compare records, according to a key */
     herr_t (*compare)(const void *rec1, const void *rec2);              /*  Compare two native records */
@@ -111,13 +110,13 @@ typedef struct H5B2_stat_t {
 /* Library-private Variables */
 /*****************************/
 
+
 /***************************************/
 /* Library-private Function Prototypes */
 /***************************************/
 H5_DLL herr_t H5B2_create(H5F_t *f, hid_t dxpl_id, const H5B2_class_t *type,
-    size_t node_size, size_t rrec_size,
-    unsigned split_percent, unsigned merge_percent,
-    haddr_t *addr_p);
+    size_t node_size, size_t rrec_size, unsigned split_percent,
+    unsigned merge_percent, haddr_t *addr_p);
 H5_DLL herr_t H5B2_insert(H5F_t *f, hid_t dxpl_id, const H5B2_class_t *type,
     haddr_t addr, void *udata);
 H5_DLL herr_t H5B2_iterate(H5F_t *f, hid_t dxpl_id, const H5B2_class_t *type,
