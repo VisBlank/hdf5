@@ -1132,9 +1132,10 @@ H5F_dest(H5F_t *f, hid_t dxpl_id)
         f->shared->mtab.child = (H5F_mount_t *)H5MM_xfree(f->shared->mtab.child);
         f->shared->mtab.nalloc = 0;
 
-        /* Free structure for Direct I/O */
-        f->shared->direct_info = (H5FD_direct_fapl_t *)H5MM_xfree(f->shared->direct_info);
-
+        /* Free structure for Direct I/O from the free list of space */
+        if(f->shared->direct_info)
+            f->shared->direct_info = (H5FD_direct_fapl_t *)H5FL_FREE(H5FD_direct_fapl_t, 
+                                                                   f->shared->direct_info);
         /* Destroy shared file struct */
         f->shared = (H5F_file_t *)H5FL_FREE(H5F_file_t, f->shared);
 

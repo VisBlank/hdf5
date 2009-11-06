@@ -30,6 +30,7 @@
 /* #define _XOPEN_SOURCE 600 */
 
 #include "H5private.h"		/* Generic Functions			*/
+#include "H5Dprivate.h"		/* Dataset 		  	        */
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5Fprivate.h"		/* File access				*/
 #include "H5FDprivate.h"	/* File drivers				*/
@@ -191,7 +192,7 @@ static const H5FD_class_t H5FD_direct_g = {
     H5FD_direct_get_handle,                     /*get_handle            */
     H5FD_direct_read,				/*read			*/
     H5FD_direct_write,				/*write			*/
-    H5FD_direct_truncate,			/*flush (same as truncate. Change it to NULL
+    NULL,			                /*flush (same as truncate. Change it to NULL
                                                  *when merge it back to the trunk because 
                                                  *Quincey arranged the file close, making this
                                                  *unnecessary.)*/
@@ -517,7 +518,7 @@ H5FD_direct_open(const char *name, unsigned flags, hid_t fapl_id, haddr_t maxadd
     if (H5F_ACC_EXCL & flags) o_flags |= O_EXCL;
 
     /* Flag for Direct I/O */
-    o_flags |= O_DIRECT;
+    /*o_flags |= O_DIRECT;*/
 
     /* Open the file */
     if ((fd=HDopen(name, o_flags, 0666))<0)
@@ -905,6 +906,7 @@ H5FD_direct_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id, ha
 	       size_t size, void *buf/*out*/)
 {
     H5FD_direct_t	*file = (H5FD_direct_t*)_file;
+    H5P_genplist_t      *dx_plist;   /* Data transfer property list */
     ssize_t		nbytes;
     hbool_t		_must_align = TRUE;
     herr_t      	ret_value=SUCCEED;       /* Return value */
@@ -915,6 +917,7 @@ H5FD_direct_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id, ha
     size_t		_cbsize;
     haddr_t		copy_addr = addr;
     size_t		copy_size = size;
+    hbool_t             intern_chunk_buf = FALSE;
 
     FUNC_ENTER_NOAPI(H5FD_direct_read, FAIL)
 
@@ -928,6 +931,15 @@ H5FD_direct_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id, ha
         HGOTO_ERROR(H5E_ARGS, H5E_OVERFLOW, FAIL, "addr overflow")
     if (addr+size>file->eoa)
         HGOTO_ERROR(H5E_ARGS, H5E_OVERFLOW, FAIL, "addr overflow")
+
+    /* Get the dataset transfer property list */
+    if(NULL == (dx_plist = (H5P_genplist_t *)H5P_object_verify(dxpl_id, H5P_DATASET_XFER)))
+        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataset transfer property list")
+
+    /* Get maximum temporary buffer size */
+    if(H5P_get(dx_plist, H5D_XFER_INTERNAL_CHUNK_BUF_NAME, &intern_chunk_buf) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "Can't retrieve property for internal chunk buffer")
+
 
     /* If the system doesn't require data to be aligned, read the data in
      * the same way as sec2 driver.
@@ -971,7 +983,7 @@ H5FD_direct_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id, ha
 		addr += (haddr_t)nbytes;
 		buf = (char*)buf + nbytes;
 	    }
-    } else if(_must_align && ((addr%_fbsize==0) && ((size_t)buf%_boundary==0) && (size%_fbsize>0))) {
+    } else if(_must_align && intern_chunk_buf && ((addr%_fbsize==0) && ((size_t)buf%_boundary==0) && (size%_fbsize>0))) {
             /* The case that the chunk buffer is allocated aligned in the filters. */
 	    if(size % _fbsize > 0)
 		alloc_size = ((size / _fbsize) * _fbsize) + _fbsize;
@@ -1088,10 +1100,11 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5FD_direct_write(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id, haddr_t addr,
+H5FD_direct_write(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t dxpl_id, haddr_t addr,
 		size_t size, const void *buf)
 {
     H5FD_direct_t	*file = (H5FD_direct_t*)_file;
+    H5P_genplist_t      *dx_plist;   /* Data transfer property list */
     ssize_t		nbytes;
     hbool_t		_must_align = TRUE;
     herr_t      	ret_value=SUCCEED;       /* Return value */
@@ -1103,6 +1116,7 @@ H5FD_direct_write(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id, h
     size_t		_cbsize;
     haddr_t             copy_addr = addr;
     size_t             	copy_size = size;
+    hbool_t             intern_chunk_buf = FALSE;
 
     FUNC_ENTER_NOAPI(H5FD_direct_write, FAIL)
 
@@ -1117,10 +1131,19 @@ H5FD_direct_write(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id, h
     if (addr+size>file->eoa)
         HGOTO_ERROR(H5E_ARGS, H5E_OVERFLOW, FAIL, "addr overflow")
 
+    /* Get the dataset transfer property list */
+    if(NULL == (dx_plist = (H5P_genplist_t *)H5P_object_verify(dxpl_id, H5P_DATASET_XFER)))
+        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataset transfer property list")
+
+    /* Get maximum temporary buffer size */
+    if(H5P_get(dx_plist, H5D_XFER_INTERNAL_CHUNK_BUF_NAME, &intern_chunk_buf) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "Can't retrieve property for internal chunk buffer")
+
     /* If the system doesn't require data to be aligned, read the data in
      * the same way as sec2 driver.
      */
     _must_align = file->fa.must_align;
+    _must_align = TRUE;
 
     /* Get the memory boundary for alignment, file system block size, and maximal
      * copy buffer size.
@@ -1153,9 +1176,10 @@ H5FD_direct_write(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id, h
 		addr += (haddr_t)nbytes;
 		buf = (const char*)buf + nbytes;
 	    }
-    } else if(_must_align && ((addr%_fbsize==0) && ((size_t)buf%_boundary==0) && (size%_fbsize>0))) {
-            /* The case that the chunk buffer is allocated aligned in the filters.  It needs to 
-             * pad some data in the last block. */
+    } else if(_must_align && intern_chunk_buf && ((addr%_fbsize==0) && ((size_t)buf%_boundary==0) && (size%_fbsize>0))) {
+            /* The case that the chunk buffer is allocated aligned in H5Dchunk.c (H5D_chunk_alloc)
+             * or in the filters.  The size is for the real data.  The buffer size is bigger
+             * but aligned.  It needs to pad some data in the last block. */
 	    alloc_size = _fbsize;
 
 	    if (HDposix_memalign(&copy_buf, _boundary, alloc_size) != 0)

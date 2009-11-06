@@ -19,8 +19,9 @@
  *
  * Purpose:     Tests the basic features of Virtual File Drivers
  */
-
+#define _XOPEN_SOURCE 600
 #include "h5test.h"
+#include <stdlib.h>
 
 #define KB              1024U
 #define FAMILY_NUMBER   4
@@ -329,7 +330,7 @@ test_direct(void)
         TEST_ERROR;
 
     if(H5Pset_fletcher32(dcpl_id) < 0)
-        TEST_ERROR;  
+        TEST_ERROR; 
 
     if((dxpl_id = H5Pcreate(H5P_DATASET_XFER)) < 0)
         TEST_ERROR;
@@ -370,6 +371,7 @@ test_direct(void)
         TEST_ERROR;
     if(H5Dclose(dset1) < 0)
         TEST_ERROR;
+
     if(H5Sclose(space2) < 0)
         TEST_ERROR;
     if(H5Dclose(dset2) < 0)
@@ -380,14 +382,17 @@ test_direct(void)
         TEST_ERROR;
     if(H5Pclose(dxpl_id) < 0)
         TEST_ERROR;
+
     if(H5Fclose(file) < 0)
         TEST_ERROR;
+
     if(points)
 	free(points);
     if(check)
 	free(check);
 
     h5_cleanup(FILENAME, fapl);
+
     PASSED();
     return 0;
 
@@ -801,6 +806,7 @@ test_family(void)
     if(*fhandle2<0)
         TEST_ERROR;
 
+
     /* Check file size API */
     if(H5Fget_filesize(file, &file_size) < 0)
         TEST_ERROR;
@@ -827,7 +833,7 @@ test_family(void)
     /* Test different wrong ways to reopen family files when there're multiple
      * member files existing. */
     if(test_family_opens(filename, fapl) < 0)
-        TEST_ERROR;
+        TEST_ERROR; 
 
     /* Reopen the file with correct member file size. */
     if(H5Pset_fapl_family(fapl, (hsize_t)FAMILY_SIZE, H5P_DEFAULT) < 0)

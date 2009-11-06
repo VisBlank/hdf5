@@ -266,8 +266,8 @@ typedef struct H5D_chunk_ud_t {
 
 /* For chunk allocation to accomodate Direct IO requirements. */
 typedef struct H5D_alloc_info_t {
-    H5O_pline_t *pline;
-    hbool_t initialize;
+    H5O_pline_t        *pline;
+    hbool_t            initialize;
     H5FD_direct_fapl_t *align_info;  
 } H5D_alloc_info_t;
 

@@ -331,6 +331,19 @@ H5D_read(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
         HGOTO_ERROR(H5E_DATASET, H5E_UNSUPPORTED, FAIL, "collective access for MPI-based drivers only")
 #endif /*H5_HAVE_PARALLEL*/
 
+    if(dataset->shared->layout.type == H5D_CHUNKED) {
+        H5P_genplist_t *dx_plist;   /* Data transfer property list */
+        hbool_t        intern_chunk_buf = TRUE;
+
+        /* Get the dataset transfer property list */
+        if(NULL == (dx_plist = (H5P_genplist_t *)H5P_object_verify(dxpl_id, H5P_DATASET_XFER)))
+            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataset transfer property list")
+
+        /* Set the flag for chunking to the Direct IO */
+        if(H5P_set(dx_plist, H5D_XFER_INTERNAL_CHUNK_BUF_NAME, &intern_chunk_buf) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "Can't set the property for chunking")
+    }
+
     /* Make certain that the number of elements in each selection is the same */
     if(nelmts != (hsize_t)H5S_GET_SELECT_NPOINTS(file_space))
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "src and dest data spaces have different sizes")
@@ -510,6 +523,19 @@ H5D_write(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
             HGOTO_ERROR(H5E_DATASET, H5E_UNSUPPORTED, FAIL, "collective access for MPI-based driver only")
     } /* end else */
 #endif /*H5_HAVE_PARALLEL*/
+
+    if(dataset->shared->layout.type == H5D_CHUNKED) {
+        H5P_genplist_t *dx_plist;   /* Data transfer property list */
+        hbool_t        intern_chunk_buf = TRUE;
+
+        /* Get the dataset transfer property list */
+        if(NULL == (dx_plist = (H5P_genplist_t *)H5P_object_verify(dxpl_id, H5P_DATASET_XFER)))
+            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataset transfer property list")
+
+        /* Set the flag for chunking to the Direct IO */
+        if(H5P_set(dx_plist, H5D_XFER_INTERNAL_CHUNK_BUF_NAME, &intern_chunk_buf) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "Can't set the property for chunking")
+    }
 
     /* Initialize dataspace information */
     if(!file_space)

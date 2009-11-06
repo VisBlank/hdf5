@@ -128,7 +128,7 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void UNUSED *udata1
     uint8_t            *p;                  /* Temporary pointer into encoding buffer */
     unsigned            super_vers;         /* Superblock version          */
     hbool_t            *dirtied = (hbool_t *)udata2;  /* Set up dirtied out value */
-    H5F_super_t        *ret_value;          /* Return value */
+    H5F_super_t        *ret_value = NULL;   /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5F_sblock_load)
 
@@ -609,6 +609,13 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void UNUSED *udata1
     ret_value = sblock;
 
 done:
+    /* Free the memory in case of failure */
+    if(!ret_value && sblock) {
+        if(sblock->root_ent)
+            sblock->root_ent = (H5G_entry_t *)H5MM_xfree(sblock->root_ent);
+        sblock = (H5F_super_t *)H5FL_FREE(H5F_super_t, sblock); 
+    }
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5F_sblock_load() */
 

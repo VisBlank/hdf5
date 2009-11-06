@@ -425,9 +425,9 @@ H5D_layout_oh_read(H5D_t *dataset, hid_t dxpl_id, hid_t dapl_id, H5P_genplist_t 
 
                 dataset->shared->filter_plist_id = H5Pcreate(H5P_PIPELINE_ACCESS);
 
-                /* Get filter property list object */
-                if(NULL == (filter_plist = (H5P_genplist_t *)H5I_object(dataset->shared->filter_plist_id)))
-                    HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "can't get filter property list")
+	        /* Get the plist structure */
+	        if(NULL == (filter_plist = (H5P_genplist_t *)H5P_object_verify(dataset->shared->filter_plist_id, H5P_PIPELINE_ACCESS)))
+		    HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "can't find object for ID")
 
                 direct_info = H5F_DIRECT_INFO(dataset->oloc.file);
       

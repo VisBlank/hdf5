@@ -120,7 +120,8 @@ H5MM_calloc(size_t size)
  *-------------------------------------------------------------------------
  */
 ssize_t
-H5MM_aligned_malloc(void** buffer, size_t size, hbool_t initialize, H5FD_direct_fapl_t *align_info)
+H5MM_aligned_malloc(void** buffer, size_t size, hbool_t initialize, 
+                    H5FD_direct_fapl_t *align_info)
 {
     size_t  alloc_size;
     size_t  fbsize, cbsize, boundary;

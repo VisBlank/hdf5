@@ -106,6 +106,8 @@
 #define H5D_VLEN_FREE           NULL
 #define H5D_VLEN_FREE_INFO      NULL
 
+/* Internal property for Direct IO */
+#define H5D_XFER_INTERNAL_CHUNK_BUF_NAME    "internal_chunk_buf"
 
 /****************************/
 /* Library Private Typedefs */

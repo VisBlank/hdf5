@@ -36,6 +36,7 @@
 #include "H5private.h"      /* Generic Functions */
 #include "H5Eprivate.h"     /* Error handling */
 #include "H5Fprivate.h"	    /* Files */
+#include "H5Zprivate.h"	    /* Filter pipeline */
 #include "H5Ppkg.h"         /* Property lists */
 
 
@@ -78,11 +79,11 @@ const H5P_libclass_t H5P_CLS_PACC[1] = {{
     &H5P_CLS_PIPELINE_ACCESS_g,	/* Pointer to class ID          */
     &H5P_LST_PIPELINE_ACCESS_g,	/* Pointer to default property list ID */
     H5P_pacc_reg_prop,		/* Default property registration routine */
-    NULL,		         /* Class creation callback      */
+    NULL,		        /* Class creation callback      */
     NULL,		        /* Class creation callback info */
-    NULL,		         /* Class copy callback          */
+    NULL,		        /* Class copy callback          */
     NULL,		        /* Class copy callback info     */
-    NULL,		         /* Class close callback         */
+    NULL,		        /* Class close callback         */
     NULL 		        /* Class close callback info    */
 }};
 

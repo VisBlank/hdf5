@@ -115,6 +115,11 @@
 #define H5D_XFER_XFORM_COPY         H5P_dxfr_xform_copy
 #define H5D_XFER_XFORM_CLOSE        H5P_dxfr_xform_close
 
+/* Internal property for Direct IO */
+#define H5D_XFER_INTERNAL_CHUNK_BUF_SIZE    sizeof(hbool_t)
+#define H5D_XFER_INTERNAL_CHUNK_BUF_DEF     FALSE
+
+
 
 /******************/
 /* Local Typedefs */
@@ -205,6 +210,7 @@ H5P_dxfr_reg_prop(H5P_genclass_t *pclass)
     H5Z_cb_t filter_cb = H5D_XFER_FILTER_CB_DEF;        /* Default value for filter callback */
     H5T_conv_cb_t conv_cb = H5D_XFER_CONV_CB_DEF;       /* Default value for datatype conversion callback */
     void *def_xfer_xform = H5D_XFER_XFORM_DEF;          /* Default value for data transform */
+    hbool_t intern_chunk_buf = H5D_XFER_INTERNAL_CHUNK_BUF_DEF; /* Default value to indicate whether a buffer is allocated for chunk internally */
     herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5P_dxfr_reg_prop)
@@ -285,6 +291,10 @@ H5P_dxfr_reg_prop(H5P_genclass_t *pclass)
 
     /* Register the data transform property */
     if(H5P_register(pclass, H5D_XFER_XFORM_NAME, H5D_XFER_XFORM_SIZE, &def_xfer_xform, NULL, NULL, NULL, H5D_XFER_XFORM_DEL, H5D_XFER_XFORM_COPY, NULL, H5D_XFER_XFORM_CLOSE) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class")
+
+    /* Register the property indicating whether a buffer is allocated internally for a chunk*/
+    if(H5P_register(pclass, H5D_XFER_INTERNAL_CHUNK_BUF_NAME, H5D_XFER_INTERNAL_CHUNK_BUF_SIZE, &intern_chunk_buf, NULL, NULL, NULL, NULL, NULL, NULL, NULL) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class")
 
 done:
