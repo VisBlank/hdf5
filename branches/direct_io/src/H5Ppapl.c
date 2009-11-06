@@ -48,7 +48,7 @@
 /* Definition for the information of Direct IO */
 #define H5Z_DIRECT_IO_SIZE sizeof(H5FD_direct_fapl_t)
 /*---------------------------------------------------------change it back to FALSE later--*/
-#define H5Z_DIRECT_IO_DEF  {4096, 4096, 64*1024, TRUE}
+#define H5Z_DIRECT_IO_DEF  {4096, 4096, 64*1024, FALSE}
 
 /******************/
 /* Local Typedefs */

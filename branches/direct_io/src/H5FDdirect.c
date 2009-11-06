@@ -518,7 +518,7 @@ H5FD_direct_open(const char *name, unsigned flags, hid_t fapl_id, haddr_t maxadd
     if (H5F_ACC_EXCL & flags) o_flags |= O_EXCL;
 
     /* Flag for Direct I/O */
-    /*o_flags |= O_DIRECT;*/
+    o_flags |= O_DIRECT;
 
     /* Open the file */
     if ((fd=HDopen(name, o_flags, 0666))<0)
@@ -1143,7 +1143,6 @@ H5FD_direct_write(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t dxpl_id, haddr_t 
      * the same way as sec2 driver.
      */
     _must_align = file->fa.must_align;
-    _must_align = TRUE;
 
     /* Get the memory boundary for alignment, file system block size, and maximal
      * copy buffer size.
