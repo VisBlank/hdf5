@@ -1,4 +1,4 @@
-HDF5 version 1.6.10 released on Mon Nov  9 11:52:33 CST 2009
+HDF5 version 1.6.10 released on Tue Nov 10 12:11:39 CST 2009
 Please refer to the release_docs/INSTALL file for installation instructions.
 ------------------------------------------------------------------------------
 
