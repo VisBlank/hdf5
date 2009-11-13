@@ -1385,3 +1385,153 @@ done:
     FUNC_LEAVE_API(ret_value)
 } /* end H5Zget_filter_info() */
 
+
+/*-------------------------------------------------------------------------
+ * Function:	H5Zalloc
+ *
+ * Purpose:	This function allocates a memory buffer for the filter.  It
+ *              is basically a wrapper of H5MM_aligned_malloc.  This memory 
+ *              management functions allows user-defined filter
+ *              to use the library's internal management functions, to 
+ *              avoid potential conflicts with user's own management 
+ *              functions. 
+ *
+ * Return:	Non-negative on success/Negative on failure
+ *
+ * Programmer:	Raymond Lu
+ *              Wednesday, November 11, 2009
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+ssize_t
+H5Zalloc(void **buffer, size_t size, hbool_t initialize, hid_t papl_id)
+{
+    ssize_t              ret_value;       /* Return value */
+
+    FUNC_ENTER_API(H5Zalloc, FAIL)
+
+    /* Check args */
+    if (!buffer || !size)
+	HGOTO_ERROR (H5E_ARGS, H5E_BADVALUE, FAIL, "invalid parameter")
+
+    /* Do it */
+    if ((ret_value=H5Z_alloc(buffer, size, initialize, papl_id))<0)
+	HGOTO_ERROR (H5E_PLINE, H5E_CANTINIT, FAIL, "unable to allocate memory")
+
+done:
+    FUNC_LEAVE_API(ret_value)
+} /* end H5Zalloc */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5Z_alloc
+ *
+ * Purpose:	Private function to allocate a memory buffer for the filter.
+ *
+ * Return:	Non-negative on success/Negative on failure
+ *
+ * Programmer:	Raymond Lu
+ *              Wednesday, November 11, 2009
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+ssize_t
+H5Z_alloc (void **buffer, size_t size, hbool_t initialize, hid_t papl_id)
+{
+    H5P_genplist_t     *filter_plist;
+    H5FD_direct_fapl_t direct_info;
+    ssize_t            ret_value;   /* Return value */
+
+    FUNC_ENTER_NOAPI(H5Z_alloc,FAIL)
+
+    assert(size>0 && buffer);
+
+    /* Get the plist structure for filter pipeline */
+    if(NULL == (filter_plist = (H5P_genplist_t *)H5P_object_verify(papl_id, H5P_PIPELINE_ACCESS)))
+        HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "can't find object for ID")
+
+    /* Retrieve the info for the Direct IO regardless whether it's used.  The 
+     * H5MM_aligned_malloc will make the judgement. */
+    if(H5P_get(filter_plist, H5Z_DIRECT_IO_NAME, &direct_info) < 0)
+        HGOTO_ERROR(H5E_DATASET, H5E_CANTSET, FAIL, "can't set direct IO info")
+
+    /* Allocate output buffer */
+    if((ret_value=H5MM_aligned_malloc(buffer, size, initialize, &direct_info)) < 0)
+        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "unable to allocate buffer")
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5Z_alloc */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5Zfree
+ *
+ * Purpose:	This function frees a memory buffer for the filter.  It
+ *              is basically a wrapper of H5MM_xfree.  This memory 
+ *              management functions allows user-defined filter
+ *              to use the library's internal management functions, to 
+ *              avoid potential conflicts with user's own management 
+ *              functions. 
+ *
+ * Return:	Non-negative on success; negative on failure.
+ *
+ * Programmer:	Raymond Lu
+ *              Wednesday, November 11, 2009
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5Zfree(void *buffer)
+{
+    herr_t ret_value=SUCCEED;       /* Return value */
+
+    FUNC_ENTER_API(H5Zfree, FAIL)
+
+    /* Check args */
+    if (!buffer)
+	HGOTO_ERROR (H5E_ARGS, H5E_BADVALUE, FAIL, "passing in empty buffer as the parameter")
+
+    /* Do it */
+    ret_value = H5Z_free(buffer);
+
+done:
+    FUNC_LEAVE_API(ret_value)
+} /* end H5Zfree */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5Z_free
+ *
+ * Purpose:	Private function to free a memory buffer for the filter.
+ *
+ * Return:	Non-negative on success/Negative on failure
+ *
+ * Programmer:	Raymond Lu
+ *              Wednesday, November 11, 2009
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5Z_free(void *buffer)
+{
+    herr_t ret_value=SUCCEED;   /* Return value */
+
+    FUNC_ENTER_NOAPI(H5Z_free, FAIL)
+
+    assert(buffer);
+
+    /* free the buffer */
+    H5MM_xfree(buffer);
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5Z_free */

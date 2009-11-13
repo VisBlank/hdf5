@@ -33,7 +33,7 @@
 
 /* Local function prototypes */
 static size_t H5Z_filter_fletcher32 (unsigned flags, size_t cd_nelmts,
-    const unsigned cd_values[], size_t nbytes, size_t *buf_size, void **buf, hid_t UNUSED plist_id);
+    const unsigned cd_values[], size_t nbytes, size_t *buf_size, void **buf, hid_t papl_id);
 
 /* This message derives from H5Z */
 const H5Z_class2_t H5Z_FLETCHER32[1] = {{
@@ -76,7 +76,7 @@ const H5Z_class2_t H5Z_FLETCHER32[1] = {{
  */
 /* ARGSUSED */
 static size_t
-H5Z_filter_fletcher32 (unsigned flags, size_t UNUSED cd_nelmts, const unsigned UNUSED cd_values[], size_t nbytes, size_t *buf_size, void **buf, hid_t plist_id)
+H5Z_filter_fletcher32 (unsigned flags, size_t UNUSED cd_nelmts, const unsigned UNUSED cd_values[], size_t nbytes, size_t *buf_size, void **buf, hid_t papl_id)
 {
     void    *outbuf = NULL;     /* Pointer to new buffer */
     unsigned char *src = (unsigned char*)(*buf);
@@ -139,9 +139,9 @@ H5Z_filter_fletcher32 (unsigned flags, size_t UNUSED cd_nelmts, const unsigned U
         H5P_genplist_t 	*filter_plist = NULL;       /* Filter property list */
         H5FD_direct_fapl_t direct_info;
 
-        if(H5P_DEFAULT != plist_id) {
+        if(H5P_DEFAULT != papl_id) {
             /* Get filter property list object */
-            if(NULL == (filter_plist = (H5P_genplist_t *)H5I_object(plist_id)))
+            if(NULL == (filter_plist = (H5P_genplist_t *)H5I_object(papl_id)))
                 HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, 0, "can't get filter property list")
 
             if(H5P_get(filter_plist, H5Z_DIRECT_IO_NAME, &direct_info) < 0)
@@ -152,7 +152,7 @@ H5Z_filter_fletcher32 (unsigned flags, size_t UNUSED cd_nelmts, const unsigned U
         fletcher = H5_checksum_fletcher32(src, nbytes);
 
         /* Allocate output buffer */
-        if(H5P_DEFAULT == plist_id) {
+        if(H5P_DEFAULT == papl_id) {
 	    if (NULL==(dst=outbuf=H5MM_malloc(nbytes+FLETCHER_LEN)))
 	        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, 0, "unable to allocate Fletcher32 checksum destination buffer")
         } else {

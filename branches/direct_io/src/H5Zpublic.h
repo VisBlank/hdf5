@@ -200,7 +200,7 @@ typedef herr_t (*H5Z_set_local_func_t)(hid_t dcpl_id, hid_t type_id, hid_t space
  */
 typedef size_t (*H5Z_func_t)(unsigned int flags, size_t cd_nelmts,
 			     const unsigned int cd_values[], size_t nbytes,
-			     size_t *buf_size, void **buf, hid_t plist_id);
+			     size_t *buf_size, void **buf, hid_t papl_id);
 
 /*
  * The filter table maps filter identification numbers to structs that
@@ -217,10 +217,12 @@ typedef struct H5Z_class2_t {
     H5Z_func_t filter;		/* The actual filter function		     */
 } H5Z_class2_t;
 
-H5_DLL herr_t H5Zregister(const void *cls);
-H5_DLL herr_t H5Zunregister(H5Z_filter_t id);
-H5_DLL htri_t H5Zfilter_avail(H5Z_filter_t id);
-H5_DLL herr_t H5Zget_filter_info(H5Z_filter_t filter, unsigned int *filter_config_flags);
+H5_DLL herr_t  H5Zregister(const void *cls);
+H5_DLL herr_t  H5Zunregister(H5Z_filter_t id);
+H5_DLL htri_t  H5Zfilter_avail(H5Z_filter_t id);
+H5_DLL herr_t  H5Zget_filter_info(H5Z_filter_t filter, unsigned int *filter_config_flags);
+H5_DLL ssize_t H5Zalloc(void **buffer, size_t size, hbool_t initialize, hid_t papl_id);
+H5_DLL herr_t  H5Zfree(void *mem);
 
 /* Symbols defined for compatibility with previous versions of the HDF5 API.
  *

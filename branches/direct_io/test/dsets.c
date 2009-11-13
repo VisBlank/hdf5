@@ -186,15 +186,15 @@ double	points_dbl[DSET_DIM1][DSET_DIM2], check_dbl[DSET_DIM1][DSET_DIM2];
 
 /* Local prototypes for filter functions */
 static size_t filter_bogus(unsigned int flags, size_t cd_nelmts,
-    const unsigned int *cd_values, size_t nbytes, size_t *buf_size, void **buf);
+    const unsigned int *cd_values, size_t nbytes, size_t *buf_size, void **buf, hid_t papl_id);
 static herr_t can_apply_bogus(hid_t dcpl_id, hid_t type_id, hid_t space_id);
 static herr_t set_local_bogus2(hid_t dcpl_id, hid_t type_id, hid_t space_id);
 static size_t filter_bogus2(unsigned int flags, size_t cd_nelmts,
-    const unsigned int *cd_values, size_t nbytes, size_t *buf_size, void **buf);
+    const unsigned int *cd_values, size_t nbytes, size_t *buf_size, void **buf, hid_t papl_id);
 static size_t filter_corrupt(unsigned int flags, size_t cd_nelmts,
-    const unsigned int *cd_values, size_t nbytes, size_t *buf_size, void **buf);
+    const unsigned int *cd_values, size_t nbytes, size_t *buf_size, void **buf, hid_t papl_id);
 static size_t filter_expand(unsigned int flags, size_t cd_nelmts,
-    const unsigned int *cd_values, size_t nbytes, size_t *buf_size, void **buf);
+    const unsigned int *cd_values, size_t nbytes, size_t *buf_size, void **buf, hid_t papl_id);
 
 
 /*-------------------------------------------------------------------------
@@ -1032,9 +1032,9 @@ test_tconv(hid_t file)
 
 /* This message derives from H5Z */
 const H5Z_class2_t H5Z_BOGUS[1] = {{
-    H5Z_CLASS_T_VERS,       /* H5Z_class_t version */
+    H5Z_CLASS_T_VERS,           /* H5Z_class_t version          */
     H5Z_FILTER_BOGUS,		/* Filter id number		*/
-    1, 1,               /* Encoding and decoding enabled */
+    1, 1,                       /* Encoding and decoding enabled*/
     "bogus",			/* Filter name for debugging	*/
     NULL,                       /* The "can apply" callback     */
     NULL,                       /* The "set local" callback     */
@@ -1087,7 +1087,7 @@ can_apply_bogus(hid_t UNUSED dcpl_id, hid_t type_id, hid_t UNUSED space_id)
 static size_t
 filter_bogus(unsigned int UNUSED flags, size_t UNUSED cd_nelmts,
       const unsigned int UNUSED *cd_values, size_t nbytes,
-      size_t UNUSED *buf_size, void UNUSED **buf)
+      size_t UNUSED *buf_size, void UNUSED **buf, hid_t papl_id)
 {
     return nbytes;
 }
@@ -1166,7 +1166,7 @@ set_local_bogus2(hid_t dcpl_id, hid_t type_id, hid_t UNUSED space_id)
 static size_t
 filter_bogus2(unsigned int flags, size_t cd_nelmts,
       const unsigned int *cd_values, size_t nbytes,
-      size_t *buf_size, void **buf)
+      size_t *buf_size, void **buf, hid_t papl_id)
 {
     /* Check for the correct number of parameters */
     if(cd_nelmts!=BOGUS2_ALL_NPARMS)
@@ -1206,9 +1206,9 @@ filter_bogus2(unsigned int flags, size_t cd_nelmts,
 
 /* This message derives from H5Z */
 const H5Z_class2_t H5Z_CORRUPT[1] = {{
-    H5Z_CLASS_T_VERS,            /* H5Z_class_t version */
+    H5Z_CLASS_T_VERS,           /* H5Z_class_t version          */
     H5Z_FILTER_CORRUPT,		/* Filter id number		*/
-    1, 1,               /* Encoding and decoding enabled */
+    1, 1,                       /* Encoding and decoding enabled*/
     "corrupt",			/* Filter name for debugging	*/
     NULL,                       /* The "can apply" callback     */
     NULL,                       /* The "set local" callback     */
@@ -1237,7 +1237,7 @@ const H5Z_class2_t H5Z_CORRUPT[1] = {{
 static size_t
 filter_corrupt(unsigned int flags, size_t cd_nelmts,
       const unsigned int *cd_values, size_t nbytes,
-      size_t *buf_size, void **buf)
+      size_t *buf_size, void **buf, hid_t papl_id)
 {
     size_t         ret_value = 0;
     unsigned char  *dst = (unsigned char*)(*buf);
@@ -6933,7 +6933,7 @@ static size_t filter_expand_factor_g = 0;
 static size_t
 filter_expand(unsigned int flags, size_t UNUSED cd_nelmts,
       const unsigned int UNUSED *cd_values, size_t nbytes,
-      size_t *buf_size, void UNUSED **buf)
+      size_t *buf_size, void UNUSED **buf, hid_t papl_id)
 {
     size_t         ret_value = 0;
 

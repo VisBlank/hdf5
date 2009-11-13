@@ -192,10 +192,7 @@ static const H5FD_class_t H5FD_direct_g = {
     H5FD_direct_get_handle,                     /*get_handle            */
     H5FD_direct_read,				/*read			*/
     H5FD_direct_write,				/*write			*/
-    NULL,			                /*flush (same as truncate. Change it to NULL
-                                                 *when merge it back to the trunk because 
-                                                 *Quincey arranged the file close, making this
-                                                 *unnecessary.)*/
+    NULL,			                /*flush                 */
     H5FD_direct_truncate,			/*truncate		*/
     NULL,                                       /*lock                  */
     NULL,                                       /*unlock                */
@@ -377,7 +374,7 @@ H5Pget_fapl_direct(hid_t fapl_id, size_t *boundary/*out*/, size_t *block_size/*o
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a file access list")
     if (H5FD_DIRECT!=H5P_get_driver(plist))
         HGOTO_ERROR(H5E_PLIST, H5E_BADVALUE, FAIL, "incorrect VFL driver")
-    if (NULL==(fa=H5P_get_driver_info(plist)))
+    if (NULL==(fa=(H5FD_direct_fapl_t*)H5P_get_driver_info(plist)))
         HGOTO_ERROR(H5E_PLIST, H5E_BADVALUE, FAIL, "bad VFL driver info")
     if (boundary)
         *boundary = fa->mboundary;
@@ -446,7 +443,7 @@ static void *
 H5FD_direct_fapl_copy(const void *_old_fa)
 {
     const H5FD_direct_fapl_t *old_fa = (const H5FD_direct_fapl_t*)_old_fa;
-    H5FD_direct_fapl_t *new_fa = H5MM_malloc(sizeof(H5FD_direct_fapl_t));
+    H5FD_direct_fapl_t *new_fa = (H5FD_direct_fapl_t*)H5MM_malloc(sizeof(H5FD_direct_fapl_t));
     void *ret_value;    /* Return value */
 
     FUNC_ENTER_NOAPI(H5FD_direct_fapl_copy, NULL)
@@ -534,7 +531,7 @@ H5FD_direct_open(const char *name, unsigned flags, hid_t fapl_id, haddr_t maxadd
     /* Get the driver specific information */
     if(NULL == (plist = H5P_object_verify(fapl_id,H5P_FILE_ACCESS)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not a file access property list")
-    fa = H5P_get_driver_info(plist);
+    fa = (H5FD_direct_fapl_t*)H5P_get_driver_info(plist);
 
     file->fd = fd;
     H5_ASSIGN_OVERFLOW(file->eof,sb.st_size,h5_stat_size_t,haddr_t);

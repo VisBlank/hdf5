@@ -37,20 +37,16 @@
 #define CBSIZE		(64*KB)
 #define THRESHOLD 	1
 #define DSET1_NAME	"dset1"
-#ifdef TMP 
-#define DSET1_DIM1      1024
-#define DSET1_DIM2      32
-#define CHUNK_DIM1      128
-#define CHUNK_DIM2      16
-#else /* make some partial chunk data */
+/* make some partial chunk data */
 #define DSET1_DIM1      1024
 #define DSET1_DIM2      32
 #define CHUNK_DIM1      200
 #define CHUNK_DIM2      10
-#endif
 #define DSET2_NAME	"dset2"
 #define DSET2_DIM       4
 #define DSET3_NAME	"dset3"
+#define MALLOC_EXTRA    16
+#define H5Z_FILTER_MALLOC 311
 
 const char *FILENAME[] = {
     "sec2_file",
@@ -63,6 +59,10 @@ const char *FILENAME[] = {
 };
 
 #define COMPAT_BASENAME "family_v16_"
+
+static size_t filter_malloc(unsigned int flags, size_t cd_nelmts, 
+      const unsigned int *cd_values, size_t nbytes, size_t *buf_size, void **buf, 
+      hid_t papl_id);
 
 
 /*-------------------------------------------------------------------------
@@ -139,6 +139,103 @@ error:
         H5Fclose(file);
     } H5E_END_TRY;
     return -1;
+}
+
+/* This message derives from H5Z */
+const H5Z_class2_t H5Z_MALLOC[1] = {{
+    H5Z_CLASS_T_VERS,           /* H5Z_class_t version          */
+    H5Z_FILTER_MALLOC,		/* Filter id number		*/
+    1, 1,                       /* Encoding and decoding enabled*/
+    "malloc",			/* Filter name for debugging	*/
+    NULL,                       /* The "can apply" callback     */
+    NULL,                       /* The "set local" callback     */
+    filter_malloc,		/* The actual filter function	*/
+}};
+
+
+/*-------------------------------------------------------------------------
+ * Function:	filter_malloc
+ *
+ * Purpose:	A filter method that tests H5Zalloc and H5Zfree.  These 
+ *              memory management functions allows user-defined filter to
+ *              use the library's internal management functions, to avoid
+ *              potential conflicts with user's own management functions. 
+ *
+ * Return:	Success:	Data chunk size
+ *		Failure:	0
+ *
+ * Programmer:	Raymond Lu
+ *              12 November 2009
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+static size_t
+filter_malloc(unsigned int flags, size_t cd_nelmts,
+      const unsigned int *cd_values, size_t nbytes,
+      size_t *buf_size, void **buf, hid_t papl_id)
+{
+    void    *outbuf = NULL;     /* Pointer to new buffer */
+    unsigned char *src = (unsigned char*)(*buf);
+    size_t   ret_value;         /* Return value */
+
+    if (flags & H5Z_FLAG_REVERSE) { /* Read */
+        unsigned char *tmp_src;             /* Pointer to checksum in buffer */
+        size_t  src_nbytes = nbytes;        /* Original number of bytes */
+        unsigned char malloc_values[MALLOC_EXTRA], i;
+
+        /* Get and verify the stored extra data */
+        src_nbytes -= MALLOC_EXTRA;
+        tmp_src=src+src_nbytes;
+        memcpy((void*)malloc_values, (void*)tmp_src, MALLOC_EXTRA);
+
+        for(i=0; i<MALLOC_EXTRA; i++) {
+            if(malloc_values[i] != i)
+	        TEST_ERROR;
+        }
+
+        /* Set return values.   (Re-use the input buffer, just note that the size 
+         * is smaller by the size of the extra data) */
+        ret_value = nbytes-MALLOC_EXTRA;
+    } else { /* Write */
+        unsigned char *dst;     /* Temporary pointer to destination buffer */
+        unsigned char malloc_values[MALLOC_EXTRA], i;
+
+        /* Allocate chunk buffer with some extra space to test H5Zalloc. */
+        if(H5Zalloc(&outbuf, nbytes+MALLOC_EXTRA, FALSE, papl_id) < 0)
+	    TEST_ERROR;
+
+        dst = (unsigned char *)outbuf;
+
+        /* Copy raw data */
+        memcpy((void*)dst, (void*)(*buf), nbytes);
+
+        /* Append some extra data to raw data for storage */
+        dst += nbytes;
+
+        for(i=0; i<MALLOC_EXTRA; i++)
+            malloc_values[i] = i;
+
+        memcpy((void*)dst, (void*)malloc_values, MALLOC_EXTRA);
+
+        /* Free input buffer */
+ 	H5Zfree(*buf);
+
+        /* Set return values */
+	*buf = outbuf;
+	outbuf = NULL;
+        *buf_size = nbytes + MALLOC_EXTRA;
+	ret_value = nbytes + MALLOC_EXTRA;
+    }
+
+    if(outbuf)
+        H5Zfree(outbuf);
+
+    return ret_value;
+
+error:
+    return 0;
 }
 
 
@@ -242,10 +339,10 @@ test_direct(void)
 
     /* Allocate aligned memory for data set 1. For data set 1, everything is aligned including
      * memory address, size of data, and file address. */
-    if(posix_memalign(&points, (size_t)FBSIZE, (size_t)(DSET1_DIM1*DSET1_DIM2*sizeof(int)))!=0)
+    if(posix_memalign((void**)&points, (size_t)FBSIZE, (size_t)(DSET1_DIM1*DSET1_DIM2*sizeof(int)))!=0)
         TEST_ERROR;
 
-    if(posix_memalign(&check, (size_t)FBSIZE, (size_t)(DSET1_DIM1*DSET1_DIM2*sizeof(int)))!=0)
+    if(posix_memalign((void**)&check, (size_t)FBSIZE, (size_t)(DSET1_DIM1*DSET1_DIM2*sizeof(int)))!=0)
         TEST_ERROR;
 
     /* Initialize the dset1 */
@@ -329,8 +426,16 @@ test_direct(void)
     if(H5Pset_chunk (dcpl_id, 2, chunk_size) < 0)
         TEST_ERROR;
 
+#ifdef TMP
     if(H5Pset_fletcher32(dcpl_id) < 0)
         TEST_ERROR; 
+#else
+    if(H5Zregister(H5Z_MALLOC) < 0)
+        TEST_ERROR;
+ 
+    if(H5Pset_filter(dcpl_id, H5Z_FILTER_MALLOC, 0, (size_t)0, NULL) < 0)
+        TEST_ERROR; 
+#endif
 
     if((dxpl_id = H5Pcreate(H5P_DATASET_XFER)) < 0)
         TEST_ERROR;
