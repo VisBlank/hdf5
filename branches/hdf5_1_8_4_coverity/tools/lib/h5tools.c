@@ -1307,17 +1307,17 @@ h5tools_print_region_data_blocks(hid_t region_space, hid_t region_id,
     hsize_t      curr_pos;
     int          jndx;
     int          type_size;
-    hid_t        mem_space;
+    hid_t        mem_space = -1;
     void        *region_buf = NULL;
     int          blkndx;
-    hid_t        sid1;
+    hid_t        sid1 = -1;
 
     /* Get the dataspace of the dataset */
     if((sid1 = H5Dget_space(region_id)) < 0)
         HGOTO_ERROR(FAIL, H5E_tools_min_id_g, "H5Dget_space failed");
 
     /* Allocate space for the dimension array */
-    if((dims1 = (hsize_t *) malloc(sizeof(hsize_t) * ndims)) == NULL)
+    if((dims1 = (hsize_t *) HDmalloc(sizeof(hsize_t) * ndims)) == NULL)
         HGOTO_ERROR(FAIL, H5E_tools_min_id_g, "Could not allocate buffer for dims");
 
     /* find the dimensions of each data space from the block coordinates */
@@ -1334,15 +1334,15 @@ h5tools_print_region_data_blocks(hid_t region_space, hid_t region_id,
     if((type_size = H5Tget_size(type_id)) == 0)
         HGOTO_ERROR(FAIL, H5E_tools_min_id_g, "H5Tget_size failed");
 
-    if((region_buf = malloc(type_size * numelem)) == NULL)
+    if((region_buf = HDmalloc(type_size * numelem)) == NULL)
         HGOTO_ERROR(FAIL, H5E_tools_min_id_g, "Could not allocate region buffer");
 
     /* Select (x , x , ..., x ) x (y , y , ..., y ) hyperslab for reading memory dataset */
     /*          1   2        n      1   2        n                                       */
-    if((start = (hsize_t *) malloc(sizeof(hsize_t) * ndims)) == NULL)
+    if((start = (hsize_t *) HDmalloc(sizeof(hsize_t) * ndims)) == NULL)
         HGOTO_ERROR(FAIL, H5E_tools_min_id_g, "Could not allocate buffer for start");
 
-    if((count = (hsize_t *) malloc(sizeof(hsize_t) * ndims)) == NULL)
+    if((count = (hsize_t *) HDmalloc(sizeof(hsize_t) * ndims)) == NULL)
         HGOTO_ERROR(FAIL, H5E_tools_min_id_g, "Could not allocate buffer for count");
 
     curr_pos = 0;
@@ -1408,10 +1408,10 @@ h5tools_print_region_data_blocks(hid_t region_space, hid_t region_id,
     } /* end for (blkndx = 0; blkndx < nblocks; blkndx++) */
 
  done:
-    free(start);
-    free(count);
-    free(region_buf);
-    free(dims1);
+    HDfree(start);
+    HDfree(count);
+    HDfree(region_buf);
+    HDfree(dims1);
     
     if(H5Sclose(mem_space) < 0)
         HERROR(H5E_tools_g, H5E_tools_min_id_g, "H5Sclose failed");
@@ -1971,7 +1971,7 @@ h5tools_print_simple_subset(FILE *stream, const h5tool_format_t *info, h5tools_c
     hsize_t           sm_nbytes;               /* bytes per stripmine */
     hsize_t           sm_nelmts;               /* elements per stripmine*/
     unsigned char    *sm_buf = NULL;           /* buffer for raw data */
-    hid_t             sm_space;                /* stripmine data space */
+    hid_t             sm_space = -1;           /* stripmine data space */
     hsize_t           size_row_block;          /* size for blocks along rows */
     hsize_t           row_counter = 0;
 
@@ -2024,7 +2024,7 @@ h5tools_print_simple_subset(FILE *stream, const h5tool_format_t *info, h5tools_c
                 }
     
             assert(sm_nbytes == (hsize_t) ((size_t) sm_nbytes)); /*check for overflow*/
-            if((sm_buf = malloc((size_t) sm_nelmts * p_type_nbytes)) == NULL)
+            if((sm_buf = HDmalloc((size_t) sm_nelmts * p_type_nbytes)) == NULL)
                 HGOTO_ERROR(FAIL, H5E_tools_min_id_g, "Could not allocate buffer for strip-mine");
     
             if((sm_space = H5Screate_simple(1, &sm_nelmts, NULL)) < 0)
@@ -2069,7 +2069,7 @@ h5tools_print_simple_subset(FILE *stream, const h5tool_format_t *info, h5tools_c
 done:
             if(H5Sclose(sm_space) < 0)
                 HERROR(H5E_tools_g, H5E_tools_min_id_g, "H5Sclose failed");
-            free(sm_buf);
+            HDfree(sm_buf);
         }
         else
             H5E_THROW(SUCCEED, H5E_tools_min_id_g, "nothing to print");
