@@ -4153,9 +4153,9 @@ int write_attr_in(hid_t loc_id,
         GREEN
     } e_t;
 
-    hid_t   aid;
-    hid_t   sid;
-    hid_t   tid;
+    hid_t   aid = -1;
+    hid_t   sid = -1;
+    hid_t   tid = -1;
     int     val, i, j, k, n;
     float   f;
 
