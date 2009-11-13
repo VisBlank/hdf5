@@ -3379,14 +3379,18 @@ h5tools_print_enum(h5tools_str_t *buffer, hid_t type)
 
 CATCH
 
-    /* Release resources */
-    for (i = 0; i < nmembs; i++)
-        free(name[i]);
+    if(name) {
+        /* Release resources */
+        for (i = 0; i < nmembs; i++)
+            if(name[i])
+                free(name[i]);
+        free(name);
+    } /* end if */
 
-    free(name);
-    free(value);
-    
-    if(H5Tclose(super) < 0)
+    if(value)
+        free(value);
+
+    if(super >= 0 && H5Tclose(super) < 0)
         H5E_THROW(FAIL, H5E_tools_min_id_g, "H5Tclose failed");
 
     if (0 == nmembs)
