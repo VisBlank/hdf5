@@ -1648,18 +1648,17 @@ h5tools_print_region_data_points(hid_t region_space, hid_t region_id,
     int      indx;
     int      jndx;
     int      type_size;
-    hid_t    mem_space;
-    hid_t    dtype;
+    hid_t    mem_space = -1;
     void    *region_buf = NULL;
 
     if((type_size = H5Tget_size(type_id)) == 0)
         HGOTO_ERROR(FAIL, H5E_tools_min_id_g, "H5Tget_size failed");
 
-    if((region_buf = malloc(type_size * npoints)) == NULL)
+    if((region_buf = HDmalloc(type_size * npoints)) == NULL)
         HGOTO_ERROR(FAIL, H5E_tools_min_id_g, "Could not allocate buffer for region");
 
     /* Allocate space for the dimension array */
-    if((dims1 = (hsize_t *) malloc(sizeof(hsize_t) * ndims)) == NULL)
+    if((dims1 = (hsize_t *) HDmalloc(sizeof(hsize_t) * ndims)) == NULL)
         HGOTO_ERROR(FAIL, H5E_tools_min_id_g, "Could not allocate buffer for dims");
 
     dims1[0] = npoints;
@@ -1723,8 +1722,8 @@ h5tools_print_region_data_points(hid_t region_space, hid_t region_id,
     } /* end for (jndx = 0; jndx < npoints; jndx++, region_elmtno++) */
 
  done:
-    free(region_buf);
-    free(dims1);
+    HDfree(region_buf);
+    HDfree(dims1);
     
     if(H5Sclose(mem_space) < 0)
         HERROR(H5E_tools_g, H5E_tools_min_id_g, "H5Sclose failed");
