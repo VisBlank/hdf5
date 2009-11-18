@@ -59,9 +59,9 @@ PROGRAM fortranlibtest
      total_error = total_error + 1
   ENDIF
 
-  ret_total_error = 0
-  CALL test_error(ret_total_error)
-  CALL write_test_status(ret_total_error, ' Test error API based on data I/O', total_error)
+!!$  ret_total_error = 0
+!!$  CALL test_error(ret_total_error)
+!!$  CALL write_test_status(ret_total_error, ' Test error API based on data I/O', total_error)
 
   WRITE(*,*)
 !     write(*,*)
@@ -90,6 +90,11 @@ PROGRAM fortranlibtest
 !DEC$ endif
 8 CONTINUE
 
+  ret_total_error = 0
+  CALL test_h5kind_to_type(total_error)
+  CALL write_test_status(ret_total_error, &
+       ' Test function h5kind_to_type', &
+       total_error)
 
   ret_total_error = 0
   CALL test_array_bkg(ret_total_error)

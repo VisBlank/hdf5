@@ -30,6 +30,23 @@
 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: verify_real
+!DEC$endif
+SUBROUTINE verify_real(string,value,correct_value,total_error)
+  USE HDF5
+
+  CHARACTER(LEN=*) :: string
+  REAL :: value, correct_value
+  INTEGER :: total_error
+  IF (value .NE. correct_value) THEN
+     total_error=total_error+1
+     WRITE(*,*) "ERROR: INCORRECT REAL VALIDATION ", string
+  ENDIF
+  RETURN
+END SUBROUTINE verify_real
+
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: write_test_status 
 !DEC$endif
   SUBROUTINE write_test_status( test_result, test_title, total_error)
@@ -83,9 +100,9 @@ END SUBROUTINE check
 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
-!DEC$attributes dllexport :: verify
+!DEC$attributes dllexport :: verify_string
 !DEC$endif
-SUBROUTINE VERIFY(string,value,correct_value,total_error)
+SUBROUTINE verify(string,value,correct_value,total_error)
   CHARACTER(LEN=*) :: string
   INTEGER :: value, correct_value, total_error
   IF (value .NE. correct_value) THEN
@@ -94,6 +111,9 @@ SUBROUTINE VERIFY(string,value,correct_value,total_error)
   ENDIF
   RETURN
 END SUBROUTINE verify
+
+
+
 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
@@ -114,7 +134,7 @@ END SUBROUTINE verifyLogical
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: verifyString
 !DEC$endif
-SUBROUTINE verifyString(string, value,correct_value,total_error)
+SUBROUTINE verifystring(string, value,correct_value,total_error)
   CHARACTER(LEN=*) :: string
   CHARACTER(LEN=*) :: value, correct_value
   INTEGER :: total_error
@@ -123,7 +143,7 @@ SUBROUTINE verifyString(string, value,correct_value,total_error)
      WRITE(*,*) "ERROR: INCORRECT VALIDATION ", string
   ENDIF
   RETURN
-END SUBROUTINE verifyString
+END SUBROUTINE verifystring
 
 
 !----------------------------------------------------------------------

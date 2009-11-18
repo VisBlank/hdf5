@@ -154,7 +154,8 @@ CONTAINS
     ! estack_id is always passed from C as: H5E_DEFAULT
     INTEGER(HID_T) :: estack_id 
     ! data that was registered with H5Eset_auto_f
-    INTEGER, DIMENSION(1:2) :: data_inout
+!    INTEGER, DIMENSION(1:2) :: data_inout
+    INTEGER :: data_inout
 
     PRINT*, " "
     PRINT*, " Subtest: H5Eset_auto_f custom error message with callback, WITH DATA"
@@ -1756,14 +1757,20 @@ SUBROUTINE test_iter_group(total_error)
     INTEGER :: error
     TYPE(C_FUNPTR) :: op
     INTEGER, DIMENSION(1:100,1:200), TARGET :: ipoints2
-    INTEGER, DIMENSION(1:2), TARGET :: my_hdf5_error_handler_data
-!    INTEGER, TARGET :: my_hdf5_error_handler_data
+!!    INTEGER, DIMENSION(1:2), TARGET :: my_hdf5_error_handler_data
+    INTEGER, DIMENSION(:), POINTER :: ptr_data
+    INTEGER, TARGET :: my_hdf5_error_handler_data
     TYPE(C_PTR) :: f_ptr
     TYPE(C_FUNPTR) :: func
+
+    TYPE(C_PTR), TARGET :: f_ptr1
+    TYPE(C_FUNPTR), TARGET :: func1
+
+    INTEGER, DIMENSION(1:1) :: array_shape
     LOGICAL :: is_associated
 
-    my_hdf5_error_handler_data(1:2) =(/1,2/)
-
+!    my_hdf5_error_handler_data(1:2) =(/1,2/)
+    my_hdf5_error_handler_data = 99
     CALL h5fcreate_f("terror.h5", H5F_ACC_TRUNC_F, file, error)
     CALL check("h5fcreate_f", error, total_error)
 
@@ -1788,8 +1795,35 @@ SUBROUTINE test_iter_group(total_error)
     CALL h5dcreate_f(FAKE_ID,"a_dataset",H5T_NATIVE_INTEGER, space, dataset, error)
     CALL VERIFY("h5dcreate_f", error, -1, total_error)
 
-    CALL VERIFY("H5Eset_auto_f",my_hdf5_error_handler_data(1),10, total_error)
-    CALL VERIFY("H5Eset_auto_f",my_hdf5_error_handler_data(2),20, total_error)
+!!$    CALL VERIFY("H5Eset_auto_f",my_hdf5_error_handler_data(1),10, total_error)
+!!$    CALL VERIFY("H5Eset_auto_f",my_hdf5_error_handler_data(2),20, total_error)
+
+    ! Test enabling and disabling default printing
+    
+    CALL H5Eget_auto_f(H5E_DEFAULT_F, func1, f_ptr1, error)
+    CALL VERIFY("H5Eget_auto_f", error, 0, total_error)
+
+!    PRINT*,c_associated(f_ptr1)
+
+    ALLOCATE(ptr_data(1:2))
+    ptr_data = 0
+    array_shape(1) = 2
+    CALL C_F_POINTER(f_ptr1, ptr_data, array_shape)
+
+!    ptr_data => f_ptr1(1)
+
+    PRINT*,ptr_data(1)
+
+!!$    if(old_data != NULL)
+!!$	TEST_ERROR;
+!!$#ifdef H5_USE_16_API
+!!$    if (old_func != (H5E_auto_t)H5Eprint)
+!!$	TEST_ERROR;
+!!$#else /* H5_USE_16_API */
+!!$    if (old_func != (H5E_auto2_t)H5Eprint2)
+!!$	TEST_ERROR;
+!!$#endif /* H5_USE_16_API */
+
 
     ! set the customized error handling routine
     func = c_funloc(my_hdf5_error_handler_nodata)
@@ -1814,5 +1848,203 @@ SUBROUTINE test_iter_group(total_error)
     CALL h5dcreate_f(FAKE_ID,"a_dataset",H5T_NATIVE_INTEGER, space, dataset, error)
 
   END SUBROUTINE test_error
+
+
+  SUBROUTINE test_h5kind_to_type(total_error)
+
+    USE ISO_C_BINDING
+
+    USE HDF5 ! This module contains all necessary modules
+
+    IMPLICIT NONE
+    
+    INTEGER, INTENT(INOUT) :: total_error
+    
+    INTEGER, PARAMETER :: int_kind_1 = SELECTED_INT_KIND(Fortran_INTEGER_1)  !should map to INTEGER*1 on most modern processors
+    INTEGER, PARAMETER :: int_kind_4 = SELECTED_INT_KIND(Fortran_INTEGER_2)  !should map to INTEGER*2 on most modern processors
+    INTEGER, PARAMETER :: int_kind_8 = SELECTED_INT_KIND(Fortran_INTEGER_4)  !should map to INTEGER*4 on most modern processors
+    INTEGER, PARAMETER :: int_kind_16 = SELECTED_INT_KIND(Fortran_INTEGER_8) !should map to INTEGER*8 on most modern processors
+    
+    INTEGER, PARAMETER :: real_kind_7 = SELECTED_REAL_KIND(Fortran_REAL_4) !should map to REAL*4 on most modern processors
+    INTEGER, PARAMETER :: real_kind_15 = SELECTED_REAL_KIND(Fortran_REAL_8) !should map to REAL*8 on most modern processors
+    
+    CHARACTER(LEN=8), PARAMETER :: filename = "dsetf.h5" ! File name
+    CHARACTER(LEN=5), PARAMETER :: dsetname1 = "dset1"     ! Dataset name
+    CHARACTER(LEN=5), PARAMETER :: dsetname2 = "dset2"     ! Dataset name
+    CHARACTER(LEN=5), PARAMETER :: dsetname4 = "dset4"     ! Dataset name
+    CHARACTER(LEN=5), PARAMETER :: dsetname8 = "dset8"     ! Dataset name
+    CHARACTER(LEN=6), PARAMETER :: dsetnamer = "dsetr"     ! Dataset name
+    CHARACTER(LEN=6), PARAMETER :: dsetnamer4 = "dsetr4"     ! Dataset name
+    CHARACTER(LEN=6), PARAMETER :: dsetnamer8 = "dsetr8"     ! Dataset name
+    
+    INTEGER(HID_T) :: file_id       ! File identifier 
+    INTEGER(HID_T) :: dset_id1      ! Dataset identifier  
+    INTEGER(HID_T) :: dset_id4      ! Dataset identifier   
+    INTEGER(HID_T) :: dset_id8      ! Dataset identifier  
+    INTEGER(HID_T) :: dset_id16     ! Dataset identifier     
+    INTEGER(HID_T) :: dset_idr       ! Dataset identifier 
+    INTEGER(HID_T) :: dset_idr4      ! Dataset identifier   
+    INTEGER(HID_T) :: dset_idr8      ! Dataset identifier 
+    
+    INTEGER :: error ! Error flag
+    INTEGER :: i, j
+    
+! Data buffers:
+
+    INTEGER, DIMENSION(1:4) :: dset_data
+
+    INTEGER(int_kind_1), DIMENSION(1:4), TARGET :: dset_data_i1, data_out_i1
+    INTEGER(int_kind_4), DIMENSION(1:4), TARGET :: dset_data_i4, data_out_i4
+    INTEGER(int_kind_8), DIMENSION(1:4), TARGET :: dset_data_i8, data_out_i8
+    INTEGER(int_kind_16), DIMENSION(1:4), TARGET :: dset_data_i16, data_out_i16
+
+    REAL, DIMENSION(1:4), TARGET :: dset_data_r, data_out_r
+    REAL(real_kind_7), DIMENSION(1:4), TARGET :: dset_data_r7, data_out_r7
+    REAL(real_kind_15), DIMENSION(1:4), TARGET :: dset_data_r15, data_out_r15
+    
+    INTEGER(HSIZE_T), DIMENSION(1:1) :: data_dims = (/4/) 
+    INTEGER(HID_T) :: dspace_id     ! Dataspace identifier
+    
+    TYPE(C_PTR) :: f_ptr
+    INTEGER(hid_t) :: datatype         !/* Common datatype ID */
+
+    !
+    ! Initialize the dset_data array.
+    !
+    DO i = 1, 4
+       dset_data_i1(i)  = i
+       dset_data_i4(i)  = i
+       dset_data_i8(i)  = i
+       dset_data_i16(i) = i
+
+       dset_data_r(i) = (i)*100.
+       dset_data_r7(i) = (i)*100.
+       dset_data_r15(i) = (i)*1000.
+       
+    END DO
+
+    CALL h5fcreate_f(filename, H5F_ACC_TRUNC_F, file_id, error)
+    CALL check("h5fcreate_f",error, total_error)
+  !
+  ! Create dataspaces for datasets
+  !
+    CALL h5screate_simple_f(1, data_dims , dspace_id, error)
+    CALL check("h5screate_simple_f",error, total_error)
+  !
+  ! Create the dataset.
+  !
+    CALL H5Dcreate_f(file_id, dsetname1, h5kind_to_type(int_kind_1,H5_INTEGER_KIND),  dspace_id, dset_id1, error)
+    CALL check("H5Dcreate_f",error, total_error)
+    CALL H5Dcreate_f(file_id, dsetname2, h5kind_to_type(int_kind_4,H5_INTEGER_KIND),  dspace_id, dset_id4, error)
+    CALL check("H5Dcreate_f",error, total_error)
+    CALL H5Dcreate_f(file_id, dsetname4, h5kind_to_type(int_kind_8,H5_INTEGER_KIND),  dspace_id, dset_id8, error)
+    CALL check("H5Dcreate_f",error, total_error)
+    CALL H5Dcreate_f(file_id, dsetname8, h5kind_to_type(int_kind_16,H5_INTEGER_KIND), dspace_id, dset_id16, error)
+    CALL check("H5Dcreate_f",error, total_error)
+    
+    CALL H5Dcreate_f(file_id, dsetnamer, H5T_NATIVE_REAL, dspace_id, dset_idr, error)
+    CALL check("H5Dcreate_f",error, total_error)
+    CALL H5Dcreate_f(file_id, dsetnamer4, h5kind_to_type(real_kind_7,H5_REAL_KIND),  dspace_id, dset_idr4, error)
+    CALL check("H5Dcreate_f",error, total_error)
+    CALL H5Dcreate_f(file_id, dsetnamer8, h5kind_to_type(real_kind_15,H5_REAL_KIND), dspace_id, dset_idr8, error)
+    CALL check("H5Dcreate_f",error, total_error)
+
+  !
+  ! Write the dataset.
+  !
+    f_ptr = C_LOC(dset_data_i1)
+    CALL h5dwrite_f(dset_id1, h5kind_to_type(int_kind_1,H5_INTEGER_KIND), f_ptr, error)
+    CALL check("H5Dwrite_f",error, total_error)
+    f_ptr = C_LOC(dset_data_i4)
+    CALL h5dwrite_f(dset_id4, h5kind_to_type(int_kind_4,H5_INTEGER_KIND), f_ptr, error)
+    CALL check("H5Dwrite_f",error, total_error)
+    f_ptr = C_LOC(dset_data_i8)
+    CALL h5dwrite_f(dset_id8, h5kind_to_type(int_kind_8,H5_INTEGER_KIND), f_ptr, error)
+    CALL check("H5Dwrite_f",error, total_error)
+    f_ptr = C_LOC(dset_data_i16)
+    CALL h5dwrite_f(dset_id16, h5kind_to_type(int_kind_16,H5_INTEGER_KIND), f_ptr, error)
+    CALL check("H5Dwrite_f",error, total_error)
+    f_ptr = C_LOC(dset_data_r)
+    CALL h5dwrite_f(dset_idr, H5T_NATIVE_REAL, f_ptr, error)
+    CALL check("H5Dwrite_f",error, total_error)
+    f_ptr = C_LOC(dset_data_r7)
+    CALL h5dwrite_f(dset_idr4, h5kind_to_type(real_kind_7,H5_REAL_KIND), f_ptr, error)
+    CALL check("H5Dwrite_f",error, total_error)
+    f_ptr = C_LOC(dset_data_r15)
+    CALL h5dwrite_f(dset_idr8, h5kind_to_type(real_kind_15,H5_REAL_KIND), f_ptr, error)
+    CALL check("H5Dwrite_f",error, total_error)
+  !
+  ! Close the file
+  !
+    CALL h5fclose_f(file_id, error)
+    CALL check("h5fclose_f",error, total_error)
+
+  ! Open the file
+
+    CALL h5fopen_f(filename, H5F_ACC_RDONLY_F, file_id, error)
+    CALL check("h5fopen_f",error, total_error)
+  !
+  ! Read the dataset.
+  !
+  ! Read data back into an integer size that is larger then the original size used for 
+  ! writing the data
+    f_ptr = C_LOC(data_out_i1)
+    CALL h5dread_f(dset_id1, h5kind_to_type(int_kind_1,H5_INTEGER_KIND), f_ptr,  error)
+    CALL check("h5dread_f",error, total_error)
+    f_ptr = C_LOC(data_out_i4)
+    CALL h5dread_f(dset_id4, h5kind_to_type(int_kind_4,H5_INTEGER_KIND), f_ptr,  error)
+    CALL check("h5dread_f",error, total_error)
+    f_ptr = C_LOC(data_out_i8)
+    CALL h5dread_f(dset_id8, h5kind_to_type(int_kind_8,H5_INTEGER_KIND), f_ptr,  error)
+    CALL check("h5dread_f",error, total_error)
+    f_ptr = C_LOC(data_out_i16)
+    CALL h5dread_f(dset_id16, h5kind_to_type(int_kind_16,H5_INTEGER_KIND), f_ptr,  error)
+    CALL check("h5dread_f",error, total_error)
+    f_ptr = C_LOC(data_out_r)
+    CALL h5dread_f(dset_idr, H5T_NATIVE_REAL, f_ptr,  error)
+    CALL check("h5dread_f",error, total_error)
+    f_ptr = C_LOC(data_out_r7)
+    CALL h5dread_f(dset_idr4, h5kind_to_type(real_kind_7,H5_REAL_KIND), f_ptr,  error)
+    CALL check("h5dread_f",error, total_error)
+    f_ptr = C_LOC(data_out_r15)
+    CALL h5dread_f(dset_idr8, h5kind_to_type(real_kind_15,H5_REAL_KIND), f_ptr,  error)
+    CALL check("h5dread_f",error, total_error)
+    
+    DO i = 1, 4
+       
+       CALL VERIFY("h5kind_to_type", dset_data_i1(i), data_out_i1(i), total_error)
+       CALL VERIFY("h5kind_to_type", dset_data_i4(i), data_out_i4(i), total_error)
+       CALL VERIFY("h5kind_to_type", dset_data_i8(i), data_out_i8(i), total_error)
+       CALL VERIFY("h5kind_to_type", dset_data_i16(i), data_out_i16(i), total_error)
+
+       CALL verify_real("h5kind_to_type", dset_data_r(i), data_out_r(i), total_error)
+       CALL verify_real("h5kind_to_type", dset_data_r7(i), data_out_r7(i), total_error)
+       CALL verify_real("h5kind_to_type", dset_data_r15(i), data_out_r15(i), total_error)
+
+       
+    END DO
+
+  !
+  ! Close the dataset.
+  !
+    CALL h5dclose_f(dset_id1, error)
+    CALL check("h5dclose_f",error, total_error)
+    CALL h5dclose_f(dset_id4, error)
+    CALL check("h5dclose_f",error, total_error)
+    CALL h5dclose_f(dset_id8, error)
+    CALL check("h5dclose_f",error, total_error)
+    CALL h5dclose_f(dset_id16, error)
+    CALL check("h5dclose_f",error, total_error)
+    CALL h5dclose_f(dset_idr4, error)
+    CALL check("h5dclose_f",error, total_error)
+    CALL h5dclose_f(dset_idr8, error)
+    CALL check("h5dclose_f",error, total_error)
+  !
+  ! Close the file.
+  !
+    CALL h5fclose_f(file_id, error)
+    CALL check("h5fclose_f",error, total_error)
+
+END SUBROUTINE test_h5kind_to_type
 
 
