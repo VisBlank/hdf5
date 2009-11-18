@@ -145,11 +145,24 @@ CONTAINS
     USE ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: estack_id
+!!$    TYPE(C_FUNPTR) :: op_f
+!!$    TYPE(C_PTR) :: client_data_f
     TYPE(C_FUNPTR) :: op
-    TYPE(C_PTR) :: client_data
+    TYPE(C_PTR),value :: client_data
     INTEGER, INTENT(OUT) :: hdferr
 !*****
     INTEGER :: ret_func2
+    !INTEGER(C_INT), DIMENSION(:), POINTER :: ptr_data
+    INTEGER, DIMENSION(1:1) :: array_shape
+    TYPE(C_PTR), TARGET :: f_ptr1
+    INTEGER(C_INT) :: ptr_data
+    INTEGER(C_INT) :: i
+    TYPE(C_PTR) :: test
+    INTEGER, POINTER :: a
+
+    INTEGER, TARGET :: j
+    TYPE(C_PTR) :: f_ptr2
+
     INTERFACE
        INTEGER FUNCTION h5eget_auto_c(estack_id, op, client_data, ret_func2)
          USE ISO_C_BINDING
@@ -158,21 +171,77 @@ CONTAINS
          !DEC$IF DEFINED(HDF5F90_WINDOWS)
          !DEC$ATTRIBUTES C,reference,decorate,alias:'H5EGET_AUTO_C'::h5eget_auto_c
          !DEC$ENDIF
-         INTEGER(HID_T), INTENT(IN) :: estack_id
-         TYPE(C_FUNPTR), VALUE :: op
-         TYPE(C_PTR)   , VALUE :: client_data
+         INTEGER(HID_T) :: estack_id
+         TYPE(C_FUNPTR) :: op
+         TYPE(C_PTR) :: client_data
          INTEGER :: ret_func2
        END FUNCTION h5eget_auto_c
+
+!!$       TYPE(C_PTR) FUNCTION h5eget_auto_c2(estack_id, op, ret_func2)
+!!$         USE ISO_C_BINDING
+!!$         USE H5GLOBAL
+!!$         IMPLICIT NONE
+!!$         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+!!$         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5EGET_AUTO_C'::h5eget_auto_c
+!!$         !DEC$ENDIF
+!!$         INTEGER(HID_T) :: estack_id
+!!$         TYPE(C_FUNPTR) :: op
+!!$         INTEGER :: ret_func2
+!!$       END FUNCTION h5eget_auto_c2
+
+    SUBROUTINE process_buffer(estack_id, buffer)
+       USE, INTRINSIC :: ISO_C_BINDING
+      USE H5GLOBAL
+       INTEGER(HID_T) :: estack_id
+       TYPE(C_PTR) :: buffer
+     END SUBROUTINE process_buffer
+
     END INTERFACE
 
-    hdferr = h5eget_auto_c(estack_id, op, client_data, ret_func2)
+    j = -9999
+
+
+    f_ptr2 = c_loc(j)
+!    CALL process_buffer(estack_id,f_ptr2)
+
+    hdferr = h5eget_auto_c(estack_id, op, f_ptr2, ret_func2)
+
+    PRINT*,c_associated(f_ptr2)
+!    hdferr = h5eget_auto_c(estack_id, op, client_data, ret_func2)
+    
+    PRINT*,'fortran',j
+    stop
+
+!    client_data = h5eget_auto_c2(estack_id, op, ret_func2)
+
+!    PRINT*,'Is client_data associated',C_associated(client_data)
+!    PRINT*,'Is op_data associated',C_associated(op)
+
+!    ALLOCATE(i(1:1))
+!    CALL c_f_pointer(f_ptr2,a,[1])
+!    CALL c_f_pointer(f_ptr2,i)
+!    PRINT*,i
+!    PRINT*,"Buffer in (F) = ", a(1)
+
+!    stop
+
+!    ALLOCATE(ptr_data(1:2))
+!    ptr_data = 0
+!    array_shape(1) = 1
+!    CALL C_F_POINTER(client_data, ptr_data, array_shape)
+!    CALL C_F_POINTER(f_ptr2, i,(/ 1 /))
+
+!    ptr_data => f_ptr1(1)
+
+!    PRINT*,'value in fortran',i
+    
 
 ! Check to see if the user created their own function,
 ! otherwise we have to create a fortran version of the default
 
-    IF(ret_func2.EQ.0)THEN
-       op = c_funloc(h5eprint_def)
-    END IF
+!!$    IF(ret_func2.EQ.0)THEN
+!!$       op = c_funloc(h5eprint_def)
+!!$    END IF
 
   END SUBROUTINE h5eget_auto_f
 

@@ -303,6 +303,35 @@ nh5eset_auto2_c(int_f *printflag, hid_t_f *estack_id, H5E_auto2_t func, void *cl
   return ret_val;
 }
 
+
+int_f
+H5Eget_auto3(void **client_data)
+{
+  int *i;
+
+  i = (int*)client_data;
+
+  *i = 1000;
+  printf(" Buffer In (C) = %d \n", *i);
+  
+  return 0;
+
+}
+
+int_f nprocess_buffer(hid_t_f *estack_id, void **buffer)
+{
+  int status;
+  int *i;
+  H5E_auto2_t func_c;
+
+   status = H5Eget_auto2((hid_t)*estack_id, &func_c, buffer);
+/*    status = H5Eget_auto3(buffer); */
+  
+  i = (int*)buffer;
+
+  printf(" Buffer In (C) = %d \n", *i);
+  return;
+}
 /****if* H5Ef/h5eget_auto_c
  * NAME
  *  h5eget_auto_c
@@ -329,32 +358,62 @@ nh5eget_auto_c(hid_t_f *estack_id, H5E_auto2_t *func, void **client_data, int_f 
 {
   int ret_val = -1;
   herr_t status = -1;
-  void *old_data;
-  H5E_auto2_t func2;
   hid_t dataset;
-     
-  *ret_func = -1;
+  H5E_auto2_t func_c;
+  void *client_data_c=NULL;
+  void **data_c;
+  int *i;
 
-/*   H5E_BEGIN_TRY { */
-/*     dataset = H5Dcreate2(-1, "tmp", H5T_STD_I32BE, -1, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT); */
-/*   } H5E_END_TRY; */
+/*    status = H5Eget_auto3(client_data); */
+/*    i = (int*)client_data; */
 
-/*    status = H5Eset_auto2(H5E_DEFAULT, (H5E_auto2_t)H5Eprint2, NULL); */
-
-/*   printf(" %d \n", (int)status); */
-  status = H5Eget_auto2((hid_t)*estack_id, &func, &client_data);
-
-/*   printf(" %d \n", (int)status); */
+/*    printf(" Buffer In (C3) = %d \n", *i); */
   
-  if(client_data != NULL)
-    printf("error \n");
-#ifdef H5_USE_16_API
-  if (func == (H5E_auto_t)H5Eprint) 
-    *ret_func = 0;
-#else /* H5_USE_16_API */
-  if (func == (H5E_auto2_t)H5Eprint2)
-    *ret_func = 0;
-#endif /* H5_USE_16_API */
+/*    return 0; */
+
+/*   *ret_func = -1; */
+
+/*    status = H5Eget_auto2((hid_t)*estack_id, &func_c, &client_data_c); */
+
+    status = H5Eget_auto2((hid_t)*estack_id, &func_c, client_data);
+
+ /*   i = (int*)*client_data; */
+
+/*    *i = 1000; */
+
+
+/*  i = (int*)client_data_c; */
+/* *i = 100; */
+
+/*     *client_data = client_data_c; */
+/*    *data_c = client_data_c; */
+
+/*    printf("aa %d \n",*((int*)client_data_c));  */
+  printf("bb %d \n",**((int**)client_data));
+/*   printf("cc %d \n",**((int**)data_c)); */
+  
+/*   printf("a %p \n",client_data_c); */
+  printf("b %p \n",*client_data);
+/*   printf("c %p \n",*data_c); */
+  
+/*    i = (int*)client_data_c; */
+/*    **client_data = client_data_c */
+
+/*    *i = 200; */
+
+/*   if(client_data == NULL) */
+/*     printf("error \n"); */
+
+/*   if(func == NULL) */
+/*     printf("error \n"); */
+
+/* #ifdef H5_USE_16_API */
+/*   if (func == (H5E_auto_t)H5Eprint)  */
+/*     *ret_func = 0; */
+/* #else /\* H5_USE_16_API *\/ */
+/*   if (func == (H5E_auto2_t)H5Eprint2) */
+/*     *ret_func = 0; */
+/* #endif /\* H5_USE_16_API *\/ */
 
 /* #ifdef H5_USE_16_API */
 /*   if (func == (H5E_auto_t)H5Eprint) */
@@ -366,5 +425,29 @@ nh5eget_auto_c(hid_t_f *estack_id, H5E_auto2_t *func, void **client_data, int_f 
 
 /*   printf(" ret %d \n", ret_val); */
   if (status >= 0) ret_val = 0;
+  ret_func = 0;
   return ret_val;
 }
+
+void*
+nh5eget_auto_c2(hid_t_f *estack_id, H5E_auto2_t *func, int_f *ret_func)
+/******/
+{
+  int ret_val = -1;
+  herr_t status = -1;
+  hid_t dataset;
+  H5E_auto2_t func_c;
+  void *client_data_c=NULL;
+  void **data_c;
+  int *i;
+
+  status = H5Eget_auto2((hid_t)*estack_id, &func_c, &client_data_c);
+
+   printf("a %p \n",client_data_c);
+
+
+  if (status >= 0) ret_val = 0;
+  ret_func = 0;
+  return client_data_c;
+}
+

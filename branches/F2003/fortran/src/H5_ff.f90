@@ -115,7 +115,7 @@ CONTAINS
          USE H5GLOBAL
          INTEGER i_H5D_flags(H5D_FLAGS_LEN)
          INTEGER i_H5E_flags(H5E_FLAGS_LEN)
-         INTEGER i_H5E_hid_flags(H5E_HID_FLAGS_LEN)
+         INTEGER(HID_T) i_H5E_hid_flags(H5E_HID_FLAGS_LEN)
          INTEGER i_H5F_flags(H5F_FLAGS_LEN)
          INTEGER i_H5G_flags(H5G_FLAGS_LEN)
          INTEGER i_H5FD_flags(H5FD_FLAGS_LEN)
