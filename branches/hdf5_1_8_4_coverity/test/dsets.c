@@ -772,8 +772,9 @@ test_max_compact(hid_t fapl)
      if(H5Dclose(dataset) < 0) goto error;
      if(H5Fclose(file) < 0) goto error;
      HDfree(wbuf);
+     wbuf = NULL;
      HDfree(rbuf);
-
+     rbuf = NULL;
 
      /* Test compact dataset of size 64KB */
 
@@ -807,6 +808,18 @@ test_max_compact(hid_t fapl)
      return 0;
 
 error:
+
+    H5E_BEGIN_TRY {
+        if (wbuf) HDfree(wbuf);
+        if (rbuf) HDfree(rbuf);
+        
+        /* Close file */
+        H5Sclose(space);
+        H5Pclose(plist);
+        H5Fclose(file);
+        H5Dclose(dataset);
+    } H5E_END_TRY;
+
      return -1;
 }
 
@@ -992,10 +1005,10 @@ test_tconv(hid_t file)
 
     /* Initialize the dataset */
     for(i = 0; i < 1000000; i++) {
-	out[i*4+0] = 0x11;
-	out[i*4+1] = 0x22;
-	out[i*4+2] = 0x33;
-	out[i*4+3] = 0x44;
+        out[i*4+0] = 0x11;
+        out[i*4+1] = 0x22;
+        out[i*4+2] = 0x33;
+        out[i*4+3] = 0x44;
     }
 
     /* Create the data space */
@@ -1013,27 +1026,39 @@ test_tconv(hid_t file)
 
     /* Read data with byte order conversion */
     if(H5Dread(dataset, H5T_STD_I32BE, H5S_ALL, H5S_ALL, H5P_DEFAULT, in) < 0)
-	goto error;
+        goto error;
 
     /* Check */
     for(i = 0; i < 1000000; i++) {
-	if(in[4*i+0]!=out[4*i+3] ||
-	    in[4*i+1]!=out[4*i+2] ||
-	    in[4*i+2]!=out[4*i+1] ||
-	    in[4*i+3]!=out[4*i+0]) {
-	    H5_FAILED();
-	    puts("    Read with byte order conversion failed.");
-	    goto error;
-	}
+        if(in[4*i+0]!=out[4*i+3] ||
+                in[4*i+1]!=out[4*i+2] ||
+                in[4*i+2]!=out[4*i+1] ||
+                in[4*i+3]!=out[4*i+0]) {
+            H5_FAILED();
+            puts("    Read with byte order conversion failed.");
+            goto error;
+        }
     }
 
     if(H5Dclose(dataset) < 0) goto error;
+    if(H5Sclose(space) < 0) goto error;
     free (out);
     free (in);
     puts(" PASSED");
     return 0;
 
  error:
+ 
+    if (out) 
+        HDfree(out);
+    if (in) 
+        HDfree(in);
+    
+    H5E_BEGIN_TRY {
+        H5Dclose(dataset);
+        H5Sclose(space);
+    } H5E_END_TRY;
+    
     return -1;
 }
 
@@ -1266,14 +1291,18 @@ filter_corrupt(unsigned int flags, size_t cd_nelmts,
 
     if(flags & H5Z_FLAG_REVERSE) { /* Varify data is actually corrupted during read */
         dst += offset;
-        if(HDmemcmp(data, dst, (size_t)length)!=0) return 0;
-        *buf_size = nbytes;
-        ret_value = nbytes;
-    } else { /* Write corrupted data */
+        if(HDmemcmp(data, dst, (size_t)length)!=0) {
+            ret_value = 0;
+        } else {
+            *buf_size = nbytes;
+            ret_value = nbytes;
+        }
+    } 
+    else { /* Write corrupted data */
         dst += offset;
         HDmemcpy(dst, data, (size_t)length);
         *buf_size = nbytes;
-	ret_value = *buf_size;
+        ret_value = *buf_size;
     }
 
     if(data)
@@ -7257,8 +7286,8 @@ error:
 static herr_t 
 test_idx_compatible(void)
 {
-    hid_t	fid;		/* File id */
-    hid_t       did;		/* Dataset id */
+    hid_t	fid = -1;		/* File id */
+    hid_t   did = -1;		/* Dataset id */
     char  	*srcdir = HDgetenv("srcdir"); /* where the src code is located */
     char        filename[FILENAME_BUF_SIZE] = "";  /* old test file name */
 
