@@ -416,6 +416,8 @@ done:
     if(ret_value==NULL) {
         if(fd>=0)
             HDclose(fd);
+        if(file)
+            (void)H5FL_FREE(H5FD_sec2_t, file);
     } /* end if */
 
     FUNC_LEAVE_NOAPI(ret_value)
