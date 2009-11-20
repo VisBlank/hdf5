@@ -3589,8 +3589,8 @@ external_set_elink_fapl1(hid_t fapl, hbool_t new_format)
     		filename2B[NAME_BUF_SIZE],
 		tmpname[NAME_BUF_SIZE],
                 cwdpath[NAME_BUF_SIZE];
-    hid_t 	fam_fapl, multi_fapl;
-    hid_t	lapl_idA, lapl_idB;
+    hid_t 	fam_fapl=-1, multi_fapl=-1;
+    hid_t	lapl_idA=-1, lapl_idB=-1;
     H5FD_mem_t	mt, memb_map[H5FD_MEM_NTYPES];
     hid_t	memb_fapl[H5FD_MEM_NTYPES];
     char        sv[H5FD_MEM_NTYPES][500];
@@ -3791,7 +3791,7 @@ external_set_elink_fapl2(hid_t fapl, hbool_t new_format)
     		filename2[NAME_BUF_SIZE],
 		tmpname[NAME_BUF_SIZE],
                 cwdpath[NAME_BUF_SIZE];
-    hid_t       core_fapl, space, dset, did, dapl_id, dcpl;
+    hid_t       core_fapl=-1, space=-1, dset=-1, did=-1, dapl_id=-1, dcpl=-1;
     hsize_t     dims[2];
     int		points[NUM400][NUM400];
     h5_stat_size_t	filesize, new_filesize;
@@ -3904,6 +3904,7 @@ external_set_elink_fapl2(hid_t fapl, hbool_t new_format)
 	H5Pclose(core_fapl);
 	H5Pclose(dapl_id);
 	H5Dclose (did);
+	H5Gclose (gid);
 	H5Fclose (fid);
     } H5E_END_TRY;
     return -1;
@@ -3944,8 +3945,8 @@ external_set_elink_fapl2(hid_t fapl, hbool_t new_format)
 static int
 external_set_elink_fapl3(hbool_t new_format)
 {
-    hid_t       core_fapl, stdio_fapl;
-    hid_t	lapl_id, new_lapl_id, l_fapl, out_fapl;
+    hid_t       core_fapl, stdio_fapl=-1;
+    hid_t	lapl_id=-1, new_lapl_id=-1, l_fapl=-1, out_fapl;
     int   	ret;
 
     if(new_format)
@@ -4039,7 +4040,7 @@ external_set_elink_fapl3(hbool_t new_format)
 static int
 external_set_elink_acc_flags(hid_t fapl, hbool_t new_format)
 {
-    hid_t       file1, file2, group, subgroup, gapl;
+    hid_t       file1=-1, file2=-1, group=-1, subgroup=-1, gapl=-1;
     char        filename1[NAME_BUF_SIZE],
                 filename2[NAME_BUF_SIZE];
     unsigned    flags;
@@ -4189,7 +4190,7 @@ external_set_elink_cb_cb(const char *parent_file, const char *parent_group,
 static int
 external_set_elink_cb(hid_t fapl, hbool_t new_format)
 {
-    hid_t       file1, file2, group, gapl, fam_fapl, ret_fapl, base_driver;
+    hid_t       file1=-1, file2=-1, group=-1, gapl=-1, fam_fapl=-1, ret_fapl=-1, base_driver;
     set_elink_cb_t op_data,
                 *op_data_p;
     H5L_elink_traverse_t cb;
