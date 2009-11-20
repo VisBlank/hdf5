@@ -3841,10 +3841,12 @@ H5T_cmp(const H5T_t *dt1, const H5T_t *dt2, hbool_t superset)
 
     FUNC_ENTER_NOAPI(H5T_cmp, 0);
 
+    /* Asserts */
+    HDassert(dt1);
+    HDassert(dt2);
+    
     /* the easy case */
     if (dt1 == dt2) HGOTO_DONE(0);
-    assert(dt1);
-    assert(dt2);
 
     /* compare */
     if (dt1->shared->type < dt2->shared->type) HGOTO_DONE(-1);
