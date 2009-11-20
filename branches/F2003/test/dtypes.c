@@ -2718,8 +2718,12 @@ test_compound_14(void)
     rdata1.c1 = rdata1.c2 = 0;
     if(rdata1.str) HDfree(rdata1.str);
 
-    rdata2.c1 = rdata2.c2 = rdata2.l1 = rdata2.l2 = rdata2.l3 = rdata2.l4 = 0;
-    if(rdata2.str) HDfree(rdata2.str);
+    rdata2.c1 = rdata2.c2 = 0;
+    rdata2.l1 = rdata2.l2 = rdata2.l3 = rdata2.l4 = 0;
+    if(rdata2.str) {
+        HDfree(rdata2.str);
+        rdata2.str = NULL;
+    } /* end if */
 
     if(H5Dread(dset1_id, cmpd_m1_tid, H5S_ALL, H5S_ALL, H5P_DEFAULT, &rdata1) < 0) {
         H5_FAILED(); AT();
@@ -3703,10 +3707,41 @@ test_named (hid_t fapl)
     if(H5Tclose(t3) < 0) goto error;
     if(H5Dclose(dset) < 0) goto error;
 
-    /* Clean up */
+    /* Close */
     if(H5Tclose(type) < 0) goto error;
     if(H5Sclose(space) < 0) goto error;
     if(H5Fclose(file) < 0) goto error;
+
+    /* Reopen file with read only access */
+    if ((file = H5Fopen(filename, H5F_ACC_RDONLY, fapl)) < 0)
+        goto error;
+
+    /* Verify that H5Tcommit2 returns an error */
+    if((type = H5Tcopy(H5T_NATIVE_INT)) < 0) goto error;
+    H5E_BEGIN_TRY {
+        status = H5Tcommit2(file, "test_named_3 (should not exist)", type, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    } H5E_END_TRY;
+    if(status >= 0) {
+        H5_FAILED();
+        HDputs ("    Types should not be committable to a read-only file!");
+        goto error;
+    }
+
+    /* Verify that H5Tcommit_anon returns an error */
+    if((type = H5Tcopy(H5T_NATIVE_INT)) < 0) goto error;
+    H5E_BEGIN_TRY {
+        status = H5Tcommit_anon(file, type, H5P_DEFAULT, H5P_DEFAULT);
+    } H5E_END_TRY;
+    if(status >= 0) {
+        H5_FAILED();
+        HDputs ("    Types should not be committable to a read-only file!");
+        goto error;
+    }
+
+    /* Close */
+    if(H5Tclose(type) < 0) goto error;
+    if(H5Fclose(file) < 0) goto error;
+
     PASSED();
     return 0;
 
@@ -4903,8 +4938,9 @@ opaque_funcs(void)
  * Programmer:  Raymond Lu
  *              July 14, 2004
  *
- * Modifications:
- *
+ * Modifications: Raymond Lu
+ *              July 13, 2009
+ *              Added the test for VL string types.
  *-------------------------------------------------------------------------
  */
 static int
@@ -4916,14 +4952,16 @@ test_encode(void)
         long   c;
         double d;
     };
-    hid_t       file=-1, tid1=-1, tid2=-1;
-    hid_t       decoded_tid1=-1, decoded_tid2=-1;
+    hid_t       file=-1, tid1=-1, tid2=-1, tid3=-1;
+    hid_t       decoded_tid1=-1, decoded_tid2=-1, decoded_tid3=-1;
     char        filename[1024];
     char        compnd_type[]="Compound_type", enum_type[]="Enum_type";
+    char        vlstr_type[]="VLstring_type";
     short       enum_val;
     size_t      cmpd_buf_size = 0;
     size_t      enum_buf_size = 0;
-    unsigned char       *cmpd_buf=NULL, *enum_buf=NULL;
+    size_t      vlstr_buf_size = 0;
+    unsigned char       *cmpd_buf=NULL, *enum_buf=NULL, *vlstr_buf=NULL;
     herr_t      ret;
 
     TESTING("functions of encoding and decoding datatypes");
@@ -4934,7 +4972,7 @@ test_encode(void)
         goto error;
 
     /*-----------------------------------------------------------------------
-     * Create compound and enumerate datatypes
+     * Create compound, enumerate, and VL string datatypes
      *-----------------------------------------------------------------------
      */
     /* Create a compound datatype */
@@ -4996,8 +5034,20 @@ test_encode(void)
         goto error;
     } /* end if */
 
+    /* Create a variable-length string type */
+    if((tid3 = H5Tcopy(H5T_C_S1)) < 0) {
+        H5_FAILED();
+        printf("Can't copy a string type\n");
+        goto error;
+    } /* end if */
+    if(H5Tset_size(tid3, H5T_VARIABLE) < 0) { 
+        H5_FAILED();
+        printf("Can't the string type to be variable-length\n");
+        goto error;
+    } /* end if */
+
     /*-----------------------------------------------------------------------
-     * Test encoding and decoding compound and enumerate datatypes
+     * Test encoding and decoding compound, enumerate, and VL string datatypes
      *-----------------------------------------------------------------------
      */
     /* Encode compound type in a buffer */
@@ -5092,8 +5142,44 @@ test_encode(void)
         goto error;
     } /* end if */
 
+
+    /* Encode VL string type in a buffer */
+    if(H5Tencode(tid3, NULL, &vlstr_buf_size) < 0) {
+        H5_FAILED();
+        printf("Can't encode VL string type\n");
+        goto error;
+    } /* end if */
+
+    if(vlstr_buf_size>0)
+        vlstr_buf = (unsigned char*)calloc(1, vlstr_buf_size);
+
+    if(H5Tencode(tid3, vlstr_buf, &vlstr_buf_size) < 0) {
+        H5_FAILED();
+        printf("Can't encode VL string type\n");
+        goto error;
+    } /* end if */
+
+    /* Decode from the VL string buffer and return an object handle */
+    if((decoded_tid3=H5Tdecode(vlstr_buf)) < 0) {
+        H5_FAILED();
+        printf("Can't decode VL string type\n");
+        goto error;
+    } /* end if */
+
+    /* Verify that the datatype was copied exactly */
+    if(H5Tequal(decoded_tid3, tid3)<=0) {
+        H5_FAILED();
+        printf("Datatype wasn't encoded & decoded identically\n");
+        goto error;
+    } /* end if */
+    if(!H5Tis_variable_str(decoded_tid3)) {
+        H5_FAILED();
+        printf("Datatype wasn't encoded & decoded identically\n");
+        goto error;
+    } /* end if */
+
     /*-----------------------------------------------------------------------
-     * Commit and reopen the compound and enumerate datatypes
+     * Commit and reopen the compound, enumerate, VL string datatypes
      *-----------------------------------------------------------------------
      */
     /* Commit compound datatype and close it */
@@ -5134,13 +5220,37 @@ test_encode(void)
     free(enum_buf);
     enum_buf_size = 0;
 
+    /* Commit enumeration datatype and close it */
+    if(H5Tcommit2(file, vlstr_type, tid3, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT) < 0) {
+        H5_FAILED();
+        printf("Can't commit vl string datatype\n");
+        goto error;
+    } /* end if */
+    if(H5Tclose(tid3) < 0) {
+        H5_FAILED();
+        printf("Can't close datatype\n");
+        goto error;
+    } /* end if */
+    if(H5Tclose(decoded_tid3) < 0) {
+        H5_FAILED();
+        printf("Can't close datatype\n");
+        goto error;
+    } /* end if */
+    free(vlstr_buf);
+    vlstr_buf_size = 0;
+
     /* Open the dataytpe for query */
     if((tid1 = H5Topen2(file, compnd_type, H5P_DEFAULT)) < 0)
         FAIL_STACK_ERROR
     if((tid2 = H5Topen2(file, enum_type, H5P_DEFAULT)) < 0)
         FAIL_STACK_ERROR
+    if((tid3 = H5Topen2(file, vlstr_type, H5P_DEFAULT)) < 0)
+        FAIL_STACK_ERROR
 
-
+    /*-----------------------------------------------------------------------
+     * Test encoding and decoding compound, enumerate, and vl string datatypes
+     *-----------------------------------------------------------------------
+     */
     /* Encode compound type in a buffer */
     if(H5Tencode(tid1, NULL, &cmpd_buf_size) < 0) {
         H5_FAILED();
@@ -5180,10 +5290,6 @@ test_encode(void)
         goto error;
     } /* end if */
 
-    /*-----------------------------------------------------------------------
-     * Test encoding and decoding compound and enumerate datatypes
-     *-----------------------------------------------------------------------
-     */
     /* Encode enumerate type in a buffer */
     if(H5Tencode(tid2, NULL, &enum_buf_size) < 0) {
         H5_FAILED();
@@ -5226,6 +5332,41 @@ test_encode(void)
         goto error;
     } /* end if */
 
+    /* Encode VL string type in a buffer */
+    if(H5Tencode(tid3, NULL, &vlstr_buf_size) < 0) {
+        H5_FAILED();
+        printf("Can't encode VL string type\n");
+        goto error;
+    } /* end if */
+
+    if(vlstr_buf_size>0)
+        vlstr_buf = (unsigned char*)calloc(1, vlstr_buf_size);
+
+    if(H5Tencode(tid3, vlstr_buf, &vlstr_buf_size) < 0) {
+        H5_FAILED();
+        printf("Can't encode VL string type\n");
+        goto error;
+    } /* end if */
+
+    /* Decode from the VL string buffer and return an object handle */
+    if((decoded_tid3=H5Tdecode(vlstr_buf)) < 0) {
+        H5_FAILED();
+        printf("Can't decode VL string type\n");
+        goto error;
+    } /* end if */
+
+    /* Verify that the datatype was copied exactly */
+    if(H5Tequal(decoded_tid3, tid3)<=0) {
+        H5_FAILED();
+        printf("Datatype wasn't encoded & decoded identically\n");
+        goto error;
+    } /* end if */
+    if(!H5Tis_variable_str(decoded_tid3)) {
+        H5_FAILED();
+        printf("Datatype wasn't encoded & decoded identically\n");
+        goto error;
+    } /* end if */
+
     /*-----------------------------------------------------------------------
      * Close and release
      *-----------------------------------------------------------------------
@@ -5241,6 +5382,11 @@ test_encode(void)
         printf("Can't close datatype\n");
         goto error;
     } /* end if */
+    if(H5Tclose(tid3) < 0) {
+        H5_FAILED();
+        printf("Can't close datatype\n");
+        goto error;
+    } /* end if */
 
     if(H5Tclose(decoded_tid1) < 0) {
         H5_FAILED();
@@ -5248,6 +5394,11 @@ test_encode(void)
         goto error;
     } /* end if */
     if(H5Tclose(decoded_tid2) < 0) {
+        H5_FAILED();
+        printf("Can't close datatype\n");
+        goto error;
+    } /* end if */
+    if(H5Tclose(decoded_tid3) < 0) {
         H5_FAILED();
         printf("Can't close datatype\n");
         goto error;
@@ -5269,8 +5420,10 @@ test_encode(void)
     H5E_BEGIN_TRY {
         H5Tclose (tid1);
         H5Tclose (tid2);
+        H5Tclose (tid3);
         H5Tclose (decoded_tid1);
         H5Tclose (decoded_tid2);
+        H5Tclose (decoded_tid3);
         H5Fclose (file);
     } H5E_END_TRY;
     return 1;
@@ -6120,9 +6273,28 @@ test_deprec(hid_t fapl)
     if(!status)
 	FAIL_PUTS_ERROR("    Opened named types should be named types!")
 
-    /* Clean up */
+    /* Close */
     if(H5Tclose(type) < 0) FAIL_STACK_ERROR
     if(H5Fclose(file) < 0) FAIL_STACK_ERROR
+
+    /* Reopen file with read only access */
+    if ((file = H5Fopen(filename, H5F_ACC_RDONLY, fapl)) < 0)
+        goto error;
+
+    /* Verify that H5Tcommit2 returns an error */
+    if((type = H5Tcopy(H5T_NATIVE_INT)) < 0) goto error;
+    H5E_BEGIN_TRY {
+        status = H5Tcommit1(file, "test_named_3 (should not exist)", type);
+    } H5E_END_TRY;
+    if(status >= 0) {
+        H5_FAILED();
+        HDputs ("    Types should not be committable to a read-only file!");
+        goto error;
+    }
+
+    /* Close */
+    if(H5Tclose(type) < 0) goto error;
+    if(H5Fclose(file) < 0) goto error;
 
     PASSED();
     return 0;

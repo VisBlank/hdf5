@@ -755,9 +755,11 @@ H5_FCDLL int_f nh5tconvert_c(hid_t_f *src_id, hid_t_f *dst_id, size_t_f *nelmts,
 #define nh5oclose_c       H5_FC_FUNC_(h5oclose_c, H5OCLOSE_C)
 #define nh5ovisit_c      H5_FC_FUNC_(h5ovisit_c,H5OVISIT_C)
 #define nh5oget_info_by_name_c H5_FC_FUNC_(h5oget_info_by_name_c ,H5OGET_INFO_BY_NAME_C)
+#define nh5oopen_by_addr_c H5_FC_FUNC_(h5oopen_by_addr_c, H5OOPEN_BY_ADDR_C)
 
 H5_FCDLL int_f nh5oopen_c (hid_t_f *loc_id, _fcd name, size_t_f *namelen, hid_t_f *lapl_id, hid_t_f *obj_id);
 H5_FCDLL int_f nh5oclose_c (hid_t_f *object_id );
+H5_FCDLL int_f nh5oopen_by_addr_c (hid_t_f *loc_id, haddr_t_f *addr, hid_t_f *obj_id);
 H5_FCDLL int_f nh5olink_c (hid_t_f *object_id, hid_t_f *new_loc_id, _fcd name, size_t_f *namelen,
 			   hid_t_f *lcpl_id, hid_t_f *lapl_id);
 H5_FCDLL int_f nh5ovisit_c (hid_t_f *group_id, int_f *index_type, int_f *order, H5O_iterate_t op, void *op_data);
@@ -1240,11 +1242,11 @@ H5_FCDLL int_f nh5ldelete_by_idx_c (hid_t_f *loc_id, _fcd group_name, size_t_f *
 H5_FCDLL int_f nh5lexists_c (hid_t_f *loc_id, _fcd name, size_t_f *namelen, hid_t_f *lapl_id, int_f *link_exists);
 H5_FCDLL int_f nh5lget_info_c (hid_t_f *link_loc_id, _fcd link_name, size_t_f *link_namelen,
 			       int_f *cset, int_f *corder, int_f *corder_valid, int_f *link_type,
-			       int_f *address, hsize_t_f *link_len,
+			       haddr_t_f *address, size_t_f *val_size,
 			       hid_t_f *lapl_id);
 H5_FCDLL int_f nh5lget_info_by_idx_c(hid_t_f *loc_id, _fcd group_name, size_t_f *group_namelen,
-				     int_f *index_field, int_f *order, hsize_t_f *n,
-				     int_f *corder_valid, int_f *corder, int_f *cset, hsize_t_f *data_size, hid_t_f *lapl_id);
+		      int_f *index_field, int_f *order, hsize_t_f *n,
+		      int_f *link_type, int_f *corder_valid, int_f *corder, int_f *cset, haddr_t_f *address, size_t_f *val_size, hid_t_f *lapl_id);
 H5_FCDLL int_f nh5lis_registered_c(int_f *link_cls_id);
 H5_FCDLL int_f nh5lmove_c(hid_t_f *src_loc_id, _fcd src_name, size_t_f *src_namelen, hid_t_f *dest_loc_id,
 			  _fcd dest_name, size_t_f *dest_namelen, hid_t_f *lcpl_id, hid_t_f *lapl_id);

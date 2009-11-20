@@ -32,18 +32,19 @@
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: verify_real
 !DEC$endif
-SUBROUTINE verify_real(string,value,correct_value,total_error)
+SUBROUTINE verify_real_kind_7(string,value,correct_value,total_error)
   USE HDF5
-
+	  
+  INTEGER, PARAMETER :: real_kind_7 = SELECTED_REAL_KIND(Fortran_REAL_4) !should map to REAL*4 on most modern processors
   CHARACTER(LEN=*) :: string
-  REAL :: value, correct_value
+  REAL(real_kind_7) :: value, correct_value
   INTEGER :: total_error
   IF (value .NE. correct_value) THEN
      total_error=total_error+1
      WRITE(*,*) "ERROR: INCORRECT REAL VALIDATION ", string
   ENDIF
   RETURN
-END SUBROUTINE verify_real
+END SUBROUTINE verify_real_kind_7
 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
@@ -100,7 +101,7 @@ END SUBROUTINE check
 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
-!DEC$attributes dllexport :: verify_string
+!DEC$attributes dllexport :: verify
 !DEC$endif
 SUBROUTINE verify(string,value,correct_value,total_error)
   CHARACTER(LEN=*) :: string
@@ -111,6 +112,22 @@ SUBROUTINE verify(string,value,correct_value,total_error)
   ENDIF
   RETURN
 END SUBROUTINE verify
+
+!This definition is needed for Windows DLLs
+!DEC$if defined(BUILD_HDF5_DLL)
+!DEC$attributes dllexport :: verify
+!DEC$endif
+SUBROUTINE verify_Fortran_INTEGER_4(string,value,correct_value,total_error)
+  USE HDF5
+  INTEGER, PARAMETER :: int_kind_8 = SELECTED_INT_KIND(Fortran_INTEGER_4)  ! should map to INTEGER*4 on most modern processors	
+  CHARACTER(LEN=*) :: string
+  INTEGER(int_kind_8) :: value, correct_value, total_error
+  IF (value .NE. correct_value) THEN
+     total_error=total_error+1
+     WRITE(*,*) "ERROR: INCORRECT VALIDATION ", string
+  ENDIF
+  RETURN
+END SUBROUTINE verify_Fortran_INTEGER_4
 
 
 

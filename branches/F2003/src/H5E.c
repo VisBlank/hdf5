@@ -336,7 +336,7 @@ H5E_get_stack(void)
 
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5E_get_stack)
 
-    estack = pthread_getspecific(H5TS_errstk_key_g);
+    estack = (H5E_t *)pthread_getspecific(H5TS_errstk_key_g);
 
     if(!estack) {
         /* no associated value with current thread - create one */
@@ -1273,7 +1273,6 @@ H5Epush2(hid_t err_stack, const char *file, const char *func, unsigned line,
 {
     va_list     ap;             /* Varargs info */
     H5E_t       *estack;        /* Pointer to error stack to modify */
-    H5E_msg_t   *maj_ptr, *min_ptr;     /* Pointer to major and minor error info */
 #ifndef H5_HAVE_VASPRINTF
     int         tmp_len;        /* Current size of description buffer */
     int         desc_len;       /* Actual length of description when formatted */
@@ -1517,6 +1516,10 @@ H5Eget_auto2(hid_t estack_id, H5E_auto2_t *func, void **client_data)
     H5E_auto_op_t op;           /* Error stack function */
     herr_t ret_value = SUCCEED; /* Return value */
 
+    int *i;
+
+  
+
     FUNC_ENTER_API(H5Eget_auto2, FAIL)
     H5TRACE3("e", "i*x**x", estack_id, func, client_data);
 
@@ -1533,6 +1536,14 @@ H5Eget_auto2(hid_t estack_id, H5E_auto2_t *func, void **client_data)
         HGOTO_ERROR(H5E_ERROR, H5E_CANTGET, FAIL, "can't get automatic error info")
     if(func)
         *func = op.u.func2;
+
+/*   printf("ccc %d \n",**((int**)client_data)); */
+/*   printf("c %p \n",*client_data); */
+
+/*      i = (int*)*client_data; */
+/*      *i = 1000; */
+/*      printf(" Buffer In (C2) = %d \n", *i); */
+/*      goto done; */
 
 done:
     FUNC_LEAVE_API(ret_value)

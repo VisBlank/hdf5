@@ -2012,16 +2012,15 @@ SUBROUTINE test_iter_group(total_error)
     
     DO i = 1, 4
        
-       CALL VERIFY("h5kind_to_type", dset_data_i1(i), data_out_i1(i), total_error)
-       CALL VERIFY("h5kind_to_type", dset_data_i4(i), data_out_i4(i), total_error)
-       CALL VERIFY("h5kind_to_type", dset_data_i8(i), data_out_i8(i), total_error)
-       CALL VERIFY("h5kind_to_type", dset_data_i16(i), data_out_i16(i), total_error)
+       CALL verify_Fortran_INTEGER_4("h5kind_to_type1",INT(dset_data_i1(i),int_kind_8),INT(data_out_i1(i),int_kind_8),total_error)
+       CALL verify_Fortran_INTEGER_4("h5kind_to_type2",INT(dset_data_i4(i),int_kind_8),INT(data_out_i4(i),int_kind_8),total_error)
+       CALL verify_Fortran_INTEGER_4("h5kind_to_type3",INT(dset_data_i8(i),int_kind_8),INT(data_out_i8(i),int_kind_8),total_error)
+       CALL verify_Fortran_INTEGER_4("h5kind_to_type4",INT(dset_data_i16(i),int_kind_8),INT(data_out_i16(i),int_kind_8),total_error)
 
-       CALL verify_real("h5kind_to_type", dset_data_r(i), data_out_r(i), total_error)
-       CALL verify_real("h5kind_to_type", dset_data_r7(i), data_out_r7(i), total_error)
-       CALL verify_real("h5kind_to_type", dset_data_r15(i), data_out_r15(i), total_error)
+       CALL verify_real_kind_7("h5kind_to_type5",REAL(dset_data_r(i),real_kind_7),REAL(data_out_r(i),real_kind_7),total_error)
+       CALL verify_real_kind_7("h5kind_to_type6",REAL(dset_data_r7(i),real_kind_7),REAL(data_out_r7(i),real_kind_7),total_error)
+       CALL verify_real_kind_7("h5kind_to_type7",REAL(dset_data_r15(i),real_kind_7),REAL(data_out_r15(i),real_kind_7),total_error)
 
-       
     END DO
 
   !

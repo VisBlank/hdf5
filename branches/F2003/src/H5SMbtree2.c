@@ -53,7 +53,6 @@ typedef struct H5SM_compare_udata_t {
 /* v2 B-tree callbacks */
 static herr_t H5SM_btree_compare_cb(const void *obj, size_t obj_len, void *_udata);
 static herr_t H5SM_btree_store(void *native, const void *udata);
-static herr_t H5SM_btree_retrieve(void *udata, const void *native);
 static herr_t H5SM_btree_debug(FILE *stream, const H5F_t *f, hid_t dxpl_id,
     int indent, int fwidth, const void *record, const void *_udata);
 
@@ -64,9 +63,9 @@ static herr_t H5SM_btree_debug(FILE *stream, const H5F_t *f, hid_t dxpl_id,
 /* v2 B-tree class for SOHM indexes*/
 const H5B2_class_t H5SM_INDEX[1]={{   /* B-tree class information */
     H5B2_SOHM_INDEX_ID,               /* Type of B-tree */
+    "H5B2_SOHM_INDEX_ID",             /* Name of B-tree class */
     sizeof(H5SM_sohm_t),              /* Size of native record */
     H5SM_btree_store,                 /* Record storage callback */
-    H5SM_btree_retrieve,              /* Record retrieval callback */
     H5SM_message_compare,             /* Record comparison callback */
     H5SM_message_encode,              /* Record encoding callback */
     H5SM_message_decode,              /* Record decoding callback */
@@ -161,7 +160,7 @@ H5SM_compare_iter_op(H5O_t *oh, H5O_mesg_t *mesg/*in,out*/, unsigned sequence,
             /* Check if the message is dirty & flush it to the object header if so */
             if(mesg->dirty)
                 if(H5O_msg_flush(udata->key->file, oh, mesg) < 0)
-                    HGOTO_ERROR(H5E_OHDR, H5E_CANTENCODE, H5_ITER_ERROR, "unable to encode object header message")
+                    HGOTO_ERROR(H5E_SOHM, H5E_CANTENCODE, H5_ITER_ERROR, "unable to encode object header message")
 
             HDassert(udata->key->encoding_size <= mesg->raw_size);
             udata->ret = HDmemcmp(udata->key->encoding, mesg->raw, udata->key->encoding_size);
@@ -306,34 +305,6 @@ H5SM_btree_store(void *native, const void *udata)
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5SM_btree_store */
-
-
-/*-------------------------------------------------------------------------
- * Function:	H5SM_btree_retrieve
- *
- * Purpose:	Retrieve a H5SM_sohm_t SOHM message from the B-tree by
- *              copying it from NATIVE to UDATA.
- *
- *              Quincey said this function may no longer be used.
- *
- * Return:	Non-negative on success
- *              Negative on failure
- *
- * Programmer:	James Laird
- *              Monday, November 6, 2006
- *
- *-------------------------------------------------------------------------
- */
-static herr_t
-H5SM_btree_retrieve(void *udata, const void *native)
-{
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5SM_btree_retrieve)
-
-    /* Copy the B-tree's native message to the udata buffer */
-    *(H5SM_sohm_t *)udata = *(const H5SM_sohm_t *)native;
-
-    FUNC_LEAVE_NOAPI(SUCCEED)
-} /* end H5SM_btree_retrieve */
 
 
 /*-------------------------------------------------------------------------

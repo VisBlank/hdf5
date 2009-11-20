@@ -245,7 +245,8 @@
           !
           CALL h5pget_cache_f(fapl, mdc_nelmts, rdcc_nelmts, rdcc_nbytes, &
                               rdcc_w0, error)
-               CALL check("h5pget_cache_f", error, total_error)
+               CALL check("h5pget_cache_f", error, total_error)  
+
  
           ! Set cache to some number
           !
@@ -253,7 +254,6 @@
           CALL h5pset_cache_f(fapl, mdc_nelmts, rdcc_nelmts, rdcc_nbytes, &
                               rdcc_w0, error)
                CALL check("h5pset_cache_f", error, total_error)
- 
           CALL h5fcreate_f(fix_filename, H5F_ACC_TRUNC_F, file_id, error, access_prp = fapl)
               CALL check("h5fcreate_f", error, total_error)
           if(error .ne. 0) then
@@ -261,8 +261,7 @@
              total_error = 1
              call h5pclose_f(fapl, error)
              return
-          endif  
-
+          endif
 
           ! 
           ! Create the dataspace.

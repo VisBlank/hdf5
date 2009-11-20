@@ -113,7 +113,6 @@ nh5oopen_c (hid_t_f *loc_id, _fcd name, size_t_f *namelen, hid_t_f *lapl_id, hid
     HDfree(c_name);
   return ret_value;
 }
-
 /****if* H5Of/h5oclose_c
  * NAME
  *   h5oclose_c
@@ -181,6 +180,41 @@ nh5ovisit_c(hid_t_f *group_id, int_f *index_type, int_f *order, H5O_iterate_t op
   return ret_value;
 }
 
+/****if* H5Of/h5oopen_by_addr_c
+ * NAME
+ *  h5oopen_by_addr_c
+ * PURPOSE
+ *  Calls H5open_by_addr
+ * INPUTS
+ *  loc_id  - File or group identifier
+ *    addr  - Object’s address in the file
+ *
+ * OUTPUTS
+ *  obj_id  - Dataset identifier      
+ *
+ * RETURNS
+ *     0 on success, -1 on failure
+ * AUTHOR
+ *  M. Scot Breitenfeld
+ *  September 14, 2009
+ * SOURCE
+*/
+int_f
+nh5oopen_by_addr_c (hid_t_f *loc_id, haddr_t_f *addr, hid_t_f *obj_id)
+/******/
+{
+  int_f ret_value = 0;          /* Return value */
+
+  /*
+   * Call H5Oopen_by_address function.
+   */
+  if((*obj_id = (hid_t_f)H5Oopen_by_addr((hid_t)*loc_id, (haddr_t)*addr)) < 0)
+    HGOTO_DONE(FAIL);
+
+ done:
+  return ret_value;
+}
+
 /****if* H5Of/H5Oget_info_by_name_c
  * NAME
  *  H5Oget_info_by_name_c
@@ -239,3 +273,4 @@ nh5ovisit_c(hid_t_f *group_id, int_f *index_type, int_f *order, H5O_iterate_t op
 /*  done: */
 /*   return ret_value; */
 /* } */
+

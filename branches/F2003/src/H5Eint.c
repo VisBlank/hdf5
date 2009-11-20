@@ -275,7 +275,7 @@ H5E_walk1_cb(int n, H5E_error1_t *err_desc, void *client_data)
 	        fprintf(stream, "thread 0");
         } /* end block */
 #elif defined(H5_HAVE_THREADSAFE)
-        fprintf(stream, "thread %lu", HDpthread_self_ulong());
+        fprintf(stream, "thread %lu", (unsigned long)HDpthread_self_ulong());
 #else
         fprintf(stream, "thread 0");
 #endif
@@ -392,7 +392,7 @@ H5E_walk2_cb(unsigned n, const H5E_error2_t *err_desc, void *client_data)
 	        fprintf(stream, "thread 0");
         } /* end block */
 #elif defined(H5_HAVE_THREADSAFE)
-        fprintf(stream, "thread %lu", HDpthread_self_ulong());
+        fprintf(stream, "thread %lu", (unsigned long)HDpthread_self_ulong());
 #else
         fprintf(stream, "thread 0");
 #endif
@@ -608,15 +608,26 @@ done:
 herr_t
 H5E_get_auto(const H5E_t *estack, H5E_auto_op_t *op, void **client_data)
 {
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5E_get_auto)
+      int *i;
+      void **client_data_c;
 
+    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5E_get_auto)
     HDassert(estack);
 
     /* Retrieve the requested information */
     if(op)
         *op = estack->auto_op;
-    if(client_data)
-        *client_data = estack->auto_data;
+      if(client_data)
+          *client_data = estack->auto_data;
+
+/*    if(client_data) {
+     i = (int*)*client_data;
+     *i = 99;
+     printf(" Buffer In (C2) = %d \n", *i);
+
+  printf("ddd %d \n",**((int**)client_data));
+  printf("d %p \n",*client_data);
+    } */
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5E_get_auto2() */

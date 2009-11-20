@@ -206,6 +206,50 @@ CONTAINS
     hdferr = h5oclose_c(object_id)
   END SUBROUTINE h5oclose_f
 
+!
+!****s* H5O/h5open_by_addr_f
+! NAME		
+!  h5oopen_by_addr_f 
+!
+! PURPOSE
+!  Opens an object using its address within an HDF5 file. 
+!
+! INPUTS  
+!    loc_id - File or group identifier
+!    addr - Object’s address in the file
+! OUTPUTS: 
+!    obj_id - Object identifier for the opened object
+!    hdferr - Returns 0 if successful and -1 if fails
+!
+! AUTHOR	
+!  M. Scot Breitenfeld
+!  September 14, 2009
+! 
+! SOURCE
+  SUBROUTINE h5oopen_by_addr_f(loc_id, addr, obj_id, hdferr)
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id  ! File or group identifier
+    INTEGER(HADDR_T), INTENT(IN) :: addr  ! Object’s address in the file
+    INTEGER(HID_T), INTENT(OUT) :: obj_id ! Object identifier for the opened object
+    INTEGER, INTENT(OUT) :: hdferr        ! Error code:
+                                          ! 0 on success and -1 on failure
+!*****
+    INTERFACE
+       INTEGER FUNCTION h5oopen_by_addr_c(loc_id, addr, obj_id)
+         USE H5GLOBAL
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5OOPEN_BY_ADDR_C'::h5oopen_by_addr_c
+         !DEC$ENDIF
+         INTEGER(HID_T), INTENT(IN) :: loc_id
+         INTEGER(HADDR_T), INTENT(IN) :: addr
+         INTEGER(HID_T), INTENT(OUT) :: obj_id
+       END FUNCTION h5oopen_by_addr_c
+    END INTERFACE
+
+    hdferr = h5oopen_by_addr_c(loc_id, addr, obj_id)
+
+  END SUBROUTINE h5oopen_by_addr_f
+
 !!$
 !!$
 !!$TYPE space_t
