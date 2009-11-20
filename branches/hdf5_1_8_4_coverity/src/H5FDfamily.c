@@ -818,7 +818,7 @@ H5FD_family_open(const char *name, unsigned flags, hid_t fapl_id,
         /* Enlarge member array */
         if(file->nmembs >= file->amembs) {
             unsigned n = MAX(64, 2 * file->amembs);
-            HDassert(n > 0);
+            /* coverity["freed_arg"] */
             H5FD_t **x = (H5FD_t **)H5MM_realloc(file->memb, n * sizeof(H5FD_t *));
 
             if(!x)
