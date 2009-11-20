@@ -81,6 +81,9 @@ H5Z_filter_deflate (unsigned flags, size_t cd_nelmts,
     /* Check arguments */
     if (cd_nelmts!=1 || cd_values[0]>9)
 	HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, 0, "invalid deflate aggression level")
+    HDassert(*buf_size > 0);
+    HDassert(buf);
+    HDassert(*buf);
 
     if (flags & H5Z_FLAG_REVERSE) {
 	/* Input; uncompress */
