@@ -573,7 +573,7 @@ H5Z_parse_expression(H5Z_token *current, H5Z_datval_ptrs* dat_val_pointers)
 
                 if (!new_node) {
                     H5Z_xform_destroy_parse_tree(expr);
-                    HGOTO_DONE(expr)
+                    HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "Unable to allocate new node")
                 }
 
                 new_node->lchild = expr;
@@ -592,7 +592,7 @@ H5Z_parse_expression(H5Z_token *current, H5Z_datval_ptrs* dat_val_pointers)
 
                 if (!new_node) {
                     H5Z_xform_destroy_parse_tree(expr);
-                    HGOTO_DONE(expr)
+                    HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "Unable to allocate new node")
                 }
 
                 new_node->lchild = expr;
