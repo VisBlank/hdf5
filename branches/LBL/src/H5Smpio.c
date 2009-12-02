@@ -37,6 +37,16 @@
 
 #ifdef H5_HAVE_PARALLEL
 
+/* Set the following #define to TRUE to enable debugging output
+ * on H5S_obtain_datatype().  Note that while setting this #define
+ * causes the debugging code to be compiled in, you must also 
+ * change the value of the generate_output parameter to the 
+ * call to H5S_obtain_datatype() in H5S_mpio_span_hyper_type()
+ * to actually get any debugging output.
+ *                                         JRM -- 11/10/09
+ */
+#define H5S_OBTAIN_DATATYPE__DEBUG 0
+
 static herr_t
 H5S_mpio_all_type( const H5S_t *space, size_t elmt_size,
 		     /* out: */
@@ -68,8 +78,16 @@ H5S_mpio_span_hyper_type( const H5S_t *space, size_t elmt_size,
 			  hbool_t *is_derived_type );
 
 static herr_t H5S_obtain_datatype(const hsize_t size[],
-                              H5S_hyper_span_t* span,MPI_Datatype *span_type,
-                              size_t elmt_size,int dimindex);
+                                  H5S_hyper_span_t* span,
+                                  MPI_Datatype *span_type,
+                                  size_t elmt_size,
+#if H5S_OBTAIN_DATATYPE__DEBUG
+                                  int rank,
+                                  int recursion_level,
+                                  hbool_t generate_output);
+#else /* H5S_OBTAIN_DATATYPE__DEBUG */
+                                  int rank);
+#endif /* H5S_OBTAIN_DATATYPE__DEBUG */
 
 
 /*-------------------------------------------------------------------------
@@ -538,7 +556,21 @@ H5S_mpio_span_hyper_type( const           H5S_t *space,
         goto empty;
 
     /* obtain derived data type */
+#if H5S_OBTAIN_DATATYPE__DEBUG
+    if(FAIL == H5S_obtain_datatype(space->extent.size, 
+                                   ospan, 
+                                   &span_type, 
+                                   elmt_size, 
+                                   space->extent.rank,
+                                   0,
+                                   /* replace the following with a boolean expression
+                                    * that evaluates to TRUE when you desire debugging
+                                    * output -- i.e. (mpi_rank == 0).
+                                    */
+                                   FALSE))
+#else /* H5S_OBTAIN_DATATYPE__DEBUG */
     if(FAIL == H5S_obtain_datatype(space->extent.size, ospan, &span_type, elmt_size, space->extent.rank))
+#endif /* H5S_OBTAIN_DATATYPE__DEBUG */
         HGOTO_ERROR(H5E_DATASPACE, H5E_BADTYPE, FAIL,"couldn't obtain  MPI derived data type")
 
     if(MPI_SUCCESS != (mpi_code = MPI_Type_commit(&span_type)))
@@ -577,12 +609,22 @@ done:
  * Programmer:  kyang
  *
  */
+
+/* this is not the possible MPICH bug -- JRM */
+#define BUG_ENABLED 0 
+
 static herr_t
 H5S_obtain_datatype(const hsize_t size[],
 			      H5S_hyper_span_t* span,
 			      MPI_Datatype *span_type,
 			      size_t elmt_size,
-			      int dimindex)
+#if H5S_OBTAIN_DATATYPE__DEBUG
+			      int rank,
+                              int recursion_level,
+                              hbool_t generate_output)
+#else /* H5S_OBTAIN_DATATYPE__DEBUG */
+			      int rank)
+#endif /* H5S_OBTAIN_DATATYPE__DEBUG */
 {
     int                   innercount, outercount;
     MPI_Datatype          bas_type;
@@ -601,8 +643,35 @@ H5S_obtain_datatype(const hsize_t size[],
     int                   i;
     int                   mpi_code;
     herr_t                ret_value = SUCCEED;
+#if H5S_OBTAIN_DATATYPE__DEBUG
+    int			  spaces_to_indent_per_recursion_level = 4;
+    int                   j, k;
+    char		  indent[(H5S_MAX_RANK * 5) + 1];
+#endif /* H5S_OBTAIN_DATATYPE__DEBUG */
 
     FUNC_ENTER_NOAPI_NOINIT(H5S_obtain_datatype)
+
+#if H5S_OBTAIN_DATATYPE__DEBUG
+    k = 0;
+    for ( i = 0; i < recursion_level; i++ ) {
+
+        for ( j = 0; j < spaces_to_indent_per_recursion_level; j++ ) {
+
+            indent[k] = ' ';
+            k++;
+        }
+    }
+    indent[k] = '\0';
+
+    if ( generate_output ) {
+
+        HDfprintf(stdout, "%d:%s elmt_size = %d\n", 
+                  recursion_level, indent, (int)elmt_size);
+
+        HDfprintf(stdout, "%d:%s rank = %d\n", 
+                  recursion_level, indent, rank);
+    }
+#endif /* H5S_OBTAIN_DATATYPE__DEBUG */
 
     HDassert(span);
 
@@ -618,6 +687,14 @@ H5S_obtain_datatype(const hsize_t size[],
         tspan = tspan->next;
         outercount++;
     } /* end while */
+
+#if H5S_OBTAIN_DATATYPE__DEBUG
+    if ( generate_output ) {
+        HDfprintf(stdout, "%d:%s outercount = %d\n", 
+                  recursion_level, indent, outercount);
+    }
+#endif /* H5S_OBTAIN_DATATYPE__DEBUG */
+
     if(outercount == 0)
         HGOTO_DONE(SUCCEED)
 
@@ -646,10 +723,17 @@ H5S_obtain_datatype(const hsize_t size[],
     /* if this is the fastest changing dimension, it is the base case for derived datatype. */
     if(down == NULL){
 
-        HDassert(dimindex <= 1);
+        HDassert(rank <= 1);
 
         if(MPI_SUCCESS != (mpi_code = MPI_Type_contiguous((int)elmt_size, MPI_BYTE,&bas_type)))
               HMPI_GOTO_ERROR(FAIL, "MPI_Type_contiguous failed", mpi_code);
+
+#if H5S_OBTAIN_DATATYPE__DEBUG
+    if ( generate_output ) {
+        HDfprintf(stdout, "%d:%s bas_type = %d\n", 
+                  recursion_level, indent, (int)bas_type);
+    }
+#endif /* H5S_OBTAIN_DATATYPE__DEBUG */
 
         if(MPI_SUCCESS != (mpi_code = MPI_Type_commit(&bas_type)))
               HMPI_GOTO_ERROR(FAIL, "MPI_Type_commit failed", mpi_code);
@@ -661,22 +745,71 @@ H5S_obtain_datatype(const hsize_t size[],
             outercount++;
         } /* end while */
 
+#if H5S_OBTAIN_DATATYPE__DEBUG
+        if ( generate_output ) {
+            HDfprintf(stdout, "%d:%s disp[] = ", recursion_level, indent);
+            for ( j = 0; j < outercount; j++ ) {
+                HDfprintf(stdout, "%lld ", (long long)disp[j]);
+            }
+            HDfprintf(stdout, "\n");
+
+            HDfprintf(stdout, "%d:%s blocklen[] = ", recursion_level, indent);
+            for ( j = 0; j < outercount; j++ ) {
+                HDfprintf(stdout, "%d ", (int)blocklen[j]);
+            }
+            HDfprintf(stdout, "\n");
+        }
+#endif /* H5S_OBTAIN_DATATYPE__DEBUG */
+
         if(MPI_SUCCESS != (mpi_code = MPI_Type_hindexed(outercount, blocklen, disp, bas_type, span_type)))
               HMPI_GOTO_ERROR(FAIL, "MPI_Type_hindexed failed", mpi_code);
+
+#if H5S_OBTAIN_DATATYPE__DEBUG
+        if ( generate_output ) {
+            HDfprintf(stdout, "%d:%s span_type = %d\n", 
+                      recursion_level, indent, (int)(*span_type));
+        }
+#endif /* H5S_OBTAIN_DATATYPE__DEBUG */
+
     } /* end if */
     else {/* dimindex is the rank of the dimension */
 
-        HDassert(dimindex > 1);
+        HDassert(rank > 1);
 
         /* Calculate the total bytes of the lower dimension */
         total_lowd  = 1;  /* one dimension down */
         total_lowd1 = 1; /* two dimensions down */
-
-        for ( i = dimindex-1; i > 0; i--)
+#if BUG_ENABLED
+        for ( i = rank-1; i > 0; i--)
              total_lowd = total_lowd * size[i];
 
-        for ( i = dimindex-1; i > 1; i--)
+        for ( i = rank-1; i > 1; i--)
               total_lowd1 = total_lowd1 * size[i];
+#else /* ! BUG_ENABLED */
+        for ( i = 1; i < rank; i++ ) {
+            total_lowd = total_lowd * size[i];
+        }
+
+        for ( i = 2; i < rank; i++ ) {
+              total_lowd1 = total_lowd1 * size[i];
+        }
+#endif /* JRM */
+
+#if H5S_OBTAIN_DATATYPE__DEBUG 
+        if ( generate_output ) {
+            HDfprintf(stdout, "%d:%s size[] = ", recursion_level, indent);
+            for ( j = 0; j < rank; j++ ) {
+                HDfprintf(stdout, "%d ", (int)size[j]);
+            }
+            HDfprintf(stdout, "\n");
+
+            HDfprintf(stdout, "%d:%s total_lowd = %lld\n", 
+                      recursion_level, indent, (long long)total_lowd);
+
+            HDfprintf(stdout, "%d:%s total_lowd1 = %lld\n", 
+                      recursion_level, indent, (long long)total_lowd1);
+        }
+#endif /* H5S_OBTAIN_DATATYPE__DEBUG */
 
          while(tspan) {
 
@@ -688,9 +821,51 @@ H5S_obtain_datatype(const hsize_t size[],
             disp[outercount]      = tspan->low*total_lowd*elmt_size;
             blocklen[outercount]  = 1;
 
+#if H5S_OBTAIN_DATATYPE__DEBUG
+            if ( generate_output ) {
+                HDfprintf(stdout, "%d:%s disp[%d] = %lld\n", 
+                      recursion_level, indent, 
+                      outercount, (long long)(disp[outercount]));
+                HDfprintf(stdout, "%d:%s blocklen[%d] = %lld\n", 
+                      recursion_level, indent, 
+                      outercount, (int)(blocklen[outercount]));
+                HDfprintf(stdout, "%d:%s calling H5S_obtain_datatype().\n",
+                          recursion_level, indent);
+            }
+#endif /* H5S_OBTAIN_DATATYPE__DEBUG */
+
             /* generating inner derived datatype by using MPI_Type_hvector */
-            if(FAIL == H5S_obtain_datatype(size,tspan->down->head,&temp_type,elmt_size,dimindex-1))
+#if H5S_OBTAIN_DATATYPE__DEBUG
+#if BUG_ENABLED
+            if(FAIL == H5S_obtain_datatype(size,
+#else /* BUG_ENABLED */
+            if(FAIL == H5S_obtain_datatype(&(size[1]),
+#endif /* JRM */
+                                           tspan->down->head,
+                                           &temp_type,
+                                           elmt_size,
+                                           rank - 1,
+                                           recursion_level + 1,
+                                           generate_output))
+#else /* H5S_OBTAIN_DATATYPE__DEBUG */
+#if BUG_ENABLED
+            if(FAIL == H5S_obtain_datatype(size,
+#else /* BUG_ENABLED */
+            if(FAIL == H5S_obtain_datatype(&(size[1]),
+#endif /* JRM */
+                                           tspan->down->head,
+                                           &temp_type,
+                                           elmt_size,
+                                           rank - 1))
+#endif /* H5S_OBTAIN_DATATYPE__DEBUG */
                 HGOTO_ERROR(H5E_DATASPACE, H5E_BADTYPE, FAIL,"couldn't obtain  MPI derived data type")
+
+#if H5S_OBTAIN_DATATYPE__DEBUG
+            if ( generate_output ) {
+                HDfprintf(stdout, "%d:%s temp_type = %d\n",
+                          recursion_level, indent, (int)temp_type);
+            }
+#endif /* H5S_OBTAIN_DATATYPE__DEBUG */
 
             if(MPI_SUCCESS != (mpi_code = MPI_Type_commit(&temp_type)))
                 HMPI_GOTO_ERROR(FAIL, "MPI_Type_commit failed", mpi_code);
@@ -699,8 +874,24 @@ H5S_obtain_datatype(const hsize_t size[],
             stride     = total_lowd*elmt_size;
             innercount = tspan->nelem;
 
+#if H5S_OBTAIN_DATATYPE__DEBUG
+            if ( generate_output ) {
+                HDfprintf(stdout, "%d:%s stride = %lld\n", 
+                      recursion_level, indent, (long long)(stride));
+                HDfprintf(stdout, "%d:%s innercount = %d\n", 
+                      recursion_level, indent, innercount);
+            }
+#endif /* H5S_OBTAIN_DATATYPE__DEBUG */
+
             if(MPI_SUCCESS != (mpi_code = MPI_Type_hvector(innercount,1,stride,temp_type,&tempinner_type)))
                 HMPI_GOTO_ERROR(FAIL, "MPI_Type_hvector failed", mpi_code);
+
+#if H5S_OBTAIN_DATATYPE__DEBUG
+            if ( generate_output ) {
+                HDfprintf(stdout, "%d:%s tempinner_type = %d\n", 
+                      recursion_level, indent, (int)(tempinner_type));
+            }
+#endif /* H5S_OBTAIN_DATATYPE__DEBUG */
 
             if(MPI_SUCCESS != (mpi_code = MPI_Type_commit(&tempinner_type)))
                 HMPI_GOTO_ERROR(FAIL, "MPI_Type_commit failed", mpi_code);
@@ -713,9 +904,39 @@ H5S_obtain_datatype(const hsize_t size[],
             tspan = tspan->next;
          } /* end while */
 
+#if H5S_OBTAIN_DATATYPE__DEBUG
+        if ( generate_output ) {
+            HDfprintf(stdout, "%d:%s blocklen[] = ", recursion_level, indent);
+            for ( j = 0; j < outercount; j++ ) {
+                HDfprintf(stdout, "%d ", (int)blocklen[j]);
+            }
+            HDfprintf(stdout, "\n");
+
+            HDfprintf(stdout, "%d:%s disp[] = ", recursion_level, indent);
+            for ( j = 0; j < outercount; j++ ) {
+                HDfprintf(stdout, "%lld ", (long long)disp[j]);
+            }
+            HDfprintf(stdout, "\n");
+
+            HDfprintf(stdout, "%d:%s inner_type[] = ", recursion_level, indent);
+            for ( j = 0; j < outercount; j++ ) {
+                HDfprintf(stdout, "%d ", (int)(inner_type[j]));
+            }
+            HDfprintf(stdout, "\n");
+        }
+#endif /* H5S_OBTAIN_DATATYPE__DEBUG */
+
         /* building the whole vector datatype */
         if(MPI_SUCCESS != (mpi_code = MPI_Type_struct(outercount, blocklen, disp, inner_type, span_type)))
             HMPI_GOTO_ERROR(FAIL, "MPI_Type_struct failed", mpi_code);
+
+#if H5S_OBTAIN_DATATYPE__DEBUG
+        if ( generate_output ) {
+            HDfprintf(stdout, "%d:%s span_type = %d\n", 
+                      recursion_level, indent, (int)(*span_type));
+        }
+#endif /* H5S_OBTAIN_DATATYPE__DEBUG */
+
     } /* end else */
 
     if(inner_type != NULL && down != NULL) {
@@ -759,6 +980,9 @@ done:
  *
  *-------------------------------------------------------------------------
  */
+
+#define H5S_MPIO_SPACE_TYPE__DEBUG 0
+
 herr_t
 H5S_mpio_space_type( const H5S_t *space, size_t elmt_size,
 		     /* out: */
@@ -771,6 +995,10 @@ H5S_mpio_space_type( const H5S_t *space, size_t elmt_size,
 
     FUNC_ENTER_NOAPI_NOINIT(H5S_mpio_space_type);
 
+#if H5S_MPIO_SPACE_TYPE__DEBUG
+    HDfprintf(stdout, "%s: entering.\n", FUNC);
+#endif /* H5S_MPIO_SPACE_TYPE__DEBUG */
+
     /* Check args */
     HDassert(space);
 
@@ -781,29 +1009,52 @@ H5S_mpio_space_type( const H5S_t *space, size_t elmt_size,
         case H5S_SIMPLE:
             switch(H5S_GET_SELECT_TYPE(space)) {
                 case H5S_SEL_NONE:
+#if H5S_MPIO_SPACE_TYPE__DEBUG
+                    HDfprintf(stdout, "%s: select type == none.\n", FUNC);
+#endif /* H5S_MPIO_SPACE_TYPE__DEBUG */
                     if ( H5S_mpio_none_type( space, elmt_size,
                         /* out: */ new_type, count, extra_offset, is_derived_type ) <0)
                         HGOTO_ERROR(H5E_DATASPACE, H5E_BADTYPE, FAIL,"couldn't convert \"all\" selection to MPI type");
                     break;
 
                 case H5S_SEL_ALL:
+#if H5S_MPIO_SPACE_TYPE__DEBUG
+                    HDfprintf(stdout, "%s: select type == all.\n", FUNC);
+#endif /* H5S_MPIO_SPACE_TYPE__DEBUG */
                     if ( H5S_mpio_all_type( space, elmt_size,
                         /* out: */ new_type, count, extra_offset, is_derived_type ) <0)
                         HGOTO_ERROR(H5E_DATASPACE, H5E_BADTYPE, FAIL,"couldn't convert \"all\" selection to MPI type");
                     break;
 
                 case H5S_SEL_POINTS:
+#if H5S_MPIO_SPACE_TYPE__DEBUG
+                    HDfprintf(stdout, "%s: select type == points.\n", FUNC);
+#endif /* H5S_MPIO_SPACE_TYPE__DEBUG */
                     /* not yet implemented */
                     ret_value = FAIL;
                     break;
 
                 case H5S_SEL_HYPERSLABS:
+#if H5S_MPIO_SPACE_TYPE__DEBUG
+                    HDfprintf(stdout, "%s: select type == hyperslab.\n", FUNC);
+#endif /* H5S_MPIO_SPACE_TYPE__DEBUG */
 		  if((H5S_SELECT_IS_REGULAR(space) == TRUE)) {
+#if H5S_MPIO_SPACE_TYPE__DEBUG
+                        HDfprintf(stdout, 
+                                  "%s: H5S_SELECT_IS_REGULAR(space) == TRUE -- calling H5S_mpio_hyper_type().\n", 
+                                  FUNC);
+#endif /* H5S_MPIO_SPACE_TYPE__DEBUG */
+
 		    if(H5S_mpio_hyper_type( space, elmt_size,
                             /* out: */ new_type, count, extra_offset, is_derived_type )<0)
                         HGOTO_ERROR(H5E_DATASPACE, H5E_BADTYPE, FAIL,"couldn't convert \"all\" selection to MPI type");
 		    }
 		     else {
+#if H5S_MPIO_SPACE_TYPE__DEBUG
+                        HDfprintf(stdout, 
+                                 "%s: (H5S_SELECT_IS_REGULAR(space) == FALSE -- calling H5S_mpio_span_hyper_type().\n", 
+                                 FUNC);
+#endif /* H5S_MPIO_SPACE_TYPE__DEBUG */
 		       if(H5S_mpio_span_hyper_type( space, elmt_size,
                             /* out: */ new_type, count, extra_offset, is_derived_type )<0)
                         HGOTO_ERROR(H5E_DATASPACE, H5E_BADTYPE, FAIL,"couldn't convert \"all\" selection to MPI type");
@@ -822,6 +1073,11 @@ H5S_mpio_space_type( const H5S_t *space, size_t elmt_size,
     }
 
 done:
+
+#if H5S_MPIO_SPACE_TYPE__DEBUG
+    HDfprintf(stdout, "%s: exiting.\n", FUNC);
+#endif /* H5S_MPIO_SPACE_TYPE__DEBUG */
+
     FUNC_LEAVE_NOAPI(ret_value);
 }
 

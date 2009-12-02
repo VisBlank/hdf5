@@ -1572,9 +1572,6 @@ test_select_hyper_contig3(hid_t dset_type, hid_t xfer_plist)
 **	tested H5S_shape_same in isolation, so now we try to do 
 **	I/O.
 **
-**	This is just an initial smoke check, so we will work 
-**	with a slice through a cube only.
-**
 ****************************************************************/
 
 #define TEST_SELECT_HYPER_CONTIG_DR__RUN_TEST__DEBUG 0
@@ -3213,7 +3210,6 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
     HDassert( checker_edge_size <= edge_size );
     HDassert( edge_size >= chunk_edge_size );
     HDassert( ( chunk_edge_size == 0 ) || ( chunk_edge_size >= 3 ) );
-    HDassert( (edge_size % checker_edge_size) == 0 );
     HDassert( 0 < small_rank );
     HDassert( small_rank < large_rank );
     HDassert( large_rank <= test_max_rank );
@@ -4330,11 +4326,11 @@ test_select_hyper_checker_board_dr(hid_t dset_type, hid_t xfer_plist)
 
     /* Output message about test being performed */
     MESSAGE(5, ("Testing Checker Board Hyperslabs With Different Rank I/O Functionality\n"));
-#if 1
+
     for ( large_rank = 1; large_rank <= 5; large_rank++ ) {
 
         for ( small_rank = 1; small_rank < large_rank; small_rank++ ) {
-#endif
+
             test_select_hyper_checker_board_dr__run_test(test_num,
                                                          edge_size,
                                                          checker_edge_size,
@@ -4345,7 +4341,18 @@ test_select_hyper_checker_board_dr(hid_t dset_type, hid_t xfer_plist)
                                                          xfer_plist);
 
             test_num++;
-#if 1
+
+            test_select_hyper_checker_board_dr__run_test(test_num,
+                                                         edge_size + 1,
+                                                         checker_edge_size,
+                                                         chunk_edge_size,
+                                                         small_rank,
+                                                         large_rank,
+                                                         dset_type, 
+                                                         xfer_plist);
+
+            test_num++;
+
             chunk_edge_size = 3;
 
             test_select_hyper_checker_board_dr__run_test(test_num,
@@ -4358,13 +4365,25 @@ test_select_hyper_checker_board_dr(hid_t dset_type, hid_t xfer_plist)
                                                          xfer_plist);
 
             test_num++;
+
+            test_select_hyper_checker_board_dr__run_test(test_num,
+                                                         edge_size + 1,
+                                                         checker_edge_size,
+                                                         chunk_edge_size,
+                                                         small_rank,
+                                                         large_rank,
+                                                         dset_type, 
+                                                         xfer_plist);
+
+            test_num++;
+
             chunk_edge_size = 0;
-#endif
-#if 1
+
+
         } /* for loop on small rank */
 
     } /* for loop on large rank */
-#endif
+
     return;
 
 }   /* test_select_hyper_checker_board_dr() */

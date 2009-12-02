@@ -1773,30 +1773,7 @@ done:
  REVISION LOG
 --------------------------------------------------------------------------*/
 
-/* declaration of functions used in H5S_select_construct_projection() that
- * don't appear in any header file -- how should we handle this?
- */
-
-/* currently declared static in H5Spoint.c: */
-/* move to pkg */
-
-extern herr_t H5S_get_select_elem_pointlist(H5S_t *space, 
-                                            hsize_t startpoint, 
-                                            hsize_t numpoints, 
-                                            hsize_t *buf);
-
-
-/* currently defined static in H5Shyper.c: */
-
-extern hsize_t H5S_get_select_hyper_nblocks(H5S_t *space);
-
-extern herr_t H5S_get_select_hyper_blocklist(H5S_t *space, 
-                                             hbool_t internal, 
-                                             hsize_t startblock, 
-                                             hsize_t numblocks, 
-                                             hsize_t *buf);
-
-#define H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG	0
+#define H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG	0
 
 herr_t
 H5S_select_construct_projection(H5S_t *base_space, 
@@ -1834,9 +1811,9 @@ H5S_select_construct_projection(H5S_t *base_space,
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_NOAPI(H5S_select_construct_projection, FAIL)
-#if H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG /* JRM */
+#if H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG 
     HDfprintf(stdout, "%s: Entering:\n", FUNC);
-#endif /* JRM */
+#endif
     HDassert( base_space != NULL );
     HDassert( ( H5S_GET_EXTENT_TYPE(base_space) == H5S_SCALAR ) ||
               ( H5S_GET_EXTENT_TYPE(base_space) == H5S_SIMPLE ) );
@@ -1863,7 +1840,7 @@ H5S_select_construct_projection(H5S_t *base_space,
                     "unable to get dimensionality of base space");
     }
 
-#if H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG /* JRM */
+#if H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG 
     HDfprintf(stdout, "%s: base space rank = %d, new space rank = %d\n",
               FUNC, (int)base_space_rank, (int)new_space_rank);
 
@@ -1873,7 +1850,7 @@ H5S_select_construct_projection(H5S_t *base_space,
     HDfprintf(stdout, "\n");
 
     HDfprintf(stdout, "%s: element size = %d.\n", FUNC, (int)element_size);
-#endif /* JRM */
+#endif 
 
     HDassert( base_space_rank != new_space_rank );
 
@@ -1936,9 +1913,9 @@ H5S_select_construct_projection(H5S_t *base_space,
             switch ( H5S_GET_SELECT_TYPE(base_space) ) {
 
                 case H5S_SEL_POINTS:
-#if H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG /* JRM */
+#if H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG 
                     HDfprintf(stdout, "%s case H5S_SEL_POINTS (1):\n", FUNC);
-#endif /* JRM */
+#endif 
                     /* Begin by getting the number of points selected.
                      * this must be 1, but we check it anyway.
                      */
@@ -1953,10 +1930,10 @@ H5S_select_construct_projection(H5S_t *base_space,
                     base_sel_list_size = (hsize_t)base_space_rank * 
                                          (hsize_t)num_points * 
                                          sizeof(hssize_t);
-#if H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG /* JRM */
+#if H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG 
                     HDfprintf(stdout, "%s base_sel_list_size = %d\n", FUNC,
                               (int)base_sel_list_size);
-#endif /* JRM */
+#endif 
                     base_sel_list = (hssize_t *)H5MM_malloc(base_sel_list_size);
     
                     if ( base_sel_list == NULL ) {
@@ -1974,27 +1951,27 @@ H5S_select_construct_projection(H5S_t *base_space,
                         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTGET, FAIL, \
                                     "unable to get base space point");
                     }
-#if H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG /* JRM */
+#if H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG 
                     HDfprintf(stdout, "%s: base point coord = ", FUNC);
                     for ( i = 0; i < base_space_rank; i++ ) 
                         HDfprintf(stdout, "%d ", (int)(*(base_sel_list + i)));
                     HDfprintf(stdout, "\n");
-#endif /* JRM */
+#endif 
                     projected_space_element_offset = 
 				H5V_array_offset((unsigned)base_space_rank,
                                                  base_space_dims,
                                                  (hsize_t *)base_sel_list); 
-#if H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG /* JRM */
+#if H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG 
                     HDfprintf(stdout, 
                               "%s: projected space element offset = %d\n", 
                               FUNC, (int)projected_space_element_offset);
-#endif /* JRM */
+#endif 
                     break;
 
                 case H5S_SEL_HYPERSLABS:
-#if H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG /* JRM */
+#if H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG 
                     HDfprintf(stdout, "%s case H5S_SEL_HYPERSLABS(1):\n", FUNC);
-#endif /* JRM */
+#endif 
                     /* Begin by getting the number of slabs selected.  This
                      * must be 1, but we get it and check it regardless.
                      */
@@ -2012,10 +1989,10 @@ H5S_select_construct_projection(H5S_t *base_space,
                                          (hsize_t)num_blocks * 
                                          (hsize_t)2 * 
                                          sizeof(hssize_t);
-#if H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG /* JRM */
+#if H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG 
                     HDfprintf(stdout, "%s: base_sel_list_size = %d\n", 
                               FUNC, (int)base_sel_list_size);
-#endif /* JRM */
+#endif 
                     base_sel_list = (hssize_t *)H5MM_malloc(base_sel_list_size);
     
                     if ( base_sel_list == NULL ) {
@@ -2045,21 +2022,21 @@ H5S_select_construct_projection(H5S_t *base_space,
 
                         HDassert( *(start_coord + i) == *(stop_coord + i) );
                     }
-#if H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG /* JRM */
+#if H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG 
                     HDfprintf(stdout, "%s: base block coord = ", FUNC);
                     for ( i = 0; i < base_space_rank; i++ ) 
                         HDfprintf(stdout, "%d ", (int)(*(start_coord + i)));
                     HDfprintf(stdout, "\n");
-#endif /* JRM */
+#endif 
                     projected_space_element_offset = 
 			H5V_array_offset((unsigned)base_space_rank,
                                          base_space_dims,
                                          (hsize_t *)start_coord); 
-#if H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG /* JRM */
+#if H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG 
                     HDfprintf(stdout, 
                               "%s: projected space element offset = %d\n", 
                               FUNC, (int)projected_space_element_offset);
-#endif /* JRM */
+#endif 
                     break;
 
                 case H5S_SEL_ALL:
@@ -2165,12 +2142,12 @@ H5S_select_construct_projection(H5S_t *base_space,
                 j--;
             }
         }
-#if H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG /* JRM */ 
+#if H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG 
         HDfprintf(stdout, "%s: new space dims = ", FUNC);
         for ( i = 0; i < new_space_rank; i++ ) 
             HDfprintf(stdout, "%d ", (int)(new_space_dims[i]));
         HDfprintf(stdout, "\n");
-#endif /* JRM */
+#endif 
         /* now have the new space rank and dimensions set up -- 
          * so we can create the new simple data space.
          */
@@ -2218,9 +2195,9 @@ H5S_select_construct_projection(H5S_t *base_space,
         switch ( H5S_GET_SELECT_TYPE(base_space) )
         {
             case H5S_SEL_NONE:
-#if H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG /* JRM */
+#if H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG 
                 HDfprintf(stdout, "%s case H5S_SEL_NONE(2):\n", FUNC);
-#endif /* JRM */
+#endif 
                 if ( SUCCEED != H5S_select_none(new_space) ) {
     
                      HGOTO_ERROR(H5E_DATASPACE, H5E_CANTDELETE, FAIL, \
@@ -2229,9 +2206,9 @@ H5S_select_construct_projection(H5S_t *base_space,
                 break;
     
     	case H5S_SEL_POINTS:
-#if H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG /* JRM */
+#if H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG 
                 HDfprintf(stdout, "%s case H5S_SEL_POINTS(2):\n", FUNC);
-#endif /* JRM */
+#endif 
                 /* The strategy here is to get the list of points selected 
                  * in the base data space, construct a list of these points
                  * projected into the new space, and then select them in 
@@ -2385,7 +2362,7 @@ H5S_select_construct_projection(H5S_t *base_space,
                 }
 
                 /* and compute the protected_space_element_offset */
-#if H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG /* JRM */
+#if H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG 
                 HDfprintf(stdout, 
                           "%s: projected_space_start_coordinate = ", 
                           FUNC);
@@ -2393,22 +2370,22 @@ H5S_select_construct_projection(H5S_t *base_space,
                     HDfprintf(stdout, "%d ", 
                               (int)projected_space_start_coordinate[i]);
                 HDfprintf(stdout, "\n");
-#endif /* JRM */
+#endif 
                 projected_space_element_offset = 
 			H5V_array_offset((unsigned)base_space_rank,
                                          base_space_dims,
                                          projected_space_start_coordinate); 
-#if H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG /* JRM */
+#if H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG 
                 HDfprintf(stdout, 
                           "%s: projected space element offset = %d\n", 
                           FUNC, (int)projected_space_element_offset);
-#endif /* JRM */
+#endif 
     	    break;
     
     	case H5S_SEL_HYPERSLABS:
-#if H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG /* JRM */
+#if H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG 
                 HDfprintf(stdout, "%s case H5S_SEL_HYPERSLABS(2):\n", FUNC);
-#endif /* JRM */
+#endif 
                 /* The strategy here is to get the list of slabs selected 
                  * in the base data space, construct a list of these slabs
                  * projected into the new space, and then select them in 
@@ -2418,10 +2395,10 @@ H5S_select_construct_projection(H5S_t *base_space,
     
                 /* Begin by getting the number of slabs selected: */
     	        num_blocks = (hssize_t)H5S_get_select_hyper_nblocks(base_space);
-#if H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG /* JRM */
+#if H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG 
                 HDfprintf(stdout, "%s: num_blocks = %d\n", FUNC, 
                           (int)num_blocks);
-#endif /* JRM */
+#endif 
     
                 /* the selection should be converted to H5S_SEL_NONE if it is
                  * empty, so the following assertion should be correct.
@@ -2441,12 +2418,12 @@ H5S_select_construct_projection(H5S_t *base_space,
                                     (hsize_t)num_blocks * 
                                     (hsize_t)2 *
                                     sizeof(hssize_t);
-#if H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG /* JRM */
+#if H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG 
                 HDfprintf(stdout, "%s: base_sel_list_size = %d\n", 
                           FUNC, (int)base_sel_list_size);
                 HDfprintf(stdout, "%s: new_sel_list_size = %d\n", 
                           FUNC, (int)new_sel_list_size);
-#endif /* JRM */
+#endif 
                 base_sel_list = (hssize_t *)H5MM_malloc(base_sel_list_size);
     
                 if ( base_sel_list == NULL ) {
@@ -2512,12 +2489,12 @@ H5S_select_construct_projection(H5S_t *base_space,
                 base_coord = base_sel_list;
                 new_coord = new_sel_list;
                 for ( k = 0; k < num_blocks; k++ ) {
-#if H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG /* JRM */
+#if H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG 
                     HDfprintf(stdout, "%s%d base_start_coord = ", FUNC, (int)k);
                     for ( i = 0; i < base_space_rank; i++ ) 
                         HDfprintf(stdout, "%d ", (int)(*(base_coord + i)));
                     HDfprintf(stdout, "\n");
-#endif /* JRM */
+#endif 
                     i = (int)base_space_rank - 1;
                     j = (int)new_space_rank - 1;
     
@@ -2568,20 +2545,20 @@ H5S_select_construct_projection(H5S_t *base_space,
                             i--;
                         }
                     }
-#if H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG /* JRM */
+#if H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG 
                     HDfprintf(stdout, "%s%d new_start_coord = ", FUNC, (int)k);
                     for ( j = 0; j < new_space_rank; j++ ) 
                         HDfprintf(stdout, "%d ", (int)(*(new_coord + j)));
                     HDfprintf(stdout, "\n");
-#endif /* JRM */
+#endif 
                     base_coord += base_space_rank;
                     new_coord += new_space_rank;
-#if H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG /* JRM */
+#if H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG 
                     HDfprintf(stdout, "%s%d base_stop_coord = ", FUNC, (int)k);
                     for ( i = 0; i < base_space_rank; i++ ) 
                         HDfprintf(stdout, "%d ", (int)(*(base_coord + i)));
                     HDfprintf(stdout, "\n");
-#endif /* JRM */
+#endif 
                     i = (int)base_space_rank - 1;
                     j = (int)new_space_rank - 1;
     
@@ -2617,12 +2594,12 @@ H5S_select_construct_projection(H5S_t *base_space,
                                   (hsize_t)(*(base_coord + i)) );
                         i--;
                     }
-#if H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG /* JRM */
+#if H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG 
                     HDfprintf(stdout, "%s%d new_start_coord = ", FUNC, (int)k);
                     for ( j = 0; j < new_space_rank; j++ ) 
                         HDfprintf(stdout, "%d ", (int)(*(new_coord + j)));
                     HDfprintf(stdout, "\n");
-#endif /* JRM */
+#endif 
                     base_coord += base_space_rank;
                     new_coord += new_space_rank;
                 }
@@ -2665,7 +2642,7 @@ H5S_select_construct_projection(H5S_t *base_space,
                         start_coord++;
                         stop_coord++;
                     }
-#if H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG /* JRM */
+#if H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG 
                     HDfprintf(stdout, "%s%d start = ", FUNC, (int)k);
                     for ( j = 0; j < new_space_rank; j++ ) 
                         HDfprintf(stdout, "%d ", (int)(start[j]));
@@ -2685,7 +2662,7 @@ H5S_select_construct_projection(H5S_t *base_space,
                     for ( j = 0; j < new_space_rank; j++ ) 
                         HDfprintf(stdout, "%d ", (int)(block[j]));
                     HDfprintf(stdout, "\n");
-#endif /* JRM */
+#endif 
                     if ( H5S_select_hyperslab(new_space, 
                                               H5S_SELECT_OR, 
                                               start, 
@@ -2699,7 +2676,7 @@ H5S_select_construct_projection(H5S_t *base_space,
                 }
 
                 /* and compute the protected_space_element_offset */
-#if H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG /* JRM */
+#if H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG 
                 HDfprintf(stdout, 
                           "%s: projected_space_start_coordinate = ", 
                           FUNC);
@@ -2707,22 +2684,22 @@ H5S_select_construct_projection(H5S_t *base_space,
                     HDfprintf(stdout, "%d ", 
                               (int)projected_space_start_coordinate[i]);
                 HDfprintf(stdout, "\n");
-#endif /* JRM */
+#endif 
                 projected_space_element_offset = 
 			H5V_array_offset((unsigned)base_space_rank,
                                          base_space_dims,
                                          projected_space_start_coordinate); 
-#if H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG /* JRM */
+#if H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG 
                 HDfprintf(stdout, 
                           "%s: projected space element offset = %d\n", 
                           FUNC, (int)projected_space_element_offset);
-#endif /* JRM */
+#endif 
     	    break;
     
     	case H5S_SEL_ALL:
-#if H5S_SELECT_CONSTRUCT_PROJECTION_DEBUG /* JRM */
+#if H5S_SELECT_CONSTRUCT_PROJECTION__DEBUG 
                 HDfprintf(stdout, "%s case H5S_SEL_ALL(2):\n", FUNC);
-#endif /* JRM */
+#endif 
                 if ( SUCCEED != H5S_select_all(new_space, TRUE) ) {
     
                     HGOTO_ERROR(H5E_DATASPACE, H5E_CANTSET, FAIL, \
