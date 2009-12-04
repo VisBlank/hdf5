@@ -1760,7 +1760,7 @@ done:
 H5B_shared_t *
 H5B_shared_new(const H5F_t *f, const H5B_class_t *type, size_t sizeof_rkey)
 {
-    H5B_shared_t *shared;               /* New shared B-tree struct */
+    H5B_shared_t *shared = NULL;        /* New shared B-tree struct */
     size_t	u;                      /* Local index variable */
     H5B_shared_t *ret_value;            /* Return value */
 
@@ -1803,6 +1803,10 @@ HDmemset(shared->page, 0, shared->sizeof_rnode);
     ret_value = shared;
 
 done:
+    if(ret_value == NULL)
+        if(shared)
+            (void)H5FL_FREE(H5B_shared_t, shared);
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5B_shared_new() */
 
