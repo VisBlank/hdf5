@@ -345,6 +345,9 @@ create_textfile(const char *name, size_t size)
 
     HDwrite(fd, buf, size);
 
+    if(buf!=NULL)
+        free(buf); 
+
     HDclose(fd);
 }
 
