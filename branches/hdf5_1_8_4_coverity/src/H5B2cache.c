@@ -1076,6 +1076,7 @@ H5B2_cache_leaf_dest(H5F_t *f, H5B2_leaf_t *leaf)
      * Check arguments.
      */
     HDassert(leaf);
+    HDassert(leaf->shared);
 
     /* If we're going to free the space on disk, the address must be valid */
     HDassert(!leaf->cache_info.free_file_space_on_destroy || H5F_addr_defined(leaf->cache_info.addr));
