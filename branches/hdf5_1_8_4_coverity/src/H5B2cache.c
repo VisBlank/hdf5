@@ -741,6 +741,7 @@ H5B2_cache_internal_dest(H5F_t *f, H5B2_internal_t *internal)
      * Check arguments.
      */
     HDassert(internal);
+    HDassert(internal->shared);
 
     /* If we're going to free the space on disk, the address must be valid */
     HDassert(!internal->cache_info.free_file_space_on_destroy || H5F_addr_defined(internal->cache_info.addr));
