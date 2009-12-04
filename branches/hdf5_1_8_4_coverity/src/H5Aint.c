@@ -141,6 +141,9 @@ H5A_compact_build_table_cb(H5O_t UNUSED *oh, H5O_mesg_t *mesg/*in,out*/,
     unsigned sequence, hbool_t UNUSED *oh_modified, void *_udata/*in,out*/)
 {
     H5A_compact_bt_ud_t *udata = (H5A_compact_bt_ud_t *)_udata;   /* Operator user data */
+    size_t i;
+    size_t n;
+    H5A_t **table = NULL;
     herr_t ret_value = H5_ITER_CONT;    /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5A_compact_build_table_cb)
@@ -150,13 +153,15 @@ H5A_compact_build_table_cb(H5O_t UNUSED *oh, H5O_mesg_t *mesg/*in,out*/,
 
     /* Re-allocate the table if necessary */
     if(udata->curr_attr == udata->atable->nattrs) {
-        size_t i;
-        size_t n = MAX(1, 2 * udata->atable->nattrs);
-        H5A_t **table = (H5A_t **)H5FL_SEQ_CALLOC(H5A_t_ptr, n);
+        /* Allocate table */
+        n = MAX(1, 2 * udata->atable->nattrs);
+        if(NULL == (table = (H5A_t **)H5FL_SEQ_CALLOC(H5A_t_ptr, n)))
+            HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, H5_ITER_ERROR, "memory allocation failed for attribute table")
 
         /* Use attribute functions for operation to manage memory properly */
         for(i=0; i<udata->atable->nattrs; i++) {
-            table[i] = (H5A_t *)H5FL_CALLOC(H5A_t);
+            if(NULL == (table[i] = (H5A_t *)H5FL_CALLOC(H5A_t)))
+                HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, H5_ITER_ERROR, "memory allocation failed for attribute")
 
             if(NULL == H5A_copy(table[i], udata->atable->attrs[i]))
                 HGOTO_ERROR(H5E_ATTR, H5E_CANTCOPY, H5_ITER_ERROR, "can't copy attribute")
@@ -187,6 +192,14 @@ H5A_compact_build_table_cb(H5O_t UNUSED *oh, H5O_mesg_t *mesg/*in,out*/,
     udata->curr_attr++;
 
 done:
+    if(ret_value == H5_ITER_ERROR)
+        if(table) {
+            for(i=0; i<n; i++)
+                if(table[i])
+                    H5FL_FREE(H5A_t, table[i]);
+            H5FL_SEQ_FREE(H5A_t_ptr, table);
+        } /* end if */
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5A_compact_build_table_cb() */
 
