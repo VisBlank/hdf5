@@ -196,7 +196,7 @@ done:
         if(table) {
             for(i=0; i<n; i++)
                 if(table[i])
-                    H5FL_FREE(H5A_t, table[i]);
+                    (void)H5FL_FREE(H5A_t, table[i]);
             H5FL_SEQ_FREE(H5A_t_ptr, table);
         } /* end if */
 
