@@ -161,6 +161,7 @@ int h5repack_addfilter(const char* str,
         if (options->n_filter_g > H5_REPACK_MAX_NFILTERS)
         {
             error_msg(progname, "maximum number of filters exceeded for <%s>\n",str);
+            free(obj_list);
             return -1;
 
         }
