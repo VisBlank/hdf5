@@ -2493,7 +2493,7 @@ H5AC_stats(const H5F_t *f)
     HDassert(f->shared->cache);
 
     /* at present, this can't fail */
-    (void)H5C_stats(f->shared->cache, f->name, FALSE);
+    (void)H5C_stats(f->shared->cache, H5F_OPEN_NAME(f), FALSE);
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -3637,7 +3637,8 @@ H5AC_ext_config_2_int_config(H5AC_cache_config_t * ext_conf_ptr,
     if ( ( ext_conf_ptr == NULL ) ||
          ( ext_conf_ptr->version != H5AC__CURR_CACHE_CONFIG_VERSION ) ||
          ( int_conf_ptr == NULL ) ) {
-
+        HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
+                    "Bad ext_conf_ptr or inf_conf_ptr on entry.")
     }
 
     int_conf_ptr->version                = H5C__CURR_AUTO_SIZE_CTL_VER;
