@@ -94,6 +94,10 @@ test_create(void)
 
 error:
     H5E_BEGIN_TRY {
+
+        if(mp)
+            H5MP_close(mp);
+
     } H5E_END_TRY;
     return 1;
 } /* test_create() */
@@ -143,6 +147,10 @@ test_close_one(void)
 
 error:
     H5E_BEGIN_TRY {
+
+        if(mp)
+            H5MP_close(mp);
+
     } H5E_END_TRY;
     return 1;
 } /* test_close_one() */
@@ -167,10 +175,10 @@ error:
 static int
 test_allocate_first(void)
 {
-    H5MP_pool_t *mp;            /* Memory pool */
-    H5MP_page_t *page;          /* Memory pool page */
+    H5MP_pool_t *mp = NULL;     /* Memory pool */
+    H5MP_page_t *page = NULL;   /* Memory pool page */
     size_t free_size;           /* Free size in pool */
-    void *spc;                  /* Pointer to space allocated */
+    void *spc = NULL;           /* Pointer to space allocated */
 
     /*
      * Test memory pool allocation
@@ -293,6 +301,10 @@ test_allocate_first(void)
 
 error:
     H5E_BEGIN_TRY {
+    
+        if(mp)
+            H5MP_close(mp);
+
     } H5E_END_TRY;
     return 1;
 } /* test_allocate_first() */
@@ -396,6 +408,10 @@ test_allocate_split(void)
 
 error:
     H5E_BEGIN_TRY {
+
+        if(mp)
+            H5MP_close(mp);
+
     } H5E_END_TRY;
     return 1;
 } /* test_allocate_split() */
@@ -420,7 +436,7 @@ error:
 static int
 test_allocate_many_small(void)
 {
-    H5MP_pool_t *mp;            /* Memory pool */
+    H5MP_pool_t *mp = NULL;     /* Memory pool */
     size_t free_size;           /* Free size in pool */
     void *spc[MPOOL_NUM_SMALL_BLOCKS]; /* Pointers to space allocated */
     int i;                      /* Local index variable */
@@ -474,6 +490,10 @@ test_allocate_many_small(void)
 
 error:
     H5E_BEGIN_TRY {
+
+        if(mp)
+            H5MP_close(mp);
+
     } H5E_END_TRY;
     return 1;
 } /* test_allocate_many_small() */
@@ -602,6 +622,10 @@ test_allocate_new_page(void)
 
 error:
     H5E_BEGIN_TRY {
+
+        if(mp)
+            H5MP_close(mp);
+
     } H5E_END_TRY;
     return 1;
 } /* test_allocate_new_page() */
@@ -720,6 +744,10 @@ error:
     if(spc)
         HDfree(spc);
     H5E_BEGIN_TRY {
+
+        if(mp)
+            H5MP_close(mp);
+
     } H5E_END_TRY;
     return 1;
 } /* test_allocate_random() */
