@@ -428,6 +428,7 @@ dataset_stats(iter_t *iter, const char *name, const H5O_info_t *oi)
     sid = H5Dget_space(did);
     assert(sid > 0);
 
+    /* COVERITY["NEGATIVE_RETURNS"] */
     ndims = H5Sget_simple_extent_dims(sid, dims, NULL);
     assert(ndims >= 0);
 
@@ -527,7 +528,8 @@ dataset_stats(iter_t *iter, const char *name, const H5O_info_t *oi)
            iter->dset_comptype[0]++;
         for(u = 0; u < (unsigned)nfltr; u++) {
             fltr = H5Pget_filter2(dcpl, u, 0, 0, 0, 0, 0, NULL);
-            if(fltr < (H5_NFILTERS_IMPL - 1))
+            if( fltr < 0) continue;
+            if(fltr < (H5_NFILTERS_IMPL - 1) )
                 iter->dset_comptype[fltr]++;
             else
                 iter->dset_comptype[H5_NFILTERS_IMPL - 1]++; /*other filters*/
