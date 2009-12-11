@@ -2000,10 +2000,10 @@ h5tools_print_simple_subset(FILE *stream, const h5tool_format_t *info, h5tools_c
 
         /* calculate the potential number of elements we're going to print */
         if(H5Sselect_hyperslab(f_space, H5S_SELECT_SET, temp_start, temp_stride, temp_count, temp_block) < 0)
-            HGOTO_ERROR(FAIL, H5E_tools_min_id_g, "H5Sselect_hyperslab failed");
+            H5E_THROW(FAIL, H5E_tools_min_id_g, "H5Sselect_hyperslab failed");
         
         if((sm_nelmts = H5Sget_select_npoints(f_space)) < 0)
-            HGOTO_ERROR(FAIL, H5E_tools_min_id_g, "H5Sget_select_npoints failed");
+            H5E_THROW(FAIL, H5E_tools_min_id_g, "H5Sget_select_npoints failed");
 
         if (sm_nelmts > 0) {
             /*
@@ -2069,7 +2069,9 @@ h5tools_print_simple_subset(FILE *stream, const h5tool_format_t *info, h5tools_c
 done:
             if(H5Sclose(sm_space) < 0)
                 HERROR(H5E_tools_g, H5E_tools_min_id_g, "H5Sclose failed");
-            HDfree(sm_buf);
+            if(sm_buf)
+                HDfree(sm_buf);
+            sm_buf = NULL;
         }
         else
             H5E_THROW(SUCCEED, H5E_tools_min_id_g, "nothing to print");
@@ -2081,6 +2083,7 @@ done:
     } /* hyperslab_count loop */
 
 CATCH
+
     return ret_value;
 }
 
@@ -2272,6 +2275,7 @@ h5tools_dump_simple_subset(FILE *stream, const h5tool_format_t *info, hid_t dset
                            hid_t p_type, struct subset_t *sset, int indentlevel)
 {
     HERR_INIT(herr_t, SUCCEED)
+    int               result;
     hid_t             f_space;                 /* file data space */
     size_t            i;                       /* counters  */
     hsize_t           total_size[H5S_MAX_RANK];/* total size of dataset*/
@@ -2288,8 +2292,9 @@ h5tools_dump_simple_subset(FILE *stream, const h5tool_format_t *info, hid_t dset
     memset(&ctx, 0, sizeof(ctx));
     ctx.indent_level = indentlevel;
     ctx.need_prefix = 1;
-    if((ctx.ndims = H5Sget_simple_extent_ndims(f_space)) < 0)
+    if((result = H5Sget_simple_extent_ndims(f_space)) < 0)
         HGOTO_ERROR(FAIL, H5E_tools_min_id_g, "H5Sget_simple_extent_ndims failed");
+    ctx.ndims = (unsigned)result;
 
     /* assume entire data space to be printed */
     if (ctx.ndims > 0)
@@ -3292,9 +3297,11 @@ h5tools_print_enum(h5tools_str_t *buffer, hid_t type)
     size_t         type_size;    /*value type size                */
     size_t         dst_size;     /*destination value type size    */
     unsigned       i;
+    int            result;
 
-    if((nmembs = H5Tget_nmembers(type)) < 0)
+    if((result = H5Tget_nmembers(type)) < 0)
         H5E_THROW(FAIL, H5E_tools_min_id_g, "H5Tget_nmembers failed");
+    nmembs = (unsigned)result;
     assert(nmembs > 0);
     
     if((super = H5Tget_super(type)) < 0)
@@ -3390,8 +3397,9 @@ CATCH
     if(value)
         free(value);
 
-    if(super >= 0 && H5Tclose(super) < 0)
-        H5E_THROW(FAIL, H5E_tools_min_id_g, "H5Tclose failed");
+    H5E_BEGIN_TRY {
+        H5Tclose(super);
+    } H5E_END_TRY;
 
     if (0 == nmembs)
         h5tools_str_append(buffer, "\n<empty>");
