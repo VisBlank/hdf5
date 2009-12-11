@@ -435,8 +435,10 @@ H5FD_log_fapl_copy(const void *_old_fa)
 
     /* Deep copy the log file name */
     if(old_fa->logfile!=NULL)
-        if (NULL==(new_fa->logfile=H5MM_xstrdup(old_fa->logfile)))
+        if (NULL==(new_fa->logfile=H5MM_xstrdup(old_fa->logfile))) {
+            H5MM_free(new_fa);
             HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "unable to allocate log file name")
+        } /* end if */
 
     /* Set return value */
     ret_value=new_fa;
@@ -591,6 +593,7 @@ done:
     if(NULL == ret_value) {
         if(fd >= 0)
             HDclose(fd);
+        file = (H5FD_log_t *)H5MM_xfree(file);
     } /* end if */
 
     FUNC_LEAVE_NOAPI(ret_value)
