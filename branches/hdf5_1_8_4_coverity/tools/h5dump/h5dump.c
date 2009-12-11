@@ -2713,6 +2713,7 @@ dump_dcpl(hid_t dcpl_id,hid_t type_id, hid_t obj_id)
     storage_size=H5Dget_storage_size(obj_id);
     nfilters = H5Pget_nfilters(dcpl_id);
     ioffset=H5Dget_offset(obj_id);
+    /* COVERITY["NEGATIVE_RETURNS"] */
     next=H5Pget_external_count(dcpl_id);
     strcpy(f_name,"\0");
 
@@ -4515,8 +4516,10 @@ print_enum(hid_t type)
     hid_t            native = -1;   /*native integer datatype        */
     size_t           dst_size;      /*destination value type size    */
     unsigned         i;
+    int              result;
 
-    nmembs = H5Tget_nmembers(type);
+    result = H5Tget_nmembers(type);
+    nmembs = (unsigned)result;
     assert(nmembs>0);
     super = H5Tget_super(type);
 
@@ -6695,9 +6698,13 @@ xml_print_enum(hid_t type)
     hid_t                   native = -1;    /*native integer datatype        */
     size_t                  dst_size;       /*destination value type size    */
     unsigned                i;              /*miscellaneous counters         */
+    int                     result;
     size_t                  j;
 
-    nmembs = H5Tget_nmembers(type);
+    result = H5Tget_nmembers(type);
+    if(result <= 0) return;
+    
+    nmembs = (unsigned)result;
     super = H5Tget_super(type);
 
     indentation(indent);
