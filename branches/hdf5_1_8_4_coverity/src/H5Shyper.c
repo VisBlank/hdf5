@@ -5264,9 +5264,14 @@ H5S_hyper_merge_spans_helper (H5S_hyper_span_info_t *a_spans, H5S_hyper_span_inf
     } /* end else */
 
     /* Set return value */
-    ret_value=merged_spans;
+    ret_value = merged_spans;
 
 done:
+    if(ret_value == NULL) {
+        if(merged_spans)
+            H5S_hyper_free_span_info(merged_spans);
+    } /* end if */
+
     FUNC_LEAVE_NOAPI(ret_value);
 }   /* H5S_hyper_merge_spans_helper() */
 
