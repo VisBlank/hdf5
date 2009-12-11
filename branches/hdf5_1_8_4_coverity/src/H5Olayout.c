@@ -368,14 +368,19 @@ H5O_layout_copy(const void *_mesg, void *_dest)
 {
     const H5O_layout_t     *mesg = (const H5O_layout_t *) _mesg;
     H5O_layout_t           *dest = (H5O_layout_t *) _dest;
+    hbool_t                allocated_dest = FALSE;
     void                   *ret_value;          /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5O_layout_copy)
 
     /* check args */
     HDassert(mesg);
-    if(!dest && NULL == (dest = H5FL_MALLOC(H5O_layout_t)))
-        HGOTO_ERROR(H5E_OHDR, H5E_NOSPACE, NULL, "memory allocation failed")
+    if(!dest) {
+        if(NULL == (dest = H5FL_MALLOC(H5O_layout_t)))
+            HGOTO_ERROR(H5E_OHDR, H5E_NOSPACE, NULL, "memory allocation failed")
+        else
+            allocated_dest = TRUE;
+    } /* end if */
 
     /* copy */
     *dest = *mesg;
@@ -398,6 +403,8 @@ H5O_layout_copy(const void *_mesg, void *_dest)
     ret_value = dest;
 
 done:
+    if(ret_value == NULL && allocated_dest == TRUE)
+        (void)H5FL_FREE(H5O_layout_t, dest);
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5O_layout_copy() */
 
