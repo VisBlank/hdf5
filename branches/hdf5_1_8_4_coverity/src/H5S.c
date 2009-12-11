@@ -546,7 +546,7 @@ H5S_t *
 H5S_copy(const H5S_t *src, hbool_t share_selection, hbool_t copy_max)
 {
     H5S_t		   *dst = NULL;
-    H5S_t		   *ret_value;   /* Return value */
+    H5S_t		   *ret_value = NULL;   /* Return value */
 
     FUNC_ENTER_NOAPI(H5S_copy, NULL)
 
@@ -565,6 +565,12 @@ H5S_copy(const H5S_t *src, hbool_t share_selection, hbool_t copy_max)
     ret_value = dst;
 
 done:
+
+    if (!ret_value) {
+        if (dst)
+            H5FL_FREE(H5S_t, dst);
+    }
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5S_copy() */
 
