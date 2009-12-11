@@ -5269,7 +5269,8 @@ H5S_hyper_merge_spans_helper (H5S_hyper_span_info_t *a_spans, H5S_hyper_span_inf
 done:
     if(ret_value == NULL) {
         if(merged_spans)
-            H5S_hyper_free_span_info(merged_spans);
+            if(H5S_hyper_free_span_info(merged_spans) < 0)
+                HDONE_ERROR(H5E_INTERNAL, H5E_CANTFREE, NULL, "failed to release merged hyperslab spans")
     } /* end if */
 
     FUNC_LEAVE_NOAPI(ret_value);
@@ -5934,14 +5935,6 @@ H5S_generate_hyperslab (H5S_t *space, H5S_seloper_t op,
                 HGOTO_ERROR(H5E_ARGS, H5E_UNSUPPORTED, FAIL, "invalid selection operation");
         } /* end switch */
 
-        /* Free the hyperslab trees generated from the clipping algorithm */
-        if(a_not_b)
-            H5S_hyper_free_span_info(a_not_b);
-        if(a_and_b)
-            H5S_hyper_free_span_info(a_and_b);
-        if(b_not_a)
-            H5S_hyper_free_span_info(b_not_a);
-
         /* Check if the resulting hyperslab span tree is empty */
         if(space->select.sel_info.hslab->span_lst==NULL) {
             H5S_hyper_span_info_t *spans;     /* Empty hyperslab span tree */
@@ -5978,10 +5971,19 @@ H5S_generate_hyperslab (H5S_t *space, H5S_seloper_t op,
     } /* end else */
 
 done:
-    /* Free the new spans */
-    if(new_spans!=NULL)
-        if(H5S_hyper_free_span_info(new_spans)<0)
-            HDONE_ERROR(H5E_INTERNAL, H5E_CANTFREE, FAIL, "failed to release temporary hyperslab spans");
+    /* Free resources */
+    if(a_not_b)
+        if(H5S_hyper_free_span_info(a_not_b) < 0)
+            HDONE_ERROR(H5E_INTERNAL, H5E_CANTFREE, FAIL, "failed to release temporary hyperslab spans")
+    if(a_and_b)
+        if(H5S_hyper_free_span_info(a_and_b) < 0)
+            HDONE_ERROR(H5E_INTERNAL, H5E_CANTFREE, FAIL, "failed to release temporary hyperslab spans")
+    if(b_not_a)
+        if(H5S_hyper_free_span_info(b_not_a) < 0)
+            HDONE_ERROR(H5E_INTERNAL, H5E_CANTFREE, FAIL, "failed to release temporary hyperslab spans")
+    if(new_spans)
+        if(H5S_hyper_free_span_info(new_spans) < 0)
+            HDONE_ERROR(H5E_INTERNAL, H5E_CANTFREE, FAIL, "failed to release temporary hyperslab spans")
 
     FUNC_LEAVE_NOAPI(ret_value);
 } /* end H5S_generate_hyperslab() */
