@@ -2955,9 +2955,10 @@ done:
 H5T_t *
 H5T_create(H5T_class_t type, size_t size)
 {
-    H5T_t	*dt = NULL;
+    H5T_t  *dt = NULL;
     hid_t	subtype;
-    H5T_t	*ret_value;
+    H5T_t  *ret_value = NULL;
+    H5T_t  *sub_t_obj = NULL;
 
     FUNC_ENTER_NOAPI(H5T_create, NULL);
 
@@ -2990,6 +2991,7 @@ H5T_create(H5T_class_t type, size_t size)
                 subtype = H5T_NATIVE_SCHAR_g;
             } else if (sizeof(short)==size) {
                 subtype = H5T_NATIVE_SHORT_g;
+                /* COVERITY["cannot_set"] */
             } else if (sizeof(int)==size) {
                 subtype = H5T_NATIVE_INT_g;
             } else if (sizeof(long)==size) {
@@ -3004,7 +3006,11 @@ H5T_create(H5T_class_t type, size_t size)
             HDassert(dt->shared);
             /* COVERITY["deref_ptr"] */
             dt->shared->type = type;
-            if (NULL==(dt->shared->parent=H5T_copy(H5I_object(subtype), H5T_COPY_ALL)))
+
+            if (NULL==(sub_t_obj=(H5T_t *)H5I_object(subtype)))
+                HGOTO_ERROR(H5E_DATATYPE, H5E_CANTGET, NULL, "unable to get datatype object");
+
+            if (NULL==(dt->shared->parent=H5T_copy(sub_t_obj, H5T_COPY_ALL)))
                 HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, NULL, "unable to copy base data type");
             break;
 
@@ -3315,7 +3321,7 @@ H5T_copy(const H5T_t *old_dt, H5T_copy_t method)
 
 done:
     if(ret_value == NULL) {
-        if(new_dt->shared != NULL)
+        if(new_dt && new_dt->shared != NULL)
             H5FL_FREE(H5T_shared_t, new_dt->shared);
         if(new_dt != NULL)
             H5FL_FREE(H5T_t, new_dt);
