@@ -4382,13 +4382,13 @@ done:
 static herr_t
 H5S_hyper_append_span (H5S_hyper_span_t **prev_span, H5S_hyper_span_info_t ** span_tree, hsize_t low, hsize_t high, H5S_hyper_span_info_t *down, H5S_hyper_span_t *next)
 {
-    H5S_hyper_span_t *new_span;
-    herr_t      ret_value=SUCCEED;       /* Return value */
+    H5S_hyper_span_t *new_span = NULL;
+    herr_t      ret_value = SUCCEED;       /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5S_hyper_append_span);
 
-    assert(prev_span);
-    assert(span_tree);
+    HDassert(prev_span);
+    HDassert(span_tree);
 
     /* Check for adding first node to merged spans */
     if(*prev_span==NULL) {
@@ -4452,7 +4452,13 @@ H5S_hyper_append_span (H5S_hyper_span_t **prev_span, H5S_hyper_span_info_t ** sp
     } /* end else */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value);
+    if(ret_value < 0) {
+        if(new_span)
+            if(H5S_hyper_free_span(new_span) < 0)
+                HDONE_ERROR(H5E_DATASPACE, H5E_CANTFREE, FAIL, "failed to release new hyperslab span")
+    } /* end if */
+
+    FUNC_LEAVE_NOAPI(ret_value)
 }   /* H5S_hyper_append_span() */
 
 
