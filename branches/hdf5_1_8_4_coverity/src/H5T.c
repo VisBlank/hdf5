@@ -3001,6 +3001,8 @@ H5T_create(H5T_class_t type, size_t size)
             }
             if(NULL == (dt = H5T_alloc()))
                 HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed");
+            HDassert(dt->shared);
+            /* COVERITY["deref_ptr"] */
             dt->shared->type = type;
             if (NULL==(dt->shared->parent=H5T_copy(H5I_object(subtype), H5T_COPY_ALL)))
                 HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, NULL, "unable to copy base data type");
@@ -3023,6 +3025,7 @@ H5T_create(H5T_class_t type, size_t size)
 
 done:
     if(ret_value==NULL) {
+        /* COVERITY["check_after_deref"] */
         if(dt && (dt->shared != NULL))
             H5FL_FREE(H5T_shared_t, dt->shared);
         if(dt!=NULL)
@@ -4314,6 +4317,7 @@ H5T_path_find(const H5T_t *src, const H5T_t *dst, const char *name,
      * Only allow the no-op conversion to occur if no "force conversion" flags
      * are set
      */
+    /* COVERITY["deref_ptr"] */
     if (src->shared->force_conv==FALSE && dst->shared->force_conv==FALSE && 0==H5T_cmp(src, dst, TRUE)) {
 	table = H5T_g.path[0];
 	cmp = 0;
@@ -4359,6 +4363,7 @@ H5T_path_find(const H5T_t *src, const H5T_t *dst, const char *name,
 	} else {
 	    HDstrcpy(path->name, "NONAME");
 	}
+    /* COVERITY["check_after_deref"] */
 	if ((src && NULL==(path->src=H5T_copy(src, H5T_COPY_ALL))) ||
                 (dst && NULL==(path->dst=H5T_copy(dst, H5T_COPY_ALL))))
 	    HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, NULL, "unable to copy data type for conversion path");
