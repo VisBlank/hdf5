@@ -1156,13 +1156,13 @@ SUBROUTINE h5pinsert_char(plist, name, size, value, hdferr)
 !
 ! INPUTS
 !  parent 	 - Property list identifier of the parent class
-!  Possible values include:
-!  H5P_ROOT_F
-!  H5P_FILE_CREATE_F
-!  H5P_FILE_ACCESS_F
-!  H5P_DATASET_CREATE_F
-!  H5P_DATASET_XFER_F
-!  H5P_FILE_MOUNT_F
+!                  Possible values include:
+!                           H5P_ROOT_F
+!                           H5P_FILE_CREATE_F
+!                           H5P_FILE_ACCESS_F
+!                           H5P_DATASET_CREATE_F
+!                           H5P_DATASET_XFER_F
+!                           H5P_FILE_MOUNT_F
 !  name 	 - name of the class we are creating
 ! OUTPUTS
 !  class 	 - porperty list class identifier
