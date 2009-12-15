@@ -61,6 +61,7 @@ contig_hyperslab_dr_pio_test__run_test(const int test_num,
     hbool_t	use_gpfs = FALSE;   /* Use GPFS hints */
     hbool_t	mis_match = FALSE;
     int		i, j, k, l, m, n;
+    int         mrc;
     int		mpi_size = -1;
     int         mpi_rank = -1;
     int         start_index;
@@ -463,6 +464,11 @@ contig_hyperslab_dr_pio_test__run_test(const int test_num,
     VRFY((ret >= 0), "H5Dwrite() small_dataset initial write succeeded");
 
 
+    /* sync with the other processes before checking data */
+    mrc = MPI_Barrier(MPI_COMM_WORLD);
+    VRFY((mrc==MPI_SUCCESS), "Sync after small dataset writes");
+
+
     /* read the small data set back to verify that it contains the 
      * expected data.  Note that each process reads in the entire 
      * data set.
@@ -562,6 +568,11 @@ contig_hyperslab_dr_pio_test__run_test(const int test_num,
                    xfer_plist, large_ds_buf_0);
     if ( ret < 0 ) H5Eprint(H5E_DEFAULT, stderr);
     VRFY((ret >= 0), "H5Dwrite() large_dataset initial write succeeded");
+
+
+    /* sync with the other processes before checking data */
+    mrc = MPI_Barrier(MPI_COMM_WORLD);
+    VRFY((mrc==MPI_SUCCESS), "Sync after large dataset writes");
 
 
     /* read the small data set back to verify that it contains the 
@@ -1634,7 +1645,7 @@ contig_hyperslab_dr_pio_test(void)
                                                        (hbool_t)use_collective_io,
                                                        dset_type);
                 test_num++;
-
+#if 1
                 chunk_edge_size = 5;
                 contig_hyperslab_dr_pio_test__run_test(test_num,
                                                        edge_size,
@@ -1644,6 +1655,7 @@ contig_hyperslab_dr_pio_test(void)
                                                        (hbool_t)use_collective_io,
                                                        dset_type);
                 test_num++;
+#endif
             }
         }
     }
@@ -2242,6 +2254,7 @@ checker_board_hyperslab_dr_pio_test__run_test(const int test_num,
     hbool_t	data_ok = FALSE;
     hbool_t	mis_match = FALSE;
     int		i, j, k, l, m, n;
+    int         mrc;
     int         start_index;
     int         stop_index;
     int		small_ds_offset;
@@ -2670,6 +2683,11 @@ checker_board_hyperslab_dr_pio_test__run_test(const int test_num,
     VRFY((ret >= 0), "H5Dwrite() small_dataset initial write succeeded");
 
 
+    /* sync with the other processes before checking data */
+    mrc = MPI_Barrier(MPI_COMM_WORLD);
+    VRFY((mrc==MPI_SUCCESS), "Sync after small dataset writes");
+
+
     /* read the small data set back to verify that it contains the 
      * expected data.  Note that each process reads in the entire 
      * data set and verifies it.
@@ -2769,6 +2787,11 @@ checker_board_hyperslab_dr_pio_test__run_test(const int test_num,
                    xfer_plist, large_ds_buf_0);
     if ( ret < 0 ) H5Eprint(H5E_DEFAULT, stderr);
     VRFY((ret >= 0), "H5Dwrite() large_dataset initial write succeeded");
+
+
+    /* sync with the other processes before checking data */
+    mrc = MPI_Barrier(MPI_COMM_WORLD);
+    VRFY((mrc==MPI_SUCCESS), "Sync after large dataset writes");
 
 
     /* read the small data set back to verify that it contains the 
@@ -3972,10 +3995,12 @@ checker_board_hyperslab_dr_pio_test(void)
     int	        large_rank = 4;
     int  	use_collective_io = 1;
     hid_t	dset_type = H5T_STD_U32LE;
+#if 0 
+    int DebugWait = 1;
+ 
+    while (DebugWait) ;
+#endif 
 
-#if 0
-    sleep(60);
-#endif
     for ( large_rank = 3; large_rank <= PAR_SS_DR_MAX_RANK; large_rank++ ) {
 
         for ( small_rank = 2; small_rank < large_rank; small_rank++ ) {
@@ -4005,6 +4030,7 @@ checker_board_hyperslab_dr_pio_test(void)
                                                               (hbool_t)use_collective_io,
                                                               dset_type);
                 test_num++;
+
             }
         }
     }

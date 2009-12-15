@@ -1588,6 +1588,7 @@ lower_dim_size_comp_test__run_test(const int chunk_edge_size,
     int           i;
     int           start_index;
     int           stop_index;
+    int		  mrc;
     int		  mpi_rank;
     int		  mpi_size;
     MPI_Comm      mpi_comm = MPI_COMM_NULL;
@@ -1812,7 +1813,7 @@ lower_dim_size_comp_test__run_test(const int chunk_edge_size,
      */
     if ( chunk_edge_size > 0 ) {
 
-        small_chunk_dims[0] = (hsize_t)(mpi_size + 1);
+        small_chunk_dims[0] = (hsize_t)(1);
         small_chunk_dims[1] = small_chunk_dims[2] = (hsize_t)1;
         small_chunk_dims[3] = small_chunk_dims[4] = (hsize_t)chunk_edge_size;
 
@@ -1834,14 +1835,10 @@ lower_dim_size_comp_test__run_test(const int chunk_edge_size,
         ret = H5Pset_chunk(small_ds_dcpl_id, 5, small_chunk_dims);
         VRFY((ret != FAIL), "H5Pset_chunk() small_ds_dcpl_id succeeded");
 
-#if 0 /* failure disabled -- JRM */
-        large_chunk_dims[0] = (hsize_t)(mpi_size + 1);
-        large_chunk_dims[1] = large_chunk_dims[2] = (hsize_t)10;
-#else /* failure enabled -- JRM */
-        large_chunk_dims[0] = (hsize_t)(mpi_size + 1);
-        large_chunk_dims[1] = large_chunk_dims[2] = (hsize_t)chunk_edge_size;
-#endif /* JRM */
-        large_chunk_dims[3] = large_chunk_dims[4] = (hsize_t)chunk_edge_size;
+        large_chunk_dims[0] = (hsize_t)(1);
+        large_chunk_dims[1] = large_chunk_dims[2] = 
+        	large_chunk_dims[3] = large_chunk_dims[4] = (hsize_t)chunk_edge_size;
+
 
 #if LOWER_DIM_SIZE_COMP_TEST__RUN_TEST__DEBUG 
         if ( mpi_rank == LOWER_DIM_SIZE_COMP_TEST_DEBUG_TARGET_RANK ) {
@@ -2026,6 +2023,11 @@ lower_dim_size_comp_test__run_test(const int chunk_edge_size,
                   xfer_plist,
                   small_ds_buf_1);
     VRFY((ret >= 0), "H5Dread() small_dataset initial read succeeded");
+
+
+    /* sync with the other processes before checking data */
+    mrc = MPI_Barrier(MPI_COMM_WORLD);
+    VRFY((mrc==MPI_SUCCESS), "Sync after small dataset writes");
 
 
     /* verify that the correct data was written to the small data set,
@@ -2235,6 +2237,11 @@ lower_dim_size_comp_test__run_test(const int chunk_edge_size,
 
     if ( ret < 0 ) H5Eprint(H5E_DEFAULT, stderr);
     VRFY((ret >= 0), "H5Dwrite() large_dataset initial write succeeded");
+
+
+    /* sync with the other processes before checking data */
+    mrc = MPI_Barrier(MPI_COMM_WORLD);
+    VRFY((mrc==MPI_SUCCESS), "Sync after large dataset writes");
 
     /* read the large data set back to verify that it contains the 
      * expected data.  Note that each process reads in the entire 
@@ -2622,12 +2629,11 @@ lower_dim_size_comp_test(void)
                                            use_collective_io,
                                            dset_type);
 
-#if 1 /* failure only appears when the test is run on chunked datasets */
+
         chunk_edge_size = 5;
         lower_dim_size_comp_test__run_test(chunk_edge_size,
                                            use_collective_io,
                                            dset_type);
-#endif
     }
 
     return;

@@ -821,6 +821,8 @@ H5D_link_chunk_collective_io(H5D_io_info_t *io_info, const H5D_type_info_t *type
     H5D_chunk_addr_info_t *chunk_addr_info_array = NULL;
     hbool_t mbt_is_derived = FALSE;
     hbool_t mft_is_derived = FALSE;
+    hbool_t *mbt_is_derived_array = NULL;
+    hbool_t *mft_is_derived_array = NULL;
     MPI_Datatype chunk_final_mtype;         /* Final memory MPI datatype for all chunks with seletion */
     MPI_Datatype chunk_final_ftype;         /* Final file MPI datatype for all chunks with seletion */
     H5D_storage_t ctg_store;                /* Storage info for "fake" contiguous dataset */
@@ -915,8 +917,6 @@ if(H5DEBUG(D))
             hsize_t mpi_file_extra_offset;      /* Extra offset for file MPI datatype */
             size_t mpi_mem_count;               /* Memory MPI datatype count */
             size_t mpi_file_count;              /* File MPI datatype count */
-            hbool_t locl_mbt_is_derived = FALSE,     /* Whether the buffer (memory) type is derived and needs to be free'd */
-                    local_mft_is_derived = FALSE;     /* Whether the file type is derived and needs to be free'd */
             int blocklen_value;                 /* Placeholder for array fill */
 
             /* Allocate chunking information */
@@ -926,6 +926,8 @@ if(H5DEBUG(D))
             chunk_disp_array     = H5MM_malloc(num_chunk * sizeof(MPI_Aint));
             chunk_mem_disp_array = H5MM_calloc(num_chunk * sizeof(MPI_Aint));
             blocklen             = H5MM_malloc(num_chunk * sizeof(int));
+            mbt_is_derived_array = H5MM_calloc(num_chunk * sizeof(hbool_t));
+            mft_is_derived_array = H5MM_calloc(num_chunk * sizeof(hbool_t));
 
 #ifdef H5D_DEBUG
 if(H5DEBUG(D))
@@ -945,13 +947,13 @@ if(H5DEBUG(D))
                 /* Disk MPI derived datatype */
                 if(H5S_mpio_space_type(chunk_addr_info_array[u].chunk_info.fspace,
                         type_info->src_type_size, &chunk_ftype[u], &mpi_file_count,
-                        &mpi_file_extra_offset, &local_mft_is_derived) < 0)
+                        &mpi_file_extra_offset, &(mft_is_derived_array[u])) < 0)
                     HGOTO_ERROR(H5E_DATASPACE, H5E_BADTYPE, FAIL, "couldn't create MPI file type")
 
                 /* Buffer MPI derived datatype */
                 if(H5S_mpio_space_type(chunk_addr_info_array[u].chunk_info.mspace,
                         type_info->dst_type_size, &chunk_mtype[u], &mpi_mem_count,
-                        &mpi_mem_extra_offset, &locl_mbt_is_derived) < 0)
+                        &mpi_mem_extra_offset, &(mbt_is_derived_array[u])) < 0)
                     HGOTO_ERROR(H5E_DATASPACE, H5E_BADTYPE, FAIL, "couldn't create MPI buf type")
 
                 /* Chunk address relative to the first chunk */
@@ -980,11 +982,21 @@ if(H5DEBUG(D))
 
             /* Free the file & memory MPI datatypes for each chunk */
             for(u = 0; u < num_chunk; u++) {
-                if(MPI_SUCCESS != (mpi_code = MPI_Type_free(chunk_mtype + u)))
-                    HMPI_DONE_ERROR(FAIL, "MPI_Type_free failed", mpi_code)
+                if ( mft_is_derived_array[u] ) {
 
-                if(MPI_SUCCESS != (mpi_code = MPI_Type_free(chunk_ftype + u)))
-                    HMPI_DONE_ERROR(FAIL, "MPI_Type_free failed", mpi_code)
+                    if ( MPI_SUCCESS != 
+                         (mpi_code = MPI_Type_free(chunk_mtype + u)) ) {
+                        HMPI_DONE_ERROR(FAIL, "MPI_Type_free failed", mpi_code)
+                    }
+                }
+
+                if ( mbt_is_derived_array[u] ) {
+
+                    if ( MPI_SUCCESS != 
+                         (mpi_code = MPI_Type_free(chunk_ftype + u)) ) {
+                        HMPI_DONE_ERROR(FAIL, "MPI_Type_free failed", mpi_code)
+                    }
+                }
             } /* end for */
 
             /* buffer, file derived datatypes should be true */
@@ -1046,6 +1058,10 @@ if(H5DEBUG(D))
         H5MM_xfree(chunk_mem_disp_array);
     if(blocklen)
         H5MM_xfree(blocklen);
+    if(mbt_is_derived_array)
+	H5MM_xfree(mbt_is_derived_array);
+    if(mft_is_derived_array)
+        H5MM_xfree(mft_is_derived_array);
 
     /* Free the MPI buf and file types, if they were derived */
     if(mbt_is_derived && MPI_SUCCESS != (mpi_code = MPI_Type_free(&chunk_final_mtype)))
