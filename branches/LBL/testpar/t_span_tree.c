@@ -2626,17 +2626,238 @@ lower_dim_size_comp_test(void)
 
         chunk_edge_size = 0;
         lower_dim_size_comp_test__run_test(chunk_edge_size,
-                                           use_collective_io,
+                                           (hbool_t)use_collective_io,
                                            dset_type);
 
 
         chunk_edge_size = 5;
         lower_dim_size_comp_test__run_test(chunk_edge_size,
-                                           use_collective_io,
+                                           (hbool_t)use_collective_io,
                                            dset_type);
     }
 
     return;
 
 } /* lower_dim_size_comp_test() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	link_chunk_collective_io_test()
+ *
+ * Purpose:	Test to verify that an error in MPI type management in 
+ *		H5D_link_chunk_collective_io() has been corrected.
+ *		In this bug, we used to free MPI types regardless of 
+ *		whether they were basic or derived.
+ *
+ *		This test is based on a bug report kindly provided by
+ *		Rob Latham of the MPICH team and ANL.
+ *
+ *		The basic thrust of the test is to cause a process
+ *		to participate in a collective I/O in which it:
+ *
+ *		1) Reads or writes exactly one chunk,
+ *
+ *		2) Has no in memory buffer for any other chunk.
+ *
+ *		The test differers from Rob Latham's bug report in 
+ *		that is runs with an arbitrary number of proceeses,
+ *		and uses a 1 dimensional dataset.
+ *
+ * Return:	void
+ *
+ * Programmer:	JRM -- 12/16/09
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+
+#define LINK_CHUNK_COLLECTIVE_IO_TEST_CHUNK_SIZE	16
+
+void
+link_chunk_collective_io_test(void)
+{
+    /* const char *fcnName = "link_chunk_collective_io_test()"; */
+    const char *filename;
+    hbool_t    mis_match = FALSE;
+    hbool_t    use_gpfs = FALSE;   /* Use GPFS hints */
+    int	       i;
+    int	       mrc;
+    int        mpi_rank;
+    int        mpi_size;
+    MPI_Comm   mpi_comm = MPI_COMM_WORLD;
+    MPI_Info   mpi_info = MPI_INFO_NULL;
+    hsize_t    count[1] = {1};
+    hsize_t    stride[1] = {2 * LINK_CHUNK_COLLECTIVE_IO_TEST_CHUNK_SIZE};
+    hsize_t    block[1] = {LINK_CHUNK_COLLECTIVE_IO_TEST_CHUNK_SIZE};
+    hsize_t    start[1];
+    hsize_t    dims[1];
+    hsize_t    chunk_dims[1] = {LINK_CHUNK_COLLECTIVE_IO_TEST_CHUNK_SIZE};
+    herr_t     ret;            /* Generic return value */
+    hid_t      file_id;
+    hid_t      acc_tpl;
+    hid_t      dset_id;
+    hid_t      file_ds_sid;
+    hid_t      write_mem_ds_sid;
+    hid_t      read_mem_ds_sid;
+    hid_t      ds_dcpl_id;
+    hid_t      xfer_plist;
+    double     diff;
+    double     expected_value;
+    double     local_data_written[LINK_CHUNK_COLLECTIVE_IO_TEST_CHUNK_SIZE];
+    double     local_data_read[LINK_CHUNK_COLLECTIVE_IO_TEST_CHUNK_SIZE];
+
+    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+
+    HDassert( mpi_size > 0 );
+
+    /* get the file name */
+    filename = (const char *)GetTestParameters();
+    HDassert( filename != NULL );
+
+    /* setup file access template */
+    acc_tpl = create_faccess_plist(mpi_comm, mpi_info, facc_type, use_gpfs);
+    VRFY((acc_tpl >= 0), "create_faccess_plist() succeeded");
+
+    /* create the file collectively */
+    file_id = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, acc_tpl);
+    VRFY((file_id >= 0), "H5Fcreate succeeded");
+
+    MESG("File opened.");
+
+    /* Release file-access template */
+    ret = H5Pclose(acc_tpl);
+    VRFY((ret >= 0), "H5Pclose(acc_tpl) succeeded");
+
+    /* setup dims */
+    dims[0] = ((hsize_t)mpi_size) * ((hsize_t)(LINK_CHUNK_COLLECTIVE_IO_TEST_CHUNK_SIZE));
+
+    /* setup mem and file data spaces */
+    write_mem_ds_sid = H5Screate_simple(1, chunk_dims, NULL);
+    VRFY((write_mem_ds_sid != 0),
+         "H5Screate_simple() write_mem_ds_sid succeeded");
+
+    read_mem_ds_sid = H5Screate_simple(1, chunk_dims, NULL);
+    VRFY((read_mem_ds_sid != 0),
+         "H5Screate_simple() read_mem_ds_sid succeeded");
+
+    file_ds_sid = H5Screate_simple(1, dims, NULL);
+    VRFY((file_ds_sid != 0),
+         "H5Screate_simple() file_ds_sid succeeded");
+
+    /* setup data set creation property list */
+    ds_dcpl_id = H5Pcreate(H5P_DATASET_CREATE);
+    VRFY((ds_dcpl_id != FAIL), "H5Pcreate() ds_dcpl_id succeeded");
+
+    ret = H5Pset_layout(ds_dcpl_id, H5D_CHUNKED);
+    VRFY((ret != FAIL), "H5Pset_layout() ds_dcpl_id succeeded");
+
+    ret = H5Pset_chunk(ds_dcpl_id, 1, chunk_dims);
+    VRFY((ret != FAIL), "H5Pset_chunk() small_ds_dcpl_id succeeded");
+
+    /* create the data set */
+    dset_id = H5Dcreate2(file_id, "dataset", H5T_NATIVE_DOUBLE,
+                         file_ds_sid, H5P_DEFAULT,
+                         ds_dcpl_id, H5P_DEFAULT);
+    VRFY((dset_id >= 0), "H5Dcreate2() dataset succeeded");
+
+    /* close the dataset creation property list */
+    ret = H5Pclose(ds_dcpl_id);
+    VRFY((ret >= 0), "H5Pclose(ds_dcpl_id) succeeded");
+
+    /* setup local data */
+    expected_value = (double)(LINK_CHUNK_COLLECTIVE_IO_TEST_CHUNK_SIZE) *
+                     (double)(mpi_rank);
+    for ( i = 0; i < LINK_CHUNK_COLLECTIVE_IO_TEST_CHUNK_SIZE; i++ ) {
+
+        local_data_written[i] = expected_value;
+	local_data_read[i] = 0.0;
+	expected_value += 1.0;
+    }
+
+    /* select the file and mem spaces */
+    start[0] = (hsize_t)(mpi_rank * LINK_CHUNK_COLLECTIVE_IO_TEST_CHUNK_SIZE);
+    ret = H5Sselect_hyperslab(file_ds_sid,
+                              H5S_SELECT_SET,
+                              start,
+                              stride,
+                              count,
+                              block);
+    VRFY((ret >= 0), "H5Sselect_hyperslab(file_ds_sid, set) suceeded");
+
+    ret = H5Sselect_all(write_mem_ds_sid);
+    VRFY((ret != FAIL), "H5Sselect_all(mem_ds_sid) succeeded");
+
+    /* Note that we use NO SELECTION on the read memory dataspace */
+
+    /* setup xfer property list */
+    xfer_plist = H5Pcreate(H5P_DATASET_XFER);
+    VRFY((xfer_plist >= 0), "H5Pcreate(H5P_DATASET_XFER) succeeded");
+
+    ret = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
+    VRFY((ret >= 0), "H5Pset_dxpl_mpio succeeded");
+
+    /* write the data set */
+    ret = H5Dwrite(dset_id, 
+                   H5T_NATIVE_DOUBLE, 
+                   write_mem_ds_sid, 
+                   file_ds_sid,
+                   xfer_plist, 
+                   local_data_written);
+
+    VRFY((ret >= 0), "H5Dwrite() dataset initial write succeeded");
+    
+    /* sync with the other processes before checking data */
+    mrc = MPI_Barrier(MPI_COMM_WORLD);
+    VRFY((mrc==MPI_SUCCESS), "Sync after dataset write");
+
+    /* read this processes slice of the dataset back in */
+    ret = H5Dread(dset_id,
+                  H5T_NATIVE_DOUBLE,
+                  read_mem_ds_sid,
+                  file_ds_sid,
+                  xfer_plist,
+                  local_data_read);
+    VRFY((ret >= 0), "H5Dread() dataset read succeeded");
+
+    /* close the xfer property list */
+    ret = H5Pclose(xfer_plist);
+    VRFY((ret >= 0), "H5Pclose(xfer_plist) succeeded");
+
+    /* verify the data */
+    mis_match = FALSE;
+    for ( i = 0; i < LINK_CHUNK_COLLECTIVE_IO_TEST_CHUNK_SIZE; i++ ) {
+
+        diff = local_data_written[i] - local_data_read[i];
+        diff = fabs(diff);
+
+        if ( diff >= 0.001 ) {
+
+            mis_match = TRUE;
+        } 
+    }
+    VRFY( (mis_match == FALSE), "dataset data good.");
+
+    /* Close dataspaces */
+    ret = H5Sclose(write_mem_ds_sid);
+    VRFY((ret != FAIL), "H5Sclose(write_mem_ds_sid) succeeded");
+
+    ret = H5Sclose(read_mem_ds_sid);
+    VRFY((ret != FAIL), "H5Sclose(read_mem_ds_sid) succeeded");
+
+    ret = H5Sclose(file_ds_sid);
+    VRFY((ret != FAIL), "H5Sclose(file_ds_sid) succeeded");
+
+    /* Close Dataset */
+    ret = H5Dclose(dset_id);
+    VRFY((ret != FAIL), "H5Dclose(dset_id) succeeded");
+
+    /* close the file collectively */
+    ret = H5Fclose(file_id);
+    VRFY((ret != FAIL), "file close succeeded");
+
+    return;
+
+} /* link_chunk_collective_io_test() */
 

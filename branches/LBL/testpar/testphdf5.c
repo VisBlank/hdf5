@@ -477,6 +477,11 @@ int main(int argc, char **argv)
             "test lower dim size comp in span tree to mpi derived type", 
             PARATESTFILE);
 
+    AddTest("lccio",
+            link_chunk_collective_io_test, NULL,
+            "test mpi derived type management", 
+            PARATESTFILE);
+
     /* rank projections / shape same tests */
 
     AddTest("chsssdrpio",
@@ -486,7 +491,6 @@ int main(int argc, char **argv)
     AddTest("cbhsssdrpio",
 	checker_board_hyperslab_dr_pio_test, NULL,
 	"checker board hyperslab shape same different rank PIO",PARATESTFILE);
-
 
     /* Display testing information */
     TestInfo(argv[0]);

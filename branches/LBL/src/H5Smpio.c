@@ -112,6 +112,8 @@ static herr_t H5S_obtain_datatype(const hsize_t size[],
  *
  *-------------------------------------------------------------------------
  */
+
+#define H5S_MPIO_ALL_TYPE__DEBUG 0
 static herr_t
 H5S_mpio_all_type( const H5S_t *space, size_t elmt_size,
 		     /* out: */
@@ -124,8 +126,19 @@ H5S_mpio_all_type( const H5S_t *space, size_t elmt_size,
     hssize_t	snelmts;                /*total number of elmts	(signed) */
     hsize_t	nelmts;                 /*total number of elmts	*/
     herr_t		ret_value = SUCCEED;
+#if H5S_MPIO_ALL_TYPE__DEBUG
+    int        mpi_rank;
+    MPI_Comm   mpi_comm = MPI_COMM_WORLD;
+#endif /* H5S_MPIO_ALL_TYPE__DEBUG */
 
     FUNC_ENTER_NOAPI_NOINIT(H5S_mpio_all_type)
+
+#if H5S_MPIO_ALL_TYPE__DEBUG
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+    HDfprintf(stdout, "%s:%d: entering.\n", FUNC, mpi_rank);    
+    HDfprintf(stdout, "%s:%d: elmt_size = %d.\n", 
+              FUNC, mpi_rank, (int)elmt_size);    
+#endif /* H5S_MPIO_ALL_TYPE__DEBUG */
 
     /* Check args */
     HDassert(space);
@@ -143,7 +156,25 @@ H5S_mpio_all_type( const H5S_t *space, size_t elmt_size,
     *extra_offset = 0;
     *is_derived_type = FALSE;
 
+#if H5S_MPIO_ALL_TYPE__DEBUG
+    HDfprintf(stdout, "%s:%d: snelmts = %lld.\n", 
+              FUNC, mpi_rank, (unsigned long long)snelmts);    
+    HDfprintf(stdout, "%s:%d: nelmts = %d.\n", FUNC, mpi_rank, (int)nelmts);    
+    HDfprintf(stdout, "%s:%d: total_bytes = %d.\n", 
+              FUNC, mpi_rank, (int)total_bytes);    
+    HDfprintf(stdout, "%s:%d: *count = %d.\n", FUNC, mpi_rank, (int)(*count));
+    HDfprintf(stdout, "%s:%d: *extra_offset = %d.\n", 
+              FUNC, mpi_rank, (int)(*extra_offset));    
+    HDfprintf(stdout, "%s:%d: *is_derived_type = %d.\n", 
+              FUNC, mpi_rank, (int)(*is_derived_type));    
+#endif /* H5S_MPIO_ALL_TYPE__DEBUG */
+
 done:
+
+#if H5S_MPIO_ALL_TYPE__DEBUG
+    HDfprintf(stdout, "%s:%d: exiting.\n", FUNC, mpi_rank);    
+#endif /* H5S_MPIO_ALL_TYPE__DEBUG */
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5S_mpio_all_type() */
 
@@ -992,11 +1023,16 @@ H5S_mpio_space_type( const H5S_t *space, size_t elmt_size,
 		     hbool_t *is_derived_type )
 {
     herr_t	ret_value = SUCCEED;
+#if H5S_MPIO_SPACE_TYPE__DEBUG
+    int        mpi_rank;
+    MPI_Comm   mpi_comm = MPI_COMM_WORLD;
+#endif /* H5S_MPIO_SPACE_TYPE__DEBUG */
 
     FUNC_ENTER_NOAPI_NOINIT(H5S_mpio_space_type);
 
 #if H5S_MPIO_SPACE_TYPE__DEBUG
-    HDfprintf(stdout, "%s: entering.\n", FUNC);
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+    HDfprintf(stdout, "%s:%d: entering.\n", FUNC, mpi_rank);
 #endif /* H5S_MPIO_SPACE_TYPE__DEBUG */
 
     /* Check args */
@@ -1010,7 +1046,8 @@ H5S_mpio_space_type( const H5S_t *space, size_t elmt_size,
             switch(H5S_GET_SELECT_TYPE(space)) {
                 case H5S_SEL_NONE:
 #if H5S_MPIO_SPACE_TYPE__DEBUG
-                    HDfprintf(stdout, "%s: select type == none.\n", FUNC);
+                    HDfprintf(stdout, "%s:%d: select type == none.\n", 
+                              FUNC, mpi_rank);
 #endif /* H5S_MPIO_SPACE_TYPE__DEBUG */
                     if ( H5S_mpio_none_type( space, elmt_size,
                         /* out: */ new_type, count, extra_offset, is_derived_type ) <0)
@@ -1019,7 +1056,8 @@ H5S_mpio_space_type( const H5S_t *space, size_t elmt_size,
 
                 case H5S_SEL_ALL:
 #if H5S_MPIO_SPACE_TYPE__DEBUG
-                    HDfprintf(stdout, "%s: select type == all.\n", FUNC);
+                    HDfprintf(stdout, "%s:%d: select type == all.\n", 
+                              FUNC, mpi_rank);
 #endif /* H5S_MPIO_SPACE_TYPE__DEBUG */
                     if ( H5S_mpio_all_type( space, elmt_size,
                         /* out: */ new_type, count, extra_offset, is_derived_type ) <0)
@@ -1028,7 +1066,8 @@ H5S_mpio_space_type( const H5S_t *space, size_t elmt_size,
 
                 case H5S_SEL_POINTS:
 #if H5S_MPIO_SPACE_TYPE__DEBUG
-                    HDfprintf(stdout, "%s: select type == points.\n", FUNC);
+                    HDfprintf(stdout, "%s:%d: select type == points.\n", 
+                              FUNC, mpi_rank);
 #endif /* H5S_MPIO_SPACE_TYPE__DEBUG */
                     /* not yet implemented */
                     ret_value = FAIL;
@@ -1036,13 +1075,14 @@ H5S_mpio_space_type( const H5S_t *space, size_t elmt_size,
 
                 case H5S_SEL_HYPERSLABS:
 #if H5S_MPIO_SPACE_TYPE__DEBUG
-                    HDfprintf(stdout, "%s: select type == hyperslab.\n", FUNC);
+                    HDfprintf(stdout, "%s:%d: select type == hyperslab.\n", 
+                              FUNC, mpi_rank);
 #endif /* H5S_MPIO_SPACE_TYPE__DEBUG */
 		  if((H5S_SELECT_IS_REGULAR(space) == TRUE)) {
 #if H5S_MPIO_SPACE_TYPE__DEBUG
                         HDfprintf(stdout, 
-                                  "%s: H5S_SELECT_IS_REGULAR(space) == TRUE -- calling H5S_mpio_hyper_type().\n", 
-                                  FUNC);
+                                  "%s:%d: H5S_SELECT_IS_REGULAR(space) == TRUE -- calling H5S_mpio_hyper_type().\n", 
+                                  FUNC, mpi_rank);
 #endif /* H5S_MPIO_SPACE_TYPE__DEBUG */
 
 		    if(H5S_mpio_hyper_type( space, elmt_size,
@@ -1052,8 +1092,8 @@ H5S_mpio_space_type( const H5S_t *space, size_t elmt_size,
 		     else {
 #if H5S_MPIO_SPACE_TYPE__DEBUG
                         HDfprintf(stdout, 
-                                 "%s: (H5S_SELECT_IS_REGULAR(space) == FALSE -- calling H5S_mpio_span_hyper_type().\n", 
-                                 FUNC);
+                                 "%s:%d: (H5S_SELECT_IS_REGULAR(space) == FALSE -- calling H5S_mpio_span_hyper_type().\n", 
+                                 FUNC, mpi_rank);
 #endif /* H5S_MPIO_SPACE_TYPE__DEBUG */
 		       if(H5S_mpio_span_hyper_type( space, elmt_size,
                             /* out: */ new_type, count, extra_offset, is_derived_type )<0)
@@ -1075,6 +1115,11 @@ H5S_mpio_space_type( const H5S_t *space, size_t elmt_size,
 done:
 
 #if H5S_MPIO_SPACE_TYPE__DEBUG
+    HDfprintf(stdout, "%s:%d: *count = %d.\n", FUNC, mpi_rank, (int)(*count));
+    HDfprintf(stdout, "%s:%d: *extra_offset = %d.\n", 
+              FUNC, mpi_rank, (int)(*extra_offset));    
+    HDfprintf(stdout, "%s:%d: *is_derived_type = %d.\n", 
+              FUNC, mpi_rank, (int)(*is_derived_type));    
     HDfprintf(stdout, "%s: exiting.\n", FUNC);
 #endif /* H5S_MPIO_SPACE_TYPE__DEBUG */
 
