@@ -789,11 +789,11 @@ H5HG_link (H5F_t *f, hid_t dxpl_id, const H5HG_t *hobj, int adjust)
     if (0==(f->intent & H5F_ACC_RDWR))
 	HGOTO_ERROR(H5E_HEAP, H5E_WRITEERROR, FAIL, "no write intent on file")
 
-    if(adjust!=0) {
-        /* Load the heap */
-        if (NULL == (heap = (H5HG_heap_t *)H5AC_protect(f, dxpl_id, H5AC_GHEAP, hobj->addr, NULL, NULL, H5AC_WRITE)))
-            HGOTO_ERROR(H5E_HEAP, H5E_CANTLOAD, FAIL, "unable to load heap")
+    /* Load the heap */
+    if (NULL == (heap = (H5HG_heap_t *)H5AC_protect(f, dxpl_id, H5AC_GHEAP, hobj->addr, NULL, NULL, H5AC_WRITE)))
+        HGOTO_ERROR(H5E_HEAP, H5E_CANTLOAD, FAIL, "unable to load heap")
 
+    if(adjust!=0) {
         assert (hobj->idx<heap->nused);
         assert (heap->obj[hobj->idx].begin);
         if (heap->obj[hobj->idx].nrefs+adjust<0)
@@ -805,8 +805,7 @@ H5HG_link (H5F_t *f, hid_t dxpl_id, const H5HG_t *hobj, int adjust)
     } /* end if */
 
     /* Set return value */
-    if (heap)
-        ret_value=heap->obj[hobj->idx].nrefs;
+    ret_value=heap->obj[hobj->idx].nrefs;
 
 done:
     if (heap && H5AC_unprotect(f, dxpl_id, H5AC_GHEAP, hobj->addr, heap, heap_flags)<0)
