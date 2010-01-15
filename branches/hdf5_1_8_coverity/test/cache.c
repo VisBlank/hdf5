@@ -28745,7 +28745,7 @@ check_auto_cache_resize_aux_fcns(void)
         }
     }
 
-    if ( pass ) {
+    if ( cache_ptr ) {
 
         takedown_cache(cache_ptr, FALSE, FALSE);
     }
