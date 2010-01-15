@@ -14543,23 +14543,8 @@ check_rename_entry__run_test(H5C_t * cache_ptr,
     test_entry_t * entry_ptr = NULL;
     H5C_cache_entry_t * test_ptr = NULL;
 
-    if ( cache_ptr == NULL ) {
-
-        pass = FALSE;
-        HDsnprintf(msg, (size_t)128,
-                   "cache_ptr NULL on entry to rename test #%d.",
-                   test_num);
-        failure_mssg = msg;
-
-    } else if ( spec_ptr == NULL ) {
-
-        pass = FALSE;
-        HDsnprintf(msg, (size_t)128,
-                   "spec_ptr NULL on entry to rename test #%d.",
-                   test_num);
-        failure_mssg = msg;
-
-    }
+    assert( cache_ptr );
+    assert( spec_ptr );
 
     if ( pass ) {
 
