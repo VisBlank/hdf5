@@ -14,6 +14,7 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "t.h"
+#include "H5Eprivate.h"
 
 /*----------------------------------------------------------------------------
  * Name:        h5_fixname_c
@@ -32,8 +33,8 @@ int_f
 nh5_fixname_c(_fcd base_name, size_t_f *base_namelen, hid_t_f* fapl, _fcd full_name, size_t_f *full_namelen)
 {
      int ret_value = -1;
-     char *c_base_name;
-     char *c_full_name;
+     char *c_base_name = NULL;
+     char *c_full_name = NULL;
      hid_t c_fapl;
 
      /*
@@ -43,23 +44,24 @@ nh5_fixname_c(_fcd base_name, size_t_f *base_namelen, hid_t_f* fapl, _fcd full_n
      /*
       * Convert FORTRAN name to C name
       */
-     c_base_name = (char *)HD5f2cstring(base_name, (size_t)*base_namelen);
-     if (c_base_name == NULL) goto DONE;
-     c_full_name = (char *) HDmalloc((size_t)*full_namelen + 1);
-     if (c_full_name == NULL) goto DONE;
+     if(NULL == (c_base_name = (char *)HD5f2cstring(base_name, (size_t)*base_namelen)))
+         HGOTO_DONE(FAIL);
+     if(NULL == (c_full_name = (char *) HDmalloc((size_t)*full_namelen + 1)))
+         HGOTO_DONE(FAIL);
 
      /*
       * Call h5_fixname function.
       */
-     if (NULL != h5_fixname(c_base_name, c_fapl, c_full_name, (size_t)*full_namelen + 1)) {
-         HD5packFstring(c_full_name, _fcdtocp(full_name), (size_t)*full_namelen);
-         ret_value = 0;
-         goto DONE;
-     }
+     if (NULL == h5_fixname(c_base_name, c_fapl, c_full_name, (size_t)*full_namelen + 1))
+         HGOTO_DONE(FAIL);
+     HD5packFstring(c_full_name, _fcdtocp(full_name), (size_t)*full_namelen);
+     ret_value = 0;
 
-DONE:
-     if (NULL != c_base_name) HDfree(c_base_name);
-     if (NULL != c_full_name) HDfree(c_full_name);
+done:
+     if (c_base_name) 
+        HDfree(c_base_name);
+     if (c_full_name) 
+        HDfree(c_full_name);
      return ret_value;
 }
 

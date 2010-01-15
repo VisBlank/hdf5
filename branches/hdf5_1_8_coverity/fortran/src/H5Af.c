@@ -1274,7 +1274,7 @@ nh5aget_name_by_idx_c (hid_t_f *loc_id, _fcd obj_name, size_t_f *obj_namelen,
       * Convert FORTRAN name to C name
       */
     if((c_obj_name = HD5f2cstring(obj_name, (size_t)*obj_namelen)) == NULL)
-      HGOTO_DONE(FAIL);
+        HGOTO_DONE(FAIL);
 
     c_idx_type = (H5_index_t)*idx_type;
     c_order = (H5_iter_order_t)*order;
@@ -1283,8 +1283,8 @@ nh5aget_name_by_idx_c (hid_t_f *loc_id, _fcd obj_name, size_t_f *obj_namelen,
      * Allocate buffer to hold name of an attribute
      */
     c_buf_size = (size_t)*size + 1;
-    c_buf = (char *)HDmalloc(c_buf_size);
-    if (c_buf == NULL) return ret_value;
+    if(NULL ==( c_buf = (char *)HDmalloc(c_buf_size)))
+        HGOTO_DONE(FAIL);
      /*
       * Call H5Aget_name_by_idx function.
       */
@@ -1301,8 +1301,9 @@ nh5aget_name_by_idx_c (hid_t_f *loc_id, _fcd obj_name, size_t_f *obj_namelen,
 
 done:
    if(c_obj_name)
-      HDfree(c_obj_name);
-   HDfree(c_buf);
+       HDfree(c_obj_name);
+   if(c_buf)
+       HDfree(c_buf);
     return ret_value;
 }
 
@@ -1475,6 +1476,8 @@ nh5aget_info_by_idx_c (hid_t_f *loc_id, _fcd obj_name, size_t_f *obj_namelen,
     *data_size = (hsize_t)ainfo.data_size;
 
 done:
+    HDfree(c_obj_name);
+
     return ret_value;
 }
 
@@ -1534,6 +1537,10 @@ nh5aget_info_by_name_c (hid_t_f *loc_id, _fcd obj_name, size_t_f *obj_namelen,
     *data_size = (hsize_t)ainfo.data_size;
 
 done:
+    if(c_obj_name)
+        HDfree(c_obj_name);
+    if(c_attr_name)
+        HDfree(c_attr_name);
     return ret_value;
 }
 

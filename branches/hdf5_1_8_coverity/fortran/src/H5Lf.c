@@ -565,6 +565,10 @@ nh5lmove_c(hid_t_f *src_loc_id, _fcd src_name, size_t_f *src_namelen, hid_t_f *d
 	       c_dest_name, (hid_t)*lcpl_id, (hid_t)*lapl_id) < 0)
       HGOTO_DONE(FAIL);
 done:
+    if(c_src_name)
+        HDfree(c_src_name);
+    if(c_dest_name)
+        HDfree(c_dest_name);
     return ret_value;
 }
 

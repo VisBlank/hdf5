@@ -17,7 +17,7 @@
 
 #include "H5IMcc.h"
 #include "H5LTf90proto.h"
-
+#include "H5Eprivate.h"
 
 /*-------------------------------------------------------------------------
 * Function: h5immake_image_8bit_c
@@ -382,7 +382,7 @@ nh5immake_palette_c (hid_t_f *loc_id,
     hid_t   c_loc_id;
     char    *c_name = NULL;
     int     c_namelen;
-    hsize_t *c_dims;
+    hsize_t *c_dims = NULL;
     int     i;
     int     rank=2;
 
@@ -390,13 +390,11 @@ nh5immake_palette_c (hid_t_f *loc_id,
     * convert FORTRAN name to C name
     */
     c_namelen = *namelen;
-    c_name = (char *)HD5f2cstring(name, c_namelen);
-    if (c_name == NULL) 
-        goto done;
+    if(NULL == (c_name = (char *)HD5f2cstring(name, c_namelen)))
+        HGOTO_DONE(FAIL);
 
-    c_dims =  malloc(sizeof(hsize_t) * (rank ));
-    if (c_dims == NULL)
-        goto done;
+    if(NULL == (c_dims =  malloc(sizeof(hsize_t) * (rank ))))
+        HGOTO_DONE(FAIL);
 
     for (i = 0; i < rank ; i++) 
     {
@@ -411,15 +409,15 @@ nh5immake_palette_c (hid_t_f *loc_id,
     ret = H5IMmake_palettef(c_loc_id,c_name,c_dims,buf);
 
     if (ret < 0) 
-        goto done;
+        HGOTO_DONE(FAIL);
 
     ret_value = 0;
 
 done:
-    if(c_name!=NULL)
-        free(c_name);
-    if(c_dims!=NULL)
-        free(c_dims);
+    if(c_name)
+        HDfree(c_name);
+    if(c_dims)
+        HDfree(c_dims);
 
     return ret_value;
 }

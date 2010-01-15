@@ -17,6 +17,7 @@
 /* This files contains C stubs for H5P Fortran APIs */
 
 #include "H5f90.h"
+#include "H5Eprivate.h"
 
 /*----------------------------------------------------------------------------
  * Name:        h5pcreate_c
@@ -32,16 +33,16 @@
 int_f
 nh5pcreate_c ( hid_t_f *class, hid_t_f *prp_id )
 {
-  hid_t c_class;
-  int ret_value = 0;
-  hid_t c_prp_id;
+    hid_t c_class;
+    int ret_value = 0;
+    hid_t c_prp_id;
 
-  c_class = (hid_t)*class;
-  c_prp_id = H5Pcreate(c_class);
+    c_class = (hid_t)*class;
+    c_prp_id = H5Pcreate(c_class);
 
-  if ( c_prp_id  < 0  ) ret_value = -1;
-  *prp_id = (hid_t_f)c_prp_id;
-  return ret_value;
+    if ( c_prp_id  < 0  ) ret_value = -1;
+    *prp_id = (hid_t_f)c_prp_id;
+    return ret_value;
 }
 
 /*----------------------------------------------------------------------------
@@ -3962,33 +3963,36 @@ nh5pget_copy_object_c(hid_t_f *ocp_plist_id, int_f *copy_options)
 int_f
 nh5pget_data_transform_c(hid_t_f *plist_id, _fcd expression, int_f *expression_len, size_t_f *size)
 {
-     int_f ret_value = -1;
-     char *c_expression = NULL;          /* Buffer to hold C string */
-     size_t c_expression_len;
-     ssize_t ret;
+    int_f ret_value = -1;
+    char *c_expression = NULL;          /* Buffer to hold C string */
+    size_t c_expression_len;
+    ssize_t ret;
 
 
-     c_expression_len = (size_t)*expression_len + 1;
+    c_expression_len = (size_t)*expression_len + 1;
 
-     /* should expression_len be size_t_f? */
-     /*
-      * Allocate memory to store the expression.
-      */
-     if( c_expression_len) c_expression = (char*) HDmalloc(c_expression_len);
-     if (c_expression == NULL) return ret_value;
+    /* should expression_len be size_t_f? */
+    /*
+     * Allocate memory to store the expression.
+     */
+    if( c_expression_len) c_expression = (char*) HDmalloc(c_expression_len);
+    if (c_expression == NULL) 
+       HGOTO_DONE(FAIL);
+    /*
+     * Call h5pget_data_transform function.
+     */
+    ret = H5Pget_data_transform((hid_t)*plist_id, c_expression, c_expression_len);
+    if(ret < 0) return ret_value;
+    /* or strlen ? */
+    HD5packFstring(c_expression, _fcdtocp(expression), c_expression_len-1);
 
-     /*
-      * Call h5pget_data_transform function.
-      */
-     ret = H5Pget_data_transform((hid_t)*plist_id, c_expression, c_expression_len);
-     if(ret < 0) return ret_value;
-     /* or strlen ? */
-     HD5packFstring(c_expression, _fcdtocp(expression), c_expression_len-1);
+    *size = (size_t_f)ret;
 
-     *size = (size_t_f)ret;
-
-     ret_value = 0;
-     return ret_value;
+    ret_value = 0;
+    done:
+        if(c_expression)
+            HDfree(c_expression);     
+    return ret_value;
 }
 
 /*----------------------------------------------------------------------------
