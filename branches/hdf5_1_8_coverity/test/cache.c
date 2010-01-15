@@ -14584,12 +14584,16 @@ check_rename_entry__run_test(H5C_t * cache_ptr,
         }
     }
 
-    protect_entry(cache_ptr, spec_ptr->entry_type, spec_ptr->entry_index);
+    if ( pass ) {
 
-    unprotect_entry(cache_ptr, spec_ptr->entry_type, spec_ptr->entry_index,
-                    (int)(spec_ptr->is_dirty), flags);
+        protect_entry(cache_ptr, spec_ptr->entry_type, spec_ptr->entry_index);
 
-    rename_entry(cache_ptr, spec_ptr->entry_type, spec_ptr->entry_index, FALSE);
+        unprotect_entry(cache_ptr, spec_ptr->entry_type, spec_ptr->entry_index,
+                        (int)(spec_ptr->is_dirty), flags);
+
+        rename_entry(cache_ptr, spec_ptr->entry_type, spec_ptr->entry_index, FALSE);
+
+    }
 
     if ( pass ) {
 
