@@ -1303,7 +1303,6 @@ done:
  * Modifications: Christian Chilan 01/17/2007
  *                Verifies that each element of DIMS is not equal to
  *                H5S_UNLIMITED.
- *
  *-------------------------------------------------------------------------
  */
 hid_t
@@ -1321,10 +1320,14 @@ H5Screate_simple(int rank, const hsize_t dims[/*rank*/],
     if (rank<0)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "dimensionality cannot be negative")
     if (rank>H5S_MAX_RANK)
-	HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "dimensionality is too large")
-    if (!dims && dims!=0)
-        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "no dimensions specified")
-    /* Check whether the current dimensions are valid */
+	    HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "dimensionality is too large")
+
+    /* We allow users to use this function to create scalar or null dataspace.
+     * Check DIMS isn't set when the RANK is 0. */
+    if(!dims && rank!=0)
+        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "invalid dataspace information")
+
+   /* Check whether the current dimensions are valid */
     for (i=0; i<rank; i++) {
         if (H5S_UNLIMITED==dims[i])
             HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "current dimension must have a specific size, not H5S_UNLIMITED")
