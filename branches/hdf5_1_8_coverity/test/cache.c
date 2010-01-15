@@ -17928,7 +17928,7 @@ check_check_evictions_enabled_err(void)
     }
 
 
-    if ( pass ) {
+    if ( cache_ptr ) {
 
         takedown_cache(cache_ptr, FALSE, FALSE);
     }
