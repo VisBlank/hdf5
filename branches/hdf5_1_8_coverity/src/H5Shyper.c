@@ -3541,7 +3541,7 @@ H5S_hyper_add_span_element(H5S_t *space, unsigned rank, hsize_t *coords)
 
     /* Check if this is the first element in the selection */
     if(NULL == space->select.sel_info.hslab) {
-        H5S_hyper_span_info_t *head;  /* Pointer to new head of span tree */
+        H5S_hyper_span_info_t *head = NULL;    /* Pointer to new head of span tree */
 
         /* Allocate a span info node */
         if(NULL == (head = H5FL_MALLOC(H5S_hyper_span_info_t)))
@@ -3554,13 +3554,16 @@ H5S_hyper_add_span_element(H5S_t *space, unsigned rank, hsize_t *coords)
         head->scratch = 0;
 
         /* Build span tree for this coordinate */
-        if(NULL == (head->head = H5S_hyper_coord_to_span(rank, coords)))
+        if(NULL == (head->head = H5S_hyper_coord_to_span(rank, coords))) {
+            H5S_hyper_free_span_info(head);
             HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "can't allocate hyperslab span")
+        }
 
         /* Allocate selection info */
-        if(NULL == (space->select.sel_info.hslab = H5FL_MALLOC(H5S_hyper_sel_t)))
+        if(NULL == (space->select.sel_info.hslab = H5FL_MALLOC(H5S_hyper_sel_t))) {
+            H5S_hyper_free_span_info(head);
             HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "can't allocate hyperslab info")
-
+        }
         /* Set the selection to the new span tree */
         space->select.sel_info.hslab->span_lst = head;
 
@@ -5421,14 +5424,14 @@ static H5S_hyper_span_info_t *
 H5S_hyper_make_spans (unsigned rank, const hsize_t *start, const hsize_t *stride,
     const hsize_t *count, const hsize_t *block)
 {
-    H5S_hyper_span_info_t *down;/* Pointer to spans in next dimension down */
-    H5S_hyper_span_t *span;     /* New hyperslab span */
-    H5S_hyper_span_t *last_span;/* Current position in hyperslab span list */
-    H5S_hyper_span_t *head;     /* Head of new hyperslab span list */
-    hsize_t stride_iter;        /* Iterator over the stride values */
-    int i;                     /* Counters */
-    unsigned u;                    /* Counters */
-    H5S_hyper_span_info_t *ret_value;
+    H5S_hyper_span_info_t *down;             /* Pointer to spans in next dimension down */
+    H5S_hyper_span_t      *span;             /* New hyperslab span */
+    H5S_hyper_span_t      *last_span;        /* Current position in hyperslab span list */
+    H5S_hyper_span_t      *head;             /* Head of new hyperslab span list */
+    hsize_t                stride_iter;      /* Iterator over the stride values */
+    int                    i;                /* Counters */
+    unsigned               u;                /* Counters */
+    H5S_hyper_span_info_t *ret_value = NULL;
 
     FUNC_ENTER_NOAPI_NOINIT(H5S_hyper_make_spans);
 
@@ -5440,65 +5443,89 @@ H5S_hyper_make_spans (unsigned rank, const hsize_t *start, const hsize_t *stride
     assert (block);
 
     /* Start creating spans in fastest changing dimension */
-    down=NULL;
+    down = NULL;
     for(i=(rank-1); i>=0; i--) {
 
         /* Start a new list in this dimension */
-        head=last_span=NULL;
+        head = NULL;
+        last_span = NULL;
 
         /* Generate all the spans segments for this dimension */
         for(u=0, stride_iter=0; u<count[i]; u++,stride_iter+=stride[i]) {
             /* Allocate a span node */
-            if((span = H5FL_MALLOC(H5S_hyper_span_t))==NULL)
+            if((span = H5FL_MALLOC(H5S_hyper_span_t)) == NULL)
                 HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "can't allocate hyperslab span");
 
             /* Set the span's basic information */
-            span->low=start[i]+stride_iter;
-            span->high=span->low+(block[i]-1);
-            span->nelem=block[i];
-            span->pstride=stride[i];
-            span->next=NULL;
+            span->low = start[i] + stride_iter;
+            span->high = span->low + (block[i]-1);
+            span->nelem = block[i];
+            span->pstride = stride[i];
+            span->next = NULL;
 
             /* Append to the list of spans in this dimension */
-            if(head==NULL)
-                head=span;
+            if(head == NULL)
+                head = span;
             else
-                last_span->next=span;
+                last_span->next = span;
 
             /* Move current pointer */
-            last_span=span;
+            last_span = span;
 
             /* Set the information for the next dimension down's spans, if appropriate */
-            if(down!=NULL) {
-                span->down=down;
+            if(down != NULL) {
+                span->down = down;
                 down->count++;  /* Increment reference count for shared span */
             } /* end if */
             else {
-                span->down=NULL;
+                span->down = NULL;
             } /* end else */
         } /* end for */
 
         /* Allocate a span info node */
-        if((down = H5FL_MALLOC(H5S_hyper_span_info_t))==NULL)
+        if((down = H5FL_MALLOC(H5S_hyper_span_info_t)) == NULL)
             HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "can't allocate hyperslab span");
 
         /* Set the reference count */
-        down->count=0;
+        down->count = 0;
 
         /* Reset the scratch pad space */
-        down->scratch=0;
+        down->scratch = 0;
 
         /* Keep the pointer to the next dimension down's completed list */
-        down->head=head;
+        down->head = head;
     } /* end for */
 
     /* Indicate that there is a pointer to this tree */
-    down->count=1;
+    down->count = 1;
 
     /* Success!  Return the head of the list in the slowest changing dimension */
-    ret_value=down;
+    ret_value = down;
 
 done:
+    /* cleanup if error (ret_value will be NULL) */
+    if(!ret_value) {
+        if(head || down) {
+            if(head && down)
+                if(down->head != head)
+                    down = NULL;
+ 
+            do {
+                if(down) {
+                    head = down->head;
+                    H5FL_FREE(H5S_hyper_span_info_t,down);
+                }
+                down = head->down;
+    
+                while(head) {
+                    last_span = head->next;
+                    H5FL_FREE(H5S_hyper_span_t,head);
+                    head = last_span;
+                }   /*end while */
+    
+            } while(down);
+        }
+    }
     FUNC_LEAVE_NOAPI(ret_value);
 }   /* H5S_hyper_make_spans() */
 
