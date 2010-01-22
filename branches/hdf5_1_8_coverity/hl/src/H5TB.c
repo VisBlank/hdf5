@@ -3213,11 +3213,11 @@ herr_t H5TBget_field_info( hid_t loc_id,
                           size_t *field_offsets,
                           size_t *type_size )
 {
-    hid_t         did;    /* dataset ID */
-    hid_t         tid;    /* file type ID */
-    hid_t         n_tid;  /* native type ID */
-    hid_t         m_tid;  /* member type ID */
-    hid_t         nm_tid; /* native member ID */
+    hid_t         did = -1;    /* dataset ID */
+    hid_t         tid = -1;    /* file type ID */
+    hid_t         n_tid = -1;  /* native type ID */
+    hid_t         m_tid = -1;  /* member type ID */
+    hid_t         nm_tid = -1; /* native member ID */
     hssize_t      nfields;
     char          *member_name;
     size_t        member_size;
@@ -3239,8 +3239,7 @@ herr_t H5TBget_field_info( hid_t loc_id,
     /* get the type size */
     size = H5Tget_size( n_tid );
 
-    if ( type_size )
-    {
+    if ( type_size ) {
         *type_size = size;
     }
 
@@ -3249,13 +3248,11 @@ herr_t H5TBget_field_info( hid_t loc_id,
         goto out;
 
     /* iterate tru the members */
-    for ( i = 0; i < nfields; i++)
-    {
+    for ( i = 0; i < nfields; i++) {
         /* get the member name */
         member_name = H5Tget_member_name( tid, (unsigned)i );
 
-        if (field_names )
-        {
+        if (field_names ) {
             strcpy( field_names[i], member_name );
         }
 
@@ -3268,16 +3265,14 @@ herr_t H5TBget_field_info( hid_t loc_id,
         /* get the member size */
         member_size = H5Tget_size( nm_tid );
 
-        if(field_sizes )
-        {
+        if(field_sizes ) {
             field_sizes[i] = member_size;
         }
 
         /* get the member offset */
         member_offset = H5Tget_member_offset( n_tid,(unsigned) i );
 
-        if(field_offsets )
-        {
+        if(field_offsets ) {
             field_offsets[i] = member_offset;
         }
 
@@ -3308,6 +3303,8 @@ out:
         H5Dclose(did);
         H5Tclose(tid);
         H5Tclose(n_tid);
+        H5Tclose(m_tid);
+        H5Tclose(nm_tid);
     } H5E_END_TRY;
     return -1;
 
