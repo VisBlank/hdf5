@@ -861,8 +861,10 @@ H5FD_dxpl_open(H5P_genplist_t *plist, hid_t driver_id, const void *driver_info)
         HGOTO_ERROR (H5E_DATASET, H5E_CANTCOPY, FAIL, "can't copy VFL driver")
 
     /* Set the driver information for the new property list */
-    if(H5P_set(plist, H5D_XFER_VFL_ID_NAME, &driver_id) < 0)
+    if(H5P_set(plist, H5D_XFER_VFL_ID_NAME, &driver_id) < 0) {
+        (void)H5FD_dxpl_close(driver_id, copied_driver_info);
         HGOTO_ERROR (H5E_PLIST, H5E_CANTSET, FAIL, "can't set VFL driver ID")
+    } /* end if */
     if(H5P_set(plist, H5D_XFER_VFL_INFO_NAME, &copied_driver_info) < 0)
         HGOTO_ERROR (H5E_PLIST, H5E_CANTSET, FAIL, "can't set VFL driver info")
 
