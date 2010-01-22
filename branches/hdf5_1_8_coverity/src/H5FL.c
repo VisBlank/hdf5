@@ -1938,8 +1938,8 @@ done:
 H5FL_fac_head_t *
 H5FL_fac_init(size_t size)
 {
-    H5FL_fac_gc_node_t  *new_node;      /* Pointer to the node for the new list to garbage collect */
-    H5FL_fac_head_t     *factory;       /* Pointer to new block factory */
+    H5FL_fac_gc_node_t  *new_node = NULL; /* Pointer to the node for the new list to garbage collect */
+    H5FL_fac_head_t     *factory = NULL; /* Pointer to new block factory */
     H5FL_fac_head_t     *ret_value;     /* Return value */
 
     FUNC_ENTER_NOAPI(H5FL_fac_init, NULL)
@@ -1984,6 +1984,13 @@ H5FL_fac_init(size_t size)
     ret_value=factory;
 
 done:
+    if(!ret_value){
+        if(factory)
+            factory = H5FL_FREE(H5FL_fac_head_t, factory);
+        if(new_node)
+            new_node = H5FL_FREE(H5FL_fac_gc_node_t, new_node);
+    } /* end if */
+
     FUNC_LEAVE_NOAPI(ret_value)
 }   /* end H5FL_fac_init() */
 
