@@ -3982,16 +3982,18 @@ nh5pget_data_transform_c(hid_t_f *plist_id, _fcd expression, int_f *expression_l
      * Call h5pget_data_transform function.
      */
     ret = H5Pget_data_transform((hid_t)*plist_id, c_expression, c_expression_len);
-    if(ret < 0) return ret_value;
+    if(ret < 0)
+       HGOTO_DONE(FAIL);
+        
     /* or strlen ? */
     HD5packFstring(c_expression, _fcdtocp(expression), c_expression_len-1);
 
     *size = (size_t_f)ret;
 
     ret_value = 0;
-    done:
-        if(c_expression)
-            HDfree(c_expression);     
+done:
+    if(c_expression)
+        HDfree(c_expression);     
     return ret_value;
 }
 
