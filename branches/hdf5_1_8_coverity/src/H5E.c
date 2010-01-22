@@ -752,7 +752,7 @@ done:
 static H5E_msg_t *
 H5E_create_msg(H5E_cls_t *cls, H5E_type_t msg_type, const char *msg_str)
 {
-    H5E_msg_t   *msg;           /* Pointer to new error message */
+    H5E_msg_t   *msg = NULL;    /* Pointer to new error message */
     H5E_msg_t   *ret_value;     /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5E_create_msg)
@@ -776,6 +776,9 @@ H5E_create_msg(H5E_cls_t *cls, H5E_type_t msg_type, const char *msg_str)
     ret_value = msg;
 
 done:
+    if(!ret_value && msg)
+        msg = H5FL_FREE(H5E_msg_t, msg);
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5E_create_msg() */
 
