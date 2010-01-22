@@ -413,7 +413,7 @@ done:
 static H5E_cls_t *
 H5E_register_class(const char *cls_name, const char *lib_name, const char *version)
 {
-    H5E_cls_t   *cls;        /* Pointer to error class */
+    H5E_cls_t   *cls = NULL; /* Pointer to error class */
     H5E_cls_t   *ret_value;  /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5E_register_class)
@@ -439,6 +439,9 @@ H5E_register_class(const char *cls_name, const char *lib_name, const char *versi
     ret_value = cls;
 
 done:
+    if(!ret_value && cls)
+        cls = H5FL_FREE(H5E_cls_t, cls);
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5E_register_class() */
 
