@@ -124,7 +124,7 @@ H5Eget_major(H5E_major_t maj)
     H5E_msg_t   *msg;           /* Pointer to error message */
     ssize_t     size = 0;       /* Return value */
     H5E_type_t  type;
-    char        *msg_str;
+    char        *msg_str = NULL;
     char        *ret_value = NULL;
 
     FUNC_ENTER_API_NOCLEAR(H5Eget_major, NULL)
@@ -149,6 +149,9 @@ H5Eget_major(H5E_major_t maj)
     ret_value = msg_str;
 
 done:
+    if(!ret_value)
+        msg_str = (char *)H5MM_xfree(msg_str);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Eget_major() */
 
