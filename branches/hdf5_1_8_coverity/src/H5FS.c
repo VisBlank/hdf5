@@ -511,7 +511,7 @@ H5FS_t *
 H5FS_new(size_t nclasses, const H5FS_section_class_t *classes[],
     void *cls_init_udata)
 {
-    H5FS_t *fspace;             /* Free space manager */
+    H5FS_t *fspace = NULL;      /* Free space manager */
     size_t u;                   /* Local index variable */
     H5FS_t *ret_value;          /* Return value */
 
@@ -559,6 +559,9 @@ H5FS_new(size_t nclasses, const H5FS_section_class_t *classes[],
     ret_value = fspace;
 
 done:
+    if(!ret_value && fspace)
+        fspace = H5FL_FREE(H5FS_t, fspace);
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5FS_new() */
 

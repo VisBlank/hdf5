@@ -975,12 +975,16 @@ HDfprintf(stderr, "%s: sect->size = %Hu, sect->addr = %a\n", FUNC, sect->size, s
         /* Initialize the free list size node */
         fspace_node->sect_size = sect->size;
         fspace_node->serial_count = fspace_node->ghost_count = 0;
-        if(NULL == (fspace_node->sect_list = H5SL_create(H5SL_TYPE_HADDR)))
+        if(NULL == (fspace_node->sect_list = H5SL_create(H5SL_TYPE_HADDR))) {
+            fspace_node = H5FL_FREE(H5FS_node_t, fspace_node);
             HGOTO_ERROR(H5E_FSPACE, H5E_CANTCREATE, FAIL, "can't create skip list for free space nodes")
+        } /* end if */
 
         /* Insert new free space size node into bin's list */
-        if(H5SL_insert(sinfo->bins[bin].bin_list, fspace_node, &fspace_node->sect_size) < 0)
+        if(H5SL_insert(sinfo->bins[bin].bin_list, fspace_node, &fspace_node->sect_size) < 0) {
+            fspace_node = H5FL_FREE(H5FS_node_t, fspace_node);
             HGOTO_ERROR(H5E_FSPACE, H5E_CANTINSERT, FAIL, "can't insert free space node into skip list")
+        } /* end if */
 
         /* Increment number of section sizes */
         sinfo->tot_size_count++;
