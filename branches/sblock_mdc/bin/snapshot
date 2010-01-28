@@ -412,7 +412,7 @@ if [ "$cmd" = "all" -o -n "$cmdtest" -o -n "$cmddiff" ]; then
 	    TIMESTAMP "check-install" && \
 	    ${MAKE} check-install && DISKUSAGE \
 	    TIMESTAMP "uninstall" && \
-	    ${MAKE} uninstall-all) && DISKUSAGE ; then
+	    ${MAKE} uninstall-all && DISKUSAGE); then
 	    :
 	else
 	    errcode=$?
@@ -460,7 +460,9 @@ if [ "$cmd" = "all" -o -n "$cmdrel" ]; then
 	    echo "Making snapshot release ($RELEASE_VERSION) to ${ReleaseDir}..."
 	    bin/release -d $ReleaseDir $METHODS
 	    perl bin/h5vers -i
-	    svn -q commit -m "Snapshot $RELEASE_VERSION"
+            echo "Committing snapshot from current/bin/snapshot."
+            ls
+	    svn -q commit -m "Snapshot $RELEASE_VERSION" .
 	)
 	errcode=$?
     fi

@@ -398,29 +398,29 @@ H5FD_core_open(const char *name, unsigned flags, hid_t fapl_id,
     FUNC_ENTER_NOAPI(H5FD_core_open, NULL)
 
     /* Check arguments */
-    if (!name || !*name)
+    if(!name || !*name)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, NULL, "invalid file name")
-    if (0==maxaddr || HADDR_UNDEF==maxaddr)
+    if(0 == maxaddr || HADDR_UNDEF == maxaddr)
         HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, NULL, "bogus maxaddr")
     if(ADDR_OVERFLOW(maxaddr))
         HGOTO_ERROR(H5E_ARGS, H5E_OVERFLOW, NULL, "maxaddr overflow")
-    assert(H5P_DEFAULT != fapl_id);
-	if(NULL == (plist = (H5P_genplist_t *)H5I_object(fapl_id)))
-		HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not a file access property list")
-	fa = (H5FD_core_fapl_t *)H5P_get_driver_info(plist);
+    HDassert(H5P_DEFAULT != fapl_id);
+    if(NULL == (plist = (H5P_genplist_t *)H5I_object(fapl_id)))
+            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not a file access property list")
+    fa = (H5FD_core_fapl_t *)H5P_get_driver_info(plist);
 
     /* Build the open flags */
     o_flags = (H5F_ACC_RDWR & flags) ? O_RDWR : O_RDONLY;
-    if (H5F_ACC_TRUNC & flags) o_flags |= O_TRUNC;
-    if (H5F_ACC_CREAT & flags) o_flags |= O_CREAT;
-    if (H5F_ACC_EXCL & flags) o_flags |= O_EXCL;
+    if(H5F_ACC_TRUNC & flags) o_flags |= O_TRUNC;
+    if(H5F_ACC_CREAT & flags) o_flags |= O_CREAT;
+    if(H5F_ACC_EXCL & flags) o_flags |= O_EXCL;
 
     /* Open backing store.  The only case that backing store is off is when
      * the backing_store flag is off and H5F_ACC_CREAT is on. */
     if(fa->backing_store || !(H5F_ACC_CREAT & flags)) {
-        if (fa && (fd=HDopen(name, o_flags, 0666))<0)
+        if(fa && (fd = HDopen(name, o_flags, 0666)) < 0)
             HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to open file")
-    }
+    } /* end if */
 
     /* Create the new file struct */
     if(NULL == (file = (H5FD_core_t *)H5MM_calloc(sizeof(H5FD_core_t))))
@@ -441,35 +441,34 @@ H5FD_core_open(const char *name, unsigned flags, hid_t fapl_id,
 
     /* If an existing file is opened, load the whole file into memory. */
     if(!(H5F_ACC_CREAT & flags)) {
-        unsigned char *x=NULL;
         size_t size;
 
-        if (HDfstat(file->fd, &sb)<0)
+        /* stat() file to retrieve its size */
+        if(HDfstat(file->fd, &sb) < 0)
             HSYS_GOTO_ERROR(H5E_FILE, H5E_BADFILE, NULL, "unable to fstat file")
-
 	size = (size_t)sb.st_size;
 
+        /* Check if we should allocate the memory buffer and read in existing data */
         if(size) {
-            if (NULL==file->mem)
-                x = (unsigned char*)H5MM_malloc(size);
-
-            if (!x)
+            /* Allocate memory for the file's data */
+            if(NULL == (file->mem = (unsigned char*)H5MM_malloc(size)))
                 HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "unable to allocate memory block")
 
-            file->mem = x;
+            /* Set up data structures */
             file->eof = size;
 
-            if(HDread(file->fd, file->mem, size)<0)
+            /* Read in existing data */
+            if(HDread(file->fd, file->mem, size) < 0)
                 HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to read file")
-        }
-    }
+        } /* end if */
+    } /* end if */
 
     /* Set return value */
-    ret_value=(H5FD_t *)file;
+    ret_value = (H5FD_t *)file;
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-}
+} /* end H5FD_core_open() */
 
 
 /*-------------------------------------------------------------------------
@@ -484,33 +483,33 @@ done:
  * Programmer:	Robb Matzke
  *              Thursday, July 29, 1999
  *
- * Modifications:
- * 		Robb Matzke, 1999-10-19
- *		The contents of memory are written to the backing store if
- *		one is open.
  *-------------------------------------------------------------------------
  */
 static herr_t
 H5FD_core_close(H5FD_t *_file)
 {
     H5FD_core_t	*file = (H5FD_core_t*)_file;
-    herr_t      ret_value=SUCCEED;       /* Return value */
+    herr_t ret_value = SUCCEED;       /* Return value */
 
     FUNC_ENTER_NOAPI(H5FD_core_close, FAIL)
 
+    /* Flush any changed buffers */
+    if(H5FD_core_flush(_file, (hid_t)-1, TRUE) < 0)
+        HGOTO_ERROR(H5E_FILE, H5E_CANTFLUSH, FAIL, "unable to flush file")
+
     /* Release resources */
-    if (file->fd>=0)
+    if(file->fd >= 0)
         HDclose(file->fd);
-    if (file->name)
+    if(file->name)
         H5MM_xfree(file->name);
-    if (file->mem)
+    if(file->mem)
         H5MM_xfree(file->mem);
     HDmemset(file, 0, sizeof(H5FD_core_t));
     H5MM_xfree(file);
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-}
+} /* end H5FD_core_close() */
 
 
 /*-------------------------------------------------------------------------
@@ -576,13 +575,12 @@ done:
  *
  *-------------------------------------------------------------------------
  */
-/* ARGSUSED */
 static herr_t
-H5FD_core_query(const H5FD_t UNUSED * _f, unsigned long *flags /* out */)
+H5FD_core_query(const H5FD_t * _file, unsigned long *flags /* out */)
 {
-    herr_t ret_value = SUCCEED;         /* Return value */
+    const H5FD_core_t	*file = (const H5FD_core_t*)_file;
 
-    FUNC_ENTER_NOAPI(H5FD_core_query, FAIL)
+    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5FD_core_query)
 
     /* Set the VFL feature flags that this driver supports */
     if(flags) {
@@ -591,10 +589,13 @@ H5FD_core_query(const H5FD_t UNUSED * _f, unsigned long *flags /* out */)
         *flags |= H5FD_FEAT_ACCUMULATE_METADATA; /* OK to accumulate metadata for faster writes */
         *flags |= H5FD_FEAT_DATA_SIEVE;       /* OK to perform data sieving for faster raw data reads & writes */
         *flags |= H5FD_FEAT_AGGREGATE_SMALLDATA; /* OK to aggregate "small" raw data allocations */
+
+        /* If the backing store is open, a POSIX file handle is available */
+        if(file->fd >= 0 && file->backing_store)
+            *flags |= H5FD_FEAT_POSIX_COMPAT_HANDLE; /* VFD handle is POSIX I/O call compatible */
     } /* end if */
 
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5FD_core_query() */
 
 
@@ -622,9 +623,8 @@ done:
 static haddr_t
 H5FD_core_get_eoa(const H5FD_t *_file, H5FD_mem_t UNUSED type)
 {
-    haddr_t ret_value;   /* Return value */
-
     const H5FD_core_t	*file = (const H5FD_core_t*)_file;
+    haddr_t ret_value;   /* Return value */
 
     FUNC_ENTER_NOAPI(H5FD_core_get_eoa, HADDR_UNDEF)
 
@@ -726,23 +726,52 @@ done:
  *
  *-------------------------------------------------------------------------
  */
-/* ARGSUSED */
 static herr_t
-H5FD_core_get_handle(H5FD_t *_file, hid_t UNUSED fapl, void** file_handle)
+H5FD_core_get_handle(H5FD_t *_file, hid_t fapl, void** file_handle)
 {
-    H5FD_core_t         *file = (H5FD_core_t *)_file;
-    herr_t              ret_value = SUCCEED;
+    H5FD_core_t *file = (H5FD_core_t *)_file;   /* core VFD info */
+    herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI(H5FD_core_get_handle, FAIL)
 
+    /* Check args */
     if(!file_handle)
          HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "file handle not valid")
 
-    *file_handle = &(file->mem);
+    /* Check for non-default FAPL */
+    if(H5P_FILE_ACCESS_DEFAULT != fapl && H5P_DEFAULT != fapl) {
+        H5P_genplist_t *plist;  /* Property list pointer */
+
+        /* Get the FAPL */
+        if(NULL == (plist = (H5P_genplist_t *)H5I_object(fapl)))
+            HGOTO_ERROR(H5E_VFL, H5E_BADTYPE, FAIL, "not a file access property list")
+
+        /* Check if private property for retrieving the backing store POSIX
+         * file descriptor is set.  (This should not be set except within the
+         * library)  QAK - 2009/12/04
+         */
+        if(H5P_exist_plist(plist, H5F_ACS_WANT_POSIX_FD_NAME) > 0) {
+            hbool_t want_posix_fd;  /* Setting for retrieving file descriptor from core VFD */
+
+            /* Get property */
+            if(H5P_get(plist, H5F_ACS_WANT_POSIX_FD_NAME, &want_posix_fd) < 0)
+                HGOTO_ERROR(H5E_VFL, H5E_CANTGET, FAIL, "can't get property of retrieving file descriptor")
+
+            /* If property is set, pass back the file descriptor instead of the memory address */
+            if(want_posix_fd)
+                *file_handle = &(file->fd);
+            else
+                *file_handle = &(file->mem);
+        } /* end if */
+        else
+            *file_handle = &(file->mem);
+    } /* end if */
+    else
+        *file_handle = &(file->mem);
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-}
+} /* end H5FD_core_get_handle() */
 
 
 /*-------------------------------------------------------------------------
@@ -973,7 +1002,7 @@ H5FD_core_truncate(H5FD_t *_file, hid_t UNUSED dxpl_id, hbool_t UNUSED closing)
         new_eof += file->increment;
 
     /* Extend the file to make sure it's large enough */
-    if(!H5F_addr_eq((haddr_t)new_eof, file->eof)) {
+    if(!H5F_addr_eq(file->eof, (haddr_t)new_eof)) {
         unsigned char *x;       /* Pointer to new buffer for file data */
 
         /* (Re)allocate memory for the file buffer */

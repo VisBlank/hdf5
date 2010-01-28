@@ -74,9 +74,16 @@
 #define ULLI_FORMAT_P_NOTCOMP "%-15"H5_PRINTF_LL_WIDTH"u %-15"H5_PRINTF_LL_WIDTH"u %-15"H5_PRINTF_LL_WIDTH"d not comparable\n"
 
 
-/* values for FLT_EPSILON same as C Reference manual */
-#define H5DIFF_FLT_EPSILON  .00001
-#define H5DIFF_DBL_EPSILON  .000000001
+/* if system EPSILON is defined, use the system EPSILON; otherwise, use 
+   constants that are close to most EPSILON values */
+
+#ifndef FLT_EPSILON
+#define FLT_EPSILON 1.19209E-07
+#endif
+
+#ifndef DBL_EPSILON
+#define DBL_EPSILON 2.22045E-16
+#endif
 
 
 /*-------------------------------------------------------------------------
@@ -5502,10 +5509,6 @@ error:
 static
 hbool_t equal_double(double value, double expected, diff_opt_t *options)
 {
-    int both_zero;
-    int is_zero;
-
-
     if ( options->do_nans )
     {
         
@@ -5535,22 +5538,15 @@ hbool_t equal_double(double value, double expected, diff_opt_t *options)
         }      
     }
 
-    BOTH_ZERO(value,expected)
-    if (both_zero)
-        return TRUE;
-
-    IS_ZERO(expected)
-    if (is_zero)
-        return(equal_double(expected,value,options));
-
     if (value == expected)
         return TRUE;
 
-    if ( ABS( (value-expected) / expected) < H5DIFF_DBL_EPSILON)
-        return TRUE;
-    else
-        return FALSE;
+    if (options->use_system_epsilon) {
+        if ( ABS( (value-expected) ) < DBL_EPSILON)
+            return TRUE;
+    }
 
+    return FALSE;
 }
 
 /*-------------------------------------------------------------------------
@@ -5566,10 +5562,6 @@ hbool_t equal_double(double value, double expected, diff_opt_t *options)
 static
 hbool_t equal_ldouble(long double value, long double expected, diff_opt_t *options)
 {
-    int both_zero;
-    int is_zero;
-
-    
     if ( options->do_nans )
     {
         
@@ -5599,22 +5591,15 @@ hbool_t equal_ldouble(long double value, long double expected, diff_opt_t *optio
         }       
     }
 
-    BOTH_ZERO(value,expected)
-    if (both_zero)
-        return TRUE;
-
-    IS_ZERO(expected)
-    if (is_zero)
-        return(equal_ldouble(expected,value,options));
-
     if (value == expected)
         return TRUE;
 
-    if ( ABS( (value-expected) / expected) < H5DIFF_DBL_EPSILON)
-        return TRUE;
-    else
-        return FALSE;
+    if (options->use_system_epsilon) {
+        if ( ABS( (value-expected) ) < DBL_EPSILON)
+            return TRUE;
+    }
 
+    return FALSE;
 }
 
 #endif /* #if H5_SIZEOF_LONG_DOUBLE !=0 */
@@ -5634,9 +5619,6 @@ hbool_t equal_ldouble(long double value, long double expected, diff_opt_t *optio
 static
 hbool_t equal_float(float value, float expected, diff_opt_t *options)
 {
-    int both_zero;
-    int is_zero;
-
     if ( options->do_nans )
     {
         
@@ -5666,21 +5648,15 @@ hbool_t equal_float(float value, float expected, diff_opt_t *options)
         }       
     }
 
-    BOTH_ZERO(value,expected)
-    if (both_zero)
-        return TRUE;
-
-    IS_ZERO(expected)
-    if (is_zero)
-        return(equal_float(expected,value,options));
-
     if (value == expected)
         return TRUE;
 
-    if ( ABS( (value-expected) / expected) < H5DIFF_FLT_EPSILON)
-        return TRUE;
-    else
-        return FALSE;
+    if (options->use_system_epsilon) {
+        if ( ABS( (value-expected) ) < FLT_EPSILON)
+            return TRUE;
+    }
+
+    return FALSE;
 
 }
 
@@ -5834,6 +5810,51 @@ int print_data(diff_opt_t *options)
 }
 
 /*-------------------------------------------------------------------------
+ * Function: print_header
+ *
+ * Purpose: print header for difference
+ *
+ *-------------------------------------------------------------------------
+ */
+
+static
+void print_header(int        pp,        /* print percentage */
+                int        rank,
+                hsize_t    *dims,
+                const char *obj1,
+                const char *obj2 )
+{
+    int i;
+
+    /* print header */
+    parallel_print("%-16s","size:");
+    print_dimensions (rank,dims);
+    parallel_print("%-11s","");
+    print_dimensions (rank,dims);
+    parallel_print("\n");
+
+    if (pp)
+    {
+        parallel_print("%-15s %-15s %-15s %-15s %-15s\n",
+            "position",
+            (obj1!=NULL) ? obj1 : " ",
+            (obj2!=NULL) ? obj2 : " ",
+            "difference",
+            "relative");
+        parallel_print("------------------------------------------------------------------------\n");
+    }
+    else
+    {
+        parallel_print("%-15s %-15s %-15s %-20s\n",
+            "position",
+            (obj1!=NULL) ? obj1 : " ",
+            (obj2!=NULL) ? obj2 : " ",
+            "difference");
+        parallel_print("------------------------------------------------------------\n");
+    }
+}
+
+/*-------------------------------------------------------------------------
  * Function: print_pos
  *
  * Purpose: print in matrix notation, converting from an array index position
@@ -5859,31 +5880,7 @@ void print_pos( int        *ph,       /* print header */
     {
         *ph=0;
 
-        parallel_print("%-16s","size:");
-        print_dimensions (rank,dims);
-        parallel_print("%-11s","");
-        print_dimensions (rank,dims);
-        parallel_print("\n");
-
-        if (pp)
-        {
-            parallel_print("%-15s %-15s %-15s %-15s %-15s\n",
-                "position",
-                (obj1!=NULL) ? obj1 : " ",
-                (obj2!=NULL) ? obj2 : " ",
-                "difference",
-                "relative");
-            parallel_print("------------------------------------------------------------------------\n");
-        }
-        else
-        {
-            parallel_print("%-15s %-15s %-15s %-20s\n",
-                "position",
-                (obj1!=NULL) ? obj1 : " ",
-                (obj2!=NULL) ? obj2 : " ",
-                "difference");
-            parallel_print("------------------------------------------------------------\n");
-        }
+        print_header(pp, rank, dims, obj1, obj2);
     } /* end print header */
 
     for ( i = 0; i < rank; i++)
@@ -5936,31 +5933,7 @@ void print_char_pos( int        *ph,       /* print header */
     {
         *ph=0;
 
-        parallel_print("%-16s","size:");
-        print_dimensions (rank,dims);
-        parallel_print("%-11s","");
-        print_dimensions (rank,dims);
-        parallel_print("\n");
-
-        if (pp)
-        {
-            parallel_print("%-15s %-15s %-15s %-15s %-15s\n",
-                "position",
-                (obj1!=NULL) ? obj1 : " ",
-                (obj2!=NULL) ? obj2 : " ",
-                "difference",
-                "relative");
-            parallel_print("------------------------------------------------------------------------\n");
-        }
-        else
-        {
-            parallel_print("%-15s %-15s %-15s %-20s\n",
-                "position",
-                (obj1!=NULL) ? obj1 : " ",
-                (obj2!=NULL) ? obj2 : " ",
-                "difference");
-            parallel_print("------------------------------------------------------------\n");
-        }
+        print_header(pp, rank, dims, obj1, obj2);
     } /* end print header */
 
     for ( i = 0; i < rank; i++)

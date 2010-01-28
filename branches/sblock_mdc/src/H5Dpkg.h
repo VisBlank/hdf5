@@ -118,8 +118,7 @@ typedef ssize_t (*H5D_layout_readvv_func_t)(const struct H5D_io_info_t *io_info,
 typedef ssize_t (*H5D_layout_writevv_func_t)(const struct H5D_io_info_t *io_info,
     size_t dset_max_nseq, size_t *dset_curr_seq, size_t dset_len_arr[], hsize_t dset_offset_arr[],
     size_t mem_max_nseq, size_t *mem_curr_seq, size_t mem_len_arr[], hsize_t mem_offset_arr[]);
-typedef herr_t (*H5D_layout_flush_func_t)(H5D_t *dataset, hid_t dxpl_id,
-    unsigned flags);
+typedef herr_t (*H5D_layout_flush_func_t)(H5D_t *dataset, hid_t dxpl_id);
 typedef herr_t (*H5D_layout_io_term_func_t)(const struct H5D_chunk_map_t *cm);
 
 /* Typedef for grouping layout I/O routines */
@@ -633,6 +632,11 @@ H5_DLL herr_t H5D_compact_fill(H5D_t *dset, hid_t dxpl_id);
 H5_DLL herr_t H5D_compact_copy(H5F_t *f_src, H5O_storage_compact_t *storage_src,
     H5F_t *f_dst, H5O_storage_compact_t *storage_dst, H5T_t *src_dtype,
     H5O_copy_t *cpy_info, hid_t dxpl_id);
+
+/* Functions that operate on EFL (External File List)*/
+H5_DLL hbool_t H5D_efl_is_space_alloc(const H5O_storage_t *storage);
+H5_DLL herr_t H5D_efl_bh_info(H5F_t *f, hid_t dxpl_id, H5O_efl_t *efl,
+    hsize_t *heap_size);
 
 /* Functions that perform fill value operations on datasets */
 H5_DLL herr_t H5D_fill(const void *fill, const H5T_t *fill_type, void *buf,

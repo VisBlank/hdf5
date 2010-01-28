@@ -939,7 +939,8 @@ static herr_t
 H5FS_sect_link_size(H5FS_sinfo_t *sinfo, const H5FS_section_class_t *cls,
     H5FS_section_info_t *sect)
 {
-    H5FS_node_t *fspace_node = NULL;     /* Pointer to free space node of the correct size */
+    H5FS_node_t *fspace_node = NULL;    /* Pointer to free space node of the correct size */
+    hbool_t fspace_node_alloc = FALSE;  /* Whether the free space node was allocated */
     unsigned bin;                       /* Bin to put the free space section in */
     herr_t ret_value = SUCCEED;         /* Return value */
 
@@ -971,6 +972,7 @@ HDfprintf(stderr, "%s: sect->size = %Hu, sect->addr = %a\n", FUNC, sect->size, s
         /* Allocate new free list size node */
         if(NULL == (fspace_node = H5FL_MALLOC(H5FS_node_t)))
             HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed for free space node")
+        fspace_node_alloc = TRUE;
 
         /* Initialize the free list size node */
         fspace_node->sect_size = sect->size;
@@ -981,6 +983,7 @@ HDfprintf(stderr, "%s: sect->size = %Hu, sect->addr = %a\n", FUNC, sect->size, s
         /* Insert new free space size node into bin's list */
         if(H5SL_insert(sinfo->bins[bin].bin_list, fspace_node, &fspace_node->sect_size) < 0)
             HGOTO_ERROR(H5E_FSPACE, H5E_CANTINSERT, FAIL, "can't insert free space node into skip list")
+        fspace_node_alloc = FALSE; /* (owned by the bin skip list now, don't need to free on error) */
 
         /* Increment number of section sizes */
         sinfo->tot_size_count++;
@@ -1016,6 +1019,13 @@ HDfprintf(stderr, "%s: sinfo->bins[%u].sect_count = %Zu\n", FUNC, bin, sinfo->bi
         HGOTO_ERROR(H5E_FSPACE, H5E_CANTINSERT, FAIL, "can't insert free space node into skip list")
 
 done:
+    if(ret_value < 0)
+        if(fspace_node && fspace_node_alloc) {
+            if(fspace_node->sect_list && H5SL_close(fspace_node->sect_list) < 0)
+                HDONE_ERROR(H5E_FSPACE, H5E_CANTCLOSEOBJ, FAIL, "can't destroy size free space node's skip list")
+            fspace_node = H5FL_FREE(H5FS_node_t, fspace_node);
+        } /* end if */
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5FS_sect_link_size() */
 
@@ -1559,6 +1569,71 @@ done:
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5FS_sect_try_extend() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5FS_sect_try_merge
+ *
+ * Purpose:	Try to merge/shrink a block 
+ *
+ * Return:	TRUE:		merged/shrunk
+ *		FALSE: 	 	not merged/not shrunk
+ *		Failure:	negative
+ *
+ * Programmer:	Vailin Choi; June 10, 2009
+ *
+ *-------------------------------------------------------------------------
+ */
+htri_t
+H5FS_sect_try_merge(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace, H5FS_section_info_t *sect,
+    unsigned flags, void *op_data)
+{
+    hbool_t sinfo_valid = FALSE;        /* Whether the section info is valid */
+    hbool_t sinfo_modified = FALSE;     /* Whether the section info was modified */
+    hsize_t saved_fs_size;		/* copy the free-space section size */
+    htri_t ret_value = FALSE;           /* Return value */
+
+    FUNC_ENTER_NOAPI(H5FS_sect_try_merge, FAIL)
+
+    /* Check arguments. */
+    HDassert(f);
+    HDassert(fspace);
+    HDassert(sect);
+    HDassert(H5F_addr_defined(sect->addr));
+    HDassert(sect->size);
+
+    /* Get a pointer to the section info */
+    if(H5FS_sinfo_lock(f, dxpl_id, fspace, H5AC_WRITE) < 0)
+	HGOTO_ERROR(H5E_FSPACE, H5E_CANTGET, FAIL, "can't get section info")
+    sinfo_valid = TRUE;
+    saved_fs_size = sect->size;
+
+    /* Attempt to merge/shrink section with existing sections */
+    if(H5FS_sect_merge(fspace, &sect, op_data) < 0)
+	HGOTO_ERROR(H5E_FSPACE, H5E_CANTMERGE, FAIL, "can't merge sections")
+
+    /* Check if section is shrunk and/or merged away completely */
+    if(!sect) {
+	sinfo_modified = TRUE;
+	HGOTO_DONE(TRUE)
+    } /* end if */
+    else {
+        /* Check if section is merged */
+        if(sect->size > saved_fs_size) {
+            if(H5FS_sect_link(fspace, sect, flags) < 0)
+                HGOTO_ERROR(H5E_FSPACE, H5E_CANTINSERT, FAIL, "can't insert free space section into skip list")
+            sinfo_modified = TRUE;
+            HGOTO_DONE(TRUE)
+        } /* end if */
+    } /* end else */
+
+done:
+    /* Release the section info */
+    if(sinfo_valid && H5FS_sinfo_unlock(f, dxpl_id, fspace, sinfo_modified) < 0)
+        HDONE_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't release section info")
+
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* H5FS_sect_try_merge() */
 
 
 /*-------------------------------------------------------------------------

@@ -40,6 +40,7 @@ typedef __int64             h5_stat_size_t;
 #endif
 #define HDfstat(F,B)        _fstati64(F,B)
 #define HDisatty(F)         _isatty(F)
+#define HDlstat(S,B)        _lstati64(S,B)
 #define HDstat(S,B)         _stati64(S,B)
 #define HDgetcwd(S,Z)       _getcwd(S,Z)
 #define HDgetdcwd(D,S,Z)    _getdcwd(D,S,Z)
@@ -60,6 +61,7 @@ typedef __int64             h5_stat_size_t;
 #define HDopen(S,F,M)       _open(S,F|_O_BINARY,M)
 #define HDread(F,M,Z)       _read(F,M,Z)
 #define HDsetvbuf(F,S,M,Z)  setvbuf(F,S,M,(Z>1?Z:2))
+#define HDsleep(S)          Sleep(S*1000)
 #define HDstrcasecmp(A,B)   _stricmp(A,B)
 #define HDstrtoull(S,R,N)   _strtoui64(S,R,N)
 #define HDstrdup(S)         _strdup(S)

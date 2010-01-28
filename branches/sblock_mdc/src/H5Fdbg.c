@@ -60,7 +60,6 @@ H5F_debug(H5F_t *f, FILE *stream, int indent, int fwidth)
     HDassert(stream);
     HDassert(indent >= 0);
     HDassert(fwidth >= 0);
-    HDassert(f->shared->super_addr != HADDR_UNDEF);
 
     /* Get property list */
     if(NULL == (plist = (H5P_genplist_t *)H5I_object(f->shared->fcpl_id)))
@@ -74,7 +73,9 @@ H5F_debug(H5F_t *f, FILE *stream, int indent, int fwidth)
     HDfprintf(stream, "%*sFile Super Block...\n", indent, "");
 
     HDfprintf(stream, "%*s%-*s %s\n", indent, "", fwidth,
-	      "File name:", f->name);
+	      "File name (as opened):", H5F_OPEN_NAME(f));
+    HDfprintf(stream, "%*s%-*s %s\n", indent, "", fwidth,
+	      "File name (after resolving symlinks):", H5F_ACTUAL_NAME(f));
     HDfprintf(stream, "%*s%-*s 0x%08x\n", indent, "", fwidth,
 	      "File access flags", f->shared->flags);
     HDfprintf(stream, "%*s%-*s %u\n", indent, "", fwidth,
@@ -122,8 +123,7 @@ H5F_debug(H5F_t *f, FILE *stream, int indent, int fwidth)
 	      f->shared->root_grp ? "" : "(none)");
     if(f->shared->root_grp) {
         if(f->shared->sblock->root_ent) /* Use real root group symbol table entry */
-            H5G_ent_debug(f, f->shared->sblock->root_ent, stream, indent + 3,
-                MAX(0, fwidth - 3), NULL);
+            H5G_ent_debug(f->shared->sblock->root_ent, stream, indent + 3, MAX(0, fwidth - 3), NULL);
         else {
             H5O_loc_t *root_oloc;   /* Root object location */
             H5G_entry_t root_ent;   /* Constructed root symbol table entry */
@@ -139,7 +139,7 @@ H5F_debug(H5F_t *f, FILE *stream, int indent, int fwidth)
             root_ent.file = f;
 
             /* Display root group symbol table entry info */
-            H5G_ent_debug(f, &root_ent, stream, indent + 3, MAX(0, fwidth - 3), NULL);
+            H5G_ent_debug(&root_ent, stream, indent + 3, MAX(0, fwidth - 3), NULL);
         } /* end else */
     } /* end if */
 

@@ -111,17 +111,19 @@ H5FL_EXTERN(H5F_super_t);
  *-------------------------------------------------------------------------
  */
 static H5F_super_t *
-H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, const void UNUSED *udata1, void *udata2/*out*/)
+H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, const void UNUSED *udata1,
+    void *udata2/*out*/)
 {
     H5F_super_t        *sblock = NULL;      /* File's superblock */
+    haddr_t             base_addr = HADDR_UNDEF;        /* Base address of file */
     uint8_t             sbuf[H5F_MAX_SUPERBLOCK_SIZE];     /* Buffer for superblock */
     H5P_genplist_t     *c_plist;            /* File creation property list  */
     H5F_file_t         *shared;             /* shared part of `file'        */
     H5FD_t             *lf;                 /* file driver part of `shared' */
     haddr_t             stored_eoa;         /*relative end-of-addr in file  */
     haddr_t             eof;                /*end of file address           */
-    size_t              sizeof_addr;        /* Size of offsets in the file (in bytes) */
-    size_t              sizeof_size;        /* Size of lengths in the file (in bytes) */
+    uint8_t             sizeof_addr;        /* Size of offsets in the file (in bytes) */
+    uint8_t             sizeof_size;        /* Size of lengths in the file (in bytes) */
     const size_t        fixed_size = H5F_SUPERBLOCK_FIXED_SIZE; /*fixed sizeof superblock   */
     size_t              variable_size;      /*variable sizeof superblock    */
     uint8_t            *p;                  /* Temporary pointer into encoding buffer */
@@ -131,6 +133,10 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, const void UNUSED 
 
     FUNC_ENTER_NOAPI_NOINIT(H5F_sblock_load)
 
+    /* check arguments */
+    HDassert(f);
+    HDassert(H5F_addr_eq(addr, 0));
+
     /* Short cuts */
     shared = f->shared;
     lf = shared->lf;
@@ -139,15 +145,20 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, const void UNUSED 
     if(NULL == (c_plist = (H5P_genplist_t *)H5I_object(shared->fcpl_id)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "can't get property list")
 
+    /* Get the base address for the file in the VFD */
+    if(HADDR_UNDEF == (base_addr = H5FD_get_base_addr(lf)))
+        HGOTO_ERROR(H5E_FILE, H5E_CANTGET, NULL, "failed to get base address for file driver")
+
     /* Allocate space for the superblock */
     if(NULL == (sblock = H5FL_CALLOC(H5F_super_t)))
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
     
     /* Read fixed-size portion of the superblock */
     p = sbuf;
-    if(H5FD_set_eoa(lf, H5FD_MEM_SUPER, f->shared->super_addr + fixed_size) < 0)
+    H5_CHECK_OVERFLOW(fixed_size, size_t, haddr_t);
+    if(H5FD_set_eoa(lf, H5FD_MEM_SUPER, (haddr_t)fixed_size) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "set end of space allocation request failed")
-    if(H5FD_read(lf, dxpl_id, H5FD_MEM_SUPER, f->shared->super_addr, fixed_size, p) < 0)
+    if(H5FD_read(lf, dxpl_id, H5FD_MEM_SUPER, (haddr_t)0, fixed_size, p) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_READERROR, NULL, "unable to read superblock")
 
     /* Skip over signature (already checked when locating the superblock) */
@@ -172,10 +183,11 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, const void UNUSED 
     HDassert(fixed_size + variable_size <= sizeof(sbuf));
 
     /* Read in variable-sized portion of superblock */
-    if(H5FD_set_eoa(lf, H5FD_MEM_SUPER, f->shared->super_addr + fixed_size + variable_size) < 0)
+    if(H5FD_set_eoa(lf, H5FD_MEM_SUPER, (haddr_t)fixed_size + variable_size) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "set end of space allocation request failed")
-    if(H5FD_read(lf, dxpl_id, H5FD_MEM_SUPER, f->shared->super_addr + fixed_size, variable_size, p) < 0)
+    if(H5FD_read(lf, dxpl_id, H5FD_MEM_SUPER, (haddr_t)fixed_size, variable_size, p) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to read superblock")
+
     /* Check for older version of superblock format */
     if(super_vers < HDF5_SUPERBLOCK_VERSION_2) {
         uint32_t	status_flags;	    /* File status flags	   */
@@ -284,22 +296,24 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, const void UNUSED 
          * Check if superblock address is different from base address and
          * adjust base address and "end of address" address if so.
          */
-        if(!H5F_addr_eq(f->shared->super_addr, sblock->base_addr)) {
+        if(!H5F_addr_eq(base_addr, sblock->base_addr)) {
             /* Check if the superblock moved earlier in the file */
-            if(H5F_addr_lt(f->shared->super_addr, sblock->base_addr))
-                stored_eoa -= (sblock->base_addr - f->shared->super_addr);
+            if(H5F_addr_lt(base_addr, sblock->base_addr))
+                stored_eoa -= (sblock->base_addr - base_addr);
             else
                 /* The superblock moved later in the file */
-                stored_eoa += (f->shared->super_addr - sblock->base_addr);
+                stored_eoa += (base_addr - sblock->base_addr);
 
-            sblock->base_addr = f->shared->super_addr;
+            /* Adjust base address for offsets of the HDF5 data in the file */
+            sblock->base_addr = base_addr;
+
+            /* Set the base address for the file in the VFD now */
+            if(H5FD_set_base_addr(lf, sblock->base_addr) < 0)
+                HGOTO_ERROR(H5E_FILE, H5E_CANTSET, NULL, "failed to set base address for file driver")
+
+            /* Indicate that the superblock should be marked dirty */
+            *dirtied = TRUE;
         } /* end if */
-
-        /* Set the base address for the file in the VFD now, after adjusting
-         *  space for possible offsets of the HDF5 data in the file.
-         */
-        if(H5FD_set_base_addr(lf, sblock->base_addr) < 0)
-            HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "failed to set base address for file driver")
 
         /* This step is for h5repart tool only. If user wants to change file driver
          *  from family to sec2 while using h5repart, set the driver address to
@@ -412,22 +426,24 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, const void UNUSED 
          * Check if superblock address is different from base address and
          * adjust base address and "end of address" address if so.
          */
-        if(!H5F_addr_eq(f->shared->super_addr, sblock->base_addr)) {
+        if(!H5F_addr_eq(base_addr, sblock->base_addr)) {
             /* Check if the superblock moved earlier in the file */
-            if(H5F_addr_lt(f->shared->super_addr, sblock->base_addr))
-                stored_eoa -= (sblock->base_addr - f->shared->super_addr);
+            if(H5F_addr_lt(base_addr, sblock->base_addr))
+                stored_eoa -= (sblock->base_addr - base_addr);
             else
                 /* The superblock moved later in the file */
-                stored_eoa += (f->shared->super_addr - sblock->base_addr);
+                stored_eoa += (base_addr - sblock->base_addr);
 
-            sblock->base_addr = f->shared->super_addr;
+            /* Adjust base address for offsets of the HDF5 data in the file */
+            sblock->base_addr = base_addr;
+
+            /* Set the base address for the file in the VFD now */
+            if(H5FD_set_base_addr(lf, sblock->base_addr) < 0)
+                HGOTO_ERROR(H5E_FILE, H5E_CANTSET, NULL, "failed to set base address for file driver")
+
+            /* Indicate that the superblock should be marked dirty */
+            *dirtied = TRUE;
         } /* end if */
-
-        /* Set the base address for the file in the VFD now, after adjusting
-         *  space for possible offsets of the HDF5 data in the file.
-         */
-        if(H5FD_set_base_addr(lf, sblock->base_addr) < 0)
-            HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "failed to set base address for file driver")
 
         /* Get the B-tree internal node values, etc */
         if(H5P_get(c_plist, H5F_CRT_BTREE_RANK_NAME, sblock->btree_k) < 0)
@@ -466,6 +482,7 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, const void UNUSED 
         H5O_loc_t ext_loc;      /* "Object location" for superblock extension */
         H5O_btreek_t btreek;    /* v1 B-tree 'K' value message from superblock extension */
         H5O_drvinfo_t drvinfo;  /* Driver info message from superblock extension */
+	size_t u; 		/* Local index variable */
         htri_t status;          /* Status for message existing */
 
         /* Sanity check - superblock extension should only be defined for
@@ -550,6 +567,41 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, const void UNUSED 
             sblock->sym_leaf_k = H5F_CRT_SYM_LEAF_DEF;
         } /* end if */
 
+        /* Check for the extension having a 'free-space manager info' message */
+        if((status = H5O_msg_exists(&ext_loc, H5O_FSINFO_ID, dxpl_id)) < 0)
+            HGOTO_ERROR(H5E_FILE, H5E_CANTGET, NULL, "unable to check object header")
+        if(status) {
+            H5O_fsinfo_t fsinfo;    /* Free-space manager info message from superblock extension */
+
+            /* Retrieve the 'free-space manager info' structure */
+	    if(NULL == H5O_msg_read(&ext_loc, H5O_FSINFO_ID, &fsinfo, dxpl_id))
+                HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, NULL, "unable to get free-space manager info message")
+
+	    if(shared->fs_strategy != fsinfo.strategy) {
+		shared->fs_strategy = fsinfo.strategy;
+
+		/* Set non-default strategy in the property list */
+		if(H5P_set(c_plist, H5F_CRT_FILE_SPACE_STRATEGY_NAME, &fsinfo.strategy) < 0)
+		    HGOTO_ERROR(H5E_FILE, H5E_CANTSET, NULL, "unable to set file space strategy")
+	    } /* end if */
+	    if(shared->fs_threshold != fsinfo.threshold) {
+		shared->fs_threshold = fsinfo.threshold;
+
+		/* Set non-default threshold in the property list */
+		if(H5P_set(c_plist, H5F_CRT_FREE_SPACE_THRESHOLD_NAME, &fsinfo.threshold) < 0)
+		    HGOTO_ERROR(H5E_FILE, H5E_CANTSET, NULL, "unable to set file space strategy")
+	    } /* end if */
+
+	    /* set free-space manager addresses */
+	    shared->fs_addr[0] = HADDR_UNDEF;
+	    for(u = 1; u < NELMTS(f->shared->fs_addr); u++)
+		shared->fs_addr[u] = fsinfo.fs_addr[u-1];
+        } /* end if */
+        else {
+	    for(u = 0; u < NELMTS(f->shared->fs_addr); u++)
+		shared->fs_addr[u] = HADDR_UNDEF;
+        } /* end else */
+
         /* Close superblock extension */
 	if(H5F_super_ext_close(f, &ext_loc) < 0)
 	    HGOTO_ERROR(H5E_FILE, H5E_CANTRELEASE, NULL, "unable to close file's superblock extension")
@@ -559,6 +611,10 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, const void UNUSED 
     ret_value = sblock;
 
 done:
+    /* Release the [possibly partially initialized] superblock on errors */
+    if(!ret_value && sblock)
+        if(H5F_sblock_dest(f, sblock) < 0)
+            HDONE_ERROR(H5E_FILE, H5E_CANTFREE, NULL, "unable to destroy superblock data")
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5F_sblock_load() */
@@ -579,7 +635,8 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5F_sblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5F_super_t *sblock)
+H5F_sblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t UNUSED addr,
+    H5F_super_t *sblock)
 {
     herr_t          ret_value = SUCCEED;
 
@@ -587,6 +644,7 @@ H5F_sblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5F_sup
 
     /* check arguments */
     HDassert(f);
+    HDassert(H5F_addr_eq(addr, 0));
     HDassert(sblock);
 
     if(sblock->cache_info.is_dirty) {
@@ -727,6 +785,7 @@ H5F_sblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5F_sup
                 H5_ASSIGN_OVERFLOW(driver_size, H5FD_sb_size(f->shared->lf), hsize_t, size_t);
                 if(driver_size > 0) {
                     H5O_drvinfo_t drvinfo;      /* Driver info */
+                    H5O_loc_t 	ext_loc; 	/* "Object location" for superblock extension */
                     uint8_t dbuf[H5F_MAX_DRVINFOBLOCK_SIZE];  /* Driver info block encoding buffer */
         
                     /* Sanity check */
@@ -735,12 +794,20 @@ H5F_sblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5F_sup
                     /* Encode driver-specific data */
                     if(H5FD_sb_encode(f->shared->lf, drvinfo.name, dbuf) < 0)
                         HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "unable to encode driver information")
+
+                    /* Open the superblock extension's object header */
+                    if(H5F_super_ext_open(f, sblock->ext_addr, &ext_loc) < 0)
+                        HGOTO_ERROR(H5E_FILE, H5E_CANTOPENOBJ, FAIL, "unable to open file's superblock extension")
         
                     /* Write driver info information to the superblock extension */
                     drvinfo.len = driver_size;
                     drvinfo.buf = dbuf;
-                    if(H5F_super_ext_write_msg(f, dxpl_id, &drvinfo, H5O_DRVINFO_ID, FALSE) < 0)
+                    if(H5O_msg_write(&ext_loc, H5O_DRVINFO_ID, H5O_MSG_FLAG_DONTSHARE, H5O_UPDATE_TIME, &drvinfo, dxpl_id) < 0)
                         HGOTO_ERROR(H5E_FILE, H5E_WRITEERROR, FAIL, "unable to update driver info header message")
+
+                    /* Close the superblock extension object header */
+                    if(H5F_super_ext_close(f, &ext_loc) < 0)
+                        HGOTO_ERROR(H5E_FILE, H5E_CANTCLOSEOBJ, FAIL, "unable to close file's superblock extension")
                 } /* end if */
             } /* end if */
         } /* end if */

@@ -65,7 +65,7 @@ static herr_t H5D_contig_construct(H5F_t *f, H5D_t *dset);
 static herr_t H5D_contig_io_init(const H5D_io_info_t *io_info, const H5D_type_info_t *type_info,
     hsize_t nelmts, const H5S_t *file_space, const H5S_t *mem_space,
     H5D_chunk_map_t *cm);
-static herr_t H5D_contig_flush(H5D_t *dset, hid_t dxpl_id, unsigned flags);
+static herr_t H5D_contig_flush(H5D_t *dset, hid_t dxpl_id);
 
 /* Helper routines */
 static herr_t H5D_contig_write_one(H5D_io_info_t *io_info, hsize_t offset,
@@ -1186,7 +1186,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5D_contig_flush(H5D_t *dset, hid_t dxpl_id, unsigned UNUSED flags)
+H5D_contig_flush(H5D_t *dset, hid_t dxpl_id)
 {
     herr_t ret_value = SUCCEED;       /* Return value */
 
@@ -1275,20 +1275,26 @@ H5D_contig_copy(H5F_t *f_src, const H5O_storage_contig_t *storage_src,
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTREGISTER, FAIL, "unable to register source file datatype")
 
     /* If there's a VLEN source datatype, set up type conversion information */
-    if(H5T_detect_class(dt_src, H5T_VLEN) > 0) {
+    if(H5T_detect_class(dt_src, H5T_VLEN, FALSE) > 0) {
         /* create a memory copy of the variable-length datatype */
         if(NULL == (dt_mem = H5T_copy(dt_src, H5T_COPY_TRANSIENT)))
             HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "unable to copy")
-        if((tid_mem = H5I_register(H5I_DATATYPE, dt_mem, FALSE)) < 0)
+        if((tid_mem = H5I_register(H5I_DATATYPE, dt_mem, FALSE)) < 0) {
+            H5T_close(dt_mem);
             HGOTO_ERROR(H5E_DATASET, H5E_CANTREGISTER, FAIL, "unable to register memory datatype")
+        } /* end if */
 
         /* create variable-length datatype at the destinaton file */
         if(NULL == (dt_dst = H5T_copy(dt_src, H5T_COPY_TRANSIENT)))
             HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, "unable to copy")
-        if(H5T_set_loc(dt_dst, f_dst, H5T_LOC_DISK) < 0)
+        if(H5T_set_loc(dt_dst, f_dst, H5T_LOC_DISK) < 0) {
+            H5T_close(dt_dst);
             HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, "cannot mark datatype on disk")
-        if((tid_dst = H5I_register(H5I_DATATYPE, dt_dst, FALSE)) < 0)
+        } /* end if */
+        if((tid_dst = H5I_register(H5I_DATATYPE, dt_dst, FALSE)) < 0) {
+            H5T_close(dt_dst);
             HGOTO_ERROR(H5E_DATASET, H5E_CANTREGISTER, FAIL, "unable to register destination file datatype")
+        } /* end if */
 
         /* Set up the conversion functions */
         if(NULL == (tpath_src_mem = H5T_path_find(dt_src, dt_mem, NULL, NULL, dxpl_id, FALSE)))
@@ -1396,7 +1402,7 @@ H5D_contig_copy(H5F_t *f_src, const H5O_storage_contig_t *storage_src,
         /* Perform datatype conversion, if necessary */
         if(is_vlen) {
             /* Convert from source file to memory */
-	    if(H5T_convert(tpath_src_mem, tid_src, tid_mem, nelmts, (size_t)0, (size_t)0, buf, NULL, dxpl_id) < 0)
+	    if(H5T_convert(tpath_src_mem, tid_src, tid_mem, nelmts, (size_t)0, (size_t)0, buf, bkg, dxpl_id) < 0)
                 HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "datatype conversion failed")
 
             /* Copy into another buffer, to reclaim memory later */

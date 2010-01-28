@@ -19,6 +19,10 @@
 # Thursday, July 20, 2006
 #
 
+TESTNAME=h5copy
+EXIT_SUCCESS=0
+EXIT_FAILURE=1
+
 H5COPY=h5copy               # The tool name
 H5COPY_BIN=`pwd`/$H5COPY    # The path of the tool binary
 H5DIFF=h5diff               # The h5diff tool name 
@@ -167,11 +171,7 @@ TOOLTEST_FAIL()
 H5DIFFTEST() 
 {
     VERIFY  $@
-    if [ "`uname -s`" = "TFLOPS O/S" ]; then
-        $RUNSERIAL $H5DIFF_BIN -q $@ 
-    else
-        $RUNSERIAL $H5DIFF_BIN -q "$@" 
-    fi
+    $RUNSERIAL $H5DIFF_BIN -q "$@" 
     RET=$?
     if [ $RET != 0 ] ; then
          echo "*FAILED*"
@@ -186,11 +186,7 @@ H5DIFFTEST()
 H5DIFFTEST_FAIL() 
 {
     VERIFY  $@
-    if [ "`uname -s`" = "TFLOPS O/S" ]; then
-        $RUNSERIAL $H5DIFF_BIN -q $@ 
-    else
-        $RUNSERIAL $H5DIFF_BIN -q "$@" 
-    fi
+    $RUNSERIAL $H5DIFF_BIN -q "$@" 
     RET=$?
 
     if [ $RET != 1 ] ; then
@@ -308,8 +304,9 @@ COPYOBJECTS
 
 
 if test $nerrors -eq 0 ; then
-    echo "All h5copy tests passed."
+    echo "All $TESTNAME tests passed."
+    exit $EXIT_SUCCESS
+else
+    echo "$TESTNAME tests failed with $nerrors errors."
+    exit $EXIT_FAILURE
 fi
-
-exit $nerrors
-
