@@ -334,6 +334,10 @@ H5T_commit(H5F_t *file, H5T_t *type, hid_t tcpl_id, hid_t dxpl_id)
     HDassert(type);
     HDassert(tcpl_id != H5P_DEFAULT);
 
+    /* Check if we are allowed to write to this file */
+    if(0 == (H5F_INTENT(file) & H5F_ACC_RDWR))
+        HGOTO_ERROR(H5E_DATATYPE, H5E_WRITEERROR, FAIL, "no write intent on file")
+
     /*
      * Check arguments.  We cannot commit an immutable type because H5Tclose()
      * normally fails on such types (try H5Tclose(H5T_NATIVE_INT)) but closing
@@ -766,12 +770,12 @@ done:
     if(ret_value == NULL) {
         if(dt) {
             if(shared_fo == NULL)   /* Need to free shared fo */
-                H5FL_FREE(H5T_shared_t, dt->shared);
+                dt->shared = H5FL_FREE(H5T_shared_t, dt->shared);
 
             H5O_loc_free(&(dt->oloc));
             H5G_name_free(&(dt->path));
 
-            H5FL_FREE(H5T_t, dt);
+            dt = H5FL_FREE(H5T_t, dt);
         } /* end if */
 
         if(shared_fo)

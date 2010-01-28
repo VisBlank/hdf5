@@ -21,8 +21,8 @@
 
 /* Public header files needed by this file */
 #include "H5public.h"
-#include "H5Cpublic.h"
 #include "H5ACpublic.h"
+#include "H5Cpublic.h"
 #include "H5Ipublic.h"
 
 /* When this header is included from a private header, don't make calls to H5check() */
@@ -151,6 +151,7 @@ typedef enum H5F_libver_t {
 
 /* File space handling strategy */
 typedef enum H5F_file_space_type_t {
+    H5F_FILE_SPACE_DEFAULT = 0,     /* Default (or current) free space strategy setting */
     H5F_FILE_SPACE_ALL_PERSIST = 1, /* Persistent free space managers, aggregators, virtual file driver */
     H5F_FILE_SPACE_ALL = 2,	    /* Non-persistent free space managers, aggregators, virtual file driver */
 				    /* This is the library default */

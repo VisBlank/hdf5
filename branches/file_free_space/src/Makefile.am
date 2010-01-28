@@ -27,13 +27,13 @@ include $(top_srcdir)/config/lt_vers.am
 # a long time to compile it with any optimization on.  H5detect is used
 # to generate H5Tinit.c once. So, optimization is not critical.
 noinst_PROGRAMS = H5detect
-H5detect_CFLAGS = -g
+H5detect_CFLAGS = -g $(AM_CFLAGS)
 
 # Our main target, the HDF5 library
 lib_LTLIBRARIES=libhdf5.la
 
 # Add libtool numbers to the HDF5 library (from config/lt_vers.am)
-libhdf5_la_LDFLAGS= -version-info $(LT_VERS_INTERFACE):$(LT_VERS_REVISION):$(LT_VERS_AGE)
+libhdf5_la_LDFLAGS= -version-info $(LT_VERS_INTERFACE):$(LT_VERS_REVISION):$(LT_VERS_AGE) $(AM_LDFLAGS)
 
 # H5Tinit.c is a generated file, and should be cleaned.
 MOSTLYCLEANFILES=H5Tinit.c
@@ -44,7 +44,7 @@ DISTCLEANFILES=H5pubconf.h
 libhdf5_la_SOURCES= H5.c H5checksum.c H5dbg.c H5system.c H5timer.c H5trace.c \
         H5A.c H5Abtree2.c H5Adense.c H5Adeprec.c H5Aint.c H5Atest.c \
         H5AC.c H5B.c H5Bcache.c H5Bdbg.c \
-        H5B2.c H5B2cache.c H5B2dbg.c H5B2int.c H5B2stat.c H5B2test.c \
+        H5B2.c H5B2cache.c H5B2dbg.c H5B2hdr.c H5B2int.c H5B2stat.c H5B2test.c \
         H5C.c H5CS.c \
         H5D.c H5Dbtree.c H5Dchunk.c H5Dcompact.c H5Dcontig.c H5Ddbg.c \
         H5Ddeprec.c H5Defl.c H5Dfill.c H5Dint.c \
@@ -71,7 +71,7 @@ libhdf5_la_SOURCES= H5.c H5checksum.c H5dbg.c H5system.c H5timer.c H5trace.c \
         H5HFhdr.c H5HFhuge.c H5HFiblock.c H5HFiter.c H5HFman.c H5HFsection.c \
         H5HFspace.c H5HFstat.c H5HFtest.c H5HFtiny.c \
         H5HG.c H5HGcache.c H5HGdbg.c \
-        H5HL.c H5HLcache.c H5HLdbg.c \
+        H5HL.c H5HLcache.c H5HLdbg.c H5HLint.c \
         H5HP.c H5I.c H5L.c H5Lexternal.c \
         H5MF.c H5MFaggr.c H5MFdbg.c H5MFsection.c \
         H5MM.c H5MP.c H5MPtest.c \
@@ -92,8 +92,10 @@ libhdf5_la_SOURCES= H5.c H5checksum.c H5dbg.c H5system.c H5timer.c H5trace.c \
         H5RC.c \
         H5RS.c \
         H5S.c H5Sall.c H5Sdbg.c H5Shyper.c H5Smpio.c H5Snone.c H5Spoint.c \
-        H5Sselect.c H5Stest.c H5SL.c H5SM.c H5SMbtree2.c \
-        H5SMcache.c H5SMtest.c H5ST.c \
+        H5Sselect.c H5Stest.c \
+        H5SL.c \
+        H5SM.c H5SMbtree2.c H5SMcache.c H5SMmessage.c H5SMtest.c \
+        H5ST.c \
         H5T.c H5Tarray.c H5Tbit.c H5Tcommit.c H5Tcompound.c H5Tconv.c \
         H5Tcset.c H5Tdbg.c H5Tdeprec.c H5Tenum.c H5Tfields.c \
         H5Tfixed.c \

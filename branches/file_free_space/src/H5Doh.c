@@ -155,8 +155,8 @@ H5O_dset_free_copy_file_udata(void *_udata)
         H5T_close(udata->src_dtype);
 
     /* Release copy of dataset's filter pipeline, if it was set */
-    if(udata->src_pline)
-        H5O_msg_free(H5O_PLINE_ID, udata->src_pline);
+    if(udata->common.src_pline)
+        H5O_msg_free(H5O_PLINE_ID, udata->common.src_pline);
 
     /* Release space for 'copy file' user data */
     (void)H5FL_FREE(H5D_copy_file_ud_t, udata);
@@ -401,7 +401,7 @@ H5O_dset_bh_info(H5F_t *f, hid_t dxpl_id, H5O_t *oh, H5_ih_info_t *bh_info)
     if((exists = H5O_msg_exists_oh(oh, H5O_EFL_ID)) < 0)
 	HGOTO_ERROR(H5E_OHDR, H5E_NOTFOUND, FAIL, "unable to check for EFL message")
 
-    if(exists && H5D_efl_is_space_alloc(&layout)) {
+    if(exists && H5D_efl_is_space_alloc(&layout.storage)) {
 	H5O_efl_t efl;			/* External File List message */
 
         /* Start with clean EFL info */

@@ -669,6 +669,9 @@ H5_trace (const double *returning, const char *func, const char *type, ...)
                         H5F_file_space_type_t fs_type = va_arg(ap, H5F_file_space_type_t); /*lint !e64 Type mismatch not really occuring */
 
                         switch(fs_type) {
+                            case H5F_FILE_SPACE_DEFAULT:
+                                fprintf(out, "H5F_FILE_SPACE_DEFAULT");
+                                break;
                             case H5F_FILE_SPACE_ALL_PERSIST:
                                 fprintf(out, "H5F_FILE_SPACE_ALL_PERSIST");
                                 break;
@@ -1451,7 +1454,7 @@ H5_trace (const double *returning, const char *func, const char *type, ...)
                 /* This may generate recursive call to the library... -QAK */
                 if(NULL != (pclass = (H5P_genclass_t *)H5I_object(pclass_id)) &&
                         (class_name = H5P_get_class_name(pclass))!=NULL) {
-		    fprintf (out, class_name);
+		    fprintf(out, "%s", class_name);
                     H5MM_xfree(class_name);
                 } /* end if */
                 else {

@@ -80,21 +80,17 @@
 ./config/conclude.am
 ./config/craynv
 ./config/dec-flags
-./config/dec-osf4.x
-./config/dec-osf5.x
 ./config/examples.am
 ./config/freebsd
 ./config/gnu-fflags
 ./config/gnu-flags
-./config/hpux11.00
 ./config/hpux11.23
 ./config/i386-pc-cygwin32
 ./config/i686-pc-cygwin
 ./config/ia64-linux-gnu
+./config/ibm-aix
 ./config/intel-fflags
 ./config/intel-flags
-./config/intel-osf1
-./config/irix5.x
 ./config/irix6.x
 ./config/linux-gnu
 ./config/linux-gnuaout
@@ -106,17 +102,9 @@
 ./config/Makefile.am.blank
 ./config/pgi-fflags
 ./config/pgi-flags
-./config/powerpc-ibm-aix4.x
 ./config/powerpc-ibm-aix5.x
-./config/rs6000-ibm-aix4.x
 ./config/solaris2.x
 ./config/sv1-cray
-./config/unicos
-./config/unicos10.0.X
-./config/unicosmk
-./config/unicosmk2.0.X
-./config/unicosmk2.0.5.X
-./config/unicosmk2.0.6.X
 ./config/x86_64-redstorm-linux-gnu
 
 ./config/site-specific/BlankForm
@@ -363,6 +351,7 @@
 ./c++/test/tfilter.cpp
 ./c++/test/th5s.cpp
 ./c++/test/th5s.h5
+./c++/test/tlinks.cpp
 ./c++/test/ttypes.cpp
 ./c++/test/trefer.cpp
 ./c++/test/tvlstr.cpp
@@ -459,6 +448,7 @@
 ./src/H5B2.c
 ./src/H5B2cache.c
 ./src/H5B2dbg.c
+./src/H5B2hdr.c
 ./src/H5B2int.c
 ./src/H5B2pkg.h
 ./src/H5B2private.h
@@ -630,6 +620,7 @@
 ./src/H5HL.c
 ./src/H5HLcache.c
 ./src/H5HLdbg.c
+./src/H5HLint.c
 ./src/H5HLpkg.h
 ./src/H5HLprivate.h
 ./src/H5HLpublic.h
@@ -739,6 +730,7 @@
 ./src/H5SM.c
 ./src/H5SMbtree2.c
 ./src/H5SMcache.c
+./src/H5SMmessage.c
 ./src/H5SMpkg.h
 ./src/H5SMprivate.h
 ./src/H5SMtest.c
@@ -852,6 +844,7 @@
 ./test/gen_old_group.c			_DO_NOT_DISTRIBUTE_
 ./test/gen_old_layout.c			_DO_NOT_DISTRIBUTE_
 ./test/gen_old_mtime.c			_DO_NOT_DISTRIBUTE_
+./test/gen_specmetaread.c		_DO_NOT_DISTRIBUTE_
 ./test/gen_udlinks.c			_DO_NOT_DISTRIBUTE_
 ./test/getname.c
 ./test/gheap.c
@@ -877,6 +870,7 @@
 ./test/pool.c
 ./test/set_extent.c
 ./test/space_overflow.c			_DO_NOT_DISTRIBUTE_
+./test/specmetaread.h5
 ./test/stab.c
 ./test/tarray.c
 ./test/tarrold.h5
@@ -1018,8 +1012,6 @@
 ./tools/h5import/testfiles/textpfe.conf
 ./tools/h5import/testfiles/in64.txt
 ./tools/h5import/testfiles/test15.h5
-
-
 
 # h5diff sources
 ./tools/h5diff/Makefile.am
@@ -1520,6 +1512,33 @@
 ./tools/h5diff/testfiles/h5diff_205.txt
 ./tools/h5diff/testfiles/h5diff_206.txt
 ./tools/h5diff/testfiles/h5diff_207.txt
+./tools/h5diff/testfiles/h5diff_300.txt
+./tools/h5diff/testfiles/h5diff_400.txt
+./tools/h5diff/testfiles/h5diff_401.txt
+./tools/h5diff/testfiles/h5diff_402.txt
+./tools/h5diff/testfiles/h5diff_403.txt
+./tools/h5diff/testfiles/h5diff_404.txt
+./tools/h5diff/testfiles/h5diff_405.txt
+./tools/h5diff/testfiles/h5diff_406.txt
+./tools/h5diff/testfiles/h5diff_407.txt
+./tools/h5diff/testfiles/h5diff_408.txt
+./tools/h5diff/testfiles/h5diff_409.txt
+./tools/h5diff/testfiles/h5diff_410.txt
+./tools/h5diff/testfiles/h5diff_411.txt
+./tools/h5diff/testfiles/h5diff_412.txt
+./tools/h5diff/testfiles/h5diff_413.txt
+./tools/h5diff/testfiles/h5diff_414.txt
+./tools/h5diff/testfiles/h5diff_415.txt
+./tools/h5diff/testfiles/h5diff_416.txt
+./tools/h5diff/testfiles/h5diff_417.txt
+./tools/h5diff/testfiles/h5diff_418.txt
+./tools/h5diff/testfiles/h5diff_419.txt
+./tools/h5diff/testfiles/h5diff_420.txt
+./tools/h5diff/testfiles/h5diff_421.txt
+./tools/h5diff/testfiles/h5diff_422.txt
+./tools/h5diff/testfiles/h5diff_423.txt
+./tools/h5diff/testfiles/h5diff_424.txt
+./tools/h5diff/testfiles/h5diff_425.txt
 
 
 ./tools/h5diff/testfiles/h5diff_attr1.h5
@@ -1533,6 +1552,13 @@
 ./tools/h5diff/testfiles/h5diff_hyper1.h5
 ./tools/h5diff/testfiles/h5diff_hyper2.h5
 ./tools/h5diff/testfiles/h5diff_types.h5
+./tools/h5diff/testfiles/h5diff_links.h5
+./tools/h5diff/testfiles/h5diff_ext2softlink_src.h5
+./tools/h5diff/testfiles/h5diff_ext2softlink_trg.h5
+./tools/h5diff/testfiles/h5diff_extlink_src.h5
+./tools/h5diff/testfiles/h5diff_extlink_trg.h5
+./tools/h5diff/testfiles/h5diff_linked_softlink.h5
+./tools/h5diff/testfiles/h5diff_softlinks.h5
 
 
 
@@ -2121,6 +2147,8 @@
 ./windows/test/set_extentdll/set_extentdll.vcproj
 ./windows/test/stab/stab.vcproj
 ./windows/test/stabdll/stabdll.vcproj
+./windows/test/tcheckversion/tcheckversion.vcproj
+./windows/test/tcheckversiondll/tcheckversiondll.vcproj
 ./windows/test/tellub/tellub.vcproj
 ./windows/test/testhdf5/testhdf5.vcproj
 ./windows/test/testhdf5dll/testhdf5dll.vcproj

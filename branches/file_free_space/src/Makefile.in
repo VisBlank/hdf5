@@ -98,15 +98,15 @@ libhdf5_la_LIBADD =
 am_libhdf5_la_OBJECTS = H5.lo H5checksum.lo H5dbg.lo H5system.lo \
 	H5timer.lo H5trace.lo H5A.lo H5Abtree2.lo H5Adense.lo \
 	H5Adeprec.lo H5Aint.lo H5Atest.lo H5AC.lo H5B.lo H5Bcache.lo \
-	H5Bdbg.lo H5B2.lo H5B2cache.lo H5B2dbg.lo H5B2int.lo \
-	H5B2stat.lo H5B2test.lo H5C.lo H5CS.lo H5D.lo H5Dbtree.lo \
-	H5Dchunk.lo H5Dcompact.lo H5Dcontig.lo H5Ddbg.lo H5Ddeprec.lo \
-	H5Defl.lo H5Dfill.lo H5Dint.lo H5Dio.lo H5Dlayout.lo \
-	H5Dmpio.lo H5Doh.lo H5Dscatgath.lo H5Dselect.lo H5Dtest.lo \
-	H5E.lo H5Edeprec.lo H5Eint.lo H5EA.lo H5EAcache.lo H5EAdbg.lo \
-	H5EAdblkpage.lo H5EAdblock.lo H5EAhdr.lo H5EAiblock.lo \
-	H5EAint.lo H5EAsblock.lo H5EAstat.lo H5EAtest.lo H5F.lo \
-	H5Faccum.lo H5Fdbg.lo H5Fdeprec.lo H5Ffake.lo H5Fio.lo \
+	H5Bdbg.lo H5B2.lo H5B2cache.lo H5B2dbg.lo H5B2hdr.lo \
+	H5B2int.lo H5B2stat.lo H5B2test.lo H5C.lo H5CS.lo H5D.lo \
+	H5Dbtree.lo H5Dchunk.lo H5Dcompact.lo H5Dcontig.lo H5Ddbg.lo \
+	H5Ddeprec.lo H5Defl.lo H5Dfill.lo H5Dint.lo H5Dio.lo \
+	H5Dlayout.lo H5Dmpio.lo H5Doh.lo H5Dscatgath.lo H5Dselect.lo \
+	H5Dtest.lo H5E.lo H5Edeprec.lo H5Eint.lo H5EA.lo H5EAcache.lo \
+	H5EAdbg.lo H5EAdblkpage.lo H5EAdblock.lo H5EAhdr.lo \
+	H5EAiblock.lo H5EAint.lo H5EAsblock.lo H5EAstat.lo H5EAtest.lo \
+	H5F.lo H5Faccum.lo H5Fdbg.lo H5Fdeprec.lo H5Ffake.lo H5Fio.lo \
 	H5Fmount.lo H5Fmpi.lo H5Fquery.lo H5Fsfile.lo H5Fsuper.lo \
 	H5Fsuper_cache.lo H5Ftest.lo H5FA.lo H5FAcache.lo H5FAdbg.lo \
 	H5FAdblock.lo H5FAdblkpage.lo H5FAhdr.lo H5FAstat.lo \
@@ -122,14 +122,14 @@ am_libhdf5_la_OBJECTS = H5.lo H5checksum.lo H5dbg.lo H5system.lo \
 	H5HFdtable.lo H5HFhdr.lo H5HFhuge.lo H5HFiblock.lo H5HFiter.lo \
 	H5HFman.lo H5HFsection.lo H5HFspace.lo H5HFstat.lo H5HFtest.lo \
 	H5HFtiny.lo H5HG.lo H5HGcache.lo H5HGdbg.lo H5HL.lo \
-	H5HLcache.lo H5HLdbg.lo H5HP.lo H5I.lo H5L.lo H5Lexternal.lo \
-	H5MF.lo H5MFaggr.lo H5MFdbg.lo H5MFsection.lo H5MM.lo H5MP.lo \
-	H5MPtest.lo H5O.lo H5Oainfo.lo H5Oalloc.lo H5Oattr.lo \
-	H5Oattribute.lo H5Obogus.lo H5Obtreek.lo H5Ocache.lo \
-	H5Ocont.lo H5Ocopy.lo H5Odbg.lo H5Odrvinfo.lo H5Odtype.lo \
-	H5Oefl.lo H5Ofill.lo H5Ofsinfo.lo H5Oginfo.lo H5Olayout.lo \
-	H5Olinfo.lo H5Olink.lo H5Omessage.lo H5Omtime.lo H5Oname.lo \
-	H5Onull.lo H5Opline.lo H5Orefcount.lo H5Osdspace.lo \
+	H5HLcache.lo H5HLdbg.lo H5HLint.lo H5HP.lo H5I.lo H5L.lo \
+	H5Lexternal.lo H5MF.lo H5MFaggr.lo H5MFdbg.lo H5MFsection.lo \
+	H5MM.lo H5MP.lo H5MPtest.lo H5O.lo H5Oainfo.lo H5Oalloc.lo \
+	H5Oattr.lo H5Oattribute.lo H5Obogus.lo H5Obtreek.lo \
+	H5Ocache.lo H5Ocont.lo H5Ocopy.lo H5Odbg.lo H5Odrvinfo.lo \
+	H5Odtype.lo H5Oefl.lo H5Ofill.lo H5Ofsinfo.lo H5Oginfo.lo \
+	H5Olayout.lo H5Olinfo.lo H5Olink.lo H5Omessage.lo H5Omtime.lo \
+	H5Oname.lo H5Onull.lo H5Opline.lo H5Orefcount.lo H5Osdspace.lo \
 	H5Oshared.lo H5Ostab.lo H5Oshmesg.lo H5Otest.lo H5Ounknown.lo \
 	H5P.lo H5Pacpl.lo H5Pdapl.lo H5Pdcpl.lo H5Pdeprec.lo \
 	H5Pdxpl.lo H5Pfapl.lo H5Pfcpl.lo H5Pfmpl.lo H5Pgcpl.lo \
@@ -137,14 +137,15 @@ am_libhdf5_la_OBJECTS = H5.lo H5checksum.lo H5dbg.lo H5system.lo \
 	H5Pstrcpl.lo H5Ptest.lo H5R.lo H5Rdeprec.lo H5RC.lo H5RS.lo \
 	H5S.lo H5Sall.lo H5Sdbg.lo H5Shyper.lo H5Smpio.lo H5Snone.lo \
 	H5Spoint.lo H5Sselect.lo H5Stest.lo H5SL.lo H5SM.lo \
-	H5SMbtree2.lo H5SMcache.lo H5SMtest.lo H5ST.lo H5T.lo \
-	H5Tarray.lo H5Tbit.lo H5Tcommit.lo H5Tcompound.lo H5Tconv.lo \
-	H5Tcset.lo H5Tdbg.lo H5Tdeprec.lo H5Tenum.lo H5Tfields.lo \
-	H5Tfixed.lo H5Tfloat.lo H5Tinit.lo H5Tnative.lo H5Toffset.lo \
-	H5Toh.lo H5Topaque.lo H5Torder.lo H5Tpad.lo H5Tprecis.lo \
-	H5Tstrpad.lo H5Tvisit.lo H5Tvlen.lo H5TS.lo H5V.lo H5WB.lo \
-	H5Z.lo H5Zdeflate.lo H5Zfletcher32.lo H5Znbit.lo H5Zshuffle.lo \
-	H5Zszip.lo H5Zscaleoffset.lo H5Ztrans.lo
+	H5SMbtree2.lo H5SMcache.lo H5SMmessage.lo H5SMtest.lo H5ST.lo \
+	H5T.lo H5Tarray.lo H5Tbit.lo H5Tcommit.lo H5Tcompound.lo \
+	H5Tconv.lo H5Tcset.lo H5Tdbg.lo H5Tdeprec.lo H5Tenum.lo \
+	H5Tfields.lo H5Tfixed.lo H5Tfloat.lo H5Tinit.lo H5Tnative.lo \
+	H5Toffset.lo H5Toh.lo H5Topaque.lo H5Torder.lo H5Tpad.lo \
+	H5Tprecis.lo H5Tstrpad.lo H5Tvisit.lo H5Tvlen.lo H5TS.lo \
+	H5V.lo H5WB.lo H5Z.lo H5Zdeflate.lo H5Zfletcher32.lo \
+	H5Znbit.lo H5Zshuffle.lo H5Zszip.lo H5Zscaleoffset.lo \
+	H5Ztrans.lo
 libhdf5_la_OBJECTS = $(am_libhdf5_la_OBJECTS)
 libhdf5_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -181,6 +182,16 @@ DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = /home1/packages/automake/automake-1.9.6/bin/aclocal-1.9 -I /afs/ncsa/projects/hdf/packages/libtool_1.5.14/Linux_2.4/share/aclocal
 ADD_PARALLEL_FILES = @ADD_PARALLEL_FILES@
 AMTAR = @AMTAR@
+
+# H5_CFLAGS holds flags that should be used when building hdf5,
+# but which should not be exported to h5cc for building other programs.
+# AM_CFLAGS is an automake construct which should be used by Makefiles 
+# instead of CFLAGS, as CFLAGS is reserved solely for the user to define.
+AM_CFLAGS = @AM_CFLAGS@ @H5_CFLAGS@
+AM_CPPFLAGS = @AM_CPPFLAGS@ @H5_CPPFLAGS@
+AM_CXXFLAGS = @AM_CXXFLAGS@ @H5_CXXFLAGS@
+AM_FCFLAGS = @AM_FCFLAGS@ @H5_FCFLAGS@
+AM_LDFLAGS = @AM_LDFLAGS@
 AM_MAKEFLAGS = @AM_MAKEFLAGS@
 AR = @AR@
 
@@ -194,21 +205,18 @@ BYTESEX = @BYTESEX@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CC_VERSION = @CC_VERSION@
-
-# H5_CFLAGS holds flags that should be used as CFLAGS when building hdf5,
-# but which shouldn't be exported to h5cc for building other programs.
-CFLAGS = @CFLAGS@ @H5_CFLAGS@
+CFLAGS = @CFLAGS@
 CLEARFILEBUF = @CLEARFILEBUF@
 CODESTACK = @CODESTACK@
 CONFIG_DATE = @CONFIG_DATE@
 CONFIG_MODE = @CONFIG_MODE@
 CONFIG_USER = @CONFIG_USER@
 CPP = @CPP@
-CPPFLAGS = @CPPFLAGS@ @H5_CPPFLAGS@
+CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
 CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
-CXXFLAGS = @CXXFLAGS@ @H5_CXXFLAGS@
+CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEBUG_PKG = @DEBUG_PKG@
 DEFAULT_API_VERSION = @DEFAULT_API_VERSION@
@@ -231,7 +239,7 @@ F9XMODEXT = @F9XMODEXT@
 F9XMODFLAG = @F9XMODFLAG@
 F9XSUFFIXFLAG = @F9XSUFFIXFLAG@
 FC = @FC@
-FCFLAGS = @FCFLAGS@ @H5_FCFLAGS@
+FCFLAGS = @FCFLAGS@
 FCFLAGS_f90 = @FCFLAGS_f90@
 FCLIBS = @FCLIBS@
 FGREP = @FGREP@
@@ -393,12 +401,12 @@ CP = cp
 
 # Some machines need a command to run executables; this is that command
 # so that our tests will run.
-# We use RUNTESTS instead of RUNSERIAL directly because it may be that
+# We use RUNEXEC instead of RUNSERIAL directly because it may be that
 # some tests need to be run with a different command.  Older versions
 # of the makefiles used the command
 # $(LIBTOOL) --mode=execute
 # in some directories, for instance.
-RUNTESTS = $(RUNSERIAL)
+RUNEXEC = $(RUNSERIAL)
 
 # Libraries to link to while building
 LIBHDF5 = $(top_builddir)/src/libhdf5.la
@@ -432,15 +440,15 @@ CHECK_CLEANFILES = *.chkexe *.chklog *.clog
 # Add libtool shared library version numbers to the HDF5 library
 # See libtool versioning documentation online.
 LT_VERS_INTERFACE = 6
-LT_VERS_REVISION = 37
+LT_VERS_REVISION = 49
 LT_VERS_AGE = 0
-H5detect_CFLAGS = -g
+H5detect_CFLAGS = -g $(AM_CFLAGS)
 
 # Our main target, the HDF5 library
 lib_LTLIBRARIES = libhdf5.la
 
 # Add libtool numbers to the HDF5 library (from config/lt_vers.am)
-libhdf5_la_LDFLAGS = -version-info $(LT_VERS_INTERFACE):$(LT_VERS_REVISION):$(LT_VERS_AGE)
+libhdf5_la_LDFLAGS = -version-info $(LT_VERS_INTERFACE):$(LT_VERS_REVISION):$(LT_VERS_AGE) $(AM_LDFLAGS)
 
 # H5Tinit.c is a generated file, and should be cleaned.
 MOSTLYCLEANFILES = H5Tinit.c
@@ -451,7 +459,7 @@ DISTCLEANFILES = H5pubconf.h
 libhdf5_la_SOURCES = H5.c H5checksum.c H5dbg.c H5system.c H5timer.c H5trace.c \
         H5A.c H5Abtree2.c H5Adense.c H5Adeprec.c H5Aint.c H5Atest.c \
         H5AC.c H5B.c H5Bcache.c H5Bdbg.c \
-        H5B2.c H5B2cache.c H5B2dbg.c H5B2int.c H5B2stat.c H5B2test.c \
+        H5B2.c H5B2cache.c H5B2dbg.c H5B2hdr.c H5B2int.c H5B2stat.c H5B2test.c \
         H5C.c H5CS.c \
         H5D.c H5Dbtree.c H5Dchunk.c H5Dcompact.c H5Dcontig.c H5Ddbg.c \
         H5Ddeprec.c H5Defl.c H5Dfill.c H5Dint.c \
@@ -478,7 +486,7 @@ libhdf5_la_SOURCES = H5.c H5checksum.c H5dbg.c H5system.c H5timer.c H5trace.c \
         H5HFhdr.c H5HFhuge.c H5HFiblock.c H5HFiter.c H5HFman.c H5HFsection.c \
         H5HFspace.c H5HFstat.c H5HFtest.c H5HFtiny.c \
         H5HG.c H5HGcache.c H5HGdbg.c \
-        H5HL.c H5HLcache.c H5HLdbg.c \
+        H5HL.c H5HLcache.c H5HLdbg.c H5HLint.c \
         H5HP.c H5I.c H5L.c H5Lexternal.c \
         H5MF.c H5MFaggr.c H5MFdbg.c H5MFsection.c \
         H5MM.c H5MP.c H5MPtest.c \
@@ -499,8 +507,10 @@ libhdf5_la_SOURCES = H5.c H5checksum.c H5dbg.c H5system.c H5timer.c H5trace.c \
         H5RC.c \
         H5RS.c \
         H5S.c H5Sall.c H5Sdbg.c H5Shyper.c H5Smpio.c H5Snone.c H5Spoint.c \
-        H5Sselect.c H5Stest.c H5SL.c H5SM.c H5SMbtree2.c \
-        H5SMcache.c H5SMtest.c H5ST.c \
+        H5Sselect.c H5Stest.c \
+        H5SL.c \
+        H5SM.c H5SMbtree2.c H5SMcache.c H5SMmessage.c H5SMtest.c \
+        H5ST.c \
         H5T.c H5Tarray.c H5Tbit.c H5Tcommit.c H5Tcompound.c H5Tconv.c \
         H5Tcset.c H5Tdbg.c H5Tdeprec.c H5Tenum.c H5Tfields.c \
         H5Tfixed.c \
@@ -661,6 +671,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5B2.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5B2cache.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5B2dbg.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5B2hdr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5B2int.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5B2stat.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5B2test.Plo@am__quote@
@@ -781,6 +792,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5HL.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5HLcache.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5HLdbg.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5HLint.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5HP.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5I.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5L.Plo@am__quote@
@@ -850,6 +862,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5SM.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5SMbtree2.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5SMcache.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5SMmessage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5SMtest.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5ST.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5Sall.Plo@am__quote@
@@ -1363,7 +1376,7 @@ $(TEST_PROG_CHKEXE) $(TEST_PROG_PARA_CHKEXE) dummy.chkexe_:
 	      fi; \
 	      echo "============================" >> $${log}; \
 	      srcdir="$(srcdir)" \
-	         $(TIME) $(RUNTESTS) ./$${tname} $(TEST_FLAGS) >> $${log} 2>&1 \
+	         $(TIME) $(RUNEXEC) ./$${tname} $(TEST_FLAGS) >> $${log} 2>&1 \
 	         && touch $(@:.chkexe_=.chkexe) || \
 	         (test $$HDF5_Make_Ignore && echo "*** Error ignored") || \
 	         (cat $${log} && false) || exit 1; \
@@ -1434,7 +1447,7 @@ build-check-p: $(LIB) $(PROGS) $(TESTS)
 	@for test in $(TEST_PROG_PARA) dummy; do                             \
 	   if test $$test != dummy; then                                      \
 	      $(MAKE) $(AM_MAKEFLAGS) $$test.chkexe_ \
-	      RUNTESTS="$(RUNPARALLEL)" || exit 1; \
+	      RUNEXEC="$(RUNPARALLEL)" || exit 1; \
 	   fi;                                                                \
 	done
 	@for test in $(TEST_SCRIPT_PARA) dummy; do                           \
