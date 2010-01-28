@@ -253,7 +253,7 @@ H5G_obj_create_real(H5F_t *f, hid_t dxpl_id, const H5O_ginfo_t *ginfo,
                     (ginfo->est_num_entries * link_size);
     } /* end if */
     else
-        hdr_size = 4 + 2 * H5F_SIZEOF_ADDR(f);
+        hdr_size = (size_t)(4 + 2 * H5F_SIZEOF_ADDR(f));
 
     /*
      * Create group's object header.  It has a zero link count
@@ -309,6 +309,7 @@ done:
 htri_t
 H5G_obj_get_linfo(const H5O_loc_t *grp_oloc, H5O_linfo_t *linfo, hid_t dxpl_id)
 {
+    H5B2_t *bt2_name = NULL;            /* v2 B-tree handle for name index */
     htri_t ret_value;           /* Return value */
 
     FUNC_ENTER_NOAPI(H5G_obj_get_linfo, FAIL)
@@ -329,9 +330,13 @@ H5G_obj_get_linfo(const H5O_loc_t *grp_oloc, H5O_linfo_t *linfo, hid_t dxpl_id)
         if(linfo->nlinks == HSIZET_MAX) {
             /* Check if we are using "dense" link storage */
             if(H5F_addr_defined(linfo->fheap_addr)) {
+                /* Open the name index v2 B-tree */
+                if(NULL == (bt2_name = H5B2_open(grp_oloc->file, dxpl_id, linfo->name_bt2_addr, NULL)))
+                    HGOTO_ERROR(H5E_SYM, H5E_CANTOPENOBJ, FAIL, "unable to open v2 B-tree for name index")
+
                 /* Retrieve # of records in "name" B-tree */
                 /* (should be same # of records in all indices) */
-                if(H5B2_get_nrec(grp_oloc->file, dxpl_id, H5G_BT2_NAME, linfo->name_bt2_addr, &linfo->nlinks) < 0)
+                if(H5B2_get_nrec(bt2_name, &linfo->nlinks) < 0)
                     HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "can't retrieve # of records in index")
             } /* end if */
             else {
@@ -343,6 +348,10 @@ H5G_obj_get_linfo(const H5O_loc_t *grp_oloc, H5O_linfo_t *linfo, hid_t dxpl_id)
     } /* end if */
 
 done:
+    /* Release resources */
+    if(bt2_name && H5B2_close(bt2_name, dxpl_id) < 0)
+        HDONE_ERROR(H5E_SYM, H5E_CLOSEERROR, FAIL, "can't close v2 B-tree for name index")
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5G_obj_get_linfo() */
 
@@ -912,7 +921,7 @@ H5G_obj_remove_update_linfo(H5O_loc_t *oloc, H5O_linfo_t *linfo, hid_t dxpl_id)
                     for(u = 0; u < linfo->nlinks; u++)
                         if(H5O_msg_append_oh(oloc->file, dxpl_id, oh, H5O_LINK_ID, 0, H5O_UPDATE_TIME, &(ltable.lnks[u])) < 0) {
                             /* Release object header */
-                            if(H5O_unpin(oloc, oh) < 0)
+                            if(H5O_unpin(oh) < 0)
                                 HDONE_ERROR(H5E_SYM, H5E_CANTUNPIN, FAIL, "unable to unpin group object header")
 
                             HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, FAIL, "can't create message")
@@ -924,7 +933,7 @@ H5G_obj_remove_update_linfo(H5O_loc_t *oloc, H5O_linfo_t *linfo, hid_t dxpl_id)
                 } /* end if */
 
                 /* Release object header */
-                if(H5O_unpin(oloc, oh) < 0)
+                if(H5O_unpin(oh) < 0)
                     HGOTO_ERROR(H5E_SYM, H5E_CANTUNPIN, FAIL, "unable to unpin group object header")
 
                 /* Free link table information */

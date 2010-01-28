@@ -198,11 +198,11 @@ const H5AC_class_t H5AC_EARRAY_DBLK_PAGE[1] = {{
  */
 BEGIN_FUNC(STATIC, ERR,
 H5EA_hdr_t *, NULL, NULL,
-H5EA__cache_hdr_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *_cls,
+H5EA__cache_hdr_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void UNUSED *udata1,
     void *ctx_udata))
 
     /* Local variables */
-    const H5EA_class_t  *cls = (const H5EA_class_t *)_cls;      /* Extensible array class */
+    H5EA_cls_id_t       id;		/* ID of extensible array class, as found in file */
     H5EA_hdr_t		*hdr = NULL;    /* Extensible array info */
     size_t		size;           /* Header size */
     H5WB_t              *wb = NULL;     /* Wrapped buffer for header data */
@@ -217,7 +217,7 @@ H5EA__cache_hdr_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *_cls,
     HDassert(H5F_addr_defined(addr));
 
     /* Allocate space for the extensible array data structure */
-    if(NULL == (hdr = H5EA__hdr_alloc(f, cls, ctx_udata)))
+    if(NULL == (hdr = H5EA__hdr_alloc(f)))
 	H5E_THROW(H5E_CANTALLOC, "memory allocation failed for extensible array shared header")
 
     /* Set the extensible array header's address */
@@ -250,9 +250,11 @@ H5EA__cache_hdr_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *_cls,
     if(*p++ != H5EA_HDR_VERSION)
 	H5E_THROW(H5E_VERSION, "wrong extensible array header version")
 
-    /* Extensible array type */
-    if(*p++ != (uint8_t)cls->id)
+    /* Extensible array class */
+    id = *p++;
+    if(id >= H5EA_NUM_CLS_ID)
 	H5E_THROW(H5E_BADTYPE, "incorrect extensible array class")
+    hdr->cparam.cls = H5EA_client_class_g[id];
 
     /* General array creation/configuration information */
     hdr->cparam.raw_elmt_size = *p++;          /* Element size in file (in bytes) */
@@ -314,7 +316,7 @@ H5EA__cache_hdr_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *_cls,
 	H5E_THROW(H5E_BADVALUE, "incorrect metadata checksum for extensible array header")
 
     /* Finish initializing extensible array header */
-    if(H5EA__hdr_init(hdr) < 0)
+    if(H5EA__hdr_init(hdr, ctx_udata) < 0)
 	H5E_THROW(H5E_CANTINIT, "initialization failed for extensible array header")
     HDassert(hdr->size == size);
 
@@ -861,13 +863,13 @@ H5EA__cache_iblock_notify(H5AC_notify_action_t action, H5EA_iblock_t *iblock))
     switch(action) {
         case H5AC_NOTIFY_ACTION_AFTER_INSERT:
             /* Create flush dependency on extensible array header */
-            if(H5EA__create_flush_depend(iblock->hdr, (H5AC_info_t *)iblock->hdr, (H5AC_info_t *)iblock) < 0)
+            if(H5EA__create_flush_depend((H5AC_info_t *)iblock->hdr, (H5AC_info_t *)iblock) < 0)
                 H5E_THROW(H5E_CANTDEPEND, "unable to create flush dependency between index block and header, address = %llu", (unsigned long long)iblock->addr)
             break;
 
         case H5AC_NOTIFY_ACTION_BEFORE_EVICT:
             /* Destroy flush dependency on extensible array header */
-            if(H5EA__destroy_flush_depend(iblock->hdr, (H5AC_info_t *)iblock->hdr, (H5AC_info_t *)iblock) < 0)
+            if(H5EA__destroy_flush_depend((H5AC_info_t *)iblock->hdr, (H5AC_info_t *)iblock) < 0)
                 H5E_THROW(H5E_CANTUNDEPEND, "unable to destroy flush dependency between index block and header, address = %llu", (unsigned long long)iblock->addr)
             break;
 
@@ -1292,13 +1294,13 @@ H5EA__cache_sblock_notify(H5AC_notify_action_t action, H5EA_sblock_t *sblock))
     switch(action) {
         case H5AC_NOTIFY_ACTION_AFTER_INSERT:
             /* Create flush dependency on index block */
-            if(H5EA__create_flush_depend(sblock->hdr, (H5AC_info_t *)sblock->parent, (H5AC_info_t *)sblock) < 0)
+            if(H5EA__create_flush_depend((H5AC_info_t *)sblock->parent, (H5AC_info_t *)sblock) < 0)
                 H5E_THROW(H5E_CANTDEPEND, "unable to create flush dependency between super block and index block, address = %llu", (unsigned long long)sblock->addr)
             break;
 
         case H5AC_NOTIFY_ACTION_BEFORE_EVICT:
             /* Destroy flush dependency on index block */
-            if(H5EA__destroy_flush_depend(sblock->hdr, (H5AC_info_t *)sblock->parent, (H5AC_info_t *)sblock) < 0)
+            if(H5EA__destroy_flush_depend((H5AC_info_t *)sblock->parent, (H5AC_info_t *)sblock) < 0)
                 H5E_THROW(H5E_CANTUNDEPEND, "unable to destroy flush dependency between super block and index block, address = %llu", (unsigned long long)sblock->addr)
             break;
 
@@ -1657,13 +1659,13 @@ H5EA__cache_dblock_notify(H5AC_notify_action_t action, H5EA_dblock_t *dblock))
     switch(action) {
         case H5AC_NOTIFY_ACTION_AFTER_INSERT:
             /* Create flush dependency on parent */
-            if(H5EA__create_flush_depend(dblock->hdr, (H5AC_info_t *)dblock->parent, (H5AC_info_t *)dblock) < 0)
+            if(H5EA__create_flush_depend((H5AC_info_t *)dblock->parent, (H5AC_info_t *)dblock) < 0)
                 H5E_THROW(H5E_CANTDEPEND, "unable to create flush dependency between data block and parent, address = %llu", (unsigned long long)dblock->addr)
             break;
 
         case H5AC_NOTIFY_ACTION_BEFORE_EVICT:
             /* Destroy flush dependency on parent */
-            if(H5EA__destroy_flush_depend(dblock->hdr, (H5AC_info_t *)dblock->parent, (H5AC_info_t *)dblock) < 0)
+            if(H5EA__destroy_flush_depend((H5AC_info_t *)dblock->parent, (H5AC_info_t *)dblock) < 0)
                 H5E_THROW(H5E_CANTUNDEPEND, "unable to destroy flush dependency between data block and parent, address = %llu", (unsigned long long)dblock->addr)
             break;
 
@@ -2011,13 +2013,13 @@ H5EA__cache_dblk_page_notify(H5AC_notify_action_t action, H5EA_dblk_page_t *dblk
     switch(action) {
         case H5AC_NOTIFY_ACTION_AFTER_INSERT:
             /* Create flush dependency on parent */
-            if(H5EA__create_flush_depend(dblk_page->hdr, (H5AC_info_t *)dblk_page->parent, (H5AC_info_t *)dblk_page) < 0)
+            if(H5EA__create_flush_depend((H5AC_info_t *)dblk_page->parent, (H5AC_info_t *)dblk_page) < 0)
                 H5E_THROW(H5E_CANTDEPEND, "unable to create flush dependency between data block page and parent, address = %llu", (unsigned long long)dblk_page->addr)
             break;
 
         case H5AC_NOTIFY_ACTION_BEFORE_EVICT:
             /* Destroy flush dependency on parent */
-            if(H5EA__destroy_flush_depend(dblk_page->hdr, (H5AC_info_t *)dblk_page->parent, (H5AC_info_t *)dblk_page) < 0)
+            if(H5EA__destroy_flush_depend((H5AC_info_t *)dblk_page->parent, (H5AC_info_t *)dblk_page) < 0)
                 H5E_THROW(H5E_CANTUNDEPEND, "unable to destroy flush dependency between data block page and parent, address = %llu", (unsigned long long)dblk_page->addr)
             break;
 

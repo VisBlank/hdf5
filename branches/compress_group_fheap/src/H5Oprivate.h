@@ -167,9 +167,9 @@ typedef struct H5O_copy_t {
 #define H5O_DRVINFO_ID  0x0014          /* Driver info message.  */
 #define H5O_AINFO_ID    0x0015          /* Attribute info message.  */
 #define H5O_REFCOUNT_ID 0x0016          /* Reference count message.  */
-#define H5O_UNKNOWN_ID  0x0017          /* Placeholder message ID for unknown message.  */
+#define H5O_FSINFO_ID   0x0017          /* Free-space manager info message.  */
+#define H5O_UNKNOWN_ID  0x0018          /* Placeholder message ID for unknown message.  */
                                         /* (this should never exist in a file) */
-#define H5O_FSINFO_ID   0x0018          /* Free-space manager info message.  */
 
 
 /* Shared object message types.
@@ -622,8 +622,8 @@ H5_DLL herr_t H5O_close(H5O_loc_t *loc);
 H5_DLL int H5O_link(const H5O_loc_t *loc, int adjust, hid_t dxpl_id);
 H5_DLL int H5O_link_oh(H5F_t *f, int adjust, hid_t dxpl_id, H5O_t *oh, unsigned *oh_flags);
 H5_DLL H5O_t *H5O_pin(H5O_loc_t *loc, hid_t dxpl_id);
-H5_DLL herr_t H5O_unpin(H5O_loc_t *loc, H5O_t *oh);
-H5_DLL herr_t H5O_touch(H5O_loc_t *loc, hbool_t force, hid_t dxpl_id);
+H5_DLL herr_t H5O_unpin(H5O_t *oh);
+H5_DLL herr_t H5O_touch(const H5O_loc_t *loc, hbool_t force, hid_t dxpl_id);
 H5_DLL herr_t H5O_touch_oh(H5F_t *f, hid_t dxpl_id, H5O_t *oh,
     hbool_t force);
 #ifdef H5O_ENABLE_BOGUS

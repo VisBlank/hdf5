@@ -71,7 +71,9 @@ static struct long_options l_opts[] = {
  *
  * Purpose: h5repack main program
  *
- * Return: 1, error, 0, no error
+ * Return: Success: EXIT_SUCCESS(0)
+ *
+ * Failure: EXIT_FAILURE(1)
  *
  * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
  *
@@ -182,8 +184,8 @@ static void usage(const char *prog)
  printf("   -a A, --alignment=A     Alignment value for H5Pset_alignment\n");
  printf("   -f FILT, --filter=FILT  Filter type\n");
  printf("   -l LAYT, --layout=LAYT  Layout type\n");
- printf("   -S STRGY, --fs_strategy=STRGY  File-space-handling strategy\n");
- printf("   -T THRD, --fs_threshold=THRD   Free-space section threshold\n");
+ printf("   -S FS_STRGY, --fs_strategy=FS_STRGY  File space management strategy\n");
+ printf("   -T FS_THRD, --fs_threshold=FS_THRD   Free-space section threshold\n");
 
  printf("\n");
 
@@ -198,17 +200,18 @@ static void usage(const char *prog)
  printf("    F - is the shared object header message type, any of <dspace|dtype|fill|\n");
  printf("        pline|attr>. If F is not specified, S applies to all messages\n");
  printf("\n");
- printf("    STRGY is an integer value listed below:\n");
- printf("        1: Use persistent free-space managers, aggregators and virtual file driver for allocation\n");
- printf("        2: Use non-persistent free-space managers, aggregators and virtual file driver for allocation\n");
- printf("        3: Use aggregators and virtual file driver for allocation\n");
- printf("        4: Use virtual file driver for allocation\n");
- printf("        A value of 0 retains the existing file-space-handling strategy used in the library.\n");
- printf("        The library default is 2.\n");
+ printf("    FS_STRGY is the file space management strategy to use for the output file.\n");
+ printf("             It is a string as listed below:\n");
+ printf("        ALL_PERSIST - Use persistent free-space managers, aggregators and virtual file driver\n");
+ printf("                      for file space allocation\n");
+ printf("        ALL - Use non-persistent free-space managers, aggregators and virtual file driver\n");
+ printf("              for file space allocation\n");
+ printf("        AGGR_VFD - Use aggregators and virtual file driver for file space allocation\n");
+ printf("        VFD - Use virtual file driver for file space allocation\n");
  printf("\n");
- printf("    THRD is the minimum size of free-space sections to track by the free-space managers.\n");
- printf("        A value of 0 retains the existing free-space section threshold used in the library.\n");
- printf("        The library default is 1.\n");
+ printf("    FS_THRD is the free-space section threshold to use for the output file.\n");
+ printf("            It is the minimum size (in bytes) of free-space sections to be tracked\n");
+ printf("            by the the library's free-space managers.\n");
  printf("\n");
 
  printf("    FILT - is a string with the format:\n");
@@ -445,9 +448,24 @@ void parse_command_line(int argc, const char **argv, pack_opt_t* options)
             break;
 
         case 'S':
+	{
+            char strategy[MAX_NC_NAME];
 
-            options->fs_strategy = atol( opt_arg );
+            strcpy(strategy, opt_arg);
+            if(!strcmp(strategy, "ALL_PERSIST"))
+                options->fs_strategy = H5F_FILE_SPACE_ALL_PERSIST;
+            else if(!strcmp(strategy, "ALL"))
+                options->fs_strategy = H5F_FILE_SPACE_ALL;
+            else if(!strcmp(strategy, "AGGR_VFD"))
+                options->fs_strategy = H5F_FILE_SPACE_AGGR_VFD;
+            else if(!strcmp(strategy, "VFD"))
+                options->fs_strategy = H5F_FILE_SPACE_VFD;
+            else {
+                error_msg(progname, "invalid file space management strategy\n", opt_arg );
+                exit(EXIT_FAILURE);
+            }
             break;
+        }
 
         case 'T':
 
@@ -508,7 +526,7 @@ void read_info(const char *filename,
 
     if ((fp = fopen(data_file, "r")) == (FILE *)NULL) {
         error_msg(progname, "cannot open options file %s\n", filename);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     /* cycle until end of file reached */
@@ -545,7 +563,7 @@ void read_info(const char *filename,
 
             if (h5repack_addfilter(comp_info,options)==-1){
                 error_msg(progname, "could not add compression option\n");
-                exit(1);
+                exit(EXIT_FAILURE);
             }
         }
         /*-------------------------------------------------------------------------
@@ -575,7 +593,7 @@ void read_info(const char *filename,
 
             if (h5repack_addlayout(comp_info,options)==-1){
                 error_msg(progname, "could not add chunck option\n");
-                exit(1);
+                exit(EXIT_FAILURE);
             }
         }
         /*-------------------------------------------------------------------------
@@ -584,7 +602,7 @@ void read_info(const char *filename,
         */
         else {
             error_msg(progname, "bad file format for %s", filename);
-            exit(1);
+            exit(EXIT_FAILURE);
         }
     }
 

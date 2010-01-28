@@ -111,7 +111,8 @@ H5FL_EXTERN(H5F_super_t);
  *-------------------------------------------------------------------------
  */
 static H5F_super_t *
-H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void UNUSED *udata1, void *udata2/*out*/)
+H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, const void UNUSED *udata1,
+    void *udata2/*out*/)
 {
     H5F_super_t        *sblock = NULL;      /* File's superblock */
     haddr_t             base_addr = HADDR_UNDEF;        /* Base address of file */
@@ -121,8 +122,8 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void UNUSED *udata1
     H5FD_t             *lf;                 /* file driver part of `shared' */
     haddr_t             stored_eoa;         /*relative end-of-addr in file  */
     haddr_t             eof;                /*end of file address           */
-    size_t              sizeof_addr;        /* Size of offsets in the file (in bytes) */
-    size_t              sizeof_size;        /* Size of lengths in the file (in bytes) */
+    uint8_t             sizeof_addr;        /* Size of offsets in the file (in bytes) */
+    uint8_t             sizeof_size;        /* Size of lengths in the file (in bytes) */
     const size_t        fixed_size = H5F_SUPERBLOCK_FIXED_SIZE; /*fixed sizeof superblock   */
     size_t              variable_size;      /*variable sizeof superblock    */
     uint8_t            *p;                  /* Temporary pointer into encoding buffer */
@@ -154,7 +155,8 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void UNUSED *udata1
     
     /* Read fixed-size portion of the superblock */
     p = sbuf;
-    if(H5FD_set_eoa(lf, H5FD_MEM_SUPER, fixed_size) < 0)
+    H5_CHECK_OVERFLOW(fixed_size, size_t, haddr_t);
+    if(H5FD_set_eoa(lf, H5FD_MEM_SUPER, (haddr_t)fixed_size) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "set end of space allocation request failed")
     if(H5FD_read(lf, dxpl_id, H5FD_MEM_SUPER, (haddr_t)0, fixed_size, p) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_READERROR, NULL, "unable to read superblock")
@@ -181,7 +183,7 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void UNUSED *udata1
     HDassert(fixed_size + variable_size <= sizeof(sbuf));
 
     /* Read in variable-sized portion of superblock */
-    if(H5FD_set_eoa(lf, H5FD_MEM_SUPER, fixed_size + variable_size) < 0)
+    if(H5FD_set_eoa(lf, H5FD_MEM_SUPER, (haddr_t)fixed_size + variable_size) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "set end of space allocation request failed")
     if(H5FD_read(lf, dxpl_id, H5FD_MEM_SUPER, (haddr_t)fixed_size, variable_size, p) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to read superblock")
@@ -609,6 +611,11 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void UNUSED *udata1
     ret_value = sblock;
 
 done:
+    /* Release the [possibly partially initialized] superblock on errors */
+    if(!ret_value && sblock)
+        if(H5F_sblock_dest(f, sblock) < 0)
+            HDONE_ERROR(H5E_FILE, H5E_CANTFREE, NULL, "unable to destroy superblock data")
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5F_sblock_load() */
 
@@ -628,7 +635,8 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5F_sblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5F_super_t *sblock)
+H5F_sblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t UNUSED addr,
+    H5F_super_t *sblock)
 {
     herr_t          ret_value = SUCCEED;
 
