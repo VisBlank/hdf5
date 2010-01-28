@@ -334,7 +334,7 @@ done:
 /* ARGSUSED */
 static int
 H5D_btree_cmp2(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, void *_lt_key, void *_udata,
-		void *_rt_key)
+    void *_rt_key)
 {
     H5D_btree_key_t	*lt_key = (H5D_btree_key_t *) _lt_key;
     H5D_btree_key_t	*rt_key = (H5D_btree_key_t *) _rt_key;
@@ -385,7 +385,7 @@ H5D_btree_cmp2(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, void *_lt_key, void *_udat
 /* ARGSUSED */
 static int
 H5D_btree_cmp3(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, void *_lt_key, void *_udata,
-		void *_rt_key)
+    void *_rt_key)
 {
     H5D_btree_key_t	*lt_key = (H5D_btree_key_t *) _lt_key;
     H5D_btree_key_t	*rt_key = (H5D_btree_key_t *) _rt_key;
@@ -758,8 +758,8 @@ H5D_btree_encode_key(const H5F_t UNUSED *f, const H5B_t *bt, uint8_t *raw, void 
  */
 /* ARGSUSED */
 static herr_t
-H5D_btree_debug_key(FILE *stream, H5F_t UNUSED *f, hid_t UNUSED dxpl_id, int indent, int fwidth,
-		      const void *_key, const void *_udata)
+H5D_btree_debug_key(FILE *stream, H5F_t UNUSED *f, hid_t UNUSED dxpl_id, int indent,
+    int fwidth, const void *_key, const void *_udata)
 {
     const H5D_btree_key_t	*key = (const H5D_btree_key_t *)_key;
     const unsigned	*ndims = (const unsigned *)_udata;
@@ -1040,7 +1040,7 @@ H5D_btree_idx_iterate_cb(H5F_t UNUSED *f, hid_t UNUSED dxpl_id,
     H5D_chunk_rec_t chunk_rec;  /* Generic chunk record for callback */
     int ret_value;              /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5D_btree_idx_iterate_cb)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR(H5D_btree_idx_iterate_cb)
 
     /* Sanity check for memcpy() */
     HDcompile_assert(offsetof(H5D_chunk_rec_t, nbytes) == offsetof(H5D_btree_key_t, nbytes));
@@ -1082,7 +1082,7 @@ H5D_btree_idx_iterate(const H5D_chk_idx_info_t *idx_info,
     H5D_btree_it_ud_t	udata;  /* User data for B-tree iterator callback */
     int ret_value;              /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5D_btree_idx_iterate)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR(H5D_btree_idx_iterate)
 
     HDassert(idx_info);
     HDassert(idx_info->f);
@@ -1456,6 +1456,7 @@ herr_t
 H5D_btree_debug(H5F_t *f, hid_t dxpl_id, haddr_t addr, FILE * stream, int indent,
 		 int fwidth, unsigned ndims)
 {
+    H5D_chunk_common_ud_t udata;        /* User data for B-tree callback */
     H5O_storage_chunk_t storage;        /* Storage information for B-tree callback */
     hbool_t     shared_init = FALSE;    /* Whether B-tree shared info is initialized */
     herr_t      ret_value = SUCCEED;    /* Return value */
@@ -1471,16 +1472,22 @@ H5D_btree_debug(H5F_t *f, hid_t dxpl_id, haddr_t addr, FILE * stream, int indent
 	HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINIT, FAIL, "can't create wrapper for shared B-tree info")
     shared_init = TRUE;
 
+    /* Set up user data for callback */
+    udata.layout = NULL;
+    udata.storage = &storage;
+    udata.offset = NULL;
+
     /* Dump the records for the B-tree */
-    (void)H5B_debug(f, dxpl_id, addr, stream, indent, fwidth, H5B_BTREE, &ndims);
+    (void)H5B_debug(f, dxpl_id, addr, stream, indent, fwidth, H5B_BTREE, &udata);
 
 done:
     if(shared_init) {
         /* Free the raw B-tree node buffer */
         if(NULL == storage.u.btree.shared)
             HDONE_ERROR(H5E_IO, H5E_CANTFREE, FAIL, "ref-counted page nil")
-        if(H5RC_DEC(storage.u.btree.shared) < 0)
-            HDONE_ERROR(H5E_IO, H5E_CANTFREE, FAIL, "unable to decrement ref-counted page")
+        else
+            if(H5RC_DEC(storage.u.btree.shared) < 0)
+                HDONE_ERROR(H5E_IO, H5E_CANTFREE, FAIL, "unable to decrement ref-counted page")
     } /* end if */
 
     FUNC_LEAVE_NOAPI(ret_value)

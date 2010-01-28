@@ -69,7 +69,9 @@
 #define H5F_FS_MERGE_RAWDATA            0x02    /* Section can merge with small 'raw' data aggregator */
 
 /* Macro to abstract checking whether file is using a free space manager */
-#define H5F_HAVE_FREE_SPACE_MANAGER(F)  TRUE    /* Currently always have a free space manager */
+#define H5F_HAVE_FREE_SPACE_MANAGER(F)  \
+    ((F)->shared->fs_strategy == H5F_FILE_SPACE_ALL ||                        \
+            (F)->shared->fs_strategy == H5F_FILE_SPACE_ALL_PERSIST)
 
 /* Macros for encoding/decoding superblock */
 #define H5F_MAX_DRVINFOBLOCK_SIZE  1024         /* Maximum size of superblock driver info buffer */
@@ -197,8 +199,8 @@ typedef struct H5F_file_t {
     H5F_mtab_t	mtab;		/* File mount table                     */
 
     /* Cached values from FCPL/superblock */
-    size_t	sizeof_addr;	/* Size of addresses in file            */
-    size_t	sizeof_size;	/* Size of offsets in file              */
+    uint8_t	sizeof_addr;	/* Size of addresses in file            */
+    uint8_t	sizeof_size;	/* Size of offsets in file              */
     haddr_t	sohm_addr;	/* Relative address of shared object header message table */
     unsigned	sohm_vers;	/* Version of shared message table on disk */
     unsigned	sohm_nindexes;	/* Number of shared messages indexes in the table */
@@ -222,13 +224,15 @@ typedef struct H5F_file_t {
     unsigned	gc_ref;		/* Garbage-collect references?		*/
     hbool_t	latest_format;	/* Always use the latest format?	*/
     hbool_t	store_msg_crt_idx;  /* Store creation index for object header messages?	*/
-    int	ncwfs;			/* Num entries on cwfs list		*/
+    int         ncwfs;		/* Num entries on cwfs list		*/
     struct H5HG_heap_t **cwfs;	/* Global heap cache			*/
     struct H5G_t *root_grp;	/* Open root group			*/
     H5FO_t *open_objs;          /* Open objects in file                 */
     H5RC_t *grp_btree_shared;   /* Ref-counted group B-tree node info   */
 
     /* File space allocation information */
+    H5F_file_space_type_t fs_strategy;	/* File space handling strategy		*/
+    hsize_t     fs_threshold;	/* Free space section threshold 	*/
     hbool_t     use_tmp_space;  /* Whether temp. file space allocation is allowed */
     haddr_t	tmp_addr;       /* Next address to use for temp. space in the file */
     unsigned fs_aggr_merge[H5FD_MEM_NTYPES];    /* Flags for whether free space can merge with aggregator(s) */
@@ -248,14 +252,12 @@ typedef struct H5F_file_t {
 /*
  * This is the top-level file descriptor.  One of these structures is
  * allocated every time H5Fopen() is called although they may contain pointers
- * to shared H5F_file_t structs. The reference count (nrefs) indicates the
- * number of times the file has been opened (the application can only open a
- * file once explicitly, but the library can open the file a second time to
- * indicate that the file is mounted on some other file).
+ * to shared H5F_file_t structs.
  */
 struct H5F_t {
     unsigned		intent;		/* The flags passed to H5F_open()*/
-    char		*name;		/* Name used to open file	*/
+    char		*open_name;	/* Name used to open file	*/
+    char		*actual_name;	/* Actual name of the file, after resolving symlinks, etc. */
     char               	*extpath;       /* Path for searching target external link file */
     H5F_file_t		*shared;	/* The shared file info		*/
     unsigned		nopen_objs;	/* Number of open object headers*/
@@ -303,6 +305,7 @@ H5_DLL herr_t H5F_super_size(H5F_t *f, hid_t dxpl_id, hsize_t *super_size, hsize
 /* Superblock extension related routines */
 H5_DLL herr_t H5F_super_ext_open(H5F_t *f, haddr_t ext_addr, H5O_loc_t *ext_ptr);
 H5_DLL herr_t H5F_super_ext_write_msg(H5F_t *f, hid_t dxpl_id, void *mesg, unsigned id, hbool_t may_create);
+H5_DLL herr_t H5F_super_ext_remove_msg(H5F_t *f, hid_t dxpl_id, unsigned id);
 H5_DLL herr_t H5F_super_ext_close(H5F_t *f, H5O_loc_t *ext_ptr);
 
 /* Metadata accumulator routines */

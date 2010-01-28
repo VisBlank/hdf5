@@ -2707,14 +2707,13 @@ dump_dcpl(hid_t dcpl_id,hid_t type_id, hid_t obj_id)
     H5D_fill_time_t  ft;
     hsize_t          storage_size;
     haddr_t          ioffset;
-    int              i, next;
+    int              i;
     unsigned         j;
 
-    storage_size=H5Dget_storage_size(obj_id);
+    storage_size = H5Dget_storage_size(obj_id);
     nfilters = H5Pget_nfilters(dcpl_id);
-    ioffset=H5Dget_offset(obj_id);
-    next=H5Pget_external_count(dcpl_id);
-    strcpy(f_name,"\0");
+    ioffset = H5Dget_offset(obj_id);
+    HDstrcpy(f_name,"\0");
 
     /*-------------------------------------------------------------------------
     * STORAGE_LAYOUT
@@ -2819,6 +2818,10 @@ dump_dcpl(hid_t dcpl_id,hid_t type_id, hid_t obj_id)
         printf("%s\n",END);
     }
     else if (H5D_CONTIGUOUS == H5Pget_layout(dcpl_id)) {
+        int              next;
+
+        next = H5Pget_external_count(dcpl_id);
+
         /*-------------------------------------------------------------------------
         * EXTERNAL_FILE
         *-------------------------------------------------------------------------
@@ -3067,22 +3070,22 @@ dump_fcpl(hid_t fid)
     hsize_t  userblock; /* userblock size retrieved from FCPL */
     size_t   off_size;  /* size of offsets in the file */
     size_t   len_size;  /* size of lengths in the file */
-    unsigned super;     /* superblock version # */
-    unsigned freelist;  /* free list version # */
-    unsigned stab;      /* symbol table entry version # */
-    unsigned shhdr;     /* shared object header version # */
     hid_t    fdriver;   /* file driver */
     char     dname[32]; /* buffer to store driver name */
     unsigned sym_lk;    /* symbol table B-tree leaf 'K' value */
     unsigned sym_ik;    /* symbol table B-tree internal 'K' value */
     unsigned istore_ik; /* indexed storage B-tree internal 'K' value */
+    H5F_file_space_type_t  fs_strategy;	/* file space strategy */
+    hsize_t  fs_threshold;		/* free-space section threshold */
+    H5F_info2_t finfo;	/* file information */
 
     fcpl=H5Fget_create_plist(fid);
-    H5Pget_version(fcpl, &super, &freelist, &stab, &shhdr);
+    H5Fget_info2(fid, &finfo);
     H5Pget_userblock(fcpl,&userblock);
     H5Pget_sizes(fcpl,&off_size,&len_size);
     H5Pget_sym_k(fcpl,&sym_ik,&sym_lk);
     H5Pget_istore_k(fcpl,&istore_ik);
+    H5Pget_file_space(fcpl, &fs_strategy, &fs_threshold);
     H5Pclose(fcpl);
     fapl=h5_fileaccess();
     fdriver=H5Pget_driver(fapl);
@@ -3094,13 +3097,13 @@ dump_fcpl(hid_t fid)
     */
     printf("%s %s\n",SUPER_BLOCK, BEGIN);
     indentation(indent + COL);
-    printf("%s %u\n","SUPERBLOCK_VERSION", super);
+    printf("%s %u\n","SUPERBLOCK_VERSION", finfo.super.version);
     indentation(indent + COL);
-    printf("%s %u\n","FREELIST_VERSION", freelist);
+    printf("%s %u\n","FREELIST_VERSION", finfo.free.version);
     indentation(indent + COL);
-    printf("%s %u\n","SYMBOLTABLE_VERSION", stab);
+    printf("%s %u\n","SYMBOLTABLE_VERSION", 0);  /* Retain this for backward compatibility, for now (QAK) */
     indentation(indent + COL);
-    printf("%s %u\n","OBJECTHEADER_VERSION", shhdr);
+    printf("%s %u\n","OBJECTHEADER_VERSION", finfo.sohm.version);
     indentation(indent + COL);
     HDfprintf(stdout,"%s %Hd\n","OFFSET_SIZE", (long long)off_size);
     indentation(indent + COL);
@@ -3141,6 +3144,21 @@ dump_fcpl(hid_t fid)
     printf("%s %s\n","FILE_DRIVER", dname);*/
     indentation(indent + COL);
     printf("%s %u\n","ISTORE_K", istore_ik);
+
+    indentation(indent + COL);
+    if(fs_strategy == H5F_FILE_SPACE_ALL_PERSIST)
+        printf("%s %s\n", "FILE_SPACE_STRATEGY", "H5F_FILE_SPACE_ALL_PERSIST");
+    else if(fs_strategy == H5F_FILE_SPACE_ALL)
+        printf("%s %s\n", "FILE_SPACE_STRATEGY", "H5F_FILE_SPACE_ALL");
+    else if(fs_strategy == H5F_FILE_SPACE_AGGR_VFD)
+        printf("%s %s\n", "FILE_SPACE_STRATEGY", "H5F_FILE_SPACE_AGGR_VFD");
+    else if(fs_strategy == H5F_FILE_SPACE_VFD)
+        printf("%s %s\n", "FILE_SPACE_STRATEGY", "H5F_FILE_SPACE_VFD");
+    else
+        printf("%s %s\n", "FILE_SPACE_STRATEGY", "Unknown strategy");
+    indentation(indent + COL);
+    HDfprintf(stdout, "%s %Hu\n","FREE_SPACE_THRESHOLD", fs_threshold);
+
     printf("%s\n",END);
 
     /*-------------------------------------------------------------------------
@@ -4063,8 +4081,6 @@ parse_start:
             }
             break;
 
-            break;
-
         /** begin XML parameters **/
         case 'x':
             /* select XML output */
@@ -4518,8 +4534,7 @@ print_enum(hid_t type)
     size_t           dst_size;      /*destination value type size    */
     unsigned         i;
 
-    nmembs = H5Tget_nmembers(type);
-    assert(nmembs>0);
+    nmembs = (unsigned)H5Tget_nmembers(type);
     super = H5Tget_super(type);
 
     /*
@@ -4529,17 +4544,16 @@ print_enum(hid_t type)
      *    2. unsigned long long -- the largest native unsigned integer
      *    3. raw format
      */
-    if (H5Tget_size(type) <= sizeof(long long)) {
-    dst_size = sizeof(long long);
+    if(H5Tget_size(type) <= sizeof(long long)) {
+        dst_size = sizeof(long long);
 
-    if (H5T_SGN_NONE == H5Tget_sign(type)) {
-        native = H5T_NATIVE_ULLONG;
-    } else {
-        native = H5T_NATIVE_LLONG;
-    }
-    } else {
-    dst_size = H5Tget_size(type);
-    }
+        if(H5T_SGN_NONE == H5Tget_sign(type))
+            native = H5T_NATIVE_ULLONG;
+        else
+            native = H5T_NATIVE_LLONG;
+    } /* end if */
+    else
+        dst_size = H5Tget_size(type);
 
     /* Get the names and raw values of all members */
     name = calloc(nmembs, sizeof(char *));
@@ -5736,7 +5750,6 @@ xml_dump_group(hid_t gid, const char *name)
     char                    type_name[1024], *tmp = NULL;
     char                   *par = NULL;
     int                     isRoot = 0;
-    char                   *ptrstr;
     char                   *t_objname;
     char                   *par_name;
     unsigned                crt_order_flags;
@@ -5789,6 +5802,7 @@ xml_dump_group(hid_t gid, const char *name)
     indent += COL;
 
     H5Oget_info(gid, &oinfo);
+
     if(oinfo.rc > 1) {
         obj_t  *found_obj;    /* Found object */
 
@@ -5806,6 +5820,8 @@ xml_dump_group(hid_t gid, const char *name)
             char *parentxid = malloc(100);
 
             if(found_obj->displayed) {
+                char *ptrstr = malloc(100);
+
                 /* already seen: enter a groupptr */
                 if(isRoot) {
                     /* probably can't happen! */
@@ -5823,20 +5839,20 @@ xml_dump_group(hid_t gid, const char *name)
                             t_objname, parentxid, par_name);
                     free(t_objname);
                     free(par_name);
-                }
 
-                indentation(indent + COL);
-                ptrstr = malloc(100);
-                t_objname = xml_escape_the_name(found_obj->objname);/* point to the NDT by name */
-                par_name = xml_escape_the_name(par);
-                xml_name_to_XID(found_obj->objname, ptrstr, 100, 1);
-                xml_name_to_XID(par, parentxid, 100, 1);
-                printf("<%sGroupPtr OBJ-XID=\"%s\" H5Path=\"%s\" "
-                            "Parents=\"%s\" H5ParentPaths=\"%s\" />\n",
-                            xmlnsprefix,
-                            ptrstr, t_objname, parentxid, par_name);
-                free(t_objname);
-                free(par_name);
+                    indentation(indent + COL);
+                    t_objname = xml_escape_the_name(found_obj->objname);/* point to the NDT by name */
+                    par_name = xml_escape_the_name(par);
+                    xml_name_to_XID(found_obj->objname, ptrstr, 100, 1);
+                    xml_name_to_XID(par, parentxid, 100, 1);
+                    printf("<%sGroupPtr OBJ-XID=\"%s\" H5Path=\"%s\" "
+                                "Parents=\"%s\" H5ParentPaths=\"%s\" />\n",
+                                xmlnsprefix,
+                                ptrstr, t_objname, parentxid, par_name);
+                    free(t_objname);
+                    free(par_name);
+                }
+                free(ptrstr);
             } else {
 
                 /* first time this group has been seen -- describe it  */
@@ -6697,7 +6713,7 @@ xml_print_enum(hid_t type)
     unsigned                i;              /*miscellaneous counters         */
     size_t                  j;
 
-    nmembs = H5Tget_nmembers(type);
+    nmembs = (unsigned)H5Tget_nmembers(type);
     super = H5Tget_super(type);
 
     indentation(indent);

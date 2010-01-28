@@ -141,6 +141,11 @@ typedef struct {
     H5G_name_t *path;                   /* Group hierarchy path              */
 } H5G_loc_t;
 
+/* Callback information for copying groups */
+typedef struct H5G_copy_file_ud_t {
+    H5O_copy_file_ud_common_t common;   /* Shared information (must be first) */
+} H5G_copy_file_ud_t;
+
 typedef struct H5G_t H5G_t;
 typedef struct H5G_shared_t H5G_shared_t;
 typedef struct H5G_entry_t H5G_entry_t;
@@ -179,9 +184,8 @@ H5_DLL herr_t H5G_node_debug(H5F_t *f, hid_t dxpl_id, haddr_t addr, FILE *stream
 /*
  * These functions operate on group object locations.
  */
-H5_DLL herr_t H5G_ent_encode(const H5F_t *f, uint8_t **pp,
-    const H5G_entry_t *ent);
-H5_DLL herr_t H5G_ent_decode(H5F_t *f, const uint8_t **pp, H5G_entry_t *ent/*out*/);
+H5_DLL herr_t H5G_ent_encode(const H5F_t *f, uint8_t **pp, const H5G_entry_t *ent);
+H5_DLL herr_t H5G_ent_decode(const H5F_t *f, const uint8_t **pp, H5G_entry_t *ent);
 
 /*
  * These functions operate on group hierarchy names.

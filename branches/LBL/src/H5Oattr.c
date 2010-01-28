@@ -234,6 +234,21 @@ H5O_attr_decode(H5F_t *f, hid_t dxpl_id, H5O_t *open_oh, unsigned UNUSED mesg_fl
     ret_value = attr;
 
 done:
+    if(NULL == ret_value) {
+        if(attr) {
+            if(attr->shared) {
+                /* Free any dynamicly allocated items */
+                if(H5A_free(attr) < 0)
+                    HDONE_ERROR(H5E_ATTR, H5E_CANTRELEASE, NULL, "can't release attribute info")
+
+                /* Destroy shared attribute struct */
+                attr->shared = H5FL_FREE(H5A_shared_t, attr->shared);
+            } /* end if */
+        } /* end if */
+
+        attr = H5FL_FREE(H5A_t, attr);
+    } /* end if */
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5O_attr_decode() */
 
@@ -653,7 +668,7 @@ H5O_attr_copy_file(H5F_t *file_src, const H5O_msg_class_t UNUSED *mesg_type,
     if(H5T_set_loc(((H5A_t *)native_src)->shared->dt, file_src, H5T_LOC_DISK) < 0)
         HGOTO_ERROR(H5E_ATTR, H5E_CANTINIT, NULL, "invalid datatype location")
 
-    if ( NULL == (ret_value=H5A_attr_copy_file((H5A_t *)native_src, file_dst, recompute_size, cpy_info,  dxpl_id)))
+    if(NULL == (ret_value = H5A_attr_copy_file((H5A_t *)native_src, file_dst, recompute_size, cpy_info,  dxpl_id)))
         HGOTO_ERROR(H5E_ATTR, H5E_CANTCOPY, NULL, "can't copy attribute")
 
 done:
