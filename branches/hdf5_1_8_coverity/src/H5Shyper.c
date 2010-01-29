@@ -5450,6 +5450,8 @@ H5S_hyper_make_spans (unsigned rank, const hsize_t *start, const hsize_t *stride
         head = NULL;
         last_span = NULL;
 
+        HDassert(count[i] > 0);
+
         /* Generate all the span segments for this dimension */
         for(u = 0, stride_iter = 0; u < count[i]; u++, stride_iter += stride[i]) {
             /* Allocate a span node */
@@ -7493,6 +7495,7 @@ partial_done:   /* Yes, goto's are evil, so sue me... :-) */
 
     /* Perform the I/O on the elements, based on the position of the iterator */
     while(io_bytes_left>0 && curr_seq<maxseq) {
+        HDassert(curr_span);
         /* Adjust location offset of destination to compensate for initial increment below */
         loc_off-=curr_span->pstride;
 
