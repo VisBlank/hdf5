@@ -185,6 +185,11 @@ H5T_vlen_create(const H5T_t *base)
     ret_value = dt;
 
 done:
+    if(!ret_value && dt) {
+        (void)H5T_close(dt);
+        dt = NULL;
+    } /* end if */
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5T_vlen_create() */
 
