@@ -5450,7 +5450,8 @@ H5S_hyper_make_spans (unsigned rank, const hsize_t *start, const hsize_t *stride
         head = NULL;
         last_span = NULL;
 
-        HDassert(count[i] > 0);
+        if(count[i] == 0)
+            HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, NULL, "count == 0 is invalid")
 
         /* Generate all the span segments for this dimension */
         for(u = 0, stride_iter = 0; u < count[i]; u++, stride_iter += stride[i]) {
