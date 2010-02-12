@@ -30,6 +30,7 @@ SET(common_SRCS
   ${HDF5_SRC_DIR}/H5B2.c
   ${HDF5_SRC_DIR}/H5B2cache.c
   ${HDF5_SRC_DIR}/H5B2dbg.c
+  ${HDF5_SRC_DIR}/H5B2hdr.c
   ${HDF5_SRC_DIR}/H5B2int.c
   ${HDF5_SRC_DIR}/H5B2stat.c
   ${HDF5_SRC_DIR}/H5B2test.c
@@ -133,6 +134,7 @@ SET(common_SRCS
   ${HDF5_SRC_DIR}/H5HL.c                          
   ${HDF5_SRC_DIR}/H5HLcache.c                     
   ${HDF5_SRC_DIR}/H5HLdbg.c                       
+  ${HDF5_SRC_DIR}/H5HLint.c                       
   ${HDF5_SRC_DIR}/H5HP.c                          
   ${HDF5_SRC_DIR}/H5I.c                           
   ${HDF5_SRC_DIR}/H5L.c                           
@@ -204,6 +206,7 @@ SET(common_SRCS
   ${HDF5_SRC_DIR}/H5SM.c                          
   ${HDF5_SRC_DIR}/H5SMbtree2.c                    
   ${HDF5_SRC_DIR}/H5SMcache.c                     
+  ${HDF5_SRC_DIR}/H5SMmessage.c                     
   ${HDF5_SRC_DIR}/H5Smpio.c                       
   ${HDF5_SRC_DIR}/H5SMtest.c                      
   ${HDF5_SRC_DIR}/H5Snone.c                       
