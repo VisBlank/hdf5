@@ -143,6 +143,7 @@ H5HL_fl_deserialize(H5HL_t *heap, hsize_t free_block)
 
     /* check arguments */
     HDassert(heap);
+    HDassert(!heap->freelist);
 
     /* Build free list */
     while(H5HL_FREE_NULL != free_block) {
