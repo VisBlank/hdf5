@@ -1,4 +1,65 @@
-PROJECT(HDF5_F90 C CXX Fortran)
+PROJECT(HDF5 C CXX)
+cmake_minimum_required(VERSION 2.6)
+
+#-----------------------------------------------------------------------------
+# Instructions for use :
+#
+# For standard build of HDF5 libraries,tests and tools. 
+# Run cmake using the HDF5 source tree to generate a build tree.
+# Make install can be used to install all components for system-wide use.
+#
+# To include HDF5 as a sub-project within another project. 
+# Set HDF5_EXTERNALLY_CONFIGURED to 1 in the parent project and
+# supply values for the following variables...
+# HDF5_EXPORTED_TARGETS :
+#   Set this to the name of the targets variable which controls exports
+#   If unset (because parent project does not support/use the 
+#   INSTALL(EXPORT target...) syntax), then targets are not configured 
+#   for export during install.
+# HDF5_TARGET_DEPENDENCIES :
+#   If the build of HDF5 libs is being customized, then rules for the
+#   dependencies of the HDF5 libs may be 'incomplete', add additional
+#   dependencies to this variable so that external projects pick them up
+#
+# Consider this example from the ParaView project, it builds its own zlib
+# library and tells HDF5 to add it as a dependency - this ensures that
+# any project making use of this build of HDF5 will use the correct zlib
+#
+#  SET(HDF5_EXTERNALLY_CONFIGURED 1)
+#  IF(HDF5_ENABLE_Z_LIB_SUPPORT)
+#    SET(HDF5_TARGET_DEPENDENCIES vtkzlib)
+#  ENDIF(HDF5_ENABLE_Z_LIB_SUPPORT)
+#  SET(HDF5_EXPORTED_TARGETS)
+#  ADD_SUBDIRECTORY(Utilities/hdf5-1.8)
+#
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Basic HDF5 stuff here
+#-----------------------------------------------------------------------------
+SET (HDF5_PACKAGE "hdf5")
+SET (HDF5_PACKAGE_NAME "HDF5")
+SET (HDF5_PACKAGE_VERSION 1.8.4)
+SET (HDF5_PACKAGE_VERSION_MAJOR 1.8)
+SET (HDF5_PACKAGE_STRING "${HDF5_PACKAGE_NAME} ${HDF5_PACKAGE_VERSION}")
+SET (HDF5_PACKAGE_TARNAME "hdf5")
+SET (HDF5_PACKAGE_URL "htt://www.hdfgroup.org")
+SET (HDF5_PACKAGE_BUGREPORT "help@hdfgroup.org")
+
+#-----------------------------------------------------------------------------
+# Set the names of all the libraries
+#-----------------------------------------------------------------------------
+SET (HDF5_LIB_NAME              "hdf5")
+SET (HDF5_TEST_LIB_NAME         "h5test")
+SET (HDF5_CPP_LIB_NAME          "hdf5_cpp")
+SET (HDF5_HL_LIB_NAME           "hdf5_hl")
+SET (HDF5_HL_CPP_LIB_NAME       "hdf5_hl_cpp")
+SET (HDF5_TOOLS_LIB_NAME        "h5tools")
+SET (HDF5_F90_LIB_NAME          "hdf5_fortran")
+SET (HDF5_F90_C_LIB_NAME        "hdf5_f90CStub")
+SET (HDF5_F90_C_TEST_LIB_NAME   "hdf5_f90Ctest")
+SET (HDF5_HL_F90_LIB_NAME       "hdf5_hl_fortran")
+SET (HDF5_HL_F90_C_LIB_NAME     "hdf5_hl_f90CStub") 
 
 #-----------------------------------------------------------------------------
 # Setup output Directories 
@@ -16,308 +77,386 @@ IF(NOT HDF5_EXTERNALLY_CONFIGURED)
 ENDIF(NOT HDF5_EXTERNALLY_CONFIGURED)
 
 #-----------------------------------------------------------------------------
-# Fortran support is best served using cmake 2.8.0
+# Define some CMake variables for use later in the project
 #-----------------------------------------------------------------------------
-cmake_minimum_required(VERSION 2.8)
+SET (HDF5_RESOURCES_DIR      ${HDF5_SOURCE_DIR}/Resources)
+SET (HDF5_SRC_DIR            ${HDF5_SOURCE_DIR}/src)
+SET (HDF5_TEST_SOURCE_DIR    ${HDF5_SOURCE_DIR}/test)
+SET (HDF5_CPP_SOURCE_DIR     ${HDF5_SOURCE_DIR}/c++)
+SET (HDF5_CPP_TEST_DIR       ${HDF5_CPPLib_DIR}/test)
+SET (HDF5_HL_SOURCE_DIR      ${HDF5_SOURCE_DIR}/hl)
+SET (HDF5_TOOLS_SOURCE_DIR   ${HDF5_SOURCE_DIR}/tools)
+SET (HDF5_PERFORM_SOURCE_DIR ${HDF5_SOURCE_DIR}/perform)
 
 #-----------------------------------------------------------------------------
-# Detect name mangling convention used between Fortran and C
+# Include some macros for reusable code
 #-----------------------------------------------------------------------------
-include(FortranCInterface)
-FortranCInterface_HEADER(${HDF5_F90_BINARY_DIR}/FCMangle.h
-                         MACRO_NAMESPACE "H5_FC_"
-                         SYMBOL_NAMESPACE "H5_FC_"
-                         SYMBOLS mysub mymod:my_sub)
-
-FILE(STRINGS ${HDF5_F90_BINARY_DIR}/FCMangle.h CONTENTS REGEX "H5_FC_GLOBAL\\(.*,.*\\) +(.*)") 
-STRING(REGEX MATCH "H5_FC_GLOBAL\\(.*,.*\\) +(.*)" RESULT ${CONTENTS})
-SET(H5_FC_FUNC "H5_FC_FUNC(name,NAME) ${CMAKE_MATCH_1}" PARENT_SCOPE)
-
-FILE(STRINGS ${HDF5_F90_BINARY_DIR}/FCMangle.h CONTENTS REGEX "H5_FC_GLOBAL_\\(.*,.*\\) +(.*)") 
-STRING(REGEX MATCH "H5_FC_GLOBAL_\\(.*,.*\\) +(.*)" RESULT ${CONTENTS})
-SET(H5_FC_FUNC_ "H5_FC_FUNC_(name,NAME) ${CMAKE_MATCH_1}" PARENT_SCOPE)
+INCLUDE(${HDF5_RESOURCES_DIR}/HDF5Macros.cmake)
 
 #-----------------------------------------------------------------------------
-# The provided CMake Fortran macros don't provide a general check function
-# so this one is used for a sizeof test.
+# Targets built within this project are exported at Install time for use
+# by other projects using FindHDF5. If hdf5 is configured as a sub-project
+# then we do not override the setting provided by the parent project
 #-----------------------------------------------------------------------------
-macro(CHECK_FORTRAN_FEATURE FUNCTION CODE VARIABLE)
-  if(NOT DEFINED ${VARIABLE})
-    message(STATUS "Testing Fortran ${FUNCTION}")
-    if(CMAKE_REQUIRED_LIBRARIES)
-      set(CHECK_FUNCTION_EXISTS_ADD_LIBRARIES
-        "-DLINK_LIBRARIES:STRING=${CMAKE_REQUIRED_LIBRARIES}")
-    else(CMAKE_REQUIRED_LIBRARIES)
-      set(CHECK_FUNCTION_EXISTS_ADD_LIBRARIES)
-    endif(CMAKE_REQUIRED_LIBRARIES)
-    FILE(WRITE
-      ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testFortranCompiler.f
-      "${CODE}"
-    )
-    try_compile(${VARIABLE}
-      ${CMAKE_BINARY_DIR}
-      ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testFortranCompiler.f
-      CMAKE_FLAGS "${CHECK_FUNCTION_EXISTS_ADD_LIBRARIES}"
-      OUTPUT_VARIABLE OUTPUT
-    )
-
-#    MESSAGE( "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ")
-#    MESSAGE( "Test result ${OUTPUT}")
-#    MESSAGE( "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ")
-
-    if(${VARIABLE})
-      set(${VARIABLE} 1 CACHE INTERNAL "Have Fortran function ${FUNCTION}")
-      message(STATUS "Testing Fortran ${FUNCTION} - OK")
-      file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeOutput.log 
-        "Determining if the Fortran ${FUNCTION} exists passed with the following output:\n"
-        "${OUTPUT}\n\n")
-    else(${VARIABLE})
-      message(STATUS "Testing Fortran ${FUNCTION} - Fail")
-      set(${VARIABLE} "" CACHE INTERNAL "Have Fortran function ${FUNCTION}")
-      file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log 
-        "Determining if the Fortran ${FUNCTION} exists failed with the following output:\n"
-        "${OUTPUT}\n\n")
-    endif(${VARIABLE})
-  endif(NOT DEFINED ${VARIABLE})
-endmacro(CHECK_FORTRAN_FEATURE)
+IF (NOT HDF5_EXTERNALLY_CONFIGURED)
+  SET(HDF5_EXPORTED_TARGETS "hdf5-targets")
+ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED)  
 
 #-----------------------------------------------------------------------------
-# Configure Checks which require Fortran compilation must go in here
-# not in the main ConfigureChecks.cmake files, because if the user has
-# no Fortran compiler, problems arise.
-#
-# Be careful with leading spaces here, do not remove them.
+# To include a library in the list exported by the project AT BUILD TIME, 
+# add it to this variable. This is NOT used by Make Install, but for projects
+# which include hdf5 as a sub-project within their build tree
 #-----------------------------------------------------------------------------
-CHECK_FORTRAN_FEATURE(sizeof 
-  "
-       PROGRAM main
-       i = sizeof(x)       
-       END PROGRAM
-  " 
-  FORTRAN_HAVE_SIZEOF
-)  
-
-CHECK_FORTRAN_FEATURE(RealIsNotDouble 
-  "
-       MODULE type_mod
-         INTERFACE h5t	
-           MODULE PROCEDURE h5t_real
-           MODULE PROCEDURE h5t_dble
-         END INTERFACE
-       CONTAINS
-         SUBROUTINE h5t_real(r)
-           REAL :: r
-         END SUBROUTINE h5t_real
-         SUBROUTINE h5t_dble(d)
-           DOUBLE PRECISION :: d
-         END SUBROUTINE h5t_dble
-       END MODULE type_mod
-       PROGRAM main
-         USE type_mod
-         REAL :: r
-         DOUBLE PRECISION :: d
-         CALL h5t(r)
-         CALL h5t(d)
-       END PROGRAM main
-  " 
-  FORTRAN_DEFAULT_REAL_NOT_DOUBLE
-)  
+SET_GLOBAL_VARIABLE(HDF5_LIBRARIES_TO_EXPORT "")
 
 #-----------------------------------------------------------------------------
-# Traverse source subdirectory
+# Run all the CMake configuration tests for our build environment
 #-----------------------------------------------------------------------------
-#ADD_SUBDIRECTORY(src)
-SET(FORTRAN_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+INCLUDE(${HDF5_SOURCE_DIR}/ConfigureChecks.cmake)
 
 #-----------------------------------------------------------------------------
-# When building utility executables we reuse these variables
+# Option to Build Shared/Static libs, default is static
 #-----------------------------------------------------------------------------
-#inherit EXE_EXT     from parent HDF5 cmake project
-#inherit MAKE_SYSTEM from parent HDF5 cmake project
-#inherit CFG_INIT    from parent HDF5 cmake project
+OPTION (BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
+SET (LIB_TYPE STATIC)
+IF (BUILD_SHARED_LIBS)
+  SET (LIB_TYPE SHARED)
+  SET (H5_BUILT_AS_DYNAMIC_LIB 1)       
+ELSE(BUILD_SHARED_LIBS)
+  IF (NOT WIN32)
+    # should this be a user setting : Everyone uses it anyway ?
+    ADD_DEFINITIONS(-DPIC)
+  ENDIF (NOT WIN32)
+ENDIF (BUILD_SHARED_LIBS)
 
 #-----------------------------------------------------------------------------
-# Auto-generated files will be placed and included from here
+# Include the main src and config directories
 #-----------------------------------------------------------------------------
-INCLUDE_DIRECTORIES(${HDF5_F90_BINARY_DIR})
+SET (HDF5_INCLUDE_DIRECTORIES
+  ${HDF5_SRC_DIR} 
+  ${HDF5_SOURCE_DIR} 
+  ${HDF5_BINARY_DIR}
+)
+INCLUDE_DIRECTORIES( ${HDF5_INCLUDE_DIRECTORIES} )
 
 #-----------------------------------------------------------------------------
-# Setup the Fortran auto-detection utilities
-# H5test_kind(_SIZEOF).f90 used to generate H5fortran_detect.f90
-# H5fortran_detect.f90     used to generate H5fort_type_defines.h
-# H5fort_type_defines.h    used to generate H5f90i_gen.h + H5fortran_types.f90
+# Add some definitions for Debug Builds
 #-----------------------------------------------------------------------------
-IF (FORTRAN_HAVE_SIZEOF)
-  ADD_EXECUTABLE(H5test_FortranHavekind
-    ${FORTRAN_SRC_DIR}/H5test_kind_SIZEOF.f90
+IF ( CMAKE_BUILD_TYPE MATCHES Debug )
+  ADD_DEFINITIONS(-DDEBUG)
+  ADD_DEFINITIONS(
+    -DH5_DEBUG_API -DH5Z_DEBUG -DH5V_DEBUG -DH5T_DEBUG 
+    -DH5S_DEBUG -DH5P_DEBUG -DH5O_DEBUG -DH5MM_DEBUG -DH5MF_DEBUG 
+    -DH5I_DEBUG -DH5HL_DEBUG -DH5HG_DEBUG -DH5G_DEBUG -DH5F_DEBUG 
+    -DH5E_DEBUG -DH5D_DEBUG -DH5B_DEBUG -DH5AC_DEBUG -UNDEBUG
   )
-ELSE (FORTRAN_HAVE_SIZEOF)
-  ADD_EXECUTABLE(H5test_FortranHavekind 
-    ${FORTRAN_SRC_DIR}/H5test_kind.f90
-  )
-ENDIF (FORTRAN_HAVE_SIZEOF)
-
-SET (CMD ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}${CFG_INIT}/H5test_FortranHavekind${EXE_EXT})
-ADD_CUSTOM_COMMAND(
-  OUTPUT ${HDF5_F90_BINARY_DIR}/H5fortran_detect.f90
-  COMMAND ${CMD} 
-  ARGS > ${HDF5_F90_BINARY_DIR}/H5fortran_detect.f90
-  WORKING_DIRECTORY ${HDF5_F90_BINARY_DIR}
-  DEPENDS H5test_FortranHavekind
-)
-#-----------------------------------------------------------------------------
-ADD_EXECUTABLE(H5fortran_detect 
-  ${HDF5_F90_BINARY_DIR}/H5fortran_detect.f90
-)
-
-SET (CMD ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}${CFG_INIT}/H5fortran_detect${EXE_EXT})
-ADD_CUSTOM_COMMAND(
-  OUTPUT ${HDF5_F90_BINARY_DIR}/H5fort_type_defines.h
-  COMMAND ${CMD} 
-  ARGS > ${HDF5_F90_BINARY_DIR}/H5fort_type_defines.h
-  WORKING_DIRECTORY ${HDF5_F90_BINARY_DIR}
-  DEPENDS H5fortran_detect
-)
+  #-- NMake Makefiles will overwhelm the console with warnings if -Wall is used.
+  if (NOT WIN32)
+    ADD_DEFINITIONS(-Wall)
+  endif()
+ELSE (CMAKE_BUILD_TYPE MATCHES Debug)
+  ADD_DEFINITIONS(-UH5_DEBUG_API -DNDEBUG)
+ENDIF ( CMAKE_BUILD_TYPE MATCHES Debug )
 
 #-----------------------------------------------------------------------------
-ADD_EXECUTABLE(H5match_types 
-  ${HDF5_F90_BINARY_DIR}/H5fort_type_defines.h
-  ${FORTRAN_SRC_DIR}/H5match_types.c
-)
+# Compiler specific flags : Shouldn't there be compiler tests for these
+#-----------------------------------------------------------------------------
+IF (NOT WIN32)
+ SET (CMAKE_C_FLAGS "${CMAKE_ANSI_CFLAGS} ${CMAKE_C_FLAGS} -std=c99 -fomit-frame-pointer -finline-functions -fno-common")
+ENDIF (NOT WIN32)
 
-SET (CMD ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}${CFG_INIT}/H5match_types${EXE_EXT})
+#-----------------------------------------------------------------------------
+# Option to allow the user to disable compiler warnings
+#-----------------------------------------------------------------------------
+OPTION (HDF5_DISABLE_COMPILER_WARNINGS "Disable compiler warnings" OFF)
+IF (HDF5_DISABLE_COMPILER_WARNINGS)
+  # MSVC uses /w to suppress warnings.  It also complains if another
+  # warning level is given, so remove it.
+  IF (MSVC)
+    SET (HDF5_WARNINGS_BLOCKED 1)
+    STRING(REGEX REPLACE "(^| )([/-])W[0-9]( |$)" " "
+      CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /w")
+  ENDIF (MSVC)
+  IF(WIN32)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+  ENDIF()
+  # Borland uses -w- to suppress warnings.
+  IF (BORLAND)
+    SET (HDF5_WARNINGS_BLOCKED 1)
+    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w-")
+  ENDIF (BORLAND)
+
+  # Most compilers use -w to suppress warnings.
+  IF (NOT HDF5_WARNINGS_BLOCKED)
+    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w")
+  ENDIF (NOT HDF5_WARNINGS_BLOCKED)
+ENDIF (HDF5_DISABLE_COMPILER_WARNINGS)
+
+#-----------------------------------------------------------------------------
+# This is in here to help some of the GCC based IDES like Eclipse 
+# and code blocks parse the compiler errors and warnings better. 
+#-----------------------------------------------------------------------------
+IF (CMAKE_COMPILER_IS_GNUCC)
+  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fmessage-length=0")
+ENDIF (CMAKE_COMPILER_IS_GNUCC)
+IF (CMAKE_COMPILER_IS_GNUCXX)
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmessage-length=0")
+ENDIF (CMAKE_COMPILER_IS_GNUCXX)
+
+#-----------------------------------------------------------------------------
+# Option to Enable MPI Parallel 
+#-----------------------------------------------------------------------------
+OPTION(HDF5_ENABLE_PARALLEL "Enable parallel build (requires MPI)" OFF)
+IF (HDF5_ENABLE_PARALLEL) 
+  INCLUDE(FindMPI)
+  INCLUDE_DIRECTORIES(${MPI_INCLUDE_PATH})
+  IF (MPI_FOUND)
+    SET (H5_HAVE_PARALLEL 1)
+  ENDIF (MPI_FOUND)
+ENDIF (HDF5_ENABLE_PARALLEL) 
+
+# Parallel IO usage requires MPI to be Linked and Included
+IF (H5_HAVE_PARALLEL)
+  SET (LINK_LIBS ${LINK_LIBS} ${MPI_LIBRARY})
+  IF (MPI_EXTRA_LIBRARY) 
+    SET (LINK_LIBS ${LINK_LIBS} ${MPI_EXTRA_LIBRARY})
+  ENDIF (MPI_EXTRA_LIBRARY) 
+ENDIF (H5_HAVE_PARALLEL)
+
+#-----------------------------------------------------------------------------
+# Option to use 1.6.x API
+#-----------------------------------------------------------------------------
+OPTION(HDF5_USE_16_API_DEFAULT "Use the HDF5 1.6.x API by default" OFF)
+SET (USE_16_API_DEFAULT 0)
+IF (HDF5_USE_16_API_DEFAULT) 
+  SET (H5_USE_16_API_DEFAULT 1)
+ENDIF (HDF5_USE_16_API_DEFAULT) 
+
+#-----------------------------------------------------------------------------
+# Options for HDF5 Filters
+#-----------------------------------------------------------------------------
+macro(HDF5_SETUP_FILTERS FILTER)
+  option (HDF5_USE_FILTER_${FILTER} "Use the ${FILTER} Filter" ON)
+  if ( HDF5_USE_FILTER_${FILTER} )
+    SET (H5_HAVE_FILTER_${FILTER} 1)
+  endif()
+  # message(STATUS "Filter ${FILTER} is ${HDF5_USE_FILTER_${FILTER}}")
+endmacro()
+
+HDF5_SETUP_FILTERS( SHUFFLE )
+HDF5_SETUP_FILTERS( FLETCHER32 )
+HDF5_SETUP_FILTERS( NBIT )
+HDF5_SETUP_FILTERS( SCALEOFFSET )
+
+#-----------------------------------------------------------------------------
+# Option for ZLib support
+#-----------------------------------------------------------------------------
+OPTION(HDF5_ENABLE_Z_LIB_SUPPORT "Enable Zlib Filters" OFF)  
+IF (HDF5_ENABLE_Z_LIB_SUPPORT)
+  IF (NOT H5_ZLIB_HEADER)
+    FIND_PACKAGE(ZLIB REQUIRED)
+    IF (ZLIB_FOUND)
+      SET (H5_HAVE_FILTER_DEFLATE 1)
+      SET (H5_HAVE_ZLIB_H 1)
+      SET (H5_ZLIB_HEADER "zlib.h")
+    ELSE (ZLIB_FOUND)
+      MESSAGE(FATAL " ZLib is Required for ZLib support in HDF5")
+    ENDIF (ZLIB_FOUND)
+  ELSE (NOT H5_ZLIB_HEADER)
+    # This project is being called from within another and ZLib is already configured
+    SET (H5_HAVE_FILTER_DEFLATE 1)
+    SET (H5_HAVE_ZLIB_H 1)
+  ENDIF (NOT H5_ZLIB_HEADER)
+  CONFIGURE_FILE(${HDF5_SOURCE_DIR}/Resources/hdf5_zlib.h.in 
+                 ${HDF5_BINARY_DIR}/hdf5_zlib.h @ONLY IMMEDIATE)
+  SET (LINK_LIBS ${LINK_LIBS} ${ZLIB_LIBRARIES} )
+  include_directories(${ZLIB_INCLUDE_DIRS})
+  message(STATUS "Filter ZLIB is ON")
+ENDIF (HDF5_ENABLE_Z_LIB_SUPPORT)
+
+#-----------------------------------------------------------------------------
+# Option for SLib support
+#-----------------------------------------------------------------------------
+SET (CMAKE_MODULE_PATH ${HDF5_SOURCE_DIR}/Resources/CMake ${CMAKE_MODULE_PATH})
+OPTION(HDF5_ENABLE_SZIP_SUPPORT "Use SZip Filter" OFF)  
+IF (HDF5_ENABLE_SZIP_SUPPORT)
+  find_package(SZIP REQUIRED)
+  if (SZIP_FOUND)
+    SET (H5_HAVE_FILTER_SZIP 1)
+    SET (H5_HAVE_SZLIB_H 1)
+    SET (LINK_LIBS ${LINK_LIBS} ${SZIP_LIBRARIES} )
+    include_directories(${SZIP_INCLUDE_DIRS})
+#      message(STATUS "SZIP_INCLUDE_DIRS: ${SZIP_INCLUDE_DIRS}")
+#      message(STATUS "SZIP_INCLUDE_DIR: ${SZIP_INCLUDE_DIR}")
+    message(STATUS "Filter SZIP is ON")
+  else()
+      MESSAGE(FATAL_ERROR "SZIP is Required for SZIP support in HDF5")
+  endif()
+ENDIF ()
+
+#-----------------------------------------------------------------------------
+# Define the list of source files for the main hdf5 library
+#-----------------------------------------------------------------------------
+#INCLUDE(${HDF5_SOURCE_DIR}/LibSources.cmake)
+
+#-----------------------------------------------------------------------------
+# Setup the H5Detect utility which generates H5Tinit with platform 
+# specific type checks inside
+#-----------------------------------------------------------------------------
+SET (EXE_EXT "")
+IF (WIN32)
+  SET (EXE_EXT ".exe")
+ENDIF (WIN32)
+
+SET (MAKE_SYSTEM)
+IF (CMAKE_BUILD_TOOL MATCHES "make")
+  SET (MAKE_SYSTEM 1)
+ENDIF (CMAKE_BUILD_TOOL MATCHES "make")
+
+SET (CFG_INIT "/${CMAKE_CFG_INTDIR}")
+IF (MAKE_SYSTEM)
+  SET (CFG_INIT "")
+ENDIF (MAKE_SYSTEM)
+
+SET (CMD ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}${CFG_INIT}/H5detect${EXE_EXT})
+IF(XCODE)
+  SET (CMD "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/\${CONFIGURATION}/H5detect")
+ENDIF(XCODE)
+ADD_EXECUTABLE(H5detect ${HDF5_SRC_DIR}/H5detect.c)
+
 ADD_CUSTOM_COMMAND(
-  OUTPUT ${HDF5_F90_BINARY_DIR}/H5f90i_gen.h
-         ${HDF5_F90_BINARY_DIR}/H5fortran_types.f90
+  OUTPUT ${HDF5_BINARY_DIR}/H5Tinit.c
   COMMAND ${CMD}
-  WORKING_DIRECTORY ${HDF5_F90_BINARY_DIR}
-  DEPENDS H5match_types
-)
-
-#-----------------------------------------------------------------------------
-# f90CStub lib
-#-----------------------------------------------------------------------------
-SET(f90CStub_C_SRCS
-  # generated files
-  ${HDF5_F90_BINARY_DIR}/H5f90i_gen.h
-  
-  # normal distribution
-  ${FORTRAN_SRC_DIR}/H5f90kit.c 
-  ${FORTRAN_SRC_DIR}/H5_f.c 
-  ${FORTRAN_SRC_DIR}/H5Af.c 
-  ${FORTRAN_SRC_DIR}/H5Df.c
-  ${FORTRAN_SRC_DIR}/H5Ef.c
-  ${FORTRAN_SRC_DIR}/H5Ff.c 
-  ${FORTRAN_SRC_DIR}/H5Gf.c
-  ${FORTRAN_SRC_DIR}/H5If.c 
-  ${FORTRAN_SRC_DIR}/H5Lf.c 
-  ${FORTRAN_SRC_DIR}/H5Of.c 
-  ${FORTRAN_SRC_DIR}/H5Pf.c 
-  ${FORTRAN_SRC_DIR}/H5Rf.c 
-  ${FORTRAN_SRC_DIR}/H5Sf.c
-  ${FORTRAN_SRC_DIR}/H5Tf.c 
-  ${FORTRAN_SRC_DIR}/H5Zf.c 
-)
-
-IF (H5_HAVE_PARALLEL)
-  SET (f90CStub_C_SRCS 
-    ${f90CStub_C_SRCS} 
-    ${FORTRAN_SRC_DIR}/H5FDmpiof.c 
+  ARGS > ${HDF5_BINARY_DIR}/H5Tinit.c
+  DEPENDS H5detect
   )
-ENDIF (H5_HAVE_PARALLEL)
-
-SET_SOURCE_FILES_PROPERTIES( ${f90CStub_C_SRCS} PROPERTIES LANGUAGE C) 
-
-ADD_LIBRARY(${HDF5_F90_C_LIB_NAME} ${f90CStub_C_SRCS} )
-TARGET_LINK_LIBRARIES(${HDF5_F90_C_LIB_NAME} hdf5)
 
 #-----------------------------------------------------------------------------
-# Fortran Real Size
+# Add H5Tinit source to build - generated by H5Detect/CMake at configure time
 #-----------------------------------------------------------------------------
-IF (FORTRAN_DEFAULT_REAL_NOT_DOUBLE)
-  # default real is 4 bytes, so include double signatures
-  SET (F_DBLE "Include")
-ELSE (FORTRAN_DEFAULT_REAL_NOT_DOUBLE)
-  # default real is 8 bytes, so exclude double signatures
-  SET (F_DBLE "Exclude")
-ENDIF (FORTRAN_DEFAULT_REAL_NOT_DOUBLE)
+#SET (common_SRCS ${common_SRCS} ${HDF5_BINARY_DIR}/H5Tinit.c)
+SET_SOURCE_FILES_PROPERTIES (${HDF5_BINARY_DIR}/H5Tinit.c GENERATED)
 
 #-----------------------------------------------------------------------------
-# Fortran Modules
+# Add the HDF5 Library Target to the build
 #-----------------------------------------------------------------------------
-IF (H5_HAVE_PARALLEL)
-  SET (H5FC_NAME h5pfc)
-ELSE (H5_HAVE_PARALLEL)
-  SET (H5FC_NAME h5fc)
-ENDIF (H5_HAVE_PARALLEL)
+    ADD_SUBDIRECTORY(${HDF5_SOURCE_DIR}/src      ${PROJECT_BINARY_DIR}/src)
+#ADD_LIBRARY(${HDF5_LIB_NAME} ${common_SRCS} ${H5_PUBLIC_HEADERS} ${H5_PRIVATE_HEADERS})
+#SET_GLOBAL_VARIABLE(HDF5_LIBRARIES_TO_EXPORT ${HDF5_LIB_NAME})
+#TARGET_LINK_LIBRARIES(${HDF5_LIB_NAME} ${LINK_LIBS})
+#H5_SET_LIB_OPTIONS(${HDF5_LIB_NAME} ${HDF5_LIB_NAME} ${LIB_TYPE})
 
 #-----------------------------------------------------------------------------
-ADD_LIBRARY(H5FORTRAN_TYPES   STATIC ${HDF5_F90_BINARY_DIR}/H5fortran_types.f90 )
-ADD_LIBRARY(H5GLOBAL          STATIC ${FORTRAN_SRC_DIR}/H5f90global.f90 )
-ADD_LIBRARY(H5LIB             STATIC ${FORTRAN_SRC_DIR}/H5_ff.f90 )
-ADD_LIBRARY(H5_DBLE_INTERFACE STATIC ${FORTRAN_SRC_DIR}/H5_DBLE_Interface${F_DBLE}.f90 )
-ADD_LIBRARY(H5A               STATIC ${FORTRAN_SRC_DIR}/H5Aff.f90 )
-ADD_LIBRARY(H5D               STATIC ${FORTRAN_SRC_DIR}/H5Dff.f90 )
-ADD_LIBRARY(H5E               STATIC ${FORTRAN_SRC_DIR}/H5Eff.f90 )
-ADD_LIBRARY(H5F               STATIC ${FORTRAN_SRC_DIR}/H5Fff.f90 )
-ADD_LIBRARY(H5G               STATIC ${FORTRAN_SRC_DIR}/H5Gff.f90 )
-ADD_LIBRARY(H5I               STATIC ${FORTRAN_SRC_DIR}/H5Iff.f90 )
-ADD_LIBRARY(H5L               STATIC ${FORTRAN_SRC_DIR}/H5Lff.f90 )
-ADD_LIBRARY(H5O               STATIC ${FORTRAN_SRC_DIR}/H5Off.f90 )
-ADD_LIBRARY(H5P               STATIC ${FORTRAN_SRC_DIR}/H5Pff.f90 )
-ADD_LIBRARY(H5R               STATIC ${FORTRAN_SRC_DIR}/H5Rff.f90 )
-ADD_LIBRARY(H5S               STATIC ${FORTRAN_SRC_DIR}/H5Sff.f90 )
-ADD_LIBRARY(H5T               STATIC ${FORTRAN_SRC_DIR}/H5Tff.f90 )
-ADD_LIBRARY(H5Z               STATIC ${FORTRAN_SRC_DIR}/H5Zff.f90 )
+# Dashboard and Testing Settings
 #-----------------------------------------------------------------------------
-# Force dependencies between libs to ensure build order is ok
-#-----------------------------------------------------------------------------
-add_dependencies(H5A H5GLOBAL)
-add_dependencies(H5D H5GLOBAL)
-add_dependencies(H5E H5GLOBAL)
-add_dependencies(H5F H5GLOBAL)
-add_dependencies(H5G H5GLOBAL)
-add_dependencies(H5I H5GLOBAL)
-add_dependencies(H5L H5GLOBAL)
-add_dependencies(H5O H5GLOBAL)
-add_dependencies(H5P H5GLOBAL)
-add_dependencies(H5R H5GLOBAL)
-add_dependencies(H5S H5GLOBAL)
-add_dependencies(H5T H5GLOBAL)
-add_dependencies(H5Z H5GLOBAL)
-add_dependencies(H5GLOBAL          H5FORTRAN_TYPES)
-add_dependencies(H5LIB             H5GLOBAL)
-add_dependencies(H5_DBLE_INTERFACE H5GLOBAL)
-add_dependencies(H5_DBLE_INTERFACE H5A H5D H5P)
-#-----------------------------------------------------------------------------
-IF (H5_HAVE_PARALLEL)
-  ADD_LIBRARY(H5FDMPIO STATIC ${FORTRAN_SRC_DIR}/H5FDmpioff.f90 )
-  add_dependencies(H5FDMPIO H5GLOBAL)
-  SET (HDF5MODULE_SRC 
-    ${FORTRAN_SRC_DIR}/HDF5mpio.f90
-  )
-  SET (HDF5_DEPENDS H5FDMPIO)
-ELSE (H5_HAVE_PARALLEL)
-  SET (HDF5MODULE_SRC 
-    ${FORTRAN_SRC_DIR}/HDF5.f90
-  )
-  SET (HDF5_DEPENDS "")
-ENDIF (H5_HAVE_PARALLEL)
-#-----------------------------------------------------------------------------
-ADD_LIBRARY(${HDF5_F90_LIB_NAME} STATIC ${HDF5MODULE_SRC} )
-SET_GLOBAL_VARIABLE(HDF5_LIBRARIES_TO_EXPORT 
-  "${HDF5_LIBRARIES_TO_EXPORT};${HDF5_F90_LIB_NAME};${HDF5_F90_C_LIB_NAME}"
-)
-add_dependencies(${HDF5_F90_LIB_NAME}
-  H5GLOBAL H5F H5E H5G H5I H5L H5S H5D H5A H5T H5O
-  H5P H5R H5Z H5_DBLE_INTERFACE H5LIB ${HDF5_DEPENDS}
-  ${HDF5_F90_C_LIB_NAME}
-)
-
-#-----------------------------------------------------------------------------
-# Testing
-#-----------------------------------------------------------------------------
-
+OPTION(BUILD_TESTING "Build HDF5 Unit Testing" OFF)
 IF (BUILD_TESTING)
-  ADD_SUBDIRECTORY(${HDF5_F90_SOURCE_DIR}/test ${HDF5_F90_BINARY_DIR}/test)
-ENDIF (BUILD_TESTING)
+  SET (DART_TESTING_TIMEOUT 1200 CACHE INTEGER  
+    "Timeout in seconds for each test (default 1200=20minutes)")
+  ENABLE_TESTING()
+  INCLUDE(CTest)
+  IF(NOT HDF5_EXTERNALLY_CONFIGURED)
+    ADD_SUBDIRECTORY(${HDF5_SOURCE_DIR}/tools/lib ${PROJECT_BINARY_DIR}/tools/lib)
+    ADD_SUBDIRECTORY(${HDF5_SOURCE_DIR}/test      ${PROJECT_BINARY_DIR}/test)
+    ADD_SUBDIRECTORY(${HDF5_SOURCE_DIR}/perform   ${PROJECT_BINARY_DIR}/perform)
+  ENDIF(NOT HDF5_EXTERNALLY_CONFIGURED)
+  include (${HDF5_SOURCE_DIR}/CTestConfig.cmake)
+ENDIF ( BUILD_TESTING )
+
+#-----------------------------------------------------------------------------
+# Option to build HDF5 C++ Library
+#-----------------------------------------------------------------------------
+OPTION(HDF5_BUILD_CPP_LIB  "Build HDF5 C++ Library" OFF)
+IF (HDF5_BUILD_CPP_LIB)
+  ADD_SUBDIRECTORY(${HDF5_SOURCE_DIR}/c++ ${PROJECT_BINARY_DIR}/c++)
+ENDIF ( HDF5_BUILD_CPP_LIB )
+
+#-----------------------------------------------------------------------------
+# Option to build HDF5 Tools
+#-----------------------------------------------------------------------------
+OPTION(HDF5_BUILD_TOOLS  "Build HDF5 Tools" OFF)
+IF (HDF5_BUILD_TOOLS)
+  ADD_SUBDIRECTORY(${HDF5_SOURCE_DIR}/tools ${PROJECT_BINARY_DIR}/tools)
+ENDIF ( HDF5_BUILD_TOOLS )
+
+#-----------------------------------------------------------------------------
+# Option to build High Level API's
+#-----------------------------------------------------------------------------
+OPTION(HDF5_BUILD_HL_LIB  "Build HIGH Level HDF5 Library" OFF)
+IF (HDF5_BUILD_HL_LIB)
+  ADD_SUBDIRECTORY(${HDF5_SOURCE_DIR}/hl ${PROJECT_BINARY_DIR}/hl)
+ENDIF ( HDF5_BUILD_HL_LIB )
+
+#-----------------------------------------------------------------------------
+# Option to build Fortran bindings/tests/examples
+# Make sure this appears before the CONFIGURE_FILE step
+# so that fortran name mangling is detected before writing H5pubconf.h
+#-----------------------------------------------------------------------------
+OPTION(HDF5_BUILD_FORTRAN "Build FORTRAN support" OFF)
+IF (HDF5_BUILD_FORTRAN)
+  # Set default name mangling : overridden by Fortran detection in fortran dir
+  SET(H5_FC_FUNC "H5_FC_FUNC(name,NAME) NAME")
+  SET(H5_FC_FUNC_ "H5_FC_FUNC_(name,NAME) NAME")
+  ADD_SUBDIRECTORY(${HDF5_SOURCE_DIR}/fortran ${PROJECT_BINARY_DIR}/fortran)
+ELSE ( HDF5_BUILD_FORTRAN )
+  SET(H5_FC_FUNC "H5_FC_FUNC(name,NAME) NAME")
+  SET(H5_FC_FUNC_ "H5_FC_FUNC_(name,NAME) NAME")
+ENDIF ( HDF5_BUILD_FORTRAN )
+
+#-----------------------------------------------------------------------------
+# Generate the H5pubconf.h file containing user settings needed by compilation
+#-----------------------------------------------------------------------------
+CONFIGURE_FILE(${HDF5_SOURCE_DIR}/Resources/H5pubconf.h.in
+  ${HDF5_BINARY_DIR}/H5pubconf.h     @ONLY IMMEDIATE)
+
+#-----------------------------------------------------------------------------
+# Rules for Installation using make Install target
+#-----------------------------------------------------------------------------
+INSTALL (
+  FILES 
+    ${PROJECT_BINARY_DIR}/H5pubconf.h    
+    ${H5_PUBLIC_HEADERS}
+    ${H5_PRIVATE_HEADERS}
+  DESTINATION 
+    include 
+)
+
+#-----------------------------------------------------------------------------
+# Add library to CMake Install : Installs lib and cmake config info
+#-----------------------------------------------------------------------------
+#IF (HDF5_EXPORTED_TARGETS)
+#    INSTALL(
+#      TARGETS 
+#        ${HDF5_LIB_NAME}
+#      EXPORT 
+#        ${HDF5_EXPORTED_TARGETS}
+#      LIBRARY DESTINATION lib 
+#      ARCHIVE DESTINATION lib
+#      RUNTIME DESTINATION bin
+#    )
+#ENDIF (HDF5_EXPORTED_TARGETS)
+
+#-----------------------------------------------------------------------------
+# Export Compilation Targets via Make Install to final location
+#-----------------------------------------------------------------------------
+IF (HDF5_EXPORTED_TARGETS)
+  INSTALL(
+    EXPORT 
+      ${HDF5_EXPORTED_TARGETS}
+    DESTINATION 
+      lib
+    FILE 
+      HDF5-config.cmake 
+  )
+ENDIF (HDF5_EXPORTED_TARGETS)
+  
+#-----------------------------------------------------------------------------
+# Export all exported targets to the build tree for use by parent project
+#-----------------------------------------------------------------------------
+EXPORT(
+  TARGETS    
+    ${HDF5_LIBRARIES_TO_EXPORT} ${HDF5_TARGET_DEPENDENCIES}
+  FILE 
+    HDF5-config.cmake 
+)
