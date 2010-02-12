@@ -437,6 +437,11 @@ H5O_link_copy(const void *_mesg, void *_dest)
     ret_value = dest;
 
 done:
+
+    /* if dest is allocated within this function and some function calls are failed, free dest */
+    if (NULL==_dest && NULL==ret_value && NULL != dest)
+        H5MM_free(dest);
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5O_link_copy() */
 
