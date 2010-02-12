@@ -2802,7 +2802,9 @@ H5D_chunk_lock(const H5D_io_info_t *io_info, H5D_chunk_ud_t *udata,
             HGOTO_ERROR(H5E_IO, H5E_CANTINIT, NULL, "unable to preempt chunk(s) from cache")
 
         /* Create a new entry */
-        ent = H5FL_MALLOC(H5D_rdcc_ent_t);
+        if((ent = H5FL_MALLOC(H5D_rdcc_ent_t)) == NULL)
+            HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, H5_ITER_ERROR, "memory allocation failed for raw data entry chunk")
+
         ent->locked = 0;
         ent->dirty = FALSE;
         ent->chunk_addr = chunk_addr;
