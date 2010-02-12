@@ -263,12 +263,12 @@ H5O_efl_copy(const void *_mesg, void *_dest)
     HDassert(mesg);
     if(!dest) {
 	if(NULL == (dest = (H5O_efl_t *)H5MM_calloc(sizeof(H5O_efl_t))) ||
-                NULL == (dest->slot = (H5O_efl_entry_t *)H5MM_malloc(mesg->nalloc * sizeof(H5O_efl_entry_t))))
+       NULL == (dest->slot = (H5O_efl_entry_t *)H5MM_malloc(mesg->nalloc * sizeof(H5O_efl_entry_t))))
 	    HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
     } else if(dest->nalloc < mesg->nalloc) {
-	H5MM_xfree(dest->slot);
-	if(NULL == (dest->slot = (H5O_efl_entry_t *)H5MM_malloc(mesg->nalloc * sizeof(H5O_efl_entry_t))))
-	    HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
+	    H5MM_xfree(dest->slot);
+	    if(NULL == (dest->slot = (H5O_efl_entry_t *)H5MM_malloc(mesg->nalloc * sizeof(H5O_efl_entry_t))))
+	        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
     }
     dest->heap_addr = mesg->heap_addr;
     dest->nalloc = mesg->nalloc;
@@ -283,6 +283,10 @@ H5O_efl_copy(const void *_mesg, void *_dest)
     ret_value = dest;
 
 done:
+    if (NULL == _dest && NULL == ret_value && NULL != dest) {
+        H5MM_free(dest);
+    }
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5O_efl_copy() */
 
