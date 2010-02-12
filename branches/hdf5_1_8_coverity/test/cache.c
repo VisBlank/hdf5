@@ -14731,9 +14731,20 @@ check_pin_protected_entry(void)
 
         file_ptr = setup_cache((size_t)(2 * 1024 * 1024),
                                 (size_t)(1 * 1024 * 1024));
+
+        if ( file_ptr == NULL ) {
+
+            pass = FALSE;
+            failure_mssg = "file_ptr NULL from setup_cache.";
+
+        }
     }
 
-    protect_entry(file_ptr, 0, 0);
+    if ( pass ) {
+
+        protect_entry(file_ptr, 0, 0);
+
+    }
 
     if ( pass ) {
 
