@@ -440,7 +440,7 @@ done:
 
     /* if dest is allocated within this function and some function calls are failed, free dest */
     if (NULL==_dest && NULL==ret_value && NULL != dest)
-        H5MM_free(dest);
+        H5FL_FREE(H5O_link_t ,dest);
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5O_link_copy() */
