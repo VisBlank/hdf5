@@ -244,9 +244,10 @@ done:
                 /* Destroy shared attribute struct */
                 attr->shared = H5FL_FREE(H5A_shared_t, attr->shared);
             } /* end if */
+
+            attr = H5FL_FREE(H5A_t, attr);
         } /* end if */
 
-        attr = H5FL_FREE(H5A_t, attr);
     } /* end if */
 
     FUNC_LEAVE_NOAPI(ret_value)
