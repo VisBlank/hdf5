@@ -287,9 +287,9 @@ H5O_sdspace_encode(H5F_t *f, uint8_t *p, const void *_mesg)
  PURPOSE
     Copies a message from MESG to DEST, allocating DEST if necessary.
  USAGE
-    void *H5O_sdspace_copy(mesg, dest)
+    void *H5O_sdspace_copy(mesg, _dest)
 	const void *mesg;	IN: Pointer to the source extent dimensionality struct
-	const void *dest;	IN: Pointer to the destination extent dimensionality struct
+	const void *_dest;	IN: Pointer to the destination extent dimensionality struct
  RETURNS
     Pointer to DEST on success, NULL on failure
  DESCRIPTION
@@ -297,10 +297,10 @@ H5O_sdspace_encode(H5F_t *f, uint8_t *p, const void *_mesg)
     allocating the destination structure if necessary.
 --------------------------------------------------------------------------*/
 static void *
-H5O_sdspace_copy(const void *mesg, void *dest)
+H5O_sdspace_copy(const void *mesg, void *_dest)
 {
     const H5S_extent_t	   *src = (const H5S_extent_t *) mesg;
-    H5S_extent_t	   *dst = (H5S_extent_t *) dest;
+    H5S_extent_t	   *dst = (H5S_extent_t *) _dest;
     void                   *ret_value;          /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5O_sdspace_copy)
@@ -318,6 +318,8 @@ H5O_sdspace_copy(const void *mesg, void *dest)
     ret_value = dst;
 
 done:
+    if(NULL == _dest && NULL == ret_value && NULL != dst)
+        H5FL_FREE(H5S_extent_t, dst);
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5O_sdspace_copy() */
 
