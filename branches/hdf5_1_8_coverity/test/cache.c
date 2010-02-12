@@ -14868,11 +14868,20 @@ check_resize_entry(void)
 
         file_ptr = setup_cache((size_t)(2 * 1024 * 1024),
                                 (size_t)(1 * 1024 * 1024));
-        cache_ptr = file_ptr->shared->cache;
+        if ( file_ptr == NULL ) {
 
-        base_addr = entries[LARGE_ENTRY_TYPE];
-        entry_ptr = &(base_addr[0]);
-	entry_size = LARGE_ENTRY_SIZE;
+            pass = FALSE;
+            failure_mssg = "file_ptr NULL from setup_cache.";
+
+        } 
+        else  
+        {
+            cache_ptr = file_ptr->shared->cache;
+
+            base_addr = entries[LARGE_ENTRY_TYPE];
+            entry_ptr = &(base_addr[0]);
+	    entry_size = LARGE_ENTRY_SIZE;
+        }
     }
 
     if ( pass ) {
