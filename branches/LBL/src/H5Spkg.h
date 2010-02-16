@@ -242,26 +242,14 @@ H5_DLL herr_t H5S_extent_release(H5S_extent_t *extent);
 H5_DLL herr_t H5S_extent_copy(H5S_extent_t *dst, const H5S_extent_t *src,
     hbool_t copy_max);
 
-/* Operations on selections */
-
-
-/* Functions used to project hyperslab selections into higher or lower 
- * rank data spaces.
- */
-
+/* Operations on hyperslab selections */
 H5_DLL hsize_t H5S_get_select_hyper_nblocks(H5S_t *space);
+H5_DLL herr_t H5S_get_select_hyper_blocklist(H5S_t *space, hbool_t internal, 
+    hsize_t startblock, hsize_t numblocks, hsize_t *buf);
 
-H5_DLL herr_t H5S_get_select_hyper_blocklist(H5S_t *space, 
-                                             hbool_t internal, 
-                                             hsize_t startblock, 
-                                             hsize_t numblocks, 
-                                             hsize_t *buf);
-
-H5_DLL herr_t H5S_get_select_elem_pointlist(H5S_t *space, 
-                                            hsize_t startpoint, 
-                                            hsize_t numpoints, 
-                                            hsize_t *buf);
-
+/* Operations on point selections */
+H5_DLL herr_t H5S_get_select_elem_pointlist(H5S_t *space, hsize_t startpoint, 
+    hsize_t numpoints, hsize_t *buf);
 
 /* Testing functions */
 #ifdef H5S_TESTING

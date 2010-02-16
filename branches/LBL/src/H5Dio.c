@@ -291,9 +291,6 @@ H5D_read(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
     H5D_io_info_t io_info;              /* Dataset I/O info     */
     H5D_type_info_t type_info;          /* Datatype info for operation */
     hbool_t type_info_init = FALSE;     /* Whether the datatype info has been initialized */
-    hbool_t shape_same = FALSE;         /* Whether H5S_select_shape_same() was called and */
-                                        /* returned TRUE when run on the mem_space and    */
-                                        /* file_space                                     */
     H5S_t * projected_mem_space = NULL; /* If not NULL, ptr to dataspace containing a     */
                                         /* projection of the supplied mem_space to a new  */
                                         /* data space with rank equal to that of          */
@@ -307,20 +304,6 @@ H5D_read(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
                                         /* Note that if this variable is used, the        */
                                         /* projected mem space must be discarded at the   */
                                         /* end of the function to avoid a memory leak.    */
-    const H5S_t * base_mem_space = NULL;/* If the projected mem space is constructed,     */
-                                        /* variable is used to store the address of the   */
-                                        /* supplied mem space.                            */
-    void * adj_buf = NULL;              /* Non NULL iff projected_mem_space is not NULL   */
-                                        /* Pointer to the location in *buf corresponding  */
-                                        /* to the beginning of the projected mem space.   */
-    const void * base_buf = NULL;       /* If the base memory space is computed, this     */
-                                        /* field is used to store the base address of the */
-                                        /* supplied in memory buffer.                     */
-    size_t element_size = 0;		/* size of an element in the supplied data set.   */
-                                        /* this value is used to compute the offset from  */
-                                        /* the beginning of the supplied buffer to the    */
-                                        /* first element in the projected data space (if  */
-                                        /* one is computed).                              */
     H5D_storage_t store;                /*union of EFL and chunk pointer in file space */
     hssize_t	snelmts;                /*total number of elmts	(signed) */
     hsize_t	nelmts;                 /*total number of elmts	*/
@@ -383,35 +366,22 @@ H5D_read(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
      * Note that in general, this requires us to touch up the memory buffer as 
      * well.
      */
+    if(TRUE == H5S_select_shape_same(mem_space, file_space) &&
+            H5S_GET_EXTENT_NDIMS(mem_space) != H5S_GET_EXTENT_NDIMS(file_space)) {
+        void *adj_buf = NULL;   /* Pointer to the location in buf corresponding  */
+                                /* to the beginning of the projected mem space.  */
 
-    if ( TRUE == H5S_select_shape_same(mem_space, file_space) ) {
+        /* Attempt to construct projected dataspace for memory dataspace */
+        if(H5S_select_construct_projection(mem_space, &projected_mem_space,
+                H5S_GET_EXTENT_NDIMS(file_space), buf, &adj_buf, type_info.dst_type_size) < 0)
+            HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, "unable to construct projected memory dataspace")
+        HDassert(projected_mem_space);
+        HDassert(adj_buf);
 
-        shape_same = TRUE;
-
-        if ( H5S_GET_EXTENT_NDIMS(mem_space) != H5S_GET_EXTENT_NDIMS(file_space) ) {
-
-            base_mem_space = mem_space;
-            base_buf = buf;
-
-            element_size = type_info.dst_type_size;
-
-            if ( SUCCEED != H5S_select_construct_projection(base_mem_space,
-                                                &projected_mem_space,
-                                                H5S_GET_EXTENT_NDIMS(file_space),
-                                                buf,
-                                                &adj_buf,
-                                                element_size) ) {
-
-                HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, \
-                            "unable to construct projected mem space.")
-
-            } else {
-
-                mem_space = projected_mem_space;
-                buf = adj_buf;
-            }
-        }
-    }
+        /* Switch to using projected memory dataspace & adjusted buffer */
+        mem_space = projected_mem_space;
+        buf = adj_buf;
+    } /* end if */
 
 
     /* Retrieve dataset properties */
@@ -492,13 +462,11 @@ done:
         HDONE_ERROR(H5E_DATASET, H5E_CANTCLOSEOBJ, FAIL, "unable to shut down type info")
 
     /* discard projected mem space if it was created */
-    if ( projected_mem_space != NULL ) {
-
-        H5S_close(projected_mem_space);
-    }
+    if(NULL != projected_mem_space)
+        if(H5S_close(projected_mem_space) < 0)
+            HDONE_ERROR(H5E_DATASET, H5E_CANTCLOSEOBJ, FAIL, "unable to shut down projected memory dataspace")
 
     FUNC_LEAVE_NOAPI(ret_value)
-
 } /* end H5D_read() */
 
 
@@ -523,9 +491,6 @@ H5D_write(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
     H5D_io_info_t io_info;              /* Dataset I/O info     */
     H5D_type_info_t type_info;          /* Datatype info for operation */
     hbool_t type_info_init = FALSE;     /* Whether the datatype info has been initialized */
-    hbool_t shape_same = FALSE;         /* Whether H5S_select_shape_same() was called and */
-                                        /* returned TRUE when run on the mem_space and    */
-                                        /* file_space                                     */
     H5S_t * projected_mem_space = NULL; /* If not NULL, ptr to dataspace containing a     */
                                         /* projection of the supplied mem_space to a new  */
                                         /* data space with rank equal to that of          */
@@ -539,20 +504,6 @@ H5D_write(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
                                         /* Note that if this variable is used, the        */
                                         /* projected mem space must be discarded at the   */
                                         /* end of the function to avoid a memory leak.    */
-    const H5S_t * base_mem_space = NULL;/* If the projected mem space is constructed,     */
-                                        /* variable is used to store the address of the   */
-                                        /* supplied mem space.                            */
-    void * adj_buf = NULL;              /* Non NULL iff projected_mem_space is not NULL   */
-                                        /* Pointer to the location in *buf corresponding  */
-                                        /* to the beginning of the projected mem space.   */
-    const void * base_buf = NULL;       /* If the base memory space is computed, this     */
-                                        /* field is used to store the base address of the */
-                                        /* supplied in memory buffer.                     */
-    size_t element_size = 0;		/* size of an element in the supplied data set.   */
-                                        /* this value is used to compute the offset from  */
-                                        /* the beginning of the supplied buffer to the    */
-                                        /* first element in the projected data space (if  */
-                                        /* one is computed).                              */
     H5D_storage_t store;                /*union of EFL and chunk pointer in file space */
     hssize_t	snelmts;                /*total number of elmts	(signed) */
     hsize_t	nelmts;                 /*total number of elmts	*/
@@ -640,35 +591,22 @@ H5D_write(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
      * Note that in general, this requires us to touch up the memory buffer 
      * as well.
      */
+    if(TRUE == H5S_select_shape_same(mem_space, file_space) &&
+            H5S_GET_EXTENT_NDIMS(mem_space) != H5S_GET_EXTENT_NDIMS(file_space)) {
+        void *adj_buf = NULL;   /* Pointer to the location in buf corresponding  */
+                                /* to the beginning of the projected mem space.  */
 
-    if ( TRUE == H5S_select_shape_same(mem_space, file_space) ) {
-
-        shape_same = TRUE;
-
-        if ( H5S_GET_EXTENT_NDIMS(mem_space) != H5S_GET_EXTENT_NDIMS(file_space) ) {
-
-            base_mem_space = mem_space;
-            base_buf = buf;
-
-            element_size = type_info.src_type_size;
-
-            if ( SUCCEED != H5S_select_construct_projection(base_mem_space,
-                                                &projected_mem_space,
-                                                H5S_GET_EXTENT_NDIMS(file_space),
-                                                buf,
-                                                &adj_buf,
-                                                element_size) ) {
-
-                HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, \
-                            "unable to construct projected mem space.")
-
-            } else {
-                
-                mem_space = projected_mem_space;
-                buf = adj_buf;
-            }
-        }
-    }
+        /* Attempt to construct projected dataspace for memory dataspace */
+        if(H5S_select_construct_projection(mem_space, &projected_mem_space,
+                H5S_GET_EXTENT_NDIMS(file_space), buf, &adj_buf, type_info.src_type_size) < 0)
+            HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, "unable to construct projected memory dataspace")
+        HDassert(projected_mem_space);
+        HDassert(adj_buf);
+            
+        /* Switch to using projected memory dataspace & adjusted buffer */
+        mem_space = projected_mem_space;
+        buf = adj_buf;
+    } /* end if */
 
     if((snelmts = H5S_GET_SELECT_NPOINTS(mem_space)) < 0)
 	HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "src dataspace has invalid selection")
@@ -764,10 +702,9 @@ done:
         HDONE_ERROR(H5E_DATASET, H5E_CANTCLOSEOBJ, FAIL, "unable to shut down type info")
 
     /* discard projected mem space if it was created */
-    if ( projected_mem_space != NULL ) {
-
-        H5S_close(projected_mem_space);
-    }
+    if(NULL != projected_mem_space)
+        if(H5S_close(projected_mem_space) < 0)
+            HDONE_ERROR(H5E_DATASET, H5E_CANTCLOSEOBJ, FAIL, "unable to shut down projected memory dataspace")
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5D_write() */
