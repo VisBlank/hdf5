@@ -1148,46 +1148,46 @@ test_obj_count_and_id(hid_t fid1, hid_t fid2, hid_t did, hid_t gid1,
     oid_count = H5Fget_obj_count(H5F_OBJ_ALL, H5F_OBJ_ALL);
     CHECK(oid_count, FAIL, "H5Fget_obj_count");
     VERIFY(oid_count, OBJ_ID_COUNT_8, "H5Fget_obj_count");
+ 
+    if(oid_count > 0) {
+        hid_t *oid_list;
 
-    {
-        hid_t      *oid_list;
-        int   i;
-        H5I_type_t id_type;
-
-        oid_list = (hid_t*)calloc((size_t)oid_count, sizeof(hid_t));
+        oid_list = (hid_t *)HDcalloc((size_t)oid_count, sizeof(hid_t));
         if(oid_list != NULL) {
+            int   i;
+
 	    ret_count = H5Fget_obj_ids(H5F_OBJ_ALL, H5F_OBJ_ALL, (size_t)oid_count, oid_list);
 	    CHECK(ret_count, FAIL, "H5Fget_obj_ids");
-        }
 
-        for(i=0; i<oid_count; i++) {
-	    id_type = H5Iget_type(oid_list[i]);
-	    switch(id_type) {
-	        case H5I_FILE:
-		    if(oid_list[i]!=fid1 && oid_list[i]!=fid2 &&
-			oid_list[i]!=fid3 && oid_list[i]!=fid4) {
-			ret = FAIL;
-			CHECK(ret, FAIL, "H5Fget_obj_ids");
-		    }
-		    break;
-	        case H5I_GROUP:
-                    if(oid_list[i]!=gid1 && oid_list[i]!=gid2 &&
-                        oid_list[i]!=gid3) {
-			ret = FAIL;
-                        CHECK(ret, FAIL, "H5Fget_obj_ids");
-                    }
-		    break;
-	        case H5I_DATASET:
-	 	    VERIFY(oid_list[i], did, "H5Fget_obj_ids");
-		    break;
-		default:
-		    ret = FAIL;
-                    CHECK(ret, FAIL, "H5Fget_obj_ids");
-	    }
-        }
+            for(i = 0; i < oid_count; i++) {
+                H5I_type_t id_type;
 
-        free(oid_list);
-    }
+                id_type = H5Iget_type(oid_list[i]);
+                switch(id_type) {
+                    case H5I_FILE:
+                        if(oid_list[i] != fid1 && oid_list[i] != fid2
+                                && oid_list[i] != fid3 && oid_list[i] != fid4)
+                            ERROR("H5Fget_obj_ids");
+                        break;
+
+                    case H5I_GROUP:
+                        if(oid_list[i] != gid1 && oid_list[i] != gid2
+                                && oid_list[i] != gid3)
+                            ERROR("H5Fget_obj_ids");
+                        break;
+
+                    case H5I_DATASET:
+                        VERIFY(oid_list[i], did, "H5Fget_obj_ids");
+                        break;
+
+                    default:
+                        ERROR("H5Fget_obj_ids");
+                } /* end switch */
+            } /* end for */
+
+            HDfree(oid_list);
+        } /* end if */
+    } /* end if */
 
     /* close the two new files */
     ret = H5Fclose(fid3);
@@ -2095,8 +2095,8 @@ test_cached_stab_info(void)
 /****************************************************************
 **
 **  test_rw_noupdate(): low-level file test routine.
-**      This test checks to ensure that opening and closing a file 
-**      with read/write permissions does not write anything to the 
+**      This test checks to ensure that opening and closing a file
+**      with read/write permissions does not write anything to the
 **      file if the file does not change.
 **
 **  Programmer: Mike McGreevy
@@ -2533,8 +2533,8 @@ test_userblock_alignment(void)
 
 /****************************************************************
 **
-**  test_free_sections(): 
-**      This routine does the actual work of checking information for 
+**  test_free_sections():
+**      This routine does the actual work of checking information for
 **	free space sections available in a file in various situations.
 **
 *****************************************************************/
@@ -2636,7 +2636,7 @@ test_free_sections(hid_t fapl, char *fname)
     /* Verify the correct # of free-space sections */
     nsects = H5Fget_free_sections(file, H5FD_MEM_DEFAULT, (size_t)saved_nsects, saved_sect_info);
     VERIFY(nsects, saved_nsects, "H5Fget_free_sections");
-    
+
     /* Verify the amount of free-space is correct */
     total = 0;
     for(i = 0; i < nsects; i++)
@@ -2703,7 +2703,7 @@ test_free_sections(hid_t fapl, char *fname)
 
 /****************************************************************
 **
-**  test_filespace_sects(): 
+**  test_filespace_sects():
 **      This test checks free space section info for
 **	files created with sec2 and split drivers.
 **
@@ -2815,8 +2815,8 @@ test_filespace_sects(void)
 
 /****************************************************************
 **
-**  test_filespace_info(): 
-**	Verify that the public routines H5Pget/set_file_space() 
+**  test_filespace_info():
+**	Verify that the public routines H5Pget/set_file_space()
 **	retrieve and set the file space strategy and free space
 **	section threshold as specified.
 **
@@ -2939,7 +2939,7 @@ test_filespace_info(void)
 
 /****************************************************************
 **
-**  test_filespace_compatible(): 
+**  test_filespace_compatible():
 **	Verify that the branch with file space management enhancement
 **	can open, read and modify 1.6 HDF5 file and 1.8 HDF5 file.
 **	Also verify the correct file space strategy/threshold in use
@@ -3061,7 +3061,7 @@ test_filespace_compatible(void)
 
 /****************************************************************
 **
-**  test_deprec(): 
+**  test_deprec():
 **	Test deprecated functionality.
 **
 ****************************************************************/

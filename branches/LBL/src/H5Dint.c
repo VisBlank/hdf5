@@ -1309,17 +1309,19 @@ done:
     if(ret_value < 0) {
         if(H5F_addr_defined(dataset->oloc.addr) && H5O_close(&(dataset->oloc)) < 0)
             HDONE_ERROR(H5E_DATASET, H5E_CLOSEERROR, FAIL, "unable to release object header")
-        if(dataset->shared->space && H5S_close(dataset->shared->space) < 0)
-            HDONE_ERROR(H5E_DATASET, H5E_CLOSEERROR, FAIL, "unable to release dataspace")
-        if(dataset->shared->type) {
-            if(dataset->shared->type_id > 0) {
-                if(H5I_dec_ref(dataset->shared->type_id, FALSE) < 0)
-                    HDONE_ERROR(H5E_DATASET, H5E_CLOSEERROR, FAIL, "unable to release datatype")
+        if(dataset->shared) {
+            if(dataset->shared->space && H5S_close(dataset->shared->space) < 0)
+                HDONE_ERROR(H5E_DATASET, H5E_CLOSEERROR, FAIL, "unable to release dataspace")
+            if(dataset->shared->type) {
+                if(dataset->shared->type_id > 0) {
+                    if(H5I_dec_ref(dataset->shared->type_id, FALSE) < 0)
+                        HDONE_ERROR(H5E_DATASET, H5E_CLOSEERROR, FAIL, "unable to release datatype")
+                } /* end if */
+                else {
+                    if(H5T_close(dataset->shared->type) < 0)
+                        HDONE_ERROR(H5E_DATASET, H5E_CLOSEERROR, FAIL, "unable to release datatype")
+                } /* end else */
             } /* end if */
-            else {
-                if(H5T_close(dataset->shared->type) < 0)
-                    HDONE_ERROR(H5E_DATASET, H5E_CLOSEERROR, FAIL, "unable to release datatype")
-            } /* end else */
         } /* end if */
     } /* end if */
 
@@ -2109,7 +2111,7 @@ H5D_set_extent(H5D_t *dset, const hsize_t *size, hid_t dxpl_id)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, "dataset has compact storage")
     if(H5D_CONTIGUOUS == dset->shared->layout.type && 0 == dset->shared->dcpl_cache.efl.nused)
         HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "dataset has contiguous storage")
- 
+
     /* Check if the filters in the DCPL will need to encode, and if so, can they? */
     if(H5D_check_filters(dset) < 0)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, "can't apply filters")
@@ -2160,7 +2162,7 @@ H5D_set_extent(H5D_t *dset, const hsize_t *size, hid_t dxpl_id)
         /*-------------------------------------------------------------------------
          * Remove chunk information in the case of chunked datasets
          * This removal takes place only in case we are shrinking the dateset
-         * and if the chunks are written 
+         * and if the chunks are written
          *-------------------------------------------------------------------------
          */
         if(shrink && H5D_CHUNKED == dset->shared->layout.type &&
@@ -2277,7 +2279,7 @@ H5D_flush_real(H5D_t *dataset, hid_t dxpl_id)
     } /* end if */
 
     /* Flush cached raw data for each kind of dataset layout */
-    if(dataset->shared->layout.ops->flush && 
+    if(dataset->shared->layout.ops->flush &&
             (dataset->shared->layout.ops->flush)(dataset, dxpl_id) < 0)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTFLUSH, FAIL, "unable to flush raw data")
 
