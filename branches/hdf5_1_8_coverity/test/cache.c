@@ -14908,7 +14908,11 @@ check_resize_entry(void)
 	}
     }
 
-    protect_entry(file_ptr, LARGE_ENTRY_TYPE, 0);
+    if ( pass ) {
+
+        protect_entry(file_ptr, LARGE_ENTRY_TYPE, 0);
+
+    }
 
     if ( pass ) {
 
@@ -15025,7 +15029,11 @@ check_resize_entry(void)
 	}
     }
 
-    protect_entry(file_ptr, LARGE_ENTRY_TYPE, 0);
+    if ( pass ) {
+
+        protect_entry(file_ptr, LARGE_ENTRY_TYPE, 0);
+
+    }
 
     if ( pass ) {
 
@@ -15096,9 +15104,13 @@ check_resize_entry(void)
 	}
     }
 
-    protect_entry(file_ptr, LARGE_ENTRY_TYPE, 0);
+    if ( pass ) {
 
-    unprotect_entry(file_ptr, LARGE_ENTRY_TYPE, 0, FALSE, H5C__PIN_ENTRY_FLAG);
+        protect_entry(file_ptr, LARGE_ENTRY_TYPE, 0);
+
+        unprotect_entry(file_ptr, LARGE_ENTRY_TYPE, 0, FALSE, H5C__PIN_ENTRY_FLAG);
+
+    }
 
     if ( pass ) {
 
@@ -15220,10 +15232,14 @@ check_resize_entry(void)
 	}
     }
 
-    protect_entry(file_ptr, LARGE_ENTRY_TYPE, 0);
+    if ( pass ) {
 
-    unprotect_entry(file_ptr, LARGE_ENTRY_TYPE, 0, FALSE, 
-		    H5C__UNPIN_ENTRY_FLAG | H5C__DELETED_FLAG);
+        protect_entry(file_ptr, LARGE_ENTRY_TYPE, 0);
+
+        unprotect_entry(file_ptr, LARGE_ENTRY_TYPE, 0, FALSE, 
+                        H5C__UNPIN_ENTRY_FLAG | H5C__DELETED_FLAG);
+
+    }
 
     if ( pass ) {
 
@@ -15290,14 +15306,18 @@ check_resize_entry(void)
 	entry_size = LARGE_ENTRY_SIZE;
     }
 
-    protect_entry(file_ptr, LARGE_ENTRY_TYPE, 0);
-    unprotect_entry(file_ptr, LARGE_ENTRY_TYPE, 0, FALSE, H5C__NO_FLAGS_SET);
+    if ( pass ) {
 
-    protect_entry(file_ptr, LARGE_ENTRY_TYPE, 1);
-    unprotect_entry(file_ptr, LARGE_ENTRY_TYPE, 1, TRUE, H5C__NO_FLAGS_SET);
+        protect_entry(file_ptr, LARGE_ENTRY_TYPE, 0);
+        unprotect_entry(file_ptr, LARGE_ENTRY_TYPE, 0, FALSE, H5C__NO_FLAGS_SET);
 
-    protect_entry(file_ptr, LARGE_ENTRY_TYPE, 2);
-    unprotect_entry(file_ptr, LARGE_ENTRY_TYPE, 2, FALSE, H5C__NO_FLAGS_SET);
+        protect_entry(file_ptr, LARGE_ENTRY_TYPE, 1);
+        unprotect_entry(file_ptr, LARGE_ENTRY_TYPE, 1, TRUE, H5C__NO_FLAGS_SET);
+
+        protect_entry(file_ptr, LARGE_ENTRY_TYPE, 2);
+        unprotect_entry(file_ptr, LARGE_ENTRY_TYPE, 2, FALSE, H5C__NO_FLAGS_SET);
+
+    }
 
     if ( pass ) {
 
@@ -15314,7 +15334,11 @@ check_resize_entry(void)
 	}
     }
 
-    protect_entry(file_ptr, LARGE_ENTRY_TYPE, 3);
+    if ( pass ) {
+
+        protect_entry(file_ptr, LARGE_ENTRY_TYPE, 3);
+
+    }
 
     if ( pass ) {
 
@@ -15433,7 +15457,11 @@ check_resize_entry(void)
 	}
     }
 
-    protect_entry(file_ptr, LARGE_ENTRY_TYPE, 3);
+    if ( pass ) {
+
+        protect_entry(file_ptr, LARGE_ENTRY_TYPE, 3);
+
+    }
 
     if ( pass ) {
 
@@ -15504,9 +15532,13 @@ check_resize_entry(void)
 	}
     }
 
-    protect_entry(file_ptr, LARGE_ENTRY_TYPE, 3);
+    if ( pass ) {
 
-    unprotect_entry(file_ptr, LARGE_ENTRY_TYPE, 3, FALSE, H5C__PIN_ENTRY_FLAG);
+        protect_entry(file_ptr, LARGE_ENTRY_TYPE, 3);
+
+        unprotect_entry(file_ptr, LARGE_ENTRY_TYPE, 3, FALSE, H5C__PIN_ENTRY_FLAG);
+
+    }
 
     if ( pass ) {
 
@@ -15630,10 +15662,14 @@ check_resize_entry(void)
 	}
     }
 
-    protect_entry(file_ptr, LARGE_ENTRY_TYPE, 3);
+    if ( pass ) {
 
-    unprotect_entry(file_ptr, LARGE_ENTRY_TYPE, 3, FALSE, 
-		    H5C__UNPIN_ENTRY_FLAG | H5C__DELETED_FLAG);
+        protect_entry(file_ptr, LARGE_ENTRY_TYPE, 3);
+
+        unprotect_entry(file_ptr, LARGE_ENTRY_TYPE, 3, FALSE, 
+                        H5C__UNPIN_ENTRY_FLAG | H5C__DELETED_FLAG);
+
+    }
 
     if ( pass ) {
 
@@ -15680,15 +15716,18 @@ check_resize_entry(void)
 	}
     }
 
-    protect_entry(file_ptr, LARGE_ENTRY_TYPE, 2);
-    unprotect_entry(file_ptr, LARGE_ENTRY_TYPE, 2, FALSE, H5C__DELETED_FLAG);
+    if ( pass ) {
 
-    protect_entry(file_ptr, LARGE_ENTRY_TYPE, 1);
-    unprotect_entry(file_ptr, LARGE_ENTRY_TYPE, 1, FALSE, H5C__DELETED_FLAG);
+        protect_entry(file_ptr, LARGE_ENTRY_TYPE, 2);
+        unprotect_entry(file_ptr, LARGE_ENTRY_TYPE, 2, FALSE, H5C__DELETED_FLAG);
 
-    protect_entry(file_ptr, LARGE_ENTRY_TYPE, 0);
-    unprotect_entry(file_ptr, LARGE_ENTRY_TYPE, 0, FALSE, H5C__DELETED_FLAG);
+        protect_entry(file_ptr, LARGE_ENTRY_TYPE, 1);
+        unprotect_entry(file_ptr, LARGE_ENTRY_TYPE, 1, FALSE, H5C__DELETED_FLAG);
 
+        protect_entry(file_ptr, LARGE_ENTRY_TYPE, 0);
+        unprotect_entry(file_ptr, LARGE_ENTRY_TYPE, 0, FALSE, H5C__DELETED_FLAG);
+
+    }
 
     if ( pass ) {
 
