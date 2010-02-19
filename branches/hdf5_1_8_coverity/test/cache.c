@@ -22562,7 +22562,17 @@ check_auto_cache_resize_disable(void)
 
         file_ptr = setup_cache((size_t)(2 * 1024),
                                 (size_t)(1 * 1024));
-        cache_ptr = file_ptr->shared->cache;
+
+        if ( file_ptr == NULL ) {
+
+            pass = FALSE;
+            failure_mssg = "file_ptr NULL from setup_cache.";
+
+        } 
+        else {
+
+            cache_ptr = file_ptr->shared->cache;
+        }
     }
 
     if ( pass ) {
@@ -23623,8 +23633,11 @@ check_auto_cache_resize_disable(void)
 
     if ( show_progress ) HDfprintf(stderr, "check point %d\n", checkpoint++);
 
-    /* flush the cache and destroy all entries so we start from a known point */
-    flush_cache(file_ptr, TRUE, FALSE, FALSE);
+    if ( pass ) {
+
+        /* flush the cache and destroy all entries so we start from a known point */
+        flush_cache(file_ptr, TRUE, FALSE, FALSE);
+    }
 
     if ( show_progress ) HDfprintf(stderr, "check point %d\n", checkpoint++);
 
@@ -23851,8 +23864,11 @@ check_auto_cache_resize_disable(void)
 
     if ( show_progress ) HDfprintf(stderr, "check point %d\n", checkpoint++);
 
-    /* flush the cache and destroy all entries so we start from a known point */
-    flush_cache(file_ptr, TRUE, FALSE, FALSE);
+    if ( pass ) {
+
+        /* flush the cache and destroy all entries so we start from a known point */
+        flush_cache(file_ptr, TRUE, FALSE, FALSE);
+    }
 
     if ( show_progress ) HDfprintf(stderr, "check point %d\n", checkpoint++);
 
@@ -24086,8 +24102,11 @@ check_auto_cache_resize_disable(void)
 
     if ( show_progress ) HDfprintf(stderr, "check point %d\n", checkpoint++);
 
-    /* flush the cache and destroy all entries so we start from a known point */
-    flush_cache(file_ptr, TRUE, FALSE, FALSE);
+    if ( pass ) {
+
+        /* flush the cache and destroy all entries so we start from a known point */
+        flush_cache(file_ptr, TRUE, FALSE, FALSE);
+    }
 
     if ( show_progress ) HDfprintf(stderr, "check point %d\n", checkpoint++);
 
