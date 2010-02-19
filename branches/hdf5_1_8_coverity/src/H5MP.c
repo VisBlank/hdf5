@@ -89,8 +89,8 @@ H5FL_DEFINE(H5MP_pool_t);
 H5MP_pool_t *
 H5MP_create (size_t page_size, unsigned flags)
 {
-    H5MP_pool_t *mp;                    /* New memory pool header */
-    H5MP_pool_t *ret_value;             /* Return value */
+    H5MP_pool_t *mp = NULL;             /* New memory pool header */
+    H5MP_pool_t *ret_value = NULL;      /* Return value */
 
     FUNC_ENTER_NOAPI(H5MP_create, NULL)
 
@@ -115,6 +115,10 @@ H5MP_create (size_t page_size, unsigned flags)
     ret_value = mp;
 
 done:
+    
+    if (!ret_value && mp)
+        H5MP_close(mp);
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5MP_create() */
 
