@@ -344,6 +344,19 @@ int main(void)
    return 0;
 
 error:
+    H5E_BEGIN_TRY {
+        H5Dclose(dset_id_int);
+        H5Dclose(dset_id_int_chunk);
+        H5Dclose(dset_id_float);
+        H5Dclose(dset_id_float_chunk);
+        H5Fclose(file_id);
+        H5Pclose(dxpl_id_c_to_f);
+        H5Pclose(dxpl_id_c_to_f_copy);
+        H5Pclose(dxpl_id_polynomial);
+        H5Pclose(dxpl_id_polynomial_copy);
+        H5Pclose(dxpl_id_simple);
+        H5Pclose(dxpl_id_utrans_inv);
+    } H5E_END_TRY
    return -1;
 }
 
@@ -354,93 +367,131 @@ init_test(hid_t file_id)
     /* utrans is a transform for unsigned types: no negative numbers involved and results are < 255 to fit into uchar */
     const char* utrans = "((x+100)/4)*3";
 
-    hid_t dataspace, dxpl_id_f_to_c, dxpl_id_utrans, cparms, filespace;
-    hsize_t dim[2] = {ROWS, COLS};
-    hsize_t offset[2] = {0, 0};
+    hid_t   dataspace, dxpl_id_f_to_c, dxpl_id_utrans, cparms, filespace;
+    hsize_t dim[2] = { ROWS, COLS };
+    hsize_t offset[2] = { 0, 0 };
 
-    if((dxpl_id_f_to_c = H5Pcreate(H5P_DATASET_XFER)) < 0) TEST_ERROR;
-    if((dxpl_id_utrans = H5Pcreate(H5P_DATASET_XFER)) < 0) TEST_ERROR;
+    if ((dxpl_id_f_to_c = H5Pcreate(H5P_DATASET_XFER)) < 0)
+        TEST_ERROR
+    if ((dxpl_id_utrans = H5Pcreate(H5P_DATASET_XFER)) < 0)
+        TEST_ERROR
 
-    if(H5Pset_data_transform(dxpl_id_f_to_c, f_to_c) < 0) TEST_ERROR;
-    if(H5Pset_data_transform(dxpl_id_utrans, utrans) < 0) TEST_ERROR;
-
+    if (H5Pset_data_transform(dxpl_id_f_to_c, f_to_c) < 0)
+        TEST_ERROR
+    if (H5Pset_data_transform(dxpl_id_utrans, utrans) < 0)
+        TEST_ERROR
 
     cparms = H5Pcreate(H5P_DATASET_CREATE);
-    if(H5Pset_chunk(cparms, 2, dim) < 0) TEST_ERROR;
+    if (H5Pset_chunk(cparms, 2, dim) < 0)
+        TEST_ERROR
 
-    if((dataspace = H5Screate_simple(2, dim, NULL)) < 0) TEST_ERROR;
+    if ((dataspace = H5Screate_simple(2, dim, NULL)) < 0)
+        TEST_ERROR
 
     TESTING("Intializing test...")
 
-    if((dset_id_int = H5Dcreate2(file_id, "/default_int", H5T_NATIVE_INT, dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR;
-    if(H5Dwrite(dset_id_int, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, dxpl_id_f_to_c, windchillFfloat) < 0) TEST_ERROR;
+    if ((dset_id_int = H5Dcreate2(file_id, "/default_int", H5T_NATIVE_INT,
+            dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0)
+        TEST_ERROR
+    if (H5Dwrite(dset_id_int, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL,
+            dxpl_id_f_to_c, windchillFfloat) < 0)
+        TEST_ERROR
 
-    if((dset_id_float = H5Dcreate2(file_id, "/default_float", H5T_NATIVE_FLOAT, dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR;
-    if(H5Dwrite(dset_id_float, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, dxpl_id_f_to_c, windchillFfloat) < 0) TEST_ERROR;
+    if ((dset_id_float = H5Dcreate2(file_id, "/default_float",
+            H5T_NATIVE_FLOAT, dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT))
+            < 0)
+        TEST_ERROR
+    if (H5Dwrite(dset_id_float, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL,
+            dxpl_id_f_to_c, windchillFfloat) < 0)
+        TEST_ERROR
 
-    if((dset_id_int_chunk = H5Dcreate2(file_id, "/default_chunk_int", H5T_NATIVE_INT, dataspace, H5P_DEFAULT, cparms, H5P_DEFAULT)) < 0) TEST_ERROR;
+    if ((dset_id_int_chunk = H5Dcreate2(file_id, "/default_chunk_int",
+            H5T_NATIVE_INT, dataspace, H5P_DEFAULT, cparms, H5P_DEFAULT)) < 0)
+        TEST_ERROR
 
-    filespace = H5Dget_space (dset_id_int_chunk);
-    if(H5Sselect_hyperslab(filespace, H5S_SELECT_SET, offset, NULL, dim, NULL) < 0) TEST_ERROR;
-    if(H5Dwrite(dset_id_int_chunk, H5T_NATIVE_FLOAT, dataspace, filespace, dxpl_id_f_to_c, windchillFfloat) < 0) TEST_ERROR;
+    filespace = H5Dget_space(dset_id_int_chunk);
+    if (H5Sselect_hyperslab(filespace, H5S_SELECT_SET, offset, NULL, dim, NULL) < 0)
+        TEST_ERROR
+    if (H5Dwrite(dset_id_int_chunk, H5T_NATIVE_FLOAT, dataspace, filespace,
+            dxpl_id_f_to_c, windchillFfloat) < 0)
+        TEST_ERROR
 
-    if((dset_id_float_chunk = H5Dcreate2(file_id, "/default_chunk_float", H5T_NATIVE_FLOAT, dataspace, H5P_DEFAULT, cparms, H5P_DEFAULT)) < 0) TEST_ERROR;
-    if(H5Dwrite(dset_id_float_chunk, H5T_NATIVE_FLOAT, dataspace, filespace, dxpl_id_f_to_c, windchillFfloat) < 0) TEST_ERROR;
-
+    if ((dset_id_float_chunk = H5Dcreate2(file_id, "/default_chunk_float",
+            H5T_NATIVE_FLOAT, dataspace, H5P_DEFAULT, cparms, H5P_DEFAULT)) < 0)
+        TEST_ERROR
+    if (H5Dwrite(dset_id_float_chunk, H5T_NATIVE_FLOAT, dataspace, filespace,
+            dxpl_id_f_to_c, windchillFfloat) < 0)
+        TEST_ERROR
 
     PASSED();
 
+    if (H5Pclose(cparms) < 0)
+        TEST_ERROR
+    if (H5Pclose(dxpl_id_f_to_c) < 0)
+        TEST_ERROR
+    if (H5Pclose(dxpl_id_utrans) < 0)
+        TEST_ERROR
+    if (H5Sclose(dataspace) < 0)
+        TEST_ERROR
+    if (H5Sclose(filespace) < 0)
+        TEST_ERROR
 
-    if(H5Pclose(cparms) < 0) TEST_ERROR;
-    if(H5Pclose(dxpl_id_f_to_c) < 0) TEST_ERROR;
-    if(H5Pclose(dxpl_id_utrans) < 0) TEST_ERROR;
-    if(H5Sclose(dataspace) < 0) TEST_ERROR;
+    return 0;
+    
+error: 
+    H5E_BEGIN_TRY {
+        H5Pclose(cparms);
+        H5Pclose(dxpl_id_f_to_c);
+        H5Pclose(dxpl_id_utrans);
+        H5Sclose(dataspace);
+        H5Sclose(filespace);
+    } H5E_END_TRY
 
-   return 0;
-error:
-   return -1;
+    return -1;
 }
 
 static int
 test_poly(const hid_t dxpl_id_polynomial)
 {
     float polyflres[ROWS][COLS];
-    int   polyintread[ROWS][COLS];
+    int polyintread[ROWS][COLS];
     float polyflread[ROWS][COLS];
     int windchillC;
     int row, col;
 
-    for(row = 0; row<ROWS; row++)
-    {
-	for(col = 0; col<COLS; col++)
-	{
-	    windchillC = (int)((5.0/9.0)*(windchillFfloat[row][col] - 32));
-	    polyflres[row][col] = (float)((2.0+windchillC)*((windchillC-8.0)/2.0));
-	}
+    for (row = 0; row < ROWS; row++) {
+        for (col = 0; col < COLS; col++) {
+            windchillC = (int) ((5.0 / 9.0) * (windchillFfloat[row][col] - 32));
+            polyflres[row][col] = (float) ((2.0 + windchillC) * ((windchillC - 8.0) / 2.0));
+        }
     }
 
     TESTING("data transform, polynomial transform (int->float)")
-    if(H5Dread(dset_id_int, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, dxpl_id_polynomial, polyflread) < 0) TEST_ERROR;
+    if (H5Dread(dset_id_int, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL,
+            dxpl_id_polynomial, polyflread) < 0)
+        TEST_ERROR
+        
     COMPARE(float, polyflread, polyflres, 2.0)
 
-
-    for(row = 0; row<ROWS; row++)
-    {
-	for(col = 0; col<COLS; col++)
-	{
-	    windchillC = (int)((5.0/9.0)*(windchillFfloat[row][col] - 32));
-	    polyflres[row][col] = (float)((2+windchillC)*((windchillC-8)/2));
-	}
+    for (row = 0; row < ROWS; row++) {
+        for (col = 0; col < COLS; col++) {
+            windchillC = (int) ((5.0 / 9.0) * (windchillFfloat[row][col] - 32));
+            polyflres[row][col] = (float) ((2 + windchillC) * ((windchillC - 8) / 2));
+        }
     }
 
     TESTING("data transform, polynomial transform (float->int)")
-    if(H5Dread(dset_id_float, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, dxpl_id_polynomial, polyintread) < 0) TEST_ERROR;
+    if (H5Dread(dset_id_float, H5T_NATIVE_INT, H5S_ALL, H5S_ALL,
+            dxpl_id_polynomial, polyintread) < 0)
+        TEST_ERROR
+        
     COMPARE(int, polyintread, polyflres, 4)
 
     return 0;
 
-error:
-    return -1;
+error: 
+
+     return -1;
 }
 
 static int
@@ -452,27 +503,32 @@ test_copy(const hid_t dxpl_id_c_to_f_copy, const hid_t dxpl_id_polynomial_copy)
     int windchillFintread[ROWS][COLS];
     int row, col;
 
-    for(row = 0; row<ROWS; row++)
-    {
-	for(col = 0; col<COLS; col++)
-	{
-	    windchillC = (int)((5.0/9.0)*(windchillFfloat[row][col] - 32));
-	    polyflres[row][col] = (float)((2+windchillC)*((windchillC-8)/2));
-	}
+    for (row = 0; row < ROWS; row++) {
+        for (col = 0; col < COLS; col++) {
+            windchillC = (int) ((5.0 / 9.0) * (windchillFfloat[row][col] - 32));
+            polyflres[row][col] = (float) ((2 + windchillC) * ((windchillC - 8)
+                    / 2));
+        }
     }
 
-
     TESTING("data transform, linear transform w/ copied property")
-    if(H5Dread(dset_id_float, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, dxpl_id_c_to_f_copy, windchillFintread) < 0) TEST_ERROR;
+    if (H5Dread(dset_id_float, H5T_NATIVE_INT, H5S_ALL, H5S_ALL,
+            dxpl_id_c_to_f_copy, windchillFintread) < 0)
+        TEST_ERROR
+        
     COMPARE(int, windchillFintread, windchillFfloat, 2)
 
     TESTING("data transform, polynomial transform w/ copied property")
-    if(H5Dread(dset_id_float, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, dxpl_id_polynomial_copy, polyintread) < 0) TEST_ERROR;
+    if (H5Dread(dset_id_float, H5T_NATIVE_INT, H5S_ALL, H5S_ALL,
+            dxpl_id_polynomial_copy, polyintread) < 0)
+        TEST_ERROR
+        
     COMPARE(int, polyintread, polyflres, 2)
 
     return 0;
 
-error:
+error: 
+
     return -1;
 }
 
@@ -484,36 +540,28 @@ test_trivial(const hid_t dxpl_id_simple)
     int row, col;
 
     TESTING("data transform, trivial transform, without type conversion")
-    if(H5Dread(dset_id_float, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, dxpl_id_simple, windchillFfloatread) < 0) TEST_ERROR;
-    for(row = 0; row<ROWS; row++)
-    {
-	for(col = 0; col<COLS; col++)
-	{
-	    if((windchillFfloatread[row][col] - 4.8) > FLOAT_TOL)
-	    {
-		H5_FAILED();
-		fprintf(stderr, "    ERROR: Conversion failed to match computed data\n");
-		goto error;
-	    }
-	}
+    if (H5Dread(dset_id_float, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL,
+            dxpl_id_simple, windchillFfloatread) < 0)
+        TEST_ERROR
+    for (row = 0; row < ROWS; row++) {
+        for (col = 0; col < COLS; col++) {
+            if ((windchillFfloatread[row][col] - 4.8) > FLOAT_TOL) 
+                FAIL_PUTS_ERROR("    ERROR: Conversion failed to match computed data\n");
+        }
     }
-    PASSED();
+    PASSED()
 
     TESTING("data transform, trivial transform, with type conversion")
-    if(H5Dread(dset_id_float, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, dxpl_id_simple, windchillFintread) < 0) TEST_ERROR;
-    for(row = 0; row<ROWS; row++)
-    {
-	for(col = 0; col<COLS; col++)
-	{
-	    if(windchillFintread[row][col] != 4)
-	    {
-		H5_FAILED();
-		fprintf(stderr, "    ERROR: Conversion failed to match computed data\n");
-		goto error;
-	    }
-	}
+    if (H5Dread(dset_id_float, H5T_NATIVE_INT, H5S_ALL, H5S_ALL,
+            dxpl_id_simple, windchillFintread) < 0)
+        TEST_ERROR
+    for (row = 0; row < ROWS; row++) {
+        for (col = 0; col < COLS; col++) {
+            if (windchillFintread[row][col] != 4) 
+                FAIL_PUTS_ERROR("    ERROR: Conversion failed to match computed data\n")
+        }
     }
-    PASSED();
+    PASSED()
 
     return 0;
 error:
@@ -523,92 +571,90 @@ error:
 static int
 test_getset(const hid_t dxpl_id_c_to_f)
 {
-    int row, col;
-    float windchillFfloatread[ROWS][COLS];
-    const char* simple = "(4/2) * ( (2 + 4)/(5 - 2.5))"; /* this equals 4.8 */
-    const char* c_to_f = "(9/5.0)*x + 32";
-    char* ptrgetTest = (char *) HDmalloc(HDstrlen(simple)+1);
+    int         row;
+    int         col;
+    float       windchillFfloatread[ROWS][COLS];
+    const char *simple = "(4/2) * ( (2 + 4)/(5 - 2.5))"; /* this equals 4.8 */
+    const char *c_to_f = "(9/5.0)*x + 32";
+    char       *ptrgetTest = NULL;
+
+    if (NULL == (ptrgetTest = (char *) HDmalloc(HDstrlen(simple)+1)))
+        TEST_ERROR
 
     TESTING("H5Pget_data_transform")
-    H5Pget_data_transform(dxpl_id_c_to_f, ptrgetTest, HDstrlen(c_to_f)+1);
-    if(HDstrcmp(c_to_f, ptrgetTest) != 0)
-    {
-	H5_FAILED();
-	fprintf(stderr, "    ERROR: Data transform failed to match what was set\n");
-	goto error;
-    }
-    else
-	PASSED();
+    H5Pget_data_transform(dxpl_id_c_to_f, ptrgetTest, HDstrlen(c_to_f) + 1);
+    if (HDstrcmp(c_to_f, ptrgetTest) != 0)
+        FAIL_PUTS_ERROR("    ERROR: Data transform failed to match what was set\n")
+    PASSED()
+    
     free(ptrgetTest);
+    ptrgetTest = NULL;
 
-    if(H5Pset_data_transform(dxpl_id_c_to_f, simple) < 0) TEST_ERROR;
+    if (H5Pset_data_transform(dxpl_id_c_to_f, simple) < 0)
+        TEST_ERROR
 
     TESTING("data transform, read after reseting of transform property")
-    if(H5Dread(dset_id_float, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, dxpl_id_c_to_f, windchillFfloatread) < 0) TEST_ERROR;
-    for(row = 0; row<ROWS; row++)
-    {
-	for(col = 0; col<COLS; col++)
-	{
-	    if((windchillFfloatread[row][col] - 4.8) > FLOAT_TOL)
-	    {
-		H5_FAILED();
-		fprintf(stderr, "    ERROR: Conversion failed to match computed data\n");
-		goto error;
-	    }
-	}
+    if (H5Dread(dset_id_float, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL,
+                dxpl_id_c_to_f, windchillFfloatread) < 0)
+        TEST_ERROR
+        
+    for (row = 0; row < ROWS; row++) {
+        for (col = 0; col < COLS; col++) {
+            if ((windchillFfloatread[row][col] - 4.8) > FLOAT_TOL) 
+                FAIL_PUTS_ERROR("    ERROR: Conversion failed to match computed data\n")
+        }
     }
-    PASSED();
+    PASSED()
 
-
-    ptrgetTest = (char *) malloc(strlen(simple)+1);
+    if(NULL == (ptrgetTest = (char *) malloc(strlen(simple) + 1)))
+        TEST_ERROR
 
     HDmemset(ptrgetTest, 0, strlen(simple)+1);
     TESTING("H5Pget_data_transform, after resetting transform property")
-    H5Pget_data_transform(dxpl_id_c_to_f, ptrgetTest, strlen(simple)+1);
-    if(strcmp(simple, ptrgetTest) != 0)
-    {
-	H5_FAILED();
-	fprintf(stderr, "    ERROR: Data transform failed to match what was set\n");
-	goto error;
-    }
-    else
-	PASSED();
+    H5Pget_data_transform(dxpl_id_c_to_f, ptrgetTest, strlen(simple) + 1);
+    if (strcmp(simple, ptrgetTest) != 0) 
+        FAIL_PUTS_ERROR("    ERROR: Data transform failed to match what was set\n")
+    PASSED()
 
     free(ptrgetTest);
+    ptrgetTest = NULL;
 
     return 0;
 
 error:
-  return -1;
+    if(ptrgetTest);
+        free(ptrgetTest);
+
+    return -1;
 }
 
 static int
 test_set(void)
 {
-    hid_t	dxpl_id;
+    hid_t	    dxpl_id;
     H5E_auto2_t func;
-    const char* str = "(9/5.0)*x + 32";
-    char* ptrgetTest = (char *) malloc(strlen(str)+1);
+    const char *str = "(9/5.0)*x + 32";
+    char       *ptrgetTest = NULL;
 
-    if((dxpl_id = H5Pcreate(H5P_DATASET_XFER)) < 0) TEST_ERROR;
+    if(NULL == (ptrgetTest = (char *) malloc(strlen(str)+1)))
+        TEST_ERROR
+
+    if((dxpl_id = H5Pcreate(H5P_DATASET_XFER)) < 0) 
+        TEST_ERROR
 
     /* Test get before set */
-    H5Eget_auto2(H5E_DEFAULT,&func,NULL);
+    H5Eget_auto2(H5E_DEFAULT, &func, NULL);
 
     H5Eset_auto2(H5E_DEFAULT, NULL, NULL);
     TESTING("H5Pget_data_transform (get before set)")
+    
     if(H5Pget_data_transform(dxpl_id, ptrgetTest, strlen(str)+1) < 0)
-    {
-	PASSED();
-    }
-    else
-    {
-	H5_FAILED();
-	fprintf(stderr, "    ERROR: Data transform get before set succeeded (it shouldn't have)\n");
-        free(ptrgetTest);
-	goto error;
-    }
+        PASSED()
+    else 
+        FAIL_PUTS_ERROR("    ERROR: Data transform get before set succeeded (it shouldn't have)\n");
+
     free(ptrgetTest);
+    ptrgetTest = NULL;
 
     TESTING("H5Pset_data_transform (set with NULL transform)");
     INVALID_SET_TEST(NULL);
@@ -642,6 +688,8 @@ test_set(void)
     return 0;
 
 error:
-  return -1;
+    if(ptrgetTest)
+        free(ptrgetTest);
 
+    return -1;
 }
