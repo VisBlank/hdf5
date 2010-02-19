@@ -13581,9 +13581,13 @@ check_get_entry_status(void)
         }
     }
 
-    protect_entry(file_ptr, 0, 0);
+    if ( pass ) {
 
-    unprotect_entry(file_ptr, 0, 0, FALSE, H5C__NO_FLAGS_SET);
+        protect_entry(file_ptr, 0, 0);
+
+        unprotect_entry(file_ptr, 0, 0, FALSE, H5C__NO_FLAGS_SET);
+
+    }
 
     if ( pass ) {
 
@@ -13605,7 +13609,11 @@ check_get_entry_status(void)
         }
     }
 
-    protect_entry(file_ptr, 0, 0);
+    if ( pass ) {
+
+        protect_entry(file_ptr, 0, 0);
+
+    }
 
     if ( pass ) {
 
@@ -13627,7 +13635,11 @@ check_get_entry_status(void)
         }
     }
 
-    unprotect_entry(file_ptr, 0, 0, FALSE, H5C__PIN_ENTRY_FLAG);
+    if ( pass ) {
+
+        unprotect_entry(file_ptr, 0, 0, FALSE, H5C__PIN_ENTRY_FLAG);
+
+    }
 
     if ( pass ) {
 
@@ -13649,7 +13661,11 @@ check_get_entry_status(void)
         }
     }
 
-    mark_pinned_entry_dirty(0, 0, FALSE, (size_t)0);
+    if ( pass ) {
+
+        mark_pinned_entry_dirty(0, 0, FALSE, (size_t)0);
+
+    }
 
     if ( pass ) {
 
@@ -13671,7 +13687,11 @@ check_get_entry_status(void)
         }
     }
 
-    unpin_entry(0, 0);
+    if ( pass ) {
+
+        unpin_entry(0, 0);
+
+    }
 
     if ( pass ) {
 
