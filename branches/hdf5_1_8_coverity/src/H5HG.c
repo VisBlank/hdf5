@@ -645,6 +645,7 @@ H5HG_read(H5F_t *f, hid_t dxpl_id, H5HG_t *hobj, void *object/*out*/,
     size_t	size;
     uint8_t	*p = NULL;
     void	*ret_value;
+    void    *object_cp = object;
 
     FUNC_ENTER_NOAPI(H5HG_read, NULL)
 
@@ -692,6 +693,9 @@ H5HG_read(H5F_t *f, hid_t dxpl_id, H5HG_t *hobj, void *object/*out*/,
 done:
     if(heap && H5AC_unprotect(f, dxpl_id, H5AC_GHEAP, hobj->addr, heap, H5AC__NO_FLAGS_SET)<0)
         HDONE_ERROR(H5E_HEAP, H5E_PROTECT, NULL, "unable to release object header")
+
+    if(NULL == ret_value && NULL == object_cp && object)
+        H5MM_free(object);
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5HG_read() */
