@@ -550,6 +550,9 @@ H5HF_man_iter_down(H5HF_block_iter_t *biter, H5HF_indirect_t *iblock)
     biter->curr = down_loc;
 
 done:
+    if (FAIL == ret_value && down_loc)
+        H5FL_FREE(H5HF_block_loc_t, down_loc);
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5HF_man_iter_down() */
 
