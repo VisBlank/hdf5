@@ -350,6 +350,9 @@ H5HF_man_iter_start_entry(H5HF_hdr_t *hdr, H5HF_block_iter_t *biter,
     biter->ready = TRUE;
 
 done:
+    if(FAIL == ret_value && new_loc)
+        H5FL_FREE(H5HF_block_loc_t, new_loc);
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5HF_man_iter_start_entry() */
 
