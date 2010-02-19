@@ -274,16 +274,20 @@ test_attr_basic_write(hid_t fapl)
     attr_name_size = H5Aget_name(attr, (size_t)0, NULL);
     CHECK(attr_name_size, FAIL, "H5Aget_name");
 
-    if(attr_name_size > 0)
+    if(attr_name_size > 0) {
         attr_name = (char*)HDcalloc((size_t)(attr_name_size + 1), sizeof(char));
+        CHECK(attr_name, NULL, "HDcalloc");
+        
+        if(attr_name) {
+            ret = (herr_t)H5Aget_name(attr, (size_t)(attr_name_size + 1), attr_name);
+            CHECK(ret, FAIL, "H5Aget_name");
+            ret = HDstrcmp(attr_name, ATTR_TMP_NAME);
+            VERIFY(ret, 0, "HDstrcmp");
 
-    ret = (herr_t)H5Aget_name(attr, (size_t)(attr_name_size + 1), attr_name);
-    CHECK(ret, FAIL, "H5Aget_name");
-    ret = HDstrcmp(attr_name, ATTR_TMP_NAME);
-    VERIFY(ret, 0, "HDstrcmp");
-
-    if(attr_name)
-        HDfree(attr_name);
+            HDfree(attr_name);
+            attr_name = NULL;
+        } /* end if */
+    } /* end if */
 
     /* Read attribute information immediately, without closing attribute */
     ret = H5Aread(attr, H5T_NATIVE_INT, read_data1);
@@ -306,16 +310,20 @@ test_attr_basic_write(hid_t fapl)
     attr_name_size = H5Aget_name(attr2, (size_t)0, NULL);
     CHECK(attr_name_size, FAIL, "H5Aget_name");
 
-    if(attr_name_size>0)
+    if(attr_name_size>0) {
         attr_name = (char*)HDcalloc((size_t)(attr_name_size+1), sizeof(char));
+        CHECK(attr_name, NULL, "HDcalloc");
+                
+        if(attr_name) {
+            ret = (herr_t)H5Aget_name(attr2, (size_t)(attr_name_size+1), attr_name);
+            CHECK(ret, FAIL, "H5Aget_name");
+            ret = HDstrcmp(attr_name, ATTR1A_NAME);
+            VERIFY(ret, 0, "HDstrcmp");
 
-    ret=(herr_t)H5Aget_name(attr2, (size_t)(attr_name_size+1), attr_name);
-    CHECK(ret, FAIL, "H5Aget_name");
-    ret=HDstrcmp(attr_name, ATTR1A_NAME);
-    VERIFY(ret, 0, "HDstrcmp");
-
-    if(attr_name)
-        HDfree(attr_name);
+            HDfree(attr_name);
+            attr_name = NULL;
+        } /* end if */
+    } /* end if */
 
     /* Read attribute information immediately, without closing attribute */
     ret=H5Aread(attr2,H5T_NATIVE_INT,read_data1);
