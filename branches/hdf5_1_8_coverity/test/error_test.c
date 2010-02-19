@@ -187,10 +187,19 @@ static herr_t
 init_error(void)
 {
     ssize_t cls_size = (ssize_t)HDstrlen(ERR_CLS_NAME)+1;
-    char *cls_name = (char*)HDmalloc(HDstrlen(ERR_CLS_NAME)+1);
     ssize_t msg_size = (ssize_t)HDstrlen(ERR_MIN_SUBROUTINE_MSG) + 1;
-    char *msg = (char*)HDmalloc(HDstrlen(ERR_MIN_SUBROUTINE_MSG)+1);
-    H5E_type_t *msg_type= (H5E_type_t *)HDmalloc(sizeof(H5E_type_t));
+    char   *cls_name = NULL;
+    char   *msg = NULL;
+    H5E_type_t *msg_type = NULL;
+
+    if(NULL == (cls_name = (char*)HDmalloc(HDstrlen(ERR_CLS_NAME)+1)))
+        TEST_ERROR
+         
+    if(NULL == (msg = (char*)HDmalloc(HDstrlen(ERR_MIN_SUBROUTINE_MSG)+1)))
+        TEST_ERROR
+    
+    if(NULL == (msg_type= (H5E_type_t *)HDmalloc(sizeof(H5E_type_t))))
+        TEST_ERROR
 
     if((ERR_CLS = H5Eregister_class(ERR_CLS_NAME, PROG_NAME, PROG_VERS)) < 0)
         TEST_ERROR;
@@ -236,6 +245,13 @@ init_error(void)
     return 0;
 
 error:
+    if(cls_name)
+        HDfree(cls_name);
+    if(msg)
+        HDfree(msg);
+    if(msg_type)
+        HDfree(msg_type);
+
     return -1;
 } /* end init_error() */
 
