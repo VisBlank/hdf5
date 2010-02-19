@@ -252,43 +252,27 @@ ELSE (H5_HAVE_PARALLEL)
 ENDIF (H5_HAVE_PARALLEL)
 
 #-----------------------------------------------------------------------------
-ADD_LIBRARY(H5FORTRAN_TYPES   STATIC ${HDF5_F90_BINARY_DIR}/H5fortran_types.f90 )
-ADD_LIBRARY(H5GLOBAL          STATIC ${FORTRAN_SRC_DIR}/H5f90global.f90 )
-ADD_LIBRARY(H5LIB             STATIC ${FORTRAN_SRC_DIR}/H5_ff.f90 )
-ADD_LIBRARY(H5_DBLE_INTERFACE STATIC ${FORTRAN_SRC_DIR}/H5_DBLE_Interface${F_DBLE}.f90 )
-ADD_LIBRARY(H5A               STATIC ${FORTRAN_SRC_DIR}/H5Aff.f90 )
-ADD_LIBRARY(H5D               STATIC ${FORTRAN_SRC_DIR}/H5Dff.f90 )
-ADD_LIBRARY(H5E               STATIC ${FORTRAN_SRC_DIR}/H5Eff.f90 )
-ADD_LIBRARY(H5F               STATIC ${FORTRAN_SRC_DIR}/H5Fff.f90 )
-ADD_LIBRARY(H5G               STATIC ${FORTRAN_SRC_DIR}/H5Gff.f90 )
-ADD_LIBRARY(H5I               STATIC ${FORTRAN_SRC_DIR}/H5Iff.f90 )
-ADD_LIBRARY(H5L               STATIC ${FORTRAN_SRC_DIR}/H5Lff.f90 )
-ADD_LIBRARY(H5O               STATIC ${FORTRAN_SRC_DIR}/H5Off.f90 )
-ADD_LIBRARY(H5P               STATIC ${FORTRAN_SRC_DIR}/H5Pff.f90 )
-ADD_LIBRARY(H5R               STATIC ${FORTRAN_SRC_DIR}/H5Rff.f90 )
-ADD_LIBRARY(H5S               STATIC ${FORTRAN_SRC_DIR}/H5Sff.f90 )
-ADD_LIBRARY(H5T               STATIC ${FORTRAN_SRC_DIR}/H5Tff.f90 )
-ADD_LIBRARY(H5Z               STATIC ${FORTRAN_SRC_DIR}/H5Zff.f90 )
+SET(f90_F_SRCS
+   ${HDF5_F90_BINARY_DIR}/H5fortran_types.f90 
+   ${FORTRAN_SRC_DIR}/H5f90global.f90 
+   ${FORTRAN_SRC_DIR}/H5_ff.f90
+   ${FORTRAN_SRC_DIR}/H5_DBLE_Interface${F_DBLE}.f90 
+   ${FORTRAN_SRC_DIR}/H5Aff.f90
+   ${FORTRAN_SRC_DIR}/H5Dff.f90 
+   ${FORTRAN_SRC_DIR}/H5Eff.f90 
+   ${FORTRAN_SRC_DIR}/H5Fff.f90 
+   ${FORTRAN_SRC_DIR}/H5Gff.f90 
+   ${FORTRAN_SRC_DIR}/H5Iff.f90 
+   ${FORTRAN_SRC_DIR}/H5Lff.f90 
+   ${FORTRAN_SRC_DIR}/H5Off.f90 
+   ${FORTRAN_SRC_DIR}/H5Pff.f90 
+   ${FORTRAN_SRC_DIR}/H5Rff.f90 
+   ${FORTRAN_SRC_DIR}/H5Sff.f90 
+   ${FORTRAN_SRC_DIR}/H5Tff.f90 
+   ${FORTRAN_SRC_DIR}/H5Zff.f90 )
 #-----------------------------------------------------------------------------
 # Force dependencies between libs to ensure build order is ok
 #-----------------------------------------------------------------------------
-add_dependencies(H5A H5GLOBAL)
-add_dependencies(H5D H5GLOBAL)
-add_dependencies(H5E H5GLOBAL)
-add_dependencies(H5F H5GLOBAL)
-add_dependencies(H5G H5GLOBAL)
-add_dependencies(H5I H5GLOBAL)
-add_dependencies(H5L H5GLOBAL)
-add_dependencies(H5O H5GLOBAL)
-add_dependencies(H5P H5GLOBAL)
-add_dependencies(H5R H5GLOBAL)
-add_dependencies(H5S H5GLOBAL)
-add_dependencies(H5T H5GLOBAL)
-add_dependencies(H5Z H5GLOBAL)
-add_dependencies(H5GLOBAL          H5FORTRAN_TYPES)
-add_dependencies(H5LIB             H5GLOBAL)
-add_dependencies(H5_DBLE_INTERFACE H5GLOBAL)
-add_dependencies(H5_DBLE_INTERFACE H5A H5D H5P)
 #-----------------------------------------------------------------------------
 IF (H5_HAVE_PARALLEL)
   ADD_LIBRARY(H5FDMPIO STATIC ${FORTRAN_SRC_DIR}/H5FDmpioff.f90 )
@@ -304,15 +288,11 @@ ELSE (H5_HAVE_PARALLEL)
   SET (HDF5_DEPENDS "")
 ENDIF (H5_HAVE_PARALLEL)
 #-----------------------------------------------------------------------------
-ADD_LIBRARY(${HDF5_F90_LIB_NAME} STATIC ${HDF5MODULE_SRC} )
+ADD_LIBRARY(${HDF5_F90_LIB_NAME} STATIC ${HDF5MODULE_SRC} ${f90_F_SRCS} )
 SET_GLOBAL_VARIABLE(HDF5_LIBRARIES_TO_EXPORT 
   "${HDF5_LIBRARIES_TO_EXPORT};${HDF5_F90_LIB_NAME};${HDF5_F90_C_LIB_NAME}"
 )
-add_dependencies(${HDF5_F90_LIB_NAME}
-  H5GLOBAL H5F H5E H5G H5I H5L H5S H5D H5A H5T H5O
-  H5P H5R H5Z H5_DBLE_INTERFACE H5LIB ${HDF5_DEPENDS}
-  ${HDF5_F90_C_LIB_NAME}
-)
+add_dependencies(${HDF5_F90_LIB_NAME} ${HDF5_F90_C_LIB_NAME} )
 
 #-----------------------------------------------------------------------------
 # Testing
