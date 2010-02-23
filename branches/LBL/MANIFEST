@@ -973,7 +973,7 @@
 ./tools/h5import/h5importtest.c
 ./tools/h5import/h5importtestutil.sh
 
-#tesfiles for h5import
+# testfiles for h5import
 ./tools/h5import/testfiles/binin32.h5
 ./tools/h5import/testfiles/binin16.h5
 ./tools/h5import/testfiles/txtfp32.txt
@@ -1041,11 +1041,13 @@
 ./tools/h5repack/h5repacktst.c
 ./tools/h5repack/testh5repack_detect_szip.c
 
+# h5ls sources
 ./tools/h5ls/Makefile.am
 ./tools/h5ls/Makefile.in
 ./tools/h5ls/h5ls.c
 ./tools/h5ls/testh5ls.sh.in
 
+# h5copy sources
 ./tools/h5copy/testh5copy.sh
 ./tools/h5copy/Makefile.in
 ./tools/h5copy/h5copy.c
@@ -1089,26 +1091,33 @@
 ./tools/misc/testh5repart.sh.in
 ./tools/misc/talign.c
 
+# h5stat sources
 ./tools/h5stat/Makefile.am
 ./tools/h5stat/Makefile.in
 ./tools/h5stat/h5stat.c
+
+# h5stat test files
 ./tools/h5stat/h5stat_gentest.c
 ./tools/h5stat/testh5stat.sh.in
-./tools/h5stat/testfiles/h5stat_filters-d.ddl
 ./tools/h5stat/testfiles/h5stat_filters.ddl
+./tools/h5stat/testfiles/h5stat_filters-d.ddl
 ./tools/h5stat/testfiles/h5stat_filters-dT.ddl
 ./tools/h5stat/testfiles/h5stat_filters-F.ddl
 ./tools/h5stat/testfiles/h5stat_filters-file.ddl
 ./tools/h5stat/testfiles/h5stat_filters-g.ddl
+./tools/h5stat/testfiles/h5stat_filters-UD.ddl
+./tools/h5stat/testfiles/h5stat_filters-UT.ddl
 ./tools/h5stat/testfiles/h5stat_filters.h5
 ./tools/h5stat/testfiles/h5stat_help1.ddl
 ./tools/h5stat/testfiles/h5stat_help2.ddl
 ./tools/h5stat/testfiles/h5stat_newgrat.ddl
+./tools/h5stat/testfiles/h5stat_newgrat-UA.ddl
+./tools/h5stat/testfiles/h5stat_newgrat-UG.ddl
 ./tools/h5stat/testfiles/h5stat_newgrat.h5
 ./tools/h5stat/testfiles/h5stat_tsohm.ddl
 ./tools/h5stat/testfiles/h5stat_tsohm.h5
 
-# h5dump
+# h5dump test files
 ./tools/testfiles/family_file00000.h5
 ./tools/testfiles/family_file00001.h5
 ./tools/testfiles/family_file00002.h5
@@ -1454,6 +1463,7 @@
 ./tools/h5diff/testfiles/h5diff_171.txt
 ./tools/h5diff/testfiles/h5diff_172.txt
 ./tools/h5diff/testfiles/h5diff_18.txt
+./tools/h5diff/testfiles/h5diff_18_1.txt
 ./tools/h5diff/testfiles/h5diff_19.txt
 ./tools/h5diff/testfiles/h5diff_20.txt
 ./tools/h5diff/testfiles/h5diff_21.txt
@@ -1540,6 +1550,16 @@
 ./tools/h5diff/testfiles/h5diff_423.txt
 ./tools/h5diff/testfiles/h5diff_424.txt
 ./tools/h5diff/testfiles/h5diff_425.txt
+./tools/h5diff/testfiles/h5diff_450.txt
+./tools/h5diff/testfiles/h5diff_451.txt
+./tools/h5diff/testfiles/h5diff_452.txt
+./tools/h5diff/testfiles/h5diff_453.txt
+./tools/h5diff/testfiles/h5diff_454.txt
+./tools/h5diff/testfiles/h5diff_455.txt
+./tools/h5diff/testfiles/h5diff_456.txt
+./tools/h5diff/testfiles/h5diff_457.txt
+./tools/h5diff/testfiles/h5diff_458.txt
+./tools/h5diff/testfiles/h5diff_459.txt
 
 
 ./tools/h5diff/testfiles/h5diff_attr1.h5
@@ -1560,6 +1580,8 @@
 ./tools/h5diff/testfiles/h5diff_extlink_trg.h5
 ./tools/h5diff/testfiles/h5diff_linked_softlink.h5
 ./tools/h5diff/testfiles/h5diff_softlinks.h5
+./tools/h5diff/testfiles/h5diff_danglelinks1.h5
+./tools/h5diff/testfiles/h5diff_danglelinks2.h5
 
 
 
