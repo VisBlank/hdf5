@@ -373,7 +373,7 @@ H5D_read(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
 
         /* Attempt to construct projected dataspace for memory dataspace */
         if(H5S_select_construct_projection(mem_space, &projected_mem_space,
-                H5S_GET_EXTENT_NDIMS(file_space), buf, &adj_buf, type_info.dst_type_size) < 0)
+                (unsigned)H5S_GET_EXTENT_NDIMS(file_space), buf, &adj_buf, type_info.dst_type_size) < 0)
             HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, "unable to construct projected memory dataspace")
         HDassert(projected_mem_space);
         HDassert(adj_buf);
@@ -598,7 +598,7 @@ H5D_write(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
 
         /* Attempt to construct projected dataspace for memory dataspace */
         if(H5S_select_construct_projection(mem_space, &projected_mem_space,
-                H5S_GET_EXTENT_NDIMS(file_space), buf, &adj_buf, type_info.src_type_size) < 0)
+                (unsigned)H5S_GET_EXTENT_NDIMS(file_space), buf, &adj_buf, type_info.src_type_size) < 0)
             HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, "unable to construct projected memory dataspace")
         HDassert(projected_mem_space);
         HDassert(adj_buf);
