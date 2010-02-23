@@ -1,3 +1,8 @@
+/* Uncomment the following line when creating the tool for fixing files with
+ * incorrectly encoded fractal heap IDs
+ */
+/* #define H5_CREATE_TOOL_FOR_FIXING_SWAPPED_FRACTAL_HEAP_IDS */
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Copyright by The HDF Group.                                               *
  * Copyright by the Board of Trustees of the University of Illinois.         *
@@ -343,6 +348,17 @@ H5SM_message_decode(const uint8_t *raw, void *_nrecord, void *_ctx)
     if(message->location == H5SM_IN_HEAP) {
         UINT32DECODE(raw, message->u.heap_loc.ref_count);
         HDmemcpy(message->u.heap_loc.fheap_id.id, raw, (size_t)H5O_FHEAP_ID_LEN);
+#ifdef H5_CREATE_TOOL_FOR_FIXING_SWAPPED_FRACTAL_HEAP_IDS
+{
+    uint8_t _tmp;
+    uint8_t *id = message->u.heap_loc.fheap_id.id;
+
+    _tmp = id[0]; id[0] = id[7]; id[7] = _tmp;
+    _tmp = id[1]; id[1] = id[6]; id[6] = _tmp;
+    _tmp = id[2]; id[2] = id[5]; id[5] = _tmp;
+    _tmp = id[3]; id[3] = id[4]; id[4] = _tmp;
+}
+#endif /* H5_CREATE_TOOL_FOR_FIXING_SWAPPED_FRACTAL_HEAP_IDS */
     } /* end if */
     else {
         HDassert(message->location == H5SM_IN_OH);

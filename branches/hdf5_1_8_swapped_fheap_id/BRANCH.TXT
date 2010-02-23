@@ -1,0 +1,77 @@
+PURPOSE:
+    The purpose of this branch is to create a tool that can be used to reverse
+the incorrect encoding of the fractal heap IDs for attributes and shared object
+header messages in some particular circumstances.  (This is described in
+Bugzilla issue #1755)
+
+HDF5 FILES AFFECTED:
+    Files that have the incorrect encoding much match _all_ of the following
+circumstances:
+
+    - The version of HDF5 was before the HDF5-1.8.4.1 release (which includes
+        the 1.8.4 release)
+    - If the file was created on a big-endian platform (SPARC/Solaris,
+        POWER/AIX, etc)
+    - If the netCDF-4 was used to create the file, or the
+        H5Pset_libver_bounds(fapl, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) call
+        was made, or shared object header messages were enabled with
+        H5Pset_shared_mesg_nindexes() when creating the file.
+    - If more than 8 attributes were added to an object in the file (in the
+        case of using netCDF-4 or calling H5Pset_libver_bounds), or if messages
+        of the type specified to be shared were stored in the file (in the case
+        of calling H5Pset_shared_mesg_nindexes).
+
+    If that's the case, then you may have generated files that have incorrectly
+encoded IDs for attributes and shared object header messages.
+
+DETECTING AFFECTED FILES:
+    There is no foolproof way to detect a file with these IDs incorrectly
+encoded, but if a the h5dump tool reports an error message similar to the
+following when displaying information about the file, it's likely that you have
+a file with this problem: "h5dump error: error getting attribute information".  
+For files created with netCDF-4, this message will generally display when
+dumping information about the root group.
+
+    If your application is generating an error stack similar to this, it's also
+possible that the file has this problem:
+    .
+    .
+    .
+    #008: ../../hdf5_v1.8/src/H5B2int.c line 1951 in H5B2_iterate_node():
+        iterator function failed major: B-Tree node minor: Unable to list node
+    #009: ../../hdf5_v1.8/src/H5Adense.c line 1076 in H5A_dense_iterate_bt2_cb():
+        heap op callback failed major: Attribute minor: Can't operate on object
+    #010: ../../hdf5_v1.8/src/H5HF.c line 680 in H5HF_op():
+        can't operate on object from fractal heap major: Heap minor: Can't operate on object
+    #011: ../../hdf5_v1.8/src/H5HFman.c line 462 in H5HF_man_op():
+        unable to operate on heap object major: Heap minor: Can't operate on object
+    #012: ../../hdf5_v1.8/src/H5HFman.c line 276 in H5HF_man_op_real():
+        fractal heap object offset too large major: Heap minor: Out of range 
+
+TOOL FOR CORRECTING FILES:
+    Correcting files that have this problem can be performed on either a little
+or big-endian machine, with the tool binary provided here:  <put URL here>
+
+    Correcting files that have this problem with the 'h5fix_swapped_ids' tool
+is as follows: 'h5fix_swapped_ids <oldfile> <newfile>'
+
+BUILDING TOOL FROM SOURCE:
+    Building the tool binary from source is also possible, following the steps
+below:
+
+        - Configure and build the HDF5 distribution in this branch in the way
+            you normally would on this platform, including running "make check"
+            to verify that everything is working correctly.
+
+        - Edit the following two source files: src/H5SMmessage.c and
+            src/H5Abtree2.c to uncomment the following line at the beginning of
+            each file:
+
+            /* #define H5_CREATE_TOOL_FOR_FIXING_SWAPPED_FRACTAL_HEAP_IDS */
+
+        - Re-build the HDF5 distribution (e.g. run 'make' on UNIX platforms)
+
+        - Copy the h5repack binary to be the fixing tool, h5fix_swapped_ids.
+            (e.g. 'cp tools/h5repack/h5repack h5fix_swapped_ids' on UNIX
+            platforms)
+
