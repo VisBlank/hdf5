@@ -9752,7 +9752,6 @@ test_shape_same(void)
     CHECK(ret, FAIL, "H5Sclose");
     ret = H5Sclose(scalar_none_sid);
     CHECK(ret, FAIL, "H5Sclose");
-
 }   /* test_shape_same() */
 
 /****************************************************************
@@ -14140,7 +14139,7 @@ test_select(void)
     /* test I/O with a very small buffer for reads */
     ret=H5Pset_buffer(plist_id,(size_t)59,NULL,NULL);
     CHECK(ret, FAIL, "H5Pset_buffer");
-#if 1 /* JRM */
+
     /* These next tests use the same file */
     test_select_hyper(H5P_DEFAULT);     /* Test basic H5S hyperslab selection code */
     test_select_hyper(plist_id);        /* Test basic H5S hyperslab selection code */
@@ -14167,19 +14166,14 @@ test_select(void)
     test_select_hyper_contig3(H5T_STD_U16LE,plist_id); /* Test yet more contiguous hyperslab selection cases */
     test_select_hyper_contig3(H5T_STD_U16BE,H5P_DEFAULT); /* Test yet more contiguous hyperslab selection cases */
     test_select_hyper_contig3(H5T_STD_U16BE,plist_id); /* Test yet more contiguous hyperslab selection cases */
-#endif /* JRM */
-#if 1 /* JRM */
     test_select_hyper_contig_dr(H5T_STD_U16LE, H5P_DEFAULT);
     test_select_hyper_contig_dr(H5T_STD_U16LE, plist_id);
     test_select_hyper_contig_dr(H5T_STD_U16BE, H5P_DEFAULT);
     test_select_hyper_contig_dr(H5T_STD_U16BE, plist_id);
-#endif /* JRM */
     test_select_hyper_checker_board_dr(H5T_STD_U16LE, H5P_DEFAULT);
     test_select_hyper_checker_board_dr(H5T_STD_U16LE, plist_id);
     test_select_hyper_checker_board_dr(H5T_STD_U16BE, H5P_DEFAULT);
     test_select_hyper_checker_board_dr(H5T_STD_U16BE, plist_id);
-
-#if 1 /* JRM */
     test_select_hyper_copy();   /* Test hyperslab selection copying code */
     test_select_point_copy();   /* Test point selection copying code */
     test_select_hyper_offset(); /* Test selection offset code with hyperslabs */
@@ -14278,7 +14272,6 @@ test_select(void)
 
     /* Test selection bounds with & without offsets */
     test_select_bounds();
-#endif /* JRM */
 
 }   /* test_select() */
 
