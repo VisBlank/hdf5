@@ -910,12 +910,14 @@ H5FD_family_close(H5FD_t *_file)
 
     /* Close as many members as possible. Use private function here to avoid clearing
      * the error stack. We need the error message to indicate wrong member file size. */
-    for (u=0; u<file->nmembs; u++) {
-        if (file->memb[u]) {
-            if (H5FD_close(file->memb[u])<0)
-                nerrors++;
-            else
-                file->memb[u] = NULL;
+    if(file->memb) {
+        for (u=0; u<file->nmembs; u++) {
+            if (file->memb[u]) {
+                if (H5FD_close(file->memb[u])<0)
+                    nerrors++;
+                else
+                    file->memb[u] = NULL;
+            }
         }
     }
     if (nerrors)
@@ -924,6 +926,7 @@ H5FD_family_close(H5FD_t *_file)
     /* Clean up other stuff */
     if(H5I_dec_ref(file->memb_fapl_id, FALSE)<0)
         HGOTO_ERROR(H5E_VFL, H5E_CANTDEC, FAIL, "can't close driver ID")
+
     if (file->memb)
         H5MM_xfree(file->memb);
     if (file->name)
