@@ -3799,7 +3799,8 @@ static int
 test_conv_str_1(void)
 {
     char	*buf=NULL;
-    hid_t	src_type, dst_type;
+    hid_t	src_type = -1;
+    hid_t   dst_type = -1;
 
     TESTING("string conversions");
 
@@ -3809,7 +3810,7 @@ test_conv_str_1(void)
      */
     src_type = mkstr(10, H5T_STR_NULLTERM);
     dst_type = mkstr(5, H5T_STR_NULLTERM);
-    buf = (char*)HDcalloc(2, 10);
+    if ((buf = (char*)HDcalloc(2, 10)) == NULL) goto error;
     HDmemcpy(buf, "abcdefghi\0abcdefghi\0", 20);
     if (H5Tconvert(src_type, dst_type, 2, buf, NULL, H5P_DEFAULT) < 0) goto error;
     if (HDmemcmp(buf, "abcd\0abcd\0abcdefghi\0", 20)) {
@@ -3824,6 +3825,7 @@ test_conv_str_1(void)
 	goto error;
     }
     HDfree(buf);
+    buf = NULL;
     if (H5Tclose(src_type) < 0) goto error;
     if (H5Tclose(dst_type) < 0) goto error;
 
@@ -3832,7 +3834,7 @@ test_conv_str_1(void)
      */
     src_type = mkstr(10, H5T_STR_NULLPAD);
     dst_type = mkstr(5, H5T_STR_NULLPAD);
-    buf = (char*)HDcalloc(2, 10);
+    if ((buf = (char*)HDcalloc(2, 10)) == NULL) goto error;
     HDmemcpy(buf, "abcdefghijabcdefghij", 20);
     if (H5Tconvert(src_type, dst_type, 2, buf, NULL, H5P_DEFAULT) < 0) goto error;
     if (HDmemcmp(buf, "abcdeabcdeabcdefghij", 20)) {
@@ -3847,6 +3849,7 @@ test_conv_str_1(void)
 	goto error;
     }
     HDfree(buf);
+    buf = NULL;
     if (H5Tclose(src_type) < 0) goto error;
     if (H5Tclose(dst_type) < 0) goto error;
 
@@ -3855,7 +3858,7 @@ test_conv_str_1(void)
      */
     src_type = mkstr(10, H5T_STR_SPACEPAD);
     dst_type = mkstr(5, H5T_STR_SPACEPAD);
-    buf = (char*)HDcalloc(2, 10);
+    if ((buf = (char*)HDcalloc(2, 10)) == NULL) goto error;
     HDmemcpy(buf, "abcdefghijabcdefghij", 20);
     if (H5Tconvert(src_type, dst_type, 2, buf, NULL, H5P_DEFAULT) < 0) goto error;
     if (HDmemcmp(buf, "abcdeabcdeabcdefghij", 20)) {
@@ -3870,6 +3873,7 @@ test_conv_str_1(void)
 	goto error;
     }
     HDfree(buf);
+    buf = NULL;
     if (H5Tclose(src_type) < 0) goto error;
     if (H5Tclose(dst_type) < 0) goto error;
 
@@ -3881,7 +3885,7 @@ test_conv_str_1(void)
      */
     src_type = mkstr(10, H5T_STR_NULLTERM);
     dst_type = mkstr(10, H5T_STR_NULLTERM);
-    buf = (char*)HDcalloc(2, 10);
+    if ((buf = (char*)HDcalloc(2, 10)) == NULL) goto error;
     HDmemcpy(buf, "abcdefghijabcdefghij", 20);
     if (H5Tconvert(src_type, dst_type, 2, buf, NULL, H5P_DEFAULT) < 0) goto error;
     if (HDmemcmp(buf, "abcdefghijabcdefghij", 20)) {
@@ -3906,6 +3910,7 @@ test_conv_str_1(void)
 	goto error;
     }
     HDfree(buf);
+    buf = NULL;
     if (H5Tclose(src_type) < 0) goto error;
     if (H5Tclose(dst_type) < 0) goto error;
 
@@ -3914,7 +3919,7 @@ test_conv_str_1(void)
      */
     src_type = mkstr(10, H5T_STR_NULLTERM);
     dst_type = mkstr(10, H5T_STR_SPACEPAD);
-    buf = (char*)HDcalloc(2, 10);
+    if ((buf = (char*)HDcalloc(2, 10)) == NULL) goto error;
     HDmemcpy(buf, "abcdefghi\0abcdefghi\0", 20);
     if (H5Tconvert(src_type, dst_type, 2, buf, NULL, H5P_DEFAULT) < 0) goto error;
     if (HDmemcmp(buf, "abcdefghi abcdefghi ", 20)) {
@@ -3961,6 +3966,7 @@ test_conv_str_1(void)
 	goto error;
     }
     HDfree(buf);
+    buf = NULL;
     if (H5Tclose(src_type) < 0) goto error;
     if (H5Tclose(dst_type) < 0) goto error;
 
@@ -3969,7 +3975,7 @@ test_conv_str_1(void)
      */
     src_type = mkstr(10, H5T_STR_NULLPAD);
     dst_type = mkstr(10, H5T_STR_SPACEPAD);
-    buf = (char*)HDcalloc(2, 10);
+    if ((buf = (char*)HDcalloc(2, 10)) == NULL) goto error;
     HDmemcpy(buf, "abcdefghijabcdefghij", 20);
     if (H5Tconvert(src_type, dst_type, 2, buf, NULL, H5P_DEFAULT) < 0) goto error;
     if (HDmemcmp(buf, "abcdefghijabcdefghij", 20)) {
@@ -4015,18 +4021,25 @@ test_conv_str_1(void)
 	HDputs("    Fortran to C buffer test 3");
 	goto error;
     }
+    HDfree(buf);
+    buf = NULL;
     if (H5Tclose(src_type) < 0) goto error;
     if (H5Tclose(dst_type) < 0) goto error;
-    if(buf)
-        HDfree(buf);
 
     PASSED();
     reset_hdf5();
     return 0;
 
  error:
-    if(buf)
+
+    H5E_BEGIN_TRY {
+        H5Tclose(src_type); 
+        H5Tclose(dst_type);
+    } H5E_END_TRY;
+
+    if (buf)
         HDfree(buf);
+
     reset_hdf5();
     return 1;
 }
@@ -4052,7 +4065,8 @@ static int
 test_conv_str_2(void)
 {
     char		*buf=NULL, s[80];
-    hid_t		c_type, f_type;
+    hid_t		c_type = -1;
+    hid_t       f_type = -1;
     const size_t	nelmts = NTESTELEM, ntests=NTESTS;
     size_t		i, j, nchars;
     int			ret_value = 1;
@@ -4062,7 +4076,7 @@ test_conv_str_2(void)
      */
     c_type = mkstr(8, H5T_STR_NULLPAD);
     f_type = mkstr(8, H5T_STR_SPACEPAD);
-    buf = (char*)HDcalloc(nelmts, 8);
+    if ((buf = (char*)HDcalloc(nelmts, 8)) == NULL) goto error;
     for (i=0; i<nelmts; i++) {
 	nchars = HDrand() % 8;
 	for (j=0; j<nchars; j++)
@@ -4073,23 +4087,26 @@ test_conv_str_2(void)
 
     /* Do the conversions */
     for (i=0; i<ntests; i++) {
-	if (ntests>1) {
 	    sprintf(s, "Testing random string conversion speed (test %d/%d)",
 		    (int)(i+1), (int)ntests);
-	} else {
-	    sprintf(s, "Testing random string conversion speed");
-	}
-	printf("%-70s", s);
-	HDfflush(stdout);
-	if (H5Tconvert(c_type, f_type, nelmts, buf, NULL, H5P_DEFAULT) < 0)
-            goto error;
-	if (H5Tconvert(f_type, c_type, nelmts, buf, NULL, H5P_DEFAULT) < 0)
-            goto error;
-	PASSED();
+        printf("%-70s", s);
+        HDfflush(stdout);
+        if (H5Tconvert(c_type, f_type, nelmts, buf, NULL, H5P_DEFAULT) < 0)
+                goto error;
+        if (H5Tconvert(f_type, c_type, nelmts, buf, NULL, H5P_DEFAULT) < 0)
+                goto error;
+        PASSED();
     }
+
     ret_value = 0;
 
  error:
+
+    H5E_BEGIN_TRY {
+        H5Tclose(c_type);
+        H5Tclose(f_type);
+    } H5E_END_TRY;
+
     if (buf) HDfree(buf);
     reset_hdf5();
     return ret_value;
@@ -4117,7 +4134,8 @@ static int
 test_conv_str_3(void)
 {
     char		*buf=NULL;
-    hid_t		type, super;
+    hid_t		type = -1;
+    hid_t       super = -1;
     const size_t	nelmts = NTESTELEM;
     size_t		i, j, nchars;
     int			ret_value = 1;
@@ -4133,7 +4151,8 @@ test_conv_str_3(void)
      * Initialize types and buffer.
      */
     type = mkstr(8, H5T_STR_NULLPAD);
-    buf = (char*)HDcalloc(nelmts, 8);
+    if ((buf = (char*)HDcalloc(nelmts, 8)) == NULL)
+        FAIL_PUTS_ERROR("Allocation failed.");
     for (i=0; i<nelmts; i++) {
 	nchars = HDrand() % 8;
 	for (j=0; j<nchars; j++)
@@ -4196,6 +4215,12 @@ test_conv_str_3(void)
     ret_value = 0;
 
 error:
+    
+    H5E_BEGIN_TRY {
+        H5Tclose(type);
+        H5Tclose(super);
+    } H5E_END_TRY;
+
     if(buf) 
         HDfree(buf);
     if(tag) 
@@ -4227,7 +4252,8 @@ test_conv_enum_1(void)
     const size_t nelmts=NTESTELEM;
     const int	ntests=NTESTS;
     int		i, val, *buf=NULL;
-    hid_t	t1, t2;
+    hid_t	t1 = -1;
+    hid_t   t2 = -1;
     char	s[80];
     int		ret_value = 1;
 
@@ -4242,41 +4268,38 @@ test_conv_enum_1(void)
     }
 
     /* Initialize the buffer */
-    buf = (int*)HDmalloc(nelmts*MAX(H5Tget_size(t1), H5Tget_size(t2)));
+    if ((buf = (int*)HDmalloc(nelmts*MAX(H5Tget_size(t1), H5Tget_size(t2)))) == NULL)
+        goto error;
     for (i=0; i<(int)nelmts; i++)
         buf[i] = HDrand() % 26;
 
     /* Conversions */
     for (i=0; i<ntests; i++) {
-	if (ntests>1) {
 	    sprintf(s, "Testing random enum conversion O(N) (test %d/%d)",
 		    i+1, ntests);
-	} else {
-	    sprintf(s, "Testing random enum conversion O(N)");
-	}
-	printf("%-70s", s);
-	HDfflush(stdout);
-	if (H5Tconvert(t1, t2, nelmts, buf, NULL, H5P_DEFAULT) < 0) goto error;
-	PASSED();
+        printf("%-70s", s);
+        HDfflush(stdout);
+        if (H5Tconvert(t1, t2, nelmts, buf, NULL, H5P_DEFAULT) < 0) goto error;
+        PASSED();
     }
 
     for (i=0; i<ntests; i++) {
-	if (ntests>1) {
 	    sprintf(s, "Testing random enum conversion O(N log N) "
 		    "(test %d/%d)", i+1, ntests);
-	} else {
-	    sprintf(s, "Testing random enum conversion O(N log N)");
-	}
-	printf("%-70s", s);
-	HDfflush(stdout);
-	if (H5Tconvert(t2, t1, nelmts, buf, NULL, H5P_DEFAULT) < 0) goto error;
-	PASSED();
+        printf("%-70s", s);
+        HDfflush(stdout);
+        if (H5Tconvert(t2, t1, nelmts, buf, NULL, H5P_DEFAULT) < 0) goto error;
+        PASSED();
     }
     ret_value = 0;
 
  error:
-    H5Tclose(t1);
-    H5Tclose(t2);
+
+    H5E_BEGIN_TRY {
+        H5Tclose(t1);
+        H5Tclose(t2);
+    } H5E_END_TRY;
+
     if (buf) HDfree(buf);
     reset_hdf5();
     return ret_value;
