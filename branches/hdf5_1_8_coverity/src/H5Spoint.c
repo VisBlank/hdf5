@@ -401,18 +401,19 @@ H5S_point_add(H5S_t *space, H5S_seloper_t op, size_t num_elem, const hsize_t *co
         if(NULL == (new_node = H5FL_MALLOC(H5S_pnt_node_t)))
             HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "can't allocate point node")
 
+        /* Link into list */
+        if(top == NULL)
+            top = new_node;
+        else
+            curr->next = new_node;
+
         if(NULL == (new_node->pnt = (hsize_t *)H5MM_malloc(space->extent.rank * sizeof(hsize_t))))
             HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "can't allocate coordinate information")
 
         /* Copy over the coordinates */
         HDmemcpy(new_node->pnt, coord + (i * space->extent.rank), (space->extent.rank * sizeof(hsize_t)));
 
-        /* Link into list */
         new_node->next = NULL;
-        if(top == NULL)
-            top = new_node;
-        else
-            curr->next = new_node;
         curr = new_node;
     } /* end for */
 
@@ -445,6 +446,14 @@ H5S_point_add(H5S_t *space, H5S_seloper_t op, size_t num_elem, const hsize_t *co
         space->select.num_elem += num_elem;
 
 done:
+    if (FAIL==ret_value && top) {
+        while (top) {
+            curr = top->next; 
+            H5FL_FREE(H5S_pnt_node_t, top);
+            top = curr;
+        }
+    }
+
     FUNC_LEAVE_NOAPI(ret_value)
 }   /* H5S_point_add() */
 
