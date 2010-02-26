@@ -571,17 +571,17 @@ H5HF_man_remove(H5HF_hdr_t *hdr, hid_t dxpl_id, const uint8_t *id)
         iblock = NULL;
     } /* end if */
 
-    /* Return free space to the heap's list of space */
-    if(H5HF_space_add(hdr, dxpl_id, sec_node, H5FS_ADD_RETURNED_SPACE) < 0)
-        HGOTO_ERROR(H5E_HEAP, H5E_CANTINIT, FAIL, "can't add direct block free space to global list")
-    sec_node = NULL;
-
     /* Increase space available in heap (marks header dirty) */
     if(H5HF_hdr_adj_free(hdr, (ssize_t)obj_len) < 0)
         HGOTO_ERROR(H5E_HEAP, H5E_CANTDEC, FAIL, "can't adjust free space for heap")
 
     /* Update statistics about heap */
     hdr->man_nobjs--;
+
+    /* Return free space to the heap's list of space */
+    if(H5HF_space_add(hdr, dxpl_id, sec_node, H5FS_ADD_RETURNED_SPACE) < 0)
+        HGOTO_ERROR(H5E_HEAP, H5E_CANTINIT, FAIL, "can't add direct block free space to global list")
+    sec_node = NULL;
 
 done:
     if(ret_value < 0) {
