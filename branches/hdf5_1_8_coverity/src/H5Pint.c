@@ -1953,6 +1953,8 @@ done:
                 H5MM_xfree(new_prop->value);
             (void)H5FL_FREE(H5P_genprop_t, new_prop);
         } /* end if */
+        if(new_class && H5P_close_class(new_class) < 0)
+            HDONE_ERROR(H5E_DATASET, H5E_CANTRELEASE, FAIL, "unable to destroy chunk cache")
     }  /* end if */
     FUNC_LEAVE_NOAPI(ret_value);
 }   /* H5P_register() */
