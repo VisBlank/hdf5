@@ -4015,15 +4015,18 @@ test_conv_str_1(void)
 	HDputs("    Fortran to C buffer test 3");
 	goto error;
     }
-    HDfree(buf);
     if (H5Tclose(src_type) < 0) goto error;
     if (H5Tclose(dst_type) < 0) goto error;
+    if(buf)
+        HDfree(buf);
 
     PASSED();
     reset_hdf5();
     return 0;
 
  error:
+    if(buf)
+        HDfree(buf);
     reset_hdf5();
     return 1;
 }
