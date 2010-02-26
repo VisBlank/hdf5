@@ -722,6 +722,7 @@ H5_DLL herr_t H5HF_sect_row_reduce(H5HF_hdr_t *hdr, hid_t dxpl_id,
 H5_DLL H5HF_indirect_t *H5HF_sect_row_get_iblock(H5HF_free_section_t *sect);
 H5_DLL herr_t H5HF_sect_indirect_add(H5HF_hdr_t *hdr, hid_t dxpl_id,
     H5HF_indirect_t *iblock, unsigned start_entry, unsigned nentries);
+H5_DLL herr_t H5HF_sect_single_free(H5FS_section_info_t *sect);
 
 /* Internal operator callbacks */
 H5_DLL herr_t H5HF_op_read(const void *obj, size_t obj_len, void *op_data);
