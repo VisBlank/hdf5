@@ -169,7 +169,7 @@
 #define H5HF_FSPACE_SECT_SINGLE         0       /* Section is a range of actual bytes in a direct block */
 #define H5HF_FSPACE_SECT_FIRST_ROW      1       /* Section is first range of blocks in an indirect block row */
 #define H5HF_FSPACE_SECT_NORMAL_ROW     2       /* Section is a range of blocks in an indirect block row */
-#define H5HF_FSPACE_SECT_INDIRECT      3       /* Section is a span of blocks in an indirect block */
+#define H5HF_FSPACE_SECT_INDIRECT       3       /* Section is a span of blocks in an indirect block */
 
 /* Flags for 'op' operations */
 #define H5HF_OP_MODIFY          0x0001          /* Operation will modify object */
