@@ -699,11 +699,15 @@ test_compact_io(hid_t fapl)
 static herr_t
 test_max_compact(hid_t fapl)
 {
-    hid_t       file, dataset, space, plist;
+    hid_t       file = -1;
+    hid_t       dataset = -1;
+    hid_t       space = -1;
+    hid_t       plist = -1;
     hsize_t     dims[1];
     hsize_t     compact_size;
     herr_t      status;
-    int         *wbuf, *rbuf;
+    int        *wbuf = NULL;
+    int        *rbuf = NULL;
     char	filename[FILENAME_BUF_SIZE];
     int         i,  n;
 
@@ -714,10 +718,10 @@ test_max_compact(hid_t fapl)
     /* Initialize data */
     compact_size = (SIXTY_FOUR_KB-64)/sizeof(int);
 
-    wbuf = (int*)HDmalloc(sizeof(int)*(size_t)compact_size);
-    assert(wbuf);
-    rbuf = (int*)HDmalloc(sizeof(int)*(size_t)compact_size);
-    assert(rbuf);
+    if ((wbuf = (int*)HDmalloc(sizeof(int)*(size_t)compact_size)) == NULL)
+        goto error;
+    if ((rbuf = (int*)HDmalloc(sizeof(int)*(size_t)compact_size)) == NULL)
+        goto error;
 
     n=0;
     for(i=0; i<(int)compact_size; i++)
@@ -999,10 +1003,10 @@ test_tconv(hid_t file)
     hid_t	space = -1, dataset = -1;
     int		i;
 
-    out = (char *)HDmalloc((size_t)(4 * 1000 * 1000));
-    HDassert(out);
-    in = (char *)HDmalloc((size_t)(4 * 1000 * 1000));
-    HDassert(in);
+    if ((out = (char *)HDmalloc((size_t)(4 * 1000 * 1000))) == NULL)
+        goto error;
+    if ((in = (char *)HDmalloc((size_t)(4 * 1000 * 1000))) == NULL)
+        goto error;
 
     TESTING("data type conversion");
 
