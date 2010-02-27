@@ -1878,7 +1878,7 @@ H5P_register(H5P_genclass_t *pclass, const char *name, size_t size,
     H5P_prp_copy_func_t prp_copy, H5P_prp_compare_func_t prp_cmp,
     H5P_prp_close_func_t prp_close)
 {
-    H5P_genclass_t *new_class; /* New class pointer */
+    H5P_genclass_t *new_class=NULL; /* New class pointer */
     H5P_genprop_t *new_prop=NULL;   /* Temporary property pointer */
     H5P_genprop_t *pcopy;      /* Property copy */
     herr_t      ret_value=SUCCEED;       /* Return value */
