@@ -1926,6 +1926,10 @@ H5P_register(H5P_genclass_t *pclass, const char *name, size_t size,
             } /* end while */
         } /* end if */
 
+        /* Close pclass before overwriting with new_class */
+        if (H5P_close_class(pclass) < 0)
+            HDONE_ERROR(H5E_DATASET, H5E_CANTRELEASE, FAIL, "unable to destroy chunk cache")
+
         /* Use the new class instead of the old one */
         pclass=new_class;
     } /* end if */
