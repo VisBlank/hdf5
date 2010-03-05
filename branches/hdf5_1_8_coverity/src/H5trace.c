@@ -965,8 +965,10 @@ H5_trace (const double *returning, const char *func, const char *type, ...)
                             /* Save the rank of simple data spaces for arrays */
                             /* This may generate recursive call to the library... -QAK */
                             {
-                                H5S_t *space = (H5S_t *)H5I_object(obj);
-                                if (H5S_SIMPLE==H5S_GET_EXTENT_TYPE(space)) {
+                                H5S_t *space = NULL;
+                                if (NULL == (space = (H5S_t *)H5I_object(obj)))
+                                    fprintf(out, "H5I_object returned NULL.");  
+                                else if (H5S_SIMPLE==H5S_GET_EXTENT_TYPE(space)) {
                                     asize[argno] = H5S_GET_EXTENT_NDIMS(space);
                                 }
                             }
