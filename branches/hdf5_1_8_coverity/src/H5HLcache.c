@@ -136,7 +136,8 @@ const H5AC_class_t H5AC_LHEAP_DBLK[1] = {{
 static herr_t
 H5HL_fl_deserialize(H5HL_t *heap, hsize_t free_block)
 {
-    H5HL_free_t *fl, *tail = NULL;      /* Heap free block nodes */
+    H5HL_free_t *fl = NULL;      /* Heap free block nodes */
+    H5HL_free_t *tail = NULL;      /* Heap free block nodes */
     herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5HL_fl_deserialize)
@@ -163,9 +164,12 @@ H5HL_fl_deserialize(H5HL_t *heap, hsize_t free_block)
         /* Insert node into list */
         if(tail)
             tail->next = fl;
-        tail = fl;
-        if(!heap->freelist)
+        else {
+            /* Save the first allocation */
             heap->freelist = fl;
+        }
+        tail = fl;
+        fl = NULL;
 
         /* Decode offset of next free block */
         p = heap->dblk_image + free_block;
@@ -174,8 +178,8 @@ H5HL_fl_deserialize(H5HL_t *heap, hsize_t free_block)
             HGOTO_ERROR(H5E_HEAP, H5E_BADVALUE, FAIL, "free block size is zero?")
 
         /* Decode length of this free block */
-        H5F_DECODE_LENGTH_LEN(p, fl->size, heap->sizeof_size);
-        if(fl->offset + fl->size > heap->dblk_size)
+        H5F_DECODE_LENGTH_LEN(p, tail->size, heap->sizeof_size);
+        if(tail->offset + tail->size > heap->dblk_size)
             HGOTO_ERROR(H5E_HEAP, H5E_BADRANGE, FAIL, "bad heap free list")
     } /* end while */
 
