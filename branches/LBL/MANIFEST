@@ -65,6 +65,7 @@
 ./bin/mkinstalldirs
 ./bin/newer
 ./bin/reconfigure			_DO_NOT_DISTRIBUTE_
+./bin/README				_DO_NOT_DISTRIBUTE_
 ./bin/release
 ./bin/runtest				_DO_NOT_DISTRIBUTE_
 ./bin/snapshot
@@ -1875,8 +1876,6 @@
 
 # C++ Tests
 ./windows/c++/test/checkcpptests.bat
-./windows/c++/test/dsets_cpp/dsets_cpp.vcproj
-./windows/c++/test/dsets_cppdll/dsets_cppdll.vcproj
 ./windows/c++/test/testhdf5_cpp/testhdf5_cpp.vcproj
 ./windows/c++/test/testhdf5_cppdll/testhdf5_cppdll.vcproj
 
