@@ -344,6 +344,653 @@ done:
 
 
 /*-------------------------------------------------------------------------
+ * Function:    H5C_apply_candidate_list
+ *
+ * Purpose:     Apply the supplied candidate list.
+ *
+ *		Do this by scanning the candidate list, and flushing 
+ *		all entries candidates_list_ptr[i] such that 
+ *
+ *			(i % mpi_size) == mpi_rank
+ *
+ *		and marking all other entries listed in the candidate
+ *		list as clean.
+ *
+ *		Do this by looking up each entry in the candidate list,
+ *		and marking for cleaning or flushing as appropriate. 
+ *		Note that if we encounter any protected entries, this 
+ *		function must fail.
+ *
+ *		If successful in this step, then scan up the LRU list,
+ *		clearing and flushing the marked entries.  As some 
+ *		entries may be pinned, scan the pinned list as well.
+ *
+ *		Note that this function will fail if any protected or 
+ *		clean entries appear on the candidate list.
+ *
+ *		This function is used in managing sync points, and 
+ *		shouldn't be used elsewhere.
+ *
+ * Return:      Success:        SUCCEED
+ *
+ *              Failure:        FAIL
+ *
+ * Programmer:  John Mainzer
+ *              3/17/10
+ *
+ * Modifications:
+ *
+ *		None.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+#ifdef H5_HAVE_PARALLEL
+#define H5C_APPLY_CANDIDATE_LIST__DEBUG 0
+herr_t
+H5C_apply_candidate_list(H5F_t * f,
+                         hid_t primary_dxpl_id,
+                         hid_t secondary_dxpl_id,
+                         H5C_t * cache_ptr,
+                         int num_candidates,
+                         haddr_t * candidates_list_ptr,
+                         int mpi_rank,
+                         int mpi_size)
+{
+    herr_t              ret_value = SUCCEED;      /* Return value */
+    herr_t              result;
+    hbool_t             first_flush = FALSE;
+    int                 i;
+    int			entries_to_clear = 0;
+    int			entries_to_flush = 0;
+    int			entries_cleared = 0;
+    int			entries_flushed = 0;
+    int			entries_examined = 0;
+    int			initial_list_len;
+    haddr_t		addr;
+    H5C_cache_entry_t *	clear_ptr = NULL;
+    H5C_cache_entry_t *	entry_ptr = NULL;
+    H5C_cache_entry_t *	flush_ptr = NULL;
+#if H5C_DO_SANITY_CHECKS
+    haddr_t		last_addr;
+#endif /* H5C_DO_SANITY_CHECKS */
+
+    FUNC_ENTER_NOAPI(H5C_apply_candidate_list, FAIL)
+
+    HDassert( cache_ptr != NULL );
+    HDassert( cache_ptr->magic == H5C__H5C_T_MAGIC );
+    HDassert( num_candidates > 0 );
+    HDassert( num_candidates <= cache_ptr->slist_len );
+    HDassert( candidates_list_ptr != NULL );
+    HDassert( 0 <= mpi_rank );
+    HDassert( mpi_rank < mpi_size );
+
+#if H5C_APPLY_CANDIDATE_LIST__DEBUG
+    HDfprintf(stdout, "%s:%d: marking entries.\n", FUNC, mpi_rank);
+#endif /* H5C_APPLY_CANDIDATE_LIST__DEBUG */
+
+    for ( i = 0; i < num_candidates; i++ ) 
+    {
+        addr = candidates_list_ptr[i];
+
+#if H5C_DO_SANITY_CHECKS
+        if ( i > 0 ) {
+
+            if ( last_addr == addr ) {
+
+                HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
+                            "Duplicate entry in cleaned list.\n");
+
+            } else if ( last_addr > addr ) {
+
+                HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
+                            "candidate list not sorted.\n");
+            }
+        }
+
+        last_addr = addr;
+#endif /* H5C_DO_SANITY_CHECKS */
+
+        HDassert( H5F_addr_defined(addr) );
+
+        H5C__SEARCH_INDEX(cache_ptr, addr, entry_ptr, FAIL)
+
+        if ( entry_ptr == NULL ) {
+#if H5C_APPLY_CANDIDATE_LIST__DEBUG
+	    HDfprintf(stdout, "%s:%d: entry[%d] = %ld not in cache.\n",
+                      FUNC, mpi_rank, (int)i, (long)addr);
+#endif /* H5C_APPLY_CANDIDATE_LIST__DEBUG */
+            HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
+                        "Listed candidate entry not in cache?!?!?.")
+
+        } else if ( ! entry_ptr->is_dirty ) {
+
+#if H5C_APPLY_CANDIDATE_LIST__DEBUG
+	    HDfprintf(stdout, "%s:%d: entry[%d] == %lld is not dirty!?!\n", 
+                      FUNC, mpi_rank, (int)i, (long long)addr);
+#endif /* H5C_APPLY_CANDIDATE_LIST__DEBUG */
+            HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
+                        "Listed entry not dirty?!?!?.")
+
+        } else if ( entry_ptr->is_protected ) {
+
+            /* For now at least, we can't deal with protected entries.
+             * If we encounter one, scream and die.  If it becomes an
+             * issue, we should be able to work around this. 
+             */
+
+#if H5C_APPLY_CANDIDATE_LIST__DEBUG
+	    HDfprintf(stdout, "%s: entry %ld is protected!?!\n", 
+                      FUNC, (long)addr);
+#endif /* H5C_APPLY_CANDIDATE_LIST__DEBUG */
+            HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
+                        "Listed entry is protected?!?!?.")
+
+        } else {
+            /* determine whether the entry is to be cleared or flushed,
+             * and mark it accordingly.  We will scan the protected and 
+             * pinned list shortly, and clear or flush according to these
+             * markings.  
+             */
+#if 1
+            if ( (i % mpi_size) == mpi_rank ) {
+#else
+	    if ( mpi_rank == 0 ) {
+#endif
+                entries_to_flush++;
+                entry_ptr->flush_immediately = TRUE;
+
+            } else {
+       
+                entries_to_clear++;
+                entry_ptr->clear_on_unprotect = TRUE;
+
+            }
+        }
+    } /* end for */
+
+#if H5C_APPLY_CANDIDATE_LIST__DEBUG
+    HDfprintf(stdout, "%s:%d: num candidates/to clear/to flush = %d/%d/%d.\n", 
+              FUNC, mpi_rank, (int)num_candidates, (int)entries_to_clear,
+              (int)entries_to_flush);
+#endif /* H5C_APPLY_CANDIDATE_LIST__DEBUG */
+
+
+    /* We have now marked all the entries on the candidate list for 
+     * either flush or clear -- now scan the LRU and the pinned list
+     * for these entries and do the deed.
+     *
+     * Note that we are doing things in this round about manner so as
+     * to preserve the order of the LRU list to the best of our ability.
+     * If we don't do this, my experiments indicate that we will have a
+     * noticably poorer hit ratio as a result.
+     */
+
+#if H5C_APPLY_CANDIDATE_LIST__DEBUG
+    HDfprintf(stdout, "%s:%d: scanning LRU list. len = %d.\n", FUNC, mpi_rank,
+              (int)(cache_ptr->LRU_list_len));
+#endif /* H5C_APPLY_CANDIDATE_LIST__DEBUG */
+
+    entries_examined = 0;
+    initial_list_len = cache_ptr->LRU_list_len;
+    entry_ptr = cache_ptr->LRU_tail_ptr;
+
+    while ( ( entry_ptr != NULL ) &&
+            ( entries_examined <= initial_list_len ) &&
+            ( (entries_cleared + entries_flushed) < num_candidates ) )
+    {
+        if ( entry_ptr->clear_on_unprotect ) {
+
+            entry_ptr->clear_on_unprotect = FALSE;
+            clear_ptr = entry_ptr;
+            entry_ptr = entry_ptr->prev;
+            entries_cleared++;
+
+#if ( H5C_APPLY_CANDIDATE_LIST__DEBUG > 1 )
+    HDfprintf(stdout, "%s:%d: clearing 0x%llx.\n", FUNC, mpi_rank, 
+              (long long)clear_ptr->addr);
+#endif /* H5C_APPLY_CANDIDATE_LIST__DEBUG */
+
+            if ( H5C_flush_single_entry(f,
+                                        primary_dxpl_id,
+                                        secondary_dxpl_id,
+                                        cache_ptr,
+                                        clear_ptr->type,
+                                        clear_ptr->addr,
+                                        H5C__FLUSH_CLEAR_ONLY_FLAG,
+                                        &first_flush,
+                                        TRUE) < 0 ) {
+
+                HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Can't clear entry.")
+
+            }
+        } else if ( entry_ptr->flush_immediately ) {
+
+            entry_ptr->flush_immediately = FALSE;
+            flush_ptr = entry_ptr;
+            entry_ptr = entry_ptr->prev;
+            entries_flushed++;
+
+#if ( H5C_APPLY_CANDIDATE_LIST__DEBUG > 1 )
+    HDfprintf(stdout, "%s:%d: flushing 0x%llx.\n", FUNC, mpi_rank, 
+              (long long)flush_ptr->addr);
+#endif /* H5C_APPLY_CANDIDATE_LIST__DEBUG */
+
+            if ( H5C_flush_single_entry(f,
+                                        primary_dxpl_id,
+                                        secondary_dxpl_id,
+                                        cache_ptr,
+                                        flush_ptr->type,
+                                        flush_ptr->addr,
+                                        H5C__NO_FLAGS_SET,
+                                        &first_flush,
+                                        TRUE) < 0 ) {
+
+                HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Can't clear entry.")
+            }
+        } else {
+
+            entry_ptr = entry_ptr->prev;
+        }
+
+        entries_examined++;
+    }
+
+#if H5C_APPLY_CANDIDATE_LIST__DEBUG
+    HDfprintf(stdout, "%s:%d: entries examined/cleared/flushed = %d/%d/%d.\n", 
+              FUNC, mpi_rank, entries_examined, 
+              entries_cleared, entries_flushed);
+#endif /* H5C_APPLY_CANDIDATE_LIST__DEBUG */
+
+    /* It is also possible that some of the cleared entries are on the
+     * pinned list.  Must scan that also.
+     */
+
+#if H5C_APPLY_CANDIDATE_LIST__DEBUG
+    HDfprintf(stdout, "%s:%d: scanning pinned entry list. len = %d\n", 
+             FUNC, mpi_rank, (int)(cache_ptr->pel_len));
+#endif /* H5C_APPLY_CANDIDATE_LIST__DEBUG */
+
+    entry_ptr = cache_ptr->pel_head_ptr;
+
+    while ( ( entry_ptr != NULL ) &&
+            ( (entries_cleared + entries_flushed) < num_candidates ) )
+    {
+        if ( entry_ptr->clear_on_unprotect ) {
+
+            entry_ptr->clear_on_unprotect = FALSE;
+            clear_ptr = entry_ptr;
+            entry_ptr = entry_ptr->next;
+            entries_cleared++;
+
+#if ( H5C_APPLY_CANDIDATE_LIST__DEBUG > 1 )
+            HDfprintf(stdout, "%s:%d: clearing 0x%llx.\n", FUNC, mpi_rank, 
+                      (long long)clear_ptr->addr);
+#endif /* H5C_APPLY_CANDIDATE_LIST__DEBUG */
+
+
+            if ( H5C_flush_single_entry(f,
+                                        primary_dxpl_id,
+                                        secondary_dxpl_id,
+                                        cache_ptr,
+                                        clear_ptr->type,
+                                        clear_ptr->addr,
+                                        H5C__FLUSH_CLEAR_ONLY_FLAG,
+                                        &first_flush,
+                                        TRUE) < 0 ) {
+
+                HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Can't clear entry.")
+            }
+        } else if ( entry_ptr->flush_immediately ) {
+
+            entry_ptr->flush_immediately = FALSE;
+            flush_ptr = entry_ptr;
+            entry_ptr = entry_ptr->next;
+            entries_flushed++;
+
+#if ( H5C_APPLY_CANDIDATE_LIST__DEBUG > 1 )
+            HDfprintf(stdout, "%s:%d: flushing 0x%llx.\n", FUNC, mpi_rank, 
+                      (long long)flush_ptr->addr);
+#endif /* H5C_APPLY_CANDIDATE_LIST__DEBUG */
+
+            if ( H5C_flush_single_entry(f,
+                                        primary_dxpl_id,
+                                        secondary_dxpl_id,
+                                        cache_ptr,
+                                        flush_ptr->type,
+                                        flush_ptr->addr,
+                                        H5C__NO_FLAGS_SET,
+                                        &first_flush,
+                                        TRUE) < 0 ) {
+
+                HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Can't clear entry.")
+            }
+        } else {
+
+            entry_ptr = entry_ptr->next;
+        }
+    }
+
+#if H5C_APPLY_CANDIDATE_LIST__DEBUG
+    HDfprintf(stdout, 
+              "%s:%d: pel entries examined/cleared/flushed = %d/%d/%d.\n", 
+              FUNC, mpi_rank, entries_examined, 
+              entries_cleared, entries_flushed);
+    HDfprintf(stdout, "%s:%d: done.\n", FUNC, mpi_rank);
+
+    fsync(stdout);
+    sleep(1);
+#endif /* H5C_APPLY_CANDIDATE_LIST__DEBUG */
+
+    if ( ( entries_flushed != entries_to_flush ) ||
+         ( entries_cleared != entries_to_clear ) ) {
+
+        HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "entry count mismatch.")
+    }
+
+done:
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* H5C_apply_candidate_list() */
+#endif /* H5_HAVE_PARALLEL */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    H5C_construct_candidate_list__clean_cache
+ *
+ * Purpose:     Construct the list of entries that should be flushed to 
+ *		clean all entries in the cache.
+ *
+ *		This function is used in managing sync points, and 
+ *		shouldn't be used elsewhere.
+ *
+ * Return:      Success:        SUCCEED
+ *
+ *              Failure:        FAIL
+ *
+ * Programmer:  John Mainzer
+ *              3/17/10
+ *
+ * Modifications:
+ *
+ *		None.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+#ifdef H5_HAVE_PARALLEL
+#define H5C_CONSTRUCT_CANDIDATE_LIST__CLEAN_CACHE__DEBUG 0
+herr_t
+H5C_construct_candidate_list__clean_cache(H5C_t * cache_ptr)
+{
+    herr_t              ret_value = SUCCEED;      /* Return value */
+    herr_t              result;
+    int                 nominated_entries_count = 0;
+    size_t              nominated_entries_size = 0;
+    size_t              space_needed = 0;
+    haddr_t		nominated_addr;
+    H5C_cache_entry_t *	entry_ptr = NULL;
+
+    FUNC_ENTER_NOAPI(H5C_construct_candidate_list__clean_cache, FAIL)
+
+    HDassert( cache_ptr != NULL );
+    HDassert( cache_ptr->magic == H5C__H5C_T_MAGIC );
+
+    /* As a sanity check, set space needed to the size of the skip list.
+     * This should be the sum total of the sizes of all the dirty entries
+     * in the metadata cache.
+     */
+    space_needed = cache_ptr->slist_size;
+
+    /* Recall that while we shouldn't have any protected entries at this
+     * point, it is possible that some dirty entries may reside on the
+     * pinned list at this point.
+     */
+    HDassert( cache_ptr->slist_size <= 
+              (cache_ptr->dLRU_list_size + cache_ptr->pel_size) );
+    HDassert( cache_ptr->slist_len  <= 
+              (cache_ptr->dLRU_list_len + cache_ptr->pel_len) );
+
+    if ( space_needed > 0 ) { /* we have work to do */
+
+        HDassert( cache_ptr->slist_len > 0 );
+
+        /* Scan the dirty LRU list from tail forward and nominate sufficient
+         * entries to free up the necessary space. 
+         */
+        entry_ptr = cache_ptr->dLRU_tail_ptr;
+
+        while ( ( nominated_entries_size < space_needed ) &&
+                ( nominated_entries_count < cache_ptr->slist_len ) &&
+                ( entry_ptr != NULL ) )
+        {
+            HDassert( ! (entry_ptr->is_protected) );
+            HDassert( ! (entry_ptr->is_read_only) );
+            HDassert( entry_ptr->ro_ref_count == 0 );
+            HDassert( entry_ptr->is_dirty );
+            HDassert( entry_ptr->in_slist );
+
+            nominated_addr = entry_ptr->addr;
+
+#if H5C_CONSTRUCT_CANDIDATE_LIST__CLEAN_CACHE__DEBUG
+		HDfprintf(stdout, "%s:1 nominating 0x%llx.\n",
+                          FUNC, (long long)nominated_addr);
+#endif /* H5C_CONSTRUCT_CANDIDATE_LIST__CLEAN_CACHE__DEBUG */
+
+            result = H5AC_add_candidate((H5AC_t *)cache_ptr, nominated_addr);
+
+            if ( result < 0 ) {
+
+                HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
+                            "H5AC_add_candidate() failed(1).")
+            }
+
+            nominated_entries_size += entry_ptr->size;
+            nominated_entries_count++;
+            entry_ptr = entry_ptr->aux_prev;
+        }
+
+        HDassert( entry_ptr == NULL );
+
+        /* it is possible that there are some dirty entries on the 
+         * protected entry list as well -- scan it too if necessary
+         */
+        entry_ptr = cache_ptr->pel_head_ptr;
+
+        while ( ( nominated_entries_size < space_needed ) &&
+                ( nominated_entries_count < cache_ptr->slist_len ) &&
+                ( entry_ptr != NULL ) )
+        {
+            if ( entry_ptr->is_dirty ) {
+
+                HDassert( ! (entry_ptr->is_protected) );
+                HDassert( ! (entry_ptr->is_read_only) );
+                HDassert( entry_ptr->ro_ref_count == 0 );
+                HDassert( entry_ptr->is_dirty );
+                HDassert( entry_ptr->in_slist );
+
+                nominated_addr = entry_ptr->addr;
+
+#if H5C_CONSTRUCT_CANDIDATE_LIST__CLEAN_CACHE__DEBUG
+		HDfprintf(stdout, "%s:2 nominating 0x%llx.\n",
+                          FUNC, (long long)nominated_addr);
+#endif /* H5C_CONSTRUCT_CANDIDATE_LIST__CLEAN_CACHE__DEBUG */
+
+                result = H5AC_add_candidate((H5AC_t *)cache_ptr, 
+                                            nominated_addr);
+
+                if ( result < 0 ) {
+
+                    HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
+                                "H5AC_add_candidate() failed(2).")
+                }
+
+                nominated_entries_size += entry_ptr->size;
+                nominated_entries_count++;
+            }
+
+            entry_ptr = entry_ptr->next;
+        }
+
+#if H5C_CONSTRUCT_CANDIDATE_LIST__CLEAN_CACHE__DEBUG
+        if ( ( nominated_entries_count != cache_ptr->slist_len) ||
+             ( nominated_entries_size != space_needed ) ||
+             ( entry_ptr != NULL ) ) {
+
+            HDfprintf(stdout, 
+                      "nominated_entries_count = %d != %d = slist_size\n",
+                      (int)nominated_entries_count, 
+                      (int)(cache_ptr->slist_len));
+            HDfprintf(stdout,
+                      "nominated_entries_size = %d != %d = space_needed.\n",
+                      (int)nominated_entries_size, (int)space_needed);
+            HDfprintf(stdout, "entry_ptr = 0x%llx\n", (long long)entry_ptr);
+        }
+#endif /* H5C_CONSTRUCT_CANDIDATE_LIST__CLEAN_CACHE__DEBUG */
+
+        HDassert( nominated_entries_count == cache_ptr->slist_len );
+        HDassert( nominated_entries_size == space_needed );
+
+    } /* if ( space_needed > 0 ) */
+
+done:
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* H5C_construct_candidate_list__clean_cache() */
+#endif /* H5_HAVE_PARALLEL */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    H5C_construct_candidate_list__min_clean
+ *
+ * Purpose:     Construct the list of entries that should be flushed to 
+ *		get the cache back within its min clean constraints.
+ *
+ *		This function is used in managing sync points, and 
+ *		shouldn't be used elsewhere.
+ *
+ * Return:      Success:        SUCCEED
+ *
+ *              Failure:        FAIL
+ *
+ * Programmer:  John Mainzer
+ *              3/17/10
+ *
+ * Modifications:
+ *
+ *		None.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+#ifdef H5_HAVE_PARALLEL
+herr_t
+H5C_construct_candidate_list__min_clean(H5C_t * cache_ptr)
+{
+    herr_t              ret_value = SUCCEED;      /* Return value */
+    herr_t              result;
+    int                 nominated_entries_count = 0;
+    size_t              nominated_entries_size = 0;
+    size_t              space_needed = 0;
+    haddr_t		nominated_addr;
+    H5C_cache_entry_t *	entry_ptr = NULL;
+
+    FUNC_ENTER_NOAPI(H5C_construct_candidate_list__min_clean, FAIL)
+
+    HDassert( cache_ptr != NULL );
+    HDassert( cache_ptr->magic == H5C__H5C_T_MAGIC );
+
+    /* compute the number of bytes (if any) that must be flushed to get the 
+     * cache back within its min clean constraints.
+     */
+    if ( cache_ptr->max_cache_size > cache_ptr->index_size ) {
+
+        if ( ((cache_ptr->max_cache_size - cache_ptr->index_size) +
+               cache_ptr->cLRU_list_size) >= cache_ptr->min_clean_size ) {
+
+            space_needed = 0;
+
+        } else {
+
+            space_needed = cache_ptr->min_clean_size -
+                ((cache_ptr->max_cache_size - cache_ptr->index_size) +
+                 cache_ptr->cLRU_list_size);
+        }
+    } else {
+
+        if ( cache_ptr->min_clean_size <= cache_ptr->cLRU_list_size ) {
+
+           space_needed = 0;
+
+        } else {
+
+            space_needed = cache_ptr->min_clean_size -
+                           cache_ptr->cLRU_list_size;
+        }
+    }
+
+    if ( space_needed > 0 ) { /* we have work to do */
+
+        HDassert( cache_ptr->slist_len > 0 );
+
+        /* Scan the dirty LRU list from tail forward and nominate sufficient
+         * entries to free up the necessary space. 
+         */
+        entry_ptr = cache_ptr->dLRU_tail_ptr;
+
+        while ( ( nominated_entries_size < space_needed ) &&
+                ( nominated_entries_count < cache_ptr->slist_len ) &&
+                ( entry_ptr != NULL ) )
+        {
+            HDassert( ! (entry_ptr->is_protected) );
+            HDassert( ! (entry_ptr->is_read_only) );
+            HDassert( entry_ptr->ro_ref_count == 0 );
+            HDassert( entry_ptr->is_dirty );
+            HDassert( entry_ptr->in_slist );
+
+            nominated_addr = entry_ptr->addr;
+
+            result = H5AC_add_candidate((H5AC_t *)cache_ptr, nominated_addr);
+
+            if ( result < 0 ) {
+
+                HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
+                            "H5AC_add_candidate() failed.")
+            }
+
+            nominated_entries_size += entry_ptr->size;
+            nominated_entries_count++;
+            entry_ptr = entry_ptr->aux_prev;
+        }
+#if 0 /* JRM */
+        if ( ( nominated_entries_count > cache_ptr->slist_len) ||
+             ( nominated_entries_size < space_needed ) ) {
+
+            HDfprintf(stdout, 
+                      "nominated_entries_count = %d > %d = slist_size\n",
+                      (int)nominated_entries_count, 
+                      (int)(cache_ptr->slist_size));
+            HDfprintf(stdout,
+                      "nominated_entries_size = %d < %d = space_needed.\n",
+                      (int)nominated_entries_size, (int)space_needed);
+        }
+#endif /* JRM */
+        HDassert( nominated_entries_count <= cache_ptr->slist_len );
+        HDassert( nominated_entries_size >= space_needed );
+
+    } /* if ( space_needed > 0 ) */
+
+done:
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* H5C_construct_candidate_list__min_clean() */
+#endif /* H5_HAVE_PARALLEL */
+
+
+/*-------------------------------------------------------------------------
  * Function:    H5C_create
  *
  * Purpose:     Allocate, initialize, and return the address of a new
@@ -2181,7 +2828,7 @@ H5C_get_trace_file_ptr_from_entry(const H5C_cache_entry_t *entry_ptr,
  *		Moved test to see if we already have an entry with the
  *		specified address in the cache.  This was necessary as
  *		we used to modify some fields in the entry to be inserted
- *		priort to this test, which got the cache confused if the
+ *		prior to this test, which got the cache confused if the
  *		insertion failed because the entry was already present.
  *
  *		Also revised the function to call H5C_make_space_in_cache()
@@ -2199,6 +2846,9 @@ H5C_get_trace_file_ptr_from_entry(const H5C_cache_entry_t *entry_ptr,
  *              the min_clean_size, which should force us to start flushing
  *              entries long before we actually have to evict something
  *              to make space.
+ *
+ *		JRM -- 3/17/10
+ *		Added initialization for the new flush_immediately field.
  *
  *-------------------------------------------------------------------------
  */
@@ -2312,6 +2962,7 @@ H5C_insert_entry(H5F_t * 	     f,
 
 #ifdef H5_HAVE_PARALLEL
     entry_ptr->clear_on_unprotect = FALSE;
+    entry_ptr->flush_immediately = FALSE;
 #endif /* H5_HAVE_PARALLEL */
 
     entry_ptr->flush_in_progress = FALSE;
@@ -8673,10 +9324,10 @@ H5C_flush_single_entry(H5F_t *		   f,
 		     * H5C__UPDATE_INDEX_FOR_ENTRY_CLEAN()).
 		     */
 	            H5C__UPDATE_INDEX_FOR_SIZE_CHANGE((cache_ptr), \
-				                      (entry_ptr->size),\
+				                      (entry_ptr->size), \
                                                       (new_size), \
 						      (entry_ptr), \
-						      (TRUE));
+						      (TRUE))
 
 		    /* The entry can't be protected since we just flushed it.
 		     * Thus we must update the replacement policy data
@@ -8851,6 +9502,7 @@ H5C_load_entry(H5F_t *             f,
     entry_ptr->flush_marker = FALSE;
 #ifdef H5_HAVE_PARALLEL
     entry_ptr->clear_on_unprotect = FALSE;
+    entry_ptr->flush_immediately = FALSE;
 #endif /* H5_HAVE_PARALLEL */
     entry_ptr->flush_in_progress = FALSE;
     entry_ptr->destroy_in_progress = FALSE;

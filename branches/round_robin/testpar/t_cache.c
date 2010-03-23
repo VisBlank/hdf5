@@ -1820,6 +1820,11 @@ destroy_datum(H5F_t UNUSED * f,
  *		Added code to set the flushed flag when a dirty entry
  *		is flushed.
  *
+ *		JRM -- 3/22.10
+ *		Modified sanity checking code to complain about writes 
+ *		from other than file process 0 iff the metadata write 
+ *		strategy is H5AC_METADATA_WRITE_STRATEGY__PROCESS_0_ONLY.
+ *
  *-------------------------------------------------------------------------
  */
 
@@ -1835,10 +1840,25 @@ flush_datum(H5F_t *f,
     int idx;
     struct datum * entry_ptr;
     struct mssg_t mssg;
+    H5C_t * cache_ptr;
+    struct H5AC_aux_t * aux_ptr;
 
     HDassert( thing );
 
     entry_ptr = (struct datum *)thing;
+
+    HDassert( f );
+    HDassert( f->shared );
+    HDassert( f->shared->cache );
+  
+    cache_ptr = f->shared->cache;
+
+    HDassert( cache_ptr->magic == H5C__H5C_T_MAGIC );
+    HDassert( cache_ptr->aux_ptr ); 
+
+    aux_ptr = f->shared->cache->aux_ptr;
+
+    HDassert( aux_ptr->magic == H5AC__H5AC_AUX_T_MAGIC );
 
     idx = addr_to_datum_index(entry_ptr->base_addr);
 
@@ -1853,7 +1873,10 @@ flush_datum(H5F_t *f,
 
     HDassert( entry_ptr->header.is_dirty == entry_ptr->dirty );
 
-    if ( ( file_mpi_rank != 0 ) && ( entry_ptr->dirty ) ) {
+    if ( ( file_mpi_rank != 0 ) && 
+         ( entry_ptr->dirty ) &&
+         ( aux_ptr->metadata_write_strategy == 
+           H5AC_METADATA_WRITE_STRATEGY__PROCESS_0_ONLY ) ) {
 
         ret_value = FAIL;
         HDfprintf(stdout,
@@ -3087,7 +3110,55 @@ rename_entry(H5C_t * cache_ptr,
 
         old_addr = old_entry_ptr->base_addr;
         new_addr = new_entry_ptr->base_addr;
+#if 0
+        old_entry_ptr->dirty = TRUE;
 
+        /* touch up versions, base_addrs, and data_index */
+
+        if ( old_entry_ptr->ver < new_entry_ptr->ver ) {
+
+	    old_entry_ptr->ver = new_entry_ptr->ver;
+
+        } else {
+
+            (old_entry_ptr->ver)++;
+
+        }
+
+        old_entry_ptr->base_addr = new_addr;
+        new_entry_ptr->base_addr = old_addr;
+
+        data_index[old_entry_ptr->index] = new_idx;
+        data_index[new_entry_ptr->index] = old_idx;
+
+        tmp                  = old_entry_ptr->index;
+        old_entry_ptr->index = new_entry_ptr->index;
+        new_entry_ptr->index = tmp;
+
+        if ( old_entry_ptr->local_len != new_entry_ptr->local_len ) {
+
+            tmp_len                  = old_entry_ptr->local_len;
+            old_entry_ptr->local_len = new_entry_ptr->local_len;
+            new_entry_ptr->local_len = tmp_len;
+        }
+
+        result = H5AC_rename(file_ptr,  &(types[0]), old_addr, new_addr);
+
+        if ( ( result < 0 ) || ( old_entry_ptr->header.addr != new_addr ) ) {
+
+            nerrors++;
+            if ( verbose ) {
+		HDfprintf(stdout, "%d:%s: H5AC_rename() failed.\n",
+	                  world_mpi_rank, fcn_name);
+            }
+
+        } else {
+
+            HDassert( ((old_entry_ptr->header).type)->id == DATUM_ENTRY_TYPE );
+            HDassert( old_entry_ptr->header.is_dirty );
+            HDassert( old_entry_ptr->header.addr == new_addr );
+        }
+#else
         result = H5AC_rename(file_ptr,  &(types[0]), old_addr, new_addr);
 
         if ( ( result < 0 ) || ( old_entry_ptr->header.addr != new_addr ) ) {
@@ -3133,6 +3204,7 @@ rename_entry(H5C_t * cache_ptr,
 	        new_entry_ptr->local_len = tmp_len;
 	    }
         }
+#endif
     }
 
     return;
@@ -4037,7 +4109,9 @@ hbool_t
 smoke_check_1(void)
 {
     const char * fcn_name = "smoke_check_1()";
+    hbool_t show_progress = FALSE;
     hbool_t success = TRUE;
+    int cp = 0;
     int i;
     int max_nerrors;
     hid_t fid = -1;
@@ -4068,6 +4142,10 @@ smoke_check_1(void)
     }
     else /* run the clients */
     {
+        if ( show_progress ) /* 0 */
+            HDfprintf(stdout, "smoke_check_1:%d: cp = %d, err = %d.\n", 
+                      world_mpi_rank, cp++, nerrors);
+
         if ( ! setup_cache_for_test(&fid, &file_ptr, &cache_ptr) ) {
 
             nerrors++;
@@ -4079,16 +4157,28 @@ smoke_check_1(void)
             }
         }
 
+        if ( show_progress ) /* 1 */
+            HDfprintf(stdout, "smoke_check_1:%d: cp = %d, err = %d.\n", 
+                      world_mpi_rank, cp++, nerrors);
+
         for ( i = 0; i < (virt_num_data_entries / 2); i++ )
         {
             insert_entry(cache_ptr, file_ptr, i, H5AC__NO_FLAGS_SET);
         }
+
+        if ( show_progress ) /* 2 */
+            HDfprintf(stdout, "smoke_check_1:%d: cp = %d, err = %d.\n", 
+                      world_mpi_rank, cp++, nerrors);
 
         for ( i = (virt_num_data_entries / 2) - 1; i >= 0; i-- )
         {
 	    lock_entry(cache_ptr, file_ptr, i);
 	    unlock_entry(cache_ptr, file_ptr, i, H5AC__NO_FLAGS_SET);
         }
+
+        if ( show_progress ) /* 3 */
+            HDfprintf(stdout, "smoke_check_1:%d: cp = %d, err = %d.\n", 
+                      world_mpi_rank, cp++, nerrors);
 
         /* rename the first half of the entries... */
         for ( i = 0; i < (virt_num_data_entries / 2); i++ )
@@ -4099,6 +4189,10 @@ smoke_check_1(void)
 			 (i + (virt_num_data_entries / 2)));
         }
 
+        if ( show_progress ) /* 4 */
+            HDfprintf(stdout, "smoke_check_1:%d: cp = %d, err = %d.\n", 
+                      world_mpi_rank, cp++, nerrors);
+
         /* ...and then rename them back. */
         for ( i = (virt_num_data_entries / 2) - 1; i >= 0; i-- )
         {
@@ -4107,6 +4201,10 @@ smoke_check_1(void)
 	    rename_entry(cache_ptr, file_ptr, i,
 			 (i + (virt_num_data_entries / 2)));
         }
+
+        if ( show_progress ) /* 5 */
+            HDfprintf(stdout, "smoke_check_1:%d: cp = %d, err = %d.\n", 
+                      world_mpi_rank, cp++, nerrors);
 
         if ( fid >= 0 ) {
 
@@ -4120,6 +4218,10 @@ smoke_check_1(void)
             }
         }
 
+        if ( show_progress ) /* 6 */
+            HDfprintf(stdout, "smoke_check_1:%d: cp = %d, err = %d.\n", 
+                      world_mpi_rank, cp++, nerrors);
+
         /* verify that all instance of datum are back where the started
          * and are clean.
          */
@@ -4129,6 +4231,10 @@ smoke_check_1(void)
             HDassert( data_index[i] == i );
             HDassert( ! (data[i].dirty) );
         }
+
+        if ( show_progress ) /* 7 */
+            HDfprintf(stdout, "smoke_check_1:%d: cp = %d, err = %d.\n", 
+                      world_mpi_rank, cp++, nerrors);
 
         /* compose the done message */
         mssg.req       = DONE_REQ_CODE;
@@ -4153,6 +4259,10 @@ smoke_check_1(void)
                 }
             }
         }
+
+        if ( show_progress ) /* 8 */
+            HDfprintf(stdout, "smoke_check_1:%d: cp = %d, err = %d.\n", 
+                      world_mpi_rank, cp++, nerrors);
     }
 
     max_nerrors = get_max_nerrors();

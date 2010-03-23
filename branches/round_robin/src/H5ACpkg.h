@@ -45,6 +45,24 @@
 
 #define H5AC_DEBUG_DIRTY_BYTES_CREATION	0
 
+#ifdef H5_HAVE_PARALLEL
+
+/* The following #defines are used to specify the metadata write 
+ * strategy.
+ */
+
+#define H5AC_METADATA_WRITE_STRATEGY__PROCESS_0_ONLY	0
+#define H5AC_METADATA_WRITE_STRATEGY__DISTRIBUTED	1
+
+/* the following #defined are used to specify the operation required
+ * at a sync point.
+ */
+
+#define H5AC_SYNC_POINT_OP__FLUSH_TO_MIN_CLEAN		0
+#define H5AC_SYNC_POINT_OP__FLUSH_CACHE			1
+
+#endif /* H5_HAVE_PARALLEL */
+
 /*-------------------------------------------------------------------------
  *  It is a bit difficult to set ranges of allowable values on the
  *  dirty_bytes_threshold field of H5AC_aux_t.  The following are
@@ -161,6 +179,12 @@
  *		broadcast.  This field is reset to zero after each such
  *		broadcast.
  *
+ * metadata_write_strategy: Integer code indicating how we will be 
+ *		writing the metadata.  In the first incarnation of 
+ *		this code, all writes were done from process 0.  This
+ *		field exists to facilitate experiments with other 
+ *		strategies.
+ *
  * dirty_bytes_propagations: This field only exists when the
  *		H5AC_DEBUG_DIRTY_BYTES_CREATION #define is TRUE.
  *
@@ -210,6 +234,19 @@
  *		been created via rename operations since the last time
  *		the cleaned list was propagated.
  *
+ * Things have changed a bit since the following four fields were defined.
+ * If metadata_write_strategy is H5AC_METADATA_WRITE_STRATEGY__PROCESS_0_ONLY,
+ * all comments hold as before -- with the caviate that pending further 
+ * coding, the process 0 metadata cache is forbidden to flush entries outside
+ * of a sync point.
+ *
+ * However, for different metadata write strategies, these fields are used
+ * only to maintain the correct dirty byte count on process zero -- and in
+ * most if not all cases, this is redundant, as process zero will be barred
+ * from flushing entries outside of a sync point.
+ *
+ *						JRM -- 3/16/10
+ *
  * d_slist_ptr:  Pointer to an instance of H5SL_t used to maintain a list
  *		of entries that have been dirtied since the last time they
  *		were listed in a clean entries broadcast.  This list is
@@ -258,6 +295,17 @@
  *		contain the value 0 on all processes other than process 0.
  *		It exists primarily for sanity checking.
  *
+ * The following two fields are used only when metadata_write_strategy
+ * is H5AC_METADATA_WRITE_STRATEGY__DISTRIBUTED.
+ *
+ * candidate_slist_ptr: Pointer to an instance of H5SL_t used by process 0
+ *		to construct a list of entries to be flushed at this sync
+ *		point.  This list is then broadcast to the other processes,
+ *		which then either flush or mark clean all entries on it.
+ *
+ * candidate_slist_len: Integer field containing the number of entries on the
+ *		candidate list.  It exists primarily for sanity checking.
+ *
  * write_done:  In the parallel test bed, it is necessary to ensure that
  *              all writes to the server process from cache 0 complete
  *              before it enters the barrier call with the other caches.
@@ -292,6 +340,8 @@ typedef struct H5AC_aux_t
 
     int32_t	dirty_bytes;
 
+    int32_t	metadata_write_strategy;
+
 #if H5AC_DEBUG_DIRTY_BYTES_CREATION
 
     int32_t	dirty_bytes_propagations;
@@ -314,6 +364,10 @@ typedef struct H5AC_aux_t
     H5SL_t *	c_slist_ptr;
 
     int32_t	c_slist_len;
+
+    H5SL_t *	candidate_slist_ptr;
+
+    int32_t	candidate_slist_len;
 
     void	(* write_done)(void);
 
