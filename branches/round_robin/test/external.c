@@ -20,6 +20,7 @@
  * Purpose:	Tests datasets stored in external raw files.
  */
 #include "h5test.h"
+#include "H5srcdir.h"
 
 /* File for external link test.  Created with gen_udlinks.c */
 #define LINKED_FILE  "be_extlink2.h5"
@@ -845,8 +846,7 @@ test_4 (hid_t fapl)
     hid_t xid = -1;
     hid_t xid2 = -1;
     char  filename[1024];		/*file name			*/
-    char  pathname[1024];
-    char *srcdir = getenv("srcdir"); /*where the src code is located*/
+    const char *pathname = H5_get_srcdir_filename(LINKED_FILE); /* Corrected test file name */
 
     TESTING("opening external link twice");
 
@@ -864,14 +864,6 @@ test_4 (hid_t fapl)
 
     if((gid = H5Gopen2(fid, "/", H5P_DEFAULT)) < 0)
         goto error;
-
-    pathname[0] = '\0';
-    /* Generate correct name for test file by prepending the source path */
-    if(srcdir && ((HDstrlen(srcdir) + HDstrlen(LINKED_FILE) + 1) < sizeof(pathname))) {
-        HDstrcpy(pathname, srcdir);
-        HDstrcat(pathname, "/");
-    }
-    HDstrcat(pathname, LINKED_FILE);
 
     /* Create an external link to an existing file*/
     if(H5Lcreate_external(pathname, "/group", gid, " link", H5P_DEFAULT, H5P_DEFAULT) < 0)
