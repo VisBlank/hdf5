@@ -1137,7 +1137,7 @@ H5_DLL int HDfprintf (FILE *stream, const char *fmt, ...);
     #ifndef HDsrandom
         #define HDsrandom(S)		HDsrand(S)
     #endif /* HDsrandom */
-    #elif H5_HAVE_RANDOM
+#elif H5_HAVE_RANDOM
     #ifndef HDsrand
         #define HDsrand(S)		srandom(S)
     #endif /* HDsrand */
@@ -1529,7 +1529,6 @@ typedef struct H5_debug_t {
 
 extern H5_debug_t		H5_debug_g;
 #define H5DEBUG(X)		(H5_debug_g.pkg[H5_PKG_##X].stream)
-extern char H5libhdf5_settings[];	/* embedded library information */
 
 /*-------------------------------------------------------------------------
  * Purpose:	These macros are inserted automatically just after the
