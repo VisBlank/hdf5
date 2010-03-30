@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.8)
-PROJECT (HDF5_HL)
+PROJECT (HDF5_HL_CPP_SRC)
 
 #-----------------------------------------------------------------------------
 # Setup output Directories
@@ -19,43 +19,40 @@ IF (NOT HDF5_EXTERNALLY_CONFIGURED)
   )
 ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED)
 
-#-----------------------------------------------------------------------------
-# Shared Libs
-#-----------------------------------------------------------------------------
-IF (BUILD_SHARED_LIBS)
-  SET (HL_BUILT_AS_DYNAMIC_LIB 1)
-ENDIF (BUILD_SHARED_LIBS)
+SET (HDF5_HL_CPP_SRCS ${HDF5_HL_CPP_SRC_SOURCE_DIR}/H5PacketTable.cpp)
+SET (HDF5_HL_CPP_HDRS ${HDF5_HL_CPP_SRC_SOURCE_DIR}/H5PacketTable.h)
+INCLUDE_DIRECTORIES (${HDF5_HL_SOURCE_DIR}/src)
+INCLUDE_DIRECTORIES (${HDF5_HL_CPP_SRC_SOURCE_DIR})
+
+ADD_LIBRARY ( ${HDF5_HL_CPP_LIB_NAME} ${HDF5_HL_CPP_SRCS})
+SET_GLOBAL_VARIABLE (HDF5_LIBRARIES_TO_EXPORT "${HDF5_LIBRARIES_TO_EXPORT};${HDF5_HL_CPP_LIB_NAME}")
+TARGET_LINK_LIBRARIES (
+    ${HDF5_HL_CPP_LIB_NAME}
+    ${HDF5_HL_LIB_NAME}
+    ${HDF5_CPP_LIB_NAME}
+    ${HDF5_LIB_NAME}
+)
+H5_SET_LIB_OPTIONS (${HDF5_HL_CPP_LIB_NAME} ${HDF5_HL_CPP_LIB_NAME} ${LIB_TYPE})
 
 #-----------------------------------------------------------------------------
-# List Source files
+# Rules for Installation of headers/etc using make Install target
 #-----------------------------------------------------------------------------
-INCLUDE_DIRECTORIES (${HDF5_HL_SOURCE_DIR}/src )
+INSTALL (
+    FILES
+        ${HDF5_HL_CPP_HDRS}
+    DESTINATION
+        include/hl/cpp
+)
 
-ADD_SUBDIRECTORY (${HDF5_HL_SOURCE_DIR}/src ${HDF5_HL_BINARY_DIR}/src)
-
-#-- Build the High level Tools
-IF (HDF5_BUILD_TOOLS)
-  ADD_SUBDIRECTORY (${HDF5_HL_SOURCE_DIR}/tools ${HDF5_HL_BINARY_DIR}/tools)
-ENDIF (HDF5_BUILD_TOOLS)
-
-
-#-- Add High Level Examples
-IF (HDF5_BUILD_EXAMPLES)
-  ADD_SUBDIRECTORY (${HDF5_HL_SOURCE_DIR}/examples ${HDF5_HL_BINARY_DIR}/examples)
-ENDIF (HDF5_BUILD_EXAMPLES)
-
-#-- Build the Unit testing if requested
-IF (NOT HDF5_EXTERNALLY_CONFIGURED)
-  IF (BUILD_TESTING)
-    ADD_SUBDIRECTORY (${HDF5_HL_SOURCE_DIR}/test ${HDF5_HL_BINARY_DIR}/test)
-  ENDIF (BUILD_TESTING)
-ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED)
-
-#-- Build the High Level Fortran source codes
-IF (HDF5_BUILD_FORTRAN)
-  ADD_SUBDIRECTORY (fortran)
-ENDIF (HDF5_BUILD_FORTRAN)
-
-IF (HDF5_BUILD_CPP_LIB)
-  ADD_SUBDIRECTORY (${HDF5_HL_SOURCE_DIR}/c++ ${HDF5_HL_BINARY_DIR}/c++)
-ENDIF (HDF5_BUILD_CPP_LIB)
+#-----------------------------------------------------------------------------
+# Add library to a (global) CMake 'Install target' for external use
+#-----------------------------------------------------------------------------
+INSTALL (
+    TARGETS
+        ${HDF5_HL_CPP_LIB_NAME}
+    EXPORT
+        ${HDF5_EXPORTED_TARGETS}
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+)

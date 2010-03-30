@@ -1,85 +1,92 @@
-PROJECT(HDF5_F90 C CXX Fortran)
+cmake_minimum_required (VERSION 2.8)
+PROJECT (HDF5_F90 C CXX Fortran)
 
 #-----------------------------------------------------------------------------
-# Setup output Directories 
+# Setup output Directories
 #-----------------------------------------------------------------------------
-IF(NOT HDF5_EXTERNALLY_CONFIGURED)
+IF (NOT HDF5_EXTERNALLY_CONFIGURED)
   SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY
-    ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all Executables."
+      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all Executables."
   )
   SET (CMAKE_LIBRARY_OUTPUT_DIRECTORY
-    ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all Libraries"
+      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all Libraries"
   )
   SET (CMAKE_ARCHIVE_OUTPUT_DIRECTORY
-    ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all static libraries."
+      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all static libraries."
   )
-ENDIF(NOT HDF5_EXTERNALLY_CONFIGURED)
+  SET (CMAKE_Fortran_MODULE_DIRECTORY
+      ${PROJECT_BINARY_DIR}/bin/fortran CACHE PATH "Single Directory for all fortran modules."
+  )
+ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED)
 
 #-----------------------------------------------------------------------------
 # Fortran support is best served using cmake 2.8.0
 #-----------------------------------------------------------------------------
-cmake_minimum_required(VERSION 2.8)
+CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
 
 #-----------------------------------------------------------------------------
 # Detect name mangling convention used between Fortran and C
 #-----------------------------------------------------------------------------
-include(FortranCInterface)
-FortranCInterface_HEADER(${HDF5_F90_BINARY_DIR}/FCMangle.h
-                         MACRO_NAMESPACE "H5_FC_"
-                         SYMBOL_NAMESPACE "H5_FC_"
-                         SYMBOLS mysub mymod:my_sub)
+INCLUDE (FortranCInterface)
+FortranCInterface_HEADER (
+    ${HDF5_F90_BINARY_DIR}/FCMangle.h
+    MACRO_NAMESPACE "H5_FC_"
+    SYMBOL_NAMESPACE "H5_FC_"
+    SYMBOLS mysub mymod:my_sub
+)
 
-FILE(STRINGS ${HDF5_F90_BINARY_DIR}/FCMangle.h CONTENTS REGEX "H5_FC_GLOBAL\\(.*,.*\\) +(.*)") 
-STRING(REGEX MATCH "H5_FC_GLOBAL\\(.*,.*\\) +(.*)" RESULT ${CONTENTS})
-SET(H5_FC_FUNC "H5_FC_FUNC(name,NAME) ${CMAKE_MATCH_1}" PARENT_SCOPE)
+FILE (STRINGS ${HDF5_F90_BINARY_DIR}/FCMangle.h CONTENTS REGEX "H5_FC_GLOBAL\\(.*,.*\\) +(.*)")
+STRING (REGEX MATCH "H5_FC_GLOBAL\\(.*,.*\\) +(.*)" RESULT ${CONTENTS})
+SET (H5_FC_FUNC "H5_FC_FUNC(name,NAME) ${CMAKE_MATCH_1}" PARENT_SCOPE)
 
-FILE(STRINGS ${HDF5_F90_BINARY_DIR}/FCMangle.h CONTENTS REGEX "H5_FC_GLOBAL_\\(.*,.*\\) +(.*)") 
-STRING(REGEX MATCH "H5_FC_GLOBAL_\\(.*,.*\\) +(.*)" RESULT ${CONTENTS})
-SET(H5_FC_FUNC_ "H5_FC_FUNC_(name,NAME) ${CMAKE_MATCH_1}" PARENT_SCOPE)
+FILE (STRINGS ${HDF5_F90_BINARY_DIR}/FCMangle.h CONTENTS REGEX "H5_FC_GLOBAL_\\(.*,.*\\) +(.*)")
+STRING (REGEX MATCH "H5_FC_GLOBAL_\\(.*,.*\\) +(.*)" RESULT ${CONTENTS})
+SET (H5_FC_FUNC_ "H5_FC_FUNC_(name,NAME) ${CMAKE_MATCH_1}" PARENT_SCOPE)
 
 #-----------------------------------------------------------------------------
 # The provided CMake Fortran macros don't provide a general check function
 # so this one is used for a sizeof test.
 #-----------------------------------------------------------------------------
-macro(CHECK_FORTRAN_FEATURE FUNCTION CODE VARIABLE)
-  if(NOT DEFINED ${VARIABLE})
-    message(STATUS "Testing Fortran ${FUNCTION}")
-    if(CMAKE_REQUIRED_LIBRARIES)
-      set(CHECK_FUNCTION_EXISTS_ADD_LIBRARIES
-        "-DLINK_LIBRARIES:STRING=${CMAKE_REQUIRED_LIBRARIES}")
-    else(CMAKE_REQUIRED_LIBRARIES)
-      set(CHECK_FUNCTION_EXISTS_ADD_LIBRARIES)
-    endif(CMAKE_REQUIRED_LIBRARIES)
-    FILE(WRITE
-      ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testFortranCompiler.f
-      "${CODE}"
+MACRO (CHECK_FORTRAN_FEATURE FUNCTION CODE VARIABLE)
+  IF (NOT DEFINED ${VARIABLE})
+    MESSAGE (STATUS "Testing Fortran ${FUNCTION}")
+    IF (CMAKE_REQUIRED_LIBRARIES)
+      SET (CHECK_FUNCTION_EXISTS_ADD_LIBRARIES
+          "-DLINK_LIBRARIES:STRING=${CMAKE_REQUIRED_LIBRARIES}")
+    ELSE (CMAKE_REQUIRED_LIBRARIES)
+      SET (CHECK_FUNCTION_EXISTS_ADD_LIBRARIES)
+    ENDIF (CMAKE_REQUIRED_LIBRARIES)
+    FILE (WRITE
+        ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testFortranCompiler.f
+        "${CODE}"
     )
-    try_compile(${VARIABLE}
-      ${CMAKE_BINARY_DIR}
-      ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testFortranCompiler.f
-      CMAKE_FLAGS "${CHECK_FUNCTION_EXISTS_ADD_LIBRARIES}"
-      OUTPUT_VARIABLE OUTPUT
+    TRY_COMPILE (${VARIABLE}
+        ${CMAKE_BINARY_DIR}
+        ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testFortranCompiler.f
+        CMAKE_FLAGS "${CHECK_FUNCTION_EXISTS_ADD_LIBRARIES}"
+        OUTPUT_VARIABLE OUTPUT
     )
 
-#    MESSAGE( "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ")
-#    MESSAGE( "Test result ${OUTPUT}")
-#    MESSAGE( "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ")
+#    MESSAGE ( "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ")
+#    MESSAGE ( "Test result ${OUTPUT}")
+#    MESSAGE ( "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ")
 
-    if(${VARIABLE})
-      set(${VARIABLE} 1 CACHE INTERNAL "Have Fortran function ${FUNCTION}")
-      message(STATUS "Testing Fortran ${FUNCTION} - OK")
-      file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeOutput.log 
-        "Determining if the Fortran ${FUNCTION} exists passed with the following output:\n"
-        "${OUTPUT}\n\n")
-    else(${VARIABLE})
-      message(STATUS "Testing Fortran ${FUNCTION} - Fail")
-      set(${VARIABLE} "" CACHE INTERNAL "Have Fortran function ${FUNCTION}")
-      file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log 
-        "Determining if the Fortran ${FUNCTION} exists failed with the following output:\n"
-        "${OUTPUT}\n\n")
-    endif(${VARIABLE})
-  endif(NOT DEFINED ${VARIABLE})
-endmacro(CHECK_FORTRAN_FEATURE)
+    IF (${VARIABLE})
+      SET (${VARIABLE} 1 CACHE INTERNAL "Have Fortran function ${FUNCTION}")
+      MESSAGE (STATUS "Testing Fortran ${FUNCTION} - OK")
+      FILE (APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeOutput.log
+          "Determining if the Fortran ${FUNCTION} exists passed with the following output:\n"
+          "${OUTPUT}\n\n"
+      )
+    ELSE (${VARIABLE})
+      MESSAGE (STATUS "Testing Fortran ${FUNCTION} - Fail")
+      SET (${VARIABLE} "" CACHE INTERNAL "Have Fortran function ${FUNCTION}")
+      FILE (APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log
+          "Determining if the Fortran ${FUNCTION} exists failed with the following output:\n"
+          "${OUTPUT}\n\n")
+    ENDIF (${VARIABLE})
+  ENDIF (NOT DEFINED ${VARIABLE})
+ENDMACRO (CHECK_FORTRAN_FEATURE)
 
 #-----------------------------------------------------------------------------
 # Configure Checks which require Fortran compilation must go in here
@@ -88,19 +95,19 @@ endmacro(CHECK_FORTRAN_FEATURE)
 #
 # Be careful with leading spaces here, do not remove them.
 #-----------------------------------------------------------------------------
-CHECK_FORTRAN_FEATURE(sizeof 
+CHECK_FORTRAN_FEATURE(sizeof
   "
        PROGRAM main
-       i = sizeof(x)       
+       i = sizeof(x)
        END PROGRAM
-  " 
+  "
   FORTRAN_HAVE_SIZEOF
-)  
+)
 
-CHECK_FORTRAN_FEATURE(RealIsNotDouble 
+CHECK_FORTRAN_FEATURE(RealIsNotDouble
   "
        MODULE type_mod
-         INTERFACE h5t	
+         INTERFACE h5t
            MODULE PROCEDURE h5t_real
            MODULE PROCEDURE h5t_dble
          END INTERFACE
@@ -119,15 +126,14 @@ CHECK_FORTRAN_FEATURE(RealIsNotDouble
          CALL h5t(r)
          CALL h5t(d)
        END PROGRAM main
-  " 
+  "
   FORTRAN_DEFAULT_REAL_NOT_DOUBLE
-)  
+)
 
 #-----------------------------------------------------------------------------
 # Traverse source subdirectory
 #-----------------------------------------------------------------------------
-#ADD_SUBDIRECTORY(src)
-SET(FORTRAN_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+ADD_SUBDIRECTORY (${HDF5_F90_SOURCE_DIR}/src ${HDF5_F90_BINARY_DIR}/src)
 
 #-----------------------------------------------------------------------------
 # When building utility executables we reuse these variables
@@ -137,167 +143,16 @@ SET(FORTRAN_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 #inherit CFG_INIT    from parent HDF5 cmake project
 
 #-----------------------------------------------------------------------------
-# Auto-generated files will be placed and included from here
+# Build the Fortran Examples
 #-----------------------------------------------------------------------------
-INCLUDE_DIRECTORIES(${HDF5_F90_BINARY_DIR})
-
-#-----------------------------------------------------------------------------
-# Setup the Fortran auto-detection utilities
-# H5test_kind(_SIZEOF).f90 used to generate H5fortran_detect.f90
-# H5fortran_detect.f90     used to generate H5fort_type_defines.h
-# H5fort_type_defines.h    used to generate H5f90i_gen.h + H5fortran_types.f90
-#-----------------------------------------------------------------------------
-IF (FORTRAN_HAVE_SIZEOF)
-  ADD_EXECUTABLE(H5test_FortranHavekind
-    ${FORTRAN_SRC_DIR}/H5test_kind_SIZEOF.f90
-  )
-ELSE (FORTRAN_HAVE_SIZEOF)
-  ADD_EXECUTABLE(H5test_FortranHavekind 
-    ${FORTRAN_SRC_DIR}/H5test_kind.f90
-  )
-ENDIF (FORTRAN_HAVE_SIZEOF)
-
-SET (CMD ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}${CFG_INIT}/H5test_FortranHavekind${EXE_EXT})
-ADD_CUSTOM_COMMAND(
-  OUTPUT ${HDF5_F90_BINARY_DIR}/H5fortran_detect.f90
-  COMMAND ${CMD} 
-  ARGS > ${HDF5_F90_BINARY_DIR}/H5fortran_detect.f90
-  WORKING_DIRECTORY ${HDF5_F90_BINARY_DIR}
-  DEPENDS H5test_FortranHavekind
-)
-#-----------------------------------------------------------------------------
-ADD_EXECUTABLE(H5fortran_detect 
-  ${HDF5_F90_BINARY_DIR}/H5fortran_detect.f90
-)
-
-SET (CMD ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}${CFG_INIT}/H5fortran_detect${EXE_EXT})
-ADD_CUSTOM_COMMAND(
-  OUTPUT ${HDF5_F90_BINARY_DIR}/H5fort_type_defines.h
-  COMMAND ${CMD} 
-  ARGS > ${HDF5_F90_BINARY_DIR}/H5fort_type_defines.h
-  WORKING_DIRECTORY ${HDF5_F90_BINARY_DIR}
-  DEPENDS H5fortran_detect
-)
-
-#-----------------------------------------------------------------------------
-ADD_EXECUTABLE(H5match_types 
-  ${HDF5_F90_BINARY_DIR}/H5fort_type_defines.h
-  ${FORTRAN_SRC_DIR}/H5match_types.c
-)
-
-SET (CMD ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}${CFG_INIT}/H5match_types${EXE_EXT})
-ADD_CUSTOM_COMMAND(
-  OUTPUT ${HDF5_F90_BINARY_DIR}/H5f90i_gen.h
-         ${HDF5_F90_BINARY_DIR}/H5fortran_types.f90
-  COMMAND ${CMD}
-  WORKING_DIRECTORY ${HDF5_F90_BINARY_DIR}
-  DEPENDS H5match_types
-)
-
-#-----------------------------------------------------------------------------
-# f90CStub lib
-#-----------------------------------------------------------------------------
-SET(f90CStub_C_SRCS
-  # generated files
-  ${HDF5_F90_BINARY_DIR}/H5f90i_gen.h
-  
-  # normal distribution
-  ${FORTRAN_SRC_DIR}/H5f90kit.c 
-  ${FORTRAN_SRC_DIR}/H5_f.c 
-  ${FORTRAN_SRC_DIR}/H5Af.c 
-  ${FORTRAN_SRC_DIR}/H5Df.c
-  ${FORTRAN_SRC_DIR}/H5Ef.c
-  ${FORTRAN_SRC_DIR}/H5Ff.c 
-  ${FORTRAN_SRC_DIR}/H5Gf.c
-  ${FORTRAN_SRC_DIR}/H5If.c 
-  ${FORTRAN_SRC_DIR}/H5Lf.c 
-  ${FORTRAN_SRC_DIR}/H5Of.c 
-  ${FORTRAN_SRC_DIR}/H5Pf.c 
-  ${FORTRAN_SRC_DIR}/H5Rf.c 
-  ${FORTRAN_SRC_DIR}/H5Sf.c
-  ${FORTRAN_SRC_DIR}/H5Tf.c 
-  ${FORTRAN_SRC_DIR}/H5Zf.c 
-)
-
-IF (H5_HAVE_PARALLEL)
-  SET (f90CStub_C_SRCS 
-    ${f90CStub_C_SRCS} 
-    ${FORTRAN_SRC_DIR}/H5FDmpiof.c 
-  )
-ENDIF (H5_HAVE_PARALLEL)
-
-SET_SOURCE_FILES_PROPERTIES( ${f90CStub_C_SRCS} PROPERTIES LANGUAGE C) 
-
-ADD_LIBRARY(${HDF5_F90_C_LIB_NAME} ${f90CStub_C_SRCS} )
-TARGET_LINK_LIBRARIES(${HDF5_F90_C_LIB_NAME} hdf5)
-
-#-----------------------------------------------------------------------------
-# Fortran Real Size
-#-----------------------------------------------------------------------------
-IF (FORTRAN_DEFAULT_REAL_NOT_DOUBLE)
-  # default real is 4 bytes, so include double signatures
-  SET (F_DBLE "Include")
-ELSE (FORTRAN_DEFAULT_REAL_NOT_DOUBLE)
-  # default real is 8 bytes, so exclude double signatures
-  SET (F_DBLE "Exclude")
-ENDIF (FORTRAN_DEFAULT_REAL_NOT_DOUBLE)
-
-#-----------------------------------------------------------------------------
-# Fortran Modules
-#-----------------------------------------------------------------------------
-IF (H5_HAVE_PARALLEL)
-  SET (H5FC_NAME h5pfc)
-ELSE (H5_HAVE_PARALLEL)
-  SET (H5FC_NAME h5fc)
-ENDIF (H5_HAVE_PARALLEL)
-
-#-----------------------------------------------------------------------------
-SET(f90_F_SRCS
-   ${HDF5_F90_BINARY_DIR}/H5fortran_types.f90 
-   ${FORTRAN_SRC_DIR}/H5f90global.f90 
-   ${FORTRAN_SRC_DIR}/H5_ff.f90
-   ${FORTRAN_SRC_DIR}/H5_DBLE_Interface${F_DBLE}.f90 
-   ${FORTRAN_SRC_DIR}/H5Aff.f90
-   ${FORTRAN_SRC_DIR}/H5Dff.f90 
-   ${FORTRAN_SRC_DIR}/H5Eff.f90 
-   ${FORTRAN_SRC_DIR}/H5Fff.f90 
-   ${FORTRAN_SRC_DIR}/H5Gff.f90 
-   ${FORTRAN_SRC_DIR}/H5Iff.f90 
-   ${FORTRAN_SRC_DIR}/H5Lff.f90 
-   ${FORTRAN_SRC_DIR}/H5Off.f90 
-   ${FORTRAN_SRC_DIR}/H5Pff.f90 
-   ${FORTRAN_SRC_DIR}/H5Rff.f90 
-   ${FORTRAN_SRC_DIR}/H5Sff.f90 
-   ${FORTRAN_SRC_DIR}/H5Tff.f90 
-   ${FORTRAN_SRC_DIR}/H5Zff.f90 )
-#-----------------------------------------------------------------------------
-# Force dependencies between libs to ensure build order is ok
-#-----------------------------------------------------------------------------
-#-----------------------------------------------------------------------------
-IF (H5_HAVE_PARALLEL)
-  ADD_LIBRARY(H5FDMPIO STATIC ${FORTRAN_SRC_DIR}/H5FDmpioff.f90 )
-  add_dependencies(H5FDMPIO H5GLOBAL)
-  SET (HDF5MODULE_SRC 
-    ${FORTRAN_SRC_DIR}/HDF5mpio.f90
-  )
-  SET (HDF5_DEPENDS H5FDMPIO)
-ELSE (H5_HAVE_PARALLEL)
-  SET (HDF5MODULE_SRC 
-    ${FORTRAN_SRC_DIR}/HDF5.f90
-  )
-  SET (HDF5_DEPENDS "")
-ENDIF (H5_HAVE_PARALLEL)
-#-----------------------------------------------------------------------------
-ADD_LIBRARY(${HDF5_F90_LIB_NAME} STATIC ${HDF5MODULE_SRC} ${f90_F_SRCS} )
-SET_GLOBAL_VARIABLE(HDF5_LIBRARIES_TO_EXPORT 
-  "${HDF5_LIBRARIES_TO_EXPORT};${HDF5_F90_LIB_NAME};${HDF5_F90_C_LIB_NAME}"
-)
-add_dependencies(${HDF5_F90_LIB_NAME} ${HDF5_F90_C_LIB_NAME} )
+IF (HDF5_BUILD_EXAMPLES)
+  ADD_SUBDIRECTORY (${HDF5_F90_SOURCE_DIR}/examples ${HDF5_F90_BINARY_DIR}/examples)
+ENDIF (HDF5_BUILD_EXAMPLES)
 
 #-----------------------------------------------------------------------------
 # Testing
 #-----------------------------------------------------------------------------
 
 IF (BUILD_TESTING)
-  ADD_SUBDIRECTORY(${HDF5_F90_SOURCE_DIR}/test ${HDF5_F90_BINARY_DIR}/test)
+  ADD_SUBDIRECTORY (${HDF5_F90_SOURCE_DIR}/test ${HDF5_F90_BINARY_DIR}/test)
 ENDIF (BUILD_TESTING)

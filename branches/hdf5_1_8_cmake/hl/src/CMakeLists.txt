@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.8)
-PROJECT (HDF5_CPP)
+PROJECT (HDF5_HL_SRC)
 
 #-----------------------------------------------------------------------------
 # Setup output Directories
@@ -20,45 +20,61 @@ IF (NOT HDF5_EXTERNALLY_CONFIGURED)
 ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED)
 
 #-----------------------------------------------------------------------------
-# Shared/Static Libs
+# Shared Libs
 #-----------------------------------------------------------------------------
 IF (BUILD_SHARED_LIBS)
-  SET (CPP_BUILT_AS_DYNAMIC_LIB 1)
+  SET (HL_BUILT_AS_DYNAMIC_LIB 1)
 ENDIF (BUILD_SHARED_LIBS)
 
 #-----------------------------------------------------------------------------
-# Generate configure file
+# List Source files
 #-----------------------------------------------------------------------------
-CONFIGURE_FILE (${HDF5_SOURCE_DIR}/Resources/H5cxx_config.h.in
-                ${HDF5_BINARY_DIR}/H5cxx_pubconf.h
+INCLUDE_DIRECTORIES (${HDF5_HL_SOURCE_DIR}/src )
+
+SET (HL_SRCS
+    ${HDF5_HL_SRC_SOURCE_DIR}/H5DS.c
+    ${HDF5_HL_SRC_SOURCE_DIR}/H5IM.c
+    ${HDF5_HL_SRC_SOURCE_DIR}/H5LT.c
+    ${HDF5_HL_SRC_SOURCE_DIR}/H5LTanalyze.c
+    ${HDF5_HL_SRC_SOURCE_DIR}/H5LTparse.c
+    ${HDF5_HL_SRC_SOURCE_DIR}/H5PT.c
+    ${HDF5_HL_SRC_SOURCE_DIR}/H5TB.c
+)
+
+SET (HL_HEADERS
+    ${HDF5_HL_SRC_SOURCE_DIR}/H5DSpublic.h
+    ${HDF5_HL_SRC_SOURCE_DIR}/H5IMpublic.h
+    ${HDF5_HL_SRC_SOURCE_DIR}/H5LTparse.h
+    ${HDF5_HL_SRC_SOURCE_DIR}/H5LTpublic.h
+    ${HDF5_HL_SRC_SOURCE_DIR}/H5PTpublic.h
+    ${HDF5_HL_SRC_SOURCE_DIR}/H5TBpublic.h
+    ${HDF5_HL_SRC_SOURCE_DIR}/hdf5_hl.h
+)
+
+ADD_LIBRARY (${HDF5_HL_LIB_NAME} ${LIB_TYPE} ${HL_SRCS} ${HL_HEADERS})
+SET_GLOBAL_VARIABLE (HDF5_LIBRARIES_TO_EXPORT "${HDF5_LIBRARIES_TO_EXPORT};${HDF5_HL_LIB_NAME}")
+TARGET_LINK_LIBRARIES (${HDF5_HL_LIB_NAME} ${HDF5_LIB_NAME})
+H5_SET_LIB_OPTIONS (${HDF5_HL_LIB_NAME} ${HDF5_HL_LIB_NAME} ${LIB_TYPE})
+
+#-----------------------------------------------------------------------------
+# Rules for Installation of headers/etc using make Install target
+#-----------------------------------------------------------------------------
+INSTALL (
+    FILES
+        ${HL_HEADERS}
+    DESTINATION
+        include
 )
 
 #-----------------------------------------------------------------------------
-# Setup Include directories
+# Add library to CMake Install : Installs lib and cmake config info
 #-----------------------------------------------------------------------------
-INCLUDE_DIRECTORIES (${HDF5_CPP_SOURCE_DIR}/src)
-INCLUDE_DIRECTORIES (${HDF5_BINARY_DIR})
-
-#-----------------------------------------------------------------------------
-# Parallel/MPI, prevent spurious cpp/cxx warnings
-#-----------------------------------------------------------------------------
-IF (H5_HAVE_PARALLEL)
-  ADD_DEFINITIONS ("-DMPICH_SKIP_MPICXX")
-  ADD_DEFINITIONS ("-DMPICH_IGNORE_CXX_SEEK")
-ENDIF (H5_HAVE_PARALLEL)
-
-ADD_SUBDIRECTORY (${HDF5_CPP_SOURCE_DIR}/src ${HDF5_CPP_BINARY_DIR}/src)
-
-#-----------------------------------------------------------------------------
-# Build the CPP Examples
-#-----------------------------------------------------------------------------
-IF (HDF5_BUILD_EXAMPLES)
-  ADD_SUBDIRECTORY (${HDF5_CPP_SOURCE_DIR}/examples ${HDF5_CPP_BINARY_DIR}/examples)
-ENDIF (HDF5_BUILD_EXAMPLES)
-
-#-----------------------------------------------------------------------------
-# Build the CPP unit tests
-#-----------------------------------------------------------------------------
-IF (BUILD_TESTING)
-  ADD_SUBDIRECTORY (${HDF5_CPP_SOURCE_DIR}/test ${HDF5_CPP_BINARY_DIR}/test)
-ENDIF (BUILD_TESTING)
+INSTALL (
+    TARGETS
+        ${HDF5_HL_LIB_NAME}
+    EXPORT
+        ${HDF5_EXPORTED_TARGETS}
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+)

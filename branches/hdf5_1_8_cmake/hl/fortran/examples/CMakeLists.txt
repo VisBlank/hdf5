@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.8)
-PROJECT (HDF5_HL_EXAMPLES )
+PROJECT (HDF5_HL_F90_EXAMPLES C CXX Fortran)
 
 #-----------------------------------------------------------------------------
 # Setup output Directories
@@ -19,32 +19,19 @@ IF (NOT HDF5_EXTERNALLY_CONFIGURED)
   )
 ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED)
 
+#-----------------------------------------------------------------------------
+# Fortran support is best served using cmake 2.8.0
+#-----------------------------------------------------------------------------
+CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
+
+INCLUDE_DIRECTORIES (${HDF5_SRC_DIR} ${HDF5_FORTRAN_SOURCE_DIR})
+LINK_DIRECTORIES (${HDF5_SRC_DIR} ${HDF5_FORTRAN_SOURCE_DIR} ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+
 SET (examples
-    ex_lite1
-    ex_lite2
-    ex_lite3
-    ptExampleFL
-    ptExampleVL
-    ex_image1
-    ex_image2
-    ex_table_01
-    ex_table_02
-    ex_table_03
-    ex_table_04
-    ex_table_05
-    ex_table_06
-    ex_table_07
-    ex_table_08
-    ex_table_09
-    ex_table_10
-    ex_table_11
-    ex_table_12
-    ex_ds1
+    exlite
 )
 
 FOREACH (example ${examples})
-  ADD_EXECUTABLE (hl_ex_${example} ${HDF5_HL_EXAMPLES_SOURCE_DIR}/${example}.c)
-  TARGET_LINK_LIBRARIES (hl_ex_${example} ${HDF5_HL_LIB_NAME} ${HDF5_LIB_NAME})
+  ADD_EXECUTABLE (hl_f90_ex_${example} ${HDF5_HL_EXAMPLES_SOURCE_DIR}/${example}.f90)
+  TARGET_LINK_LIBRARIES (hl_f90_ex_${example} ${HDF5_HL_F90_LIB_NAME})
 ENDFOREACH (example ${examples})
-
-

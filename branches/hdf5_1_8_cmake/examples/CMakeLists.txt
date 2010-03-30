@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.8)
-PROJECT (HDF5_HL_EXAMPLES )
+PROJECT (HDF5_EXAMPLES)
 
 #-----------------------------------------------------------------------------
 # Setup output Directories
@@ -20,31 +20,29 @@ IF (NOT HDF5_EXTERNALLY_CONFIGURED)
 ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED)
 
 SET (examples
-    ex_lite1
-    ex_lite2
-    ex_lite3
-    ptExampleFL
-    ptExampleVL
-    ex_image1
-    ex_image2
-    ex_table_01
-    ex_table_02
-    ex_table_03
-    ex_table_04
-    ex_table_05
-    ex_table_06
-    ex_table_07
-    ex_table_08
-    ex_table_09
-    ex_table_10
-    ex_table_11
-    ex_table_12
-    ex_ds1
+    h5_write
+    h5_read
+    h5_extend_write
+    h5_chunk_read
+    h5_compound
+    h5_group
+    h5_select
+    h5_attribute
+    h5_mount
+    h5_reference
+    h5_drivers
+    h5_ref2reg
+    h5_extlink
+    h5_elink_unix2win
+    h5_shared_mesg
 )
 
 FOREACH (example ${examples})
-  ADD_EXECUTABLE (hl_ex_${example} ${HDF5_HL_EXAMPLES_SOURCE_DIR}/${example}.c)
-  TARGET_LINK_LIBRARIES (hl_ex_${example} ${HDF5_HL_LIB_NAME} ${HDF5_LIB_NAME})
+  ADD_EXECUTABLE (${example} ${HDF5_EXAMPLES_SOURCE_DIR}/${example}.c)
+  TARGET_LINK_LIBRARIES (${example} ${HDF5_LIB_NAME})
 ENDFOREACH (example ${examples})
 
-
+IF (H5_HAVE_PARALLEL)
+  ADD_EXECUTABLE (ph5example ${HDF5_EXAMPLES_SOURCE_DIR}/ph5example.c)
+  TARGET_LINK_LIBRARIES (ph5example ${HDF5_LIB_NAME})
+ENDIF (H5_HAVE_PARALLEL)
