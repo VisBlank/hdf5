@@ -57,27 +57,10 @@ SET (HDF5_HL_CPP_LIB_NAME       "hdf5_hl_cpp")
 SET (HDF5_TOOLS_LIB_NAME        "h5tools")
 SET (HDF5_F90_LIB_NAME          "hdf5_fortran")
 SET (HDF5_F90_C_LIB_NAME        "hdf5_f90CStub")
-SET (HDF5_F90_C_TEST_LIB_NAME   "hdf5_f90Ctest")
+SET (HDF5_F90_TEST_LIB_NAME     "hdf5_test_fortran")
+SET (HDF5_F90_C_TEST_LIB_NAME   "hdf5_test_f90CStub")
 SET (HDF5_HL_F90_LIB_NAME       "hdf5_hl_fortran")
 SET (HDF5_HL_F90_C_LIB_NAME     "hdf5_hl_f90CStub")
-
-#-----------------------------------------------------------------------------
-# Setup output Directories
-#-----------------------------------------------------------------------------
-IF (NOT HDF5_EXTERNALLY_CONFIGURED)
-  SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all Executables."
-  )
-  SET (CMAKE_LIBRARY_OUTPUT_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all Libraries"
-  )
-  SET (CMAKE_ARCHIVE_OUTPUT_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all static libraries."
-  )
-  SET (CMAKE_Fortran_MODULE_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin/fortran CACHE PATH "Single Directory for all fortran modules."
-  )
-ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED)
 
 #-----------------------------------------------------------------------------
 # Define some CMake variables for use later in the project
@@ -96,6 +79,30 @@ SET (HDF5_F90_SOURCE_DIR     ${HDF5_SOURCE_DIR}/fortran)
 # Include some macros for reusable code
 #-----------------------------------------------------------------------------
 INCLUDE (${HDF5_RESOURCES_DIR}/HDF5Macros.cmake)
+
+#-----------------------------------------------------------------------------
+# Setup output Directories
+#-----------------------------------------------------------------------------
+IF (NOT HDF5_EXTERNALLY_CONFIGURED)
+  SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY
+      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all Executables."
+  )
+  SET (CMAKE_LIBRARY_OUTPUT_DIRECTORY
+      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all Libraries"
+  )
+  SET (CMAKE_ARCHIVE_OUTPUT_DIRECTORY
+      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all static libraries."
+  )
+  SET (CMAKE_Fortran_MODULE_DIRECTORY
+      ${PROJECT_BINARY_DIR}/bin/fortran CACHE PATH "Single Directory for all fortran modules."
+  )
+ELSE (NOT HDF5_EXTERNALLY_CONFIGURED)
+  # if we are externally configured, but the project uses old cmake scripts
+  # this may not be set and utilities like H5detect will fail
+  IF (NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+    SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
+  ENDIF (NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+ENDIF(NOT HDF5_EXTERNALLY_CONFIGURED)
 
 #-----------------------------------------------------------------------------
 # Targets built within this project are exported at Install time for use
@@ -126,12 +133,30 @@ SET (LIB_TYPE STATIC)
 IF (BUILD_SHARED_LIBS)
   SET (LIB_TYPE SHARED)
   SET (H5_BUILT_AS_DYNAMIC_LIB 1)
+  SET (LIBPOSTFIX "")
 ELSE (BUILD_SHARED_LIBS)
   IF (NOT WIN32)
     # should this be a user setting : Everyone uses it anyway ?
     ADD_DEFINITIONS(-DPIC)
   ENDIF (NOT WIN32)
+  SET (LIBPOSTFIX "")
 ENDIF (BUILD_SHARED_LIBS)
+
+#-----------------------------------------------------------------------------
+# Set the target names of all the libraries
+#-----------------------------------------------------------------------------
+SET (HDF5_LIB_TARGET              ${HDF5_LIB_NAME}${LIBPOSTFIX})
+SET (HDF5_TEST_LIB_TARGET         ${HDF5_TEST_LIB_NAME}${LIBPOSTFIX})
+SET (HDF5_CPP_LIB_TARGET          ${HDF5_CPP_LIB_NAME}${LIBPOSTFIX})
+SET (HDF5_HL_LIB_TARGET           ${HDF5_HL_LIB_NAME}${LIBPOSTFIX})
+SET (HDF5_HL_CPP_LIB_TARGET       ${HDF5_HL_CPP_LIB_NAME}${LIBPOSTFIX})
+SET (HDF5_TOOLS_LIB_TARGET        ${HDF5_TOOLS_LIB_NAME}${LIBPOSTFIX})
+SET (HDF5_F90_LIB_TARGET          ${HDF5_F90_LIB_NAME}${LIBPOSTFIX})
+SET (HDF5_F90_C_LIB_TARGET        ${HDF5_F90_C_LIB_NAME}${LIBPOSTFIX})
+SET (HDF5_F90_TEST_LIB_TARGET     ${HDF5_F90_TEST_LIB_NAME}${LIBPOSTFIX})
+SET (HDF5_F90_C_TEST_LIB_TARGET   ${HDF5_F90_C_TEST_LIB_NAME}${LIBPOSTFIX})
+SET (HDF5_HL_F90_LIB_TARGET       ${HDF5_HL_F90_LIB_NAME}${LIBPOSTFIX})
+SET (HDF5_HL_F90_C_LIB_TARGET     ${HDF5_HL_F90_C_LIB_NAME}${LIBPOSTFIX})
 
 #-----------------------------------------------------------------------------
 # Include the main src and config directories
@@ -142,6 +167,27 @@ SET (HDF5_INCLUDE_DIRECTORIES
     ${HDF5_BINARY_DIR}
 )
 INCLUDE_DIRECTORIES (${HDF5_INCLUDE_DIRECTORIES})
+
+#-----------------------------------------------------------------------------
+# When building utility executables that generate other (source) files :
+# we make use of the following variables defined in the root CMakeLists.
+# Certain systems may add /Debug or /Release to output paths
+# and we need to call the executable from inside the CMake configuration
+#-----------------------------------------------------------------------------
+SET (EXE_EXT "")
+IF (WIN32)
+  SET (EXE_EXT ".exe")
+ENDIF (WIN32)
+
+SET (MAKE_SYSTEM)
+IF (CMAKE_BUILD_TOOL MATCHES "make")
+  SET (MAKE_SYSTEM 1)
+ENDIF (CMAKE_BUILD_TOOL MATCHES "make")
+
+SET (CFG_INIT "/${CMAKE_CFG_INTDIR}")
+IF (MAKE_SYSTEM)
+  SET (CFG_INIT "")
+ENDIF (MAKE_SYSTEM)
 
 #-----------------------------------------------------------------------------
 # Add some definitions for Debug Builds

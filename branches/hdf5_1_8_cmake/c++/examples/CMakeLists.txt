@@ -7,22 +7,8 @@ cmake_minimum_required (VERSION 2.8)
 PROJECT (HDF5_CPP_EXAMPLES)
 
 #-----------------------------------------------------------------------------
-# Setup output Directories
+# Define examples
 #-----------------------------------------------------------------------------
-IF (NOT HDF5_EXTERNALLY_CONFIGURED)
-  SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all Executables."
-  )
-  SET (CMAKE_LIBRARY_OUTPUT_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all Libraries"
-  )
-  SET (CMAKE_ARCHIVE_OUTPUT_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all static libraries."
-  )
-  SET (CMAKE_Fortran_MODULE_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin/fortran CACHE PATH "Single Directory for all fortran modules."
-  )
-ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED)
 
 SET (examples
     create
@@ -36,5 +22,5 @@ SET (examples
 
 FOREACH (example ${examples})
   ADD_EXECUTABLE (cpp_ex_${example} ${HDF5_CPP_EXAMPLES_SOURCE_DIR}/${example}.cpp)
-  TARGET_LINK_LIBRARIES (cpp_ex_${example} ${HDF5_CPP_LIB_NAME} ${HDF5_LIB_NAME})
+  TARGET_LINK_LIBRARIES (cpp_ex_${example} ${HDF5_CPP_LIB_TARGET} ${HDF5_LIB_TARGET})
 ENDFOREACH (example ${examples})

@@ -2,23 +2,8 @@ cmake_minimum_required (VERSION 2.8)
 PROJECT (HDF5_HL_TOOLS)
 
 #-----------------------------------------------------------------------------
-# Setup output Directories
+# Define Sources
 #-----------------------------------------------------------------------------
-IF (NOT HDF5_EXTERNALLY_CONFIGURED)
-  SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all Executables."
-  )
-  SET (CMAKE_LIBRARY_OUTPUT_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all Libraries"
-  )
-  SET (CMAKE_ARCHIVE_OUTPUT_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all static libraries."
-  )
-  SET (CMAKE_Fortran_MODULE_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin/fortran CACHE PATH "Single Directory for all fortran modules."
-  )
-ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED)
-
 SET (GIF2H5_SRCS
     ${HDF5_HL_TOOLS_SOURCE_DIR}/gif2h5/gif.h
     ${HDF5_HL_TOOLS_SOURCE_DIR}/gif2h5/decompress.c
@@ -33,7 +18,7 @@ SET (GIF2H5_SRCS
 INCLUDE_DIRECTORIES (${HDF5_TOOLS_SOURCE_DIR}/lib)
 INCLUDE_DIRECTORIES (${HDF5_HL_TOOLS_SOURCE_DIR}/gif2h5)
 ADD_EXECUTABLE (gif2h5 ${GIF2H5_SRCS})
-TARGET_LINK_LIBRARIES (gif2h5 ${HDF5_HL_LIB_NAME} ${HDF5_LIB_NAME} ${HDF5_TOOLS_LIB_NAME})
+TARGET_LINK_LIBRARIES (gif2h5 ${HDF5_HL_LIB_TARGET} ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
 
 #-- Add h52gif program
 SET (hdf2gif_SRCS
@@ -42,7 +27,7 @@ SET (hdf2gif_SRCS
     ${HDF5_HL_TOOLS_SOURCE_DIR}/gif2h5/hdfgifwr.c
 )
 ADD_EXECUTABLE (hdf2gif ${hdf2gif_SRCS})
-TARGET_LINK_LIBRARIES (hdf2gif ${HDF5_HL_LIB_NAME} ${HDF5_LIB_NAME} ${HDF5_TOOLS_LIB_NAME})
+TARGET_LINK_LIBRARIES (hdf2gif ${HDF5_HL_LIB_TARGET} ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
 
 #--- Set up the installation Code for Make Install
 INSTALL (
@@ -59,7 +44,7 @@ INSTALL (
 # --------------------------------------------------------------------
 IF (BUILD_TESTING)
     ADD_EXECUTABLE (hl_h52gifgentest ${HDF5_HL_TOOLS_SOURCE_DIR}/gif2h5/h52gifgentst.c)
-    TARGET_LINK_LIBRARIES (hl_h52gifgentest ${HDF5_HL_LIB_NAME} ${HDF5_LIB_NAME})
+    TARGET_LINK_LIBRARIES (hl_h52gifgentest ${HDF5_HL_LIB_TARGET} ${HDF5_LIB_TARGET})
    # ADD_TEST (hl_h52gifgentest ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/hl_h52gifgentest)
 ENDIF (BUILD_TESTING)
 

@@ -2,24 +2,6 @@ cmake_minimum_required (VERSION 2.8)
 PROJECT (HDF5_HL)
 
 #-----------------------------------------------------------------------------
-# Setup output Directories
-#-----------------------------------------------------------------------------
-IF (NOT HDF5_EXTERNALLY_CONFIGURED)
-  SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all Executables."
-  )
-  SET (CMAKE_LIBRARY_OUTPUT_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all Libraries"
-  )
-  SET (CMAKE_ARCHIVE_OUTPUT_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all static libraries."
-  )
-  SET (CMAKE_Fortran_MODULE_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin/fortran CACHE PATH "Single Directory for all fortran modules."
-  )
-ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED)
-
-#-----------------------------------------------------------------------------
 # Shared Libs
 #-----------------------------------------------------------------------------
 IF (BUILD_SHARED_LIBS)

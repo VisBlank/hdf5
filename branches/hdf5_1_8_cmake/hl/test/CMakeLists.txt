@@ -10,24 +10,6 @@ cmake_minimum_required (VERSION 2.8)
 PROJECT (HDF5_HL_TEST)
 
 #-----------------------------------------------------------------------------
-# Setup output Directories
-#-----------------------------------------------------------------------------
-IF (NOT HDF5_EXTERNALLY_CONFIGURED)
-  SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all Executables."
-  )
-  SET (CMAKE_LIBRARY_OUTPUT_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all Libraries"
-  )
-  SET (CMAKE_ARCHIVE_OUTPUT_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all static libraries."
-  )
-  SET (CMAKE_Fortran_MODULE_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin/fortran CACHE PATH "Single Directory for all fortran modules."
-  )
-ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED)
-
-#-----------------------------------------------------------------------------
 # Generate the H5srcdir_str.h file containing user settings needed by compilation
 #-----------------------------------------------------------------------------
 SET (srdir ${CMAKE_CURRENT_SOURCE_DIR})
@@ -43,9 +25,9 @@ MACRO (HL_ADD_TEST hl_name files)
   ADD_EXECUTABLE (hl_${hl_name} ${hl_name}.c)
   TARGET_LINK_LIBRARIES (
       hl_${hl_name}
-      ${HDF5_HL_LIB_NAME}
-      ${HDF5_LIB_NAME}
-      ${HDF5_TEST_LIB_NAME}
+      ${HDF5_HL_LIB_TARGET}
+      ${HDF5_LIB_TARGET}
+      ${HDF5_TEST_LIB_TARGET}
   )
   ADD_TEST (hl_${hl_name} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/hl_${hl_name})
 
@@ -76,8 +58,8 @@ HL_ADD_TEST (test_table "test_table_be.hdf5;test_table_cray.hdf5;test_table_le.h
 # --------------------------------------------------------------------
 ADD_EXECUTABLE (hl_gen_test_ds gen_test_ds.c)
 TARGET_LINK_LIBRARIES (hl_gen_test_ds
-    ${HDF5_HL_LIB_NAME}
-    ${HDF5_LIB_NAME}
-    ${HDF5_TEST_LIB_NAME}
+    ${HDF5_HL_LIB_TARGET}
+    ${HDF5_LIB_TARGET}
+    ${HDF5_TEST_LIB_TARGET}
 )
 

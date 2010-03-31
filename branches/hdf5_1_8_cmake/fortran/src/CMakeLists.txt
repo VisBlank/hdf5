@@ -2,30 +2,16 @@ cmake_minimum_required (VERSION 2.8)
 PROJECT (HDF5_F90_SRC C CXX Fortran)
 
 #-----------------------------------------------------------------------------
-# Setup output Directories
+# When building utility executables that generate other (source) files :
+# we make use of the following variables defined in the root CMakeLists.
+# Certain systems may add /Debug or /Release to output paths
+# and we need to call the executable from inside the CMake configuration
 #-----------------------------------------------------------------------------
-IF (NOT HDF5_EXTERNALLY_CONFIGURED)
-  SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all Executables."
-  )
-  SET (CMAKE_LIBRARY_OUTPUT_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all Libraries"
-  )
-  SET (CMAKE_ARCHIVE_OUTPUT_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all static libraries."
-  )
-  SET (CMAKE_Fortran_MODULE_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin/fortran CACHE PATH "Single Directory for all fortran modules."
-  )
-ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED)
+#inherit EXE_EXT     from parent HDF5 cmake project
+#inherit CFG_INIT    from parent HDF5 cmake project
 
 #-----------------------------------------------------------------------------
-# Fortran support is best served using cmake 2.8.0
-#-----------------------------------------------------------------------------
-CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
-
-#-----------------------------------------------------------------------------
-# List Source files
+# Auto-generated files will be placed and included from here
 #-----------------------------------------------------------------------------
 INCLUDE_DIRECTORIES (${HDF5_F90_BINARY_DIR})
 
@@ -116,8 +102,8 @@ ENDIF (H5_HAVE_PARALLEL)
 
 SET_SOURCE_FILES_PROPERTIES (${f90CStub_C_SRCS} PROPERTIES LANGUAGE C)
 
-ADD_LIBRARY (${HDF5_F90_C_LIB_NAME} ${f90CStub_C_SRCS})
-TARGET_LINK_LIBRARIES (${HDF5_F90_C_LIB_NAME} hdf5)
+ADD_LIBRARY (${HDF5_F90_C_LIB_TARGET} ${f90CStub_C_SRCS})
+TARGET_LINK_LIBRARIES (${HDF5_F90_C_LIB_TARGET} hdf5)
 
 #-----------------------------------------------------------------------------
 # Fortran Real Size
@@ -133,15 +119,11 @@ ENDIF (FORTRAN_DEFAULT_REAL_NOT_DOUBLE)
 #-----------------------------------------------------------------------------
 # Fortran Modules
 #-----------------------------------------------------------------------------
-IF (H5_HAVE_PARALLEL)
-  SET (H5FC_NAME h5pfc)
-ELSE (H5_HAVE_PARALLEL)
-  SET (H5FC_NAME h5fc)
-ENDIF (H5_HAVE_PARALLEL)
-
-#-----------------------------------------------------------------------------
 SET (f90_F_SRCS
+    # generated files
     ${HDF5_F90_BINARY_DIR}/H5fortran_types.f90
+
+    # normal distribution
     ${HDF5_F90_SRC_SOURCE_DIR}/H5f90global.f90
     ${HDF5_F90_SRC_SOURCE_DIR}/H5_ff.f90
     ${HDF5_F90_SRC_SOURCE_DIR}/H5_DBLE_Interface${F_DBLE}.f90
@@ -159,26 +141,29 @@ SET (f90_F_SRCS
     ${HDF5_F90_SRC_SOURCE_DIR}/H5Tff.f90
     ${HDF5_F90_SRC_SOURCE_DIR}/H5Zff.f90
 )
+
 #-----------------------------------------------------------------------------
-# Force dependencies between libs to ensure build order is ok
-#-----------------------------------------------------------------------------
+# Add H5FDMPIO if parallel
 #-----------------------------------------------------------------------------
 IF (H5_HAVE_PARALLEL)
-  ADD_LIBRARY (H5FDMPIO STATIC ${HDF5_F90_SRC_SOURCE_DIR}/H5FDmpioff.f90)
-  ADD_DEPENDENCIES (H5FDMPIO H5GLOBAL)
-  SET (HDF5MODULE_SRC
-      ${HDF5_F90_SRC_SOURCE_DIR}/HDF5mpio.f90
+  SET (f90_F_SRCS
+    ${f90_F_SRCS}
+    ${HDF5_F90_SRC_SOURCE_DIR}/HDF5mpio.f90
+    ${HDF5_F90_SRC_SOURCE_DIR}/H5FDmpioff.f90
   )
-  SET (HDF5_DEPENDS H5FDMPIO)
 ELSE (H5_HAVE_PARALLEL)
-  SET (HDF5MODULE_SRC
-      ${HDF5_F90_SRC_SOURCE_DIR}/HDF5.f90
+  SET (f90_F_SRCS
+    ${f90_F_SRCS}
+    ${HDF5_F90_SRC_SOURCE_DIR}/HDF5.f90
   )
-  SET (HDF5_DEPENDS "")
 ENDIF (H5_HAVE_PARALLEL)
+
 #-----------------------------------------------------------------------------
-ADD_LIBRARY (${HDF5_F90_LIB_NAME} STATIC ${HDF5MODULE_SRC} ${f90_F_SRCS})
+# Add Main fortran library
+#-----------------------------------------------------------------------------
+ADD_LIBRARY (${HDF5_F90_LIB_TARGET} STATIC ${f90_F_SRCS})
+TARGET_LINK_LIBRARIES (${HDF5_F90_LIB_TARGET} ${HDF5_F90_C_LIB_TARGET})
+
 SET_GLOBAL_VARIABLE (HDF5_LIBRARIES_TO_EXPORT
-    "${HDF5_LIBRARIES_TO_EXPORT};${HDF5_F90_LIB_NAME};${HDF5_F90_C_LIB_NAME}"
+    "${HDF5_LIBRARIES_TO_EXPORT};${HDF5_F90_LIB_TARGET};${HDF5_F90_C_LIB_TARGET}"
 )
-ADD_DEPENDENCIES (${HDF5_F90_LIB_NAME} ${HDF5_F90_C_LIB_NAME})

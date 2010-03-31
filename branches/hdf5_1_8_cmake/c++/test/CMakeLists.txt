@@ -10,38 +10,8 @@ cmake_minimum_required (VERSION 2.8)
 PROJECT (HDF5_CPP_TEST)
 
 #-----------------------------------------------------------------------------
-# Setup output Directories
+# Define Sources
 #-----------------------------------------------------------------------------
-IF (NOT HDF5_EXTERNALLY_CONFIGURED)
-  SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all Executables."
-  )
-  SET (CMAKE_LIBRARY_OUTPUT_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all Libraries"
-  )
-  SET (CMAKE_ARCHIVE_OUTPUT_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all static libraries."
-  )
-  SET (CMAKE_Fortran_MODULE_DIRECTORY
-      ${PROJECT_BINARY_DIR}/bin/fortran CACHE PATH "Single Directory for all fortran modules."
-  )
-ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED)
-
-#-----------------------------------------------------------------------------
-# Setup output Directories
-#-----------------------------------------------------------------------------
-IF (NOT HDF5_EXTERNALLY_CONFIGURED)
-  SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY
-      ${HDF5_BINARY_DIR}/tests CACHE PATH "Single Directory for all Executables."
-  )
-  SET (CMAKE_LIBRARY_OUTPUT_DIRECTORY
-      ${HDF5_BINARY_DIR}/tests CACHE PATH "Single Directory for all Libraries"
-  )
-  SET (CMAKE_ARCHIVE_OUTPUT_DIRECTORY
-      ${HDF5_BINARY_DIR}/tests CACHE PATH "Single Directory for all static libraries."
-  )
-ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED)
-
 SET (CPP_TEST_SRCS
     ${HDF5_CPP_TEST_SOURCE_DIR}/testhdf5.cpp
     ${HDF5_CPP_TEST_SOURCE_DIR}/tattr.cpp
@@ -68,8 +38,8 @@ INCLUDE_DIRECTORIES (${HDF5_TEST_SOURCE_DIR} )
 
 ADD_EXECUTABLE (cpp_testhdf5 ${CPP_TEST_SRCS} )
 TARGET_LINK_LIBRARIES (cpp_testhdf5
-    ${HDF5_CPP_LIB_NAME}
-    ${HDF5_LIB_NAME}
-    ${HDF5_TEST_LIB_NAME}
+    ${HDF5_CPP_LIB_TARGET}
+    ${HDF5_LIB_TARGET}
+    ${HDF5_TEST_LIB_TARGET}
 )
 ADD_TEST (cpp_testhdf5 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/cpp_testhdf5)
