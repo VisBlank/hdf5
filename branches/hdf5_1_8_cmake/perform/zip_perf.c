@@ -41,10 +41,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#if defined(H5_HAVE_UNISTD_H)
+#ifdef H5_HAVE_UNISTD_H
 #  include <unistd.h>
-#else
-#  include <io.h>
 #endif
 
 /* our header files */
