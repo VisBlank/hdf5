@@ -1716,9 +1716,6 @@ test_select_hyper_contig_dr__run_test(int test_num, const uint16_t *cube_buf,
 
     HDassert(large_cube_size < (size_t)UINT_MAX);
 
-    /* we also use integer counters -- thus: */
-    HDassert(large_cube_size < (size_t)INT_MAX);
-
     /* set up the start, stride, count, and block pointers */
     start_ptr  = &(start[SS_DR_MAX_RANK - large_rank]);
     stride_ptr = &(stride[SS_DR_MAX_RANK - large_rank]);
@@ -2409,246 +2406,184 @@ test_select_hyper_contig_dr(hid_t dset_type, hid_t xfer_plist)
 ****************************************************************/
 static void
 test_select_hyper_checker_board_dr__select_checker_board(hid_t tgt_n_cube_sid,
-                                                         int tgt_n_cube_rank,
-                                                         int edge_size,
-                                                         int checker_edge_size,
-                                                         int sel_rank,
-                                                         hsize_t sel_start[])
+    int tgt_n_cube_rank, int edge_size, int checker_edge_size,
+    int sel_rank, hsize_t sel_start[])
 {
     hbool_t		first_selection = TRUE;
-    int                 i, j, k, l, m;
     int			n_cube_offset;
     int			sel_offset;
-    const int		test_max_rank = 5;  /* must update code if this changes */
+    const unsigned	test_max_rank = 5;  /* must update code if this changes */
     hsize_t		base_count;
     hsize_t             offset_count;
-    hsize_t     	start[SS_DR_MAX_RANK];
-    hsize_t     	stride[SS_DR_MAX_RANK];
-    hsize_t     	count[SS_DR_MAX_RANK];
-    hsize_t     	block[SS_DR_MAX_RANK];
+    hsize_t     	start[SS_DR_MAX_RANK];  /* Offset of hyperslab selection */
+    hsize_t     	stride[SS_DR_MAX_RANK]; /* Stride of hyperslab selection */
+    hsize_t     	count[SS_DR_MAX_RANK];  /* Count of hyperslab selection */
+    hsize_t     	block[SS_DR_MAX_RANK];  /* Block size of hyperslab selection */
+    int                 i, j, k, l, m;  /* Local index variable */
+    unsigned            u;              /* Local index variables */
     herr_t      	ret;            /* Generic return value */
 
-    HDassert( edge_size >= 6 );
-    HDassert( 0 < checker_edge_size );
-    HDassert( checker_edge_size <= edge_size );
-    HDassert( 0 < sel_rank );
-    HDassert( sel_rank <= tgt_n_cube_rank );
-    HDassert( tgt_n_cube_rank <= test_max_rank );
-    HDassert( test_max_rank <= SS_DR_MAX_RANK );
+    HDassert(edge_size >= 6);
+    HDassert(0 < checker_edge_size);
+    HDassert(checker_edge_size <= edge_size);
+    HDassert(0 < sel_rank);
+    HDassert(sel_rank <= tgt_n_cube_rank);
+    HDassert(tgt_n_cube_rank <= test_max_rank);
+    HDassert(test_max_rank <= SS_DR_MAX_RANK);
 
     sel_offset = test_max_rank - sel_rank;
-    HDassert( sel_offset >= 0 );
+    HDassert(sel_offset >= 0);
 
     n_cube_offset = test_max_rank - tgt_n_cube_rank;
-    HDassert( n_cube_offset >= 0 );
-    HDassert( n_cube_offset <= sel_offset );
+    HDassert(n_cube_offset >= 0);
+    HDassert(n_cube_offset <= sel_offset);
 
     /* First, compute the base count (which assumes start == 0
      * for the associated offset) and offset_count (which
      * assumes start == checker_edge_size for the associated
      * offset).
-     *
-     * Note that the following computation depends on the C99
-     * requirement that integer division discard any fraction
-     * (truncation towards zero) to function correctly. As we
-     * now require C99, this shouldn't be a problem, but noting
-     * it may save us some pain if we are ever obliged to support
-     * pre-C99 compilers again.
      */
-
     base_count = edge_size / (checker_edge_size * 2);
-
-    if ( (edge_size % (checker_edge_size * 2)) > 0 ) {
-
+    if((edge_size % (checker_edge_size * 2)) > 0)
         base_count++;
-    }
 
     offset_count = (edge_size - checker_edge_size) / (checker_edge_size * 2);
-
-    if ( ((edge_size - checker_edge_size) % (checker_edge_size * 2)) > 0 ) {
-
+    if(((edge_size - checker_edge_size) % (checker_edge_size * 2)) > 0)
         offset_count++;
-    }
 
     /* Now set up the stride and block arrays, and portions of the start
      * and count arrays that will not be altered during the selection of 
      * the checker board.
      */
-    i = 0;
-    while ( i < n_cube_offset ) {
-
+    u = 0;
+    while(u < n_cube_offset) {
         /* these values should never be used */
-        start[i] = 0;
-        stride[i] = 0;
-        count[i] = 0;
-        block[i] = 0;
+        start[u] = 0;
+        stride[u] = 0;
+        count[u] = 0;
+        block[u] = 0;
 
-        i++;
-    }
+        u++;
+    } /* end while */
 
-    while ( i < sel_offset ) {
+    while(u < sel_offset) {
+        start[u] = sel_start[u];
+        stride[u] = 2 * edge_size;
+        count[u] = 1;
+        block[u] = 1;
 
-        start[i] = sel_start[i];
-        stride[i] = 2 * edge_size;
-        count[i] = 1;
-        block[i] = 1;
+        u++;
+    } /* end while */
 
-        i++;
-    }
+    while(u < test_max_rank) {
+        stride[u] = 2 * checker_edge_size;
+        block[u] = checker_edge_size;
 
-    while ( i < test_max_rank ) {
-
-        stride[i] = 2 * checker_edge_size;
-        block[i] = checker_edge_size;
-
-        i++;
-    }
+        u++;
+    } /* end while */
    
     i = 0;
     do {
-        if ( 0 >= sel_offset ) {
-
-            if ( i == 0 ) {
-
+        if(0 >= sel_offset) {
+            if(i == 0) {
                 start[0] = 0;
                 count[0] = base_count;
-
-            } else {
-
+            } /* end if */
+            else {
                 start[0] = checker_edge_size;
                 count[0] = offset_count;
-
-            }
-        }
+            } /* end else */
+        } /* end if */
 
         j = 0;
         do { 
-            if ( 1 >= sel_offset ) {
-
-                if ( j == 0 ) {
-
+            if(1 >= sel_offset) {
+                if(j == 0 ) {
                     start[1] = 0;
                     count[1] = base_count;
-
-                } else {
-
+                } /* end if */
+                else {
                     start[1] = checker_edge_size;
                     count[1] = offset_count;
-
-                }
-            }
+                } /* end else */
+            } /* end if */
 
             k = 0;
             do {
-                if ( 2 >= sel_offset ) {
-
-                    if ( k == 0 ) {
-
+                if(2 >= sel_offset) {
+                    if(k == 0) {
                         start[2] = 0;
                         count[2] = base_count;
-
-                    } else {
-
+                    } /* end if */
+                    else {
                         start[2] = checker_edge_size;
                         count[2] = offset_count;
-
-                    }
-                }
+                    } /* end else */
+                } /* end if */
 
                 l = 0;
                 do {
-                    if ( 3 >= sel_offset ) {
-
-                        if ( l == 0 ) {
-
+                    if(3 >= sel_offset) {
+                        if(l == 0) {
                             start[3] = 0;
                             count[3] = base_count;
-
-                        } else {
-
+                        } /* end if */
+                        else {
                             start[3] = checker_edge_size;
                             count[3] = offset_count;
-
-                        }
-                    }
+                        } /* end else */
+                    } /* end if */
 
                     m = 0;
                     do {
-                        if ( 4 >= sel_offset ) {
-
-                            if ( m == 0 ) {
-
+                        if(4 >= sel_offset) {
+                            if(m == 0) {
                                 start[4] = 0;
                                 count[4] = base_count;
-
-                            } else {
-
+                            } /* end if */
+                            else {
                                 start[4] = checker_edge_size;
                                 count[4] = offset_count;
+                            } /* end else */
+                        } /* end if */
 
-                            }
-                        }
-
-                        if ( ((i + j + k + l + m) % 2) == 0 ) {
-
-                            if ( first_selection ) {
-
+                        if(((i + j + k + l + m) % 2) == 0) {
+                            if(first_selection) {
                                 first_selection = FALSE; 
 
-                                ret = H5Sselect_hyperslab
-                                      (
-                                        tgt_n_cube_sid, 
+                                ret = H5Sselect_hyperslab(tgt_n_cube_sid, 
                                         H5S_SELECT_SET,
                                         &(start[n_cube_offset]), 
                                         &(stride[n_cube_offset]), 
                                         &(count[n_cube_offset]), 
-                                        &(block[n_cube_offset])
-                                      );
-    
+                                        &(block[n_cube_offset]));
                                 CHECK(ret, FAIL, "H5Sselect_hyperslab");
-
-                            } else {
-
-                                ret = H5Sselect_hyperslab
-                                      (
-                                        tgt_n_cube_sid, 
+                            } /* end if */
+                            else {
+                                ret = H5Sselect_hyperslab(tgt_n_cube_sid, 
                                         H5S_SELECT_OR,
                                         &(start[n_cube_offset]), 
                                         &(stride[n_cube_offset]), 
                                         &(count[n_cube_offset]), 
-                                        &(block[n_cube_offset])
-                                      );
-    
+                                        &(block[n_cube_offset]));
                                 CHECK(ret, FAIL, "H5Sselect_hyperslab");
-
-                            }
-                        }
+                            } /* end else */
+                        } /* end if */
 
                         m++;
-
-                    } while ( ( m <= 1 ) &&
-                              ( 4 >= sel_offset ) );
+                    } while((m <= 1) && (4 >= sel_offset));
 
                     l++;
-
-                } while ( ( l <= 1 ) &&
-                          ( 3 >= sel_offset ) );
+                } while((l <= 1) && (3 >= sel_offset));
 
                 k++;
-
-            } while ( ( k <= 1 ) &&
-                      ( 2 >= sel_offset ) );
+            } while((k <= 1) && (2 >= sel_offset));
 
             j++;
-
-        } while ( ( j <= 1 ) &&
-                  ( 1 >= sel_offset ) );
-
+        } while((j <= 1) && (1 >= sel_offset));
 
         i++;
-
-    } while ( ( i <= 1 ) &&
-              ( 0 >= sel_offset ) );
+    } while((i <= 1) && (0 >= sel_offset));
 
 
     /* Wierdness alert:
@@ -2658,21 +2593,15 @@ test_select_hyper_checker_board_dr__select_checker_board(hid_t tgt_n_cube_sid,
      * code to manually clip the selection back to the data space
      * proper.
      */
-
-    for ( i = 0; i < test_max_rank; i++ ) {
-
+    for(i = 0; i < test_max_rank; i++) {
         start[i]  = 0;
         stride[i] = edge_size;
         count[i]  = 1;
         block[i]  = edge_size;
-    }
+    } /* end for */
 
-    ret = H5Sselect_hyperslab(tgt_n_cube_sid, H5S_SELECT_AND,
-                              start, stride, count, block);
+    ret = H5Sselect_hyperslab(tgt_n_cube_sid, H5S_SELECT_AND, start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
-
-    return;
-
 } /* test_select_hyper_checker_board_dr__select_checker_board() */
 
 
@@ -2720,28 +2649,25 @@ test_select_hyper_checker_board_dr__select_checker_board(hid_t tgt_n_cube_sid,
 ****************************************************************/
 static hbool_t
 test_select_hyper_checker_board_dr__verify_data(uint16_t * buf_ptr,
-                                                const int rank,
-                                                const int edge_size,
-                                                const int checker_edge_size,
-                                                uint16_t first_expected_val,
-                                                hbool_t buf_starts_in_checker)
+    int rank, int edge_size, int checker_edge_size, uint16_t first_expected_val,
+    hbool_t buf_starts_in_checker)
 {
     hbool_t good_data = TRUE;
     hbool_t in_checker;
     hbool_t start_in_checker[5];
     uint16_t expected_value;
     uint16_t * val_ptr;
-    int i, j, k, l, m;  /* to track position in n-cube */
-    int v, w, x, y, z;  /* to track position in checker */
-    const int test_max_rank = 5; /* code changes needed if this is increased */
+    int i, j, k, l, m;              /* to track position in n-cube */
+    int v, w, x, y, z;              /* to track position in checker */
+    const int test_max_rank = 5;    /* code changes needed if this is increased */
 
-    HDassert( buf_ptr != NULL );
-    HDassert( 0 < rank );
-    HDassert( rank <= test_max_rank );
-    HDassert( edge_size >= 6 );
-    HDassert( 0 < checker_edge_size );
-    HDassert( checker_edge_size <= edge_size );
-    HDassert( test_max_rank <= SS_DR_MAX_RANK );
+    HDassert(buf_ptr != NULL);
+    HDassert(0 < rank);
+    HDassert(rank <= test_max_rank);
+    HDassert(edge_size >= 6);
+    HDassert(0 < checker_edge_size);
+    HDassert(checker_edge_size <= edge_size);
+    HDassert(test_max_rank <= SS_DR_MAX_RANK);
 
     val_ptr = buf_ptr;
     expected_value = first_expected_val;
@@ -2749,103 +2675,82 @@ test_select_hyper_checker_board_dr__verify_data(uint16_t * buf_ptr,
     i = 0;
     v = 0;
     start_in_checker[0] = buf_starts_in_checker;
-    do
-    {
-        if ( v >= checker_edge_size ) {
-
-            start_in_checker[0] = ! start_in_checker[0];
+    do {
+        if(v >= checker_edge_size) {
+            start_in_checker[0] = !start_in_checker[0];
             v = 0;
-        }
+        } /* end if */
 
         j = 0;
         w = 0;
         start_in_checker[1] = start_in_checker[0];
-        do
-        {
-            if ( w >= checker_edge_size ) {
-
-                start_in_checker[1] = ! start_in_checker[1];
+        do {
+            if(w >= checker_edge_size) {
+                start_in_checker[1] = !start_in_checker[1];
                 w = 0;
-            }
+            } /* end if */
 
             k = 0;
             x = 0;
             start_in_checker[2] = start_in_checker[1];
-            do
-            {
-                if ( x >= checker_edge_size ) {
-
-                    start_in_checker[2] = ! start_in_checker[2];
+            do {
+                if(x >= checker_edge_size) {
+                    start_in_checker[2] = !start_in_checker[2];
                     x = 0;
-                }
+                } /* end if */
 
                 l = 0;
                 y = 0;
                 start_in_checker[3] = start_in_checker[2];
-                do
-                { 
-                    if ( y >= checker_edge_size ) {
-
+                do { 
+                    if(y >= checker_edge_size) {
                         start_in_checker[3] = ! start_in_checker[3];
                         y = 0;
-                    }
+                    } /* end if */
 
                     m = 0;
                     z = 0;
                     in_checker = start_in_checker[3];
-                    do
-                    {
-                        if ( z >= checker_edge_size ) {
-
+                    do {
+                        if(z >= checker_edge_size) {
                             in_checker = ! in_checker;
                             z = 0;
-                        }
+                        } /* end if */
          
-                        if ( in_checker ) {
-                   
-                            if ( *val_ptr != expected_value ) {
-
+                        if(in_checker) {
+                            if(*val_ptr != expected_value)
                                 good_data = FALSE;
-                            }
  
                             /* zero out buffer for re-use */
                             *val_ptr = 0;
-
-                        } else if ( *val_ptr != 0 ) {
-
+                        } /* end if */
+                        else if(*val_ptr != 0) {
                             good_data = FALSE;
  
                             /* zero out buffer for re-use */
                             *val_ptr = 0;
-
-                        }
+                        } /* end if */
 
                         val_ptr++;
                         expected_value++;
+ 
                         m++;
                         z++;
- 
-                    } while ( ( rank >= (test_max_rank - 4) ) &&
-                              ( m < edge_size ) );
+                    } while((rank >= (test_max_rank - 4)) && (m < edge_size));
                     l++;
                     y++;
-                } while ( ( rank >= (test_max_rank - 3) ) &&
-                          ( l < edge_size ) );
+                } while((rank >= (test_max_rank - 3)) && (l < edge_size));
                 k++;
                 x++;
-            } while ( ( rank >= (test_max_rank - 2) ) &&
-                      ( k < edge_size ) );
+            } while((rank >= (test_max_rank - 2)) && (k < edge_size));
             j++;
             w++;
-        } while ( ( rank >= (test_max_rank - 1) ) &&
-                  ( j < edge_size ) );
+        } while((rank >= (test_max_rank - 1)) && (j < edge_size));
         i++;
         v++;
-    } while ( ( rank >= test_max_rank ) &&
-              ( i < edge_size ) );
+    } while((rank >= test_max_rank) && (i < edge_size));
 
     return(good_data);
-
 } /* test_select_hyper_checker_board_dr__verify_data() */
 
 
@@ -2859,17 +2764,10 @@ test_select_hyper_checker_board_dr__verify_data(uint16_t * buf_ptr,
 **
 ****************************************************************/
 static void
-test_select_hyper_checker_board_dr__run_test(const int test_num,
-                                             const int edge_size,
-                                             const int checker_edge_size,
-                                             const int chunk_edge_size,
-                                             const int small_rank,
-                                             const int large_rank,
-                                             hid_t dset_type, 
-                                             hid_t xfer_plist)
+test_select_hyper_checker_board_dr__run_test(int test_num, int edge_size,
+    int checker_edge_size, int chunk_edge_size, int small_rank, int large_rank,
+    hid_t dset_type, hid_t xfer_plist)
 {
-    char		test_desc_0[128];
-    char		test_desc_1[128];
     hbool_t		data_ok;
     hbool_t		start_in_checker[5];
     hbool_t		mis_match;
@@ -2902,63 +2800,53 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
     uint16_t	      * ptr_0;
     uint16_t	      * ptr_1;
     uint16_t	      * ptr_2;
-    size_t              small_cube_size = 1;
-    size_t              large_cube_size = 1;
+    size_t              small_cube_size;    /* Number of elements in small cube */
+    size_t              large_cube_size;    /* Number of elements in large cube */
     hsize_t		dims[SS_DR_MAX_RANK];
     hsize_t		chunk_dims[SS_DR_MAX_RANK];
     hsize_t     	sel_start[SS_DR_MAX_RANK];
     htri_t      	check;          /* Shape comparison return value */
     herr_t      	ret;            /* Generic return value */
 
-    sprintf(test_desc_0, 
-              "\tn-cube slice through m-cube I/O test %d.\n", 
-              test_num);
-    MESSAGE(7, (test_desc_0));
+    MESSAGE(7, ("\tn-cube slice through m-cube I/O test %d.\n", test_num));
+    MESSAGE(7, ("\tranks = %d/%d, edge_size = %d, checker_edge_size = %d, chunk_edge_size = %d.\n", small_rank, large_rank, edge_size, checker_edge_size, chunk_edge_size));
 
-    sprintf(test_desc_1,
-            "\tranks = %d/%d, edge_size = %d, checker_edge_size = %d, chunk_edge_size = %d.\n",
-            small_rank, large_rank, edge_size, checker_edge_size, chunk_edge_size);
-    MESSAGE(7, (test_desc_1));
+    HDassert(edge_size >= 6);
+    HDassert(0 < checker_edge_size);
+    HDassert(checker_edge_size <= edge_size);
+    HDassert(edge_size >= chunk_edge_size);
+    HDassert((chunk_edge_size == 0) || (chunk_edge_size >= 3));
+    HDassert(0 < small_rank);
+    HDassert(small_rank < large_rank);
+    HDassert(large_rank <= test_max_rank);
+    HDassert(test_max_rank <= SS_DR_MAX_RANK);
 
-    HDassert( edge_size >= 6 );
-    HDassert( 0 < checker_edge_size );
-    HDassert( checker_edge_size <= edge_size );
-    HDassert( edge_size >= chunk_edge_size );
-    HDassert( ( chunk_edge_size == 0 ) || ( chunk_edge_size >= 3 ) );
-    HDassert( 0 < small_rank );
-    HDassert( small_rank < large_rank );
-    HDassert( large_rank <= test_max_rank );
-    HDassert( test_max_rank <= SS_DR_MAX_RANK );
-
-    for ( i = 0; i < large_rank; i++ ) {
-
-        if ( i < small_rank ) {
-
+    /* Compute cube sizes */
+    small_cube_size = large_cube_size = (size_t)1;
+    for(i = 0; i < large_rank; i++) {
+        if(i < small_rank)
             small_cube_size *= (size_t)edge_size;
-        }
 
         large_cube_size *= (size_t)edge_size;
-    }
+    } /* end for */
 
-    HDassert( large_cube_size < (size_t)(UINT_MAX) );
+    HDassert(large_cube_size < (size_t)(UINT_MAX));
 
     small_rank_offset = test_max_rank - small_rank;
-    HDassert( small_rank_offset >= 1 );
+    HDassert(small_rank_offset >= 1);
 
     large_rank_offset = test_max_rank - large_rank;
-    HDassert( large_rank_offset >= 0 );
-    HDassert( large_rank_offset < small_rank_offset );
-
-    /* we also use integer counters -- thus: */
-    HDassert( large_cube_size < (size_t)(INT_MAX) );
+    HDassert(large_rank_offset >= 0);
+    HDassert(large_rank_offset < small_rank_offset);
 
     /* also, at present, we use 16 bit values in this test --
      * hence the following assertion.  Delete it if we convert
      * to 32 bit values.
      */
-    HDassert( large_cube_size < (size_t)(UINT16_MAX) );
+    HDassert(large_cube_size < (size_t)(UINT16_MAX));
 
 
+/* QAK: Start here (but don't forget to go back and refactor routines above) */
     /* Allocate buffers */
     small_cube_buf_0 = (uint16_t *)HDmalloc(sizeof(uint16_t) * small_cube_size);
     small_cube_buf_1 = (uint16_t *)HDmalloc(sizeof(uint16_t) * small_cube_size);
@@ -3905,8 +3793,6 @@ test_select_hyper_checker_board_dr__run_test(const int test_num,
     HDfree(large_cube_buf_1);
     HDfree(large_cube_buf_2);
 
-    return;
-
 }   /* test_select_hyper_checker_board_dr__run_test() */
 
 
@@ -3991,8 +3877,6 @@ test_select_hyper_checker_board_dr(hid_t dset_type, hid_t xfer_plist)
         } /* for loop on small rank */
 
     } /* for loop on large rank */
-
-    return;
 
 }   /* test_select_hyper_checker_board_dr() */
 
