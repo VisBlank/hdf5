@@ -21,7 +21,15 @@
  */
 
 #include "h5test.h"
-#include <sys/time.h>
+
+#if defined(H5_TIME_WITH_SYS_TIME)
+#   include <sys/time.h>
+#   include <time.h>
+#elif defined(H5_HAVE_SYS_TIME_H)
+#   include <sys/time.h>
+#else
+#   include <time.h>
+#endif
 
 #ifdef H5_HAVE_PARALLEL
 #define MAINPROCESS	(!mpi_rank)	/* define process 0 as main process */
@@ -683,7 +691,7 @@ double retrieve_time(void)
     if(facc_type == FACC_DEFAULT) {
 #endif /*H5_HAVE_PARALLEL*/
         struct timeval t;
-        gettimeofday(&t, NULL);
+        HDgettimeofday(&t, NULL);
         return ((double)t.tv_sec + (double)t.tv_usec / 1000000);
 #ifdef H5_HAVE_PARALLEL
     } else {
