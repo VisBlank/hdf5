@@ -1,4 +1,4 @@
-HDF5 version 1.9.62 currently under development
+HDF5 version 1.9.65 currently under development
 ================================================================================
 
 
@@ -64,6 +64,8 @@ New Features
 
     Library:
     --------
+    - Greatly improved performance of extending a dataset with early
+      allocation. (NAF - 2010/03/24 - 1637)
     - Added support for filtering densely stored groups.  Many of the API
       functions related to filters have been extended to support dense groups
       as well as datasets.  Pipeline messages can now be stored in a group's
@@ -208,6 +210,8 @@ Bug Fixes since HDF5-1.8.0 release
 
     Library
     -------
+      - Files can now be concurrently opened more than once using the core file
+            driver, as long as the backing store is used. (NAF - 2010/03/09)
       - Added support for H5O_COPY_EXPAND_EXT_LINK_FLAG to H5Ocopy.  External
             links will now be expanded if this flag is set.
             (NAF - 2010/03/05 - 1733)
