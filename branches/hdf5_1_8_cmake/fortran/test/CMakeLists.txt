@@ -7,10 +7,17 @@ PROJECT (HDF5_FORTRAN_TESTS C CXX Fortran)
 INCLUDE_DIRECTORIES (${HDF5_SRC_DIR} ${HDF5_F90_BINARY_DIR} ${HDF5_F90_SOURCE_DIR}/src)
 LINK_DIRECTORIES (${HDF5_SRC_DIR} ${HDF5_F90_BINARY_DIR} ${HDF5_F90_SOURCE_DIR}/src ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${CMAKE_Fortran_MODULE_DIRECTORY})
 
+IF (BUILD_SHARED_LIBS)
+  IF (WIN32)
+    ADD_DEFINITIONS (-DHDF5FORTTEST_CSTUB_DLL_EXPORTS)
+    ADD_DEFINITIONS (-D_HDF5TESTUSEDLL_)
+  ENDIF (WIN32)
+ENDIF (BUILD_SHARED_LIBS)
+
 #-----------------------------------------------------------------------------
 # Add Test Lib
 #-----------------------------------------------------------------------------
-ADD_LIBRARY (${HDF5_F90_C_TEST_LIB_TARGET} t.c)
+ADD_LIBRARY (${HDF5_F90_C_TEST_LIB_TARGET} STATIC t.c)
 # Must explicity add a dependency here to force the generation of headers
 # which are created for ${HDF5_F90_C_LIB_TARGET}
 ADD_DEPENDENCIES(${HDF5_F90_C_TEST_LIB_TARGET} ${HDF5_F90_C_LIB_TARGET} )

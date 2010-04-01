@@ -394,10 +394,6 @@
 	</References>
 	<Files>
 		<File
-			RelativePath="..\..\..\..\fortran\src\H5f90kit.c"
-			>
-		</File>
-		<File
 			RelativePath="..\..\..\..\fortran\test\t.c"
 			>
 		</File>
