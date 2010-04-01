@@ -39,7 +39,7 @@ TARGET_LINK_LIBRARIES (${HDF5_HL_LIB_TARGET} ${HDF5_LIB_TARGET})
 H5_SET_LIB_OPTIONS (${HDF5_HL_LIB_TARGET} ${HDF5_HL_LIB_NAME} ${LIB_TYPE})
 
 #-----------------------------------------------------------------------------
-# Rules for Installation of headers/etc using make Install target
+# Add file(s) to CMake Install 
 #-----------------------------------------------------------------------------
 INSTALL (
     FILES
@@ -49,14 +49,16 @@ INSTALL (
 )
 
 #-----------------------------------------------------------------------------
-# Add library to CMake Install : Installs lib and cmake config info
+# Add Target(s) to CMake Install for import into other projects
 #-----------------------------------------------------------------------------
-INSTALL (
-    TARGETS
-        ${HDF5_HL_LIB_TARGET}
-    EXPORT
-        ${HDF5_EXPORTED_TARGETS}
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    RUNTIME DESTINATION bin
-)
+IF (HDF5_EXPORTED_TARGETS)
+  INSTALL (
+      TARGETS
+          ${HDF5_HL_LIB_TARGET}
+      EXPORT
+          ${HDF5_EXPORTED_TARGETS}
+      LIBRARY DESTINATION lib
+      ARCHIVE DESTINATION lib
+      RUNTIME DESTINATION bin
+  )
+ENDIF (HDF5_EXPORTED_TARGETS)

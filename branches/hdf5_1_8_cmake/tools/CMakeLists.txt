@@ -117,11 +117,14 @@ IF (BUILD_TESTING)
 
 ENDIF (BUILD_TESTING)
 
-#--- Set up the installation Code for Make Install
+#-----------------------------------------------------------------------------
+# Rules for Installation of tools using make Install target
+#-----------------------------------------------------------------------------
 INSTALL (
     TARGETS
         h5debug h5diff h5dump h5import
         h5ls h5repack h5repart
         h5jam h5unjam
-    RUNTIME DESTINATION bin
+    RUNTIME DESTINATION 
+        bin
 )

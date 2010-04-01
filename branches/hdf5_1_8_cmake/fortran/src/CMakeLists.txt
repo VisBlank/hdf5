@@ -11,11 +11,6 @@ PROJECT (HDF5_F90_SRC C CXX Fortran)
 #inherit CFG_INIT    from parent HDF5 cmake project
 
 #-----------------------------------------------------------------------------
-# Auto-generated files will be placed and included from here
-#-----------------------------------------------------------------------------
-INCLUDE_DIRECTORIES (${HDF5_F90_BINARY_DIR})
-
-#-----------------------------------------------------------------------------
 # Setup the Fortran auto-detection utilities
 # H5test_kind(_SIZEOF).f90 used to generate H5fortran_detect.f90
 # H5fortran_detect.f90     used to generate H5fort_type_defines.h
@@ -58,7 +53,6 @@ ADD_EXECUTABLE (H5match_types
     ${HDF5_F90_BINARY_DIR}/H5fort_type_defines.h
     ${HDF5_F90_SRC_SOURCE_DIR}/H5match_types.c
 )
-
 SET (CMD ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}${CFG_INIT}/H5match_types${EXE_EXT})
 ADD_CUSTOM_COMMAND (
     OUTPUT ${HDF5_F90_BINARY_DIR}/H5f90i_gen.h
@@ -103,7 +97,7 @@ ENDIF (H5_HAVE_PARALLEL)
 SET_SOURCE_FILES_PROPERTIES (${f90CStub_C_SRCS} PROPERTIES LANGUAGE C)
 
 ADD_LIBRARY (${HDF5_F90_C_LIB_TARGET} ${f90CStub_C_SRCS})
-TARGET_LINK_LIBRARIES (${HDF5_F90_C_LIB_TARGET} hdf5)
+TARGET_LINK_LIBRARIES (${HDF5_F90_C_LIB_TARGET} ${HDF5_LIB_TARGET})
 
 #-----------------------------------------------------------------------------
 # Fortran Real Size
@@ -167,3 +161,19 @@ TARGET_LINK_LIBRARIES (${HDF5_F90_LIB_TARGET} ${HDF5_F90_C_LIB_TARGET})
 SET_GLOBAL_VARIABLE (HDF5_LIBRARIES_TO_EXPORT
     "${HDF5_LIBRARIES_TO_EXPORT};${HDF5_F90_LIB_TARGET};${HDF5_F90_C_LIB_TARGET}"
 )
+
+#-----------------------------------------------------------------------------
+# Add Target(s) to CMake Install for import into other projects
+#-----------------------------------------------------------------------------
+IF (HDF5_EXPORTED_TARGETS)
+  INSTALL (
+      TARGETS 
+          ${HDF5_F90_C_LIB_TARGET}
+          ${HDF5_F90_LIB_TARGET} 
+      EXPORT
+          ${HDF5_EXPORTED_TARGETS}
+      LIBRARY DESTINATION lib
+      ARCHIVE DESTINATION lib
+      RUNTIME DESTINATION bin
+  )
+ENDIF (HDF5_EXPORTED_TARGETS)

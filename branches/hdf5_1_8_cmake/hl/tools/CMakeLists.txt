@@ -29,14 +29,6 @@ SET (hdf2gif_SRCS
 ADD_EXECUTABLE (hdf2gif ${hdf2gif_SRCS})
 TARGET_LINK_LIBRARIES (hdf2gif ${HDF5_HL_LIB_TARGET} ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
 
-#--- Set up the installation Code for Make Install
-INSTALL (
-    TARGETS
-        gif2h5 hdf2gif
-    RUNTIME DESTINATION
-        bin
-)
-
 # --------------------------------------------------------------------
 # This executable can generate the actual test files - Currently not
 #  used in the CMake Build system as we rely on the test files that are
@@ -48,3 +40,13 @@ IF (BUILD_TESTING)
    # ADD_TEST (hl_h52gifgentest ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/hl_h52gifgentest)
 ENDIF (BUILD_TESTING)
 
+#-----------------------------------------------------------------------------
+# Add file(s) to CMake Install 
+#-----------------------------------------------------------------------------
+INSTALL (
+    TARGETS
+        gif2h5 
+        hdf2gif
+    RUNTIME DESTINATION
+        bin
+)

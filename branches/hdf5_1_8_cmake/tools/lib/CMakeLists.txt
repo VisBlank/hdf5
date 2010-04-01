@@ -48,3 +48,13 @@ H5_SET_LIB_OPTIONS (
     HDF5_TOOLS_LIB_NAME_RELEASE
 	HDF5_TOOLS_LIB_NAME_DEBUG
 )
+
+#-----------------------------------------------------------------------------
+# Add file(s) to CMake Install 
+#-----------------------------------------------------------------------------
+INSTALL (
+    FILES
+        ${H5_TOOLS_LIB_HDRS}
+    DESTINATION
+        include/cpp
+)

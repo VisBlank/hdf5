@@ -107,7 +107,13 @@ CHECK_FORTRAN_FEATURE(RealIsNotDouble
   FORTRAN_DEFAULT_REAL_NOT_DOUBLE
 )
 
-INCLUDE_DIRECTORIES( ${CMAKE_Fortran_MODULE_DIRECTORY} )
+#-----------------------------------------------------------------------------
+# Make sure generated files and modules are picked up correctly
+#-----------------------------------------------------------------------------
+INCLUDE_DIRECTORIES( 
+  ${CMAKE_Fortran_MODULE_DIRECTORY}
+  ${HDF5_F90_BINARY_DIR}
+ )
 
 #-----------------------------------------------------------------------------
 # Traverse source subdirectory

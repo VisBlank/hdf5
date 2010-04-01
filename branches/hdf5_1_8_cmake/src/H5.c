@@ -22,6 +22,7 @@
 /* Headers */
 /***********/
 #include "H5private.h"		/* Generic Functions			*/
+#include "H5lib_settings.h" /* Embedded library information */
 #include "H5ACprivate.h"	/* Metadata cache			*/
 #include "H5Dprivate.h"		/* Datasets				*/
 #include "H5Eprivate.h"		/* Error handling		  	*/
@@ -29,7 +30,7 @@
 #include "H5Lprivate.h"		/* Links		  		*/
 #include "H5Pprivate.h"		/* Property lists			*/
 #include "H5Tprivate.h"		/* Datatypes				*/
-#include "H5SLprivate.h"        /* Skip lists                           */
+#include "H5SLprivate.h"    /* Skip lists                           */
 
 
 /****************/
@@ -56,7 +57,6 @@ static void H5_debug_mask(const char*);
 /*********************/
 /* Package Variables */
 /*********************/
-#include "H5lib_settings.c"     /* Embedded library information */
 
 
 /*****************************/

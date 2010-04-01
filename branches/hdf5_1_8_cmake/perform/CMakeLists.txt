@@ -31,7 +31,6 @@ ADD_EXECUTABLE (h5perf_serial ${h5perf_serial_SRCS})
 TARGET_LINK_LIBRARIES (h5perf_serial ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
 ADD_TEST (h5perf_serial ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/h5perf_serial)
 
-
 #-- Adding test for chunk
 SET (chunk_SRCS
     ${HDF5_PERFORM_SOURCE_DIR}/chunk.c
@@ -65,7 +64,6 @@ ADD_EXECUTABLE (perf_meta ${perf_meta_SRCS})
 TARGET_LINK_LIBRARIES (perf_meta ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET} ${HDF5_TEST_LIB_TARGET})
 ADD_TEST (perf_meta ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/perf_meta)
 
-
 #-- Adding test for zip_perf
 SET (zip_perf_SRCS
     ${HDF5_PERFORM_SOURCE_DIR}/zip_perf.c
@@ -73,5 +71,3 @@ SET (zip_perf_SRCS
 ADD_EXECUTABLE (zip_perf ${zip_perf_SRCS})
 TARGET_LINK_LIBRARIES (zip_perf ${HDF5_TOOLS_LIB_TARGET} ${HDF5_LIB_TARGET})
 ADD_TEST (zip_perf ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/zip_perf)
-
-

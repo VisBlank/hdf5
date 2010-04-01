@@ -14,7 +14,7 @@ PROJECT (HDF5 C CXX Fortran)
 # HDF5_EXPORTED_TARGETS :
 #   Set this to the name of the targets variable which controls exports
 #   If unset (because parent project does not support/use the
-#   INSTALL(EXPORT target...) syntax), then targets are not configured
+#   INSTALL (EXPORT target...) syntax), then targets are not configured
 #   for export during install.
 # HDF5_TARGET_DEPENDENCIES :
 #   If the build of HDF5 libs is being customized, then rules for the
@@ -430,22 +430,20 @@ ENDIF (HDF5_BUILD_HL_LIB)
 CONFIGURE_FILE (${HDF5_SOURCE_DIR}/Resources/H5pubconf.h.in ${HDF5_BINARY_DIR}/H5pubconf.h @ONLY)
 
 #-----------------------------------------------------------------------------
-# Rules for Installation using make Install target
+# Add file(s) to CMake Install 
 #-----------------------------------------------------------------------------
 INSTALL (
     FILES
         ${PROJECT_BINARY_DIR}/H5pubconf.h
-        ${H5_PUBLIC_HEADERS}
-        ${H5_PRIVATE_HEADERS}
     DESTINATION
         include
 )
 
 #-----------------------------------------------------------------------------
-# Export Compilation Targets via Make Install to final location
+# Add Target(s) to CMake Install for import into other projects
 #-----------------------------------------------------------------------------
 IF (HDF5_EXPORTED_TARGETS)
-  INSTALL(
+  INSTALL (
       EXPORT
           ${HDF5_EXPORTED_TARGETS}
       DESTINATION

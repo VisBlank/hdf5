@@ -657,7 +657,18 @@ ELSE (BUILD_SHARED_LIBS)
 ENDIF (BUILD_SHARED_LIBS)
 
 #-----------------------------------------------------------------------------
-# Add library to CMake Install : Installs lib and cmake config info
+# Add file(s) to CMake Install 
+#-----------------------------------------------------------------------------
+INSTALL (
+    FILES 
+        ${H5_PUBLIC_HEADERS}
+        ${H5_PRIVATE_HEADERS}
+    DESTINATION 
+        include 
+)
+
+#-----------------------------------------------------------------------------
+# Add Target(s) to CMake Install for import into other projects
 #-----------------------------------------------------------------------------
 IF (HDF5_EXPORTED_TARGETS)
   INSTALL (

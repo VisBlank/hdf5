@@ -54,3 +54,19 @@ SET_GLOBAL_VARIABLE (HDF5_LIBRARIES_TO_EXPORT
     "${HDF5_LIBRARIES_TO_EXPORT};${HDF5_HL_F90_LIB_TARGET}"
 )
 ADD_DEPENDENCIES (${HDF5_HL_F90_LIB_TARGET} ${HDF5_HL_F90_C_LIB_TARGET})
+
+#-----------------------------------------------------------------------------
+# Add Target(s) to CMake Install for import into other projects
+#-----------------------------------------------------------------------------
+IF (HDF5_EXPORTED_TARGETS)
+  INSTALL (
+      TARGETS
+          ${HDF5_HL_F90_C_LIB_TARGET}
+          ${HDF5_HL_F90_LIB_TARGET}
+      EXPORT
+          ${HDF5_EXPORTED_TARGETS}
+      LIBRARY DESTINATION lib
+      ARCHIVE DESTINATION lib
+      RUNTIME DESTINATION bin
+  )
+ENDIF (HDF5_EXPORTED_TARGETS)

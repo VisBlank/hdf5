@@ -11,9 +11,19 @@ LINK_DIRECTORIES (${HDF5_SRC_DIR} ${HDF5_F90_BINARY_DIR} ${HDF5_F90_SOURCE_DIR}/
 # Add Test Lib
 #-----------------------------------------------------------------------------
 ADD_LIBRARY (${HDF5_F90_C_TEST_LIB_TARGET} t.c)
-TARGET_LINK_LIBRARIES (${HDF5_F90_C_TEST_LIB_TARGET} ${HDF5_TEST_LIB_TARGET} ${HDF5_F90_LIB_TARGET} ${HDF5_LIB_TARGET})
+# Must explicity add a dependency here to force the generation of headers
+# which are created for ${HDF5_F90_C_LIB_TARGET}
+ADD_DEPENDENCIES(${HDF5_F90_C_TEST_LIB_TARGET} ${HDF5_F90_C_LIB_TARGET} )
+TARGET_LINK_LIBRARIES (${HDF5_F90_C_TEST_LIB_TARGET} 
+  ${HDF5_F90_C_LIB_TARGET}
+  ${HDF5_TEST_LIB_TARGET} 
+  ${HDF5_F90_LIB_TARGET} 
+)
 
 ADD_LIBRARY (${HDF5_F90_TEST_LIB_TARGET} STATIC tf.f90)
+# Must explicity add a dependency here to force the generation of headers
+# which are created for ${HDF5_F90_C_LIB_TARGET}
+ADD_DEPENDENCIES(${HDF5_F90_TEST_LIB_TARGET} ${HDF5_F90_C_LIB_TARGET} )
 TARGET_LINK_LIBRARIES (${HDF5_F90_TEST_LIB_TARGET} ${HDF5_F90_C_TEST_LIB_TARGET})
 
 #-----------------------------------------------------------------------------
