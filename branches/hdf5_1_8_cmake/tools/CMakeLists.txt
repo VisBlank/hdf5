@@ -97,13 +97,15 @@ IF (BUILD_TESTING)
     TARGET_LINK_LIBRARIES (h5importtest ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
     ADD_TEST (h5importtest ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/h5importtest)
 
-    ADD_EXECUTABLE (h5repacktest ${REPACK_COMMON_SRCS} ${HDF5_TOOLS_SOURCE_DIR}/h5repack/h5repacktst.c)
-    TARGET_LINK_LIBRARIES (h5repacktest  ${HDF5_TOOLS_LIB_TARGET} ${HDF5_TEST_LIB_TARGET})
-    ADD_TEST (h5repacktest ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/h5repacktest)
-
     ADD_EXECUTABLE (testh5repack_detect_szip ${HDF5_TOOLS_SOURCE_DIR}/h5repack/testh5repack_detect_szip.c)
     TARGET_LINK_LIBRARIES (testh5repack_detect_szip ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET} ${HDF5_TEST_LIB_TARGET})
     ADD_TEST (testh5repack_detect_szip ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/testh5repack_detect_szip)
+    SET (passRegex "yes")
+    SET_TESTS_PROPERTIES (testh5repack_detect_szip PROPERTIES PASS_REGULAR_EXPRESSION "yes")
+
+    ADD_EXECUTABLE (h5repacktest ${REPACK_COMMON_SRCS} ${HDF5_TOOLS_SOURCE_DIR}/h5repack/h5repacktst.c)
+    TARGET_LINK_LIBRARIES (h5repacktest  ${HDF5_TOOLS_LIB_TARGET} ${HDF5_TEST_LIB_TARGET})
+    ADD_TEST (h5repacktest ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/h5repacktest)
 
     SET (H5_DEP_EXECUTABLES ${H5_DEP_EXECUTABLES}
      #   h5diffgentest
@@ -125,6 +127,6 @@ INSTALL (
         h5debug h5diff h5dump h5import
         h5ls h5repack h5repart
         h5jam h5unjam
-    RUNTIME DESTINATION 
+    RUNTIME DESTINATION
         bin
 )
