@@ -11,6 +11,10 @@ PROJECT (HDF5_F90_EXAMPLES C CXX Fortran)
 INCLUDE_DIRECTORIES (${HDF5_SRC_DIR} ${HDF5_F90_SOURCE_DIR})
 LINK_DIRECTORIES (${HDF5_SRC_DIR} ${HDF5_F90_SOURCE_DIR} ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${CMAKE_Fortran_MODULE_DIRECTORY})
 
+IF (WIN32)
+  ADD_DEFINITIONS (-DHDF5F90_WINDOWS)
+ENDIF (WIN32)
+
 #-----------------------------------------------------------------------------
 # Define Sources
 #-----------------------------------------------------------------------------

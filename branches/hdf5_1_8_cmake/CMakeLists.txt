@@ -134,12 +134,32 @@ IF (BUILD_SHARED_LIBS)
   SET (LIB_TYPE SHARED)
   SET (H5_BUILT_AS_DYNAMIC_LIB 1)
   SET (LIBPOSTFIX "")
+  IF (MSVC)
+    SET (CMAKE_MFC_FLAG 0)
+    FOREACH (flag_var
+        CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+        CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+      IF (${flag_var} MATCHES "/MT")
+        STRING (REGEX REPLACE "/MT" "/MD" ${flag_var} "${${flag_var}}")
+      ENDIF (${flag_var} MATCHES "/MT")
+    ENDFOREACH (flag_var)
+  ENDIF (MSVC)
 ELSE (BUILD_SHARED_LIBS)
   IF (NOT WIN32)
     # should this be a user setting : Everyone uses it anyway ?
     ADD_DEFINITIONS(-DPIC)
   ENDIF (NOT WIN32)
   SET (LIBPOSTFIX "")
+  IF (MSVC)
+    SET (CMAKE_MFC_FLAG 0)
+    FOREACH (flag_var
+        CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+        CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+      IF (${flag_var} MATCHES "/MD")
+        STRING (REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+      ENDIF (${flag_var} MATCHES "/MD")
+    ENDFOREACH (flag_var)
+  ENDIF (MSVC)
 ENDIF (BUILD_SHARED_LIBS)
 
 #-----------------------------------------------------------------------------
@@ -177,6 +197,8 @@ INCLUDE_DIRECTORIES (${HDF5_INCLUDE_DIRECTORIES})
 SET (EXE_EXT "")
 IF (WIN32)
   SET (EXE_EXT ".exe")
+  ADD_DEFINITIONS (-DBIND_TO_CURRENT_VCLIBS_VERSION=1)
+  ADD_DEFINITIONS (-D_CRT_SECURE_NO_WARNINGS)
 ENDIF (WIN32)
 
 SET (MAKE_SYSTEM)
