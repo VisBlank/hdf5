@@ -40,6 +40,6 @@ FOREACH (example ${examples})
   TARGET_LINK_LIBRARIES (f90_ex_${example}
       ${HDF5_F90_LIB_TARGET}
       ${HDF5_F90_C_LIB_TARGET}
-      ${HDF5_F90_LIB_TARGET}
+      ${HDF5_LIB_TARGET}
   )
 ENDFOREACH (example ${examples})
