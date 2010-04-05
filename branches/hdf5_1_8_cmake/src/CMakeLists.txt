@@ -599,11 +599,11 @@ IF (MSVC)
 ENDIF (MSVC)
 
 ADD_CUSTOM_COMMAND (
-    OUTPUT ${HDF5_BINARY_DIR}/H5lib_settings.h
-#    TARGET ${HDF5_BINARY_DIR}/H5lib_settings.h
+    OUTPUT ${HDF5_BINARY_DIR}/H5lib_settings.c
+#    TARGET ${HDF5_BINARY_DIR}/H5lib_settings.c
 #    PRE_BUILD
     COMMAND ${CMDL}
-    ARGS > ${HDF5_BINARY_DIR}/H5lib_settings.h
+    ARGS > ${HDF5_BINARY_DIR}/H5lib_settings.c
     DEPENDS H5make_libsettings
 )
 
@@ -633,8 +633,8 @@ ADD_CUSTOM_COMMAND (
 #-----------------------------------------------------------------------------
 SET (common_SRCS ${common_SRCS} ${HDF5_BINARY_DIR}/H5Tinit.c)
 SET_SOURCE_FILES_PROPERTIES (${HDF5_BINARY_DIR}/H5Tinit.c GENERATED)
-SET (common_SRCS ${common_SRCS} ${HDF5_BINARY_DIR}/H5lib_settings.h)
-SET_SOURCE_FILES_PROPERTIES (${HDF5_BINARY_DIR}/H5lib_settings.h GENERATED)
+SET (common_SRCS ${common_SRCS} ${HDF5_BINARY_DIR}/H5lib_settings.c)
+SET_SOURCE_FILES_PROPERTIES (${HDF5_BINARY_DIR}/H5lib_settings.c GENERATED)
 SET (common_SRCS ${common_SRCS} ${HDF5_BINARY_DIR}/H5Edefin.h)
 SET_SOURCE_FILES_PROPERTIES (${HDF5_BINARY_DIR}/H5Edefin.h GENERATED)
 SET (common_SRCS ${common_SRCS} ${HDF5_BINARY_DIR}/H5version.h)
@@ -652,14 +652,14 @@ SET_GLOBAL_VARIABLE (HDF5_LIBRARIES_TO_EXPORT ${HDF5_LIB_TARGET})
 H5_SET_LIB_OPTIONS (${HDF5_LIB_TARGET} ${HDF5_LIB_NAME} ${LIB_TYPE})
 
 #-----------------------------------------------------------------------------
-# Add file(s) to CMake Install 
+# Add file(s) to CMake Install
 #-----------------------------------------------------------------------------
 INSTALL (
-    FILES 
+    FILES
         ${H5_PUBLIC_HEADERS}
         ${H5_PRIVATE_HEADERS}
-    DESTINATION 
-        include 
+    DESTINATION
+        include
 )
 
 #-----------------------------------------------------------------------------
