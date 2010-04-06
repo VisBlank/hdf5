@@ -88,9 +88,8 @@ const char *H5REPACK_FILENAMES[] = {
 
 #define H5REPACK_EXTFILE "h5repack_ext.bin"
 
-
-const char *progname = "h5repacktst";
-int d_status = EXIT_SUCCESS;
+/* Name of tool */
+#define PROGRAMNAME "h5repacktst"
 
 
 #define DIM1    40
@@ -160,6 +159,9 @@ static int make_references(hid_t loc_id);
 
 int main (void)
 {
+    h5tools_setprogname(PROGRAMNAME);
+    h5tools_setstatus(EXIT_SUCCESS);
+
     pack_opt_t  pack_options;
     diff_opt_t  diff_options;
 #if defined (H5_HAVE_FILTER_SZIP)
@@ -1765,7 +1767,7 @@ int make_testfiles(void)
         return -1;
 
     /*-------------------------------------------------------------------------
-    * create a file with obj and region references 
+    * create a file with obj and region references
     *-------------------------------------------------------------------------*/
     if((fid = H5Fcreate(FNAME_REF,H5F_ACC_TRUNC,H5P_DEFAULT,H5P_DEFAULT)) < 0)
         return -1;
@@ -5597,11 +5599,11 @@ out:
 /*-------------------------------------------------------------------------
  * Function: gen_obj_ref
  *
- * Purpose: 
+ * Purpose:
  *  Generate object references to objects (dataset,group and named datatype)
  *
  * Note:
- *  copied from h5copygentest.c and upate to create named datatype  
+ *  copied from h5copygentest.c and upate to create named datatype
  *
  * Programmer: Jonathan Kim (March 18, 2010)
  *------------------------------------------------------------------------*/
@@ -5700,7 +5702,7 @@ static herr_t gen_obj_ref(hid_t loc_id)
     }
 
     /*---------------------------------------------------------
-     * create dataset contain references 
+     * create dataset contain references
      */
     sid = H5Screate_simple (1, dims2, NULL);
     if (sid < 0)
@@ -5744,7 +5746,7 @@ out:
  * Purpose: Generate dataset region references
  *
  * Note:
- *  copied from h5copygentest.c 
+ *  copied from h5copygentest.c
  *
  * Programmer: Jonathan Kim (March 18, 2010)
  *------------------------------------------------------------------------*/
@@ -5869,7 +5871,7 @@ out:
 /*-------------------------------------------------------------------------
 * Function: make_references
 *
-* Purpose: create a file with obj and region references 
+* Purpose: create a file with obj and region references
 *
 * Programmer: Jonathan Kim (March 18, 2010)
 *-------------------------------------------------------------------------

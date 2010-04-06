@@ -532,6 +532,10 @@ extern int     region_output;       /* region output */
 #define H5_TOOLS_DATATYPE        "DATATYPE"
 
 /* Definitions of useful routines */
+extern const char *h5tools_getprogname(void);
+extern void     h5tools_setprogname(const char*progname);
+extern int      h5tools_getstatus(void);
+extern void     h5tools_setstatus(int d_status);
 extern void     h5tools_init(void);
 extern void     h5tools_close(void);
 extern hid_t    h5tools_fopen(const char *fname, unsigned flags, hid_t fapl,
