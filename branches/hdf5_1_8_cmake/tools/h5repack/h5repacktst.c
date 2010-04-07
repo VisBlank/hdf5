@@ -159,9 +159,6 @@ static int make_references(hid_t loc_id);
 
 int main (void)
 {
-    h5tools_setprogname(PROGRAMNAME);
-    h5tools_setstatus(EXIT_SUCCESS);
-
     pack_opt_t  pack_options;
     diff_opt_t  diff_options;
 #if defined (H5_HAVE_FILTER_SZIP)

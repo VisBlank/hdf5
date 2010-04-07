@@ -14,8 +14,8 @@ PROJECT (HDF5_HL_TEST)
 #-----------------------------------------------------------------------------
 SET (srdir ${CMAKE_CURRENT_SOURCE_DIR})
 CONFIGURE_FILE (${HDF5_HL_TEST_SOURCE_DIR}/H5srcdir_str.h.in H5srcdir_str.h  @ONLY)
-INCLUDE_DIRECTORIES (${CMAKE_CURRENT_BINARY_DIR})
 
+INCLUDE_DIRECTORIES (${CMAKE_CURRENT_BINARY_DIR})
 INCLUDE_DIRECTORIES (${HDF5_TEST_SOURCE_DIR})
 
 # --------------------------------------------------------------------
@@ -23,8 +23,18 @@ INCLUDE_DIRECTORIES (${HDF5_TEST_SOURCE_DIR})
 # --------------------------------------------------------------------
 MACRO (HL_ADD_TEST hl_name files)
   ADD_EXECUTABLE (hl_${hl_name} ${hl_name}.c)
-  TARGET_LINK_LIBRARIES (
-      hl_${hl_name}
+  IF (BUILD_SHARED_LIBS)
+    IF (WIN32)
+      SET_PROPERTY (TARGET hl_${hl_name} 
+          APPEND PROPERTY COMPILE_DEFINITIONS 
+              _HDF5USEDLL_ 
+			  _HDF5USEHLDLL_
+      )
+      SET_TARGET_PROPERTIES (hl_${hl_name} PROPERTIES OUTPUT_NAME "hl_${hl_name}")
+      SET_TARGET_PROPERTIES (hl_${hl_name} PROPERTIES PREFIX "dll")
+    ENDIF (WIN32)
+  ENDIF (BUILD_SHARED_LIBS)
+  TARGET_LINK_LIBRARIES (hl_${hl_name}
       ${HDF5_HL_LIB_TARGET}
       ${HDF5_LIB_TARGET}
       ${HDF5_TEST_LIB_TARGET}
@@ -51,15 +61,15 @@ HL_ADD_TEST (test_lite "dtype_file.txt")
 HL_ADD_TEST (test_packet "")
 HL_ADD_TEST (test_table "test_table_be.hdf5;test_table_cray.hdf5;test_table_le.hdf5")
 
-
 # --------------------------------------------------------------------
 # This executable is used to generate test files for the test_ds test.
 # It should only be run during development when new test files are needed
 # --------------------------------------------------------------------
-ADD_EXECUTABLE (hl_gen_test_ds gen_test_ds.c)
-TARGET_LINK_LIBRARIES (hl_gen_test_ds
-    ${HDF5_HL_LIB_TARGET}
-    ${HDF5_LIB_TARGET}
-    ${HDF5_TEST_LIB_TARGET}
-)
-
+IF (NOT BUILD_SHARED_LIBS)
+  ADD_EXECUTABLE (hl_gen_test_ds gen_test_ds.c)
+  TARGET_LINK_LIBRARIES (hl_gen_test_ds
+      ${HDF5_HL_LIB_TARGET}
+      ${HDF5_LIB_TARGET}
+      ${HDF5_TEST_LIB_TARGET}
+  )
+ENDIF (NOT BUILD_SHARED_LIBS)

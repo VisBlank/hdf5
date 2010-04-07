@@ -137,7 +137,6 @@ ENDIF (HDF5_BUILD_EXAMPLES)
 #-----------------------------------------------------------------------------
 # Testing
 #-----------------------------------------------------------------------------
-
 IF (BUILD_TESTING)
   ADD_SUBDIRECTORY (${HDF5_F90_SOURCE_DIR}/test ${HDF5_F90_BINARY_DIR}/test)
 ENDIF (BUILD_TESTING)

@@ -24,6 +24,16 @@ SET (examples
 
 FOREACH (example ${examples})
   ADD_EXECUTABLE (${example} ${HDF5_EXAMPLES_SOURCE_DIR}/${example}.c)
+  IF (BUILD_SHARED_LIBS)
+    IF (WIN32)
+      SET_PROPERTY (TARGET ${example} 
+          APPEND PROPERTY COMPILE_DEFINITIONS 
+              _HDF5USEDLL_
+      )
+      SET_TARGET_PROPERTIES (${example} PROPERTIES OUTPUT_NAME "${example}")
+      SET_TARGET_PROPERTIES (${example} PROPERTIES PREFIX "dll")
+    ENDIF (WIN32)
+  ENDIF (BUILD_SHARED_LIBS)
   TARGET_LINK_LIBRARIES (${example} ${HDF5_LIB_TARGET})
 ENDFOREACH (example ${examples})
 

@@ -13,5 +13,14 @@ SET (examples
 
 FOREACH (example ${examples})
   ADD_EXECUTABLE (hl_f90_ex_${example} ${HDF5_HL_EXAMPLES_SOURCE_DIR}/${example}.f90)
-  TARGET_LINK_LIBRARIES (hl_f90_ex_${example} ${HDF5_HL_F90_LIB_TARGET})
+  IF (BUILD_SHARED_LIBS)
+    IF (WIN32)
+      SET_TARGET_PROPERTIES (hl_f90_ex_${example} PROPERTIES OUTPUT_NAME "hl_f90_ex_${example}")
+      SET_TARGET_PROPERTIES (hl_f90_ex_${example} PROPERTIES PREFIX "dll")
+    ENDIF (WIN32)
+  ENDIF (BUILD_SHARED_LIBS)
+  TARGET_LINK_LIBRARIES (hl_f90_ex_${example} 
+      ${HDF5_F90_LIB_TARGET}
+      ${HDF5_HL_F90_LIB_TARGET}
+  )
 ENDFOREACH (example ${examples})

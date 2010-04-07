@@ -4,9 +4,9 @@ PROJECT (HDF5_CPP)
 #-----------------------------------------------------------------------------
 # Shared/Static Libs
 #-----------------------------------------------------------------------------
-IF (BUILD_SHARED_LIBS)
-  SET (CPP_BUILT_AS_DYNAMIC_LIB 1)
-ENDIF (BUILD_SHARED_LIBS)
+#IF (BUILD_SHARED_LIBS)
+#  SET (CPP_BUILT_AS_DYNAMIC_LIB 1)
+#ENDIF (BUILD_SHARED_LIBS)
 
 #-----------------------------------------------------------------------------
 # Generate configure file

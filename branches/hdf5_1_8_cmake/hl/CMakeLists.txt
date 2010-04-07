@@ -4,9 +4,9 @@ PROJECT (HDF5_HL)
 #-----------------------------------------------------------------------------
 # Shared Libs
 #-----------------------------------------------------------------------------
-IF (BUILD_SHARED_LIBS)
-  SET (HL_BUILT_AS_DYNAMIC_LIB 1)
-ENDIF (BUILD_SHARED_LIBS)
+#IF (BUILD_SHARED_LIBS)
+#  SET (HL_BUILT_AS_DYNAMIC_LIB 1)
+#ENDIF (BUILD_SHARED_LIBS)
 
 #-----------------------------------------------------------------------------
 # List Source files
@@ -19,7 +19,6 @@ ADD_SUBDIRECTORY (${HDF5_HL_SOURCE_DIR}/src ${HDF5_HL_BINARY_DIR}/src)
 IF (HDF5_BUILD_TOOLS)
   ADD_SUBDIRECTORY (${HDF5_HL_SOURCE_DIR}/tools ${HDF5_HL_BINARY_DIR}/tools)
 ENDIF (HDF5_BUILD_TOOLS)
-
 
 #-- Add High Level Examples
 IF (HDF5_BUILD_EXAMPLES)

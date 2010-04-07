@@ -22,5 +22,15 @@ SET (examples
 
 FOREACH (example ${examples})
   ADD_EXECUTABLE (cpp_ex_${example} ${HDF5_CPP_EXAMPLES_SOURCE_DIR}/${example}.cpp)
+  IF (BUILD_SHARED_LIBS)
+    IF (WIN32)
+	  SET_PROPERTY (TARGET cpp_ex_${example} 
+          APPEND PROPERTY COMPILE_DEFINITIONS 
+              HDF5CPP_USEDLL
+	  )
+      SET_TARGET_PROPERTIES (cpp_ex_${example} PROPERTIES OUTPUT_NAME "cpp_ex_${example}")
+      SET_TARGET_PROPERTIES (cpp_ex_${example} PROPERTIES PREFIX "dll")
+    ENDIF (WIN32)
+  ENDIF (BUILD_SHARED_LIBS)
   TARGET_LINK_LIBRARIES (cpp_ex_${example} ${HDF5_CPP_LIB_TARGET} ${HDF5_LIB_TARGET})
 ENDFOREACH (example ${examples})
