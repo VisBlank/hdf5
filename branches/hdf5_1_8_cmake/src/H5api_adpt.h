@@ -252,6 +252,18 @@
 #define H5TEST_DLLVAR extern
 #endif /* _HDF5TESTDLL_ */
 
+#if defined(_HDF5TOOLSDLL_)
+#pragma warning(disable: 4273)	/* Disable the dll linkage warnings */
+#define H5TOOLS_DLL __declspec(dllexport)
+#define H5TOOLS_DLLVAR extern __declspec(dllexport)
+#elif defined(_HDF5TOOLSUSEDLL_)
+#define H5TOOLS_DLL __declspec(dllimport)
+#define H5TOOLS_DLLVAR __declspec(dllimport)
+#else
+#define H5TOOLS_DLL
+#define H5TOOLS_DLLVAR extern
+#endif /* _HDF5TOOLSDLL_ */
+
 #if defined(_HDF5_HLDLL_EXPORTS_)
 #pragma warning(disable: 4273)	/* Disable the dll linkage warnings */
 #define H5_HLDLL __declspec(dllexport)
@@ -322,6 +334,8 @@
 #define H5_DLLCPP
 #define H5TEST_DLL
 #define H5TEST_DLLVAR extern
+#define H5TOOLS_DLL
+#define H5TOOLS_DLLVAR extern
 #define H5_FCDLL
 #define H5_FCDLLVAR extern
 #define H5_FCTESTDLL
