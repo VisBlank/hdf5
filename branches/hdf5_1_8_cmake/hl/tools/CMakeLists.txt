@@ -58,7 +58,9 @@ TARGET_LINK_LIBRARIES (hdf2gif ${HDF5_HL_LIB_TARGET} ${HDF5_LIB_TARGET} ${HDF5_T
 IF (NOT BUILD_SHARED_LIBS)
     ADD_EXECUTABLE (hl_h52gifgentest ${HDF5_HL_TOOLS_SOURCE_DIR}/gif2h5/h52gifgentst.c)
     TARGET_LINK_LIBRARIES (hl_h52gifgentest ${HDF5_HL_LIB_TARGET} ${HDF5_LIB_TARGET})
-   # ADD_TEST (hl_h52gifgentest ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/hl_h52gifgentest)
+    GET_TARGET_PROPERTY (hl_h52gifgentestpath hl_h52gifgentest LOCATION)
+    GET_FILENAME_COMPONENT (hl_h52gifgentestexe ${hl_h52gifgentestpath} NAME)
+#    ADD_TEST (hl_h52gifgentest ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${hl_h52gifgentestexe})
 ENDIF (NOT BUILD_SHARED_LIBS)
 
 #-----------------------------------------------------------------------------

@@ -36,5 +36,7 @@ IF (BUILD_TESTING)
       ${HDF5_HL_LIB_TARGET}
       ${HDF5_HL_CPP_LIB_TARGET}
   )
-  ADD_TEST (hl_ptableTest ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/hl_ptableTest)
+  GET_TARGET_PROPERTY (hl_ptableTestpath hl_ptableTest LOCATION)
+  GET_FILENAME_COMPONENT (hl_ptableTestexe ${hl_ptableTestpath} NAME)
+  ADD_TEST (hl_ptableTest ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${hl_ptableTestexe})
 ENDIF (BUILD_TESTING)

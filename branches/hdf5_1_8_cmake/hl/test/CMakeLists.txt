@@ -39,7 +39,9 @@ MACRO (HL_ADD_TEST hl_name files)
       ${HDF5_LIB_TARGET}
       ${HDF5_TEST_LIB_TARGET}
   )
-  ADD_TEST (hl_${hl_name} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/hl_${hl_name})
+  GET_TARGET_PROPERTY (hl_${hl_name}path hl_${hl_name} LOCATION)
+  GET_FILENAME_COMPONENT (hl_${hl_name}exe ${hl_${hl_name}path} NAME)
+  ADD_TEST (hl_${hl_name} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${hl_${hl_name}exe})
 
   #-- Copy the necessary files.
   FOREACH (h5_file ${files})

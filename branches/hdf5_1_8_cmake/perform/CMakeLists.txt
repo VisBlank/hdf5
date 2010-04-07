@@ -1,8 +1,6 @@
 cmake_minimum_required (VERSION 2.8)
 PROJECT (HDF5_PERFORM )
 
-IF (NOT (WIN32 AND BUILD_SHARED_LIBS))
-
 #-----------------------------------------------------------------------------
 # Setup include Directories
 #-----------------------------------------------------------------------------
@@ -32,7 +30,9 @@ IF (BUILD_SHARED_LIBS)
   ENDIF (WIN32)
 ENDIF (BUILD_SHARED_LIBS)
 TARGET_LINK_LIBRARIES (h5perf_serial ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
-ADD_TEST (h5perf_serial ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/h5perf_serial)
+GET_TARGET_PROPERTY (h5perf_serialpath h5perf_serial LOCATION)
+GET_FILENAME_COMPONENT (h5perf_serialexe ${h5perf_serialpath} NAME)
+ADD_TEST (h5perf_serial ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${h5perf_serialexe})
 
 #-- Adding test for chunk
 SET (chunk_SRCS
@@ -51,7 +51,9 @@ IF (BUILD_SHARED_LIBS)
   ENDIF (WIN32)
 ENDIF (BUILD_SHARED_LIBS)
 TARGET_LINK_LIBRARIES(chunk ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
-ADD_TEST(chunk ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/chunk)
+GET_TARGET_PROPERTY (chunkpath chunk LOCATION)
+GET_FILENAME_COMPONENT (chunkexe ${chunkpath} NAME)
+ADD_TEST (chunk ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${chunkexe})
 
 
 #-- Adding test for iopipe
@@ -71,7 +73,9 @@ IF (BUILD_SHARED_LIBS)
   ENDIF (WIN32)
 ENDIF (BUILD_SHARED_LIBS)
 TARGET_LINK_LIBRARIES (iopipe ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
-ADD_TEST (iopipe ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/iopipe)
+GET_TARGET_PROPERTY (iopipepath iopipe LOCATION)
+GET_FILENAME_COMPONENT (iopipeexe ${iopipepath} NAME)
+ADD_TEST (iopipe ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${iopipeexe})
 
 #-- Adding test for overhead
 SET (overhead_SRCS
@@ -90,7 +94,9 @@ IF (BUILD_SHARED_LIBS)
   ENDIF (WIN32)
 ENDIF (BUILD_SHARED_LIBS)
 TARGET_LINK_LIBRARIES (overhead ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
-ADD_TEST (overhead ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/overhead)
+GET_TARGET_PROPERTY (overheadpath overhead LOCATION)
+GET_FILENAME_COMPONENT (overheadexe ${overheadpath} NAME)
+ADD_TEST (overhead ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${overheadexe})
 
 #-- Adding test for perf_meta
 SET (perf_meta_SRCS
@@ -109,7 +115,9 @@ IF (BUILD_SHARED_LIBS)
   ENDIF (WIN32)
 ENDIF (BUILD_SHARED_LIBS)
 TARGET_LINK_LIBRARIES (perf_meta ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET} ${HDF5_TEST_LIB_TARGET})
-ADD_TEST (perf_meta ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/perf_meta)
+GET_TARGET_PROPERTY (perf_metapath perf_meta LOCATION)
+GET_FILENAME_COMPONENT (perf_metaexe ${perf_metapath} NAME)
+ADD_TEST (perf_meta ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${perf_metaexe})
 
 #-- Adding test for zip_perf
 SET (zip_perf_SRCS
@@ -128,6 +136,6 @@ IF (BUILD_SHARED_LIBS)
   ENDIF (WIN32)
 ENDIF (BUILD_SHARED_LIBS)
 TARGET_LINK_LIBRARIES (zip_perf ${HDF5_TOOLS_LIB_TARGET} ${HDF5_LIB_TARGET})
-ADD_TEST (zip_perf ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/zip_perf)
-
-ENDIF (NOT (WIN32 AND BUILD_SHARED_LIBS))
+GET_TARGET_PROPERTY (zip_perfpath zip_perf LOCATION)
+GET_FILENAME_COMPONENT (zip_perfexe ${zip_perfpath} NAME)
+ADD_TEST (zip_perf ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${zip_perfexe})
