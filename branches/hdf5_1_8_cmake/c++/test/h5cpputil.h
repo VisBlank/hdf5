@@ -35,7 +35,7 @@ using std::cerr;
 using std::endl;
 #endif
 
-#define MESSAGE(V,A) {if (HDGetTestVerbosity()>(V)) print_func A;}
+#define MESSAGE(V,A) {if (GetTestVerbosity()>(V)) print_func A;}
 #define SUBTEST(TEST) {printf("   Subtest: %-52s",TEST); fflush(stdout);}
 
 int check_values (hsize_t i, hsize_t j, int apoint, int acheck);
