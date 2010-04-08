@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.8)
-PROJECT (HDF5 C CXX Fortran)
+PROJECT (HDF5 C CXX)
 
 #-----------------------------------------------------------------------------
 # Instructions for use :
