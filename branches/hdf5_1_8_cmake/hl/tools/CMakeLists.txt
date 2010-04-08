@@ -21,8 +21,8 @@ INCLUDE_DIRECTORIES (${HDF5_HL_TOOLS_SOURCE_DIR}/gif2h5)
 ADD_EXECUTABLE (gif2h5 ${GIF2H5_SRCS})
 IF (BUILD_SHARED_LIBS)
   IF (WIN32)
-    SET_PROPERTY (TARGET gif2h5 
-        APPEND PROPERTY COMPILE_DEFINITIONS 
+    SET_PROPERTY (TARGET gif2h5
+        APPEND PROPERTY COMPILE_DEFINITIONS
             _HDF5USEDLL_
     )
     SET_TARGET_PROPERTIES (gif2h5 PROPERTIES OUTPUT_NAME "gif2h5")
@@ -40,8 +40,8 @@ SET (hdf2gif_SRCS
 ADD_EXECUTABLE (hdf2gif ${hdf2gif_SRCS})
 IF (BUILD_SHARED_LIBS)
   IF (WIN32)
-    SET_PROPERTY (TARGET hdf2gif 
-        APPEND PROPERTY COMPILE_DEFINITIONS 
+    SET_PROPERTY (TARGET hdf2gif
+        APPEND PROPERTY COMPILE_DEFINITIONS
             _HDF5USEDLL_
     )
     SET_TARGET_PROPERTIES (hdf2gif PROPERTIES OUTPUT_NAME "hdf2gif")
@@ -64,11 +64,11 @@ IF (NOT BUILD_SHARED_LIBS)
 ENDIF (NOT BUILD_SHARED_LIBS)
 
 #-----------------------------------------------------------------------------
-# Add file(s) to CMake Install 
+# Add file(s) to CMake Install
 #-----------------------------------------------------------------------------
 INSTALL (
     TARGETS
-        gif2h5 
+        gif2h5
         hdf2gif
     RUNTIME DESTINATION
         bin/tools

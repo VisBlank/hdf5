@@ -25,9 +25,9 @@ MACRO (HL_ADD_TEST hl_name files)
   ADD_EXECUTABLE (hl_${hl_name} ${hl_name}.c)
   IF (BUILD_SHARED_LIBS)
     IF (WIN32)
-      SET_PROPERTY (TARGET hl_${hl_name} 
-          APPEND PROPERTY COMPILE_DEFINITIONS 
-              _HDF5USEDLL_ 
+      SET_PROPERTY (TARGET hl_${hl_name}
+          APPEND PROPERTY COMPILE_DEFINITIONS
+              _HDF5USEDLL_
 			  _HDF5USEHLDLL_
       )
       SET_TARGET_PROPERTIES (hl_${hl_name} PROPERTIES OUTPUT_NAME "hl_${hl_name}")

@@ -22,15 +22,6 @@
 
 #include "h5test.h"
 
-#if defined(H5_TIME_WITH_SYS_TIME)
-#   include <sys/time.h>
-#   include <time.h>
-#elif defined(H5_HAVE_SYS_TIME_H)
-#   include <sys/time.h>
-#else
-#   include <time.h>
-#endif
-
 #ifdef H5_HAVE_PARALLEL
 #define MAINPROCESS	(!mpi_rank)	/* define process 0 as main process */
 #endif /*H5_HAVE_PARALLEL*/
