@@ -168,7 +168,7 @@ HDfprintf(stderr, "%s: Called, addr = %a\n", FUNC, addr);
     /* Set info about data block page on disk */
     dblk_page->addr = addr;
     dblk_page->size = H5FA_DBLK_PAGE_SIZE(dblk_page, nelmts);
-#ifdef H5FA_DEBUG 
+#ifdef H5FA_DEBUG
 HDfprintf(stderr, "%s: dblk_page->size = %Zu\n", FUNC, dblk_page->size);
 #endif /* H5FA_DEBUG */
 
@@ -280,7 +280,6 @@ END_FUNC(PKG)   /* end H5FA__dblk_page_unprotect() */
  *
  *-------------------------------------------------------------------------
  */
-/* ARGSUSED */
 BEGIN_FUNC(PKG, ERR,
 herr_t, SUCCEED, FAIL,
 H5FA__dblk_page_dest(H5FA_dblk_page_t *dblk_page))
@@ -293,8 +292,7 @@ H5FA__dblk_page_dest(H5FA_dblk_page_t *dblk_page))
         /* Check if buffer for data block page elements has been initialized */
         if(dblk_page->elmts) {
             /* Free buffer for data block page elements */
-	    (void) H5FL_BLK_FREE(page_elmts, dblk_page->elmts);
-            dblk_page->elmts = NULL;
+	    dblk_page->elmts = H5FL_BLK_FREE(page_elmts, dblk_page->elmts);
         } /* end if */
 
         /* Decrement reference count on shared info */
@@ -304,7 +302,7 @@ H5FA__dblk_page_dest(H5FA_dblk_page_t *dblk_page))
     } /* end if */
 
     /* Free the data block page itself */
-    (void)H5FL_FREE(H5FA_dblk_page_t, dblk_page);
+    dblk_page = H5FL_FREE(H5FA_dblk_page_t, dblk_page);
 
 CATCH
 

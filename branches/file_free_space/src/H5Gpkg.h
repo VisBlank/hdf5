@@ -32,8 +32,8 @@
 #include "H5Gprivate.h"
 
 /* Other private headers needed by this file */
-#include "H5ACprivate.h"	/* Metadata cache			*/
 #include "H5B2private.h"	/* v2 B-trees				*/
+#include "H5FLprivate.h"	/* Free Lists                           */
 #include "H5HFprivate.h"	/* Fractal heaps			*/
 #include "H5HLprivate.h"	/* Local Heaps				*/
 #include "H5Oprivate.h"		/* Object headers		  	*/
@@ -55,7 +55,8 @@
 #define H5G_TARGET_SLINK	0x0001
 #define H5G_TARGET_MOUNT	0x0002
 #define H5G_TARGET_UDLINK	0x0004
-#define H5G_CRT_INTMD_GROUP	0x0008
+#define H5G_TARGET_EXISTS	0x0008
+#define H5G_CRT_INTMD_GROUP	0x0010
 
 /****************************/
 /* Package Private Typedefs */
@@ -101,12 +102,10 @@ typedef union H5G_cache_t {
  * points.
  */
 struct H5G_entry_t {
-    hbool_t     dirty;                  /*entry out-of-date?                 */
     H5G_cache_type_t type;              /*type of information cached         */
     H5G_cache_t cache;                  /*cached data from object header     */
     size_t      name_off;               /*offset of name within name heap    */
     haddr_t     header;                 /*file address of object header      */
-    H5F_t       *file;                  /*file to which this obj hdr belongs */
 };
 
 /*
@@ -116,10 +115,10 @@ struct H5G_entry_t {
  * table or group.
  */
 typedef struct H5G_node_t {
-    H5AC_info_t cache_info; /* Information for H5AC cache functions, _must_ be */
-                            /* first field in structure */
-    unsigned nsyms;                     /*number of symbols                  */
-    H5G_entry_t *entry;                 /*array of symbol table entries      */
+    H5AC_info_t cache_info;     /* Information for H5AC cache functions, _must_ be */
+                                /* first field in structure */
+    unsigned nsyms;             /*number of symbols                  */
+    H5G_entry_t *entry;         /*array of symbol table entries      */
 } H5G_node_t;
 
 /*
@@ -369,7 +368,7 @@ H5_DLL herr_t H5G_iterate(hid_t loc_id, const char *group_name,
 H5_DLL herr_t H5G_traverse_term_interface(void);
 H5_DLL herr_t H5G_traverse_special(const H5G_loc_t *grp_loc,
     const H5O_link_t *lnk, unsigned target, size_t *nlinks, hbool_t last_comp,
-    H5G_loc_t *obj_loc, hid_t lapl_id, hid_t dxpl_id);
+    H5G_loc_t *obj_loc, hbool_t *obj_exists, hid_t lapl_id, hid_t dxpl_id);
 H5_DLL herr_t H5G_traverse(const H5G_loc_t *loc, const char *name,
     unsigned target, H5G_traverse_t op, void *op_data, hid_t lapl_id,
     hid_t dxpl_id);
@@ -432,7 +431,7 @@ H5_DLL herr_t H5G_ent_encode_vec(const H5F_t *f, uint8_t **pp,
 H5_DLL herr_t H5G_ent_convert(H5F_t *f, hid_t dxpl_id, H5HL_t *heap,
     const char *name, const H5O_link_t *lnk, H5G_entry_t *ent);
 H5_DLL herr_t H5G_ent_debug(const H5G_entry_t *ent, FILE * stream, int indent,
-    int fwidth, H5HL_t *heap);
+    int fwidth, const H5HL_t *heap);
 
 /* Functions that understand symbol table nodes */
 H5_DLL herr_t H5G_node_init(H5F_t *f);
@@ -449,6 +448,7 @@ H5_DLL int H5G_node_build_table(H5F_t *f, hid_t dxpl_id, const void *_lt_key, ha
 		     const void *_rt_key, void *_udata);
 H5_DLL herr_t H5G_node_iterate_size(H5F_t *f, hid_t dxpl_id, const void *_lt_key, haddr_t addr,
                      const void *_rt_key, void *_udata);
+H5_DLL herr_t H5G_node_free(H5G_node_t *sym);
 
 /* Functions that understand links in groups */
 H5_DLL int H5G_link_cmp_name_inc(const void *lnk1, const void *lnk2);

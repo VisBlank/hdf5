@@ -537,6 +537,48 @@ done:
 
 
 /*-------------------------------------------------------------------------
+ * Function:	H5Oexists_by_name
+ *
+ * Purpose:	Determine if a linked-to object exists
+ *
+ * Return:	Success:	TRUE/FALSE
+ * 		Failure:	Negative
+ *
+ * Programmer:	Quincey Koziol
+ *		February  2 2010
+ *
+ *-------------------------------------------------------------------------
+ */
+htri_t
+H5Oexists_by_name(hid_t loc_id, const char *name, hid_t lapl_id)
+{
+    H5G_loc_t	loc;                    /* Location info */
+    hid_t       ret_value = FAIL;       /* Return value */
+
+    FUNC_ENTER_API(H5Oexists_by_name, FAIL)
+    H5TRACE3("t", "i*si", loc_id, name, lapl_id);
+
+    /* Check args */
+    if(H5G_loc(loc_id, &loc) < 0)
+        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a location")
+    if(!name || !*name)
+        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "no name")
+    if(H5P_DEFAULT == lapl_id)
+        lapl_id = H5P_LINK_ACCESS_DEFAULT;
+    else
+        if(TRUE != H5P_isa_class(lapl_id, H5P_LINK_ACCESS))
+            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not link access property list ID")
+
+    /* Check if the object exists */
+    if((ret_value = H5G_loc_exists(&loc, name, lapl_id, H5AC_dxpl_id)) < 0)
+        HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "unable to determine if '%s' exists", name)
+
+done:
+    FUNC_LEAVE_API(ret_value)
+} /* end H5Oexists_by_name() */
+
+
+/*-------------------------------------------------------------------------
  * Function:	H5Oget_info
  *
  * Purpose:	Retrieve information about an object.
@@ -1133,7 +1175,7 @@ H5O_create(H5F_t *f, hid_t dxpl_id, size_t size_hint, hid_t ocpl_id,
 #if H5_SIZEOF_SIZE_T > H5_SIZEOF_INT32_T
         if(size_hint > 4294967295)
             oh->flags |= H5O_HDR_CHUNK0_8;
-        else 
+        else
 #endif /* H5_SIZEOF_SIZE_T > H5_SIZEOF_INT32_T */
         if(size_hint > 65535)
             oh->flags |= H5O_HDR_CHUNK0_4;
@@ -1202,7 +1244,7 @@ H5O_create(H5F_t *f, hid_t dxpl_id, size_t size_hint, hid_t ocpl_id,
 
 done:
     if(ret_value < 0 && oh)
-        if(H5O_dest(f, oh) < 0)
+        if(H5O_free(oh) < 0)
 	    HDONE_ERROR(H5E_OHDR, H5E_CANTFREE, FAIL, "unable to destroy object header data")
 
     FUNC_LEAVE_NOAPI(ret_value)
@@ -3017,3 +3059,67 @@ done:
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5O_visit() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5O_free
+ *
+ * Purpose:	Destroys an object header.
+ *
+ * Return:	Non-negative on success/Negative on failure
+ *
+ * Programmer:	Quincey Koziol
+ *		koziol@ncsa.uiuc.edu
+ *		Jan 15 2003
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5O_free(H5O_t *oh)
+{
+    unsigned	u;                      /* Local index variable */
+
+    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5O_free)
+
+    /* check args */
+    HDassert(oh);
+
+    /* Destroy chunks */
+    if(oh->chunk) {
+        for(u = 0; u < oh->nchunks; u++) {
+            /* Verify that chunk is clean */
+            HDassert(oh->chunk[u].dirty == 0);
+
+            oh->chunk[u].image = H5FL_BLK_FREE(chunk_image, oh->chunk[u].image);
+        } /* end for */
+
+        oh->chunk = (H5O_chunk_t *)H5FL_SEQ_FREE(H5O_chunk_t, oh->chunk);
+    } /* end if */
+
+    /* Destroy messages */
+    if(oh->mesg) {
+        for(u = 0; u < oh->nmesgs; u++) {
+#ifndef NDEBUG
+            /* Verify that message is clean, unless it could have been marked
+             * dirty by decoding */
+            if(oh->ndecode_dirtied && oh->mesg[u].dirty)
+                oh->ndecode_dirtied--;
+            else
+                HDassert(oh->mesg[u].dirty == 0);
+#endif /* NDEBUG */
+
+            H5O_msg_free_mesg(&oh->mesg[u]);
+        } /* end for */
+
+        /* Make sure we accounted for all the messages dirtied by decoding */
+        HDassert(!oh->ndecode_dirtied);
+
+        oh->mesg = (H5O_mesg_t *)H5FL_SEQ_FREE(H5O_mesg_t, oh->mesg);
+    } /* end if */
+
+    /* destroy object header */
+    oh = H5FL_FREE(H5O_t, oh);
+
+    FUNC_LEAVE_NOAPI(SUCCEED)
+} /* end H5O_free() */
+

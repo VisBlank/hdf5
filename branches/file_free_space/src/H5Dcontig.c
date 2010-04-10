@@ -34,6 +34,7 @@
 /* Headers */
 /***********/
 #include "H5private.h"		/* Generic Functions			*/
+#include "H5ACprivate.h"	/* Metadata cache			*/
 #include "H5Dpkg.h"		/* Dataset functions			*/
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5Fprivate.h"		/* Files				*/
@@ -217,8 +218,8 @@ H5D_contig_fill(H5D_t *dset, hid_t dxpl_id)
     store.contig.dset_size = dset->shared->layout.storage.u.contig.size;
 
     /* Get the number of elements in the dataset's dataspace */
-    snpoints = H5S_GET_EXTENT_NPOINTS(dset->shared->space);
-    HDassert(snpoints >= 0);
+    if((snpoints = H5S_GET_EXTENT_NPOINTS(dset->shared->space)) < 0)
+        HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "dataset has negative number of elements")
     H5_ASSIGN_OVERFLOW(npoints, snpoints, hssize_t, size_t);
 
     /* Initialize the fill value buffer */

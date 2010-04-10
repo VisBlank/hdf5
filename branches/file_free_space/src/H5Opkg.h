@@ -24,7 +24,8 @@
 #include "H5Oprivate.h"		/* Object headers		  	*/
 
 /* Other private headers needed by this file */
-#include "H5ACprivate.h"	/* Metadata cache			*/
+#include "H5ACprivate.h"        /* Metadata cache                       */
+#include "H5FLprivate.h"	/* Free Lists                           */
 
 /* Object header macros */
 #define H5O_NMESGS	8 		/*initial number of messages	     */
@@ -325,7 +326,7 @@ typedef struct H5O_obj_class_t {
 
 /* Node in skip list to map addresses from one file to another during object header copy */
 typedef struct H5O_addr_map_t {
-    haddr_t     src_addr;               /* Address of object in source file */
+    H5_obj_t    src_obj_pos;            /* Location of source object */
     haddr_t     dst_addr;               /* Address of object in destination file */
     hbool_t     is_locked;              /* Indicate that the destination object is locked currently */
     hsize_t     inc_ref_count;          /* Number of deferred increments to reference count */
@@ -475,6 +476,7 @@ H5_DLL herr_t H5O_flush_msgs(H5F_t *f, H5O_t *oh);
 H5_DLL hid_t H5O_open_by_loc(const H5G_loc_t *obj_loc, hid_t lapl_id, hid_t dxpl_id, hbool_t app_ref);
 H5_DLL herr_t H5O_delete_mesg(H5F_t *f, hid_t dxpl_id, H5O_t *open_oh, H5O_mesg_t *mesg);
 H5_DLL const H5O_obj_class_t *H5O_obj_class_real(H5O_t *oh);
+H5_DLL herr_t H5O_free(H5O_t *oh);
 
 /* Object header message routines */
 H5_DLL unsigned H5O_msg_alloc(H5F_t *f, hid_t dxpl_id, H5O_t *oh,
@@ -534,9 +536,6 @@ H5_DLL herr_t H5O_attr_count_real(H5F_t *f, hid_t dxpl_id, H5O_t *oh,
 
 /* These functions operate on object locations */
 H5_DLL H5O_loc_t *H5O_get_loc(hid_t id);
-
-/* Useful metadata cache callbacks */
-H5_DLL herr_t H5O_dest(H5F_t *f, H5O_t *oh);
 
 /* Testing functions */
 #ifdef H5O_TESTING
