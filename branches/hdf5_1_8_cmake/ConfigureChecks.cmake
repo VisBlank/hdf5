@@ -55,19 +55,23 @@ IF (HDF5_METADATA_TRACE_FILE)
   SET (H5_METADATA_TRACE_FILE 1)
 ENDIF (HDF5_METADATA_TRACE_FILE)
 
-#-----------------------------------------------------------------------------
-#  --enable-dconv-accuracy
-#    IF data accuracy is guaranteed during data conversions [default=yes]
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
+# Decide whether the data accuracy has higher priority during data
+# conversions.  If not, some hard conversions will still be prefered even
+# though the data may be wrong (for example, some compilers don't
+# support denormalized floating values) to maximize speed.
+#
 OPTION (HDF5_WANT_DATA_ACCURACY "IF data accuracy is guaranteed during data conversions" ON)
 IF (HDF5_WANT_DATA_ACCURACY)
   SET (H5_WANT_DATA_ACCURACY 1)
 ENDIF(HDF5_WANT_DATA_ACCURACY)
 
-#-----------------------------------------------------------------------------
-# --enable-dconv-exception
-# exception handling functions is checked during data conversions
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
+# Decide whether the presence of user's exception handling functions is
+# checked and data conversion exceptions are returned.  This is mainly
+# for the speed optimization of hard conversions.  Soft conversions can
+# actually benefit little.
+#
 OPTION (HDF5_WANT_DCONV_EXCEPTION "exception handling functions is checked during data conversions" ON)
 IF (HDF5_WANT_DCONV_EXCEPTION)
   SET (H5_WANT_DCONV_EXCEPTION 1)
@@ -104,16 +108,31 @@ IF (WIN32)
   ENDIF (NOT UNIX)
 ENDIF (WIN32)
 
+# TODO --------------------------------------------------------------------------
+# Should the Default Virtual File Driver be compiled?
+# This is hard-coded now but option should added to match configure
+#
 IF (WINDOWS)
-  # Define the default virtual file driver to compile */
   SET (H5_HAVE_WINDOWS 1)
-  SET (H5_HAVE_WINDOW_PATH 1)
 #  SET (H5_WINDOWS_USE_STDIO 0)
+  # ----------------------------------------------------------------------
+  # Set the flag to indicate that the machine has window style pathname,
+  # that is, "drive-letter:\" (e.g. "C:") or "drive-letter:/" (e.g. "C:/").
+  # (This flag should be _unset_ for all machines, except for Windows)
+  #
+  SET (H5_HAVE_WINDOW_PATH 1)
   SET (WINDOWS_MAX_BUF (1024 * 1024 * 1024))
   SET (H5_DEFAULT_VFD H5FD_WINDOWS)
 ELSE (WINDOWS)
   SET (H5_DEFAULT_VFD H5FD_SEC2)
 ENDIF (WINDOWS)
+
+# ----------------------------------------------------------------------
+# Set the flag to indicate that the machine can handle converting
+# floating-point to long long values.
+# (This flag should be _unset_ for all machines)
+#
+#  SET (H5_HW_FP_TO_LLONG_NOT_WORKS 0)
 
 # so far we have no check for this
 SET(H5_HAVE_TMPFILE 1)
@@ -566,9 +585,12 @@ IF (H5_PRINTF_LL_WIDTH MATCHES "^H5_PRINTF_LL_WIDTH$")
   ENDIF (PRINT_LL_FOUND)
 ENDIF (H5_PRINTF_LL_WIDTH MATCHES "^H5_PRINTF_LL_WIDTH$")
 
-#-----------------------------------------------------------------------------
-# Some things that are always true
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
+# Set the flag to indicate that the machine can handle converting
+# denormalized floating-point values.
+# (This flag should be set for all machines, except for the Crays, where
+# the cache value is set in it's config file)
+#
 SET (H5_CONVERT_DENORMAL_FLOAT 1)
 
 #-----------------------------------------------------------------------------
@@ -633,28 +655,123 @@ ENDMACRO (H5MiscConversionTest)
 #-----------------------------------------------------------------------------
 # Check various conversion capabilities
 #-----------------------------------------------------------------------------
-H5MiscConversionTest (H5_SIZEOF_LONG_DOUBLE H5_LDOUBLE_TO_INTEGER_ACCURATE "checking IF converting from long double to integers is accurate")
-H5ConversionTests (H5_LDOUBLE_TO_INTEGER_WORKS "Checking IF converting from long double to integers works")
-H5MiscConversionTest (H5_SIZEOF_LONG_DOUBLE H5_INTEGER_TO_LDOUBLE_ACCURATE "checking IF accurately converting from integers to long double")
-H5ConversionTests (H5_ULONG_TO_FLOAT_ACCURATE "Checking IF accurately converting unsigned long to float values")
-H5ConversionTests (H5_ULONG_TO_FP_BOTTOM_BIT_ACCURATE "Checking IF accurately converting unsigned long long to floating-point values")
-H5ConversionTests (H5_FP_TO_ULLONG_ACCURATE "Checking IF accurately roundup converting floating-point to unsigned long long values" )
-H5ConversionTests (H5_FP_TO_ULLONG_RIGHT_MAXIMUM "Checking IF right maximum converting floating-point to unsigned long long values" )
-H5ConversionTests (H5_LDOUBLE_TO_UINT_ACCURATE "Checking IF correctly converting long double to unsigned int values")
 
+# -----------------------------------------------------------------------
+# Set flag to indicate that the machine can handle conversion from
+# long double to integers accurately.  This flag should be set "yes" for
+# all machines except all SGIs.  For SGIs, some conversions are
+# incorrect and its cache value is set "no" in its config/irix6.x and
+# irix5.x.
+#
+H5MiscConversionTest (H5_SIZEOF_LONG_DOUBLE H5_LDOUBLE_TO_INTEGER_ACCURATE "checking IF converting from long double to integers is accurate")
+# -----------------------------------------------------------------------
+# Set flag to indicate that the machine can do conversion from
+# long double to integers regardless of accuracy.  This flag should be
+# set "yes" for all machines except HP-UX 11.00.  For HP-UX 11.00, the
+# compiler has 'floating exception' when converting 'long double' to all
+# integers except 'unsigned long long'.  Other HP-UX systems are unknown
+# yet. (1/8/05 - SLU)
+#
+H5ConversionTests (H5_LDOUBLE_TO_INTEGER_WORKS "Checking IF converting from long double to integers works")
+# -----------------------------------------------------------------------
+# Set flag to indicate that the machine can handle conversion from
+# integers to long double.  (This flag should be set "yes" for all
+# machines except all SGIs, where some conversions are
+# incorrect and its cache value is set "no" in its config/irix6.x and
+# irix5.x)
+#
+H5MiscConversionTest (H5_SIZEOF_LONG_DOUBLE H5_INTEGER_TO_LDOUBLE_ACCURATE "checking IF accurately converting from integers to long double")
+# ----------------------------------------------------------------------
+# Set the flag to indicate that the machine can accurately convert
+# 'unsigned long' to 'float' values.
+# (This flag should be set for all machines, except for Pathscale compiler
+# on Sandia's Linux machine where the compiler interprets 'unsigned long'
+# values as negative when the first bit of 'unsigned long' is on during
+# the conversion to float.)
+#
+H5ConversionTests (H5_ULONG_TO_FLOAT_ACCURATE "Checking IF accurately converting unsigned long to float values")
+# ----------------------------------------------------------------------
+# Set the flag to indicate that the machine can accurately convert
+# 'unsigned (long) long' values to 'float' and 'double' values.
+# (This flag should be set for all machines, except for the SGIs, where
+# the cache value is set in the config/irix6.x config file) and Solaris
+# 64-bit machines, where the short program below tests if round-up is
+# correctly handled.
+#
+H5ConversionTests (H5_ULONG_TO_FP_BOTTOM_BIT_ACCURATE "Checking IF accurately converting unsigned long long to floating-point values")
+# ----------------------------------------------------------------------
+# Set the flag to indicate that the machine can accurately convert
+# 'float' or 'double' to 'unsigned long long' values.
+# (This flag should be set for all machines, except for PGI compiler
+# where round-up happens when the fraction of float-point value is greater
+# than 0.5.
+#
+H5ConversionTests (H5_FP_TO_ULLONG_ACCURATE "Checking IF accurately roundup converting floating-point to unsigned long long values" )
+# ----------------------------------------------------------------------
+# Set the flag to indicate that the machine can accurately convert
+# 'float', 'double' or 'long double' to 'unsigned long long' values.
+# (This flag should be set for all machines, except for HP-UX machines
+# where the maximal number for unsigned long long is 0x7fffffffffffffff
+# during conversion.
+#
+H5ConversionTests (H5_FP_TO_ULLONG_RIGHT_MAXIMUM "Checking IF right maximum converting floating-point to unsigned long long values" )
+# ----------------------------------------------------------------------
+# Set the flag to indicate that the machine can accurately convert
+# 'long double' to 'unsigned int' values.  (This flag should be set for
+# all machines, except for some Intel compilers on some Linux.)
+#
+H5ConversionTests (H5_LDOUBLE_TO_UINT_ACCURATE "Checking IF correctly converting long double to unsigned int values")
+# ----------------------------------------------------------------------
+# Set the flag to indicate that the machine can _compile_
+# 'unsigned long long' to 'float' and 'double' typecasts.
+# (This flag should be set for all machines.)
+#
 IF (H5_ULLONG_TO_FP_CAST_WORKS MATCHES ^H5_ULLONG_TO_FP_CAST_WORKS$)
   SET (H5_ULLONG_TO_FP_CAST_WORKS 1 CACHE INTERNAL "Checking IF compiling unsigned long long to floating-point typecasts work")
   MESSAGE (STATUS "Checking IF compiling unsigned long long to floating-point typecasts work... yes")
 ENDIF (H5_ULLONG_TO_FP_CAST_WORKS MATCHES ^H5_ULLONG_TO_FP_CAST_WORKS$)
-
-IF (H5_INTEGER_TO_LDOUBLE_ACCURATE MATCHES ^H5_INTEGER_TO_LDOUBLE_ACCURATE$)
+# ----------------------------------------------------------------------
+# Set the flag to indicate that the machine can _compile_
+# 'long long' to 'float' and 'double' typecasts.
+# (This flag should be set for all machines.)
+#
+IF (H5_LLONG_TO_FP_CAST_WORKS MATCHES ^H5_LLONG_TO_FP_CAST_WORKS$)
   SET (H5_LLONG_TO_FP_CAST_WORKS 1 CACHE INTERNAL "Checking IF compiling long long to floating-point typecasts work")
   MESSAGE (STATUS "Checking IF compiling long long to floating-point typecasts work... yes")
-ENDIF (H5_INTEGER_TO_LDOUBLE_ACCURATE MATCHES ^H5_INTEGER_TO_LDOUBLE_ACCURATE$)
-
+ENDIF (H5_LLONG_TO_FP_CAST_WORKS MATCHES ^H5_LLONG_TO_FP_CAST_WORKS$)
+# ----------------------------------------------------------------------
+# Set the flag to indicate that the machine can convert from
+# 'unsigned long long' to 'long double' without precision loss.
+# (This flag should be set for all machines, except for FreeBSD(sleipnir)
+# where the last 2 bytes of mantissa are lost when compiler tries to do
+# the conversion, and Cygwin where compiler doesn't do rounding correctly.)
+#
 H5ConversionTests (H5_ULLONG_TO_LDOUBLE_PRECISION "Checking IF converting unsigned long long to long double with precision")
+# ----------------------------------------------------------------------
+# Set the flag to indicate that the machine can handle overflow converting
+# all floating-point to all integer types.
+# (This flag should be set for all machines, except for Cray X1 where
+# floating exception is generated when the floating-point value is greater
+# than the maximal integer value).
+#
 H5ConversionTests (H5_FP_TO_INTEGER_OVERFLOW_WORKS  "Checking IF overflows normally converting floating-point to integer values")
+# ----------------------------------------------------------------------
+# Set the flag to indicate that the machine can accurately convert
+# 'long double' to '(unsigned) long long' values.  (This flag should be set for
+# all machines, except for Mac OS 10.4 and SGI IRIX64 6.5.  When the bit sequence
+# of long double is 0x4351ccf385ebc8a0bfcc2a3c..., the values of (unsigned)long long
+# start to go wrong on these two machines.  Adjusting it higher to
+# 0x4351ccf385ebc8a0dfcc... or 0x4351ccf385ebc8a0ffcc... will make the converted
+# values wildly wrong.  This test detects this wrong behavior and disable the test.
+#
 H5ConversionTests (H5_LDOUBLE_TO_LLONG_ACCURATE "Checking IF correctly converting long double to (unsigned) long long values")
+# ----------------------------------------------------------------------
+# Set the flag to indicate that the machine can accurately convert
+# '(unsigned) long long' to 'long double' values.  (This flag should be set for
+# all machines, except for Mac OS 10.4, when the bit sequences are 003fff...,
+# 007fff..., 00ffff..., 01ffff..., ..., 7fffff..., the converted values are twice
+# as big as they should be.
+#
 H5ConversionTests (H5_LLONG_TO_LDOUBLE_CORRECT "Checking IF correctly converting (unsigned) long long to long double values")
 H5ConversionTests (H5_NO_ALIGNMENT_RESTRICTIONS "Checking IF alignment restrictions are strictly enforced")
 

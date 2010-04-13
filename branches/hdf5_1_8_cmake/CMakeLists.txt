@@ -447,6 +447,7 @@ ENDIF (HDF5_BUILD_TOOLS)
 #-----------------------------------------------------------------------------
 OPTION (HDF5_BUILD_HL_LIB  "Build HIGH Level HDF5 Library" OFF)
 IF (HDF5_BUILD_HL_LIB)
+  SET (H5_INCLUDE_HL 1)
   ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/hl ${PROJECT_BINARY_DIR}/hl)
 ENDIF (HDF5_BUILD_HL_LIB)
 
