@@ -4,9 +4,9 @@ PROJECT (HDF5_HL)
 #-----------------------------------------------------------------------------
 # Shared Libs
 #-----------------------------------------------------------------------------
-#IF (BUILD_SHARED_LIBS)
-#  SET (HL_BUILT_AS_DYNAMIC_LIB 1)
-#ENDIF (BUILD_SHARED_LIBS)
+IF (BUILD_SHARED_LIBS)
+  SET (HL_BUILT_AS_DYNAMIC_LIB 1)
+ENDIF (BUILD_SHARED_LIBS)
 
 #-----------------------------------------------------------------------------
 # List Source files

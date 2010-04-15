@@ -30,10 +30,48 @@
   #define _HDF5USEDLL_
 #endif
 
-#if defined (h5test_EXPORTS)
+#if defined (hf5_test_EXPORTS)
   #define _HDF5TESTDLL_
 #else
   #define _HDF5TESTUSEDLL_
+#endif
+
+#if defined (hf5_tools_EXPORTS)
+  #define _HDF5TOOLSDLL_
+#else
+  #define _HDF5TOOLSUSEDLL_
+#endif
+
+#if defined (hf5_cpp_EXPORTS)
+  #define HDF5_CPPDLL_EXPORTS
+#else
+  #define HDF5CPP_USEDLL
+#endif
+
+#if defined (hf5_hl_EXPORTS)
+  #define _HDF5_HLDLL_EXPORTS_
+#else
+  #define _HDF5USEHLDLL_
+#endif
+
+#if defined (hf5_hl_cpp_EXPORTS)
+  #define HDF5_HL_CPPDLL_EXPORTS
+#else
+  #define HDF5USE_HLCPPDLL
+#endif
+
+#if defined (hdf5_f90CStub_EXPORTS)
+  #define HDF5FORT_CSTUB_DLL_EXPORTS
+#else
+  #define HDF5FORT_CSTUB_USELL
+#endif
+
+#if defined (hdf5_test_f90CStub_EXPORTS)
+  #define HDF5FORTTEST_CSTUB_DLL_EXPORTS
+#endif
+
+#if defined (hdf5_hl_f90CStub_EXPORTS)
+  #define HDF5_HL_F90CSTUBDLL_EXPORTS
 #endif
 
 #if defined(hdf5_EXPORTS)
@@ -59,7 +97,7 @@
   #define H5_DLLVAR extern
 #endif /* _HDF5DLL_ */
 
-#if defined(h5test_EXPORTS)
+#if defined(hdf5_test_EXPORTS)
   #if defined (_MSC_VER)  /* MSVC Compiler Case */
     #define H5TEST_DLL __declspec(dllexport)
     #define H5TEST_DLLVAR extern __declspec(dllexport)
@@ -81,6 +119,29 @@
   #define H5TEST_DLL
   #define H5TEST_DLLVAR extern
 #endif /* H5TEST_DLL */
+
+#if defined(hdf5_tools_EXPORTS)
+  #if defined (_MSC_VER)  /* MSVC Compiler Case */
+    #define H5TOOLS_DLL __declspec(dllexport)
+    #define H5TOOLS_DLLVAR extern __declspec(dllexport)
+  #elif (__GNUC__ >= 4)  /* GCC 4.x has support for visibility options */
+    #define H5TOOLS_DLL __attribute__ ((visibility("default")))
+    #define H5TOOLS_DLLVAR extern __attribute__ ((visibility("default")))
+  #endif
+#else
+  #if defined (_MSC_VER)  /* MSVC Compiler Case */
+    #define H5TOOLS_DLL __declspec(dllimport)
+    #define H5TOOLS_DLLVAR __declspec(dllimport)
+  #elif (__GNUC__ >= 4)  /* GCC 4.x has support for visibility options */
+    #define H5TOOLS_DLL __attribute__ ((visibility("default")))
+    #define H5TOOLS_DLLVAR extern __attribute__ ((visibility("default")))
+  #endif
+#endif
+
+#ifndef H5TOOLS_DLL
+  #define H5TOOLS_DLL
+  #define H5TOOLS_DLLVAR extern
+#endif /* H5TOOLS_DLL */
 
 #if defined(hdf5_cpp_EXPORTS)
   #if defined (_MSC_VER)  /* MSVC Compiler Case */
@@ -151,29 +212,6 @@
   #define H5_HLCPPDLLVAR extern
 #endif /* H5_HLCPPDLL */
 
-#if defined(hdf5_hl_f90CStub_EXPORTS)
-  #if defined (_MSC_VER)  /* MSVC Compiler Case */
-    #define HDF5_HL_F90CSTUBDLL __declspec(dllexport)
-    #define HDF5_HL_F90CSTUBDLLVAR extern __declspec(dllexport)
-  #elif (__GNUC__ >= 4)  /* GCC 4.x has support for visibility options */
-    #define HDF5_HL_F90CSTUBDLL __attribute__ ((visibility("default")))
-    #define HDF5_HL_F90CSTUBDLLVAR extern __attribute__ ((visibility("default")))
-  #endif
-#else
-  #if defined (_MSC_VER)  /* MSVC Compiler Case */
-    #define HDF5_HL_F90CSTUBDLL __declspec(dllimport)
-    #define HDF5_HL_F90CSTUBDLLVAR __declspec(dllimport)
-  #elif (__GNUC__ >= 4)  /* GCC 4.x has support for visibility options */
-    #define HDF5_HL_F90CSTUBDLL __attribute__ ((visibility("default")))
-    #define HDF5_HL_F90CSTUBDLLVAR extern __attribute__ ((visibility("default")))
-  #endif
-#endif
-
-#ifndef HDF5_HL_F90CSTUBDLL
-  #define HDF5_HL_F90CSTUBDLL
-  #define HDF5_HL_F90CSTUBDLLVAR extern
-#endif /* HDF5_HL_F90CSTUBDLL */
-
 #if defined(hdf5_f90CStub_EXPORTS)
   #if defined (_MSC_VER)  /* MSVC Compiler Case */
     #define H5_FCDLL __declspec(dllexport)
@@ -220,11 +258,34 @@
   #define H5_FCTESTDLLVAR extern
 #endif /* H5_FCTESTDLL */
 
+#if defined(hdf5_hl_f90CStub_EXPORTS)
+  #if defined (_MSC_VER)  /* MSVC Compiler Case */
+    #define HDF5_HL_F90CSTUBDLL __declspec(dllexport)
+    #define HDF5_HL_F90CSTUBDLLVAR extern __declspec(dllexport)
+  #elif (__GNUC__ >= 4)  /* GCC 4.x has support for visibility options */
+    #define HDF5_HL_F90CSTUBDLL __attribute__ ((visibility("default")))
+    #define HDF5_HL_F90CSTUBDLLVAR extern __attribute__ ((visibility("default")))
+  #endif
+#else
+  #if defined (_MSC_VER)  /* MSVC Compiler Case */
+    #define HDF5_HL_F90CSTUBDLL __declspec(dllimport)
+    #define HDF5_HL_F90CSTUBDLLVAR __declspec(dllimport)
+  #elif (__GNUC__ >= 4)  /* GCC 4.x has support for visibility options */
+    #define HDF5_HL_F90CSTUBDLL __attribute__ ((visibility("default")))
+    #define HDF5_HL_F90CSTUBDLLVAR extern __attribute__ ((visibility("default")))
+  #endif
+#endif
+
+#ifndef HDF5_HL_F90CSTUBDLL
+  #define HDF5_HL_F90CSTUBDLL
+  #define HDF5_HL_F90CSTUBDLLVAR extern
+#endif /* HDF5_HL_F90CSTUBDLL */
+
+#else
 /* This is the original HDFGroup defined preprocessor code which should still work
  * with the VS projects that are maintained by "The HDF Group"
  * This will be removed after the next release.
  */
-#else
 
 #if defined(_WIN32)
 
