@@ -283,6 +283,7 @@ SET (H5O_SRCS
     ${HDF5_SRC_DIR}/H5Obogus.c
     ${HDF5_SRC_DIR}/H5Obtreek.c
     ${HDF5_SRC_DIR}/H5Ocache.c
+    ${HDF5_SRC_DIR}/H5Ochunk.c
     ${HDF5_SRC_DIR}/H5Ocont.c
     ${HDF5_SRC_DIR}/H5Ocopy.c
     ${HDF5_SRC_DIR}/H5Odbg.c
