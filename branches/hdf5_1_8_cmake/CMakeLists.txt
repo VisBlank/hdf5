@@ -386,6 +386,12 @@ ENDIF (HDF5_ENABLE_SZIP_SUPPORT)
 ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src)
 
 #-----------------------------------------------------------------------------
+# Build utility to copy and strip X lines of file
+#-----------------------------------------------------------------------------
+SET (XLATE_UTILITY "xlatefile")
+ADD_EXECUTABLE(${XLATE_UTILITY} ${HDF5_SOURCE_DIR}/Resources/xlatefile.c)
+
+#-----------------------------------------------------------------------------
 # Dashboard and Testing Settings
 #-----------------------------------------------------------------------------
 OPTION (BUILD_TESTING "Build HDF5 Unit Testing" OFF)
