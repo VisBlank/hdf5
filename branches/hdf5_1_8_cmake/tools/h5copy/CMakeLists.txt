@@ -31,6 +31,119 @@ IF (BUILD_TESTING)
         #h5copygentest
     )
   ENDIF (NOT BUILD_SHARED_LIBS)
+  
+  SET (INDIR ${PROJECT_BINARY_DIR})
+  SET (OUTDIR ${PROJECT_BINARY_DIR})
+  #-- Copy all the HDF5 files from the test directory into the source directory
+  SET (HDF5_REFERENCE_FILES
+      h5copy_extlinks_src.out.ls
+      h5copy_ref.out.ls
+      h5copytst.out.ls
+  )
+  SET (HDF5_REFERENCE_TEST_FILES
+      h5copy_extlinks_src.h5
+      h5copy_extlinks_trg.h5
+      h5copy_ref.h5
+      h5copytst.h5
+  )
+
+  FILE (MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/testfiles")
+  FOREACH (ls_file ${HDF5_REFERENCE_FILES})
+    SET (lsdest "${PROJECT_BINARY_DIR}/testfiles/${ls_file}")
+    #MESSAGE (STATUS " Translating ${ls_file}")
+    ADD_CUSTOM_COMMAND (
+        TARGET     h5copy
+        POST_BUILD
+        COMMAND    ${XLATE_UTILITY}
+        ARGS       ${HDF5_TOOLS_H5COPY_SOURCE_DIR}/testfiles/${ls_file} ${lsdest} -l3
+    )
+  ENDFOREACH (ls_file ${HDF5_REFERENCE_FILES})
+
+  FOREACH (h5_file ${HDF5_REFERENCE_TEST_FILES})
+    SET (dest "${PROJECT_BINARY_DIR}/testfiles/${h5_file}")
+    #MESSAGE (STATUS " Copying ${h5_file}")
+    ADD_CUSTOM_COMMAND (
+        TARGET     h5copy
+        POST_BUILD
+        COMMAND    ${CMAKE_COMMAND}
+        ARGS       -E copy_if_different ${HDF5_TOOLS_H5COPY_SOURCE_DIR}/testfiles/${h5_file} ${dest}
+    )
+  ENDFOREACH (h5_file ${HDF5_REFERENCE_TEST_FILES})
+
+  # Test files
+  SET (HDF_FILE1 h5copytst)
+  SET (HDF_FILE2 h5copy_ref)
+  SET (HDF_EXT_SRC_FILE h5copy_extlinks_src)
+  SET (HDF_EXT_TRG_FILE h5copy_extlinks_trg)
+
+  MACRO (ADD_H5_TEST testname resultcode testfile vparam srcname dstname)
+    ADD_TEST (
+        NAME H5COPY-${testname}
+        COMMAND h5copy -i ./testfiles/${testfile}.h5 -o ./testfiles/${testfile}.out.h5 -${vparam} -s ${srcname} -d ${dstname}
+    )
+    ADD_TEST (
+        NAME H5COPY-DIFF_${testname}
+        COMMAND h5diff -q ./testfiles/${testfile}.h5 ./testfiles/${testfile}.out.h5 ${srcname} ${dstname}
+    )
+    IF (${resultcode} STREQUAL "1")
+      SET_TESTS_PROPERTIES (H5COPY-DIFF_${testname} PROPERTIES WILL_FAIL "true")
+    ENDIF (${resultcode} STREQUAL "1")
+  ENDMACRO (ADD_H5_TEST testname resultcode testfile vparam srcname dstname)
+
+
+  MACRO (ADD_H5LS_TEST file)
+    ADD_TEST (
+        NAME H5COPY-H5LS_${file}
+        COMMAND "${CMAKE_COMMAND}"
+            -D "TEST_PROGRAM=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/h5ls${CMAKE_EXECUTABLE_SUFFIX}"
+            -D "TEST_ARGS=-Svr;./testfiles/${file}.out.h5"
+            -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
+            -D "TEST_OUTPUT=./testfiles/${file}.out.out"
+            -D "TEST_EXPECT=0"
+            -D "TEST_REFERENCE=./testfiles/${file}.out.ls"
+            -D "TEST_MASK=true"
+            -P "${HDF5_RESOURCES_DIR}/runTest.cmake"
+    )
+  ENDMACRO (ADD_H5LS_TEST file)
+  
+  # "Test copying various forms of datasets"
+  ADD_H5_TEST (simple 0 ${HDF_FILE1} v simple simple)
+  ADD_H5_TEST (chunk 0 ${HDF_FILE1} v chunk chunk)
+  ADD_H5_TEST (compact 0 ${HDF_FILE1} v compact compact)
+  ADD_H5_TEST (compound 0 ${HDF_FILE1} v compound compound)
+  ADD_H5_TEST (compressed 0 ${HDF_FILE1} v compressed compressed)
+  ADD_H5_TEST (named_vl 0 ${HDF_FILE1} v named_vl named_vl)
+  ADD_H5_TEST (nested_vl 0 ${HDF_FILE1} v nested_vl nested_vl)
+
+  # "Test copying dataset within group in source file to root of destination"
+  ADD_H5_TEST (simple_top 0 ${HDF_FILE1} v grp_dsets/simple simple_top)
+
+  # "Test copying & renaming dataset"
+  ADD_H5_TEST (rename 0 ${HDF_FILE1} v compound rename)
+
+  # "Test copying empty, 'full' & 'nested' groups"
+  ADD_H5_TEST (grp_empty 0 ${HDF_FILE1} v grp_empty grp_empty)
+  ADD_H5_TEST (grp_dsets 0 ${HDF_FILE1} v grp_dsets grp_dsets)
+  ADD_H5_TEST (grp_nested 0 ${HDF_FILE1} v grp_nested grp_nested)
+
+  # "Test copying dataset within group in source file to group in destination"
+  ADD_H5_TEST (simple_group 0 ${HDF_FILE1} v /grp_dsets/simple /grp_dsets/simple_group)
+
+  # "Test copying & renaming group"
+  ADD_H5_TEST (grp_rename 1 ${HDF_FILE1} v grp_dsets grp_rename)
+
+  # "Test copying 'full' group hierarchy into group in destination file"
+  ADD_H5_TEST (grp_dsets_rename 1 ${HDF_FILE1} v grp_dsets /grp_rename/grp_dsets)
+
+  # "Test copying objects into group hier. that doesn't exist yet in destination file"
+  ADD_H5_TEST (A_B1_simple 0 ${HDF_FILE1} vp simple /A/B1/simple)
+  ADD_H5_TEST (A_B2_simple2 0 ${HDF_FILE1} vp simple /A/B2/simple2)
+  ADD_H5_TEST (C_D_simple 0 ${HDF_FILE1} vp /grp_dsets/simple /C/D/simple)
+  ADD_H5_TEST (E_F_grp_dsets 1 ${HDF_FILE1} vp /grp_dsets /E/F/grp_dsets)
+  ADD_H5_TEST (G_H_grp_nested 1 ${HDF_FILE1} vp /grp_nested /G/H/grp_nested)
+
+  # Verify that the file created above is correct
+  ADD_H5LS_TEST (${HDF_FILE1})
 ENDIF (BUILD_TESTING)
 
 #-----------------------------------------------------------------------------

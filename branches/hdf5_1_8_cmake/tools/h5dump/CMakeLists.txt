@@ -31,6 +31,58 @@ IF (BUILD_TESTING)
     #    h5dumpgentest
     )
   ENDIF (NOT BUILD_SHARED_LIBS)
+  
+    #-- Copy all the HDF5 files from the test directory into the source directory
+  SET (HDF5_REFERENCE_FILES
+      tgroup-1.ddl
+      tgroup-2.ddl
+  )
+  SET (HDF5_REFERENCE_TEST_FILES
+      tgroup.h5
+  )
+
+  FOREACH (ddl_file ${HDF5_REFERENCE_FILES})
+    SET (ddldest "${PROJECT_BINARY_DIR}/${ddl_file}")
+    #MESSAGE (STATUS " Translating ${ddl_file}")
+    ADD_CUSTOM_COMMAND (
+        TARGET     h5dump
+        POST_BUILD
+        COMMAND    ${XLATE_UTILITY}
+        ARGS       ${HDF5_TOOLS_SOURCE_DIR}/testfiles/${ddl_file} ${ddldest} -l3
+    )
+  ENDFOREACH (ddl_file ${HDF5_REFERENCE_FILES})
+
+  FOREACH (h5_file ${HDF5_REFERENCE_TEST_FILES})
+    SET (dest "${PROJECT_BINARY_DIR}/${h5_file}")
+    #MESSAGE (STATUS " Copying ${h5_file}")
+    ADD_CUSTOM_COMMAND (
+        TARGET     h5dump
+        POST_BUILD
+        COMMAND    ${CMAKE_COMMAND}
+        ARGS       -E copy_if_different ${HDF5_TOOLS_SOURCE_DIR}/testfiles/${h5_file} ${dest}
+    )
+  ENDFOREACH (h5_file ${HDF5_REFERENCE_TEST_FILES})
+
+  MACRO (ADD_H5_TEST resultfile resultcode)
+    ADD_TEST (
+        NAME H5DUMP-${resultfile}
+        COMMAND "${CMAKE_COMMAND}"
+            -D "TEST_PROGRAM=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/h5dump${CMAKE_EXECUTABLE_SUFFIX}"
+            -D "TEST_ARGS=${ARGN}"
+            -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
+            -D "TEST_OUTPUT=${resultfile}.out"
+            -D "TEST_EXPECT=${resultcode}"
+            -D "TEST_REFERENCE=${resultfile}.ddl"
+            -P "${HDF5_RESOURCES_DIR}/runTest.cmake"
+    )
+  ENDMACRO (ADD_H5_TEST file)
+
+
+  # test for displaying groups
+  ADD_H5_TEST (tgroup-1 0 tgroup.h5)
+  # test for displaying the selected groups
+  ADD_H5_TEST (tgroup-2 0 --group=/g2 --group / -g /y tgroup.h5)
+   
 ENDIF (BUILD_TESTING)
 
 #-----------------------------------------------------------------------------

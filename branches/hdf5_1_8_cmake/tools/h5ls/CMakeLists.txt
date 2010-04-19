@@ -87,7 +87,7 @@ IF (BUILD_TESTING)
 
   FOREACH (ls_file ${HDF5_REFERENCE_FILES})
     SET (lsdest "${PROJECT_BINARY_DIR}/${ls_file}")
-    MESSAGE (STATUS " Translating ${ls_file}")
+    #MESSAGE (STATUS " Translating ${ls_file}")
     ADD_CUSTOM_COMMAND (
         TARGET     h5ls
         POST_BUILD
