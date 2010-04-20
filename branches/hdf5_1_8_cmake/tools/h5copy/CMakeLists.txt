@@ -32,8 +32,6 @@ IF (BUILD_TESTING)
     )
   ENDIF (NOT BUILD_SHARED_LIBS)
   
-  SET (INDIR ${PROJECT_BINARY_DIR})
-  SET (OUTDIR ${PROJECT_BINARY_DIR})
   #-- Copy all the HDF5 files from the test directory into the source directory
   SET (HDF5_REFERENCE_FILES
       h5copy_extlinks_src.out.ls

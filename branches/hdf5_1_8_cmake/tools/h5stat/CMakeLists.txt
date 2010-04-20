@@ -58,7 +58,7 @@ IF (BUILD_TESTING)
 
   FOREACH (ddl_file ${HDF5_REFERENCE_FILES})
     SET (ddldest "${PROJECT_BINARY_DIR}/${ddl_file}")
-    MESSAGE (STATUS " Translating ${ddl_file}")
+    #MESSAGE (STATUS " Translating ${ddl_file}")
     ADD_CUSTOM_COMMAND (
         TARGET     h5stat
         POST_BUILD
