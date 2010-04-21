@@ -141,6 +141,12 @@ FOREACH (test ${H5_TESTS})
     ADD_H5_TEST(${test})
 ENDFOREACH (test ${H5_TESTS})
 
+#-- Allow extra time for fheap to complete 30min
+IF (WIN32)
+  SET_TEST_PROPERTIES (fheap PROPERTIES TIMEOUT 1800)
+ENDIF (WIN32)
+
+
 #-- Adding test for cache
 ADD_EXECUTABLE (cache ${HDF5_TEST_SOURCE_DIR}/cache.c ${HDF5_TEST_SOURCE_DIR}/cache_common.c)
 IF (BUILD_SHARED_LIBS)
