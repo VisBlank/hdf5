@@ -143,7 +143,7 @@ ENDFOREACH (test ${H5_TESTS})
 
 #-- Allow extra time for fheap to complete 30min
 IF (WIN32)
-  SET_TEST_PROPERTIES (fheap PROPERTIES TIMEOUT 1800)
+  SET_TESTS_PROPERTIES (fheap PROPERTIES TIMEOUT 1800)
 ENDIF (WIN32)
 
 
