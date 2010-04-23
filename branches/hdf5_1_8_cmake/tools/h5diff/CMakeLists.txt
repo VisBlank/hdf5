@@ -28,7 +28,7 @@ IF (BUILD_TESTING)
     ADD_EXECUTABLE (h5diffgentest ${HDF5_TOOLS_H5DIFF_SOURCE_DIR}/h5diffgentest.c)
     TARGET_LINK_LIBRARIES (h5diffgentest ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
     
-    #ADD_TEST (h5diffgentest $<TARGET_FILE:h5diffgentest>)
+    #ADD_TEST (NAME h5diffgentest COMMAND $<TARGET_FILE:h5diffgentest>)
 
     SET (H5_DEP_EXECUTABLES ${H5_DEP_EXECUTABLES}
     #    h5diffgentest

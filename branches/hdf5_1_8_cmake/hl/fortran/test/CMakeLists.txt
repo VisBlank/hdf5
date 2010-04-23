@@ -17,7 +17,7 @@ IF (BUILD_SHARED_LIBS)
 ENDIF (BUILD_SHARED_LIBS)
 TARGET_LINK_LIBRARIES (hl_f90_tstlite ${HDF5_HL_F90_LIB_TARGET} ${HDF5_F90_LIB_TARGET})
 
-ADD_TEST (hl_f90_tstlite $<TARGET_FILE:hl_f90_tstlite>)
+ADD_TEST (NAME hl_f90_tstlite COMMAND $<TARGET_FILE:hl_f90_tstlite>)
 
 #-- Adding test for hl_f90_tstimage
 ADD_EXECUTABLE (hl_f90_tstimage tstimage.f90)
@@ -29,7 +29,7 @@ IF (BUILD_SHARED_LIBS)
 ENDIF (BUILD_SHARED_LIBS)
 TARGET_LINK_LIBRARIES (hl_f90_tstimage  ${HDF5_HL_F90_LIB_TARGET})
 
-ADD_TEST (hl_f90_tstimage $<TARGET_FILE:hl_f90_tstimage>)
+ADD_TEST (NAME hl_f90_tstimage COMMAND $<TARGET_FILE:hl_f90_tstimage>)
 
 #-- Adding test for hl_f90_tsttable
 ADD_EXECUTABLE (hl_f90_tsttable tsttable.f90)
@@ -41,4 +41,4 @@ IF (BUILD_SHARED_LIBS)
 ENDIF (BUILD_SHARED_LIBS)
 TARGET_LINK_LIBRARIES (hl_f90_tsttable ${HDF5_HL_F90_LIB_TARGET})
 
-ADD_TEST (hl_f90_tsttable $<TARGET_FILE:hl_f90_tsttable>)
+ADD_TEST (NAME hl_f90_tsttable COMMAND $<TARGET_FILE:hl_f90_tsttable>)

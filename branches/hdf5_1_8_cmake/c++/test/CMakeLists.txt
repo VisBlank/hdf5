@@ -49,4 +49,4 @@ TARGET_LINK_LIBRARIES (cpp_testhdf5
     ${HDF5_TEST_LIB_TARGET}
 )
 
-ADD_TEST (cpp_testhdf5 $<TARGET_FILE:cpp_testhdf5>)
+ADD_TEST (NAME cpp_testhdf5 COMMAND $<TARGET_FILE:cpp_testhdf5>)

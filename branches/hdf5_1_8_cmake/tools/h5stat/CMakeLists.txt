@@ -27,7 +27,7 @@ IF (BUILD_TESTING)
     ADD_EXECUTABLE (h5stat_gentest ${HDF5_TOOLS_H5STAT_SOURCE_DIR}/h5stat_gentest.c)
     TARGET_LINK_LIBRARIES (h5stat_gentest ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
     
-    #ADD_TEST (h5stat_gentest $<TARGET_FILE:h5stat_gentest>)
+    #ADD_TEST (NAME h5stat_gentest COMMAND $<TARGET_FILE:h5stat_gentest>)
 
     SET (H5_DEP_EXECUTABLES ${H5_DEP_EXECUTABLES}
     #    h5stat_gentest

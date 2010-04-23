@@ -35,7 +35,7 @@ MACRO (HL_ADD_TEST hl_name files)
       ${HDF5_TEST_LIB_TARGET}
   )
 
-  ADD_TEST (hl_${hl_name} $<TARGET_FILE:hl_${hl_name}>)
+  ADD_TEST (NAME hl_${hl_name} COMMAND $<TARGET_FILE:hl_${hl_name}>)
 
   #-- Copy the necessary files.
   FOREACH (h5_file ${files})

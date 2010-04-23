@@ -26,7 +26,7 @@ IF (BUILD_TESTING)
     ADD_EXECUTABLE (h5copygentest ${HDF5_TOOLS_H5COPY_SOURCE_DIR}/h5copygentest.c)
     TARGET_LINK_LIBRARIES (h5copygentest ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
 
-    #ADD_TEST (h5copygentest $<TARGET_FILE:h5copygentest>)
+    #ADD_TEST (NAME h5copygentest COMMAND $<TARGET_FILE:h5copygentest>)
 
     SET (H5_DEP_EXECUTABLES ${H5_DEP_EXECUTABLES}
         #h5copygentest

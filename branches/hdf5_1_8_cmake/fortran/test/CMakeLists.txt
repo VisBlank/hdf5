@@ -87,7 +87,7 @@ IF (MSVC)
   TARGET_LINK_LIBRARIES (testhdf5_fortran "ws2_32.lib")
 ENDIF (MSVC)
 
-ADD_TEST (testhdf5_fortran $<TARGET_FILE:testhdf5_fortran>)
+ADD_TEST (NAME testhdf5_fortran COMMAND $<TARGET_FILE:testhdf5_fortran>)
 
 #-- Adding test for testhdf5_fortran_1_8
 ADD_EXECUTABLE (testhdf5_fortran_1_8
@@ -108,7 +108,7 @@ IF (MSVC)
   TARGET_LINK_LIBRARIES (testhdf5_fortran_1_8 "ws2_32.lib")
 ENDIF (MSVC)
 
-ADD_TEST (testhdf5_fortran_1_8 $<TARGET_FILE:testhdf5_fortran_1_8>)
+ADD_TEST (NAME testhdf5_fortran_1_8 COMMAND $<TARGET_FILE:testhdf5_fortran_1_8>)
 
 #-- Adding test for fflush1
 ADD_EXECUTABLE (fflush1 fflush1.f90)
@@ -123,7 +123,7 @@ IF (MSVC)
   TARGET_LINK_LIBRARIES (fflush1 "ws2_32.lib")
 ENDIF (MSVC)
 
-ADD_TEST (fflush1 $<TARGET_FILE:fflush1>)
+ADD_TEST (NAME fflush1 COMMAND $<TARGET_FILE:fflush1>)
 
 #-- Adding test for fflush2
 ADD_EXECUTABLE (fflush2 fflush2.f90)
@@ -138,4 +138,4 @@ IF (MSVC)
   TARGET_LINK_LIBRARIES (fflush2 "ws2_32.lib")
 ENDIF (MSVC)
 
-ADD_TEST (fflush2 $<TARGET_FILE:fflush2>)
+ADD_TEST (NAME fflush2 COMMAND $<TARGET_FILE:fflush2>)

@@ -49,7 +49,7 @@ IF (NOT BUILD_SHARED_LIBS)
     ADD_EXECUTABLE (hl_h52gifgentest ${HDF5_HL_TOOLS_SOURCE_DIR}/gif2h5/h52gifgentst.c)
     TARGET_LINK_LIBRARIES (hl_h52gifgentest ${HDF5_HL_LIB_TARGET} ${HDF5_LIB_TARGET})
     
-#    ADD_TEST (hl_h52gifgentest $<TARGET_FILE:hl_h52gifgentest>)
+#    ADD_TEST (NAME hl_h52gifgentest COMMAND $<TARGET_FILE:hl_h52gifgentest>)
 ENDIF (NOT BUILD_SHARED_LIBS)
 
 #-----------------------------------------------------------------------------
