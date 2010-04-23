@@ -30,9 +30,8 @@ IF (BUILD_TESTING)
     ENDIF (WIN32)
   ENDIF (BUILD_SHARED_LIBS)
   TARGET_LINK_LIBRARIES (h5importtest ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
-  GET_TARGET_PROPERTY (h5importtestpath h5importtest LOCATION)
-  GET_FILENAME_COMPONENT (h5importtestexe ${h5importtestpath} NAME)
-  ADD_TEST (h5importtest ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${h5importtestexe})
+
+  ADD_TEST (NAME h5importtest COMMAND $<TARGET_FILE:h5importtest>)
 
   SET (H5_DEP_EXECUTABLES ${H5_DEP_EXECUTABLES}
         h5importtest

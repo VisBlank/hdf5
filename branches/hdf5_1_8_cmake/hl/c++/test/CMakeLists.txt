@@ -33,5 +33,6 @@ IF (BUILD_TESTING)
   )
   GET_TARGET_PROPERTY (hl_ptableTestpath hl_ptableTest LOCATION)
   GET_FILENAME_COMPONENT (hl_ptableTestexe ${hl_ptableTestpath} NAME)
-  ADD_TEST (hl_ptableTest ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${hl_ptableTestexe})
+  
+  ADD_TEST (hl_ptableTest $<TARGET_FILE:hl_ptableTest>)
 ENDIF (BUILD_TESTING)

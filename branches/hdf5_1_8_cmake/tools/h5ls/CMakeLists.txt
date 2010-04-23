@@ -111,7 +111,7 @@ IF (BUILD_TESTING)
     ADD_TEST (
         NAME H5LS-${resultfile}
         COMMAND "${CMAKE_COMMAND}"
-            -D "TEST_PROGRAM=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/h5ls${CMAKE_EXECUTABLE_SUFFIX}"
+            -D "TEST_PROGRAM=$<TARGET_FILE:h5ls>"
             -D "TEST_ARGS=${ARGN}"
             -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
             -D "TEST_OUTPUT=${resultfile}.out"

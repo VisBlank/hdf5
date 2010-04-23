@@ -86,9 +86,8 @@ TARGET_LINK_LIBRARIES (testhdf5_fortran ${HDF5_F90_TEST_LIB_TARGET})
 IF (MSVC)
   TARGET_LINK_LIBRARIES (testhdf5_fortran "ws2_32.lib")
 ENDIF (MSVC)
-GET_TARGET_PROPERTY (testhdf5_fortranpath testhdf5_fortran LOCATION)
-GET_FILENAME_COMPONENT (testhdf5_fortranexe ${testhdf5_fortranpath} NAME)
-ADD_TEST (testhdf5_fortran ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${testhdf5_fortranexe})
+
+ADD_TEST (testhdf5_fortran $<TARGET_FILE:testhdf5_fortran>)
 
 #-- Adding test for testhdf5_fortran_1_8
 ADD_EXECUTABLE (testhdf5_fortran_1_8
@@ -108,9 +107,8 @@ TARGET_LINK_LIBRARIES (testhdf5_fortran_1_8 ${HDF5_F90_TEST_LIB_TARGET})
 IF (MSVC)
   TARGET_LINK_LIBRARIES (testhdf5_fortran_1_8 "ws2_32.lib")
 ENDIF (MSVC)
-GET_TARGET_PROPERTY (testhdf5_fortran_1_8path testhdf5_fortran_1_8 LOCATION)
-GET_FILENAME_COMPONENT (testhdf5_fortran_1_8exe ${testhdf5_fortran_1_8path} NAME)
-ADD_TEST (testhdf5_fortran_1_8 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${testhdf5_fortran_1_8exe})
+
+ADD_TEST (testhdf5_fortran_1_8 $<TARGET_FILE:testhdf5_fortran_1_8>)
 
 #-- Adding test for fflush1
 ADD_EXECUTABLE (fflush1 fflush1.f90)
@@ -124,9 +122,8 @@ TARGET_LINK_LIBRARIES (fflush1 ${HDF5_F90_TEST_LIB_TARGET})
 IF (MSVC)
   TARGET_LINK_LIBRARIES (fflush1 "ws2_32.lib")
 ENDIF (MSVC)
-GET_TARGET_PROPERTY (fflush1path fflush1 LOCATION)
-GET_FILENAME_COMPONENT (fflush1exe ${fflush1path} NAME)
-ADD_TEST (fflush1 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${fflush1exe})
+
+ADD_TEST (fflush1 $<TARGET_FILE:fflush1>)
 
 #-- Adding test for fflush2
 ADD_EXECUTABLE (fflush2 fflush2.f90)
@@ -140,6 +137,5 @@ TARGET_LINK_LIBRARIES (fflush2 ${HDF5_F90_TEST_LIB_TARGET})
 IF (MSVC)
   TARGET_LINK_LIBRARIES (fflush2 "ws2_32.lib")
 ENDIF (MSVC)
-GET_TARGET_PROPERTY (fflush2path fflush2 LOCATION)
-GET_FILENAME_COMPONENT (fflush2exe ${fflush2path} NAME)
-ADD_TEST (fflush2 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${fflush2exe})
+
+ADD_TEST (fflush2 $<TARGET_FILE:fflush2>)

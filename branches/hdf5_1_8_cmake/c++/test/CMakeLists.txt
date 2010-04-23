@@ -48,6 +48,5 @@ TARGET_LINK_LIBRARIES (cpp_testhdf5
     ${HDF5_LIB_TARGET}
     ${HDF5_TEST_LIB_TARGET}
 )
-GET_TARGET_PROPERTY (cpp_testhdf5path cpp_testhdf5 LOCATION)
-GET_FILENAME_COMPONENT (cpp_testhdf5exe ${cpp_testhdf5path} NAME)
-ADD_TEST (cpp_testhdf5 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${cpp_testhdf5exe})
+
+ADD_TEST (cpp_testhdf5 $<TARGET_FILE:cpp_testhdf5>)

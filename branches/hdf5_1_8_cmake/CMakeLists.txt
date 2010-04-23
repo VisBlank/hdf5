@@ -2,35 +2,76 @@ cmake_minimum_required (VERSION 2.8)
 PROJECT (HDF5 C CXX)
 
 #-----------------------------------------------------------------------------
-# Instructions for use :
+# Instructions for use : Normal Build
 #
 # For standard build of HDF5 libraries,tests and tools.
 # Run cmake using the HDF5 source tree to generate a build tree.
+# Enable/Disable options according to requirements and
+# set CMAKE_INSTALL_PREFIX to the required install path.
 # Make install can be used to install all components for system-wide use.
+#
+#-----------------------------------------------------------------------------
+# Instructions for use : Sub-Project Build
 #
 # To include HDF5 as a sub-project within another project.
 # Set HDF5_EXTERNALLY_CONFIGURED to 1 in the parent project and
 # supply values for the following variables...
+#
 # HDF5_EXPORTED_TARGETS :
 #   Set this to the name of the targets variable which controls exports
 #   If unset (because parent project does not support/use the
 #   INSTALL (EXPORT target...) syntax), then targets are not configured
 #   for export during install.
-# HDF5_TARGET_DEPENDENCIES :
+#
+# HDF5_LIB_DEPENDENCIES :
 #   If the build of HDF5 libs is being customized, then rules for the
 #   dependencies of the HDF5 libs may be 'incomplete', add additional
 #   dependencies to this variable so that external projects pick them up
+#
+# HDF5_EXTERNAL_LIB_PREFIX :
+#   If the parent project needs to install hdf libraries, but avoid 
+#   name conflicts with system versions, then a prefix may be added
+#   to ensure that the correct versions configured are used.
 #
 # Consider this example from the ParaView project, it builds its own zlib
 # library and tells HDF5 to add it as a dependency - this ensures that
 # any project making use of this build of HDF5 will use the correct zlib
 #
-#  SET(HDF5_EXTERNALLY_CONFIGURED 1)
-#  IF(HDF5_ENABLE_Z_LIB_SUPPORT)
-#    SET(HDF5_TARGET_DEPENDENCIES vtkzlib)
+#   # Tell hdf5 that we are manually overriding certain settings
+#   SET(HDF5_EXTERNALLY_CONFIGURED 1)
+#   # Avoid duplicating names of installed libraries
+#   SET(HDF5_EXTERNAL_LIB_PREFIX "vtk")
+#   # Targets linking to the HDF5 libs need to know their names
+#   # if they are changed in the sub project, they should be here too
+#   SET(HDF5_LIB_NAME "vtkhdf5")
+#   SET(HDF5_HL_LIB_NAME "vtkhdf5_hl")
+#   SET(HDF5_LIBRARY "${HDF5_LIB_NAME};${HDF5_HL_LIB_NAME}")
+#   # Export configuration to this export variable
+#   SET(HDF5_EXPORTED_TARGETS "paraview-targets")
+#
+#   # Setup all necessary overrides for zlib so that HDF5 uses our
+#   # internally compiled zlib rather than any other version
+#   IF(HDF5_ENABLE_Z_LIB_SUPPORT)
+#    # We must tell the main HDF5 library that it depends on our zlib 
+#     SET(HDF5_LIB_DEPENDENCIES vtkzlib)    
+#     # Override the zlib header file
+#     IF(VTK_USE_SYSTEM_ZLIB)
+#       SET(H5_ZLIB_HEADER "zlib.h")
+#     ELSE(VTK_USE_SYSTEM_ZLIB)
+#      SET(H5_ZLIB_HEADER "vtk_zlib.h")
+#       # Set vars that FindZlib would have set if used in sub project
+#       SET(ZLIB_INCLUDE_DIRS "${VTK_ZLIB_INCLUDE_DIRS}")
+#       SET(ZLIB_LIBRARIES vtkzlib)
+#     ENDIF(VTK_USE_SYSTEM_ZLIB)
 #  ENDIF(HDF5_ENABLE_Z_LIB_SUPPORT)
-#  SET(HDF5_EXPORTED_TARGETS)
-#  ADD_SUBDIRECTORY(Utilities/hdf5-1.8)
+#   
+#   # Add the sub project
+#   ADD_SUBDIRECTORY(Utilities/hdf5-1.8)
+#   # Add the HDf5 dirs to our include path
+#   SET(HDF5_INCLUDE_DIR 
+#     ${ParaView_SOURCE_DIR}/Utilities/hdf5-1.8/src
+#     ${ParaView_BINARY_DIR}/Utilities/hdf5-1.8
+#     ${ParaView_SOURCE_DIR}/Utilities/hdf5-1.8/hl/src)
 #
 #-----------------------------------------------------------------------------
 
@@ -47,20 +88,36 @@ SET (HDF5_PACKAGE_URL "htt://www.hdfgroup.org")
 SET (HDF5_PACKAGE_BUGREPORT "help@hdfgroup.org")
 
 #-----------------------------------------------------------------------------
-# Set the names of all the libraries
+# Set the core names of all the libraries
 #-----------------------------------------------------------------------------
-SET (HDF5_LIB_NAME              "hdf5")
-SET (HDF5_TEST_LIB_NAME         "hdf5_test")
-SET (HDF5_CPP_LIB_NAME          "hdf5_cpp")
-SET (HDF5_HL_LIB_NAME           "hdf5_hl")
-SET (HDF5_HL_CPP_LIB_NAME       "hdf5_hl_cpp")
-SET (HDF5_TOOLS_LIB_NAME        "hdf5_tools")
-SET (HDF5_F90_LIB_NAME          "hdf5_fortran")
-SET (HDF5_F90_C_LIB_NAME        "hdf5_f90CStub")
-SET (HDF5_F90_TEST_LIB_NAME     "hdf5_test_fortran")
-SET (HDF5_F90_C_TEST_LIB_NAME   "hdf5_test_f90CStub")
-SET (HDF5_HL_F90_LIB_NAME       "hdf5_hl_fortran")
-SET (HDF5_HL_F90_C_LIB_NAME     "hdf5_hl_f90CStub")
+SET (HDF5_LIB_CORENAME              "hdf5")
+SET (HDF5_TEST_LIB_CORENAME         "hdf5_test")
+SET (HDF5_CPP_LIB_CORENAME          "hdf5_cpp")
+SET (HDF5_HL_LIB_CORENAME           "hdf5_hl")
+SET (HDF5_HL_CPP_LIB_CORENAME       "hdf5_hl_cpp")
+SET (HDF5_TOOLS_LIB_CORENAME        "hdf5_tools")
+SET (HDF5_F90_LIB_CORENAME          "hdf5_fortran")
+SET (HDF5_F90_C_LIB_CORENAME        "hdf5_f90CStub")
+SET (HDF5_F90_TEST_LIB_CORENAME     "hdf5_test_fortran")
+SET (HDF5_F90_C_TEST_LIB_CORENAME   "hdf5_test_f90CStub")
+SET (HDF5_HL_F90_LIB_CORENAME       "hdf5_hl_fortran")
+SET (HDF5_HL_F90_C_LIB_CORENAME     "hdf5_hl_f90CStub")
+
+#-----------------------------------------------------------------------------
+# Set the true names of all the libraries if customized by external project
+#-----------------------------------------------------------------------------
+SET (HDF5_LIB_NAME              "${HDF5_EXTERNAL_LIB_PREFIX}${HDF5_LIB_CORENAME}")
+SET (HDF5_TEST_LIB_NAME         "${HDF5_EXTERNAL_LIB_PREFIX}${HDF5_TEST_LIB_CORENAME}")
+SET (HDF5_CPP_LIB_NAME          "${HDF5_EXTERNAL_LIB_PREFIX}${HDF5_CPP_LIB_CORENAME}")
+SET (HDF5_HL_LIB_NAME           "${HDF5_EXTERNAL_LIB_PREFIX}${HDF5_HL_LIB_CORENAME}")
+SET (HDF5_HL_CPP_LIB_NAME       "${HDF5_EXTERNAL_LIB_PREFIX}${HDF5_HL_CPP_LIB_CORENAME}")
+SET (HDF5_TOOLS_LIB_NAME        "${HDF5_EXTERNAL_LIB_PREFIX}${HDF5_TOOLS_LIB_CORENAME}")
+SET (HDF5_F90_LIB_NAME          "${HDF5_EXTERNAL_LIB_PREFIX}${HDF5_F90_LIB_CORENAME}")
+SET (HDF5_F90_C_LIB_NAME        "${HDF5_EXTERNAL_LIB_PREFIX}${HDF5_F90_C_LIB_CORENAME}")
+SET (HDF5_F90_TEST_LIB_NAME     "${HDF5_EXTERNAL_LIB_PREFIX}${HDF5_F90_TEST_LIB_CORENAME}")
+SET (HDF5_F90_C_TEST_LIB_NAME   "${HDF5_EXTERNAL_LIB_PREFIX}${HDF5_F90_C_TEST_LIB_CORENAME}")
+SET (HDF5_HL_F90_LIB_NAME       "${HDF5_EXTERNAL_LIB_PREFIX}${HDF5_HL_F90_LIB_CORENAME}")
+SET (HDF5_HL_F90_C_LIB_NAME     "${HDF5_EXTERNAL_LIB_PREFIX}${HDF5_HL_F90_C_LIB_CORENAME}")
 
 #-----------------------------------------------------------------------------
 # Define some CMake variables for use later in the project
@@ -106,12 +163,11 @@ ENDIF(NOT HDF5_EXTERNALLY_CONFIGURED)
 
 #-----------------------------------------------------------------------------
 # Targets built within this project are exported at Install time for use
-# by other projects using FindHDF5. If hdf5 is configured as a sub-project
-# then we do not override the setting provided by the parent project
+# by other projects using FindHDF5. 
 #-----------------------------------------------------------------------------
-IF (NOT HDF5_EXTERNALLY_CONFIGURED)
+IF (NOT HDF5_EXPORTED_TARGETS)
   SET (HDF5_EXPORTED_TARGETS "hdf5-targets")
-ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED)
+ENDIF (NOT HDF5_EXPORTED_TARGETS)
 
 #-----------------------------------------------------------------------------
 # To include a library in the list exported by the project AT BUILD TIME,
@@ -475,23 +531,21 @@ INSTALL (
 #-----------------------------------------------------------------------------
 # Add Target(s) to CMake Install for import into other projects
 #-----------------------------------------------------------------------------
-IF (HDF5_EXPORTED_TARGETS)
-  INSTALL (
-      EXPORT
-          ${HDF5_EXPORTED_TARGETS}
-      DESTINATION
-          lib
-      FILE
-          HDF5-config.cmake
-  )
-ENDIF (HDF5_EXPORTED_TARGETS)
+INSTALL (
+    EXPORT
+        ${HDF5_EXPORTED_TARGETS}
+    DESTINATION
+        lib
+    FILE
+        HDF5-config.cmake
+)
 
 #-----------------------------------------------------------------------------
 # Export all exported targets to the build tree for use by parent project
 #-----------------------------------------------------------------------------
 EXPORT (
     TARGETS
-        ${HDF5_LIBRARIES_TO_EXPORT} ${HDF5_TARGET_DEPENDENCIES}
+        ${HDF5_LIBRARIES_TO_EXPORT} ${HDF5_LIB_DEPENDENCIES}
     FILE
         HDF5-config.cmake
 )

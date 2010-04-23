@@ -40,9 +40,8 @@ IF (BUILD_TESTING)
     ENDIF (WIN32)
   ENDIF (BUILD_SHARED_LIBS)
   TARGET_LINK_LIBRARIES (testh5repack_detect_szip ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET} ${HDF5_TEST_LIB_TARGET})
-  GET_TARGET_PROPERTY (testh5repack_detect_szippath testh5repack_detect_szip LOCATION)
-  GET_FILENAME_COMPONENT (testh5repack_detect_szipexe ${testh5repack_detect_szippath} NAME)
-  ADD_TEST (testh5repack_detect_szip ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${testh5repack_detect_szipexe})
+
+  ADD_TEST (NAME testh5repack_detect_szip COMMAND $<TARGET_FILE:testh5repack_detect_szip>)
   SET (passRegex "yes")
   SET_TESTS_PROPERTIES (testh5repack_detect_szip PROPERTIES PASS_REGULAR_EXPRESSION "yes")
 
@@ -54,9 +53,8 @@ IF (BUILD_TESTING)
     ENDIF (WIN32)
   ENDIF (BUILD_SHARED_LIBS)
   TARGET_LINK_LIBRARIES (h5repacktest  ${HDF5_TOOLS_LIB_TARGET} ${HDF5_TEST_LIB_TARGET})
-  GET_TARGET_PROPERTY (h5repacktestpath h5repacktest LOCATION)
-  GET_FILENAME_COMPONENT (h5repacktestexe ${h5repacktestpath} NAME)
-  ADD_TEST (h5repacktest ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${h5repacktestexe})
+
+  ADD_TEST (NAME h5repacktest COMMAND $<TARGET_FILE:h5repacktest>)
 
   SET (H5_DEP_EXECUTABLES ${H5_DEP_EXECUTABLES}
         h5repacktest
@@ -150,11 +148,11 @@ IF (BUILD_TESTING)
     ELSE (${testtype} STREQUAL "SKIP")
       ADD_TEST (
           NAME H5REPACK-${testname}
-          COMMAND h5repack ${ARGN} ${PROJECT_BINARY_DIR}/testfiles/${testfile} ${PROJECT_BINARY_DIR}/testfiles/out.${testfile}
+          COMMAND $<TARGET_FILE:h5repack> ${ARGN} ${PROJECT_BINARY_DIR}/testfiles/${testfile} ${PROJECT_BINARY_DIR}/testfiles/out.${testfile}
       )
       ADD_TEST (
           NAME H5REPACK-DIFF_${testname}
-          COMMAND h5diff ${PROJECT_BINARY_DIR}/testfiles/${testfile} ${PROJECT_BINARY_DIR}/testfiles/out.${testfile}
+          COMMAND $<TARGET_FILE:h5diff> ${PROJECT_BINARY_DIR}/testfiles/${testfile} ${PROJECT_BINARY_DIR}/testfiles/out.${testfile}
       )
     ENDIF (${testtype} STREQUAL "SKIP")
   ENDMACRO (ADD_H5_TEST testname testfile testtype)

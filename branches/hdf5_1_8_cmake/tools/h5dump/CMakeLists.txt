@@ -25,7 +25,8 @@ IF (BUILD_TESTING)
   IF (NOT BUILD_SHARED_LIBS)
     ADD_EXECUTABLE (h5dumpgentest ${HDF5_TOOLS_H5DUMP_SOURCE_DIR}/h5dumpgentest.c)
     TARGET_LINK_LIBRARIES (h5dumpgentest ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
-    #ADD_TEST (h5dumpgentest h5dumpgentest)
+    
+    #ADD_TEST (h5dumpgentest $<TARGET_FILE:h5dumpgentest>)
 
     SET (H5_DEP_EXECUTABLES ${H5_DEP_EXECUTABLES}
     #    h5dumpgentest
@@ -67,7 +68,7 @@ IF (BUILD_TESTING)
     ADD_TEST (
         NAME H5DUMP-${resultfile}
         COMMAND "${CMAKE_COMMAND}"
-            -D "TEST_PROGRAM=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/h5dump${CMAKE_EXECUTABLE_SUFFIX}"
+            -D "TEST_PROGRAM=$<TARGET_FILE:h5dump>"
             -D "TEST_ARGS=${ARGN}"
             -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
             -D "TEST_OUTPUT=${resultfile}.out"

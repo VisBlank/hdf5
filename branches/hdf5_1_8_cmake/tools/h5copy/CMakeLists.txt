@@ -25,7 +25,8 @@ IF (BUILD_TESTING)
   IF (NOT BUILD_SHARED_LIBS)
     ADD_EXECUTABLE (h5copygentest ${HDF5_TOOLS_H5COPY_SOURCE_DIR}/h5copygentest.c)
     TARGET_LINK_LIBRARIES (h5copygentest ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
-    #ADD_TEST (h5copygentest h5copygentest)
+
+    #ADD_TEST (h5copygentest $<TARGET_FILE:h5copygentest>)
 
     SET (H5_DEP_EXECUTABLES ${H5_DEP_EXECUTABLES}
         #h5copygentest
@@ -75,17 +76,27 @@ IF (BUILD_TESTING)
   SET (HDF_EXT_TRG_FILE h5copy_extlinks_trg)
 
   MACRO (ADD_H5_TEST testname resultcode testfile vparam srcname dstname)
-    ADD_TEST (
-        NAME H5COPY-${testname}
-        COMMAND h5copy -i ./testfiles/${testfile}.h5 -o ./testfiles/${testfile}.out.h5 -${vparam} -s ${srcname} -d ${dstname}
-    )
-    ADD_TEST (
-        NAME H5COPY-DIFF_${testname}
-        COMMAND h5diff -q ./testfiles/${testfile}.h5 ./testfiles/${testfile}.out.h5 ${srcname} ${dstname}
-    )
-    IF (${resultcode} STREQUAL "1")
-      SET_TESTS_PROPERTIES (H5COPY-DIFF_${testname} PROPERTIES WILL_FAIL "true")
-    ENDIF (${resultcode} STREQUAL "1")
+  
+    IF (NOT "${ARGN}" STREQUAL "")
+      ADD_TEST (
+          NAME H5COPY-${testname}
+          COMMAND $<TARGET_FILE:h5copy> -f ${ARGN} -i ./testfiles/${testfile}.h5 -o ./testfiles/${testfile}.out.h5 -${vparam} -s ${srcname} -d ${dstname}
+      )
+    ELSE (NOT "${ARGN}" STREQUAL "")
+      ADD_TEST (
+          NAME H5COPY-${testname}
+          COMMAND $<TARGET_FILE:h5copy> -i ./testfiles/${testfile}.h5 -o ./testfiles/${testfile}.out.h5 -${vparam} -s ${srcname} -d ${dstname}
+      )
+    ENDIF (NOT "${ARGN}" STREQUAL "")
+    IF (NOT ${resultcode} STREQUAL "2")
+      ADD_TEST (
+          NAME H5COPY-DIFF_${testname}
+          COMMAND $<TARGET_FILE:h5diff> -q ./testfiles/${testfile}.h5 ./testfiles/${testfile}.out.h5 ${srcname} ${dstname}
+      )
+      IF (${resultcode} STREQUAL "1")
+        SET_TESTS_PROPERTIES (H5COPY-DIFF_${testname} PROPERTIES WILL_FAIL "true")
+      ENDIF (${resultcode} STREQUAL "1")
+    ENDIF (NOT ${resultcode} STREQUAL "2")
   ENDMACRO (ADD_H5_TEST testname resultcode testfile vparam srcname dstname)
 
 
@@ -93,7 +104,7 @@ IF (BUILD_TESTING)
     ADD_TEST (
         NAME H5COPY-H5LS_${file}
         COMMAND "${CMAKE_COMMAND}"
-            -D "TEST_PROGRAM=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/h5ls${CMAKE_EXECUTABLE_SUFFIX}"
+            -D "TEST_PROGRAM=$<TARGET_FILE:h5ls>"
             -D "TEST_ARGS=-Svr;./testfiles/${file}.out.h5"
             -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
             -D "TEST_OUTPUT=./testfiles/${file}.out.out"
@@ -103,6 +114,12 @@ IF (BUILD_TESTING)
             -P "${HDF5_RESOURCES_DIR}/runTest.cmake"
     )
   ENDMACRO (ADD_H5LS_TEST file)
+
+############# COPY OBJECTS ##############
+
+  # Remove any output file left over from previous test run
+  FILE (REMOVE ./testfiles/${HDF_FILE1}.out.h5)
+  FILE (REMOVE ./testfiles/${HDF_FILE1}.out.out)
   
   # "Test copying various forms of datasets"
   ADD_H5_TEST (simple 0 ${HDF_FILE1} v simple simple)
@@ -142,6 +159,52 @@ IF (BUILD_TESTING)
 
   # Verify that the file created above is correct
   ADD_H5LS_TEST (${HDF_FILE1})
+  
+############# COPY REFERENCES ##############
+
+  # Remove any output file left over from previous test run
+  FILE (REMOVE ./testfiles/${HDF_FILE2}.out.h5)
+  FILE (REMOVE ./testfiles/${HDF_FILE2}.out.out)
+
+  # "Test copying object and region references"
+  ADD_H5_TEST (region_ref 2 ${HDF_FILE2} v / /COPY ref)
+
+  # Verify that the file created above is correct
+  ADD_H5LS_TEST (${HDF_FILE2})
+
+############# COPY EXT LINKS ############## 
+
+  # Remove any output file left over from previous test run
+  FILE (REMOVE ./testfiles/${HDF_EXT_SRC_FILE}.out.h5)
+  FILE (REMOVE ./testfiles/${HDF_EXT_SRC_FILE}.out.out)
+
+  # "Test copying external link directly without -f ext"
+  ADD_H5_TEST (ext_link 2 ${HDF_EXT_SRC_FILE} v /group_ext/extlink_dset /copy1_dset)
+
+  # "Test copying external link directly with -f ext"
+  ADD_H5_TEST (ext_link_f 2 ${HDF_EXT_SRC_FILE} v /group_ext/extlink_dset /copy2_dset ext)
+
+  # "Test copying dangling external link (no obj) directly without -f ext"
+  ADD_H5_TEST (ext_dangle_noobj 0 ${HDF_EXT_SRC_FILE} v /group_ext/extlink_notyet1 /copy_dangle1_1)
+
+  # "Test copying dangling external link (no obj) directly with -f ext"
+  ADD_H5_TEST (ext_dangle_noobj_f 2 ${HDF_EXT_SRC_FILE} v /group_ext/extlink_notyet1 /copy_dangle1_2 ext)
+
+  # "Test copying dangling external link (no file) directly without -f ext"
+  ADD_H5_TEST (ext_dangle_nofile 0 ${HDF_EXT_SRC_FILE} v /group_ext/extlink_notyet2 /copy_dangle2_1)
+
+  # "Test copying dangling external link (no file) directly with -f ext"
+  ADD_H5_TEST (ext_dangle_nofile_f 2 ${HDF_EXT_SRC_FILE} v /group_ext/extlink_notyet2 /copy_dangle2_2 ext)
+
+  # "Test copying a group contains external links without -f ext"
+  ADD_H5_TEST (ext_link_group 2 ${HDF_EXT_SRC_FILE} v /group_ext /copy1_group)
+
+  # "Test copying a group contains external links with -f ext"
+  ADD_H5_TEST (ext_link_group_f 2 ${HDF_EXT_SRC_FILE} v /group_ext /copy2_group ext) 
+
+  # Verify that the file created above is correct
+  ADD_H5LS_TEST (${HDF_EXT_SRC_FILE})
+  
 ENDIF (BUILD_TESTING)
 
 #-----------------------------------------------------------------------------

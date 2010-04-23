@@ -57,7 +57,8 @@ IF (BUILD_TESTING)
   IF (NOT BUILD_SHARED_LIBS)
     ADD_EXECUTABLE (h5jamgentest ${HDF5_TOOLS_H5JAM_SOURCE_DIR}/h5jamgentest.c)
     TARGET_LINK_LIBRARIES (h5jamgentest ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
-    #ADD_TEST (h5jamgentest h5jamgentest)
+    
+    #ADD_TEST (h5jamgentest $<TARGET_FILE:h5jamgentest>)
 
     SET (H5_DEP_EXECUTABLES ${H5_DEP_EXECUTABLES}
     #    h5jamgentest

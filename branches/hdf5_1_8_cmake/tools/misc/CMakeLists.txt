@@ -48,7 +48,7 @@ IF (BUILD_TESTING)
   IF (NOT BUILD_SHARED_LIBS)
     ADD_EXECUTABLE (h5repart_gentest ${HDF5_TOOLS_MISC_SOURCE_DIR}/h5repart_gentest.c)
     TARGET_LINK_LIBRARIES (h5repart_gentest ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
-    #ADD_TEST (h5repart_gentest h5repart_gentest)
+    #ADD_TEST (NAME h5repart_gentest COMMAND $<TARGET_FILE:h5repart_gentest>)
   ENDIF (NOT BUILD_SHARED_LIBS)
 
   ADD_EXECUTABLE (h5repart_test ${HDF5_TOOLS_MISC_SOURCE_DIR}/repart_test.c)
@@ -59,9 +59,8 @@ IF (BUILD_TESTING)
     ENDIF (WIN32)
   ENDIF (BUILD_SHARED_LIBS)
   TARGET_LINK_LIBRARIES (h5repart_test ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
-  GET_TARGET_PROPERTY (h5repart_testpath h5repart_test LOCATION)
-  GET_FILENAME_COMPONENT (h5repart_testexe ${h5repart_testpath} NAME)
-  ADD_TEST (h5repart_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${h5repart_testexe})
+
+  ADD_TEST (NAME h5repart_test COMMAND $<TARGET_FILE:h5repart_test>)
 
   SET (H5_DEP_EXECUTABLES ${H5_DEP_EXECUTABLES}
      #   h5repart_gentest

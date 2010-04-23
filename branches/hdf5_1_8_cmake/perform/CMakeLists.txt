@@ -25,9 +25,8 @@ IF (BUILD_SHARED_LIBS)
   ENDIF (WIN32)
 ENDIF (BUILD_SHARED_LIBS)
 TARGET_LINK_LIBRARIES (h5perf_serial ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
-GET_TARGET_PROPERTY (h5perf_serialpath h5perf_serial LOCATION)
-GET_FILENAME_COMPONENT (h5perf_serialexe ${h5perf_serialpath} NAME)
-ADD_TEST (h5perf_serial ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${h5perf_serialexe})
+
+ADD_TEST (NAME h5perf_serial COMMAND $<TARGET_FILE:h5perf_serial>)
 
 #-- Adding test for chunk
 SET (chunk_SRCS
@@ -41,9 +40,8 @@ IF (BUILD_SHARED_LIBS)
   ENDIF (WIN32)
 ENDIF (BUILD_SHARED_LIBS)
 TARGET_LINK_LIBRARIES(chunk ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
-GET_TARGET_PROPERTY (chunkpath chunk LOCATION)
-GET_FILENAME_COMPONENT (chunkexe ${chunkpath} NAME)
-ADD_TEST (chunk ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${chunkexe})
+
+ADD_TEST (NAME chunk COMMAND $<TARGET_FILE:chunk>)
 
 #-- Adding test for iopipe
 SET (iopipe_SRCS
@@ -57,9 +55,8 @@ IF (BUILD_SHARED_LIBS)
   ENDIF (WIN32)
 ENDIF (BUILD_SHARED_LIBS)
 TARGET_LINK_LIBRARIES (iopipe ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
-GET_TARGET_PROPERTY (iopipepath iopipe LOCATION)
-GET_FILENAME_COMPONENT (iopipeexe ${iopipepath} NAME)
-ADD_TEST (iopipe ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${iopipeexe})
+
+ADD_TEST (NAME iopipe COMMAND $<TARGET_FILE:iopipe>)
 
 #-- Adding test for overhead
 SET (overhead_SRCS
@@ -73,9 +70,8 @@ IF (BUILD_SHARED_LIBS)
   ENDIF (WIN32)
 ENDIF (BUILD_SHARED_LIBS)
 TARGET_LINK_LIBRARIES (overhead ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
-GET_TARGET_PROPERTY (overheadpath overhead LOCATION)
-GET_FILENAME_COMPONENT (overheadexe ${overheadpath} NAME)
-ADD_TEST (overhead ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${overheadexe})
+
+ADD_TEST (NAME overhead COMMAND $<TARGET_FILE:overhead>)
 
 #-- Adding test for perf_meta
 SET (perf_meta_SRCS
@@ -89,9 +85,8 @@ IF (BUILD_SHARED_LIBS)
   ENDIF (WIN32)
 ENDIF (BUILD_SHARED_LIBS)
 TARGET_LINK_LIBRARIES (perf_meta ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET} ${HDF5_TEST_LIB_TARGET})
-GET_TARGET_PROPERTY (perf_metapath perf_meta LOCATION)
-GET_FILENAME_COMPONENT (perf_metaexe ${perf_metapath} NAME)
-ADD_TEST (perf_meta ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${perf_metaexe})
+
+ADD_TEST (NAME perf_meta COMMAND $<TARGET_FILE:perf_meta>)
 
 #-- Adding test for zip_perf
 SET (zip_perf_SRCS
@@ -105,6 +100,5 @@ IF (BUILD_SHARED_LIBS)
   ENDIF (WIN32)
 ENDIF (BUILD_SHARED_LIBS)
 TARGET_LINK_LIBRARIES (zip_perf ${HDF5_TOOLS_LIB_TARGET} ${HDF5_LIB_TARGET})
-GET_TARGET_PROPERTY (zip_perfpath zip_perf LOCATION)
-GET_FILENAME_COMPONENT (zip_perfexe ${zip_perfpath} NAME)
-ADD_TEST (zip_perf ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${zip_perfexe} "-h")
+
+ADD_TEST (NAME zip_perf COMMAND $<TARGET_FILE:zip_perf> "-h")
