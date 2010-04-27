@@ -47,13 +47,6 @@
 
 #ifdef H5_HAVE_PARALLEL
 
-/* The following #defines are used to specify the metadata write 
- * strategy.
- */
-
-#define H5AC_METADATA_WRITE_STRATEGY__PROCESS_0_ONLY	0
-#define H5AC_METADATA_WRITE_STRATEGY__DISTRIBUTED	1
-
 /* the following #defined are used to specify the operation required
  * at a sync point.
  */
@@ -75,6 +68,9 @@
 #define H5AC__DEFAULT_DIRTY_BYTES_THRESHOLD	(256 * 1024)
 #define H5AC__MAX_DIRTY_BYTES_THRESHOLD   	(int32_t) \
 						(H5C__MAX_MAX_CACHE_SIZE / 4)
+
+#define H5AC__DEFAULT_METADATA_WRITE_STRATEGY	\
+				H5AC_METADATA_WRITE_STRATEGY__DISTRIBUTED
 
 /****************************************************************************
  *

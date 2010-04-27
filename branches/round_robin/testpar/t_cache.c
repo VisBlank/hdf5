@@ -217,6 +217,38 @@ int data_index[NUM_DATA_ENTRIES];
 
 
 /*****************************************************************************
+ * The following two #defines are used to force "POSIX" semantics on the 
+ * server process used to simulate metadata reads and writes.  Without some
+ * such mechanism, the test code contains race conditions that will 
+ * frequently cause spurious failures.
+ *
+ * When set to TRUE, DO_WRITE_REQ_ACK forces the server to send an ack after
+ * each write request, and the client to wait until the ack is received 
+ * before proceeding.  This was my first solution to the problem, and at
+ * first glance, it would seem to have a lot of unnecessary overhead.
+ *
+ * In an attempt to reduce the overhead, I implemented a second solution
+ * in which no acks are sent after writes.  Instead, the metadata cache is 
+ * provided with a callback function to call after each sequence of writes.  
+ * This callback simply causes the client to send the server process a 
+ * "sync" message and and await an ack in reply.
+ *
+ * Strangely, at least on Phoenix, the first solution runs faster by a 
+ * rather large margin.  However, I can imagine this changing with 
+ * different OS's and MPI implementatins.
+ *
+ * Thus I have left code supporting the second solution in place.  
+ *
+ * Note that while one of these two #defines must be set to TRUE, there 
+ * should never be any need to set both of them to TRUE (although the 
+ * tests will still function with this setting).
+ *****************************************************************************/
+
+#define DO_WRITE_REQ_ACK	TRUE
+#define DO_SYNC_AFTER_WRITE	FALSE
+
+
+/*****************************************************************************
  * struct mssg
  *
  *	The mssg structure is used as a generic container for messages to
@@ -240,9 +272,6 @@ int data_index[NUM_DATA_ENTRIES];
  *		MSSG_MAGIC.
  *
  *****************************************************************************/
-
-#define DO_WRITE_REQ_ACK	FALSE
-#define DO_SYNC_AFTER_WRITE	TRUE
 
 #define	WRITE_REQ_CODE		0
 #define	WRITE_REQ_ACK_CODE	1
@@ -368,8 +397,10 @@ void pin_protected_entry(int32_t idx, hbool_t global);
 void rename_entry(H5C_t * cache_ptr, H5F_t * file_ptr,
                   int32_t old_idx, int32_t new_idx);
 void resize_entry(int32_t idx, size_t  new_size);
-hbool_t setup_cache_for_test(hid_t * fid_ptr, H5F_t ** file_ptr_ptr,
-                             H5C_t ** cache_ptr_ptr);
+hbool_t setup_cache_for_test(hid_t * fid_ptr, 
+                             H5F_t ** file_ptr_ptr,
+                             H5C_t ** cache_ptr_ptr, 
+                             int metadata_write_strategy);
 void setup_rand(void);
 hbool_t take_down_cache(hid_t fid);
 void unlock_entry(H5C_t * cache_ptr, H5F_t * file_ptr,
@@ -381,12 +412,12 @@ void unpin_entry(H5C_t * cache_ptr, H5F_t * file_ptr, int32_t idx,
 /* test functions */
 
 hbool_t server_smoke_check(void);
-hbool_t smoke_check_1(void);
-hbool_t smoke_check_2(void);
-hbool_t smoke_check_3(void);
-hbool_t smoke_check_4(void);
-hbool_t smoke_check_5(void);
-hbool_t trace_file_check(void);
+hbool_t smoke_check_1(int metadata_write_strategy);
+hbool_t smoke_check_2(int metadata_write_strategy);
+hbool_t smoke_check_3(int metadata_write_strategy);
+hbool_t smoke_check_4(int metadata_write_strategy);
+hbool_t smoke_check_5(int metadata_write_strategy);
+hbool_t trace_file_check(int metadata_write_strategy);
 
 
 /*****************************************************************************/
@@ -1387,6 +1418,7 @@ static hbool_t
 serve_read_request(struct mssg_t * mssg_ptr)
 {
     const char * fcn_name = "serve_read_request()";
+    hbool_t report_mssg = FALSE;
     hbool_t success = TRUE;
     int target_index;
     haddr_t target_addr;
@@ -1433,11 +1465,11 @@ serve_read_request(struct mssg_t * mssg_ptr)
             success = FALSE;
             if ( verbose ) {
                 HDfprintf(stdout,
-                  "%d:%s: proc %d read invalid entry. idx/base_addr = %d/%a.\n",
-                         world_mpi_rank, fcn_name,
-                         mssg_ptr->src,
+               "%d:%s: proc %d read invalid entry. idx/base_addr = %d/0x%llx.\n",
+                        world_mpi_rank, fcn_name,
+                        mssg_ptr->src,
 			target_index,
-			data[target_index].base_addr);
+			(long long)(data[target_index].base_addr));
             }
         } else {
 
@@ -1457,6 +1489,27 @@ serve_read_request(struct mssg_t * mssg_ptr)
 
         success = send_mssg(&reply, TRUE);
     }
+
+    if ( report_mssg ) {
+
+        if ( success ) {
+
+            HDfprintf(stdout, "%d read 0x%llx. len = %d. ver = %d.\n",
+                      (int)(mssg_ptr->src), 
+                      (long long)(data[target_index].base_addr),
+                      (int)(data[target_index].len),
+                      (int)(data[target_index].ver));
+
+        } else {
+
+            HDfprintf(stdout, "%d read 0x%llx FAILED. len = %d. ver = %d.\n",
+                      (int)(mssg_ptr->src), 
+                      (long long)(data[target_index].base_addr),
+                      (int)(data[target_index].len),
+                      (int)(data[target_index].ver));
+
+        }
+    } 
 
     return(success);
 
@@ -1493,6 +1546,7 @@ static hbool_t
 serve_sync_request(struct mssg_t * mssg_ptr)
 {
     const char * fcn_name = "serve_sync_request()";
+    hbool_t report_mssg = FALSE;
     hbool_t success = TRUE;
     struct mssg_t reply;
 
@@ -1525,6 +1579,19 @@ serve_sync_request(struct mssg_t * mssg_ptr)
 
         success = send_mssg(&reply, TRUE);
     }
+
+    if ( report_mssg ) {
+
+        if ( success ) {
+
+            HDfprintf(stdout, "%d sync.\n", (int)(mssg_ptr->src));
+
+        } else {
+
+            HDfprintf(stdout, "%d sync FAILED.\n", (int)(mssg_ptr->src));
+
+        }
+    } 
 
     return(success);
 
@@ -1561,6 +1628,7 @@ static hbool_t
 serve_write_request(struct mssg_t * mssg_ptr)
 {
     const char * fcn_name = "serve_write_request()";
+    hbool_t report_mssg = FALSE;
     hbool_t success = TRUE;
     int target_index;
     int new_ver_num;
@@ -1647,6 +1715,27 @@ serve_write_request(struct mssg_t * mssg_ptr)
 #endif /* DO_WRITE_REQ_ACK */
 
     }
+
+    if ( report_mssg ) {
+
+        if ( success ) {
+
+            HDfprintf(stdout, "%d write 0x%llx. len = %d. ver = %d.\n",
+                      (int)(mssg_ptr->src), 
+                      (long long)(data[target_index].base_addr),
+                      (int)(data[target_index].len),
+                      (int)(data[target_index].ver));
+
+        } else {
+
+            HDfprintf(stdout, "%d write 0x%llx FAILED. len = %d. ver = %d.\n",
+                      (int)(mssg_ptr->src), 
+                      (long long)(data[target_index].base_addr),
+                      (int)(data[target_index].len),
+                      (int)(data[target_index].ver));
+
+        }
+    } 
 
     return(success);
 
@@ -1836,6 +1925,7 @@ flush_datum(H5F_t *f,
             void *thing)
 {
     const char * fcn_name = "flush_datum()";
+    hbool_t was_dirty = FALSE;
     herr_t ret_value = SUCCEED;
     int idx;
     struct datum * entry_ptr;
@@ -1888,6 +1978,8 @@ flush_datum(H5F_t *f,
 
         if ( entry_ptr->header.is_dirty ) {
 
+	    was_dirty = TRUE; /* so we will receive the ack if requested */
+
             /* compose the message */
             mssg.req       = WRITE_REQ_CODE;
             mssg.src       = world_mpi_rank;
@@ -1918,7 +2010,7 @@ flush_datum(H5F_t *f,
 
 #if DO_WRITE_REQ_ACK
 
-    if ( ( ret_value == SUCCEED ) && ( entry_ptr->header.is_dirty ) ) {
+    if ( ( ret_value == SUCCEED ) && ( was_dirty ) ) {
 
         if ( ! recv_mssg(&mssg, WRITE_REQ_ACK_CODE) ) {
 
@@ -3110,10 +3202,14 @@ rename_entry(H5C_t * cache_ptr,
 
         old_addr = old_entry_ptr->base_addr;
         new_addr = new_entry_ptr->base_addr;
-#if 0
+
+        /* rename will mark the entry dirty if it is not already */
         old_entry_ptr->dirty = TRUE;
 
-        /* touch up versions, base_addrs, and data_index */
+        /* touch up versions, base_addrs, and data_index.  Do this 
+         * now as it is possible that the rename will trigger a 
+         * sync point.
+         */
 
         if ( old_entry_ptr->ver < new_entry_ptr->ver ) {
 
@@ -3135,12 +3231,12 @@ rename_entry(H5C_t * cache_ptr,
         old_entry_ptr->index = new_entry_ptr->index;
         new_entry_ptr->index = tmp;
 
-        if ( old_entry_ptr->local_len != new_entry_ptr->local_len ) {
+	if ( old_entry_ptr->local_len != new_entry_ptr->local_len ) {
 
-            tmp_len                  = old_entry_ptr->local_len;
-            old_entry_ptr->local_len = new_entry_ptr->local_len;
-            new_entry_ptr->local_len = tmp_len;
-        }
+	    tmp_len                  = old_entry_ptr->local_len;
+	    old_entry_ptr->local_len = new_entry_ptr->local_len;
+	    new_entry_ptr->local_len = tmp_len;
+	}
 
         result = H5AC_rename(file_ptr,  &(types[0]), old_addr, new_addr);
 
@@ -3155,56 +3251,36 @@ rename_entry(H5C_t * cache_ptr,
         } else {
 
             HDassert( ((old_entry_ptr->header).type)->id == DATUM_ENTRY_TYPE );
-            HDassert( old_entry_ptr->header.is_dirty );
-            HDassert( old_entry_ptr->header.addr == new_addr );
-        }
-#else
-        result = H5AC_rename(file_ptr,  &(types[0]), old_addr, new_addr);
 
-        if ( ( result < 0 ) || ( old_entry_ptr->header.addr != new_addr ) ) {
+            if ( ! (old_entry_ptr->header.is_dirty) ) {
 
-            nerrors++;
-            if ( verbose ) {
-		HDfprintf(stdout, "%d:%s: H5AC_rename() failed.\n",
-	                  world_mpi_rank, fcn_name);
-            }
+	        /* it is possible that we just exceeded the dirty bytes
+	         * threshold, triggering a write of the newly inserted
+	         * entry.  Test for this, and only flag an error if this
+	         * is not the case.
+	         */
 
-        } else {
+	        struct H5AC_aux_t * aux_ptr;
 
-            HDassert( ((old_entry_ptr->header).type)->id == DATUM_ENTRY_TYPE );
-            HDassert( old_entry_ptr->header.is_dirty );
-            old_entry_ptr->dirty = TRUE;
+	        aux_ptr = ((H5AC_aux_t *)(cache_ptr->aux_ptr));
 
-            /* touch up versions, base_addrs, and data_index */
+	        if ( ! ( ( aux_ptr != NULL ) &&
+		         ( aux_ptr->magic == H5AC__H5AC_AUX_T_MAGIC ) &&
+		         ( aux_ptr->dirty_bytes == 0 ) ) ) {
 
-            if ( old_entry_ptr->ver < new_entry_ptr->ver ) {
-
-		old_entry_ptr->ver = new_entry_ptr->ver;
-
+                    nerrors++;
+                    if ( verbose ) {
+	                HDfprintf(stdout, 
+                                  "%d:%s: data[%d].header.is_dirty = %d.\n",
+	                          world_mpi_rank, fcn_name, new_idx,
+                                  (int)(data[new_idx].header.is_dirty));
+		    }
+                }
             } else {
 
-                (old_entry_ptr->ver)++;
-
+                HDassert( old_entry_ptr->header.is_dirty );
             }
-
-            old_entry_ptr->base_addr = new_addr;
-            new_entry_ptr->base_addr = old_addr;
-
-            data_index[old_entry_ptr->index] = new_idx;
-            data_index[new_entry_ptr->index] = old_idx;
-
-            tmp                  = old_entry_ptr->index;
-            old_entry_ptr->index = new_entry_ptr->index;
-            new_entry_ptr->index = tmp;
-
-	    if ( old_entry_ptr->local_len != new_entry_ptr->local_len ) {
-
-	        tmp_len                  = old_entry_ptr->local_len;
-	        old_entry_ptr->local_len = new_entry_ptr->local_len;
-	        new_entry_ptr->local_len = tmp_len;
-	    }
         }
-#endif
     }
 
     return;
@@ -3307,20 +3383,24 @@ resize_entry(int32_t idx,
  *
  * Modifications:
  *
- *		None.
+ *		Added the metadata_write_strategy parameter and supporting
+ *		code.
+ *						JRM -- 4/12/10
  *
  *****************************************************************************/
 
 hbool_t
 setup_cache_for_test(hid_t * fid_ptr,
                      H5F_t ** file_ptr_ptr,
-                     H5C_t ** cache_ptr_ptr)
+                     H5C_t ** cache_ptr_ptr,
+                     int metadata_write_strategy)
 {
     const char * fcn_name = "setup_cache_for_test()";
     hbool_t success = FALSE; /* will set to TRUE if appropriate. */
     hbool_t enable_rpt_fcn = FALSE;
     hid_t fid = -1;
     H5AC_cache_config_t config;
+    H5AC_cache_config_t test_config;
     H5F_t * file_ptr = NULL;
     H5C_t * cache_ptr = NULL;
 
@@ -3377,7 +3457,7 @@ setup_cache_for_test(hid_t * fid_ptr,
         success = TRUE;
     }
 
-    if ( ( success ) && ( enable_rpt_fcn ) ) {
+    if ( success ) {
 
         config.version = H5AC__CURR_CACHE_CONFIG_VERSION;
 
@@ -3385,12 +3465,13 @@ setup_cache_for_test(hid_t * fid_ptr,
              != SUCCEED ) {
 
 	    HDfprintf(stdout,
-                      "%d:%s: H5AC_get_cache_auto_resize_config() failed.\n",
+                      "%d:%s: H5AC_get_cache_auto_resize_config(1) failed.\n",
                       world_mpi_rank, fcn_name);
 
         } else {
 
-            config.rpt_fcn_enabled = TRUE;
+            config.rpt_fcn_enabled         = enable_rpt_fcn;
+            config.metadata_write_strategy = metadata_write_strategy;
 
             if ( H5AC_set_cache_auto_resize_config(cache_ptr, &config)
                  != SUCCEED ) {
@@ -3398,13 +3479,79 @@ setup_cache_for_test(hid_t * fid_ptr,
 	        HDfprintf(stdout,
                          "%d:%s: H5AC_set_cache_auto_resize_config() failed.\n",
                           world_mpi_rank, fcn_name);
-            } else {
+
+            } else if ( enable_rpt_fcn ) {
 
                 HDfprintf(stdout, "%d:%s: rpt_fcn enabled.\n",
                           world_mpi_rank, fcn_name);
             }
         }
     }
+
+    /* verify that the metadata write strategy is set as expected.  Must
+     * do this here, as this field is only set in the parallel case.  Hence
+     * we can't do our usual checks in the serial case.
+     */
+
+    if ( success ) /* verify that the metadata write strategy is as expected */
+    {
+        if ( cache_ptr->aux_ptr == NULL ) {
+
+            nerrors++;
+            if ( verbose ) {
+	        HDfprintf(stdout, "%d:%s: cache_ptr->aux_ptr == NULL.\n",
+                          world_mpi_rank, fcn_name);
+            }
+        } else if ( ((H5AC_aux_t *)(cache_ptr->aux_ptr))->magic != 
+                    H5AC__H5AC_AUX_T_MAGIC ) {
+
+            nerrors++;
+            if ( verbose ) {
+	        HDfprintf(stdout, 
+                "%d:%s: cache_ptr->aux_ptr->magic != H5AC__H5AC_AUX_T_MAGIC.\n",
+                world_mpi_rank, fcn_name);
+            }
+        } else if( ((H5AC_aux_t *)(cache_ptr->aux_ptr))->metadata_write_strategy
+                   != metadata_write_strategy ) {
+
+            nerrors++;
+            if ( verbose ) {
+	        HDfprintf(stdout, 
+                    "%d:%s: bad cache_ptr->aux_ptr->metadata_write_strategy\n",
+                    world_mpi_rank, fcn_name);
+            }
+        }
+    }
+
+    /* also verify that the expected metadata write strategy is reported 
+     * when we get the current configuration.
+     */
+
+    if ( success ) {
+
+        test_config.version = H5AC__CURR_CACHE_CONFIG_VERSION;
+
+        if ( H5AC_get_cache_auto_resize_config(cache_ptr, &test_config)
+             != SUCCEED ) {
+
+	    HDfprintf(stdout,
+                      "%d:%s: H5AC_get_cache_auto_resize_config(2) failed.\n",
+                      world_mpi_rank, fcn_name);
+
+        } else if ( test_config.metadata_write_strategy != 
+                    metadata_write_strategy ) {
+
+            nerrors++;
+
+            if ( verbose ) {
+
+                HDfprintf(stdout, 
+                          "%d:%s: unexpected metadata_write_strategy.\n",
+                          world_mpi_rank, fcn_name);
+            }
+        }
+    }
+
 
 #if DO_SYNC_AFTER_WRITE
 
@@ -4101,12 +4248,14 @@ server_smoke_check(void)
  *
  * Modifications:
  *
- *		None.
+ *		Added the metadata_write_strategy parameter and supporting 
+ *		code.
+ *						JRM -- 4/12/10
  *
  *****************************************************************************/
 
 hbool_t
-smoke_check_1(void)
+smoke_check_1(int metadata_write_strategy)
 {
     const char * fcn_name = "smoke_check_1()";
     hbool_t show_progress = FALSE;
@@ -4119,9 +4268,25 @@ smoke_check_1(void)
     H5C_t * cache_ptr = NULL;
     struct mssg_t mssg;
 
-    if ( world_mpi_rank == 0 ) {
+    switch ( metadata_write_strategy ) {
 
-        TESTING("smoke check #1");
+	case H5AC_METADATA_WRITE_STRATEGY__PROCESS_0_ONLY:
+            if ( world_mpi_rank == 0 ) {
+        	TESTING("smoke check #1 -- process 0 only md write strategy");
+            }
+	    break;
+
+	case H5AC_METADATA_WRITE_STRATEGY__DISTRIBUTED:
+            if ( world_mpi_rank == 0 ) {
+        	TESTING("smoke check #1 -- distributed md write strategy");
+            }
+	    break;
+
+        default:
+            if ( world_mpi_rank == 0 ) {
+        	TESTING("smoke check #1 -- unknown md write strategy");
+            }
+	    break;
     }
 
     nerrors = 0;
@@ -4146,7 +4311,8 @@ smoke_check_1(void)
             HDfprintf(stdout, "smoke_check_1:%d: cp = %d, err = %d.\n", 
                       world_mpi_rank, cp++, nerrors);
 
-        if ( ! setup_cache_for_test(&fid, &file_ptr, &cache_ptr) ) {
+        if ( ! setup_cache_for_test(&fid, &file_ptr, &cache_ptr, 
+                                    metadata_write_strategy) ) {
 
             nerrors++;
             fid = -1;
@@ -4310,10 +4476,14 @@ smoke_check_1(void)
  *		JRM -- 4/28/06
  *		Modified test to rename pinned entries.
  *
+ *		JRM -- 4/12/10
+ *		Added the metadata_write_strategy parameter and associated
+ *		code.
+ *
  *****************************************************************************/
 
 hbool_t
-smoke_check_2(void)
+smoke_check_2(int metadata_write_strategy)
 {
     const char * fcn_name = "smoke_check_2()";
     hbool_t success = TRUE;
@@ -4324,9 +4494,25 @@ smoke_check_2(void)
     H5C_t * cache_ptr = NULL;
     struct mssg_t mssg;
 
-    if ( world_mpi_rank == 0 ) {
+    switch ( metadata_write_strategy ) {
 
-        TESTING("smoke check #2");
+	case H5AC_METADATA_WRITE_STRATEGY__PROCESS_0_ONLY:
+            if ( world_mpi_rank == 0 ) {
+        	TESTING("smoke check #2 -- process 0 only md write strategy");
+            }
+	    break;
+
+	case H5AC_METADATA_WRITE_STRATEGY__DISTRIBUTED:
+            if ( world_mpi_rank == 0 ) {
+        	TESTING("smoke check #2 -- distributed md write strategy");
+            }
+	    break;
+
+        default:
+            if ( world_mpi_rank == 0 ) {
+        	TESTING("smoke check #2 -- unknown md write strategy");
+            }
+	    break;
     }
 
     nerrors = 0;
@@ -4347,7 +4533,8 @@ smoke_check_2(void)
     }
     else /* run the clients */
     {
-        if ( ! setup_cache_for_test(&fid, &file_ptr, &cache_ptr) ) {
+        if ( ! setup_cache_for_test(&fid, &file_ptr, &cache_ptr,
+                                    metadata_write_strategy) ) {
 
             nerrors++;
             fid = -1;
@@ -4530,10 +4717,14 @@ smoke_check_2(void)
  *
  *		Added pinned entry tests.		JRM - 4/14/06
  *
+ *		Added metadata_write_strategy parameter and associated 
+ *		code.
+ *							JRM - 4/12/10
+ *
  *****************************************************************************/
 
 hbool_t
-smoke_check_3(void)
+smoke_check_3(int metadata_write_strategy)
 {
     const char * fcn_name = "smoke_check_3()";
     hbool_t success = TRUE;
@@ -4550,9 +4741,25 @@ smoke_check_3(void)
     H5C_t * cache_ptr = NULL;
     struct mssg_t mssg;
 
-    if ( world_mpi_rank == 0 ) {
+    switch ( metadata_write_strategy ) {
 
-        TESTING("smoke check #3");
+	case H5AC_METADATA_WRITE_STRATEGY__PROCESS_0_ONLY:
+            if ( world_mpi_rank == 0 ) {
+        	TESTING("smoke check #3 -- process 0 only md write strategy");
+            }
+	    break;
+
+	case H5AC_METADATA_WRITE_STRATEGY__DISTRIBUTED:
+            if ( world_mpi_rank == 0 ) {
+        	TESTING("smoke check #3 -- distributed md write strategy");
+            }
+	    break;
+
+        default:
+            if ( world_mpi_rank == 0 ) {
+        	TESTING("smoke check #3 -- unknown md write strategy");
+            }
+	    break;
     }
 
     /* 0 */
@@ -4585,7 +4792,8 @@ smoke_check_3(void)
         /* 1 */
         if ( verbose ) {HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);}
 
-        if ( ! setup_cache_for_test(&fid, &file_ptr, &cache_ptr) ) {
+        if ( ! setup_cache_for_test(&fid, &file_ptr, &cache_ptr,
+                                    metadata_write_strategy) ) {
 
             nerrors++;
             fid = -1;
@@ -4900,10 +5108,14 @@ smoke_check_3(void)
  *
  *							JRM - 8/15/06
  *
+ *		Added the metadata_write_strategy parameter and associated
+ *		code.
+ *							JRM - 4/12/10
+ *
  *****************************************************************************/
 
 hbool_t
-smoke_check_4(void)
+smoke_check_4(int metadata_write_strategy)
 {
     const char * fcn_name = "smoke_check_4()";
     hbool_t success = TRUE;
@@ -4918,9 +5130,25 @@ smoke_check_4(void)
     H5C_t * cache_ptr = NULL;
     struct mssg_t mssg;
 
-    if ( world_mpi_rank == 0 ) {
+    switch ( metadata_write_strategy ) {
 
-        TESTING("smoke check #4");
+	case H5AC_METADATA_WRITE_STRATEGY__PROCESS_0_ONLY:
+            if ( world_mpi_rank == 0 ) {
+        	TESTING("smoke check #4 -- process 0 only md write strategy");
+            }
+	    break;
+
+	case H5AC_METADATA_WRITE_STRATEGY__DISTRIBUTED:
+            if ( world_mpi_rank == 0 ) {
+        	TESTING("smoke check #4 -- distributed md write strategy");
+            }
+	    break;
+
+        default:
+            if ( world_mpi_rank == 0 ) {
+        	TESTING("smoke check #4 -- unknown md write strategy");
+            }
+	    break;
     }
 
     nerrors = 0;
@@ -4941,7 +5169,8 @@ smoke_check_4(void)
     }
     else /* run the clients */
     {
-        if ( ! setup_cache_for_test(&fid, &file_ptr, &cache_ptr) ) {
+        if ( ! setup_cache_for_test(&fid, &file_ptr, &cache_ptr,
+                                    metadata_write_strategy) ) {
 
             nerrors++;
             fid = -1;
@@ -5208,10 +5437,14 @@ smoke_check_4(void)
  *		Added test code for H5AC_expunge_entry() and
  *		H5AC_resize_pinned_entry().
  *
+ *		JRM -- 4/12/10
+ *		Added the metadata_write_strategy parameter and associated
+ *		code.
+ *
  *****************************************************************************/
 
 hbool_t
-smoke_check_5(void)
+smoke_check_5(int metadata_write_strategy)
 {
     const char * fcn_name = "smoke_check_5()";
     hbool_t success = TRUE;
@@ -5224,10 +5457,27 @@ smoke_check_5(void)
     H5C_t * cache_ptr = NULL;
     struct mssg_t mssg;
 
-    if ( world_mpi_rank == 0 ) {
+    switch ( metadata_write_strategy ) {
 
-        TESTING("smoke check #5");
+	case H5AC_METADATA_WRITE_STRATEGY__PROCESS_0_ONLY:
+            if ( world_mpi_rank == 0 ) {
+        	TESTING("smoke check #5 -- process 0 only md write strategy");
+            }
+	    break;
+
+	case H5AC_METADATA_WRITE_STRATEGY__DISTRIBUTED:
+            if ( world_mpi_rank == 0 ) {
+        	TESTING("smoke check #5 -- distributed md write strategy");
+            }
+	    break;
+
+        default:
+            if ( world_mpi_rank == 0 ) {
+        	TESTING("smoke check #5 -- unknown md write strategy");
+            }
+	    break;
     }
+
 
     /* 0 */
     if ( verbose ) { HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++); }
@@ -5266,7 +5516,8 @@ smoke_check_5(void)
 	    HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);
         }
 
-        if ( ! setup_cache_for_test(&fid, &file_ptr, &cache_ptr) ) {
+        if ( ! setup_cache_for_test(&fid, &file_ptr, &cache_ptr,
+                                    metadata_write_strategy) ) {
 
             nerrors++;
             fid = -1;
@@ -5476,7 +5727,7 @@ smoke_check_5(void)
  *                    - H5AC_set()
  *                    - H5AC_mark_pinned_entry_dirty()
  *                    - H5AC_mark_pinned_or_protected_entry_dirty()
- *                      H5AC_rename()
+ *                    - H5AC_rename()
  *                    - H5AC_pin_protected_entry()
  *                    - H5AC_protect()
  *                    - H5AC_unpin_entry()
@@ -5496,50 +5747,85 @@ smoke_check_5(void)
  * Modifications:
  *
  *		JRM -- 7/11/06
- *		Updated fro H5AC_expunge_entry() and
+ *		Updated for H5AC_expunge_entry() and
  *		H5AC_resize_pinned_entry().
+ *
+ *		JRM -- 4/12/10
+ *		Added the metadata_write_strategy paramter and associated
+ *		code.
  *
  *****************************************************************************/
 
 hbool_t
-trace_file_check(void)
+trace_file_check(int metadata_write_strategy)
 {
     hbool_t success = TRUE;
 
 #ifdef H5_METADATA_TRACE_FILE
 
     const char * fcn_name = "trace_file_check()";
-    const char * expected_output[] =
+    const char *((* expected_output)[]) = NULL;
+    const char * expected_output_0[] =
     {
       "### HDF5 metadata cache trace file version 1 ###\n",
-      "H5AC_set_cache_auto_resize_config 1 0 1 0 \"t_cache_trace.txt\" 1 0 1048576 0.500000 16777216 1048576 50000 1 0.900000 2.000000 1 1.000000 0.250000 1 4194304 3 0.999000 0.900000 1 1048576 3 1 0.100000 262144 0\n",
-      "H5AC_set 0x0 15 0x0 2 0\n",
-      "H5AC_set 0x2 15 0x0 2 0\n",
-      "H5AC_set 0x4 15 0x0 4 0\n",
-      "H5AC_set 0x8 15 0x0 6 0\n",
-      "H5AC_protect 0 15 H5AC_WRITE 2 1\n",
-      "H5AC_mark_pinned_or_protected_entry_dirty 0 0\n",
-      "H5AC_unprotect 0 15 0 0 0\n",
-      "H5AC_protect 2 15 H5AC_WRITE 2 1\n",
-      "H5AC_pin_protected_entry 2 0\n",
-      "H5AC_unprotect 2 15 0 0 0\n",
-      "H5AC_unpin_entry 2 0\n",
-      "H5AC_expunge_entry 2 15 0\n",
-      "H5AC_protect 4 15 H5AC_WRITE 4 1\n",
-      "H5AC_pin_protected_entry 4 0\n",
-      "H5AC_unprotect 4 15 0 0 0\n",
-      "H5AC_mark_pinned_entry_dirty 0x4 0 0 0\n",
-      "H5AC_resize_pinned_entry 0x4 2 0\n",
-      "H5AC_resize_pinned_entry 0x4 4 0\n",
-      "H5AC_unpin_entry 4 0\n",
-      "H5AC_rename 0 8a65 15 0\n",
-      "H5AC_rename 8a65 0 15 0\n",
+      "H5AC_set_cache_auto_resize_config 1 0 1 0 \"t_cache_trace.txt\" 1 0 2097152 0.300000 33554432 1048576 50000 1 0.900000 2.000000 1 1.000000 0.250000 1 4194304 3 0.999000 0.900000 1 1048576 3 1 0.100000 262144 0 0\n",
+      "H5AC_set 0x200 25 0x0 2 0\n",
+      "H5AC_set 0x202 25 0x0 2 0\n",
+      "H5AC_set 0x204 25 0x0 4 0\n",
+      "H5AC_set 0x208 25 0x0 6 0\n",
+      "H5AC_protect 0x200 25 H5AC_WRITE 2 1\n",
+      "H5AC_mark_pinned_or_protected_entry_dirty 0x200 0\n",
+      "H5AC_unprotect 0x200 25 0 0 0\n",
+      "H5AC_protect 0x202 25 H5AC_WRITE 2 1\n",
+      "H5AC_pin_protected_entry 0x202 0\n",
+      "H5AC_unprotect 0x202 25 0 0 0\n",
+      "H5AC_unpin_entry 0x202 0\n",
+      "H5AC_expunge_entry 0x202 25 0\n",
+      "H5AC_protect 0x204 25 H5AC_WRITE 4 1\n",
+      "H5AC_pin_protected_entry 0x204 0\n",
+      "H5AC_unprotect 0x204 25 0 0 0\n",
+      "H5AC_mark_pinned_entry_dirty 0x204 0 0 0\n",
+      "H5AC_resize_pinned_entry 0x204 2 0\n",
+      "H5AC_resize_pinned_entry 0x204 4 0\n",
+      "H5AC_unpin_entry 0x204 0\n",
+      "H5AC_rename 0x200 0x8c65 25 0\n",
+      "H5AC_rename 0x8c65 0x200 25 0\n",
+      "H5AC_flush 0\n",
+      NULL
+    };
+    const char * expected_output_1[] =
+    {
+      "### HDF5 metadata cache trace file version 1 ###\n",
+      "H5AC_set_cache_auto_resize_config 1 0 1 0 \"t_cache_trace.txt\" 1 0 2097152 0.300000 33554432 1048576 50000 1 0.900000 2.000000 1 1.000000 0.250000 1 4194304 3 0.999000 0.900000 1 1048576 3 1 0.100000 262144 1 0\n",
+      "H5AC_set 0x200 25 0x0 2 0\n",
+      "H5AC_set 0x202 25 0x0 2 0\n",
+      "H5AC_set 0x204 25 0x0 4 0\n",
+      "H5AC_set 0x208 25 0x0 6 0\n",
+      "H5AC_protect 0x200 25 H5AC_WRITE 2 1\n",
+      "H5AC_mark_pinned_or_protected_entry_dirty 0x200 0\n",
+      "H5AC_unprotect 0x200 25 0 0 0\n",
+      "H5AC_protect 0x202 25 H5AC_WRITE 2 1\n",
+      "H5AC_pin_protected_entry 0x202 0\n",
+      "H5AC_unprotect 0x202 25 0 0 0\n",
+      "H5AC_unpin_entry 0x202 0\n",
+      "H5AC_expunge_entry 0x202 25 0\n",
+      "H5AC_protect 0x204 25 H5AC_WRITE 4 1\n",
+      "H5AC_pin_protected_entry 0x204 0\n",
+      "H5AC_unprotect 0x204 25 0 0 0\n",
+      "H5AC_mark_pinned_entry_dirty 0x204 0 0 0\n",
+      "H5AC_resize_pinned_entry 0x204 2 0\n",
+      "H5AC_resize_pinned_entry 0x204 4 0\n",
+      "H5AC_unpin_entry 0x204 0\n",
+      "H5AC_rename 0x200 0x8c65 25 0\n",
+      "H5AC_rename 0x8c65 0x200 25 0\n",
       "H5AC_flush 0\n",
       NULL
     };
     char buffer[256];
     char trace_file_name[64];
     hbool_t done = FALSE;
+    hbool_t show_progress = FALSE;
+    int cp = 0;
     int i;
     int max_nerrors;
     int expected_line_len;
@@ -5553,9 +5839,39 @@ trace_file_check(void)
 
 #endif /* H5_METADATA_TRACE_FILE */
 
-    if ( world_mpi_rank == 0 ) {
+    switch ( metadata_write_strategy ) {
 
-        TESTING("trace file collection");
+	case H5AC_METADATA_WRITE_STRATEGY__PROCESS_0_ONLY:
+#ifdef H5_METADATA_TRACE_FILE
+            expected_output = &expected_output_0;
+#endif /* H5_METADATA_TRACE_FILE */
+            if ( world_mpi_rank == 0 ) {
+        	TESTING(
+		    "trace file collection -- process 0 only md write strategy");
+            }
+	    break;
+
+	case H5AC_METADATA_WRITE_STRATEGY__DISTRIBUTED:
+#ifdef H5_METADATA_TRACE_FILE
+            expected_output = &expected_output_1;
+#endif /* H5_METADATA_TRACE_FILE */
+            if ( world_mpi_rank == 0 ) {
+        	TESTING(
+		    "trace file collection -- distributed md write strategy");
+            }
+	    break;
+
+        default:
+#ifdef H5_METADATA_TRACE_FILE
+            /* this will almost certainly cause a failure, but it keeps us
+             * from de-referenceing a NULL pointer.
+             */
+            expected_output = &expected_output_0;
+#endif /* H5_METADATA_TRACE_FILE */
+            if ( world_mpi_rank == 0 ) {
+        	TESTING("trace file collection -- unknown md write strategy");
+            }
+	    break;
     }
 
 #ifdef H5_METADATA_TRACE_FILE
@@ -5579,7 +5895,12 @@ trace_file_check(void)
     else /* run the clients */
     {
 
-        if ( ! setup_cache_for_test(&fid, &file_ptr, &cache_ptr) ) {
+	if ( show_progress ) /* 00 */
+	    HDfprintf(stdout, "%d:%s:%d: cp = %d.\n", 
+                      world_mpi_rank, fcn_name, nerrors, cp++);
+
+        if ( ! setup_cache_for_test(&fid, &file_ptr, &cache_ptr,
+                                    metadata_write_strategy) ) {
 
             nerrors++;
             fid = -1;
@@ -5589,6 +5910,10 @@ trace_file_check(void)
                           world_mpi_rank, fcn_name);
             }
         }
+
+	if ( show_progress ) /* 01 */
+	    HDfprintf(stdout, "%d:%s:%d: cp = %d.\n", 
+                      world_mpi_rank, fcn_name, nerrors, cp++);
 
         if ( nerrors == 0 ) {
 
@@ -5618,21 +5943,41 @@ trace_file_check(void)
             }
         }
 
+	if ( show_progress ) /* 02 */
+	    HDfprintf(stdout, "%d:%s:%d: cp = %d.\n", 
+                      world_mpi_rank, fcn_name, nerrors, cp++);
+
 	insert_entry(cache_ptr, file_ptr, 0, H5AC__NO_FLAGS_SET);
 	insert_entry(cache_ptr, file_ptr, 1, H5AC__NO_FLAGS_SET);
 	insert_entry(cache_ptr, file_ptr, 2, H5AC__NO_FLAGS_SET);
 	insert_entry(cache_ptr, file_ptr, 3, H5AC__NO_FLAGS_SET);
 
+	if ( show_progress ) /* 03 */
+	    HDfprintf(stdout, "%d:%s:%d: cp = %d.\n", 
+                      world_mpi_rank, fcn_name, nerrors, cp++);
+
 	lock_entry(cache_ptr, file_ptr, 0);
 	mark_pinned_or_protected_entry_dirty(0);
 	unlock_entry(cache_ptr, file_ptr, 0, H5AC__NO_FLAGS_SET);
+
+	if ( show_progress ) /* 04 */
+	    HDfprintf(stdout, "%d:%s:%d: cp = %d.\n", 
+                      world_mpi_rank, fcn_name, nerrors, cp++);
 
 	lock_entry(cache_ptr, file_ptr, 1);
         pin_protected_entry(1, TRUE);
 	unlock_entry(cache_ptr, file_ptr, 1, H5AC__NO_FLAGS_SET);
         unpin_entry(cache_ptr, file_ptr, 1, TRUE, FALSE, FALSE);
 
+	if ( show_progress ) /* 05 */
+	    HDfprintf(stdout, "%d:%s:%d: cp = %d.\n", 
+                      world_mpi_rank, fcn_name, nerrors, cp++);
+
         expunge_entry(cache_ptr,file_ptr, 1);
+
+	if ( show_progress ) /* 06 */
+	    HDfprintf(stdout, "%d:%s:%d: cp = %d.\n", 
+                      world_mpi_rank, fcn_name, nerrors, cp++);
 
 	lock_entry(cache_ptr, file_ptr, 2);
         pin_protected_entry(2, TRUE);
@@ -5642,8 +5987,16 @@ trace_file_check(void)
         resize_entry(2, data[2].len);
         unpin_entry(cache_ptr, file_ptr, 2, TRUE, FALSE, FALSE);
 
+	if ( show_progress ) /* 07 */
+	    HDfprintf(stdout, "%d:%s:%d: cp = %d.\n", 
+                      world_mpi_rank, fcn_name, nerrors, cp++);
+
 	rename_entry(cache_ptr, file_ptr, 0, 20);
 	rename_entry(cache_ptr, file_ptr, 0, 20);
+
+	if ( show_progress ) /* 08 */
+	    HDfprintf(stdout, "%d:%s:%d: cp = %d.\n", 
+                      world_mpi_rank, fcn_name, nerrors, cp++);
 
         if ( H5Fflush(fid, H5F_SCOPE_GLOBAL) < 0 ) {
             nerrors++;
@@ -5652,6 +6005,10 @@ trace_file_check(void)
                           world_mpi_rank, fcn_name);
             }
         }
+
+	if ( show_progress ) /* 09 */
+	    HDfprintf(stdout, "%d:%s:%d: cp = %d.\n", 
+                      world_mpi_rank, fcn_name, nerrors, cp++);
 
         if ( nerrors == 0 ) {
 
@@ -5682,6 +6039,10 @@ trace_file_check(void)
             }
         }
 
+	if ( show_progress ) /* 10 */
+	    HDfprintf(stdout, "%d:%s:%d: cp = %d.\n", 
+                      world_mpi_rank, fcn_name, nerrors, cp++);
+
         if ( fid >= 0 ) {
 
             if ( ! take_down_cache(fid) ) {
@@ -5694,6 +6055,10 @@ trace_file_check(void)
             }
         }
 
+	if ( show_progress ) /* 11 */
+	    HDfprintf(stdout, "%d:%s:%d: cp = %d.\n", 
+                      world_mpi_rank, fcn_name, nerrors, cp++);
+
         /* verify that all instance of datum are back where the started
          * and are clean.
          */
@@ -5703,6 +6068,10 @@ trace_file_check(void)
             HDassert( data_index[i] == i );
             HDassert( ! (data[i].dirty) );
         }
+
+	if ( show_progress ) /* 12 */
+	    HDfprintf(stdout, "%d:%s:%d: cp = %d.\n", 
+                      world_mpi_rank, fcn_name, nerrors, cp++);
 
         /* compose the done message */
         mssg.req       = DONE_REQ_CODE;
@@ -5728,6 +6097,10 @@ trace_file_check(void)
             }
         }
 
+	if ( show_progress ) /* 13 */
+	    HDfprintf(stdout, "%d:%s:%d: cp = %d.\n", 
+                      world_mpi_rank, fcn_name, nerrors, cp++);
+
         if ( nerrors == 0 ) {
 
 	    sprintf(trace_file_name, "t_cache_trace.txt.%d",
@@ -5743,16 +6116,20 @@ trace_file_check(void)
             }
 	}
 
+	if ( show_progress ) /* 14 */
+	    HDfprintf(stdout, "%d:%s:%d: cp = %d.\n", 
+                      world_mpi_rank, fcn_name, nerrors, cp++);
+
 	i = 0;
 	while ( ( nerrors == 0 ) && ( ! done ) )
 	{
-	    if ( expected_output[i] == NULL ) {
+	    if ( (*expected_output)[i] == NULL ) {
 
 		expected_line_len = 0;
 
 	    } else {
 
-		expected_line_len = HDstrlen(expected_output[i]);
+		expected_line_len = HDstrlen((*expected_output)[i]);
 	    }
 
 	    if ( HDfgets(buffer, 255, trace_file_ptr) != NULL ) {
@@ -5769,7 +6146,7 @@ trace_file_check(void)
 	        done = TRUE;
 
 	    } else if ( ( actual_line_len != expected_line_len ) ||
-		        ( HDstrcmp(buffer, expected_output[i]) != 0 ) ) {
+		        ( HDstrcmp(buffer, (*expected_output)[i]) != 0 ) ) {
 
 	        nerrors++;
                 if ( verbose ) {
@@ -5777,7 +6154,7 @@ trace_file_check(void)
 			      "%d:%s: Unexpected data in trace file line %d.\n",
                               world_mpi_rank, fcn_name, i);
 		    HDfprintf(stdout, "%d:%s: expected = \"%s\" %d\n",
-			       world_mpi_rank, fcn_name, expected_output[i],
+			       world_mpi_rank, fcn_name, (*expected_output)[i],
 			       expected_line_len);
 		    HDfprintf(stdout, "%d:%s: actual   = \"%s\" %d\n",
 			       world_mpi_rank, fcn_name, buffer,
@@ -5788,6 +6165,10 @@ trace_file_check(void)
 	    }
 	}
 
+	if ( show_progress ) /* 15 */
+	    HDfprintf(stdout, "%d:%s:%d: cp = %d.\n", 
+                      world_mpi_rank, fcn_name, nerrors, cp++);
+
 	if ( trace_file_ptr != NULL ) {
 
 	    HDfclose(trace_file_ptr);
@@ -5796,6 +6177,10 @@ trace_file_check(void)
 	    HDremove(trace_file_name);
 #endif
         }
+
+	if ( show_progress ) /* 16 */
+	    HDfprintf(stdout, "%d:%s:%d: cp = %d.\n", 
+                      world_mpi_rank, fcn_name, nerrors, cp++);
     }
 
     max_nerrors = get_max_nerrors();
@@ -6001,22 +6386,28 @@ main(int argc, char **argv)
     server_smoke_check();
 #endif
 #if 1
-    smoke_check_1();
+    smoke_check_1(H5AC_METADATA_WRITE_STRATEGY__PROCESS_0_ONLY);
+    smoke_check_1(H5AC_METADATA_WRITE_STRATEGY__DISTRIBUTED);
 #endif
 #if 1
-    smoke_check_2();
+    smoke_check_2(H5AC_METADATA_WRITE_STRATEGY__PROCESS_0_ONLY);
+    smoke_check_2(H5AC_METADATA_WRITE_STRATEGY__DISTRIBUTED);
 #endif
 #if 1
-    smoke_check_3();
+    smoke_check_3(H5AC_METADATA_WRITE_STRATEGY__PROCESS_0_ONLY);
+    smoke_check_3(H5AC_METADATA_WRITE_STRATEGY__DISTRIBUTED);
 #endif
 #if 1
-    smoke_check_4();
+    smoke_check_4(H5AC_METADATA_WRITE_STRATEGY__PROCESS_0_ONLY);
+    smoke_check_4(H5AC_METADATA_WRITE_STRATEGY__DISTRIBUTED);
 #endif
 #if 1
-    smoke_check_5();
+    smoke_check_5(H5AC_METADATA_WRITE_STRATEGY__PROCESS_0_ONLY);
+    smoke_check_5(H5AC_METADATA_WRITE_STRATEGY__DISTRIBUTED);
 #endif
 #if 1
-    trace_file_check();
+    trace_file_check(H5AC_METADATA_WRITE_STRATEGY__PROCESS_0_ONLY);
+    trace_file_check(H5AC_METADATA_WRITE_STRATEGY__DISTRIBUTED);
 #endif
 
 finish:

@@ -213,6 +213,9 @@ extern hid_t H5AC_ind_dxpl_id;
 
 /* Default cache configuration. */
 
+#define H5AC__DEFAULT_METADATA_WRITE_STRATEGY   \
+                                H5AC_METADATA_WRITE_STRATEGY__DISTRIBUTED
+
 #ifdef H5_HAVE_PARALLEL
 #define H5AC__DEFAULT_CACHE_CONFIG                                            \
 {                                                                             \
@@ -245,7 +248,9 @@ extern hid_t H5AC_ind_dxpl_id;
   /* int         epochs_before_eviction = */ 3,                               \
   /* hbool_t     apply_empty_reserve    = */ TRUE,                            \
   /* double      empty_reserve          = */ 0.1,                             \
-  /* int	 dirty_bytes_threshold  = */ (256 * 1024)                     \
+  /* int	 dirty_bytes_threshold  = */ (256 * 1024),                    \
+  /* int	metadata_write_strategy = */                                  \
+				       H5AC__DEFAULT_METADATA_WRITE_STRATEGY  \
 }
 #else /* H5_HAVE_PARALLEL */
 #define H5AC__DEFAULT_CACHE_CONFIG                                            \
@@ -279,7 +284,9 @@ extern hid_t H5AC_ind_dxpl_id;
   /* int         epochs_before_eviction = */ 3,                               \
   /* hbool_t     apply_empty_reserve    = */ TRUE,                            \
   /* double      empty_reserve          = */ 0.1,                             \
-  /* int	 dirty_bytes_threshold  = */ (256 * 1024)                     \
+  /* int	 dirty_bytes_threshold  = */ (256 * 1024),                    \
+  /* int	metadata_write_strategy = */                                  \
+				       H5AC__DEFAULT_METADATA_WRITE_STRATEGY  \
 }
 #endif /* H5_HAVE_PARALLEL */
 

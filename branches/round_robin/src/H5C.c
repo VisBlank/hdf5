@@ -348,22 +348,68 @@ done:
  *
  * Purpose:     Apply the supplied candidate list.
  *
- *		Do this by scanning the candidate list, and flushing 
- *		all entries candidates_list_ptr[i] such that 
+ *		We used to do this by simply having each process write 
+ *		every mpi_size-th entry in the candidate list, starting 
+ *		at index mpi_rank, and mark all the others clean.  
  *
- *			(i % mpi_size) == mpi_rank
+ *		However, this can cause unnecessary contention in a file 
+ *		system by increasing the number of processes writing to 
+ *		adjacent locations in the HDF5 file.
  *
- *		and marking all other entries listed in the candidate
- *		list as clean.
+ *		To attempt to minimize this, we now arange matters such 
+ *		that each process writes n adjacent entries in the 
+ *		candidate list, and marks all others clean.  We must do
+ *		this in such a fashion as to guarantee that each entry 
+ *		on the candidate list is written by exactly one process, 
+ *		and marked clean by all others.  
  *
- *		Do this by looking up each entry in the candidate list,
- *		and marking for cleaning or flushing as appropriate. 
- *		Note that if we encounter any protected entries, this 
- *		function must fail.
+ *		To do this, first construct a table mapping mpi_rank
+ *		to the index of the first entry in the candidate list to
+ *		be written by the process of that mpi_rank, and then use
+ *		the table to control which entries are written and which
+ *		are marked as clean as a function of the mpi_rank.
  *
- *		If successful in this step, then scan up the LRU list,
- *		clearing and flushing the marked entries.  As some 
- *		entries may be pinned, scan the pinned list as well.
+ *		Note that the table must be identical on all processes, as
+ *		all see the same candidate list, mpi_size, and mpi_rank --
+ *		the inputs used to construct the table.  
+ *
+ *		We construct the table as follows.  Let:
+ *
+ *			n = num_candidates / mpi_size;
+ *
+ *			m = num_candidates % mpi_size;
+ *
+ *		Now allocate an array of integers of length mpi_size + 1, 
+ *		and call this array candidate_assignment_table. 
+ *
+ *		Conceptually, if the number of candidates is a multiple
+ *		of the mpi_size, we simply pass through the candidate list
+ *		and assign n entries to each process to flush, with the 
+ *		index of the first entry to flush in the location in 
+ *		the candidate_assignment_table indicated by the mpi_rank
+ *		of the process.  
+ *
+ *		In the more common case in which the candidate list isn't 
+ *		isn't a multiple of the mpi_size, we pretend it is, and 
+ *		give num_candidates % mpi_size processes one extra entry
+ *		each to make things work out.
+ *
+ *		Once the table is constructed, we determine the first and
+ *		last entry this process is to flush as follows:
+ *
+ *	 	first_entry_to_flush = candidate_assignment_table[mpi_rank]
+ *
+ *		last_entry_to_flush = 
+ *			candidate_assignment_table[mpi_rank + 1] - 1;
+ *		
+ *		With these values determined, we simply scan through the 
+ *		candidate list, marking all entries in the range 
+ *		[first_entry_to_flush, last_entry_to_flush] for flush,
+ *		and all others to be cleaned.
+ *
+ *		Finally, we scan the LRU from tail to head, flushing 
+ *		or marking clean the candidate entries as indicated.
+ *		If necessary, we scan the pinned list as well.
  *
  *		Note that this function will fail if any protected or 
  *		clean entries appear on the candidate list.
@@ -380,7 +426,9 @@ done:
  *
  * Modifications:
  *
- *		None.
+ *		Heavily reworked to have each process flush a group of 
+ *		adjacent entries.
+ *						JRM -- 4/15/10
  *
  *-------------------------------------------------------------------------
  */
@@ -401,12 +449,17 @@ H5C_apply_candidate_list(H5F_t * f,
     herr_t              result;
     hbool_t             first_flush = FALSE;
     int                 i;
+    int			m;
+    int			n;
+    int			first_entry_to_flush;
+    int			last_entry_to_flush;
     int			entries_to_clear = 0;
     int			entries_to_flush = 0;
     int			entries_cleared = 0;
     int			entries_flushed = 0;
     int			entries_examined = 0;
     int			initial_list_len;
+    int               * candidate_assignment_table = NULL;
     haddr_t		addr;
     H5C_cache_entry_t *	clear_ptr = NULL;
     H5C_cache_entry_t *	entry_ptr = NULL;
@@ -414,6 +467,9 @@ H5C_apply_candidate_list(H5F_t * f,
 #if H5C_DO_SANITY_CHECKS
     haddr_t		last_addr;
 #endif /* H5C_DO_SANITY_CHECKS */
+#if H5C_APPLY_CANDIDATE_LIST__DEBUG
+    char		tbl_buf[1024];
+#endif /* H5C_APPLY_CANDIDATE_LIST__DEBUG */
 
     FUNC_ENTER_NOAPI(H5C_apply_candidate_list, FAIL)
 
@@ -426,6 +482,116 @@ H5C_apply_candidate_list(H5F_t * f,
     HDassert( mpi_rank < mpi_size );
 
 #if H5C_APPLY_CANDIDATE_LIST__DEBUG
+    HDfprintf(stdout, "%s:%d: setting up candidate assignment table.\n", 
+              FUNC, mpi_rank);
+    for ( i = 0; i < 1024; i++ ) tbl_buf[i] = '\0';
+    sprintf(&(tbl_buf[0]), "candidate list = ");
+    for ( i = 0; i < num_candidates; i++ )
+    {
+        sprintf(&(tbl_buf[strlen(tbl_buf)]), " 0x%llx", 
+                (long long)(*(candidates_list_ptr + i)));
+    }
+    sprintf(&(tbl_buf[strlen(tbl_buf)]), "\n");
+    HDfprintf(stdout, "%s", tbl_buf);
+#endif /* H5C_APPLY_CANDIDATE_LIST__DEBUG */
+
+    n = num_candidates / mpi_size;
+    m = num_candidates % mpi_size;
+
+    HDassert( 0 <= n );
+
+    candidate_assignment_table = 
+	(int *)H5MM_malloc(sizeof(int) * (size_t)(mpi_size + 1));
+
+    if ( candidate_assignment_table == NULL ) {
+
+        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, \
+                    "memory allocation failed for candidate assignment table")
+    }
+
+    candidate_assignment_table[0] = 0;
+    candidate_assignment_table[mpi_size] = num_candidates;
+
+    if ( m == 0 ) { /* mpi_size is an even divisor of num_candidates */
+
+        HDassert( n > 0 );
+
+        for ( i = 1; i < mpi_size; i++ ) {
+
+            candidate_assignment_table[i] = 
+	        candidate_assignment_table[i-1] + n;
+        }
+    } else { 
+ 
+        for ( i = 1; i <=  m; i++ ) {
+
+            candidate_assignment_table[i] = 
+	        candidate_assignment_table[i-1] + n + 1;
+        }
+
+        if ( num_candidates < mpi_size ) {
+ 
+            for ( i = m + 1; i < mpi_size; i++ ) {
+ 
+                candidate_assignment_table[i] = num_candidates;
+            }
+        } else {
+ 
+            for ( i = m + 1; i < mpi_size; i++ ) {
+ 
+                candidate_assignment_table[i] = 
+		    candidate_assignment_table[i-1] + n;
+            }
+
+            if ( (candidate_assignment_table[mpi_size - 1] + n) != 
+                 num_candidates ) {
+
+                HDfprintf(stdout, "%s:%d: mpi_size = %d, n =  %d, m = %d.\n", 
+                          FUNC, mpi_rank, mpi_size, n, m);
+
+                HDfprintf(stdout, "%s:%d: cat[%d] =  %d, num_cand = %d.\n", 
+                          FUNC, mpi_rank, mpi_size - 1, 
+                          candidate_assignment_table[mpi_size - 1], 
+                          num_candidates);
+            }
+        }
+    }
+
+    HDassert( (candidate_assignment_table[mpi_size - 1] + n)
+                   == num_candidates );
+
+#if H5C_DO_SANITY_CHECKS
+    /* verify that the candidate assignment table has the expected form */
+    for ( i = 1; i < mpi_size - 1; i++ ) 
+    {
+        int a, b;
+
+        a = candidate_assignment_table[i] - candidate_assignment_table[i - 1];
+        b = candidate_assignment_table[i + 1] - candidate_assignment_table[i];
+
+        HDassert( n + 1 >= a );
+        HDassert( a >= b );
+        HDassert( b >= n );
+    }
+#endif /* H5C_DO_SANITY_CHECKS */
+
+    first_entry_to_flush = candidate_assignment_table[mpi_rank];
+    last_entry_to_flush = candidate_assignment_table[mpi_rank + 1] - 1;
+
+#if H5C_APPLY_CANDIDATE_LIST__DEBUG
+    for ( i = 0; i < 1024; i++ ) tbl_buf[i] = '\0';
+    sprintf(&(tbl_buf[0]), "candidate assignment table = ");
+    for ( i = 0; i <= mpi_size; i++ )
+    {
+        sprintf(&(tbl_buf[strlen(tbl_buf)]), " %d", 
+                candidate_assignment_table[i]);
+    }
+    sprintf(&(tbl_buf[strlen(tbl_buf)]), "\n");
+    HDfprintf(stdout, "%s", tbl_buf);
+
+    HDfprintf(stdout, "%s:%d: flush entries [%d, %d].\n", 
+              FUNC, mpi_rank, first_entry_to_flush, last_entry_to_flush);
+
     HDfprintf(stdout, "%s:%d: marking entries.\n", FUNC, mpi_rank);
 #endif /* H5C_APPLY_CANDIDATE_LIST__DEBUG */
 
@@ -492,11 +658,9 @@ H5C_apply_candidate_list(H5F_t * f,
              * pinned list shortly, and clear or flush according to these
              * markings.  
              */
-#if 1
-            if ( (i % mpi_size) == mpi_rank ) {
-#else
-	    if ( mpi_rank == 0 ) {
-#endif
+            if ( ( i >= first_entry_to_flush ) &&
+                 ( i <= last_entry_to_flush ) ) {
+
                 entries_to_flush++;
                 entry_ptr->flush_immediately = TRUE;
 
@@ -679,7 +843,6 @@ H5C_apply_candidate_list(H5F_t * f,
     HDfprintf(stdout, "%s:%d: done.\n", FUNC, mpi_rank);
 
     fsync(stdout);
-    sleep(1);
 #endif /* H5C_APPLY_CANDIDATE_LIST__DEBUG */
 
     if ( ( entries_flushed != entries_to_flush ) ||
@@ -689,6 +852,13 @@ H5C_apply_candidate_list(H5F_t * f,
     }
 
 done:
+
+    if ( candidate_assignment_table != NULL ) {
+
+        candidate_assignment_table = 
+	    (int *)H5MM_xfree((void *)candidate_assignment_table);
+    }
+
 
     FUNC_LEAVE_NOAPI(ret_value)
 
@@ -774,7 +944,7 @@ H5C_construct_candidate_list__clean_cache(H5C_t * cache_ptr)
             nominated_addr = entry_ptr->addr;
 
 #if H5C_CONSTRUCT_CANDIDATE_LIST__CLEAN_CACHE__DEBUG
-		HDfprintf(stdout, "%s:1 nominating 0x%llx.\n",
+		HDfprintf(stdout, "%s:lru nominating 0x%llx.\n",
                           FUNC, (long long)nominated_addr);
 #endif /* H5C_CONSTRUCT_CANDIDATE_LIST__CLEAN_CACHE__DEBUG */
 
@@ -813,7 +983,7 @@ H5C_construct_candidate_list__clean_cache(H5C_t * cache_ptr)
                 nominated_addr = entry_ptr->addr;
 
 #if H5C_CONSTRUCT_CANDIDATE_LIST__CLEAN_CACHE__DEBUG
-		HDfprintf(stdout, "%s:2 nominating 0x%llx.\n",
+		HDfprintf(stdout, "%s:pel nominating 0x%llx.\n",
                           FUNC, (long long)nominated_addr);
 #endif /* H5C_CONSTRUCT_CANDIDATE_LIST__CLEAN_CACHE__DEBUG */
 
@@ -856,6 +1026,10 @@ H5C_construct_candidate_list__clean_cache(H5C_t * cache_ptr)
 
 done:
 
+#if H5C_CONSTRUCT_CANDIDATE_LIST__CLEAN_CACHE__DEBUG
+    HDfprintf(stdout, "%s: exiting.\n", FUNC);
+#endif /* H5C_CONSTRUCT_CANDIDATE_LIST__CLEAN_CACHE__DEBUG */
+
     FUNC_LEAVE_NOAPI(ret_value)
 
 } /* H5C_construct_candidate_list__clean_cache() */
@@ -886,6 +1060,7 @@ done:
  */
 
 #ifdef H5_HAVE_PARALLEL
+#define H5C_CONSTRUCT_CANDIDATE_LIST__MIN_CLEAN__DEBUG 0
 herr_t
 H5C_construct_candidate_list__min_clean(H5C_t * cache_ptr)
 {
@@ -964,7 +1139,7 @@ H5C_construct_candidate_list__min_clean(H5C_t * cache_ptr)
             nominated_entries_count++;
             entry_ptr = entry_ptr->aux_prev;
         }
-#if 0 /* JRM */
+#if H5C_CONSTRUCT_CANDIDATE_LIST__MIN_CLEAN__DEBUG
         if ( ( nominated_entries_count > cache_ptr->slist_len) ||
              ( nominated_entries_size < space_needed ) ) {
 
@@ -976,7 +1151,7 @@ H5C_construct_candidate_list__min_clean(H5C_t * cache_ptr)
                       "nominated_entries_size = %d < %d = space_needed.\n",
                       (int)nominated_entries_size, (int)space_needed);
         }
-#endif /* JRM */
+#endif /* H5C_CONSTRUCT_CANDIDATE_LIST__MIN_CLEAN__DEBUG */
         HDassert( nominated_entries_count <= cache_ptr->slist_len );
         HDassert( nominated_entries_size >= space_needed );
 
@@ -2338,6 +2513,14 @@ H5C_flush_to_min_clean(H5F_t * f,
 #endif /* end modified code -- commented out for now */
 
 done:
+
+#if 0 /* JRM */
+    if ( flushed_entries_list != NULL ) {
+
+        flushed_entries_list = 
+		(haddr_t *)H5MM_xfree((void *)flushed_entries_list);
+    }
+#endif /* JRM */
 
     FUNC_LEAVE_NOAPI(ret_value)
 
@@ -8863,6 +9046,9 @@ done:
  *
  *-------------------------------------------------------------------------
  */
+
+#define H5C_FLUSH_SINGLE_ENTRY__DEBUG 0
+
 static herr_t
 H5C_flush_single_entry(H5F_t *		   f,
                        hid_t 		   primary_dxpl_id,
@@ -8887,7 +9073,6 @@ H5C_flush_single_entry(H5F_t *		   f,
 
     FUNC_ENTER_NOAPI_NOINIT(H5C_flush_single_entry)
 
-
     HDassert( cache_ptr );
     HDassert( cache_ptr->magic == H5C__H5C_T_MAGIC );
     HDassert( cache_ptr->skip_file_checks || f );
@@ -8906,11 +9091,28 @@ H5C_flush_single_entry(H5F_t *		   f,
     else
         destroy_entry = destroy;
 
+#if H5C_FLUSH_SINGLE_ENTRY__DEBUG
+    HDfprintf(stdout, 
+              "%s: addr = 0x%llx, del_entry_from_slist_on_destroy = %d.\n",
+              FUNC, (long long)addr, (int)del_entry_from_slist_on_destroy);
+    HDfprintf(stdout, 
+              "%s: destroy = %d, clear_only = %d, take_ownership = %d.\n",
+              FUNC, (int)destroy, (int)clear_only, (int)take_ownership);
+#endif /* H5C_FLUSH_SINGLE_ENTRY__DEBUG */
+
     /* attempt to find the target entry in the hash table */
     H5C__SEARCH_INDEX(cache_ptr, addr, entry_ptr, FAIL)
 
 #if H5C_DO_SANITY_CHECKS
     if ( entry_ptr != NULL ) {
+
+#if H5C_FLUSH_SINGLE_ENTRY__DEBUG
+        HDfprintf(stdout, "%s: entry at 0x%llx exists.\n", 
+                  FUNC, (long long)addr);
+        HDfprintf(stdout, 
+                  "%s: entry_ptr->is_dirty = %d, entry_ptr->type->id = %d.\n", 
+                  FUNC, (int)entry_ptr->is_dirty, (int)(entry_ptr->type->id));
+#endif /* H5C_FLUSH_SINGLE_ENTRY__DEBUG */
 
         HDassert( ! ( ( destroy ) && ( entry_ptr->is_pinned ) ) );
 
@@ -8933,7 +9135,7 @@ H5C_flush_single_entry(H5F_t *		   f,
             }
         }
     }
-#if 0
+#if H5C_FLUSH_SINGLE_ENTRY__DEBUG
     /* this should be useful for debugging from time to time.
      * lets leave it in for now.       -- JRM 12/15/04
      */
@@ -8943,7 +9145,7 @@ H5C_flush_single_entry(H5F_t *		   f,
                   addr);
         HDfflush(stdout);
     }
-#endif
+#endif /* H5C_FLUSH_SINGLE_ENTRY__DEBUG */
 #endif /* H5C_DO_SANITY_CHECKS */
 
     if ( ( entry_ptr != NULL ) && ( entry_ptr->is_protected ) )
@@ -9064,7 +9266,7 @@ H5C_flush_single_entry(H5F_t *		   f,
          */
         if ( destroy ) { /* AKA eviction */
 
-#if 0 /* JRM */
+#if H5C_FLUSH_SINGLE_ENTRY__DEBUG
             /* This test code may come in handy -- lets keep it for a while */
             {
                 if ( entry_ptr->is_dirty )
@@ -9157,7 +9359,7 @@ H5C_flush_single_entry(H5F_t *		   f,
                     }
                 }
             }
-#endif /* JRM */
+#endif /* H5C_FLUSH_SINGLE_ENTRY__DEBUG */
 
             H5C__UPDATE_RP_FOR_EVICTION(cache_ptr, entry_ptr, FAIL)
 
@@ -9275,6 +9477,11 @@ H5C_flush_single_entry(H5F_t *		   f,
 
         if ( ( ! destroy ) && ( entry_ptr->in_slist ) ) {
 
+#if H5C_FLUSH_SINGLE_ENTRY__DEBUG
+            HDfprintf(stdout, "%s: deleting 0x%llx from slist.\n",
+                      FUNC, (long long)(entry_ptr->addr));
+#endif /* H5C_FLUSH_SINGLE_ENTRY__DEBUG */
+
             H5C__REMOVE_ENTRY_FROM_SLIST(cache_ptr, entry_ptr)
 
         }
@@ -9383,6 +9590,11 @@ H5C_flush_single_entry(H5F_t *		   f,
     }
 
 done:
+
+#if H5C_FLUSH_SINGLE_ENTRY__DEBUG
+    HDfprintf(stdout, "%s: addr = 0x%llx exiting.\n", FUNC, (long long)addr);
+#endif /* H5C_FLUSH_SINGLE_ENTRY__DEBUG */
+
 
     FUNC_LEAVE_NOAPI(ret_value)
 

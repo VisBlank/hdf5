@@ -113,41 +113,52 @@ static void check_file_mdc_api_errs(void);
  *
  * Modifications:
  *
+ *		Updated CACHE_CONFIGS_EQUAL to check the 
+ *		dirty_bytes_threshold and metadata_write_strategy 
+ *		fields as well.
+ *
+ *		Note that these fields are not used or stored in the
+ *		serial case -- thus we can't check to verify that the
+ *		desired values are getting through.
+ *							JRM -- 4/9/10
+ *
  *-------------------------------------------------------------------------
  */
 
-#define CACHE_CONFIGS_EQUAL(a, b, cmp_set_init, cmp_init_size)       \
-  ( ( (a).version                == (b).version ) &&                 \
-    ( (a).rpt_fcn_enabled        == (b).rpt_fcn_enabled ) &&         \
-    ( (a).open_trace_file        == (b).open_trace_file ) &&         \
-    ( (a).close_trace_file       == (b).close_trace_file ) &&        \
-    ( ( (a).open_trace_file == FALSE ) ||                            \
-      ( strcmp((a).trace_file_name, (b).trace_file_name) == 0 ) ) && \
-    ( (a).evictions_enabled      == (b).evictions_enabled ) &&       \
-    ( ( ! cmp_set_init ) ||                                          \
-      ( (a).set_initial_size     == (b).set_initial_size ) ) &&      \
-    ( ( ! cmp_init_size ) ||                                         \
-      ( (a).initial_size         == (b).initial_size ) ) &&          \
-    ( (a).min_clean_fraction     == (b).min_clean_fraction ) &&      \
-    ( (a).max_size               == (b).max_size ) &&                \
-    ( (a).min_size               == (b).min_size ) &&                \
-    ( (a).epoch_length           == (b).epoch_length ) &&            \
-    ( (a).incr_mode              == (b).incr_mode ) &&               \
-    ( (a).lower_hr_threshold     == (b).lower_hr_threshold ) &&      \
-    ( (a).increment              == (b).increment ) &&               \
-    ( (a).apply_max_increment    == (b).apply_max_increment ) &&     \
-    ( (a).max_increment          == (b).max_increment ) &&           \
-    ( (a).flash_incr_mode        == (b).flash_incr_mode ) &&         \
-    ( (a).flash_multiple         == (b).flash_multiple ) &&          \
-    ( (a).flash_threshold        == (b).flash_threshold ) &&         \
-    ( (a).decr_mode              == (b).decr_mode ) &&               \
-    ( (a).upper_hr_threshold     == (b).upper_hr_threshold ) &&      \
-    ( (a).decrement              == (b).decrement ) &&               \
-    ( (a).apply_max_decrement    == (b).apply_max_decrement ) &&     \
-    ( (a).max_decrement          == (b).max_decrement ) &&           \
-    ( (a).epochs_before_eviction == (b).epochs_before_eviction ) &&  \
-    ( (a).apply_empty_reserve    == (b).apply_empty_reserve ) &&     \
-    ( (a).empty_reserve          == (b).empty_reserve ) )
+#define CACHE_CONFIGS_EQUAL(a, b, cmp_set_init, cmp_init_size)        \
+  ( ( (a).version                 == (b).version ) &&                 \
+    ( (a).rpt_fcn_enabled         == (b).rpt_fcn_enabled ) &&         \
+    ( (a).open_trace_file         == (b).open_trace_file ) &&         \
+    ( (a).close_trace_file        == (b).close_trace_file ) &&        \
+    ( ( (a).open_trace_file == FALSE ) ||                             \
+      ( strcmp((a).trace_file_name, (b).trace_file_name) == 0 ) ) &&  \
+    ( (a).evictions_enabled       == (b).evictions_enabled ) &&       \
+    ( ( ! cmp_set_init ) ||                                           \
+      ( (a).set_initial_size      == (b).set_initial_size ) ) &&      \
+    ( ( ! cmp_init_size ) ||                                          \
+      ( (a).initial_size          == (b).initial_size ) ) &&          \
+    ( (a).min_clean_fraction      == (b).min_clean_fraction ) &&      \
+    ( (a).max_size                == (b).max_size ) &&                \
+    ( (a).min_size                == (b).min_size ) &&                \
+    ( (a).epoch_length            == (b).epoch_length ) &&            \
+    ( (a).incr_mode               == (b).incr_mode ) &&               \
+    ( (a).lower_hr_threshold      == (b).lower_hr_threshold ) &&      \
+    ( (a).increment               == (b).increment ) &&               \
+    ( (a).apply_max_increment     == (b).apply_max_increment ) &&     \
+    ( (a).max_increment           == (b).max_increment ) &&           \
+    ( (a).flash_incr_mode         == (b).flash_incr_mode ) &&         \
+    ( (a).flash_multiple          == (b).flash_multiple ) &&          \
+    ( (a).flash_threshold         == (b).flash_threshold ) &&         \
+    ( (a).decr_mode               == (b).decr_mode ) &&               \
+    ( (a).upper_hr_threshold      == (b).upper_hr_threshold ) &&      \
+    ( (a).decrement               == (b).decrement ) &&               \
+    ( (a).apply_max_decrement     == (b).apply_max_decrement ) &&     \
+    ( (a).max_decrement           == (b).max_decrement ) &&           \
+    ( (a).epochs_before_eviction  == (b).epochs_before_eviction ) &&  \
+    ( (a).apply_empty_reserve     == (b).apply_empty_reserve ) &&     \
+    ( (a).empty_reserve           == (b).empty_reserve ) &&           \
+    ( (a).dirty_bytes_threshold   == (b).dirty_bytes_threshold ) &&   \
+    ( (a).metadata_write_strategy == (b).metadata_write_strategy ) )
 
 #define XLATE_EXT_TO_INT_MDC_CONFIG(i, e)                           \
 {                                                                   \
@@ -227,7 +238,9 @@ check_fapl_mdc_api_calls(void)
       /* int         epochs_before_eviction = */ 4,
       /* hbool_t     apply_empty_reserve    = */ TRUE,
       /* double      empty_reserve          = */ 0.05,
-      /* int         dirty_bytes_threshold  = */ (256 * 1024)
+      /* int         dirty_bytes_threshold  = */ (256 * 1024),
+      /* int	    metadata_write_strategy = */
+					H5AC__DEFAULT_METADATA_WRITE_STRATEGY
     };
     H5AC_cache_config_t scratch;
     H5C_auto_size_ctl_t default_auto_size_ctl;
@@ -796,7 +809,9 @@ check_file_mdc_api_calls(void)
       /* int         epochs_before_eviction = */ 4,
       /* hbool_t     apply_empty_reserve    = */ TRUE,
       /* double      empty_reserve          = */ 0.05,
-      /* int         dirty_bytes_threshold  = */ (256 * 1024)
+      /* int         dirty_bytes_threshold  = */ (256 * 1024),
+      /* int	    metadata_write_strategy = */
+					H5AC__DEFAULT_METADATA_WRITE_STRATEGY
     };
     H5AC_cache_config_t mod_config_2 =
     {
@@ -829,7 +844,9 @@ check_file_mdc_api_calls(void)
       /* int         epochs_before_eviction = */ 4,
       /* hbool_t     apply_empty_reserve    = */ TRUE,
       /* double      empty_reserve          = */ 0.05,
-      /* int         dirty_bytes_threshold  = */ (256 * 1024)
+      /* int         dirty_bytes_threshold  = */ (256 * 1024),
+      /* int	    metadata_write_strategy = */
+					H5AC__DEFAULT_METADATA_WRITE_STRATEGY
     };
     H5AC_cache_config_t mod_config_3 =
     {
@@ -862,7 +879,9 @@ check_file_mdc_api_calls(void)
       /* int         epochs_before_eviction = */ 3,
       /* hbool_t     apply_empty_reserve    = */ FALSE,
       /* double      empty_reserve          = */ 0.05,
-      /* int         dirty_bytes_threshold  = */ (256 * 1024)
+      /* int         dirty_bytes_threshold  = */ (256 * 1024),
+      /* int	    metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
     };
     H5AC_cache_config_t mod_config_4 =
     {
@@ -896,7 +915,9 @@ check_file_mdc_api_calls(void)
       /* int         epochs_before_eviction = */ 3,
       /* hbool_t     apply_empty_reserve    = */ TRUE,
       /* double      empty_reserve          = */ 0.1,
-      /* int         dirty_bytes_threshold  = */ (256 * 1024)
+      /* int         dirty_bytes_threshold  = */ (256 * 1024),
+      /* int	    metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
     };
 
     TESTING("MDC/FILE related API calls");
@@ -1427,7 +1448,9 @@ mdc_api_call_smoke_check(int express_test)
       /* int         epochs_before_eviction = */ 2,
       /* hbool_t     apply_empty_reserve    = */ TRUE,
       /* double      empty_reserve          = */ 0.05,
-      /* int         dirty_bytes_threshold  = */ (256 * 1024)
+      /* int         dirty_bytes_threshold  = */ (256 * 1024),
+      /* int	    metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
     };
     H5AC_cache_config_t mod_config_2 =
     {
@@ -1460,7 +1483,9 @@ mdc_api_call_smoke_check(int express_test)
       /* int         epochs_before_eviction = */ 2,
       /* hbool_t     apply_empty_reserve    = */ TRUE,
       /* double      empty_reserve          = */ 0.05,
-      /* int         dirty_bytes_threshold  = */ (256 * 1024)
+      /* int         dirty_bytes_threshold  = */ (256 * 1024),
+      /* int	    metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
     };
     H5AC_cache_config_t mod_config_3 =
     {
@@ -1493,7 +1518,9 @@ mdc_api_call_smoke_check(int express_test)
       /* int         epochs_before_eviction = */ 2,
       /* hbool_t     apply_empty_reserve    = */ TRUE,
       /* double      empty_reserve          = */ 0.05,
-      /* int         dirty_bytes_threshold  = */ (256 * 1024)
+      /* int         dirty_bytes_threshold  = */ (256 * 1024),
+      /* int	    metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
     };
 
     TESTING("MDC API smoke check");
@@ -2025,7 +2052,7 @@ mdc_api_call_smoke_check(int express_test)
  * used to test error rejection in the MDC related API calls.
  */
 
-#define NUM_INVALID_CONFIGS	41
+#define NUM_INVALID_CONFIGS	42
 
 H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
 {
@@ -2060,7 +2087,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 1 -- bad rpt_fcn_enabled */
@@ -2093,7 +2122,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 2 -- bad open_trace_file */
@@ -2126,7 +2157,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 3 -- bad close_trace_file */
@@ -2159,7 +2192,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 4 -- open_trace_file == TRUE and empty trace_file_name */
@@ -2192,7 +2227,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 5 -- bad set_initial_size */
@@ -2225,7 +2262,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 6 -- max_size too big */
@@ -2258,7 +2297,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 7 -- min_size too small */
@@ -2291,7 +2332,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 8 -- min_size > max_size */
@@ -2324,7 +2367,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 9 -- initial size out of range (too big) */
@@ -2357,7 +2402,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 10 -- initial_size out of range (too small) */
@@ -2390,7 +2437,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 11 -- min_clean_fraction too big */
@@ -2423,7 +2472,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 12 -- min_clean_fraction too small */
@@ -2456,7 +2507,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 13 -- epoch_length too small */
@@ -2489,7 +2542,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 14 -- epoch_length too big */
@@ -2522,7 +2577,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 15 -- invalid incr_mode */
@@ -2555,7 +2612,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 16 -- lower_hr_threshold too small */
@@ -2588,7 +2647,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 17 -- lower_hr_threshold too big */
@@ -2621,7 +2682,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 18 -- increment too small */
@@ -2654,7 +2717,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 19 -- bad apply_max_increment */
@@ -2687,7 +2752,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 20 -- invalid flash_incr_mode */
@@ -2720,7 +2787,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 21 -- flash_multiple too small */
@@ -2753,7 +2822,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 22 -- flash_multiple too big */
@@ -2786,7 +2857,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 23 -- flash_threshold too small */
@@ -2819,7 +2892,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 24 -- flash_threshold too big */
@@ -2852,7 +2927,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 25 -- bad decr_mode */
@@ -2885,7 +2962,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 26 -- upper_hr_threshold too big */
@@ -2918,7 +2997,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 27 -- decrement too small */
@@ -2951,7 +3032,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 28 -- decrement too big */
@@ -2984,7 +3067,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 29 -- epochs_before_eviction too small */
@@ -3017,7 +3102,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 0,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 30 -- epochs_before_eviction too big */
@@ -3050,7 +3137,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ H5C__MAX_EPOCH_MARKERS + 1,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 31 -- invalid apply_empty_reserve */
@@ -3083,7 +3172,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ 2,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 32 -- empty_reserve too small */
@@ -3116,7 +3207,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ -0.0000000001,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 33 -- empty_reserve too big */
@@ -3149,7 +3242,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 1.00000000001,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 34 -- upper_hr_threshold too small */
@@ -3182,7 +3277,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 35 -- upper_hr_threshold too big */
@@ -3215,7 +3312,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 36 -- upper_hr_threshold <= lower_hr_threshold */
@@ -3248,7 +3347,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 37 -- dirty_bytes_threshold too small */
@@ -3281,7 +3382,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (H5C__MIN_MAX_CACHE_SIZE / 2) - 1
+    /* int         dirty_bytes_threshold  = */ (H5C__MIN_MAX_CACHE_SIZE / 2) - 1,
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 38 -- dirty_bytes_threshold too big */
@@ -3314,7 +3417,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (H5C__MAX_MAX_CACHE_SIZE / 4) + 1
+    /* int         dirty_bytes_threshold  = */ (H5C__MAX_MAX_CACHE_SIZE / 4) + 1,
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 39 -- attempt to disable evictions when auto incr enabled */
@@ -3347,7 +3452,9 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
   },
   {
     /* 40 -- attempt to disable evictions when auto decr enabled */
@@ -3380,7 +3487,43 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
     /* double      empty_reserve          = */ 0.1,
-    /* int         dirty_bytes_threshold  = */ (256 * 1024)
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */
+				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
+  },
+  {
+    /* 41 -- unknown metadata write strategy */
+    /* int         version                = */ H5C__CURR_AUTO_SIZE_CTL_VER,
+    /* hbool_t     rpt_fcn_enabled        = */ FALSE,
+    /* hbool_t     open_trace_file        = */ FALSE,
+    /* hbool_t     close_trace_file       = */ FALSE,
+    /* char        trace_file_name[]      = */ "",
+    /* hbool_t     evictions_enabled      = */ TRUE,
+    /* hbool_t     set_initial_size       = */ TRUE,
+    /* size_t      initial_size           = */ (1 * 1024 * 1024),
+    /* double      min_clean_fraction     = */ 0.25,
+    /* size_t      max_size               = */ (16 * 1024 * 1024),
+    /* size_t      min_size               = */ ( 1 * 1024 * 1024),
+    /* long int    epoch_length           = */ 50000,
+    /* enum H5C_cache_incr_mode incr_mode = */ H5C_incr__threshold,
+    /* double      lower_hr_threshold     = */ 0.9,
+    /* double      increment              = */ 2.0,
+    /* hbool_t     apply_max_increment    = */ TRUE,
+    /* size_t      max_increment          = */ (4 * 1024 * 1024),
+    /* enum H5C_cache_flash_incr_mode       */
+    /*                    flash_incr_mode = */ H5C_flash_incr__off,
+    /* double      flash_multiple         = */ 2.0,
+    /* double      flash_threshold        = */ 0.5,
+    /* enum H5C_cache_decr_mode decr_mode = */ H5C_decr__age_out_with_threshold,
+    /* double      upper_hr_threshold     = */ 0.999,
+    /* double      decrement              = */ 0.9,
+    /* hbool_t     apply_max_decrement    = */ TRUE,
+    /* size_t      max_decrement          = */ (1 * 1024 * 1024),
+    /* int         epochs_before_eviction = */ 3,
+    /* hbool_t     apply_empty_reserve    = */ TRUE,
+    /* double      empty_reserve          = */ 0.1,
+    /* int         dirty_bytes_threshold  = */ (256 * 1024),
+    /* int	  metadata_write_strategy = */ -1
   }
 };
 
