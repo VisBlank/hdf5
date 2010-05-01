@@ -291,7 +291,7 @@ struct mssg_t
     int		dest;
     long int	mssg_num;
     haddr_t	base_addr;
-    int		len;
+    unsigned	len;
     int		ver;
     unsigned	magic;
 };
@@ -1679,6 +1679,7 @@ serve_write_request(struct mssg_t * mssg_ptr)
 
         new_ver_num = mssg_ptr->ver;
 
+        /* this check should catch duplicate writes */
 	if ( new_ver_num <= data[target_index].ver ) {
 
             nerrors++;
@@ -1946,7 +1947,7 @@ flush_datum(H5F_t *f,
     HDassert( cache_ptr->magic == H5C__H5C_T_MAGIC );
     HDassert( cache_ptr->aux_ptr ); 
 
-    aux_ptr = f->shared->cache->aux_ptr;
+    aux_ptr = (H5AC_aux_t *)(f->shared->cache->aux_ptr);
 
     HDassert( aux_ptr->magic == H5AC__H5AC_AUX_T_MAGIC );
 
@@ -4728,7 +4729,7 @@ smoke_check_3(int metadata_write_strategy)
 {
     const char * fcn_name = "smoke_check_3()";
     hbool_t success = TRUE;
-    hbool_t verbose = FALSE;
+    hbool_t sp = FALSE;
     int cp = 0;
     int i;
     int max_nerrors;
@@ -4763,7 +4764,7 @@ smoke_check_3(int metadata_write_strategy)
     }
 
     /* 0 */
-    if ( verbose ) { HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++); }
+    if ( sp ) { HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++); }
 
     nerrors = 0;
     init_data();
@@ -4772,7 +4773,7 @@ smoke_check_3(int metadata_write_strategy)
     if ( world_mpi_rank == world_server_mpi_rank ) {
 
         /* 1 */
-        if ( verbose ) {HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);}
+        if ( sp ) {HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);}
 
 	if ( ! server_main() ) {
 
@@ -4785,12 +4786,12 @@ smoke_check_3(int metadata_write_strategy)
         }
 
         /* 2 */
-        if ( verbose ) {HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);}
+        if ( sp ) {HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);}
     }
     else /* run the clients */
     {
         /* 1 */
-        if ( verbose ) {HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);}
+        if ( sp ) {HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);}
 
         if ( ! setup_cache_for_test(&fid, &file_ptr, &cache_ptr,
                                     metadata_write_strategy) ) {
@@ -4805,7 +4806,7 @@ smoke_check_3(int metadata_write_strategy)
         }
 
         /* 2 */
-        if ( verbose ) {HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);}
+        if ( sp ) { HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++); }
 
         min_count = 100 / ((file_mpi_rank + 1) * (file_mpi_rank + 1));
         max_count = min_count + 50;
@@ -4823,7 +4824,7 @@ smoke_check_3(int metadata_write_strategy)
         }
 
         /* 3 */
-        if ( verbose ) {HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);}
+        if ( sp ) { HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++); }
 
 
         min_count = 100 / ((file_mpi_rank + 2) * (file_mpi_rank + 2));
@@ -4866,7 +4867,7 @@ smoke_check_3(int metadata_write_strategy)
 	}
 
         /* 4 */
-        if ( verbose ) {HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);}
+        if ( sp ) { HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++); }
 
 
 	/* flush the file to be sure that we have no problems flushing
@@ -4881,7 +4882,7 @@ smoke_check_3(int metadata_write_strategy)
         }
 
         /* 5 */
-        if ( verbose ) {HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);}
+        if ( sp ) { HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++); }
 
 
         min_idx = 0;
@@ -4918,7 +4919,7 @@ smoke_check_3(int metadata_write_strategy)
         }
 
         /* 6 */
-        if ( verbose ) {HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);}
+        if ( sp ) { HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++); }
 
         min_idx = 0;
         max_idx = ((virt_num_data_entries / 10) /
@@ -4937,7 +4938,7 @@ smoke_check_3(int metadata_write_strategy)
         }
 
         /* 7 */
-        if ( verbose ) {HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);}
+        if ( sp ) { HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++); }
 
         /* we can't rename pinned entries, so release any local pins now. */
         local_unpin_all_entries(cache_ptr, file_ptr, FALSE);
@@ -4958,7 +4959,7 @@ smoke_check_3(int metadata_write_strategy)
         }
 
         /* 8 */
-        if ( verbose ) {HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);}
+        if ( sp ) { HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++); }
 
         /* ...and then rename them back. */
         for ( i = (virt_num_data_entries / 2) - 1; i >= 0; i-- )
@@ -4973,7 +4974,7 @@ smoke_check_3(int metadata_write_strategy)
         }
 
         /* 9 */
-        if ( verbose ) {HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);}
+        if ( sp ) { HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++); }
 
         /* finally, do some dirty lock/unlocks while we give the cache
          * a chance t reduce its size.
@@ -4999,7 +5000,7 @@ smoke_check_3(int metadata_write_strategy)
         }
 
         /* 10 */
-        if ( verbose ) {HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);}
+        if ( sp ) {HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);}
 
         /* release any local pins before we take down the cache. */
         local_unpin_all_entries(cache_ptr, file_ptr, FALSE);
@@ -5017,7 +5018,7 @@ smoke_check_3(int metadata_write_strategy)
         }
 
         /* 11 */
-        if ( verbose ) {HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);}
+        if ( sp ) { HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++); }
 
         /* verify that all instances of datum are back where the started
          * and are clean.
@@ -5055,7 +5056,7 @@ smoke_check_3(int metadata_write_strategy)
         }
 
         /* 12 */
-        if ( verbose ) {HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);}
+        if ( sp ) { HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++); }
     }
 
     max_nerrors = get_max_nerrors();
@@ -5448,7 +5449,7 @@ smoke_check_5(int metadata_write_strategy)
 {
     const char * fcn_name = "smoke_check_5()";
     hbool_t success = TRUE;
-    hbool_t verbose = FALSE;
+    hbool_t sp = FALSE;
     int cp = 0;
     int i;
     int max_nerrors;
@@ -5480,7 +5481,7 @@ smoke_check_5(int metadata_write_strategy)
 
 
     /* 0 */
-    if ( verbose ) { HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++); }
+    if ( sp ) { HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++); }
 
     nerrors = 0;
     init_data();
@@ -5489,9 +5490,7 @@ smoke_check_5(int metadata_write_strategy)
     if ( world_mpi_rank == world_server_mpi_rank ) {
 
         /* 1 */
-        if ( verbose ) {
-	    HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);
-        }
+        if ( sp ) { HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++); }
 
 	if ( ! server_main() ) {
 
@@ -5504,15 +5503,13 @@ smoke_check_5(int metadata_write_strategy)
         }
 
         /* 2 */
-        if ( verbose ) {
-	    HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);
-        }
+        if ( sp ) { HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++); }
     }
     else /* run the clients */
     {
 
         /* 1 */
-        if ( verbose ) {
+        if ( sp ) {
 	    HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);
         }
 
@@ -5529,7 +5526,7 @@ smoke_check_5(int metadata_write_strategy)
         }
 
         /* 2 */
-        if ( verbose ) {
+        if ( sp ) {
 	    HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);
         }
 
@@ -5539,9 +5536,7 @@ smoke_check_5(int metadata_write_strategy)
         }
 
         /* 3 */
-        if ( verbose ) {
-	    HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);
-        }
+        if ( sp ) { HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++); }
 
 	/* flush the file so we can lock known clean entries. */
         if ( H5Fflush(fid, H5F_SCOPE_GLOBAL) < 0 ) {
@@ -5553,9 +5548,7 @@ smoke_check_5(int metadata_write_strategy)
         }
 
         /* 4 */
-        if ( verbose ) {
-	    HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);
-        }
+        if ( sp ) { HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++); }
 
         for ( i = 0; i < (virt_num_data_entries / 4); i++ )
         {
@@ -5581,9 +5574,7 @@ smoke_check_5(int metadata_write_strategy)
         }
 
         /* 5 */
-        if ( verbose ) {
-	    HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);
-        }
+        if ( sp ) { HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++); }
 
         for ( i = (virt_num_data_entries / 2) - 1;
               i >= (virt_num_data_entries / 4);
@@ -5617,9 +5608,7 @@ smoke_check_5(int metadata_write_strategy)
         }
 
         /* 6 */
-        if ( verbose ) {
-	    HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);
-        }
+        if ( sp ) { HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++); }
 
         if ( fid >= 0 ) {
 
@@ -5634,7 +5623,7 @@ smoke_check_5(int metadata_write_strategy)
         }
 
         /* 7 */
-        if ( verbose ) {
+        if ( sp ) {
 	    HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);
         }
 
@@ -5649,9 +5638,7 @@ smoke_check_5(int metadata_write_strategy)
         }
 
         /* 8 */
-        if ( verbose ) {
-	    HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);
-        }
+        if ( sp ) { HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++); }
 
         /* compose the done message */
         mssg.req       = DONE_REQ_CODE;
@@ -5678,9 +5665,7 @@ smoke_check_5(int metadata_write_strategy)
         }
 
         /* 9 */
-        if ( verbose ) {
-	    HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++);
-        }
+        if ( sp ) { HDfprintf(stderr, "%d: cp = %d\n", world_mpi_rank, cp++); }
     }
 
     max_nerrors = get_max_nerrors();
