@@ -15,6 +15,12 @@ FOREACH (example ${examples})
   ADD_EXECUTABLE (hl_f90_ex_${example} ${HDF5_HL_EXAMPLES_SOURCE_DIR}/${example}.f90)
   IF (BUILD_SHARED_LIBS)
     IF (WIN32)
+      IF (MSVC)
+        SET_TARGET_PROPERTIES (hl_f90_ex_${example}
+            PROPERTIES
+                COMPILE_FLAGS "/dll"
+        ) 
+      ENDIF (MSVC)
       SET_TARGET_PROPERTIES (hl_f90_ex_${example} PROPERTIES OUTPUT_NAME "hl_f90_ex_${example}")
       SET_TARGET_PROPERTIES (hl_f90_ex_${example} PROPERTIES PREFIX "dll")
     ENDIF (WIN32)

@@ -35,15 +35,29 @@ FOREACH (example ${examples})
   ADD_EXECUTABLE (f90_ex_${example} ${HDF5_F90_EXAMPLES_SOURCE_DIR}/${example}.f90)
   IF (BUILD_SHARED_LIBS)
     IF (WIN32)
+      IF (MSVC)
+        SET_TARGET_PROPERTIES (f90_ex_${example}
+            PROPERTIES
+                COMPILE_FLAGS "/dll"
+        ) 
+      ENDIF (MSVC)
       SET_TARGET_PROPERTIES (f90_ex_${example} PROPERTIES OUTPUT_NAME "f90_ex_${example}")
       SET_TARGET_PROPERTIES (f90_ex_${example} PROPERTIES PREFIX "dll")
     ENDIF (WIN32)
   ENDIF (BUILD_SHARED_LIBS)
   IF (WIN32)
-    SET_PROPERTY (TARGET f90_ex_${example} 
-        APPEND PROPERTY COMPILE_DEFINITIONS 
-  	      HDF5F90_WINDOWS
-    )
+    IF (MSVC)
+      SET_TARGET_PROPERTIES (f90_ex_${example}
+          PROPERTIES
+              LINKER_LANGUAGE Fortran
+              LINK_FLAGS "/SUBSYSTEM:CONSOLE"
+      )
+    ELSE (MSVC)
+      SET_TARGET_PROPERTIES (f90_ex_${example}
+          PROPERTIES
+              LINKER_LANGUAGE Fortran
+      )
+    ENDIF (MSVC)
   ENDIF (WIN32)
   TARGET_LINK_LIBRARIES (f90_ex_${example}
       ${HDF5_F90_LIB_TARGET}
