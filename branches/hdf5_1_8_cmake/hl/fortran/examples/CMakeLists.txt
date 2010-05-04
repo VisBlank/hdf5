@@ -29,4 +29,18 @@ FOREACH (example ${examples})
       ${HDF5_F90_LIB_TARGET}
       ${HDF5_HL_F90_LIB_TARGET}
   )
+  IF (WIN32)
+    IF (MSVC)
+      SET_TARGET_PROPERTIES (hl_f90_ex_${example}
+          PROPERTIES
+              LINKER_LANGUAGE Fortran
+              LINK_FLAGS "/SUBSYSTEM:CONSOLE"
+      )
+    ELSE (MSVC)
+      SET_TARGET_PROPERTIES (hl_f90_ex_${example}
+          PROPERTIES
+              LINKER_LANGUAGE Fortran
+      )
+    ENDIF (MSVC)
+  ENDIF (WIN32)
 ENDFOREACH (example ${examples})

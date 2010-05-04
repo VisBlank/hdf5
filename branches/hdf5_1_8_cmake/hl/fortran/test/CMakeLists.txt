@@ -22,6 +22,20 @@ IF (BUILD_SHARED_LIBS)
   ENDIF (WIN32)
 ENDIF (BUILD_SHARED_LIBS)
 TARGET_LINK_LIBRARIES (hl_f90_tstlite ${HDF5_HL_F90_LIB_TARGET} ${HDF5_F90_LIB_TARGET})
+  IF (WIN32)
+    IF (MSVC)
+      SET_TARGET_PROPERTIES (hl_f90_tstlite
+          PROPERTIES
+              LINKER_LANGUAGE Fortran
+              LINK_FLAGS "/SUBSYSTEM:CONSOLE"
+      )
+    ELSE (MSVC)
+      SET_TARGET_PROPERTIES (hl_f90_tstlite
+          PROPERTIES
+              LINKER_LANGUAGE Fortran
+      )
+    ENDIF (MSVC)
+  ENDIF (WIN32)
 
 ADD_TEST (NAME hl_f90_tstlite COMMAND $<TARGET_FILE:hl_f90_tstlite>)
 
@@ -40,6 +54,20 @@ IF (BUILD_SHARED_LIBS)
   ENDIF (WIN32)
 ENDIF (BUILD_SHARED_LIBS)
 TARGET_LINK_LIBRARIES (hl_f90_tstimage  ${HDF5_HL_F90_LIB_TARGET})
+  IF (WIN32)
+    IF (MSVC)
+      SET_TARGET_PROPERTIES (hl_f90_tstimage
+          PROPERTIES
+              LINKER_LANGUAGE Fortran
+              LINK_FLAGS "/SUBSYSTEM:CONSOLE"
+      )
+    ELSE (MSVC)
+      SET_TARGET_PROPERTIES (hl_f90_tstimage
+          PROPERTIES
+              LINKER_LANGUAGE Fortran
+      )
+    ENDIF (MSVC)
+  ENDIF (WIN32)
 
 ADD_TEST (NAME hl_f90_tstimage COMMAND $<TARGET_FILE:hl_f90_tstimage>)
 
@@ -58,5 +86,19 @@ IF (BUILD_SHARED_LIBS)
   ENDIF (WIN32)
 ENDIF (BUILD_SHARED_LIBS)
 TARGET_LINK_LIBRARIES (hl_f90_tsttable ${HDF5_HL_F90_LIB_TARGET})
+  IF (WIN32)
+    IF (MSVC)
+      SET_TARGET_PROPERTIES (hl_f90_tsttable
+          PROPERTIES
+              LINKER_LANGUAGE Fortran
+              LINK_FLAGS "/SUBSYSTEM:CONSOLE"
+      )
+    ELSE (MSVC)
+      SET_TARGET_PROPERTIES (hl_f90_tsttable
+          PROPERTIES
+              LINKER_LANGUAGE Fortran
+      )
+    ENDIF (MSVC)
+  ENDIF (WIN32)
 
 ADD_TEST (NAME hl_f90_tsttable COMMAND $<TARGET_FILE:hl_f90_tsttable>)
