@@ -70,7 +70,7 @@ Notes: This short instruction is written for users who want to quickly build
       3.2 To build from the command line, navigate to your build directory and
           execute the following;
           
-              cmake --build {path to source} --config {Debug | Release}                                                                                          
+              cmake --build . --config {Debug | Release}                                                                                          
              
 
    4. Test HDF5.

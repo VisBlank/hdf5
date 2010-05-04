@@ -19,6 +19,7 @@ FOREACH (example ${examples})
         SET_TARGET_PROPERTIES (hl_f90_ex_${example}
             PROPERTIES
                 COMPILE_FLAGS "/dll"
+                LINK_FLAGS "/SUBSYSTEM:CONSOLE"
         ) 
       ENDIF (MSVC)
       SET_TARGET_PROPERTIES (hl_f90_ex_${example} PROPERTIES OUTPUT_NAME "hl_f90_ex_${example}")
@@ -30,17 +31,6 @@ FOREACH (example ${examples})
       ${HDF5_HL_F90_LIB_TARGET}
   )
   IF (WIN32)
-    IF (MSVC)
-      SET_TARGET_PROPERTIES (hl_f90_ex_${example}
-          PROPERTIES
-              LINKER_LANGUAGE Fortran
-              LINK_FLAGS "/SUBSYSTEM:CONSOLE"
-      )
-    ELSE (MSVC)
-      SET_TARGET_PROPERTIES (hl_f90_ex_${example}
-          PROPERTIES
-              LINKER_LANGUAGE Fortran
-      )
-    ENDIF (MSVC)
+    SET_TARGET_PROPERTIES (hl_f90_ex_${example} PROPERTIES LINKER_LANGUAGE Fortran)
   ENDIF (WIN32)
 ENDFOREACH (example ${examples})
