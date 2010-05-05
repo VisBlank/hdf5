@@ -51,7 +51,6 @@
 /* Headers */
 /***********/
 #include "H5private.h"		/* Generic Functions			*/
-#include "H5ACprivate.h"	/* Metadata cache			*/
 #include "H5Dpkg.h"		/* Dataset functions			*/
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5FLprivate.h"	/* Free Lists                           */
@@ -405,7 +404,7 @@ H5D_chunk_construct(H5F_t UNUSED *f, H5D_t *dset)
         HGOTO_ERROR(H5E_DATASET, H5E_BADVALUE, FAIL, "external storage not supported with chunked layout")
 
     /* Set the last dimension of the chunk size to the size of the datatype */
-    dset->shared->layout.u.chunk.dim[dset->shared->layout.u.chunk.ndims - 1] = H5T_GET_SIZE(type);
+    dset->shared->layout.u.chunk.dim[dset->shared->layout.u.chunk.ndims - 1] = (uint32_t)H5T_GET_SIZE(type);
 
     /* Get local copy of dataset dimensions (for sanity checking) */
     if(H5S_get_simple_extent_dims(dset->shared->space, NULL, max_dim) < 0)
@@ -511,7 +510,7 @@ H5D_chunk_init(H5F_t *f, hid_t dxpl_id, const H5D_t *dset, hid_t dapl_id)
     if(dset->shared->layout.storage.u.chunk.ops->init && (dset->shared->layout.storage.u.chunk.ops->init)(&idx_info, dset->shared->space, dset->oloc.addr) < 0)
 	HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, "can't initialize indexing information")
 
-    /* Set the number of chunks in dataset */
+    /* Set the number of chunks in dataset, etc. */
     if(H5D_chunk_set_info(dset) < 0)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, "unable to set # of chunks for dataset")
 
@@ -1727,7 +1726,8 @@ H5D_chunk_read(H5D_io_info_t *io_info, const H5D_type_info_t *type_info,
                 io_info->store->chunk.index = chunk_info->index;
 
                 /* Compute # of bytes accessed in chunk */
-                src_accessed_bytes = chunk_info->chunk_points * type_info->src_type_size;
+                H5_CHECK_OVERFLOW(type_info->src_type_size, /*From:*/ size_t, /*To:*/ uint32_t);
+                src_accessed_bytes = chunk_info->chunk_points * (uint32_t)type_info->src_type_size;
 
                 /* Lock the chunk into the cache */
                 if(NULL == (chunk = H5D_chunk_lock(io_info, &udata, FALSE, &idx_hint)))
@@ -1859,7 +1859,8 @@ H5D_chunk_write(H5D_io_info_t *io_info, const H5D_type_info_t *type_info,
             io_info->store->chunk.index = chunk_info->index;
 
             /* Compute # of bytes accessed in chunk */
-            dst_accessed_bytes = chunk_info->chunk_points * type_info->dst_type_size;
+            H5_CHECK_OVERFLOW(type_info->dst_type_size, /*From:*/ size_t, /*To:*/ uint32_t);
+            dst_accessed_bytes = chunk_info->chunk_points * (uint32_t)type_info->dst_type_size;
 
             /* Determine if we will access all the data in the chunk */
             if(dst_accessed_bytes != ctg_store.contig.dset_size ||
@@ -4586,7 +4587,7 @@ done:
 
 
 /*-------------------------------------------------------------------------
- * Function:    H5D_chunk_bh_size
+ * Function:    H5D_chunk_bh_info
  *
  * Purpose:     Retrieve the amount of index storage for chunked dataset
  *

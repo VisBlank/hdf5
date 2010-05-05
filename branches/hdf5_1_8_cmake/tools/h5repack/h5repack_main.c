@@ -109,7 +109,7 @@ int main(int argc, const char **argv)
     h5tools_setstatus(EXIT_SUCCESS);
 
     /* initialize options  */
-    h5repack_init (&options,0);
+    h5repack_init(&options,0);
 
     parse_command_line(argc, argv, &options);
 

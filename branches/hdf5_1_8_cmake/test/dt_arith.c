@@ -2821,6 +2821,10 @@ test_conv_flt_1 (const char *name, int run_test, hid_t src, hid_t dst)
 	    return 0; /*child exit after catching SIGFPE*/
 	} else if (WIFEXITED(status)) {
 	    return WEXITSTATUS(status);
+	} else if (WIFSIGNALED(status)) {
+	    sprintf(str, "   Child caught signal %d.", WTERMSIG(status));
+	    HDputs(str);
+	    return 1; /*child exit after catching non-SIGFPE signal */
 	} else {
 	    HDputs("   Child didn't exit normally.");
 	    return 1;
@@ -3367,10 +3371,7 @@ test_conv_flt_1 (const char *name, int run_test, hid_t src, hid_t dst)
     if(!fails_all_tests)
         PASSED();
 
- done:
-#ifdef AKCDEBUG
-     printf("uflow=%d, fails_all_tests=%d\n", uflow, fails_all_tests);
-#endif
+done:
     if (buf) aligned_free(buf);
     if (saved) aligned_free(saved);
     if (aligned) HDfree(aligned);
@@ -3391,7 +3392,7 @@ test_conv_flt_1 (const char *name, int run_test, hid_t src, hid_t dst)
         return 0;
 #endif
 
- error:
+error:
     if (buf) aligned_free(buf);
     if (saved) aligned_free(saved);
     if (aligned) HDfree(aligned);
@@ -4946,9 +4947,9 @@ run_int_fp_conv(const char *name)
         HDputs("    Test skipped due to compiler error in handling conversion.");
     }
 #endif /* H5_LLONG_TO_LDOUBLE_CORRECT */
-#if H5_ULLONG_TO_FP_CAST_WORKS && H5_ULLONG_TO_LDOUBLE_PRECISION && H5_LLONG_TO_LDOUBLE_CORRECT
+#if !H5_CYGWIN && H5_ULLONG_TO_FP_CAST_WORKS && H5_ULLONG_TO_LDOUBLE_PRECISION && H5_LLONG_TO_LDOUBLE_CORRECT
     nerrors += test_conv_int_fp(name, TEST_NORMAL, H5T_NATIVE_ULLONG, H5T_NATIVE_LDOUBLE);
-#else /* H5_ULLONG_TO_FP_CAST_WORKS && H5_ULLONG_TO_LDOUBLE_PRECISION && H5_LLONG_TO_LDOUBLE_CORRECT */
+#else /* !H5_CYGWIN && H5_ULLONG_TO_FP_CAST_WORKS && H5_ULLONG_TO_LDOUBLE_PRECISION && H5_LLONG_TO_LDOUBLE_CORRECT */
     {
         char		str[256];		/*hello string		*/
 
@@ -4958,7 +4959,7 @@ run_int_fp_conv(const char *name)
         SKIPPED();
         HDputs("    Test skipped due to compiler not handling conversion.");
     }
-#endif /* H5_ULLONG_TO_FP_CAST_WORKS && H5_ULLONG_TO_LDOUBLE_PRECISION && H5_LLONG_TO_LDOUBLE_CORRECT */
+#endif /* !H5_CYGWIN && H5_ULLONG_TO_FP_CAST_WORKS && H5_ULLONG_TO_LDOUBLE_PRECISION && H5_LLONG_TO_LDOUBLE_CORRECT */
 #endif
 #endif
 #else /*H5_INTEGER_TO_LDOUBLE_ACCURATE*/

@@ -125,7 +125,7 @@ const H5O_msg_class_t *const H5O_msg_class_g[] = {
     H5O_MSG_DRVINFO,		/*0x0014 Driver info settings		*/
     H5O_MSG_AINFO,		/*0x0015 Attribute information		*/
     H5O_MSG_REFCOUNT,		/*0x0016 Object's ref. count		*/
-    H5O_MSG_UNKNOWN,		/*0x0017 Placeholder for unknown message */
+    H5O_MSG_UNKNOWN		/*0x0017 Placeholder for unknown message */
 };
 
 /* Declare a free list to manage the H5O_t struct */
@@ -1687,7 +1687,7 @@ H5O_protect(const H5O_loc_t *loc, hid_t dxpl_id, H5AC_protect_t prot)
 #endif /* NDEBUG */
 
             /* Bring the chunk into the cache */
-            /* (which adds to the object header */
+            /* (which adds to the object header) */
             chk_udata.chunk_size = cont_msg_info.msgs[curr_msg].size;
             if(NULL == (chk_proxy = (H5O_chunk_proxy_t *)H5AC_protect(loc->file, dxpl_id, H5AC_OHDR_CHK, cont_msg_info.msgs[curr_msg].addr, NULL, &chk_udata, prot)))
                 HGOTO_ERROR(H5E_OHDR, H5E_CANTPROTECT, NULL, "unable to load object header chunk")
@@ -1970,10 +1970,10 @@ H5O_touch_oh(H5F_t *f, hid_t dxpl_id, H5O_t *oh, hbool_t force)
 
         /* Check version, to determine how to store time information */
         if(oh->version == H5O_VERSION_1) {
-            unsigned	idx;                    /* Index of modification time message to update */
+            int	idx;                    /* Index of modification time message to update */
 
             /* Look for existing message */
-            for(idx = 0; idx < oh->nmesgs; idx++)
+            for(idx = 0; idx < (int)oh->nmesgs; idx++)
                 if(H5O_MSG_MTIME == oh->mesg[idx].type || H5O_MSG_MTIME_NEW == oh->mesg[idx].type)
                     break;
 
@@ -1986,7 +1986,7 @@ H5O_touch_oh(H5F_t *f, hid_t dxpl_id, H5O_t *oh, hbool_t force)
                     HGOTO_DONE(SUCCEED);        /*nothing to do*/
 
                 /* Allocate space for the modification time message */
-                if(UFAIL == (idx = H5O_msg_alloc(f, dxpl_id, oh, H5O_MSG_MTIME_NEW, &mesg_flags, &now)))
+                if((idx = H5O_msg_alloc(f, dxpl_id, oh, H5O_MSG_MTIME_NEW, &mesg_flags, &now)) < 0)
                     HGOTO_ERROR(H5E_OHDR, H5E_CANTINIT, FAIL, "unable to allocate space for modification time message")
 
                 /* Set the message's flags if appropriate */
@@ -2093,8 +2093,8 @@ done:
 herr_t
 H5O_bogus_oh(H5F_t *f, hid_t dxpl_id, H5O_t *oh, unsigned mesg_flags)
 {
-    unsigned	idx;                    /* Local index variable */
-    herr_t      ret_value = SUCCEED;    /* Return value */
+    int	idx;                        /* Local index variable */
+    herr_t ret_value = SUCCEED;     /* Return value */
 
     FUNC_ENTER_NOAPI(H5O_bogus_oh, FAIL)
 
@@ -2102,7 +2102,7 @@ H5O_bogus_oh(H5F_t *f, hid_t dxpl_id, H5O_t *oh, unsigned mesg_flags)
     HDassert(oh);
 
     /* Look for existing message */
-    for(idx = 0; idx < oh->nmesgs; idx++)
+    for(idx = 0; idx < (int)oh->nmesgs; idx++)
 	if(H5O_MSG_BOGUS == oh->mesg[idx].type)
             break;
 

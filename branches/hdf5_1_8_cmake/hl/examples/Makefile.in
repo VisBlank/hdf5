@@ -195,6 +195,7 @@ PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
+PACKED_BITS = @PACKED_BITS@
 PARALLEL = @PARALLEL@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PERL = @PERL@
@@ -333,7 +334,7 @@ CHECK_CLEANFILES = *.chkexe *.chklog *.clog *.h5
 @BUILD_PARALLEL_CONDITIONAL_TRUE@TEST_PROG_PARA = 
 
 # Example directory
-EXAMPLEDIR = $(docdir)/hdf5/examples/hl/c
+EXAMPLEDIR = $(exec_prefix)/examples/hl/c
 
 # Example programs.
 # Don't tell automake about them, because if it knew they were programs,
@@ -625,7 +626,7 @@ install-data-local:
 uninstall-local:
 	@$(MAKE) $(AM_MAKEFLAGS) uninstall-examples
 
-install-examples: $(EXAMPLEDIR) $(INSTALL_FILES)
+install-examples: $(EXAMPLEDIR) $(INSTALL_FILES) 
 	@for f in X $(INSTALL_FILES); do                                     \
 	  if test $$f != X; then                                             \
 	    (set -x; $(INSTALL) $(srcdir)/$$f $(EXAMPLEDIR)/. || exit 1);\

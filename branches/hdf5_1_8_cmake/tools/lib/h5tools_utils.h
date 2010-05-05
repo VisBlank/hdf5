@@ -24,16 +24,12 @@
 
 #include "hdf5.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*
  * begin get_option section
  */
-H5TOOLS_DLLVAR int         opt_err;     /* getoption prints errors if this is on    */
-H5TOOLS_DLLVAR int         opt_ind;     /* token pointer                            */
-H5TOOLS_DLLVAR const char *opt_arg;     /* flag argument (or value)                 */
+extern int         opt_err;     /* getoption prints errors if this is on    */
+extern int         opt_ind;     /* token pointer                            */
+extern const char *opt_arg;     /* flag argument (or value)                 */
 
 enum {
     no_arg = 0,         /* doesn't take an argument     */
@@ -76,7 +72,7 @@ typedef struct long_options {
                                  * this gets returned from get_option   */
 } long_options;
 
-H5TOOLS_DLL int    get_option(int argc, const char **argv, const char *opt,
+extern int    get_option(int argc, const char **argv, const char *opt,
                          const struct long_options *l_opt);
 /*
  * end get_option section
@@ -105,26 +101,53 @@ typedef struct find_objs_t {
     table_t *dset_table;
 } find_objs_t;
 
-H5TOOLS_DLLVAR int     nCols;               /*max number of columns for outputting  */
+extern int     nCols;               /*max number of columns for outputting  */
 
 /* Definitions of useful routines */
-H5TOOLS_DLL void     indentation(int);
-H5TOOLS_DLL void     print_version(const char *progname);
-H5TOOLS_DLL void     error_msg(const char *progname, const char *fmt, ...);
-H5TOOLS_DLL void     warn_msg(const char *progname, const char *fmt, ...);
-H5TOOLS_DLL void     free_table(table_t *table);
+extern void     indentation(int);
+extern void     print_version(const char *progname);
+extern void     error_msg(const char *progname, const char *fmt, ...);
+extern void     warn_msg(const char *progname, const char *fmt, ...);
+extern void     free_table(table_t *table);
 #ifdef H5DUMP_DEBUG
-H5TOOLS_DLL void     dump_tables(find_objs_t *info)
+extern void     dump_tables(find_objs_t *info)
 #endif  /* H5DUMP_DEBUG */
-H5TOOLS_DLL herr_t init_objs(hid_t fid, find_objs_t *info, table_t **group_table,
+extern herr_t init_objs(hid_t fid, find_objs_t *info, table_t **group_table,
     table_t **dset_table, table_t **type_table);
-H5TOOLS_DLL obj_t   *search_obj(table_t *temp, haddr_t objno);
+extern obj_t   *search_obj(table_t *temp, haddr_t objno);
 #ifndef H5_HAVE_TMPFILE
-H5TOOLS_DLL FILE *	tmpfile(void);
+extern FILE *	tmpfile(void);
 #endif
 
-#ifdef __cplusplus
-}
-#endif
+
+/*************************************************************
+ *
+ * candidate functions to be public
+ *
+ *************************************************************/
+
+/* This code is layout for common code among tools */
+typedef enum toolname_t {
+    TOOL_H5DIFF, TOOL_H5LS, TOOL__H5DUMP /* add as necessary */
+} h5tool_toolname_t;
+
+/* this struct can be used to differntiate among tools */
+typedef struct {
+    h5tool_toolname_t toolname;
+    int msg_mode;
+} h5tool_opt_t;
+
+/* obtain link info from H5tools_get_link_info() */
+typedef struct {
+    H5O_type_t  trg_type;  /* OUT: target type */
+    const char *trg_path;  /* OUT: target obj path. This must be freed 
+                            *      when used with H5tools_get_link_info() */
+    H5L_info_t linfo;      /* OUT: link info */
+    h5tool_opt_t opt;      /* IN: options */
+} h5tool_link_info_t;
+
+
+/* Definitions of routines */
+extern int H5tools_get_link_info(hid_t file_id, const char * linkpath, h5tool_link_info_t *link_info);
 
 #endif	/* H5TOOLS_UTILS_H__ */

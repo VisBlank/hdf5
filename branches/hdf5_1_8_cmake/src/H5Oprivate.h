@@ -21,8 +21,6 @@
  *
  * Purpose:		Object header private include file.
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 #ifndef _H5Oprivate_H
@@ -156,7 +154,7 @@ typedef struct H5O_copy_t {
 #define H5O_FILL_NEW_ID 0x0005          /* Fill Value Message. (New)  */
 #define H5O_LINK_ID     0x0006          /* Link Message. */
 #define H5O_EFL_ID	0x0007          /* External File List Message  */
-#define H5O_LAYOUT_ID	0x0008          /* Data Storage Layout Message.  */
+#define H5O_LAYOUT_ID	0x0008          /* Data Layout Message.  */
 #define H5O_BOGUS_ID	0x0009          /* "Bogus" Message.  */
 #define H5O_GINFO_ID	0x000a          /* Group info Message.  */
 #define H5O_PLINE_ID	0x000b          /* Filter pipeline message.  */
@@ -673,6 +671,9 @@ H5_DLL void* H5O_msg_decode(H5F_t *f, hid_t dxpl_id, H5O_t *open_oh,
     unsigned type_id, const unsigned char *buf);
 H5_DLL herr_t H5O_msg_delete(H5F_t *f, hid_t dxpl_id, H5O_t *open_oh,
     unsigned type_id, void *mesg);
+H5_DLL int H5O_msg_get_chunkno(const H5O_loc_t *loc, unsigned type_id, hid_t dxpl_id);
+H5_DLL herr_t H5O_msg_lock(const H5O_loc_t *loc, unsigned type_id, hid_t dxpl_id);
+H5_DLL herr_t H5O_msg_unlock(const H5O_loc_t *loc, unsigned type_id, hid_t dxpl_id);
 
 /* Object copying routines */
 H5_DLL herr_t H5O_copy_header_map(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
