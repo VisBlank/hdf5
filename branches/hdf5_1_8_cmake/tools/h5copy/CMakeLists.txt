@@ -11,12 +11,7 @@ INCLUDE_DIRECTORIES (${HDF5_PROJECT_DIR}/test)
 # Add the h5copy and test executables
 # --------------------------------------------------------------------
 ADD_EXECUTABLE (h5copy ${HDF5_TOOLS_H5COPY_SOURCE_DIR}/h5copy.c)
-IF (BUILD_SHARED_LIBS)
-  IF (WIN32)
-    SET_TARGET_PROPERTIES (h5copy PROPERTIES OUTPUT_NAME "h5copy")
-    SET_TARGET_PROPERTIES (h5copy PROPERTIES PREFIX "dll")
-  ENDIF (WIN32)
-ENDIF (BUILD_SHARED_LIBS)
+H5_NAMING (h5copy)
 TARGET_LINK_LIBRARIES (h5copy  ${HDF5_TOOLS_LIB_TARGET} ${HDF5_LIB_TARGET})
 
 SET (H5_DEP_EXECUTABLES h5copy)
@@ -24,6 +19,7 @@ SET (H5_DEP_EXECUTABLES h5copy)
 IF (BUILD_TESTING)
   IF (NOT BUILD_SHARED_LIBS)
     ADD_EXECUTABLE (h5copygentest ${HDF5_TOOLS_H5COPY_SOURCE_DIR}/h5copygentest.c)
+    H5_NAMING (h5copygentest)
     TARGET_LINK_LIBRARIES (h5copygentest ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
 
     #ADD_TEST (NAME h5copygentest COMMAND $<TARGET_FILE:h5copygentest>)

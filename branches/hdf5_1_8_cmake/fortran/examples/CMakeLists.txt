@@ -33,8 +33,9 @@ SET (examples
 
 FOREACH (example ${examples})
   ADD_EXECUTABLE (f90_ex_${example} ${HDF5_F90_EXAMPLES_SOURCE_DIR}/${example}.f90)
-  IF (BUILD_SHARED_LIBS)
-    IF (WIN32)
+  H5_NAMING (h5copy)
+  IF (WIN32)
+    IF (BUILD_SHARED_LIBS)
       IF (MSVC)
         SET_TARGET_PROPERTIES (f90_ex_${example}
             PROPERTIES
@@ -42,11 +43,7 @@ FOREACH (example ${examples})
                 LINK_FLAGS "/SUBSYSTEM:CONSOLE"
         ) 
       ENDIF (MSVC)
-      SET_TARGET_PROPERTIES (f90_ex_${example} PROPERTIES OUTPUT_NAME "f90_ex_${example}")
-      SET_TARGET_PROPERTIES (f90_ex_${example} PROPERTIES PREFIX "dll")
-    ENDIF (WIN32)
-  ENDIF (BUILD_SHARED_LIBS)
-  IF (WIN32)
+    ENDIF (BUILD_SHARED_LIBS)
     SET_PROPERTY (TARGET f90_ex_${example} 
         APPEND PROPERTY COMPILE_DEFINITIONS 
   	      HDF5F90_WINDOWS

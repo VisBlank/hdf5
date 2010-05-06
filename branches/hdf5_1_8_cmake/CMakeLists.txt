@@ -97,11 +97,11 @@ SET (HDF5_HL_LIB_CORENAME           "hdf5_hl")
 SET (HDF5_HL_CPP_LIB_CORENAME       "hdf5_hl_cpp")
 SET (HDF5_TOOLS_LIB_CORENAME        "hdf5_tools")
 SET (HDF5_F90_LIB_CORENAME          "hdf5_fortran")
-SET (HDF5_F90_C_LIB_CORENAME        "hdf5_f90CStub")
+SET (HDF5_F90_C_LIB_CORENAME        "hdf5_f90cstub")
 SET (HDF5_F90_TEST_LIB_CORENAME     "hdf5_test_fortran")
-SET (HDF5_F90_C_TEST_LIB_CORENAME   "hdf5_test_f90CStub")
+SET (HDF5_F90_C_TEST_LIB_CORENAME   "hdf5_test_f90cstub")
 SET (HDF5_HL_F90_LIB_CORENAME       "hdf5_hl_fortran")
-SET (HDF5_HL_F90_C_LIB_CORENAME     "hdf5_hl_f90CStub")
+SET (HDF5_HL_F90_C_LIB_CORENAME     "hdf5_hl_f90cstub")
 
 #-----------------------------------------------------------------------------
 # Set the true names of all the libraries if customized by external project
@@ -180,6 +180,13 @@ SET_GLOBAL_VARIABLE(HDF5_LIBRARIES_TO_EXPORT "")
 # Run all the CMake configuration tests for our build environment
 #-----------------------------------------------------------------------------
 INCLUDE (${HDF5_SOURCE_DIR}/ConfigureChecks.cmake)
+
+#-----------------------------------------------------------------------------
+# Option to use legacy naming for windows libs/programs, default is legacy
+#-----------------------------------------------------------------------------
+IF (WIN32)
+  OPTION (H5_LEGACY_NAMING "Use Legacy Names for Libraries and Programs" ON)
+ENDIF (WIN32)
 
 #-----------------------------------------------------------------------------
 # Option to Build Shared/Static libs, default is static

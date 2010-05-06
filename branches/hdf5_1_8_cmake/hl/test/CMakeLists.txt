@@ -23,12 +23,7 @@ INCLUDE_DIRECTORIES (${HDF5_TEST_SOURCE_DIR})
 # --------------------------------------------------------------------
 MACRO (HL_ADD_TEST hl_name files)
   ADD_EXECUTABLE (hl_${hl_name} ${hl_name}.c)
-  IF (BUILD_SHARED_LIBS)
-    IF (WIN32)
-      SET_TARGET_PROPERTIES (hl_${hl_name} PROPERTIES OUTPUT_NAME "hl_${hl_name}")
-      SET_TARGET_PROPERTIES (hl_${hl_name} PROPERTIES PREFIX "dll")
-    ENDIF (WIN32)
-  ENDIF (BUILD_SHARED_LIBS)
+  H5_NAMING (hl_${hl_name})
   TARGET_LINK_LIBRARIES (hl_${hl_name}
       ${HDF5_HL_LIB_TARGET}
       ${HDF5_LIB_TARGET}
@@ -63,6 +58,7 @@ HL_ADD_TEST (test_table "test_table_be.hdf5;test_table_cray.hdf5;test_table_le.h
 # --------------------------------------------------------------------
 IF (NOT BUILD_SHARED_LIBS)
   ADD_EXECUTABLE (hl_gen_test_ds gen_test_ds.c)
+  H5_NAMING (hl_gen_test_ds)
   TARGET_LINK_LIBRARIES (hl_gen_test_ds
       ${HDF5_HL_LIB_TARGET}
       ${HDF5_LIB_TARGET}

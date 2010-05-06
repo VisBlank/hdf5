@@ -11,12 +11,7 @@ INCLUDE_DIRECTORIES (${HDF5_PROJECT_DIR}/test)
 # Add the h5dump and test executables
 # --------------------------------------------------------------------
 ADD_EXECUTABLE (h5dump ${HDF5_TOOLS_H5DUMP_SOURCE_DIR}/h5dump.c)
-IF (BUILD_SHARED_LIBS)
-  IF (WIN32)
-    SET_TARGET_PROPERTIES (h5dump PROPERTIES OUTPUT_NAME "h5dump")
-    SET_TARGET_PROPERTIES (h5dump PROPERTIES PREFIX "dll")
-  ENDIF (WIN32)
-ENDIF (BUILD_SHARED_LIBS)
+H5_NAMING (h5dump)
 TARGET_LINK_LIBRARIES (h5dump  ${HDF5_TOOLS_LIB_TARGET} ${HDF5_LIB_TARGET})
 
 SET (H5_DEP_EXECUTABLES h5dump)
@@ -24,6 +19,7 @@ SET (H5_DEP_EXECUTABLES h5dump)
 IF (BUILD_TESTING)
   IF (NOT BUILD_SHARED_LIBS)
     ADD_EXECUTABLE (h5dumpgentest ${HDF5_TOOLS_H5DUMP_SOURCE_DIR}/h5dumpgentest.c)
+    H5_NAMING (h5dumpgentest)
     TARGET_LINK_LIBRARIES (h5dumpgentest ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
     
     #ADD_TEST (NAME h5dumpgentest COMMAND $<TARGET_FILE:h5dumpgentest>)

@@ -10,14 +10,8 @@ INCLUDE_DIRECTORIES (${HDF5_PROJECT_DIR}/test)
 # --------------------------------------------------------------------
 # Add the h5stat and test executables
 # --------------------------------------------------------------------
-ADD_EXECUTABLE (h5stat
-    ${HDF5_TOOLS_H5STAT_SOURCE_DIR}/h5stat.c)
-IF (BUILD_SHARED_LIBS)
-  IF (WIN32)
-    SET_TARGET_PROPERTIES (h5stat PROPERTIES OUTPUT_NAME "h5stat")
-    SET_TARGET_PROPERTIES (h5stat PROPERTIES PREFIX "dll")
-  ENDIF (WIN32)
-ENDIF (BUILD_SHARED_LIBS)
+ADD_EXECUTABLE (h5stat ${HDF5_TOOLS_H5STAT_SOURCE_DIR}/h5stat.c)
+H5_NAMING (h5stat)
 TARGET_LINK_LIBRARIES (h5stat  ${HDF5_TOOLS_LIB_TARGET} ${HDF5_LIB_TARGET})
 
 SET (H5_DEP_EXECUTABLES h5stat)
@@ -25,6 +19,7 @@ SET (H5_DEP_EXECUTABLES h5stat)
 IF (BUILD_TESTING)
   IF (NOT BUILD_SHARED_LIBS)
     ADD_EXECUTABLE (h5stat_gentest ${HDF5_TOOLS_H5STAT_SOURCE_DIR}/h5stat_gentest.c)
+    H5_NAMING (h5stat_gentest)
     TARGET_LINK_LIBRARIES (h5stat_gentest ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
     
     #ADD_TEST (NAME h5stat_gentest COMMAND $<TARGET_FILE:h5stat_gentest>)
