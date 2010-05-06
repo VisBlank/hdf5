@@ -8,8 +8,12 @@ PROJECT (HDF5_F90_EXAMPLES C CXX Fortran)
 #-----------------------------------------------------------------------------
 # Setup include Directories
 #-----------------------------------------------------------------------------
-INCLUDE_DIRECTORIES (${HDF5_SRC_DIR} ${HDF5_F90_SOURCE_DIR})
-LINK_DIRECTORIES (${HDF5_SRC_DIR} ${HDF5_F90_SOURCE_DIR} ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${CMAKE_Fortran_MODULE_DIRECTORY})
+INCLUDE_DIRECTORIES (${CMAKE_Fortran_MODULE_DIRECTORY} ${HDF5_F90_BINARY_DIR} ${HDF5_F90_SOURCE_DIR}/src)
+LINK_DIRECTORIES (
+    ${CMAKE_Fortran_MODULE_DIRECTORY}
+    ${HDF5_F90_BINARY_DIR}
+    ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+)
 
 #-----------------------------------------------------------------------------
 # Define Sources
@@ -33,7 +37,7 @@ SET (examples
 
 FOREACH (example ${examples})
   ADD_EXECUTABLE (f90_ex_${example} ${HDF5_F90_EXAMPLES_SOURCE_DIR}/${example}.f90)
-  H5_NAMING (h5copy)
+  H5_NAMING (f90_ex_${example})
   IF (WIN32)
     IF (BUILD_SHARED_LIBS)
       IF (MSVC)
@@ -52,7 +56,6 @@ FOREACH (example ${examples})
   ENDIF (WIN32)
   TARGET_LINK_LIBRARIES (f90_ex_${example}
       ${HDF5_F90_LIB_TARGET}
-      ${HDF5_F90_C_LIB_TARGET}
       ${HDF5_LIB_TARGET}
   )
 ENDFOREACH (example ${examples})

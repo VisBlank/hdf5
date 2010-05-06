@@ -4,8 +4,13 @@ PROJECT (HDF5_HL_F90_EXAMPLES C CXX Fortran)
 #-----------------------------------------------------------------------------
 # Setup include Directories
 #-----------------------------------------------------------------------------
-INCLUDE_DIRECTORIES (${HDF5_SRC_DIR} ${HDF5_FORTRAN_SOURCE_DIR})
-LINK_DIRECTORIES (${HDF5_SRC_DIR} ${HDF5_FORTRAN_SOURCE_DIR} ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+INCLUDE_DIRECTORIES (${CMAKE_Fortran_MODULE_DIRECTORY} ${HDF5_F90_BINARY_DIR} ${HDF5_F90_SOURCE_DIR}/src)
+LINK_DIRECTORIES (
+    ${CMAKE_Fortran_MODULE_DIRECTORY}
+    ${HDF5_HL_F90_BINARY_DIR}
+    ${HDF5_F90_BINARY_DIR}
+    ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+)
 
 SET (examples
     exlite
@@ -26,8 +31,9 @@ FOREACH (example ${examples})
     ENDIF (WIN32)
   ENDIF (BUILD_SHARED_LIBS)
   TARGET_LINK_LIBRARIES (hl_f90_ex_${example} 
-      ${HDF5_F90_LIB_TARGET}
       ${HDF5_HL_F90_LIB_TARGET}
+      ${HDF5_F90_LIB_TARGET}
+      ${HDF5_LIB_TARGET}
   )
   SET_TARGET_PROPERTIES (hl_f90_ex_${example} PROPERTIES LINKER_LANGUAGE Fortran)
 ENDFOREACH (example ${examples})
