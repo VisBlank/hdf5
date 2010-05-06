@@ -123,10 +123,6 @@ H5TOOLS_DLL obj_t   *search_obj(table_t *temp, haddr_t objno);
 H5TOOLS_DLL FILE *	tmpfile(void);
 #endif
 
-#ifdef __cplusplus
-}
-#endif
-
 /*************************************************************
  *
  * candidate functions to be public
@@ -155,6 +151,10 @@ typedef struct {
 
 
 /* Definitions of routines */
-extern int H5tools_get_link_info(hid_t file_id, const char * linkpath, h5tool_link_info_t *link_info);
+H5TOOLS_DLL int H5tools_get_link_info(hid_t file_id, const char * linkpath, h5tool_link_info_t *link_info);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif	/* H5TOOLS_UTILS_H__ */
