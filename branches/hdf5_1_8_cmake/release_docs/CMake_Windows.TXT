@@ -19,9 +19,7 @@ Notes: This short instruction is written for users who want to quickly build
             have attempted to provide error-free files, please understand that
             this development with CMake has just began.
             
-         2. Fortran shared libraries have build issues.
-            
-         3. Testing of some tools have issues.
+         2. Testing of some tools have issues.
 
 ========================================================================
                             Preconditions                                                           

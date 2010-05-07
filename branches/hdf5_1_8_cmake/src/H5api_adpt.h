@@ -30,31 +30,31 @@
   #define _HDF5USEDLL_
 #endif
 
-#if defined (hf5_test_EXPORTS)
+#if defined (hdf5_test_EXPORTS)
   #define _HDF5TESTDLL_
 #else
   #define _HDF5TESTUSEDLL_
 #endif
 
-#if defined (hf5_tools_EXPORTS)
+#if defined (hdf5_tools_EXPORTS)
   #define _HDF5TOOLSDLL_
 #else
   #define _HDF5TOOLSUSEDLL_
 #endif
 
-#if defined (hf5_cpp_EXPORTS)
+#if defined (hdf5_cpp_EXPORTS)
   #define HDF5_CPPDLL_EXPORTS
 #else
   #define HDF5CPP_USEDLL
 #endif
 
-#if defined (hf5_hl_EXPORTS)
+#if defined (hdf5_hl_EXPORTS)
   #define _HDF5_HLDLL_EXPORTS_
 #else
   #define _HDF5USEHLDLL_
 #endif
 
-#if defined (hf5_hl_cpp_EXPORTS)
+#if defined (hdf5_hl_cpp_EXPORTS)
   #define HDF5_HL_CPPDLL_EXPORTS
 #else
   #define HDF5USE_HLCPPDLL
