@@ -20,6 +20,20 @@ Notes: This short instruction is written for users who want to quickly build
             this development with CMake has just began.
             
          2. Testing of some tools have issues.
+            The following tests fail because the test script is not handling
+            an equal sign as part of any arguments:
+               H5DIFF-h5diff_15 
+               H5DIFF-h5diff_16_2 
+               H5DIFF-h5diff_627 
+               H5DUMP-tgroup-2 
+            The following test fails because the format of the results are different:
+               H5DIFF-h5diff_101
+               H5DIFF-h5diff_102 
+            The following are failing for other reasons
+               H5REPACK-deflate_file 
+               h5repart_test 
+               hl_test_ds (sometimes fails on windows)
+            
 
 ========================================================================
                             Preconditions                                                           
