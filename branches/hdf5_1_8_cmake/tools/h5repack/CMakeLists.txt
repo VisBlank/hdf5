@@ -47,7 +47,7 @@ IF (BUILD_TESTING)
   )
 
 
-  SET (INFO_FILE=testfiles/h5repack.info)
+  SET (INFO_FILE testfiles/h5repack.info)
 
   SET (FILE0 h5repack_fill.h5)
   SET (FILE1 h5repack_objs.h5)
