@@ -30,8 +30,6 @@ Notes: This short instruction is written for users who want to quickly build
                H5DIFF-h5diff_101
                H5DIFF-h5diff_102 
             The following are failing for other reasons
-               H5REPACK-deflate_file 
-               h5repart_test 
                hl_test_ds (sometimes fails on windows)
             
 
