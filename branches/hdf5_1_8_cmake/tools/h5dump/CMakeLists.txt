@@ -65,7 +65,7 @@ IF (BUILD_TESTING)
         NAME H5DUMP-${resultfile}
         COMMAND "${CMAKE_COMMAND}"
             -D "TEST_PROGRAM=$<TARGET_FILE:h5dump>"
-            -D "TEST_ARGS=${ARGN}"
+            -D "TEST_ARGS:STRING=${ARGN}"
             -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
             -D "TEST_OUTPUT=${resultfile}.out"
             -D "TEST_EXPECT=${resultcode}"
@@ -78,7 +78,7 @@ IF (BUILD_TESTING)
   # test for displaying groups
   ADD_H5_TEST (tgroup-1 0 tgroup.h5)
   # test for displaying the selected groups
-  ADD_H5_TEST (tgroup-2 0 --group=/g2 --group / -g /y tgroup.h5)
+  ADD_H5_TEST (tgroup-2 1 --group=/g2 --group / -g /y tgroup.h5)
    
 ENDIF (BUILD_TESTING)
 

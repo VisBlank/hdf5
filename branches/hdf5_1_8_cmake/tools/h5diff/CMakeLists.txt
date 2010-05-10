@@ -36,8 +36,8 @@ IF (BUILD_TESTING)
   SET (HDF5_REFERENCE_FILES
       h5diff_10.txt
       h5diff_100.txt
-      h5diff_101.txt
-      h5diff_102.txt
+      #h5diff_101.txt
+      #h5diff_102.txt
       h5diff_11.txt
       h5diff_12.txt
       h5diff_13.txt
@@ -189,12 +189,42 @@ IF (BUILD_TESTING)
     )
   ENDFOREACH (h5_file ${HDF5_REFERENCE_TEST_FILES})
 
+  IF (WIN32)
+    ADD_CUSTOM_COMMAND (
+        TARGET     h5diff
+        POST_BUILD
+        COMMAND    ${CMAKE_COMMAND}
+        ARGS       -E copy_if_different ${HDF5_TOOLS_H5DIFF_SOURCE_DIR}/testfiles/h5diff_101w.txt ${PROJECT_BINARY_DIR}/h5diff_101.txt
+    )
+
+    ADD_CUSTOM_COMMAND (
+        TARGET     h5diff
+        POST_BUILD
+        COMMAND    ${CMAKE_COMMAND}
+        ARGS       -E copy_if_different ${HDF5_TOOLS_H5DIFF_SOURCE_DIR}/testfiles/h5diff_102w.txt ${PROJECT_BINARY_DIR}/h5diff_101.txt
+    )
+  ELSEIF (WIN32)
+    ADD_CUSTOM_COMMAND (
+        TARGET     h5diff
+        POST_BUILD
+        COMMAND    ${CMAKE_COMMAND}
+        ARGS       -E copy_if_different ${HDF5_TOOLS_H5DIFF_SOURCE_DIR}/testfiles/h5diff_101.txt ${PROJECT_BINARY_DIR}/h5diff_101.txt
+    )
+
+    ADD_CUSTOM_COMMAND (
+        TARGET     h5diff
+        POST_BUILD
+        COMMAND    ${CMAKE_COMMAND}
+        ARGS       -E copy_if_different ${HDF5_TOOLS_H5DIFF_SOURCE_DIR}/testfiles/h5diff_102.txt ${PROJECT_BINARY_DIR}/h5diff_101.txt
+    )
+  ENDIF (WIN32)
+
   MACRO (ADD_H5_TEST resultfile resultcode)
     ADD_TEST (
         NAME H5DIFF-${resultfile}
         COMMAND "${CMAKE_COMMAND}"
             -D "TEST_PROGRAM=$<TARGET_FILE:h5diff>"
-            -D "TEST_ARGS=${ARGN}"
+            -D "TEST_ARGS:STRING=${ARGN}"
             -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
             -D "TEST_OUTPUT=${resultfile}.out"
             -D "TEST_EXPECT=${resultcode}"
