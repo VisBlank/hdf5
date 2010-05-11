@@ -44,6 +44,11 @@ int         bin_form;      /* binary form */
 int         region_output; /* region output */
 static int  h5tools_d_status = 0;
 static const char  *h5tools_progname = "h5tools";
+#ifdef H5_HAVE_H5DUMP_PACKED_BITS
+int         packed_output; /* number of packed bits to display */
+int         packed_normalize; /* number of bits to shift right to display normalized */
+unsigned int packed_counter;  /* counter for which packed bits to display */
+#endif
 
 static h5tool_format_t h5tools_dataformat = {
 0, /*raw */

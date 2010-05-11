@@ -126,7 +126,7 @@ SET (HDF5_RESOURCES_DIR      ${HDF5_SOURCE_DIR}/Resources)
 SET (HDF5_SRC_DIR            ${HDF5_SOURCE_DIR}/src)
 SET (HDF5_TEST_SOURCE_DIR    ${HDF5_SOURCE_DIR}/test)
 SET (HDF5_CPP_SOURCE_DIR     ${HDF5_SOURCE_DIR}/c++)
-SET (HDF5_CPP_TEST_DIR       ${HDF5_CPPLib_DIR}/test)
+SET (HDF5_CPP_TEST_DIR       ${HDF5_CPP_SOURCE_DIR}/test)
 SET (HDF5_HL_SOURCE_DIR      ${HDF5_SOURCE_DIR}/hl)
 SET (HDF5_TOOLS_SOURCE_DIR   ${HDF5_SOURCE_DIR}/tools)
 SET (HDF5_PERFORM_SOURCE_DIR ${HDF5_SOURCE_DIR}/perform)
@@ -442,6 +442,15 @@ IF (HDF5_ENABLE_SZIP_SUPPORT)
       MESSAGE (FATAL_ERROR "SZIP is Required for SZIP support in HDF5")
   ENDIF (SZIP_FOUND)
 ENDIF (HDF5_ENABLE_SZIP_SUPPORT)
+
+#-----------------------------------------------------------------------------
+# Option to use PACKED BITS SUPPORT
+#-----------------------------------------------------------------------------
+OPTION (HDF5_USE_H5DUMP_PACKED_BITS "Use the PACKED BITS feature in h5dump" OFF)
+SET (H5_HAVE_H5DUMP_PACKED_BITS 0)
+IF (HDF5_USE_H5DUMP_PACKED_BITS)
+  SET (H5_HAVE_H5DUMP_PACKED_BITS 1)
+ENDIF (HDF5_USE_H5DUMP_PACKED_BITS)
 
 #-----------------------------------------------------------------------------
 # Add the HDF5 Library Target to the build

@@ -524,6 +524,11 @@ struct subset_t {
 #ifdef __cplusplus
 extern "C" {
 #endif
+#ifdef H5_HAVE_H5DUMP_PACKED_BITS
+extern int     packed_output;       /* packed bits output count */
+extern int     packed_normalize; /* number of bits to shift right to display normalized */
+extern unsigned int  packed_counter;      /* counter for which packed bits to display */
+#endif
 
 H5TOOLS_DLLVAR FILE   *rawdatastream;       /* output stream for raw data */
 H5TOOLS_DLLVAR int     bin_output;          /* binary output */
