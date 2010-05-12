@@ -7,8 +7,10 @@ PROJECT (H5_TEST_PAR)
 
 SET (testphdf5_SRCS
     ${HDF5_TEST_PAR_SOURCE_DIR}/testphdf5.c
-    ${HDF5_TEST_PAR_SOURCE_DIR}/t_dset.c t_file.c
-    ${HDF5_TEST_PAR_SOURCE_DIR}/t_mdset.c t_ph5basic.c
+    ${HDF5_TEST_PAR_SOURCE_DIR}/t_dset.c
+    ${HDF5_TEST_PAR_SOURCE_DIR}/t_file.c
+    ${HDF5_TEST_PAR_SOURCE_DIR}/t_mdset.c
+    ${HDF5_TEST_PAR_SOURCE_DIR}/t_ph5basic.c
     ${HDF5_TEST_PAR_SOURCE_DIR}/t_coll_chunk.c
     ${HDF5_TEST_PAR_SOURCE_DIR}/t_span_tree.c
     ${HDF5_TEST_PAR_SOURCE_DIR}/t_chunk_alloc.c
