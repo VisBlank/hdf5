@@ -314,6 +314,19 @@
  *              This field must be set to NULL when the callback is not
  *              needed.
  *
+ *		Note: This field has been extended for use by all processes
+ *		      with the addition of support for the distributed 
+ *		      metadata write strategy.        
+ *                                                     JRM -- 5/9/10
+ *
+ * sync_point_done:  In the parallel test bed, it is necessary to verify
+ *		that the expected writes, and only the expected writes,
+ *		have taken place at the end of each sync point.
+ *
+ *		The sync_point_done callback allows t_cache to perform 
+ *		this verification.  The field is set to NULL when the 
+ *		callback is not needed.
+ *
  ****************************************************************************/
 
 #ifdef H5_HAVE_PARALLEL
@@ -366,6 +379,9 @@ typedef struct H5AC_aux_t
     int32_t	candidate_slist_len;
 
     void	(* write_done)(void);
+
+    void	(* sync_point_done)(int num_writes, 
+                                    haddr_t * written_entries_tbl);
 
 } H5AC_aux_t; /* struct H5AC_aux_t */
 

@@ -359,6 +359,13 @@ H5_DLL herr_t H5AC_expunge_entry(H5F_t *f, hid_t dxpl_id,
                                  const H5AC_class_t *type, haddr_t addr,
                                  unsigned flags);
 
+H5_DLL herr_t H5AC_set_sync_point_done_callback
+              (
+		H5C_t * cache_ptr,
+                void (* sync_point_done)(int num_writes,          
+                                         haddr_t * written_entries_tbl)
+              );
+
 H5_DLL herr_t H5AC_set_write_done_callback(H5C_t * cache_ptr,
                                            void (* write_done)(void));
 H5_DLL herr_t H5AC_stats(const H5F_t *f);

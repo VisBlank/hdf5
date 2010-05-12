@@ -532,6 +532,10 @@ H5AC_term_interface(void)
  *		field.
  *						JRM - 3/11/10
  *
+ *		Added code to initialize the new sync_point_done field.
+ *
+ *						JRM -- 5/9/10
+ *
  *-------------------------------------------------------------------------
  */
 
@@ -652,6 +656,7 @@ H5AC_create(const H5F_t *f,
                 aux_ptr->candidate_slist_ptr = NULL;
                 aux_ptr->candidate_slist_len = 0;
 		aux_ptr->write_done = NULL;
+		aux_ptr->sync_point_done = NULL;
 
 		sprintf(prefix, "%d:", mpi_rank);
             }
@@ -2351,6 +2356,60 @@ done:
 
 
 /*-------------------------------------------------------------------------
+ * Function:    HA5C_set_sync_point_done_callback
+ *
+ * Purpose:     Set the value of the sync_point_done callback.  This 
+ *		callback is used by the parallel test code to verify
+ *		that the expected writes and only the expected writes
+ *		take place during a sync point.
+ *
+ * Return:      Non-negative on success/Negative on failure
+ *
+ * Programmer:  John Mainzer
+ *              5/9/10
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+
+#ifdef H5_HAVE_PARALLEL
+herr_t
+H5AC_set_sync_point_done_callback
+	(
+	  H5C_t * cache_ptr,
+          void (* sync_point_done)(int num_writes, 
+                                   haddr_t * written_entries_tbl)
+	)
+{
+    herr_t       ret_value = SUCCEED;   /* Return value */
+    H5AC_aux_t * aux_ptr = NULL;
+
+    FUNC_ENTER_NOAPI(H5AC_set_sync_point_done_callback, FAIL)
+
+    /* This would normally be an assert, but we need to use an HGOTO_ERROR
+     * call to shut up the compiler.
+     */
+    if ( ( ! cache_ptr ) || ( cache_ptr->magic != H5C__H5C_T_MAGIC ) ) {
+
+        HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad cache_ptr")
+    }
+
+    aux_ptr = (H5AC_aux_t *)(cache_ptr->aux_ptr);
+
+    HDassert( aux_ptr != NULL );
+    HDassert( aux_ptr->magic == H5AC__H5AC_AUX_T_MAGIC );
+
+    aux_ptr->sync_point_done = sync_point_done;
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* H5AC_set_sync_point_done_callback() */
+#endif /* H5_HAVE_PARALLEL */
+
+
+/*-------------------------------------------------------------------------
  * Function:    HA5C_set_write_done_callback
  *
  * Purpose:     Set the value of the write_done callback.  This callback
@@ -3560,6 +3619,10 @@ done:
  *
  * Modifications:
  *
+ *		Added call to sync_point_done callback if defined.
+ *
+ *						JRM -- 5/10/10
+ *
  *-------------------------------------------------------------------------
  */
 
@@ -3569,6 +3632,7 @@ H5AC_broadcast_clean_list(H5AC_t * cache_ptr)
 {
     herr_t               ret_value = SUCCEED;    /* Return value */
     haddr_t		 addr;
+    haddr_t	       * addr_buf_ptr = NULL;
     H5AC_aux_t         * aux_ptr = NULL;
     H5SL_node_t        * slist_node_ptr = NULL;
     H5AC_slist_entry_t * slist_entry_ptr = NULL;
@@ -3576,7 +3640,7 @@ H5AC_broadcast_clean_list(H5AC_t * cache_ptr)
     size_t		 buf_size;
     int                  i = 0;
     int                  mpi_result;
-    int			 num_entries;
+    int			 num_entries = 0;
 
     FUNC_ENTER_NOAPI(H5AC_broadcast_clean_list, FAIL)
 
@@ -3621,6 +3685,21 @@ H5AC_broadcast_clean_list(H5AC_t * cache_ptr)
                         "memory allocation failed for clean entry buffer")
         }
 
+        /* if the sync_point_done callback is defined, allocate the
+         * addr buffer as well.
+         */
+        if ( aux_ptr->sync_point_done != NULL ) {
+
+            addr_buf_ptr = H5MM_malloc((size_t)(num_entries * sizeof(haddr_t)));
+
+            if ( addr_buf_ptr == NULL ) {
+
+                HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, \
+                            "memory allocation failed for addr buffer")
+            }
+        }
+
+
         /* now load the entry base addresses into the buffer, emptying the
          * cleaned entry list in passing
          */
@@ -3634,6 +3713,11 @@ H5AC_broadcast_clean_list(H5AC_t * cache_ptr)
             HDassert( i < num_entries );
 
             addr = slist_entry_ptr->addr;
+
+            if ( addr_buf_ptr != NULL ) {
+
+                addr_buf_ptr[i] = addr;
+            }
 
             if ( H5FD_mpi_haddr_to_MPIOff(addr, &(buf_ptr[i])) < 0 ) {
 
@@ -3706,11 +3790,21 @@ H5AC_broadcast_clean_list(H5AC_t * cache_ptr)
         }
     }
 
+    if ( aux_ptr->sync_point_done != NULL ) {
+
+        (aux_ptr->sync_point_done)(num_entries, addr_buf_ptr);
+    }
+
 done:
 
     if ( buf_ptr != NULL ) {
 
         buf_ptr = (MPI_Offset *)H5MM_xfree((void *)buf_ptr);
+    }
+
+    if ( addr_buf_ptr != NULL ) {
+
+        addr_buf_ptr = (MPI_Offset *)H5MM_xfree((void *)addr_buf_ptr);
     }
 
     FUNC_LEAVE_NOAPI(ret_value)
@@ -5094,7 +5188,9 @@ done:
  *
  * Modifications:
  *
- * 		None.
+ * 		Updated function to call the sync_point_done callback
+ *		if it is defined.
+ *							JRM -- 5/10/10
  *
  *-------------------------------------------------------------------------
  */
@@ -5249,6 +5345,20 @@ H5AC_propagate_and_apply_candidate_list(H5F_t  * f,
             }
         }
     } /* if ( num_candidate > 0 ) */
+
+    /* if it is defined, call the sync point done callback.  Note
+     * that this callback is defined purely for testing purposes,
+     * and should be undefined under normal operating circumstances.
+     */
+    if ( aux_ptr->sync_point_done != NULL ) {
+
+#if H5AC_PROPAGATE_AND_APPLY_CANDIDATE_LIST__DEBUG
+            HDfprintf(stdout, "%s:%d: calling sync point done callback.\n", 
+                      FUNC, aux_ptr->mpi_rank);
+#endif /* H5AC_PROPAGATE_AND_APPLY_CANDIDATE_LIST__DEBUG */
+    
+        (aux_ptr->sync_point_done)(num_candidates, candidates_list_ptr);
+    }
 
 #if H5AC_PROPAGATE_AND_APPLY_CANDIDATE_LIST__DEBUG
     HDfprintf(stdout, "%s:%d: done.\n", FUNC, aux_ptr->mpi_rank);
@@ -5422,6 +5532,10 @@ done:
  *
  * Modifications:
  *
+ *		Added call to sync_point_done callback if defined.
+ *
+ *						JRM -- 5/10/10
+ *
  *-------------------------------------------------------------------------
  */
 
@@ -5439,7 +5553,7 @@ H5AC_receive_and_apply_clean_list(H5F_t  * f,
     size_t		 buf_size;
     int                  i = 0;
     int                  mpi_result;
-    int			 num_entries;
+    int			 num_entries = 0;
 
     FUNC_ENTER_NOAPI(H5AC_receive_and_apply_clean_list, FAIL)
 
@@ -5532,6 +5646,15 @@ H5AC_receive_and_apply_clean_list(H5F_t  * f,
                         "Can't mark entries clean.")
 
         }
+    }
+
+    /* if it is defined, call the sync point done callback.  Note
+     * that this callback is defined purely for testing purposes,
+     * and should be undefined under normal operating circumstances.
+     */
+    if ( aux_ptr->sync_point_done != NULL ) {
+
+        (aux_ptr->sync_point_done)(num_entries, haddr_buf_ptr);
     }
 
 done:
@@ -5760,7 +5883,9 @@ done:
  *
  * Modifications:
  *
- * 		None.
+ * 		Updated function to call the sync_point_done callback if
+ *		it is defined.
+ *							5/10/10
  *
  *-------------------------------------------------------------------------
  */
@@ -5885,6 +6010,15 @@ H5AC_rsp__dist_md_write__flush(H5F_t *f,
                             "Can't tidy up process 0 lists.")
             }
         }
+    }
+
+    /* if it is defined, call the sync point done callback.  Note
+     * that this callback is defined purely for testing purposes,
+     * and should be undefined under normal operating circumstances.
+     */
+    if ( aux_ptr->sync_point_done != NULL ) {
+
+        (aux_ptr->sync_point_done)(num_entries, haddr_buf_ptr);
     }
 
 done:
