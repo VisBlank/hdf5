@@ -170,6 +170,7 @@ IF (BUILD_TESTING)
       tempty.h5
       textlinkfar.h5
       textlinksrc.h5
+      textlinktar.h5
       tfamily00000.h5
       tfamily00001.h5
       tfamily00002.h5
@@ -521,21 +522,21 @@ IF (BUILD_TESTING)
   ADD_H5_TEST (tvms 0 tvms.h5)
 
   # test for binary output
-  ADD_H5_TEST (tbin1 0 -d integer -o ./testfiles/out1.bin -b LE tbinary.h5)
+  ADD_H5_TEST (tbin1 0 -d integer -o out1.bin -b LE tbinary.h5)
 
   # NATIVE default. the NATIVE test can be validated with h5import/h5diff
-  #ADD_H5_TEST (tbin1 0 -d integer -o ./testfiles/out1.bin -b tbinary.h5)
-  #IMPORTTEST $TESTDIR/out1.bin -c out3.h5import -o  ./testfiles/out1.h5)
-  #DIFFTEST   tbinary.h5 $TESTDIR/out1.h5 /integer /integer)
+  #ADD_H5_TEST (tbin1 0 -d integer -o out1.bin -b tbinary.h5)
+  #IMPORTTEST out1.bin -c out3.h5import -o  out1.h5)
+  #DIFFTEST   tbinary.h5 out1.h5 /integer /integer)
 
-  ADD_H5_TEST (tbin2 0 -b BE -d float -o ./testfiles/out2.bin tbinary.h5)
+  ADD_H5_TEST (tbin2 0 -b BE -d float -o out2.bin tbinary.h5)
 
   # the NATIVE test can be validated with h5import/h5diff
-  #ADD_H5_TEST (tbin3 0 -d integer -o ./testfiles/out3.bin -b NATIVE tbinary.h5)
-  #IMPORTTEST $TESTDIR/out3.bin -c out3.h5import -o $TESTDIR/out3.h5)
-  #DIFFTEST   tbinary.h5 $TESTDIR/out3.h5 /integer /integer)
+  #ADD_H5_TEST (tbin3 0 -d integer -o out3.bin -b NATIVE tbinary.h5)
+  #IMPORTTEST out3.bin -c out3.h5import -o out3.h5)
+  #DIFFTEST   tbinary.h5 out3.h5 /integer /integer)
 
-  ADD_H5_TEST (tbin4 0 -d double -b FILE -o ./testfiles/out4.bin tbinary.h5)
+  ADD_H5_TEST (tbin4 0 -d double -b FILE -o out4.bin tbinary.h5)
    
   # Clean up binary output files
   IF (NOT HDF5_NOCLEANUP)
@@ -543,12 +544,12 @@ IF (BUILD_TESTING)
         NAME H5DUMP-clear-objects
         COMMAND    ${CMAKE_COMMAND}
             -E remove 
-            ./testfiles/out1.bin
-            ./testfiles/out2.bin
-            ./testfiles/out3.bin
-            ./testfiles/out4.bin
-            ./testfiles/out1.h5
-            ./testfiles/out3.h5
+            out1.bin
+            out2.bin
+            out3.bin
+            out4.bin
+            out1.h5
+            out3.h5
     )
   ENDIF (NOT HDF5_NOCLEANUP)
 
