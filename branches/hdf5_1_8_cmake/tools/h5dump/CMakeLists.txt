@@ -244,6 +244,13 @@ IF (BUILD_TESTING)
         ARGS       -E copy_if_different ${HDF5_TOOLS_SOURCE_DIR}/testfiles/${h5_file} ${dest}
     )
   ENDFOREACH (h5_file ${HDF5_REFERENCE_TEST_FILES})
+
+  ADD_CUSTOM_COMMAND (
+      TARGET     h5dump
+      POST_BUILD
+      COMMAND    ${CMAKE_COMMAND}
+      ARGS       -E copy_if_different ${HDF5_TOOLS_SOURCE_DIR}/testfiles/tbin1.ddl ${PROJECT_BINARY_DIR}/tbin1LE.ddl
+  )
   
   MACRO (ADD_SKIP_H5_TEST skipresultfile skipresultcode testtype)
     IF (${testtype} STREQUAL "SKIP")
@@ -522,19 +529,21 @@ IF (BUILD_TESTING)
   ADD_H5_TEST (tvms 0 tvms.h5)
 
   # test for binary output
-  ADD_H5_TEST (tbin1 0 -d integer -o out1.bin -b LE tbinary.h5)
+  ADD_H5_TEST (tbin1LE 0 -d integer -o out1LE.bin -b LE tbinary.h5)
 
   # NATIVE default. the NATIVE test can be validated with h5import/h5diff
-  #ADD_H5_TEST (tbin1 0 -d integer -o out1.bin -b tbinary.h5)
-  #IMPORTTEST out1.bin -c out3.h5import -o  out1.h5)
-  #DIFFTEST   tbinary.h5 out1.h5 /integer /integer)
+  ADD_H5_TEST (tbin1 0 -d integer -o out1.bin -b tbinary.h5)
+  ADD_TEST (NAME H5DUMP-clear-out1 COMMAND ${CMAKE_COMMAND} -E remove out1.h5)
+  ADD_TEST (NAME H5DUMP-h5import-out1 COMMAND h5import out1.bin -c out3.h5import -o out1.h5)
+  ADD_TEST (NAME H5DUMP-h5diff-out1 COMMAND h5diff tbinary.h5 out1.h5 /integer /integer)
 
   ADD_H5_TEST (tbin2 0 -b BE -d float -o out2.bin tbinary.h5)
 
   # the NATIVE test can be validated with h5import/h5diff
-  #ADD_H5_TEST (tbin3 0 -d integer -o out3.bin -b NATIVE tbinary.h5)
-  #IMPORTTEST out3.bin -c out3.h5import -o out3.h5)
-  #DIFFTEST   tbinary.h5 out3.h5 /integer /integer)
+  ADD_H5_TEST (tbin3 0 -d integer -o out3.bin -b NATIVE tbinary.h5)
+  ADD_TEST (NAME H5DUMP-clear-out3 COMMAND ${CMAKE_COMMAND} -E remove out3.h5)
+  ADD_TEST (NAME H5DUMP-h5import-out3 COMMAND h5import out3.bin -c out3.h5import -o out3.h5)
+  ADD_TEST (NAME H5DUMP-h5diff-out3 COMMAND h5diff tbinary.h5 out3.h5 /integer /integer -q)
 
   ADD_H5_TEST (tbin4 0 -d double -b FILE -o out4.bin tbinary.h5)
    
@@ -545,6 +554,7 @@ IF (BUILD_TESTING)
         COMMAND    ${CMAKE_COMMAND}
             -E remove 
             out1.bin
+            out1LE.bin
             out2.bin
             out3.bin
             out4.bin
