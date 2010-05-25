@@ -82,6 +82,7 @@ SET (HDF5_PACKAGE "hdf5")
 SET (HDF5_PACKAGE_NAME "HDF5")
 SET (HDF5_PACKAGE_VERSION 1.8.5)
 SET (HDF5_PACKAGE_VERSION_MAJOR 1.8)
+SET (HDF5_PACKAGE_VERSION_MINOR 5)
 SET (HDF5_PACKAGE_STRING "${HDF5_PACKAGE_NAME} ${HDF5_PACKAGE_VERSION}")
 SET (HDF5_PACKAGE_TARNAME "hdf5")
 SET (HDF5_PACKAGE_URL "htt://www.hdfgroup.org")
@@ -352,6 +353,14 @@ IF (HDF5_ENABLE_PARALLEL)
   INCLUDE_DIRECTORIES (${MPI_INCLUDE_PATH})
   IF (MPI_FOUND)
     SET (H5_HAVE_PARALLEL 1)
+    # MPI checks, only do these if MPI_FOUND is true, otherwise they always fail
+    # and once set, they are cached as false and not regenerated
+    SET (CMAKE_REQUIRED_INCLUDES "${MPI_INCLUDE_PATH}/mpi.h" )
+    SET (CMAKE_REQUIRED_LIBRARIES "${MPI_LIBRARY}" )
+    CHECK_FUNCTION_EXISTS (MPI_File_get_size H5_HAVE_MPI_GET_SIZE) 
+    # Used by Fortran + MPI
+    CHECK_SYMBOL_EXISTS (MPI_Comm_c2f "${MPI_INCLUDE_PATH}/mpi.h"  H5_HAVE_MPI_MULTI_LANG_Comm)
+    CHECK_SYMBOL_EXISTS (MPI_Info_c2f "${MPI_INCLUDE_PATH}/mpi.h"  H5_HAVE_MPI_MULTI_LANG_Info)
   ENDIF (MPI_FOUND)
 ENDIF (HDF5_ENABLE_PARALLEL)
 
@@ -460,8 +469,10 @@ ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src)
 #-----------------------------------------------------------------------------
 # Build utility to copy and strip X lines of file
 #-----------------------------------------------------------------------------
-SET (XLATE_UTILITY "xlatefile")
-ADD_EXECUTABLE(${XLATE_UTILITY} ${HDF5_SOURCE_DIR}/Resources/xlatefile.c)
+IF (HDF5_BUILD_TOOLS AND BUILD_TESTING)
+  SET (XLATE_UTILITY "xlatefile")
+  ADD_EXECUTABLE(${XLATE_UTILITY} ${HDF5_SOURCE_DIR}/Resources/xlatefile.c)
+ENDIF (HDF5_BUILD_TOOLS AND BUILD_TESTING)
 
 #-----------------------------------------------------------------------------
 # Dashboard and Testing Settings
@@ -542,6 +553,8 @@ INSTALL (
         ${PROJECT_BINARY_DIR}/H5pubconf.h
     DESTINATION
         include
+    COMPONENT
+        headers
 )
 
 #-----------------------------------------------------------------------------
@@ -556,6 +569,14 @@ INSTALL (
         HDF5-config.cmake
 )
 
+# The install rule below copies compiled module files to the install location
+# using a "code" rule. The code string should not be broken up, it must be on one line
+IF (HDF5_BUILD_FORTRAN)
+    INSTALL ( CODE
+        "EXECUTE_PROCESS (COMMAND \"${CMAKE_COMMAND}\" -E copy_directory \"${CMAKE_Fortran_MODULE_DIRECTORY}/\${BUILD_TYPE}\" \"${CMAKE_INSTALL_PREFIX}/fortran\")"
+    )
+ENDIF (HDF5_BUILD_FORTRAN)
+
 #-----------------------------------------------------------------------------
 # Export all exported targets to the build tree for use by parent project
 #-----------------------------------------------------------------------------
@@ -565,3 +586,110 @@ EXPORT (
     FILE
         HDF5-config.cmake
 )
+
+#-----------------------------------------------------------------------------
+# Set the cpack variables
+#-----------------------------------------------------------------------------
+SET (CPACK_PACKAGE_VENDOR "The HDF Group")
+SET (CPACK_PACKAGE_NAME "${HDF5_PACKAGE_NAME}")
+SET (CPACK_PACKAGE_VERSION "${HDF5_PACKAGE_VERSION}")
+SET (CPACK_PACKAGE_VERSION_MAJOR "${HDF5_PACKAGE_VERSION_MAJOR}")
+SET (CPACK_PACKAGE_VERSION_MINOR "${HDF5_PACKAGE_VERSION_MINOR}")
+SET (CPACK_PACKAGE_VERSION_PATCH "")
+SET (CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/release_docs/COPYING")
+
+IF (WIN32)
+  SET (CPACK_NSIS_PACKAGE_NAME "HDF5 ${HDF5_PACKAGE_VERSION}")
+ENDIF (WIN32)
+
+INCLUDE (CPack)
+
+#-----------------------------------------------------------------------------
+# Now list the cpack commands
+#-----------------------------------------------------------------------------
+CPACK_ADD_COMPONENT (applications 
+    DISPLAY_NAME "HDF5 Applications" 
+    DEPENDS libraries
+    GROUP Applications
+)
+CPACK_ADD_COMPONENT (libraries 
+    DISPLAY_NAME "HDF5 Libraries"
+    GROUP Runtime
+)
+CPACK_ADD_COMPONENT (headers 
+    DISPLAY_NAME "HDF5 Headers" 
+    DEPENDS libraries
+    GROUP Development
+)
+
+IF (HDF5_BUILD_FORTRAN)
+  CPACK_ADD_COMPONENT (fortlibraries 
+      DISPLAY_NAME "HDF5 Fortran Libraries" 
+      DEPENDS libraries
+      GROUP Runtime
+  )
+ENDIF (HDF5_BUILD_FORTRAN)
+
+IF (HDF5_BUILD_CPP_LIB)
+  CPACK_ADD_COMPONENT (cpplibraries 
+      DISPLAY_NAME "HDF5 C++ Libraries" 
+      DEPENDS libraries
+      GROUP Runtime
+  )
+  CPACK_ADD_COMPONENT (cppheaders 
+      DISPLAY_NAME "HDF5 C++ Headers" 
+      DEPENDS cpplibraries
+      GROUP Development
+  )
+ENDIF (HDF5_BUILD_CPP_LIB)
+
+IF (HDF5_BUILD_TOOLS)
+  CPACK_ADD_COMPONENT (toolsapplications 
+      DISPLAY_NAME "HDF5 Tools Applications" 
+      DEPENDS toolslibraries
+      GROUP Applications
+  )
+  CPACK_ADD_COMPONENT (toolslibraries 
+      DISPLAY_NAME "HDF5 Tools Libraries" 
+      DEPENDS libraries
+      GROUP Runtime
+  )
+  CPACK_ADD_COMPONENT (toolsheaders 
+      DISPLAY_NAME "HDF5 Tools Headers" 
+      DEPENDS toolslibraries
+      GROUP Development
+  )
+ENDIF (HDF5_BUILD_TOOLS)
+
+IF (HDF5_BUILD_HL_LIB)
+  CPACK_ADD_COMPONENT (hllibraries 
+      DISPLAY_NAME "HDF5 HL Libraries" 
+      DEPENDS libraries
+      GROUP Runtime
+  )
+  CPACK_ADD_COMPONENT (hlheaders 
+      DISPLAY_NAME "HDF5 HL Headers" 
+      DEPENDS hllibraries
+      GROUP Development
+  )
+  CPACK_ADD_COMPONENT (hltoolsapplications 
+      DISPLAY_NAME "HDF5 HL Tools Applications" 
+      DEPENDS hllibraries
+      GROUP Applications
+  )
+  CPACK_ADD_COMPONENT (hlcpplibraries 
+      DISPLAY_NAME "HDF5 HL C++ Libraries" 
+      DEPENDS hllibraries
+      GROUP Runtime
+  )
+  CPACK_ADD_COMPONENT (hlcppheaders 
+      DISPLAY_NAME "HDF5 HL C++ Headers" 
+      DEPENDS hlcpplibraries
+      GROUP Development
+  )
+  CPACK_ADD_COMPONENT (hlfortlibraries 
+      DISPLAY_NAME "HDF5 HL Fortran Libraries" 
+      DEPENDS fortlibraries
+      GROUP Runtime
+  )
+ENDIF (HDF5_BUILD_HL_LIB)

@@ -524,10 +524,11 @@ struct subset_t {
 #ifdef __cplusplus
 extern "C" {
 #endif
+    
 #ifdef H5_HAVE_H5DUMP_PACKED_BITS
-extern int     packed_output;       /* packed bits output count */
-extern int     packed_normalize; /* number of bits to shift right to display normalized */
-extern unsigned int  packed_counter;      /* counter for which packed bits to display */
+H5TOOLS_DLLVAR int     packed_bits_num;       /* number of packed bits to display */
+H5TOOLS_DLLVAR int         packed_data_offset; /* offset of packed bits to display */
+H5TOOLS_DLLVAR unsigned int packed_data_mask;  /* mask in which packed bits to display */
 #endif
 
 H5TOOLS_DLLVAR FILE   *rawdatastream;       /* output stream for raw data */
@@ -541,10 +542,6 @@ H5TOOLS_DLLVAR int     region_output;       /* region output */
 #define H5_TOOLS_DATATYPE        "DATATYPE"
 
 /* Definitions of useful routines */
-H5TOOLS_DLL const char *h5tools_getprogname(void);
-H5TOOLS_DLL void     h5tools_setprogname(const char*progname);
-H5TOOLS_DLL int      h5tools_getstatus(void);
-H5TOOLS_DLL void     h5tools_setstatus(int d_status);
 H5TOOLS_DLL void     h5tools_init(void);
 H5TOOLS_DLL void     h5tools_close(void);
 H5TOOLS_DLL hid_t    h5tools_fopen(const char *fname, unsigned flags, hid_t fapl,

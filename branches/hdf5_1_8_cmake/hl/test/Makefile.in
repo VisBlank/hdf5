@@ -161,6 +161,7 @@ CXX = @CXX@
 CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
+CXX_VERSION = @CXX_VERSION@
 CYGPATH_W = @CYGPATH_W@
 DEBUG_PKG = @DEBUG_PKG@
 DEFAULT_API_VERSION = @DEFAULT_API_VERSION@
@@ -186,6 +187,7 @@ FC = @FC@
 FCFLAGS = @FCFLAGS@
 FCFLAGS_f90 = @FCFLAGS_f90@
 FCLIBS = @FCLIBS@
+FC_VERSION = @FC_VERSION@
 FGREP = @FGREP@
 FILTERS = @FILTERS@
 FSEARCH_DIRS = @FSEARCH_DIRS@
@@ -384,7 +386,8 @@ TRACE = perl $(top_srcdir)/bin/trace
 # Temporary files.  These files are the ones created by running `make test'.
 CHECK_CLEANFILES = *.chkexe *.chklog *.clog combine_tables[1-2].h5 \
 	test_ds[1-9].h5 test_image[1-3].h5 test_lite[1-2].h5 \
-	test_table.h5 test_packet_table.h5 test_packet_compress.h5
+	test_table.h5 test_packet_table.h5 test_packet_compress.h5 \
+	test_detach.h5
 
 # The tests depend on the hdf5, hdf5 test,  and hdf5_hl libraries
 LDADD = $(LIBH5_HL) $(LIBH5TEST) $(LIBHDF5)

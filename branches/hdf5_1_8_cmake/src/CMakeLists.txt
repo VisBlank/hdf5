@@ -17,6 +17,8 @@ SET (H5_HDRS
     ${HDF5_SRC_DIR}/hdf5.h
     ${HDF5_SRC_DIR}/H5api_adpt.h
     ${HDF5_SRC_DIR}/H5public.h
+    ${HDF5_SRC_DIR}/H5version.h
+    ${HDF5_SRC_DIR}/H5overflow.h
 )
 IDE_GENERATED_PROPERTIES ("H5" "${H5_HDRS}" "${H5_SRCS}" )
 
@@ -651,6 +653,8 @@ INSTALL (
         ${H5_PRIVATE_HEADERS}
     DESTINATION
         include
+    COMPONENT
+        headers
 )
 
 #-----------------------------------------------------------------------------
@@ -662,8 +666,8 @@ IF (HDF5_EXPORTED_TARGETS)
           ${HDF5_LIB_TARGET}
       EXPORT
           ${HDF5_EXPORTED_TARGETS}
-      LIBRARY DESTINATION lib
-      ARCHIVE DESTINATION lib
-      RUNTIME DESTINATION bin
+      LIBRARY DESTINATION lib COMPONENT libraries
+      ARCHIVE DESTINATION lib COMPONENT libraries
+      RUNTIME DESTINATION bin COMPONENT libraries
   )
 ENDIF (HDF5_EXPORTED_TARGETS)

@@ -21,9 +21,6 @@ LINK_DIRECTORIES (
 #-----------------------------------------------------------------------------
 # List Source files
 #-----------------------------------------------------------------------------
-#MESSAGE ("Fortran source is in ${HDF5_F90_SOURCE_DIR}/src ")
-
-
 SET (HDF5_HL_F90_F_SRCS
     ${HDF5_HL_F90_SRC_SOURCE_DIR}/H5TBff.f90
     ${HDF5_HL_F90_SRC_SOURCE_DIR}/H5LTff.f90
@@ -96,8 +93,8 @@ IF (HDF5_EXPORTED_TARGETS)
           ${HDF5_HL_F90_LIB_TARGET}
       EXPORT
           ${HDF5_EXPORTED_TARGETS}
-      LIBRARY DESTINATION lib
-      ARCHIVE DESTINATION lib
-      RUNTIME DESTINATION bin
+      LIBRARY DESTINATION lib COMPONENT hlfortlibraries
+      ARCHIVE DESTINATION lib COMPONENT hlfortlibraries
+      RUNTIME DESTINATION bin COMPONENT hlfortlibraries
   )
 ENDIF (HDF5_EXPORTED_TARGETS)

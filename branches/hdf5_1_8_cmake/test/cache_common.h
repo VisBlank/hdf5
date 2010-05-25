@@ -384,81 +384,6 @@ if ( ( (cache_ptr) == NULL ) ||                                        \
 
 /* misc type definitions */
 
-struct flush_cache_test_spec
-{
-    int			entry_num;
-    int			entry_type;
-    int			entry_index;
-    hbool_t		insert_flag;
-    hbool_t		dirty_flag;
-    unsigned int	flags;
-    hbool_t		expected_loaded;
-    hbool_t		expected_cleared;
-    hbool_t		expected_flushed;
-    hbool_t		expected_destroyed;
-};
-
-struct pe_flush_cache_test_spec
-{
-    int			entry_num;
-    int			entry_type;
-    int			entry_index;
-    hbool_t		insert_flag;
-    hbool_t		dirty_flag;
-    unsigned int	flags;
-    int			num_pins;
-    int			pin_type[MAX_PINS];
-    int			pin_idx[MAX_PINS];
-    hbool_t		expected_loaded;
-    hbool_t		expected_cleared;
-    hbool_t		expected_flushed;
-    hbool_t		expected_destroyed;
-};
-
-struct fo_flush_entry_check
-{
-    int			entry_num;
-    int			entry_type;
-    int			entry_index;
-    size_t		expected_size;
-    hbool_t		in_cache;
-    hbool_t		at_main_addr;
-    hbool_t		is_dirty;
-    hbool_t		is_protected;
-    hbool_t		is_pinned;
-    hbool_t		expected_loaded;
-    hbool_t		expected_cleared;
-    hbool_t		expected_flushed;
-    hbool_t		expected_destroyed;
-};
-
-struct fo_flush_cache_test_spec
-{
-    int				entry_num;
-    int				entry_type;
-    int				entry_index;
-    hbool_t			insert_flag;
-    unsigned int		flags;
-    size_t			new_size;
-    int				num_pins;
-    int				pin_type[MAX_PINS];
-    int				pin_idx[MAX_PINS];
-    int				num_flush_ops;
-    struct flush_op		flush_ops[MAX_FLUSH_OPS];
-    hbool_t			expected_loaded;
-    hbool_t			expected_cleared;
-    hbool_t			expected_flushed;
-    hbool_t			expected_destroyed;
-};
-
-struct move_entry_test_spec
-{
-    int			entry_type;
-    int			entry_index;
-    hbool_t		is_dirty;
-    hbool_t		is_pinned;
-};
-
 struct expected_entry_status
 {
     int			entry_type;
@@ -488,16 +413,6 @@ extern hbool_t skip_long_tests;
 extern hbool_t run_full_test;
 extern const char *failure_mssg;
 
-extern test_entry_t pico_entries[NUM_PICO_ENTRIES];
-extern test_entry_t nano_entries[NUM_NANO_ENTRIES];
-extern test_entry_t micro_entries[NUM_MICRO_ENTRIES];
-extern test_entry_t tiny_entries[NUM_TINY_ENTRIES];
-extern test_entry_t small_entries[NUM_SMALL_ENTRIES];
-extern test_entry_t medium_entries[NUM_MEDIUM_ENTRIES];
-extern test_entry_t large_entries[NUM_LARGE_ENTRIES];
-extern test_entry_t huge_entries[NUM_HUGE_ENTRIES];
-extern test_entry_t monster_entries[NUM_MONSTER_ENTRIES];
-
 extern test_entry_t * entries[NUMBER_OF_ENTRY_TYPES];
 extern const int32_t max_indices[NUMBER_OF_ENTRY_TYPES];
 extern const size_t entry_sizes[NUMBER_OF_ENTRY_TYPES];
@@ -511,75 +426,6 @@ extern const char * entry_type_names[NUMBER_OF_ENTRY_TYPES];
 herr_t check_write_permitted(const H5F_t * f,
                              hid_t dxpl_id,
                              hbool_t * write_permitted_ptr);
-
-herr_t pico_clear(H5F_t * f, void *  thing, hbool_t dest);
-herr_t nano_clear(H5F_t * f, void *  thing, hbool_t dest);
-herr_t micro_clear(H5F_t * f, void *  thing, hbool_t dest);
-herr_t tiny_clear(H5F_t * f, void *  thing, hbool_t dest);
-herr_t small_clear(H5F_t * f, void *  thing, hbool_t dest);
-herr_t medium_clear(H5F_t * f, void *  thing, hbool_t dest);
-herr_t large_clear(H5F_t * f, void *  thing, hbool_t dest);
-herr_t huge_clear(H5F_t * f, void *  thing, hbool_t dest);
-herr_t monster_clear(H5F_t * f, void *  thing, hbool_t dest);
-herr_t variable_clear(H5F_t * f, void *  thing, hbool_t dest);
-
-
-herr_t pico_dest(H5F_t * f, void * thing);
-herr_t nano_dest(H5F_t * f, void * thing);
-herr_t micro_dest(H5F_t * f, void * thing);
-herr_t tiny_dest(H5F_t * f, void * thing);
-herr_t small_dest(H5F_t * f, void * thing);
-herr_t medium_dest(H5F_t * f, void * thing);
-herr_t large_dest(H5F_t * f, void * thing);
-herr_t huge_dest(H5F_t * f, void *  thing);
-herr_t monster_dest(H5F_t * f, void *  thing);
-herr_t variable_dest(H5F_t * f, void *  thing);
-
-
-herr_t pico_flush(H5F_t *f, hid_t dxpl_id, hbool_t dest,
-                  haddr_t addr, void *thing, unsigned * flags_ptr);
-herr_t nano_flush(H5F_t *f, hid_t dxpl_id, hbool_t dest,
-                  haddr_t addr, void *thing, unsigned * flags_ptr);
-herr_t micro_flush(H5F_t *f, hid_t dxpl_id, hbool_t dest,
-                   haddr_t addr, void *thing, unsigned * flags_ptr);
-herr_t tiny_flush(H5F_t *f, hid_t dxpl_id, hbool_t dest,
-                  haddr_t addr, void *thing, unsigned * flags_ptr);
-herr_t small_flush(H5F_t *f, hid_t dxpl_id, hbool_t dest,
-                   haddr_t addr, void *thing, unsigned * flags_ptr);
-herr_t medium_flush(H5F_t *f, hid_t dxpl_id, hbool_t dest,
-                    haddr_t addr, void *thing, unsigned * flags_ptr);
-herr_t large_flush(H5F_t *f, hid_t dxpl_id, hbool_t dest,
-                   haddr_t addr, void *thing, unsigned * flags_ptr);
-herr_t huge_flush(H5F_t *f, hid_t dxpl_id, hbool_t dest,
-                  haddr_t addr, void *thing, unsigned * flags_ptr);
-herr_t monster_flush(H5F_t *f, hid_t dxpl_id, hbool_t dest,
-                     haddr_t addr, void *thing, unsigned * flags_ptr);
-herr_t variable_flush(H5F_t *f, hid_t dxpl_id, hbool_t dest,
-                      haddr_t addr, void *thing, unsigned * flags_ptr);
-
-
-void * pico_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, void *udata);
-void * nano_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, void *udata);
-void * micro_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, void *udata);
-void * tiny_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, void *udata);
-void * small_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, void *udata);
-void * medium_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, void *udata);
-void * large_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, void *udata);
-void * huge_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, void *udata);
-void * monster_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, void *udata);
-void * variable_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, void *udata);
-
-
-herr_t pico_size(H5F_t * f, void * thing, size_t * size_ptr);
-herr_t nano_size(H5F_t * f, void * thing, size_t * size_ptr);
-herr_t micro_size(H5F_t * f, void * thing, size_t * size_ptr);
-herr_t tiny_size(H5F_t * f, void * thing, size_t * size_ptr);
-herr_t small_size(H5F_t * f, void * thing, size_t * size_ptr);
-herr_t medium_size(H5F_t * f, void * thing, size_t * size_ptr);
-herr_t large_size(H5F_t * f, void * thing, size_t * size_ptr);
-herr_t huge_size(H5F_t * f, void * thing, size_t * size_ptr);
-herr_t monster_size(H5F_t * f, void * thing, size_t * size_ptr);
-herr_t variable_size(H5F_t * f, void * thing, size_t * size_ptr);
 
 /* callback table extern */
 
@@ -618,16 +464,15 @@ void expunge_entry(H5F_t * file_ptr,
 void insert_entry(H5F_t * file_ptr,
                   int32_t type,
                   int32_t idx,
-                  hbool_t dirty,
                   unsigned int flags);
 
 void mark_entry_dirty(int32_t type,
 		              int32_t idx);
 
 void move_entry(H5C_t * cache_ptr,
-                  int32_t type,
-                  int32_t idx,
-                  hbool_t main_addr);
+                int32_t type,
+                int32_t idx,
+                hbool_t main_addr);
 
 void protect_entry(H5F_t * file_ptr,
                    int32_t type,
@@ -650,10 +495,10 @@ void create_pinned_entry_dependency(H5F_t * file_ptr,
 void reset_entries(void);
 
 void resize_entry(H5F_t * file_ptr,
-                   int32_t type,
-                   int32_t idx,
-                   size_t new_size,
-                   hbool_t resize_pin);
+                  int32_t type,
+                  int32_t idx,
+                  size_t new_size,
+                  hbool_t in_cache);
 
 H5F_t *setup_cache(size_t max_cache_size, size_t min_clean_size);
 
@@ -664,7 +509,6 @@ void row_major_scan_forward(H5F_t * file_ptr,
                             hbool_t display_stats,
                             hbool_t display_detailed_stats,
                             hbool_t do_inserts,
-                            hbool_t dirty_inserts,
                             hbool_t do_moves,
                             hbool_t move_to_main_addr,
                             hbool_t do_destroys,
@@ -678,8 +522,7 @@ void hl_row_major_scan_forward(H5F_t * file_ptr,
                                hbool_t reset_stats,
                                hbool_t display_stats,
                                hbool_t display_detailed_stats,
-                               hbool_t do_inserts,
-                               hbool_t dirty_inserts);
+                               hbool_t do_inserts);
 
 void row_major_scan_backward(H5F_t * file_ptr,
                              int32_t lag,
@@ -688,7 +531,6 @@ void row_major_scan_backward(H5F_t * file_ptr,
                              hbool_t display_stats,
                              hbool_t display_detailed_stats,
                              hbool_t do_inserts,
-                             hbool_t dirty_inserts,
                              hbool_t do_moves,
                              hbool_t move_to_main_addr,
                              hbool_t do_destroys,
@@ -702,8 +544,7 @@ void hl_row_major_scan_backward(H5F_t * file_ptr,
                                 hbool_t reset_stats,
                                 hbool_t display_stats,
                                 hbool_t display_detailed_stats,
-                                hbool_t do_inserts,
-                                hbool_t dirty_inserts);
+                                hbool_t do_inserts);
 
 void col_major_scan_forward(H5F_t * file_ptr,
                             int32_t lag,
@@ -712,7 +553,6 @@ void col_major_scan_forward(H5F_t * file_ptr,
                             hbool_t display_stats,
                             hbool_t display_detailed_stats,
                             hbool_t do_inserts,
-                            hbool_t dirty_inserts,
                             int dirty_unprotects);
 
 void hl_col_major_scan_forward(H5F_t * file_ptr,
@@ -722,7 +562,6 @@ void hl_col_major_scan_forward(H5F_t * file_ptr,
                                hbool_t display_stats,
                                hbool_t display_detailed_stats,
                                hbool_t do_inserts,
-                               hbool_t dirty_inserts,
                                int dirty_unprotects);
 
 void col_major_scan_backward(H5F_t * file_ptr,
@@ -732,7 +571,6 @@ void col_major_scan_backward(H5F_t * file_ptr,
                              hbool_t display_stats,
                              hbool_t display_detailed_stats,
                              hbool_t do_inserts,
-                             hbool_t dirty_inserts,
                              int dirty_unprotects);
 
 void hl_col_major_scan_backward(H5F_t * file_ptr,
@@ -742,7 +580,6 @@ void hl_col_major_scan_backward(H5F_t * file_ptr,
                                 hbool_t display_stats,
                                 hbool_t display_detailed_stats,
                                 hbool_t do_inserts,
-                                hbool_t dirty_inserts,
                                 int dirty_unprotects);
 
 void takedown_cache(H5F_t * file_ptr,
@@ -760,14 +597,7 @@ void unpin_entry(int32_t type,
 void unprotect_entry(H5F_t * file_ptr,
                      int32_t type,
                      int32_t idx,
-                     int dirty,
                      unsigned int flags);
-
-void unprotect_entry_with_size_change(H5F_t * file_ptr,
-                                      int32_t type,
-                                      int32_t idx,
-                                      unsigned int flags,
-                                      size_t new_size);
 
 void verify_clean(void);
 
