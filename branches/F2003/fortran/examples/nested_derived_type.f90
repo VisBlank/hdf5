@@ -139,7 +139,7 @@ PROGRAM main
   ! Write data to the dataset
   !
   
-  f_ptr = C_LOC(s1)
+  f_ptr = C_LOC(s1(1))
   CALL H5Dwrite_f(dataset, s1_tid, f_ptr, hdferr)
 
   !
@@ -171,7 +171,7 @@ PROGRAM main
   ! Read two fields c and a from s1 dataset. Fields in the file
   ! are found by their names "c_name" and "a_name".
 
-  f_ptr = C_LOC(s2)
+  f_ptr = C_LOC(s2(1))
   CALL H5Dread_f(dataset, s2_tid, f_ptr, hdferr)
 
   !
@@ -195,7 +195,7 @@ PROGRAM main
   ! Read field b from s1 dataset. Field in the file is found by its name.
   !
   s3(:)=-1
-  f_ptr = C_LOC(s3)
+  f_ptr = C_LOC(s3(1))
   CALL H5Dread_f(dataset, s3_tid, f_ptr, hdferr)
   !
   ! Display the field

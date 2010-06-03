@@ -109,21 +109,20 @@ PROGRAM RWDSET_FORTRAN2003
   CALL H5Dcreate_f(file_id, dsetnamer4, h5kind_to_type(real_kind_7,H5_REAL_KIND),  dspace_id, dset_idr4, error)
   CALL H5Dcreate_f(file_id, dsetnamer8, h5kind_to_type(real_kind_15,H5_REAL_KIND), dspace_id, dset_idr8, error)
 
-
   !
   ! Write the dataset.
   !
-  f_ptr = C_LOC(dset_data_i1)
+  f_ptr = C_LOC(dset_data_i1(1))
   CALL h5dwrite_f(dset_id1, h5kind_to_type(int_kind_1,H5_INTEGER_KIND), f_ptr, error)
-  f_ptr = C_LOC(dset_data_i4)
+  f_ptr = C_LOC(dset_data_i4(1))
   CALL h5dwrite_f(dset_id4, h5kind_to_type(int_kind_4,H5_INTEGER_KIND), f_ptr, error)
-  f_ptr = C_LOC(dset_data_i8)
+  f_ptr = C_LOC(dset_data_i8(1))
   CALL h5dwrite_f(dset_id8, h5kind_to_type(int_kind_8,H5_INTEGER_KIND), f_ptr, error)
-  f_ptr = C_LOC(dset_data_i16)
+  f_ptr = C_LOC(dset_data_i16(1))
   CALL h5dwrite_f(dset_id16, h5kind_to_type(int_kind_16,H5_INTEGER_KIND), f_ptr, error)
-  f_ptr = C_LOC(dset_data_r7)
+  f_ptr = C_LOC(dset_data_r7(1))
   CALL h5dwrite_f(dset_idr4, h5kind_to_type(real_kind_7,H5_REAL_KIND), f_ptr, error)
-  f_ptr = C_LOC(dset_data_r15)
+  f_ptr = C_LOC(dset_data_r15(1))
   CALL h5dwrite_f(dset_idr8, h5kind_to_type(real_kind_15,H5_REAL_KIND), f_ptr, error)
   !
   ! Close the file
@@ -138,17 +137,17 @@ PROGRAM RWDSET_FORTRAN2003
   !
   ! Read data back into an integer size that is larger then the original size used for 
   ! writing the data
-  f_ptr = C_LOC(data_out_i16a)
+  f_ptr = C_LOC(data_out_i16a(1))
   CALL h5dread_f(dset_id1, h5kind_to_type(int_kind_1,H5_INTEGER_KIND), f_ptr,  error)
-  f_ptr = C_LOC(data_out_i4)
+  f_ptr = C_LOC(data_out_i4(1))
   CALL h5dread_f(dset_id4, h5kind_to_type(int_kind_4,H5_INTEGER_KIND), f_ptr,  error)
-  f_ptr = C_LOC(data_out_i8)
+  f_ptr = C_LOC(data_out_i8(1))
   CALL h5dread_f(dset_id8, h5kind_to_type(int_kind_8,H5_INTEGER_KIND), f_ptr,  error)
-  f_ptr = C_LOC(data_out_i16)
+  f_ptr = C_LOC(data_out_i16(1))
   CALL h5dread_f(dset_id16, h5kind_to_type(int_kind_16,H5_INTEGER_KIND), f_ptr,  error)
-  f_ptr = C_LOC(data_out_r7)
+  f_ptr = C_LOC(data_out_r7(1))
   CALL h5dread_f(dset_idr4, h5kind_to_type(real_kind_7,H5_REAL_KIND), f_ptr,  error)
-  f_ptr = C_LOC(data_out_r15)
+  f_ptr = C_LOC(data_out_r15(1))
   CALL h5dread_f(dset_idr8, h5kind_to_type(real_kind_15,H5_REAL_KIND), f_ptr,  error)
 
 
@@ -157,8 +156,8 @@ PROGRAM RWDSET_FORTRAN2003
   WRITE(*,'(A,4i8)' )'SELECTED_INT_KIND(Fortran_INTEGER_4):  ',data_out_i4
   WRITE(*,'(A,4i8)' )'SELECTED_INT_KIND(Fortran_INTEGER_8):  ',data_out_i8
   WRITE(*,'(A,4i8)' )'SELECTED_INT_KIND(Fortran_INTEGER_16): ',data_out_i16
-  WRITE(*,'(A,4(x,f9.4))' )'SELECTED_REAL_KIND(Fortran_REAL_7):  ',data_out_r7
-  WRITE(*,'(A,4(x,f16.10))' )'SELECTED_REAL_KIND(Fortran_REAL_15):  ',data_out_r15
+  WRITE(*,'(A,4(1x,f9.4))' )'SELECTED_REAL_KIND(Fortran_REAL_7):  ',data_out_r7
+  WRITE(*,'(A,4(1x,f16.10))' )'SELECTED_REAL_KIND(Fortran_REAL_15):  ',data_out_r15
   !
   ! Close the dataset.
   !
