@@ -22,6 +22,7 @@
 
 ./.autom4te.cfg             		_DO_NOT_DISTRIBUTE_
 ./.h5chkright.ini			_DO_NOT_DISTRIBUTE_
+./ACKNOWLEDGMENTS
 ./COPYING
 ./MANIFEST
 ./Makefile.dist
@@ -89,6 +90,7 @@
 ./config/i686-pc-cygwin
 ./config/ia64-linux-gnu
 ./config/ibm-aix
+./config/ibm-flags
 ./config/intel-fflags
 ./config/intel-flags
 ./config/irix6.x
@@ -406,7 +408,7 @@
 ./release_docs/INSTALL_Windows_Short_NET.TXT
 ./release_docs/INSTALL_Windows_Short_VS2005.TXT
 ./release_docs/INSTALL_Windows_Short_VS2008.TXT
-./release_docs/CMake_Windows.TXT
+./release_docs/CMake.txt
 ./release_docs/INSTALL_parallel
 ./release_docs/RELEASE.txt
 
@@ -1174,7 +1176,18 @@
 ./tools/testfiles/textlinksrc-5.ls
 ./tools/testfiles/textlinksrc-6.ls
 ./tools/testfiles/textlinksrc-7.ls
+./tools/testfiles/textlinksrc-1-old.ls
+./tools/testfiles/textlinksrc-2-old.ls
+./tools/testfiles/textlinksrc-3-old.ls
+./tools/testfiles/textlinksrc-6-old.ls
+./tools/testfiles/textlinksrc-7-old.ls
 ./tools/testfiles/textlinktar.h5
+./tools/testfiles/tsoftlinks.h5
+./tools/testfiles/tsoftlinks-1.ls
+./tools/testfiles/tsoftlinks-2.ls
+./tools/testfiles/tsoftlinks-3.ls
+./tools/testfiles/tsoftlinks-4.ls
+./tools/testfiles/tsoftlinks-5.ls
 ./tools/testfiles/tfamily.ddl
 ./tools/testfiles/tfamily00000.h5
 ./tools/testfiles/tfamily00001.h5
