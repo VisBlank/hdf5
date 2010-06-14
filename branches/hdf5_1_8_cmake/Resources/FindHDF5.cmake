@@ -43,7 +43,7 @@ FIND_PATH(HDF5_ROOT_DIR "HDF5-config.cmake"
   /usr/local/lib64
   /usr/lib
   /usr/lib64
-  "C:/Program Files/HDF5"
+  "C:/Program Files/HDF5/lib"
 )
 
 FIND_PATH(HDF5_INCLUDE_DIR "H5public.h"

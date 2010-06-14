@@ -11,7 +11,7 @@ SET(HDF5_FORTRAN_DIR ${HDF5_INCLUDE_DIRS}/fortran)
 # project which has already build hdf5 as a subproject
 #-----------------------------------------------------------------------------
 IF(NOT TARGET "hdf5")
-  INCLUDE(${SELF_DIR}/lib/HDF5-targets.cmake)
+  INCLUDE(${SELF_DIR}/HDF5-targets.cmake)
 ENDIF()
 
 SET(HDF5_VERSION_STRING @HDF5_VERSION_STRING@)
