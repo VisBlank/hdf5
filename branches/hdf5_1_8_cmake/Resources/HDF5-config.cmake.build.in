@@ -9,7 +9,8 @@ SET(HDF5_INCLUDE_DIRS "@HDF5_INCLUDES_BUILD_TIME@" )
 # project which has already build hdf5 as a subproject
 #-----------------------------------------------------------------------------
 IF(NOT TARGET "hdf5" AND NOT HDF5_INSTALL_SKIP_TARGETS)
-  INCLUDE(${CMAKE_CURRENT_LIST_FILE}/HDF5-targets.cmake)
+  GET_FILENAME_COMPONENT(SELF_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+  INCLUDE(${SELF_DIR}/HDF5-targets.cmake)
 ENDIF(NOT TARGET "hdf5" AND NOT HDF5_INSTALL_SKIP_TARGETS)
 
 SET(HDF5_VERSION_STRING @HDF5_VERSION_STRING@)
