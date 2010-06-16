@@ -1,5 +1,5 @@
 #
-# To be used by projects that make use of Cmakeified hdf5-1.8.5 
+# To be used by projects that make use of Cmakeified hdf5-1.8
 #
 
 #
@@ -37,22 +37,20 @@
 # To aid in finding HDF5 as part of a subproject set
 # HDF5_ROOT_DIR_HINT to the location where HDF5-config.cmake lies
 
-FIND_PATH(HDF5_ROOT_DIR "HDF5-config.cmake"
-  ${HDF5_ROOT_DIR_HINT}
-  /usr/local/lib
-  /usr/local/lib64
-  /usr/lib
-  /usr/lib64
-  "C:/Program Files/HDF5/lib"
+FIND_PATH (HDF5_ROOT_DIR "HDF5-config.cmake"
+    ${HDF5_ROOT_DIR_HINT}
+    /usr/local/lib
+    /usr/local/lib64
+    /usr/lib
+    /usr/lib64
+    "C:/Program Files/HDF5/lib"
 )
 
-FIND_PATH(HDF5_INCLUDE_DIR "H5public.h"
-  ${HDF5_ROOT_DIR}/../include
+FIND_PATH (HDF5_INCLUDE_DIR "H5public.h"
+    ${HDF5_ROOT_DIR}/../include
 )
 
-IF(HDF5_INCLUDE_DIR)
-  SET(HDF5_FOUND "YES")
-  INCLUDE(${HDF5_ROOT_DIR}/HDF5-config.cmake)
-ENDIF(HDF5_INCLUDE_DIR)
-
-
+IF (HDF5_INCLUDE_DIR)
+  SET (HDF5_FOUND "YES")
+  INCLUDE (${HDF5_ROOT_DIR}/HDF5-config.cmake)
+ENDIF (HDF5_INCLUDE_DIR)

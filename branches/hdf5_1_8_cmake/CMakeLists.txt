@@ -333,10 +333,9 @@ IF (CMAKE_COMPILER_IS_GNUCXX)
 ENDIF (CMAKE_COMPILER_IS_GNUCXX)
 
 #-----------------------------------------------------------------------------
-# All libs/tests/exmples need the main include dirs
+# All libs/tests/examples need the main include directories
 #-----------------------------------------------------------------------------
-INCLUDE_DIRECTORIES(${HDF5_BINARY_DIR} ${HDF5_SRC_DIR})
-# ${HDF5_CPP_SOURCE_DIR} ${HDF5_HL_SOURCE_DIR} ${HDF5_TOOLS_SOURCE_DIR} 
+INCLUDE_DIRECTORIES (${HDF5_BINARY_DIR} ${HDF5_SRC_DIR})
 
 #-----------------------------------------------------------------------------
 # Option to Enable MPI Parallel
@@ -565,7 +564,6 @@ INSTALL (
 
 #-----------------------------------------------------------------------------
 # Export all exported targets to the build tree for use by parent project
-# or by developers building projects against the hdf5 build tree
 #-----------------------------------------------------------------------------
 EXPORT (
     TARGETS
@@ -581,11 +579,11 @@ SET (HDF5_INCLUDES_BUILD_TIME
     ${HDF5_SRC_DIR} ${HDF5_CPP_SOURCE_DIR} ${HDF5_HL_SOURCE_DIR}
     ${HDF5_TOOLS_SOURCE_DIR} ${HDF5_BINARY_DIR}
 )
-SET(HDF5_VERSION_STRING @HDF5_PACKAGE_VERSION@)
-SET(HDF5_VERSION_MAJOR  @HDF5_PACKAGE_VERSION_MAJOR@)
-SET(HDF5_VERSION_MINOR  @HDF5_PACKAGE_VERSION_MINOR@)
+SET (HDF5_VERSION_STRING @HDF5_PACKAGE_VERSION@)
+SET (HDF5_VERSION_MAJOR  @HDF5_PACKAGE_VERSION_MAJOR@)
+SET (HDF5_VERSION_MINOR  @HDF5_PACKAGE_VERSION_MINOR@)
 
-CONFIGURE_FILE(
+CONFIGURE_FILE (
     ${HDF5_SOURCE_DIR}/Resources/HDF5-config.cmake.build.in 
     ${HDF5_BINARY_DIR}/HDF5-config.cmake @ONLY
 )
@@ -593,13 +591,14 @@ CONFIGURE_FILE(
 #-----------------------------------------------------------------------------
 # Configure the HDF5-config.cmake file for the install directory
 #-----------------------------------------------------------------------------
-INSTALL ( CODE
-  "SET(HDF5_INSTALL_SKIP_TARGETS 1)
-   INCLUDE(${HDF5_BINARY_DIR}/HDF5-config.cmake) 
-   CONFIGURE_FILE(
-     \"${HDF5_SOURCE_DIR}/Resources/HDF5-config.cmake.install.in\" 
-     \"${CMAKE_INSTALL_PREFIX}/lib/HDF5-config.cmake\" @ONLY)
-  "
+INSTALL (CODE
+    "SET (HDF5_INSTALL_SKIP_TARGETS 1)
+     INCLUDE (${HDF5_BINARY_DIR}/HDF5-config.cmake) 
+     CONFIGURE_FILE (
+         \"${HDF5_SOURCE_DIR}/Resources/HDF5-config.cmake.install.in\" 
+         \"${CMAKE_INSTALL_PREFIX}/lib/HDF5-config.cmake\" @ONLY
+     )
+    "
 )
 
 #-----------------------------------------------------------------------------

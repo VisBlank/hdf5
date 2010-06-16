@@ -2,27 +2,27 @@
 # HDF5 Config file for compiling against hdf5 install directory
 #-----------------------------------------------------------------------------
 
-GET_FILENAME_COMPONENT(SELF_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
-GET_FILENAME_COMPONENT(HDF5_INCLUDE_DIRS "${SELF_DIR}/../include" ABSOLUTE)
-SET(HDF5_FORTRAN_DIR ${HDF5_INCLUDE_DIRS}/fortran)
+GET_FILENAME_COMPONENT (SELF_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+GET_FILENAME_COMPONENT (HDF5_INCLUDE_DIRS "${SELF_DIR}/../include" ABSOLUTE)
+SET (HDF5_FORTRAN_DIR ${HDF5_INCLUDE_DIRS}/fortran)
 
 #-----------------------------------------------------------------------------
 # Don't include targets if this file is being picked up by another
 # project which has already build hdf5 as a subproject
 #-----------------------------------------------------------------------------
-IF(NOT TARGET "hdf5")
-  INCLUDE(${SELF_DIR}/HDF5-targets.cmake)
-ENDIF()
+IF (NOT TARGET "hdf5")
+  INCLUDE (${SELF_DIR}/HDF5-targets.cmake)
+ENDIF (NOT TARGET "hdf5")
 
-SET(HDF5_VERSION_STRING @HDF5_VERSION_STRING@)
-SET(HDF5_VERSION_MAJOR  @HDF5_VERSION_MAJOR@)
-SET(HDF5_VERSION_MINOR  @HDF5_VERSION_MINOR@)
+SET (HDF5_VERSION_STRING @HDF5_VERSION_STRING@)
+SET (HDF5_VERSION_MAJOR  @HDF5_VERSION_MAJOR@)
+SET (HDF5_VERSION_MINOR  @HDF5_VERSION_MINOR@)
 
-SET(HDF5_ENABLE_PARALLEL @HDF5_ENABLE_PARALLEL@)
-SET(HDF5_BUILD_FORTRAN   @HDF5_BUILD_FORTRAN@)
-SET(HDF5_BUILD_CPP_LIB   @HDF5_BUILD_CPP_LIB@)
-SET(HDF5_BUILD_TOOLS     @HDF5_BUILD_TOOLS@)
-SET(HDF5_BUILD_HL_LIB    @HDF5_BUILD_HL_LIB@)
+SET (HDF5_ENABLE_PARALLEL @HDF5_ENABLE_PARALLEL@)
+SET (HDF5_BUILD_FORTRAN   @HDF5_BUILD_FORTRAN@)
+SET (HDF5_BUILD_CPP_LIB   @HDF5_BUILD_CPP_LIB@)
+SET (HDF5_BUILD_TOOLS     @HDF5_BUILD_TOOLS@)
+SET (HDF5_BUILD_HL_LIB    @HDF5_BUILD_HL_LIB@)
 
 #
 # To be continued ...
@@ -41,5 +41,3 @@ SET(HDF5_BUILD_HL_LIB    @HDF5_BUILD_HL_LIB@)
 # XXX_RUNTIME_LIBRARY_DIRS Optionally, the runtime library search path for use when running an executable linked to shared libraries.
 #                          The list should be used by user code to create the PATH on windows or LD_LIBRARY_PATH on unix.
 #                          This should not be a cache entry.
-
- 
