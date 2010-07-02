@@ -1444,6 +1444,10 @@ H5O_move_msgs_forward(H5F_t *f, hid_t dxpl_id, H5O_t *oh)
 {
     hbool_t packed_msg;                 /* Flag to indicate that messages were packed */
     hbool_t did_packing = FALSE;        /* Whether any messages were packed */
+    H5O_chunk_proxy_t *null_chk_proxy=NULL;  /* Chunk that null message is in */
+    H5O_chunk_proxy_t *curr_chk_proxy=NULL;  /* Chunk that message is in */
+    unsigned null_chk_dirtied = FALSE;  /* Flags for unprotecting null chunk */
+    unsigned curr_chk_dirtied = FALSE;  /* Flags for unprotecting curr chunk */
     htri_t ret_value; 	                /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5O_move_msgs_forward)
@@ -1482,7 +1486,7 @@ H5O_move_msgs_forward(H5F_t *f, hid_t dxpl_id, H5O_t *oh)
                             /* Don't swap messages if the second message is also a null message */
                             /* (We'll merge them together later, in another routine) */
                             if(H5O_NULL_ID != nonnull_msg->type->id) {
-                                H5O_chunk_proxy_t *null_chk_proxy;        /* Chunk that message is in */
+                                null_chk_proxy = NULL;        /* Chunk that message is in */
 
                                 /* Protect chunk */
                                 if(NULL == (null_chk_proxy = H5O_chunk_protect(f, dxpl_id, oh, curr_msg->chunkno)))
@@ -1506,7 +1510,8 @@ H5O_move_msgs_forward(H5F_t *f, hid_t dxpl_id, H5O_t *oh)
                                 /* Release chunk, marking it dirty */
                                 if(H5O_chunk_unprotect(f, dxpl_id, null_chk_proxy, TRUE) < 0)
                                     HGOTO_ERROR(H5E_OHDR, H5E_CANTUNPROTECT, FAIL, "unable to unprotect object header chunk")
-
+                                null_chk_proxy = NULL;
+ 
                                 /* Set the flag to indicate that the null message
                                  * was packed - if its not at the end its chunk,
                                  * we'll move it again on the next pass.
@@ -1544,13 +1549,14 @@ H5O_move_msgs_forward(H5F_t *f, hid_t dxpl_id, H5O_t *oh)
                     for(v = 0, null_msg = &oh->mesg[0]; v < oh->nmesgs; v++, null_msg++) {
                         if(H5O_NULL_ID == null_msg->type->id && curr_msg->chunkno > null_msg->chunkno
                                 && curr_msg->raw_size <= null_msg->raw_size) {
-                            H5O_chunk_proxy_t *null_chk_proxy;  /* Chunk that null message is in */
-                            H5O_chunk_proxy_t *curr_chk_proxy;  /* Chunk that message is in */
-                            unsigned null_chk_dirtied = FALSE;  /* Flags for unprotecting null chunk */
-                            unsigned curr_chk_dirtied = FALSE;  /* Flags for unprotecting curr chunk */
                             unsigned old_chunkno;   /* Old message information */
                             uint8_t *old_raw;
 
+                            null_chk_proxy = NULL;
+                            curr_chk_proxy = NULL;
+                            null_chk_dirtied = FALSE;
+                            curr_chk_dirtied = FALSE;
+ 
                             /* Keep old information about non-null message */
                             old_chunkno = curr_msg->chunkno;
                             old_raw = curr_msg->raw;
@@ -1583,6 +1589,7 @@ H5O_move_msgs_forward(H5F_t *f, hid_t dxpl_id, H5O_t *oh)
                                 /* Release current chunk, marking it dirty */
                                 if(H5O_chunk_unprotect(f, dxpl_id, curr_chk_proxy, curr_chk_dirtied) < 0)
                                     HGOTO_ERROR(H5E_OHDR, H5E_CANTUNPROTECT, FAIL, "unable to unprotect object header chunk")
+                                curr_chk_proxy = NULL;
 
                                 /* Check for gap in null message's chunk */
                                 if(oh->chunk[old_chunkno].gap > 0) {
@@ -1596,6 +1603,7 @@ H5O_move_msgs_forward(H5F_t *f, hid_t dxpl_id, H5O_t *oh)
                                 /* Release null chunk, marking it dirty */
                                 if(H5O_chunk_unprotect(f, dxpl_id, null_chk_proxy, null_chk_dirtied) < 0)
                                     HGOTO_ERROR(H5E_OHDR, H5E_CANTUNPROTECT, FAIL, "unable to unprotect object header chunk")
+                                null_chk_proxy = NULL;
                             } /* end if */
                             else {
                                 unsigned new_null_msg;          /* Message index for new null message */
@@ -1643,6 +1651,7 @@ H5O_move_msgs_forward(H5F_t *f, hid_t dxpl_id, H5O_t *oh)
                                 /* Release null message's chunk, marking it dirty */
                                 if(H5O_chunk_unprotect(f, dxpl_id, null_chk_proxy, null_chk_dirtied) < 0)
                                     HGOTO_ERROR(H5E_OHDR, H5E_CANTUNPROTECT, FAIL, "unable to unprotect object header chunk")
+                                null_chk_proxy = NULL;
 
                                 /* Initialize new null message to take over non-null message's location */
                                 oh->mesg[new_null_msg].type = H5O_MSG_NULL;
@@ -1667,6 +1676,7 @@ H5O_move_msgs_forward(H5F_t *f, hid_t dxpl_id, H5O_t *oh)
                                 /* Release new null message's chunk, marking it dirty */
                                 if(H5O_chunk_unprotect(f, dxpl_id, curr_chk_proxy, curr_chk_dirtied) < 0)
                                     HGOTO_ERROR(H5E_OHDR, H5E_CANTUNPROTECT, FAIL, "unable to unprotect object header chunk")
+                                curr_chk_proxy = NULL;
                             } /* end else */
 
                             /* Indicate that we packed messages */
@@ -1697,6 +1707,11 @@ H5O_move_msgs_forward(H5F_t *f, hid_t dxpl_id, H5O_t *oh)
     ret_value = (htri_t)did_packing;
 
 done:
+    if(null_chk_proxy)
+        H5O_chunk_unprotect(f, dxpl_id, null_chk_proxy, null_chk_dirtied);
+    if(curr_chk_proxy)
+        H5O_chunk_unprotect(f, dxpl_id, curr_chk_proxy, curr_chk_dirtied);
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5O_move_msgs_forward() */
 
