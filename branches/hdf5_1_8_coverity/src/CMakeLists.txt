@@ -17,6 +17,8 @@ SET (H5_HDRS
     ${HDF5_SRC_DIR}/hdf5.h
     ${HDF5_SRC_DIR}/H5api_adpt.h
     ${HDF5_SRC_DIR}/H5public.h
+    ${HDF5_SRC_DIR}/H5version.h
+    ${HDF5_SRC_DIR}/H5overflow.h
 )
 IDE_GENERATED_PROPERTIES ("H5" "${H5_HDRS}" "${H5_SRCS}" )
 
@@ -544,14 +546,8 @@ SET (H5_PRIVATE_HEADERS
     ${HDF5_SRC_DIR}/H5Vprivate.h
     ${HDF5_SRC_DIR}/H5WBprivate.h
     ${HDF5_SRC_DIR}/H5Zprivate.h
+    ${HDF5_SRC_DIR}/H5win32defs.h
 )
-
-IF (WIN32)
-  SET (H5_PRIVATE_HEADERS
-      ${H5_PRIVATE_HEADERS}
-      ${HDF5_SRC_DIR}/H5win32defs.h
-  )
-ENDIF (WIN32)
 
 INCLUDE_DIRECTORIES (${HDF5_SOURCE_DIR})
 INCLUDE_DIRECTORIES (${CMAKE_BINARY_DIR})
@@ -651,6 +647,8 @@ INSTALL (
         ${H5_PRIVATE_HEADERS}
     DESTINATION
         include
+    COMPONENT
+        headers
 )
 
 #-----------------------------------------------------------------------------
@@ -662,8 +660,8 @@ IF (HDF5_EXPORTED_TARGETS)
           ${HDF5_LIB_TARGET}
       EXPORT
           ${HDF5_EXPORTED_TARGETS}
-      LIBRARY DESTINATION lib
-      ARCHIVE DESTINATION lib
-      RUNTIME DESTINATION bin
+      LIBRARY DESTINATION lib COMPONENT libraries
+      ARCHIVE DESTINATION lib COMPONENT libraries
+      RUNTIME DESTINATION bin COMPONENT libraries
   )
 ENDIF (HDF5_EXPORTED_TARGETS)

@@ -4,14 +4,14 @@ PROJECT(HDF5_HL_F90_SRC C CXX Fortran)
 #-----------------------------------------------------------------------------
 # Setup include Directories
 #-----------------------------------------------------------------------------
-INCLUDE_DIRECTORIES (${HDF5_F90_SOURCE_DIR}/src)
-INCLUDE_DIRECTORIES (${HDF5_F90_BINARY_DIR})
-INCLUDE_DIRECTORIES (${HDF5_F90_SRC_BINARY_DIR})
-
-INCLUDE_DIRECTORIES (${HDF5_HL_F90_SRC_SOURCE_DIR})
-INCLUDE_DIRECTORIES (${HDF5_HL_SOURCE_DIR}/src)
-
-INCLUDE_DIRECTORIES (${CMAKE_Fortran_MODULE_DIRECTORY} ${HDF5_F90_BINARY_DIR} ${HDF5_F90_SOURCE_DIR}/src)
+INCLUDE_DIRECTORIES (
+    ${CMAKE_Fortran_MODULE_DIRECTORY} 
+    ${HDF5_F90_BINARY_DIR} 
+    ${HDF5_F90_SOURCE_DIR}/src
+    ${HDF5_F90_SRC_BINARY_DIR}
+    ${HDF5_HL_F90_SRC_SOURCE_DIR}
+    ${HDF5_HL_SOURCE_DIR}/src
+)
 LINK_DIRECTORIES (
     ${CMAKE_Fortran_MODULE_DIRECTORY}
     ${HDF5_HL_F90_BINARY_DIR}
@@ -21,9 +21,6 @@ LINK_DIRECTORIES (
 #-----------------------------------------------------------------------------
 # List Source files
 #-----------------------------------------------------------------------------
-#MESSAGE ("Fortran source is in ${HDF5_F90_SOURCE_DIR}/src ")
-
-
 SET (HDF5_HL_F90_F_SRCS
     ${HDF5_HL_F90_SRC_SOURCE_DIR}/H5TBff.f90
     ${HDF5_HL_F90_SRC_SOURCE_DIR}/H5LTff.f90
@@ -46,7 +43,6 @@ TARGET_LINK_LIBRARIES (${HDF5_HL_F90_C_LIB_TARGET}
 )
 #
 # To Ensure that generated files are built, we must force a dependency
-#
 ADD_DEPENDENCIES(${HDF5_HL_F90_C_LIB_TARGET} ${HDF5_F90_LIB_TARGET} ${HDF5_F90_C_LIB_TARGET})
 
 SET_GLOBAL_VARIABLE (HDF5_LIBRARIES_TO_EXPORT
@@ -82,6 +78,7 @@ SET_GLOBAL_VARIABLE (HDF5_LIBRARIES_TO_EXPORT
 )
 TARGET_LINK_LIBRARIES (${HDF5_HL_F90_LIB_TARGET}
     ${HDF5_HL_F90_C_LIB_TARGET}
+    ${HDF5_F90_LIB_TARGET}
 )
 H5_SET_LIB_OPTIONS (${HDF5_HL_F90_LIB_TARGET} ${HDF5_HL_F90_LIB_NAME} ${LIB_TYPE})
 ADD_DEPENDENCIES (${HDF5_HL_F90_LIB_TARGET} ${HDF5_HL_F90_C_LIB_TARGET})
@@ -96,8 +93,8 @@ IF (HDF5_EXPORTED_TARGETS)
           ${HDF5_HL_F90_LIB_TARGET}
       EXPORT
           ${HDF5_EXPORTED_TARGETS}
-      LIBRARY DESTINATION lib
-      ARCHIVE DESTINATION lib
-      RUNTIME DESTINATION bin
+      LIBRARY DESTINATION lib COMPONENT hlfortlibraries
+      ARCHIVE DESTINATION lib COMPONENT hlfortlibraries
+      RUNTIME DESTINATION bin COMPONENT hlfortlibraries
   )
 ENDIF (HDF5_EXPORTED_TARGETS)
