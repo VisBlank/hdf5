@@ -1667,6 +1667,7 @@ H5O_protect(const H5O_loc_t *loc, hid_t dxpl_id, H5AC_protect_t prot)
          *      when the object header is actually loaded from the file.
          */
         HDassert(udata.made_attempt == TRUE);
+        HDassert(cont_msg_info.msgs);
 
         /* Construct the user data for protecting chunks */
         chk_udata.decoding = TRUE;
@@ -1708,8 +1709,7 @@ H5O_protect(const H5O_loc_t *loc, hid_t dxpl_id, H5AC_protect_t prot)
         } /* end while */
 
         /* Release any continuation messages built up */
-        if(cont_msg_info.msgs)
-            cont_msg_info.msgs = (H5O_cont_t *)H5FL_SEQ_FREE(H5O_cont_t, cont_msg_info.msgs);
+        cont_msg_info.msgs = (H5O_cont_t *)H5FL_SEQ_FREE(H5O_cont_t, cont_msg_info.msgs);
 
         /* Pass back out some of the chunk's user data */
         udata.common.merged_null_msgs = chk_udata.common.merged_null_msgs;
@@ -1975,7 +1975,7 @@ H5O_touch_oh(H5F_t *f, hid_t dxpl_id, H5O_t *oh, hbool_t force)
 
         /* Check version, to determine how to store time information */
         if(oh->version == H5O_VERSION_1) {
-            int	idx;                    /* Index of modification time message to update */
+            unsigned int	idx;                    /* Index of modification time message to update */
 
             /* Look for existing message */
             for(idx = 0; idx < (int)oh->nmesgs; idx++)
