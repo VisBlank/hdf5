@@ -5423,10 +5423,10 @@ static H5S_hyper_span_info_t *
 H5S_hyper_make_spans(unsigned rank, const hsize_t *start, const hsize_t *stride,
     const hsize_t *count, const hsize_t *block)
 {
-    H5S_hyper_span_info_t *down;            /* Pointer to spans in next dimension down */
-    H5S_hyper_span_t      *span;            /* New hyperslab span */
-    H5S_hyper_span_t      *last_span;       /* Current position in hyperslab span list */
-    H5S_hyper_span_t      *head;            /* Head of new hyperslab span list */
+    H5S_hyper_span_info_t *down = NULL;            /* Pointer to spans in next dimension down */
+    H5S_hyper_span_t      *span = NULL;            /* New hyperslab span */
+    H5S_hyper_span_t      *last_span = NULL;       /* Current position in hyperslab span list */
+    H5S_hyper_span_t      *head = NULL;            /* Head of new hyperslab span list */
     hsize_t                stride_iter;     /* Iterator over the stride values */
     int                    i;               /* Counters */
     unsigned               u;               /* Counters */
@@ -5442,7 +5442,6 @@ H5S_hyper_make_spans(unsigned rank, const hsize_t *start, const hsize_t *stride,
     HDassert(block);
 
     /* Start creating spans in fastest changing dimension */
-    down = NULL;
     for(i = (rank - 1); i >= 0; i--) {
 
         /* Sanity check */

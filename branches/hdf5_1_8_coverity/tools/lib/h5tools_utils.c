@@ -659,7 +659,7 @@ int H5tools_get_link_info(hid_t file_id, const char * linkpath, h5tool_link_info
     int Ret = -1; /* init to fail */
     htri_t l_ret;
     H5O_info_t trg_oinfo;
-    hid_t fapl;
+    hid_t fapl = H5P_DEFAULT;
     hid_t lapl = H5P_DEFAULT;
 
     /* init */
