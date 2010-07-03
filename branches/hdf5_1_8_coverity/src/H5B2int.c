@@ -179,7 +179,8 @@ H5B2_split1(H5B2_hdr_t *hdr, hid_t dxpl_id, unsigned depth, H5B2_node_ptr_t *cur
     const H5AC_class_t *child_class = NULL; /* Pointer to child node's class info */
     haddr_t left_addr = NULL;               /* Address of left child node */
     haddr_t right_addr = NULL;              /* Address of right child node */
-    void *left_child, *right_child;         /* Pointers to child nodes */
+    void *left_child = NULL;                /* Pointer to child node */
+    void *right_child = NULL;               /* Pointer to child node */
     uint16_t *left_nrec, *right_nrec;       /* Pointers to child # of records */
     uint8_t *left_native, *right_native;    /* Pointers to childs' native records */
     H5B2_node_ptr_t *left_node_ptrs = NULL, *right_node_ptrs = NULL;/* Pointers to childs' node pointer info */
@@ -673,9 +674,9 @@ H5B2_redistribute3(H5B2_hdr_t *hdr, hid_t dxpl_id, unsigned depth,
     const H5AC_class_t *child_class;    /* Pointer to child node's class info */
     haddr_t left_addr, right_addr;      /* Addresses of left & right child nodes */
     haddr_t middle_addr;                /* Address of middle child node */
-    void *left_child;                   /* Pointer to child node */
-    void *right_child;                  /* Pointer to child node */
-    void *middle_child;                 /* Pointer to middle child node */
+    void *left_child = NULL;            /* Pointer to child node */
+    void *right_child = NULL;           /* Pointer to child node */
+    void *middle_child = NULL;          /* Pointer to middle child node */
     uint16_t *left_nrec, *right_nrec;   /* Pointers to child # of records */
     uint16_t *middle_nrec;              /* Pointers to middle child # of records */
     uint8_t *left_native, *right_native;    /* Pointers to childs' native records */
