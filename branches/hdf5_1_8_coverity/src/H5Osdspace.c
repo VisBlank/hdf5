@@ -319,7 +319,7 @@ H5O_sdspace_copy(const void *_mesg, void *_dest)
 
 done:
     if(NULL == ret_value)
-        if(dest && NULL != _dest)
+        if(dest && !_dest)
             dest = H5FL_FREE(H5S_extent_t, dest);
 
     FUNC_LEAVE_NOAPI(ret_value)

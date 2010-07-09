@@ -25,9 +25,6 @@
 #include "h5test.h"
 #include "H5Iprivate.h"     /* For checking that datatype id's don't leak */
 
-/* Number of times to run each test */
-#define NTESTS	1
-
 /* Number of elements in each test */
 #define NTESTELEM	100000
 
@@ -4050,7 +4047,7 @@ test_conv_str_2(void)
     char		*buf = NULL, s[80];
     hid_t		c_type = -1;
     hid_t       	f_type = -1;
-    const size_t	nelmts = NTESTELEM, ntests=NTESTS;
+    const size_t	nelmts = NTESTELEM;
     size_t		i, j, nchars;
     int			ret_value = 1;
 
@@ -4069,19 +4066,14 @@ test_conv_str_2(void)
     } /* end for */
 
     /* Do the conversions */
-    for(i = 0; i < ntests; i++) {
-	if(ntests > 1)
-	    sprintf(s, "Testing random string conversion speed (test %d/%d)", (int)(i + 1), (int)ntests);
-	else
-	    sprintf(s, "Testing random string conversion speed");
-        printf("%-70s", s);
-        HDfflush(stdout);
-        if(H5Tconvert(c_type, f_type, nelmts, buf, NULL, H5P_DEFAULT) < 0)
-            goto error;
-        if(H5Tconvert(f_type, c_type, nelmts, buf, NULL, H5P_DEFAULT) < 0)
-            goto error;
-        PASSED();
-    } /* end for */
+    sprintf(s, "Testing random string conversion speed");
+    printf("%-70s", s);
+    HDfflush(stdout);
+    if(H5Tconvert(c_type, f_type, nelmts, buf, NULL, H5P_DEFAULT) < 0)
+        goto error;
+    if(H5Tconvert(f_type, c_type, nelmts, buf, NULL, H5P_DEFAULT) < 0)
+        goto error;
+    PASSED();
 
     ret_value = 0;
 
@@ -4233,7 +4225,6 @@ static int
 test_conv_enum_1(void)
 {
     const size_t nelmts=NTESTELEM;
-    const int	ntests=NTESTS;
     int		i, val, *buf=NULL;
     hid_t	t1 = -1;
     hid_t	t2 = -1;
@@ -4258,27 +4249,17 @@ test_conv_enum_1(void)
         buf[u] = HDrand() % 26;
 
     /* Conversions */
-    for(i = 0; i < ntests; i++) {
-	if(ntests > 1)
-	    sprintf(s, "Testing random enum conversion O(N) (test %d/%d)", i + 1, ntests);
-	else
-	    sprintf(s, "Testing random enum conversion O(N)");
-        printf("%-70s", s);
-        HDfflush(stdout);
-        if(H5Tconvert(t1, t2, nelmts, buf, NULL, H5P_DEFAULT) < 0) goto error;
-        PASSED();
-    } /* end for */
+    sprintf(s, "Testing random enum conversion O(N)");
+    printf("%-70s", s);
+    HDfflush(stdout);
+    if(H5Tconvert(t1, t2, nelmts, buf, NULL, H5P_DEFAULT) < 0) goto error;
+    PASSED();
 
-    for(i = 0; i < ntests; i++) {
-	if(ntests > 1)
-	    sprintf(s, "Testing random enum conversion O(N log N) (test %d/%d)", i + 1, ntests);
-	else
-	    sprintf(s, "Testing random enum conversion O(N log N)");
-        printf("%-70s", s);
-        HDfflush(stdout);
-        if(H5Tconvert(t2, t1, nelmts, buf, NULL, H5P_DEFAULT) < 0) goto error;
-        PASSED();
-    }
+    sprintf(s, "Testing random enum conversion O(N log N)");
+    printf("%-70s", s);
+    HDfflush(stdout);
+    if(H5Tconvert(t2, t1, nelmts, buf, NULL, H5P_DEFAULT) < 0) goto error;
+    PASSED();
 
     ret_value = 0;
 

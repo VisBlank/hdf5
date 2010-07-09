@@ -7522,13 +7522,6 @@ H5S_hyper_get_seq_list_gen(const H5S_t *space,H5S_sel_iter_t *iter,
 
                 /* Set the location of the last span's end */
                 last_span_end=loc_off+span_size;
-
-                /* If the sequence & offset arrays are full, do what? */
-                if(curr_seq>=maxseq) {
-                    /* Break out now, we are finished with sequences */
-                    break;
-
-                } /* end else */
 /* end COMMON */
 
                 /* Break out now, we are finished with I/O */
@@ -7554,13 +7547,13 @@ H5S_hyper_get_seq_list_gen(const H5S_t *space,H5S_sel_iter_t *iter,
 
                 /* Set the location of the last span's end */
                 last_span_end=loc_off+span_size;
+/* end COMMON */
 
                 /* If the sequence & offset arrays are full, do what? */
                 if(curr_seq>=maxseq) {
                     /* Break out now, we are finished with sequences */
                     break;
                 } /* end else */
-/* end COMMON */
             } /* end else */
 
 	    /* Move to next span in fastest changing dimension */
