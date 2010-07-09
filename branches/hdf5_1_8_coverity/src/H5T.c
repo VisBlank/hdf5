@@ -3857,9 +3857,9 @@ H5T_cmp(const H5T_t *dt1, const H5T_t *dt2, hbool_t superset)
 
     FUNC_ENTER_NOAPI(H5T_cmp, 0)
 
-    /* Check the arguments; fail if one of the pointers is NULL */
-    if(!dt1 || !dt2)
-         HGOTO_DONE(-1);
+    /* Sanity check */
+    HDassert(dt1);
+    HDassert(dt2);
 
     /* the easy case */
     if(dt1 == dt2)
