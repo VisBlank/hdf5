@@ -4927,7 +4927,7 @@ validate_mdc_config(hid_t file_id,
     /* compare the cache's internal configuration with the expected value */
     if ( pass ) {
 
-	if ( ! resize_configs_are_equal(&int_config, &cache_ptr->resize_ctl,
+	if ( ! resize_configs_are_equal(&int_config, &(cache_ptr->resize_ctl),
                                         compare_init) ) {
 
             pass = FALSE;

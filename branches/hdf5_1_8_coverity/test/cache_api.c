@@ -413,7 +413,7 @@ check_fapl_mdc_api_calls(void)
     if ( pass ) {
 
 	if ( ! resize_configs_are_equal(&mod_auto_size_ctl, \
-                                        &cache_ptr->resize_ctl, TRUE) ) {
+                                        &(cache_ptr->resize_ctl), TRUE) ) {
 
 
             pass = FALSE;
