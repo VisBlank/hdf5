@@ -486,11 +486,11 @@ static void gent_softlink(void)
 #define NY 2
 static int gent_softlink2(void)
 {
-    hid_t       fileid1;
-    hid_t       gid1=0, gid2=0;
-    hid_t       tid;
-    hid_t       dset1, dset2;
-    hid_t       datatype, dataspace;   
+    hid_t       fileid1 = -1;
+    hid_t       gid1 = -1, gid2 = -1;
+    hid_t       tid = -1;
+    hid_t       dset1 = -1, dset2 = -1;
+    hid_t       datatype = -1, dataspace = -1;   
     hsize_t     dimsf[2];              /* dataset dimensions */
     herr_t      status=SUCCEED;
     int data1[NX][NY] = {{0,0},{1,1},{2,2},{3,3}};
@@ -701,13 +701,34 @@ out:
     /*
      * Close/release resources.
      */
-    H5Sclose(dataspace);
-    H5Gclose(gid1);
-    H5Gclose(gid2);
-    H5Tclose(datatype);
-    H5Dclose(dset1);
-    H5Dclose(dset2);
-    H5Fclose(fileid1);
+    if(dataspace >= 0 && H5Sclose(dataspace) < 0) {
+        fprintf(stderr, "Error: %s> H5Sclose failed.\n", FILE4_1);
+        status = FAIL;
+    }
+    if(gid1 >= 0 && H5Gclose(gid1) < 0) {
+        fprintf(stderr, "Error: %s> H5Gclose failed.\n", FILE4_1);
+        status = FAIL;
+    }
+    if(gid2 >= 0 && H5Gclose(gid2) < 0) {
+        fprintf(stderr, "Error: %s> H5Gclose failed.\n", FILE4_1);
+        status = FAIL;
+    }
+    if(datatype >= 0 && H5Tclose(datatype) < 0) {
+        fprintf(stderr, "Error: %s> H5Tclose failed.\n", FILE4_1);
+        status = FAIL;
+    }
+    if(dset1 >= 0 && H5Dclose(dset1) < 0) {
+        fprintf(stderr, "Error: %s> H5Dclose failed.\n", FILE4_1);
+        status = FAIL;
+    }
+    if(dset2 >= 0 && H5Dclose(dset2) < 0) {
+        fprintf(stderr, "Error: %s> H5Dclose failed.\n", FILE4_1);
+        status = FAIL;
+    }
+    if(fileid1 >= 0 && H5Fclose(fileid1) < 0) {
+        fprintf(stderr, "Error: %s> H5Fclose failed.\n", FILE4_1);
+        status = FAIL;
+    }
 
     return status;
 }

@@ -196,10 +196,10 @@ H5O_chunk_protect(H5F_t *f, hid_t dxpl_id, H5O_t *oh, unsigned idx)
     ret_value = chk_proxy;
 
 done:
-
     /* Cleanup on error */
     if (!ret_value)
-        chk_proxy = H5FL_FREE(H5O_chunk_proxy_t, chk_proxy);
+        if(0 == idx && chk_proxy)
+            chk_proxy = H5FL_FREE(H5O_chunk_proxy_t, chk_proxy);
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5O_chunk_protect() */
