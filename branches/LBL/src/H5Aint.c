@@ -688,7 +688,7 @@ H5A_get_ainfo(H5F_t *f, hid_t dxpl_id, H5O_t *oh, H5O_ainfo_t *ainfo)
     H5B2_t *bt2_name = NULL;            /* v2 B-tree handle for name index */
     htri_t ret_value;   /* Return value */
 
-    FUNC_ENTER_NOAPI(H5A_get_ainfo, FAIL)
+    FUNC_ENTER_NOAPI_TAG(H5A_get_ainfo, dxpl_id, oh->cache_info.addr, FAIL)
 
     /* check arguments */
     HDassert(f);
@@ -727,7 +727,7 @@ done:
     if(bt2_name && H5B2_close(bt2_name, dxpl_id) < 0)
         HDONE_ERROR(H5E_ATTR, H5E_CLOSEERROR, FAIL, "can't close v2 B-tree for name index")
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_TAG(ret_value, FAIL)
 } /* end H5A_get_ainfo() */
 
 
@@ -920,7 +920,7 @@ H5A_attr_copy_file(const H5A_t *attr_src, H5F_t *file_dst, hbool_t *recompute_si
         *recompute_size = TRUE;
 
     /* Compute the size of the data */
-    H5_ASSIGN_OVERFLOW(attr_dst->shared->data_size, H5S_GET_EXTENT_NPOINTS(attr_dst->shared->ds) * H5T_get_size(attr_dst->shared->dt), hsize_t, size_t);
+    H5_ASSIGN_OVERFLOW(attr_dst->shared->data_size, H5S_GET_EXTENT_NPOINTS(attr_dst->shared->ds) * H5T_get_size(attr_dst->shared->dt), hssize_t, size_t);
 
     /* Copy (& convert) the data, if necessary */
     if(attr_src->shared->data) {
@@ -1157,15 +1157,21 @@ H5A_dense_copy_file_cb(const H5A_t *attr_src, void *_udata)
     if(H5O_msg_reset_share(H5O_ATTR_ID, attr_dst) < 0)
         HGOTO_ERROR(H5E_OHDR, H5E_CANTINIT, FAIL, "unable to reset attribute sharing")
 
+    /* Set COPIED tag for destination object's metadata */
+    H5_BEGIN_TAG(udata->dxpl_id, H5AC__COPIED_TAG, H5_ITER_ERROR);
+
     /* Insert attribute into dense storage */
     if(H5A_dense_insert(udata->file, udata->dxpl_id, udata->ainfo, attr_dst) < 0)
         HGOTO_ERROR(H5E_OHDR, H5E_CANTINSERT, H5_ITER_ERROR, "unable to add to dense storage")
 
+    /* Reset metadata tag */
+    H5_END_TAG(H5_ITER_ERROR);
+
 done:
-    if (attr_dst) {
+    if(attr_dst) {
         (void)H5A_free(attr_dst);
-        (void)H5FL_FREE(H5A_t, attr_dst);
-    }
+        attr_dst = H5FL_FREE(H5A_t, attr_dst);
+    } /* end if */
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5A_dense_copy_file_cb() */

@@ -134,7 +134,7 @@ H5D_compact_fill(H5D_t *dset, hid_t dxpl_id)
 
     /* Initialize the fill value buffer */
     /* (use the compact dataset storage buffer as the fill value buffer) */
-    if(H5D_fill_init(&fb_info, dset->shared->layout.storage.u.compact.buf, FALSE,
+    if(H5D_fill_init(&fb_info, dset->shared->layout.storage.u.compact.buf,
             NULL, NULL, NULL, NULL,
             &dset->shared->dcpl_cache.fill, dset->shared->type,
             dset->shared->type_id, (size_t)0, dset->shared->layout.storage.u.compact.size, dxpl_id) < 0)
@@ -172,7 +172,8 @@ done:
 static herr_t
 H5D_compact_construct(H5F_t *f, H5D_t *dset)
 {
-    hssize_t tmp_size;          /* Temporary holder for raw data size */
+    hssize_t stmp_size;         /* Temporary holder for raw data size */
+    hsize_t tmp_size;           /* Temporary holder for raw data size */
     hsize_t max_comp_data_size; /* Max. allowed size of compact data */
     herr_t ret_value = SUCCEED;         /* Return value */
 
@@ -186,7 +187,11 @@ H5D_compact_construct(H5F_t *f, H5D_t *dset)
      * Compact dataset is stored in dataset object header message of
      * layout.
      */
-    tmp_size = H5S_GET_EXTENT_NPOINTS(dset->shared->space) * H5T_get_size(dset->shared->type);
+    stmp_size = H5S_GET_EXTENT_NPOINTS(dset->shared->space);
+    HDassert(stmp_size >= 0);
+    tmp_size = H5T_get_size(dset->shared->type);
+    HDassert(tmp_size > 0);
+    tmp_size = tmp_size * (hsize_t)stmp_size;
     H5_ASSIGN_OVERFLOW(dset->shared->layout.storage.u.compact.size, tmp_size, hssize_t, size_t);
 
     /* Verify data size is smaller than maximum header message size
@@ -555,11 +560,11 @@ done:
         if(H5I_dec_ref(tid_mem, FALSE) < 0)
             HDONE_ERROR(H5E_DATASET, H5E_CANTFREE, FAIL, "Can't decrement temporary datatype ID")
     if(buf)
-        (void)H5FL_BLK_FREE(type_conv, buf);
+        buf = H5FL_BLK_FREE(type_conv, buf);
     if(reclaim_buf)
-        (void)H5FL_BLK_FREE(type_conv, reclaim_buf);
+        reclaim_buf = H5FL_BLK_FREE(type_conv, reclaim_buf);
     if(bkg)
-        (void)H5FL_BLK_FREE(type_conv, bkg);
+        bkg = H5FL_BLK_FREE(type_conv, bkg);
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5D_compact_copy() */

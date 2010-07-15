@@ -27,7 +27,6 @@
 /* Headers */
 /***********/
 #include "H5private.h"		/* Generic Functions			*/
-#include "H5ACprivate.h"	/* Metadata cache			*/
 #include "H5Dpkg.h"		/* Datasets 				*/
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5FLprivate.h"	/* Free lists                           */
@@ -167,8 +166,7 @@ H5Dcreate2(hid_t loc_id, const char *name, hid_t type_id, hid_t space_id,
             HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not dataset access property list")
 
     /* Create the new dataset & get its ID */
-    if(NULL == (dset = H5D_create_named(&loc, name, type_id, space, lcpl_id,
-            dcpl_id, dapl_id, H5AC_dxpl_id)))
+    if(NULL == (dset = H5D_create_named(&loc, name, type_id, space, lcpl_id, dcpl_id, dapl_id, H5AC_dxpl_id)))
 	HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, "unable to create dataset")
     if((ret_value = H5I_register(H5I_DATASET, dset, TRUE)) < 0)
 	HGOTO_ERROR(H5E_DATASET, H5E_CANTREGISTER, FAIL, "unable to register dataset")
@@ -329,7 +327,7 @@ H5Dopen2(hid_t loc_id, const char *name, hid_t dapl_id)
         HGOTO_ERROR(H5E_DATASET, H5E_BADTYPE, FAIL, "not a dataset")
 
     /* Open the dataset */
-    if((dset = H5D_open(&dset_loc, dapl_id, dxpl_id)) == NULL)
+    if(NULL == (dset = H5D_open(&dset_loc, dapl_id, dxpl_id)))
         HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, "can't open dataset")
 
     /* Register an atom for the dataset */
@@ -623,7 +621,7 @@ H5Dget_create_plist(hid_t dset_id)
                 H5I_dec_ref(src_id, FALSE);
                 H5I_dec_ref(dst_id, FALSE);
                 if(bkg_buf)
-                    (void)H5FL_BLK_FREE(type_conv, bkg_buf);
+                    bkg_buf = H5FL_BLK_FREE(type_conv, bkg_buf);
                 HGOTO_ERROR(H5E_DATASET, H5E_CANTCONVERT, FAIL, "datatype conversion failed")
             } /* end if */
 
@@ -631,7 +629,7 @@ H5Dget_create_plist(hid_t dset_id)
             H5I_dec_ref(src_id, FALSE);
             H5I_dec_ref(dst_id, FALSE);
             if(bkg_buf)
-                (void)H5FL_BLK_FREE(type_conv, bkg_buf);
+                bkg_buf = H5FL_BLK_FREE(type_conv, bkg_buf);
         } /* end if */
     } /* end if */
 
@@ -1039,9 +1037,9 @@ done:
             HDONE_ERROR(H5E_DATASET, H5E_CLOSEERROR, FAIL, "unable to release dataspace")
     } /* end if */
     if(vlen_bufsize.fl_tbuf != NULL)
-        (void)H5FL_BLK_FREE(vlen_fl_buf, vlen_bufsize.fl_tbuf);
+        vlen_bufsize.fl_tbuf = H5FL_BLK_FREE(vlen_fl_buf, vlen_bufsize.fl_tbuf);
     if(vlen_bufsize.vl_tbuf != NULL)
-        (void)H5FL_BLK_FREE(vlen_vl_buf, vlen_bufsize.vl_tbuf);
+        vlen_bufsize.vl_tbuf = H5FL_BLK_FREE(vlen_vl_buf, vlen_bufsize.vl_tbuf);
     if(vlen_bufsize.xfer_pid > 0) {
         if(H5I_dec_ref(vlen_bufsize.xfer_pid, FALSE) < 0)
             HDONE_ERROR(H5E_DATASET, H5E_CANTDEC, FAIL, "unable to decrement ref count on property list")

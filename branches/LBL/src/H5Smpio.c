@@ -49,6 +49,8 @@ static herr_t H5S_mpio_span_hyper_type(const H5S_t *space, size_t elmt_size,
 static herr_t H5S_obtain_datatype(const hsize_t down[], H5S_hyper_span_t* span,
     const MPI_Datatype *elmt_type, MPI_Datatype *span_type, size_t elmt_size);
 
+#define H5S_MPIO_INITIAL_ALLOC_COUNT    256
+
 
 /*-------------------------------------------------------------------------
  * Function:	H5S_mpio_all_type
@@ -489,8 +491,11 @@ static herr_t
 H5S_obtain_datatype(const hsize_t *down, H5S_hyper_span_t *span,
     const MPI_Datatype *elmt_type, MPI_Datatype *span_type, size_t elmt_size)
 {
+    size_t                alloc_count;          /* Number of span tree nodes allocated at this level */
     size_t                outercount;           /* Number of span tree nodes at this level */
     MPI_Datatype          *inner_type = NULL;
+    hbool_t inner_types_freed = FALSE;          /* Whether the inner_type MPI datatypes have been freed */
+    hbool_t span_type_valid = FALSE;            /* Whether the span_type MPI datatypes is valid */
     int                   *blocklen = NULL;
     MPI_Aint              *disp = NULL;
     H5S_hyper_span_t      *tspan;               /* Temporary pointer to span tree node */
@@ -502,76 +507,83 @@ H5S_obtain_datatype(const hsize_t *down, H5S_hyper_span_t *span,
     /* Sanity check */
     HDassert(span);
 
-    /* Obtain the number of span tree nodes for this dimension */
-    outercount = 0;
-    tspan = span;
-    while(tspan) {
-        tspan = tspan->next;
-        outercount++;
-    } /* end while */
-
-/* MPI2 hasn't been widely acccepted, adding H5_HAVE_MPI2 for the future use */
-#ifdef H5_HAVE_MPI2
-{
-    MPI_Aint              sizeaint;
-
-    if(MPI_SUCCESS != (mpi_code = MPI_Type_extent(MPI_Aint, &sizeaint)))
-        HMPI_GOTO_ERROR(FAIL, "MPI_Type_extent failed", mpi_code)
-    if(NULL == (disp = (MPI_Aint *)H5MM_malloc(outercount * sizeaint)))
+    /* Allocate the initial displacement & block length buffers */
+    alloc_count = H5S_MPIO_INITIAL_ALLOC_COUNT;
+    if(NULL == (disp = (MPI_Aint *)H5MM_malloc(alloc_count * sizeof(MPI_Aint))))
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTALLOC, FAIL, "can't allocate array of displacements")
-}
-#else
-    if(NULL == (disp = (MPI_Aint *)H5MM_malloc(outercount * sizeof(MPI_Aint))))
-        HGOTO_ERROR(H5E_DATASPACE, H5E_CANTALLOC, FAIL, "can't allocate array of displacements")
-#endif
-    if(NULL == (blocklen = (int *)H5MM_malloc(outercount * sizeof(int))))
+    if(NULL == (blocklen = (int *)H5MM_malloc(alloc_count * sizeof(int))))
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTALLOC, FAIL, "can't allocate array of block lengths")
-
-    /* Reset span info */
-    tspan      = span;
-    outercount = 0;
 
     /* if this is the fastest changing dimension, it is the base case for derived datatype. */
     if(NULL == span->down) {
+        tspan = span;
+        outercount = 0;
         while(tspan) {
+            /* Check if we need to increase the size of the buffers */
+            if(outercount >= alloc_count) {
+                MPI_Aint     *tmp_disp;         /* Temporary pointer to new displacement buffer */
+                int          *tmp_blocklen;     /* Temporary pointer to new block length buffer */
+
+                /* Double the allocation count */
+                alloc_count *= 2;
+
+                /* Re-allocate the buffers */
+                if(NULL == (tmp_disp = (MPI_Aint *)H5MM_realloc(disp, alloc_count * sizeof(MPI_Aint))))
+                    HGOTO_ERROR(H5E_DATASPACE, H5E_CANTALLOC, FAIL, "can't allocate array of displacements")
+                disp = tmp_disp;
+                if(NULL == (tmp_blocklen = (int *)H5MM_realloc(blocklen, alloc_count * sizeof(int))))
+                    HGOTO_ERROR(H5E_DATASPACE, H5E_CANTALLOC, FAIL, "can't allocate array of block lengths")
+                blocklen = tmp_blocklen;
+            } /* end if */
+
+            /* Store displacement & block length */
             disp[outercount]      = (MPI_Aint)elmt_size * tspan->low;
             blocklen[outercount]  = tspan->nelem;
+
             tspan                 = tspan->next;
             outercount++;
         } /* end while */
 
         if(MPI_SUCCESS != (mpi_code = MPI_Type_hindexed((int)outercount, blocklen, disp, *elmt_type, span_type)))
               HMPI_GOTO_ERROR(FAIL, "MPI_Type_hindexed failed", mpi_code)
+        span_type_valid = TRUE;
     } /* end if */
     else {
-        int i;          /* Local index variable */
-        size_t u;       /* Local index variable */
+        size_t u;               /* Local index variable */
 
-/* MPI2 hasn't been widely acccepted, adding H5_HAVE_MPI2 for the future use */
-#ifdef H5_HAVE_MPI2
-{
-        MPI_Aint sizedtype;
-
-        if(MPI_SUCCESS != (mpi_code = MPI_Type_extent(MPI_Datatype, &sizedtype)))
-            HMPI_GOTO_ERROR(FAIL, "MPI_Type_extent failed", mpi_code)
-        if(NULL == (inner_type   = (MPI_Datatype *)H5MM_malloc(outercount * sizedtype)))
+        if(NULL == (inner_type = (MPI_Datatype *)H5MM_malloc(alloc_count * sizeof(MPI_Datatype))))
             HGOTO_ERROR(H5E_DATASPACE, H5E_CANTALLOC, FAIL, "can't allocate array of inner MPI datatypes")
-}
-#else
-        if(NULL == (inner_type   = (MPI_Datatype *)H5MM_malloc(outercount * sizeof(MPI_Datatype))))
-            HGOTO_ERROR(H5E_DATASPACE, H5E_CANTALLOC, FAIL, "can't allocate array of inner MPI datatypes")
-#endif
 
-         while(tspan) {
+        tspan = span;
+        outercount = 0;
+        while(tspan) {
             MPI_Datatype down_type;     /* Temporary MPI datatype for a span tree node's children */
-            MPI_Datatype node_type;     /* Temporary MPI datatype for a span tree node */
             MPI_Aint stride;            /* Distance between inner MPI datatypes */
+
+            /* Check if we need to increase the size of the buffers */
+            if(outercount >= alloc_count) {
+                MPI_Aint     *tmp_disp;         /* Temporary pointer to new displacement buffer */
+                int          *tmp_blocklen;     /* Temporary pointer to new block length buffer */
+                MPI_Datatype *tmp_inner_type;   /* Temporary pointer to inner MPI datatype buffer */
+
+                /* Double the allocation count */
+                alloc_count *= 2;
+
+                /* Re-allocate the buffers */
+                if(NULL == (tmp_disp = (MPI_Aint *)H5MM_realloc(disp, alloc_count * sizeof(MPI_Aint))))
+                    HGOTO_ERROR(H5E_DATASPACE, H5E_CANTALLOC, FAIL, "can't allocate array of displacements")
+                disp = tmp_disp;
+                if(NULL == (tmp_blocklen = (int *)H5MM_realloc(blocklen, alloc_count * sizeof(int))))
+                    HGOTO_ERROR(H5E_DATASPACE, H5E_CANTALLOC, FAIL, "can't allocate array of block lengths")
+                blocklen = tmp_blocklen;
+                if(NULL == (tmp_inner_type = (MPI_Datatype *)H5MM_realloc(inner_type, alloc_count * sizeof(MPI_Datatype))))
+                    HGOTO_ERROR(H5E_DATASPACE, H5E_CANTALLOC, FAIL, "can't allocate array of inner MPI datatypes")
+            } /* end if */
 
             /* Displacement should be in byte and should have dimension information */
             /* First using MPI Type vector to build derived data type for this span only */
             /* Need to calculate the disp in byte for this dimension. */
             /* Calculate the total bytes of the lower dimension */
-
             disp[outercount]      = tspan->low * (*down) * elmt_size;
             blocklen[outercount]  = 1;
 
@@ -581,35 +593,57 @@ H5S_obtain_datatype(const hsize_t *down, H5S_hyper_span_t *span,
 
             /* Build the MPI datatype for this node */
             stride = (*down) * elmt_size;
-            if(MPI_SUCCESS != (mpi_code = MPI_Type_hvector((int)tspan->nelem, 1, stride, down_type, &node_type)))
+            H5_CHECK_OVERFLOW(tspan->nelem, hsize_t, int)
+            if(MPI_SUCCESS != (mpi_code = MPI_Type_hvector((int)tspan->nelem, 1, stride, down_type, &inner_type[outercount]))) {
+                MPI_Type_free(&down_type);
                 HMPI_GOTO_ERROR(FAIL, "MPI_Type_hvector failed", mpi_code)
+            } /* end if */
 
             /* Release MPI datatype for next dimension down */
             if(MPI_SUCCESS != (mpi_code = MPI_Type_free(&down_type)))
                 HMPI_GOTO_ERROR(FAIL, "MPI_Type_free failed", mpi_code)
 
-            inner_type[outercount] = node_type;
-            outercount++;
             tspan = tspan->next;
+            outercount++;
          } /* end while */
 
         /* building the whole vector datatype */
+        H5_CHECK_OVERFLOW(outercount, size_t, int)
         if(MPI_SUCCESS != (mpi_code = MPI_Type_struct((int)outercount, blocklen, disp, inner_type, span_type)))
             HMPI_GOTO_ERROR(FAIL, "MPI_Type_struct failed", mpi_code)
+        span_type_valid = TRUE;
 
         /* Release inner node types */
         for(u = 0; u < outercount; u++)
             if(MPI_SUCCESS != (mpi_code = MPI_Type_free(&inner_type[u])))
                 HMPI_GOTO_ERROR(FAIL, "MPI_Type_free failed", mpi_code)
+        inner_types_freed = TRUE;
     } /* end else */
 
 done:
-    if(inner_type != NULL)
+    /* General cleanup */
+    if(inner_type != NULL) {
+        if(!inner_types_freed) {
+            size_t u;          /* Local index variable */
+
+            for(u = 0; u < outercount; u++)
+                if(MPI_SUCCESS != (mpi_code = MPI_Type_free(&inner_type[u])))
+                    HMPI_DONE_ERROR(FAIL, "MPI_Type_free failed", mpi_code)
+        } /* end if */
+
         H5MM_free(inner_type);
+    } /* end if */
     if(blocklen != NULL)
         H5MM_free(blocklen);
     if(disp != NULL)
         H5MM_free(disp);
+
+    /* Error cleanup */
+    if(ret_value < 0) {
+        if(span_type_valid)
+            if(MPI_SUCCESS != (mpi_code = MPI_Type_free(span_type)))
+                HMPI_DONE_ERROR(FAIL, "MPI_Type_free failed", mpi_code)
+    } /* end if */
 
   FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5S_obtain_datatype() */

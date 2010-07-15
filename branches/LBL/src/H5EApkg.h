@@ -306,21 +306,24 @@ struct H5EA_t {
 /* Metadata cache callback user data types */
 
 /* Info needed for loading data block page */
-typedef struct H5EA_dblk_page_load_ud_t {
+typedef struct H5EA_dblk_page_cache_ud_t {
+    H5EA_hdr_t    *hdr;         /* Shared extensible array information */
     H5EA_sblock_t *parent;      /* Pointer to parent object for data block page (super block) */
-} H5EA_dblk_page_load_ud_t;
+} H5EA_dblk_page_cache_ud_t;
 
 /* Info needed for loading data block */
-typedef struct H5EA_dblock_load_ud_t {
+typedef struct H5EA_dblock_cache_ud_t {
+    H5EA_hdr_t    *hdr;         /* Shared extensible array information */
     void *parent;               /* Pointer to parent object for data block (index or super block) */
     size_t nelmts;              /* Number of elements in data block */
-} H5EA_dblock_load_ud_t;
+} H5EA_dblock_cache_ud_t;
 
 /* Info needed for loading super block */
-typedef struct H5EA_sblock_load_ud_t {
+typedef struct H5EA_sblock_cache_ud_t {
+    H5EA_hdr_t    *hdr;         /* Shared extensible array information */
     H5EA_iblock_t *parent;      /* Pointer to parent object for super block (index block) */
     unsigned sblk_idx;          /* Index of super block */
-} H5EA_sblock_load_ud_t;
+} H5EA_sblock_cache_ud_t;
 
 #ifdef H5EA_TESTING
 typedef struct H5EA__ctx_cb_t {
@@ -354,7 +357,7 @@ H5_DLLVAR const H5EA_class_t H5EA_CLS_TEST[1];
 #endif /* H5EA_TESTING */
 
 /* Array of extensible array client ID -> client class mappings */
-extern const H5EA_class_t *const H5EA_client_class_g[];
+extern const H5EA_class_t *const H5EA_client_class_g[H5EA_NUM_CLS_ID];
 
 
 /******************************/

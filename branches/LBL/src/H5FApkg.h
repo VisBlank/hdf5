@@ -197,10 +197,17 @@ struct H5FA_t {
 
 /* Metadata cache callback user data types */
 
+/* Info needed for loading data block */
+typedef struct H5FA_dblock_cache_ud_t {
+    H5FA_hdr_t *hdr;            /* Shared fixed array information */
+    hsize_t nelmts;             /* Number of elements in data block */
+} H5FA_dblock_cache_ud_t;
+
 /* Info needed for loading data block page */
-typedef struct H5FA_dblk_page_load_ud_t {
+typedef struct H5FA_dblk_page_cache_ud_t {
+    H5FA_hdr_t *hdr;            /* Shared fixed array information */
     size_t nelmts;              /* Number of elements in data block page */
-} H5FA_dblk_page_load_ud_t;
+} H5FA_dblk_page_cache_ud_t;
 
 
 /*****************************/
@@ -229,7 +236,7 @@ H5_DLLVAR const H5FA_class_t H5FA_CLS_TEST[1];
 #endif /* H5FA_TESTING */
 
 /* Array of fixed array client ID -> client class mappings */
-extern const H5FA_class_t *const H5FA_client_class_g[];
+extern const H5FA_class_t *const H5FA_client_class_g[H5FA_NUM_CLS_ID];
 
 
 /******************************/

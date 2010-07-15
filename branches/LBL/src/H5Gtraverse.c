@@ -280,6 +280,18 @@ H5G_traverse_ud(const H5G_loc_t *grp_loc/*in,out*/, const H5O_link_t *lnk,
                 HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "unable to get root group location from file ID")
                 break;
 
+        case H5I_UNINIT:
+        case H5I_BADID:
+        case H5I_DATASPACE:
+        case H5I_ATTR:
+        case H5I_REFERENCE:
+        case H5I_VFL:
+        case H5I_GENPROP_CLS:
+        case H5I_GENPROP_LST:
+        case H5I_ERROR_CLASS:
+        case H5I_ERROR_MSG:
+        case H5I_ERROR_STACK:
+        case H5I_NTYPES:
         default:
             HGOTO_ERROR(H5E_ATOM, H5E_BADTYPE, FAIL, "not a valid location or object ID")
     } /* end switch */
@@ -934,10 +946,21 @@ H5G_traverse(const H5G_loc_t *loc, const char *name, unsigned target, H5G_traver
         if(H5P_get(lapl, H5L_ACS_NLINKS_NAME, &nlinks) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get number of links")
     } /* end else */
+    
+    /* Set up invalid tag. This is a precautionary step only. Setting an invalid
+       tag here will ensure that no metadata accessed while doing the traversal
+       is given an improper tag, unless another one is specifically set up 
+       first. This will ensure we're not accidentally tagging something we 
+       shouldn't be during the traversal. Note that for best tagging assertion 
+       coverage, setting H5C_DO_TAGGING_SANITY_CHECKS is advised. */
+    H5_BEGIN_TAG(dxpl_id, H5AC__INVALID_TAG, FAIL);
 
     /* Go perform "real" traversal */
     if(H5G_traverse_real(loc, name, target, &nlinks, op, op_data, lapl_id, dxpl_id) < 0)
         HGOTO_ERROR(H5E_SYM, H5E_NOTFOUND, FAIL, "internal path traversal failed")
+
+    /* Reset tag after traversal */
+    H5_END_TAG(FAIL);
 
 done:
    FUNC_LEAVE_NOAPI(ret_value)

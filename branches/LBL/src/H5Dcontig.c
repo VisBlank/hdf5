@@ -34,7 +34,6 @@
 /* Headers */
 /***********/
 #include "H5private.h"		/* Generic Functions			*/
-#include "H5ACprivate.h"	/* Metadata cache			*/
 #include "H5Dpkg.h"		/* Dataset functions			*/
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5Fprivate.h"		/* Files				*/
@@ -223,7 +222,7 @@ H5D_contig_fill(H5D_t *dset, hid_t dxpl_id)
     H5_ASSIGN_OVERFLOW(npoints, snpoints, hssize_t, size_t);
 
     /* Initialize the fill value buffer */
-    if(H5D_fill_init(&fb_info, NULL, FALSE, NULL, NULL, NULL, NULL,
+    if(H5D_fill_init(&fb_info, NULL, NULL, NULL, NULL, NULL,
             &dset->shared->dcpl_cache.fill,
             dset->shared->type, dset->shared->type_id, npoints,
             dxpl_cache->max_temp_buf, my_dxpl_id) < 0)
@@ -1463,11 +1462,11 @@ done:
         if(H5I_dec_ref(tid_mem, FALSE) < 0)
             HDONE_ERROR(H5E_DATASET, H5E_CANTFREE, FAIL, "Can't decrement temporary datatype ID")
     if(buf)
-        (void)H5FL_BLK_FREE(type_conv, buf);
+        buf = H5FL_BLK_FREE(type_conv, buf);
     if(reclaim_buf)
-        (void)H5FL_BLK_FREE(type_conv, reclaim_buf);
+        reclaim_buf = H5FL_BLK_FREE(type_conv, reclaim_buf);
     if(bkg)
-        (void)H5FL_BLK_FREE(type_conv, bkg);
+        bkg = H5FL_BLK_FREE(type_conv, bkg);
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5D_contig_copy() */

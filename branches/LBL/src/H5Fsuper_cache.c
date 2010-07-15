@@ -59,7 +59,7 @@
 /********************/
 
 /* Metadata cache (H5AC) callbacks */
-static H5F_super_t *H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *udata1, void *udata2);
+static H5F_super_t *H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, void *udata);
 static herr_t H5F_sblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5F_super_t *sblock);
 static herr_t H5F_sblock_dest(H5F_t *f, H5F_super_t * sblock);
 static herr_t H5F_sblock_clear(H5F_t *f, H5F_super_t *sblock, hbool_t destroy);
@@ -111,8 +111,7 @@ H5FL_EXTERN(H5F_super_t);
  *-------------------------------------------------------------------------
  */
 static H5F_super_t *
-H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, const void UNUSED *udata1,
-    void *udata2/*out*/)
+H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, void *_udata)
 {
     H5F_super_t        *sblock = NULL;      /* File's superblock */
     haddr_t             base_addr = HADDR_UNDEF;        /* Base address of file */
@@ -128,7 +127,7 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, const void UNUSED 
     size_t              variable_size;      /*variable sizeof superblock    */
     uint8_t            *p;                  /* Temporary pointer into encoding buffer */
     unsigned            super_vers;         /* Superblock version          */
-    hbool_t            *dirtied = (hbool_t *)udata2;  /* Set up dirtied out value */
+    hbool_t            *dirtied = (hbool_t *)_udata;  /* Set up dirtied out value */
     H5F_super_t        *ret_value;          /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5F_sblock_load)
@@ -136,6 +135,7 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, const void UNUSED 
     /* check arguments */
     HDassert(f);
     HDassert(H5F_addr_eq(addr, 0));
+    HDassert(dirtied);
 
     /* Short cuts */
     shared = f->shared;
@@ -178,12 +178,12 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, const void UNUSED 
     HDassert(((size_t)(p - sbuf)) == fixed_size);
 
     /* Determine the size of the variable-length part of the superblock */
-    variable_size = H5F_SUPERBLOCK_VARLEN_SIZE(super_vers, f);
+    variable_size = (size_t)H5F_SUPERBLOCK_VARLEN_SIZE(super_vers, f);
     HDassert(variable_size > 0);
     HDassert(fixed_size + variable_size <= sizeof(sbuf));
 
     /* Read in variable-sized portion of superblock */
-    if(H5FD_set_eoa(lf, H5FD_MEM_SUPER, (haddr_t)fixed_size + variable_size) < 0)
+    if(H5FD_set_eoa(lf, H5FD_MEM_SUPER, (haddr_t)(fixed_size + variable_size)) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "set end of space allocation request failed")
     if(H5FD_read(lf, dxpl_id, H5FD_MEM_SUPER, (haddr_t)fixed_size, variable_size, p) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to read superblock")
@@ -667,9 +667,7 @@ H5F_sblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t UNUSED addr,
             *p++ = 0;   /* reserved*/
 
             *p++ = (uint8_t)HDF5_SHAREDHEADER_VERSION;  /* (hard-wired) */
-            HDassert(H5F_SIZEOF_ADDR(f) <= 255);
             *p++ = (uint8_t)H5F_SIZEOF_ADDR(f);
-            HDassert(H5F_SIZEOF_SIZE(f) <= 255);
             *p++ = (uint8_t)H5F_SIZEOF_SIZE(f);
             *p++ = 0;   /* reserved */
 
@@ -737,9 +735,7 @@ H5F_sblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t UNUSED addr,
             H5O_loc_t       *root_oloc;             /* Pointer to root group's object location */
 
             /* Size of file addresses & offsets, and status flags */
-            HDassert(H5F_SIZEOF_ADDR(f) <= 255);
             *p++ = (uint8_t)H5F_SIZEOF_ADDR(f);
-            HDassert(H5F_SIZEOF_SIZE(f) <= 255);
             *p++ = (uint8_t)H5F_SIZEOF_SIZE(f);
             *p++ = sblock->status_flags;
 
@@ -757,17 +753,17 @@ H5F_sblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t UNUSED addr,
             H5F_addr_encode(f, &p, root_oloc->addr);
 
             /* Compute superblock checksum */
-            chksum = H5_checksum_metadata(buf, (H5F_SUPERBLOCK_SIZE(sblock->super_vers, f) - H5F_SIZEOF_CHKSUM), 0);
+            chksum = H5_checksum_metadata(buf, ((size_t)H5F_SUPERBLOCK_SIZE(sblock->super_vers, f) - H5F_SIZEOF_CHKSUM), 0);
 
             /* Superblock checksum */
             UINT32ENCODE(p, chksum);
 
             /* Sanity check */
-            HDassert((size_t)(p - buf) == H5F_SUPERBLOCK_SIZE(sblock->super_vers, f));
+            HDassert((size_t)(p - buf) == (size_t)H5F_SUPERBLOCK_SIZE(sblock->super_vers, f));
         } /* end else */
 
         /* Retrieve the total size of the superblock info */
-        H5_ASSIGN_OVERFLOW(superblock_size, (p - buf), int, size_t);
+        H5_ASSIGN_OVERFLOW(superblock_size, (p - buf), ptrdiff_t, size_t);
 
         /* Double check we didn't overrun the block (unlikely) */
         HDassert(superblock_size <= sizeof(buf));
@@ -915,7 +911,7 @@ H5F_sblock_size(const H5F_t *f, const H5F_super_t *sblock, size_t *size_ptr)
     HDassert(size_ptr);
 
     /* Set size value */
-    *size_ptr = H5F_SUPERBLOCK_SIZE(sblock->super_vers, f);
+    *size_ptr = (size_t)H5F_SUPERBLOCK_SIZE(sblock->super_vers, f);
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5F_sblock_size() */
