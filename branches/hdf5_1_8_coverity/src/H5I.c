@@ -594,6 +594,7 @@ herr_t
 H5I_clear_type(H5I_type_t type, hbool_t force, hbool_t app_ref)
 {
     H5I_id_type_t *type_ptr;	        /* ptr to the atomic type */
+    H5I_id_info_t *tmp_id_ptr;          /* temp ptr to next atom */
     unsigned	i;                      /* Local index variable */
     int		ret_value = SUCCEED;    /* Return value */
 
@@ -697,6 +698,15 @@ H5I_clear_type(H5I_type_t type, hbool_t force, hbool_t app_ref)
             } /* end else */
         } /* end for */
     } /* end for */
+
+    /* Also free any ID structures being retained
+     * for potential re-use by this type */
+    while (type_ptr->next_id_ptr) {
+        tmp_id_ptr = type_ptr->next_id_ptr->next;
+        (void)H5FL_FREE(H5I_id_info_t, type_ptr->next_id_ptr);
+        type_ptr->next_id_ptr = tmp_id_ptr;
+        type_ptr->free_count--;
+    } /* end while */
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
