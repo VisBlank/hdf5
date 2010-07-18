@@ -49,6 +49,7 @@ static htri_t H5S_point_is_contiguous(const H5S_t *space);
 static htri_t H5S_point_is_single(const H5S_t *space);
 static htri_t H5S_point_is_regular(const H5S_t *space);
 static herr_t H5S_point_adjust_u(H5S_t *space, const hsize_t *offset);
+static herr_t H5S_point_project_single(const H5S_t *space, hsize_t *offset);
 static herr_t H5S_point_iter_init(H5S_sel_iter_t *iter, const H5S_t *space);
 
 /* Selection iteration callbacks */
@@ -78,6 +79,7 @@ const H5S_select_class_t H5S_sel_point[1] = {{
     H5S_point_is_single,
     H5S_point_is_regular,
     H5S_point_adjust_u,
+    H5S_point_project_single,
     H5S_point_iter_init,
 }};
 
@@ -1344,6 +1346,46 @@ H5S_point_adjust_u(H5S_t *space, const hsize_t *offset)
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 }   /* H5S_point_adjust_u() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5S_point_project_single
+ *
+ * Purpose:	Projects a single element point selection into another
+ *              rank
+ *
+ * Return:	non-negative on success, negative on failure.
+ *
+ * Programmer:	Quincey Koziol
+ *              Sunday, July 18, 2010
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+H5S_point_project_single(const H5S_t *space, hsize_t *offset)
+{
+    const H5S_pnt_node_t *node;         /* Point node */
+    herr_t ret_value = SUCCEED;         /* Return value */
+
+    FUNC_ENTER_NOAPI_NOINIT(H5S_point_project_single)
+
+    /* Check args */
+    HDassert(space && H5S_SEL_POINTS == H5S_GET_SELECT_TYPE(space));
+    HDassert(offset);
+
+    /* Get the head of the point list */
+    node = space->select.sel_info.pnt_lst->head;
+
+    /* Check for more than one point selected */
+    if(node->next)
+        HGOTO_ERROR(H5E_DATASPACE, H5E_BADRANGE, FAIL, "point selection of one element has more than one node!")
+
+    /* Calculate offset of selection in projected buffer */
+    *offset = H5V_array_offset(space->extent.rank, space->extent.size, node->pnt); 
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+}   /* H5S_point_project_single() */
 
 
 /*--------------------------------------------------------------------------

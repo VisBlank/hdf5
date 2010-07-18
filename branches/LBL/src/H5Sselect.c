@@ -771,6 +771,45 @@ H5S_select_adjust_u(H5S_t *space, const hsize_t *offset)
 
 /*--------------------------------------------------------------------------
  NAME
+    H5S_select_project_single
+ PURPOSE
+    Project a single point selection
+ USAGE
+    herr_t H5S_select_project_single(space, offset)
+        const H5S_t *space;             IN: Pointer to dataspace to project
+        hsize_t *offset;                IN/OUT: Offset of projected point
+ RETURNS
+    Non-negative on success, negative on failure
+ DESCRIPTION
+    Projects a selection of a single element into another rank, computing
+    the offset of the element in the original selection.
+ GLOBAL VARIABLES
+ COMMENTS, BUGS, ASSUMPTIONS
+    This routine participates in the "Inlining C function pointers"
+        pattern, don't call it directly, use the appropriate macro
+        defined in H5Sprivate.h.
+ EXAMPLES
+ REVISION LOG
+--------------------------------------------------------------------------*/
+herr_t
+H5S_select_project_single(const H5S_t *space, hsize_t *offset)
+{
+    herr_t ret_value;        /* return value */
+
+    FUNC_ENTER_NOAPI_NOFUNC(H5S_select_project_single)
+
+    /* Check args */
+    HDassert(space);
+    HDassert(offset);
+
+    ret_value = (*space->select.type->project_single)(space, offset);
+
+    FUNC_LEAVE_NOAPI(ret_value)
+}   /* H5S_select_project_single() */
+
+
+/*--------------------------------------------------------------------------
+ NAME
     H5S_select_iter_init
  PURPOSE
     Initializes iteration information for a selection.
@@ -1734,9 +1773,6 @@ H5S_select_construct_projection(H5S_t *base_space, H5S_t **new_space_ptr,
          * space is scalar.
          */
         if(1 == npoints) {
-            if(H5S_select_all(new_space, TRUE) < 0)
-                HGOTO_ERROR(H5E_DATASPACE, H5E_CANTSET, FAIL, "unable to set all selection")
-
             /* Assuming that the selection in the base dataspace is not
              * empty, we must compute the offset of the selected item in 
              * the buffer associated with the base dataspace.
@@ -1746,64 +1782,9 @@ H5S_select_construct_projection(H5S_t *base_space, H5S_t **new_space_ptr,
              * hence it is a simple dataspace.  However, the 
              * selection, may be either point, hyperspace, or all.
              *
-             * We deal with all eventualities below:
              */
-            switch(H5S_GET_SELECT_TYPE(base_space)) {
-                case H5S_SEL_POINTS:
-                    {
-                        hsize_t base_pnt[H5S_MAX_RANK];        /* Point selected in base dataspace */
-
-                        /* Get the selected point from the base space. */
-                        if(H5S_get_select_elem_pointlist(base_space, (hsize_t)0, (hsize_t)1, base_pnt) < 0)
-                            HGOTO_ERROR(H5E_DATASPACE, H5E_CANTGET, FAIL, "unable to get base space point")
-
-                        /* Calculate offset of selection in projected buffer */
-                        projected_space_element_offset = H5V_array_offset(base_space_rank, base_space_dims, base_pnt); 
-                    }
-                    break;
-
-                case H5S_SEL_HYPERSLABS:
-                    {
-                        hsize_t base_blk[2 * H5S_MAX_RANK];        /* Block selected in base dataspace */
-
-                        /* get the selected block start and end corner coords */
-                        if(H5S_get_select_hyper_blocklist(base_space, FALSE, (hsize_t)0, (hsize_t)1, base_blk) < 0)
-                            HGOTO_ERROR(H5E_DATASPACE, H5E_CANTGET, FAIL, "unable to get base space block list")
-
-#ifndef NDEBUG
-                        {
-                            hsize_t *start_coord;       /* Offset of starting corner of hyperslab block */
-                            hsize_t *stop_coord;        /* Offset of opposite (stop) corner of hyperslab block */
-                            unsigned u;                 /* Local index variable */
-
-                            start_coord = base_blk;
-                            stop_coord = start_coord + base_space_rank;
-
-                            /* verify that the start and stop coordinates of 
-                             * the block are the same.
-                             */
-                            for(u = 0; u < base_space_rank; u++)
-                                HDassert(start_coord[u] == stop_coord[u]);
-                        }
-#endif /* NDEBUG */
-
-                        /* Calculate offset of selection in projected buffer */
-                        projected_space_element_offset = H5V_array_offset(base_space_rank, base_space_dims, base_blk); 
-                    }
-                    break;
-
-                case H5S_SEL_ALL:
-                    projected_space_element_offset = 0;
-                    break;
-
-                case H5S_SEL_ERROR:
-                case H5S_SEL_NONE:
-                case H5S_SEL_N:
-                default:
-                    /* this case should be unreachable */
-                    HGOTO_ERROR(H5E_DATASPACE, H5E_CANTSET, FAIL, "unable to project selection -- unexpected base selection type")
-                    break;
-             } /* end switch */
+            if(H5S_SELECT_PROJECT_SINGLE(base_space, &projected_space_element_offset) < 0)
+                HGOTO_ERROR(H5E_DATASPACE, H5E_CANTGET, FAIL, "unable to get selection projection")
         } /* end if */
         else {
             HDassert(0 == npoints);
