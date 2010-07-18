@@ -852,7 +852,6 @@ H5D_link_chunk_collective_io(H5D_io_info_t *io_info, const H5D_type_info_t *type
      *  the dataset.  [This sometimes is used by developers who want the
      *  equivalent of compressed contiguous datasets - QAK]
      */
-
     if(total_chunks == 1) {
         H5D_chunk_ud_t udata;           /* User data for querying chunk info */
         hsize_t coords[H5O_LAYOUT_NDIMS];   /* Coordinates of chunk in file dataset's dataspace */
@@ -1568,7 +1567,6 @@ H5D_inter_collective_io(H5D_io_info_t *io_info, const H5D_type_info_t *type_info
     herr_t       ret_value = SUCCEED;   /* return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5D_inter_collective_io)
-
 
     if((file_space != NULL) && (mem_space != NULL)) {
         int  mpi_file_count;         /* Number of file "objects" to transfer */

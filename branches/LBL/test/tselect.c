@@ -1644,7 +1644,7 @@ verify_select_hyper_contig_dr__run_test(const uint16_t *cube_buf,
         i++;
     } while((cube_rank > 4) && (i < edge_size));
     if(mis_match)
-        TestErrPrintf("Initial small cube data don't match! Line = %d\n", __LINE__);
+        TestErrPrintf("Initial cube data don't match! Line = %d\n", __LINE__);
 }   /* verify_select_hyper_contig_dr__run_test() */
 
 
@@ -2365,14 +2365,14 @@ test_select_hyper_contig_dr(hid_t dset_type, hid_t xfer_plist)
 
 /****************************************************************
 **
-**  test_sekect_hyper_checker_board_dr__select_checker_board():  
+**  test_select_hyper_checker_board_dr__select_checker_board():  
 **	Given an n-cube data space with each edge of length 
 **	edge_size, and a checker_edge_size either select a checker
 **	board selection of the entire cube(if sel_rank == n),
 **	or select a checker board selection of a
 **	sel_rank dimensional slice through n-cube parallel to the 
-**      sel_rank fastest changing indicies, with origin (in the
-**	higher indicies) as indicated by the start array.
+**      sel_rank fastest changing indices, with origin (in the
+**	higher indices) as indicated by the start array.
 **
 **	Note that this function, like all its relatives, is
 **	hard coded to presume a maximum n-cube rank of 5.
@@ -2391,7 +2391,6 @@ test_select_hyper_checker_board_dr__select_checker_board(hid_t tgt_n_cube_sid,
     hbool_t		first_selection = TRUE;
     unsigned		n_cube_offset;
     unsigned		sel_offset;
-    const unsigned	test_max_rank = 5;  /* must update code if this changes */
     hsize_t		base_count;
     hsize_t             offset_count;
     hsize_t     	start[SS_DR_MAX_RANK];  /* Offset of hyperslab selection */
@@ -2407,11 +2406,10 @@ test_select_hyper_checker_board_dr__select_checker_board(hid_t tgt_n_cube_sid,
     HDassert(checker_edge_size <= edge_size);
     HDassert(0 < sel_rank);
     HDassert(sel_rank <= tgt_n_cube_rank);
-    HDassert(tgt_n_cube_rank <= test_max_rank);
-    HDassert(test_max_rank <= SS_DR_MAX_RANK);
+    HDassert(tgt_n_cube_rank <= SS_DR_MAX_RANK);
 
-    sel_offset = test_max_rank - sel_rank;
-    n_cube_offset = test_max_rank - tgt_n_cube_rank;
+    sel_offset = SS_DR_MAX_RANK - sel_rank;
+    n_cube_offset = SS_DR_MAX_RANK - tgt_n_cube_rank;
     HDassert(n_cube_offset <= sel_offset);
 
     /* First, compute the base count (which assumes start == 0
@@ -2451,7 +2449,7 @@ test_select_hyper_checker_board_dr__select_checker_board(hid_t tgt_n_cube_sid,
         u++;
     } /* end while */
 
-    while(u < test_max_rank) {
+    while(u < SS_DR_MAX_RANK) {
         stride[u] = 2 * checker_edge_size;
         block[u] = checker_edge_size;
 
@@ -2557,7 +2555,6 @@ test_select_hyper_checker_board_dr__select_checker_board(hid_t tgt_n_cube_sid,
         i++;
     } while((i <= 1) && (0 >= sel_offset));
 
-
     /* Wierdness alert:
      *
      * Some how, it seems that selections can extend beyond the
@@ -2565,7 +2562,7 @@ test_select_hyper_checker_board_dr__select_checker_board(hid_t tgt_n_cube_sid,
      * code to manually clip the selection back to the data space
      * proper.
      */
-    for(u = 0; u < test_max_rank; u++) {
+    for(u = 0; u < SS_DR_MAX_RANK; u++) {
         start[u]  = 0;
         stride[u] = edge_size;
         count[u]  = 1;
@@ -2579,7 +2576,7 @@ test_select_hyper_checker_board_dr__select_checker_board(hid_t tgt_n_cube_sid,
 
 /****************************************************************
 **
-**  test_sekect_hyper_checker_board_dr__verify_data(): 
+**  test_select_hyper_checker_board_dr__verify_data(): 
 **
 **	Examine the supplied buffer to see if it contains the 
 **	expected data.  Return TRUE if it does, and FALSE 
@@ -2589,7 +2586,7 @@ test_select_hyper_checker_board_dr__select_checker_board(hid_t tgt_n_cube_sid,
 **	of read or writing a checkerboard selection of an 
 **	n-cube, or a checkerboard selection of an m (1 <= m < n)
 **	dimensional slice through an n-cube parallel to the 
-**      fastest changing indicies.  
+**      fastest changing indices.  
 **
 **	It is further presumed that the buffer was zeroed before
 **	the read, and that the n-cube was initialize with the 
@@ -2609,7 +2606,7 @@ test_select_hyper_checker_board_dr__select_checker_board(hid_t tgt_n_cube_sid,
 **
 **	If the buffer contains the result of reading a 3 
 **	dimensional slice (parallel to the three fastest changing
-**	indicies) through an n cube (n > 3), then the expected 
+**	indices) through an n cube (n > 3), then the expected 
 **	values in the buffer will be the same, save that we will
 **	add a constant determined by the origin of the 3-cube 
 **	in the n-cube.
@@ -2692,17 +2689,12 @@ test_select_hyper_checker_board_dr__verify_data(uint16_t * buf_ptr,
                         if(in_checker) {
                             if(*val_ptr != expected_value)
                                 good_data = FALSE;
- 
-                            /* zero out buffer for re-use */
-                            *val_ptr = 0;
                         } /* end if */
-                        else if(*val_ptr != 0) {
-                            good_data = FALSE;
+                        else {
+                            if(*val_ptr != 0)
+                                good_data = FALSE;
+                        } /* end else */
  
-                            /* zero out buffer for re-use */
-                            *val_ptr = 0;
-                        } /* end if */
-
                         val_ptr++;
                         expected_value++;
  
@@ -2743,7 +2735,6 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
 {
     hbool_t		data_ok;
     hbool_t		start_in_checker[5];
-    hbool_t		mis_match;
     hid_t               fapl;                   /* File access property list */
     hid_t		fid;			/* HDF5 File IDs		*/
     hid_t		full_small_cube_sid;    /* Dataspace for small cube w/all selection */
@@ -2758,7 +2749,6 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
     hid_t		large_cube_dataset;	/* Dataset ID			*/
     unsigned		small_rank_offset;      /* Rank offset of slice */
     const unsigned	test_max_rank = 5;  /* must update code if this changes */
-    int                 i, j, k, l, m;
     size_t              start_index;            /* Offset within buffer to begin inspecting */
     size_t              stop_index;             /* Offset within buffer to end inspecting */
     uint16_t		expected_value;
@@ -2770,7 +2760,7 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
     hsize_t		dims[SS_DR_MAX_RANK];
     hsize_t		chunk_dims[SS_DR_MAX_RANK];
     hsize_t     	sel_start[SS_DR_MAX_RANK];
-    unsigned            u, v, w, x, y;  /* Local index variables */
+    unsigned            u, v, w, x;     /* Local index variables */
     size_t              s;              /* Local index variable */
     htri_t      	check;          /* Shape comparison return value */
     herr_t      	ret;            /* Generic return value */
@@ -2920,89 +2910,23 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
     CHECK(ret, FAIL, "H5Dwrite");
 
 
-    /* read initial data from disk and verify that it is as expected. */
+    /* read initial small cube data from disk and verify that it is as expected. */
     ret = H5Dread(small_cube_dataset, H5T_NATIVE_UINT16, full_small_cube_sid, 
             full_small_cube_sid, xfer_plist, small_cube_buf_1);
     CHECK(ret, FAIL, "H5Dread");
 
-    expected_value = 0;
-    mis_match = FALSE;
-    ptr_1 = small_cube_buf_1;
-    s = 0;
+    /* Check that the data is valid */
+    verify_select_hyper_contig_dr__run_test(small_cube_buf_1, small_cube_size,
+        edge_size, small_rank);
 
-/* QAK: Start here.  Refactor verification code below into sub-routine for
- *      both small & large cubes.
- *      Don't forget to refactor routines above.
- */
-    u = 0;
-    do {
-        v = 0;
-        do {
-            w = 0;
-            do {
-                x = 0;
-                do {
-                    y = 0;
-                    do {
-                        HDassert(s < small_cube_size);
-
-                        if(*ptr_1 != expected_value)
-                            mis_match = TRUE;
-                        ptr_1++;
-                        expected_value++;
-                        y++;       
-                        s++;       
-                    } while((small_rank > 0) && (y < edge_size));
-                    x++;
-                } while((small_rank > 1) && (x < edge_size));
-                w++;
-            } while((small_rank > 2) && (w < edge_size));
-            v++;
-        } while((small_rank > 3 ) && (v < edge_size));
-        u++;
-    } while((small_rank > 4 ) && (u < edge_size));
-    if(mis_match)
-        TestErrPrintf("Initial small cube data don't match! Line=%d\n", __LINE__);
-
+    /* read initial large cube data from disk and verify that it is as expected. */
     ret = H5Dread(large_cube_dataset, H5T_NATIVE_UINT16, full_large_cube_sid, 
             full_large_cube_sid, xfer_plist, large_cube_buf_1);
     CHECK(ret, FAIL, "H5Dread");
 
-    expected_value = 0;
-    mis_match = FALSE;
-    ptr_1 = large_cube_buf_1;
-    s = 0;
-
-    u = 0;
-    do {
-        v = 0;
-        do {
-            w = 0;
-            do {
-                x = 0;
-                do {
-                    y = 0;
-                    do {
-                        HDassert(s < large_cube_size);
-
-                        if(*ptr_1 != expected_value)
-                            mis_match = TRUE;
-
-                        ptr_1++;
-                        y++;       
-                        s++;       
-                        expected_value++;
-                    } while((large_rank > 0) && (y < edge_size));
-                    x++;
-                } while((large_rank > 1) && (x < edge_size));
-                w++;
-            } while((large_rank > 2) && (w < edge_size));
-            v++;
-        } while((large_rank > 3) && (v < edge_size));
-        u++;
-    } while((large_rank > 4) && (u < edge_size));
-    if(mis_match)
-        TestErrPrintf("Initial large cube data don't match! Line=%d\n",__LINE__);
+    /* Check that the data is valid */
+    verify_select_hyper_contig_dr__run_test(large_cube_buf_1, large_cube_size,
+        edge_size, large_rank);
 
 
     /* first, verify that we can read from disk correctly using selections
@@ -3026,34 +2950,31 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
                                                              small_rank,
                                                              sel_start);
 
-    /* now read slices from the large, on disk cube into the small cube. 
+    /* now read slices from the large, on-disk cube into the small cube. 
      * Note how we adjust sel_start only in the dimensions peculiar to the 
      * large cube.
      */
 
-    /* zero the buffer that we will be using for reading */
-    HDmemset(small_cube_buf_1, 0, sizeof(*small_cube_buf_1) * small_cube_size);
-
     start_in_checker[0] = TRUE;
-    i = 0;
+    u = 0;
     do {
         if(small_rank_offset > 0)
-            sel_start[0] = i;
+            sel_start[0] = u;
 
-        j = 0;
+        v = 0;
         do {
             if(small_rank_offset > 1)
-                sel_start[1] = j;
+                sel_start[1] = v;
 
-            k = 0;
+            w = 0;
             do {
                 if(small_rank_offset > 2)
-                    sel_start[2] = k;
+                    sel_start[2] = w;
 
-                l = 0;
+                x = 0;
                 do {
                     if(small_rank_offset > 3)
-                        sel_start[3] = l;
+                        sel_start[3] = x;
 
                     /* we know that small_rank >= 1 and that large_rank > small_rank
                      * by the assertions at the head of this function.  Thus no
@@ -3083,6 +3004,9 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
                                                        file_large_cube_sid);
                     VERIFY(check, TRUE, "H5S_select_shape_same_test");
 
+                    /* zero the buffer that we will be using for reading */
+                    HDmemset(small_cube_buf_1, 0, sizeof(*small_cube_buf_1) * small_cube_size);
+
                     /* Read selection from disk */
                     ret = H5Dread(large_cube_dataset,
                                   H5T_NATIVE_UINT16,
@@ -3093,10 +3017,10 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
                     CHECK(ret, FAIL, "H5Dread");
 
                     expected_value = (uint16_t)
-                                     ((i * edge_size * edge_size * edge_size * edge_size) +
-                                      (j * edge_size * edge_size * edge_size) +
-                                      (k * edge_size * edge_size) +
-                                      (l * edge_size));
+                                     ((u * edge_size * edge_size * edge_size * edge_size) +
+                                      (v * edge_size * edge_size * edge_size) +
+                                      (w * edge_size * edge_size) +
+                                      (x * edge_size));
 
                     data_ok = test_select_hyper_checker_board_dr__verify_data
                               (
@@ -3110,18 +3034,18 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
                     if(!data_ok)
                         TestErrPrintf("small cube read from largecube has bad data! Line=%d\n",__LINE__);
 
-                    l++;
+                    x++;
                 } while((large_rank >= (test_max_rank - 3)) && 
-                        (small_rank <= (test_max_rank - 4)) && (l < edge_size));
-                k++;
+                        (small_rank <= (test_max_rank - 4)) && (x < edge_size));
+                w++;
             } while((large_rank >= (test_max_rank - 2)) && 
-                    (small_rank <= (test_max_rank - 3)) && (k < edge_size));
-            j++;
+                    (small_rank <= (test_max_rank - 3)) && (w < edge_size));
+            v++;
         } while((large_rank >= (test_max_rank - 1)) && 
-                (small_rank <= (test_max_rank - 2)) && (j < edge_size));
-        i++;
+                (small_rank <= (test_max_rank - 2)) && (v < edge_size));
+        u++;
     } while((large_rank >= test_max_rank) && 
-            (small_rank <= (test_max_rank - 1)) && (i < edge_size));
+            (small_rank <= (test_max_rank - 1)) && (u < edge_size));
         
 
     /* similarly, read the on disk small cube into slices through the in memory
@@ -3130,9 +3054,7 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
      */
 
     /* select a checker board in the file small cube dataspace */
-
     sel_start[0] = sel_start[1] = sel_start[2] = sel_start[3] = sel_start[4] = 0;
-
     test_select_hyper_checker_board_dr__select_checker_board(file_small_cube_sid,
                                                              small_rank,
                                                              edge_size,
@@ -3141,29 +3063,26 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
                                                              sel_start);
 
 
-    /* zero out the in memory large cube */
-    HDmemset(large_cube_buf_1, 0, sizeof(*large_cube_buf_1) * large_cube_size);
-
     start_in_checker[0] = TRUE;
-    i = 0;
+    u = 0;
     do {
         if(0 < small_rank_offset)
-            sel_start[0] = i;
+            sel_start[0] = u;
 
-        j = 0;
+        v = 0;
         do {
             if(1 < small_rank_offset)
-                sel_start[1] = j;
+                sel_start[1] = v;
 
-            k = 0;
+            w = 0;
             do {
                 if(2 < small_rank_offset)
-                    sel_start[2] = k;
+                    sel_start[2] = w;
 
-                l = 0;
+                x = 0;
                 do {
                     if(3 < small_rank_offset)
-                        sel_start[3] = l;
+                        sel_start[3] = x;
 
                     /* we know that small_rank >= 1 and that large_rank > small_rank
                      * by the assertions at the head of this function.  Thus no
@@ -3194,6 +3113,9 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
                     VERIFY(check, TRUE, "H5S_select_shape_same_test");
 
 
+                    /* zero out the in memory large cube */
+                    HDmemset(large_cube_buf_1, 0, sizeof(*large_cube_buf_1) * large_cube_size);
+
                     /* Read selection from disk */
                     ret = H5Dread(small_cube_dataset,
                                   H5T_NATIVE_UINT16,
@@ -3210,15 +3132,14 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
                     data_ok = TRUE;
                     ptr_1 = large_cube_buf_1;
                     expected_value = 0;
-                    start_index = (i * edge_size * edge_size * edge_size * edge_size) +
-                                  (j * edge_size * edge_size * edge_size) +
-                                  (k * edge_size * edge_size) +
-                                  (l * edge_size);
-                    stop_index = start_index + (int)small_cube_size - 1;
+                    start_index = (u * edge_size * edge_size * edge_size * edge_size) +
+                                  (v * edge_size * edge_size * edge_size) +
+                                  (w * edge_size * edge_size) +
+                                  (x * edge_size);
+                    stop_index = start_index + small_cube_size - 1;
 
-                    HDassert( 0 <= start_index );
                     HDassert( start_index < stop_index );
-                    HDassert( stop_index <= (int)large_cube_size );
+                    HDassert( stop_index <= large_cube_size );
 
                     /* verify that the large cube contains only zeros before the slice */
                     for(s = 0; s < start_index; s++) {
@@ -3246,24 +3167,24 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
                     /* verify that the large cube contains only zeros after the slice */
                     for(s = stop_index + 1; s < large_cube_size; s++) {
                         if(*ptr_1 != 0)
-                            mis_match = TRUE;
+                            data_ok = FALSE;
                         ptr_1++;
                     } /* end for */
-                    if(mis_match)
+                    if(!data_ok)
                         TestErrPrintf("large cube read from small cube has bad data! Line=%d\n",__LINE__);
 
-                    l++;
+                    x++;
                 } while((large_rank >= (test_max_rank - 3)) && 
-                        (small_rank <= (test_max_rank - 4)) && (l < edge_size));
-                k++;
+                        (small_rank <= (test_max_rank - 4)) && (x < edge_size));
+                w++;
             } while((large_rank >= (test_max_rank - 2)) && 
-                    (small_rank <= (test_max_rank - 3)) && (k < edge_size));
-            j++;
+                    (small_rank <= (test_max_rank - 3)) && (w < edge_size));
+            v++;
         } while((large_rank >= (test_max_rank - 1)) && 
-                (small_rank <= (test_max_rank - 2)) && (j < edge_size));
-        i++;
+                (small_rank <= (test_max_rank - 2)) && (v < edge_size));
+        u++;
     } while((large_rank >= test_max_rank) && 
-            (small_rank <= (test_max_rank - 1)) && (i < edge_size));
+            (small_rank <= (test_max_rank - 1)) && (u < edge_size));
 
 
     /* now we go in the opposite direction, verifying that we can write 
@@ -3278,9 +3199,7 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
      */ 
 
     /* select a checker board in the file small cube dataspace */
-
     sel_start[0] = sel_start[1] = sel_start[2] = sel_start[3] = sel_start[4] = 0;
-
     test_select_hyper_checker_board_dr__select_checker_board(file_small_cube_sid,
                                                              small_rank,
                                                              edge_size,
@@ -3289,25 +3208,25 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
                                                              sel_start);
 
     start_in_checker[0] = TRUE;
-    i = 0;
+    u = 0;
     do {
         if(small_rank_offset > 0)
-            sel_start[0] = i;
+            sel_start[0] = u;
 
-        j = 0;
+        v = 0;
         do {
             if(small_rank_offset > 1)
-                sel_start[1] = j;
+                sel_start[1] = v;
 
-            k = 0;
+            w = 0;
             do {
                 if(small_rank_offset > 2)
-                    sel_start[2] = k;
+                    sel_start[2] = w;
 
-                l = 0;
+                x = 0;
                 do {
                     if(small_rank_offset > 3)
-                        sel_start[3] = l;
+                        sel_start[3] = x;
 
                     /* zero out the on disk small cube */
                     ret = H5Dwrite(small_cube_dataset, 
@@ -3360,6 +3279,9 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
                     CHECK(ret, FAIL, "H5Dwrite");
 
 
+                    /* zero the buffer that we will be using for reading */
+                    HDmemset(small_cube_buf_1, 0, sizeof(*small_cube_buf_1) * small_cube_size);
+
                     /* read the on disk small cube into memory */
                     ret = H5Dread(small_cube_dataset, 
                                   H5T_NATIVE_UINT16,
@@ -3370,10 +3292,10 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
                     CHECK(ret, FAIL, "H5Dread");
 
                     expected_value = (uint16_t)
-                                     ((i * edge_size * edge_size * edge_size * edge_size) +
-                                      (j * edge_size * edge_size * edge_size) +
-                                      (k * edge_size * edge_size) +
-                                      (l * edge_size));
+                                     ((u * edge_size * edge_size * edge_size * edge_size) +
+                                      (v * edge_size * edge_size * edge_size) +
+                                      (w * edge_size * edge_size) +
+                                      (x * edge_size));
 
                     data_ok = test_select_hyper_checker_board_dr__verify_data
                               (
@@ -3387,18 +3309,18 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
                     if(!data_ok)
                         TestErrPrintf("small cube read from largecube has bad data! Line=%d\n",__LINE__);
 
-                    l++;
+                    x++;
                 } while((large_rank >= (test_max_rank - 3)) && 
-                        (small_rank <= (test_max_rank - 4)) && (l < edge_size));
-                k++;
+                        (small_rank <= (test_max_rank - 4)) && (x < edge_size));
+                w++;
             } while((large_rank >= (test_max_rank - 2)) && 
-                    (small_rank <= (test_max_rank - 3)) && (k < edge_size));
-            j++;
+                    (small_rank <= (test_max_rank - 3)) && (w < edge_size));
+            v++;
         } while((large_rank >= (test_max_rank - 1)) && 
-                (small_rank <= (test_max_rank - 2)) && (j < edge_size));
-        i++;
+                (small_rank <= (test_max_rank - 2)) && (v < edge_size));
+        u++;
     } while((large_rank >= test_max_rank) && 
-            (small_rank <= (test_max_rank - 1)) && (i < edge_size));
+            (small_rank <= (test_max_rank - 1)) && (u < edge_size));
 
 
     /* Now write checker board selections of the entries in memory 
@@ -3410,9 +3332,7 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
      */
 
     /* select a checker board in the in memory small cube dataspace */
-
     sel_start[0] = sel_start[1] = sel_start[2] = sel_start[3] = sel_start[4] = 0;
-
     test_select_hyper_checker_board_dr__select_checker_board(mem_small_cube_sid,
                                                              small_rank,
                                                              edge_size,
@@ -3421,25 +3341,25 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
                                                              sel_start);
 
     start_in_checker[0] = TRUE;
-    i = 0;
+    u = 0;
     do {
         if(small_rank_offset > 0)
-            sel_start[0] = i;
+            sel_start[0] = u;
 
-        j = 0;
+        v = 0;
         do {
             if(small_rank_offset > 1)
-                sel_start[1] = j;
+                sel_start[1] = v;
 
-            k = 0;
+            w = 0;
             do {
                 if(small_rank_offset > 2)
-                    sel_start[2] = k;
+                    sel_start[2] = w;
 
-                l = 0;
+                x = 0;
                 do {
                     if(small_rank_offset > 3)
-                        sel_start[3] = l;
+                        sel_start[3] = x;
 
                     /* zero out the on disk cube */
                     ret = H5Dwrite(large_cube_dataset, 
@@ -3493,8 +3413,10 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
                     CHECK(ret, FAIL, "H5Dwrite");
 
 
-                    /* read the on disk large cube into memory */
+                    /* zero out the in memory large cube */
+                    HDmemset(large_cube_buf_1, 0, sizeof(*large_cube_buf_1) * large_cube_size);
 
+                    /* read the on disk large cube into memory */
                     ret = H5Dread(large_cube_dataset, 
                                   H5T_NATIVE_UINT16,
                                   full_large_cube_sid,
@@ -3508,22 +3430,22 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
                      * expected data was written to the on disk large
                      * cube.
                      */
+                    data_ok = TRUE;
                     ptr_1 = large_cube_buf_1;
                     expected_value = 0;
-                    start_index = (i * edge_size * edge_size * edge_size * edge_size) +
-                                  (j * edge_size * edge_size * edge_size) +
-                                  (k * edge_size * edge_size) +
-                                  (l * edge_size);
-                    stop_index = start_index + (int)small_cube_size - 1;
+                    start_index = (u * edge_size * edge_size * edge_size * edge_size) +
+                                  (v * edge_size * edge_size * edge_size) +
+                                  (w * edge_size * edge_size) +
+                                  (x * edge_size);
+                    stop_index = start_index + small_cube_size - 1;
 
-                    HDassert( 0 <= start_index );
                     HDassert( start_index < stop_index );
-                    HDassert( stop_index <= (int)large_cube_size );
+                    HDassert( stop_index <= large_cube_size );
 
                     /* verify that the large cube contains only zeros before the slice */
                     for(s = 0; s < start_index; s++) {
                         if(*ptr_1 != 0)
-                            mis_match = TRUE;
+                            data_ok = FALSE;
                         ptr_1++;
                     } /* end for */
                     HDassert(s == start_index);
@@ -3547,24 +3469,24 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
                     /* verify that the large cube contains only zeros after the slice */
                     for(s = stop_index + 1; s < large_cube_size; s++) {
                         if(*ptr_1 != 0)
-                            mis_match = TRUE;
+                            data_ok = FALSE;
                         ptr_1++;
                     } /* end for */
-                    if(mis_match)
+                    if(!data_ok)
                         TestErrPrintf("large cube written from small cube has bad data! Line=%d\n",__LINE__);
 
-                    l++;
+                    x++;
                 } while((large_rank >= (test_max_rank - 3)) && 
-                        (small_rank <= (test_max_rank - 4)) && (l < edge_size));
-                k++;
+                        (small_rank <= (test_max_rank - 4)) && (x < edge_size));
+                w++;
             } while((large_rank >= (test_max_rank - 2)) && 
-                    (small_rank <= (test_max_rank - 3)) && (k < edge_size));
-            j++;
+                    (small_rank <= (test_max_rank - 3)) && (w < edge_size));
+            v++;
         } while((large_rank >= (test_max_rank - 1)) && 
-                (small_rank <= (test_max_rank - 2)) && (j < edge_size));
-        i++;
+                (small_rank <= (test_max_rank - 2)) && (v < edge_size));
+        u++;
     } while((large_rank >= test_max_rank) && 
-            (small_rank <= (test_max_rank - 1)) && (i < edge_size));
+            (small_rank <= (test_max_rank - 1)) && (u < edge_size));
                     
 
     /* Close memory dataspaces */
@@ -4451,15 +4373,15 @@ test_select_point_offset(void)
     CHECK(ret, FAIL, "H5Sselect_elements");
 
     /* Read selection from disk */
-    ret=H5Dread(dataset,H5T_NATIVE_UCHAR,sid2,sid1,H5P_DEFAULT,rbuf);
+    ret = H5Dread(dataset, H5T_NATIVE_UCHAR, sid2, sid1, H5P_DEFAULT, rbuf);
     CHECK(ret, FAIL, "H5Dread");
 
     /* Compare data read with data written out */
-    for(i=0; i<POINT1_NPOINTS; i++) {
-        tbuf=wbuf+((coord2[i][0]+offset[0])*SPACE2_DIM2)+coord2[i][1]+offset[1];
-        tbuf2=rbuf+(coord3[i][0]*SPACE3_DIM2)+coord3[i][1];
-        if(*tbuf!=*tbuf2)
-            TestErrPrintf("element values don't match!, i=%d\n",i);
+    for(i = 0; i < POINT1_NPOINTS; i++) {
+        tbuf = wbuf + ((coord2[i][0] + (hsize_t)offset[0]) * SPACE2_DIM2) + coord2[i][1] + (hsize_t)offset[1];
+        tbuf2 = rbuf + (coord3[i][0] * SPACE3_DIM2) + coord3[i][1];
+        if(*tbuf != *tbuf2)
+            TestErrPrintf("element values don't match!, i=%d\n", i);
     } /* end for */
 
     /* Close memory dataspace */
@@ -4516,7 +4438,7 @@ test_select_hyper_union(void)
                *tbuf2;      /* temporary buffer pointer */
     int        i,j;        /* Counters */
     herr_t		ret;		/* Generic return value		*/
-    hsize_t	    npoints;	/* Number of elements in selection */
+    hssize_t	    npoints;	/* Number of elements in selection */
 
     /* Output message about test being performed */
     MESSAGE(5, ("Testing Hyperslab Selection Functions with unions of hyperslabs\n"));
@@ -4554,7 +4476,7 @@ test_select_hyper_union(void)
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     npoints = H5Sget_select_npoints(sid1);
-    VERIFY(npoints, 2*15*13, "H5Sget_select_npoints");
+    VERIFY(npoints, 2 * 15 * 13, "H5Sget_select_npoints");
 
     /* Select 8x26 hyperslab for memory dataset */
     start[0]=15; start[1]=0;
@@ -4667,7 +4589,7 @@ test_select_hyper_union(void)
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     npoints = H5Sget_select_npoints(sid2);
-    VERIFY(npoints, 15*26, "H5Sget_select_npoints");
+    VERIFY(npoints, 15 * 26, "H5Sget_select_npoints");
 
     /* Create a dataset */
     dataset = H5Dcreate2(fid1, SPACE2_NAME, H5T_NATIVE_UCHAR, sid1, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -4753,7 +4675,7 @@ test_select_hyper_union(void)
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     npoints = H5Sget_select_npoints(sid2);
-    VERIFY(npoints, 15*26, "H5Sget_select_npoints");
+    VERIFY(npoints, 15 * 26, "H5Sget_select_npoints");
 
     /* Create a dataset */
     dataset = H5Dcreate2(fid1, SPACE3_NAME, H5T_NATIVE_UCHAR, sid1, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -4843,7 +4765,7 @@ test_select_hyper_union(void)
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     npoints = H5Sget_select_npoints(sid2);
-    VERIFY(npoints, 15*26, "H5Sget_select_npoints");
+    VERIFY(npoints, 15 * 26, "H5Sget_select_npoints");
 
     /* Create a dataset */
     dataset = H5Dcreate2(fid1, SPACE4_NAME, H5T_NATIVE_UCHAR, sid1, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -4940,7 +4862,7 @@ test_select_hyper_union(void)
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     npoints = H5Sget_select_npoints(sid2);
-    VERIFY(npoints, 15*26, "H5Sget_select_npoints");
+    VERIFY(npoints, 15 * 26, "H5Sget_select_npoints");
 
     /* Create a dataset */
     dataset = H5Dcreate2(fid1,SPACE5_NAME, H5T_NATIVE_UCHAR, sid1, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -5383,7 +5305,7 @@ test_select_hyper_and_2d(void)
                *tbuf2;      /* temporary buffer pointer */
     int        i,j;        /* Counters */
     herr_t		ret;    /* Generic return value		*/
-    hsize_t	    npoints;	/* Number of elements in selection */
+    hssize_t	    npoints;	/* Number of elements in selection */
 
     /* Output message about test being performed */
     MESSAGE(5, ("Testing Hyperslab Selection Functions with intersection of 2-D hyperslabs\n"));
@@ -5428,7 +5350,7 @@ test_select_hyper_and_2d(void)
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     npoints = H5Sget_select_npoints(sid1);
-    VERIFY(npoints, 5*5, "H5Sget_select_npoints");
+    VERIFY(npoints, 5 * 5, "H5Sget_select_npoints");
 
     /* Select 25 hyperslab for memory dataset */
     start[0]=0;
@@ -5439,7 +5361,7 @@ test_select_hyper_and_2d(void)
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     npoints = H5Sget_select_npoints(sid2);
-    VERIFY(npoints, 5*5, "H5Sget_select_npoints");
+    VERIFY(npoints, 5 * 5, "H5Sget_select_npoints");
 
     /* Create a dataset */
     dataset = H5Dcreate2(fid1, SPACE2_NAME, H5T_NATIVE_UCHAR, sid1, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -5512,7 +5434,7 @@ test_select_hyper_xor_2d(void)
                *tbuf2;      /* temporary buffer pointer */
     int        i,j;        /* Counters */
     herr_t		ret;    /* Generic return value		*/
-    hsize_t	    npoints;	/* Number of elements in selection */
+    hssize_t	    npoints;	/* Number of elements in selection */
 
     /* Output message about test being performed */
     MESSAGE(5, ("Testing Hyperslab Selection Functions with XOR of 2-D hyperslabs\n"));
@@ -5643,7 +5565,7 @@ test_select_hyper_notb_2d(void)
                *tbuf2;      /* temporary buffer pointer */
     int        i,j;        /* Counters */
     herr_t		ret;    /* Generic return value		*/
-    hsize_t	    npoints;	/* Number of elements in selection */
+    hssize_t	    npoints;	/* Number of elements in selection */
 
     /* Output message about test being performed */
     MESSAGE(5, ("Testing Hyperslab Selection Functions with NOTB of 2-D hyperslabs\n"));
@@ -5773,7 +5695,7 @@ test_select_hyper_nota_2d(void)
                *tbuf2;      /* temporary buffer pointer */
     int        i,j;        /* Counters */
     herr_t		ret;    /* Generic return value		*/
-    hsize_t	    npoints;	/* Number of elements in selection */
+    hssize_t	    npoints;	/* Number of elements in selection */
 
     /* Output message about test being performed */
     MESSAGE(5, ("Testing Hyperslab Selection Functions with NOTA of 2-D hyperslabs\n"));
@@ -5984,7 +5906,7 @@ test_select_hyper_union_random_5d(hid_t read_plist)
 #else /* QAK */
         seed=987909620;
 #endif /* QAK */
-        HDsrand(seed);
+        HDsrandom(seed);
 
 #ifdef QAK
 printf("test_num=%d, seed=%u\n",test_num,seed);
@@ -5999,26 +5921,26 @@ printf("hyperslab=%d\n",i);
 #endif /* QAK */
             /* Select random hyperslab location & size for selection */
             for(j=0; j<SPACE5_RANK; j++) {
-                start[j]=rand()%dims1[j];
-                count[j]=(rand()%(dims1[j]-start[j]))+1;
+                start[j] = ((hsize_t)HDrandom() % dims1[j]);
+                count[j] = (((hsize_t)HDrandom() % (dims1[j] - start[j])) + 1);
 #ifdef QAK
 printf("start[%d]=%d, count[%d]=%d (end[%d]=%d)\n",j,(int)start[j],j,(int)count[j],j,(int)(start[j]+count[j]-1));
 #endif /* QAK */
             } /* end for */
 
             /* Select hyperslab */
-            ret = H5Sselect_hyperslab(sid1,(i==0 ? H5S_SELECT_SET : H5S_SELECT_OR),start,NULL,count,NULL);
+            ret = H5Sselect_hyperslab(sid1, (i == 0 ? H5S_SELECT_SET : H5S_SELECT_OR), start, NULL, count, NULL);
             CHECK(ret, FAIL, "H5Sselect_hyperslab");
         } /* end for */
 
         /* Get the number of elements selected */
-        npoints=H5Sget_select_npoints(sid1);
+        npoints = H5Sget_select_npoints(sid1);
         CHECK(npoints, 0, "H5Sget_select_npoints");
 
         /* Select linear 1-D hyperslab for memory dataset */
-        start[0]=0;
-        count[0]=npoints;
-        ret = H5Sselect_hyperslab(sid2,H5S_SELECT_SET,start,NULL,count,NULL);
+        start[0] = 0;
+        count[0] = (hsize_t)npoints;
+        ret = H5Sselect_hyperslab(sid2, H5S_SELECT_SET, start, NULL, count, NULL);
         CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
         npoints2 = H5Sget_select_npoints(sid2);
@@ -7115,25 +7037,25 @@ test_select_fill_all(void)
 {
     hid_t	sid1;           /* Dataspace ID */
     hsize_t	dims1[] = {SPACE7_DIM1, SPACE7_DIM2};
-    int         fill_value;     /* Fill value */
+    unsigned    fill_value;     /* Fill value */
     fill_iter_info iter_info;   /* Iterator information structure */
     hsize_t     points[SPACE7_DIM1*SPACE7_DIM2][SPACE7_RANK];   /* Coordinates of selection */
-    unsigned short *wbuf,       /* buffer to write to disk */
+    unsigned   *wbuf,           /* buffer to write to disk */
                *tbuf;           /* temporary buffer pointer */
-    int         i,j;            /* Counters */
+    unsigned    u, v;           /* Counters */
     herr_t	ret;		/* Generic return value	*/
 
     /* Output message about test being performed */
     MESSAGE(5, ("Testing Filling 'all' Selections\n"));
 
     /* Allocate memory buffer */
-    wbuf = (unsigned short *)HDmalloc(sizeof(unsigned short)*SPACE7_DIM1*SPACE7_DIM2);
+    wbuf = (unsigned *)HDmalloc(sizeof(unsigned) * SPACE7_DIM1 * SPACE7_DIM2);
     CHECK(wbuf, NULL, "HDmalloc");
 
     /* Initialize memory buffer */
-    for(i=0, tbuf=wbuf; i<SPACE7_DIM1; i++)
-        for(j=0; j<SPACE7_DIM2; j++)
-            *tbuf++=(unsigned short)(i*SPACE7_DIM2)+j;
+    for(u = 0, tbuf = wbuf; u < SPACE7_DIM1; u++)
+        for(v = 0; v < SPACE7_DIM2; v++)
+            *tbuf++ = (u * SPACE7_DIM2) + v;
 
     /* Create dataspace for dataset on disk */
     sid1 = H5Screate_simple(SPACE7_RANK, dims1, NULL);
@@ -7142,32 +7064,32 @@ test_select_fill_all(void)
     /* Space defaults to "all" selection */
 
     /* Set fill value */
-    fill_value=SPACE7_FILL;
+    fill_value = SPACE7_FILL;
 
     /* Fill selection in memory */
-    ret=H5Dfill(&fill_value,H5T_NATIVE_INT,wbuf,H5T_NATIVE_USHORT,sid1);
+    ret = H5Dfill(&fill_value, H5T_NATIVE_UINT, wbuf, H5T_NATIVE_UINT, sid1);
     CHECK(ret, FAIL, "H5Dfill");
 
     /* Verify memory buffer the hard way... */
-    for(i=0, tbuf=wbuf; i<SPACE7_DIM1; i++)
-        for(j=0; j<SPACE7_DIM2; j++)
-            if(*tbuf!=(unsigned short)fill_value)
-                TestErrPrintf("Error! j=%d, i=%d, *tbuf=%x, fill_value=%x\n",j,i,(unsigned)*tbuf,(unsigned)fill_value);
+    for(u = 0, tbuf = wbuf; u < SPACE7_DIM1; u++)
+        for(v = 0; v < SPACE7_DIM2; v++)
+            if(*tbuf != fill_value)
+                TestErrPrintf("Error! v=%d, u=%u, *tbuf=%u, fill_value=%u\n", v, u, *tbuf, fill_value);
 
     /* Set the coordinates of the selection */
-    for(i=0; i<SPACE7_DIM1; i++)
-        for(j=0; j<SPACE7_DIM2; j++) {
-            points[(i*SPACE7_DIM2)+j][0]=i;
-            points[(i*SPACE7_DIM2)+j][1]=j;
+    for(u = 0; u < SPACE7_DIM1; u++)
+        for(v = 0; v < SPACE7_DIM2; v++) {
+            points[(u * SPACE7_DIM2) + v][0] = u;
+            points[(u * SPACE7_DIM2) + v][1] = v;
         } /* end for */
 
     /* Initialize the iterator structure */
-    iter_info.fill_value=SPACE7_FILL;
-    iter_info.curr_coord=0;
-    iter_info.coords=(hsize_t *)points;
+    iter_info.fill_value = SPACE7_FILL;
+    iter_info.curr_coord = 0;
+    iter_info.coords = (hsize_t *)points;
 
     /* Iterate through selection, verifying correct data */
-    ret = H5Diterate(wbuf,H5T_NATIVE_USHORT,sid1,test_select_hyper_iter3,&iter_info);
+    ret = H5Diterate(wbuf, H5T_NATIVE_UINT, sid1, test_select_hyper_iter3, &iter_info);
     CHECK(ret, FAIL, "H5Diterate");
 
     /* Close dataspace */
@@ -7191,78 +7113,78 @@ test_select_fill_point(hssize_t *offset)
     hsize_t	dims1[] = {SPACE7_DIM1, SPACE7_DIM2};
     hssize_t    real_offset[SPACE7_RANK];       /* Actual offset to use */
     hsize_t     points[5][SPACE7_RANK] = {{2,4}, {3,8}, {8,4}, {7,5}, {7,7}};
-    size_t      num_points=5;   /* Number of points selected */
+    size_t      num_points = 5; /* Number of points selected */
     int         fill_value;     /* Fill value */
     fill_iter_info iter_info;   /* Iterator information structure */
-    unsigned short *wbuf,       /* buffer to write to disk */
+    unsigned   *wbuf,           /* buffer to write to disk */
                *tbuf;           /* temporary buffer pointer */
-    int         i,j,k;          /* Counters */
+    unsigned   u, v, w;        /* Counters */
     herr_t	ret;		/* Generic return value	*/
 
     /* Output message about test being performed */
     MESSAGE(5, ("Testing Filling 'point' Selections\n"));
 
     /* Allocate memory buffer */
-    wbuf = (unsigned short *)HDmalloc(sizeof(unsigned short)*SPACE7_DIM1*SPACE7_DIM2);
+    wbuf = (unsigned *)HDmalloc(sizeof(unsigned) * SPACE7_DIM1 * SPACE7_DIM2);
     CHECK(wbuf, NULL, "HDmalloc");
 
     /* Initialize memory buffer */
-    for(i=0, tbuf=wbuf; i<SPACE7_DIM1; i++)
-        for(j=0; j<SPACE7_DIM2; j++)
-            *tbuf++=(unsigned short)(i*SPACE7_DIM2)+j;
+    for(u = 0, tbuf = wbuf; u < SPACE7_DIM1; u++)
+        for(v = 0; v < SPACE7_DIM2; v++)
+            *tbuf++ = (unsigned short)(u * SPACE7_DIM2) + v;
 
     /* Create dataspace for dataset on disk */
     sid1 = H5Screate_simple(SPACE7_RANK, dims1, NULL);
     CHECK(sid1, FAIL, "H5Screate_simple");
 
     /* Select "point" selection */
-    ret = H5Sselect_elements(sid1, H5S_SELECT_SET,num_points,(const hsize_t *)points);
+    ret = H5Sselect_elements(sid1, H5S_SELECT_SET, num_points, (const hsize_t *)points);
     CHECK(ret, FAIL, "H5Sselect_elements");
 
-    if(offset!=NULL) {
-        HDmemcpy(real_offset,offset,SPACE7_RANK*sizeof(hssize_t));
+    if(offset != NULL) {
+        HDmemcpy(real_offset, offset, SPACE7_RANK * sizeof(hssize_t));
 
         /* Set offset, if provided */
-        ret = H5Soffset_simple(sid1,real_offset);
+        ret = H5Soffset_simple(sid1, real_offset);
         CHECK(ret, FAIL, "H5Soffset_simple");
     } /* end if */
     else
-        HDmemset(real_offset,0,SPACE7_RANK*sizeof(hssize_t));
+        HDmemset(real_offset, 0, SPACE7_RANK * sizeof(hssize_t));
 
     /* Set fill value */
-    fill_value=SPACE7_FILL;
+    fill_value = SPACE7_FILL;
 
     /* Fill selection in memory */
-    ret=H5Dfill(&fill_value,H5T_NATIVE_INT,wbuf,H5T_NATIVE_USHORT,sid1);
+    ret = H5Dfill(&fill_value, H5T_NATIVE_INT, wbuf, H5T_NATIVE_UINT, sid1);
     CHECK(ret, FAIL, "H5Dfill");
 
     /* Verify memory buffer the hard way... */
-    for(i=0, tbuf=wbuf; i<SPACE7_DIM1; i++)
-        for(j=0; j<SPACE7_DIM2; j++, tbuf++) {
-            for(k=0; k<(int)num_points; k++) {
-                if(i==(int)(points[k][0]+real_offset[0]) && j==(int)(points[k][1]+real_offset[1])) {
-                    if(*tbuf!=(unsigned short)fill_value)
-                        TestErrPrintf("Error! j=%d, i=%d, *tbuf=%u, fill_value=%u\n",j,i,(unsigned)*tbuf,(unsigned)fill_value);
+    for(u = 0, tbuf = wbuf; u < SPACE7_DIM1; u++)
+        for(v = 0; v < SPACE7_DIM2; v++, tbuf++) {
+            for(w = 0; w < (unsigned)num_points; w++) {
+                if(u == (unsigned)(points[w][0] + (hsize_t)real_offset[0]) && v == (unsigned)(points[w][1] + (hsize_t)real_offset[1])) {
+                    if(*tbuf != (unsigned)fill_value)
+                        TestErrPrintf("Error! v=%u, u=%u, *tbuf=%u, fill_value=%u\n", v, u, *tbuf, (unsigned)fill_value);
                     break;
                 } /* end if */
             } /* end for */
-            if(k==(int)num_points && *tbuf!=((unsigned short)(i*SPACE7_DIM2)+j))
-                TestErrPrintf("Error! j=%d, i=%d, *tbuf=%u, should be: %u\n",j,i,(unsigned)*tbuf,(unsigned)((i*SPACE7_DIM2)+j));
+            if(w == (unsigned)num_points && *tbuf != ((u * SPACE7_DIM2) + v))
+                TestErrPrintf("Error! v=%d, u=%d, *tbuf=%u, should be: %u\n", v, u, *tbuf, ((u * SPACE7_DIM2) + v));
         } /* end for */
 
     /* Initialize the iterator structure */
-    iter_info.fill_value=SPACE7_FILL;
-    iter_info.curr_coord=0;
-    iter_info.coords=(hsize_t *)points;
+    iter_info.fill_value = SPACE7_FILL;
+    iter_info.curr_coord = 0;
+    iter_info.coords = (hsize_t *)points;
 
     /* Add in the offset */
-    for(i=0; i<(int)num_points; i++) {
-        points[i][0]+=real_offset[0];
-        points[i][1]+=real_offset[1];
+    for(u = 0; u < (unsigned)num_points; u++) {
+        points[u][0] = (hsize_t)(points[u][0] + real_offset[0]);
+        points[u][1] = (hsize_t)(points[u][1] + real_offset[1]);
     } /* end for */
 
     /* Iterate through selection, verifying correct data */
-    ret = H5Diterate(wbuf,H5T_NATIVE_USHORT,sid1,test_select_hyper_iter3,&iter_info);
+    ret = H5Diterate(wbuf, H5T_NATIVE_UINT, sid1, test_select_hyper_iter3, &iter_info);
     CHECK(ret, FAIL, "H5Diterate");
 
     /* Close dataspace */
@@ -7291,78 +7213,78 @@ test_select_fill_hyper_simple(hssize_t *offset)
     hsize_t     points[16][SPACE7_RANK];        /* Coordinates selected */
     int         fill_value;     /* Fill value */
     fill_iter_info iter_info;   /* Iterator information structure */
-    unsigned short *wbuf,       /* buffer to write to disk */
+    unsigned   *wbuf,           /* buffer to write to disk */
                *tbuf;           /* temporary buffer pointer */
-    int         i,j;            /* Counters */
+    unsigned    u, v;           /* Counters */
     herr_t	ret;		/* Generic return value	*/
 
     /* Output message about test being performed */
     MESSAGE(5, ("Testing Filling Simple 'hyperslab' Selections\n"));
 
     /* Allocate memory buffer */
-    wbuf = (unsigned short *)HDmalloc(sizeof(unsigned short)*SPACE7_DIM1*SPACE7_DIM2);
+    wbuf = (unsigned *)HDmalloc(sizeof(unsigned) * SPACE7_DIM1 * SPACE7_DIM2);
     CHECK(wbuf, NULL, "HDmalloc");
 
     /* Initialize memory buffer */
-    for(i=0, tbuf=wbuf; i<SPACE7_DIM1; i++)
-        for(j=0; j<SPACE7_DIM2; j++)
-            *tbuf++=(unsigned short)(i*SPACE7_DIM2)+j;
+    for(u = 0, tbuf = wbuf; u < SPACE7_DIM1; u++)
+        for(v = 0; v < SPACE7_DIM2; v++)
+            *tbuf++ = (unsigned short)(u * SPACE7_DIM2) + v;
 
     /* Create dataspace for dataset on disk */
     sid1 = H5Screate_simple(SPACE7_RANK, dims1, NULL);
     CHECK(sid1, FAIL, "H5Screate_simple");
 
     /* Select "hyperslab" selection */
-    start[0]=3; start[1]=3;
-    count[0]=4; count[1]=4;
-    ret = H5Sselect_hyperslab(sid1, H5S_SELECT_SET,start,NULL,count,NULL);
+    start[0] = 3; start[1] = 3;
+    count[0] = 4; count[1] = 4;
+    ret = H5Sselect_hyperslab(sid1, H5S_SELECT_SET, start, NULL, count, NULL);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    if(offset!=NULL) {
-        HDmemcpy(real_offset,offset,SPACE7_RANK*sizeof(hssize_t));
+    if(offset != NULL) {
+        HDmemcpy(real_offset, offset, SPACE7_RANK * sizeof(hssize_t));
 
         /* Set offset, if provided */
-        ret = H5Soffset_simple(sid1,real_offset);
+        ret = H5Soffset_simple(sid1, real_offset);
         CHECK(ret, FAIL, "H5Soffset_simple");
     } /* end if */
     else
-        HDmemset(real_offset,0,SPACE7_RANK*sizeof(hssize_t));
+        HDmemset(real_offset, 0, SPACE7_RANK * sizeof(hssize_t));
 
     /* Set fill value */
-    fill_value=SPACE7_FILL;
+    fill_value = SPACE7_FILL;
 
     /* Fill selection in memory */
-    ret=H5Dfill(&fill_value,H5T_NATIVE_INT,wbuf,H5T_NATIVE_USHORT,sid1);
+    ret = H5Dfill(&fill_value, H5T_NATIVE_INT, wbuf, H5T_NATIVE_UINT, sid1);
     CHECK(ret, FAIL, "H5Dfill");
 
     /* Verify memory buffer the hard way... */
-    for(i=0, tbuf=wbuf; i<SPACE7_DIM1; i++)
-        for(j=0; j<SPACE7_DIM2; j++, tbuf++) {
-            if((i>=(int)(start[0]+real_offset[0]) && i<(int)(start[0]+count[0]+real_offset[0]))
-                && (j>=(int)(start[1]+real_offset[1]) && j<(int)(start[1]+count[1]+real_offset[1]))) {
-                    if(*tbuf!=(unsigned short)fill_value)
-                        TestErrPrintf("Error! j=%d, i=%d, *tbuf=%u, fill_value=%u\n",j,i,(unsigned)*tbuf,(unsigned)fill_value);
+    for(u = 0, tbuf = wbuf; u < SPACE7_DIM1; u++)
+        for(v = 0; v < SPACE7_DIM2; v++, tbuf++) {
+            if((u >= (unsigned)(start[0] + real_offset[0]) && u < (unsigned)(start[0] + count[0] + real_offset[0]))
+                && (v >= (unsigned)(start[1] + real_offset[1]) && v < (unsigned)(start[1] + count[1] + real_offset[1]))) {
+                    if(*tbuf != (unsigned)fill_value)
+                        TestErrPrintf("Error! v=%u, u=%u, *tbuf=%u, fill_value=%u\n", v, u, *tbuf, (unsigned)fill_value);
                 } /* end if */
             else {
-                if(*tbuf!=((unsigned short)(i*SPACE7_DIM2)+j))
-                    TestErrPrintf("Error! j=%d, i=%d, *tbuf=%u, should be: %u\n",j,i,(unsigned)*tbuf,(unsigned)((i*SPACE7_DIM2)+j));
+                if(*tbuf != ((unsigned)(u * SPACE7_DIM2) + v))
+                    TestErrPrintf("Error! v=%u, u=%u, *tbuf=%u, should be: %u\n", v, u, *tbuf, ((u * SPACE7_DIM2) + v));
             } /* end else */
         } /* end for */
 
     /* Initialize the iterator structure */
-    iter_info.fill_value=SPACE7_FILL;
-    iter_info.curr_coord=0;
-    iter_info.coords=(hsize_t *)points;
+    iter_info.fill_value = SPACE7_FILL;
+    iter_info.curr_coord = 0;
+    iter_info.coords = (hsize_t *)points;
 
     /* Set the coordinates of the selection (with the offset) */
-    for(i=0, num_points=0; i<(int)count[0]; i++)
-        for(j=0; j<(int)count[1]; j++, num_points++) {
-            points[num_points][0]=i+start[0]+real_offset[0];
-            points[num_points][1]=j+start[1]+real_offset[1];
+    for(u = 0, num_points = 0; u < (unsigned)count[0]; u++)
+        for(v = 0; v < (unsigned)count[1]; v++, num_points++) {
+            points[num_points][0] = (hsize_t)(u + start[0] + real_offset[0]);
+            points[num_points][1] = (hsize_t)(v + start[1] + real_offset[1]);
         } /* end for */
 
     /* Iterate through selection, verifying correct data */
-    ret = H5Diterate(wbuf,H5T_NATIVE_USHORT,sid1,test_select_hyper_iter3,&iter_info);
+    ret = H5Diterate(wbuf, H5T_NATIVE_UINT, sid1, test_select_hyper_iter3, &iter_info);
     CHECK(ret, FAIL, "H5Diterate");
 
     /* Close dataspace */
@@ -7398,79 +7320,79 @@ test_select_fill_hyper_regular(hssize_t *offset)
     size_t      num_points=16;  /* Number of points selected */
     int         fill_value;     /* Fill value */
     fill_iter_info iter_info;   /* Iterator information structure */
-    unsigned short *wbuf,       /* buffer to write to disk */
+    unsigned   *wbuf,           /* buffer to write to disk */
                *tbuf;           /* temporary buffer pointer */
-    int         i,j,k;          /* Counters */
+    unsigned    u, v, w;        /* Counters */
     herr_t	ret;		/* Generic return value	*/
 
     /* Output message about test being performed */
     MESSAGE(5, ("Testing Filling Regular 'hyperslab' Selections\n"));
 
     /* Allocate memory buffer */
-    wbuf = (unsigned short *)HDmalloc(sizeof(unsigned short)*SPACE7_DIM1*SPACE7_DIM2);
+    wbuf = (unsigned *)HDmalloc(sizeof(unsigned) * SPACE7_DIM1 * SPACE7_DIM2);
     CHECK(wbuf, NULL, "HDmalloc");
 
     /* Initialize memory buffer */
-    for(i=0, tbuf=wbuf; i<SPACE7_DIM1; i++)
-        for(j=0; j<SPACE7_DIM2; j++)
-            *tbuf++=(unsigned short)(i*SPACE7_DIM2)+j;
+    for(u = 0, tbuf = wbuf; u < SPACE7_DIM1; u++)
+        for(v = 0; v < SPACE7_DIM2; v++)
+            *tbuf++ =(u * SPACE7_DIM2) + v;
 
     /* Create dataspace for dataset on disk */
     sid1 = H5Screate_simple(SPACE7_RANK, dims1, NULL);
     CHECK(sid1, FAIL, "H5Screate_simple");
 
     /* Select "hyperslab" selection */
-    start[0]=2; start[1]=2;
-    stride[0]=4; stride[1]=4;
-    count[0]=2; count[1]=2;
-    block[0]=2; block[1]=2;
-    ret = H5Sselect_hyperslab(sid1,H5S_SELECT_SET,start,stride,count,block);
+    start[0] = 2; start[1] = 2;
+    stride[0] = 4; stride[1] = 4;
+    count[0] = 2; count[1] = 2;
+    block[0] = 2; block[1] = 2;
+    ret = H5Sselect_hyperslab(sid1, H5S_SELECT_SET, start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    if(offset!=NULL) {
-        HDmemcpy(real_offset,offset,SPACE7_RANK*sizeof(hssize_t));
+    if(offset != NULL) {
+        HDmemcpy(real_offset, offset, SPACE7_RANK * sizeof(hssize_t));
 
         /* Set offset, if provided */
-        ret = H5Soffset_simple(sid1,real_offset);
+        ret = H5Soffset_simple(sid1, real_offset);
         CHECK(ret, FAIL, "H5Soffset_simple");
     } /* end if */
     else
-        HDmemset(real_offset,0,SPACE7_RANK*sizeof(hssize_t));
+        HDmemset(real_offset, 0, SPACE7_RANK * sizeof(hssize_t));
 
     /* Set fill value */
-    fill_value=SPACE7_FILL;
+    fill_value = SPACE7_FILL;
 
     /* Fill selection in memory */
-    ret=H5Dfill(&fill_value,H5T_NATIVE_INT,wbuf,H5T_NATIVE_USHORT,sid1);
+    ret = H5Dfill(&fill_value, H5T_NATIVE_INT, wbuf, H5T_NATIVE_UINT, sid1);
     CHECK(ret, FAIL, "H5Dfill");
 
     /* Verify memory buffer the hard way... */
-    for(i=0, tbuf=wbuf; i<SPACE7_DIM1; i++)
-        for(j=0; j<SPACE7_DIM2; j++, tbuf++) {
-            for(k=0; k<(int)num_points; k++) {
-                if(i==(int)(points[k][0]+real_offset[0]) && j==(int)(points[k][1]+real_offset[1])) {
-                    if(*tbuf!=(unsigned short)fill_value)
-                        TestErrPrintf("Error! j=%d, i=%d, *tbuf=%u, fill_value=%u\n",j,i,(unsigned)*tbuf,(unsigned)fill_value);
+    for(u = 0, tbuf = wbuf; u < SPACE7_DIM1; u++)
+        for(v = 0; v < SPACE7_DIM2; v++, tbuf++) {
+            for(w = 0; w < (unsigned)num_points; w++) {
+                if(u == (unsigned)(points[w][0] + real_offset[0]) && v == (unsigned)(points[w][1] + real_offset[1])) {
+                    if(*tbuf != (unsigned)fill_value)
+                        TestErrPrintf("Error! v=%u, u=%u, *tbuf=%u, fill_value=%u\n", v, u, *tbuf, (unsigned)fill_value);
                     break;
                 } /* end if */
             } /* end for */
-            if(k==(int)num_points && *tbuf!=((unsigned short)(i*SPACE7_DIM2)+j))
-                TestErrPrintf("Error! j=%d, i=%d, *tbuf=%u, should be: %u\n",j,i,(unsigned)*tbuf,(unsigned)((i*SPACE7_DIM2)+j));
+            if(w == (unsigned)num_points && *tbuf != ((u * SPACE7_DIM2) + v))
+                TestErrPrintf("Error! v=%d, u=%d, *tbuf=%u, should be: %u\n", v, u, *tbuf, ((u * SPACE7_DIM2) + v));
         } /* end for */
 
     /* Initialize the iterator structure */
-    iter_info.fill_value=SPACE7_FILL;
-    iter_info.curr_coord=0;
-    iter_info.coords=(hsize_t *)points;
+    iter_info.fill_value = SPACE7_FILL;
+    iter_info.curr_coord = 0;
+    iter_info.coords = (hsize_t *)points;
 
     /* Add in the offset */
-    for(i=0; i<(int)num_points; i++) {
-        points[i][0] += real_offset[0];
-        points[i][1] += real_offset[1];
+    for(u = 0; u < (unsigned)num_points; u++) {
+        points[u][0] = (hsize_t)(points[u][0] + real_offset[0]);
+        points[u][1] = (hsize_t)(points[u][1] + real_offset[1]);
     } /* end for */
 
     /* Iterate through selection, verifying correct data */
-    ret = H5Diterate(wbuf,H5T_NATIVE_USHORT,sid1,test_select_hyper_iter3,&iter_info);
+    ret = H5Diterate(wbuf, H5T_NATIVE_UINT, sid1, test_select_hyper_iter3, &iter_info);
     CHECK(ret, FAIL, "H5Diterate");
 
     /* Close dataspace */
@@ -7513,72 +7435,72 @@ test_select_fill_hyper_irregular(hssize_t *offset)
         {6,4}, {6,5}, {6,6}, {6,7},
         {7,4}, {7,5}, {7,6}, {7,7},
         };
-    size_t      num_points=32;  /* Number of points selected */
-    size_t      num_iter_points=28;  /* Number of resulting points */
+    size_t      num_points = 32;  /* Number of points selected */
+    size_t      num_iter_points = 28;  /* Number of resulting points */
     int         fill_value;     /* Fill value */
     fill_iter_info iter_info;   /* Iterator information structure */
-    unsigned short *wbuf,       /* buffer to write to disk */
+    unsigned   *wbuf,           /* buffer to write to disk */
                *tbuf;           /* temporary buffer pointer */
-    int         i,j,k;          /* Counters */
+    unsigned    u, v, w;        /* Counters */
     herr_t	ret;		/* Generic return value	*/
 
     /* Output message about test being performed */
     MESSAGE(5, ("Testing Filling Irregular 'hyperslab' Selections\n"));
 
     /* Allocate memory buffer */
-    wbuf = (unsigned short *)HDmalloc(sizeof(unsigned short)*SPACE7_DIM1*SPACE7_DIM2);
+    wbuf = (unsigned *)HDmalloc(sizeof(unsigned) * SPACE7_DIM1 * SPACE7_DIM2);
     CHECK(wbuf, NULL, "HDmalloc");
 
     /* Initialize memory buffer */
-    for(i=0, tbuf=wbuf; i<SPACE7_DIM1; i++)
-        for(j=0; j<SPACE7_DIM2; j++)
-            *tbuf++=(unsigned short)(i*SPACE7_DIM2)+j;
+    for(u = 0, tbuf = wbuf; u < SPACE7_DIM1; u++)
+        for(v = 0; v < SPACE7_DIM2; v++)
+            *tbuf++ = (u * SPACE7_DIM2) + v;
 
     /* Create dataspace for dataset on disk */
     sid1 = H5Screate_simple(SPACE7_RANK, dims1, NULL);
     CHECK(sid1, FAIL, "H5Screate_simple");
 
     /* Select first "hyperslab" selection */
-    start[0]=2; start[1]=2;
-    count[0]=4; count[1]=4;
-    ret = H5Sselect_hyperslab(sid1,H5S_SELECT_SET,start,NULL,count,NULL);
+    start[0] = 2; start[1] = 2;
+    count[0] = 4; count[1] = 4;
+    ret = H5Sselect_hyperslab(sid1, H5S_SELECT_SET, start, NULL, count, NULL);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     /* Combine with second "hyperslab" selection */
-    start[0]=4; start[1]=4;
-    count[0]=4; count[1]=4;
-    ret = H5Sselect_hyperslab(sid1,H5S_SELECT_OR,start,NULL,count,NULL);
+    start[0] = 4; start[1] = 4;
+    count[0] = 4; count[1] = 4;
+    ret = H5Sselect_hyperslab(sid1, H5S_SELECT_OR, start, NULL, count, NULL);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
-    if(offset!=NULL) {
-        HDmemcpy(real_offset,offset,SPACE7_RANK*sizeof(hssize_t));
+    if(offset != NULL) {
+        HDmemcpy(real_offset, offset, SPACE7_RANK * sizeof(hssize_t));
 
         /* Set offset, if provided */
-        ret = H5Soffset_simple(sid1,real_offset);
+        ret = H5Soffset_simple(sid1, real_offset);
         CHECK(ret, FAIL, "H5Soffset_simple");
     } /* end if */
     else
-        HDmemset(real_offset,0,SPACE7_RANK*sizeof(hssize_t));
+        HDmemset(real_offset, 0, SPACE7_RANK * sizeof(hssize_t));
 
     /* Set fill value */
-    fill_value=SPACE7_FILL;
+    fill_value = SPACE7_FILL;
 
     /* Fill selection in memory */
-    ret=H5Dfill(&fill_value,H5T_NATIVE_INT,wbuf,H5T_NATIVE_USHORT,sid1);
+    ret = H5Dfill(&fill_value, H5T_NATIVE_INT, wbuf, H5T_NATIVE_UINT, sid1);
     CHECK(ret, FAIL, "H5Dfill");
 
     /* Verify memory buffer the hard way... */
-    for(i=0, tbuf=wbuf; i<SPACE7_DIM1; i++)
-        for(j=0; j<SPACE7_DIM2; j++, tbuf++) {
-            for(k=0; k<(int)num_points; k++) {
-                if(i==(int)(points[k][0]+real_offset[0]) && j==(int)(points[k][1]+real_offset[1])) {
-                    if(*tbuf!=(unsigned short)fill_value)
-                        TestErrPrintf("Error! j=%d, i=%d, *tbuf=%u, fill_value=%u\n",j,i,(unsigned)*tbuf,(unsigned)fill_value);
+    for(u = 0, tbuf = wbuf; u < SPACE7_DIM1; u++)
+        for(v = 0; v < SPACE7_DIM2; v++, tbuf++) {
+            for(w = 0; w < (unsigned)num_points; w++) {
+                if(u == (unsigned)(points[w][0] + real_offset[0]) && v == (unsigned)(points[w][1] + real_offset[1])) {
+                    if(*tbuf != (unsigned)fill_value)
+                        TestErrPrintf("Error! v=%u, u=%u, *tbuf=%u, fill_value=%u\n", v, u, *tbuf, (unsigned)fill_value);
                     break;
                 } /* end if */
             } /* end for */
-            if(k==(int)num_points && *tbuf!=((unsigned short)(i*SPACE7_DIM2)+j))
-                TestErrPrintf("Error! j=%d, i=%d, *tbuf=%u, should be: %u\n",j,i,(unsigned)*tbuf,(unsigned)((i*SPACE7_DIM2)+j));
+            if(w == (unsigned)num_points && *tbuf != ((u * SPACE7_DIM2) + v))
+                TestErrPrintf("Error! v=%u, u=%u, *tbuf=%u, should be: %u\n", v, u, *tbuf, ((u * SPACE7_DIM2) + v));
         } /* end for */
 
     /* Initialize the iterator structure */
@@ -7587,13 +7509,13 @@ test_select_fill_hyper_irregular(hssize_t *offset)
     iter_info.coords = (hsize_t *)iter_points;
 
     /* Add in the offset */
-    for(i=0; i<(int)num_iter_points; i++) {
-        iter_points[i][0] += real_offset[0];
-        iter_points[i][1] += real_offset[1];
+    for(u = 0; u < (unsigned)num_iter_points; u++) {
+        iter_points[u][0] = (hsize_t)(iter_points[u][0] + real_offset[0]);
+        iter_points[u][1] = (hsize_t)(iter_points[u][1] + real_offset[1]);
     } /* end for */
 
     /* Iterate through selection, verifying correct data */
-    ret = H5Diterate(wbuf, H5T_NATIVE_USHORT, sid1, test_select_hyper_iter3, &iter_info);
+    ret = H5Diterate(wbuf, H5T_NATIVE_UINT, sid1, test_select_hyper_iter3, &iter_info);
     CHECK(ret, FAIL, "H5Diterate");
 
     /* Close dataspace */
@@ -9123,7 +9045,7 @@ test_shape_same(void)
 **	the slab parallel to the xy plane, three parallel to the 
 **	xz plane, and three parallel to the yz plane.
 **
-**	Assuming that z is the fasted changing dimension, 
+**	Assuming that z is the fastest changing dimension, 
 **	H5S_select_shape_same() should return TRUE when comparing 
 **	the full 2 D space against any hyperslab parallel to the 
 **	yz plane in the 3 D space, and FALSE when comparing the 
@@ -9137,7 +9059,6 @@ test_shape_same(void)
 **	each to the 2 D selection.
 **
 ****************************************************************/
-
 static void
 test_shape_same_dr__smoke_check_1(void)
 {
@@ -9153,11 +9074,11 @@ test_shape_same_dr__smoke_check_1(void)
     hid_t	small_cube_yz_slice_2_sid;
     hid_t	small_cube_yz_slice_3_sid;
     hid_t	small_cube_yz_slice_4_sid;
-    hsize_t	small_cube_dims[] = {10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
-    hsize_t	start[16];      /* bigger than we should ever need */
-    hsize_t	stride[16];     /* bigger than we should ever need */
-    hsize_t	count[16];      /* bigger than we should ever need */
-    hsize_t	block[16];      /* bigger than we should ever need */
+    hsize_t	small_cube_dims[] = {10, 10, 10};
+    hsize_t	start[3];
+    hsize_t	stride[3];
+    hsize_t	count[3];
+    hsize_t	block[3];
     htri_t	check;		/* Shape comparison return value */
     herr_t	ret;		/* Generic return value	*/
 
@@ -9167,13 +9088,7 @@ test_shape_same_dr__smoke_check_1(void)
     small_square_sid = H5Screate_simple(2, small_cube_dims, NULL);
     CHECK(small_square_sid, FAIL, "H5Screate_simple");
 
-    /* Select the entire extent of the 10 X 10 dataspace */
-    ret = H5Sselect_all(small_square_sid);
-    CHECK(ret, FAIL, "H5Sselect_all");
-
-
     /* Create the 10 X 10 X 10 dataspaces for the hyperslab parallel to the xy axis */
-
     small_cube_xy_slice_0_sid = H5Screate_simple(3, small_cube_dims, NULL);
     CHECK(small_cube_xy_slice_0_sid, FAIL, "H5Screate_simple");
 
@@ -9201,26 +9116,22 @@ test_shape_same_dr__smoke_check_1(void)
     block[0] = 10;	/* x */
     block[1] = 10;	/* y */
     block[2] =  1;	/* z */
-
     ret = H5Sselect_hyperslab(small_cube_xy_slice_0_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     start[2] = 5;
-
     ret = H5Sselect_hyperslab(small_cube_xy_slice_1_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     start[2] = 9;
-
     ret = H5Sselect_hyperslab(small_cube_xy_slice_2_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
 
     /* Create the 10 X 10 X 10 dataspaces for the hyperslab parallel to the xz axis */
-
     small_cube_xz_slice_0_sid = H5Screate_simple(3, small_cube_dims, NULL);
     CHECK(small_cube_xz_slice_0_sid, FAIL, "H5Screate_simple");
 
@@ -9248,26 +9159,22 @@ test_shape_same_dr__smoke_check_1(void)
     block[0] = 10;	/* x */
     block[1] =  1;	/* y */
     block[2] = 10;	/* z */
-
     ret = H5Sselect_hyperslab(small_cube_xz_slice_0_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     start[1] = 4;
-
     ret = H5Sselect_hyperslab(small_cube_xz_slice_1_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     start[1] = 9;
-
     ret = H5Sselect_hyperslab(small_cube_xz_slice_2_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
 
     /* Create the 10 X 10 X 10 dataspaces for the hyperslabs parallel to the yz axis */
-
     small_cube_yz_slice_0_sid = H5Screate_simple(3, small_cube_dims, NULL);
     CHECK(small_cube_yz_slice_0_sid, FAIL, "H5Screate_simple");
 
@@ -9307,33 +9214,28 @@ test_shape_same_dr__smoke_check_1(void)
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     start[0] = 4;
-
     ret = H5Sselect_hyperslab(small_cube_yz_slice_1_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     start[0] = 9;
-
     ret = H5Sselect_hyperslab(small_cube_yz_slice_2_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     start[0] = 4;
     block[0] = 2;
-
     ret = H5Sselect_hyperslab(small_cube_yz_slice_3_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     start[0] = 3;
     block[0] = 1;
-
     ret = H5Sselect_hyperslab(small_cube_yz_slice_4_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     start[0] = 6;
-
     ret = H5Sselect_hyperslab(small_cube_yz_slice_4_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -9342,41 +9244,41 @@ test_shape_same_dr__smoke_check_1(void)
     /* setup is done -- run the tests: */
 
     /* Compare against "xy" selection */
-    check=H5S_select_shape_same_test(small_cube_xy_slice_0_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_xy_slice_0_sid, small_square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(small_cube_xy_slice_1_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_xy_slice_1_sid, small_square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(small_cube_xy_slice_2_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_xy_slice_2_sid, small_square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
 
     /* Compare against "xz" selection */
-    check=H5S_select_shape_same_test(small_cube_xz_slice_0_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_xz_slice_0_sid, small_square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(small_cube_xz_slice_1_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_xz_slice_1_sid, small_square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(small_cube_xz_slice_2_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_xz_slice_2_sid, small_square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
 
     /* Compare against "yz" selection */
-    check=H5S_select_shape_same_test(small_cube_yz_slice_0_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_yz_slice_0_sid, small_square_sid);
     VERIFY(check, TRUE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(small_cube_yz_slice_1_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_yz_slice_1_sid, small_square_sid);
     VERIFY(check, TRUE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(small_cube_yz_slice_2_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_yz_slice_2_sid, small_square_sid);
     VERIFY(check, TRUE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(small_cube_yz_slice_3_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_yz_slice_3_sid, small_square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(small_cube_yz_slice_4_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_yz_slice_4_sid, small_square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
 
@@ -9420,10 +9322,7 @@ test_shape_same_dr__smoke_check_1(void)
     ret = H5Sclose(small_cube_yz_slice_4_sid);
     CHECK(ret, FAIL, "H5Sclose");
 
-    return;
-
 } /* test_shape_same_dr__smoke_check_1() */
-
 
 /****************************************************************
 **
@@ -9443,7 +9342,7 @@ test_shape_same_dr__smoke_check_1(void)
 **		* * - - * * - - * *
 **              * * - - * * - - * *
 **
-**	where asteriscs indicate selected elements, and dashes 
+**	where asterisks indicate selected elements, and dashes 
 **	indicate unselected elements.
 **
 **	Similarly, create nine, 3 D data spaces (10 X 10 X 10), 
@@ -9452,7 +9351,7 @@ test_shape_same_dr__smoke_check_1(void)
 **	plane, three parallel to the xz plane, and three parallel 
 **	to the yz plane.
 **
-**	Assuming that z is the fasted changing dimension, 
+**	Assuming that z is the fastest changing dimension, 
 **	H5S_select_shape_same() should return TRUE when comparing 
 **	the 2 D space checker board selection against a checker 
 **	board hyperslab parallel to the yz plane in the 3 D 
@@ -9467,7 +9366,6 @@ test_shape_same_dr__smoke_check_1(void)
 **	comparing this selection to the 2 D selection.
 **
 ****************************************************************/
-
 static void
 test_shape_same_dr__smoke_check_2(void)
 {
@@ -9482,11 +9380,11 @@ test_shape_same_dr__smoke_check_2(void)
     hid_t	small_cube_yz_slice_1_sid;
     hid_t	small_cube_yz_slice_2_sid;
     hid_t	small_cube_yz_slice_3_sid;
-    hsize_t	small_cube_dims[] = {10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
-    hsize_t	start[16];      /* bigger than we should ever need */
-    hsize_t	stride[16];     /* bigger than we should ever need */
-    hsize_t	count[16];      /* bigger than we should ever need */
-    hsize_t	block[16];      /* bigger than we should ever need */
+    hsize_t	small_cube_dims[] = {10, 10, 10};
+    hsize_t	start[3];
+    hsize_t	stride[3];
+    hsize_t	count[3];
+    hsize_t	block[3];
     htri_t	check;		/* Shape comparison return value */
     herr_t	ret;		/* Generic return value	*/
 
@@ -9507,7 +9405,6 @@ test_shape_same_dr__smoke_check_2(void)
 
     block[0] = 2;	/* x */
     block[1] = 2;	/* y */
-
     ret = H5Sselect_hyperslab(small_square_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -9523,14 +9420,12 @@ test_shape_same_dr__smoke_check_2(void)
 
     block[0] = 2;	/* x */
     block[1] = 2;	/* y */
-
     ret = H5Sselect_hyperslab(small_square_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
 
     /* Create the 10 X 10 X 10 dataspaces for the hyperslab parallel to the xy axis */
-
     small_cube_xy_slice_0_sid = H5Screate_simple(3, small_cube_dims, NULL);
     CHECK(small_cube_xy_slice_0_sid, FAIL, "H5Screate_simple");
 
@@ -9556,19 +9451,16 @@ test_shape_same_dr__smoke_check_2(void)
     block[0] = 2;	/* x */
     block[1] = 2;	/* y */
     block[2] = 1;	/* z */
-
     ret = H5Sselect_hyperslab(small_cube_xy_slice_0_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     start[2] = 3;
-
     ret = H5Sselect_hyperslab(small_cube_xy_slice_1_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     start[2] = 9;
-
     ret = H5Sselect_hyperslab(small_cube_xy_slice_2_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -9589,26 +9481,22 @@ test_shape_same_dr__smoke_check_2(void)
     block[0] = 2;	/* x */
     block[1] = 2;	/* y */
     block[2] = 1;	/* z */
-
     ret = H5Sselect_hyperslab(small_cube_xy_slice_0_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     start[2] = 3;
-
     ret = H5Sselect_hyperslab(small_cube_xy_slice_1_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     start[2] = 9;
-
     ret = H5Sselect_hyperslab(small_cube_xy_slice_2_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
 
     /* Create the 10 X 10 X 10 dataspaces for the hyperslab parallel to the xz axis */
-
     small_cube_xz_slice_0_sid = H5Screate_simple(3, small_cube_dims, NULL);
     CHECK(small_cube_xz_slice_0_sid, FAIL, "H5Screate_simple");
 
@@ -9634,19 +9522,16 @@ test_shape_same_dr__smoke_check_2(void)
     block[0] = 2;	/* x */
     block[1] = 1;	/* y */
     block[2] = 2;	/* z */
-
     ret = H5Sselect_hyperslab(small_cube_xz_slice_0_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     start[1] = 5;
-
     ret = H5Sselect_hyperslab(small_cube_xz_slice_1_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     start[1] = 9;
-
     ret = H5Sselect_hyperslab(small_cube_xz_slice_2_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -9666,26 +9551,22 @@ test_shape_same_dr__smoke_check_2(void)
     block[0] = 2;	/* x */
     block[1] = 1;	/* y */
     block[2] = 2;	/* z */
-
     ret = H5Sselect_hyperslab(small_cube_xz_slice_0_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     start[1] = 5;
-
     ret = H5Sselect_hyperslab(small_cube_xz_slice_1_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     start[1] = 9;
-
     ret = H5Sselect_hyperslab(small_cube_xz_slice_2_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
 
     /* Create the 10 X 10 X 10 dataspaces for the hyperslabs parallel to the yz axis */
-
     small_cube_yz_slice_0_sid = H5Screate_simple(3, small_cube_dims, NULL);
     CHECK(small_cube_yz_slice_0_sid, FAIL, "H5Screate_simple");
 
@@ -9713,25 +9594,21 @@ test_shape_same_dr__smoke_check_2(void)
     block[0] = 1;	/* x */
     block[1] = 2;	/* y */
     block[2] = 2;	/* z */
-
     ret = H5Sselect_hyperslab(small_cube_yz_slice_0_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     start[0] = 8;
-
     ret = H5Sselect_hyperslab(small_cube_yz_slice_1_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     start[0] = 9;
-
     ret = H5Sselect_hyperslab(small_cube_yz_slice_2_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     start[0] = 3;
-
     ret = H5Sselect_hyperslab(small_cube_yz_slice_3_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -9752,25 +9629,21 @@ test_shape_same_dr__smoke_check_2(void)
     block[0] = 1;	/* x */
     block[1] = 2;	/* y */
     block[2] = 2;	/* z */
-
     ret = H5Sselect_hyperslab(small_cube_yz_slice_0_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     start[0] = 8;
-
     ret = H5Sselect_hyperslab(small_cube_yz_slice_1_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     start[0] = 9;
-
     ret = H5Sselect_hyperslab(small_cube_yz_slice_2_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
     start[0] = 4;
-
     /* This test gets the right answer, but it fails the shape same
      * test in an unexpected point.  Bring this up with Quincey, as 
      * the oddness looks like it is not related to my code.
@@ -9784,38 +9657,38 @@ test_shape_same_dr__smoke_check_2(void)
     /* setup is done -- run the tests: */
 
     /* Compare against "xy" selection */
-    check=H5S_select_shape_same_test(small_cube_xy_slice_0_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_xy_slice_0_sid, small_square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(small_cube_xy_slice_1_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_xy_slice_1_sid, small_square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(small_cube_xy_slice_2_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_xy_slice_2_sid, small_square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
 
     /* Compare against "xz" selection */
-    check=H5S_select_shape_same_test(small_cube_xz_slice_0_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_xz_slice_0_sid, small_square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(small_cube_xz_slice_1_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_xz_slice_1_sid, small_square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(small_cube_xz_slice_2_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_xz_slice_2_sid, small_square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
 
     /* Compare against "yz" selection */
-    check=H5S_select_shape_same_test(small_cube_yz_slice_0_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_yz_slice_0_sid, small_square_sid);
     VERIFY(check, TRUE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(small_cube_yz_slice_1_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_yz_slice_1_sid, small_square_sid);
     VERIFY(check, TRUE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(small_cube_yz_slice_2_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_yz_slice_2_sid, small_square_sid);
     VERIFY(check, TRUE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(small_cube_yz_slice_3_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_yz_slice_3_sid, small_square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
 
@@ -9856,8 +9729,6 @@ test_shape_same_dr__smoke_check_2(void)
     ret = H5Sclose(small_cube_yz_slice_3_sid);
     CHECK(ret, FAIL, "H5Sclose");
 
-    return;
-
 } /* test_shape_same_dr__smoke_check_2() */
 
 
@@ -9881,7 +9752,7 @@ test_shape_same_dr__smoke_check_2(void)
 **	 	0 - - - - - - - - - -
 **                0 1 2 3 4 5 6 7 8 9 x
 **
-**	where asteriscs indicate selected elements, and dashes 
+**	where asterisks indicate selected elements, and dashes 
 **	indicate unselected elements.
 **
 **	Similarly, create nine, 3 D data spaces (10 X 10 X 10), 
@@ -9891,7 +9762,7 @@ test_shape_same_dr__smoke_check_2(void)
 **	Further, translate the irregular slab in 2/3rds of the 
 **	cases.
 **
-**	Assuming that z is the fasted changing dimension, 
+**	Assuming that z is the fastest changing dimension, 
 **	H5S_select_shape_same() should return TRUE when 
 **	comparing the 2 D irregular hyperslab selection 
 **	against the irregular hyperslab selections parallel 
@@ -9900,7 +9771,6 @@ test_shape_same_dr__smoke_check_2(void)
 **	selections parallel to the xy or xz planes.
 **
 ****************************************************************/
-
 static void
 test_shape_same_dr__smoke_check_3(void)
 {
@@ -9914,11 +9784,11 @@ test_shape_same_dr__smoke_check_3(void)
     hid_t	small_cube_yz_slice_0_sid;
     hid_t	small_cube_yz_slice_1_sid;
     hid_t	small_cube_yz_slice_2_sid;
-    hsize_t	small_cube_dims[] = {10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
-    hsize_t	start[16];      /* bigger than we should ever need */
-    hsize_t	stride[16];     /* bigger than we should ever need */
-    hsize_t	count[16];      /* bigger than we should ever need */
-    hsize_t	block[16];      /* bigger than we should ever need */
+    hsize_t	small_cube_dims[] = {10, 10, 10};
+    hsize_t	start[3];
+    hsize_t	stride[3];
+    hsize_t	count[3];
+    hsize_t	block[3];
     htri_t	check;		/* Shape comparison return value */
     herr_t	ret;		/* Generic return value	*/
 
@@ -9939,7 +9809,6 @@ test_shape_same_dr__smoke_check_3(void)
 
     block[0] = 2;	/* x */
     block[1] = 4;	/* y */
-
     ret = H5Sselect_hyperslab(small_square_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -9955,7 +9824,6 @@ test_shape_same_dr__smoke_check_3(void)
 
     block[0] = 4;	/* x */
     block[1] = 2;	/* y */
-
     ret = H5Sselect_hyperslab(small_square_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -9971,14 +9839,12 @@ test_shape_same_dr__smoke_check_3(void)
 
     block[0] = 2;	/* x */
     block[1] = 2;	/* y */
-
     ret = H5Sselect_hyperslab(small_square_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
 
     /* Create the 10 X 10 X 10 dataspaces for the hyperslab parallel to the xy axis */
-
     small_cube_xy_slice_0_sid = H5Screate_simple(3, small_cube_dims, NULL);
     CHECK(small_cube_xy_slice_0_sid, FAIL, "H5Screate_simple");
 
@@ -10004,7 +9870,6 @@ test_shape_same_dr__smoke_check_3(void)
     block[0] = 2;	/* x */
     block[1] = 4;	/* y */
     block[2] = 1;	/* z */
-
     ret = H5Sselect_hyperslab(small_cube_xy_slice_0_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -10012,7 +9877,6 @@ test_shape_same_dr__smoke_check_3(void)
     /* move the starting point to the origin */
     start[0] -= 1;	/* x */
     start[1] -= 2;	/* y */
-
     ret = H5Sselect_hyperslab(small_cube_xy_slice_1_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -10020,7 +9884,6 @@ test_shape_same_dr__smoke_check_3(void)
     /* move the irregular selection to the upper right hand corner */
     start[0] += 5;	/* x */
     start[1] += 5;	/* y */
-
     ret = H5Sselect_hyperslab(small_cube_xy_slice_2_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -10040,7 +9903,6 @@ test_shape_same_dr__smoke_check_3(void)
     block[0] = 4;	/* x */
     block[1] = 2;	/* y */
     block[2] = 1;	/* z */
-
     ret = H5Sselect_hyperslab(small_cube_xy_slice_0_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -10048,7 +9910,6 @@ test_shape_same_dr__smoke_check_3(void)
     /* move the starting point to the origin */
     start[0] -= 1;	/* x */
     start[1] -= 2;	/* y */
-
     ret = H5Sselect_hyperslab(small_cube_xy_slice_1_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -10056,7 +9917,6 @@ test_shape_same_dr__smoke_check_3(void)
     /* move the irregular selection to the upper right hand corner */
     start[0] += 5;	/* x */
     start[1] += 5;	/* y */
-
     ret = H5Sselect_hyperslab(small_cube_xy_slice_2_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -10076,7 +9936,6 @@ test_shape_same_dr__smoke_check_3(void)
     block[0] = 2;	/* x */
     block[1] = 2;	/* y */
     block[2] = 1;	/* z */
-
     ret = H5Sselect_hyperslab(small_cube_xy_slice_0_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -10084,7 +9943,6 @@ test_shape_same_dr__smoke_check_3(void)
     /* move the starting point to the origin */
     start[0] -= 1;	/* x */
     start[1] -= 2;	/* y */
-
     ret = H5Sselect_hyperslab(small_cube_xy_slice_1_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -10092,14 +9950,12 @@ test_shape_same_dr__smoke_check_3(void)
     /* move the irregular selection to the upper right hand corner */
     start[0] += 5;	/* x */
     start[1] += 5;	/* y */
-
     ret = H5Sselect_hyperslab(small_cube_xy_slice_2_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
 
     /* Create the 10 X 10 X 10 dataspaces for the hyperslab parallel to the xz axis */
-
     small_cube_xz_slice_0_sid = H5Screate_simple(3, small_cube_dims, NULL);
     CHECK(small_cube_xz_slice_0_sid, FAIL, "H5Screate_simple");
 
@@ -10124,7 +9980,6 @@ test_shape_same_dr__smoke_check_3(void)
     block[0] = 2;	/* x */
     block[1] = 1;	/* y */
     block[2] = 4;	/* z */
-
     ret = H5Sselect_hyperslab(small_cube_xz_slice_0_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -10132,7 +9987,6 @@ test_shape_same_dr__smoke_check_3(void)
     /* move the starting point to the origin */
     start[0] -= 1;	/* x */
     start[2] -= 2;	/* y */
-
     ret = H5Sselect_hyperslab(small_cube_xz_slice_1_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -10140,7 +9994,6 @@ test_shape_same_dr__smoke_check_3(void)
     /* move the irregular selection to the upper right hand corner */
     start[0] += 5;	/* x */
     start[2] += 5;	/* y */
-
     ret = H5Sselect_hyperslab(small_cube_xz_slice_2_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -10160,7 +10013,6 @@ test_shape_same_dr__smoke_check_3(void)
     block[0] = 4;	/* x */
     block[1] = 1;	/* y */
     block[2] = 2;	/* z */
-
     ret = H5Sselect_hyperslab(small_cube_xz_slice_0_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -10168,7 +10020,6 @@ test_shape_same_dr__smoke_check_3(void)
     /* move the starting point to the origin */
     start[0] -= 1;	/* x */
     start[2] -= 2;	/* y */
-
     ret = H5Sselect_hyperslab(small_cube_xz_slice_1_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -10176,7 +10027,6 @@ test_shape_same_dr__smoke_check_3(void)
     /* move the irregular selection to the upper right hand corner */
     start[0] += 5;	/* x */
     start[2] += 5;	/* y */
-
     ret = H5Sselect_hyperslab(small_cube_xz_slice_2_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -10196,7 +10046,6 @@ test_shape_same_dr__smoke_check_3(void)
     block[0] = 2;	/* x */
     block[1] = 1;	/* y */
     block[2] = 2;	/* z */
-
     ret = H5Sselect_hyperslab(small_cube_xz_slice_0_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -10204,7 +10053,6 @@ test_shape_same_dr__smoke_check_3(void)
     /* move the starting point to the origin */
     start[0] -= 1;	/* x */
     start[2] -= 2;	/* y */
-
     ret = H5Sselect_hyperslab(small_cube_xz_slice_1_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -10212,14 +10060,14 @@ test_shape_same_dr__smoke_check_3(void)
     /* move the irregular selection to the upper right hand corner */
     start[0] += 5;	/* x */
     start[2] += 5;	/* y */
-
     ret = H5Sselect_hyperslab(small_cube_xz_slice_2_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
 
 
+/* QAK: Start here.
+ */
     /* Create the 10 X 10 X 10 dataspaces for the hyperslabs parallel to the yz axis */
-
     small_cube_yz_slice_0_sid = H5Screate_simple(3, small_cube_dims, NULL);
     CHECK(small_cube_yz_slice_0_sid, FAIL, "H5Screate_simple");
 
@@ -10244,7 +10092,6 @@ test_shape_same_dr__smoke_check_3(void)
     block[0] = 1;	/* x */
     block[1] = 2;	/* y */
     block[2] = 4;	/* z */
-
     ret = H5Sselect_hyperslab(small_cube_yz_slice_0_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -10252,7 +10099,6 @@ test_shape_same_dr__smoke_check_3(void)
     /* move the starting point to the origin */
     start[1] -= 1;	/* x */
     start[2] -= 2;	/* y */
-
     ret = H5Sselect_hyperslab(small_cube_yz_slice_1_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -10260,7 +10106,6 @@ test_shape_same_dr__smoke_check_3(void)
     /* move the irregular selection to the upper right hand corner */
     start[0] += 5;	/* x */
     start[2] += 5;	/* y */
-
     ret = H5Sselect_hyperslab(small_cube_yz_slice_2_sid, H5S_SELECT_SET,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -10280,7 +10125,6 @@ test_shape_same_dr__smoke_check_3(void)
     block[0] = 1;	/* x */
     block[1] = 4;	/* y */
     block[2] = 2;	/* z */
-
     ret = H5Sselect_hyperslab(small_cube_yz_slice_0_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -10288,7 +10132,6 @@ test_shape_same_dr__smoke_check_3(void)
     /* move the starting point to the origin */
     start[1] -= 1;	/* x */
     start[2] -= 2;	/* y */
-
     ret = H5Sselect_hyperslab(small_cube_yz_slice_1_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -10296,7 +10139,6 @@ test_shape_same_dr__smoke_check_3(void)
     /* move the irregular selection to the upper right hand corner */
     start[0] += 5;	/* x */
     start[2] += 5;	/* y */
-
     ret = H5Sselect_hyperslab(small_cube_yz_slice_2_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -10316,7 +10158,6 @@ test_shape_same_dr__smoke_check_3(void)
     block[0] = 1;	/* x */
     block[1] = 2;	/* y */
     block[2] = 2;	/* z */
-
     ret = H5Sselect_hyperslab(small_cube_yz_slice_0_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -10324,7 +10165,6 @@ test_shape_same_dr__smoke_check_3(void)
     /* move the starting point to the origin */
     start[1] -= 1;	/* x */
     start[2] -= 2;	/* y */
-
     ret = H5Sselect_hyperslab(small_cube_yz_slice_1_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -10332,7 +10172,6 @@ test_shape_same_dr__smoke_check_3(void)
     /* move the irregular selection to the upper right hand corner */
     start[0] += 5;	/* x */
     start[2] += 5;	/* y */
-
     ret = H5Sselect_hyperslab(small_cube_yz_slice_2_sid, H5S_SELECT_OR,
                               start, stride, count, block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -10341,35 +10180,35 @@ test_shape_same_dr__smoke_check_3(void)
     /* setup is done -- run the tests: */
 
     /* Compare against "xy" selection */
-    check=H5S_select_shape_same_test(small_cube_xy_slice_0_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_xy_slice_0_sid, small_square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(small_cube_xy_slice_1_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_xy_slice_1_sid, small_square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(small_cube_xy_slice_2_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_xy_slice_2_sid, small_square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
 
     /* Compare against "xz" selection */
-    check=H5S_select_shape_same_test(small_cube_xz_slice_0_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_xz_slice_0_sid, small_square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(small_cube_xz_slice_1_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_xz_slice_1_sid, small_square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(small_cube_xz_slice_2_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_xz_slice_2_sid, small_square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
 
     /* Compare against "yz" selection */
-    check=H5S_select_shape_same_test(small_cube_yz_slice_0_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_yz_slice_0_sid, small_square_sid);
     VERIFY(check, TRUE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(small_cube_yz_slice_1_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_yz_slice_1_sid, small_square_sid);
     VERIFY(check, TRUE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(small_cube_yz_slice_2_sid, small_square_sid);
+    check = H5S_select_shape_same_test(small_cube_yz_slice_2_sid, small_square_sid);
     VERIFY(check, TRUE, "H5S_select_shape_same_test");
 
 
@@ -10407,8 +10246,6 @@ test_shape_same_dr__smoke_check_3(void)
     ret = H5Sclose(small_cube_yz_slice_2_sid);
     CHECK(ret, FAIL, "H5Sclose");
 
-    return;
-
 } /* test_shape_same_dr__smoke_check_3() */
 
 
@@ -10442,7 +10279,6 @@ test_shape_same_dr__smoke_check_3(void)
 **	should return FALSE.
 **
 ****************************************************************/
-
 static void
 test_shape_same_dr__smoke_check_4(void)
 {
@@ -10458,7 +10294,7 @@ test_shape_same_dr__smoke_check_4(void)
     hid_t	four_d_space_4_sid;
     hid_t	four_d_space_5_sid;
     hid_t	four_d_space_6_sid;
-    hsize_t	dims[] = {10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
+    hsize_t	dims[] = {10, 10, 10, 10};
     htri_t	check;		/* Shape comparison return value */
     herr_t	ret;		/* Generic return value	*/
 
@@ -10468,21 +10304,12 @@ test_shape_same_dr__smoke_check_4(void)
     square_sid = H5Screate_simple(2, dims, NULL);
     CHECK(square_sid, FAIL, "H5Screate_simple");
 
-    /* Select the entire extent of the 10 X 10 dataspace */
-    ret = H5Sselect_all(square_sid);
-    CHECK(ret, FAIL, "H5Sselect_all");
-
     /* create (1 X 10 X 10) data space */
     dims[0] = 1;
     dims[1] = 10;
     dims[2] = 10;
     three_d_space_0_sid = H5Screate_simple(3, dims, NULL);
     CHECK(three_d_space_0_sid, FAIL, "H5Screate_simple");
-
-    /* Select the entire extent of the (1 X 10 X 10) dataspace */
-    ret = H5Sselect_all(three_d_space_0_sid);
-    CHECK(ret, FAIL, "H5Sselect_all");
-
 
     /* create (10 X 1 X 10) data space */
     dims[0] = 10;
@@ -10491,11 +10318,6 @@ test_shape_same_dr__smoke_check_4(void)
     three_d_space_1_sid = H5Screate_simple(3, dims, NULL);
     CHECK(three_d_space_1_sid, FAIL, "H5Screate_simple");
 
-    /* Select the entire extent of the (10 X 1 X 10) dataspace */
-    ret = H5Sselect_all(three_d_space_1_sid);
-    CHECK(ret, FAIL, "H5Sselect_all");
-
-
     /* create (10 X 10 X 1) data space */
     dims[0] = 10;
     dims[1] = 10;
@@ -10503,21 +10325,12 @@ test_shape_same_dr__smoke_check_4(void)
     three_d_space_2_sid = H5Screate_simple(3, dims, NULL);
     CHECK(three_d_space_2_sid, FAIL, "H5Screate_simple");
 
-    /* Select the entire extent of the (10 X 10 X 1) dataspace */
-    ret = H5Sselect_all(three_d_space_2_sid);
-    CHECK(ret, FAIL, "H5Sselect_all");
-
     /* create (10 X 10 X 10) data space */
     dims[0] = 10;
     dims[1] = 10;
     dims[2] = 10;
     three_d_space_3_sid = H5Screate_simple(3, dims, NULL);
     CHECK(three_d_space_3_sid, FAIL, "H5Screate_simple");
-
-    /* Select the entire extent of the (10 X 10 X 10) dataspace */
-    ret = H5Sselect_all(three_d_space_3_sid);
-    CHECK(ret, FAIL, "H5Sselect_all");
-
 
 
     /* create (1 X 1 X 10 X 10) data space */
@@ -10528,11 +10341,6 @@ test_shape_same_dr__smoke_check_4(void)
     four_d_space_0_sid = H5Screate_simple(4, dims, NULL);
     CHECK(four_d_space_0_sid, FAIL, "H5Screate_simple");
 
-    /* Select the entire extent of the (1 X 1 X 10 X 10) dataspace */
-    ret = H5Sselect_all(four_d_space_0_sid);
-    CHECK(ret, FAIL, "H5Sselect_all");
-
-
     /* create (1 X 10 X 1 X 10) data space */
     dims[0] =  1;
     dims[1] = 10;
@@ -10540,11 +10348,6 @@ test_shape_same_dr__smoke_check_4(void)
     dims[3] = 10;
     four_d_space_1_sid = H5Screate_simple(4, dims, NULL);
     CHECK(four_d_space_1_sid, FAIL, "H5Screate_simple");
-
-    /* Select the entire extent of the (1 X 10 X 1 X 10) dataspace */
-    ret = H5Sselect_all(four_d_space_1_sid);
-    CHECK(ret, FAIL, "H5Sselect_all");
-
 
     /* create (1 X 10 X 10 X 1) data space */
     dims[0] =  1;
@@ -10554,11 +10357,6 @@ test_shape_same_dr__smoke_check_4(void)
     four_d_space_2_sid = H5Screate_simple(4, dims, NULL);
     CHECK(four_d_space_2_sid, FAIL, "H5Screate_simple");
 
-    /* Select the entire extent of the (1 X 10 X 10 X 1) dataspace */
-    ret = H5Sselect_all(four_d_space_2_sid);
-    CHECK(ret, FAIL, "H5Sselect_all");
-
-
     /* create (10 X 1 X 1 X 10) data space */
     dims[0] = 10;
     dims[1] =  1;
@@ -10566,11 +10364,6 @@ test_shape_same_dr__smoke_check_4(void)
     dims[3] = 10;
     four_d_space_3_sid = H5Screate_simple(4, dims, NULL);
     CHECK(four_d_space_3_sid, FAIL, "H5Screate_simple");
-
-    /* Select the entire extent of the (10 X 1 X 1 X 10) dataspace */
-    ret = H5Sselect_all(four_d_space_3_sid);
-    CHECK(ret, FAIL, "H5Sselect_all");
-
 
     /* create (10 X 1 X 10 X 1) data space */
     dims[0] = 10;
@@ -10580,11 +10373,6 @@ test_shape_same_dr__smoke_check_4(void)
     four_d_space_4_sid = H5Screate_simple(4, dims, NULL);
     CHECK(four_d_space_4_sid, FAIL, "H5Screate_simple");
 
-    /* Select the entire extent of the (10 X 1 X 10 X 1) dataspace */
-    ret = H5Sselect_all(four_d_space_4_sid);
-    CHECK(ret, FAIL, "H5Sselect_all");
-
-
     /* create (10 X 10 X 1 X 1) data space */
     dims[0] = 10;
     dims[1] = 10;
@@ -10592,11 +10380,6 @@ test_shape_same_dr__smoke_check_4(void)
     dims[3] =  1;
     four_d_space_5_sid = H5Screate_simple(4, dims, NULL);
     CHECK(four_d_space_5_sid, FAIL, "H5Screate_simple");
-
-    /* Select the entire extent of the (10 X 10 X 1 X 1) dataspace */
-    ret = H5Sselect_all(four_d_space_5_sid);
-    CHECK(ret, FAIL, "H5Sselect_all");
-
 
     /* create (10 X 1 X 10 X 10) data space */
     dims[0] = 10;
@@ -10606,45 +10389,41 @@ test_shape_same_dr__smoke_check_4(void)
     four_d_space_6_sid = H5Screate_simple(4, dims, NULL);
     CHECK(four_d_space_6_sid, FAIL, "H5Screate_simple");
 
-    /* Select the entire extent of the (10 X 1 X 10 X 10) dataspace */
-    ret = H5Sselect_all(four_d_space_6_sid);
-    CHECK(ret, FAIL, "H5Sselect_all");
-
 
     /* setup is done -- run the tests: */
 
-    check=H5S_select_shape_same_test(three_d_space_0_sid, square_sid);
+    check = H5S_select_shape_same_test(three_d_space_0_sid, square_sid);
     VERIFY(check, TRUE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(three_d_space_1_sid, square_sid);
+    check = H5S_select_shape_same_test(three_d_space_1_sid, square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(three_d_space_2_sid, square_sid);
+    check = H5S_select_shape_same_test(three_d_space_2_sid, square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(three_d_space_3_sid, square_sid);
+    check = H5S_select_shape_same_test(three_d_space_3_sid, square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
 
-    check=H5S_select_shape_same_test(four_d_space_0_sid, square_sid);
+    check = H5S_select_shape_same_test(four_d_space_0_sid, square_sid);
     VERIFY(check, TRUE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(four_d_space_1_sid, square_sid);
+    check = H5S_select_shape_same_test(four_d_space_1_sid, square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(four_d_space_2_sid, square_sid);
+    check = H5S_select_shape_same_test(four_d_space_2_sid, square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(four_d_space_3_sid, square_sid);
+    check = H5S_select_shape_same_test(four_d_space_3_sid, square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(four_d_space_4_sid, square_sid);
+    check = H5S_select_shape_same_test(four_d_space_4_sid, square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(four_d_space_5_sid, square_sid);
+    check = H5S_select_shape_same_test(four_d_space_5_sid, square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
-    check=H5S_select_shape_same_test(four_d_space_6_sid, square_sid);
+    check = H5S_select_shape_same_test(four_d_space_6_sid, square_sid);
     VERIFY(check, FALSE, "H5S_select_shape_same_test");
 
 
@@ -10687,8 +10466,6 @@ test_shape_same_dr__smoke_check_4(void)
     ret = H5Sclose(four_d_space_6_sid);
     CHECK(ret, FAIL, "H5Sclose");
 
-    return;
-
 } /* test_shape_same_dr__smoke_check_4() */
 
 /****************************************************************
@@ -10705,7 +10482,6 @@ test_shape_same_dr__smoke_check_4(void)
 **	spaces.
 **
 ****************************************************************/
-
 static void
 test_shape_same_dr__full_space_vs_slice(int test_num,
                                         int small_rank,
@@ -10757,18 +10533,12 @@ test_shape_same_dr__full_space_vs_slice(int test_num,
     MESSAGE(7, (test_desc_1));
 
     /* copy the edge size into the dims array */
-    for ( i = 0; i < SS_DR_MAX_RANK; i++ ) {
-
+    for(i = 0; i < SS_DR_MAX_RANK; i++)
         dims[i] = edge_size;
-    }
 
     /* Create the small n-cube */
     n_cube_0_sid = H5Screate_simple(small_rank, dims, NULL);
     CHECK(n_cube_0_sid, FAIL, "H5Screate_simple");
-
-    /* Select the entire extent of the small n-cube */
-    ret = H5Sselect_all(n_cube_0_sid);
-    CHECK(ret, FAIL, "H5Sselect_all");
 
 
     /* Create the large n-cube */
@@ -10776,22 +10546,18 @@ test_shape_same_dr__full_space_vs_slice(int test_num,
     CHECK(n_cube_1_sid, FAIL, "H5Screate_simple");
 
     /* set up start, stride, count, and block for the hyperslab selection */
-    for ( i = 0; i < SS_DR_MAX_RANK; i++ )
-    {
+    for(i = 0; i < SS_DR_MAX_RANK; i++) {
         stride[i] = 2 * edge_size; /* a bit silly in this case */
         count[i] = 1;
-        if ( dim_selected[i] ) {
-
+        if(dim_selected[i]) {
             start[i] = 0;
             block[i] = edge_size;
-
-        } else {
-
+        } /* end if */
+        else {
             start[i] = (hsize_t)offset;
             block[i] = 1;
-
-        }
-    }
+        } /* end else */
+    } /* end for */
 
     /* since large rank may be less than SS_DR_MAX_RANK, we may not
      * use the entire start, stride, count, and block arrays.  This
@@ -10806,7 +10572,7 @@ test_shape_same_dr__full_space_vs_slice(int test_num,
      */
 
     i = SS_DR_MAX_RANK - large_rank;
-    HDassert( i >= 0 );
+    HDassert(i >= 0);
 
     start_ptr  = &(start[i]);
     stride_ptr = &(stride[i]);
@@ -10831,8 +10597,6 @@ test_shape_same_dr__full_space_vs_slice(int test_num,
 
     ret = H5Sclose(n_cube_1_sid);
     CHECK(ret, FAIL, "H5Sclose");
-
-    return;
 
 }   /* test_shape_same_dr__full_space_vs_slice() */
 
@@ -10860,10 +10624,9 @@ test_shape_same_dr__full_space_vs_slice(int test_num,
 **
 **	2) The dimensions selected in the slice through the m-cube
 **	   are the dimesnions with the most quickly changing 
-**	   indicies.
+**	   indices.
 **
 ****************************************************************/
-
 static void
 test_shape_same_dr__run_full_space_vs_slice_tests(void)
 {
@@ -10876,87 +10639,60 @@ test_shape_same_dr__run_full_space_vs_slice_tests(void)
     int large_rank;
     hsize_t edge_size = 10;
 
-    for ( large_rank = 1; large_rank <= 5; large_rank++ ) {
-
-        for ( small_rank = 1; small_rank <= large_rank; small_rank++ ) {
-
+    for(large_rank = 1; large_rank <= 5; large_rank++) {
+        for(small_rank = 1; small_rank <= large_rank; small_rank++) {
             v = 0;
-
             do {
-
-                if ( v == 0 ) {
+                if(v == 0)
                     dim_selected[0] = FALSE;
-                } else { 
+                else
                     dim_selected[0] = TRUE;
-                }
 
                 w = 0;
-
                 do {
-
-                    if ( w == 0 ) {
+                    if(w == 0)
                         dim_selected[1] = FALSE;
-                    } else { 
+                    else
                         dim_selected[1] = TRUE;
-                    }
 
                     x = 0;
-
                     do {
-
-                        if ( x == 0 ) {
+                        if(x == 0)
                             dim_selected[2] = FALSE;
-                        } else { 
+                        else
                             dim_selected[2] = TRUE;
-                        }
 
                         y = 0;
-
                         do {
-
-                            if ( y == 0 ) {
+                            if(y == 0)
                                 dim_selected[3] = FALSE;
-                            } else { 
+                            else
                                 dim_selected[3] = TRUE;
-                            }
 
                             z = 0;
-
                             do {
-
-                                if ( z == 0 ) {
+                                if(z == 0)
                                     dim_selected[4] = FALSE;
-                                } else { 
+                                else
                                     dim_selected[4] = TRUE;
-                                }
 
                                 /* compute the expected result: */
-
                                 i = 0;
                                 j = 4;
                                 expected_result = TRUE;
-
-                                while ( ( i < small_rank ) &&
-                                        ( expected_result ) ) {
-
-                                    if ( ! dim_selected[j] ) {
-
+                                while((i < small_rank) && expected_result) {
+                                    if(!dim_selected[j])
                                         expected_result = FALSE;
-                                    }
                                     i++;
                                     j--;
-                                }
+                                } /* end while */
 
-                                while ( ( i < large_rank ) &&
-                                        ( expected_result ) ) {
-
-                                    if ( dim_selected[j] ) {
-
+                                while((i < large_rank) && expected_result) {
+                                    if(dim_selected[j])
                                         expected_result = FALSE;
-                                    }
                                     i++;
                                     j--;
-                                }
+                                } /* end while */
 
 
                                 /* everything is set up -- run the tests */
@@ -10995,28 +10731,21 @@ test_shape_same_dr__run_full_space_vs_slice_tests(void)
                                 );
                                     
                                 z++;
-
-                            } while ( ( z < 2 ) && ( large_rank >= 1 ) );
+                            } while((z < 2) && (large_rank >= 1));
 
                             y++;
-
-                        } while ( ( y < 2 ) && ( large_rank >= 2 ) );
+                        } while((y < 2) && (large_rank >= 2));
 
                         x++;
-
-                    } while ( ( x < 2 ) && ( large_rank >= 3 ) );
+                    } while((x < 2) && (large_rank >= 3));
 
                     w++;
-
-                } while ( ( w < 2 ) && ( large_rank >= 4 ) );
+                } while((w < 2) && (large_rank >= 4));
 
                 v++;
-
-            } while ( ( v < 2 ) && ( large_rank >= 5 ) );
-        }
-    }
-
-    return;
+            } while((v < 2) && (large_rank >= 5));
+        } /* end for */
+    } /* end for */
 
 } /* test_shape_same_dr__run_full_space_vs_slice_tests() */
 
@@ -11037,7 +10766,6 @@ test_shape_same_dr__run_full_space_vs_slice_tests(void)
 **	spaces.
 **
 ****************************************************************/
-
 static void
 test_shape_same_dr__checkerboard(int test_num,
                                  int small_rank,
@@ -11083,13 +10811,9 @@ test_shape_same_dr__checkerboard(int test_num,
     HDassert( 0 <= offset );
     HDassert( offset < (int)edge_size );
 
-    for ( i = SS_DR_MAX_RANK - large_rank; i < SS_DR_MAX_RANK; i++ ) {
-
-        if ( dim_selected[i] == TRUE ) {
-
+    for(i = SS_DR_MAX_RANK - large_rank; i < SS_DR_MAX_RANK; i++)
+        if(dim_selected[i] == TRUE)
             dims_selected++;
-        }
-    }
 
     HDassert( dims_selected >= 0 );
     HDassert( dims_selected <= large_rank );
@@ -11114,10 +10838,8 @@ test_shape_same_dr__checkerboard(int test_num,
     MESSAGE(7, (test_desc_1));
 
     /* copy the edge size into the dims array */
-    for ( i = 0; i < SS_DR_MAX_RANK; i++ ) {
-
+    for(i = 0; i < SS_DR_MAX_RANK; i++)
         dims[i] = edge_size;
-    }
 
     /* Create the small n-cube */
     n_cube_0_sid = H5Screate_simple(small_rank, dims, NULL);
@@ -11142,11 +10864,11 @@ test_shape_same_dr__checkerboard(int test_num,
      *		* * - - * * - - * *
      *          * * - - * * - - * *
      *
-     * In both cases, asteriscs indicate selected elements, 
+     * In both cases, asterisks indicate selected elements, 
      * and dashes indicate unselected elements.
      *
      * 3-D and 4-D ascii art is somewhat painful, so I'll
-     * leave those selections to your imagination.
+     * leave those selections to your imagination. :-)
      *
      * Note, that since the edge_size and checker_size are
      * parameters that are passed in, the selection need 
@@ -11192,18 +10914,12 @@ test_shape_same_dr__checkerboard(int test_num,
      */
 
     base_count[0] = edge_size / (checker_size * 2);
-
-    if ( (edge_size % (checker_size * 2)) > 0 ) {
-
+    if((edge_size % (checker_size * 2)) > 0)
 	base_count[0]++;
-    }
 
     base_count[1] = (edge_size - checker_size) / (checker_size * 2);
-
-    if ( ((edge_size - checker_size) % (checker_size * 2)) > 0 ) {
-
+    if(((edge_size - checker_size) % (checker_size * 2)) > 0)
         base_count[1]++;
-    }
 
     base_block[0] = checker_size;
     base_block[1] = checker_size;
@@ -11211,14 +10927,12 @@ test_shape_same_dr__checkerboard(int test_num,
     /* now setup start, stride, count, and block arrays for 
      * the first call to H5Sselect_hyperslab().
      */
-
-    for ( i = 0; i < SS_DR_MAX_RANK; i++ ) {
-
+    for(i = 0; i < SS_DR_MAX_RANK; i++) {
         start[i]  = base_start[0];
         stride[i] = base_stride[0];
         count[i]  = base_count[0];
         block[i]  = base_block[0];
-    }
+    } /* end for */
 
     ret = H5Sselect_hyperslab(n_cube_0_sid, H5S_SELECT_SET,
                               start, stride, count, block);
@@ -11232,20 +10946,18 @@ test_shape_same_dr__checkerboard(int test_num,
      * make the additional selection.
      */
 
-    if ( ( small_rank > 1 ) && ( checker_size < edge_size ) ) {
-
-        for ( i = 0; i < SS_DR_MAX_RANK; i++ ) {
-
+    if((small_rank > 1) && (checker_size < edge_size)) {
+        for(i = 0; i < SS_DR_MAX_RANK; i++) {
             start[i]  = base_start[1];
             stride[i] = base_stride[1];
             count[i]  = base_count[1];
             block[i]  = base_block[1];
-        }
+        } /* end for */
 
         ret = H5Sselect_hyperslab(n_cube_0_sid, H5S_SELECT_OR,
                                   start, stride, count, block);
         CHECK(ret, FAIL, "H5Sselect_hyperslab");
-    }
+    } /* end if */
 
     /* Wierdness alert:
      *
@@ -11254,14 +10966,12 @@ test_shape_same_dr__checkerboard(int test_num,
      * code to manually clip the selection back to the data space
      * proper.
      */
-
-   for ( i = 0; i < SS_DR_MAX_RANK; i++ ) {
-
+    for(i = 0; i < SS_DR_MAX_RANK; i++) {
         start[i]  = 0;
         stride[i] = edge_size;
         count[i]  = 1;
         block[i]  = edge_size;
-    }
+    } /* end for */
 
     ret = H5Sselect_hyperslab(n_cube_0_sid, H5S_SELECT_AND,
                               start, stride, count, block);
@@ -11279,24 +10989,20 @@ test_shape_same_dr__checkerboard(int test_num,
      * and block, re-use the values in setting up start, stride, count,
      * and block.
      */
-
-    for ( i = 0; i < SS_DR_MAX_RANK; i++ ) {
-
-        if ( dim_selected[i] ) {
-
+    for(i = 0; i < SS_DR_MAX_RANK; i++) {
+        if(dim_selected[i]) {
             start[i]  = base_start[0];
             stride[i] = base_stride[0];
             count[i]  = base_count[0];
             block[i]  = base_block[0];
-
-        } else {
-
+        } /* end if */
+        else {
             start[i]  = (hsize_t)offset;
             stride[i] = (hsize_t)(2 * edge_size);
             count[i]  = 1;
             block[i]  = 1;
-        }
-    }
+        } /* end else */
+    } /* end for */
 
     /* Since large rank may be less than SS_DR_MAX_RANK, we may not
      * use the entire start, stride, count, and block arrays.  This
@@ -11332,32 +11038,26 @@ test_shape_same_dr__checkerboard(int test_num,
      * Otherwise, set up start, stride, count and block, and
      * make the additional selection.
      */
-
-    if ( ( dims_selected > 1 ) && ( checker_size < edge_size ) ) {
-
-        for ( i = 0; i < SS_DR_MAX_RANK; i++ ) {
-
-            if ( dim_selected[i] ) {
-
+    if((dims_selected > 1) && (checker_size < edge_size)) {
+        for(i = 0; i < SS_DR_MAX_RANK; i++) {
+            if(dim_selected[i]) {
                 start[i]  = base_start[1];
                 stride[i] = base_stride[1];
                 count[i]  = base_count[1];
                 block[i]  = base_block[1];
-
-            } else {
-
+            } /* end if */
+            else {
                 start[i]  = (hsize_t)offset;
                 stride[i] = (hsize_t)(2 * edge_size);
                 count[i]  = 1;
                 block[i]  = 1;
-            }
-        }
+            } /* end else */
+        } /* end for */
 
         ret = H5Sselect_hyperslab(n_cube_1_sid, H5S_SELECT_OR,
                                   start_ptr, stride_ptr, count_ptr, block_ptr);
         CHECK(ret, FAIL, "H5Sselect_hyperslab");
-
-    }
+    } /* end if */
 
 
     /* Wierdness alert:
@@ -11367,14 +11067,12 @@ test_shape_same_dr__checkerboard(int test_num,
      * code to manually clip the selection back to the data space
      * proper.
      */
-
-    for ( i = 0; i < SS_DR_MAX_RANK; i++ ) {
-
+    for(i = 0; i < SS_DR_MAX_RANK; i++) {
         start[i]  = 0;
         stride[i] = edge_size;
         count[i]  = 1;
         block[i]  = edge_size;
-    }
+    } /* end for */
 
     ret = H5Sselect_hyperslab(n_cube_1_sid, H5S_SELECT_AND,
                               start, stride, count, block);
@@ -11391,8 +11089,6 @@ test_shape_same_dr__checkerboard(int test_num,
 
     ret = H5Sclose(n_cube_1_sid);
     CHECK(ret, FAIL, "H5Sclose");
-
-    return;
 
 }   /* test_shape_same_dr__checkerboard() */
 
@@ -11416,10 +11112,9 @@ test_shape_same_dr__checkerboard(int test_num,
 **
 **      2) The dimensions selected in the checkerboard slice 
 **         through the m-cube are the dimensions with the most 
-**         quickly changing indicies.
+**         quickly changing indices.
 **
 ****************************************************************/
-
 static void
 test_shape_same_dr__run_checkerboard_tests(void)
 {
@@ -11431,88 +11126,61 @@ test_shape_same_dr__run_checkerboard_tests(void)
     int small_rank;
     int large_rank;
 
-    for ( large_rank = 1; large_rank <= 5; large_rank++ ) {
-
-        for ( small_rank = 1; small_rank <= large_rank; small_rank++ ) {
-
+    for(large_rank = 1; large_rank <= 5; large_rank++) {
+        for(small_rank = 1; small_rank <= large_rank; small_rank++) {
             v = 0;
-
             do {
-
-                if ( v == 0 ) {
+                if(v == 0)
                     dim_selected[0] = FALSE;
-                } else { 
+                else
                     dim_selected[0] = TRUE;
-                }
 
                 w = 0;
-
                 do {
-
-                    if ( w == 0 ) {
+                    if(w == 0)
                         dim_selected[1] = FALSE;
-                    } else { 
+                    else
                         dim_selected[1] = TRUE;
-                    }
 
                     x = 0;
-
                     do {
-
-                        if ( x == 0 ) {
+                        if(x == 0)
                             dim_selected[2] = FALSE;
-                        } else { 
+                        else
                             dim_selected[2] = TRUE;
-                        }
 
                         y = 0;
-
                         do {
-
-                            if ( y == 0 ) {
+                            if(y == 0)
                                 dim_selected[3] = FALSE;
-                            } else { 
+                            else
                                 dim_selected[3] = TRUE;
-                            }
 
                             z = 0;
-
                             do {
-
-                                if ( z == 0 ) {
+                                if(z == 0)
                                     dim_selected[4] = FALSE;
-                                } else { 
+                                else
                                     dim_selected[4] = TRUE;
-                                }
                                 
 
                                 /* compute the expected result: */
-
                                 i = 0;
                                 j = 4;
                                 expected_result = TRUE;
-
-                                while ( ( i < small_rank ) &&
-                                        ( expected_result ) ) {
-
-                                    if ( ! dim_selected[j] ) {
-
+                                while((i < small_rank) && expected_result) {
+                                    if(!dim_selected[j])
                                         expected_result = FALSE;
-                                    }
                                     i++;
                                     j--;
-                                }
+                                } /* end while */
 
-                                while ( ( i < large_rank ) &&
-                                        ( expected_result ) ) {
-
-                                    if ( dim_selected[j] ) {
-
+                                while((i < large_rank) && expected_result) {
+                                    if(dim_selected[j])
                                         expected_result = FALSE;
-                                    }
                                     i++;
                                     j--;
-                                }
+                                } /* end while */
 
 
                                 /* everything is set up -- run the tests */
@@ -11526,8 +11194,8 @@ test_shape_same_dr__run_checkerboard_tests(void)
                                     small_rank,
                                     large_rank,
                                     /* offset */       0,
-                                    /* edge_size */    (haddr_t)16,
-                                    /* checker_size */ (haddr_t) 1,
+                                    /* edge_size */    16,
+                                    /* checker_size */ 1,
                                     dim_selected,
                                     expected_result
                                 );
@@ -11538,8 +11206,8 @@ test_shape_same_dr__run_checkerboard_tests(void)
                                     small_rank,
                                     large_rank,
                                     /* offset */       5,
-                                    /* edge_size */    (haddr_t)16,
-                                    /* checker_size */ (haddr_t) 1,
+                                    /* edge_size */    16,
+                                    /* checker_size */ 1,
                                     dim_selected,
                                     expected_result
                                 );
@@ -11550,8 +11218,8 @@ test_shape_same_dr__run_checkerboard_tests(void)
                                     small_rank,
                                     large_rank,
                                     /* offset */       15,
-                                    /* edge_size */    (haddr_t)16,
-                                    /* checker_size */ (haddr_t) 1,
+                                    /* edge_size */    16,
+                                    /* checker_size */ 1,
                                     dim_selected,
                                     expected_result
                                 );
@@ -11566,8 +11234,8 @@ test_shape_same_dr__run_checkerboard_tests(void)
                                     small_rank,
                                     large_rank,
                                     /* offset */       0,
-                                    /* edge_size */    (haddr_t)10,
-                                    /* checker_size */ (haddr_t) 2,
+                                    /* edge_size */    10,
+                                    /* checker_size */ 2,
                                     dim_selected,
                                     expected_result
                                 );
@@ -11578,8 +11246,8 @@ test_shape_same_dr__run_checkerboard_tests(void)
                                     small_rank,
                                     large_rank,
                                     /* offset */       5,
-                                    /* edge_size */    (haddr_t)10,
-                                    /* checker_size */ (haddr_t) 2,
+                                    /* edge_size */    10,
+                                    /* checker_size */ 2,
                                     dim_selected,
                                     expected_result
                                 );
@@ -11590,8 +11258,8 @@ test_shape_same_dr__run_checkerboard_tests(void)
                                     small_rank,
                                     large_rank,
                                     /* offset */       9,
-                                    /* edge_size */    (haddr_t)10,
-                                    /* checker_size */ (haddr_t) 2,
+                                    /* edge_size */    10,
+                                    /* checker_size */ 2,
                                     dim_selected,
                                     expected_result
                                 );
@@ -11606,8 +11274,8 @@ test_shape_same_dr__run_checkerboard_tests(void)
                                     small_rank,
                                     large_rank,
                                     /* offset */       0,
-                                    /* edge_size */    (haddr_t)10,
-                                    /* checker_size */ (haddr_t) 3,
+                                    /* edge_size */    10,
+                                    /* checker_size */ 3,
                                     dim_selected,
                                     expected_result
                                 );
@@ -11618,8 +11286,8 @@ test_shape_same_dr__run_checkerboard_tests(void)
                                     small_rank,
                                     large_rank,
                                     /* offset */       5,
-                                    /* edge_size */    (haddr_t)10,
-                                    /* checker_size */ (haddr_t) 3,
+                                    /* edge_size */    10,
+                                    /* checker_size */ 3,
                                     dim_selected,
                                     expected_result
                                 );
@@ -11630,8 +11298,8 @@ test_shape_same_dr__run_checkerboard_tests(void)
                                     small_rank,
                                     large_rank,
                                     /* offset */       9,
-                                    /* edge_size */    (haddr_t)10,
-                                    /* checker_size */ (haddr_t) 3,
+                                    /* edge_size */    10,
+                                    /* checker_size */ 3,
                                     dim_selected,
                                     expected_result
                                 );
@@ -11646,8 +11314,8 @@ test_shape_same_dr__run_checkerboard_tests(void)
                                     small_rank,
                                     large_rank,
                                     /* offset */       0,
-                                    /* edge_size */    (haddr_t)8,
-                                    /* checker_size */ (haddr_t)8,
+                                    /* edge_size */    8,
+                                    /* checker_size */ 8,
                                     dim_selected,
                                     expected_result
                                 );
@@ -11658,8 +11326,8 @@ test_shape_same_dr__run_checkerboard_tests(void)
                                     small_rank,
                                     large_rank,
                                     /* offset */       4,
-                                    /* edge_size */    (haddr_t)8,
-                                    /* checker_size */ (haddr_t)8,
+                                    /* edge_size */    8,
+                                    /* checker_size */ 8,
                                     dim_selected,
                                     expected_result
                                 );
@@ -11670,35 +11338,28 @@ test_shape_same_dr__run_checkerboard_tests(void)
                                     small_rank,
                                     large_rank,
                                     /* offset */       7,
-                                    /* edge_size */    (haddr_t)8,
-                                    /* checker_size */ (haddr_t)8,
+                                    /* edge_size */    8,
+                                    /* checker_size */ 8,
                                     dim_selected,
                                     expected_result
                                 );
 
                                 z++;
-
-                            } while ( ( z < 2 ) && ( large_rank >= 1 ) );
+                            } while((z < 2) && (large_rank >= 1));
 
                             y++;
-
-                        } while ( ( y < 2 ) && ( large_rank >= 2 ) );
+                        } while((y < 2) && (large_rank >= 2));
 
                         x++;
-
-                    } while ( ( x < 2 ) && ( large_rank >= 3 ) );
+                    } while((x < 2) && (large_rank >= 3));
 
                     w++;
-
-                } while ( ( w < 2 ) && ( large_rank >= 4 ) );
+                } while((w < 2) && (large_rank >= 4));
 
                 v++;
-
-            } while ( ( v < 2 ) && ( large_rank >= 5 ) );
-        }
-    }
-
-    return;
+            } while((v < 2) && (large_rank >= 5));
+        } /* end for */
+    } /* end for */
 
 } /* test_shape_same_dr__run_checkerboard_tests() */
 
@@ -11718,7 +11379,6 @@ test_shape_same_dr__run_checkerboard_tests(void)
 **	they don't). 
 **
 ****************************************************************/
-
 static void
 test_shape_same_dr__irregular(int test_num,
                               int small_rank,
@@ -11804,13 +11464,9 @@ test_shape_same_dr__irregular(int test_num,
     HDassert( -2 <= pattern_offset );
     HDassert( pattern_offset <= 2 );
 
-    for ( i = SS_DR_MAX_RANK - large_rank; i < SS_DR_MAX_RANK; i++ ) {
-
-        if ( dim_selected[i] == TRUE ) {
-
+    for(i = SS_DR_MAX_RANK - large_rank; i < SS_DR_MAX_RANK; i++)
+        if(dim_selected[i] == TRUE)
             dims_selected++;
-        }
-    }
 
     HDassert( dims_selected >= 0 );
     HDassert( dims_selected <= large_rank );
@@ -11835,10 +11491,8 @@ test_shape_same_dr__irregular(int test_num,
     MESSAGE(7, (test_desc_1));
 
     /* copy the edge size into the dims array */
-    for ( i = 0; i < SS_DR_MAX_RANK; i++ ) {
-
+    for(i = 0; i < SS_DR_MAX_RANK; i++)
         dims[i] = (hsize_t)edge_size;
-    }
 
     /* Create the small n-cube */
     n_cube_0_sid = H5Screate_simple(small_rank, dims, NULL);
@@ -11874,7 +11528,7 @@ test_shape_same_dr__irregular(int test_num,
      *	 	0 - - - - - - - - - -
      *            0 1 2 3 4 5 6 7 8 9 x
      *
-     * In both cases, asteriscs indicate selected elements, 
+     * In both cases, asterisks indicate selected elements, 
      * and dashes indicate unselected elements.
      *
      * Note that is this case, since the edge size is fixed,
@@ -11888,17 +11542,15 @@ test_shape_same_dr__irregular(int test_num,
     CHECK(ret, FAIL, "H5Sselect_none");
 
     /* now, select the irregular pattern */
-    for ( i = 0; i < SS_DR_MAX_RANK; i++ ) {
-
+    for(i = 0; i < SS_DR_MAX_RANK; i++) {
         ret = H5Sselect_hyperslab(n_cube_0_sid, H5S_SELECT_OR,
                                   starts[i], strides[i], counts[i], blocks[i]);
         CHECK(ret, FAIL, "H5Sselect_hyperslab");
-    }
+    } /* end for */
 
     /* finally, clip the selection to ensure that it lies fully 
      * within the n-cube.
      */
-
     ret = H5Sselect_hyperslab(n_cube_0_sid, H5S_SELECT_AND,
                               clip_start, clip_stride, clip_count, clip_block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -11940,42 +11592,33 @@ test_shape_same_dr__irregular(int test_num,
      * onto the dimensions selected in the larger n-cube, with the displacement
      * specified.
      */
-
-    for ( i = 0; i < SS_DR_MAX_RANK; i++ ) {
-
+    for(i = 0; i < SS_DR_MAX_RANK; i++) {
         j = 0;
-
-        for ( k = 0; k < SS_DR_MAX_RANK; k++ ) {
-
-            if ( dim_selected[k] ) {
-
+        for(k = 0; k < SS_DR_MAX_RANK; k++) {
+            if(dim_selected[k]) {
                 start[k]  = (starts[i])[j] + (hsize_t)pattern_offset;
                 stride[k] = (strides[i])[j];
                 count[k]  = (counts[i])[j];
                 block[k]  = (blocks[i])[j];
-
                 j++;
-
-            } else {
-
+            } /* end if */
+            else {
                 start[k]  = (hsize_t)slice_offset;
                 stride[k] = (hsize_t)(2 * edge_size);
                 count[k]  = 1;
                 block[k]  = 1;
-            }
-        }
+            } /* end else */
+        } /* end for */
 
         /* select the hyper slab */
         ret = H5Sselect_hyperslab(n_cube_1_sid, H5S_SELECT_OR,
-                                  start_ptr, stride_ptr, 
-                                  count_ptr, block_ptr);
+                              start_ptr, stride_ptr, count_ptr, block_ptr);
         CHECK(ret, FAIL, "H5Sselect_hyperslab");
-    }
+    } /* end for */
 
     /* it is possible that the selection extends beyond the data space.
      * clip the selection to ensure that it doesn't.
      */
-
     ret = H5Sselect_hyperslab(n_cube_1_sid, H5S_SELECT_AND,
                               clip_start, clip_stride, clip_count, clip_block);
     CHECK(ret, FAIL, "H5Sselect_hyperslab");
@@ -11992,8 +11635,6 @@ test_shape_same_dr__irregular(int test_num,
 
     ret = H5Sclose(n_cube_1_sid);
     CHECK(ret, FAIL, "H5Sclose");
-
-    return;
 
 }   /* test_shape_same_dr__irregular() */
 
@@ -12019,10 +11660,9 @@ test_shape_same_dr__irregular(int test_num,
 **
 **      2) The dimensions selected in the irregular slice 
 **         through the m-cube are the dimensions with the most 
-**         quickly changing indicies.
+**         quickly changing indices.
 **
 ****************************************************************/
-
 static void
 test_shape_same_dr__run_irregular_tests(void)
 {
@@ -12034,88 +11674,61 @@ test_shape_same_dr__run_irregular_tests(void)
     int small_rank;
     int large_rank;
 
-    for ( large_rank = 1; large_rank <= 5; large_rank++ ) {
-
-        for ( small_rank = 1; small_rank <= large_rank; small_rank++ ) {
-
+    for(large_rank = 1; large_rank <= 5; large_rank++) {
+        for(small_rank = 1; small_rank <= large_rank; small_rank++) {
             v = 0;
-
             do {
-
-                if ( v == 0 ) {
+                if(v == 0)
                     dim_selected[0] = FALSE;
-                } else { 
+                else
                     dim_selected[0] = TRUE;
-                }
 
                 w = 0;
-
                 do {
-
-                    if ( w == 0 ) {
+                    if(w == 0)
                         dim_selected[1] = FALSE;
-                    } else { 
+                    else
                         dim_selected[1] = TRUE;
-                    }
 
                     x = 0;
-
                     do {
-
-                        if ( x == 0 ) {
+                        if(x == 0)
                             dim_selected[2] = FALSE;
-                        } else { 
+                        else
                             dim_selected[2] = TRUE;
-                        }
 
                         y = 0;
-
                         do {
-
-                            if ( y == 0 ) {
+                            if(y == 0)
                                 dim_selected[3] = FALSE;
-                            } else { 
+                            else
                                 dim_selected[3] = TRUE;
-                            }
 
                             z = 0;
-
                             do {
-
-                                if ( z == 0 ) {
+                                if(z == 0)
                                     dim_selected[4] = FALSE;
-                                } else { 
+                                else
                                     dim_selected[4] = TRUE;
-                                }
                                 
 
                                 /* compute the expected result: */
-
                                 i = 0;
                                 j = 4;
                                 expected_result = TRUE;
-
-                                while ( ( i < small_rank ) &&
-                                        ( expected_result ) ) {
-
-                                    if ( ! dim_selected[j] ) {
-
+                                while((i < small_rank) && expected_result) {
+                                    if(!dim_selected[j])
                                         expected_result = FALSE;
-                                    }
                                     i++;
                                     j--;
-                                }
+                                } /* end while */
 
-                                while ( ( i < large_rank ) &&
-                                        ( expected_result ) ) {
-
-                                    if ( dim_selected[j] ) {
-
+                                while((i < large_rank) && expected_result) {
+                                    if(dim_selected[j])
                                         expected_result = FALSE;
-                                    }
                                     i++;
                                     j--;
-                                }
+                                } /* end while */
 
 
                                 /* everything is set up -- run the tests */
@@ -12222,28 +11835,21 @@ test_shape_same_dr__run_irregular_tests(void)
                                 );
 
                                 z++;
-
-                            } while ( ( z < 2 ) && ( large_rank >= 1 ) );
+                            } while((z < 2) && (large_rank >= 1));
 
                             y++;
-
-                        } while ( ( y < 2 ) && ( large_rank >= 2 ) );
+                        } while((y < 2) && (large_rank >= 2));
 
                         x++;
-
-                    } while ( ( x < 2 ) && ( large_rank >= 3 ) );
+                    } while((x < 2) && (large_rank >= 3));
 
                     w++;
-
-                } while ( ( w < 2 ) && ( large_rank >= 4 ) );
+                } while((w < 2) && (large_rank >= 4));
 
                 v++;
-
-            } while ( ( v < 2 ) && ( large_rank >= 5 ) );
-        }
-    }
-
-    return;
+            } while((v < 2 ) && (large_rank >= 5));
+        } /* end for */
+    } /* end for */
 
 } /* test_shape_same_dr__run_irregular_tests() */
 
@@ -12263,25 +11869,16 @@ test_shape_same_dr(void)
 
 
     /* first run some smoke checks */
-
     test_shape_same_dr__smoke_check_1();
-
     test_shape_same_dr__smoke_check_2();
-
     test_shape_same_dr__smoke_check_3();
-
     test_shape_same_dr__smoke_check_4();
 
 
     /* now run more intensive tests. */
- 
     test_shape_same_dr__run_full_space_vs_slice_tests();
-
     test_shape_same_dr__run_checkerboard_tests();
-
     test_shape_same_dr__run_irregular_tests();
-
-    return;
 
 }   /* test_shape_same_dr() */
 
