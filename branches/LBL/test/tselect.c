@@ -7001,24 +7001,24 @@ typedef struct {
 static herr_t
 test_select_hyper_iter3(void *_elem, hid_t UNUSED type_id, unsigned ndim, const hsize_t *point, void *_operator_data)
 {
-    unsigned short *tbuf=(unsigned short *)_elem;     /* temporary buffer pointer */
-    fill_iter_info *iter_info=(fill_iter_info *)_operator_data; /* Get the pointer to the iterator information */
+    unsigned *tbuf = (unsigned *)_elem;     /* temporary buffer pointer */
+    fill_iter_info *iter_info = (fill_iter_info *)_operator_data; /* Get the pointer to the iterator information */
     hsize_t *coord_ptr;        /* Pointer to the coordinate information for a point*/
 
     /* Check value in current buffer location */
-    if(*tbuf!=iter_info->fill_value)
+    if(*tbuf != iter_info->fill_value)
         return(-1);
     else {
         /* Check number of dimensions */
-        if(ndim!=SPACE7_RANK)
+        if(ndim != SPACE7_RANK)
             return(-1);
         else {
             /* Check Coordinates */
-            coord_ptr=iter_info->coords+(2*iter_info->curr_coord);
+            coord_ptr = iter_info->coords + (2 * iter_info->curr_coord);
             iter_info->curr_coord++;
-            if(coord_ptr[0]!=point[0])
+            if(coord_ptr[0] != point[0])
                 return(-1);
-            else if(coord_ptr[1]!=point[1])
+            else if(coord_ptr[1] != point[1])
                 return(-1);
             else
                 return(0);
