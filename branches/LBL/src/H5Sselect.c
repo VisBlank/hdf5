@@ -1755,7 +1755,7 @@ done:
  REVISION LOG
 --------------------------------------------------------------------------*/
 herr_t
-H5S_select_construct_projection(H5S_t *base_space, H5S_t **new_space_ptr,
+H5S_select_construct_projection(const H5S_t *base_space, H5S_t **new_space_ptr,
     unsigned new_space_rank, const void *buf, void **adj_buf_ptr, hsize_t element_size)
 {
     H5S_t * new_space = NULL;           /* New dataspace constructed */
@@ -1944,12 +1944,12 @@ H5S_select_construct_projection(H5S_t *base_space, H5S_t **new_space_ptr,
              * value to the type cast buf pointer, cast the result back 
              * to a pointer to void, and assign the result to *adj_buf_ptr.
              */
-            *adj_buf_ptr = (void *)(((uint8_t *)buf) + 
+            *adj_buf_ptr = (void *)(((const uint8_t *)buf) + 
                     ((size_t)(projected_space_element_offset * element_size)));
         } /* end if */
         else
             /* No adjustment necessary */
-            *adj_buf_ptr = (void *)buf;
+            *adj_buf_ptr = buf;
     } /* end if */
 
 done:
