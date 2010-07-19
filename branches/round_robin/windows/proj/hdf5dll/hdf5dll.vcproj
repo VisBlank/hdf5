@@ -953,6 +953,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\H5lib_settings.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\H5MF.c"
 				>
 			</File>
@@ -1010,6 +1014,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\src\H5Ocache.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\H5Ochunk.c"
 				>
 			</File>
 			<File

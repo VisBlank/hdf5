@@ -33,7 +33,6 @@
 /* Headers */
 /***********/
 #include "H5private.h"		/* Generic Functions			*/
-#include "H5ACprivate.h"	/* Metadata cache			*/
 #include "H5Bprivate.h"		/* B-link trees				*/
 #include "H5Dpkg.h"		/* Datasets				*/
 #include "H5Eprivate.h"		/* Error handling		  	*/
@@ -87,6 +86,12 @@ typedef struct H5D_btree_it_ud_t {
     void		*udata;	                /* User data for chunk callback routine */
 } H5D_btree_it_ud_t;
 
+/* B-tree callback info for debugging */
+typedef struct H5D_btree_dbg_t {
+    H5D_chunk_common_ud_t common;               /* Common info for B-tree user data (must be first) */
+    unsigned            ndims;                  /* Number of dimensions */
+} H5D_btree_dbg_t;
+
 
 /********************/
 /* Local Prototypes */
@@ -116,7 +121,7 @@ static H5B_ins_t H5D_btree_remove( H5F_t *f, hid_t dxpl_id, haddr_t addr,
 static herr_t H5D_btree_decode_key(const H5B_shared_t *shared, const uint8_t *raw,
     void *_key);
 static herr_t H5D_btree_encode_key(const H5B_shared_t *shared, uint8_t *raw,
-    void *_key);
+    const void *_key);
 static herr_t H5D_btree_debug_key(FILE *stream, int indent, int fwidth,
     const void *key, const void *udata);
 
@@ -184,9 +189,9 @@ H5B_class_t H5B_BTREE[1] = {{
     H5D_btree_cmp3,		/*cmp3			*/
     H5D_btree_found,		/*found			*/
     H5D_btree_insert,		/*insert		*/
-    H5B_LEFT,                   /*critical key          */
     FALSE,			/*follow min branch?	*/
     FALSE,			/*follow max branch?	*/
+    H5B_LEFT,                   /*critical key          */
     H5D_btree_remove,           /*remove		*/
     H5D_btree_decode_key,	/*decode		*/
     H5D_btree_encode_key,	/*encode		*/
@@ -700,9 +705,9 @@ H5D_btree_decode_key(const H5B_shared_t *shared, const uint8_t *raw, void *_key)
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5D_btree_encode_key(const H5B_shared_t *shared, uint8_t *raw, void *_key)
+H5D_btree_encode_key(const H5B_shared_t *shared, uint8_t *raw, const void *_key)
 {
-    H5D_btree_key_t	*key = (H5D_btree_key_t *) _key;
+    const H5D_btree_key_t *key = (const H5D_btree_key_t *)_key;
     size_t		ndims;
     unsigned		u;
 
@@ -743,7 +748,7 @@ H5D_btree_debug_key(FILE *stream, int indent, int fwidth, const void *_key,
     const void *_udata)
 {
     const H5D_btree_key_t	*key = (const H5D_btree_key_t *)_key;
-    const unsigned	*ndims = (const unsigned *)_udata;
+    const H5D_btree_dbg_t	*udata = (const H5D_btree_dbg_t *)_udata;
     unsigned		u;
 
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5D_btree_debug_key)
@@ -753,7 +758,7 @@ H5D_btree_debug_key(FILE *stream, int indent, int fwidth, const void *_key,
     HDfprintf(stream, "%*s%-*s %u bytes\n", indent, "", fwidth, "Chunk size:", (unsigned)key->nbytes);
     HDfprintf(stream, "%*s%-*s 0x%08x\n", indent, "", fwidth, "Filter mask:", key->filter_mask);
     HDfprintf(stream, "%*s%-*s {", indent, "", fwidth, "Logical offset:");
-    for(u = 0; u < *ndims; u++)
+    for(u = 0; u < udata->ndims; u++)
         HDfprintf(stream, "%s%Hd", u?", ":"", key->offset[u]);
     HDfputs("}\n", stream);
 
@@ -1206,7 +1211,7 @@ H5D_btree_idx_copy_setup(const H5D_chk_idx_info_t *idx_info_src,
 {
     herr_t      ret_value = SUCCEED;        /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5D_btree_idx_copy_setup)
+    FUNC_ENTER_NOAPI_NOINIT_TAG(H5D_btree_idx_copy_setup, idx_info_dst->dxpl_id, H5AC__COPIED_TAG, FAIL)
 
     HDassert(idx_info_src);
     HDassert(idx_info_src->f);
@@ -1232,7 +1237,7 @@ H5D_btree_idx_copy_setup(const H5D_chk_idx_info_t *idx_info_src,
     HDassert(H5F_addr_defined(idx_info_dst->storage->idx_addr));
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_TAG(ret_value, FAIL)
 } /* end H5D_btree_idx_copy_setup() */
 
 
@@ -1437,7 +1442,7 @@ herr_t
 H5D_btree_debug(H5F_t *f, hid_t dxpl_id, haddr_t addr, FILE * stream, int indent,
 		 int fwidth, unsigned ndims)
 {
-    H5D_chunk_common_ud_t udata;        /* User data for B-tree callback */
+    H5D_btree_dbg_t     udata;          /* User data for B-tree callback */
     H5O_storage_chunk_t storage;        /* Storage information for B-tree callback */
     hbool_t     shared_init = FALSE;    /* Whether B-tree shared info is initialized */
     herr_t      ret_value = SUCCEED;    /* Return value */
@@ -1454,9 +1459,10 @@ H5D_btree_debug(H5F_t *f, hid_t dxpl_id, haddr_t addr, FILE * stream, int indent
     shared_init = TRUE;
 
     /* Set up user data for callback */
-    udata.layout = NULL;
-    udata.storage = &storage;
-    udata.offset = NULL;
+    udata.common.layout = NULL;
+    udata.common.storage = &storage;
+    udata.common.offset = NULL;
+    udata.ndims = ndims;
 
     /* Dump the records for the B-tree */
     (void)H5B_debug(f, dxpl_id, addr, stream, indent, fwidth, H5B_BTREE, &udata);

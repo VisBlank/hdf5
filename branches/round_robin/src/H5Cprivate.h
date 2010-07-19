@@ -30,7 +30,7 @@
 #ifndef _H5Cprivate_H
 #define _H5Cprivate_H
 
-#include "H5Cpublic.h"		/*public prototypes			     */
+#include "H5Cpublic.h"		/* public prototypes		        */
 
 /* Private headers needed by this header */
 #include "H5private.h"		/* Generic Functions			*/
@@ -38,6 +38,7 @@
 
 
 #define H5C_DO_SANITY_CHECKS		0
+#define H5C_DO_TAGGING_SANITY_CHECKS	1
 #define H5C_DO_EXTREME_SANITY_CHECKS	0
 
 /* This sanity checking constant was picked out of the air.  Increase
@@ -122,7 +123,7 @@ typedef struct H5C_t H5C_t;
 
 #define H5C_CALLBACK__NO_FLAGS_SET		0x0
 #define H5C_CALLBACK__SIZE_CHANGED_FLAG		0x1
-#define H5C_CALLBACK__RENAMED_FLAG		0x2
+#define H5C_CALLBACK__MOVED_FLAG		0x2
 
 /* Actions that can be reported to 'notify' client callback */
 typedef enum H5C_notify_action_t {
@@ -137,8 +138,7 @@ typedef enum H5C_notify_action_t {
 typedef void *(*H5C_load_func_t)(H5F_t *f,
                                  hid_t dxpl_id,
                                  haddr_t addr,
-                                 const void *udata1,
-                                 void *udata2);
+                                 void *udata);
 typedef herr_t (*H5C_flush_func_t)(H5F_t *f,
                                    hid_t dxpl_id,
                                    hbool_t dest,
@@ -228,7 +228,7 @@ typedef herr_t (*H5C_log_flush_func_t)(H5C_t * cache_ptr,
  *
  *						JRM - 4/26/04
  *
- * magic:       Unsigned 32 bit integer that must always be set to
+ * magic:	Unsigned 32 bit integer that must always be set to
  *              H5C__H5C_CACHE_ENTRY_T_MAGIC when the entry is valid.
  *              The field must be set to H5C__H5C_CACHE_ENTRY_T_BAD_MAGIC
  *              just before the entry is freed.
@@ -293,10 +293,10 @@ typedef herr_t (*H5C_log_flush_func_t)(H5C_t * cache_ptr,
  *
  * 		This field is set to FALSE in the protect call, and may
  * 		be set to TRUE by the
- * 		H5C_mark_pinned_or_protected_entry_dirty()
+ * 		H5C_mark_entry_dirty()
  * 		call at an time prior to the unprotect call.
  *
- * 		The H5C_mark_pinned_or_protected_entry_dirty() call exists
+ * 		The H5C_mark_entry_dirty() call exists
  * 		as a convenience function for the fractal heap code which
  * 		may not know if an entry is protected or pinned, but knows
  * 		that is either protected or pinned.  The dirtied field was
@@ -368,7 +368,7 @@ typedef herr_t (*H5C_log_flush_func_t)(H5C_t * cache_ptr,
  *
  * flush_marker:  Boolean flag indicating that the entry is to be flushed
  *		the next time H5C_flush_cache() is called with the
- *		H5AC__FLUSH_MARKED_ENTRIES_FLAG.  The flag is reset when
+ *		H5C__FLUSH_MARKED_ENTRIES_FLAG.  The flag is reset when
  *		the entry is flushed for whatever reason.
  *
  * clear_on_unprotect:  Boolean flag used only in PHDF5.  When H5C is used
@@ -513,6 +513,37 @@ typedef herr_t (*H5C_log_flush_func_t)(H5C_t * cache_ptr,
  *		there is no previous item, it should be NULL.
  *
  *
+ * Fields supporting metadata journaling:
+ *
+ * last_trans:	unit64_t containing the ID of the last transaction in
+ * 		which this entry was dirtied.  If journaling is disabled,
+ * 		or if the entry has never been dirtied in a transaction,
+ * 		this field should be set to zero.  Once we notice that
+ * 		the specified transaction has made it to disk, we will
+ * 		reset this field to zero as well.
+ *
+ * 		We must maintain this field, as to avoid messages from
+ * 		the future, we must not flush a dirty entry to disk
+ * 		until the last transaction in which it was dirtied
+ * 		has made it to disk in the journal file.
+ *
+ * trans_next:  Next pointer in the entries modified in the current
+ * 		transaction list.  This field should always be null
+ * 		unless journaling is enabled, the entry is dirty,
+ * 		and last_trans field contains the current transaction
+ * 		number.  Even if all these conditions are fulfilled,
+ * 		the field will still be NULL if this is the last
+ * 		entry on the list.
+ *
+ * trans_prev:  Previous pointer in the entries modified in the current
+ * 		transaction list.  This field should always be null
+ * 		unless journaling is enabled, the entry is dirty,
+ * 		and last_trans field contains the current transaction
+ * 		number.  Even if all these conditions are fulfilled,
+ * 		the field will still be NULL if this is the first
+ * 		entry on the list.
+ *
+ *
  * Cache entry stats collection fields:
  *
  * These fields should only be compiled in when both H5C_COLLECT_CACHE_STATS
@@ -534,33 +565,34 @@ typedef herr_t (*H5C_log_flush_func_t)(H5C_t * cache_ptr,
  ****************************************************************************/
 
 #ifndef NDEBUG
-#define H5C__H5C_CACHE_ENTRY_T_MAGIC          0x005CAC0A
-#define H5C__H5C_CACHE_ENTRY_T_BAD_MAGIC      0xDeadBeef
+#define H5C__H5C_CACHE_ENTRY_T_MAGIC		0x005CAC0A
+#define H5C__H5C_CACHE_ENTRY_T_BAD_MAGIC	0xDeadBeef
 #endif /* NDEBUG */
 
 typedef struct H5C_cache_entry_t
 {
 #ifndef NDEBUG
-    uint32_t		magic;
+    uint32_t			magic;
 #endif /* NDEBUG */
-    H5C_t *             cache_ptr;
-    haddr_t		addr;
-    size_t		size;
-    const H5C_class_t *	type;
-    hbool_t		is_dirty;
-    hbool_t		dirtied;
-    hbool_t		is_protected;
-    hbool_t		is_read_only;
-    int			ro_ref_count;
-    hbool_t		is_pinned;
-    hbool_t		in_slist;
-    hbool_t		flush_marker;
+    H5C_t *                     cache_ptr;
+    haddr_t			addr;
+    size_t			size;
+    const H5C_class_t *		type;
+    haddr_t		    tag;
+    hbool_t			is_dirty;
+    hbool_t			dirtied;
+    hbool_t			is_protected;
+    hbool_t			is_read_only;
+    int				ro_ref_count;
+    hbool_t			is_pinned;
+    hbool_t			in_slist;
+    hbool_t			flush_marker;
 #ifdef H5_HAVE_PARALLEL
-    hbool_t		clear_on_unprotect;
+    hbool_t			clear_on_unprotect;
     hbool_t		flush_immediately;
 #endif /* H5_HAVE_PARALLEL */
-    hbool_t		flush_in_progress;
-    hbool_t		destroy_in_progress;
+    hbool_t			flush_in_progress;
+    hbool_t			destroy_in_progress;
     hbool_t		free_file_space_on_destroy;
 
     /* fields supporting the 'flush dependency' feature: */
@@ -698,55 +730,55 @@ typedef struct H5C_cache_entry_t
  *	cache size can be increased in a single re-size.
  *
  * flash_incr_mode:  Instance of the H5C_cache_flash_incr_mode enumerated
- * 	type whose value indicates whether and by what algorithm we should
- * 	make flash increases in the size of the cache to accomodate insertion
- * 	of large entries and large increases in the size of a single entry.
+ *      type whose value indicates whether and by what algorithm we should
+ *      make flash increases in the size of the cache to accomodate insertion
+ *      of large entries and large increases in the size of a single entry.
  *
- * 	The addition of the flash increment mode was occasioned by performance
- * 	problems that appear when a local heap is increased to a size in excess
- * 	of the current cache size.  While the existing re-size code dealt with
- * 	this eventually, performance was very bad for the remainder of the
- * 	epoch.
+ *      The addition of the flash increment mode was occasioned by performance
+ *      problems that appear when a local heap is increased to a size in excess
+ *      of the current cache size.  While the existing re-size code dealt with
+ *      this eventually, performance was very bad for the remainder of the
+ *      epoch.
  *
- * 	At present, there are two possible values for the flash_incr_mode:
+ *      At present, there are two possible values for the flash_incr_mode:
  *
- * 	H5C_flash_incr__off:  Don't perform flash increases in the size of
- * 		the cache.
+ *      H5C_flash_incr__off:  Don't perform flash increases in the size of
+ *              the cache.
  *
- *	H5C_flash_incr__add_space:  Let x be either the size of a newly
- *	        newly inserted entry, or the number of bytes by which the
- *	        size of an existing entry has been increased.
+ *      H5C_flash_incr__add_space:  Let x be either the size of a newly
+ *              newly inserted entry, or the number of bytes by which the
+ *              size of an existing entry has been increased.
  *
- *	        If
- *	        	x > flash_threshold * current max cache size,
+ *              If
+ *                   x > flash_threshold * current max cache size,
  *
- *	       	increase the current maximum cache size by x * flash_multiple
- *	       	less any free space in the cache, and start a new epoch.  For
- *	       	now at least, pay no attention to the maximum increment.
+ *              increase the current maximum cache size by x * flash_multiple
+ *              less any free space in the cache, and start a new epoch.  For
+ *              now at least, pay no attention to the maximum increment.
  *
  *
- *	With a little thought, it should be obvious that the above flash
- *	cache size increase algorithm is not sufficient for all circumstances --
- *	for example, suppose the user round robins through
- *	(1/flash_threshold) +1 groups, adding one data set to each on each
- *	pass.  Then all will increase in size at about the same time, requiring
- *	the max cache size to at least double to maintain acceptable
+ *      With a little thought, it should be obvious that the above flash
+ *      cache size increase algorithm is not sufficient for all
+ *      circumstances -- for example, suppose the user round robins through
+ *      (1/flash_threshold) +1 groups, adding one data set to each on each
+ *      pass.  Then all will increase in size at about the same time, requiring
+ *      the max cache size to at least double to maintain acceptable
  *      performance, however the above flash increment algorithm will not be
- *	triggered.
+ *      triggered.
  *
- *	Hopefully, the add space algorithm detailed above will be sufficient
- *	for the performance problems encountered to date.  However, we should
- *	expect to revisit the issue.
+ *      Hopefully, the add space algorithm detailed above will be sufficient
+ *      for the performance problems encountered to date.  However, we should
+ *      expect to revisit the issue.
  *
  * flash_multiple: Double containing the multiple described above in the
- * 	H5C_flash_incr__add_space section of the discussion of the
- * 	flash_incr_mode	section.  This field is ignored unless flash_incr_mode
- * 	is H5C_flash_incr__add_space.
+ *      H5C_flash_incr__add_space section of the discussion of the
+ *      flash_incr_mode section.  This field is ignored unless flash_incr_mode
+ *      is H5C_flash_incr__add_space.
  *
- * flash_threshold: Double containing the factor by which current max cache size
- *      is multiplied to obtain the size threshold for the add_space flash
- *      increment algorithm.  The field is ignored unless flash_incr_mode is
- *	H5C_flash_incr__add_space.
+ * flash_threshold: Double containing the factor by which current max cache
+ * 	size is multiplied to obtain the size threshold for the add_space
+ * 	flash increment algorithm.  The field is ignored unless
+ * 	flash_incr_mode is H5C_flash_incr__add_space.
  *
  *
  * Cache size decrease control fields:
@@ -862,8 +894,8 @@ typedef struct H5C_cache_entry_t
 #define H5C__DEF_AR_MIN_CLEAN_FRAC		0.5
 #define H5C__DEF_AR_INCREMENT			2.0
 #define H5C__DEF_AR_MAX_INCREMENT		((size_t)( 2 * 1024 * 1024))
-#define	H5C__DEF_AR_FLASH_MULTIPLE		1.0
-#define H5C__DEV_AR_FLASH_THRESHOLD		0.25
+#define H5C__DEF_AR_FLASH_MULTIPLE              1.0
+#define H5C__DEV_AR_FLASH_THRESHOLD             0.25
 #define H5C__DEF_AR_DECREMENT			0.9
 #define H5C__DEF_AR_MAX_DECREMENT		((size_t)( 1 * 1024 * 1024))
 #define H5C__DEF_AR_EPCHS_B4_EVICT		3
@@ -921,9 +953,10 @@ typedef struct H5C_auto_size_ctl_t
     hbool_t				apply_max_increment;
     size_t				max_increment;
 
-    enum H5C_cache_flash_incr_mode	flash_incr_mode;
-    double				flash_multiple;
-    double				flash_threshold;
+    enum H5C_cache_flash_incr_mode      flash_incr_mode;
+    double                              flash_multiple;
+    double                              flash_threshold;
+
 
     /* size decrease control fields: */
     enum H5C_cache_decr_mode		decr_mode;
@@ -971,7 +1004,6 @@ typedef struct H5C_auto_size_ctl_t
  * 	H5C__SET_FLUSH_MARKER_FLAG
  * 	H5C__DELETED_FLAG
  * 	H5C__DIRTIED_FLAG
- * 	H5C__SIZE_CHANGED_FLAG
  * 	H5C__PIN_ENTRY_FLAG
  * 	H5C__UNPIN_ENTRY_FLAG
  * 	H5C__FREE_FILE_SPACE_FLAG
@@ -1001,19 +1033,17 @@ typedef struct H5C_auto_size_ctl_t
 #define H5C__SET_FLUSH_MARKER_FLAG		0x0001
 #define H5C__DELETED_FLAG			0x0002
 #define H5C__DIRTIED_FLAG			0x0004
-#define H5C__SIZE_CHANGED_FLAG			0x0008
-#define H5C__PIN_ENTRY_FLAG			0x0010
-#define H5C__UNPIN_ENTRY_FLAG			0x0020
-#define H5C__FLUSH_INVALIDATE_FLAG		0x0040
-#define H5C__FLUSH_CLEAR_ONLY_FLAG		0x0080
-#define H5C__FLUSH_MARKED_ENTRIES_FLAG		0x0100
-#define H5C__FLUSH_IGNORE_PROTECTED_FLAG	0x0200
-#define H5C__READ_ONLY_FLAG			0x0400
+#define H5C__PIN_ENTRY_FLAG			0x0008
+#define H5C__UNPIN_ENTRY_FLAG			0x0010
+#define H5C__FLUSH_INVALIDATE_FLAG		0x0020
+#define H5C__FLUSH_CLEAR_ONLY_FLAG		0x0040
+#define H5C__FLUSH_MARKED_ENTRIES_FLAG		0x0080
+#define H5C__FLUSH_IGNORE_PROTECTED_FLAG	0x0100
+#define H5C__READ_ONLY_FLAG			0x0200
 #define H5C__FREE_FILE_SPACE_FLAG		0x0800
 #define H5C__TAKE_OWNERSHIP_FLAG		0x1000
 
 #ifdef H5_HAVE_PARALLEL
-
 H5_DLL herr_t H5C_apply_candidate_list(H5F_t * f,
                                        hid_t primary_dxpl_id,
                                        hid_t secondary_dxpl_id,
@@ -1026,15 +1056,14 @@ H5_DLL herr_t H5C_apply_candidate_list(H5F_t * f,
 H5_DLL herr_t H5C_construct_candidate_list__clean_cache(H5C_t * cache_ptr);
 
 H5_DLL herr_t H5C_construct_candidate_list__min_clean(H5C_t * cache_ptr);
-
 #endif /* H5_HAVE_PARALLEL */
 
 H5_DLL H5C_t * H5C_create(size_t                     max_cache_size,
                           size_t                     min_clean_size,
                           int                        max_type_id,
-                          const char *               (* type_name_table_ptr),
+			  const char *               (* type_name_table_ptr),
                           H5C_write_permitted_func_t check_write_permitted,
-                          hbool_t		     write_permitted,
+                          hbool_t                    write_permitted,
                           H5C_log_flush_func_t       log_flush,
                           void *                     aux_ptr);
 
@@ -1065,8 +1094,7 @@ H5_DLL herr_t H5C_flush_cache(H5F_t *  f,
 
 H5_DLL herr_t H5C_flush_to_min_clean(H5F_t * f,
                                      hid_t   primary_dxpl_id,
-                                     hid_t   secondary_dxpl_id,
-                                     H5C_t * cache_ptr);
+                                     hid_t   secondary_dxpl_id);
 
 H5_DLL herr_t H5C_get_cache_auto_resize_config(const H5C_t * cache_ptr,
                                                H5C_auto_size_ctl_t *config_ptr);
@@ -1106,20 +1134,15 @@ H5_DLL herr_t H5C_insert_entry(H5F_t *             f,
                                void *              thing,
                                unsigned int        flags);
 
-H5_DLL herr_t H5C_mark_entries_as_clean(H5F_t   * f,
-                                        hid_t     primary_dxpl_id,
-                                        hid_t     secondary_dxpl_id,
-                                        H5C_t   * cache_ptr,
-                                        int32_t   ce_array_len,
-                                        haddr_t * ce_array_ptr);
+H5_DLL herr_t H5C_mark_entries_as_clean(H5F_t *  f,
+                                        hid_t    primary_dxpl_id,
+                                        hid_t    secondary_dxpl_id,
+                                        int32_t  ce_array_len,
+                                        haddr_t *ce_array_ptr);
 
-H5_DLL herr_t H5C_mark_pinned_entry_dirty(void *  thing,
-					  hbool_t size_changed,
-					  size_t  new_size);
+H5_DLL herr_t H5C_mark_entry_dirty(void *thing);
 
-H5_DLL herr_t H5C_mark_pinned_or_protected_entry_dirty(void *thing);
-
-H5_DLL herr_t H5C_rename_entry(H5C_t *             cache_ptr,
+H5_DLL herr_t H5C_move_entry(H5C_t *             cache_ptr,
                                const H5C_class_t * type,
                                haddr_t             old_addr,
                                haddr_t             new_addr);
@@ -1131,15 +1154,14 @@ H5_DLL herr_t H5C_create_flush_dependency(void *parent_thing, void *child_thing)
 H5_DLL void * H5C_protect(H5F_t *             f,
                           hid_t               primary_dxpl_id,
                           hid_t               secondary_dxpl_id,
-                          const H5C_class_t * type,
+			  const H5C_class_t * type,
                           haddr_t             addr,
-                          const void *        udata1,
-                          void *              udata2,
-			  unsigned            flags);
+                          void *              udata,
+                          unsigned            flags);
 
 H5_DLL herr_t H5C_reset_cache_hit_rate_stats(H5C_t * cache_ptr);
 
-H5_DLL herr_t H5C_resize_pinned_entry(void *thing, size_t new_size);
+H5_DLL herr_t H5C_resize_entry(void *thing, size_t new_size);
 
 H5_DLL herr_t H5C_set_cache_auto_resize_config(H5C_t *cache_ptr,
                                                H5C_auto_size_ctl_t *config_ptr);
@@ -1172,11 +1194,14 @@ H5_DLL herr_t H5C_unprotect(H5F_t *             f,
                             const H5C_class_t * type,
                             haddr_t             addr,
                             void *              thing,
-                            unsigned int        flags,
-                            size_t              new_size);
+                            unsigned int        flags);
 
 H5_DLL herr_t H5C_validate_resize_config(H5C_auto_size_ctl_t * config_ptr,
                                          unsigned int tests);
+
+H5_DLL herr_t H5C_ignore_tags(H5C_t * cache_ptr);
+
+H5_DLL void H5C_retag_copied_metadata(H5C_t * cache_ptr, haddr_t metadata_tag);
 
 #endif /* !_H5Cprivate_H */
 

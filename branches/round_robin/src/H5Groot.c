@@ -123,7 +123,7 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
     if(NULL == (f->shared->root_grp = H5FL_CALLOC(H5G_t)))
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed")
     if(NULL == (f->shared->root_grp->shared = H5FL_CALLOC(H5G_shared_t))) {
-        (void)H5FL_FREE(H5G_t, f->shared->root_grp);
+        f->shared->root_grp = H5FL_FREE(H5G_t, f->shared->root_grp);
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed")
     } /* end if */
 
@@ -156,11 +156,9 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
                 HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, FAIL, "can't allocate space for symbol table entry")
 
             /* Initialize the root group symbol table entry */
-            f->shared->sblock->root_ent->dirty = TRUE;
             f->shared->sblock->root_ent->type = H5G_NOTHING_CACHED; /* We will cache the stab later */
             f->shared->sblock->root_ent->name_off = 0;  /* No name (yet) */
             f->shared->sblock->root_ent->header = root_loc.oloc->addr;
-            f->shared->sblock->root_ent->file = root_loc.oloc->file;
         } /* end if */
     } /* end if */
     else {
@@ -264,7 +262,7 @@ done:
 
     /* Mark superblock dirty in cache, if necessary */
     if(sblock_dirty)
-        if(H5AC_mark_pinned_or_protected_entry_dirty(f->shared->sblock) < 0)
+        if(H5AC_mark_entry_dirty(f->shared->sblock) < 0)
             HDONE_ERROR(H5E_FILE, H5E_CANTMARKDIRTY, FAIL, "unable to mark superblock as dirty")
 
     FUNC_LEAVE_NOAPI(ret_value)

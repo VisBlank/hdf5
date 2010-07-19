@@ -41,6 +41,7 @@
 /* Headers */
 /***********/
 #include "H5private.h"		/* Generic Functions			*/
+#include "H5ACprivate.h"	/* Metadata cache			*/
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5Gpkg.h"		/* Groups		  		*/
 #include "H5Iprivate.h"		/* IDs			  		*/
@@ -162,6 +163,8 @@ H5G_map_obj_type(H5O_type_t obj_type)
             ret_value = H5G_TYPE;
             break;
 
+        case H5O_TYPE_UNKNOWN:
+        case H5O_TYPE_NTYPES:
         default:
             ret_value = H5G_UNKNOWN;
     } /* end switch */

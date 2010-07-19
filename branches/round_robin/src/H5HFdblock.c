@@ -196,7 +196,8 @@ HDmemset(dblock->blk, 0, dblock->size);
 done:
     if(ret_value < 0)
         if(dblock)
-            (void)H5HF_cache_dblock_dest(hdr->f, dblock);
+            if(H5HF_man_dblock_dest(dblock) < 0)
+                HDONE_ERROR(H5E_HEAP, H5E_CANTFREE, FAIL, "unable to destroy fractal heap direct block")
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5HF_man_dblock_create() */
@@ -436,8 +437,8 @@ H5HF_man_dblock_protect(H5HF_hdr_t *hdr, hid_t dxpl_id, haddr_t dblock_addr,
     size_t dblock_size, H5HF_indirect_t *par_iblock, unsigned par_entry,
     H5AC_protect_t rw)
 {
-    H5HF_parent_t par_info;     /* Parent info for loading block */
     H5HF_direct_t *dblock;      /* Direct block from cache */
+    H5HF_dblock_cache_ud_t udata;	/* parent and other infor for deserializing direct block */
     H5HF_direct_t *ret_value;   /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5HF_man_dblock_protect)
@@ -450,12 +451,40 @@ H5HF_man_dblock_protect(H5HF_hdr_t *hdr, hid_t dxpl_id, haddr_t dblock_addr,
     HDassert(dblock_size > 0);
 
     /* Set up parent info */
-    par_info.hdr = hdr;
-    par_info.iblock = par_iblock;
-    par_info.entry = par_entry;
+    udata.par_info.hdr = hdr;
+    udata.par_info.iblock = par_iblock;
+    udata.par_info.entry = par_entry;
+
+    /* set up the file pointer in the user data */
+    udata.f = hdr->f;
+
+    /* set up the direct block size */
+    udata.dblock_size = dblock_size;
+
+    /* compute the on disk image size -- observe that odi_size and
+     * dblock_size will be identical if there is no filtering.
+     */
+    if(hdr->filter_len > 0) {
+        if(par_iblock == NULL) {
+	    udata.odi_size = hdr->pline_root_direct_size;
+	    udata.filter_mask = hdr->pline_root_direct_filter_mask;
+	} /* end if */
+        else {
+	    /* Sanity check */
+	    HDassert(H5F_addr_eq(par_iblock->ents[par_entry].addr, dblock_addr));
+
+	    /* Set up parameters to read filtered direct block */
+	    udata.odi_size = par_iblock->filt_ents[par_entry].size;
+            udata.filter_mask = par_iblock->filt_ents[par_entry].filter_mask;
+	} /* end else */
+    } /* end if */
+    else {
+	udata.odi_size = dblock_size;
+        udata.filter_mask = 0;
+    } /* end else */
 
     /* Protect the direct block */
-    if(NULL == (dblock = (H5HF_direct_t *)H5AC_protect(hdr->f, dxpl_id, H5AC_FHEAP_DBLOCK, dblock_addr, &dblock_size, &par_info, rw)))
+    if(NULL == (dblock = (H5HF_direct_t *)H5AC_protect(hdr->f, dxpl_id, H5AC_FHEAP_DBLOCK, dblock_addr, &udata, rw)))
         HGOTO_ERROR(H5E_HEAP, H5E_CANTPROTECT, NULL, "unable to protect fractal heap direct block")
 
     /* Set the return value */
@@ -639,4 +668,48 @@ H5HF_man_dblock_delete(H5F_t *f, hid_t dxpl_id, haddr_t dblock_addr,
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5HF_man_dblock_delete() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5HF_man_dblock_dest
+ *
+ * Purpose:	Destroys a fractal heap direct block in memory.
+ *
+ * Return:	Non-negative on success/Negative on failure
+ *
+ * Programmer:	Quincey Koziol
+ *		koziol@ncsa.uiuc.edu
+ *		Feb 27 2006
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5HF_man_dblock_dest(H5HF_direct_t *dblock)
+{
+    herr_t          ret_value = SUCCEED;    /* Return value */
+
+    FUNC_ENTER_NOAPI_NOINIT(H5HF_man_dblock_dest)
+
+    /*
+     * Check arguments.
+     */
+    HDassert(dblock);
+
+    /* Decrement reference count on shared fractal heap info */
+    HDassert(dblock->hdr != NULL);
+    if(H5HF_hdr_decr(dblock->hdr) < 0)
+        HGOTO_ERROR(H5E_HEAP, H5E_CANTDEC, FAIL, "can't decrement reference count on shared heap header")
+    if(dblock->parent)
+        if(H5HF_iblock_decr(dblock->parent) < 0)
+            HGOTO_ERROR(H5E_HEAP, H5E_CANTDEC, FAIL, "can't decrement reference count on shared indirect block")
+
+    /* Free block's buffer */
+    dblock->blk = H5FL_BLK_FREE(direct_block, dblock->blk);
+
+    /* Free fractal heap direct block info */
+    dblock = H5FL_FREE(H5HF_direct_t, dblock);
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5HF_man_dblock_dest() */
 

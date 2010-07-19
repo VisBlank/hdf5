@@ -308,7 +308,7 @@ HDfprintf(stderr, "%s: nelmts = %Zu, hdr->data_blk_min_elmts = %u, idx = %u\n", 
 CATCH
     if(!ret_value)
         if(elmts)
-            (void)H5FL_FAC_FREE(hdr->elmt_fac.fac[idx], elmts);
+            elmts = H5FL_FAC_FREE(hdr->elmt_fac.fac[idx], elmts);
 
 END_FUNC(PKG)   /* end H5EA__hdr_alloc_elmts() */
 
@@ -348,7 +348,7 @@ HDfprintf(stderr, "%s: nelmts = %Zu, hdr->data_blk_min_elmts = %u, idx = %u\n", 
     /* Free buffer for elements in index block */
     HDassert(idx < hdr->elmt_fac.nalloc);
     HDassert(hdr->elmt_fac.fac[idx]);
-    (void)H5FL_FAC_FREE(hdr->elmt_fac.fac[idx], elmts);
+    elmts = H5FL_FAC_FREE(hdr->elmt_fac.fac[idx], elmts);
 
 END_FUNC(PKG)   /* end H5EA__hdr_free_elmts() */
 
@@ -603,7 +603,7 @@ H5EA__hdr_modified(H5EA_hdr_t *hdr))
     HDassert(hdr->f);
 
     /* Mark header as dirty in cache */
-    if(H5AC_mark_pinned_or_protected_entry_dirty(hdr) < 0)
+    if(H5AC_mark_entry_dirty(hdr) < 0)
         H5E_THROW(H5E_CANTMARKDIRTY, "unable to mark extensible array header as dirty")
 
 CATCH

@@ -42,7 +42,7 @@
 
 
 #include "H5private.h"		/* Generic Functions			*/
-#include "H5ACprivate.h"	/* Metadata cache			*/
+#include "H5ACprivate.h"        /* Metadata cache                       */
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5FLprivate.h"	/* Free Lists                           */
 #include "H5Ipkg.h"		/* IDs			  		*/
@@ -671,7 +671,7 @@ H5I_clear_type(H5I_type_t type, hbool_t force, hbool_t app_ref)
                 } /* end else */
 
                 /* Free the node */
-                (void)H5FL_FREE(H5I_id_info_t, cur);
+                cur = H5FL_FREE(H5I_id_info_t, cur);
             } /* end if */
             else {
                 /* Advance to next node */
@@ -1288,7 +1288,7 @@ H5I_remove(hid_t id)
         }
         /* (Casting away const OK -QAK) */
         ret_value = (void *)curr_id->obj_ptr;
-        (void)H5FL_FREE(H5I_id_info_t, curr_id);
+        curr_id = H5FL_FREE(H5I_id_info_t, curr_id);
     } else {
         /* couldn't find the ID in the proper place */
 	HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, NULL, "invalid ID")

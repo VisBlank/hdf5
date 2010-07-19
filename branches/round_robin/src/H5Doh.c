@@ -159,7 +159,7 @@ H5O_dset_free_copy_file_udata(void *_udata)
         H5O_msg_free(H5O_PLINE_ID, udata->common.src_pline);
 
     /* Release space for 'copy file' user data */
-    (void)H5FL_FREE(H5D_copy_file_ud_t, udata);
+    udata = H5FL_FREE(H5D_copy_file_ud_t, udata);
 
     FUNC_LEAVE_NOAPI_VOID
 } /* end H5O_dset_free_copy_file_udata() */
@@ -290,9 +290,8 @@ H5O_dset_create(H5F_t *f, void *_crt_info, H5G_loc_t *obj_loc, hid_t dxpl_id)
     HDassert(crt_info);
     HDassert(obj_loc);
 
-    /* Create the the dqtaset */
-    if(NULL == (dset = H5D_create(f, crt_info->type_id, crt_info->space,
-        crt_info->dcpl_id, crt_info->dapl_id, dxpl_id)))
+    /* Create the the dataset */
+    if(NULL == (dset = H5D_create(f, crt_info->type_id, crt_info->space, crt_info->dcpl_id, crt_info->dapl_id, dxpl_id)))
         HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, NULL, "unable to create dataset")
 
     /* Set up the new dataset's location */

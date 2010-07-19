@@ -107,9 +107,6 @@ H5G_ent_decode(const H5F_t *f, const uint8_t **pp, H5G_entry_t *ent)
     HDassert(pp);
     HDassert(ent);
 
-    /* Set the entry's file pointer */
-    ent->file = f;
-
     /* decode header */
     H5F_DECODE_LENGTH(f, *pp, ent->name_off);
     H5F_addr_decode(f, pp, &(ent->header));
@@ -132,6 +129,8 @@ H5G_ent_decode(const H5F_t *f, const uint8_t **pp, H5G_entry_t *ent)
             UINT32DECODE(*pp, ent->cache.slink.lval_offset);
             break;
 
+        case H5G_CACHED_ERROR:
+        case H5G_NCACHED:
         default:
             HGOTO_ERROR(H5E_SYM, H5E_BADVALUE, FAIL, "unknown symbol table entry cache type")
     } /* end switch */
@@ -235,6 +234,8 @@ H5G_ent_encode(const H5F_t *f, uint8_t **pp, const H5G_entry_t *ent)
                 UINT32ENCODE(*pp, ent->cache.slink.lval_offset);
                 break;
 
+            case H5G_CACHED_ERROR:
+            case H5G_NCACHED:
             default:
                 HGOTO_ERROR(H5E_SYM, H5E_BADVALUE, FAIL, "unknown symbol table entry cache type")
         } /* end switch */
@@ -396,12 +397,12 @@ H5G_ent_convert(H5F_t *f, hid_t dxpl_id, H5HL_t *heap, const char *name,
             } /* end case */
             break;
 
+        case H5L_TYPE_ERROR:
+        case H5L_TYPE_EXTERNAL:
+        case H5L_TYPE_MAX:
         default:
           HGOTO_ERROR(H5E_SYM, H5E_BADVALUE, FAIL, "unrecognized link type")
     } /* end switch */
-
-    /* Set the file for the entry */
-    ent->file = f;
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -423,7 +424,7 @@ done:
  */
 herr_t
 H5G_ent_debug(const H5G_entry_t *ent, FILE *stream, int indent, int fwidth,
-    H5HL_t *heap)
+    const H5HL_t *heap)
 {
     const char		*lval = NULL;
     int nested_indent, nested_fwidth;
@@ -441,9 +442,6 @@ H5G_ent_debug(const H5G_entry_t *ent, FILE *stream, int indent, int fwidth,
     HDfprintf(stream, "%*s%-*s %a\n", indent, "", fwidth,
 	      "Object header address:", ent->header);
 
-    HDfprintf(stream, "%*s%-*s %s\n", indent, "", fwidth,
-	      "Dirty:",
-	      ent->dirty ? "Yes" : "No");
     HDfprintf(stream, "%*s%-*s ", indent, "", fwidth,
 	      "Cache info type:");
     switch(ent->type) {
@@ -480,6 +478,8 @@ H5G_ent_debug(const H5G_entry_t *ent, FILE *stream, int indent, int fwidth,
                 HDfprintf(stream, "%*s%-*s\n", nested_indent, "", nested_fwidth, "Warning: Invalid heap address given, name not displayed!");
             break;
 
+        case H5G_CACHED_ERROR:
+        case H5G_NCACHED:
         default:
             HDfprintf(stream, "*** Unknown symbol type %d\n", ent->type);
             break;

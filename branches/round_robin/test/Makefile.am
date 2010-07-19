@@ -36,7 +36,7 @@ SCRIPT_DEPEND = error_test$(EXEEXT) err_compat$(EXEEXT)
 # These tests (fheap, btree2) are under development and are not used by
 # the library yet. Move them to the end so that their failure do not block
 # other current library code tests.
-TEST_PROG=testhdf5 lheap ohdr stab gheap cache cache_api \
+TEST_PROG=testhdf5 lheap ohdr stab gheap cache cache_api cache_tagging \
            pool hyperslab istore bittests dt_arith \
            dtypes dsets cmpd_dset extend external objcopy links unlink big mtime     \
            fillval mount flush1 flush2 app_ref enum \
@@ -62,7 +62,8 @@ check_PROGRAMS=$(TEST_PROG) error_test err_compat tcheck_version testmeta
 # so do not appear in this list.
 BUILD_ALL_PROGS=gen_bad_ohdr gen_bogus gen_cross gen_deflate gen_filters gen_new_array \
     gen_new_fill gen_new_group gen_new_mtime gen_new_super gen_noencoder \
-    gen_nullspace gen_udlinks space_overflow gen_filespace gen_specmetaread
+    gen_nullspace gen_udlinks space_overflow gen_filespace gen_specmetaread \
+    gen_sizes_lheap
 
 if BUILD_ALL_CONDITIONAL
   noinst_PROGRAMS=$(BUILD_ALL_PROGS)
