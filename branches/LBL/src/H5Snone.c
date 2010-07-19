@@ -48,7 +48,8 @@ static htri_t H5S_none_is_contiguous(const H5S_t *space);
 static htri_t H5S_none_is_single(const H5S_t *space);
 static htri_t H5S_none_is_regular(const H5S_t *space);
 static herr_t H5S_none_adjust_u(H5S_t *space, const hsize_t *offset);
-static herr_t H5S_none_project_single(const H5S_t *space, hsize_t *offset);
+static herr_t H5S_none_project_scalar(const H5S_t *space, hsize_t *offset);
+static herr_t H5S_none_project_simple(const H5S_t *space, H5S_t *new_space, hsize_t *offset);
 static herr_t H5S_none_iter_init(H5S_sel_iter_t *iter, const H5S_t *space);
 
 /* Selection iteration callbacks */
@@ -78,7 +79,8 @@ const H5S_select_class_t H5S_sel_none[1] = {{
     H5S_none_is_single,
     H5S_none_is_regular,
     H5S_none_adjust_u,
-    H5S_none_project_single,
+    H5S_none_project_scalar,
+    H5S_none_project_simple,
     H5S_none_iter_init,
 }};
 
@@ -514,14 +516,14 @@ H5S_none_serialize(const H5S_t *space, uint8_t *buf)
 static herr_t
 H5S_none_deserialize(H5S_t *space, const uint8_t UNUSED *buf)
 {
-    herr_t ret_value;  /* return value */
+    herr_t ret_value = SUCCEED;  /* return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5S_none_deserialize)
 
     HDassert(space);
 
     /* Change to "none" selection */
-    if((ret_value = H5S_select_none(space)) < 0)
+    if(H5S_select_none(space) < 0)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTDELETE, FAIL, "can't change selection")
 
 done:
@@ -720,9 +722,9 @@ H5S_none_adjust_u(H5S_t UNUSED *space, const hsize_t UNUSED *offset)
 
 
 /*-------------------------------------------------------------------------
- * Function:	H5S_none_project_single
+ * Function:	H5S_none_project_scalar
  *
- * Purpose:	Projects a 'none' selection into another rank
+ * Purpose:	Projects a 'none' selection into a scalar dataspace
  *
  * Return:	non-negative on success, negative on failure.
  *
@@ -732,16 +734,50 @@ H5S_none_adjust_u(H5S_t UNUSED *space, const hsize_t UNUSED *offset)
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5S_none_project_single(const H5S_t UNUSED *space, hsize_t UNUSED *offset)
+H5S_none_project_scalar(const H5S_t UNUSED *space, hsize_t UNUSED *offset)
 {
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5S_none_project_single)
+    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5S_none_project_scalar)
 
     /* Check args */
     HDassert(space && H5S_SEL_NONE == H5S_GET_SELECT_TYPE(space));
     HDassert(offset);
 
     FUNC_LEAVE_NOAPI(FAIL)
-}   /* H5S_none_project_single() */
+}   /* H5S_none_project_scalar() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5S_none_project_simple
+ *
+ * Purpose:	Projects an 'none' selection onto/into a simple dataspace
+ *              of a different rank
+ *
+ * Return:	non-negative on success, negative on failure.
+ *
+ * Programmer:	Quincey Koziol
+ *              Sunday, July 18, 2010
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+H5S_none_project_simple(const H5S_t *base_space, H5S_t *new_space, hsize_t *offset)
+{
+    herr_t ret_value = SUCCEED;         /* Return value */
+
+    FUNC_ENTER_NOAPI_NOINIT(H5S_none_project_simple)
+
+    /* Check args */
+    HDassert(base_space && H5S_SEL_NONE == H5S_GET_SELECT_TYPE(base_space));
+    HDassert(new_space);
+    HDassert(offset);
+
+    /* Select the entire new space */
+    if(H5S_select_none(new_space) < 0)
+        HGOTO_ERROR(H5E_DATASPACE, H5E_CANTSET, FAIL, "unable to set none selection")
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+}   /* H5S_none_project_simple() */
 
 
 /*--------------------------------------------------------------------------

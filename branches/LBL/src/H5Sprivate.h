@@ -133,7 +133,8 @@ typedef struct H5S_sel_iter_t {
 #define H5S_SELECT_IS_SINGLE(S)         ((*(S)->select.type->is_single)(S))
 #define H5S_SELECT_IS_REGULAR(S)        ((*(S)->select.type->is_regular)(S))
 #define H5S_SELECT_ADJUST_U(S,O)        ((*(S)->select.type->adjust_u)(S, O))
-#define H5S_SELECT_PROJECT_SINGLE(S,O)  ((*(S)->select.type->project_single)(S, O))
+#define H5S_SELECT_PROJECT_SCALAR(S,O)  ((*(S)->select.type->project_scalar)(S, O))
+#define H5S_SELECT_PROJECT_SIMPLE(S,NS, O) ((*(S)->select.type->project_simple)(S, NS, O))
 #define H5S_SELECT_ITER_COORDS(ITER,COORDS)     ((*(ITER)->type->iter_coords)(ITER,COORDS))
 #define H5S_SELECT_ITER_BLOCK(ITER,START,END)   ((*(ITER)->type->iter_block)(ITER,START,END))
 #define H5S_SELECT_ITER_NELMTS(ITER)    ((*(ITER)->type->iter_nelmts)(ITER))
@@ -158,7 +159,8 @@ typedef struct H5S_sel_iter_t {
 #define H5S_SELECT_IS_SINGLE(S)         (H5S_select_is_single(S))
 #define H5S_SELECT_IS_REGULAR(S)        (H5S_select_is_regular(S))
 #define H5S_SELECT_ADJUST_U(S,O)        (H5S_select_adjust_u(S, O))
-#define H5S_SELECT_PROJECT_SINGLE(S,O)  (H5S_select_project_single)(S, O))
+#define H5S_SELECT_PROJECT_SCALAR(S,O)  (H5S_select_project_scalar)(S, O))
+#define H5S_SELECT_PROJECT_SIMPLE(S,NS,O) (H5S_select_project_simple)(S, NS, O))
 #define H5S_SELECT_ITER_COORDS(ITER,COORDS)     (H5S_select_iter_coords(ITER,COORDS))
 #define H5S_SELECT_ITER_BLOCK(ITER,START,END)   (H5S_select_iter_block(ITER,START,END))
 #define H5S_SELECT_ITER_NELMTS(ITER)    (H5S_select_iter_nelmts(ITER))
@@ -230,7 +232,8 @@ H5_DLL htri_t H5S_select_is_contiguous(const H5S_t *space);
 H5_DLL htri_t H5S_select_is_single(const H5S_t *space);
 H5_DLL htri_t H5S_select_is_regular(const H5S_t *space);
 H5_DLL herr_t H5S_select_adjust_u(H5S_t *space, const hsize_t *offset);
-H5_DLL herr_t H5S_select_project_single(const H5S_t *space, hsize_t *offset);
+H5_DLL herr_t H5S_select_project_scalar(const H5S_t *space, hsize_t *offset);
+H5_DLL herr_t H5S_select_project_simple(const H5S_t *space, H5S_t *new_space, hsize_t *offset);
 
 /* Operations on all selections */
 H5_DLL herr_t H5S_select_all(H5S_t *space, hbool_t rel_prev);
