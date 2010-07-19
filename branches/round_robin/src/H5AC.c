@@ -1126,6 +1126,9 @@ H5AC_move_entry(H5F_t *f, const H5AC_class_t *type, haddr_t old_addr, haddr_t ne
     char          	trace[128] = "";
     FILE *        	trace_file_ptr = NULL;
 #endif /* H5AC__TRACE_FILE_ENABLED */
+#ifdef H5_HAVE_PARALLEL
+    H5AC_aux_t        * aux_ptr;
+#endif /* H5_HAVE_PARALLEL */
     herr_t ret_value=SUCCEED;      /* Return value */
 
     FUNC_ENTER_NOAPI(H5AC_move_entry, FAIL)
@@ -1155,25 +1158,23 @@ H5AC_move_entry(H5F_t *f, const H5AC_class_t *type, haddr_t old_addr, haddr_t ne
     }
 #endif /* H5AC__TRACE_FILE_ENABLED */
 
+#ifdef H5_HAVE_PARALLEL
+    /* Log moving the entry */
+    if(NULL != (aux_ptr = (H5AC_aux_t *)f->shared->cache->aux_ptr)) {
+        if(H5AC_log_moved_entry(f, old_addr, new_addr) < 0)
+            HGOTO_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "can't log moved entry")
+    } /* end if */
+#endif /* H5_HAVE_PARALLEL */
+
     if(H5C_move_entry(f->shared->cache, type, old_addr, new_addr) < 0)
         HGOTO_ERROR(H5E_CACHE, H5E_CANTMOVE, FAIL, "H5C_move_entry() failed.")
 
 #ifdef H5_HAVE_PARALLEL
-{
-    H5AC_aux_t        * aux_ptr = (H5AC_aux_t *)f->shared->cache->aux_ptr;
-
     /* Check if we should try to flush */
-    if(aux_ptr != NULL) {
-        /* Log moving the entry */
-        if(H5AC_log_moved_entry(f, old_addr, new_addr) < 0)
-            HGOTO_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "can't log moved entry")
-
-        if(aux_ptr->dirty_bytes >= aux_ptr->dirty_bytes_threshold) {
-            if(H5AC_run_sync_point(f, H5AC_noblock_dxpl_id, H5AC_SYNC_POINT_OP__FLUSH_TO_MIN_CLEAN) < 0)
-                HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "Can't run sync point.")
-        } /* end if */
+    if(NULL != aux_ptr && aux_ptr->dirty_bytes >= aux_ptr->dirty_bytes_threshold) {
+        if(H5AC_run_sync_point(f, H5AC_noblock_dxpl_id, H5AC_SYNC_POINT_OP__FLUSH_TO_MIN_CLEAN) < 0)
+            HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "Can't run sync point.")
     } /* end if */
-}
 #endif /* H5_HAVE_PARALLEL */
 
 done:
