@@ -3745,11 +3745,13 @@ handle_datasets(hid_t fid, const char *dset, void *data, int pe, const char *dis
     } /* end if */
 
     if(sset) {
+        unsigned int i;
+        hid_t sid = H5Dget_space(dsetid);
+        unsigned int ndims = H5Sget_simple_extent_ndims(sid);
+
         if(!sset->start || !sset->stride || !sset->count || !sset->block) {
             /* they didn't specify a ``stride'' or ``block''. default to 1 in all
              * dimensions */
-            hid_t sid = H5Dget_space(dsetid);
-            unsigned int ndims = H5Sget_simple_extent_ndims(sid);
 
             if(!sset->start)
                 /* default to (0, 0, ...) for the start coord */
@@ -3775,30 +3777,19 @@ handle_datasets(hid_t fid, const char *dset, void *data, int pe, const char *dis
             }
 
             if (!sset->block) {
-                unsigned int i;
 
                 sset->block = calloc(ndims, sizeof(hsize_t));
 
                 for (i = 0; i < ndims; i++)
                     sset->block[i] = 1;
             }
-
-            H5Sclose(sid);
         }
-    }
 
 
-   /*-------------------------------------------------------------------------
-    * check for block overlap
-    *-------------------------------------------------------------------------
-    */
-
-    if(sset)
-    {
-        hid_t sid = H5Dget_space(dsetid);
-        unsigned int ndims = H5Sget_simple_extent_ndims(sid);
-        unsigned int i;
-
+       /*-------------------------------------------------------------------------
+        * check for block overlap
+        *-------------------------------------------------------------------------
+        */
         for ( i = 0; i < ndims; i++)
         {
             if ( sset->count[i] > 1 )
@@ -3815,9 +3806,10 @@ handle_datasets(hid_t fid, const char *dset, void *data, int pe, const char *dis
             }
 
         }
-        H5Sclose(sid);
 
+        H5Sclose(sid);
     }
+
 
     H5Oget_info(dsetid, &oinfo);
     if(oinfo.rc > 1 || hit_elink) {
@@ -4179,7 +4171,7 @@ parse_start:
                     hand[i].func = handle_datasets;
                     hand[i].obj = HDstrdup(opt_arg);
                     hand[i].subset_info = parse_subset_params(hand[i].obj);
-                    last_dset = hand;
+                    last_dset = &hand[i];
                     break;
                 }
 
