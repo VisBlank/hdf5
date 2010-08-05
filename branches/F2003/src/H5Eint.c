@@ -225,6 +225,7 @@ H5E_walk1_cb(int n, H5E_error1_t *err_desc, void *client_data)
     const char		*maj_str = "No major description";      /* Major error description */
     const char		*min_str = "No minor description";      /* Minor error description */
     unsigned            have_desc = 1;  /* Flag to indicate whether the error has a "real" description */
+    herr_t              ret_value = SUCCEED;
 
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5E_walk1_cb)
 
@@ -240,7 +241,11 @@ H5E_walk1_cb(int n, H5E_error1_t *err_desc, void *client_data)
     /* Get descriptions for the major and minor error numbers */
     maj_ptr = (H5E_msg_t *)H5I_object_verify(err_desc->maj_num, H5I_ERROR_MSG);
     min_ptr = (H5E_msg_t *)H5I_object_verify(err_desc->min_num, H5I_ERROR_MSG);
-    HDassert(maj_ptr && min_ptr);
+
+    /* Check for bad pointer(s), but can't issue error, just leave */
+    if(!maj_ptr || !min_ptr)
+        HGOTO_DONE(FAIL)
+
     if(maj_ptr->msg)
         maj_str = maj_ptr->msg;
     if(min_ptr->msg)
@@ -269,7 +274,7 @@ H5E_walk1_cb(int n, H5E_error1_t *err_desc, void *client_data)
 	    MPI_Initialized(&mpi_initialized);
 	    if(mpi_initialized) {
 	        MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-	        fprintf (stream, "MPI-process %d", mpi_rank);
+	        fprintf(stream, "MPI-process %d", mpi_rank);
 	    } /* end if */
             else
 	        fprintf(stream, "thread 0");
@@ -294,7 +299,8 @@ H5E_walk1_cb(int n, H5E_error1_t *err_desc, void *client_data)
     fprintf(stream, "%*smajor: %s\n", (H5E_INDENT * 2), "", maj_str);
     fprintf(stream, "%*sminor: %s\n", (H5E_INDENT * 2), "", min_str);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5E_walk1_cb() */
 #endif /* H5_NO_DEPRECATED_SYMBOLS */
 
@@ -341,6 +347,7 @@ H5E_walk2_cb(unsigned n, const H5E_error2_t *err_desc, void *client_data)
     const char		*maj_str = "No major description";      /* Major error description */
     const char		*min_str = "No minor description";      /* Minor error description */
     unsigned            have_desc = 1;  /* Flag to indicate whether the error has a "real" description */
+    herr_t              ret_value = SUCCEED;
 
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5E_walk2_cb)
 
@@ -356,7 +363,11 @@ H5E_walk2_cb(unsigned n, const H5E_error2_t *err_desc, void *client_data)
     /* Get descriptions for the major and minor error numbers */
     maj_ptr = (H5E_msg_t *)H5I_object_verify(err_desc->maj_num, H5I_ERROR_MSG);
     min_ptr = (H5E_msg_t *)H5I_object_verify(err_desc->min_num, H5I_ERROR_MSG);
-    HDassert(maj_ptr && min_ptr);
+
+    /* Check for bad pointer(s), but can't issue error, just leave */
+    if(!maj_ptr || !min_ptr)
+        HGOTO_DONE(FAIL)
+
     if(maj_ptr->msg)
         maj_str = maj_ptr->msg;
     if(min_ptr->msg)
@@ -411,7 +422,8 @@ H5E_walk2_cb(unsigned n, const H5E_error2_t *err_desc, void *client_data)
     fprintf(stream, "%*smajor: %s\n", (H5E_INDENT * 2), "", maj_str);
     fprintf(stream, "%*sminor: %s\n", (H5E_INDENT * 2), "", min_str);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5E_walk2_cb() */
 
 

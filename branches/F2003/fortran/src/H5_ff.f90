@@ -42,8 +42,8 @@ MODULE H5LIB
                          !       Forttran 2003 - contains functions
   USE H5GLOBAL
 CONTAINS
-
 !****s* H5LIB/h5open_f
+
 !
 ! NAME
 !  h5open_f
@@ -71,6 +71,7 @@ CONTAINS
     INTEGER, INTENT(OUT) :: error
 !*****
     INTEGER :: error_0, error_1, error_2, error_3
+
 !  INTEGER, EXTERNAL :: h5init_types_c
 !  INTEGER, EXTERNAL :: h5init_flags_c
 !  INTEGER, EXTERNAL :: h5init1_flags_c
@@ -183,6 +184,7 @@ CONTAINS
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
+
 !
 ! HISTORY
 !  Explicit Fortran interfaces were added for

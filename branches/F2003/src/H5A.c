@@ -29,11 +29,11 @@
 /***********/
 #include "H5private.h"		/* Generic Functions			*/
 #include "H5Apkg.h"		/* Attributes				*/
-#include "H5Opkg.h"		/* Object headers			*/
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5FLprivate.h"	/* Free Lists				*/
 #include "H5Iprivate.h"		/* IDs			  		*/
 #include "H5MMprivate.h"	/* Memory management			*/
+#include "H5Opkg.h"		/* Object headers			*/
 #include "H5Sprivate.h"		/* Dataspace functions			*/
 #include "H5SMprivate.h"	/* Shared Object Header Messages	*/
 
@@ -369,7 +369,7 @@ H5A_create(const H5G_loc_t *loc, const char *name, const H5T_t *type,
     htri_t      tri_ret;        /* htri_t return value */
     hid_t	ret_value;      /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5A_create)
+    FUNC_ENTER_NOAPI_NOINIT_TAG(H5A_create, dxpl_id, loc->oloc->addr, FAIL)
 
     /* check args */
     HDassert(loc);
@@ -500,7 +500,7 @@ done:
     if(ret_value < 0 && attr && H5A_close(attr) < 0)
             HDONE_ERROR(H5E_ATTR, H5E_CANTFREE, FAIL, "can't close attribute")
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_TAG(ret_value, FAIL)
 } /* H5A_create() */
 
 
@@ -959,7 +959,7 @@ H5A_write(H5A_t *attr, const H5T_t *mem_type, const void *buf, hid_t dxpl_id)
     size_t		buf_size;		/* desired buffer size	*/
     herr_t		ret_value = SUCCEED;
 
-    FUNC_ENTER_NOAPI_NOINIT(H5A_write)
+    FUNC_ENTER_NOAPI_NOINIT_TAG(H5A_write, dxpl_id, attr->oloc.addr, FAIL)
 
     HDassert(attr);
     HDassert(mem_type);
@@ -1034,11 +1034,11 @@ done:
     if(dst_id >= 0)
         (void)H5I_dec_ref(dst_id, FALSE);
     if(tconv_buf && !tconv_owned)
-        (void)H5FL_BLK_FREE(attr_buf, tconv_buf);
+        tconv_buf = H5FL_BLK_FREE(attr_buf, tconv_buf);
     if(bkg_buf)
-        (void)H5FL_BLK_FREE(attr_buf, bkg_buf);
+        bkg_buf = H5FL_BLK_FREE(attr_buf, bkg_buf);
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_TAG(ret_value, FAIL)
 } /* H5A_write() */
 
 
@@ -1180,9 +1180,9 @@ done:
     if(dst_id >= 0)
         (void)H5I_dec_ref(dst_id, FALSE);
     if(tconv_buf)
-        (void)H5FL_BLK_FREE(attr_buf, tconv_buf);
+        tconv_buf = H5FL_BLK_FREE(attr_buf, tconv_buf);
     if(bkg_buf)
-	(void)H5FL_BLK_FREE(attr_buf, bkg_buf);
+	bkg_buf = H5FL_BLK_FREE(attr_buf, bkg_buf);
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5A_read() */
@@ -2442,7 +2442,7 @@ H5A_close(H5A_t *attr)
         HGOTO_ERROR(H5E_ATTR, H5E_CANTRELEASE, FAIL, "can't release group hier. path")
 
     attr->shared = NULL;
-    (void)H5FL_FREE(H5A_t, attr);
+    attr = H5FL_FREE(H5A_t, attr);
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)

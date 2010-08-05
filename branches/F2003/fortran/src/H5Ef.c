@@ -21,22 +21,23 @@
  ******
 */
 #include "H5f90.h"
+#include "H5Eprivate.h"
 
 
 /****if* H5Ef/h5eclear_c
  * NAME
- *        h5eclear_c
+ *  h5eclear_c
  * PURPOSE
- *     Call H5Eclear to clear the error stack for the current thread
+ *  Call H5Eclear to clear the error stack for the current thread
  * INPUTS
  *
  * OUTPUTS
  *
  * RETURNS
- *     0 on success, -1 on failure
+ *  0 on success, -1 on failure
  * AUTHOR
  *  Xiangyang Su
- *              Wednesday, March 29, 2000
+ *  Wednesday, March 29, 2000
  * HISTORY
  *
  * SOURCE
@@ -45,84 +46,86 @@ int_f
 nh5eclear_c(hid_t_f *estack_id )
 /******/
 {
-  int ret_val = -1;
-  herr_t status;
+  int_f ret_value = 0;
+
   /*
    * Call H5Eclear function.
    */
-  status = H5Eclear2((hid_t)*estack_id);
-  if(status < 0) return ret_val;
-  ret_val = 0;
-  return ret_val;
+  if(H5Eclear2((hid_t)*estack_id) < 0)
+      HGOTO_DONE(FAIL)
+
+done:
+    return ret_value;
 }
 
 /****if* H5Ef/h5eprint_c1
  * NAME
- *        h5eprint_c1
+ *  h5eprint_c1
  * PURPOSE
- *     Call H5Eprint to print the error stack in a default manner.
+ *  Call H5Eprint to print the error stack in a default manner.
  * INPUTS
- *      name - file name
- *              namelen - length of name
+ *  name    - file name
+ *  namelen - length of name
  * OUTPUTS
  *
  * RETURNS
- *     0 on success, -1 on failure
+ *  0 on success, -1 on failure
  * AUTHOR
  *  Xiangyang Su
- *              Wednesday, March 29, 2000
+ *  Wednesday, March 29, 2000
  * HISTORY
- * Bug fix: Added call to close the file with the error messages
- *                EP 11/26/01
+ *  Bug fix: Added call to close the file with the error messages
+ *  EP 11/26/01
  * SOURCE
 */
 int_f
 nh5eprint_c1(_fcd name, int_f* namelen)
 /******/
 {
-  int ret_val = -1;
-  herr_t status;
-  FILE * file;
-  char* c_name;
-  size_t c_namelen;
-  c_namelen = *namelen;
-  c_name = (char*)HD5f2cstring(name, c_namelen);
-  if(c_name == NULL) return ret_val;
-  file = fopen(c_name, "a");
-       if(!file) goto DONE;
-  /*
-   * Call H5Eprint2 function.
-   */
-  status = H5Eprint2(H5E_DEFAULT, file);
-  if (status >=0 ) ret_val = 0;
-  fclose(file);
+    FILE *file = NULL;
+    char *c_name = NULL;
+    int_f ret_value = 0;
 
-DONE:
-  HDfree(c_name);
-  return ret_val;
+    if(NULL == (c_name = (char*)HD5f2cstring(name, (size_t)*namelen)))
+        HGOTO_DONE(FAIL)
+    if(NULL == (file = HDfopen(c_name, "a")))
+        HGOTO_DONE(FAIL)
+
+    /*
+     * Call H5Eprint2 function.
+     */
+    if(H5Eprint2(H5E_DEFAULT, file) < 0)
+        HGOTO_DONE(FAIL)
+
+done:
+    if(file)
+        HDfclose(file);
+    if(c_name)
+        HDfree(c_name);
+
+    return ret_value;
 }
-
 
 /****if* H5Ef/h5eprint_c2
  * NAME
- *        h5eprint_c2
+ *  h5eprint_c2
  * PURPOSE
- *     Call H5Eprint to print the error stack to stderr
- *              in a default manner.
+ *  Call H5Eprint to print the error stack to stderr
+ *  in a default manner.
  * INPUTS
  *
  * OUTPUTS
  *
  * RETURNS
- *     0 on success, -1 on failure
+ *  0 on success, -1 on failure
  * AUTHOR
  *  Xiangyang Su
- *              Wednesday, March 29, 2000
+ *  Wednesday, March 29, 2000
  *
  * SOURCE
 */
 int_f
-nh5eprint_c2()
+nh5eprint_c2(void)
 /******/
 {
   int ret_val = -1;
@@ -138,19 +141,19 @@ nh5eprint_c2()
 
 /****if* H5Ef/h5eget_major_c
  * NAME
- *        h5eget_major_c
+ *  h5eget_major_c
  * PURPOSE
- *     Call H5Eget_major to get a character string
- *              describing an error specified by a major error number.
+ *  Call H5Eget_major to get a character string
+ *  describing an error specified by a major error number.
  * INPUTS
- *      error_no - Major error number
+ *  error_no - Major error number
  * OUTPUTS
- *     name - character string describing the error
+ *  name - character string describing the error
  * RETURNS
- *     0 on success, -1 on failure
+ *  0 on success, -1 on failure
  * AUTHOR
  *  Xiangyang Su
- *              Wednesday, March 29, 2000
+ *  Wednesday, March 29, 2000
  * HISTORY
  *
  * SOURCE
@@ -159,41 +162,46 @@ int_f
 nh5eget_major_c(int_f* error_no, _fcd name, size_t_f* namelen)
 /******/
 {
-  int ret_val = -1;
-  char *c_name = NULL;
-  size_t c_namelen;
-  hid_t c_error_no;
-  c_error_no = (hid_t)*error_no;
+    char *c_name = NULL;
+    size_t c_namelen = (size_t)*namelen;
+    int_f ret_value = 0;
 
-  c_namelen = (size_t)*namelen;
-  if(c_namelen) c_name = (char*) HDmalloc(c_namelen + 1);
+    if(c_namelen > 0) 
+        c_name = (char *)HDmalloc(c_namelen + 1);
 
-  /*
-   * Call H5Eget_major function.
-   */
-  H5Eget_msg(c_error_no, NULL, c_name, c_namelen);
-  HD5packFstring((char*)c_name, _fcdtocp(name), c_namelen);
+    if(!c_name)
+        HGOTO_DONE(FAIL)
 
-  if(!strcmp(c_name, "Invalid major error number")) return ret_val;
-  ret_val = 0;
-  return ret_val;
+    /*
+     * Call H5Eget_major function.
+     */
+    H5Eget_msg((hid_t)*error_no, NULL, c_name, c_namelen);
+    HD5packFstring((char*)c_name, _fcdtocp(name), c_namelen);
+    if(!HDstrcmp(c_name, "Invalid major error number"))
+        HGOTO_DONE(FAIL)
+
+done:
+    if(c_name)
+        HDfree(c_name);
+
+    return ret_value;
 }
 
 /****if* H5Ef/h5eget_minor_c
  * NAME
- *        h5eget_minor_c
+ *  h5eget_minor_c
  * PURPOSE
- *     Call H5Eget_minor to get a character string
- *              describing an error specified by a minor error number.
+ *  Call H5Eget_minor to get a character string
+ *  describing an error specified by a minor error number.
  * INPUTS
- *      error_no - Major error number
+ *  error_no - Major error number
  * OUTPUTS
- *     name - character string describing the error
+ *  name - character string describing the error
  * RETURNS
- *     0 on success, -1 on failure
+ *  0 on success, -1 on failure
  * AUTHOR
  *  Xiangyang Su
- *              Wednesday, March 29, 2000
+ *  Wednesday, March 29, 2000
  * HISTORY
  *
  * SOURCE
@@ -202,57 +210,65 @@ int_f
 nh5eget_minor_c(int_f* error_no, _fcd name, size_t_f* namelen)
 /******/
 {
-  int ret_val = -1;
-  char *c_name = NULL;
-  size_t c_namelen;
-  hid_t c_error_no;
-  c_error_no = (hid_t)*error_no;
+    char *c_name = NULL;
+    size_t c_namelen = (size_t)*namelen;
+    int_f ret_value = 0;
 
-  c_namelen = (size_t)*namelen;
-  if(c_namelen) c_name = (char*) HDmalloc(c_namelen + 1);
+    if(c_namelen > 0) 
+        c_name = (char *)HDmalloc(c_namelen + 1);
 
-  /*
-   * Call H5Eget_minor function.
-   */
-  H5Eget_msg(c_error_no, NULL, c_name, c_namelen);
-  HD5packFstring((char*)c_name, _fcdtocp(name), c_namelen);
+    if(!c_name)
+        HGOTO_DONE(FAIL)
 
-  if(!strcmp(c_name, "Invalid minor error number")) return ret_val;
-  ret_val = 0;
-  return ret_val;
+    /*
+     * Call H5Eget_minor function.
+     */
+    H5Eget_msg((hid_t)*error_no, NULL, c_name, c_namelen);
+    HD5packFstring((char *)c_name, _fcdtocp(name), c_namelen);
+    if(!HDstrcmp(c_name, "Invalid minor error number"))
+        HGOTO_DONE(FAIL)
+
+done:
+    if(c_name)
+        HDfree(c_name);
+
+    return ret_value;
 }
 
 /****if* H5Ef/h5eset_auto_c
  * NAME
- *        h5eset_auto_c
+ *  h5eset_auto_c
  * PURPOSE
- *     Call H5Eset_auto to turn automatic error printing on or off.
+ *  Call H5Eset_auto to turn automatic error printing on or off.
  * INPUTS
- *      printflag - flag to turn automatic error printing on or off.
+ *  printflag - flag to turn automatic error printing on or off.
  * OUTPUTS
  *
  * RETURNS
- *     0 on success, -1 on failure
+ *  0 on success, -1 on failure
  * AUTHOR
  *  Elena Pourmal
- *              Friday, November 17, 2000
+ *  Friday, November 17, 2000
  * HISTORY
- *  major bug fix. Function never disabled printing.
+ *  Major bug fix: Function never disabled printing.
  * SOURCE
 */
 int_f
 nh5eset_auto_c(int_f* printflag)
 /******/
 {
-  int ret_val = -1;
-  herr_t status = -1;
+    herr_t status = -1;
+    int_f ret_value = 0;
 
-  if (*printflag == 1)
-    status = H5Eset_auto2(H5E_DEFAULT, H5Eprint2, stderr);
-  else if (*printflag == 0)
-    status = H5Eset_auto2(H5E_DEFAULT, NULL, NULL);
-  if (status >= 0) ret_val = 0;
-  return ret_val;
+    if(*printflag == 1)
+        status = H5Eset_auto2(H5E_DEFAULT, (H5E_auto2_t)H5Eprint2, stderr);
+    else if(*printflag == 0)
+        status = H5Eset_auto2(H5E_DEFAULT, NULL, NULL);
+    if(status < 0)
+        HGOTO_DONE(FAIL)
+
+done:
+    return ret_value;
 }
 
 

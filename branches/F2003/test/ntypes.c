@@ -52,14 +52,15 @@ int	ipoints3[DIM0][DIM1][5], icheck3[DIM0][DIM1][5];
 #define DSET_VLSTR_NAME         "vlstr_type"
 #define DSET_STR_NAME           "str_type"
 #define DSET_OPAQUE_NAME        "opaque_type"
-#define DSET_BITFIELD_NAME      "bitfield_type"
+#define DSET1_BITFIELD_NAME     "bitfield_type_1"
+#define DSET2_BITFIELD_NAME     "bitfield_type_2"
 
 #define SPACE1_DIM1             4
 #define SPACE1_RANK             1
 #define SPACE2_RANK	        2
 #define SPACE2_DIM1	        10
 #define SPACE2_DIM2	        10
-
+#define BITFIELD_ENUMB          8
 
 
 /*-------------------------------------------------------------------------
@@ -297,6 +298,7 @@ test_compound_dtype2(hid_t file)
     typedef struct s2 {
         short           c2;
         long            l2;
+        long long       ll2;
     } s2;
     typedef struct s1 {
         char            c;
@@ -328,7 +330,8 @@ test_compound_dtype2(hid_t file)
             temp_point->i = n++;
             temp_point->st.c2 = (short)(i + j);
             temp_point->st.l2 = (i * 5 + j * 50) * n;
-            temp_point->l = (unsigned long long)((i * 10 + j * 100) * n);
+            temp_point->st.ll2 = (i * 10 + j * 100) * n;
+            temp_point->l = (unsigned long long)((i * 100 + j * 1000) * n);
         } /* end for */
     } /* end for */
 
@@ -338,36 +341,39 @@ test_compound_dtype2(hid_t file)
     if((space = H5Screate_simple(2, dims, NULL)) < 0) TEST_ERROR;
 
     /* Create compound datatype for disk storage */
-#if H5_SIZEOF_LONG==4
-    if((tid2=H5Tcreate(H5T_COMPOUND, 6)) < 0) TEST_ERROR;
-    if((tid=H5Tcreate(H5T_COMPOUND, 19)) < 0) TEST_ERROR;
-#elif H5_SIZEOF_LONG==8
-    if((tid2=H5Tcreate(H5T_COMPOUND, 10)) < 0) TEST_ERROR;
-    if((tid=H5Tcreate(H5T_COMPOUND, 23)) < 0) TEST_ERROR;
-#else
-#error "Unknown 'long' size"
-#endif
+    if((tid2=H5Tcreate(H5T_COMPOUND, sizeof(s2))) < 0) TEST_ERROR;
+    if((tid=H5Tcreate(H5T_COMPOUND, sizeof(s1))) < 0) TEST_ERROR;
 
     /* Insert and pack members */
-    if(H5Tinsert(tid2, "c2", 0, H5T_STD_I16BE) < 0) TEST_ERROR;
+    if(H5Tinsert(tid2, "c2", HOFFSET(s2, c2), H5T_STD_I16BE) < 0) TEST_ERROR;
 #if H5_SIZEOF_LONG == 4
-    if(H5Tinsert(tid2, "l2", 2, H5T_STD_I32LE) < 0) TEST_ERROR;
+    if(H5Tinsert(tid2, "l2", HOFFSET(s2, l2), H5T_STD_I32LE) < 0) TEST_ERROR;
 #elif H5_SIZEOF_LONG == 8
-    if(H5Tinsert(tid2, "l2", 2, H5T_STD_I64LE) < 0) TEST_ERROR;
+    if(H5Tinsert(tid2, "l2", HOFFSET(s2, l2), H5T_STD_I64LE) < 0) TEST_ERROR;
 #else
 #error "Unknown 'long' size"
+#endif
+#if H5_SIZEOF_LONG_LONG == 4
+    if(H5Tinsert(tid2, "ll2", HOFFSET(s2, ll2), H5T_STD_I32BE) < 0) TEST_ERROR;
+#elif H5_SIZEOF_LONG_LONG == 8
+    if(H5Tinsert(tid2, "ll2", HOFFSET(s2, ll2), H5T_STD_I64BE) < 0) TEST_ERROR;
+#else
+#error "Unknown 'long long' size"
 #endif
 
-    if(H5Tinsert(tid, "c", 0, H5T_STD_U8LE) < 0) TEST_ERROR;
-    if(H5Tinsert(tid, "i", 1, H5T_STD_I32LE) < 0) TEST_ERROR;
-    if(H5Tinsert(tid, "st", 5, tid2) < 0) TEST_ERROR;
-#if H5_SIZEOF_LONG == 4
-    if(H5Tinsert(tid, "l", 11, H5T_STD_U64BE) < 0) TEST_ERROR;
-#elif H5_SIZEOF_LONG == 8
-    if(H5Tinsert(tid, "l", 15, H5T_STD_U64BE) < 0) TEST_ERROR;
+    if(H5Tinsert(tid, "c", HOFFSET(s1, c), H5T_STD_U8LE) < 0) TEST_ERROR;
+    if(H5Tinsert(tid, "i", HOFFSET(s1, i), H5T_STD_I32LE) < 0) TEST_ERROR;
+    if(H5Tinsert(tid, "st", HOFFSET(s1, st), tid2) < 0) TEST_ERROR;
+#if H5_SIZEOF_LONG_LONG == 4
+    if(H5Tinsert(tid, "l", HOFFSET(s1, l), H5T_STD_U32BE) < 0) TEST_ERROR;
+#elif H5_SIZEOF_LONG_LONG == 8
+    if(H5Tinsert(tid, "l", HOFFSET(s1, l), H5T_STD_U64BE) < 0) TEST_ERROR;
 #else
-#error "Unknown 'long' size"
+#error "Unknown 'long long' size"
 #endif
+
+    /* Take away the paddings */
+    if(H5Tpack(tid) < 0) TEST_ERROR;
 
     /* Create the dataset */
     if((dataset = H5Dcreate2(file, DSET_COMPOUND_NAME_2, tid, space,
@@ -381,6 +387,7 @@ test_compound_dtype2(hid_t file)
     /* Insert members */
     if(H5Tinsert(tid_m2, "c2", HOFFSET(s2, c2), H5T_NATIVE_SHORT) < 0) TEST_ERROR;
     if(H5Tinsert(tid_m2, "l2", HOFFSET(s2, l2), H5T_NATIVE_LONG) < 0) TEST_ERROR;
+    if(H5Tinsert(tid_m2, "ll2", HOFFSET(s2, ll2), H5T_NATIVE_LLONG) < 0) TEST_ERROR;
     if(H5Tinsert(tid_m, "c", HOFFSET(s1, c), H5T_NATIVE_UCHAR) < 0) TEST_ERROR;
     if(H5Tinsert(tid_m, "i", HOFFSET(s1, i), H5T_NATIVE_INT) < 0) TEST_ERROR;
     if(H5Tinsert(tid_m, "st", HOFFSET(s1, st), tid_m2) < 0) TEST_ERROR;
@@ -405,13 +412,16 @@ test_compound_dtype2(hid_t file)
     if((native_type = H5Tget_native_type(dtype, H5T_DIR_DEFAULT)) < 0)
         TEST_ERROR;
 
+    if(H5Tequal(native_type, tid_m) != TRUE)
+        TEST_ERROR;
+
     /* Verify the datatype of each field retrieved and converted */
     /* check the char member */
     if((mem_id = H5Tget_member_type(native_type, 0)) < 0)
         TEST_ERROR;
-    if(H5Tget_order(mem_id) != H5Tget_order(H5T_NATIVE_UCHAR))
+    if(H5Tget_order(mem_id) != H5Tget_order(H5T_NATIVE_SCHAR))
         TEST_ERROR;
-    if(H5Tget_size(mem_id) < H5Tget_size(H5T_STD_U8LE))
+    if(H5Tget_size(mem_id) < H5Tget_size(H5T_STD_I8LE))
         TEST_ERROR;
     if(H5T_INTEGER != H5Tget_class(mem_id))
         TEST_ERROR;
@@ -428,7 +438,7 @@ test_compound_dtype2(hid_t file)
         TEST_ERROR;
     H5Tclose(mem_id);
 
-    /* check the long long member */
+    /* check the unsigned long long member */
     if((mem_id = H5Tget_member_type(native_type, 3)) < 0)
         TEST_ERROR;
     if(H5Tget_order(mem_id) != H5Tget_order(H5T_NATIVE_ULLONG))
@@ -468,6 +478,21 @@ test_compound_dtype2(hid_t file)
         TEST_ERROR;
     H5Tclose(mem_id);
 
+    if((mem_id = H5Tget_member_type(nest_mem_id, 2)) < 0)
+        TEST_ERROR;
+    if(H5Tget_order(mem_id) != H5Tget_order(H5T_NATIVE_LLONG))
+        TEST_ERROR;
+#if H5_SIZEOF_LONG_LONG==4
+    if(H5Tget_size(mem_id) < H5Tget_size(H5T_STD_I32LE)) TEST_ERROR;
+#elif H5_SIZEOF_LONG_LONG==8
+    if(H5Tget_size(mem_id) < H5Tget_size(H5T_STD_I64LE)) TEST_ERROR;
+#else
+#error "Unknown 'long long' size"
+#endif
+    if(H5T_INTEGER!=H5Tget_class(mem_id))
+        TEST_ERROR;
+    H5Tclose(mem_id);
+
     /* Read the dataset back.  Temporary buffer is for special platforms like
      * Cray */
     if(NULL == (tmp = HDmalloc(DIM0 * DIM1 * H5Tget_size(native_type))))
@@ -495,6 +520,7 @@ test_compound_dtype2(hid_t file)
                     temp_point->i != temp_check->i ||
                     temp_point->st.c2 != temp_check->st.c2 ||
                     temp_point->st.l2 != temp_check->st.l2 ||
+                    temp_point->st.ll2 != temp_check->st.ll2 ||
                     temp_point->l != temp_check->l ) {
                 H5_FAILED();
                 printf("    Read different values than written.\n");
@@ -641,6 +667,9 @@ test_compound_dtype(hid_t file)
     if((dtype = H5Dget_type(dataset)) < 0) TEST_ERROR;
 
     if((native_type = H5Tget_native_type(dtype, H5T_DIR_DEFAULT)) < 0)
+        TEST_ERROR;
+
+    if(H5Tequal(native_type, tid2) != TRUE)
         TEST_ERROR;
 
     /* Verify the datatype of each field retrieved and converted */
@@ -2400,7 +2429,7 @@ test_refer_dtype2(hid_t file)
     PASSED();
     return 0;
 
-error: 
+error:
     /* Free memory buffers */
     if(dwbuf)
         HDfree(dwbuf);
@@ -2519,52 +2548,105 @@ error:
  *		October 15, 2002
  *
  * Modifications:
- *
+ *              Raymond Lu
+ *              1 December 2009
+ *              I added the support for bitfield and changed the test to
+ *              compare the data being read back.
  *-------------------------------------------------------------------------
  */
 static herr_t
 test_bitfield_dtype(hid_t file)
 {
-    hid_t	type = -1, space = -1, dset = -1;
-    hid_t       dataset = -1, dtype = -1, native_type = -1;
-    size_t	i;
-    unsigned char wbuf[32];
-    hsize_t	nelmts;
+    hid_t		type=-1, space=-1, dset1=-1, dset2=-1;
+    hid_t               dataset1=-1, dataset2=-1, dtype=-1, native_type=-1;
+    size_t		ntype_size, i;
+    unsigned char  	wbuf[BITFIELD_ENUMB*sizeof(int)];
+    unsigned char       *p=NULL;
+    void                *rbuf = NULL;
+    unsigned int        intw[BITFIELD_ENUMB], intr[BITFIELD_ENUMB];
+    hsize_t		nelmts;
 
     TESTING("bitfield datatype");
 
-    /* opaque_1 */
-    nelmts = sizeof(wbuf);
-    if((type = H5Tcopy(H5T_STD_B8LE)) < 0) TEST_ERROR;
+    nelmts = BITFIELD_ENUMB;
+    if((type = H5Tcopy(H5T_STD_B32BE)) < 0) TEST_ERROR;
+
     if((space = H5Screate_simple(1, &nelmts, NULL)) < 0) TEST_ERROR;
-    if((dset = H5Dcreate2(file, DSET_BITFIELD_NAME, type, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0)
-        TEST_ERROR;
 
-    for(i = 0; i < sizeof(wbuf); i++)
-        wbuf[i] = (unsigned char)0xff ^ (unsigned char)i;
+    /* Create and write to dataset1 with a unsigned char buffer */
+    if((dset1 = H5Dcreate2(file, DSET1_BITFIELD_NAME, type, space, H5P_DEFAULT, H5P_DEFAULT,
+        H5P_DEFAULT)) < 0) TEST_ERROR;
 
-    if(H5Dwrite(dset, type, H5S_ALL, H5S_ALL, H5P_DEFAULT, wbuf) < 0) TEST_ERROR;
+    for(i = 0; i < BITFIELD_ENUMB*sizeof(int); i++)
+        wbuf[i] = (unsigned char)((unsigned int)0xff ^ (unsigned int)i);
+
+    if(H5Dwrite(dset1, H5T_NATIVE_B32, H5S_ALL, H5S_ALL, H5P_DEFAULT, wbuf) < 0) TEST_ERROR;
+    if(H5Dclose(dset1) < 0) TEST_ERROR;
+
+    /* Create and write to dataset2 with a unsigned int buffer */
+    if((dset2 = H5Dcreate2(file, DSET2_BITFIELD_NAME, type, space, H5P_DEFAULT, H5P_DEFAULT,
+        H5P_DEFAULT)) < 0) TEST_ERROR;
+
+    for(i = 0; i < BITFIELD_ENUMB; i++)
+        intw[i] = (unsigned int)0xff << (unsigned int)((i*8)%32);
+
+    if(H5Dwrite(dset2, H5T_NATIVE_B32, H5S_ALL, H5S_ALL, H5P_DEFAULT, intw) < 0) TEST_ERROR;
+    if(H5Dclose(dset2) < 0) TEST_ERROR;
     if(H5Sclose(space) < 0) TEST_ERROR;
-    if(H5Dclose(dset) < 0) TEST_ERROR;
-
-
-    /* Open dataset again to check H5Tget_native_type */
-    if((dataset = H5Dopen2(file, DSET_BITFIELD_NAME, H5P_DEFAULT)) < 0) TEST_ERROR;
-
-    if((dtype = H5Dget_type(dataset)) < 0) TEST_ERROR;
-
-    H5E_BEGIN_TRY {
-        native_type = H5Tget_native_type(dtype, H5T_DIR_DEFAULT);
-    } H5E_END_TRY;
-    if(native_type > 0) {
-        H5_FAILED();
-        puts("  Bit field isn't supported.  Should have failed.");
-        TEST_ERROR;
-    } /* end if */
-
     if(H5Tclose(type) < 0) TEST_ERROR;
+
+    /* Open dataset1 again to check H5Tget_native_type */
+    if((dataset1 = H5Dopen2(file, DSET1_BITFIELD_NAME, H5P_DEFAULT)) < 0) TEST_ERROR;
+
+    if((dtype = H5Dget_type(dataset1)) < 0) TEST_ERROR;
+
+    if((native_type = H5Tget_native_type(dtype, H5T_DIR_DEFAULT)) < 0) TEST_ERROR;
+
+    if((ntype_size = H5Tget_size(native_type)) == 0) TEST_ERROR;
+
+    rbuf = malloc((size_t)nelmts*ntype_size);
+
+    /* Read the data and compare them */
+    if(H5Dread(dataset1, native_type, H5S_ALL, H5S_ALL, H5P_DEFAULT, rbuf) < 0) TEST_ERROR;
+
+    p = (unsigned char *)rbuf;
+    for(i = 0; i < BITFIELD_ENUMB*4; i++) {
+        if(*p != wbuf[i]) {
+            H5_FAILED();
+            printf("    Read different values than written.\n");
+            printf("    At index %zu\n", i);
+            TEST_ERROR;
+        }
+        p++;
+    }
+
     if(H5Tclose(dtype) < 0) TEST_ERROR;
-    if(H5Dclose(dataset) < 0) TEST_ERROR;
+    if(H5Tclose(native_type) < 0) TEST_ERROR;
+    if(H5Dclose(dataset1) < 0) TEST_ERROR;
+    if(rbuf) free(rbuf);
+
+    /* Open dataset2 again to check H5Tget_native_type */
+    if((dataset2 = H5Dopen2(file, DSET2_BITFIELD_NAME, H5P_DEFAULT)) < 0) TEST_ERROR;
+
+    if((dtype = H5Dget_type(dataset2)) < 0) TEST_ERROR;
+
+    if((native_type = H5Tget_native_type(dtype, H5T_DIR_DEFAULT)) < 0) TEST_ERROR;
+
+    /* Read the data and compare them */
+    if(H5Dread(dataset2, native_type, H5S_ALL, H5S_ALL, H5P_DEFAULT, intr) < 0) TEST_ERROR;
+
+    for(i = 0; i < BITFIELD_ENUMB; i++) {
+        if(intr[i] != intw[i]) {
+            H5_FAILED();
+            printf("    Read different values than written.\n");
+            printf("    At index %zu\n", i);
+            TEST_ERROR;
+        }
+    }
+
+    if(H5Tclose(dtype) < 0) TEST_ERROR;
+    if(H5Tclose(native_type) < 0) TEST_ERROR;
+    if(H5Dclose(dataset2) < 0) TEST_ERROR;
 
     PASSED();
     return 0;
@@ -2575,8 +2657,10 @@ error:
         H5Tclose(type);
         H5Tclose(dtype);
         H5Tclose(native_type);
-        H5Dclose(dset);
-        H5Dclose(dataset);
+        H5Dclose(dset1);
+        H5Dclose(dset2);
+        H5Dclose(dataset1);
+        H5Dclose(dataset2);
     } H5E_END_TRY;
 
     return -1;

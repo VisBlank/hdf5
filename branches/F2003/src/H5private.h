@@ -142,7 +142,11 @@
 
 #ifdef _WIN32
 
-#define VC_EXTRALEAN		/*Exclude rarely-used stuff from Windows headers */
+#ifdef H5_HAVE_WINSOCK_H
+#include <winsock2.h>
+#endif
+
+#define WIN32_LEAN_AND_MEAN		/*Exclude rarely-used stuff from Windows headers */
 #include <windows.h>
 #include <direct.h>         /* For _getcwd() */
 
@@ -1143,7 +1147,7 @@ H5_DLL int HDfprintf (FILE *stream, const char *fmt, ...);
     #ifndef HDsrandom
         #define HDsrandom(S)		HDsrand(S)
     #endif /* HDsrandom */
-    #elif H5_HAVE_RANDOM
+#elif H5_HAVE_RANDOM
     #ifndef HDsrand
         #define HDsrand(S)		srandom(S)
     #endif /* HDsrand */
@@ -1535,7 +1539,8 @@ typedef struct H5_debug_t {
 
 extern H5_debug_t		H5_debug_g;
 #define H5DEBUG(X)		(H5_debug_g.pkg[H5_PKG_##X].stream)
-extern char H5libhdf5_settings[];	/* embedded library information */
+/* Do not use const else AIX strings does not show it. */
+extern char H5libhdf5_settings[]; /* embedded library information */
 
 /*-------------------------------------------------------------------------
  * Purpose:	These macros are inserted automatically just after the
@@ -1636,7 +1641,7 @@ H5_DLL double H5_trace(const double *calltime, const char *func, const char *typ
 
 /* `S' is the name of a function which is being tested to check if its */
 /*      an API function */
-#define H5_IS_API(S) ('_'!=S[2] && '_'!=S[3] && (!S[4] || '_'!=S[4]))
+#define H5_IS_API(S) ('_'!=((const char *)S)[2] && '_'!=((const char *)S)[3] && (!((const char *)S)[4] || '_'!=((const char *)S)[4]))
 
 /* global library version information string */
 extern char	H5_lib_vers_info_g[];
@@ -1929,19 +1934,33 @@ static herr_t		H5_INTERFACE_INIT_FUNC(void);
     FUNC_ENTER_COMMON_NOFUNC(func_name,!H5_IS_API(#func_name));               \
     {
 
+/* Use the following two macros as replacements for the FUNC_ENTER_NOAPI 
+ * and FUNC_ENTER_NOAPI_NOINIT macros when the function needs to set
+ * up a metadata tag. */
+#define FUNC_ENTER_NOAPI_TAG(func_name, dxpl_id, tag, err) {                     \
+    haddr_t prev_tag = HADDR_UNDEF;                                              \
+    hid_t tag_dxpl_id = dxpl_id;                                                 \
+    FUNC_ENTER_COMMON(func_name, !H5_IS_API(#func_name));                        \
+    if(H5AC_tag(tag_dxpl_id, tag, &prev_tag)<0)                                  \
+        HGOTO_ERROR(H5E_CACHE, H5E_CANTTAG, err, "unable to apply metadata tag") \
+    FUNC_ENTER_NOAPI_INIT(func_name,err)		                                 \
+    {
+
+#define FUNC_ENTER_NOAPI_NOINIT_TAG(func_name, dxpl_id, tag, err) {              \
+    haddr_t prev_tag = HADDR_UNDEF;                                              \
+    hid_t tag_dxpl_id = dxpl_id;                                                 \
+    FUNC_ENTER_COMMON(func_name, !H5_IS_API(#func_name));                        \
+    if(H5AC_tag(tag_dxpl_id, tag, &prev_tag)<0)                                  \
+        HGOTO_ERROR(H5E_CACHE, H5E_CANTTAG, err, "unable to apply metadata tag") \
+    H5_PUSH_FUNC(#func_name)                                                     \
+    {
+
+
 /*-------------------------------------------------------------------------
  * Purpose:	Register function exit for code profiling.  This should be
  *		the last statement executed by a function.
  *
  * Programmer:	Quincey Koziol
- *
- * Modifications:
- *
- *	Robb Matzke, 4 Aug 1997
- *	The pablo mask comes from the constant PABLO_MASK defined on a
- *	per-file basis.	 The pablo_func_id comes from an auto variable
- *	defined by FUNC_ENTER.
- *      PABLO was deleted on January 21, 2005 EIP
  *
  *-------------------------------------------------------------------------
  */
@@ -1961,6 +1980,7 @@ static herr_t		H5_INTERFACE_INIT_FUNC(void);
     } /*end scope from end of FUNC_ENTER*/                                    \
 }} /*end scope from beginning of FUNC_ENTER*/
 
+/* Use this macro to match the FUNC_ENTER_API_NOFS macro */
 #define FUNC_LEAVE_API_NOFS(ret_value)                                        \
         FINISH_MPE_LOG;                                                       \
         H5TRACE_RETURN(ret_value);					      \
@@ -1991,6 +2011,14 @@ static herr_t		H5_INTERFACE_INIT_FUNC(void);
     } /*end scope from end of FUNC_ENTER*/                                    \
 } /*end scope from beginning of FUNC_ENTER*/
 
+/* Use this macro when exiting a function that set up a metadata tag */
+#define FUNC_LEAVE_NOAPI_TAG(ret_value, err)                                         \
+        if(H5AC_tag(tag_dxpl_id, prev_tag, NULL)<0)                                  \
+            HDONE_ERROR(H5E_CACHE, H5E_CANTTAG, err, "unable to apply metadata tag") \
+        H5_POP_FUNC                                                                  \
+        return(ret_value);						                                     \
+    } /*end scope from end of FUNC_ENTER*/                                           \
+} /*end scope from beginning of FUNC_ENTER*/
 
 /****************************************/
 /* Revisions to FUNC_ENTER/LEAVE Macros */
@@ -2254,6 +2282,17 @@ func_init_failed:							      \
     /* Close Function */						      \
 }
 
+/* Macro to begin/end tagging (when FUNC_ENTER_*TAG macros are insufficient) */
+#define H5_BEGIN_TAG(dxpl, tag, err) {                                           \
+    haddr_t prv_tag = HADDR_UNDEF;                                               \
+    hid_t my_dxpl_id = dxpl;                                                     \
+    if(H5AC_tag(my_dxpl_id, tag, &prv_tag) < 0)                                  \
+        HGOTO_ERROR(H5E_CACHE, H5E_CANTTAG, err, "unable to apply metadata tag")
+
+#define H5_END_TAG(err)                                                          \
+    if(H5AC_tag(my_dxpl_id, prv_tag, NULL) <0)                                   \
+        HGOTO_ERROR(H5E_CACHE, H5E_CANTTAG, err, "unable to apply metadata tag") \
+}
 
 /* Macro for "stringizing" an integer in the C preprocessor (use H5_TOSTRING) */
 /* (use H5_TOSTRING, H5_STRINGIZE is just part of the implementation) */

@@ -32,6 +32,7 @@
 #include "H5Fpkg.h"             /* File access                          */
 #include "H5FDprivate.h"	/* File drivers                         */
 #include "H5Iprivate.h"		/* IDs                                  */
+#include "H5MMprivate.h"	/* Memory management			*/
 #include "H5Pprivate.h"		/* Property lists                       */
 #include "H5SMprivate.h"        /* Shared Object Header Messages        */
 
@@ -73,6 +74,7 @@ H5FL_DEFINE(H5F_super_t);
 /*******************/
 /* Local Variables */
 /*******************/
+
 
 
 /*--------------------------------------------------------------------------
@@ -187,12 +189,27 @@ H5F_super_ext_create(H5F_t *f, hid_t dxpl_id, H5O_loc_t *ext_ptr)
     HDassert(!H5F_addr_defined(f->shared->sblock->ext_addr));
     HDassert(ext_ptr);
 
-    H5O_loc_reset(ext_ptr);
-    if(H5O_create(f, dxpl_id, 0, H5P_GROUP_CREATE_DEFAULT, ext_ptr) < 0)
-	HGOTO_ERROR(H5E_OHDR, H5E_CANTCREATE, FAIL, "unable to create superblock extension")
+    /* Check for older version of superblock format that can't support superblock extensions */
+    if(f->shared->sblock->super_vers < HDF5_SUPERBLOCK_VERSION_2)
+        HGOTO_ERROR(H5E_FILE, H5E_CANTCREATE, FAIL, "superblock extension not permitted with version %u of superblock", f->shared->sblock->super_vers)
+    else if(H5F_addr_defined(f->shared->sblock->ext_addr))
+        HGOTO_ERROR(H5E_FILE, H5E_CANTCREATE, FAIL, "superblock extension already exists?!?!")
+    else {
+        /* The superblock extension isn't actually a group, but the
+         * default group creation list should work fine.
+         * If we don't supply a size for the object header, HDF5 will
+         * allocate H5O_MIN_SIZE by default.  This is currently
+         * big enough to hold the biggest possible extension, but should
+         * be tuned if more information is added to the superblock
+         * extension.
+         */
+        H5O_loc_reset(ext_ptr);
+        if(H5O_create(f, dxpl_id, 0, H5P_GROUP_CREATE_DEFAULT, ext_ptr) < 0)
+            HGOTO_ERROR(H5E_OHDR, H5E_CANTCREATE, FAIL, "unable to create superblock extension")
 
-    /* Record the address of the superblock extension */
-    f->shared->sblock->ext_addr = ext_ptr->addr;
+        /* Record the address of the superblock extension */
+        f->shared->sblock->ext_addr = ext_ptr->addr;
+    } /* end else */
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -239,7 +256,7 @@ done:
 
 /*-------------------------------------------------------------------------
  * Function:   H5F_super_ext_close
- *              
+ *
  * Purpose:    Close superblock extension
  *
  * Return:     Success:        non-negative on success
@@ -249,7 +266,7 @@ done:
  *
  *-------------------------------------------------------------------------
  */
-herr_t 
+herr_t
 H5F_super_ext_close(H5F_t *f, H5O_loc_t *ext_ptr)
 {
     herr_t ret_value = SUCCEED;         /* Return value */
@@ -263,7 +280,7 @@ H5F_super_ext_close(H5F_t *f, H5O_loc_t *ext_ptr)
     /* Twiddle the number of open objects to avoid closing the file. */
     f->nopen_objs++;
     if(H5O_close(ext_ptr) < 0)
-        HGOTO_ERROR(H5E_OHDR, H5E_CANTCLOSEOBJ, FAIL, "unable to close superblock extension")
+        HGOTO_ERROR(H5E_FILE, H5E_CANTCLOSEOBJ, FAIL, "unable to close superblock extension")
     f->nopen_objs--;
 
 done:
@@ -298,7 +315,7 @@ H5F_super_read(H5F_t *f, hid_t dxpl_id)
     hbool_t             dirtied = FALSE;    /* Bool for sblock protect call                 */
     herr_t              ret_value = SUCCEED; /* return value                                */
 
-    FUNC_ENTER_NOAPI(H5F_super_read, FAIL)
+    FUNC_ENTER_NOAPI_TAG(H5F_super_read, dxpl_id, H5AC__SUPERBLOCK_TAG, FAIL)
 
     /* Find the superblock */
     if(HADDR_UNDEF == (super_addr = H5F_locate_signature(f->shared->lf, dxpl_id)))
@@ -318,15 +335,15 @@ H5F_super_read(H5F_t *f, hid_t dxpl_id)
         rw = H5AC_READ;
 
     /* Look up the superblock */
-    if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, dxpl_id, H5AC_SUPERBLOCK, (haddr_t)0, NULL, &dirtied, rw)))
+    if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, dxpl_id, H5AC_SUPERBLOCK, (haddr_t)0, &dirtied, rw)))
         HGOTO_ERROR(H5E_CACHE, H5E_CANTPROTECT, FAIL, "unable to load superblock")
-    
+
     /* Mark the superblock dirty if it was modified during loading or VFD indicated to do so */
     if((H5AC_WRITE == rw) && (dirtied || H5F_HAS_FEATURE(f, H5FD_FEAT_DIRTY_SBLK_LOAD)))
         sblock_flags |= H5AC__DIRTIED_FLAG;
 
     /* Pin the superblock in the cache */
-    if(H5AC_pin_protected_entry(f, sblock) < 0)
+    if(H5AC_pin_protected_entry(sblock) < 0)
         HGOTO_ERROR(H5E_FSPACE, H5E_CANTPIN, FAIL, "unable to pin superblock")
 
     /* Set the pointer to the pinned superblock */
@@ -337,7 +354,7 @@ done:
     if(sblock && H5AC_unprotect(f, dxpl_id, H5AC_SUPERBLOCK, (haddr_t)0, sblock, sblock_flags) < 0)
         HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_TAG(ret_value, FAIL)
 } /* end H5F_super_read() */
 
 
@@ -370,7 +387,7 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
     hbool_t         need_ext;           /* Whether the superblock extension is needed */
     herr_t          ret_value = SUCCEED; /* Return Value                              */
 
-    FUNC_ENTER_NOAPI(H5F_super_init, FAIL)
+    FUNC_ENTER_NOAPI_TAG(H5F_super_init, dxpl_id, H5AC__SUPERBLOCK_TAG, FAIL)
 
     /* Allocate space for the superblock */
     if(NULL == (sblock = H5FL_CALLOC(H5F_super_t)))
@@ -400,8 +417,8 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
     /* Bump superblock version to create superblock extension for SOHM info */
     else if(f->shared->sohm_nindexes > 0)
         super_vers = HDF5_SUPERBLOCK_VERSION_2;
-    /* Bump superblock version to create superblock extension for 
-     * non-default file space strategy or non-default free-space threshold 
+    /* Bump superblock version to create superblock extension for
+     * non-default file space strategy or non-default free-space threshold
      */
     else if(f->shared->fs_strategy != H5F_FILE_SPACE_STRATEGY_DEF ||
             f->shared->fs_threshold != H5F_FREE_SPACE_THRESHOLD_DEF)
@@ -457,7 +474,7 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
     sblock->super_vers = super_vers;
 
     /* Compute the size of the superblock */
-    superblock_size = H5F_SUPERBLOCK_SIZE(super_vers, f);
+    superblock_size = (hsize_t)H5F_SUPERBLOCK_SIZE(super_vers, f);
 
     /* Compute the size of the driver information block */
     H5_ASSIGN_OVERFLOW(driver_size, H5FD_sb_size(f->shared->lf), hsize_t, size_t);
@@ -485,7 +502,7 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
         HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "unable to set EOA value for superblock")
 
     /* Insert superblock into cache, pinned */
-    if(H5AC_set(f, dxpl_id, H5AC_SUPERBLOCK, (haddr_t)0, sblock, H5AC__PIN_ENTRY_FLAG) < 0)
+    if(H5AC_insert_entry(f, dxpl_id, H5AC_SUPERBLOCK, (haddr_t)0, sblock, H5AC__PIN_ENTRY_FLAG) < 0)
         HGOTO_ERROR(H5E_CACHE, H5E_CANTINS, FAIL, "can't add superblock to cache")
     sblock_in_cache = TRUE;
 
@@ -528,7 +545,7 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
 
     /* Create the superblock extension for "extra" superblock data, if necessary. */
     if(need_ext) {
-        H5O_loc_t       ext_loc;            /* Superblock extension object location */
+        H5O_loc_t       ext_loc;    /* Superblock extension object location */
 
         /* The superblock extension isn't actually a group, but the
          * default group creation list should work fine.
@@ -539,7 +556,7 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
          * extension.
          */
 	if(H5F_super_ext_create(f, dxpl_id, &ext_loc) < 0)
-            HGOTO_ERROR(H5E_FILE, H5E_CANTRELEASE, FAIL, "unable to start file's superblock extension")
+            HGOTO_ERROR(H5E_FILE, H5E_CANTCREATE, FAIL, "unable to create superblock extension")
 
         /* Create the Shared Object Header Message table and register it with
          *      the metadata cache, if this file supports shared messages.
@@ -586,11 +603,15 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
         /* Check for non-default free space settings */
 	if(f->shared->fs_strategy != H5F_FILE_SPACE_STRATEGY_DEF ||
                 f->shared->fs_threshold != H5F_FREE_SPACE_THRESHOLD_DEF) {
-            H5O_fsinfo_t fsinfo;		/* Free space manager info message */
+	    H5FD_mem_t   type;         	/* Memory type for iteration */
+            H5O_fsinfo_t fsinfo;	/* Free space manager info message */
 
 	    /* Write free-space manager info message to superblock extension object header if needed */
 	    fsinfo.strategy = f->shared->fs_strategy;
 	    fsinfo.threshold = f->shared->fs_threshold;
+	    for(type = H5FD_MEM_SUPER; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type))
+                fsinfo.fs_addr[type-1] = HADDR_UNDEF;
+
             if(H5O_msg_create(&ext_loc, H5O_FSINFO_ID, H5O_MSG_FLAG_DONTSHARE, H5O_UPDATE_TIME, &fsinfo, dxpl_id) < 0)
                 HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "unable to update free-space info header message")
 	} /* end if */
@@ -608,7 +629,7 @@ done:
             /* Check if we've cached it already */
             if(sblock_in_cache) {
                 /* Unpin superblock in cache */
-                if(H5AC_unpin_entry(f, sblock) < 0)
+                if(H5AC_unpin_entry(sblock) < 0)
                     HDONE_ERROR(H5E_FILE, H5E_CANTUNPIN, FAIL, "unable to unpin superblock")
 
                 /* Evict the superblock from the cache */
@@ -617,14 +638,15 @@ done:
             } /* end if */
             else
                 /* Free superblock */
-                sblock = (H5F_super_t *)H5FL_FREE(H5F_super_t, sblock);
+                if(H5F_super_free(sblock) < 0)
+                    HDONE_ERROR(H5E_FILE, H5E_CANTFREE, FAIL, "unable to destroy superblock")
 
             /* Reset variables in file structure */
             f->shared->sblock = NULL;
         } /* end if */
     } /* end if */
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_TAG(ret_value, FAIL)
 } /* end H5F_super_init() */
 
 
@@ -654,12 +676,43 @@ H5F_super_dirty(H5F_t *f)
     HDassert(f->shared->sblock);
 
     /* Mark superblock dirty in cache, so change to EOA will get encoded */
-    if(H5AC_mark_pinned_or_protected_entry_dirty(f, f->shared->sblock) < 0)
+    if(H5AC_mark_entry_dirty(f->shared->sblock) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTMARKDIRTY, FAIL, "unable to mark superblock as dirty")
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5F_super_dirty() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    H5F_super_free
+ *
+ * Purpose:     Destroyer the file's superblock
+ *
+ * Return:      Success:        non-negative on success
+ *              Failure:        Negative
+ *
+ * Programmer:  Quincey Koziol
+ *              April 1, 2010
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5F_super_free(H5F_super_t *sblock)
+{
+    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5F_super_free)
+
+    /* Sanity check */
+    HDassert(sblock);
+
+    /* Free root group symbol table entry, if any */
+    sblock->root_ent = (H5G_entry_t *)H5MM_xfree(sblock->root_ent);
+
+    /* Free superblock */
+    sblock = (H5F_super_t *)H5FL_FREE(H5F_super_t, sblock);
+
+    FUNC_LEAVE_NOAPI(SUCCEED)
+} /* H5F_super_free() */
 
 
 /*-------------------------------------------------------------------------
@@ -689,7 +742,7 @@ H5F_super_size(H5F_t *f, hid_t dxpl_id, hsize_t *super_size, hsize_t *super_ext_
 
     /* Set the superblock size */
     if(super_size)
-	*super_size = H5F_SUPERBLOCK_SIZE(f->shared->sblock->super_vers, f);
+	*super_size = (hsize_t)H5F_SUPERBLOCK_SIZE(f->shared->sblock->super_vers, f);
 
     /* Set the superblock extension size */
     if(super_ext_size) {
@@ -787,7 +840,7 @@ H5F_super_ext_write_msg(H5F_t *f, hid_t dxpl_id, void *mesg, unsigned id, hbool_
 done:
     /* Mark superblock dirty in cache, if necessary */
     if(sblock_dirty)
-        if(H5AC_mark_pinned_or_protected_entry_dirty(f, f->shared->sblock) < 0)
+        if(H5AC_mark_entry_dirty(f->shared->sblock) < 0)
             HDONE_ERROR(H5E_FILE, H5E_CANTMARKDIRTY, FAIL, "unable to mark superblock as dirty")
 
     FUNC_LEAVE_NOAPI(ret_value)

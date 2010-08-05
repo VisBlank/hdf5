@@ -19,7 +19,7 @@
 !
 ! USES
 !  H5FORTRAN_TYPES 	 - This module is generated at run time. See
-!                          H5fortran_types.f90 for further informaton.
+!
 ! COPYRIGHT
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
@@ -375,7 +375,7 @@ MODULE H5GLOBAL
   INTEGER :: H5D_FILL_VALUE_DEFAULT_F
   INTEGER :: H5D_FILL_VALUE_USER_DEFINED_F
 
-! shortened "_DEFAULT" to "_DFLT" to satisfy the limit of 31 
+! shortened "_DEFAULT" to "_DFLT" to satisfy the limit of 31
 ! characters for variable names in Fortran.
 
   INTEGER :: H5D_CHUNK_CACHE_NSLOTS_DFLT_F
@@ -526,10 +526,10 @@ MODULE H5GLOBAL
   INTEGER, PARAMETER :: H5L_FLAGS_LEN = 6
   INTEGER :: H5L_flags(H5L_FLAGS_LEN)
 
-  INTEGER :: H5L_LINK_ERROR_F
-  INTEGER :: H5L_LINK_HARD_F
-  INTEGER :: H5L_LINK_SOFT_F
-  INTEGER :: H5L_LINK_EXTERNAL_F
+  INTEGER :: H5L_TYPE_ERROR_F
+  INTEGER :: H5L_TYPE_HARD_F
+  INTEGER :: H5L_TYPE_SOFT_F
+  INTEGER :: H5L_TYPE_EXTERNAL_F
   INTEGER :: H5L_SAME_LOC_F
   INTEGER :: H5L_LINK_CLASS_T_VERS_F
 
@@ -538,10 +538,10 @@ MODULE H5GLOBAL
   !DEC$endif
   COMMON /H5L_FLAGS/ H5L_flags
 
-  EQUIVALENCE(H5L_flags(1), H5L_LINK_ERROR_F)
-  EQUIVALENCE(H5L_flags(2), H5L_LINK_HARD_F)
-  EQUIVALENCE(H5L_flags(3), H5L_LINK_SOFT_F)
-  EQUIVALENCE(H5L_flags(4), H5L_LINK_EXTERNAL_F)
+  EQUIVALENCE(H5L_flags(1), H5L_TYPE_ERROR_F)
+  EQUIVALENCE(H5L_flags(2), H5L_TYPE_HARD_F)
+  EQUIVALENCE(H5L_flags(3), H5L_TYPE_SOFT_F)
+  EQUIVALENCE(H5L_flags(4), H5L_TYPE_EXTERNAL_F)
   EQUIVALENCE(H5L_flags(5), H5L_SAME_LOC_F)
   EQUIVALENCE(H5L_flags(6), H5L_LINK_CLASS_T_VERS_F)
   !

@@ -306,21 +306,24 @@ struct H5EA_t {
 /* Metadata cache callback user data types */
 
 /* Info needed for loading data block page */
-typedef struct H5EA_dblk_page_load_ud_t {
+typedef struct H5EA_dblk_page_cache_ud_t {
+    H5EA_hdr_t    *hdr;         /* Shared extensible array information */
     H5EA_sblock_t *parent;      /* Pointer to parent object for data block page (super block) */
-} H5EA_dblk_page_load_ud_t;
+} H5EA_dblk_page_cache_ud_t;
 
 /* Info needed for loading data block */
-typedef struct H5EA_dblock_load_ud_t {
+typedef struct H5EA_dblock_cache_ud_t {
+    H5EA_hdr_t    *hdr;         /* Shared extensible array information */
     void *parent;               /* Pointer to parent object for data block (index or super block) */
     size_t nelmts;              /* Number of elements in data block */
-} H5EA_dblock_load_ud_t;
+} H5EA_dblock_cache_ud_t;
 
 /* Info needed for loading super block */
-typedef struct H5EA_sblock_load_ud_t {
+typedef struct H5EA_sblock_cache_ud_t {
+    H5EA_hdr_t    *hdr;         /* Shared extensible array information */
     H5EA_iblock_t *parent;      /* Pointer to parent object for super block (index block) */
     unsigned sblk_idx;          /* Index of super block */
-} H5EA_sblock_load_ud_t;
+} H5EA_sblock_cache_ud_t;
 
 #ifdef H5EA_TESTING
 typedef struct H5EA__ctx_cb_t {
@@ -354,7 +357,7 @@ H5_DLLVAR const H5EA_class_t H5EA_CLS_TEST[1];
 #endif /* H5EA_TESTING */
 
 /* Array of extensible array client ID -> client class mappings */
-extern const H5EA_class_t *const H5EA_client_class_g[];
+extern const H5EA_class_t *const H5EA_client_class_g[H5EA_NUM_CLS_ID];
 
 
 /******************************/
@@ -362,9 +365,9 @@ extern const H5EA_class_t *const H5EA_client_class_g[];
 /******************************/
 
 /* Generic routines */
-H5_DLL herr_t H5EA__create_flush_depend(H5EA_hdr_t *hdr, H5AC_info_t *parent_entry,
+H5_DLL herr_t H5EA__create_flush_depend(H5AC_info_t *parent_entry,
     H5AC_info_t *child_entry);
-H5_DLL herr_t H5EA__destroy_flush_depend(H5EA_hdr_t *hdr, H5AC_info_t *parent_entry,
+H5_DLL herr_t H5EA__destroy_flush_depend(H5AC_info_t *parent_entry,
     H5AC_info_t *child_entry);
 
 /* Header routines */
@@ -391,7 +394,7 @@ H5_DLL H5EA_iblock_t *H5EA__iblock_protect(H5EA_hdr_t *hdr, hid_t dxpl_id,
 H5_DLL herr_t H5EA__iblock_unprotect(H5EA_iblock_t *iblock, hid_t dxpl_id,
     unsigned cache_flags);
 H5_DLL herr_t H5EA__iblock_delete(H5EA_hdr_t *hdr, hid_t dxpl_id);
-H5_DLL herr_t H5EA__iblock_dest(H5F_t *f, H5EA_iblock_t *iblock);
+H5_DLL herr_t H5EA__iblock_dest(H5EA_iblock_t *iblock);
 
 /* Super block routines */
 H5_DLL H5EA_sblock_t *H5EA__sblock_alloc(H5EA_hdr_t *hdr, H5EA_iblock_t *parent,
@@ -404,7 +407,7 @@ H5_DLL herr_t H5EA__sblock_unprotect(H5EA_sblock_t *sblock, hid_t dxpl_id,
     unsigned cache_flags);
 H5_DLL herr_t H5EA__sblock_delete(H5EA_hdr_t *hdr, hid_t dxpl_id,
     H5EA_iblock_t *parent, haddr_t sblk_addr, unsigned sblk_idx);
-H5_DLL herr_t H5EA__sblock_dest(H5F_t *f, H5EA_sblock_t *sblock);
+H5_DLL herr_t H5EA__sblock_dest(H5EA_sblock_t *sblock);
 
 /* Data block routines */
 H5_DLL H5EA_dblock_t *H5EA__dblock_alloc(H5EA_hdr_t *hdr, void *parent,
@@ -418,7 +421,7 @@ H5_DLL herr_t H5EA__dblock_unprotect(H5EA_dblock_t *dblock, hid_t dxpl_id,
     unsigned cache_flags);
 H5_DLL herr_t H5EA__dblock_delete(H5EA_hdr_t *hdr, hid_t dxpl_id, void *parent,
     haddr_t dblk_addr, size_t dblk_nelmts);
-H5_DLL herr_t H5EA__dblock_dest(H5F_t *f, H5EA_dblock_t *dblock);
+H5_DLL herr_t H5EA__dblock_dest(H5EA_dblock_t *dblock);
 
 /* Data block page routines */
 H5_DLL H5EA_dblk_page_t *H5EA__dblk_page_alloc(H5EA_hdr_t *hdr, H5EA_sblock_t *parent);

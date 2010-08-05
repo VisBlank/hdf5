@@ -1,209 +1,232 @@
-! This is the F2003 version of the h5_compound.c example source code.
-! ifort h5_compoundjoe.f90 -lhdf5 -lhdf5_fortran -L../../hdf5/lib/ -I../../hdf5/include/
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-! Copyright by the Board of Trustees of the University of Illinois.         *
-! All rights reserved.                                                      *
-!                                                                           *
-! This file is part of HDF5.  The full HDF5 copyright notice, including     *
-! terms governing use, modification, and redistribution, is contained in    *
-! the files COPYING and Copyright.html.  COPYING can be found at the root   *
-! of the source code distribution tree; Copyright.html can be found at the  *
-! root level of an installed copy of the electronic HDF5 document set and   *
-! is linked from the top-level documents page.  It can also be found at     *
-! http://hdf.ncsa.uiuc.edu/HDF5/doc/Copyright.html.  If you do not have     *
-! access to either file, you may request a copy from hdfhelp@ncsa.uiuc.edu. *
-! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!   Copyright by The HDF Group.                                               *
+!   Copyright by the Board of Trustees of the University of Illinois.         *
+!   All rights reserved.                                                      *
+!                                                                             *
+!   This file is part of HDF5.  The full HDF5 copyright notice, including     *
+!   terms governing use, modification, and redistribution, is contained in    *
+!   the files COPYING and Copyright.html.  COPYING can be found at the root   *
+!   of the source code distribution tree; Copyright.html can be found at the  *
+!   root level of an installed copy of the electronic HDF5 document set and   *
+!   is linked from the top-level documents page.  It can also be found at     *
+!   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+!   access to either file, you may request a copy from help@hdfgroup.org.     *
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-! This example shows how to create a compound data type,
-! write an array which has the compound data type to the file,
-! and read back fields' subsets.
+!
+! This program creates a dataset that is one dimensional array of
+! structures  {
+!                 character*2
+!                 integer
+!                 double precision
+!                 real
+!                                   }
+! Data is written and read back by fields.
 !
 
-PROGRAM main
-  USE hdf5
-  USE ISO_C_BINDING
-  IMPLICIT NONE
+     PROGRAM COMPOUNDEXAMPLE
 
-! KIND parameters
+     USE HDF5 ! This module contains all necessary modules
 
-  INTEGER, PARAMETER :: int_k1 = SELECTED_INT_KIND(1)  ! This should map to INTEGER*1 on most modern processors
-  INTEGER, PARAMETER :: int_k2 = SELECTED_INT_KIND(4)  ! This should map to INTEGER*2 on most modern processors
-  INTEGER, PARAMETER :: int_k4 = SELECTED_INT_KIND(8)  ! This should map to INTEGER*4 on most modern processors
-  INTEGER, PARAMETER :: int_k8 = SELECTED_INT_KIND(16) ! This should map to INTEGER*8 on most modern processors
+     IMPLICIT NONE
 
-  INTEGER, PARAMETER :: r_k4 = SELECTED_REAL_KIND(5)  ! This should map to REAL*4 on most modern processors
-  INTEGER, PARAMETER :: r_k8 = SELECTED_REAL_KIND(10) ! This should map to REAL*8 on most modern processors
+     CHARACTER(LEN=11), PARAMETER :: filename = "compound.h5" ! File name
+     CHARACTER(LEN=8), PARAMETER :: dsetname = "Compound"     ! Dataset name
+     INTEGER, PARAMETER :: dimsize = 6 ! Size of the dataset
 
-! FILES
-
-  CHARACTER(LEN=*), PARAMETER :: H5FILE_NAME = "SDScompound.h5"
-  CHARACTER(LEN=*), PARAMETER :: DATASETNAME = "ArrayOfStructures"
-
-  INTEGER, PARAMETER :: LENGTH = 10
-  INTEGER, PARAMETER :: RANK = 1
-
-!----------------------------------------------------------------
-! First derived-type and dataset
-  TYPE s1_t
-     CHARACTER(LEN=1), DIMENSION(1:13) :: chr
-     INTEGER(KIND=int_k1) :: a
-     REAL(KIND=r_k4) :: b
-     REAL(KIND=r_k8) :: c
-  END TYPE s1_t
-
-  TYPE(s1_t), TARGET :: s1(LENGTH)
-  INTEGER(hid_t) :: s1_tid     ! File datatype identifier
-
-!----------------------------------------------------------------
-! Second derived-type (subset of s1_t)  and dataset
-  TYPE s2_t
-     CHARACTER(LEN=1), DIMENSION(1:13) :: chr
-     REAL(KIND=r_k8) :: c
-     INTEGER(KIND=int_k1) :: a
-  END TYPE s2_t
-
-  type(s2_t), target :: s2(LENGTH)
-  integer(hid_t) :: s2_tid    ! Memory datatype handle
-
-!----------------------------------------------------------------
-! Third "derived-type" (will be used to read float field of s1)
-  INTEGER(hid_t) :: s3_tid   ! Memory datatype handle
-  REAL(KIND=r_k4), TARGET :: s3(LENGTH)
-
-  INTEGER :: i
-  INTEGER(hid_t) :: file, dataset, space
-  !type(H5F_fileid_type) :: file
-  !type(H5D_dsetid_type) :: dataset
-  !type(H5S_spaceid_type) :: space
-  INTEGER(hsize_t) :: DIM(1) = (/LENGTH/)   ! Dataspace dimensions
-  INTEGER(SIZE_T) :: type_size  ! Size of the datatype
-  INTEGER(SIZE_T) :: offset, sizeof_compound
-  INTEGER :: hdferr
-  TYPE(C_PTR) :: f_ptr
-  
-  INTEGER(SIZE_T) :: type_sizei  ! Size of the integer datatype 
-  INTEGER(SIZE_T) :: type_sizer  ! Size of the real datatype 
-  INTEGER(SIZE_T) :: type_sized  ! Size of the double datatype 
-  INTEGER(hid_t) :: tid3      ! /* Nested Array Datatype ID	*/
-  INTEGER(HSIZE_T), DIMENSION(1) :: tdims1=(/13/)
-  !
-  ! Initialize FORTRAN interface.
-  !
-
-  CALL h5open_f(hdferr)
-
-  !
-  ! Initialize the data
-  !
-  DO i = 0, LENGTH-1
-     s1(i+1)%chr(1)(1:1) = 'a'
-     s1(i+1)%chr(2)(1:1) = 'b'
-     s1(i+1)%chr(3)(1:1) = 'c'
-     s1(i+1)%chr(4:12)(1:1) = ' '
-     s1(i+1)%chr(13)(1:1) = 'd'
-     s1(i+1)%a = i
-     s1(i+1)%b = i*i
-     s1(i+1)%c = 1./REAL(i+1)
-  END DO
-  !
-  ! Create the data space.
-  !
-  !
-  CALL H5Screate_simple_f(RANK, dim, space, hdferr)
-
-  !
-  ! Create the file.
-  !
-  CALL H5Fcreate_f(H5FILE_NAME, H5F_ACC_TRUNC_F, file, hdferr)
-
-  !
-  ! Create the memory data type.
-  !
-  CALL H5Tcreate_f(H5T_COMPOUND_F, H5OFFSETOF(C_LOC(s1(1)), C_LOC(s1(2))), s1_tid, hdferr)
-
-  CALL h5tarray_create_f(H5T_NATIVE_CHARACTER, 1, tdims1, tid3, hdferr)
-
-  CALL H5Tinsert_f(s1_tid, "chr_name", H5OFFSETOF(C_LOC(s1(1)),C_LOC(s1(1)%chr)),tid3, hdferr)
-  CALL H5Tinsert_f(s1_tid, "a_name", H5OFFSETOF(C_LOC(s1(1)),C_LOC(s1(1)%a)), h5kind_to_type(int_k1,H5_INTEGER_KIND), hdferr)
-  CALL H5Tinsert_f(s1_tid, "c_name", H5OFFSETOF(C_LOC(s1(1)),C_LOC(s1(1)%c)), h5kind_to_type(r_k8,H5_REAL_KIND), hdferr)
-  CALL H5Tinsert_f(s1_tid, "b_name", H5OFFSETOF(C_LOC(s1(1)),C_LOC(s1(1)%b)), h5kind_to_type(r_k4,H5_REAL_KIND), hdferr)
-
-  !
-  ! Create the dataset.
-  !
-  CALL H5Dcreate_f(file, DATASETNAME, s1_tid, space, dataset, hdferr)
-
-  !
-  ! Write data to the dataset
-  !
-  
-  f_ptr = C_LOC(s1)
-  CALL H5Dwrite_f(dataset, s1_tid, f_ptr, hdferr)
-
-  !
-  ! Release resources
-  !
-  CALL H5Tclose_f(s1_tid, hdferr)
-  CALL H5Sclose_f(space, hdferr)
-  CALL H5Dclose_f(dataset, hdferr)
-  CALL H5Fclose_f(file, hdferr)
-
-  !
-  ! Open the file and the dataset.
-  !
-
-  CALL H5Fopen_f(H5FILE_NAME, H5F_ACC_RDONLY_F, file, hdferr)
-  
-  CALL H5Dopen_f(file, DATASETNAME, dataset,hdferr)
-
-  !
-  ! Create a data type for s2
-  !
-  CALL H5Tcreate_f(H5T_COMPOUND_F,  H5OFFSETOF(C_LOC(s2(1)), C_LOC(s2(2))), s2_tid, hdferr)
-
-  CALL H5Tinsert_f(s2_tid, "chr_name", H5OFFSETOF(C_LOC(s2(1)),C_LOC(s2(1)%chr)), tid3, hdferr)
-  CALL H5Tinsert_f(s2_tid, "c_name", H5OFFSETOF(C_LOC(s2(1)),C_LOC(s2(1)%c)), h5kind_to_type(r_k8,H5_REAL_KIND), hdferr)
-  CALL H5Tinsert_f(s2_tid, "a_name", H5OFFSETOF(C_LOC(s2(1)),C_LOC(s2(1)%a)), h5kind_to_type(int_k1,H5_INTEGER_KIND), hdferr)
-
-  !
-  ! Read two fields c and a from s1 dataset. Fields in the file
-  ! are found by their names "c_name" and "a_name".
-  s2(:)%c=-1; s2(:)%a=-1;
+     INTEGER(HID_T) :: file_id       ! File identifier
+     INTEGER(HID_T) :: dset_id       ! Dataset identifier
+     INTEGER(HID_T) :: dspace_id     ! Dataspace identifier
+     INTEGER(HID_T) :: dtype_id      ! Compound datatype identifier
+     INTEGER(HID_T) :: dt1_id      ! Memory datatype identifier (for character field)
+     INTEGER(HID_T) :: dt2_id      ! Memory datatype identifier (for integer field)
+     INTEGER(HID_T) :: dt3_id      ! Memory datatype identifier (for double precision field)
+     INTEGER(HID_T) :: dt4_id      ! Memory datatype identifier (for real field)
+     INTEGER(HID_T) :: dt5_id      ! Memory datatype identifier
+     INTEGER(HID_T) :: plist_id    ! Dataset trasfer property
+     INTEGER(SIZE_T) :: typesize
 
 
-  f_ptr = C_LOC(s2)
-  CALL H5Dread_f(dataset, s2_tid, f_ptr, hdferr)
+     INTEGER(HSIZE_T), DIMENSION(1) :: dims = (/dimsize/) ! Dataset dimensions
+     INTEGER     ::   rank = 1                            ! Dataset rank
 
-  !
-  ! Display the fields
-  !
-  DO i = 1, length
-     WRITE(*,'(/,A,/,999(A,1X))') "Field chr :", s2(i)%chr(1:13)(1:1)
-  ENDDO
-  WRITE(*,'(/,A,/,999(F8.4,1X))') "Field c :", s2(:)%c
-  WRITE(*,'(/,A,/,999(I0,1X))') "Field a :", s2(:)%a
-  !
-  ! Create a data type for s3.
-  !
-  CALL H5Tcreate_f(H5T_COMPOUND_F, H5OFFSETOF(C_LOC(s3(1)),C_LOC(s3(2))),s3_tid, hdferr)
+     INTEGER     ::   error ! Error flag
+     INTEGER(SIZE_T)     ::   type_size  ! Size of the datatype
+     INTEGER(SIZE_T)     ::   type_sizec  ! Size of the character datatype
+     INTEGER(SIZE_T)     ::   type_sizei  ! Size of the integer datatype
+     INTEGER(SIZE_T)     ::   type_sized  ! Size of the double precision datatype
+     INTEGER(SIZE_T)     ::   type_sizer  ! Size of the real datatype
+     INTEGER(SIZE_T)     ::   offset     ! Member's offset
+     CHARACTER(LEN=2), DIMENSION(dimsize)      :: char_member
+     CHARACTER(LEN=2), DIMENSION(dimsize)      :: char_member_out ! Buffer to read data out
+     INTEGER, DIMENSION(dimsize)          :: int_member
+     DOUBLE PRECISION, DIMENSION(dimsize) :: double_member
+     REAL, DIMENSION(dimsize)             :: real_member
+     INTEGER :: i
+     INTEGER(HSIZE_T), DIMENSION(1) :: data_dims
+     data_dims(1) = dimsize
+     !
+     ! Initialize data buffer.
+     !
+     do i = 1, dimsize
+        char_member(i)(1:1) = char(65+i)
+        char_member(i)(2:2) = char(65+i)
+        char_member_out(i)(1:1)   = char(65)
+        char_member_out(i)(2:2)   = char(65)
+        int_member(i)   = i
+        double_member(i)   = 2.* i
+        real_member(i)   = 3. * i
+     enddo
 
-  CALL H5Tinsert_f(s3_tid, "b_name", 0, h5kind_to_type(r_k4,H5_REAL_KIND), hdferr)
-  !
-  ! Read field b from s1 dataset. Field in the file is found by its name.
-  !
-  s3(:)=-1
-  f_ptr = C_LOC(s3)
-  CALL H5Dread_f(dataset, s3_tid, f_ptr, hdferr)
-  !
-  ! Display the field
-  !
-  WRITE(*,'(/,A,/,999(F8.4,1X))') "Field b :",s3(:)
-  !
-  ! Release resources
-  !
-  CALL H5Tclose_f(s2_tid, hdferr)
-  CALL H5Tclose_f(s3_tid, hdferr)
-  CALL H5Dclose_f(dataset, hdferr)
-  CALL H5Fclose_f(file, hdferr)
+     !
+     ! Initialize FORTRAN interface.
+     !
+     CALL h5open_f(error)
+     !
+     ! Set dataset transfer property to preserve partially initialized fields
+     ! during write/read to/from dataset with compound datatype.
+     !
+     CALL h5pcreate_f(H5P_DATASET_XFER_F, plist_id, error)
+     CALL h5pset_preserve_f(plist_id, .TRUE., error)
 
-END PROGRAM main
+     !
+     ! Create a new file using default properties.
+     !
+     CALL h5fcreate_f(filename, H5F_ACC_TRUNC_F, file_id, error)
+
+     !
+     ! Create the dataspace.
+     !
+     CALL h5screate_simple_f(rank, dims, dspace_id, error)
+     !
+     ! Create compound datatype.
+     !
+     ! First calculate total size by calculating sizes of each member
+     !
+     CALL h5tcopy_f(H5T_NATIVE_CHARACTER, dt5_id, error)
+     typesize = 2
+     CALL h5tset_size_f(dt5_id, typesize, error)
+     CALL h5tget_size_f(dt5_id, type_sizec, error)
+     CALL h5tget_size_f(H5T_NATIVE_INTEGER, type_sizei, error)
+     CALL h5tget_size_f(H5T_NATIVE_DOUBLE, type_sized, error)
+     CALL h5tget_size_f(H5T_NATIVE_REAL, type_sizer, error)
+     type_size = type_sizec + type_sizei + type_sized + type_sizer
+     CALL h5tcreate_f(H5T_COMPOUND_F, type_size, dtype_id, error)
+     !
+     ! Insert memebers
+     !
+     ! CHARACTER*2 memeber
+     !
+     offset = 0
+     CALL h5tinsert_f(dtype_id, "char_field", offset, dt5_id, error)
+     !
+     ! INTEGER member
+     !
+     offset = offset + type_sizec ! Offset of the second memeber is 2
+     CALL h5tinsert_f(dtype_id, "integer_field", offset, H5T_NATIVE_INTEGER, error)
+     !
+     ! DOUBLE PRECISION member
+     !
+     offset = offset + type_sizei  ! Offset of the third memeber is 6
+     CALL h5tinsert_f(dtype_id, "double_field", offset, H5T_NATIVE_DOUBLE, error)
+     !
+     ! REAL member
+     !
+     offset = offset + type_sized  ! Offset of the last member is 14
+     CALL h5tinsert_f(dtype_id, "real_field", offset, H5T_NATIVE_REAL, error)
+
+     !
+     ! Create the dataset with compound datatype.
+     !
+     CALL h5dcreate_f(file_id, dsetname, dtype_id, dspace_id, &
+                      dset_id, error)
+     !
+     ! Create memory types. We have to create a compound datatype
+     ! for each member we want to write.
+     !
+     CALL h5tcreate_f(H5T_COMPOUND_F, type_sizec, dt1_id, error)
+     offset = 0
+     CALL h5tinsert_f(dt1_id, "char_field", offset, dt5_id, error)
+     !
+     CALL h5tcreate_f(H5T_COMPOUND_F, type_sizei, dt2_id, error)
+     offset = 0
+     CALL h5tinsert_f(dt2_id, "integer_field", offset, H5T_NATIVE_INTEGER, error)
+     !
+     CALL h5tcreate_f(H5T_COMPOUND_F, type_sized, dt3_id, error)
+     offset = 0
+     CALL h5tinsert_f(dt3_id, "double_field", offset, H5T_NATIVE_DOUBLE, error)
+     !
+     CALL h5tcreate_f(H5T_COMPOUND_F, type_sizer, dt4_id, error)
+     offset = 0
+     CALL h5tinsert_f(dt4_id, "real_field", offset, H5T_NATIVE_REAL, error)
+     !
+     ! Write data by fields in the datatype. Fields order is not important.
+     !
+     CALL h5dwrite_f(dset_id, dt4_id, real_member, data_dims, error, xfer_prp = plist_id)
+     CALL h5dwrite_f(dset_id, dt1_id, char_member, data_dims, error, xfer_prp = plist_id)
+     CALL h5dwrite_f(dset_id, dt3_id, double_member, data_dims, error, xfer_prp = plist_id)
+     CALL h5dwrite_f(dset_id, dt2_id, int_member, data_dims, error, xfer_prp = plist_id)
+
+     !
+     ! End access to the dataset and release resources used by it.
+     !
+     CALL h5dclose_f(dset_id, error)
+
+     !
+     ! Terminate access to the data space.
+     !
+     CALL h5sclose_f(dspace_id, error)
+     !
+     ! Terminate access to the datatype
+     !
+     CALL h5tclose_f(dtype_id, error)
+     CALL h5tclose_f(dt1_id, error)
+     CALL h5tclose_f(dt2_id, error)
+     CALL h5tclose_f(dt3_id, error)
+     CALL h5tclose_f(dt4_id, error)
+     CALL h5tclose_f(dt5_id, error)
+
+     !
+     ! Close the file.
+     !
+     CALL h5fclose_f(file_id, error)
+
+     !
+     ! Open the file.
+     !
+     CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error)
+     !
+     ! Open the dataset.
+     !
+     CALL h5dopen_f(file_id, dsetname, dset_id, error)
+     !
+     ! Create memeory datatyoe to read character member of the compound datatype.
+     !
+     CALL h5tcopy_f(H5T_NATIVE_CHARACTER, dt2_id, error)
+     typesize = 2
+     CALL h5tset_size_f(dt2_id, typesize, error)
+     CALL h5tget_size_f(dt2_id, type_size, error)
+     CALL h5tcreate_f(H5T_COMPOUND_F, type_size, dt1_id, error)
+     offset = 0
+     CALL h5tinsert_f(dt1_id, "char_field", offset, dt2_id, error)
+     !
+     ! Read part of the datatset and display it.
+     !
+     CALL h5dread_f(dset_id, dt1_id, char_member_out, data_dims, error)
+     write(*,*) (char_member_out(i), i=1, dimsize)
+
+     !
+     ! Close all open objects.
+     !
+     CALL h5dclose_f(dset_id, error)
+     CALL h5tclose_f(dt1_id, error)
+     CALL h5tclose_f(dt2_id, error)
+     CALL h5fclose_f(file_id, error)
+     !
+     ! Close FORTRAN interface.
+     !
+     CALL h5close_f(error)
+
+     END PROGRAM COMPOUNDEXAMPLE
+
+

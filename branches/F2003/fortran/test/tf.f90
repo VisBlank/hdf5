@@ -48,7 +48,7 @@ END SUBROUTINE verify_real_kind_7
 
 !This definition is needed for Windows DLLs
 !DEC$if defined(BUILD_HDF5_DLL)
-!DEC$attributes dllexport :: write_test_status 
+!DEC$attributes dllexport :: write_test_status
 !DEC$endif
   SUBROUTINE write_test_status( test_result, test_title, total_error)
 
@@ -57,7 +57,7 @@ END SUBROUTINE verify_real_kind_7
     IMPLICIT NONE
 
     INTEGER, INTENT(IN) :: test_result  ! negative,  --skip --
-                                        ! 0       ,   passed 
+                                        ! 0       ,   passed
                                         ! positive,   failed
 
     CHARACTER(LEN=*), INTENT(IN) :: test_title ! Short description of test
@@ -77,9 +77,9 @@ END SUBROUTINE verify_real_kind_7
     ELSE IF (test_result == -1) THEN
        error_string = skip
     ENDIF
-       
+
     WRITE(*, fmt = '(A, T72, A)') test_title, error_string
-    
+
     IF(test_result.GT.0) total_error = total_error + test_result
 
   END SUBROUTINE write_test_status
@@ -164,19 +164,19 @@ END SUBROUTINE verifystring
 
 
 !----------------------------------------------------------------------
-! Name:		h5_fixname_f 
+! Name:		h5_fixname_f
 !
 ! Purpose:	Create a file name from the a file base name.
 !               It is a fortran counterpart for the h5_fixname in ../../test/h5test.c
 !
-! Inputs:  
-!		base_name	- base name of the file 
-!               fapl		- file access property list 
-! Outputs:  
+! Inputs:
+!		base_name	- base name of the file
+!               fapl		- file access property list
+! Outputs:
 !		full_name	- full file name
-!		hdferr:		- error code		
+!		hdferr:		- error code
 !				 	Success:  0
-!				 	Failure: -1   
+!				 	Failure: -1
 !
 ! Programmer:	Elena Pourmal
 !		September 13, 2002
@@ -189,13 +189,13 @@ SUBROUTINE h5_fixname_f(base_name, full_name, fapl, hdferr)
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5_fixname_f
 !DEC$endif
-  USE H5GLOBAL           
+  USE H5GLOBAL
   IMPLICIT NONE
-  CHARACTER(LEN=*), INTENT(IN) :: base_name   ! base name 
-  CHARACTER(LEN=*), INTENT(IN) :: full_name   ! full name 
-  INTEGER, INTENT(OUT) :: hdferr         ! Error code 
+  CHARACTER(LEN=*), INTENT(IN) :: base_name   ! base name
+  CHARACTER(LEN=*), INTENT(IN) :: full_name   ! full name
+  INTEGER, INTENT(OUT) :: hdferr         ! Error code
   INTEGER(HID_T), INTENT(IN) :: fapl ! file access property list
-  
+
   INTEGER(SIZE_T) :: base_namelen ! Length of the base name character string
   INTEGER(SIZE_T) :: full_namelen ! Length of the full name character string
 !            INTEGER(HID_T) :: fapl_default
@@ -207,8 +207,8 @@ SUBROUTINE h5_fixname_f(base_name, full_name, fapl, hdferr)
        !DEC$ IF DEFINED(HDF5F90_WINDOWS)
        !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5_FIXNAME_C':: h5_fixname_c
        !DEC$ ENDIF
-       !DEC$ATTRIBUTES reference :: base_name 
-       !DEC$ATTRIBUTES reference :: full_name 
+       !DEC$ATTRIBUTES reference :: base_name
+       !DEC$ATTRIBUTES reference :: full_name
        CHARACTER(LEN=*), INTENT(IN) :: base_name
        INTEGER(SIZE_T) :: base_namelen
        INTEGER(HID_T), INTENT(IN) :: fapl
@@ -216,27 +216,27 @@ SUBROUTINE h5_fixname_f(base_name, full_name, fapl, hdferr)
        INTEGER(SIZE_T) :: full_namelen
      END FUNCTION h5_fixname_c
   END INTERFACE
-  
+
   base_namelen = LEN(base_name)
   full_namelen = LEN(full_name)
   hdferr = h5_fixname_c(base_name, base_namelen, fapl, &
-       full_name, full_namelen) 
-  
+       full_name, full_namelen)
+
 END SUBROUTINE h5_fixname_f
-          
+
 !----------------------------------------------------------------------
-! Name:		h5_cleanup_f 
+! Name:		h5_cleanup_f
 !
 ! Purpose:	Cleanups tests files
 !               It is a fortran counterpart for the h5_cleanup in ../../test/h5test.c
 !
-! Inputs:  
-!		base_name	- base name of the file 
-!               fapl		- file access property list 
-! Outputs:  
-!		hdferr:		- error code		
+! Inputs:
+!		base_name	- base name of the file
+!               fapl		- file access property list
+! Outputs:
+!		hdferr:		- error code
 !				 	Success:  0
-!				 	Failure: -1   
+!				 	Failure: -1
 !
 ! Programmer:	Elena Pourmal
 !		September 19, 2002
@@ -249,34 +249,34 @@ SUBROUTINE h5_cleanup_f(base_name, fapl, hdferr)
 !DEC$if defined(BUILD_HDF5_DLL)
 !DEC$attributes dllexport :: h5_cleanup_f
 !DEC$endif
-  USE H5GLOBAL           
+  USE H5GLOBAL
   IMPLICIT NONE
-  CHARACTER(LEN=*), INTENT(IN) :: base_name   ! base name 
-  INTEGER, INTENT(OUT) :: hdferr         ! Error code 
+  CHARACTER(LEN=*), INTENT(IN) :: base_name   ! base name
+  INTEGER, INTENT(OUT) :: hdferr         ! Error code
   INTEGER(HID_T), INTENT(IN) :: fapl ! file access property list
-  
+
   INTEGER(SIZE_T) :: base_namelen ! Length of the base name character string
-  
+
   INTERFACE
      INTEGER FUNCTION h5_cleanup_c(base_name, base_namelen, fapl)
        USE H5GLOBAL
        !DEC$ IF DEFINED(HDF5F90_WINDOWS)
        !DEC$ ATTRIBUTES C,reference,decorate,alias:'H5_CLEANUP_C':: h5_cleanup_c
        !DEC$ ENDIF
-       !DEC$ATTRIBUTES reference :: base_name 
+       !DEC$ATTRIBUTES reference :: base_name
        CHARACTER(LEN=*), INTENT(IN) :: base_name
        INTEGER(SIZE_T) :: base_namelen
        INTEGER(HID_T), INTENT(IN) :: fapl
      END FUNCTION h5_cleanup_c
   END INTERFACE
-  
+
   base_namelen = LEN(base_name)
   hdferr = h5_cleanup_c(base_name, base_namelen, fapl)
-  
+
 END SUBROUTINE h5_cleanup_f
 
 !----------------------------------------------------------------------
-! Name:		h5_exit_f 
+! Name:		h5_exit_f
 !
 ! Purpose:	Exit application
 !               It is a fortran counterpart for the standard C 'exit()' routine
@@ -284,10 +284,10 @@ END SUBROUTINE h5_cleanup_f
 ! 		UNIX supports a very small range such as 1 byte.
 !		Therefore, exit(256) may end up as exit(0).
 !
-! Inputs:  
+! Inputs:
 !		status	- Status to return from application
 !
-! Outputs:  
+! Outputs:
 !		none
 !
 ! Programmer:	Quincey Koziol
@@ -303,7 +303,7 @@ SUBROUTINE h5_exit_f(status)
 !DEC$endif
   IMPLICIT NONE
   INTEGER, INTENT(IN) :: status         ! Return code
-  
+
   INTERFACE
      SUBROUTINE h5_exit_c(status)
        !DEC$ IF DEFINED(HDF5F90_WINDOWS)
@@ -312,18 +312,18 @@ SUBROUTINE h5_exit_f(status)
        INTEGER, INTENT(IN) :: status
      END SUBROUTINE h5_exit_c
   END INTERFACE
-  
+
   CALL h5_exit_c(status)
-  
-END SUBROUTINE h5_exit_f 
+
+END SUBROUTINE h5_exit_f
 
 !----------------------------------------------------------------------
-! Name:		h5_env_nocleanup_f 
+! Name:		h5_env_nocleanup_f
 !
-! Purpose:	Uses the HDF5_NOCLEANUP environment variable in Fortran 
+! Purpose:	Uses the HDF5_NOCLEANUP environment variable in Fortran
 !               tests to determine if the output files should be removed
 !
-! Inputs:  
+! Inputs:
 !
 ! Outputs:      HDF5_NOCLEANUP:  .true. - don't remove test files
 !		                .false. - remove test files
@@ -350,13 +350,13 @@ SUBROUTINE h5_env_nocleanup_f(HDF5_NOCLEANUP)
        INTEGER :: status
      END SUBROUTINE h5_env_nocleanup_c
   END INTERFACE
-  
+
   CALL h5_env_nocleanup_c(status)
 
   HDF5_NOCLEANUP = .FALSE.
   IF(status.EQ.1)THEN
      HDF5_NOCLEANUP = .TRUE.
   ENDIF
-  
+
 END SUBROUTINE h5_env_nocleanup_f
 

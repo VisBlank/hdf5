@@ -138,23 +138,26 @@ HDfprintf(FILE *stream, const char *fmt, ...)
 	    s = fmt + 1;
 
 	    /* Flags */
-	    while (HDstrchr ("-+ #", *s)) {
-		switch (*s) {
-		case '-':
-		    leftjust = 1;
-		    break;
-		case '+':
-		    plussign = 1;
-		    break;
-		case ' ':
-		    ldspace = 1;
-		    break;
-		case '#':
-		    prefix = 1;
-		    break;
-		} /*lint !e744 Switch statement doesn't _need_ default */
+	    while(HDstrchr ("-+ #", *s)) {
+		switch(*s) {
+                    case '-':
+                        leftjust = 1;
+                        break;
+
+                    case '+':
+                        plussign = 1;
+                        break;
+
+                    case ' ':
+                        ldspace = 1;
+                        break;
+
+                    case '#':
+                        prefix = 1;
+                        break;
+		} /* end switch */ /*lint !e744 Switch statement doesn't _need_ default */
 		s++;
-	    }
+	    } /* end while */
 
 	    /* Field width */
 	    if (HDisdigit (*s)) {
@@ -592,7 +595,7 @@ HDremove_all(const char *fname)
  *      This implementation is taken from the Cygwin source distribution at
  *          src/winsup/mingw/mingwex/gettimeofday.c
  *
- *      The original source code was contributed by 
+ *      The original source code was contributed by
  *          Danny Smith <dannysmith@users.sourceforge.net>
  *      and released in the public domain.
  *
@@ -606,7 +609,7 @@ HDremove_all(const char *fname)
 /* Offset between 1/1/1601 and 1/1/1970 in 100 nanosec units */
 #define _W32_FT_OFFSET (116444736000000000ULL)
 
-int 
+int
 HDgettimeofday(struct timeval *tv, void *tz)
  {
   union {

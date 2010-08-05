@@ -570,7 +570,7 @@ CONTAINS
     INTEGER,          INTENT(OUT)                               :: hdferr 
 !*****
     INTEGER(HSIZE_T), ALLOCATABLE, DIMENSION(:,:) :: c_coord
-    INTEGER :: error, i,j
+    INTEGER :: error, i
 
     INTERFACE
        INTEGER FUNCTION h5sselect_elements_c(space_id, OPERATOR,&

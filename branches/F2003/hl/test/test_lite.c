@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "h5hltest.h"
+#include "H5srcdir.h"
 #include "H5LTpublic.h"
 
 #define FILE_NAME "test_lite1.h5"
@@ -1291,7 +1292,6 @@ static int test_enums(void)
     H5T_class_t type_class;
     char*   dt_str;
     size_t  str_len;
-    H5T_order_t native_order = H5Tget_order(H5T_NATIVE_INT);
 
     TESTING3("        text for enum types");
 
@@ -1535,26 +1535,16 @@ static int test_complicated_compound(void)
     hid_t   dtype;
     int     nmembs;
     H5T_class_t type_class;
-    char*   line=NULL;
-    FILE    *fp;
+    char   *line = NULL;
+    FILE   *fp = NULL;
     size_t  size = 1024;
-    char    *srcdir = getenv("srcdir"); /* the source directory */
-    char    filename[1024]="";
+    const char *filename = H5_get_srcdir_filename(INPUT_FILE);
 
     TESTING3("        text for complicated compound types");
 
-    /* compose the name of the file to open, using the srcdir, if appropriate */
-    if(srcdir)
-    {
-        strcpy(filename, srcdir);
-        strcat(filename, "/");
-    }
-    strcat(filename, INPUT_FILE);
-
     /* Open input file */
     fp = fopen(filename, "r");
-    if(fp == NULL)
-    {
+    if(fp == NULL) {
         printf( "Could not find file %s. Try set $srcdir \n", filename);
         goto out;
     }
@@ -1580,6 +1570,7 @@ static int test_complicated_compound(void)
     }
 
     fclose(fp);
+    fp = NULL;
 
     if((dtype = H5LTtext_to_dtype(line, H5LT_DDL))<0)
         goto out;
@@ -1602,6 +1593,12 @@ static int test_complicated_compound(void)
     return 0;
 
 out:
+
+    if(line)
+        free(line);
+    if(fp)
+        fclose(fp);
+
     H5_FAILED();
     return -1;
 }

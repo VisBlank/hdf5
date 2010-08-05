@@ -29,7 +29,7 @@
 /* Module Declaration */
 /**********************/
 
-#define H5FA_MODULE 
+#define H5FA_MODULE
 
 /***********************/
 /* Other Packages Used */
@@ -78,7 +78,7 @@
 extern const H5FA_class_t H5FA_CLS_TEST[1];
 
 const H5FA_class_t *const H5FA_client_class_g[] = {
-    H5FA_CLS_TEST,		/* 0 - H5FA_TEST_ID 			*/
+    H5FA_CLS_TEST,		/* ? - H5FA_CLS_TEST_ID 		*/
 };
 
 
@@ -143,7 +143,7 @@ HDfprintf(stderr, "%s: Called\n", FUNC);
 	H5E_THROW(H5E_CANTALLOC, "memory allocation failed for fixed array info")
 
     /* Lock the array header into memory */
-    if(NULL == (hdr = (H5FA_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_FARRAY_HDR, fa_addr, NULL, ctx_udata, H5AC_WRITE)))
+    if(NULL == (hdr = (H5FA_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_FARRAY_HDR, fa_addr, ctx_udata, H5AC_WRITE)))
 	H5E_THROW(H5E_CANTPROTECT, "unable to load fixed array header")
 
     /* Point fixed array wrapper at header and bump it's ref count */
@@ -203,7 +203,7 @@ H5FA_open(H5F_t *f, hid_t dxpl_id, haddr_t fa_addr, void *ctx_udata))
 #ifdef H5FA_DEBUG
 HDfprintf(stderr, "%s: fa_addr = %a\n", FUNC, fa_addr);
 #endif /* H5FA_DEBUG */
-    if(NULL == (hdr = (H5FA_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_FARRAY_HDR, fa_addr, NULL, ctx_udata, H5AC_READ)))
+    if(NULL == (hdr = (H5FA_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_FARRAY_HDR, fa_addr, ctx_udata, H5AC_READ)))
         H5E_THROW(H5E_CANTPROTECT, "unable to load fixed array header, address = %llu", (unsigned long long)fa_addr)
 
     /* Check for pending array deletion */
@@ -594,7 +594,7 @@ HDfprintf(stderr, "%s: Called\n", FUNC);
 
         /* Lock the array header into memory */
         /* (OK to pass in NULL for callback context, since we know the header must be in the cache) */
-        if(NULL == (hdr = (H5FA_hdr_t *)H5AC_protect(fa->f, dxpl_id, H5AC_FARRAY_HDR, fa_addr, NULL, NULL, H5AC_WRITE)))
+        if(NULL == (hdr = (H5FA_hdr_t *)H5AC_protect(fa->f, dxpl_id, H5AC_FARRAY_HDR, fa_addr, NULL, H5AC_WRITE)))
             H5E_THROW(H5E_CANTLOAD, "unable to load fixed array header")
 
         /* Set the shared array header's file context for this operation */
@@ -657,7 +657,7 @@ H5FA_delete(H5F_t *f, hid_t dxpl_id, haddr_t fa_addr, void *ctx_udata))
 #ifdef H5FA_DEBUG
 HDfprintf(stderr, "%s: fa_addr = %a\n", FUNC, fa_addr);
 #endif /* H5FA_DEBUG */
-    if(NULL == (hdr = (H5FA_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_FARRAY_HDR, fa_addr, NULL, ctx_udata, H5AC_WRITE)))
+    if(NULL == (hdr = (H5FA_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_FARRAY_HDR, fa_addr, ctx_udata, H5AC_WRITE)))
         H5E_THROW(H5E_CANTPROTECT, "unable to protect fixed array header, address = %llu", (unsigned long long)fa_addr)
 
     /* Check for files using shared array header */
@@ -702,7 +702,7 @@ herr_t, SUCCEED, FAIL,
 H5FA_iterate(H5FA_t *fa, hid_t dxpl_id, H5FA_operator_t op, void *udata))
 
     /* Local variables */
-    uint8_t             *elmt = NULL; 
+    uint8_t             *elmt = NULL;
     hsize_t		u;
 
     /*
@@ -734,7 +734,7 @@ H5FA_iterate(H5FA_t *fa, hid_t dxpl_id, H5FA_operator_t op, void *udata))
 CATCH
 
     if(elmt)
-	(void)H5FL_BLK_FREE(native_elmt, elmt);
+	elmt = H5FL_BLK_FREE(native_elmt, elmt);
 
 END_FUNC(PRIV)  /* end H5FA_iterate() */
 

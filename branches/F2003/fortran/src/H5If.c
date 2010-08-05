@@ -267,7 +267,7 @@ done:
 
 /*----------------------------------------------------------------------------
  * Name:        h5iis_valid_c
- * Purpose:     Calls H5Iis_valid 
+ * Purpose:     Calls H5Iis_valid
  * Inputs:      obj_id - object identifier
  * Outputs:     0 = false, 1 = true
  * Returns:     0 on success, -1 on failure
@@ -280,7 +280,7 @@ nh5iis_valid_c(hid_t_f *obj_id, int_f *c_valid)
 {
      int ret_value;
      htri_t c_ret_value;
-     
+
      /*
       * Call H5Iis_valid
       */

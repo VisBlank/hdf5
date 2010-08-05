@@ -426,49 +426,57 @@ H5G_name_copy(H5G_name_t *dst, const H5G_name_t *src, H5_copy_depth_t depth)
  *-------------------------------------------------------------------------
  */
 ssize_t
-H5G_get_name(hid_t id, char *name/*out*/, size_t size, hid_t lapl_id,
-    hid_t dxpl_id)
+H5G_get_name(const H5G_loc_t *loc, char *name/*out*/, size_t size,
+    hbool_t *cached, hid_t lapl_id, hid_t dxpl_id)
 {
-    H5G_loc_t     loc;          /* Object location */
-    ssize_t       ret_value = FAIL;
+    ssize_t len = 0;            /* Length of object's name */
+    ssize_t ret_value;          /* Return value */
 
     FUNC_ENTER_NOAPI(H5G_get_name, FAIL)
 
-    /* get object location */
-    if(H5G_loc(id, &loc) >= 0) {
-        ssize_t len = 0;
+    /* Sanity check */
+    HDassert(loc);
 
-        /* If the user path is available and it's not "hidden", use it */
-        if(loc.path->user_path_r != NULL && loc.path->obj_hidden == 0) {
-            len = H5RS_len(loc.path->user_path_r);
+    /* If the user path is available and it's not "hidden", use it */
+    if(loc->path->user_path_r != NULL && loc->path->obj_hidden == 0) {
+        len = H5RS_len(loc->path->user_path_r);
 
-            if(name) {
-                HDstrncpy(name, H5RS_get_str(loc.path->user_path_r), MIN((size_t)(len + 1), size));
-                if((size_t)len >= size)
-                    name[size - 1] = '\0';
-            } /* end if */
+        if(name) {
+            HDstrncpy(name, H5RS_get_str(loc->path->user_path_r), MIN((size_t)(len + 1), size));
+            if((size_t)len >= size)
+                name[size - 1] = '\0';
         } /* end if */
-	else if(!loc.path->obj_hidden) {
-	    hid_t	  file;
 
-            /* Retrieve file ID for name search */
-	    if((file = H5I_get_file_id(id, FALSE)) < 0)
-		HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "can't retrieve file ID")
-
-            /* Search for name of object */
-	    if((len = H5G_get_name_by_addr(file, lapl_id, dxpl_id, loc.oloc, name, size)) < 0) {
-                H5I_dec_ref(file, FALSE);
-		HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "can't determine name")
-            } /* end if */
-
-            /* Close file ID used for search */
-	    if(H5I_dec_ref(file, FALSE) < 0)
-		HGOTO_ERROR(H5E_SYM, H5E_CANTCLOSEFILE, FAIL, "can't determine name")
-	} /* end else */
-
-        /* Set return value */
-        ret_value = len;
+        /* Indicate that the name is cached, if requested */
+        /* (Currently only used for testing - QAK, 2010/07/26) */
+        if(cached)
+            *cached = TRUE;
     } /* end if */
+    else if(!loc->path->obj_hidden) {
+        hid_t	  file;
+
+        /* Retrieve file ID for name search */
+        if((file = H5F_get_id(loc->oloc->file, FALSE)) < 0)
+            HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "can't get file ID")
+
+        /* Search for name of object */
+        if((len = H5G_get_name_by_addr(file, lapl_id, dxpl_id, loc->oloc, name, size)) < 0) {
+            H5I_dec_ref(file, FALSE);
+            HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "can't determine name")
+        } /* end if */
+
+        /* Close file ID used for search */
+        if(H5I_dec_ref(file, FALSE) < 0)
+            HGOTO_ERROR(H5E_SYM, H5E_CANTCLOSEFILE, FAIL, "can't determine name")
+
+        /* Indicate that the name is _not_ cached, if requested */
+        /* (Currently only used for testing - QAK, 2010/07/26) */
+        if(cached)
+            *cached = FALSE;
+    } /* end else */
+
+    /* Set return value */
+    ret_value = len;
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -687,6 +695,19 @@ H5G_name_replace_cb(void *obj_ptr, hid_t obj_id, void *key)
             obj_path = H5T_nameof((H5T_t *)obj_ptr);
             break;
 
+        case H5I_UNINIT:
+        case H5I_BADID:
+        case H5I_FILE:
+        case H5I_DATASPACE:
+        case H5I_ATTR:
+        case H5I_REFERENCE:
+        case H5I_VFL:
+        case H5I_GENPROP_CLS:
+        case H5I_GENPROP_LST:
+        case H5I_ERROR_CLASS:
+        case H5I_ERROR_MSG:
+        case H5I_ERROR_STACK:
+        case H5I_NTYPES:
         default:
             HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "unknown data object")
     } /* end switch */
@@ -962,6 +983,9 @@ H5G_name_replace(const H5O_link_t *lnk, H5G_names_op_t op, H5F_t *src_file,
                                 search_datatype = TRUE;
                                 break;
 
+                            case H5O_TYPE_UNKNOWN:
+                            case H5O_TYPE_NTYPES:
+                                /* Search and replace names through datatype IDs */
                             default:
                                 HGOTO_ERROR(H5E_SYM, H5E_BADTYPE, FAIL, "not valid object type")
                         } /* end switch */
@@ -973,6 +997,9 @@ H5G_name_replace(const H5O_link_t *lnk, H5G_names_op_t op, H5F_t *src_file,
                     search_group = search_dataset = search_datatype = TRUE;
                     break;
 
+                case H5L_TYPE_ERROR:
+                case H5L_TYPE_EXTERNAL:
+                case H5L_TYPE_MAX:
                 default:  /* User-defined link */
                     /* Check for unknown library-defined link type */
                     if(lnk->type < H5L_TYPE_UD_MIN)

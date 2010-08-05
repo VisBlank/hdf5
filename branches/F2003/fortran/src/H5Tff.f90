@@ -1430,12 +1430,13 @@ CONTAINS
 !  Retrieves the character set type of a string datatype.
 !
 ! INPUTS
-!  type_id 	 - datatype identifier
+!  type_id  - Datatype identifier
 ! OUTPUTS
-!  cset 	 - character set type of a string datatype
-!                  Possible values of padding type are:
-!                  H5T_CSET_ASCII_F = 0
-!  hdferr 	 - Returns 0 if successful and -1 if fails
+!  cset     - Character set type of a string datatype
+!              Possible values are:
+!              H5T_CSET_ASCII_F = 0
+!              H5T_CSET_UTF8_F
+!  hdferr   - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -1449,10 +1450,11 @@ CONTAINS
   SUBROUTINE h5tget_cset_f(type_id, cset, hdferr)
             IMPLICIT NONE
             INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier
-            INTEGER, INTENT(OUT) :: cset ! character set type of a string datatype
-                                            ! Possible values of padding type are:
-                                            !H5T_CSET_ASCII_F = 0
-            INTEGER, INTENT(OUT) :: hdferr        ! Error code
+            INTEGER, INTENT(OUT) :: cset   ! character set type of a string datatype
+                                           !  Possible values are:
+                                           !  H5T_CSET_ASCII_F = 0
+                                           !  H5T_CSET_UTF8_F
+            INTEGER, INTENT(OUT) :: hdferr ! Error code
 !*****
             INTERFACE
               INTEGER FUNCTION h5tget_cset_c(type_id, cset)
@@ -1480,8 +1482,9 @@ CONTAINS
 ! INPUTS
 !  type_id 	 - datatype identifier
 !  cset 	 - character set type of a string datatype
-!                  Possible values of padding type are:
-!                  H5T_CSET_ASCII_F = 0
+!                    Possible values are:
+!                     H5T_CSET_ASCII_F = 0
+!                     H5T_CSET_UTF8_F
 ! OUTPUTS
 !  hdferr 	 - Returns 0 if successful and -1 if fails
 !
@@ -1498,8 +1501,9 @@ CONTAINS
             IMPLICIT NONE
             INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier
             INTEGER, INTENT(IN) :: cset !character set type of a string datatype
-                                           !Possible values of padding type are:
-                                           !H5T_CSET_ASCII_F = 0
+                                           ! Possible values of padding type are:
+                                           ! H5T_CSET_ASCII_F = 0
+                                           ! H5T_CSET_UTF8_F
             INTEGER, INTENT(OUT) :: hdferr        ! Error code
 !*****
             INTERFACE

@@ -184,9 +184,8 @@ H5_DLL herr_t H5G_node_debug(H5F_t *f, hid_t dxpl_id, haddr_t addr, FILE *stream
 /*
  * These functions operate on group object locations.
  */
-H5_DLL herr_t H5G_ent_encode(const H5F_t *f, uint8_t **pp,
-    const H5G_entry_t *ent);
-H5_DLL herr_t H5G_ent_decode(H5F_t *f, const uint8_t **pp, H5G_entry_t *ent/*out*/);
+H5_DLL herr_t H5G_ent_encode(const H5F_t *f, uint8_t **pp, const H5G_entry_t *ent);
+H5_DLL herr_t H5G_ent_decode(const H5F_t *f, const uint8_t **pp, H5G_entry_t *ent);
 
 /*
  * These functions operate on group hierarchy names.
@@ -197,8 +196,8 @@ H5_DLL herr_t H5G_name_replace(const struct H5O_link_t *lnk, H5G_names_op_t op,
 H5_DLL herr_t H5G_name_reset(H5G_name_t *name);
 H5_DLL herr_t H5G_name_copy(H5G_name_t *dst, const H5G_name_t *src, H5_copy_depth_t depth);
 H5_DLL herr_t H5G_name_free(H5G_name_t *name);
-H5_DLL ssize_t H5G_get_name(hid_t id, char *name/*out*/, size_t size,
-    hid_t lapl_id, hid_t dxpl_id);
+H5_DLL ssize_t H5G_get_name(const H5G_loc_t *loc, char *name/*out*/, size_t size,
+    hbool_t *cached, hid_t lapl_id, hid_t dxpl_id);
 H5_DLL ssize_t H5G_get_name_by_addr(hid_t fid, hid_t lapl_id, hid_t dxpl_id,
     const struct H5O_loc_t *loc, char* name, size_t size);
 
@@ -211,6 +210,8 @@ H5_DLL herr_t H5G_loc_find(const H5G_loc_t *loc, const char *name,
 H5_DLL herr_t H5G_loc_find_by_idx(H5G_loc_t *loc, const char *group_name,
     H5_index_t idx_type, H5_iter_order_t order, hsize_t n,
     H5G_loc_t *obj_loc/*out*/, hid_t lapl_id, hid_t dxpl_id);
+H5_DLL htri_t H5G_loc_exists(const H5G_loc_t *loc, const char *name,
+    hid_t lapl_id, hid_t dxpl_id);
 H5_DLL herr_t H5G_loc_info(H5G_loc_t *loc, const char *name,
     hbool_t want_ih_info, H5O_info_t *oinfo/*out*/, hid_t lapl_id,
     hid_t dxpl_id);

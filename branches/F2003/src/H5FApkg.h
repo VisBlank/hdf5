@@ -14,7 +14,7 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
- * Programmer:	
+ * Programmer:
  *
  * Purpose:	This file contains declarations which are visible only within
  *		the H5FA package.  Source files outside the H5FA package should
@@ -197,10 +197,17 @@ struct H5FA_t {
 
 /* Metadata cache callback user data types */
 
+/* Info needed for loading data block */
+typedef struct H5FA_dblock_cache_ud_t {
+    H5FA_hdr_t *hdr;            /* Shared fixed array information */
+    hsize_t nelmts;             /* Number of elements in data block */
+} H5FA_dblock_cache_ud_t;
+
 /* Info needed for loading data block page */
-typedef struct H5FA_dblk_page_load_ud_t {
+typedef struct H5FA_dblk_page_cache_ud_t {
+    H5FA_hdr_t *hdr;            /* Shared fixed array information */
     size_t nelmts;              /* Number of elements in data block page */
-} H5FA_dblk_page_load_ud_t;
+} H5FA_dblk_page_cache_ud_t;
 
 
 /*****************************/
@@ -229,7 +236,7 @@ H5_DLLVAR const H5FA_class_t H5FA_CLS_TEST[1];
 #endif /* H5FA_TESTING */
 
 /* Array of fixed array client ID -> client class mappings */
-extern const H5FA_class_t *const H5FA_client_class_g[];
+extern const H5FA_class_t *const H5FA_client_class_g[H5FA_NUM_CLS_ID];
 
 
 /******************************/
@@ -260,7 +267,7 @@ H5_DLL herr_t H5FA__dblock_unprotect(H5FA_dblock_t *dblock, hid_t dxpl_id,
     unsigned cache_flags);
 H5_DLL herr_t H5FA__dblock_delete(H5FA_hdr_t *hdr, hid_t dxpl_id,
     haddr_t dblk_addr, hsize_t dblk_nelmts);
-H5_DLL herr_t H5FA__dblock_dest(H5F_t *f, H5FA_dblock_t *dblock);
+H5_DLL herr_t H5FA__dblock_dest(H5FA_dblock_t *dblock);
 
 /* Data block page routines */
 H5_DLL herr_t H5FA__dblk_page_create(H5FA_hdr_t *hdr, hid_t dxpl_id,

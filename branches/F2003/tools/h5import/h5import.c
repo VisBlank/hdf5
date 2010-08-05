@@ -23,6 +23,9 @@
 #include "h5tools_utils.h"
 
 
+/* Name of tool */
+#define PROGRAMNAME "h5import"
+
 int main(int argc, char *argv[])
 {
   struct  Options opt;
@@ -41,6 +44,9 @@ int main(int argc, char *argv[])
     const char *err7 = "Invalid type of data - %s.\n";
     const char *err8 = "Invalid size of data - %s.\n";
     const char *err9 = "Cannot specify more than 30 input files in one call to h5import.\n";
+
+    h5tools_setprogname(PROGRAMNAME);
+    h5tools_setstatus(EXIT_SUCCESS);
 
    (void)HDsetvbuf(stderr, (char *) NULL, _IOLBF, 0);
    (void)HDsetvbuf(stdout, (char *) NULL, _IOLBF, 0);
@@ -116,7 +122,7 @@ int main(int argc, char *argv[])
 
       case 6:    /* -h found; help, then exit */
         help(argv[0]);
-        exit(0);
+        exit(EXIT_SUCCESS);
       break;
 
       case 7:    /* -d found; look for dimensions */
@@ -766,7 +772,7 @@ readFloatData(FILE **strm, struct Input *in)
 
         /* same as TEXTFP */
         case 2: /*TEXTFPE */
-            
+
             for (i = 0; i < len; i++, fp32++)
             {
                 if (fscanf(*strm, "%f", fp32) != 1)
@@ -775,7 +781,7 @@ readFloatData(FILE **strm, struct Input *in)
                     return (-1);
                 }
             }
-            
+
             fp32 = (H5DT_FLOAT32 *) in->data;
             break;
 
@@ -815,7 +821,7 @@ readFloatData(FILE **strm, struct Input *in)
 
         /* same as TEXTFP */
         case 2: /*TEXTFPE */
-            
+
             for (i = 0; i < len; i++, fp64++)
             {
                 if (fscanf(*strm, "%lf", fp64) != 1)
@@ -824,7 +830,7 @@ readFloatData(FILE **strm, struct Input *in)
                     return (-1);
                 }
             }
-            
+
             fp64 = (H5DT_FLOAT64 *) in->data;
             break;
 
@@ -1437,7 +1443,7 @@ processConfigurationFile(char *infile, struct Input *in, FILE **strm)
         if (in->configOptionVector[COMPRESS] == 0)
           in->compressionType = 0;
 
-       
+
       break;
 
       case 12: /* EXTERNAL-STORAGE */
@@ -1587,16 +1593,16 @@ static int
 parsePathInfo(struct path_info *path, char *temp)
 {
   const char delimiter[] = "/";
-  char *token; 
+  char *token;
   int i=0;
   const char *err1 = "Path string larger than MAX_PATH_NAME_LENGTH.\n";
 
   token = HDstrtok (temp, delimiter);
-  if (HDstrlen(token) >= MAX_PATH_NAME_LENGTH) 
+  if (HDstrlen(token) >= MAX_PATH_NAME_LENGTH)
   {
     (void) fprintf(stderr, err1);
     return (-1);
-  } 
+  }
    HDstrcpy(path->group[i++],token);
 
 
@@ -1609,7 +1615,7 @@ parsePathInfo(struct path_info *path, char *temp)
     {
       (void) fprintf(stderr, err1);
       return (-1);
-    } 
+    }
     HDstrcpy(path->group[i++],token);
   }
   path->count = i;
@@ -1621,7 +1627,7 @@ parseDimensions(struct Input *in, char *strm)
 {
   const char delimiter[] = ",";
   char temp[255];
-  char *token; 
+  char *token;
   int i=0;
   const char *err1 = "Unable to allocate dynamic memory.\n";
 

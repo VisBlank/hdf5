@@ -308,7 +308,7 @@ HDfprintf(stderr, "%s: nelmts = %Zu, hdr->data_blk_min_elmts = %u, idx = %u\n", 
 CATCH
     if(!ret_value)
         if(elmts)
-            (void)H5FL_FAC_FREE(hdr->elmt_fac.fac[idx], elmts);
+            elmts = H5FL_FAC_FREE(hdr->elmt_fac.fac[idx], elmts);
 
 END_FUNC(PKG)   /* end H5EA__hdr_alloc_elmts() */
 
@@ -348,7 +348,7 @@ HDfprintf(stderr, "%s: nelmts = %Zu, hdr->data_blk_min_elmts = %u, idx = %u\n", 
     /* Free buffer for elements in index block */
     HDassert(idx < hdr->elmt_fac.nalloc);
     HDassert(hdr->elmt_fac.fac[idx]);
-    (void)H5FL_FAC_FREE(hdr->elmt_fac.fac[idx], elmts);
+    elmts = H5FL_FAC_FREE(hdr->elmt_fac.fac[idx], elmts);
 
 END_FUNC(PKG)   /* end H5EA__hdr_free_elmts() */
 
@@ -410,7 +410,7 @@ HDfprintf(stderr, "%s: Called\n", FUNC);
     dblk_nelmts = H5EA_SBLK_DBLK_NELMTS(sblk_idx, cparam->data_blk_min_elmts);
     if(dblk_page_nelmts < dblk_nelmts)
 	H5E_THROW(H5E_BADVALUE, "max. # of elements per data block page bits must be > # of elements in first data block from super block")
-        
+
     if(cparam->max_dblk_page_nelmts_bits > cparam->max_nelmts_bits)
 	H5E_THROW(H5E_BADVALUE, "max. # of elements per data block page bits must be <= max. # of elements bits")
 }
@@ -435,7 +435,7 @@ HDfprintf(stderr, "%s: Called\n", FUNC);
 	H5E_THROW(H5E_CANTALLOC, "file allocation failed for extensible array header")
 
     /* Cache the new extensible array header */
-    if(H5AC_set(f, dxpl_id, H5AC_EARRAY_HDR, hdr->addr, hdr, H5AC__NO_FLAGS_SET) < 0)
+    if(H5AC_insert_entry(f, dxpl_id, H5AC_EARRAY_HDR, hdr->addr, hdr, H5AC__NO_FLAGS_SET) < 0)
 	H5E_THROW(H5E_CANTINSERT, "can't add extensible array header to cache")
 
     /* Set address of array header to return */
@@ -478,7 +478,7 @@ H5EA__hdr_incr(H5EA_hdr_t *hdr))
 
     /* Mark header as un-evictable when something is depending on it */
     if(hdr->rc == 0)
-        if(H5AC_pin_protected_entry(hdr->f, hdr) < 0)
+        if(H5AC_pin_protected_entry(hdr) < 0)
             H5E_THROW(H5E_CANTPIN, "unable to pin extensible array header")
 
     /* Increment reference count on shared header */
@@ -516,7 +516,7 @@ H5EA__hdr_decr(H5EA_hdr_t *hdr))
     /* Mark header as evictable again when nothing depend on it */
     if(hdr->rc == 0) {
         HDassert(hdr->file_rc == 0);
-        if(H5AC_unpin_entry(hdr->f, hdr) < 0)
+        if(H5AC_unpin_entry(hdr) < 0)
             H5E_THROW(H5E_CANTUNPIN, "unable to unpin extensible array header")
     } /* end if */
 
@@ -603,7 +603,7 @@ H5EA__hdr_modified(H5EA_hdr_t *hdr))
     HDassert(hdr->f);
 
     /* Mark header as dirty in cache */
-    if(H5AC_mark_pinned_or_protected_entry_dirty(hdr->f, hdr) < 0)
+    if(H5AC_mark_entry_dirty(hdr) < 0)
         H5E_THROW(H5E_CANTMARKDIRTY, "unable to mark extensible array header as dirty")
 
 CATCH
@@ -627,6 +627,9 @@ END_FUNC(PKG)   /* end H5EA__hdr_modified() */
 BEGIN_FUNC(PKG, ERR,
 herr_t, SUCCEED, FAIL,
 H5EA__hdr_delete(H5EA_hdr_t *hdr, hid_t dxpl_id))
+
+    /* Local variables */
+    unsigned cache_flags = H5AC__NO_FLAGS_SET;  /* Flags for unprotecting header */
 
     /* Sanity check */
     HDassert(hdr);
@@ -656,15 +659,13 @@ HDfprintf(stderr, "%s: hdr->idx_blk_addr = %a\n", FUNC, hdr->idx_blk_addr);
             H5E_THROW(H5E_CANTDELETE, "unable to delete extensible array index block")
     } /* end if */
 
-    /* Finished deleting header */
-    if(H5AC_unprotect(hdr->f, dxpl_id, H5AC_EARRAY_HDR, hdr->addr, hdr, H5AC__DIRTIED_FLAG | H5AC__DELETED_FLAG | H5AC__FREE_FILE_SPACE_FLAG) < 0)
-        H5E_THROW(H5E_CANTUNPROTECT, "unable to release extensible array header")
-    hdr = NULL;
+    /* Set flags to finish deleting header on unprotect */
+    cache_flags |= H5AC__DIRTIED_FLAG | H5AC__DELETED_FLAG | H5AC__FREE_FILE_SPACE_FLAG;
 
 CATCH
 
-    /* Unprotect the header, if an error occurred */
-    if(hdr && H5AC_unprotect(hdr->f, dxpl_id, H5AC_EARRAY_HDR, hdr->addr, hdr, H5AC__NO_FLAGS_SET) < 0)
+    /* Unprotect the header, deleting it if an error hasn't occurred */
+    if(H5AC_unprotect(hdr->f, dxpl_id, H5AC_EARRAY_HDR, hdr->addr, hdr, cache_flags) < 0)
         H5E_THROW(H5E_CANTUNPROTECT, "unable to release extensible array header")
 
 END_FUNC(PKG)   /* end H5EA__hdr_delete() */

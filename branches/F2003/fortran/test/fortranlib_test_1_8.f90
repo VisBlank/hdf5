@@ -35,7 +35,7 @@ PROGRAM fortranlibtest
   INTEGER :: majnum, minnum, relnum
   LOGICAL :: cleanup, status
 
-  CALL h5open_f(error) 
+  CALL h5open_f(error)
 
   cleanup = .TRUE.
   CALL h5_env_nocleanup_f(status)
@@ -48,7 +48,7 @@ PROGRAM fortranlibtest
   IF(total_error .EQ. 0) THEN
      WRITE(*, '(" FORTRANLIB_TEST is linked with HDF5 Library version ")', advance="NO")
      WRITE(*, '(I1)', advance="NO") majnum
-     WRITE(*, '(".")', advance="NO") 
+     WRITE(*, '(".")', advance="NO")
      WRITE(*, '(I1)', advance="NO") minnum
      WRITE(*, '(" release ")', advance="NO")
      WRITE(*, '(I3)') relnum
@@ -99,6 +99,7 @@ PROGRAM fortranlibtest
 !!$       ' Testing property lists, with variable-length datatype', &
 !!$       total_error) 
 
+
 !  CALL test_hard_query(group_total_error)
 
   WRITE(*,*)
@@ -117,15 +118,15 @@ PROGRAM fortranlibtest
 END PROGRAM fortranlibtest
 
 SUBROUTINE dtransform(cleanup, total_error)
-  USE HDF5 ! This module contains all necessary modules 
-  
+  USE HDF5 ! This module contains all necessary modules
+
   IMPLICIT NONE
   LOGICAL, INTENT(IN)  :: cleanup
   INTEGER, INTENT(INOUT) :: total_error
 
   INTEGER(HID_T) :: dxpl_id_c_to_f
   INTEGER(HID_T) :: file_id
-  
+
   CHARACTER(LEN=15), PARAMETER :: c_to_f = "(9/5.0)*x + 123"
   INTEGER :: error
   CHARACTER(LEN=15) :: ptrgetTest
@@ -139,7 +140,7 @@ SUBROUTINE dtransform(cleanup, total_error)
 
   CALL H5Pcreate_f(H5P_DATASET_XFER_F, dxpl_id_c_to_f, error)
   CALL check("dtransform.H5Pcreate_f", error, total_error)
-  
+
   CALL H5Pset_data_transform_f(dxpl_id_c_to_f, c_to_f, error)
   CALL check("dtransform.H5Pset_data_transform_f", error, total_error)
 
@@ -181,8 +182,8 @@ END SUBROUTINE dtransform
 
 SUBROUTINE test_genprop_basic_class(cleanup, total_error)
 
-  USE HDF5 ! This module contains all necessary modules 
-  
+  USE HDF5 ! This module contains all necessary modules
+
   IMPLICIT NONE
   LOGICAL, INTENT(IN)  :: cleanup
   INTEGER, INTENT(INOUT) :: total_error
@@ -214,8 +215,8 @@ SUBROUTINE test_genprop_basic_class(cleanup, total_error)
   IF(error.NE.0)THEN
      WRITE(*,*) 'Class names do not match! name=',name, 'CLASS1_NAME=',CLASS1_NAME
      total_error = total_error + 1
-  ENDIF  
-  
+  ENDIF
+
   ! /* Check class name smaller buffer*/
   CALL H5Pget_class_name_f(cid1, name_small, size, error)
   CALL check("H5Pget_class_name", error, total_error)
@@ -270,8 +271,8 @@ SUBROUTINE test_h5s_encode(cleanup, total_error)
 !**
 !****************************************************************/
 
-  USE HDF5 ! This module contains all necessary modules 
-  
+  USE HDF5 ! This module contains all necessary modules
+
   IMPLICIT NONE
   LOGICAL, INTENT(IN)  :: cleanup
   INTEGER, INTENT(INOUT) :: total_error
@@ -300,7 +301,7 @@ SUBROUTINE test_h5s_encode(cleanup, total_error)
 !    H5S_sel_type        sel_type;
 !    hssize_t            nblocks;
   !
-  !Dataset dimensions 
+  !Dataset dimensions
   !
   INTEGER, PARAMETER :: SPACE1_DIM1= 3,  SPACE1_DIM2=15, SPACE1_DIM3=13
 
@@ -315,15 +316,15 @@ SUBROUTINE test_h5s_encode(cleanup, total_error)
   ! * Test encoding and decoding of simple dataspace and hyperslab selection.
   ! *-------------------------------------------------------------------------
   ! */
-  
+
   CALL H5Screate_simple_f(SPACE1_RANK, dims1, sid1, error)
   CALL check("H5Screate_simple", error, total_error)
-  
+
   CALL h5sselect_hyperslab_f(sid1, H5S_SELECT_SET_F, &
-       start, count, error, stride=stride, BLOCK=BLOCK) 
+       start, count, error, stride=stride, BLOCK=BLOCK)
   CALL check("h5sselect_hyperslab_f", error, total_error)
-  
-  
+
+
   !/* Encode simple data space in a buffer */
 
   !         First find the buffer size
@@ -373,9 +374,9 @@ SUBROUTINE test_h5s_encode(cleanup, total_error)
   !
   CALL h5sclose_f(sid1, error)
   CALL check("h5sclose_f", error, total_error)
- 
+
   CALL h5sclose_f(decoded_sid1, error)
-  CALL check("h5sclose_f", error, total_error)    
+  CALL check("h5sclose_f", error, total_error)
 
   ! /*-------------------------------------------------------------------------
   !  * Test encoding and decoding of scalar dataspace.
@@ -421,7 +422,7 @@ SUBROUTINE test_h5s_encode(cleanup, total_error)
 
   CALL h5sclose_f(sid3, error)
   CALL check("h5sclose_f", error, total_error)
- 
+
   CALL h5sclose_f(decoded_sid3, error)
   CALL check("h5sclose_f", error, total_error)
 

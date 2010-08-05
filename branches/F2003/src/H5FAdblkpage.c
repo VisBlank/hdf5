@@ -168,7 +168,7 @@ HDfprintf(stderr, "%s: Called, addr = %a\n", FUNC, addr);
     /* Set info about data block page on disk */
     dblk_page->addr = addr;
     dblk_page->size = H5FA_DBLK_PAGE_SIZE(dblk_page, nelmts);
-#ifdef H5FA_DEBUG 
+#ifdef H5FA_DEBUG
 HDfprintf(stderr, "%s: dblk_page->size = %Zu\n", FUNC, dblk_page->size);
 #endif /* H5FA_DEBUG */
 
@@ -177,7 +177,7 @@ HDfprintf(stderr, "%s: dblk_page->size = %Zu\n", FUNC, dblk_page->size);
         H5E_THROW(H5E_CANTSET, "can't set fixed array data block page elements to class's fill value")
 
     /* Cache the new fixed array data block page */
-    if(H5AC_set(hdr->f, dxpl_id, H5AC_FARRAY_DBLK_PAGE, dblk_page->addr, dblk_page, H5AC__NO_FLAGS_SET) < 0)
+    if(H5AC_insert_entry(hdr->f, dxpl_id, H5AC_FARRAY_DBLK_PAGE, dblk_page->addr, dblk_page, H5AC__NO_FLAGS_SET) < 0)
 	H5E_THROW(H5E_CANTINSERT, "can't add fixed array data block page to cache")
 
 CATCH
@@ -210,7 +210,7 @@ H5FA__dblk_page_protect(H5FA_hdr_t *hdr, hid_t dxpl_id, haddr_t dblk_page_addr,
     size_t dblk_page_nelmts, H5AC_protect_t rw))
 
     /* Local variables */
-    H5FA_dblk_page_load_ud_t load_ud;      /* Information needed for loading data block page */
+    H5FA_dblk_page_cache_ud_t udata;      /* Information needed for loading data block page */
 
 #ifdef H5FA_DEBUG
 HDfprintf(stderr, "%s: Called\n", FUNC);
@@ -221,10 +221,11 @@ HDfprintf(stderr, "%s: Called\n", FUNC);
     HDassert(H5F_addr_defined(dblk_page_addr));
 
     /* Set up user data */
-    load_ud.nelmts = dblk_page_nelmts;
+    udata.hdr = hdr;
+    udata.nelmts = dblk_page_nelmts;
 
     /* Protect the data block page */
-    if(NULL == (ret_value = (H5FA_dblk_page_t *)H5AC_protect(hdr->f, dxpl_id, H5AC_FARRAY_DBLK_PAGE, dblk_page_addr, &load_ud, hdr, rw)))
+    if(NULL == (ret_value = (H5FA_dblk_page_t *)H5AC_protect(hdr->f, dxpl_id, H5AC_FARRAY_DBLK_PAGE, dblk_page_addr, &udata, rw)))
         H5E_THROW(H5E_CANTPROTECT, "unable to protect fixed array data block page, address = %llu", (unsigned long long)dblk_page_addr)
 
 CATCH
@@ -280,7 +281,6 @@ END_FUNC(PKG)   /* end H5FA__dblk_page_unprotect() */
  *
  *-------------------------------------------------------------------------
  */
-/* ARGSUSED */
 BEGIN_FUNC(PKG, ERR,
 herr_t, SUCCEED, FAIL,
 H5FA__dblk_page_dest(H5FA_dblk_page_t *dblk_page))
@@ -293,8 +293,7 @@ H5FA__dblk_page_dest(H5FA_dblk_page_t *dblk_page))
         /* Check if buffer for data block page elements has been initialized */
         if(dblk_page->elmts) {
             /* Free buffer for data block page elements */
-	    (void) H5FL_BLK_FREE(page_elmts, dblk_page->elmts);
-            dblk_page->elmts = NULL;
+	    dblk_page->elmts = H5FL_BLK_FREE(page_elmts, dblk_page->elmts);
         } /* end if */
 
         /* Decrement reference count on shared info */
@@ -304,7 +303,7 @@ H5FA__dblk_page_dest(H5FA_dblk_page_t *dblk_page))
     } /* end if */
 
     /* Free the data block page itself */
-    (void)H5FL_FREE(H5FA_dblk_page_t, dblk_page);
+    dblk_page = H5FL_FREE(H5FA_dblk_page_t, dblk_page);
 
 CATCH
 

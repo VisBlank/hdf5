@@ -107,8 +107,8 @@ H5FL_SEQ_DEFINE(H5B2_node_info_t);
  *-------------------------------------------------------------------------
  */
 herr_t
-H5B2_hdr_init(H5F_t *f, H5B2_hdr_t *hdr, const H5B2_create_t *cparam,
-    void *ctx_udata, uint16_t depth)
+H5B2_hdr_init(H5B2_hdr_t *hdr, const H5B2_create_t *cparam, void *ctx_udata,
+    uint16_t depth)
 {
     size_t sz_max_nrec;                 /* Temporary variable for range checking */
     unsigned u_max_nrec_size;           /* Temporary variable for range checking */
@@ -120,7 +120,6 @@ H5B2_hdr_init(H5F_t *f, H5B2_hdr_t *hdr, const H5B2_create_t *cparam,
     /*
      * Check arguments.
      */
-    HDassert(f);
     HDassert(hdr);
     HDassert(cparam);
     HDassert(cparam->cls);
@@ -133,7 +132,6 @@ H5B2_hdr_init(H5F_t *f, H5B2_hdr_t *hdr, const H5B2_create_t *cparam,
     HDassert(cparam->merge_percent < (cparam->split_percent / 2));
 
     /* Initialize basic information */
-    hdr->f = f;
     hdr->rc = 0;
     hdr->pending_delete = FALSE;
 
@@ -258,15 +256,13 @@ H5B2_hdr_alloc(H5F_t *f)
     hdr->f = f;
     hdr->sizeof_addr = H5F_SIZEOF_ADDR(f);
     hdr->sizeof_size = H5F_SIZEOF_SIZE(f);
+    hdr->hdr_size = H5B2_HEADER_SIZE(hdr);
     hdr->root.addr = HADDR_UNDEF;
 
     /* Set return value */
     ret_value = hdr;
 
 done:
-    if(!ret_value && hdr)
-        if(H5B2_hdr_free(hdr) < 0)
-            HDONE_ERROR(H5E_BTREE, H5E_CANTFREE, NULL, "unable to free shared v2 B-tree info")
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5B2_hdr_alloc() */
@@ -305,15 +301,15 @@ H5B2_hdr_create(H5F_t *f, hid_t dxpl_id, const H5B2_create_t *cparam,
 	HGOTO_ERROR(H5E_BTREE, H5E_CANTALLOC, HADDR_UNDEF, "allocation failed for B-tree header")
 
     /* Initialize shared B-tree info */
-    if(H5B2_hdr_init(f, hdr, cparam, ctx_udata, (uint16_t)0) < 0)
+    if(H5B2_hdr_init(hdr, cparam, ctx_udata, (uint16_t)0) < 0)
 	HGOTO_ERROR(H5E_BTREE, H5E_CANTINIT, HADDR_UNDEF, "can't create shared B-tree info")
 
     /* Allocate space for the header on disk */
-    if(HADDR_UNDEF == (hdr->addr = H5MF_alloc(f, H5FD_MEM_BTREE, dxpl_id, (hsize_t)H5B2_HEADER_SIZE(hdr))))
+    if(HADDR_UNDEF == (hdr->addr = H5MF_alloc(f, H5FD_MEM_BTREE, dxpl_id, (hsize_t)hdr->hdr_size)))
 	HGOTO_ERROR(H5E_BTREE, H5E_CANTALLOC, HADDR_UNDEF, "file allocation failed for B-tree header")
 
     /* Cache the new B-tree node */
-    if(H5AC_set(f, dxpl_id, H5AC_BT2_HDR, hdr->addr, hdr, H5AC__NO_FLAGS_SET) < 0)
+    if(H5AC_insert_entry(f, dxpl_id, H5AC_BT2_HDR, hdr->addr, hdr, H5AC__NO_FLAGS_SET) < 0)
 	HGOTO_ERROR(H5E_BTREE, H5E_CANTINSERT, HADDR_UNDEF, "can't add B-tree header to cache")
 
     /* Set address of v2 B-tree header to return */
@@ -350,11 +346,10 @@ H5B2_hdr_incr(H5B2_hdr_t *hdr)
 
     /* Sanity checks */
     HDassert(hdr);
-    HDassert(hdr->f);
 
     /* Mark header as un-evictable when a B-tree node is depending on it */
     if(hdr->rc == 0)
-        if(H5AC_pin_protected_entry(hdr->f, hdr) < 0)
+        if(H5AC_pin_protected_entry(hdr) < 0)
             HGOTO_ERROR(H5E_BTREE, H5E_CANTPIN, FAIL, "unable to pin v2 B-tree header")
 
     /* Increment reference count on B-tree header */
@@ -387,7 +382,6 @@ H5B2_hdr_decr(H5B2_hdr_t *hdr)
 
     /* Sanity check */
     HDassert(hdr);
-    HDassert(hdr->f);
     HDassert(hdr->rc > 0);
 
     /* Decrement reference count on B-tree header */
@@ -395,7 +389,7 @@ H5B2_hdr_decr(H5B2_hdr_t *hdr)
 
     /* Mark header as evictable again when no nodes depend on it */
     if(hdr->rc == 0)
-        if(H5AC_unpin_entry(hdr->f, hdr) < 0)
+        if(H5AC_unpin_entry(hdr) < 0)
             HGOTO_ERROR(H5E_BTREE, H5E_CANTUNPIN, FAIL, "unable to unpin v2 B-tree header")
 
 done:
@@ -482,10 +476,9 @@ H5B2_hdr_dirty(H5B2_hdr_t *hdr)
 
     /* Sanity check */
     HDassert(hdr);
-    HDassert(hdr->f);
 
     /* Mark B-tree header as dirty in cache */
-    if(H5AC_mark_pinned_or_protected_entry_dirty(hdr->f, hdr) < 0)
+    if(H5AC_mark_entry_dirty(hdr) < 0)
         HGOTO_ERROR(H5E_BTREE, H5E_CANTMARKDIRTY, FAIL, "unable to mark v2 B-tree header as dirty")
 
 done:
@@ -525,7 +518,7 @@ H5B2_hdr_free(H5B2_hdr_t *hdr)
 
     /* Free the B-tree node buffer */
     if(hdr->page)
-        (void)H5FL_BLK_FREE(node_page, hdr->page);
+        hdr->page = H5FL_BLK_FREE(node_page, hdr->page);
 
     /* Free the array of offsets into the native key block */
     if(hdr->nat_off)
@@ -550,7 +543,7 @@ H5B2_hdr_free(H5B2_hdr_t *hdr)
     } /* end if */
 
     /* Free B-tree header info */
-    (void)H5FL_FREE(H5B2_hdr_t, hdr);
+    hdr = H5FL_FREE(H5B2_hdr_t, hdr);
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -605,7 +598,7 @@ H5B2_hdr_delete(H5B2_hdr_t *hdr, hid_t dxpl_id)
 
 done:
     /* Unprotect the header with appropriate flags */
-    if(hdr && H5AC_unprotect(hdr->f, dxpl_id, H5AC_BT2_HDR, hdr->addr, hdr, cache_flags) < 0)
+    if(H5AC_unprotect(hdr->f, dxpl_id, H5AC_BT2_HDR, hdr->addr, hdr, cache_flags) < 0)
         HDONE_ERROR(H5E_BTREE, H5E_CANTUNPROTECT, FAIL, "unable to release B-tree header")
 
     FUNC_LEAVE_NOAPI(SUCCEED)

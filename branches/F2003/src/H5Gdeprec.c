@@ -41,6 +41,7 @@
 /* Headers */
 /***********/
 #include "H5private.h"		/* Generic Functions			*/
+#include "H5ACprivate.h"	/* Metadata cache			*/
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5Gpkg.h"		/* Groups		  		*/
 #include "H5Iprivate.h"		/* IDs			  		*/
@@ -162,6 +163,8 @@ H5G_map_obj_type(H5O_type_t obj_type)
             ret_value = H5G_TYPE;
             break;
 
+        case H5O_TYPE_UNKNOWN:
+        case H5O_TYPE_NTYPES:
         default:
             ret_value = H5G_UNKNOWN;
     } /* end switch */
@@ -250,7 +253,7 @@ H5Gcreate1(hid_t loc_id, const char *name, size_t size_hint)
 
 done:
     if(tmp_gcpl > 0 && tmp_gcpl != H5P_GROUP_CREATE_DEFAULT)
-        if(H5I_dec_ref(tmp_gcpl, TRUE) < 0)
+        if(H5I_dec_ref(tmp_gcpl, FALSE) < 0)
             HDONE_ERROR(H5E_SYM, H5E_CLOSEERROR, FAIL, "unable to release property list")
 
     if(ret_value < 0)

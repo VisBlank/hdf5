@@ -26,7 +26,7 @@
 /*
  * Definitions for the testing structure.
  */
-#define MAXNUMOFTESTS   45
+#define MAXNUMOFTESTS   50
 #define MAXTESTNAME     16
 #define MAXTESTDESC     64
 
@@ -45,7 +45,7 @@ typedef struct TestStruct {
  * Variables used by testing framework.
  */
 static int num_errs = 0;        /* Total number of errors during testing */
-static int Verbosity = VERBO_DEF;       /* Default Verbosity is Low */
+int TestVerbosity = VERBO_DEF;       /* Default Verbosity is Low */
 static int Summary = 0;		/* Show test summary. Default is no. */
 static int CleanUp = 1;		/* Do cleanup or not. Default is yes. */
 static int TestExpress = -1;	/* Do TestExpress or not. -1 means not set yet. */
@@ -361,7 +361,7 @@ void TestCleanup(void)
  */
 int GetTestVerbosity(void)
 {
-    return(Verbosity);
+    return(TestVerbosity);
 }
 
 /*
@@ -372,8 +372,8 @@ int SetTestVerbosity(int newval)
 {
     int oldval;
 
-    oldval = Verbosity;
-    Verbosity = newval;
+    oldval = TestVerbosity;
+    TestVerbosity = newval;
     return(oldval);
 }
 

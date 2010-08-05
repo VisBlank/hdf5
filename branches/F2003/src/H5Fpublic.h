@@ -21,7 +21,6 @@
 
 /* Public header files needed by this file */
 #include "H5public.h"
-#include "H5Cpublic.h"
 #include "H5ACpublic.h"
 #include "H5Ipublic.h"
 

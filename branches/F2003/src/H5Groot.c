@@ -99,6 +99,7 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
     H5G_loc_t   root_loc;               /* Root location information */
     htri_t      stab_exists = -1;       /* Whether the symbol table exists */
     hbool_t     sblock_dirty = FALSE;   /* Whether superblock was dirtied */
+    hbool_t     path_init = FALSE;      /* Whether path was initialized */
     herr_t      ret_value = SUCCEED;    /* Return value */
 
     FUNC_ENTER_NOAPI(H5G_mkroot, FAIL)
@@ -122,7 +123,7 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
     if(NULL == (f->shared->root_grp = H5FL_CALLOC(H5G_t)))
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed")
     if(NULL == (f->shared->root_grp->shared = H5FL_CALLOC(H5G_shared_t))) {
-        (void)H5FL_FREE(H5G_t, f->shared->root_grp);
+        f->shared->root_grp = H5FL_FREE(H5G_t, f->shared->root_grp);
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed")
     } /* end if */
 
@@ -155,11 +156,9 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
                 HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, FAIL, "can't allocate space for symbol table entry")
 
             /* Initialize the root group symbol table entry */
-            f->shared->sblock->root_ent->dirty = TRUE;
             f->shared->sblock->root_ent->type = H5G_NOTHING_CACHED; /* We will cache the stab later */
             f->shared->sblock->root_ent->name_off = 0;  /* No name (yet) */
             f->shared->sblock->root_ent->header = root_loc.oloc->addr;
-            f->shared->sblock->root_ent->file = root_loc.oloc->file;
         } /* end if */
     } /* end if */
     else {
@@ -235,6 +234,7 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
 
     /* Create the path names for the root group's entry */
     H5G_name_init(root_loc.path, "/");
+    path_init = TRUE;
 
     f->shared->root_grp->shared->fo_count = 1;
     /* The only other open object should be the superblock extension, if it
@@ -250,18 +250,19 @@ done:
      * allocated */
     if(ret_value < 0) {
         if(f->shared->root_grp) {
+            if(path_init)
+                H5G_name_free(root_loc.path);
             if(f->shared->root_grp->shared)
                 f->shared->root_grp->shared = H5FL_FREE(H5G_shared_t, f->shared->root_grp->shared);
             f->shared->root_grp = H5FL_FREE(H5G_t, f->shared->root_grp);
         } /* end if */
         if(f->shared->sblock)
             f->shared->sblock->root_ent = (H5G_entry_t *)H5MM_xfree(f->shared->sblock->root_ent);
-        H5G_name_free(root_loc.path);
     } /* end if */
 
     /* Mark superblock dirty in cache, if necessary */
     if(sblock_dirty)
-        if(H5AC_mark_pinned_or_protected_entry_dirty(f, f->shared->sblock) < 0)
+        if(H5AC_mark_entry_dirty(f->shared->sblock) < 0)
             HDONE_ERROR(H5E_FILE, H5E_CANTMARKDIRTY, FAIL, "unable to mark superblock as dirty")
 
     FUNC_LEAVE_NOAPI(ret_value)

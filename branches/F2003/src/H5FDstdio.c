@@ -375,8 +375,10 @@ H5FD_stdio_open( const char *name, unsigned flags, hid_t fapl_id,
         H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_CANTOPENFILE, "fopen failed", NULL)
 
     /* Build the return value */
-    if(NULL == (file = (H5FD_stdio_t *)calloc((size_t)1, sizeof(H5FD_stdio_t))))
+    if(NULL == (file = (H5FD_stdio_t *)calloc((size_t)1, sizeof(H5FD_stdio_t)))) {
+        fclose(f);
         H5Epush_ret(func, H5E_ERR_CLS, H5E_RESOURCE, H5E_NOSPACE, "memory allocation failed", NULL)
+    } /* end if */
     file->fp = f;
     file->op = H5FD_STDIO_OP_SEEK;
     file->pos = HADDR_UNDEF;
@@ -789,8 +791,8 @@ H5FD_stdio_read(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr, siz
         H5Epush_ret (func, H5E_ERR_CLS, H5E_IO, H5E_OVERFLOW, "file address overflowed", -1)
     if (REGION_OVERFLOW(addr, size))
         H5Epush_ret (func, H5E_ERR_CLS, H5E_IO, H5E_OVERFLOW, "file address overflowed", -1)
-    if (addr+size>file->eoa)
-        H5Epush_ret (func, H5E_ERR_CLS, H5E_IO, H5E_OVERFLOW, "file address overflowed", -1)
+    if((addr + size) > file->eoa)
+        H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_OVERFLOW, "file address overflowed", -1)
 
     /* Check easy cases */
     if (0 == size)
@@ -1020,6 +1022,9 @@ H5FD_stdio_truncate(H5FD_t *_file, hid_t dxpl_id, hbool_t closing)
 #ifdef _WIN32
             HFILE filehandle;   /* Windows file handle */
             LARGE_INTEGER li;   /* 64-bit integer for SetFilePointer() call */
+
+            /* Reset seek offset to beginning of file, so that file isn't re-extended later */
+            rewind(file->fp);
 
             /* Map the posix file handle to a Windows file handle */
             filehandle = _get_osfhandle(fd);
