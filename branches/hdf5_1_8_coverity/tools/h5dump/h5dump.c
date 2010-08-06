@@ -2413,14 +2413,14 @@ dump_subsetting_header(struct subset_t *sset, int dims)
     indentation(indent);
     printf("%s %s ", dump_header_format->startbegin,
            dump_header_format->startblockbegin);
-    dump_dims((hsize_t *)sset->start, dims);
+    dump_dims((hsize_t *)sset->start->data, dims);
     printf("%s %s\n", dump_header_format->startend,
            dump_header_format->startblockend);
 
     indentation(indent);
     printf("%s %s ", dump_header_format->stridebegin,
            dump_header_format->strideblockbegin);
-    dump_dims(sset->stride, dims);
+    dump_dims(sset->stride->data, dims);
     printf("%s %s\n", dump_header_format->strideend,
            dump_header_format->strideblockend);
 
@@ -2428,8 +2428,8 @@ dump_subsetting_header(struct subset_t *sset, int dims)
     printf("%s %s ", dump_header_format->countbegin,
            dump_header_format->countblockbegin);
 
-    if (sset->count)
-        dump_dims(sset->count, dims);
+    if (sset->count && sset->count->data)
+        dump_dims(sset->count->data, dims);
     else
         printf("DEFAULT");
 
@@ -2440,8 +2440,8 @@ dump_subsetting_header(struct subset_t *sset, int dims)
     printf("%s %s ", dump_header_format->blockbegin,
            dump_header_format->blockblockbegin);
 
-    if (sset->block)
-        dump_dims(sset->block, dims);
+    if (sset->block && sset->block->data)
+        dump_dims(sset->block->data, dims);
     else
         printf("DEFAULT");
 
@@ -3490,9 +3490,10 @@ handle_attributes(hid_t fid, const char *attr, void UNUSED * data, int UNUSED pe
  *
  *-------------------------------------------------------------------------
  */
-static hsize_t *
+static subset_d *
 parse_hsize_list(const char *h_list)
 {
+    subset_d       *ret_val;
     hsize_t        *p_list;
     const char     *ptr;
     unsigned int    size_count = 0, i = 0, last_digit = 0;
@@ -3528,8 +3529,11 @@ parse_hsize_list(const char *h_list)
                 /* scroll to end of integer */
                 ptr++;
         }
-
-    return p_list;
+    ret_val = calloc(1, sizeof(subset_d));
+    ret_val->data = p_list;
+    ret_val->len = size_count;
+    
+    return ret_val;
 }
 
 /*-------------------------------------------------------------------------
@@ -3752,52 +3756,89 @@ handle_datasets(hid_t fid, const char *dset, void *data, int pe, const char *dis
         if(!sset->start || !sset->stride || !sset->count || !sset->block) {
             /* they didn't specify a ``stride'' or ``block''. default to 1 in all
              * dimensions */
-
-            if(!sset->start)
+            if (!sset->start) {
                 /* default to (0, 0, ...) for the start coord */
-                sset->start = calloc(ndims, sizeof(hsize_t));
+                sset->start = calloc(1, sizeof(subset_d));
+                sset->start->data = calloc(ndims, sizeof(hsize_t));
+                sset->start->len = ndims;
+            }
 
-            if(!sset->stride) {
+            if (!sset->stride) {
                 unsigned int i;
 
-                sset->stride = calloc(ndims, sizeof(hsize_t));
+                sset->stride = calloc(1, sizeof(subset_d));
+                sset->stride->data = calloc(ndims, sizeof(hsize_t));
+                sset->stride->len = ndims;
 
                 for (i = 0; i < ndims; i++)
-                    sset->stride[i] = 1;
+                    sset->stride->data[i] = 1;
             }
 
             if (!sset->count) {
                 unsigned int i;
 
-
-                sset->count = calloc(ndims, sizeof(hsize_t));
+                sset->count = calloc(1, sizeof(subset_d));
+                sset->count->data = calloc(ndims, sizeof(hsize_t));
+                sset->count->len = ndims;
 
                 for (i = 0; i < ndims; i++)
-                    sset->count[i] = 1;
+                    sset->count->data[i] = 1;
             }
 
             if (!sset->block) {
 
-                sset->block = calloc(ndims, sizeof(hsize_t));
+                sset->block = calloc(1, sizeof(subset_d));
+                sset->block->data = calloc(ndims, sizeof(hsize_t));
+                sset->block->len = ndims;
 
                 for (i = 0; i < ndims; i++)
-                    sset->block[i] = 1;
+                    sset->block->data[i] = 1;
             }
         }
 
+        /*-------------------------------------------------------------------------
+         * check for dimension overflow
+         *-------------------------------------------------------------------------
+         */
+        if (sset->start->len > ndims) {
+            error_msg(h5tools_getprogname(),
+                    "number of start dims exceed dataset dims\n");
+            h5tools_setstatus(EXIT_FAILURE);
+            return;
 
-       /*-------------------------------------------------------------------------
-        * check for block overlap
-        *-------------------------------------------------------------------------
-        */
-        for ( i = 0; i < ndims; i++)
-        {
-            if ( sset->count[i] > 1 )
-            {
+        }
+        if (sset->stride->len > ndims) {
+            error_msg(h5tools_getprogname(),
+                    "number of stride dims exceed dataset dims\n");
+            h5tools_setstatus(EXIT_FAILURE);
+            return;
 
-                if ( sset->stride[i] < sset->block[i] )
-                {
-                    error_msg(h5tools_getprogname(), "wrong subset selection; blocks overlap\n");
+        }
+        if (sset->count->len > ndims) {
+            error_msg(h5tools_getprogname(),
+                    "number of count dims exceed dataset dims\n");
+            h5tools_setstatus(EXIT_FAILURE);
+            return;
+
+        }
+        if (sset->block->len > ndims) {
+            error_msg(h5tools_getprogname(),
+                    "number of block dims exceed dataset dims\n");
+            h5tools_setstatus(EXIT_FAILURE);
+            return;
+
+        }
+        
+        /*-------------------------------------------------------------------------
+         * check for block overlap
+         *-------------------------------------------------------------------------
+         */
+        for (i = 0; i < ndims; i++) {
+            if (sset->count->data[i] > 1) {
+
+                if (sset->stride->data[i] < sset->block->data[i]) {
+                    error_msg(h5tools_getprogname(),
+                            "wrong subset selection; blocks overlap\n");
                     h5tools_setstatus(EXIT_FAILURE);
                     return;
 
