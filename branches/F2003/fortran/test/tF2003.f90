@@ -39,6 +39,8 @@
 
 MODULE liter_cb_mod
 
+  USE HDF5
+  USE ISO_C_BINDING
   IMPLICIT NONE
     
   TYPE iter_enum 
@@ -51,10 +53,23 @@ MODULE liter_cb_mod
   !/* Custom group iteration callback data */
   TYPE iter_info
      CHARACTER(LEN=10) :: name ! /* The name of the object */
-     INTEGER :: TYPE         ! /* The TYPE of the object */
-     INTEGER :: command !/* The TYPE of RETURN value */
+     INTEGER(c_int) :: TYPE         ! /* The TYPE of the object */
+     INTEGER(c_int) :: command !/* The TYPE of RETURN value */
   END TYPE iter_info
 
+    TYPE union_t
+       INTEGER(haddr_t) :: address
+       INTEGER(size_t) :: val_size
+    END TYPE union_t
+
+    TYPE H5L_info_t
+       INTEGER(c_int) :: type ! H5L_type_t     type
+!       LOGICAL(c_bool) :: corder_valid ! hbool_t        corder_valid
+       INTEGER(c_int64_t) :: corder ! int64_t        corder;
+       INTEGER(c_int) :: cset ! H5T_cset_t     cset;
+       TYPE(union_t) :: u
+
+    END TYPE H5L_info_t
 CONTAINS
 
 !/****************************************************************
@@ -72,19 +87,6 @@ CONTAINS
     INTEGER(HID_T), VALUE :: group
     CHARACTER(LEN=10) :: name
 
-    TYPE union_t
-       INTEGER(haddr_t) :: address
-       INTEGER(size_t) :: val_size
-    END TYPE union_t
-
-    TYPE H5L_info_t
-       INTEGER(c_int) :: type ! H5L_type_t     type
-!       LOGICAL(c_bool) :: corder_valid ! hbool_t        corder_valid
-       INTEGER(c_int64_t) :: corder ! int64_t        corder;
-       INTEGER(c_int) :: cset ! H5T_cset_t     cset;
-       TYPE(union_t) :: u
-
-    END TYPE H5L_info_t
 
     TYPE (H5L_info_t) :: link_info
 

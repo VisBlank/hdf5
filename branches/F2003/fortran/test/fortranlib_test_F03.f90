@@ -48,7 +48,6 @@ PROGRAM fortranlibtest
   WRITE(*,*) '                       ==============================                            '
   CALL h5get_libversion_f(majnum, minnum, relnum, total_error)
   IF(total_error .EQ. 0) THEN
-
      WRITE(*, '(" FORTRANLIB_TEST is linked with HDF5 Library version ")', advance="NO")
      WRITE(*, '(I1)', advance="NO") majnum
      WRITE(*, '(".")', advance="NO") 
@@ -105,11 +104,9 @@ PROGRAM fortranlibtest
   CALL write_test_status(ret_total_error, ' Test basic generic property list callback functionality', total_error)
 
   ret_total_error = 0
-!  CALL test_iter_group(ret_total_error)
+  CALL test_iter_group(ret_total_error)
   CALL write_test_status(ret_total_error, ' Testing Group Iteration Functionality', total_error)
  
-
-
 !     write(*,*)
 !     write(*,*) '========================================='
 !     write(*,*) 'Testing GROUP interface             '
@@ -127,7 +124,7 @@ PROGRAM fortranlibtest
   CALL h5close_f(error)
 
   ! if errors detected, exit with non-zero code.
-  IF (total_error .NE. 0) CALL h5_exit_f (1)
+  IF (total_error .NE. 0) CALL h5_exit_f(1)
 
 END PROGRAM fortranlibtest
 
