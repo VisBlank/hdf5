@@ -475,6 +475,38 @@ ENDIF (HDF5_USE_H5DUMP_PACKED_BITS)
 ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src)
 
 #-----------------------------------------------------------------------------
+# Make sure that subdirectories are only added if they exist
+# a stripped down hdf5 library may not have tools/examples/fortran/etc/etc
+#-----------------------------------------------------------------------------
+IF(EXISTS "${HDF5_SOURCE_DIR}/tools" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/tools")
+  SET (DIR_TOOLS_EXISTS 1)
+ENDIF(EXISTS "${HDF5_SOURCE_DIR}/tools" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/tools")
+
+IF(EXISTS "${HDF5_SOURCE_DIR}/test" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/test")
+  SET (DIR_TEST_EXISTS 1)
+ENDIF(EXISTS "${HDF5_SOURCE_DIR}/test" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/test")
+
+IF(EXISTS "${HDF5_SOURCE_DIR}/perform" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/perform")
+  SET (DIR_PERFORM_EXISTS 1)
+ENDIF(EXISTS "${HDF5_SOURCE_DIR}/perform" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/perform")
+
+IF(EXISTS "${HDF5_SOURCE_DIR}/fortran" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/fortran")
+  SET (DIR_FORTRAN_EXISTS 1)
+ENDIF(EXISTS "${HDF5_SOURCE_DIR}/fortran" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/fortran")
+
+IF(EXISTS "${HDF5_SOURCE_DIR}/examples" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/examples")
+  SET (DIR_EXAMPLES_EXISTS 1)
+ENDIF(EXISTS "${HDF5_SOURCE_DIR}/examples" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/examples")
+
+IF(EXISTS "${HDF5_SOURCE_DIR}/c++" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/c++")
+  SET (DIR_CPP_EXISTS 1)
+ENDIF(EXISTS "${HDF5_SOURCE_DIR}/c++" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/c++")
+
+IF(EXISTS "${HDF5_SOURCE_DIR}/hl" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/hl")
+  SET (DIR_HL_EXISTS 1)
+ENDIF(EXISTS "${HDF5_SOURCE_DIR}/hl" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/hl")
+
+#-----------------------------------------------------------------------------
 # Build utility to copy and strip X lines of file
 #-----------------------------------------------------------------------------
 IF (HDF5_BUILD_TOOLS AND BUILD_TESTING)
@@ -491,11 +523,13 @@ IF (BUILD_TESTING)
        "Timeout in seconds for each test (default 1200=20minutes)")
   ENABLE_TESTING ()
   INCLUDE (CTest)
-  IF (NOT HDF5_EXTERNALLY_CONFIGURED)
+  IF (DIR_TEST_EXISTS AND DIR_PERFORM_EXISTS)
     ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/tools/lib ${PROJECT_BINARY_DIR}/tools/lib)
     ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/test      ${PROJECT_BINARY_DIR}/test)
-    ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/perform   ${PROJECT_BINARY_DIR}/perform)
-  ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED)
+    IF (DIR_PERFORM_EXISTS)
+      ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/perform   ${PROJECT_BINARY_DIR}/perform)
+    ENDIF (DIR_PERFORM_EXISTS)
+  ENDIF (DIR_TEST_EXISTS AND DIR_PERFORM_EXISTS)
   INCLUDE (${HDF5_SOURCE_DIR}/CTestConfig.cmake)
 ENDIF (BUILD_TESTING)
 
@@ -504,49 +538,58 @@ ENDIF (BUILD_TESTING)
 # Make sure this appears before the CONFIGURE_FILE step
 # so that fortran name mangling is detected before writing H5pubconf.h
 #-----------------------------------------------------------------------------
-OPTION (HDF5_BUILD_FORTRAN "Build FORTRAN support" OFF)
-IF (HDF5_BUILD_FORTRAN)
-  # Set default name mangling : overridden by Fortran detection in fortran dir
-  SET (H5_FC_FUNC "H5_FC_FUNC(name,NAME) name ## _")
-  SET (H5_FC_FUNC_ "H5_FC_FUNC_(name,NAME) name ## _")
-  ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/fortran ${PROJECT_BINARY_DIR}/fortran)
-ELSE (HDF5_BUILD_FORTRAN)
-  SET (H5_FC_FUNC "H5_FC_FUNC(name,NAME) name ## _")
-  SET (H5_FC_FUNC_ "H5_FC_FUNC_(name,NAME) name ## _")
-ENDIF (HDF5_BUILD_FORTRAN)
+SET (H5_FC_FUNC  "H5_FC_FUNC(name,NAME) name ## _")
+SET (H5_FC_FUNC_ "H5_FC_FUNC_(name,NAME) name ## _")
+IF (DIR_FORTRAN_EXISTS)
+  OPTION (HDF5_BUILD_FORTRAN "Build FORTRAN support" OFF)
+  IF (HDF5_BUILD_FORTRAN)
+    # Set default name mangling : overridden by Fortran detection in fortran dir
+    SET (H5_FC_FUNC  "H5_FC_FUNC(name,NAME) name ## _")
+    SET (H5_FC_FUNC_ "H5_FC_FUNC_(name,NAME) name ## _")
+    ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/fortran ${PROJECT_BINARY_DIR}/fortran)
+  ENDIF (HDF5_BUILD_FORTRAN)
+ENDIF (DIR_FORTRAN_EXISTS)
 
 #-----------------------------------------------------------------------------
 # Option to build examples
 #-----------------------------------------------------------------------------
-OPTION (HDF5_BUILD_EXAMPLES  "Build HDF5 Library Examples" OFF)
-IF (HDF5_BUILD_EXAMPLES)
-  ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/examples ${PROJECT_BINARY_DIR}/examples)
-ENDIF (HDF5_BUILD_EXAMPLES)
+IF (DIR_EXAMPLES_EXISTS)
+  OPTION (HDF5_BUILD_EXAMPLES  "Build HDF5 Library Examples" OFF)
+  IF (HDF5_BUILD_EXAMPLES)
+    ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/examples ${PROJECT_BINARY_DIR}/examples)
+  ENDIF (HDF5_BUILD_EXAMPLES)
+ENDIF (DIR_EXAMPLES_EXISTS)
 
 #-----------------------------------------------------------------------------
 # Option to build HDF5 C++ Library
 #-----------------------------------------------------------------------------
-OPTION (HDF5_BUILD_CPP_LIB  "Build HDF5 C++ Library" OFF)
-IF (HDF5_BUILD_CPP_LIB)
-  ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/c++ ${PROJECT_BINARY_DIR}/c++)
-ENDIF (HDF5_BUILD_CPP_LIB)
+IF (DIR_CPP_EXISTS)
+  OPTION (HDF5_BUILD_CPP_LIB  "Build HDF5 C++ Library" OFF)
+  IF (HDF5_BUILD_CPP_LIB)
+    ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/c++ ${PROJECT_BINARY_DIR}/c++)
+  ENDIF (HDF5_BUILD_CPP_LIB)
+ENDIF (DIR_CPP_EXISTS)
 
 #-----------------------------------------------------------------------------
 # Option to build HDF5 Tools
 #-----------------------------------------------------------------------------
-OPTION (HDF5_BUILD_TOOLS  "Build HDF5 Tools" OFF)
-IF (HDF5_BUILD_TOOLS)
-  ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/tools ${PROJECT_BINARY_DIR}/tools)
-ENDIF (HDF5_BUILD_TOOLS)
+IF (DIR_TOOLS_EXISTS)
+  OPTION (HDF5_BUILD_TOOLS  "Build HDF5 Tools" OFF)
+  IF (HDF5_BUILD_TOOLS)
+    ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/tools ${PROJECT_BINARY_DIR}/tools)
+  ENDIF (HDF5_BUILD_TOOLS)
+ENDIF (DIR_TOOLS_EXISTS)
 
 #-----------------------------------------------------------------------------
 # Option to build High Level API's
 #-----------------------------------------------------------------------------
-OPTION (HDF5_BUILD_HL_LIB  "Build HIGH Level HDF5 Library" OFF)
-IF (HDF5_BUILD_HL_LIB)
-  SET (H5_INCLUDE_HL 1)
-  ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/hl ${PROJECT_BINARY_DIR}/hl)
-ENDIF (HDF5_BUILD_HL_LIB)
+IF (DIR_HL_EXISTS)
+  OPTION (HDF5_BUILD_HL_LIB  "Build HIGH Level HDF5 Library" OFF)
+  IF (HDF5_BUILD_HL_LIB)
+    SET (H5_INCLUDE_HL 1)
+    ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/hl ${PROJECT_BINARY_DIR}/hl)
+  ENDIF (HDF5_BUILD_HL_LIB)
+ENDIF (DIR_HL_EXISTS)
 
 #-----------------------------------------------------------------------------
 # Generate the H5pubconf.h file containing user settings needed by compilation
@@ -619,111 +662,114 @@ INSTALL (CODE
 #-----------------------------------------------------------------------------
 # Set the cpack variables
 #-----------------------------------------------------------------------------
-SET (CPACK_PACKAGE_VENDOR "The HDF Group")
-SET (CPACK_PACKAGE_NAME "${HDF5_PACKAGE_NAME}")
-SET (CPACK_PACKAGE_VERSION "${HDF5_PACKAGE_VERSION}")
-SET (CPACK_PACKAGE_VERSION_MAJOR "${HDF5_PACKAGE_VERSION_MAJOR}")
-SET (CPACK_PACKAGE_VERSION_MINOR "${HDF5_PACKAGE_VERSION_MINOR}")
-SET (CPACK_PACKAGE_VERSION_PATCH "")
-SET (CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/release_docs/COPYING")
+IF (NOT HDF5_EXTERNALLY_CONFIGURED AND EXISTS "${HDF5_SOURCE_DIR}/release_docs")
+  SET (CPACK_PACKAGE_VENDOR "The HDF Group")
+  SET (CPACK_PACKAGE_NAME "${HDF5_PACKAGE_NAME}")
+  SET (CPACK_PACKAGE_VERSION "${HDF5_PACKAGE_VERSION}")
+  SET (CPACK_PACKAGE_VERSION_MAJOR "${HDF5_PACKAGE_VERSION_MAJOR}")
+  SET (CPACK_PACKAGE_VERSION_MINOR "${HDF5_PACKAGE_VERSION_MINOR}")
+  SET (CPACK_PACKAGE_VERSION_PATCH "")
+  SET (CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/release_docs/COPYING")
+  
+  IF (WIN32)
+    SET (CPACK_NSIS_PACKAGE_NAME "HDF5 ${HDF5_PACKAGE_VERSION}")
+  ENDIF (WIN32)
+  
+  INCLUDE (CPack)
 
-IF (WIN32)
-  SET (CPACK_NSIS_PACKAGE_NAME "HDF5 ${HDF5_PACKAGE_VERSION}")
-ENDIF (WIN32)
-
-INCLUDE (CPack)
-
-#-----------------------------------------------------------------------------
-# Now list the cpack commands
-#-----------------------------------------------------------------------------
-CPACK_ADD_COMPONENT (applications 
-    DISPLAY_NAME "HDF5 Applications" 
-    DEPENDS libraries
-    GROUP Applications
-)
-CPACK_ADD_COMPONENT (libraries 
-    DISPLAY_NAME "HDF5 Libraries"
-    GROUP Runtime
-)
-CPACK_ADD_COMPONENT (headers 
-    DISPLAY_NAME "HDF5 Headers" 
-    DEPENDS libraries
-    GROUP Development
-)
-
-IF (HDF5_BUILD_FORTRAN)
-  CPACK_ADD_COMPONENT (fortlibraries 
-      DISPLAY_NAME "HDF5 Fortran Libraries" 
+  #---------------------------------------------------------------------------
+  # Now list the cpack commands
+  #---------------------------------------------------------------------------
+  CPACK_ADD_COMPONENT (applications 
+      DISPLAY_NAME "HDF5 Applications" 
       DEPENDS libraries
-      GROUP Runtime
-  )
-  CPACK_ADD_COMPONENT (fortheaders 
-      DISPLAY_NAME "HDF5 Fortran Headers" 
-      DEPENDS fortlibraries
-      GROUP Development
-  )
-ENDIF (HDF5_BUILD_FORTRAN)
-
-IF (HDF5_BUILD_CPP_LIB)
-  CPACK_ADD_COMPONENT (cpplibraries 
-      DISPLAY_NAME "HDF5 C++ Libraries" 
-      DEPENDS libraries
-      GROUP Runtime
-  )
-  CPACK_ADD_COMPONENT (cppheaders 
-      DISPLAY_NAME "HDF5 C++ Headers" 
-      DEPENDS cpplibraries
-      GROUP Development
-  )
-ENDIF (HDF5_BUILD_CPP_LIB)
-
-IF (HDF5_BUILD_TOOLS)
-  CPACK_ADD_COMPONENT (toolsapplications 
-      DISPLAY_NAME "HDF5 Tools Applications" 
-      DEPENDS toolslibraries
       GROUP Applications
   )
-  CPACK_ADD_COMPONENT (toolslibraries 
-      DISPLAY_NAME "HDF5 Tools Libraries" 
+  CPACK_ADD_COMPONENT (libraries 
+      DISPLAY_NAME "HDF5 Libraries"
+      GROUP Runtime
+  )
+  CPACK_ADD_COMPONENT (headers 
+      DISPLAY_NAME "HDF5 Headers" 
       DEPENDS libraries
-      GROUP Runtime
-  )
-  CPACK_ADD_COMPONENT (toolsheaders 
-      DISPLAY_NAME "HDF5 Tools Headers" 
-      DEPENDS toolslibraries
       GROUP Development
   )
-ENDIF (HDF5_BUILD_TOOLS)
-
-IF (HDF5_BUILD_HL_LIB)
-  CPACK_ADD_COMPONENT (hllibraries 
-      DISPLAY_NAME "HDF5 HL Libraries" 
-      DEPENDS libraries
-      GROUP Runtime
-  )
-  CPACK_ADD_COMPONENT (hlheaders 
-      DISPLAY_NAME "HDF5 HL Headers" 
-      DEPENDS hllibraries
-      GROUP Development
-  )
-  CPACK_ADD_COMPONENT (hltoolsapplications 
-      DISPLAY_NAME "HDF5 HL Tools Applications" 
-      DEPENDS hllibraries
-      GROUP Applications
-  )
-  CPACK_ADD_COMPONENT (hlcpplibraries 
-      DISPLAY_NAME "HDF5 HL C++ Libraries" 
-      DEPENDS hllibraries
-      GROUP Runtime
-  )
-  CPACK_ADD_COMPONENT (hlcppheaders 
-      DISPLAY_NAME "HDF5 HL C++ Headers" 
-      DEPENDS hlcpplibraries
-      GROUP Development
-  )
-  CPACK_ADD_COMPONENT (hlfortlibraries 
-      DISPLAY_NAME "HDF5 HL Fortran Libraries" 
-      DEPENDS fortlibraries
-      GROUP Runtime
-  )
-ENDIF (HDF5_BUILD_HL_LIB)
+  
+  IF (HDF5_BUILD_FORTRAN)
+    CPACK_ADD_COMPONENT (fortlibraries 
+        DISPLAY_NAME "HDF5 Fortran Libraries" 
+        DEPENDS libraries
+        GROUP Runtime
+    )
+    CPACK_ADD_COMPONENT (fortheaders 
+        DISPLAY_NAME "HDF5 Fortran Headers" 
+        DEPENDS fortlibraries
+        GROUP Development
+    )
+  ENDIF (HDF5_BUILD_FORTRAN)
+  
+  IF (HDF5_BUILD_CPP_LIB)
+    CPACK_ADD_COMPONENT (cpplibraries 
+        DISPLAY_NAME "HDF5 C++ Libraries" 
+        DEPENDS libraries
+        GROUP Runtime
+    )
+    CPACK_ADD_COMPONENT (cppheaders 
+        DISPLAY_NAME "HDF5 C++ Headers" 
+        DEPENDS cpplibraries
+        GROUP Development
+    )
+  ENDIF (HDF5_BUILD_CPP_LIB)
+  
+  IF (HDF5_BUILD_TOOLS)
+    CPACK_ADD_COMPONENT (toolsapplications 
+        DISPLAY_NAME "HDF5 Tools Applications" 
+        DEPENDS toolslibraries
+        GROUP Applications
+    )
+    CPACK_ADD_COMPONENT (toolslibraries 
+        DISPLAY_NAME "HDF5 Tools Libraries" 
+        DEPENDS libraries
+        GROUP Runtime
+    )
+    CPACK_ADD_COMPONENT (toolsheaders 
+        DISPLAY_NAME "HDF5 Tools Headers" 
+        DEPENDS toolslibraries
+        GROUP Development
+    )
+  ENDIF (HDF5_BUILD_TOOLS)
+  
+  IF (HDF5_BUILD_HL_LIB)
+    CPACK_ADD_COMPONENT (hllibraries 
+        DISPLAY_NAME "HDF5 HL Libraries" 
+        DEPENDS libraries
+        GROUP Runtime
+    )
+    CPACK_ADD_COMPONENT (hlheaders 
+        DISPLAY_NAME "HDF5 HL Headers" 
+        DEPENDS hllibraries
+        GROUP Development
+    )
+    CPACK_ADD_COMPONENT (hltoolsapplications 
+        DISPLAY_NAME "HDF5 HL Tools Applications" 
+        DEPENDS hllibraries
+        GROUP Applications
+    )
+    CPACK_ADD_COMPONENT (hlcpplibraries 
+        DISPLAY_NAME "HDF5 HL C++ Libraries" 
+        DEPENDS hllibraries
+        GROUP Runtime
+    )
+    CPACK_ADD_COMPONENT (hlcppheaders 
+        DISPLAY_NAME "HDF5 HL C++ Headers" 
+        DEPENDS hlcpplibraries
+        GROUP Development
+    )
+    CPACK_ADD_COMPONENT (hlfortlibraries 
+        DISPLAY_NAME "HDF5 HL Fortran Libraries" 
+        DEPENDS fortlibraries
+        GROUP Runtime
+    )
+  ENDIF (HDF5_BUILD_HL_LIB)
+  
+ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED AND EXISTS "${HDF5_SOURCE_DIR}/release_docs")
