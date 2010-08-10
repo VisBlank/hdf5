@@ -152,8 +152,8 @@ END SUBROUTINE verifyLogical
 !DEC$attributes dllexport :: verifyString
 !DEC$endif
 SUBROUTINE verifystring(string, value,correct_value,total_error)
-  CHARACTER(LEN=*) :: string
-  CHARACTER(LEN=*) :: value, correct_value
+  CHARACTER*(*) :: string
+  CHARACTER*(*) :: value, correct_value
   INTEGER :: total_error
   IF (TRIM(value) .NE. TRIM(correct_value)) THEN
      total_error = total_error + 1

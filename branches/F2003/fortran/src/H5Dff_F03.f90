@@ -251,7 +251,7 @@ CONTAINS
     IF(PRESENT(xfer_prp)) xfer_prp_default = xfer_prp
     IF(PRESENT(mem_space_id))  mem_space_id_default = mem_space_id
     IF(PRESENT(file_space_id)) file_space_id_default = file_space_id
-    f_ptr = C_LOC(buf)
+    f_ptr = C_LOC(buf(1))
 
     hdferr = h5dwrite_f_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, f_ptr)
@@ -305,7 +305,7 @@ CONTAINS
     IF(PRESENT(xfer_prp)) xfer_prp_default = xfer_prp
     IF(PRESENT(mem_space_id))  mem_space_id_default = mem_space_id
     IF(PRESENT(file_space_id)) file_space_id_default = file_space_id
-    f_ptr = C_LOC(buf)
+    f_ptr = C_LOC(buf(1))
 
     ALLOCATE(ref_buf(REF_REG_BUF_LEN*dims(1)), stat=hdferr)
     IF (hdferr .NE. 0 ) THEN
@@ -617,7 +617,28 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
-    CHARACTER(LEN=*), INTENT(IN), TARGET :: buf ! Data buffer
+    CHARACTER(*), INTENT(IN), TARGET :: buf ! Data buffer
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
+                                            ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
+                                            ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
+                                 
+    CALL h5dwrite_char_scalar_fix(dset_id, mem_type_id, buf, LEN(buf), dims, hdferr, &
+       mem_space_id, file_space_id, xfer_prp)
+
+  END SUBROUTINE h5dwrite_char_scalar
+
+  SUBROUTINE h5dwrite_char_scalar_fix(dset_id, mem_type_id, buf, buf_len, dims, hdferr, &
+       mem_space_id, file_space_id, xfer_prp)
+    USE ISO_C_BINDING
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
+    INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
+    INTEGER, INTENT(IN) :: buf_len
+    CHARACTER(LEN=buf_len), INTENT(IN), TARGET :: buf ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
                                             ! Memory dataspace identfier
@@ -643,7 +664,7 @@ CONTAINS
     hdferr = h5dwrite_f_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, f_ptr)
 
-  END SUBROUTINE h5dwrite_char_scalar
+  END SUBROUTINE h5dwrite_char_scalar_fix
 
   SUBROUTINE h5dwrite_char_1(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
@@ -1533,7 +1554,7 @@ CONTAINS
     IF(PRESENT(xfer_prp)) xfer_prp_default = xfer_prp
     IF(PRESENT(mem_space_id))  mem_space_id_default = mem_space_id
     IF(PRESENT(file_space_id)) file_space_id_default = file_space_id
-    f_ptr = C_LOC(buf)
+    f_ptr = C_LOC(buf(1))
 
     hdferr = h5dread_f_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, f_ptr)
@@ -1900,10 +1921,36 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: dset_id       ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: mem_type_id   ! Memory datatype identifier
+    INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
+    CHARACTER(LEN=*), INTENT(INOUT) :: buf     ! Data buffer
+    INTEGER, INTENT(OUT) :: hdferr             ! Error code
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
+    ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
+    ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
+    ! Transfer property list identifier
+
+    INTEGER(HID_T) :: xfer_prp_default
+    INTEGER(HID_T) :: mem_space_id_default
+    INTEGER(HID_T) :: file_space_id_default
+
+    CALL h5dread_char_scalar_fix(dset_id, mem_type_id, buf, LEN(buf), dims, hdferr, &
+         mem_space_id, file_space_id, xfer_prp)
+
+  END SUBROUTINE h5dread_char_scalar
+
+  SUBROUTINE h5dread_char_scalar_fix(dset_id, mem_type_id, buf, buf_len, dims, hdferr, &
+       mem_space_id, file_space_id, xfer_prp)
+    USE ISO_C_BINDING
+    IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
-    CHARACTER(LEN=*), INTENT(INOUT), TARGET :: buf ! Data buffer
+    INTEGER, INTENT(IN)  :: buf_len
+    CHARACTER(LEN=buf_len), INTENT(INOUT), TARGET :: buf ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
     ! Memory dataspace identfier
@@ -1930,7 +1977,7 @@ CONTAINS
     hdferr = h5dread_f_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, f_ptr)
 
-  END SUBROUTINE h5dread_char_scalar
+  END SUBROUTINE h5dread_char_scalar_fix
 
   SUBROUTINE h5dread_char_1(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)

@@ -51,25 +51,25 @@ MODULE liter_cb_mod
   END TYPE iter_enum
 
   !/* Custom group iteration callback data */
-  TYPE iter_info
-     CHARACTER(LEN=10) :: name ! /* The name of the object */
-     INTEGER(c_int) :: TYPE         ! /* The TYPE of the object */
+  TYPE, bind(c) ::  iter_info
+     CHARACTER(LEN=1), DIMENSION(1:10) :: name ! /* The name of the object */
+     INTEGER(c_int) :: TYPE    ! /* The TYPE of the object */
      INTEGER(c_int) :: command !/* The TYPE of RETURN value */
   END TYPE iter_info
 
-    TYPE union_t
-       INTEGER(haddr_t) :: address
-       INTEGER(size_t) :: val_size
-    END TYPE union_t
+  TYPE, bind(c) :: union_t
+     INTEGER(haddr_t) :: address
+     INTEGER(size_t) :: val_size
+  END TYPE union_t
 
-    TYPE H5L_info_t
-       INTEGER(c_int) :: type ! H5L_type_t     type
+  TYPE, bind(c) :: H5L_info_t
+     INTEGER(c_int) :: TYPE ! H5L_type_t     type
 !       LOGICAL(c_bool) :: corder_valid ! hbool_t        corder_valid
-       INTEGER(c_int64_t) :: corder ! int64_t        corder;
-       INTEGER(c_int) :: cset ! H5T_cset_t     cset;
-       TYPE(union_t) :: u
+     INTEGER(c_int64_t) :: corder ! int64_t        corder;
+     INTEGER(c_int) :: cset ! H5T_cset_t     cset;
+     TYPE(union_t) :: u
+  END TYPE H5L_info_t
 
-    END TYPE H5L_info_t
 CONTAINS
 
 !/****************************************************************
@@ -85,7 +85,7 @@ CONTAINS
     IMPLICIT NONE
 
     INTEGER(HID_T), VALUE :: group
-    CHARACTER(LEN=10) :: name
+    CHARACTER(LEN=1), DIMENSION(1:10) :: name
 
 
     TYPE (H5L_info_t) :: link_info
@@ -100,7 +100,7 @@ CONTAINS
 !!$    static int count = 0;
 !!$    static int count2 = 0;
 
-    op_data%name = name
+    op_data%name(1:10) = name(1:10)
 
     SELECT CASE (op_data%command)
 
@@ -241,7 +241,7 @@ SUBROUTINE test_iter_group(total_error)
     INTEGER(hid_t) :: datatype         !/* Common datatype ID */
     INTEGER(hid_t) :: filespace        !/* Common dataspace ID */
     INTEGER(hid_t) :: root_group,grp   !/* Root group ID */
-    INTEGER i                  !/* counting variable */
+    INTEGER i,j                  !/* counting variable */
     INTEGER(hsize_t) idx            !/* Index in the group */
     CHARACTER(LEN=11) :: DATAFILE = "titerate.h5"
     INTEGER, PARAMETER :: ndatasets = 50
@@ -287,6 +287,7 @@ SUBROUTINE test_iter_group(total_error)
 
     CALL H5Literate_f(file, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, f1, f2, ret_value, error)
     CALL check("H5Literate_f", error, total_error)
+
 
     CALL H5Tcopy_f(H5T_NATIVE_INTEGER, datatype, error)
     CALL check("H5Tcopy_f", error, total_error)
@@ -359,10 +360,9 @@ SUBROUTINE test_iter_group(total_error)
     info%command = 2
     idx = 0
     i = 0
-
+    f1 = C_FUNLOC(liter_cb)
+    f2 = C_LOC(info)
     DO 
-       f1 = C_FUNLOC(liter_cb)
-       f2 = C_LOC(info)
        CALL H5Literate_f(file, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, f1, f2, ret_value, error)
        IF(error.LT.0) EXIT
        ! /* Verify return value from iterator gets propagated correctly */
@@ -376,9 +376,15 @@ SUBROUTINE test_iter_group(total_error)
        ENDIF
        
  !/* Verify that the correct name is retrieved */
-       CALL verifystring("H5Literate_f", info%name, lnames(INT(idx)), total_error)
-        
+       DO j = 1, 10
+          ichr10(j:j) = info%name(j)(1:1)
+       ENDDO
+       CALL verifystring("H5Literate_f", ichr10, lnames(INT(idx)), total_error)
+   !    IF(i.EQ.52)EXIT ! prints out error message otherwise (for gcc/gfortran/g95) not intel (why) -fix- scot
     END DO
+    
+
+    ! put check if did not walk far enough -scot fix
 
     CALL VERIFY("H5Literate_f", error,-1, total_error)
 
@@ -393,10 +399,10 @@ SUBROUTINE test_iter_group(total_error)
     info%command = 3
     idx = 0
     i = 0
-
-    DO 
-       f1 = C_FUNLOC(liter_cb)
-       f2 = C_LOC(info)
+ 
+    f1 = C_FUNLOC(liter_cb)
+    f2 = C_LOC(info)
+    DO
 
        CALL H5Literate_f(file, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, f1, f2, ret_value, error)
        IF(error.LT.0) EXIT
@@ -412,8 +418,12 @@ SUBROUTINE test_iter_group(total_error)
           PRINT*,"Group iteration function walked too far!"
        ENDIF
 
+       DO j = 1, 10
+          ichr10(j:j) = info%name(j)(1:1)
+       ENDDO
        !/* Verify that the correct name is retrieved */
-       CALL verifystring("H5Literate_f", info%name, lnames(INT(idx)), total_error)
+       CALL verifystring("H5Literate_f", ichr10, lnames(INT(idx)), total_error)
+    !   IF(i.EQ.42)EXIT ! prints out error message otherwise (for gcc/gfortran/g95) not intel (why) -fix- scot
     ENDDO
 
     IF(i .NE. 42 .OR. idx .NE. 52)THEN
@@ -591,7 +601,14 @@ SUBROUTINE test_iter_group(total_error)
 ! Callback subroutine for test_genprop_class_callback
 ! and the function H5Pcreate_class_f.
 
+    USE HDF5
+    USE ISO_C_BINDING
     IMPLICIT NONE
+
+    TYPE, bind(C) :: cop_cb_struct_ ! /* Struct for iterations */
+       INTEGER :: count
+       INTEGER(HID_T) :: id
+    END TYPE cop_cb_struct_
 
   CONTAINS
 
@@ -603,11 +620,6 @@ SUBROUTINE test_iter_group(total_error)
       
       INTEGER(HID_T), INTENT(IN), VALUE :: list_id
       
-      TYPE cop_cb_struct_ ! /* Struct for iterations */
-         INTEGER :: count
-         INTEGER(HID_T) :: id
-      END TYPE cop_cb_struct_
-
       TYPE(cop_cb_struct_) :: create_data
       
       create_data%count = create_data%count + 1
@@ -864,7 +876,7 @@ SUBROUTINE test_iter_group(total_error)
 
     ALLOCATE(rdims(1:2)) ! dummy not needed
 
-    f_ptr = C_LOC(wdata)
+    f_ptr = C_LOC(wdata(1,1))
     CALL h5dwrite_f(dataset, tid1, f_ptr, error )
     CALL check("h5dwrite_f", error, total_error)
     !/* Close Dataset */ 
@@ -968,7 +980,7 @@ SUBROUTINE test_iter_group(total_error)
 
     !/* Read dataset from disk */
 
-    f_ptr = C_LOC(rdata)
+    f_ptr = C_LOC(rdata(1,1))
     CALL H5Dread_f(dataset, tid1, f_ptr, error)
     CALL check("H5Dread_f", error, total_error)
 
@@ -1130,7 +1142,7 @@ SUBROUTINE test_iter_group(total_error)
     CALL check("h5tarray_create_f", error, total_error)
 
     !/* Insert character array field */
-    CALL h5tinsert_f(tid2, "c", H5OFFSETOF(C_LOC(wdata(1,1)),C_LOC(wdata(1,1)%c)), tid4, error)
+    CALL h5tinsert_f(tid2, "c", H5OFFSETOF(C_LOC(wdata(1,1)),C_LOC(wdata(1,1)%c(1))), tid4, error)
     CALL check("h5tinsert2_f", error, total_error)
 
     ! /* Close array of floats field datatype */
@@ -1154,7 +1166,7 @@ SUBROUTINE test_iter_group(total_error)
 
 
     !/* Write dataset to disk */
-    f_ptr = C_LOC(wdata)
+    f_ptr = C_LOC(wdata(1,1))
     CALL h5dwrite_f(dataset, tid1, f_ptr, error )
     CALL check("h5dwrite_f", error, total_error)
 
@@ -1275,7 +1287,8 @@ SUBROUTINE test_iter_group(total_error)
     ! /* Check the 3rd field's offset */
     CALL H5Tget_member_offset_f(tid2, 2, off, error)
     CALL check("H5Tget_member_offset_f", error, total_error)
-    CALL VERIFY("H5Tget_member_offset_f",INT(off),H5OFFSETOF(C_LOC(wdata(1,1)),C_LOC(wdata(1,1)%c)), total_error) 
+    CALL VERIFY("H5Tget_member_offset_f",INT(off),&
+         H5OFFSETOF(C_LOC(wdata(1,1)),C_LOC(wdata(1,1)%c(1))), total_error) 
 
     ! /* Check the 3rd field's datatype */
     CALL H5Tget_member_type_f(tid2, 2, mtid2, error)
@@ -1335,7 +1348,7 @@ SUBROUTINE test_iter_group(total_error)
     ! /* READ dataset from disk */
     
     f_ptr = c_null_ptr
-    f_ptr = C_LOC(rdata)
+    f_ptr = C_LOC(rdata(1,1))
     CALL H5Dread_f(dataset, tid1, f_ptr, error)
     CALL check("H5Dread_f", error, total_error)
 
@@ -1539,14 +1552,14 @@ SUBROUTINE test_iter_group(total_error)
 
     ALLOCATE(rdims(1:2)) ! dummy not needed
 
-    f_ptr = C_LOC(cf)
+    f_ptr = C_LOC(cf(1))
 
     CALL h5dwrite_f(dataset, type, f_ptr, error )
     CALL check("h5dwrite_f", error, total_error)
 
 
     ALLOCATE(rdims1(1:2)) ! dummy not needed
-    f_ptr = C_LOC(cfr)
+    f_ptr = C_LOC(cfr(1))
     CALL H5Dread_f(dataset, type, f_ptr, error)
     CALL check("H5Dread_f", error, total_error)
 
@@ -1611,7 +1624,7 @@ SUBROUTINE test_iter_group(total_error)
        ENDDO
     ENDDO
 
-    f_ptr = C_LOC(fld)
+    f_ptr = C_LOC(fld(1))
 
     CALL h5dwrite_f(dataset, TYPE, f_ptr, error )
     CALL check("h5dwrite_f", error, total_error)
@@ -1619,7 +1632,7 @@ SUBROUTINE test_iter_group(total_error)
 
     ! /* Read just the field changed */
     
-    f_ptr = C_LOC(fldr)
+    f_ptr = C_LOC(fldr(1))
     CALL H5Dread_f(dataset, TYPE, f_ptr, error)
     CALL check("H5Dread_f", error, total_error)
 
@@ -1642,7 +1655,7 @@ SUBROUTINE test_iter_group(total_error)
 
     ! /* Read the entire dataset again */
 
-    f_ptr = C_LOC(cfr)
+    f_ptr = C_LOC(cfr(1))
     CALL H5Dread_f(dataset, TYPE, f_ptr, error)
     CALL check("H5Dread_f", error, total_error)
 
@@ -1701,7 +1714,7 @@ SUBROUTINE test_iter_group(total_error)
        cfr(i)%c(:) = 0
     ENDDO
 
-    f_ptr = C_LOC(cfr)
+    f_ptr = C_LOC(cfr(1))
     CALL H5Dread_f(dataset, TYPE, f_ptr, error)
     CALL check("H5Dread_f", error, total_error)
 
@@ -1735,9 +1748,6 @@ SUBROUTINE test_iter_group(total_error)
     CALL check("h5fclose_f", error, total_error)
 
   END SUBROUTINE test_array_bkg
-
-
-
 
   SUBROUTINE test_error(total_error)
     
@@ -1814,7 +1824,7 @@ SUBROUTINE test_iter_group(total_error)
 
 !    ptr_data => f_ptr1(1)
 
-    PRINT*,ptr_data(1)
+!    PRINT*,ptr_data(1)
 
 !!$    if(old_data != NULL)
 !!$	TEST_ERROR;
@@ -1954,25 +1964,25 @@ SUBROUTINE test_iter_group(total_error)
   !
   ! Write the dataset.
   !
-    f_ptr = C_LOC(dset_data_i1)
+    f_ptr = C_LOC(dset_data_i1(1))
     CALL h5dwrite_f(dset_id1, h5kind_to_type(int_kind_1,H5_INTEGER_KIND), f_ptr, error)
     CALL check("H5Dwrite_f",error, total_error)
-    f_ptr = C_LOC(dset_data_i4)
+    f_ptr = C_LOC(dset_data_i4(1))
     CALL h5dwrite_f(dset_id4, h5kind_to_type(int_kind_4,H5_INTEGER_KIND), f_ptr, error)
     CALL check("H5Dwrite_f",error, total_error)
-    f_ptr = C_LOC(dset_data_i8)
+    f_ptr = C_LOC(dset_data_i8(1))
     CALL h5dwrite_f(dset_id8, h5kind_to_type(int_kind_8,H5_INTEGER_KIND), f_ptr, error)
     CALL check("H5Dwrite_f",error, total_error)
-    f_ptr = C_LOC(dset_data_i16)
+    f_ptr = C_LOC(dset_data_i16(1))
     CALL h5dwrite_f(dset_id16, h5kind_to_type(int_kind_16,H5_INTEGER_KIND), f_ptr, error)
     CALL check("H5Dwrite_f",error, total_error)
-    f_ptr = C_LOC(dset_data_r)
+    f_ptr = C_LOC(dset_data_r(1))
     CALL h5dwrite_f(dset_idr, H5T_NATIVE_REAL, f_ptr, error)
     CALL check("H5Dwrite_f",error, total_error)
-    f_ptr = C_LOC(dset_data_r7)
+    f_ptr = C_LOC(dset_data_r7(1))
     CALL h5dwrite_f(dset_idr4, h5kind_to_type(real_kind_7,H5_REAL_KIND), f_ptr, error)
     CALL check("H5Dwrite_f",error, total_error)
-    f_ptr = C_LOC(dset_data_r15)
+    f_ptr = C_LOC(dset_data_r15(1))
     CALL h5dwrite_f(dset_idr8, h5kind_to_type(real_kind_15,H5_REAL_KIND), f_ptr, error)
     CALL check("H5Dwrite_f",error, total_error)
   !

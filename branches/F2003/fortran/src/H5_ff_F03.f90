@@ -43,21 +43,22 @@ CONTAINS
 !  Computes the offset in memory
 !
 ! INPUTS
-!  start 	 - starting pointer address
+!  start - starting pointer address
 !  end 	 - ending pointer address
 !
 ! OUTPUTS
-!  offset 	 - offset
+!  offset - offset
 !
 ! AUTHOR
 !  M. Scot Breitenfeld
 !  Augest 25, 2008
 !
 ! SOURCE
-  INTEGER(SIZE_T) FUNCTION h5offsetof(start,end) RESULT(offset)
+  FUNCTION h5offsetof(start,end) RESULT(offset)
     USE, INTRINSIC :: ISO_C_BINDING
     USE H5GLOBAL
     IMPLICIT NONE
+    INTEGER(SIZE_T) :: offset
     TYPE(C_PTR), VALUE, INTENT(IN) :: start, end
 !*****
     INTEGER(C_INTPTR_T) :: int_address_start, int_address_end

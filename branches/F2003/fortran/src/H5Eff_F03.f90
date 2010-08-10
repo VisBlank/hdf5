@@ -148,7 +148,7 @@ CONTAINS
 !!$    TYPE(C_FUNPTR) :: op_f
 !!$    TYPE(C_PTR) :: client_data_f
     TYPE(C_FUNPTR) :: op
-    TYPE(C_PTR),value :: client_data
+    TYPE(C_PTR), VALUE :: client_data
     INTEGER, INTENT(OUT) :: hdferr
 !*****
     INTEGER :: ret_func2
@@ -189,16 +189,16 @@ CONTAINS
 !!$         INTEGER :: ret_func2
 !!$       END FUNCTION h5eget_auto_c2
 
-    SUBROUTINE process_buffer(estack_id, buffer)
-       USE, INTRINSIC :: ISO_C_BINDING
-      USE H5GLOBAL
-       INTEGER(HID_T) :: estack_id
-       TYPE(C_PTR) :: buffer
-     END SUBROUTINE process_buffer
+!!$    SUBROUTINE process_buffer(estack_id, buffer)
+!!$       USE, INTRINSIC :: ISO_C_BINDING
+!!$      USE H5GLOBAL
+!!$       INTEGER(HID_T) :: estack_id
+!!$       TYPE(C_PTR) :: buffer
+!!$     END SUBROUTINE process_buffer
 
     END INTERFACE
 
-    j = -9999
+   j = -9999
 
 
     f_ptr2 = c_loc(j)
@@ -206,8 +206,8 @@ CONTAINS
 
     hdferr = h5eget_auto_c(estack_id, op, f_ptr2, ret_func2)
 
-    PRINT*,c_associated(f_ptr2)
-!    hdferr = h5eget_auto_c(estack_id, op, client_data, ret_func2)
+!!!!!    PRINT*,c_associated(f_ptr2)
+!!$    hdferr = h5eget_auto_c(estack_id, op, client_data, ret_func2)
     
     PRINT*,'fortran',j
     stop

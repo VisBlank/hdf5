@@ -628,19 +628,36 @@ CONTAINS
   SUBROUTINE h5awrite_char_scalar(attr_id, memtype_id,  buf, dims, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier
-    INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype
-                                             ! identifier  (in memory)
-    INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims       ! Array to story buf dimension sizes
-    CHARACTER(LEN=*), INTENT(IN), TARGET :: buf ! Attribute data
-    INTEGER, INTENT(OUT) :: hdferr          ! Error code
+    INTEGER(HID_T), INTENT(IN) :: attr_id               ! Attribute identifier
+    INTEGER(HID_T), INTENT(IN) :: memtype_id            ! Attribute datatype
+                                                        !  identifier  (in memory)
+    INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims  ! Array to story buf dimension sizes
+    CHARACTER(LEN=*), INTENT(IN) :: buf                 ! Attribute data
+    INTEGER, INTENT(OUT) :: hdferr                      ! Error code
+
+    CALL h5awrite_char_scalar_fix(attr_id, memtype_id,  buf, LEN(buf), dims, hdferr)
+
+  END SUBROUTINE h5awrite_char_scalar
+
+  SUBROUTINE h5awrite_char_scalar_fix(attr_id, memtype_id,  buf, buf_len, dims, hdferr)
+    USE, INTRINSIC :: ISO_C_BINDING
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: attr_id               ! Attribute identifier
+    INTEGER(HID_T), INTENT(IN) :: memtype_id            ! Attribute datatype
+                                                        !  identifier  (in memory)
+    INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims  ! Array to story buf dimension sizes
+    INTEGER, INTENT(IN)  :: buf_len
+    CHARACTER(LEN=buf_len), INTENT(IN), TARGET :: buf   ! Attribute data
+    INTEGER, INTENT(OUT) :: hdferr                      ! Error code
     TYPE(C_PTR) :: f_ptr
 
     f_ptr = C_LOC(buf(1:1))
 
     hdferr = h5awrite_f_c(attr_id, memtype_id, f_ptr)
 
-  END SUBROUTINE h5awrite_char_scalar
+  END SUBROUTINE h5awrite_char_scalar_fix
+
+
 
   SUBROUTINE h5awrite_char_1(attr_id, memtype_id,  buf, dims, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
@@ -1255,7 +1272,22 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype
                                              ! identifier  (in memory)
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims ! Array to story buf dimension sizes
-    CHARACTER(LEN=*), INTENT(INOUT), TARGET :: buf ! Attribute data
+    CHARACTER(LEN=*), INTENT(INOUT) :: buf ! Attribute data
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code
+
+    CALL h5aread_char_scalar_fix(attr_id, memtype_id,  buf, LEN(buf), dims, hdferr)
+
+  END SUBROUTINE h5aread_char_scalar
+
+  SUBROUTINE h5aread_char_scalar_fix(attr_id, memtype_id,  buf, buf_len, dims, hdferr)
+    USE, INTRINSIC :: ISO_C_BINDING
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: attr_id    ! Attribute identifier
+    INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype
+                                             ! identifier  (in memory)
+    INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims ! Array to story buf dimension sizes
+    INTEGER, INTENT(IN)  :: buf_len
+    CHARACTER(LEN=buf_len), INTENT(INOUT), TARGET :: buf ! Attribute data
     INTEGER, INTENT(OUT) :: hdferr         ! Error code
     TYPE(C_PTR) :: f_ptr
 
@@ -1263,7 +1295,7 @@ CONTAINS
 
     hdferr = h5aread_f_c(attr_id, memtype_id, f_ptr)
 
-  END SUBROUTINE h5aread_char_scalar
+  END SUBROUTINE h5aread_char_scalar_fix
 
   SUBROUTINE h5aread_char_1(attr_id, memtype_id,  buf, dims, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
