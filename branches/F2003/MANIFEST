@@ -237,6 +237,7 @@
 ./fortran/examples/attrexample.f90
 ./fortran/examples/compound.f90
 ./fortran/examples/compound_fortran2003.f90
+./fortran/examples/compound_complex_fortran2003.f90
 ./fortran/examples/dsetexample.f90
 ./fortran/examples/fileexample.f90
 ./fortran/examples/groupexample.f90
