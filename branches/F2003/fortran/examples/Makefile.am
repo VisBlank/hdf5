@@ -46,8 +46,10 @@ INSTALL_SCRIPT_FILES = run-fortran-ex.sh
 
 # Add attention tests for Fortran 2003 features
 if FORTRAN_2003_CONDITIONAL_F
-  TEST_PROG +=  rwdset_fortran2003 nested_derived_type compound_fortran2003
-  INSTALL_FILES +=  rwdset_fortran2003.f90 nested_derived_type.f90 compound_fortran2003.f90
+  TEST_PROG +=  rwdset_fortran2003 nested_derived_type \
+      compound_fortran2003 compound_complex_fortran2003
+  INSTALL_FILES +=  rwdset_fortran2003.f90 nested_derived_type.f90 \
+      compound_fortran2003.f90 compound_complex_fortran2003.f90
 endif
 TEST_SCRIPT=testh5fc.sh
 
@@ -100,6 +102,7 @@ if FORTRAN_2003_CONDITIONAL_F
 rwdset_fortran2003: rwdset_fortran2003.f90
 nested_derived_type: nested_derived_type.f90
 compound_fortran2003: compound_fortran2003.f90
+compound_complex_fortran2003: compound_complex_fortran2003.f90
 endif
 
 include $(top_srcdir)/config/examples.am
