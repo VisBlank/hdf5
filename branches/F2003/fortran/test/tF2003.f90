@@ -1612,7 +1612,7 @@ SUBROUTINE test_iter_group(total_error)
     CALL h5tarray_create_f(H5T_NATIVE_REAL_4, 1, dima, array_dt, error)
     CALL check("h5tarray_create_f", error, total_error)
 
-    CALL h5tinsert_f(TYPE, "Two", 0, array_dt, error)
+    CALL h5tinsert_f(TYPE, "Two", 0_size_t, array_dt, error)
     CALL check("h5tinsert_f", error, total_error)
 
     !/* Initialize the data to overwrite */
