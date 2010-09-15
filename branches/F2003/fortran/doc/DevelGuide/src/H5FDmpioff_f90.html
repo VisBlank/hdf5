@@ -19,58 +19,54 @@
 <a class="menuitem" href="../masterindex.html#top">Index</a>
 <a class="menuitem" href="../robo_functions.html#top">Functions</a>
 <a class="menuitem" href="../robo_modules.html#top">Modules</a>
-<a class="menuitem" href="../robo_programs.html#top">Programs</a>
+<a class="menuitem" href="../robo_procedures.html#top">Procedures</a>
 <a class="menuitem" href="../robo_subroutines.html#top">Subroutines</a>
 </div> <!-- navigation -->
 <div id="content">
 <hr />
 <a name="ROBODoc2fH5FDMPIO"></a>
-<a name="robo51"></a><h2>H5FDMPIO</h2>
+<a name="robo40"></a><h2>H5FDMPIO</h2>
 
 <p>[ <a href="#robo_top_of_doc">Top</a> ] [ <a href="../robo_modules.html#robo_top_of_doc">Modules</a> ]</p>
 <p class="item_name">NAME</p>
-<pre>   MODULE <strong>H5FDMPIO</strong>
+<pre>  MODULE <strong>H5FDMPIO</strong>
 </pre>
-<p class="item_name">FUNCTION</p>
-<pre>   This file contains Fortran interfaces for H5P functions needed by 
-   parallel MPI programs.
+<p class="item_name">PURPOSE</p>
+<pre>  This file contains Fortran interfaces for H5P functions needed by
+  parallel MPI programs.
 </pre>
 <p class="item_name">NOTES</p>
-<pre>                          *** IMPORTANT ***
-   If you add a new H5P function you must add the function name to the 
-   Windows dll file 'hdf5_fortrandll.def' in the ROBODoc directory.
-   This is needed for Windows based operating systems.
+<pre>                         *** IMPORTANT ***
+  If you add a new H5P function you must add the function name to the
+  Windows dll file 'hdf5_fortrandll.def' in the fortran/src directory.
+  This is needed for Windows based operating systems.
 </pre>
 
 <hr />
 <a name="H5FDMPIO2fh5pget5fdxpl5fmpio5ff"></a>
-<a name="robo109"></a><h2>h5pget_dxpl_mpio_f</h2>
+<a name="robo197"></a><h2>h5pget_dxpl_mpio_f</h2>
 
-<p>[ <a href="#robo_top_of_doc">Top</a> ] [ <a href="#robo51">H5FDMPIO</a> ] [ <a href="../robo_subroutines.html#robo_top_of_doc">Subroutines</a> ]</p>
+<p>[ <a href="#robo_top_of_doc">Top</a> ] [ <a href="#robo40">H5FDMPIO</a> ] [ <a href="../robo_subroutines.html#robo_top_of_doc">Subroutines</a> ]</p>
 <p class="item_name">NAME</p>
-<pre>  <strong>h5pget_dxpl_mpio_f</strong> 
+<pre>  <strong>h5pget_dxpl_mpio_f</strong>
 </pre>
-<p class="item_name">FUNCTION</p>
-<pre>  Returns the data transfer mode. 
+<p class="item_name">PURPOSE</p>
+<pre>  Returns the data transfer mode.
 </pre>
 <p class="item_name">INPUTS</p>
-<pre>               prp_id          - data transfer property list identifier
-</pre>
-<p class="item_name">OUTPUT</p>
-<pre>               data_xfer_mode  - transfer mode
-                                 Possible values are:
-                                 H5FD_MPIO_INDEPENDENT_F
-                                 H5FD_MPIO_COLLECTIVE_F
-               hdferr:         - error code            
-                                       Success:  0
-                                       Failure: -1
+<pre>  prp_id        - data transfer property list identifier
+ OUTPUTS
+  data_xfer_mode- transfer mode; possible values are:
+                     H5FD_MPIO_INDEPENDENT_F
+                     H5FD_MPIO_COLLECTIVE_F
+  hdferr        - Returns 0 if successful and -1 if fails
 </pre>
 <p class="item_name">AUTHOR</p>
 <pre>  Elena Pourmal
   November, 2000
 </pre>
 <p class="item_name">SOURCE</p>
-<pre class="source">  SUBROUTINE <strong>h5pget_dxpl_mpio_f</strong><span class="sign">(</span>prp_id<span class="sign">,</span> data_xfer_mode<span class="sign">,</span> hdferr<span class="sign">)</span> 
+<pre class="source">  SUBROUTINE <strong>h5pget_dxpl_mpio_f</strong><span class="sign">(</span>prp_id<span class="sign">,</span> data_xfer_mode<span class="sign">,</span> hdferr<span class="sign">)</span>
     IMPLICIT NONE
     INTEGER<span class="sign">(</span>HID_T<span class="sign">)</span><span class="sign">,</span> INTENT<span class="sign">(</span>IN<span class="sign">)</span> <span class="sign">:</span><span class="sign">:</span> prp_id   <span class="sign">!</span> Property list identifier
     INTEGER<span class="sign">,</span> INTENT<span class="sign">(</span>OUT<span class="sign">)</span> <span class="sign">:</span><span class="sign">:</span> data_xfer_mode <span class="sign">!</span> Data transfer mode<span class="sign">.</span> Possible values are<span class="sign">:</span>
@@ -81,102 +77,92 @@
 
 <hr />
 <a name="H5FDMPIO2fh5pget5ffapl5fmpio5ff"></a>
-<a name="robo110"></a><h2>h5pget_fapl_mpio_f</h2>
+<a name="robo198"></a><h2>h5pget_fapl_mpio_f</h2>
 
-<p>[ <a href="#robo_top_of_doc">Top</a> ] [ <a href="#robo51">H5FDMPIO</a> ] [ <a href="../robo_subroutines.html#robo_top_of_doc">Subroutines</a> ]</p>
+<p>[ <a href="#robo_top_of_doc">Top</a> ] [ <a href="#robo40">H5FDMPIO</a> ] [ <a href="../robo_subroutines.html#robo_top_of_doc">Subroutines</a> ]</p>
 <p class="item_name">NAME</p>
-<pre>  <strong>h5pget_fapl_mpio_f</strong> 
+<pre>  <strong>h5pget_fapl_mpio_f</strong>
 </pre>
-<p class="item_name">FUNCTION</p>
-<pre>  Returns MPI communicator information.        
+<p class="item_name">PURPOSE</p>
+<pre>  Returns MPI communicator information.
 </pre>
 <p class="item_name">INPUTS</p>
-<pre>               prp_id          - file access property list identifier
-</pre>
-<p class="item_name">OUTPUT</p>
-<pre>               comm            - MPI-2 communicator
-               info            - MPI-2 info object
-               hdferr:         - error code            
-                                       Success:  0
-                                       Failure: -1
+<pre>  prp_id        - file access property list identifier
+ OUTPUTS
+  comm          - MPI-2 communicator
+  info          - MPI-2 info object
+  hdferr        - Returns 0 if successful and -1 if fails
 </pre>
 <p class="item_name">AUTHOR</p>
 <pre>  Elena Pourmal
   November, 2000
 </pre>
 <p class="item_name">SOURCE</p>
-<pre class="source">  SUBROUTINE <strong>h5pget_fapl_mpio_f</strong><span class="sign">(</span>prp_id<span class="sign">,</span> comm<span class="sign">,</span> info<span class="sign">,</span> hdferr<span class="sign">)</span> 
+<pre class="source">  SUBROUTINE <strong>h5pget_fapl_mpio_f</strong><span class="sign">(</span>prp_id<span class="sign">,</span> comm<span class="sign">,</span> info<span class="sign">,</span> hdferr<span class="sign">)</span>
     IMPLICIT NONE
     INTEGER<span class="sign">(</span>HID_T<span class="sign">)</span><span class="sign">,</span> INTENT<span class="sign">(</span>IN<span class="sign">)</span> <span class="sign">:</span><span class="sign">:</span> prp_id <span class="sign">!</span> Property list identifier
-    INTEGER<span class="sign">,</span> INTENT<span class="sign">(</span>OUT<span class="sign">)</span> <span class="sign">:</span><span class="sign">:</span> comm <span class="sign">!</span> buffer to <span class="keyword">return</span> communicator 
-    INTEGER<span class="sign">,</span> INTENT<span class="sign">(</span>OUT<span class="sign">)</span> <span class="sign">:</span><span class="sign">:</span> info <span class="sign">!</span> buffer to <span class="keyword">return</span> info object 
+    INTEGER<span class="sign">,</span> INTENT<span class="sign">(</span>OUT<span class="sign">)</span> <span class="sign">:</span><span class="sign">:</span> comm <span class="sign">!</span> buffer to <span class="keyword">return</span> communicator
+    INTEGER<span class="sign">,</span> INTENT<span class="sign">(</span>OUT<span class="sign">)</span> <span class="sign">:</span><span class="sign">:</span> info <span class="sign">!</span> buffer to <span class="keyword">return</span> info object
                                  <span class="sign">!</span> as defined in MPI_FILE_OPEN of MPI<span class="sign">-</span>2
     INTEGER<span class="sign">,</span> INTENT<span class="sign">(</span>OUT<span class="sign">)</span> <span class="sign">:</span><span class="sign">:</span> hdferr  <span class="sign">!</span> Error code
 </pre>
 
 <hr />
 <a name="H5FDMPIO2fh5pget5ffapl5fmpiposix5ff"></a>
-<a name="robo111"></a><h2>h5pget_fapl_mpiposix_f</h2>
+<a name="robo199"></a><h2>h5pget_fapl_mpiposix_f</h2>
 
-<p>[ <a href="#robo_top_of_doc">Top</a> ] [ <a href="#robo51">H5FDMPIO</a> ] [ <a href="../robo_subroutines.html#robo_top_of_doc">Subroutines</a> ]</p>
+<p>[ <a href="#robo_top_of_doc">Top</a> ] [ <a href="#robo40">H5FDMPIO</a> ] [ <a href="../robo_subroutines.html#robo_top_of_doc">Subroutines</a> ]</p>
 <p class="item_name">NAME</p>
-<pre>  <strong>h5pget_fapl_mpiposix_f</strong> 
+<pre>  <strong>h5pget_fapl_mpiposix_f</strong>
 </pre>
-<p class="item_name">FUNCTION</p>
-<pre>  Returns MPI communicator information.        
+<p class="item_name">PURPOSE</p>
+<pre>  Returns MPI communicator information.
 </pre>
 <p class="item_name">INPUTS</p>
-<pre>               prp_id          - file access property list identifier
-</pre>
-<p class="item_name">OUTPUT</p>
-<pre>               comm            - MPI-2 communicator
-               use_gpfs        - flag to use GPFS hints
-               hdferr:         - error code            
-                                       Success:  0
-                                       Failure: -1
+<pre>  prp_id        - file access property list identifier
+ OUTPUTS
+  comm          - MPI-2 communicator
+  use_gpfs      - flag to use GPFS hints
+  hdferr        - Returns 0 if successful and -1 if fails
 </pre>
 <p class="item_name">AUTHOR</p>
 <pre>  Elena Pourmal
   May 6, 2003
 </pre>
 <p class="item_name">SOURCE</p>
-<pre class="source">  SUBROUTINE <strong>h5pget_fapl_mpiposix_f</strong><span class="sign">(</span>prp_id<span class="sign">,</span> comm<span class="sign">,</span> use_gpfs<span class="sign">,</span> hdferr<span class="sign">)</span> 
+<pre class="source">  SUBROUTINE <strong>h5pget_fapl_mpiposix_f</strong><span class="sign">(</span>prp_id<span class="sign">,</span> comm<span class="sign">,</span> use_gpfs<span class="sign">,</span> hdferr<span class="sign">)</span>
     IMPLICIT NONE
     INTEGER<span class="sign">(</span>HID_T<span class="sign">)</span><span class="sign">,</span> INTENT<span class="sign">(</span>IN<span class="sign">)</span> <span class="sign">:</span><span class="sign">:</span> prp_id <span class="sign">!</span> Property list identifier
-    INTEGER<span class="sign">,</span> INTENT<span class="sign">(</span>OUT<span class="sign">)</span> <span class="sign">:</span><span class="sign">:</span> comm <span class="sign">!</span> buffer to <span class="keyword">return</span> communicator 
+    INTEGER<span class="sign">,</span> INTENT<span class="sign">(</span>OUT<span class="sign">)</span> <span class="sign">:</span><span class="sign">:</span> comm <span class="sign">!</span> buffer to <span class="keyword">return</span> communicator
     LOGICAL<span class="sign">,</span> INTENT<span class="sign">(</span>OUT<span class="sign">)</span> <span class="sign">:</span><span class="sign">:</span> use_gpfs
     INTEGER<span class="sign">,</span> INTENT<span class="sign">(</span>OUT<span class="sign">)</span> <span class="sign">:</span><span class="sign">:</span> hdferr  <span class="sign">!</span> Error code
 </pre>
 
 <hr />
 <a name="H5FDMPIO2fh5pset5fdxpl5fmpio5ff"></a>
-<a name="robo112"></a><h2>h5pset_dxpl_mpio_f</h2>
+<a name="robo228"></a><h2>h5pset_dxpl_mpio_f</h2>
 
-<p>[ <a href="#robo_top_of_doc">Top</a> ] [ <a href="#robo51">H5FDMPIO</a> ] [ <a href="../robo_subroutines.html#robo_top_of_doc">Subroutines</a> ]</p>
+<p>[ <a href="#robo_top_of_doc">Top</a> ] [ <a href="#robo40">H5FDMPIO</a> ] [ <a href="../robo_subroutines.html#robo_top_of_doc">Subroutines</a> ]</p>
 <p class="item_name">NAME</p>
-<pre>  <strong>h5pset_dxpl_mpio_f</strong> 
+<pre>  <strong>h5pset_dxpl_mpio_f</strong>
 </pre>
-<p class="item_name">FUNCTION</p>
-<pre>  Sets data transfer mode. 
+<p class="item_name">PURPOSE</p>
+<pre>  Sets data transfer mode.
 </pre>
 <p class="item_name">INPUTS</p>
-<pre>               prp_id          - data transfer property list identifier
-               data_xfer_mode  - transfer mode
-                                 Possible values are:
-                                 H5FD_MPIO_INDEPENDENT_F
-                                 H5FD_MPIO_COLLECTIVE_F
-</pre>
-<p class="item_name">OUTPUT</p>
-<pre>               hdferr:         - error code            
-                                       Success:  0
-                                       Failure: -1
+<pre>  prp_id         - data transfer property list identifier
+  data_xfer_mode - transfer mode; possible values are:
+                     H5FD_MPIO_INDEPENDENT_F
+                     H5FD_MPIO_COLLECTIVE_F
+ OUTPUTS
+  hdferr        - Returns 0 if successful and -1 if fails
 </pre>
 <p class="item_name">AUTHOR</p>
 <pre>  Elena Pourmal
   November, 2000
 </pre>
 <p class="item_name">SOURCE</p>
-<pre class="source">  SUBROUTINE <strong>h5pset_dxpl_mpio_f</strong><span class="sign">(</span>prp_id<span class="sign">,</span> data_xfer_mode<span class="sign">,</span> hdferr<span class="sign">)</span> 
+<pre class="source">  SUBROUTINE <strong>h5pset_dxpl_mpio_f</strong><span class="sign">(</span>prp_id<span class="sign">,</span> data_xfer_mode<span class="sign">,</span> hdferr<span class="sign">)</span>
     IMPLICIT NONE
     INTEGER<span class="sign">(</span>HID_T<span class="sign">)</span><span class="sign">,</span> INTENT<span class="sign">(</span>IN<span class="sign">)</span> <span class="sign">:</span><span class="sign">:</span> prp_id  <span class="sign">!</span> Property list identifier
     INTEGER<span class="sign">,</span> INTENT<span class="sign">(</span>IN<span class="sign">)</span> <span class="sign">:</span><span class="sign">:</span> data_xfer_mode <span class="sign">!</span> Data transfer mode<span class="sign">.</span> Possible values are<span class="sign">:</span>
@@ -187,32 +173,29 @@
 
 <hr />
 <a name="H5FDMPIO2fh5pset5ffapl5fmpio5ff"></a>
-<a name="robo113"></a><h2>h5pset_fapl_mpio_f</h2>
+<a name="robo229"></a><h2>h5pset_fapl_mpio_f</h2>
 
-<p>[ <a href="#robo_top_of_doc">Top</a> ] [ <a href="#robo51">H5FDMPIO</a> ] [ <a href="../robo_subroutines.html#robo_top_of_doc">Subroutines</a> ]</p>
+<p>[ <a href="#robo_top_of_doc">Top</a> ] [ <a href="#robo40">H5FDMPIO</a> ] [ <a href="../robo_subroutines.html#robo_top_of_doc">Subroutines</a> ]</p>
 <p class="item_name">NAME</p>
-<pre>  <strong>h5pset_fapl_mpio_f</strong> 
+<pre>  <strong>h5pset_fapl_mpio_f</strong>
 </pre>
-<p class="item_name">FUNCTION</p>
-<pre>  Stores MPI IO communicator information to the file 
-  access property list. 
+<p class="item_name">PURPOSE</p>
+<pre>  Stores MPI IO communicator information to the file
+  access property list.
 </pre>
 <p class="item_name">INPUTS</p>
-<pre>               prp_id          - file access property list identifier
-               comm            - MPI-2 communicator
-               info            - MPI-2 info object
-</pre>
-<p class="item_name">OUTPUT</p>
-<pre>               hdferr:         - error code            
-                                       Success:  0
-                                       Failure: -1
+<pre>  prp_id        - file access property list identifier
+  comm          - MPI-2 communicator
+  info          - MPI-2 info object
+ OUTPUTS
+  hdferr        - Returns 0 if successful and -1 if fails
 </pre>
 <p class="item_name">AUTHOR</p>
 <pre>  Elena Pourmal
   November, 2000
 </pre>
 <p class="item_name">SOURCE</p>
-<pre class="source">  SUBROUTINE <strong>h5pset_fapl_mpio_f</strong><span class="sign">(</span>prp_id<span class="sign">,</span> comm<span class="sign">,</span> info<span class="sign">,</span> hdferr<span class="sign">)</span> 
+<pre class="source">  SUBROUTINE <strong>h5pset_fapl_mpio_f</strong><span class="sign">(</span>prp_id<span class="sign">,</span> comm<span class="sign">,</span> info<span class="sign">,</span> hdferr<span class="sign">)</span>
     IMPLICIT NONE
     INTEGER<span class="sign">(</span>HID_T<span class="sign">)</span><span class="sign">,</span> INTENT<span class="sign">(</span>IN<span class="sign">)</span> <span class="sign">:</span><span class="sign">:</span> prp_id <span class="sign">!</span> Property list identifier
     INTEGER<span class="sign">,</span> INTENT<span class="sign">(</span>IN<span class="sign">)</span> <span class="sign">:</span><span class="sign">:</span> comm <span class="sign">!</span> MPI communicator to be used <span class="keyword">for</span> file open
@@ -224,32 +207,29 @@
 
 <hr />
 <a name="H5FDMPIO2fh5pset5ffapl5fmpiposix5ff"></a>
-<a name="robo114"></a><h2>h5pset_fapl_mpiposix_f</h2>
+<a name="robo230"></a><h2>h5pset_fapl_mpiposix_f</h2>
 
-<p>[ <a href="#robo_top_of_doc">Top</a> ] [ <a href="#robo51">H5FDMPIO</a> ] [ <a href="../robo_subroutines.html#robo_top_of_doc">Subroutines</a> ]</p>
+<p>[ <a href="#robo_top_of_doc">Top</a> ] [ <a href="#robo40">H5FDMPIO</a> ] [ <a href="../robo_subroutines.html#robo_top_of_doc">Subroutines</a> ]</p>
 <p class="item_name">NAME</p>
-<pre>  <strong>h5pset_fapl_mpiposix_f</strong> 
+<pre>  <strong>h5pset_fapl_mpiposix_f</strong>
 </pre>
-<p class="item_name">FUNCTION</p>
-<pre>  Stores MPI IO communicator information to the file 
-  access property list. 
+<p class="item_name">PURPOSE</p>
+<pre>  Stores MPI IO communicator information to the file
+  access property list.
 </pre>
 <p class="item_name">INPUTS</p>
-<pre>               prp_id          - file access property list identifier
-               comm            - MPI-2 communicator
-               use_gpfs        - logical flag to use the GPFS hints
-</pre>
-<p class="item_name">OUTPUT</p>
-<pre>               hdferr:         - error code            
-                                       Success:  0
-                                       Failure: -1 
+<pre>  prp_id        - file access property list identifier
+  comm          - MPI-2 communicator
+  use_gpfs      - logical flag to use the GPFS hints
+ OUTPUTS
+  hdferr        - Returns 0 if successful and -1 if fails
 </pre>
 <p class="item_name">AUTHOR</p>
 <pre>  Elena Pourmal
   May 6, 2003
 </pre>
 <p class="item_name">SOURCE</p>
-<pre class="source">  SUBROUTINE <strong>h5pset_fapl_mpiposix_f</strong><span class="sign">(</span>prp_id<span class="sign">,</span> comm<span class="sign">,</span> use_gpfs<span class="sign">,</span> hdferr<span class="sign">)</span> 
+<pre class="source">  SUBROUTINE <strong>h5pset_fapl_mpiposix_f</strong><span class="sign">(</span>prp_id<span class="sign">,</span> comm<span class="sign">,</span> use_gpfs<span class="sign">,</span> hdferr<span class="sign">)</span>
     IMPLICIT NONE
     INTEGER<span class="sign">(</span>HID_T<span class="sign">)</span><span class="sign">,</span> INTENT<span class="sign">(</span>IN<span class="sign">)</span> <span class="sign">:</span><span class="sign">:</span> prp_id <span class="sign">!</span> Property list identifier
     INTEGER<span class="sign">,</span> INTENT<span class="sign">(</span>IN<span class="sign">)</span> <span class="sign">:</span><span class="sign">:</span> comm <span class="sign">!</span> MPI communicator to be used <span class="keyword">for</span> file open
@@ -260,7 +240,7 @@
 
 </div> <!-- content -->
 <div id="footer">
-<p>Generated from ./src/H5FDmpioff.f90 on Wed Oct 22 2008 15:34:43
+<p>Generated from ./src/H5FDmpioff.f90 on Tue Sep 14 2010 23:17:29
 </p>
 </div> <!-- footer -->
 </body>

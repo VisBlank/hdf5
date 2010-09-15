@@ -19,35 +19,34 @@
 <a class="menuitem" href="../masterindex.html#top">Index</a>
 <a class="menuitem" href="../robo_functions.html#top">Functions</a>
 <a class="menuitem" href="../robo_modules.html#top">Modules</a>
-<a class="menuitem" href="../robo_programs.html#top">Programs</a>
+<a class="menuitem" href="../robo_procedures.html#top">Procedures</a>
 <a class="menuitem" href="../robo_subroutines.html#top">Subroutines</a>
 </div> <!-- navigation -->
 <div id="content">
 <hr />
 <a name="ROBODoc2fH5GLOBAL"></a>
-<a name="robo53"></a><h2>H5GLOBAL</h2>
+<a name="robo45"></a><h2>H5GLOBAL</h2>
 
 <p>[ <a href="#robo_top_of_doc">Top</a> ] [ <a href="../robo_modules.html#robo_top_of_doc">Modules</a> ]</p>
 <p class="item_name">NAME</p>
-<pre>   MODULE <strong>H5GLOBAL</strong>
+<pre>  MODULE <strong>H5GLOBAL</strong>
 </pre>
 <p class="item_name">FILE</p>
-<pre>   src/fortran/<a href="#robo_top_of_doc">H5f90global.f90</a>
+<pre>  src/fortran/<a href="#robo_top_of_doc">H5f90global.f90</a>
 </pre>
-<p class="item_name">FUNCTION</p>
-<pre>   This module is used to pass C stubs for H5 Fortran APIs. The C stubs are 
-   packed into arrays in <a href="./H5_f_c.html#robo_top_of_doc">H5_f.c</a> and these arrays are then passed to Fortran.
-   This module then uses EQUIVALENCE to assign elements of the arrays to
-   Fortran equivalent C stubs.
+<p class="item_name">PURPOSE</p>
+<pre>  This module is used to pass C stubs for H5 Fortran APIs. The C stubs are
+  packed into arrays in H5_f.c and these arrays are then passed to Fortran.
+  This module then uses EQUIVALENCE to assign elements of the arrays to
+  Fortran equivalent C stubs.
 </pre>
 <p class="item_name">NOTES</p>
-<pre>   The size of the C arrays in <a href="./H5_f_c.html#robo_top_of_doc">H5_f.c</a> has to match the values of the variables 
-   declared as PARAMETER, hence if the size of an array in <a href="./H5_f_c.html#robo_top_of_doc">H5_f.c</a> is changed
-   then the PARAMETER of that corresponding array in Fortran must also be changed.
+<pre>  The size of the C arrays in H5_f.c has to match the values of the variables
+  declared as PARAMETER, hence if the size of an array in H5_f.c is changed
+  then the PARAMETER of that corresponding array in Fortran must also be changed.
 </pre>
 <p class="item_name">USES</p>
-<pre>   H5FORTRAN_TYPES - This module is generated at run time. See 
-                     H5fortran_types.f90 for further informaton.
+<pre>  H5FORTRAN_TYPES       - This module is generated at run time. See
 </pre>
 <p class="item_name">AUTHOR</p>
 <pre>  Elena Pourmal
@@ -55,7 +54,7 @@
 
 </div> <!-- content -->
 <div id="footer">
-<p>Generated from ./src/H5f90global.f90 on Wed Oct 22 2008 15:34:43
+<p>Generated from ./src/H5f90global.f90 on Tue Sep 14 2010 23:17:29
 </p>
 </div> <!-- footer -->
 </body>

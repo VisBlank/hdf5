@@ -19,41 +19,41 @@
 <a class="menuitem" href="../masterindex.html#top">Index</a>
 <a class="menuitem" href="../robo_functions.html#top">Functions</a>
 <a class="menuitem" href="../robo_modules.html#top">Modules</a>
-<a class="menuitem" href="../robo_programs.html#top">Programs</a>
+<a class="menuitem" href="../robo_procedures.html#top">Procedures</a>
 <a class="menuitem" href="../robo_subroutines.html#top">Subroutines</a>
 </div> <!-- navigation -->
 <div id="content">
 <hr />
 <a name="ROBODoc2fH55fDBLE5fINTERFACE28Include29"></a>
-<a name="robo42"></a><h2>H5_DBLE_INTERFACE(Include)</h2>
+<a name="robo25"></a><h2>H5_DBLE_INTERFACE(Include)</h2>
 
 <p>[ <a href="#robo_top_of_doc">Top</a> ] [ <a href="../robo_modules.html#robo_top_of_doc">Modules</a> ]</p>
 <p class="item_name">NAME</p>
-<pre>   MODULE H5_DBLE_INTERFACE
+<pre>  MODULE H5_DBLE_INTERFACE
 </pre>
 <p class="item_name">FILE</p>
-<pre>   fortran/src/<a href="#robo_top_of_doc">H5_DBLE_InterfaceInclude.f90</a>
+<pre>  fortran/src/<a href="#robo_top_of_doc">H5_DBLE_InterfaceInclude.f90</a>
 </pre>
-<p class="item_name">FUNCTION</p>
-<pre>   This module is used for when the default REAL is not of the type DOUBLE PRECISION.
-   We only do not include the double precision interfaces if the defaut REAL is
-   DOUBLE PRECISION since this would lead to a non-unique conflict with the
-   generic interfaces declared as REAL. Otherwise it is okay to include the interfaces.
+<p class="item_name">PURPOSE</p>
+<pre>  This module is used for when the default REAL is not of the type DOUBLE PRECISION.
+  We only do not include the double precision interfaces if the defaut REAL is
+  DOUBLE PRECISION since this would lead to a non-unique conflict with the
+  generic interfaces declared as REAL. Otherwise it is okay to include the interfaces.
 </pre>
 <p class="item_name">NOTES</p>
-<pre>   (1) This module contains all the DOUBLE PRECISION interfaces and corresponding subroutines 
-       from the HDF function catagory H5A, H5D and H5P.
+<pre>  (1) This module contains all the DOUBLE PRECISION interfaces and corresponding subroutines
+  from the HDF function catagory <a href="./H5Aff_f90.html#robo26">H5A</a>, <a href="./H5Dff_f90.html#robo30">H5D</a> and H5P.
 
-   (2)
-                           *** IMPORTANT ***
-       If you add a new H5A, H5D, H5P function you must add the function name to the 
-       Windows dll file 'hdf5_fortrandll.def' in the ROBODoc directory.
-       This is needed for Windows based operating systems.
+  (2)
+                         *** IMPORTANT ***
+  If you add a new <a href="./H5Aff_f90.html#robo26">H5A</a>, <a href="./H5Dff_f90.html#robo30">H5D</a>, H5P function you must add the function name to the
+  Windows dll file 'hdf5_fortrandll.def' in the fortran/src directory.
+  This is needed for Windows based operating systems.
 </pre>
 
 </div> <!-- content -->
 <div id="footer">
-<p>Generated from ./src/H5_DBLE_InterfaceInclude.f90 on Wed Oct 22 2008 15:34:43
+<p>Generated from ./src/H5_DBLE_InterfaceInclude.f90 on Tue Sep 14 2010 23:17:29
 </p>
 </div> <!-- footer -->
 </body>
