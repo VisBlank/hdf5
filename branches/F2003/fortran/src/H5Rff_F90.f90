@@ -1,10 +1,10 @@
-!****h* ROBODoc/H5R (DEPRECIATED)
+!****h* ROBODoc/H5R (F90)
 !
 ! NAME
 !  MODULE H5R_PROVISIONAL
 !
 ! FILE
-!  fortran/src/H5Rff_DEPRECIATED.f90
+!  fortran/src/H5Rff_F90.f90
 !
 ! PURPOSE
 !  This file contains Fortran 90 interfaces for H5R functions. It contains
@@ -74,7 +74,7 @@ MODULE H5R_PROVISIONAL
 
 CONTAINS
 
-!****s* H5R (DEPRECIATED)/h5rcreate_object_f
+!****s* H5R (F90)/h5rcreate_object_f
 !
 ! NAME
 !  h5rcreate_object_f
@@ -135,7 +135,7 @@ CONTAINS
 
   END SUBROUTINE h5rcreate_object_f
 
-!****s* H5R (DEPRECIATED)/h5rcreate_region_f
+!****s* H5R (F90)/h5rcreate_region_f
 !
 ! NAME
 !  h5rcreate_region_f
@@ -200,7 +200,7 @@ CONTAINS
     ref%ref = ref_f
 
   END SUBROUTINE h5rcreate_region_f
-!****s* H5R (DEPRECIATED)/h5rdereference_object_f
+!****s* H5R (F90)/h5rdereference_object_f
 !
 ! NAME
 !  h5rdereference_object_f
@@ -257,7 +257,7 @@ CONTAINS
     hdferr = h5rdereference_object_c(dset_id, ref_f, obj_id )
 
   END SUBROUTINE h5rdereference_object_f
-!****s* H5R (DEPRECIATED)/h5rdereference_region_f
+!****s* H5R (F90)/h5rdereference_region_f
 !
 ! NAME
 !  h5rdereference_region_f
@@ -314,7 +314,7 @@ CONTAINS
     hdferr = h5rdereference_region_c(dset_id, ref_f, obj_id )
 
   END SUBROUTINE h5rdereference_region_f
-!****s* H5R (DEPRECIATED)/h5rget_name_object_f
+!****s* H5R (F90)/h5rget_name_object_f
 !
 ! NAME
 !  h5rget_name_object_f
@@ -381,7 +381,7 @@ CONTAINS
 
   END SUBROUTINE h5rget_name_object_f
 
-!****s* H5R (DEPRECIATED)/h5rget_name_region_f
+!****s* H5R (F90)/h5rget_name_region_f
 !
 ! NAME
 !  h5rget_name_region_f

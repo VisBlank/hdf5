@@ -9,7 +9,7 @@
 !  USES
 !  H5LIB_PROVISIONAL - This module provides helper functions for Fortran 2003
 !                      only features. If Fortran 2003 functions are enabled then
-!                      H5_ff_F03.f90 is compiled, else H5_ff_DEPRECIATED.f90,
+!                      H5_ff_F03.f90 is compiled, else H5_ff_F90.f90,
 !                      which is just a place holder blank module, is compiled.
 ! COPYRIGHT
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

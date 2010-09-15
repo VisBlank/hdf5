@@ -312,7 +312,7 @@ CONTAINS
 
 
 !
-!****s* H5O/h5oget_info_by_name_f
+!!$!****s* H5O/h5oget_info_by_name_f
 !
 ! NAME
 !  h5oget_info_by_name_f

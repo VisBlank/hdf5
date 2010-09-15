@@ -1,4 +1,4 @@
-!****h* ROBODoc/H5D (DEPRECIATED)
+!****h* ROBODoc/H5D (F90)
 !
 ! NAME
 !

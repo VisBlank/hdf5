@@ -1,12 +1,12 @@
-!****h* ROBODoc/H5O (DEPRECIATED)
+!****h* ROBODoc/H5T (F90)
 !
 ! NAME
-!  MODULE H5O_PROVISIONAL
+!  MODULE H5T_PROVISIONAL
 !
 ! PURPOSE
-!  This file contains Fortran 90 interfaces for H5O functions. It contains
-!  the same functions as H5Off_F03.f90 but excludes the Fortran 2003 functions
-!  and the interface listings. This file will be compiled instead of H5Off_F03.f90
+!  This file contains Fortran 90 interfaces for H5T functions. It contains
+!  the same functions as H5Tff_F03.f90 but excludes the Fortran 2003 functions
+!  and the interface listings. This file will be compiled instead of H5Tff_F03.f90
 !  if Fortran 2003 functions are not enabled.
 !
 ! NOTE
@@ -34,6 +34,6 @@
 !  This is needed for Windows based operating systems.
 !*****
 
-MODULE H5O_PROVISIONAL
+MODULE H5T_PROVISIONAL
 
-END MODULE H5O_PROVISIONAL
+END MODULE H5T_PROVISIONAL

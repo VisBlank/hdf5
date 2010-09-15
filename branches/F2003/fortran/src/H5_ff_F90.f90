@@ -1,10 +1,10 @@
-!****h* ROBODoc/H5LIB_PROVISIONAL (DEPRECIATED)
+!****h* ROBODoc/H5LIB_PROVISIONAL (F90)
 !
 ! NAME
 !  MODULE H5LIB_PROVISIONAL
 !
 ! FILE
-!  fortran/src/H5_ff_DEPRECIATED.f90
+!  fortran/src/H5_ff_F90.f90
 !
 ! PURPOSE
 !  This file is a dummy module for when Fortran 2003 features are not enabled.

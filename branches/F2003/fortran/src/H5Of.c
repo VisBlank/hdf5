@@ -215,7 +215,7 @@ nh5oopen_by_addr_c (hid_t_f *loc_id, haddr_t_f *addr, hid_t_f *obj_id)
   return ret_value;
 }
 
-/****if* H5Of/H5Oget_info_by_name_c
+/* ***if* H5Of/H5Oget_info_by_name_c
  * NAME
  *  H5Oget_info_by_name_c
  * PURPOSE

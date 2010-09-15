@@ -1,4 +1,4 @@
-!****h* ROBODoc/H5L (DEPRECIATED)
+!****h* ROBODoc/H5L (F90)
 !
 ! NAME
 !  MODULE H5L_PROVISIONAL

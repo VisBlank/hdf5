@@ -54,7 +54,7 @@ endif
 if FORTRAN_2003_CONDITIONAL_F
    F_STATUS = _F03
 else
-   F_STATUS = _DEPRECIATED
+   F_STATUS = _F90
 endif
 
 #   Condition for including/excluding the DBLE interfaces for when the 

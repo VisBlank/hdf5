@@ -7,9 +7,9 @@
 !
 ! PURPOSE
 !  This file contains Fortran 90 and Fortran 2003 interfaces for H5A functions.
-!  It contains the same functions as H5Aff_DEPRECIATED.f90 but includes the
+!  It contains the same functions as H5Aff_F90.f90 but includes the
 !  Fortran 2003 functions and the interface listings. This file will be compiled
-!  instead of H5Aff_DEPRECIATED.f90 if Fortran 2003 functions are enabled.
+!  instead of H5Aff_F90.f90 if Fortran 2003 functions are enabled.
 !
 ! COPYRIGHT
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

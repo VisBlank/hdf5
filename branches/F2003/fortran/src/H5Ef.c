@@ -381,7 +381,7 @@ nh5eget_auto_c(hid_t_f *estack_id, H5E_auto2_t *func, void **client_data, int_f 
   int *i;
 
 /*    status = H5Eget_auto3(client_data); */
-/*    i = (int*)client_data; */
+/*     i = (int*)client_data; */
 
 /*    printf(" Buffer In (C3) = %d \n", *i); */
   
@@ -393,9 +393,9 @@ nh5eget_auto_c(hid_t_f *estack_id, H5E_auto2_t *func, void **client_data, int_f 
 
 /*   status = H5Eget_auto2((hid_t)*estack_id, &func_c, client_data); */
 
-/*     i = (int*)*client_data; */
+      i = (int*)*client_data;
 
-/*    *i = 1000; */
+    *i = 1000;
 
 
 /*   i = (int*)client_data_c; */
@@ -404,16 +404,16 @@ nh5eget_auto_c(hid_t_f *estack_id, H5E_auto2_t *func, void **client_data, int_f 
 /*      *client_data = client_data_c; */
 /*    *data_c = client_data_c; */
 
-/*    printf("aa %d \n",*((int*)client_data_c));  */
-   printf("bb %d \n",**((int**)client_data));
+    printf("aa %d \n",*((int*)client_data_c));
+/*    printf("bb %d \n",**((int**)client_data)); */
 /*   printf("cc %d \n",**((int**)data_c)); */
   
 /*   printf("a %p \n",client_data_c); */
-   printf("b %p \n",*client_data);
+/*    printf("b %p \n",*client_data); */
 /*   printf("c %p \n",*data_c); */
   
 /*    i = (int*)client_data_c; */
-/*    **client_data = client_data_c; */
+    client_data = client_data_c;
 
 /*    *i = 200; */
 

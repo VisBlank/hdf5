@@ -1,10 +1,10 @@
-!****h* ROBODoc/H5A (DEPRECIATED)
+!****h* ROBODoc/H5A (F90)
 !
 ! NAME
 !  H5A_PROVISIONAL
 !
 ! FILE
-!  fortran/src/H5Aff_DEPRECIATED.f90
+!  fortran/src/H5Aff_F90.f90
 !
 ! PURPOSE
 !

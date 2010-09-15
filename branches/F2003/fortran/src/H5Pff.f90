@@ -1,4 +1,4 @@
-!****h* ROBODoc/H5P (DEPRECIATED)
+!****h* ROBODoc/H5P (F90)
 !
 ! NAME
 !  H5P_PROVISIONAL

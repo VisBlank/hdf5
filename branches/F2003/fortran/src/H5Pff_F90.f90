@@ -1,4 +1,4 @@
-!****h* ROBODoc/H5P (DEPRECIATED)
+!****h* ROBODoc/H5P (_F90)
 !
 ! NAME
 !  H5P_PROVISIONAL
@@ -75,7 +75,7 @@ MODULE H5P_PROVISIONAL
 
 CONTAINS
 !
-!****s* H5P (DEPRECIATED)/h5pset(get)fill_value_f
+!****s* H5P (F90)/h5pset(get)fill_value_f
 !
 ! NAME
 !  h5pset(get)fill_value_f
@@ -313,7 +313,7 @@ CONTAINS
     hdferr = h5pget_fill_valuec_c(prp_id, type_id, fillvalue)
   END SUBROUTINE h5pget_fill_value_char
 !
-!****s* H5P (DEPRECIATED)/h5pset_integer
+!****s* H5P (F90)/h5pset_integer
 !
 ! NAME
 !  h5pset_integer
@@ -363,7 +363,7 @@ CONTAINS
   END SUBROUTINE h5pset_integer
 
 !
-!****s* H5P (DEPRECIATED)/h5pset_real
+!****s* H5P (F90)/h5pset_real
 !
 ! NAME
 !  h5pset_real
@@ -412,7 +412,7 @@ CONTAINS
   END SUBROUTINE h5pset_real
 
 !
-!****s* H5P (DEPRECIATED)/h5pset_double
+!****s* H5P (F90)/h5pset_double
 !
 ! NAME
 !  h5pset_double
@@ -462,7 +462,7 @@ CONTAINS
     hdferr = h5pset_double_c(prp_id, name , name_len, value)
   END SUBROUTINE h5pset_double
 
-!****s* H5P (DEPRECIATED)/h5pset_char
+!****s* H5P (F90)/h5pset_char
 !
 ! NAME
 !  h5pset_char
@@ -516,7 +516,7 @@ CONTAINS
     hdferr = h5psetc_c(prp_id, name , name_len, value, value_len)
   END SUBROUTINE h5pset_char
 
-!****s* H5P (DEPRECIATED)/h5pget_integer
+!****s* H5P (F90)/h5pget_integer
 !
 ! NAME
 !  h5pget_integer
@@ -565,7 +565,7 @@ CONTAINS
   END SUBROUTINE h5pget_integer
 
 !
-!****s* H5P (DEPRECIATED)/h5pget_real
+!****s* H5P (F90)/h5pget_real
 !
 ! NAME
 !  h5pget_real
@@ -612,7 +612,7 @@ CONTAINS
     hdferr = h5pget_real_c(prp_id, name , name_len, value)
   END SUBROUTINE h5pget_real
 
-!****s* H5P (DEPRECIATED)/h5pget_double
+!****s* H5P (F90)/h5pget_double
 !
 ! NAME
 !  h5pget_double
@@ -661,7 +661,7 @@ CONTAINS
   END SUBROUTINE h5pget_double
 
 !
-!****s* H5P (DEPRECIATED)/h5pget_char
+!****s* H5P (F90)/h5pget_char
 !
 ! NAME
 !  h5pget_char
@@ -715,7 +715,7 @@ CONTAINS
   END SUBROUTINE h5pget_char
 
 !
-!****s* H5P (DEPRECIATED)/h5pregister_integer
+!****s* H5P (F90)/h5pregister_integer
 !
 ! NAME
 !  h5pregister_integer
@@ -769,7 +769,7 @@ CONTAINS
     hdferr = h5pregister_integer_c(class, name , name_len, size, value)
   END SUBROUTINE h5pregister_integer
 
-!****s* H5P (DEPRECIATED)/h5pregister_real
+!****s* H5P (F90)/h5pregister_real
 !
 ! NAME
 !
@@ -823,7 +823,7 @@ CONTAINS
   END SUBROUTINE h5pregister_real
 
 !
-!****s* H5P (DEPRECIATED)/h5pregister_double
+!****s* H5P (F90)/h5pregister_double
 !
 ! NAME
 !  h5pregister_double
@@ -877,7 +877,7 @@ CONTAINS
   END SUBROUTINE h5pregister_double
 
 !
-!****s* H5P (DEPRECIATED)/h5pregister_char
+!****s* H5P (F90)/h5pregister_char
 !
 ! NAME
 !  h5pregister_char
@@ -935,7 +935,7 @@ CONTAINS
   END SUBROUTINE h5pregister_char
 
 !
-!****s* H5P (DEPRECIATED)/h5pinsert_integer
+!****s* H5P (F90)/h5pinsert_integer
 !
 ! NAME
 !  h5pinsert_integer
@@ -986,7 +986,7 @@ CONTAINS
   END SUBROUTINE h5pinsert_integer
 
 !
-!****s* H5P (DEPRECIATED)/h5pinsert_real
+!****s* H5P (F90)/h5pinsert_real
 !
 ! NAME
 !  h5pinsert_real
@@ -1037,7 +1037,7 @@ CONTAINS
     hdferr = h5pinsert_real_c(plist, name , name_len, size, value)
   END SUBROUTINE h5pinsert_real
 
-!****s* H5P (DEPRECIATED)/h5pinsert_double
+!****s* H5P (F90)/h5pinsert_double
 !
 ! NAME
 !
@@ -1090,7 +1090,7 @@ CONTAINS
   END SUBROUTINE h5pinsert_double
 
 !
-!****s* H5P (DEPRECIATED)/h5pinsert_char
+!****s* H5P (F90)/h5pinsert_char
 !
 ! NAME
 !  h5pinsert_char
@@ -1146,7 +1146,7 @@ SUBROUTINE h5pinsert_char(plist, name, size, value, hdferr)
   END SUBROUTINE h5pinsert_char
 
 !
-!****s* H5P (DEPRECIATED)/h5pcreate_class_f
+!****s* H5P (F90)/h5pcreate_class_f
 !
 ! NAME
 !  h5pcreate_class_f

@@ -6,7 +6,7 @@
 ! PURPOSE
 !  This file contains helper functions for Fortran 2003 features and is
 !  only compiled when Fortran 2003 features are enabled, otherwise
-!  the file H5_ff_DEPRECIATED.f90 is compiled.
+!  the file H5_ff_F90.f90 is compiled.
 !
 ! COPYRIGHT
 !  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
