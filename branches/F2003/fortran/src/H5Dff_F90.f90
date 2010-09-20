@@ -132,15 +132,16 @@ CONTAINS
 !  dset_id 	 - dataset identifier
 !  mem_type_id 	 - memory type identifier
 !  dims 	 - 1-dim array of size 7; dims(k) has the size
-!   	 - of k-th dimension of the buf array
+!   	           of k-th dimension of the buf array
 ! OUTPUTS
-!  buf 	 - buffer to read data in
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  buf 	   - buffer to read data in
+!  hdferr: - error code
+!             Success:  0
+!             Failure: -1
+!
 ! OPTIONAL PARAMETERS
-!  mem_space_id 	 - memory dataspace identifier
-!  file_space_id 	 - file dataspace identifier
+!  mem_space_id  - memory dataspace identifier
+!  file_space_id - file dataspace identifier
 !  xfer_prp 	 - trasfer property list identifier
 !
 ! AUTHOR
@@ -166,18 +167,15 @@ CONTAINS
   SUBROUTINE h5dread_reference_obj(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     TYPE(hobj_ref_t_f), INTENT(INOUT) , &
          DIMENSION(dims(1)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T)  :: mem_space_id_default
@@ -228,18 +226,15 @@ CONTAINS
   SUBROUTINE h5dread_reference_dsetreg(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     TYPE(hdset_reg_ref_t_f), INTENT(INOUT), &
          DIMENSION(dims(1)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T)  :: mem_space_id_default
@@ -293,17 +288,14 @@ CONTAINS
   SUBROUTINE h5dread_integer_scalar(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(INOUT) :: buf ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T)  :: mem_space_id_default
@@ -344,17 +336,14 @@ CONTAINS
   SUBROUTINE h5dread_integer_1(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(INOUT), DIMENSION(dims(1)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T)  :: mem_space_id_default
@@ -395,17 +384,14 @@ CONTAINS
   SUBROUTINE h5dread_integer_2(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(INOUT), DIMENSION(dims(1),dims(2)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T)  :: mem_space_id_default
@@ -448,18 +434,15 @@ CONTAINS
   SUBROUTINE h5dread_integer_3(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T)  :: mem_space_id_default
@@ -487,7 +470,6 @@ CONTAINS
        END FUNCTION h5dread_integer_3_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -505,17 +487,14 @@ CONTAINS
   SUBROUTINE h5dread_integer_4(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(INOUT), DIMENSION(dims(1),dims(2),dims(3),dims(4)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T)  :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -542,7 +521,6 @@ CONTAINS
        END FUNCTION h5dread_integer_4_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -560,17 +538,14 @@ CONTAINS
   SUBROUTINE h5dread_integer_5(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(INOUT), DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T)  :: mem_space_id_default
@@ -599,7 +574,6 @@ CONTAINS
        END FUNCTION h5dread_integer_5_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -617,18 +591,15 @@ CONTAINS
   SUBROUTINE h5dread_integer_6(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T)  :: mem_space_id_default
@@ -655,7 +626,6 @@ CONTAINS
        END FUNCTION h5dread_integer_6_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -673,18 +643,15 @@ CONTAINS
   SUBROUTINE h5dread_integer_7(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T)  :: mem_space_id_default
@@ -727,17 +694,14 @@ CONTAINS
   SUBROUTINE h5dread_char_scalar(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(INOUT) :: buf ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -763,7 +727,6 @@ CONTAINS
        END FUNCTION h5dreadc_s_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -780,18 +743,15 @@ CONTAINS
   SUBROUTINE h5dread_char_1(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(INOUT), &
          DIMENSION(dims(1)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -818,7 +778,6 @@ CONTAINS
        END FUNCTION h5dreadc_1_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -835,18 +794,15 @@ CONTAINS
   SUBROUTINE h5dread_char_2(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(INOUT), &
          DIMENSION(dims(1),dims(2)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -874,7 +830,6 @@ CONTAINS
        END FUNCTION h5dreadc_2_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -891,18 +846,15 @@ CONTAINS
   SUBROUTINE h5dread_char_3(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -929,7 +881,6 @@ CONTAINS
        END FUNCTION h5dreadc_3_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -946,18 +897,15 @@ CONTAINS
   SUBROUTINE h5dread_char_4(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -984,7 +932,6 @@ CONTAINS
        END FUNCTION h5dreadc_4_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -1001,18 +948,15 @@ CONTAINS
   SUBROUTINE h5dread_char_5(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -1039,7 +983,6 @@ CONTAINS
        END FUNCTION h5dreadc_5_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -1056,18 +999,15 @@ CONTAINS
   SUBROUTINE h5dread_char_6(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -1094,7 +1034,6 @@ CONTAINS
        END FUNCTION h5dreadc_6_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -1111,18 +1050,15 @@ CONTAINS
   SUBROUTINE h5dread_char_7(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -1165,17 +1101,14 @@ CONTAINS
   SUBROUTINE h5dread_real_scalar(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(INOUT) :: buf ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -1199,7 +1132,6 @@ CONTAINS
        END FUNCTION h5dread_real_s_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -1216,18 +1148,15 @@ CONTAINS
   SUBROUTINE h5dread_real_1(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(INOUT), &
          DIMENSION(dims(1)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -1255,7 +1184,6 @@ CONTAINS
        END FUNCTION h5dread_real_1_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -1272,18 +1200,15 @@ CONTAINS
   SUBROUTINE h5dread_real_2(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -1308,7 +1233,6 @@ CONTAINS
        END FUNCTION h5dread_real_2_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -1325,18 +1249,15 @@ CONTAINS
   SUBROUTINE h5dread_real_3(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -1361,7 +1282,6 @@ CONTAINS
        END FUNCTION h5dread_real_3_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -1378,18 +1298,15 @@ CONTAINS
   SUBROUTINE h5dread_real_4(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3), dims(4)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -1414,7 +1331,6 @@ CONTAINS
        END FUNCTION h5dread_real_4_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -1431,18 +1347,15 @@ CONTAINS
   SUBROUTINE h5dread_real_5(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -1467,7 +1380,6 @@ CONTAINS
        END FUNCTION h5dread_real_5_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -1484,18 +1396,15 @@ CONTAINS
   SUBROUTINE h5dread_real_6(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -1520,7 +1429,6 @@ CONTAINS
        END FUNCTION h5dread_real_6_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -1537,18 +1445,15 @@ CONTAINS
   SUBROUTINE h5dread_real_7(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -1590,17 +1495,14 @@ CONTAINS
   SUBROUTINE h5dwrite_reference_obj(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), DIMENSION(*), INTENT(IN) :: dims ! size of the bufffer buf
     TYPE(hobj_ref_t_f), DIMENSION(dims(1)), INTENT(IN) :: buf ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T)  :: mem_space_id_default
@@ -1652,17 +1554,14 @@ CONTAINS
   SUBROUTINE h5dwrite_reference_dsetreg(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), DIMENSION(*), INTENT(IN) :: dims ! size of the bufffer buf
     TYPE(hdset_reg_ref_t_f), DIMENSION(dims(1)), INTENT(IN) :: buf ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T)  :: mem_space_id_default
@@ -1687,7 +1586,6 @@ CONTAINS
          INTEGER(HSIZE_T), DIMENSION(*) ::  dims
        END FUNCTION h5dwrite_ref_reg_c
     END INTERFACE
-
 
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
@@ -1717,17 +1615,14 @@ CONTAINS
   SUBROUTINE h5dwrite_integer_scalar(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER, INTENT(IN) :: buf ! Data buffer
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T)  :: mem_space_id_default
@@ -1752,7 +1647,6 @@ CONTAINS
        END FUNCTION h5dwrite_integer_s_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -1769,18 +1663,15 @@ CONTAINS
   SUBROUTINE h5dwrite_integer_1(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(IN), &
          DIMENSION(dims(1)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T)  :: mem_space_id_default
@@ -1806,7 +1697,6 @@ CONTAINS
        END FUNCTION h5dwrite_integer_1_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -1823,18 +1713,15 @@ CONTAINS
   SUBROUTINE h5dwrite_integer_2(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(IN), &
          DIMENSION(dims(1),dims(2)) :: buf   ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T)  :: mem_space_id_default
@@ -1860,7 +1747,6 @@ CONTAINS
        END FUNCTION h5dwrite_integer_2_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -1877,18 +1763,15 @@ CONTAINS
   SUBROUTINE h5dwrite_integer_3(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T)  :: mem_space_id_default
@@ -1914,7 +1797,6 @@ CONTAINS
        END FUNCTION h5dwrite_integer_3_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -1932,18 +1814,15 @@ CONTAINS
   SUBROUTINE h5dwrite_integer_4(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T)  :: mem_space_id_default
@@ -1969,7 +1848,6 @@ CONTAINS
        END FUNCTION h5dwrite_integer_4_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -1986,18 +1864,15 @@ CONTAINS
   SUBROUTINE h5dwrite_integer_5(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T)  :: mem_space_id_default
@@ -2023,7 +1898,6 @@ CONTAINS
        END FUNCTION h5dwrite_integer_5_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -2042,18 +1916,15 @@ CONTAINS
   SUBROUTINE h5dwrite_integer_6(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T)  :: mem_space_id_default
@@ -2079,7 +1950,6 @@ CONTAINS
        END FUNCTION h5dwrite_integer_6_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -2097,18 +1967,15 @@ CONTAINS
   SUBROUTINE h5dwrite_integer_7(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T)  :: mem_space_id_default
@@ -2152,17 +2019,14 @@ CONTAINS
   SUBROUTINE h5dwrite_char_scalar(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(IN) :: buf ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2188,7 +2052,6 @@ CONTAINS
        END FUNCTION h5dwritec_s_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -2205,18 +2068,15 @@ CONTAINS
   SUBROUTINE h5dwrite_char_1(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(IN), &
          DIMENSION(dims(1)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2243,7 +2103,6 @@ CONTAINS
        END FUNCTION h5dwritec_1_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -2260,18 +2119,15 @@ CONTAINS
   SUBROUTINE h5dwrite_char_2(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(IN), &
          DIMENSION(dims(1),dims(2)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2298,7 +2154,6 @@ CONTAINS
        END FUNCTION h5dwritec_2_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -2315,18 +2170,15 @@ CONTAINS
   SUBROUTINE h5dwrite_char_3(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2353,7 +2205,6 @@ CONTAINS
        END FUNCTION h5dwritec_3_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -2370,18 +2221,15 @@ CONTAINS
   SUBROUTINE h5dwrite_char_4(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2408,7 +2256,6 @@ CONTAINS
        END FUNCTION h5dwritec_4_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -2425,18 +2272,15 @@ CONTAINS
   SUBROUTINE h5dwrite_char_5(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2463,7 +2307,6 @@ CONTAINS
        END FUNCTION h5dwritec_5_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -2480,18 +2323,15 @@ CONTAINS
   SUBROUTINE h5dwrite_char_6(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2518,7 +2358,6 @@ CONTAINS
        END FUNCTION h5dwritec_6_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -2535,18 +2374,15 @@ CONTAINS
   SUBROUTINE h5dwrite_char_7(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2589,17 +2425,14 @@ CONTAINS
   SUBROUTINE h5dwrite_real_scalar(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(IN) :: buf ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -2623,7 +2456,6 @@ CONTAINS
        END FUNCTION h5dwrite_real_s_c
     END INTERFACE
 
-
     xfer_prp_default  = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -2639,18 +2471,15 @@ CONTAINS
   SUBROUTINE h5dwrite_real_1(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(IN), &
          DIMENSION(dims(1)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2676,7 +2505,6 @@ CONTAINS
        END FUNCTION h5dwrite_real_1_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -2693,18 +2521,15 @@ CONTAINS
   SUBROUTINE h5dwrite_real_2(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(IN), &
          DIMENSION(dims(1),dims(2)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2730,7 +2555,6 @@ CONTAINS
        END FUNCTION h5dwrite_real_2_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -2747,18 +2571,15 @@ CONTAINS
   SUBROUTINE h5dwrite_real_3(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -2783,7 +2604,6 @@ CONTAINS
        END FUNCTION h5dwrite_real_3_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -2800,18 +2620,15 @@ CONTAINS
   SUBROUTINE h5dwrite_real_4(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -2836,7 +2653,6 @@ CONTAINS
        END FUNCTION h5dwrite_real_4_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -2853,18 +2669,15 @@ CONTAINS
   SUBROUTINE h5dwrite_real_5(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -2889,7 +2702,6 @@ CONTAINS
        END FUNCTION h5dwrite_real_5_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -2906,18 +2718,15 @@ CONTAINS
   SUBROUTINE h5dwrite_real_6(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -2942,7 +2751,6 @@ CONTAINS
        END FUNCTION h5dwrite_real_6_c
     END INTERFACE
 
-
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
     file_space_id_default = H5S_ALL_F
@@ -2959,18 +2767,15 @@ CONTAINS
   SUBROUTINE h5dwrite_real_7(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -3008,33 +2813,34 @@ CONTAINS
 
   END SUBROUTINE h5dwrite_real_7
 
-  !
-  ! NAME
-  !		h5dfill_integer
-  !
-  ! PURPOSE      Fills dataspace elements with a fill value in a memory buffer.
-  !               Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes
-  !               of the fillvalues and buffers are supported. Buffer and fillvalue
-  !               are assumed to have the same datatype.
-  !               Only one-dimesional buffers are supported.
-  !
-  ! INPUTS
-  !		fill_value	- fill value
-  !		space_id	- memory space selection identifier
-  !		buf		- data buffer iin memory ro apply selection to
-  !				- of k-th dimension of the buf array
-  ! OUTPUTS
-  !		hdferr:		- error code
-  !				 	Success:  0
-  !				 	Failure: -1
-  !
-  ! AUTHOR
-  !	Elena Pourmal
-  !		March 12, 2003
-  !
-  !
+!
+! NAME
+!  h5dfill_integer
+!
+! PURPOSE
+!  Fills dataspace elements with a fill value in a memory buffer.
+!  Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes
+!  of the fillvalues and buffers are supported. Buffer and fillvalue
+!  are assumed to have the same datatype.
+!  Only one-dimesional buffers are supported.
+!
+! INPUTS
+!		fill_value	- fill value
+!		space_id	- memory space selection identifier
+!		buf		- data buffer iin memory ro apply selection to
+!				- of k-th dimension of the buf array
+! OUTPUTS
+!		hdferr:		- error code
+!				 	Success:  0
+!				 	Failure: -1
+!
+! AUTHOR
+!  Elena Pourmal
+!  March 12, 2003
+!
+!
 
-  SUBROUTINE h5dfill_integer(fill_value, space_id, buf,  hdferr)
+  SUBROUTINE h5dfill_integer(fill_value, space_id, buf, hdferr)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: fill_value  ! Fill value
     INTEGER(HID_T), INTENT(IN) :: space_id ! Memory dataspace selection identifier
@@ -3069,33 +2875,34 @@ CONTAINS
 
   END SUBROUTINE h5dfill_integer
 
-  !
-  ! NAME
-  !		h5dfill_real
-  !
-  ! PURPOSE      Fills dataspace elements with a fill value in a memory buffer.
-  !               Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes
-  !               of the fillvalues and buffers are supported. Buffer and fillvalue
-  !               are assumed to have the same datatype.
-  !               Only one-dimesional buffers are supported.
-  !
-  ! INPUTS
-  !		fill_value	- fill value
-  !		space_id	- memory space selection identifier
-  !		buf		- data buffer iin memory ro apply selection to
-  !				- of k-th dimension of the buf array
-  ! OUTPUTS
-  !		hdferr:		- error code
-  !				 	Success:  0
-  !				 	Failure: -1
-  !
-  ! AUTHOR
-  !	Elena Pourmal
-  !		March 12, 2003
-  !
-  !
+!
+! NAME
+!  h5dfill_real
+!
+! PURPOSE
+!  Fills dataspace elements with a fill value in a memory buffer.
+!  Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes
+!  of the fillvalues and buffers are supported. Buffer and fillvalue
+!  are assumed to have the same datatype.
+!  Only one-dimesional buffers are supported.
+!
+! INPUTS
+!		fill_value	- fill value
+!		space_id	- memory space selection identifier
+!		buf		- data buffer iin memory ro apply selection to
+!				- of k-th dimension of the buf array
+! OUTPUTS
+!		hdferr:		- error code
+!				 	Success:  0
+!				 	Failure: -1
+!
+! AUTHOR
+!  Elena Pourmal
+!  March 12, 2003
+!
+!
 
-  SUBROUTINE h5dfill_real(fill_valuer, space_id, buf,  hdferr)
+  SUBROUTINE h5dfill_real(fill_valuer, space_id, buf, hdferr)
     IMPLICIT NONE
     REAL, INTENT(IN) :: fill_valuer  ! Fill value
     INTEGER(HID_T), INTENT(IN) :: space_id ! Memory dataspace selection identifier
@@ -3129,41 +2936,42 @@ CONTAINS
          buf, mem_type_id)
   END SUBROUTINE h5dfill_real
 
-  !
-  ! NAME
-  !		h5dfill_char
-  !
-  ! PURPOSE      Fills dataspace elements with a fill value in a memory buffer.
-  !               Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes
-  !               of the fillvalues and buffers are supported. Buffer and fillvalue
-  !               are assumed to have the same datatype.
-  !               Only one-dimesional buffers are supported.
-  !
-  ! INPUTS
-  !		fill_value	- fill value
-  !		space_id	- memory space selection identifier
-  !		buf		- data buffer iin memory ro apply selection to
-  !				- of k-th dimension of the buf array
-  ! OUTPUTS
-  !		hdferr:		- error code
-  !				 	Success:  0
-  !				 	Failure: -1
-  !
-  ! AUTHOR
-  !	Elena Pourmal
-  !		March 12, 2003
-  !
-  !
+!
+! NAME
+!  h5dfill_char
+!
+! PURPOSE
+!  Fills dataspace elements with a fill value in a memory buffer.
+!  Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes
+!  of the fillvalues and buffers are supported. Buffer and fillvalue
+!  are assumed to have the same datatype.
+!  Only one-dimesional buffers are supported.
+!
+! INPUTS
+!		fill_value	- fill value
+!		space_id	- memory space selection identifier
+!		buf		- data buffer iin memory ro apply selection to
+!				- of k-th dimension of the buf array
+! OUTPUTS
+!		hdferr:		- error code
+!				 	Success:  0
+!				 	Failure: -1
+!
+! AUTHOR
+!  Elena Pourmal
+!  March 12, 2003
+!
+!
 
-  SUBROUTINE h5dfill_char(fill_value, space_id, buf,  hdferr)
+  SUBROUTINE h5dfill_char(fill_value, space_id, buf, hdferr)
     IMPLICIT NONE
-    CHARACTER, INTENT(IN) :: fill_value  ! Fill value
+    CHARACTER, INTENT(IN) :: fill_value    ! Fill value
     INTEGER(HID_T), INTENT(IN) :: space_id ! Memory dataspace selection identifier
     CHARACTER, INTENT(IN), DIMENSION(*) :: buf ! Memory buffer to fill in
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
 
     INTEGER(HID_T) :: fill_type_id ! Fill value datatype identifier
-    INTEGER(HID_T) :: mem_type_id !  Buffer dadtype identifier
+    INTEGER(HID_T) :: mem_type_id  ! Buffer dadtype identifier
 
     !            INTEGER, EXTERNAL :: h5dfillc_c
     ! MS FORTRAN needs explicit interface for C functions called here.

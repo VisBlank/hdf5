@@ -62,7 +62,7 @@ CONTAINS
                                 ! as defined in MPI_FILE_OPEN of MPI-2
     INTEGER, INTENT(IN) :: info ! MPI info object to be used for file open
                                 ! as defined in MPI_FILE_OPEN of MPI-2
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+    INTEGER, INTENT(OUT) :: hdferr ! Error code
 !*****
     INTEGER, EXTERNAL :: h5pset_fapl_mpio_c
     hdferr = h5pset_fapl_mpio_c(prp_id, comm, info)
@@ -222,9 +222,9 @@ CONTAINS
   SUBROUTINE h5pget_fapl_mpiposix_f(prp_id, comm, use_gpfs, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier
-    INTEGER, INTENT(OUT) :: comm ! buffer to return communicator
+    INTEGER, INTENT(OUT) :: comm         ! Buffer to return communicator
     LOGICAL, INTENT(OUT) :: use_gpfs
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code
 !*****
     INTEGER :: flag
 

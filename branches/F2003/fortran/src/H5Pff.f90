@@ -31,16 +31,16 @@
 !  This is needed for Windows based operating systems.
 !*****
 
-     MODULE H5P
+MODULE H5P
 
-       USE H5GLOBAL
-       
-       INTERFACE h5pset_fapl_multi_f
-         MODULE PROCEDURE h5pset_fapl_multi_l
-         MODULE PROCEDURE h5pset_fapl_multi_s
-       END INTERFACE        
+  USE H5GLOBAL
+  
+  INTERFACE h5pset_fapl_multi_f
+     MODULE PROCEDURE h5pset_fapl_multi_l
+     MODULE PROCEDURE h5pset_fapl_multi_s
+  END INTERFACE
 
-     CONTAINS
+CONTAINS
 
 !----------------------------------------------------------------------
 ! NAME
@@ -51,65 +51,58 @@
 !	list class.
 !
 ! INPUTS
-!  
-!		class		- type of the property class to be created.
-!				  Possible values are:
-!				  H5P_FILE_CREATE_F
-!				  H5P_FILE_ACCESS_F
-!				  H5P_DATASET_CREATE_F
-!				  H5P_DATASET_XFER_F
-!				  H5P_FILE_MOUNT_F
+!  class  - type of the property class to be created.
+!	    Possible values are:
+!	      H5P_FILE_CREATE_F
+!	      H5P_FILE_ACCESS_F
+!	      H5P_DATASET_CREATE_F
+!	      H5P_DATASET_XFER_F
+!	      H5P_FILE_MOUNT_F
 ! OUTPUTS
-!  
-!		prp_id		- property list identifier
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  prp_id - property list identifier
+!  hdferr - error code		
+!	     Success:  0
+!	     Failure: -1 
 !
 ! AUTHOR
-!	Elena Pourmal
-!		August 12, 1999	
+!  Elena Pourmal
+!  August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
 !
 ! SOURCE
-       SUBROUTINE h5pcreate_f(class, prp_id, hdferr)
-         IMPLICIT NONE
-         INTEGER(HID_T), INTENT(IN) :: class   ! The type of the property list 
-                                               ! to be created. Possible values
-                                               ! are: 
-                                               !  H5P_FILE_CREATE_F
-                                               !  H5P_FILE_ACCESS_F
-                                               !  H5P_DATASET_CREATE_F
-                                               !  H5P_DATASET_XFER_F
-                                               !  H5P_FILE_MOUNT_F
-         INTEGER(HID_T), INTENT(OUT) :: prp_id ! Property list identifier 
-         INTEGER, INTENT(OUT) :: hdferr        ! Error code
-                                               ! 0 on success and -1 on failure
+  SUBROUTINE h5pcreate_f(class, prp_id, hdferr)
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: class   ! The type of the property list 
+                                          ! to be created. Possible values are: 
+                                          !  H5P_FILE_CREATE_F
+                                          !  H5P_FILE_ACCESS_F
+                                          !  H5P_DATASET_CREATE_F
+                                          !  H5P_DATASET_XFER_F
+                                          !  H5P_FILE_MOUNT_F
+    INTEGER(HID_T), INTENT(OUT) :: prp_id ! Property list identifier 
+    INTEGER, INTENT(OUT) :: hdferr        ! Error code
+                                          ! 0 on success and -1 on failure
 !*****
-
 !            INTEGER, EXTERNAL :: h5pcreate_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5pcreate_c(class, prp_id)
-              USE H5GLOBAL
-              !DEC$IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PCREATE_C'::h5pcreate_c
-              !DEC$ENDIF
-              INTEGER(HID_T), INTENT(IN) :: class
-              INTEGER(HID_T), INTENT(OUT) :: prp_id
-              END FUNCTION h5pcreate_c
-            END INTERFACE
+    INTERFACE
+       INTEGER FUNCTION h5pcreate_c(class, prp_id)
+         USE H5GLOBAL
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PCREATE_C'::h5pcreate_c
+         !DEC$ENDIF
+         INTEGER(HID_T), INTENT(IN) :: class
+         INTEGER(HID_T), INTENT(OUT) :: prp_id
+       END FUNCTION h5pcreate_c
+    END INTERFACE
 
-            hdferr = h5pcreate_c(class, prp_id) 
-          END SUBROUTINE h5pcreate_f
+    hdferr = h5pcreate_c(class, prp_id) 
+  END SUBROUTINE h5pcreate_f
 
 !----------------------------------------------------------------------
 ! NAME
@@ -128,7 +121,7 @@
 !  hdferr	- Returns 0 if successful and -1 if fails
 !
 ! OPTIONAL PARAMETERS
-!				NONE
+!  NONE
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -143,427 +136,387 @@
 !  INTEGER to LOGICAL June 4, 2003
 !
 ! SOURCE
-          SUBROUTINE h5pset_preserve_f(prp_id, flag, hdferr)
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
-            LOGICAL, INTENT(IN) ::  flag ! TRUE/FALSE flag to set the dataset
+  SUBROUTINE h5pset_preserve_f(prp_id, flag, hdferr)
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
+    LOGICAL, INTENT(IN) ::  flag         ! TRUE/FALSE flag to set the dataset
                                          ! transfer property for partila writing/reading
                                          ! compound datatype 
-            INTEGER, INTENT(OUT) :: hdferr    ! Error code
-                                     ! 0 on success and -1 on failure
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code
+                                         ! 0 on success and -1 on failure
 !*****
-            INTEGER :: flag_c
+    INTEGER :: flag_c
 
 !            INTEGER, EXTERNAL :: h5pset_preserve_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5pset_preserve_c(prp_id, flag_c)
-              USE H5GLOBAL
-              !DEC$IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PSET_PRESERVE_C'::h5pset_preserve_c
-              !DEC$ENDIF
-              INTEGER(HID_T), INTENT(IN) :: prp_id
-              INTEGER ::  flag_c
-              END FUNCTION h5pset_preserve_c
-            END INTERFACE
-            flag_c = 0
-            if(flag) flag_c = 1
-            hdferr = h5pset_preserve_c(prp_id, flag_c) 
-          END SUBROUTINE h5pset_preserve_f
+    INTERFACE
+       INTEGER FUNCTION h5pset_preserve_c(prp_id, flag_c)
+         USE H5GLOBAL
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PSET_PRESERVE_C'::h5pset_preserve_c
+         !DEC$ENDIF
+         INTEGER(HID_T), INTENT(IN) :: prp_id
+         INTEGER ::  flag_c
+       END FUNCTION h5pset_preserve_c
+    END INTERFACE
+    flag_c = 0
+    IF(flag) flag_c = 1
+    hdferr = h5pset_preserve_c(prp_id, flag_c) 
+  END SUBROUTINE h5pset_preserve_f
 
 !----------------------------------------------------------------------
 ! NAME
-!   h5pget_preserve_f 
+!  h5pget_preserve_f 
 !
 ! PURPOSE
-! 	Checks status of the dataset transfer property list.
+!  Checks status of the dataset transfer property list.
 !
 ! INPUTS
-!  
-!		prp_id		- property list identifier
+!  prp_id  - property list identifier
+!
 ! OUTPUTS
-!  
-!		flag		- status flag
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
-!
+!  flag	   - status flag
+!  hdferr  - error code		
+!	Success:  0
+!	Failure: -1
 ! AUTHOR
-!	Elena Pourmal
-!		August 12, 1999	
+!  Elena Pourmal
+!  August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!                       Datatype of the flag parameter is changed from 
-!                       INTEGER to LOGICAL 
-!                               June 4, 2003 
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001
+! 
+!  Datatype of the flag parameter is changed from 
+!  INTEGER to LOGICAL 
+!  June 4, 2003 
 ! 
 ! SOURCE
-          SUBROUTINE h5pget_preserve_f(prp_id, flag, hdferr)
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
-            LOGICAL, INTENT(OUT) ::  flag ! TRUE/FALSE flag. Shows status of the dataset's
+  SUBROUTINE h5pget_preserve_f(prp_id, flag, hdferr)
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
+    LOGICAL, INTENT(OUT) ::  flag        ! TRUE/FALSE flag. Shows status of the dataset's
                                          ! transfer property for partial writing/reading
                                          ! compound datatype 
-            INTEGER, INTENT(OUT) :: hdferr    ! Error code
-                                     ! 0 on success and -1 on failure
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code
+                                         ! 0 on success and -1 on failure
 !*****
-            INTEGER :: flag_c
+    INTEGER :: flag_c
 
 !            INTEGER, EXTERNAL :: h5pget_preserve_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5pget_preserve_c(prp_id, flag_c)
-              USE H5GLOBAL
-              !DEC$IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PGET_PRESERVE_C'::h5pget_preserve_c
-              !DEC$ENDIF
-              INTEGER(HID_T), INTENT(IN) :: prp_id
-              INTEGER ::  flag_c
-              END FUNCTION h5pget_preserve_c
-            END INTERFACE
-
-            hdferr = h5pget_preserve_c(prp_id, flag_c) 
-            flag = .FALSE.
-            if(flag_c .eq. 1) flag = .TRUE.
-          END SUBROUTINE h5pget_preserve_f
+    INTERFACE
+       INTEGER FUNCTION h5pget_preserve_c(prp_id, flag_c)
+         USE H5GLOBAL
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PGET_PRESERVE_C'::h5pget_preserve_c
+         !DEC$ENDIF
+         INTEGER(HID_T), INTENT(IN) :: prp_id
+         INTEGER ::  flag_c
+       END FUNCTION h5pget_preserve_c
+    END INTERFACE
+    
+    hdferr = h5pget_preserve_c(prp_id, flag_c) 
+    flag = .FALSE.
+    IF(flag_c .EQ. 1) flag = .TRUE.
+  END SUBROUTINE h5pget_preserve_f
 
 !----------------------------------------------------------------------
 ! NAME
-!   h5pget_class_f 
+!  h5pget_class_f 
 !
 ! PURPOSE
-! 	Returns the property list class for a property list.
+!  Returns the property list class for a property list.
 !
 ! INPUTS
 !  
-!		prp_id		- property list identifier
+!  prp_id	- property list identifier
 ! OUTPUTS
 !  
-!		classtype	- property list class
-!				  Possible values are:
-!				  H5P_ROOT_F
-!				  H5P_FILE_CREATE_F
-!				  H5P_FILE_ACCESS_F
-!				  H5PE_DATASET_CREATE_F
-!				  H5P_DATASET_XFER_F
-!				  H5P_FILE_MOUNT_F
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  classtype	- property list class
+!		  Possible values are:
+!		   H5P_ROOT_F
+!		   H5P_FILE_CREATE_F
+!		   H5P_FILE_ACCESS_F
+!		   H5PE_DATASET_CREATE_F
+!		   H5P_DATASET_XFER_F
+!		   H5P_FILE_MOUNT_F
+!  hdferr:	- error code		
+!		   Success:  0
+!		   Failure: -1 
 !
 ! AUTHOR
-!	Elena Pourmal
-!		August 12, 1999	
+!  Elena Pourmal
+!  August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
 !
 ! SOURCE
-          SUBROUTINE h5pget_class_f(prp_id, classtype, hdferr)
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
-            INTEGER, INTENT(OUT) :: classtype  ! The type of the property list 
-                                              ! to be created. Possible values
-                                              ! are: 
-                                              !  H5P_ROOT_F
-                                              !  H5P_FILE_CREATE_F
-                                              !  H5P_FILE_ACCESS_F
-                                              !  H5PE_DATASET_CREATE_F 
-                                              !  H5P_DATASET_XFER_F
-                                              !  H5P_FILE_MOUNT_F
-            INTEGER, INTENT(OUT) :: hdferr    ! Error code
-                                     ! 0 on success and -1 on failure
+  SUBROUTINE h5pget_class_f(prp_id, classtype, hdferr)
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
+    INTEGER, INTENT(OUT) :: classtype    ! The type of the property list 
+                                         ! to be created. Possible values are: 
+                                         !  H5P_ROOT_F
+                                         !  H5P_FILE_CREATE_F
+                                         !  H5P_FILE_ACCESS_F
+                                         !  H5PE_DATASET_CREATE_F 
+                                         !  H5P_DATASET_XFER_F
+                                         !  H5P_FILE_MOUNT_F
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code
+                                         ! 0 on success and -1 on failure
 !*****
 
-!            INTEGER, EXTERNAL :: h5pget_class_c
+!   INTEGER, EXTERNAL :: h5pget_class_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5pget_class_c(prp_id, classtype)
-              USE H5GLOBAL
-              !DEC$IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PGET_CLASS_C'::h5pget_class_c
-              !DEC$ENDIF
-              INTEGER(HID_T), INTENT(IN) :: prp_id
-              INTEGER, INTENT(OUT) :: classtype 
-              END FUNCTION h5pget_class_c
-            END INTERFACE
+    INTERFACE
+       INTEGER FUNCTION h5pget_class_c(prp_id, classtype)
+         USE H5GLOBAL
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PGET_CLASS_C'::h5pget_class_c
+         !DEC$ENDIF
+         INTEGER(HID_T), INTENT(IN) :: prp_id
+         INTEGER, INTENT(OUT) :: classtype 
+       END FUNCTION h5pget_class_c
+    END INTERFACE
 
-            hdferr = h5pget_class_c(prp_id, classtype) 
-          END SUBROUTINE h5pget_class_f
+    hdferr = h5pget_class_c(prp_id, classtype) 
+  END SUBROUTINE h5pget_class_f
 
 !----------------------------------------------------------------------
 ! NAME
-!   h5pcopy_f 
+!  h5pcopy_f 
 !
 ! PURPOSE
-! 	Copies an existing property list to create a new 
-!		property list
+!  Copies an existing property list to create a new 
+!  property list
 !
 ! INPUTS
-!  
-!		prp_id		- property list identifier
+!  prp_id       - property list identifier
 ! OUTPUTS
-!  
-!		new_prp_id	- new property list identifier
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  new_prp_id	- new property list identifier
+!  hdferr:	- error code		
+!		   Success:  0
+!		   Failure: -1
 !
 ! AUTHOR
-!	Elena Pourmal
-!		August 12, 1999	
+!  Elena Pourmal
+!  August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001
-!----------------------------------------------------------------------
-
-
-          SUBROUTINE h5pcopy_f(prp_id, new_prp_id, hdferr)
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
-            INTEGER(HID_T), INTENT(OUT) :: new_prp_id 
-                                                ! Identifier  of property list
-                                                ! copy  
-            INTEGER, INTENT(OUT) :: hdferr      ! Error code
-                                     ! 0 on success and -1 on failure
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001
+!
+! SOURCE
+  SUBROUTINE h5pcopy_f(prp_id, new_prp_id, hdferr)
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: prp_id      ! Property list identifier 
+    INTEGER(HID_T), INTENT(OUT) :: new_prp_id ! Identifier of property list
+    INTEGER, INTENT(OUT) :: hdferr            ! Error code
+                                              ! 0 on success and -1 on failure
 !*****
 
 !            INTEGER, EXTERNAL :: h5pcopy_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5pcopy_c(prp_id, new_prp_id)
-              USE H5GLOBAL
-              !DEC$IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PCOPY_C'::h5pcopy_c
-              !DEC$ENDIF
-              INTEGER(HID_T), INTENT(IN) :: prp_id
-              INTEGER(HID_T), INTENT(OUT) :: new_prp_id
-              END FUNCTION h5pcopy_c
-            END INTERFACE
-
-            hdferr = h5pcopy_c(prp_id, new_prp_id)
-          END SUBROUTINE h5pcopy_f
+    INTERFACE
+       INTEGER FUNCTION h5pcopy_c(prp_id, new_prp_id)
+         USE H5GLOBAL
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PCOPY_C'::h5pcopy_c
+         !DEC$ENDIF
+         INTEGER(HID_T), INTENT(IN) :: prp_id
+         INTEGER(HID_T), INTENT(OUT) :: new_prp_id
+       END FUNCTION h5pcopy_c
+    END INTERFACE
+    
+    hdferr = h5pcopy_c(prp_id, new_prp_id)
+  END SUBROUTINE h5pcopy_f
 
 !----------------------------------------------------------------------
 ! NAME
-!   h5pclose_f 
+!  h5pclose_f 
 !
 ! PURPOSE
-! 	Terminates access to a property list. 
+!  Terminates access to a property list. 
 !
 ! INPUTS
-!  
-!		prp_id		- identifier of the property list to 
-!				  terminate access to. 
+!  prp_id - identifier of the property list to 
+!	    terminate access to. 
 ! OUTPUTS
-!  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr - error code		
+!	    Success:  0
+!	    Failure: -1
 !
 ! AUTHOR
-!	Elena Pourmal
-!		August 12, 1999	
+!  Elena Pourmal
+!  August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE
-          SUBROUTINE h5pclose_f(prp_id, hdferr)
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
-            INTEGER, INTENT(OUT) :: hdferr        ! Error code
-                                     ! 0 on success and -1 on failure
+  SUBROUTINE h5pclose_f(prp_id, hdferr)
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier 
+    INTEGER, INTENT(OUT) :: hdferr        ! Error code
+                                          ! 0 on success and -1 on failure
 !*****
 
 !            INTEGER, EXTERNAL :: h5pclose_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5pclose_c(prp_id)
-              USE H5GLOBAL
-              !DEC$IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PCLOSE_C'::h5pclose_c
-              !DEC$ENDIF
-              INTEGER(HID_T), INTENT(IN) :: prp_id 
-              END FUNCTION h5pclose_c
-            END INTERFACE
-
-            hdferr = h5pclose_c(prp_id)
-          END SUBROUTINE h5pclose_f
+    INTERFACE
+       INTEGER FUNCTION h5pclose_c(prp_id)
+         USE H5GLOBAL
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PCLOSE_C'::h5pclose_c
+         !DEC$ENDIF
+         INTEGER(HID_T), INTENT(IN) :: prp_id 
+       END FUNCTION h5pclose_c
+    END INTERFACE
+    
+    hdferr = h5pclose_c(prp_id)
+  END SUBROUTINE h5pclose_f
 
 !----------------------------------------------------------------------
 ! NAME
 !   h5pset_chunk_f 
 !
 ! PURPOSE
-! 	Sets the size of the chunks used to store 
-!		a chunked layout dataset. 
+!  Sets the size of the chunks used to store 
+!  a chunked layout dataset. 
 !
 ! INPUTS
-!  
-!		prp_id		- datatset creation property list identifier
-!		ndims		- number of dimensions for each chunk
-!		dims		- array with dimension sizes for each chunk
+!  prp_id  - datatset creation property list identifier
+!  ndims   - number of dimensions for each chunk
+!  dims	   - array with dimension sizes for each chunk
 ! OUTPUTS
-!  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1
 !
 ! AUTHOR
-!	Elena Pourmal
-!		August 12, 1999	
+!  Elena Pourmal
+!  August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!   Explicit Fortran interfaces were added for 
+!   called C functions (it is needed for Windows
+!   port).  March 14, 2001 
+!		
 ! SOURCE
-          SUBROUTINE h5pset_chunk_f(prp_id, ndims, dims, hdferr)
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
-            INTEGER, INTENT(IN) :: ndims    ! Number of chunk dimensions
-            INTEGER(HSIZE_T), DIMENSION(ndims), INTENT(IN) :: dims    
-                                            ! Array containing sizes of
-                                            ! chunk dimensions
-            INTEGER, INTENT(OUT) :: hdferr  ! Error code
-                                     ! 0 on success and -1 on failure
+  SUBROUTINE h5pset_chunk_f(prp_id, ndims, dims, hdferr)
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
+    INTEGER, INTENT(IN) :: ndims         ! Number of chunk dimensions
+    INTEGER(HSIZE_T), DIMENSION(ndims), INTENT(IN) :: dims    
+                                         ! Array containing sizes of
+                                         ! chunk dimensions
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code
+                                         ! 0 on success and -1 on failure
 !*****
 
 !            INTEGER, EXTERNAL :: h5pset_chunk_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5pset_chunk_c(prp_id, ndims, dims)
-              USE H5GLOBAL
-              !DEC$IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PSET_CHUNK_C'::h5pset_chunk_c
-              !DEC$ENDIF
-              INTEGER(HID_T), INTENT(IN) :: prp_id
-              INTEGER, INTENT(IN) :: ndims
-              INTEGER(HSIZE_T), DIMENSION(ndims), INTENT(IN) :: dims
-              END FUNCTION h5pset_chunk_c
-            END INTERFACE
-
-            hdferr =  h5pset_chunk_c(prp_id, ndims, dims)
-          END SUBROUTINE h5pset_chunk_f
+    INTERFACE
+       INTEGER FUNCTION h5pset_chunk_c(prp_id, ndims, dims)
+         USE H5GLOBAL
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PSET_CHUNK_C'::h5pset_chunk_c
+         !DEC$ENDIF
+         INTEGER(HID_T), INTENT(IN) :: prp_id
+         INTEGER, INTENT(IN) :: ndims
+         INTEGER(HSIZE_T), DIMENSION(ndims), INTENT(IN) :: dims
+       END FUNCTION h5pset_chunk_c
+    END INTERFACE
+    
+    hdferr =  h5pset_chunk_c(prp_id, ndims, dims)
+  END SUBROUTINE h5pset_chunk_f
 
 !----------------------------------------------------------------------
 ! NAME
 !   h5pget_chunk_f 
 !
 ! PURPOSE
-! 	Retrieves the size of chunks for the raw data of a 
-!		chunked layout dataset
+!  Retrieves the size of chunks for the raw data of a 
+!  chunked layout dataset
 !
 ! INPUTS
-!  
-!		prp_id		- property list identifier
-!		ndims		- size of dims array
+!  prp_id	- property list identifier
+!  ndims	- size of dims array
 ! OUTPUTS
-!  
-!		dims		- array with dimension sizes for each chunk
-!		hdferr:		- error code		
-!				 	Success:  number of chunk dimensions
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  dims		- array with dimension sizes for each chunk
+!  hdferr	- error code		
+!		   Success:  number of chunk dimensions
+!		   Failure: -1
 !
 ! AUTHOR
-!	Elena Pourmal
-!		August 12, 1999	
+!  Elena Pourmal
+!  August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE
-          SUBROUTINE h5pget_chunk_f(prp_id, ndims, dims, hdferr)
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
-            INTEGER, INTENT(IN) :: ndims    ! Number of chunk dimensions to
-                                            ! to return
-            INTEGER(HSIZE_T), DIMENSION(ndims), INTENT(OUT) :: dims    
-                                            ! Array containing sizes of
-                                            ! chunk dimensions
-            INTEGER, INTENT(OUT) :: hdferr  ! Error code
-                                     ! 0 on success and -1 on failure
-!*****; number of
-                                            ! chunk dimensions on success,
-                                            ! -1 on failure
-
+  SUBROUTINE h5pget_chunk_f(prp_id, ndims, dims, hdferr)
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
+    INTEGER, INTENT(IN) :: ndims         ! Number of chunk dimensions to
+                                         ! to return
+    INTEGER(HSIZE_T), DIMENSION(ndims), INTENT(OUT) :: dims    
+                                         ! Array containing sizes of
+                                         ! chunk dimensions
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code:
+                                         !  number of chunk dimensions on success,
+                                         !  -1 on failure
+!*****
 !            INTEGER, EXTERNAL :: h5pget_chunk_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5pget_chunk_c(prp_id, ndims, dims)
-              USE H5GLOBAL
-              !DEC$IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PGET_CHUNK_C'::h5pget_chunk_c
-              !DEC$ENDIF
-              INTEGER(HID_T), INTENT(IN) :: prp_id
-              INTEGER :: ndims
-              INTEGER(HSIZE_T), DIMENSION(*), INTENT(OUT) :: dims
-              END FUNCTION h5pget_chunk_c
-            END INTERFACE
+    INTERFACE
+       INTEGER FUNCTION h5pget_chunk_c(prp_id, ndims, dims)
+         USE H5GLOBAL
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PGET_CHUNK_C'::h5pget_chunk_c
+         !DEC$ENDIF
+         INTEGER(HID_T), INTENT(IN) :: prp_id
+         INTEGER :: ndims
+         INTEGER(HSIZE_T), DIMENSION(*), INTENT(OUT) :: dims
+       END FUNCTION h5pget_chunk_c
+    END INTERFACE
 
-            hdferr =  h5pget_chunk_c(prp_id, ndims, dims)
-          END SUBROUTINE h5pget_chunk_f
+    hdferr =  h5pget_chunk_c(prp_id, ndims, dims)
+  END SUBROUTINE h5pget_chunk_f
 
 !----------------------------------------------------------------------
 ! NAME
 !   h5pset_deflate_f 
 !
 ! PURPOSE
-! 	Sets compression method and compression level. 
+!   Sets compression method and compression level. 
 !
 ! INPUTS
-!  
-!		prp_id		- property list identifier
-!		level		- compression level
+!   prp_id  - property list identifier
+!   level   - compression level
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -573,136 +526,124 @@
 ! 	Explicit Fortran interfaces were added for 
 !			called C functions (it is needed for Windows
 !			port).  March 14, 2001 
-!
-! Comment:		
+!		
 ! SOURCE
-          SUBROUTINE h5pset_deflate_f(prp_id, level, hdferr)
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
-            INTEGER, INTENT(IN) :: level        ! Compression level 
-            INTEGER, INTENT(OUT) :: hdferr       ! Error code
-                                     ! 0 on success and -1 on failure
+  SUBROUTINE h5pset_deflate_f(prp_id, level, hdferr)
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
+    INTEGER, INTENT(IN) :: level         ! Compression level 
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code
+                                         ! 0 on success and -1 on failure
 !*****
 
-!            INTEGER, EXTERNAL :: h5pset_deflate_c
+!  INTEGER, EXTERNAL :: h5pset_deflate_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5pset_deflate_c(prp_id, level)
-              USE H5GLOBAL
-              !DEC$IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PSET_DEFLATE_C'::h5pset_deflate_c
-              !DEC$ENDIF
-              INTEGER(HID_T), INTENT(IN) :: prp_id
-              INTEGER, INTENT(IN) :: level
-              END FUNCTION h5pset_deflate_c
-            END INTERFACE
-            hdferr = h5pset_deflate_c(prp_id, level)
-
-          END SUBROUTINE h5pset_deflate_f
+    INTERFACE
+       INTEGER FUNCTION h5pset_deflate_c(prp_id, level)
+         USE H5GLOBAL
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PSET_DEFLATE_C'::h5pset_deflate_c
+         !DEC$ENDIF
+         INTEGER(HID_T), INTENT(IN) :: prp_id
+         INTEGER, INTENT(IN) :: level
+       END FUNCTION h5pset_deflate_c
+    END INTERFACE
+    hdferr = h5pset_deflate_c(prp_id, level)
+    
+  END SUBROUTINE h5pset_deflate_f
 
 !----------------------------------------------------------------------
 ! NAME
 !   h5pget_version_f 
 !
 ! PURPOSE
-! 	Retrieves the version information of various objects 
-!		for a file creation property list
+!  Retrieves the version information of various objects 
+!  for a file creation property list
 !
 ! INPUTS
-!  
-!		prp_id		- file createion property list identifier
+!  prp_id	- file createion property list identifier
 ! OUTPUTS
-!  
-!		boot		- super block version number
-!		freelist	- global freelist version number
-!		stab		- symbol table version number
-!		shhdr		- shared object header version number
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  boot		- super block version number
+!  freelist	- global freelist version number
+!  stab		- symbol table version number
+!  shhdr	- shared object header version number
+!  hdferr       - error code		
+!	           Success:  0
+!	           Failure: -1   
 !
 ! AUTHOR
-!	Elena Pourmal
-!		August 12, 1999	
+!  Elena Pourmal
+!  August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE          
-          SUBROUTINE h5pget_version_f(prp_id, boot, freelist, &
-               stab, shhdr, hdferr)
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
-            INTEGER, DIMENSION(:), INTENT(OUT) :: boot  !array to put boot
-                                                        !block version number
-            INTEGER, DIMENSION(:), INTENT(OUT) :: freelist  !array to put global
-                                                        !freelist version number
+  SUBROUTINE h5pget_version_f(prp_id, boot, freelist, &
+       stab, shhdr, hdferr)
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: prp_id        ! Property list identifier 
+    INTEGER, DIMENSION(:), INTENT(OUT) :: boot  ! Array to put boot
+                                                ! block version number
+    INTEGER, DIMENSION(:), INTENT(OUT) :: freelist  ! Array to put global
+                                                    ! Freelist version number
      
-            INTEGER, DIMENSION(:), INTENT(OUT) :: stab  !array to put symbol
-                                                        !table version number
-            INTEGER, DIMENSION(:), INTENT(OUT) :: shhdr !array to put shared
-                                                        !object header version number
-            INTEGER, INTENT(OUT) :: hdferr  ! Error code
-                                     ! 0 on success and -1 on failure
+    INTEGER, DIMENSION(:), INTENT(OUT) :: stab  ! Array to put symbol
+                                                ! table version number
+    INTEGER, DIMENSION(:), INTENT(OUT) :: shhdr ! Array to put shared
+                                                ! object header version number
+    INTEGER, INTENT(OUT) :: hdferr              ! Error code
+                                                ! 0 on success and -1 on failure
 !*****
 
 !            INTEGER, EXTERNAL :: h5pget_version_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
-            INTERFACE
-              INTEGER FUNCTION h5pget_version_c(prp_id, boot, freelist, stab, shhdr)
-              USE H5GLOBAL
-              !DEC$IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PGET_VERSION_C'::h5pget_version_c
-              !DEC$ENDIF
-              INTEGER(HID_T), INTENT(IN) :: prp_id
-              INTEGER, DIMENSION(:), INTENT(OUT) :: boot 
-              INTEGER, DIMENSION(:), INTENT(OUT) :: freelist 
-              INTEGER, DIMENSION(:), INTENT(OUT) :: stab
-              INTEGER, DIMENSION(:), INTENT(OUT) :: shhdr
-              END FUNCTION h5pget_version_c
-            END INTERFACE
-
-            hdferr = h5pget_version_c(prp_id, boot, freelist, stab, shhdr)
-          END SUBROUTINE h5pget_version_f
+    INTERFACE
+       INTEGER FUNCTION h5pget_version_c(prp_id, boot, freelist, stab, shhdr)
+         USE H5GLOBAL
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5PGET_VERSION_C'::h5pget_version_c
+         !DEC$ENDIF
+         INTEGER(HID_T), INTENT(IN) :: prp_id
+         INTEGER, DIMENSION(:), INTENT(OUT) :: boot 
+         INTEGER, DIMENSION(:), INTENT(OUT) :: freelist 
+         INTEGER, DIMENSION(:), INTENT(OUT) :: stab
+         INTEGER, DIMENSION(:), INTENT(OUT) :: shhdr
+       END FUNCTION h5pget_version_c
+    END INTERFACE
+    
+    hdferr = h5pget_version_c(prp_id, boot, freelist, stab, shhdr)
+  END SUBROUTINE h5pget_version_f
 
 !----------------------------------------------------------------------
 ! NAME
 !   h5pset_userblock_f 
 !
 ! PURPOSE
-! 	Sets user block size
+!   Sets user block size
 !
 ! INPUTS
-!  
-!		prp_id		- file creation property list to modify
-!		size		- size of the user-block in bytes
-! OUTPUTS
-!  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
+!   prp_id - file creation property list to modify
+!   size   - size of the user-block in bytes
 !
-!				NONE
+! OUTPUTS
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
-!	Elena Pourmal
-!		August 12, 1999	
+!  Elena Pourmal
+!  August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 !----------------------------------------------------------------------
  
           SUBROUTINE h5pset_userblock_f (prp_id, size, hdferr)
@@ -743,23 +684,19 @@
 ! OUTPUTS
 !  
 !		block_size	- size of the user block in bytes
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE
           SUBROUTINE h5pget_userblock_f(prp_id, block_size, hdferr)
             IMPLICIT NONE
@@ -801,23 +738,19 @@
 !		sizeof_size	- size of an object length in bytes
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE
 SUBROUTINE h5pset_sizes_f (prp_id, sizeof_addr, sizeof_size, hdferr)
             IMPLICIT NONE
@@ -863,23 +796,19 @@ SUBROUTINE h5pset_sizes_f (prp_id, sizeof_addr, sizeof_size, hdferr)
 !  
 !		sizeof_addr	- size of an object offset in bytes 
 !		sizeof_size	- size of an object length in bytes
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE
           SUBROUTINE h5pget_sizes_f(prp_id, sizeof_addr, sizeof_size, hdferr)
             IMPLICIT NONE
@@ -926,23 +855,19 @@ SUBROUTINE h5pset_sizes_f (prp_id, sizeof_addr, sizeof_size, hdferr)
 !		lk		- symbol table node size
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE
 SUBROUTINE h5pset_sym_k_f (prp_id, ik, lk, hdferr)
             IMPLICIT NONE
@@ -987,23 +912,19 @@ SUBROUTINE h5pset_sym_k_f (prp_id, ik, lk, hdferr)
 !  
 !		ik		- symbol table tree 1/2 rank
 !		lk		- symbol table node 1/2 size
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE
           SUBROUTINE h5pget_sym_k_f(prp_id, ik, lk, hdferr)
             IMPLICIT NONE
@@ -1046,21 +967,18 @@ SUBROUTINE h5pset_sym_k_f (prp_id, ik, lk, hdferr)
 !		ik		- 1/2 rank of chunked storage B-tree
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
 !		
 ! SOURCE
 SUBROUTINE h5pset_istore_k_f (prp_id, ik, hdferr)
@@ -1102,21 +1020,18 @@ SUBROUTINE h5pset_istore_k_f (prp_id, ik, hdferr)
 ! OUTPUTS
 !  
 !		ik		- 1/2 rank of chunked storage B-tree
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
 !		
 ! SOURCE
           SUBROUTINE h5pget_istore_k_f(prp_id, ik, hdferr)
@@ -1158,21 +1073,18 @@ SUBROUTINE h5pset_istore_k_f (prp_id, ik, hdferr)
 ! OUTPUTS
 !  
 !		driver		- low-level driver identifier
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
 !		
 ! SOURCE
 SUBROUTINE h5pget_driver_f(prp_id, driver, hdferr)
@@ -1212,21 +1124,18 @@ SUBROUTINE h5pget_driver_f(prp_id, driver, hdferr)
 !		prp_id		- file access property list identifier
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
 !		
 ! SOURCE
 SUBROUTINE h5pset_fapl_stdio_f (prp_id, hdferr)
@@ -1263,23 +1172,19 @@ SUBROUTINE h5pset_fapl_stdio_f (prp_id, hdferr)
 !  
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE!          SUBROUTINE h5pget_stdio_f (prp_id, io, hdferr)
 !
 !            IMPLICIT NONE
@@ -1306,23 +1211,19 @@ SUBROUTINE h5pset_fapl_stdio_f (prp_id, hdferr)
 !		prp_id		- file access property list identifier
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE
 SUBROUTINE h5pset_fapl_sec2_f (prp_id, hdferr)
             IMPLICIT NONE
@@ -1358,23 +1259,19 @@ SUBROUTINE h5pset_fapl_sec2_f (prp_id, hdferr)
 !  
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE!          SUBROUTINE h5pget_sec2_f (prp_id, sec2, hdferr) 
 !            IMPLICIT NONE
 !            INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier 
@@ -1402,23 +1299,19 @@ SUBROUTINE h5pset_fapl_sec2_f (prp_id, hdferr)
 !		alignment	- alignment value
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE
 SUBROUTINE h5pset_alignment_f(prp_id, threshold,  alignment, hdferr)
             IMPLICIT NONE
@@ -1462,23 +1355,19 @@ SUBROUTINE h5pset_alignment_f(prp_id, threshold,  alignment, hdferr)
 !  
 !		threshold	- threshold value	
 !		alignment	- alignment value
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE
 SUBROUTINE h5pget_alignment_f(prp_id, threshold,  alignment, hdferr)
             IMPLICIT NONE
@@ -1522,23 +1411,19 @@ SUBROUTINE h5pget_alignment_f(prp_id, threshold,  alignment, hdferr)
 !				  the file contents to disk when the file is closed. 
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE
 SUBROUTINE h5pset_fapl_core_f(prp_id, increment, backing_store, hdferr)
             IMPLICIT NONE
@@ -1586,23 +1471,19 @@ SUBROUTINE h5pset_fapl_core_f(prp_id, increment, backing_store, hdferr)
 !		increment	- size, in bytes, of memory increments 
 !		backing_store	- boolean flag indicating whether to write 
 !				  the file contents to disk when the file is closed. 
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE
 SUBROUTINE h5pget_fapl_core_f(prp_id, increment, backing_store, hdferr)
             IMPLICIT NONE
@@ -1651,23 +1532,19 @@ SUBROUTINE h5pget_fapl_core_f(prp_id, increment, backing_store, hdferr)
 !				  list to be used for each family member
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE
 SUBROUTINE h5pset_fapl_family_f(prp_id, memb_size, memb_plist , hdferr)
             IMPLICIT NONE
@@ -1714,23 +1591,19 @@ SUBROUTINE h5pset_fapl_family_f(prp_id, memb_size, memb_plist , hdferr)
 !		memb_size	- size in bytes of each file member 
 !		memb_plist	- identifier of the file access property 
 !				  list to be used for each family member
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE
           SUBROUTINE h5pget_fapl_family_f(prp_id, memb_size, memb_plist , hdferr)
             IMPLICIT NONE
@@ -1781,23 +1654,19 @@ SUBROUTINE h5pset_fapl_family_f(prp_id, memb_size, memb_plist , hdferr)
 !		rdcc_w0		- preemption policy (0 or 1)
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE
 SUBROUTINE h5pset_cache_f(prp_id, mdc_nelmts,rdcc_nelmts, rdcc_nbytes, rdcc_w0, hdferr)
             IMPLICIT NONE
@@ -1852,26 +1721,22 @@ SUBROUTINE h5pset_cache_f(prp_id, mdc_nelmts,rdcc_nelmts, rdcc_nbytes, rdcc_w0, 
 !			          data chunk cache 
 !		rdcc_nbytes	- total size of the raw data chunk cache, in bytes 
 !		rdcc_w0		- preemption policy (0 or 1)
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
 !
 !                       Bug fix: type of the rdcc_nelmts parameter should be INTEGER
 !                                instead of INTEGER(SIZE_T) October 10, 2003 
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pget_cache_f(prp_id, mdc_nelmts, rdcc_nelmts, rdcc_nbytes, rdcc_w0, hdferr)
             IMPLICIT NONE
@@ -1926,23 +1791,19 @@ SUBROUTINE h5pget_cache_f(prp_id, mdc_nelmts, rdcc_nelmts, rdcc_nbytes, rdcc_w0,
 !		raw_plist	- identifier of the raw file access property list
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE
 SUBROUTINE h5pset_fapl_split_f(prp_id, meta_ext, meta_plist, raw_ext, raw_plist, hdferr)
             IMPLICIT NONE
@@ -1995,23 +1856,19 @@ SUBROUTINE h5pset_fapl_split_f(prp_id, meta_ext, meta_plist, raw_ext, raw_plist,
 !  
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE!          SUBROUTINE h5pget_split_f(prp_id, meta_ext_size, meta_ext, meta_plist,raw_ext_size,&
 !                                     raw_ext, raw_plist, hdferr) 
 !            IMPLICIT NONE
@@ -2053,23 +1910,19 @@ SUBROUTINE h5pset_fapl_split_f(prp_id, meta_ext, meta_plist, raw_ext, raw_plist,
 !				  and off (1 or 0)
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE 
           SUBROUTINE h5pset_gc_references_f (prp_id, gc_reference, hdferr)
             IMPLICIT NONE
@@ -2111,23 +1964,19 @@ SUBROUTINE h5pset_fapl_split_f(prp_id, meta_ext, meta_plist, raw_ext, raw_plist,
 !  
 !		gc_reference	- flag for stting garbage collection on 
 !				  and off (1 or 0)
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE
 SUBROUTINE h5pget_gc_references_f (prp_id, gc_reference, hdferr)
             IMPLICIT NONE
@@ -2173,23 +2022,19 @@ SUBROUTINE h5pget_gc_references_f (prp_id, gc_reference, hdferr)
 !				  H5D_CHUNKED_F
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE
 SUBROUTINE h5pset_layout_f (prp_id, layout, hdferr)
             IMPLICIT NONE
@@ -2237,23 +2082,19 @@ SUBROUTINE h5pset_layout_f (prp_id, layout, hdferr)
 !				  H5D_COMPACT_F
 !				  H5D_CONTIGUOUS_F
 !				  H5D_CHUNKED_F
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE
 SUBROUTINE h5pget_layout_f (prp_id, layout, hdferr)
             IMPLICIT NONE
@@ -2302,12 +2143,9 @@ SUBROUTINE h5pget_layout_f (prp_id, layout, hdferr)
 !		cd_values	- auxiliary data for the filter
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -2315,8 +2153,7 @@ SUBROUTINE h5pget_layout_f (prp_id, layout, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pset_filter_f(prp_id, filter, flags, cd_nelmts, cd_values,  hdferr)
             IMPLICIT NONE
@@ -2365,23 +2202,19 @@ SUBROUTINE h5pset_filter_f(prp_id, filter, flags, cd_nelmts, cd_values,  hdferr)
 ! OUTPUTS
 !  
 !		nfilters	- number of filters in the pipeline
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE
 SUBROUTINE h5pget_nfilters_f (prp_id, nfilters, hdferr)
             IMPLICIT NONE
@@ -2429,23 +2262,19 @@ SUBROUTINE h5pget_nfilters_f (prp_id, nfilters, hdferr)
 !		cd_values	- auxiliary data for the filter
 !		namelen		- number of characters in the name buffer
 !		name		- buffer to retrieve filter name
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE
 SUBROUTINE h5pget_filter_f(prp_id, filter_number, flags, cd_nelmts, cd_values, namelen, name, filter_id, hdferr)
             IMPLICIT NONE
@@ -2509,23 +2338,19 @@ SUBROUTINE h5pget_filter_f(prp_id, filter_number, flags, cd_nelmts, cd_values, n
 !		bytes		- size of the external file data. 
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE
 SUBROUTINE h5pset_external_f(prp_id, name, offset,bytes, hdferr)
             IMPLICIT NONE
@@ -2578,23 +2403,19 @@ SUBROUTINE h5pset_external_f(prp_id, name, offset,bytes, hdferr)
 !  
 !		count		- number of external files for the 
 !				  specified dataset
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE
 SUBROUTINE h5pget_external_count_f (prp_id, count, hdferr)
             IMPLICIT NONE
@@ -2641,23 +2462,19 @@ SUBROUTINE h5pget_external_count_f (prp_id, count, hdferr)
 !				  file to the location in the file
 !				  where the data starts
 !		bytes		- size of the external file data
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE
           SUBROUTINE h5pget_external_f(prp_id, idx, name_size, name, offset,bytes, hdferr)
             IMPLICIT NONE
@@ -2713,23 +2530,19 @@ SUBROUTINE h5pget_external_count_f (prp_id, count, hdferr)
 !		right		- the B-tree split ratio for right-most nodes
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE
 SUBROUTINE h5pset_btree_ratios_f(prp_id, left, middle, right, hdferr)
             IMPLICIT NONE
@@ -2778,23 +2591,19 @@ SUBROUTINE h5pset_btree_ratios_f(prp_id, left, middle, right, hdferr)
 !		left		- the B-tree split ratio for left-most nodes 
 !		middle		- the B-tree split ratio for all other nodes
 !		right		- the B-tree split ratio for right-most nodes
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
 !		August 12, 1999	
 !
 ! HISTORY
-! 	Explicit Fortran interfaces were added for 
-!			called C functions (it is needed for Windows
-!			port).  March 14, 2001 
-!
-! Comment:		
+!  Explicit Fortran interfaces were added for 
+!  called C functions (it is needed for Windows
+!  port).  March 14, 2001 
+!		
 ! SOURCE
 SUBROUTINE h5pget_btree_ratios_f(prp_id, left, middle, right, hdferr)
             IMPLICIT NONE
@@ -2846,12 +2655,9 @@ SUBROUTINE h5pget_btree_ratios_f(prp_id, left, middle, right, hdferr)
 !				  H5F_CLOSE_WEAK_F
 !				  H5F_CLOSE_SEMI_F
 !				  H5F_CLOSE_STRONG_F
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -2859,8 +2665,7 @@ SUBROUTINE h5pget_btree_ratios_f(prp_id, left, middle, right, hdferr)
 !
 ! HISTORY
 ! 
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pget_fclose_degree_f(fapl_id, degree, hdferr)
             IMPLICIT NONE
@@ -2911,12 +2716,9 @@ SUBROUTINE h5pget_fclose_degree_f(fapl_id, degree, hdferr)
 !				  H5F_CLOSE_STRONG_F
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -2924,8 +2726,7 @@ SUBROUTINE h5pget_fclose_degree_f(fapl_id, degree, hdferr)
 !
 ! HISTORY
 ! 
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pset_fclose_degree_f(fapl_id, degree, hdferr)
             IMPLICIT NONE
@@ -2973,9 +2774,6 @@ SUBROUTINE h5pset_fclose_degree_f(fapl_id, degree, hdferr)
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1, flag is set to .FALSE.   
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -2983,8 +2781,7 @@ SUBROUTINE h5pset_fclose_degree_f(fapl_id, degree, hdferr)
 !
 ! HISTORY
 ! 
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pequal_f(plist1_id, plist2_id, flag, hdferr)
             IMPLICIT NONE
@@ -3029,9 +2826,6 @@ SUBROUTINE h5pequal_f(plist1_id, plist2_id, flag, hdferr)
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -3039,8 +2833,7 @@ SUBROUTINE h5pequal_f(plist1_id, plist2_id, flag, hdferr)
 !
 ! HISTORY
 ! 
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pset_buffer_f(plist_id, size, hdferr)
             IMPLICIT NONE
@@ -3082,9 +2875,6 @@ SUBROUTINE h5pset_buffer_f(plist_id, size, hdferr)
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -3092,8 +2882,7 @@ SUBROUTINE h5pset_buffer_f(plist_id, size, hdferr)
 !
 ! HISTORY
 ! 
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pget_buffer_f(plist_id, size, hdferr)
             IMPLICIT NONE
@@ -3140,9 +2929,6 @@ SUBROUTINE h5pget_buffer_f(plist_id, size, hdferr)
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -3150,8 +2936,7 @@ SUBROUTINE h5pget_buffer_f(plist_id, size, hdferr)
 !
 ! HISTORY
 ! 
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pfill_value_defined_f(plist_id, flag, hdferr)
             IMPLICIT NONE
@@ -3195,9 +2980,6 @@ SUBROUTINE h5pfill_value_defined_f(plist_id, flag, hdferr)
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -3205,8 +2987,7 @@ SUBROUTINE h5pfill_value_defined_f(plist_id, flag, hdferr)
 !
 ! HISTORY
 ! 
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pset_alloc_time_f(plist_id, flag, hdferr)
             IMPLICIT NONE
@@ -3250,9 +3031,6 @@ SUBROUTINE h5pset_alloc_time_f(plist_id, flag, hdferr)
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -3260,8 +3038,7 @@ SUBROUTINE h5pset_alloc_time_f(plist_id, flag, hdferr)
 !
 ! HISTORY
 ! 
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pget_alloc_time_f(plist_id, flag, hdferr)
             IMPLICIT NONE
@@ -3303,9 +3080,6 @@ SUBROUTINE h5pget_alloc_time_f(plist_id, flag, hdferr)
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -3313,8 +3087,7 @@ SUBROUTINE h5pget_alloc_time_f(plist_id, flag, hdferr)
 !
 ! HISTORY
 ! 
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pset_fill_time_f(plist_id, flag, hdferr)
             IMPLICIT NONE
@@ -3366,8 +3139,7 @@ SUBROUTINE h5pset_fill_time_f(plist_id, flag, hdferr)
 !
 ! HISTORY
 ! 
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pget_fill_time_f(plist_id, flag, hdferr)
             IMPLICIT NONE
@@ -3405,9 +3177,6 @@ SUBROUTINE h5pget_fill_time_f(plist_id, flag, hdferr)
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -3415,8 +3184,7 @@ SUBROUTINE h5pget_fill_time_f(plist_id, flag, hdferr)
 !
 ! HISTORY
 ! 
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pset_meta_block_size_f(plist_id, size, hdferr)
             IMPLICIT NONE
@@ -3456,9 +3224,6 @@ SUBROUTINE h5pset_meta_block_size_f(plist_id, size, hdferr)
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -3466,8 +3231,7 @@ SUBROUTINE h5pset_meta_block_size_f(plist_id, size, hdferr)
 !
 ! HISTORY
 ! 
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pget_meta_block_size_f(plist_id, size, hdferr)
             IMPLICIT NONE
@@ -3507,9 +3271,6 @@ SUBROUTINE h5pget_meta_block_size_f(plist_id, size, hdferr)
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -3517,8 +3278,7 @@ SUBROUTINE h5pget_meta_block_size_f(plist_id, size, hdferr)
 !
 ! HISTORY
 ! 
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pset_sieve_buf_size_f(plist_id, size, hdferr)
             IMPLICIT NONE
@@ -3558,9 +3318,6 @@ SUBROUTINE h5pset_sieve_buf_size_f(plist_id, size, hdferr)
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -3568,8 +3325,7 @@ SUBROUTINE h5pset_sieve_buf_size_f(plist_id, size, hdferr)
 !
 ! HISTORY
 ! 
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pget_sieve_buf_size_f(plist_id, size, hdferr)
             IMPLICIT NONE
@@ -3609,9 +3365,6 @@ SUBROUTINE h5pget_sieve_buf_size_f(plist_id, size, hdferr)
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -3619,8 +3372,7 @@ SUBROUTINE h5pget_sieve_buf_size_f(plist_id, size, hdferr)
 !
 ! HISTORY
 ! 
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pset_small_data_block_size_f(plist_id, size, hdferr)
             IMPLICIT NONE
@@ -3660,9 +3412,6 @@ SUBROUTINE h5pset_small_data_block_size_f(plist_id, size, hdferr)
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -3670,8 +3419,7 @@ SUBROUTINE h5pset_small_data_block_size_f(plist_id, size, hdferr)
 !
 ! HISTORY
 ! 
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pget_small_data_block_size_f(plist_id, size, hdferr)
             IMPLICIT NONE
@@ -3711,9 +3459,6 @@ SUBROUTINE h5pget_small_data_block_size_f(plist_id, size, hdferr)
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -3721,8 +3466,7 @@ SUBROUTINE h5pget_small_data_block_size_f(plist_id, size, hdferr)
 !
 ! HISTORY
 ! 
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pset_hyper_vector_size_f(plist_id, size, hdferr)
             IMPLICIT NONE
@@ -3762,9 +3506,6 @@ SUBROUTINE h5pset_hyper_vector_size_f(plist_id, size, hdferr)
 !		hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -3772,8 +3513,7 @@ SUBROUTINE h5pset_hyper_vector_size_f(plist_id, size, hdferr)
 !
 ! HISTORY
 ! 
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pget_hyper_vector_size_f(plist_id, size, hdferr)
             IMPLICIT NONE
@@ -3811,12 +3551,9 @@ SUBROUTINE h5pget_hyper_vector_size_f(plist_id, size, hdferr)
 ! OUTPUTS
 !  
 !               flag            - logical flag
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -3824,8 +3561,7 @@ SUBROUTINE h5pget_hyper_vector_size_f(plist_id, size, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pexist_f(prp_id, name, flag, hdferr)
             IMPLICIT NONE
@@ -3873,12 +3609,9 @@ SUBROUTINE h5pexist_f(prp_id, name, flag, hdferr)
 ! OUTPUTS
 !  
 !               size            - size of property in bytes
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -3886,8 +3619,7 @@ SUBROUTINE h5pexist_f(prp_id, name, flag, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pget_size_f(prp_id, name, size, hdferr)
             IMPLICIT NONE
@@ -3929,12 +3661,9 @@ SUBROUTINE h5pget_size_f(prp_id, name, size, hdferr)
 ! OUTPUTS
 !  
 !               nprops          - number of properties in property object
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -3942,8 +3671,7 @@ SUBROUTINE h5pget_size_f(prp_id, name, size, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pget_nprops_f(prp_id, nprops, hdferr)
             IMPLICIT NONE
@@ -3986,9 +3714,6 @@ SUBROUTINE h5pget_nprops_f(prp_id, nprops, hdferr)
 !		hdferr:		- error code
 !				 	Success: 0
 !				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -3996,8 +3721,7 @@ SUBROUTINE h5pget_nprops_f(prp_id, nprops, hdferr)
 !
 ! HISTORY
 ! Returned the size of name as an argument	
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pget_class_name_f(prp_id, name, size, hdferr)
             IMPLICIT NONE
@@ -4048,9 +3772,6 @@ SUBROUTINE h5pget_class_name_f(prp_id, name, size, hdferr)
 !                                       
 !				 	Success:  0
 !				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -4058,8 +3779,7 @@ SUBROUTINE h5pget_class_name_f(prp_id, name, size, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pget_class_parent_f(prp_id, parent_id, hdferr)
             IMPLICIT NONE
@@ -4101,9 +3821,6 @@ SUBROUTINE h5pget_class_parent_f(prp_id, parent_id, hdferr)
 !                                       
 !				 	Success:  0
 !				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -4111,8 +3828,7 @@ SUBROUTINE h5pget_class_parent_f(prp_id, parent_id, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pisa_class_f(plist, pclass, flag, hdferr)
             IMPLICIT NONE
@@ -4159,9 +3875,6 @@ SUBROUTINE h5pisa_class_f(plist, pclass, flag, hdferr)
 !                                       
 !				 	Success: 0 
 !				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -4169,8 +3882,7 @@ SUBROUTINE h5pisa_class_f(plist, pclass, flag, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pcopy_prop_f(dst_id, src_id, name, hdferr)
             IMPLICIT NONE
@@ -4218,9 +3930,6 @@ SUBROUTINE h5pcopy_prop_f(dst_id, src_id, name, hdferr)
 !                                       
 !				 	Success: 0 
 !				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -4228,8 +3937,7 @@ SUBROUTINE h5pcopy_prop_f(dst_id, src_id, name, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5premove_f(plid, name, hdferr)
             IMPLICIT NONE
@@ -4274,9 +3982,6 @@ SUBROUTINE h5premove_f(plid, name, hdferr)
 !                                       
 !				 	Success: 0 
 !				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -4284,8 +3989,7 @@ SUBROUTINE h5premove_f(plid, name, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5punregister_f(class, name, hdferr)
             IMPLICIT NONE
@@ -4329,9 +4033,6 @@ SUBROUTINE h5punregister_f(class, name, hdferr)
 !                                       
 !				 	Success: 0 
 !				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -4339,8 +4040,7 @@ SUBROUTINE h5punregister_f(class, name, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pclose_class_f(class, hdferr)
             IMPLICIT NONE
@@ -4373,12 +4073,9 @@ SUBROUTINE h5pclose_class_f(class, hdferr)
 !		prp_id		- dataset creation property list identifier
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -4386,8 +4083,7 @@ SUBROUTINE h5pclose_class_f(class, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE
           SUBROUTINE h5pset_shuffle_f(prp_id, hdferr)
             IMPLICIT NONE
@@ -4427,12 +4123,9 @@ SUBROUTINE h5pclose_class_f(class, hdferr)
 !                                   H5Z_ENABLE_EDC_F
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -4440,8 +4133,7 @@ SUBROUTINE h5pclose_class_f(class, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE
           SUBROUTINE h5pset_edc_check_f(prp_id, flag, hdferr)
             IMPLICIT NONE
@@ -4480,12 +4172,9 @@ SUBROUTINE h5pclose_class_f(class, hdferr)
 !		prp_id		- dataset creation property list identifier
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -4493,8 +4182,7 @@ SUBROUTINE h5pclose_class_f(class, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE
           SUBROUTINE h5pget_edc_check_f(prp_id, flag, hdferr)
             IMPLICIT NONE
@@ -4538,12 +4226,9 @@ SUBROUTINE h5pclose_class_f(class, hdferr)
 !		prp_id		- dataset creation property list identifier
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -4551,8 +4236,7 @@ SUBROUTINE h5pclose_class_f(class, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE
           SUBROUTINE h5pset_fletcher32_f(prp_id, hdferr)
             IMPLICIT NONE
@@ -4590,12 +4274,9 @@ SUBROUTINE h5pclose_class_f(class, hdferr)
 !               offset		- file offset
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -4603,8 +4284,7 @@ SUBROUTINE h5pclose_class_f(class, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE
           SUBROUTINE h5pset_family_offset_f(prp_id, offset, hdferr)
             IMPLICIT NONE
@@ -4647,12 +4327,9 @@ SUBROUTINE h5pclose_class_f(class, hdferr)
 !               relax           - flag 
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -4660,8 +4337,7 @@ SUBROUTINE h5pclose_class_f(class, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE
           SUBROUTINE h5pset_fapl_multi_l(prp_id, memb_map, memb_fapl, memb_name, memb_addr, relax, hdferr)
             IMPLICIT NONE
@@ -4724,12 +4400,9 @@ SUBROUTINE h5pclose_class_f(class, hdferr)
 !               relax           - flag 
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -4737,8 +4410,7 @@ SUBROUTINE h5pclose_class_f(class, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE
           SUBROUTINE h5pset_fapl_multi_s(prp_id, relax, hdferr)
             IMPLICIT NONE
@@ -4783,9 +4455,9 @@ SUBROUTINE h5pclose_class_f(class, hdferr)
 !               memb_fapl       - property list for each memory usage type
 !               memb_name       - names of member file
 !               relax           - flag 
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 ! OPTIONAL PARAMETERS
 !
 !				maxlen_out - maximum length for memb_name array element 
@@ -4796,8 +4468,7 @@ SUBROUTINE h5pclose_class_f(class, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE
           SUBROUTINE h5pget_fapl_multi_f(prp_id, memb_map, memb_fapl, memb_name, memb_addr, relax, hdferr, maxlen_out)
             IMPLICIT NONE
@@ -4863,12 +4534,9 @@ SUBROUTINE h5pclose_class_f(class, hdferr)
 !               pixels_per_block - szip parameters
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -4876,8 +4544,7 @@ SUBROUTINE h5pclose_class_f(class, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE
           SUBROUTINE h5pset_szip_f(prp_id, options_mask, pixels_per_block, hdferr) 
             IMPLICIT NONE
@@ -4922,12 +4589,9 @@ SUBROUTINE h5pclose_class_f(class, hdferr)
 !  
 !               flag            - .TRUE. if all filters are available
 !                                 .FALSE. otherwise
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -4935,8 +4599,7 @@ SUBROUTINE h5pclose_class_f(class, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE
           SUBROUTINE h5pall_filters_avail_f(prp_id, flag, hdferr)
             IMPLICIT NONE
@@ -4987,12 +4650,9 @@ SUBROUTINE h5pclose_class_f(class, hdferr)
 !		cd_values	- auxiliary data for the filter
 !		namelen		- number of characters in the name buffer
 !		name		- buffer to retrieve filter name
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -5000,8 +4660,7 @@ SUBROUTINE h5pclose_class_f(class, hdferr)
 !
 ! HISTORY
 ! 
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pget_filter_by_id_f(prp_id, filter_id, flags, cd_nelmts, cd_values, namelen, name, hdferr)
             IMPLICIT NONE
@@ -5063,12 +4722,9 @@ SUBROUTINE h5pget_filter_by_id_f(prp_id, filter_id, flags, cd_nelmts, cd_values,
 !		cd_values	- auxiliary data for the filter
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Elena Pourmal
@@ -5076,8 +4732,7 @@ SUBROUTINE h5pget_filter_by_id_f(prp_id, filter_id, flags, cd_nelmts, cd_values,
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pmodify_filter_f(prp_id, filter, flags, cd_nelmts, cd_values,  hdferr)
             IMPLICIT NONE
@@ -5126,12 +4781,9 @@ SUBROUTINE h5pmodify_filter_f(prp_id, filter, flags, cd_nelmts, cd_values,  hdfe
 !		filter		- filter to be removed
 ! OUTPUTS
 !  
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	Quincey Koziol
@@ -5139,8 +4791,7 @@ SUBROUTINE h5pmodify_filter_f(prp_id, filter, flags, cd_nelmts, cd_values,  hdfe
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5premove_filter_f(prp_id, filter, hdferr)
             IMPLICIT NONE
@@ -5184,12 +4835,9 @@ SUBROUTINE h5premove_filter_f(prp_id, filter, hdferr)
 !                                 (Default: 8)
 !               min_dense       - Minimum number of attributes to be stored in dense storage
 !                                 (Default: 6)
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -5197,8 +4845,7 @@ SUBROUTINE h5premove_filter_f(prp_id, filter, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE  
 SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
     IMPLICIT NONE
@@ -5242,12 +4889,9 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !               crt_order_flags - Flags specifying whether to track and index attribute creation order
 ! OUTPUTS
 !
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -5255,8 +4899,7 @@ SUBROUTINE h5pget_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE 
 SUBROUTINE h5pset_attr_creation_order_f(ocpl_id, crt_order_flags , hdferr)
     IMPLICIT NONE
@@ -5298,12 +4941,9 @@ SUBROUTINE h5pset_attr_creation_order_f(ocpl_id, crt_order_flags , hdferr)
 !               nindexes - Number of shared object header message indexes to be available in files created with this property list
 ! OUTPUTS
 !
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -5311,8 +4951,7 @@ SUBROUTINE h5pset_attr_creation_order_f(ocpl_id, crt_order_flags , hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE  
 SUBROUTINE h5pset_shared_mesg_nindexes_f( plist_id, nindexes, hdferr)
     IMPLICIT NONE
@@ -5358,12 +4997,9 @@ SUBROUTINE h5pset_shared_mesg_nindexes_f( plist_id, nindexes, hdferr)
 !
 ! OUTPUTS
 !
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -5422,9 +5058,6 @@ SUBROUTINE h5pset_shared_mesg_index_f(fcpl_id, index_num, mesg_type_flags, min_m
 !	      hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -5479,9 +5112,6 @@ SUBROUTINE h5pget_attr_creation_order_f(ocpl_id, crt_order_flags, hdferr)
 !	      hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -5489,8 +5119,7 @@ SUBROUTINE h5pget_attr_creation_order_f(ocpl_id, crt_order_flags, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE  
 SUBROUTINE h5pset_libver_bounds_f(fapl_id, low, high, hdferr)
     IMPLICIT NONE
@@ -5543,9 +5172,6 @@ SUBROUTINE h5pset_libver_bounds_f(fapl_id, low, high, hdferr)
 !	      hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -5553,8 +5179,7 @@ SUBROUTINE h5pset_libver_bounds_f(fapl_id, low, high, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE  
 SUBROUTINE h5pset_link_creation_order_f(gcpl_id, crt_order_flags, hdferr)
     IMPLICIT NONE
@@ -5597,12 +5222,9 @@ SUBROUTINE h5pset_link_creation_order_f(gcpl_id, crt_order_flags, hdferr)
 !  
 !               max_compact     - Maximum number of attributes to be stored in compact storage
 !               min_dense       - Minimum number of attributes to be stored in dense storage
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -5610,8 +5232,7 @@ SUBROUTINE h5pset_link_creation_order_f(gcpl_id, crt_order_flags, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE  
 SUBROUTINE h5pget_link_phase_change_f(gcpl_id, max_compact, min_dense, hdferr)
     IMPLICIT NONE
@@ -5654,12 +5275,9 @@ SUBROUTINE h5pget_link_phase_change_f(gcpl_id, max_compact, min_dense, hdferr)
 !                                 .TRUE.,.FALSE.
 ! OUTPUTS
 !
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -5667,8 +5285,7 @@ SUBROUTINE h5pget_link_phase_change_f(gcpl_id, max_compact, min_dense, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE  
 SUBROUTINE h5pget_obj_track_times_f(plist_id, flag, hdferr)
     IMPLICIT NONE
@@ -5726,12 +5343,9 @@ SUBROUTINE h5pget_obj_track_times_f(plist_id, flag, hdferr)
 !                                 .TRUE.,.FALSE.
 ! OUTPUTS
 !
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -5787,9 +5401,6 @@ SUBROUTINE h5pget_obj_track_times_f(plist_id, flag, hdferr)
 !		hdferr:		   - error code		
 !				 	Success:  0
 !				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -5797,8 +5408,7 @@ SUBROUTINE h5pget_obj_track_times_f(plist_id, flag, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment: The long subroutine name (>31) on older f90 compilers causes problems
+! The long subroutine name (>31) on older f90 compilers causes problems
 !          so had to shorten the name		
 !--------------------------------------------------------------------------------------
 
@@ -5845,9 +5455,6 @@ SUBROUTINE h5pget_obj_track_times_f(plist_id, flag, hdferr)
 !	      hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -5855,8 +5462,7 @@ SUBROUTINE h5pget_obj_track_times_f(plist_id, flag, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE  
   SUBROUTINE h5pget_link_creation_order_f(gcpl_id, crt_order_flags, hdferr)
     IMPLICIT NONE
@@ -5904,9 +5510,6 @@ SUBROUTINE h5pget_obj_track_times_f(plist_id, flag, hdferr)
 !	      hdferr:		- error code		
 !				 	Success:  0
 !				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -5914,8 +5517,7 @@ SUBROUTINE h5pget_obj_track_times_f(plist_id, flag, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE  
   SUBROUTINE h5pset_char_encoding_f(plist_id, encoding, hdferr)
     IMPLICIT NONE
@@ -5966,9 +5568,6 @@ SUBROUTINE h5pget_obj_track_times_f(plist_id, flag, hdferr)
 !	        hdferr - error code		
 !		            Success:  0
 !		            Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -5976,8 +5575,7 @@ SUBROUTINE h5pget_obj_track_times_f(plist_id, flag, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE  
   SUBROUTINE  h5pget_char_encoding_f(plist_id, encoding, hdferr)
     IMPLICIT NONE
@@ -6025,9 +5623,6 @@ SUBROUTINE h5pget_obj_track_times_f(plist_id, flag, hdferr)
 !		hdferr	     - error code		
 !				 Success:  0
 !				 Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -6035,8 +5630,7 @@ SUBROUTINE h5pget_obj_track_times_f(plist_id, flag, hdferr)
 !
 ! HISTORY
 !
-!
-! Comment:		
+!		
 ! SOURCE  
   SUBROUTINE h5pset_copy_object_f(ocp_plist_id, copy_options, hdferr)
     IMPLICIT NONE
@@ -6082,9 +5676,6 @@ SUBROUTINE h5pget_obj_track_times_f(plist_id, flag, hdferr)
 !		hdferr	     - error code		
 !				 Success:  0
 !				 Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -6092,8 +5683,7 @@ SUBROUTINE h5pget_obj_track_times_f(plist_id, flag, hdferr)
 !
 ! HISTORY
 !
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pget_copy_object_f(ocp_plist_id, copy_options, hdferr)
     IMPLICIT NONE
@@ -6143,9 +5733,6 @@ SUBROUTINE h5pget_copy_object_f(ocp_plist_id, copy_options, hdferr)
 !                                                 truncated to fit into
 !                                                 provided user buffer
 !				 	Failure: -1
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -6153,8 +5740,7 @@ SUBROUTINE h5pget_copy_object_f(ocp_plist_id, copy_options, hdferr)
 !
 ! HISTORY
 !
-!
-! Comment: Should hdferr return just 0 or 1 and add another arguement for the size?
+! Should hdferr return just 0 or 1 and add another arguement for the size?
 ! SOURCE
 SUBROUTINE h5pget_data_transform_f(plist_id, expression, hdferr, size)
     IMPLICIT NONE
@@ -6211,9 +5797,6 @@ SUBROUTINE h5pget_data_transform_f(plist_id, expression, hdferr, size)
 !		hdferr	   - error code
 !                                       Success:  0
 !				 	Failure: -1
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -6221,8 +5804,7 @@ SUBROUTINE h5pget_data_transform_f(plist_id, expression, hdferr, size)
 !
 ! HISTORY
 !
-!
-! Comment: 
+! 
 ! SOURCE
 SUBROUTINE h5pset_data_transform_f(plist_id, expression, hdferr)
     IMPLICIT NONE
@@ -6269,9 +5851,6 @@ SUBROUTINE h5pset_data_transform_f(plist_id, expression, hdferr)
 !		hdferr	  - error code
 !                                    Success:  0
 !				     Failure: -1
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -6279,8 +5858,7 @@ SUBROUTINE h5pset_data_transform_f(plist_id, expression, hdferr)
 !
 ! HISTORY
 !
-!
-! Comment: 
+! 
 ! SOURCE
 SUBROUTINE h5pget_local_heap_size_hint_f(gcpl_id, size_hint, hdferr)
     IMPLICIT NONE
@@ -6324,9 +5902,6 @@ SUBROUTINE h5pget_local_heap_size_hint_f(gcpl_id, size_hint, hdferr)
 !		hdferr	- error code
 !                                Success:  0
 !				 Failure: -1
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -6334,8 +5909,7 @@ SUBROUTINE h5pget_local_heap_size_hint_f(gcpl_id, size_hint, hdferr)
 !
 ! HISTORY
 !
-!
-! Comment: 
+! 
 ! SOURCE
 SUBROUTINE h5pget_est_link_info_f(gcpl_id, est_num_entries, est_name_len, hdferr)
     IMPLICIT NONE
@@ -6380,9 +5954,6 @@ SUBROUTINE h5pget_est_link_info_f(gcpl_id, est_num_entries, est_name_len, hdferr
 !		hdferr	  - error code
 !                                    Success:  0
 !				     Failure: -1
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -6390,8 +5961,7 @@ SUBROUTINE h5pget_est_link_info_f(gcpl_id, est_num_entries, est_name_len, hdferr
 !
 ! HISTORY
 !
-!
-! Comment: 
+! 
 ! SOURCE
 SUBROUTINE h5pset_local_heap_size_hint_f(gcpl_id, size_hint, hdferr)
     IMPLICIT NONE
@@ -6435,9 +6005,6 @@ SUBROUTINE h5pset_local_heap_size_hint_f(gcpl_id, size_hint, hdferr)
 !		hdferr	- error code
 !                                Success:  0
 !				 Failure: -1
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -6445,8 +6012,7 @@ SUBROUTINE h5pset_local_heap_size_hint_f(gcpl_id, size_hint, hdferr)
 !
 ! HISTORY
 !
-!
-! Comment: 
+! 
 ! SOURCE
 SUBROUTINE h5pset_est_link_info_f(gcpl_id, est_num_entries, est_name_len, hdferr)
     IMPLICIT NONE
@@ -6489,12 +6055,9 @@ SUBROUTINE h5pset_est_link_info_f(gcpl_id, est_num_entries, est_name_len, hdferr
 !               min_dense       - Minimum number of attributes to be stored in dense storage
 ! OUTPUTS
 !
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -6502,8 +6065,7 @@ SUBROUTINE h5pset_est_link_info_f(gcpl_id, est_num_entries, est_name_len, hdferr
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pset_link_phase_change_f(gcpl_id, max_compact, min_dense, hdferr)
     IMPLICIT NONE
@@ -6550,9 +6112,6 @@ SUBROUTINE h5pset_link_phase_change_f(gcpl_id, max_compact, min_dense, hdferr)
 !     hdferr:   - error code		
 !		    Success:  0
 !		    Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -6560,8 +6119,7 @@ SUBROUTINE h5pset_link_phase_change_f(gcpl_id, max_compact, min_dense, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pset_fapl_direct_f(fapl_id, alignment, block_size, cbuf_size, hdferr)
     IMPLICIT NONE  
@@ -6609,9 +6167,6 @@ SUBROUTINE h5pset_fapl_direct_f(fapl_id, alignment, block_size, cbuf_size, hdfer
 !     hdferr:   - error code		
 !		    Success:  0
 !		    Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -6619,8 +6174,7 @@ SUBROUTINE h5pset_fapl_direct_f(fapl_id, alignment, block_size, cbuf_size, hdfer
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pget_fapl_direct_f(fapl_id, alignment, block_size, cbuf_size, hdferr)
     IMPLICIT NONE  
@@ -6666,12 +6220,9 @@ SUBROUTINE h5pget_fapl_direct_f(fapl_id, alignment, block_size, cbuf_size, hdfer
 !                                 (Default: 8)
 !               min_dense       - Minimum number of attributes to be stored in dense storage
 !                                 (Default: 6)
-!		hdferr:		- error code		
-!				 	Success:  0
-!				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
+!  hdferr  - error code		
+!	      Success:  0
+!	      Failure: -1   
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -6679,8 +6230,7 @@ SUBROUTINE h5pget_fapl_direct_f(fapl_id, alignment, block_size, cbuf_size, hdfer
 !
 ! HISTORY
 ! 	
-!
-! Comment:		
+!		
 ! SOURCE
 SUBROUTINE h5pset_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
     IMPLICIT NONE
@@ -6728,9 +6278,6 @@ SUBROUTINE h5pset_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !		hdferr	  - error code
 !                                    Success:  0
 !				     Failure: -1
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -6738,8 +6285,7 @@ SUBROUTINE h5pset_attr_phase_change_f(ocpl_id, max_compact, min_dense, hdferr)
 !
 ! HISTORY
 !
-!
-! Comment: 
+! 
 ! SOURCE
 SUBROUTINE h5pset_nbit_f(plist_id, hdferr)
     IMPLICIT NONE
@@ -6780,9 +6326,6 @@ SUBROUTINE h5pset_nbit_f(plist_id, hdferr)
 !		hdferr	 - error code
 !                                   Success:  0
 !				    Failure: -1
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -6790,8 +6333,7 @@ SUBROUTINE h5pset_nbit_f(plist_id, hdferr)
 !
 ! HISTORY
 !
-!
-! Comment: 
+! 
 ! SOURCE
 SUBROUTINE h5pset_scaleoffset_f(plist_id, scale_type, scale_factor, hdferr)
     IMPLICIT NONE
@@ -6836,9 +6378,6 @@ SUBROUTINE h5pset_scaleoffset_f(plist_id, scale_type, scale_factor, hdferr)
 !		hdferr	 - error code
 !                                   Success:  0
 !				    Failure: -1
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -6846,8 +6385,7 @@ SUBROUTINE h5pset_scaleoffset_f(plist_id, scale_type, scale_factor, hdferr)
 !
 ! HISTORY
 !
-!
-! Comment: 
+! 
 ! SOURCE
 SUBROUTINE h5pset_nlinks_f(lapl_id, nlinks, hdferr)
     IMPLICIT NONE
@@ -6891,9 +6429,6 @@ SUBROUTINE h5pset_nlinks_f(lapl_id, nlinks, hdferr)
 !		hdferr	 - error code
 !                                   Success:  0
 !				    Failure: -1
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -6944,9 +6479,6 @@ SUBROUTINE h5pget_nlinks_f(lapl_id, nlinks, hdferr)
 !		hdferr:		   - error code		
 !				 	Success:  0
 !				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -6954,8 +6486,7 @@ SUBROUTINE h5pget_nlinks_f(lapl_id, nlinks, hdferr)
 !
 ! HISTORY
 ! 	
-!
-! Comment: The long subroutine name (>31) on older f90 compilers causes problems
+! The long subroutine name (>31) on older f90 compilers causes problems
 !          so had to shorten the name
 ! SOURCE
   SUBROUTINE h5pget_create_inter_group_f(lcpl_id, crt_intermed_group, hdferr)
@@ -7015,9 +6546,6 @@ SUBROUTINE h5pget_nlinks_f(lapl_id, nlinks, hdferr)
 !		hdferr:		   - error code		
 !				 	Success:  0
 !				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	M.S. Breitenfeld
@@ -7079,9 +6607,6 @@ SUBROUTINE h5pget_nlinks_f(lapl_id, nlinks, hdferr)
 !		hdferr:		   - error code		
 !				 	Success:  0
 !				 	Failure: -1   
-! OPTIONAL PARAMETERS
-!
-!				NONE
 !
 ! AUTHOR
 !	M.S. Breitenfeld

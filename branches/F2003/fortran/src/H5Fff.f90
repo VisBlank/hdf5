@@ -3,7 +3,7 @@
 ! NAME
 !  MODULE H5F
 !
-!  FILE
+! FILE
 !  H5Fff.f90
 !
 ! PURPOSE
@@ -129,6 +129,7 @@ CONTAINS
 !                    H5F_SCOPE_LOCAL_F
 ! OUTPUTS
 !  hdferr 	 - Returns 0 if successful and -1 if fails
+!
 ! OPTIONAL PARAMETERS
 !  creation_prp  - file creation property list identifier
 !  access_prp 	 - file access property list identifier
@@ -659,6 +660,7 @@ CONTAINS
 ! OUTPUTS
 !  obj_ids 	 - array of open object identifiers
 !  hdferr 	 - Returns 0 if successful and -1 if fails
+!
 ! OPTIONAL PARAMETERS
 !  num_objs 	 - number of open objects
 !
@@ -722,7 +724,6 @@ CONTAINS
 !  October 7, 2003
 !
 ! SOURCE
-
   SUBROUTINE h5fget_freespace_f(file_id, free_space, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: file_id ! File identifier
@@ -803,7 +804,6 @@ CONTAINS
 ! OUTPUTS
 !  size 	 - file size
 !  hdferr 	 - Returns 0 if successful and -1 if fails
-! OPTIONAL PARAMETERS
 !
 ! AUTHOR
 !  Elena Pourmal

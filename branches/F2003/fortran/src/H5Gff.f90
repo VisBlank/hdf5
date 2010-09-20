@@ -461,7 +461,6 @@ CONTAINS
             hdferr = h5gn_members_c(loc_id, name, namelen, nmembers)
 
           END SUBROUTINE h5gn_members_f
-
 !
 !****s* H5G/h5glink_f
 !
@@ -567,17 +566,17 @@ CONTAINS
   SUBROUTINE h5glink2_f(cur_loc_id, cur_name, link_type, new_loc_id, &
        new_name, hdferr)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: cur_loc_id   ! File or group identifier
+    INTEGER(HID_T), INTENT(IN) :: cur_loc_id ! File or group identifier
     CHARACTER(LEN=*), INTENT(IN) :: cur_name
                                              ! Current name of an object
-    INTEGER, INTENT(IN) :: link_type       ! link type
-                                                   ! Possible values are:
-                                                   ! H5G_LINK_HARD_F (0) or
-                                                   ! H5G_LINK_SOFT_F (1)
+    INTEGER, INTENT(IN) :: link_type         ! link type
+                                                 ! Possible values are:
+                                                 ! H5G_LINK_HARD_F (0) or
+                                                 ! H5G_LINK_SOFT_F (1)
 
     INTEGER(HID_T), INTENT(IN) :: new_loc_id ! File or group identifier
     CHARACTER(LEN=*), INTENT(IN) :: new_name ! New name of an object
-    INTEGER, INTENT(OUT) :: hdferr         ! Error code
+    INTEGER, INTENT(OUT) :: hdferr           ! Error code
 !*****
 
     INTEGER :: cur_namelen ! Lenghth of the current_name string
@@ -689,36 +688,35 @@ CONTAINS
 !
 ! SOURCE
   SUBROUTINE h5gmove_f(loc_id, name, new_name, hdferr)
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier
-            CHARACTER(LEN=*), INTENT(IN) :: name   ! Current name of an object
-            CHARACTER(LEN=*), INTENT(IN) :: new_name ! New name of an object
-            INTEGER, INTENT(OUT) :: hdferr         ! Error code
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id     ! File or group identifier
+    CHARACTER(LEN=*), INTENT(IN) :: name     ! Current name of an object
+    CHARACTER(LEN=*), INTENT(IN) :: new_name ! New name of an object
+    INTEGER, INTENT(OUT) :: hdferr           ! Error code
 !*****
-            INTEGER :: namelen         ! Lenghth of the current_name string
-            INTEGER :: new_namelen     ! Lenghth of the new_name string
-
-            INTERFACE
-              INTEGER FUNCTION h5gmove_c(loc_id, name, namelen, new_name, new_namelen)
-              USE H5GLOBAL
-              !DEC$IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ATTRIBUTES C,reference,decorate,alias:'H5GMOVE_C'::h5gmove_c
-              !DEC$ENDIF
-              !DEC$ATTRIBUTES reference :: name
-              !DEC$ATTRIBUTES reference :: new_name
-              INTEGER(HID_T), INTENT(IN) :: loc_id
-              CHARACTER(LEN=*), INTENT(IN) :: name
-              INTEGER :: namelen
-              CHARACTER(LEN=*), INTENT(IN) :: new_name
-              INTEGER :: new_namelen
-              END FUNCTION h5gmove_c
-            END INTERFACE
-
-            namelen = LEN(name)
-            new_namelen = LEN(new_name)
-            hdferr = h5gmove_c(loc_id, name, namelen, new_name, new_namelen)
-          END SUBROUTINE h5gmove_f
-
+    INTEGER :: namelen         ! Lenghth of the current_name string
+    INTEGER :: new_namelen     ! Lenghth of the new_name string
+    
+    INTERFACE
+       INTEGER FUNCTION h5gmove_c(loc_id, name, namelen, new_name, new_namelen)
+         USE H5GLOBAL
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5GMOVE_C'::h5gmove_c
+         !DEC$ENDIF
+         !DEC$ATTRIBUTES reference :: name
+         !DEC$ATTRIBUTES reference :: new_name
+         INTEGER(HID_T), INTENT(IN) :: loc_id
+         CHARACTER(LEN=*), INTENT(IN) :: name
+         INTEGER :: namelen
+         CHARACTER(LEN=*), INTENT(IN) :: new_name
+         INTEGER :: new_namelen
+       END FUNCTION h5gmove_c
+    END INTERFACE
+    
+    namelen = LEN(name)
+    new_namelen = LEN(new_name)
+    hdferr = h5gmove_c(loc_id, name, namelen, new_name, new_namelen)
+  END SUBROUTINE h5gmove_f
 !
 !****s* H5G/h5gmove2_f
 !
@@ -741,40 +739,38 @@ CONTAINS
 !
 ! SOURCE
   SUBROUTINE h5gmove2_f(src_loc_id, src_name, dst_loc_id, dst_name, hdferr)
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN)   :: src_loc_id  ! File or group identifier
-            CHARACTER(LEN=*), INTENT(IN) :: src_name    ! Original name of an object
-            INTEGER(HID_T), INTENT(IN)   :: dst_loc_id  ! File or group identifier
-            CHARACTER(LEN=*), INTENT(IN) :: dst_name    ! New name of an object
-            INTEGER, INTENT(OUT)         :: hdferr      ! Error code
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN)   :: src_loc_id  ! File or group identifier
+    CHARACTER(LEN=*), INTENT(IN) :: src_name    ! Original name of an object
+    INTEGER(HID_T), INTENT(IN)   :: dst_loc_id  ! File or group identifier
+    CHARACTER(LEN=*), INTENT(IN) :: dst_name    ! New name of an object
+    INTEGER, INTENT(OUT)         :: hdferr      ! Error code
 !*****
-            INTEGER :: src_namelen         ! Length of the current_name string
-            INTEGER :: dst_namelen         ! Lenghth of the new_name string
-
-            INTERFACE
-              INTEGER FUNCTION h5gmove2_c(src_loc_id, src_name, src_namelen, &
-                               dst_loc_id, dst_name, dst_namelen)
-              USE H5GLOBAL
-              !DEC$IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ATTRIBUTES C,reference,decorate,alias:'H5GMOVE2_C'::h5gmove2_c
-              !DEC$ENDIF
-              !DEC$ATTRIBUTES reference :: src_name
-              !DEC$ATTRIBUTES reference :: dst_name
-              INTEGER(HID_T), INTENT(IN) :: src_loc_id
-              INTEGER(HID_T), INTENT(IN) :: dst_loc_id
-              CHARACTER(LEN=*), INTENT(IN) :: src_name
-              CHARACTER(LEN=*), INTENT(IN) :: dst_name
-              INTEGER :: src_namelen
-              INTEGER :: dst_namelen
-              END FUNCTION h5gmove2_c
-            END INTERFACE
-
-            src_namelen = LEN(src_name)
-            dst_namelen = LEN(dst_name)
-            hdferr = h5gmove2_c(src_loc_id, src_name, src_namelen,&
-                    dst_loc_id,  dst_name, dst_namelen)
-          END SUBROUTINE h5gmove2_f
-
+    INTEGER :: src_namelen         ! Length of the current_name string
+    INTEGER :: dst_namelen         ! Lenghth of the new_name string
+    
+    INTERFACE
+       INTEGER FUNCTION h5gmove2_c(src_loc_id, src_name, src_namelen, &
+            dst_loc_id, dst_name, dst_namelen)
+         USE H5GLOBAL
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5GMOVE2_C'::h5gmove2_c
+         !DEC$ENDIF
+         !DEC$ATTRIBUTES reference :: src_name
+         !DEC$ATTRIBUTES reference :: dst_name
+         INTEGER(HID_T), INTENT(IN) :: src_loc_id
+         INTEGER(HID_T), INTENT(IN) :: dst_loc_id
+         CHARACTER(LEN=*), INTENT(IN) :: src_name
+         CHARACTER(LEN=*), INTENT(IN) :: dst_name
+         INTEGER :: src_namelen
+         INTEGER :: dst_namelen
+       END FUNCTION h5gmove2_c
+    END INTERFACE
+    
+    src_namelen = LEN(src_name)
+    dst_namelen = LEN(dst_name)
+    hdferr = h5gmove2_c(src_loc_id, src_name, src_namelen, dst_loc_id, dst_name, dst_namelen)
+  END SUBROUTINE h5gmove2_f
 !
 !****s* H5G/h5gget_linkval_f
 !
@@ -806,37 +802,37 @@ CONTAINS
 !
 ! SOURCE
   SUBROUTINE h5gget_linkval_f(loc_id, name, size, buffer, hdferr)
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier
-            CHARACTER(LEN=*), INTENT(IN) :: name   ! Current name of an object
-            INTEGER(SIZE_T), INTENT(IN) :: size    ! Maximum number of buffer
-            CHARACTER(LEN=size), INTENT(OUT) :: buffer
-                                                   ! Buffer to hold a name of
-                                                   ! the object symbolic link
-                                                   ! points to
-            INTEGER, INTENT(OUT) :: hdferr         ! Error code
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier
+    CHARACTER(LEN=*), INTENT(IN) :: name   ! Current name of an object
+    INTEGER(SIZE_T), INTENT(IN) :: size    ! Maximum number of buffer
+    CHARACTER(LEN=size), INTENT(OUT) :: buffer
+                                           ! Buffer to hold a name of
+                                           ! the object symbolic link
+                                           ! points to
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code
 !*****
-            INTEGER :: namelen ! Lenghth of the current_name string
-
-            INTERFACE
-              INTEGER FUNCTION h5gget_linkval_c(loc_id, name, namelen, size, buffer)
-              USE H5GLOBAL
-              !DEC$IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ATTRIBUTES C,reference,decorate,alias:'H5GGET_LINKVAL_C'::h5gget_linkval_c
-              !DEC$ENDIF
-              !DEC$ATTRIBUTES reference :: name
-              !DEC$ATTRIBUTES reference :: buffer
-              INTEGER(HID_T), INTENT(IN) :: loc_id
-              CHARACTER(LEN=*), INTENT(IN) :: name
-              INTEGER :: namelen
-              INTEGER(SIZE_T), INTENT(IN) :: size
-              CHARACTER(LEN=*), INTENT(OUT) :: buffer
-              END FUNCTION h5gget_linkval_c
-            END INTERFACE
-
-            namelen = LEN(name)
-            hdferr = h5gget_linkval_c(loc_id, name, namelen, size, buffer)
-          END SUBROUTINE h5gget_linkval_f
+    INTEGER :: namelen ! Lenghth of the current_name string
+    
+    INTERFACE
+       INTEGER FUNCTION h5gget_linkval_c(loc_id, name, namelen, size, buffer)
+         USE H5GLOBAL
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5GGET_LINKVAL_C'::h5gget_linkval_c
+         !DEC$ENDIF
+         !DEC$ATTRIBUTES reference :: name
+         !DEC$ATTRIBUTES reference :: buffer
+         INTEGER(HID_T), INTENT(IN) :: loc_id
+         CHARACTER(LEN=*), INTENT(IN) :: name
+         INTEGER :: namelen
+         INTEGER(SIZE_T), INTENT(IN) :: size
+         CHARACTER(LEN=*), INTENT(OUT) :: buffer
+       END FUNCTION h5gget_linkval_c
+    END INTERFACE
+    
+    namelen = LEN(name)
+    hdferr = h5gget_linkval_c(loc_id, name, namelen, size, buffer)
+  END SUBROUTINE h5gget_linkval_f
 
 !
 !****s* H5G/h5gset_comment_f
@@ -865,37 +861,36 @@ CONTAINS
 !
 ! SOURCE
   SUBROUTINE h5gset_comment_f(loc_id, name, comment, hdferr)
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier
-            CHARACTER(LEN=*), INTENT(IN) :: name   ! Current name of an object
-            CHARACTER(LEN=*), INTENT(IN) :: comment ! New name of an object
-            INTEGER, INTENT(OUT) :: hdferr         ! Error code
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: loc_id   ! File or group identifier
+    CHARACTER(LEN=*), INTENT(IN) :: name   ! Current name of an object
+    CHARACTER(LEN=*), INTENT(IN) :: comment ! New name of an object
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code
 !*****
-            INTEGER :: namelen ! Lenghth of the current_name string
-            INTEGER :: commentlen     ! Lenghth of the comment string
-
-            INTERFACE
-              INTEGER FUNCTION h5gset_comment_c(loc_id, name, namelen, &
-                                                comment, commentlen)
-              USE H5GLOBAL
-              !DEC$IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ATTRIBUTES C,reference,decorate,alias:'H5GSET_COMMENT_C'::h5gset_comment_c
-              !DEC$ENDIF
-              !DEC$ATTRIBUTES reference :: name
-              !DEC$ATTRIBUTES reference :: comment
-              INTEGER(HID_T), INTENT(IN) :: loc_id
-              CHARACTER(LEN=*), INTENT(IN) :: name
-              INTEGER :: namelen
-              CHARACTER(LEN=*), INTENT(IN) :: comment
-              INTEGER :: commentlen
-              END FUNCTION h5gset_comment_c
-            END INTERFACE
-
-            namelen = LEN(name)
-            commentlen = LEN(comment)
-            hdferr = h5gset_comment_c(loc_id, name, namelen, comment, commentlen)
-          END SUBROUTINE h5gset_comment_f
-
+    INTEGER :: namelen ! Lenghth of the current_name string
+    INTEGER :: commentlen     ! Lenghth of the comment string
+    
+    INTERFACE
+       INTEGER FUNCTION h5gset_comment_c(loc_id, name, namelen, &
+            comment, commentlen)
+         USE H5GLOBAL
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5GSET_COMMENT_C'::h5gset_comment_c
+         !DEC$ENDIF
+         !DEC$ATTRIBUTES reference :: name
+         !DEC$ATTRIBUTES reference :: comment
+         INTEGER(HID_T), INTENT(IN) :: loc_id
+         CHARACTER(LEN=*), INTENT(IN) :: name
+         INTEGER :: namelen
+         CHARACTER(LEN=*), INTENT(IN) :: comment
+         INTEGER :: commentlen
+       END FUNCTION h5gset_comment_c
+    END INTERFACE
+    
+    namelen = LEN(name)
+    commentlen = LEN(comment)
+    hdferr = h5gset_comment_c(loc_id, name, namelen, comment, commentlen)
+  END SUBROUTINE h5gset_comment_f
 !
 !****s* H5G/h5gget_comment_f
 !
@@ -953,7 +948,6 @@ CONTAINS
     hdferr = h5gget_comment_c(loc_id, name, namelen, size, buffer)
 
   END SUBROUTINE h5gget_comment_f
-
 !
 !****s* H5G/H5Gcreate_anon_f
 !
@@ -1010,7 +1004,6 @@ CONTAINS
     hdferr = h5gcreate_anon_c(loc_id, gcpl_id_default, gapl_id_default, grp_id)
 
   END SUBROUTINE h5Gcreate_anon_f
-
 !
 !****s* H5G/H5Gget_create_plist_f
 !
@@ -1092,15 +1085,15 @@ CONTAINS
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: group_id ! Group identifier
 
-    INTEGER, INTENT(OUT) :: storage_type ! Type of storage for links in group:
+    INTEGER, INTENT(OUT) :: storage_type  ! Type of storage for links in group:
                                           ! H5G_STORAGE_TYPE_COMPACT_F: Compact storage
                                           ! H5G_STORAGE_TYPE_DENSE_F: Indexed storage
                                           ! H5G_STORAGE_TYPE_SYMBOL_TABLE_F: Symbol tables, the original HDF5 structure
-    INTEGER, INTENT(OUT) :: nlinks ! Number of links in group
-    INTEGER, INTENT(OUT) :: max_corder ! Current maximum creation order value for group
-    INTEGER, INTENT(OUT) :: hdferr       ! Error code:
-                                         ! 0 on success and -1 on failure
-    LOGICAL, INTENT(OUT), OPTIONAL :: mounted      ! Whether group has a file mounted on it
+    INTEGER, INTENT(OUT) :: nlinks        ! Number of links in group
+    INTEGER, INTENT(OUT) :: max_corder    ! Current maximum creation order value for group
+    INTEGER, INTENT(OUT) :: hdferr        ! Error code:
+                                          ! 0 on success and -1 on failure
+    LOGICAL, INTENT(OUT), OPTIONAL :: mounted  ! Whether group has a file mounted on it
 !*****
     INTEGER :: mounted_c
 
@@ -1129,7 +1122,6 @@ CONTAINS
     ENDIF
 
   END SUBROUTINE h5gget_info_f
-
 !
 !****s* H5G/h5gget_info_by_idx_f
 !
@@ -1174,22 +1166,22 @@ CONTAINS
   SUBROUTINE h5gget_info_by_idx_f(loc_id, group_name, index_type, order, n, &
        storage_type, nlinks, max_corder, hdferr, lapl_id, mounted)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: loc_id     ! File or group identifier
+    INTEGER(HID_T), INTENT(IN) :: loc_id       ! File or group identifier
     CHARACTER(LEN=*), INTENT(IN) :: group_name ! Name of group containing group for which information is to be retrieved
     INTEGER, INTENT(IN) :: index_type ! Index type
     INTEGER, INTENT(IN) :: order      ! Order of the count in the index
-    INTEGER(HSIZE_T), INTENT(IN) :: n          ! Position in the index of the group for which information is retrieved
+    INTEGER(HSIZE_T), INTENT(IN) :: n ! Position in the index of the group for which information is retrieved
 
     INTEGER, INTENT(OUT) :: storage_type ! Type of storage for links in group:
-                                          ! H5G_STORAGE_TYPE_COMPACT_F: Compact storage
-                                          ! H5G_STORAGE_TYPE_DENSE_F: Indexed storage
-                                          ! H5G_STORAGE_TYPE_SYMBOL_TABLE_F: Symbol tables, the original HDF5 structure
-    INTEGER, INTENT(OUT) :: nlinks ! Number of links in group
-    INTEGER, INTENT(OUT) :: max_corder ! Current maximum creation order value for group
-    INTEGER, INTENT(OUT) :: hdferr       ! Error code:
-                                         ! 0 on success and -1 on failure
+                                         !   H5G_STORAGE_TYPE_COMPACT_F: Compact storage
+                                         !   H5G_STORAGE_TYPE_DENSE_F: Indexed storage
+                                         !   H5G_STORAGE_TYPE_SYMBOL_TABLE_F: Symbol tables, the original HDF5 structure
+    INTEGER, INTENT(OUT) :: nlinks      ! Number of links in group
+    INTEGER, INTENT(OUT) :: max_corder  ! Current maximum creation order value for group
+    INTEGER, INTENT(OUT) :: hdferr      ! Error code:
+                                        ! 0 on success and -1 on failure
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id ! Link access property list
-    LOGICAL, INTENT(OUT), OPTIONAL :: mounted      ! Whether group has a file mounted on it
+    LOGICAL, INTENT(OUT), OPTIONAL :: mounted       ! Whether group has a file mounted on it
 !*****
     INTEGER :: mounted_c
     INTEGER(HID_T) :: lapl_id_default
@@ -1238,7 +1230,6 @@ CONTAINS
     ENDIF
 
   END SUBROUTINE h5gget_info_by_idx_f
-
 !
 !****s* H5G/h5gget_info_by_name_f
 !
@@ -1280,19 +1271,19 @@ CONTAINS
   SUBROUTINE h5gget_info_by_name_f(loc_id, group_name, &
        storage_type, nlinks, max_corder, hdferr, lapl_id, mounted)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: loc_id     ! File or group identifier
+    INTEGER(HID_T), INTENT(IN) :: loc_id       ! File or group identifier
     CHARACTER(LEN=*), INTENT(IN) :: group_name ! Name of group containing group for which information is to be retrieved
 
-    INTEGER, INTENT(OUT) :: storage_type ! Type of storage for links in group:
+    INTEGER, INTENT(OUT) :: storage_type  ! Type of storage for links in group:
                                           ! H5G_STORAGE_TYPE_COMPACT_F: Compact storage
                                           ! H5G_STORAGE_TYPE_DENSE_F: Indexed storage
                                           ! H5G_STORAGE_TYPE_SYMBOL_TABLE_F: Symbol tables, the original HDF5 structure
-    INTEGER, INTENT(OUT) :: nlinks ! Number of links in group
-    INTEGER, INTENT(OUT) :: max_corder ! Current maximum creation order value for group
-    INTEGER, INTENT(OUT) :: hdferr       ! Error code:
-                                         ! 0 on success and -1 on failure
+    INTEGER, INTENT(OUT) :: nlinks        ! Number of links in group
+    INTEGER, INTENT(OUT) :: max_corder    ! Current maximum creation order value for group
+    INTEGER, INTENT(OUT) :: hdferr        ! Error code:
+                                          !   0 on success and -1 on failure
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id ! Link access property list
-    LOGICAL, INTENT(OUT), OPTIONAL :: mounted      ! Whether group has a file mounted on it
+    LOGICAL, INTENT(OUT), OPTIONAL :: mounted       ! Whether group has a file mounted on it
 !*****
     INTEGER :: mounted_c
     INTEGER(HID_T) :: lapl_id_default

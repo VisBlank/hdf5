@@ -86,10 +86,10 @@ CONTAINS
 !  loc_id 	 - location identifier
 !  name 	 - name of the object at the specified location
 ! OUTPUTS
-!  ref 	 - reference to the specified object
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  ref 	         - reference to the specified object
+!  hdferr:	 - error code
+!                   Success:  0
+!                   Failure: -1
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -108,7 +108,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: loc_id   ! Location identifier
     CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of the object at location specified
                                            ! by loc_id identifier
-    TYPE(hobj_ref_t_f), INTENT(OUT) :: ref   ! Object reference
+    TYPE(hobj_ref_t_f), INTENT(OUT) :: ref ! Object reference
     INTEGER, INTENT(OUT) :: hdferr         ! Error code
 !*****
     INTEGER :: namelen                     ! Name length
@@ -148,11 +148,10 @@ CONTAINS
 !  name 	 - name of the dataset at the specified location
 !  space_id 	 - dataspace identifier that describes selected region
 ! OUTPUTS
-!  ref 	 - reference to the dataset region
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-!
+!  ref 	         - reference to the dataset region
+!  hdferr:	 - error code
+!                   Success:  0
+!                   Failure: -1
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -176,7 +175,7 @@ CONTAINS
     INTEGER, INTENT(OUT) :: hdferr         ! Error code
 !*****
     INTEGER :: namelen                     ! Name length
-    INTEGER :: ref_f(REF_REG_BUF_LEN)          ! Local buffer to pass reference
+    INTEGER :: ref_f(REF_REG_BUF_LEN)      ! Local buffer to pass reference
 
     INTERFACE
        INTEGER FUNCTION h5rcreate_region_c(ref_f, loc_id, name, namelen, space_id)
@@ -209,14 +208,13 @@ CONTAINS
 !  Opens the HDF5 object referenced
 !
 ! INPUTS
-!  dset_id 	 - identifier of the dataset containing
-!  reference
-!  ref 	 - reference to open
+!  dset_id  - identifier of the dataset containing reference
+!  ref 	    - reference to open
 ! OUTPUTS
-!  obj_id 	 - object_identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  obj_id   - object_identifier
+!  hdferr   - error code
+!              Success:  0
+!              Failure: -1
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -236,7 +234,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
     TYPE(hobj_ref_t_f), INTENT(IN) :: ref   ! Object reference
     INTEGER(HID_T), INTENT(OUT) :: obj_id   ! Object identifier
-    INTEGER, INTENT(OUT) :: hdferr         ! Error code
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code
 !*****
     INTEGER(HADDR_T) :: ref_f          ! Local buffer to pass reference
 
@@ -267,13 +265,13 @@ CONTAINS
 !
 ! INPUTS
 !  dset_id 	 - identifier of the dataset containing
-!  reference to teh regions
-!  ref 	 - reference to open
+!                  reference to teh regions
+!  ref 	         - reference to open
 ! OUTPUTS
 !  obj_id 	 - dataspace identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - error code
+!                   Success:  0
+!                   Failure: -1
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -290,12 +288,12 @@ CONTAINS
 ! SOURCE
   SUBROUTINE h5rdereference_region_f(dset_id, ref, obj_id, hdferr)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
-    TYPE(hdset_reg_ref_t_f), INTENT(IN) :: ref   ! Object reference
+    INTEGER(HID_T), INTENT(IN) :: dset_id      ! Dataset identifier
+    TYPE(hdset_reg_ref_t_f), INTENT(IN) :: ref ! Object reference
     INTEGER(HID_T), INTENT(OUT) :: obj_id   ! Dataspace identifier
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
 !*****
-    INTEGER :: ref_f(REF_REG_BUF_LEN)          ! Local buffer to pass reference
+    INTEGER :: ref_f(REF_REG_BUF_LEN)       ! Local buffer to pass reference
 
     INTERFACE
        INTEGER FUNCTION h5rdereference_region_c(dset_id, ref_f, obj_id)
@@ -323,18 +321,18 @@ CONTAINS
 !  Retrieves a name of a referenced object.
 !
 ! INPUTS
-!  loc_id 	 - Identifier for the dataset containing the reference or for the group that dataset is in.
-!  ref 	 - An object or dataset region reference.
+!  loc_id  - Identifier for the dataset containing the reference or for the group that dataset is in.
+!  ref 	   - An object or dataset region reference.
 !
 ! OUTPUTS
-!  name 	 - A name associated with the referenced object or dataset region.
+!  name    - A name associated with the referenced object or dataset region.
 !
-!  hdferr: - error code
-!  Success:  0
-!  Failure: -1
+!  hdferr  - error code
+!             Success:  0
+!             Failure: -1
 !
 ! OPTIONAL PARAMETERS
-!  size 	 - The size of the name buffer.
+!  size    - The size of the name buffer.
 !
 ! AUTHOR
 !  M. Scot Breitenfeld
@@ -391,14 +389,14 @@ CONTAINS
 !
 ! INPUTS
 !  loc_id 	 - Identifier for the dataset containing the reference or
-!  for the group that dataset is in.
-!  ref 	 - An object or dataset region reference.
+!                  for the group that dataset is in.
+!  ref 	         - An object or dataset region reference.
 !
 ! OUTPUTS
 !  name 	 - A name associated with the referenced object or dataset region.
 !  hdferr 	 - error code
-!  Success:  0
-!  Failure: -1
+!                   Success:  0
+!                   Failure: -1
 !
 ! OPTIONAL PARAMETERS
 !  size 	 - The size of the name buffer.
@@ -412,9 +410,10 @@ CONTAINS
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: loc_id   ! Identifier for the dataset containing the reference
                                            ! or for the group that dataset is in.
-    TYPE(hdset_reg_ref_t_f), INTENT(IN) :: ref  ! Object reference
+    TYPE(hdset_reg_ref_t_f), INTENT(IN) :: ref       ! Object reference
     INTEGER(SIZE_T), OPTIONAL, INTENT(OUT) :: size   ! The size of the name buffer,
-                                           ! returning 0 (zero) if no name is associated with the identifier
+                                                     ! returning 0 (zero) if no name is associated 
+                                                     ! with the identifier
     CHARACTER(LEN=*), INTENT(OUT) :: name  ! A name associated with the referenced object or dataset region.
     INTEGER, INTENT(OUT) :: hdferr         ! Error code
 !*****

@@ -9,7 +9,7 @@
 !  and the interface listings. This file will be compiled instead of H5Lff_F03.f90
 !  if Fortran 2003 functions are not enabled.
 !
-!  NOTE
+! NOTE
 !  Currently contains no functions.
 !
 ! COPYRIGHT

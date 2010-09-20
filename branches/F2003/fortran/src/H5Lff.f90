@@ -203,11 +203,11 @@ CONTAINS
 ! SOURCE
   SUBROUTINE h5lcreate_soft_f(target_path, link_loc_id, link_name, hdferr, lcpl_id, lapl_id)
     IMPLICIT NONE
-    CHARACTER(LEN=*), INTENT(IN) :: target_path     ! Path to the target object, which is not required to exist.
+    CHARACTER(LEN=*), INTENT(IN) :: target_path   ! Path to the target object, which is not required to exist.
     INTEGER(HID_T), INTENT(IN) :: link_loc_id     ! The file or group identifier for the new link.
-    CHARACTER(LEN=*), INTENT(IN) :: link_name       ! The name of the new link.
-    INTEGER, INTENT(OUT) :: hdferr        ! Error code:
-                                          ! 0 on success and -1 on failure
+    CHARACTER(LEN=*), INTENT(IN) :: link_name     ! The name of the new link.
+    INTEGER, INTENT(OUT) :: hdferr                ! Error code:
+                                                  !   0 on success and -1 on failure
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lcpl_id ! Link creation property list identifier.
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id ! Link access property list identifier.
 !*****
@@ -358,7 +358,7 @@ CONTAINS
 ! SOURCE
   SUBROUTINE h5lcreate_external_f(file_name, obj_name, link_loc_id, link_name, hdferr, lcpl_id, lapl_id)
     IMPLICIT NONE
-    CHARACTER(LEN=*), INTENT(IN) :: file_name  ! Name of the file containing the target object. Neither
+    CHARACTER(LEN=*), INTENT(IN) :: file_name ! Name of the file containing the target object. Neither
                                               ! the file nor the target object is required to exist.
                                               ! May be the file the link is being created in.
     CHARACTER(LEN=*), INTENT(IN) :: obj_name  ! Name of the target object, which must already exist.
@@ -618,11 +618,11 @@ CONTAINS
     INTEGER, INTENT(OUT) :: corder ! Specifies the link’s creation order position.
     LOGICAL, INTENT(OUT) :: f_corder_valid ! Indicates whether the value in corder is valid.
     INTEGER, INTENT(OUT) :: link_type ! Specifies the link class:
-     	                              !  H5L_TYPE_HARD_F 	 - Hard link
-     	                              !  H5L_TYPE_SOFT_F 	 - Soft link
-     	                              !  H5L_TYPE_EXTERNAL_F 	 - External link
+     	                              !  H5L_TYPE_HARD_F      - Hard link
+     	                              !  H5L_TYPE_SOFT_F      - Soft link
+     	                              !  H5L_TYPE_EXTERNAL_F  - External link
      	                              !  H5L_TYPE_ERROR _F    - Error
-    INTEGER(HADDR_T), INTENT(OUT) :: address  ! If the link is a hard link, address specifies the file address that the link points to
+    INTEGER(HADDR_T), INTENT(OUT) :: address ! If the link is a hard link, address specifies the file address that the link points to
     INTEGER(SIZE_T), INTENT(OUT) :: val_size ! If the link is a symbolic link, val_size will be the length of the link value, e.g., 
                                              ! the length of the name of the pointed-to object with a null terminator. 
     INTEGER, INTENT(OUT) :: hdferr       ! Error code:
@@ -714,7 +714,7 @@ CONTAINS
   SUBROUTINE h5lget_info_by_idx_f(loc_id, group_name, index_field, order, n, &
        link_type, f_corder_valid, corder, cset, address, val_size, hdferr, lapl_id)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: loc_id  ! File or group identifier specifying location of subject group  
+    INTEGER(HID_T), INTENT(IN) :: loc_id       ! File or group identifier specifying location of subject group  
     CHARACTER(LEN=*), INTENT(IN) :: group_name ! Name of subject group
     INTEGER, INTENT(IN) :: index_field  ! Index or field which determines the order
                                         !    H5_INDEX_UNKNOWN_F   - Unknown index type
@@ -733,8 +733,8 @@ CONTAINS
      	                              !  H5L_TYPE_EXTERNAL_F  - External link
      	                              !  H5L_TYPE_ERROR _F    - Error
     LOGICAL, INTENT(OUT) :: f_corder_valid ! Indicates whether the creation order data is valid for this attribute 
-    INTEGER, INTENT(OUT) :: corder ! Is a positive integer containing the creation order of the attribute
-    INTEGER, INTENT(OUT) :: cset ! Indicates the character set used for the attribute’s name
+    INTEGER, INTENT(OUT) :: corder         ! Is a positive integer containing the creation order of the attribute
+    INTEGER, INTENT(OUT) :: cset           ! Indicates the character set used for the attribute’s name
     INTEGER(HADDR_T), INTENT(OUT) :: address  ! If the link is a hard link, address specifies the file address that the link points to
     INTEGER(SIZE_T), INTENT(OUT) :: val_size  ! If the link is a symbolic link, val_size will be the length of the link value, e.g., 
                                               ! the length of the name of the pointed-to object with a null terminator. 
@@ -798,8 +798,8 @@ CONTAINS
 !  link_cls_id 	 - User-defined link class identifier
 !
 ! OUTPUTS
-!  registered 	 - .TRUE. - if the link class has been registered
-!  .FALSE. - if it is unregistered
+!  registered 	 - .TRUE.  - if the link class has been registered
+!                  .FALSE. - if it is unregistered
 !  hdferr 	 - Error code
 !  Success:  0
 !  Failure: -1
@@ -853,9 +853,9 @@ CONTAINS
 !  dest_name 	 - NEW link name.
 !
 ! OUTPUTS
-!  hdferr 	 - Error code
-!  Success:  0
-!  Failure: -1
+!  hdferr 	 - Error code:
+!                   0 on success and -1 on failure
+!
 ! OPTIONAL PARAMETERS
 !  lcpl_id 	 - Link creation property list identifier to be associated WITH the NEW link.
 !  lapl_id 	 - Link access property list identifier to be associated WITH the NEW link.
@@ -1012,7 +1012,6 @@ CONTAINS
 
 
 !  HAS PROBLEM WITH void pointer in C
-
 !!$!
 !!$!****s* H5L/
 !!$!
@@ -1030,7 +1029,7 @@ CONTAINS
 !!$!   index_field - Index or field which determines the order
 !!$!   order       - Order within field or index
 !!$!   n           - Link for which to retrieve information
-!!$!   size       - Maximum number of characters of link value to be returned.
+!!$!   size        - Maximum number of characters of link value to be returned.
 !!$!
 !!$! OUTPUTS  NOTE: In C these are defined as a structure: H5L_info_t
 !!$!    corder_valid   - indicates whether the creation order data is valid for this attribute
@@ -1188,8 +1187,6 @@ CONTAINS
 !!$         lapl_id_default)
 !!$
 !!$  END SUBROUTINE h5lget_val_f
-
-
 
 !!$!
 !!$!****s* H5L/H5Lregistered_f

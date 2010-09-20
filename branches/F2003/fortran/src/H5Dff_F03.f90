@@ -227,17 +227,14 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), DIMENSION(*), INTENT(IN) :: dims ! size of the bufffer buf
     TYPE(hobj_ref_t_f), DIMENSION(dims(1)), INTENT(IN), TARGET :: buf ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -263,17 +260,14 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), DIMENSION(*), INTENT(IN) :: dims ! size of the bufffer buf
     TYPE(hdset_reg_ref_t_f), DIMENSION(dims(1)), INTENT(IN), TARGET :: buf ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -321,8 +315,6 @@ CONTAINS
     hdferr = h5dwrite_ref_reg_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, ref_buf, dims)
     DEALLOCATE(ref_buf)
-!  !$    hdferr = h5dwrite_f_c(dset_id, mem_type_id, mem_space_id_default, &
-!  !$         file_space_id_default, xfer_prp_default, f_ptr)
 
   END SUBROUTINE h5dwrite_reference_dsetreg
 
@@ -331,17 +323,14 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
-    INTEGER, INTENT(IN), TARGET :: buf ! Data buffer
+    INTEGER, INTENT(IN), TARGET :: buf  ! Data buffer
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -365,18 +354,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(IN), &
          DIMENSION(dims(1)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T)  :: mem_space_id_default
@@ -401,18 +387,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(IN), &
-         DIMENSION(dims(1),dims(2)),TARGET :: buf   ! Data buffer
+         DIMENSION(dims(1),dims(2)),TARGET :: buf ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -436,18 +419,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -471,18 +451,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4)), TARGET :: buf
-    INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER, INTENT(OUT) :: hdferr            ! Error code
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -506,18 +483,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T)  :: mem_space_id_default
@@ -542,18 +516,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -578,18 +549,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -614,16 +582,14 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(*), INTENT(IN), TARGET :: buf ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-                                            ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-                                            ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
                                  
     CALL h5dwrite_char_scalar_fix(dset_id, mem_type_id, buf, LEN(buf), dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
@@ -634,18 +600,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(IN) :: buf_len
     CHARACTER(LEN=buf_len), INTENT(IN), TARGET :: buf ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-                                            ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-                                            ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-                                            ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -670,17 +633,14 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(IN), DIMENSION(dims(1)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -706,18 +666,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(IN), &
          DIMENSION(dims(1),dims(2)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -743,18 +700,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -780,18 +734,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -816,18 +767,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr          ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-                                            ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-                                            ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-                                            ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -851,18 +799,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -888,18 +833,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -926,17 +868,14 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(IN), TARGET :: buf ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -960,18 +899,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(IN), &
          DIMENSION(dims(1)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -995,18 +931,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(IN), &
          DIMENSION(dims(1),dims(2)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -1031,18 +964,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -1066,18 +996,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -1101,18 +1028,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -1136,18 +1060,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -1171,18 +1092,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -1206,17 +1124,14 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     DOUBLE PRECISION, INTENT(IN), TARGET :: buf ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -1241,18 +1156,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     DOUBLE PRECISION, INTENT(IN), &
          DIMENSION(dims(1)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -1276,18 +1188,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     DOUBLE PRECISION, INTENT(IN), &
          DIMENSION(dims(1),dims(2)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -1311,18 +1220,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     DOUBLE PRECISION, INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -1346,18 +1252,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     DOUBLE PRECISION, INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -1382,18 +1285,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     DOUBLE PRECISION, INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -1417,19 +1317,16 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     DOUBLE PRECISION, INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)), TARGET :: buf
     ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -1453,19 +1350,16 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     DOUBLE PRECISION, INTENT(IN), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)), TARGET :: buf
     ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -1485,62 +1379,64 @@ CONTAINS
 
   END SUBROUTINE h5dwrite_double_7
 
-  !
-  ! NAME		h5dread_f
-  !
-  ! PURPOSE 	Reads raw data from the specified dataset into buf,
-  !		converting from file datatype and dataspace to memory
-  !		datatype and dataspace.
-  !
-  ! INPUTS
-  !		dset_id		- dataset identifier
-  !		mem_type_id	- memory type identifier
-  !		dims		- 1-dim array of size 7; dims(k) has the size
-  !				- of k-th dimension of the buf array
-  ! OUTPUTS
-  !		buf		- buffer to read data in
-  !		hdferr:		- error code
-  !				 	Success:  0
-  !				 	Failure: -1
-  ! OPTIONAL PARAMETERS
-  !		mem_space_id	- memory dataspace identifier
-  !		file_space_id 	- file dataspace identifier
-  !		xfer_prp	- trasfer property list identifier
-  !
-  ! AUTHOR	Elena Pourmal
-  !		August 12, 1999
-  !
-  ! HISTORY 	Explicit Fortran interfaces were added for
-  !			called C functions (it is needed for Windows
-  !			port).  February 28, 2001
-  !
-  !                       dims parameter was added to make code portable;
-  !                       n parameter was replaced with dims parameter in
-  !			the h5dwrite_reference_obj and h5dwrite_reference_dsetreg
-  !			functions.  April 2, 2001
-  !
-  ! NOTES		This function is overloaded to read INTEGER,
-  !			REAL, DOUBLE PRECISION and CHARACTER buffers
-  !			up to 7 dimensions, and one dimensional buffers
-  !			of the TYPE(hobj_ref_t_f) and TYPE(hdset_reg_ref_t_f)
-  !			types.
-  !
+!
+! NAME		
+!  h5dread_f
+!
+! PURPOSE
+!  Reads raw data from the specified dataset into buf,
+!  converting from file datatype and dataspace to memory
+!  datatype and dataspace.
+!
+! INPUTS
+!		dset_id		- dataset identifier
+!		mem_type_id	- memory type identifier
+!		dims		- 1-dim array of size 7; dims(k) has the size
+!				- of k-th dimension of the buf array
+! OUTPUTS
+!		buf		- buffer to read data in
+!		hdferr:		- error code
+!				 	Success:  0
+!				 	Failure: -1
+! OPTIONAL PARAMETERS
+!		mem_space_id	- memory dataspace identifier
+!		file_space_id 	- file dataspace identifier
+!		xfer_prp	- trasfer property list identifier
+!
+! AUTHOR
+!  Elena Pourmal
+!  August 12, 1999
+!
+! HISTORY 	
+!  Explicit Fortran interfaces were added for
+!  called C functions (it is needed for Windows
+!  port).  February 28, 2001
+!
+!  dims parameter was added to make code portable;
+!  n parameter was replaced with dims parameter in
+!  the h5dwrite_reference_obj and h5dwrite_reference_dsetreg
+!  functions.  April 2, 2001
+!
+! NOTES	
+!  This function is overloaded to read INTEGER,
+!  REAL, DOUBLE PRECISION and CHARACTER buffers
+!  up to 7 dimensions, and one dimensional buffers
+!  of the TYPE(hobj_ref_t_f) and TYPE(hdset_reg_ref_t_f)
+!  types.
+!
   SUBROUTINE h5dread_reference_obj(dset_id, mem_type_id, buf, dims, hdferr, &
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     TYPE(hobj_ref_t_f), INTENT(INOUT) , &
          DIMENSION(dims(1)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -1565,18 +1461,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     TYPE(hdset_reg_ref_t_f), INTENT(INOUT), &
          DIMENSION(dims(1)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -1626,12 +1519,6 @@ CONTAINS
     ENDDO
     DEALLOCATE(ref_buf)
 
-
-!  !$    f_ptr = C_LOC(buf)
-!  !$
-!  !$    hdferr = h5dread_f_c(dset_id, mem_type_id, mem_space_id_default, &
-!  !$         file_space_id_default, xfer_prp_default, f_ptr)
-
   END SUBROUTINE h5dread_reference_dsetreg
 
 
@@ -1639,17 +1526,14 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(INOUT) , TARGET :: buf ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -1674,18 +1558,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(INOUT), &
          DIMENSION(dims(1)) , TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -1709,18 +1590,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2)) , TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -1744,18 +1622,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3)) , TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -1780,18 +1655,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4)) , TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -1815,18 +1687,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) , TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -1851,18 +1720,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)) , TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -1886,18 +1752,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)) , TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -1921,17 +1784,14 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id       ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id         ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id   ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(INOUT) :: buf     ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr             ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -1946,18 +1806,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     INTEGER, INTENT(IN)  :: buf_len
     CHARACTER(LEN=buf_len), INTENT(INOUT), TARGET :: buf ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -1983,18 +1840,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(INOUT), &
          DIMENSION(dims(1)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2019,18 +1873,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(INOUT), &
          DIMENSION(dims(1),dims(2)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2056,18 +1907,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2092,18 +1940,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2130,18 +1975,15 @@ CONTAINS
 
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2167,18 +2009,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2205,18 +2044,15 @@ CONTAINS
 
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     CHARACTER(LEN=*), INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)), TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2243,17 +2079,14 @@ CONTAINS
 
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(INOUT) , TARGET :: buf ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -2277,18 +2110,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(INOUT), &
          DIMENSION(dims(1)) , TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -2312,18 +2142,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2)) , TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -2347,18 +2174,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3)) , TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -2382,18 +2206,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3), dims(4)) , TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -2417,18 +2238,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) , TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -2453,18 +2271,15 @@ CONTAINS
 
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)) , TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
@@ -2488,18 +2303,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     REAL, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)) , TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2524,17 +2336,14 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     DOUBLE PRECISION, INTENT(INOUT) , TARGET :: buf ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2559,18 +2368,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     DOUBLE PRECISION, INTENT(INOUT), &
          DIMENSION(dims(1)) , TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2586,7 +2392,6 @@ CONTAINS
     IF(PRESENT(file_space_id)) file_space_id_default = file_space_id
 
     f_ptr = C_LOC(buf)
-
     hdferr = h5dread_f_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, f_ptr)
 
@@ -2596,18 +2401,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     DOUBLE PRECISION, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2)) , TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2621,8 +2423,8 @@ CONTAINS
     IF(PRESENT(xfer_prp)) xfer_prp_default = xfer_prp
     IF(PRESENT(mem_space_id))  mem_space_id_default = mem_space_id
     IF(PRESENT(file_space_id)) file_space_id_default = file_space_id
-    f_ptr = C_LOC(buf)
 
+    f_ptr = C_LOC(buf)
     hdferr = h5dread_f_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, f_ptr)
 
@@ -2632,18 +2434,15 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     DOUBLE PRECISION, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3)) , TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2657,8 +2456,8 @@ CONTAINS
     IF(PRESENT(xfer_prp)) xfer_prp_default = xfer_prp
     IF(PRESENT(mem_space_id))  mem_space_id_default = mem_space_id
     IF(PRESENT(file_space_id)) file_space_id_default = file_space_id
-    f_ptr = C_LOC(buf)
 
+    f_ptr = C_LOC(buf)
     hdferr = h5dread_f_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, f_ptr)
 
@@ -2668,19 +2467,16 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     DOUBLE PRECISION, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4)) , TARGET :: buf
     ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2694,8 +2490,8 @@ CONTAINS
     IF(PRESENT(xfer_prp)) xfer_prp_default = xfer_prp
     IF(PRESENT(mem_space_id))  mem_space_id_default = mem_space_id
     IF(PRESENT(file_space_id)) file_space_id_default = file_space_id
-    f_ptr = C_LOC(buf)
 
+    f_ptr = C_LOC(buf)
     hdferr = h5dread_f_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, f_ptr)
 
@@ -2705,24 +2501,20 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     DOUBLE PRECISION, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5)) , TARGET :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
     INTEGER(HID_T) :: file_space_id_default
     TYPE(C_PTR) :: f_ptr
-
 
     xfer_prp_default = H5P_DEFAULT_F
     mem_space_id_default = H5S_ALL_F
@@ -2731,11 +2523,10 @@ CONTAINS
     IF(PRESENT(xfer_prp)) xfer_prp_default = xfer_prp
     IF(PRESENT(mem_space_id))  mem_space_id_default = mem_space_id
     IF(PRESENT(file_space_id)) file_space_id_default = file_space_id
-    f_ptr = C_LOC(buf)
 
+    f_ptr = C_LOC(buf)
     hdferr = h5dread_f_c(dset_id, mem_type_id, mem_space_id_default, &
          file_space_id_default, xfer_prp_default, f_ptr)
-
 
   END SUBROUTINE h5dread_double_5
 
@@ -2743,19 +2534,16 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     DOUBLE PRECISION, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6)) , TARGET :: buf
     ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2780,19 +2568,16 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims
     DOUBLE PRECISION, INTENT(INOUT), &
          DIMENSION(dims(1),dims(2),dims(3),dims(4),dims(5),dims(6),dims(7)) , TARGET :: buf
     ! Data buffer
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2817,16 +2602,13 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     TYPE(C_PTR), INTENT(INOUT) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2849,16 +2631,13 @@ CONTAINS
        mem_space_id, file_space_id, xfer_prp)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: dset_id   ! Dataset identifier
+    INTEGER(HID_T), INTENT(IN) :: dset_id     ! Dataset identifier
     INTEGER(HID_T), INTENT(IN) :: mem_type_id ! Memory datatype identifier
     TYPE(C_PTR), INTENT(INOUT) :: buf
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id
-    ! Memory dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id
-    ! File dataspace identfier
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp
-    ! Transfer property list identifier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: mem_space_id  ! Memory dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: file_space_id ! File dataspace identfier
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: xfer_prp      ! Transfer property list identifier
 
     INTEGER(HID_T) :: xfer_prp_default
     INTEGER(HID_T) :: mem_space_id_default
@@ -2877,29 +2656,31 @@ CONTAINS
 
   END SUBROUTINE h5dread_ptr
 
-  !
-  ! NAME		h5dfill_integer
-  !
-  ! PURPOSE      Fills dataspace elements with a fill value in a memory buffer.
-  !               Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes
-  !               of the fillvalues and buffers are supported. Buffer and fillvalue
-  !               are assumed to have the same datatype.
-  !               Only one-dimesional buffers are supported.
-  !
-  ! INPUTS
-  !		fill_value	- fill value
-  !		space_id	- memory space selection identifier
-  !		buf		- data buffer iin memory ro apply selection to
-  !				- of k-th dimension of the buf array
-  ! OUTPUTS
-  !		hdferr:		- error code
-  !				 	Success:  0
-  !				 	Failure: -1
-  !
-  ! AUTHOR	Elena Pourmal
-  !		March 12, 2003
-  !
-  !
+!
+! NAME		
+!  h5dfill_integer
+!
+! PURPOSE 
+!  Fills dataspace elements with a fill value in a memory buffer.
+!  Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes
+!  of the fillvalues and buffers are supported. Buffer and fillvalue
+!  are assumed to have the same datatype.
+!  Only one-dimesional buffers are supported.
+!
+! INPUTS
+!		fill_value	- fill value
+!		space_id	- memory space selection identifier
+!		buf		- data buffer iin memory ro apply selection to
+!				- of k-th dimension of the buf array
+! OUTPUTS
+!		hdferr:		- error code
+!				 	Success:  0
+!				 	Failure: -1
+! AUTHOR
+!  Elena Pourmal
+!  March 12, 2003
+!
+!
 
   SUBROUTINE h5dfill_integer(fill_value, space_id, buf,  hdferr)
     USE ISO_C_BINDING
@@ -2910,13 +2691,13 @@ CONTAINS
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
 
     INTEGER(HID_T) :: fill_type_id ! Fill value datatype identifier
-    INTEGER(HID_T) :: mem_type_id !  Buffer dadtype identifier
+    INTEGER(HID_T) :: mem_type_id  ! Buffer dadtype identifier
 
     TYPE(C_PTR) :: f_ptr_fill_value ! C pointer to fill_value
-    TYPE(C_PTR) :: f_ptr_buf ! C pointer to buf
+    TYPE(C_PTR) :: f_ptr_buf        ! C pointer to buf
 
     f_ptr_fill_value = C_LOC(fill_value)
-    f_ptr_buf = C_LOC(buf)
+    f_ptr_buf = C_LOC(buf(1))
 
     fill_type_id = H5T_NATIVE_INTEGER
     mem_type_id  = H5T_NATIVE_INTEGER
@@ -2926,30 +2707,31 @@ CONTAINS
 
   END SUBROUTINE h5dfill_integer
 
-  !
-  ! NAME		h5dfill_real
-  !
-  ! PURPOSE      Fills dataspace elements with a fill value in a memory buffer.
-  !               Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes
-  !               of the fillvalues and buffers are supported. Buffer and fillvalue
-  !               are assumed to have the same datatype.
-  !               Only one-dimesional buffers are supported.
-  !
-  ! INPUTS
-  !		fill_value	- fill value
-  !		space_id	- memory space selection identifier
-  !		buf		- data buffer iin memory ro apply selection to
-  !				- of k-th dimension of the buf array
-  ! OUTPUTS
-  !		hdferr:		- error code
-  !				 	Success:  0
-  !				 	Failure: -1
-  !
-  ! AUTHOR	Elena Pourmal
-  !		March 12, 2003
-  !
-  !
-
+!
+! NAME
+!  h5dfill_real
+!
+! PURPOSE
+!  Fills dataspace elements with a fill value in a memory buffer.
+!  Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes
+!  of the fillvalues and buffers are supported. Buffer and fillvalue
+!  are assumed to have the same datatype.
+!  Only one-dimesional buffers are supported.
+!
+! INPUTS
+!		fill_value	- fill value
+!		space_id	- memory space selection identifier
+!		buf		- data buffer iin memory ro apply selection to
+!				- of k-th dimension of the buf array
+! OUTPUTS
+!		hdferr:		- error code
+!				 	Success:  0
+!				 	Failure: -1
+!
+! AUTHOR
+!  Elena Pourmal
+!  March 12, 2003
+!
   SUBROUTINE h5dfill_real(fill_valuer, space_id, buf,  hdferr)
     USE ISO_C_BINDING
     IMPLICIT NONE
@@ -2965,7 +2747,7 @@ CONTAINS
     TYPE(C_PTR) :: f_ptr_buf ! C pointer to buf
 
     f_ptr_fill_valuer = C_LOC(fill_valuer)
-    f_ptr_buf = C_LOC(buf)
+    f_ptr_buf = C_LOC(buf(1))
 
     fill_type_id = H5T_NATIVE_REAL
     mem_type_id  = H5T_NATIVE_REAL
@@ -2975,30 +2757,31 @@ CONTAINS
 
   END SUBROUTINE h5dfill_real
 
-  !
-  ! NAME		h5dfill_double
-  !
-  ! PURPOSE      Fills dataspace elements with a fill value in a memory buffer.
-  !               Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes
-  !               of the fillvalues and buffers are supported. Buffer and fillvalue
-  !               are assumed to have the same datatype.
-  !               Only one-dimesional buffers are supported.
-  !
-  ! INPUTS
-  !		fill_value	- fill value
-  !		space_id	- memory space selection identifier
-  !		buf		- data buffer iin memory ro apply selection to
-  !				- of k-th dimension of the buf array
-  ! OUTPUTS
-  !		hdferr:		- error code
-  !				 	Success:  0
-  !				 	Failure: -1
-  !
-  ! AUTHOR	Elena Pourmal
-  !		March 12, 2003
-  !
-  !
-
+!
+! NAME
+!  h5dfill_double
+!
+! PURPOSE 
+!  Fills dataspace elements with a fill value in a memory buffer.
+!  Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes
+!  of the fillvalues and buffers are supported. Buffer and fillvalue
+!  are assumed to have the same datatype.
+!  Only one-dimesional buffers are supported.
+!
+! INPUTS
+!		fill_value	- fill value
+!		space_id	- memory space selection identifier
+!		buf		- data buffer iin memory ro apply selection to
+!				- of k-th dimension of the buf array
+! OUTPUTS
+!		hdferr:		- error code
+!				 	Success:  0
+!				 	Failure: -1
+!
+! AUTHOR
+!  Elena Pourmal
+!  March 12, 2003
+!
   SUBROUTINE h5dfill_double(fill_value, space_id, buf,  hdferr)
     USE ISO_C_BINDING
     IMPLICIT NONE
@@ -3008,13 +2791,13 @@ CONTAINS
     INTEGER, INTENT(OUT) :: hdferr      ! Error code
 
     INTEGER(HID_T) :: fill_type_id ! Fill value datatype identifier
-    INTEGER(HID_T) :: mem_type_id !  Buffer dadtype identifier
+    INTEGER(HID_T) :: mem_type_id  !  Buffer dadtype identifier
 
     TYPE(C_PTR) :: f_ptr_fill_value ! C pointer to fill_value
-    TYPE(C_PTR) :: f_ptr_buf ! C pointer to buf
+    TYPE(C_PTR) :: f_ptr_buf        ! C pointer to buf
 
     f_ptr_fill_value = C_LOC(fill_value)
-    f_ptr_buf = C_LOC(buf)
+    f_ptr_buf = C_LOC(buf(1))
 
     fill_type_id = H5T_NATIVE_DOUBLE
     mem_type_id  = H5T_NATIVE_DOUBLE
@@ -3024,30 +2807,30 @@ CONTAINS
 
   END SUBROUTINE h5dfill_double
 
-  !
-  ! NAME		h5dfill_char
-  !
-  ! PURPOSE      Fills dataspace elements with a fill value in a memory buffer.
-  !               Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes
-  !               of the fillvalues and buffers are supported. Buffer and fillvalue
-  !               are assumed to have the same datatype.
-  !               Only one-dimesional buffers are supported.
-  !
-  ! INPUTS
-  !		fill_value	- fill value
-  !		space_id	- memory space selection identifier
-  !		buf		- data buffer iin memory ro apply selection to
-  !				- of k-th dimension of the buf array
-  ! OUTPUTS
-  !		hdferr:		- error code
-  !				 	Success:  0
-  !				 	Failure: -1
-  !
-  ! AUTHOR	Elena Pourmal
-  !		March 12, 2003
-  !
-  !
-
+!
+! NAME		
+!  h5dfill_char
+!
+! PURPOSE 
+!  Fills dataspace elements with a fill value in a memory buffer.
+!  Only INTEGER, CHARACTER, REAL and DOUBLE PRECISION datatypes
+!  of the fillvalues and buffers are supported. Buffer and fillvalue
+!  are assumed to have the same datatype.
+!  Only one-dimesional buffers are supported.
+!
+! INPUTS
+!		fill_value	- fill value
+!		space_id	- memory space selection identifier
+!		buf		- data buffer iin memory ro apply selection to
+!				- of k-th dimension of the buf array
+! OUTPUTS
+!		hdferr:		- error code
+!				 	Success:  0
+!				 	Failure: -1
+! AUTHOR
+!  Elena Pourmal
+!  March 12, 2003
+!
   SUBROUTINE h5dfill_char(fill_value, space_id, buf,  hdferr)
     USE ISO_C_BINDING
     IMPLICIT NONE
@@ -3063,7 +2846,7 @@ CONTAINS
     TYPE(C_PTR) :: f_ptr_buf ! C pointer to buf
 
     f_ptr_fill_value = C_LOC(fill_value)
-    f_ptr_buf = C_LOC(buf)
+    f_ptr_buf = C_LOC(buf(1))
 
     hdferr = h5dfill_c(f_ptr_fill_value, fill_type_id, space_id, &
          f_ptr_buf, mem_type_id)

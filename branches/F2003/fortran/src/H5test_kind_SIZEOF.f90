@@ -3,7 +3,7 @@
 ! NAME
 !  Executable: H5test_kind
 !
-!  FILE
+! FILE
 !  fortran/src/H5test_kind_SIZEOF.f90
 !
 ! PURPOSE

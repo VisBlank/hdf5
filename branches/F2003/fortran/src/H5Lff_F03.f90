@@ -55,15 +55,15 @@ CONTAINS
 !  group_id 	 - Identifier specifying subject group
 !  index_type 	 - Type of index which determines the order
 !  order 	 - Order within index
-!  idx 	 - Iteration position at which to start
-!  op 	 - Callback function passing data regarding the link to the calling application
+!  idx 	         - Iteration position at which to start
+!  op 	         - Callback function passing data regarding the link to the calling application
 !  op_data 	 - User-defined pointer to data required by the application for its processing of the link
 !
 ! OUTPUTS
-!  idx 	 - Position at which an interrupted iteration may be restarted
-!  hdferr 	 - error code:
-!  Success:  0
-!  Failure: -1
+!  idx 	   - Position at which an interrupted iteration may be restarted
+!  hdferr  - error code:
+!             Success:  0
+!             Failure: -1
 ! AUTHOR
 !  M. Scot Breitenfeld
 !  July 8, 2008
@@ -136,17 +136,17 @@ CONTAINS
 !  group_name 	 - Name of subject group
 !  index_type 	 - Type of index which determines the order
 !  order 	 - Order within index
-!  idx 	 - Iteration position at which to start
-!  op 	 - Callback function passing data regarding the link to the calling application
+!  idx 	         - Iteration position at which to start
+!  op 	         - Callback function passing data regarding the link to the calling application
 !  op_data 	 - User-defined pointer to data required by the application for its processing of the link
 !
 ! OUTPUTS
-!  idx 	 - Position at which an interrupted iteration may be restarted
-!  hdferr 	 - error code:
-!  Success:  0
-!  Failure: -1
+!  idx 	    - Position at which an interrupted iteration may be restarted
+!  hdferr   - Error code:
+!               Success:  0
+!               Failure: -1
 ! OPTIONAL PARAMETERS
-!  lapl_id 	 - Link access property list
+!  lapl_id  - Link access property list
 !
 ! AUTHOR
 !  M. Scot Breitenfeld
@@ -156,8 +156,8 @@ CONTAINS
   SUBROUTINE h5literate_by_name_f(loc_id, group_name, index_type, order, idx, op, op_data, return_value, hdferr, lapl_id)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: loc_id  ! Identifier specifying subject group
-    CHARACTER(LEN=*) :: group_name ! Name of subject group
+    INTEGER(HID_T), INTENT(IN) :: loc_id    ! Identifier specifying subject group
+    CHARACTER(LEN=*) :: group_name          ! Name of subject group
     INTEGER, INTENT(IN) :: index_type       ! Type of index which determines the order:
                                                 ! H5_INDEX_NAME_F - Alpha-numeric index on name
                                                 ! H5_INDEX_CRT_ORDER_F - Index on creation order

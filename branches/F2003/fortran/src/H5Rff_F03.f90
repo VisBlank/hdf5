@@ -3,7 +3,7 @@
 ! NAME
 !  MODULE H5R_PROVISIONAL
 !
-!  FILE
+! FILE
 !  fortran/src/H5Rff_F03.f90
 !
 ! PURPOSE
@@ -92,7 +92,6 @@ MODULE H5R_PROVISIONAL
      END FUNCTION h5rget_name_ptr_c
   END INTERFACE
 
-
   INTERFACE
      INTEGER FUNCTION h5rdereference_ptr_c(obj_id, ref_type, ref, ref_obj_id)
        USE H5GLOBAL
@@ -124,8 +123,6 @@ MODULE H5R_PROVISIONAL
      END FUNCTION h5rcreate_ptr_c
   END INTERFACE
 
-  
-
 CONTAINS
 
 !****s* H5R (F03)/h5rcreate_object_f
@@ -137,13 +134,13 @@ CONTAINS
 !  Creates reference to the object
 !
 ! INPUTS
-!  loc_id 	 - location identifier
-!  name 	 - name of the object at the specified location
+!  loc_id    - location identifier
+!  name      - name of the object at the specified location
 ! OUTPUTS
-!  ref 	 - reference to the specified object
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  ref 	     - reference to the specified object
+!  hdferr:   - error code
+!               Success:  0
+!               Failure: -1
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -157,7 +154,6 @@ CONTAINS
 !  This is a module procedure for the h5rcreate_f subroutine.
 !
 ! SOURCE
-
   SUBROUTINE h5rcreate_object_f(loc_id, name, ref, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
@@ -192,10 +188,10 @@ CONTAINS
 !  name 	 - name of the dataset at the specified location
 !  space_id 	 - dataspace identifier that describes selected region
 ! OUTPUTS
-!  ref 	 - reference to the dataset region
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  ref 	         - reference to the dataset region
+!  hdferr:	 - error code
+!                   Success:  0
+!                   Failure: -1
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -221,7 +217,7 @@ CONTAINS
     INTEGER, INTENT(OUT) :: hdferr         ! Error code
 !*****
     INTEGER :: namelen                     ! Name length
-    INTEGER :: ref_f(REF_REG_BUF_LEN)          ! Local buffer to pass reference
+    INTEGER :: ref_f(REF_REG_BUF_LEN)      ! Local buffer to pass reference
 
     TYPE(C_PTR) :: f_ptr
 
@@ -252,38 +248,37 @@ CONTAINS
 
   END SUBROUTINE h5rcreate_region_f
 
-  !****s* H5R (F03)/h5rcreate_ptr_f
-  !
-  ! NAME
-  !  h5rcreate_ptr_f
-  !
-  ! PURPOSE
-  !  Creates a reference.
-  !
-  ! INPUTS
-  !		loc_id		- location identifier
-  !		name		- name of the dataset at the specified location
-  !             ref_type        - type of reference:
-  !                                 H5R_OBJECT
-  !                                 H5T_STD_REF_DSETREG
-  ! OUTPUTS
-  !		ref		- reference created by the function call.
-  !		hdferr:		- error code
-  !				 	Success:  0
-  !				 	Failure: -1
-  ! OPTIONAL
-  !		space_id	- dataspace identifier that describes selected region
-  !
-  ! AUTHOR
-  !  M. Scot Breitenfeld
-  !  June 20, 2008
-  !
-  !
-  ! NOTES
-  !  This is a module procedure for the h5rcreate_f
-  !  subroutine where the output is a pointer.
-  !
-  ! SOURCE
+!****s* H5R (F03)/h5rcreate_ptr_f
+!
+! NAME
+!  h5rcreate_ptr_f
+!
+! PURPOSE
+!  Creates a reference.
+!
+! INPUTS
+!  loc_id     - location identifier
+!  name	      - name of the dataset at the specified location
+!  ref_type   - type of reference:
+!                H5R_OBJECT
+!                H5T_STD_REF_DSETREG
+! OUTPUTS
+!  ref	      - reference created by the function call.
+!  hdferr     - error code
+!		   Success:  0
+!		   Failure: -1
+! OPTIONAL
+!  space_id   - dataspace identifier that describes selected region
+!
+! AUTHOR
+!  M. Scot Breitenfeld
+!  June 20, 2008
+!
+! NOTES
+!  This is a module procedure for the h5rcreate_f
+!  subroutine where the output is a pointer.
+!
+! SOURCE
   SUBROUTINE h5rcreate_ptr_f(loc_id, name, ref_type, ref, hdferr, space_id)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
@@ -291,9 +286,9 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(IN) :: name     ! Name of the dataset at location specified
                                              ! by loc_id identifier
     INTEGER, INTENT(IN) :: ref_type          ! type of reference
-    TYPE(C_PTR), INTENT(INOUT) :: ref        ! Reference created by the function call.
+    TYPE(C_PTR), INTENT(INOUT) :: ref        ! Reference created by the function call
     INTEGER, INTENT(OUT) :: hdferr           ! Error code
-    INTEGER(HID_T), INTENT(IN), OPTIONAL :: space_id   ! Dataset's dataspace identifier
+    INTEGER(HID_T), INTENT(IN), OPTIONAL :: space_id ! Dataset's dataspace identifier
 !*****
     INTEGER :: namelen                       ! Name length
     INTEGER(HID_T) :: space_id_c
@@ -313,15 +308,14 @@ CONTAINS
 !  Opens the HDF5 object referenced
 !
 ! INPUTS
-!  dset_id 	 - identifier of the dataset containing
-!  reference
-!  ref 	 - reference to open
+!  dset_id  - identifier of the dataset containing
+!             reference
+!  ref 	    - reference to open
 ! OUTPUTS
-!  obj_id 	 - object_identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
-!
+!  obj_id   - object_identifier
+!  hdferr:  - error code
+!              Success:  0
+!              Failure: -1
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -338,10 +332,10 @@ CONTAINS
   SUBROUTINE h5rdereference_object_f(obj_id, ref, ref_obj_id, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: obj_id   ! Dataset identifier
-    TYPE(hobj_ref_t_f), INTENT(IN), TARGET :: ref   ! Object reference
-    INTEGER(HID_T), INTENT(OUT) :: ref_obj_id   ! Object identifier
-    INTEGER, INTENT(OUT) :: hdferr         ! Error code
+    INTEGER(HID_T), INTENT(IN) :: obj_id          ! Dataset identifier
+    TYPE(hobj_ref_t_f), INTENT(IN), TARGET :: ref ! Object reference
+    INTEGER(HID_T), INTENT(OUT) :: ref_obj_id     ! Object identifier
+    INTEGER, INTENT(OUT) :: hdferr                ! Error code
 !*****
     INTEGER(HADDR_T) :: ref_f          ! Local buffer to pass reference
     TYPE(C_PTR) :: f_ptr
@@ -360,13 +354,13 @@ CONTAINS
 !
 ! INPUTS
 !  dset_id 	 - identifier of the dataset containing
-!  reference to teh regions
-!  ref 	 - reference to open
+!                  reference to teh regions
+!  ref 	         - reference to open
 ! OUTPUTS
 !  obj_id 	 - dataspace identifier
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr:	 - error code
+!                   Success:  0
+!                   Failure: -1
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -394,50 +388,50 @@ CONTAINS
     f_ptr = C_LOC(ref)
     hdferr = h5rdereference_ptr_c(obj_id, 1, f_ptr, ref_obj_id)
 
-
   END SUBROUTINE h5rdereference_region_f
 
-  !****s* H5R (F03)/h5rdereference_ptr_f
-  !
-  ! NAME
-  !  h5rdereference_ptr_f
-  !
-  ! PURPOSE
-  !  Opens the HDF5 object referenced.
-  !
-  ! INPUTS
-  !		obj_id   - valid identifier for the file containing the
-  !                        referenced object or any object in that file.
-  !             ref_type - the reference type of ref.
-  !             ref      - Reference to open.
-  ! OUTPUTS
-  !           ref_obj_id - identifier of referenced object
-  !		hdferr:	 - error code
-  !				Success:  0
-  !				Failure: -1
-  !
-  ! AUTHOR
-  !  M. Scot Breitenfeld
-  !  June 20, 2008
-  !
-  ! NOTES		This is a module procedure for the h5rdereference_f
-  !			subroutine using pointers.
-  !
-  ! SOURCE
+!****s* H5R (F03)/h5rdereference_ptr_f
+!
+! NAME
+!  h5rdereference_ptr_f
+!
+! PURPOSE
+!  Opens the HDF5 object referenced.
+!
+! INPUTS
+!  obj_id     - valid identifier for the file containing the
+!               referenced object or any object in that file.
+!  ref_type   - the reference type of ref.
+!  ref        - Reference to open.
+! OUTPUTS
+!  ref_obj_id - identifier of referenced object
+!  hdferr     - error code
+!		 Success:  0
+!		 Failure: -1
+! AUTHOR
+!  M. Scot Breitenfeld
+!  June 20, 2008
+!
+! NOTES
+!  This is a module procedure for the h5rdereference_f
+!  subroutine using pointers.
+!
+! SOURCE
   SUBROUTINE h5rdereference_ptr_f(obj_id, ref_type, ref, ref_obj_id, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: obj_id  ! Valid identifier for the file containing the
                                           !  referenced object or any object in that file.
-    INTEGER, INTENT(IN) :: ref_type        ! The reference type of ref.
+    INTEGER, INTENT(IN) :: ref_type       ! The reference type of ref.
     TYPE(C_PTR), INTENT(IN) :: ref        ! Object reference
     INTEGER(HID_T), INTENT(OUT) :: ref_obj_id
                                           ! Identifier of referenced object
     INTEGER, INTENT(OUT) :: hdferr        ! Error code
-!*****
+!***** 
     hdferr = h5rdereference_ptr_c(obj_id, ref_type, ref, ref_obj_id)
 
   END SUBROUTINE h5rdereference_ptr_f
+!
 !****s* H5R (F03)/h5rget_name_object_f
 !
 ! NAME
@@ -447,18 +441,18 @@ CONTAINS
 !  Retrieves a name of a referenced object.
 !
 ! INPUTS
-!  loc_id 	 - Identifier for the dataset containing the reference or for the group that dataset is in.
-!  ref 	 - An object or dataset region reference.
+!  loc_id    - Identifier for the dataset containing the reference or for the group that dataset is in.
+!  ref 	     - An object or dataset region reference.
 !
 ! OUTPUTS
-!  name 	 - A name associated with the referenced object or dataset region.
+!  name      - A name associated with the referenced object or dataset region.
 !
-!  hdferr: - error code
-!  Success:  0
-!  Failure: -1
+!  hdferr:   - error code
+!               Success:  0
+!               Failure: -1
 !
 ! OPTIONAL PARAMETERS
-!  size 	 - The size of the name buffer.
+!  size     - The size of the name buffer.
 !
 ! AUTHOR
 !  M. Scot Breitenfeld
@@ -502,18 +496,18 @@ CONTAINS
 !  Retrieves a name of a dataset region.
 !
 ! INPUTS
-!  loc_id 	 - Identifier for the dataset containing the reference or
-!  for the group that dataset is in.
-!  ref 	 - An object or dataset region reference.
+!  loc_id  - Identifier for the dataset containing the reference or
+!            for the group that dataset is in.
+!  ref 	   - An object or dataset region reference.
 !
 ! OUTPUTS
-!  name 	 - A name associated with the referenced object or dataset region.
-!  hdferr 	 - error code
-!  Success:  0
-!  Failure: -1
+!  name    - A name associated with the referenced object or dataset region.
+!  hdferr  - error code
+!              Success:  0
+!              Failure: -1
 !
 ! OPTIONAL PARAMETERS
-!  size 	 - The size of the name buffer.
+!  size    - The size of the name buffer.
 !
 ! AUTHOR
 !  M. Scot Breitenfeld
@@ -524,10 +518,10 @@ CONTAINS
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: loc_id   ! Identifier for the dataset containing the reference
-    ! or for the group that dataset is in.
-    TYPE(hdset_reg_ref_t_f), INTENT(IN), TARGET :: ref  ! Object reference
-    INTEGER(SIZE_T), OPTIONAL, INTENT(OUT) :: size   ! The size of the name buffer,
-    ! returning 0 (zero) if no name is associated with the identifier
+                                           ! or for the group that dataset is in.
+    TYPE(hdset_reg_ref_t_f), INTENT(IN), TARGET :: ref ! Object reference
+    INTEGER(SIZE_T), OPTIONAL, INTENT(OUT) :: size     ! The size of the name buffer,
+                                                       ! returning 0 (zero) if no name is associated with the identifier
     CHARACTER(LEN=*), INTENT(OUT) :: name  ! A name associated with the referenced object or dataset region.
     INTEGER, INTENT(OUT) :: hdferr         ! Error code
 !*****
@@ -555,20 +549,20 @@ CONTAINS
   !  Retrieves a name of a referenced object.
   !
   ! INPUTS
-  !    loc_id - Identifier for the dataset containing the reference or
+  !  loc_id   - Identifier for the dataset containing the reference or
   !             for the group that dataset is in.
-  !  ref_type 	 - Type of reference.
-  !       ref - An object or dataset region reference.
+  !  ref_type - Type of reference.
+  !  ref      - An object or dataset region reference.
   !
   ! OUTPUTS
-  !      name - A name associated with the referenced object or dataset ptr.
+  !  name     - A name associated with the referenced object or dataset ptr.
   !
-  !    hdferr - error code
+  !  hdferr   - error code
   !		  Success:  0
   !		  Failure: -1
   !
   ! OPTIONAL PARAMETERS
-  !      size - The size of the name buffer.
+  !   size   - The size of the name buffer.
   !
   ! AUTHOR
   !  M. Scot Breitenfeld
@@ -621,7 +615,7 @@ CONTAINS
   !               H5G_DATASET_F   2
   !               H5G_TYPE_F      3
   !              
-  !    hdferr - error code
+  !  hdferr   - error code
   !		  Success:  0
   !		  Failure: -1
   !
@@ -657,7 +651,5 @@ CONTAINS
     hdferr = h5rget_obj_type_c(loc_id, ref_type, ref, obj_type)
 
   END SUBROUTINE h5rget_obj_type_f
-
-
 
 END MODULE H5R_PROVISIONAL

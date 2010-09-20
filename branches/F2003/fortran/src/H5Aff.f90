@@ -82,15 +82,13 @@ CONTAINS
   SUBROUTINE h5acreate_f(loc_id, name, type_id, space_id, attr_id, &
                                  hdferr, acpl_id, aapl_id )
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: loc_id    ! Object identifier
-    CHARACTER(LEN=*), INTENT(IN) :: name    ! Attribute name
-    INTEGER(HID_T), INTENT(IN) :: type_id
-    ! Attribute datatype identifier
-    INTEGER(HID_T), INTENT(IN) :: space_id
-    ! Attribute dataspace identifier
-    INTEGER(HID_T), INTENT(OUT) :: attr_id  ! Attribute identifier
-    INTEGER, INTENT(OUT) :: hdferr       ! Error code:
-                                         ! 0 on success and -1 on failure
+    INTEGER(HID_T), INTENT(IN) :: loc_id   ! Object identifier
+    CHARACTER(LEN=*), INTENT(IN) :: name   ! Attribute name
+    INTEGER(HID_T), INTENT(IN) :: type_id  ! Attribute datatype identifier
+    INTEGER(HID_T), INTENT(IN) :: space_id ! Attribute dataspace identifier
+    INTEGER(HID_T), INTENT(OUT) :: attr_id ! Attribute identifier
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code:
+                                           ! 0 on success and -1 on failure
 !*****
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: acpl_id ! Attribute creation property list identifier
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: aapl_id ! Attribute access property list identifier
@@ -155,8 +153,6 @@ CONTAINS
 !  called C functions (it is needed for Windows
 !  port).  February 27, 2001
 !
-!
-
 ! SOURCE
   SUBROUTINE h5aopen_name_f(obj_id, name, attr_id, hdferr)
     IMPLICIT NONE
@@ -184,8 +180,6 @@ CONTAINS
     namelen = LEN(name)
     hdferr = h5aopen_name_c(obj_id, name, namelen, attr_id)
   END SUBROUTINE h5aopen_name_f
-
-
 !
 !****s* H5A/h5aopen_idx_f
 !
@@ -211,6 +205,7 @@ CONTAINS
 !  Explicit Fortran interfaces are added for
 !  called C functions (it is needed for Windows
 !  port).  February 27, 2001
+!
 ! SOURCE
   SUBROUTINE h5aopen_idx_f(obj_id, index, attr_id, hdferr)
     IMPLICIT NONE
@@ -245,6 +240,7 @@ CONTAINS
 !
 ! INPUTS
 !  attr_id 	 - attribute identifier
+!
 ! OUTPUTS
 !  space_id 	 - attribite dataspace identifier
 !  hdferr 	 - Returns 0 if successful and -1 if fails
@@ -261,27 +257,24 @@ CONTAINS
 !
 ! SOURCE
   SUBROUTINE h5aget_space_f(attr_id, space_id, hdferr)
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: attr_id  ! Attribute identifier
-            INTEGER(HID_T), INTENT(OUT) :: space_id
-                                            ! Attribute dataspace identifier
-            INTEGER, INTENT(OUT) :: hdferr          ! Error code
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: attr_id   ! Attribute identifier
+    INTEGER(HID_T), INTENT(OUT) :: space_id ! Attribute dataspace identifier
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code
 !*****
-
-            INTERFACE
-              INTEGER FUNCTION h5aget_space_c(attr_id, space_id)
-              USE H5GLOBAL
-              !DEC$IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ATTRIBUTES C,reference,decorate,alias:'H5AGET_SPACE_C'::h5aget_space_c
-              !DEC$ENDIF
-              INTEGER(HID_T), INTENT(IN) :: attr_id
-              INTEGER(HID_T), INTENT(OUT) :: space_id
-              END FUNCTION h5aget_space_c
-            END INTERFACE
-
-            hdferr = h5aget_space_c(attr_id, space_id)
-          END SUBROUTINE h5aget_space_f
-
+    INTERFACE
+       INTEGER FUNCTION h5aget_space_c(attr_id, space_id)
+         USE H5GLOBAL
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5AGET_SPACE_C'::h5aget_space_c
+         !DEC$ENDIF
+         INTEGER(HID_T), INTENT(IN) :: attr_id
+         INTEGER(HID_T), INTENT(OUT) :: space_id
+       END FUNCTION h5aget_space_c
+    END INTERFACE
+    
+    hdferr = h5aget_space_c(attr_id, space_id)
+  END SUBROUTINE h5aget_space_f
 !
 !****s* H5A/h5aget_type_f
 !
@@ -306,29 +299,26 @@ CONTAINS
 !  called C functions (it is needed for Windows
 !  port).  February 27, 2001
 !
-!
 ! SOURCE
   SUBROUTINE h5aget_type_f(attr_id, type_id, hdferr)
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: attr_id  ! Attribute identifier
-            INTEGER(HID_T), INTENT(OUT) :: type_id
-                                              ! Attribute datatype identifier
-            INTEGER, INTENT(OUT) :: hdferr    ! Error code
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: attr_id  ! Attribute identifier
+    INTEGER(HID_T), INTENT(OUT) :: type_id ! Attribute datatype identifier
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code
 !*****
-            INTERFACE
-              INTEGER FUNCTION h5aget_type_c(attr_id, type_id)
-              USE H5GLOBAL
-              !DEC$IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ATTRIBUTES C,reference,decorate,alias:'H5AGET_TYPE_C'::h5aget_type_c
-              !DEC$ENDIF
-              INTEGER(HID_T), INTENT(IN) :: attr_id
-              INTEGER(HID_T), INTENT(OUT) :: type_id
-              END FUNCTION h5aget_type_c
-            END INTERFACE
-
-            hdferr = h5aget_type_c(attr_id, type_id)
-          END SUBROUTINE h5aget_type_f
-
+    INTERFACE
+       INTEGER FUNCTION h5aget_type_c(attr_id, type_id)
+         USE H5GLOBAL
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5AGET_TYPE_C'::h5aget_type_c
+         !DEC$ENDIF
+         INTEGER(HID_T), INTENT(IN) :: attr_id
+         INTEGER(HID_T), INTENT(OUT) :: type_id
+       END FUNCTION h5aget_type_c
+    END INTERFACE
+    
+    hdferr = h5aget_type_c(attr_id, type_id)
+  END SUBROUTINE h5aget_type_f
 !
 !****s* H5A/h5aget_name_f
 !
@@ -360,11 +350,9 @@ CONTAINS
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: attr_id  ! Attribute identifier
     INTEGER(SIZE_T), INTENT(IN) :: size    ! Buffer size
-    CHARACTER(LEN=*), INTENT(INOUT) :: buf
-                                           ! Buffer to hold attribute name
+    CHARACTER(LEN=*), INTENT(INOUT) :: buf ! Buffer to hold attribute name
     INTEGER, INTENT(OUT) :: hdferr ! Error code:
-                                   ! name length is successful,
-                                   ! -1 if fail
+                                   ! name length is successful, -1 if fail
 !*****
     INTERFACE
        INTEGER FUNCTION h5aget_name_c(attr_id, size, buf)
@@ -412,6 +400,7 @@ CONTAINS
 ! OUTPUTS
 !  name 	 - Attribute name
 !  hdferr 	 - Returns 0 if successful and -1 if fails
+!
 ! OPTIONAL PARAMETERS
 !  lapl_id 	 - Link access property list
 !  size 	 - Size, in bytes, of attribute name
@@ -439,17 +428,14 @@ CONTAINS
                                     !    H5_ITER_DEC_F       - Decreasing order
                                     !    H5_ITER_NATIVE_F    - No particular order, whatever is fastest
                                     !    H5_ITER_N_F 	    - Number of iteration orders
-
     INTEGER(HSIZE_T), INTENT(IN) :: n !  Attribute’s position in index
-
     CHARACTER(LEN=*), INTENT(OUT) :: name ! Attribute name
-
-
     INTEGER, INTENT(OUT) :: hdferr    ! Error code:
-                                         ! Returns attribute name size,
-                                         ! -1 if fail
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id   ! Link access property list
-    INTEGER(SIZE_T), OPTIONAL, INTENT(OUT) :: size   ! Indicates the size, in the number of characters, of the attribute
+                                      ! Returns attribute name size,
+                                      ! -1 if fail
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id ! Link access property list
+    INTEGER(SIZE_T), OPTIONAL, INTENT(OUT) :: size  ! Indicates the size, in the number of characters, 
+                                                    ! of the attribute
 !*****
     INTEGER(HID_T) :: lapl_id_default
     INTEGER(SIZE_T) :: obj_namelen
@@ -489,8 +475,6 @@ CONTAINS
 
 
   END SUBROUTINE h5aget_name_by_idx_f
-
-
 !
 !****s* H5A/h5aget_num_attrs_f
 !
@@ -520,9 +504,8 @@ CONTAINS
   SUBROUTINE h5aget_num_attrs_f(obj_id, attr_num, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: obj_id  ! Object identifier
-    INTEGER, INTENT(OUT) :: attr_num      ! Number of attributes of the
-                                          ! object
-    INTEGER, INTENT(OUT) :: hdferr         ! Error code
+    INTEGER, INTENT(OUT) :: attr_num      ! Number of attributes of the object
+    INTEGER, INTENT(OUT) :: hdferr        ! Error code
 !*****
 
     INTERFACE
@@ -567,9 +550,9 @@ CONTAINS
 ! SOURCE
   SUBROUTINE h5adelete_f(obj_id, name, hdferr)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: obj_id    ! Object identifier
-    CHARACTER(LEN=*), INTENT(IN) :: name    ! Attribute name
-    INTEGER, INTENT(OUT) :: hdferr          ! Error code
+    INTEGER(HID_T), INTENT(IN) :: obj_id  ! Object identifier
+    CHARACTER(LEN=*), INTENT(IN) :: name  ! Attribute name
+    INTEGER, INTENT(OUT) :: hdferr        ! Error code
 !*****
     INTEGER(SIZE_T) :: namelen
 
@@ -600,10 +583,10 @@ CONTAINS
 !  Closes the specified attribute.
 !
 ! INPUTS
-!  attr_id 	 - attribute identifier
+!  attr_id  - attribute identifier
 ! OUTPUTS
 !
-!  hdferr 	 - Returns 0 if successful and -1 if fails
+!  hdferr   - Returns 0 if successful and -1 if fails
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -655,7 +638,7 @@ CONTAINS
   SUBROUTINE h5aget_storage_size_f(attr_id, size, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: attr_id  ! Attribute identifier
-    INTEGER(HSIZE_T), INTENT(OUT) :: size   ! Attribute storage requirement
+    INTEGER(HSIZE_T), INTENT(OUT) :: size  ! Attribute storage requirement
     INTEGER, INTENT(OUT) :: hdferr         ! Error code
 !*****
 
@@ -766,7 +749,7 @@ CONTAINS
          !DEC$IF DEFINED(HDF5F90_WINDOWS)
          !DEC$ATTRIBUTES C,reference,decorate,alias:'H5ARENAME_BY_NAME_C'::h5arename_by_name_c
          !DEC$ENDIF
-         !DEC$ATTRIBUTES reference :: obj_name,  old_attr_name, new_attr_name
+         !DEC$ATTRIBUTES reference :: obj_name, old_attr_name, new_attr_name
          INTEGER(HID_T), INTENT(IN) :: loc_id
          CHARACTER(LEN=*), INTENT(IN) :: obj_name
          INTEGER(SIZE_T) :: obj_namelen
@@ -911,7 +894,7 @@ CONTAINS
     INTEGER(HSIZE_T), INTENT(IN) :: n         ! Offset within index
     INTEGER, INTENT(OUT) :: hdferr         ! Error code:
                                            ! 0 on success and -1 on failure
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id     ! Link access property list
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id ! Link access property list
 !*****
     INTEGER(SIZE_T) :: obj_namelen
     INTEGER(HID_T) :: lapl_id_default
@@ -969,9 +952,9 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(IN) :: obj_name  ! Name of object, relative to location,
                                               !  from which attribute is to be removed
     CHARACTER(LEN=*), INTENT(IN) :: attr_name ! Name of attribute to delete
-    INTEGER, INTENT(OUT) :: hdferr          ! Error code:
-                                            ! 0 on success and -1 on failure
-    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id     ! Link access property list
+    INTEGER, INTENT(OUT) :: hdferr            ! Error code:
+                                              ! 0 on success and -1 on failure
+    INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id ! Link access property list
 !*****
     INTEGER(SIZE_T) :: attr_namelen
     INTEGER(SIZE_T) :: obj_namelen
@@ -1045,7 +1028,7 @@ CONTAINS
                                               !    H5_ITER_DEC_F      - Decreasing order
                                               !    H5_ITER_NATIVE_F   - No particular order, whatever is fastest
 
-    INTEGER(HSIZE_T), INTENT(IN) :: n      ! Attribute’s position in index
+    INTEGER(HSIZE_T), INTENT(IN) :: n       ! Attribute’s position in index
 
     INTEGER(HID_T), INTENT(OUT) :: attr_id  ! Attribute identifier
     INTEGER, INTENT(OUT) :: hdferr          ! Error code:
@@ -1113,14 +1096,14 @@ CONTAINS
 !  M. Scot Breitenfeld
 !  January, 2008
 ! SOURCE
-  SUBROUTINE h5aget_info_f(attr_id, f_corder_valid, corder, cset, data_size,  hdferr)
+  SUBROUTINE h5aget_info_f(attr_id, f_corder_valid, corder, cset, data_size, hdferr)
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: attr_id  ! Attribute identifier
 
     LOGICAL, INTENT(OUT) :: f_corder_valid ! Indicates whether the creation order data is valid for this attribute
     INTEGER, INTENT(OUT) :: corder ! Is a positive integer containing the creation order of the attribute
-    INTEGER, INTENT(OUT) :: cset ! Indicates the character set used for the attribute’s name
-    INTEGER(HSIZE_T), INTENT(OUT) :: data_size   ! Indicates the size, in the number of characters, of the attribute
+    INTEGER, INTENT(OUT) :: cset   ! Indicates the character set used for the attribute’s name
+    INTEGER(HSIZE_T), INTENT(OUT) :: data_size ! Indicates the size, in the number of characters, of the attribute
     INTEGER, INTENT(OUT) :: hdferr       ! Error code:
                                          ! 0 on success and -1 on failure
 !*****
@@ -1181,8 +1164,8 @@ CONTAINS
   SUBROUTINE h5aget_info_by_idx_f(loc_id, obj_name, idx_type, order, n, &
        f_corder_valid, corder, cset, data_size, hdferr, lapl_id)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: loc_id    ! Object identifier
-    CHARACTER(LEN=*), INTENT(IN) :: obj_name ! Name of object to which attribute is attached
+    INTEGER(HID_T), INTENT(IN) :: loc_id      ! Object identifier
+    CHARACTER(LEN=*), INTENT(IN) :: obj_name  ! Name of object to which attribute is attached
     INTEGER, INTENT(IN) :: idx_type           ! Type of index; Possible values are:
                                               !    H5_INDEX_UNKNOWN_F   - Unknown index type
                                               !    H5_INDEX_NAME_F      - Index on names
@@ -1194,13 +1177,13 @@ CONTAINS
                                               !    H5_ITER_DEC_F      - Decreasing order
                                               !    H5_ITER_NATIVE_F   - No particular order, whatever is fastest
 
-    INTEGER(HSIZE_T), INTENT(IN) :: n      ! Attribute’s position in index
+    INTEGER(HSIZE_T), INTENT(IN) :: n         ! Attribute’s position in index
 
 
     LOGICAL, INTENT(OUT) :: f_corder_valid ! Indicates whether the creation order data is valid for this attribute
     INTEGER, INTENT(OUT) :: corder ! Is a positive integer containing the creation order of the attribute
-    INTEGER, INTENT(OUT) :: cset ! Indicates the character set used for the attribute’s name
-    INTEGER(HSIZE_T), INTENT(OUT) :: data_size   ! Indicates the size, in the number of characters, of the attribute
+    INTEGER, INTENT(OUT) :: cset   ! Indicates the character set used for the attribute’s name
+    INTEGER(HSIZE_T), INTENT(OUT) :: data_size ! Indicates the size, in the number of characters, of the attribute
     INTEGER, INTENT(OUT) :: hdferr       ! Error code:
                                          ! 0 on success and -1 on failure
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id  ! Link access property list
@@ -1501,13 +1484,13 @@ CONTAINS
 ! SOURCE
   SUBROUTINE h5aexists_by_name_f(loc_id, obj_name, attr_name, attr_exists, hdferr, lapl_id)
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: loc_id    ! Location identifier
+    INTEGER(HID_T), INTENT(IN) :: loc_id     ! Location identifier
     CHARACTER(LEN=*), INTENT(IN) :: obj_name ! Object name either relative to loc_id,
                                              ! absolute from the file’s root group, or '.'
     CHARACTER(LEN=*), INTENT(IN) :: attr_name ! Attribute name
     LOGICAL, INTENT(OUT) :: attr_exists ! .TRUE. if exists, .FALSE. otherwise
-    INTEGER, INTENT(OUT) :: hdferr         ! Error code:
-                                           ! 0 on success and -1 on failure
+    INTEGER, INTENT(OUT) :: hdferr      ! Error code:
+                                        ! 0 on success and -1 on failure
     INTEGER(HID_T), OPTIONAL, INTENT(IN) :: lapl_id ! Link access property list identifier
 !*****
     INTEGER :: attr_exists_c

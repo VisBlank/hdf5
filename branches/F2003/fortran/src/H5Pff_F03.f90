@@ -196,11 +196,11 @@ CONTAINS
 !  type_id 	 - datatype identifier for fill value
 !  fillvalue 	 - fill value
 ! OUTPUTS
-!  (	type_id		- datatype identifier for fill value )
-!  (		fillvalue	- fill value )
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  type_id       - datatype identifier for fill value
+!  fillvalue	 - fill value
+!  hdferr:	 - error code
+!                   Success:  0
+!                   Failure: -1
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -241,13 +241,13 @@ CONTAINS
   SUBROUTINE h5pget_fill_value_integer(prp_id, type_id, fillvalue, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier
+    INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of
-    ! of fillvalue datatype
-    ! (in memory)
-    INTEGER, INTENT(OUT), TARGET :: fillvalue   ! Fillvalue
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
-    TYPE(C_PTR) :: f_ptr ! C address
+                                          ! of fillvalue datatype
+                                          ! (in memory)
+    INTEGER, INTENT(OUT), TARGET :: fillvalue ! Fillvalue
+    INTEGER, INTENT(OUT) :: hdferr            ! Error code
+    TYPE(C_PTR) :: f_ptr                      ! C address
 
     f_ptr = C_LOC(fillvalue)
 
@@ -259,13 +259,13 @@ CONTAINS
   SUBROUTINE h5pset_fill_value_real(prp_id, type_id, fillvalue, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier
+    INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of
-    ! of fillvalue datatype
-    ! (in memory)
-    REAL, INTENT(IN), TARGET :: fillvalue   ! Fillvalue
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
-    TYPE(C_PTR) :: f_ptr ! C address
+                                          ! of fillvalue datatype
+                                          ! (in memory)
+    REAL, INTENT(IN), TARGET :: fillvalue ! Fillvalue
+    INTEGER, INTENT(OUT) :: hdferr        ! Error code
+    TYPE(C_PTR) :: f_ptr                  ! C address
 
     f_ptr = C_LOC(fillvalue)
 
@@ -279,11 +279,11 @@ CONTAINS
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of
-    ! of fillvalue datatype
-    ! (in memory)
-    REAL, INTENT(OUT), TARGET :: fillvalue   ! Fillvalue
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
-    TYPE(C_PTR) :: f_ptr ! C address
+                                          ! of fillvalue datatype
+                                          ! (in memory)
+    REAL, INTENT(OUT), TARGET :: fillvalue  ! Fillvalue
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code
+    TYPE(C_PTR) :: f_ptr                    ! C address
 
     f_ptr = C_LOC(fillvalue)
 
@@ -295,13 +295,13 @@ CONTAINS
   SUBROUTINE h5pset_fill_value_double(prp_id, type_id, fillvalue, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier
+    INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of
-    ! of fillvalue datatype
-    ! (in memory)
-    DOUBLE PRECISION, INTENT(IN), TARGET :: fillvalue   ! Fillvalue
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
-    TYPE(C_PTR) :: f_ptr ! C address
+                                          ! of fillvalue datatype
+                                          ! (in memory)
+    DOUBLE PRECISION, INTENT(IN), TARGET :: fillvalue ! Fillvalue
+    INTEGER, INTENT(OUT) :: hdferr ! Error code
+    TYPE(C_PTR) :: f_ptr           ! C address
 
     f_ptr = C_LOC(fillvalue)
 
@@ -312,13 +312,13 @@ CONTAINS
   SUBROUTINE h5pget_fill_value_double(prp_id, type_id, fillvalue, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier
+    INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of
-    ! of fillvalue datatype
-    ! (in memory)
+                                          ! of fillvalue datatype
+                                          ! (in memory)
     DOUBLE PRECISION, INTENT(OUT), TARGET :: fillvalue   ! Fillvalue
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
-    TYPE(C_PTR) :: f_ptr ! C address
+    INTEGER, INTENT(OUT) :: hdferr        ! Error code
+    TYPE(C_PTR) :: f_ptr                  ! C address
 
     f_ptr = C_LOC(fillvalue)
 
@@ -330,11 +330,11 @@ CONTAINS
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of
-    ! of fillvalue datatype
-    ! (in memory)
-    CHARACTER, INTENT(IN), TARGET :: fillvalue    ! Fillvalue
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
-    TYPE(C_PTR) :: f_ptr ! C address
+                                          ! of fillvalue datatype
+                                          ! (in memory)
+    CHARACTER, INTENT(IN), TARGET :: fillvalue ! Fillvalue
+    INTEGER, INTENT(OUT) :: hdferr             ! Error code
+    TYPE(C_PTR) :: f_ptr                       ! C address
 
     f_ptr = C_LOC(fillvalue)
 
@@ -350,7 +350,7 @@ CONTAINS
                                           ! of fillvalue datatype
                                           ! (in memory)
     CHARACTER, INTENT(OUT) :: fillvalue   ! Fillvalue
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+    INTEGER, INTENT(OUT) :: hdferr        ! Error code
 
     INTEGER :: i
     CHARACTER(LEN=1), ALLOCATABLE, DIMENSION(:), TARGET :: chr
@@ -386,8 +386,8 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of
                                           ! of fillvalue datatype
                                           ! (in memory)
-    TYPE(C_PTR), VALUE :: fillvalue  ! Fillvalue
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+    TYPE(C_PTR), VALUE :: fillvalue       ! Fillvalue
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code
 
     hdferr = h5pset_fill_value_c(prp_id, type_id, fillvalue)
 
@@ -398,10 +398,10 @@ CONTAINS
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier
     INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier of
-    ! of fillvalue datatype
-    ! (in memory)
+                                          ! of fillvalue datatype
+                                          ! (in memory)
     TYPE(C_PTR), INTENT(OUT) :: fillvalue ! Fillvalue
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+    INTEGER, INTENT(OUT) :: hdferr        ! Error code
 
     hdferr = h5pget_fill_value_c(prp_id, type_id, fillvalue)
 
@@ -421,9 +421,9 @@ CONTAINS
 !  name 	 - name of property to modify
 !  value 	 - value to set property to
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr:       - error code
+!                   Success:  0
+!                   Failure: -1
 ! AUTHOR
 !  Elena Pourmal
 !  October 9, 2002
@@ -431,10 +431,10 @@ CONTAINS
   SUBROUTINE h5pset_integer(prp_id, name, value, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier
-    CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
+    INTEGER(HID_T), INTENT(IN) :: prp_id   ! Property list identifier
+    CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of property to modify
     INTEGER,   INTENT(IN), TARGET :: value ! Property value
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code
 !*****
     INTEGER :: name_len
     TYPE(C_PTR) :: f_ptr
@@ -460,9 +460,9 @@ CONTAINS
 !  name 	 - name of property to modify
 !  value 	 - value to set property to
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr:	 - error code
+!                   Success:  0
+!                    Failure: -1
 ! AUTHOR
 !  Elena Pourmal
 !  October 9, 2002
@@ -470,10 +470,10 @@ CONTAINS
   SUBROUTINE h5pset_real(prp_id, name, value, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier
-    CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
-    REAL,   INTENT(IN), TARGET :: value ! Property value
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+    INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier
+    CHARACTER(LEN=*), INTENT(IN) :: name ! Name of property to modify
+    REAL,   INTENT(IN), TARGET :: value  ! Property value
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code
 !*****
     INTEGER :: name_len
     TYPE(C_PTR) :: f_ptr
@@ -499,9 +499,9 @@ CONTAINS
 !  name 	 - name of property to modify
 !  value 	 - value to set property to
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr:	 - error code
+!                    Success:  0
+!                    Failure: -1
 ! AUTHOR
 !
 !  Elena Pourmal
@@ -513,7 +513,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
     DOUBLE PRECISION,   INTENT(IN), TARGET :: value ! Property value
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+    INTEGER, INTENT(OUT) :: hdferr                  ! Error code
 !*****
     INTEGER :: name_len
     TYPE(C_PTR) :: f_ptr
@@ -539,9 +539,9 @@ CONTAINS
 !  name 	 - name of property to modify
 !  value 	 - value to set property to
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr:	 - error code
+!                   Success:  0
+!                   Failure: -1
 ! OPTIONAL PARAMETERS
 !  NONE
 !
@@ -552,10 +552,10 @@ CONTAINS
   SUBROUTINE h5pset_char(prp_id, name, value, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier
-    CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
+    INTEGER(HID_T), INTENT(IN) :: prp_id    ! Property list identifier
+    CHARACTER(LEN=*), INTENT(IN) :: name    ! Name of property to modify
     CHARACTER(LEN=*),   INTENT(IN) :: value ! Property value
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code
 !*****
     INTEGER :: name_len
 
@@ -601,9 +601,9 @@ CONTAINS
 !  name 	 - name of property to modify
 ! OUTPUTS
 !  value 	 - value of property
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr:	 - error code
+!                   Success:  0
+!                   Failure: -1
 ! AUTHOR
 !  Elena Pourmal
 !  October 9, 2002
@@ -611,10 +611,10 @@ CONTAINS
   SUBROUTINE h5pget_integer(prp_id, name, value, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier
-    CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
+    INTEGER(HID_T), INTENT(IN) :: prp_id    ! Property list identifier
+    CHARACTER(LEN=*), INTENT(IN) :: name    ! Name of property to modify
     INTEGER,   INTENT(OUT), TARGET :: value ! Property value
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code
 !*****
     INTEGER :: name_len
     TYPE(C_PTR) :: f_ptr
@@ -640,9 +640,9 @@ CONTAINS
 !  name 	 - name of property to modify
 ! OUTPUTS
 !  value 	 - value of property
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr:	 - error code
+!                   Success:  0
+!                   Failure: -1
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -651,10 +651,10 @@ CONTAINS
   SUBROUTINE h5pget_real(prp_id, name, value, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier
-    CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
+    INTEGER(HID_T), INTENT(IN) :: prp_id ! Property list identifier
+    CHARACTER(LEN=*), INTENT(IN) :: name ! Name of property to modify
     REAL,   INTENT(OUT), TARGET :: value ! Property value
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code
 !*****
     INTEGER :: name_len
     TYPE(C_PTR) :: f_ptr
@@ -679,9 +679,9 @@ CONTAINS
 !  name 	 - name of property to modify
 ! OUTPUTS
 !  value 	 - value of property
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr:	 - error code
+!                   Success:  0
+!                   Failure: -1
 ! AUTHOR
 !  Elena Pourmal
 !  October 9, 2002
@@ -693,7 +693,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
     DOUBLE PRECISION,   INTENT(OUT), TARGET :: value ! Property value
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+    INTEGER, INTENT(OUT) :: hdferr        ! Error code
 !*****
     INTEGER :: name_len
     TYPE(C_PTR) :: f_ptr
@@ -719,9 +719,9 @@ CONTAINS
 !  name 	 - name of property to modify
 ! OUTPUTS
 !  value 	 - value of property
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr:	 - error code
+!                   Success:  0
+!                   Failure: -1
 ! AUTHOR
 !
 !  Elena Pourmal
@@ -730,10 +730,10 @@ CONTAINS
   SUBROUTINE h5pget_char(prp_id, name, value, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier
-    CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
+    INTEGER(HID_T), INTENT(IN) :: prp_id   ! Property list identifier
+    CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of property to modify
     CHARACTER(LEN=*), INTENT(OUT) :: value ! Property value
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code
 !*****
     INTEGER :: name_len
 
@@ -766,8 +766,8 @@ CONTAINS
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
-    TYPE(C_PTR), INTENT(OUT) :: value ! Property value
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+    TYPE(C_PTR), INTENT(OUT) :: value     ! Property value
+    INTEGER, INTENT(OUT) :: hdferr        ! Error code
     INTEGER :: name_len
 
     name_len = LEN(name)
@@ -780,8 +780,8 @@ CONTAINS
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: prp_id  ! Property list identifier
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to modify
-    TYPE(C_PTR), INTENT(OUT) :: value ! Property value
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+    TYPE(C_PTR), INTENT(OUT) :: value     ! Property value
+    INTEGER, INTENT(OUT) :: hdferr        ! Error code
     INTEGER :: name_len
 
     name_len = LEN(name)
@@ -801,15 +801,15 @@ CONTAINS
 !
 ! INPUTS
 !  class 	 - property list class to register
-!  permanent property within
+!                  permanent property within
 !  name 	 - name of property to register
 !  size 	 - size of property in bytes
 !  value 	 - default value for property in newly
-!  created property lists
+!                  created property lists
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr:	 - error code
+!                   Success:  0
+!                   Failure: -1
 ! AUTHOR
 !  Elena Pourmal
 !  October 10, 2002
@@ -818,11 +818,11 @@ CONTAINS
   SUBROUTINE h5pregister_integer(class, name, size, value, hdferr)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: class   ! Property list class identifier
-    CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to register
-    INTEGER(SIZE_T), INTENT(IN) :: size   ! Size of the property value
-    INTEGER,   INTENT(IN), TARGET :: value        ! Property value
-    INTEGER, INTENT(OUT) :: hdferr        ! Error code
+    INTEGER(HID_T), INTENT(IN) :: class    ! Property list class identifier
+    CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of property to register
+    INTEGER(SIZE_T), INTENT(IN) :: size    ! Size of the property value
+    INTEGER,   INTENT(IN), TARGET :: value ! Property value
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code
 !*****
     INTEGER :: name_len
     TYPE(C_PTR) :: f_ptr
@@ -845,15 +845,15 @@ CONTAINS
 !
 ! INPUTS
 !  class 	 - property list class to register
-!  permanent property within
+!                  permanent property within
 !  name 	 - name of property to register
 !  size 	 - size of property in bytes
 !  value 	 - default value for property in newly
-!  created property lists
+!                  created property lists
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr:	 - error code
+!                   Success:  0
+!                   Failure: -1
 ! AUTHOR
 !  Elena Pourmal
 !  October 10, 2002
@@ -864,8 +864,8 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: class   ! Property list class identifier
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to register
     INTEGER(SIZE_T), INTENT(IN) :: size   ! size of the property value
-    REAL,   INTENT(IN), TARGET :: value           ! Property value
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+    REAL,   INTENT(IN), TARGET :: value   ! Property value
+    INTEGER, INTENT(OUT) :: hdferr        ! Error code
 !*****
     INTEGER :: name_len
     TYPE(C_PTR) :: f_ptr
@@ -888,15 +888,15 @@ CONTAINS
 !
 ! INPUTS
 !  class 	 - property list class to register
-!  permanent property within
+!                  permanent property within
 !  name 	 - name of property to register
 !  size 	 - size of property in bytes
 !  value 	 - default value for property in newly
-!  created property lists
+!                  created property lists
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr:	 - error code
+!                   Success:  0
+!                   Failure: -1
 ! AUTHOR
 !
 !  Elena Pourmal
@@ -905,11 +905,11 @@ CONTAINS
   SUBROUTINE h5pregister_double(class, name, size, value, hdferr)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: class   ! Property list class identifier
-    CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to register
+    INTEGER(HID_T), INTENT(IN) :: class  ! Property list class identifier
+    CHARACTER(LEN=*), INTENT(IN) :: name ! Name of property to register
     INTEGER(SIZE_T), INTENT(IN) :: size  ! size of the property value
-    DOUBLE PRECISION,   INTENT(IN), TARGET :: value        ! Property value
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+    DOUBLE PRECISION,   INTENT(IN), TARGET :: value ! Property value
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code
 !*****
     INTEGER :: name_len
     TYPE(C_PTR) :: f_ptr
@@ -931,15 +931,15 @@ CONTAINS
 !
 ! INPUTS
 !  class 	 - property list class to register
-!  permanent property within
+!                  permanent property within
 !  name 	 - name of property to register
 !  size 	 - size of property in bytes
 !  value 	 - default value for property in newly
-!  created property lists
+!                  created property lists
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr:	 - error code
+!                   Success:  0
+!                   Failure: -1
 ! AUTHOR
 !  Elena Pourmal
 !  October 10, 2002
@@ -948,11 +948,11 @@ CONTAINS
   SUBROUTINE h5pregister_char(class, name, size, value, hdferr)
     USE ISO_C_BINDING
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: class   ! Property list class identifier
-    CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to register
-    INTEGER(SIZE_T), INTENT(IN) :: size  ! size of the property value
-    CHARACTER(LEN=*),   INTENT(IN) :: value        ! Property value
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+    INTEGER(HID_T), INTENT(IN) :: class     ! Property list class identifier
+    CHARACTER(LEN=*), INTENT(IN) :: name    ! Name of property to register
+    INTEGER(SIZE_T), INTENT(IN) :: size     ! size of the property value
+    CHARACTER(LEN=*),   INTENT(IN) :: value ! Property value
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code
 !*****
     INTEGER :: name_len
 
@@ -993,15 +993,15 @@ CONTAINS
 !
 ! INPUTS
 !  class 	 - property list class to register
-!  permanent property within
+!                  permanent property within
 !  name 	 - name of property to register
 !  size 	 - size of property in bytes
 !  value 	 - default value for property in newly
-!  created property lists
+!                  created property lists
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr:	 - error code
+!                   Success:  0
+!                   Failure: -1
 ! AUTHOR
 !  M. Scot Breitenfeld
 !  June 24, 2008
@@ -1013,7 +1013,7 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to register
     INTEGER(SIZE_T), INTENT(IN) :: size   ! Size of the property value
     TYPE(C_PTR), INTENT(IN) :: value      ! Property value
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+    INTEGER, INTENT(OUT) :: hdferr        ! Error code
 !*****
     INTEGER :: name_len
 
@@ -1036,9 +1036,9 @@ CONTAINS
 !  size 	 - size of property in bytes
 !  value 	 - initial value for the property
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr:	 - error code
+!                   Success:  0
+!                   Failure: -1
 ! AUTHOR
 !  Elena Pourmal
 !  October 10, 2002
@@ -1047,11 +1047,11 @@ CONTAINS
   SUBROUTINE h5pinsert_integer(plist, name, size, value, hdferr)
     USE iso_c_binding
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: plist   ! Property list identifier
-    CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to insert
-    INTEGER(SIZE_T), INTENT(IN) :: size   ! Size of the property value
-    INTEGER,   INTENT(IN), TARGET :: value        ! Property value
-    INTEGER, INTENT(OUT) :: hdferr        ! Error code
+    INTEGER(HID_T), INTENT(IN) :: plist    ! Property list identifier
+    CHARACTER(LEN=*), INTENT(IN) :: name   ! Name of property to insert
+    INTEGER(SIZE_T), INTENT(IN) :: size    ! Size of the property value
+    INTEGER,   INTENT(IN), TARGET :: value ! Property value
+    INTEGER, INTENT(OUT) :: hdferr         ! Error code
 !*****
     INTEGER :: name_len
     TYPE(c_ptr) :: f_ptr
@@ -1073,14 +1073,14 @@ CONTAINS
 !
 ! INPUTS
 !  plist 	 - property list identifier
-!  permanent property within
+!                  permanent property within
 !  name 	 - name of property to insert
 !  size 	 - size of property in bytes
 !  value 	 - initial value for the property
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr:	 - error code
+!                   Success:  0
+!                   Failure: -1
 ! AUTHOR
 !  Elena Pourmal
 !  October 10, 2002
@@ -1091,7 +1091,7 @@ CONTAINS
     INTEGER(HID_T), INTENT(IN) :: plist   ! Property list identifier
     CHARACTER(LEN=*), INTENT(IN) :: name  ! Name of property to insert
     INTEGER(SIZE_T), INTENT(IN) :: size   ! Size of the property value
-    REAL,   INTENT(IN), TARGET :: value           ! Property value
+    REAL,   INTENT(IN), TARGET :: value   ! Property value
     INTEGER, INTENT(OUT) :: hdferr        ! Error code
 !*****
     INTEGER :: name_len
@@ -1115,14 +1115,14 @@ CONTAINS
 !
 ! INPUTS
 !  plist 	 - property list identifier
-!  permanent property within
+!                  permanent property within
 !  name 	 - name of property to insert
 !  size 	 - size of property in bytes
 !  value 	 - initial value for the property
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr:	 - error code
+!                   Success:  0
+!                   Failure: -1
 ! OPTIONAL PARAMETERS
 !  NONE
 !
@@ -1161,14 +1161,14 @@ CONTAINS
 !
 ! INPUTS
 !  plist 	 - property list identifier
-!  permanent property within
+!                  permanent property within
 !  name 	 - name of property to insert
 !  size 	 - size of property in bytes
 !  value 	 - initial value for the property
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr:	 - error code
+!                   Success:  0
+!                   Failure: -1
 ! AUTHOR
 !  Elena Pourmal
 !  October 10, 2002
@@ -1223,14 +1223,14 @@ CONTAINS
 !
 ! INPUTS
 !  plist 	 - property list identifier
-!  permanent property within
+!                  permanent property within
 !  name 	 - name of property to insert
 !  size 	 - size of property in bytes
 !  value 	 - initial value for the property
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr:	 - error code
+!                   Success:  0
+!                   Failure: -1
 ! AUTHOR
 !  M. Scot Breitenfeld
 !  June 24, 2008
@@ -1238,11 +1238,11 @@ CONTAINS
   SUBROUTINE h5pinsert_ptr(plist, name, size, value, hdferr)
     USE iso_c_binding
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: plist      ! Property list identifier
-    CHARACTER(LEN=*), INTENT(IN) :: name     ! Name of property to insert
-    INTEGER(SIZE_T), INTENT(IN) :: size      ! Size of property value
-    TYPE(c_ptr),   INTENT(IN) :: value  ! Property value
-    INTEGER, INTENT(OUT) :: hdferr           ! Error code
+    INTEGER(HID_T), INTENT(IN) :: plist  ! Property list identifier
+    CHARACTER(LEN=*), INTENT(IN) :: name ! Name of property to insert
+    INTEGER(SIZE_T), INTENT(IN) :: size  ! Size of property value
+    TYPE(c_ptr),   INTENT(IN) :: value   ! Property value
+    INTEGER, INTENT(OUT) :: hdferr       ! Error code
 !*****
     INTEGER :: name_len
 
@@ -1261,27 +1261,27 @@ CONTAINS
 !
 ! INPUTS
 !  parent 	 - Property list identifier of the parent class
-!  Possible values include:
-!  H5P_ROOT_F
-!  H5P_FILE_CREATE_F
-!  H5P_FILE_ACCESS_F
-!  H5P_DATASET_CREATE_F
-!  H5P_DATASET_XFER_F
-!  H5P_FILE_MOUNT_F
+!                  Possible values include:
+!                   H5P_ROOT_F
+!                   H5P_FILE_CREATE_F
+!                   H5P_FILE_ACCESS_F
+!                   H5P_DATASET_CREATE_F
+!                   H5P_DATASET_XFER_F
+!                   H5P_FILE_MOUNT_F
 !  name 	 - name of the class we are creating
 ! OUTPUTS
 !  class 	 - porperty list class identifier
-!  hdferr:		- error code
+!  hdferr:	 - error code
 !
 !  Success: 0
 !  Failure: -1
 ! OPTIONAL PARAMETERS
-!  H5P_cls_create_func_t create - Callback routine called when a property list is created
-!  create_data 	 - User pointer to any class creation information needed
-!  H5P_cls_copy_func_t   copy   - Callback routine called when a property list is copied
-!  copy_data 	 - User pointer to any class copy information needed
-!  H5P_cls_close_func_t  close  - Callback routine called when a property list is being closed
-!  close_data 	 - User pointer to any class close information needed
+!  H5P_cls_create_func_t (create) - Callback routine called when a property list is created
+!  create_data 	                  - User pointer to any class creation information needed
+!  H5P_cls_copy_func_t   (copy)   - Callback routine called when a property list is copied
+!  copy_data 	                  - User pointer to any class copy information needed
+!  H5P_cls_close_func_t  (close)  - Callback routine called when a property list is being closed
+!  close_data 	                  - User pointer to any class close information needed
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -1292,14 +1292,13 @@ CONTAINS
 !  M. Scot Breitenfeld, July 3, 2008
 !
 ! SOURCE
-  SUBROUTINE h5pcreate_class_f(parent, name, class, hdferr, create, create_data, copy, copy_data, CLOSE, close_data)
+  SUBROUTINE h5pcreate_class_f(parent, name, class, hdferr, create, create_data, copy, copy_data, close, close_data)
     USE iso_c_binding
     IMPLICIT NONE
-    INTEGER(HID_T), INTENT(IN) :: parent  ! parent property list class
-                                          ! identifier
+    INTEGER(HID_T), INTENT(IN) :: parent  ! parent property list class identifier
     CHARACTER(LEN=*), INTENT(IN) :: name  ! name of property tocreate
     INTEGER(HID_T), INTENT(OUT) :: class  ! property list class identifier
-    INTEGER, INTENT(OUT) :: hdferr  ! Error code
+    INTEGER, INTENT(OUT) :: hdferr        ! Error code
     TYPE(C_PTR), OPTIONAL :: create_data, copy_data, close_data
     TYPE(C_FUNPTR), OPTIONAL :: create, copy, close
 !*****

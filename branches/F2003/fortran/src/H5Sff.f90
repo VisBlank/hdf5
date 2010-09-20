@@ -3,7 +3,7 @@
 ! NAME
 !  MODULE H5S
 !
-!  FILE
+! FILE
 !  fortran/src/H5Sff.f90
 !
 ! PURPOSE
@@ -47,7 +47,8 @@ CONTAINS
 ! NAME
 !  h5screate_simple_f
 !
-! PURPOSE 	Creates a new simple data space and opens it for access	.
+! PURPOSE 	
+!  Creates a new simple data space and opens it for access	.
 !
 ! INPUTS
 !  rank        - number of dimensions
@@ -70,7 +71,7 @@ CONTAINS
           SUBROUTINE h5screate_simple_f(rank, dims, space_id, hdferr, maxdims)
 
             IMPLICIT NONE
-            INTEGER, INTENT(IN) :: rank     ! Number of dataspace dimensions
+            INTEGER, INTENT(IN) :: rank             ! Number of dataspace dimensions
             INTEGER(HSIZE_T), INTENT(IN) :: dims(rank)
                                                     ! Array with the dimension
                                                     ! sizes

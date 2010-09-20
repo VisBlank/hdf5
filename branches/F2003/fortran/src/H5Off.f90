@@ -3,7 +3,7 @@
 ! NAME
 !  MODULE H5O
 !
-!  FILE
+! FILE
 !  fortran/src/H5Off.f90
 !
 ! PURPOSE
@@ -52,11 +52,11 @@ CONTAINS
 ! INPUTS
 !  object_id 	 - Object to be linked.
 !  new_loc_id 	 - File or group identifier specifying location at which object is to be linked.
-!  new_link_name 	 - Name of link to be created, relative to new_loc_id.
+!  new_link_name - Name of link to be created, relative to new_loc_id.
 ! OUTPUTS
 !  hdferr:       - error code
-!  Success:  0
-!  Failure: -1
+!                   Success:  0
+!                   Failure: -1
 ! OPTIONAL PARAMETERS
 !  lcpl_id 	 - Link creation property list identifier.
 !  lapl_id 	 - Link access property list identifier.
@@ -123,9 +123,9 @@ CONTAINS
 !  name 	 - Path to the object, relative to loc_id.
 ! OUTPUTS
 !  obj_id 	 - Object identifier for the opened object
-!  hdferr: - error code
-!  Success:  0
-!  Failure: -1
+!  hdferr:       - error code
+!                   Success:  0
+!                   Failure: -1
 ! OPTIONAL PARAMETERS
 !  lapl_id 	 - Access property list identifier for the link pointing to the object
 !
@@ -216,7 +216,7 @@ CONTAINS
 !
 ! INPUTS  
 !    loc_id - File or group identifier
-!    addr - Object’s address in the file
+!    addr   - Object’s address in the file
 ! OUTPUTS: 
 !    obj_id - Object identifier for the opened object
 !    hdferr - Returns 0 if successful and -1 if fails

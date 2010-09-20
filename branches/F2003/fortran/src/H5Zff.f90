@@ -48,14 +48,14 @@ CONTAINS
 !  Unregisters specified filetr
 !
 ! INPUTS
-!  filter 	 - filter; may have one of the following values:
-!  H5Z_FILTER_DEFLATE_F
-!  H5Z_FILTER_SHUFFLE_F
-!  H5Z_FILTER_FLETCHER32_F
+!  filter - filter; may have one of the following values:
+!            H5Z_FILTER_DEFLATE_F
+!            H5Z_FILTER_SHUFFLE_F
+!            H5Z_FILTER_FLETCHER32_F
 ! OUTPUTS
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!  hdferr - error code
+!            Success:  0
+!            Failure: -1
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -90,10 +90,10 @@ CONTAINS
 !  filter 	 - filter
 ! OUTPUTS
 !  status 	 - status; .TRUE. if filter is available,
-!  .FALSE. otherwise
-!  hdferr:		- error code
-!  Success:  0
-!  Failure: -1
+!                  .FALSE. otherwise
+!  hdferr:	 - error code
+!                   Success:  0
+!                   Failure: -1
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -103,9 +103,9 @@ CONTAINS
   SUBROUTINE h5zfilter_avail_f(filter, status, hdferr)
     IMPLICIT NONE
     INTEGER, INTENT(IN)  :: filter      ! Filter; may be one of the following:
-                                        ! H5Z_FILTER_DEFLATE_F
-                                        ! H5Z_FILTER_SHUFFLE_F
-                                        ! H5Z_FILTER_FLETCHER32_F
+                                        !   H5Z_FILTER_DEFLATE_F
+                                        !   H5Z_FILTER_SHUFFLE_F
+                                        !   H5Z_FILTER_FLETCHER32_F
     LOGICAL, INTENT(OUT) :: status      ! Flag, idicates if filter
                                         ! is availble  not ( TRUE or
                                         ! FALSE)
@@ -141,13 +141,13 @@ CONTAINS
 ! INPUTS
 !  filter 	 - filter
 ! OUTPUTS
-!  config_flags 	 - Bit vector possibly containing the
-!  following values:
-!  H5Z_FILTER_ENCODE_ENABLED_F
-!  H5Z_FILTER_DECODE_ENABLED_F
-!  hdferr:	- error code
-!  Success:  0
-!  Failure: -1
+!  config_flags  - Bit vector possibly containing the
+!                  following values:
+!                     H5Z_FILTER_ENCODE_ENABLED_F
+!                     H5Z_FILTER_DECODE_ENABLED_F
+!  hdferr:	 - error code
+!                   Success:  0
+!                   Failure: -1
 !
 ! AUTHOR
 !  Nat Furrer and James Laird

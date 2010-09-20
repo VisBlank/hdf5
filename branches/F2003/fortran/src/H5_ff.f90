@@ -6,7 +6,7 @@
 ! PURPOSE
 !  This module provides fortran specific helper functions for the HDF library
 !
-!  USES
+! USES
 !  H5LIB_PROVISIONAL - This module provides helper functions for Fortran 2003
 !                      only features. If Fortran 2003 functions are enabled then
 !                      H5_ff_F03.f90 is compiled, else H5_ff_F90.f90,
@@ -39,11 +39,10 @@ MODULE H5LIB
 
   USE H5LIB_PROVISIONAL  ! helper functions for Fortran 2003 features:
                          !       pre-Fortran 2003 - empty module
-                         !       Forttran 2003 - contains functions
+                         !       Forttran 2003    - contains functions
   USE H5GLOBAL
 CONTAINS
 !****s* H5LIB/h5open_f
-
 !
 ! NAME
 !  h5open_f
@@ -52,9 +51,9 @@ CONTAINS
 !  Initializes the HDF5 library and Fortran90 interface.
 !
 ! OUTPUTS
-!  error:		- error code
-!  Success:  0
-!  Failure: -1
+!  error - error code
+!            Success:  0
+!            Failure: -1
 ! AUTHOR
 !  Elena Pourmal
 !  August 12, 1999
@@ -131,9 +130,9 @@ CONTAINS
          INTEGER i_H5T_flags(H5T_FLAGS_LEN)
          INTEGER i_H5Z_flags(H5Z_FLAGS_LEN)
          INTEGER i_H5generic_flags(H5generic_FLAGS_LEN)
-          !DEC$IF DEFINED(HDF5F90_WINDOWS)
-          !DEC$ATTRIBUTES C,reference,decorate,alias:'H5INIT_FLAGS_C'::h5init_flags_c
-          !DEC$ENDIF
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5INIT_FLAGS_C'::h5init_flags_c
+         !DEC$ENDIF
        END FUNCTION h5init_flags_c
     END INTERFACE
     INTERFACE
@@ -177,9 +176,9 @@ CONTAINS
 !  Closes the HDF5 library and Fortran90 interface.
 !
 ! OUTPUTS
-!  error:		- error code
-!  Success:  0
-!  Failure: -1
+!  error - error code
+!            Success:  0
+!            Failure: -1
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -239,12 +238,12 @@ CONTAINS
 !  Returns the HDF5 LIbrary release number
 !
 ! OUTPUTS
-!  majnum:		- major version of the library
-!  minum:		- minor version of the library
-!  relnum:		- release version of the library
-!  error:		- error code
-!  Success:  0
-!  Failure: -1
+!  majnum		- major version of the library
+!  minum		- minor version of the library
+!  relnum		- release version of the library
+!  error		- error code
+!                           Success:  0
+!                           Failure: -1
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -278,13 +277,13 @@ CONTAINS
 !  Verifies that library versions are consistent.
 !
 ! INPUTS
-!  majnum:		- major version of the library
-!  minum:		- minor version of the library
-!  relnum:		- release version of the library
+!  majnum		- major version of the library
+!  minum		- minor version of the library
+!  relnum		- release version of the library
 ! OUTPUTS
-!  error:		- error code
-!  Success:  0
-!  Failure:  application aborts
+!  error		- error code
+!                          Success:  0
+!                          Failure:  application aborts
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -318,9 +317,9 @@ CONTAINS
 !  Garbage collects on all free-lists of all types.
 !
 ! OUTPUTS
-!  error:		- error code
-!  Success:  0
-!  Failure: -1
+!  error  - error code
+!             Success:  0
+!             Failure: -1
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -352,9 +351,9 @@ CONTAINS
 !  Instructs library not to install atexit cleanup routine.
 !
 ! OUTPUTS
-!  error:		- error code
-!  Success:  0
-!  Failure: -1
+!  error  - error code
+!             Success:  0
+!             Failure: -1
 !
 ! AUTHOR
 !  Elena Pourmal
@@ -387,12 +386,12 @@ CONTAINS
 !  Converts the KIND to the correct HDF type
 !
 ! INPUTS
-!  kind 	 - Fortran KIND parameter
-!  flag 	 - whether KIND is of type INTEGER or REAL:
-!  H5_INTEGER_KIND 	 - integer
-!  H5_REAL_KIND 	 - real
+!  kind    - Fortran KIND parameter
+!  flag    - whether KIND is of type INTEGER or REAL:
+!              H5_INTEGER_KIND - integer
+!              H5_REAL_KIND    - real
 ! OUTPUTS
-!  h5_type 	 - returns the type
+!  h5_type - returns the type
 !
 ! AUTHOR
 !  M. Scot Breitenfeld
@@ -405,7 +404,6 @@ CONTAINS
     INTEGER, INTENT(IN) :: kind
     INTEGER, INTENT(IN) :: flag
 !*****
-
     IF(flag.EQ.H5_INTEGER_KIND)THEN
        IF(kind.EQ.Fortran_INTEGER_1)THEN
           h5_type = H5T_NATIVE_INTEGER_1
@@ -417,7 +415,6 @@ CONTAINS
           h5_type = H5T_NATIVE_INTEGER_8
        ENDIF
     ELSE IF(flag.EQ.H5_REAL_KIND)THEN
-
        IF(kind.EQ.Fortran_REAL_4)THEN
           h5_type = H5T_NATIVE_REAL_4
        ELSE IF(kind.EQ.Fortran_REAL_8)THEN
@@ -425,7 +422,6 @@ CONTAINS
        ELSE IF(kind.EQ.Fortran_REAL_16)THEN
           h5_type = H5T_NATIVE_REAL_16
        ENDIF
-
     ENDIF
 
   END FUNCTION h5kind_to_type
