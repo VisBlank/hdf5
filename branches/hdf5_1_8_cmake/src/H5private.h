@@ -145,12 +145,12 @@
 
 
 #ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN		/*Exclude rarely-used stuff from Windows headers */
 
 #ifdef H5_HAVE_WINSOCK_H
 #include <winsock2.h>
 #endif
 
-#define WIN32_LEAN_AND_MEAN		/*Exclude rarely-used stuff from Windows headers */
 #include <windows.h>
 #include <direct.h>         /* For _getcwd() */
 
@@ -1665,13 +1665,9 @@ typedef struct H5_api_struct {
 
 /* Macro for first thread initialization */
 #ifdef H5_HAVE_WIN_THREADS
-#define H5_FIRST_THREAD_INIT \
-        if (!H5_INIT_GLOBAL) \
-            InitOnceExecuteOnce(&H5TS_first_init_g, H5TS_win32_first_thread_init, NULL, NULL);
+#define H5_FIRST_THREAD_INIT InitOnceExecuteOnce(&H5TS_first_init_g, H5TS_win32_first_thread_init, NULL, NULL);
 #else
-#define H5_FIRST_THREAD_INIT \
-        if (!H5_INIT_GLOBAL) \
-            pthread_once(&H5TS_first_init_g, H5TS_first_thread_init);
+#define H5_FIRST_THREAD_INIT pthread_once(&H5TS_first_init_g, H5TS_pthread_first_thread_init);
 #endif
 
 /* Macros for threadsafe HDF-5 Phase I locks */
