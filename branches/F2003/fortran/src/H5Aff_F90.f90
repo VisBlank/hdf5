@@ -1212,8 +1212,8 @@ CONTAINS
                                              ! identifier  (in memory)
     INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims ! Array to story buf dimension sizes
     REAL, INTENT(INOUT), &
-         DIMENSION(dims(1),dims(2),dims(3)) :: buf  Attribute data
-    INTEGER, INTENT(OUT) :: hdferr           ! Error code
+         DIMENSION(dims(1),dims(2),dims(3)) :: buf  ! Attribute data
+    INTEGER, INTENT(OUT) :: hdferr                  ! Error code
 
     !            INTEGER, EXTERNAL :: h5aread_real_3_c
     !  MS FORTRAN needs explicit interface for C functions called here.
