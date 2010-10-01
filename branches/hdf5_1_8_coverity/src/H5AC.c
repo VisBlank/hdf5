@@ -2279,6 +2279,16 @@ done:
  * Programmer:  John Mainzer
  *              6/1/06
  *
+ * Changes:	Replaced call to sprintf with call to HDsnprintf() to 
+ *		placate coverity.  There was no issue here, as string 
+ *		lengths were checked prior to call to sprintf(), but
+ *		so it goes.
+ *
+ *		Note that we will have lots more of these if we ever
+ *		run coverity on a parallel build, or with trace file
+ *		enabled.
+ *						JRM -- 10/1/10
+ *
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -2351,7 +2361,9 @@ H5AC_open_trace_file(H5AC_t * cache_ptr,
 
 #else /* H5_HAVE_PARALLEL */
 
-    sprintf(file_name, "%s", trace_file_name);
+    HDsnprintf(file_name, 
+               (size_t)(H5AC__MAX_TRACE_FILE_NAME_LEN + H5C__PREFIX_LEN + 1), 
+               "%s", trace_file_name);
 
 #endif /* H5_HAVE_PARALLEL */
 
