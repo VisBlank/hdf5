@@ -16,6 +16,7 @@
 /* This files contains C stubs for H5R Fortran APIs */
 
 #include "H5f90.h"
+#include "H5Eprivate.h"
 
 /*----------------------------------------------------------------------------
  * Name:        h5rcreate_object_c
@@ -258,7 +259,7 @@ int_f
 nh5rget_name_object_c (hid_t_f *loc_id, haddr_t_f *ref, _fcd name, size_t_f *name_len, size_t_f *size_default)
 {
      hobj_ref_t ref_c;
-     int_f ret_value = -1;
+     int_f ret_value = 0;
      ssize_t c_size;
      size_t c_bufsize;
      char *c_buf= NULL;  /* Buffer to hold C string */
@@ -269,23 +270,23 @@ nh5rget_name_object_c (hid_t_f *loc_id, haddr_t_f *ref, _fcd name, size_t_f *nam
      /*
       * Allocate buffer to hold name of an attribute
       */
-     if ((c_buf = HDmalloc(c_bufsize)) == NULL)
-       return ret_value;
-
+     if(NULL == (c_buf = HDmalloc(c_bufsize)))
+         HGOTO_DONE(FAIL);   
+        
      /*
       * Call H5Rget_name function.
       */
      if((c_size=H5Rget_name((hid_t)*loc_id, H5R_OBJECT, &ref_c, c_buf, c_bufsize)) < 0)
-         return ret_value;
+         HGOTO_DONE(FAIL); 
      /*
       * Convert C name to FORTRAN and place it in the given buffer
       */
      HD5packFstring(c_buf, _fcdtocp(name), c_bufsize-1);
-
      *size_default = (size_t_f)c_size;
-     ret_value = 0;
-     if(c_buf) HDfree(c_buf);
 
+done:
+     if(c_buf) 
+         HDfree(c_buf);
      return ret_value;
 }
 
@@ -308,7 +309,7 @@ int_f
 nh5rget_name_region_c (hid_t_f *loc_id, int_f *ref, _fcd name, size_t_f *name_len, size_t_f *size_default)
 {
      hdset_reg_ref_t ref_c;
-     int_f ret_value = -1;
+     int_f ret_value = 0;
      ssize_t c_size;
      size_t c_bufsize;
      char *c_buf= NULL;  /* Buffer to hold C string */
@@ -319,22 +320,23 @@ nh5rget_name_region_c (hid_t_f *loc_id, int_f *ref, _fcd name, size_t_f *name_le
      /*
       * Allocate buffer to hold name of an attribute
       */
-     if ((c_buf = HDmalloc(c_bufsize)) == NULL)
-       return ret_value;
+     if(NULL == (c_buf = HDmalloc(c_bufsize)))
+         HGOTO_DONE(FAIL); 
 
      /*
       * Call H5Rget_name function.
       */
      if((c_size=H5Rget_name((hid_t)*loc_id, H5R_DATASET_REGION, &ref_c, c_buf, c_bufsize)) < 0)
-         return ret_value;
+         HGOTO_DONE(FAIL); 
      /*
       * Convert C name to FORTRAN and place it in the given buffer
       */
      HD5packFstring(c_buf, _fcdtocp(name), c_bufsize-1);
 
      *size_default = (size_t_f)c_size;
-     ret_value = 0;
-     if(c_buf) HDfree(c_buf);
 
+done:
+     if(c_buf) 
+         HDfree(c_buf);
      return ret_value;
 }
