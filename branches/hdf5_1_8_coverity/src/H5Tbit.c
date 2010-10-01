@@ -664,7 +664,7 @@ H5T_bit_neg(uint8_t *buf, size_t start, size_t size)
 {
     size_t	idx = start / 8;
     size_t      pos = start % 8;
-    uint8_t     tmp;
+    uint8_t     tmp[1];
 
     /* Use FUNC_ENTER_NOAPI_NOINIT_NOFUNC here to avoid performance issues */
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5T_bit_neg);
@@ -673,12 +673,12 @@ H5T_bit_neg(uint8_t *buf, size_t start, size_t size)
     HDassert(size);
 
     /* The first partial byte */
-    tmp = buf[idx];
-    tmp = (uint8_t)~tmp;
+    tmp[0] = buf[idx];
+    tmp[0] = (uint8_t)~tmp[0];
 
     /* Simply copy the negated bit field back to the original byte */
     if((size + start - 1) / 8 > idx) {   /*bit sequence doesn't end in the same byte as starts*/
-        H5T_bit_copy(&(buf[idx]), pos, &tmp, pos, (8-pos));
+        H5T_bit_copy(&(buf[idx]), pos, tmp, pos, (8-pos));
         idx++;
         size -= (8 - pos);
 
@@ -692,13 +692,13 @@ H5T_bit_neg(uint8_t *buf, size_t start, size_t size)
         /* The last partial byte */
         if(size > 0) {
             /* Similar to the first byte case, where sequence ends in the same byte as starts */
-            tmp = buf[idx];
-            tmp = (uint8_t)~tmp;
-            H5T_bit_copy(&(buf[idx]), (size_t)0, &tmp, (size_t)0, size);
+            tmp[0] = buf[idx];
+            tmp[0] = (uint8_t)~tmp[0];
+            H5T_bit_copy(&(buf[idx]), (size_t)0, tmp, (size_t)0, size);
         } /* end if */
     } /* end if */
     else  /* bit sequence ends in the same byte as starts */
-        H5T_bit_copy(&(buf[idx]), pos, &tmp, pos, size);
+        H5T_bit_copy(&(buf[idx]), pos, tmp, pos, size);
 
     FUNC_LEAVE_NOAPI_VOID
 } /* end H5T_bit_neg() */

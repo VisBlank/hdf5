@@ -774,7 +774,7 @@ test_compress(void)
     size_t c;
     size_t num_elems = 1;
     unsigned filter_vals[1];
-    particle_t readPart;
+    particle_t readPart[1] = {0};
     hsize_t count;
 
     TESTING("packet table compression");
@@ -809,11 +809,11 @@ test_compress(void)
     /* Read particles to ensure that all of them were written correctly  */
     for(c = 0; c < BIG_TABLE_SIZE; c++)
     {
-        err = H5PTget_next(table, 1, &readPart);
+        err = H5PTget_next(table, 1, readPart);
         if(err < 0) TEST_ERROR;
 
         /* Ensure that particles were read correctly */
-        if( cmp_par(c % 8, 0, testPart, &readPart) != 0) TEST_ERROR;
+        if( cmp_par(c % 8, 0, testPart, readPart) != 0) TEST_ERROR;
     }
 
     /* Close the table */

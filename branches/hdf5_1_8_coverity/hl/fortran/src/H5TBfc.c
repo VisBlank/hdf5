@@ -181,8 +181,10 @@ nh5tbwrite_field_name_c(hid_t_f *loc_id,
     hid_t   c_loc_id     = *loc_id;
     hsize_t c_start      = *start;
     hsize_t c_nrecords   = *nrecords;
-    size_t  c_type_size  = *type_size;
+    size_t  c_type_size[1]  = {0};
     int_f   ret_value = 0;
+
+    c_type_size[0]  = *type_size;
 
     /*
     * convert FORTRAN name to C name
@@ -196,7 +198,7 @@ nh5tbwrite_field_name_c(hid_t_f *loc_id,
     * call H5TBwrite_fields_name function.
     */
     if(H5TBwrite_fields_name(c_loc_id, c_name, c_name1, c_start, c_nrecords,
-            c_type_size, 0, &c_type_size, buf) < 0)
+            c_type_size[0], 0, c_type_size, buf) < 0)
         HGOTO_DONE(FAIL)
 
 done:
@@ -298,8 +300,10 @@ nh5tbread_field_name_c(hid_t_f *loc_id,
     hid_t   c_loc_id     = *loc_id;
     hsize_t c_start      = *start;
     hsize_t c_nrecords   = *nrecords;
-    size_t  c_type_size  = *type_size;
+    size_t  c_type_size[1]  = {0};
     int_f   ret_value = 0;
+
+    c_type_size[0]  = *type_size;
 
     /*
     * convert FORTRAN name to C name
@@ -313,7 +317,7 @@ nh5tbread_field_name_c(hid_t_f *loc_id,
     * call H5TBread_fields_name function.
     */
     if(H5TBread_fields_name(c_loc_id, c_name, c_name1, c_start, c_nrecords,
-            c_type_size, 0, &c_type_size, buf) < 0)
+            c_type_size[0], 0, c_type_size, buf) < 0)
         HGOTO_DONE(FAIL)
 
 done:
