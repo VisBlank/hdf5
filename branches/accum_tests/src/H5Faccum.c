@@ -723,7 +723,7 @@ H5F_accum_write(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
 #endif
                     /* Check if we need more buffer space */
                     if(size > f->shared->accum.alloc_size) {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 56");
 #endif
                         size_t new_alloc_size;        /* New size of accumulator */
