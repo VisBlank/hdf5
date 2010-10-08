@@ -31,7 +31,10 @@ H5F_t * f = NULL;
 
 /* Function Prototypes */
 herr_t test_write_read(void);
+herr_t test_write_read_nonacc_front(void);
+herr_t test_write_read_nonacc_end(void);
 herr_t test_accum_overlap(void);
+herr_t test_accum_non_overlap_size(void);
 herr_t test_append_resize_small_clean(void);
 herr_t test_append_resize_small_dirty(void);
 herr_t test_read_after(void);
@@ -103,6 +106,7 @@ main(void)
     nerrors += test_write_read_nonacc_end();
     nerrors += test_accum_overlap();
     nerrors += test_accum_overlap_clean();
+    nerrors += test_accum_non_overlap_size();
     nerrors += test_append_resize_small_clean();
     nerrors += test_append_resize_small_dirty();
     nerrors += test_read_after();
@@ -173,8 +177,8 @@ error:
  * Return:      Success: SUCCEED
  *              Failure: FAIL
  * 
- * Programmer:  Mike McGreevy
- *              October 7, 2010
+ * Programmer:  Allen Byrne
+ *              October 8, 2010
  *
  *-------------------------------------------------------------------------
  */
@@ -214,8 +218,8 @@ error:
  * Return:      Success: SUCCEED
  *              Failure: FAIL
  * 
- * Programmer:  Mike McGreevy
- *              October 7, 2010
+ * Programmer:  Allen Byrne
+ *              October 8, 2010
  *
  *-------------------------------------------------------------------------
  */
@@ -598,6 +602,56 @@ herr_t test_accum_overlap_clean(void)
 error:
     return 1;
 } /* test_accum_overlap_clean */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    test_accum_non_overlap
+ * 
+ * Purpose:     This test will write a series of pieces of data
+ *              to the accumulator with the goal of not overlapping
+ *              the writes with a data size larger then the accum size.
+ * 
+ * Return:      Success: SUCCEED
+ *              Failure: FAIL
+ * 
+ * Programmer:  Allen Byrne
+ *              October 8, 2010
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t test_accum_non_overlap_size(void)
+{
+    int i = 0;
+    int32_t wbuf[4096], rbuf[4096];
+
+    /* Zero out read buffer */
+    for(i=0;i<4096;i++) rbuf[i]=0;
+
+    TESTING("non-overlapping write to metadata accumulator size larger then accum_size");
+
+    /* Case 1: No metadata in accumulator */
+    /* Write 10 1's at address 140 */
+    /* @0:|     1111111111| */
+    /* Put some data in the accumulator initially */
+    for(i=0;i<10;i++) wbuf[i]=1;
+    if (accum_write(140,10*sizeof(int32_t),wbuf) < 0) TEST_ERROR;
+    if (accum_read(140,10*sizeof(int32_t),rbuf) < 0) TEST_ERROR;
+    if (memcmp(wbuf,rbuf,10*sizeof(int32_t)) != 0 ) TEST_ERROR;
+
+    /* Case 9: New piece completely before accumulated data */
+    /* Write 20 9 at address 0 */
+    /* @0:|9   1111111111| */
+    for(i=0;i<20;i++) wbuf[i]=9;
+    if (accum_write(0,20*sizeof(int32_t),wbuf) < 0) TEST_ERROR;
+    if (accum_read(0,20*sizeof(int32_t),rbuf) < 0) TEST_ERROR;
+    if (memcmp(wbuf,rbuf,20*sizeof(int32_t)) != 0 ) TEST_ERROR;
+
+    PASSED();
+    accum_reset();
+    return 0;
+error:
+    return 1;
+} /* test_accum_non_overlap */
 
 
 /*-------------------------------------------------------------------------

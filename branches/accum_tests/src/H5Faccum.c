@@ -778,7 +778,7 @@ HDmemset(f->shared->accum.buf + size, 0, (f->shared->accum.alloc_size - size));
                 /* Cache the new piece of metadata */
                 /* Check if we need to resize the buffer */
                 if(size > f->shared->accum.alloc_size) {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 59"); 
 #endif
                     size_t new_size;        /* New size of accumulator */
