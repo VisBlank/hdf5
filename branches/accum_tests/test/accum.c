@@ -33,6 +33,7 @@ H5F_t * f = NULL;
 herr_t test_write_read(void);
 herr_t test_accum_overlap(void);
 herr_t test_append_resize(void);
+herr_t test_read_after(void);
 herr_t test_prepend_resize_large(void);
 
 /* Helper Function Prototypes */
@@ -102,6 +103,7 @@ main(void)
     nerrors += test_accum_overlap();
     nerrors += test_accum_overlap_clean();
     nerrors += test_append_resize();
+    nerrors += test_read_after();
     nerrors += test_prepend_resize_large();
 
     /* End of test code, close and delete file */
@@ -637,7 +639,74 @@ error:
     return 1;
 } /* test_append_resize */ 
 
-
+
+/*-------------------------------------------------------------------------
+ * Function:    test_read_after
+ * 
+ * Purpose:     This test will verify the case when metadata is read partly 
+ *              from the accumulator and partly from disk.  The test will 
+ *              write a block of data at address 512, force the data to be
+ *              written to disk, write new data partially overlapping the 
+ *              original block from below, then read data at address 512.  
+ *              The data read should be partly new and partly original. 
+ *    
+ * 
+ * Return:      Success: SUCCEED
+ *              Failure: FAIL
+ * 
+ * Programmer:  Larry Knox
+ *              October 8, 2010
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t 
+test_read_after(void)
+{
+    int i = 0;
+    int s = 128;    /* size of buffer */
+    int32_t wbuf[s], rbuf[s];
+
+    /* Zero out read buffer */
+    for(i=0;i<s;i++) rbuf[i]=0;
+
+    /* Fill up write buffer with 1s */
+    for(i=0;i<s;i++) wbuf[i]=1;
+
+    TESTING("reading data partially from both accumulator and disk");
+    
+    /* Write data to the accumulator to fill it. */
+    if(accum_write(512,512,wbuf)<0) TEST_ERROR;
+
+    /* Write a piece of metadata outside current accumulator to force write
+        to disk */
+    if(accum_write(0,1,wbuf)<0) TEST_ERROR;
+
+    /* Fill up write buffer with 2s */
+    for(i=0;i<s;i++) wbuf[i]=2;
+     
+    /* Write a block of 2s of the original size that will overlap the lower half
+        of the original block */
+    if(accum_write(256,512,wbuf)<0) TEST_ERROR;
+
+    /* Read 128 bytes at the original address, and then  */ 
+    if(accum_read(512,512,rbuf)<0) TEST_ERROR;
+
+    /* Set the second half of wbuf back to 1s */ 
+    for(i=64;i<s;i++) wbuf[i]=1;
+
+    /* Read in the piece we wrote to disk above, and then verify that 
+        the data is as expected */
+    if(accum_read(512,512,rbuf)<0) TEST_ERROR;
+    if(memcmp(wbuf,rbuf,128)!=0) TEST_ERROR;
+
+    PASSED();
+    accum_reset();
+    return 0;
+error:
+    return 1;
+} /* end test_read_after */
+
+
 /*-------------------------------------------------------------------------
  * Function:    accum_printf
  * 
