@@ -1021,28 +1021,21 @@ H5F_accum_free(H5F_t *f, hid_t dxpl_id, H5FD_mem_t UNUSED type, haddr_t addr,
                             HGOTO_ERROR(H5E_IO, H5E_WRITEERROR, FAIL, "file write failed")
                     } /* end if */
                     /* Block to free overlaps with some/all of dirty region */
-                    else {
-#ifdef NOT_TESTED
- HDassert(0 && "This section of code still needs to be tested! 77");
-#endif
-                        size_t write_size;
-
-                        write_size = (size_t)(dirty_end - tail_addr);
-
-                        /* Check for unfreed dirty region to write */
-                        if(write_size > 0) {
+                    /* Check for unfreed dirty region to write */
+                    else if(H5F_addr_lt(tail_addr, dirty_end)) {
 #ifdef NOT_TESTED
  HDassert(0 && "This section of code still needs to be tested! 78");
 #endif
+                            size_t write_size;
                             size_t dirty_delta;
 
+                            write_size = (size_t)(dirty_end - tail_addr);
                             dirty_delta = f->shared->accum.dirty_len - write_size;
 
                             /* Write out the unfreed dirty region of the accumulator */
                             if(H5FD_write(f->shared->lf, dxpl_id, H5FD_MEM_DEFAULT, dirty_start + dirty_delta, write_size, f->shared->accum.buf + f->shared->accum.dirty_off + dirty_delta) < 0)
                                 HGOTO_ERROR(H5E_IO, H5E_WRITEERROR, FAIL, "file write failed")
-                        } /* end if */
-                    } /* end else */
+                    } /* end if */
 
                     /* Reset dirty flag */
                     f->shared->accum.dirty = FALSE;
