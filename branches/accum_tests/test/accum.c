@@ -256,13 +256,13 @@ error:
 /*-------------------------------------------------------------------------
  * Function:    test_free
  * 
- * Purpose:     Simple test to write to then read from metadata accumulator.
+ * Purpose:     Simple test to free metadata accumulator.
  * 
  * Return:      Success: SUCCEED
  *              Failure: FAIL
  * 
- * Programmer:  Mike McGreevy
- *              October 7, 2010
+ * Programmer:  Raymond Lu
+ *              October 8, 2010
  *
  *-------------------------------------------------------------------------
  */
@@ -292,12 +292,12 @@ herr_t test_free(void)
 
     /* Free the second quarter of the accumulator, the requested area 
      * is bigger than the data region on the right side. */
-    if (accum_free(64*1024*sizeof(int),129*1024*sizeof(int)) < 0) TEST_ERROR;
+    if (accum_free(64*1024*sizeof(int),65*1024*sizeof(int)) < 0) TEST_ERROR;
 
 
 
 
-    /* Write half the accumulator. */ 
+    /* Write half of the accumulator. */ 
     if (accum_write(0,128*1024*sizeof(int),write_buf) < 0) TEST_ERROR;
 
     /* Free the first block of 4KB */
@@ -309,8 +309,6 @@ herr_t test_free(void)
     /* Free the block of 4KB at 2*4KB */
     if (accum_free(2*1024*sizeof(int),1024*sizeof(int)) < 0) TEST_ERROR;
 
-    /* Free the block of 12KB at 126*4KB */
-    /*if (accum_free(126*1024*sizeof(int),3*1024*sizeof(int)) < 0) TEST_ERROR;*/
 
 
     free(write_buf);

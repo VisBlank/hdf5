@@ -925,7 +925,7 @@ H5F_accum_free(H5F_t *f, hid_t dxpl_id, H5FD_mem_t UNUSED type, haddr_t addr,
 #endif
             /* Check for completely overlapping the accumulator */
             if(H5F_addr_ge(addr + size, f->shared->accum.loc + f->shared->accum.size)) {
-#ifdef TESTED
+#ifdef NOT_TESTED
  HDassert(0 && "This section of code still needs to be tested! 66");
 #endif
                 /* Reset the accumulator, but don't free buffer */
