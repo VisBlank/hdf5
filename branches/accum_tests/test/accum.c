@@ -856,6 +856,7 @@ test_append_resize_small_dirty(void)
 
     TESTING("appending small entry to dirty accumulator to force resize");
 
+    /* Case 1 - dirty region aligns with new metadata */
     /* Write data to the accumulator to fill it just under max size (but not full) */
     if(accum_write(0,1048571,wbuf)<0) TEST_ERROR;
 
@@ -863,7 +864,7 @@ test_append_resize_small_dirty(void)
     accum_flush();
 
     /* write to part of the accumulator so it's dirty, but not entirely dirty */
-    if(accum_write(5,1048566,wbuf)<0) TEST_ERROR;
+    if(accum_write(2,1048569,wbuf)<0) TEST_ERROR;
 
     /* Write a new (small) piece of data that forces a resize of the accumulator for the smaller */
     if(accum_write(1048571,10,wbuf)<0) TEST_ERROR;
@@ -876,6 +877,30 @@ test_append_resize_small_dirty(void)
         the data is as expected */
     if(accum_read(1048571,10,rbuf)<0) TEST_ERROR;
     if(memcmp(wbuf,rbuf,10)!=0) TEST_ERROR;
+    accum_reset();
+
+    /* Case 2 - dirty region does not align with dirty metadata */
+    accum_reset();
+    /* Write data to the accumulator to fill it just under max size (but not full) */
+    if(accum_write(0,1048571,wbuf)<0) TEST_ERROR;
+
+    /* Flush the accumulator to clean it */
+    accum_flush();
+
+    /* write to part of the accumulator so just the start is dirty */
+    if(accum_write(0,5,wbuf)<0) TEST_ERROR;
+
+    /* Write a new (small) piece of data that forces a resize of the accumulator for the smaller */
+    if(accum_write(1048571,349523,wbuf)<0) TEST_ERROR;
+
+    /* Write a piece of metadata outside current accumulator to force write
+        to disk */
+    if(accum_write(1398900,1,wbuf)<0) TEST_ERROR;
+
+    /* Read in the piece we wrote to disk above, and then verify that 
+        the data is as expected */
+    if(accum_read(1048571,349523,rbuf)<0) TEST_ERROR;
+    if(memcmp(wbuf,rbuf,349523)!=0) TEST_ERROR;
 
     PASSED();
     accum_reset();

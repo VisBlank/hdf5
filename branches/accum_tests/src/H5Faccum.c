@@ -28,9 +28,6 @@
 
 /* MIKE: */
 #define NOT_TESTED 1
-/* 33/86 Tested as of 10:34AM 10/8/2010 */
-/* 49/86 Tested as of 01:24PM 10/8/2010 */
-/* 58/86 Tested as of 02:08PM 10/8/2010 */
 
 /****************/
 /* Module Setup */
@@ -328,7 +325,7 @@ H5F_accum_adjust(H5F_meta_accum_t *accum, H5FD_t *lf, hid_t dxpl_id,
  HDassert(0 && "This section of code still needs to be tested! 16");
 #endif
                         if((ssize_t)(H5F_ACCUM_MAX_SIZE - (accum->dirty_off + adjust_size)) >= (ssize_t)(2 * size)) {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 17");
 #endif
                             shrink_size = accum->dirty_off / 2;
@@ -382,7 +379,7 @@ H5F_accum_adjust(H5F_meta_accum_t *accum, H5FD_t *lf, hid_t dxpl_id,
 #endif
                     /* Check if the dirty region overlaps the region to eliminate from the accumulator */
                     if(shrink_size > accum->dirty_off) {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 24");
 #endif
                         /* Write out the dirty region from the metadata accumulator, with dispatch to driver */
@@ -675,14 +672,14 @@ H5F_accum_write(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
 #ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 50");
 #endif
-                    size_t dirty_off = (size_t)(addr - f->shared->accum.loc);
-
                     /* Calculate the amount we will need to add to the accumulator size, based on the amount of overlap */
                     H5_ASSIGN_OVERFLOW(add_size, (addr + size) - (f->shared->accum.loc + f->shared->accum.size), hsize_t, size_t);
 
                     /* Check if we need to adjust accumulator size */
                     if(H5F_accum_adjust(&f->shared->accum, f->shared->lf, dxpl_id, H5F_ACCUM_APPEND, add_size) < 0)
                         HGOTO_ERROR(H5E_IO, H5E_CANTRESIZE, FAIL, "can't adjust metadata accumulator")
+
+                    size_t dirty_off = (size_t)(addr - f->shared->accum.loc);
 
                     /* Copy the new metadata to the end */
                     HDmemcpy(f->shared->accum.buf + dirty_off, buf, size);
