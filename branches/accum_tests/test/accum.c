@@ -96,6 +96,8 @@ main(void)
 
     /* add more test functions to this list! do it! */
     nerrors += test_write_read();
+    nerrors += test_write_read_nonacc_front();
+    nerrors += test_write_read_nonacc_end();
     nerrors += test_accum_overlap();
     nerrors += test_accum_overlap_clean();
 
@@ -149,6 +151,88 @@ herr_t test_write_read(void)
     /* Write 1KB at Address 0 */
     if (accum_write(0,1024,write_buf) < 0) TEST_ERROR;
     if (accum_read(0,1024,read_buf) < 0) TEST_ERROR;
+    if (memcmp(write_buf,read_buf,1024) != 0 ) TEST_ERROR;
+
+    PASSED();
+    accum_reset();
+    return 0;
+error:
+    return 1;
+} /* test_write_read */ 
+
+
+/*-------------------------------------------------------------------------
+ * Function:    test_write_read_nonacc_front
+ * 
+ * Purpose:     Simple test to write to then read from before metadata accumulator.
+ * 
+ * Return:      Success: SUCCEED
+ *              Failure: FAIL
+ * 
+ * Programmer:  Mike McGreevy
+ *              October 7, 2010
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t test_write_read_nonacc_front(void)
+{
+    int i = 0;
+    int write_buf[2048], read_buf[2024];
+
+    TESTING("simple write/read to/from before metadata accumulator");
+
+    /* Fill buffer with data, zero out read buffer */
+    for(i=0;i<2048;i++) write_buf[i]=i+1;
+    for(i=0;i<1024;i++) read_buf[i]=0;
+    
+    /* Do a simple write/read/verify of data */
+    /* Write 1KB at Address 0 */
+    if (accum_write(0,1024,write_buf) < 0) TEST_ERROR;
+    if (accum_flush() < 0) TEST_ERROR;
+    accum_reset();
+    if (accum_write(1024,1024,write_buf) < 0) TEST_ERROR;
+    if (accum_read(0,1024,read_buf) < 0) TEST_ERROR;
+    if (memcmp(write_buf,read_buf,1024) != 0 ) TEST_ERROR;
+
+    PASSED();
+    accum_reset();
+    return 0;
+error:
+    return 1;
+} /* test_write_read */ 
+
+
+/*-------------------------------------------------------------------------
+ * Function:    test_write_read_nonacc_end
+ * 
+ * Purpose:     Simple test to write to then read from after metadata accumulator.
+ * 
+ * Return:      Success: SUCCEED
+ *              Failure: FAIL
+ * 
+ * Programmer:  Mike McGreevy
+ *              October 7, 2010
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t test_write_read_nonacc_end(void)
+{
+    int i = 0;
+    int write_buf[2048], read_buf[2024];
+
+    TESTING("simple write/read to/from after metadata accumulator");
+
+    /* Fill buffer with data, zero out read buffer */
+    for(i=0;i<2048;i++) write_buf[i]=i+1;
+    for(i=0;i<1024;i++) read_buf[i]=0;
+    
+    /* Do a simple write/read/verify of data */
+    /* Write 1KB at Address 0 */
+    if (accum_write(1024,1024,write_buf) < 0) TEST_ERROR;
+    if (accum_flush() < 0) TEST_ERROR;
+    accum_reset();
+    if (accum_write(0,1024,write_buf) < 0) TEST_ERROR;
+    if (accum_read(1024,1024,read_buf) < 0) TEST_ERROR;
     if (memcmp(write_buf,read_buf,1024) != 0 ) TEST_ERROR;
 
     PASSED();

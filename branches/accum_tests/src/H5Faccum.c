@@ -153,7 +153,7 @@ H5F_accum_read(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
 
             /* Check if we need more buffer space */
             if(new_size > f->shared->accum.alloc_size) {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 03");
 #endif
                 size_t new_alloc_size;        /* New size of accumulator */
@@ -164,7 +164,7 @@ H5F_accum_read(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
                 /* Reallocate the metadata accumulator buffer */
                 if(NULL == (f->shared->accum.buf = H5FL_BLK_REALLOC(meta_accum, f->shared->accum.buf, new_alloc_size)))
                     HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "unable to allocate metadata accumulator buffer")
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 04");
 #endif
 
@@ -177,7 +177,7 @@ HDmemset(f->shared->accum.buf + f->shared->accum.size, 0, (f->shared->accum.allo
 
             /* Read the part before the metadata accumulator */
             if(addr < f->shared->accum.loc) {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 05");
 #endif
                 /* Set the amount to read */
@@ -188,7 +188,7 @@ HDmemset(f->shared->accum.buf + f->shared->accum.size, 0, (f->shared->accum.allo
 
                 /* Adjust dirty region tracking info, if present */
                 if(f->shared->accum.dirty) {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 06");
 #endif
                     f->shared->accum.dirty_off += amount_before;
@@ -207,7 +207,7 @@ HDmemset(f->shared->accum.buf + f->shared->accum.size, 0, (f->shared->accum.allo
 
             /* Read the part after the metadata accumulator */
             if((addr + size) > (f->shared->accum.loc + f->shared->accum.size)) {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 08");
 #endif
                 size_t amount_after;         /* Amount to read at a time */
