@@ -26,10 +26,13 @@
  *-------------------------------------------------------------------------
  */
 
+/* MIKE: */
+#define NOT_TESTED 1
+/* 33 Tested, 52 Not Tested as of 4:47PM 10/7/2010 */
+
 /****************/
 /* Module Setup */
 /****************/
-
 #define H5F_PACKAGE		/*suppress error about including H5Fpkg	  */
 
 
@@ -37,9 +40,9 @@
 /* Headers */
 /***********/
 #include "H5private.h"		/* Generic Functions			*/
-#include "H5Eprivate.h"		/* Error handling		  	*/
+#include "H5Eprivate.h"		/* Error handling		  	    */
 #include "H5Fpkg.h"             /* File access				*/
-#include "H5FDprivate.h"	/* File drivers				*/
+#include "H5FDprivate.h"	/* File drivers			  	    */
 #include "H5Vprivate.h"		/* Vectors and arrays 			*/
 
 
@@ -126,6 +129,9 @@ H5F_accum_read(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
     /* Check if this information is in the metadata accumulator */
     if((f->shared->feature_flags & H5FD_FEAT_ACCUMULATE_METADATA) && type != H5FD_MEM_DRAW
             && size < H5F_ACCUM_MAX_SIZE) {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 01"); 
+#endif
         /* Sanity check */
         HDassert(!f->shared->accum.buf || (f->shared->accum.alloc_size >= f->shared->accum.size));
 
@@ -133,6 +139,9 @@ H5F_accum_read(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
         if(H5F_addr_overlap(addr, size, f->shared->accum.loc, f->shared->accum.size)
                 || ((addr + size) == f->shared->accum.loc)
                 || (f->shared->accum.loc + f->shared->accum.size) == addr) {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 02"); 
+#endif
             size_t amount_before;       /* Amount to read before current accumulator */
             haddr_t new_addr;           /* New address of the accumulator buffer */
             size_t new_size;            /* New size of the accumulator buffer */
@@ -144,6 +153,9 @@ H5F_accum_read(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
 
             /* Check if we need more buffer space */
             if(new_size > f->shared->accum.alloc_size) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 03");
+#endif
                 size_t new_alloc_size;        /* New size of accumulator */
 
                 /* Adjust the buffer size to be a power of 2 that is large enough to hold data */
@@ -152,6 +164,9 @@ H5F_accum_read(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
                 /* Reallocate the metadata accumulator buffer */
                 if(NULL == (f->shared->accum.buf = H5FL_BLK_REALLOC(meta_accum, f->shared->accum.buf, new_alloc_size)))
                     HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "unable to allocate metadata accumulator buffer")
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 04");
+#endif
 
                 /* Note the new buffer size */
                 f->shared->accum.alloc_size = new_alloc_size;
@@ -162,6 +177,9 @@ HDmemset(f->shared->accum.buf + f->shared->accum.size, 0, (f->shared->accum.allo
 
             /* Read the part before the metadata accumulator */
             if(addr < f->shared->accum.loc) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 05");
+#endif
                 /* Set the amount to read */
                 H5_ASSIGN_OVERFLOW(amount_before, (f->shared->accum.loc - addr), hsize_t, size_t);
 
@@ -169,18 +187,29 @@ HDmemset(f->shared->accum.buf + f->shared->accum.size, 0, (f->shared->accum.allo
                 HDmemmove(f->shared->accum.buf + amount_before, f->shared->accum.buf, f->shared->accum.size);
 
                 /* Adjust dirty region tracking info, if present */
-                if(f->shared->accum.dirty)
+                if(f->shared->accum.dirty) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 06");
+#endif
                     f->shared->accum.dirty_off += amount_before;
+                }
 
                 /* Dispatch to driver */
                 if(H5FD_read(f->shared->lf, dxpl_id, type, addr, amount_before, f->shared->accum.buf) < 0)
                     HGOTO_ERROR(H5E_IO, H5E_READERROR, FAIL, "driver read request failed")
             } /* end if */
-            else
+            else {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 07");
+#endif
                 amount_before = 0;
+            }
 
             /* Read the part after the metadata accumulator */
             if((addr + size) > (f->shared->accum.loc + f->shared->accum.size)) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 08");
+#endif
                 size_t amount_after;         /* Amount to read at a time */
 
                 /* Set the amount to read */
@@ -200,6 +229,9 @@ HDmemset(f->shared->accum.buf + f->shared->accum.size, 0, (f->shared->accum.allo
         } /* end if */
         /* Current read doesn't overlap with metadata accumulator, read it from file */
         else {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 09");
+#endif
             /* Dispatch to driver */
             if(H5FD_read(f->shared->lf, dxpl_id, type, addr, size, buf) < 0)
                 HGOTO_ERROR(H5E_IO, H5E_READERROR, FAIL, "driver read request failed")
@@ -243,6 +275,9 @@ H5F_accum_adjust(H5F_meta_accum_t *accum, H5FD_t *lf, hid_t dxpl_id,
 
     /* Check if we need more buffer space */
     if((size + accum->size) > accum->alloc_size) {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 10"); 
+#endif
         size_t new_size;        /* New size of accumulator */
 
         /* Adjust the buffer size to be a power of 2 that is large enough to hold data */
@@ -250,6 +285,9 @@ H5F_accum_adjust(H5F_meta_accum_t *accum, H5FD_t *lf, hid_t dxpl_id,
 
         /* Check for accumulator getting too big */
         if(new_size > H5F_ACCUM_MAX_SIZE) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 11");
+#endif
             size_t shrink_size;     /* Amount to shrink accumulator by */
             size_t remnant_size;    /* Amount left in accumulator */
 
@@ -257,29 +295,55 @@ H5F_accum_adjust(H5F_meta_accum_t *accum, H5FD_t *lf, hid_t dxpl_id,
 
             /* Determine the amounts to work with */
             if(size > (H5F_ACCUM_MAX_SIZE / 2)) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 12");
+#endif
                 new_size = H5F_ACCUM_MAX_SIZE;
                 shrink_size = accum->size;
                 remnant_size = 0;
             } /* end if */
             else {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 13");
+#endif
                 if(H5F_ACCUM_PREPEND == adjust) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 14");
+#endif
                     new_size = (H5F_ACCUM_MAX_SIZE / 2);
                     shrink_size = (H5F_ACCUM_MAX_SIZE / 2);
                     remnant_size = accum->size - shrink_size;
                 } /* end if */
                 else {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 15");
+#endif
                     size_t adjust_size = size + accum->dirty_len;
 
                     /* Check if we can slide the dirty region down, to accommodate the request */
                     if(accum->dirty && (adjust_size <= H5F_ACCUM_MAX_SIZE)) {
-                        if((ssize_t)(H5F_ACCUM_MAX_SIZE - (accum->dirty_off + adjust_size)) >= (ssize_t)(2 * size))
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 16");
+#endif
+                        if((ssize_t)(H5F_ACCUM_MAX_SIZE - (accum->dirty_off + adjust_size)) >= (ssize_t)(2 * size)) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 17");
+#endif
                             shrink_size = accum->dirty_off / 2;
-                        else
+                        }
+                        else {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 18");
+#endif
                             shrink_size = accum->dirty_off;
+                        }
                         remnant_size = accum->size - shrink_size;
                         new_size = remnant_size + size;
                     } /* end if */
                     else {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 19");
+#endif
                         new_size = (H5F_ACCUM_MAX_SIZE / 2);
                         shrink_size = (H5F_ACCUM_MAX_SIZE / 2);
                         remnant_size = accum->size - shrink_size;
@@ -289,10 +353,19 @@ H5F_accum_adjust(H5F_meta_accum_t *accum, H5FD_t *lf, hid_t dxpl_id,
 
             /* Check if we need to flush accumulator data to file */
             if(accum->dirty) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 20");
+#endif
                 /* Check whether to accumulator will be prepended or appended */
                 if(H5F_ACCUM_PREPEND == adjust) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 21");
+#endif
                     /* Check if the dirty region overlaps the region to eliminate from the accumulator */
                     if((accum->size - shrink_size) < (accum->dirty_off + accum->dirty_len)) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 22");
+#endif
                         /* Write out the dirty region from the metadata accumulator, with dispatch to driver */
                         if(H5FD_write(lf, dxpl_id, H5FD_MEM_DEFAULT, (accum->loc + accum->dirty_off), accum->dirty_len, (accum->buf + accum->dirty_off)) < 0)
                             HGOTO_ERROR(H5E_FILE, H5E_WRITEERROR, FAIL, "file write failed")
@@ -302,8 +375,14 @@ H5F_accum_adjust(H5F_meta_accum_t *accum, H5FD_t *lf, hid_t dxpl_id,
                     } /* end if */
                 } /* end if */
                 else {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 23");
+#endif
                     /* Check if the dirty region overlaps the region to eliminate from the accumulator */
                     if(shrink_size > accum->dirty_off) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 24");
+#endif
                         /* Write out the dirty region from the metadata accumulator, with dispatch to driver */
                         if(H5FD_write(lf, dxpl_id, H5FD_MEM_DEFAULT, (accum->loc + accum->dirty_off), accum->dirty_len, (accum->buf + accum->dirty_off)) < 0)
                             HGOTO_ERROR(H5E_FILE, H5E_WRITEERROR, FAIL, "file write failed")
@@ -322,6 +401,9 @@ H5F_accum_adjust(H5F_meta_accum_t *accum, H5FD_t *lf, hid_t dxpl_id,
 
             /* When appending, need to adjust location of accumulator */
             if(H5F_ACCUM_APPEND == adjust) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 25");
+#endif
                 /* Move remnant of accumulator down */
                 HDmemmove(accum->buf, (accum->buf + shrink_size), remnant_size);
 
@@ -332,6 +414,9 @@ H5F_accum_adjust(H5F_meta_accum_t *accum, H5FD_t *lf, hid_t dxpl_id,
 
         /* Check for accumulator needing to be reallocated */
         if(new_size > accum->alloc_size) {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 26"); 
+#endif
             unsigned char      *new_buf;            /* New buffer to hold the accumulated metadata */
 
             /* Reallocate the metadata accumulator buffer */
@@ -382,13 +467,22 @@ H5F_accum_write(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
     /* Check for accumulating metadata */
     if((f->shared->feature_flags & H5FD_FEAT_ACCUMULATE_METADATA) && type != H5FD_MEM_DRAW
             && size < H5F_ACCUM_MAX_SIZE) {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 27"); 
+#endif
         /* Sanity check */
         HDassert(!f->shared->accum.buf || (f->shared->accum.alloc_size >= f->shared->accum.size));
 
         /* Check if there is already metadata in the accumulator */
         if(f->shared->accum.size > 0) {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 28"); 
+#endif
             /* Check if the new metadata adjoins the beginning of the current accumulator */
             if((addr + size) == f->shared->accum.loc) {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 29");
+#endif
                 /* Check if we need to adjust accumulator size */
                 if(H5F_accum_adjust(&f->shared->accum, f->shared->lf, dxpl_id, H5F_ACCUM_PREPEND, size) < 0)
                     HGOTO_ERROR(H5E_IO, H5E_CANTRESIZE, FAIL, "can't adjust metadata accumulator")
@@ -404,10 +498,16 @@ H5F_accum_write(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
                 f->shared->accum.size += size;
 
                 /* Adjust the dirty region and mark accumulator dirty */
-                if(f->shared->accum.dirty)
+                if(f->shared->accum.dirty) {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 30");
+#endif
                     f->shared->accum.dirty_len = size + f->shared->accum.dirty_off
                             + f->shared->accum.dirty_len;
-                else {
+                } else {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 31");
+#endif
                     f->shared->accum.dirty_len = size;
                     f->shared->accum.dirty = TRUE;
                 } /* end else */
@@ -415,6 +515,9 @@ H5F_accum_write(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
             } /* end if */
             /* Check if the new metadata adjoins the end of the current accumulator */
             else if(addr == (f->shared->accum.loc + f->shared->accum.size)) {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 32"); 
+#endif
                 /* Check if we need to adjust accumulator size */
                 if(H5F_accum_adjust(&f->shared->accum, f->shared->lf, dxpl_id, H5F_ACCUM_APPEND, size) < 0)
                     HGOTO_ERROR(H5E_IO, H5E_CANTRESIZE, FAIL, "can't adjust metadata accumulator")
@@ -423,10 +526,16 @@ H5F_accum_write(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
                 HDmemcpy(f->shared->accum.buf + f->shared->accum.size, buf, size);
 
                 /* Adjust the dirty region and mark accumulator dirty */
-                if(f->shared->accum.dirty)
+                if(f->shared->accum.dirty) {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 33"); 
+#endif
                     f->shared->accum.dirty_len = size + (f->shared->accum.size - 
                             f->shared->accum.dirty_off);
-                else {
+                } else {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 34");
+#endif
                     f->shared->accum.dirty_off = f->shared->accum.size;
                     f->shared->accum.dirty_len = size;
                     f->shared->accum.dirty = TRUE;
@@ -437,10 +546,16 @@ H5F_accum_write(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
             } /* end if */
             /* Check if the piece of metadata being written overlaps the metadata accumulator */
             else if(H5F_addr_overlap(addr, size, f->shared->accum.loc, f->shared->accum.size)) {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 35");  
+#endif
                 size_t add_size;    /* New size of the accumulator buffer */
 
                 /* Check if the new metadata is entirely within the current accumulator */
                 if(addr >= f->shared->accum.loc && (addr + size) <= (f->shared->accum.loc + f->shared->accum.size)) {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 36");
+#endif
                     size_t dirty_off = (size_t)(addr - f->shared->accum.loc);
 
                     /* Copy the new metadata to the proper location within the accumulator */
@@ -448,22 +563,49 @@ H5F_accum_write(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
 
                     /* Adjust the dirty region and mark accumulator dirty */
                     if(f->shared->accum.dirty) {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 37");
+#endif
                         /* Check for new metadata starting before current dirty region */
                         if(dirty_off <= f->shared->accum.dirty_off) {
-                            if((dirty_off + size) <= (f->shared->accum.dirty_off + f->shared->accum.dirty_len))
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 38");
+#endif
+                            if((dirty_off + size) <= (f->shared->accum.dirty_off + f->shared->accum.dirty_len)) {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 39");
+#endif
                                 f->shared->accum.dirty_len = (f->shared->accum.dirty_off + f->shared->accum.dirty_len) - dirty_off;
-                            else
+                            } else {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 40");
+#endif
                                 f->shared->accum.dirty_len = size;
+                            }
                             f->shared->accum.dirty_off = dirty_off;
                         } /* end if */
                         else {
-                            if((dirty_off + size) <= (f->shared->accum.dirty_off + f->shared->accum.dirty_len))
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 41");
+#endif
+                            if((dirty_off + size) <= (f->shared->accum.dirty_off + f->shared->accum.dirty_len)) {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 42");
+#endif
                                 ; /* f->shared->accum.dirty_len doesn't change */
-                            else
+                            }
+                            else {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 43");
+#endif
                                 f->shared->accum.dirty_len = (dirty_off + size) - f->shared->accum.dirty_off;
+                            }
                         } /* end else */
                     } /* end if */
                     else {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 44");
+#endif
                         f->shared->accum.dirty_off = dirty_off;
                         f->shared->accum.dirty_len = size;
                         f->shared->accum.dirty = TRUE;
@@ -471,6 +613,9 @@ H5F_accum_write(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
                 } /* end if */
                 /* Check if the new metadata overlaps the beginning of the current accumulator */
                 else if(addr < f->shared->accum.loc && (addr + size) <= (f->shared->accum.loc + f->shared->accum.size)) {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 45");
+#endif
                     size_t old_offset;  /* Offset of old data within the accumulator buffer */
 
                     /* Calculate the amount we will need to add to the accumulator size, based on the amount of overlap */
@@ -495,15 +640,29 @@ H5F_accum_write(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
 
                     /* Adjust the dirty region and mark accumulator dirty */
                     if(f->shared->accum.dirty) {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 46");
+#endif
                         size_t curr_dirty_end = add_size + f->shared->accum.dirty_off + f->shared->accum.dirty_len;
 
                         f->shared->accum.dirty_off = 0;
-                        if(size <= curr_dirty_end)
+                        if(size <= curr_dirty_end) {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 47");
+#endif
                             f->shared->accum.dirty_len = curr_dirty_end;
-                        else
+                        }
+                        else {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 48");
+#endif
                             f->shared->accum.dirty_len = size;
+                        }
                     } /* end if */
                     else {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 49");
+#endif
                         f->shared->accum.dirty_off = 0;
                         f->shared->accum.dirty_len = size;
                         f->shared->accum.dirty = TRUE;
@@ -511,6 +670,9 @@ H5F_accum_write(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
                 } /* end if */
                 /* Check if the new metadata overlaps the end of the current accumulator */
                 else if(addr >= f->shared->accum.loc && (addr + size) > (f->shared->accum.loc + f->shared->accum.size)) {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 50");
+#endif
                     size_t dirty_off = (size_t)(addr - f->shared->accum.loc);
 
                     /* Calculate the amount we will need to add to the accumulator size, based on the amount of overlap */
@@ -528,16 +690,28 @@ H5F_accum_write(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
 
                     /* Adjust the dirty region and mark accumulator dirty */
                     if(f->shared->accum.dirty) {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 51");
+#endif
                         /* Check for new metadata starting before current dirty region */
                         if(dirty_off <= f->shared->accum.dirty_off) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 52");
+#endif
                             f->shared->accum.dirty_off = dirty_off;
                             f->shared->accum.dirty_len = size;
                         } /* end if */
                         else {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 53");
+#endif
                             f->shared->accum.dirty_len = (dirty_off + size) - f->shared->accum.dirty_off;
                         } /* end else */
                     } /* end if */
                     else {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 54");
+#endif
                         f->shared->accum.dirty_off = dirty_off;
                         f->shared->accum.dirty_len = size;
                         f->shared->accum.dirty = TRUE;
@@ -545,8 +719,14 @@ H5F_accum_write(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
                 } /* end if */
                 /* New metadata overlaps both ends of the current accumulator */
                 else {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 55");
+#endif
                     /* Check if we need more buffer space */
                     if(size > f->shared->accum.alloc_size) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 56");
+#endif
                         size_t new_alloc_size;        /* New size of accumulator */
 
                         /* Adjust the buffer size to be a power of 2 that is large enough to hold data */
@@ -578,8 +758,14 @@ HDmemset(f->shared->accum.buf + size, 0, (f->shared->accum.alloc_size - size));
             } /* end if */
             /* New piece of metadata doesn't adjoin or overlap the existing accumulator */
             else {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 57"); 
+#endif
                 /* Write out the existing metadata accumulator, with dispatch to driver */
                 if(f->shared->accum.dirty) {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 58"); 
+#endif
                     if(H5FD_write(f->shared->lf, dxpl_id, H5FD_MEM_DEFAULT, f->shared->accum.loc + f->shared->accum.dirty_off, f->shared->accum.dirty_len, f->shared->accum.buf + f->shared->accum.dirty_off) < 0)
                         HGOTO_ERROR(H5E_IO, H5E_WRITEERROR, FAIL, "file write failed")
 
@@ -590,6 +776,9 @@ HDmemset(f->shared->accum.buf + size, 0, (f->shared->accum.alloc_size - size));
                 /* Cache the new piece of metadata */
                 /* Check if we need to resize the buffer */
                 if(size > f->shared->accum.alloc_size) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 59"); 
+#endif
                     size_t new_size;        /* New size of accumulator */
 
                     /* Adjust the buffer size to be a power of 2 that is large enough to hold data */
@@ -609,9 +798,15 @@ HDmemset(f->shared->accum.buf + clear_size, 0, (f->shared->accum.alloc_size - cl
 #endif /* H5_CLEAR_MEMORY */
                 } /* end if */
                 else {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 60"); 
+#endif
                     /* Check if we should shrink the accumulator buffer */
                     if(size < (f->shared->accum.alloc_size / H5F_ACCUM_THROTTLE) &&
                             f->shared->accum.alloc_size > H5F_ACCUM_THRESHOLD) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 61"); 
+#endif
                         size_t tmp_size = (f->shared->accum.alloc_size / H5F_ACCUM_THROTTLE); /* New size of accumulator buffer */
 
                         /* Shrink the accumulator buffer */
@@ -638,8 +833,14 @@ HDmemset(f->shared->accum.buf + clear_size, 0, (f->shared->accum.alloc_size - cl
         } /* end if */
         /* No metadata in the accumulator, grab this piece and keep it */
         else {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 62"); 
+#endif
             /* Check if we need to reallocate the buffer */
             if(size > f->shared->accum.alloc_size) {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 63");
+#endif
                 size_t new_size;        /* New size of accumulator */
 
                 /* Adjust the buffer size to be a power of 2 that is large enough to hold data */
@@ -706,6 +907,9 @@ H5F_accum_free(H5F_t *f, hid_t dxpl_id, H5FD_mem_t UNUSED type, haddr_t addr,
     /* Adjust the metadata accumulator to remove the freed block, if it overlaps */
     if((f->shared->feature_flags & H5FD_FEAT_ACCUMULATE_METADATA)
             && H5F_addr_overlap(addr, size, f->shared->accum.loc, f->shared->accum.size)) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 64"); 
+#endif
         size_t overlap_size;        /* Size of overlap with accumulator */
 
         /* Sanity check */
@@ -714,8 +918,14 @@ H5F_accum_free(H5F_t *f, hid_t dxpl_id, H5FD_mem_t UNUSED type, haddr_t addr,
 
         /* Check for overlapping the beginning of the accumulator */
         if(H5F_addr_le(addr, f->shared->accum.loc)) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 65");
+#endif
             /* Check for completely overlapping the accumulator */
             if(H5F_addr_ge(addr + size, f->shared->accum.loc + f->shared->accum.size)) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 66");
+#endif
                 /* Reset the accumulator, but don't free buffer */
                 f->shared->accum.loc = HADDR_UNDEF;
                 f->shared->accum.size = 0;
@@ -723,6 +933,9 @@ H5F_accum_free(H5F_t *f, hid_t dxpl_id, H5FD_mem_t UNUSED type, haddr_t addr,
             } /* end if */
             /* Block to free must end within the accumulator */
             else {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 67");
+#endif
                 size_t new_accum_size;      /* Size of new accumulator buffer */
 
                 /* Calculate the size of the overlap with the accumulator, etc. */
@@ -738,24 +951,43 @@ H5F_accum_free(H5F_t *f, hid_t dxpl_id, H5FD_mem_t UNUSED type, haddr_t addr,
 
                 /* Adjust the dirty region and possibly mark accumulator clean */
                 if(f->shared->accum.dirty) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 68");
+#endif
                     /* Check if block freed is entirely before dirty region */
-                    if(overlap_size < f->shared->accum.dirty_off)
+                    if(overlap_size < f->shared->accum.dirty_off) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 69");
+#endif
                         f->shared->accum.dirty_off -= overlap_size;
-                    else {
+                    } else {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 70");
+#endif
                         /* Check if block freed ends within dirty region */
                         if(overlap_size < (f->shared->accum.dirty_off + f->shared->accum.dirty_len)) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 71");
+#endif
                             f->shared->accum.dirty_len = (f->shared->accum.dirty_off + f->shared->accum.dirty_len) - overlap_size;
                             f->shared->accum.dirty_off = 0;
                         } /* end if */
                         /* Block freed encompasses dirty region */
-                        else
+                        else {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 72");
+#endif
                             f->shared->accum.dirty = FALSE;
+                        }
                     } /* end else */
                 } /* end if */
             } /* end else */
         } /* end if */
         /* Block to free must start within the accumulator */
         else {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 73");
+#endif
             haddr_t dirty_end = f->shared->accum.loc + f->shared->accum.dirty_off + f->shared->accum.dirty_len;
             haddr_t dirty_start = f->shared->accum.loc + f->shared->accum.dirty_off;
 
@@ -764,6 +996,9 @@ H5F_accum_free(H5F_t *f, hid_t dxpl_id, H5FD_mem_t UNUSED type, haddr_t addr,
 
             /* Check if block to free begins before end of dirty region */
             if(f->shared->accum.dirty && H5F_addr_lt(addr, dirty_end)) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 74");
+#endif
                 haddr_t tail_addr;
 
                 /* Calculate the address of the tail to write */
@@ -771,20 +1006,32 @@ H5F_accum_free(H5F_t *f, hid_t dxpl_id, H5FD_mem_t UNUSED type, haddr_t addr,
 
                 /* Check if the block to free begins before dirty region */
                 if(H5F_addr_lt(addr, dirty_start)) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 75");
+#endif
                     /* Check if block to free is entirely before dirty region */
                     if(H5F_addr_le(tail_addr, dirty_start)) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 76");
+#endif
                         /* Write out the entire dirty region of the accumulator */
                         if(H5FD_write(f->shared->lf, dxpl_id, H5FD_MEM_DEFAULT, dirty_start, f->shared->accum.dirty_len, f->shared->accum.buf + f->shared->accum.dirty_off) < 0)
                             HGOTO_ERROR(H5E_IO, H5E_WRITEERROR, FAIL, "file write failed")
                     } /* end if */
                     /* Block to free overlaps with some/all of dirty region */
                     else {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 77");
+#endif
                         size_t write_size;
 
                         write_size = (size_t)(dirty_end - tail_addr);
 
                         /* Check for unfreed dirty region to write */
                         if(write_size > 0) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 78");
+#endif
                             size_t dirty_delta;
 
                             dirty_delta = f->shared->accum.dirty_len - write_size;
@@ -800,14 +1047,23 @@ H5F_accum_free(H5F_t *f, hid_t dxpl_id, H5FD_mem_t UNUSED type, haddr_t addr,
                 } /* end if */
                 /* Block to free begins at beginning of or in middle of dirty region */
                 else {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 79");
+#endif
                     /* Check if block to free ends before end of dirty region */
                     if(H5F_addr_lt(tail_addr, dirty_end)) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 80");
+#endif
                         size_t write_size;
 
                         write_size = (size_t)(dirty_end - tail_addr);
 
                         /* Check for unfreed dirty region to write */
                         if(write_size > 0) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 81");
+#endif
                             size_t dirty_delta;
 
                             dirty_delta = f->shared->accum.dirty_len - write_size;
@@ -820,11 +1076,17 @@ H5F_accum_free(H5F_t *f, hid_t dxpl_id, H5FD_mem_t UNUSED type, haddr_t addr,
 
                     /* Check for block to free beginning at same location as dirty region */
                     if(H5F_addr_eq(addr, dirty_start)) {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 82");
+#endif
                         /* Reset dirty flag */
                         f->shared->accum.dirty = FALSE;
                     } /* end if */
                     /* Block to free eliminates end of dirty region */
                     else {
+#ifdef NOT_TESTED
+ HDassert(0 && "This section of code still needs to be tested! 83");
+#endif
                         f->shared->accum.dirty_len = (addr - dirty_start);
                     } /* end else */
                 } /* end else */
@@ -866,6 +1128,9 @@ H5F_accum_flush(H5F_t *f, hid_t dxpl_id)
 
     /* Check if we need to flush out the metadata accumulator */
     if((f->shared->feature_flags & H5FD_FEAT_ACCUMULATE_METADATA) && f->shared->accum.dirty) {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 84"); 
+#endif
         /* Flush the metadata contents */
         if(H5FD_write(f->shared->lf, dxpl_id, H5FD_MEM_DEFAULT, f->shared->accum.loc + f->shared->accum.dirty_off, f->shared->accum.dirty_len, f->shared->accum.buf + f->shared->accum.dirty_off) < 0)
             HGOTO_ERROR(H5E_IO, H5E_WRITEERROR, FAIL, "file write failed")
@@ -908,12 +1173,19 @@ H5F_accum_reset(H5F_t *f, hid_t dxpl_id)
 
     /* Check if we need to reset the metadata accumulator information */
     if(f->shared->feature_flags & H5FD_FEAT_ACCUMULATE_METADATA) {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 85"); 
+#endif
         /* Sanity check */
         HDassert(!f->closing || FALSE == f->shared->accum.dirty);
 
         /* Free the buffer */
-        if(f->shared->accum.buf)
+        if(f->shared->accum.buf) {
+#ifdef TESTED
+ HDassert(0 && "This section of code still needs to be tested! 86"); 
+#endif
             f->shared->accum.buf = H5FL_BLK_FREE(meta_accum, f->shared->accum.buf);
+        }
 
         /* Reset the buffer sizes & location */
         f->shared->accum.alloc_size = f->shared->accum.size = 0;
