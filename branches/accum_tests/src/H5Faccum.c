@@ -229,7 +229,7 @@ HDmemset(f->shared->accum.buf + f->shared->accum.size, 0, (f->shared->accum.allo
         } /* end if */
         /* Current read doesn't overlap with metadata accumulator, read it from file */
         else {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 09");
 #endif
             /* Dispatch to driver */
@@ -285,7 +285,7 @@ H5F_accum_adjust(H5F_meta_accum_t *accum, H5FD_t *lf, hid_t dxpl_id,
 
         /* Check for accumulator getting too big */
         if(new_size > H5F_ACCUM_MAX_SIZE) {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 11");
 #endif
             size_t shrink_size;     /* Amount to shrink accumulator by */
@@ -303,7 +303,7 @@ H5F_accum_adjust(H5F_meta_accum_t *accum, H5FD_t *lf, hid_t dxpl_id,
                 remnant_size = 0;
             } /* end if */
             else {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 13");
 #endif
                 if(H5F_ACCUM_PREPEND == adjust) {
@@ -315,7 +315,7 @@ H5F_accum_adjust(H5F_meta_accum_t *accum, H5FD_t *lf, hid_t dxpl_id,
                     remnant_size = accum->size - shrink_size;
                 } /* end if */
                 else {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 15");
 #endif
                     size_t adjust_size = size + accum->dirty_len;
@@ -341,7 +341,7 @@ H5F_accum_adjust(H5F_meta_accum_t *accum, H5FD_t *lf, hid_t dxpl_id,
                         new_size = remnant_size + size;
                     } /* end if */
                     else {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 19");
 #endif
                         new_size = (H5F_ACCUM_MAX_SIZE / 2);
@@ -401,7 +401,7 @@ H5F_accum_adjust(H5F_meta_accum_t *accum, H5FD_t *lf, hid_t dxpl_id,
 
             /* When appending, need to adjust location of accumulator */
             if(H5F_ACCUM_APPEND == adjust) {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 25");
 #endif
                 /* Move remnant of accumulator down */
@@ -533,7 +533,7 @@ H5F_accum_write(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
                     f->shared->accum.dirty_len = size + (f->shared->accum.size - 
                             f->shared->accum.dirty_off);
                 } else {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 34");
 #endif
                     f->shared->accum.dirty_off = f->shared->accum.size;
@@ -804,7 +804,7 @@ HDmemset(f->shared->accum.buf + clear_size, 0, (f->shared->accum.alloc_size - cl
                     /* Check if we should shrink the accumulator buffer */
                     if(size < (f->shared->accum.alloc_size / H5F_ACCUM_THROTTLE) &&
                             f->shared->accum.alloc_size > H5F_ACCUM_THRESHOLD) {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 61"); 
 #endif
                         size_t tmp_size = (f->shared->accum.alloc_size / H5F_ACCUM_THROTTLE); /* New size of accumulator buffer */

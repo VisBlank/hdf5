@@ -32,6 +32,7 @@ H5F_t * f = NULL;
 /* Function Prototypes */
 herr_t test_write_read(void);
 herr_t test_accum_overlap(void);
+herr_t test_append_resize(void);
 
 /* Helper Function Prototypes */
 void accum_printf(void);
@@ -97,7 +98,7 @@ main(void)
     nerrors += test_write_read();
     nerrors += test_accum_overlap();
 
-
+    nerrors += test_append_resize();
 
 
 
@@ -294,6 +295,66 @@ error:
 
 
 /*-------------------------------------------------------------------------
+ * Function:    test_append_resize
+ * 
+ * Purpose:     This test will verify the case when the metadata accumulator
+ *              contains a block of clean metadata. A new piece is added that
+ *              aligns with the end of the data (and accumulator) such that
+ *              the accumulator needs to resize to account for it. After doing
+ *              the resize, the accumulator has grown too large, so it shrinks
+ *              in order to stay within the maximum size limit.
+ * 
+ * Return:      Success: SUCCEED
+ *              Failure: FAIL
+ * 
+ * Programmer:  Mike McGreevy
+ *              October 8, 2010
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t 
+test_append_resize(void)
+{
+    int i = 0;
+    int s = 1048576;    /* size of buffer */
+    int32_t wbuf[s], rbuf[s];
+
+    /* Zero out read buffer */
+    for(i=0;i<s;i++) rbuf[i]=0;
+
+    /* Fill up write buffer */
+    for(i=0;i<s;i++) wbuf[i]=i+1;
+
+    TESTING("appending that forces a reduction in accumulator size");
+
+    /* Write data to the accumulator to fill it just under max size (but not full) */
+    if(accum_write(0,1048571,wbuf)<0) TEST_ERROR;
+
+    /* Flush the accumulator -- we want to test the case when
+        accumulator contains clean data */
+    accum_flush();
+
+    /* Write a new (small) piece of data that forces a resize of the accumulator for the smaller */
+    if(accum_write(1048571,10,wbuf)<0) TEST_ERROR;
+
+    /* Write a piece of metadata outside current accumulator to force write
+        to disk */
+    if(accum_write(0,1,wbuf)<0) TEST_ERROR;
+
+    /* Read in the piece we wrote to disk above, and then verify that 
+        the data is as expected */
+    if(accum_read(1048571,10,rbuf)<0) TEST_ERROR;
+    if(memcmp(wbuf,rbuf,10)!=0) TEST_ERROR;
+
+    PASSED();
+    accum_reset();
+    return 0;
+error:
+    return 1;
+} /* test_append_resize */ 
+
+
+/*-------------------------------------------------------------------------
  * Function:    accum_printf
  * 
  * Purpose:     Debug function to print some stats about the accumulator
@@ -310,7 +371,6 @@ void
 accum_printf(void)
 {
     H5F_meta_accum_t * accum = &f->shared->accum;
-    int i;
 
     printf("\n");
     printf("Current contents of accumulator:\n");
