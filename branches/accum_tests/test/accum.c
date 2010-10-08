@@ -97,6 +97,7 @@ main(void)
     /* add more test functions to this list! do it! */
     nerrors += test_write_read();
     nerrors += test_accum_overlap();
+    nerrors += test_accum_overlap_clean();
 
     nerrors += test_append_resize();
 
@@ -143,7 +144,7 @@ herr_t test_write_read(void)
     /* Fill buffer with data, zero out read buffer */
     for(i=0;i<1024;i++) write_buf[i]=i+1;
     for(i=0;i<1024;i++) read_buf[i]=0;
-    
+
     /* Do a simple write/read/verify of data */
     /* Write 1KB at Address 0 */
     if (accum_write(0,1024,write_buf) < 0) TEST_ERROR;
@@ -291,7 +292,153 @@ herr_t test_accum_overlap(void)
     return 0;
 error:
     return 1;
-} /* test_accum_overlap */ 
+} /* test_accum_overlap */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    test_accum_overlap_clean
+ *
+ * Purpose:     This test will write a series of pieces of data
+ *              to the accumulator with the goal of overlapping
+ *              the writes in various different ways, with clean
+ *              areas in the accumulator.
+ *
+ * Return:      Success: SUCCEED
+ *              Failure: FAIL
+ *
+ * Programmer:  Neil Fortner
+ *              October 8, 2010
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t test_accum_overlap_clean(void)
+{
+    int i = 0;
+    int32_t wbuf[4096], rbuf[4096];
+
+    /* Zero out read buffer */
+    for(i=0;i<4096;i++) rbuf[i]=0;
+
+    TESTING("overlapping write to partially clean metadata accumulator");
+
+    /* Case 1: No metadata in accumulator */
+    /* Write 10 1's at address 40 */
+    /* @0:|          1111111111| */
+    /* Put some data in the accumulator initially */
+    for(i=0;i<10;i++) wbuf[i]=1;
+    if (accum_write(40,10*sizeof(int32_t),wbuf) < 0) TEST_ERROR;
+    if (accum_read(40,10*sizeof(int32_t),rbuf) < 0) TEST_ERROR;
+    if (memcmp(wbuf,rbuf,10*sizeof(int32_t)) != 0 ) TEST_ERROR;
+
+    /* Case 2: End of new piece aligns with start of clean accumulated data */
+    /* Write 5 2's at address 20 */
+    /* @0:|     222221111111111| */
+    if(accum_flush() < 0) TEST_ERROR;
+    for(i=0;i<5;i++) wbuf[i]=2;
+    if (accum_write(20,5*sizeof(int32_t),wbuf) < 0) TEST_ERROR;
+    if (accum_read(20,5*sizeof(int32_t),rbuf) < 0) TEST_ERROR;
+    if (memcmp(wbuf,rbuf,5*sizeof(int32_t)) != 0 ) TEST_ERROR;
+
+    /* Case 3: Start of new piece aligns with start of accumulated data,
+     * completely encloses dirty section of accumulator */
+    /* Write 6 3's at address 20 */
+    /* @0:|  333333111111111| */
+    for(i=0;i<6;i++) wbuf[i]=3;
+    if (accum_write(20,6*sizeof(int32_t),wbuf) < 0) TEST_ERROR;
+    if (accum_read(20,6*sizeof(int32_t),rbuf) < 0) TEST_ERROR;
+    if (memcmp(wbuf,rbuf,6*sizeof(int32_t)) != 0 ) TEST_ERROR;
+
+    /* Case 4: New piece completely within accumulated data, overlaps
+     * end of dirty section of accumulator */
+    /* Write 2 4's at address 40 */
+    /* @0:|  333334411111111| */
+    for(i=0;i<2;i++) wbuf[i]=4;
+    if (accum_write(40,2*sizeof(int32_t),wbuf) < 0) TEST_ERROR;
+    if (accum_read(40,2*sizeof(int32_t),rbuf) < 0) TEST_ERROR;
+    if (memcmp(wbuf,rbuf,2*sizeof(int32_t)) != 0 ) TEST_ERROR;
+
+    /* Case 5: New piece completely within accumulated data, completely
+     * after dirty section of accumulator */
+    /* Write 2 5's at address 52 */
+    /* @0:|  333334415511111| */
+    for(i=0;i<2;i++) wbuf[i]=5;
+    if (accum_write(52,2*sizeof(int32_t),wbuf) < 0) TEST_ERROR;
+    if (accum_read(52,2*sizeof(int32_t),rbuf) < 0) TEST_ERROR;
+    if (memcmp(wbuf,rbuf,2*sizeof(int32_t)) != 0 ) TEST_ERROR;
+
+    /* Case 6: New piece completely within clean accumulated data */
+    /* Write 3 6's at address 44 */
+    /* @0:|  333334666511111| */
+    if(accum_flush() < 0) TEST_ERROR;
+    for(i=0;i<3;i++) wbuf[i]=6;
+    if (accum_write(44,3*sizeof(int32_t),wbuf) < 0) TEST_ERROR;
+    if (accum_read(44,3*sizeof(int32_t),rbuf) < 0) TEST_ERROR;
+    if (memcmp(wbuf,rbuf,3*sizeof(int32_t)) != 0 ) TEST_ERROR;
+
+    /* Case 7: New piece overlaps start of clean accumulated data */
+    /* Write 2 7's at address 16 */
+    /* @0:|  7733334666511111| */
+    if(accum_flush() < 0) TEST_ERROR;
+    for(i=0;i<2;i++) wbuf[i]=7;
+    if (accum_write(16,2*sizeof(int32_t),wbuf) < 0) TEST_ERROR;
+    if (accum_read(16,2*sizeof(int32_t),rbuf) < 0) TEST_ERROR;
+    if (memcmp(wbuf,rbuf,2*sizeof(int32_t)) != 0 ) TEST_ERROR;
+
+    /* Case 8: New piece overlaps start of accumulated data, completely
+     * encloses dirty section of accumulator */
+    /* Write 4 8's at address 12 */
+    /* @0:|  88883334666511111| */
+    for(i=0;i<4;i++) wbuf[i]=8;
+    if (accum_write(12,4*sizeof(int32_t),wbuf) < 0) TEST_ERROR;
+    if (accum_read(12,4*sizeof(int32_t),rbuf) < 0) TEST_ERROR;
+    if (memcmp(wbuf,rbuf,4*sizeof(int32_t)) != 0 ) TEST_ERROR;
+
+    /* Case 9: Start of new piece aligns with end of clean accumulated data */
+    /* Write 3 9's at address 80 */
+    /* @0:|  88883334666511111999| */
+    if(accum_flush() < 0) TEST_ERROR;
+    for(i=0;i<3;i++) wbuf[i]=9;
+    if (accum_write(80,3*sizeof(int32_t),wbuf) < 0) TEST_ERROR;
+    if (accum_read(80,3*sizeof(int32_t),rbuf) < 0) TEST_ERROR;
+    if (memcmp(wbuf,rbuf,3*sizeof(int32_t)) != 0 ) TEST_ERROR;
+
+    /* Case 10: New piece overlaps end of clean accumulated data */
+    /* Write 3 2's at address 88 */
+    /* @0:|  888833346665111119922| */
+    if(accum_flush() < 0) TEST_ERROR;
+    for(i=0;i<2;i++) wbuf[i]=2;
+    if (accum_write(88,2*sizeof(int32_t),wbuf) < 0) TEST_ERROR;
+    if (accum_read(88,2*sizeof(int32_t),rbuf) < 0) TEST_ERROR;
+    if (memcmp(wbuf,rbuf,2*sizeof(int32_t)) != 0 ) TEST_ERROR;
+
+    /* Case 11: New piece overlaps end of accumulated data, completely encloses
+     * dirty section of accumulator */
+    /* Write 4 7's at address 84 */
+    /* @0:|  8888333466651111197777| */
+    for(i=0;i<4;i++) wbuf[i]=7;
+    if (accum_write(84,4*sizeof(int32_t),wbuf) < 0) TEST_ERROR;
+    if (accum_read(84,4*sizeof(int32_t),rbuf) < 0) TEST_ERROR;
+    if (memcmp(wbuf,rbuf,4*sizeof(int32_t)) != 0 ) TEST_ERROR;
+
+    /* Set up expected data buffer and verify contents of
+        accumulator as constructed by cases 1-11, above */
+    for(i=0;i<4;i++) wbuf[i]=8;
+    for(i=4;i<7;i++) wbuf[i]=3;
+    for(i=7;i<8;i++) wbuf[i]=4;
+    for(i=8;i<11;i++) wbuf[i]=6;
+    for(i=11;i<12;i++) wbuf[i]=5;
+    for(i=12;i<17;i++) wbuf[i]=1;
+    for(i=17;i<18;i++) wbuf[i]=9;
+    for(i=18;i<22;i++) wbuf[i]=7;
+    if (accum_read(12,22*sizeof(int32_t),rbuf) < 0) TEST_ERROR;
+    if (memcmp(wbuf,rbuf,22*sizeof(int32_t)) != 0 ) TEST_ERROR;
+
+    PASSED();
+    accum_reset();
+    return 0;
+error:
+    return 1;
+} /* test_accum_overlap_clean */
 
 
 /*-------------------------------------------------------------------------

@@ -440,8 +440,8 @@ done:
 /*-------------------------------------------------------------------------
  * Function:	H5F_accum_write
  *
- * Purpose:	Attempts to read some data from the metadata accumulator for
- *              a file into a buffer.
+ * Purpose:	Attempts to write some data to the metadata accumulator for
+ *              a file from a buffer.
  *
  * Return:	Non-negative on success/Negative on failure
  *
@@ -505,7 +505,7 @@ H5F_accum_write(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
                     f->shared->accum.dirty_len = size + f->shared->accum.dirty_off
                             + f->shared->accum.dirty_len;
                 } else {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 31");
 #endif
                     f->shared->accum.dirty_len = size;
@@ -577,7 +577,7 @@ H5F_accum_write(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
 #endif
                                 f->shared->accum.dirty_len = (f->shared->accum.dirty_off + f->shared->accum.dirty_len) - dirty_off;
                             } else {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 40");
 #endif
                                 f->shared->accum.dirty_len = size;
@@ -595,7 +595,7 @@ H5F_accum_write(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
                                 ; /* f->shared->accum.dirty_len doesn't change */
                             }
                             else {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 43");
 #endif
                                 f->shared->accum.dirty_len = (dirty_off + size) - f->shared->accum.dirty_off;
@@ -603,7 +603,7 @@ H5F_accum_write(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
                         } /* end else */
                     } /* end if */
                     else {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 44");
 #endif
                         f->shared->accum.dirty_off = dirty_off;
@@ -653,14 +653,14 @@ H5F_accum_write(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
                             f->shared->accum.dirty_len = curr_dirty_end;
                         }
                         else {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 48");
 #endif
                             f->shared->accum.dirty_len = size;
                         }
                     } /* end if */
                     else {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 49");
 #endif
                         f->shared->accum.dirty_off = 0;
@@ -695,7 +695,7 @@ H5F_accum_write(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
 #endif
                         /* Check for new metadata starting before current dirty region */
                         if(dirty_off <= f->shared->accum.dirty_off) {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 52");
 #endif
                             f->shared->accum.dirty_off = dirty_off;
@@ -709,7 +709,7 @@ H5F_accum_write(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
                         } /* end else */
                     } /* end if */
                     else {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 54");
 #endif
                         f->shared->accum.dirty_off = dirty_off;
