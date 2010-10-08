@@ -29,7 +29,8 @@
 /* MIKE: */
 #define NOT_TESTED 1
 /* 33/86 Tested as of 10:34AM 10/8/2010 */
-/* 49/86 Tested as of 1:24PM 10/8/2010 */
+/* 49/86 Tested as of 01:24PM 10/8/2010 */
+/* 58/86 Tested as of 02:08PM 10/8/2010 */
 
 /****************/
 /* Module Setup */
@@ -323,7 +324,7 @@ H5F_accum_adjust(H5F_meta_accum_t *accum, H5FD_t *lf, hid_t dxpl_id,
 
                     /* Check if we can slide the dirty region down, to accommodate the request */
                     if(accum->dirty && (adjust_size <= H5F_ACCUM_MAX_SIZE)) {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 16");
 #endif
                         if((ssize_t)(H5F_ACCUM_MAX_SIZE - (accum->dirty_off + adjust_size)) >= (ssize_t)(2 * size)) {
@@ -333,7 +334,7 @@ H5F_accum_adjust(H5F_meta_accum_t *accum, H5FD_t *lf, hid_t dxpl_id,
                             shrink_size = accum->dirty_off / 2;
                         }
                         else {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 18");
 #endif
                             shrink_size = accum->dirty_off;
@@ -376,7 +377,7 @@ H5F_accum_adjust(H5F_meta_accum_t *accum, H5FD_t *lf, hid_t dxpl_id,
                     } /* end if */
                 } /* end if */
                 else {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 23");
 #endif
                     /* Check if the dirty region overlaps the region to eliminate from the accumulator */
