@@ -107,6 +107,7 @@ main(void)
     nerrors += test_append_resize_small_dirty();
     nerrors += test_read_after();
     nerrors += test_prepend_resize_large();
+    nerrors += test_free();
 
     /* End of test code, close and delete file */
     H5Fclose(fid);
@@ -244,6 +245,77 @@ herr_t test_write_read_nonacc_end(void)
 error:
     return 1;
 } /* test_write_read */ 
+
+
+/*-------------------------------------------------------------------------
+ * Function:    test_free
+ * 
+ * Purpose:     Simple test to write to then read from metadata accumulator.
+ * 
+ * Return:      Success: SUCCEED
+ *              Failure: FAIL
+ * 
+ * Programmer:  Mike McGreevy
+ *              October 7, 2010
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t test_free(void)
+{
+    int i = 0;
+    int *write_buf = NULL;
+
+    TESTING("simple freeing metadata accumulator");
+
+    /* Write and free the whole accumulator. */ 
+    write_buf = (int*)malloc(256*1024*sizeof(int));
+
+    /* Fill buffer with data */
+    for(i=0;i<256*1024;i++) write_buf[i]=i+1;
+    
+    if (accum_write(0,256*1024*sizeof(int),write_buf) < 0) TEST_ERROR;
+
+    if (accum_free(0,256*1024*sizeof(int)) < 0) TEST_ERROR;
+
+    /* Free an empty accumulator */
+    if (accum_free(0,256*1024*sizeof(int)) < 0) TEST_ERROR;
+
+    /* Write second quarter of the accumulator */
+    if (accum_write(64*1024*sizeof(int),128*1024*sizeof(int),write_buf) < 0) 
+        TEST_ERROR;
+
+    /* Free the second quarter of the accumulator, the requested area 
+     * is bigger than the data region on the right side. */
+    if (accum_free(64*1024*sizeof(int),129*1024*sizeof(int)) < 0) TEST_ERROR;
+
+
+
+
+    /* Write half the accumulator. */ 
+    if (accum_write(0,128*1024*sizeof(int),write_buf) < 0) TEST_ERROR;
+
+    /* Free the first block of 4KB */
+    if (accum_free(0,1024*sizeof(int)) < 0) TEST_ERROR;
+
+    /* Free the block of 4KB at 127*4KB */
+    if (accum_free(127*1024*sizeof(int),1024*sizeof(int)) < 0) TEST_ERROR;
+
+    /* Free the block of 4KB at 2*4KB */
+    if (accum_free(2*1024*sizeof(int),1024*sizeof(int)) < 0) TEST_ERROR;
+
+    /* Free the block of 12KB at 126*4KB */
+    /*if (accum_free(126*1024*sizeof(int),3*1024*sizeof(int)) < 0) TEST_ERROR;*/
+
+
+    free(write_buf);
+
+    PASSED();
+    accum_reset();
+    return 0;
+error:
+    return 1;
+} /* test_write_read */ 
+
 
 
 /*-------------------------------------------------------------------------

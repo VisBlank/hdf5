@@ -909,7 +909,7 @@ H5F_accum_free(H5F_t *f, hid_t dxpl_id, H5FD_mem_t UNUSED type, haddr_t addr,
     /* Adjust the metadata accumulator to remove the freed block, if it overlaps */
     if((f->shared->feature_flags & H5FD_FEAT_ACCUMULATE_METADATA)
             && H5F_addr_overlap(addr, size, f->shared->accum.loc, f->shared->accum.size)) {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 64"); 
 #endif
         size_t overlap_size;        /* Size of overlap with accumulator */
@@ -920,12 +920,12 @@ H5F_accum_free(H5F_t *f, hid_t dxpl_id, H5FD_mem_t UNUSED type, haddr_t addr,
 
         /* Check for overlapping the beginning of the accumulator */
         if(H5F_addr_le(addr, f->shared->accum.loc)) {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 65");
 #endif
             /* Check for completely overlapping the accumulator */
             if(H5F_addr_ge(addr + size, f->shared->accum.loc + f->shared->accum.size)) {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 66");
 #endif
                 /* Reset the accumulator, but don't free buffer */
@@ -935,7 +935,7 @@ H5F_accum_free(H5F_t *f, hid_t dxpl_id, H5FD_mem_t UNUSED type, haddr_t addr,
             } /* end if */
             /* Block to free must end within the accumulator */
             else {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 67");
 #endif
                 size_t new_accum_size;      /* Size of new accumulator buffer */
@@ -953,7 +953,7 @@ H5F_accum_free(H5F_t *f, hid_t dxpl_id, H5FD_mem_t UNUSED type, haddr_t addr,
 
                 /* Adjust the dirty region and possibly mark accumulator clean */
                 if(f->shared->accum.dirty) {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 68");
 #endif
                     /* Check if block freed is entirely before dirty region */
@@ -963,12 +963,12 @@ H5F_accum_free(H5F_t *f, hid_t dxpl_id, H5FD_mem_t UNUSED type, haddr_t addr,
 #endif
                         f->shared->accum.dirty_off -= overlap_size;
                     } else {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 70");
 #endif
                         /* Check if block freed ends within dirty region */
                         if(overlap_size < (f->shared->accum.dirty_off + f->shared->accum.dirty_len)) {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 71");
 #endif
                             f->shared->accum.dirty_len = (f->shared->accum.dirty_off + f->shared->accum.dirty_len) - overlap_size;
@@ -987,7 +987,7 @@ H5F_accum_free(H5F_t *f, hid_t dxpl_id, H5FD_mem_t UNUSED type, haddr_t addr,
         } /* end if */
         /* Block to free must start within the accumulator */
         else {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 73");
 #endif
             haddr_t dirty_end = f->shared->accum.loc + f->shared->accum.dirty_off + f->shared->accum.dirty_len;
@@ -998,7 +998,7 @@ H5F_accum_free(H5F_t *f, hid_t dxpl_id, H5FD_mem_t UNUSED type, haddr_t addr,
 
             /* Check if block to free begins before end of dirty region */
             if(f->shared->accum.dirty && H5F_addr_lt(addr, dirty_end)) {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 74");
 #endif
                 haddr_t tail_addr;
@@ -1049,12 +1049,12 @@ H5F_accum_free(H5F_t *f, hid_t dxpl_id, H5FD_mem_t UNUSED type, haddr_t addr,
                 } /* end if */
                 /* Block to free begins at beginning of or in middle of dirty region */
                 else {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 79");
 #endif
                     /* Check if block to free ends before end of dirty region */
                     if(H5F_addr_lt(tail_addr, dirty_end)) {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 80");
 #endif
                         size_t write_size;
@@ -1063,7 +1063,7 @@ H5F_accum_free(H5F_t *f, hid_t dxpl_id, H5FD_mem_t UNUSED type, haddr_t addr,
 
                         /* Check for unfreed dirty region to write */
                         if(write_size > 0) {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 81");
 #endif
                             size_t dirty_delta;
@@ -1086,7 +1086,7 @@ H5F_accum_free(H5F_t *f, hid_t dxpl_id, H5FD_mem_t UNUSED type, haddr_t addr,
                     } /* end if */
                     /* Block to free eliminates end of dirty region */
                     else {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 83");
 #endif
                         f->shared->accum.dirty_len = (addr - dirty_start);
