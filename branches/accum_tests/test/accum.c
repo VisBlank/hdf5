@@ -38,6 +38,7 @@ herr_t test_accum_non_overlap_size(void);
 herr_t test_append_resize_small_clean(void);
 herr_t test_append_resize_small_dirty(void);
 herr_t test_read_after(void);
+herr_t test_prepend_resize_small(void);
 herr_t test_prepend_resize_large(void);
 
 /* Helper Function Prototypes */
@@ -109,8 +110,9 @@ main(void)
     nerrors += test_accum_non_overlap_size();
     nerrors += test_append_resize_small_clean();
     nerrors += test_append_resize_small_dirty();
-    nerrors += test_read_after();
+    nerrors += test_prepend_resize_small();
     nerrors += test_prepend_resize_large();
+    nerrors += test_read_after();
     nerrors += test_free();
 
     /* End of test code, close and delete file */
@@ -627,7 +629,7 @@ herr_t test_accum_non_overlap_size(void)
     /* Zero out read buffer */
     for(i=0;i<4096;i++) rbuf[i]=0;
 
-    TESTING("non-overlapping write to metadata accumulator size larger then accum_size");
+    TESTING("non-overlapping write to accumulator larger then accum_size");
 
     /* Case 1: No metadata in accumulator */
     /* Write 10 1's at address 140 */
@@ -652,6 +654,60 @@ herr_t test_accum_non_overlap_size(void)
 error:
     return 1;
 } /* test_accum_non_overlap */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    test_prepend_resize_small
+ * 
+ * Purpose:     This test sets up the case where there is a lot of dirty 
+ *              metadata in the accumulator, and a new piece of small metadata 
+ *              is added that prepends to the existing data. The prepend results
+ *              in the accumulator going into the resize mechanism, but not
+ *              reducing the size of the accumulator.
+ * 
+ * Return:      Success: SUCCEED
+ *              Failure: FAIL
+ * 
+ * Programmer:  Mike McGreevy
+ *              October 8, 2010
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t 
+test_prepend_resize_small(void)
+{
+    int i = 0;
+    int s = 1048576;    /* size of buffer */
+    int32_t wbuf[s], rbuf[s];
+
+    /* Zero out read buffer */
+    for(i=0;i<s;i++) rbuf[i]=0;
+
+    /* Fill up write buffer */
+    for(i=0;i<s;i++) wbuf[i]=i+1;
+
+    TESTING("prepending small entry to accumulator to force resize");
+
+    /* Write data to the accumulator to fill it just under max size (but not full) */
+    if(accum_write(1048576,1048575,wbuf)<0) TEST_ERROR;
+
+    /* Write a small piece of data to accumulator that 
+        will append to the front of it, and force a resize. */
+    if(accum_write(1048571,5,wbuf)<0) TEST_ERROR;
+
+    /* Read back and verify both pieces of data */
+    if(accum_read(1048576,1048575,rbuf)<0) TEST_ERROR;
+    if(memcmp(wbuf,rbuf,1048576)!=0) TEST_ERROR;
+
+    if(accum_read(1048571,5,rbuf)<0) TEST_ERROR;
+    if(memcmp(wbuf,rbuf,5)!=0) TEST_ERROR;
+
+    PASSED();
+    accum_reset();
+    return 0;
+error:
+    return 1;
+} /* test_prepend_resize_small */ 
 
 
 /*-------------------------------------------------------------------------
@@ -684,7 +740,7 @@ test_prepend_resize_large(void)
     /* Fill up write buffer */
     for(i=0;i<s;i++) wbuf[i]=i+1;
 
-    TESTING("prepending large entry that forces a resize of accumulator");
+    TESTING("prepending large entry to accumulator to force resize");
 
     /* Write data to the accumulator to fill it just under max size (but not full) */
     if(accum_write(1048576,1048575,wbuf)<0) TEST_ERROR;

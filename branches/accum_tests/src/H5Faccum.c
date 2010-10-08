@@ -309,7 +309,7 @@ H5F_accum_adjust(H5F_meta_accum_t *accum, H5FD_t *lf, hid_t dxpl_id,
  HDassert(0 && "This section of code still needs to be tested! 13");
 #endif
                 if(H5F_ACCUM_PREPEND == adjust) {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 14");
 #endif
                     new_size = (H5F_ACCUM_MAX_SIZE / 2);
