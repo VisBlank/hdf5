@@ -28,7 +28,8 @@
 
 /* MIKE: */
 #define NOT_TESTED 1
-/* 33 Tested, 53 Not Tested as of 10:34AM 10/8/2010 */
+/* 33/86 Tested as of 10:34AM 10/8/2010 */
+/* 49/86 Tested as of 1:24PM 10/8/2010 */
 
 /****************/
 /* Module Setup */
@@ -295,7 +296,7 @@ H5F_accum_adjust(H5F_meta_accum_t *accum, H5FD_t *lf, hid_t dxpl_id,
 
             /* Determine the amounts to work with */
             if(size > (H5F_ACCUM_MAX_SIZE / 2)) {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 12");
 #endif
                 new_size = H5F_ACCUM_MAX_SIZE;
@@ -353,17 +354,17 @@ H5F_accum_adjust(H5F_meta_accum_t *accum, H5FD_t *lf, hid_t dxpl_id,
 
             /* Check if we need to flush accumulator data to file */
             if(accum->dirty) {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 20");
 #endif
                 /* Check whether to accumulator will be prepended or appended */
                 if(H5F_ACCUM_PREPEND == adjust) {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 21");
 #endif
                     /* Check if the dirty region overlaps the region to eliminate from the accumulator */
                     if((accum->size - shrink_size) < (accum->dirty_off + accum->dirty_len)) {
-#ifdef NOT_TESTED
+#ifdef TESTED
  HDassert(0 && "This section of code still needs to be tested! 22");
 #endif
                         /* Write out the dirty region from the metadata accumulator, with dispatch to driver */
