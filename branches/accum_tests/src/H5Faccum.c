@@ -331,7 +331,7 @@ H5F_accum_adjust(H5F_meta_accum_t *accum, H5FD_t *lf, hid_t dxpl_id,
                             shrink_size = accum->dirty_off / 2;
                         }
                         else {
-#ifdef TESTED
+#ifdef NOT_TESTED
  HDassert(0 && "This section of code still needs to be tested! 18");
 #endif
                             shrink_size = accum->dirty_off;
