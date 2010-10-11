@@ -34,10 +34,12 @@ herr_t test_write_read(void);
 herr_t test_write_read_nonacc_front(void);
 herr_t test_write_read_nonacc_end(void);
 herr_t test_accum_overlap(void);
+herr_t test_accum_overlap_clean(void);
 herr_t test_accum_overlap_size(void);
 herr_t test_accum_non_overlap_size(void);
-herr_t test_read_after(void);
 herr_t test_accum_adjust(void);
+herr_t test_read_after(void);
+herr_t test_free(void);
 
 /* Helper Function Prototypes */
 void accum_printf(void);
@@ -73,10 +75,7 @@ main(void)
     unsigned nerrors = 0;        /* track errors */
     hid_t fid = -1;
 
-    /* ========== */
     /* Test Setup */
-    /* ========== */
-
     puts("Testing the metadata accumulator");
 
     /* Create a test file */
@@ -93,13 +92,9 @@ main(void)
     H5FD_set_eoa(f->shared->lf, H5AC_dxpl_id, (haddr_t)(1024*1024*10));
 
     /* Reset metadata accumulator for the file */
-    accum_reset();
+    if(accum_reset()<0) FAIL_STACK_ERROR;
 
-    /* ============== */
     /* Test Functions */
-    /* ============== */
-
-    /* add more test functions to this list! do it! */
     nerrors += test_write_read();
     nerrors += test_write_read_nonacc_front();
     nerrors += test_write_read_nonacc_end();
@@ -160,7 +155,7 @@ herr_t test_write_read(void)
     if (memcmp(write_buf,read_buf,1024) != 0 ) TEST_ERROR;
 
     PASSED();
-    accum_reset();
+    if(accum_reset()<0) FAIL_STACK_ERROR;
     return 0;
 error:
     return 1;
@@ -195,13 +190,13 @@ herr_t test_write_read_nonacc_front(void)
     /* Write 1KB at Address 0 */
     if (accum_write(0,1024,write_buf) < 0) FAIL_STACK_ERROR;
     if (accum_flush() < 0) FAIL_STACK_ERROR;
-    accum_reset();
+    if(accum_reset()<0) FAIL_STACK_ERROR;
     if (accum_write(1024,1024,write_buf) < 0) FAIL_STACK_ERROR;
     if (accum_read(0,1024,read_buf) < 0) FAIL_STACK_ERROR;
     if (memcmp(write_buf,read_buf,1024) != 0 ) TEST_ERROR;
 
     PASSED();
-    accum_reset();
+    if(accum_reset()<0) FAIL_STACK_ERROR;
     return 0;
 error:
     return 1;
@@ -236,13 +231,13 @@ herr_t test_write_read_nonacc_end(void)
     /* Write 1KB at Address 0 */
     if (accum_write(1024,1024,write_buf) < 0) FAIL_STACK_ERROR;
     if (accum_flush() < 0) FAIL_STACK_ERROR;
-    accum_reset();
+    if(accum_reset()<0) FAIL_STACK_ERROR;
     if (accum_write(0,1024,write_buf) < 0) FAIL_STACK_ERROR;
     if (accum_read(1024,1024,read_buf) < 0) FAIL_STACK_ERROR;
     if (memcmp(write_buf,read_buf,1024) != 0 ) TEST_ERROR;
 
     PASSED();
-    accum_reset();
+    if(accum_reset()<0) FAIL_STACK_ERROR;
     return 0;
 error:
     return 1;
@@ -414,7 +409,7 @@ herr_t test_free(void)
     free(expect);
 
     PASSED();
-    accum_reset();
+    if(accum_reset()<0) FAIL_STACK_ERROR;
     return 0;
 error:
     free(write_buf);
@@ -555,7 +550,7 @@ herr_t test_accum_overlap(void)
     if (memcmp(wbuf,rbuf,6*sizeof(int32_t)) != 0 ) TEST_ERROR;
 
     PASSED();
-    accum_reset();
+    if(accum_reset()<0) FAIL_STACK_ERROR;
     return 0;
 error:
     return 1;
@@ -701,7 +696,7 @@ herr_t test_accum_overlap_clean(void)
     if (memcmp(wbuf,rbuf,22*sizeof(int32_t)) != 0 ) TEST_ERROR;
 
     PASSED();
-    accum_reset();
+    if(accum_reset()<0) FAIL_STACK_ERROR;
     return 0;
 error:
     return 1;
@@ -751,7 +746,7 @@ herr_t test_accum_non_overlap_size(void)
     if (memcmp(wbuf,rbuf,20*sizeof(int32_t)) != 0 ) TEST_ERROR;
 
     PASSED();
-    accum_reset();
+    if(accum_reset()<0) FAIL_STACK_ERROR;
     return 0;
 error:
     return 1;
@@ -801,7 +796,7 @@ herr_t test_accum_overlap_size(void)
     if (memcmp(wbuf,rbuf,72*sizeof(int32_t)) != 0 ) TEST_ERROR;
 
     PASSED();
-    accum_reset();
+    if(accum_reset()<0) FAIL_STACK_ERROR;
     return 0;
 error:
     return 1;
@@ -877,7 +872,7 @@ test_accum_adjust(void)
     if(memcmp(wbuf,rbuf,1024)!=0) TEST_ERROR;
     
     /* Reset accumulator for next case */
-    accum_reset();
+    if(accum_reset()<0) FAIL_STACK_ERROR;
 
     /* ================================================================ */
     /* Case 2: Prepending large block to large, fully dirty accumulator */
@@ -906,7 +901,7 @@ test_accum_adjust(void)
     if(memcmp(wbuf,rbuf,1048571)!=0) TEST_ERROR;
 
     /* Reset accumulator for next case */
-    accum_reset();
+    if(accum_reset()<0) FAIL_STACK_ERROR;
 
     /* ========================================================= */
     /* Case 3: Appending small block to large, clean accumulator */
@@ -941,7 +936,7 @@ test_accum_adjust(void)
     if(memcmp(wbuf,rbuf,1024)!=0) TEST_ERROR;
 
     /* Reset accumulator for next case */
-    accum_reset();
+    if(accum_reset()<0) FAIL_STACK_ERROR;
 
     /* ==================================================================== */
     /* Case 4: Appending small block to large, partially dirty accumulator, */
@@ -981,7 +976,7 @@ test_accum_adjust(void)
     if(memcmp(wbuf,rbuf,349523)!=0) TEST_ERROR;
 
     /* Reset accumulator for next case */
-    accum_reset();
+    if(accum_reset()<0) FAIL_STACK_ERROR;
 
     /* ==================================================================== */
     /* Case 5: Appending small block to large, partially dirty accumulator, */
@@ -1018,7 +1013,7 @@ test_accum_adjust(void)
     if(memcmp(wbuf,rbuf,10)!=0) TEST_ERROR;
 
     /* Reset accumulator for next case */
-    accum_reset();
+    if(accum_reset()<0) FAIL_STACK_ERROR;
 
     /* ================================================================= */
     /* Case 6: Appending small block to large, fully dirty accumulator   */
@@ -1050,7 +1045,7 @@ test_accum_adjust(void)
     if(memcmp(wbuf,rbuf,349523)!=0) TEST_ERROR;
 
     PASSED();
-    accum_reset();
+    if(accum_reset()<0) FAIL_STACK_ERROR;
     return 0;
 error:
     return 1;
@@ -1116,7 +1111,7 @@ test_read_after(void)
     if(memcmp(wbuf,rbuf,128)!=0) TEST_ERROR;
 
     PASSED();
-    accum_reset();
+    if(accum_reset()<0) FAIL_STACK_ERROR;
     return 0;
 error:
     return 1;
