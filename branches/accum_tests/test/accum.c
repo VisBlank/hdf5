@@ -36,11 +36,8 @@ herr_t test_write_read_nonacc_end(void);
 herr_t test_accum_overlap(void);
 herr_t test_accum_overlap_size(void);
 herr_t test_accum_non_overlap_size(void);
-herr_t test_append_resize_small_clean(void);
-herr_t test_append_resize_small_dirty(void);
 herr_t test_read_after(void);
-herr_t test_prepend_resize_small(void);
-herr_t test_prepend_resize_large(void);
+herr_t test_accum_adjust(void);
 
 /* Helper Function Prototypes */
 void accum_printf(void);
@@ -110,10 +107,7 @@ main(void)
     nerrors += test_accum_overlap_clean();
     nerrors += test_accum_overlap_size();
     nerrors += test_accum_non_overlap_size();
-    nerrors += test_append_resize_small_clean();
-    nerrors += test_append_resize_small_dirty();
-    nerrors += test_prepend_resize_small();
-    nerrors += test_prepend_resize_large();
+    nerrors += test_accum_adjust();
     nerrors += test_read_after();
     nerrors += test_free();
 
@@ -163,7 +157,7 @@ herr_t test_write_read(void)
     /* Write 1KB at Address 0 */
     if (accum_write(0,1024,write_buf) < 0) FAIL_STACK_ERROR;
     if (accum_read(0,1024,read_buf) < 0) FAIL_STACK_ERROR;
-    if (memcmp(write_buf,read_buf,1024) != 0 ) FAIL_STACK_ERROR;
+    if (memcmp(write_buf,read_buf,1024) != 0 ) TEST_ERROR;
 
     PASSED();
     accum_reset();
@@ -815,24 +809,33 @@ error:
 
 
 /*-------------------------------------------------------------------------
- * Function:    test_prepend_resize_small
+ * Function:    test_accum_adjust
  * 
- * Purpose:     This test sets up the case where there is a lot of dirty 
- *              metadata in the accumulator, and a new piece of small metadata 
- *              is added that prepends to the existing data. The prepend results
- *              in the accumulator going into the resize mechanism, but not
- *              reducing the size of the accumulator.
+ * Purpose:     This test examines the various ways the accumulator might
+ *              adjust itself as a result of data appending or prepending
+ *              to it.
+ *
+ *              This test program covers all the code in H5F_accum_adjust, 
+ *              but NOT all possible paths through said code. It only covers
+ *              six potential paths through the function. (Again, though, each
+ *              piece of code within an if/else statement in H5F_accum_adjust is
+ *              covered by one of the paths in this test function). Since there 
+ *              are a ridiculous number of total possible paths through this 
+ *              function due to its large number of embedded if/else statements,
+ *              that's certainly a lot of different test cases to write by hand. 
+ *              (Though if someone comes across this code and has some free 
+ *              time, go for it).
  * 
  * Return:      Success: SUCCEED
  *              Failure: FAIL
  * 
  * Programmer:  Mike McGreevy
- *              October 8, 2010
+ *              October 11, 2010
  *
  *-------------------------------------------------------------------------
  */
-herr_t 
-test_prepend_resize_small(void)
+herr_t
+test_accum_adjust(void)
 {
     int i = 0;
     int s = 1048576;    /* size of buffer */
@@ -844,68 +847,56 @@ test_prepend_resize_small(void)
     /* Fill up write buffer */
     for(i=0;i<s;i++) wbuf[i]=i+1;
 
-    TESTING("prepending small entry to accumulator to force resize");
+    TESTING("accumulator adjustments after append/prepend of data");
 
-    /* Write data to the accumulator to fill it just under max size (but not full) */
-    if(accum_write(1048576,1048575,wbuf)<0) FAIL_STACK_ERROR;
+    /* ================================================================ */
+    /* CASE 1: Prepending small block to large, fully dirty accumulator */
+    /* ================================================================ */
 
-    /* Write a small piece of data to accumulator that 
-        will append to the front of it, and force a resize. */
-    if(accum_write(1048571,5,wbuf)<0) FAIL_STACK_ERROR;
+    /* Write data to the accumulator to fill it just under 1MB (max size),
+     * but not quite full. This will force the accumulator to, on subsequent
+     * writes, a) have to adjust since it's nearly full, and b) prevent
+     * an increase in size because it's already at it's maximum size */
+    if(accum_write((1024*1024),(1024*1024)-1,wbuf)<0) FAIL_STACK_ERROR;
 
-    /* Read back and verify both pieces of data */
-    if(accum_read(1048576,1048575,rbuf)<0) FAIL_STACK_ERROR;
-    if(memcmp(wbuf,rbuf,1048576)!=0) TEST_ERROR;
+    /* Write a small (1KB) block that prepends to the front of the accumulator. */ 
+    /* ==> Accumulator will need more buffer space */
+    /* ==> Accumulator will try to resize, but see that it's getting too big */
+    /* ==> Size of new block is less than half maximum size of accumulator */
+    /* ==> New block is being prepended to accumulator */
+    /* ==> Accumulator is dirty, it will be flushed. */
+    /* ==> Dirty region overlaps region to eliminate from accumulator */
+    if(accum_write((1024*1024)-1024,1024,wbuf)<0) FAIL_STACK_ERROR;
 
-    if(accum_read(1048571,5,rbuf)<0) FAIL_STACK_ERROR;
-    if(memcmp(wbuf,rbuf,5)!=0) TEST_ERROR;
+    /* Read back and verify first write */
+    if(accum_read((1024*1024),(1024*1024)-1,rbuf)<0) FAIL_STACK_ERROR;
+    if(memcmp(wbuf,rbuf,(1024*1024)-1)!=0) TEST_ERROR;
 
-    PASSED();
+    /* Read back and verify second write */
+    if(accum_read((1024*1024)-1024,1024,rbuf)<0) FAIL_STACK_ERROR;
+    if(memcmp(wbuf,rbuf,1024)!=0) TEST_ERROR;
+    
+    /* Reset accumulator for next case */
     accum_reset();
-    return 0;
-error:
-    return 1;
-} /* test_prepend_resize_small */ 
 
-
-/*-------------------------------------------------------------------------
- * Function:    test_prepend_resize_large
- * 
- * Purpose:     This test sets up the case where there is a lot of dirty 
- *              metadata in the accumulator, and a new piece of large metadata 
- *              is added that prepends to the existing data. The prepend results
- *              in the accumulator going into the resize mechanism, but not
- *              resizing because the new entry is large.
- * 
- * Return:      Success: SUCCEED
- *              Failure: FAIL
- * 
- * Programmer:  Mike McGreevy
- *              October 8, 2010
- *
- *-------------------------------------------------------------------------
- */
-herr_t 
-test_prepend_resize_large(void)
-{
-    int i = 0;
-    int s = 1048576;    /* size of buffer */
-    int32_t wbuf[s], rbuf[s];
+    /* ================================================================ */
+    /* Case 2: Prepending large block to large, fully dirty accumulator */
+    /* ================================================================ */
 
-    /* Zero out read buffer */
-    for(i=0;i<s;i++) rbuf[i]=0;
+    /* Write data to the accumulator to fill it just under 1MB (max size),
+     * but not quite full. This will force the accumulator to, on subsequent
+     * writes, a) have to adjust since it's nearly full, and b) prevent
+     * an increase in size because it's already at it's maximum size */
+    if(accum_write((1024*1024),(1024*1024)-1,wbuf)<0) FAIL_STACK_ERROR;
 
-    /* Fill up write buffer */
-    for(i=0;i<s;i++) wbuf[i]=i+1;
-
-    TESTING("prepending large entry to accumulator to force resize");
-
-    /* Write data to the accumulator to fill it just under max size (but not full) */
-    if(accum_write(1048576,1048575,wbuf)<0) FAIL_STACK_ERROR;
-
-    /* Write a large piece of data to accumulator that 
-        will append to the front of it, and force a resize. */
-    if(accum_write(5,1048571,wbuf)<0) FAIL_STACK_ERROR;
+    /* Write a large (just under 1MB) block to the front of the accumulator. */
+    /* ==> Accumulator will need more buffer space */
+    /* ==> Accumulator will try to resize, but see that it's getting too big */
+    /* ==> Size of new block is larger than half maximum size of accumulator */
+    /* ==> New block is being prepended to accumulator */
+    /* ==> Accumulator is dirty, it will be flushed. */
+    /* ==> Dirty region overlaps region to eliminate from accumulator */
+    if(accum_write(5,(1024*1024)-5,wbuf)<0) FAIL_STACK_ERROR;
 
     /* Read back and verify both pieces of data */
     if(accum_read(1048576,1048575,rbuf)<0) FAIL_STACK_ERROR;
@@ -914,56 +905,31 @@ test_prepend_resize_large(void)
     if(accum_read(5,1048571,rbuf)<0) FAIL_STACK_ERROR;
     if(memcmp(wbuf,rbuf,1048571)!=0) TEST_ERROR;
 
-    PASSED();
+    /* Reset accumulator for next case */
     accum_reset();
-    return 0;
-error:
-    return 1;
-} /* test_prepend_resize_large */ 
 
-
-/*-------------------------------------------------------------------------
- * Function:    test_append_resize_small_clean
- * 
- * Purpose:     This test will verify the case when the metadata accumulator
- *              contains a block of clean metadata. A new piece is added that
- *              aligns with the end of the data (and accumulator) such that
- *              the accumulator needs to resize to account for it. After doing
- *              the resize, the accumulator has grown too large, so it shrinks
- *              in order to stay within the maximum size limit.
- * 
- * Return:      Success: SUCCEED
- *              Failure: FAIL
- * 
- * Programmer:  Mike McGreevy
- *              October 8, 2010
- *
- *-------------------------------------------------------------------------
- */
-herr_t 
-test_append_resize_small_clean(void)
-{
-    int i = 0;
-    int s = 1048576;    /* size of buffer */
-    int32_t wbuf[s], rbuf[s];
+    /* ========================================================= */
+    /* Case 3: Appending small block to large, clean accumulator */
+    /* ========================================================= */
 
-    /* Zero out read buffer */
-    for(i=0;i<s;i++) rbuf[i]=0;
-
-    /* Fill up write buffer */
-    for(i=0;i<s;i++) wbuf[i]=i+1;
-
-    TESTING("appending small entry to clean accumulator to force resize");
-
-    /* Write data to the accumulator to fill it just under max size (but not full) */
-    if(accum_write(0,1048571,wbuf)<0) FAIL_STACK_ERROR;
+    /* Write data to the accumulator to fill it just under 1MB (max size),
+     * but not quite full. This will force the accumulator to, on subsequent
+     * writes, a) have to adjust since it's nearly full, and b) prevent
+     * an increase in size because it's already at it's maximum size */
+    if(accum_write(0,(1024*1024)-1,wbuf)<0) FAIL_STACK_ERROR;
 
     /* Flush the accumulator -- we want to test the case when
         accumulator contains clean data */
     accum_flush();
 
-    /* Write a new (small) piece of data that forces a resize of the accumulator for the smaller */
-    if(accum_write(1048571,10,wbuf)<0) FAIL_STACK_ERROR;
+    /* Write a small (1KB) block to the end of the accumulator */
+    /* ==> Accumulator will need more buffer space */
+    /* ==> Accumulator will try to resize, but see that it's getting too big */
+    /* ==> Size of new block is larger than half maximum size of accumulator */
+    /* ==> New block being appended to accumulator */
+    /* ==> Accumulator is NOT dirty */
+    /* ==> Since we're appending, need to adjust location of accumulator */
+    if(accum_write((1024*1024)-1,1024,wbuf)<0) FAIL_STACK_ERROR;
 
     /* Write a piece of metadata outside current accumulator to force write
         to disk */
@@ -971,63 +937,76 @@ test_append_resize_small_clean(void)
 
     /* Read in the piece we wrote to disk above, and then verify that 
         the data is as expected */
-    if(accum_read(1048571,10,rbuf)<0) FAIL_STACK_ERROR;
-    if(memcmp(wbuf,rbuf,10)!=0) TEST_ERROR;
+    if(accum_read((1024*1024)-1,1024,rbuf)<0) FAIL_STACK_ERROR;
+    if(memcmp(wbuf,rbuf,1024)!=0) TEST_ERROR;
 
-    PASSED();
+    /* Reset accumulator for next case */
     accum_reset();
-    return 0;
-error:
-    return 1;
-} /* test_append_resize_small_clean */ 
 
+    /* ==================================================================== */
+    /* Case 4: Appending small block to large, partially dirty accumulator, */
+    /*         with existing dirty region NOT aligning with the new block   */
+    /* ==================================================================== */
 
-/*-------------------------------------------------------------------------
- * Function:    test_append_resize_small_dirty
- * 
- * Purpose:     This test will verify the case when the metadata accumulator
- *              contains a block of metadata, some of which is dirty, and a 
- *              new piece is added that aligns with the end of the data such that
- *              the accumulator needs to resize to account for it. After doing
- *              the resize, the accumulator has grown too large, so it shrinks
- *              in order to stay within the maximum size limit, and slides the
- *              dirty region down while doing so.
- * 
- * Return:      Success: SUCCEED
- *              Failure: FAIL
- * 
- * Programmer:  Mike McGreevy
- *              October 8, 2010
- *
- *-------------------------------------------------------------------------
- */
-herr_t 
-test_append_resize_small_dirty(void)
-{
-    int i = 0;
-    int s = 1048576;    /* size of buffer */
-    int32_t wbuf[s], rbuf[s];
+    /* Write data to the accumulator to fill it just under 1MB (max size),
+     * but not quite full. This will force the accumulator to, on subsequent
+     * writes, a) have to adjust since it's nearly full, and b) prevent
+     * an increase in size because it's already at it's maximum size */
+    if(accum_write(0,(1024*1024)-5,wbuf)<0) FAIL_STACK_ERROR;
 
-    /* Zero out read buffer */
-    for(i=0;i<s;i++) rbuf[i]=0;
+    /* Flush the accumulator to clean it */
+    accum_flush();
 
-    /* Fill up write buffer */
-    for(i=0;i<s;i++) wbuf[i]=i+1;
+    /* write to part of the accumulator so just the start of it is dirty */
+    if(accum_write(0,5,wbuf)<0) FAIL_STACK_ERROR;
 
-    TESTING("appending small entry to dirty accumulator to force resize");
+    /* Write a small (~340KB) piece of data to the other end of the accumulator */
+    /* ==> Accumulator will need more buffer space */
+    /* ==> Accumulator will try to resize, but see that it's getting too big */
+    /* ==> Size of new block is less than than half maximum size of accumulator */
+    /* ==> New block being appended to accumulator */
+    /* ==> We can slide the dirty region down, to accomodate the request */
+    /* ==> Max Buffer Size - (dirty offset + adjust size) >= 2 * size) */ 
+    /* ==> Need to adjust location of accumulator while appending */
+    /* ==> Accumulator will need to be reallocated */
+    if(accum_write(1048571,349523,wbuf)<0) FAIL_STACK_ERROR;
 
-    /* Case 1 - dirty region aligns with new metadata */
+    /* Write a piece of metadata outside current accumulator to force write
+        to disk */
+    if(accum_write(1398900,1,wbuf)<0) FAIL_STACK_ERROR;
+
+    /* Read in the piece we wrote to disk above, and then verify that 
+        the data is as expected */
+    if(accum_read(1048571,349523,rbuf)<0) FAIL_STACK_ERROR;
+    if(memcmp(wbuf,rbuf,349523)!=0) TEST_ERROR;
+
+    /* Reset accumulator for next case */
+    accum_reset();
+
+    /* ==================================================================== */
+    /* Case 5: Appending small block to large, partially dirty accumulator, */
+    /*         with existing dirty region aligning with new block           */
+    /* ==================================================================== */
+
     /* Write data to the accumulator to fill it just under max size (but not full) */
-    if(accum_write(0,1048571,wbuf)<0) FAIL_STACK_ERROR;
+    if(accum_write(0,(1024*1024)-5,wbuf)<0) FAIL_STACK_ERROR;
 
     /* Flush the accumulator to clean it */
     accum_flush();
 
     /* write to part of the accumulator so it's dirty, but not entirely dirty */
-    if(accum_write(2,1048569,wbuf)<0) FAIL_STACK_ERROR;
+    /* (just the begging few bytes will be clean) */
+    if(accum_write(10,(1024*1024)-15,wbuf)<0) FAIL_STACK_ERROR;
 
-    /* Write a new (small) piece of data that forces a resize of the accumulator for the smaller */
-    if(accum_write(1048571,10,wbuf)<0) FAIL_STACK_ERROR;
+    /* Write a small piece of data to the dirty end of the accumulator */
+    /* ==> Accumulator will need more buffer space */
+    /* ==> Accumulator will try to resize, but see that it's getting too big */
+    /* ==> Size of new block is less than than half maximum size of accumulator */
+    /* ==> New block being appended to accumulator */
+    /* ==> We can slide the dirty region down, to accomodate the request */
+    /* ==> Max Buffer Size - (dirty offset + adjust size) < 2 * size) */ 
+    /* ==> Need to adjust location of accumulator while appending */
+    if(accum_write((1024*1024)-5,10,wbuf)<0) FAIL_STACK_ERROR;
 
     /* Write a piece of metadata outside current accumulator to force write
         to disk */
@@ -1035,22 +1014,30 @@ test_append_resize_small_dirty(void)
 
     /* Read in the piece we wrote to disk above, and then verify that 
         the data is as expected */
-    if(accum_read(1048571,10,rbuf)<0) FAIL_STACK_ERROR;
+    if(accum_read((1024*1024)-5,10,rbuf)<0) FAIL_STACK_ERROR;
     if(memcmp(wbuf,rbuf,10)!=0) TEST_ERROR;
+
+    /* Reset accumulator for next case */
     accum_reset();
 
-    /* Case 2 - dirty region does not align with dirty metadata */
-    accum_reset();
-    /* Write data to the accumulator to fill it just under max size (but not full) */
-    if(accum_write(0,1048571,wbuf)<0) FAIL_STACK_ERROR;
+    /* ================================================================= */
+    /* Case 6: Appending small block to large, fully dirty accumulator   */
+    /* ================================================================= */
 
-    /* Flush the accumulator to clean it */
-    accum_flush();
+    /* Write data to the accumulator to fill it just under 1MB (max size),
+     * but not quite full. This will force the accumulator to, on subsequent
+     * writes, a) have to adjust since it's nearly full, and b) prevent
+     * an increase in size because it's already at it's maximum size */
+    if(accum_write(0,(1024*1024)-5,wbuf)<0) FAIL_STACK_ERROR;
 
-    /* write to part of the accumulator so just the start is dirty */
-    if(accum_write(0,5,wbuf)<0) FAIL_STACK_ERROR;
-
-    /* Write a new (small) piece of data that forces a resize of the accumulator for the smaller */
+    /* Write a small (~340KB) piece of data to the end of the accumulator */
+    /* ==> Accumulator will need more buffer space */
+    /* ==> Accumulator will try to resize, but see that it's getting too big */
+    /* ==> Size of new block is less than than half maximum size of accumulator */
+    /* ==> New block being appended to accumulator */
+    /* ==> We cannot slide dirty region down, it's all dirty */
+    /* ==> Dirty region overlaps region to eliminate from accumulator */
+    /* ==> Need to adjust location of accumulator while appending */
     if(accum_write(1048571,349523,wbuf)<0) FAIL_STACK_ERROR;
 
     /* Write a piece of metadata outside current accumulator to force write
@@ -1067,7 +1054,7 @@ test_append_resize_small_dirty(void)
     return 0;
 error:
     return 1;
-} /* test_append_resize_small_dirty */ 
+} /* test_accum_adjust */
 
 
 /*-------------------------------------------------------------------------
