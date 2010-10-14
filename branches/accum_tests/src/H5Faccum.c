@@ -125,7 +125,7 @@ H5F_accum_read(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
 
     /* Check if this information is in the metadata accumulator */
     if((f->shared->feature_flags & H5FD_FEAT_ACCUMULATE_METADATA) && type != H5FD_MEM_DRAW) {
-        if(size <= H5F_ACCUM_MAX_SIZE) {
+        if(size < H5F_ACCUM_MAX_SIZE) {
             /* Sanity check */
             HDassert(!f->shared->accum.buf || (f->shared->accum.alloc_size >= f->shared->accum.size));
 
@@ -426,7 +426,7 @@ H5F_accum_write(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr,
 
     /* Check for accumulating metadata */
     if((f->shared->feature_flags & H5FD_FEAT_ACCUMULATE_METADATA) && type != H5FD_MEM_DRAW) {
-        if(size <= H5F_ACCUM_MAX_SIZE) {
+        if(size < H5F_ACCUM_MAX_SIZE) {
             /* Sanity check */
             HDassert(!f->shared->accum.buf || (f->shared->accum.alloc_size >= f->shared->accum.size));
 
