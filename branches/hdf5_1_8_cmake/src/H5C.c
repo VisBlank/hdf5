@@ -7266,7 +7266,7 @@ H5C_flush_invalidate_cache(H5F_t * f,
 	    */
 
             HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, \
-	                "Pinned entry count not decreasing.")
+                        "Pinned entry count not decreasing, cur_pel_len = %d, old_pel_len = %d", (int)cur_pel_len, (int)old_pel_len)
 
         } else if ( ( cur_pel_len == 0 ) && ( old_pel_len == 0 ) ) {
 
@@ -8168,7 +8168,7 @@ H5C_make_space_in_cache(H5F_t *	f,
 #endif /* H5C_COLLECT_CACHE_STATS */
 
 	HDassert( ( entries_examined > (2 * initial_list_len) ) ||
-		  ( (cache_ptr->pl_size + cache_ptr->min_clean_size) >
+		  ( (cache_ptr->pl_size + cache_ptr->pel_size + cache_ptr->min_clean_size) >
 		    cache_ptr->max_cache_size ) ||
 		  ( ( cache_ptr->clean_index_size + empty_space )
 		    >= cache_ptr->min_clean_size ) );
