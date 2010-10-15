@@ -288,7 +288,6 @@ SUBROUTINE test_iter_group(total_error)
     CALL H5Literate_f(file, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, f1, f2, ret_value, error)
     CALL check("H5Literate_f", error, total_error)
 
-
     CALL H5Tcopy_f(H5T_NATIVE_INTEGER, datatype, error)
     CALL check("H5Tcopy_f", error, total_error)
 
@@ -380,11 +379,10 @@ SUBROUTINE test_iter_group(total_error)
           ichr10(j:j) = info%name(j)(1:1)
        ENDDO
        CALL verifystring("H5Literate_f", ichr10, lnames(INT(idx)), total_error)
-   !    IF(i.EQ.52)EXIT ! prints out error message otherwise (for gcc/gfortran/g95) not intel (why) -fix- scot
+       IF(i.EQ.52)EXIT ! prints out error message otherwise (for gcc/gfortran/g95) not intel (why) -FIX- scot
     END DO
     
-
-    ! put check if did not walk far enough -scot fix
+    ! put check if did not walk far enough -scot FIX
 
     CALL VERIFY("H5Literate_f", error,-1, total_error)
 
@@ -423,7 +421,7 @@ SUBROUTINE test_iter_group(total_error)
        ENDDO
        !/* Verify that the correct name is retrieved */
        CALL verifystring("H5Literate_f", ichr10, lnames(INT(idx)), total_error)
-    !   IF(i.EQ.42)EXIT ! prints out error message otherwise (for gcc/gfortran/g95) not intel (why) -fix- scot
+       IF(i.EQ.42)EXIT ! prints out error message otherwise (for gcc/gfortran/g95) not intel (why) -FIX- scot
     ENDDO
 
     IF(i .NE. 42 .OR. idx .NE. 52)THEN
