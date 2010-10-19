@@ -234,7 +234,7 @@ H5FO_delete(H5F_t *f, hid_t dxpl_id, haddr_t addr)
     } /* end if */
 
     /* Release the object information */
-    (void)H5FL_FREE(H5FO_open_obj_t, open_obj);
+    open_obj = H5FL_FREE(H5FO_open_obj_t, open_obj);
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -290,12 +290,12 @@ H5FO_mark(const H5F_t *f, haddr_t addr, hbool_t deleted)
  PURPOSE
     Check if an object is marked to be deleted when it is closed
  USAGE
-    htri_t H5FO_marked(f,addr)
+    hbool_t H5FO_marked(f,addr)
         const H5F_t *f;         IN: File opened object is in
         haddr_t addr;           IN: Address of object to delete
 
  RETURNS
-    Returns a TRUE/FALSE on success, negative on failure
+    Returns a TRUE/FALSE on success
  DESCRIPTION
     Checks if the object is currently in the "opened objects" tree and
     whether its marks for deletion from the file when it is closed.
@@ -304,11 +304,11 @@ H5FO_mark(const H5F_t *f, haddr_t addr, hbool_t deleted)
  EXAMPLES
  REVISION LOG
 --------------------------------------------------------------------------*/
-htri_t
+hbool_t
 H5FO_marked(const H5F_t *f, haddr_t addr)
 {
     H5FO_open_obj_t *open_obj;  /* Information about open object */
-    htri_t ret_value = FAIL;      /* Return value */
+    hbool_t ret_value = FALSE;  /* Return value */
 
     FUNC_ENTER_NOAPI_NOFUNC(H5FO_marked)
 
@@ -506,7 +506,7 @@ H5FO_top_decr(const H5F_t *f, haddr_t addr)
                 HGOTO_ERROR(H5E_CACHE, H5E_CANTRELEASE, FAIL, "can't remove object from container")
 
             /* Release the object information */
-            (void)H5FL_FREE(H5FO_obj_count_t, obj_count);
+            obj_count = H5FL_FREE(H5FO_obj_count_t, obj_count);
         } /* end if */
     } /* end if */
     else

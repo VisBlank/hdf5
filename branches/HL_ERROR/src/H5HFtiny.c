@@ -178,6 +178,9 @@ HDfprintf(stderr, "%s: obj_size = %Zu\n", FUNC, obj_size);
         *id++ = enc_obj_size & H5HF_TINY_MASK_EXT_2;
     } /* end else */
     HDmemcpy(id, obj, obj_size);
+#ifdef H5_CLEAR_MEMORY
+HDmemset(id + obj_size, 0, (hdr->id_len - (1 + hdr->tiny_len_extended + obj_size)));
+#endif /* H5_CLEAR_MEMORY */
 
     /* Update statistics about heap */
     hdr->tiny_size += obj_size;
@@ -291,7 +294,7 @@ H5HF_tiny_op_real(H5HF_hdr_t *hdr, const uint8_t *id, H5HF_operator_t op,
         HGOTO_ERROR(H5E_HEAP, H5E_CANTOPERATE, FAIL, "application's callback failed")
 
 done:
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5HF_tiny_op_real() */
 
 

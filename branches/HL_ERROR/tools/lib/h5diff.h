@@ -19,27 +19,40 @@
 #include "hdf5.h"
 #include "h5trav.h"
 
+#define MAX_FILENAME 1024
+
 /*-------------------------------------------------------------------------
  * command line options
  *-------------------------------------------------------------------------
  */
+/* linked list to keep exclude path list */
+struct exclude_path_list {
+    char  *obj_path;
+    h5trav_type_t obj_type;
+    struct exclude_path_list * next;
+};
 
 typedef struct {
-    int    m_quiet;   /* quiet mide: no output at all */
-    int    m_report;  /* report mode: print the data */
-    int    m_verbose; /* verbose mode: print the data, list of objcets, warnings */
-    int    d;         /* delta, absolute value to compare */
-    double delta;     /* delta value */
-    int    p;         /* relative error to compare*/
-    double percent;   /* relative error value */
-    int    n;         /* count, compare up to count */
-    hsize_t count;    /* count value */
-    int    err_stat;  /* an error ocurred (1, error, 0, no error) */
-    int    cmn_objs;  /* do we have common objects */
-    int    not_cmp;   /* are the objects comparable */
-    int    contents;  /* equal contents */
-    int    do_nans;   /* consider Nans while diffing floats */
-    int    m_list_not_cmp;   /* list not comparable messages */
+    int      m_quiet;               /* quiet mide: no output at all */
+    int      m_report;              /* report mode: print the data */
+    int      m_verbose;             /* verbose mode: print the data, list of objcets, warnings */
+    int      d;                     /* delta, absolute value to compare */
+    double   delta;                 /* delta value */
+    int      p;                     /* relative error to compare*/
+    int      use_system_epsilon;    /* flag to use system epsilon (1 or 0) */
+    double   percent;               /* relative error value */
+    int      n;                     /* count, compare up to count */
+    hsize_t  count;                 /* count value */
+    int      follow_links;          /* follow symbolic links */
+    int      no_dangle_links;       /* return error when find dangling link */
+    int      err_stat;              /* an error ocurred (1, error, 0, no error) */
+    int      cmn_objs;              /* do we have common objects */
+    int      not_cmp;               /* are the objects comparable */
+    int      contents;              /* equal contents */
+    int      do_nans;               /* consider Nans while diffing floats */
+    int      m_list_not_cmp;        /* list not comparable messages */
+    int      exclude_path;          /* exclude path to an object */
+    struct   exclude_path_list * exclude; /* keep exclude path list */
 } diff_opt_t;
 
 
@@ -52,15 +65,15 @@ typedef struct {
 extern "C" {
 #endif
 
-hsize_t  h5diff(const char *fname1,
+H5TOOLS_DLL hsize_t  h5diff(const char *fname1,
                 const char *fname2,
                 const char *objname1,
                 const char *objname2,
                 diff_opt_t *options);
 
 #ifdef H5_HAVE_PARALLEL
-void phdiff_dismiss_workers(void);
-void print_manager_output(void);
+H5TOOLS_DLL void phdiff_dismiss_workers(void);
+H5TOOLS_DLL void print_manager_output(void);
 #endif
 
 #ifdef __cplusplus
@@ -104,11 +117,9 @@ hsize_t diff_compare( hid_t file1_id,
                       trav_info_t *info2,
                       diff_opt_t *options );
 
-hsize_t diff_match( hid_t file1_id,
-                    trav_info_t *info1,
-                    hid_t file2_id,
-                    trav_info_t *info2,
-                    diff_opt_t *options );
+hsize_t diff_match( hid_t file1_id, const char *grp1, trav_info_t *info1,
+                    hid_t file2_id, const char *grp2, trav_info_t *info2,
+                    trav_table_t *table, diff_opt_t *options );
 
 hsize_t diff_array( void *_mem1,
                     void *_mem2,
@@ -151,7 +162,6 @@ hsize_t diff_attr(hid_t loc1_id,
  */
 
 void        print_found(hsize_t nfound);
-void        parallel_print(const char* format, ... );
 void        print_type(hid_t type);
 const char* diff_basename(const char *name);
 const char* get_type(h5trav_type_t type);

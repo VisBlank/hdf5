@@ -79,9 +79,14 @@ typedef herr_t (*H5EA__unprotect_func_t)(void *thing, hid_t dxpl_id,
 /* Package Variables */
 /*********************/
 
-/* HDF5 API Entered variable */
-/* (move to H5.c when new FUNC_ENTER macros in actual use -QAK) */
-hbool_t H5_api_entered_g = FALSE;
+/* Extensible array client ID to class mapping */
+
+/* Remember to add client ID to H5EA_cls_id_t in H5EAprivate.h when adding a new
+ * client class..
+ */
+const H5EA_class_t *const H5EA_client_class_g[] = {
+    H5EA_CLS_TEST,		/* ? - H5EA_CLS_TEST_ID			*/
+};
 
 
 /*****************************/
@@ -131,6 +136,9 @@ HDfprintf(stderr, "%s: Called\n", FUNC);
     HDassert(f);
     HDassert(cparam);
 
+    /* H5EA interface sanity check */
+    HDcompile_assert(H5EA_NUM_CLS_ID == NELMTS(H5EA_client_class_g));
+
     /* Create extensible array header */
     if(HADDR_UNDEF == (ea_addr = H5EA__hdr_create(f, dxpl_id, cparam, ctx_udata)))
 	H5E_THROW(H5E_CANTINIT, "can't create extensible array header")
@@ -140,7 +148,7 @@ HDfprintf(stderr, "%s: Called\n", FUNC);
 	H5E_THROW(H5E_CANTALLOC, "memory allocation failed for extensible array info")
 
     /* Lock the array header into memory */
-    if(NULL == (hdr = (H5EA_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_EARRAY_HDR, ea_addr, cparam->cls, NULL, H5AC_WRITE)))
+    if(NULL == (hdr = (H5EA_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_EARRAY_HDR, ea_addr, ctx_udata, H5AC_WRITE)))
 	H5E_THROW(H5E_CANTPROTECT, "unable to load extensible array header")
 
     /* Point extensible array wrapper at header and bump it's ref count */
@@ -185,8 +193,7 @@ END_FUNC(PRIV)  /* end H5EA_create() */
  */
 BEGIN_FUNC(PRIV, ERR,
 H5EA_t *, NULL, NULL,
-H5EA_open(H5F_t *f, hid_t dxpl_id, haddr_t ea_addr, const H5EA_class_t *cls,
-    void *ctx_udata))
+H5EA_open(H5F_t *f, hid_t dxpl_id, haddr_t ea_addr, void *ctx_udata))
 
     /* Local variables */
     H5EA_t *ea = NULL;          /* Pointer to new extensible array wrapper */
@@ -197,13 +204,12 @@ H5EA_open(H5F_t *f, hid_t dxpl_id, haddr_t ea_addr, const H5EA_class_t *cls,
      */
     HDassert(f);
     HDassert(H5F_addr_defined(ea_addr));
-    HDassert(cls);
 
     /* Load the array header into memory */
 #ifdef QAK
 HDfprintf(stderr, "%s: ea_addr = %a\n", FUNC, ea_addr);
 #endif /* QAK */
-    if(NULL == (hdr = (H5EA_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_EARRAY_HDR, ea_addr, cls, ctx_udata, H5AC_READ)))
+    if(NULL == (hdr = (H5EA_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_EARRAY_HDR, ea_addr, ctx_udata, H5AC_READ)))
         H5E_THROW(H5E_CANTPROTECT, "unable to load extensible array header, address = %llu", (unsigned long long)ea_addr)
 
     /* Check for pending array deletion */
@@ -548,7 +554,7 @@ if(sblock->dblk_npages)
 
                 /* Compute data block page address */
                 dblk_page_addr = sblock->dblk_addrs[dblk_idx] +
-                        H5EA_DBLOCK_PREFIX_SIZE(sblock) + 
+                        H5EA_DBLOCK_PREFIX_SIZE(sblock) +
                         (page_idx * sblock->dblk_page_size);
 #ifdef QAK
 HDfprintf(stderr, "%s: sblock->addr = %a\n", FUNC, sblock->addr);
@@ -812,8 +818,8 @@ HDfprintf(stderr, "%s: Called\n", FUNC);
     /* Set the shared array header's file context for this operation */
     hdr->f = ea->f;
 
-    /* Set up flush dependency between child_entry and metadata array 'thing' */
-    if(H5EA__create_flush_depend(hdr, parent_entry, (H5AC_info_t *)hdr) < 0)
+    /* Set up flush dependency between parent entry and extensible array header */
+    if(H5EA__create_flush_depend(parent_entry, (H5AC_info_t *)hdr) < 0)
         H5E_THROW(H5E_CANTDEPEND, "unable to create flush dependency on file metadata")
 
 CATCH
@@ -855,8 +861,8 @@ HDfprintf(stderr, "%s: Called\n", FUNC);
     /* Set the shared array header's file context for this operation */
     hdr->f = ea->f;
 
-    /* Remove flush dependency between child_entry and metadata array 'thing' */
-    if(H5EA__destroy_flush_depend(hdr, parent_entry, (H5AC_info_t *)hdr) < 0)
+    /* Remove flush dependency between parent entry and extensible array header */
+    if(H5EA__destroy_flush_depend(parent_entry, (H5AC_info_t *)hdr) < 0)
         H5E_THROW(H5E_CANTUNDEPEND, "unable to destroy flush dependency on file metadata")
 
 CATCH
@@ -883,7 +889,6 @@ herr_t, SUCCEED, FAIL,
 H5EA_support(const H5EA_t *ea, hid_t dxpl_id, hsize_t idx, H5AC_info_t *child_entry))
 
     /* Local variables */
-    H5EA_hdr_t *hdr = ea->hdr;          /* Header for EA */
     void *thing = NULL;                 /* Pointer to the array metadata containing the array index we are interested in */
     uint8_t *thing_elmt_buf;            /* Pointer to the element buffer for the array metadata */
     hsize_t thing_elmt_idx;             /* Index of the element in the element buffer for the array metadata */
@@ -898,10 +903,6 @@ HDfprintf(stderr, "%s: Index %Hu\n", FUNC, idx);
      * Check arguments.
      */
     HDassert(ea);
-    HDassert(hdr);
-
-    /* Set the shared array header's file context for this operation */
-    hdr->f = ea->f;
 
     /* Look up the array metadata containing the element we want to set */
     if(H5EA__lookup_elmt(ea, dxpl_id, idx, H5AC_WRITE, &thing, &thing_elmt_buf, &thing_elmt_idx, &thing_unprot_func) < 0)
@@ -913,7 +914,7 @@ HDfprintf(stderr, "%s: Index %Hu\n", FUNC, idx);
     HDassert(thing_unprot_func);
 
     /* Set up flush dependency between child_entry and metadata array 'thing' */
-    if(H5EA__create_flush_depend(hdr, (H5AC_info_t *)thing, child_entry) < 0)
+    if(H5EA__create_flush_depend((H5AC_info_t *)thing, child_entry) < 0)
         H5E_THROW(H5E_CANTDEPEND, "unable to create flush dependency on array metadata")
 
 CATCH
@@ -943,7 +944,6 @@ herr_t, SUCCEED, FAIL,
 H5EA_unsupport(const H5EA_t *ea, hid_t dxpl_id, hsize_t idx, H5AC_info_t *child_entry))
 
     /* Local variables */
-    H5EA_hdr_t *hdr = ea->hdr;          /* Header for EA */
     void *thing = NULL;                 /* Pointer to the array metadata containing the array index we are interested in */
     uint8_t *thing_elmt_buf;            /* Pointer to the element buffer for the array metadata */
     hsize_t thing_elmt_idx;             /* Index of the element in the element buffer for the array metadata */
@@ -958,10 +958,6 @@ HDfprintf(stderr, "%s: Index %Hu\n", FUNC, idx);
      * Check arguments.
      */
     HDassert(ea);
-    HDassert(hdr);
-
-    /* Set the shared array header's file context for this operation */
-    hdr->f = ea->f;
 
     /* Look up the array metadata containing the element we want to set */
     if(H5EA__lookup_elmt(ea, dxpl_id, idx, H5AC_READ, &thing, &thing_elmt_buf, &thing_elmt_idx, &thing_unprot_func) < 0)
@@ -973,7 +969,7 @@ HDfprintf(stderr, "%s: Index %Hu\n", FUNC, idx);
     HDassert(thing_unprot_func);
 
     /* Remove flush dependency between child_entry and metadata array 'thing' */
-    if(H5EA__destroy_flush_depend(hdr, (H5AC_info_t *)thing, child_entry) < 0)
+    if(H5EA__destroy_flush_depend((H5AC_info_t *)thing, child_entry) < 0)
         H5E_THROW(H5E_CANTUNDEPEND, "unable to destroy flush dependency on array metadata")
 
 CATCH
@@ -1031,28 +1027,52 @@ HDfprintf(stderr, "%s: Called\n", FUNC);
         } /* end if */
     } /* end if */
 
-    /* Decrement the reference count on the array header */
-    /* (don't put in H5EA_hdr_fuse_decr() as the array header may be evicted
-     *  immediately -QAK)
-     */
-    if(H5EA__hdr_decr(ea->hdr) < 0)
-        H5E_THROW(H5E_CANTDEC, "can't decrement reference count on shared array header")
-
     /* Check for pending array deletion */
     if(pending_delete) {
         H5EA_hdr_t *hdr;            /* Another pointer to extensible array header */
 
+#ifndef NDEBUG
+{
+    unsigned hdr_status = 0;         /* Header's status in the metadata cache */
+
+    /* Check the header's status in the metadata cache */
+    if(H5AC_get_entry_status(ea->f, ea_addr, &hdr_status) < 0)
+        H5E_THROW(H5E_CANTGET, "unable to check metadata cache status for extensible array header")
+
+    /* Sanity checks on header */
+    HDassert(hdr_status & H5AC_ES__IN_CACHE);
+    HDassert(hdr_status & H5AC_ES__IS_PINNED);
+    HDassert(!(hdr_status & H5AC_ES__IS_PROTECTED));
+}
+#endif /* NDEBUG */
+
         /* Lock the array header into memory */
-        if(NULL == (hdr = (H5EA_hdr_t *)H5AC_protect(ea->f, dxpl_id, H5AC_EARRAY_HDR, ea_addr, NULL, NULL, H5AC_WRITE)))
+        /* (OK to pass in NULL for callback context, since we know the header must be in the cache) */
+        if(NULL == (hdr = (H5EA_hdr_t *)H5AC_protect(ea->f, dxpl_id, H5AC_EARRAY_HDR, ea_addr, NULL, H5AC_WRITE)))
             H5E_THROW(H5E_CANTLOAD, "unable to load extensible array header")
 
         /* Set the shared array header's file context for this operation */
         hdr->f = ea->f;
 
+        /* Decrement the reference count on the array header */
+        /* (don't put in H5EA_hdr_fuse_decr() as the array header may be evicted
+         *  immediately -QAK)
+         */
+        if(H5EA__hdr_decr(ea->hdr) < 0)
+            H5E_THROW(H5E_CANTDEC, "can't decrement reference count on shared array header")
+
         /* Delete array, starting with header (unprotects header) */
         if(H5EA__hdr_delete(hdr, dxpl_id) < 0)
             H5E_THROW(H5E_CANTDELETE, "unable to delete extensible array")
     } /* end if */
+    else {
+        /* Decrement the reference count on the array header */
+        /* (don't put in H5EA_hdr_fuse_decr() as the array header may be evicted
+         *  immediately -QAK)
+         */
+        if(H5EA__hdr_decr(ea->hdr) < 0)
+            H5E_THROW(H5E_CANTDEC, "can't decrement reference count on shared array header")
+    } /* end else */
 
     /* Release the extensible array wrapper */
     ea = (H5EA_t *)H5FL_FREE(H5EA_t, ea);
@@ -1077,7 +1097,7 @@ END_FUNC(PRIV)  /* end H5EA_close() */
  */
 BEGIN_FUNC(PRIV, ERR,
 herr_t, SUCCEED, FAIL,
-H5EA_delete(H5F_t *f, hid_t dxpl_id, haddr_t ea_addr))
+H5EA_delete(H5F_t *f, hid_t dxpl_id, haddr_t ea_addr, void *ctx_udata))
 
     /* Local variables */
     H5EA_hdr_t *hdr = NULL;             /* The fractal heap header information */
@@ -1092,7 +1112,7 @@ H5EA_delete(H5F_t *f, hid_t dxpl_id, haddr_t ea_addr))
 #ifdef QAK
 HDfprintf(stderr, "%s: ea_addr = %a\n", FUNC, ea_addr);
 #endif /* QAK */
-    if(NULL == (hdr = (H5EA_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_EARRAY_HDR, ea_addr, NULL, NULL, H5AC_WRITE)))
+    if(NULL == (hdr = (H5EA_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_EARRAY_HDR, ea_addr, ctx_udata, H5AC_WRITE)))
         H5E_THROW(H5E_CANTPROTECT, "unable to protect extensible array header, address = %llu", (unsigned long long)ea_addr)
 
     /* Check for files using shared array header */

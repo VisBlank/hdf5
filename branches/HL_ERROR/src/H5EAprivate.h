@@ -50,6 +50,7 @@
 /* Extensible array class IDs */
 typedef enum H5EA_cls_id_t {
     /* Start real class IDs at 0 -QAK */
+    /* (keep these last) */
     H5EA_CLS_TEST_ID,	        /* Extensible array is for testing (do not use for actual data) */
     H5EA_NUM_CLS_ID             /* Number of Extensible Array class IDs (must be last) */
 } H5EA_cls_id_t;
@@ -60,6 +61,7 @@ typedef enum H5EA_cls_id_t {
  */
 typedef struct H5EA_class_t {
     H5EA_cls_id_t id;           /* ID of Extensible Array class, as found in file */
+    const char *name;           /* Name of class (for debugging) */
     size_t nat_elmt_size;       /* Size of native (memory) element */
 
     /* Extensible array client callback methods */
@@ -69,6 +71,8 @@ typedef struct H5EA_class_t {
     herr_t (*encode)(void *raw, const void *elmt, size_t nelmts, void *ctx);   /* Encode elements from native form to disk storage form */
     herr_t (*decode)(const void *raw, void *elmt, size_t nelmts, void *ctx);   /* Decode elements from disk storage form to native form */
     herr_t (*debug)(FILE *stream, int indent, int fwidth, hsize_t idx, const void *elmt); /* Print an element for debugging */
+    void *(*crt_dbg_ctx)(H5F_t *f, hid_t dxpl_id, haddr_t obj_addr); /* Create debugging context */
+    herr_t (*dst_dbg_ctx)(void *dbg_ctx);       /* Destroy debugging context */
 } H5EA_class_t;
 
 /* Extensible array creation parameters */
@@ -121,8 +125,7 @@ typedef struct H5EA_t H5EA_t;
 /* General routines */
 H5_DLL H5EA_t *H5EA_create(H5F_t *f, hid_t dxpl_id, const H5EA_create_t *cparam,
     void *ctx_udata);
-H5_DLL H5EA_t *H5EA_open(H5F_t *f, hid_t dxpl_id, haddr_t ea_addr,
-    const H5EA_class_t *cls, void *ctx_udata);
+H5_DLL H5EA_t *H5EA_open(H5F_t *f, hid_t dxpl_id, haddr_t ea_addr, void *ctx_udata);
 H5_DLL herr_t H5EA_get_nelmts(const H5EA_t *ea, hsize_t *nelmts);
 H5_DLL herr_t H5EA_get_addr(const H5EA_t *ea, haddr_t *addr);
 H5_DLL herr_t H5EA_set(const H5EA_t *ea, hid_t dxpl_id, hsize_t idx, const void *elmt);
@@ -134,7 +137,7 @@ H5_DLL herr_t H5EA_support(const H5EA_t *ea, hid_t dxpl_id, hsize_t idx,
 H5_DLL herr_t H5EA_unsupport(const H5EA_t *ea, hid_t dxpl_id, hsize_t idx,
     H5AC_info_t *child_entry);
 H5_DLL herr_t H5EA_close(H5EA_t *ea, hid_t dxpl_id);
-H5_DLL herr_t H5EA_delete(H5F_t *f, hid_t dxpl_id, haddr_t ea_addr);
+H5_DLL herr_t H5EA_delete(H5F_t *f, hid_t dxpl_id, haddr_t ea_addr, void *ctx_udata);
 
 /* Statistics routines */
 H5_DLL herr_t H5EA_get_stats(const H5EA_t *ea, H5EA_stat_t *stats);

@@ -404,8 +404,11 @@ H5MF_sect_simple_shrink(H5FS_section_info_t **_sect, void *_udata)
 
     /* Check for shrinking file */
     if(H5MF_SHRINK_EOA == udata->shrink) {
+        /* Sanity check */
+        HDassert(H5F_INTENT(udata->f) & H5F_ACC_RDWR);
+
         /* Release section's space at EOA with file driver */
-        if(H5FD_free(udata->f->shared->lf, udata->dxpl_id, udata->alloc_type, (*sect)->sect_info.addr, (*sect)->sect_info.size) < 0)
+        if(H5FD_free(udata->f->shared->lf, udata->dxpl_id, udata->alloc_type, udata->f, (*sect)->sect_info.addr, (*sect)->sect_info.size) < 0)
             HGOTO_ERROR(H5E_RESOURCE, H5E_CANTFREE, FAIL, "driver free request failed")
     } /* end if */
     else {
@@ -456,7 +459,7 @@ H5MF_sect_simple_free(H5FS_section_info_t *_sect)
     HDassert(sect);
 
     /* Release the section */
-    (void)H5FL_FREE(H5MF_free_section_t, sect);
+    sect = H5FL_FREE(H5MF_free_section_t, sect);
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 }   /* H5MF_sect_simple_free() */
@@ -477,7 +480,7 @@ H5MF_sect_simple_free(H5FS_section_info_t *_sect)
  */
 static herr_t
 H5MF_sect_simple_valid(const H5FS_section_class_t UNUSED *cls,
-    const H5FS_section_info_t 
+    const H5FS_section_info_t
 #ifdef NDEBUG
     UNUSED
 #endif /* NDEBUG */
@@ -527,5 +530,4 @@ H5MF_sect_simple_split(H5FS_section_info_t *sect, hsize_t frag_size)
 done:
     FUNC_LEAVE_NOAPI((H5FS_section_info_t *)ret_value)
 } /* end H5MF_sect_simple_split() */
-
 

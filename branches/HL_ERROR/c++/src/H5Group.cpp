@@ -95,7 +95,7 @@ Group::Group(const hid_t existing_id) : H5Object()
 ///\param	ref_type - IN: Reference type - default to H5R_OBJECT
 ///\exception	H5::ReferenceException
 ///\par Description
-///		\c obj can be DataSet, Group, or named DataType, that 
+///		\c obj can be DataSet, Group, or named DataType, that
 ///		is a datatype that has been named by DataType::commit.
 // Programmer	Binh-Minh Ribler - Oct, 2006
 //--------------------------------------------------------------------------
@@ -251,10 +251,8 @@ void Group::close()
 	{
 	    throw GroupIException("Group::close", "H5Gclose failed");
 	}
-	// reset the id when the group that it represents is no longer
-	// referenced
-	if (getCounter() == 0)
-	    id = 0;
+	// reset the id
+	id = 0;
     }
 }
 

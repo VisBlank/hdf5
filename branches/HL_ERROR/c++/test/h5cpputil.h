@@ -35,7 +35,8 @@ using std::cerr;
 using std::endl;
 #endif
 
-#define SUBTEST(WHAT)   {printf("   Subtest: %-52s",WHAT); fflush(stdout);}
+#define MESSAGE(V,A) {if (HDGetTestVerbosity()>(V)) print_func A;}
+#define SUBTEST(TEST) {printf("   Subtest: %-52s",TEST); fflush(stdout);}
 
 int check_values (hsize_t i, hsize_t j, int apoint, int acheck);
 int test_report (int, const H5std_string&);
@@ -55,6 +56,9 @@ class TestFailedException : public Exception {
 	TestFailedException();
 	virtual ~TestFailedException();
 };
+
+// Overloaded/Template functions to verify values and display proper info
+void verify_val(const char* x, const char* value, const char* where, int line, const char* file_name);
 
 template <class Type1, class Type2>
     void verify_val(Type1 x, Type2 value, const char* where, int line, const char* file_name)
@@ -113,25 +117,28 @@ template <class Type1, class Type2>
 #ifdef __cplusplus
 extern "C" {
 #endif
-void test_attr(void);
-void test_compound(void);
-void test_file(void);
-void test_filters(void);
-void test_h5s(void);
-void test_reference(void);
-void test_types(void);
-void test_vlstrings(void);
+void test_attr();
+void test_compound();
+void test_file();
+void test_filters();
+void test_links();
+void test_h5s();
+void test_reference();
+void test_types();
+void test_vlstrings();
+void test_dset();
 
 /* Prototypes for the cleanup routines */
-void cleanup_attr(void);
-void cleanup_compound(void);
-void cleanup_dsets(void);
-void cleanup_file(void);
-void cleanup_filters(void);
-void cleanup_h5s(void);
-void cleanup_reference(void);
-void cleanup_types(void);
-void cleanup_vlstrings(void);
+void cleanup_attr();
+void cleanup_compound();
+void cleanup_dsets();
+void cleanup_file();
+void cleanup_filters();
+void cleanup_links();
+void cleanup_h5s();
+void cleanup_reference();
+void cleanup_types();
+void cleanup_vlstrings();
 
 #ifdef __cplusplus
 }

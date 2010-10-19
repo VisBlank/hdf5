@@ -214,7 +214,7 @@ int H5Object::iterateAttrs( attr_operator_t user_op, unsigned *_idx, void *op_da
    userData->object = this;
 
    // call the C library routine H5Aiterate2 to iterate the attributes
-   hsize_t idx = (hsize_t)*_idx;
+   hsize_t idx = _idx ? (hsize_t)*_idx : 0;
    int ret_value = H5Aiterate2(getId(), H5_INDEX_NAME, H5_ITER_INC, &idx,
 			userAttrOpWrpr, (void *) userData);
 
@@ -223,7 +223,8 @@ int H5Object::iterateAttrs( attr_operator_t user_op, unsigned *_idx, void *op_da
 
    if( ret_value >= 0 ) {
       /* Pass back update index value to calling code */
-      *_idx = (unsigned)idx;
+      if (_idx)
+	 *_idx = (unsigned)idx;
 
       return( ret_value );
    }
@@ -423,7 +424,7 @@ void H5Object::reference(void* ref, const H5std_string& name) const
 // Function:	H5Object::p_dereference (protected)
 // Purpose	Dereference a ref into an hdf5 object.
 // Parameters
-//		loc_id - IN: An hdf5 identifier specifying the location of the 
+//		loc_id - IN: An hdf5 identifier specifying the location of the
 //			 referenced object
 //		ref - IN: Reference pointer
 //		ref_type - IN: Reference type

@@ -47,7 +47,6 @@
 #define H5D_CRT_FILL_VALUE_NAME    "fill_value"         /* Fill value */
 #define H5D_CRT_ALLOC_TIME_STATE_NAME "alloc_time_state" /* Space allocation time state */
 #define H5D_CRT_EXT_FILE_LIST_NAME "efl"                /* External file list */
-#define H5D_CRT_DATA_PIPELINE_NAME "pline"              /* Data filter pipeline */
 
 /* ========  Dataset access property names ======== */
 #define H5D_ACS_DATA_CACHE_NUM_SLOTS_NAME   "rdcc_nslots"   /* Size of raw data chunk cache(slots) */
@@ -135,9 +134,16 @@ typedef struct H5D_dxpl_cache_t {
 /* Typedef for cached dataset creation property list information */
 typedef struct H5D_dcpl_cache_t {
     H5O_fill_t fill;            /* Fill value info (H5D_CRT_FILL_VALUE_NAME) */
-    H5O_pline_t pline;          /* I/O pipeline info (H5D_CRT_DATA_PIPELINE_NAME) */
+    H5O_pline_t pline;          /* I/O pipeline info (H5O_CRT_PIPELINE_NAME) */
     H5O_efl_t efl;              /* External file list info (H5D_CRT_EXT_FILE_LIST_NAME) */
 } H5D_dcpl_cache_t;
+
+/* Callback information for copying datasets */
+typedef struct H5D_copy_file_ud_t {
+    H5O_copy_file_ud_common_t common;   /* Shared information (must be first) */
+    struct H5S_extent_t *src_space_extent;     /* Copy of dataspace extent for dataset */
+    H5T_t *src_dtype;                   /* Copy of datatype for dataset */
+} H5D_copy_file_ud_t;
 
 
 /*****************************/
@@ -155,7 +161,7 @@ H5_DLL herr_t H5D_close(H5D_t *dataset);
 H5_DLL H5O_loc_t *H5D_oloc(H5D_t *dataset);
 H5_DLL H5G_name_t *H5D_nameof(H5D_t *dataset);
 H5_DLL H5T_t *H5D_typeof(const H5D_t *dset);
-H5_DLL herr_t H5D_flush(const H5F_t *f, hid_t dxpl_id, unsigned flags);
+H5_DLL herr_t H5D_flush(const H5F_t *f, hid_t dxpl_id);
 
 /* Functions that operate on vlen data */
 H5_DLL herr_t H5D_vlen_reclaim(hid_t type_id, H5S_t *space, hid_t plist_id,
@@ -163,12 +169,12 @@ H5_DLL herr_t H5D_vlen_reclaim(hid_t type_id, H5S_t *space, hid_t plist_id,
 
 /* Functions that operate on contiguous storage */
 H5_DLL herr_t H5D_contig_delete(H5F_t *f, hid_t dxpl_id,
-    const H5O_layout_t *layout);
+    const H5O_storage_t *store);
 
 /* Functions that operate on chunked storage */
-H5_DLL herr_t H5D_chunk_idx_reset(H5O_layout_t *layout, hbool_t reset_addr);
+H5_DLL herr_t H5D_chunk_idx_reset(H5O_storage_chunk_t *storage, hbool_t reset_addr);
 H5_DLL herr_t H5D_chunk_delete(H5F_t *f, hid_t dxpl_id, H5O_t *oh,
-    H5O_layout_t *layout);
+    H5O_storage_t *store);
 
 /* Functions that operate on indexed storage */
 H5_DLL herr_t H5D_btree_debug(H5F_t *f, hid_t dxpl_id, haddr_t addr, FILE * stream,

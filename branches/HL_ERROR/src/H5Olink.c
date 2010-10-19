@@ -146,7 +146,7 @@ H5O_link_decode(H5F_t *f, hid_t UNUSED dxpl_id, H5O_t UNUSED *open_oh,
     /* Check for non-default link type */
     if(link_flags & H5O_LINK_STORE_LINK_TYPE) {
         /* Get the type of the link */
-        lnk->type = *p++;
+        lnk->type = (H5L_type_t)*p++;
         if(lnk->type < H5L_TYPE_HARD || lnk->type > H5L_TYPE_MAX)
             HGOTO_ERROR(H5E_OHDR, H5E_CANTLOAD, NULL, "bad link type")
     } /* end if */
@@ -254,7 +254,7 @@ done:
                 H5MM_xfree(lnk->u.soft.name);
             if(lnk->type >= H5L_TYPE_UD_MIN && lnk->u.ud.size > 0 && lnk->u.ud.udata != NULL)
                 H5MM_xfree(lnk->u.ud.udata);
-            (void)H5FL_FREE(H5O_link_t, lnk);
+            lnk = H5FL_FREE(H5O_link_t, lnk);
         } /* end if */
 
     FUNC_LEAVE_NOAPI(ret_value)
@@ -437,6 +437,14 @@ H5O_link_copy(const void *_mesg, void *_dest)
     ret_value = dest;
 
 done:
+    if(NULL == ret_value)
+        if(dest) {
+            if(dest->name && dest->name != lnk->name)
+                dest->name = (char *)H5MM_xfree(dest->name);
+            if(NULL == _dest)
+                dest = H5FL_FREE(H5O_link_t ,dest);
+        } /* end if */
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5O_link_copy() */
 
@@ -570,7 +578,7 @@ H5O_link_free(void *_mesg)
 
     /* Free information for link */
     H5O_link_reset(lnk);
-    (void)H5FL_FREE(H5O_link_t, lnk);
+    lnk = H5FL_FREE(H5O_link_t, lnk);
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5O_link_free() */
@@ -621,7 +629,7 @@ H5O_link_delete(H5F_t *f, hid_t dxpl_id, H5O_t UNUSED *open_oh, void *_mesg)
 
         /* Get the link class for this type of link. */
         if(NULL == (link_class = H5L_find_class(lnk->type)))
-            HGOTO_ERROR(H5E_LINK, H5E_NOTREGISTERED, FAIL, "link class not registered")
+            HGOTO_ERROR(H5E_OHDR, H5E_NOTREGISTERED, FAIL, "link class not registered")
 
         /* Check for delete callback */
         if(link_class->del_func) {
@@ -633,12 +641,12 @@ H5O_link_delete(H5F_t *f, hid_t dxpl_id, H5O_t UNUSED *open_oh, void *_mesg)
 
             /* Call user-defined link's 'delete' callback */
             if((link_class->del_func)(lnk->name, file_id, lnk->u.ud.udata, lnk->u.ud.size) < 0) {
-                H5I_dec_ref(file_id, FALSE);
+                H5I_dec_ref(file_id);
                 HGOTO_ERROR(H5E_OHDR, H5E_CALLBACK, FAIL, "link deletion callback returned failure")
             } /* end if */
 
             /* Release the file ID */
-            if(H5I_dec_ref(file_id, FALSE) < 0)
+            if(H5I_dec_ref(file_id) < 0)
                 HGOTO_ERROR(H5E_OHDR, H5E_CANTCLOSEFILE, FAIL, "can't close file")
         } /* end if */
     } /* end if */
@@ -705,7 +713,6 @@ H5O_link_copy_file(H5F_t UNUSED *file_src, void *native_src, H5F_t UNUSED *file_
     hid_t UNUSED dxpl_id)
 {
     H5O_link_t  *link_src = (H5O_link_t *)native_src;
-    H5O_link_t  *link_dst = NULL;
     void        *ret_value;          /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5O_link_copy_file)
@@ -721,17 +728,10 @@ H5O_link_copy_file(H5F_t UNUSED *file_src, void *native_src, H5F_t UNUSED *file_
 
     /* Allocate "blank" link for destination */
     /* (values will be filled in during 'post copy' operation) */
-    if(NULL == (link_dst = H5FL_CALLOC(H5O_link_t)))
+    if(NULL == (ret_value = H5FL_CALLOC(H5O_link_t)))
 	HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
 
-    /* Set return value */
-    ret_value = link_dst;
-
 done:
-    if(!ret_value)
-        if(link_dst)
-            H5O_link_free(link_dst);
-
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5O_link_copy_file() */
 

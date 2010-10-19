@@ -29,15 +29,8 @@
 #define DATAFILE2  "tvlstr2.h5"
 
 /* 1-D dataset with fixed dimensions */
-#define SPACE1_NAME  "Space1"
 #define SPACE1_RANK	1
 #define SPACE1_DIM1	4
-
-/* 2-D dataset with fixed dimensions */
-#define SPACE2_NAME  "Space2"
-#define SPACE2_RANK	2
-#define SPACE2_DIM1	10
-#define SPACE2_DIM2	10
 
 #define VLSTR_TYPE      "vl_string_type"
 
@@ -573,7 +566,7 @@ static void test_write_vl_string_attribute(void)
     hid_t file, root, dataspace, att;
     hid_t type;
     herr_t ret;
-    char *string_att_check;
+    char *string_att_check = NULL;
 
     /* Open the file */
     file = H5Fopen(DATAFILE, H5F_ACC_RDWR, H5P_DEFAULT);
@@ -602,10 +595,11 @@ static void test_write_vl_string_attribute(void)
     ret = H5Aread(att, type, &string_att_check);
     CHECK(ret, FAIL, "H5Aread");
 
-    if(HDstrcmp(string_att_check,string_att)!=0)
+    if(HDstrcmp(string_att_check,string_att) != 0)
         TestErrPrintf("VL string attributes don't match!, string_att=%s, string_att_check=%s\n",string_att,string_att_check);
 
     HDfree(string_att_check);
+    string_att_check = NULL;
 
     ret = H5Aclose(att);
     CHECK(ret, FAIL, "HAclose");
@@ -623,10 +617,12 @@ static void test_write_vl_string_attribute(void)
     ret = H5Aread(att, type, &string_att_check);
     CHECK(ret, FAIL, "H5Aread");
 
-    if(HDstrcmp(string_att_check,string_att_write)!=0)
+    if(HDstrcmp(string_att_check,string_att_write) != 0)
         TestErrPrintf("VL string attributes don't match!, string_att_write=%s, string_att_check=%s\n",string_att_write,string_att_check);
 
     HDfree(string_att_check);
+    string_att_check = NULL;
+
     /* The attribute string written is freed below, in the test_read_vl_string_attribute() test */
     /* HDfree(string_att_write); */
 
@@ -659,7 +655,7 @@ static void test_read_vl_string_attribute(void)
     hid_t file, root, att;
     hid_t type;
     herr_t ret;
-    char *string_att_check;
+    char *string_att_check = NULL;
 
     /* Open file */
     file = H5Fopen(DATAFILE, H5F_ACC_RDONLY, H5P_DEFAULT);
@@ -682,10 +678,11 @@ static void test_read_vl_string_attribute(void)
     ret = H5Aread(att, type, &string_att_check);
     CHECK(ret, FAIL, "H5Aread");
 
-    if(HDstrcmp(string_att_check,string_att)!=0)
+    if(HDstrcmp(string_att_check,string_att) != 0)
         TestErrPrintf("VL string attributes don't match!, string_att=%s, string_att_check=%s\n",string_att,string_att_check);
 
     HDfree(string_att_check);
+    string_att_check = NULL;
 
     ret = H5Aclose(att);
     CHECK(ret, FAIL, "HAclose");
@@ -694,14 +691,20 @@ static void test_read_vl_string_attribute(void)
     att = H5Aopen(root, "test_scalar_large", H5P_DEFAULT);
     CHECK(att, FAIL, "H5Aopen");
 
-    ret = H5Aread(att, type, &string_att_check);
-    CHECK(ret, FAIL, "H5Aread");
+    if(string_att_write) {
+        ret = H5Aread(att, type, &string_att_check);
+        CHECK(ret, FAIL, "H5Aread");
 
-    if(HDstrcmp(string_att_check,string_att_write)!=0)
-        TestErrPrintf("VL string attributes don't match!, string_att_write=%s, string_att_check=%s\n",string_att_write,string_att_check);
+        if(HDstrcmp(string_att_check,string_att_write) != 0)
+            TestErrPrintf("VL string attributes don't match!, string_att_write=%s, string_att_check=%s\n",string_att_write,string_att_check);
 
-    HDfree(string_att_check);
-    HDfree(string_att_write);   /* Free string allocated in test_write_vl_string_attribute */
+        HDfree(string_att_check);
+        string_att_check = NULL;
+    }
+
+    /* Free string allocated in test_write_vl_string_attribute */
+    if(string_att_write)
+        HDfree(string_att_write);
 
     ret = H5Aclose(att);
     CHECK(ret, FAIL, "HAclose");

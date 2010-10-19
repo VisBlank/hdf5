@@ -44,6 +44,7 @@
 #include "H5Opkg.h"             /* Object headers			*/
 #include "H5Pprivate.h"         /* Property lists                       */
 
+
 /****************/
 /* Local Macros */
 /****************/
@@ -65,7 +66,7 @@
 
 static herr_t H5O_copy_free_addrmap_cb(void *item, void *key, void *op_data);
 static herr_t H5O_copy_header_real(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
-    hid_t dxpl_id, H5O_copy_t *cpy_info);
+    hid_t dxpl_id, H5O_copy_t *cpy_info, H5O_type_t *obj_type, void **udata);
 static herr_t H5O_copy_header(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
     hid_t dxpl_id, unsigned cpy_option);
 static herr_t H5O_copy_obj(H5G_loc_t *src_loc, H5G_loc_t *dst_loc,
@@ -284,7 +285,7 @@ done:
  */
 static herr_t
 H5O_copy_header_real(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
-    hid_t dxpl_id, H5O_copy_t *cpy_info)
+    hid_t dxpl_id, H5O_copy_t *cpy_info, H5O_type_t *obj_type, void **udata)
 {
     H5O_addr_map_t         *addr_map = NULL;       /* Address mapping of object copied */
     H5O_t                  *oh_src = NULL;         /* Object header for source object */
@@ -298,7 +299,7 @@ H5O_copy_header_real(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
     H5O_mesg_t             *mesg_dst;               /* Message in source object header */
     const H5O_msg_class_t  *copy_type;              /* Type of message to use for copying */
     const H5O_obj_class_t  *obj_class = NULL;       /* Type of object we are copying */
-    void                   *udata = NULL;           /* User data for passing to message callbacks */
+    void                   *cpy_udata = NULL;       /* User data for passing to message callbacks */
     uint64_t               dst_oh_size;             /* Total size of the destination OH */
     size_t                 dst_oh_null;             /* Size of the null message to add to destination OH */
     unsigned               dst_oh_gap;              /* Size of the gap in chunk #0 of destination OH */
@@ -306,7 +307,7 @@ H5O_copy_header_real(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
     size_t                 msghdr_size;
     herr_t                 ret_value = SUCCEED;
 
-    FUNC_ENTER_NOAPI_NOINIT(H5O_copy_header_real)
+    FUNC_ENTER_NOAPI_NOINIT_TAG(H5O_copy_header_real, dxpl_id, oloc_src->addr, FAIL)
 
     HDassert(oloc_src);
     HDassert(oloc_src->file);
@@ -315,8 +316,8 @@ H5O_copy_header_real(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
     HDassert(cpy_info);
 
     /* Get source object header */
-    if(NULL == (oh_src = (H5O_t *)H5AC_protect(oloc_src->file, dxpl_id, H5AC_OHDR, oloc_src->addr, NULL, NULL, H5AC_READ)))
-        HGOTO_ERROR(H5E_OHDR, H5E_CANTLOAD, FAIL, "unable to load object header")
+    if(NULL == (oh_src = H5O_protect(oloc_src, dxpl_id, H5AC_READ)))
+        HGOTO_ERROR(H5E_OHDR, H5E_CANTPROTECT, FAIL, "unable to load object header")
 
     /* Get pointer to object class for this object */
     if(NULL == (obj_class = H5O_obj_class_real(oh_src)))
@@ -324,7 +325,7 @@ H5O_copy_header_real(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
 
     /* Retrieve user data for particular type of object to copy */
     if(obj_class->get_copy_file_udata &&
-            (NULL == (udata = (obj_class->get_copy_file_udata)())))
+            (NULL == (cpy_udata = (obj_class->get_copy_file_udata)())))
         HGOTO_ERROR(H5E_OHDR, H5E_CANTINIT, FAIL, "unable to retrieve copy user data")
 
     /* Flush any dirty messages in source object header to update the header chunks */
@@ -353,14 +354,18 @@ H5O_copy_header_real(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
     oh_dst->max_compact = oh_src->max_compact;
     oh_dst->min_dense = oh_src->min_dense;
 
-    /* Initialize size of chunk array.  The destination always has only one
-     * chunk.
+    /* Initialize size of chunk array.  Start off with zero chunks so this field
+     * is consistent with the current state of the chunk array.  This is
+     * important if an error occurs.
      */
-    oh_dst->alloc_nchunks = oh_dst->nchunks = 1;
+    oh_dst->alloc_nchunks = oh_dst->nchunks = 0;
 
-    /* Allocate memory for the chunk array */
-    if(NULL == (oh_dst->chunk = H5FL_SEQ_MALLOC(H5O_chunk_t, oh_dst->alloc_nchunks)))
+    /* Allocate memory for the chunk array - always start with 1 chunk */
+    if(NULL == (oh_dst->chunk = H5FL_SEQ_MALLOC(H5O_chunk_t, 1)))
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed")
+
+    /* Update number of allocated chunks.  There are still no chunks used. */
+    oh_dst->alloc_nchunks = 1;
 
     /* Allocate memory for "deleted" array.  This array marks the message in
      * the source that shouldn't be copied to the destination.
@@ -399,7 +404,8 @@ H5O_copy_header_real(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
             H5O_LOAD_NATIVE(oloc_src->file, dxpl_id, 0, oh_src, mesg_src, FAIL)
 
             /* Perform "pre copy" operation on message */
-            if((copy_type->pre_copy_file)(oloc_src->file, mesg_src->native, &(deleted[mesgno]), cpy_info, udata) < 0)
+            if((copy_type->pre_copy_file)(oloc_src->file, mesg_src->native,
+                    &(deleted[mesgno]), cpy_info, cpy_udata) < 0)
                 HGOTO_ERROR(H5E_OHDR, H5E_CANTINIT, FAIL, "unable to perform 'pre copy' operation on message")
 
             /* Check if the message should be deleted in the destination */
@@ -451,7 +457,7 @@ H5O_copy_header_real(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
         if(cpy_info->preserve_null && deleted[mesgno]) {
             mesg_dst->type = H5O_MSG_NULL;
             mesg_dst->flags = 0;
-            mesg_dst->dirty = 1;
+            mesg_dst->dirty = TRUE;
         } /* end if */
 
         /* Check for message class to operate on */
@@ -473,7 +479,7 @@ H5O_copy_header_real(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
             recompute_size = FALSE;
             if((mesg_dst->native = H5O_msg_copy_file(copy_type,
                     oloc_src->file, mesg_src->native, oloc_dst->file,
-                    &recompute_size, cpy_info, udata, dxpl_id)) == NULL)
+                    &recompute_size, cpy_info, cpy_udata, dxpl_id)) == NULL)
                 HGOTO_ERROR(H5E_OHDR, H5E_CANTCOPY, FAIL, "unable to copy object header message")
 
             /* Check if new message is shared */
@@ -543,7 +549,7 @@ H5O_copy_header_real(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
     /* Check if the chunk's data portion is too small */
     dst_oh_gap = dst_oh_null = 0;
     if(dst_oh_size < H5O_MIN_SIZE) {
-        size_t delta = (H5O_MIN_SIZE - dst_oh_size);    /* Delta in chunk size needed */
+        size_t delta = (size_t)(H5O_MIN_SIZE - dst_oh_size);    /* Delta in chunk size needed */
 
         /* Sanity check */
         HDassert((oh_dst->flags & H5O_HDR_CHUNK0_SIZE) == H5O_HDR_CHUNK0_1);
@@ -570,13 +576,23 @@ H5O_copy_header_real(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
     addr_new = oh_dst->chunk[0].addr;
 
     /* Create memory image for the new chunk */
-    if(NULL == (oh_dst->chunk[0].image = H5FL_BLK_MALLOC(chunk_image, (size_t)dst_oh_size)))
+    /* Note: we use calloc() instead of malloc() here because older versions of
+     *  some messages don't initialize "unused" bytes and because we want to
+     *  write out the same version of the object header and older versions of
+     *  object headers aligned messages.  In both those situations, it's
+     *  complex and error-prone to determine all the proper ways/places to
+     *  clear to zero bytes, so we just set the buffer to zero's here.
+     *  (QAK - 2010/08/17)
+     */
+    if(NULL == (oh_dst->chunk[0].image = H5FL_BLK_CALLOC(chunk_image, (size_t)dst_oh_size)))
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed")
 
     /* Set dest. chunk information */
-    oh_dst->chunk[0].dirty = TRUE;
     oh_dst->chunk[0].size = (size_t)dst_oh_size;
     oh_dst->chunk[0].gap = dst_oh_gap;
+
+    /* Update size of chunk array.  The destination now has one chunk. */
+    oh_dst->nchunks = 1;
 
     /* Set up raw pointers and copy messages that didn't need special
      * treatment.  This has to happen after the destination header has been
@@ -660,12 +676,16 @@ H5O_copy_header_real(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
 
     /* Insert the address mapping for the new object into the copied list */
     /* (Do this here, because "post copy" possibly checks it) */
-    addr_map->src_addr = oloc_src->addr;
+    H5F_GET_FILENO(oloc_src->file, addr_map->src_obj_pos.fileno);
+    addr_map->src_obj_pos.addr = oloc_src->addr;
     addr_map->dst_addr = oloc_dst->addr;
     addr_map->is_locked = TRUE;                 /* We've locked the object currently */
     addr_map->inc_ref_count = 0;                /* Start with no additional ref counts to add */
+    addr_map->obj_class = obj_class;
+    addr_map->udata = cpy_udata;
 
-    if(H5SL_insert(cpy_info->map_list, addr_map, &(addr_map->src_addr)) < 0)
+    /* Insert into skip list */
+    if(H5SL_insert(cpy_info->map_list, addr_map, &(addr_map->src_obj_pos)) < 0)
         HGOTO_ERROR(H5E_OHDR, H5E_CANTINSERT, FAIL, "can't insert object into skip list")
 
     /* "post copy" loop over messages, to fix up any messages which require a complete
@@ -718,9 +738,27 @@ H5O_copy_header_real(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
         oh_dst->nlink += (unsigned)addr_map->inc_ref_count;
     } /* end if */
 
+    /* Set metadata tag for destination object's object header */
+    H5_BEGIN_TAG(dxpl_id, oloc_dst->addr, FAIL);
+
     /* Insert destination object header in cache */
-    if(H5AC_set(oloc_dst->file, dxpl_id, H5AC_OHDR, oloc_dst->addr, oh_dst, H5AC__NO_FLAGS_SET) < 0)
-        HGOTO_ERROR(H5E_OHDR, H5E_CANTINIT, FAIL, "unable to cache object header")
+    if(H5AC_insert_entry(oloc_dst->file, dxpl_id, H5AC_OHDR, oloc_dst->addr, oh_dst, H5AC__NO_FLAGS_SET) < 0)
+        HGOTO_ERROR(H5E_OHDR, H5E_CANTINSERT, FAIL, "unable to cache object header")
+    oh_dst = NULL;
+
+    /* Reset metadat tag */
+    H5_END_TAG(FAIL);
+
+    /* Retag all copied metadata to apply the destination object's tag */
+    if(H5AC_retag_copied_metadata(oloc_dst->file, oloc_dst->addr) < 0)
+        HGOTO_ERROR(H5E_CACHE, H5E_CANTTAG, FAIL, "unable to re-tag metadata entries")
+
+    /* Set obj_type and udata, if requested */
+    if(obj_type) {
+        HDassert(udata);
+        *obj_type = obj_class->type;
+        *udata = cpy_udata;
+    } /* end if */
 
 done:
     /* Free deleted array */
@@ -728,26 +766,14 @@ done:
         HDfree(deleted);
 
     /* Release pointer to source object header and its derived objects */
-    if(oh_src != NULL) {
-        /* Unprotect the source object header */
-        if(H5AC_unprotect(oloc_src->file, dxpl_id, H5AC_OHDR, oloc_src->addr, oh_src, H5AC__NO_FLAGS_SET) < 0)
-            HDONE_ERROR(H5E_OHDR, H5E_PROTECT, FAIL, "unable to release object header")
-    } /* end if */
+    if(oh_src && H5O_unprotect(oloc_src, dxpl_id, oh_src, H5AC__NO_FLAGS_SET) < 0)
+        HDONE_ERROR(H5E_OHDR, H5E_CANTUNPROTECT, FAIL, "unable to release object header")
 
     /* Release pointer to destination object header */
-    if(ret_value < 0 && oh_dst) {
-        if(H5O_dest(oloc_dst->file, oh_dst) < 0)
-	    HDONE_ERROR(H5E_OHDR, H5E_CANTFREE, FAIL, "unable to destroy object header data")
-    } /* end if */
+    if(ret_value < 0 && oh_dst && H5O_free(oh_dst) < 0)
+        HDONE_ERROR(H5E_OHDR, H5E_CANTFREE, FAIL, "unable to destroy object header data")
 
-    /* Release user data for particular type of object to copy */
-    if(udata) {
-        HDassert(obj_class);
-        HDassert(obj_class->free_copy_file_udata);
-        (obj_class->free_copy_file_udata)(udata);
-    } /* end if */
-
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_TAG(ret_value, FAIL)
 } /* end H5O_copy_header_real() */
 
 
@@ -766,22 +792,30 @@ done:
  */
 herr_t
 H5O_copy_header_map(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
-    hid_t dxpl_id, H5O_copy_t *cpy_info, hbool_t inc_depth)
+    hid_t dxpl_id, H5O_copy_t *cpy_info, hbool_t inc_depth,
+    H5O_type_t *obj_type, void **udata)
 {
-    H5O_addr_map_t      *addr_map;              /* Address mapping of object copied */
+    H5O_addr_map_t      *addr_map = NULL;       /* Address mapping of object copied */
+    H5_obj_t            src_obj_pos;            /* Position of source object */
     hbool_t             inc_link;               /* Whether to increment the link count for the object */
-    herr_t             ret_value = SUCCEED;
+    herr_t              ret_value = SUCCEED;
 
     FUNC_ENTER_NOAPI(H5O_copy_header_map, FAIL)
 
     /* Sanity check */
     HDassert(oloc_src);
+    HDassert(oloc_src->file);
     HDassert(oloc_dst);
     HDassert(oloc_dst->file);
     HDassert(cpy_info);
 
-    /* Look up the address of the object to copy in the skip list */
-    addr_map = (H5O_addr_map_t *)H5SL_search(cpy_info->map_list, &(oloc_src->addr));
+    /* Create object "position" struct */
+    H5F_GET_FILENO(oloc_src->file, src_obj_pos.fileno);
+    src_obj_pos.addr = oloc_src->addr;
+
+    /* Search for the object in the skip list of copied objects */
+    addr_map = (H5O_addr_map_t *)H5SL_search(cpy_info->map_list,
+            &src_obj_pos);
 
     /* Check if address is already in list of objects copied */
     if(addr_map == NULL) {
@@ -793,7 +827,8 @@ H5O_copy_header_map(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
             cpy_info->curr_depth++;
 
         /* Copy object referred to */
-        if(H5O_copy_header_real(oloc_src, oloc_dst, dxpl_id, cpy_info) < 0)
+        if(H5O_copy_header_real(oloc_src, oloc_dst, dxpl_id, cpy_info, obj_type,
+                udata) < 0)
             HGOTO_ERROR(H5E_OHDR, H5E_CANTCOPY, FAIL, "unable to copy object")
 
         /* Check for incrementing the depth of copy */
@@ -809,6 +844,13 @@ H5O_copy_header_map(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
     else {
         /* Object has already been copied, set its address in destination file */
         oloc_dst->addr = addr_map->dst_addr;
+
+        /* Return saved obj_type and udata, if requested */
+        if(obj_type) {
+            HDassert(udata);
+            *obj_type = addr_map->obj_class->type;
+            *udata = addr_map->udata;
+        } /* end if */
 
         /* If the object is locked currently (because we are copying a group
          * hierarchy and this is a link to a group higher in the hierarchy),
@@ -853,14 +895,23 @@ done:
  REVISION LOG
 --------------------------------------------------------------------------*/
 static herr_t
-H5O_copy_free_addrmap_cb(void *item, void UNUSED *key, void UNUSED *op_data)
+H5O_copy_free_addrmap_cb(void *_item, void UNUSED *key, void UNUSED *op_data)
 {
+    H5O_addr_map_t *item = (H5O_addr_map_t *)_item;
+
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5O_copy_free_addrmap_cb)
 
     HDassert(item);
 
+    /* Release user data for particular type of object */
+    if(item->udata) {
+        HDassert(item->obj_class);
+        HDassert(item->obj_class->free_copy_file_udata);
+        (item->obj_class->free_copy_file_udata)(item->udata);
+    } /* end if */
+
     /* Release the item */
-    (void)H5FL_FREE(H5O_addr_map_t, item);
+    item = H5FL_FREE(H5O_addr_map_t, item);
 
     FUNC_LEAVE_NOAPI(0)
 }   /* H5O_copy_free_addrmap_cb() */
@@ -913,11 +964,12 @@ H5O_copy_header(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
         cpy_info.preserve_null = TRUE;
 
     /* Create a skip list to keep track of which objects are copied */
-    if((cpy_info.map_list = H5SL_create(H5SL_TYPE_HADDR)) == NULL)
+    if((cpy_info.map_list = H5SL_create(H5SL_TYPE_OBJ)) == NULL)
         HGOTO_ERROR(H5E_SLIST, H5E_CANTCREATE, FAIL, "cannot make skip list")
 
     /* copy the object from the source file to the destination file */
-    if(H5O_copy_header_real(oloc_src, oloc_dst, dxpl_id, &cpy_info) < 0)
+    if(H5O_copy_header_real(oloc_src, oloc_dst, dxpl_id, &cpy_info, NULL, NULL)
+            < 0)
         HGOTO_ERROR(H5E_OHDR, H5E_CANTCOPY, FAIL, "unable to copy object")
 
 done:
@@ -949,6 +1001,7 @@ H5O_copy_obj(H5G_loc_t *src_loc, H5G_loc_t *dst_loc, const char *dst_name,
     H5G_name_t      new_path;                   /* Copied object group hier. path */
     H5O_loc_t       new_oloc;                   /* Copied object object location */
     H5G_loc_t       new_loc;                    /* Group location of object copied */
+    H5F_t           *cached_dst_file;           /* Cached destination file */
     hbool_t         entry_inserted=FALSE;       /* Flag to indicate that the new entry was inserted into a group */
     unsigned        cpy_option = 0;             /* Copy options */
     herr_t          ret_value = SUCCEED;        /* Return value */
@@ -975,9 +1028,18 @@ H5O_copy_obj(H5G_loc_t *src_loc, H5G_loc_t *dst_loc, const char *dst_name,
     H5G_loc_reset(&new_loc);
     new_oloc.file = dst_loc->oloc->file;
 
+    /* Make a copy of the destination file, in case the original is changed by
+     * H5O_copy_header.  If and when oloc's point to the shared file struct,
+     * this will no longer be necessary, so this code can be removed. */
+    cached_dst_file = dst_loc->oloc->file;
+
     /* Copy the object from the source file to the destination file */
     if(H5O_copy_header(src_loc->oloc, &new_oloc, dxpl_id, cpy_option) < 0)
         HGOTO_ERROR(H5E_OHDR, H5E_CANTCOPY, FAIL, "unable to copy object")
+
+    /* Patch dst_loc.  Again, this can be removed once oloc's point to shared
+     * file structs. */
+    dst_loc->oloc->file = cached_dst_file;
 
     /* Insert the new object in the destination file's group */
     if(H5L_link(dst_loc, dst_name, &new_loc, lcpl_id, H5P_DEFAULT, dxpl_id) < 0)
@@ -1017,7 +1079,8 @@ H5O_copy_obj_by_ref(H5O_loc_t *src_oloc, hid_t dxpl_id, H5O_loc_t *dst_oloc,
     HDassert(dst_oloc);
 
     /* Perform the copy, or look up existing copy */
-    if((ret_value = H5O_copy_header_map(src_oloc, dst_oloc, dxpl_id, cpy_info, FALSE)) < 0)
+    if((ret_value = H5O_copy_header_map(src_oloc, dst_oloc, dxpl_id, cpy_info,
+            FALSE, NULL, NULL)) < 0)
         HGOTO_ERROR(H5E_OHDR, H5E_CANTCOPY, FAIL, "unable to copy object")
 
     /* Check if a new valid object is copied to the destination */
@@ -1038,6 +1101,11 @@ H5O_copy_obj_by_ref(H5O_loc_t *src_oloc, hid_t dxpl_id, H5O_loc_t *dst_oloc,
         sprintf(tmp_obj_name, "~obj_pointed_by_%llu", (unsigned long long)dst_oloc->addr);
 
         /* Create a link to the newly copied object */
+        /* Note: since H5O_copy_header_map actually copied the target object, it
+         * must exist either in cache or on disk, therefore it is is safe to not
+         * pass the obj_type and udata fields returned by H5O_copy_header_map.
+         * This could be changed in the future to slightly improve performance
+         * --NAF */
         if(H5L_link(dst_root_loc, tmp_obj_name, &new_loc, H5P_DEFAULT, H5P_DEFAULT, dxpl_id) < 0)
             HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "unable to insert link")
 
@@ -1108,8 +1176,13 @@ H5O_copy_expand_ref(H5F_t *file_src, void *_src_ref, hid_t dxpl_id,
             dst_oloc.addr = HADDR_UNDEF;
 
             /* Attempt to copy object from source to destination file */
-            if(H5O_copy_obj_by_ref(&src_oloc, dxpl_id, &dst_oloc, &dst_root_loc, cpy_info) < 0)
-                HGOTO_ERROR(H5E_OHDR, H5E_CANTCOPY, FAIL, "unable to copy object")
+            if(src_oloc.addr != (haddr_t)0) {
+                if(H5O_copy_obj_by_ref(&src_oloc, dxpl_id, &dst_oloc, &dst_root_loc, cpy_info) < 0)
+                    HGOTO_ERROR(H5E_OHDR, H5E_CANTCOPY, FAIL, "unable to copy object")
+            } /* end if */
+            else
+                /* Set parameters so the reference is written as all 0's */
+                HDmemset(&dst_oloc.addr, 0, sizeof(dst_oloc.addr));
 
             /* Set the object reference info for the destination file */
             p = (uint8_t *)(&dst_ref[i]);
@@ -1120,7 +1193,7 @@ H5O_copy_expand_ref(H5F_t *file_src, void *_src_ref, hid_t dxpl_id,
     else if(H5R_DATASET_REGION == ref_type) {
         hdset_reg_ref_t *src_ref = (hdset_reg_ref_t *)_src_ref;
         hdset_reg_ref_t *dst_ref = (hdset_reg_ref_t *)_dst_ref;
-        uint8_t *buf;           /* Buffer to store serialized selection in */
+        uint8_t *buf = NULL;    /* Buffer to store serialized selection in */
         H5HG_t hobjid;          /* Heap object ID */
         size_t buf_size;        /* Length of object in heap */
 
@@ -1131,30 +1204,35 @@ H5O_copy_expand_ref(H5F_t *file_src, void *_src_ref, hid_t dxpl_id,
             H5F_addr_decode(src_oloc.file, (const uint8_t **)&p, &(hobjid.addr));
             INT32DECODE(p, hobjid.idx);
 
-            /* Get the dataset region from the heap (allocate inside routine) */
-            if((buf = (uint8_t *)H5HG_read(src_oloc.file, dxpl_id, &hobjid, NULL, &buf_size)) == NULL)
-                HGOTO_ERROR(H5E_REFERENCE, H5E_READERROR, FAIL, "Unable to read dataset region information")
+            if(hobjid.addr != (haddr_t)0) {
+                /* Get the dataset region from the heap (allocate inside routine) */
+                if((buf = (uint8_t *)H5HG_read(src_oloc.file, dxpl_id, &hobjid, NULL, &buf_size)) == NULL)
+                    HGOTO_ERROR(H5E_REFERENCE, H5E_READERROR, FAIL, "Unable to read dataset region information")
 
-            /* Get the object oid for the dataset */
-            p = (uint8_t *)buf;
-            H5F_addr_decode(src_oloc.file, (const uint8_t **)&p, &(src_oloc.addr));
-            dst_oloc.addr = HADDR_UNDEF;
+                /* Get the object oid for the dataset */
+                p = (uint8_t *)buf;
+                H5F_addr_decode(src_oloc.file, (const uint8_t **)&p, &(src_oloc.addr));
+                dst_oloc.addr = HADDR_UNDEF;
 
-            /* copy the object pointed by the ref to the destination */
-            if(H5O_copy_obj_by_ref(&src_oloc, dxpl_id, &dst_oloc, &dst_root_loc, cpy_info) < 0) {
-                H5MM_xfree(buf);
-                HGOTO_ERROR(H5E_OHDR, H5E_CANTCOPY, FAIL, "unable to copy object")
+                /* copy the object pointed by the ref to the destination */
+                if(H5O_copy_obj_by_ref(&src_oloc, dxpl_id, &dst_oloc, &dst_root_loc, cpy_info) < 0) {
+                    H5MM_xfree(buf);
+                    HGOTO_ERROR(H5E_OHDR, H5E_CANTCOPY, FAIL, "unable to copy object")
+                } /* end if */
+
+                /* Serialize object ID */
+                p = (uint8_t *)buf;
+                H5F_addr_encode(dst_oloc.file, &p, dst_oloc.addr);
+
+                /* Save the serialized buffer to the destination */
+                if(H5HG_insert(dst_oloc.file, dxpl_id, buf_size, buf, &hobjid) < 0) {
+                    H5MM_xfree(buf);
+                    HGOTO_ERROR(H5E_OHDR, H5E_CANTCOPY, FAIL, "Unable to write dataset region information")
+                } /* end if */
             } /* end if */
-
-            /* Serialize object ID */
-            p = (uint8_t *)buf;
-            H5F_addr_encode(dst_oloc.file, &p, dst_oloc.addr);
-
-            /* Save the serialized buffer to the destination */
-            if(H5HG_insert(dst_oloc.file, dxpl_id, buf_size, buf, &hobjid) < 0) {
-                H5MM_xfree(buf);
-                HGOTO_ERROR(H5E_OHDR, H5E_CANTCOPY, FAIL, "Unable to write dataset region information")
-            } /* end if */
+            else
+                /* Set parameters so the reference is written as all 0's */
+                HDmemset(&hobjid, 0, sizeof(hobjid));
 
             /* Set the dataset region reference info for the destination file */
             p = (uint8_t *)(&dst_ref[i]);

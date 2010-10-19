@@ -32,6 +32,7 @@
 /* Headers */
 /***********/
 #include "H5private.h"		/* Generic Functions			*/
+#include "H5ACprivate.h"        /* Metadata cache                       */
 #include "H5Eprivate.h"		/* Error handling			*/
 #include "H5FOprivate.h"	/* File objects				*/
 #include "H5Iprivate.h"		/* IDs					*/
@@ -301,6 +302,19 @@ H5Tcommit_anon(hid_t loc_id, hid_t type_id, hid_t tcpl_id, hid_t tapl_id)
     if(H5T_commit(loc.oloc->file, type, tcpl_id, H5AC_dxpl_id) < 0)
 	HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "unable to commit datatype")
 
+    /* Release the datatype's object header */
+    {
+        H5O_loc_t *oloc;         /* Object location for datatype */
+
+        /* Get the new committed datatype's object location */
+        if(NULL == (oloc = H5T_oloc(type)))
+            HGOTO_ERROR(H5E_DATATYPE, H5E_CANTGET, FAIL, "unable to get object location of committed datatype")
+
+        /* Decrement refcount on committed datatype's object header in memory */
+        if(H5O_dec_rc_by_loc(oloc, H5AC_dxpl_id) < 0)
+           HGOTO_ERROR(H5E_DATATYPE, H5E_CANTDEC, FAIL, "unable to decrement refcount on newly created object")
+    } /* end if */
+
 done:
     FUNC_LEAVE_API(ret_value)
 } /* end H5Tcommit_anon() */
@@ -333,6 +347,10 @@ H5T_commit(H5F_t *file, H5T_t *type, hid_t tcpl_id, hid_t dxpl_id)
     HDassert(file);
     HDassert(type);
     HDassert(tcpl_id != H5P_DEFAULT);
+
+    /* Check if we are allowed to write to this file */
+    if(0 == (H5F_INTENT(file) & H5F_ACC_RDWR))
+        HGOTO_ERROR(H5E_DATATYPE, H5E_WRITEERROR, FAIL, "no write intent on file")
 
     /*
      * Check arguments.  We cannot commit an immutable type because H5Tclose()
@@ -374,7 +392,7 @@ H5T_commit(H5F_t *file, H5T_t *type, hid_t tcpl_id, hid_t dxpl_id)
      * Create the object header and open it for write access. Insert the data
      * type message and then give the object header a name.
      */
-    if(H5O_create(file, dxpl_id, dtype_size, tcpl_id, &temp_oloc) < 0)
+    if(H5O_create(file, dxpl_id, dtype_size, (size_t)1, tcpl_id, &temp_oloc) < 0)
 	HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "unable to create datatype object header")
     if(H5O_msg_create(&temp_oloc, H5O_DTYPE_ID, H5O_MSG_FLAG_CONSTANT | H5O_MSG_FLAG_DONTSHARE, H5O_UPDATE_TIME, type, dxpl_id) < 0)
 	HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "unable to update type header message")
@@ -410,6 +428,8 @@ done:
             H5G_name_free(&temp_path);
         } /* end if */
         if((type->shared->state == H5T_STATE_TRANSIENT || type->shared->state == H5T_STATE_RDONLY) && (type->sh_loc.type == H5O_SHARE_TYPE_COMMITTED)) {
+            if(H5O_dec_rc_by_loc(&(type->oloc), dxpl_id) < 0)
+                HDONE_ERROR(H5E_DATATYPE, H5E_CANTDEC, FAIL, "unable to decrement refcount on newly created object")
 	    if(H5O_close(&(type->oloc)) < 0)
                 HDONE_ERROR(H5E_DATATYPE, H5E_CLOSEERROR, FAIL, "unable to release object header")
             if(H5O_delete(file, dxpl_id, type->sh_loc.u.loc.oh_addr) < 0)
@@ -659,7 +679,8 @@ H5Tget_create_plist(hid_t dtype_id)
 done:
     if(ret_value < 0)
         if(new_tcpl_id > 0)
-            (void)H5I_dec_ref(new_tcpl_id, TRUE);
+            if(H5I_dec_app_ref(new_tcpl_id) < 0)
+                HDONE_ERROR(H5E_DATATYPE, H5E_CANTDEC, FAIL, "unable to close temporary object")
 
     FUNC_LEAVE_API(ret_value)
 } /* end H5Tget_create_plist() */
@@ -741,6 +762,10 @@ H5T_open(const H5G_loc_t *loc, hid_t dxpl_id)
         /* Point to shared datatype info */
         dt->shared = shared_fo;
 
+        /* Mark any datatypes as being in memory now */
+        if(H5T_set_loc(dt, NULL, H5T_LOC_MEMORY) < 0)
+            HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, NULL, "invalid datatype location")
+
         /* Increment ref. count on shared info */
         shared_fo->fo_count++;
 
@@ -762,12 +787,12 @@ done:
     if(ret_value == NULL) {
         if(dt) {
             if(shared_fo == NULL)   /* Need to free shared fo */
-                H5FL_FREE(H5T_shared_t, dt->shared);
+                dt->shared = H5FL_FREE(H5T_shared_t, dt->shared);
 
             H5O_loc_free(&(dt->oloc));
             H5G_name_free(&(dt->path));
 
-            H5FL_FREE(H5T_t, dt);
+            dt = H5FL_FREE(H5T_t, dt);
         } /* end if */
 
         if(shared_fo)

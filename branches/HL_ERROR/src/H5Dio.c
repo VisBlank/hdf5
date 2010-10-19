@@ -159,7 +159,7 @@ H5Dread(hid_t dset_id, hid_t mem_type_id, hid_t mem_space_id,
     else
         if(TRUE != H5P_isa_class(plist_id, H5P_DATASET_XFER))
             HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not xfer parms")
-    if(!buf && H5S_GET_SELECT_NPOINTS(file_space) != 0)
+    if(!buf && (NULL == file_space || H5S_GET_SELECT_NPOINTS(file_space) != 0))
 	HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "no output buffer")
 
     /* If the buffer is nil, and 0 element is selected, make a fake buffer.
@@ -211,7 +211,7 @@ done:
  */
 herr_t
 H5Dwrite(hid_t dset_id, hid_t mem_type_id, hid_t mem_space_id,
-	 hid_t file_space_id, hid_t plist_id, const void *buf)
+	 hid_t file_space_id, hid_t dxpl_id, const void *buf)
 {
     H5D_t		   *dset = NULL;
     const H5S_t		   *mem_space = NULL;
@@ -221,7 +221,7 @@ H5Dwrite(hid_t dset_id, hid_t mem_type_id, hid_t mem_space_id,
 
     FUNC_ENTER_API(H5Dwrite, FAIL)
     H5TRACE6("e", "iiiii*x", dset_id, mem_type_id, mem_space_id, file_space_id,
-             plist_id, buf);
+             dxpl_id, buf);
 
     /* check arguments */
     if(NULL == (dset = (H5D_t *)H5I_object_verify(dset_id, H5I_DATASET)))
@@ -246,12 +246,12 @@ H5Dwrite(hid_t dset_id, hid_t mem_type_id, hid_t mem_space_id,
     } /* end if */
 
     /* Get the default dataset transfer property list if the user didn't provide one */
-    if(H5P_DEFAULT == plist_id)
-        plist_id= H5P_DATASET_XFER_DEFAULT;
+    if(H5P_DEFAULT == dxpl_id)
+        dxpl_id= H5P_DATASET_XFER_DEFAULT;
     else
-        if(TRUE != H5P_isa_class(plist_id, H5P_DATASET_XFER))
+        if(TRUE != H5P_isa_class(dxpl_id, H5P_DATASET_XFER))
             HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not xfer parms")
-    if(!buf && H5S_GET_SELECT_NPOINTS(file_space) != 0)
+    if(!buf && (NULL == file_space || H5S_GET_SELECT_NPOINTS(file_space) != 0))
 	HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "no output buffer")
 
     /* If the buffer is nil, and 0 element is selected, make a fake buffer.
@@ -262,7 +262,7 @@ H5Dwrite(hid_t dset_id, hid_t mem_type_id, hid_t mem_space_id,
         buf = &fake_char;
 
     /* write raw data */
-    if(H5D_write(dset, mem_type_id, mem_space, file_space, plist_id, buf) < 0)
+    if(H5D_write(dset, mem_type_id, mem_space, file_space, dxpl_id, buf) < 0)
 	HGOTO_ERROR(H5E_DATASET, H5E_WRITEERROR, FAIL, "can't write data")
 
 done:
@@ -291,6 +291,19 @@ H5D_read(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
     H5D_io_info_t io_info;              /* Dataset I/O info     */
     H5D_type_info_t type_info;          /* Datatype info for operation */
     hbool_t type_info_init = FALSE;     /* Whether the datatype info has been initialized */
+    H5S_t * projected_mem_space = NULL; /* If not NULL, ptr to dataspace containing a     */
+                                        /* projection of the supplied mem_space to a new  */
+                                        /* data space with rank equal to that of          */
+                                        /* file_space.                                    */
+                                        /*                                                */
+                                        /* This field is only used if                     */
+                                        /* H5S_select_shape_same() returns TRUE when      */
+                                        /* comparing the mem_space and the data_space,    */
+                                        /* and the mem_space have different rank.         */
+                                        /*                                                */
+                                        /* Note that if this variable is used, the        */
+                                        /* projected mem space must be discarded at the   */
+                                        /* end of the function to avoid a memory leak.    */
     H5D_storage_t store;                /*union of EFL and chunk pointer in file space */
     hssize_t	snelmts;                /*total number of elmts	(signed) */
     hsize_t	nelmts;                 /*total number of elmts	*/
@@ -302,7 +315,7 @@ H5D_read(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
     H5D_dxpl_cache_t *dxpl_cache = &_dxpl_cache;   /* Data transfer property cache */
     herr_t	ret_value = SUCCEED;	/* Return value	*/
 
-    FUNC_ENTER_NOAPI_NOINIT(H5D_read)
+    FUNC_ENTER_NOAPI_NOINIT_TAG(H5D_read, dxpl_id, dataset->oloc.addr, FAIL)
 
     /* check args */
     HDassert(dataset && dataset->oloc.file);
@@ -312,7 +325,7 @@ H5D_read(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
     if(!mem_space)
         mem_space = file_space;
     if((snelmts = H5S_GET_SELECT_NPOINTS(mem_space)) < 0)
-	HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "src dataspace has invalid selection")
+	HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "dst dataspace has invalid selection")
     H5_ASSIGN_OVERFLOW(nelmts,snelmts,hssize_t,hsize_t);
 
     /* Fill the DXPL cache values for later use */
@@ -340,6 +353,37 @@ H5D_read(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
     if(!(H5S_has_extent(mem_space)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "memory dataspace does not have extent set")
 
+    /* H5S_select_shape_same() has been modified to accept topologically identical
+     * selections with different rank as having the same shape (if the most 
+     * rapidly changing coordinates match up), but the I/O code still has 
+     * difficulties with the notion.
+     *
+     * To solve this, we check to see if H5S_select_shape_same() returns true, 
+     * and if the ranks of the mem and file spaces are different.  If the are, 
+     * construct a new mem space that is equivalent to the old mem space, and 
+     * use that instead.
+     *
+     * Note that in general, this requires us to touch up the memory buffer as 
+     * well.
+     */
+    if(TRUE == H5S_select_shape_same(mem_space, file_space) &&
+            H5S_GET_EXTENT_NDIMS(mem_space) != H5S_GET_EXTENT_NDIMS(file_space)) {
+        void *adj_buf = NULL;   /* Pointer to the location in buf corresponding  */
+                                /* to the beginning of the projected mem space.  */
+
+        /* Attempt to construct projected dataspace for memory dataspace */
+        if(H5S_select_construct_projection(mem_space, &projected_mem_space,
+                (unsigned)H5S_GET_EXTENT_NDIMS(file_space), buf, &adj_buf, type_info.dst_type_size) < 0)
+            HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, "unable to construct projected memory dataspace")
+        HDassert(projected_mem_space);
+        HDassert(adj_buf);
+
+        /* Switch to using projected memory dataspace & adjusted buffer */
+        mem_space = projected_mem_space;
+        buf = adj_buf;
+    } /* end if */
+
+
     /* Retrieve dataset properties */
     /* <none needed in the general case> */
 
@@ -350,7 +394,7 @@ H5D_read(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
      * has been overwritten.  So just proceed in reading.
      */
     if(nelmts > 0 && dataset->shared->dcpl_cache.efl.nused == 0 &&
-            !(*dataset->shared->layout.ops->is_space_alloc)(&dataset->shared->layout)) {
+            !(*dataset->shared->layout.ops->is_space_alloc)(&dataset->shared->layout.storage)) {
         H5D_fill_value_t fill_status;   /* Whether/How the fill value is defined */
 
         /* Retrieve dataset's fill-value properties */
@@ -384,7 +428,7 @@ H5D_read(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
 
     /* Sanity check that space is allocated, if there are elements */
     if(nelmts > 0)
-        HDassert((*dataset->shared->layout.ops->is_space_alloc)(&dataset->shared->layout)
+        HDassert((*dataset->shared->layout.ops->is_space_alloc)(&dataset->shared->layout.storage)
                 || dataset->shared->dcpl_cache.efl.nused > 0
                 || dataset->shared->layout.type == H5D_COMPACT);
 
@@ -417,7 +461,12 @@ done:
     if(type_info_init && H5D_typeinfo_term(&type_info) < 0)
         HDONE_ERROR(H5E_DATASET, H5E_CANTCLOSEOBJ, FAIL, "unable to shut down type info")
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    /* discard projected mem space if it was created */
+    if(NULL != projected_mem_space)
+        if(H5S_close(projected_mem_space) < 0)
+            HDONE_ERROR(H5E_DATASET, H5E_CANTCLOSEOBJ, FAIL, "unable to shut down projected memory dataspace")
+
+    FUNC_LEAVE_NOAPI_TAG(ret_value, FAIL)
 } /* end H5D_read() */
 
 
@@ -442,6 +491,19 @@ H5D_write(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
     H5D_io_info_t io_info;              /* Dataset I/O info     */
     H5D_type_info_t type_info;          /* Datatype info for operation */
     hbool_t type_info_init = FALSE;     /* Whether the datatype info has been initialized */
+    H5S_t * projected_mem_space = NULL; /* If not NULL, ptr to dataspace containing a     */
+                                        /* projection of the supplied mem_space to a new  */
+                                        /* data space with rank equal to that of          */
+                                        /* file_space.                                    */
+                                        /*                                                */
+                                        /* This field is only used if                     */
+                                        /* H5S_select_shape_same() returns TRUE when      */
+                                        /* comparing the mem_space and the data_space,    */
+                                        /* and the mem_space have different rank.         */
+                                        /*                                                */
+                                        /* Note that if this variable is used, the        */
+                                        /* projected mem space must be discarded at the   */
+                                        /* end of the function to avoid a memory leak.    */
     H5D_storage_t store;                /*union of EFL and chunk pointer in file space */
     hssize_t	snelmts;                /*total number of elmts	(signed) */
     hsize_t	nelmts;                 /*total number of elmts	*/
@@ -453,7 +515,7 @@ H5D_write(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
     H5D_dxpl_cache_t *dxpl_cache = &_dxpl_cache;   /* Data transfer property cache */
     herr_t	ret_value = SUCCEED;	/* Return value	*/
 
-    FUNC_ENTER_NOAPI_NOINIT(H5D_write)
+    FUNC_ENTER_NOAPI_NOINIT_TAG(H5D_write, dxpl_id, dataset->oloc.addr, FAIL)
 
     /* check args */
     HDassert(dataset && dataset->oloc.file);
@@ -485,7 +547,7 @@ H5D_write(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
         /* If MPI based VFD is used, no VL datatype support yet. */
         /* This is because they use the global heap in the file and we don't */
         /* support parallel access of that yet */
-        if(H5T_detect_class(type_info.mem_type, H5T_VLEN) > 0)
+        if(H5T_detect_class(type_info.mem_type, H5T_VLEN, FALSE) > 0)
             HGOTO_ERROR(H5E_DATASET, H5E_UNSUPPORTED, FAIL, "Parallel IO does not support writing VL datatypes yet")
 
         /* If MPI based VFD is used, no VL datatype support yet. */
@@ -515,6 +577,37 @@ H5D_write(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
         file_space = dataset->shared->space;
     if(!mem_space)
         mem_space = file_space;
+
+    /* H5S_select_shape_same() has been modified to accept topologically 
+     * identical selections with different rank as having the same shape 
+     * (if the most rapidly changing coordinates match up), but the I/O 
+     * code still has difficulties with the notion.
+     *
+     * To solve this, we check to see if H5S_select_shape_same() returns 
+     * true, and if the ranks of the mem and file spaces are different.  
+     * If the are, construct a new mem space that is equivalent to the 
+     * old mem space, and use that instead.
+     *
+     * Note that in general, this requires us to touch up the memory buffer 
+     * as well.
+     */
+    if(TRUE == H5S_select_shape_same(mem_space, file_space) &&
+            H5S_GET_EXTENT_NDIMS(mem_space) != H5S_GET_EXTENT_NDIMS(file_space)) {
+        void *adj_buf = NULL;   /* Pointer to the location in buf corresponding  */
+                                /* to the beginning of the projected mem space.  */
+
+        /* Attempt to construct projected dataspace for memory dataspace */
+        if(H5S_select_construct_projection(mem_space, &projected_mem_space,
+                (unsigned)H5S_GET_EXTENT_NDIMS(file_space), buf, &adj_buf, type_info.src_type_size) < 0)
+            HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, "unable to construct projected memory dataspace")
+        HDassert(projected_mem_space);
+        HDassert(adj_buf);
+            
+        /* Switch to using projected memory dataspace & adjusted buffer */
+        mem_space = projected_mem_space;
+        buf = adj_buf;
+    } /* end if */
+
     if((snelmts = H5S_GET_SELECT_NPOINTS(mem_space)) < 0)
 	HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "src dataspace has invalid selection")
     H5_ASSIGN_OVERFLOW(nelmts, snelmts, hssize_t, hsize_t);
@@ -534,7 +627,7 @@ H5D_write(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
 
     /* Allocate data space and initialize it if it hasn't been. */
     if(nelmts > 0 && dataset->shared->dcpl_cache.efl.nused == 0 &&
-            !(*dataset->shared->layout.ops->is_space_alloc)(&dataset->shared->layout)) {
+            !(*dataset->shared->layout.ops->is_space_alloc)(&dataset->shared->layout.storage)) {
         hssize_t file_nelmts;   /* Number of elements in file dataset's dataspace */
         hbool_t full_overwrite; /* Whether we are over-writing all the elements */
 
@@ -543,13 +636,13 @@ H5D_write(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
             HGOTO_ERROR(H5E_DATASET, H5E_BADVALUE, FAIL, "can't retrieve number of elements in file dataset")
 
         /* Always allow fill values to be written if the dataset has a VL datatype */
-        if(H5T_detect_class(dataset->shared->type, H5T_VLEN))
+        if(H5T_detect_class(dataset->shared->type, H5T_VLEN, FALSE))
             full_overwrite = FALSE;
         else
             full_overwrite = (hbool_t)((hsize_t)file_nelmts == nelmts ? TRUE : FALSE);
 
  	/* Allocate storage */
-        if(H5D_alloc_storage(dataset, dxpl_id, H5D_ALLOC_WRITE, full_overwrite) < 0)
+        if(H5D_alloc_storage(dataset, dxpl_id, H5D_ALLOC_WRITE, full_overwrite, NULL) < 0)
             HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, "unable to initialize storage")
     } /* end if */
 
@@ -583,6 +676,9 @@ H5D_write(H5D_t *dataset, hid_t mem_type_id, const H5S_t *mem_space,
  * independent access, causing the metadata cache to get corrupted. Its been
  * disabled for all types of access (serial as well as parallel) to make the
  * modification time consistent for all programs. -QAK
+ *
+ * We should set a value in the dataset's shared information instead and flush
+ * it to the file when the dataset is being closed. -QAK
  */
     /*
      * Update modification time.  We have to do this explicitly because
@@ -605,7 +701,12 @@ done:
     if(type_info_init && H5D_typeinfo_term(&type_info) < 0)
         HDONE_ERROR(H5E_DATASET, H5E_CANTCLOSEOBJ, FAIL, "unable to shut down type info")
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    /* discard projected mem space if it was created */
+    if(NULL != projected_mem_space)
+        if(H5S_close(projected_mem_space) < 0)
+            HDONE_ERROR(H5E_DATASET, H5E_CANTCLOSEOBJ, FAIL, "unable to shut down projected memory dataspace")
+
+    FUNC_LEAVE_NOAPI_TAG(ret_value, FAIL)
 } /* end H5D_write() */
 
 
@@ -751,7 +852,7 @@ H5D_typeinfo_init(const H5D_t *dset, const H5D_dxpl_cache_t *dxpl_cache,
         type_info->cmpd_subset = H5T_path_compound_subset(type_info->tpath);
 
         /* Check if we need a background buffer */
-        if(do_write && H5T_detect_class(dset->shared->type, H5T_VLEN))
+        if(do_write && H5T_detect_class(dset->shared->type, H5T_VLEN, FALSE))
             type_info->need_bkg = H5T_BKG_YES;
         else {
             H5T_bkg_t path_bkg;     /* Type conversion's background info */

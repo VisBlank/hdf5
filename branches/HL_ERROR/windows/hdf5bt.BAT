@@ -16,22 +16,16 @@ rem access to either file, you may request a copy from help@hdfgroup.org.
 rem File Name: hdf5bt.bat
 rem This batch file is used to build and test HDF5 Libraries and Tools.
 rem This batch file takes the following options:
-rem .  /vs7              Build HDF5 using Visual Studio .NET 2003 
-rem .                    Note: Default is Visual Studio 2005
 rem .  /vs9              Build HDF5 using Visual Studio 2008
-rem .                    Note: Default is Visual Studio 2005
 rem .  /fort             Build and test HDF5 with Fortran libraries
 rem .  /useenv           Build HDF5 using compiler settings defined
-rem .                    in the environment, rather than the IDE.
-rem .   /ivf101             Build HDF5 Fortran using Intel Visual Fortran 10.1
-rem .                       Note: Default is Intel Visual Fortran 9.1
-rem .  /log               Log the build and test results in files defined by
+rem .                     in the environment, rather than the IDE.
+rem .  /ivf101           Build HDF5 Fortran using Intel Visual Fortran 10.1
+rem .  /ivf111           Build HDF5 Fortran using Intel Visual Fortran 11.1
+rem .  /log              Log the build and test results in files defined by
 rem .                      environment variables HDF5BUILD_LOG and
 rem .                      HDF5CHECK_LOG
 rem .  /?                Help information
-rem By Xuan Bai
-rem Created: Aug. 16, 2004
-rem Last Updated: Scott Wegner, 7/2/08
 
 rem This batch file makes the following assumptions:
 rem    - The appropriate version of Visual Studio is installed and setup
@@ -63,13 +57,10 @@ rem Print a help message
     echo.
     echo Usage: %~nx0 [OPTION]
     echo.
-    echo.   /vs7              Build HDF5 using Visual Studio .NET 2003 
-    echo.                     Note: Default is Visual Studio 2005
     echo.   /vs9              Build HDF5 using Visual Studio 2008
-    echo.                     Note: Default is Visual Studio 2005
     echo.   /fort             Build and test HDF5 with Fortran libraries
     echo.   /ivf101           Build HDF5 Fortran using Intel Visual Fortran 10.1
-    echo.                     Note: Default is Intel Visual Fortran 9.1
+    echo.   /ivf111           Build HDF5 Fortran using Intel Visual Fortran 9.1
     echo.   /useenv           Build HDF5 using compiler settings defined
     echo.                     in the environment, rather than the IDE.
     echo.   /?                Help information
@@ -81,10 +72,11 @@ rem Parse through the parameters sent to file, and set appropriate variables
 :parse_params
 
     for %%a in (%*) do (
-        if "%%a"=="/vs7" (
-            rem Use Visual Studio .NET to build
-            set hdf5_vnet=true
-    
+        if "%%a"=="/vs8" (
+            rem Use Visual Studio 2005 to build
+            call :help
+            exit /b 1
+            
         ) else if "%%a"=="/vs9" (
             rem Use Visual Studio 2008 to build
             set hdf5_vs2008=true
@@ -93,9 +85,18 @@ rem Parse through the parameters sent to file, and set appropriate variables
             rem Enable Fortran
             set hdf5_enablefortran=true
             
+        ) else if "%%a"=="/ivf91" (
+            rem Enable Fortran
+            call :help
+            exit /b 1
+            
         ) else if "%%a"=="/ivf101" (
             rem Enable Fortran
             set hdf5_ivf101=true
+            
+        ) else if "%%a"=="/ivf111" (
+            rem Enable Fortran
+            set hdf5_ivf111=true
             
         ) else if "%%a"=="/useenv" (
             rem Pass /useenv flag to devenv
@@ -129,10 +130,6 @@ rem Setup our environment
     set hdf5build_params=
     set hdf5check_params=enablecpp
     
-    if defined hdf5_vnet (
-        set hdf5build_params=%hdf5build_params% /vs7
-    )
-    
     if defined hdf5_vs2008 (
         set hdf5build_params=%hdf5build_params% /vs9
     )
@@ -140,6 +137,10 @@ rem Setup our environment
     if defined hdf5_enablefortran (
         set hdf5build_params=%hdf5build_params% /fort
         set hdf5check_params=enableall
+    )
+    
+    if defined hdf5_ivf111 (
+        set hdf5build_params=%hdf5build_params% /ivf111
     )
     
     if defined hdf5_ivf101 (
@@ -213,8 +214,8 @@ rem This is where the magic happens
 :main
 
     call :parse_params %*
-    if %errorlevel% neq 0 (
-        if !errorlevel! equ 1 (
+    if not errorlevel 0 (
+        if errorlevel 1 (
             rem This isn't an error case-- this means /? was specified.  Simply
             rem quit.
             goto end
@@ -227,7 +228,7 @@ rem This is where the magic happens
     )
 
     call :setup
-    if %errorlevel% neq 0 (
+    if not errorlevel 0 (
         echo.Error setting up hdf5bt environment!
         goto error
     )
@@ -238,13 +239,13 @@ rem This is where the magic happens
     echo.
 
     call :build
-    if %errorlevel% neq 0 (
+    if not errorlevel 0 (
         echo.Error building HDF5 libraries!
         goto error
     )
 
     call :test
-    if %errorlevel% neq 0 (
+    if not errorlevel 0 (
         echo.Error testing HDF5 libraries!
         goto error
     )

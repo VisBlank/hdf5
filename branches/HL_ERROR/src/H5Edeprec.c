@@ -122,10 +122,10 @@ char *
 H5Eget_major(H5E_major_t maj)
 {
     H5E_msg_t   *msg;           /* Pointer to error message */
-    ssize_t     size = 0;       /* Return value */
+    ssize_t      size;
     H5E_type_t  type;
-    char        *msg_str;
-    char        *ret_value = NULL;
+    char        *msg_str = NULL;
+    char        *ret_value;     /* Return value */
 
     FUNC_ENTER_API_NOCLEAR(H5Eget_major, NULL)
 
@@ -133,22 +133,26 @@ H5Eget_major(H5E_major_t maj)
     if(NULL == (msg = (H5E_msg_t *)H5I_object_verify(maj, H5I_ERROR_MSG)))
 	HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not a error message ID")
 
-    /* Get the message's text */
+    /* Get the size & type of the message's text */
     if((size = H5E_get_msg(msg, &type, NULL, (size_t)0)) < 0)
 	HGOTO_ERROR(H5E_ERROR, H5E_CANTGET, NULL, "can't get error message text")
-
     if(type != H5E_MAJOR)
 	HGOTO_ERROR(H5E_ERROR, H5E_CANTGET, NULL, "Error message isn't a major one")
 
-    /* Don't know who is going to free it */
-    msg_str = (char *)H5MM_malloc((size_t)(++size) * sizeof(char));
+    /* Application will free this */
+    size++;
+    msg_str = (char *)H5MM_malloc((size_t)size);
 
+    /* Get the text for the message */
     if(H5E_get_msg(msg, NULL, msg_str, (size_t)size) < 0)
 	HGOTO_ERROR(H5E_ERROR, H5E_CANTGET, NULL, "can't get error message text")
 
     ret_value = msg_str;
 
 done:
+    if(!ret_value)
+        msg_str = (char *)H5MM_xfree(msg_str);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Eget_major() */
 
@@ -170,10 +174,10 @@ char *
 H5Eget_minor(H5E_minor_t min)
 {
     H5E_msg_t   *msg;           /* Pointer to error message */
-    ssize_t      size = 0;       /* Return value */
+    ssize_t      size;
     H5E_type_t  type;
-    char        *msg_str;
-    char        *ret_value = NULL;
+    char        *msg_str = NULL;
+    char        *ret_value;     /* Return value */
 
     FUNC_ENTER_API_NOCLEAR(H5Eget_minor, NULL)
 
@@ -181,22 +185,26 @@ H5Eget_minor(H5E_minor_t min)
     if(NULL == (msg = (H5E_msg_t *)H5I_object_verify(min, H5I_ERROR_MSG)))
 	HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not a error message ID")
 
-    /* Get the message's text */
+    /* Get the size & type of the message's text */
     if((size = H5E_get_msg(msg, &type, NULL, (size_t)0)) < 0)
 	HGOTO_ERROR(H5E_ERROR, H5E_CANTGET, NULL, "can't get error message text")
-
     if(type != H5E_MINOR)
 	HGOTO_ERROR(H5E_ERROR, H5E_CANTGET, NULL, "Error message isn't a minor one")
 
-    /* Don't know who is going to free it */
-    msg_str = (char *)H5MM_malloc((size_t)(++size) * sizeof(char));
+    /* Application will free this */
+    size++;
+    msg_str = (char *)H5MM_malloc((size_t)size);
 
+    /* Get the text for the message */
     if(H5E_get_msg(msg, NULL, msg_str, (size_t)size) < 0)
 	HGOTO_ERROR(H5E_ERROR, H5E_CANTGET, NULL, "can't get error message text")
 
     ret_value = msg_str;
 
 done:
+    if(!ret_value)
+        msg_str = (char *)H5MM_xfree(msg_str);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Eget_minor() */
 
@@ -362,6 +370,11 @@ done:
  * Programmer:	Raymond Lu
  *              Sep 16, 2003
  *
+ * Modification:Raymond Lu
+ *              4 October 2010
+ *              If the printing function isn't the default H5Eprint1 or 2, 
+ *              and H5Eset_auto2 has been called to set the new style 
+ *              printing function, a call to H5Eget_auto1 should fail.
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -381,8 +394,13 @@ H5Eget_auto1(H5E_auto1_t *func, void **client_data)
     /* Get the automatic error reporting information */
     if(H5E_get_auto(estack, &auto_op, client_data) < 0)
         HGOTO_ERROR(H5E_ERROR, H5E_CANTGET, FAIL, "can't get automatic error info")
+
+    /* Fail if the printing function isn't the default(user-set) and set through H5Eset_auto2 */
+    if(!auto_op.is_default && auto_op.vers == 2)
+        HGOTO_ERROR(H5E_ERROR, H5E_CANTGET, FAIL, "wrong API function, H5Eset_auto2 has been called")
+
     if(func)
-        *func = auto_op.u.func1;
+        *func = auto_op.func1;
 
 done:
     FUNC_LEAVE_API(ret_value)
@@ -410,6 +428,9 @@ done:
  * Programmer:	Raymond Lu
  *              Sep 16, 2003
  *
+ * Modification:Raymond Lu
+ *              4 October 2010
+ *              If the FUNC is H5Eprint2, put the IS_DEFAULT flag on.
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -426,9 +447,18 @@ H5Eset_auto1(H5E_auto1_t func, void *client_data)
     if(NULL == (estack = H5E_get_my_stack())) /*lint !e506 !e774 Make lint 'constant value Boolean' in non-threaded case */
         HGOTO_ERROR(H5E_ERROR, H5E_CANTGET, FAIL, "can't get current error stack")
 
+    /* Get the automatic error reporting information */
+    if(H5E_get_auto(estack, &auto_op, NULL) < 0)
+        HGOTO_ERROR(H5E_ERROR, H5E_CANTGET, FAIL, "can't get automatic error info")
+
     /* Set the automatic error reporting information */
     auto_op.vers = 1;
-    auto_op.u.func1 = func;
+    if(func != auto_op.func1_default)
+        auto_op.is_default = FALSE;
+    else
+        auto_op.is_default = TRUE;
+    auto_op.func1 = func;
+
     if(H5E_set_auto(estack, &auto_op, client_data) < 0)
         HGOTO_ERROR(H5E_ERROR, H5E_CANTSET, FAIL, "can't set automatic error info")
 

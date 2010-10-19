@@ -1,24 +1,18 @@
 #############################
 Expected output for 'h5stat -h'
 #############################
-
-This tool is under development. For detailed information
-please see the specification document at
-http://hdf.ncsa.uiuc.edu/RFC/h5stat/h5stat-spec.pdf
-
-Please send your comments and questions to help@hdfgroup.org
-
 Usage: h5stat [OPTIONS] file
 
       OPTIONS
      -h, --help            Print a usage message and exit
      -V, --version         Print version number and exit
      -f, --file            Print file information
-     -F, --filemetadata    Print file metadata
+     -F, --filemetadata    Print file space information for file's metadata
      -g, --group           Print group information
-     -G, --groupmetadata   Print group metadata
+     -G, --groupmetadata   Print file space information for groups' metadata
      -d, --dset            Print dataset information
-     -D, --dsetmetadata    Print dataset metadata
-     -T, --dtypemetadata   Print datatype metadata
+     -D, --dsetmetadata    Print file space information for datasets' metadata
+     -T, --dtypemetadata   Print datasets' datatype information
      -A, --attribute       Print attribute information
-
+     -s, --freespace       Print free space information
+     -S, --summary         Print summary of file space information

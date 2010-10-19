@@ -396,29 +396,27 @@ done:
  * Programmer:	Robb Matzke
  *              Monday, July 26, 1999
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 herr_t
 H5FDunregister(hid_t driver_id)
 {
-    herr_t      ret_value=SUCCEED;       /* Return value */
+    herr_t      ret_value = SUCCEED;       /* Return value */
 
     FUNC_ENTER_API(H5FDunregister, FAIL)
     H5TRACE1("e", "i", driver_id);
 
     /* Check arguments */
-    if(NULL==H5I_object_verify(driver_id,H5I_VFL))
+    if(NULL == H5I_object_verify(driver_id, H5I_VFL))
 	HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a file driver")
 
     /* The H5FD_class_t struct will be freed by this function */
-    if(H5I_dec_ref(driver_id, TRUE) < 0)
-	HGOTO_ERROR(H5E_VFL, H5E_CANTINIT, FAIL, "unable to unregister file driver")
+    if(H5I_dec_app_ref(driver_id) < 0)
+	HGOTO_ERROR(H5E_VFL, H5E_CANTDEC, FAIL, "unable to unregister file driver")
 
 done:
     FUNC_LEAVE_API(ret_value)
-}
+} /* end H5FDunregister() */
 
 
 /*-------------------------------------------------------------------------
@@ -555,31 +553,27 @@ done:
  * Purpose:	Decodes the driver information block.
  *
  * Return:	Success:	Non-negative
- *
  *		Failure:	Negative
  *
  * Programmer:	Robb Matzke
  *              Monday, August 16, 1999
- *
- * Modifications:
  *
  *-------------------------------------------------------------------------
  */
 herr_t
 H5FD_sb_decode(H5FD_t *file, const char *name, const uint8_t *buf)
 {
-    herr_t      ret_value=SUCCEED;       /* Return value */
+    herr_t      ret_value = SUCCEED;    /* Return value */
 
     FUNC_ENTER_NOAPI(H5FD_sb_decode, FAIL)
 
-    assert(file && file->cls);
-    if(file->cls->sb_decode &&
-            (file->cls->sb_decode)(file, name, buf) < 0)
+    HDassert(file && file->cls);
+    if(file->cls->sb_decode && (file->cls->sb_decode)(file, name, buf) < 0)
 	HGOTO_ERROR(H5E_VFL, H5E_CANTINIT, FAIL, "driver sb_decode request failed")
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-}
+} /* end H5FD_sb_decode() */
 
 
 /*-------------------------------------------------------------------------
@@ -664,7 +658,7 @@ H5FD_pl_close(hid_t driver_id, herr_t (*free_func)(void *), void *pl)
 	H5MM_xfree(pl);
 
     /* Decrement reference count for driver */
-    if(H5I_dec_ref(driver_id, FALSE) < 0)
+    if(H5I_dec_ref(driver_id) < 0)
         HGOTO_ERROR(H5E_VFL, H5E_CANTDEC, FAIL, "can't decrement reference count for driver")
 
 done:
@@ -734,8 +728,8 @@ done:
 herr_t
 H5FD_fapl_open(H5P_genplist_t *plist, hid_t driver_id, const void *driver_info)
 {
-    void *copied_driver_info;           /* Temporary VFL driver info */
-    herr_t ret_value=SUCCEED;   /* Return value */
+    void *copied_driver_info = NULL;           /* Temporary VFL driver info */
+    herr_t ret_value = SUCCEED;   /* Return value */
 
     FUNC_ENTER_NOAPI(H5FD_fapl_open, FAIL)
 
@@ -743,15 +737,20 @@ H5FD_fapl_open(H5P_genplist_t *plist, hid_t driver_id, const void *driver_info)
     if(H5I_inc_ref(driver_id, FALSE) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTINC, FAIL, "unable to increment ref count on VFL driver")
     if(H5FD_fapl_copy(driver_id, driver_info, &copied_driver_info) < 0)
-        HGOTO_ERROR (H5E_PLIST, H5E_CANTCOPY, FAIL, "can't copy VFL driver info")
+        HGOTO_ERROR(H5E_FILE, H5E_CANTCOPY, FAIL, "can't copy VFL driver info")
 
     /* Set the driver properties for the list */
     if(H5P_set(plist, H5F_ACS_FILE_DRV_ID_NAME, &driver_id) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set driver ID")
+        HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "can't set driver ID")
     if(H5P_set(plist, H5F_ACS_FILE_DRV_INFO_NAME, &copied_driver_info) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set driver info")
+        HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "can't set driver info")
+    copied_driver_info = NULL;
 
 done:
+    if(ret_value < 0)
+        if(copied_driver_info && H5FD_fapl_close(driver_id, copied_driver_info) < 0)
+            HDONE_ERROR(H5E_FILE, H5E_CANTCLOSEOBJ, FAIL, "can't close copy of driver info")
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5FD_fapl_open() */
 
@@ -851,24 +850,28 @@ done:
 herr_t
 H5FD_dxpl_open(H5P_genplist_t *plist, hid_t driver_id, const void *driver_info)
 {
-    void *copied_driver_info;           /* Temporary VFL driver info */
-    herr_t ret_value=SUCCEED;   /* Return value */
+    void *copied_driver_info = NULL;           /* Temporary VFL driver info */
+    herr_t ret_value = SUCCEED;   /* Return value */
 
     FUNC_ENTER_NOAPI(H5FD_dxpl_open, FAIL)
 
     /* Increment the reference count on the driver and copy the driver info */
     if(H5I_inc_ref(driver_id, FALSE) < 0)
-        HGOTO_ERROR (H5E_DATASET, H5E_CANTINC, FAIL, "can't increment VFL driver ID")
+        HGOTO_ERROR(H5E_FILE, H5E_CANTINC, FAIL, "can't increment VFL driver ID")
     if(H5FD_dxpl_copy(driver_id, driver_info, &copied_driver_info) < 0)
-        HGOTO_ERROR (H5E_DATASET, H5E_CANTCOPY, FAIL, "can't copy VFL driver")
+        HGOTO_ERROR(H5E_FILE, H5E_CANTCOPY, FAIL, "can't copy VFL driver")
 
     /* Set the driver information for the new property list */
     if(H5P_set(plist, H5D_XFER_VFL_ID_NAME, &driver_id) < 0)
-        HGOTO_ERROR (H5E_PLIST, H5E_CANTSET, FAIL, "can't set VFL driver ID")
+        HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "can't set VFL driver ID")
     if(H5P_set(plist, H5D_XFER_VFL_INFO_NAME, &copied_driver_info) < 0)
-        HGOTO_ERROR (H5E_PLIST, H5E_CANTSET, FAIL, "can't set VFL driver info")
+        HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "can't set VFL driver info")
 
 done:
+    if(ret_value < 0)
+        if(copied_driver_info && H5FD_dxpl_close(driver_id, copied_driver_info) < 0)
+            HDONE_ERROR(H5E_FILE, H5E_CANTCLOSEOBJ, FAIL, "can't close copy of driver info")
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5FD_dxpl_open() */
 
@@ -1064,7 +1067,7 @@ H5FD_open(const char *name, unsigned flags, hid_t fapl_id, haddr_t maxaddr)
 
     /* Get file access property list */
     if(NULL == (plist = (H5P_genplist_t *)H5I_object(fapl_id)))
-        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not a file access property list");
+        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not a file access property list")
 
     /* Get the VFD to open the file with */
     if(H5P_get(plist, H5F_ACS_FILE_DRV_ID_NAME, &driver_id) < 0)
@@ -1130,13 +1133,10 @@ done:
  *		the `open' callback.
  *
  * Return:	Success:	Non-negative
- *
  *		Failure:	Negative
  *
  * Programmer:	Robb Matzke
  *              Tuesday, July 27, 1999
- *
- * Modifications:
  *
  *-------------------------------------------------------------------------
  */
@@ -1152,11 +1152,11 @@ H5FDclose(H5FD_t *file)
 	HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "invalid file pointer")
 
     if(H5FD_close(file) < 0)
-	HGOTO_ERROR(H5E_VFL, H5E_CANTINIT, FAIL, "unable to close file")
+	HGOTO_ERROR(H5E_VFL, H5E_CANTCLOSEFILE, FAIL, "unable to close file")
 
 done:
     FUNC_LEAVE_API(ret_value)
-}
+} /* end H5FDclose() */
 
 
 /*-------------------------------------------------------------------------
@@ -1165,22 +1165,11 @@ done:
  * Purpose:	Private version of H5FDclose()
  *
  * Return:	Success:	Non-negative
- *
  *		Failure:	Negative
  *
  * Programmer:	Robb Matzke
  *              Wednesday, August  4, 1999
  *
- * Modifications:
- *              Robb Matzke, 2000-11-10
- *              Removed a call to set *file to all zero because the struct
- *              has already been freed by the close method. This fixes a write
- *              to freed memory.
- *
- *              Bill Wendling, 2003-02-17
- *              Split out the freeing of the freelist from this function
- *              so that the Flexible PHDF5 stuff can call it without
- *              having to call H5FD_close().
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -1196,7 +1185,7 @@ H5FD_close(H5FD_t *file)
 
     /* Prepare to close file by clearing all public fields */
     driver = file->cls;
-    if(H5I_dec_ref(file->driver_id, FALSE) < 0)
+    if(H5I_dec_ref(file->driver_id) < 0)
         HGOTO_ERROR(H5E_VFL, H5E_CANTDEC, FAIL, "can't close driver ID")
 
     /*
@@ -1205,7 +1194,7 @@ H5FD_close(H5FD_t *file)
      */
     HDassert(driver->close);
     if((driver->close)(file) < 0)
-        HGOTO_ERROR(H5E_VFL, H5E_CANTINIT, FAIL, "close failed")
+        HGOTO_ERROR(H5E_VFL, H5E_CANTCLOSEFILE, FAIL, "close failed")
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -1409,10 +1398,6 @@ done:
  * Programmer:	Robb Matzke
  *              Tuesday, July 27, 1999
  *
- * Modifications:
- *	Vailin Choi, 29th July 2008
- *	  Two more parameters were added to H5FD_alloc() for handling alignment
- *
  *-------------------------------------------------------------------------
  */
 haddr_t
@@ -1437,7 +1422,7 @@ H5FDalloc(H5FD_t *file, H5FD_mem_t type, hid_t dxpl_id, hsize_t size)
             HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, HADDR_UNDEF, "not a data transfer property list")
 
     /* Do the real work */
-    if(HADDR_UNDEF == (ret_value = H5FD_alloc(file, dxpl_id, type, size, NULL, NULL)))
+    if(HADDR_UNDEF == (ret_value = H5FD_alloc_real(file, dxpl_id, type, size, NULL, NULL)))
 	HGOTO_ERROR(H5E_VFL, H5E_CANTINIT, HADDR_UNDEF, "unable to allocate file memory")
 
     /* (Note compensating for base address subtraction in internal routine) */
@@ -1490,7 +1475,7 @@ H5FDfree(H5FD_t *file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr, hsize_t siz
 
     /* Do the real work */
     /* (Note compensating for base address addition in internal routine) */
-    if(H5FD_free(file, dxpl_id, type, addr - file->base_addr, size) < 0)
+    if(H5FD_free_real(file, dxpl_id, type, addr - file->base_addr, size) < 0)
         HGOTO_ERROR(H5E_VFL, H5E_CANTFREE, FAIL, "file deallocation request failed")
 
 done:
@@ -1717,7 +1702,6 @@ H5FD_get_fs_type_map(const H5FD_t *file, H5FD_mem_t *type_map)
     FUNC_ENTER_NOAPI(H5FD_get_fs_type_map, FAIL)
 
     /* Sanity check */
-    HDassert(file);
     HDassert(file && file->cls);
     HDassert(type_map);
 
@@ -2059,8 +2043,6 @@ done:
  * Programmer:  Raymond Lu
  *              Sep. 16, 2002
  *
- * Modifications:
- *
  *--------------------------------------------------------------------------
  */
 herr_t
@@ -2070,11 +2052,13 @@ H5FD_get_vfd_handle(H5FD_t *file, hid_t fapl, void **file_handle)
 
     FUNC_ENTER_NOAPI(H5FD_get_vfd_handle, FAIL)
 
+    /* Sanity check */
+    HDassert(file);
     HDassert(file_handle);
 
     if(NULL == file->cls->get_handle)
 	HGOTO_ERROR(H5E_VFL, H5E_UNSUPPORTED, FAIL, "file driver has no `get_vfd_handle' method")
-    if((ret_value = file->cls->get_handle(file, fapl, file_handle)) < 0)
+    if((file->cls->get_handle)(file, fapl, file_handle) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "can't get file handle for file driver")
 
 done:
@@ -2110,4 +2094,34 @@ H5FD_set_base_addr(H5FD_t *file, haddr_t base_addr)
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5FD_set_base_addr() */
+
+
+/*--------------------------------------------------------------------------
+ * Function:    H5FD_get_base_addr
+ *
+ * Purpose:     Get the base address for the file
+ *
+ * Return:	Success:	The absolute base address of the file
+ *		Failure:	The undefined address (HADDR_UNDEF)
+ *
+ * Programmer:  Quincey Koziol
+ *              Sept. 10, 2009
+ *
+ *--------------------------------------------------------------------------
+ */
+haddr_t
+H5FD_get_base_addr(const H5FD_t *file)
+{
+    haddr_t ret_value;          /* Return value */
+
+    FUNC_ENTER_NOAPI(H5FD_get_base_addr, HADDR_UNDEF)
+
+    HDassert(file);
+
+    /* Return the file's base address */
+    ret_value = file->base_addr;
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5FD_get_base_addr() */
 

@@ -74,9 +74,16 @@
 #define ULLI_FORMAT_P_NOTCOMP "%-15"H5_PRINTF_LL_WIDTH"u %-15"H5_PRINTF_LL_WIDTH"u %-15"H5_PRINTF_LL_WIDTH"d not comparable\n"
 
 
-/* values for FLT_EPSILON same as C Reference manual */
-#define H5DIFF_FLT_EPSILON  .00001
-#define H5DIFF_DBL_EPSILON  .000000001
+/* if system EPSILON is defined, use the system EPSILON; otherwise, use
+   constants that are close to most EPSILON values */
+
+#ifndef FLT_EPSILON
+#define FLT_EPSILON 1.19209E-07
+#endif
+
+#ifndef DBL_EPSILON
+#define DBL_EPSILON 2.22045E-16
+#endif
 
 
 /*-------------------------------------------------------------------------
@@ -160,7 +167,7 @@ static void h5diff_print_char(char ch);
 #if H5_SIZEOF_LONG_DOUBLE !=0
 typedef enum dtype_t
 {
-    FLT_FLOAT, 
+    FLT_FLOAT,
     FLT_DOUBLE,
     FLT_LDOUBLE
 } dtype_t;
@@ -168,7 +175,7 @@ typedef enum dtype_t
 
 typedef enum dtype_t
 {
-    FLT_FLOAT, 
+    FLT_FLOAT,
     FLT_DOUBLE
 } dtype_t;
 #endif
@@ -220,7 +227,7 @@ hsize_t diff_array( void *_mem1,
 
     if ( rank > 0 )
     {
-        
+
         acc[rank-1]=1;
         for(j=(rank-2); j>=0; j--)
         {
@@ -268,7 +275,7 @@ hsize_t diff_array( void *_mem1,
         */
 
         case H5T_FLOAT:
-            
+
             if (H5Tequal(m_type, H5T_NATIVE_FLOAT))
                 nfound=diff_float(mem1,mem2,nelmts,hyper_start,rank,dims,acc,pos,options,name1,name2,&ph);
             else if (H5Tequal(m_type, H5T_NATIVE_DOUBLE))
@@ -276,7 +283,7 @@ hsize_t diff_array( void *_mem1,
 #if H5_SIZEOF_LONG_DOUBLE !=0
             else if (H5Tequal(m_type, H5T_NATIVE_LDOUBLE))
                 nfound=diff_ldouble(mem1,mem2,nelmts,hyper_start,rank,dims,acc,pos,options,name1,name2,&ph);
-#endif            
+#endif
             break;
 
         case H5T_INTEGER:
@@ -740,7 +747,8 @@ hsize_t diff_datum(void       *_mem1,
                     NULL,
                     options);
                 else {
-                    parallel_print("Warning: Comparison not possible of object types referenced: <%s> and <%s>",
+                    if(options->m_verbose)
+                        parallel_print("Warning: Comparison not possible of object types referenced: <%s> and <%s>\n",
                         obj1, obj2);
                     options->not_cmp = 1;
                 }
@@ -1855,7 +1863,7 @@ hsize_t diff_datum(void       *_mem1,
                         nfound++;
                     }
 
-                } 
+                }
                 /* one is NaN, assume difference */
                 else if ( isnan1==1 || isnan2==1)
                 {
@@ -1918,7 +1926,7 @@ hsize_t diff_datum(void       *_mem1,
                             nfound++;
                         }
 
-                } 
+                }
                 /* one is NaN, assume difference */
                 else if ( isnan1==1 || isnan2==1)
                 {
@@ -1984,7 +1992,7 @@ hsize_t diff_datum(void       *_mem1,
                             nfound++;
                         }
 
-                } 
+                }
                 /* one is NaN, assume difference */
                 else if ( isnan1==1 || isnan2==1)
                 {
@@ -2067,7 +2075,7 @@ hsize_t diff_datum(void       *_mem1,
                         nfound++;
                     }
 
-                } 
+                }
                 /* one is NaN, assume difference */
                 else if ( isnan1==1 || isnan2==1)
                 {
@@ -2132,7 +2140,7 @@ hsize_t diff_datum(void       *_mem1,
                             nfound++;
                         }
 
-                } 
+                }
                 /* one is NaN, assume difference */
                 else if ( isnan1==1 || isnan2==1)
                 {
@@ -2198,7 +2206,7 @@ hsize_t diff_datum(void       *_mem1,
                             nfound++;
                         }
 
-                } 
+                }
                 /* one is NaN, assume difference */
                 else if ( isnan1==1 || isnan2==1)
                 {
@@ -2882,7 +2890,7 @@ hsize_t diff_float(unsigned char *mem1,
                     }
                     nfound++;
                 }
-            } 
+            }
             /* one is NaN, assume difference */
             else if ( isnan1==1 || isnan2==1)
             {
@@ -2954,7 +2962,7 @@ hsize_t diff_float(unsigned char *mem1,
                         }
                         nfound++;
                     }
-            } 
+            }
             /* one is NaN, assume difference */
             else if ( isnan1==1 || isnan2==1)
             {
@@ -3029,7 +3037,7 @@ hsize_t diff_float(unsigned char *mem1,
                         nfound++;
                     }
 
-            } 
+            }
             /* one is NaN, assume difference */
             else if ( isnan1==1 || isnan2==1)
             {
@@ -3055,14 +3063,10 @@ hsize_t diff_float(unsigned char *mem1,
   */
     else
     {
-
-
-
         for ( i = 0; i < nelmts; i++)
         {
             memcpy(&temp1_float, mem1, sizeof(float));
             memcpy(&temp2_float, mem2, sizeof(float));
-
 
             if (equal_float(temp1_float,temp2_float,options)==FALSE)
             {
@@ -3160,7 +3164,7 @@ hsize_t diff_double(unsigned char *mem1,
                     }
                     nfound++;
                 }
-            } 
+            }
             /* one is NaN, assume difference */
             else if ( isnan1==1 || isnan2==1)
             {
@@ -3232,7 +3236,7 @@ hsize_t diff_double(unsigned char *mem1,
                         }
                         nfound++;
                     }
-            } 
+            }
             /* one is NaN, assume difference */
             else if ( isnan1==1 || isnan2==1)
             {
@@ -3307,7 +3311,7 @@ hsize_t diff_double(unsigned char *mem1,
                         nfound++;
                     }
 
-            } 
+            }
             /* one is NaN, assume difference */
             else if ( isnan1==1 || isnan2==1)
             {
@@ -3443,7 +3447,7 @@ hsize_t diff_ldouble(unsigned char *mem1,
                     }
                     nfound++;
                 }
-            } 
+            }
             /* one is NaN, assume difference */
             else if ( isnan1==1 || isnan2==1)
             {
@@ -3515,7 +3519,7 @@ hsize_t diff_ldouble(unsigned char *mem1,
                         }
                         nfound++;
                     }
-            } 
+            }
             /* one is NaN, assume difference */
             else if ( isnan1==1 || isnan2==1)
             {
@@ -3590,7 +3594,7 @@ hsize_t diff_ldouble(unsigned char *mem1,
                         nfound++;
                     }
 
-            } 
+            }
             /* one is NaN, assume difference */
             else if ( isnan1==1 || isnan2==1)
             {
@@ -5506,20 +5510,16 @@ error:
 static
 hbool_t equal_double(double value, double expected, diff_opt_t *options)
 {
-    int both_zero;
-    int is_zero;
-
-
     if ( options->do_nans )
     {
-        
+
         /*-------------------------------------------------------------------------
         * detect NaNs
         *-------------------------------------------------------------------------
         */
         int isnan1 = my_isnan(FLT_DOUBLE,&value);
         int isnan2 = my_isnan(FLT_DOUBLE,&expected);
-        
+
         /*-------------------------------------------------------------------------
         * we consider NaN == NaN to be true
         *-------------------------------------------------------------------------
@@ -5528,7 +5528,7 @@ hbool_t equal_double(double value, double expected, diff_opt_t *options)
         {
             return TRUE;
         }
-        
+
         /*-------------------------------------------------------------------------
         * one is a NaN, do not compare but assume difference
         *-------------------------------------------------------------------------
@@ -5536,22 +5536,18 @@ hbool_t equal_double(double value, double expected, diff_opt_t *options)
         if ( (isnan1 && !isnan2) || ( !isnan1 && isnan2 ) )
         {
             return FALSE;
-        }      
+        }
     }
 
-    BOTH_ZERO(value,expected)
-    if (both_zero)
+    if (value == expected)
         return TRUE;
 
-    IS_ZERO(expected)
-    if (is_zero)
-        return(equal_double(expected,value,options));
+    if (options->use_system_epsilon) {
+        if ( ABS( (value-expected) ) < DBL_EPSILON)
+            return TRUE;
+    }
 
-    if ( ABS( (value-expected) / expected) < H5DIFF_DBL_EPSILON)
-        return TRUE;
-    else
-        return FALSE;
-
+    return FALSE;
 }
 
 /*-------------------------------------------------------------------------
@@ -5567,20 +5563,16 @@ hbool_t equal_double(double value, double expected, diff_opt_t *options)
 static
 hbool_t equal_ldouble(long double value, long double expected, diff_opt_t *options)
 {
-    int both_zero;
-    int is_zero;
-
-    
     if ( options->do_nans )
     {
-        
+
         /*-------------------------------------------------------------------------
         * detect NaNs
         *-------------------------------------------------------------------------
         */
         int isnan1 = my_isnan(FLT_LDOUBLE,&value);
         int isnan2 = my_isnan(FLT_LDOUBLE,&expected);
-        
+
         /*-------------------------------------------------------------------------
         * we consider NaN == NaN to be true
         *-------------------------------------------------------------------------
@@ -5589,7 +5581,7 @@ hbool_t equal_ldouble(long double value, long double expected, diff_opt_t *optio
         {
             return TRUE;
         }
-        
+
         /*-------------------------------------------------------------------------
         * one is a NaN, do not compare but assume difference
         *-------------------------------------------------------------------------
@@ -5597,26 +5589,22 @@ hbool_t equal_ldouble(long double value, long double expected, diff_opt_t *optio
         if ( (isnan1 && !isnan2) || ( !isnan1 && isnan2 ) )
         {
             return FALSE;
-        }       
+        }
     }
 
-    BOTH_ZERO(value,expected)
-    if (both_zero)
+    if (value == expected)
         return TRUE;
 
-    IS_ZERO(expected)
-    if (is_zero)
-        return(equal_ldouble(expected,value,options));
+    if (options->use_system_epsilon) {
+        if ( ABS( (value-expected) ) < DBL_EPSILON)
+            return TRUE;
+    }
 
-    if ( ABS( (value-expected) / expected) < H5DIFF_DBL_EPSILON)
-        return TRUE;
-    else
-        return FALSE;
-
+    return FALSE;
 }
 
 #endif /* #if H5_SIZEOF_LONG_DOUBLE !=0 */
- 
+
 
 /*-------------------------------------------------------------------------
  * Function:    equal_float
@@ -5632,19 +5620,16 @@ hbool_t equal_ldouble(long double value, long double expected, diff_opt_t *optio
 static
 hbool_t equal_float(float value, float expected, diff_opt_t *options)
 {
-    int both_zero;
-    int is_zero;
-
     if ( options->do_nans )
     {
-        
+
         /*-------------------------------------------------------------------------
         * detect NaNs
         *-------------------------------------------------------------------------
         */
         int isnan1 = my_isnan(FLT_FLOAT,&value);
         int isnan2 = my_isnan(FLT_FLOAT,&expected);
-        
+
         /*-------------------------------------------------------------------------
         * we consider NaN == NaN to be true
         *-------------------------------------------------------------------------
@@ -5653,7 +5638,7 @@ hbool_t equal_float(float value, float expected, diff_opt_t *options)
         {
             return TRUE;
         }
-        
+
         /*-------------------------------------------------------------------------
         * one is a NaN, do not compare but assume difference
         *-------------------------------------------------------------------------
@@ -5661,21 +5646,18 @@ hbool_t equal_float(float value, float expected, diff_opt_t *options)
         if ( (isnan1 && !isnan2) || ( !isnan1 && isnan2 ) )
         {
             return FALSE;
-        }       
+        }
     }
 
-    BOTH_ZERO(value,expected)
-    if (both_zero)
+    if (value == expected)
         return TRUE;
 
-    IS_ZERO(expected)
-    if (is_zero)
-        return(equal_float(expected,value,options));
+    if (options->use_system_epsilon) {
+        if ( ABS( (value-expected) ) < FLT_EPSILON)
+            return TRUE;
+    }
 
-    if ( ABS( (value-expected) / expected) < H5DIFF_FLT_EPSILON)
-        return TRUE;
-    else
-        return FALSE;
+    return FALSE;
 
 }
 
@@ -5829,6 +5811,47 @@ int print_data(diff_opt_t *options)
 }
 
 /*-------------------------------------------------------------------------
+ * Function: print_header
+ *
+ * Purpose: print header for difference
+ *
+ *-------------------------------------------------------------------------
+ */
+
+static
+void print_header(int        pp,        /* print percentage */
+                int        rank,
+                hsize_t    *dims,
+                const char *obj1,
+                const char *obj2 )
+{
+    /* print header */
+    parallel_print("%-16s","size:");
+    print_dimensions (rank,dims);
+    parallel_print("%-11s","");
+    print_dimensions (rank,dims);
+    parallel_print("\n");
+
+    if(pp) {
+        parallel_print("%-15s %-15s %-15s %-15s %-15s\n",
+            "position",
+            (obj1!=NULL) ? obj1 : " ",
+            (obj2!=NULL) ? obj2 : " ",
+            "difference",
+            "relative");
+        parallel_print("------------------------------------------------------------------------\n");
+    }
+    else {
+        parallel_print("%-15s %-15s %-15s %-20s\n",
+            "position",
+            (obj1!=NULL) ? obj1 : " ",
+            (obj2!=NULL) ? obj2 : " ",
+            "difference");
+        parallel_print("------------------------------------------------------------\n");
+    }
+}
+
+/*-------------------------------------------------------------------------
  * Function: print_pos
  *
  * Purpose: print in matrix notation, converting from an array index position
@@ -5854,31 +5877,7 @@ void print_pos( int        *ph,       /* print header */
     {
         *ph=0;
 
-        parallel_print("%-16s","size:");
-        print_dimensions (rank,dims);
-        parallel_print("%-11s","");
-        print_dimensions (rank,dims);
-        parallel_print("\n");
-
-        if (pp)
-        {
-            parallel_print("%-15s %-15s %-15s %-15s %-15s\n",
-                "position",
-                (obj1!=NULL) ? obj1 : " ",
-                (obj2!=NULL) ? obj2 : " ",
-                "difference",
-                "relative");
-            parallel_print("------------------------------------------------------------------------\n");
-        }
-        else
-        {
-            parallel_print("%-15s %-15s %-15s %-20s\n",
-                "position",
-                (obj1!=NULL) ? obj1 : " ",
-                (obj2!=NULL) ? obj2 : " ",
-                "difference");
-            parallel_print("------------------------------------------------------------\n");
-        }
+        print_header(pp, rank, dims, obj1, obj2);
     } /* end print header */
 
     for ( i = 0; i < rank; i++)
@@ -5931,31 +5930,7 @@ void print_char_pos( int        *ph,       /* print header */
     {
         *ph=0;
 
-        parallel_print("%-16s","size:");
-        print_dimensions (rank,dims);
-        parallel_print("%-11s","");
-        print_dimensions (rank,dims);
-        parallel_print("\n");
-
-        if (pp)
-        {
-            parallel_print("%-15s %-15s %-15s %-15s %-15s\n",
-                "position",
-                (obj1!=NULL) ? obj1 : " ",
-                (obj2!=NULL) ? obj2 : " ",
-                "difference",
-                "relative");
-            parallel_print("------------------------------------------------------------------------\n");
-        }
-        else
-        {
-            parallel_print("%-15s %-15s %-15s %-20s\n",
-                "position",
-                (obj1!=NULL) ? obj1 : " ",
-                (obj2!=NULL) ? obj2 : " ",
-                "difference");
-            parallel_print("------------------------------------------------------------\n");
-        }
+        print_header(pp, rank, dims, obj1, obj2);
     } /* end print header */
 
     for ( i = 0; i < rank; i++)
@@ -5968,13 +5943,13 @@ void print_char_pos( int        *ph,       /* print header */
     parallel_print("[ " );
     if ( rank > 0 )
     {
-        
+
         for ( i = 0; i < rank; i++)
         {
             parallel_print(HSIZE_T_FORMAT, (unsigned long long)pos[i]);
             parallel_print(" ");
         }
-        
+
     }
     else
     {
@@ -5992,8 +5967,8 @@ void print_char_pos( int        *ph,       /* print header */
  */
 static void h5diff_print_char(char ch)
 {
-    
-    switch (ch) 
+
+    switch (ch)
     {
     case '"':
         parallel_print("\\\"");
@@ -6021,7 +5996,7 @@ static void h5diff_print_char(char ch)
             parallel_print( "%c", ch);
         else
             parallel_print( "\\%03o", ch);
-        
+
         break;
     }
 }

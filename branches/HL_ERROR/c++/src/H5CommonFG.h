@@ -50,9 +50,8 @@ class H5_DLLCPP CommonFG {
 	DataSet openDataSet(const H5std_string& name) const;
 
 	// Retrieves comment for the HDF5 object specified by its name.
-	H5std_string getComment(const H5std_string& name) const;
-	H5std_string getComment(const char* name, size_t bufsize) const;
-	H5std_string getComment(const H5std_string& name, size_t bufsize) const;
+	H5std_string getComment(const char* name, size_t bufsize=256) const;
+	H5std_string getComment(const H5std_string& name, size_t bufsize=256) const;
 
 	// Removes the comment for the HDF5 object specified by its name.
 	void removeComment(const char* name) const;
@@ -62,22 +61,24 @@ class H5_DLLCPP CommonFG {
 	void setComment(const char* name, const char* comment) const;
 	void setComment(const H5std_string& name, const H5std_string& comment) const;
 
-	// Returns the name of the HDF5 object that the symbolic link points to.
-	H5std_string getLinkval(const char* name, size_t size) const;
-	H5std_string getLinkval(const H5std_string& name, size_t size) const;
+	// Returns the value of a symbolic link.
+	H5std_string getLinkval(const char* link_name, size_t size=0) const;
+	H5std_string getLinkval(const H5std_string& link_name, size_t size=0) const;
 
 	// Returns the number of objects in this group.
 	hsize_t getNumObjs() const;
 
 	// Retrieves the name of an object in this group, given the
 	// object's index.
-	ssize_t getObjnameByIdx(hsize_t idx, H5std_string& name, size_t size) const;
 	H5std_string getObjnameByIdx(hsize_t idx) const;
+	ssize_t getObjnameByIdx(hsize_t idx, char* name, size_t size) const;
+	ssize_t getObjnameByIdx(hsize_t idx, H5std_string& name, size_t size) const;
 
 #ifndef H5_NO_DEPRECATED_SYMBOLS
 	// Returns the type of an object in this group, given the
 	// object's index.
 	H5G_obj_t getObjTypeByIdx(hsize_t idx) const;
+	H5G_obj_t getObjTypeByIdx(hsize_t idx, char* type_name) const;
 	H5G_obj_t getObjTypeByIdx(hsize_t idx, H5std_string& type_name) const;
 
 	// Returns information about an HDF5 object, given by its name,

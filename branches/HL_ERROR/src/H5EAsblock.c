@@ -170,7 +170,7 @@ HDfprintf(stderr, "%s: hdr->dblk_page_nelmts = %Zu, sblock->ndblks = %Zu, sblock
 
 CATCH
     if(!ret_value)
-        if(sblock && H5EA__sblock_dest(hdr->f, sblock) < 0)
+        if(sblock && H5EA__sblock_dest(sblock) < 0)
             H5E_THROW(H5E_CANTFREE, "unable to destroy extensible array super block")
 
 END_FUNC(PKG)   /* end H5EA__sblock_alloc() */
@@ -232,7 +232,7 @@ HDfprintf(stderr, "%s: sblock->block_off = %Hu\n", FUNC, sblock->block_off);
     H5V_array_fill(sblock->dblk_addrs, &tmp_addr, sizeof(haddr_t), sblock->ndblks);
 
     /* Cache the new extensible array super block */
-    if(H5AC_set(hdr->f, dxpl_id, H5AC_EARRAY_SBLOCK, sblock_addr, sblock, H5AC__NO_FLAGS_SET) < 0)
+    if(H5AC_insert_entry(hdr->f, dxpl_id, H5AC_EARRAY_SBLOCK, sblock_addr, sblock, H5AC__NO_FLAGS_SET) < 0)
 	H5E_THROW(H5E_CANTINSERT, "can't add extensible array super block to cache")
 
     /* Update extensible array super block statistics */
@@ -253,7 +253,7 @@ CATCH
                 H5E_THROW(H5E_CANTFREE, "unable to release extensible array super block")
 
             /* Destroy super block */
-            if(H5EA__sblock_dest(hdr->f, sblock) < 0)
+            if(H5EA__sblock_dest(sblock) < 0)
                 H5E_THROW(H5E_CANTFREE, "unable to destroy extensible array super block")
         } /* end if */
 
@@ -279,7 +279,7 @@ H5EA__sblock_protect(H5EA_hdr_t *hdr, hid_t dxpl_id, H5EA_iblock_t *parent,
     haddr_t sblk_addr, unsigned sblk_idx, H5AC_protect_t rw))
 
     /* Local variables */
-    H5EA_sblock_load_ud_t load_ud;      /* Information needed for loading super block */
+    H5EA_sblock_cache_ud_t udata;      /* Information needed for loading super block */
 
 
 #ifdef QAK
@@ -291,11 +291,12 @@ HDfprintf(stderr, "%s: Called\n", FUNC);
     HDassert(H5F_addr_defined(sblk_addr));
 
     /* Set up user data */
-    load_ud.parent = parent;
-    load_ud.sblk_idx = sblk_idx;
+    udata.hdr = hdr;
+    udata.parent = parent;
+    udata.sblk_idx = sblk_idx;
 
     /* Protect the super block */
-    if(NULL == (ret_value = (H5EA_sblock_t *)H5AC_protect(hdr->f, dxpl_id, H5AC_EARRAY_SBLOCK, sblk_addr, &load_ud, hdr, rw)))
+    if(NULL == (ret_value = (H5EA_sblock_t *)H5AC_protect(hdr->f, dxpl_id, H5AC_EARRAY_SBLOCK, sblk_addr, &udata, rw)))
         H5E_THROW(H5E_CANTPROTECT, "unable to protect extensible array super block, address = %llu", (unsigned long long)sblk_addr)
 
 CATCH
@@ -407,7 +408,7 @@ END_FUNC(PKG)   /* end H5EA__sblock_delete() */
 /* ARGSUSED */
 BEGIN_FUNC(PKG, ERR,
 herr_t, SUCCEED, FAIL,
-H5EA__sblock_dest(H5F_t *f, H5EA_sblock_t *sblock))
+H5EA__sblock_dest(H5EA_sblock_t *sblock))
 
     /* Sanity check */
     HDassert(sblock);
@@ -418,9 +419,6 @@ HDfprintf(stderr, "%s: sblock->hdr->dblk_page_nelmts = %Zu, sblock->ndblks = %Zu
 
     /* Check if shared header field has been initialized */
     if(sblock->hdr) {
-        /* Set the shared array header's file context for this operation */
-        sblock->hdr->f = f;
-
         /* Free buffer for super block data block addresses, if there are any */
         if(sblock->dblk_addrs)
             sblock->dblk_addrs = H5FL_SEQ_FREE(haddr_t, sblock->dblk_addrs);
@@ -438,7 +436,7 @@ HDfprintf(stderr, "%s: sblock->hdr->dblk_page_nelmts = %Zu, sblock->ndblks = %Zu
     } /* end if */
 
     /* Free the super block itself */
-    (void)H5FL_FREE(H5EA_sblock_t, sblock);
+    sblock = H5FL_FREE(H5EA_sblock_t, sblock);
 
 CATCH
 

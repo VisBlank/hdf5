@@ -24,7 +24,7 @@ include $(top_srcdir)/config/lt_vers.am
 # Include src directory in both Fortran and C flags (C compiler is used
 # for linking).
 INCLUDES=-I$(top_srcdir)/src
-AM_FCFLAGS=-I$(top_srcdir)/src -I$(top_srcdir)/fortran/src
+AM_FCFLAGS+=-I$(top_srcdir)/src -I$(top_srcdir)/fortran/src
 
 AM_FCLIBS=$(LIBHDF5)
 
@@ -32,14 +32,14 @@ AM_FCLIBS=$(LIBHDF5)
 lib_LTLIBRARIES=libhdf5_fortran.la
 
 # Add libtool numbers to the HDF5 Fortran library (from config/lt_vers.am)
-libhdf5_fortran_la_LDFLAGS= -version-info $(LT_VERS_INTERFACE):$(LT_VERS_REVISION):$(LT_VERS_AGE)
+libhdf5_fortran_la_LDFLAGS= -version-info $(LT_VERS_INTERFACE):$(LT_VERS_REVISION):$(LT_VERS_AGE) $(AM_LDFLAGS)
 
 # Some Fortran compilers can't build shared libraries, so sometimes we
 # want to build a shared C library and a static Fortran library.  If so,
 # pass the -static flag to the library linker.
 if FORTRAN_SHARED_CONDITIONAL
 else
-   AM_LDFLAGS=-static
+   AM_LDFLAGS+=-static
 endif
 
 # Include HDF5.f90 if parallel is disabled, HDF5mpiof*  if parallel is enabled
@@ -90,11 +90,14 @@ clean-local:
 	@if test -n "$(F9XMODEXT)" && test "X$(F9XMODEXT)" != "Xo"; then \
 	  $(RM) *.$(F9XMODEXT);                                         \
 	fi
+	$(RM) $(DESTDIR)$(includedir)/H5f90i*.h
 
 install-data-local:
 	@if test -n "$(F9XMODEXT)" && test "X$(F9XMODEXT)" != "Xo"; then \
 	  $(CP) $(top_builddir)/$(subdir)/*.$(F9XMODEXT) $(DESTDIR)$(includedir)/. ; \
 	fi
+	$(CP) $(top_builddir)/$(subdir)/H5f90i_gen.h $(DESTDIR)$(includedir)/.
+	$(CP) $(top_srcdir)/fortran/src/H5f90i.h $(DESTDIR)$(includedir)/.
 
 uninstall-local:
 	@if test -n "$(F9XMODEXT)" -a "X$(F9XMODEXT)" != "Xo"; then      \
@@ -103,6 +106,7 @@ uninstall-local:
 	  fi;                                                           \
 	fi;								\
 	$(RM) $(DESTDIR)$(bindir)/$(H5FC_NAME)
+	$(RM) $(DESTDIR)$(includedir)/H5f90i*.h
 
 # Also install and uninstall (uninstall-local above) h5fc script
 install-exec-local:

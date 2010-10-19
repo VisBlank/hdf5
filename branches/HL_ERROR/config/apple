@@ -28,54 +28,81 @@ fi
 
 # Figure out compiler flags
 . $srcdir/config/gnu-flags
-
-# The default Fortran 90 compiler
+ 
+. $srcdir/config/intel-flags
 if test "X-" = "X-$FC"; then
-    # Assume Absoft compiler
-    FC=xlf
-    FC_BASENAME=xlf
-  else
+    case $CC_BASENAME in
+        gcc*)
+            FC=gfortran
+            FC_BASENAME=gfortran
+            ;;
+        icc*)
+            FC=ifort
+            FC_BASENAME=ifort
+            ;;
+    esac
+fi
+# Figure out compiler flags
+. $srcdir/config/gnu-fflags
+ 
+. $srcdir/config/intel-fflags
 
-    # Neither xlf nor f95 have a working "version" command.
-    # If FC is set, try to guess which one is being used by examining
-    # the last element in the path to the compiler.
-
-    TEMP_BASENAME=`basename $FC`
-    if test "xlf" = "${TEMP_BASENAME}"; then
-      FC_BASENAME=xlf
-    else
-      FC_BASENAME=f95
-    fi
+# Fortran doesn't work with shared libraries
+# 
+if test "X-" != "X-$enable_fortran"; then
+        echo '    Warning: shared libraries are not supported with Fortran'
+        echo '    Disabling shared libraries'
+        enable_shared="no"
 fi
 
-case $FC_BASENAME in
-    xlf) 
-        F9XSUFFIXFLAG="-qsuffix=f=f90 -qfree=f90"
-        FCFLAGS="$FCFLAGS ${F9XSUFFIXFLAG}"
-        H5_FCFLAGS="$H5_FCFLAGS -qmoddir=./ "
-        FSEARCH_DIRS="-I./ -I../src"
-        DEBUG_FCFLAGS="-g"
-        PROD_FCFLAGS="-O"
-        PROFILE_FCFLAGS="-g"
-        f9x_flags_set=yes
+# compiler version strings
+case $CC in
+    *gcc*)
+        cc_version_info=`$CC $CFLAGS $H5_CFLAGS --version 2>&1 | grep -v 'PathScale' |\
+            grep 'GCC' | sed 's/.*\((GCC) [-a-z0-9\. ]*.*\)/\1/'`
         ;;
 
-    f95)
-
-        F9XSUFFIXFLAG=""
-# We force compiler to use upper case for external names 
-# (just in case since this should be a default EIP)
-        H5_FCFLAGS="$H5_FCFLAGS"
-        FSEARCH_DIRS=""
-        DEBUG_FCFLAGS="-g"
-        PROD_FCFLAGS="-O"
-        PROFILE_FCFLAGS="-g -pg"
-        f9x_flags_set=yes
-
-# f95 doesn't support shared libraries
-        echo '    warning: shared libraries are not supported for f95!'
-        echo '    disabling shared libraries'
-        enable_shared="no"
+    *icc*)
+        cc_version_info=`$CC $CCFLAGS $H5_CCFLAGS -V 2>&1 | grep 'Version' |\
+            sed 's/\(Intel.* Compiler\).*\( Version [a-z0-9\.]*\).*\( Build [0-9]*\)/\1\2\3/'`
         ;;
 
-esac  
+    *)
+        echo "No match to get cc_version_info for $CC"
+        ;;
+esac
+
+case $FC in
+    *gfortran*)
+        fc_version_info=`$FC $FCFLAGS $H5_FCFLAGS --version 2>&1 |\
+            grep 'GCC' | sed 's/\(.*(GCC) [-a-z0-9\. ]*\).*/\1/'`
+        ;;
+
+    *ifc*|*ifort*)
+        fc_version_info=`$FC $FCFLAGS $H5_FCFLAGS -V 2>&1 | grep 'Version' |\
+            sed 's/\(Intel.* Compiler\).*\( Version [a-z0-9\.]*\).*\( Build [0-9]*\)/\1\2\3/'`
+        ;;
+
+     *)
+        echo "No match to get fc_version_info for $FC"
+        ;;
+
+esac
+
+# get c++ version info
+case $CXX in
+    *g++*)
+        cxx_version_info=`$CXX $CXXFLAGS $H5_CXXFLAGS --version 2>&1 |\
+            grep 'GCC' | sed 's/.*\((GCC) [-a-z0-9\. ]*.*\)/\1/'`
+        ;;
+
+   *icpc*)
+        cxx_version_info=`$CXX $CXXFLAGS $H5_CXXFLAGS -V 2>&1 | grep 'Version' |\
+            sed 's/\(Intel.* Compiler\).*\( Version [a-z0-9\.]*\).*\( Build [0-9]*\)/\1\2\3/'`
+        ;;
+
+    *)
+        echo "No match to get cxx_version_info for $CXX"
+        ;;
+esac
+

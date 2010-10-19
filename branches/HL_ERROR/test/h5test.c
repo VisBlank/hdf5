@@ -25,11 +25,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "h5test.h"
+#include "H5srcdir.h"
 
 #ifdef _WIN32
 #include <process.h>
 #include <direct.h>
-#include <winsock.h>
+#include <winsock2.h>
 #endif  /* _WIN32 */
 
 /*
@@ -64,17 +65,15 @@
  * is about the best guess.
  */
 #ifndef HDF5_PARAPREFIX
-#ifdef __PUMAGON__
-/* For the PFS of TFLOPS */
-#define HDF5_PARAPREFIX "pfs:/pfs_grande/multi/tmp_1"
-#else
 #define HDF5_PARAPREFIX ""
-#endif
 #endif
 char	*paraprefix = NULL;	/* for command line option para-prefix */
 #ifdef H5_HAVE_PARALLEL
 MPI_Info    h5_io_info_g=MPI_INFO_NULL;/* MPI INFO object for IO */
 #endif
+
+#define FILENAME_BUF_SIZE       1024
+#define READ_BUF_SIZE           4096
 
 /*
  * These are the letters that are appended to the file name when generating
@@ -874,10 +873,10 @@ h5_get_file_size(const char *filename, hid_t fapl)
                 driver == H5FD_MPIO || driver == H5FD_MPIPOSIX ||
 #endif /* H5_HAVE_PARALLEL */
 #ifdef H5_HAVE_WINDOWS
-                driver == H5FD_WINDOWS || 
+                driver == H5FD_WINDOWS ||
 #endif /* H5_HAVE_WINDOWS */
 #ifdef H5_HAVE_DIRECT
-                driver == H5FD_DIRECT || 
+                driver == H5FD_DIRECT ||
 #endif /* H5_HAVE_DIRECT */
                 driver == H5FD_LOG) {
             /* Get the file's statistics */
@@ -976,30 +975,28 @@ print_func(const char *format, ...)
  */
 int h5_szip_can_encode(void )
 {
+    unsigned int filter_config_flags;
 
- herr_t       status;
- unsigned int filter_config_flags;
-
-   status =H5Zget_filter_info(H5Z_FILTER_SZIP, &filter_config_flags);
-   if ((filter_config_flags &
-          (H5Z_FILTER_CONFIG_ENCODE_ENABLED|H5Z_FILTER_CONFIG_DECODE_ENABLED)) == 0) {
-    /* filter present but neither encode nor decode is supported (???) */
-    return -1;
-   } else if ((filter_config_flags &
-          (H5Z_FILTER_CONFIG_ENCODE_ENABLED|H5Z_FILTER_CONFIG_DECODE_ENABLED)) ==
-    H5Z_FILTER_CONFIG_DECODE_ENABLED) {
-     /* decoder only: read but not write */
-    return 0;
-   } else if ((filter_config_flags &
-          (H5Z_FILTER_CONFIG_ENCODE_ENABLED|H5Z_FILTER_CONFIG_DECODE_ENABLED)) ==
-    H5Z_FILTER_CONFIG_ENCODE_ENABLED) {
-     /* encoder only: write but not read (???) */
-     return -1;
-   } else if ((filter_config_flags &
-          (H5Z_FILTER_CONFIG_ENCODE_ENABLED|H5Z_FILTER_CONFIG_DECODE_ENABLED)) ==
-          (H5Z_FILTER_CONFIG_ENCODE_ENABLED|H5Z_FILTER_CONFIG_DECODE_ENABLED)) {
-    return 1;
-   }
+    H5Zget_filter_info(H5Z_FILTER_SZIP, &filter_config_flags);
+    if ((filter_config_flags &
+            (H5Z_FILTER_CONFIG_ENCODE_ENABLED|H5Z_FILTER_CONFIG_DECODE_ENABLED)) == 0) {
+        /* filter present but neither encode nor decode is supported (???) */
+        return -1;
+    } else if ((filter_config_flags &
+            (H5Z_FILTER_CONFIG_ENCODE_ENABLED|H5Z_FILTER_CONFIG_DECODE_ENABLED)) ==
+            H5Z_FILTER_CONFIG_DECODE_ENABLED) {
+        /* decoder only: read but not write */
+        return 0;
+    } else if ((filter_config_flags &
+            (H5Z_FILTER_CONFIG_ENCODE_ENABLED|H5Z_FILTER_CONFIG_DECODE_ENABLED)) ==
+            H5Z_FILTER_CONFIG_ENCODE_ENABLED) {
+        /* encoder only: write but not read (???) */
+        return -1;
+    } else if ((filter_config_flags &
+            (H5Z_FILTER_CONFIG_ENCODE_ENABLED|H5Z_FILTER_CONFIG_DECODE_ENABLED)) ==
+            (H5Z_FILTER_CONFIG_ENCODE_ENABLED|H5Z_FILTER_CONFIG_DECODE_ENABLED)) {
+        return 1;
+    }
    return(-1);
 }
 #endif /* H5_HAVE_FILTER_SZIP */
@@ -1094,4 +1091,48 @@ getenv_all(MPI_Comm comm, int root, const char* name)
 }
 
 #endif
+
+/*-------------------------------------------------------------------------
+ * Function:    h5_make_local_copy
+ *
+ * Purpose:     Make copy of file.  Some tests write to data files under that
+ *              are under version control.  Those tests should make a copy of
+ *              the versioned file and write to the copy.  This function
+ *              prepends srcdir to the name of the file to be copied and uses
+ *              the name of the copy as is.
+ *
+ * Return:      Success:        0
+ *
+ *              Failure:        -1
+ *
+ * Programmer:  Larry Knox
+ *              Monday, October 13, 2009
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+hid_t
+h5_make_local_copy(char *origfilename, char *local_copy_name)
+{
+    const char *filename = H5_get_srcdir_filename(origfilename); /* Corrected test file name */
+    int fd_old = (-1), fd_new = (-1);   /* File descriptors for copying data */
+    ssize_t nread;                      /* Number of bytes read in */
+    char  buf[READ_BUF_SIZE];        /* Buffer for copying data */
+
+    /* Copy old file into temporary file */
+    if((fd_old = HDopen(filename, O_RDONLY, 0666)) < 0) return -1;
+    if((fd_new = HDopen(local_copy_name, O_RDWR|O_CREAT|O_TRUNC, 0666))
+        < 0) return -1;
+
+    /* Copy data */
+    while((nread = HDread(fd_old, buf, (size_t)READ_BUF_SIZE)) > 0)
+        HDwrite(fd_new, buf, (size_t)nread);
+
+    /* Close files */
+    if(HDclose(fd_old) < 0) return -1;
+    if(HDclose(fd_new) < 0) return -1;
+
+    return 0;
+}
 

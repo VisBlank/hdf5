@@ -74,19 +74,19 @@
 /********************/
 
 /* Metadata cache (H5AC) callbacks */
-static H5FA_hdr_t *H5FA__cache_hdr_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *udata, void *udata2);
+static H5FA_hdr_t *H5FA__cache_hdr_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, void *udata);
 static herr_t H5FA__cache_hdr_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5FA_hdr_t *hdr, unsigned * flags_ptr);
 static herr_t H5FA__cache_hdr_clear(H5F_t *f, H5FA_hdr_t *hdr, hbool_t destroy);
 static herr_t H5FA__cache_hdr_size(const H5F_t *f, const H5FA_hdr_t *hdr, size_t *size_ptr);
 static herr_t H5FA__cache_hdr_dest(H5F_t *f, H5FA_hdr_t *hdr);
 
-static H5FA_dblock_t *H5FA__cache_dblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *udata, void *udata2);
+static H5FA_dblock_t *H5FA__cache_dblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, void *udata);
 static herr_t H5FA__cache_dblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5FA_dblock_t *dblock, unsigned * flags_ptr);
 static herr_t H5FA__cache_dblock_clear(H5F_t *f, H5FA_dblock_t *dblock, hbool_t destroy);
 static herr_t H5FA__cache_dblock_size(const H5F_t *f, const H5FA_dblock_t *dblock, size_t *size_ptr);
 static herr_t H5FA__cache_dblock_dest(H5F_t *f, H5FA_dblock_t *dblock);
 
-static H5FA_dblk_page_t *H5FA__cache_dblk_page_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *udata, void *udata2);
+static H5FA_dblk_page_t *H5FA__cache_dblk_page_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, void *udata);
 static herr_t H5FA__cache_dblk_page_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr, H5FA_dblk_page_t *dblk_page, unsigned * flags_ptr);
 static herr_t H5FA__cache_dblk_page_clear(H5F_t *f, H5FA_dblk_page_t *dblk_page, hbool_t destroy);
 static herr_t H5FA__cache_dblk_page_size(const H5F_t *f, const H5FA_dblk_page_t *dblk_page, size_t *size_ptr);
@@ -158,11 +158,10 @@ const H5AC_class_t H5AC_FARRAY_DBLK_PAGE[1] = {{
  */
 BEGIN_FUNC(STATIC, ERR,
 H5FA_hdr_t *, NULL, NULL,
-H5FA__cache_hdr_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *_cls,
-    void *ctx_udata))
+H5FA__cache_hdr_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, void *udata))
 
     /* Local variables */
-    const H5FA_class_t  *cls = (const H5FA_class_t *)_cls;      /* Fixed array class */
+    H5FA_cls_id_t       id;		/* ID of fixed array class, as found in file */
     H5FA_hdr_t		*hdr = NULL;    /* Fixed array info */
     size_t		size;           /* Header size */
     H5WB_t              *wb = NULL;     /* Wrapped buffer for header data */
@@ -177,7 +176,7 @@ H5FA__cache_hdr_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *_cls,
     HDassert(H5F_addr_defined(addr));
 
     /* Allocate space for the fixed array data structure */
-    if(NULL == (hdr = H5FA__hdr_alloc(f, cls, ctx_udata)))
+    if(NULL == (hdr = H5FA__hdr_alloc(f)))
 	H5E_THROW(H5E_CANTALLOC, "memory allocation failed for fixed array shared header")
 
     /* Set the fixed array header's address */
@@ -210,14 +209,16 @@ H5FA__cache_hdr_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *_cls,
     if(*p++ != H5FA_HDR_VERSION)
 	H5E_THROW(H5E_VERSION, "wrong fixed array header version")
 
-    /* Fixed array type */
-    if(*p++ != (uint8_t)cls->id)
+    /* Fixed array class */
+    id = (H5FA_cls_id_t)*p++;
+    if(id >= H5FA_NUM_CLS_ID)
 	H5E_THROW(H5E_BADTYPE, "incorrect fixed array class")
+    hdr->cparam.cls = H5FA_client_class_g[id];
 
     /* General array creation/configuration information */
     hdr->cparam.raw_elmt_size = *p++;         	   /* Element size in file (in bytes) */
-    hdr->cparam.max_dblk_page_nelmts_bits = *p++;  /* Log2(Max. # of elements in data block page) - 
-						      i.e. # of bits needed to store max. # of 
+    hdr->cparam.max_dblk_page_nelmts_bits = *p++;  /* Log2(Max. # of elements in data block page) -
+						      i.e. # of bits needed to store max. # of
 						      elements in data block page. */
 
     /* Array statistics */
@@ -226,9 +227,24 @@ H5FA__cache_hdr_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *_cls,
     /* Internal information */
     H5F_addr_decode(f, &p, &hdr->dblk_addr); 		/* Address of index block */
 
-    /* Initializations of header info */
-    hdr->stats.nelmts = hdr->cparam.nelmts;
-    hdr->stats.hdr_size = hdr->size = size;  	/* Size of header in file */
+    /* Check for data block */
+    if(H5F_addr_defined(hdr->dblk_addr)) {
+	H5FA_dblock_t  dblock;  	/* Fake data block for computing size */
+	size_t	dblk_page_nelmts;	/* # of elements per data block page */
+
+	/* Set up fake data block for computing size on disk */
+	dblock.hdr = hdr;
+	dblock.dblk_page_init_size = 0;
+	dblock.npages = 0;
+	dblk_page_nelmts = (size_t)1 << hdr->cparam.max_dblk_page_nelmts_bits;
+	if(hdr->cparam.nelmts > dblk_page_nelmts) {
+	    dblock.npages = (size_t)(((hdr->cparam.nelmts + dblk_page_nelmts) - 1) / dblk_page_nelmts);
+	    dblock.dblk_page_init_size = (dblock.npages + 7) / 8;
+	} /* end if */
+
+        /* Compute Fixed Array data block size for hdr statistics */
+	hdr->stats.dblk_size = (size_t)H5FA_DBLOCK_SIZE(&dblock);
+    } /* end if */
 
     /* Sanity check */
     /* (allow for checksum not decoded yet) */
@@ -248,6 +264,11 @@ H5FA__cache_hdr_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void *_cls,
     if(stored_chksum != computed_chksum)
 	H5E_THROW(H5E_BADVALUE, "incorrect metadata checksum for fixed array header")
 
+    /* Finish initializing fixed array header */
+    if(H5FA__hdr_init(hdr, udata) < 0)
+	H5E_THROW(H5E_CANTINIT, "initialization failed for fixed array header")
+    HDassert(hdr->size == size);
+
     /* Set return value */
     ret_value = hdr;
 
@@ -257,7 +278,7 @@ CATCH
     if(wb && H5WB_unwrap(wb) < 0)
 	H5E_THROW(H5E_CLOSEERROR, "can't close wrapped buffer")
     if(!ret_value)
-        if(hdr && H5FA__cache_hdr_dest(f, hdr) < 0)
+        if(hdr && H5FA__hdr_dest(hdr) < 0)
             H5E_THROW(H5E_CANTFREE, "unable to destroy fixed array header")
 
 END_FUNC(STATIC)   /* end H5FA__cache_hdr_load() */
@@ -463,7 +484,6 @@ CATCH
 
 END_FUNC(STATIC)   /* end H5FA__cache_hdr_dest() */
 
-
 
 /*-------------------------------------------------------------------------
  * Function:	H5FA__cache_dblock_load
@@ -480,13 +500,11 @@ END_FUNC(STATIC)   /* end H5FA__cache_hdr_dest() */
  */
 BEGIN_FUNC(STATIC, ERR,
 H5FA_dblock_t *, NULL, NULL,
-H5FA__cache_dblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr,
-    const void *_nelmts, void *_hdr))
+H5FA__cache_dblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, void *_udata))
 
     /* Local variables */
-    H5FA_hdr_t     *hdr = (H5FA_hdr_t *)_hdr;  /* Shared fixed array information */
-    const hsize_t  *nelmts = (const hsize_t *)_nelmts;  /* Number of elements in data block */
     H5FA_dblock_t  *dblock = NULL;  /* Data block info */
+    H5FA_dblock_cache_ud_t *udata = (H5FA_dblock_cache_ud_t *)_udata; /* User data for loading data block */
     size_t	   size;            /* Data block size */
     H5WB_t         *wb = NULL;      /* Wrapped buffer for data block data */
     uint8_t        dblock_buf[H5FA_DBLOCK_BUF_SIZE]; /* Buffer for data block */
@@ -499,11 +517,10 @@ H5FA__cache_dblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr,
     /* Sanity check */
     HDassert(f);
     HDassert(H5F_addr_defined(addr));
-    HDassert(nelmts && *nelmts > 0);
-    HDassert(hdr);
+    HDassert(udata && udata->hdr && udata->nelmts > 0);
 
     /* Allocate the fixed array data block */
-    if(NULL == (dblock = H5FA__dblock_alloc(hdr, *nelmts)))
+    if(NULL == (dblock = H5FA__dblock_alloc(udata->hdr, udata->nelmts)))
 	H5E_THROW(H5E_CANTALLOC, "memory allocation failed for fixed array data block")
 
     /* Set the fixed array data block's information */
@@ -539,14 +556,14 @@ H5FA__cache_dblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr,
     if(*p++ != H5FA_DBLOCK_VERSION)
 	H5E_THROW(H5E_VERSION, "wrong fixed array data block version")
 
+    /* Fixed array type */
+    if(*p++ != (uint8_t)udata->hdr->cparam.cls->id)
+	H5E_THROW(H5E_BADTYPE, "incorrect fixed array class")
+
     /* Address of header for array that owns this block (just for file integrity checks) */
     H5F_addr_decode(f, &p, &arr_addr);
-    if(H5F_addr_ne(arr_addr, hdr->addr))
+    if(H5F_addr_ne(arr_addr, udata->hdr->addr))
 	H5E_THROW(H5E_BADVALUE, "wrong fixed array header address")
-
-    /* Fixed array type */
-    if(*p++ != (uint8_t)hdr->cparam.cls->id)
-	H5E_THROW(H5E_BADTYPE, "incorrect fixed array class")
 
     /* Page initialization flags */
     if(dblock->npages > 0) {
@@ -558,9 +575,9 @@ H5FA__cache_dblock_load(H5F_t *f, hid_t dxpl_id, haddr_t addr,
     if(!dblock->npages) {
         /* Decode elements in data block */
         /* Convert from raw elements on disk into native elements in memory */
-        if((hdr->cparam.cls->decode)(p, dblock->elmts, (size_t)*nelmts, hdr->cb_ctx) < 0)
+        if((udata->hdr->cparam.cls->decode)(p, dblock->elmts, (size_t)udata->nelmts, udata->hdr->cb_ctx) < 0)
             H5E_THROW(H5E_CANTDECODE, "can't decode fixed array data elements")
-        p += (*nelmts * hdr->cparam.raw_elmt_size);
+        p += (udata->nelmts * udata->hdr->cparam.raw_elmt_size);
     } /* end if */
 
     /* Sanity check */
@@ -592,7 +609,7 @@ CATCH
     if(wb && H5WB_unwrap(wb) < 0)
 	H5E_THROW(H5E_CLOSEERROR, "can't close wrapped buffer")
     if(!ret_value)
-        if(dblock && H5FA__cache_dblock_dest(f, dblock) < 0)
+        if(dblock && H5FA__dblock_dest(dblock) < 0)
             H5E_THROW(H5E_CANTFREE, "unable to destroy fixed array data block")
 
 END_FUNC(STATIC)   /* end H5FA__cache_dblock_load() */
@@ -655,11 +672,11 @@ H5FA__cache_dblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr,
         /* Version # */
         *p++ = H5FA_DBLOCK_VERSION;
 
-        /* Address of array header for array which owns this block */
-        H5F_addr_encode(f, &p, dblock->hdr->addr);
-
         /* Fixed array type */
         *p++ = dblock->hdr->cparam.cls->id;
+
+        /* Address of array header for array which owns this block */
+        H5F_addr_encode(f, &p, dblock->hdr->addr);
 
         /* Page init flags */
 	if(dblock->npages > 0) {
@@ -768,7 +785,7 @@ H5FA__cache_dblock_size(const H5F_t UNUSED *f, const H5FA_dblock_t *dblock,
     else
         *size_ptr = H5FA_DBLOCK_PREFIX_SIZE(dblock);
 
-END_FUNC(STATIC)   /* end H5FA__cache_dblock_size() */ 
+END_FUNC(STATIC)   /* end H5FA__cache_dblock_size() */
 
 
 /*-------------------------------------------------------------------------
@@ -811,7 +828,7 @@ H5FA__cache_dblock_dest(H5F_t *f, H5FA_dblock_t *dblock))
     } /* end if */
 
     /* Release the data block */
-    if(H5FA__dblock_dest(f, dblock) < 0)
+    if(H5FA__dblock_dest(dblock) < 0)
         H5E_THROW(H5E_CANTFREE, "can't free fixed array data block")
 
 CATCH
@@ -834,13 +851,11 @@ END_FUNC(STATIC)   /* end H5FA__cache_dblock_dest() */
  */
 BEGIN_FUNC(STATIC, ERR,
 H5FA_dblk_page_t *, NULL, NULL,
-H5FA__cache_dblk_page_load(H5F_t *f, hid_t dxpl_id, haddr_t addr,
-    const void *_udata1, void *_hdr))
+H5FA__cache_dblk_page_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, void *_udata))
 
     /* Local variables */
-    H5FA_hdr_t          *hdr = (H5FA_hdr_t *)_hdr;  /* Shared fixed array information */
-    const H5FA_dblk_page_load_ud_t *ud_load = (const H5FA_dblk_page_load_ud_t *)_udata1; /* User data for loading data block page */
     H5FA_dblk_page_t	*dblk_page = NULL; /* Data block page info */
+    H5FA_dblk_page_cache_ud_t *udata = (H5FA_dblk_page_cache_ud_t *)_udata; /* User data for loading data block page */
     size_t		size;           /* Data block page size */
     H5WB_t              *wb = NULL;     /* Wrapped buffer for data block page data */
     uint8_t             dblk_page_buf[H5FA_DBLK_PAGE_BUF_SIZE]; /* Buffer for data block page */
@@ -852,13 +867,13 @@ H5FA__cache_dblk_page_load(H5F_t *f, hid_t dxpl_id, haddr_t addr,
     /* Sanity check */
     HDassert(f);
     HDassert(H5F_addr_defined(addr));
-    HDassert(hdr);
+    HDassert(udata && udata->hdr && udata->nelmts > 0);
 #ifdef QAK
 HDfprintf(stderr, "%s: addr = %a\n", FUNC, addr);
 #endif /* QAK */
 
     /* Allocate the fixed array data block page */
-    if(NULL == (dblk_page = H5FA__dblk_page_alloc(hdr, ud_load->nelmts)))
+    if(NULL == (dblk_page = H5FA__dblk_page_alloc(udata->hdr, udata->nelmts)))
 	H5E_THROW(H5E_CANTALLOC, "memory allocation failed for fixed array data block page")
 
     /* Set the fixed array data block's information */
@@ -869,7 +884,7 @@ HDfprintf(stderr, "%s: addr = %a\n", FUNC, addr);
 	H5E_THROW(H5E_CANTINIT, "can't wrap buffer")
 
     /* Compute the size of the fixed array data block page on disk */
-    size = H5FA_DBLK_PAGE_SIZE(dblk_page, ud_load->nelmts);
+    size = H5FA_DBLK_PAGE_SIZE(dblk_page, udata->nelmts);
 
     /* Get a pointer to a buffer that's large enough for serialized info */
     if(NULL == (buf = (uint8_t *)H5WB_actual(wb, size)))
@@ -886,9 +901,9 @@ HDfprintf(stderr, "%s: addr = %a\n", FUNC, addr);
 
     /* Decode elements in data block page */
     /* Convert from raw elements on disk into native elements in memory */
-    if((hdr->cparam.cls->decode)(p, dblk_page->elmts, ud_load->nelmts, hdr->cb_ctx) < 0)
+    if((udata->hdr->cparam.cls->decode)(p, dblk_page->elmts, udata->nelmts, udata->hdr->cb_ctx) < 0)
         H5E_THROW(H5E_CANTDECODE, "can't decode fixed array data elements")
-    p += (ud_load->nelmts * hdr->cparam.raw_elmt_size);
+    p += (udata->nelmts * udata->hdr->cparam.raw_elmt_size);
 
     /* Sanity check */
     /* (allow for checksum not decoded yet) */
@@ -919,7 +934,7 @@ CATCH
     if(wb && H5WB_unwrap(wb) < 0)
 	H5E_THROW(H5E_CLOSEERROR, "can't close wrapped buffer")
     if(!ret_value)
-        if(dblk_page && H5FA__cache_dblk_page_dest(f, dblk_page) < 0)
+        if(dblk_page && H5FA__dblk_page_dest(dblk_page) < 0)
             H5E_THROW(H5E_CANTFREE, "unable to destroy fixed array data block page")
 
 END_FUNC(STATIC)   /* end H5FA__cache_dblk_page_load() */

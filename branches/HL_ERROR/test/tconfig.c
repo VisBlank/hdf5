@@ -47,6 +47,7 @@
 
 /* local routine prototypes */
 void test_config_ctypes(void);
+void test_exit_definitions(void);
 
 
 /*-------------------------------------------------------------------------
@@ -60,7 +61,12 @@ void test_config_ctypes(void);
  *              September 25, 2001
  *
  * Modifications:
- *
+ *              Raymond Lu
+ *              16 Dec 2009
+ *              On Boeing's OpenVMS, the value of EXIT_FAILURE is 268435458.
+ *              (The test is in test_exit_definitions.)  Their document says
+ *              it's supposed to be 2.  I commented it out for OpenVMS for
+ *              further consideration.
  *-------------------------------------------------------------------------
  */
 void
@@ -69,6 +75,9 @@ test_configure(void)
     /* Output message about test being performed */
     MESSAGE(5, ("Testing configure definitions\n"));
     test_config_ctypes();
+#ifndef H5_VMS
+    test_exit_definitions();
+#endif
 }
 
 
@@ -201,4 +210,32 @@ test_config_ctypes(void)
     vrfy_ctype(ssize_t, H5_SIZEOF_SSIZE_T);
 #endif
 
+}
+
+
+/*-------------------------------------------------------------------------
+ * Function:	test_exit_definitions
+ *
+ * Purpose:	test the exit macros values
+ *
+ * Return:	none (error is fed back via global variable num_errs)
+ *
+ * Programmer:	Albert Cheng
+ *              October 12, 2009
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+void
+test_exit_definitions(void)
+{
+    /* Verify the EXIT_SUCCESS and EXIT_FAILURE are 0 and 1 respectively. */
+    /* This should be true for POSIX compliant systems. */
+    if (EXIT_SUCCESS != 0) \
+	TestErrPrintf("Error: EXIT_SUCCESS is %d, should be %d\n", \
+	    EXIT_SUCCESS, 0);
+    if (EXIT_FAILURE != 1) \
+	TestErrPrintf("Error: EXIT_FAILURE is %d, should be %d\n", \
+	    EXIT_FAILURE, 1);
 }

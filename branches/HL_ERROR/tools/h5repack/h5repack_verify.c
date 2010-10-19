@@ -17,9 +17,13 @@
 #include "h5test.h"
 #include "h5tools_utils.h"
 
-extern char  *progname;
 static int verify_layout(hid_t pid, pack_info_t *obj);
 static int verify_filters(hid_t pid, hid_t tid, int nfilters, filter_info_t *filter);
+
+/* number of members in an array */
+#ifndef NELMTS
+#    define NELMTS(X)		(sizeof(X)/sizeof(X[0]))
+#endif
 
 
 /*-------------------------------------------------------------------------
@@ -44,20 +48,25 @@ static int verify_filters(hid_t pid, hid_t tid, int nfilters, filter_info_t *fil
  *-------------------------------------------------------------------------
  */
 
-int h5repack_verify(const char *fname,
-                    pack_opt_t *options)
+int
+h5repack_verify(const char *in_fname, const char *out_fname, pack_opt_t *options)
 {
-    hid_t        fid;  /* file ID */
-    hid_t        did;  /* dataset ID */
-    hid_t        pid;  /* dataset creation property list ID */
-    hid_t        sid;  /* space ID */
-    hid_t        tid;  /* type ID */
+    hid_t        fidin;	 /* file ID for input file*/
+    hid_t        fidout; /* file ID for output file*/
+    hid_t        did;    /* dataset ID */
+    hid_t        pid;    /* dataset creation property list ID */
+    hid_t        sid;    /* space ID */
+    hid_t        tid;    /* type ID */
     unsigned int i;
     trav_table_t *travt = NULL;
     int          ok = 1;
+    hid_t       fcpl_in;  /* file creation property for input file */
+    hid_t   	fcpl_out; /* file creation property for output file */
+    H5F_file_space_type_t in_strat, out_strat;	/* file space handling strategy for in/output file */
+    hsize_t	in_thresh, out_thresh;		/* free space section threshold for in/output file */
 
-    /* open the file */
-    if((fid = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0 )
+    /* open the output file */
+    if((fidout = H5Fopen(out_fname, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0 )
         return -1;
 
     for(i = 0; i < options->op_tbl->nelems; i++)
@@ -69,7 +78,7 @@ int h5repack_verify(const char *fname,
         * open
         *-------------------------------------------------------------------------
         */
-        if((did = H5Dopen2(fid, name, H5P_DEFAULT)) < 0)
+        if((did = H5Dopen2(fidout, name, H5P_DEFAULT)) < 0)
             goto error;
         if((sid = H5Dget_space(did)) < 0)
             goto error;
@@ -121,7 +130,7 @@ int h5repack_verify(const char *fname,
         trav_table_init(&travt);
 
         /* get the list of objects in the file */
-        if(h5trav_gettable(fid, travt) < 0)
+        if(h5trav_gettable(fidout, travt) < 0)
             goto error;
 
         for(i = 0; i < travt->nobjs; i++)
@@ -135,7 +144,7 @@ int h5repack_verify(const char *fname,
                 * open
                 *-------------------------------------------------------------------------
                 */
-                if((did = H5Dopen2(fid, name, H5P_DEFAULT)) < 0)
+                if((did = H5Dopen2(fidout, name, H5P_DEFAULT)) < 0)
                     goto error;
                 if((sid = H5Dget_space(did)) < 0)
                     goto error;
@@ -191,26 +200,100 @@ int h5repack_verify(const char *fname,
     }
 
    /*-------------------------------------------------------------------------
-    * close
+    * Verify that file space strategy and free space threshold
+    * are set as expected
     *-------------------------------------------------------------------------
     */
 
-    if (H5Fclose(fid) < 0)
-        return -1;
+    /* open the input file */
+    if((fidin = H5Fopen(in_fname, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0 )
+	goto error;
+
+    /* Get file creation property list for input file */
+    if((fcpl_in = H5Fget_create_plist(fidin)) < 0) {
+	error_msg("failed to retrieve file creation property list\n");
+	goto error;
+    }
+
+    /* Get file space management info for input file */
+    if(H5Pget_file_space(fcpl_in, &in_strat, &in_thresh) < 0) {
+	error_msg("failed to retrieve file space strategy & threshold\n");
+	goto error;
+    }
+
+    /* Output file is already opened */
+    /* Get file creation property list for output file */
+    if((fcpl_out = H5Fget_create_plist(fidout)) < 0) {
+	error_msg("failed to retrieve file creation property list\n");
+	goto error;
+    }
+
+    /* Get file space management info for output file */
+    if(H5Pget_file_space(fcpl_out, &out_strat, &out_thresh) < 0) {
+	error_msg("failed to retrieve file space strategy & threshold\n");
+	goto error;
+    }
+
+    /*
+     * If the strategy option is not set,
+     * file space handling strategy should be the same for both
+     * input & output files.
+     * If the strategy option is set,
+     * the output file's file space handling strategy should be the same
+     * as what is set via the strategy option
+     */
+    if(!options->fs_strategy && out_strat != in_strat) {
+	error_msg("file space strategy not set as unexpected\n");
+	goto error;
+
+    } else if(options->fs_strategy && out_strat!= options->fs_strategy)  {
+	error_msg("file space strategy not set as unexpectec\n");
+	goto error;
+    }
+
+    /*
+     * If the threshold option is not set,
+     * the free space section threshold should be the same for both
+     * input & output files.
+     * If the threshold option is set,
+     * the output file's free space section threshold should be the same
+     * as what is set via the threshold option.
+     */
+    if(!options->fs_threshold && out_thresh != in_thresh) {
+	error_msg("free space threshold not set as unexpected\n");
+	goto error;
+
+    } else if(options->fs_threshold && out_thresh != options->fs_threshold) {
+	error_msg("free space threshold not set as unexpectec\n");
+	goto error;
+    }
+
+    /* Closing */
+    if (H5Pclose(fcpl_in) < 0)
+	goto error;
+    if (H5Pclose(fcpl_out) < 0)
+	goto error;
+    if (H5Fclose(fidin) < 0)
+	goto error;
+    if (H5Fclose(fidout) < 0)
+	goto error;
 
     return ok;
 
 error:
     H5E_BEGIN_TRY {
+        H5Pclose(fcpl_in);
+        H5Pclose(fcpl_out);
         H5Pclose(pid);
         H5Sclose(sid);
         H5Dclose(did);
-        H5Fclose(fid);
+        H5Fclose(fidin);
+        H5Fclose(fidout);
         if (travt)
             trav_table_free(travt);
     } H5E_END_TRY;
     return -1;
-}
+} /* h5repack_verify() */
 
 
 
@@ -313,12 +396,12 @@ int h5repack_cmp_pl(const char *fname1,
         /* Open the files */
         if ((fid1=H5Fopen(fname1,H5F_ACC_RDONLY,H5P_DEFAULT)) < 0 )
         {
-            error_msg(progname, "<%s>: %s\n", fname1, H5FOPENERROR );
+            error_msg("<%s>: %s\n", fname1, H5FOPENERROR );
             return -1;
         }
         if ((fid2=H5Fopen(fname2,H5F_ACC_RDONLY,H5P_DEFAULT)) < 0 )
         {
-            error_msg(progname, "<%s>: %s\n", fname2, H5FOPENERROR );
+            error_msg("<%s>: %s\n", fname2, H5FOPENERROR );
             H5Fclose(fid1);
             return -1;
         }
@@ -332,7 +415,7 @@ int h5repack_cmp_pl(const char *fname1,
     trav_table_init(&trav);
     if(h5trav_gettable(fid1, trav) < 0)
         goto error;
-  
+
    /*-------------------------------------------------------------------------
     * traverse the suppplied object list
     *-------------------------------------------------------------------------
@@ -367,7 +450,7 @@ int h5repack_cmp_pl(const char *fname1,
 
             if ( crt_order_flag1 != crt_order_flag2 )
             {
-                error_msg(progname, "property lists for <%s> are different\n",trav->objs[i].name);
+                error_msg("property lists for <%s> are different\n",trav->objs[i].name);
                 goto error;
             }
 
@@ -395,7 +478,7 @@ int h5repack_cmp_pl(const char *fname1,
 
             if(ret == 0)
             {
-                error_msg(progname, "property lists for <%s> are different\n",trav->objs[i].name);
+                error_msg("property lists for <%s> are different\n",trav->objs[i].name);
                 goto error;
             }
 
@@ -472,7 +555,7 @@ error:
  *-------------------------------------------------------------------------
  */
 
-static 
+static
 int verify_filters(hid_t pid, hid_t tid, int nfilters, filter_info_t *filter)
 {
     int           nfilters_dcpl;  /* number of filters in DCPL*/
