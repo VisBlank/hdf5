@@ -374,7 +374,7 @@ SUBROUTINE test_iter_group(total_error)
           PRINT*,"ERROR: Group iteration function walked too far!"
        ENDIF
        
- !/* Verify that the correct name is retrieved */
+ !/* Verify the correct name is retrieved */
        DO j = 1, 10
           ichr10(j:j) = info%name(j)(1:1)
        ENDDO
@@ -383,8 +383,6 @@ SUBROUTINE test_iter_group(total_error)
     END DO
     
     ! put check if did not walk far enough -scot FIX
-
-    CALL VERIFY("H5Literate_f", error,-1, total_error)
 
     IF(i .NE. (NDATASETS + 2)) THEN
        CALL VERIFY("H5Literate_f", i, INT(NDATASETS + 2), total_error)
