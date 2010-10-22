@@ -64,7 +64,7 @@ PROGRAM RWDSET_FORTRAN2003
   INTEGER(int_kind_8), DIMENSION(1:4), TARGET :: dset_data_i8, data_out_i8
   INTEGER(int_kind_16), DIMENSION(1:4), TARGET :: dset_data_i16, data_out_i16
 
-  INTEGER(int_kind_16), DIMENSION(1:4), TARGET :: data_out_i16a
+  INTEGER(int_kind_8), DIMENSION(1:4), TARGET :: data_out_i8a
 
   REAL(real_kind_7), DIMENSION(1:4), TARGET :: dset_data_r7, data_out_r7
   REAL(real_kind_15), DIMENSION(1:4), TARGET :: dset_data_r15, data_out_r15
@@ -83,10 +83,10 @@ PROGRAM RWDSET_FORTRAN2003
   ! Initialize the dset_data array.
   !
   DO i = 1, 4
-     dset_data_i1(i)  = (i)
-     dset_data_i4(i)  = (i)
-     dset_data_i8(i)  = (i)
-     dset_data_i16(i) = (i)
+     dset_data_i1(i)  = i
+     dset_data_i4(i)  = i
+     dset_data_i8(i)  = i
+     dset_data_i16(i) = i
 
      dset_data_r7(i) = (i)*100.
      dset_data_r15(i) = (i)*1000.
@@ -131,14 +131,14 @@ PROGRAM RWDSET_FORTRAN2003
 
   ! Open the file
 
-  CALL h5fopen_f(filename, H5F_ACC_RDONLY_F, file_id, error)
+  CALL h5fopen_f(filename, H5F_ACC_RDWR_F, file_id, error)
   !
   ! Read the dataset.
   !
   ! Read data back into an integer size that is larger then the original size used for 
   ! writing the data
-  f_ptr = C_LOC(data_out_i16a(1))
-  CALL h5dread_f(dset_id1, h5kind_to_type(int_kind_1,H5_INTEGER_KIND), f_ptr,  error)
+  f_ptr = C_LOC(data_out_i8a(1))
+  CALL h5dread_f(dset_id1, h5kind_to_type(int_kind_8,H5_INTEGER_KIND), f_ptr,  error)
   f_ptr = C_LOC(data_out_i4(1))
   CALL h5dread_f(dset_id4, h5kind_to_type(int_kind_4,H5_INTEGER_KIND), f_ptr,  error)
   f_ptr = C_LOC(data_out_i8(1))
@@ -150,9 +150,8 @@ PROGRAM RWDSET_FORTRAN2003
   f_ptr = C_LOC(data_out_r15(1))
   CALL h5dread_f(dset_idr8, h5kind_to_type(real_kind_15,H5_REAL_KIND), f_ptr,  error)
 
-
 ! memory type
-  WRITE(*,'(A,4i8)' )'SELECTED_INT_KIND(Fortran_INTEGER_1):  ',data_out_i16a
+  WRITE(*,'(A,4i8)' )'SELECTED_INT_KIND(Fortran_INTEGER_1):  ',data_out_i8a
   WRITE(*,'(A,4i8)' )'SELECTED_INT_KIND(Fortran_INTEGER_4):  ',data_out_i4
   WRITE(*,'(A,4i8)' )'SELECTED_INT_KIND(Fortran_INTEGER_8):  ',data_out_i8
   WRITE(*,'(A,4i8)' )'SELECTED_INT_KIND(Fortran_INTEGER_16): ',data_out_i16
