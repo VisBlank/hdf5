@@ -28,7 +28,7 @@
  * it via H5public.h.  The #ifndef _H5public_H guard above would
  * prevent repeated include.
  */
-#include "H5pubconf.h"		/*from configure                             */
+#include "H5pubconf.h"          /*from configure                             */
 
 /* API Version macro wrapper definitions */
 #include "H5version.h"
@@ -40,21 +40,16 @@
 #include <sys/types.h>
 #endif
 #ifdef H5_STDC_HEADERS
-#   include <limits.h>		/*for H5T_NATIVE_CHAR defn in H5Tpublic.h    */
+#   include <limits.h>          /*for H5T_NATIVE_CHAR defn in H5Tpublic.h    */
 #endif
 #ifndef __cplusplus
 # ifdef H5_HAVE_STDINT_H
-#   include <stdint.h>		/*for C9x types				     */
+#   include <stdint.h>          /*for C9x types                              */
 # endif
 #else
 # ifdef H5_HAVE_STDINT_H_CXX
-#   include <stdint.h>		/*for C9x types	when include from C++	     */
+#   include <stdint.h>          /*for C9x types when include from C++        */
 # endif
-#endif
-#else
-#ifdef H5_HAVE_STDINT_H_CXX
-#   include <stdint.h>		/*for C9x types	when include from C++	     */
-#endif
 #endif
 #ifdef H5_HAVE_INTTYPES_H
 #   include <inttypes.h>        /* For uint64_t on some platforms            */
@@ -64,7 +59,7 @@
 #endif
 #ifdef H5_HAVE_PARALLEL
 #   include <mpi.h>
-#ifndef MPI_FILE_NULL		/*MPIO may be defined in mpi.h already       */
+#ifndef MPI_FILE_NULL           /*MPIO may be defined in mpi.h already       */
 #   include <mpio.h>
 #endif
 #endif
@@ -78,15 +73,15 @@ extern "C" {
 #endif
 
 /* Version numbers */
-#define H5_VERS_MAJOR	1	/* For major interface/format changes  	     */
-#define H5_VERS_MINOR	8	/* For minor interface/format changes  	     */
-#define H5_VERS_RELEASE	7	/* For tweaks, bug-fixes, or development     */
-#define H5_VERS_SUBRELEASE "snap1"	/* For pre-releases like snap0       */
-				/* Empty string for real releases.           */
+#define H5_VERS_MAJOR   1       /* For major interface/format changes        */
+#define H5_VERS_MINOR   8       /* For minor interface/format changes        */
+#define H5_VERS_RELEASE 7       /* For tweaks, bug-fixes, or development     */
+#define H5_VERS_SUBRELEASE "snap1"      /* For pre-releases like snap0       */
+                                /* Empty string for real releases.           */
 #define H5_VERS_INFO    "HDF5 library version: 1.8.7-snap1"      /* Full version string */
 
-#define H5check()	H5check_version(H5_VERS_MAJOR,H5_VERS_MINOR,	      \
-				        H5_VERS_RELEASE)
+#define H5check()       H5check_version(H5_VERS_MAJOR,H5_VERS_MINOR,          \
+                                        H5_VERS_RELEASE)
 
 /*
  * Status return values.  Failed integer functions in HDF5 result almost
@@ -95,8 +90,8 @@ extern "C" {
  * The negative failure value is most commonly -1, but don't bet on it.  The
  * proper way to detect failure is something like:
  *
- * 	if((dset = H5Dopen2(file, name)) < 0)
- *	    fprintf(stderr, "unable to open the requested dataset\n");
+ *      if((dset = H5Dopen2(file, name)) < 0)
+ *          fprintf(stderr, "unable to open the requested dataset\n");
  */
 typedef int herr_t;
 
@@ -108,13 +103,13 @@ typedef int herr_t;
  * (false), positive (true), or negative (failure). The proper way to test
  * for truth from a htri_t function is:
  *
- * 	if ((retval = H5Tcommitted(type))>0) {
- *	    printf("data type is committed\n");
- *	} else if (!retval) {
- * 	    printf("data type is not committed\n");
- *	} else {
- * 	    printf("error determining whether data type is committed\n");
- *	}
+ *      if ((retval = H5Tcommitted(type))>0) {
+ *          printf("data type is committed\n");
+ *      } else if (!retval) {
+ *          printf("data type is not committed\n");
+ *      } else {
+ *          printf("error determining whether data type is committed\n");
+ *      }
  */
 typedef unsigned int hbool_t;
 typedef int htri_t;
@@ -142,8 +137,8 @@ typedef long long ssize_t;
  * type.
  */
 #if H5_SIZEOF_LONG_LONG >= 8
-typedef unsigned long long 	hsize_t;
-typedef signed long long	hssize_t;
+typedef unsigned long long      hsize_t;
+typedef signed long long        hssize_t;
 #       define H5_SIZEOF_HSIZE_T H5_SIZEOF_LONG_LONG
 #       define H5_SIZEOF_HSSIZE_T H5_SIZEOF_LONG_LONG
 #else
@@ -193,7 +188,7 @@ typedef signed long long	hssize_t;
 #else
 #   error "nothing appropriate for H5_PRINTF_HADDR_FMT"
 #endif
-#define HADDR_MAX		(HADDR_UNDEF-1)
+#define HADDR_MAX               (HADDR_UNDEF-1)
 
 /* uint32_t type is used for creation order field for messages.  It may be
  * defined in Posix.1g, otherwise it is defined here.
@@ -264,7 +259,7 @@ typedef enum {
     H5_ITER_INC,                /* Increasing order */
     H5_ITER_DEC,                /* Decreasing order */
     H5_ITER_NATIVE,             /* No particular order, whatever is fastest */
-    H5_ITER_N		        /* Number of iteration orders */
+    H5_ITER_N                   /* Number of iteration orders */
 } H5_iter_order_t;
 
 /* Iteration callback values */
@@ -281,10 +276,10 @@ typedef enum {
  * links in groups/attributes on objects.
  */
 typedef enum H5_index_t {
-    H5_INDEX_UNKNOWN = -1,	/* Unknown index type			*/
-    H5_INDEX_NAME,		/* Index on names 			*/
-    H5_INDEX_CRT_ORDER,		/* Index on creation order 		*/
-    H5_INDEX_N			/* Number of indices defined 		*/
+    H5_INDEX_UNKNOWN = -1,      /* Unknown index type                   */
+    H5_INDEX_NAME,              /* Index on names                       */
+    H5_INDEX_CRT_ORDER,         /* Index on creation order              */
+    H5_INDEX_N                  /* Number of indices defined            */
 } H5_index_t;
 
 /*
@@ -304,12 +299,13 @@ H5_DLL herr_t H5set_free_list_limits (int reg_global_lim, int reg_list_lim,
                 int arr_global_lim, int arr_list_lim, int blk_global_lim,
                 int blk_list_lim);
 H5_DLL herr_t H5get_libversion(unsigned *majnum, unsigned *minnum,
-				unsigned *relnum);
+                                unsigned *relnum);
 H5_DLL herr_t H5check_version(unsigned majnum, unsigned minnum,
-			       unsigned relnum);
+                               unsigned relnum);
 
 #ifdef __cplusplus
 }
 #endif
 #endif
+
 
