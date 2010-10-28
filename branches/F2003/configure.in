@@ -555,6 +555,20 @@ dnl     AM_FCFLAGS="$AM_FCFLAGS_saved")
 		    AC_MSG_WARN([Only GNU Fortran Compiler, Version > 4.1.0 supported; disabling Fortran 2003 features])
 		  fi
 		fi
+               dnl The Portland Group
+               if (${FC} -V 2>&1 | grep 'Portland Group') > /dev/null; then
+                  vers=[`${FC} -V 2>&1 | grep 'pgf' | grep -o '[^ ]*[^  ]\.[^ ]' | sed -e 's/[^0-9]//g'`]
+                  if test -n "$vers" && test "$vers" -ge 104; then
+		     HAVE_FORTRAN_2003="yes"
+		     echo $HAVE_FORTRAN_2003
+                  else
+		    echo $HAVE_FORTRAN_2003
+		    AC_MSG_WARN([Only The Portland Group Compiler, Version > 10.4-0 supported; disabling Fortran 2003 features])
+		  fi
+                
+               fi
+	
+
         fi
 
   fi
