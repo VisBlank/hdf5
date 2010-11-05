@@ -261,6 +261,9 @@ test_mf_eoa(const char *env_h5_drvr, hid_t fapl)
         if (new_file_size != file_size)
             TEST_ERROR
 
+        if(H5Pclose(fapl_new) < 0)
+            TEST_ERROR
+
         PASSED()
     } /* end if */
     else {
