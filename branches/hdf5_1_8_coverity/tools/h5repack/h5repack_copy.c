@@ -799,6 +799,11 @@ int do_copy_objects(hid_t fidin,
                                     goto error;
                                 if (H5Dwrite(dset_out,wtype_id,H5S_ALL,H5S_ALL,H5P_DEFAULT,buf) < 0)
                                     goto error;
+
+                                /* Check if we have VL data in the dataset's
+                                 * datatype that must be reclaimed */
+                                if (H5Tdetect_class(wtype_id, H5T_VLEN) == TRUE)
+                                    H5Dvlen_reclaim(wtype_id, f_space_id, H5P_DEFAULT, buf);
                             }
 
                             else /* possibly not enough memory, read/write by hyperslabs */
