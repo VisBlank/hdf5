@@ -294,6 +294,10 @@ done:
     /* release generic resources */
     if (buffer)
         free(buffer);
+    if (buffer2) {
+        free(buffer2);
+        buffer2 = NULL;
+    }
 
     res.ret_code = ret_code;
     return res;
