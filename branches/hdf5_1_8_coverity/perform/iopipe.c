@@ -513,6 +513,7 @@ printf("Before getrusage() call\n");
     H5Dclose (dset);
     H5Sclose (file_space);
     H5Fclose (file);
+    free(the_data);
 
     return 0;
 }
