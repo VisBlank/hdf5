@@ -1079,6 +1079,8 @@
 ./tools/misc/testh5mkgrp.sh
 ./tools/misc/testh5repart.sh.in
 ./tools/misc/talign.c
+./tools/misc/testfiles/h5mkgrp_help.txt
+./tools/misc/testfiles/h5mkgrp_version.txt.in
 
 ./tools/h5stat/Makefile.am
 ./tools/h5stat/Makefile.in
@@ -1607,6 +1609,7 @@
 ./tools/h5diff/testfiles/h5diff_516.txt
 ./tools/h5diff/testfiles/h5diff_517.txt
 ./tools/h5diff/testfiles/h5diff_518.txt
+./tools/h5diff/testfiles/h5diff_530.txt
 
 ./tools/h5diff/testfiles/h5diff_attr1.h5
 ./tools/h5diff/testfiles/h5diff_attr2.h5
@@ -1638,6 +1641,7 @@
 ./tools/h5diff/testfiles/h5diff_exclude1-2.h5
 ./tools/h5diff/testfiles/h5diff_exclude2-1.h5
 ./tools/h5diff/testfiles/h5diff_exclude2-2.h5
+./tools/h5diff/testfiles/h5diff_comp_vl_strs.h5
 
 
 
