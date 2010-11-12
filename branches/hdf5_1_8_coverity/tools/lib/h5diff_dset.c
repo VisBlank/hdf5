@@ -331,6 +331,7 @@ hsize_t diff_datasetid( hid_t did1,
     */
     if (can_compare ) /* it is possible to compare */
     {
+        unsigned int  vl_data = 0;             /*contains VL datatypes */
 
         /*-------------------------------------------------------------------------
         * get number of elements
@@ -386,6 +387,9 @@ hsize_t diff_datasetid( hid_t did1,
             name2=diff_basename(obj2_name);
         }
 
+        /* check if we have VL data in the dataset's datatype */
+        if (H5Tdetect_class(m_tid1, H5T_VLEN) == TRUE)
+            vl_data = TRUE;
 
         /*-------------------------------------------------------------------------
         * read/compare
@@ -419,6 +423,13 @@ hsize_t diff_datasetid( hid_t did1,
                 m_tid1,
                 did1,
                 did2);
+
+            /* reclaim any VL memory, if necessary */
+       	    if (vl_data)
+            {
+         	    H5Dvlen_reclaim(m_tid1, sid1, H5P_DEFAULT, buf1);
+         	    H5Dvlen_reclaim(m_tid2, sid2, H5P_DEFAULT, buf2);
+            }
         }
 
         else /* possibly not enough memory, read/compare by hyperslabs */
@@ -428,7 +439,6 @@ hsize_t diff_datasetid( hid_t did1,
             hsize_t       p_nelmts = nelmts1;      /*total selected elmts */
             hsize_t       elmtno;                  /*counter  */
             int           carry;                   /*counter carry value */
-            unsigned int  vl_data = 0;             /*contains VL datatypes */
 
             /* stripmine info */
             hsize_t       sm_size[H5S_MAX_RANK];   /*stripmine size */
@@ -442,13 +452,9 @@ hsize_t diff_datasetid( hid_t did1,
             hsize_t       hs_nelmts;               /*elements in request */
             hsize_t       zero[8];                 /*vector of zeros */
 
-            /* check if we have VL data in the dataset's datatype */
-            if (H5Tdetect_class(m_tid1, H5T_VLEN) == TRUE)
-                vl_data = TRUE;
-
-                /*
-                * determine the strip mine size and allocate a buffer. The strip mine is
-                * a hyperslab whose size is manageable.
+           /*
+            * determine the strip mine size and allocate a buffer. The strip mine is
+            * a hyperslab whose size is manageable.
             */
             sm_nbytes = p_type_nbytes;
 
