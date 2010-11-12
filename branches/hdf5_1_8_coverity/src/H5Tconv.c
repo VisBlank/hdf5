@@ -2941,8 +2941,9 @@ H5T_conv_vlen(hid_t src_id, hid_t dst_id, H5T_cdata_t *cdata, size_t nelmts,
              */
             if(NULL == (src = (H5T_t *)H5I_object(src_id)) || NULL == (dst = (H5T_t *)H5I_object(dst_id)))
                 HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a datatype")
-            HDassert(H5T_VLEN == src->shared->type);
-            HDassert(H5T_VLEN == dst->shared->type);
+
+            if (H5T_VLEN != src->shared->type || H5T_VLEN != dst->shared->type) 
+                HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a H5T_VLEN datatype")
 
             /* Variable-length types don't need a background buffer */
             cdata->need_bkg = H5T_BKG_NO;
