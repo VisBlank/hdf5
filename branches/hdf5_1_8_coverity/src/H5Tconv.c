@@ -3192,7 +3192,7 @@ done:
         conv_buf = H5FL_BLK_FREE(vlen_seq, conv_buf);
     /* Release the background buffer, if we have one */
     if(tmp_buf)
-        tmp_buf = H5FL_BLK_FREE(vlen_seq, tmp_buf);
+        H5FL_BLK_FREE(vlen_seq, tmp_buf);
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5T_conv_vlen() */
