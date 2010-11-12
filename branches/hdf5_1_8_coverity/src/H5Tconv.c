@@ -2396,7 +2396,7 @@ H5T_conv_struct_opt(hid_t src_id, hid_t dst_id, H5T_cdata_t *cdata,
              * Free the private conversion data.
              */
             priv = (H5T_conv_struct_t *)(cdata->priv);
-            cdata->priv = priv = H5T_conv_struct_free(priv);
+            cdata->priv = H5T_conv_struct_free(priv);
             break;
 
         case H5T_CONV_CONV:
