@@ -1092,7 +1092,8 @@ H5T_conv_order_opt(hid_t src_id, hid_t dst_id, H5T_cdata_t *cdata,
             /* Check for "no op" reference conversion */
             if(src->shared->type == H5T_REFERENCE) {
                 /* Sanity check */
-                HDassert(dst->shared->type == H5T_REFERENCE);
+                if (dst->shared->type != H5T_REFERENCE)
+                    HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a H5T_REFERENCE data type")
 
                 /* Check if we are on a little-endian machine (the order that
                  * the addresses in the file must be) and just get out now, there
@@ -1487,8 +1488,7 @@ H5T_conv_order(hid_t src_id, hid_t dst_id, H5T_cdata_t *cdata, size_t nelmts,
 
         case H5T_CONV_CONV:
             /* The conversion */
-            if(NULL == (src = (H5T_t *)H5I_object(src_id)) ||
-                    NULL == (dst = (H5T_t *)H5I_object(dst_id)))
+            if(NULL == (src = (H5T_t *)H5I_object(src_id)))
                 HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a data type")
 
             buf_stride = buf_stride ? buf_stride : src->shared->size;
@@ -1933,7 +1933,7 @@ H5T_conv_struct_init(H5T_t *src, H5T_t *dst, H5T_cdata_t *cdata, hid_t dxpl_id)
             H5T_path_t *tpath = H5T_path_find(src->shared->u.compnd.memb[i].type, dst->shared->u.compnd.memb[src2dst[i]].type, NULL, NULL, dxpl_id, FALSE);
 
             if(NULL == (priv->memb_path[i] = tpath)) {
-                cdata->priv = priv = H5T_conv_struct_free(priv);
+                cdata->priv = H5T_conv_struct_free(priv);
                 HGOTO_ERROR(H5E_DATATYPE, H5E_UNSUPPORTED, FAIL, "unable to convert member datatype")
             } /* end if */
         } /* end if */
@@ -2113,7 +2113,7 @@ H5T_conv_struct(hid_t src_id, hid_t dst_id, H5T_cdata_t *cdata, size_t nelmts,
             /*
              * Free the private conversion data.
              */
-            cdata->priv = priv = H5T_conv_struct_free(priv);
+            cdata->priv = H5T_conv_struct_free(priv);
             break;
 
         case H5T_CONV_CONV:
