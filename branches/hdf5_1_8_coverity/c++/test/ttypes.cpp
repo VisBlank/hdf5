@@ -392,6 +392,7 @@ static void test_named ()
     hsize_t		i;
     unsigned 		attr_data[10][20];
     char		filename[1024];
+    DataType           *ds_type = NULL;
 
     SUBTEST("Named datatypes");
     try {
@@ -467,7 +468,7 @@ now.
 	// Create a dataset that uses the named type, then get the dataset's
 	// datatype and make sure it's a named type.
 	DataSet dset = file.createDataSet("dset1", another_type, space);
-	DataType *ds_type = new DataType(dset.getDataType());
+	ds_type = new DataType(dset.getDataType());
 	iscommitted = ds_type->committed();
 	if (!iscommitted)
 	    throw InvalidActionException("IntType::committed()", "1 Dataset type should be named type!");
@@ -477,6 +478,7 @@ now.
 	// Reopen the dataset and its type, then make sure the type is
 	// a named type.
 	dset = file.openDataSet("dset1");
+        delete ds_type;
 	ds_type = new DataType(dset.getDataType());
 	iscommitted = ds_type->committed();
 	if (!iscommitted)
@@ -491,6 +493,7 @@ now.
 
 	// Reopen the second dataset and make sure the type is shared
 	dset = file.openDataSet("dset2");
+        delete ds_type;
 	ds_type = new DataType(dset.getDataType());
 	iscommitted = ds_type->committed();
 	if (!iscommitted)
@@ -514,6 +517,8 @@ now.
     catch (Exception E) {
         issue_fail_msg("test_named", __LINE__, __FILE__, E.getCDetailMsg());
     }
+    if (ds_type)
+        delete ds_type;
 }   // test_named
 
 

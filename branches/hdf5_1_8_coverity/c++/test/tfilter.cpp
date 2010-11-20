@@ -172,7 +172,6 @@ void test_szip_filter(H5File& file1)
 
     // Output message about test being performed
     SUBTEST("szip filter (with encoder)");
-
     if ( h5_szip_can_encode() == 1) {
     char* tconv_buf = new char [1000];
     try {
@@ -226,6 +225,7 @@ void test_szip_filter(H5File& file1)
     {
         issue_fail_msg("test_szip_filter()", __LINE__, __FILE__, E.getCDetailMsg());
     }
+    delete tconv_buf;
     } // if szip presents
     else {
 	SKIPPED();
