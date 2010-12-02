@@ -18,6 +18,10 @@
 /* Define if C++ compiler recognizes offsetof */
 #define H5_CXX_HAVE_OFFSETOF 1
 
+/* Define a macro for Cygwin (on XP only) where the compiler has rounding
+   problem converting from unsigned long long to long double */
+/* #undef H5_CYGWIN_ULLONG_TO_LDOUBLE_ROUND_PROBLEM */
+
 /* Define the default virtual file driver to compile */
 #define H5_DEFAULT_VFD H5FD_SEC2
 
@@ -132,6 +136,9 @@
 
 /* Define to 1 if you have the `ftello' function. */
 #define H5_HAVE_FTELLO 1
+
+/* Define to 1 if you have the `ftello64' function. */
+/* #define H5_HAVE_FTELLO64 1 */
 
 /* Define to 1 if you have the `ftruncate64' function. */
 /* #define H5_HAVE_FTRUNCATE64 1 */
@@ -439,6 +446,10 @@
    values correctly. */
 #define H5_LDOUBLE_TO_LLONG_ACCURATE 1
 
+/* Define if your system converts long double to (unsigned) long values with
+   special algorithm. */
+/* #undef H5_LDOUBLE_TO_LONG_SPECIAL */
+
 /* Define if your system can convert long double to unsigned int values
    correctly. */
 #define H5_LDOUBLE_TO_UINT_ACCURATE 1
@@ -449,6 +460,10 @@
 /* Define if your system can convert (unsigned) long long to long double
    values correctly. */
 #define H5_LLONG_TO_LDOUBLE_CORRECT 1
+
+/* Define if your system can convert (unsigned) long to long double values
+   with special algorithm. */
+/* #undef H5_LONG_TO_LDOUBLE_SPECIAL */
 
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */
@@ -609,6 +624,9 @@
 /* The size of `uint_least8_t', as computed by sizeof. */
 /* #define H5_SIZEOF_UINT_LEAST8_T 1 */
 
+/* The size of `unsigned', as computed by sizeof. */
+#define H5_SIZEOF_UNSIGNED 4
+
 /* The size of `__int64', as computed by sizeof. */
 #define H5_SIZEOF___INT64 0
 
@@ -635,6 +653,10 @@
 /* Define if your system can convert unsigned long long to long double with
    correct precision. */
 #define H5_ULLONG_TO_LDOUBLE_PRECISION 1
+
+/* Define if your system accurately converting unsigned long to float values.
+   */
+#define H5_ULONG_TO_FLOAT_ACCURATE 1
 
 /* Define if your system can accurately convert unsigned (long) long values to
    floating-point values. */
@@ -664,6 +686,12 @@
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */
 /* #undef H5_WORDS_BIGENDIAN */
+
+/* Number of bits in a file offset, on hosts where this is settable. */
+/* #define H5__FILE_OFFSET_BITS 64 */
+
+/* Define for large files, on AIX-style hosts. */
+/* #undef H5__LARGE_FILES */
 
 /* Define to empty if `const' does not conform to ANSI C. */
 /* #undef H5_const */
