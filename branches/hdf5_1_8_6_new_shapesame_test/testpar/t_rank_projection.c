@@ -84,6 +84,768 @@
 
 
 /*-------------------------------------------------------------------------
+ * Function:    hyperslab_dr_pio_setup__run_test()
+ *
+ * Purpose:     Tests the setup code for
+ *              contig_hyperslab_dr_pio_test__run_test and
+ *              checker_board_hyperslab_dr_pio_test__run_test.
+ *
+ * Return:      void
+ *
+ * Programmer:  NAF -- 12/2/09
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+
+#define PAR_SS_DR_MAX_RANK      5
+
+static void
+hyperslab_dr_pio_setup__run_test(const int edge_size,
+                                 const int chunk_edge_size,
+                                 const int small_rank,
+                                 const int large_rank,
+                                 const hbool_t use_collective_io,
+                                 const hid_t dset_type,
+                                 const int express_test)
+{
+    const char *filename;
+    hbool_t     use_gpfs = FALSE;   /* Use GPFS hints */
+    hbool_t     mis_match = FALSE;
+    int         i;
+    int         mrc;
+    int         mpi_size = -1;
+    int         mpi_rank = -1;
+    const int   test_max_rank = 5;  /* must update code if this changes */
+    uint32_t    expected_value;
+    uint32_t  * small_ds_buf_0 = NULL;
+    uint32_t  * small_ds_buf_1 = NULL;
+    uint32_t  * large_ds_buf_0 = NULL;
+    uint32_t  * large_ds_buf_1 = NULL;
+    uint32_t  * ptr_0;
+    uint32_t  * ptr_1;
+    MPI_Comm    mpi_comm = MPI_COMM_NULL;
+    MPI_Info    mpi_info = MPI_INFO_NULL;
+    hid_t       fid;                    /* HDF5 file ID */
+    hid_t       acc_tpl;                /* File access templates */
+    hid_t       xfer_plist = H5P_DEFAULT;
+    hid_t       full_mem_small_ds_sid;
+    hid_t       full_file_small_ds_sid;
+    hid_t       mem_small_ds_sid;
+    hid_t       file_small_ds_sid;
+    hid_t       full_mem_large_ds_sid;
+    hid_t       full_file_large_ds_sid;
+    hid_t       mem_large_ds_sid;
+    hid_t       file_large_ds_sid;
+    hid_t       small_ds_dcpl_id = H5P_DEFAULT;
+    hid_t       large_ds_dcpl_id = H5P_DEFAULT;
+    hid_t       small_dataset;     /* Dataset ID                   */
+    hid_t       large_dataset;     /* Dataset ID                   */
+    size_t      small_ds_size = 1;
+    size_t      large_ds_size = 1;
+    hsize_t     dims[PAR_SS_DR_MAX_RANK];
+    hsize_t     chunk_dims[PAR_SS_DR_MAX_RANK];
+    hsize_t     start[PAR_SS_DR_MAX_RANK];
+    hsize_t     stride[PAR_SS_DR_MAX_RANK];
+    hsize_t     count[PAR_SS_DR_MAX_RANK];
+    hsize_t     block[PAR_SS_DR_MAX_RANK];
+    hsize_t   * start_ptr = NULL;
+    hsize_t   * stride_ptr = NULL;
+    hsize_t   * count_ptr = NULL;
+    hsize_t   * block_ptr = NULL;
+    herr_t      ret;            /* Generic return value */
+
+    HDassert( edge_size >= 6 );
+    HDassert( edge_size >= chunk_edge_size );
+    HDassert( ( chunk_edge_size == 0 ) || ( chunk_edge_size >= 3 ) );
+    HDassert( 1 < small_rank );
+    HDassert( small_rank < large_rank );
+    HDassert( large_rank <= test_max_rank );
+    HDassert( test_max_rank <= PAR_SS_DR_MAX_RANK );
+
+    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+
+    HDassert( mpi_size >= 1 );
+
+    mpi_comm = MPI_COMM_WORLD;
+    mpi_info = MPI_INFO_NULL;
+
+    for ( i = 0; i < small_rank - 1; i++ )
+    {
+        small_ds_size *= (size_t)edge_size;
+    }
+    small_ds_size *= (size_t)(mpi_size + 1);
+
+
+    for ( i = 0; i < large_rank - 1; i++ ) {
+
+        large_ds_size *= (size_t)edge_size;
+    }
+    large_ds_size *= (size_t)(mpi_size + 1);
+
+
+    /* set up the start, stride, count, and block pointers */
+    start_ptr  = &(start[PAR_SS_DR_MAX_RANK - large_rank]);
+    stride_ptr = &(stride[PAR_SS_DR_MAX_RANK - large_rank]);
+    count_ptr  = &(count[PAR_SS_DR_MAX_RANK - large_rank]);
+    block_ptr  = &(block[PAR_SS_DR_MAX_RANK - large_rank]);
+
+
+    /* Allocate buffers */
+    small_ds_buf_0 = (uint32_t *)HDmalloc(sizeof(uint32_t) * small_ds_size);
+    VRFY((small_ds_buf_0 != NULL), "malloc of small_ds_buf_0 succeeded");
+
+    small_ds_buf_1 = (uint32_t *)HDmalloc(sizeof(uint32_t) * small_ds_size);
+    VRFY((small_ds_buf_1 != NULL), "malloc of small_ds_buf_1 succeeded");
+
+    large_ds_buf_0 = (uint32_t *)HDmalloc(sizeof(uint32_t) * large_ds_size);
+    VRFY((large_ds_buf_0 != NULL), "malloc of large_ds_buf_0 succeeded");
+
+    large_ds_buf_1 = (uint32_t *)HDmalloc(sizeof(uint32_t) * large_ds_size);
+    VRFY((large_ds_buf_1 != NULL), "malloc of large_ds_buf_1 succeeded");
+
+    /* initialize the buffers */
+
+    ptr_0 = small_ds_buf_0;
+    for(i = 0; i < (int)small_ds_size; i++)
+        *ptr_0++ = (uint32_t)i;
+    HDmemset(small_ds_buf_1, 0, sizeof(uint32_t) * small_ds_size);
+
+    ptr_0 = large_ds_buf_0;
+    for(i = 0; i < (int)large_ds_size; i++)
+        *ptr_0++ = (uint32_t)i;
+    HDmemset(large_ds_buf_1, 0, sizeof(uint32_t) * large_ds_size);
+
+    filename = (const char *)GetTestParameters();
+    HDassert( filename != NULL );
+
+    /* ----------------------------------------
+     * CREATE AN HDF5 FILE WITH PARALLEL ACCESS
+     * ---------------------------------------*/
+    /* setup file access template */
+    acc_tpl = create_faccess_plist(mpi_comm, mpi_info, facc_type, use_gpfs);
+    VRFY((acc_tpl >= 0), "create_faccess_plist() succeeded");
+
+    /* set the alignment -- need it large so that we aren't always hitting the
+     * the same file system block.  Do this only if express_test is greater
+     * than zero.
+     */
+    if ( express_test > 0 ) {
+
+        ret = H5Pset_alignment(acc_tpl, (hsize_t)0, SHAPE_SAME_TEST_ALIGNMENT);
+        VRFY((ret != FAIL), "H5Pset_alignment() succeeded");
+    }
+
+    /* create the file collectively */
+    fid = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, acc_tpl);
+    VRFY((fid >= 0), "H5Fcreate succeeded");
+
+    MESG("File opened.");
+
+    /* Release file-access template */
+    ret = H5Pclose(acc_tpl);
+    VRFY((ret >= 0), "H5Pclose(acc_tpl) succeeded");
+
+
+    /* setup dims: */
+    dims[0] = (int)(mpi_size + 1);
+    dims[1] = dims[2] = dims[3] = dims[4] = edge_size;
+
+
+    /* Create small ds dataspaces */
+    full_mem_small_ds_sid = H5Screate_simple(small_rank, dims, NULL);
+    VRFY((full_mem_small_ds_sid != 0),
+         "H5Screate_simple() full_mem_small_ds_sid succeeded");
+
+    full_file_small_ds_sid = H5Screate_simple(small_rank, dims, NULL);
+    VRFY((full_file_small_ds_sid != 0),
+         "H5Screate_simple() full_file_small_ds_sid succeeded");
+
+    mem_small_ds_sid = H5Screate_simple(small_rank, dims, NULL);
+    VRFY((mem_small_ds_sid != 0),
+         "H5Screate_simple() mem_small_ds_sid succeeded");
+
+    file_small_ds_sid = H5Screate_simple(small_rank, dims, NULL);
+    VRFY((file_small_ds_sid != 0),
+         "H5Screate_simple() file_small_ds_sid succeeded");
+
+
+    /* Create large ds dataspaces */
+    full_mem_large_ds_sid = H5Screate_simple(large_rank, dims, NULL);
+    VRFY((full_mem_large_ds_sid != 0),
+         "H5Screate_simple() full_mem_large_ds_sid succeeded");
+
+    full_file_large_ds_sid = H5Screate_simple(large_rank, dims, NULL);
+    VRFY((full_file_large_ds_sid != FAIL),
+         "H5Screate_simple() full_file_large_ds_sid succeeded");
+
+    mem_large_ds_sid = H5Screate_simple(large_rank, dims, NULL);
+    VRFY((mem_large_ds_sid != FAIL),
+         "H5Screate_simple() mem_large_ds_sid succeeded");
+
+    file_large_ds_sid = H5Screate_simple(large_rank, dims, NULL);
+    VRFY((file_large_ds_sid != FAIL),
+         "H5Screate_simple() file_large_ds_sid succeeded");
+
+
+    /* if chunk edge size is greater than zero, set up the small and
+     * large data set creation property lists to specify chunked
+     * datasets.
+     */
+    if ( chunk_edge_size > 0 ) {
+
+        /* Under Lustre (and perhaps other parallel file systems?) we get
+         * locking delays when two or more processes attempt to access the
+         * same file system block.
+         *
+         * To minimize this problem, I have changed chunk_dims[0]
+         * from (mpi_size + 1) to just when any sort of express test is
+         * selected.  Given the structure of the test, and assuming we
+         * set the alignment large enough, this avoids the contention
+         * issue by seeing to it that each chunk is only accessed by one
+         * process.
+         *
+         * One can argue as to whether this is a good thing to do in our
+         * tests, but for now it is necessary if we want the test to complete
+         * in a reasonable amount of time.
+         *
+         *                                         JRM -- 9/16/10
+         */
+        if ( express_test == 0 ) {
+
+            chunk_dims[0] = 1;
+
+        } else {
+
+            chunk_dims[0] = 1;
+        }
+        chunk_dims[1] = chunk_dims[2] =
+                        chunk_dims[3] = chunk_dims[4] = chunk_edge_size;
+
+        small_ds_dcpl_id = H5Pcreate(H5P_DATASET_CREATE);
+        VRFY((ret != FAIL), "H5Pcreate() small_ds_dcpl_id succeeded");
+
+        ret = H5Pset_layout(small_ds_dcpl_id, H5D_CHUNKED);
+        VRFY((ret != FAIL), "H5Pset_layout() small_ds_dcpl_id succeeded");
+
+        ret = H5Pset_chunk(small_ds_dcpl_id, small_rank, chunk_dims);
+        VRFY((ret != FAIL), "H5Pset_chunk() small_ds_dcpl_id succeeded");
+
+
+        large_ds_dcpl_id = H5Pcreate(H5P_DATASET_CREATE);
+        VRFY((ret != FAIL), "H5Pcreate() large_ds_dcpl_id succeeded");
+
+        ret = H5Pset_layout(large_ds_dcpl_id, H5D_CHUNKED);
+        VRFY((ret != FAIL), "H5Pset_layout() large_ds_dcpl_id succeeded");
+
+        ret = H5Pset_chunk(large_ds_dcpl_id, large_rank, chunk_dims);
+        VRFY((ret != FAIL), "H5Pset_chunk() large_ds_dcpl_id succeeded");
+    }
+
+    /* create the small dataset */
+    small_dataset = H5Dcreate2(fid, "small_dataset", dset_type,
+                               file_small_ds_sid, H5P_DEFAULT,
+                               small_ds_dcpl_id, H5P_DEFAULT);
+    VRFY((ret != FAIL), "H5Dcreate2() small_dataset succeeded");
+
+    /* create the large dataset */
+    large_dataset = H5Dcreate2(fid, "large_dataset", dset_type,
+                               file_large_ds_sid, H5P_DEFAULT,
+                               large_ds_dcpl_id, H5P_DEFAULT);
+    VRFY((ret != FAIL), "H5Dcreate2() large_dataset succeeded");
+
+
+
+    /* setup xfer property list */
+    xfer_plist = H5Pcreate(H5P_DATASET_XFER);
+    VRFY((xfer_plist >= 0), "H5Pcreate(H5P_DATASET_XFER) succeeded");
+
+    if(use_collective_io) {
+        ret = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
+        VRFY((ret >= 0), "H5Pset_dxpl_mpio succeeded");
+    }
+
+    /* setup selection to write initial data to the small and large data sets */
+    start[0] = mpi_rank;
+    stride[0] = 2 * (mpi_size + 1);
+    count[0] = 1;
+    block[0] = 1;
+
+    for ( i = 1; i < large_rank; i++ ) {
+
+        start[i] = 0;
+        stride[i] = 2 * edge_size;
+        count[i] = 1;
+        block[i] = edge_size;
+    }
+
+    /* setup selections for writing initial data to the small data set */
+    ret = H5Sselect_hyperslab(mem_small_ds_sid,
+                              H5S_SELECT_SET,
+                              start,
+                              stride,
+                              count,
+                              block);
+    VRFY((ret >= 0), "H5Sselect_hyperslab(mem_small_ds_sid, set) suceeded");
+
+    ret = H5Sselect_hyperslab(file_small_ds_sid,
+                              H5S_SELECT_SET,
+                              start,
+                              stride,
+                              count,
+                              block);
+    VRFY((ret >= 0), "H5Sselect_hyperslab(file_small_ds_sid, set) suceeded");
+
+    if ( MAINPROCESS ) { /* add an additional slice to the selections */
+
+        start[0] = mpi_size;
+
+        ret = H5Sselect_hyperslab(mem_small_ds_sid,
+                                  H5S_SELECT_OR,
+                                  start,
+                                  stride,
+                                  count,
+                                  block);
+        VRFY((ret>= 0), "H5Sselect_hyperslab(mem_small_ds_sid, or) suceeded");
+
+        ret = H5Sselect_hyperslab(file_small_ds_sid,
+                                  H5S_SELECT_OR,
+                                  start,
+                                  stride,
+                                  count,
+                                  block);
+        VRFY((ret>= 0), "H5Sselect_hyperslab(file_small_ds_sid, or) suceeded");
+    }
+
+
+    /* write the initial value of the small data set to file */
+    ret = H5Dwrite(small_dataset, dset_type, mem_small_ds_sid, file_small_ds_sid,
+                   xfer_plist, small_ds_buf_0);
+
+    VRFY((ret >= 0), "H5Dwrite() small_dataset initial write succeeded");
+
+
+    /* sync with the other processes before checking data */
+    if ( ! use_collective_io ) {
+
+        mrc = MPI_Barrier(MPI_COMM_WORLD);
+        VRFY((mrc==MPI_SUCCESS), "Sync after small dataset writes");
+    }
+
+    /* read the small data set back to verify that it contains the
+     * expected data.  Note that each process reads in the entire
+     * data set.
+     */
+    ret = H5Dread(small_dataset,
+                  H5T_NATIVE_UINT32,
+                  full_mem_small_ds_sid,
+                  full_file_small_ds_sid,
+                  xfer_plist,
+                  small_ds_buf_1);
+    VRFY((ret >= 0), "H5Dread() small_dataset initial read succeeded");
+
+
+    /* verify that the correct data was written to the small data set */
+    expected_value = 0;
+    mis_match = FALSE;
+    ptr_1 = small_ds_buf_1;
+
+    i = 0;
+    for ( i = 0; i < (int)small_ds_size; i++ ) {
+
+        if ( *ptr_1 != expected_value ) {
+
+            mis_match = TRUE;
+        }
+        ptr_1++;
+        expected_value++;
+    }
+    VRFY( (mis_match == FALSE), "small ds init data good.");
+
+
+
+    /* setup selections for writing initial data to the large data set */
+
+    start[0] = mpi_rank;
+
+    ret = H5Sselect_hyperslab(mem_large_ds_sid,
+                              H5S_SELECT_SET,
+                              start,
+                              stride,
+                              count,
+                              block);
+    VRFY((ret >= 0), "H5Sselect_hyperslab(mem_large_ds_sid, set) suceeded");
+
+    ret = H5Sselect_hyperslab(file_large_ds_sid,
+                              H5S_SELECT_SET,
+                              start,
+                              stride,
+                              count,
+                              block);
+    VRFY((ret >= 0), "H5Sselect_hyperslab(file_large_ds_sid, set) suceeded");
+
+    if ( MAINPROCESS ) { /* add an additional slice to the selections */
+
+        start[0] = mpi_size;
+
+        ret = H5Sselect_hyperslab(mem_large_ds_sid,
+                                  H5S_SELECT_OR,
+                                  start,
+                                  stride,
+                                  count,
+                                  block);
+        VRFY((ret>= 0), "H5Sselect_hyperslab(mem_large_ds_sid, or) suceeded");
+
+        ret = H5Sselect_hyperslab(file_large_ds_sid,
+                                  H5S_SELECT_OR,
+                                  start,
+                                  stride,
+                                  count,
+                                  block);
+        VRFY((ret>= 0), "H5Sselect_hyperslab(file_large_ds_sid, or) suceeded");
+    }
+
+
+    /* write the initial value of the large data set to file */
+    ret = H5Dwrite(large_dataset, dset_type, mem_large_ds_sid, file_large_ds_sid,
+                   xfer_plist, large_ds_buf_0);
+    if ( ret < 0 ) H5Eprint2(H5E_DEFAULT, stderr);
+    VRFY((ret >= 0), "H5Dwrite() large_dataset initial write succeeded");
+
+
+    /* sync with the other processes before checking data */
+    if ( ! use_collective_io ) {
+
+        mrc = MPI_Barrier(MPI_COMM_WORLD);
+        VRFY((mrc==MPI_SUCCESS), "Sync after large dataset writes");
+    }
+
+
+    /* read the small data set back to verify that it contains the
+     * expected data.  Note that each process reads in the entire
+     * data set.
+     */
+    ret = H5Dread(large_dataset,
+                  H5T_NATIVE_UINT32,
+                  full_mem_large_ds_sid,
+                  full_file_large_ds_sid,
+                  xfer_plist,
+                  large_ds_buf_1);
+    VRFY((ret >= 0), "H5Dread() large_dataset initial read succeeded");
+
+
+    /* verify that the correct data was written to the large data set */
+    expected_value = 0;
+    mis_match = FALSE;
+    ptr_1 = large_ds_buf_1;
+
+    i = 0;
+    for ( i = 0; i < (int)large_ds_size; i++ ) {
+
+        if ( *ptr_1 != expected_value ) {
+
+            mis_match = TRUE;
+        }
+        ptr_1++;
+        expected_value++;
+    }
+    VRFY( (mis_match == FALSE), "large ds init data good.");
+
+
+    /* Close dataspaces */
+    ret = H5Sclose(full_mem_small_ds_sid);
+    VRFY((ret != FAIL), "H5Sclose(full_mem_small_ds_sid) succeeded");
+
+    ret = H5Sclose(full_file_small_ds_sid);
+    VRFY((ret != FAIL), "H5Sclose(full_file_small_ds_sid) succeeded");
+
+    ret = H5Sclose(mem_small_ds_sid);
+    VRFY((ret != FAIL), "H5Sclose(mem_small_ds_sid) succeeded");
+
+    ret = H5Sclose(file_small_ds_sid);
+    VRFY((ret != FAIL), "H5Sclose(file_small_ds_sid) succeeded");
+
+    ret = H5Sclose(full_mem_large_ds_sid);
+    VRFY((ret != FAIL), "H5Sclose(full_mem_large_ds_sid) succeeded");
+
+    ret = H5Sclose(full_file_large_ds_sid);
+    VRFY((ret != FAIL), "H5Sclose(full_file_large_ds_sid) succeeded");
+
+    ret = H5Sclose(mem_large_ds_sid);
+    VRFY((ret != FAIL), "H5Sclose(mem_large_ds_sid) succeeded");
+
+    ret = H5Sclose(file_large_ds_sid);
+    VRFY((ret != FAIL), "H5Sclose(mem_large_ds_sid) succeeded");
+
+
+    /* Close Datasets */
+    ret = H5Dclose(small_dataset);
+    VRFY((ret != FAIL), "H5Dclose(small_dataset) succeeded");
+
+    ret = H5Dclose(large_dataset);
+    VRFY((ret != FAIL), "H5Dclose(large_dataset) succeeded");
+
+
+    /* close the file collectively */
+    MESG("about to close file.");
+    ret = H5Fclose(fid);
+    VRFY((ret != FAIL), "file close succeeded");
+
+    /* Free memory buffers */
+
+    if ( small_ds_buf_0 != NULL ) HDfree(small_ds_buf_0);
+    if ( small_ds_buf_1 != NULL ) HDfree(small_ds_buf_1);
+
+    if ( large_ds_buf_0 != NULL ) HDfree(large_ds_buf_0);
+    if ( large_ds_buf_1 != NULL ) HDfree(large_ds_buf_1);
+
+    return;
+
+} /* hyperslab_dr_pio_setup__run_test() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    hyperslab_dr_pio_setup_test()
+ *
+ * Purpose:     Tests the setup code for
+ *              contig_hyperslab_dr_pio_test__run_test and
+ *              checker_board_hyperslab_dr_pio_test__run_test.
+ *
+ * Return:      void
+ *
+ * Programmer:  NAF -- 12/2/10
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+
+void
+hyperslab_dr_pio_setup_test(void)
+{
+    int         test_num = 0;
+    int         edge_size = 10;
+    int         chunk_edge_size = 0;
+    int         small_rank;
+    int         large_rank;
+    int         skips[4] = {0, 0, 0, 0};
+    int         skip_counters[4] = {0, 0, 0, 0};
+    int         tests_skiped[4] = {0, 0, 0, 0};
+    int         mpi_result;
+    hid_t       dset_type = H5T_NATIVE_UINT;
+#ifdef H5_HAVE_GETTIMEOFDAY
+    hbool_t     time_tests = TRUE;
+    hbool_t     display_skips = FALSE;
+    int         local_express_test;
+    int         express_test;
+    int         i;
+    int         samples = 0;
+    int         sample_size = 1;
+    int         mpi_size = -1;
+    int         mpi_rank = -1;
+    int         local_skips[4];
+    const int   ind_contig_idx = 0;
+    const int   col_contig_idx = 1;
+    const int   ind_chunked_idx = 2;
+    const int   col_chunked_idx = 3;
+    const int   test_types = 4;
+    long long   max_test_time = 3000000; /* for one test */
+    long long   sample_times[4] = {0, 0, 0, 0};
+    struct timeval timeval_a;
+    struct timeval timeval_b;
+
+    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+#endif /* H5_HAVE_GETTIMEOFDAY */
+
+    HDcompile_assert(sizeof(uint32_t) == sizeof(unsigned));
+
+    local_express_test = GetTestExpress();
+
+    mpi_result = MPI_Allreduce((void *)&local_express_test,
+                               (void *)&express_test,
+                               1,
+                               MPI_INT,
+                               MPI_MAX,
+                               MPI_COMM_WORLD);
+
+    VRFY((mpi_result == MPI_SUCCESS ), "MPI_Allreduce(0) succeeded");
+
+    for ( large_rank = 3; large_rank <= PAR_SS_DR_MAX_RANK; large_rank++ ) {
+
+        for ( small_rank = 2; small_rank < large_rank; small_rank++ ) {
+
+            chunk_edge_size = 0;
+
+            /* contiguous data set, independent I/O */
+            if ( skip_counters[ind_contig_idx] < skips[ind_contig_idx] ) {
+
+                skip_counters[ind_contig_idx]++;
+                tests_skiped[ind_contig_idx]++;
+
+            } else {
+                skip_counters[ind_contig_idx] = 0;
+                START_TIMER(time_tests, timeval_a, "HDgettimeofday(0) succeeds.");
+                hyperslab_dr_pio_setup__run_test(edge_size,
+                                                   chunk_edge_size,
+                                                   small_rank,
+                                                   large_rank,
+                                                   FALSE,
+                                                   dset_type,
+                                                   express_test);
+                STOP_TIMER_AND_UPDATE(time_tests, timeval_b, \
+                                      "HDgettimeofday(1) succeeds.", \
+                                      sample_times[col_contig_idx]);
+            }
+            test_num++;
+
+            /* contiguous data set, collective I/O */
+            if ( skip_counters[col_contig_idx] < skips[col_contig_idx] ) {
+
+                skip_counters[col_contig_idx]++;
+                tests_skiped[col_contig_idx]++;
+
+            } else {
+                skip_counters[col_contig_idx] = 0;
+                START_TIMER(time_tests, timeval_a, "HDgettimeofday(2) succeeds.");
+                hyperslab_dr_pio_setup__run_test(edge_size,
+                                                   chunk_edge_size,
+                                                   small_rank,
+                                                   large_rank,
+                                                   TRUE,
+                                                   dset_type,
+                                                   express_test);
+                STOP_TIMER_AND_UPDATE(time_tests, timeval_b, \
+                                      "HDgettimeofday(3) succeeds.", \
+                                      sample_times[ind_contig_idx]);
+            }
+            test_num++;
+
+            chunk_edge_size = 5;
+
+            /* chunked data set, independent I/O */
+            if ( skip_counters[ind_chunked_idx] < skips[ind_chunked_idx] ) {
+
+                skip_counters[ind_chunked_idx]++;
+                tests_skiped[ind_chunked_idx]++;
+
+            } else {
+                skip_counters[ind_chunked_idx] = 0;
+                START_TIMER(time_tests, timeval_a, "HDgettimeofday(4) succeeds.");
+                hyperslab_dr_pio_setup__run_test(edge_size,
+                                                   chunk_edge_size,
+                                                   small_rank,
+                                                   large_rank,
+                                                   FALSE,
+                                                   dset_type,
+                                                   express_test);
+                STOP_TIMER_AND_UPDATE(time_tests, timeval_b, \
+                                      "HDgettimeofday(5) succeeds.", \
+                                      sample_times[col_chunked_idx]);
+            }
+            test_num++;
+
+            /* chunked data set, collective I/O */
+            if ( skip_counters[col_chunked_idx] < skips[col_chunked_idx] ) {
+
+                skip_counters[col_chunked_idx]++;
+                tests_skiped[col_chunked_idx]++;
+
+            } else {
+                skip_counters[col_chunked_idx] = 0;
+                START_TIMER(time_tests, timeval_a, "HDgettimeofday(6) succeeds.");
+                hyperslab_dr_pio_setup__run_test(edge_size,
+                                                   chunk_edge_size,
+                                                   small_rank,
+                                                   large_rank,
+                                                   TRUE,
+                                                   dset_type,
+                                                   express_test);
+                STOP_TIMER_AND_UPDATE(time_tests, timeval_b, \
+                                      "HDgettimeofday(7) succeeds.", \
+                                      sample_times[ind_chunked_idx]);
+            }
+            test_num++;
+
+#ifdef H5_HAVE_GETTIMEOFDAY
+            if ( time_tests ) {
+
+                samples++;
+
+                if ( samples >= sample_size ) {
+
+                    int result;
+
+                    time_tests = FALSE;
+
+                    max_test_time = ((long long)sample_size) * max_test_time;
+
+                    for ( i = 0; i < test_types; i++ ) {
+
+                        if ( ( express_test == 0 ) ||
+                             ( sample_times[i] <= max_test_time ) ) {
+
+                            local_skips[i] = 0;
+
+                        } else {
+
+                            local_skips[i] = (int)(sample_times[i] / max_test_time);
+                        }
+                    }
+
+                    /* do an MPI_Allreduce() with the skips vector to ensure that
+                     * all processes agree on its contents.
+                     */
+                    result = MPI_Allreduce((void *)local_skips,
+                                           (void *)skips,
+                                           test_types,
+                                           MPI_INT,
+                                           MPI_MAX,
+                                           MPI_COMM_WORLD);
+                    VRFY((result == MPI_SUCCESS ), \
+                         "MPI_Allreduce(1) succeeded");
+                }
+            }
+#endif /* H5_HAVE_GETTIMEOFDAY */
+
+        }
+    }
+
+#ifdef H5_HAVE_GETTIMEOFDAY
+    if ( ( MAINPROCESS ) && ( display_skips ) ) {
+
+        HDfprintf(stdout, "***********************************\n");
+        HDfprintf(stdout, "express_test = %d.\n", express_test);
+        HDfprintf(stdout, "sample_size = %d, max_test_time = %lld.\n",
+                  sample_size, max_test_time);
+        HDfprintf(stdout, "sample_times[]  = %lld, %lld, %lld, %lld.\n",
+                  sample_times[ind_contig_idx],
+                  sample_times[col_contig_idx],
+                  sample_times[ind_chunked_idx],
+                  sample_times[col_chunked_idx]);
+        HDfprintf(stdout, "skips[]  = %d, %d, %d, %d.\n",
+                  skips[ind_contig_idx],
+                  skips[col_contig_idx],
+                  skips[ind_chunked_idx],
+                  skips[col_chunked_idx]);
+        HDfprintf(stdout, "tests_skiped[]  = %d, %d, %d, %d.\n",
+                  tests_skiped[ind_contig_idx],
+                  tests_skiped[col_contig_idx],
+                  tests_skiped[ind_chunked_idx],
+                  tests_skiped[col_chunked_idx]);
+        HDfprintf(stdout, "test_num          = %d.\n", test_num);
+        HDfprintf(stdout, "***********************************\n");
+    }
+#endif /* H5_HAVE_GETTIMEOFDAY */
+
+    return;
+
+} /* hyperslab_dr_pio_setup_test() */
+
+
+/*-------------------------------------------------------------------------
  * Function:	contig_hyperslab_dr_pio_test__run_test()
  *
  * Purpose:	Test I/O to/from hyperslab selections of different rank in

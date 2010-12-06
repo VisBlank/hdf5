@@ -242,6 +242,7 @@ void rr_obj_hdr_flush_confusion_reader(MPI_Comm comm);
 void rr_obj_hdr_flush_confusion_writer(MPI_Comm comm);
 void lower_dim_size_comp_test(void);
 void link_chunk_collective_io_test(void);
+void hyperslab_dr_pio_setup_test(void);
 void contig_hyperslab_dr_pio_test(void);
 void checker_board_hyperslab_dr_pio_test(void);
 #ifdef H5_HAVE_FILTER_DEFLATE

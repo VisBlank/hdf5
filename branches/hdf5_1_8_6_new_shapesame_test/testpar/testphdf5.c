@@ -491,6 +491,10 @@ int main(int argc, char **argv)
 
     /* rank projections / shape same tests */
 
+    AddTest("hsssdrpios",
+        hyperslab_dr_pio_setup_test, NULL,
+        "hyperslab shape same different rank PIO setup",PARATESTFILE);
+
     AddTest("chsssdrpio",
 	contig_hyperslab_dr_pio_test, NULL,
 	"contiguous hyperslab shape same different rank PIO",PARATESTFILE);
