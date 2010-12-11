@@ -50,8 +50,12 @@ CONTAINS
 ! INPUTS
 !  filter - filter; may have one of the following values:
 !            H5Z_FILTER_DEFLATE_F
+!            H5Z_FILTER_SZIP_F
+!            H5Z_FILTER_NBIT_F
+!            H5Z_FILTER_SCALEOFFSET_F
 !            H5Z_FILTER_SHUFFLE_F
 !            H5Z_FILTER_FLETCHER32_F
+!            
 ! OUTPUTS
 !  hdferr - error code
 !            Success:  0
@@ -104,6 +108,9 @@ CONTAINS
     IMPLICIT NONE
     INTEGER, INTENT(IN)  :: filter      ! Filter; may be one of the following:
                                         !   H5Z_FILTER_DEFLATE_F
+                                        !   H5Z_FILTER_SZIP_F
+                                        !   H5Z_FILTER_NBIT_F
+                                        !   H5Z_FILTER_SCALEOFFSET_F
                                         !   H5Z_FILTER_SHUFFLE_F
                                         !   H5Z_FILTER_FLETCHER32_F
     LOGICAL, INTENT(OUT) :: status      ! Flag, idicates if filter
@@ -156,10 +163,12 @@ CONTAINS
   SUBROUTINE h5zget_filter_info_f(filter, config_flags, hdferr)
     IMPLICIT NONE
     INTEGER, INTENT(IN)  :: filter      ! Filter; may be one of the following:
-                                        ! H5Z_FILTER_DEFLATE_F
-                                        ! H5Z_FILTER_SHUFFLE_F
-                                        ! H5Z_FILTER_FLETCHER32_F
-                                        ! H5Z_FILTER_SZIP_F
+                                        !   H5Z_FILTER_DEFLATE_F
+                                        !   H5Z_FILTER_SZIP_F
+                                        !   H5Z_FILTER_NBIT_F
+                                        !   H5Z_FILTER_SCALEOFFSET_F
+                                        !   H5Z_FILTER_SHUFFLE_F
+                                        !   H5Z_FILTER_FLETCHER32_F
     INTEGER, INTENT(OUT) :: config_flags! Flag, indicates if filter
                                         ! has its encoder and/or decoder
                                         ! available
