@@ -411,6 +411,7 @@
 ./release_docs/INSTALL_MinGW.txt
 ./release_docs/INSTALL_VMS.txt
 ./release_docs/INSTALL_Windows.txt
+./release_docs/USING_Windows.txt
 ./release_docs/INSTALL_Windows_From_Command_Line.txt
 ./release_docs/INSTALL_Windows_Short_NET.TXT
 ./release_docs/INSTALL_Windows_Short_VS2005.TXT
@@ -808,6 +809,7 @@
 ./test/external.c
 ./test/error_test.c
 ./test/err_compat.c
+./test/links_env.c
 ./test/family_v16_00000.h5
 ./test/family_v16_00001.h5
 ./test/family_v16_00002.h5
@@ -876,6 +878,7 @@
 ./test/tcoords.c
 ./test/testcheck_version.sh.in
 ./test/testerror.sh.in
+./test/testlinks_env.sh.in
 ./test/testframe.c
 ./test/testhdf5.c
 ./test/testhdf5.h
@@ -922,6 +925,7 @@
 ./test/testfiles/err_compat_2
 ./test/testfiles/error_test_1
 ./test/testfiles/error_test_2
+./test/testfiles/links_env.out
 
 ./testpar/COPYING
 ./testpar/Makefile.am
