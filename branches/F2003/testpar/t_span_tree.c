@@ -1570,7 +1570,7 @@ lower_dim_size_comp_test__verify_data(uint32_t * buf_ptr,
 #define LDSCT_DS_RANK	5
 #define LOWER_DIM_SIZE_COMP_TEST__RUN_TEST__DEBUG 0
 
-void
+static void
 lower_dim_size_comp_test__run_test(const int chunk_edge_size,
                                    const hbool_t use_collective_io,
                                    const hid_t dset_type)
@@ -2616,10 +2616,11 @@ lower_dim_size_comp_test(void)
     /* const char *fcnName = "lower_dim_size_comp_test()"; */
     int		chunk_edge_size = 0;
     int  	use_collective_io = 1;
-    hid_t	dset_type = H5T_STD_U32LE;
+    hid_t	dset_type = H5T_NATIVE_UINT;
 #if 0
    sleep(60);
 #endif
+    HDcompile_assert(sizeof(uint32_t) == sizeof(unsigned));
     for ( use_collective_io = (hbool_t)0; 
           (int)use_collective_io <= 1; 
           (hbool_t)(use_collective_io++) ) {

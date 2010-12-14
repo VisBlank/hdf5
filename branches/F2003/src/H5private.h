@@ -30,8 +30,12 @@
 
 /* include the pthread header */
 #ifdef H5_HAVE_THREADSAFE
+#ifdef H5_HAVE_PTHREAD_H
 #include <pthread.h>
-#endif
+#else /* H5_HAVE_PTHREAD_H */
+#define H5_HAVE_WIN_THREADS
+#endif /* H5_HAVE_PTHREAD_H */
+#endif /* H5_HAVE_THREADSAFE */
 
 /*
  * Include ANSI-C header files.
@@ -141,12 +145,12 @@
 
 
 #ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN		/*Exclude rarely-used stuff from Windows headers */
 
 #ifdef H5_HAVE_WINSOCK_H
 #include <winsock2.h>
 #endif
 
-#define WIN32_LEAN_AND_MEAN		/*Exclude rarely-used stuff from Windows headers */
 #include <windows.h>
 #include <direct.h>         /* For _getcwd() */
 
@@ -480,8 +484,9 @@ typedef struct {
  * function (or any other non-HDF5 function) in the source!
  */
 
- /* Use platform-specific versions if necessary */
-#include "H5win32defs.h"
+/* Put all platform-specific definitions in the following file */
+/* so that the following definitions are platform free. */
+#include "H5win32defs.h"	/* For Windows-specific definitions */
 
 #ifndef HDabort
     #define HDabort()		abort()
@@ -912,11 +917,14 @@ H5_DLL int HDfprintf (FILE *stream, const char *fmt, ...);
 #ifndef HDlongjmp
     #define HDlongjmp(J,N)		longjmp(J,N)
 #endif /* HDlongjmp */
+/* HDlseek and HDoff_t must be defined together for consistency. */
 #ifndef HDlseek
     #ifdef H5_HAVE_LSEEK64
-       #define HDlseek(F,O,W)	lseek64(F,O,W)
+        #define HDlseek(F,O,W)	lseek64(F,O,W)
+        #define HDoff_t		off64_t
     #else
-       #define HDlseek(F,O,W)	lseek(F,O,W)
+        #define HDlseek(F,O,W)	lseek(F,O,W)
+	#define HDoff_t		off_t
     #endif
 #endif /* HDlseek */
 #ifndef HDmalloc
@@ -1662,8 +1670,11 @@ typedef struct H5_api_struct {
 #define H5_INIT_GLOBAL H5_g.H5_libinit_g
 
 /* Macro for first thread initialization */
-#define H5_FIRST_THREAD_INIT                                                  \
-   pthread_once(&H5TS_first_init_g, H5TS_first_thread_init);
+#ifdef H5_HAVE_WIN_THREADS
+#define H5_FIRST_THREAD_INIT InitOnceExecuteOnce(&H5TS_first_init_g, H5TS_win32_first_thread_init, NULL, NULL);
+#else
+#define H5_FIRST_THREAD_INIT pthread_once(&H5TS_first_init_g, H5TS_pthread_first_thread_init);
+#endif
 
 /* Macros for threadsafe HDF-5 Phase I locks */
 #define H5_API_LOCK                                                           \
@@ -2338,8 +2349,8 @@ H5_DLL uint32_t H5_hash_string(const char *str);
 H5_DLL herr_t   H5_build_extpath(const char *, char ** /*out*/ );
 
 /* Functions for debugging */
-H5_DLL herr_t H5_buffer_dump(FILE *stream, int indent, uint8_t *buf,
-    uint8_t *marker, size_t buf_offset, size_t buf_size);
+H5_DLL herr_t H5_buffer_dump(FILE *stream, int indent, const uint8_t *buf,
+    const uint8_t *marker, size_t buf_offset, size_t buf_size);
 
 #endif /* _H5private_H */
 

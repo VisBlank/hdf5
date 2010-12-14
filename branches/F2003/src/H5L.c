@@ -1664,8 +1664,9 @@ H5L_link_cb(H5G_loc_t *grp_loc/*in*/, const char *name, const H5O_link_t UNUSED 
     H5G_t *grp = NULL;              /* H5G_t for this group, opened to pass to user callback */
     hid_t grp_id = FAIL;            /* Id for this group (passed to user callback */
     H5G_loc_t temp_loc;             /* For UD callback */
-    hbool_t temp_loc_init = FALSE;
-    herr_t ret_value = SUCCEED;              /* Return value */
+    hbool_t temp_loc_init = FALSE;  /* Temporary location for UD callback (temp_loc) has been initialized */
+    hbool_t obj_created = FALSE;    /* Whether an object was created (through a hard link) */
+    herr_t ret_value = SUCCEED;     /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5L_link_cb)
 
@@ -1690,6 +1691,9 @@ H5L_link_cb(H5G_loc_t *grp_loc/*in*/, const char *name, const H5O_link_t UNUSED 
 
             /* Set object path to use for setting object name (below) */
             udata->path = new_loc.path;
+
+            /* Indicate that an object was created */
+            obj_created = TRUE;
         } /* end if */
         else {
             /* Check that both objects are in same file */
@@ -1716,7 +1720,10 @@ H5L_link_cb(H5G_loc_t *grp_loc/*in*/, const char *name, const H5O_link_t UNUSED 
     udata->lnk->name = (char *)name;
 
     /* Insert link into group */
-    if(H5G_obj_insert(grp_loc->oloc, name, udata->lnk, TRUE, udata->dxpl_id) < 0)
+    if(H5G_obj_insert(grp_loc->oloc, name, udata->lnk, TRUE,
+            udata->ocrt_info ? udata->ocrt_info->obj_type : H5O_TYPE_UNKNOWN,
+            udata->ocrt_info ? udata->ocrt_info->crt_info : NULL,
+            udata->dxpl_id) < 0)
         HGOTO_ERROR(H5E_LINK, H5E_CANTINIT, FAIL, "unable to create new link for object")
 
     /* Set object's path if it has been passed in and is not set */
@@ -1760,9 +1767,23 @@ H5L_link_cb(H5G_loc_t *grp_loc/*in*/, const char *name, const H5O_link_t UNUSED 
     } /* end if */
 
 done:
+    /* Check if an object was created */
+    if(obj_created) {
+        H5O_loc_t oloc;         /* Object location for created object */
+
+        /* Set up object location */
+        HDmemset(&oloc, 0, sizeof(oloc));
+        oloc.file = grp_loc->oloc->file;
+        oloc.addr = udata->lnk->u.hard.addr;
+
+        /* Decrement refcount on superblock extension's object header in memory */
+        if(H5O_dec_rc_by_loc(&oloc, udata->dxpl_id) < 0)
+           HDONE_ERROR(H5E_LINK, H5E_CANTDEC, FAIL, "unable to decrement refcount on newly created object")
+    } /* end if */
+
     /* Close the location given to the user callback if it was created */
     if(grp_id >= 0) {
-        if(H5I_dec_ref(grp_id, TRUE) < 0)
+        if(H5I_dec_app_ref(grp_id) < 0)
             HDONE_ERROR(H5E_ATOM, H5E_CANTRELEASE, FAIL, "unable to close atom from UD callback")
     } /* end if */
     else if(grp != NULL) {
@@ -2418,7 +2439,8 @@ H5L_move_dest_cb(H5G_loc_t *grp_loc/*in*/, const char *name,
     udata->lnk->name = (char *)name;
 
     /* Insert the link into the group */
-    if(H5G_obj_insert(grp_loc->oloc, name, udata->lnk, TRUE, udata->dxpl_id) < 0)
+    if(H5G_obj_insert(grp_loc->oloc, name, udata->lnk, TRUE, H5O_TYPE_UNKNOWN,
+            NULL, udata->dxpl_id) < 0)
         HGOTO_ERROR(H5E_LINK, H5E_CANTINIT, FAIL, "unable to create new link to object")
 
     /* If the link was a user-defined link, call its move callback if it has one */
@@ -2464,7 +2486,7 @@ H5L_move_dest_cb(H5G_loc_t *grp_loc/*in*/, const char *name,
 done:
     /* Close the location given to the user callback if it was created */
     if(grp_id >= 0) {
-        if(H5I_dec_ref(grp_id, TRUE) < 0)
+        if(H5I_dec_app_ref(grp_id) < 0)
             HDONE_ERROR(H5E_ATOM, H5E_CANTRELEASE, FAIL, "unable to close atom from UD callback")
     } /* end if */
     else if(grp != NULL) {

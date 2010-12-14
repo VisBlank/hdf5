@@ -510,29 +510,28 @@ CONTAINS
 !
 ! SOURCE
   SUBROUTINE h5tget_order_f(type_id, order, hdferr)
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier
-            INTEGER, INTENT(OUT) :: order
-                              ! Datatype byte order, bossible values are:
-                                          ! H5T_ORDER_LE_F
-                                          ! H5T_ORDER_BE_F
-                                          ! H5T_ORDER_VAX_F
-            INTEGER, INTENT(OUT) :: hdferr        ! Error code
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier
+    INTEGER, INTENT(OUT) :: order
+                                    ! Datatype byte order, possible values are:
+                                    ! H5T_ORDER_LE_F
+                                    ! H5T_ORDER_BE_F
+                                    ! H5T_ORDER_VAX_F
+    INTEGER, INTENT(OUT) :: hdferr  ! Error code
 !*****
-            INTERFACE
-              INTEGER FUNCTION h5tget_order_c(type_id, order)
-              USE H5GLOBAL
-              !DEC$IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ATTRIBUTES C,reference,decorate,alias:'H5TGET_ORDER_C'::h5tget_order_c
-              !DEC$ENDIF
-              INTEGER(HID_T), INTENT(IN) :: type_id
-              INTEGER, INTENT(OUT) :: order
-              END FUNCTION h5tget_order_c
-            END INTERFACE
-
-            hdferr = h5tget_order_c(type_id, order)
-          END SUBROUTINE h5tget_order_f
-
+    INTERFACE
+       INTEGER FUNCTION h5tget_order_c(type_id, order)
+         USE H5GLOBAL
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5TGET_ORDER_C'::h5tget_order_c
+         !DEC$ENDIF
+         INTEGER(HID_T), INTENT(IN) :: type_id
+         INTEGER, INTENT(OUT) :: order
+       END FUNCTION h5tget_order_c
+    END INTERFACE
+    
+    hdferr = h5tget_order_c(type_id, order)
+  END SUBROUTINE h5tget_order_f
 !
 !****s* H5T/h5tset_order_f
 !
@@ -561,28 +560,28 @@ CONTAINS
 !
 ! SOURCE
   SUBROUTINE h5tset_order_f(type_id, order, hdferr)
-            IMPLICIT NONE
-            INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier
-            INTEGER, INTENT(IN) :: order ! Datatype byte order, bossible values
-                                          ! are:
-                                          ! H5T_ORDER_LE_F
-                                          ! H5T_ORDER_BE_F
-                                          ! H5T_ORDER_VAX_F
-            INTEGER, INTENT(OUT) :: hdferr        ! Error code
+    IMPLICIT NONE
+    INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier
+    INTEGER, INTENT(IN) :: order   ! Datatype byte order, possible values
+                                   ! are:
+                                   ! H5T_ORDER_LE_F
+                                   ! H5T_ORDER_BE_F
+                                   ! H5T_ORDER_VAX_F
+    INTEGER, INTENT(OUT) :: hdferr ! Error code
 !*****
-            INTERFACE
-              INTEGER FUNCTION h5tset_order_c(type_id, order)
-              USE H5GLOBAL
-              !DEC$IF DEFINED(HDF5F90_WINDOWS)
-              !DEC$ATTRIBUTES C,reference,decorate,alias:'H5TSET_ORDER_C'::h5tset_order_c
-              !DEC$ENDIF
-              INTEGER(HID_T), INTENT(IN) :: type_id
-              INTEGER, INTENT(IN) :: order
-              END FUNCTION h5tset_order_c
-            END INTERFACE
-
-            hdferr = h5tset_order_c(type_id, order)
-          END SUBROUTINE h5tset_order_f
+    INTERFACE
+       INTEGER FUNCTION h5tset_order_c(type_id, order)
+         USE H5GLOBAL
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5TSET_ORDER_C'::h5tset_order_c
+         !DEC$ENDIF
+         INTEGER(HID_T), INTENT(IN) :: type_id
+         INTEGER, INTENT(IN) :: order
+       END FUNCTION h5tset_order_c
+    END INTERFACE
+    
+    hdferr = h5tset_order_c(type_id, order)
+  END SUBROUTINE h5tset_order_f
 
 !
 !****s* H5T/h5tget_precision_f

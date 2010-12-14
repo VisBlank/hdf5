@@ -4,33 +4,31 @@ PROJECT (HDF5_TOOLS_H5LS)
 #-----------------------------------------------------------------------------
 # Setup include Directories
 #-----------------------------------------------------------------------------
-INCLUDE_DIRECTORIES (${HDF5_TOOLS_SOURCE_DIR}/lib)
+INCLUDE_DIRECTORIES (${HDF5_TOOLS_SRC_DIR}/lib)
 INCLUDE_DIRECTORIES (${HDF5_PROJECT_DIR}/test)
 
-# --------------------------------------------------------------------
-# If testing was NOT enabled, then we need to build the tools library
-# --------------------------------------------------------------------
-#-- Add the h5ls executable
+#-----------------------------------------------------------------------------
+# Add the h5ls executable
+#-----------------------------------------------------------------------------
 ADD_EXECUTABLE (h5ls ${HDF5_TOOLS_H5LS_SOURCE_DIR}/h5ls.c)
 H5_NAMING (h5ls)
-IF (WIN32)
-  IF (MSVC)
-    IF (NOT BUILD_SHARED_LIBS)
-      SET_TARGET_PROPERTIES (h5ls
-          PROPERTIES
-              LINK_FLAGS "/NODEFAULTLIB:MSVCRT"
-      ) 
-    ENDIF (NOT BUILD_SHARED_LIBS)
-  ENDIF (MSVC)
-ENDIF (WIN32)
+TARGET_WIN_PROPERTIES (h5ls)
 TARGET_LINK_LIBRARIES (h5ls  ${HDF5_TOOLS_LIB_TARGET} ${HDF5_LIB_TARGET})
 
 SET (H5_DEP_EXECUTABLES
     h5ls
 )
 
+##############################################################################
+##############################################################################
+###           T E S T I N G                                                ###
+##############################################################################
+##############################################################################
+
 IF (BUILD_TESTING)
-  #-- Copy all the HDF5 files from the test directory into the source directory
+  # --------------------------------------------------------------------
+  # Copy all the HDF5 files from the test directory into the source directory
+  # --------------------------------------------------------------------
   SET (HDF5_REFERENCE_FILES
       help-1.ls
       help-2.ls
@@ -74,6 +72,9 @@ IF (BUILD_TESTING)
       thlink-1.ls
       tloop-1.ls
       tnestcomp-1.ls
+      tnestcomp-2.ls
+      tnestcomp-3.ls
+      tnestcomp-4.ls
       tsaf.ls
       tslink-1.ls
       tstr-1.ls
@@ -112,7 +113,7 @@ IF (BUILD_TESTING)
         TARGET     h5ls
         POST_BUILD
         COMMAND    ${XLATE_UTILITY}
-        ARGS       ${HDF5_TOOLS_SOURCE_DIR}/testfiles/${ls_file} ${lsdest} -l3
+        ARGS       ${HDF5_TOOLS_SRC_DIR}/testfiles/${ls_file} ${lsdest} -l3
     )
   ENDFOREACH (ls_file ${HDF5_REFERENCE_FILES})
 
@@ -123,9 +124,15 @@ IF (BUILD_TESTING)
         TARGET     h5ls
         POST_BUILD
         COMMAND    ${CMAKE_COMMAND}
-        ARGS       -E copy_if_different ${HDF5_TOOLS_SOURCE_DIR}/testfiles/${h5_file} ${dest}
+        ARGS       -E copy_if_different ${HDF5_TOOLS_SRC_DIR}/testfiles/${h5_file} ${dest}
     )
   ENDFOREACH (h5_file ${HDF5_REFERENCE_TEST_FILES})
+  
+##############################################################################
+##############################################################################
+###           T H E   T E S T S  M A C R O S                               ###
+##############################################################################
+##############################################################################
 
   MACRO (ADD_H5_TEST resultfile resultcode)
     ADD_TEST (
@@ -140,6 +147,130 @@ IF (BUILD_TESTING)
             -P "${HDF5_RESOURCES_DIR}/runTest.cmake"
     )
   ENDMACRO (ADD_H5_TEST file)
+
+##############################################################################
+##############################################################################
+###           T H E   T E S T S                                            ###
+##############################################################################
+##############################################################################
+
+  # Remove any output file left over from previous test run
+  ADD_TEST (
+      NAME H5LS-clearall-objects
+      COMMAND    ${CMAKE_COMMAND}
+          -E remove 
+          help-1.out
+          help-1.out.err
+          help-2.out
+          help-2.out.err
+          help-3.out
+          help-3.out.err
+          nosuchfile.out
+          nosuchfile.out.err
+          tall-1.out
+          tall-1.out.err
+          tall-2.out
+          tall-2.out.err
+          tarray1.out
+          tarray1.out.err
+          tattr2.out
+          tattr2.out.err
+          tcomp-1.out
+          tcomp-1.out.err
+          tdataregbe.out
+          tdataregbe.out.err
+          tdataregle.out
+          tdataregle.out.err
+          tdset-1.out
+          tdset-1.out.err
+          tempty.out
+          tempty.out.err
+          textlink-1.out
+          textlink-1.out.err
+          textlinksrc-1.out
+          textlinksrc-1.out.err
+          textlinksrc-2.out
+          textlinksrc-2.out.err
+          textlinksrc-3.out
+          textlinksrc-3.out.err
+          textlinksrc-4.out
+          textlinksrc-4.out.err
+          textlinksrc-5.out
+          textlinksrc-5.out.err
+          textlinksrc-6.out
+          textlinksrc-6.out.err
+          textlinksrc-7.out
+          textlinksrc-7.out.err
+          textlinksrc-1-old.out
+          textlinksrc-1-old.out.err
+          textlinksrc-2-old.out
+          textlinksrc-2-old.out.err
+          textlinksrc-3-old.out
+          textlinksrc-3-old.out.err
+          textlinksrc-6-old.out
+          textlinksrc-6-old.out.err
+          textlinksrc-7-old.out
+          textlinksrc-7-old.out.err
+          tsoftlinks-1.out
+          tsoftlinks-1.out.err
+          tsoftlinks-2.out
+          tsoftlinks-2.out.err
+          tsoftlinks-3.out
+          tsoftlinks-3.out.err
+          tsoftlinks-4.out
+          tsoftlinks-4.out.err
+          tsoftlinks-5.out
+          tsoftlinks-5.out.err
+          textlinksrc-nodangle-1.out
+          textlinksrc-nodangle-1.out.err
+          textlinksrc-nodangle-2.out
+          textlinksrc-nodangle-2.out.err
+          tsoftlinks-nodangle-1.out
+          tsoftlinks-nodangle-1.out.err
+          thlinks-nodangle-1.out
+          thlinks-nodangle-1.out.err
+          tgroup.out
+          tgroup.out.err
+          tgroup-1.out
+          tgroup-1.out.err
+          tgroup-2.out
+          tgroup-2.out.err
+          tgroup-3.out
+          tgroup-3.out.err
+          thlink-1.out
+          thlink-1.out.err
+          tloop-1.out
+          tloop-1.out.err
+          tnestcomp-1.out
+          tnestcomp-1.out.err
+          tnestcomp-2.out
+          tnestcomp-2.out.err
+          tnestcomp-3.out
+          tnestcomp-3.out.err
+          tnestcomp-4.out
+          tnestcomp-4.out.err
+          tsaf.out
+          tsaf.out.err
+          tslink-1.out
+          tslink-1.out.err
+          tstr-1.out
+          tstr-1.out.err
+          tudlink-1.out
+          tudlink-1.out.err
+          tvldtypes1.out
+          tvldtypes1.out.err
+          tvldtypes2le.out
+          tvldtypes2le.out.err
+          tvldtypes2be.out
+          tvldtypes2be.out.err
+  )
+
+  # If using memchecker add tests without using scripts
+  IF (HDF5_ENABLE_USING_MEMCHECKER)
+    ADD_TEST (NAME H5LS-help COMMAND h5ls -w80 -h)
+    ADD_TEST (NAME H5LS-tall COMMAND h5ls -w80 tall.h5)
+    ADD_TEST (NAME H5LS-tsoftlinks COMMAND h5ls --follow-symlinks tsoftlinks.h5)
+  ENDIF (HDF5_ENABLE_USING_MEMCHECKER)
 
   # test the help syntax
   ADD_H5_TEST (help-1 0 -w80 -h)
@@ -210,6 +341,12 @@ IF (BUILD_TESTING)
   #test for the nested compound type
   ADD_H5_TEST (tnestcomp-1 0 -w80 -r -d tnestedcomp.h5)
 
+  ADD_H5_TEST (tnestcomp-2 0 -w80 -r -d -S tnestedcomp.h5)
+
+  ADD_H5_TEST (tnestcomp-3 0 -w80 -r -d -l tnestedcomp.h5)
+
+  ADD_H5_TEST (tnestcomp-4 0 -w80 -r -d -l -S tnestedcomp.h5)
+
   # test for loop detection
   ADD_H5_TEST (tloop-1 0 -w80 -r -d tloop.h5)
 
@@ -247,6 +384,12 @@ IF (BUILD_TESTING)
 
 ENDIF (BUILD_TESTING)
 
+##############################################################################
+##############################################################################
+###           I N S T A L L A T I O N                                      ###
+##############################################################################
+##############################################################################
+
 #-----------------------------------------------------------------------------
 # Rules for Installation of tools using make Install target
 #-----------------------------------------------------------------------------
@@ -254,7 +397,7 @@ INSTALL (
     TARGETS
         h5ls
     RUNTIME DESTINATION
-        bin/tools
+        ${HDF5_INSTALL_BIN_DIR}/tools
     COMPONENT
         toolsapplications
 )

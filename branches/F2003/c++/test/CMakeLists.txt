@@ -1,4 +1,5 @@
 cmake_minimum_required (VERSION 2.8)
+PROJECT (HDF5_CPP_TEST)
 # --------------------------------------------------------------------
 # Notes: When creating unit test executables they should be prefixed
 # with "cpp_". This allows for easier filtering of the test suite when
@@ -6,8 +7,6 @@ cmake_minimum_required (VERSION 2.8)
 #  ctest -R cpp_
 # which would only run the C++ based unit tests.
 # --------------------------------------------------------------------
-
-PROJECT (HDF5_CPP_TEST)
 
 #-----------------------------------------------------------------------------
 # Define Sources
@@ -34,20 +33,11 @@ SET (srcdir ${CMAKE_CURRENT_SOURCE_DIR})
 CONFIGURE_FILE (${HDF5_CPP_TEST_SOURCE_DIR}/H5srcdir_str.h.in H5srcdir_str.h  @ONLY)
 INCLUDE_DIRECTORIES (${CMAKE_CURRENT_BINARY_DIR})
 
-INCLUDE_DIRECTORIES (${HDF5_TEST_SOURCE_DIR} )
+INCLUDE_DIRECTORIES (${HDF5_TEST_SRC_DIR} )
 
 ADD_EXECUTABLE (cpp_testhdf5 ${CPP_TEST_SRCS} )
 H5_NAMING (cpp_testhdf5)
-IF (WIN32)
-  IF (MSVC)
-    IF (NOT BUILD_SHARED_LIBS)
-      SET_TARGET_PROPERTIES (cpp_testhdf5
-          PROPERTIES
-              LINK_FLAGS "/NODEFAULTLIB:MSVCRT"
-      ) 
-    ENDIF (NOT BUILD_SHARED_LIBS)
-  ENDIF (MSVC)
-ENDIF (WIN32)
+TARGET_WIN_PROPERTIES (cpp_testhdf5)
 TARGET_LINK_LIBRARIES (cpp_testhdf5
     ${HDF5_CPP_LIB_TARGET}
     ${HDF5_LIB_TARGET}
@@ -55,3 +45,39 @@ TARGET_LINK_LIBRARIES (cpp_testhdf5
 )
 
 ADD_TEST (NAME cpp_testhdf5 COMMAND $<TARGET_FILE:cpp_testhdf5>)
+
+IF (HDF5_TEST_VFD)
+
+  SET (VFD_LIST
+      sec2
+      stdio
+      core
+      split
+      multi
+      family
+  )
+  
+  IF (DIRECT_VFD)
+    SET (VFD_LIST ${VFD_LIST} direct)
+  ENDIF (DIRECT_VFD)
+
+  MACRO (ADD_VFD_TEST vfdname resultcode)
+    ADD_TEST (
+      NAME VFD-${vfdname}-cpp_testhdf5 
+      COMMAND "${CMAKE_COMMAND}"
+          -D "TEST_PROGRAM=$<TARGET_FILE:cpp_testhdf5>"
+          -D "TEST_ARGS:STRING="
+          -D "TEST_VFD:STRING=${vfdname}"
+          -D "TEST_EXPECT=${resultcode}"
+          -D "TEST_OUTPUT=cpp_testhdf5"
+          -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
+          -P "${HDF5_RESOURCES_DIR}/vfdTest.cmake"
+    )
+  ENDMACRO (ADD_VFD_TEST)
+  
+  # Run test with different Virtual File Driver
+  FOREACH (vfd ${VFD_LIST})
+    ADD_VFD_TEST (${vfd} 0)
+  ENDFOREACH (vfd ${VFD_LIST})
+
+ENDIF (HDF5_TEST_VFD)

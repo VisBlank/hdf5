@@ -4,30 +4,21 @@ PROJECT (HDF5_HL_CPP_TEST)
 #-----------------------------------------------------------------------------
 # Setup include Directories
 #-----------------------------------------------------------------------------
-INCLUDE_DIRECTORIES (${HDF5_HL_SOURCE_DIR}/src)
-INCLUDE_DIRECTORIES (${HDF5_HL_CPP_SOURCE_DIR}/src)
+INCLUDE_DIRECTORIES (${HDF5_HL_SRC_DIR}/src)
+INCLUDE_DIRECTORIES (${HDF5_HL_SRC_DIR}/c++/src)
 
 # --------------------------------------------------------------------
 # Add in the unit tests for the packet table c++ wrapper
 # --------------------------------------------------------------------
 
 IF (BUILD_TESTING)
-  INCLUDE_DIRECTORIES (${HDF5_TEST_SOURCE_DIR})
-  INCLUDE_DIRECTORIES (${HDF5_HL_SOURCE_DIR}/test)
-  INCLUDE_DIRECTORIES (${HDF5_CPP_SOURCE_DIR}/src)
+  INCLUDE_DIRECTORIES (${HDF5_TEST_SRC_DIR})
+  INCLUDE_DIRECTORIES (${HDF5_HL_SRC_DIR}/test)
+  INCLUDE_DIRECTORIES (${HDF5_CPP_SRC_DIR}/src)
 
   ADD_EXECUTABLE (hl_ptableTest ${HDF5_HL_CPP_TEST_SOURCE_DIR}/ptableTest.cpp)
   H5_NAMING (hl_ptableTest)
-  IF (WIN32)
-    IF (MSVC)
-      IF (NOT BUILD_SHARED_LIBS)
-        SET_TARGET_PROPERTIES (hl_ptableTest
-            PROPERTIES
-                LINK_FLAGS "/NODEFAULTLIB:MSVCRT"
-        ) 
-      ENDIF (NOT BUILD_SHARED_LIBS)
-    ENDIF (MSVC)
-  ENDIF (WIN32)
+  TARGET_WIN_PROPERTIES (hl_ptableTest)
   TARGET_LINK_LIBRARIES (
       hl_ptableTest
       ${HDF5_LIB_TARGET}

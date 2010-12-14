@@ -253,6 +253,9 @@ typedef struct H5D_chunk_common_ud_t {
     const H5O_layout_chunk_t *layout;           /* Chunk layout description */
     const H5O_storage_chunk_t *storage;         /* Chunk storage description */
     const hsize_t *offset;	                /* Logical offset of chunk */
+    const struct H5D_rdcc_t *rdcc;              /* Chunk cache.  Only necessary if the index may
+                                                 * be modified, and if any chunks in the dset
+                                                 * may be cached */
 } H5D_chunk_common_ud_t;
 
 /* B-tree callback info for various operations */
@@ -394,7 +397,7 @@ typedef struct H5D_rdcdc_t {
     haddr_t sieve_loc;          /* File location (offset) of the data sieve buffer */
     size_t sieve_size;          /* Size of the data sieve buffer used (in bytes) */
     size_t sieve_buf_size;      /* Size of the data sieve buffer allocated (in bytes) */
-    unsigned sieve_dirty;       /* Flag to indicate that the data sieve buffer is dirty */
+    hbool_t sieve_dirty;        /* Flag to indicate that the data sieve buffer is dirty */
 } H5D_rdcdc_t;
 
 /*
@@ -583,12 +586,6 @@ H5_DLL herr_t H5D_contig_read(H5D_io_info_t *io_info, const H5D_type_info_t *typ
 H5_DLL herr_t H5D_contig_write(H5D_io_info_t *io_info, const H5D_type_info_t *type_info,
     hsize_t nelmts, const H5S_t *file_space, const H5S_t *mem_space,
     H5D_chunk_map_t *fm);
-H5_DLL ssize_t H5D_contig_readvv(const H5D_io_info_t *io_info,
-    size_t dset_max_nseq, size_t *dset_curr_seq, size_t dset_len_arr[], hsize_t dset_offset_arr[],
-    size_t mem_max_nseq, size_t *mem_curr_seq, size_t mem_len_arr[], hsize_t mem_offset_arr[]);
-H5_DLL ssize_t H5D_contig_writevv(const H5D_io_info_t *io_info,
-    size_t dset_max_nseq, size_t *dset_curr_seq, size_t dset_len_arr[], hsize_t dset_offset_arr[],
-    size_t mem_max_nseq, size_t *mem_curr_seq, size_t mem_len_arr[], hsize_t mem_offset_arr[]);
 H5_DLL herr_t H5D_contig_copy(H5F_t *f_src, const H5O_storage_contig_t *storage_src,
     H5F_t *f_dst, H5O_storage_contig_t *storage_dst, H5T_t *src_dtype,
     H5O_copy_t *cpy_info, hid_t dxpl_id);

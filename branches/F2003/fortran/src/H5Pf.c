@@ -30,26 +30,26 @@
  * PURPOSE
  *     Call H5Pcreate to create a property list
  * INPUTS
- *      class - property list class identifier
+ *      cls - property list class identifier
  * OUTPUTS
  *     prp_id - identifier of the created property list
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
  *  Elena Pourmal
- *              Wednesday, October 9, 2002
+ *  Wednesday, October 9, 2002
  *
  * SOURCE
 */
 
 int_f
-nh5pcreate_c ( hid_t_f *class, hid_t_f *prp_id )
+nh5pcreate_c ( hid_t_f *cls, hid_t_f *prp_id )
 /******/
 {
     hid_t c_prp_id;
     int_f ret_value = 0;
 
-    c_prp_id = H5Pcreate((hid_t)*class);
+    c_prp_id = H5Pcreate((hid_t)*cls);
     if(c_prp_id  < 0)
         HGOTO_DONE(FAIL)
 
@@ -330,7 +330,7 @@ nh5pset_chunk_c ( hid_t_f *prp_id, int_f *rank, hsize_t_f *dims )
   herr_t status;
   int i;
 
-  c_dims =  malloc(sizeof(hsize_t) * (*rank ));
+  c_dims =  (hsize_t *)HDmalloc(sizeof(hsize_t) * (*rank ));
   if (!c_dims) return ret_value;
 
   /*
@@ -381,7 +381,7 @@ nh5pget_chunk_c ( hid_t_f *prp_id, int_f *max_rank, hsize_t_f *dims )
   int c_max_rank;
   int i;
 
-  c_dims =  malloc(sizeof(hsize_t) * (*max_rank ));
+  c_dims =  (hsize_t *)HDmalloc(sizeof(hsize_t) * (*max_rank ));
   if (!c_dims) return ret_value;
 
   c_prp_id = (hid_t)*prp_id;
@@ -1601,8 +1601,8 @@ nh5pget_fapl_split_c(hid_t_f *prp_id, size_t_f* meta_ext_size , _fcd meta_ext, h
 
      c_meta_ext_size = (size_t) *meta_ext_size;
      c_raw_ext_size = (size_t) *raw_ext_size;
-     c_meta_ext = (char*)malloc(sizeof(char)*c_meta_ext_size);
-     c_raw_ext = (char*)malloc(sizeof(char)*c_raw_ext_size);
+     c_meta_ext = (char *)HDmalloc(sizeof(char) * c_meta_ext_size);
+     c_raw_ext = (char *)HDmalloc(sizeof(char) * c_raw_ext_size);
      if(c_meta_ext == NULL || c_raw_ext == NULL) return ret_value;
 
      /*
@@ -1812,7 +1812,7 @@ nh5pset_filter_c (hid_t_f *prp_id, int_f* filter, int_f* flags, size_t_f* cd_nel
      c_filter = (H5Z_filter_t)*filter;
      c_flags = (unsigned)*flags;
      c_cd_nelmts = (size_t)*cd_nelmts;
-     c_cd_values = (unsigned int*)malloc(sizeof(unsigned int)*((int)c_cd_nelmts));
+     c_cd_values = (unsigned int*)HDmalloc(sizeof(unsigned int) * ((int)c_cd_nelmts));
      if (!c_cd_values) return ret_value;
      for (i = 0; i < c_cd_nelmts; i++)
           c_cd_values[i] = (unsigned int)cd_values[i];
@@ -1905,10 +1905,10 @@ nh5pget_filter_c(hid_t_f *prp_id, int_f* filter_number, int_f* flags, size_t_f* 
 
     c_cd_nelmts = (size_t)*cd_nelmts;
 
-    if(NULL == (c_name = (char *)malloc((size_t)*namelen + 1)))
+    if(NULL == (c_name = (char *)HDmalloc((size_t)*namelen + 1)))
         goto DONE;
 
-    if(NULL == (c_cd_values = (unsigned int *)malloc(sizeof(unsigned int) * c_cd_nelmts)))
+    if(NULL == (c_cd_values = (unsigned int *)HDmalloc(sizeof(unsigned int) * c_cd_nelmts)))
         goto DONE;
 
     /*
@@ -2067,7 +2067,7 @@ nh5pget_external_c(hid_t_f *prp_id, int_f *idx, size_t_f* name_size, _fcd name, 
      /*
       * Allocate memory to store the name of the external file.
       */
-     if(c_namelen) c_name = (char*) HDmalloc(c_namelen + 1);
+     if(c_namelen) c_name = (char*)HDmalloc(c_namelen + 1);
      if (c_name == NULL) return ret_value;
 
      /*
@@ -2773,15 +2773,15 @@ nh5pget_hyper_vector_size_c ( hid_t_f *prp_id , size_t_f *size)
  *     0 on success, -1 on failure
  * AUTHOR
  *  Elena Pourmal
- *              October 11, 2002
+ *  October 11, 2002
  *
  * HISTORY
- * Added the callback parameters (FORTRAN 2003 compilers only)
- *                M.S. Breitenfeld, July 3, 2008
+ *  Added the callback parameters (FORTRAN 2003 compilers only)
+ *  M. Scot Breitenfeld, July 3, 2008
  * SOURCE
 */
 int_f
-nh5pcreate_class_c(hid_t_f *parent, _fcd name, int_f *name_len, hid_t_f *class,
+nh5pcreate_class_c(hid_t_f *parent, _fcd name, int_f *name_len, hid_t_f *cls,
 		   H5P_cls_create_func_t create, void *create_data,
 		   H5P_cls_copy_func_t copy, void *copy_data,
 		   H5P_cls_close_func_t close, void *close_data)
@@ -2800,7 +2800,7 @@ nh5pcreate_class_c(hid_t_f *parent, _fcd name, int_f *name_len, hid_t_f *class,
      c_class = H5Pcreate_class((hid_t)*parent, c_name, create, create_data, copy, copy_data, close, close_data);
 
      if (c_class < 0) goto DONE;
-     *class = (hid_t_f)c_class;
+     *cls = (hid_t_f)c_class;
      ret_value = 0;
 
 DONE:
@@ -2824,13 +2824,13 @@ DONE:
  *     0 on success, -1 on failure
  * AUTHOR
  *  Elena Pourmal
- *              October 11, 2002
+ *  October 11, 2002
  * HISTORY
  *
  * SOURCE
 */
 int_f
-nh5pregisterc_c(hid_t_f *class, _fcd name, int_f *name_len, size_t_f *size, _fcd value, int_f UNUSED *value_len)
+nh5pregisterc_c(hid_t_f *cls, _fcd name, int_f *name_len, size_t_f *size, _fcd value, int_f UNUSED *value_len)
 /******/
 {
      int ret_value = -1;
@@ -2838,7 +2838,7 @@ nh5pregisterc_c(hid_t_f *class, _fcd name, int_f *name_len, size_t_f *size, _fcd
      /*
       * Call h5pregister_c function
       */
-      ret_value = nh5pregister_c(class, name, name_len, size, _fcdtocp(value));
+      ret_value = nh5pregister_c(cls, name, name_len, size, _fcdtocp(value));
       return ret_value;
 }
 
@@ -2863,7 +2863,7 @@ nh5pregisterc_c(hid_t_f *class, _fcd name, int_f *name_len, size_t_f *size, _fcd
  * SOURCE
 */
 int_f
-nh5pregister_c(hid_t_f *class, _fcd name, int_f *name_len, size_t_f *size, void *value)
+nh5pregister_c(hid_t_f *cls, _fcd name, int_f *name_len, size_t_f *size, void UNUSED *value)
 /******/
 {
      char* c_name = NULL;
@@ -2875,7 +2875,7 @@ nh5pregister_c(hid_t_f *class, _fcd name, int_f *name_len, size_t_f *size, void 
      /*
       * Call H5Pregister2 function.
       */
-     if(H5Pregister2((hid_t)*class, c_name, (size_t)*size, value, NULL, NULL, NULL, NULL, NULL, NULL, NULL) < 0)
+     if(H5Pregister2((hid_t)*cls, c_name, (size_t)*size, value, NULL, NULL, NULL, NULL, NULL, NULL, NULL) < 0)
          goto DONE;
      ret_value = 0;
 
@@ -2886,30 +2886,30 @@ DONE:
 }
 
 int_f
-nh5pregister_integer_c(hid_t_f *class, _fcd name, int_f *name_len, size_t_f *size, void *value)
+nh5pregister_integer_c(hid_t_f *cls, _fcd name, int_f *name_len, size_t_f *size, void *value)
 {
      /*
       * Call h5pregister_c function
       */
-     return nh5pregister_c(class, name, name_len, size, value);
+     return nh5pregister_c(cls, name, name_len, size, value);
 }
 
 int_f
-nh5pregister_real_c(hid_t_f *class, _fcd name, int_f *name_len, size_t_f *size, void *value)
+nh5pregister_real_c(hid_t_f *cls, _fcd name, int_f *name_len, size_t_f *size, void *value)
 {
      /*
       * Call h5pregister_c function
       */
-     return nh5pregister_c(class, name, name_len, size, value);
+     return nh5pregister_c(cls, name, name_len, size, value);
 }
 
 int_f
-nh5pregister_double_c(hid_t_f *class, _fcd name, int_f *name_len, size_t_f *size, void *value)
+nh5pregister_double_c(hid_t_f *cls, _fcd name, int_f *name_len, size_t_f *size, void *value)
 {
      /*
       * Call h5pregister_c function
       */
-     return nh5pregister_c(class, name, name_len, size, value);
+     return nh5pregister_c(cls, name, name_len, size, value);
 }
 
 /****if* H5Pf/h5pinsertc_c
@@ -3035,7 +3035,7 @@ nh5pinsert_double_c(hid_t_f *plist, _fcd name, int_f *name_len, size_t_f *size, 
  * SOURCE
 */
 int_f
-nh5pexist_c(hid_t_f *class, _fcd name, int_f *name_len)
+nh5pexist_c(hid_t_f *cls, _fcd name, int_f *name_len)
 /******/
 {
      int_f ret_value = -1;
@@ -3046,7 +3046,7 @@ nh5pexist_c(hid_t_f *class, _fcd name, int_f *name_len)
      c_name = (char *)HD5f2cstring(name, (size_t)*name_len);
      if (c_name == NULL) goto DONE;
 
-     c_class = (hid_t)*class;
+     c_class = (hid_t)*cls;
      /*
       * Call H5Pexist function.
       */
@@ -3065,7 +3065,7 @@ DONE:
  *              member of a class
  * INPUTS
  *      plist - property list identifier
- *              class - property class identifier
+ *              cls - property class identifier
  * RETURNS
  *     nonnegative on success, -1 on failure
  * AUTHOR
@@ -3076,7 +3076,7 @@ DONE:
  * SOURCE
 */
 int_f
-nh5pisa_class_c(hid_t_f *plist, hid_t_f *class)
+nh5pisa_class_c(hid_t_f *plist, hid_t_f *cls)
 /******/
 {
      int_f ret_value = -1;
@@ -3084,7 +3084,7 @@ nh5pisa_class_c(hid_t_f *plist, hid_t_f *class)
      hid_t c_plist;
      htri_t status;
 
-     c_class = (hid_t)*class;
+     c_class = (hid_t)*cls;
      c_plist = (hid_t)*plist;
 
      /*
@@ -3303,20 +3303,20 @@ DONE:
  * PURPOSE
  *     Call H5Punregister to remove a property from a property class
  * INPUTS
- *      class - identifier of property class
+ *      cls - identifier of property class
  *              name   - name of the property to unregister
  *              name_len - length of the "name" buffer
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
  *  Elena Pourmal
- *              October 11, 2002
+ *  October 11, 2002
  * HISTORY
  *
  * SOURCE
 */
 int_f
-nh5punregister_c(hid_t_f *class, _fcd name, int_f *name_len)
+nh5punregister_c(hid_t_f *cls, _fcd name, int_f *name_len)
 /******/
 {
      int_f ret_value = -1;
@@ -3326,7 +3326,7 @@ nh5punregister_c(hid_t_f *class, _fcd name, int_f *name_len)
      c_name = (char *)HD5f2cstring(name, (size_t)*name_len);
      if (c_name == NULL) goto DONE;
 
-     c_class = (hid_t)*class;
+     c_class = (hid_t)*cls;
      /*
       * Call H5Punregister function.
       */
@@ -3348,19 +3348,19 @@ DONE:
  *     0 on success, -1 on failure
  * AUTHOR
  *  Elena Pourmal
- *              October 11, 2002
+ *  October 11, 2002
  * HISTORY
  *
  * SOURCE
 */
 int_f
-nh5pclose_class_c(hid_t_f *class)
+nh5pclose_class_c(hid_t_f *cls)
 /******/
 {
      int_f ret_value = -1;
      hid_t c_class;
 
-     c_class = (hid_t)*class;
+     c_class = (hid_t)*cls;
      /*
       * Call H5Pclose_class function.
       */
@@ -3374,20 +3374,20 @@ nh5pclose_class_c(hid_t_f *class)
  * PURPOSE
  *     Call H5Pget_class_name to get property class name
  * INPUTS
- *      class - identifier of property class
+ *      cls - identifier of property class
  *              name   - ibuffer to retrieve name in
  *              name_len - length of the "name" buffer
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
  *  Elena Pourmal
- *              October 11, 2002
+ *  October 11, 2002
  * HISTORY
  *
  * SOURCE
 */
 int_f
-nh5pget_class_name_c(hid_t_f *class, _fcd name, int_f *name_len)
+nh5pget_class_name_c(hid_t_f *cls, _fcd name, int_f *name_len)
 /******/
 {
      int_f ret_value = -1;
@@ -3395,15 +3395,17 @@ nh5pget_class_name_c(hid_t_f *class, _fcd name, int_f *name_len)
      size_t c_size;
 
      c_size = (size_t)*name_len + 1;
+
      /*
       * Allocate buffer to hold name
       */
-     if ((c_name = HDmalloc(c_size)) == NULL)
+     if(NULL == (c_name = (char *)HDmalloc(c_size)))
        goto DONE;
+
      /*
       * Call H5Pget_class_name function.
       */
-     c_name = H5Pget_class_name((hid_t)*class);
+     c_name = H5Pget_class_name((hid_t)*cls);
      if(c_name == NULL) goto DONE;
 
      HD5packFstring(c_name, _fcdtocp(name), (size_t)*name_len);
@@ -3459,7 +3461,7 @@ nh5psetc_c(hid_t_f *plist, _fcd name, int_f *name_len, _fcd value, int_f UNUSED 
  *     0 on success, -1 on failure
  * AUTHOR
  *  Elena Pourmal
- *              October 11, 2002
+ *  October 11, 2002
  * HISTORY
  *
  * SOURCE
@@ -3469,7 +3471,6 @@ nh5pset_c(hid_t_f *plist, _fcd name, int_f *name_len, void *value)
 /******/
 {
      int_f ret_value = -1;
-     hid_t c_plist;
      char* c_name;
 
      c_name = (char *)HD5f2cstring(name, (size_t)*name_len);
@@ -3830,14 +3831,11 @@ nh5pset_fapl_multi_c ( hid_t_f *prp_id , int_f *memb_map, hid_t_f *memb_fapl, _f
   if (tmp ==NULL) return ret_value;
   tmp_p = tmp;
   for (i=0; i < H5FD_MEM_NTYPES; i++) {
-       c_memb_name[i] = malloc((size_t)len[i] + 1);
-       memcpy(c_memb_name[i], tmp_p, (size_t)len[i]);
+       c_memb_name[i] = (char *)HDmalloc((size_t)len[i] + 1);
+       HDmemcpy(c_memb_name[i], tmp_p, (size_t)len[i]);
        tmp_pp = c_memb_name[i];
        tmp_pp[len[i]] = '\0';
        tmp_p = tmp_p + c_lenmax;
-/*       printf(" %d \n", len[i]);
-       printf("name %s \n", c_memb_name[i]);
-*/
  }
 /*
  * Take care of othe arguments
@@ -3846,25 +3844,22 @@ nh5pset_fapl_multi_c ( hid_t_f *prp_id , int_f *memb_map, hid_t_f *memb_fapl, _f
   c_prp_id = (hid_t)*prp_id;
   for (i=0; i < H5FD_MEM_NTYPES; i++) {
        c_memb_map[i] = (H5FD_mem_t)memb_map[i];
-       /*printf("map %d \n", c_memb_map[i]); */
        c_memb_fapl[i] = (hid_t)memb_fapl[i];
-       /*printf("fapl %d \n", c_memb_fapl[i]); */
        if(memb_addr[i] < 0) c_memb_addr[i] = HADDR_UNDEF;
-      /* else c_memb_addr[i] = (haddr_t)(((float)memb_addr[i])*(HADDR_MAX));*/
        else c_memb_addr[i] = (haddr_t)(((float)memb_addr[i])*(tmp_max_addr));
-       /*printf("address %Ld \n", c_memb_addr[i]); */
   }
 /*
  * Call  H5Pset_fapl_multi function
  */
 
-  status = H5Pset_fapl_multi(c_prp_id, c_memb_map, c_memb_fapl, c_memb_name, c_memb_addr, relax);
+  status = H5Pset_fapl_multi(c_prp_id, c_memb_map, c_memb_fapl, (const char * const *)c_memb_name, c_memb_addr, relax);
   if ( status < 0  ) goto DONE;
   ret_value = 0;
 
 DONE:
-  free(tmp);
-  for (i=0; i < H5FD_MEM_NTYPES; i++) free(c_memb_name[i]);
+  HDfree(tmp);
+  for (i=0; i < H5FD_MEM_NTYPES; i++)
+      HDfree(c_memb_name[i]);
   return ret_value;
 }
 
@@ -3958,9 +3953,9 @@ nh5pget_fapl_multi_c ( hid_t_f *prp_id , int_f *memb_map, hid_t_f *memb_fapl, _f
 /*
  * Take care of names array
  */
-  tmp = (char *)malloc(c_lenmax*H5FD_MEM_NTYPES + 1);
+  tmp = (char *)HDmalloc(c_lenmax*H5FD_MEM_NTYPES + 1);
   tmp_p = tmp;
-  memset(tmp,' ', c_lenmax*H5FD_MEM_NTYPES);
+  HDmemset(tmp,' ', c_lenmax*H5FD_MEM_NTYPES);
   tmp[c_lenmax*H5FD_MEM_NTYPES] = '\0';
   for (i=0; i < H5FD_MEM_NTYPES; i++) {
        memcpy(tmp_p, c_memb_name[i], strlen(c_memb_name[i]));
@@ -3987,8 +3982,9 @@ HD5packFstring(tmp, _fcdtocp(memb_name), (size_t)(c_lenmax*H5FD_MEM_NTYPES));
   *flag = (int_f)relax;
   *maxlen_out = (int_f)length;
   ret_value = 0;
-  free(tmp);
-  for (i=0; i < H5FD_MEM_NTYPES; i++) free(c_memb_name[i]);
+  HDfree(tmp);
+  for (i=0; i < H5FD_MEM_NTYPES; i++)
+      HDfree(c_memb_name[i]);
   return ret_value;
 }
 
@@ -4111,10 +4107,10 @@ nh5pget_filter_by_id_c(hid_t_f *prp_id, int_f* filter_id, int_f* flags, size_t_f
      unsigned i;
      int_f ret_value = -1;
 
-     if(NULL == (c_name = (char *)malloc((size_t)*namelen + 1)))
+     if(NULL == (c_name = (char *)HDmalloc((size_t)*namelen + 1)))
          goto DONE;
 
-     if(NULL == (c_cd_values = (unsigned int *)malloc(sizeof(unsigned int) * ((int)c_cd_nelmts_in))))
+     if(NULL == (c_cd_values = (unsigned int *)HDmalloc(sizeof(unsigned int) * ((int)c_cd_nelmts_in))))
          goto DONE;
 
      /*
@@ -4178,7 +4174,7 @@ nh5pmodify_filter_c (hid_t_f *prp_id, int_f* filter, int_f* flags, size_t_f* cd_
      c_filter = (H5Z_filter_t)*filter;
      c_flags = (unsigned)*flags;
      c_cd_nelmts = (size_t)*cd_nelmts;
-     c_cd_values = (unsigned int*)malloc(sizeof(unsigned int)*((int)c_cd_nelmts));
+     c_cd_values = (unsigned int *)HDmalloc(sizeof(unsigned int) * ((int)c_cd_nelmts));
      if (!c_cd_values) return ret_value;
      for (i = 0; i < c_cd_nelmts; i++)
           c_cd_values[i] = (unsigned int)cd_values[i];
@@ -4248,7 +4244,7 @@ DONE:
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              January, 2008
  * HISTORY
  *
@@ -4288,7 +4284,7 @@ nh5pget_attr_phase_change_c(hid_t_f *ocpl_id, int_f *max_compact, int_f *min_den
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              January, 2008
  * HISTORY
  *
@@ -4330,7 +4326,7 @@ nh5pset_attr_creation_order_c(hid_t_f *ocpl_id, int_f *crt_order_flags )
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              January, 2008
  * HISTORY
  *
@@ -4374,7 +4370,7 @@ nh5pset_shared_mesg_nindexes_c(hid_t_f *plist_id, int_f *nindexes )
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              January, 2008
  * HISTORY
  *
@@ -4412,7 +4408,7 @@ nh5pset_shared_mesg_index_c(hid_t_f *fcpl_id, int_f *index_num, int_f *mesg_type
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              February, 2008
  * HISTORY
  *
@@ -4455,7 +4451,7 @@ nh5pget_attr_creation_order_c(hid_t_f *ocpl_id, int_f *crt_order_flags)
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              February 18, 2008
  * HISTORY
  *
@@ -4492,7 +4488,7 @@ nh5pset_libver_bounds_c(hid_t_f *fapl_id, int_f *low, int_f *high )
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              February 18, 2008
  * HISTORY
  *
@@ -4527,7 +4523,7 @@ nh5pset_link_creation_order_c(hid_t_f *gcpl_id, int_f *crt_order_flags )
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              February 20, 2008
  * HISTORY
  *
@@ -4568,7 +4564,7 @@ nh5pget_link_phase_change_c(hid_t_f *gcpl_id, int_f *max_compact, int_f *min_den
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              February 22, 2008
  * HISTORY
  *
@@ -4608,7 +4604,7 @@ nh5pget_obj_track_times_c(hid_t_f *plist_id, int_f *flag)
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              February 22, 2008
  * HISTORY
  *
@@ -4651,7 +4647,7 @@ nh5pset_obj_track_times_c(hid_t_f *plist_id, int_f *flag)
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              February 22, 2008
  * HISTORY
  *
@@ -4691,7 +4687,7 @@ nh5pset_create_inter_group_c(hid_t_f *lcpl_id, int_f *crt_intermed_group)
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              March 3, 2008
  * HISTORY
  *
@@ -4736,7 +4732,7 @@ nh5pget_link_creation_order_c(hid_t_f *gcpl_id, int_f *crt_order_flags)
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              March 3, 2008
  * HISTORY
  *
@@ -4778,7 +4774,7 @@ nh5pset_char_encoding_c(hid_t_f *plist_id, int_f *encoding)
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              March 3, 2008
  * HISTORY
  *
@@ -4821,7 +4817,7 @@ nh5pget_char_encoding_c(hid_t_f *plist_id, int_f *encoding)
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              March 3, 2008
  * HISTORY
  *
@@ -4860,7 +4856,7 @@ nh5pset_copy_object_c(hid_t_f *ocp_plist_id, int_f *copy_options)
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              March 3, 2008
  * HISTORY
  *
@@ -4904,7 +4900,7 @@ nh5pget_copy_object_c(hid_t_f *ocp_plist_id, int_f *copy_options)
  *	    Failure: -1
  *
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              March 19, 2008
  * HISTORY
  *
@@ -4925,7 +4921,7 @@ nh5pget_data_transform_c(hid_t_f *plist_id, _fcd expression, int_f *expression_l
      * Allocate memory to store the expression.
      */
     if(c_expression_len) {
-        c_expression = (char*)HDmalloc(c_expression_len);
+        c_expression = (char *)HDmalloc(c_expression_len);
         if(NULL == c_expression)
            HGOTO_DONE(FAIL)
     } /* end if */
@@ -4968,7 +4964,7 @@ done:
  *	    Failure: -1
  *
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              March 19, 2008
  * HISTORY
  *
@@ -5017,7 +5013,7 @@ done:
  *	    Failure: -1
  *
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              March 21, 2008
  * HISTORY
  *
@@ -5059,7 +5055,7 @@ nh5pget_local_heap_size_hint_c(hid_t_f *gcpl_id, size_t_f *size_hint)
  *	    Failure: -1
  *
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              March 21, 2008
  * HISTORY
  *
@@ -5104,7 +5100,7 @@ nh5pget_est_link_info_c(hid_t_f *gcpl_id, int_f *est_num_entries, int_f *est_nam
  *	    Failure: -1
  *
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              March 21, 2008
  * HISTORY
  *
@@ -5144,7 +5140,7 @@ nh5pset_local_heap_size_hint_c(hid_t_f *gcpl_id, size_t_f *size_hint)
  *	    Failure: -1
  *
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              March 21, 2008
  * HISTORY
  *
@@ -5180,7 +5176,7 @@ nh5pset_est_link_info_c(hid_t_f *gcpl_id, int_f *est_num_entries, int_f *est_nam
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              March 21, 2008
  * HISTORY
  *
@@ -5219,14 +5215,14 @@ nh5pset_link_phase_change_c(hid_t_f *gcpl_id, int_f *max_compact, int_f *min_den
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              March 21, 2008
  * HISTORY
  *
  * SOURCE
 */
 int_f
-nh5pset_fapl_direct_c(hid_t_f *fapl_id, size_t_f *alignment, size_t_f *block_size, size_t_f *cbuf_size )
+nh5pset_fapl_direct_c(hid_t_f UNUSED *fapl_id, size_t_f UNUSED *alignment, size_t_f UNUSED *block_size, size_t_f UNUSED *cbuf_size)
 /******/
 {
   int ret_value = -1;
@@ -5262,14 +5258,14 @@ nh5pset_fapl_direct_c(hid_t_f *fapl_id, size_t_f *alignment, size_t_f *block_siz
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              March 21, 2008
  * HISTORY
  *
  * SOURCE
 */
 int_f
-nh5pget_fapl_direct_c(hid_t_f *fapl_id, size_t_f *alignment, size_t_f *block_size, size_t_f *cbuf_size )
+nh5pget_fapl_direct_c(hid_t_f UNUSED *fapl_id, size_t_f UNUSED *alignment, size_t_f UNUSED *block_size, size_t_f UNUSED *cbuf_size)
 /******/
 {
   int ret_value = -1;
@@ -5309,7 +5305,7 @@ nh5pget_fapl_direct_c(hid_t_f *fapl_id, size_t_f *alignment, size_t_f *block_siz
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              March 21, 2008
  * HISTORY
  *
@@ -5344,7 +5340,7 @@ nh5pset_attr_phase_change_c(hid_t_f *ocpl_id, int_f *max_compact, int_f *min_den
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              March 21, 2008
  * HISTORY
  *
@@ -5379,7 +5375,7 @@ nh5pset_nbit_c(hid_t_f *plist_id )
  * RETURNS
  *  0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *  March 21, 2008
  * SOURCE
 */
@@ -5414,7 +5410,7 @@ nh5pset_scaleoffset_c(hid_t_f *plist_id, int_f *scale_type, int_f *scale_factor 
  * RETURNS
  *  0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *  March 24, 2008
  * SOURCE
 */
@@ -5451,7 +5447,7 @@ nh5pset_nlinks_c(hid_t_f *lapl_id, size_t_f *nlinks)
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              March 24, 2008
  * HISTORY
  *
@@ -5489,7 +5485,7 @@ nh5pget_nlinks_c(hid_t_f *lapl_id, size_t_f *nlinks)
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *              April 4, 2008
  * HISTORY
  *
@@ -5525,7 +5521,7 @@ nh5pget_create_inter_group_c(hid_t_f *lcpl_id, int_f *crt_intermed_group)
  *              rdcc_w0            -
  *
  * Returns:     0 on success, -1 on failure
- * Programmer:  M.S. Breitenfeld
+ * Programmer:  M. Scot Breitenfeld
  *              April 13, 2009
  * Modifications:
  *---------------------------------------------------------------------------*/
@@ -5556,7 +5552,7 @@ nh5pset_chunk_cache_c(hid_t_f *dapl_id, size_t_f *rdcc_nslots, size_t_f *rdcc_nb
  *              rdcc_w0            -
  *
  * Returns:     0 on success, -1 on failure
- * Programmer:  M.S. Breitenfeld
+ * Programmer:  M. Scot Breitenfeld
  *              April 13, 2009
  * Modifications:
  *---------------------------------------------------------------------------*/

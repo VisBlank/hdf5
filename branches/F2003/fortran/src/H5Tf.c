@@ -1274,7 +1274,7 @@ nh5tget_member_name_c ( hid_t_f *type_id ,int_f* idx, _fcd member_name, int_f *n
   char *c_name;
 
   c_type_id = *type_id;
-  c_index = *idx;
+  c_index = (unsigned)*idx;
   c_name = H5Tget_member_name(c_type_id, c_index);
   if (c_name == NULL ) return ret_value;
 
@@ -1540,20 +1540,20 @@ nh5tget_member_type_c ( hid_t_f *type_id ,int_f* field_idx, hid_t_f * datatype)
  * PURPOSE
  *     Call H5Tcreate to create a datatype
  * INPUTS
- *      class - class type
- *              size - size of the class memeber
+ *      cls - class type
+ *     size - size of the class memeber
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
  *  Elena Pourmal
- *              Thursday, February 17, 2000
+ *  Thursday, February 17, 2000
  * HISTORY
  *
  * SOURCE
 */
 
 int_f
-nh5tcreate_c(int_f *class, size_t_f *size, hid_t_f *type_id)
+nh5tcreate_c(int_f *cls, size_t_f *size, hid_t_f *type_id)
 /******/
 {
   int ret_value = -1;
@@ -1561,7 +1561,7 @@ nh5tcreate_c(int_f *class, size_t_f *size, hid_t_f *type_id)
   size_t c_size;
 
   c_size =(size_t) *size;
-  c_class = (H5T_class_t) *class;
+  c_class = (H5T_class_t) *cls;
 
   *type_id = (hid_t_f)H5Tcreate(c_class, c_size);
   if(*type_id < 0) return ret_value;
@@ -1814,7 +1814,7 @@ nh5tenum_nameof_c(hid_t_f *type_id, int_f* value, _fcd name, size_t_f* namelen)
   int_f c_value;
   c_value = *value;
   c_namelen = ((size_t)*namelen) +1;
-  c_name = (char *)malloc(sizeof(char)*c_namelen);
+  c_name = (char *)HDmalloc(sizeof(char)*c_namelen);
   c_type_id = (hid_t)*type_id;
   error = H5Tenum_nameof(c_type_id, &c_value, c_name, c_namelen);
   HD5packFstring(c_name, _fcdtocp(name), strlen(c_name));
@@ -2069,19 +2069,19 @@ nh5tis_variable_str_c ( hid_t_f *type_id , int_f *flag )
  *              member_no - member's index
  * OUTPUTS
  *     class - member's class
- *              and negative on failure.
+ *             and negative on failure.
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
  *  Elena Pourmal
- *              Wednesday, April 6, 2005
+ *  Wednesday, April 6, 2005
  * HISTORY
  *
  * SOURCE
 */
 
 int_f
-nh5tget_member_class_c ( hid_t_f *type_id ,  int_f *member_no, int_f *class )
+nh5tget_member_class_c ( hid_t_f *type_id ,  int_f *member_no, int_f *cls )
 /******/
 {
   int ret_value = 0;
@@ -2094,7 +2094,7 @@ nh5tget_member_class_c ( hid_t_f *type_id ,  int_f *member_no, int_f *class )
   c_class = H5Tget_member_class(c_type_id, c_member_no);
 
   if ( c_class == H5T_NO_CLASS  ) ret_value = -1;
-  *class = (int_f)c_class;
+  *cls = (int_f)c_class;
   return ret_value;
 }
 
@@ -2111,8 +2111,8 @@ nh5tget_member_class_c ( hid_t_f *type_id ,  int_f *member_no, int_f *class )
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
- *              February 25, 2008
+ *  M. Scot Breitenfeld
+ *  February 25, 2008
  * HISTORY
  *
  * SOURCE
@@ -2145,8 +2145,8 @@ nh5tcommit_anon_c(hid_t_f *loc_id, hid_t_f *dtype_id,
  *              or 0 (zero), for FALSE, if the datatype has not been committed.
  *		Otherwise returns a negative value.
  * AUTHOR
- *  M.S. Breitenfeld
- *              February 25, 2008
+ *  M. Scot Breitenfeld
+ *  February 25, 2008
  * HISTORY
  *
  * SOURCE
@@ -2180,8 +2180,8 @@ nh5tcommitted_c(hid_t_f *dtype_id)
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
- *              April 9, 2008
+ *  M. Scot Breitenfeld
+ *  April 9, 2008
  * HISTORY
  *
  * SOURCE
@@ -2224,8 +2224,8 @@ nh5tdecode_c ( _fcd buf, hid_t_f *obj_id )
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
- *              April 9, 2008
+ *  M. Scot Breitenfeld
+ *  April 9, 2008
  * HISTORY
  *
  * SOURCE
@@ -2254,18 +2254,18 @@ nh5tencode_c (_fcd buf, hid_t_f *obj_id, size_t_f *nalloc )
     return ret_value;
   }
 
-  c_size = (size_t)*nalloc;
   /*
    * Allocate buffer
    */
-  if ((c_buf = HDmalloc(c_size)) == NULL)
+  c_size = (size_t)*nalloc;
+  if(NULL == (c_buf = (unsigned char *)HDmalloc(c_size)))
     return ret_value;
+
   /*
    * Call H5Tencode function.
    */
-  if(H5Tencode((hid_t)*obj_id, c_buf, &c_size) < 0){
+  if(H5Tencode((hid_t)*obj_id, c_buf, &c_size) < 0)
     return ret_value;
-  }
 
   /* copy the C buffer to the FORTRAN buffer.
    * Can not use HD5packFstring because we don't want to
@@ -2276,7 +2276,8 @@ nh5tencode_c (_fcd buf, hid_t_f *obj_id, size_t_f *nalloc )
   HDmemcpy(_fcdtocp(buf),(char *)c_buf,c_size);
 
   ret_value = 0;
-  if(c_buf) HDfree(c_buf);
+  if(c_buf)
+      HDfree(c_buf);
   return ret_value;
 }
 
@@ -2292,8 +2293,8 @@ nh5tencode_c (_fcd buf, hid_t_f *obj_id, size_t_f *nalloc )
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
- *              April 9, 2008
+ *  M. Scot Breitenfeld
+ *  April 9, 2008
  * HISTORY
  * N/A
  * SOURCE
@@ -2326,8 +2327,8 @@ nh5tget_create_plist_c ( hid_t_f *dtype_id,  hid_t_f *dtpl_id)
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
- *              April 9, 2008
+ *  M.Scot Breitenfeld
+ *  April 9, 2008
  * HISTORY
  *
  * SOURCE
@@ -2360,8 +2361,8 @@ nh5tcompiler_conv_c ( hid_t_f *src_id, hid_t_f *dst_id, int_f *c_flag)
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
- *              June 18, 2008
+ *  M. Scot Breitenfeld
+ *  June 18, 2008
  * HISTORY
  *
  * SOURCE
@@ -2401,7 +2402,7 @@ nh5tget_native_type_c(hid_t_f *dtype_id, int_f *direction, hid_t_f *native_dtype
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
- *  M.S. Breitenfeld
+ *  M. Scot Breitenfeld
  *  December 8, 2008
  *
  * SOURCE

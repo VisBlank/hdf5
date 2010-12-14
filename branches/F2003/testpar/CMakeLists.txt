@@ -1,6 +1,8 @@
 cmake_minimum_required (VERSION 2.8)
-PROJECT (H5_TEST_PAR)
+PROJECT (HDF5_TEST_PAR)
 
+INCLUDE_DIRECTORIES (${HDF5_TEST_SRC_DIR})
+INCLUDE_DIRECTORIES (${HDF5_TOOLS_SRC_DIR}/lib )
 #-----------------------------------------------------------------------------
 # Define Tests
 #-----------------------------------------------------------------------------
@@ -15,41 +17,24 @@ SET (testphdf5_SRCS
     ${HDF5_TEST_PAR_SOURCE_DIR}/t_span_tree.c
     ${HDF5_TEST_PAR_SOURCE_DIR}/t_chunk_alloc.c
     ${HDF5_TEST_PAR_SOURCE_DIR}/t_filter_read.c
+    ${HDF5_TEST_PAR_SOURCE_DIR}/t_rank_projection.c
 )
 
 #-- Adding test for testhdf5
 ADD_EXECUTABLE (testphdf5 ${testphdf5_SRCS})
 H5_NAMING (testphdf5)
-IF (WIN32)
-  IF (MSVC)
-    IF (NOT BUILD_SHARED_LIBS)
-      SET_TARGET_PROPERTIES (testphdf5
-          PROPERTIES
-              LINK_FLAGS "/NODEFAULTLIB:MSVCRT"
-      ) 
-    ENDIF (NOT BUILD_SHARED_LIBS)
-  ENDIF (MSVC)
-ENDIF (WIN32)
+TARGET_WIN_PROPERTIES (testphdf5)
 TARGET_LINK_LIBRARIES (testphdf5 ${HDF5_TEST_LIB_TARGET} ${HDF5_LIB_TARGET})
 
-ADD_TEST (NAME testphdf5 COMMAND $<TARGET_FILE:testphdf5>)
+ADD_TEST (NAME testphdf5 COMMAND ${MPIEXEC} ${MPIEXEC_PREFLAGS} ${MPIEXEC_NUMPROC_FLAG} ${MPIEXEC_MAX_NUMPROCS} ${MPIEXEC_POSTFLAGS} $<TARGET_FILE:testphdf5>)
 
 MACRO (ADD_H5P_TEST file)
   ADD_EXECUTABLE (${file} ${HDF5_TEST_PAR_SOURCE_DIR}/${file}.c)
   H5_NAMING (${file})
-  IF (WIN32)
-    IF (MSVC)
-      IF (NOT BUILD_SHARED_LIBS)
-        SET_TARGET_PROPERTIES (${file}
-            PROPERTIES
-                LINK_FLAGS "/NODEFAULTLIB:MSVCRT"
-        ) 
-      ENDIF (NOT BUILD_SHARED_LIBS)
-    ENDIF (MSVC)
-  ENDIF (WIN32)
+  TARGET_WIN_PROPERTIES (${file})
   TARGET_LINK_LIBRARIES (${file} ${HDF5_TEST_LIB_TARGET} ${HDF5_LIB_TARGET})
 
-  ADD_TEST (NAME ${file} COMMAND $<TARGET_FILE:${file}>)
+  ADD_TEST (NAME ${file} COMMAND ${MPIEXEC} ${MPIEXEC_PREFLAGS} ${MPIEXEC_NUMPROC_FLAG} ${MPIEXEC_MAX_NUMPROCS} ${MPIEXEC_POSTFLAGS} $<TARGET_FILE:${file}>)
 ENDMACRO (ADD_H5P_TEST file)
 
 SET (H5P_TESTS
@@ -63,4 +48,47 @@ SET (H5P_TESTS
 FOREACH (testp ${H5P_TESTS})
     ADD_H5P_TEST(${testp})
 ENDFOREACH (testp ${H5P_TESTS})
+
+IF (HDF5_TEST_VFD)
+
+  SET (VFD_LIST
+      sec2
+      stdio
+      core
+      split
+      multi
+      family
+  )
+
+  SET (H5P_VFD_TESTS
+      t_pflush1
+      t_pflush2
+  )
+  
+  IF (DIRECT_VFD)
+    SET (VFD_LIST ${VFD_LIST} direct)
+  ENDIF (DIRECT_VFD)
+
+  MACRO (ADD_VFD_TEST vfdname resultcode)
+    FOREACH (test ${H5P_VFD_TESTS})
+      ADD_TEST (
+        NAME VFD-${vfdname}-${test} 
+        COMMAND "${CMAKE_COMMAND}"
+            -D "TEST_PROGRAM=$<TARGET_FILE:${test}>"
+            -D "TEST_ARGS:STRING="
+            -D "TEST_VFD:STRING=${vfdname}"
+            -D "TEST_EXPECT=${resultcode}"
+            -D "TEST_OUTPUT=${test}"
+            -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
+            -P "${HDF5_RESOURCES_DIR}/vfdTest.cmake"
+      )
+    ENDFOREACH (test ${H5P_VFD_TESTS})
+  ENDMACRO (ADD_VFD_TEST)
+  
+  # Run test with different Virtual File Driver
+  FOREACH (vfd ${VFD_LIST})
+    ADD_VFD_TEST (${vfd} 0)
+  ENDFOREACH (vfd ${VFD_LIST})
+
+ENDIF (HDF5_TEST_VFD)
 

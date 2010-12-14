@@ -1,4 +1,4 @@
-HDF5 version 1.9.75 currently under development
+HDF5 version 1.9.80 currently under development
 ================================================================================
 
 
@@ -39,6 +39,12 @@ New Features
 
     Configuration:
     -------------
+    - Added a new configure option, "--enable-unsupported", which can
+      be used to stop configure from preventing the use of unsupported
+      configure option combinations, such as c++ in parallel or parallel
+      HDF5 with threadsafe. Use at your own risk, as it may result in a 
+      library that won't compile or run as expected! 
+      (MAM - 2010/11/17 - Bug 2061)
     - PHDF5 changed to use "mpiexec", instead of mpirun, as the default MPI
       applications startup command as defined in the MPI-2 definition, section
       4.1. (AKC - 2010/6/11 - Bug 1921)
@@ -76,6 +82,18 @@ New Features
 
     Library:
     --------
+    - Removed all old code for Metraowerks compilers, bracketed by
+      __MWERKS__). Metraowerks compiler is long gone. (AKC - 2010/11/17) 
+    - Added support for threadsafety on windows using the windows threads
+      library. Use the HDF5_ENABLE_THREADSAFE option in CMake while on a 
+      windows platform to enable this functionality. This is supported on 
+      Windows Vista and newer Windows operating systems. (MAM - 2010/09/10)
+    - When a mandatory filter failed to write data chunks, the dataset
+      couldn't close (bug 1260).  The fix releases all resources and closes
+      the dataset but returns a failure. (SLU - 2010/9/8)
+    - H5Tset_order and H5Tget_order now support all data types.  A new byte
+      order H5T_ORDER_MIXED has been added specifically for compound datatype
+      and its derived type.  Please see bug #1934. (SLU - 2010/8/23)
     - Improved performance of the chunk cache by avoiding unnecessary b-tree
       lookups of chunks already in cache. (NAF - 2010/06/15) 
     - Greatly improved performance of extending a dataset with early
@@ -164,6 +182,10 @@ New Features
 
     Tools:
     ------
+     - h5diff: Add a new flag --exclude-path. Specified path to an object will
+               be excluded from comparing the two files or two groups. If group
+               is specified all the member objects will be excluded.  
+               (JKM - 2010/09/16).
      - h5ls: Add new flag --no-dangling-links. (refer to --help for details)
                (JKM - 2010/06/15) 
      - h5ls: Add new flag --follow-symlinks. (refer to --help for details)
@@ -226,6 +248,7 @@ New Features
 
 Support for new platforms, languages and compilers.
 =======================================
+    - Intel V11.1 uses now -O3 optimization in production mode (EIP - 2010/10/08)
     - PathScale compilers are recognized and can build the HDF5 library
       properly. AKC - 2009/7/28 -
 
@@ -234,6 +257,24 @@ Bug Fixes since HDF5-1.8.0 release
 
     Library
     -------
+      - Retrieving a link's name by index in the case where the link is
+            external and the file that the link refers to doesn't exist will 
+            now fail gracefully rather than cause a segmentation fault. 
+            (MAM - 2010/11/17)
+      - Modified library to always cache symbol table information.  Libraries
+            version 1.6.3 have a bug which causes them to require this
+            information for some operations. (NAF - 2010/09/21 - 1864)
+      - Fixed a bug that could occur when getting information for a new-style
+            group that was previously opened through a file handle that was
+            later closed. (NAF - 2010/09/15)
+      - Added define check in H5public.h if stdint.h is supported by the C++
+            compiler. This define is only available on Windows with VS2010 and
+            using CMake to build the library. (ADB - 2010/09/13 - Bug 1938)
+      - H5Eset_current_stack now also closes the error stack to be set as the
+            default.  This is to avoid a potential problem (Bug 1799).
+            (SLU - 2010/9/7)
+      - Fixed the bug in the filter's public CAN_APPLY function.  The return
+            value should be htri_t not herr_t (Bug #1239). (SLU - 2010/8/5)
       - Fixed a bug in the direct I/O driver that could render files with
             certain kinds of unaligned data unreadable or corrupt them.
             (NAF - 2010/07/28)
@@ -445,6 +486,26 @@ Bug Fixes since HDF5-1.8.0 release
 
     Tools
     -----
+        - Improve h5diff performance. 1) use HDmemcmp() before comparing each 
+          elements. 2) replace expensive H5Tequals() calls 3) retrieve datatype
+          information at dataset level not each element level for compound 
+          datasets
+        - Fixed h5ls to display nested compound type with curly bracket 
+          when -S (--simple) option is used with -l (--label), so it shows  
+          which member (in curly bracket) belong to which nested compound type 
+          and make the output make sense.  bug#1979 (JKM 2010/11/09)
+        - Fixed h5diff to handle variable-length strings in a compound dataset 
+          correctly. (also variable-length string array in a compound dataset)
+          Garbage values were displayed when h5diff compared multiple 
+          variable-length strings in a compound type dataset. 
+          Bug#1989 (JKM 2010/10/28)
+        - Fixed h5copy to fail gracefully when copying object to non-exist
+          group without -p option. Bug#2040 (JKM 2010/10/18)
+        - Fixed to compare member objects and groups recursively when two 
+          files or groups are specified to be compared. Bug#1975
+          (JKM 2010/9/16)
+        - Make h5repack be able to convert a layout to COMPACT for small size
+          dataset as default.  bug#1896 (JKM 2010/09/15)
         - Change h5ls not to manipulate special characters in object name or 
           attribute name for smart display.  bug#1784 (JKM 2010/06/28)
         - Fixed h5ls to return exit code 1 (error) when non-existent file is
@@ -607,15 +668,22 @@ Platforms Tested
                                   Intel(R) C++ Version 8.1
                                   Intel(R) Fortran Compiler Version 8.1
 				  mpich-gm-1.2.5..10-intel-r2
+    
+    Windows XP                    Visual Studio 2008 w/ Intel Fortran 11.1
+                                  Visual Studio 2010
+                                  Cygwin(1.7.7 native gcc(4.3.4) compiler and gfortran)
 				  
-    Windows XP                    Visual Studio 2008 w/ Intel Fortran 10.1
-                                  Cygwin(1.7.5 native gcc compiler and gfortran)
+    Windows XP x64                Visual Studio 2008 w/ Intel Fortran 11.1
+                                  Visual Studio 2010
+                                  Cygwin(1.7.7 native gcc(4.3.4) compiler and gfortran)
 
-    Windows XP x64                Visual Studio 2008 w/ Intel Fortran 10.1
+    Windows Vista                 Visual Studio 2008 w/ Intel Fortran 11.1
 
-    Windows Vista                 Visual Studio 2008 w/ Intel Fortran 10.1
+    Windows Vista x64             Visual Studio 2008 w/ Intel Fortran 11.1
 
-    Windows Vista x64             Visual Studio 2008 w/ Intel Fortran 10.1
+    Windows 7                     Visual Studio 2010
+
+    Windows 7 x64                 Visual Studio 2010
 
     MAC OS  10.5 (Intel)          gcc i686-apple-darwin8-gcc-4.0.1 (GCC) 4.0.1 
                                   G95 (GCC 4.0.3 (g95 0.91!) Nov 21 2006)
@@ -675,8 +743,8 @@ Cray XT3 (not tested
           for this release)         n        n         n         x        n
 Windows XP                          y        y(3)      y         y        n
 Windows XP x64                      y        y(3)      y         y        n
-Windows Vista                       y        y(3)      y         y        n
-Windows Vista x64                   y        y(3)      y         y        n
+Windows Vista                       y        y(3)      y         y        y
+Windows Vista x64                   y        y(3)      y         y        y
 Mac OS X 10.5 Intel                 y        y         y         x        n
 FreeBSD 6.2 32-bit                  y        y         y         x        n
 FreeBSD 6.2 64-bit                  y        y         y         x        n

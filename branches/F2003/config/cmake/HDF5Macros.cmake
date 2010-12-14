@@ -73,8 +73,14 @@ MACRO (H5_SET_LIB_OPTIONS libtarget libname libtype)
         SET (LIB_DEBUG_NAME "lib${libname}_D")
       ENDIF (H5_LEGACY_NAMING)
     ELSE (WIN32 AND NOT MINGW)
-      SET (LIB_RELEASE_NAME "lib${libname}")
-      SET (LIB_DEBUG_NAME "lib${libname}_debug")
+      # if the generator supports configuration types or if the CMAKE_BUILD_TYPE has a value
+      IF (CMAKE_CONFIGURATION_TYPES OR CMAKE_BUILD_TYPE)
+        SET (LIB_RELEASE_NAME "${libname}")
+        SET (LIB_DEBUG_NAME "${libname}_debug")
+      ELSE (CMAKE_CONFIGURATION_TYPES OR CMAKE_BUILD_TYPE)
+        SET (LIB_RELEASE_NAME "lib${libname}")
+        SET (LIB_DEBUG_NAME "lib${libname}_debug")
+      ENDIF (CMAKE_CONFIGURATION_TYPES OR CMAKE_BUILD_TYPE)
     ENDIF (WIN32 AND NOT MINGW)
   ENDIF (${libtype} MATCHES "SHARED")
   
@@ -119,4 +125,42 @@ MACRO (H5_SET_LIB_OPTIONS libtarget libname libtype)
   ENDIF (APPLE)
 
 ENDMACRO (H5_SET_LIB_OPTIONS)
+
+#-------------------------------------------------------------------------------
+MACRO (TARGET_WIN_PROPERTIES target)
+  IF (WIN32)
+    IF (MSVC)
+      IF (NOT BUILD_SHARED_LIBS)
+        SET_TARGET_PROPERTIES (${target}
+            PROPERTIES
+                LINK_FLAGS "/NODEFAULTLIB:MSVCRT"
+                LINK_FLAGS_DEBUG "/NODEFAULTLIB:MSVCRTD"
+        ) 
+      ENDIF (NOT BUILD_SHARED_LIBS)
+    ENDIF (MSVC)
+  ENDIF (WIN32)
+ENDMACRO (TARGET_WIN_PROPERTIES)
+
+#-------------------------------------------------------------------------------
+MACRO (TARGET_FORTRAN_WIN_PROPERTIES target)
+  IF (WIN32)
+    IF (BUILD_SHARED_LIBS)
+      IF (MSVC)
+        SET_TARGET_PROPERTIES (${target}
+            PROPERTIES
+                COMPILE_FLAGS "/dll"
+                LINK_FLAGS "/SUBSYSTEM:CONSOLE"
+        ) 
+      ENDIF (MSVC)
+    ELSE (BUILD_SHARED_LIBS)
+      IF (MSVC)
+        SET_TARGET_PROPERTIES (${target}
+            PROPERTIES
+                LINK_FLAGS "/NODEFAULTLIB:MSVCRT"
+                LINK_FLAGS_DEBUG "/NODEFAULTLIB:MSVCRTD"
+        ) 
+      ENDIF (MSVC)
+    ENDIF (BUILD_SHARED_LIBS)
+  ENDIF (WIN32)
+ENDMACRO (TARGET_FORTRAN_WIN_PROPERTIES)
 
