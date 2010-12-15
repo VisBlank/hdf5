@@ -461,7 +461,7 @@ SUBROUTINE test_nbit(cleanup, total_error )
   USE HDF5
 
   IMPLICIT NONE
-  INTEGER, PARAMETER :: wp = SELECTED_REAL_KIND (6,37)
+  INTEGER, PARAMETER :: wp = KIND(1.0)
   LOGICAL, INTENT(IN)  :: cleanup
   INTEGER, INTENT(INOUT) :: total_error
   INTEGER(hid_t) :: file

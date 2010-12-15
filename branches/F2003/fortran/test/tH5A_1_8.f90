@@ -176,13 +176,13 @@ SUBROUTINE attribute_test_1_8(cleanup, total_error)
 !!$              CALL test_attr_corder_transition(my_fcpl, my_fapl)
 !!$              CALL test_attr_corder_delete(my_fcpl, my_fapl)
            ret_total_error = 0
-           CALL test_attr_info_by_idx(new_format, my_fcpl, my_fapl, ret_total_error)
+           CALL test_attr_info_by_idx(new_format(i), my_fcpl, my_fapl, ret_total_error)
            CALL write_test_status(ret_total_error, &
                 '   - Testing querying attribute info by index', &
                 total_error)
 
            ret_total_error = 0
-           CALL test_attr_delete_by_idx(new_format, my_fcpl, my_fapl, ret_total_error)
+           CALL test_attr_delete_by_idx(new_format(i), my_fcpl, my_fapl, ret_total_error)
            CALL write_test_status(ret_total_error, &
                 '   - Testing deleting attribute by index', &
                 total_error)
@@ -657,11 +657,11 @@ SUBROUTINE test_attr_create_by_name(new_format,fcpl,fapl, total_error)
   ! /* Loop over using index for creation order value */
   DO i = 1, 2
      ! /* Print appropriate test message */
-!!$     IF(use_index(i))THEN
-!!$        WRITE(*,*) "       - Testing Creating Attributes By Name w/Creation Order Index"
-!!$     ELSE
-!!$        WRITE(*,*) "       - Testing Creating Attributes By Name w/o Creation Order Index"
-!!$     ENDIF
+     IF(use_index(i))THEN
+        WRITE(*,*) "   - Testing Creating Attributes By Name w/Creation Order Index"
+     ELSE
+        WRITE(*,*) "   - Testing Creating Attributes By Name w/o Creation Order Index"
+     ENDIF
      ! /* Create file */
      CALL h5fcreate_f(FileName, H5F_ACC_TRUNC_F, fid, error, fcpl, fapl)
      CALL check("h5fcreate_f",error,total_error)
@@ -736,7 +736,7 @@ SUBROUTINE test_attr_create_by_name(new_format,fcpl,fapl, total_error)
            CALL check("h5aclose_f",error,total_error)
 
            ! /* Verify information for NEW attribute */
-           CALL attr_info_by_idx_check(my_dataset, attrname, INT(u,HSIZE_T), use_index, total_error)
+           CALL attr_info_by_idx_check(my_dataset, attrname, INT(u,HSIZE_T), use_index(i), total_error)
          !   CALL check("FAILED IN attr_info_by_idx_check",total_error)
         ENDDO
 
