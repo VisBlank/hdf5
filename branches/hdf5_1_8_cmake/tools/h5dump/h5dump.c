@@ -149,7 +149,7 @@ static h5tool_format_t         dataformat = {
     "",             /*fmt_raw */
     "%d",           /*fmt_int */
     "%u",           /*fmt_uint */
-    "%d",           /*fmt_schar */
+    "%hhd",           /*fmt_schar */
     "%u",           /*fmt_uchar */
     "%d",           /*fmt_short */
     "%u",           /*fmt_ushort */
@@ -233,7 +233,7 @@ static h5tool_format_t         xml_dataformat = {
     "",             /*fmt_raw */
     "%d",           /*fmt_int */
     "%u",           /*fmt_uint */
-    "%d",           /*fmt_schar */
+    "%hhd",           /*fmt_schar */
     "%u",           /*fmt_uchar */
     "%d",           /*fmt_short */
     "%u",           /*fmt_ushort */
@@ -2702,35 +2702,36 @@ static void
 dump_packed_bits(unsigned int packed_index, hid_t type)
 {
     int packed_bits_size = 0;
-    if(H5Tget_class(type)==H5T_INTEGER) {
-        if(H5Tequal(type, H5T_NATIVE_SCHAR) == TRUE) {
+    hid_t n_type = h5tools_get_native_type(type);
+    if(H5Tget_class(n_type)==H5T_INTEGER) {
+        if(H5Tequal(n_type, H5T_NATIVE_SCHAR) == TRUE) {
             packed_bits_size = 8 * sizeof(char);
         } 
-        else if(H5Tequal(type, H5T_NATIVE_UCHAR) == TRUE) {
+        else if(H5Tequal(n_type, H5T_NATIVE_UCHAR) == TRUE) {
             packed_bits_size = 8 * sizeof(unsigned char);
         } 
-        else if(H5Tequal(type, H5T_NATIVE_SHORT) == TRUE) {
+        else if(H5Tequal(n_type, H5T_NATIVE_SHORT) == TRUE) {
             packed_bits_size = 8 * sizeof(short);
         } 
-        else if(H5Tequal(type, H5T_NATIVE_USHORT) == TRUE) {
+        else if(H5Tequal(n_type, H5T_NATIVE_USHORT) == TRUE) {
             packed_bits_size = 8 * sizeof(unsigned short);
         } 
-        else if(H5Tequal(type, H5T_NATIVE_INT) == TRUE) {
+        else if(H5Tequal(n_type, H5T_NATIVE_INT) == TRUE) {
             packed_bits_size = 8 * sizeof(int);
         } 
-        else if(H5Tequal(type, H5T_NATIVE_UINT) == TRUE) {
+        else if(H5Tequal(n_type, H5T_NATIVE_UINT) == TRUE) {
             packed_bits_size = 8 * sizeof(unsigned int);
         } 
-        else if(H5Tequal(type, H5T_NATIVE_LONG) == TRUE) {
+        else if(H5Tequal(n_type, H5T_NATIVE_LONG) == TRUE) {
             packed_bits_size = 8 * sizeof(long);
         } 
-        else if(H5Tequal(type, H5T_NATIVE_ULONG) == TRUE) {
+        else if(H5Tequal(n_type, H5T_NATIVE_ULONG) == TRUE) {
             packed_bits_size = 8 * sizeof(unsigned long);
         } 
-        else if(H5Tequal(type, H5T_NATIVE_LLONG) == TRUE) {
+        else if(H5Tequal(n_type, H5T_NATIVE_LLONG) == TRUE) {
             packed_bits_size = 8 * sizeof(long long);
         } 
-        else if(H5Tequal(type, H5T_NATIVE_ULLONG) == TRUE) {
+        else if(H5Tequal(n_type, H5T_NATIVE_ULLONG) == TRUE) {
             packed_bits_size = 8 * sizeof(unsigned long long);
         }
         else
@@ -3649,6 +3650,7 @@ parse_mask_list(const char *h_list)
 {
     const char     *ptr;
     int             offset_value, length_value;
+    unsigned long long temp_mask;
 
     /* sanity check */
     HDassert(h_list);
@@ -3713,10 +3715,13 @@ parse_mask_list(const char *h_list)
 	/* create the bit mask by left shift 1's by length, then negate it. */
 	/* After packed_mask is calculated, packed_length is not needed but  */
 	/* keep it for debug purpose. */
-	if(length_value<8*sizeof(unsigned long long))
-	    packed_mask[packed_bits_num] = ~(~0L<<length_value);
+	temp_mask = ~0L;
+	if(length_value<8*sizeof(unsigned long long)) {
+	    temp_mask = temp_mask << length_value;
+	    packed_mask[packed_bits_num] = ~temp_mask;
+    }
 	else
-        packed_mask[packed_bits_num] = ~0L;
+        packed_mask[packed_bits_num] = temp_mask;
 	packed_bits_num++;
 
 	/* skip a possible comma separator */
