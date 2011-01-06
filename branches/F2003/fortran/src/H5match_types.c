@@ -149,7 +149,9 @@ void writeFloatToFiles(const char* fortran_type, const char* c_type, unsigned in
 int main()
 {
   int FoundIntSize[4];
+  int FoundIntSizeKind[4];
   int FoundRealSize[4];
+  int FoundRealSizeKind[4];
   int i,j,flag;
   char chrA[20],chrB[20];
   int H5_C_HAS_REAL_NATIVE_16;
@@ -159,10 +161,9 @@ int main()
   c_header = fopen(CFILE, "w");
   fort_header = fopen(FFILE, "w");
 
-
-/* Default is C has 16 byte float */
+  /* Default is C has 16 byte float */
   H5_C_HAS_REAL_NATIVE_16 = 1;
-/* Default is C has 12 byte float */
+  /* Default is C has 12 byte float */
   H5_C_HAS_REAL_NATIVE_12 = 1;
 
   /* Write copyright, boilerplate to both files */
@@ -171,7 +172,7 @@ int main()
 
   /* First, define c_int_x */
 
-#if defined H5_FORTRAN_HAS_INTEGER_1
+#if defined H5_FORTRAN_HAS_INTEGER_1_KIND
   if(sizeof(long long) == 1)
     writeTypedef("long long", 1);
   else if(sizeof(long) == 1)
@@ -185,9 +186,9 @@ int main()
   /* Actually, char is not necessarily one byte.
    * But if char isn't, then nothing is, so this
    * is as close as we can get. */
-#endif /*H5_FORTRAN_HAS_INTEGER_1 */
+#endif /*H5_FORTRAN_HAS_INTEGER_1_KIND*/
 
-#if defined H5_FORTRAN_HAS_INTEGER_2
+#if defined H5_FORTRAN_HAS_INTEGER_2_KIND
   if(sizeof(long long) == 2)
     writeTypedef("long long", 2);
   else if(sizeof(long) == 2)
@@ -198,9 +199,9 @@ int main()
     writeTypedef("short", 2);
   else
     writeTypedefDefault(2);
-#endif /*H5_FORTRAN_HAS_INTEGER_2 */
+#endif /*H5_FORTRAN_HAS_INTEGER_2_KIND*/
 
-#if defined H5_FORTRAN_HAS_INTEGER_4
+#if defined H5_FORTRAN_HAS_INTEGER_4_KIND
   if(sizeof(long long) == 4)
     writeTypedef("long long", 4);
   else if(sizeof(long) == 4)
@@ -211,9 +212,9 @@ int main()
     writeTypedef("short", 4);
   else
     writeTypedefDefault(4);
-#endif /*H5_FORTRAN_HAS_INTEGER_4 */
+#endif /*H5_FORTRAN_HAS_INTEGER_4_KIND*/
 
-#if defined H5_FORTRAN_HAS_INTEGER_8
+#if defined H5_FORTRAN_HAS_INTEGER_8_KIND
   if(sizeof(long long) == 8)
     writeTypedef("long long", 8);
   else if(sizeof(long) == 8)
@@ -224,11 +225,11 @@ int main()
     writeTypedef("short", 8);
   else
     writeTypedefDefault(8);
-#endif /*H5_FORTRAN_HAS_INTEGER_8 */
+#endif /*H5_FORTRAN_HAS_INTEGER_8_KIND*/
 
   /* Define c_float_x */
 
-#if defined H5_FORTRAN_HAS_REAL_NATIVE_4 || defined H5_FORTRAN_HAS_REAL_4
+#if defined H5_FORTRAN_HAS_REAL_NATIVE_4_KIND || defined H5_FORTRAN_HAS_REAL_4_KIND
   if(sizeof(long double) == 4)
     writeFloatTypedef("long double", 4);
   else if(sizeof(double) == 4)
@@ -240,9 +241,9 @@ int main()
      printf("Quitting....\n");
      return -1;
    }
-#endif /*H5_FORTRAN_HAS_REAL_NATIVE_4*/
+#endif /*H5_FORTRAN_HAS_REAL_NATIVE_4_KIND*/
 
-#if defined H5_FORTRAN_HAS_REAL_NATIVE_8 || defined H5_FORTRAN_HAS_REAL_8
+#if defined H5_FORTRAN_HAS_REAL_NATIVE_8_KIND || defined H5_FORTRAN_HAS_REAL_8_KIND
   if(sizeof(long double) == 8)
     writeFloatTypedef("long double", 8);
   else if(sizeof(double) == 8)
@@ -254,10 +255,10 @@ int main()
      printf("Quitting....\n");
      return -1;
    }
-#endif /*H5_FORTRAN_HAS_REAL_NATIVE_8*/
+#endif /*H5_FORTRAN_HAS_REAL_NATIVE_8_KIND*/
 
 
-#if defined H5_FORTRAN_HAS_REAL_NATIVE_12 || defined H5_FORTRAN_HAS_REAL_12
+#if defined H5_FORTRAN_HAS_REAL_NATIVE_12_KIND || defined H5_FORTRAN_HAS_REAL_12_KIND
   if(sizeof(long double) == 12)
     writeFloatTypedef("long double", 12);
   else if(sizeof(double) == 12)
@@ -269,9 +270,9 @@ int main()
      printf("         Disabling Fortran 12 byte REALs\n");
      H5_C_HAS_REAL_NATIVE_12 = 0;
    }
-#endif /*H5_FORTRAN_HAS_REAL_NATIVE_8*/
+#endif /*H5_FORTRAN_HAS_REAL_NATIVE_8_KIND*/
 
-#if defined H5_FORTRAN_HAS_REAL_NATIVE_16 || defined H5_FORTRAN_HAS_REAL_16
+#if defined H5_FORTRAN_HAS_REAL_NATIVE_16_KIND || defined H5_FORTRAN_HAS_REAL_16_KIND
   if(sizeof(long double) == 16)
     writeFloatTypedef("long double", 16);
   else if(sizeof(double) == 16)
@@ -283,47 +284,47 @@ int main()
      printf("         Disabling Fortran 16 byte REALs\n");
      H5_C_HAS_REAL_NATIVE_16 = 0;
    }
-#endif /*H5_FORTRAN_HAS_REAL_NATIVE_16*/
+#endif /*H5_FORTRAN_HAS_REAL_NATIVE_16_KIND*/
 
   /* Now begin defining fortran types. */
   fprintf(c_header, "\n");
   /* haddr_t */
-#if defined H5_FORTRAN_HAS_INTEGER_8 && H5_SIZEOF_HADDR_T >= 8
-  writeToFiles("HADDR_T", "haddr_t_f", 8);
-#elif defined H5_FORTRAN_HAS_INTEGER_4 && H5_SIZEOF_HADDR_T >= 4
-  writeToFiles("HADDR_T", "haddr_t_f", 4);
-#elif defined H5_FORTRAN_HAS_INTEGER_2 && H5_SIZEOF_HADDR_T >= 2
-  writeToFiles("HADDR_T", "haddr_t_f", 2);
-#elif defined H5_FORTRAN_HAS_INTEGER_1 && H5_SIZEOF_HADDR_T >= 1
-  writeToFiles("HADDR_T", "haddr_t_f", 1);
+#if defined H5_FORTRAN_HAS_INTEGER_8_KIND && H5_SIZEOF_HADDR_T >= 8
+  writeToFiles("HADDR_T", "haddr_t_f", H5_FORTRAN_HAS_INTEGER_8_KIND);
+#elif defined H5_FORTRAN_HAS_INTEGER_4_KIND && H5_SIZEOF_HADDR_T >= 4
+  writeToFiles("HADDR_T", "haddr_t_f", H5_FORTRAN_HAS_INTEGER_4_KIND);
+#elif defined H5_FORTRAN_HAS_INTEGER_2_KIND && H5_SIZEOF_HADDR_T >= 2
+  writeToFiles("HADDR_T", "haddr_t_f", H5_FORTRAN_HAS_INTEGER_2_KIND);
+#elif defined H5_FORTRAN_HAS_INTEGER_1_KIND && H5_SIZEOF_HADDR_T >= 1
+  writeToFiles("HADDR_T", "haddr_t_f",  H5_FORTRAN_HAS_INTEGER_1_KIND);
 #else
     /* Error: couldn't find a size for haddr_t */
     return -1;
 #endif
 
   /* hsize_t */
-#if defined H5_FORTRAN_HAS_INTEGER_8 && H5_SIZEOF_HSIZE_T >= 8
-      writeToFiles("HSIZE_T", "hsize_t_f", 8);
-#elif defined H5_FORTRAN_HAS_INTEGER_4 && H5_SIZEOF_HSIZE_T >= 4
-      writeToFiles("HSIZE_T", "hsize_t_f", 4);
-#elif defined H5_FORTRAN_HAS_INTEGER_2 && H5_SIZEOF_HSIZE_T >= 2
-      writeToFiles("HSIZE_T", "hsize_t_f", 2);
-#elif defined H5_FORTRAN_HAS_INTEGER_1 && H5_SIZEOF_HSIZE_T >= 1
-      writeToFiles("HSIZE_T", "hsize_t_f", 1);
+#if defined H5_FORTRAN_HAS_INTEGER_8_KIND && H5_SIZEOF_HSIZE_T >= 8
+      writeToFiles("HSIZE_T", "hsize_t_f", H5_FORTRAN_HAS_INTEGER_8_KIND);
+#elif defined H5_FORTRAN_HAS_INTEGER_4_KIND && H5_SIZEOF_HSIZE_T >= 4
+      writeToFiles("HSIZE_T", "hsize_t_f", H5_FORTRAN_HAS_INTEGER_4_KIND);
+#elif defined H5_FORTRAN_HAS_INTEGER_2_KIND && H5_SIZEOF_HSIZE_T >= 2
+      writeToFiles("HSIZE_T", "hsize_t_f", H5_FORTRAN_HAS_INTEGER_2_KIND);
+#elif defined H5_FORTRAN_HAS_INTEGER_1_KIND && H5_SIZEOF_HSIZE_T >= 1
+      writeToFiles("HSIZE_T", "hsize_t_f", H5_FORTRAN_HAS_INTEGER_1_KIND);
 #else
     /* Error: couldn't find a size for hsize_t */
     return -1;
 #endif
 
   /* hssize_t */
-#if defined H5_FORTRAN_HAS_INTEGER_8 && H5_SIZEOF_HSSIZE_T >= 8
-      writeToFiles("HSSIZE_T", "hssize_t_f", 8);
-#elif defined H5_FORTRAN_HAS_INTEGER_4 && H5_SIZEOF_HSSIZE_T >= 4
-      writeToFiles("HSSIZE_T", "hssize_t_f", 4);
-#elif defined H5_FORTRAN_HAS_INTEGER_2 && H5_SIZEOF_HSSIZE_T >= 2
-      writeToFiles("HSSIZE_T", "hssize_t_f", 2);
-#elif defined H5_FORTRAN_HAS_INTEGER_1 && H5_SIZEOF_HSSIZE_T >= 1
-      writeToFiles("HSSIZE_T", "hssize_t_f", 1);
+#if defined H5_FORTRAN_HAS_INTEGER_8_KIND && H5_SIZEOF_HSSIZE_T >= 8
+      writeToFiles("HSSIZE_T", "hssize_t_f", H5_FORTRAN_HAS_INTEGER_8_KIND);
+#elif defined H5_FORTRAN_HAS_INTEGER_4_KIND && H5_SIZEOF_HSSIZE_T >= 4
+      writeToFiles("HSSIZE_T", "hssize_t_f",  H5_FORTRAN_HAS_INTEGER_4_KIND);
+#elif defined H5_FORTRAN_HAS_INTEGER_2_KIND && H5_SIZEOF_HSSIZE_T >= 2
+      writeToFiles("HSSIZE_T", "hssize_t_f",  H5_FORTRAN_HAS_INTEGER_2_KIND);
+#elif defined H5_FORTRAN_HAS_INTEGER_1_KIND && H5_SIZEOF_HSSIZE_T >= 1
+      writeToFiles("HSSIZE_T", "hssize_t_f",  H5_FORTRAN_HAS_INTEGER_1_KIND);
 #else
     /* Error: couldn't find a size for hssize_t */
     return -1;
@@ -331,28 +332,28 @@ int main()
 
 
   /* size_t */
-#if defined H5_FORTRAN_HAS_INTEGER_8 && H5_SIZEOF_SIZE_T >= 8
-      writeToFiles("SIZE_T", "size_t_f", 8);
-#elif defined H5_FORTRAN_HAS_INTEGER_4 && H5_SIZEOF_SIZE_T >= 4
-      writeToFiles("SIZE_T", "size_t_f", 4);
-#elif defined H5_FORTRAN_HAS_INTEGER_2 && H5_SIZEOF_SIZE_T >= 2
-      writeToFiles("SIZE_T", "size_t_f", 2);
-#elif defined H5_FORTRAN_HAS_INTEGER_1 && H5_SIZEOF_SIZE_T >= 1
-      writeToFiles("SIZE_T", "size_t_f", 1);
+#if defined H5_FORTRAN_HAS_INTEGER_8_KIND && H5_SIZEOF_SIZE_T >= 8
+      writeToFiles("SIZE_T", "size_t_f", H5_FORTRAN_HAS_INTEGER_8_KIND);
+#elif defined H5_FORTRAN_HAS_INTEGER_4_KIND && H5_SIZEOF_SIZE_T >= 4
+      writeToFiles("SIZE_T", "size_t_f", H5_FORTRAN_HAS_INTEGER_4_KIND);
+#elif defined H5_FORTRAN_HAS_INTEGER_2_KIND && H5_SIZEOF_SIZE_T >= 2
+      writeToFiles("SIZE_T", "size_t_f", H5_FORTRAN_HAS_INTEGER_2_KIND);
+#elif defined H5_FORTRAN_HAS_INTEGER_1_KIND && H5_SIZEOF_SIZE_T >= 1
+      writeToFiles("SIZE_T", "size_t_f", H5_FORTRAN_HAS_INTEGER_1_KIND);
 #else
     /* Error: couldn't find a size for size_t */
     return -1;
 #endif
 
   /* int */
-#if defined H5_FORTRAN_HAS_NATIVE_8
-      writeToFiles("Fortran_INTEGER", "int_f", 8);
-#elif defined H5_FORTRAN_HAS_NATIVE_4
-      writeToFiles("Fortran_INTEGER", "int_f", 4);
-#elif defined H5_FORTRAN_HAS_NATIVE_2
-      writeToFiles("Fortran_INTEGER", "int_f", 2);
-#elif defined H5_FORTRAN_HAS_NATIVE_1
-      writeToFiles("Fortran_INTEGER", "int_f", 1);
+#if defined H5_FORTRAN_HAS_NATIVE_8_KIND
+      writeToFiles("Fortran_INTEGER", "int_f", H5_FORTRAN_HAS_NATIVE_8_KIND);
+#elif defined H5_FORTRAN_HAS_NATIVE_4_KIND
+      writeToFiles("Fortran_INTEGER", "int_f", H5_FORTRAN_HAS_NATIVE_4_KIND);
+#elif defined H5_FORTRAN_HAS_NATIVE_2_KIND
+      writeToFiles("Fortran_INTEGER", "int_f", H5_FORTRAN_HAS_NATIVE_2_KIND);
+#elif defined H5_FORTRAN_HAS_NATIVE_1_KIND
+      writeToFiles("Fortran_INTEGER", "int_f", H5_FORTRAN_HAS_NATIVE_1_KIND);
 #else
     /* Error: couldn't find a size for int */
     return -1;
@@ -370,17 +371,21 @@ int main()
     FoundIntSize[2] = -4;
     FoundIntSize[3] = -8;
 
-#if defined H5_FORTRAN_HAS_INTEGER_1
+#if defined H5_FORTRAN_HAS_INTEGER_1_KIND
     FoundIntSize[0] = 1;
+    FoundIntSizeKind[0] = H5_FORTRAN_HAS_INTEGER_1_KIND;
 #endif
-#if defined H5_FORTRAN_HAS_INTEGER_2
+#if defined H5_FORTRAN_HAS_INTEGER_2_KIND
     FoundIntSize[1] = 2;
+    FoundIntSizeKind[1] = H5_FORTRAN_HAS_INTEGER_2_KIND;
 #endif
-#if defined H5_FORTRAN_HAS_INTEGER_4
+#if defined H5_FORTRAN_HAS_INTEGER_4_KIND
     FoundIntSize[2] = 4;
+    FoundIntSizeKind[2] = H5_FORTRAN_HAS_INTEGER_4_KIND;
 #endif
-#if defined H5_FORTRAN_HAS_INTEGER_8
+#if defined H5_FORTRAN_HAS_INTEGER_8_KIND
     FoundIntSize[3] = 8;
+    FoundIntSizeKind[3] = H5_FORTRAN_HAS_INTEGER_8_KIND ;
 #endif
 
     for(i=0;i<4;i++) {
@@ -388,7 +393,7 @@ int main()
 	{
 	  sprintf(chrA, "Fortran_INTEGER_%d", FoundIntSize[i]);
 	  sprintf(chrB, "int_%d_f", FoundIntSize[i]);
-	  writeToFiles(chrA, chrB, FoundIntSize[i]);
+	  writeToFiles(chrA, chrB, FoundIntSizeKind[i]);
 	}
       else  /* Did not find the integer type */
 	{
@@ -399,7 +404,7 @@ int main()
 		{
 		  sprintf(chrA, "Fortran_INTEGER_%d", (-1)*FoundIntSize[i]);
 		  sprintf(chrB, "int_%d_f", (-1)*FoundIntSize[i]);
-		  writeToFiles(chrA, chrB, FoundIntSize[j]);
+		  writeToFiles(chrA, chrB, FoundIntSizeKind[j]);
 		  flag = 1;
 		  break;
 		}
@@ -412,7 +417,7 @@ int main()
 		    {
 		      sprintf(chrA, "Fortran_INTEGER_%d", (-1)*FoundIntSize[i]);
 		      sprintf(chrB, "int_%d_f", (-1)*FoundIntSize[i]);
-		      writeToFiles(chrA, chrB, FoundIntSize[j]);
+		      writeToFiles(chrA, chrB, FoundIntSizeKind[j]);
 		      flag = 1;
 		      break;
 		    }
@@ -437,20 +442,24 @@ int main()
     FoundRealSize[2] = -12;
     FoundRealSize[3] = -16;
 
-#if defined H5_FORTRAN_HAS_REAL_4
+#if defined H5_FORTRAN_HAS_REAL_4_KIND
     FoundRealSize[0] = 4;
+    FoundRealSizeKind[0] = H5_FORTRAN_HAS_REAL_4_KIND;
 #endif
-#if defined H5_FORTRAN_HAS_REAL_8
+#if defined H5_FORTRAN_HAS_REAL_8_KIND
     FoundRealSize[1] = 8;
+    FoundRealSizeKind[1] = H5_FORTRAN_HAS_REAL_8_KIND;
 #endif
-#if defined H5_FORTRAN_HAS_REAL_12
+#if defined H5_FORTRAN_HAS_REAL_12_KIND
     if(H5_C_HAS_REAL_NATIVE_12 != 0) {
       FoundRealSize[2] = 12;
+      FoundRealSizeKind[2] = H5_FORTRAN_HAS_REAL_12_KIND;
     }
 #endif
-#if defined H5_FORTRAN_HAS_REAL_16
+#if defined H5_FORTRAN_HAS_REAL_16_KIND
     if(H5_C_HAS_REAL_NATIVE_16 != 0) {
       FoundRealSize[3] = 16;
+      FoundRealSizeKind[3] = H5_FORTRAN_HAS_REAL_16_KIND;
     }
 #endif
 
@@ -459,7 +468,7 @@ int main()
 	{
 	  sprintf(chrA, "Fortran_REAL_%d", FoundRealSize[i]);
 	  sprintf(chrB, "real_%d_f", FoundRealSize[i]);
-	  writeFloatToFiles(chrA, chrB, FoundRealSize[i]);
+	  writeFloatToFiles(chrA, chrB, FoundRealSizeKind[i]);
 	}
       else  /* Did not find the real type */
 	{
@@ -471,7 +480,7 @@ int main()
 		  sprintf(chrA, "Fortran_REAL_%d", (-1)*FoundRealSize[i]);
 		  sprintf(chrB, "real_%d_f", (-1)*FoundRealSize[i]);
 		  if(FoundRealSize[j]>4) {
-		    writeFloatToFiles(chrA, chrB, FoundRealSize[j]);
+		    writeFloatToFiles(chrA, chrB, FoundRealSizeKind[j]);
 		    flag = 1;
 		  }
 		/*   else { */
@@ -490,7 +499,7 @@ int main()
 		      sprintf(chrA, "Fortran_REAL_%d", (-1)*FoundRealSize[i]);
 		      sprintf(chrB, "real_%d_f", (-1)*FoundRealSize[i]);
 		      if(FoundRealSize[j]>4) {
-			writeFloatToFiles(chrA, chrB, FoundRealSize[j]);
+			writeFloatToFiles(chrA, chrB, FoundRealSizeKind[j]);
 		      }
 		     /*  else { */
 /* 			writeFloatToFiles(chrA, chrB, FoundRealSize[j]); */
@@ -508,44 +517,44 @@ int main()
     }
 
   /* hid_t */
-#if defined H5_FORTRAN_HAS_INTEGER_8 && H5_SIZEOF_HID_T >= 8
-      writeToFiles("HID_T", "hid_t_f", 8);
-#elif defined H5_FORTRAN_HAS_INTEGER_4 && H5_SIZEOF_HID_T >= 4
-      writeToFiles("HID_T", "hid_t_f", 4);
-#elif defined H5_FORTRAN_HAS_INTEGER_2 && H5_SIZEOF_HID_T >= 2
-      writeToFiles("HID_T", "hid_t_f", 2);
-#elif defined H5_FORTRAN_HAS_INTEGER_1 && H5_SIZEOF_HID_T >= 1
-      writeToFiles("HID_T", "hid_t_f", 1);
-#elif defined H5_FORTRAN_HAS_INTEGER_8 && H5_SIZEOF_HID_T >= 4
-      writeToFiles("HID_T", "hid_t_f", 8);
+#if defined H5_FORTRAN_HAS_INTEGER_8_KIND && H5_SIZEOF_HID_T >= 8
+      writeToFiles("HID_T", "hid_t_f", H5_FORTRAN_HAS_INTEGER_8_KIND);
+#elif defined H5_FORTRAN_HAS_INTEGER_4_KIND && H5_SIZEOF_HID_T >= 4
+      writeToFiles("HID_T", "hid_t_f", H5_FORTRAN_HAS_INTEGER_4_KIND);
+#elif defined H5_FORTRAN_HAS_INTEGER_2_KIND && H5_SIZEOF_HID_T >= 2
+      writeToFiles("HID_T", "hid_t_f", H5_FORTRAN_HAS_INTEGER_2_KIND);
+#elif defined H5_FORTRAN_HAS_INTEGER_1_KIND && H5_SIZEOF_HID_T >= 1
+      writeToFiles("HID_T", "hid_t_f", H5_FORTRAN_HAS_INTEGER_1_KIND);
+#elif defined H5_FORTRAN_HAS_INTEGER_8_KIND && H5_SIZEOF_HID_T >= 4
+      writeToFiles("HID_T", "hid_t_f", H5_FORTRAN_HAS_INTEGER_8_KIND);
 #else
     /* Error: couldn't find a size for hid_t */
     return -1;
 #endif
 
   /* real_f */
-#if defined H5_FORTRAN_HAS_REAL_NATIVE_16
+#if defined H5_FORTRAN_HAS_REAL_NATIVE_16_KIND
     if(H5_C_HAS_REAL_NATIVE_16 != 0) {
-      writeFloatToFiles("Fortran_REAL", "real_f", 16);
+      writeFloatToFiles("Fortran_REAL", "real_f", H5_FORTRAN_HAS_REAL_NATIVE_16_KIND);
     }
-#elif defined H5_FORTRAN_HAS_REAL_NATIVE_12
+#elif defined H5_FORTRAN_HAS_REAL_NATIVE_12_KIND
     if(H5_C_HAS_REAL_NATIVE_12 != 0) {
-      writeFloatToFiles("Fortran_REAL", "real_f", 12);
+      writeFloatToFiles("Fortran_REAL", "real_f", H5_FORTRAN_HAS_REAL_NATIVE_12_KIND);
     }
-#elif defined H5_FORTRAN_HAS_REAL_NATIVE_8
-      writeFloatToFiles("Fortran_REAL", "real_f", 8);
-#elif defined H5_FORTRAN_HAS_REAL_NATIVE_4
-      writeFloatToFiles("Fortran_REAL", "real_f", 4);
+#elif defined H5_FORTRAN_HAS_REAL_NATIVE_8_KIND
+      writeFloatToFiles("Fortran_REAL", "real_f", H5_FORTRAN_HAS_REAL_NATIVE_8_KIND);
+#elif defined H5_FORTRAN_HAS_REAL_NATIVE_4_KIND
+      writeFloatToFiles("Fortran_REAL", "real_f", H5_FORTRAN_HAS_REAL_NATIVE_4_KIND);
 #else
     /* Error: couldn't find a size for real_f */
     return -1;
 #endif
 
   /* double_f */
-#if defined H5_FORTRAN_HAS_DOUBLE_NATIVE_16
-      writeFloatToFiles("Fortran_DOUBLE", "double_f", 16);
-#elif defined H5_FORTRAN_HAS_DOUBLE_NATIVE_8
-      writeFloatToFiles("Fortran_DOUBLE", "double_f", 8);
+#if defined H5_FORTRAN_HAS_DOUBLE_NATIVE_16_KIND
+      writeFloatToFiles("Fortran_DOUBLE", "double_f", H5_FORTRAN_HAS_DOUBLE_NATIVE_16_KIND);
+#elif defined H5_FORTRAN_HAS_DOUBLE_NATIVE_8_KIND
+      writeFloatToFiles("Fortran_DOUBLE", "double_f", H5_FORTRAN_HAS_DOUBLE_NATIVE_8_KIND);
 #else
     /* Error: couldn't find a size for real_f */
     return -1;

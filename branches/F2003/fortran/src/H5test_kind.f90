@@ -45,7 +45,7 @@
 PROGRAM test_kind
   IMPLICIT NONE
   INTEGER :: i, j, ii, ir, last, ikind_numbers(10), rkind_numbers(10)
-  INTEGER :: jr, jd
+  INTEGER :: ji, jr, jd
   last = -1
   ii = 0
   j = SELECTED_INT_KIND(18)
@@ -117,8 +117,8 @@ WRITE(*,'(40(A,/))') &
 
   WRITE(*,*) "PROGRAM int_kind"
   WRITE(*,*) "WRITE(*,*) "" /*generating header file*/ """
-  j = 0
-  WRITE(*, "("" CALL i"", i2.2,""()"")") j
+  ji = 0
+  WRITE(*, "("" CALL i"", i2.2,""()"")") ji
   jr = 0
   WRITE(*, "("" CALL r"", i2.2,""()"")") jr
   jd = 0
@@ -133,62 +133,76 @@ WRITE(*,'(40(A,/))') &
   ENDDO
   WRITE(*,*) "END PROGRAM int_kind"
   j = 0
+  ji = KIND(1)
   WRITE(*, "("" SUBROUTINE i"", i2.2,""()"")") j
   WRITE(*,*)"   IMPLICIT NONE"
   WRITE(*,*)"   INTEGER :: a = 0"
   WRITE(*,*)"   INTEGER :: a_size"
+  WRITE(*,*)"   CHARACTER(LEN=2) :: jchr2"
   WRITE(*,*)"   a_size = BIT_SIZE(a)"
   WRITE(*,*)"   IF (a_size .EQ. 8) THEN"
-  WRITE(*,*)"       WRITE(*,*) ""#define H5_FORTRAN_HAS_NATIVE_1"" "
+  WRITE(*,*)"       WRITE(jchr2,'(I2)')",ji
+  WRITE(*,'(A)')'       WRITE(*,*) "#define H5_FORTRAN_HAS_NATIVE_1_KIND "'//"//ADJUSTL(jchr2)"
   WRITE(*,*)"   endif"
   WRITE(*,*)"   IF (a_size .EQ. 16) THEN"
-  WRITE(*,*)"       WRITE(*,*) ""#define H5_FORTRAN_HAS_NATIVE_2"" "
+  WRITE(*,*)"       WRITE(jchr2,'(I2)')",ji
+  WRITE(*,'(A)')'       WRITE(*,*) "#define H5_FORTRAN_HAS_NATIVE_2_KIND "'//"//ADJUSTL(jchr2)"
   WRITE(*,*)"   endif"
   WRITE(*,*)"   IF (a_size .EQ. 32) THEN"
-  WRITE(*,*)"       WRITE(*,*) ""#define H5_FORTRAN_HAS_NATIVE_4"" "
+  WRITE(*,*)"       WRITE(jchr2,'(I2)')",ji
+  WRITE(*,'(A)')'       WRITE(*,*) "#define H5_FORTRAN_HAS_NATIVE_4_KIND "'//"//ADJUSTL(jchr2)"
   WRITE(*,*)"   ENDIF"
   WRITE(*,*)"   IF (a_size .EQ. 64) THEN"
-  WRITE(*,*)"       WRITE(*,*) ""#define H5_FORTRAN_HAS_NATIVE_8"" "
+  WRITE(*,*)"       WRITE(jchr2,'(I2)')",ji
+  WRITE(*,'(A)')'       WRITE(*,*) "#define H5_FORTRAN_HAS_NATIVE_8_KIND "'//"//ADJUSTL(jchr2)"
   WRITE(*,*)"   ENDIF"
   WRITE(*,*)"   IF (a_size .EQ. 128) THEN"
-  WRITE(*,*)"       WRITE(*,*) ""#define H5_FORTRAN_HAS_NATIVE_16"" "
+  WRITE(*,*)"       WRITE(jchr2,'(I2)')",ji
+  WRITE(*,'(A)')'       WRITE(*,*) "#define H5_FORTRAN_HAS_NATIVE_16_KIND "'//"//ADJUSTL(jchr2)"
   WRITE(*,*)"   ENDIF"
   WRITE(*,*)"   RETURN"
   WRITE(*,*)"END SUBROUTINE"
-  jr = 0
+  jr = KIND(1.0)
   WRITE(*, "("" SUBROUTINE r"", i2.2,""()"")") j
   WRITE(*,*)"   IMPLICIT NONE"
   WRITE(*,*)"   REAL :: b(32)"
   WRITE(*,*)"   INTEGER :: a(1)"
   WRITE(*,*)"   INTEGER :: a_size"
   WRITE(*,*)"   INTEGER :: real_size"
+  WRITE(*,*)"   CHARACTER(LEN=2) :: jchr2"
   WRITE(*,*)"   a_size = BIT_SIZE(a(1)) ! Size in bits for integer"
   WRITE(*,*)"   real_size = (SIZE(TRANSFER(b,a))*a_size)/SIZE(b)"
   WRITE(*,*)"   IF (real_size .EQ. 32) THEN"
-  WRITE(*,*)"       WRITE(*,*) ""#define H5_FORTRAN_HAS_REAL_NATIVE_4"" "
+  WRITE(*,*)"       WRITE(jchr2,'(I2)')",jr
+  WRITE(*,'(A)')'       WRITE(*,*) "#define H5_FORTRAN_HAS_REAL_NATIVE_4_KIND "'//"//ADJUSTL(jchr2)"
   WRITE(*,*)"   ENDIF"
   WRITE(*,*)"   IF (real_size .EQ. 64) THEN"
-  WRITE(*,*)"       write(*,*) ""#define H5_FORTRAN_HAS_REAL_NATIVE_8"" "
-  WRITE(*,*)"   endif"
+  WRITE(*,*)"       WRITE(jchr2,'(I2)')",jr
+  WRITE(*,'(A)')'       WRITE(*,*) "#define H5_FORTRAN_HAS_REAL_NATIVE_8_KIND "'//"//ADJUSTL(jchr2)"
+  WRITE(*,*)"   ENDIF"
   WRITE(*,*)"   IF (real_size .EQ. 128) THEN"
-  WRITE(*,*)"       write(*,*) ""#define H5_FORTRAN_HAS_REAL_NATIVE_16"" "
+  WRITE(*,*)"       WRITE(jchr2,'(I2)')",jr
+  WRITE(*,'(A)')'       WRITE(*,*) "#define H5_FORTRAN_HAS_REAL_NATIVE_16_KIND "'//"//ADJUSTL(jchr2)"
   WRITE(*,*)"   ENDIF"
   WRITE(*,*)"   RETURN"
   WRITE(*,*)"END SUBROUTINE"
-  jd = 0
-  WRITE(*, "("" SUBROUTINE d"", i2.2,""()"")") jd
+  jd = KIND(1.d0)
+  WRITE(*, "("" SUBROUTINE d"", i2.2,""()"")") j
   WRITE(*,*)"   IMPLICIT NONE"
   WRITE(*,*)"   DOUBLE PRECISION :: b=0"
   WRITE(*,*)"   INTEGER :: a(8)=0"
   WRITE(*,*)"   INTEGER :: a_size"
   WRITE(*,*)"   INTEGER :: b_size"
+  WRITE(*,*)"   CHARACTER(LEN=2) :: jchr2"
   WRITE(*,*)"   a_size = BIT_SIZE(a(1))"
   WRITE(*,*)"   b_size = SIZE(transfer(b,a))*a_size"
   WRITE(*,*)"   IF (b_size .EQ. 64) THEN"
-  WRITE(*,*)"       WRITE(*,*) ""#define H5_FORTRAN_HAS_DOUBLE_NATIVE_8"" "
+  WRITE(*,*)"       WRITE(jchr2,'(I2)')",jd
+  WRITE(*,'(A)')'       WRITE(*,*) "#define H5_FORTRAN_HAS_DOUBLE_NATIVE_8_KIND "'//"//ADJUSTL(jchr2)"
   WRITE(*,*)"   ENDIF"
   WRITE(*,*)"   IF (b_size .EQ. 128) THEN"
-  WRITE(*,*)"       WRITE(*,*) ""#define H5_FORTRAN_HAS_DOUBLE_NATIVE_16"" "
+  WRITE(*,*)"       WRITE(jchr2,'(I2)')",jd
+  WRITE(*,'(A)')'       WRITE(*,*) "#define H5_FORTRAN_HAS_DOUBLE_NATIVE_16_KIND "'//"//ADJUSTL(jchr2)"
   WRITE(*,*)"   ENDIF"
   WRITE(*,*)"   RETURN"
   WRITE(*,*)"END SUBROUTINE"
@@ -198,21 +212,27 @@ WRITE(*,'(40(A,/))') &
      WRITE(*,*)"   IMPLICIT NONE"
      WRITE(*,*)"   INTEGER(",j,") :: a = 0"
      WRITE(*,*)"   INTEGER :: a_size"
+     WRITE(*,*)"   CHARACTER(LEN=2) :: jchr2"
      WRITE(*,*)"   a_size = BIT_SIZE(a)"
      WRITE(*,*)"   IF (a_size .EQ. 8) THEN"
-     WRITE(*,*)"       WRITE(*,*) ""#define H5_FORTRAN_HAS_INTEGER_1"" "
+     WRITE(*,*)"       WRITE(jchr2,'(I2)')",j
+     WRITE(*,'(A)')'       WRITE(*,*) "#define H5_FORTRAN_HAS_INTEGER_1_KIND "'//"//ADJUSTL(jchr2)"
      WRITE(*,*)"   ENDIF"
      WRITE(*,*)"   IF (a_size .EQ. 16) THEN"
-     WRITE(*,*)"       WRITE(*,*) ""#define H5_FORTRAN_HAS_INTEGER_2"" "
+     WRITE(*,*)"       WRITE(jchr2,'(I2)')",j
+     WRITE(*,'(A)')'       WRITE(*,*) "#define H5_FORTRAN_HAS_INTEGER_2_KIND "'//"//ADJUSTL(jchr2)"
      WRITE(*,*)"   ENDIF"
      WRITE(*,*)"   IF (a_size .EQ. 32) THEN"
-     WRITE(*,*)"       WRITE(*,*) ""#define H5_FORTRAN_HAS_INTEGER_4"" "
+     WRITE(*,*)"       WRITE(jchr2,'(I2)')",j
+     WRITE(*,'(A)')'       WRITE(*,*) "#define H5_FORTRAN_HAS_INTEGER_4_KIND "'//"//ADJUSTL(jchr2)"
      WRITE(*,*)"   ENDIF"
      WRITE(*,*)"   IF (a_size .EQ. 64) THEN"
-     WRITE(*,*)"       WRITE(*,*) ""#define H5_FORTRAN_HAS_INTEGER_8"" "
+     WRITE(*,*)"       WRITE(jchr2,'(I2)')",j
+     WRITE(*,'(A)')'       WRITE(*,*) "#define H5_FORTRAN_HAS_INTEGER_8_KIND "'//"//ADJUSTL(jchr2)"
      WRITE(*,*)"   ENDIF"
      WRITE(*,*)"   IF (a_size .EQ. 128) THEN"
-     WRITE(*,*)"       WRITE(*,*) ""#define H5_FORTRAN_HAS_INTEGER_16"" "
+     WRITE(*,*)"       WRITE(jchr2,'(I2)')",j
+     WRITE(*,'(A)')'       WRITE(*,*) "#define H5_FORTRAN_HAS_INTEGER_16_KIND "'//"//ADJUSTL(jchr2)"
      WRITE(*,*)"   ENDIF"
      WRITE(*,*)"   RETURN"
      WRITE(*,*)"   END SUBROUTINE"
@@ -225,16 +245,20 @@ WRITE(*,'(40(A,/))') &
      WRITE(*,*)"   INTEGER :: a(1)"
      WRITE(*,*)"   INTEGER :: a_size"
      WRITE(*,*)"   INTEGER :: real_size"
+     WRITE(*,*)"   CHARACTER(LEN=2) :: jchr2"
      WRITE(*,*)"   a_size = BIT_SIZE(a(1)) ! Size in bits for integer"
      WRITE(*,*)"   real_size = (SIZE(TRANSFER(b,a))*a_size)/SIZE(b)"
      WRITE(*,*)"   IF (real_size .EQ. 32) THEN"
-     WRITE(*,*)"       WRITE(*,*) ""#define H5_FORTRAN_HAS_REAL_4"" "
+     WRITE(*,*)"       WRITE(jchr2,'(I2)')",j
+     WRITE(*,'(A)')'       WRITE(*,*) "#define H5_FORTRAN_HAS_REAL_4_KIND "'//"//ADJUSTL(jchr2)"
      WRITE(*,*)"   ENDIF"
      WRITE(*,*)"   IF (real_size .EQ. 64) THEN"
-     WRITE(*,*)"       write(*,*) ""#define H5_FORTRAN_HAS_REAL_8"" "
+     WRITE(*,*)"       WRITE(jchr2,'(I2)')",j
+     WRITE(*,*)'       WRITE(*,*) "#define H5_FORTRAN_HAS_REAL_8_KIND "'//"//ADJUSTL(jchr2)"
      WRITE(*,*)"   endif"
      WRITE(*,*)"   IF (real_size .EQ. 128) THEN"
-     WRITE(*,*)"       write(*,*) ""#define H5_FORTRAN_HAS_REAL_16"" "
+     WRITE(*,*)"       WRITE(jchr2,'(I2)')",j
+     WRITE(*,'(A)')'       WRITE(*,*) "#define H5_FORTRAN_HAS_REAL_16_KIND "'//"//ADJUSTL(jchr2)"
      WRITE(*,*)"   ENDIF"
      WRITE(*,*)"   RETURN"
      WRITE(*,*)"   END SUBROUTINE"
