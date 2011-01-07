@@ -2478,6 +2478,10 @@ done:
      * location for the object */
     *own_loc = H5G_OWN_NONE;
 
+    /* Reset the "name" field in udata->lnk because it is owned by traverse()
+     * and must not be manipulated after traverse closes */
+    udata->lnk->name = NULL;
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5L_move_dest_cb() */
 
@@ -2578,16 +2582,11 @@ done:
         H5MM_xfree(orig_name);
 
     /* If udata_out.lnk was copied, free any memory allocated
-     * In this special case, the H5L_move_dest_cb callback frees the name
-     * if it succeeds
+     * In this special case, the H5L_move_dest_cb callback resets the name
+     * so H5O_msg_free shouldn't try to free it
      */
-    if(link_copied) {
-        if(udata_out.lnk->type == H5L_TYPE_SOFT)
-            udata_out.lnk->u.soft.name = (char *)H5MM_xfree(udata_out.lnk->u.soft.name);
-        else if(udata_out.lnk->type >= H5L_TYPE_UD_MIN && udata_out.lnk->u.ud.size > 0)
-            udata_out.lnk->u.ud.udata = H5MM_xfree(udata_out.lnk->u.ud.udata);
-        H5MM_xfree(udata_out.lnk);
-    } /* end if */
+    if(link_copied)
+        H5O_msg_free(H5O_LINK_ID, udata_out.lnk);
 
     /* Indicate that this callback didn't take ownership of the group *
      * location for the object */
