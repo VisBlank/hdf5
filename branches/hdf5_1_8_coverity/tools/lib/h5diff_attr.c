@@ -269,6 +269,16 @@ hsize_t diff_attr(hid_t loc1_id,
         *----------------------------------------------------------------------
         */
 
+        /* Free buf1 and buf2, being careful to reclaim any VL data first */
+        if(H5Tdetect_class(mtype1_id, H5T_VLEN) == TRUE)
+            H5Dvlen_reclaim(mtype1_id, space1_id, H5P_DEFAULT, buf1);
+        HDfree(buf1);
+        buf1 = NULL;
+        if(H5Tdetect_class(mtype2_id, H5T_VLEN) == TRUE)
+            H5Dvlen_reclaim(mtype2_id, space2_id, H5P_DEFAULT, buf2);
+        HDfree(buf2);
+        buf2 = NULL;
+
         if (H5Tclose(ftype1_id)<0)
             goto error;
         if (H5Tclose(ftype2_id)<0)
@@ -286,11 +296,6 @@ hsize_t diff_attr(hid_t loc1_id,
         if (H5Tclose(mtype2_id)<0)
             goto error;
 
-        if (buf1)
-            HDfree(buf1);
-        if (buf2)
-            HDfree(buf2);
-
         nfound_total += nfound;
  } /* u */
 
@@ -298,6 +303,16 @@ hsize_t diff_attr(hid_t loc1_id,
 
 error:
  H5E_BEGIN_TRY {
+     if (buf1) {
+         if(H5Tdetect_class(mtype1_id, H5T_VLEN) == TRUE)
+             H5Dvlen_reclaim(mtype1_id, space1_id, H5P_DEFAULT, buf1);
+         HDfree(buf1);
+     } /* end if */
+     if (buf2) {
+         if(H5Tdetect_class(mtype2_id, H5T_VLEN) == TRUE)
+             H5Dvlen_reclaim(mtype2_id, space2_id, H5P_DEFAULT, buf2);
+         HDfree(buf2);
+     } /* end if */
      H5Tclose(ftype1_id);
      H5Tclose(ftype2_id);
      H5Tclose(mtype1_id);
@@ -306,10 +321,6 @@ error:
      H5Sclose(space2_id);
      H5Aclose(attr1_id);
      H5Aclose(attr2_id);
-     if (buf1)
-         HDfree(buf1);
-     if (buf2)
-         HDfree(buf2);
  } H5E_END_TRY;
 
  options->err_stat=1;

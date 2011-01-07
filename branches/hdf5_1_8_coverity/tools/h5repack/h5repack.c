@@ -527,9 +527,12 @@ int copy_attr(hid_t loc_in,
             if(H5Aclose(attr_out) < 0)
                 goto error;
 
-
-            if(buf)
-                free(buf);
+            /* Check if we have VL data in the attribute's  datatype that must
+             * be reclaimed */
+            if(H5Tdetect_class(wtype_id, H5T_VLEN) == TRUE)
+                H5Dvlen_reclaim(wtype_id, space_id, H5P_DEFAULT, buf);
+            free(buf);
+            buf = NULL;
 
         } /*H5T_REFERENCE*/
 
@@ -559,8 +562,15 @@ error:
         H5Sclose(space_id);
         H5Aclose(attr_id);
         H5Aclose(attr_out);
-        if (buf)
+        if(buf) {
+            /* Check if we have VL data in the attribute's  datatype that must
+             * be reclaimed */
+            if(H5Tdetect_class(wtype_id, H5T_VLEN) == TRUE)
+                H5Dvlen_reclaim(wtype_id, space_id, H5P_DEFAULT, buf);
+
+            /* Free buf */
             free(buf);
+        } /* end if */
     } H5E_END_TRY;
     return -1;
 }
