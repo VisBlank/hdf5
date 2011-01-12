@@ -21,4 +21,3 @@ group  : </g1/g2> and </g1/g2>
 0 differences found
 link   : </soft_dset1> and </soft_dset1>
 0 differences found
-EXIT CODE: 1

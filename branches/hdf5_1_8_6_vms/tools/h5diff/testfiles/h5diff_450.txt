@@ -32,4 +32,3 @@ obj2 </soft_link2> is a dangling link.
 1 differences found
 obj1 </soft_link3> is a dangling link.
 1 differences found
-EXIT CODE: 1

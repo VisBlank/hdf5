@@ -12,4 +12,3 @@ group  : </g1> and </g1>
 0 differences found
 group  : </g1/g2> and </g1/g2>
 0 differences found
-EXIT CODE: 1

@@ -7,4 +7,3 @@ position        d1              d2              difference
 [ 1 1 ]          0               1e-009          1e-009         
 [ 2 0 ]          1e-009          0               1e-009         
 4 differences found
-EXIT CODE: 1
