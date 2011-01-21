@@ -540,8 +540,11 @@ H5O_attr_open_by_name(const H5O_loc_t *loc, const char *name, hid_t dxpl_id)
     } /* end else */
 
 done:
-    if(oh && H5O_unprotect(loc, dxpl_id, oh, H5AC__NO_FLAGS_SET) < 0)
+    if(oh && H5O_unprotect(loc, dxpl_id, oh, H5AC__NO_FLAGS_SET) < 0) {
+        if (ret_value)
+            H5FL_FREE(H5A_t, ret_value);
         HDONE_ERROR(H5E_ATTR, H5E_CANTUNPROTECT, NULL, "unable to release object header")
+     }
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5O_attr_open_by_name() */
