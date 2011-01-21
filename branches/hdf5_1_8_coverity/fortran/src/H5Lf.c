@@ -425,6 +425,8 @@ nh5lget_info_c (hid_t_f *link_loc_id, _fcd link_name, size_t_f *link_namelen,
     *val_size = (size_t_f)link_buff.u.val_size;
 
 done:
+    if(c_link_name)
+        HDfree(c_link_name);
     return ret_value;
 }
 
