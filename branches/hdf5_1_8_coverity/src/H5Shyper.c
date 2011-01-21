@@ -4202,8 +4202,11 @@ H5S_hyper_project_simple_higher(const H5S_t *base_space, H5S_t *new_space)
             prev_span->down = new_span_info;
 
         /* Allocate a new node */
-        if(NULL == (new_span = H5S_hyper_new_span(0, 0, NULL, NULL)))
+        if(NULL == (new_span = H5S_hyper_new_span(0, 0, NULL, NULL))) {
+            if (new_span_info && !prev_span)
+                H5FL_FREE(H5S_hyper_span_info_t, new_span_info);
             HGOTO_ERROR(H5E_DATASPACE, H5E_CANTALLOC, FAIL, "can't allocate hyperslab span")
+         } 
 
         /* Set the span_info information */
         new_span_info->count = 1;
