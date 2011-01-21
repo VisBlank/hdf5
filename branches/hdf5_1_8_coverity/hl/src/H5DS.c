@@ -2048,7 +2048,7 @@ int H5DSget_num_scales(hid_t did,
     hid_t      tid = -1;     /* attribute type ID */
     hid_t      aid = -1;     /* attribute ID */
     int        rank;         /* rank of dataset */
-    hvl_t      *buf;         /* VL buffer to store in the attribute */
+    hvl_t      *buf = NULL;  /* VL buffer to store in the attribute */
     H5I_type_t it;           /* ID type */
     int        nscales;
 
