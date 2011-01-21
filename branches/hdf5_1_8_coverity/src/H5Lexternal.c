@@ -363,6 +363,8 @@ H5L_extern_traverse(const char UNUSED *link_name, hid_t cur_group,
                     H5E_clear_stack(NULL);
                 } /* end if */
             } /* end while */
+            if ((tmp_env_prefix) && !(*tmp_env_prefix))
+                H5MM_free(tmp_env_prefix);
         } /* end if */
     } /* end if */
 
