@@ -27,7 +27,7 @@
 !
 ! NOTES
 !                         *** IMPORTANT ***
-!  If you add a new H5P function you must add the function name to the
+!  If you add a new H5T function you must add the function name to the
 !  Windows dll file 'hdf5_fortrandll.def' in the fortran/src directory.
 !  This is needed for Windows based operating systems.
 !
@@ -55,7 +55,7 @@ CONTAINS
 !  background - Optional background buffer.
 !  plist_id   -	Dataset transfer property list identifier.
 !
-! OUTPUTS.
+! OUTPUTS
 !  buf 	      - Array containing post-conversion values.
 !  hdferr     - error code:
 !                 0 on success and -1 on failure
@@ -75,7 +75,8 @@ CONTAINS
     TYPE(C_PTR)    , INTENT(INOUT), OPTIONAL  :: background
     INTEGER(HID_T) , INTENT(IN)   , OPTIONAL  :: plist_id
 !*****
-    INTEGER(HID_T) :: plist_id_c
+    INTEGER(HID_T) :: plist_id_default
+    TYPE(C_PTR) :: background_default
 
     INTERFACE
        INTEGER FUNCTION h5tconvert_c(src_id, dst_id, nelmts, buf, background, plist_id)
@@ -93,12 +94,13 @@ CONTAINS
        END FUNCTION h5tconvert_c
     END INTERFACE
 
-    plist_id_c = H5P_DEFAULT_F
-    IF(PRESENT(plist_id)) plist_id_c = plist_id
+    plist_id_default = H5P_DEFAULT_F
+    IF(PRESENT(plist_id)) plist_id_default = plist_id
 
-    IF(.NOT.PRESENT(background)) background = C_NULL_PTR
+    background_default = C_NULL_PTR
+    IF(PRESENT(background)) background_default = background
 
-    hdferr = H5Tconvert_c(src_id, dst_id, nelmts, buf, background, plist_id_c)
+    hdferr = H5Tconvert_c(src_id, dst_id, nelmts, buf, background_default, plist_id_default)
 
   END SUBROUTINE h5tconvert_f
 
