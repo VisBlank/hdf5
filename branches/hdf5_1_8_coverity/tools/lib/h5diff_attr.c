@@ -16,6 +16,7 @@
 #include "h5tools.h"
 #include "h5diff.h"
 #include "H5private.h"
+#include "h5tools_utils.h"
 
 /*-------------------------------------------------------------------------
  * Function: diff_attr

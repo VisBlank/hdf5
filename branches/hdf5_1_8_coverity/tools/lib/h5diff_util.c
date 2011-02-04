@@ -17,7 +17,7 @@
 #include "ph5diff.h"
 #include "H5private.h"
 #include "h5tools.h"
-
+#include "h5tools_utils.h"
 
 
 /* global variables */
