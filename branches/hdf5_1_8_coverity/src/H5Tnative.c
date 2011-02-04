@@ -171,6 +171,15 @@ H5T_get_native_type(H5T_t *dtype, H5T_direction_t direction, size_t *struct_alig
     unsigned    i;                  /* Local index variable */
     H5T_t       *ret_value;         /* Return value */
 
+    H5T_t       *memb_type=NULL;    /* Datatype of member */
+    H5T_t       **memb_list=NULL;   /* List of compound member IDs */
+    size_t      *memb_offset=NULL;  /* List of member offsets in compound type, including member size and alignment */
+    char        **comp_mname=NULL;  /* List of member names in compound type */
+    char        *memb_name=NULL;         /* Enum's member name */
+    void        *memb_value=NULL;        /* Enum's member value */
+    void        *tmp_memb_value=NULL;    /* Enum's member value */
+    hsize_t     *dims=NULL;              /* Dimension sizes for array */
+
     FUNC_ENTER_NOAPI(H5T_get_native_type, NULL)
 
     assert(dtype);
@@ -270,12 +279,8 @@ H5T_get_native_type(H5T_t *dtype, H5T_direction_t direction, size_t *struct_alig
 
         case H5T_COMPOUND:
             {
-                H5T_t       *memb_type;     /* Datatype of member */
-                H5T_t       **memb_list;    /* List of compound member IDs */
-                size_t      *memb_offset;   /* List of member offsets in compound type, including member size and alignment */
                 size_t      children_size=0;/* Total size of compound members */
                 size_t      children_st_align=0;    /* The max alignment among compound members.  This'll be the compound alignment */
-                char        **comp_mname;   /* List of member names in compound type */
 
                 if((snmemb = H5T_get_nmembers(dtype))<=0)
                     HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "compound data type doesn't have any member")
@@ -289,6 +294,8 @@ H5T_get_native_type(H5T_t *dtype, H5T_direction_t direction, size_t *struct_alig
                     HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "cannot allocate memory")
 
                 /* Construct child compound type and retrieve a list of their IDs, offsets, total size, and alignment for compound type. */
+                for(i=0; i<nmemb; i++) 
+                    comp_mname[i]=NULL;
                 for(i=0; i<nmemb; i++) {
                     if((memb_type = H5T_get_member_type(dtype, i, H5T_COPY_TRANSIENT))==NULL)
                         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "member type retrieval failed")
@@ -346,12 +353,16 @@ H5T_get_native_type(H5T_t *dtype, H5T_direction_t direction, size_t *struct_alig
 
                     /* Free member names in list */
                     H5MM_xfree(comp_mname[i]);
+                    comp_mname[i]=NULL;
                 }
 
                 /* Free lists for members */
                 H5MM_xfree(memb_list);
+                memb_list=NULL;
                 H5MM_xfree(memb_offset);
+                memb_offset=NULL;
                 H5MM_xfree(comp_mname);
+                comp_mname=NULL;
 
                 ret_value = new_type;
             }
@@ -359,8 +370,6 @@ H5T_get_native_type(H5T_t *dtype, H5T_direction_t direction, size_t *struct_alig
 
         case H5T_ENUM:
             {
-                char        *memb_name;         /* Enum's member name */
-                void        *memb_value, *tmp_memb_value;        /* Enum's member value */
                 hid_t       super_type_id, nat_super_type_id;
 
                 /* Don't need to do anything special for alignment, offset since the ENUM type usually is integer. */
@@ -403,9 +412,12 @@ H5T_get_native_type(H5T_t *dtype, H5T_direction_t direction, size_t *struct_alig
                     if(H5T_enum_insert(new_type, memb_name, memb_value)<0)
                         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "cannot insert member")
                     H5MM_xfree(memb_name);
+                    memb_name=NULL;
                 }
                 H5MM_xfree(memb_value);
+                memb_value=NULL;
                 H5MM_xfree(tmp_memb_value);
+                tmp_memb_value=NULL;
 
                 /* Close base type */
                 if(H5Tclose(nat_super_type_id)<0)
@@ -422,7 +434,6 @@ H5T_get_native_type(H5T_t *dtype, H5T_direction_t direction, size_t *struct_alig
             {
                 int         sarray_rank;        /* Array's rank */
                 unsigned    array_rank;         /* Array's rank */
-                hsize_t     *dims = NULL;       /* Dimension sizes for array */
                 hsize_t     nelems = 1;
                 size_t      super_offset=0;
                 size_t      super_size=0;
@@ -463,6 +474,7 @@ H5T_get_native_type(H5T_t *dtype, H5T_direction_t direction, size_t *struct_alig
                     HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "cannot compute compound offset")
 
                 H5MM_xfree(dims);
+                dims=NULL;
                 ret_value = new_type;
             }
             break;
@@ -516,6 +528,25 @@ done:
         if(new_type)
             if(H5T_close(new_type)<0)
                 HDONE_ERROR(H5E_DATATYPE, H5E_CLOSEERROR, NULL, "unable to release datatype")
+        /* Free lists for members */
+        if(memb_list)
+            H5MM_xfree(memb_list);
+        if(memb_offset)
+            H5MM_xfree(memb_offset);
+        if(comp_mname)
+            for(i=0; i<nmemb; i++) {
+                if(comp_mname[i])
+                    H5MM_xfree(comp_mname[i]);
+            }
+            H5MM_xfree(comp_mname);
+        if(memb_name)
+            H5MM_xfree(memb_name);
+        if(memb_value)
+            H5MM_xfree(memb_value);
+        if(tmp_memb_value)
+            H5MM_xfree(tmp_memb_value);
+        if(dims)
+            H5MM_xfree(dims);
     } /* end if */
 
     FUNC_LEAVE_NOAPI(ret_value)
@@ -777,8 +808,8 @@ H5T_get_native_float(size_t size, H5T_direction_t direction, size_t *struct_alig
             break;
 #endif
         case H5T_NATIVE_FLOAT_MATCH_UNKNOWN:
-        default:
-            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "Unknown native floating-point match")
+        default:   
+            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "Unknown native floating-point match") 
     } /* end switch */
 
     /* Create new native type */
