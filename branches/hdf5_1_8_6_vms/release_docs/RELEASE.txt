@@ -1,4 +1,4 @@
-HDF5 version 1.8.6-pre2 currently under development
+HDF5 version 1.8.6-pre3 currently under development
 ================================================================================
 
 INTRODUCTION
@@ -120,15 +120,11 @@ Bug Fixes since HDF5-1.8.5
     -------------
     - The default number of MPI processes for testing purposes has been 
       changed from 3 to 6.  (AKC - 2010/11/11)
-    - Use this patch in the AIX config file when --enable-parallel is requested:
-        RUNSERIAL=${RUNSERIAL="env LDR_CNTRL=MAXDATA=0x20000000@DSA MP_PROCS=1
-        MP_TASKS_PER_NODE=1 poe"}
-      (AKC - 2010/10/7)
     - Some tests in tools/h5repack may fail in AIX systems when -q32 mode is 
-      used. The error is caused by not requesting enough memory. Use this 
-      patch in the AIX config file: 
-        RUNSERIAL=${RUNSERIAL="env LDR_CNTRL=MAXDATA=0x20000000@DSA"}
-      (AKC - 2010/8/25)
+      used. The error is caused by not requesting enough memory in default.
+      Added "env LDR_CNTRL=MAXDATA=0x20000000@DSA" into the $RUNSERIAL and
+      $RUNPARALLE in the AIX config file so that executables are tested with
+      more memory.  (AKC - 2010/11/11)
     - Removed recognition of the parallel compilers of LAM(hcc) and
       ChMPIon(cmpicc) since we have no access to these two MPI implementations
       and cannot verify their correctness. (AKC - 2010/07/14 - Bug 1921)
@@ -138,6 +134,10 @@ Bug Fixes since HDF5-1.8.5
       
     Library
     -------
+    - Fixed a bug that caused big endian machines to generate corrupt files
+      when using the scale-offset filter with floating point data or fill
+      values.  Note that such datasets will no longer be readable by any
+      by any machine after this patch.  (NAF - 2010/02/02 - Bug 2131)
     - Retrieving a link's name by index in the case where the link is external
       and the file that the link refers to doesn't exist will now fail 
       gracefully rather than cause a segmentation fault. (MAM - 2010/11/17)
@@ -232,12 +232,6 @@ Platforms Tested
 ================
 The following platforms and compilers have been tested for this release.
 
-    AIX 5.3                       xlc 7.0.0.9, 8.0.0.20, 9.0.0.4
-    (LLNL Up)                     xlC 7.0.0.9, 8.0.0.20, 9.0.0.4
-                                  xlf 9.1.0.8, 10.1.0.9, 11.1.0.7
-                                  mpcc_r 7.0.0.9
-                                  mpxlf_r 9.1.0.8
-
     AIX 6.1                       xlc 11.1.0.3
     (NCSA BP)                     xlC 11.1.0.3
                                   xlf 13.1.0.3
@@ -285,10 +279,11 @@ The following platforms and compilers have been tested for this release.
                                   MPICH mpich2-1.0.8 compiled with
                                       gcc 4.1.2 and G95 PGI Fortran 10.4-0
 
-
-    Linux 2.6.16.60-0.42.5 #1     Intel(R) C++ Version 10.1.017
-    SGI Altix SMP ia64            Intel(R) Fortran Itanium(R) Version 10.1.017
-    (cobalt)                      SGI MPI 1.38
+    SGI ProPack 7 Linux           Intel(R) C++ Version 11.1 20100806
+    2.6.32.19-0.3.1.1982.0.PTF-   Intel(R) Fortran Version 11.1 20100806
+    default #1 SMP                SGI MPT 2.01
+    SGI Altix UV
+    (NCSA ember)
 
     SunOS 5.10 32- and 64-bit     Sun C 5.9 Sun OS_sparc Patch 124867-16
     (linew)                       Sun Fortran 95 8.3 Sun OS_sparc Patch 127000-07
@@ -297,12 +292,11 @@ The following platforms and compilers have been tested for this release.
                                   Sun Fortran 95 8.4 SunOS_sparc Patch 128231-05
                                   Sun C++ 5.10 SunOS_sparc 128228-10
 
-    Intel Xeon Linux 2.6.18-      gcc 3.4.6 20060404
+    Intel Xeon Linux 2.6.18-      gcc 4.2.4
     92.1.10.el5_lustre.1.6.6smp-  Intel(R) C++ Version 10.1.017
-    perfctr #2 SMP                Intel(R) Fortran Compiler Version 10.1.017
-    (abe)                         Open MPI 1.2.2
-                                  MVAPICH2-0.9.8p28p2patched-intel-ofed-1.2
-                                      compiled with icc v10.0.026 and ifort 10.1.017
+    perfctr #8 SMP                Intel(R) Fortran Compiler Version 10.1.017
+    (NCSA abe)                    Open MPI 1.3.2
+                                  MVAPICH2-1.5.1_pgi-10.8
 
     Windows XP                    Visual Studio 2008 w/ Intel Fortran 10.1 (project files)
                                   Visual Studio 2008 w/ Intel Fortran 11.1 (cmake)
@@ -362,7 +356,10 @@ The following platforms and compilers have been tested for this release.
     Ubuntu 10.10 2.6.35-22-generic #34-Ubuntu SMP x86_64 GNU/Linux
                                   gcc (Ubuntu/Linaro 4.4.4-14ubuntu5) 4.4.5
                                   GNU Fortran (Ubuntu/Linaro 4.4.4-14ubuntu5) 4.4.5
-
+    
+    OpenVMS Alpha 8.3             HP C V7.3-009
+                                  HP Fortran V8.2-104679-48H9K
+                                  HP C++ V7.3-009
 
 Supported Configuration Features Summary
 ========================================
@@ -385,8 +382,8 @@ Windows XP                           n        y(4)   n(4)     y     y     y
 Windows XP x64                       n        y(4)   n(4)     y     y     y
 Windows Vista                        n        y(4)   n(4)     y     y     y
 Windows Vista x64                    n        y(4)   n(4)     y     y     y
+OpenVMS Alpha                        n        y      n        y     y     n
 Mac OS X 10.6 Intel                  n        y      n        y     y     y
-AIX 5.3 32- and 64-bit               n        y      n        y     y     n
 AIX 6.1 32- and 64-bit               n        y      n        y     y     n
 FreeBSD 6.3-STABLE 32&64 bit         n        y      n        y     y     y
 RedHat EL5 2.6.18-194 i686 GNU (1)W  y        y(2)   y        y     y     y
@@ -405,10 +402,10 @@ Solaris2.10 32-bit                   y       y         y         y
 Solaris2.10 64-bit                   y       y         y         y        
 Windows XP                           y       y(4)      y         n        
 Windows XP x64                       y       y(4)      y         n        
-Windows Vista                        y       y(4)      y         y        
-Windows Vista x64                    y       y(4)      y         y        
+Windows Vista                        y       y(4)      y         y
+Windows Vista x64                    y       y(4)      y         y
+OpenVMS Alpha                        n       n         n         n
 Mac OS X 10.6                        y(5)    n         y         n        
-AIX 5.3 32- and 64-bit               n       n         n         n        
 AIX 6.1 32- and 64-bit               n       n         n         n        
 FreeBSD 6.3-STABLE 32&64 bit         y       n         y         y        
 RedHat EL5 2.6.18-128 i686 GNU (1)W  y       y(2)      y         y        
@@ -432,10 +429,42 @@ SuSe Linux 2.4.21 ia64 Intel      C  y       y         y         n
 
 Known Problems
 ==============
+* Parallel test, t_shapesame in testpar, is rather unstable as it continues to
+  have occasional errors in AIX and quite often in NCSA Abe. It is being built
+  but it is not run automatically in the "make check" command. One would have to
+  run it by hand to see if it works in a particular machine. AKC - 2011/01/28
+
+* Although OpenVMS Alpha is supported, there are several problems with the C
+  test suite - getname.c, lheap.c, lheap.c, mtime.c, and stab.c.  The test
+  suite for h5diff also fails.  These failures are from the tests, not the
+  library.  We have fixed these failures.  But it's too late to put the fixes
+  into this release.  If you install the 1.8.6 library, it should still work
+  despite of these test failures.  If you want the working copy without any
+  test failure, you can request it from us.  SLU - 2011/01/26 
+ 
+* If parallel gmake (e.g., gmake -j 4) is used, the "gmake clean" command
+  sometimes fails in the perform directory due to the attempt to remove the
+  executable of h5perf or h5perf_serial by two "parallel" commands. This error
+  has no consequence on the functionality of the HDF5 library or install. It
+  is fixed in the next release. AKC - 2011/01/25
+
+* While working on the 1.8.6 release of HDF5, a bug was discovered that can
+  occur when reading from a dataset in parallel shortly after it has been
+  written to collectively. The issue was exposed by a new test in the parallel
+  HDF5 test suite, but had existed before that. We believe the problem lies with
+  certain MPI implementations and/or filesystems.
+
+  We have provided a pure MPI test program, as well as a standalone HDF5
+  program, that can be used to determine if this is an issue on your system.
+  They should be run across multiple nodes with a varying number of processes.
+  These programs can be found at:
+  http://www.hdfgroup.org/ftp/HDF5/examples/known_problems/
+
 * The h5diff tool can display garbage values when variable-length strings in 
   a compound type dataset are compared. This also occurs with variable-length 
   string arrays in a compound type dataset. See bug #1989. This will be fixed 
   in the next release. JKM - 2010/11/05
+
 * The AIX --enable-shared setting does not quite work. It can produce a shared 
   library, but there cannot be more than one shared library that is 
   interlinked. This means that the high level APIs will not work which is not 
@@ -463,13 +492,6 @@ Known Problems
   C++ applications/tests. Do not use the enable-cxx configure option. Read all of
   the INSTALL_MINGW.txt file for all restrictions. ADB - 2009/11/11
   
-* Some tests in tools/h5repack may fail in AIX systems when -q32 mode is used.
-  The error is due to insufficient memory requested. Request a large amount
-  of runtime memory by setting the following environment variable for more
-  memory.
-     LDR_CNTRL=MAXDATA=0x20000000@DSA
-  AKC - 2009/10/31
-
 * The PathScale MPI implementation, accessing a Panasas file system, would 
   cause H5Fcreate() with H5F_ACC_EXCL to fail even when the file does not 
   exist. This is due to the MPI_File_open() call failing if the amode has 
