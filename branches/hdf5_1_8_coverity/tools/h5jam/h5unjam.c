@@ -221,7 +221,14 @@ main(int argc, const char *argv[])
 
     }
 
-    res = stat(input_file, &sbuf);
+    ifid = HDopen(input_file,O_RDONLY,0);
+
+    if (ifid < 0) {
+        error_msg("unable to open input HDF5 file \"%s\"\n", input_file);
+        exit(EXIT_FAILURE);
+    }
+
+    res = HDfstat(ifid, &sbuf);
 
     if (res < 0) {
         error_msg("Can't stat file \"%s\"\n", input_file);
@@ -229,13 +236,6 @@ main(int argc, const char *argv[])
     }
 
     fsize = sbuf.st_size;
-
-    ifid = HDopen(input_file,O_RDONLY,0);
-
-    if (ifid < 0) {
-        error_msg("unable to open input HDF5 file \"%s\"\n", input_file);
-        exit(EXIT_FAILURE);
-    }
 
     if (do_delete && (ub_file != NULL)) {
             error_msg("??\"%s\"\n", ub_file);

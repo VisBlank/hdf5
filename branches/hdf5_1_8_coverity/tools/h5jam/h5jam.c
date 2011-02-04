@@ -250,7 +250,7 @@ main (int argc, const char *argv[])
       exit (EXIT_FAILURE);
     }
 
-  res = stat (ub_file, &sbuf);
+  res = HDfstat (ufid, &sbuf);
 
   if (res < 0)
     {
@@ -269,7 +269,7 @@ main (int argc, const char *argv[])
       exit (EXIT_FAILURE);
     }
 
-  res = stat (input_file, &sbuf2);
+  res = HDfstat (h5fid, &sbuf2);
 
   if (res < 0)
     {
@@ -405,7 +405,7 @@ copy_some_to_file (int infid, int outfid, hsize_t startin, hsize_t startout,
 
   if (limit < 0)
     {
-      res = fstat (infid, &sbuf);
+      res = HDfstat (infid, &sbuf);
 
       if (res < 0)
 	{
