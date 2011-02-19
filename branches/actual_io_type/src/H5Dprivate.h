@@ -73,6 +73,7 @@
 #define H5D_XFER_MPIO_CHUNK_OPT_NUM_NAME "mpio_chunk_opt_num"
 #define H5D_XFER_MPIO_CHUNK_OPT_RATIO_NAME "mpio_chunk_opt_ratio"
 #endif /* H5_HAVE_PARALLEL */
+#define H5D_XFER_MPIO_ACTUAL_IO_MODE_NAME "actual_io_mode"
 #define H5D_XFER_EDC_NAME               "err_detect"    /* EDC */
 #define H5D_XFER_FILTER_CB_NAME         "filter_cb"     /* Filter callback function */
 #define H5D_XFER_CONV_CB_NAME           "type_conv_cb"  /* Type conversion callback function */
