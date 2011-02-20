@@ -40,7 +40,6 @@
 #include "H5Iprivate.h"		/* IDs			  		*/
 #include "H5Ppkg.h"		/* Property lists		  	*/
 
-
 /****************/
 /* Local Macros */
 /****************/
@@ -102,8 +101,8 @@
 #define H5D_XFER_MPIO_CHUNK_OPT_RATIO_DEF       H5D_MULTI_CHUNK_IO_COL_THRESHOLD
 
 /* Definitions for actual io mode property. */
-#define H5D_MPIO_ACTUAL_IO_MODE_SIZE            sizeof(H5D_xfer_mpio_actual_io_mode_t)
-#define H5D_MPIO_ACTUAL_IO_MODE_DEF             H5D_MPIO_INDEPENDENT
+#define H5D_XFER_MPIO_ACTUAL_IO_MODE_SIZE            sizeof(H5D_xfer_mpio_actual_io_mode_t)
+#define H5D_XFER_MPIO_ACTUAL_IO_MODE_DEF             H5D_MPIO_INDEPENDENT
 
 /* Definitions for EDC property */
 #define H5D_XFER_EDC_SIZE       sizeof(H5Z_EDC_t)
@@ -209,7 +208,7 @@ H5P_dxfr_reg_prop(H5P_genclass_t *pclass)
     unsigned def_mpio_chunk_opt_ratio = H5D_XFER_MPIO_CHUNK_OPT_RATIO_DEF;
 #endif /* H5_HAVE_PARALLEL */
     
-    H5D_mpio_actual_io_mode_t def_mpio_actual_io_mode = H5D_MPIO_INDEPENDENT;
+    H5D_xfer_mpio_actual_io_mode_t def_mpio_actual_io_mode = H5D_MPIO_INDEPENDENT;
 
     H5Z_EDC_t enable_edc = H5D_XFER_EDC_DEF;            /* Default value for EDC property */
     H5Z_cb_t filter_cb = H5D_XFER_FILTER_CB_DEF;        /* Default value for filter callback */
@@ -286,7 +285,7 @@ H5P_dxfr_reg_prop(H5P_genclass_t *pclass)
 #endif /* H5_HAVE_PARALLEL */
 
     /* Register the actual io mode property. */
-    if(H5P_register_real(pclass, H5D_XFER_ACTUAL_IO_MODE_NAME, H5D_XFER_ACTUAL_IO_MODE_SIZE, &def_mpio_actual_io_mode, NULL, NULL, NULL, NULL, NULL, NULL, NULL) < 0)
+    if(H5P_register_real(pclass, H5D_XFER_MPIO_ACTUAL_IO_MODE_NAME, H5D_XFER_MPIO_ACTUAL_IO_MODE_SIZE, &def_mpio_actual_io_mode, NULL, NULL, NULL, NULL, NULL, NULL, NULL) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class")
 
     /* Register the EDC property */
@@ -1428,13 +1427,13 @@ done:
  */
 
 herr_t
-H5Pget_mpio_actual_io_mode(hid_t plist_id, H5D_xfer_mpio_actual_io_mode *actual_io_mode /*out*/ )
+H5Pget_mpio_actual_io_mode(hid_t plist_id, H5D_xfer_mpio_actual_io_mode_t *actual_io_mode /*out*/ )
 {
     H5P_genplist_t     *plist;
-    herr_t             ret_value=SUCCEED;
+    herr_t ret_value=SUCCEED;   /* return value */
     
     FUNC_ENTER_API(H5Pget_mpio_actual_io_mode, FAIL)
-    H5TRACE2("e","ix", plist_id, actual_io_mode)
+    H5TRACE2("e","ix", plist_id, actual_io_mode);
 
     /* Get the plist structure */
     if(NULL == (plist = H5P_object_verify(plist_id,H5P_DATASET_XFER)))

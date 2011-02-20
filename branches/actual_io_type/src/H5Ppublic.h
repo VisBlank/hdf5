@@ -121,7 +121,7 @@ typedef H5P_prp_cb1_t H5P_prp_close_func_t;
 typedef herr_t (*H5P_iterate_t)(hid_t id, const char *name, void *iter_data);
 
 /* Actual IO mode property */
-typedef enum H5D_xfer_mpio_actual_io_t {
+typedef enum H5D_xfer_mpio_actual_io_mode_t {
     H5D_MPIO_INDEPENDENT = 0,  /* Default */
     H5D_MPIO_COLLECTIVE,
     H5D_MPIO_COLLECTIVE_LINK_CHUNK,
@@ -131,7 +131,7 @@ typedef enum H5D_xfer_mpio_actual_io_t {
     H5D_MPIO_COLLECTIVE_MULTI_NO_OPT_CHUNK_COLLECTIVE,
     H5D_MPIO_COLLECTIVE_MULTI_NO_OPT_CHUNK_MIXED,
     H5D_MPIO_COLLECTIVE_MULTI_NO_OPT_CHUNK_INDEPENDENT,
-}  H5D_xfer_mpio_actual_io_t;
+}  H5D_xfer_mpio_actual_io_mode_t;
 
 /********************/
 /* Public Variables */
