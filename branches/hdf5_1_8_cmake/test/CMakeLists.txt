@@ -175,6 +175,12 @@ ADD_TEST (
         dtransform.h5
         dtypes4.h5
         dtypes5.h5
+        efc0.h5
+        efc1.h5
+        efc2.h5
+        efc3.h5
+        efc4.h5
+        efc5.h5
         extlinks16A00000.h5
         extlinks16A00001.h5
         extlinks16A00002.h5
@@ -254,6 +260,7 @@ SET (H5_TESTS
     filter_fail
     extend
     external
+    efc
     objcopy
     links
     unlink
@@ -286,9 +293,11 @@ SET (H5_TESTS
 )
 
 FOREACH (test ${H5_TESTS})
-    ADD_H5_TEST(${test})
+  ADD_H5_TEST(${test})
+  SET_TESTS_PROPERTIES(${test} PROPERTIES DEPENDS h5test-clear-objects)
 ENDFOREACH (test ${H5_TESTS})
 
+SET_TESTS_PROPERTIES(flush2 PROPERTIES DEPENDS flush1)
 
 ##############################################################################
 ##############################################################################
@@ -405,6 +414,7 @@ IF (HDF5_TEST_VFD)
       filter_fail
       extend
       external
+      efc
       objcopy
       links
       unlink

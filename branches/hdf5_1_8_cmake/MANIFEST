@@ -44,7 +44,6 @@
 ./bin/compile
 ./bin/config.guess
 ./bin/config.sub
-./bin/config_para_ibm_sp.sh 
 ./bin/debug-ohdr			_DO_NOT_DISTRIBUTE_
 ./bin/dependencies
 ./bin/depcomp
@@ -510,6 +509,7 @@
 ./src/H5F.c
 ./src/H5Faccum.c
 ./src/H5Fdbg.c
+./src/H5Fefc.c
 ./src/H5Ffake.c
 ./src/H5Fio.c
 ./src/H5Fmount.c
@@ -804,6 +804,7 @@
 ./test/dt_arith.c
 ./test/dtypes.c
 ./test/dtransform.c
+./test/efc.c
 ./test/enum.c
 ./test/extend.c
 ./test/external.c
@@ -1210,6 +1211,7 @@
 ./tools/testfiles/tgroup-1.ddl
 ./tools/testfiles/tgroup-2.ddl
 ./tools/testfiles/tgroup.h5
+./tools/testfiles/tgrp_comments.ls
 ./tools/testfiles/tgrp_comments.ddl
 ./tools/testfiles/tgrp_comments.h5
 ./tools/testfiles/thlink-1.ddl
@@ -1974,8 +1976,10 @@
 ./config/cmake/hdf5-config.cmake.install.in
 ./config/cmake/hdf5-config-version.cmake.in
 ./config/cmake/HDF5Macros.cmake
+./config/cmake/HDF5UseFortran.cmake
 ./config/cmake/libhdf5.settings.cmake.in
 ./config/cmake/cacheinit.cmake
+./config/cmake/mccacheinit.cmake
 ./config/cmake/CTest.cmake
 ./config/cmake/grepTest.cmake
 ./config/cmake/runTest.cmake
