@@ -54,6 +54,7 @@
 #define FILE23 "tvldtypes3.h5"
 #define FILE24 "tvldtypes4.h5"
 #define FILE25 "tarray1.h5"
+#define FILE25_BIG "tarray1_big.h5"
 #define FILE26 "tarray2.h5"
 #define FILE27 "tarray3.h5"
 #define FILE28 "tarray4.h5"
