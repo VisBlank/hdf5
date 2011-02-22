@@ -38,6 +38,7 @@
 
 
 #define H5C_DO_SANITY_CHECKS		0
+#define H5C_DO_TAGGING_SANITY_CHECKS	1
 #define H5C_DO_EXTREME_SANITY_CHECKS	0
 
 /* This sanity checking constant was picked out of the air.  Increase
@@ -122,7 +123,7 @@ typedef struct H5C_t H5C_t;
 
 #define H5C_CALLBACK__NO_FLAGS_SET		0x0
 #define H5C_CALLBACK__SIZE_CHANGED_FLAG		0x1
-#define H5C_CALLBACK__RENAMED_FLAG		0x2
+#define H5C_CALLBACK__MOVED_FLAG		0x2
 
 /* Actions that can be reported to 'notify' client callback */
 typedef enum H5C_notify_action_t {
@@ -137,8 +138,7 @@ typedef enum H5C_notify_action_t {
 typedef void *(*H5C_load_func_t)(H5F_t *f,
                                  hid_t dxpl_id,
                                  haddr_t addr,
-                                 const void *udata1,
-                                 void *udata2);
+                                 void *udata);
 typedef herr_t (*H5C_flush_func_t)(H5F_t *f,
                                    hid_t dxpl_id,
                                    hbool_t dest,
@@ -293,10 +293,10 @@ typedef herr_t (*H5C_log_flush_func_t)(H5C_t * cache_ptr,
  *
  * 		This field is set to FALSE in the protect call, and may
  * 		be set to TRUE by the
- * 		H5C_mark_pinned_or_protected_entry_dirty()
+ * 		H5C_mark_entry_dirty()
  * 		call at an time prior to the unprotect call.
  *
- * 		The H5C_mark_pinned_or_protected_entry_dirty() call exists
+ * 		The H5C_mark_entry_dirty() call exists
  * 		as a convenience function for the fractal heap code which
  * 		may not know if an entry is protected or pinned, but knows
  * 		that is either protected or pinned.  The dirtied field was
@@ -382,6 +382,14 @@ typedef herr_t (*H5C_log_flush_func_t)(H5C_t * cache_ptr,
  *		entry is unprotected, and the dirtied flag is not set in
  *		the unprotect, the entry's is_dirty flag is reset by flushing
  *		it with the H5C__FLUSH_CLEAR_ONLY_FLAG.
+ *
+ * flush_immediately:  Boolean flag used only in Phdf5 -- and then only 
+ *		for H5AC_METADATA_WRITE_STRATEGY__DISTRIBUTED.
+ *
+ *		When a destributed metadata write is triggered at a 
+ *		sync point, this field is used to mark entries that 
+ *		must be flushed before leaving the sync point.  At all
+ *		other times, this field should be set to FALSE.
  *
  * flush_in_progress:  Boolean flag that is set to true iff the entry
  * 		is in the process of being flushed.  This allows the cache
@@ -505,6 +513,37 @@ typedef herr_t (*H5C_log_flush_func_t)(H5C_t * cache_ptr,
  *		there is no previous item, it should be NULL.
  *
  *
+ * Fields supporting metadata journaling:
+ *
+ * last_trans:	unit64_t containing the ID of the last transaction in
+ * 		which this entry was dirtied.  If journaling is disabled,
+ * 		or if the entry has never been dirtied in a transaction,
+ * 		this field should be set to zero.  Once we notice that
+ * 		the specified transaction has made it to disk, we will
+ * 		reset this field to zero as well.
+ *
+ * 		We must maintain this field, as to avoid messages from
+ * 		the future, we must not flush a dirty entry to disk
+ * 		until the last transaction in which it was dirtied
+ * 		has made it to disk in the journal file.
+ *
+ * trans_next:  Next pointer in the entries modified in the current
+ * 		transaction list.  This field should always be null
+ * 		unless journaling is enabled, the entry is dirty,
+ * 		and last_trans field contains the current transaction
+ * 		number.  Even if all these conditions are fulfilled,
+ * 		the field will still be NULL if this is the last
+ * 		entry on the list.
+ *
+ * trans_prev:  Previous pointer in the entries modified in the current
+ * 		transaction list.  This field should always be null
+ * 		unless journaling is enabled, the entry is dirty,
+ * 		and last_trans field contains the current transaction
+ * 		number.  Even if all these conditions are fulfilled,
+ * 		the field will still be NULL if this is the first
+ * 		entry on the list.
+ *
+ *
  * Cache entry stats collection fields:
  *
  * These fields should only be compiled in when both H5C_COLLECT_CACHE_STATS
@@ -539,6 +578,7 @@ typedef struct H5C_cache_entry_t
     haddr_t			addr;
     size_t			size;
     const H5C_class_t *		type;
+    haddr_t		    tag;
     hbool_t			is_dirty;
     hbool_t			dirtied;
     hbool_t			is_protected;
@@ -549,6 +589,7 @@ typedef struct H5C_cache_entry_t
     hbool_t			flush_marker;
 #ifdef H5_HAVE_PARALLEL
     hbool_t			clear_on_unprotect;
+    hbool_t		flush_immediately;
 #endif /* H5_HAVE_PARALLEL */
     hbool_t			flush_in_progress;
     hbool_t			destroy_in_progress;
@@ -963,7 +1004,6 @@ typedef struct H5C_auto_size_ctl_t
  * 	H5C__SET_FLUSH_MARKER_FLAG
  * 	H5C__DELETED_FLAG
  * 	H5C__DIRTIED_FLAG
- * 	H5C__SIZE_CHANGED_FLAG
  * 	H5C__PIN_ENTRY_FLAG
  * 	H5C__UNPIN_ENTRY_FLAG
  * 	H5C__FREE_FILE_SPACE_FLAG
@@ -993,16 +1033,30 @@ typedef struct H5C_auto_size_ctl_t
 #define H5C__SET_FLUSH_MARKER_FLAG		0x0001
 #define H5C__DELETED_FLAG			0x0002
 #define H5C__DIRTIED_FLAG			0x0004
-#define H5C__SIZE_CHANGED_FLAG			0x0008
-#define H5C__PIN_ENTRY_FLAG			0x0010
-#define H5C__UNPIN_ENTRY_FLAG			0x0020
-#define H5C__FLUSH_INVALIDATE_FLAG		0x0040
-#define H5C__FLUSH_CLEAR_ONLY_FLAG		0x0080
-#define H5C__FLUSH_MARKED_ENTRIES_FLAG		0x0100
-#define H5C__FLUSH_IGNORE_PROTECTED_FLAG	0x0200
-#define H5C__READ_ONLY_FLAG			0x0400
+#define H5C__PIN_ENTRY_FLAG			0x0008
+#define H5C__UNPIN_ENTRY_FLAG			0x0010
+#define H5C__FLUSH_INVALIDATE_FLAG		0x0020
+#define H5C__FLUSH_CLEAR_ONLY_FLAG		0x0040
+#define H5C__FLUSH_MARKED_ENTRIES_FLAG		0x0080
+#define H5C__FLUSH_IGNORE_PROTECTED_FLAG	0x0100
+#define H5C__READ_ONLY_FLAG			0x0200
 #define H5C__FREE_FILE_SPACE_FLAG		0x0800
 #define H5C__TAKE_OWNERSHIP_FLAG		0x1000
+
+#ifdef H5_HAVE_PARALLEL
+H5_DLL herr_t H5C_apply_candidate_list(H5F_t * f,
+                                       hid_t primary_dxpl_id,
+                                       hid_t secondary_dxpl_id,
+                                       H5C_t * cache_ptr,
+                                       int num_candidates,
+                                       haddr_t * candidates_list_ptr,
+                                       int mpi_rank,
+                                       int mpi_size);
+
+H5_DLL herr_t H5C_construct_candidate_list__clean_cache(H5C_t * cache_ptr);
+
+H5_DLL herr_t H5C_construct_candidate_list__min_clean(H5C_t * cache_ptr);
+#endif /* H5_HAVE_PARALLEL */
 
 H5_DLL H5C_t * H5C_create(size_t                     max_cache_size,
                           size_t                     min_clean_size,
@@ -1086,13 +1140,9 @@ H5_DLL herr_t H5C_mark_entries_as_clean(H5F_t *  f,
                                         int32_t  ce_array_len,
                                         haddr_t *ce_array_ptr);
 
-H5_DLL herr_t H5C_mark_pinned_entry_dirty(void *  thing,
-					  hbool_t size_changed,
-					  size_t  new_size);
+H5_DLL herr_t H5C_mark_entry_dirty(void *thing);
 
-H5_DLL herr_t H5C_mark_pinned_or_protected_entry_dirty(void *thing);
-
-H5_DLL herr_t H5C_rename_entry(H5C_t *             cache_ptr,
+H5_DLL herr_t H5C_move_entry(H5C_t *             cache_ptr,
                                const H5C_class_t * type,
                                haddr_t             old_addr,
                                haddr_t             new_addr);
@@ -1104,15 +1154,14 @@ H5_DLL herr_t H5C_create_flush_dependency(void *parent_thing, void *child_thing)
 H5_DLL void * H5C_protect(H5F_t *             f,
                           hid_t               primary_dxpl_id,
                           hid_t               secondary_dxpl_id,
-                          const H5C_class_t * type,
+			  const H5C_class_t * type,
                           haddr_t             addr,
-                          const void *        udata1,
-                          void *              udata2,
-			  unsigned            flags);
+                          void *              udata,
+                          unsigned            flags);
 
 H5_DLL herr_t H5C_reset_cache_hit_rate_stats(H5C_t * cache_ptr);
 
-H5_DLL herr_t H5C_resize_pinned_entry(void *thing, size_t new_size);
+H5_DLL herr_t H5C_resize_entry(void *thing, size_t new_size);
 
 H5_DLL herr_t H5C_set_cache_auto_resize_config(H5C_t *cache_ptr,
                                                H5C_auto_size_ctl_t *config_ptr);
@@ -1122,10 +1171,6 @@ H5_DLL herr_t H5C_set_evictions_enabled(H5C_t *cache_ptr,
 
 H5_DLL herr_t H5C_set_prefix(H5C_t * cache_ptr, char * prefix);
 
-H5_DLL herr_t H5C_set_skip_flags(H5C_t * cache_ptr,
-                                 hbool_t skip_file_checks,
-                                 hbool_t skip_dxpl_id_checks);
-
 H5_DLL herr_t H5C_set_trace_file_ptr(H5C_t * cache_ptr,
 		                     FILE * trace_file_ptr);
 
@@ -1134,6 +1179,9 @@ H5_DLL herr_t H5C_stats(H5C_t * cache_ptr,
                         hbool_t display_detailed_stats);
 
 H5_DLL void H5C_stats__reset(H5C_t * cache_ptr);
+
+H5_DLL herr_t H5C_dump_cache(H5C_t * cache_ptr,
+                             const char *  cache_name);
 
 H5_DLL herr_t H5C_unpin_entry(void *thing);
 
@@ -1145,11 +1193,14 @@ H5_DLL herr_t H5C_unprotect(H5F_t *             f,
                             const H5C_class_t * type,
                             haddr_t             addr,
                             void *              thing,
-                            unsigned int        flags,
-                            size_t              new_size);
+                            unsigned int        flags);
 
 H5_DLL herr_t H5C_validate_resize_config(H5C_auto_size_ctl_t * config_ptr,
                                          unsigned int tests);
+
+H5_DLL herr_t H5C_ignore_tags(H5C_t * cache_ptr);
+
+H5_DLL void H5C_retag_copied_metadata(H5C_t * cache_ptr, haddr_t metadata_tag);
 
 #endif /* !_H5Cprivate_H */
 

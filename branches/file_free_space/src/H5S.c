@@ -287,11 +287,11 @@ H5S_extent_release(H5S_extent_t *extent)
     assert(extent);
 
     /* Release extent */
-    if(extent->type==H5S_SIMPLE) {
+    if(extent->type == H5S_SIMPLE) {
         if(extent->size)
-            H5FL_ARR_FREE(hsize_t,extent->size);
+            extent->size = H5FL_ARR_FREE(hsize_t, extent->size);
         if(extent->max)
-            H5FL_ARR_FREE(hsize_t,extent->max);
+            extent->max = H5FL_ARR_FREE(hsize_t, extent->max);
     } /* end if */
 
 done:
@@ -355,7 +355,7 @@ done:
 herr_t
 H5Sclose(hid_t space_id)
 {
-    herr_t ret_value=SUCCEED;   /* Return value */
+    herr_t ret_value = SUCCEED;   /* Return value */
 
     FUNC_ENTER_API(H5Sclose, FAIL)
     H5TRACE1("e", "i", space_id);
@@ -365,12 +365,12 @@ H5Sclose(hid_t space_id)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataspace")
 
     /* When the reference count reaches zero the resources are freed */
-    if (H5I_dec_ref(space_id, TRUE) < 0)
-        HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "problem freeing id")
+    if(H5I_dec_app_ref(space_id) < 0)
+        HGOTO_ERROR(H5E_DATASPACE, H5E_CANTDEC, FAIL, "problem freeing id")
 
 done:
     FUNC_LEAVE_API(ret_value)
-}
+} /* end H5Sclose() */
 
 
 /*-------------------------------------------------------------------------
@@ -1056,7 +1056,7 @@ H5S_read(const H5O_loc_t *loc, hid_t dxpl_id)
 done:
     if(ret_value == NULL) {
         if(ds != NULL)
-            (void)H5FL_FREE(H5S_t, ds);
+            ds = H5FL_FREE(H5S_t, ds);
     } /* end if */
 
     FUNC_LEAVE_NOAPI(ret_value)
@@ -1617,7 +1617,7 @@ H5S_decode(const unsigned char *buf)
 	HGOTO_ERROR(H5E_DATASPACE, H5E_CANTCOPY, NULL, "can't copy object")
     if(H5S_extent_release(extent) < 0)
         HGOTO_ERROR(H5E_RESOURCE, H5E_CANTDELETE, NULL, "can't release previous dataspace")
-    (void)H5FL_FREE(H5S_extent_t, extent);
+    extent = H5FL_FREE(H5S_extent_t, extent);
 
     /* Initialize to "all" selection. Deserialization relies on valid existing selection. */
     if(H5S_select_all(ds, FALSE) < 0)

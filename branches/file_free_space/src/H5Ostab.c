@@ -44,7 +44,7 @@ static size_t H5O_stab_size(const H5F_t *f, hbool_t disable_shared, const void *
 static herr_t H5O_stab_free(void *_mesg);
 static herr_t H5O_stab_delete(H5F_t *f, hid_t dxpl_id, H5O_t *open_oh, void *_mesg);
 static void *H5O_stab_copy_file(H5F_t *file_src, void *native_src,
-    H5F_t *file_dst, hbool_t *recompute_size, H5O_copy_t *cpy_info, void *udata,
+    H5F_t *file_dst, hbool_t *recompute_size, H5O_copy_t *cpy_info, void *_udata,
     hid_t dxpl_id);
 static herr_t H5O_stab_post_copy_file(const H5O_loc_t *src_oloc, const void *mesg_src, H5O_loc_t *dst_oloc,
     void *mesg_dst, hid_t dxpl_id, H5O_copy_t *cpy_info);
@@ -120,7 +120,7 @@ H5O_stab_decode(H5F_t *f, hid_t UNUSED dxpl_id, H5O_t UNUSED *open_oh,
 done:
     if(ret_value == NULL) {
         if(stab != NULL)
-            (void)H5FL_FREE(H5O_stab_t,stab);
+            stab = H5FL_FREE(H5O_stab_t, stab);
     } /* end if */
 
     FUNC_LEAVE_NOAPI(ret_value)
@@ -253,7 +253,7 @@ H5O_stab_free(void *mesg)
 
     HDassert(mesg);
 
-    (void)H5FL_FREE(H5O_stab_t, mesg);
+    mesg = H5FL_FREE(H5O_stab_t, mesg);
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5O_stab_free() */
@@ -307,11 +307,12 @@ done:
  */
 static void *
 H5O_stab_copy_file(H5F_t *file_src, void *native_src, H5F_t *file_dst,
-    hbool_t UNUSED *recompute_size, H5O_copy_t UNUSED *cpy_info, void UNUSED *udata,
+    hbool_t UNUSED *recompute_size, H5O_copy_t UNUSED *cpy_info, void *_udata,
     hid_t dxpl_id)
 {
     H5O_stab_t          *stab_src = (H5O_stab_t *) native_src;
     H5O_stab_t          *stab_dst = NULL;
+    H5G_copy_file_ud_t  *udata = (H5G_copy_file_ud_t *)_udata;
     size_t              size_hint;              /* Local heap initial size */
     void                *ret_value;             /* Return value */
 
@@ -329,9 +330,20 @@ H5O_stab_copy_file(H5F_t *file_src, void *native_src, H5F_t *file_dst,
     if(H5HL_get_size(file_src, dxpl_id, stab_src->heap_addr, &size_hint) < 0)
 	HGOTO_ERROR(H5E_SYM, H5E_CANTGETSIZE, NULL, "can't query local heap size")
 
+    /* Set copy metadata tag */
+    H5_BEGIN_TAG(dxpl_id, H5AC__COPIED_TAG, NULL);
+
     /* Create components of symbol table message */
     if(H5G_stab_create_components(file_dst, stab_dst, size_hint, dxpl_id) < 0)
 	HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, NULL, "can't create symbol table components")
+
+    /* Reset metadata tag */
+    H5_END_TAG(NULL);
+
+    /* Cache stab in udata */
+    udata->cache_type = H5G_CACHED_STAB;
+    udata->cache.stab.btree_addr = stab_dst->btree_addr;
+    udata->cache.stab.heap_addr = stab_dst->heap_addr;
 
     /* Set return value */
     ret_value = stab_dst;
@@ -339,7 +351,7 @@ H5O_stab_copy_file(H5F_t *file_src, void *native_src, H5F_t *file_dst,
 done:
     if(!ret_value)
         if(stab_dst)
-            (void)H5FL_FREE(H5O_stab_t, stab_dst);
+            stab_dst = H5FL_FREE(H5O_stab_t, stab_dst);
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5O_stab_copy_file() */

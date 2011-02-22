@@ -500,7 +500,7 @@ H5HF_hdr_create(H5F_t *f, hid_t dxpl_id, const H5HF_create_t *cparam)
 	HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, HADDR_UNDEF, "file allocation failed for fractal heap header")
 
     /* Cache the new fractal heap header */
-    if(H5AC_set(f, dxpl_id, H5AC_FHEAP_HDR, hdr->heap_addr, hdr, H5AC__NO_FLAGS_SET) < 0)
+    if(H5AC_insert_entry(f, dxpl_id, H5AC_FHEAP_HDR, hdr->heap_addr, hdr, H5AC__NO_FLAGS_SET) < 0)
 	HGOTO_ERROR(H5E_HEAP, H5E_CANTINSERT, HADDR_UNDEF, "can't add fractal heap header to cache")
 
     /* Set address of heap header to return */
@@ -513,6 +513,54 @@ done:
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5HF_hdr_create() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5HF_hdr_protect
+ *
+ * Purpose:	Convenience wrapper around H5AC_protect on an indirect block
+ *
+ * Return:	Pointer to indirect block on success, NULL on failure
+ *
+ * Programmer:	Quincey Koziol
+ *		koziol@hdfgroup.org
+ *		May  5 2010
+ *
+ *-------------------------------------------------------------------------
+ */
+H5HF_hdr_t *
+H5HF_hdr_protect(H5F_t *f, hid_t dxpl_id, haddr_t addr, H5AC_protect_t rw)
+{
+    H5HF_hdr_cache_ud_t cache_udata;    /* User-data for callback */
+    H5HF_hdr_t *hdr;                    /* Fractal heap header */
+    H5HF_hdr_t *ret_value;              /* Return value */
+
+    FUNC_ENTER_NOAPI_NOINIT(H5HF_hdr_protect)
+
+    /* Check arguments */
+    HDassert(f);
+    HDassert(H5F_addr_defined(addr));
+
+    /* Set up userdata for protect call */
+    cache_udata.f = f;
+    cache_udata.dxpl_id = dxpl_id;
+
+    /* Lock the heap header into memory */
+    if(NULL == (hdr = (H5HF_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_FHEAP_HDR, addr, &cache_udata, rw)))
+        HGOTO_ERROR(H5E_HEAP, H5E_CANTPROTECT, NULL, "unable to protect fractal heap header")
+
+    /* Set the header's address */
+    hdr->heap_addr = addr;
+
+    /* Update header's file pointer */
+    hdr->f = f;
+
+    /* Set the return value */
+    ret_value = hdr;
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5HF_hdr_protect() */
 
 
 /*-------------------------------------------------------------------------
@@ -670,8 +718,14 @@ H5HF_hdr_dirty(H5HF_hdr_t *hdr)
     /* Sanity check */
     HDassert(hdr);
 
+    /* Resize pinned header in cache if I/O filter is present. */
+    if(hdr->filter_len > 0) {
+        if(H5AC_resize_entry(hdr, (size_t)hdr->heap_size) < 0)
+            HGOTO_ERROR(H5E_HEAP, H5E_CANTRESIZE, FAIL, "unable to resize fractal heap header")
+    } /* end if */
+
     /* Mark header as dirty in cache */
-    if(H5AC_mark_pinned_or_protected_entry_dirty(hdr) < 0)
+    if(H5AC_mark_entry_dirty(hdr) < 0)
         HGOTO_ERROR(H5E_HEAP, H5E_CANTMARKDIRTY, FAIL, "unable to mark fractal heap header as dirty")
 
 done:

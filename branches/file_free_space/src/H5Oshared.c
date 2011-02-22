@@ -256,12 +256,12 @@ H5O_shared_link_adj(H5F_t *f, hid_t dxpl_id, H5O_t *open_oh,
              * is possible, for example, if an attribute's datatype is shared in
              * the same object header the attribute is in.  Adjust the link
              * count directly. */
-            unsigned oh_flags = H5AC__NO_FLAGS_SET; /* This is used only to satisfy H5O_link_oh */
+            hbool_t deleted = FALSE; /* This is used only to satisfy H5O_link_oh */
 
-            if(H5O_link_oh(f, adjust, dxpl_id, open_oh, &oh_flags) < 0)
+            if(H5O_link_oh(f, adjust, dxpl_id, open_oh, &deleted) < 0)
                 HGOTO_ERROR(H5E_OHDR, H5E_LINKCOUNT, FAIL, "unable to adjust shared object link count")
 
-            HDassert(!(oh_flags & H5AC__DELETED_FLAG));
+            HDassert(!deleted);
         } else
             /* The shared message is in another object header */
             if(H5O_link(&oloc, adjust, dxpl_id) < 0)
@@ -612,7 +612,8 @@ H5O_shared_copy_file(H5F_t UNUSED *file_src, H5F_t *file_dst,
         dst_oloc.file = file_dst;
         src_oloc.file = shared_src->file;
         src_oloc.addr = shared_src->u.loc.oh_addr;
-        if(H5O_copy_header_map(&src_oloc, &dst_oloc, dxpl_id, cpy_info, FALSE) < 0)
+        if(H5O_copy_header_map(&src_oloc, &dst_oloc, dxpl_id, cpy_info, FALSE,
+                NULL, NULL) < 0)
             HGOTO_ERROR(H5E_OHDR, H5E_CANTCOPY, FAIL, "unable to copy object")
 
         /* Set up destination message's shared info */
@@ -623,8 +624,16 @@ H5O_shared_copy_file(H5F_t UNUSED *file_src, H5F_t *file_dst,
         /* Message is always shared in heap in dest. file because the dest.
          *      object header doesn't quite exist yet - JML
          */
+
+        /* Set copied metadata tag */
+        H5_BEGIN_TAG(dxpl_id, H5AC__COPIED_TAG, FAIL);
+
         if(H5SM_try_share(file_dst, dxpl_id, NULL, mesg_type->id, _native_dst, NULL) < 0)
             HGOTO_ERROR(H5E_OHDR, H5E_WRITEERROR, FAIL, "unable to determine if message should be shared")
+
+        /* Reset metadata tag */
+        H5_END_TAG(FAIL);
+
     } /* end else */
 
 done:

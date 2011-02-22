@@ -34,7 +34,6 @@
 /* Headers */
 /***********/
 #include "H5private.h"		/* Generic Functions			*/
-#include "H5ACprivate.h"	/* Metadata cache			*/
 #include "H5Dpkg.h"		/* Dataset functions			*/
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5FLprivate.h"	/* Free Lists                           */
@@ -333,18 +332,18 @@ H5D_fill(const void *fill, const H5T_t *fill_type, void *buf,
     } /* end else */
 
 done:
-    if(src_id != (-1) && H5I_dec_ref(src_id, FALSE) < 0)
+    if(src_id != (-1) && H5I_dec_ref(src_id) < 0)
         HDONE_ERROR(H5E_DATASET, H5E_CANTFREE, FAIL, "Can't decrement temporary datatype ID")
-    if(dst_id != (-1) && H5I_dec_ref(dst_id, FALSE) < 0)
+    if(dst_id != (-1) && H5I_dec_ref(dst_id) < 0)
         HDONE_ERROR(H5E_DATASET, H5E_CANTFREE, FAIL, "Can't decrement temporary datatype ID")
     if(tmp_buf)
-        (void)H5FL_BLK_FREE(type_conv, tmp_buf);
+        tmp_buf = H5FL_BLK_FREE(type_conv, tmp_buf);
     if(elem_wb && H5WB_unwrap(elem_wb) < 0)
         HDONE_ERROR(H5E_ATTR, H5E_CLOSEERROR, FAIL, "can't close wrapped buffer")
     if(bkg_elem_wb && H5WB_unwrap(bkg_elem_wb) < 0)
         HDONE_ERROR(H5E_ATTR, H5E_CLOSEERROR, FAIL, "can't close wrapped buffer")
     if(bkg_buf)
-        (void)H5FL_BLK_FREE(type_conv, bkg_buf);
+        bkg_buf = H5FL_BLK_FREE(type_conv, bkg_buf);
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5D_fill() */
@@ -364,7 +363,6 @@ done:
  */
 herr_t
 H5D_fill_init(H5D_fill_buf_info_t *fb_info, void *caller_fill_buf,
-    hbool_t alloc_vl_during_refill,
     H5MM_allocate_t alloc_func, void *alloc_info,
     H5MM_free_t free_func, void *free_info,
     const H5O_fill_t *fill, const H5T_t *dset_type, hid_t dset_type_id,
@@ -387,7 +385,6 @@ H5D_fill_init(H5D_fill_buf_info_t *fb_info, void *caller_fill_buf,
     fb_info->fill = fill;
     fb_info->file_type = dset_type;
     fb_info->file_tid = dset_type_id;
-    fb_info->alloc_vl_during_refill = alloc_vl_during_refill;
     fb_info->fill_alloc_func = alloc_func;
     fb_info->fill_alloc_info = alloc_info;
     fb_info->fill_free_func = free_func;
@@ -435,16 +432,12 @@ H5D_fill_init(H5D_fill_buf_info_t *fb_info, void *caller_fill_buf,
                 fb_info->use_caller_fill_buf = TRUE;
             } /* end if */
             else {
-                if(alloc_vl_during_refill)
-                    fb_info->fill_buf = NULL;
-                else {
-                    if(alloc_func)
-                        fb_info->fill_buf = alloc_func(fb_info->fill_buf_size, alloc_info);
-                    else
-                        fb_info->fill_buf = H5FL_BLK_MALLOC(non_zero_fill, fb_info->fill_buf_size);
-                    if(NULL == fb_info->fill_buf)
-                        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed for fill buffer")
-                } /* end else */
+                if(alloc_func)
+                    fb_info->fill_buf = alloc_func(fb_info->fill_buf_size, alloc_info);
+                else
+                    fb_info->fill_buf = H5FL_BLK_MALLOC(non_zero_fill, fb_info->fill_buf_size);
+                if(NULL == fb_info->fill_buf)
+                    HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed for fill buffer")
             } /* end else */
 
             /* Get the datatype conversion path for this operation */
@@ -571,22 +564,14 @@ herr_t
 H5D_fill_refill_vl(H5D_fill_buf_info_t *fb_info, size_t nelmts, hid_t dxpl_id)
 {
     herr_t	ret_value = SUCCEED;	/* Return value */
+    void * buf = NULL;              /* Temporary fill buffer */
 
     FUNC_ENTER_NOAPI(H5D_fill_refill_vl, FAIL)
 
     /* Check args */
     HDassert(fb_info);
     HDassert(fb_info->has_vlen_fill_type);
-
-    /* Check if we should allocate the fill buffer now */
-    if(fb_info->alloc_vl_during_refill) {
-        if(fb_info->fill_alloc_func)
-            fb_info->fill_buf = fb_info->fill_alloc_func(fb_info->fill_buf_size, fb_info->fill_alloc_info);
-        else
-            fb_info->fill_buf = H5FL_BLK_MALLOC(non_zero_fill, fb_info->fill_buf_size);
-        if(NULL == fb_info->fill_buf)
-            HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed for fill buffer")
-    } /* end if */
+    HDassert(fb_info->fill_buf);
 
     /* Make a copy of the (disk-based) fill value into the buffer */
     HDmemcpy(fb_info->fill_buf, fb_info->fill->buf, fb_info->file_elmt_size);
@@ -600,17 +585,46 @@ H5D_fill_refill_vl(H5D_fill_buf_info_t *fb_info, size_t nelmts, hid_t dxpl_id)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTCONVERT, FAIL, "data type conversion failed")
 
     /* Replicate the fill value into the cached buffer */
-    H5V_array_fill(fb_info->fill_buf, fb_info->fill_buf, fb_info->mem_elmt_size, nelmts);
+    if(nelmts > 1)
+        H5V_array_fill((void *)((unsigned char *)fb_info->fill_buf + fb_info->mem_elmt_size), fb_info->fill_buf, fb_info->mem_elmt_size, (nelmts - 1));
 
     /* Reset the entire background buffer, if necessary */
     if(H5T_path_bkg(fb_info->mem_to_dset_tpath))
         HDmemset(fb_info->bkg_buf, 0, fb_info->bkg_buf_size);
+
+    /* Make a copy of the fill buffer so we can free dynamic elements after conversion */
+    if(fb_info->fill_alloc_func)
+        buf = fb_info->fill_alloc_func(fb_info->fill_buf_size, fb_info->fill_alloc_info);
+    else
+        buf = H5FL_BLK_MALLOC(non_zero_fill, fb_info->fill_buf_size);
+    if(!buf)
+        HGOTO_ERROR(H5E_DATASET, H5E_CANTALLOC, FAIL, "memory allocation failed for temporary fill buffer")
+
+    HDmemcpy(buf, fb_info->fill_buf, fb_info->fill_buf_size);
 
     /* Type convert the dataset buffer, to copy any VL components */
     if(H5T_convert(fb_info->mem_to_dset_tpath, fb_info->mem_tid, fb_info->file_tid, nelmts, (size_t)0, (size_t)0, fb_info->fill_buf, fb_info->bkg_buf, dxpl_id) < 0)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTCONVERT, FAIL, "data type conversion failed")
 
 done:
+    if(buf) {
+        /* Free dynamically allocated VL elements in fill buffer */
+        if(fb_info->fill->type) {
+            if(H5T_vlen_reclaim_elmt(buf, fb_info->fill->type, dxpl_id) < 0)
+                HDONE_ERROR(H5E_DATASET, H5E_CANTFREE, FAIL, "can't reclaim vlen element")
+        } /* end if */
+        else {
+            if(H5T_vlen_reclaim_elmt(buf, fb_info->mem_type, dxpl_id) < 0)
+                HDONE_ERROR(H5E_DATASET, H5E_CANTFREE, FAIL, "can't reclaim vlen element")
+        } /* end else */
+
+        /* Free temporary fill buffer */
+        if(fb_info->fill_free_func)
+            fb_info->fill_free_func(buf, fb_info->fill_free_info);
+        else
+            buf = H5FL_BLK_FREE(non_zero_fill, buf);
+    } /* end if */
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5D_fill_refill_vl() */
 
@@ -642,9 +656,9 @@ H5D_fill_release(H5D_fill_buf_info_t *fb_info)
             fb_info->fill_free_func(fb_info->fill_buf, fb_info->fill_free_info);
         else {
             if(fb_info->fill->buf)
-                (void)H5FL_BLK_FREE(non_zero_fill, fb_info->fill_buf);
+                fb_info->fill_buf = H5FL_BLK_FREE(non_zero_fill, fb_info->fill_buf);
             else
-                (void)H5FL_BLK_FREE(zero_fill, fb_info->fill_buf);
+                fb_info->fill_buf = H5FL_BLK_FREE(zero_fill, fb_info->fill_buf);
         } /* end else */
         fb_info->fill_buf = NULL;
     } /* end if */
@@ -679,11 +693,11 @@ H5D_fill_term(H5D_fill_buf_info_t *fb_info)
     /* Free other resources for vlen fill values */
     if(fb_info->has_vlen_fill_type) {
         if(fb_info->mem_tid > 0)
-            H5I_dec_ref(fb_info->mem_tid, FALSE);
+            H5I_dec_ref(fb_info->mem_tid);
         else if(fb_info->mem_type)
             H5T_close(fb_info->mem_type);
         if(fb_info->bkg_buf)
-            (void)H5FL_BLK_FREE(type_conv, fb_info->bkg_buf);
+            fb_info->bkg_buf = H5FL_BLK_FREE(type_conv, fb_info->bkg_buf);
     } /* end if */
 
     FUNC_LEAVE_NOAPI(SUCCEED)

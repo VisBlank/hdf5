@@ -159,7 +159,7 @@ H5O_ainfo_decode(H5F_t *f, hid_t UNUSED dxpl_id, H5O_t UNUSED *open_oh,
 
 done:
     if(ret_value == NULL && ainfo != NULL)
-        (void)H5FL_FREE(H5O_ainfo_t, ainfo);
+        ainfo = H5FL_FREE(H5O_ainfo_t, ainfo);
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5O_ainfo_decode() */
@@ -314,7 +314,7 @@ H5O_ainfo_free(void *mesg)
 
     HDassert(mesg);
 
-    (void)H5FL_FREE(H5O_ainfo_t, mesg);
+    mesg = H5FL_FREE(H5O_ainfo_t, mesg);
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5O_ainfo_free() */
@@ -427,9 +427,15 @@ H5O_ainfo_copy_file(H5F_t *file_src, void *mesg_src, H5F_t *file_dst,
 
     if(H5F_addr_defined(ainfo_src->fheap_addr)) {
         /* copy dense attribute */
+        
+        /* Set copied metadata tag */
+        H5_BEGIN_TAG(dxpl_id, H5AC__COPIED_TAG, NULL);
 
         if(H5A_dense_create(file_dst, dxpl_id, ainfo_dst) < 0)
             HGOTO_ERROR(H5E_OHDR, H5E_CANTINIT, NULL, "unable to create dense storage for attributes")
+
+        /* Reset metadata tag */
+        H5_END_TAG(NULL);
 
         if((H5A_dense_copy_file_all(file_src, ainfo_src, file_dst, ainfo_dst, recompute_size, cpy_info, dxpl_id)) < 0)
             HGOTO_ERROR(H5E_OHDR, H5E_CANTINIT, NULL, "unable to create dense storage for attributes")

@@ -28,14 +28,15 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <math.h>
-#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
+
+#ifdef H5_HAVE_UNISTD_H
+#  include <unistd.h>
+#endif
 
 /* our header files */
-#include "hdf5.h"
-#include "H5private.h"
+#include "h5test.h"
 #include "h5tools_utils.h"
 
 #ifdef H5_HAVE_FILTER_DEFLATE
@@ -61,10 +62,6 @@
 #  define fileno(file)  file->__file
 #endif  /* RISCOS */
 
-#if defined(__MWERKS__) && __dest_os != __be_os && __dest_os != __win32_os
-#  include <unix.h>     /* for fileno */
-#endif  /* __MWERKS__ ... */
-
 #ifndef GZ_SUFFIX
 #  define GZ_SUFFIX     ".gz"
 #endif  /* GZ_SUFFIX */
@@ -86,6 +83,9 @@
 #define FALSE   (!TRUE)
 #endif  /* FALSE */
 
+#ifndef S_IRWXU
+#define S_IRWXU (_S_IREAD|_S_IWRITE)
+#endif
 
 /* internal variables */
 static const char *prog;
@@ -214,9 +214,9 @@ write_file(Bytef *source, uLongf sourceLen)
     if (!dest)
         error("out of memory");
 
-    gettimeofday(&timer_start, NULL);
+    HDgettimeofday(&timer_start, NULL);
     compress_buffer(dest, &destLen, source, sourceLen);
-    gettimeofday(&timer_stop, NULL);
+    HDgettimeofday(&timer_stop, NULL);
 
     compression_time += ((double)timer_stop.tv_sec +
                             ((double)timer_stop.tv_usec) / MICROSECOND) -
@@ -508,7 +508,7 @@ do_write_test(unsigned long file_size, unsigned long min_buf_size,
         printf("\n");
 
         /* do uncompressed data write */
-        gettimeofday(&timer_start, NULL);
+        HDgettimeofday(&timer_start, NULL);
         output = HDopen(filename, O_RDWR | O_CREAT, S_IRWXU);
 
         if (output == -1)
@@ -534,7 +534,7 @@ do_write_test(unsigned long file_size, unsigned long min_buf_size,
         }
 
         close(output);
-        gettimeofday(&timer_stop, NULL);
+        HDgettimeofday(&timer_stop, NULL);
 
         total_time = ((double)timer_stop.tv_sec +
                             ((double)timer_stop.tv_usec) / MICROSECOND) -
@@ -554,13 +554,13 @@ do_write_test(unsigned long file_size, unsigned long min_buf_size,
             error(strerror(errno));
 
         report_once_flag = 1;
-        gettimeofday(&timer_start, NULL);
+        HDgettimeofday(&timer_start, NULL);
 
         for (total_len = 0; total_len < file_size; total_len += src_len)
             write_file(src, src_len);
 
         close(output);
-        gettimeofday(&timer_stop, NULL);
+        HDgettimeofday(&timer_stop, NULL);
 
         total_time = ((double)timer_stop.tv_sec +
                             ((double)timer_stop.tv_usec) / MICROSECOND) -

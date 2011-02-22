@@ -227,7 +227,7 @@ H5E_walk1_cb(int n, H5E_error1_t *err_desc, void *client_data)
     unsigned            have_desc = 1;  /* Flag to indicate whether the error has a "real" description */
     herr_t              ret_value = SUCCEED;
 
-    FUNC_ENTER_NOAPI_NOINIT(H5E_walk1_cb)
+    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5E_walk1_cb)
 
     /* Check arguments */
     HDassert(err_desc);
@@ -274,7 +274,7 @@ H5E_walk1_cb(int n, H5E_error1_t *err_desc, void *client_data)
 	    MPI_Initialized(&mpi_initialized);
 	    if(mpi_initialized) {
 	        MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-	        fprintf (stream, "MPI-process %d", mpi_rank);
+	        fprintf(stream, "MPI-process %d", mpi_rank);
 	    } /* end if */
             else
 	        fprintf(stream, "thread 0");
@@ -349,7 +349,7 @@ H5E_walk2_cb(unsigned n, const H5E_error2_t *err_desc, void *client_data)
     unsigned            have_desc = 1;  /* Flag to indicate whether the error has a "real" description */
     herr_t              ret_value = SUCCEED;
 
-    FUNC_ENTER_NOAPI_NOINIT(H5E_walk2_cb)
+    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5E_walk2_cb)
 
     /* Check arguments */
     HDassert(err_desc);
@@ -892,11 +892,11 @@ H5E_clear_entries(H5E_t *estack, size_t nentries)
 
         /* Decrement the IDs to indicate that they are no longer used by this stack */
         /* (In reverse order that they were incremented, so that reference counts work well) */
-        if(H5I_dec_ref(error->min_num, FALSE) < 0)
+        if(H5I_dec_ref(error->min_num) < 0)
             HGOTO_ERROR(H5E_ERROR, H5E_CANTDEC, FAIL, "unable to decrement ref count on error message")
-        if(H5I_dec_ref(error->maj_num, FALSE) < 0)
+        if(H5I_dec_ref(error->maj_num) < 0)
             HGOTO_ERROR(H5E_ERROR, H5E_CANTDEC, FAIL, "unable to decrement ref count on error message")
-        if(H5I_dec_ref(error->cls_id, FALSE) < 0)
+        if(H5I_dec_ref(error->cls_id) < 0)
             HGOTO_ERROR(H5E_ERROR, H5E_CANTDEC, FAIL, "unable to decrement ref count on error class")
 
         /* Release strings */
@@ -1011,18 +1011,20 @@ H5E_dump_api_stack(hbool_t is_api)
         H5E_t *estack = H5E_get_my_stack();
 
         HDassert(estack);
+
+#ifdef H5_NO_DEPRECATED_SYMBOLS
+            if(estack->auto_op.func2)
+                (void)((estack->auto_op.func2)(H5E_DEFAULT, estack->auto_data));
+#else /* H5_NO_DEPRECATED_SYMBOLS */ 
         if(estack->auto_op.vers == 1) {
-#ifndef H5_NO_DEPRECATED_SYMBOLS
-            if(estack->auto_op.u.func1)
-                (void)((estack->auto_op.u.func1)(estack->auto_data));
-#else /* H5_NO_DEPRECATED_SYMBOLS */
-            HDassert(0 && "version 1 error stack dump without deprecated symbols!");
-#endif /* H5_NO_DEPRECATED_SYMBOLS */
+            if(estack->auto_op.func1)
+                (void)((estack->auto_op.func1)(estack->auto_data));
         } /* end if */
         else {
-            if(estack->auto_op.u.func2)
-                (void)((estack->auto_op.u.func2)(H5E_DEFAULT, estack->auto_data));
+            if(estack->auto_op.func2)
+                (void)((estack->auto_op.func2)(H5E_DEFAULT, estack->auto_data));
         } /* end else */
+#endif /* H5_NO_DEPRECATED_SYMBOLS */
     } /* end if */
 
 done:

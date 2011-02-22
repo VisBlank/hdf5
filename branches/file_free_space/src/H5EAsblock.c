@@ -232,7 +232,7 @@ HDfprintf(stderr, "%s: sblock->block_off = %Hu\n", FUNC, sblock->block_off);
     H5V_array_fill(sblock->dblk_addrs, &tmp_addr, sizeof(haddr_t), sblock->ndblks);
 
     /* Cache the new extensible array super block */
-    if(H5AC_set(hdr->f, dxpl_id, H5AC_EARRAY_SBLOCK, sblock_addr, sblock, H5AC__NO_FLAGS_SET) < 0)
+    if(H5AC_insert_entry(hdr->f, dxpl_id, H5AC_EARRAY_SBLOCK, sblock_addr, sblock, H5AC__NO_FLAGS_SET) < 0)
 	H5E_THROW(H5E_CANTINSERT, "can't add extensible array super block to cache")
 
     /* Update extensible array super block statistics */
@@ -279,7 +279,7 @@ H5EA__sblock_protect(H5EA_hdr_t *hdr, hid_t dxpl_id, H5EA_iblock_t *parent,
     haddr_t sblk_addr, unsigned sblk_idx, H5AC_protect_t rw))
 
     /* Local variables */
-    H5EA_sblock_load_ud_t load_ud;      /* Information needed for loading super block */
+    H5EA_sblock_cache_ud_t udata;      /* Information needed for loading super block */
 
 
 #ifdef QAK
@@ -291,11 +291,12 @@ HDfprintf(stderr, "%s: Called\n", FUNC);
     HDassert(H5F_addr_defined(sblk_addr));
 
     /* Set up user data */
-    load_ud.parent = parent;
-    load_ud.sblk_idx = sblk_idx;
+    udata.hdr = hdr;
+    udata.parent = parent;
+    udata.sblk_idx = sblk_idx;
 
     /* Protect the super block */
-    if(NULL == (ret_value = (H5EA_sblock_t *)H5AC_protect(hdr->f, dxpl_id, H5AC_EARRAY_SBLOCK, sblk_addr, &load_ud, hdr, rw)))
+    if(NULL == (ret_value = (H5EA_sblock_t *)H5AC_protect(hdr->f, dxpl_id, H5AC_EARRAY_SBLOCK, sblk_addr, &udata, rw)))
         H5E_THROW(H5E_CANTPROTECT, "unable to protect extensible array super block, address = %llu", (unsigned long long)sblk_addr)
 
 CATCH

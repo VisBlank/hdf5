@@ -65,6 +65,7 @@
 #define H5FA_METADATA_PREFIX_SIZE(c) (                                        \
     H5_SIZEOF_MAGIC   /* Signature */                                         \
     + 1 /* Version */                                                         \
+    + 1	/* Array type */                                                \
     + ((c) ? H5FA_SIZEOF_CHKSUM : 0) /* Metadata checksum */                  \
     )
 
@@ -74,7 +75,6 @@
     H5FA_METADATA_PREFIX_SIZE(TRUE)                                           \
                                                                               \
     /* General array information */                                           \
-    + 1 /* Array type */                                                      \
     + 1 /* Element Size */                                                    \
     + 1 /* Log2(Max. # of elements in data block page) - i.e. # of bits needed to store max. # of elements in data block page */ \
                                                                               \
@@ -91,8 +91,7 @@
     H5FA_METADATA_PREFIX_SIZE(TRUE)                                           \
                                                                               \
     /* Sanity-checking fields */                                              \
-    + (d)->hdr->sizeof_addr    /* File address of Fixed Array header owning the data block */  \
-    + 1 /* Array type */                                                      \
+    + (d)->hdr->sizeof_addr    	/* File address of Fixed Array header owning the data block */  \
                                                                               \
     /* Fixed Array Data Block specific fields */			      \
     + (d)->dblk_page_init_size /* Fixed array data block 'page init' bitmasks (can be 0 if no pages) */ \
@@ -197,10 +196,17 @@ struct H5FA_t {
 
 /* Metadata cache callback user data types */
 
+/* Info needed for loading data block */
+typedef struct H5FA_dblock_cache_ud_t {
+    H5FA_hdr_t *hdr;            /* Shared fixed array information */
+    hsize_t nelmts;             /* Number of elements in data block */
+} H5FA_dblock_cache_ud_t;
+
 /* Info needed for loading data block page */
-typedef struct H5FA_dblk_page_load_ud_t {
+typedef struct H5FA_dblk_page_cache_ud_t {
+    H5FA_hdr_t *hdr;            /* Shared fixed array information */
     size_t nelmts;              /* Number of elements in data block page */
-} H5FA_dblk_page_load_ud_t;
+} H5FA_dblk_page_cache_ud_t;
 
 
 /*****************************/
@@ -216,20 +222,11 @@ H5_DLLVAR const H5AC_class_t H5AC_FARRAY_DBLOCK[1];
 /* H5FA data block page inherits cache-like properties from H5AC */
 H5_DLLVAR const H5AC_class_t H5AC_FARRAY_DBLK_PAGE[1];
 
-
-/* The Fixed Array class for dataset chunks w/o filters*/
-H5_DLLVAR const H5FA_class_t H5FA_CLS_CHUNK[1];
-
-/* The Fixed Array class for dataset chunks w/ filters*/
-H5_DLLVAR const H5FA_class_t H5FA_CLS_FILT_CHUNK[1];
-
 /* Internal fixed array testing class */
-#ifdef H5FA_TESTING
 H5_DLLVAR const H5FA_class_t H5FA_CLS_TEST[1];
-#endif /* H5FA_TESTING */
 
 /* Array of fixed array client ID -> client class mappings */
-extern const H5FA_class_t *const H5FA_client_class_g[];
+extern const H5FA_class_t *const H5FA_client_class_g[H5FA_NUM_CLS_ID];
 
 
 /******************************/

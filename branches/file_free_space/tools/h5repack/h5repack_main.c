@@ -13,13 +13,11 @@
  * access to either file, you may request a copy from help@hdfgroup.org.     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-
 #include "h5tools_utils.h"
 #include "h5repack.h"
 
+/* Name of tool */
+#define PROGRAMNAME "h5repack"
 
 static void usage(const char *prog);
 static void parse_command_line(int argc, const char **argv, pack_opt_t* options);
@@ -27,8 +25,6 @@ static void read_info(const char *filename,pack_opt_t *options);
 
 
 /* module-scoped variables */
-const char  *progname = "h5repack";
-int         d_status = EXIT_SUCCESS;
 static int  has_i_o = 0;
 const char  *infile  = NULL;
 const char  *outfile = NULL;
@@ -107,8 +103,11 @@ int main(int argc, const char **argv)
     pack_opt_t    options;            /*the global options */
     int           ret=-1;
 
+    h5tools_setprogname(PROGRAMNAME);
+    h5tools_setstatus(EXIT_SUCCESS);
+
     /* initialize options  */
-    h5repack_init (&options, 0, 0, (hsize_t)0);
+    h5repack_init(&options, 0, 0, (hsize_t)0);
 
     parse_command_line(argc, argv, &options);
 
@@ -121,10 +120,10 @@ int main(int argc, const char **argv)
             infile = argv[ opt_ind ];
             outfile = argv[ opt_ind + 1 ];
 
-            if ( strcmp( infile, outfile ) == 0 )
+            if ( HDstrcmp( infile, outfile ) == 0 )
             {
-                error_msg(progname, "file names cannot be the same\n");
-                usage(progname);
+                error_msg("file names cannot be the same\n");
+                usage(h5tools_getprogname());
                 exit(EXIT_FAILURE);
 
             }
@@ -132,8 +131,8 @@ int main(int argc, const char **argv)
 
         else
         {
-            error_msg(progname, "file names missing\n");
-            usage(progname);
+            error_msg("file names missing\n");
+            usage(h5tools_getprogname());
             exit(EXIT_FAILURE);
         }
     }
@@ -316,10 +315,10 @@ void parse_command_line(int argc, const char **argv, pack_opt_t* options)
 
 
         case 'h':
-            usage(progname);
+            usage(h5tools_getprogname());
             exit(EXIT_SUCCESS);
         case 'V':
-            print_version(progname);
+            print_version(h5tools_getprogname());
             exit(EXIT_SUCCESS);
         case 'v':
             options->verbose = 1;
@@ -329,7 +328,7 @@ void parse_command_line(int argc, const char **argv, pack_opt_t* options)
             /* parse the -f filter option */
             if (h5repack_addfilter( opt_arg, options)<0)
             {
-                error_msg(progname, "in parsing filter\n");
+                error_msg("in parsing filter\n");
                 exit(EXIT_FAILURE);
             }
             break;
@@ -338,7 +337,7 @@ void parse_command_line(int argc, const char **argv, pack_opt_t* options)
             /* parse the -l layout option */
             if (h5repack_addlayout( opt_arg, options)<0)
             {
-                error_msg(progname, "in parsing layout\n");
+                error_msg("in parsing layout\n");
                 exit(EXIT_FAILURE);
             }
             break;
@@ -349,7 +348,7 @@ void parse_command_line(int argc, const char **argv, pack_opt_t* options)
             options->min_comp = atoi( opt_arg );
             if ((int)options->min_comp<=0)
             {
-                error_msg(progname, "invalid minimum compress size <%s>\n", opt_arg );
+                error_msg("invalid minimum compress size <%s>\n", opt_arg );
                 exit(EXIT_FAILURE);
             }
             break;
@@ -387,7 +386,7 @@ void parse_command_line(int argc, const char **argv, pack_opt_t* options)
 
                 int idx = 0;
                 int ssize = 0;
-                char *msgPtr = strchr( opt_arg, ':');
+                char *msgPtr = HDstrchr( opt_arg, ':');
                 options->latest = 1; /* must use latest format */
                 if (msgPtr == NULL)
                 {
@@ -398,22 +397,22 @@ void parse_command_line(int argc, const char **argv, pack_opt_t* options)
                 else
                 {
                     char msgType[10];
-                    strcpy(msgType, msgPtr+1);
+                    HDstrcpy(msgType, msgPtr+1);
                     msgPtr[0] = '\0';
                     ssize = atoi( opt_arg );
-                    if (strncmp(msgType, "dspace",6) == 0) {
+                    if (HDstrncmp(msgType, "dspace",6) == 0) {
                         options->msg_size[0] = ssize;
                     }
-                    else if (strncmp(msgType, "dtype", 5) == 0) {
+                    else if (HDstrncmp(msgType, "dtype", 5) == 0) {
                         options->msg_size[1] = ssize;
                     }
-                    else if (strncmp(msgType, "fill", 4) == 0) {
+                    else if (HDstrncmp(msgType, "fill", 4) == 0) {
                         options->msg_size[2] = ssize;
                     }
-                    else if (strncmp(msgType, "pline", 5) == 0) {
+                    else if (HDstrncmp(msgType, "pline", 5) == 0) {
                         options->msg_size[3] = ssize;
                     }
-                    else if (strncmp(msgType, "attr", 4) == 0) {
+                    else if (HDstrncmp(msgType, "attr", 4) == 0) {
                         options->msg_size[4] = ssize;
                     }
                 }
@@ -442,7 +441,7 @@ void parse_command_line(int argc, const char **argv, pack_opt_t* options)
             options->alignment = atol( opt_arg );
             if ( options->alignment < 1 )
             {
-                error_msg(progname, "invalid alignment size\n", opt_arg );
+                error_msg("invalid alignment size\n", opt_arg );
                 exit(EXIT_FAILURE);
             }
             break;
@@ -451,17 +450,17 @@ void parse_command_line(int argc, const char **argv, pack_opt_t* options)
 	{
             char strategy[MAX_NC_NAME];
 
-            strcpy(strategy, opt_arg);
-            if(!strcmp(strategy, "ALL_PERSIST"))
+            HDstrcpy(strategy, opt_arg);
+            if(!HDstrcmp(strategy, "ALL_PERSIST"))
                 options->fs_strategy = H5F_FILE_SPACE_ALL_PERSIST;
-            else if(!strcmp(strategy, "ALL"))
+            else if(!HDstrcmp(strategy, "ALL"))
                 options->fs_strategy = H5F_FILE_SPACE_ALL;
-            else if(!strcmp(strategy, "AGGR_VFD"))
+            else if(!HDstrcmp(strategy, "AGGR_VFD"))
                 options->fs_strategy = H5F_FILE_SPACE_AGGR_VFD;
-            else if(!strcmp(strategy, "VFD"))
+            else if(!HDstrcmp(strategy, "VFD"))
                 options->fs_strategy = H5F_FILE_SPACE_VFD;
             else {
-                error_msg(progname, "invalid file space management strategy\n", opt_arg );
+                error_msg("invalid file space management strategy\n", opt_arg );
                 exit(EXIT_FAILURE);
             }
             break;
@@ -481,8 +480,8 @@ void parse_command_line(int argc, const char **argv, pack_opt_t* options)
         /* check for file names to be processed */
         if (argc <= opt_ind || argv[ opt_ind + 1 ] == NULL)
         {
-            error_msg(progname, "missing file names\n");
-            usage(progname);
+            error_msg("missing file names\n");
+            usage(h5tools_getprogname());
             exit(EXIT_FAILURE);
         }
     }
@@ -515,7 +514,7 @@ void read_info(const char *filename,
     int  i, rc=1;
 
     if ((fp = fopen(filename, "r")) == (FILE *)NULL) {
-        error_msg(progname, "cannot open options file %s\n", filename);
+        error_msg("cannot open options file %s\n", filename);
         exit(EXIT_FAILURE);
     }
 
@@ -530,7 +529,7 @@ void read_info(const char *filename,
         * filter
         *-------------------------------------------------------------------------
         */
-        if (strcmp(stype,"-f") == 0) {
+        if (HDstrcmp(stype,"-f") == 0) {
 
             /* find begining of info */
             i=0; c='0';
@@ -552,7 +551,7 @@ void read_info(const char *filename,
             comp_info[i-1]='\0'; /*cut the last " */
 
             if (h5repack_addfilter(comp_info,options)==-1){
-                error_msg(progname, "could not add compression option\n");
+                error_msg("could not add compression option\n");
                 exit(EXIT_FAILURE);
             }
         }
@@ -560,7 +559,7 @@ void read_info(const char *filename,
         * layout
         *-------------------------------------------------------------------------
         */
-        else if (strcmp(stype,"-l") == 0) {
+        else if (HDstrcmp(stype,"-l") == 0) {
 
             /* find begining of info */
             i=0; c='0';
@@ -582,7 +581,7 @@ void read_info(const char *filename,
             comp_info[i-1]='\0'; /*cut the last " */
 
             if (h5repack_addlayout(comp_info,options)==-1){
-                error_msg(progname, "could not add chunck option\n");
+                error_msg("could not add chunck option\n");
                 exit(EXIT_FAILURE);
             }
         }
@@ -591,7 +590,7 @@ void read_info(const char *filename,
         *-------------------------------------------------------------------------
         */
         else {
-            error_msg(progname, "bad file format for %s", filename);
+            error_msg("bad file format for %s", filename);
             exit(EXIT_FAILURE);
         }
     }

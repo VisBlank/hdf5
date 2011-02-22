@@ -33,7 +33,6 @@
 /* Headers */
 /***********/
 #include "H5private.h"		/* Generic Functions			*/
-#include "H5ACprivate.h"	/* Metadata cache			*/
 #include "H5Bprivate.h"		/* B-link trees				*/
 #include "H5Dpkg.h"		/* Datasets				*/
 #include "H5Eprivate.h"		/* Error handling		  	*/
@@ -122,7 +121,7 @@ static H5B_ins_t H5D_btree_remove( H5F_t *f, hid_t dxpl_id, haddr_t addr,
 static herr_t H5D_btree_decode_key(const H5B_shared_t *shared, const uint8_t *raw,
     void *_key);
 static herr_t H5D_btree_encode_key(const H5B_shared_t *shared, uint8_t *raw,
-    void *_key);
+    const void *_key);
 static herr_t H5D_btree_debug_key(FILE *stream, int indent, int fwidth,
     const void *key, const void *udata);
 
@@ -190,9 +189,9 @@ H5B_class_t H5B_BTREE[1] = {{
     H5D_btree_cmp3,		/*cmp3			*/
     H5D_btree_found,		/*found			*/
     H5D_btree_insert,		/*insert		*/
-    H5B_LEFT,                   /*critical key          */
     FALSE,			/*follow min branch?	*/
     FALSE,			/*follow max branch?	*/
+    H5B_LEFT,                   /*critical key          */
     H5D_btree_remove,           /*remove		*/
     H5D_btree_decode_key,	/*decode		*/
     H5D_btree_encode_key,	/*encode		*/
@@ -706,9 +705,9 @@ H5D_btree_decode_key(const H5B_shared_t *shared, const uint8_t *raw, void *_key)
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5D_btree_encode_key(const H5B_shared_t *shared, uint8_t *raw, void *_key)
+H5D_btree_encode_key(const H5B_shared_t *shared, uint8_t *raw, const void *_key)
 {
-    H5D_btree_key_t	*key = (H5D_btree_key_t *) _key;
+    const H5D_btree_key_t *key = (const H5D_btree_key_t *)_key;
     size_t		ndims;
     unsigned		u;
 
@@ -823,7 +822,7 @@ done:
  */
 static herr_t
 H5D_btree_idx_init(const H5D_chk_idx_info_t *idx_info, const H5S_t UNUSED *space,
-    haddr_t UNUSED dset_ohdr_addr)
+    haddr_t dset_ohdr_addr)
 {
     herr_t      ret_value = SUCCEED;       /* Return value */
 
@@ -836,6 +835,8 @@ H5D_btree_idx_init(const H5D_chk_idx_info_t *idx_info, const H5S_t UNUSED *space
     HDassert(idx_info->layout);
     HDassert(idx_info->storage);
     HDassert(H5F_addr_defined(dset_ohdr_addr));
+
+    idx_info->storage->u.btree.dset_ohdr_addr = dset_ohdr_addr;
 
     /* Allocate the shared structure */
     if(H5D_btree_shared_create(idx_info->f, idx_info->storage, idx_info->layout->ndims) < 0)
@@ -1212,7 +1213,7 @@ H5D_btree_idx_copy_setup(const H5D_chk_idx_info_t *idx_info_src,
 {
     herr_t      ret_value = SUCCEED;        /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5D_btree_idx_copy_setup)
+    FUNC_ENTER_NOAPI_NOINIT_TAG(H5D_btree_idx_copy_setup, idx_info_dst->dxpl_id, H5AC__COPIED_TAG, FAIL)
 
     HDassert(idx_info_src);
     HDassert(idx_info_src->f);
@@ -1238,7 +1239,7 @@ H5D_btree_idx_copy_setup(const H5D_chk_idx_info_t *idx_info_src,
     HDassert(H5F_addr_defined(idx_info_dst->storage->idx_addr));
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_TAG(ret_value, FAIL)
 } /* end H5D_btree_idx_copy_setup() */
 
 

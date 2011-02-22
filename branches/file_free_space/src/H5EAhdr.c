@@ -308,7 +308,7 @@ HDfprintf(stderr, "%s: nelmts = %Zu, hdr->data_blk_min_elmts = %u, idx = %u\n", 
 CATCH
     if(!ret_value)
         if(elmts)
-            (void)H5FL_FAC_FREE(hdr->elmt_fac.fac[idx], elmts);
+            elmts = H5FL_FAC_FREE(hdr->elmt_fac.fac[idx], elmts);
 
 END_FUNC(PKG)   /* end H5EA__hdr_alloc_elmts() */
 
@@ -435,7 +435,7 @@ HDfprintf(stderr, "%s: Called\n", FUNC);
 	H5E_THROW(H5E_CANTALLOC, "file allocation failed for extensible array header")
 
     /* Cache the new extensible array header */
-    if(H5AC_set(f, dxpl_id, H5AC_EARRAY_HDR, hdr->addr, hdr, H5AC__NO_FLAGS_SET) < 0)
+    if(H5AC_insert_entry(f, dxpl_id, H5AC_EARRAY_HDR, hdr->addr, hdr, H5AC__NO_FLAGS_SET) < 0)
 	H5E_THROW(H5E_CANTINSERT, "can't add extensible array header to cache")
 
     /* Set address of array header to return */
@@ -603,7 +603,7 @@ H5EA__hdr_modified(H5EA_hdr_t *hdr))
     HDassert(hdr->f);
 
     /* Mark header as dirty in cache */
-    if(H5AC_mark_pinned_or_protected_entry_dirty(hdr) < 0)
+    if(H5AC_mark_entry_dirty(hdr) < 0)
         H5E_THROW(H5E_CANTMARKDIRTY, "unable to mark extensible array header as dirty")
 
 CATCH

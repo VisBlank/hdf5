@@ -299,6 +299,9 @@ H5G_link_to_info(const H5O_link_t *lnk, H5L_info_t *info)
                 info->u.val_size = HDstrlen(lnk->u.soft.name) + 1; /*count the null terminator*/
                 break;
 
+            case H5L_TYPE_ERROR:
+            case H5L_TYPE_EXTERNAL:
+            case H5L_TYPE_MAX:
             default:
             {
                 const H5L_class_t *link_class;      /* User-defined link class */
@@ -488,7 +491,10 @@ H5G_link_copy_file(H5F_t *dst_file, hid_t dxpl_id, const H5O_link_t *_src_lnk,
         HDassert(H5F_addr_defined(tmp_src_oloc.addr));
 
         /* Copy the shared object from source to destination */
-        if(H5O_copy_header_map(&tmp_src_oloc, &new_dst_oloc, dxpl_id, cpy_info, TRUE) < 0)
+        /* Don't care about obj_type or udata because those are only important
+         * for old style groups */
+        if(H5O_copy_header_map(&tmp_src_oloc, &new_dst_oloc, dxpl_id, cpy_info,
+                TRUE, NULL, NULL) < 0)
             HGOTO_ERROR(H5E_OHDR, H5E_CANTCOPY, FAIL, "unable to copy object")
 
         /* Copy new destination object's information for eventual insertion */

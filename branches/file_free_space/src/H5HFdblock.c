@@ -182,7 +182,7 @@ HDmemset(dblock->blk, 0, dblock->size);
     } /* end else */
 
     /* Cache the new fractal heap direct block */
-    if(H5AC_set(hdr->f, dxpl_id, H5AC_FHEAP_DBLOCK, dblock_addr, dblock, H5AC__NO_FLAGS_SET) < 0)
+    if(H5AC_insert_entry(hdr->f, dxpl_id, H5AC_FHEAP_DBLOCK, dblock_addr, dblock, H5AC__NO_FLAGS_SET) < 0)
 	HGOTO_ERROR(H5E_HEAP, H5E_CANTINIT, FAIL, "can't add fractal heap direct block to cache")
 
     /* Increase the allocated heap size */
@@ -437,8 +437,8 @@ H5HF_man_dblock_protect(H5HF_hdr_t *hdr, hid_t dxpl_id, haddr_t dblock_addr,
     size_t dblock_size, H5HF_indirect_t *par_iblock, unsigned par_entry,
     H5AC_protect_t rw)
 {
-    H5HF_parent_t par_info;     /* Parent info for loading block */
     H5HF_direct_t *dblock;      /* Direct block from cache */
+    H5HF_dblock_cache_ud_t udata;	/* parent and other infor for deserializing direct block */
     H5HF_direct_t *ret_value;   /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5HF_man_dblock_protect)
@@ -451,12 +451,40 @@ H5HF_man_dblock_protect(H5HF_hdr_t *hdr, hid_t dxpl_id, haddr_t dblock_addr,
     HDassert(dblock_size > 0);
 
     /* Set up parent info */
-    par_info.hdr = hdr;
-    par_info.iblock = par_iblock;
-    par_info.entry = par_entry;
+    udata.par_info.hdr = hdr;
+    udata.par_info.iblock = par_iblock;
+    udata.par_info.entry = par_entry;
+
+    /* set up the file pointer in the user data */
+    udata.f = hdr->f;
+
+    /* set up the direct block size */
+    udata.dblock_size = dblock_size;
+
+    /* compute the on disk image size -- observe that odi_size and
+     * dblock_size will be identical if there is no filtering.
+     */
+    if(hdr->filter_len > 0) {
+        if(par_iblock == NULL) {
+	    udata.odi_size = hdr->pline_root_direct_size;
+	    udata.filter_mask = hdr->pline_root_direct_filter_mask;
+	} /* end if */
+        else {
+	    /* Sanity check */
+	    HDassert(H5F_addr_eq(par_iblock->ents[par_entry].addr, dblock_addr));
+
+	    /* Set up parameters to read filtered direct block */
+	    udata.odi_size = par_iblock->filt_ents[par_entry].size;
+            udata.filter_mask = par_iblock->filt_ents[par_entry].filter_mask;
+	} /* end else */
+    } /* end if */
+    else {
+	udata.odi_size = dblock_size;
+        udata.filter_mask = 0;
+    } /* end else */
 
     /* Protect the direct block */
-    if(NULL == (dblock = (H5HF_direct_t *)H5AC_protect(hdr->f, dxpl_id, H5AC_FHEAP_DBLOCK, dblock_addr, &dblock_size, &par_info, rw)))
+    if(NULL == (dblock = (H5HF_direct_t *)H5AC_protect(hdr->f, dxpl_id, H5AC_FHEAP_DBLOCK, dblock_addr, &udata, rw)))
         HGOTO_ERROR(H5E_HEAP, H5E_CANTPROTECT, NULL, "unable to protect fractal heap direct block")
 
     /* Set the return value */

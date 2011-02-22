@@ -19,10 +19,18 @@
 #include "hdf5.h"
 #include "h5trav.h"
 
+#define MAX_FILENAME 1024
+
 /*-------------------------------------------------------------------------
  * command line options
  *-------------------------------------------------------------------------
  */
+/* linked list to keep exclude path list */
+struct exclude_path_list {
+    char  *obj_path;
+    h5trav_type_t obj_type;
+    struct exclude_path_list * next;
+};
 
 typedef struct {
     int      m_quiet;               /* quiet mide: no output at all */
@@ -43,6 +51,8 @@ typedef struct {
     int      contents;              /* equal contents */
     int      do_nans;               /* consider Nans while diffing floats */
     int      m_list_not_cmp;        /* list not comparable messages */
+    int      exclude_path;          /* exclude path to an object */
+    struct   exclude_path_list * exclude; /* keep exclude path list */
 } diff_opt_t;
 
 
@@ -55,15 +65,15 @@ typedef struct {
 extern "C" {
 #endif
 
-hsize_t  h5diff(const char *fname1,
+H5TOOLS_DLL hsize_t  h5diff(const char *fname1,
                 const char *fname2,
                 const char *objname1,
                 const char *objname2,
                 diff_opt_t *options);
 
 #ifdef H5_HAVE_PARALLEL
-void phdiff_dismiss_workers(void);
-void print_manager_output(void);
+H5TOOLS_DLL void phdiff_dismiss_workers(void);
+H5TOOLS_DLL void print_manager_output(void);
 #endif
 
 #ifdef __cplusplus
@@ -107,11 +117,9 @@ hsize_t diff_compare( hid_t file1_id,
                       trav_info_t *info2,
                       diff_opt_t *options );
 
-hsize_t diff_match( hid_t file1_id,
-                    trav_info_t *info1,
-                    hid_t file2_id,
-                    trav_info_t *info2,
-                    diff_opt_t *options );
+hsize_t diff_match( hid_t file1_id, const char *grp1, trav_info_t *info1,
+                    hid_t file2_id, const char *grp2, trav_info_t *info2,
+                    trav_table_t *table, diff_opt_t *options );
 
 hsize_t diff_array( void *_mem1,
                     void *_mem2,
@@ -154,7 +162,6 @@ hsize_t diff_attr(hid_t loc1_id,
  */
 
 void        print_found(hsize_t nfound);
-void        parallel_print(const char* format, ... );
 void        print_type(hid_t type);
 const char* diff_basename(const char *name);
 const char* get_type(h5trav_type_t type);
@@ -165,6 +172,18 @@ int         print_objname(diff_opt_t *options, hsize_t nfound);
 void        do_print_objname (const char *OBJ, const char *path1, const char *path2);
 
 
+/*-------------------------------------------------------------------------
+ * XCAO, 11/10/2010
+ * added to improve performance for compound datasets
+ */
+typedef struct mcomp_t
+{
+    int             n;      /* number of members */
+    hid_t           *ids;   /* member type id */
+    unsigned char   *flags; 
+    size_t          *offsets;   
+    struct mcomp_t  **m;     /* members */
+}mcomp_t;
 
 hsize_t diff_datum(void       *_mem1,
                    void       *_mem2,
@@ -179,7 +198,8 @@ hsize_t diff_datum(void       *_mem1,
                    const char *obj2,
                    hid_t      container1_id,
                    hid_t      container2_id, /*where the reference came from*/
-                   int        *ph);           /*print header */
+                   int        *ph,           /*print header */
+                   mcomp_t    *members);      /*compound members */
 
 
 

@@ -32,6 +32,9 @@
 #include "H5Pprivate.h"		/* Property lists			*/
 
 
+/* Local macros */
+
+
 /* PRIVATE PROTOTYPES */
 static void *H5O_layout_decode(H5F_t *f, hid_t dxpl_id, H5O_t *open_oh,
     unsigned mesg_flags, unsigned *ioflags, const uint8_t *p);
@@ -58,15 +61,15 @@ const H5O_msg_class_t H5O_MSG_LAYOUT[1] = {{
     H5O_layout_encode,      	/*encode message                */
     H5O_layout_copy,        	/*copy the native value         */
     H5O_layout_size,        	/*size of message on disk       */
-    H5O_layout_reset,           /*reset method                  */
+    H5O_layout_reset,		/*reset method                  */
     H5O_layout_free,        	/*free the struct		*/
     H5O_layout_delete,	        /* file delete method		*/
     NULL,			/* link method			*/
     NULL,			/*set share method		*/
     NULL,		    	/*can share method		*/
     NULL,			/* pre copy native value to file */
-    H5O_layout_copy_file,       /* copy native value to file    */
-    NULL,		        /* post copy native value to file    */
+    H5O_layout_copy_file,	/* copy native value to file    */
+    NULL,		        /* post copy native value to file */
     NULL,			/* get creation index		*/
     NULL,			/* set creation index		*/
     H5O_layout_debug       	/*debug the message             */
@@ -249,7 +252,7 @@ H5O_layout_decode(H5F_t *f, hid_t UNUSED dxpl_id, H5O_t UNUSED *open_oh,
 done:
     if(ret_value == NULL)
         if(mesg)
-            (void)H5FL_FREE(H5O_layout_t, mesg);
+            mesg = H5FL_FREE(H5O_layout_t, mesg);
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5O_layout_decode() */
@@ -503,7 +506,7 @@ H5O_layout_free(void *_mesg)
     if(H5O_layout_reset(mesg) < 0)
         HGOTO_ERROR(H5E_OHDR, H5E_CANTFREE, FAIL, "unable to free message resources")
 
-    (void)H5FL_FREE(H5O_layout_t, mesg);
+    mesg = H5FL_FREE(H5O_layout_t, mesg);
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -584,11 +587,13 @@ H5O_layout_copy_file(H5F_t *file_src, void *mesg_src, H5F_t *file_dst,
     H5D_copy_file_ud_t *udata = (H5D_copy_file_ud_t *)_udata;   /* Dataset copying user data */
     H5O_layout_t       *layout_src = (H5O_layout_t *) mesg_src;
     H5O_layout_t       *layout_dst = NULL;
+    hbool_t             copied = FALSE;                         /* Whether the data was copied */
     void               *ret_value;                              /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5O_layout_copy_file)
 
     /* check args */
+    HDassert(file_src);
     HDassert(layout_src);
     HDassert(file_dst);
 
@@ -606,6 +611,7 @@ H5O_layout_copy_file(H5F_t *file_src, void *mesg_src, H5F_t *file_dst,
                 /* copy compact raw data */
                 if(H5D_compact_copy(file_src, &layout_src->storage.u.compact, file_dst, &layout_dst->storage.u.compact, udata->src_dtype, cpy_info, dxpl_id) < 0)
                     HGOTO_ERROR(H5E_OHDR, H5E_CANTCOPY, NULL, "unable to copy chunked storage")
+                copied = TRUE;
 	    } /* end if */
             break;
 
@@ -614,7 +620,7 @@ H5O_layout_copy_file(H5F_t *file_src, void *mesg_src, H5F_t *file_dst,
              * layout message less than version 3 because versions 1 & 2 would
              * truncate the dimension sizes to 32-bits of information. - QAK 5/26/04
              */
-            if(layout_src->version < 3)
+            if(layout_src->version < H5O_LAYOUT_VERSION_3)
                 layout_dst->storage.u.contig.size = H5S_extent_nelem(udata->src_space_extent) *
                                         H5T_get_size(udata->src_dtype);
 
@@ -622,6 +628,7 @@ H5O_layout_copy_file(H5F_t *file_src, void *mesg_src, H5F_t *file_dst,
                 /* copy contiguous raw data */
                 if(H5D_contig_copy(file_src, &layout_src->storage.u.contig, file_dst, &layout_dst->storage.u.contig, udata->src_dtype, cpy_info, dxpl_id) < 0)
                     HGOTO_ERROR(H5E_OHDR, H5E_CANTCOPY, NULL, "unable to copy contiguous storage")
+                copied = TRUE;
             } /* end if */
             break;
 
@@ -630,6 +637,7 @@ H5O_layout_copy_file(H5F_t *file_src, void *mesg_src, H5F_t *file_dst,
                 /* Create chunked layout */
                 if(H5D_chunk_copy(file_src, &layout_src->storage.u.chunk, &layout_src->u.chunk, file_dst, &layout_dst->storage.u.chunk, udata->src_space_extent, udata->src_dtype, udata->common.src_pline, cpy_info, dxpl_id) < 0)
                     HGOTO_ERROR(H5E_OHDR, H5E_CANTCOPY, NULL, "unable to copy chunked storage")
+                copied = TRUE;
             } /* end if */
             break;
 
@@ -637,8 +645,9 @@ H5O_layout_copy_file(H5F_t *file_src, void *mesg_src, H5F_t *file_dst,
             HGOTO_ERROR(H5E_OHDR, H5E_CANTLOAD, NULL, "Invalid layout class")
     } /* end switch */
 
-    /* Freed by copy routine */
-    udata->src_dtype = NULL;
+    /* Check if copy routine was invoked (which frees the source datatype) */
+    if(copied)
+        udata->src_dtype = NULL;
 
     /* Set return value */
     ret_value = layout_dst;
@@ -661,8 +670,6 @@ done:
  *
  * Programmer:  Robb Matzke
  *              Wednesday, October  8, 1997
- *
- * Modifications:
  *
  *-------------------------------------------------------------------------
  */
