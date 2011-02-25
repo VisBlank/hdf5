@@ -122,15 +122,20 @@ typedef herr_t (*H5P_iterate_t)(hid_t id, const char *name, void *iter_data);
 
 /* Actual IO mode property */
 typedef enum H5D_xfer_mpio_actual_io_mode_t {
-    H5D_MPIO_INDEPENDENT = 0,  /* Default */
-    H5D_MPIO_COLLECTIVE,
+    H5D_MPIO_INDEPENDENT = 00,  /* Default */
+    
+    /* The values for the various multi chunk modes are set up 
+     * so that MULTI_CHUNK_COLLECTIVE | MULTI_CHUNK_INDEPENDANT = MULTI_CHUNK_MIXED.
+     * This makes switching from independent or collective to mixed a much simpler process
+     * that requires no conditionals. */
+    H5D_MPIO_COLLECTIVE_MULTI_CHUNK_INDEPENDENT = 01,
+    H5D_MPIO_COLLECTIVE_MULTI_CHUNK_COLLECTIVE  = 02,
+    H5D_MPIO_COLLECTIVE_MULTI_CHUNK_MIXED       = 01 | 02,
+
+    H5D_MPIO_COLLECTIVE_MULTI_NO_OPT_CHUNK_INDEPENDENT = 010,
+    H5D_MPIO_COLLECTIVE_MULTI_NO_OPT_CHUNK_COLLECTIVE  = 020,
+    H5D_MPIO_COLLECTIVE_MULTI_NO_OPT_CHUNK_MIXED       = 010 | 020,
     H5D_MPIO_COLLECTIVE_LINK_CHUNK,
-    H5D_MPIO_COLLECTIVE_MULTI_CHUNK_COLLECTIVE,
-    H5D_MPIO_COLLECTIVE_MULTI_CHUNK_MIXED,
-    H5D_MPIO_COLLECTIVE_MULTI_CHUNK_INDEPENDENT,
-    H5D_MPIO_COLLECTIVE_MULTI_NO_OPT_CHUNK_COLLECTIVE,
-    H5D_MPIO_COLLECTIVE_MULTI_NO_OPT_CHUNK_MIXED,
-    H5D_MPIO_COLLECTIVE_MULTI_NO_OPT_CHUNK_INDEPENDENT,
 }  H5D_xfer_mpio_actual_io_mode_t;
 
 /********************/
@@ -368,6 +373,10 @@ H5_DLL herr_t H5Pset_hyper_vector_size(hid_t fapl_id, size_t size);
 H5_DLL herr_t H5Pget_hyper_vector_size(hid_t fapl_id, size_t *size/*out*/);
 H5_DLL herr_t H5Pset_type_conv_cb(hid_t dxpl_id, H5T_conv_except_func_t op, void* operate_data);
 H5_DLL herr_t H5Pget_type_conv_cb(hid_t dxpl_id, H5T_conv_except_func_t *op, void** operate_data);
+H5_DLL herr_t H5Pset_mpio_actual_io_mode(hid_t plist_id, H5D_xfer_mpio_actual_io_mode_t actual_io_mode);
+H5_DLL herr_t H5Pget_mpio_actual_io_mode(hid_t plist_id, H5D_xfer_mpio_actual_io_mode_t *actual_io_mode);
+
+
 
 /* Link creation property list (LCPL) routines */
 H5_DLL herr_t H5Pset_create_intermediate_group(hid_t plist_id, unsigned crt_intmd);

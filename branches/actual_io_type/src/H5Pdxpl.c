@@ -1409,12 +1409,11 @@ done:
     FUNC_LEAVE_API(ret_value)
 } /* end H5Pget_hyper_vector_size() */
 
-
 
 /*-------------------------------------------------------------------------
- * Function:	H5Pget_mpio_actual_io_mode
+ * Function:	H5Pset_mpio_actual_io_mode
  *
- * Purpose:	Reads value set for the actual (instead of requested) I/O mode of MPIO.
+ * Purpose:	Sets for the actual (instead of requested) I/O mode of MPIO.
  *
  * Return:	Non-negative on success/Negative on failure
  *
@@ -1427,7 +1426,45 @@ done:
  */
 
 herr_t
-H5Pget_mpio_actual_io_mode(hid_t plist_id, H5D_xfer_mpio_actual_io_mode_t *actual_io_mode /*out*/ )
+H5Pset_mpio_actual_io_mode(hid_t plist_id, H5D_xfer_mpio_actual_io_mode_t actual_io_mode)
+{
+    H5P_genplist_t     *plist;
+    herr_t ret_value=SUCCEED;   /* return value */
+    
+    FUNC_ENTER_API(H5Pset_mpio_actual_io_mode, FAIL)
+    H5TRACE2("e","ix", plist_id, actual_io_mode);
+
+    /* Get the plist structure */
+    if(NULL == (plist = H5P_object_verify(plist_id,H5P_DATASET_XFER)))
+        HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "can't find object for ID")
+
+    /* Return values */
+    if (actual_io_mode)
+        if (H5P_set(plist,H5D_XFER_MPIO_ACTUAL_IO_MODE_NAME,&actual_io_mode)<0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get value")
+    
+done:
+    FUNC_LEAVE_API(ret_value)
+} /* end H5Pget_mpio_actual_io_mode() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5Pget_mpio_actual_io_mode
+ *
+ * Purpose:	Reads value set by H5Pset_mpio_actual_io_mode().
+ *
+ * Return:	Non-negative on success/Negative on failure
+ *
+ * Programmer:	Jacob Gruber
+ *              Wednesday, February 16, 2010
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+
+herr_t
+H5Pget_mpio_actual_io_mode(hid_t plist_id, H5D_xfer_mpio_actual_io_mode_t *actual_io_mode )
 {
     H5P_genplist_t     *plist;
     herr_t ret_value=SUCCEED;   /* return value */
@@ -1442,7 +1479,7 @@ H5Pget_mpio_actual_io_mode(hid_t plist_id, H5D_xfer_mpio_actual_io_mode_t *actua
     /* Return values */
     if (actual_io_mode)
         if (H5P_get(plist,H5D_XFER_MPIO_ACTUAL_IO_MODE_NAME,actual_io_mode)<0)
-            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get value")
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to set value")
     
 done:
     FUNC_LEAVE_API(ret_value)

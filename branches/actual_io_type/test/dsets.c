@@ -8057,6 +8057,42 @@ error:
 
 
 /*-------------------------------------------------------------------------
+ * Function:	test_actual_io_mode
+ *
+ * Purpose:	Tests the intialization, reading and writing of the actual_io_mode property under default conditions.
+ *
+ * Return:	Success: 0
+ *		Failure: -1
+ *
+ * Programmer:	Jacob Gruber
+ *		Wednesday, February 23, 2010
+ *
+ *-------------------------------------------------------------------------
+ */
+
+int test_actual_io_mode() {
+    herr_t status = -1;
+    hid_t dxpl = -1;
+    //char* names[] = {};
+    H5D_xfer_mpio_actual_io_mode_t actual_io_mode = 0;
+
+    TESTING("actual I/O mode");
+
+    if ( (dxpl = H5Pcreate(H5P_DATASET_XFER)) < 0 ) FAIL_PUTS_ERROR("DXPL creation failed.");
+    
+    if ( (status = H5Pget_mpio_actual_io_mode(dxpl, &actual_io_mode)) < 0 ) FAIL_PUTS_ERROR("Reading DXPL Failed.");
+    
+    printf("%s: %u\n","Actual I/O Mode: ",actual_io_mode);
+
+    PASSED();
+    return status;
+error:    
+    return -1;
+}
+
+
+
+/*-------------------------------------------------------------------------
  * Function:	main
  *
  * Purpose:	Tests the dataset interface (H5D)
@@ -8181,8 +8217,9 @@ main(void)
         nerrors += (test_chunk_cache(my_fapl) < 0		? 1 : 0);
         nerrors += (test_big_chunks_bypass_cache(my_fapl) < 0   ? 1 : 0);
         nerrors += (test_chunk_expand(my_fapl) < 0		? 1 : 0);
-	nerrors += (test_layout_extend(my_fapl) < 0		? 1 : 0);
-
+	    nerrors += (test_layout_extend(my_fapl) < 0		? 1 : 0);
+        nerrors += (test_actual_io_mode() < 0           ? 1 : 0);
+        
         if(H5Fclose(file) < 0)
             goto error;
     } /* end for */
