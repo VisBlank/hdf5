@@ -418,6 +418,7 @@ H5T_enum_nameof(const H5T_t *dt, const void *value, char *name/*out*/, size_t si
     unsigned	lt, md=0, rt;		/*indices for binary search	*/
     int	cmp=(-1);		        /*comparison result		*/
     H5T_t       *copied_dt = NULL;      /*do sorting in copied datatype */
+    hbool_t     alloc_name = FALSE;     /*whether name has been allocated */
     char *ret_value;                    /* Return value */
 
     FUNC_ENTER_NOAPI(H5T_enum_nameof, NULL)
@@ -458,8 +459,12 @@ H5T_enum_nameof(const H5T_t *dt, const void *value, char *name/*out*/, size_t si
         HGOTO_ERROR(H5E_DATATYPE, H5E_NOTFOUND, NULL, "value is currently not defined")
 
     /* Save result name */
-    if(!name && NULL == (name = (char *)H5MM_malloc(HDstrlen(copied_dt->shared->u.enumer.name[md]) + 1)))
-	HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed");
+    if(!name) {
+        if(NULL == (name = (char *)H5MM_malloc(
+                HDstrlen(copied_dt->shared->u.enumer.name[md]) + 1)))
+            HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed");
+        alloc_name = TRUE;
+    } /* end if */
     HDstrncpy(name, copied_dt->shared->u.enumer.name[md], size);
     if (HDstrlen(copied_dt->shared->u.enumer.name[md])>=size)
 	HGOTO_ERROR(H5E_DATATYPE, H5E_NOSPACE, NULL, "name has been truncated")
@@ -471,6 +476,8 @@ done:
     if(copied_dt)
         if(H5T_close(copied_dt) < 0)
             HDONE_ERROR(H5E_DATATYPE, H5E_CANTCLOSEOBJ, NULL, "unable to close data type");
+    if(!ret_value && alloc_name)
+        H5MM_free(name);
 
     FUNC_LEAVE_NOAPI(ret_value)
 }

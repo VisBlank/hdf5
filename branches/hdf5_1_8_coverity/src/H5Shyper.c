@@ -5870,14 +5870,14 @@ H5S_hyper_rebuild_helper(const H5S_hyper_span_t *span, H5S_hyper_dim_t span_slab
                     for( u = 0; u < rank - 1; u++) {
                        curr_down_span_slab_info = &span_slab_info[u];
 
-                       if(curr_down_span_slab_info->count > 0 && canon_down_span_slab_info[u].count > 0) {
-                          if(curr_down_span_slab_info->start != canon_down_span_slab_info[u].start
-                              || curr_down_span_slab_info->stride != canon_down_span_slab_info[u].stride
-                              || curr_down_span_slab_info->block != canon_down_span_slab_info[u].block
-                              || curr_down_span_slab_info->count != canon_down_span_slab_info[u].count)
+                       if(curr_down_span_slab_info[0].count > 0 && canon_down_span_slab_info[u].count > 0) {
+                          if(curr_down_span_slab_info[0].start != canon_down_span_slab_info[u].start
+                              || curr_down_span_slab_info[0].stride != canon_down_span_slab_info[u].stride
+                              || curr_down_span_slab_info[0].block != canon_down_span_slab_info[u].block
+                              || curr_down_span_slab_info[0].count != canon_down_span_slab_info[u].count)
                           HGOTO_DONE(FALSE)
                        } /* end if */
-                       else if (!((curr_down_span_slab_info->count == 0) && (canon_down_span_slab_info[u].count == 0)))
+                       else if (!((curr_down_span_slab_info[0].count == 0) && (canon_down_span_slab_info[u].count == 0)))
                           HGOTO_DONE(FALSE)
                     }
                 } /* end if */
