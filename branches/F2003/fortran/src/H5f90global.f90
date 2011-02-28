@@ -74,7 +74,7 @@ MODULE H5GLOBAL
 
   ! Do not forget to change the following line when new predefined
   ! integer data types are added
-  INTEGER, PARAMETER :: INTEGER_TYPES_LEN = 25
+  INTEGER, PARAMETER :: INTEGER_TYPES_LEN = 27
 
   INTEGER(HID_T) H5T_NATIVE_INTEGER_1, &
        H5T_NATIVE_INTEGER_2, &
@@ -121,7 +121,10 @@ MODULE H5GLOBAL
        H5T_NATIVE_B8,   &
        H5T_NATIVE_B16,  &
        H5T_NATIVE_B32,  &
-       H5T_NATIVE_B64
+       H5T_NATIVE_B64,  &
+       H5T_FORTRAN_S1,  &
+       H5T_C_S1
+
 
   INTEGER(HID_T), DIMENSION(PREDEF_TYPES_LEN) :: predef_types
   EQUIVALENCE (predef_types(1), H5T_NATIVE_INTEGER)
@@ -174,6 +177,8 @@ MODULE H5GLOBAL
   EQUIVALENCE (integer_types(23), H5T_STD_B32LE)
   EQUIVALENCE (integer_types(24), H5T_STD_B64BE)
   EQUIVALENCE (integer_types(25), H5T_STD_B64LE)
+  EQUIVALENCE (integer_types(26), H5T_FORTRAN_S1)
+  EQUIVALENCE (integer_types(27), H5T_C_S1)
 
 
   !      COMMON /PREDEFINED_TYPES/ H5T_NATIVE_INTEGER, &

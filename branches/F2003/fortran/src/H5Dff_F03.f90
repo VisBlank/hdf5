@@ -11,18 +11,18 @@
 !
 ! COPYRIGHT
 !  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-!  Copyright by The HDF Group.                                               *
-!  Copyright by the Board of Trustees of the University of Illinois.         *
-!  All rights reserved.                                                      *
-!  *
-!  This file is part of HDF5.  The full HDF5 copyright notice, including     *
-!  terms governing use, modification, and redistribution, is contained in    *
-!  the files COPYING and Copyright.html.  COPYING can be found at the root   *
-!  of the source code distribution tree; Copyright.html can be found at the  *
-!  root level of an installed copy of the electronic HDF5 document set and   *
-!  is linked from the top-level documents page.  It can also be found at     *
-!  http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
-!  access to either file, you may request a copy from help@hdfgroup.org.     *
+!  Copyright by The HDF Group.                                                 *
+!  Copyright by the Board of Trustees of the University of Illinois.           *
+!  All rights reserved.                                                        *
+!                                                                              *
+!  This file is part of HDF5.  The full HDF5 copyright notice, including       *
+!  terms governing use, modification, and redistribution, is contained in      *
+!  the files COPYING and Copyright.html.  COPYING can be found at the root     *
+!  of the source code distribution tree; Copyright.html can be found at the    *
+!  root level of an installed copy of the electronic HDF5 document set and     *
+!  is linked from the top-level documents page.  It can also be found at       *
+!  http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have            *
+!  access to either file, you may request a copy from help@hdfgroup.org.       *
 !  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
 ! NOTES
@@ -2852,6 +2852,60 @@ CONTAINS
          f_ptr_buf, mem_type_id)
 
   END SUBROUTINE h5dfill_char
+!
+!****s* H5D/h5dvlen_reclaim
+! NAME
+!  h5dvlen_reclaim
+!
+! PURPOSE 
+!  Reclaims VL datatype memory buffers. 
+!
+! INPUTS
+!
+!  type_id  - Identifier of the datatype. 
+!  space_id - Identifier of the dataspace. 
+!  plist_id - Identifier of the property list used to create the buffer. 
+!       buf - Pointer to the buffer to be reclaimed. 
+!
+! OUTPUTS
+!  hdferr   - error code
+!	        Success:  0
+!		Failure: -1
+!
+! AUTHOR
+! M. Scot Breitenfeld
+! January 11, 2011
+!
+! SOURCE
+  SUBROUTINE H5Dvlen_reclaim_f(type_id, space_id, plist_id, buf, hdferr)
+
+    USE ISO_C_BINDING
+    IMPLICIT NONE
+
+    INTEGER(HID_T), INTENT(IN) :: type_id   ! Identifier of the datatype. 
+    INTEGER(HID_T), INTENT(IN) :: space_id  ! Identifier of the dataspace. 
+    INTEGER(HID_T), INTENT(IN) :: plist_id  ! Identifier of the property list used to create the buffer. 
+    TYPE(C_PTR), INTENT(INOUT) :: buf       ! Pointer to the buffer to be reclaimed. 
+    INTEGER, INTENT(OUT) :: hdferr          ! Error code.
+!*****
+
+    INTERFACE
+       INTEGER FUNCTION h5dvlen_reclaim_c(type_id, space_id, plist_id, buf)
+         USE H5GLOBAL
+         USE, INTRINSIC :: ISO_C_BINDING
+         !DEC$IF DEFINED(HDF5F90_WINDOWS)
+         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DVLEN_RECLAIM_C'::h5dvlen_reclaim_c
+         !DEC$ENDIF
+         INTEGER(HID_T) :: type_id
+         INTEGER(HID_T) :: space_id
+         INTEGER(HID_T) :: plist_id
+         TYPE(C_PTR), VALUE :: buf
+       END FUNCTION h5dvlen_reclaim_c
+    END INTERFACE
+
+    hdferr = H5Dvlen_reclaim_c(type_id, space_id, plist_id, buf)
+
+  END SUBROUTINE H5Dvlen_reclaim_f
 
 END MODULE H5D_PROVISIONAL
 

@@ -2471,3 +2471,39 @@ nh5dget_access_plist_c (hid_t_f *dset_id, hid_t_f *plist_id)
  DONE:
   return ret_value;
 }
+
+/****if* H5Df/nh5dvlen_reclaim_c
+ * NAME
+ *     nh5dvlen_reclaim_c
+ * PURPOSE
+ *     Call H5Dvlen_reclaim
+ * INPUTS
+ *    type_id  - Identifier of the datatype. 
+ *   space_id  - Identifier of the dataspace. 
+ *   plist_id  - Identifier of the property list used to create the buffer. 
+ *   buf       - Pointer to the buffer to be reclaimed.    
+ *
+ * RETURNS
+ *   0 on success, -1 on failure
+ * AUTHOR
+ *   M. Scot Breitenfeld
+ *   January 15, 2011 
+ *
+ * SOURCE
+*/
+int_f
+nh5dvlen_reclaim_c(hid_t_f *type_id, hid_t_f *space_id, hid_t_f *plist_id, void *buf)
+/******/
+{
+  int ret_value = -1;
+  herr_t status;
+
+  /*
+   * Call H5Dvlen_reclaim function.
+   */
+  status = H5Dvlen_reclaim((hid_t)*type_id, (hid_t)*space_id, (hid_t)*plist_id, buf);
+  if ( status < 0 ) return ret_value;
+
+  ret_value = 0;
+  return ret_value;
+}

@@ -4396,7 +4396,10 @@ CONTAINS
 ! INPUTS
 !  
 !  prp_id	    - dataset creation property list identifier
-!                     options_mask
+!  options_mask     - A bit-mask conveying the desired SZIP options.
+!                     Current valid values in Fortran are:
+!                        H5_SZIP_EC_OM_F
+!                        H5_SZIP_NN_OM_F
 !  pixels_per_block - szip parameters
 ! OUTPUTS
 !  hdferr           - error code		
@@ -4423,7 +4426,7 @@ CONTAINS
                                          ! 0 on success and -1 on failure
 !***** 
 
-!            INTEGER, EXTERNAL :: h5pset_szip_c
+!  INTEGER, EXTERNAL :: h5pset_szip_c
 !  MS FORTRAN needs explicit interface for C functions called here.
 !
     INTERFACE
