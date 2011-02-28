@@ -49,7 +49,6 @@
 ./bin/compile
 ./bin/config.guess
 ./bin/config.sub
-./bin/config_para_ibm_sp.sh 
 ./bin/debug-ohdr			_DO_NOT_DISTRIBUTE_
 ./bin/dependencies
 ./bin/depcomp
@@ -520,11 +519,11 @@
 ./release_docs/INSTALL_VMS.txt
 ./release_docs/INSTALL_Windows.txt
 ./release_docs/USING_Windows.txt
-./release_docs/CMake.txt
 ./release_docs/INSTALL_Windows_From_Command_Line.txt
 ./release_docs/INSTALL_Windows_Short_NET.TXT
 ./release_docs/INSTALL_Windows_Short_VS2005.TXT
 ./release_docs/INSTALL_Windows_Short_VS2008.TXT
+./release_docs/CMake.txt
 ./release_docs/INSTALL_parallel
 ./release_docs/RELEASE.txt
 
@@ -632,6 +631,7 @@
 ./src/H5Faccum.c
 ./src/H5Fdbg.c
 ./src/H5Fdeprec.c
+./src/H5Fefc.c
 ./src/H5Ffake.c
 ./src/H5Fio.c
 ./src/H5Fmount.c
@@ -939,6 +939,7 @@
 ./test/dtypes.c
 ./test/dtransform.c
 ./test/earray.c
+./test/efc.c
 ./test/enum.c
 ./test/extend.c
 ./test/external.c
@@ -1080,9 +1081,9 @@
 ./testpar/t_chunk_alloc.c
 ./testpar/t_coll_chunk.c
 ./testpar/t_filter_read.c
-./testpar/t_span_tree.c
 ./testpar/t_posix_compliant.c
-./testpar/t_rank_projection.c
+./testpar/t_shapesame.c
+./testpar/t_span_tree.c
 ./testpar/testpar.h
 ./testpar/testphdf5.c
 ./testpar/testphdf5.h
@@ -1274,6 +1275,8 @@
 ./tools/testfiles/family_file00015.h5
 ./tools/testfiles/family_file00016.h5
 ./tools/testfiles/family_file00017.h5
+./tools/testfiles/packedbits.h5
+./tools/testfiles/packedbits.ddl
 ./tools/testfiles/file_space.h5
 ./tools/testfiles/file_space.ddl
 ./tools/testfiles/tall-1.ddl
@@ -1284,6 +1287,8 @@
 ./tools/testfiles/tall.h5
 ./tools/testfiles/tarray1.ddl
 ./tools/testfiles/tarray1.h5
+./tools/testfiles/tarray1_big.ddl
+./tools/testfiles/tarray1_big.h5
 ./tools/testfiles/tarray2.ddl
 ./tools/testfiles/tarray2.h5
 ./tools/testfiles/tarray3.ddl
@@ -1334,6 +1339,7 @@
 ./tools/testfiles/texceedsubstride.ddl
 ./tools/testfiles/textlink.h5
 ./tools/testfiles/textlink.h5.xml
+./tools/testfiles/textlink.ddl
 ./tools/testfiles/textlinkfar.ddl
 ./tools/testfiles/textlinkfar.h5
 ./tools/testfiles/textlinksrc.ddl
@@ -1355,6 +1361,7 @@
 ./tools/testfiles/tgroup-1.ddl
 ./tools/testfiles/tgroup-2.ddl
 ./tools/testfiles/tgroup.h5
+./tools/testfiles/tgrp_comments.ls
 ./tools/testfiles/tgrp_comments.ddl
 ./tools/testfiles/tgrp_comments.h5
 ./tools/testfiles/thlink-1.ddl
@@ -2062,9 +2069,13 @@
 ./config/cmake/hdf5-config.cmake.build.in
 ./config/cmake/hdf5-config.cmake.install.in
 ./config/cmake/hdf5-config-version.cmake.in
+./config/cmake/HDFMacros.cmake
 ./config/cmake/HDF5Macros.cmake
+./config/cmake/HDF5UseFortran.cmake
 ./config/cmake/libhdf5.settings.cmake.in
 ./config/cmake/cacheinit.cmake
+./config/cmake/mccacheinit.cmake
+./config/cmake/CTest.cmake
 ./config/cmake/grepTest.cmake
 ./config/cmake/runTest.cmake
 ./config/cmake/vfdTest.cmake
@@ -2387,6 +2398,8 @@
 ./windows/test/dtransformdll/dtransformdll.vcproj
 ./windows/test/dtypes/dtypes.vcproj
 ./windows/test/dtypesdll/dtypesdll.vcproj
+./windows/test/efc/efc.vcproj
+./windows/test/efcdll/efcdll.vcproj
 ./windows/test/earray/earray.vcproj
 ./windows/test/earraydll/earraydll.vcproj
 ./windows/test/enum/enum.vcproj
