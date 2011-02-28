@@ -105,15 +105,6 @@ PROGRAM fortranlibtest
        ' Testing scaleoffset filter', &
        total_error)
 
-!!$  ret_total_error = 0
-!!$  CALL test_getset_vl(cleanup, ret_total_error)
-!!$  CALL write_test_status(ret_total_error, &
-!!$       ' Testing property lists, with variable-length datatype', &
-!!$       total_error) 
-
-
-!  CALL test_hard_query(group_total_error)
-
   WRITE(*,*)
 
   WRITE(*,*) '                  ============================================  '
@@ -211,10 +202,6 @@ SUBROUTINE test_genprop_basic_class(cleanup, total_error)
   INTEGER :: size
   LOGICAL :: flag
 
-  !/* Output message about test being performed */
-
-  !WRITE(*,*) "Testing Basic Generic Property List Class Creation Functionality"
-
   ! /* Create a new generic class, derived from the root of the class hierarchy */
   CALL H5Pcreate_class_f(H5P_ROOT_F, CLASS1_NAME, cid1, error)
   CALL check("H5Pcreate_class", error, total_error)
@@ -294,13 +281,10 @@ SUBROUTINE test_h5s_encode(cleanup, total_error)
   INTEGER :: rank	!/* LOGICAL rank of dataspace	*/
   INTEGER(size_t) :: sbuf_size=0, scalar_size=0
 
-! Make sure the size is large, need variable length in fortran 2003
+! Make sure the size is large
   CHARACTER(LEN=288) :: sbuf
   CHARACTER(LEN=288) :: scalar_buf
-! F2003  CHARACTER(LEN=:), ALLOCATABLE :: sbuf
 
-!    unsigned char       *sbuf=NULL, *null_sbuf=NULL, *scalar_buf=NULL;
-!    hsize_t		tdims[4];	/* Dimension array to test with */
   INTEGER(hsize_t) :: n ! /* Number of dataspace elements */
 
   INTEGER(hsize_t), DIMENSION(1:3) :: start = (/0, 0, 0/)
@@ -309,20 +293,14 @@ SUBROUTINE test_h5s_encode(cleanup, total_error)
   INTEGER(hsize_t), DIMENSION(1:3) :: BLOCK = (/1, 3, 1/)
 
   INTEGER :: space_type
-
-!    H5S_sel_type        sel_type;
-!    hssize_t            nblocks;
   !
-  !Dataset dimensions
+  ! Dataset dimensions
   !
   INTEGER, PARAMETER :: SPACE1_DIM1= 3,  SPACE1_DIM2=15, SPACE1_DIM3=13
 
   INTEGER(HSIZE_T), DIMENSION(1:3) :: dims1 = (/SPACE1_DIM1, SPACE1_DIM2, SPACE1_DIM3/)
   INTEGER :: SPACE1_RANK = 3
   INTEGER :: error
-
-  !/* Output message about test being performed */
-  !WRITE(*,*) "Testing Dataspace Encoding and Decoding"
 
   !/*-------------------------------------------------------------------------
   ! * Test encoding and decoding of simple dataspace and hyperslab selection.
@@ -343,7 +321,6 @@ SUBROUTINE test_h5s_encode(cleanup, total_error)
   CALL H5Sencode_f(sid1, sbuf, sbuf_size, error)
   CALL check("H5Sencode", error, total_error)
 
-  ! In fortran 2003 we can allocate the needed character size here
 
   ! /* Try decoding bogus buffer */
 
@@ -364,23 +341,6 @@ SUBROUTINE test_h5s_encode(cleanup, total_error)
   CALL VERIFY("h5sget_simple_extent_npoints_f", INT(n), SPACE1_DIM1 * SPACE1_DIM2 * SPACE1_DIM3, &
        total_error)
 
-!!$
-!!$    rank = H5Sget_simple_extent_ndims(decoded_sid1);
-!!$    CHECK(rank, FAIL, "H5Sget_simple_extent_ndims");
-!!$    VERIFY(rank, SPACE1_RANK, "H5Sget_simple_extent_ndims");
-!!$
-!!$    rank = H5Sget_simple_extent_dims(decoded_sid1, tdims, NULL);
-!!$    CHECK(rank, FAIL, "H5Sget_simple_extent_dims");
-!!$    VERIFY(HDmemcmp(tdims, dims1, SPACE1_RANK * sizeof(hsize_t)), 0,
-!!$	   "H5Sget_simple_extent_dims");
-!!$
-!!$    /* Verify hyperslabe selection */
-!!$    sel_type = H5Sget_select_type(decoded_sid1);
-!!$    VERIFY(sel_type, H5S_SEL_HYPERSLABS, "H5Sget_select_type");
-!!$
-!!$    nblocks = H5Sget_select_hyper_nblocks(decoded_sid1);
-!!$    VERIFY(nblocks, 2*2*2, "H5Sget_select_hyper_nblocks");
-!!$
   !
   !Close the dataspace for the dataset.
   !
