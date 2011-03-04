@@ -1030,7 +1030,8 @@ H5Pget_filter_by_id2(hid_t plist_id, H5Z_filter_t id, unsigned int *flags/*out*/
         HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get pipeline")
 
     /* Get pointer to filter in pipeline */
-    if(NULL == (filter = H5Z_filter_info(&pline, id)))
+    filter = H5Z_filter_info(&pline, id);
+    if(NULL == filter)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "filter ID is invalid")
 
     /* Get filter information */

@@ -4183,7 +4183,8 @@ H5P_copy_prop_pclass(hid_t dst_id, hid_t src_id, const char *name)
         H5P_genclass_t *old_dst_pclass;     /* Old destination property class */
 
         /* Substitute the new destination property class in the ID */
-        if(NULL == (old_dst_pclass = (H5P_genclass_t *)H5I_subst(dst_id, dst_pclass)))
+        old_dst_pclass = (H5P_genclass_t *)H5I_subst(dst_id, dst_pclass);
+        if(NULL == old_dst_pclass)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to substitute property class in ID")
         HDassert(old_dst_pclass == orig_dst_pclass);
 

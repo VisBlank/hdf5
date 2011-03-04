@@ -463,7 +463,8 @@ H5Pregister2(hid_t cls_id, const char *name, size_t size, void *def_value,
         H5P_genclass_t *old_pclass;     /* Old property class */
 
         /* Substitute the new property class in the ID */
-        if(NULL == (old_pclass = (H5P_genclass_t *)H5I_subst(cls_id, pclass)))
+        old_pclass = (H5P_genclass_t *)H5I_subst(cls_id, pclass);
+        if(NULL == old_pclass)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to substitute property class in ID")
         HDassert(old_pclass == orig_pclass);
 
