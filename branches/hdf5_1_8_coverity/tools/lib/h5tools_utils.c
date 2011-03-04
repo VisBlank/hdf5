@@ -784,9 +784,13 @@ H5tools_get_symlink_info(hid_t file_id, const char * linkpath, h5tool_link_info_
      */
     if(link_info->linfo.type == H5L_TYPE_EXTERNAL) {
         fapl = H5Pcreate(H5P_FILE_ACCESS);
-        H5Pset_fapl_sec2(fapl);
+        ret = H5Pset_fapl_sec2(fapl);
+        if (ret < 0)
+            goto out; 
         lapl = H5Pcreate(H5P_LINK_ACCESS);
-        H5Pset_elink_fapl(lapl, fapl);
+        ret = H5Pset_elink_fapl(lapl, fapl);
+        if (ret < 0)
+            goto out; 
     } /* end if */
 
     /* Check for retrieving object info */
