@@ -26,7 +26,7 @@ dnl
 dnl NOTE: Don't forget to change the version number here when we do a
 dnl release!!!
 dnl
-AC_INIT([HDF5], [1.8.7-snap1], [help@hdfgroup.org])
+AC_INIT([HDF5], [1.8.7-snap2], [help@hdfgroup.org])
 AC_CONFIG_SRCDIR([src/H5.c])
 AM_CONFIG_HEADER([src/H5config.h])
 
@@ -928,6 +928,22 @@ dnl
 if (${CC-cc} -V 2>&1 | grep '^pgcc 6.0') > /dev/null && test "X$enable_production" = "Xyes"; then
     echo 'adding compiler flag to avoid optimization problem in pgcc'
     CC="${CC-cc} -Mx,28,0x8"
+fi
+
+dnl ----------------------------------------------------------------------
+dnl Shared libraries are not currently supported under Cygwin, so configure
+dnl disables them unless --enable-unsupported has been supplied by the user.
+if test "X${ALLOW_UNSUPPORTED}" != "Xyes"; then
+  case "`uname`" in
+    CYGWIN*)
+      if test "X${enable_shared}" = "Xyes"; then
+        echo '    warning: shared libraries are not supported on Cygwin!'
+        echo '    disabling shared libraries'
+        echo '    use --enable-unsupported to override this warning and keep shared libraries enabled'
+      fi
+      enable_shared="no"
+      ;;
+  esac
 fi
 
 dnl ----------------------------------------------------------------------
@@ -4436,7 +4452,6 @@ AC_CONFIG_FILES([src/libhdf5.settings
                  hl/fortran/examples/run-hlfortran-ex.sh])
 
 AC_OUTPUT
-LT_OUTPUT
 no_create=$saved_no_create
 
 # Then the stamp2 file for H5config.h

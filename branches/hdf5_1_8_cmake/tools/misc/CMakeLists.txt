@@ -12,15 +12,15 @@ INCLUDE_DIRECTORIES (${HDF5_PROJECT_DIR}/test)
 # --------------------------------------------------------------------
 #-- Misc Executables
 ADD_EXECUTABLE (h5debug ${HDF5_TOOLS_MISC_SOURCE_DIR}/h5debug.c)
-H5_NAMING (h5debug ${LIB_TYPE})
+TARGET_NAMING (h5debug ${LIB_TYPE})
 TARGET_LINK_LIBRARIES (h5debug ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
 
 ADD_EXECUTABLE (h5repart ${HDF5_TOOLS_MISC_SOURCE_DIR}/h5repart.c)
-H5_NAMING (h5repart ${LIB_TYPE})
+TARGET_NAMING (h5repart ${LIB_TYPE})
 TARGET_LINK_LIBRARIES (h5repart ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
 
 ADD_EXECUTABLE (h5mkgrp ${HDF5_TOOLS_MISC_SOURCE_DIR}/h5mkgrp.c)
-H5_NAMING (h5mkgrp ${LIB_TYPE})
+TARGET_NAMING (h5mkgrp ${LIB_TYPE})
 TARGET_LINK_LIBRARIES (h5mkgrp  ${HDF5_TOOLS_LIB_TARGET} ${HDF5_LIB_TARGET})
 
 SET (H5_DEP_EXECUTABLES
@@ -41,13 +41,13 @@ IF (BUILD_TESTING)
   # --------------------------------------------------------------------
   IF (HDF5_BUILD_GENERATORS AND NOT BUILD_SHARED_LIBS)
     ADD_EXECUTABLE (h5repart_gentest ${HDF5_TOOLS_MISC_SOURCE_DIR}/h5repart_gentest.c)
-    H5_NAMING (h5repart_gentest ${LIB_TYPE})
+    TARGET_NAMING (h5repart_gentest ${LIB_TYPE})
     TARGET_LINK_LIBRARIES (h5repart_gentest ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
     #ADD_TEST (NAME h5repart_gentest COMMAND $<TARGET_FILE:h5repart_gentest>)
   ENDIF (HDF5_BUILD_GENERATORS AND NOT BUILD_SHARED_LIBS)
 
   ADD_EXECUTABLE (h5repart_test ${HDF5_TOOLS_MISC_SOURCE_DIR}/repart_test.c)
-  H5_NAMING (h5repart_test ${LIB_TYPE})
+  TARGET_NAMING (h5repart_test ${LIB_TYPE})
   TARGET_LINK_LIBRARIES (h5repart_test ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
   
   # --------------------------------------------------------------------
@@ -145,33 +145,39 @@ IF (BUILD_TESTING)
       )
     ENDIF (NOT ${resultoption} STREQUAL " ")
     SET_TESTS_PROPERTIES (H5MKGRP-${resultfile}${resultoption} PROPERTIES DEPENDS H5MKGRP-clear-${resultfile}${resultoption})
-    ADD_TEST (
-        NAME H5MKGRP-H5LS-${resultfile}${resultoption}
-        COMMAND "${CMAKE_COMMAND}"
-            -D "TEST_PROGRAM=$<TARGET_FILE:h5ls>"
-            -D "TEST_ARGS:STRING=-v;-r;../testfiles/${resultfile}.h5"
-            -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
-            -D "TEST_OUTPUT=${resultfile}.out"
-            -D "TEST_EXPECT=${resultcode}"
-            -D "TEST_MASK_MOD=true"
-            -D "TEST_REFERENCE=${resultfile}.ls"
-            -P "${HDF5_RESOURCES_DIR}/runTest.cmake"
-    )
-    SET_TESTS_PROPERTIES (H5MKGRP-H5LS-${resultfile}${resultoption} PROPERTIES DEPENDS H5MKGRP-${resultfile}${resultoption})
+    IF (NOT HDF5_ENABLE_USING_MEMCHECKER)
+      ADD_TEST (
+          NAME H5MKGRP-H5LS-${resultfile}${resultoption}
+          COMMAND "${CMAKE_COMMAND}"
+              -D "TEST_PROGRAM=$<TARGET_FILE:h5ls>"
+              -D "TEST_ARGS:STRING=-v;-r;../testfiles/${resultfile}.h5"
+              -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
+              -D "TEST_OUTPUT=${resultfile}.out"
+              -D "TEST_EXPECT=${resultcode}"
+              -D "TEST_MASK_MOD=true"
+              -D "TEST_REFERENCE=${resultfile}.ls"
+              -P "${HDF5_RESOURCES_DIR}/runTest.cmake"
+      )
+      SET_TESTS_PROPERTIES (H5MKGRP-H5LS-${resultfile}${resultoption} PROPERTIES DEPENDS H5MKGRP-${resultfile}${resultoption})
+    ENDIF (NOT HDF5_ENABLE_USING_MEMCHECKER)
   ENDMACRO (ADD_H5_TEST resultfile resultcode resultoption)
 
   MACRO (ADD_H5_CMP resultfile resultcode)
-    ADD_TEST (
-        NAME H5MKGRP-${resultfile}
-        COMMAND "${CMAKE_COMMAND}"
-            -D "TEST_PROGRAM=$<TARGET_FILE:h5mkgrp>"
-            -D "TEST_ARGS:STRING=${ARGN}"
-            -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
-            -D "TEST_OUTPUT=${resultfile}.out"
-            -D "TEST_EXPECT=${resultcode}"
-            -D "TEST_REFERENCE=${resultfile}.txt"
-            -P "${HDF5_RESOURCES_DIR}/runTest.cmake"
-    )
+    IF (HDF5_ENABLE_USING_MEMCHECKER)
+      ADD_TEST (NAME H5MKGRP-${resultfile} COMMAND $<TARGET_FILE:h5mkgrp> ${ARGN})
+    ELSE (HDF5_ENABLE_USING_MEMCHECKER)
+      ADD_TEST (
+          NAME H5MKGRP-${resultfile}
+          COMMAND "${CMAKE_COMMAND}"
+              -D "TEST_PROGRAM=$<TARGET_FILE:h5mkgrp>"
+              -D "TEST_ARGS:STRING=${ARGN}"
+              -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
+              -D "TEST_OUTPUT=${resultfile}.out"
+              -D "TEST_EXPECT=${resultcode}"
+              -D "TEST_REFERENCE=${resultfile}.txt"
+              -P "${HDF5_RESOURCES_DIR}/runTest.cmake"
+      )
+    ENDIF (HDF5_ENABLE_USING_MEMCHECKER)
   ENDMACRO (ADD_H5_CMP resultfile resultcode)
 
 ##############################################################################
@@ -264,7 +270,7 @@ ENDIF (BUILD_TESTING)
 #-----------------------------------------------------------------------------
 INSTALL (
     TARGETS
-        h5debug h5repart
+        h5debug h5repart h5mkgrp
     RUNTIME DESTINATION
         ${HDF5_INSTALL_BIN_DIR}/tools
     COMPONENT

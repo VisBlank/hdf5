@@ -11,7 +11,7 @@ INCLUDE_DIRECTORIES (${HDF5_PROJECT_DIR}/test)
 # Add the h5copy and test executables
 # --------------------------------------------------------------------
 ADD_EXECUTABLE (h5copy ${HDF5_TOOLS_H5COPY_SOURCE_DIR}/h5copy.c)
-H5_NAMING (h5copy ${LIB_TYPE})
+TARGET_NAMING (h5copy ${LIB_TYPE})
 TARGET_LINK_LIBRARIES (h5copy  ${HDF5_TOOLS_LIB_TARGET} ${HDF5_LIB_TARGET})
 
 SET (H5_DEP_EXECUTABLES h5copy)
@@ -25,7 +25,7 @@ SET (H5_DEP_EXECUTABLES h5copy)
 IF (BUILD_TESTING)
   IF (HDF5_BUILD_GENERATORS AND NOT BUILD_SHARED_LIBS)
     ADD_EXECUTABLE (h5copygentest ${HDF5_TOOLS_H5COPY_SOURCE_DIR}/h5copygentest.c)
-    H5_NAMING (h5copygentest ${LIB_TYPE})
+    TARGET_NAMING (h5copygentest ${LIB_TYPE})
     TARGET_LINK_LIBRARIES (h5copygentest ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
 
     #ADD_TEST (NAME h5copygentest COMMAND $<TARGET_FILE:h5copygentest>)
@@ -106,18 +106,23 @@ IF (BUILD_TESTING)
   ENDMACRO (ADD_H5_TEST testname resultcode testfile vparam srcname dstname)
 
   MACRO (ADD_H5LS_TEST file filetest)
-    ADD_TEST (
-        NAME H5COPY-H5LS_${file}-${filetest}
-        COMMAND "${CMAKE_COMMAND}"
-            -D "TEST_PROGRAM=$<TARGET_FILE:h5ls>"
-            -D "TEST_ARGS=-Svr;./testfiles/${file}.out.h5"
-            -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
-            -D "TEST_OUTPUT=./testfiles/${file}.out.out"
-            -D "TEST_EXPECT=0"
-            -D "TEST_REFERENCE=./testfiles/${file}.out.ls"
-            -D "TEST_MASK=true"
-            -P "${HDF5_RESOURCES_DIR}/runTest.cmake"
-    )
+    # If using memchecker add tests without using scripts
+    IF (HDF5_ENABLE_USING_MEMCHECKER)
+      ADD_TEST (NAME H5COPY-H5LS_${file}-${filetest} COMMAND $<TARGET_FILE:h5ls> -Svr ./testfiles/${file}.out.h5)
+    ELSE (HDF5_ENABLE_USING_MEMCHECKER)
+      ADD_TEST (
+          NAME H5COPY-H5LS_${file}-${filetest}
+          COMMAND "${CMAKE_COMMAND}"
+              -D "TEST_PROGRAM=$<TARGET_FILE:h5ls>"
+              -D "TEST_ARGS=-Svr;./testfiles/${file}.out.h5"
+              -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
+              -D "TEST_OUTPUT=./testfiles/${file}.out.out"
+              -D "TEST_EXPECT=0"
+              -D "TEST_REFERENCE=./testfiles/${file}.out.ls"
+              -D "TEST_MASK=true"
+              -P "${HDF5_RESOURCES_DIR}/runTest.cmake"
+      )
+    ENDIF (HDF5_ENABLE_USING_MEMCHECKER)
     IF (NOT "${last_test}" STREQUAL "")
       SET_TESTS_PROPERTIES (H5COPY-H5LS_${file}-${filetest} PROPERTIES DEPENDS ${last_test})
     ENDIF (NOT "${last_test}" STREQUAL "")
@@ -125,18 +130,23 @@ IF (BUILD_TESTING)
   ENDMACRO (ADD_H5LS_TEST file filetest)
 
   MACRO (ADD_H5_CMP_TEST testname resultcode testfile vparam srcname dstname)
-    ADD_TEST (
-        NAME H5COPY-CMP-${testname}
-        COMMAND "${CMAKE_COMMAND}"
-            -D "TEST_PROGRAM=$<TARGET_FILE:h5copy>"
-            -D "TEST_ARGS=-i;${testfile}.h5;-o;./testfiles/${testfile}.out.h5;-${vparam};-s;${srcname};-d;${dstname}"
-            -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
-            -D "TEST_OUTPUT=./testfiles/${testname}.out.out"
-            -D "TEST_EXPECT=${resultcode}"
-            -D "TEST_REFERENCE=./testfiles/${testname}.out"
-            -D "TEST_MASK=true"
-            -P "${HDF5_RESOURCES_DIR}/runTest.cmake"
-    )
+    # If using memchecker add tests without using scripts
+    IF (HDF5_ENABLE_USING_MEMCHECKER)
+      ADD_TEST (NAME H5COPY-CMP-${testname} COMMAND $<TARGET_FILE:h5copy> -i ${testfile}.h5 -o ./testfiles/${testfile}.out.h5 -${vparam} -s ${srcname} -d ${dstname})
+    ELSE (HDF5_ENABLE_USING_MEMCHECKER)
+      ADD_TEST (
+          NAME H5COPY-CMP-${testname}
+          COMMAND "${CMAKE_COMMAND}"
+              -D "TEST_PROGRAM=$<TARGET_FILE:h5copy>"
+              -D "TEST_ARGS=-i;${testfile}.h5;-o;./testfiles/${testfile}.out.h5;-${vparam};-s;${srcname};-d;${dstname}"
+              -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
+              -D "TEST_OUTPUT=./testfiles/${testname}.out.out"
+              -D "TEST_EXPECT=${resultcode}"
+              -D "TEST_REFERENCE=./testfiles/${testname}.out"
+              -D "TEST_MASK=true"
+              -P "${HDF5_RESOURCES_DIR}/runTest.cmake"
+      )
+    ENDIF (HDF5_ENABLE_USING_MEMCHECKER)
     IF (NOT "${last_test}" STREQUAL "")
       SET_TESTS_PROPERTIES (H5COPY-CMP-${testname} PROPERTIES DEPENDS ${last_test})
     ENDIF (NOT "${last_test}" STREQUAL "")

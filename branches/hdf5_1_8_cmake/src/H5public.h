@@ -76,12 +76,23 @@ extern "C" {
 #define H5_VERS_MAJOR	1	/* For major interface/format changes  	     */
 #define H5_VERS_MINOR	8	/* For minor interface/format changes  	     */
 #define H5_VERS_RELEASE	7	/* For tweaks, bug-fixes, or development     */
-#define H5_VERS_SUBRELEASE "snap1"	/* For pre-releases like snap0       */
+#define H5_VERS_SUBRELEASE "snap2"	/* For pre-releases like snap0       */
 				/* Empty string for real releases.           */
-#define H5_VERS_INFO    "HDF5 library version: 1.8.7-snap1"      /* Full version string */
+#define H5_VERS_INFO    "HDF5 library version: 1.8.7-snap2"      /* Full version string */
 
 #define H5check()	H5check_version(H5_VERS_MAJOR,H5_VERS_MINOR,	      \
 				        H5_VERS_RELEASE)
+
+/* macros for comparing the version */
+#define H5_VERSION_GE(Maj,Min,Rel) \
+       (((H5_VERS_MAJOR==Maj) && (H5_VERS_MINOR==Min) && (H5_VERS_RELEASE>=Rel)) || \
+        ((H5_VERS_MAJOR==Maj) && (H5_VERS_MINOR>Min)) || \
+        (H5_VERS_MAJOR>Maj))
+
+#define H5_VERSION_LE(Maj,Min,Rel) \
+       (((H5_VERS_MAJOR==Maj) && (H5_VERS_MINOR==Min) && (H5_VERS_RELEASE<=Rel)) || \
+        ((H5_VERS_MAJOR==Maj) && (H5_VERS_MINOR<Min)) || \
+        (H5_VERS_MAJOR<Maj))
 
 /*
  * Status return values.  Failed integer functions in HDF5 result almost
