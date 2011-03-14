@@ -53,6 +53,7 @@ const char *FILENAME[] = {
     NULL
 };
 #define FILENAME_BUF_SIZE       1024
+#define KB                      1024
 
 #define FILE_DEFLATE_NAME       "deflate.h5"
 
@@ -99,6 +100,8 @@ const char *FILENAME[] = {
 #define DSET_NBIT_COMPOUND_NAME        "nbit_compound"
 #define DSET_NBIT_COMPOUND_NAME_2      "nbit_compound_2"
 #define DSET_NBIT_COMPOUND_NAME_3      "nbit_compound_3"
+#define DSET_NBIT_INT_SIZE_NAME        "nbit_int_size"
+#define DSET_NBIT_FLT_SIZE_NAME        "nbit_flt_size"
 #define DSET_SCALEOFFSET_INT_NAME      "scaleoffset_int"
 #define DSET_SCALEOFFSET_INT_NAME_2    "scaleoffset_int_2"
 #define DSET_SCALEOFFSET_FLOAT_NAME    "scaleoffset_float"
@@ -226,11 +229,6 @@ static size_t filter_expand(unsigned int flags, size_t cd_nelmts,
  *
  * Programmer:	Robb Matzke
  *		Tuesday, December  9, 1997
- *
- * Modifications:
- *              Added test for compact dataset creation.
- *              Raymond Lu
- *              August 8, 2002
  *
  *-------------------------------------------------------------------------
  */
@@ -386,8 +384,6 @@ test_create(hid_t file)
  * Programmer:	Robb Matzke
  *		Wednesday, December 10, 1997
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 static herr_t
@@ -508,8 +504,6 @@ error:
  * Programmer:	Raymond Lu
  *		Wednesday, November 27, 2002
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 static herr_t
@@ -602,8 +596,6 @@ error:
  *
  * Programmer:  Raymond Lu
  *              August 8, 2002
- *
- * Modifications:
  *
  *-------------------------------------------------------------------------
  */
@@ -840,8 +832,8 @@ error:
         /* Close file */
         H5Sclose(space);
         H5Pclose(plist);
-        H5Fclose(file);
         H5Dclose(dataset);
+        H5Fclose(file);
     } H5E_END_TRY;
 
      return -1;
@@ -869,10 +861,10 @@ static herr_t
 test_layout_extend(hid_t fapl)
 {
     char filename[FILENAME_BUF_SIZE];	/* File name */
-    hid_t fid; 				/* File id */
-    hid_t sid_fix, sid_unlim; 		/* Dataspace id */
-    hid_t dcpl_compact, dcpl_contig, dcpl_chunked;	/* Dataset creation property list id */
-    hid_t did_fixed, did_unlim;		/* Dataset id */
+    hid_t fid = -1; 				/* File id */
+    hid_t sid_fix = -1, sid_unlim = -1; 	/* Dataspace id */
+    hid_t dcpl_compact = -1, dcpl_contig = -1, dcpl_chunked = -1; /* Dataset creation property list id */
+    hid_t did_fixed = -1, did_unlim = -1;	/* Dataset id */
     hsize_t cur_size[1] = {10};		/* Current size of dataspace */
     hsize_t max_unlim[1] = {H5S_UNLIMITED};		/* Maximum size of dataspace (unlimited) */
     hsize_t max_fix[1] = {100};				/* Maximum size of dataspace (fixed) */
@@ -985,8 +977,6 @@ error:
  *
  * Programmer:	Raymond Lu
  *		Monday, May 12, 2003
- *
- * Modifications:
  *
  *-------------------------------------------------------------------------
  */
@@ -1134,8 +1124,6 @@ error:
  * Programmer:	Robb Matzke
  *		Wednesday, January 14, 1998
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 static herr_t
@@ -1236,8 +1224,6 @@ const H5Z_class2_t H5Z_BOGUS[1] = {{
  * Programmer:	Quincey Koziol
  *              Friday, April  5, 2003
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 static htri_t
@@ -1264,8 +1250,6 @@ can_apply_bogus(hid_t UNUSED dcpl_id, hid_t type_id, hid_t UNUSED space_id)
  * Programmer:	Robb Matzke
  *              Tuesday, April 21, 1998
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 static size_t
@@ -1289,8 +1273,6 @@ filter_bogus(unsigned int UNUSED flags, size_t UNUSED cd_nelmts,
  *
  * Programmer:	Quincey Koziol
  *              Friday, April  5, 2003
- *
- * Modifications:
  *
  *-------------------------------------------------------------------------
  */
@@ -1342,8 +1324,6 @@ set_local_bogus2(hid_t dcpl_id, hid_t type_id, hid_t UNUSED space_id)
  *
  * Programmer:	Quincey Koziol
  *              Monday, April  7, 2003
- *
- * Modifications:
  *
  *-------------------------------------------------------------------------
  */
@@ -1400,8 +1380,6 @@ filter_bogus2(unsigned int flags, size_t cd_nelmts,
  *
  * Programmer:	Raymond Lu
  *              4 August 2010
- *
- * Modifications:
  *
  *-------------------------------------------------------------------------
  */
@@ -1499,8 +1477,6 @@ error:
  * Programmer:	Raymond Lu
  *              Jan 14, 2003
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 static H5Z_cb_return_t
@@ -1523,8 +1499,6 @@ filter_cb_cont(H5Z_filter_t filter, void UNUSED *buf, size_t UNUSED buf_size,
  *
  * Programmer:	Raymond Lu
  *              Jan 14, 2003
- *
- * Modifications:
  *
  *-------------------------------------------------------------------------
  */
@@ -1552,10 +1526,6 @@ filter_cb_fail(H5Z_filter_t filter, void UNUSED *buf, size_t UNUSED buf_size,
  *
  * Programmer:	Robb Matzke
  *              Wednesday, April 15, 1998
- *
- * Modifications:
- *              Moved out of main test_compression routine
- *              Quincey Koziol, November 14, 2002
  *
  *-------------------------------------------------------------------------
  */
@@ -1903,10 +1873,6 @@ error:
  * Programmer:	Nat Furrer and James Laird
  *              Monday, June 7, 2004
  *
- * Modifications:
- *              Make copy of data file since the test writes to the file.
- *              Larry Knox, October 14, 2009
- *
  *-------------------------------------------------------------------------
  */
 #ifdef H5_HAVE_FILTER_SZIP
@@ -2028,8 +1994,6 @@ error:
  * Programmer:  Nat Furrer and James Laird
  *              Thursday, June 10, 2004
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 static herr_t
@@ -2106,14 +2070,6 @@ error:
  *
  * Programmer:	Robb Matzke
  *              Wednesday, April 15, 1998
- *
- * Modifications:
- *              Moved guts of filter testing out of main routine.
- *              Tests shuffle, deflate, fletcher32 checksum filters.
- *              Quincey Koziol, November 14, 2002
- *
- *              Added Fletcher32 filter testing
- *              Raymond Lu, Jan 22, 2002
  *
  *-------------------------------------------------------------------------
  */
@@ -2650,8 +2606,6 @@ error:
  * Programmer:	Kent Yang
  *              Wednesday, Nov. 13th, 2002
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 static herr_t
@@ -2767,8 +2721,6 @@ error:
  *
  * Programmer:  Xiaowen Wu
  *              Wednesday, Dec. 23th, 2004
- *
- * Modifications:
  *
  *-------------------------------------------------------------------------
  */
@@ -2910,8 +2862,6 @@ error:
  * Programmer:  Xiaowen Wu
  *              Friday, Jan. 21th, 2005
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 static herr_t
@@ -3040,8 +2990,6 @@ error:
  *
  * Programmer:  Xiaowen Wu
  *              Wednesday, Jan. 26th, 2005
- *
- * Modifications:
  *
  *-------------------------------------------------------------------------
  */
@@ -3173,8 +3121,6 @@ error:
  *
  * Programmer:  Xiaowen Wu
  *              Tuesday, Jan. 18th, 2005
- *
- * Modifications:
  *
  *-------------------------------------------------------------------------
  */
@@ -3321,8 +3267,6 @@ error:
  *
  * Programmer:  Xiaowen Wu
  *              Tuesday, Jan. 18th, 2005
- *
- * Modifications:
  *
  *-------------------------------------------------------------------------
  */
@@ -3519,8 +3463,6 @@ error:
  *
  * Programmer:  Xiaowen Wu
  *              Tuesday, Jan. 18th, 2005
- *
- * Modifications:
  *
  *-------------------------------------------------------------------------
  */
@@ -3809,8 +3751,6 @@ error:
  * Programmer:  Xiaowen Wu
  *              Thursday, Mar. 31th, 2005
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 static herr_t
@@ -3996,6 +3936,384 @@ error:
 
 
 /*-------------------------------------------------------------------------
+ * Function:    test_nbit_int_size
+ *
+ * Purpose:     Tests the correct size of the integer datatype for nbit filter
+ *
+ * Return:      Success:        0
+ *
+ *              Failure:        -1
+ *
+ * Programmer:  Raymond Lu
+ *              19 November 2010
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+test_nbit_int_size(hid_t file)
+{
+#ifdef H5_HAVE_FILTER_NBIT
+    hid_t   dataspace, dataset, datatype, mem_datatype, dset_create_props;
+    hsize_t dims[2], chunk_size[2];
+    hsize_t dset_size = 0;
+    int     orig_data[DSET_DIM1][DSET_DIM2];
+    int     i, j;
+    size_t  precision, offset;
+#else /* H5_HAVE_FILTER_NBIT */
+    const char          *not_supported= "    Nbit is not enabled.";
+#endif /* H5_HAVE_FILTER_NBIT */
+
+    TESTING("    nbit integer dataset size");
+#ifdef H5_HAVE_FILTER_NBIT
+
+   /* Define dataset datatype (integer), and set precision, offset */
+   if((datatype = H5Tcopy(H5T_NATIVE_INT)) < 0) {
+       H5_FAILED();
+       printf("    line %d: H5Tcopy failed\n",__LINE__);
+       goto error;
+   } /* end if */
+
+   precision = 16; /* precision includes sign bit */
+   if(H5Tset_precision(datatype,precision)<0) {
+       H5_FAILED();
+       printf("    line %d: H5Pset_precision failed\n",__LINE__);
+       goto error;
+   } /* end if */
+
+   offset = 8;
+   if(H5Tset_offset(datatype,offset)<0) {
+       H5_FAILED();
+       printf("    line %d: H5Tset_offset failed\n",__LINE__);
+       goto error;
+   } /* end if */
+
+   /* Copy to memory datatype */
+   if((mem_datatype = H5Tcopy(datatype)) < 0) {
+       H5_FAILED();
+       printf("    line %d: H5Tcopy failed\n",__LINE__);
+       goto error;
+   } /* end if */
+
+   /* Set order of dataset datatype */
+   if(H5Tset_order(datatype, H5T_ORDER_BE)<0) {
+        H5_FAILED();
+       printf("    line %d: H5Pset_order failed\n",__LINE__);
+       goto error;
+   } /* end if */
+  
+   if(H5Tset_size(datatype, 4)<0) {
+       H5_FAILED();
+       printf("    line %d: H5Pset_size failed\n",__LINE__);
+       goto error;
+   } /* end if */
+
+  /* Initiliaze data buffer with random data within correct range
+   * corresponding to the memory datatype's precision and offset.
+   */
+   for (i=0; i < DSET_DIM1; i++)
+       for (j=0; j < DSET_DIM2; j++)
+           orig_data[i][j] = rand() % (int)pow(2, precision-1) <<offset;
+
+
+   /* Describe the dataspace. */
+   dims[0] = DSET_DIM1;
+   dims[1] = DSET_DIM2;
+   if((dataspace = H5Screate_simple (2, dims, NULL))<0) {
+       H5_FAILED();
+       printf("    line %d: H5Pcreate failed\n",__LINE__);
+       goto error;
+   } /* end if */
+
+  /*
+   * Set the dataset creation property list to specify the chunks
+   */
+   chunk_size[0] = DSET_DIM1/10;
+   chunk_size[1] = DSET_DIM2/10;
+   if((dset_create_props = H5Pcreate (H5P_DATASET_CREATE))<0) {
+       H5_FAILED();
+       printf("    line %d: H5Pcreate failed\n",__LINE__);
+       goto error;
+   } /* end if */
+
+   if(H5Pset_chunk (dset_create_props, 2, chunk_size)<0) {
+       H5_FAILED();
+       printf("    line %d: H5Pset_chunk failed\n",__LINE__);
+       goto error;
+   } /* end if */
+
+  /*
+   * Set for n-bit compression
+   */
+   if(H5Pset_nbit (dset_create_props)<0) {
+       H5_FAILED();
+       printf("    line %d: H5Pset_nbit failed\n",__LINE__);
+       goto error;
+   } /* end if */
+
+  /*
+   * Create a new dataset within the file.
+   */
+   if((dataset = H5Dcreate2 (file, DSET_NBIT_INT_SIZE_NAME, datatype,
+                            dataspace, H5P_DEFAULT, 
+                            dset_create_props, H5P_DEFAULT))<0) {
+       H5_FAILED();
+       printf("    line %d: H5dwrite failed\n",__LINE__);
+       goto error;
+   } /* end if */
+
+  /*
+   * Write the array to the file.
+   */
+   if(H5Dwrite (dataset, mem_datatype, H5S_ALL, H5S_ALL,
+                H5P_DEFAULT, orig_data)<0) {
+       H5_FAILED();
+       printf("    Line %d: H5Dwrite failed\n",__LINE__);
+       goto error;
+   } /* end if */
+
+   /* 
+    * Get the precision of the data type
+    */
+   if((precision = H5Tget_precision(datatype)) == 0) {
+       H5_FAILED();
+       printf("    Line %d: wrong precision size: %d\n",__LINE__, precision);
+       goto error;
+   } /* end if */
+
+   /* 
+    * The size of the dataset after compression should around 2 * DSET_DIM1 * DSET_DIM2
+    */
+   if((dset_size = H5Dget_storage_size(dataset)) < DSET_DIM1*DSET_DIM2*(precision/8) || 
+       dset_size > DSET_DIM1*DSET_DIM2*(precision/8) + 1*KB) {
+       H5_FAILED();
+       printf("    Line %d: wrong dataset size: %d\n",__LINE__, dset_size);
+       goto error;
+   } /* end if */
+
+   H5Tclose (datatype);
+   H5Tclose (mem_datatype);
+   H5Dclose (dataset);
+   H5Sclose (dataspace);
+   H5Pclose (dset_create_props);
+
+    PASSED();
+#else
+    SKIPPED();
+    puts(not_supported);
+#endif
+
+   return 0;
+error:
+    return -1;
+}
+
+
+/*-------------------------------------------------------------------------
+ * Function:    test_nbit_flt_size
+ *
+ * Purpose:     Tests the correct size of the floating-number datatype for 
+ *              nbit filter
+ *
+ * Return:      Success:        0
+ *
+ *              Failure:        -1
+ *
+ * Programmer:  Raymond Lu
+ *              19 November 2010
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+test_nbit_flt_size(hid_t file)
+{
+#ifdef H5_HAVE_FILTER_NBIT
+    hid_t   dataspace, dataset, datatype, dset_create_props;
+    hsize_t dims[2], chunk_size[2];
+    hsize_t dset_size = 0;
+    float   orig_data[DSET_DIM1][DSET_DIM2];
+    int     i, j;
+    size_t  precision, offset;
+    size_t  spos, epos, esize, mpos, msize;
+#else /* H5_HAVE_FILTER_NBIT */
+    const char          *not_supported= "    Nbit is not enabled.";
+#endif /* H5_HAVE_FILTER_NBIT */
+
+    TESTING("    nbit floating-number dataset size");
+#ifdef H5_HAVE_FILTER_NBIT
+
+  /* Define floating-point type for dataset
+   *-------------------------------------------------------------------
+   * size=4 byte, precision=16 bits, offset=8 bits,
+   * mantissa size=9 bits, mantissa position=8,
+   * exponent size=6 bits, exponent position=17,
+   * exponent bias=31.
+   * It can be illustrated in little-endian order as:
+   * (S - sign bit, E - exponent bit, M - mantissa bit,
+   *  ? - padding bit)
+   *
+   *           3        2        1        0
+   *       ???????? SEEEEEEM MMMMMMMM ????????
+   *
+   * To create a new floating-point type, the following
+   * properties must be set in the order of
+   *     set fields -> set offset -> set precision -> set size.
+   * All these properties must be set before the type can function.
+   * Other properties can be set anytime. Derived type size cannot
+   * be expanded bigger than original size but can be decreased.
+   * There should be no holes among the significant bits. Exponent
+   * bias usually is set 2^(n-1)-1, where n is the exponent size.
+   *-------------------------------------------------------------------*/
+   if((datatype = H5Tcopy(H5T_IEEE_F32LE)) < 0) {
+       H5_FAILED();
+       printf("    line %d: H5Tcopy failed\n",__LINE__);
+       goto error;
+   } /* end if */
+
+   msize = 9;
+   spos = 23;
+   epos = 17;
+   esize = 6;
+   mpos = 8;
+   offset = 8;
+   precision = 16;
+
+   if(H5Tset_fields(datatype, spos, epos, esize, mpos, msize)<0) {
+       H5_FAILED();
+       printf("    line %d: H5Tset_fields failed\n",__LINE__);
+       goto error;
+   } /* end if */
+
+   if(H5Tset_offset(datatype,offset)<0) {
+       H5_FAILED();
+       printf("    line %d: H5Tset_offset failed\n",__LINE__);
+       goto error;
+   } /* end if */
+
+   if(H5Tset_precision(datatype,precision)<0) {
+       H5_FAILED();
+       printf("    line %d: H5Tset_precision failed\n",__LINE__);
+       goto error;
+   } /* end if */
+
+   if(H5Tset_size(datatype, 4)<0) {
+       H5_FAILED();
+       printf("    line %d: H5Pset_size failed\n",__LINE__);
+       goto error;
+   } /* end if */
+
+   /* Set order of dataset datatype */
+   if(H5Tset_order(datatype, H5T_ORDER_BE)<0) {
+        H5_FAILED();
+       printf("    line %d: H5Pset_order failed\n",__LINE__);
+       goto error;
+   } /* end if */
+  
+   if(H5Tset_ebias(datatype, 31)<0) {
+       H5_FAILED();
+       printf("    line %d: H5Pset_size failed\n",__LINE__);
+       goto error;
+   } /* end if */
+
+  /* 
+   * Initiliaze data buffer with random data 
+   */
+   for (i=0; i < DSET_DIM1; i++)
+       for (j=0; j < DSET_DIM2; j++)
+           orig_data[i][j] = (rand() % 1234567) / 2;
+
+
+   /* Describe the dataspace. */
+   dims[0] = DSET_DIM1;
+   dims[1] = DSET_DIM2;
+   if((dataspace = H5Screate_simple (2, dims, NULL))<0) {
+       H5_FAILED();
+       printf("    line %d: H5Pcreate failed\n",__LINE__);
+       goto error;
+   } /* end if */
+
+  /*
+   * Set the dataset creation property list to specify the chunks
+   */
+   chunk_size[0] = DSET_DIM1/10;
+   chunk_size[1] = DSET_DIM2/10;
+   if((dset_create_props = H5Pcreate (H5P_DATASET_CREATE))<0) {
+       H5_FAILED();
+       printf("    line %d: H5Pcreate failed\n",__LINE__);
+       goto error;
+   } /* end if */
+
+   if(H5Pset_chunk (dset_create_props, 2, chunk_size)<0) {
+       H5_FAILED();
+       printf("    line %d: H5Pset_chunk failed\n",__LINE__);
+       goto error;
+   } /* end if */
+
+  /*
+   * Set for n-bit compression
+   */
+   if(H5Pset_nbit (dset_create_props)<0) {
+       H5_FAILED();
+       printf("    line %d: H5Pset_nbit failed\n",__LINE__);
+       goto error;
+   } /* end if */
+
+  /*
+   * Create a new dataset within the file.
+   */
+   if((dataset = H5Dcreate2 (file, DSET_NBIT_FLT_SIZE_NAME, datatype,
+                            dataspace, H5P_DEFAULT, 
+                            dset_create_props, H5P_DEFAULT))<0) {
+       H5_FAILED();
+       printf("    line %d: H5dwrite failed\n",__LINE__);
+       goto error;
+   } /* end if */
+
+  /*
+   * Write the array to the file.
+   */
+   if(H5Dwrite (dataset, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL,
+                H5P_DEFAULT, orig_data)<0) {
+       H5_FAILED();
+       printf("    Line %d: H5Dwrite failed\n",__LINE__);
+       goto error;
+   } /* end if */
+
+   /* 
+    * Get the precision of the data type
+    */
+   if((precision = H5Tget_precision(datatype)) == 0) {
+       H5_FAILED();
+       printf("    Line %d: wrong precision size: %d\n",__LINE__, precision);
+       goto error;
+   } /* end if */
+
+   /* 
+    * The size of the dataset after compression should around 2 * DSET_DIM1 * DSET_DIM2
+    */
+   if((dset_size = H5Dget_storage_size(dataset)) < DSET_DIM1*DSET_DIM2*(precision/8) || 
+       dset_size > DSET_DIM1*DSET_DIM2*(precision/8) + 1*KB) {
+       H5_FAILED();
+       printf("    Line %d: wrong dataset size: %d\n",__LINE__, dset_size);
+       goto error;
+   } /* end if */
+
+   H5Tclose (datatype);
+   H5Dclose (dataset);
+   H5Sclose (dataspace);
+   H5Pclose (dset_create_props);
+
+    PASSED();
+#else
+    SKIPPED();
+    puts(not_supported);
+#endif
+
+   return 0;
+error:
+    return -1;
+}
+
+/*-------------------------------------------------------------------------
  * Function:    test_scaleoffset_int
  *
  * Purpose:     Tests the integer datatype for scaleoffset filter
@@ -4007,8 +4325,6 @@ error:
  *
  * Programmer:  Xiaowen Wu
  *              Monday, Feb. 14th, 2005
- *
- * Modifications:
  *
  *-------------------------------------------------------------------------
  */
@@ -4138,8 +4454,6 @@ error:
  *
  * Programmer:  Xiaowen Wu
  *              Tuesday, March 15th, 2005
- *
- * Modifications:
  *
  *-------------------------------------------------------------------------
  */
@@ -4286,8 +4600,6 @@ error:
  * Programmer:  Xiaowen Wu
  *              Wednesday, Apr. 20th, 2005
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 static herr_t
@@ -4417,8 +4729,6 @@ error:
  *
  * Programmer:  Xiaowen Wu
  *              Wednesday, Apr. 20th, 2005
- *
- * Modifications:
  *
  *-------------------------------------------------------------------------
  */
@@ -4566,8 +4876,6 @@ error:
  * Programmer:  Xiaowen Wu
  *              Monday, Apr. 25th, 2005
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 static herr_t
@@ -4697,8 +5005,6 @@ error:
  *
  * Programmer:  Xiaowen Wu
  *              Monday, Apr. 25th, 2005
- *
- * Modifications:
  *
  *-------------------------------------------------------------------------
  */
@@ -4849,8 +5155,6 @@ error:
  * Programmer:	Robb Matzke
  *              Tuesday, June  9, 1998
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 static herr_t
@@ -4914,8 +5218,6 @@ test_multiopen (hid_t file)
  *
  * Programmer:	Robb Matzke
  *              Monday, June  7, 1999
- *
- * Modifications:
  *
  *-------------------------------------------------------------------------
  */
@@ -6040,8 +6342,6 @@ error:
  * Programmer: Pedro Vicente
  *              Monday, January 26, 2004
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 static herr_t
@@ -6168,8 +6468,6 @@ error:
  *
  * Programmer: Pedro Vicente
  *              Monday, March 8, 2004
- *
- * Modifications:
  *
  *-------------------------------------------------------------------------
  */
@@ -6333,17 +6631,21 @@ error:
 static herr_t
 test_zero_dims(hid_t file)
 {
-    hid_t       s=-1, d=-1, dcpl=-1;
-    hsize_t     dsize=0, dmax=H5S_UNLIMITED, csize=5;
+    hid_t       s = -1, d = -1, dcpl = -1;
+    hsize_t     dsize = 0, dmax = H5S_UNLIMITED, csize = 5;
     herr_t      ret;
 
     TESTING("I/O on datasets with zero-sized dims");
 
+    /* 
+     * One-dimensional dataset 
+     */
     if((s = H5Screate_simple(1, &dsize, &dmax)) < 0) FAIL_STACK_ERROR
 
-    /* Try creating chunked dataset with zero-sized chunk dimensions */
+    /* Try creating chunked dataset with undefined chunk dimensions */
     if((dcpl = H5Pcreate(H5P_DATASET_CREATE)) < 0) FAIL_STACK_ERROR
     if(H5Pset_layout(dcpl, H5D_CHUNKED) < 0) FAIL_STACK_ERROR
+
     H5E_BEGIN_TRY {
         d = H5Dcreate2(file, ZERODIM_DATASET, H5T_NATIVE_INT, s, H5P_DEFAULT, dcpl, H5P_DEFAULT);
     } H5E_END_TRY;
@@ -6352,6 +6654,7 @@ test_zero_dims(hid_t file)
         FAIL_PUTS_ERROR("created dataset with undefined chunk dimensions")
     } /* end if */
 
+    /* Try creating chunked dataset with zero-sized chunk dimensions */
     H5E_BEGIN_TRY {
         ret = H5Pset_chunk(dcpl, 1, &dsize);
     } H5E_END_TRY;
@@ -6360,15 +6663,16 @@ test_zero_dims(hid_t file)
 
     if(H5Pclose(dcpl) < 0) FAIL_STACK_ERROR
 
+    /* Create the zero-sized extendible dataset */
     if((dcpl = H5Pcreate(H5P_DATASET_CREATE)) < 0) FAIL_STACK_ERROR
     if(H5Pset_chunk(dcpl, 1, &csize) < 0) FAIL_STACK_ERROR
     if((d = H5Dcreate2(file, ZERODIM_DATASET, H5T_NATIVE_INT, s, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
 
+    /* Just a no-op */
     if(H5Dwrite(d, H5T_NATIVE_INT, s, s, H5P_DEFAULT, (void*)911) < 0) FAIL_STACK_ERROR
 
     if(H5Dclose(d) < 0) FAIL_STACK_ERROR
     if(H5Pclose(dcpl) < 0) FAIL_STACK_ERROR
-
     if(H5Sclose(s) < 0) FAIL_STACK_ERROR
 
     PASSED();
@@ -6397,29 +6701,28 @@ error:
  * Programmer: Quincey Koziol
  *              Tuesday, August 25, 2004
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 static herr_t
 test_missing_chunk(hid_t file)
 {
-    hid_t       s=-1, d=-1, dcpl=-1;
+    hid_t       s = -1, d = -1, dcpl = -1;
     hsize_t	hs_start[1];
     hsize_t	hs_stride[1],
                 hs_count[1],
                 hs_block[1];
     int         wdata[MISSING_CHUNK_DIM],
                 rdata[MISSING_CHUNK_DIM];
-    hsize_t     dsize=100, dmax=H5S_UNLIMITED, csize=5;
+    hsize_t     dsize=100, dmax=H5S_UNLIMITED;
+    hsize_t	csize=5;
     size_t      u;
 
     TESTING("Read dataset with unwritten chunk & undefined fill value");
 
-    /* Initialize data */
-    for(u=0; u<MISSING_CHUNK_DIM; u++) {
-        wdata[u]=(int)u;
-        rdata[u]=911;
+    /* Initialize data for 1-D dataset */
+    for(u = 0; u < MISSING_CHUNK_DIM; u++) {
+        wdata[u] = (int)u;
+        rdata[u] = 911;
     } /* end for */
 
     /* Create dataspace */
@@ -6437,7 +6740,7 @@ test_missing_chunk(hid_t file)
     /* Create dataset */
     if((d = H5Dcreate2(file, MISSING_CHUNK_DATASET, H5T_NATIVE_INT, s, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0) TEST_ERROR;
 
-    /* Select elements in every other chunk */
+    /* Select elements in every other chunk for 1-D dataset */
     hs_start[0]=0;
     hs_stride[0]=10;
     hs_count[0]=10;
@@ -6499,8 +6802,6 @@ error:
  * Programmer: Christian Chilan
  *             Monday, March 26, 2007
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 static herr_t
@@ -6526,7 +6827,7 @@ test_random_chunks(hid_t fapl)
     h5_fixname(FILENAME[6], fapl, filename, sizeof filename);
 
     /* Create file for first test */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR;
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR;
 
     /* Create dataspace */
     if((s = H5Screate_simple(2, dsize, NULL)) < 0) TEST_ERROR;
@@ -6577,7 +6878,7 @@ test_random_chunks(hid_t fapl)
     if(H5Fclose(file) < 0) TEST_ERROR;
 
     /* Open file again */
-    if((file = H5Fopen(filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) TEST_ERROR;
+    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl)) < 0) TEST_ERROR;
 
     /* Open dataset */
     if((d = H5Dopen2(file, dname, H5P_DEFAULT)) < 0) TEST_ERROR;
@@ -6610,7 +6911,7 @@ test_random_chunks(hid_t fapl)
 
 
     /* Create file for second test */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR;
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR;
 
     /* Create dataspace with unlimited maximum dimensions */
     if((s = H5Screate_simple(2, dsize, dmax)) < 0) TEST_ERROR;
@@ -6667,7 +6968,7 @@ test_random_chunks(hid_t fapl)
     if(H5Fclose(file) < 0) TEST_ERROR;
 
     /* Open file again */
-    if((file = H5Fopen(filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) TEST_ERROR;
+    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl)) < 0) TEST_ERROR;
 
     /* Open dataset */
     if((d = H5Dopen2(file, dname, H5P_DEFAULT)) < 0) TEST_ERROR;
@@ -7312,7 +7613,7 @@ test_big_chunks_bypass_cache(hid_t fapl)
     if(H5Pset_fill_time(dcpl, H5D_FILL_TIME_IFSET) < 0) FAIL_STACK_ERROR
     if(H5Pset_alloc_time(dcpl, H5D_ALLOC_TIME_INCR) < 0) FAIL_STACK_ERROR
 
-    /* Create a first dataset */
+    /* Create the first 1-D dataset */
     if((dsid = H5Dcreate2(fid, BYPASS_DATASET1, H5T_NATIVE_INT, sid, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0)
         FAIL_STACK_ERROR
 
@@ -7767,8 +8068,6 @@ error:
  * Programmer:	Robb Matzke
  *		Tuesday, December  9, 1997
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 int
@@ -7852,6 +8151,8 @@ main(void)
         nerrors += (test_nbit_compound(file) < 0 		? 1 : 0);
         nerrors += (test_nbit_compound_2(file) < 0 		? 1 : 0);
         nerrors += (test_nbit_compound_3(file) < 0 		? 1 : 0);
+        nerrors += (test_nbit_int_size(file) < 0 		? 1 : 0);
+        nerrors += (test_nbit_flt_size(file) < 0 		? 1 : 0);
         nerrors += (test_scaleoffset_int(file) < 0 		? 1 : 0);
         nerrors += (test_scaleoffset_int_2(file) < 0 	? 1 : 0);
         nerrors += (test_scaleoffset_float(file) < 0 	? 1 : 0);
