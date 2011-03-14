@@ -1971,8 +1971,7 @@ H5T_detect_class(const H5T_t *dt, H5T_class_t cls, hbool_t from_api)
      *  true. -QAK)
      */
     if(from_api && H5T_IS_VL_STRING(dt->shared))
-        if (cls == H5T_VLEN)
-            HGOTO_DONE(TRUE);
+        HGOTO_DONE(H5T_STRING == cls);
 
     /* Check if this type is the correct type */
     if(dt->shared->type == cls)
