@@ -6483,8 +6483,7 @@ xml_print_strs(hid_t did, int source)
         goto error;
     }
     /* Check if we have VL data in the dataset's datatype */
-    if (h5tools_detect_vlen_str(type) == TRUE)
-        is_vlstr = TRUE;
+    is_vlstr = H5Tis_variable_str(type);
 
     if (source == DATASET_DATA) {
         space = H5Dget_space(did);
