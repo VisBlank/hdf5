@@ -6339,67 +6339,72 @@ xml_dump_group(hid_t gid, const char *name)
 static int
 xml_print_refs(hid_t did, int source)
 {
-    herr_t                  e;
-    hid_t                   type, space;
-    char                   *buf;
-    hobj_ref_t             *refbuf;
-    hsize_t                 ssiz;
-    hsize_t                 i;
+    herr_t e;
+    hid_t type, space;
+    char *buf;
+    hobj_ref_t *refbuf;
+    hssize_t ssiz;
+    hsize_t i;
+    size_t tsiz;
 
     if (source == DATASET_DATA) {
         type = H5Dget_type(did);
-    } else if (source == ATTRIBUTE_DATA) {
+    }
+    else if (source == ATTRIBUTE_DATA) {
         type = H5Aget_type(did);
-    } else {
+    }
+    else {
         /* return an error */
         return FAIL;
     }
     if (H5Tget_class(type) != H5T_REFERENCE) {
         /* return an error */
-        return FAIL;
+        goto error;
     }
     if (!H5Tequal(type, H5T_STD_REF_OBJ)) {
         /* region ref not supported yet... */
         /* return an error */
-        return FAIL;
+        goto error;
     }
     if (source == DATASET_DATA) {
         space = H5Dget_space(did);
-        ssiz = H5Sget_simple_extent_npoints(space);
-        ssiz *= H5Tget_size(type);
+        if ((ssiz = H5Sget_simple_extent_npoints(space)) < 0)
+            goto error;
+        if ((tsiz = H5Tget_size(type)) < 0)
+            goto error;
 
-        buf = (char *)calloc((size_t)ssiz, sizeof(char));
-        if(buf == NULL)
-            return FAIL;
+        buf = (char *) calloc((size_t)(ssiz * tsiz), sizeof(char));
+        if (buf == NULL)
+            goto error;
         e = H5Dread(did, H5T_STD_REF_OBJ, H5S_ALL, H5S_ALL, H5P_DEFAULT, buf);
         /* need to check result here */
-        if(e < 0) {
-            free(buf);
-            return FAIL;
+        if (e < 0) {
+            goto error;
         }
-    } else if (source == ATTRIBUTE_DATA) {
+    }
+    else if (source == ATTRIBUTE_DATA) {
         space = H5Aget_space(did);
-        ssiz = H5Sget_simple_extent_npoints(space);
-        ssiz *= H5Tget_size(type);
+        if ((ssiz = H5Sget_simple_extent_npoints(space)) < 0)
+            goto error;
+        if ((tsiz = H5Tget_size(type)) < 0)
+            goto error;
 
-        buf = (char *)calloc((size_t)ssiz, sizeof(char));
+        buf = (char *) calloc((size_t)(ssiz * tsiz), sizeof(char));
         if (buf == NULL) {
-            free(buf);
-            return FAIL;
+            goto error;
         }
         e = H5Aread(did, H5T_STD_REF_OBJ, buf);
         /* need to check the result here */
-        if(e < 0) {
-            free(buf);
-            return FAIL;
+        if (e < 0) {
+            goto error;
         }
-    } else {
+    }
+    else {
         /* error */
-        return FAIL;
+        goto error;
     }
 
     refbuf = (hobj_ref_t *) buf;
-    ssiz = H5Sget_simple_extent_npoints(space);
 
     for (i = 0; i < ssiz; i++) {
         const char *path;
@@ -6409,7 +6414,8 @@ xml_print_refs(hid_t did, int source)
 
         if (!path) {
             printf("\"%s\"\n", "NULL");
-        } else {
+        }
+        else {
             char *t_path = xml_escape_the_string(path, -1);
 
             printf("\"%s\"\n", t_path);
@@ -6420,8 +6426,19 @@ xml_print_refs(hid_t did, int source)
     }
 
     free(buf);
-
+    H5Tclose(type);
+    H5Sclose(space);
     return SUCCEED;
+    
+error:
+    if(buf)
+        free(buf);
+
+    H5E_BEGIN_TRY {
+        H5Tclose(type);
+        H5Sclose(space);
+    } H5E_END_TRY;
+    return FAIL;
 }
 
 /*-------------------------------------------------------------------------
@@ -6446,7 +6463,8 @@ xml_print_strs(hid_t did, int source)
     char *bp;
     char *onestring = NULL;
     hssize_t ssiz;
-    size_t tsiz, str_size = 0;
+    size_t tsiz;
+    size_t str_size = 0;
     size_t i;
     htri_t is_vlstr;
 
@@ -6473,7 +6491,7 @@ xml_print_strs(hid_t did, int source)
         if((ssiz = H5Sget_simple_extent_npoints(space)) < 0)
             goto error;
         if((tsiz = H5Tget_size(type)) < 0)
-        goto error;
+            goto error;
 
         buf = malloc((size_t)(ssiz * tsiz));
         if (buf == NULL)
