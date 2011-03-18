@@ -878,6 +878,7 @@ H5S_select_iter_init(H5S_sel_iter_t *sel_iter, const H5S_t *space, size_t elmt_s
     assert(space);
 
     /* Initialize common information */
+    sel_iter->type = NULL;
 
     /* Save the dataspace's rank */
     sel_iter->rank=space->extent.rank;
