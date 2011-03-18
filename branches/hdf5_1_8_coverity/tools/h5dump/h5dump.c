@@ -864,8 +864,11 @@ table_list_free(void)
 
         /* Free each table */
         free_table(table_list.tables[u].group_table);
+        HDfree(table_list.tables[u].group_table);
         free_table(table_list.tables[u].dset_table);
+        HDfree(table_list.tables[u].dset_table);
         free_table(table_list.tables[u].type_table);
+        HDfree(table_list.tables[u].type_table);
     }
 
     /* Free the table list */
@@ -1201,7 +1204,9 @@ print_datatype(hid_t type,unsigned in_group)
                 indentation(indent + COL);
                 printf("H5T_OPAQUE;\n");
                 indentation(indent + COL);
-                printf("OPAQUE_TAG \"%s\";\n", H5Tget_tag(type));
+                mname = H5Tget_tag(type);
+                printf("OPAQUE_TAG \"%s\";\n", mname);
+                free(mname);
                 indentation(indent);
                 break;
 
@@ -1491,17 +1496,23 @@ dump_attr_cb(hid_t oid, const char *attr_name, const H5A_info_t UNUSED *info, vo
 static herr_t
 dump_selected_attr(hid_t loc_id, const char *name)
 {
-    hid_t  oid, attr_id;
+    hid_t  oid = -1;
+    hid_t  attr_id = -1;
     char *obj_name;
     const char *attr_name;
     int j;
 
     j = (int)HDstrlen(name) - 1;
     obj_name = (char *)HDmalloc((size_t)j + 2);
+    if(obj_name == NULL)
+        goto error;
 
     /* find the last / */
-    while(name[j] != '/' && j >= 0)
+    while(j >= 0) {
+        if (name[j] == '/')
+            break;
         j--;
+    }
 
     /* object name */
     if(j == -1)
@@ -1520,8 +1531,7 @@ dump_selected_attr(hid_t loc_id, const char *name)
         indentation(COL);
         error_msg("unable to open object \"%s\"\n", obj_name);
         end_obj(dump_header_format->attributeend, dump_header_format->attributeblockend);
-        h5tools_setstatus(EXIT_FAILURE);
-        return FAIL;
+        goto error;
     } /* end if */
 
     if((attr_id = H5Aopen(oid, attr_name, H5P_DEFAULT)) >= 0) {
@@ -1547,17 +1557,27 @@ dump_selected_attr(hid_t loc_id, const char *name)
         indentation(COL);
         error_msg("unable to open attribute \"%s\"\n", obj_name);
         end_obj(dump_header_format->attributeend, dump_header_format->attributeblockend);
-        h5tools_setstatus(EXIT_FAILURE);
+        goto error;
     }
 
     /* Close object */
     if(H5Oclose(oid) < 0) {
-        h5tools_setstatus(EXIT_FAILURE);
-        return FAIL;
+        goto error;
     } /* end if */
 
     HDfree(obj_name);
     return SUCCEED;
+    
+error:
+    h5tools_setstatus(EXIT_FAILURE);
+    if(obj_name)
+        HDfree(obj_name);
+    
+    H5E_BEGIN_TRY {
+        H5Oclose(oid);
+        H5Aclose(attr_id);
+    } H5E_END_TRY;
+    return FAIL;
 }
 
 /*-------------------------------------------------------------------------
@@ -2598,10 +2618,19 @@ dump_data(hid_t obj_id, int obj_data, struct subset_t *sset, int display_index)
             char        string_prefix[64];
             h5tool_format_t    string_dataformat;
 
+            /* VL data special information */
+            unsigned int        vl_data = 0; /* contains VL datatypes */
+
             type = H5Aget_type(obj_id);
             p_type = h5tools_get_native_type(type);
 
             ndims = H5Sget_simple_extent_dims(space, size, NULL);
+
+            /* Check if we have VL data in the dataset's datatype */
+            if (h5tools_detect_vlen_str(p_type) == TRUE)
+                vl_data = TRUE;
+            if (H5Tdetect_class(p_type, H5T_VLEN) == TRUE)
+                vl_data = TRUE;
 
             for (i = 0; i < ndims; i++)
                 nelmts *= size[i];
@@ -2642,6 +2671,10 @@ dump_data(hid_t obj_id, int obj_data, struct subset_t *sset, int display_index)
 
             status = h5tools_dump_mem(stdout, outputformat, obj_id, p_type,
                                     space, buf, depth);
+
+            /* Reclaim any VL memory, if necessary */
+            if (vl_data)
+                H5Dvlen_reclaim(p_type, space, H5P_DEFAULT, buf);
 
             free(buf);
             H5Tclose(p_type);
@@ -2769,14 +2802,14 @@ dump_comment(hid_t obj_id)
 
     cmt_bufsize = H5Oget_comment(obj_id, comment, buf_size);
 
-    /* if the actual length of the comment is longer than cmt_bufsize, then call
-     * H5Oget_comment again with the correct value.
+    /* call H5Oget_comment again with the correct value.
      * If the call to H5Oget_comment returned an error, skip this block */
     if (cmt_bufsize > 0) {
-        comment = (char *)HDmalloc((size_t)cmt_bufsize); /* new_size including null terminator */
+        comment = (char *)HDmalloc((size_t)(cmt_bufsize+1)); /* new_size including null terminator */
         if(comment) {
             cmt_bufsize = H5Oget_comment(obj_id, comment, cmt_bufsize);
             if(cmt_bufsize > 0) {
+                comment[cmt_bufsize] = '\0'; /* necessary because null char is not returned */
                 indentation(indent);
                 printf("COMMENT \"%s\"\n", comment);
             } /* end if */
@@ -4574,8 +4607,7 @@ main(int argc, const char *argv[])
     h5tools_init();
     hand = parse_command_line(argc, argv);
 
-    if ( bin_output && outfname == NULL )
-    {
+    if (bin_output && outfname == NULL) {
         error_msg("binary output requires a file name, use -o <filename>\n");
         leave(EXIT_FAILURE);
     }
@@ -4702,6 +4734,7 @@ main(int argc, const char *argv[])
                     "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
                     "xsi:schemaLocation=\"http://hdfgroup.org/DTDs/HDF5-File "
                     "http://www.hdfgroup.org/DTDs/HDF5-File.xsd\">\n",xmlnsprefix,ns);
+                HDfree(ns);
             }
         } else {
                 printf("<!DOCTYPE HDF5-File PUBLIC \"HDF5-File.dtd\" \"%s\">\n",
@@ -5353,7 +5386,9 @@ xml_print_datatype(hid_t type, unsigned in_group)
                 printf("<%sAtomicType>\n",xmlnsprefix);
                 indent += COL;
                 indentation(indent);
-                printf("<%sOpaqueType Tag=\"%s\" ",xmlnsprefix, H5Tget_tag(type));
+                mname = H5Tget_tag(type);
+                printf("<%sOpaqueType Tag=\"%s\" ",xmlnsprefix, mname);
+                free(mname);
                 size = H5Tget_size(type);
                 printf("Size=\"%lu\"/>\n", (unsigned long)size);
                 indent -= COL;
@@ -5722,9 +5757,17 @@ xml_dump_data(hid_t obj_id, int obj_data, struct subset_t UNUSED * sset, int UNU
             H5Tclose(type);
         } else if (H5Tget_class(type) == H5T_STRING) {
             status = xml_print_strs(obj_id, ATTRIBUTE_DATA);
-        } else {
-            /* all other data */
+        } else {  /* all other data */
+            /* VL data special information */
+            unsigned int vl_data = 0; /* contains VL datatypes */
+            
             p_type = h5tools_get_native_type(type);
+
+            /* Check if we have VL data in the dataset's datatype */
+            if (h5tools_detect_vlen_str(p_type) == TRUE)
+                vl_data = TRUE;
+            if (H5Tdetect_class(p_type, H5T_VLEN) == TRUE)
+                vl_data = TRUE;
 
             H5Tclose(type);
 
@@ -5741,6 +5784,10 @@ xml_dump_data(hid_t obj_id, int obj_data, struct subset_t UNUSED * sset, int UNU
             if (H5Aread(obj_id, p_type, buf) >= 0)
                 status = h5tools_dump_mem(stdout, outputformat, obj_id,
                                               p_type, space, buf, depth);
+
+            /* Reclaim any VL memory, if necessary */
+            if (vl_data)
+                H5Dvlen_reclaim(p_type, space, H5P_DEFAULT, buf);
 
             free(buf);
             H5Tclose(p_type);
@@ -6393,77 +6440,82 @@ xml_print_refs(hid_t did, int source)
 static int
 xml_print_strs(hid_t did, int source)
 {
-    herr_t                  e;
-    hid_t                   type, space;
-    void                   *buf;
-    char                   *bp;
-    char                   *onestring=NULL;
-    hsize_t                 ssiz;
-    size_t                  tsiz, str_size=0;
-    size_t                  i;
-    htri_t                  is_vlstr;
+    herr_t e;
+    hid_t type, space;
+    void *buf = NULL;
+    char *bp;
+    char *onestring = NULL;
+    hssize_t ssiz;
+    size_t tsiz, str_size = 0;
+    size_t i;
+    htri_t is_vlstr;
 
     if (source == DATASET_DATA) {
         type = H5Dget_type(did);
-    } else if (source == ATTRIBUTE_DATA) {
+    }
+    else if (source == ATTRIBUTE_DATA) {
         type = H5Aget_type(did);
-    } else {
+    }
+    else {
         /* return an error */
         return FAIL;
     }
     if (H5Tget_class(type) != H5T_STRING) {
         /* return an error */
-        return FAIL;
+        goto error;
     }
-    is_vlstr = H5Tis_variable_str(type);
+    /* Check if we have VL data in the dataset's datatype */
+    if (h5tools_detect_vlen_str(type) == TRUE)
+        is_vlstr = TRUE;
 
     if (source == DATASET_DATA) {
         space = H5Dget_space(did);
-        ssiz = H5Sget_simple_extent_npoints(space);
-        ssiz *= H5Tget_size(type);
+        if((ssiz = H5Sget_simple_extent_npoints(space)) < 0)
+            goto error;
+        if((tsiz = H5Tget_size(type)) < 0)
+        goto error;
 
-        buf = malloc((size_t)ssiz);
-        if(buf == NULL)
-            return FAIL;
+        buf = malloc((size_t)(ssiz * tsiz));
+        if (buf == NULL)
+            goto error;
 
         e = H5Dread(did, type, H5S_ALL, H5S_ALL, H5P_DEFAULT, buf);
         if (e < 0) {
-            free(buf);
-            return FAIL;
+            goto error;
         }
-    } else if (source == ATTRIBUTE_DATA) {
+    }
+    else if (source == ATTRIBUTE_DATA) {
         space = H5Aget_space(did);
-        ssiz = H5Sget_simple_extent_npoints(space);
-        ssiz *= H5Tget_size(type);
+        if((ssiz = H5Sget_simple_extent_npoints(space)) < 0)
+            goto error;
+        if((tsiz = H5Tget_size(type)) < 0)
+            goto error;
 
-        buf = malloc((size_t)ssiz);
-        if(buf == NULL)
-            return FAIL;
+        buf = malloc((size_t)(ssiz * tsiz));
+        if (buf == NULL)
+            goto error;
 
         e = H5Aread(did, type, buf);
         if (e < 0) {
-            free(buf);
-            return FAIL;
+            goto error;
         }
-    } else {
+    }
+    else {
         /* error */
-        return FAIL;
+        goto error;
     }
 
-    /* pull out each string... */
-    ssiz = H5Sget_simple_extent_npoints(space);
-
-    tsiz = H5Tget_size(type);
-    bp = (char*)buf;
-    if(!is_vlstr)
-        onestring = (char *)calloc(tsiz, sizeof(char));
+    bp = (char*) buf;
+    if (!is_vlstr)
+        onestring = (char *) calloc(tsiz, sizeof(char));
 
     for (i = 0; i < ssiz; i++) {
-        if(is_vlstr) {
-            onestring = *(char **)bp;
-            if(onestring)
-                str_size = (size_t)HDstrlen(onestring);
-        } else {
+        if (is_vlstr) {
+            onestring = *(char **) bp;
+            if (onestring)
+                str_size = (size_t) HDstrlen(onestring);
+        }
+        else {
             HDstrncpy(onestring, bp, tsiz);
             str_size = tsiz;
         }
@@ -6471,17 +6523,40 @@ xml_print_strs(hid_t did, int source)
 
         if (!onestring) {
             printf("NULL\n");
-        } else {
-            char *t_onestring = xml_escape_the_string(onestring, (int)str_size);
-
-            printf("\"%s\"\n", t_onestring);
-            free(t_onestring);
+        }
+        else {
+            char *t_onestring = xml_escape_the_string(onestring, (int) str_size);
+            if (t_onestring) {
+                printf("\"%s\"\n", t_onestring);
+                free(t_onestring);
+            }
         }
 
-       bp += tsiz;
+        bp += tsiz;
     }
 
+    /* Reclaim any VL memory, if necessary */
+    if (!is_vlstr)
+        if (onestring)
+            free(onestring);
+    if (buf) {
+        if (is_vlstr)
+            H5Dvlen_reclaim(type, space, H5P_DEFAULT, buf);
+        free(buf);
+    }
+    H5Tclose(type);
+    H5Sclose(space);
     return SUCCEED;
+    
+error:
+    if(buf)
+        free(buf);
+
+    H5E_BEGIN_TRY {
+        H5Tclose(type);
+        H5Sclose(space);
+    } H5E_END_TRY;
+    return FAIL;
 }
 
 /*-------------------------------------------------------------------------
