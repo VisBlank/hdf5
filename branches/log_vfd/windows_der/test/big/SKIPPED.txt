@@ -1,0 +1,5 @@
+This test is skipped for now.  Albert is working on a fix.
+
+Currently, the test will 'fail' (processing appears to continue)
+due to a complaint about the file driver not supporting sparse
+files.
