@@ -985,7 +985,7 @@ test_multi(void)
 
     sprintf(sv[H5FD_MEM_GHEAP], "%%s-%c.h5", 'g');
     memb_name[H5FD_MEM_GHEAP] = sv[H5FD_MEM_GHEAP];
-    memb_addr[H5FD_MEM_GHEAP] = HADDR_MAX*3/4;
+    memb_addr[H5FD_MEM_GHEAP] = (HADDR_MAX/4)*3;
 
 
     if(H5Pset_fapl_multi(fapl, memb_map, memb_fapl, memb_name, memb_addr, TRUE) < 0)
