@@ -82,7 +82,10 @@ New Features
  
     Tools
     -----
-    - None
+     - h5dump: Added new option --enable-error-stack. This option will display 
+               error stack information in the output stream. This is useful
+               when the "h5dump: Unable to print data" message is output.
+               (ADB - 2011/03/03)
 
     High-Level APIs
     ---------------
@@ -112,6 +115,9 @@ Bug Fixes since HDF5-1.8.6
 
     Library
     -------
+    - Tell the VFL flush call that the file will be closing, allowing
+      the VFDs to avoid sync'ing the file (particularly valuable in parallel).
+      (QAK - 2011/03/09)
     - The datatype handler created with H5Tencode/decode used to have the 
       reference count 0 (zero).  I have fixed it.  It is 1 (one) now.
       (SLU - 2011/2/18)
@@ -122,6 +128,16 @@ Bug Fixes since HDF5-1.8.6
 
     Tools
     -----
+    - Fixed memory leak for h5diff when accessing symbolic links with 
+      --follow-symlink option. Bug#2214  (JKM 2011/3/18)
+    - Fixed and improved help page for -a option of h5ls. 
+      Bug#1904 (JKM 2011/3/11)
+    - Fixed h5copy to be able to copy any object into the same HDF5 file.
+      Previously h5copy displayed error message when target file is same
+      as source file. (XCAO 2011/3/8)
+    - Fixed h5dump for skipping some values for long array type dataset on 
+      Windows. This issue only occurred on Windows due to the different 
+      return behavior from _vsnprintf() funtion. Bug#2161 (JKM 2011/3/3)
     - Fixed h5dump for skipping array indices every certain number
       when the array type dataset is relatively big. The certain number
       varies according to the size of array. Bug#2092 (JKM 2011/2/15).
@@ -372,6 +388,8 @@ SGI Linux 2.6.32.19                        y       y         y         y
 
 Known Problems
 ==============
+* --with-mpe configure option does not work with Mpich2. AKC - 2011/03/10)
+
 * examples/run-all-ex.sh does not work on Cygwin. (NAF - 2011/02/11)
 
 * If parallel gmake (e.g., gmake -j 4) is used, the "gmake clean" command
