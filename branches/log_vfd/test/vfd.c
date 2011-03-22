@@ -30,30 +30,33 @@
 #define CORE_INCREMENT  (4*KB)
 
 /*Macros for Direct VFD*/
-#define MBOUNDARY	512
-#define FBSIZE		(4*KB)
-#define CBSIZE		(8*KB)
-#define THRESHOLD 	1
-#define DSET1_NAME	"dset1"
-#define DSET1_DIM1      1024
-#define DSET1_DIM2      32
-#define DSET2_NAME	"dset2"
-#define DSET2_DIM       4
+#define MBOUNDARY    512
+#define FBSIZE       (4*KB)
+#define CBSIZE       (8*KB)
+#define THRESHOLD    1
+#define DSET1_NAME   "dset1"
+#define DSET1_DIM1   1024
+#define DSET1_DIM2   32
+#define DSET2_NAME   "dset2"
+#define DSET2_DIM    4
 
 const char *FILENAME[] = {
-    "sec2_file",
-    "core_file",
-    "family_file",
-    "new_family_v16_",
-    "multi_file",
-    "direct_file",
-    "log_file",
-    "log_vfd_out.log", /* log file name used when testing the log VFD */
+    "sec2_file",         /*0*/
+    "core_file",         /*1*/
+    "family_file",       /*2*/
+    "new_family_v16_",   /*3*/
+    "multi_file",        /*4*/
+    "direct_file",       /*5*/
+    "log_file",          /*6*/
+    "stdio_file",        /*7*/
+    "windows_file",      /*8*/
     NULL
 };
 
 #define COMPAT_BASENAME "family_v16_"
 
+/* log file name used when testing the log VFD */
+#define LOG_OUTPUT_FILE_NAME "log_vfd_out.log"
 
 
 /*-------------------------------------------------------------------------
@@ -114,6 +117,7 @@ test_sec2(void)
 
     if(H5Fclose(file) < 0)
         TEST_ERROR;
+
     h5_cleanup(FILENAME, fapl);
     PASSED();
     return 0;
@@ -1123,7 +1127,79 @@ test_log(void)
 
     /* Set property list and file name for log driver. */
     fapl = h5_fileaccess();
-    if(H5Pset_fapl_log(fapl, FILENAME[6], 0, buf_size) < 0)
+    if(H5Pset_fapl_log(fapl, LOG_OUTPUT_FILE_NAME, 0, buf_size) < 0)
+        TEST_ERROR;
+    h5_fixname(FILENAME[6], fapl, filename, sizeof filename);
+
+    if((file=H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0)
+        TEST_ERROR;
+
+    /* Retrieve the access property list... */
+    if ((access_fapl = H5Fget_access_plist(file)) < 0)
+        TEST_ERROR;
+
+    /* ...and close the property list */
+    if (H5Pclose(access_fapl) < 0)
+        TEST_ERROR;
+
+    /* Check file handle API */
+    if(H5Fget_vfd_handle(file, H5P_DEFAULT, (void **)&fhandle) < 0)
+        TEST_ERROR;
+    if(*fhandle<0)
+        TEST_ERROR;
+
+    /* Check file size API */
+    if(H5Fget_filesize(file, &file_size) < 0)
+        TEST_ERROR;
+
+    /* There is no guarantee the size of metadata in file is constant.
+     * Just try to check if it's reasonable.  It's 2KB right now.
+     */
+    if(file_size<1*KB || file_size>4*KB)
+        TEST_ERROR;
+
+    if(H5Fclose(file) < 0)
+        TEST_ERROR;
+
+    h5_cleanup(FILENAME, fapl);
+    PASSED();
+    return 0;
+
+error:
+    H5E_BEGIN_TRY {
+        H5Pclose (fapl);
+        H5Fclose(file);
+    } H5E_END_TRY;
+    return -1;
+}
+
+
+/*-------------------------------------------------------------------------
+ * Function:    test_stdio
+ *
+ * Purpose:     Tests the file handle interface for STDIO driver
+ *
+ * Return:      Success:        0
+ *              Failure:        -1
+ *
+ * Programmer:  Dana Robinson
+ *              Tuesday, March 22, 2011
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+test_stdio(void)
+{
+    hid_t       file=(-1), fapl, access_fapl = -1;
+    char        filename[1024];
+    int         *fhandle=NULL;
+    hsize_t     file_size;
+
+    TESTING("STDIO file driver");
+
+    /* Set property list and file name for STDIO driver. */
+    fapl = h5_fileaccess();
+    if(H5Pset_fapl_stdio(fapl) < 0)
         TEST_ERROR;
     h5_fixname(FILENAME[7], fapl, filename, sizeof filename);
 
@@ -1156,6 +1232,7 @@ test_log(void)
 
     if(H5Fclose(file) < 0)
         TEST_ERROR;
+
     h5_cleanup(FILENAME, fapl);
     PASSED();
     return 0;
@@ -1168,14 +1245,101 @@ error:
     return -1;
 }
 
+
+
+/*-------------------------------------------------------------------------
+ * Function:    test_windows
+ *
+ * Purpose:     Tests the file handle interface for WINDOWS driver
+ *
+ * Return:      Success:        0
+ *              Failure:        -1
+ *
+ * Programmer:  Dana Robinson
+ *              Tuesday, March 22, 2011
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+test_windows(void)
+{
+#ifdef _WIN32
+
+    hid_t       file=(-1), fapl, access_fapl = -1;
+    char        filename[1024];
+    int         *fhandle=NULL;
+    hsize_t     file_size;
+
+#endif /*_WIN32*/
+
+    TESTING("WINDOWS file driver");
+
+#ifndef _WIN32
+
+    SKIPPED();
+    return 0;
+
+#else /*_WIN32*/
+
+    /* Set property list and file name for WINDOWS driver. */
+    fapl = h5_fileaccess();
+    if(H5Pset_fapl_windows(fapl) < 0)
+        TEST_ERROR;
+    h5_fixname(FILENAME[8], fapl, filename, sizeof filename);
+
+    if((file=H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0)
+        TEST_ERROR;
+
+    /* Retrieve the access property list... */
+    if ((access_fapl = H5Fget_access_plist(file)) < 0)
+        TEST_ERROR;
+
+    /* ...and close the property list */
+    if (H5Pclose(access_fapl) < 0)
+        TEST_ERROR;
+
+    /* Check file handle API */
+    if(H5Fget_vfd_handle(file, H5P_DEFAULT, (void **)&fhandle) < 0)
+        TEST_ERROR;
+    if(*fhandle<0)
+        TEST_ERROR;
+
+    /* Check file size API */
+    if(H5Fget_filesize(file, &file_size) < 0)
+        TEST_ERROR;
+
+    /* There is no guarantee the size of metadata in file is constant.
+     * Just try to check if it's reasonable.  It's 2KB right now.
+     */
+    if(file_size<1*KB || file_size>4*KB)
+        TEST_ERROR;
+
+    if(H5Fclose(file) < 0)
+        TEST_ERROR;
+
+    h5_cleanup(FILENAME, fapl);
+    PASSED();
+    return 0;
+
+error:
+    H5E_BEGIN_TRY {
+        H5Pclose (fapl);
+        H5Fclose(file);
+    } H5E_END_TRY;
+    return -1;
+
+#endif /*_WIN32*/
+}
+
+
 
 /*-------------------------------------------------------------------------
  * Function:    main
  *
  * Purpose:     Tests the basic features of Virtual File Drivers
  *
- * Return:      Success:        exit(0)
- *              Failure:        exit(1)
+ * Return:      Success:        0
+ *              Failure:        1
  *
  * Programmer:  Raymond Lu
  *              Tuesday, Sept 24, 2002
@@ -1190,12 +1354,14 @@ main(void)
     h5_reset();
 
     nerrors += test_sec2() < 0           ? 1 : 0;
-    nerrors += test_log() < 0            ? 1 : 0;
     nerrors += test_core() < 0           ? 1 : 0;
     nerrors += test_family() < 0         ? 1 : 0;
     nerrors += test_family_compat() < 0  ? 1 : 0;
     nerrors += test_multi() < 0          ? 1 : 0;
     nerrors += test_direct() < 0         ? 1 : 0;
+    nerrors += test_log() < 0            ? 1 : 0;
+    nerrors += test_stdio() < 0          ? 1 : 0;
+    nerrors += test_windows() < 0        ? 1 : 0;
 
     if(nerrors) {
 	printf("***** %d Virtual File Driver TEST%s FAILED! *****\n",
