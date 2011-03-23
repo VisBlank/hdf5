@@ -50,13 +50,12 @@ const char *FILENAME[] = {
     "log_file",          /*6*/
     "stdio_file",        /*7*/
     "windows_file",      /*8*/
+	"log_vfd_out.log",   /*9*/ /* log file name from log VFD test */
     NULL
 };
 
 #define COMPAT_BASENAME "family_v16_"
 
-/* log file name used when testing the log VFD */
-#define LOG_OUTPUT_FILE_NAME "log_vfd_out.log"
 
 
 /*-------------------------------------------------------------------------
@@ -1127,7 +1126,7 @@ test_log(void)
 
     /* Set property list and file name for log driver. */
     fapl = h5_fileaccess();
-    if(H5Pset_fapl_log(fapl, LOG_OUTPUT_FILE_NAME, 0, buf_size) < 0)
+    if(H5Pset_fapl_log(fapl, FILENAME[9], 0, buf_size) < 0)
         TEST_ERROR;
     h5_fixname(FILENAME[6], fapl, filename, sizeof filename);
 
