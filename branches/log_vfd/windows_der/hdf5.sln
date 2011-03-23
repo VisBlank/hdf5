@@ -4,6 +4,7 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libraries", "libraries", "{4077DF06-2489-4301-B502-91296BB15CE9}"
 	ProjectSection(SolutionItems) = preProject
 		HDF5 library README.txt = HDF5 library README.txt
+		VS2010 README.txt = VS2010 README.txt
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{99B68275-8E64-4E5F-8B87-3C93875D04AC}"
