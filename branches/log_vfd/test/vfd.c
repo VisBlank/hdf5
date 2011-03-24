@@ -50,7 +50,7 @@ const char *FILENAME[] = {
     "log_file",          /*6*/
     "stdio_file",        /*7*/
     "windows_file",      /*8*/
-	"log_vfd_out.log",   /*9*/ /* log file name from log VFD test */
+    "log_vfd_out.log",   /*9*/ /* log file name from log VFD test */
     NULL
 };
 
