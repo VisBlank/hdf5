@@ -821,8 +821,10 @@ H5FD_family_open(const char *name, unsigned flags, hid_t fapl_id,
             H5FD_t **x;
 
             HDassert(n > 0);
-            if(NULL == (x = (H5FD_t **)H5MM_realloc(file->memb, n * sizeof(H5FD_t *))))
+            if(NULL == (x = (H5FD_t **)H5MM_realloc(file->memb, n * sizeof(H5FD_t *)))) {
+                file->memb = NULL;
                 HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "unable to reallocate members")
+            }
             file->amembs = n;
             file->memb = x;
         } /* end if */
@@ -859,12 +861,14 @@ done:
         unsigned nerrors = 0;   /* Number of errors closing member files */
         unsigned u;             /* Local index variable */
 
-        /* Close as many members as possible. Use private function here to avoid clearing
-         * the error stack. We need the error message to indicate wrong member file size. */
-        for(u = 0; u < file->nmembs; u++)
-            if(file->memb[u])
-                if(H5FD_close(file->memb[u]) < 0)
-                    nerrors++;
+        /* Check that file->memb is not NULL. */
+        if(file->memb)
+            /* Close as many members as possible. Use private function here to avoid clearing
+             * the error stack. We need the error message to indicate wrong member file size. */
+            for(u = 0; u < file->nmembs; u++)
+                if(file->memb[u])
+                    if(H5FD_close(file->memb[u]) < 0)
+                        nerrors++;
         if(nerrors)
             HGOTO_ERROR(H5E_FILE, H5E_CANTCLOSEFILE, NULL, "unable to close member files")
 
