@@ -182,8 +182,9 @@ static void test_vlstring_dataset()
 	// Test scalar type dataset with 1 value.
 	dset1 = root.createDataSet("test_scalar_small", vlst, ds_space);
 
-	dynstring_ds_write = (char*)HDcalloc(1, sizeof(char));
+	dynstring_ds_write = (char*)HDcalloc(2, sizeof(char));
 	HDmemset(dynstring_ds_write, 'A', 1);
+	dynstring_ds_write[1] = '\0';
 
 	// Write data to the dataset, then read it back.
 	dset1.write(&dynstring_ds_write, vlst);

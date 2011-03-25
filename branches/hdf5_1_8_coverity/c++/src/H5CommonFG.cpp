@@ -585,6 +585,7 @@ H5std_string CommonFG::getComment( const char* name, size_t bufsize ) const
    // otherwise, throw an exception
    if( ret_value < 0 )
    {
+      delete []comment_C;
       throwException("getComment", "H5Oget_comment_by_name failed");
    }
    H5std_string comment = H5std_string(comment_C);
