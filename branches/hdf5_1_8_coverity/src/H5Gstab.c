@@ -711,6 +711,7 @@ H5G_stab_get_name_by_idx(H5O_loc_t *oloc, H5_iter_order_t order, hsize_t n,
     H5HL_t *heap = NULL;        /* Pointer to local heap */
     H5O_stab_t	stab;	        /* Info about local heap & B-tree */
     H5G_bt_it_gnbi_t udata;     /* Iteration information */
+    udata.name = NULL;
     ssize_t ret_value;          /* Return value */
 
     FUNC_ENTER_NOAPI(H5G_stab_get_name_by_idx, FAIL)
