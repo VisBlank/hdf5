@@ -1115,12 +1115,14 @@ error:
 static herr_t
 test_log(void)
 {
-    hid_t        file=(-1), fapl, access_fapl = -1;
+    hid_t        file            = -1;
+    hid_t        fapl            = -1;
+    hid_t        access_fapl     = -1;
     char         filename[1024];
-    int          *fhandle=NULL;
-    hsize_t      file_size;
-    unsigned int flags = H5FD_LOG_ALL;
-    size_t       buf_size = 1024 * 1024;
+    int          *fhandle        = NULL;
+    hsize_t      file_size       = 0;
+    unsigned int flags           = H5FD_LOG_ALL;
+    size_t       buf_size        = 0;
 
     TESTING("LOG file driver");
 
@@ -1130,21 +1132,26 @@ test_log(void)
         TEST_ERROR;
     h5_fixname(FILENAME[6], fapl, filename, sizeof filename);
 
-    if((file=H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0)
+    /* Create the test file */
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0)
         TEST_ERROR;
 
     /* Retrieve the access property list... */
-    if ((access_fapl = H5Fget_access_plist(file)) < 0)
+    if((access_fapl = H5Fget_access_plist(file)) < 0)
+        TEST_ERROR;
+
+    /* Check that the driver is correct */
+    if(H5FD_LOG != H5Pget_driver(access_fapl))
         TEST_ERROR;
 
     /* ...and close the property list */
-    if (H5Pclose(access_fapl) < 0)
+    if(H5Pclose(access_fapl) < 0)
         TEST_ERROR;
 
     /* Check file handle API */
     if(H5Fget_vfd_handle(file, H5P_DEFAULT, (void **)&fhandle) < 0)
         TEST_ERROR;
-    if(*fhandle<0)
+    if(*fhandle < 0)
         TEST_ERROR;
 
     /* Check file size API */
@@ -1154,7 +1161,7 @@ test_log(void)
     /* There is no guarantee the size of metadata in file is constant.
      * Just try to check if it's reasonable.  It's 2KB right now.
      */
-    if(file_size<1*KB || file_size>4*KB)
+    if(file_size < 1 * KB || file_size > 4 * KB)
         TEST_ERROR;
 
     if(H5Fclose(file) < 0)
@@ -1166,7 +1173,7 @@ test_log(void)
 
 error:
     H5E_BEGIN_TRY {
-        H5Pclose (fapl);
+        H5Pclose(fapl);
         H5Fclose(file);
     } H5E_END_TRY;
     return -1;
@@ -1189,10 +1196,12 @@ error:
 static herr_t
 test_stdio(void)
 {
-    hid_t       file=(-1), fapl, access_fapl = -1;
-    char        filename[1024];
-    int         *fhandle=NULL;
-    hsize_t     file_size;
+    hid_t        file            = -1;
+    hid_t        fapl            = -1;
+    hid_t        access_fapl     = -1;
+    char         filename[1024];
+    int          *fhandle        = NULL;
+    hsize_t      file_size       = 0;
 
     TESTING("STDIO file driver");
 
@@ -1202,21 +1211,25 @@ test_stdio(void)
         TEST_ERROR;
     h5_fixname(FILENAME[7], fapl, filename, sizeof filename);
 
-    if((file=H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0)
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0)
         TEST_ERROR;
 
     /* Retrieve the access property list... */
-    if ((access_fapl = H5Fget_access_plist(file)) < 0)
+    if((access_fapl = H5Fget_access_plist(file)) < 0)
+        TEST_ERROR;
+
+    /* Check that the driver is correct */
+    if(H5FD_STDIO != H5Pget_driver(access_fapl))
         TEST_ERROR;
 
     /* ...and close the property list */
-    if (H5Pclose(access_fapl) < 0)
+    if(H5Pclose(access_fapl) < 0)
         TEST_ERROR;
 
     /* Check file handle API */
     if(H5Fget_vfd_handle(file, H5P_DEFAULT, (void **)&fhandle) < 0)
         TEST_ERROR;
-    if(*fhandle<0)
+    if(*fhandle < 0)
         TEST_ERROR;
 
     /* Check file size API */
@@ -1226,7 +1239,7 @@ test_stdio(void)
     /* There is no guarantee the size of metadata in file is constant.
      * Just try to check if it's reasonable.  It's 2KB right now.
      */
-    if(file_size<1*KB || file_size>4*KB)
+    if(file_size < 1 * KB || file_size > 4 * KB)
         TEST_ERROR;
 
     if(H5Fclose(file) < 0)
@@ -1238,7 +1251,7 @@ test_stdio(void)
 
 error:
     H5E_BEGIN_TRY {
-        H5Pclose (fapl);
+        H5Pclose(fapl);
         H5Fclose(file);
     } H5E_END_TRY;
     return -1;
@@ -1264,10 +1277,12 @@ test_windows(void)
 {
 #ifdef _WIN32
 
-    hid_t       file=(-1), fapl, access_fapl = -1;
-    char        filename[1024];
-    int         *fhandle=NULL;
-    hsize_t     file_size;
+    hid_t        file            = -1;
+    hid_t        fapl            = -1;
+    hid_t        access_fapl     = -1;
+    char         filename[1024];
+    int          *fhandle        = NULL;
+    hsize_t      file_size       = 0;
 
 #endif /*_WIN32*/
 
@@ -1286,21 +1301,25 @@ test_windows(void)
         TEST_ERROR;
     h5_fixname(FILENAME[8], fapl, filename, sizeof filename);
 
-    if((file=H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0)
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0)
         TEST_ERROR;
 
     /* Retrieve the access property list... */
-    if ((access_fapl = H5Fget_access_plist(file)) < 0)
+    if((access_fapl = H5Fget_access_plist(file)) < 0)
+        TEST_ERROR;
+
+    /* Check that the driver is correct */
+    if(H5FD_WINDOWS!= H5Pget_driver(access_fapl))
         TEST_ERROR;
 
     /* ...and close the property list */
-    if (H5Pclose(access_fapl) < 0)
+    if(H5Pclose(access_fapl) < 0)
         TEST_ERROR;
 
     /* Check file handle API */
     if(H5Fget_vfd_handle(file, H5P_DEFAULT, (void **)&fhandle) < 0)
         TEST_ERROR;
-    if(*fhandle<0)
+    if(*fhandle < 0)
         TEST_ERROR;
 
     /* Check file size API */
@@ -1310,7 +1329,7 @@ test_windows(void)
     /* There is no guarantee the size of metadata in file is constant.
      * Just try to check if it's reasonable.  It's 2KB right now.
      */
-    if(file_size<1*KB || file_size>4*KB)
+    if(file_size < 1 * KB || file_size > 4 * KB)
         TEST_ERROR;
 
     if(H5Fclose(file) < 0)
@@ -1322,7 +1341,7 @@ test_windows(void)
 
 error:
     H5E_BEGIN_TRY {
-        H5Pclose (fapl);
+        H5Pclose(fapl);
         H5Fclose(file);
     } H5E_END_TRY;
     return -1;
@@ -1351,6 +1370,8 @@ main(void)
     int nerrors = 0;
 
     h5_reset();
+
+    printf("Testing basic Virtual File Driver functionality.\n");
 
     nerrors += test_sec2() < 0           ? 1 : 0;
     nerrors += test_core() < 0           ? 1 : 0;
