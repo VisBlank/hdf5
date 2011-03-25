@@ -280,6 +280,8 @@ test(fill_t fill_style, const double splits[],
     H5Pclose(dcpl);
     H5Pclose(xfer);
     H5Fclose(file);
+    free(had);
+    had = NULL;
 
     if (!verbose) {
 	switch (fill_style) {
@@ -320,7 +322,8 @@ test(fill_t fill_style, const double splits[],
     H5Pclose(dcpl);
     H5Pclose(xfer);
     H5Fclose(file);
-    free(had);
+    if(had)
+        free(had);
     HDclose(fd);
     return 1;
 }
