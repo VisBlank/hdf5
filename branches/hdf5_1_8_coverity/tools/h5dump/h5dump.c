@@ -1610,7 +1610,11 @@ dump_all_cb(hid_t group, const char *name, const H5L_info_t *linfo, void UNUSED 
 
     /* Build the object's path name */
     obj_path = (char *)HDmalloc(HDstrlen(prefix) + HDstrlen(name) + 2);
-    HDassert(obj_path);
+    if(!obj_path) {
+        ret = FAIL;
+        goto done;
+    } 
+    
     HDstrcpy(obj_path, prefix);
     HDstrcat(obj_path, "/");
     HDstrcat(obj_path, name);
@@ -1626,17 +1630,14 @@ dump_all_cb(hid_t group, const char *name, const H5L_info_t *linfo, void UNUSED 
             goto done;
         } /* end if */
 
-        switch(oinfo.type)
-        {
+        switch(oinfo.type) {
         case H5O_TYPE_GROUP:
-            if((obj = H5Gopen2(group, name, H5P_DEFAULT)) < 0)
-            {
+            if((obj = H5Gopen2(group, name, H5P_DEFAULT)) < 0)  {
                 error_msg("unable to dump group \"%s\"\n", name);
                 h5tools_setstatus(EXIT_FAILURE);
                 ret = FAIL;
             }
-            else
-            {
+            else {
                 char *old_prefix; /* Pointer to previous prefix */
 
                 /* Keep copy of prefix before iterating into group */
@@ -1679,7 +1680,8 @@ dump_all_cb(hid_t group, const char *name, const H5L_info_t *linfo, void UNUSED 
                             ret = FAIL;
                             H5Dclose(obj);
                             goto done;
-                        } else if(found_obj->displayed) {
+                        } 
+                        else if(found_obj->displayed) {
                             indentation(indent);
 
                             if(!doxml) {
@@ -1690,7 +1692,8 @@ dump_all_cb(hid_t group, const char *name, const H5L_info_t *linfo, void UNUSED 
                                 indentation(indent);
                                 end_obj(dump_header_format->datasetend,
                                         dump_header_format->datasetblockend);
-                            } else {
+                            } 
+                            else {
                                 /* the XML version */
                                 char *t_obj_path = xml_escape_the_name(obj_path);
                                 char *t_prefix = xml_escape_the_name(HDstrcmp(prefix,"") ? prefix : "/");
@@ -1730,14 +1733,16 @@ dump_all_cb(hid_t group, const char *name, const H5L_info_t *linfo, void UNUSED 
 
                             H5Dclose(obj);
                             goto done;
-                        } else {
+                        } 
+                        else {
                             found_obj->displayed = TRUE;
                         }
                     } /* end if */
 
                     dump_function_table->dump_dataset_function(obj, name, NULL);
                     H5Dclose(obj);
-                } else {
+                } 
+                else {
                     error_msg("unable to dump dataset \"%s\"\n", name);
                     h5tools_setstatus(EXIT_FAILURE);
                     ret = FAIL;
@@ -1749,7 +1754,8 @@ dump_all_cb(hid_t group, const char *name, const H5L_info_t *linfo, void UNUSED 
                     error_msg("unable to dump datatype \"%s\"\n", name);
                     h5tools_setstatus(EXIT_FAILURE);
                     ret = FAIL;
-                } else {
+                } 
+                else {
                     dump_function_table->dump_named_datatype_function(obj, name);
                     H5Tclose(obj);
                 }
@@ -1780,12 +1786,14 @@ dump_all_cb(hid_t group, const char *name, const H5L_info_t *linfo, void UNUSED 
                     error_msg("unable to get link value\n");
                     h5tools_setstatus(EXIT_FAILURE);
                     ret = FAIL;
-                } else {
+                } 
+                else {
                     /* print the value of a soft link */
                     if (!doxml) {
                         /* Standard DDL: no modification */
                         printf("LINKTARGET \"%s\"\n", targbuf);
-                    } else {
+                    } 
+                    else {
                         /* XML */
                         char linkxid[100];
                         char parentxid[100];
@@ -1826,7 +1834,8 @@ dump_all_cb(hid_t group, const char *name, const H5L_info_t *linfo, void UNUSED 
                                     targetxid,      /* TargetObj */
                                     parentxid,      /* Parents */
                                     t_prefix);      /* H5ParentPaths */
-                        } else {
+                        } 
+                        else {
                             /* dangling link -- omit from xml attributes */
                             printf("<%sSoftLink LinkName=\"%s\" "
                                    "OBJ-XID=\"%s\" "
@@ -3836,35 +3845,40 @@ handle_datasets(hid_t fid, const char *dset, void *data, int pe, const char *dis
     if(sset) {
         unsigned int i;
         hid_t sid = H5Dget_space(dsetid);
-        unsigned int ndims = H5Sget_simple_extent_ndims(sid);
+        int ndims = H5Sget_simple_extent_ndims(sid);
 
         H5Sclose(sid);
+        if(ndims < 0) {
+            error_msg("H5Sget_simple_extent_ndims failed\n");
+            h5tools_setstatus(EXIT_FAILURE);
+            return;
+        }
 
         if(!sset->start.data || !sset->stride.data || !sset->count.data || !sset->block.data) {
             /* they didn't specify a ``stride'' or ``block''. default to 1 in all
              * dimensions */
             if(!sset->start.data) {
                 /* default to (0, 0, ...) for the start coord */
-                sset->start.data = (hsize_t *)calloc(ndims, sizeof(hsize_t));
+                sset->start.data = (hsize_t *)calloc((size_t)ndims, sizeof(hsize_t));
                 sset->start.len = ndims;
             }
 
             if(!sset->stride.data) {
-                sset->stride.data = (hsize_t *)calloc(ndims, sizeof(hsize_t));
+                sset->stride.data = (hsize_t *)calloc((size_t)ndims, sizeof(hsize_t));
                 sset->stride.len = ndims;
                 for (i = 0; i < ndims; i++)
                     sset->stride.data[i] = 1;
             }
 
             if(!sset->count.data) {
-                sset->count.data = (hsize_t *)calloc(ndims, sizeof(hsize_t));
+                sset->count.data = (hsize_t *)calloc((size_t)ndims, sizeof(hsize_t));
                 sset->count.len = ndims;
                 for (i = 0; i < ndims; i++)
                     sset->count.data[i] = 1;
             }
 
             if(!sset->block.data) {
-                sset->block.data = (hsize_t *)calloc(ndims, sizeof(hsize_t));
+                sset->block.data = (hsize_t *)calloc((size_t)ndims, sizeof(hsize_t));
                 sset->block.len = ndims;
                 for (i = 0; i < ndims; i++)
                     sset->block.data[i] = 1;
@@ -4468,10 +4482,10 @@ parse_start:
              */
             do {
                 switch ((char)opt) {
-                case 's': free(s->start.data); parse_hsize_list(opt_arg, &s->start); break;
-                case 'S': free(s->stride.data); parse_hsize_list(opt_arg, &s->stride); break;
-                case 'c': free(s->count.data); parse_hsize_list(opt_arg, &s->count); break;
-                case 'k': free(s->block.data); parse_hsize_list(opt_arg, &s->block); break;
+                case 's': if(s->start.data) free(s->start.data); parse_hsize_list(opt_arg, &s->start); break;
+                case 'S': if(s->stride.data) free(s->stride.data); parse_hsize_list(opt_arg, &s->stride); break;
+                case 'c': if(s->count.data) free(s->count.data); parse_hsize_list(opt_arg, &s->count); break;
+                case 'k': if(s->block.data) free(s->block.data); parse_hsize_list(opt_arg, &s->block); break;
                 default: goto end_collect;
                 }
             } while ((opt = get_option(argc, argv, s_opts, l_opts)) != EOF);
@@ -6341,8 +6355,8 @@ xml_print_refs(hid_t did, int source)
 {
     herr_t e;
     hid_t type, space;
-    char *buf;
-    hobj_ref_t *refbuf;
+    char *buf = NULL;
+    hobj_ref_t *refbuf = NULL;
     hssize_t ssiz;
     hsize_t i;
     size_t tsiz;
@@ -6370,7 +6384,7 @@ xml_print_refs(hid_t did, int source)
         space = H5Dget_space(did);
         if ((ssiz = H5Sget_simple_extent_npoints(space)) < 0)
             goto error;
-        if ((tsiz = H5Tget_size(type)) < 0)
+        if ((tsiz = H5Tget_size(type)) == 0)
             goto error;
 
         buf = (char *) calloc((size_t)(ssiz * tsiz), sizeof(char));
@@ -6386,7 +6400,7 @@ xml_print_refs(hid_t did, int source)
         space = H5Aget_space(did);
         if ((ssiz = H5Sget_simple_extent_npoints(space)) < 0)
             goto error;
-        if ((tsiz = H5Tget_size(type)) < 0)
+        if ((tsiz = H5Tget_size(type)) == 0)
             goto error;
 
         buf = (char *) calloc((size_t)(ssiz * tsiz), sizeof(char));
@@ -6398,10 +6412,6 @@ xml_print_refs(hid_t did, int source)
         if (e < 0) {
             goto error;
         }
-    }
-    else {
-        /* error */
-        goto error;
     }
 
     refbuf = (hobj_ref_t *) buf;
@@ -6489,7 +6499,7 @@ xml_print_strs(hid_t did, int source)
         space = H5Dget_space(did);
         if((ssiz = H5Sget_simple_extent_npoints(space)) < 0)
             goto error;
-        if((tsiz = H5Tget_size(type)) < 0)
+        if((tsiz = H5Tget_size(type)) == 0)
             goto error;
 
         buf = malloc((size_t)(ssiz * tsiz));
@@ -6505,7 +6515,7 @@ xml_print_strs(hid_t did, int source)
         space = H5Aget_space(did);
         if((ssiz = H5Sget_simple_extent_npoints(space)) < 0)
             goto error;
-        if((tsiz = H5Tget_size(type)) < 0)
+        if((tsiz = H5Tget_size(type)) == 0)
             goto error;
 
         buf = malloc((size_t)(ssiz * tsiz));
@@ -6516,10 +6526,6 @@ xml_print_strs(hid_t did, int source)
         if (e < 0) {
             goto error;
         }
-    }
-    else {
-        /* error */
-        goto error;
     }
 
     bp = (char*) buf;
