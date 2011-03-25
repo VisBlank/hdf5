@@ -6089,7 +6089,8 @@ xml_dump_group(hid_t gid, const char *name)
     H5O_info_t              oinfo;
     char                   *cp;
     hid_t                   dset, type;
-    char                    type_name[1024], *tmp = NULL;
+    char                    type_name[1024];
+    char                   *tmp = NULL;
     char                   *par = NULL;
     int                     isRoot = 0;
     char                   *t_objname;
@@ -6099,41 +6100,39 @@ xml_dump_group(hid_t gid, const char *name)
     hid_t                   gcpl_id;
 
 
-    if ((gcpl_id = H5Gget_create_plist(gid)) < 0)
-    {
+    if ((gcpl_id = H5Gget_create_plist(gid)) < 0) {
         error_msg("error in getting group creation property list ID\n");
         h5tools_setstatus(EXIT_FAILURE);
     }
 
     /* query the group creation properties for attributes */
-    if (H5Pget_attr_creation_order(gcpl_id, &attr_crt_order_flags) < 0)
-    {
+    if (H5Pget_attr_creation_order(gcpl_id, &attr_crt_order_flags) < 0) {
         error_msg("error in getting group creation properties\n");
         h5tools_setstatus(EXIT_FAILURE);
     }
 
     /* query the group creation properties */
-    if(H5Pget_link_creation_order(gcpl_id, &crt_order_flags) < 0)
-    {
+    if (H5Pget_link_creation_order(gcpl_id, &crt_order_flags) < 0) {
         error_msg("error in getting group creation properties\n");
         h5tools_setstatus(EXIT_FAILURE);
     }
 
-    if(H5Pclose(gcpl_id) < 0) {
+    if (H5Pclose(gcpl_id) < 0) {
         error_msg("error in closing group creation property list ID\n");
         h5tools_setstatus(EXIT_FAILURE);
     }
 
-    if(HDstrcmp(name, "/") == 0) {
+    if (HDstrcmp(name, "/") == 0) {
         isRoot = 1;
         tmp = HDstrdup("/");
-    } else {
-        tmp = (char *)HDmalloc(HDstrlen(prefix) + HDstrlen(name) + 2);
+    }
+    else {
+        tmp = (char *) HDmalloc(HDstrlen(prefix) + HDstrlen(name) + 2);
         HDstrcpy(tmp, prefix);
         par = HDstrdup(tmp);
         cp = HDstrrchr(par, '/');
-        if(cp) {
-            if((cp == par) && HDstrlen(par) > 1)
+        if (cp) {
+            if ((cp == par) && HDstrlen(par) > 1)
                 *(cp + 1) = '\0';
             else
                 *cp = '\0';
@@ -6145,39 +6144,41 @@ xml_dump_group(hid_t gid, const char *name)
 
     H5Oget_info(gid, &oinfo);
 
-    if(oinfo.rc > 1) {
-        obj_t  *found_obj;    /* Found object */
+    if (oinfo.rc > 1) {
+        obj_t *found_obj; /* Found object */
 
         /* Group with more than one link to it... */
         found_obj = search_obj(group_table, oinfo.addr);
 
         if (found_obj == NULL) {
             indentation(indent);
-                error_msg("internal error (file %s:line %d)\n",
-                          __FILE__, __LINE__);
+            error_msg("internal error (file %s:line %d)\n", __FILE__, __LINE__);
             h5tools_setstatus(EXIT_FAILURE);
-        } else {
+        }
+        else {
             char *t_name = xml_escape_the_name(name);
-            char *grpxid = (char *)malloc(100);
-            char *parentxid = (char *)malloc(100);
+            char *grpxid = (char *) malloc(100);
+            char *parentxid = (char *) malloc(100);
 
-            if(found_obj->displayed) {
-                char *ptrstr = (char *)malloc(100);
+            if (found_obj->displayed) {
+                char *ptrstr = (char *) malloc(100);
 
                 /* already seen: enter a groupptr */
-                if(isRoot) {
+                if (isRoot) {
                     /* probably can't happen! */
                     xml_name_to_XID("/", grpxid, 100, 1);
                     printf("<%sRootGroup OBJ-XID=\"%s\" H5Path=\"%s\">\n",
                             xmlnsprefix, grpxid, "/");
-                } else {
+                }
+                else {
                     t_objname = xml_escape_the_name(found_obj->objname);
                     par_name = xml_escape_the_name(par);
                     xml_name_to_XID(tmp, grpxid, 100, 1);
                     xml_name_to_XID(par, parentxid, 100, 1);
-                    printf("<%sGroup Name=\"%s\" OBJ-XID=\"%s-%d\" H5Path=\"%s\" "
-                            "Parents=\"%s\" H5ParentPaths=\"%s\">\n",
-                            xmlnsprefix,t_name, grpxid, get_next_xid(),
+                    printf(
+                            "<%sGroup Name=\"%s\" OBJ-XID=\"%s-%d\" H5Path=\"%s\" "
+                                "Parents=\"%s\" H5ParentPaths=\"%s\">\n",
+                            xmlnsprefix, t_name, grpxid, get_next_xid(),
                             t_objname, parentxid, par_name);
                     free(t_objname);
                     free(par_name);
@@ -6188,29 +6189,30 @@ xml_dump_group(hid_t gid, const char *name)
                     xml_name_to_XID(found_obj->objname, ptrstr, 100, 1);
                     xml_name_to_XID(par, parentxid, 100, 1);
                     printf("<%sGroupPtr OBJ-XID=\"%s\" H5Path=\"%s\" "
-                                "Parents=\"%s\" H5ParentPaths=\"%s\" />\n",
-                                xmlnsprefix,
-                                ptrstr, t_objname, parentxid, par_name);
+                        "Parents=\"%s\" H5ParentPaths=\"%s\" />\n",
+                            xmlnsprefix, ptrstr, t_objname, parentxid, par_name);
                     free(t_objname);
                     free(par_name);
                 }
                 free(ptrstr);
-            } else {
+            }
+            else {
 
                 /* first time this group has been seen -- describe it  */
-                if(isRoot) {
+                if (isRoot) {
                     xml_name_to_XID("/", grpxid, 100, 1);
                     printf("<%sRootGroup OBJ-XID=\"%s\" H5Path=\"%s\">\n",
                             xmlnsprefix, grpxid, "/");
-                } else {
+                }
+                else {
                     char *t_tmp = xml_escape_the_name(tmp);
 
                     par_name = xml_escape_the_name(par);
                     xml_name_to_XID(tmp, grpxid, 100, 1);
                     xml_name_to_XID(par, parentxid, 100, 1);
                     printf("<%sGroup Name=\"%s\" OBJ-XID=\"%s\" H5Path=\"%s\" "
-                            "Parents=\"%s\" H5ParentPaths=\"%s\" >\n",
-                            xmlnsprefix,t_name, grpxid, t_tmp, parentxid, par_name);
+                        "Parents=\"%s\" H5ParentPaths=\"%s\" >\n", xmlnsprefix,
+                            t_name, grpxid, t_tmp, parentxid, par_name);
                     free(t_tmp);
                     free(par_name);
                 }
@@ -6218,29 +6220,36 @@ xml_dump_group(hid_t gid, const char *name)
 
                 /* 1.  do all the attributes of the group */
 
-                if((sort_by == H5_INDEX_CRT_ORDER) && (attr_crt_order_flags & H5P_CRT_ORDER_TRACKED)) {
-                    if(H5Aiterate2(gid, sort_by, sort_order, NULL, dump_function_table->dump_attribute_function, NULL) < 0) {
+                if ((sort_by == H5_INDEX_CRT_ORDER) && (attr_crt_order_flags
+                        & H5P_CRT_ORDER_TRACKED)) {
+                    if (H5Aiterate2(gid, sort_by, sort_order, NULL,
+                            dump_function_table->dump_attribute_function, NULL)
+                            < 0) {
                         error_msg("error getting attribute information\n");
                         h5tools_setstatus(EXIT_FAILURE);
                     } /* end if */
                 } /* end if */
                 else {
-                    if(H5Aiterate2(gid, H5_INDEX_NAME, sort_order, NULL, dump_function_table->dump_attribute_function, NULL) < 0) {
+                    if (H5Aiterate2(gid, H5_INDEX_NAME, sort_order, NULL,
+                            dump_function_table->dump_attribute_function, NULL)
+                            < 0) {
                         error_msg("error getting attribute information\n");
                         h5tools_setstatus(EXIT_FAILURE);
                     } /* end if */
                 } /* end else */
 
-                if(isRoot && unamedtype) {
+                if (isRoot && unamedtype) {
                     unsigned u;
 
                     /* Very special case: dump unamed type in root group */
-                    for(u = 0; u < type_table->nobjs; u++) {
-                        if(!type_table->objs[u].recorded) {
-                            dset = H5Dopen2(gid, type_table->objs[u].objname, H5P_DEFAULT);
+                    for (u = 0; u < type_table->nobjs; u++) {
+                        if (!type_table->objs[u].recorded) {
+                            dset = H5Dopen2(gid, type_table->objs[u].objname,
+                                    H5P_DEFAULT);
                             type = H5Dget_type(dset);
                             sprintf(type_name, "#"H5_PRINTF_HADDR_FMT, type_table->objs[u].objno);
-                            dump_function_table->dump_named_datatype_function(type, type_name);
+                            dump_function_table->dump_named_datatype_function(
+                                    type, type_name);
                             H5Tclose(type);
                             H5Dclose(dset);
                         }
@@ -6249,38 +6258,41 @@ xml_dump_group(hid_t gid, const char *name)
 
                 /* iterate through all the links */
 
-                if( (sort_by == H5_INDEX_CRT_ORDER) && (crt_order_flags & H5P_CRT_ORDER_TRACKED))
-                    H5Literate(gid, sort_by, sort_order, NULL, dump_all_cb, NULL);
+                if ((sort_by == H5_INDEX_CRT_ORDER) && (crt_order_flags
+                        & H5P_CRT_ORDER_TRACKED))
+                    H5Literate(gid, sort_by, sort_order, NULL, dump_all_cb,
+                            NULL);
                 else
-                    H5Literate(gid, H5_INDEX_NAME, sort_order, NULL, dump_all_cb, NULL);
-
+                    H5Literate(gid, H5_INDEX_NAME, sort_order, NULL,
+                            dump_all_cb, NULL);
 
             }
             free(t_name);
             free(grpxid);
             free(parentxid);
         }
-    } else {
+    }
+    else {
 
         /* only link -- must be first time! */
         char *t_name = xml_escape_the_name(name);
-        char *grpxid = (char *)malloc(100);
-        char *parentxid = (char *)malloc(100);
+        char *grpxid = (char *) malloc(100);
+        char *parentxid = (char *) malloc(100);
 
-        if(isRoot) {
+        if (isRoot) {
             xml_name_to_XID("/", grpxid, 100, 1);
-            printf("<%sRootGroup OBJ-XID=\"%s\" H5Path=\"%s\">\n",
-                xmlnsprefix, grpxid, "/");
-        } else {
+            printf("<%sRootGroup OBJ-XID=\"%s\" H5Path=\"%s\">\n", xmlnsprefix,
+                    grpxid, "/");
+        }
+        else {
             char *t_tmp = xml_escape_the_name(tmp);
 
             par_name = xml_escape_the_name(par);
             xml_name_to_XID(tmp, grpxid, 100, 1);
             xml_name_to_XID(par, parentxid, 100, 1);
             printf("<%sGroup Name=\"%s\" OBJ-XID=\"%s\" H5Path=\"%s\" "
-                    "Parents=\"%s\" H5ParentPaths=\"%s\" >\n",
-                    xmlnsprefix, t_name, grpxid, t_tmp,
-                    parentxid, par_name);
+                "Parents=\"%s\" H5ParentPaths=\"%s\" >\n", xmlnsprefix, t_name,
+                    grpxid, t_tmp, parentxid, par_name);
             free(t_tmp);
             free(par_name);
         }
@@ -6290,30 +6302,34 @@ xml_dump_group(hid_t gid, const char *name)
 
         /* 1.  do all the attributes of the group */
 
-        if((sort_by == H5_INDEX_CRT_ORDER) && (attr_crt_order_flags & H5P_CRT_ORDER_TRACKED)) {
-            if(H5Aiterate2(gid, sort_by, sort_order, NULL, dump_function_table->dump_attribute_function, NULL) < 0) {
+        if ((sort_by == H5_INDEX_CRT_ORDER) && (attr_crt_order_flags
+                & H5P_CRT_ORDER_TRACKED)) {
+            if (H5Aiterate2(gid, sort_by, sort_order, NULL,
+                    dump_function_table->dump_attribute_function, NULL) < 0) {
                 error_msg("error getting attribute information\n");
                 h5tools_setstatus(EXIT_FAILURE);
             } /* end if */
         } /* end if */
         else {
-            if(H5Aiterate2(gid, H5_INDEX_NAME, sort_order, NULL, dump_function_table->dump_attribute_function, NULL) < 0) {
+            if (H5Aiterate2(gid, H5_INDEX_NAME, sort_order, NULL,
+                    dump_function_table->dump_attribute_function, NULL) < 0) {
                 error_msg("error getting attribute information\n");
                 h5tools_setstatus(EXIT_FAILURE);
             } /* end if */
         } /* end else */
 
-
-        if(isRoot && unamedtype) {
+        if (isRoot && unamedtype) {
             unsigned u;
 
             /* Very special case: dump unamed type in root group */
-            for(u = 0; u < type_table->nobjs; u++) {
-                if(!type_table->objs[u].recorded) {
-                    dset = H5Dopen2(gid, type_table->objs[u].objname, H5P_DEFAULT);
+            for (u = 0; u < type_table->nobjs; u++) {
+                if (!type_table->objs[u].recorded) {
+                    dset = H5Dopen2(gid, type_table->objs[u].objname,
+                            H5P_DEFAULT);
                     type = H5Dget_type(dset);
                     sprintf(type_name, "#"H5_PRINTF_HADDR_FMT, type_table->objs[u].objno);
-                    dump_function_table->dump_named_datatype_function(type, type_name);
+                    dump_function_table->dump_named_datatype_function(type,
+                            type_name);
                     H5Tclose(type);
                     H5Dclose(dset);
                 }
@@ -6322,7 +6338,8 @@ xml_dump_group(hid_t gid, const char *name)
 
         /* iterate through all the links */
 
-        if( (sort_by == H5_INDEX_CRT_ORDER) && (crt_order_flags & H5P_CRT_ORDER_TRACKED))
+        if ((sort_by == H5_INDEX_CRT_ORDER) && (crt_order_flags
+                & H5P_CRT_ORDER_TRACKED))
             H5Literate(gid, sort_by, sort_order, NULL, dump_all_cb, NULL);
         else
             H5Literate(gid, H5_INDEX_NAME, sort_order, NULL, dump_all_cb, NULL);
@@ -6330,11 +6347,14 @@ xml_dump_group(hid_t gid, const char *name)
 
     indent -= COL;
     indentation(indent);
-    if(isRoot)
+    if (isRoot)
         printf("</%sRootGroup>\n", xmlnsprefix);
     else
-        printf("</%sGroup>\n" , xmlnsprefix);
-    free(tmp);
+        printf("</%sGroup>\n", xmlnsprefix);
+    if(par)
+        free(par);
+    if(tmp)
+        free(tmp);
 }
 
 /*-------------------------------------------------------------------------
