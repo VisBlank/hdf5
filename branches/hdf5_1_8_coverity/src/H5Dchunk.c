@@ -3545,7 +3545,8 @@ H5D_chunk_prune_fill(H5D_chunk_it_ud1_t *udata)
 
     /* Scatter the data into memory */
     if(H5D_scatter_mem(udata->fb_info.fill_buf, udata->chunk_space, &chunk_iter, (size_t)sel_nelmts, io_info->dxpl_cache, chunk/*out*/) < 0) {
-        H5S_SELECT_ITER_RELEASE(&chunk_iter);
+        if(H5S_SELECT_ITER_RELEASE(&chunk_iter) < 0)
+            HERROR(H5E_DATASET, H5E_CANTRELEASE, FAIL, "Can't release selection iterator");
         HGOTO_ERROR(H5E_DATASET, H5E_WRITEERROR, FAIL, "scatter failed")
     } /* end if */
 
