@@ -1145,6 +1145,8 @@ H5G_get_name_by_addr(hid_t file, hid_t lapl_id, hid_t dxpl_id, const H5O_loc_t *
     herr_t status;              /* Status from iteration */
     ssize_t ret_value;          /* Return value */
 
+    udata.path = NULL;
+
     FUNC_ENTER_NOAPI(H5G_get_name_by_addr, FAIL)
 
     /* Construct the link info for the file's root group */
