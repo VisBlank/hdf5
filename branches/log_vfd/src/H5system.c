@@ -609,23 +609,39 @@ HDremove_all(const char *fname)
 /* Offset between 1/1/1601 and 1/1/1970 in 100 nanosec units */
 #define _W32_FT_OFFSET (116444736000000000ULL)
 
-int
-Wgettimeofday(struct timeval *tv, void *tz)
- {
-  union {
-    unsigned long long ns100; /*time since 1 Jan 1601 in 100ns units */
-    FILETIME ft;
-  }  _now;
+struct timezone {
+    int tz_minuteswest;
+    int tz_dsttime;
+};
 
-  if(tv)
-    {
-      GetSystemTimeAsFileTime (&_now.ft);
-      tv->tv_usec=(long)((_now.ns100 / 10ULL) % 1000000ULL );
-      tv->tv_sec= (long)((_now.ns100 - _W32_FT_OFFSET) / 10000000ULL);
+int
+Wgettimeofday(struct timeval *tv, struct timezone *tz)
+ {
+    union {
+        unsigned long long ns100; /*time since 1 Jan 1601 in 100ns units */
+        FILETIME ft;
+    } _now;
+
+    static int tzsetflag;
+
+    if(tv) {
+        GetSystemTimeAsFileTime (&_now.ft);
+        tv->tv_usec=(long)((_now.ns100 / 10ULL) % 1000000ULL );
+        tv->tv_sec= (long)((_now.ns100 - _W32_FT_OFFSET) / 10000000ULL);
     }
-  /* Always return 0 as per Open Group Base Specifications Issue 6.
-     Do not set errno on error.  */
-  return 0;
+
+    if(tz) {
+        if(!tzsetflag) {
+            _tzset();
+            tzsetflag = 1;
+        }
+        tz->tz_minuteswest = _timezone / 60;
+        tz->tz_dsttime = _daylight;
+    }
+
+    /* Always return 0 as per Open Group Base Specifications Issue 6.
+       Do not set errno on error.  */
+    return 0;
 }
 #endif
 
