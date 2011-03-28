@@ -604,7 +604,7 @@ HDremove_all(const char *fname)
  *
  *-------------------------------------------------------------------------
  */
-#if !defined(H5_HAVE_GETTIMEOFDAY) && defined(_WIN32)
+#if defined(H5_USE_WIN32_GETTIMEOFDAY)
 
 /* Offset between 1/1/1601 and 1/1/1970 in 100 nanosec units */
 #define _W32_FT_OFFSET (116444736000000000ULL)

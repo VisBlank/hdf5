@@ -44,7 +44,7 @@ typedef __int64             h5_stat_size_t;
 #define HDstat(S,B)         _stati64(S,B)
 #define HDgetcwd(S,Z)       _getcwd(S,Z)
 #define HDgetdcwd(D,S,Z)    _getdcwd(D,S,Z)
-#ifndef H5_HAVE_GETTIMEOFDAY
+#ifdef H5_USE_WIN32_GETTIMEOFDAY
     #ifdef __cplusplus
         extern "C" {
     #endif /* __cplusplus */
@@ -53,7 +53,7 @@ typedef __int64             h5_stat_size_t;
         }
     #endif /* __cplusplus */
     #define HDgettimeofday(V,Z) Wgettimeofday(V,Z)
-#endif /* H5_HAVE_GETTIMEOFDAY */
+#endif /* H5_USE_WINDOWS_GETTIMEOFDAY */
 #define HDgetdrive()        _getdrive()
 #define HDlseek(F,O,W)      _lseeki64(F,O,W)
 #define HDoff_t             __int64

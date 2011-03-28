@@ -169,7 +169,7 @@
 /* #undef H5_HAVE_GETTEXTINFO */
 
 /* Define to 1 if you have the `gettimeofday' function. */
-/* #undef H5_HAVE_GETTIMEOFDAY */
+#define H5_HAVE_GETTIMEOFDAY
 
 /* Define to 1 if you have the `get_fpc_csr' function. */
 /* #undef H5_HAVE_GET_FPC_CSR */
@@ -636,6 +636,9 @@
 /* Define if your system can accurately convert unsigned (long) long values to
    floating-point values. */
 /* #undef H5_ULONG_TO_FP_BOTTOM_BIT_ACCURATE */
+
+/* Define if you need to use the Win32 analog of gettimeofday() */
+#define H5_USE_WIN32_GETTIMEOFDAY 1
 
 /* Define using v1.6 public API symbols by default */
 /* #undef H5_USE_16_API_DEFAULT */
