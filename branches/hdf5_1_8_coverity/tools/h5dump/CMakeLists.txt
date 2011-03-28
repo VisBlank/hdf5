@@ -38,7 +38,6 @@ IF (BUILD_TESTING)
   # Copy all the HDF5 files from the test directory into the source directory
   # --------------------------------------------------------------------
   SET (HDF5_REFERENCE_FILES
-      filter_fail.ddl
       packedbits.ddl
       tall-1.ddl
       tall-2.ddl
@@ -50,7 +49,6 @@ IF (BUILD_TESTING)
       tall-6.ddl
       tallfilters.ddl
       tarray1.ddl
-      tarray1_big.ddl
       tarray2.ddl
       tarray3.ddl
       tarray4.ddl
