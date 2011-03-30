@@ -2716,11 +2716,13 @@ test_actual_io_mode(int selection_mode, int opt) {
     /* Different tests for each selection */
     switch ( selection_mode ) {
         case 0:
-            opt?
+            if (opt) {
                 VRFY(actual_io_mode == H5D_MPIO_COLLECTIVE_MULTI_CHUNK_INDEPENDENT,
-                 "actual I/O mode failed for multi chunk independent I/O"):
-                VRFY(actual_io_mode==H5D_MPIO_COLLECTIVE_MULTI_CHUNK_INDEPENDENT_NO_OPT,
+                 "actual I/O mode failed for multi chunk independent I/O");
+            } else {
+                VRFY(actual_io_mode==H5D_MPIO_COLLECTIVE_MULTI_CHUNK_NO_OPT_INDEPENDENT,
                  "actual I/O mode failed for multi chunk independent I/O no opt");
+            }
             break;
         
         default:
