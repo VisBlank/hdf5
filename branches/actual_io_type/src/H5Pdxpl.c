@@ -1441,8 +1441,8 @@ H5Pset_mpio_actual_io_mode(hid_t plist_id, H5D_xfer_mpio_actual_io_mode_t actual
     /* Return values */
     if (actual_io_mode)
         if (H5P_set(plist,H5D_XFER_MPIO_ACTUAL_IO_MODE_NAME,&actual_io_mode)<0)
-            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get value")
-    
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set value")
+
 done:
     FUNC_LEAVE_API(ret_value)
 } /* end H5Pget_mpio_actual_io_mode() */
@@ -1479,8 +1479,8 @@ H5Pget_mpio_actual_io_mode(hid_t plist_id, H5D_xfer_mpio_actual_io_mode_t *actua
     /* Return values */
     if (actual_io_mode)
         if (H5P_get(plist,H5D_XFER_MPIO_ACTUAL_IO_MODE_NAME,actual_io_mode)<0)
-            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to set value")
-    
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get value")
+
 done:
     FUNC_LEAVE_API(ret_value)
 } /* end H5Pget_mpio_actual_io_mode() */
