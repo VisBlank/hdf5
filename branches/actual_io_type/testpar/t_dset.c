@@ -628,6 +628,7 @@ dataset_writeAll(void)
     MESG("writeAll by Row");
     ret = H5Dwrite(dataset1, H5T_NATIVE_INT, mem_dataspace, file_dataspace,
 	    xfer_plist, data_array1);
+    if (ret < 0) H5Eprint(H5E_DEFAULT, stdout);
     VRFY((ret >= 0), "H5Dwrite dataset1 succeeded");
 
     /* setup dimensions again to writeAll with zero rows for process 0 */
@@ -2499,3 +2500,257 @@ none_selection_chunk(void)
     if(data_origin) free(data_origin);
     if(data_array) free(data_array);
 }
+
+
+test_actual_io_mode(int selection_mode, int opt) {
+    H5D_xfer_mpio_actual_io_mode_t   actual_io_mode = -1;
+    char        * filename;
+    int         i,
+                mpi_size = -1, 
+                mpi_rank = -1,
+                dset_size,
+                block_size = 32,
+                * buffer;
+    MPI_Comm    mpi_comm = MPI_COMM_NULL;
+    MPI_Info    mpi_info = MPI_INFO_NULL;
+    hid_t       fid,
+                sid,
+                dataset,
+                data_type = H5T_NATIVE_INT,
+                acc_tpl,
+                mem_space,
+                file_space,
+                dcpl = H5P_DEFAULT,
+                dxpl;
+    hsize_t     dims[RANK],
+                chunk_dims[RANK],
+                start[RANK],
+                stride[RANK],
+                count[RANK],
+                block[RANK],
+                length[1]; //This is an array in case we want to make a 1D space
+    hbool_t     use_gpfs = FALSE;
+    herr_t      ret;   
+    
+    
+    /* Set up MPI parameters */
+    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+
+    HDassert( mpi_size >= 1 );
+
+    mpi_comm = MPI_COMM_WORLD;
+    mpi_info = MPI_INFO_NULL;
+
+    filename = (const char *)GetTestParameters();
+    HDassert( filename != NULL );
+
+    /* Setup the file access template */
+    acc_tpl = create_faccess_plist(mpi_comm, mpi_info, facc_type, use_gpfs);
+    VRFY((acc_tpl >= 0), "create_faccess_plist() succeeded");
+
+    /* Create the file */
+    fid = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, acc_tpl);
+    VRFY((fid >= 0), "H5Fcreate succeeded");
+
+    MESG("File opened.");
+
+    /* Release file-access template */
+    ret = H5Pclose(acc_tpl);
+    VRFY((ret >= 0), "H5Pclose(acc_tpl) succeeded");
+
+    /* Create the basic Space */    
+    dims[0] = dim0;
+    dims[1] = dim1;
+    sid = H5Screate_simple (RANK, dims, NULL);
+    VRFY((sid >= 0), "H5Screate_simple succeeded");
+
+    /* Create the dataset creation plist */
+    dcpl = H5Pcreate(H5P_DATASET_CREATE);
+    VRFY( (dcpl >= 0), "dataset creation plist created successfully");
+
+    /* If we are not testing contiguous datasets */
+    if (selection_mode != 7) {
+        /* Set up chunk information.  */
+        chunk_dims[0] = dims[0]/mpi_size;
+        chunk_dims[1] = dims[1];
+        ret = H5Pset_chunk(dcpl, 2, chunk_dims);
+        VRFY((ret >= 0),"chunk creation property list succeeded");
+    }
+
+    /* Create the dataset */
+    dataset = H5Dcreate2(fid, "chunk_write3", data_type, sid, H5P_DEFAULT,
+            dcpl, H5P_DEFAULT);
+    VRFY((dataset != NULL), "H5Dcreate2() dataset succeeded");
+
+    /* Create the file dataspace */
+    file_space = H5Dget_space (dataset);
+    VRFY((file_space >= 0), "H5Dget_space succeeded");
+
+    /* Choose a selection method based on the type of I/O we want to occur */
+    switch (selection_mode) {
+        
+        /* Independent I/O with optimization */
+        case 0:
+            /* Since the dataset is chunked by row and each process selects a row,
+             * each process  writes to a different chunk. This forces all I/O to be
+             * independent.
+             */
+            slab_set(mpi_rank, mpi_size, start, count, stride, block, BYROW);
+            break;
+
+        /* Collective I/O with optimization */
+        case 1:
+            /* The dataset is chunked by rows, so each process takes a column which
+             * spans all chunks. Since the processes write non-overlapping regular
+             * selections to each chunk, the operation is purely collective.
+             */
+            slab_set(mpi_rank, mpi_size, start, count, stride, block, BYCOL);
+            break;
+        
+        /* Mixed I/O with optimization */
+        case 2:
+            if (mpi_rank == 0) {
+                 // Select a whole column
+                 slab_set(mpi_rank, mpi_size, start, count, stride, block, BYCOL);
+            } else {
+                // Select the 0th and the nth chunk in the column
+                block[0] = dim0 / mpi_size;
+                block[1] = dim1 / mpi_size;
+                count[0] = 2;
+                count[1] = 1;
+                stride[0] = mpi_rank * block[0];
+                stride[1] = 1;
+                start[0] = 0;
+                start[1] = mpi_rank*block[1];
+            }
+            break;
+
+        /* Mixed I/O with optimization and internal disagreement */
+        case 3:
+            /* Every process except the root takes a column. Since the dataset is
+             * chunked by rows, each of these writes to all chunks. The root only
+             * writes to one chunk in its column. Since the root is skipping mpi_size-1
+             * chunks, these chunks will be read independently, but the first chunk
+             * will be read collectively, yeilding mixed I/O.
+             */
+             slab_set(mpi_rank, mpi_size, start, count, stride, block, BYCOL);
+    
+             /* For the root process, decrease the height of the column by a factor
+              * of mpi_size so that only the first chunk is written. 
+              */
+             if (mpi_rank == 0) 
+                  block[0] = block[0] / mpi_size;
+
+             break; 
+
+        /* Contiguous Dataset */
+        case 7:
+            /* A non overlapping, regular selection in a contiguous dataset leads to
+             * collective I/O */
+            slab_set(mpi_rank, mpi_size, start, count, stride, block, BYROW);
+            break;
+        
+        /* Linked Chunk I/O */
+        case 8:        
+        default:
+            slab_set(mpi_rank, mpi_size, start, count, stride, block, BYROW);
+            break;
+    }
+
+    ret = H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, stride, count, block);
+    if (ret < 0) H5Eprint(H5E_DEFAULT, stdout);
+    VRFY((ret >= 0), "H5Sset_hyperslab succeeded");
+ 
+    /* Create a memory dataspace mirroring the dataset and select the same hyperslab
+     * as in the file space. 
+     */
+    mem_space = H5Screate_simple (RANK, dims, NULL);
+    VRFY((mem_space >= 0), "mem_space created");
+    
+    ret = H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, start, stride, count, block);
+    VRFY((ret >= 0), "H5Sset_hyperslab succeeded");
+
+    /* Get the number of elements in the selection */
+    length[0] = H5Sget_select_npoints(file_space);
+    VRFY((length > 0), "get_select_npoints succeeded");
+
+    /* Allocate and initialize the buffer */
+    buffer = (int *)malloc(sizeof(int) * length[0]);
+    for (i = 0; i < length[0]; i++) 
+        buffer[i]= i;
+
+    /* Set up the dxpl */
+    dxpl = H5Pcreate(H5P_DATASET_XFER);
+    VRFY((dxpl >= 0), "H5Pcreate(H5P_DATASET_XFER) succeeded");
+
+    ret = H5Pset_dxpl_mpio(dxpl, H5FD_MPIO_COLLECTIVE);
+    VRFY((ret >= 0), "H5Pset_dxpl_mpio succeeded");
+
+    if ( opt == 0 ) {
+        /* Force no optimization */
+        ret = H5Pset_dxpl_mpio_chunk_opt(dxpl, H5FD_MPIO_CHUNK_ONE_IO);
+        VRFY((ret >= 0), "H5Pset_dxpl_mpio succeeded");
+    }
+   
+    /* Linked Chunk I/O */
+    if ( selection_mode == 8 ) {
+        /* Set a low value for the max number of processes per chunk to
+         * swtich to linked cunk I/O
+         */
+        ret = H5Pset_dxpl_mpio_chunk_opt_num(dxpl, 1);
+        VRFY((ret >= 0), "H5Pset_dxpl_mpio_chunk_opt_num succeeded");
+    }
+
+
+    /* Write */
+    ret = H5Dwrite(dataset, data_type, mem_space, file_space, dxpl, buffer);
+    if (ret < 0) H5Eprint(H5E_DEFAULT, stdout);
+    VRFY((ret >= 0), "H5Dwrite() dataset multichunk write succeeded");
+
+    /* Check Property */
+    ret = H5Pget_mpio_actual_io_mode(dxpl, &actual_io_mode);
+    VRFY( (ret >= 0), "retriving actual I/O mode failed" );
+
+   
+    /* Different tests for each selection */
+    switch ( selection_mode ) {
+        case 0:
+            opt?
+                VRFY(actual_io_mode == H5D_MPIO_COLLECTIVE_MULTI_CHUNK_INDEPENDENT,
+                 "actual I/O mode failed for multi chunk independent I/O"):
+                VRFY(actual_io_mode==H5D_MPIO_COLLECTIVE_MULTI_CHUNK_INDEPENDENT_NO_OPT,
+                 "actual I/O mode failed for multi chunk independent I/O no opt");
+            break;
+        
+        default:
+            printf("Actual IO Mode:%d\n",actual_io_mode);
+            break;
+    }
+    
+    
+    /* Release some resources */
+    H5Sclose(sid);
+    H5Pclose(dxpl);
+    H5Dclose(dataset);
+    H5Sclose(mem_space);
+    H5Sclose(file_space);
+    free(buffer);
+    H5Fclose(fid);
+
+}
+
+
+/*
+ *
+ */
+void
+actual_io_mode_tests(void) {
+    test_actual_io_mode(0,1);
+    test_actual_io_mode(1,1);
+    test_actual_io_mode(2,1);
+    test_actual_io_mode(3,1);
+    test_actual_io_mode(7,1);
+    return;
+}
+
