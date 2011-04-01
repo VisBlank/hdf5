@@ -1320,13 +1320,25 @@ herr_t H5TBdelete_record( hid_t loc_id,
     src_sizes = (size_t *)malloc((size_t)nfields * sizeof(size_t));
 
     if (src_offset == NULL )
+    {
+        free(src_sizes);
         return -1;
+    }
+
     if (src_sizes == NULL )
+    {
+        free(src_offset);
+        free(src_sizes);
         return -1;
+    }
 
     /* get field info */
     if (H5TBget_field_info( loc_id, dset_name, NULL, src_sizes, src_offset, &src_size ) < 0)
+    {
+        free(src_offset);
+        free(src_sizes);
         return -1;
+    }
 
     /* open the dataset. */
     if ((did = H5Dopen2(loc_id, dset_name, H5P_DEFAULT)) < 0)
@@ -1643,7 +1655,10 @@ herr_t H5TBadd_records_from( hid_t loc_id,
 
     /* get field info */
     if (H5TBget_field_info( loc_id, dset_name1, NULL, src_sizes, src_offset, &src_size ) < 0)
+    {
+        free(src_offset);
         return -1;
+    }
 
     /*-------------------------------------------------------------------------
     * Get information about the first table and read it
