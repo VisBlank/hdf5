@@ -785,10 +785,14 @@ H5tools_get_symlink_info(hid_t file_id, const char * linkpath, h5tool_link_info_
      * follow object in other file
      */
     if(link_info->linfo.type == H5L_TYPE_EXTERNAL) {
-        fapl = H5Pcreate(H5P_FILE_ACCESS);
-        H5Pset_fapl_sec2(fapl);
-        lapl = H5Pcreate(H5P_LINK_ACCESS);
-        H5Pset_elink_fapl(lapl, fapl);
+        if((fapl = H5Pcreate(H5P_FILE_ACCESS)) < 0)
+            goto out;
+        if(H5Pset_fapl_sec2(fapl) < 0)
+            goto out;
+        if((lapl = H5Pcreate(H5P_LINK_ACCESS)) < 0)
+            goto out;
+        if(H5Pset_elink_fapl(lapl, fapl) < 0)
+            goto out;
     } /* end if */
 
     /* Check for retrieving object info */
@@ -798,7 +802,7 @@ H5tools_get_symlink_info(hid_t file_id, const char * linkpath, h5tool_link_info_
          */
          /* check if target object exist */
         l_ret = H5Oexists_by_name(file_id, linkpath, lapl);
-        
+
         /* detect dangling link */
         if(l_ret == FALSE) {
             ret = 0;
