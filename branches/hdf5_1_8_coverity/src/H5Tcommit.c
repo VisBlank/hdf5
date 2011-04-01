@@ -189,6 +189,8 @@ H5T_commit_named(const H5G_loc_t *loc, const char *name, H5T_t *dt,
     H5T_state_t old_state = H5T_STATE_TRANSIENT;        /* The state of the datatype before H5T_commit. */
     herr_t      ret_value = SUCCEED;        /* Return value */
 
+    ocrt_info.new_obj = NULL;
+
     FUNC_ENTER_NOAPI(H5T_commit_named, FAIL)
 
     /* Sanity checks */
@@ -210,7 +212,6 @@ H5T_commit_named(const H5G_loc_t *loc, const char *name, H5T_t *dt,
     /* Set up object creation information */
     ocrt_info.obj_type = H5O_TYPE_NAMED_DATATYPE;
     ocrt_info.crt_info = &tcrt_info;
-    ocrt_info.new_obj = NULL;
 
     /* Create the new named datatype and link it to its parent group */
     if(H5L_link_object(loc, name, &ocrt_info, lcpl_id, tapl_id, dxpl_id) < 0)
