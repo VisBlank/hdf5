@@ -1383,7 +1383,7 @@ H5Z_xform_create(const char *expr)
      * we don't need to allocate any space since no array will have to be
      * stored */
     if(count > 0)
-	if((data_xform_prop->dat_val_pointers->ptr_dat_val = (void**) H5MM_calloc(count * sizeof(void**))) == NULL)
+	if((data_xform_prop->dat_val_pointers->ptr_dat_val = (void**) H5MM_calloc(count * sizeof(void*))) == NULL)
 	    HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "unable to allocate memory for pointers in transform array")
 
     /* Initialize the num_ptrs field, which will be used to keep track of the number of copies
