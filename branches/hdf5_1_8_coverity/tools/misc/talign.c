@@ -23,6 +23,7 @@
 
 #include "hdf5.h"
 #include "H5private.h"
+#include "h5tools.h"
 
 const char *fname = "talign.h5";
 const char *setname = "align";
