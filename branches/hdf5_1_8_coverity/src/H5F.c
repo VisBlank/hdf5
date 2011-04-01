@@ -168,7 +168,7 @@ H5F_term_interface(void)
             H5I_clear_type(H5I_FILE, FALSE, FALSE);
 	} else {
             /* Make certain we've cleaned up all the shared file objects */
-            H5F_sfile_assert_num(0);
+            (void)H5F_sfile_assert_num(0);
 
 	    H5I_dec_type_ref(H5I_FILE);
 	    H5_interface_initialize_g = 0;
