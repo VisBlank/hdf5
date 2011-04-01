@@ -1518,7 +1518,7 @@ H5Z_xform_copy(H5Z_data_xform_t **data_xform_prop)
 		count++;
 
 	if(count > 0)
-	    if((new_data_xform_prop->dat_val_pointers->ptr_dat_val = (void**) H5MM_calloc(count * sizeof(void**))) == NULL)
+	    if((new_data_xform_prop->dat_val_pointers->ptr_dat_val = (void**) H5MM_calloc(count * sizeof(void*))) == NULL)
 		HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "unable to allocate memory for pointers in transform array")
 
 	/* Zero out num_pointers prior to H5Z_xform_cop_tree call; that call will increment it to the right amount */
