@@ -1807,6 +1807,7 @@ herr_t H5TBcombine_tables( hid_t loc_id1,
     if (H5TBget_field_info( loc_id1, dset_name1, NULL, src_sizes, src_offset, &src_size ) < 0)
     {
         free(src_sizes);
+        free(src_offset);
         return -1;
     }
 
