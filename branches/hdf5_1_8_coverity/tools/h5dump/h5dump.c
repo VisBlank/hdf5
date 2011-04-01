@@ -4181,6 +4181,51 @@ handle_datatypes(hid_t fid, const char *type, void UNUSED * data, int pe, const 
     }
 }
 
+
+/*-------------------------------------------------------------------------
+ * Function:    free_handler
+ *
+ * Purpose:     Convenience function to free the handler_t structures. Needs a
+ *              length variable (LEN) to know how many in the array it needs
+ *              to free
+ *
+ * Return:      Nothing
+ *
+ * Programmer:  Bill Wendling
+ *              Tuesday, 20. February 2001
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+static void
+free_handler(struct handler_t *hand, int len)
+{
+    register int i;
+    
+    if(hand) {
+        for (i = 0; i < len; i++) {
+            if(hand[i].obj)
+                free(hand[i].obj);
+
+            if (hand[i].subset_info) {
+                if(hand[i].subset_info->start.data)
+                    free(hand[i].subset_info->start.data);
+                if(hand[i].subset_info->stride.data)
+                    free(hand[i].subset_info->stride.data);
+                if(hand[i].subset_info->count.data)
+                    free(hand[i].subset_info->count.data);
+                if(hand[i].subset_info->block.data)
+                    free(hand[i].subset_info->block.data);
+
+                free(hand[i].subset_info);
+            }
+        }
+
+        free(hand);
+    }
+}
+
 
 /*-------------------------------------------------------------------------
  * Function:    parse_command_line
@@ -4210,11 +4255,15 @@ parse_command_line(int argc, const char *argv[])
      /* no arguments */
     if (argc == 1) {
         usage(h5tools_getprogname());
-        leave(EXIT_FAILURE);
+        h5tools_setstatus(EXIT_FAILURE);
+        goto done;
     }
 
     /* this will be plenty big enough to hold the info */
-    hand = (struct handler_t *)calloc((size_t)argc, sizeof(struct handler_t));
+    if((hand = (struct handler_t *)calloc((size_t)argc, sizeof(struct handler_t)))==NULL) {
+            h5tools_setstatus(EXIT_FAILURE);
+            goto done;
+    }
 
     /* parse command line options */
     while ((opt = get_option(argc, argv, s_opts, l_opts)) != EOF) {
@@ -4260,7 +4309,10 @@ parse_start:
             break;
         case 'V':
             print_version(h5tools_getprogname());
-            leave(EXIT_SUCCESS);
+            free_handler(hand, argc);
+            hand = NULL;
+            h5tools_setstatus(EXIT_SUCCESS);
+            goto done;
             break;
         case 'w':
             nCols = HDatoi(opt_arg);
@@ -4336,13 +4388,19 @@ parse_start:
             if ( bin_output ) {
                 if (set_output_file(opt_arg, 1) < 0) {
                     usage(h5tools_getprogname());
-                    leave(EXIT_FAILURE);
+                    free_handler(hand, argc);
+                    hand = NULL;
+                    h5tools_setstatus(EXIT_FAILURE);
+                    goto done;
                 }
             }
             else {
                 if (set_output_file(opt_arg, 0) < 0) {
                     usage(h5tools_getprogname());
-                    leave(EXIT_FAILURE);
+                    free_handler(hand, argc);
+                    hand = NULL;
+                    h5tools_setstatus(EXIT_FAILURE);
+                    goto done;
                 }
             }
 
@@ -4356,7 +4414,10 @@ parse_start:
                 if ( ( bin_form = set_binary_form(opt_arg)) < 0) {
                     /* failed to set binary form */
                     usage(h5tools_getprogname());
-                    leave(EXIT_FAILURE);
+                    free_handler(hand, argc);
+                    hand = NULL;
+                    h5tools_setstatus(EXIT_FAILURE);
+                    goto done;
                 }
             }
             bin_output = TRUE;
@@ -4364,7 +4425,10 @@ parse_start:
                 if (set_output_file(outfname, 1) < 0)  {
                     /* failed to set output file */
                     usage(h5tools_getprogname());
-                    leave(EXIT_FAILURE);
+                    free_handler(hand, argc);
+                    hand = NULL;
+                    h5tools_setstatus(EXIT_FAILURE);
+                    goto done;
                 }
 
                 last_was_dset = FALSE;
@@ -4375,7 +4439,10 @@ parse_start:
             if ( ( sort_by = set_sort_by(opt_arg)) < 0) {
                 /* failed to set "sort by" form */
                 usage(h5tools_getprogname());
-                leave(EXIT_FAILURE);
+                free_handler(hand, argc);
+                hand = NULL;
+                h5tools_setstatus(EXIT_FAILURE);
+                goto done;
             }
             break;
 
@@ -4383,20 +4450,28 @@ parse_start:
             if ( ( sort_order = set_sort_order(opt_arg)) < 0) {
                 /* failed to set "sort order" form */
                 usage(h5tools_getprogname());
-                leave(EXIT_FAILURE);
+                free_handler(hand, argc);
+                hand = NULL;
+                h5tools_setstatus(EXIT_FAILURE);
+                goto done;
             }
             break;
 
 #ifdef H5_HAVE_H5DUMP_PACKED_BITS
         case 'M':
             if (!last_was_dset) {
-                error_msg("option `-%c' can only be used after --dataset option\n",
-                          opt);
-                leave(EXIT_FAILURE);
+                error_msg("option `-%c' can only be used after --dataset option\n", opt);
+                free_handler(hand, argc);
+                hand = NULL;
+                h5tools_setstatus(EXIT_FAILURE);
+                goto done;
             }
-            if (parse_mask_list(opt_arg) != SUCCEED){
-		usage(h5tools_getprogname());
-                leave(EXIT_FAILURE);
+            if (parse_mask_list(opt_arg) != SUCCEED) {
+                usage(h5tools_getprogname());
+                free_handler(hand, argc);
+                hand = NULL;
+                h5tools_setstatus(EXIT_FAILURE);
+                goto done;
             }
             display_packed_bits = TRUE;
             break;
@@ -4436,7 +4511,10 @@ parse_start:
             /* To Do: check format of this value?  */
         if (!useschema) {
                 usage(h5tools_getprogname());
-                leave(EXIT_FAILURE);
+                free_handler(hand, argc);
+                hand = NULL;
+                h5tools_setstatus(EXIT_FAILURE);
+                goto done;
         }
         if (strcmp(opt_arg,":") == 0) {
                 xmlnsprefix = "";
@@ -4454,10 +4532,12 @@ parse_start:
             struct subset_t *s;
 
             if (!last_was_dset) {
-                error_msg("option `-%c' can only be used after --dataset option\n",
-                          opt);
-                leave(EXIT_FAILURE);
-            }
+                error_msg("option `-%c' can only be used after --dataset option\n", opt);
+                free_handler(hand, argc);
+                hand = NULL;
+                h5tools_setstatus(EXIT_FAILURE);
+                goto done;
+           }
 
             if (last_dset->subset_info) {
                 /*
@@ -4481,12 +4561,33 @@ parse_start:
              * jump to the beginning of the switch statement (goto parse_start).
              */
             do {
-                switch ((char)opt) {
-                case 's': if(s->start.data) free(s->start.data); parse_hsize_list(opt_arg, &s->start); break;
-                case 'S': if(s->stride.data) free(s->stride.data); parse_hsize_list(opt_arg, &s->stride); break;
-                case 'c': if(s->count.data) free(s->count.data); parse_hsize_list(opt_arg, &s->count); break;
-                case 'k': if(s->block.data) free(s->block.data); parse_hsize_list(opt_arg, &s->block); break;
-                default: goto end_collect;
+                switch ((char) opt) {
+                case 's':
+                    if (s->start.data)
+                        free(s->start.data);
+                    s->start.data = NULL;
+                    parse_hsize_list(opt_arg, &s->start);
+                    break;
+                case 'S':
+                    if (s->stride.data)
+                        free(s->stride.data);
+                    s->stride.data = NULL;
+                    parse_hsize_list(opt_arg, &s->stride);
+                    break;
+                case 'c':
+                    if (s->count.data)
+                        free(s->count.data);
+                    s->count.data = NULL;
+                    parse_hsize_list(opt_arg, &s->count);
+                    break;
+                case 'k':
+                    if (s->block.data)
+                        free(s->block.data);
+                    s->block.data = NULL;
+                    parse_hsize_list(opt_arg, &s->block);
+                    break;
+                default:
+                    goto end_collect;
                 }
             } while ((opt = get_option(argc, argv, s_opts, l_opts)) != EOF);
 
@@ -4502,11 +4603,17 @@ end_collect:
 
         case 'h':
             usage(h5tools_getprogname());
-            leave(EXIT_SUCCESS);
+            free_handler(hand, argc);
+            hand = NULL;
+            h5tools_setstatus(EXIT_SUCCESS);
+            goto done;
         case '?':
         default:
             usage(h5tools_getprogname());
-            leave(EXIT_FAILURE);
+            free_handler(hand, argc);
+            hand = NULL;
+            h5tools_setstatus(EXIT_FAILURE);
+            goto done;
         }
     }
 
@@ -4515,46 +4622,12 @@ parse_end:
     if (argc <= opt_ind) {
         error_msg("missing file name\n");
         usage(h5tools_getprogname());
-        leave(EXIT_FAILURE);
+        free_handler(hand, argc);
+        hand = NULL;
+        h5tools_setstatus(EXIT_FAILURE);
     }
+done:
     return hand;
-}
-
-
-/*-------------------------------------------------------------------------
- * Function:    free_handler
- *
- * Purpose:     Convenience function to free the handler_t structures. Needs a
- *              length variable (LEN) to know how many in the array it needs
- *              to free
- *
- * Return:      Nothing
- *
- * Programmer:  Bill Wendling
- *              Tuesday, 20. February 2001
- *
- * Modifications:
- *
- *-------------------------------------------------------------------------
- */
-static void
-free_handler(struct handler_t *hand, int len)
-{
-    register int i;
-
-    for (i = 0; i < len; i++) {
-        free(hand[i].obj);
-
-        if (hand[i].subset_info) {
-            free(hand[i].subset_info->start.data);
-            free(hand[i].subset_info->stride.data);
-            free(hand[i].subset_info->count.data);
-            free(hand[i].subset_info->block.data);
-            free(hand[i].subset_info);
-        }
-    }
-
-    free(hand);
 }
 
 /*-------------------------------------------------------------------------
@@ -4599,7 +4672,8 @@ free_handler(struct handler_t *hand, int len)
 int
 main(int argc, const char *argv[])
 {
-    hid_t               fid, gid;
+    hid_t               fid = -1;
+    hid_t               gid = -1;
     char               *fname = NULL;
     void               *edata;
     H5E_auto2_t         func;
@@ -4619,11 +4693,15 @@ main(int argc, const char *argv[])
 
     /* Initialize h5tools lib */
     h5tools_init();
-    hand = parse_command_line(argc, argv);
+    if((hand = parse_command_line(argc, argv))==NULL) {
+        h5tools_setstatus(EXIT_FAILURE);
+        goto done;
+    }
 
     if (bin_output && outfname == NULL) {
         error_msg("binary output requires a file name, use -o <filename>\n");
-        leave(EXIT_FAILURE);
+        h5tools_setstatus(EXIT_FAILURE);
+        goto done;
     }
 
     /* Check for conflicting options */
@@ -4631,35 +4709,42 @@ main(int argc, const char *argv[])
         if (!display_all) {
             error_msg("option \"%s\" not available for XML\n",
                     "to display selected objects");
-            leave(EXIT_FAILURE);
-        } else if (display_bb) {
-            error_msg("option \"%s\" not available for XML\n",
-                    "--boot-block");
-            leave(EXIT_FAILURE);
-        } else if (display_oid == 1) {
-            error_msg("option \"%s\" not available for XML\n",
-                    "--object-ids");
-            leave(EXIT_FAILURE);
-        } else if (display_char == TRUE) {
-            error_msg("option \"%s\" not available for XML\n",
-                    "--string");
-            leave(EXIT_FAILURE);
-        } else if (usingdasho) {
-            error_msg("option \"%s\" not available for XML\n",
-                    "--output");
-            leave(EXIT_FAILURE);
+            h5tools_setstatus(EXIT_FAILURE);
+            goto done;
         }
-    } else {
+        else if (display_bb) {
+            error_msg("option \"%s\" not available for XML\n", "--boot-block");
+            h5tools_setstatus(EXIT_FAILURE);
+            goto done;
+        }
+        else if (display_oid == 1) {
+            error_msg("option \"%s\" not available for XML\n", "--object-ids");
+            h5tools_setstatus(EXIT_FAILURE);
+            goto done;
+        }
+        else if (display_char == TRUE) {
+            error_msg("option \"%s\" not available for XML\n", "--string");
+            h5tools_setstatus(EXIT_FAILURE);
+            goto done;
+        }
+        else if (usingdasho) {
+            error_msg("option \"%s\" not available for XML\n", "--output");
+            h5tools_setstatus(EXIT_FAILURE);
+            goto done;
+        }
+    }
+    else {
         if (xml_dtd_uri) {
-            warn_msg("option \"%s\" only applies with XML: %s\n",
-                     "--xml-dtd", xml_dtd_uri);
+            warn_msg("option \"%s\" only applies with XML: %s\n", "--xml-dtd",
+                    xml_dtd_uri);
         }
     }
 
     if (argc <= opt_ind) {
         error_msg("missing file name\n");
         usage(h5tools_getprogname());
-        leave(EXIT_FAILURE);
+        h5tools_setstatus(EXIT_FAILURE);
+        goto done;
     }
     fname = HDstrdup(argv[opt_ind]);
 
@@ -4667,7 +4752,8 @@ main(int argc, const char *argv[])
 
     if (fid < 0) {
         error_msg("unable to open file \"%s\"\n", fname);
-        leave(EXIT_FAILURE);
+        h5tools_setstatus(EXIT_FAILURE);
+        goto done;
     }
 
     /* allocate and initialize internal data structure */
@@ -4686,14 +4772,17 @@ main(int argc, const char *argv[])
         if (xml_dtd_uri == NULL) {
             if (useschema) {
                 xml_dtd_uri = DEFAULT_XSD;
-            } else {
+            } 
+            else {
                 xml_dtd_uri = DEFAULT_DTD;
                 xmlnsprefix = "";
             }
-        } else {
+        } 
+        else {
             if (useschema && strcmp(xmlnsprefix,"")) {
                 error_msg("Cannot set Schema URL for a qualified namespace--use -X or -U option with -D \n");
-                leave(EXIT_FAILURE);
+                h5tools_setstatus(EXIT_FAILURE);
+                goto done;
             }
         }
     }
@@ -4727,7 +4816,8 @@ main(int argc, const char *argv[])
     if (!doxml) {
         begin_obj(dump_header_format->filebegin, fname,
               dump_header_format->fileblockbegin);
-    } else {
+    } 
+    else {
         printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 
         /* alternative first element, depending on schema or DTD. */
@@ -4735,7 +4825,8 @@ main(int argc, const char *argv[])
             if (strcmp(xmlnsprefix,"") == 0) {
                 printf("<HDF5-File xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"%s\">\n",
                    xml_dtd_uri);
-            } else {
+            } 
+            else {
 /*  TO DO: make -url option work in this case (may need new option) */
                 char * ns;
                 char *indx;
@@ -4750,7 +4841,8 @@ main(int argc, const char *argv[])
                     "http://www.hdfgroup.org/DTDs/HDF5-File.xsd\">\n",xmlnsprefix,ns);
                 HDfree(ns);
             }
-        } else {
+        } 
+        else {
                 printf("<!DOCTYPE HDF5-File PUBLIC \"HDF5-File.dtd\" \"%s\">\n",
                        xml_dtd_uri);
                 printf("<HDF5-File>\n");
@@ -4768,45 +4860,40 @@ main(int argc, const char *argv[])
             dump_fcpl(fid);
     }
 
-    if(display_all)
-    {
-        if((gid = H5Gopen2(fid, "/", H5P_DEFAULT)) < 0)
-        {
+    if (display_all) {
+        if ((gid = H5Gopen2(fid, "/", H5P_DEFAULT)) < 0) {
             error_msg("unable to open root group\n");
             h5tools_setstatus(EXIT_FAILURE);
         }
-        else
-        {
+        else {
 
-            dump_function_table->dump_group_function(gid, "/" );
+            dump_function_table->dump_group_function(gid, "/");
 
         }
 
-        if(H5Gclose(gid) < 0)
-        {
+        if (H5Gclose(gid) < 0) {
             error_msg("unable to close root group\n");
             h5tools_setstatus(EXIT_FAILURE);
         }
 
-
     }
-    else
-    {
+    else {
         /* Note: this option is not supported for XML */
-        if(doxml) {
+        if (doxml) {
             error_msg("internal error (file %s:line %d)\n", __FILE__, __LINE__);
             h5tools_setstatus(EXIT_FAILURE);
             goto done;
         } /* end if */
 
-        for(i = 0; i < argc; i++)
-            if(hand[i].func)
+        for (i = 0; i < argc; i++)
+            if (hand[i].func)
                 hand[i].func(fid, hand[i].obj, hand[i].subset_info, 1, NULL);
     }
 
     if (!doxml) {
         end_obj(dump_header_format->fileend, dump_header_format->fileblockend);
-    } else {
+    } 
+    else {
         printf("</%sHDF5-File>\n", xmlnsprefix);
     }
 
@@ -4817,7 +4904,8 @@ done:
     if (H5Fclose(fid) < 0)
         h5tools_setstatus(EXIT_FAILURE);
 
-    free_handler(hand, argc);
+    if(hand)
+        free_handler(hand, argc);
 
     HDfree(prefix);
     HDfree(fname);
