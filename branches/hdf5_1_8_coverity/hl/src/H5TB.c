@@ -1798,11 +1798,17 @@ herr_t H5TBcombine_tables( hid_t loc_id1,
     src_sizes  = (size_t *)malloc((size_t)nfields * sizeof(size_t));
 
     if (src_offset == NULL )
+    {
+        free(src_sizes);
         return -1;
+    }
 
     /* get field info */
     if (H5TBget_field_info( loc_id1, dset_name1, NULL, src_sizes, src_offset, &src_size ) < 0)
+    {
+        free(src_sizes);
         return -1;
+    }
 
     /*-------------------------------------------------------------------------
     * get information about the first table
