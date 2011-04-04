@@ -72,7 +72,7 @@ static h5dump_table_list_t table_list = {0, 0, NULL};
 static table_t      *group_table = NULL, *dset_table = NULL, *type_table = NULL;
 static hbool_t      hit_elink = FALSE;  /* whether we have traversed an external link */
 static size_t       prefix_len = 1024;
-static char         *prefix;
+static char         *prefix = NULL;
 static const char   *driver = NULL;      /* The driver to open the file with. */
 static const h5dump_header_t *dump_header_format;
 static const char   *fp_format = NULL;
@@ -4206,7 +4206,10 @@ free_handler(struct handler_t *hand, int len)
     if(hand) {
         for (i = 0; i < len; i++) {
             if(hand[i].obj)
+            {
                 free(hand[i].obj);
+                hand[i].obj=NULL;
+            }
 
             if (hand[i].subset_info) {
                 if(hand[i].subset_info->start.data)
@@ -4219,6 +4222,7 @@ free_handler(struct handler_t *hand, int len)
                     free(hand[i].subset_info->block.data);
 
                 free(hand[i].subset_info);
+                hand[i].subset_info=NULL;
             }
         }
 
@@ -4249,20 +4253,19 @@ free_handler(struct handler_t *hand, int len)
 static struct handler_t *
 parse_command_line(int argc, const char *argv[])
 {
-    struct handler_t   *hand, *last_dset = NULL;
+    struct handler_t    *hand = NULL;
+    struct handler_t    *last_dset = NULL;
     int                 i, opt, last_was_dset = FALSE;
 
      /* no arguments */
     if (argc == 1) {
         usage(h5tools_getprogname());
-        h5tools_setstatus(EXIT_FAILURE);
-        goto done;
+        goto error;
     }
 
     /* this will be plenty big enough to hold the info */
     if((hand = (struct handler_t *)calloc((size_t)argc, sizeof(struct handler_t)))==NULL) {
-            h5tools_setstatus(EXIT_FAILURE);
-            goto done;
+            goto error;
     }
 
     /* parse command line options */
@@ -4388,19 +4391,13 @@ parse_start:
             if ( bin_output ) {
                 if (set_output_file(opt_arg, 1) < 0) {
                     usage(h5tools_getprogname());
-                    free_handler(hand, argc);
-                    hand = NULL;
-                    h5tools_setstatus(EXIT_FAILURE);
-                    goto done;
+                    goto error;
                 }
             }
             else {
                 if (set_output_file(opt_arg, 0) < 0) {
                     usage(h5tools_getprogname());
-                    free_handler(hand, argc);
-                    hand = NULL;
-                    h5tools_setstatus(EXIT_FAILURE);
-                    goto done;
+                    goto error;
                 }
             }
 
@@ -4414,10 +4411,7 @@ parse_start:
                 if ( ( bin_form = set_binary_form(opt_arg)) < 0) {
                     /* failed to set binary form */
                     usage(h5tools_getprogname());
-                    free_handler(hand, argc);
-                    hand = NULL;
-                    h5tools_setstatus(EXIT_FAILURE);
-                    goto done;
+                    goto error;
                 }
             }
             bin_output = TRUE;
@@ -4425,10 +4419,7 @@ parse_start:
                 if (set_output_file(outfname, 1) < 0)  {
                     /* failed to set output file */
                     usage(h5tools_getprogname());
-                    free_handler(hand, argc);
-                    hand = NULL;
-                    h5tools_setstatus(EXIT_FAILURE);
-                    goto done;
+                    goto error;
                 }
 
                 last_was_dset = FALSE;
@@ -4439,10 +4430,7 @@ parse_start:
             if ( ( sort_by = set_sort_by(opt_arg)) < 0) {
                 /* failed to set "sort by" form */
                 usage(h5tools_getprogname());
-                free_handler(hand, argc);
-                hand = NULL;
-                h5tools_setstatus(EXIT_FAILURE);
-                goto done;
+                goto error;
             }
             break;
 
@@ -4450,10 +4438,7 @@ parse_start:
             if ( ( sort_order = set_sort_order(opt_arg)) < 0) {
                 /* failed to set "sort order" form */
                 usage(h5tools_getprogname());
-                free_handler(hand, argc);
-                hand = NULL;
-                h5tools_setstatus(EXIT_FAILURE);
-                goto done;
+                goto error;
             }
             break;
 
@@ -4461,17 +4446,11 @@ parse_start:
         case 'M':
             if (!last_was_dset) {
                 error_msg("option `-%c' can only be used after --dataset option\n", opt);
-                free_handler(hand, argc);
-                hand = NULL;
-                h5tools_setstatus(EXIT_FAILURE);
-                goto done;
+                goto error;
             }
             if (parse_mask_list(opt_arg) != SUCCEED) {
                 usage(h5tools_getprogname());
-                free_handler(hand, argc);
-                hand = NULL;
-                h5tools_setstatus(EXIT_FAILURE);
-                goto done;
+                goto error;
             }
             display_packed_bits = TRUE;
             break;
@@ -4511,10 +4490,7 @@ parse_start:
             /* To Do: check format of this value?  */
         if (!useschema) {
                 usage(h5tools_getprogname());
-                free_handler(hand, argc);
-                hand = NULL;
-                h5tools_setstatus(EXIT_FAILURE);
-                goto done;
+                goto error;
         }
         if (strcmp(opt_arg,":") == 0) {
                 xmlnsprefix = "";
@@ -4533,10 +4509,7 @@ parse_start:
 
             if (!last_was_dset) {
                 error_msg("option `-%c' can only be used after --dataset option\n", opt);
-                free_handler(hand, argc);
-                hand = NULL;
-                h5tools_setstatus(EXIT_FAILURE);
-                goto done;
+                goto error;
            }
 
             if (last_dset->subset_info) {
@@ -4563,27 +4536,31 @@ parse_start:
             do {
                 switch ((char) opt) {
                 case 's':
-                    if (s->start.data)
+                    if (s->start.data) {
                         free(s->start.data);
-                    s->start.data = NULL;
+                        s->start.data = NULL;
+                    }
                     parse_hsize_list(opt_arg, &s->start);
                     break;
                 case 'S':
-                    if (s->stride.data)
+                    if (s->stride.data) {
                         free(s->stride.data);
-                    s->stride.data = NULL;
+                        s->stride.data = NULL;
+                    }
                     parse_hsize_list(opt_arg, &s->stride);
                     break;
                 case 'c':
-                    if (s->count.data)
+                    if (s->count.data) {
                         free(s->count.data);
-                    s->count.data = NULL;
+                        s->count.data = NULL;
+                    }
                     parse_hsize_list(opt_arg, &s->count);
                     break;
                 case 'k':
-                    if (s->block.data)
+                    if (s->block.data) {
                         free(s->block.data);
-                    s->block.data = NULL;
+                        s->block.data = NULL;
+                    }
                     parse_hsize_list(opt_arg, &s->block);
                     break;
                 default:
@@ -4610,10 +4587,7 @@ end_collect:
         case '?':
         default:
             usage(h5tools_getprogname());
-            free_handler(hand, argc);
-            hand = NULL;
-            h5tools_setstatus(EXIT_FAILURE);
-            goto done;
+            goto error;
         }
     }
 
@@ -4622,11 +4596,18 @@ parse_end:
     if (argc <= opt_ind) {
         error_msg("missing file name\n");
         usage(h5tools_getprogname());
-        free_handler(hand, argc);
-        hand = NULL;
-        h5tools_setstatus(EXIT_FAILURE);
+        goto error;
     }
 done:
+    return hand;
+
+error:
+    if (hand) {
+        free_handler(hand, argc);
+        hand = NULL;
+    }
+    h5tools_setstatus(EXIT_FAILURE);
+
     return hand;
 }
 
