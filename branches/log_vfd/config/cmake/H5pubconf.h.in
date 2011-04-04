@@ -194,9 +194,6 @@
 /* Define to 1 if you have the `gettimeofday' function. */
 #cmakedefine H5_HAVE_GETTIMEOFDAY @H5_HAVE_GETTIMEOFDAY@
 
-/* Define to 1 if you have a windows `gettimeofday' function. */
-#cmakedefine H5_USE_WIN32_GETTIMEOFDAY @H5_USE_WIN32_GETTIMEOFDAY@
-
 /* Define to 1 if you have the `gettimeofday' function declared in time.h . */
 #cmakedefine H5_HAVE_TIME_GETTIMEOFDAY @H5_HAVE_TIME_GETTIMEOFDAY@
 

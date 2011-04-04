@@ -71,7 +71,7 @@
 /* #undef H5_FP_TO_ULLONG_RIGHT_MAXIMUM 1 */
 
 /* Define if gettimeofday() populates the tz pointer passed in */
-/* #undef H5_GETTIMEOFDAY_GIVES_TZ */
+#define H5_GETTIMEOFDAY_GIVES_TZ 1
 
 /* Define to 1 if you have the `alarm' function. */
 /* #undef H5_HAVE_ALARM */
@@ -636,9 +636,6 @@
 /* Define if your system can accurately convert unsigned (long) long values to
    floating-point values. */
 /* #undef H5_ULONG_TO_FP_BOTTOM_BIT_ACCURATE */
-
-/* Define if you need to use the Win32 analog of gettimeofday() */
-#define H5_USE_WIN32_GETTIMEOFDAY 1
 
 /* Define using v1.6 public API symbols by default */
 /* #undef H5_USE_16_API_DEFAULT */

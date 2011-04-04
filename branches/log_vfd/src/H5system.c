@@ -604,9 +604,9 @@ HDremove_all(const char *fname)
  *
  *-------------------------------------------------------------------------
  */
-#if defined(H5_USE_WIN32_GETTIMEOFDAY)
+#ifdef _WIN32
 
-/* Offset between 1/1/1601 and 1/1/1970 in 100 nanosec units */
+/* Offset between 1/1/1601 and 1/1/1970 in 100 nanosecond units */
 #define _W32_FT_OFFSET (116444736000000000ULL)
 
 struct timezone {
@@ -618,7 +618,7 @@ int
 Wgettimeofday(struct timeval *tv, struct timezone *tz)
  {
     union {
-        unsigned long long ns100; /*time since 1 Jan 1601 in 100ns units */
+        unsigned long long ns100; /* time since 1 Jan 1601 in 100ns units */
         FILETIME ft;
     } _now;
 

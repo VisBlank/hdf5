@@ -44,7 +44,7 @@ typedef __int64             h5_stat_size_t;
 #define HDstat(S,B)         _stati64(S,B)
 #define HDgetcwd(S,Z)       _getcwd(S,Z)
 #define HDgetdcwd(D,S,Z)    _getdcwd(D,S,Z)
-#ifdef H5_USE_WIN32_GETTIMEOFDAY
+#ifdef H5_HAVE_GETTIMEOFDAY
     #ifdef __cplusplus
         extern "C" {
     #endif /* __cplusplus */
