@@ -50,9 +50,10 @@ const char *FILENAME[] = {
     "log_file",          /*6*/
     "stdio_file",        /*7*/
     "windows_file",      /*8*/
-    "log_vfd_out.log",   /*9*/ /* log file name from log VFD test */
     NULL
 };
+
+#define LOG_FILENAME "log_vfd_out.log"
 
 #define COMPAT_BASENAME "family_v16_"
 
@@ -204,6 +205,10 @@ test_direct(void)
 
     /* Retrieve the access property list... */
     if ((access_fapl = H5Fget_access_plist(file)) < 0)
+        TEST_ERROR;
+
+    /* Check that the driver is correct */
+    if(H5FD_DIRECT != H5Pget_driver(access_fapl))
         TEST_ERROR;
 
     /* ...and close the property list */
@@ -380,6 +385,10 @@ test_core(void)
 
     /* Retrieve the access property list... */
     if ((access_fapl = H5Fget_access_plist(file)) < 0)
+        TEST_ERROR;
+
+    /* Check that the driver is correct */
+    if(H5FD_CORE != H5Pget_driver(access_fapl))
         TEST_ERROR;
 
     /* ...and close the property list */
@@ -681,6 +690,10 @@ test_family(void)
 
     /* Retrieve the access property list... */
     if ((access_fapl = H5Fget_access_plist(file)) < 0)
+        TEST_ERROR;
+
+    /* Check that the driver is correct */
+    if(H5FD_FAMILY != H5Pget_driver(access_fapl))
         TEST_ERROR;
 
     /* ...and close the property list */
@@ -996,6 +1009,10 @@ test_multi(void)
     if ((access_fapl = H5Fget_access_plist(file)) < 0)
         TEST_ERROR;
 
+    /* Check that the driver is correct */
+    if(H5FD_MULTI != H5Pget_driver(access_fapl))
+        TEST_ERROR;
+
     /* ...and close the property list */
     if (H5Pclose(access_fapl) < 0)
         TEST_ERROR;
@@ -1134,7 +1151,7 @@ test_log(void)
 
     /* Set property list and file name for log driver. */
     fapl = h5_fileaccess();
-    if(H5Pset_fapl_log(fapl, FILENAME[9], 0, buf_size) < 0)
+    if(H5Pset_fapl_log(fapl, LOG_FILENAME, 0, buf_size) < 0)
         TEST_ERROR;
     h5_fixname(FILENAME[6], fapl, filename, sizeof filename);
 
