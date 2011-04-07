@@ -2436,9 +2436,9 @@
 ./windows/tools/toolslibdll/toolslibdll.vcproj
 
 # Updated Windows build code
-"./windows_der/HDF5 library README.txt"
+./windows_der/HDF5_library_README.txt
 ./windows_der/hdf5.sln
-"./windows_der/VS2010 README.txt"
+./windows_der/VS2010_README.txt
 
 # Updated Windows build code - external libraries
 ./windows_der/external/szip/szip_dynamic/szip_dynamic.vcproj
@@ -2446,7 +2446,7 @@
 ./windows_der/external/zlib/zlib_dynamic/zlib_dynamic.vcproj
 ./windows_der/external/zlib/zlib_dynamic/zlib.def
 ./windows_der/external/zlib/zlib_static/zlib_static.vcproj
-"./windows_der/external libraries README.txt"
+./windows_der/external_libraries_README.txt
 
 # Updated Windows build code - C libraries
 ./windows_der/libraries/c_dynamic/c_dynamic.vcproj
@@ -2525,5 +2525,5 @@
 ./windows_der/tools/h5unjam/h5unjam.vcproj
 ./windows_der/tools/h52gif/h52gif.vcproj
 ./windows_der/tools/ph5diff/ph5diff.vcproj
-"./windows_der/tools/ph5diff/NOT IMPLEMENTED YET.txt"
+./windows_der/tools/ph5diff/NOT_IMPLEMENTED_YET.txt
 

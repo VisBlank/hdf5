@@ -3,8 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libraries", "libraries", "{4077DF06-2489-4301-B502-91296BB15CE9}"
 	ProjectSection(SolutionItems) = preProject
-		HDF5 library README.txt = HDF5 library README.txt
-		VS2010 README.txt = VS2010 README.txt
+		HDF5_library_README.txt = HDF5_library_README.txt
+		VS2010_README.txt = VS2010_README.txt
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{99B68275-8E64-4E5F-8B87-3C93875D04AC}"
@@ -13,7 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{908F4687-A
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "external", "external", "{214F8F95-8028-4376-8C0F-FFEB2AB0F5E9}"
 	ProjectSection(SolutionItems) = preProject
-		external\external libraries README.txt = external\external libraries README.txt
+		external\external_libraries_README.txt = external\external_libraries_README.txt
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "install", "install", "{0168E8C4-4565-4E91-8E2B-110DCBE9F1B3}"
