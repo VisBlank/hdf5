@@ -2446,7 +2446,7 @@
 ./windows_der/external/zlib/zlib_dynamic/zlib_dynamic.vcproj
 ./windows_der/external/zlib/zlib_dynamic/zlib.def
 ./windows_der/external/zlib/zlib_static/zlib_static.vcproj
-./windows_der/external_libraries_README.txt
+./windows_der/external/external_libraries_README.txt
 
 # Updated Windows build code - C libraries
 ./windows_der/libraries/c_dynamic/c_dynamic.vcproj
