@@ -2444,8 +2444,9 @@
 ./windows_der/external/szip/szip_dynamic/szip_dynamic.vcproj
 ./windows_der/external/szip/szip_static/szip_static.vcproj
 ./windows_der/external/zlib/zlib_dynamic/zlib_dynamic.vcproj
+./windows_der/external/zlib/zlib_dynamic/zlib.def
 ./windows_der/external/zlib/zlib_static/zlib_static.vcproj
-./windows_der/external libraries README.txt
+"./windows_der/external libraries README.txt"
 
 # Updated Windows build code - C libraries
 ./windows_der/libraries/c_dynamic/c_dynamic.vcproj
@@ -2457,6 +2458,7 @@
 # Updated Windows build code - tests
 ./windows_der/test/app_ref/app_ref.vcproj
 ./windows_der/test/big/big.vcproj
+./windows_der/test/big/SKIPPED.txt
 ./windows_der/test/bittests/bittests.vcproj
 ./windows_der/test/btree2/btree2.vcproj
 ./windows_der/test/cache/cache.vcproj
@@ -2496,6 +2498,7 @@
 ./windows_der/test/ntypes/ntypes.vcproj
 ./windows_der/test/objcopy/objcopy.vcproj
 ./windows_der/test/ohdr/ohdr.vcproj
+./windows_der/test/ohdr/issues.txt
 ./windows_der/test/overhead/overhead.vcproj
 ./windows_der/test/pool/pool.vcproj
 ./windows_der/test/reserved/reserved.vcproj
@@ -2508,13 +2511,13 @@
 ./windows_der/tools/gif2h5/gif2h5.vcproj
 ./windows_der/tools/h5copy/h5copy.vcproj
 ./windows_der/tools/h5debug/h5debug.vcproj
-./windows_der/tools/h5detect/h5detect.vcproj
+./windows_der/tools/H5detect/H5detect.vcproj
 ./windows_der/tools/h5diff/h5diff.vcproj
 ./windows_der/tools/h5dump/h5dump.vcproj
 ./windows_der/tools/h5import/h5import.vcproj
 ./windows_der/tools/h5jam/h5jam.vcproj
 ./windows_der/tools/h5ls/h5ls.vcproj
-./windows_der/tools/H5make_settings/H5make_settings.vcproj
+./windows_der/tools/H5make_libsettings/H5make_libsettings.vcproj
 ./windows_der/tools/h5mkgrp/h5mkgrp.vcproj
 ./windows_der/tools/h5repack/h5repack.vcproj
 ./windows_der/tools/h5repart/h5repart.vcproj
@@ -2522,4 +2525,5 @@
 ./windows_der/tools/h5unjam/h5unjam.vcproj
 ./windows_der/tools/h52gif/h52gif.vcproj
 ./windows_der/tools/ph5diff/ph5diff.vcproj
+"./windows_der/tools/ph5diff/NOT IMPLEMENTED YET.txt"
 
