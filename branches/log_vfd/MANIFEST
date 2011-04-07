@@ -2435,3 +2435,91 @@
 ./windows/tools/toolslib/toolslib.vcproj
 ./windows/tools/toolslibdll/toolslibdll.vcproj
 
+# Updated Windows build code
+./windows_der/HDF5 library README.txt
+./windows_der/hdf5.sln
+./windows_der/VS2010 README.txt
+
+# Updated Windows build code - external libraries
+./windows_der/external/szip/szip_dynamic/szip_dynamic.vcproj
+./windows_der/external/szip/szip_static/szip_static.vcproj
+./windows_der/external/zlib/zlib_dynamic/zlib_dynamic.vcproj
+./windows_der/external/zlib/zlib_static/zlib_static.vcproj
+./windows_der/external libraries README.txt
+
+# Updated Windows build code - C libraries
+./windows_der/external/libraries/c_dynamic/c_dynamic.vcproj
+./windows_der/external/libraries/c_hl_static/c_hl_static.vcproj
+./windows_der/external/libraries/c_static/c_static.vcproj
+./windows_der/external/libraries/c_test_static/c_test_static.vcproj
+./windows_der/external/libraries/c_tools_static/c_tools_static.vcproj
+
+# Updated Windows build code - tests
+./windows_der/external/test/app_ref/app_ref.vcproj
+./windows_der/external/test/big/big.vcproj
+./windows_der/external/test/bittests/bittests.vcproj
+./windows_der/external/test/btree2/btree2.vcproj
+./windows_der/external/test/cache/cache.vcproj
+./windows_der/external/test/cache_api/cache_api.vcproj
+./windows_der/external/test/chunk/chunk.vcproj
+./windows_der/external/test/chunk_info/chunk_info.vcproj
+./windows_der/external/test/cmpd_dset/cmpd_dset.vcproj
+./windows_der/external/test/cross_read/cross_read.vcproj
+./windows_der/external/test/dangle/dangle.vcproj
+./windows_der/external/test/dsets/dsets.vcproj
+./windows_der/external/test/dt_arith/dt_arith.vcproj
+./windows_der/external/test/dtransform/dtransform.vcproj
+./windows_der/external/test/dtypes/dtypes.vcproj
+./windows_der/external/test/earray/earray.vcproj
+./windows_der/external/test/efc/efc.vcproj
+./windows_der/external/test/enum/enum.vcproj
+./windows_der/external/test/err_compat/err_compat.vcproj
+./windows_der/external/test/error_test/error_test.vcproj
+./windows_der/external/test/extend/extend.vcproj
+./windows_der/external/test/external/external.vcproj
+./windows_der/external/test/farray/farray.vcproj
+./windows_der/external/test/fheap/fheap.vcproj
+./windows_der/external/test/fillval/fillval.vcproj
+./windows_der/external/test/flush1/flush1.vcproj
+./windows_der/external/test/flush2/flush2.vcproj
+./windows_der/external/test/freespace/freespace.vcproj
+./windows_der/external/test/getname/getname.vcproj
+./windows_der/external/test/gheap/gheap.vcproj
+./windows_der/external/test/hyperslab/hyperslab.vcproj
+./windows_der/external/test/iopipe/iopipe.vcproj
+./windows_der/external/test/istore/istore.vcproj
+./windows_der/external/test/lheap/lheap.vcproj
+./windows_der/external/test/links/links.vcproj
+./windows_der/external/test/mf/mf.vcproj
+./windows_der/external/test/mount/mount.vcproj
+./windows_der/external/test/mtime/mtime.vcproj
+./windows_der/external/test/ntypes/ntypes.vcproj
+./windows_der/external/test/objcopy/objcopy.vcproj
+./windows_der/external/test/ohdr/ohdr.vcproj
+./windows_der/external/test/overhead/overhead.vcproj
+./windows_der/external/test/pool/pool.vcproj
+./windows_der/external/test/reserved/reserved.vcproj
+./windows_der/external/test/set_extent/set_extent.vcproj
+./windows_der/external/test/stab/stab.vcproj
+./windows_der/external/test/unlink/unlink.vcproj
+./windows_der/external/test/vfd/vfd.vcproj
+
+# Updated Windows build code - tools
+./windows_der/external/tools/gif2h5/gif2h5.vcproj
+./windows_der/external/tools/h5copy/h5copy.vcproj
+./windows_der/external/tools/h5debug/h5debug.vcproj
+./windows_der/external/tools/h5detect/h5detect.vcproj
+./windows_der/external/tools/h5diff/h5diff.vcproj
+./windows_der/external/tools/h5dump/h5dump.vcproj
+./windows_der/external/tools/h5import/h5import.vcproj
+./windows_der/external/tools/h5jam/h5jam.vcproj
+./windows_der/external/tools/h5ls/h5ls.vcproj
+./windows_der/external/tools/H5make_settings/H5make_settings.vcproj
+./windows_der/external/tools/h5mkgrp/h5mkgrp.vcproj
+./windows_der/external/tools/h5repack/h5repack.vcproj
+./windows_der/external/tools/h5repart/h5repart.vcproj
+./windows_der/external/tools/h5stat/h5stat.vcproj
+./windows_der/external/tools/h5unjam/h5unjam.vcproj
+./windows_der/external/tools/h52gif/h52gif.vcproj
+./windows_der/external/tools/ph5diff/ph5diff.vcproj
+
