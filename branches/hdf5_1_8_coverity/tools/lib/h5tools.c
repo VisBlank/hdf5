@@ -3140,7 +3140,12 @@ h5tools_print_datatype(h5tools_str_t *buffer, const h5tool_format_t *info,
     case H5T_OPAQUE:
         h5tools_str_append(buffer, "\n");
         h5tools_str_append(buffer, "H5T_OPAQUE;\n");
-        h5tools_str_append(buffer, "OPAQUE_TAG \"%s\";\n", H5Tget_tag(type));
+        {
+           char *ttag = H5Tget_tag(type);
+           h5tools_str_append(buffer, "OPAQUE_TAG \"%s\";\n", ttag);
+           if (ttag)
+              H5MM_xfree(ttag);
+        } 
         break;
 
     case H5T_COMPOUND:
