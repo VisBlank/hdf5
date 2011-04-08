@@ -977,7 +977,7 @@ fix_order(int n, int first, int last, int *perm, const char **mesg)
 {
     int		i;
 
-    if (first + 1 < last) {
+    if (first + 1 < last && last > 1) {
 	/*
 	 * We have at least three points to consider.
 	 */
