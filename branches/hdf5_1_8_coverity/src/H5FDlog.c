@@ -504,8 +504,8 @@ H5FD_log_open(const char *name, unsigned flags, hid_t fapl_id, haddr_t maxaddr)
     /* Get the driver specific information */
     if(NULL == (plist = H5P_object_verify(fapl_id, H5P_FILE_ACCESS)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not a file access property list")
-    fa = (H5FD_log_fapl_t *)H5P_get_driver_info(plist);
-    HDassert(fa);
+    if(NULL == (fa = (H5FD_log_fapl_t *)H5P_get_driver_info(plist)))
+        HGOTO_ERROR(H5E_PLIST, H5E_BADVALUE, NULL, "bad VFL driver info")
 
 #ifdef H5_HAVE_GETTIMEOFDAY
     if(fa->flags & H5FD_LOG_TIME_OPEN)

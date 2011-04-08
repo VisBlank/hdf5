@@ -959,10 +959,9 @@ H5FD_mpio_open(const char *name, unsigned flags, hid_t fapl_id,
 	_fa.comm = MPI_COMM_SELF; /*default*/
 	_fa.info = MPI_INFO_NULL; /*default*/
 	fa = &_fa;
-    } else {
-	fa = (const H5FD_mpio_fapl_t *)H5P_get_driver_info(plist);
-	assert(fa);
-    }
+    } else
+	if(NULL == (fa = (const H5FD_mpio_fapl_t *)H5P_get_driver_info(plist)))
+            HGOTO_ERROR(H5E_PLIST, H5E_BADVALUE, NULL, "bad VFL driver info")
 
     /* Duplicate communicator and Info object for use by this file. */
     if (FAIL==H5FD_mpi_comm_info_dup(fa->comm, fa->info, &comm_dup, &info_dup))

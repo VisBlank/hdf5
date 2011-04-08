@@ -648,10 +648,9 @@ H5FD_mpiposix_open(const char *name, unsigned flags, hid_t fapl_id,
         _fa.use_gpfs = FALSE;
 	fa = &_fa;
     } /* end if */
-    else {
-	fa = H5P_get_driver_info(plist);
-	assert(fa);
-    } /* end else */
+    else
+	if(NULL == (fa = H5P_get_driver_info(plist)))
+            HGOTO_ERROR(H5E_PLIST, H5E_BADVALUE, NULL, "bad VFL driver info")
 
     /* Duplicate the communicator for use by this file. */
     if (MPI_SUCCESS != (mpi_code=MPI_Comm_dup(fa->comm, &comm_dup)))
