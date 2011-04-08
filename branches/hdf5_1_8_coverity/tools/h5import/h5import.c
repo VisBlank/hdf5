@@ -2480,7 +2480,7 @@ process(struct Options *opt)
   struct  Input *in;
   hid_t   file_id, group_id, handle;
   hid_t   dataset, dataspace = (-1);
-  FILE *strm, *extfile;
+  FILE *strm=NULL, *extfile;
   hid_t intype, outtype;
   hid_t proplist;
   hsize_t numOfElements = 1;
@@ -2505,21 +2505,31 @@ process(struct Options *opt)
 
   for (k = 0; k < opt->fcount; k++)
   {
+    int pro_status = -1;
     in = &(opt->infiles[k].in);
     if (opt->infiles[k].config == 1)
     {
-    	if (processConfigurationFile(opt->infiles[k].configfile, in, &strm) == -1)
+
+        pro_status = processConfigurationFile(opt->infiles[k].configfile, in, &strm);
+        if (strm)
+           HDfclose(strm);
+        
+    	if (pro_status == -1)
         {
           (void) fprintf(stderr, err2, opt->infiles[k].configfile);
           return (-1);
         }
-    }
+     }
 
-    if (processDataFile(opt->infiles[k].datafile, in, &strm, file_id ) == -1)
-    {
-      (void) fprintf(stderr, err3, opt->infiles[k].datafile);
-      return (-1);
-    }
+     pro_status = processDataFile(opt->infiles[k].datafile, in, &strm, file_id );
+     if (strm)
+        HDfclose(strm);
+        
+     if (pro_status == -1)
+     {
+       (void) fprintf(stderr, err3, opt->infiles[k].datafile);
+       return (-1);
+     }
 
     if (in->inputClass != 5) /* STR */
     {
