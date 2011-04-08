@@ -314,7 +314,7 @@
 /* #undef H5_HAVE_STRUCT_TEXT_INFO */
 
 /* Define if `struct timezone' is defined */
-/* #undef H5_HAVE_STRUCT_TIMEZONE */
+#define H5_HAVE_STRUCT_TIMEZONE 1
 
 /* Define to 1 if `tm_zone' is member of `struct tm'. */
 /* #undef H5_HAVE_STRUCT_TM_TM_ZONE */
