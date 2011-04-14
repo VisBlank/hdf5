@@ -609,11 +609,6 @@ HDremove_all(const char *fname)
 /* Offset between 1/1/1601 and 1/1/1970 in 100 nanosecond units */
 #define _W32_FT_OFFSET (116444736000000000ULL)
 
-struct timezone {
-    int tz_minuteswest;
-    int tz_dsttime;
-};
-
 int
 Wgettimeofday(struct timeval *tv, struct timezone *tz)
  {
