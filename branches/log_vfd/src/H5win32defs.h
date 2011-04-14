@@ -28,6 +28,21 @@
 typedef struct _stati64     h5_stat_t;
 typedef __int64             h5_stat_size_t;
 
+struct timezone {
+    int tz_minuteswest;
+    int tz_dsttime;
+};
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+H5_DLL int Wgettimeofday(struct timeval *tv, struct timezone *tz);
+
+#ifdef __cplusplus
+}
+#endif
+
 #define HDaccess(F,M)       _access(F,M)
 #define HDclose(F)          _close(F)
 #define HDdup(F)            _dup(F)
@@ -44,22 +59,7 @@ typedef __int64             h5_stat_size_t;
 #define HDstat(S,B)         _stati64(S,B)
 #define HDgetcwd(S,Z)       _getcwd(S,Z)
 #define HDgetdcwd(D,S,Z)    _getdcwd(D,S,Z)
-
-struct timezone {
-    int tz_minuteswest;
-    int tz_dsttime;
-};
-
-#ifdef __cplusplus
-    extern "C" {
-#endif /* __cplusplus */
-H5_DLL int Wgettimeofday(struct timeval *tv, struct timezone *tz);
-#ifdef __cplusplus
-    }
-#endif /* __cplusplus */
 #define HDgettimeofday(V,Z) Wgettimeofday(V,Z)
-
-
 #define HDgetdrive()        _getdrive()
 #define HDlseek(F,O,W)      _lseeki64(F,O,W)
 #define HDoff_t             __int64
@@ -72,7 +72,7 @@ H5_DLL int Wgettimeofday(struct timeval *tv, struct timezone *tz);
 #define HDstrcasecmp(A,B)   _stricmp(A,B)
 #define HDstrtoull(S,R,N)   _strtoui64(S,R,N)
 #define HDstrdup(S)         _strdup(S)
-#define HDsnprintf          _snprintf /*varargs*/
+#define HDsnprintf          _snprintf /* varargs */
 #define HDtzset()           _tzset()
 #define HDunlink(S)         _unlink(S)
 #define HDvsnprintf(S,N,FMT,A) _vsnprintf(S,N,FMT,A)
