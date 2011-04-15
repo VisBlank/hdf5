@@ -206,7 +206,7 @@ my_strdup(const char *s)
         return NULL;
     if(NULL == (x = (char *)malloc(strlen(s) + 1)))
         return NULL;
-    strcpy(x, s);
+    strncpy(x, s, strlen(s) + 1);
 
     return x;
 }
@@ -296,6 +296,7 @@ H5Pset_fapl_split(hid_t fapl, const char *meta_ext, hid_t meta_plist_id,
     H5FD_mem_t		memb_map[H5FD_MEM_NTYPES];
     hid_t		memb_fapl[H5FD_MEM_NTYPES];
     const char		*memb_name[H5FD_MEM_NTYPES];
+    const size_t	max_name_len = 1023;
     char		meta_name[1024], raw_name[1024];
     haddr_t		memb_addr[H5FD_MEM_NTYPES];
 
@@ -319,24 +320,30 @@ H5Pset_fapl_split(hid_t fapl, const char *meta_ext, hid_t meta_plist_id,
     /* The names */
     /* process meta filename */
     if (meta_ext){
-	if (strstr(meta_ext, "%s"))
-	    strcpy(meta_name, meta_ext);
-	else
-	    sprintf(meta_name, "%%s%s", meta_ext);
+	if (strstr(meta_ext, "%s")) {
+	    strncpy(meta_name, meta_ext, max_name_len);
+            meta_name[max_name_len] = '\0';
+	}else
+	    snprintf(meta_name, max_name_len, "%%s%s", meta_ext);
     }
-    else
-	strcpy(meta_name, "%s.meta");
+    else{
+	strncpy(meta_name, "%s.meta", max_name_len);
+        meta_name[max_name_len] = '\0';
+    }
     memb_name[H5FD_MEM_SUPER] = meta_name;
 
     /* process raw filename */
     if (raw_ext){
-	if (strstr(raw_ext, "%s"))
-	    strcpy(raw_name, raw_ext);
-	else
-	    sprintf(raw_name, "%%s%s", raw_ext);
+	if (strstr(raw_ext, "%s")){
+	    strncpy(raw_name, raw_ext, max_name_len);
+            raw_name[max_name_len] = '\0';
+	}else
+	    snprintf(raw_name, max_name_len, "%%s%s", raw_ext);
     }
-    else
-	strcpy(raw_name, "%s.raw");
+    else{
+	strncpy(raw_name, "%s.raw", max_name_len);
+        raw_name[max_name_len] = '\0';
+    }
     memb_name[H5FD_MEM_DRAW] = raw_name;
 
     /* The sizes */
@@ -465,7 +472,7 @@ H5Pset_fapl_multi(hid_t fapl_id, const H5FD_mem_t *memb_map,
     if (!memb_name) {
 	assert(strlen(letters)==H5FD_MEM_NTYPES);
 	for (mt=H5FD_MEM_DEFAULT; mt<H5FD_MEM_NTYPES; mt=(H5FD_mem_t)(mt+1)) {
-	    sprintf(_memb_name[mt], "%%s-%c.h5", letters[mt]);
+	    snprintf(_memb_name[mt], (size_t)16,  "%%s-%c.h5", letters[mt]);
 	    _memb_name_ptrs[mt] = _memb_name[mt];
 	}
 	memb_name = _memb_name_ptrs;
@@ -571,7 +578,8 @@ H5Pget_fapl_multi(hid_t fapl_id, H5FD_mem_t *memb_map/*out*/,
 	for (mt=H5FD_MEM_DEFAULT; mt<H5FD_MEM_NTYPES; mt=(H5FD_mem_t)(mt+1)) {
 	    if (fa->memb_name[mt]) {
 		memb_name[mt] = (char *)malloc(strlen(fa->memb_name[mt])+1);
-		strcpy(memb_name[mt], fa->memb_name[mt]);
+		strncpy(memb_name[mt], fa->memb_name[mt],
+                        strlen(fa->memb_name[mt])+1);
 	    } else
 		memb_name[mt] = NULL;
 	}
@@ -810,7 +818,7 @@ H5FD_multi_sb_encode(H5FD_t *_file, char *name/*out*/,
     p = buf + 8 + nseen*2*8;
     UNIQUE_MEMBERS(file->fa.memb_map, mt) {
         size_t n = strlen(file->fa.memb_name[mt]) + 1;
-        strcpy((char *)p, file->fa.memb_name[mt]);
+        strncpy((char *)p, file->fa.memb_name[mt], n);
         p += n;
         for (i=n; i%8; i++) *p++ = '\0';
     } END_MEMBERS;
@@ -1044,7 +1052,8 @@ H5FD_multi_fapl_copy(const void *_old_fa)
 	if (old_fa->memb_name[mt]) {
 	    new_fa->memb_name[mt] = (char *)malloc(strlen(old_fa->memb_name[mt])+1);
 	    assert(new_fa->memb_name[mt]);
-	    strcpy(new_fa->memb_name[mt], old_fa->memb_name[mt]);
+	    strncpy(new_fa->memb_name[mt], old_fa->memb_name[mt],
+                    strlen(old_fa->memb_name[mt])+1);
 	}
     } END_MEMBERS;
 
@@ -2073,6 +2082,7 @@ static int
 open_members(H5FD_multi_t *file)
 {
     char	tmp[1024];
+    const size_t tmp_str_len = 1024;
     int		nerrors=0;
     static const char *func="(H5FD_multi)open_members";  /* Function Name for error reporting */
 
@@ -2082,7 +2092,7 @@ open_members(H5FD_multi_t *file)
     UNIQUE_MEMBERS(file->fa.memb_map, mt) {
 	if (file->memb[mt]) continue; /*already open*/
 	assert(file->fa.memb_name[mt]);
-	sprintf(tmp, file->fa.memb_name[mt], file->name);
+	snprintf(tmp, tmp_str_len, file->fa.memb_name[mt], file->name);
 
 #ifdef H5FD_MULTI_DEBUG
 	if (file->flags & H5F_ACC_DEBUG) {
