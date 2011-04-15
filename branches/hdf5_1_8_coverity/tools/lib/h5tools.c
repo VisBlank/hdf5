@@ -313,7 +313,7 @@ h5tools_init(void)
 
     if (!h5tools_init_g) {
         /* register the error class */
-        sprintf(lib_str, "%d.%d.%d",H5_VERS_MAJOR, H5_VERS_MINOR, H5_VERS_RELEASE);
+        HDsnprintf(lib_str, sizeof(lib_str), "%d.%d.%d",H5_VERS_MAJOR, H5_VERS_MINOR, H5_VERS_RELEASE);
 
         H5TOOLS_INIT_ERROR()
 

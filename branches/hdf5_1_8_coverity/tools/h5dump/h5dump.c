@@ -6565,7 +6565,7 @@ xml_print_strs(hid_t did, int source)
     size_t tsiz;
     size_t str_size = 0;
     size_t i;
-    htri_t is_vlstr;
+    htri_t is_vlstr=FALSE;
 
     if (source == DATASET_DATA) {
         type = H5Dget_type(did);

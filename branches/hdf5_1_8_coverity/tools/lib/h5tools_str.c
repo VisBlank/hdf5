@@ -268,12 +268,14 @@ h5tools_str_fmt(h5tools_str_t *str/*in,out*/, size_t start, const char *fmt)
      * don't bother because we don't need a temporary copy.
      */
     if (strchr(fmt, '%')) {
-        if (str->len - start + 1 > sizeof(_temp)) {
-            temp = malloc(str->len - start + 1);
+        size_t n = sizeof(_temp);
+        if (str->len - start + 1 > n) {
+            n = str->len - start + 1; 
+            temp = malloc(n);
             assert(temp);
         }
 
-        strcpy(temp, str->s + start);
+        HDstrncpy(temp, str->s + start, n);
     }
 
     /* Reset the output string and append a formatted version */
@@ -639,7 +641,6 @@ h5tools_str_sprint(h5tools_str_t *str, const h5tool_format_t *info, hid_t contai
     unsigned char *ucp_vp = (unsigned char *)vp;
     char          *cp_vp = (char *)vp;
     hid_t          memb, obj;
-    unsigned       nmembs;
     static char    fmt_llong[8], fmt_ullong[8];
     H5T_str_t      pad;
 
@@ -905,7 +906,7 @@ h5tools_str_sprint(h5tools_str_t *str, const h5tool_format_t *info, hid_t contai
         }
     }
     else if (H5Tget_class(type) == H5T_COMPOUND) {
-        unsigned j;
+        int j, nmembs=0;
 
         nmembs = H5Tget_nmembers(type);
         h5tools_str_append(str, "%s", OPT(info->cmpd_pre, "{"));
