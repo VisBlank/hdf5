@@ -171,7 +171,7 @@ done:
 int
 main(int argc, const char *argv[])
 {
-    int   ifid;
+    int   ifid = -1;
     int   ufid = -1;
     int   h5fid;
     void               *edata;
@@ -318,7 +318,8 @@ done:
     }
     
     HDclose(h5fid);
-    HDclose(ifid);
+    if (ifid != -1)
+        HDclose(ifid);
 
     return h5tools_getstatus();
 }
