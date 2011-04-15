@@ -173,7 +173,7 @@ main(int argc, const char *argv[])
 {
     int   ifid = -1;
     int   ufid = -1;
-    int   h5fid;
+    int   h5fid = -1;
     void               *edata;
     H5E_auto2_t          func;
     hid_t               ifile;
@@ -317,7 +317,8 @@ done:
             HDclose(ufid);
     }
     
-    HDclose(h5fid);
+    if (h5fid != -1)
+        HDclose(h5fid);
     if (ifid != -1)
         HDclose(ifid);
 
