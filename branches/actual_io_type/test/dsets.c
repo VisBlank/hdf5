@@ -8073,16 +8073,16 @@ error:
 int test_actual_io_mode() {
     herr_t status = -1;
     hid_t dxpl = -1;
-    //char* names[] = {};
-    H5D_xfer_mpio_actual_io_mode_t actual_io_mode = 0;
+    char* names;
+    H5D_xfer_mpio_actual_io_mode_t actual_io_mode = -1;
 
     TESTING("actual I/O mode");
 
-    if ( (dxpl = H5Pcreate(H5P_DATASET_XFER)) < 0 ) FAIL_PUTS_ERROR("DXPL creation failed.");
+    if ( (dxpl = H5Pcreate(H5P_DATASET_XFER)) < 0 ) FAIL_STACK_ERROR
     
-    if ( (status = H5Pget_mpio_actual_io_mode(dxpl, &actual_io_mode)) < 0 ) FAIL_PUTS_ERROR("Reading DXPL Failed.");
+    if ( (status = H5Pget_mpio_actual_io_mode(dxpl, &actual_io_mode)) < 0 ) FAIL_STACK_ERROR
     
-    printf("%s: %u\n","Actual I/O Mode: ",actual_io_mode);
+    if (actual_io_mode != 0) FAIL_PUTS_ERROR( "Actual I/O Mode has non-default value.");
 
     PASSED();
     return status;

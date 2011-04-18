@@ -206,10 +206,9 @@ H5P_dxfr_reg_prop(H5P_genclass_t *pclass)
     H5FD_mpio_collective_opt_t def_mpio_collective_opt_mode = H5D_XFER_MPIO_COLLECTIVE_OPT_DEF;
     unsigned def_mpio_chunk_opt_num = H5D_XFER_MPIO_CHUNK_OPT_NUM_DEF;
     unsigned def_mpio_chunk_opt_ratio = H5D_XFER_MPIO_CHUNK_OPT_RATIO_DEF;
+    H5D_xfer_mpio_actual_io_mode_t def_mpio_actual_io_mode = H5D_MPIO_INDEPENDENT;
 #endif /* H5_HAVE_PARALLEL */
     
-    H5D_xfer_mpio_actual_io_mode_t def_mpio_actual_io_mode = H5D_MPIO_INDEPENDENT;
-
     H5Z_EDC_t enable_edc = H5D_XFER_EDC_DEF;            /* Default value for EDC property */
     H5Z_cb_t filter_cb = H5D_XFER_FILTER_CB_DEF;        /* Default value for filter callback */
     H5T_conv_cb_t conv_cb = H5D_XFER_CONV_CB_DEF;       /* Default value for datatype conversion callback */
@@ -282,11 +281,10 @@ H5P_dxfr_reg_prop(H5P_genclass_t *pclass)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class")
     if(H5P_register_real(pclass, H5D_XFER_MPIO_CHUNK_OPT_RATIO_NAME, H5D_XFER_MPIO_CHUNK_OPT_RATIO_SIZE, &def_mpio_chunk_opt_ratio, NULL, NULL, NULL, NULL, NULL, NULL, NULL) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class")
-#endif /* H5_HAVE_PARALLEL */
-
     /* Register the actual io mode property. */
     if(H5P_register_real(pclass, H5D_XFER_MPIO_ACTUAL_IO_MODE_NAME, H5D_XFER_MPIO_ACTUAL_IO_MODE_SIZE, &def_mpio_actual_io_mode, NULL, NULL, NULL, NULL, NULL, NULL, NULL) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class")
+#endif /* H5_HAVE_PARALLEL */
 
     /* Register the EDC property */
     if(H5P_register_real(pclass, H5D_XFER_EDC_NAME, H5D_XFER_EDC_SIZE, &enable_edc, NULL, NULL, NULL, NULL, NULL, NULL, NULL) < 0)
@@ -1409,44 +1407,7 @@ done:
     FUNC_LEAVE_API(ret_value)
 } /* end H5Pget_hyper_vector_size() */
 
-
-/*-------------------------------------------------------------------------
- * Function:	H5Pset_mpio_actual_io_mode
- *
- * Purpose:	Sets for the actual (instead of requested) I/O mode of MPIO.
- *
- * Return:	Non-negative on success/Negative on failure
- *
- * Programmer:	Jacob Gruber
- *              Wednesday, February 16, 2010
- *
- * Modifications:
- *
- *-------------------------------------------------------------------------
- */
-
-herr_t
-H5Pset_mpio_actual_io_mode(hid_t plist_id, H5D_xfer_mpio_actual_io_mode_t actual_io_mode)
-{
-    H5P_genplist_t     *plist;
-    herr_t ret_value=SUCCEED;   /* return value */
-    
-    FUNC_ENTER_API(H5Pset_mpio_actual_io_mode, FAIL)
-    H5TRACE2("e","ix", plist_id, actual_io_mode);
-
-    /* Get the plist structure */
-    if(NULL == (plist = H5P_object_verify(plist_id,H5P_DATASET_XFER)))
-        HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "can't find object for ID")
-
-    /* Return values */
-    if (actual_io_mode)
-        if (H5P_set(plist,H5D_XFER_MPIO_ACTUAL_IO_MODE_NAME,&actual_io_mode)<0)
-            HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set value")
-
-done:
-    FUNC_LEAVE_API(ret_value)
-} /* end H5Pget_mpio_actual_io_mode() */
-
+#ifdef H5_HAVE_PARALLEL
 
 /*-------------------------------------------------------------------------
  * Function:	H5Pget_mpio_actual_io_mode
@@ -1484,4 +1445,5 @@ H5Pget_mpio_actual_io_mode(hid_t plist_id, H5D_xfer_mpio_actual_io_mode_t *actua
 done:
     FUNC_LEAVE_API(ret_value)
 } /* end H5Pget_mpio_actual_io_mode() */
+#endif /* H5_HAVE_PARALLEL */
 

@@ -160,6 +160,22 @@ enum H5TEST_COLL_CHUNK_API {API_NONE=0,API_LINK_HARD,
 #define NPOINTS          4          /* Number of points that will be selected
                                                                 and overwritten */
 
+/* Definitions of the selection mode for the test_actual_io_function. */
+enum TEST_ACTUAL_IO_SELECTION_MODE{
+    TEST_ACTUAL_IO_MULTI_CHUNK_IND = 0,
+    TEST_ACTUAL_IO_MULTI_CHUNK_COL = 1,
+    TEST_ACTUAL_IO_MULTI_CHUNK_MIX = 2,
+    TEST_ACTUAL_IO_MULTI_CHUNK_MIX_DISAGREE = 3,
+
+    TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_IND = 4,
+    TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_COL = 5,
+    TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_MIX_DISAGREE = 7, 
+
+    TEST_ACTUAL_IO_LINK_CHUNK = 8,
+    TEST_ACTUAL_IO_CONTIGUOUS = 9
+};
+
+
 /* Don't erase these lines, they are put here for debugging purposes */
 /*
 #define MSPACE1_RANK     1
@@ -173,9 +189,8 @@ enum H5TEST_COLL_CHUNK_API {API_NONE=0,API_LINK_HARD,
 #define MSPACE_DIM1      8
 #define MSPACE_DIM2      9
 #define NPOINTS          4
-
-
 */ /* end of debugging macro */
+
 /* type definitions */
 typedef struct H5Ptest_param_t  /* holds extra test parameters */
 {
@@ -223,7 +238,7 @@ void extend_readInd(void);
 void extend_readAll(void);
 void none_selection_chunk(void);
 void actual_io_mode_tests(void);
-void test_actual_io_mode(int selection_mode);
+void test_actual_io_mode(enum TEST_ACTUAL_IO_SELECTION_MODE selection_mode);
 void test_chunk_alloc(void);
 void test_filter_read(void);
 void compact_dataset(void);
