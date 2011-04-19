@@ -36,6 +36,7 @@ AC_CONFIG_MACRO_DIR([m4])
 dnl AM_INIT_AUTOMAKE takes a list of options that should be applied to
 dnl every Makefile.am when automake is run.
 AM_INIT_AUTOMAKE([foreign])
+AM_SILENT_RULES([yes])
 
 dnl AM_MAINTAINER_MODE turns off "rebuild rules" that contain dependencies
 dnl for Makefiles, configure, src/H5config.h, etc.  If AM_MAINTAINER_MODE
@@ -94,6 +95,7 @@ AC_SUBST([H5_CFLAGS])
 AC_SUBST([H5_CPPFLAGS])
 AC_SUBST([H5_FCFLAGS])
 AC_SUBST([H5_CXXFLAGS])
+AC_SUBST([H5_LDFLAGS])
 
 dnl AM_CFLAGS (and company) are for CFLAGS that should be used on HDF5,
 dnl and WILL be exported to h5cc (or h5fc, etc) if set by configure.
@@ -247,14 +249,8 @@ dnl
 dnl If the `OS' ends with a version number then remove it. For instance,
 dnl `freebsd3.1' would become `freebsd'
 case $host_os in
-  aix4.*)
-    host_os_novers=aix4.x
-    ;;
-  aix5.*)
-    host_os_novers=aix5.x
-    ;;
-  aix6.*)
-    host_os_novers=aix6.x
+  aix*)
+    host_os_novers=aix
     ;;
   freebsd*)
     host_os_novers=freebsd
@@ -952,6 +948,11 @@ if test "X${ALLOW_UNSUPPORTED}" != "Xyes"; then
 fi
 
 dnl ----------------------------------------------------------------------
+dnl Windows won't create DLLs without the following macro.
+dnl
+AC_LIBTOOL_WIN32_DLL
+
+dnl ----------------------------------------------------------------------
 dnl Create libtool.  If shared/static libraries are going to be enabled
 dnl or disabled, it should happen before these macros.
 AC_LIBTOOL_DLOPEN
@@ -1240,6 +1241,27 @@ case "$host" in
     AC_CHECK_FUNCS([get_fpc_csr])
     ;;
 esac
+
+dnl ----------------------------------------------------------------------
+dnl Some platforms require that all symbols are resolved when a library
+dnl is linked. We can use the -no-undefined flag to tell libtool that
+dnl it will be able to build shared libraries on these architectures,
+dnl as it will not do so by default.
+dnl
+if test "X${enable_shared}" = "Xyes"; then
+  AC_MSG_CHECKING([if libtool needs -no-undefined flag to build shared libraries])
+  case "`uname`" in
+    CYGWIN*|MINGW*|AIX*)
+      dnl Add in the -no-undefined flag to LDFLAGS for libtool.
+      AC_MSG_RESULT([yes])
+      H5_LDFLAGS="$H5_LDFLAGS -no-undefined"
+      ;;
+    *)
+      dnl Don't add in anything.
+      AC_MSG_RESULT([no])
+      ;;
+  esac
+fi
 
 dnl ----------------------------------------------------------------------
 dnl Test for Largefile support.
@@ -4391,6 +4413,7 @@ AC_CONFIG_FILES([src/libhdf5.settings
                  hl/fortran/examples/run-hlfortran-ex.sh])
 
 AC_OUTPUT
+LT_OUTPUT
 no_create=$saved_no_create
 
 # Then the stamp2 file for H5config.h
