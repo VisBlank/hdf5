@@ -28,6 +28,13 @@
 typedef struct _stati64     h5_stat_t;
 typedef __int64             h5_stat_size_t;
 
+typedef int clockid_t;
+
+struct timespec {
+    time_t      tv_sec;     /* seconds */
+    long int    tv_nsec;    /* nanoseconds */
+};
+
 struct timezone {
     int tz_minuteswest;
     int tz_dsttime;
@@ -38,12 +45,14 @@ extern "C" {
 #endif
 
 H5_DLL int Wgettimeofday(struct timeval *tv, struct timezone *tz);
+H5_DLL int Wget_process_times(double *user_time_ns, double *sys_time_ns);
 
 #ifdef __cplusplus
 }
 #endif
 
 #define HDaccess(F,M)       _access(F,M)
+#define HDclock_gettime(C,T)    Wclock_gettime(C,T)
 #define HDclose(F)          _close(F)
 #define HDdup(F)            _dup(F)
 #define HDfdopen(N,S)       _fdopen(N,S)

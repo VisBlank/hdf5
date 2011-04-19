@@ -445,17 +445,34 @@
  * Data types and functions for timing certain parts of the library.
  */
 typedef struct {
-    double	utime;		/*user time			*/
-    double	stime;		/*system time			*/
-    double	etime;		/*elapsed wall-clock time	*/
+    double  utime;      /*user time, (requires sys/resource.h)*/
+    double  stime;      /*system time, (requires sys/resource.h)*/
+    double  etime;      /*elapsed wall-clock time, (requires gettimeofday())*/
 } H5_timer_t;
 
-H5_DLL void H5_timer_reset (H5_timer_t *timer);
+typedef double H5_timespan_ns_t;
+typedef struct {
+
+    /* Start times for internal use */ 
+    H5_timespan_ns_t user_start_ns;
+    H5_timespan_ns_t system_start_ns;
+    H5_timespan_ns_t elapsed_start_ns;
+
+    /* User time in nanoseconds */
+    H5_timespan_ns_t user_elapsed_ns;
+
+    /* System time in nanoseconds */
+    H5_timespan_ns_t system_elapsed_ns;
+
+    /* Elapsed (wall clock) time in nanoseconds */
+    H5_timespan_ns_t elapsed_end_ns;
+
+} H5_timer_t2;
+
 H5_DLL void H5_timer_begin (H5_timer_t *timer);
 H5_DLL void H5_timer_end (H5_timer_t *sum/*in,out*/,
-			   H5_timer_t *timer/*in,out*/);
+                          H5_timer_t *timer/*in,out*/);
 H5_DLL void H5_bandwidth(char *buf/*out*/, double nbytes, double nseconds);
-H5_DLL time_t H5_now(void);
 
 /* Depth of object copy */
 typedef enum {
@@ -568,6 +585,9 @@ typedef struct {
 #ifndef HDclock
     #define HDclock()		clock()
 #endif /* HDclock */
+#ifndef HDclock_gettime()
+#define HDclock_gettime(C,T)	clock_gettime(C,T)
+#endif /* HDclock_gettime */
 #ifndef HDclose
     #define HDclose(F)		close(F)
 #endif /* HDclose */

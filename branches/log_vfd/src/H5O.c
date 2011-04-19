@@ -1166,7 +1166,7 @@ H5O_create(H5F_t *f, hid_t dxpl_id, size_t size_hint, size_t initial_rc,
     if(oh->version > H5O_VERSION_1) {
         /* Initialize all time fields with current time, if we are storing them */
         if(oh->flags & H5O_HDR_STORE_TIMES)
-            oh->atime = oh->mtime = oh->ctime = oh->btime = H5_now();
+            oh->atime = oh->mtime = oh->ctime = oh->btime = HDtime(NULL);
         else
             oh->atime = oh->mtime = oh->ctime = oh->btime = 0;
 
@@ -2001,7 +2001,7 @@ H5O_touch_oh(H5F_t *f, hid_t dxpl_id, H5O_t *oh, hbool_t force)
     /* Check if this object header is tracking times */
     if(oh->flags & H5O_HDR_STORE_TIMES) {
         /* Get current time */
-        now = H5_now();
+        now = HDtime(NULL);
 
         /* Check version, to determine how to store time information */
         if(oh->version == H5O_VERSION_1) {
