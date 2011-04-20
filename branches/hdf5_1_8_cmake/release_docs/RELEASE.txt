@@ -1,25 +1,25 @@
-HDF5 version 1.8.7-snap2 currently under development
+HDF5 version 1.8.8-snap0 currently under development
 ================================================================================
 
 INTRODUCTION
 ============
 
-This document describes the differences between HDF5-1.8.6 and 
-HDF5 1.8.7-*, and contains information on the platforms tested and 
-known problems in HDF5-1.8.7-*. 
+This document describes the differences between HDF5-1.8.7 and 
+HDF5 1.8.8-*, and contains information on the platforms tested and 
+known problems in HDF5-1.8.8-*. 
 For more details, see the files HISTORY-1_0-1_8_0_rc3.txt 
 and HISTORY-1_8.txt in the release_docs/ directory of the HDF5 source.
 
-Links to the HDF5 1.8.7 source code, documentation, and additional materials
+Links to the HDF5 1.8.8 source code, documentation, and additional materials
 can be found on the HDF5 web page at:
 
      http://www.hdfgroup.org/products/hdf5/
 
-The HDF5 1.8.7 release can be obtained from:
+The HDF5 1.8.8 release can be obtained from:
 
      http://www.hdfgroup.org/HDF5/release/obtain5.html
 
-User documentation for 1.8.7 can be accessed directly at this location: 
+User documentation for 1.8.8 can be accessed directly at this location: 
 
      http://www.hdfgroup.org/HDF5/doc/
 
@@ -30,8 +30,8 @@ in 1.8.0?" document:
      http://www.hdfgroup.org/HDF5/doc/ADGuide/WhatsNew180.html
 
 All new and modified APIs are listed in detail in the "HDF5 Software Changes 
-from Release to Release" document, in the section "Release 1.8.7 (current 
-release) versus Release 1.8.6":
+from Release to Release" document, in the section "Release 1.8.8 (current 
+release) versus Release 1.8.7":
 
      http://www.hdfgroup.org/HDF5/doc/ADGuide/Changes.html
 
@@ -45,7 +45,7 @@ CONTENTS
 
 - New Features
 - Support for New Platforms, Languages, and Compilers
-- Bug Fixes since HDF5-1.8.6
+- Bug Fixes since HDF5-1.8.7
 - Platforms Tested
 - Supported Configuration Features Summary
 - Known Problems
@@ -56,25 +56,11 @@ New Features
 
     Configuration
     -------------
-    - Added mpicc and mpif90 as the default C and Fortran compilers for Linux
-      systems when --enable-parallel is specified but no $CC or $FC is defined.
-      (AKC - 2011/2/7)
-    - Added a new configure option, "--enable-unsupported", which can
-      be used to stop configure from preventing the use of unsupported
-      configure option combinations, such as c++ in parallel or fortran
-      with threadsafe. Use at your own risk, as it may result in a 
-      library that won't compile or run as expected!
-      (MAM - 2010/11/17 - Bug 2061)
-
+    - None
+    
     Library
     -------
-    - Added ability to cache files opened through external links.  Added new
-      public functions H5Pset_elink_file_cache_size(),
-      H5Pget_elink_file_cache_size(), and H5Frelease_file_cache().
-      (NAF - 2011/02/17)
-    - Finished implementing all options for 'log' VFD.  (QAK - 2011/1/25)
-    - Removed all old code for Metraowerks compilers, bracketed by
-      __MWERKS__). Metraowerks compiler is long gone. (AKC - 2010/11/17) 
+    - None
 
     Parallel Library
     ----------------
@@ -82,14 +68,7 @@ New Features
  
     Tools
     -----
-     - h5diff: Added new level for -v (verbose) option. The new levels are
-               1 and 2.  So -v1 and -v2 can be specified to view more 
-               information about attributes differences. 
-               Bug#2121 (JKM 2011/3/23)
-     - h5dump: Added new option --enable-error-stack. This option will display 
-               error stack information in the output stream. This is useful
-               when the "h5dump: Unable to print data" message is output.
-               (ADB - 2011/03/03)
+    - None
 
     High-Level APIs
     ---------------
@@ -106,11 +85,10 @@ New Features
 
 Support for New Platforms, Languages, and Compilers
 ===================================================
-    - Intel V11.1 uses now -O3 optimization in production mode (EIP - 2010/10/08)
-             
+    - None
 
 
-Bug Fixes since HDF5-1.8.6
+Bug Fixes since HDF5-1.8.7
 ==========================
 
     Configuration
@@ -119,12 +97,7 @@ Bug Fixes since HDF5-1.8.6
 
     Library
     -------
-    - Tell the VFL flush call that the file will be closing, allowing
-      the VFDs to avoid sync'ing the file (particularly valuable in parallel).
-      (QAK - 2011/03/09)
-    - The datatype handler created with H5Tencode/decode used to have the 
-      reference count 0 (zero).  I have fixed it.  It is 1 (one) now.
-      (SLU - 2011/2/18)
+    - None
 
     Parallel Library
     ----------------
@@ -132,58 +105,7 @@ Bug Fixes since HDF5-1.8.6
 
     Tools
     -----
-    - Updated to unify option name to '--enable-error-stack' for printing 
-      HDF5 error stack messages for HDF5 tools. h5ls and h5dump for now.
-      For h5ls, this replaces "-e/--errors" option, which is deprecated. 
-      Bug#2182 (JKM 2011/3/30)
-    - Fix h5diff for --use-system-epsilon option: the calculation changed
-      from ( |a - b| / b ) to ( |a - b| ). This was decided for better
-      performance. Bug#2184 (JKM 2011/3/24)
-    - Fixed output for H5T_REFERENCE in h5dump. According to the BNF document
-      the output of a H5T_REFERENCE should be followed by the type;
-      <reference> ::= H5T_REFERENCE { <ref_type> }
-      <ref_type> ::= H5T_STD_REF_OBJECT | H5T_STD_REF_DSETREG
-      Previously this was only displayed if the -R option was used.
-      Bug#1725 (ADB 2011/3/28)
-    - Fix h5diff issues for #1: h5diff compared attributes correctly only 
-      when two objects have the same number of attributes and attribute 
-      names are identical, #2: didn't display useful information about 
-      attribute difference. Bug#2121 (JKM 2011/3/17)
-    - Fixed memory leak for h5diff when accessing symbolic links with 
-      --follow-symlink option. Bug#2214  (JKM 2011/3/18)
-    - Fixed memory leak for h5diff when access variable length string
-      data. Bug#2216 (JKM 2011/3/18)
-    - Fixed memory leak for h5diff when accessing symbolic links with 
-      --follow-symlink option. Bug#2214  (JKM 2011/3/18)
-    - Fixed and improved help page for -a option of h5ls. 
-      Bug#1904 (JKM 2011/3/11)
-    - Fixed h5copy to be able to copy any object into the same HDF5 file.
-      Previously h5copy displayed error message when target file is same
-      as source file. (XCAO 2011/3/8)
-    - Fixed h5dump for skipping some values for long array type dataset on 
-      Windows. This issue only occurred on Windows due to the different 
-      return behavior from _vsnprintf() funtion. Bug#2161 (JKM 2011/3/3)
-    - Fixed h5dump for skipping array indices every certain number
-      when the array type dataset is relatively big. The certain number
-      varies according to the size of array. Bug#2092 (JKM 2011/2/15).
-    - Fixed h5diff for the segfault when compares compound datasets
-      with combination of fixed length string types and vlen string types 
-      in certain orders. bug#2089 (JKM 2010/12/28)
-    - Improve h5diff performance. 1) use HDmemcmp() before comparing each 
-      elements. 2) replace expensive H5Tequals() calls 3) retrieve datatype
-      information at dataset level not each element level for compound 
-      datasets
-    - Fixed h5ls to display nested compound type with curly bracket 
-      when -S (--simple) option is used with -l (--label), so it shows  
-      which member (in curly bracket) belong to which nested compound type 
-      and make the output make sense.  bug#1979 (JKM 2010/11/09)
-    - Fixed h5diff to handle variable-length strings in a compound dataset 
-      correctly. (also variable-length string array in a compound dataset)
-      Garbage values were displayed when h5diff compared multiple 
-      variable-length strings in a compound type dataset. 
-      Bug#1989 (JKM 2010/10/28)
-    - Fixed h5copy to fail gracefully when copying object to non-exist
-          group without -p option. Bug#2040 (JKM 2010/10/18)
+    - None
 
     F90 API
     ------
@@ -282,11 +204,9 @@ The following platforms and compilers have been tested for this release.
                                   Visual Studio 2010 (cmake)
                                   Cygwin(1.7.7 native gcc(4.3.4) compiler and gfortran)
 
-    Windows Vista                 Visual Studio 2008 w/ Intel Fortran 10.1 (project files)
-                                  Visual Studio 2008 w/ Intel Fortran 11.1 (cmake)
+    Windows Vista                 Visual Studio 2008 w/ Intel Fortran 11.1 (cmake)
 
-    Windows Vista x64             Visual Studio 2008 w/ Intel Fortran 10.1 (project files)
-                                  Visual Studio 2008 w/ Intel Fortran 11.1 (cmake)
+    Windows Vista x64             Visual Studio 2008 w/ Intel Fortran 11.1 (cmake)
 
     Windows 7                     Visual Studio 2008 w/ Intel Fortran 11.1 (cmake)
 
@@ -413,21 +333,19 @@ SGI Linux 2.6.32.19                        y       y         y         y
 
 Known Problems
 ==============
-* --with-mpe configure option does not work with Mpich2. AKC - 2011/03/10)
-
-* examples/run-all-ex.sh does not work on Cygwin. (NAF - 2011/02/11)
+* The --with-mpe configure option does not work with Mpich2. AKC - 2011/03/10
 
 * If parallel gmake (e.g., gmake -j 4) is used, the "gmake clean" command
   sometimes fails in the perform directory due to the attempt to remove the
   executable of h5perf or h5perf_serial by two "parallel" commands. This error
   has no consequence on the functionality of the HDF5 library or install. It
-  is fixed in the next release. AKC - 2011/01/25
+  is fixed in the next release. AKC - 2011/01/25  ??????? 4.18.2011. sent question to albert re: has this been fixed in 1.8.7?????????????????????????
 
 * While working on the 1.8.6 release of HDF5, a bug was discovered that can
   occur when reading from a dataset in parallel shortly after it has been
   written to collectively. The issue was exposed by a new test in the parallel
   HDF5 test suite, but had existed before that. We believe the problem lies with
-  certain MPI implementations and/or filesystems.
+  certain MPI implementations and/or file systems.
 
   We have provided a pure MPI test program, as well as a standalone HDF5
   program, that can be used to determine if this is an issue on your system.
@@ -435,10 +353,11 @@ Known Problems
   These programs can be found at:
   http://www.hdfgroup.org/ftp/HDF5/examples/known_problems/
 
-* The AIX --enable-shared does not quite work. It can produce shared library
-  but there cannot be more than one shared libraries that interlinking with
-  each other. That means only C-API without High-level can work. Not very
-  usefule. We hope to have a solution in the next release. (AKC - 2010/10/15)
+* The AIX --enable-shared does not quite work. It can produce a shared library
+  but there cannot be more than one shared libraries that are interlinking with
+  each other. This means only the low-level C APIs can work. The high-level APIs 
+  will not work which is not very useful. We hope to have a solution in the next 
+  release. (AKC - 2010/10/15) ??????? 4.18.2011. sent question to albert re: has this been fixed in 1.8.7?????????????????????????
 
 * The library's test dt_arith.c showed a compiler's rounding problem on
   Cygwin when converting from unsigned long long to long double.  The 
@@ -461,8 +380,8 @@ Known Problems
   the INSTALL_MINGW.txt file for all restrictions. ADB - 2009/11/11
   
 * The PathScale MPI implementation, accessing a Panasas file system, would
-  cause H5Fcreate() with H5F_ACC_EXCL to fail even when the file is not
-  existing. This is due to the MPI_File_open() call failing if the amode has
+  cause H5Fcreate() with H5F_ACC_EXCL to fail even when the file does not
+  exist. This is due to the MPI_File_open() call failing if the mode has
   the MPI_MODE_EXCL bit set. (See bug 1468 for details.) AKC - 2009/8/11
  
 * Parallel tests failed with 16 processes with data inconsistency at testphdf5
@@ -478,6 +397,12 @@ Known Problems
   a non-zero for this particular test, therefore it concludes the test has
   failed when it receives 0 from yod.  Skip all the "failing" test for now
   by changing them as following.
+  
+* The STDIO VFD does not work on some architectures, possibly due to 32/64
+  bit or large file issues.  The basic STDIO VFD test is known to fail on
+  64-bit SunOS 5.10 on SPARC when built with -m64 and 32-bit OS X/Darwin
+  10.7.0.  The STDIO VFD test has been disabled while we investigate and
+  a fix should appear in 1.8.8.
 
   ======== Original tools/h5ls/testh5ls.sh =========
   TOOLTEST tgroup-1.ls 1 -w80 -r -g tgroup.h5
@@ -502,11 +427,11 @@ Known Problems
 
 * For Red Storm, a Cray XT3 system, the yod command sometimes gives the
   message,  "yod allocation delayed for node recovery".  This interferes with
-  test suites that do not expect seeing this message.  See the section of "Red
+  test suites that do not expect to see this message.  See the section of "Red
   Storm" in file INSTALL_parallel for a way to deal with this problem.
   AKC - 2008/05/28
 
-* On Intel 64 Linux cluster (RH 4, Linux 2.6.9) with Intel 10.0 compilers, 
+* On an Intel 64 Linux cluster (RH 4, Linux 2.6.9) with Intel 10.0 compilers, 
   use -mp -O1 compilation flags to build the libraries. A higher level of 
   optimization causes failures in several HDF5 library tests. 
 
@@ -550,7 +475,7 @@ Known Problems
   when a version of Szip without an encoder is being used.
 
 * On cobalt, an SGI Altix SMP ia64 system, Intel compiler version 10.1 (which
-  is the default on that system) does not work properly, and results in
+  is the default on that system) does not work properly and results in
   failures during make check (in a static build) and make installcheck (during
   a shared build). This appears to be a compiler optimization problem.
   Reducing optimization by setting CFLAGS to -O1 or below resolves the issue.
