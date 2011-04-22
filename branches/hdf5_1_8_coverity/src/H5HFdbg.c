@@ -348,7 +348,7 @@ H5HF_dblock_debug_cb(const H5FS_section_info_t *_sect, void *_udata)
         /* Calculate the length */
         len = end - start;
 
-        sprintf(temp_str, "Section #%u:", (unsigned)udata->sect_count);
+        HDsnprintf(temp_str, 20, "Section #%u:", (unsigned)udata->sect_count);
 	HDfprintf(udata->stream, "%*s%-*s %8Zu, %8Zu\n", udata->indent + 3, "", MAX(0, udata->fwidth - 9),
 		temp_str,
 		start, len);
