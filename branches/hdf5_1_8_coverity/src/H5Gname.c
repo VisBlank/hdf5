@@ -770,8 +770,8 @@ H5G_name_replace_cb(void *obj_ptr, hid_t obj_id, void *key)
                     HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed")
 
                 /* Create the new full path */
-                HDstrcpy(new_full_path, src_path);
-                HDstrcat(new_full_path, full_path);
+                HDstrncpy(new_full_path, src_path, HDstrlen(src_path)+1);
+                HDstrncat(new_full_path, full_path, HDstrlen(full_path));
 
                 /* Release previous full path */
                 H5RS_decr(obj_path->full_path_r);
@@ -814,7 +814,7 @@ H5G_name_replace_cb(void *obj_ptr, hid_t obj_id, void *key)
                 /* Create the new full path */
                 if(NULL == (new_full_path = (char *)H5FL_BLK_MALLOC(str_buf, HDstrlen(full_suffix) + 1)))
                     HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed")
-                HDstrcpy(new_full_path, full_suffix);
+                HDstrncpy(new_full_path, full_suffix, HDstrlen(full_suffix)+1);
 
                 /* Release previous full path */
                 H5RS_decr(obj_path->full_path_r);
@@ -893,8 +893,8 @@ H5G_name_replace_cb(void *obj_ptr, hid_t obj_id, void *key)
                     HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed")
 
                 /* Create the new full path */
-                HDstrcpy(new_full_path, dst_path);
-                HDstrcat(new_full_path, full_suffix);
+                HDstrncpy(new_full_path, dst_path, HDstrlen(dst_path)+1);
+                HDstrncat(new_full_path, full_suffix, HDstrlen(full_suffix));
 
                 /* Release previous full path */
                 H5RS_decr(obj_path->full_path_r);
