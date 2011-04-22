@@ -28,17 +28,19 @@
 #define FAMILY_SIZE2    (5*KB)
 #define MULTI_SIZE      128
 #define CORE_INCREMENT  (4*KB)
+#define DSET1_NAME      "dset1"
+#define DSET1_DIM1      1024
+#define DSET1_DIM2      32
 
 /*Macros for Direct VFD*/
+#ifdef H5_HAVE_DIRECT
 #define MBOUNDARY	512
 #define FBSIZE		(4*KB)
 #define CBSIZE		(8*KB)
 #define THRESHOLD 	1
-#define DSET1_NAME	"dset1"
-#define DSET1_DIM1      1024
-#define DSET1_DIM2      32
 #define DSET2_NAME	"dset2"
 #define DSET2_DIM       4
+#endif /* H5_HAVE_DIRECT */
 
 const char *FILENAME[] = {
     "sec2_file",
@@ -364,7 +366,7 @@ test_core(void)
     char        filename[1024];
     void        *fhandle=NULL;
     hsize_t     file_size;
-    int		*points, *check, *p1, *p2;
+    int		*points = NULL, *check = NULL, *p1, *p2;
     hid_t	dset1=-1, space1=-1;
     hsize_t	dims1[2];
     int		i, j, n;
@@ -419,8 +421,10 @@ test_core(void)
         TEST_ERROR;
 
     /* Allocate memory for data set. */
-    points=(int*)malloc(DSET1_DIM1*DSET1_DIM2*sizeof(int));
-    check=(int*)malloc(DSET1_DIM1*DSET1_DIM2*sizeof(int));
+    if(NULL == (points=(int*)malloc(DSET1_DIM1*DSET1_DIM2*sizeof(int))))
+        TEST_ERROR
+    if(NULL == (check=(int*)malloc(DSET1_DIM1*DSET1_DIM2*sizeof(int))))
+        TEST_ERROR
 
     /* Initialize the dset1 */
     p1 = points;
@@ -493,10 +497,12 @@ test_core(void)
         TEST_ERROR;
 
     /* Reallocate memory for reading buffer. */
-    if(check)
-	free(check);
+    HDassert(check);
+    free(check);
+    check = NULL;
 
-    check = (int*)malloc(DSET1_DIM1 * DSET1_DIM2 * sizeof(int));
+    if(NULL == (check = (int*)malloc(DSET1_DIM1 * DSET1_DIM2 * sizeof(int))))
+        TEST_ERROR
 
     /* Read the data back from dset1 */
     if(H5Dread(dset1, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, check) < 0)
@@ -529,10 +535,12 @@ test_core(void)
         TEST_ERROR;
     if(H5Fclose(file) < 0)
         TEST_ERROR;
-    if(points)
-	free(points);
-    if(check)
-	free(check);
+    HDassert(points);
+    free(points);
+    points = NULL;
+    HDassert(check);
+    free(check);
+    check = NULL;
 
     h5_cleanup(FILENAME, fapl);
 
@@ -544,6 +552,12 @@ error:
         H5Pclose (fapl);
         H5Fclose(file);
     } H5E_END_TRY;
+
+    if(points)
+        free(points);
+    if(check)
+        free(check);
+
     return -1;
 }
 
@@ -705,7 +719,7 @@ test_family(void)
 
     for(i=0; i<FAMILY_NUMBER; i++)
         for(j=0; j<FAMILY_SIZE; j++)
-            buf[i][j] = i*10000+j;
+            buf[i][j] = (int)(i*10000 + j);
 
     if(H5Dwrite(dset, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, buf) < 0)
         TEST_ERROR;
@@ -734,13 +748,13 @@ test_family(void)
 
     /* Some data has been written.  The file size should be bigger(18KB+976
      * bytes if int size is 4 bytes) now. */
-    if(sizeof(int)<=4) {
+#if H5_SIZEOF_INT<=4
         if(file_size<18*KB || file_size>20*KB)
             TEST_ERROR;
-    } else if(sizeof(int)>=8) {
+#elif H5_SIZEOF_INT>=8
         if(file_size<32*KB || file_size>40*KB)
             TEST_ERROR;
-    }
+#endif /* H5_SIZEOF_INT */
 
     if(H5Sclose(space) < 0)
         TEST_ERROR;
