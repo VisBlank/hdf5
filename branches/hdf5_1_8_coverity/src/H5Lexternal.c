@@ -145,14 +145,14 @@ H5L_build_name(char *prefix, char *file_name, char **full_name/*out*/)
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "unable to allocate filename buffer")
 
     /* Copy the prefix into the buffer */
-    HDstrcpy(*full_name, prefix);
+    HDstrncpy(*full_name, prefix, strlen(prefix) + 1);
 #ifndef H5_VMS
     if (!CHECK_DELIMITER(prefix[prefix_len-1]))
-        HDstrcat(*full_name, DIR_SEPS);
+        HDstrncat(*full_name, DIR_SEPS, strlen(DIR_SEPS));
 #endif
 
     /* Add the external link's filename to the prefix supplied */
-    HDstrcat(*full_name, file_name);
+    HDstrncat(*full_name, file_name, strlen(file_name));
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -330,7 +330,7 @@ H5L_extern_traverse(const char UNUSED *link_name, hid_t cur_group,
             /* get last component of file_name */
 	    GET_LAST_DELIMITER(file_name, ptr)
 	    HDassert(ptr);
-	    HDstrcpy(temp_file_name, ++ptr);
+	    HDstrncpy(temp_file_name, ++ptr, strlen(ptr) + 1);
         } /* end if */
     } /* end if */
     else if(CHECK_ABS_DRIVE(file_name)) {
