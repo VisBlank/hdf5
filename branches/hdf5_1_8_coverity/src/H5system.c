@@ -195,18 +195,18 @@ HDfprintf(FILE *stream, const char *fmt, ...)
 		    if (sizeof(hsize_t)<sizeof(long)) {
 			modifier[0] = '\0';
 		    } else if (sizeof(hsize_t)==sizeof(long)) {
-			HDstrcpy (modifier, "l");
+			HDstrncpy (modifier, "l", 2);
 		    } else {
-			HDstrcpy (modifier, H5_PRINTF_LL_WIDTH);
+			HDstrncpy (modifier, H5_PRINTF_LL_WIDTH, strlen(H5_PRINTF_LL_WIDTH) + 1);
 		    }
 		    break;
 		case 'Z':
 		    if (sizeof(size_t)<sizeof(long)) {
 			modifier[0] = '\0';
 		    } else if (sizeof(size_t)==sizeof(long)) {
-			HDstrcpy (modifier, "l");
+			HDstrncpy (modifier, "l", 2);
 		    } else {
-			HDstrcpy (modifier, H5_PRINTF_LL_WIDTH);
+			HDstrncpy (modifier, H5_PRINTF_LL_WIDTH, strlen(H5_PRINTF_LL_WIDTH) + 1);
 		    }
 		    break;
 		default:
@@ -717,7 +717,7 @@ H5_build_extpath(const char *name, char **extpath/*out*/)
             if(NULL == (full_path = (char *)H5MM_malloc(path_len)))
                 HGOTO_ERROR(H5E_INTERNAL, H5E_NOSPACE, FAIL, "memory allocation failed")
 
-            HDstrcpy(full_path, cwdpath);
+            HDstrncpy(full_path, cwdpath, cwdlen + 1);
 #ifdef H5_VMS
             /* If the file name contains relative path, cut off the beginning bracket.  Also cut off the
              * ending bracket of CWDPATH to combine the full path name. i.g.
@@ -734,8 +734,8 @@ H5_build_extpath(const char *name, char **extpath/*out*/)
                 HDstrcat(full_path, new_name);
 #else
             if(!CHECK_DELIMITER(cwdpath[cwdlen - 1]))
-                HDstrcat(full_path, DIR_SEPS);
-            HDstrcat(full_path, new_name);
+                HDstrncat(full_path, DIR_SEPS, strlen(DIR_SEPS) + 1);
+            HDstrncat(full_path, new_name, strlen(new_name) + 1);
 #endif
         } /* end if */
     } /* end else */
