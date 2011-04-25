@@ -2510,13 +2510,6 @@ none_selection_chunk(void)
  */
 void
 actual_io_mode_tests(void) {
-#ifdef H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS
-    printf("complex\n");
-#endif
-#ifdef H5_MPI_SPECIAL_COLLECTIVE_IO_WORKS
-    printf("special\n");
-#endif
-
     test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_IND);
     test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_COL);
     test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_MIX);
@@ -2810,7 +2803,6 @@ void test_actual_io_mode(int selection_mode) {
 
 #ifndef H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS
             slab_set(mpi_rank, mpi_size, start, count, stride, block, BYCOL);
-
 #else
 #ifdef H5_MPI_SPECIAL_COLLECTIVE_IO_WORKS
             slab_set(mpi_rank, mpi_size, start, count, stride, block, BYCOL);
@@ -2855,9 +2847,13 @@ void test_actual_io_mode(int selection_mode) {
             slab_set(mpi_rank, mpi_size, start, count, stride, block, BYROW);
             break;
 
+        default:
+            printf("Error: undefined selection mode = %d", selection_mode);
+            break;
+
     }
     ret = H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, stride, count, block);
-    if (ret < 0) H5Eprint(H5E_DEFAULT, stdout);
+    if (ret < 0) H5Eprint(H5E_DEFAULT, stdout); 
     VRFY((ret >= 0), "H5Sset_hyperslab succeeded");
  
     /* Create a memory dataspace mirroring the dataset and select the same hyperslab
@@ -2919,7 +2915,7 @@ void test_actual_io_mode(int selection_mode) {
     VRFY( (ret >= 0), "retriving actual I/O mode failed" );
 
     /* Different tests for each selection */
-    switch( selection_mode ) {
+    switch(selection_mode) {
         case TEST_ACTUAL_IO_MULTI_CHUNK_IND:
             VRFY(actual_io_mode == H5D_MPIO_COLLECTIVE_MULTI_CHUNK_INDEPENDENT,
              "actual_io_mode has incorrect value for multi chunk independent I/O");
@@ -2996,6 +2992,7 @@ void test_actual_io_mode(int selection_mode) {
             break;
 
         default:
+            printf("Error: undefined selection mode = %d", selection_mode);        
             printf("%d: Actual IO Mode:%d\n", selection_mode, actual_io_mode);
             break;
     }
