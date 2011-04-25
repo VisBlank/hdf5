@@ -2510,6 +2510,13 @@ none_selection_chunk(void)
  */
 void
 actual_io_mode_tests(void) {
+#ifdef H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS
+    printf("complex\n");
+#endif
+#ifdef H5_MPI_SPECIAL_COLLECTIVE_IO_WORKS
+    printf("special\n");
+#endif
+
     test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_IND);
     test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_COL);
     test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_MIX);
@@ -2613,13 +2620,13 @@ void test_actual_io_mode(int selection_mode) {
     
     /* Various sanity checks */
 
-/* If H5_COMPLEX_DERIVED_DATATYPE_WORKS is not defined, all I/O without optimization 
+/* If H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS is not defined, all I/O without optimization 
  * breaks to multi chunk independent I/O. Since that case is already being tested, we skip
  * the remaining unoptimized tests under these settings.
  *
  * Link chunk I/O is only ever acheieved if this flag is set as well.
  */
-#ifndef H5_COMPLEX_DERIVED_DATATYPE_WORKS
+#ifndef H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS
     if(selection_mode == TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_COL) {
         test_name = "MULTI_CHUNK_NO_OPT_COL";
         skip = TRUE;
@@ -2631,13 +2638,13 @@ void test_actual_io_mode(int selection_mode) {
         skip = TRUE;
     }
 #else
-/* If H5_COMPLEX_DERIVED_DATATYPE_WORKS, it is impossible achieve pure mpio independent I/O;
+/* If H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS, it is impossible achieve pure mpio independent I/O;
  * the library always manages to do some collectively, or doesn't try to use multiple processes
- * at all. If H5_SPECIAL_COLLECTIVE_IO_WORKS is defined, some of the cases that broke to out of
+ * at all. If H5_MPI_SPECIAL_COLLECTIVE_IO_WORKS is defined, some of the cases that broke to out of
  * parallel I/O instead become mpio collective I/O, and so we test this case if both flags
  * are set.
  */
-#ifndef H5_SPECIAL_COLLECTIVE_IO_WORKS
+#ifndef H5_MPI_SPECIAL_COLLECTIVE_IO_WORKS
     if(selection_mode == TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_IND) {
         test_name = "MULTI_CHUNK_NO_OPT_IND";
         skip = TRUE;
@@ -2788,12 +2795,12 @@ void test_actual_io_mode(int selection_mode) {
 
         /* Independent I/O without optimization */
         case TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_IND:
-            /* If H5_COMPLEX_DERIVED_DATATYPE_WORKS isn't set, we have each process select a
+            /* If H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS isn't set, we have each process select a
              * column. It doesn't really matter, since all multi chunk I/O without optimization
              * breaks to this case under this condition.
              *
-             * If H5_COMPLEX_DERIVED_DATATYPE_WORKS is set, things get slightly more 
-             * complicated. This case will then only happen if H5_SPECIAL_COLLECTIVE_WORKS
+             * If H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS is set, things get slightly more 
+             * complicated. This case will then only happen if H5_MPI_SPECIAL_COLLECTIVE_WORKS
              * is also set. The library will preform collective I/O for the first n
              * chunks, where n is the minimum number of chunks read by a process. By
              * having the root select nothing, we force collective I/O to break right
@@ -2801,11 +2808,11 @@ void test_actual_io_mode(int selection_mode) {
              * will not be unanimous. The root with report that no I/O took place.       
              */
 
-#ifndef H5_COMPLEX_DERIVED_DATATYPE_WORKS
+#ifndef H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS
             slab_set(mpi_rank, mpi_size, start, count, stride, block, BYCOL);
 
 #else
-#ifdef H5_SPECIAL_COLLECTIVE_IO_WORKS
+#ifdef H5_MPI_SPECIAL_COLLECTIVE_IO_WORKS
             slab_set(mpi_rank, mpi_size, start, count, stride, block, BYCOL);
             if (mpi_rank == 0) 
                   block[0] = 0;
@@ -2813,7 +2820,7 @@ void test_actual_io_mode(int selection_mode) {
 #endif
             break;
 
-#ifdef H5_COMPLEX_DERIVED_DATATYPE_WORKS
+#ifdef H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS
         /* Collective I/O without optimization */
         case TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_COL:
             /* The dataset is chunked by rows, so when each process takes a column, its
@@ -2893,7 +2900,7 @@ void test_actual_io_mode(int selection_mode) {
         VRFY((ret >= 0), "H5Pset_dxpl_mpio succeeded");
     }
    
-#ifdef H5_COMPLEX_DERIVED_DATATYPE_WORKS
+#ifdef H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS
     /* Linked Chunk I/O */
     if(selection_mode == TEST_ACTUAL_IO_LINK_CHUNK ) {
         /* Force linked chunk I/O */
@@ -2941,8 +2948,8 @@ void test_actual_io_mode(int selection_mode) {
             break;
 
         case TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_IND:
-#ifdef H5_COMPLEX_DERIVED_DATATYPE_WORKS
-#ifdef H5_SPECIAL_COLLECTIVE_IO_WORKS
+#ifdef H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS
+#ifdef H5_MPI_SPECIAL_COLLECTIVE_IO_WORKS
             if(mpi_rank == 0) {
                 VRFY(actual_io_mode == H5D_MPIO_INDEPENDENT,
                  "actual_io_mode has incorrect value for multi chunk no opt independent \
@@ -2959,7 +2966,7 @@ void test_actual_io_mode(int selection_mode) {
 #endif
             break;
 
-#ifdef H5_COMPLEX_DERIVED_DATATYPE_WORKS
+#ifdef H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS
         case TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_COL:
             VRFY(actual_io_mode == H5D_MPIO_COLLECTIVE_MULTI_CHUNK_NO_OPT_COLLECTIVE,
              "actual_io_mode has incorrect value for multi chunk no opt collective I/O");
@@ -2989,7 +2996,7 @@ void test_actual_io_mode(int selection_mode) {
             break;
 
         default:
-            printf("Actual IO Mode:%d\n",actual_io_mode);
+            printf("%d: Actual IO Mode:%d\n", selection_mode, actual_io_mode);
             break;
     }
     
