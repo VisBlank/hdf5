@@ -142,8 +142,8 @@ typedef enum H5D_mpio_actual_io_mode_t {
     /* These values are assigned specific bits only so that no one could possibly
      * assume that these values were related to any other.
      */
-    H5D_MPIO_COLLECTIVE_LINK_CHUNK = 0200,
-    H5D_MPIO_COLLECTIVE_CONTIGUOUS = 0300,
+    H5D_MPIO_COLLECTIVE_LINK_CHUNK = 0100,
+    H5D_MPIO_COLLECTIVE_CONTIGUOUS = 0200,
 }  H5D_xfer_mpio_actual_io_mode_t;
 
 /********************/

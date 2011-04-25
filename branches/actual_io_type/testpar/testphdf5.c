@@ -501,8 +501,6 @@ int main(int argc, char **argv)
     AddTest("actualio", actual_io_mode_tests, NULL,
             "test actual io mode proprerty",
             PARATESTFILE);
-        
-    
 
     /* Display testing information */
     TestInfo(argv[0]);

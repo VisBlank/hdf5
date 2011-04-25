@@ -8059,7 +8059,8 @@ error:
 /*-------------------------------------------------------------------------
  * Function:	test_actual_io_mode
  *
- * Purpose:	Tests the intialization, reading and writing of the actual_io_mode property under default conditions.
+ * Purpose:	Tests the intialization, reading and writing of the
+ *          actual_io_mode property under default conditions.
  *
  * Return:	Success: 0
  *		Failure: -1
@@ -8071,18 +8072,20 @@ error:
  */
 
 int test_actual_io_mode() {
-    herr_t status = -1;
-    hid_t dxpl = -1;
-    char* names;
+    herr_t      status = -1;
+    hid_t       dxpl = -1;
+    char        * names;
     H5D_xfer_mpio_actual_io_mode_t actual_io_mode = -1;
 
     TESTING("actual I/O mode");
 
-    if ( (dxpl = H5Pcreate(H5P_DATASET_XFER)) < 0 ) FAIL_STACK_ERROR
+    if ((dxpl = H5Pcreate(H5P_DATASET_XFER)) < 0 ) FAIL_STACK_ERROR
     
-    if ( (status = H5Pget_mpio_actual_io_mode(dxpl, &actual_io_mode)) < 0 ) FAIL_STACK_ERROR
+    if ((status = H5Pget_mpio_actual_io_mode(dxpl, &actual_io_mode)) < 0 )
+        FAIL_STACK_ERROR
     
-    if (actual_io_mode != 0) FAIL_PUTS_ERROR( "Actual I/O Mode has non-default value.");
+    if (actual_io_mode != 0)
+        FAIL_PUTS_ERROR("Actual I/O Mode has non-default value.");
 
     PASSED();
     return status;
