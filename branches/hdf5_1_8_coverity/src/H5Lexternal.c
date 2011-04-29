@@ -586,9 +586,9 @@ H5Lcreate_external(const char *file_name, const char *obj_name,
     /* Encode the external link information */
     p = (uint8_t *)ext_link_buf;
     *p++ = (H5L_EXT_VERSION << 4) | H5L_EXT_FLAGS_ALL;  /* External link version & flags */
-    HDstrcpy((char *)p, file_name);     /* Name of file containing external link's object */
+    HDstrncpy((char *)p, file_name, HDstrlen(file_name)+1);     /* Name of file containing external link's object */
     p += HDstrlen(file_name) + 1;
-    HDstrcpy((char *)p, norm_obj_name);       /* External link's object */
+    HDstrncpy((char *)p, norm_obj_name, HDstrlen(norm_obj_name)+1);       /* External link's object */
 
     /* Create an external link */
     if(H5L_create_ud(&link_loc, link_name, ext_link_buf, buf_size, H5L_TYPE_EXTERNAL, lcpl_id, lapl_id, H5AC_dxpl_id) < 0)
