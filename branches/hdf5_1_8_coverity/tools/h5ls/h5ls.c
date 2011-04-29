@@ -259,7 +259,7 @@ display_obj_name(FILE *stream, const iter_t *iter, const char *oname,
     int  n;
 
     if(show_file_name_g)
-        sprintf(fullname, "%s/%s", iter->fname, oname + iter->name_start);
+        snprintf(fullname, sizeof(fullname), "%s/%s", iter->fname, oname + iter->name_start);
     else
         name = oname + iter->name_start;
 
@@ -731,7 +731,7 @@ display_cmpd_type(hid_t type, int ind)
     char        *name=NULL;     /* member name */
     size_t      size;           /* total size of type in bytes */
     hid_t       subtype;        /* member data type */
-    unsigned    nmembs;         /* number of members */
+    int         nmembs;         /* number of members */
     int         n;              /* miscellaneous counters */
     unsigned    i;              /* miscellaneous counters */
 
@@ -782,16 +782,21 @@ display_enum_type(hid_t type, int ind)
     char        **name=NULL;    /* member names */
     unsigned char *value=NULL;  /* value array */
     unsigned char *copy = NULL; /* a pointer to value array */
-    unsigned    nmembs;         /* number of members */
+    int         nmembs;         /* number of members */
     int         nchars;         /* number of output characters */
     hid_t       super;          /* enum base integer type */
     hid_t       native=-1;      /* native integer data type */
     size_t      dst_size;       /* destination value type size */
     unsigned    i;              /* miscellaneous counters */
     size_t j;
+    hbool_t     ret_val = TRUE; /* return value */
 
     if (H5T_ENUM!=H5Tget_class(type)) return FALSE;
     nmembs = H5Tget_nmembers(type);
+
+    if (nmembs<=0)
+        return FALSE;
+
     assert(nmembs>0);
     super = H5Tget_super(type);
     printf("enum ");
@@ -823,7 +828,12 @@ display_enum_type(hid_t type, int ind)
     }
 
     /* Convert values to native data type */
-    if (native>0) H5Tconvert(super, native, nmembs, value, NULL, H5P_DEFAULT);
+    if (native>0) {
+        if (H5Tconvert(super, native, nmembs, value, NULL, H5P_DEFAULT)<0) {
+            ret_val = FALSE;
+            goto out;
+        }
+    }
 
     /* Sort members by increasing value */
     /*not implemented yet*/
@@ -853,6 +863,8 @@ display_enum_type(hid_t type, int ind)
         }
     }
 
+out:
+
     /* Release resources */
     for (i=0; i<nmembs; i++) free(name[i]);
     free(name);
@@ -861,7 +873,8 @@ display_enum_type(hid_t type, int ind)
 
     if (0==nmembs) printf("\n%*s <empty>", ind+4, "");
     printf("\n%*s}", ind, "");
-    return TRUE;
+
+    return ret_val;
 }
 
 
@@ -1296,9 +1309,9 @@ dump_dataset_values(hid_t dset)
     }
 
     /* Floating point types should display full precision */
-    sprintf(fmt_float, "%%1.%dg", FLT_DIG);
+    snprintf(fmt_float, sizeof(fmt_float), "%%1.%dg", FLT_DIG);
     info.fmt_float = fmt_float;
-    sprintf(fmt_double, "%%1.%dg", DBL_DIG);
+    snprintf(fmt_double, sizeof(fmt_double), "%%1.%dg", DBL_DIG);
     info.fmt_double = fmt_double;
 
     info.dset_format =  "DSET-%s ";
@@ -1322,8 +1335,8 @@ dump_dataset_values(hid_t dset)
         info.ascii = TRUE;
         info.elmt_suf1 = "";
         info.elmt_suf2 = "";
-        strcpy(string_prefix, info.line_pre);
-        strcat(string_prefix, "\"");
+        strncpy(string_prefix, info.line_pre, sizeof(string_prefix));
+        strncat(string_prefix, "\"", 1);
         info.line_pre = string_prefix;
         info.line_suf = "\"";
     }
@@ -1618,7 +1631,8 @@ dataset_list2(hid_t dset, const char UNUSED *name)
         /* Print information about external strorage */
         if((nf = H5Pget_external_count(dcpl)) > 0) {
             for(i = 0, max_len = 0; i < nf; i++) {
-                H5Pget_external(dcpl, (unsigned)i, sizeof(f_name), f_name, NULL, NULL);
+                if (H5Pget_external(dcpl, (unsigned)i, sizeof(f_name), f_name, NULL, NULL)<0)
+                    continue;
                 n = display_string(NULL, f_name, TRUE);
                 max_len = MAX(max_len, n);
             } /* end for */
@@ -1662,7 +1676,7 @@ dataset_list2(hid_t dset, const char UNUSED *name)
                 filt_id = H5Pget_filter2(dcpl, (unsigned)i, &filt_flags, &cd_nelmts,
                         cd_values, sizeof(f_name), f_name, NULL);
                 f_name[sizeof(f_name) - 1] = '\0';
-                sprintf(s, "Filter-%d:", i);
+                snprintf(s, sizeof(s), "Filter-%d:", i);
                 printf("    %-10s %s-%u %s {", s,
                         (f_name[0] ? f_name : "method"),
                         (unsigned)filt_id,

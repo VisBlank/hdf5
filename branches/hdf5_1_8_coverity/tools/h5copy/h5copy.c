@@ -248,7 +248,7 @@ main (int argc, const char *argv[])
                 usage();
                 leave(EXIT_FAILURE);
             }
-            HDstrcpy(str_flag,opt_arg);
+            HDstrncpy(str_flag,opt_arg, sizeof(str_flag)-1);
             break;
 
         case 'h':
