@@ -188,10 +188,10 @@ H5G_build_fullpath(const char *prefix, const char *name)
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
 
     /* Build full path */
-    HDstrcpy(full_path, prefix);
+    HDstrncpy(full_path, prefix, HDstrlen(prefix)+1);
     if(need_sep)
-        HDstrcat(full_path, "/");
-    HDstrcat(full_path, name);
+        HDstrncat(full_path, "/", 1);
+    HDstrncat(full_path, name, HDstrlen(name));
 
     /* Create reference counted string for path */
     if((ret_value = H5RS_own(full_path)) == NULL)
