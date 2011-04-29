@@ -218,7 +218,7 @@ static hid_t create_test_file(const char *fileext)
     char filename[65];
 
     strcpy(filename, FILENAME);
-    strcat(filename, fileext);
+    strncat(filename, fileext, 1);
     strcat(filename, FILEEXT);
     return H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 }
@@ -228,7 +228,7 @@ static hid_t open_test_file(const char *fileext)
     char filename[65];
 
     strcpy(filename, FILENAME);
-    strcat(filename, fileext);
+    strncat(filename, fileext, 1);
     strcat(filename, FILEEXT);
 
     return H5Fopen(filename, H5F_ACC_RDWR, H5P_DEFAULT);
@@ -259,7 +259,7 @@ herr_t create_char_dataset(hid_t fid, const char *dsidx, int fulldims)
     char name[32];
 
     strcpy(name, DATASET_NAME);
-    strcat(name, dsidx);
+    strncat(name, dsidx, 3);
     /* make a dataset */
     if(H5LTmake_dataset_char(fid, name, rank, dims, buf) >= 0) {
         if(fulldims==0) {
@@ -312,7 +312,7 @@ herr_t create_short_dataset(hid_t fid, const char *dsidx, int fulldims)
     char name[32];
 
     strcpy(name, DATASET_NAME);
-    strcat(name, dsidx);
+    strncat(name, dsidx, 3);
 
     /* make a dataset */
     if(H5LTmake_dataset_short(fid, name, rank, dims, buf) >= 0) {
@@ -361,7 +361,7 @@ herr_t create_int_dataset(hid_t fid, const char *dsidx, int fulldims)
     char name[32];
 
     strcpy(name, DATASET_NAME);
-    strcat(name, dsidx);
+    strncat(name, dsidx, 3);
 
     /* make a dataset */
     if(H5LTmake_dataset_int(fid, name, rank, dims, buf) >= 0) {
@@ -413,7 +413,7 @@ herr_t create_long_dataset(hid_t fid, const char *dsname, const char *dsidx, int
     long    s44_wbuf[DIM4_SIZE] = {280,280};
     char name[32];
 
-    strcpy(name, dsname);
+    strncpy(name, dsname, 31);
 
     /* make a dataset */
     if(H5LTmake_dataset_long(fid, name, rank, dims, buf) >= 0) {
@@ -469,7 +469,7 @@ herr_t create_float_dataset(hid_t fid, const char *dsidx, int fulldims)
     char name[32];
 
     strcpy(name, DATASET_NAME);
-    strcat(name, dsidx);
+    strncat(name, dsidx, 3);
 
     /* make a dataset */
     if(H5LTmake_dataset_float(fid, name, rank, dims, buf) >= 0) {
@@ -504,14 +504,14 @@ herr_t create_DS1_char_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
     char name[32];
 
     strcpy(name, DS_1_NAME);
-    strcat(name, dsidx);
+    strncat(name, dsidx, 3);
     /* make a DS dataset for the first dimension */
     if(H5LTmake_dataset_char(fid, name, rankds, s_dim, s_wbuf) < 0)
         return FAIL;
 
     if(s1_wbuf!=NULL) {
         strcpy(name, DS_11_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the first dimension  */
         if(H5LTmake_dataset_char(fid, name, rankds, s_dim, s1_wbuf) < 0)
             return FAIL;
@@ -529,14 +529,14 @@ herr_t create_DS2_char_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
     char name[32];
 
     strcpy(name, DS_2_NAME);
-    strcat(name, dsidx);
+    strncat(name, dsidx, 3);
     /* make a DS dataset for the second dimension */
     if(H5LTmake_dataset_char(fid, name, rankds, s_dim, s_wbuf) < 0)
         return FAIL;
 
     if(s1_wbuf!=NULL) {
         strcpy(name, DS_21_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_char(fid, name, rankds, s_dim, s1_wbuf) < 0)
             return FAIL;
@@ -544,7 +544,7 @@ herr_t create_DS2_char_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
 
     if(s2_wbuf!=NULL) {
         strcpy(name, DS_22_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_char(fid, name, rankds, s_dim, s2_wbuf) < 0)
             return FAIL;
@@ -562,14 +562,14 @@ herr_t create_DS3_char_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
     char name[32];
 
     strcpy(name, DS_3_NAME);
-    strcat(name, dsidx);
+    strncat(name, dsidx, 3);
     /* make a DS dataset for the first dimension */
     if(H5LTmake_dataset_char(fid, name, rankds, s_dim, s_wbuf) < 0)
         return FAIL;
 
     if(s1_wbuf!=NULL) {
         strcpy(name, DS_31_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_char(fid, name, rankds, s_dim, s1_wbuf) < 0)
             return FAIL;
@@ -577,7 +577,7 @@ herr_t create_DS3_char_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
 
     if(s2_wbuf!=NULL) {
         strcpy(name, DS_32_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_char(fid, name, rankds, s_dim, s2_wbuf) < 0)
             return FAIL;
@@ -585,7 +585,7 @@ herr_t create_DS3_char_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
 
     if(s3_wbuf!=NULL) {
         strcpy(name, DS_33_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_char(fid, name, rankds, s_dim, s3_wbuf) < 0)
             return FAIL;
@@ -603,14 +603,14 @@ herr_t create_DS1_short_datasets(hid_t fid, const char *dsidx, int rankds, hsize
     char name[32];
 
     strcpy(name, DS_1_NAME);
-    strcat(name, dsidx);
+    strncat(name, dsidx, 3);
     /* make a DS dataset for the first dimension */
     if(H5LTmake_dataset_short(fid, name, rankds, s_dim, s_wbuf) < 0)
         return FAIL;
 
     if(s1_wbuf!=NULL) {
         strcpy(name, DS_11_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the first dimension  */
         if(H5LTmake_dataset_short(fid, name, rankds, s_dim, s1_wbuf) < 0)
             return FAIL;
@@ -628,7 +628,7 @@ herr_t create_DS2_short_datasets(hid_t fid, const char *dsidx, int rankds, hsize
     char name[32];
 
     strcpy(name, DS_2_NAME);
-    strcat(name, dsidx);
+    strncat(name, dsidx, 3);
 
     /* make a DS dataset for the second dimension */
     if(H5LTmake_dataset_short(fid, name, rankds, s_dim, s_wbuf) < 0)
@@ -636,7 +636,7 @@ herr_t create_DS2_short_datasets(hid_t fid, const char *dsidx, int rankds, hsize
 
     if(s1_wbuf!=NULL) {
         strcpy(name, DS_21_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_short(fid, name, rankds, s_dim, s1_wbuf) < 0)
             return FAIL;
@@ -644,7 +644,7 @@ herr_t create_DS2_short_datasets(hid_t fid, const char *dsidx, int rankds, hsize
 
     if(s2_wbuf!=NULL) {
         strcpy(name, DS_22_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_short(fid, name, rankds, s_dim, s2_wbuf) < 0)
             return FAIL;
@@ -662,7 +662,7 @@ herr_t create_DS3_short_datasets(hid_t fid, const char *dsidx, int rankds, hsize
     char name[32];
 
     strcpy(name, DS_3_NAME);
-    strcat(name, dsidx);
+    strncat(name, dsidx, 3);
 
     /* make a DS dataset for the first dimension */
     if(H5LTmake_dataset_short(fid, name, rankds, s_dim, s_wbuf) < 0)
@@ -670,7 +670,7 @@ herr_t create_DS3_short_datasets(hid_t fid, const char *dsidx, int rankds, hsize
 
     if(s1_wbuf!=NULL) {
         strcpy(name, DS_31_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset for the first dimension */
         if(H5LTmake_dataset_short(fid, name, rankds, s_dim, s1_wbuf) < 0)
             return FAIL;
@@ -678,7 +678,7 @@ herr_t create_DS3_short_datasets(hid_t fid, const char *dsidx, int rankds, hsize
 
     if(s2_wbuf!=NULL) {
         strcpy(name, DS_32_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset for the first dimension */
         if(H5LTmake_dataset_short(fid, name, rankds, s_dim, s2_wbuf) < 0)
             return FAIL;
@@ -686,7 +686,7 @@ herr_t create_DS3_short_datasets(hid_t fid, const char *dsidx, int rankds, hsize
 
     if(s3_wbuf!=NULL) {
         strcpy(name, DS_33_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset for the first dimension */
         if(H5LTmake_dataset_short(fid, name, rankds, s_dim, s3_wbuf) < 0)
             return FAIL;
@@ -704,7 +704,7 @@ herr_t create_DS1_int_datasets(hid_t fid, const char *dsidx, int rankds, hsize_t
     char name[32];
 
     strcpy(name, DS_1_NAME);
-    strcat(name, dsidx);
+    strncat(name, dsidx, 3);
 
     /* make a DS dataset for the first dimension */
     if(H5LTmake_dataset_int(fid, name, rankds, s_dim, s_wbuf) < 0)
@@ -712,7 +712,7 @@ herr_t create_DS1_int_datasets(hid_t fid, const char *dsidx, int rankds, hsize_t
 
     if(s1_wbuf!=NULL) {
         strcpy(name, DS_11_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the first dimension  */
         if(H5LTmake_dataset_int(fid, name, rankds, s_dim, s1_wbuf) < 0)
             return FAIL;
@@ -730,7 +730,7 @@ herr_t create_DS2_int_datasets(hid_t fid, const char *dsidx, int rankds, hsize_t
     char name[32];
 
     strcpy(name, DS_2_NAME);
-    strcat(name, dsidx);
+    strncat(name, dsidx, 3);
 
     /* make a DS dataset for the second dimension */
     if(H5LTmake_dataset_int(fid, name, rankds, s_dim, s_wbuf) < 0)
@@ -738,7 +738,7 @@ herr_t create_DS2_int_datasets(hid_t fid, const char *dsidx, int rankds, hsize_t
 
     if(s1_wbuf!=NULL) {
         strcpy(name, DS_21_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_int(fid, name, rankds, s_dim, s1_wbuf) < 0)
             return FAIL;
@@ -746,7 +746,7 @@ herr_t create_DS2_int_datasets(hid_t fid, const char *dsidx, int rankds, hsize_t
 
     if(s2_wbuf!=NULL) {
         strcpy(name, DS_22_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_int(fid, name, rankds, s_dim, s2_wbuf) < 0)
             return FAIL;
@@ -764,7 +764,7 @@ herr_t create_DS3_int_datasets(hid_t fid, const char *dsidx, int rankds, hsize_t
     char name[32];
 
     strcpy(name, DS_3_NAME);
-    strcat(name, dsidx);
+    strncat(name, dsidx, 3);
 
     /* make a DS dataset for the first dimension */
     if(H5LTmake_dataset_int(fid, name, rankds, s_dim, s_wbuf) < 0)
@@ -772,7 +772,7 @@ herr_t create_DS3_int_datasets(hid_t fid, const char *dsidx, int rankds, hsize_t
 
     if(s1_wbuf!=NULL) {
         strcpy(name, DS_31_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the first dimension  */
         if(H5LTmake_dataset_int(fid, name, rankds, s_dim, s1_wbuf) < 0)
             return FAIL;
@@ -780,7 +780,7 @@ herr_t create_DS3_int_datasets(hid_t fid, const char *dsidx, int rankds, hsize_t
 
     if(s2_wbuf!=NULL) {
         strcpy(name, DS_32_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the first dimension  */
         if(H5LTmake_dataset_int(fid, name, rankds, s_dim, s2_wbuf) < 0)
             return FAIL;
@@ -788,7 +788,7 @@ herr_t create_DS3_int_datasets(hid_t fid, const char *dsidx, int rankds, hsize_t
 
     if(s3_wbuf!=NULL) {
         strcpy(name, DS_33_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the first dimension  */
         if(H5LTmake_dataset_int(fid, name, rankds, s_dim, s3_wbuf) < 0)
             return FAIL;
@@ -806,7 +806,7 @@ herr_t create_DS1_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
     char name[32];
 
     strcpy(name, DS_1_NAME);
-    strcat(name, dsidx);
+    strncat(name, dsidx, 3);
 
     /* make a DS dataset for the first dimension */
     if(H5LTmake_dataset_long(fid, name, rankds, s_dim, s_wbuf) < 0)
@@ -814,7 +814,7 @@ herr_t create_DS1_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
 
     if(s1_wbuf!=NULL) {
         strcpy(name, DS_11_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the first dimension  */
         if(H5LTmake_dataset_long(fid, name, rankds, s_dim, s1_wbuf) < 0)
             return FAIL;
@@ -832,7 +832,7 @@ herr_t create_DS2_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
     char name[32];
 
     strcpy(name, DS_2_NAME);
-    strcat(name, dsidx);
+    strncat(name, dsidx, 3);
 
     /* make a DS dataset for the second dimension */
     if(H5LTmake_dataset_long(fid, name, rankds, s_dim, s_wbuf) < 0)
@@ -840,7 +840,7 @@ herr_t create_DS2_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
 
     if(s1_wbuf!=NULL) {
         strcpy(name, DS_21_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_long(fid, name, rankds, s_dim, s1_wbuf) < 0)
             return FAIL;
@@ -848,7 +848,7 @@ herr_t create_DS2_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
 
     if(s2_wbuf!=NULL) {
         strcpy(name, DS_22_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_long(fid, name, rankds, s_dim, s2_wbuf) < 0)
             return FAIL;
@@ -866,7 +866,7 @@ herr_t create_DS3_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
     char name[32];
 
     strcpy(name, DS_3_NAME);
-    strcat(name, dsidx);
+    strncat(name, dsidx, 3);
 
     /* make a DS dataset for the first dimension */
     if(H5LTmake_dataset_long(fid, name, rankds, s_dim, s_wbuf) < 0)
@@ -874,7 +874,7 @@ herr_t create_DS3_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
 
     if(s1_wbuf!=NULL) {
         strcpy(name, DS_31_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_long(fid, name, rankds, s_dim, s1_wbuf) < 0)
             return FAIL;
@@ -882,7 +882,7 @@ herr_t create_DS3_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
 
     if(s2_wbuf!=NULL) {
         strcpy(name, DS_32_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_long(fid, name, rankds, s_dim, s2_wbuf) < 0)
             return FAIL;
@@ -890,7 +890,7 @@ herr_t create_DS3_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
 
     if(s3_wbuf!=NULL) {
         strcpy(name, DS_33_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_long(fid, name, rankds, s_dim, s3_wbuf) < 0)
             return FAIL;
@@ -908,7 +908,7 @@ herr_t create_DS4_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
     char name[32];
 
     strcpy(name, DS_4_NAME);
-    strcat(name, dsidx);
+    strncat(name, dsidx, 3);
 
     /* make a DS dataset for the first dimension */
     if(H5LTmake_dataset_long(fid, name, rankds, s_dim, s_wbuf) < 0)
@@ -916,7 +916,7 @@ herr_t create_DS4_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
 
     if(s1_wbuf!=NULL) {
         strcpy(name, DS_41_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_long(fid, name, rankds, s_dim, s1_wbuf) < 0)
             return FAIL;
@@ -924,7 +924,7 @@ herr_t create_DS4_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
 
     if(s2_wbuf!=NULL) {
         strcpy(name, DS_42_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_long(fid, name, rankds, s_dim, s2_wbuf) < 0)
             return FAIL;
@@ -932,7 +932,7 @@ herr_t create_DS4_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
 
     if(s3_wbuf!=NULL) {
         strcpy(name, DS_43_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_long(fid, name, rankds, s_dim, s3_wbuf) < 0)
             return FAIL;
@@ -940,7 +940,7 @@ herr_t create_DS4_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
 
     if(s4_wbuf!=NULL) {
         strcpy(name, DS_44_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_long(fid, name, rankds, s_dim, s4_wbuf) < 0)
             return FAIL;
@@ -958,7 +958,7 @@ herr_t create_DS1_float_datasets(hid_t fid, const char *dsidx, int rankds, hsize
     char name[32];
 
     strcpy(name, DS_1_NAME);
-    strcat(name, dsidx);
+    strncat(name, dsidx, 3);
 
     /* make a DS dataset for the first dimension */
     if(H5LTmake_dataset_float(fid, name, rankds, s_dim, s_wbuf) < 0)
@@ -966,7 +966,7 @@ herr_t create_DS1_float_datasets(hid_t fid, const char *dsidx, int rankds, hsize
 
     if(s1_wbuf!=NULL) {
         strcpy(name, DS_11_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the first dimension  */
         if(H5LTmake_dataset_float(fid, name, rankds, s_dim, s1_wbuf) < 0)
             return FAIL;
@@ -984,7 +984,7 @@ herr_t create_DS2_float_datasets(hid_t fid, const char *dsidx, int rankds, hsize
     char name[32];
 
     strcpy(name, DS_2_NAME);
-    strcat(name, dsidx);
+    strncat(name, dsidx, 3);
 
     /* make a DS dataset for the second dimension */
     if(H5LTmake_dataset_float(fid, name, rankds, s_dim, s_wbuf) < 0)
@@ -992,7 +992,7 @@ herr_t create_DS2_float_datasets(hid_t fid, const char *dsidx, int rankds, hsize
 
     if(s1_wbuf!=NULL) {
         strcpy(name, DS_21_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_float(fid, name, rankds, s_dim, s1_wbuf) < 0)
             return FAIL;
@@ -1000,7 +1000,7 @@ herr_t create_DS2_float_datasets(hid_t fid, const char *dsidx, int rankds, hsize
 
     if(s2_wbuf!=NULL) {
         strcpy(name, DS_22_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_float(fid, name, rankds, s_dim, s2_wbuf) < 0)
             return FAIL;
@@ -1018,7 +1018,7 @@ herr_t create_DS3_float_datasets(hid_t fid, const char *dsidx, int rankds, hsize
     char name[32];
 
     strcpy(name, DS_3_NAME);
-    strcat(name, dsidx);
+    strncat(name, dsidx, 3);
 
     /* make a DS dataset for the first dimension */
     if(H5LTmake_dataset_float(fid, name, rankds, s_dim, s_wbuf) < 0)
@@ -1026,7 +1026,7 @@ herr_t create_DS3_float_datasets(hid_t fid, const char *dsidx, int rankds, hsize
 
     if(s1_wbuf!=NULL) {
         strcpy(name, DS_31_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_float(fid, name, rankds, s_dim, s1_wbuf) < 0)
             return FAIL;
@@ -1034,7 +1034,7 @@ herr_t create_DS3_float_datasets(hid_t fid, const char *dsidx, int rankds, hsize
 
     if(s2_wbuf!=NULL) {
         strcpy(name, DS_32_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_float(fid, name, rankds, s_dim, s2_wbuf) < 0)
             return FAIL;
@@ -1042,7 +1042,7 @@ herr_t create_DS3_float_datasets(hid_t fid, const char *dsidx, int rankds, hsize
 
     if(s3_wbuf!=NULL) {
         strcpy(name, DS_33_NAME);
-        strcat(name, dsidx);
+        strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_float(fid, name, rankds, s_dim, s3_wbuf) < 0)
             return FAIL;
@@ -2291,10 +2291,10 @@ static int test_foreign_scaleattached(const char *fileforeign)
 
     /* compose the name of the file to open, using the srcdir, if appropriate */
     if (srcdir) {
-        strcpy(filename,srcdir);
+        strncpy(filename,srcdir,490); /* leave enough room for filename */
         strcat(filename,"/");
     }
-    strcat(filename, fileforeign);
+    strncat(filename, fileforeign, 15);
 
     TESTING2("test_foreign_scaleattached");
 
@@ -4629,11 +4629,11 @@ static int read_data( const char* fname,
     /* compose the name of the file to open, using the srcdir, if appropriate */
     if(srcdir)
     {
-        strcpy(data_file, srcdir);
+        strncpy(data_file, srcdir, 496); /* Leave room for filename */
         strcat(data_file, "/");
     }
     /* read first data file */
-    strcat(data_file,fname);
+    strncat(data_file,fname,12);
 
     f = fopen(data_file, "r");
     if( f == NULL )
