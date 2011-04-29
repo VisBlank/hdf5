@@ -3144,7 +3144,7 @@ h5tools_print_datatype(h5tools_str_t *buffer, const h5tool_format_t *info,
            char *ttag = H5Tget_tag(type);
            h5tools_str_append(buffer, "OPAQUE_TAG \"%s\";\n", ttag);
            if (ttag)
-              H5MM_xfree(ttag);
+              HDfree(ttag);
         } 
         break;
 
