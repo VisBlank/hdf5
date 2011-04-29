@@ -1180,7 +1180,7 @@ H5G_get_name_by_addr(hid_t file, hid_t lapl_id, hid_t dxpl_id, const H5O_loc_t *
         /* If there's a buffer provided, copy into it, up to the limit of its size */
         if(name) {
             /* Copy the initial path separator */
-            HDstrcpy(name, "/");
+            HDstrncpy(name, "/", 2);
 
             /* Append the rest of the path */
             /* (less one character, for the initial path separator) */
