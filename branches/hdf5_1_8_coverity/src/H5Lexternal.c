@@ -329,8 +329,8 @@ H5L_extern_traverse(const char UNUSED *link_name, hid_t cur_group,
 
             /* get last component of file_name */
 	    GET_LAST_DELIMITER(file_name, ptr)
-	    HDassert(ptr);
-	    HDstrncpy(temp_file_name, ++ptr, strlen(ptr) + 1);
+	    HDassert(ptr++);
+	    HDstrncpy(temp_file_name, ptr, strlen(ptr) + 1);
         } /* end if */
     } /* end if */
     else if(CHECK_ABS_DRIVE(file_name)) {
