@@ -428,7 +428,11 @@ H5FD_stdio_open( const char *name, unsigned flags, hid_t fapl_id,
     file->fileindexhi = fileinfo.nFileIndexHigh;
     file->fileindexlo = fileinfo.nFileIndexLow;
 #else
-    fstat(fileno(file->fp), &sb);
+    if(fstat(fileno(file->fp), &sb) < 0) {
+        free(file);
+        fclose(f);
+        H5Epush_ret(func, H5E_ERR_CLS, H5E_FILE, H5E_BADFILE, "unable to fstat file", NULL)
+    }
     file->device = sb.st_dev;
     file->inode = sb.st_ino;
 #endif
