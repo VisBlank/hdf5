@@ -20,8 +20,8 @@
 # in column one with a '#'.
 #------------------------------------------------------------------------------
 
-./.autom4te.cfg             		_DO_NOT_DISTRIBUTE_
-./.h5chkright.ini			_DO_NOT_DISTRIBUTE_
+./.autom4te.cfg                 _DO_NOT_DISTRIBUTE_
+./.h5chkright.ini      _DO_NOT_DISTRIBUTE_
 ./ACKNOWLEDGMENTS
 ./COPYING
 ./MANIFEST
@@ -41,22 +41,21 @@
 
 ./bin/COPYING
 ./bin/buildhdf5
-./bin/checkapi				_DO_NOT_DISTRIBUTE_
-./bin/checkposix			_DO_NOT_DISTRIBUTE_
-./bin/chkconfigure			_DO_NOT_DISTRIBUTE_
-./bin/chkcopyright			_DO_NOT_DISTRIBUTE_
+./bin/checkapi        _DO_NOT_DISTRIBUTE_
+./bin/checkposix      _DO_NOT_DISTRIBUTE_
+./bin/chkconfigure      _DO_NOT_DISTRIBUTE_
+./bin/chkcopyright      _DO_NOT_DISTRIBUTE_
 ./bin/chkmanifest
 ./bin/compile
 ./bin/config.guess
 ./bin/config.sub
-./bin/config_para_ibm_sp.sh 
-./bin/debug-ohdr			_DO_NOT_DISTRIBUTE_
+./bin/debug-ohdr      _DO_NOT_DISTRIBUTE_
 ./bin/dependencies
 ./bin/depcomp
 ./bin/deploy
 ./bin/distdep
-./bin/errors			        _DO_NOT_DISTRIBUTE_
-./bin/gcov_script		        _DO_NOT_DISTRIBUTE_
+./bin/errors              _DO_NOT_DISTRIBUTE_
+./bin/gcov_script            _DO_NOT_DISTRIBUTE_
 ./bin/h5vers
 ./bin/install-sh
 ./bin/iostats
@@ -70,13 +69,13 @@
 ./bin/mkdirs
 ./bin/mkinstalldirs
 ./bin/newer
-./bin/reconfigure			_DO_NOT_DISTRIBUTE_
-./bin/README				_DO_NOT_DISTRIBUTE_
+./bin/reconfigure      _DO_NOT_DISTRIBUTE_
+./bin/README        _DO_NOT_DISTRIBUTE_
 ./bin/release
-./bin/runtest				_DO_NOT_DISTRIBUTE_
+./bin/runtest        _DO_NOT_DISTRIBUTE_
 ./bin/snapshot
-./bin/snapshot_version			_DO_NOT_DISTRIBUTE_
-./bin/timekeeper			_DO_NOT_DISTRIBUTE_
+./bin/snapshot_version      _DO_NOT_DISTRIBUTE_
+./bin/timekeeper      _DO_NOT_DISTRIBUTE_
 ./bin/trace
 ./bin/yodconfigure
 
@@ -96,7 +95,6 @@
 ./config/i686-pc-cygwin
 ./config/ia64-linux-gnu
 ./config/ibm-aix
-./config/ibm-aix6.x
 ./config/ibm-flags
 ./config/intel-fflags
 ./config/intel-flags
@@ -218,7 +216,7 @@
 ./fortran/src/Makefile.am
 ./fortran/src/Makefile.in
 ./fortran/src/README
-./fortran/src/README_DEVELOPEMENT 	_DO_NOT_DISTRIBUTE_
+./fortran/src/README_DEVELOPEMENT   _DO_NOT_DISTRIBUTE_
 ./fortran/src/h5fc.in
 ./fortran/src/hdf5_fortrandll.def
 
@@ -411,18 +409,18 @@
 ./release_docs/INSTALL_VMS.txt
 ./release_docs/INSTALL_Windows.txt
 ./release_docs/USING_Windows.txt
-./release_docs/CMake.txt
 ./release_docs/INSTALL_Windows_From_Command_Line.txt
 ./release_docs/INSTALL_Windows_Short_NET.TXT
 ./release_docs/INSTALL_Windows_Short_VS2005.TXT
 ./release_docs/INSTALL_Windows_Short_VS2008.TXT
+./release_docs/CMake.txt
 ./release_docs/INSTALL_parallel
 ./release_docs/RELEASE.txt
 
-./src/.indent.pro			_DO_NOT_DISTRIBUTE_
-./src/hdf5.lnt				_DO_NOT_DISTRIBUTE_
-./src/hdf5-win.lnt			_DO_NOT_DISTRIBUTE_
-./src/hdf5-lin.lnt			_DO_NOT_DISTRIBUTE_
+./src/.indent.pro      _DO_NOT_DISTRIBUTE_
+./src/hdf5.lnt        _DO_NOT_DISTRIBUTE_
+./src/hdf5-win.lnt      _DO_NOT_DISTRIBUTE_
+./src/hdf5-lin.lnt      _DO_NOT_DISTRIBUTE_
 ./src/COPYING
 ./src/H5.c
 ./src/H5checksum.c
@@ -459,7 +457,7 @@
 ./src/H5Bdbg.c
 ./src/H5Bpkg.h
 ./src/H5Bprivate.h
-./src/H5Bpublic.h			
+./src/H5Bpublic.h      
 ./src/H5B2.c
 ./src/H5B2cache.c
 ./src/H5B2dbg.c
@@ -467,7 +465,7 @@
 ./src/H5B2int.c
 ./src/H5B2pkg.h
 ./src/H5B2private.h
-./src/H5B2public.h		
+./src/H5B2public.h    
 ./src/H5B2stat.c
 ./src/H5B2test.c
 ./src/H5C.c
@@ -523,6 +521,7 @@
 ./src/H5Faccum.c
 ./src/H5Fdbg.c
 ./src/H5Fdeprec.c
+./src/H5Fefc.c
 ./src/H5Ffake.c
 ./src/H5Fio.c
 ./src/H5Fmount.c
@@ -620,7 +619,7 @@
 ./src/H5HFman.c
 ./src/H5HFpkg.h
 ./src/H5HFprivate.h
-./src/H5HFpublic.h	
+./src/H5HFpublic.h  
 ./src/H5HFsection.c
 ./src/H5HFspace.c
 ./src/H5HFstat.c
@@ -809,6 +808,7 @@
 ./test/Makefile.in
 ./test/accum.c
 ./test/app_ref.c
+./test/bad_compound.h5
 ./test/be_data.h5
 ./test/be_extlink1.h5
 ./test/be_extlink2.h5
@@ -830,6 +830,7 @@
 ./test/dtypes.c
 ./test/dtransform.c
 ./test/earray.c
+./test/efc.c
 ./test/enum.c
 ./test/extend.c
 ./test/external.c
@@ -851,25 +852,26 @@
 ./test/flush1.c
 ./test/flush2.c
 ./test/gen_bad_ohdr.c                   _DO_NOT_DISTRIBUTE_
+./test/gen_bad_compound.c               _DO_NOT_DISTRIBUTE_
 ./test/gen_bogus.c                      _DO_NOT_DISTRIBUTE_
 ./test/gen_cross.c                      _DO_NOT_DISTRIBUTE_
-./test/gen_deflate.c			_DO_NOT_DISTRIBUTE_
+./test/gen_deflate.c      _DO_NOT_DISTRIBUTE_
 ./test/gen_filespace.c                  _DO_NOT_DISTRIBUTE_
-./test/gen_mergemsg.c			_DO_NOT_DISTRIBUTE_
-./test/gen_new_array.c			_DO_NOT_DISTRIBUTE_
-./test/gen_new_fill.c			_DO_NOT_DISTRIBUTE_
-./test/gen_new_group.c			_DO_NOT_DISTRIBUTE_
-./test/gen_new_mtime.c			_DO_NOT_DISTRIBUTE_
-./test/gen_new_super.c			_DO_NOT_DISTRIBUTE_
-./test/gen_noencoder.c			_DO_NOT_DISTRIBUTE_
-./test/gen_nullspace.c			_DO_NOT_DISTRIBUTE_
-./test/gen_old_array.c			_DO_NOT_DISTRIBUTE_
-./test/gen_old_group.c			_DO_NOT_DISTRIBUTE_
-./test/gen_old_layout.c			_DO_NOT_DISTRIBUTE_
-./test/gen_old_mtime.c			_DO_NOT_DISTRIBUTE_
+./test/gen_mergemsg.c      _DO_NOT_DISTRIBUTE_
+./test/gen_new_array.c      _DO_NOT_DISTRIBUTE_
+./test/gen_new_fill.c      _DO_NOT_DISTRIBUTE_
+./test/gen_new_group.c      _DO_NOT_DISTRIBUTE_
+./test/gen_new_mtime.c      _DO_NOT_DISTRIBUTE_
+./test/gen_new_super.c      _DO_NOT_DISTRIBUTE_
+./test/gen_noencoder.c      _DO_NOT_DISTRIBUTE_
+./test/gen_nullspace.c      _DO_NOT_DISTRIBUTE_
+./test/gen_old_array.c      _DO_NOT_DISTRIBUTE_
+./test/gen_old_group.c      _DO_NOT_DISTRIBUTE_
+./test/gen_old_layout.c      _DO_NOT_DISTRIBUTE_
+./test/gen_old_mtime.c      _DO_NOT_DISTRIBUTE_
 ./test/gen_sizes_lheap.c                _DO_NOT_DISTRIBUTE_
-./test/gen_specmetaread.c		_DO_NOT_DISTRIBUTE_
-./test/gen_udlinks.c			_DO_NOT_DISTRIBUTE_
+./test/gen_specmetaread.c    _DO_NOT_DISTRIBUTE_
+./test/gen_udlinks.c      _DO_NOT_DISTRIBUTE_
 ./test/getname.c
 ./test/gheap.c
 ./test/group_old.h5
@@ -893,7 +895,7 @@
 ./test/reserved.c
 ./test/pool.c
 ./test/set_extent.c
-./test/space_overflow.c			_DO_NOT_DISTRIBUTE_
+./test/space_overflow.c      _DO_NOT_DISTRIBUTE_
 ./test/specmetaread.h5
 ./test/stab.c
 ./test/tarray.c
@@ -1165,7 +1167,8 @@
 ./tools/testfiles/family_file00015.h5
 ./tools/testfiles/family_file00016.h5
 ./tools/testfiles/family_file00017.h5
-./tools/testfiles/packedbits.h5
+./tools/testfiles/filter_fail.h5
+./tools/testfiles/filter_fail.ddl
 ./tools/testfiles/packedbits.ddl
 ./tools/testfiles/file_space.h5
 ./tools/testfiles/file_space.ddl
@@ -1174,9 +1177,12 @@
 ./tools/testfiles/tall-3.ddl
 ./tools/testfiles/tall-4s.ddl
 ./tools/testfiles/tall-5s.ddl
+./tools/testfiles/tall-6.ddl
 ./tools/testfiles/tall.h5
 ./tools/testfiles/tarray1.ddl
 ./tools/testfiles/tarray1.h5
+./tools/testfiles/tarray1_big.ddl
+./tools/testfiles/tarray1_big.h5
 ./tools/testfiles/tarray2.ddl
 ./tools/testfiles/tarray2.h5
 ./tools/testfiles/tarray3.ddl
@@ -1356,6 +1362,61 @@
 ./tools/testfiles/tbigdims.ddl
 ./tools/testfiles/tbigdims.h5
 ./tools/testfiles/thyperslab.h5
+# h5dump packed bits validation
+./tools/testfiles/tnofilename-with-packed-bits.ddl
+./tools/testfiles/tpbitsLengthPositive.ddl
+./tools/testfiles/tpbitsMaxExceeded.ddl
+./tools/testfiles/tpbitsSigned.ddl
+./tools/testfiles/tpbitsSigned2.ddl
+./tools/testfiles/tpbitsSigned4.ddl
+./tools/testfiles/tpbitsSignedWhole.ddl
+./tools/testfiles/tpbitsSignedInt.ddl
+./tools/testfiles/tpbitsSignedInt4.ddl
+./tools/testfiles/tpbitsSignedInt8.ddl
+./tools/testfiles/tpbitsSignedIntWhole.ddl
+./tools/testfiles/tpbitsSignedLong.ddl
+./tools/testfiles/tpbitsSignedLong8.ddl
+./tools/testfiles/tpbitsSignedLong16.ddl
+./tools/testfiles/tpbitsSignedLongWhole.ddl
+./tools/testfiles/tpbitsSignedLongLong.ddl
+./tools/testfiles/tpbitsSignedLongLong16.ddl
+./tools/testfiles/tpbitsSignedLongLong32.ddl
+./tools/testfiles/tpbitsSignedLongLongWhole.ddl
+./tools/testfiles/tpbitsSignedLongLongWhole1.ddl
+./tools/testfiles/tpbitsSignedLongLongWhole63.ddl
+./tools/testfiles/tpbitsOffsetNegative.ddl
+./tools/testfiles/tpbitsUnsigned.ddl
+./tools/testfiles/tpbitsUnsigned2.ddl
+./tools/testfiles/tpbitsUnsigned4.ddl
+./tools/testfiles/tpbitsUnsignedWhole.ddl
+./tools/testfiles/tpbitsUnsignedInt.ddl
+./tools/testfiles/tpbitsUnsignedInt4.ddl
+./tools/testfiles/tpbitsUnsignedInt8.ddl
+./tools/testfiles/tpbitsUnsignedIntWhole.ddl
+./tools/testfiles/tpbitsUnsignedLong.ddl
+./tools/testfiles/tpbitsUnsignedLong8.ddl
+./tools/testfiles/tpbitsUnsignedLong16.ddl
+./tools/testfiles/tpbitsUnsignedLongWhole.ddl
+./tools/testfiles/tpbitsUnsignedLongLong.ddl
+./tools/testfiles/tpbitsUnsignedLongLong16.ddl
+./tools/testfiles/tpbitsUnsignedLongLong32.ddl
+./tools/testfiles/tpbitsUnsignedLongLongWhole.ddl
+./tools/testfiles/tpbitsUnsignedLongLongWhole1.ddl
+./tools/testfiles/tpbitsUnsignedLongLongWhole63.ddl
+./tools/testfiles/tpbitsMax.ddl
+./tools/testfiles/packedbits.h5
+./tools/testfiles/tpbitsArray.ddl
+./tools/testfiles/tpbitsCompound.ddl
+./tools/testfiles/tpbitsIncomplete.ddl
+./tools/testfiles/tpbitsLengthExceeded.ddl
+./tools/testfiles/tpbitsCharLengthExceeded.ddl
+./tools/testfiles/tpbitsIntLengthExceeded.ddl
+./tools/testfiles/tpbitsLongLengthExceeded.ddl
+./tools/testfiles/tpbitsOffsetExceeded.ddl
+./tools/testfiles/tpbitsCharOffsetExceeded.ddl
+./tools/testfiles/tpbitsIntOffsetExceeded.ddl
+./tools/testfiles/tpbitsLongOffsetExceeded.ddl
+./tools/testfiles/tpbitsOverlapped.ddl
 # h5dump h5import validation
 ./tools/testfiles/out3.h5import
 ./tools/testfiles/tordergr.h5
@@ -1373,7 +1434,8 @@
 ./tools/testfiles/tfpformat.h5
 # h5dump h5repack validation
 ./tools/testfiles/h5repack_filters.h5.ddl
-
+./tools/testfiles/zerodim.ddl
+./tools/testfiles/zerodim.h5
 
 # Expected output from h5ls tests
 ./tools/testfiles/nosuchfile.ls
@@ -1571,13 +1633,29 @@
 ./tools/h5diff/testfiles/h5diff_628.txt
 ./tools/h5diff/testfiles/h5diff_629.txt
 ./tools/h5diff/testfiles/h5diff_70.txt
+./tools/h5diff/testfiles/h5diff_700.txt
+./tools/h5diff/testfiles/h5diff_701.txt
+./tools/h5diff/testfiles/h5diff_702.txt
+./tools/h5diff/testfiles/h5diff_703.txt
+./tools/h5diff/testfiles/h5diff_704.txt
+./tools/h5diff/testfiles/h5diff_705.txt
+./tools/h5diff/testfiles/h5diff_706.txt
+./tools/h5diff/testfiles/h5diff_707.txt
+./tools/h5diff/testfiles/h5diff_708.txt
+./tools/h5diff/testfiles/h5diff_709.txt
+./tools/h5diff/testfiles/h5diff_710.txt
 ./tools/h5diff/testfiles/h5diff_80.txt
 ./tools/h5diff/testfiles/h5diff_90.txt
 ./tools/h5diff/testfiles/h5diff_100.txt
 ./tools/h5diff/testfiles/h5diff_101.txt
-./tools/h5diff/testfiles/h5diff_101w.txt
 ./tools/h5diff/testfiles/h5diff_102.txt
+./tools/h5diff/testfiles/h5diff_103.txt
+./tools/h5diff/testfiles/h5diff_104.txt
+# w for Windows-specific
+./tools/h5diff/testfiles/h5diff_101w.txt
 ./tools/h5diff/testfiles/h5diff_102w.txt
+./tools/h5diff/testfiles/h5diff_103w.txt
+./tools/h5diff/testfiles/h5diff_104w.txt
 ./tools/h5diff/testfiles/h5diff_200.txt
 ./tools/h5diff/testfiles/h5diff_201.txt
 ./tools/h5diff/testfiles/h5diff_202.txt
@@ -1586,6 +1664,7 @@
 ./tools/h5diff/testfiles/h5diff_205.txt
 ./tools/h5diff/testfiles/h5diff_206.txt
 ./tools/h5diff/testfiles/h5diff_207.txt
+./tools/h5diff/testfiles/h5diff_208.txt
 ./tools/h5diff/testfiles/h5diff_300.txt
 ./tools/h5diff/testfiles/h5diff_400.txt
 ./tools/h5diff/testfiles/h5diff_401.txt
@@ -1651,6 +1730,8 @@
 
 ./tools/h5diff/testfiles/h5diff_attr1.h5
 ./tools/h5diff/testfiles/h5diff_attr2.h5
+./tools/h5diff/testfiles/h5diff_attr_v_level1.h5
+./tools/h5diff/testfiles/h5diff_attr_v_level2.h5
 ./tools/h5diff/testfiles/h5diff_basic1.h5
 ./tools/h5diff/testfiles/h5diff_basic2.h5
 ./tools/h5diff/testfiles/h5diff_dset1.h5
@@ -1680,7 +1761,8 @@
 ./tools/h5diff/testfiles/h5diff_exclude2-1.h5
 ./tools/h5diff/testfiles/h5diff_exclude2-2.h5
 ./tools/h5diff/testfiles/h5diff_comp_vl_strs.h5
-
+./tools/h5diff/testfiles/h5diff_dset_zero_dim_size1.h5
+./tools/h5diff/testfiles/h5diff_dset_zero_dim_size2.h5
 
 #test files for h5repack
 ./tools/h5repack/testfiles/h5repack_fill.h5
@@ -1916,6 +1998,7 @@
 ./vms/src/h5pubconf.h
 ./vms/test/check.com
 ./vms/test/make.com
+./vms/test/H5srcdir_str.h
 
 ./vms/build.com
 ./vms/install.com
@@ -1957,16 +2040,22 @@
 ./config/cmake/hdf5-config.cmake.build.in
 ./config/cmake/hdf5-config.cmake.install.in
 ./config/cmake/hdf5-config-version.cmake.in
+./config/cmake/HDFMacros.cmake
 ./config/cmake/HDF5Macros.cmake
+./config/cmake/HDF5UseFortran.cmake
 ./config/cmake/libhdf5.settings.cmake.in
-./config/cmake/mccacheinit.cmake
 ./config/cmake/cacheinit.cmake
+./config/cmake/mccacheinit.cmake
 ./config/cmake/CTest.cmake
 ./config/cmake/grepTest.cmake
 ./config/cmake/runTest.cmake
+./config/cmake/userblockTest.cmake
 ./config/cmake/vfdTest.cmake
 ./config/cmake/CTestCustom.cmake
 ./config/cmake/ConfigureChecks.cmake
+./config/cmake/CPack.cmake
+./config/cmake/NSIS.template.in
+./config/cmake/NSIS.InstallOptions.ini.in
 ./CMakeLists.txt
 ./CTestConfig.cmake
 ./c++/CMakeLists.txt
@@ -2284,6 +2373,8 @@
 ./windows/test/dtransformdll/dtransformdll.vcproj
 ./windows/test/dtypes/dtypes.vcproj
 ./windows/test/dtypesdll/dtypesdll.vcproj
+./windows/test/efc/efc.vcproj
+./windows/test/efcdll/efcdll.vcproj
 ./windows/test/earray/earray.vcproj
 ./windows/test/earraydll/earraydll.vcproj
 ./windows/test/enum/enum.vcproj

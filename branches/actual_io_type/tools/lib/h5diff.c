@@ -47,8 +47,7 @@
  *  2) when diff was found (normal mode)
  *-------------------------------------------------------------------------
  */
-int
-print_objname (diff_opt_t * options, hsize_t nfound)
+int print_objname (diff_opt_t * options, hsize_t nfound)
 {
     return ((options->m_verbose || nfound) && !options->m_quiet) ? 1 : 0;
 }
@@ -60,10 +59,28 @@ print_objname (diff_opt_t * options, hsize_t nfound)
  *
  *-------------------------------------------------------------------------
  */
-void
-do_print_objname (const char *OBJ, const char *path1, const char *path2)
+void do_print_objname (const char *OBJ, const char *path1, const char *path2, diff_opt_t * opts)
 {
+    /* if verbose level is higher than 0, put space line before
+     * displaying any object or symbolic links. This improves
+     * readability of the output. 
+     */
+    if (opts->m_verbose_level >= 1)
+        parallel_print("\n");
     parallel_print("%-7s: <%s> and <%s>\n", OBJ, path1, path2);
+}
+
+/*-------------------------------------------------------------------------
+ * Function: do_print_attrname
+ *
+ * Purpose: print attribute name
+ *
+ *-------------------------------------------------------------------------
+ */
+void
+do_print_attrname (const char *attr, const char *path1, const char *path2)
+{
+    parallel_print("%-7s: <%s> and <%s>\n", attr, path1, path2);
 }
 
 /*-------------------------------------------------------------------------
@@ -915,6 +932,19 @@ hsize_t h5diff(const char *fname1,
     /* if both obj1 and obj2 are group */
     if (obj1type == H5TRAV_TYPE_GROUP && obj2type == H5TRAV_TYPE_GROUP)
     {
+
+        /* 
+         * Use h5tools_is_obj_same() to improve performance by skipping 
+         * comparing details of same objects. If verbose options is used,
+         * need to traverse thorugh the list of objects in the group and
+         * print out object information. Details of same objects will be 
+         * skipped at diff() function.
+         */
+         if(!(options->m_verbose || options->m_report)) {
+             if (h5tools_is_obj_same(file1_id,obj1fullname,file2_id,obj2fullname)!=0)
+                 goto out;
+         }
+
         /* 
          * traverse group1 
          */
@@ -1689,7 +1719,7 @@ out:
     {
         if(print_objname(options, nfound))
         {
-            do_print_objname("dangling link", obj1name, obj2name);
+            do_print_objname("dangling link", obj1name, obj2name, options);
             print_found(nfound);
         }
     }
@@ -1756,6 +1786,7 @@ hsize_t diff(hid_t file1_id,
     int     ret;
     int     is_dangle_link1 = 0;
     int     is_dangle_link2 = 0;
+    int     is_hard_link = 0;
     hsize_t nfound = 0;
 
 
@@ -1817,6 +1848,58 @@ hsize_t diff(hid_t file1_id,
     /* found dangling link */
     if (is_dangle_link1 || is_dangle_link2)
         goto out2;
+  
+    /* 
+     * Use h5tools_is_obj_same() to improve performance by skipping 
+     * comparing details of same objects,
+     * 
+     * check if two paths point to the same object for hard links or 
+     * the option of follow link is used. h5tools_is_obj_same() is not
+     * needed for other cases.
+     */
+    is_hard_link = (type==H5TRAV_TYPE_DATASET ||
+                    type==H5TRAV_TYPE_NAMED_DATATYPE ||
+                    type==H5TRAV_TYPE_GROUP);
+     if (options->follow_links || is_hard_link)
+     {
+        if (h5tools_is_obj_same(file1_id, path1, file2_id, path2)!=0)
+        {
+            /* print information is only verbose option is used */
+            if(options->m_verbose || options->m_report)
+            {
+                switch(type)
+                {
+                case H5TRAV_TYPE_DATASET:
+                    do_print_objname("dataset", path1, path2, options);
+                    break; 
+                case H5TRAV_TYPE_NAMED_DATATYPE:
+                    do_print_objname("datatype", path1, path2, options);
+                    break;
+                case H5TRAV_TYPE_GROUP:
+                    do_print_objname("group", path1, path2, options);
+                    break;
+                case H5TRAV_TYPE_LINK:
+                    do_print_objname("link", path1, path2, options);
+                    break;
+                case H5TRAV_TYPE_UDLINK:
+                    if(linkinfo1.linfo.type == H5L_TYPE_EXTERNAL && linkinfo2.linfo.type == H5L_TYPE_EXTERNAL)
+                        do_print_objname("external link", path1, path2, options);
+                    else
+                        do_print_objname ("user defined link", path1, path2, options);
+                    break; 
+                default:
+                    parallel_print("Comparison not supported: <%s> and <%s> are of type %s\n",
+                        path1, path2, get_type(type) );
+                    options->not_cmp = 1;
+                    break;
+                } /* switch(type)*/
+
+                print_found(nfound);
+            } /* if(options->m_verbose || options->m_report) */
+
+            goto out2;
+        } /* h5tools_is_obj_same */
+    }
 
     switch(type)
     {
@@ -1828,7 +1911,7 @@ hsize_t diff(hid_t file1_id,
 			/* verbose (-v) and report (-r) mode */
             if(options->m_verbose || options->m_report)
             {
-                do_print_objname("dataset", path1, path2);
+                do_print_objname("dataset", path1, path2, options);
                 nfound = diff_dataset(file1_id, file2_id, path1, path2, options);
                 print_found(nfound);
             }
@@ -1844,7 +1927,7 @@ hsize_t diff(hid_t file1_id,
                 /* print info if compatible and difference found  */
                 if (!options->not_cmp && nfound)
                 {
-                    do_print_objname("dataset", path1, path2);
+                    do_print_objname("dataset", path1, path2, options);
                     print_found(nfound);	
                 }
             }
@@ -1867,7 +1950,7 @@ hsize_t diff(hid_t file1_id,
             nfound = (ret > 0) ? 0 : 1;
 
             if(print_objname(options,nfound))
-                do_print_objname("datatype", path1, path2);
+                do_print_objname("datatype", path1, path2, options);
 
             /* always print the number of differences found in verbose mode */
             if(options->m_verbose)
@@ -1894,7 +1977,7 @@ hsize_t diff(hid_t file1_id,
         */
         case H5TRAV_TYPE_GROUP:
             if(print_objname(options, nfound))
-                do_print_objname("group", path1, path2);
+                do_print_objname("group", path1, path2, options);
 
             /* always print the number of differences found in verbose mode */
             if(options->m_verbose)
@@ -1933,7 +2016,7 @@ hsize_t diff(hid_t file1_id,
             nfound = (ret != 0) ? 1 : 0;
 
             if(print_objname(options, nfound))
-                do_print_objname("link", path1, path2);
+                do_print_objname("link", path1, path2, options);
 
             if (options->follow_links)
             {
@@ -1958,9 +2041,6 @@ hsize_t diff(hid_t file1_id,
             if(options->m_verbose)
                 print_found(nfound);
 
-            /* free link info buffer */
-            HDfree(linkinfo1.trg_path);
-            HDfree(linkinfo2.trg_path);
             }
             break;
 
@@ -1988,7 +2068,7 @@ hsize_t diff(hid_t file1_id,
                 nfound = (ret != 0) ? 1 : 0;
 
                 if(print_objname(options, nfound))
-                    do_print_objname("external link", path1, path2);
+                    do_print_objname("external link", path1, path2, options);
 
                 if (options->follow_links)
                 {
@@ -2007,10 +2087,6 @@ hsize_t diff(hid_t file1_id,
                                   file2_id, path2, 
                                   options, linkinfo1.trg_type);
                 } 
-
-                /* free link info buffer */
-                HDfree(linkinfo1.trg_path);
-                HDfree(linkinfo2.trg_path);
             } /* end if */
             else 
             {
@@ -2028,7 +2104,7 @@ hsize_t diff(hid_t file1_id,
                     nfound = 0;
 
                 if (print_objname (options, nfound))
-                    do_print_objname ("user defined link", path1, path2);
+                    do_print_objname ("user defined link", path1, path2, options);
             } /* end else */
 
             /* always print the number of differences found in verbose mode */
@@ -2045,6 +2121,12 @@ hsize_t diff(hid_t file1_id,
             break;
      }
 
+    /* free link info buffer */
+    if (linkinfo1.trg_path)
+        HDfree(linkinfo1.trg_path);
+    if (linkinfo2.trg_path)
+        HDfree(linkinfo2.trg_path);
+
     return nfound;
 
 out:
@@ -2059,7 +2141,7 @@ out2:
     {
         if(print_objname(options, nfound))
         {
-            do_print_objname("dangling link", path1, path2);
+            do_print_objname("dangling link", path1, path2, options);
             print_found(nfound);
         }
     }

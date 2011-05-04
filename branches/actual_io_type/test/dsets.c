@@ -4076,7 +4076,7 @@ test_nbit_int_size(hid_t file)
     */
    if((precision = H5Tget_precision(datatype)) == 0) {
        H5_FAILED();
-       printf("    Line %d: wrong precision size: %d\n",__LINE__, precision);
+       printf("    Line %d: wrong precision size: %zu\n",__LINE__, precision);
        goto error;
    } /* end if */
 
@@ -4086,7 +4086,7 @@ test_nbit_int_size(hid_t file)
    if((dset_size = H5Dget_storage_size(dataset)) < DSET_DIM1*DSET_DIM2*(precision/8) || 
        dset_size > DSET_DIM1*DSET_DIM2*(precision/8) + 1*KB) {
        H5_FAILED();
-       printf("    Line %d: wrong dataset size: %d\n",__LINE__, dset_size);
+       HDfprintf(stdout, "    Line %d: wrong dataset size: %Hu\n",__LINE__, dset_size);
        goto error;
    } /* end if */
 
@@ -4283,7 +4283,7 @@ test_nbit_flt_size(hid_t file)
     */
    if((precision = H5Tget_precision(datatype)) == 0) {
        H5_FAILED();
-       printf("    Line %d: wrong precision size: %d\n",__LINE__, precision);
+       printf("    Line %d: wrong precision size: %zu\n",__LINE__, precision);
        goto error;
    } /* end if */
 
@@ -4293,7 +4293,7 @@ test_nbit_flt_size(hid_t file)
    if((dset_size = H5Dget_storage_size(dataset)) < DSET_DIM1*DSET_DIM2*(precision/8) || 
        dset_size > DSET_DIM1*DSET_DIM2*(precision/8) + 1*KB) {
        H5_FAILED();
-       printf("    Line %d: wrong dataset size: %d\n",__LINE__, dset_size);
+       HDfprintf(stdout, "    Line %d: wrong dataset size: %Hu\n",__LINE__, dset_size);
        goto error;
    } /* end if */
 
@@ -8055,44 +8055,6 @@ error:
     return -1;
 } /* end test_chunk_expand() */
 
-
-/*-------------------------------------------------------------------------
- * Function:	test_actual_io_mode
- *
- * Purpose:	Tests the intialization, reading and writing of the
- *          actual_io_mode property under default conditions.
- *
- * Return:	Success: 0
- *		Failure: -1
- *
- * Programmer:	Jacob Gruber
- *		Wednesday, February 23, 2010
- *
- *-------------------------------------------------------------------------
- */
-
-int test_actual_io_mode() {
-    herr_t      status = -1;
-    hid_t       dxpl = -1;
-    char        * names;
-    H5D_xfer_mpio_actual_io_mode_t actual_io_mode = -1;
-
-    TESTING("actual I/O mode");
-
-    if ((dxpl = H5Pcreate(H5P_DATASET_XFER)) < 0 ) FAIL_STACK_ERROR
-    
-    if ((status = H5Pget_mpio_actual_io_mode(dxpl, &actual_io_mode)) < 0 )
-        FAIL_STACK_ERROR
-    
-    if (actual_io_mode != 0)
-        FAIL_PUTS_ERROR("Actual I/O Mode has non-default value.");
-
-    PASSED();
-    return status;
-error:    
-    return -1;
-}
-
 
 
 /*-------------------------------------------------------------------------
@@ -8221,7 +8183,6 @@ main(void)
         nerrors += (test_big_chunks_bypass_cache(my_fapl) < 0   ? 1 : 0);
         nerrors += (test_chunk_expand(my_fapl) < 0		? 1 : 0);
 	    nerrors += (test_layout_extend(my_fapl) < 0		? 1 : 0);
-        nerrors += (test_actual_io_mode() < 0           ? 1 : 0);
         
         if(H5Fclose(file) < 0)
             goto error;
@@ -8229,6 +8190,9 @@ main(void)
 
     /* Close 2nd FAPL */
     if(H5Pclose(fapl2) < 0) TEST_ERROR
+
+    /* Verify symbol table messages are cached */
+    nerrors += (h5_verify_cached_stabs(FILENAME, fapl) < 0 ? 1 : 0);
 
     if(nerrors)
         goto error;

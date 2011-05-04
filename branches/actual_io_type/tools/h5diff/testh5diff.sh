@@ -52,6 +52,8 @@ FILE15=h5diff_extlink_src.h5
 FILE16=h5diff_extlink_trg.h5
 FILE17=h5diff_ext2softlink_src.h5
 FILE18=h5diff_ext2softlink_trg.h5
+FILE19=h5diff_dset_zero_dim_size1.h5
+FILE20=h5diff_dset_zero_dim_size2.h5
 DANGLE_LINK_FILE1=h5diff_danglelinks1.h5
 DANGLE_LINK_FILE2=h5diff_danglelinks2.h5
 # group recursive
@@ -70,6 +72,9 @@ EXCLUDE_FILE2_1=h5diff_exclude2-1.h5
 EXCLUDE_FILE2_2=h5diff_exclude2-2.h5
 # compound type with multiple vlen string types
 COMP_VL_STRS_FILE=h5diff_comp_vl_strs.h5
+
+ATTR_VERBOSE_LEVEL_FILE1=h5diff_attr_v_level1.h5
+ATTR_VERBOSE_LEVEL_FILE2=h5diff_attr_v_level2.h5
 
 TESTNAME=h5diff
 EXIT_SUCCESS=0
@@ -360,10 +365,10 @@ TOOLTEST h5diff_16_3.txt -v -p 0.02 $FILE1 $FILE1 g1/dset9 g1/dset10
 TOOLTEST h5diff_17.txt -v $FILE1 $FILE2   
 
 # 1.7 test 32-bit INFINITY
-TOOLTEST h5diff_171.txt -v $FILE1 $FILE1 /g1/fp19
+TOOLTEST h5diff_171.txt -v $FILE1 $FILE1 /g1/fp19 /g1/fp19_COPY
 
 # 1.7 test 64-bit INFINITY
-TOOLTEST h5diff_172.txt -v $FILE1 $FILE1 /g1/fp20
+TOOLTEST h5diff_172.txt -v $FILE1 $FILE1 /g1/fp20 /g1/fp20_COPY
 
 # 1.8 quiet mode 
 TOOLTEST h5diff_18.txt -q $FILE1 $FILE2 
@@ -545,10 +550,41 @@ TOOLTEST h5diff_628.txt -n 1 $FILE1 $FILE2 g1/dset3 g1/dset4
 # 6.29  non valid files
 #TOOLTEST h5diff_629.txt file1.h6 file2.h6
 
+
 # ##############################################################################
 # 7.  attributes
 # ##############################################################################
 TOOLTEST h5diff_70.txt -v $FILE5 $FILE6 
+
+# ##################################################
+#  attrs with verbose option level
+# ##################################################
+
+TOOLTEST h5diff_700.txt -v1 $FILE5 $FILE6 
+TOOLTEST h5diff_701.txt -v2 $FILE5 $FILE6 
+TOOLTEST h5diff_702.txt --verbose=1 $FILE5 $FILE6 
+TOOLTEST h5diff_703.txt --verbose=2 $FILE5 $FILE6 
+
+# same attr number , all same attr name
+TOOLTEST h5diff_704.txt -v2 $ATTR_VERBOSE_LEVEL_FILE1 $ATTR_VERBOSE_LEVEL_FILE2 /g
+
+# same attr number , some same attr name
+TOOLTEST h5diff_705.txt -v2 $ATTR_VERBOSE_LEVEL_FILE1 $ATTR_VERBOSE_LEVEL_FILE2 /dset
+
+# same attr number , all different attr name
+TOOLTEST h5diff_706.txt -v2 $ATTR_VERBOSE_LEVEL_FILE1 $ATTR_VERBOSE_LEVEL_FILE2 /ntype
+
+# different attr number , same attr name (intersected)
+TOOLTEST h5diff_707.txt -v2 $ATTR_VERBOSE_LEVEL_FILE1 $ATTR_VERBOSE_LEVEL_FILE2 /g2
+
+# different attr number , all different attr name 
+TOOLTEST h5diff_708.txt -v2 $ATTR_VERBOSE_LEVEL_FILE1 $ATTR_VERBOSE_LEVEL_FILE2 /g3
+
+# when no attributes exist in both objects
+TOOLTEST h5diff_709.txt -v2 $ATTR_VERBOSE_LEVEL_FILE1 $ATTR_VERBOSE_LEVEL_FILE2 /g4
+
+# file vs file
+TOOLTEST h5diff_710.txt -v2 $ATTR_VERBOSE_LEVEL_FILE1 $ATTR_VERBOSE_LEVEL_FILE2
 
 # ##############################################################################
 # 8.  all dataset datatypes
@@ -567,9 +603,17 @@ else
 fi
 
 # 11. floating point comparison
+# double value
 TOOLTEST h5diff_101.txt -v $FILE1 $FILE1 g1/d1  g1/d2 
 
+# float value
 TOOLTEST h5diff_102.txt -v $FILE1 $FILE1 g1/fp1 g1/fp2 
+
+# with --use-system-epsilon for double value 
+TOOLTEST h5diff_103.txt -v --use-system-epsilon $FILE1 $FILE1 g1/d1  g1/d2 
+
+# with --use-system-epsilon for float value
+TOOLTEST h5diff_104.txt -v --use-system-epsilon $FILE1 $FILE1 g1/fp1 g1/fp2 
 
 
 # not comparable -c flag
@@ -585,11 +629,13 @@ TOOLTEST h5diff_204.txt -c $FILE2 $FILE2 g2/dset4  g2/dset5
 
 TOOLTEST h5diff_205.txt -c $FILE2 $FILE2 g2/dset5  g2/dset6
 
-
 # not comparable in compound
 TOOLTEST h5diff_206.txt -c $FILE2 $FILE2 g2/dset7  g2/dset8
 
 TOOLTEST h5diff_207.txt -c $FILE2 $FILE2 g2/dset8  g2/dset9
+
+# not comparable in dataspace of zero dimension size
+TOOLTEST h5diff_208.txt -c $FILE19 $FILE20 
 
 # ##############################################################################
 # # Links compare without --follow-symlinks nor --no-dangling-links
@@ -786,7 +832,7 @@ TOOLTEST h5diff_484.txt -v --exclude-path "/dset3" $EXCLUDE_FILE1_1 $EXCLUDE_FIL
 # ##############################################################################
 # # diff various multiple vlen and fixed strings in a compound type dataset
 # ##############################################################################
-TOOLTEST h5diff_530.txt -v  $COMP_VL_STRS_FILE $COMP_VL_STRS_FILE
+TOOLTEST h5diff_530.txt -v  $COMP_VL_STRS_FILE $COMP_VL_STRS_FILE /group /group_copy
 
 # ##############################################################################
 # # END

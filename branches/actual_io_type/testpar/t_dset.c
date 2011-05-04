@@ -2510,6 +2510,8 @@ none_selection_chunk(void)
  */
 void
 actual_io_mode_tests(void) {
+    
+
     test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_IND);
     test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_COL);
     test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_MIX);
@@ -2611,7 +2613,21 @@ void test_actual_io_mode(int selection_mode) {
     hbool_t     use_gpfs = FALSE;
     herr_t      ret;   
     
+    /* Set up MPI parameters */
+    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+
     /* Various sanity checks */
+    
+    /* This property is part of the MPI_IO driver, so the tests are skipped
+     * if we are using something else.
+     */ 
+    if(facc_type == FACC_MPIPOSIX) {
+        if (mpi_rank == 0 && selection_mode == 0)
+            printf("Actual IO Mode doesn't exist in MPI-POSIX. SKIPPED.\n");
+        MPI_Barrier(MPI_COMM_WORLD);
+        return;
+    }
 
 /* If H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS is not defined, all I/O without optimization 
  * breaks to multi chunk independent I/O. Since that case is already being tested, we skip
@@ -2645,7 +2661,8 @@ void test_actual_io_mode(int selection_mode) {
 #endif
 #endif
     if(skip) {
-        printf("Warning: Case %s not tested with this build.\n", test_name);
+        if(mpi_rank == 0)
+            printf("Warning: Case %s not tested with this build.\n", test_name);
         return;
     }
 
@@ -2656,17 +2673,14 @@ void test_actual_io_mode(int selection_mode) {
         selection_mode != TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_MIX_DISAGREE );
     is_chunked = selection_mode != TEST_ACTUAL_IO_CONTIGUOUS;
 
-    /* Set up MPI parameters */
-    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-
+    
     HDassert( mpi_size >= 1 );
 
     mpi_comm = MPI_COMM_WORLD;
     mpi_info = MPI_INFO_NULL;
 
     filename = (const char *)GetTestParameters();
-    HDassert( filename != NULL );
+    HDassert(filename != NULL);
 
     /* Setup the file access template */
     acc_tpl = create_faccess_plist(mpi_comm, mpi_info, facc_type, use_gpfs);
@@ -2690,7 +2704,7 @@ void test_actual_io_mode(int selection_mode) {
 
     /* Create the dataset creation plist */
     dcpl = H5Pcreate(H5P_DATASET_CREATE);
-    VRFY( (dcpl >= 0), "dataset creation plist created successfully");
+    VRFY((dcpl >= 0), "dataset creation plist created successfully");
 
     /* If we are not testing contiguous datasets */
     if(is_chunked) {
@@ -2707,11 +2721,11 @@ void test_actual_io_mode(int selection_mode) {
     VRFY((dataset != NULL), "H5Dcreate2() dataset succeeded");
 
     /* Create the file dataspace */
-    file_space = H5Dget_space (dataset);
+    file_space = H5Dget_space(dataset);
     VRFY((file_space >= 0), "H5Dget_space succeeded");
 
     /* Choose a selection method based on the type of I/O we want to occur */
-    switch (selection_mode) {
+    switch(selection_mode) {
         
         /* Independent I/O with optimization */
         case TEST_ACTUAL_IO_MULTI_CHUNK_IND:
@@ -2742,7 +2756,7 @@ void test_actual_io_mode(int selection_mode) {
              * and at least one chunk independently, reportintg mixed I/O.
              */
             
-            if (mpi_rank == 0) {
+            if(mpi_rank == 0) {
                  /* Select the first column */
                  slab_set(mpi_rank, mpi_size, start, count, stride, block, BYCOL);
             } else {
@@ -2769,7 +2783,7 @@ void test_actual_io_mode(int selection_mode) {
              * collectively, and their other chunk indpendently, reporting mixed I/O.
              */
 
-            if (mpi_rank == 0) {
+            if(mpi_rank == 0) {
                  /* Select the first chunk in the first column */
                  slab_set(mpi_rank, mpi_size, start, count, stride, block, BYCOL);
                  block[0] = block[0] / mpi_size;
@@ -2806,7 +2820,7 @@ void test_actual_io_mode(int selection_mode) {
 #else
 #ifdef H5_MPI_SPECIAL_COLLECTIVE_IO_WORKS
             slab_set(mpi_rank, mpi_size, start, count, stride, block, BYCOL);
-            if (mpi_rank == 0) 
+            if(mpi_rank == 0) 
                   block[0] = 0;
 #endif
 #endif
@@ -2829,7 +2843,7 @@ void test_actual_io_mode(int selection_mode) {
              * to more chunks, they will break collective after the first chunk.
              */
             slab_set(mpi_rank, mpi_size, start, count, stride, block, BYCOL);
-            if (mpi_rank == 0) 
+            if(mpi_rank == 0) 
                   block[0] = block[0] / mpi_size;
             break;
         
@@ -2853,7 +2867,7 @@ void test_actual_io_mode(int selection_mode) {
 
     }
     ret = H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, stride, count, block);
-    if (ret < 0) H5Eprint(H5E_DEFAULT, stdout); 
+    if(ret < 0) H5Eprint(H5E_DEFAULT, stdout); 
     VRFY((ret >= 0), "H5Sset_hyperslab succeeded");
  
     /* Create a memory dataspace mirroring the dataset and select the same hyperslab
@@ -2976,7 +2990,7 @@ void test_actual_io_mode(int selection_mode) {
             } else {
                 VRFY(actual_io_mode == H5D_MPIO_COLLECTIVE_MULTI_CHUNK_NO_OPT_MIXED,
                  "actual_io_mode has incorrect value for multi chunk no opt mixed I/O \
-                 with disagreement (majority)");
+                 with disa:wqgreement (majority)");
             }
             break;
 
@@ -2992,8 +3006,8 @@ void test_actual_io_mode(int selection_mode) {
             break;
 
         default:
-            printf("Error: undefined selection mode = %d", selection_mode);        
-            printf("%d: Actual IO Mode:%d\n", selection_mode, actual_io_mode);
+            //printf("Error: undefined selection mode = %d", selection_mode);        
+            printf("%d,%d: Actual IO Mode:%d\n", selection_mode, mpi_rank, actual_io_mode);
             break;
     }
     
