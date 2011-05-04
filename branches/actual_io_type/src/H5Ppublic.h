@@ -128,22 +128,22 @@ typedef enum H5D_mpio_actual_io_mode_t {
      * so that MULTI_CHUNK_COLLECTIVE | MULTI_CHUNK_INDEPENDANT = MULTI_CHUNK_MIXED.
      * This makes switching from independent or collective to mixed a much simpler process
      * that requires no conditionals. */
-    H5D_MPIO_COLLECTIVE_MULTI_CHUNK_INDEPENDENT = 01,
-    H5D_MPIO_COLLECTIVE_MULTI_CHUNK_COLLECTIVE  = 02,
-    H5D_MPIO_COLLECTIVE_MULTI_CHUNK_MIXED       = 01 | 02,
+    H5D_MPIO_COLLECTIVE_MULTI_CHUNK_INDEPENDENT = 0x1,
+    H5D_MPIO_COLLECTIVE_MULTI_CHUNK_COLLECTIVE  = 0x2,
+    H5D_MPIO_COLLECTIVE_MULTI_CHUNK_MIXED       = 0x1 | 0x2,
 
     /* The same as above, these values are difined with convienient numerical values
      * such that INDEPENDENT | COLLECTIVE = MIXED for the same reasons.
      */
-    H5D_MPIO_COLLECTIVE_MULTI_CHUNK_NO_OPT_INDEPENDENT = 010,
-    H5D_MPIO_COLLECTIVE_MULTI_CHUNK_NO_OPT_COLLECTIVE  = 020,
-    H5D_MPIO_COLLECTIVE_MULTI_CHUNK_NO_OPT_MIXED       = 010 | 020,
+    H5D_MPIO_COLLECTIVE_MULTI_CHUNK_NO_OPT_INDEPENDENT = 0x4,
+    H5D_MPIO_COLLECTIVE_MULTI_CHUNK_NO_OPT_COLLECTIVE  = 0x8,
+    H5D_MPIO_COLLECTIVE_MULTI_CHUNK_NO_OPT_MIXED       = 0x4 | 0x8,
 
     /* These values are assigned specific bits only so that no one could possibly
      * assume that these values were related to any other.
      */
-    H5D_MPIO_COLLECTIVE_LINK_CHUNK = 0100,
-    H5D_MPIO_COLLECTIVE_CONTIGUOUS = 0200,
+    H5D_MPIO_COLLECTIVE_LINK_CHUNK = 0x10,
+    H5D_MPIO_COLLECTIVE_CONTIGUOUS = 0x20,
 }  H5D_xfer_mpio_actual_io_mode_t;
 
 /********************/

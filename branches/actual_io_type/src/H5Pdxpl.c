@@ -205,7 +205,7 @@ H5P_dxfr_reg_prop(H5P_genclass_t *pclass)
     H5FD_mpio_collective_opt_t def_mpio_collective_opt_mode = H5D_XFER_MPIO_COLLECTIVE_OPT_DEF;
     unsigned def_mpio_chunk_opt_num = H5D_XFER_MPIO_CHUNK_OPT_NUM_DEF;
     unsigned def_mpio_chunk_opt_ratio = H5D_XFER_MPIO_CHUNK_OPT_RATIO_DEF;
-    H5D_xfer_mpio_actual_io_mode_t def_mpio_actual_io_mode = H5D_MPIO_INDEPENDENT;
+    H5D_xfer_mpio_actual_io_mode_t def_mpio_actual_io_mode = H5D_XFER_MPIO_ACTUAL_IO_MODE_DEF;
 #endif /* H5_HAVE_PARALLEL */
     H5Z_EDC_t enable_edc = H5D_XFER_EDC_DEF;            /* Default value for EDC property */
     H5Z_cb_t filter_cb = H5D_XFER_FILTER_CB_DEF;        /* Default value for filter callback */
