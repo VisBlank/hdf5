@@ -1,0 +1,10 @@
+HDF5 log_vfd branch
+
+Created by Dana Robinson in early 2011.  As far as I know, I am the only
+person working on this branch.
+
+This branch is where improvements to the log VFD are taking place.  Since
+some of these changes may not be propagated to the 1.8.x branch, they are
+being made in a separate branch.
+
+This branch tracks the trunk.  It is merged with the trunk every few days.
