@@ -1,5 +1,0 @@
-dataset: </g2/dset1> and </g2/dset2>
---------------------------------
-Some objects are not comparable
---------------------------------
-Use -c for a list of objects.
