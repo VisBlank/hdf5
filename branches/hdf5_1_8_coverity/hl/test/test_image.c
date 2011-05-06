@@ -742,6 +742,7 @@ static int read_data( const char* fname, /*IN*/
     int    w, h;
     char   *srcdir = getenv("srcdir"); /* the source directory */
     char   data_file[512]="";          /* buffer to hold name of existing data file */
+    int    n_elements = -1;
 
     /*-------------------------------------------------------------------------
     * compose the name of the file to open, using "srcdir", if appropriate
@@ -783,9 +784,10 @@ static int read_data( const char* fname, /*IN*/
         image_data=NULL;
     }
 
-    image_data = (unsigned char*) malloc (w * h * color_planes * sizeof( unsigned char ));
+    n_elements = w * h * color_planes;
+    image_data = (unsigned char*) malloc (n_elements * sizeof( unsigned char ));
 
-    for (i = 0; i < h * w * color_planes ; i++)
+    for (i = 0; i < n_elements; i++)
     {
         fscanf( f, "%d",&n );
         image_data[i] = (unsigned char)n;
