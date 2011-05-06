@@ -669,7 +669,7 @@ hsize_t diff_datum(void       *_mem1,
 
         {
             hsize_t adims[H5S_MAX_RANK];
-            hsize_t       ndims;
+            int       ndims;
             /* get the array's base datatype for each element */
             memb_type = H5Tget_super(m_type);
             size      = H5Tget_size(memb_type);
@@ -5512,7 +5512,7 @@ static
 int ull2float(unsigned long long ull_value, float *f_value)
 {
  hid_t          dxpl_id;
- unsigned char  *buf;
+ unsigned char  *buf=NULL;
  size_t         src_size;
  size_t         dst_size;
 
@@ -5522,6 +5522,9 @@ int ull2float(unsigned long long ull_value, float *f_value)
  src_size = H5Tget_size(H5T_NATIVE_ULLONG);
  dst_size = H5Tget_size(H5T_NATIVE_FLOAT);
  buf = (unsigned char*)calloc(1, MAX(src_size, dst_size));
+
+ if (!buf)
+    goto error;
 
  memcpy(buf, &ull_value, src_size);
 
@@ -5775,7 +5778,7 @@ my_isnan(dtype_t type, void *val)
         {
             float x;
             HDmemcpy(&x, val, sizeof(float));
-            sprintf(s, "%g", x);
+            snprintf(s, sizeof(s), "%g", x);
 
 
         }
@@ -5783,14 +5786,14 @@ my_isnan(dtype_t type, void *val)
         {
             double x;
             HDmemcpy(&x, val, sizeof(double));
-            sprintf(s, "%g", x);
+            snprintf(s, sizeof(s), "%g", x);
 #if H5_SIZEOF_LONG_DOUBLE!=H5_SIZEOF_DOUBLE && H5_SIZEOF_LONG_DOUBLE!=0
         }
         else if (FLT_LDOUBLE==type)
         {
             long double x;
             HDmemcpy(&x, val, sizeof(long double));
-            sprintf(s, "%Lg", x);
+            snprintf(s, sizeof(s), "%Lg", x);
 #endif
         }
         else

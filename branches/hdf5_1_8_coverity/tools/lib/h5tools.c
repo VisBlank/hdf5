@@ -2022,7 +2022,7 @@ h5tools_print_simple_subset(FILE *stream, const h5tool_format_t *info, h5tools_c
     size_t            p_type_nbytes;           /* size of memory type */
     hsize_t           sm_size[H5S_MAX_RANK];   /* stripmine size */
     hsize_t           sm_nbytes;               /* bytes per stripmine */
-    hsize_t           sm_nelmts;               /* elements per stripmine*/
+    hssize_t           sm_nelmts;               /* elements per stripmine*/
     unsigned char    *sm_buf = NULL;           /* buffer for raw data */
     hid_t             sm_space = -1;           /* stripmine data space */
     hsize_t           size_row_block;          /* size for blocks along rows */
@@ -2799,8 +2799,8 @@ h5tools_print_datatype(h5tools_str_t *buffer, const h5tool_format_t *info,
     HERR_INIT(int, SUCCEED)
     char        *mname;
     hid_t        mtype, str_type;
-    unsigned     nmembers;
-    unsigned     ndims;
+    int          nmembers;
+    int          ndims;
     unsigned     i;
     size_t       size = 0;
     hsize_t      dims[H5TOOLS_DUMP_MAX_RANK];
@@ -3057,10 +3057,14 @@ h5tools_print_datatype(h5tools_str_t *buffer, const h5tool_format_t *info,
 
         /* Change the endianness and see if they're equal. */
         order = H5Tget_order(tmp_type);
-        if (order == H5T_ORDER_LE)
-            H5Tset_order(str_type, H5T_ORDER_LE);
-        else if (order == H5T_ORDER_BE)
-            H5Tset_order(str_type, H5T_ORDER_BE);
+        if (order == H5T_ORDER_LE) {
+            if(H5Tset_order(str_type, H5T_ORDER_LE)<0)
+                HERROR(H5E_tools_g, H5E_tools_min_id_g, "H5Tset_order failed");
+        }
+        else if (order == H5T_ORDER_BE) {
+            if(H5Tset_order(str_type, H5T_ORDER_BE)<0) 
+                HERROR(H5E_tools_g, H5E_tools_min_id_g, "H5Tset_order failed");
+        }
 
         if (H5Tequal(tmp_type, str_type)) {
             h5tools_str_append(buffer, "H5T_C_S1;\n");
@@ -3084,10 +3088,14 @@ h5tools_print_datatype(h5tools_str_t *buffer, const h5tool_format_t *info,
 
         /* Change the endianness and see if they're equal. */
         order = H5Tget_order(tmp_type);
-        if (order == H5T_ORDER_LE)
-            H5Tset_order(str_type, H5T_ORDER_LE);
-        else if (order == H5T_ORDER_BE)
-            H5Tset_order(str_type, H5T_ORDER_BE);
+        if (order == H5T_ORDER_LE) {
+            if(H5Tset_order(str_type, H5T_ORDER_LE)<0)
+                HERROR(H5E_tools_g, H5E_tools_min_id_g, "H5Tset_order failed");
+        }
+        else if (order == H5T_ORDER_BE) {
+            if(H5Tset_order(str_type, H5T_ORDER_BE)<0) 
+                HERROR(H5E_tools_g, H5E_tools_min_id_g, "H5Tset_order failed");
+        }
 
         if (H5Tequal(tmp_type, str_type)) {
             h5tools_str_append(buffer, "H5T_FORTRAN_S1;\n");
@@ -3667,6 +3675,8 @@ render_bin_output(FILE *stream, hid_t container, hid_t tid, void *_mem)
             s = *(char**) mem;
             if (s != NULL)
                 size = HDstrlen(s);
+            else
+                H5E_THROW(FAIL, H5E_tools_min_id_g, "NULL string");
         }
         else {
             s = (char *) mem;
@@ -3834,7 +3844,7 @@ render_bin_output(FILE *stream, hid_t container, hid_t tid, void *_mem)
     else if (H5Tget_class(tid) == H5T_COMPOUND) {
         unsigned j;
         hid_t    memb;
-        unsigned nmembs;
+        int      nmembs;
         size_t   offset;
 
         nmembs = H5Tget_nmembers(tid);
