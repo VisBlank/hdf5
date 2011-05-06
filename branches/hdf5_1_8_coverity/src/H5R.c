@@ -233,7 +233,7 @@ H5R_create(void *_ref, H5G_loc_t *loc, const char *name, H5R_type_t ref_type, H5
                 HGOTO_ERROR(H5E_REFERENCE, H5E_CANTINIT, FAIL, "Invalid amount of space for serializing selection")
 
             /* Increase buffer size to allow for the dataset OID */
-            buf_size += sizeof(haddr_t);
+            buf_size += (hssize_t)sizeof(haddr_t);
 
             /* Allocate the space to store the serialized information */
             H5_CHECK_OVERFLOW(buf_size, hssize_t, size_t);
@@ -256,7 +256,7 @@ H5R_create(void *_ref, H5G_loc_t *loc, const char *name, H5R_type_t ref_type, H5
             /* Serialize the heap ID and index for storage in the file */
             p = (uint8_t *)ref;
             H5F_addr_encode(loc->oloc->file, &p, hobjid.addr);
-            INT32ENCODE(p, hobjid.idx);
+            UINT32ENCODE(p, hobjid.idx);
 
             /* Free the buffer we serialized data in */
             H5MM_xfree(buf);
@@ -396,7 +396,7 @@ H5R_dereference(H5F_t *file, hid_t dxpl_id, H5R_type_t ref_type, const void *_re
             /* Get the heap ID for the dataset region */
             p = (const uint8_t *)_ref;
             H5F_addr_decode(oloc.file, &p, &(hobjid.addr));
-            INT32DECODE(p, hobjid.idx);
+            UINT32DECODE(p, hobjid.idx);
 
             /* Get the dataset region from the heap (allocate inside routine) */
             if(NULL == (buf = (uint8_t *)H5HG_read(oloc.file, dxpl_id, &hobjid, NULL, NULL)))
@@ -580,7 +580,7 @@ H5R_get_region(H5F_t *file, hid_t dxpl_id, const void *_ref)
     /* Get the heap ID for the dataset region */
     p = (const uint8_t *)_ref;
     H5F_addr_decode(oloc.file, &p, &(hobjid.addr));
-    INT32DECODE(p, hobjid.idx);
+    UINT32DECODE(p, hobjid.idx);
 
     /* Get the dataset region from the heap (allocate inside routine) */
     if((buf = (uint8_t *)H5HG_read(oloc.file, dxpl_id, &hobjid, NULL, NULL)) == NULL)
@@ -715,7 +715,7 @@ H5R_get_obj_type(H5F_t *file, hid_t dxpl_id, H5R_type_t ref_type,
             /* Get the heap ID for the dataset region */
             p = (const uint8_t *)_ref;
             H5F_addr_decode(oloc.file, &p, &(hobjid.addr));
-            INT32DECODE(p, hobjid.idx);
+            UINT32DECODE(p, hobjid.idx);
 
             /* Get the dataset region from the heap (allocate inside routine) */
             if((buf = (uint8_t *)H5HG_read(oloc.file, dxpl_id, &hobjid, NULL, NULL)) == NULL)
@@ -859,7 +859,7 @@ H5R_get_name(H5F_t *f, hid_t lapl_id, hid_t dxpl_id, hid_t id, H5R_type_t ref_ty
             /* Get the heap ID for the dataset region */
             p = (const uint8_t *)_ref;
             H5F_addr_decode(oloc.file, &p, &(hobjid.addr));
-            INT32DECODE(p, hobjid.idx);
+            UINT32DECODE(p, hobjid.idx);
 
             /* Get the dataset region from the heap (allocate inside routine) */
             if((buf = (uint8_t *)H5HG_read(oloc.file, dxpl_id, &hobjid, NULL, NULL)) == NULL)

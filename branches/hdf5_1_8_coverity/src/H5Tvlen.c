@@ -882,7 +882,7 @@ H5T_vlen_disk_read(H5F_t *f, hid_t dxpl_id, void *_vl, void *buf, size_t UNUSED 
 
     /* Get the heap information */
     H5F_addr_decode(f,(const uint8_t **)&vl,&(hobjid.addr));
-    INT32DECODE(vl,hobjid.idx);
+    UINT32DECODE(vl,hobjid.idx);
 
     /* Check if this sequence actually has any data */
     if(hobjid.addr>0) {
@@ -935,7 +935,7 @@ H5T_vlen_disk_write(H5F_t *f, hid_t dxpl_id, const H5T_vlen_alloc_info_t UNUSED 
 
         /* Get heap information */
         H5F_addr_decode(f, (const uint8_t **)&bg, &(bg_hobjid.addr));
-        INT32DECODE(bg, bg_hobjid.idx);
+        UINT32DECODE(bg, bg_hobjid.idx);
 
         /* Free heap object for old data */
         if(bg_hobjid.addr > 0) {
@@ -997,7 +997,7 @@ H5T_vlen_disk_setnull(H5F_t *f, hid_t dxpl_id, void *_vl, void *_bg)
 
         /* Get heap information */
         H5F_addr_decode(f, (const uint8_t **)&bg, &(bg_hobjid.addr));
-        INT32DECODE(bg, bg_hobjid.idx);
+        UINT32DECODE(bg, bg_hobjid.idx);
 
         /* Free heap object for old data */
         if(bg_hobjid.addr > 0) {

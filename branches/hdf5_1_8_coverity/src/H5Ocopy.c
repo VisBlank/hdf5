@@ -256,8 +256,8 @@ H5Ocopy(hid_t src_loc_id, const char *src_name, hid_t dst_loc_id,
 done:
     if(loc_found && H5G_loc_free(&src_loc) < 0)
         HDONE_ERROR(H5E_SYM, H5E_CANTRELEASE, FAIL, "can't free location")
-    if(obj_open)
-        H5O_close(&src_oloc);
+    if(obj_open && H5O_close(&src_oloc) < 0)
+        HDONE_ERROR(H5E_OHDR, H5E_CLOSEERROR, FAIL, "unable to release object header")
 
     FUNC_LEAVE_API(ret_value)
 } /* end H5Ocopy() */
@@ -496,7 +496,7 @@ H5O_copy_header_real(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
                  recompute_size = TRUE;
             } /* end if */
             else if(!is_shared && (mesg_dst->flags & H5O_MSG_FLAG_SHARED)) {
-                mesg_dst->flags &= ~H5O_MSG_FLAG_SHARED;
+                mesg_dst->flags &= (uint8_t)~H5O_MSG_FLAG_SHARED;
 
                 /* Recompute message size (msg_dest->native is no longer shared) */
                 recompute_size = TRUE;
@@ -535,7 +535,7 @@ H5O_copy_header_real(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
     /* Check if we need to determine correct value for chunk #0 size bits */
     if(oh_dst->version > H5O_VERSION_1) {
         /* Reset destination object header's "chunk 0 size" flags */
-        oh_dst->flags &= ~H5O_HDR_CHUNK0_SIZE;
+        oh_dst->flags &= (uint8_t)~H5O_HDR_CHUNK0_SIZE;
 
         /* Determine correct value for chunk #0 size bits */
         if(dst_oh_size > 4294967295)
@@ -547,7 +547,8 @@ H5O_copy_header_real(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
     } /* end if */
 
     /* Check if the chunk's data portion is too small */
-    dst_oh_gap = dst_oh_null = 0;
+    dst_oh_gap = 0;
+    dst_oh_null = 0;
     if(dst_oh_size < H5O_MIN_SIZE) {
         size_t delta = (size_t)(H5O_MIN_SIZE - dst_oh_size);    /* Delta in chunk size needed */
 
@@ -556,7 +557,7 @@ H5O_copy_header_real(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
 
         /* Determine whether to create gap or NULL message */
         if(delta < H5O_SIZEOF_MSGHDR_OH(oh_dst))
-            dst_oh_gap = delta;
+            dst_oh_gap = (unsigned)delta;
         else
             dst_oh_null = delta;
 
@@ -568,7 +569,7 @@ H5O_copy_header_real(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
     } /* end if */
 
     /* Add in destination's object header size now */
-    dst_oh_size += H5O_SIZEOF_HDR(oh_dst);
+    dst_oh_size += (uint64_t)H5O_SIZEOF_HDR(oh_dst);
 
     /* Allocate space for chunk in destination file */
     if(HADDR_UNDEF == (oh_dst->chunk[0].addr = H5MF_alloc(oloc_dst->file, H5FD_MEM_OHDR, dxpl_id, (hsize_t)dst_oh_size)))
@@ -653,7 +654,7 @@ H5O_copy_header_real(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
 
         /* Create null message for [rest of] space in new chunk */
         /* (account for chunk's magic # & checksum) */
-        null_idx = oh_dst->nmesgs++;
+        null_idx = (unsigned)(oh_dst->nmesgs++);
         oh_dst->mesg[null_idx].type = H5O_MSG_NULL;
         oh_dst->mesg[null_idx].dirty = TRUE;
         oh_dst->mesg[null_idx].native = NULL;
@@ -1192,7 +1193,7 @@ H5O_copy_expand_ref(H5F_t *file_src, void *_src_ref, hid_t dxpl_id,
             /* Get the heap ID for the dataset region */
             p = (uint8_t *)(&src_ref[i]);
             H5F_addr_decode(src_oloc.file, (const uint8_t **)&p, &(hobjid.addr));
-            INT32DECODE(p, hobjid.idx);
+            UINT32DECODE(p, hobjid.idx);
 
             if(hobjid.addr != (haddr_t)0) {
                 /* Get the dataset region from the heap (allocate inside routine) */

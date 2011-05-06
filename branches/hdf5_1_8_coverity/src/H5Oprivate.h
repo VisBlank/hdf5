@@ -67,13 +67,13 @@ typedef struct H5O_t H5O_t;
 #define H5O_FIRST	(-2)		/* Operate on first message of type  */
 
 /* Flags needed when encoding messages */
-#define H5O_MSG_FLAG_CONSTANT	0x01u
-#define H5O_MSG_FLAG_SHARED	0x02u
-#define H5O_MSG_FLAG_DONTSHARE	0x04u
-#define H5O_MSG_FLAG_FAIL_IF_UNKNOWN 0x08u
-#define H5O_MSG_FLAG_MARK_IF_UNKNOWN 0x10u
-#define H5O_MSG_FLAG_WAS_UNKNOWN 0x20u
-#define H5O_MSG_FLAG_SHAREABLE  0x40u
+#define H5O_MSG_FLAG_CONSTANT	((uint8_t)0x01u)
+#define H5O_MSG_FLAG_SHARED	((uint8_t)0x02u)
+#define H5O_MSG_FLAG_DONTSHARE	((uint8_t)0x04u)
+#define H5O_MSG_FLAG_FAIL_IF_UNKNOWN ((uint8_t)0x08u)
+#define H5O_MSG_FLAG_MARK_IF_UNKNOWN ((uint8_t)0x10u)
+#define H5O_MSG_FLAG_WAS_UNKNOWN ((uint8_t)0x20u)
+#define H5O_MSG_FLAG_SHAREABLE  ((uint8_t)0x40u)
 #define H5O_MSG_FLAG_BITS	(H5O_MSG_FLAG_CONSTANT|H5O_MSG_FLAG_SHARED|H5O_MSG_FLAG_DONTSHARE|H5O_MSG_FLAG_FAIL_IF_UNKNOWN|H5O_MSG_FLAG_MARK_IF_UNKNOWN|H5O_MSG_FLAG_WAS_UNKNOWN|H5O_MSG_FLAG_SHAREABLE)
 
 /* Flags for updating messages */
