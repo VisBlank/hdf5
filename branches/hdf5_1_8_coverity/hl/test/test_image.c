@@ -468,6 +468,11 @@ static int test_data(void)
     if ((H5IMmake_image_24bit(fid,IMAGE3_NAME,width,height,"INTERLACE_PLANE",image_data))<0)
         goto out;
 
+
+    /* Free image_data */
+    free(image_data);
+    image_data = NULL;
+
     PASSED();
 
 
@@ -675,6 +680,13 @@ static int test_generate(void)
         goto out;
     if ((H5IMlink_palette(fid,"Sea data",PAL1_NAME))<0)
         goto out;
+
+
+    /* Free buffers */
+    free(data);
+    data = NULL;
+    free(image_data);
+    image_data = NULL;
 
     PASSED();
 
