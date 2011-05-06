@@ -521,7 +521,7 @@ dataset_stats(iter_t *iter, const char *name, const H5O_info_t *oi)
     if(type_found)
          (iter->dset_type_info[u].count)++;
     else {
-        unsigned curr_ntype = iter->dset_ntypes;
+        unsigned curr_ntype = (unsigned)iter->dset_ntypes;
 
         /* Increment # of datatypes seen for datasets */
         iter->dset_ntypes++;
@@ -726,10 +726,12 @@ parse_command_line(int argc, const char *argv[])
         switch ((char)opt) {
             case 'h':
                 usage(h5tools_getprogname());
+                HDfree(hand);
                 leave(EXIT_SUCCESS);
 
             case 'V':
                 print_version(h5tools_getprogname());
+                HDfree(hand);
                 leave(EXIT_SUCCESS);
                 break;
 
@@ -784,6 +786,7 @@ parse_command_line(int argc, const char *argv[])
 
             default:
                 usage(h5tools_getprogname());
+                HDfree(hand);
                 leave(EXIT_FAILURE);
         } /* end switch */
     } /* end while */
@@ -792,6 +795,7 @@ parse_command_line(int argc, const char *argv[])
     if (argc <= opt_ind) {
         error_msg("missing file name\n");
         usage(h5tools_getprogname());
+        HDfree(hand);
         leave(EXIT_FAILURE);
     } /* end if */
 
@@ -824,6 +828,42 @@ iter_init(iter_t *iter, hid_t fid)
 
     return 0;
 } /* iter_init() */
+
+
+/*-------------------------------------------------------------------------
+ * Function: iter_reset
+ *
+ * Purpose: Frees objcects pointed to by the iter structure
+ *
+ * Return: void
+ *
+ * Programmer: Neil Fortner
+ *             Friday, May 6, 2010
+ *
+ *-------------------------------------------------------------------------
+ */
+static void
+iter_reset(iter_t *iter)
+{
+    if(iter->group_bins) {
+        HDfree(iter->group_bins);
+        iter->group_bins = NULL;
+    } /* end if */
+    if(iter->attr_bins) {
+        HDfree(iter->attr_bins);
+        iter->attr_bins = NULL;
+    } /* end if */
+    if(iter->dset_type_info) {
+        HDfree(iter->dset_type_info);
+        iter->dset_type_info = NULL;
+    } /* end if */
+    if(iter->dset_dim_bins) {
+        HDfree(iter->dset_dim_bins);
+        iter->dset_dim_bins = NULL;
+    } /* end if */
+
+    return;
+} /* iter_reset() */
 
 
 /*-------------------------------------------------------------------------
@@ -1394,6 +1434,8 @@ main(int argc, const char *argv[])
     } /* end else */
 
     if (hand) free(hand);
+
+    iter_reset(&iter);
 
     if(H5Fclose(fid) < 0) {
         error_msg("unable to close file \"%s\"\n", fname);
