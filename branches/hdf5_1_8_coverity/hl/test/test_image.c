@@ -519,6 +519,7 @@ static int test_generate(void)
     char     *srcdir = getenv("srcdir"); /* the source directory */
     char     data_file[512]="";          /* buffer to hold name of existing data file */
     int      i;
+    int      n_elements = -1;
 
     /* create a file using default properties */
     if ((fid=H5Fcreate(FILE3,H5F_ACC_TRUNC,H5P_DEFAULT,H5P_DEFAULT))<0)
@@ -546,8 +547,7 @@ static int test_generate(void)
     if ( f == NULL )
     {
         printf( "Could not find file %s. Try set $srcdir \n", data_file );
-        H5Fclose(fid);
-        return -1;
+        goto out;
     }
 
     /*
@@ -589,10 +589,14 @@ static int test_generate(void)
     fscanf( f, "%d %d %d", &imax, &jmax, &kmax );
     fscanf( f, "%f %f %f", &valex, &xmin, &xmax );
 
-    data = (float*) malloc ( imax * jmax * kmax * sizeof( float ));
-    image_data = (unsigned char*) malloc ( imax * jmax * kmax * sizeof( unsigned char ));
+    n_elements = imax * jmax * kmax;
+    if(n_elements < 1)
+        goto out;
 
-    for ( i = 0; i < imax * jmax * kmax; i++ )
+    data = (float *) malloc(n_elements * sizeof(float));
+    image_data = (unsigned char *) malloc(n_elements * sizeof(unsigned char));
+
+    for ( i = 0; i < n_elements; i++ )
     {
         fscanf( f, "%f ", &value );
         data[i] = value;
@@ -607,7 +611,7 @@ static int test_generate(void)
 
     TESTING2("make indexed image from all the data");
 
-    for ( i = 0; i < imax * jmax * kmax; i++ )
+    for ( i = 0; i < n_elements; i++ )
     {
         image_data[i] = (unsigned char)(( 255 * (data[i] - xmin ) ) / (xmax - xmin ));
     }
@@ -626,7 +630,7 @@ static int test_generate(void)
 
     TESTING2("make indexed image from land data");
 
-    for ( i = 0; i < imax * jmax * kmax; i++ )
+    for ( i = 0; i < n_elements; i++ )
     {
         if ( data[i] < 0 )
             image_data[i] = 0;
@@ -648,7 +652,7 @@ static int test_generate(void)
 
     TESTING2("make indexed image from sea data");
 
-    for ( i = 0; i < imax * jmax * kmax; i++ )
+    for ( i = 0; i < n_elements; i++ )
     {
         if ( data[i] > 0 )
             image_data[i] = 0;
