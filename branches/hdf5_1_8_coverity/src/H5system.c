@@ -113,6 +113,7 @@ HDfprintf(FILE *stream, const char *fmt, ...)
     int		prefix;
     char	modifier[8];
     int		conv;
+    int         len;
     char	*rest, format_templ[128];
     const char	*s;
     va_list	ap;
@@ -129,6 +130,7 @@ HDfprintf(FILE *stream, const char *fmt, ...)
 	prefix = 0;
 	ldspace = 0;
 	modifier[0] = '\0';
+        len = 0;
 
 	if ('%'==fmt[0] && '%'==fmt[1]) {
 	    HDputc ('%', stream);
@@ -240,16 +242,16 @@ HDfprintf(FILE *stream, const char *fmt, ...)
 	    conv = *s++;
 
 	    /* Create the format template */
-	    sprintf (format_templ, "%%%s%s%s%s%s",
+	    len = snprintf (format_templ, (size_t)127-len, "%%%s%s%s%s%s",
 		     leftjust?"-":"", plussign?"+":"",
 		     ldspace?" ":"", prefix?"#":"", zerofill?"0":"");
 	    if (fwidth>0)
-		sprintf (format_templ+HDstrlen(format_templ), "%d", fwidth);
+		len += snprintf (format_templ+len, (size_t)127-len, "%d", fwidth);
 	    if (prec>0)
-		sprintf (format_templ+HDstrlen(format_templ), ".%d", prec);
+		len += snprintf (format_templ+len, (size_t)127-len, ".%d", prec);
 	    if (*modifier)
-		sprintf (format_templ+HDstrlen(format_templ), "%s", modifier);
-	    sprintf (format_templ+HDstrlen(format_templ), "%c", conv);
+		len += snprintf (format_templ+len, (size_t)127-len, "%s", modifier);
+	    len += snprintf (format_templ+len, (size_t)127-len, "%c", conv);
 
 
 	    /* Conversion */
@@ -320,30 +322,39 @@ HDfprintf(FILE *stream, const char *fmt, ...)
                 {
 		    haddr_t x = va_arg (ap, haddr_t); /*lint !e732 Loss of sign not really occuring */
 		    if (H5F_addr_defined(x)) {
-			sprintf(format_templ, "%%%s%s%s%s%s",
+                        len = 0;
+			len = snprintf(format_templ, (size_t)127-len, "%%%s%s%s%s%s",
 				leftjust?"-":"", plussign?"+":"",
 				ldspace?" ":"", prefix?"#":"",
 				zerofill?"0":"");
 			if (fwidth>0)
-			    sprintf(format_templ+HDstrlen(format_templ), "%d", fwidth);
+			    len = snprintf(format_templ+len, (size_t)127-len, "%d", fwidth);
 
                         /*lint --e{506} Don't issue warnings about constant value booleans */
                         /*lint --e{774} Don't issue warnings boolean within 'if' always evaluates false/true */
 			if (sizeof(x)==H5_SIZEOF_INT) {
-			    HDstrcat(format_templ, "u");
+			    HDstrncat(format_templ, "u", (size_t)127-len);
+                            ++len;
 			} else if (sizeof(x)==H5_SIZEOF_LONG) {
-			    HDstrcat(format_templ, "lu");
+			    HDstrncat(format_templ, "lu", (size_t)127-len);
+                            len += 2;
 			} else if (sizeof(x)==H5_SIZEOF_LONG_LONG) {
-			    HDstrcat(format_templ, H5_PRINTF_LL_WIDTH);
-			    HDstrcat(format_templ, "u");
+			    HDstrncat(format_templ, H5_PRINTF_LL_WIDTH, (size_t)127-len);
+                            len += sizeof(H5_PRINTF_LL_WIDTH);
+			    HDstrncat(format_templ, "u", (size_t)127-len);
+                            ++len; 
 			}
 			n = fprintf(stream, format_templ, x);
 		    } else {
-			HDstrcpy(format_templ, "%");
-			if (leftjust)
-                            HDstrcat(format_templ, "-");
-			if (fwidth)
-			    sprintf(format_templ+HDstrlen(format_templ), "%d", fwidth);
+                        len = 0;
+			HDstrncpy(format_templ, (size_t)127-len, "%");
+			if (leftjust) {
+                            HDstrncat(format_templ, "-", (size_t)127-len);
+                            ++len;
+                        }
+			if (fwidth) {
+			    len += snprintf(format_templ+len, (size_t)127-len, "%d", fwidth);
+                        }
 			HDstrcat(format_templ, "s");
 			fprintf(stream, format_templ, "UNDEF");
 		    }
