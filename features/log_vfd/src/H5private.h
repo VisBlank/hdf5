@@ -585,7 +585,7 @@ typedef struct {
 #ifndef HDclock
     #define HDclock()		clock()
 #endif /* HDclock */
-#ifndef HDclock_gettime()
+#ifndef HDclock_gettime
 #define HDclock_gettime(C,T)	clock_gettime(C,T)
 #endif /* HDclock_gettime */
 #ifndef HDclose

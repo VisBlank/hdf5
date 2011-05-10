@@ -955,18 +955,6 @@ hsize_t h5diff(const char *fname1,
     {
 
         /* 
-         * Use h5tools_is_obj_same() to improve performance by skipping 
-         * comparing details of same objects. If verbose options is used,
-         * need to traverse thorugh the list of objects in the group and
-         * print out object information. Details of same objects will be 
-         * skipped at diff() function.
-         */
-         if(!(options->m_verbose || options->m_report)) {
-             if (h5tools_is_obj_same(file1_id,obj1fullname,file2_id,obj2fullname)!=0)
-                 goto out;
-         }
-
-        /* 
          * traverse group1 
          */
         trav_info_init(fname1, file1_id, &info1_grp);
@@ -1933,51 +1921,6 @@ hsize_t diff(hid_t file1_id,
                     options->not_cmp = 1;
                     break;
                 } /* switch(type)*/
-  
-    /* 
-     * Use h5tools_is_obj_same() to improve performance by skipping 
-     * comparing details of same objects,
-     * 
-     * check if two paths point to the same object for hard links or 
-     * the option of follow link is used. h5tools_is_obj_same() is not
-     * needed for other cases.
-     */
-    is_hard_link = (type==H5TRAV_TYPE_DATASET ||
-                    type==H5TRAV_TYPE_NAMED_DATATYPE ||
-                    type==H5TRAV_TYPE_GROUP);
-     if (options->follow_links || is_hard_link)
-     {
-        if (h5tools_is_obj_same(file1_id, path1, file2_id, path2)!=0)
-        {
-            /* print information is only verbose option is used */
-            if(options->m_verbose || options->m_report)
-            {
-                switch(type)
-                {
-                case H5TRAV_TYPE_DATASET:
-                    do_print_objname("dataset", path1, path2, options);
-                    break; 
-                case H5TRAV_TYPE_NAMED_DATATYPE:
-                    do_print_objname("datatype", path1, path2, options);
-                    break;
-                case H5TRAV_TYPE_GROUP:
-                    do_print_objname("group", path1, path2, options);
-                    break;
-                case H5TRAV_TYPE_LINK:
-                    do_print_objname("link", path1, path2, options);
-                    break;
-                case H5TRAV_TYPE_UDLINK:
-                    if(linkinfo1.linfo.type == H5L_TYPE_EXTERNAL && linkinfo2.linfo.type == H5L_TYPE_EXTERNAL)
-                        do_print_objname("external link", path1, path2, options);
-                    else
-                        do_print_objname ("user defined link", path1, path2, options);
-                    break; 
-                default:
-                    parallel_print("Comparison not supported: <%s> and <%s> are of type %s\n",
-                        path1, path2, get_type(type) );
-                    options->not_cmp = 1;
-                    break;
-                } /* switch(type)*/
 
                 print_found(nfound);
             } /* if(options->m_verbose || options->m_report) */
@@ -1987,14 +1930,6 @@ hsize_t diff(hid_t file1_id,
     }
 
     switch(argdata->type)
-                print_found(nfound);
-            } /* if(options->m_verbose || options->m_report) */
-
-            goto out2;
-        } /* h5tools_is_obj_same */
-    }
-
-    switch(type)
     {
        /*----------------------------------------------------------------------
         * H5TRAV_TYPE_DATASET
