@@ -128,8 +128,8 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
     hssize_t		i;
     void		*vp = NULL;
     FILE		*out = H5_debug_g.trace;
-    H5_timer_t          event_time;
-    static H5_timer_t   first_time = {0.0, 0.0, 0.0};
+    H5_timer_OLD_t          event_time;
+    static H5_timer_OLD_t   first_time = {0.0, 0.0, 0.0};
     static int          current_depth = 0;
     static int          last_call_depth = 0;
 

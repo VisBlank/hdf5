@@ -39,7 +39,7 @@ typedef struct H5Z_stats_t {
     struct {
 	hsize_t	total;		/*total number of bytes processed	*/
 	hsize_t	errors;		/*bytes of total attributable to errors	*/
-	H5_timer_t timer;	/*execution time including errors	*/
+	H5_timer_OLD_t timer;	/*execution time including errors	*/
     } stats[2];			/*0=output, 1=input			*/
 } H5Z_stats_t;
 #endif /* H5Z_DEBUG */
@@ -1067,7 +1067,7 @@ H5Z_pipeline(const H5O_pline_t *pline, unsigned flags,
     H5Z_class2_t	*fclass=NULL;   /* Filter class pointer */
 #ifdef H5Z_DEBUG
     H5Z_stats_t	*fstats=NULL;   /* Filter stats pointer */
-    H5_timer_t	timer;
+    H5_timer_OLD_t	timer;
 #endif
     unsigned	failed = 0;
     unsigned	tmp_flags;

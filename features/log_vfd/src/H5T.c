@@ -4728,7 +4728,7 @@ H5T_convert(H5T_path_t *tpath, hid_t src_id, hid_t dst_id, size_t nelmts,
             hid_t dset_xfer_plist)
 {
 #ifdef H5T_DEBUG
-    H5_timer_t		timer;
+    H5_timer_OLD_t		timer;
 #endif
     herr_t      ret_value=SUCCEED;       /* Return value */
 

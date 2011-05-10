@@ -448,7 +448,7 @@ typedef struct {
     double  utime;      /*user time, (requires sys/resource.h)*/
     double  stime;      /*system time, (requires sys/resource.h)*/
     double  etime;      /*elapsed wall-clock time, (requires gettimeofday())*/
-} H5_timer_t;
+} H5_timer_OLD_t;
 
 typedef double H5_timespan_ns_t;
 typedef struct {
@@ -467,11 +467,11 @@ typedef struct {
     /* Elapsed (wall clock) time in nanoseconds */
     H5_timespan_ns_t elapsed_end_ns;
 
-} H5_timer_t2;
+} H5_timer_t;
 
-H5_DLL void H5_timer_begin (H5_timer_t *timer);
-H5_DLL void H5_timer_end (H5_timer_t *sum/*in,out*/,
-                          H5_timer_t *timer/*in,out*/);
+H5_DLL void H5_timer_begin (H5_timer_OLD_t *timer);
+H5_DLL void H5_timer_end (H5_timer_OLD_t *sum/*in,out*/,
+                          H5_timer_OLD_t *timer/*in,out*/);
 H5_DLL void H5_bandwidth(char *buf/*out*/, double nbytes, double nseconds);
 
 /* Depth of object copy */

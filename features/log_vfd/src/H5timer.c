@@ -93,7 +93,7 @@
  *-------------------------------------------------------------------------
  */
 void
-H5_timer_begin (H5_timer_t *timer)
+H5_timer_begin (H5_timer_OLD_t *timer)
 {
 
 #ifdef H5_HAVE_GETRUSAGE
@@ -145,9 +145,9 @@ H5_timer_begin (H5_timer_t *timer)
  *-------------------------------------------------------------------------
  */
 void
-H5_timer_end (H5_timer_t *sum/*in,out*/, H5_timer_t *timer/*in,out*/)
+H5_timer_end (H5_timer_OLD_t *sum/*in,out*/, H5_timer_OLD_t *timer/*in,out*/)
 {
-    H5_timer_t      now;
+    H5_timer_OLD_t      now;
 
     assert (timer);
     H5_timer_begin (&now);
@@ -228,7 +228,7 @@ H5_bandwidth(char *buf/*out*/, double nbytes, double nseconds)
 
 
 void
-H5_timer_start2(H5_timer_t2 *timer/*in,out*/)
+H5_timer_start(H5_timer_t *timer/*in,out*/)
 {
     /* If you have Unix getrusage(), init via that call */
     /* Else, if you have Windows GetSystemTimes(), init via that call */
@@ -240,7 +240,7 @@ H5_timer_start2(H5_timer_t2 *timer/*in,out*/)
 
 
 void
-H5_timer_get_times(H5_timer_t2 *timer/*in,out*/)
+H5_timer_get_times(H5_timer_t *timer/*in,out*/)
 {
     /* If you have Unix getrusage(), init via that call */
     /* Else, if you have Windows GetSystemTimes(), init via that call */
@@ -254,7 +254,7 @@ H5_timer_get_times(H5_timer_t2 *timer/*in,out*/)
 #define H5TIMER_TIME_STRING_LEN 256
 
 char *
-H5_timer_print(H5_timespan_ns_t t)
+H5_timer_print(H5_timespan_ns_t ts)
 {
     double hours    = 0;
     double minutes  = 0;
@@ -267,7 +267,7 @@ H5_timer_print(H5_timespan_ns_t t)
 
     /* Initialize */
     memset(s, 0, H5TIMER_TIME_STRING_LEN);
-    seconds = t * 1.0E9;
+    seconds = ts * 1.0E9;
     minutes = seconds / 60.0;
     hours   = seconds / 3600.0;
 
@@ -278,15 +278,15 @@ H5_timer_print(H5_timespan_ns_t t)
      */
 
     /* 1 decimal place on the lowest figure (s, ms, us or ns) */
-    if(t < 1.0E3) {
+    if(ts < 1.0E3) {
         /* t < 1 us, Print time in ns */
-        sprintf(s, "%.1f ns", t);
-    } else if (t < 1.0E6) {
+        sprintf(s, "%.1f ns", ts);
+    } else if (ts < 1.0E6) {
         /* t < 1 ms, Print time in us */
-        sprintf(s, "%.1f us", t * 1.0E3);
-    } else if (t < 1.0E9) {
+        sprintf(s, "%.1f us", ts * 1.0E3);
+    } else if (ts < 1.0E9) {
         /* t < 1 s, Print time in ms */
-        sprintf(s, "%.1f ms", t * 1.0E6);
+        sprintf(s, "%.1f ms", ts * 1.0E6);
     } else if (minutes < 1.0) {
         /* t < 1 m, Print time in s */
         sprintf(s, "%.1f s", seconds);
