@@ -64,6 +64,7 @@
 ./bin/mkdirs
 ./bin/mkinstalldirs
 ./bin/newer
+./bin/output_filter.sh
 ./bin/reconfigure      _DO_NOT_DISTRIBUTE_
 ./bin/release
 ./bin/runtest        _DO_NOT_DISTRIBUTE_
@@ -1134,6 +1135,7 @@
 ./tools/testfiles/filter_fail.h5
 ./tools/testfiles/filter_fail.ddl
 ./tools/testfiles/packedbits.ddl
+./tools/testfiles/h5dump-help.txt
 ./tools/testfiles/tall-1.ddl
 ./tools/testfiles/tall-2.ddl
 ./tools/testfiles/tall-3.ddl
@@ -1557,6 +1559,7 @@
 ./tools/h5diff/testfiles/h5diff_26.txt
 ./tools/h5diff/testfiles/h5diff_27.txt
 ./tools/h5diff/testfiles/h5diff_28.txt
+./tools/h5diff/testfiles/h5diff_30.txt
 ./tools/h5diff/testfiles/h5diff_50.txt
 ./tools/h5diff/testfiles/h5diff_51.txt
 ./tools/h5diff/testfiles/h5diff_52.txt
@@ -1724,6 +1727,7 @@
 ./tools/h5diff/testfiles/h5diff_comp_vl_strs.h5
 ./tools/h5diff/testfiles/h5diff_dset_zero_dim_size1.h5
 ./tools/h5diff/testfiles/h5diff_dset_zero_dim_size2.h5
+./tools/h5diff/testfiles/h5diff_enum_invalid_values.h5
 
 
 #test files for h5repack
@@ -1762,12 +1766,14 @@
 ./tools/h5jam/getub.c
 
 # test files for jam
+./tools/h5jam/testfiles/h5jam-help.txt
+./tools/h5jam/testfiles/h5unjam-help.txt
 ./tools/h5jam/testfiles/twithub.h5
+./tools/h5jam/testfiles/twithub513.h5
 ./tools/h5jam/testfiles/u10.txt
 ./tools/h5jam/testfiles/tall.h5
 ./tools/h5jam/testfiles/u511.txt
 ./tools/h5jam/testfiles/u512.txt
-./tools/h5jam/testfiles/twithub513.h5
 ./tools/h5jam/testfiles/u513.txt
 
 # test files for h5copy
