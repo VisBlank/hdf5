@@ -139,6 +139,7 @@ int main()
   int FoundIntSize[4];
   int FoundRealSize[4];
   int i,j,flag;
+  size_t chr_len = 20;
   char chrA[20],chrB[20];
   int H5_C_HAS_REAL_NATIVE_16;
   int H5_C_HAS_REAL_NATIVE_12;
@@ -374,8 +375,8 @@ int main()
     for(i=0;i<4;i++) {
       if( FoundIntSize[i] > 0) /* Found the integer type */
 	{
-	  sprintf(chrA, "Fortran_INTEGER_%d", FoundIntSize[i]);
-	  sprintf(chrB, "int_%d_f", FoundIntSize[i]);
+	  snprintf(chrA, chr_len, "Fortran_INTEGER_%d", FoundIntSize[i]);
+	  snprintf(chrB, chr_len, "int_%d_f", FoundIntSize[i]);
 	  writeToFiles(chrA, chrB, FoundIntSize[i]);
 	}
       else  /* Did not find the integer type */
@@ -385,8 +386,8 @@ int main()
 	    {
 	      if( FoundIntSize[j] > 0) /* Found the next highest */
 		{
-		  sprintf(chrA, "Fortran_INTEGER_%d", (-1)*FoundIntSize[i]);
-		  sprintf(chrB, "int_%d_f", (-1)*FoundIntSize[i]);
+		  snprintf(chrA, chr_len, "Fortran_INTEGER_%d", (-1)*FoundIntSize[i]);
+		  snprintf(chrB, chr_len, "int_%d_f", (-1)*FoundIntSize[i]);
 		  writeToFiles(chrA, chrB, FoundIntSize[j]);
 		  flag = 1;
 		  break;
@@ -398,8 +399,8 @@ int main()
 		{
 		  if( FoundIntSize[j] > 0) /* Found the next lowest */
 		    {
-		      sprintf(chrA, "Fortran_INTEGER_%d", (-1)*FoundIntSize[i]);
-		      sprintf(chrB, "int_%d_f", (-1)*FoundIntSize[i]);
+		      snprintf(chrA, chr_len, "Fortran_INTEGER_%d", (-1)*FoundIntSize[i]);
+		      snprintf(chrB, chr_len, "int_%d_f", (-1)*FoundIntSize[i]);
 		      writeToFiles(chrA, chrB, FoundIntSize[j]);
 		      flag = 1;
 		      break;
@@ -445,8 +446,8 @@ int main()
     for(i=0;i<4;i++) {
       if( FoundRealSize[i] > 0) /* Found the real type */
 	{
-	  sprintf(chrA, "Fortran_REAL_%d", FoundRealSize[i]);
-	  sprintf(chrB, "real_%d_f", FoundRealSize[i]);
+	  snprintf(chrA, chr_len, "Fortran_REAL_%d", FoundRealSize[i]);
+	  snprintf(chrB, chr_len, "real_%d_f", FoundRealSize[i]);
 	  writeFloatToFiles(chrA, chrB, FoundRealSize[i]);
 	}
       else  /* Did not find the real type */
@@ -456,8 +457,8 @@ int main()
 	    {
 	      if( FoundRealSize[j] > 0) /* Found the next highest */
 		{
-		  sprintf(chrA, "Fortran_REAL_%d", (-1)*FoundRealSize[i]);
-		  sprintf(chrB, "real_%d_f", (-1)*FoundRealSize[i]);
+		  snprintf(chrA, chr_len, "Fortran_REAL_%d", (-1)*FoundRealSize[i]);
+		  snprintf(chrB, chr_len, "real_%d_f", (-1)*FoundRealSize[i]);
 		  if(FoundRealSize[j]>4) {
 		    writeFloatToFiles(chrA, chrB, FoundRealSize[j]);
 		    flag = 1;
@@ -475,8 +476,8 @@ int main()
 		{
 		  if( FoundRealSize[j] > 0) /* Found the next lowest */
 		    {
-		      sprintf(chrA, "Fortran_REAL_%d", (-1)*FoundRealSize[i]);
-		      sprintf(chrB, "real_%d_f", (-1)*FoundRealSize[i]);
+		      snprintf(chrA, chr_len, "Fortran_REAL_%d", (-1)*FoundRealSize[i]);
+		      snprintf(chrB, chr_len, "real_%d_f", (-1)*FoundRealSize[i]);
 		      if(FoundRealSize[j]>4) {
 			writeFloatToFiles(chrA, chrB, FoundRealSize[j]);
 		      }
