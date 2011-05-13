@@ -355,7 +355,8 @@ HDfprintf(FILE *stream, const char *fmt, ...)
 			if (fwidth) {
 			    len += snprintf(format_templ+len, (size_t)127-len, "%d", fwidth);
                         }
-			HDstrcat(format_templ, "s");
+			HDstrncat(format_templ, "s", (size_t)127-len);
+                        ++len;
 			fprintf(stream, format_templ, "UNDEF");
 		    }
 		}
