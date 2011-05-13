@@ -3982,7 +3982,7 @@ nh5pget_data_transform_c(hid_t_f *plist_id, _fcd expression, int_f *expression_l
        HGOTO_DONE(FAIL)
 
     /* or strlen ? */
-    HD5packFstring(c_expression, _fcdtocp(expression), c_expression_len - 1);
+    HD5packFstring(c_expression, _fcdtocp(expression), (size_t)*expression_len);
 
     *size = (size_t_f)ret;
 
