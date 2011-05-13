@@ -3847,14 +3847,17 @@ render_bin_output(FILE *stream, hid_t container, hid_t tid, void *_mem)
         int      nmembs;
         size_t   offset;
 
-        nmembs = H5Tget_nmembers(tid);
+        if((nmembs = H5Tget_nmembers(tid)) < 0)
+            H5E_THROW(FAIL, H5E_tools_min_id_g, "H5Tget_nmembers of compound failed");
 
         for (j = 0; j < nmembs; j++) {
             offset = H5Tget_member_offset(tid, j);
             memb   = H5Tget_member_type(tid, j);
 
-            if (render_bin_output(stream, container, memb, mem + offset) < 0)
-                return FAIL;
+            if (render_bin_output(stream, container, memb, mem + offset) < 0) {
+                H5Tclose(memb);
+                H5E_THROW(FAIL, H5E_tools_min_id_g, "render_bin_output of compound member failed");
+            }
 
             H5Tclose(memb);
         }
@@ -3901,8 +3904,10 @@ render_bin_output(FILE *stream, hid_t container, hid_t tid, void *_mem)
 
         /* dump the array element */
         for (i = 0; i < nelmts; i++) {
-            if (render_bin_output(stream, container, memb, mem + i * size) < 0)
-                H5E_THROW(FAIL, H5E_tools_min_id_g, "render_bin_output failed");
+            if (render_bin_output(stream, container, memb, mem + i * size) < 0) {
+                H5Tclose(memb);
+                H5E_THROW(FAIL, H5E_tools_min_id_g, "render_bin_output of array failed");
+            }
         }
 
         H5Tclose(memb);
@@ -3921,8 +3926,10 @@ render_bin_output(FILE *stream, hid_t container, hid_t tid, void *_mem)
 
         for (i = 0; i < nelmts; i++) {
             /* dump the array element */
-            if (render_bin_output(stream, container, memb, ((char *) (((hvl_t *) mem)->p)) + i * size) < 0)
+            if (render_bin_output(stream, container, memb, ((char *) (((hvl_t *) mem)->p)) + i * size) < 0) {
+                H5Tclose(memb);
                 H5E_THROW(FAIL, H5E_tools_min_id_g, "render_bin_output failed");
+            }
         }
         H5Tclose(memb);
     }
