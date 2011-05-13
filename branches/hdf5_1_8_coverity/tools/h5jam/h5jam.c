@@ -262,7 +262,7 @@ main (int argc, const char *argv[])
       exit (EXIT_FAILURE);
     }
 
-  h5fsize = (hsize_t)sbuf2.st_size;
+  h5fsize = sbuf2.st_size;
 
   if (output_file == NULL)
     {
@@ -286,18 +286,6 @@ main (int argc, const char *argv[])
 	  exit (EXIT_FAILURE);
 	}
     }
-  if(output_file) {
-    HDfree(output_file);
-    output_file = NULL;
-  }
-  if(input_file) {
-    HDfree(input_file);
-    input_file = NULL;
-  }
-  if(ub_file) {
-    HDfree(ub_file);
-    ub_file = NULL;
-  }
 
   newubsize = compute_user_block_size ((hsize_t) fsize);
 
