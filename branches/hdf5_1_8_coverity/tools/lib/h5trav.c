@@ -153,10 +153,10 @@ traverse_cb(hid_t loc_id, const char *path, const H5L_info_t *linfo,
 
         if(NULL == (new_name = HDmalloc(base_len + add_slash + HDstrlen(path) + 1)))
             return(H5_ITER_ERROR);
-        HDstrcpy(new_name, udata->base_grp_name);
+        HDstrncpy(new_name, udata->base_grp_name, base_len + 1);
         if (add_slash)
             new_name[base_len] = '/';
-        HDstrcpy(new_name + base_len + add_slash, path);
+        HDstrncpy(new_name + base_len + add_slash, path, HDstrlen(path) + 1);
         full_name = new_name;
     } /* end if */
     else
