@@ -897,7 +897,7 @@ H5O_dtype_encode_helper(const H5F_t *f, uint8_t **pp, const H5T_t *dt)
                     HDassert(dt->shared->version >= dt->shared->u.compnd.memb[i].type->shared->version);
 
                     /* Name */
-                    HDstrcpy((char*)(*pp), dt->shared->u.compnd.memb[i].name);
+                    HDstrncpy((char*)(*pp), dt->shared->u.compnd.memb[i].name, HDstrlen(dt->shared->u.compnd.memb[i].name)+1);
 
                     /* Version 3 of the datatype message removed the padding to multiple of 8 bytes */
                     n = HDstrlen(dt->shared->u.compnd.memb[i].name);
@@ -970,7 +970,7 @@ H5O_dtype_encode_helper(const H5F_t *f, uint8_t **pp, const H5T_t *dt)
             /* Names, each a multiple of eight bytes */
             for(i = 0; i < dt->shared->u.enumer.nmembs; i++) {
                 /* Name */
-                HDstrcpy((char*)(*pp), dt->shared->u.enumer.name[i]);
+                HDstrncpy((char*)(*pp), dt->shared->u.enumer.name[i], HDstrlen(dt->shared->u.enumer.name[i])+1);
 
                 /* Version 3 of the datatype message removed the padding to multiple of 8 bytes */
                 n = HDstrlen(dt->shared->u.enumer.name[i]);
