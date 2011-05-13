@@ -13,8 +13,10 @@
 * access to either file, you may request a copy from help@hdfgroup.org.     *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "h5hltest.h"
 #include "H5srcdir.h"
 #include "H5LTpublic.h"
@@ -519,7 +521,7 @@ static int test_generate(void)
     char     *srcdir = getenv("srcdir"); /* the source directory */
     char     data_file[512]="";          /* buffer to hold name of existing data file */
     int      i;
-    int      n_elements = -1;
+    int      n_elements;
 
     /* create a file using default properties */
     if ((fid=H5Fcreate(FILE3,H5F_ACC_TRUNC,H5P_DEFAULT,H5P_DEFAULT))<0)
@@ -589,8 +591,27 @@ static int test_generate(void)
     fscanf( f, "%d %d %d", &imax, &jmax, &kmax );
     fscanf( f, "%f %f %f", &valex, &xmin, &xmax );
 
+    /* Sanity check on scanned-in values */
+    
+    if(imax < 1 || jmax < 1 || kmax < 1)
+        goto out;
+
+    /* Test product for integer overflow */
+
+    if(imax > INT_MAX / jmax)
+        goto out;
+
+    if(imax * jmax > INT_MAX / kmax)
+        goto out;
+
     n_elements = imax * jmax * kmax;
-    if(n_elements < 1)
+
+    /* Test buffer sizes for overflow */
+
+    if(n_elements > INT_MAX / sizeof(float))
+        goto out;
+    
+    if(n_elements > INT_MAX / sizeof(unsigned char))
         goto out;
 
     data = (float *) malloc(n_elements * sizeof(float));
@@ -784,7 +805,24 @@ static int read_data( const char* fname, /*IN*/
         image_data=NULL;
     }
 
+    /* Check product for overflow */
+
+    if(w < 1 || h < 1 || color_planes < 1)
+        return -1;
+
+    if(w > INT_MAX / h)
+        return -1;
+
+    if(w * h > INT_MAX / color_planes)
+        return -1;
+
     n_elements = w * h * color_planes;
+
+    /* Check buffer size for overflow */
+
+    if(n_elements > INT_MAX / sizeof(unsigned char))
+        return -1;
+
     image_data = (unsigned char*) malloc (n_elements * sizeof( unsigned char ));
 
     for (i = 0; i < n_elements; i++)
