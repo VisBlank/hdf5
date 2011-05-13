@@ -143,7 +143,7 @@ H5O_name_encode(H5F_t UNUSED *f, hbool_t UNUSED disable_shared, uint8_t *p, cons
     assert(mesg && mesg->s);
 
     /* encode */
-    HDstrcpy((char*)p, mesg->s);
+    HDstrncpy((char*)p, mesg->s, HDstrlen(mesg->s)+1);
 
     FUNC_LEAVE_NOAPI(SUCCEED);
 }
