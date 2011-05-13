@@ -4512,9 +4512,9 @@ H5P_get_class_path(H5P_genclass_t *pclass)
                 HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed for class name")
 
             /* Build the full path for this class */
-            HDstrcpy(ret_value,par_path);
-            HDstrcat(ret_value,"/");
-            HDstrcat(ret_value,pclass->name);
+            HDstrncpy(ret_value,par_path,par_path_len+1);
+            HDstrncat(ret_value,"/",1);
+            HDstrncat(ret_value,pclass->name,my_path_len);
 
             /* Free the parent class's path */
             H5MM_xfree(par_path);
