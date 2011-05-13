@@ -182,7 +182,7 @@ H5O_pline_decode(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, H5O_t UNUSED *open_oh,
             else
                 filter->name = filter->_name;
 
-	    HDstrcpy(filter->name, (const char *)p);
+	    HDstrncpy(filter->name, (const char *)p, HDstrlen((const char *)p)+1);
 	    p += name_length;
 	} /* end if */
 
