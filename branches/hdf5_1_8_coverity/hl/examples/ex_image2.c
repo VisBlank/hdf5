@@ -26,7 +26,7 @@
 #define PAL_ENTRIES  256
 
 static int    read_data(const char* file_name, hsize_t *width, hsize_t *height );
-unsigned char *gbuf = 0;  /* global buffer for image data */
+unsigned char *gbuf = NULL;  /* global buffer for image data */
 
 int main( void )
 {
@@ -79,9 +79,15 @@ int main( void )
  /* close the file. */
  H5Fclose( file_id );
 
+ if(gbuf)
+  free(gbuf);
+
  return 0;
 
 out:
+ if(gbuf)
+  free(gbuf);
+
  printf("Error on return function...Exiting\n");
  return 1;
 }
