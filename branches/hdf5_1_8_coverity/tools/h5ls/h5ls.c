@@ -871,7 +871,6 @@ out:
     free(value);
     H5Tclose(super);
 
-    if (0==nmembs) printf("\n%*s <empty>", ind+4, "");
     printf("\n%*s}", ind, "");
 
     return ret_val;
