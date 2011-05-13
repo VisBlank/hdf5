@@ -2718,39 +2718,34 @@ nh5pclose_class_c(hid_t_f *cls)
  * Name:        h5pget_class_name_c
  * Purpose:     Call H5Pget_class_name to get property class name
  * Inputs:      cls - identifier of property class
- *              name   - ibuffer to retrieve name in
+ *              name - buffer to retrieve name in
  *              name_len - length of the "name" buffer
  * Returns:     0 on success, -1 on failure
  * Programmer:  Elena Pourmal
  *              October 11, 2002
- * Modifications:
+ * Modifications: Fixed a bug when c_name was unnecessarily allocated and 
+ *                wrongly freed EIP 2011-05-13
  *---------------------------------------------------------------------------*/
 int_f
 nh5pget_class_name_c(hid_t_f *cls, _fcd name, int_f *name_len)
 {
      int_f ret_value = -1;
-     char *c_name = NULL;          /* Buffer to hold C string */
-     size_t c_size;
 
-     c_size = (size_t)*name_len + 1;
-
-     /*
-      * Allocate buffer to hold name
-      */
-     if(NULL == (c_name = (char *)HDmalloc(c_size)))
-       goto DONE;
+     /* Buffer to return name by C function */
+     char *c_name = NULL; 
 
      /*
-      * Call H5Pget_class_name function.
+      * Call H5Pget_class_name function. c_name is allocated by the library, 
+      * has to be freed by application.
       */
      c_name = H5Pget_class_name((hid_t)*cls);
      if(c_name == NULL) goto DONE;
 
      HD5packFstring(c_name, _fcdtocp(name), (size_t)*name_len);
      ret_value = (int_f)HDstrlen(c_name);
+     HDfree(c_name);
 
 DONE:
-     HDfree(c_name);
      return ret_value;
 }
 
