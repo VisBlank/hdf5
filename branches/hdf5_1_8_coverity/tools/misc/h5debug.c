@@ -25,28 +25,28 @@
  *
  *-------------------------------------------------------------------------
  */
-#define H5A_PACKAGE		/*suppress error about including H5Apkg  */
-#define H5B2_PACKAGE		/*suppress error about including H5B2pkg  */
-#define H5B2_TESTING		/*suppress warning about H5B2 testing funcs*/
-#define H5F_PACKAGE		/*suppress error about including H5Fpkg	  */
-#define H5G_PACKAGE		/*suppress error about including H5Gpkg	  */
-#define H5HF_PACKAGE		/*suppress error about including H5HFpkg  */
-#define H5O_PACKAGE		/*suppress error about including H5Opkg	  */
-#define H5SM_PACKAGE		/*suppress error about including H5SMpkg  */
+#define H5A_PACKAGE    /*suppress error about including H5Apkg  */
+#define H5B2_PACKAGE    /*suppress error about including H5B2pkg  */
+#define H5B2_TESTING    /*suppress warning about H5B2 testing funcs*/
+#define H5F_PACKAGE    /*suppress error about including H5Fpkg    */
+#define H5G_PACKAGE    /*suppress error about including H5Gpkg    */
+#define H5HF_PACKAGE    /*suppress error about including H5HFpkg  */
+#define H5O_PACKAGE    /*suppress error about including H5Opkg    */
+#define H5SM_PACKAGE    /*suppress error about including H5SMpkg  */
 
-#include "H5private.h"		/* Generic Functions			*/
-#include "H5Apkg.h"		/* Attributes				*/
-#include "H5B2pkg.h"		/* v2 B-trees				*/
-#include "H5Dprivate.h"		/* Datasets				*/
-#include "H5Eprivate.h"		/* Error handling		  	*/
-#include "H5Fpkg.h"             /* File access				*/
-#include "H5FSprivate.h"	/* Free space manager			*/
-#include "H5Gpkg.h"		/* Groups				*/
-#include "H5HFpkg.h"		/* Fractal heaps			*/
-#include "H5HGprivate.h"	/* Global Heaps				*/
-#include "H5Iprivate.h"		/* IDs			  		*/
-#include "H5Opkg.h"             /* Object headers			*/
-#include "H5SMpkg.h"		/* Implicitly shared messages		*/
+#include "H5private.h"    /* Generic Functions      */
+#include "H5Apkg.h"    /* Attributes        */
+#include "H5B2pkg.h"    /* v2 B-trees        */
+#include "H5Dprivate.h"    /* Datasets        */
+#include "H5Eprivate.h"    /* Error handling        */
+#include "H5Fpkg.h"             /* File access        */
+#include "H5FSprivate.h"  /* Free space manager      */
+#include "H5Gpkg.h"    /* Groups        */
+#include "H5HFpkg.h"    /* Fractal heaps      */
+#include "H5HGprivate.h"  /* Global Heaps        */
+#include "H5Iprivate.h"    /* IDs            */
+#include "H5Opkg.h"             /* Object headers      */
+#include "H5SMpkg.h"    /* Implicitly shared messages    */
 
 /* File drivers */
 #include "H5FDfamily.h"
@@ -58,15 +58,15 @@
 /*-------------------------------------------------------------------------
  * Function:    get_H5B2_class
  *
- * Purpose:	Determine the v2 B-tree class from the buffer read in.
+ * Purpose:  Determine the v2 B-tree class from the buffer read in.
  *              B-trees are debugged through the B-tree subclass.  The subclass
  *              identifier is two bytes after the B-tree signature.
  *
- * Return:	Non-NULL on success/NULL on failure
+ * Return:  Non-NULL on success/NULL on failure
  *
- * Programmer:	Quincey Koziol
- *		koziol@hdfgroup.org
- *		Sep 11 2008
+ * Programmer:  Quincey Koziol
+ *    koziol@hdfgroup.org
+ *    Sep 11 2008
  *
  *-------------------------------------------------------------------------
  */
@@ -144,7 +144,7 @@ get_H5B2_class(const uint8_t *sig)
 int
 main(int argc, char *argv[])
 {
-    hid_t	fid, fapl, dxpl;
+    hid_t  fid, fapl, dxpl;
     H5F_t       *f;
     haddr_t     addr = 0, extra = 0, extra2 = 0, extra3 = 0, extra4 = 0;
     uint8_t     sig[H5F_SIGNATURE_LEN];
@@ -152,8 +152,8 @@ main(int argc, char *argv[])
     herr_t      status = SUCCEED;
 
     if(argc == 1) {
-	fprintf(stderr, "Usage: %s filename [signature-addr [extra]]\n", argv[0]);
-	HDexit(1);
+  fprintf(stderr, "Usage: %s filename [signature-addr [extra]]\n", argv[0]);
+  HDexit(1);
     } /* end if */
 
     /* Initialize the library */
@@ -173,8 +173,12 @@ main(int argc, char *argv[])
         fprintf(stderr, "cannot create file access property list\n");
         HDexit(1);
     } /* end if */
-    if(strchr (argv[1], '%'))
-	H5Pset_fapl_family (fapl, (hsize_t)0, H5P_DEFAULT);
+    if(strchr (argv[1], '%')) {
+        if(H5Pset_fapl_family (fapl, (hsize_t)0, H5P_DEFAULT) < 0) {
+            fprintf(stderr, "cannot set ile access property list\n");
+            HDexit(1);
+        }
+    }
     if((fid = H5Fopen(argv[1], H5F_ACC_RDONLY, fapl)) < 0) {
         fprintf(stderr, "cannot open file\n");
         HDexit(1);
@@ -219,10 +223,10 @@ main(int argc, char *argv[])
         status = H5HL_debug(f, H5P_DATASET_XFER_DEFAULT, addr, stdout, 0, VCOL);
 
     } else if(!HDmemcmp (sig, H5HG_MAGIC, (size_t)H5_SIZEOF_MAGIC)) {
-	/*
-	 * Debug a global heap collection.
-	 */
-	status = H5HG_debug (f, H5P_DATASET_XFER_DEFAULT, addr, stdout, 0, VCOL);
+  /*
+   * Debug a global heap collection.
+   */
+  status = H5HG_debug (f, H5P_DATASET_XFER_DEFAULT, addr, stdout, 0, VCOL);
 
     } else if(!HDmemcmp(sig, H5G_NODE_MAGIC, (size_t)H5_SIZEOF_MAGIC)) {
         /*
