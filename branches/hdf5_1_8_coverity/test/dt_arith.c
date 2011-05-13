@@ -2700,16 +2700,16 @@ my_isnan(dtype_t type, void *val)
 	if (FLT_FLOAT==type) {
 	    float x;
 	    HDmemcpy(&x, val, sizeof(float));
-	    sprintf(s, "%g", x);
+	    snprintf(s, 255, "%g", x);
 	} else if (FLT_DOUBLE==type) {
 	    double x;
 	    HDmemcpy(&x, val, sizeof(double));
-	    sprintf(s, "%g", x);
+	    snprintf(s, 255, "%g", x);
 #if H5_SIZEOF_LONG_DOUBLE!=H5_SIZEOF_DOUBLE && H5_SIZEOF_LONG_DOUBLE!=0
 	} else if (FLT_LDOUBLE==type) {
 	    long double x;
 	    HDmemcpy(&x, val, sizeof(long double));
-	    sprintf(s, "%Lg", x);
+	    snprintf(s, 255, "%Lg", x);
 #endif
 	} else {
 	    return 0;
