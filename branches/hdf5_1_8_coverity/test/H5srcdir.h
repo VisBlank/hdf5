@@ -42,9 +42,9 @@ static const char *H5_get_srcdir_filename(const char *filename)
 
     /* Build path to test file */
     if((HDstrlen(srcdir) + HDstrlen(filename) + 2) < sizeof(srcdir_testpath)) {
-        HDstrcpy(srcdir_testpath, srcdir);
-        HDstrcat(srcdir_testpath, "/");
-        HDstrcat(srcdir_testpath, filename);
+        HDstrncpy(srcdir_testpath, srcdir, HDstrlen(srcdir)+1);
+        HDstrncat(srcdir_testpath, "/", 1);
+        HDstrncat(srcdir_testpath, filename, HDstrlen(filename));
         return(srcdir_testpath);
     } /* end if */
     else
