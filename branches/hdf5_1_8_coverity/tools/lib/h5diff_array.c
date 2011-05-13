@@ -137,7 +137,7 @@ static int   not_comparable;
     is_zero=1;                                       \
 }
 
-#   define PDIFF(a,b)		( (b>a) ? (b-a) : (a-b))
+#   define PDIFF(a,b)    ( (b>a) ? (b-a) : (a-b))
 
 /*-------------------------------------------------------------------------
  * local prototypes
@@ -669,7 +669,9 @@ hsize_t diff_datum(void       *_mem1,
 
         {
             hsize_t adims[H5S_MAX_RANK];
-            int       ndims;
+            int     ndims;
+            int     ndx;
+            
             /* get the array's base datatype for each element */
             memb_type = H5Tget_super(m_type);
             size      = H5Tget_size(memb_type);
@@ -678,10 +680,9 @@ hsize_t diff_datum(void       *_mem1,
             assert(ndims >= 1 && ndims <= H5S_MAX_RANK);
 
             /* calculate the number of array elements */
-            for (u = 0, nelmts = 1; u <ndims; u++)
-                nelmts *= adims[u];
-            for (u = 0; u < nelmts; u++)
-            {
+            for (ndx = 0, nelmts = 1; ndx < ndims; ndx++)
+                nelmts *= adims[ndx];
+            for (u = 0; u < nelmts; u++) {
                nfound+=diff_datum(
                    mem1 + u * size,
                    mem2 + u * size, /* offset */
@@ -5718,13 +5719,13 @@ hbool_t equal_float(float value, float expected, diff_opt_t *options)
 
 
 /*-------------------------------------------------------------------------
- * Function:	my_isnan
+ * Function:  my_isnan
  *
- * Purpose:	Determines whether VAL points to NaN.
+ * Purpose:  Determines whether VAL points to NaN.
  *
- * Return:	TRUE or FALSE
+ * Return:  TRUE or FALSE
  *
- * Programmer:	Robb Matzke
+ * Programmer:  Robb Matzke
  *              Monday, July  6, 1998
  *
  * Modifications:
