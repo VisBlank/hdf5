@@ -587,6 +587,7 @@ H5std_string CommonFG::getComment( const char* name, size_t bufsize ) const
    {
       delete []comment_C;
       throwException("getComment", "H5Oget_comment_by_name failed");
+      return NULL;
    }
    else
    {
@@ -1129,10 +1130,10 @@ H5G_obj_t CommonFG::getObjTypeByIdx(hsize_t idx, char* type_name) const
    H5G_obj_t obj_type = H5Gget_objtype_by_idx(getLocId(), idx);
    switch (obj_type)
    {
-	case H5G_LINK: HDstrcpy(type_name, "symbolic link"); break;
-	case H5G_GROUP: HDstrcpy(type_name, "group"); break;
-	case H5G_DATASET: HDstrcpy(type_name, "dataset"); break;
-	case H5G_TYPE: HDstrcpy(type_name, "datatype"); break;
+	case H5G_LINK: HDstrncpy(type_name, "symbolic link", 14); break;
+	case H5G_GROUP: HDstrncpy(type_name, "group", 6); break;
+	case H5G_DATASET: HDstrncpy(type_name, "dataset", 8); break;
+	case H5G_TYPE: HDstrncpy(type_name, "datatype", 9); break;
 	case H5G_UNKNOWN:
 	default:
    	{
