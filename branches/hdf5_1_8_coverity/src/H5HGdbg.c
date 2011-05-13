@@ -104,7 +104,7 @@ H5HG_debug(H5F_t *f, hid_t dxpl_id, haddr_t addr, FILE *stream, int indent,
 
     for (u=1; u<h->nused; u++) {
 	if (h->obj[u].begin) {
-	    sprintf (buf, "Object %u", u);
+	    HDsnprintf (buf, sizeof(buf), "Object %u", u);
 	    fprintf (stream, "%*s%s\n", indent, "", buf);
 	    fprintf (stream, "%*s%-*s %lu\n", indent+3, "", MIN(fwidth-3, 0),
 		     "Obffset in block:",

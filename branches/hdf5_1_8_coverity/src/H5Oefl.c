@@ -561,7 +561,7 @@ H5O_efl_debug(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, const void *_mesg, FILE * s
 	      mesg->nused, mesg->nalloc);
 
     for(u = 0; u < mesg->nused; u++) {
-	sprintf (buf, "File %u", (unsigned)u);
+	HDsnprintf (buf, sizeof(buf), "File %u", (unsigned)u);
 	HDfprintf (stream, "%*s%s:\n", indent, "", buf);
 
 	HDfprintf(stream, "%*s%-*s \"%s\"\n", indent+3, "", MAX (fwidth-3, 0),
