@@ -379,7 +379,7 @@ H5O_pline_copy(const void *_src, void *_dst/*out*/)
                         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed for filter name")
 
                     /* Copy name */
-                    HDstrcpy(dst->filter[i].name, src->filter[i].name);
+                    HDstrncpy(dst->filter[i].name, src->filter[i].name, namelen);
                 } /* end if */
                 else
                     dst->filter[i].name = dst->filter[i]._name;
