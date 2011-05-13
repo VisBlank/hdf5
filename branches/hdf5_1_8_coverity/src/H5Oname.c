@@ -100,7 +100,7 @@ H5O_name_decode(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, H5O_t UNUSED *open_oh,
     if(NULL == (mesg = (H5O_name_t *)H5MM_calloc(sizeof(H5O_name_t))) ||
             NULL == (mesg->s = (char *)H5MM_malloc(HDstrlen((const char *)p) + 1)))
 	HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
-    HDstrcpy(mesg->s, (const char *)p);
+    HDstrncpy(mesg->s, (const char *)p, HDstrlen((const char *)p) + 1);
 
     /* Set return value */
     ret_value = mesg;
