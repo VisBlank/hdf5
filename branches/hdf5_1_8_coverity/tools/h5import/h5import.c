@@ -890,7 +890,7 @@ processStrData(FILE **strm, struct Input *in, hid_t file_id)
 
     while ( !feof( *strm ) )
     {
-        c = fgetc( *strm );
+        c = (char)fgetc( *strm );
 
         if ( c == 10 ) /* eol */
         {
@@ -959,7 +959,7 @@ processStrData(FILE **strm, struct Input *in, hid_t file_id)
     line = 0;
 
     while(!feof(*strm)) {
-        c = fgetc(*strm);
+        c = (char)fgetc(*strm);
 
         str[i] = c;
 
