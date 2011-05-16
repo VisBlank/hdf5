@@ -45,14 +45,12 @@ extern "C" {
 #endif
 
 H5_DLL int Wgettimeofday(struct timeval *tv, struct timezone *tz);
-H5_DLL int Wget_process_times(double *user_time_ns, double *sys_time_ns);
 
 #ifdef __cplusplus
 }
 #endif
 
 #define HDaccess(F,M)       _access(F,M)
-#define HDclock_gettime(C,T)    Wclock_gettime(C,T)
 #define HDclose(F)          _close(F)
 #define HDdup(F)            _dup(F)
 #define HDfdopen(N,S)       _fdopen(N,S)

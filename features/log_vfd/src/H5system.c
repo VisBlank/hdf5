@@ -641,36 +641,6 @@ Wgettimeofday(struct timeval *tv, struct timezone *tz)
 #endif
 
 
-#ifdef _WIN32
-
-int
-Wclock_gettime(clockid_t clk_id, struct timespec *tp)
-{
-    /* clk_id is ignored */
-
-    assert(tp);
-
-    tp->tv_sec  = 0.0;
-    tp->tv_nsec = 0.0;
-
-    return 0;
-}
-
-#endif
-
-
-#ifdef _WIN32
-
-int
-Wget_process_times(double *user_time_ns, double *sys_time_ns)
-{
-    *user_time_ns = 0.0;
-    *sys_time_ns = 0.0;
-
-    return 0;
-}
-
-#endif
 
 
 /*-------------------------------------------------------------------------
