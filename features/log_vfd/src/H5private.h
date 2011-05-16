@@ -156,6 +156,11 @@
 
 #endif /*_WIN32*/
 
+/* Required for Mac timer functionality */
+#if defined(H5_HAVE_MACH_TIME_H)
+#include <mach/mach_time.h>
+#endif
+
 /* H5_inline */
 #ifndef H5_inline
 #define H5_inline
@@ -458,17 +463,40 @@ typedef struct {
 
 typedef struct {
 
-    #if defined(_WIN32)
+    /*************************
+     * System and user times *
+     *************************/
+
+#if defined(_WIN32)
+
     HANDLE process_handle;
 
     /* For system and kernel times - copied from a FILETIME struct */
     ULARGE_INTEGER kernel_start;
     ULARGE_INTEGER user_start;
 
+#elif defined(H5_HAVE_GETRUSAGE)
+
+    double  system_start;
+    double  user_start;
+
+#endif
+
+    /****************
+     * Elapsed time *
+     ****************/
+
+#if defined(_WIN32)
+
     /* For elapsed time - from the performance counters */
     LARGE_INTEGER counts_start;
     LARGE_INTEGER counts_freq;
-    #endif
+
+#elif defined(H5_HAVE_MACH_TIME_H)  /* Mac OS */
+
+    uint64_t    elapsed_start;
+
+#endif
 
 } H5_timer_t;
 
