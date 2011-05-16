@@ -450,22 +450,25 @@ typedef struct {
     double  etime;      /*elapsed wall-clock time, (requires gettimeofday())*/
 } H5_timer_OLD_t;
 
-typedef double H5_timespan_ns_t;
+typedef struct {
+    double user_ns;      /* User time in nanoseconds */
+    double system_ns;    /* System time in nanoseconds */
+    double elapsed_ns;   /* Elapsed (wall clock) time in nanoseconds */
+} H5_timevals_t;
+
 typedef struct {
 
-    /* Start times for internal use */ 
-    H5_timespan_ns_t user_start_ns;
-    H5_timespan_ns_t system_start_ns;
-    H5_timespan_ns_t elapsed_start_ns;
+    #if defined(_WIN32)
+    HANDLE process_handle;
 
-    /* User time in nanoseconds */
-    H5_timespan_ns_t user_elapsed_ns;
+    /* For system and kernel times - copied from a FILETIME struct */
+    ULARGE_INTEGER kernel_start;
+    ULARGE_INTEGER user_start;
 
-    /* System time in nanoseconds */
-    H5_timespan_ns_t system_elapsed_ns;
-
-    /* Elapsed (wall clock) time in nanoseconds */
-    H5_timespan_ns_t elapsed_end_ns;
+    /* For elapsed time - from the performance counters */
+    LARGE_INTEGER counts_start;
+    LARGE_INTEGER counts_freq;
+    #endif
 
 } H5_timer_t;
 
@@ -473,6 +476,9 @@ H5_DLL void H5_timer_begin (H5_timer_OLD_t *timer);
 H5_DLL void H5_timer_end (H5_timer_OLD_t *sum/*in,out*/,
                           H5_timer_OLD_t *timer/*in,out*/);
 H5_DLL void H5_bandwidth(char *buf/*out*/, double nbytes, double nseconds);
+H5_DLL void H5_timer_start(H5_timer_t *timer/*in,out*/);
+H5_DLL void H5_timer_get_times(H5_timer_t *timer/*in,out*/);
+H5_DLL char * H5_timer_get_time_string(double ns);
 
 /* Depth of object copy */
 typedef enum {

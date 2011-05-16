@@ -254,20 +254,17 @@ H5_timer_get_times(H5_timer_t *timer/*in,out*/)
 #define H5TIMER_TIME_STRING_LEN 256
 
 char *
-H5_timer_print(H5_timespan_ns_t ts)
+H5_timer_get_time_string(double ns)
 {
     double hours    = 0;
     double minutes  = 0;
     double seconds  = 0;
 
-    /* Allocate statically like ctime?
-     * Might cause concurrency issues, but it'll be no worse than ctime().
-     */
-    static char *s[H5TIMER_TIME_STRING_LEN];
+    char *s;                /* output string */
 
     /* Initialize */
-    memset(s, 0, H5TIMER_TIME_STRING_LEN);
-    seconds = ts * 1.0E9;
+    s = calloc(H5TIMER_TIME_STRING_LEN, sizeof(char));
+    seconds = ns / 1.0E9;
     minutes = seconds / 60.0;
     hours   = seconds / 3600.0;
 
@@ -276,20 +273,20 @@ H5_timer_print(H5_timespan_ns_t ts)
      * time unit.  Perhaps this could be passed as an integer.
      * (name? round_up_size? ?)
      */
-
-    /* 1 decimal place on the lowest figure (s, ms, us or ns) */
-    if(ts < 1.0E3) {
+    if(ns < 0.0) {
+        sprintf(s, "N/A");
+    }else if(ns < 1.0E3) {
         /* t < 1 us, Print time in ns */
-        sprintf(s, "%.1f ns", ts);
-    } else if (ts < 1.0E6) {
+        sprintf(s, "%.f ns", ns);
+    } else if (ns < 1.0E6) {
         /* t < 1 ms, Print time in us */
-        sprintf(s, "%.1f us", ts * 1.0E3);
-    } else if (ts < 1.0E9) {
+        sprintf(s, "%.1f us", ns / 1.0E3);
+    } else if (ns < 1.0E9) {
         /* t < 1 s, Print time in ms */
-        sprintf(s, "%.1f ms", ts * 1.0E6);
+        sprintf(s, "%.1f ms", ns / 1.0E6);
     } else if (minutes < 1.0) {
         /* t < 1 m, Print time in s */
-        sprintf(s, "%.1f s", seconds);
+        sprintf(s, "%.2f s", seconds);
     } else if (hours < 0) {
         /* t < 1 h, Print time in m and s */
         sprintf(s, "%.f m %.1f s", minutes, seconds);
@@ -298,5 +295,5 @@ H5_timer_print(H5_timespan_ns_t ts)
         sprintf(s, "%.f h %.f m %.1f s", hours, minutes, seconds);
     }
 
-    return &s;
+    return s;
 }
