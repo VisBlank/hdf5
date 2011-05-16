@@ -583,6 +583,7 @@ HDremove_all(const char *fname)
 }
 #endif
 
+
 /*-------------------------------------------------------------------------
  * Function:	Wgettimeofday
  *

@@ -230,23 +230,111 @@ H5_bandwidth(char *buf/*out*/, double nbytes, double nseconds)
 void
 H5_timer_start(H5_timer_t *timer/*in,out*/)
 {
-    /* If you have Unix getrusage(), init via that call */
-    /* Else, if you have Windows GetSystemTimes(), init via that call */
-    /* Else, if you have gettimeofday() use that */
-    /* If all else fails, use time() */
+    #if defined(_WIN32)
+    FILETIME KernelTime;
+    FILETIME UserTime;
+    FILETIME CreationTime;
+    FILETIME ExitTime;
+
+    BOOL err;
+    #endif
+
+    assert (timer);
+
+    /*************************
+     * System and user times *
+     *************************/
+
+    #if defined(_WIN32)
+    /* NOTE: This is just a pseudo handle and does not need to be closed. */
+    timer->process_handle = GetCurrentProcess();
+
+    err = GetProcessTimes(timer->process_handle,
+        &CreationTime,
+        &ExitTime,
+        &KernelTime,
+        &UserTime);
+
+    timer->kernel_start.HighPart = KernelTime.dwHighDateTime;
+    timer->kernel_start.LowPart = KernelTime.dwLowDateTime;
+
+    timer->user_start.HighPart = UserTime.dwHighDateTime;
+    timer->user_start.LowPart = UserTime.dwLowDateTime;
+    #endif
+
+
+    /****************
+     * Elapsed time *
+     ****************/
+
+    #if defined(_WIN32)
+    err = QueryPerformanceCounter(&(timer->counts_start));
+    err = QueryPerformanceFrequency(&(timer->counts_freq));
+    #endif
+
     return;
 }
 
 
 
-void
-H5_timer_get_times(H5_timer_t *timer/*in,out*/)
+H5_timevals_t
+H5_timer_get_times(H5_timer_t timer)
 {
-    /* If you have Unix getrusage(), init via that call */
-    /* Else, if you have Windows GetSystemTimes(), init via that call */
-    /* Else, if you have gettimeofday() use that */
-    /* If all else fails, use time() */
-    return;
+    H5_timevals_t tvs;
+
+    #if defined(_WIN32)
+    LARGE_INTEGER CurrCounts;
+    LARGE_INTEGER delta_e;
+
+    ULARGE_INTEGER delta_su;
+    ULARGE_INTEGER temp_su;
+
+    FILETIME CreationTime;
+    FILETIME ExitTime;
+    FILETIME KernelTime;
+    FILETIME UserTime;
+
+    BOOL err;
+    #endif
+
+    tvs.elapsed_ns = 0.0;
+    tvs.system_ns  = 0.0;
+    tvs.user_ns    = 0.0;
+
+    /*************************
+     * System and user times *
+     *************************/
+
+    #if defined(_WIN32)
+    err = GetProcessTimes(timer.process_handle,
+        &CreationTime,
+        &ExitTime,
+        &KernelTime,
+        &UserTime);
+
+    temp_su.HighPart = KernelTime.dwHighDateTime;
+    temp_su.LowPart = KernelTime.dwLowDateTime;
+    delta_su.QuadPart = temp_su.QuadPart - timer.kernel_start.QuadPart;
+    tvs.system_ns = (double)(delta_su.QuadPart * 1.0E2);
+
+    temp_su.HighPart = UserTime.dwHighDateTime;
+    temp_su.LowPart = UserTime.dwLowDateTime;
+    delta_su.QuadPart = temp_su.QuadPart - timer.user_start.QuadPart;
+    tvs.user_ns = (double)(delta_su.QuadPart * 1.0E2);
+    #endif
+
+    /****************
+     * Elapsed time *
+     ****************/
+
+    #if defined(_WIN32)
+    err = QueryPerformanceCounter(&CurrCounts);
+
+    delta_e.QuadPart = CurrCounts.QuadPart - timer.counts_start.QuadPart;
+    tvs.elapsed_ns = (double)(delta_e.QuadPart * 1.0E9) / (double)timer.counts_freq.QuadPart;
+    #endif
+
+    return tvs;
 }
 
 
