@@ -19,7 +19,10 @@
 /*
  * End of Windows Specific Definitions
  */
- 
+
+/* Define if building universal (internal helper macro) */
+/* #undef AC_APPLE_UNIVERSAL_BUILD */
+
 /* Define if your system generates wrong code for log2 routine. */
 /* #undef H5_BAD_LOG2_CODE_GENERATED */
 
@@ -89,6 +92,9 @@
 /* Define if the compiler understand the __func__ keyword */
 /* #undef H5_HAVE_C99_FUNC */
 
+/* Define to 1 if you have the `clock_gettime' function. */
+/* #undef HAVE_CLOCK_GETTIME */
+
 /* Define if the function stack tracing code is to be compiled in */
 /* #undef H5_HAVE_CODESTACK */
 
@@ -107,6 +113,9 @@
 
 /* Define to 1 if you have the <dmalloc.h> header file. */
 /* #undef H5_HAVE_DMALLOC_H */
+
+/* Define if library information should be embedded in the executables */
+/* #undef HAVE_EMBEDDED_LIBINFO */
 
 /* Define to 1 if you have the <features.h> header file. */
 /* #undef H5_HAVE_FEATURES_H */
@@ -163,7 +172,7 @@
 /* #undef H5_HAVE_GETPWUID */
 
 /* Define to 1 if you have the `getrusage' function. */
-/* #define H5_HAVE_GETRUSAGE 1 */
+/* #undef H5_HAVE_GETRUSAGE */
 
 /* Define to 1 if you have the `gettextinfo' function. */
 /* #undef H5_HAVE_GETTEXTINFO */
@@ -235,6 +244,15 @@
 /* Define to 1 if you have the `lseek64' function. */
 /* #undef H5_HAVE_LSEEK64 */
 
+/* Define to 1 if you have the `lstat' function. */
+/* #undef HAVE_LSTAT */
+
+/* Define to 1 if you have the <mach/mach_time.h> header file. */
+/* #undef HAVE_MACH_MACH_TIME_H */
+
+/* Define to 1 if you have the <memory.h> header file. */
+/* #undef HAVE_MEMORY_H */
+
 /* Define if we have MPE support */
 /* #undef H5_HAVE_MPE */
 
@@ -242,7 +260,7 @@
 /* #undef H5_HAVE_MPE_H */
 
 /* Define if MPI_File_get_size works correctly */
-#define H5_HAVE_MPI_GET_SIZE 1
+/* #undef H5_HAVE_MPI_GET_SIZE */
 
 /* Define if `MPI_Comm_c2f' and `MPI_Comm_f2c' exists */
 /* #undef H5_HAVE_MPI_MULTI_LANG_Comm */
@@ -268,14 +286,14 @@
 /* Define to 1 if you have the `setsysinfo' function. */
 /* #undef H5_HAVE_SETSYSINFO */
 
-/* Define to 1 if you have the `sigaction' function. */
-/* #undef H5_HAVE_SIGACTION */
-
 /* Define to 1 if you have the `siglongjmp' function. */
 /* #undef H5_HAVE_SIGLONGJMP */
 
 /* Define to 1 if you have the `signal' function. */
 #define H5_HAVE_SIGNAL 1
+
+/* Define to 1 if you have the `sigprocmask' function. */
+/* #undef HAVE_SIGPROCMASK */
 
 /* Define to 1 if you have the `snprintf' function. */
 /* #undef H5_HAVE_SNPRINTF */
@@ -318,6 +336,9 @@
 
 /* Define if `struct videoconfig' is defined */
 /* #undef H5_HAVE_STRUCT_VIDEOCONFIG */
+
+/* Define to 1 if you have the `symlink' function. */
+/* #undef HAVE_SYMLINK */
 
 /* Define to 1 if you have the `system' function. */
 #define H5_HAVE_SYSTEM 1
@@ -432,6 +453,10 @@
    values correctly. */
 #define H5_LDOUBLE_TO_LLONG_ACCURATE 1
 
+/* Define if your system converts long double to (unsigned) long values with
+   special algorithm. */
+/* #undef LDOUBLE_TO_LONG_SPECIAL */
+
 /* Define if your system can convert long double to unsigned int values
    correctly. */
 #define H5_LDOUBLE_TO_UINT_ACCURATE 1
@@ -443,6 +468,10 @@
    values correctly. */
 #define H5_LLONG_TO_LDOUBLE_CORRECT 1
 
+/* Define if your system can convert (unsigned) long to long double values
+   with special algorithm. */
+/* #undef LONG_TO_LDOUBLE_SPECIAL */
+
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */
 #define H5_LT_OBJDIR ".libs/"
@@ -452,14 +481,14 @@
 
 /* Define if your system can handle complicated MPI derived datatype
    correctly. */
-#define H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS 1
+/* #undef  H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS */
 
 /* Define if your system's `MPI_File_set_size' function works for files over
    2GB. */
-#define H5_MPI_FILE_SET_SIZE_BIG 1
+/* #undef  H5_MPI_FILE_SET_SIZE_BIG */
 
 /* Define if your system can handle special collective IO properly. */
-#define H5_MPI_SPECIAL_COLLECTIVE_IO_WORKS 1
+/* #undef H5_MPI_SPECIAL_COLLECTIVE_IO_WORKS */
 
 /* Define if we can violate pointer alignment restrictions */
 #define H5_NO_ALIGNMENT_RESTRICTIONS 1
@@ -484,6 +513,9 @@
 
 /* Define to the one symbol short name of this package. */
 #define H5_PACKAGE_TARNAME "hdf5"
+
+/* Define to the home page for this package. */
+#define PACKAGE_URL "http://www.hdfgroup.org"
 
 /* Define to the version of this package. */
 #define H5_PACKAGE_VERSION "1.9.81"
@@ -603,6 +635,9 @@
 /* The size of `uint_least8_t', as computed by sizeof. */
 #define H5_SIZEOF_UINT_LEAST8_T 0
 
+/* The size of `unsigned', as computed by sizeof. */
+/* #undef SIZEOF_UNSIGNED */
+
 /* The size of `__int64', as computed by sizeof. */
 #define H5_SIZEOF___INT64 8
 
@@ -629,6 +664,10 @@
 /* Define if your system can convert unsigned long long to long double with
    correct precision. */
 #define H5_ULLONG_TO_LDOUBLE_PRECISION 1
+
+/* Define if your system accurately converting unsigned long to float values.
+   */
+/* #undef ULONG_TO_FLOAT_ACCURATE */
 
 /* Define if your system can accurately convert unsigned (long) long values to
    floating-point values. */
@@ -657,7 +696,21 @@
 
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */
-/* #undef H5_WORDS_BIGENDIAN */
+#if defined AC_APPLE_UNIVERSAL_BUILD
+# if defined __BIG_ENDIAN__
+#  define WORDS_BIGENDIAN 1
+# endif
+#else
+# ifndef WORDS_BIGENDIAN
+#  undef WORDS_BIGENDIAN
+# endif
+#endif
+
+/* Number of bits in a file offset, on hosts where this is settable. */
+/* #undef _FILE_OFFSET_BITS */
+
+/* Define for large files, on AIX-style hosts. */
+/* #undef _LARGE_FILES */
 
 /* Define to empty if `const' does not conform to ANSI C. */
 /* #undef H5_const */
@@ -673,6 +726,9 @@
 
 /* Define to `unsigned long' if <sys/types.h> does not define. */
 /* #undef H5_size_t */
+
+/* Define to `long' if <sys/types.h> does not define. */
+/* #undef ptrdiff_t */
 
 /* Define to `long' if <sys/types.h> does not define. */
 #define H5_ssize_t long

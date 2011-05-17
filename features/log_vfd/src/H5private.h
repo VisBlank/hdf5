@@ -487,7 +487,7 @@ typedef struct {
 #if defined(_WIN32)
     LARGE_INTEGER   counts_start;
     LARGE_INTEGER   counts_freq;
-#elif defined(H5_HAVE_MACH_TIME_H)  /* Mac OS */
+#elif defined(H5_HAVE_MACH_MACH_TIME_H)  /* Mac OS */
     uint64_t        elapsed_start;
 #else
     double          elapsed_start;

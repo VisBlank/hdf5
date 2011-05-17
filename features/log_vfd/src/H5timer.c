@@ -31,6 +31,8 @@
 /* Headers */
 /***********/
 
+#include <time.h>
+
 /* Generic functions, including H5_timer_t */
 #include "H5private.h"
 
@@ -300,7 +302,7 @@ H5_timer_start(H5_timer_t *timer/*in,out*/)
     werr = QueryPerformanceCounter(&(timer->counts_start));
     werr = QueryPerformanceFrequency(&(timer->counts_freq));
 
-#elif defined(H5_HAVE_MACH_TIME_H)
+#elif defined(H5_HAVE_MACH_MACH_TIME_H)
 
     timer->elapsed_start = mach_absolute_time();
 
@@ -352,7 +354,7 @@ H5_timer_get_times(H5_timer_t timer)
     /* Elapsed time */
 #if defined(_WIN32)
     /* Nothing */
-#elif defined(H5_HAVE_MACH_TIME_H)
+#elif defined(H5_HAVE_MACH_MACH_TIME_H)
     static double conversion = 0.0;
     mach_timebase_info_data_t info;
     kern_return_t kerr;
@@ -417,7 +419,7 @@ H5_timer_get_times(H5_timer_t timer)
     delta_e.QuadPart = CurrCounts.QuadPart - timer.counts_start.QuadPart;
     tvs.elapsed_ns = (double)(delta_e.QuadPart * 1.0E9) / (double)timer.counts_freq.QuadPart;
 
-#elif defined(H5_HAVE_MACH_TIME_H)
+#elif defined(H5_HAVE_MACH_MACH_TIME_H)
 
     if (0.0 == conversion) {
         kerr = mach_timebase_info(&info);
