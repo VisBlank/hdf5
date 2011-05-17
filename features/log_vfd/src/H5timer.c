@@ -236,11 +236,21 @@ H5_timer_start(H5_timer_t *timer/*in,out*/)
     FILETIME CreationTime;
     FILETIME ExitTime;
 
-    BOOL err;
+    BOOL werr;
 #endif
 
 #if defined(H5_HAVE_GETRUSAGE)
     struct rusage res;
+    int err;
+#endif
+
+#if defined(H5_HAVE_CLOCK_GETTIME)
+    struct timespec ts;
+    int err;
+#endif
+
+#if defined(H5_HAVE_GETTIMEOFDAY)
+    struct timeval tv;
     int err;
 #endif
 
@@ -255,7 +265,7 @@ H5_timer_start(H5_timer_t *timer/*in,out*/)
     /* NOTE: This is just a pseudo handle and does not need to be closed. */
     timer->process_handle = GetCurrentProcess();
 
-    err = GetProcessTimes(timer->process_handle,
+    werr = GetProcessTimes(timer->process_handle,
         &CreationTime,
         &ExitTime,
         &KernelTime,
@@ -273,6 +283,12 @@ H5_timer_start(H5_timer_t *timer/*in,out*/)
     timer->system_start = (double)((res.ru_stime.tv_sec * 1.0E9) + (res.ru_stime.tv_usec * 1.0E3));
     timer->user_start = (double)((res.ru_utime.tv_sec * 1.0E9) + (res.ru_utime.tv_usec * 1.0E3));
 
+#else
+
+    /* No suitable way to get system/user times */
+    timer->system_start = -1.0;
+    timer->user_start = -1.0;
+
 #endif
 
 
@@ -282,12 +298,26 @@ H5_timer_start(H5_timer_t *timer/*in,out*/)
 
 #if defined(_WIN32)
 
-    err = QueryPerformanceCounter(&(timer->counts_start));
-    err = QueryPerformanceFrequency(&(timer->counts_freq));
+    werr = QueryPerformanceCounter(&(timer->counts_start));
+    werr = QueryPerformanceFrequency(&(timer->counts_freq));
 
 #elif defined(H5_HAVE_MACH_TIME_H)
 
     timer->elapsed_start = mach_absolute_time();
+
+#elif defined(H5_HAVE_CLOCK_GETTIME)
+
+    err = clock_gettime(CLOCK_MONOTONIC, &ts);
+    timer->elapsed_start = (double)((ts.tv_sec * 1.0E9) + ts.tv_nsec);
+
+#elif defined(H5_HAVE_GETTIMEOFDAY)
+
+    err = gettimeofday(&tv, NULL);
+    timer->elapsed_start = (double)((tv.tv_sec * 1.0E9) + (tv.tv_usec * 1.0E3));
+
+#else
+
+    timer->elapsed_start = (double)time(NULL);
 
 #endif
 
@@ -313,7 +343,7 @@ H5_timer_get_times(H5_timer_t timer)
     FILETIME KernelTime;
     FILETIME UserTime;
 
-    BOOL err;
+    BOOL werr;
 #endif
 
 #if defined(H5_HAVE_MACH_TIME_H)
@@ -328,6 +358,15 @@ H5_timer_get_times(H5_timer_t timer)
     int err;
 #endif
 
+#if defined(H5_HAVE_CLOCK_GETTIME)
+    struct timespec ts;
+    int err;
+#endif
+
+#if defined(H5_HAVE_GETTIMEOFDAY)
+    struct timeval tv;
+    int err;
+#endif
 
 
     tvs.elapsed_ns = 0.0;
@@ -340,7 +379,7 @@ H5_timer_get_times(H5_timer_t timer)
 
 #if defined(_WIN32)
 
-    err = GetProcessTimes(timer.process_handle,
+    werr = GetProcessTimes(timer.process_handle,
         &CreationTime,
         &ExitTime,
         &KernelTime,
@@ -363,6 +402,11 @@ H5_timer_get_times(H5_timer_t timer)
     tvs.system_ns = (double)((res.ru_stime.tv_sec * 1.0E9) + (res.ru_stime.tv_usec * 1.0E3) - timer.system_start);
     tvs.user_ns = (double)((res.ru_utime.tv_sec * 1.0E9) + (res.ru_utime.tv_usec * 1.0E3) - timer.user_start);
 
+#else
+
+    tvs.system_ns  = -1.0;
+    tvs.user_ns    = -1.0;
+
 #endif
 
     /****************
@@ -371,7 +415,7 @@ H5_timer_get_times(H5_timer_t timer)
 
 #if defined(_WIN32)
 
-    err = QueryPerformanceCounter(&CurrCounts);
+    werr = QueryPerformanceCounter(&CurrCounts);
 
     delta_e.QuadPart = CurrCounts.QuadPart - timer.counts_start.QuadPart;
     tvs.elapsed_ns = (double)(delta_e.QuadPart * 1.0E9) / (double)timer.counts_freq.QuadPart;
@@ -386,6 +430,20 @@ H5_timer_get_times(H5_timer_t timer)
 
     now = mach_absolute_time();
     tvs.elapsed_ns = (double)(now - timer.elapsed_start) * conversion;
+
+#elif defined(H5_HAVE_CLOCK_GETTIME)
+
+    err = clock_gettime(CLOCK_MONOTONIC, &ts);
+    tvs.elapsed_ns = (double)((ts.tv_sec * 1.0E9) + ts.tv_nsec) - timer.elapsed_start;
+
+#elif defined(H5_HAVE_GETTIMEOFDAY)
+
+    err = gettimeofday(&tv, NULL);
+    tvs.elapsed_ns = (double)((tv.tv_sec * 1.0E9) + (tv.tv_usec * 1.0E3) - timer.elapsed_start);
+
+#else
+
+    tvs.elapsed_ns = ((double)time(NULL) - timer.elapsed_start) * 1.0E9;
 
 #endif
 
