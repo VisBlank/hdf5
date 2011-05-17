@@ -100,6 +100,9 @@ VERIFY_OUTPUT()
     echo "Verifying output files $* $SPACES" | cut -c1-70 | tr -d '\012'
 }
 
+# Source in the output filter function definitions.
+. $srcdir/../../bin/output_filter.sh
+
 # Run a test and print PASS or *FAIL*. If h5copy can complete
 # with exit status 0, consider it pass. If a test fails then increment
 # the `nerrors' global variable.
@@ -184,6 +187,8 @@ TOOLTEST_FAIL()
     expectout="$INDIR/$1"
     actualout="$OUTDIR/$1.out"
     actualerr="$OUTDIR/$1.err"
+    actualout_sav=${actualout}-sav
+    actualerr_sav=${actualerr}-sav
     shift
     if [ "$1" = -i ]; then
       inputfile=$2
@@ -199,7 +204,13 @@ TOOLTEST_FAIL()
     #echo "#############################"
     $RUNSERIAL $H5COPY_BIN $@
     ) > $actualout 2> $actualerr
+
     RET=$?
+    # save actualout and actualerr in case they are needed later.
+    cp $actualout $actualout_sav
+    STDOUT_FILTER $actualout
+    cp $actualerr $actualerr_sav
+    STDERR_FILTER $actualerr
     if [ $RET != 0 ]; then
         echo " PASSED"
         # Verifying output text from h5copy
@@ -219,7 +230,7 @@ TOOLTEST_FAIL()
 
     # Clean up output file
     if test -z "$HDF5_NOCLEANUP"; then
-       rm -f $actualout $actualerr
+       rm -f $actualout $actualerr $actualout_sav $actualerr_sav
     fi
 }
 
@@ -401,13 +412,13 @@ COPY_EXT_LINKS()
     TOOLTEST -f ext -i $TESTFILE -o $FILEOUT -v -s /group_ext/extlink_dset -d /copy2_dset
 
     echo "Test copying dangling external link (no obj) directly without -f ext"
-    TOOLTEST -i $TESTFILE -o $FILEOUT -v -s /group_ext/extlink_notyet1 -d /copy_dangle1_1
+    TOOLTEST -v -i $TESTFILE -o $FILEOUT -s /group_ext/extlink_notyet1 -d /copy_dangle1_1
 
     echo "Test copying dangling external link (no obj) directly with -f ext"
     TOOLTEST -f ext -i $TESTFILE -o $FILEOUT -v -s /group_ext/extlink_notyet1 -d /copy_dangle1_2
 
     echo "Test copying dangling external link (no file) directly without -f ext"
-    TOOLTEST -i $TESTFILE -o $FILEOUT -v -s /group_ext/extlink_notyet2 -d /copy_dangle2_1
+    TOOLTEST -v -i $TESTFILE -o $FILEOUT -s /group_ext/extlink_notyet2 -d /copy_dangle2_1
 
     echo "Test copying dangling external link (no file) directly with -f ext"
     TOOLTEST -f ext -i $TESTFILE -o $FILEOUT -v -s /group_ext/extlink_notyet2 -d /copy_dangle2_2
@@ -416,7 +427,7 @@ COPY_EXT_LINKS()
     TOOLTEST -v -i $TESTFILE -o $FILEOUT -s /group_ext -d /copy1_group
 
     echo "Test copying a group contains external links with -f ext"
-    TOOLTEST -f ext -i $TESTFILE -o $FILEOUT -v -f ext -s /group_ext -d /copy2_group
+    TOOLTEST -f ext -v -i $TESTFILE -o $FILEOUT -s /group_ext -d /copy2_group
 
     # Verify that the file created above is correct
     H5LSTEST $FILEOUT
@@ -442,6 +453,15 @@ TEST_MISC()
 
     echo "Test copying object into group which doesn't exist, without -p"
     TOOLTEST_FAIL h5copy_misc1.out -v -i $TESTFILE -o $FILEOUT -s /simple  -d /g1/g2/simple
+
+    echo "Test copying objects to the same file "
+    rm -f $FILEOUT
+    # create temporary test file ($FILEOUT) with some objects
+    TOOLTEST -i $TESTFILE -o $FILEOUT -v -s /simple -d /simple 
+    TOOLTEST -i $TESTFILE -o $FILEOUT -v -s /grp_dsets  -d /grp_dsets
+    # actual test cases
+    TOOLTEST -i $FILEOUT -o $FILEOUT -v -s /simple -d /simple_cp
+    TOOLTEST -i $FILEOUT -o $FILEOUT -v -s /grp_dsets  -d /grp_dsets_cp
 
     # Remove output file created, if the "no cleanup" environment variable is
     #   not defined

@@ -38,6 +38,7 @@ IF (BUILD_TESTING)
   # Copy all the HDF5 files from the test directory into the source directory
   # --------------------------------------------------------------------
   SET (HDF5_REFERENCE_FILES
+      filter_fail.ddl
       packedbits.ddl
       tall-1.ddl
       tall-2.ddl
@@ -114,6 +115,7 @@ IF (BUILD_TESTING)
       tnbit.ddl
       tnofilename.ddl
       tnullspace.ddl
+      zerodim.ddl
       tordergr1.ddl
       tordergr2.ddl
       tordergr3.ddl
@@ -214,12 +216,19 @@ IF (BUILD_TESTING)
       tvlstr.h5.xml
   )
   SET (HDF5_REFERENCE_TEST_FILES
+      h5dump-help.txt
       tbin1.ddl
       tbin1.ddl
       tbin2.ddl
       tbin3.ddl
       tbin4.ddl
+      tall-6.ddl
+      texceedsubstart.ddl
+      texceedsubcount.ddl
+      texceedsubstride.ddl
+      texceedsubblock.ddl
       out3.h5import
+      filter_fail.h5
       packedbits.h5
       taindices.h5
       tall.h5
@@ -243,6 +252,7 @@ IF (BUILD_TESTING)
       tdatareg.h5
       tdset.h5
       tempty.h5
+      tsoftlinks.h5
       textlinkfar.h5
       textlinksrc.h5
       textlinktar.h5
@@ -280,6 +290,7 @@ IF (BUILD_TESTING)
       tnamed_dtype_attr.h5
       tnestedcomp.h5
       tnullspace.h5
+      zerodim.h5
       torderattr.h5
       tordergr.h5
       tsaf.h5
@@ -388,35 +399,139 @@ IF (BUILD_TESTING)
     )
   ENDIF (WIN32 AND NOT CYGWIN)
   
+  # --------------------------------------------------------------------
+  # Packed Bits
+  # --------------------------------------------------------------------
+  #-- Copy all the HDF5 files from the test directory into the source directory
+  SET (HDF5_REFERENCE_PBITS
+      tnofilename-with-packed-bits.ddl
+      tpbitsArray.ddl
+      tpbitsCompound.ddl
+      tpbitsIncomplete.ddl
+      tpbitsLengthExceeded.ddl
+      tpbitsCharLengthExceeded.ddl
+      tpbitsIntLengthExceeded.ddl
+      tpbitsLongLengthExceeded.ddl
+      tpbitsLengthPositive.ddl
+      tpbitsMax.ddl
+      tpbitsMaxExceeded.ddl
+      tpbitsOffsetExceeded.ddl
+      tpbitsCharOffsetExceeded.ddl
+      tpbitsIntOffsetExceeded.ddl
+      tpbitsLongOffsetExceeded.ddl
+      tpbitsOffsetNegative.ddl
+      tpbitsOverlapped.ddl
+      tpbitsSigned.ddl
+      tpbitsUnsigned.ddl
+      tpbitsSignedInt.ddl
+      tpbitsUnsignedInt.ddl
+      tpbitsSignedLong.ddl
+      tpbitsUnsignedLong.ddl
+      tpbitsSignedLongLong.ddl
+      tpbitsUnsignedLongLong.ddl
+      tpbitsSignedWhole.ddl
+      tpbitsUnsignedWhole.ddl
+      tpbitsSignedIntWhole.ddl
+      tpbitsUnsignedIntWhole.ddl
+      tpbitsSignedLongWhole.ddl
+      tpbitsUnsignedLongWhole.ddl
+      tpbitsSignedLongLongWhole.ddl
+      tpbitsUnsignedLongLongWhole.ddl
+      tpbitsSignedLongLongWhole1.ddl
+      tpbitsUnsignedLongLongWhole1.ddl
+      tpbitsSignedLongLongWhole63.ddl
+      tpbitsUnsignedLongLongWhole63.ddl
+      tpbitsSigned4.ddl
+      tpbitsUnsigned4.ddl
+      tpbitsSignedInt8.ddl
+      tpbitsUnsignedInt8.ddl
+      tpbitsSignedLong16.ddl
+      tpbitsUnsignedLong16.ddl
+      tpbitsSignedLongLong32.ddl
+      tpbitsUnsignedLongLong32.ddl
+      tpbitsSigned2.ddl
+      tpbitsUnsigned2.ddl
+      tpbitsSignedInt4.ddl
+      tpbitsUnsignedInt4.ddl
+      tpbitsSignedLong8.ddl
+      tpbitsUnsignedLong8.ddl
+      tpbitsSignedLongLong16.ddl
+      tpbitsUnsignedLongLong16.ddl
+  )
+
+  FOREACH (ddl_pbits ${HDF5_REFERENCE_PBITS})
+    SET (ddldest "${PROJECT_BINARY_DIR}/${ddl_pbits}")
+    #MESSAGE (STATUS " Translating ${ddl_pbits}")
+    ADD_CUSTOM_COMMAND (
+        TARGET     h5dump
+        POST_BUILD
+        COMMAND    ${XLATE_UTILITY}
+        ARGS       ${HDF5_TOOLS_SRC_DIR}/testfiles/${ddl_pbits} ${ddldest} -l3
+    )
+  ENDFOREACH (ddl_pbits ${HDF5_REFERENCE_PBITS})
+  
 ##############################################################################
 ##############################################################################
 ###           T H E   T E S T S  M A C R O S                               ###
 ##############################################################################
 ##############################################################################
 
+  MACRO (ADD_HELP_TEST testname resultcode)
+    # If using memchecker add tests without using scripts
+    IF (HDF5_ENABLE_USING_MEMCHECKER)
+      ADD_TEST (NAME H5DUMP-${testname} COMMAND $<TARGET_FILE:h5dump> ${ARGN})
+    ELSE (HDF5_ENABLE_USING_MEMCHECKER)
+      ADD_TEST (
+          NAME H5DUMP-${testname}
+          COMMAND "${CMAKE_COMMAND}"
+              -D "TEST_PROGRAM=$<TARGET_FILE:h5dump>"
+              -D "TEST_ARGS:STRING=${ARGN}"
+              -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
+              -D "TEST_OUTPUT=h5dump-${testname}.out"
+              -D "TEST_EXPECT=${resultcode}"
+              -D "TEST_REFERENCE=h5dump-${testname}.txt"
+              -P "${HDF5_RESOURCES_DIR}/runTest.cmake"
+      )
+    ENDIF (HDF5_ENABLE_USING_MEMCHECKER)
+    IF (NOT "${last_test}" STREQUAL "")
+      SET_TESTS_PROPERTIES (H5DUMP-${testname} PROPERTIES DEPENDS ${last_test})
+    ENDIF (NOT "${last_test}" STREQUAL "")
+    SET (last_test "H5DUMP-${testname}")
+  ENDMACRO (ADD_HELP_TEST)
+
   MACRO (ADD_SKIP_H5_TEST skipresultfile skipresultcode testtype)
     IF (${testtype} STREQUAL "SKIP")
-      ADD_TEST (
-          NAME H5DUMP-${skipresultfile}
-          COMMAND ${CMAKE_COMMAND} -E echo "SKIP ${skipresultfile} ${ARGN}"
-      )
+      IF (NOT HDF5_ENABLE_USING_MEMCHECKER)
+        ADD_TEST (
+            NAME H5DUMP-${skipresultfile}-SKIPPED
+            COMMAND ${CMAKE_COMMAND} -E echo "SKIP ${skipresultfile} ${ARGN}"
+        )
+      ENDIF (NOT HDF5_ENABLE_USING_MEMCHECKER)
     ELSE (${testtype} STREQUAL "SKIP")
       ADD_H5_TEST (${skipresultfile} ${skipresultcode} ${ARGN})
     ENDIF (${testtype} STREQUAL "SKIP")
   ENDMACRO (ADD_SKIP_H5_TEST)
 
   MACRO (ADD_H5_TEST resultfile resultcode)
-    ADD_TEST (
-        NAME H5DUMP-${resultfile}
-        COMMAND "${CMAKE_COMMAND}"
-            -D "TEST_PROGRAM=$<TARGET_FILE:h5dump>"
-            -D "TEST_ARGS:STRING=${ARGN}"
-            -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
-            -D "TEST_OUTPUT=${resultfile}.out"
-            -D "TEST_EXPECT=${resultcode}"
-            -D "TEST_REFERENCE=${resultfile}.ddl"
-            -P "${HDF5_RESOURCES_DIR}/runTest.cmake"
-    )
+    # If using memchecker add tests without using scripts
+    IF (HDF5_ENABLE_USING_MEMCHECKER)
+      ADD_TEST (NAME H5DUMP-${resultfile} COMMAND $<TARGET_FILE:h5dump> ${ARGN})
+      IF (NOT ${resultcode} STREQUAL "0")
+        SET_TESTS_PROPERTIES (H5DUMP-${resultfile} PROPERTIES WILL_FAIL "true")
+      ENDIF (NOT ${resultcode} STREQUAL "0")
+    ELSE (HDF5_ENABLE_USING_MEMCHECKER)
+      ADD_TEST (
+          NAME H5DUMP-${resultfile}
+          COMMAND "${CMAKE_COMMAND}"
+              -D "TEST_PROGRAM=$<TARGET_FILE:h5dump>"
+              -D "TEST_ARGS:STRING=${ARGN}"
+              -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
+              -D "TEST_OUTPUT=${resultfile}.out"
+              -D "TEST_EXPECT=${resultcode}"
+              -D "TEST_REFERENCE=${resultfile}.ddl"
+              -P "${HDF5_RESOURCES_DIR}/runTest.cmake"
+      )
+    ENDIF (HDF5_ENABLE_USING_MEMCHECKER)
     IF (NOT "${last_test}" STREQUAL "")
       SET_TESTS_PROPERTIES (H5DUMP-${resultfile} PROPERTIES DEPENDS ${last_test})
     ENDIF (NOT "${last_test}" STREQUAL "")
@@ -426,43 +541,78 @@ IF (BUILD_TESTING)
   MACRO (ADD_H5_EXPORT_TEST resultfile targetfile resultcode)
     ADD_TEST (
         NAME H5DUMP-output-${resultfile}
-        COMMAND $<TARGET_FILE:h5dump> -d /Dataset1 -s 0 -R -y -o ${PROJECT_BINARY_DIR}/${resultfile}.txt ${PROJECT_BINARY_DIR}/${targetfile}
+        COMMAND $<TARGET_FILE:h5dump> ${ARGN} ${PROJECT_BINARY_DIR}/${resultfile}.txt ${PROJECT_BINARY_DIR}/${targetfile}
     )
     IF (NOT "${last_test}" STREQUAL "")
       SET_TESTS_PROPERTIES (H5DUMP-output-${resultfile} PROPERTIES DEPENDS ${last_test})
     ENDIF (NOT "${last_test}" STREQUAL "")
-    ADD_TEST (
-        NAME H5DUMP-output-cmp-${resultfile}
-        COMMAND ${CMAKE_COMMAND}
-              -E compare_files ${PROJECT_BINARY_DIR}/${resultfile}.txt ${PROJECT_BINARY_DIR}/${resultfile}.exp
-    )
-    SET_TESTS_PROPERTIES (H5DUMP-output-cmp-${resultfile} PROPERTIES DEPENDS H5DUMP-output-${resultfile})
-    SET (last_test "H5DUMP-output-cmp-${resultfile}")
+    SET (last_test "H5DUMP-output-${resultfile}")
+    IF (NOT HDF5_ENABLE_USING_MEMCHECKER)
+      ADD_TEST (
+          NAME H5DUMP-output-cmp-${resultfile}
+          COMMAND ${CMAKE_COMMAND}
+                -E compare_files ${PROJECT_BINARY_DIR}/${resultfile}.txt ${PROJECT_BINARY_DIR}/${resultfile}.exp
+      )
+      IF (NOT "${last_test}" STREQUAL "")
+        SET_TESTS_PROPERTIES (H5DUMP-output-cmp-${resultfile} PROPERTIES DEPENDS ${last_test})
+      ENDIF (NOT "${last_test}" STREQUAL "")
+      SET (last_test "H5DUMP-output-cmp-${resultfile}")
+    ENDIF (NOT HDF5_ENABLE_USING_MEMCHECKER)
   ENDMACRO (ADD_H5_EXPORT_TEST file)
+
+  MACRO (ADD_H5_MASK_TEST resultfile resultcode)
+    IF (NOT HDF5_ENABLE_USING_MEMCHECKER)
+      ADD_TEST (
+          NAME H5DUMP-${resultfile}
+          COMMAND "${CMAKE_COMMAND}"
+              -D "TEST_PROGRAM=$<TARGET_FILE:h5dump>"
+              -D "TEST_ARGS:STRING=${ARGN}"
+              -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
+              -D "TEST_OUTPUT=${resultfile}.out"
+              -D "TEST_EXPECT=${resultcode}"
+              -D "TEST_REFERENCE=${resultfile}.ddl"
+              -D "TEST_MASK_ERROR=true"
+              -P "${HDF5_RESOURCES_DIR}/runTest.cmake"
+      )
+      IF (NOT "${last_test}" STREQUAL "")
+        SET_TESTS_PROPERTIES (H5DUMP-${resultfile} PROPERTIES DEPENDS ${last_test})
+      ENDIF (NOT "${last_test}" STREQUAL "")
+      SET (last_test "H5DUMP-${resultfile}")
+    ENDIF (NOT HDF5_ENABLE_USING_MEMCHECKER)
+  ENDMACRO (ADD_H5_MASK_TEST file)
 
   MACRO (ADD_XML_SKIP_H5_TEST skipresultfile skipresultcode testtype)
     IF (${testtype} STREQUAL "SKIP")
-      ADD_TEST (
-          NAME H5DUMP-XML-${skipresultfile}
-          COMMAND ${CMAKE_COMMAND} -E echo "SKIP ${skipresultfile}.xml --xml ${ARGN}"
-      )
+      IF (NOT HDF5_ENABLE_USING_MEMCHECKER)
+        ADD_TEST (
+            NAME H5DUMP-XML-${skipresultfile}-SKIPPED
+            COMMAND ${CMAKE_COMMAND} -E echo "SKIP ${skipresultfile}.xml --xml ${ARGN}"
+        )
+      ENDIF (NOT HDF5_ENABLE_USING_MEMCHECKER)
     ELSE (${testtype} STREQUAL "SKIP")
       ADD_XML_H5_TEST (${skipresultfile} ${skipresultcode} ${ARGN})
     ENDIF (${testtype} STREQUAL "SKIP")
   ENDMACRO (ADD_XML_SKIP_H5_TEST)
 
   MACRO (ADD_XML_H5_TEST resultfile resultcode)
-    ADD_TEST (
-        NAME H5DUMP-XML-${resultfile}
-        COMMAND "${CMAKE_COMMAND}"
-            -D "TEST_PROGRAM=$<TARGET_FILE:h5dump>"
-            -D "TEST_ARGS:STRING=--xml;${ARGN}"
-            -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
-            -D "TEST_OUTPUT=${resultfile}.out"
-            -D "TEST_EXPECT=${resultcode}"
-            -D "TEST_REFERENCE=${resultfile}.xml"
-            -P "${HDF5_RESOURCES_DIR}/runTest.cmake"
-    )
+    IF (HDF5_ENABLE_USING_MEMCHECKER)
+      ADD_TEST (NAME H5DUMP-XML-${resultfile} COMMAND $<TARGET_FILE:h5dump> --xml ${ARGN})
+      IF (NOT ${resultcode} STREQUAL "0")
+        SET_TESTS_PROPERTIES (H5DUMP-XML-${resultfile} PROPERTIES WILL_FAIL "true")
+      ENDIF (NOT ${resultcode} STREQUAL "0")
+    ELSE (HDF5_ENABLE_USING_MEMCHECKER)
+      ADD_TEST (
+          NAME H5DUMP-XML-${resultfile}
+          COMMAND "${CMAKE_COMMAND}"
+              -D "TEST_PROGRAM=$<TARGET_FILE:h5dump>"
+              -D "TEST_ARGS:STRING=--xml;${ARGN}"
+              -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
+              -D "TEST_OUTPUT=${resultfile}.out"
+              -D "TEST_EXPECT=${resultcode}"
+              -D "TEST_REFERENCE=${resultfile}.xml"
+              -P "${HDF5_RESOURCES_DIR}/runTest.cmake"
+      )
+    ENDIF (HDF5_ENABLE_USING_MEMCHECKER)
     IF (NOT "${last_test}" STREQUAL "")
       SET_TESTS_PROPERTIES (H5DUMP-XML-${resultfile} PROPERTIES DEPENDS ${last_test})
     ENDIF (NOT "${last_test}" STREQUAL "")
@@ -479,11 +629,6 @@ IF (BUILD_TESTING)
   SET (USE_FILTER_NBIT H5_HAVE_FILTER_NBIT)
   SET (USE_FILTER_SCALEOFFSET H5_HAVE_FILTER_SCALEOFFSET)
 
-  # --------------------------------------------------------------------
-  # Determine if H5dump packed bits feature is included
-  # --------------------------------------------------------------------
-  SET (USE_PACKED_BITS HDF5_USE_H5DUMP_PACKED_BITS)
-
 ##############################################################################
 ##############################################################################
 ###           T H E   T E S T S                                            ###
@@ -495,6 +640,9 @@ IF (BUILD_TESTING)
       NAME H5DUMP-clearall-objects
       COMMAND    ${CMAKE_COMMAND}
           -E remove 
+          h5dump-help.out
+          filter_fail.out
+          filter_fail.out.err
           packedbits.out
           packedbits.out.err
           tall-1.out
@@ -511,6 +659,8 @@ IF (BUILD_TESTING)
           tall-4s.out.err
           tall-5s.out
           tall-5s.out.err
+          tall-6.out
+          tall-6.out.err
           tallfilters.out
           tallfilters.out.err
           tarray1.out
@@ -625,6 +775,14 @@ IF (BUILD_TESTING)
           tindicessub3.out.err
           tindicessub4.out
           tindicessub4.out.err
+          texceedsubstart.out
+          texceedsubstart.out.err
+          texceedsubcount.out
+          texceedsubcount.out.err
+          texceedsubstride.out
+          texceedsubstride.out.err
+          texceedsubblock.out
+          texceedsubblock.out.err
           tindicesyes.out
           tindicesyes.out.err
           tlarge_objname.out
@@ -647,6 +805,8 @@ IF (BUILD_TESTING)
           tnofilename.out.err
           tnullspace.out
           tnullspace.out.err
+          zerodim.out
+          zerodim.out.err
           tordergr1.out
           tordergr1.out.err
           tordergr2.out
@@ -719,14 +879,7 @@ IF (BUILD_TESTING)
   ENDIF (NOT "${last_test}" STREQUAL "")
   SET (last_test "H5DUMP-clearall-objects")
 
-  # If using memchecker add tests without using scripts
-  IF (HDF5_ENABLE_USING_MEMCHECKER)
-    ADD_TEST (NAME H5DUMP-tgroup COMMAND h5dump tgroup.h5)
-    ADD_TEST (NAME H5DUMP-tdset COMMAND h5dump tdset.h5)
-    ADD_TEST (NAME H5DUMP-tattr COMMAND h5dump tattr.h5)
-    ADD_TEST (NAME H5DUMP-tslink COMMAND h5dump tslink.h5)
-    ADD_TEST (NAME H5DUMP-thlink COMMAND h5dump thlink.h5)
-  ENDIF (HDF5_ENABLE_USING_MEMCHECKER)
+  ADD_HELP_TEST(help 0 -h)
 
   # test for signed/unsigned datasets
   ADD_H5_TEST (packedbits 0 packedbits.h5)
@@ -840,12 +993,7 @@ IF (BUILD_TESTING)
   # test printing characters in ASCII instead of decimal
   ADD_H5_TEST (tchar1 0 -r tchar.h5)
 
-  # test failure handling
-  # Missing file name
-  ADD_H5_TEST (tnofilename 1)
-
   # rev. 2004
-
   # tests for super block
   ADD_H5_TEST (tboot1 0 -H -B -d dset tfcontents1.h5)
   ADD_H5_TEST (tboot2 0 -B tfcontents2.h5)
@@ -894,6 +1042,12 @@ IF (BUILD_TESTING)
 
   # 4D case
   ADD_H5_TEST (tindicessub4 0 -d 4d -s 0,0,1,2  -c 2,2,3,2 -S 1,1,3,3 -k 1,1,2,2  taindices.h5)
+
+  # Exceed the dimensions for subsetting
+  ADD_H5_TEST (texceedsubstart 1 -d 1d -s 1,3 taindices.h5)
+  ADD_H5_TEST (texceedsubcount 1 -d 1d -c 1,3 taindices.h5)
+  ADD_H5_TEST (texceedsubstride 1 -d 1d -S 1,3 taindices.h5)
+  ADD_H5_TEST (texceedsubblock 1 -d 1d -k 1,3 taindices.h5)
 
   # tests for filters
   # SZIP
@@ -959,6 +1113,9 @@ IF (BUILD_TESTING)
     
   # test for displaying dataset and attribute of null space
   ADD_H5_TEST (tnullspace 0 tnullspace.h5)
+
+  # test for displaying dataset and attribute of space with 0 dimension size
+  ADD_H5_TEST (zerodim 0 zerodim.h5)
 
   # test for long double (some systems do not have long double)
   #ADD_H5_TEST (tldouble 0 tldouble.h5)
@@ -1048,25 +1205,208 @@ IF (BUILD_TESTING)
   # test for dangling external links
   ADD_H5_TEST (textlink 0 textlink.h5)
 
+  # test for error stack display (BZ2048)
+  ADD_H5_MASK_TEST (filter_fail 1 --enable-error-stack filter_fail.h5)
+
+  # test for -o -y for dataset with attributes
+  ADD_H5_TEST (tall-6 0 -y -o data -d /g1/g1.1/dset1.1.1 tall.h5)
+
   ####### test for dataset packed bits ######
-  IF (HDF5_USE_H5DUMP_PACKED_BITS)
-    # Remove any output file left over from previous test run
-    ADD_TEST (
-        NAME H5DUMP_PACKED_BITS-clearall-objects
-        COMMAND    ${CMAKE_COMMAND}
-            -E remove 
-            tpackedbits.out
-            tpackedbits.out.err
-            tpackedbits2.out
-            tpackedbits2.out.err
-    )
-    IF (NOT "${last_test}" STREQUAL "")
-      SET_TESTS_PROPERTIES (H5DUMP_PACKED_BITS-clearall-objects PROPERTIES DEPENDS ${last_test})
-    ENDIF (NOT "${last_test}" STREQUAL "")
-    SET (last_test "H5DUMP_PACKED_BITS-clearall-objects")
-    ADD_H5_TEST (tpackedbits 0 -d /dset1 -M 0,2 tdset.h5)
-    ADD_H5_TEST (tpackedbits2 0 -d /dset1 -M 0,2,2,1 tdset.h5)
-  ENDIF (HDF5_USE_H5DUMP_PACKED_BITS)
+  # Remove any output file left over from previous test run
+  ADD_TEST (
+      NAME H5DUMP_PACKED_BITS-clearall-objects
+      COMMAND    ${CMAKE_COMMAND}
+          -E remove 
+          tnofilename-with-packed-bits.out
+          tnofilename-with-packed-bits.out.err
+          tpbitsArray.out
+          tpbitsArray.out.err
+          tpbitsCompound.out
+          tpbitsCompound.out.err
+          tpbitsIncomplete.out
+          tpbitsIncomplete.out.err
+          tpbitsLengthExceeded.out
+          tpbitsLengthExceeded.out.err
+          tpbitsCharLengthExceeded.out
+          tpbitsCharLengthExceeded.out.err
+          tpbitsIntLengthExceeded.out
+          tpbitsIntLengthExceeded.out.err
+          tpbitsLongLengthExceeded.out
+          tpbitsLongLengthExceeded.out.err
+          tpbitsLengthPositive.out
+          tpbitsLengthPositive.out.err
+          tpbitsMax.out
+          tpbitsMax.out.err
+          tpbitsMaxExceeded.out
+          tpbitsMaxExceeded.out.err
+          tpbitsOffsetExceeded.out
+          tpbitsOffsetExceeded.out.err
+          tpbitsCharOffsetExceeded.out
+          tpbitsCharOffsetExceeded.out.err
+          tpbitsIntOffsetExceeded.out
+          tpbitsIntOffsetExceeded.out.err
+          tpbitsLongOffsetExceeded.out
+          tpbitsLongOffsetExceeded.out.err
+          tpbitsOffsetNegative.out
+          tpbitsOffsetNegative.out.err
+          tpbitsOverlapped.out
+          tpbitsOverlapped.out.err
+          tpbitsSigned.out
+          tpbitsSigned.out.err
+          tpbitsUnsigned.out
+          tpbitsUnsigned.out.err
+          tpbitsSignedInt.out
+          tpbitsSignedInt.out.err
+          tpbitsUnsignedInt.out
+          tpbitsUnsignedInt.out.err
+          tpbitsSignedLong.out
+          tpbitsSignedLong.out.err
+          tpbitsUnsignedLong.out
+          tpbitsUnsignedLong.out.err
+          tpbitsSignedLongLong.out
+          tpbitsSignedLongLong.out.err
+          tpbitsUnsignedLongLong.out
+          tpbitsUnsignedLongLong.out.err
+          tpbitsSignedWhole.out
+          tpbitsSignedWhole.out.err
+          tpbitsUnsignedWhole.out
+          tpbitsUnsignedWhole.out.err
+          tpbitsSignedIntWhole.out
+          tpbitsSignedIntWhole.out.err
+          tpbitsUnsignedIntWhole.out
+          tpbitsUnsignedIntWhole.out.err
+          tpbitsSignedLongWhole.out
+          tpbitsSignedLongWhole.out.err
+          tpbitsUnsignedLongWhole.out
+          tpbitsUnsignedLongWhole.out.err
+          tpbitsSignedLongLongWhole.out
+          tpbitsSignedLongLongWhole.out.err
+          tpbitsUnsignedLongLongWhole.out
+          tpbitsUnsignedLongLongWhole.out.err
+          tpbitsSignedLongLongWhole1.out
+          tpbitsSignedLongLongWhole1.out.err
+          tpbitsUnsignedLongLongWhole1.out
+          tpbitsUnsignedLongLongWhole1.out.err
+          tpbitsSignedLongLongWhole63.out
+          tpbitsSignedLongLongWhole63.out.err
+          tpbitsUnsignedLongLongWhole63.out
+          tpbitsUnsignedLongLongWhole63.out.err
+          tpbitsSigned4.out
+          tpbitsSigned4.out.err
+          tpbitsUnsigned4.out
+          tpbitsUnsigned4.out.err
+          tpbitsSignedInt8.out
+          tpbitsSignedInt8.out.err
+          tpbitsUnsignedInt8.out
+          tpbitsUnsignedInt8.out.err
+          tpbitsSignedLong16.out
+          tpbitsSignedLong16.out.err
+          tpbitsUnsignedLong16.out
+          tpbitsUnsignedLong16.out.err
+          tpbitsSignedLongLong32.out
+          tpbitsSignedLongLong32.out.err
+          tpbitsUnsignedLongLong32.out
+          tpbitsUnsignedLongLong32.out.err
+          tpbitsSigned2.out
+          tpbitsSigned2.out.err
+          tpbitsUnsigned2.out
+          tpbitsUnsigned2.out.err
+          tpbitsSignedInt4.out
+          tpbitsSignedInt4.out.err
+          tpbitsUnsignedInt4.out
+          tpbitsUnsignedInt4.out.err
+          tpbitsSignedLong8.out
+          tpbitsSignedLong8.out.err
+          tpbitsUnsignedLong8.out
+          tpbitsUnsignedLong8.out.err
+          tpbitsSignedLongLong16.out
+          tpbitsSignedLongLong16.out.err
+          tpbitsUnsignedLongLong16.out
+          tpbitsUnsignedLongLong16.out.err
+  )
+  IF (NOT "${last_test}" STREQUAL "")
+    SET_TESTS_PROPERTIES (H5DUMP_PACKED_BITS-clearall-objects PROPERTIES DEPENDS ${last_test})
+  ENDIF (NOT "${last_test}" STREQUAL "")
+  SET (last_test "H5DUMP_PACKED_BITS-clearall-objects")
+
+  # test failure handling
+  # Missing file name
+  ADD_H5_TEST (tnofilename-with-packed-bits 1)
+  # Limits:
+  # Maximum number of packed bits is 8 (for now).
+  # Maximum integer size is 8*sizeof(long long).
+  # Maximun Offset is Maximum size - 1.
+  # Maximum Offset+Length is Maximum size.
+  # Tests:
+  # Normal operation on both signed and unsigned int datasets.
+  # Sanity check
+  # Their rawdata output should be the same.
+  ADD_H5_TEST (tpbitsSignedWhole 0 -d /DS08BITS -M 0,8 packedbits.h5)
+  ADD_H5_TEST (tpbitsUnsignedWhole 0 -d /DU08BITS -M 0,8 packedbits.h5)
+  ADD_H5_TEST (tpbitsSignedIntWhole 0 -d /DS16BITS -M 0,16 packedbits.h5)
+  ADD_H5_TEST (tpbitsUnsignedIntWhole 0 -d /DU16BITS -M 0,16 packedbits.h5)
+  ADD_H5_TEST (tpbitsSignedLongWhole 0 -d /DS32BITS -M 0,32 packedbits.h5)
+  ADD_H5_TEST (tpbitsUnsignedLongWhole 0 -d /DU32BITS -M 0,32 packedbits.h5)
+  ADD_H5_TEST (tpbitsSignedLongLongWhole 0 -d /DS64BITS -M 0,64 packedbits.h5)
+  ADD_H5_TEST (tpbitsUnsignedLongLongWhole 0 -d /DU64BITS -M 0,64 packedbits.h5)
+  ADD_H5_TEST (tpbitsSignedLongLongWhole63 0 -d /DS64BITS -M 0,63 packedbits.h5)
+  ADD_H5_TEST (tpbitsUnsignedLongLongWhole63 0 -d /DU64BITS -M 0,63 packedbits.h5)
+  ADD_H5_TEST (tpbitsSignedLongLongWhole1 0 -d /DS64BITS -M 1,63 packedbits.h5)
+  ADD_H5_TEST (tpbitsUnsignedLongLongWhole1 0 -d /DU64BITS -M 1,63 packedbits.h5)
+  # Half sections
+  ADD_H5_TEST (tpbitsSigned4 0 -d /DS08BITS -M 0,4,4,4 packedbits.h5)
+  ADD_H5_TEST (tpbitsUnsigned4 0 -d /DU08BITS -M 0,4,4,4 packedbits.h5)
+  ADD_H5_TEST (tpbitsSignedInt8 0 -d /DS16BITS -M 0,8,8,8 packedbits.h5)
+  ADD_H5_TEST (tpbitsUnsignedInt8 0 -d /DU16BITS -M 0,8,8,8 packedbits.h5)
+  ADD_H5_TEST (tpbitsSignedLong16 0 -d /DS32BITS -M 0,16,16,16 packedbits.h5)
+  ADD_H5_TEST (tpbitsUnsignedLong16 0 -d /DU32BITS -M 0,16,16,16 packedbits.h5)
+  ADD_H5_TEST (tpbitsSignedLongLong32 0 -d /DS64BITS -M 0,32,32,32 packedbits.h5)
+  ADD_H5_TEST (tpbitsUnsignedLongLong32 0 -d /DU64BITS -M 0,32,32,32 packedbits.h5)
+  # Quarter sections
+  ADD_H5_TEST (tpbitsSigned2 0 -d /DS08BITS -M 0,2,2,2,4,2,6,2 packedbits.h5)
+  ADD_H5_TEST (tpbitsUnsigned2 0 -d /DU08BITS -M 0,2,2,2,4,2,6,2 packedbits.h5)
+  ADD_H5_TEST (tpbitsSignedInt4 0 -d /DS16BITS -M 0,4,4,4,8,4,12,4 packedbits.h5)
+  ADD_H5_TEST (tpbitsUnsignedInt4 0 -d /DU16BITS -M 0,4,4,4,8,4,12,4 packedbits.h5)
+  ADD_H5_TEST (tpbitsSignedLong8 0 -d /DS32BITS -M 0,8,8,8,16,8,24,8 packedbits.h5)
+  ADD_H5_TEST (tpbitsUnsignedLong8 0 -d /DU32BITS -M 0,8,8,8,16,8,24,8 packedbits.h5)
+  ADD_H5_TEST (tpbitsSignedLongLong16 0 -d /DS64BITS -M 0,16,16,16,32,16,48,16 packedbits.h5)
+  ADD_H5_TEST (tpbitsUnsignedLongLong16 0 -d /DU64BITS -M 0,16,16,16,32,16,48,16 packedbits.h5)
+  # Begin and End
+  ADD_H5_TEST (tpbitsSigned 0 -d /DS08BITS -M 0,2,2,6 packedbits.h5)
+  ADD_H5_TEST (tpbitsUnsigned 0 -d /DU08BITS -M 0,2,2,6 packedbits.h5)
+  ADD_H5_TEST (tpbitsSignedInt 0 -d /DS16BITS -M 0,2,10,6 packedbits.h5)
+  ADD_H5_TEST (tpbitsUnsignedInt 0 -d /DU16BITS -M 0,2,10,6 packedbits.h5)
+  ADD_H5_TEST (tpbitsSignedLong 0 -d /DS32BITS -M 0,2,26,6 packedbits.h5)
+  ADD_H5_TEST (tpbitsUnsignedLong 0 -d /DU32BITS -M 0,2,26,6 packedbits.h5)
+  ADD_H5_TEST (tpbitsSignedLongLong 0 -d /DS64BITS -M 0,2,58,6 packedbits.h5)
+  ADD_H5_TEST (tpbitsUnsignedLongLong 0 -d /DU64BITS -M 0,2,58,6 packedbits.h5)
+  # Overlapped packed bits.
+  ADD_H5_TEST (tpbitsOverlapped 0 -d /DS08BITS -M 0,1,1,1,2,1,0,3 packedbits.h5)
+  # Maximum number of packed bits.
+  ADD_H5_TEST (tpbitsMax 0 -d /DS08BITS -M 0,1,1,1,2,1,3,1,4,1,5,1,6,1,7,1 packedbits.h5)
+  # Compound type.
+  ADD_H5_TEST (tpbitsCompound 0 -d /dset1 -M 0,1,1,1 tcompound.h5)
+  # Array type.
+  ADD_H5_TEST (tpbitsArray 0 -d /Dataset1 -M 0,1,1,1 tarray1.h5)
+  # Test Error handling.
+  # Too many packed bits requested. Max is 8 for now.
+  ADD_H5_TEST (tpbitsMaxExceeded 1 -d /DS08BITS -M 0,1,0,1,1,1,2,1,3,1,4,1,5,1,6,1,7,1 packedbits.h5)
+  # Offset too large. Max is 8*sizeof(long long.
+  ADD_H5_TEST (tpbitsOffsetExceeded 1 -d /DS08BITS -M 64,1 packedbits.h5)
+  ADD_H5_TEST (tpbitsCharOffsetExceeded 0 -d /DS08BITS -M 8,1 packedbits.h5)
+  ADD_H5_TEST (tpbitsIntOffsetExceeded 0 -d /DS16BITS -M 16,1 packedbits.h5)
+  ADD_H5_TEST (tpbitsLongOffsetExceeded 0 -d /DS32BITS -M 32,1 packedbits.h5)
+  # Bad offset, must not be negative.
+  ADD_H5_TEST (tpbitsOffsetNegative 1 -d /DS08BITS -M -1,1 packedbits.h5)
+  # Bad length, must not be positive.
+  ADD_H5_TEST (tpbitsLengthPositive 1 -d /DS08BITS -M 4,0 packedbits.h5)
+  # Offset+Length is too large. Max is 8*sizeof(long long).
+  ADD_H5_TEST (tpbitsLengthExceeded 1 -d /DS08BITS -M 37,28 packedbits.h5)
+  ADD_H5_TEST (tpbitsCharLengthExceeded 0 -d /DS08BITS -M 2,7 packedbits.h5)
+  ADD_H5_TEST (tpbitsIntLengthExceeded 0 -d /DS16BITS -M 10,7 packedbits.h5)
+  ADD_H5_TEST (tpbitsLongLengthExceeded 0 -d /DS32BITS -M 26,7 packedbits.h5)
+  # Incomplete pair of packed bits request.
+  ADD_H5_TEST (tpbitsIncomplete 1 -d /DS08BITS -M 0,2,2,1,0,2,2, packedbits.h5)
    
   # Remove any output file left over from previous test run
   ADD_TEST (
@@ -1208,16 +1548,6 @@ IF (BUILD_TESTING)
   SET (last_test "H5DUMP-XML-clearall-objects")
 
   ########## test XML
-
-  # If using memchecker add tests without using scripts
-  IF (HDF5_ENABLE_USING_MEMCHECKER)
-    ADD_TEST (NAME H5DUMP-XML-tgroup COMMAND h5dump --xml tgroup.h5)
-    ADD_TEST (NAME H5DUMP-XML-tdset COMMAND h5dump --xml tdset.h5)
-    ADD_TEST (NAME H5DUMP-XML-tattr COMMAND h5dump --xml tattr.h5)
-    ADD_TEST (NAME H5DUMP-XML-tslink COMMAND h5dump --xml tslink.h5)
-    ADD_TEST (NAME H5DUMP-XML-thlink COMMAND h5dump --xml thlink.h5)
-  ENDIF (HDF5_ENABLE_USING_MEMCHECKER)
-
   ADD_XML_H5_TEST (tall.h5 0 tall.h5)
   ADD_XML_H5_TEST (tattr.h5 0 tattr.h5)
   ADD_XML_H5_TEST (tbitfields.h5 0 tbitfields.h5)
@@ -1270,6 +1600,8 @@ IF (BUILD_TESTING)
   ##Test dataset and attribute of null space.  Commented out:
   ## wait until the XML schema is updated for null space. 
   ##  ADD_XML_H5_TEST (tnullspace.h5 0 tnulspace.h5)
+  ## So is dataspace with 0 dimension size.
+  ##  ADD_XML_H5_TEST (zerodim.h5 0 zerodim.h5)
 
   # other options for xml
 

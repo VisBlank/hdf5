@@ -379,10 +379,10 @@ SUBROUTINE test_iter_group(total_error)
           ichr10(j:j) = info%name(j)(1:1)
        ENDDO
        CALL verifystring("H5Literate_f", ichr10, lnames(INT(idx)), total_error)
-       IF(i.EQ.52)EXIT ! prints out error message otherwise (for gcc/gfortran/g95) not intel (why) -FIX- scot
+       IF(i.EQ.52)EXIT ! prints out error message otherwise (for gcc/gfortran/g95) not intel (why) -FIXME- scot
     END DO
     
-    ! put check if did not walk far enough -scot FIX
+    ! put check if did not walk far enough -scot FIXME
 
     IF(i .NE. (NDATASETS + 2)) THEN
        CALL VERIFY("H5Literate_f", i, INT(NDATASETS + 2), total_error)

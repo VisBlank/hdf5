@@ -25,7 +25,7 @@
 !
 !*****
 
-PROGRAM fortranlibtest
+PROGRAM fortranlibtest_F03
   
   USE HDF5
   
@@ -127,6 +127,6 @@ PROGRAM fortranlibtest
   ! if errors detected, exit with non-zero code.
   IF (total_error .NE. 0) CALL h5_exit_f(1)
 
-END PROGRAM fortranlibtest
+END PROGRAM fortranlibtest_F03
 
 

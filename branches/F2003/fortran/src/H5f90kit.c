@@ -102,5 +102,6 @@ HD5packFstring(char *src, char *dest, size_t dst_len)
     /* Pad out any remaining space in the FORTRAN string with ' 's */
     if(src_len<dst_len)
         HDmemset(&dest[src_len],' ',dst_len-src_len);
+
 }   /* HD5packFstring */
 

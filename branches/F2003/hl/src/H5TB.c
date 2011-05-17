@@ -3240,6 +3240,7 @@ herr_t H5TBget_field_info( hid_t loc_id,
     if (( nfields = H5Tget_nmembers( tid )) < 0)
         goto out;
 
+
     /* iterate tru the members */
     for ( i = 0; i < nfields; i++) {
         /* get the member name */

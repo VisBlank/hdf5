@@ -395,7 +395,7 @@ nh5eget_auto_c(hid_t_f *estack_id, H5E_auto2_t *func, void **client_data, int_f 
 
       i = (int*)*client_data;
 
-    *i = 1000;
+/*     *i = 1000; */
 
 
 /*   i = (int*)client_data_c; */
@@ -413,7 +413,7 @@ nh5eget_auto_c(hid_t_f *estack_id, H5E_auto2_t *func, void **client_data, int_f 
 /*   printf("c %p \n",*data_c); */
   
 /*    i = (int*)client_data_c; */
-    client_data = client_data_c;
+/*    **client_data = *((int*)client_data_c);*/
 
 /*    *i = 200; */
 

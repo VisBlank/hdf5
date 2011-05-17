@@ -198,7 +198,7 @@ CONTAINS
 
     END INTERFACE
 
-   j = -9999
+!   j = -9999
 
 
     f_ptr2 = c_loc(j)

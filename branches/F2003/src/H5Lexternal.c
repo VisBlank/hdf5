@@ -146,10 +146,9 @@ H5L_build_name(char *prefix, char *file_name, char **full_name/*out*/)
 
     /* Copy the prefix into the buffer */
     HDstrcpy(*full_name, prefix);
-#ifndef H5_VMS
+
     if (!CHECK_DELIMITER(prefix[prefix_len-1]))
         HDstrcat(*full_name, DIR_SEPS);
-#endif
 
     /* Add the external link's filename to the prefix supplied */
     HDstrcat(*full_name, file_name);
@@ -434,7 +433,7 @@ H5L_extern_traverse(const char UNUSED *link_name, hid_t cur_group,
 
 
     /* Retrieve the "group location" for the file's root group */
-    if(H5G_loc_root(ext_file, &root_loc) < 0)
+    if(H5G_root_loc(ext_file, &root_loc) < 0)
         HGOTO_ERROR(H5E_SYM, H5E_BADVALUE, FAIL, "unable to create location for file")
 
     /* Open the object referenced in the external file */

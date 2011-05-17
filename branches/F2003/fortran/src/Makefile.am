@@ -79,6 +79,9 @@ libhdf5_fortran_la_SOURCES=H5f90global.f90 \
 	  H5Aff$(F_STATUS).f90 H5Dff$(F_STATUS).f90 H5Eff$(F_STATUS).f90 H5Lff$(F_STATUS).f90 \
 	  H5Off$(F_STATUS).f90 H5Pff$(F_STATUS).f90 H5Rff$(F_STATUS).f90 H5Tff$(F_STATUS).f90 $(PARALLEL_COND_SRC)
 
+# HDF5 Fortran library depends on HDF5 Library.
+libhdf5_fortran_la_LIBADD=$(LIBHDF5)
+
 # h5fc is generated during configure.
 # Remove it only when distclean.
 DISTCLEANFILES=h5fc

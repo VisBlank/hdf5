@@ -1475,13 +1475,13 @@ extern char *strdup(const char *s);
 
 /* OpenVMS pathname: <disk name>$<partition>:[path]<file name>
  *     i.g. SYS$SYSUSERS:[LU.HDF5.SRC]H5system.c */
-#define		DIR_SEPC	'.'
-#define		DIR_SEPS	"."
+#define         DIR_SEPC        ']'
+#define         DIR_SEPS        "]"
 #define         CHECK_DELIMITER(SS)             (SS == DIR_SEPC)
 #define         CHECK_ABSOLUTE(NAME)            (strrchr(NAME, ':') && strrchr(NAME, '['))
-#define 	CHECK_ABS_DRIVE(NAME)           (0)
-#define 	CHECK_ABS_PATH(NAME)    	(0)
-#define         GET_LAST_DELIMITER(NAME, ptr)   ptr = strrchr(NAME, ']');
+#define         CHECK_ABS_DRIVE(NAME)           (0)
+#define         CHECK_ABS_PATH(NAME)            (0)
+#define         GET_LAST_DELIMITER(NAME, ptr)   ptr = strrchr(NAME, DIR_SEPC);
 
 #else
 
@@ -1530,6 +1530,11 @@ typedef enum {
     H5_NPKGS				/*Must be last			*/
 } H5_pkg_t;
 
+typedef struct H5_debug_open_stream_t {
+    FILE        *stream;                /* Open output stream */
+    struct H5_debug_open_stream_t *next; /* Next open output stream */
+} H5_debug_open_stream_t;
+
 typedef struct H5_debug_t {
     FILE		*trace;		/*API trace output stream	*/
     hbool_t             ttop;           /*Show only top-level calls?    */
@@ -1538,6 +1543,7 @@ typedef struct H5_debug_t {
 	const char	*name;		/*package name			*/
 	FILE		*stream;	/*output stream	or NULL		*/
     } pkg[H5_NPKGS];
+    H5_debug_open_stream_t *open_stream; /* Stack of open output streams */
 } H5_debug_t;
 
 extern H5_debug_t		H5_debug_g;
