@@ -159,6 +159,7 @@
 /* Required for Mac timer functionality */
 #if defined(H5_HAVE_MACH_TIME_H)
 #include <mach/mach_time.h>
+double H5_get_mach_time_ns();   /* From H5system.c */
 #endif
 
 /* H5_inline */
@@ -462,37 +463,10 @@ typedef struct {
 } H5_timevals_t;
 
 typedef struct {
-
-    /*************************
-     * System and user times *
-     *************************/
-
-#if defined(_WIN32)
-    HANDLE process_handle;
-
-    ULARGE_INTEGER  kernel_start;
-    ULARGE_INTEGER  user_start;
-#else
-    /* These can both be set to -1 if no suitable way to get system and/or
-     * user times exists on the system.
-     */
-    double          system_start;
-    double          user_start;
-#endif
-
-    /****************
-     * Elapsed time *
-     ****************/
-
-#if defined(_WIN32)
-    LARGE_INTEGER   counts_start;
-    LARGE_INTEGER   counts_freq;
-#elif defined(H5_HAVE_MACH_MACH_TIME_H)  /* Mac OS */
-    uint64_t        elapsed_start;
-#else
-    double          elapsed_start;
-#endif
-
+    /* Start times in nanoseconds */
+    double  system_start_ns;
+    double  user_start_ns;
+    double  elapsed_start_ns;
 } H5_timer_t;
 
 /* OLD - will be removed */

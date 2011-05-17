@@ -641,6 +641,87 @@ Wgettimeofday(struct timeval *tv, struct timezone *tz)
 }
 #endif
 
+#if defined(_WIN32)
+H5_timevals_t
+H5_get_win32_times()
+{
+    H5_timevals_t tvs;
+
+    static HANDLE process_handle;
+
+    ULARGE_INTEGER kernel_start;
+    ULARGE_INTEGER user_start;
+
+    FILETIME KernelTime;
+    FILETIME UserTime;
+    FILETIME CreationTime;
+    FILETIME ExitTime;
+
+    LARGE_INTEGER counts_start;
+    static LARGE_INTEGER counts_freq;
+
+    BOOL err;
+
+    static int is_initialized = 0;
+
+
+    if(0 == is_initialized)
+    {
+        /* NOTE: This is just a pseudo handle and does not need to be closed. */
+        process_handle = GetCurrentProcess();
+        err = QueryPerformanceFrequency(&counts_freq);
+        is_initialized = 1;
+    }
+
+    /*************************
+     * System and user times *
+     *************************/
+
+    err = GetProcessTimes(process_handle,
+        &CreationTime,
+        &ExitTime,
+        &KernelTime,
+        &UserTime);
+
+    kernel_start.HighPart = KernelTime.dwHighDateTime;
+    kernel_start.LowPart = KernelTime.dwLowDateTime;
+    tvs.system_ns = (double)(kernel_start.QuadPart * 1.0E2);
+
+    user_start.HighPart = UserTime.dwHighDateTime;
+    user_start.LowPart = UserTime.dwLowDateTime;
+    tvs.user_ns = (double)(user_start.QuadPart * 1.0E2);
+
+    /****************
+     * Elapsed time *
+     ****************/
+
+    err = QueryPerformanceCounter(&counts_start);
+    tvs.elapsed_ns
+        = (double)(counts_start.QuadPart * 1.0E9) / (double)counts_freq.QuadPart;
+
+    return tvs;
+}
+#endif
+
+#if defined(H5_HAVE_MACH_MACH_TIME_H)
+double
+H5_get_mach_time_ns()
+{
+    static double conversion = 0.0;
+    mach_timebase_info_data_t info;
+    kern_return_t err;
+    uint64_t now;
+
+    if (0.0 == conversion) {
+        err = mach_timebase_info(&info);
+        if (0 == err)
+            conversion = (double)info.numer / (double)info.denom;
+    }
+
+    now = mach_absolute_time();
+    return (double)now * conversion;
+}
+#endif
 
 
 
