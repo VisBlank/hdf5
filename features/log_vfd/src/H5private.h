@@ -468,20 +468,16 @@ typedef struct {
      *************************/
 
 #if defined(_WIN32)
-
     HANDLE process_handle;
 
     ULARGE_INTEGER  kernel_start;
     ULARGE_INTEGER  user_start;
-
 #else
-
     /* These can both be set to -1 if no suitable way to get system and/or
      * user times exists on the system.
      */
     double          system_start;
     double          user_start;
-
 #endif
 
     /****************
@@ -489,18 +485,12 @@ typedef struct {
      ****************/
 
 #if defined(_WIN32)
-
     LARGE_INTEGER   counts_start;
     LARGE_INTEGER   counts_freq;
-
 #elif defined(H5_HAVE_MACH_TIME_H)  /* Mac OS */
-
     uint64_t        elapsed_start;
-
 #else
-
     double          elapsed_start;
-
 #endif
 
 } H5_timer_t;

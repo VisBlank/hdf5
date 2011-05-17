@@ -230,26 +230,25 @@ H5_bandwidth(char *buf/*out*/, double nbytes, double nseconds)
 void
 H5_timer_start(H5_timer_t *timer/*in,out*/)
 {
+    /* System and user time (also elapsed for Win32) */
 #if defined(_WIN32)
     FILETIME KernelTime;
     FILETIME UserTime;
     FILETIME CreationTime;
     FILETIME ExitTime;
-
     BOOL werr;
-#endif
-
-#if defined(H5_HAVE_GETRUSAGE)
+#elif defined(H5_HAVE_GETRUSAGE)
     struct rusage res;
     int err;
 #endif
 
-#if defined(H5_HAVE_CLOCK_GETTIME)
+    /* elapsed time */
+#if defined(_WIN32) || defined(H5_HAVE_MACH_TIME_H)
+    /* Nothing */
+#elif defined(H5_HAVE_CLOCK_GETTIME)
     struct timespec ts;
     int err;
-#endif
-
-#if defined(H5_HAVE_GETTIMEOFDAY)
+#elif defined(H5_HAVE_GETTIMEOFDAY)
     struct timeval tv;
     int err;
 #endif
@@ -331,6 +330,7 @@ H5_timer_get_times(H5_timer_t timer)
 {
     H5_timevals_t tvs;
 
+    /* System and user time (also elapsed for Win32) */
 #if defined(_WIN32)
     LARGE_INTEGER CurrCounts;
     LARGE_INTEGER delta_e;
@@ -344,26 +344,23 @@ H5_timer_get_times(H5_timer_t timer)
     FILETIME UserTime;
 
     BOOL werr;
-#endif
-
-#if defined(H5_HAVE_MACH_TIME_H)
-    static double conversion = 0.0;
-    mach_timebase_info_data_t info;
-    kern_return_t kerr;
-    uint64_t now;
-#endif
-
-#if defined(H5_HAVE_GETRUSAGE)
+#elif defined(H5_HAVE_GETRUSAGE)
     struct rusage res;
     int err;
 #endif
 
-#if defined(H5_HAVE_CLOCK_GETTIME)
+    /* Elapsed time */
+#if defined(_WIN32)
+    /* Nothing */
+#elif defined(H5_HAVE_MACH_TIME_H)
+    static double conversion = 0.0;
+    mach_timebase_info_data_t info;
+    kern_return_t kerr;
+    uint64_t now;
+#elif defined(H5_HAVE_CLOCK_GETTIME)
     struct timespec ts;
     int err;
-#endif
-
-#if defined(H5_HAVE_GETTIMEOFDAY)
+#elif defined(H5_HAVE_GETTIMEOFDAY)
     struct timeval tv;
     int err;
 #endif
