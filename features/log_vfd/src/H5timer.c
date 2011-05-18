@@ -240,13 +240,11 @@ H5_timer_start(H5_timer_t *timer/*in,out*/)
     /* System and user time */
 #if defined(H5_HAVE_GETRUSAGE)
     struct rusage res;
-    int err;
 #endif
 
     /* elapsed time */
 #if defined(H5_HAVE_CLOCK_GETTIME)
     struct timespec ts;
-    int err;
 #endif
 
     assert(timer);
@@ -267,7 +265,7 @@ H5_timer_start(H5_timer_t *timer/*in,out*/)
 
 #if defined(H5_HAVE_GETRUSAGE)
 
-    err = getrusage(RUSAGE_SELF, &res);
+    getrusage(RUSAGE_SELF, &res);
     timer->system_start_ns = (double)((res.ru_stime.tv_sec * 1.0E9) + (res.ru_stime.tv_usec * 1.0E3));
     timer->user_start_ns = (double)((res.ru_utime.tv_sec * 1.0E9) + (res.ru_utime.tv_usec * 1.0E3));
 
@@ -290,7 +288,7 @@ H5_timer_start(H5_timer_t *timer/*in,out*/)
 
 #elif defined(H5_HAVE_CLOCK_GETTIME)
 
-    err = clock_gettime(CLOCK_MONOTONIC, &ts);
+    clock_gettime(CLOCK_MONOTONIC, &ts);
     timer->elapsed_start_ns = (double)((ts.tv_sec * 1.0E9) + ts.tv_nsec);
 
 #else
@@ -314,12 +312,10 @@ H5_timer_get_times(H5_timer_t timer)
 
 #if defined(H5_HAVE_GETRUSAGE)
     struct rusage res;
-    int err;
 #endif
 
 #if defined(H5_HAVE_CLOCK_GETTIME)
     struct timespec ts;
-    int err;
 #endif
 
 
@@ -342,7 +338,7 @@ H5_timer_get_times(H5_timer_t timer)
 
 #if defined(H5_HAVE_GETRUSAGE)
 
-    err = getrusage(RUSAGE_SELF, &res);
+    getrusage(RUSAGE_SELF, &res);
 
     tvs.system_ns = (double)((res.ru_stime.tv_sec * 1.0E9) + (res.ru_stime.tv_usec * 1.0E3) - timer.system_start_ns);
     tvs.user_ns = (double)((res.ru_utime.tv_sec * 1.0E9) + (res.ru_utime.tv_usec * 1.0E3) - timer.user_start_ns);
@@ -364,7 +360,7 @@ H5_timer_get_times(H5_timer_t timer)
 
 #elif defined(H5_HAVE_CLOCK_GETTIME)
 
-    err = clock_gettime(CLOCK_MONOTONIC, &ts);
+    clock_gettime(CLOCK_MONOTONIC, &ts);
     tvs.elapsed_ns = (double)((ts.tv_sec * 1.0E9) + ts.tv_nsec) - timer.elapsed_start_ns;
 
 #endif
@@ -386,7 +382,7 @@ H5_timer_get_time_string(double ns)
     char *s;                /* output string */
 
     /* Initialize */
-    s = calloc(H5TIMER_TIME_STRING_LEN, sizeof(char));
+    s = (char *)calloc(H5TIMER_TIME_STRING_LEN, sizeof(char));
     seconds = ns / 1.0E9;
     minutes = seconds / 60.0;
     hours   = seconds / 3600.0;
