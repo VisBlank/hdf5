@@ -31,20 +31,8 @@
 /* Headers */
 /***********/
 
-#include <time.h>
-
 /* Generic functions, including H5_timer_t */
 #include "H5private.h"
-
-/* Needed to fill the user-mode and system time fields of H5_timer_t */
-#if defined(H5_HAVE_GETRUSAGE) && defined(H5_HAVE_SYS_RESOURCE_H)
-#   include <sys/resource.h>
-#endif
-
-/* Needed to fill the elapsed time field of H5_timer_t */
-#if defined(H5_HAVE_GETTIMEOFDAY) && defined(H5_HAVE_SYS_TIME_H)
-#include <sys/time.h>
-#endif
 
 
 /****************/
