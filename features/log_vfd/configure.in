@@ -1202,14 +1202,14 @@ AC_HEADER_STDC
 AC_HEADER_TIME
 
 dnl ----------------------------------------------------------------------
-dnl Check for these two (er, three) functions before <sys/time.h> is checked
+dnl Check for these two functions before <sys/time.h> is checked
 dnl for, otherwise they are not detected correctly on Solaris [2.6].
-dnl
-dnl The check for clock_gettime() was added here to be on the safe side since
-dnl it might have the same problems as gettimeofday() and difftime().
 AC_CHECK_FUNCS(difftime)
 AC_CHECK_FUNCS(gettimeofday, [have_gettime="yes"], [have_gettime="no"])
-AC_CHECK_FUNCS(clock_gettime, [have_clock_gettime="yes"], [have_clock_gettime="no"])
+
+dnl Check for clock_gettime
+AC_SEARCH_LIBS([clock_gettime],[rt posix4])
+AC_CHECK_FUNCS([clock_gettime],[have_clock_gettime="yes"],[have_clock_gettime="no"])
 
 dnl Unix
 AC_CHECK_HEADERS([sys/resource.h sys/time.h unistd.h sys/ioctl.h sys/stat.h])
