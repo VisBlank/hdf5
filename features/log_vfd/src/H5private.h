@@ -156,12 +156,6 @@
 
 #endif /*_WIN32*/
 
-/* Required for Mac timer functionality */
-#if defined(H5_HAVE_MACH_TIME_H)
-#include <mach/mach_time.h>
-double H5_get_mach_time_ns();   /* From H5system.c */
-#endif
-
 /* H5_inline */
 #ifndef H5_inline
 #define H5_inline
@@ -482,6 +476,12 @@ H5_DLL void H5_timer_start(H5_timer_t *timer/*in,out*/);
 H5_DLL H5_timevals_t H5_timer_get_times(H5_timer_t timer);
 H5_DLL char * H5_timer_get_time_string(double ns);
 
+/* Required for Mac timer functionality */
+#if defined(H5_HAVE_MACH_TIME_H)
+#include <mach/mach_time.h>
+double H5_get_mach_time_ns();   /* From H5system.c */
+#endif
+
 /* Depth of object copy */
 typedef enum {
     H5_COPY_SHALLOW,    /* Shallow copy from source to destination, just copy field pointers */
@@ -593,9 +593,6 @@ typedef struct {
 #ifndef HDclock
     #define HDclock()		clock()
 #endif /* HDclock */
-#ifndef HDclock_gettime
-#define HDclock_gettime(C,T)	clock_gettime(C,T)
-#endif /* HDclock_gettime */
 #ifndef HDclose
     #define HDclose(F)		close(F)
 #endif /* HDclose */
