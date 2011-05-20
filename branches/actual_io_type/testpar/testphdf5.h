@@ -161,15 +161,17 @@ enum H5TEST_COLL_CHUNK_API {API_NONE=0,API_LINK_HARD,
                                                                 and overwritten */
 
 /* Definitions of the selection mode for the test_actual_io_function. */
-#define TEST_ACTUAL_IO_MULTI_CHUNK_IND                  0
-#define TEST_ACTUAL_IO_MULTI_CHUNK_COL                  1
-#define TEST_ACTUAL_IO_MULTI_CHUNK_MIX                  2
-#define TEST_ACTUAL_IO_MULTI_CHUNK_MIX_DISAGREE         3
-#define TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_IND           4
-#define TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_COL           5
-#define TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_MIX_DISAGREE  7 
-#define TEST_ACTUAL_IO_LINK_CHUNK                       8
-#define TEST_ACTUAL_IO_CONTIGUOUS                       9
+#define TEST_ACTUAL_IO_NO_COLLECTIVE                    0
+#define TEST_ACTUAL_IO_RESET                            1
+#define TEST_ACTUAL_IO_MULTI_CHUNK_IND                  2
+#define TEST_ACTUAL_IO_MULTI_CHUNK_COL                  3
+#define TEST_ACTUAL_IO_MULTI_CHUNK_MIX                  4
+#define TEST_ACTUAL_IO_MULTI_CHUNK_MIX_DISAGREE         5
+#define TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_IND           6
+#define TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_COL           7
+#define TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_MIX_DISAGREE  8 
+#define TEST_ACTUAL_IO_LINK_CHUNK                       9
+#define TEST_ACTUAL_IO_CONTIGUOUS                       10
 
 /* Don't erase these lines, they are put here for debugging purposes */
 /*

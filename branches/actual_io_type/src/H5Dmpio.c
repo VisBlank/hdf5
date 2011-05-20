@@ -507,7 +507,6 @@ H5D_contig_collective_read(H5D_io_info_t *io_info, const H5D_type_info_t *type_i
     H5P_genplist_t *dx_plist;           /* Pointer to the dxpl */
     herr_t ret_value = SUCCEED;         /* Return value */
     /* Local variable for the actual io mode property */
-    H5D_xfer_mpio_actual_io_mode_t actual_io_mode = H5D_MPIO_COLLECTIVE_CONTIGUOUS;     
     
     FUNC_ENTER_NOAPI(H5D_contig_collective_read, FAIL)
 
@@ -522,9 +521,6 @@ H5D_contig_collective_read(H5D_io_info_t *io_info, const H5D_type_info_t *type_i
     if(H5D_inter_collective_io(io_info, type_info, file_space, mem_space) < 0)
 	HGOTO_ERROR(H5E_IO, H5E_READERROR, FAIL, "couldn't finish shared collective MPI-IO")
     
-    if(H5P_set(dx_plist, H5D_XFER_MPIO_ACTUAL_IO_MODE_NAME, &actual_io_mode)  < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "couldn't set actual io mode property")
-
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5D_contig_collective_read() */
@@ -551,8 +547,6 @@ H5D_contig_collective_write(H5D_io_info_t *io_info, const H5D_type_info_t *type_
     H5P_genplist_t * dx_plist;          /* Pointer to the dxpl */
     herr_t ret_value = SUCCEED;         /* Return value */
     /* Local variable for the actual io mode property*/
-    H5D_xfer_mpio_actual_io_mode_t actual_io_mode = H5D_MPIO_COLLECTIVE_CONTIGUOUS; 
-    
     FUNC_ENTER_NOAPI(H5D_contig_collective_write, FAIL)
 
     /* Sanity check */
@@ -565,9 +559,6 @@ H5D_contig_collective_write(H5D_io_info_t *io_info, const H5D_type_info_t *type_
     /* Call generic internal collective I/O routine */
     if(H5D_inter_collective_io(io_info, type_info, file_space, mem_space) < 0)
 	HGOTO_ERROR(H5E_IO, H5E_WRITEERROR, FAIL, "couldn't finish shared collective MPI-IO")
-
-    if (H5P_set(dx_plist, H5D_XFER_MPIO_ACTUAL_IO_MODE_NAME, &actual_io_mode)  < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "couldn't set actual io mode property")
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -610,6 +601,8 @@ H5D_chunk_collective_io(H5D_io_info_t *io_info, const H5D_type_info_t *type_info
 {
     H5P_genplist_t *dx_plist;           /* Pointer to DXPL */
     H5FD_mpio_chunk_opt_t chunk_opt_mode;
+    H5D_mpio_actual_chunk_opt_mode_t actual_chunk_opt_mode; 
+    H5D_mpio_actual_chunk_io_mode_t actual_chunk_io_mode;
     int         io_option = H5D_MULTI_CHUNK_IO_MORE_OPT;
     int         sum_chunk = -1;
 #ifdef H5_HAVE_INSTRUMENTED_LIBRARY
@@ -733,21 +726,37 @@ H5D_chunk_collective_io(H5D_io_info_t *io_info, const H5D_type_info_t *type_info
     /* step 2:  Go ahead to do IO. */
 #ifdef H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS
     if(io_option == H5D_ONE_LINK_CHUNK_IO || io_option == H5D_ONE_LINK_CHUNK_IO_MORE_OPT) {
-        H5D_xfer_mpio_actual_io_mode_t actual_io_mode = H5D_MPIO_COLLECTIVE_LINK_CHUNK;
+        /* set the actual io mode properties to the correct values for link chunk io. */
+        actual_chunk_opt_mode = H5D_MPIO_LINK_CHUNK;
+        actual_chunk_io_mode = H5D_MPIO_CHUNK_COLLECTIVE;
+        
+        /* Set the actual chunk opt mode property. */
+        if (H5P_set(dx_plist, H5D_MPIO_ACTUAL_CHUNK_OPT_MODE_NAME, &actual_chunk_opt_mode) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "couldn't set actual chunk opt mode property") 
+
         if(H5D_link_chunk_collective_io(io_info, type_info, fm, sum_chunk) < 0)
             HGOTO_ERROR(H5E_IO, H5E_CANTGET, FAIL, "couldn't finish linked chunk MPI-IO")
-    
-        /* Set the actual I/O mode property. */
-        if (H5P_set(dx_plist, H5D_XFER_MPIO_ACTUAL_IO_MODE_NAME, &actual_io_mode) < 0)
-            HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "couldn't set actual io mode property") 
+
+        /* Set the actual chunk io mode property. */
+        if (H5P_set(dx_plist, H5D_MPIO_ACTUAL_CHUNK_IO_MODE_NAME, &actual_chunk_io_mode) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "couldn't set actual chunk io mode property") 
     } /* end if */
     else
 #endif /* H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS */
     if(io_option == H5D_MULTI_CHUNK_IO) {
-         if(H5D_multi_chunk_collective_io_no_opt(io_info, type_info, fm, dx_plist) < 0)
+        /* Set the actual chunk opt mode property */
+        actual_chunk_opt_mode = H5D_MPIO_MULTI_CHUNK_NO_OPT;
+        if (H5P_set(dx_plist, H5D_MPIO_ACTUAL_CHUNK_OPT_MODE_NAME, &actual_chunk_opt_mode) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "couldn't set actual chunk opt mode property") 
+
+        if(H5D_multi_chunk_collective_io_no_opt(io_info, type_info, fm, dx_plist) < 0)
             HGOTO_ERROR(H5E_IO, H5E_CANTGET, FAIL, "couldn't finish multiple chunk MPI-IO")
     } /* end if */
     else { /*multiple chunk IOs with opt */
+        actual_chunk_opt_mode = H5D_MPIO_MULTI_CHUNK;
+        if (H5P_set(dx_plist, H5D_MPIO_ACTUAL_CHUNK_OPT_MODE_NAME, &actual_chunk_opt_mode) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "couldn't set actual chunk opt mode property") 
+        
         if(H5D_multi_chunk_collective_io(io_info, type_info, fm, dx_plist) < 0)
             HGOTO_ERROR(H5E_IO, H5E_CANTGET, FAIL, "couldn't finish optimized multiple chunk MPI-IO")
     } /* end else */
@@ -1129,7 +1138,7 @@ H5D_multi_chunk_collective_io(H5D_io_info_t *io_info, const H5D_type_info_t *typ
     int mpi_rank;
 #endif
     size_t              u;                    /* Local index variable */
-    H5D_xfer_mpio_actual_io_mode_t actual_io_mode = H5D_MPIO_INDEPENDENT; /* Local variable for tracking the I/O modes used. */ 
+    H5D_mpio_actual_chunk_io_mode_t actual_chunk_io_mode = H5D_MPIO_NO_CHUNK_IO; /* Local variable for tracking the I/O mode used. */ 
     herr_t              ret_value = SUCCEED;
 
     FUNC_ENTER_NOAPI_NOINIT(H5D_multi_chunk_collective_io)
@@ -1210,15 +1219,13 @@ if(H5DEBUG(D))
                 fspace = chunk_info->fspace;
                 mspace = chunk_info->mspace;
                 
-                /* Update the local variable tracking the dxpl's actual I/O Mode property.
+                /* Update the local variable tracking the dxpl's actual chunk io mode property.
                  *
-                 * Note: H5D_MPIO_COLLECTIVE_MULTI_CHUNK_COLLECTIVE |
-                 *      H5D_MPIO_COLLECTIVE_MULTI_CHUNK_INDEPENDENT = 
-                 *      H5D_MPIO_COLLECTIVE_MULTI_CHUNK_MIXED to ease switching between
-                 *      to mixed I/O without checking the current value
-                 *      of the property. You can see the definition in H5Ppublic.h
+                 * Note: H5D_MPIO_COLLECTIVE_MULTI | H5D_MPIO_INDEPENDENT = H5D_MPIO_MIXED
+                 *      to ease switching between to mixed I/O without checking the current
+                 *      value of the property. You can see the definition in H5Ppublic.h
                  */
-                actual_io_mode = actual_io_mode | H5D_MPIO_COLLECTIVE_MULTI_CHUNK_COLLECTIVE;
+                actual_chunk_io_mode = actual_chunk_io_mode | H5D_MPIO_CHUNK_COLLECTIVE;
 
     	    } /* end if */
     	    else {
@@ -1268,8 +1275,8 @@ if(H5DEBUG(D))
                     last_xfer_mode = H5FD_MPIO_INDEPENDENT;
                 } /* end if */
                 
-                /* Update the local variable tracking the dxpl's actual I/O Mode. */
-                 actual_io_mode = actual_io_mode | H5D_MPIO_COLLECTIVE_MULTI_CHUNK_INDEPENDENT;
+                /* Update the local variable tracking the dxpl's actual chunk io mode. */
+                 actual_chunk_io_mode = actual_chunk_io_mode | H5D_MPIO_CHUNK_INDEPENDENT;
 
                 /* Load the chunk into cache.  But if the whole chunk is written,
                  * simply allocate space instead of load the chunk.
@@ -1335,8 +1342,8 @@ if(H5DEBUG(D))
                 fspace = chunk_info->fspace;
                 mspace = chunk_info->mspace;
 
-                /* Update the local variable tracking the dxpl's actual I/O Mode. */
-                 actual_io_mode = actual_io_mode | H5D_MPIO_COLLECTIVE_MULTI_CHUNK_INDEPENDENT;
+                /* Update the local variable tracking the dxpl's actual chunk io mode. */
+                 actual_chunk_io_mode = actual_chunk_io_mode | H5D_MPIO_CHUNK_INDEPENDENT;
             } /* end if */
             else {
                 fspace = mspace = NULL;
@@ -1363,9 +1370,9 @@ if(H5DEBUG(D))
         } /* end else */
     } /* end for */
 
-/* Write the local value of actual I/O mode to the DXPL. */
-    if (H5P_set(dx_plist, H5D_XFER_MPIO_ACTUAL_IO_MODE_NAME, &actual_io_mode) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "couldn't set actual io mode property") 
+    /* Write the local value of actual chunk io mode to the DXPL. */
+    if (H5P_set(dx_plist, H5D_MPIO_ACTUAL_CHUNK_IO_MODE_NAME, &actual_chunk_io_mode) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "couldn't set actual chunk io mode property") 
  
 done:
     if(chunk_io_option)
@@ -1417,7 +1424,7 @@ H5D_multi_chunk_collective_io_no_opt(H5D_io_info_t *io_info,
     int             min_chunk = -1;       /* Minimum # of chunks all processes will operate on */
     int             count_chunk;          /* How many chunks have we operated on? */
     H5D_storage_t   store;                /* union of EFL and chunk pointer in file space */
-    H5D_xfer_mpio_actual_io_mode_t actual_io_mode = H5D_MPIO_INDEPENDENT; /*Local variable for tracking the I/O modes used. */ 
+    H5D_mpio_actual_chunk_io_mode_t actual_chunk_io_mode = H5D_MPIO_NO_CHUNK_IO; /*Local variable for tracking the I/O modes used. */ 
     herr_t          ret_value = SUCCEED;
 
     FUNC_ENTER_NOAPI_NOINIT(H5D_multi_chunk_collective_io_no_opt)
@@ -1514,8 +1521,8 @@ if(H5DEBUG(D)) {
             if(H5D_ioinfo_xfer_mode(io_info, dx_plist, H5FD_MPIO_INDEPENDENT) < 0)
                 HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "can't switch to independent I/O")
                 
-            /* Update the local variable tracking the dxpl's actual I/O Mode */
-             actual_io_mode = actual_io_mode | H5D_MPIO_COLLECTIVE_MULTI_CHUNK_NO_OPT_INDEPENDENT;
+            /* Update the local variable tracking the dxpl's actual chunk io mode */
+             actual_chunk_io_mode = actual_chunk_io_mode | H5D_MPIO_CHUNK_INDEPENDENT;
 
             /* Load the chunk into cache and lock it. */
             if((cacheable = H5D_chunk_cacheable(io_info, udata.addr,
@@ -1573,8 +1580,8 @@ if(H5DEBUG(D)) {
             /* Set up the storage address information for this chunk */
             ctg_store.contig.dset_addr = udata.addr;
             
-            /* Update the local variable tracking the dxpl's actual I/O Mode. */
-             actual_io_mode = actual_io_mode | H5D_MPIO_COLLECTIVE_MULTI_CHUNK_NO_OPT_COLLECTIVE;
+            /* Update the local variable tracking the dxpl's actual chunk io Mode. */
+             actual_chunk_io_mode = actual_chunk_io_mode | H5D_MPIO_CHUNK_COLLECTIVE;
 
             if(H5D_inter_collective_io(&ctg_io_info, type_info, chunk_info->fspace, chunk_info->mspace) < 0)
                 HGOTO_ERROR(H5E_IO, H5E_CANTGET, FAIL,"couldn't finish shared collective MPI-IO")
@@ -1588,8 +1595,8 @@ if(H5DEBUG(D)) {
         chunk_node = H5SL_next(chunk_node);
     } /* end while */
 
-/* Write the local value of actual I/O mode to the DXPL. */
-    if (H5P_set(dx_plist, H5D_XFER_MPIO_ACTUAL_IO_MODE_NAME, &actual_io_mode) < 0)
+    /* Write the local value of actual chunk io mode to the DXPL. */
+    if (H5P_set(dx_plist, H5D_MPIO_ACTUAL_CHUNK_IO_MODE_NAME, &actual_chunk_io_mode) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "couldn't set actual io mode property") 
 
 done:
