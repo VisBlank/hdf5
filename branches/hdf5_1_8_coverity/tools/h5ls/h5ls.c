@@ -736,8 +736,11 @@ display_cmpd_type(hid_t type, int ind)
     unsigned    i;              /* miscellaneous counters */
 
     if (H5T_COMPOUND!=H5Tget_class(type)) return FALSE;
+
+    if ((nmembs = H5Tget_nmembers(type)) <= 0)
+        return FALSE;
+
     printf("struct {");
-    nmembs=H5Tget_nmembers(type);
     for (i=0; i<nmembs; i++) {
 
         /* Name and offset */
@@ -792,12 +795,10 @@ display_enum_type(hid_t type, int ind)
     hbool_t     ret_val = TRUE; /* return value */
 
     if (H5T_ENUM!=H5Tget_class(type)) return FALSE;
-    nmembs = H5Tget_nmembers(type);
 
-    if (nmembs<=0)
+    if ((nmembs = H5Tget_nmembers(type)) <= 0)
         return FALSE;
 
-    assert(nmembs>0);
     super = H5Tget_super(type);
     printf("enum ");
     display_type(super, ind+4);
@@ -849,15 +850,15 @@ display_enum_type(hid_t type, int ind)
             for (j=0; j<dst_size; j++)
                 printf("%02x", value[i*dst_size+j]);
         } else if (H5T_SGN_NONE==H5Tget_sign(native)) {
- 	    /*On SGI Altix(cobalt), wrong values were printed out with "value+i*dst_size"
- 	     *strangely, unless use another pointer "copy".*/
- 	    copy = value+i*dst_size;
+       /*On SGI Altix(cobalt), wrong values were printed out with "value+i*dst_size"
+        *strangely, unless use another pointer "copy".*/
+       copy = value+i*dst_size;
             HDfprintf(stdout,"%"H5_PRINTF_LL_WIDTH"u",
             *((unsigned long long*)((void*)copy)));
         } else {
- 	    /*On SGI Altix(cobalt), wrong values were printed out with "value+i*dst_size"
- 	     *strangely, unless use another pointer "copy".*/
- 	    copy = value+i*dst_size;
+       /*On SGI Altix(cobalt), wrong values were printed out with "value+i*dst_size"
+        *strangely, unless use another pointer "copy".*/
+       copy = value+i*dst_size;
             HDfprintf(stdout,"%"H5_PRINTF_LL_WIDTH"d",
             *((long long*)((void*)copy)));
         }
