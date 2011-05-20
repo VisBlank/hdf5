@@ -493,12 +493,6 @@ hsize_t diff_datasetid( hid_t did1,
                 nfound += diff_array(sm_buf1, sm_buf2, hs_nelmts, elmtno, rank1,
                     dims1, options, name1, name2, m_tid1, did1, did2);
 
-                /* reclaim any VL memory, if necessary */
-                if(vl_data) {
-                    H5Dvlen_reclaim(m_tid1, sm_space, H5P_DEFAULT, sm_buf1);
-                    H5Dvlen_reclaim(m_tid1, sm_space, H5P_DEFAULT, sm_buf2);
-                } /* end if */
-
                 /* calculate the next hyperslab offset */
                 for(i = rank1, carry = 1; i > 0 && carry; --i) {
                     hs_offset[i - 1] += hs_size[i - 1];

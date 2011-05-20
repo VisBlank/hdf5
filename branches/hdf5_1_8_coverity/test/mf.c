@@ -5944,7 +5944,6 @@ main(void)
 		    TEST_ERROR
                 break;
 
-            case TEST_NTESTS:
             default:
                 TEST_ERROR;
 		break;
