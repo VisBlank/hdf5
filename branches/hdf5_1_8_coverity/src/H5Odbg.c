@@ -442,7 +442,7 @@ H5O_debug_real(H5F_t *f, hid_t dxpl_id, H5O_t *oh, haddr_t addr, FILE *stream, i
             hbool_t flag_printed = FALSE;
 
             if(oh->mesg[i].flags & H5O_MSG_FLAG_SHARED) {
-                HDfprintf(stream, "%s%s", (flag_printed ? ", " : "<"), "S");
+                HDfprintf(stream, "%s%s", "<", "S");
                 flag_printed = TRUE;
             } /* end if */
             if(oh->mesg[i].flags & H5O_MSG_FLAG_CONSTANT) {
