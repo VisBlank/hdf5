@@ -755,26 +755,28 @@ out:
 *-------------------------------------------------------------------------
 */
 
-static int read_data( const char* fname, /*IN*/
+static int read_data(const char* fname, /*IN*/
                      hsize_t *width, /*OUT*/
-                     hsize_t *height /*OUT*/ )
+                     hsize_t *height /*OUT*/)
 {
-    int    i, n;
+    int    i;
+    int    n;
     int    color_planes;
     char   str[20];
-    FILE   *f;
-    int    w, h;
-    char   *srcdir = getenv("srcdir"); /* the source directory */
-    char   data_file[512]="";          /* buffer to hold name of existing data file */
+    FILE  *f;
+    int    w;
+    int    h;
+    char  *srcdir = getenv("srcdir");   /* the source directory */
+    char   data_file[512] = "";         /* buffer to hold name of existing data file */
     int    n_elements = -1;
+    int    ret_val = -1;
 
     /*-------------------------------------------------------------------------
     * compose the name of the file to open, using "srcdir", if appropriate
     *-------------------------------------------------------------------------
     */
     strcpy(data_file, "");
-    if (srcdir)
-    {
+    if (srcdir) {
         strcpy(data_file, srcdir);
         strcat(data_file, "/");
     }
@@ -785,58 +787,56 @@ static int read_data( const char* fname, /*IN*/
     *-------------------------------------------------------------------------
     */
 
-    f = fopen(data_file, "r");
-    if ( f == NULL )
-    {
-        printf( "Could not open file %s. Try set $srcdir \n", data_file );
-        return -1;
+    if((f = fopen(data_file, "r")) == NULL) {
+        printf("Could not open file %s. Try set $srcdir \n", data_file);
+        return ret_val;
     }
 
-    fscanf( f, "%s", str );
-    fscanf( f, "%d", &color_planes );
-    fscanf( f, "%s", str );
-    fscanf( f, "%d", &h);
-    fscanf( f, "%s", str );
-    fscanf( f, "%d", &w);
+    fscanf(f, "%s", str);
+    fscanf(f, "%d", &color_planes);
+    fscanf(f, "%s", str);
+    fscanf(f, "%d", &h);
+    fscanf(f, "%s", str);
+    fscanf(f, "%d", &w);
 
     *width = (hsize_t)w;
     *height = (hsize_t)h;
 
-    if ( image_data )
-    {
-        free( image_data );
-        image_data=NULL;
+    if(image_data) {
+        free(image_data);
+        image_data = NULL;
     }
 
     /* Check product for overflow */
 
     if(w < 1 || h < 1 || color_planes < 1)
-        return -1;
+        goto out;
 
     if(w > INT_MAX / h)
-        return -1;
+        goto out;
 
     if(w * h > INT_MAX / color_planes)
-        return -1;
+        goto out;
 
     n_elements = w * h * color_planes;
 
     /* Check buffer size for overflow */
 
     if(n_elements > INT_MAX / sizeof(unsigned char))
-        return -1;
+        goto out;
 
-    image_data = (unsigned char*) malloc (n_elements * sizeof( unsigned char ));
+    image_data = (unsigned char*) malloc (n_elements * sizeof(unsigned char));
 
-    for (i = 0; i < n_elements; i++)
-    {
-        fscanf( f, "%d",&n );
+    for (i = 0; i < n_elements; i++) {
+        fscanf(f, "%d", &n);
         image_data[i] = (unsigned char)n;
     }
+    ret_val = 1;
+    
+out:    
     fclose(f);
-
-    return 1;
-
+    
+    return ret_val;
 }
 
 
