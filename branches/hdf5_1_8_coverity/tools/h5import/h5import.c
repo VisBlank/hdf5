@@ -880,7 +880,7 @@ processStrData(FILE **strm, struct Input *in, hid_t file_id)
     hid_t   group_id, dset_id, space_id, mspace_id, type_id, handle;
     hsize_t dims[1];
     char    str[1024];
-    char    c;
+    int     c;
     int     i = 0, j, nlines = 0, line;
 
 /*-------------------------------------------------------------------------
@@ -888,10 +888,8 @@ processStrData(FILE **strm, struct Input *in, hid_t file_id)
  *-------------------------------------------------------------------------
  */
 
-    while ( !feof( *strm ) )
+    while(EOF != (c = fgetc(*strm)))
     {
-        c = (char)fgetc( *strm );
-
         if ( c == 10 ) /* eol */
         {
             nlines++;
@@ -958,10 +956,8 @@ processStrData(FILE **strm, struct Input *in, hid_t file_id)
 
     line = 0;
 
-    while(!feof(*strm)) {
-        c = (char)fgetc(*strm);
-
-        str[i] = c;
+    while(EOF != (c = fgetc(*strm))) {
+        str[i] = (char)c;
 
         i++;
 
