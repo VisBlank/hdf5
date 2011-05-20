@@ -1675,9 +1675,9 @@ print_enum(hid_t type, char* str, int indt)
     int              i;
     herr_t           ret = SUCCEED;
 
-    if((nmembs = H5Tget_nmembers(type))==0)
+    if((nmembs = H5Tget_nmembers(type))<=0)
         goto out;
-    assert(nmembs>0);
+
     if((super = H5Tget_super(type)) < 0)
         goto out;
 
