@@ -925,6 +925,7 @@
 ./test/th5s.h5
 ./test/theap.c
 ./test/tid.c
+./test/timer.c
 ./test/titerate.c
 ./test/tlayouto.h5
 ./test/tmeta.c
@@ -2573,6 +2574,7 @@
 ./windows_der/test/reserved/reserved.vcproj
 ./windows_der/test/set_extent/set_extent.vcproj
 ./windows_der/test/stab/stab.vcproj
+./windows_der/test/timer/timer.vcproj
 ./windows_der/test/unlink/unlink.vcproj
 ./windows_der/test/vfd/vfd.vcproj
 
