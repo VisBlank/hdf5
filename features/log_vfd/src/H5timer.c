@@ -320,17 +320,33 @@ H5_timer_get_times(H5_timer_t timer)
 char *
 H5_timer_get_time_string(double ns)
 {
-    double hours    = 0;
-    double minutes  = 0;
-    double seconds  = 0;
+    double hours    = 0.0;
+    double minutes  = 0.0;
+    double seconds  = 0.0;
+
+    double display_hours    = 0.0;
+    double display_minutes  = 0.0;
+    double display_seconds  = 0.0;
+
+    double fake_intpart;
 
     char *s;                /* output string */
 
     /* Initialize */
     s = (char *)calloc(H5TIMER_TIME_STRING_LEN, sizeof(char));
-    seconds = ns / 1.0E9;
-    minutes = seconds / 60.0;
-    hours   = seconds / 3600.0;
+    
+    if(ns > 0.0) {
+
+        seconds = ns / 1.0E9;
+
+        hours   = seconds / 3600.0;
+        display_hours = floor(hours);
+
+        minutes = modf(hours, &fake_intpart) * 60.0;
+        display_minutes = floor(minutes);
+
+        display_seconds = modf(minutes, &fake_intpart) * 60.0;
+    }
 
     /* Do we need a format string? Some people might like a certain 
      * number of milliseconds or s before spilling to the next highest
@@ -348,15 +364,15 @@ H5_timer_get_time_string(double ns)
     } else if (ns < 1.0E9) {
         /* t < 1 s, Print time in ms */
         sprintf(s, "%.1f ms", ns / 1.0E6);
-    } else if (minutes < 1.0) {
+    } else if (ns < 1.0e9 * 60) {
         /* t < 1 m, Print time in s */
-        sprintf(s, "%.2f s", seconds);
-    } else if (hours < 0) {
+        sprintf(s, "%.2f s", display_seconds);
+    } else if (ns < 1.0e9 * 60 * 60) {
         /* t < 1 h, Print time in m and s */
-        sprintf(s, "%.f m %.1f s", minutes, seconds);
+        sprintf(s, "%.f m %.f s", display_minutes, display_seconds);
     } else {
         /* Print time in h, m and s */
-        sprintf(s, "%.f h %.f m %.1f s", hours, minutes, seconds);
+        sprintf(s, "%.f h %.f m %.f s", display_hours, display_minutes, display_seconds);
     }
 
     return s;
