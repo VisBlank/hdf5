@@ -683,21 +683,25 @@ H5_get_win32_times()
         &KernelTime,
         &UserTime);
 
+    /* The 1.0E5 factor seems strange but it's due to the clock
+     * ticking in 100 ns increments plus a factor of 1000 to
+     * convert that to picoseconds.
+     */
     kernel_start.HighPart = KernelTime.dwHighDateTime;
     kernel_start.LowPart = KernelTime.dwLowDateTime;
-    tvs.system_ns = (double)(kernel_start.QuadPart * 1.0E2);
+    tvs.system_ps = (double)(kernel_start.QuadPart * 1.0E5);
 
     user_start.HighPart = UserTime.dwHighDateTime;
     user_start.LowPart = UserTime.dwLowDateTime;
-    tvs.user_ns = (double)(user_start.QuadPart * 1.0E2);
+    tvs.user_ps = (double)(user_start.QuadPart * 1.0E5);
 
     /****************
      * Elapsed time *
      ****************/
 
     err = QueryPerformanceCounter(&counts_start);
-    tvs.elapsed_ns
-        = (double)(counts_start.QuadPart * 1.0E9) / (double)counts_freq.QuadPart;
+    tvs.elapsed_ps
+        = (double)(counts_start.QuadPart * 1.0E12) / (double)counts_freq.QuadPart;
 
     return tvs;
 }
@@ -705,13 +709,14 @@ H5_get_win32_times()
 
 #if defined(H5_HAVE_MACH_MACH_TIME_H)
 double
-H5_get_mach_time_ns()
+H5_get_mach_time_ps()
 {
     static double conversion = 0.0;
     mach_timebase_info_data_t info;
     kern_return_t err;
     uint64_t now;
 
+    /* Conversion rate for mach ticks to nanoseconds */
     if (0.0 == conversion) {
         err = mach_timebase_info(&info);
         if (0 == err)
@@ -719,7 +724,7 @@ H5_get_mach_time_ns()
     }
 
     now = mach_absolute_time();
-    return (double)now * conversion;
+    return (double)now * conversion * 1.0E3;
 }
 #endif
 

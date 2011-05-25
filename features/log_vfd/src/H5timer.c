@@ -197,9 +197,9 @@ H5_timer_start(H5_timer_t *timer/*in,out*/)
     /* Windows call handles both system/user and elapsed times */
 #if defined(_WIN32)
     win32_times = H5_get_win32_times();
-    timer->elapsed_start_ns = win32_times.elapsed_ns;
-    timer->system_start_ns  = win32_times.system_ns;
-    timer->user_start_ns    = win32_times.user_ns;
+    timer->elapsed_start_ps = win32_times.elapsed_ps;
+    timer->system_start_ps  = win32_times.system_ps;
+    timer->user_start_ps    = win32_times.user_ps;
     return;
 #endif
 
@@ -211,14 +211,14 @@ H5_timer_start(H5_timer_t *timer/*in,out*/)
 #if defined(H5_HAVE_GETRUSAGE)
 
     getrusage(RUSAGE_SELF, &res);
-    timer->system_start_ns = (double)((res.ru_stime.tv_sec * 1.0E9) + (res.ru_stime.tv_usec * 1.0E3));
-    timer->user_start_ns = (double)((res.ru_utime.tv_sec * 1.0E9) + (res.ru_utime.tv_usec * 1.0E3));
+    timer->system_start_ps = (double)((res.ru_stime.tv_sec * 1.0E9) + (res.ru_stime.tv_usec * 1.0E3));
+    timer->user_start_ps = (double)((res.ru_utime.tv_sec * 1.0E9) + (res.ru_utime.tv_usec * 1.0E3));
 
 #else
 
     /* No suitable way to get system/user times */
-    timer->system_start_ns = -1.0;
-    timer->user_start_ns = -1.0;
+    timer->system_start_ps = -1.0;
+    timer->user_start_ps = -1.0;
 
 #endif
 
@@ -229,12 +229,12 @@ H5_timer_start(H5_timer_t *timer/*in,out*/)
 
 #if defined(H5_HAVE_MACH_MACH_TIME_H)
 
-    timer->elapsed_start_ns = H5_get_mach_time_ns();
+    timer->elapsed_start_ps = H5_get_mach_time_ps();
 
 #elif defined(H5_HAVE_CLOCK_GETTIME)
 
     clock_gettime(CLOCK_MONOTONIC, &ts);
-    timer->elapsed_start_ns = (double)((ts.tv_sec * 1.0E9) + ts.tv_nsec);
+    timer->elapsed_start_ps = (double)((ts.tv_sec * 1.0E12) + (ts.tv_nsec * 1.0E3);
 
 #else
 
@@ -264,16 +264,16 @@ H5_timer_get_times(H5_timer_t timer)
 #endif
 
 
-    tvs.elapsed_ns = 0.0;
-    tvs.system_ns  = 0.0;
-    tvs.user_ns    = 0.0;
+    tvs.elapsed_ps = 0.0;
+    tvs.system_ps  = 0.0;
+    tvs.user_ps    = 0.0;
 
     /* Windows call handles both system/user and elapsed times */
 #if defined(_WIN32)
     tvs = H5_get_win32_times();
-    tvs.elapsed_ns = tvs.elapsed_ns - timer.elapsed_start_ns;
-    tvs.system_ns  = tvs.system_ns - timer.system_start_ns;
-    tvs.user_ns    = tvs.user_ns - timer.user_start_ns;
+    tvs.elapsed_ps = tvs.elapsed_ps - timer.elapsed_start_ps;
+    tvs.system_ps  = tvs.system_ps - timer.system_start_ps;
+    tvs.user_ps    = tvs.user_ps - timer.user_start_ps;
     return tvs;
 #endif
 
@@ -285,13 +285,13 @@ H5_timer_get_times(H5_timer_t timer)
 
     getrusage(RUSAGE_SELF, &res);
 
-    tvs.system_ns = (double)((res.ru_stime.tv_sec * 1.0E9) + (res.ru_stime.tv_usec * 1.0E3) - timer.system_start_ns);
-    tvs.user_ns = (double)((res.ru_utime.tv_sec * 1.0E9) + (res.ru_utime.tv_usec * 1.0E3) - timer.user_start_ns);
+    tvs.system_ps = (double)((res.ru_stime.tv_sec * 1.0E12) + (res.ru_stime.tv_usec * 1.0E6) - timer.system_start_ps);
+    tvs.user_ps = (double)((res.ru_utime.tv_sec * 1.0E12) + (res.ru_utime.tv_usec * 1.0E6) - timer.user_start_ps);
 
 #else
 
-    tvs.system_ns  = -1.0;
-    tvs.user_ns    = -1.0;
+    tvs.system_ps  = -1.0;
+    tvs.user_ps    = -1.0;
 
 #endif
 
@@ -301,12 +301,12 @@ H5_timer_get_times(H5_timer_t timer)
 
 #if defined(H5_HAVE_MACH_MACH_TIME_H)
 
-    tvs.elapsed_ns = H5_get_mach_time_ns() - timer.elapsed_start_ns;
+    tvs.elapsed_ps = H5_get_mach_time_ps() - timer.elapsed_start_ps;
 
 #elif defined(H5_HAVE_CLOCK_GETTIME)
 
     clock_gettime(CLOCK_MONOTONIC, &ts);
-    tvs.elapsed_ns = (double)((ts.tv_sec * 1.0E9) + ts.tv_nsec) - timer.elapsed_start_ns;
+    tvs.elapsed_ps = (double)((ts.tv_sec * 1.0E12) + (ts.tv_nsec * 1.0E3)) - timer.elapsed_start_ps;
 
 #endif
 
@@ -318,8 +318,9 @@ H5_timer_get_times(H5_timer_t timer)
 #define H5TIMER_TIME_STRING_LEN 256
 
 char *
-H5_timer_get_time_string(double ns)
+H5_timer_get_time_string(double ps)
 {
+
     double hours    = 0.0;
     double minutes  = 0.0;
     double seconds  = 0.0;
@@ -335,9 +336,9 @@ H5_timer_get_time_string(double ns)
     /* Initialize */
     s = (char *)calloc(H5TIMER_TIME_STRING_LEN, sizeof(char));
     
-    if(ns > 0.0) {
+    if(ps > 0.0) {
 
-        seconds = ns / 1.0E9;
+        seconds = ps / 1.0E12;
 
         hours   = seconds / 3600.0;
         display_hours = floor(hours);
@@ -353,21 +354,21 @@ H5_timer_get_time_string(double ns)
      * time unit.  Perhaps this could be passed as an integer.
      * (name? round_up_size? ?)
      */
-    if(ns < 0.0) {
+    if(ps < 0.0) {
         sprintf(s, "N/A");
-    }else if(ns < 1.0E3) {
+    }else if(ps < 1.0E6) {
         /* t < 1 us, Print time in ns */
-        sprintf(s, "%.f ns", ns);
-    } else if (ns < 1.0E6) {
+        sprintf(s, "%.f ns", ps / 1.0E3);
+    } else if (ps < 1.0E9) {
         /* t < 1 ms, Print time in us */
-        sprintf(s, "%.1f us", ns / 1.0E3);
-    } else if (ns < 1.0E9) {
+        sprintf(s, "%.1f us", ps / 1.0E6);
+    } else if (ps < 1.0E12) {
         /* t < 1 s, Print time in ms */
-        sprintf(s, "%.1f ms", ns / 1.0E6);
-    } else if (ns < 1.0e9 * 60) {
+        sprintf(s, "%.1f ms", ps / 1.0E9);
+    } else if (ps < 1.0E12 * 60) {
         /* t < 1 m, Print time in s */
         sprintf(s, "%.2f s", display_seconds);
-    } else if (ns < 1.0e9 * 60 * 60) {
+    } else if (ps < 1.0E12 * 60 * 60) {
         /* t < 1 h, Print time in m and s */
         sprintf(s, "%.f m %.f s", display_minutes, display_seconds);
     } else {

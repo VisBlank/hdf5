@@ -47,13 +47,13 @@ test_timer_system_user(H5_timevals_t t1, H5_timevals_t t2)
 {
     TESTING("system/user times");
 
-    if(t1.system_ns < 0.0 || t2.system_ns < 0.0 
-        || t1.user_ns < 0.0 || t2.user_ns < 0.0) {
+    if(t1.system_ps < 0.0 || t2.system_ps < 0.0 
+        || t1.user_ps < 0.0 || t2.user_ps < 0.0) {
         SKIPPED();
         printf("NOTE: No suitable way to get system/user times on this platform.\n");
     }
 
-    if(t2.system_ns < t1.system_ns || t2.user_ns < t1.user_ns)
+    if(t2.system_ps < t1.system_ps || t2.user_ps < t1.user_ps)
         TEST_ERROR;
 
     PASSED();
@@ -86,10 +86,10 @@ test_timer_elapsed(H5_timevals_t t1, H5_timevals_t t2)
 {
     TESTING("elapsed times");
 
-    if(t1.elapsed_ns < 0.0 || t2.elapsed_ns < 0.0)
+    if(t1.elapsed_ps < 0.0 || t2.elapsed_ps < 0.0)
         TEST_ERROR;
 
-    if(t2.elapsed_ns < t1.elapsed_ns)
+    if(t2.elapsed_ps < t1.elapsed_ps)
         TEST_ERROR;
 
     PASSED();
@@ -135,37 +135,37 @@ test_time_formatting(void)
     free(s);
 
     /*      < 1e3 ns        nanoseconds     */
-    s = H5_timer_get_time_string(123.0);
+    s = H5_timer_get_time_string(123000.0);
     if(strcmp(s, "123 ns") != 0)
         TEST_ERROR;
     free(s);
 
     /*      < 1e6 ns        microseconds    */
-    s = H5_timer_get_time_string(23456.0);
+    s = H5_timer_get_time_string(23456000.0);
     if(strcmp(s, "23.5 us") != 0)
         TEST_ERROR;
     free(s);
 
     /*      < 1e9 ns        milliseconds    */
-    s = H5_timer_get_time_string(4567890.0);
+    s = H5_timer_get_time_string(4567890000.0);
     if(strcmp(s, "4.6 ms") != 0)
         TEST_ERROR;
     free(s);
 
     /*      < 1 min         seconds         */
-    s = H5_timer_get_time_string(3.14e9);
+    s = H5_timer_get_time_string(3.14e12);
     if(strcmp(s, "3.14 s") != 0)
         TEST_ERROR;
     free(s);
 
     /*      < 1 hr          mins, secs      */
-    s = H5_timer_get_time_string(2.521e12);
+    s = H5_timer_get_time_string(2.521e15);
     if(strcmp(s, "42 m 1 s") != 0)
         TEST_ERROR;
     free(s);
 
     /*      > 1 hr          hrs, mins, secs */
-    s = H5_timer_get_time_string(9.756e12);
+    s = H5_timer_get_time_string(9.756e15);
     if(strcmp(s, "2 h 42 m 36 s") != 0)
         TEST_ERROR;
     free(s);

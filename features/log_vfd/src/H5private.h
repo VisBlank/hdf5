@@ -451,16 +451,16 @@ typedef struct {
 } H5_timer_OLD_t;
 
 typedef struct {
-    double user_ns;      /* User time in nanoseconds */
-    double system_ns;    /* System time in nanoseconds */
-    double elapsed_ns;   /* Elapsed (wall clock) time in nanoseconds */
+    double user_ps;      /* User time in picoseconds */
+    double system_ps;    /* System time in picoseconds */
+    double elapsed_ps;   /* Elapsed (wall clock) time in picoseconds */
 } H5_timevals_t;
 
 typedef struct {
-    /* Start times in nanoseconds */
-    double  system_start_ns;
-    double  user_start_ns;
-    double  elapsed_start_ns;
+    /* Start times in picoseconds */
+    double  system_start_ps;
+    double  user_start_ps;
+    double  elapsed_start_ps;
 } H5_timer_t;
 
 /* OLD - will be removed */
@@ -479,7 +479,7 @@ H5_DLL char * H5_timer_get_time_string(double ns);
 /* Required for Mac timer functionality */
 #if defined(H5_HAVE_MACH_TIME_H)
 #include <mach/mach_time.h>
-double H5_get_mach_time_ns();   /* From H5system.c */
+double H5_get_mach_time_ps();   /* From H5system.c */
 #endif
 
 /* Depth of object copy */
