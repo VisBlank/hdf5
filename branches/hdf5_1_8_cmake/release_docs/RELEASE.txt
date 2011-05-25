@@ -1,4 +1,4 @@
-HDF5 version 1.8.8-snap0 currently under development
+HDF5 version 1.8.8-snap1 currently under development
 ================================================================================
 
 INTRODUCTION
@@ -64,7 +64,8 @@ New Features
 
     Parallel Library
     ----------------
-    - None
+    - H5Tcreate now supports string type (fixed-length and variable-length).
+      (SLU - 2011/05/20)
  
     Tools
     -----
@@ -93,7 +94,10 @@ Bug Fixes since HDF5-1.8.7
 
     Configuration
     -------------
-    - None
+    - Configure now uses the same flags and symbols in its tests that are
+      used to build the library.
+    - On linux we now link to the bsd_compat library, as per the gcc
+      manual, since we define _BSD_SOURCE.
 
     Library
     -------
