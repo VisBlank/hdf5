@@ -642,11 +642,9 @@ Wgettimeofday(struct timeval *tv, struct timezone *tz)
 #endif
 
 #if defined(_WIN32)
-H5_timevals_t
-H5_get_win32_times()
+void
+H5_get_win32_times(H5_timevals_t * tvs)
 {
-    H5_timevals_t tvs;
-
     static HANDLE process_handle;
 
     ULARGE_INTEGER kernel_start;
@@ -664,6 +662,7 @@ H5_get_win32_times()
 
     static int is_initialized = 0;
 
+    assert(tvs);
 
     if(0 == is_initialized)
     {
@@ -689,18 +688,18 @@ H5_get_win32_times()
      */
     kernel_start.HighPart = KernelTime.dwHighDateTime;
     kernel_start.LowPart = KernelTime.dwLowDateTime;
-    tvs.system_ps = (double)(kernel_start.QuadPart * 1.0E5);
+    tvs->system_ps = (double)(kernel_start.QuadPart * 1.0E5);
 
     user_start.HighPart = UserTime.dwHighDateTime;
     user_start.LowPart = UserTime.dwLowDateTime;
-    tvs.user_ps = (double)(user_start.QuadPart * 1.0E5);
+    tvs->user_ps = (double)(user_start.QuadPart * 1.0E5);
 
     /****************
      * Elapsed time *
      ****************/
 
     err = QueryPerformanceCounter(&counts_start);
-    tvs.elapsed_ps
+    tvs->elapsed_ps
         = (double)(counts_start.QuadPart * 1.0E12) / (double)counts_freq.QuadPart;
 
     return tvs;

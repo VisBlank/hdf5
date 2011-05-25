@@ -45,7 +45,7 @@ extern "C" {
 #endif
 
 H5_DLL int Wgettimeofday(struct timeval *tv, struct timezone *tz);
-H5_DLL H5_timevals_t H5_get_win32_times();
+H5_DLL void H5_get_win32_times(H5_timevals_t *tvs);
 
 #ifdef __cplusplus
 }

@@ -222,7 +222,7 @@ main(void)
         buf = (char *)HDmalloc(1024 * i * sizeof(char));
         free(buf);
     }
-    time1 = H5_timer_get_times(timer);
+    H5_timer_get_times(timer, &time1);
 
     /* Do some fake work and get time 2 */
     for(i=0; i < 1024; i++)
@@ -230,7 +230,7 @@ main(void)
         buf = (char *)HDmalloc(1024 * i * sizeof(char));
         free(buf);
     }
-    time2 = H5_timer_get_times(timer);
+    H5_timer_get_times(timer, &time2);
 
     nerrors += test_timer_system_user(time1, time2)     < 0    ? 1 : 0;
     nerrors += test_timer_elapsed(time1, time2)         < 0    ? 1 : 0;

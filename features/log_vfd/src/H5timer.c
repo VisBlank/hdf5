@@ -196,7 +196,7 @@ H5_timer_start(H5_timer_t *timer/*in,out*/)
 
     /* Windows call handles both system/user and elapsed times */
 #if defined(_WIN32)
-    win32_times = H5_get_win32_times();
+    H5_get_win32_times(&win32_times);
     timer->elapsed_start_ps = win32_times.elapsed_ps;
     timer->system_start_ps  = win32_times.system_ps;
     timer->user_start_ps    = win32_times.user_ps;
@@ -250,10 +250,9 @@ H5_timer_start(H5_timer_t *timer/*in,out*/)
 
 
 
-H5_timevals_t
-H5_timer_get_times(H5_timer_t timer)
+void
+H5_timer_get_times(H5_timer_t timer, H5_timevals_t *tvs /*OUT*/)
 {
-    H5_timevals_t tvs;
 
 #if defined(H5_HAVE_GETRUSAGE)
     struct rusage res;
@@ -263,18 +262,19 @@ H5_timer_get_times(H5_timer_t timer)
     struct timespec ts;
 #endif
 
+    assert(tvs);
 
-    tvs.elapsed_ps = 0.0;
-    tvs.system_ps  = 0.0;
-    tvs.user_ps    = 0.0;
+    tvs->elapsed_ps = 0.0;
+    tvs->system_ps  = 0.0;
+    tvs->user_ps    = 0.0;
 
     /* Windows call handles both system/user and elapsed times */
 #if defined(_WIN32)
-    tvs = H5_get_win32_times();
-    tvs.elapsed_ps = tvs.elapsed_ps - timer.elapsed_start_ps;
-    tvs.system_ps  = tvs.system_ps - timer.system_start_ps;
-    tvs.user_ps    = tvs.user_ps - timer.user_start_ps;
-    return tvs;
+    H5_get_win32_times(tvs);
+    tvs->elapsed_ps = tvs->elapsed_ps - timer.elapsed_start_ps;
+    tvs->system_ps  = tvs->system_ps - timer.system_start_ps;
+    tvs->user_ps    = tvs->user_ps - timer.user_start_ps;
+    return;
 #endif
 
     /*************************
@@ -285,13 +285,13 @@ H5_timer_get_times(H5_timer_t timer)
 
     getrusage(RUSAGE_SELF, &res);
 
-    tvs.system_ps = (double)((res.ru_stime.tv_sec * 1.0E12) + (res.ru_stime.tv_usec * 1.0E6) - timer.system_start_ps);
-    tvs.user_ps = (double)((res.ru_utime.tv_sec * 1.0E12) + (res.ru_utime.tv_usec * 1.0E6) - timer.user_start_ps);
+    tvs->system_ps = (double)((res.ru_stime.tv_sec * 1.0E12) + (res.ru_stime.tv_usec * 1.0E6) - timer.system_start_ps);
+    tvs->user_ps = (double)((res.ru_utime.tv_sec * 1.0E12) + (res.ru_utime.tv_usec * 1.0E6) - timer.user_start_ps);
 
 #else
 
-    tvs.system_ps  = -1.0;
-    tvs.user_ps    = -1.0;
+    tvs->system_ps  = -1.0;
+    tvs->user_ps    = -1.0;
 
 #endif
 
@@ -301,16 +301,16 @@ H5_timer_get_times(H5_timer_t timer)
 
 #if defined(H5_HAVE_MACH_MACH_TIME_H)
 
-    tvs.elapsed_ps = H5_get_mach_time_ps() - timer.elapsed_start_ps;
+    tvs->elapsed_ps = H5_get_mach_time_ps() - timer.elapsed_start_ps;
 
 #elif defined(H5_HAVE_CLOCK_GETTIME)
 
     clock_gettime(CLOCK_MONOTONIC, &ts);
-    tvs.elapsed_ps = (double)((ts.tv_sec * 1.0E12) + (ts.tv_nsec * 1.0E3)) - timer.elapsed_start_ps;
+    tvs->elapsed_ps = (double)((ts.tv_sec * 1.0E12) + (ts.tv_nsec * 1.0E3)) - timer.elapsed_start_ps;
 
 #endif
 
-    return tvs;
+    return;
 }
 
 

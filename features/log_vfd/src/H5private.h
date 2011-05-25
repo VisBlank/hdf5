@@ -473,7 +473,7 @@ H5_DLL void H5_bandwidth(char *buf/*out*/, double nbytes, double nseconds);
 
 /* NEW - will replace the OLD functions */
 H5_DLL void H5_timer_start(H5_timer_t *timer/*in,out*/);
-H5_DLL H5_timevals_t H5_timer_get_times(H5_timer_t timer);
+H5_DLL void H5_timer_get_times(H5_timer_t timer, H5_timevals_t *tvs);
 H5_DLL char * H5_timer_get_time_string(double ns);
 
 /* Required for Mac timer functionality */
