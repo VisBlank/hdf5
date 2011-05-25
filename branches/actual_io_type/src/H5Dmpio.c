@@ -903,11 +903,11 @@ H5D_link_chunk_collective_io(H5D_io_info_t *io_info, const H5D_type_info_t *type
 
         /* Check for this process having selection in this chunk */
         chunk_node = H5SL_first(fm->sel_chunks);
-	if(chunk_node == NULL) {
-            /* Set the dataspace info for I/O to NULL, this process doesn't have any I/O to perform */
-            fspace = mspace = NULL;
-	} /* end if */
-	else {
+        if(chunk_node == NULL) {
+                /* Set the dataspace info for I/O to NULL, this process doesn't have any I/O to perform */
+                fspace = mspace = NULL;
+        } /* end if */
+        else {
             H5D_chunk_info_t *chunk_info;
 
             /* Get the chunk info, for the selection in the chunk */
@@ -917,7 +917,7 @@ H5D_link_chunk_collective_io(H5D_io_info_t *io_info, const H5D_type_info_t *type
             /* Set the dataspace info for I/O */
             fspace = chunk_info->fspace;
             mspace = chunk_info->mspace;
-	} /* end else */
+        } /* end else */
 
         /* Set up the base storage address for this chunk */
         io_info->store = &ctg_store;
@@ -1483,7 +1483,7 @@ if(H5DEBUG(D)) {
         make_ind = make_coll = FALSE;
 
         count_chunk++;
-
+        
         /* If the number of chunk is greater than minimum number of chunk,
          *      Do independent read.
          */

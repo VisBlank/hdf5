@@ -2896,7 +2896,6 @@ void test_actual_io_mode(int selection_mode) {
 #endif
             break;
 
-#ifdef H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS
         /* Collective I/O without optimization */
         case TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_COL:
             /* The dataset is chunked by rows, so when each process takes a column, its
@@ -2922,7 +2921,6 @@ void test_actual_io_mode(int selection_mode) {
             /* Nothing special; link chunk I/O is forced in the dxpl settings. */
             slab_set(mpi_rank, mpi_size, start, count, stride, block, BYROW);
            break;
-#endif
 
         /* Contiguous Dataset */
         case TEST_ACTUAL_IO_CONTIGUOUS:
@@ -2970,7 +2968,7 @@ void test_actual_io_mode(int selection_mode) {
      * Without this all chunked I/O becomes linked chunk I/O.
      */
     if(is_chunked) {
-        ret = H5Pset_dxpl_mpio_chunk_opt_num(dxpl, mpi_size*2);
+        ret = H5Pset_dxpl_mpio_chunk_opt_num(dxpl, (unsigned) mpi_size*2);
         VRFY((ret >= 0), "H5Pset_dxpl_mpio_chunk_opt_num succeeded");
     }
 
@@ -2980,14 +2978,12 @@ void test_actual_io_mode(int selection_mode) {
         VRFY((ret >= 0), "H5Pset_dxpl_mpio succeeded");
     }
    
-#ifdef H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS
     /* Linked Chunk I/O */
     if(selection_mode == TEST_ACTUAL_IO_LINK_CHUNK ) {
         /* Force linked chunk I/O */
         ret = H5Pset_dxpl_mpio_chunk_opt(dxpl, H5FD_MPIO_CHUNK_ONE_IO);
         VRFY((ret >= 0), "H5Pset_dxpl_mpio succeeded");
     }
-#endif
 
     /* Write */
     ret = H5Dwrite(dataset, data_type, mem_space, file_space, dxpl, buffer);
@@ -3072,17 +3068,17 @@ void test_actual_io_mode(int selection_mode) {
 #ifdef H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS
 #ifdef H5_MPI_SPECIAL_COLLECTIVE_IO_WORKS
                 if(mpi_rank == 0) {
-                    VRFY(actual_chunk_opt_mode == H5D_MPIO_MULTI_CHUNK_CHUNK_NO_OPT,
+                    VRFY(actual_chunk_opt_mode == H5D_MPIO_MULTI_CHUNK_NO_OPT,
                      "actual_chunk_opt_mode has correct value for multi chunk no opt independent \
                      (minority");
-                    VRFY(actual_chunk_io_mode == H5D_MPIO_CHUNK_INDEPENDENT,
+                    VRFY(actual_chunk_io_mode == H5D_MPIO_NO_CHUNK_IO,
                      "actual_chunk_io_mode has correct value for multi chunk no opt independent \
                      (minority");
                 } else {
-                    VRFY(actual_chunk_opt_mode == H5D_MPIO_MULTI_CHUNK_CHUNK_NO_OPT,
+                    VRFY(actual_chunk_opt_mode == H5D_MPIO_MULTI_CHUNK_NO_OPT,
                      "actual_chunk_opt_mode has correct value for multi chunk no opt independent \
                      (majority");
-                    VRFY(actual_chunk_io_mode == H5D_MPIO_CHUNK_MIXED,
+                    VRFY(actual_chunk_io_mode == H5D_MPIO_CHUNK_INDEPENDENT,
                      "actual_chunk_io_mode has correct value for multi chunk no opt independent \
                      (majority");
                 }
@@ -3095,7 +3091,6 @@ void test_actual_io_mode(int selection_mode) {
 #endif
                 break;
 
-#ifdef H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS
             case TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_COL:
                 VRFY(actual_chunk_opt_mode == H5D_MPIO_MULTI_CHUNK_NO_OPT,
                  "actual_chunk_opt_mode has correct value for multi chunk no opt collective");
@@ -3127,7 +3122,6 @@ void test_actual_io_mode(int selection_mode) {
                 VRFY(actual_chunk_io_mode == H5D_MPIO_CHUNK_COLLECTIVE,
                     "actual_chunk_io_mode has correct value for link chunk io");
                 break;
-#endif
 
             case TEST_ACTUAL_IO_CONTIGUOUS:
                 VRFY(actual_chunk_opt_mode == H5D_MPIO_NO_CHUNK_OPTIMIZATION,
