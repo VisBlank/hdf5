@@ -364,7 +364,7 @@ int main(int argc, char **argv)
     AddTest("idsetr", dataset_readInd, NULL,
 	    "dataset independent read", PARATESTFILE);
 
-    AddTest("cdsetw", dataset_writeAll, NULL,
+    AddTest("cdsetw", dataset_large_writeAll, NULL,
 	    "dataset collective write", PARATESTFILE);
     AddTest("cdsetr", dataset_readAll, NULL,
 	    "dataset collective read", PARATESTFILE);

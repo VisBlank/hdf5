@@ -214,6 +214,7 @@ void test_fapl_mpiposix_dup(void);
 void test_split_comm_access(void);
 void dataset_writeInd(void);
 void dataset_writeAll(void);
+void dataset_large_writeAll(void);
 void extend_writeInd(void);
 void extend_writeInd2(void);
 void extend_writeAll(void);
