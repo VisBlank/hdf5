@@ -3129,6 +3129,8 @@ static int test_comp_vlen_strings(const char *fname1)
     hsize_t dims_comp[]  = {COMP_DIM};
     herr_t  status = SUCCEED;
 
+    size_t length = 0;
+
     /* make compound strings data */
     comp1_t comp1_buf;
     comp2_t comp2_buf;
@@ -3151,36 +3153,39 @@ static int test_comp_vlen_strings(const char *fname1)
     comp8_buf.str_vlen = comp8_buf.str_vlen_repeat = vlen_str_buf;
     comp9_buf.str_vlen = comp9_buf.str_vlen_repeat = vlen_str_buf;
 
+
     /* copy fixlen string data to compound buffers */
-    HDstrcpy(comp1_buf.str_fixlen, fixlen_str_buf);
-    HDstrcpy(comp1_buf.str_fixlen_repeat, fixlen_str_buf);
+    length = HDstrlen(fixlen_str_buf)+1;
 
-    HDstrcpy(comp2_buf.str_fixlen, fixlen_str_buf);
-    HDstrcpy(comp2_buf.str_fixlen_repeat, fixlen_str_buf);
+    HDstrncpy(comp1_buf.str_fixlen, fixlen_str_buf, length);
+    HDstrncpy(comp1_buf.str_fixlen_repeat, fixlen_str_buf, length);
 
-    HDstrcpy(comp3_buf.str_fixlen, fixlen_str_buf);
-    HDstrcpy(comp3_buf.str_fixlen_repeat, fixlen_str_buf);
+    HDstrncpy(comp2_buf.str_fixlen, fixlen_str_buf, length);
+    HDstrncpy(comp2_buf.str_fixlen_repeat, fixlen_str_buf, length);
 
-    HDstrcpy(comp3_buf.str_fixlen, fixlen_str_buf);
-    HDstrcpy(comp3_buf.str_fixlen_repeat, fixlen_str_buf);
+    HDstrncpy(comp3_buf.str_fixlen, fixlen_str_buf, length);
+    HDstrncpy(comp3_buf.str_fixlen_repeat, fixlen_str_buf, length);
 
-    HDstrcpy(comp4_buf.str_fixlen, fixlen_str_buf);
-    HDstrcpy(comp4_buf.str_fixlen_repeat, fixlen_str_buf);
+    HDstrncpy(comp3_buf.str_fixlen, fixlen_str_buf, length);
+    HDstrncpy(comp3_buf.str_fixlen_repeat, fixlen_str_buf, length);
 
-    HDstrcpy(comp5_buf.str_fixlen, fixlen_str_buf);
-    HDstrcpy(comp5_buf.str_fixlen_repeat, fixlen_str_buf);
+    HDstrncpy(comp4_buf.str_fixlen, fixlen_str_buf, length);
+    HDstrncpy(comp4_buf.str_fixlen_repeat, fixlen_str_buf, length);
 
-    HDstrcpy(comp6_buf.str_fixlen, fixlen_str_buf);
-    HDstrcpy(comp6_buf.str_fixlen_repeat, fixlen_str_buf);
+    HDstrncpy(comp5_buf.str_fixlen, fixlen_str_buf, length);
+    HDstrncpy(comp5_buf.str_fixlen_repeat, fixlen_str_buf, length);
 
-    HDstrcpy(comp7_buf.str_fixlen, fixlen_str_buf);
-    HDstrcpy(comp7_buf.str_fixlen_repeat, fixlen_str_buf);
+    HDstrncpy(comp6_buf.str_fixlen, fixlen_str_buf, length);
+    HDstrncpy(comp6_buf.str_fixlen_repeat, fixlen_str_buf, length);
 
-    HDstrcpy(comp8_buf.str_fixlen, fixlen_str_buf);
-    HDstrcpy(comp8_buf.str_fixlen_repeat, fixlen_str_buf);
+    HDstrncpy(comp7_buf.str_fixlen, fixlen_str_buf, length);
+    HDstrncpy(comp7_buf.str_fixlen_repeat, fixlen_str_buf, length);
 
-    HDstrcpy(comp9_buf.str_fixlen, fixlen_str_buf);
-    HDstrcpy(comp9_buf.str_fixlen_repeat, fixlen_str_buf);
+    HDstrncpy(comp8_buf.str_fixlen, fixlen_str_buf, length);
+    HDstrncpy(comp8_buf.str_fixlen_repeat, fixlen_str_buf, length);
+
+    HDstrncpy(comp9_buf.str_fixlen, fixlen_str_buf, length);
+    HDstrncpy(comp9_buf.str_fixlen_repeat, fixlen_str_buf, length);
 
     /* copy vlen string array data to compound buffers */
     for (i=0; i < VLEN_STR_ARRY_DIM; i++)
@@ -3200,32 +3205,34 @@ static int test_comp_vlen_strings(const char *fname1)
     /* copy fixlen string attay data to compound buffers */
     for (i=0; i < FIXLEN_STR_ARRY_DIM; i++)
     {
-        HDstrcpy(comp1_buf.str_array_fixlen[i], fixlen_str_array_buf[i]);
-        HDstrcpy(comp1_buf.str_fixlen_array_again[i], fixlen_str_array_buf[i]);
+        length = HDstrlen(fixlen_str_array_buf[i])+1;
 
-        HDstrcpy(comp2_buf.str_array_fixlen[i], fixlen_str_array_buf[i]);
-        HDstrcpy(comp2_buf.str_fixlen_array_again[i], fixlen_str_array_buf[i]);
+        HDstrncpy(comp1_buf.str_array_fixlen[i], fixlen_str_array_buf[i], length);
+        HDstrncpy(comp1_buf.str_fixlen_array_again[i], fixlen_str_array_buf[i], length);
 
-        HDstrcpy(comp3_buf.str_array_fixlen[i], fixlen_str_array_buf[i]);
-        HDstrcpy(comp3_buf.str_fixlen_array_again[i], fixlen_str_array_buf[i]);
+        HDstrncpy(comp2_buf.str_array_fixlen[i], fixlen_str_array_buf[i], length);
+        HDstrncpy(comp2_buf.str_fixlen_array_again[i], fixlen_str_array_buf[i], length);
 
-        HDstrcpy(comp4_buf.str_array_fixlen[i], fixlen_str_array_buf[i]);
-        HDstrcpy(comp4_buf.str_fixlen_array_again[i], fixlen_str_array_buf[i]);
+        HDstrncpy(comp3_buf.str_array_fixlen[i], fixlen_str_array_buf[i], length);
+        HDstrncpy(comp3_buf.str_fixlen_array_again[i], fixlen_str_array_buf[i], length);
 
-        HDstrcpy(comp5_buf.str_array_fixlen[i], fixlen_str_array_buf[i]);
-        HDstrcpy(comp5_buf.str_fixlen_array_again[i], fixlen_str_array_buf[i]);
+        HDstrncpy(comp4_buf.str_array_fixlen[i], fixlen_str_array_buf[i], length);
+        HDstrncpy(comp4_buf.str_fixlen_array_again[i], fixlen_str_array_buf[i], length);
 
-        HDstrcpy(comp6_buf.str_array_fixlen[i], fixlen_str_array_buf[i]);
-        HDstrcpy(comp6_buf.str_fixlen_array_again[i], fixlen_str_array_buf[i]);
+        HDstrncpy(comp5_buf.str_array_fixlen[i], fixlen_str_array_buf[i], length);
+        HDstrncpy(comp5_buf.str_fixlen_array_again[i], fixlen_str_array_buf[i], length);
 
-        HDstrcpy(comp7_buf.str_array_fixlen[i], fixlen_str_array_buf[i]);
-        HDstrcpy(comp7_buf.str_fixlen_array_again[i], fixlen_str_array_buf[i]);
+        HDstrncpy(comp6_buf.str_array_fixlen[i], fixlen_str_array_buf[i], length);
+        HDstrncpy(comp6_buf.str_fixlen_array_again[i], fixlen_str_array_buf[i], length);
 
-        HDstrcpy(comp8_buf.str_array_fixlen[i], fixlen_str_array_buf[i]);
-        HDstrcpy(comp8_buf.str_fixlen_array_again[i], fixlen_str_array_buf[i]);
+        HDstrncpy(comp7_buf.str_array_fixlen[i], fixlen_str_array_buf[i], length);
+        HDstrncpy(comp7_buf.str_fixlen_array_again[i], fixlen_str_array_buf[i], length);
 
-        HDstrcpy(comp9_buf.str_array_fixlen[i], fixlen_str_array_buf[i]);
-        HDstrcpy(comp9_buf.str_fixlen_array_again[i], fixlen_str_array_buf[i]);
+        HDstrncpy(comp8_buf.str_array_fixlen[i], fixlen_str_array_buf[i], length);
+        HDstrncpy(comp8_buf.str_fixlen_array_again[i], fixlen_str_array_buf[i], length);
+
+        HDstrncpy(comp9_buf.str_array_fixlen[i], fixlen_str_array_buf[i], length);
+        HDstrncpy(comp9_buf.str_fixlen_array_again[i], fixlen_str_array_buf[i], length);
     }
 
     /* int data */
