@@ -700,20 +700,20 @@ hsize_t h5diff(const char *fname1,
         /* make the given object1 fullpath, start with "/"  */
         if (HDstrncmp(objname1, "/", 1))
         {
-            HDstrcpy(obj1fullname, "/");
-            HDstrcat(obj1fullname, objname1);
+            HDstrncpy(obj1fullname, "/", 2);
+            HDstrncat(obj1fullname, objname1, HDstrlen(objname1));
         }
         else
-            HDstrcpy(obj1fullname, objname1);
+            HDstrncpy(obj1fullname, objname1, HDstrlen(objname1)+1);
 
         /* make the given object2 fullpath, start with "/" */
         if (HDstrncmp(objname2, "/", 1))
         {
-            HDstrcpy(obj2fullname, "/");
-            HDstrcat(obj2fullname, objname2);
+            HDstrncpy(obj2fullname, "/", 2);
+            HDstrncat(obj2fullname, objname2, HDstrlen(objname2));
         }
         else
-            HDstrcpy(obj2fullname, objname2);
+            HDstrncpy(obj2fullname, objname2, HDstrlen(objname2)+1);
 
         /*----------------------------------------------------------
          * check if obj1 is root, group, single object or symlink
@@ -828,9 +828,9 @@ hsize_t h5diff(const char *fname1,
     {
         /* set root group */
         obj1fullname = (char*)HDcalloc(2, sizeof(char));
-        HDstrcat(obj1fullname, "/");
+        HDstrncat(obj1fullname, "/", 1);
         obj2fullname = (char*)HDcalloc(2, sizeof(char));
-        HDstrcat(obj2fullname, "/");
+        HDstrncat(obj2fullname, "/", 1);
     }
 
     options->cmn_objs = 1; /* eliminate warning */
