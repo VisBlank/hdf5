@@ -336,10 +336,10 @@ get_unique_name(void)
         error("out of memory");
 
     if (prefix){
-	strcpy(filename, prefix);
-	strcat(filename, "/");
+	HDstrncpy(filename, prefix, HDstrlen(prefix)+1);
+	HDstrncat(filename, "/", 1);
     }
-    strcat(filename, tmpl);
+    HDstrncat(filename, tmpl, HDstrlen(tmpl));
 }
 
 /*
