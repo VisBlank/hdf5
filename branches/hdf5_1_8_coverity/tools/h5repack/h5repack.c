@@ -602,20 +602,20 @@ static int check_options(pack_opt_t *options)
             switch (options->layout_g)
             {
             case H5D_COMPACT:
-                strcpy(slayout,"compact");
+                strncpy(slayout,"compact", 8);
                 break;
             case H5D_CONTIGUOUS:
-                strcpy(slayout,"contiguous");
+                strncpy(slayout,"contiguous", 11);
                 break;
             case H5D_CHUNKED:
-                strcpy(slayout,"chunked");
+                strncpy(slayout,"chunked", 8);
                 break;
             case H5D_LAYOUT_ERROR:
             case H5D_NLAYOUTS:
                 error_msg("invalid layout\n");
                 return -1;
             default:
-                strcpy(slayout,"invalid layout\n");
+                strncpy(slayout,"invalid layout\n", 16);
                 return -1;
             }
             printf(" Apply %s layout to all\n", slayout);
