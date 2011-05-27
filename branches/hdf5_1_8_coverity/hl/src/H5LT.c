@@ -18,6 +18,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include "H5LTprivate.h"
+#include "H5private.h"
 
 
 /* For Lex and Yacc */
@@ -1640,9 +1641,9 @@ indentation(int x, char* str)
 {
     if (x < 80) {
         while (x-- > 0)
-            strcat(str, " ");
+            HDstrncat(str, " ", 1);
     } else {
-        strcat(str, "error: the indentation exceeds the number of cols.");
+        HDstrncat(str, "error: the indentation exceeds the number of cols.", 50);
         exit(1);
     }
 }
