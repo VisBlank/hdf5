@@ -1432,9 +1432,6 @@ H5FD_mpio_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t dxpl_id, haddr_t add
     assert(TRUE==H5P_isa_class(dxpl_id,H5P_DATASET_XFER));
     assert(buf);
 
-    /* Portably initialize MPI status variable */
-    HDmemset(&mpi_stat,0,sizeof(MPI_Status));
-
     /* some numeric conversions */
     if (H5FD_mpi_haddr_to_MPIOff(addr, &mpi_off/*out*/)<0)
         HGOTO_ERROR(H5E_INTERNAL, H5E_BADRANGE, FAIL, "can't convert from haddr to MPI off")
@@ -1716,9 +1713,6 @@ H5FD_mpio_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
     assert(TRUE==H5P_isa_class(dxpl_id,H5P_DATASET_XFER));
     assert(buf);
 
-    /* Portably initialize MPI status variable */
-    HDmemset(&mpi_stat, 0, sizeof(MPI_Status));
-
     /* some numeric conversions */
     if(H5FD_mpi_haddr_to_MPIOff(addr, &mpi_off) < 0)
         HGOTO_ERROR(H5E_INTERNAL, H5E_BADRANGE, FAIL, "can't convert from haddr to MPI off")
@@ -1957,9 +1951,6 @@ H5FD_mpio_truncate(H5FD_t *_file, hid_t UNUSED dxpl_id, hbool_t UNUSED closing)
         if(0 == file->mpi_rank) {
             uint8_t             byte = 0;
             MPI_Status          mpi_stat;
-
-            /* Portably initialize MPI status variable */
-            HDmemset(&mpi_stat, 0, sizeof(MPI_Status));
 
             if(H5FD_mpi_haddr_to_MPIOff(file->eoa-1, &mpi_off) < 0)
                 HGOTO_ERROR(H5E_INTERNAL, H5E_BADRANGE, FAIL, "cannot convert from haddr_t to MPI_Offset")

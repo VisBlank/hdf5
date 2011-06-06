@@ -602,7 +602,6 @@ H5D_chunk_collective_io(H5D_io_info_t *io_info, const H5D_type_info_t *type_info
     H5P_genplist_t *dx_plist;           /* Pointer to DXPL */
     H5FD_mpio_chunk_opt_t chunk_opt_mode;
     H5D_mpio_actual_chunk_opt_mode_t actual_chunk_opt_mode; 
-    H5D_mpio_actual_chunk_io_mode_t actual_chunk_io_mode;
     int         io_option = H5D_MULTI_CHUNK_IO_MORE_OPT;
     int         sum_chunk = -1;
 #ifdef H5_HAVE_INSTRUMENTED_LIBRARY
@@ -728,7 +727,7 @@ H5D_chunk_collective_io(H5D_io_info_t *io_info, const H5D_type_info_t *type_info
     if(io_option == H5D_ONE_LINK_CHUNK_IO || io_option == H5D_ONE_LINK_CHUNK_IO_MORE_OPT) {
         /* set the actual io mode properties to the correct values for link chunk io. */
         actual_chunk_opt_mode = H5D_MPIO_LINK_CHUNK;
-        actual_chunk_io_mode = H5D_MPIO_CHUNK_COLLECTIVE;
+        H5D_mpio_actual_chunk_io_mode_t actual_chunk_io_mode = H5D_MPIO_CHUNK_COLLECTIVE;
         
         /* Set the actual chunk opt mode property. */
         if (H5P_set(dx_plist, H5D_MPIO_ACTUAL_CHUNK_OPT_MODE_NAME, &actual_chunk_opt_mode) < 0)
@@ -1001,15 +1000,15 @@ if(H5DEBUG(D))
             } /* end for */
 
             /* Create final MPI derived datatype for the file */
-            if(MPI_SUCCESS != (mpi_code = MPI_Type_struct((int)num_chunk, chunk_mpi_file_counts, chunk_disp_array, chunk_ftype, &chunk_final_ftype)))
-                HMPI_GOTO_ERROR(FAIL, "MPI_Type_struct failed", mpi_code)
+            if(MPI_SUCCESS != (mpi_code = MPI_Type_create_struct((int)num_chunk, chunk_mpi_file_counts, chunk_disp_array, chunk_ftype, &chunk_final_ftype)))
+                HMPI_GOTO_ERROR(FAIL, "MPI_Type_create_struct failed", mpi_code)
             if(MPI_SUCCESS != (mpi_code = MPI_Type_commit(&chunk_final_ftype)))
                 HMPI_GOTO_ERROR(FAIL, "MPI_Type_commit failed", mpi_code)
             chunk_final_ftype_is_derived = TRUE;
 
             /* Create final MPI derived datatype for memory */
-            if(MPI_SUCCESS != (mpi_code = MPI_Type_struct((int)num_chunk, chunk_mpi_mem_counts, chunk_mem_disp_array, chunk_mtype, &chunk_final_mtype)))
-                HMPI_GOTO_ERROR(FAIL, "MPI_Type_struct failed", mpi_code)
+            if(MPI_SUCCESS != (mpi_code = MPI_Type_create_struct((int)num_chunk, chunk_mpi_mem_counts, chunk_mem_disp_array, chunk_mtype, &chunk_final_mtype)))
+                HMPI_GOTO_ERROR(FAIL, "MPI_Type_create_struct failed", mpi_code)
             if(MPI_SUCCESS != (mpi_code = MPI_Type_commit(&chunk_final_mtype)))
                 HMPI_GOTO_ERROR(FAIL, "MPI_Type_commit failed", mpi_code)
             chunk_final_mtype_is_derived = TRUE;
