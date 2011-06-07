@@ -441,23 +441,27 @@
 #  define H5_DEC_ENUM(TYPE,VAR) (VAR)=((TYPE)((VAR)-1))
 #endif
 
-/*
- * Data types and functions for timing certain parts of the library.
- */
+/* Data types and functions for timing certain parts of the library. */
+
+/* DEPRECATED  old timer structure DEPRECATED */
 typedef struct {
     double  utime;      /*user time, (requires sys/resource.h)*/
     double  stime;      /*system time, (requires sys/resource.h)*/
     double  etime;      /*elapsed wall-clock time, (requires gettimeofday())*/
 } H5_timer_OLD_t;
 
+/* A set of elapsed/user/system times emitted as a time point by the
+ * platform-independent timers.
+ */
 typedef struct {
     double user_ps;      /* User time in picoseconds */
     double system_ps;    /* System time in picoseconds */
     double elapsed_ps;   /* Elapsed (wall clock) time in picoseconds */
 } H5_timevals_t;
 
+/* Timer structure for platform-independent timers */
 typedef struct {
-    /* Start times in picoseconds */
+    /* Start times (in picoseconds) */
     double  system_start_ps;
     double  user_start_ps;
     double  elapsed_start_ps;
@@ -476,7 +480,7 @@ H5_DLL void H5_timer_start(H5_timer_t *timer/*in,out*/);
 H5_DLL void H5_timer_get_times(H5_timer_t timer, H5_timevals_t *tvs);
 H5_DLL char * H5_timer_get_time_string(double ns);
 
-/* Required for Mac timer functionality */
+/* Required for Mac OS X timer functionality */
 #if defined(H5_HAVE_MACH_TIME_H)
 #include <mach/mach_time.h>
 double H5_get_mach_time_ps();   /* From H5system.c */

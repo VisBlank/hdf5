@@ -189,7 +189,7 @@ H5_bandwidth(char *buf/*out*/, double nbytes, double nseconds)
  *              though you can "reset" one by calling H5_timer_start() while
  *              passing in a previously-used timer struct.
  *
- * Return:      N/A
+ * Return:      N/A (should probably return an error code)
  *
  * Programmer:  Dana Robinson
  *              May 2011
@@ -197,7 +197,7 @@ H5_bandwidth(char *buf/*out*/, double nbytes, double nseconds)
  *-------------------------------------------------------------------------
  */
 void
-H5_timer_start(H5_timer_t *timer/*in,out*/)
+H5_timer_start(H5_timer_t *timer /*in,out*/)
 {
 
 #if defined(_WIN32)
@@ -283,7 +283,7 @@ H5_timer_start(H5_timer_t *timer/*in,out*/)
  *              run so multiple calls to this function can be made in
  *              succession.
  *
- * Return:      N/A
+ * Return:      N/A (should probably return an error code)
  *
  * Programmer:  Dana Robinson
  *              May 2011
@@ -291,7 +291,7 @@ H5_timer_start(H5_timer_t *timer/*in,out*/)
  *-------------------------------------------------------------------------
  */
 void
-H5_timer_get_times(H5_timer_t timer, H5_timevals_t *tvs /*OUT*/)
+H5_timer_get_times(H5_timer_t timer, H5_timevals_t *tvs /*in,out*/)
 {
 
 #if defined(H5_HAVE_GETRUSAGE)

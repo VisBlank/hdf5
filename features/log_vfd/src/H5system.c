@@ -641,9 +641,25 @@ Wgettimeofday(struct timeval *tv, struct timezone *tz)
 }
 #endif
 
+
+
+
+/*-------------------------------------------------------------------------
+ * Function:    H5_get_win32_times
+ *
+ * Purpose:     Gets the elapsed, system and user times on Windows platforms.
+ *
+ * Return:      Success:  The timevalues
+ *              Failure:  N/A (should probably return a negative value)
+ *
+ * Programmer:  Dana Robinson
+ *              May 2011
+ *
+ *-------------------------------------------------------------------------
+ */
 #if defined(_WIN32)
 void
-H5_get_win32_times(H5_timevals_t * tvs)
+H5_get_win32_times(H5_timevals_t *tvs /*in,out*/)
 {
     static HANDLE process_handle;
 
@@ -706,6 +722,24 @@ H5_get_win32_times(H5_timevals_t * tvs)
 }
 #endif
 
+
+
+
+/*-------------------------------------------------------------------------
+ * Function:    H5_get_mach_time_ps
+ *
+ * Purpose:     Gets the elapsed time in picoseconds on Mac OS X.
+ *              OS X does not have clock_gettime() so mach_absolute_time()
+ *              must be used instead.
+ *
+ * Return:      Success:  An arbitrary, monotonic time in picoseconds.
+ *              Failure:  N/A (should probably return a negative value)
+ *
+ * Programmer:  Dana Robinson
+ *              May 2011
+ *
+ *-------------------------------------------------------------------------
+ */
 #if defined(H5_HAVE_MACH_MACH_TIME_H)
 double
 H5_get_mach_time_ps()
