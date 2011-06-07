@@ -137,49 +137,49 @@ test_time_formatting(void)
 
     /*      < 0,            N/A             */
     s = H5_timer_get_time_string(-1.0);
-    if(strcmp(s, "N/A") != 0)
+    if(NULL == s || strcmp(s, "N/A") != 0)
         TEST_ERROR;
     free(s);
 
     /*      0               0               */
     s = H5_timer_get_time_string(0.0);
-    if(strcmp(s, "0 ns") != 0)
+    if(NULL == s || strcmp(s, "0 ns") != 0)
         TEST_ERROR;
     free(s);
 
     /*      < 1e3 ns        nanoseconds     */
     s = H5_timer_get_time_string(123000.0);
-    if(strcmp(s, "123 ns") != 0)
+    if(NULL == s || strcmp(s, "123 ns") != 0)
         TEST_ERROR;
     free(s);
 
     /*      < 1e6 ns        microseconds    */
     s = H5_timer_get_time_string(23456000.0);
-    if(strcmp(s, "23.5 us") != 0)
+    if(NULL == s || strcmp(s, "23.5 us") != 0)
         TEST_ERROR;
     free(s);
 
     /*      < 1e9 ns        milliseconds    */
     s = H5_timer_get_time_string(4567890000.0);
-    if(strcmp(s, "4.6 ms") != 0)
+    if(NULL == s || strcmp(s, "4.6 ms") != 0)
         TEST_ERROR;
     free(s);
 
     /*      < 1 min         seconds         */
     s = H5_timer_get_time_string(3.14e12);
-    if(strcmp(s, "3.14 s") != 0)
+    if(NULL == s || strcmp(s, "3.14 s") != 0)
         TEST_ERROR;
     free(s);
 
     /*      < 1 hr          mins, secs      */
     s = H5_timer_get_time_string(2.521e15);
-    if(strcmp(s, "42 m 1 s") != 0)
+    if(NULL == s || strcmp(s, "42 m 1 s") != 0)
         TEST_ERROR;
     free(s);
 
     /*      > 1 hr          hrs, mins, secs */
     s = H5_timer_get_time_string(9.756e15);
-    if(strcmp(s, "2 h 42 m 36 s") != 0)
+    if(NULL == s || strcmp(s, "2 h 42 m 36 s") != 0)
         TEST_ERROR;
     free(s);
 

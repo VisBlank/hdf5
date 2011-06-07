@@ -174,6 +174,28 @@ H5_bandwidth(char *buf/*out*/, double nbytes, double nseconds)
 } /* end H5_bandwidth() */
 
 
+
+
+/*-------------------------------------------------------------------------
+ * Function:    H5_timer_start
+ *
+ * Purpose:     Create and start a platform-independent timer.
+ *
+ *              To use a platform-independent timer, call H5_timer_start()
+ *              when you want the clock to start.  You then call
+ *              H5_timer_get_times() when you want to get a timepoint.
+ *              All times obtained from H5_timer_get_times() are deltas from
+ *              when the timer started.  There is no need to stop a timer,
+ *              though you can "reset" one by calling H5_timer_start() while
+ *              passing in a previously-used timer struct.
+ *
+ * Return:      N/A
+ *
+ * Programmer:  Dana Robinson
+ *              May 2011
+ *
+ *-------------------------------------------------------------------------
+ */
 void
 H5_timer_start(H5_timer_t *timer/*in,out*/)
 {
@@ -250,6 +272,24 @@ H5_timer_start(H5_timer_t *timer/*in,out*/)
 
 
 
+
+/*-------------------------------------------------------------------------
+ * Function:    H5_timer_get_times
+ *
+ * Purpose:     Gets the current elapsed, system and user times from a 
+ *              running platform-independent timer.
+ *
+ *              This does NOT stop the timer.  The timer will continue to
+ *              run so multiple calls to this function can be made in
+ *              succession.
+ *
+ * Return:      N/A
+ *
+ * Programmer:  Dana Robinson
+ *              May 2011
+ *
+ *-------------------------------------------------------------------------
+ */
 void
 H5_timer_get_times(H5_timer_t timer, H5_timevals_t *tvs /*OUT*/)
 {
@@ -315,6 +355,37 @@ H5_timer_get_times(H5_timer_t timer, H5_timevals_t *tvs /*OUT*/)
 
 
 
+
+/*-------------------------------------------------------------------------
+ * Function:    H5_timer_get_time_string
+ *
+ * Purpose:     Converts a time (in picoseconds) into a human-readable
+ *              string suitable for log messages.
+ *
+ * Return:      Success:  The time string.
+ *
+ *                        The general format of the time string is:
+ *
+ *                        "N/A"                 time < 0 (invalid time)
+ *                        "%.f ns"              time < 1 microsecond
+ *                        "%.1f us"             time < 1 millisecond
+ *                        "%.1f ms"             time < 1 second
+ *                        "%.2f s"              time < 1 minute
+ *                        "%.f m %.f s"         time < 1 hour
+ *                        "%.f h %.f m %.f s"   longer times
+ *
+ *              Failure:  NULL
+ *
+ * Programmer:  Dana Robinson
+ *              May 2011
+ *
+ *-------------------------------------------------------------------------
+ */
+
+/* Size of the generated time string.
+ * Most time strings should be < 20 or so characters (max!) so this should be a
+ * safe size.  Allocating the correct size would be painful.
+ */
 #define H5TIMER_TIME_STRING_LEN 256
 
 char *
@@ -335,7 +406,9 @@ H5_timer_get_time_string(double ps)
 
     /* Initialize */
     s = (char *)calloc(H5TIMER_TIME_STRING_LEN, sizeof(char));
-    
+    if(NULL == s)
+        return NULL;
+
     if(ps > 0.0) {
 
         seconds = ps / 1.0E12;
