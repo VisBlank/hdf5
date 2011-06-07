@@ -47,12 +47,19 @@ test_timer_system_user(H5_timevals_t t1, H5_timevals_t t2)
 {
     TESTING("system/user times");
 
+    /* The system and user times may not be present on some systems.  They
+      * will be -1.0 if they are not.
+     */
     if(t1.system_ps < 0.0 || t2.system_ps < 0.0 
         || t1.user_ps < 0.0 || t2.user_ps < 0.0) {
         SKIPPED();
         printf("NOTE: No suitable way to get system/user times on this platform.\n");
+        return 0;
     }
 
+    /* Time should not have decreased.  Depending on the resolution of the
+     * timer, it may have stayed the same.
+     */
     if(t2.system_ps < t1.system_ps || t2.user_ps < t1.user_ps)
         TEST_ERROR;
 
@@ -86,9 +93,15 @@ test_timer_elapsed(H5_timevals_t t1, H5_timevals_t t2)
 {
     TESTING("elapsed times");
 
+    /* Elapsed time should always be present.  Elapsed time will be -1.0
+     * if it is not.
+     */
     if(t1.elapsed_ps < 0.0 || t2.elapsed_ps < 0.0)
         TEST_ERROR;
 
+    /* Time should not have decreased.  Depending on the resolution of the
+     * timer, it may have stayed the same.
+     */
     if(t2.elapsed_ps < t1.elapsed_ps)
         TEST_ERROR;
 
@@ -118,7 +131,7 @@ error:
 static herr_t
 test_time_formatting(void)
 {
-    char *s;
+    char *s = NULL;
 
     TESTING("Time string formats");
 
@@ -237,11 +250,11 @@ main(void)
     nerrors += test_time_formatting()                   < 0    ? 1 : 0;
 
     if(nerrors) {
-    printf("***** %d platform-independent timer TEST%s FAILED! *****\n",
+        printf("***** %d platform-independent timer TEST%s FAILED! *****\n",
         nerrors, nerrors > 1 ? "S" : "");
-    return 1;
+        return 1;
+    } else {
+        printf("All platform-independent timer tests passed.\n");
+        return 0;
     }
-
-    printf("All platform-independent timer tests passed.\n");
-    return 0;
 }
