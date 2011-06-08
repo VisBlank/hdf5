@@ -481,7 +481,7 @@ H5_DLL void H5_timer_get_times(H5_timer_t timer, H5_timevals_t *tvs);
 H5_DLL char * H5_timer_get_time_string(double ns);
 
 /* Required for Mac OS X timer functionality */
-#if defined(H5_HAVE_MACH_TIME_H)
+#if defined(H5_HAVE_MACH_MACH_TIME_H)
 #include <mach/mach_time.h>
 double H5_get_mach_time_ps();   /* From H5system.c */
 #endif
