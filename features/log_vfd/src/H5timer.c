@@ -175,34 +175,10 @@ H5_bandwidth(char *buf/*out*/, double nbytes, double nseconds)
 
 
 
-
-/*-------------------------------------------------------------------------
- * Function:    H5_timer_start
- *
- * Purpose:     Create and start a platform-independent timer.
- *
- *              To use a platform-independent timer, call H5_timer_start()
- *              when you want the clock to start.  You then call
- *              H5_timer_get_times() when you want to get a timepoint.
- *              All times obtained from H5_timer_get_times() are deltas from
- *              when the timer started.  There is no need to stop a timer,
- *              though you can "reset" one by calling H5_timer_start() while
- *              passing in a previously-used timer struct.
- *
- * Return:      N/A (should probably return an error code)
- *
- * Programmer:  Dana Robinson
- *              May 2011
- *
- *-------------------------------------------------------------------------
- */
-void
-H5_timer_start(H5_timer_t *timer /*in,out*/)
+static herr_t
+H5_timer_get_timevals(H5_timevals_t *times /*in,out*/)
 {
-
-#if defined(_WIN32)
-    H5_timevals_t win32_times;
-#endif
+    int err = 0;        /* Error code */
 
     /* System and user time */
 #if defined(H5_HAVE_GETRUSAGE)
@@ -214,15 +190,21 @@ H5_timer_start(H5_timer_t *timer /*in,out*/)
     struct timespec ts;
 #endif
 
-    assert(timer);
+    assert(times);
+
 
     /* Windows call handles both system/user and elapsed times */
 #if defined(_WIN32)
-    H5_get_win32_times(&win32_times);
-    timer->elapsed_start_ps = win32_times.elapsed_ps;
-    timer->system_start_ps  = win32_times.system_ps;
-    timer->user_start_ps    = win32_times.user_ps;
-    return;
+    err = H5_get_win32_times(times);
+    if(err < 0) {
+        times->elapsed_ps   = -1;
+        times->system_ps    = -1;
+        times->user_ps      = -1;
+        return -1;
+    }
+    else {
+        return 0;
+    }
 #endif
 
 
@@ -232,15 +214,18 @@ H5_timer_start(H5_timer_t *timer /*in,out*/)
 
 #if defined(H5_HAVE_GETRUSAGE)
 
-    getrusage(RUSAGE_SELF, &res);
-    timer->system_start_ps = (double)((res.ru_stime.tv_sec * 1.0E9) + (res.ru_stime.tv_usec * 1.0E3));
-    timer->user_start_ps = (double)((res.ru_utime.tv_sec * 1.0E9) + (res.ru_utime.tv_usec * 1.0E3));
+    err = getrusage(RUSAGE_SELF, &res);
+    if(err < 0)
+        return -1;
+    times->system_ps = (double)((res.ru_stime.tv_sec * 1.0E9) + (res.ru_stime.tv_usec * 1.0E3));
+    times->user_ps   = (double)((res.ru_utime.tv_sec * 1.0E9) + (res.ru_utime.tv_usec * 1.0E3));
 
 #else
 
     /* No suitable way to get system/user times */
-    timer->system_start_ps = -1.0;
-    timer->user_start_ps = -1.0;
+    /* This is not an error condition, they just won't be available */
+    times->system_ps = -1.0;
+    times->user_ps   = -1.0;
 
 #endif
 
@@ -249,14 +234,23 @@ H5_timer_start(H5_timer_t *timer /*in,out*/)
      * Elapsed time *
      ****************/
 
+    /* NOTE: Not having a way to get elapsed time IS an error, unlike
+     * the system and user times.
+     */
+
 #if defined(H5_HAVE_MACH_MACH_TIME_H)
 
-    timer->elapsed_start_ps = H5_get_mach_time_ps();
+    /* Mac OS X */
+    times->elapsed_ps = H5_get_mach_time_ps();
+    if(times->elapsed_ps < 0.0)
+        return -1;
 
 #elif defined(H5_HAVE_CLOCK_GETTIME)
 
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    timer->elapsed_start_ps = (double)((ts.tv_sec * 1.0E12) + (ts.tv_nsec * 1.0E3);
+    err = clock_gettime(CLOCK_MONOTONIC, &ts);
+    if(err != 0)
+        return -1;
+    times->elapsed_ps = (double)((ts.tv_sec * 1.0E12) + (ts.tv_nsec * 1.0E3);
 
 #else
 
@@ -267,90 +261,167 @@ H5_timer_start(H5_timer_t *timer /*in,out*/)
 
 #endif
 
-    return;
+    return 0;
 }
 
 
 
 
 /*-------------------------------------------------------------------------
- * Function:    H5_timer_get_times
+ * Function:    H5_timer_init
  *
- * Purpose:     Gets the current elapsed, system and user times from a 
- *              running platform-independent timer.
+ * Purpose:     Initialize a platform-independent timer.
  *
- *              This does NOT stop the timer.  The timer will continue to
- *              run so multiple calls to this function can be made in
- *              succession.
- *
- * Return:      N/A (should probably return an error code)
+ * Return:      Success:    0
+ *              Failure:    -1
  *
  * Programmer:  Dana Robinson
  *              May 2011
  *
  *-------------------------------------------------------------------------
  */
-void
-H5_timer_get_times(H5_timer_t timer, H5_timevals_t *tvs /*in,out*/)
+herr_t
+H5_timer_init(H5_timer_t *timer /*in,out*/)
 {
+    assert(timer);
 
-#if defined(H5_HAVE_GETRUSAGE)
-    struct rusage res;
-#endif
+    /* Initialize everything */
 
-#if defined(H5_HAVE_CLOCK_GETTIME)
-    struct timespec ts;
-#endif
+    timer->initial.elapsed_ps = 0.0;
+    timer->initial.system_ps  = 0.0;
+    timer->initial.user_ps    = 0.0;
 
-    assert(tvs);
+    timer->final_interval.elapsed_ps = 0.0;
+    timer->final_interval.system_ps  = 0.0;
+    timer->final_interval.user_ps    = 0.0;
 
-    tvs->elapsed_ps = 0.0;
-    tvs->system_ps  = 0.0;
-    tvs->user_ps    = 0.0;
+    timer->total.elapsed_ps = 0.0;
+    timer->total.system_ps  = 0.0;
+    timer->total.user_ps    = 0.0;
 
-    /* Windows call handles both system/user and elapsed times */
-#if defined(_WIN32)
-    H5_get_win32_times(tvs);
-    tvs->elapsed_ps = tvs->elapsed_ps - timer.elapsed_start_ps;
-    tvs->system_ps  = tvs->system_ps - timer.system_start_ps;
-    tvs->user_ps    = tvs->user_ps - timer.user_start_ps;
-    return;
-#endif
+    timer->is_running       = 0;
 
-    /*************************
-     * System and user times *
-     *************************/
-
-#if defined(H5_HAVE_GETRUSAGE)
-
-    getrusage(RUSAGE_SELF, &res);
-
-    tvs->system_ps = (double)((res.ru_stime.tv_sec * 1.0E12) + (res.ru_stime.tv_usec * 1.0E6) - timer.system_start_ps);
-    tvs->user_ps = (double)((res.ru_utime.tv_sec * 1.0E12) + (res.ru_utime.tv_usec * 1.0E6) - timer.user_start_ps);
-
+#if !defined(H5_HAVE_GETRUSAGE) && !defined(_WIN32)
+    timer->has_user_system_times = 0;
 #else
-
-    tvs->system_ps  = -1.0;
-    tvs->user_ps    = -1.0;
-
+    timer->has_user_system_times = 1;
 #endif
 
-    /****************
-     * Elapsed time *
-     ****************/
+    return 0;
+}
 
-#if defined(H5_HAVE_MACH_MACH_TIME_H)
 
-    tvs->elapsed_ps = H5_get_mach_time_ps() - timer.elapsed_start_ps;
 
-#elif defined(H5_HAVE_CLOCK_GETTIME)
+herr_t
+H5_timer_start(H5_timer_t *timer /*in,out*/)
+{
+    herr_t  err = -1;
 
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    tvs->elapsed_ps = (double)((ts.tv_sec * 1.0E12) + (ts.tv_nsec * 1.0E3)) - timer.elapsed_start_ps;
+    assert(timer);
 
-#endif
+    /* Start the timer
+     * This sets the "initial" times to the system-defined start times.
+     */
+    err = H5_timer_get_timevals(&(timer->initial));
+    if(err < 0)
+        return -1;
 
-    return;
+    timer->is_running = 1;
+
+    return 0;
+}
+
+
+
+herr_t
+H5_timer_stop(H5_timer_t *timer /*in,out*/)
+{
+    herr_t          err = -1;
+
+    assert(timer);
+
+    /* Stop the timer */
+    err = H5_timer_get_timevals(&(timer->final_interval));
+    if(err < 0)
+        return -1;
+
+    /* The "final" times are stored as intervals (final - initial)
+     * for more useful reporting to the user.
+     */
+    timer->final_interval.elapsed_ps = timer->final_interval.elapsed_ps - timer->initial.elapsed_ps;
+    timer->final_interval.system_ps  = timer->final_interval.system_ps  - timer->initial.system_ps;
+    timer->final_interval.user_ps    = timer->final_interval.user_ps    - timer->initial.user_ps;
+
+    /* Add the intervals to the elapsed time */
+    timer->total.elapsed_ps += timer->final_interval.elapsed_ps;
+    timer->total.system_ps  += timer->final_interval.system_ps;
+    timer->total.user_ps    += timer->final_interval.user_ps;
+
+    timer->is_running = 0;
+
+    return 0;
+}
+
+herr_t
+H5_timer_get_times(H5_timer_t timer, H5_timevals_t *times /*in,out*/)
+{
+    H5_timevals_t   now;
+    herr_t          err = -1;
+
+    assert(times);
+
+    if(timer.is_running) {
+
+        /* Get the current times and report the current intervals without
+         * stopping the timer.
+         */
+        err = H5_timer_get_timevals(&now);
+        if(err < 0)
+            return -1;
+
+        times->elapsed_ps = now.elapsed_ps - timer.initial.elapsed_ps;
+        times->system_ps  = now.system_ps  - timer.initial.system_ps;
+        times->user_ps    = now.user_ps    - timer.initial.user_ps;
+
+    }
+    else {
+        times->elapsed_ps = timer.final_interval.elapsed_ps;
+        times->system_ps  = timer.final_interval.system_ps;
+        times->user_ps    = timer.final_interval.user_ps;
+    }
+
+    return 0;
+}
+
+herr_t
+H5_timer_get_total_times(H5_timer_t timer, H5_timevals_t *times /*in,out*/)
+{
+    H5_timevals_t   now;
+    herr_t          err = -1;
+
+    assert(times);
+
+    if(timer.is_running) {
+
+        /* Get the current times and report the current totals without
+         * stopping the timer.
+         */
+        err = H5_timer_get_timevals(&now);
+        if(err < 0)
+            return -1;
+
+        times->elapsed_ps = timer.total.elapsed_ps + (now.elapsed_ps - timer.initial.elapsed_ps);
+        times->system_ps  = timer.total.system_ps  + (now.system_ps  - timer.initial.system_ps);
+        times->user_ps    = timer.total.user_ps    + (now.user_ps    - timer.initial.user_ps);
+
+    }
+    else {
+        times->elapsed_ps = timer.total.elapsed_ps;
+        times->system_ps  = timer.total.system_ps;
+        times->user_ps    = timer.total.user_ps;
+    }
+
+    return 0;
 }
 
 

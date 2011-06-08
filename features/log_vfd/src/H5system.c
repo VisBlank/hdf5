@@ -649,8 +649,8 @@ Wgettimeofday(struct timeval *tv, struct timezone *tz)
  *
  * Purpose:     Gets the elapsed, system and user times on Windows platforms.
  *
- * Return:      Success:  The timevalues
- *              Failure:  N/A (should probably return a negative value)
+ * Return:      Success:  0
+ *              Failure:  -1
  *
  * Programmer:  Dana Robinson
  *              May 2011
@@ -658,7 +658,7 @@ Wgettimeofday(struct timeval *tv, struct timezone *tz)
  *-------------------------------------------------------------------------
  */
 #if defined(_WIN32)
-void
+int
 H5_get_win32_times(H5_timevals_t *tvs /*in,out*/)
 {
     static HANDLE process_handle;
@@ -733,7 +733,7 @@ H5_get_win32_times(H5_timevals_t *tvs /*in,out*/)
  *              must be used instead.
  *
  * Return:      Success:  An arbitrary, monotonic time in picoseconds.
- *              Failure:  N/A (should probably return a negative value)
+ *              Failure:  -1.0
  *
  * Programmer:  Dana Robinson
  *              May 2011
@@ -754,8 +754,11 @@ H5_get_mach_time_ps()
         err = mach_timebase_info(&info);
         if (0 == err)
             conversion = (double)info.numer / (double)info.denom;
+        else
+            return -1.0;
     }
 
+    /* I don't think mach_absolute_time() can fail */
     now = mach_absolute_time();
     return (double)now * conversion * 1.0E3;
 }
