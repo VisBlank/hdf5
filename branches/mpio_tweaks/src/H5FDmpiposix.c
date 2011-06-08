@@ -614,14 +614,17 @@ H5FD_mpiposix_open(const char *name, unsigned flags, hid_t fapl_id,
 {
     H5FD_mpiposix_t		*file=NULL;     /* New MPIPOSIX file struct */
     int                         o_flags;        /* Flags for file open call */
-    int			        fd=(-1);        /* File handle for file opened */
     int				mpi_rank;       /* MPI rank of this process */
     int				mpi_size;       /* Total number of MPI processes */
     int				mpi_code;	/* mpi return code */
     const H5FD_mpiposix_fapl_t	*fa=NULL;       /* MPIPOSIX file access property list information */
     H5FD_mpiposix_fapl_t	_fa;            /* Private copy of default file access property list information */
     H5P_genplist_t              *plist;         /* Property list pointer */
-    h5_stat_t                   sb;             /* Portable 'stat' struct */
+    struct {                /* Struct to pass fd and sb in one Bcast */
+        int fd;             /* File descriptor for the opened file */
+        h5_stat_t sb;       /* Portable 'stat' struct */
+    } file_package;
+
 #ifdef _WIN32
     HFILE filehandle;
     struct _BY_HANDLE_FILE_INFORMATION fileinfo;
@@ -683,8 +686,16 @@ H5FD_mpiposix_open(const char *name, unsigned flags, hid_t fapl_id,
     /* Process 0 opens (or creates) file and broadcasts result to other processes */
     if(mpi_rank==0) {
         /* Open the file */
-        fd=HDopen(name, o_flags, 0666);
-    } /* end if */
+        file_package.fd=HDopen(name, o_flags, 0666);
+        if(file_package.fd<0) {
+            printf("%d %s \n",errno, strerror(errno));
+        }
+        if(file_package.fd>=0) {
+            if (HDfstat(file_package.fd, &file_package.sb)<0)
+                HGOTO_ERROR(H5E_FILE, H5E_BADFILE, NULL, "unable to fstat file")
+        }
+    }
+ /* end if */
 
     /* Broadcast the results of the open() from process 0 */
     /* This is necessary because of the "tentative open" code in H5F_open()
@@ -695,30 +706,20 @@ H5FD_mpiposix_open(const char *name, unsigned flags, hid_t fapl_id,
      * other process's file opens would succeed, so allow the other processes
      * to check for that situation and bail out now also. - QAK
      */
-    if (MPI_SUCCESS != (mpi_code= MPI_Bcast(&fd, sizeof(int), MPI_BYTE, 0, comm_dup)))
+    if (MPI_SUCCESS != (mpi_code= MPI_Bcast(&file_package, sizeof(int) + sizeof(h5_stat_t), MPI_BYTE, 0, comm_dup)))
         HMPI_GOTO_ERROR(NULL, "MPI_Bcast failed", mpi_code)
-
     /* If the file open on process 0 failed, bail out on all processes now */
-    if(fd<0)
+
+    if(file_package.fd<0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to open file")
 
     /* Other processes (non 0) wait for broadcast result from process 0 and then open file */
     if(mpi_rank!=0) {
         /* Open the file */
-        if ((fd=HDopen(name, o_flags, 0666))<0)
+        if ((file_package.fd=HDopen(name, o_flags, 0666))<0)
             HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to open file")
     } /* end if */
-
     /* Process 0 fstat()s the file and broadcasts the results to the other processes */
-    if(mpi_rank==0) {
-        /* Get the stat information */
-        if (HDfstat(fd, &sb)<0)
-            HGOTO_ERROR(H5E_FILE, H5E_BADFILE, NULL, "unable to fstat file")
-    } /* end if */
-
-    /* Broadcast the results of the fstat() from process 0 */
-    if (MPI_SUCCESS != (mpi_code= MPI_Bcast(&sb, sizeof(h5_stat_t), MPI_BYTE, 0, comm_dup)))
-        HMPI_GOTO_ERROR(NULL, "MPI_Bcast failed", mpi_code)
 
 #ifdef H5_HAVE_GPFS
     if (fa->use_gpfs) {
@@ -739,7 +740,7 @@ H5FD_mpiposix_open(const char *name, unsigned flags, hid_t fapl_id,
         hint.fr.start = 0;
         hint.fr.length = 0;
 
-        if (gpfs_fcntl(fd, &hint)<0)
+        if (gpfs_fcntl(file_package.fd, &hint)<0)
             HGOTO_ERROR(H5E_FILE, H5E_FCNTL, NULL, "failed to send hints to GPFS")
     }
 #endif  /* H5_HAVE_GPFS */
@@ -753,13 +754,13 @@ H5FD_mpiposix_open(const char *name, unsigned flags, hid_t fapl_id,
 #endif
 
     /* Set the general file information */
-    file->fd = fd;
-    file->eof = sb.st_size;
+    file->fd = file_package.fd;
+    file->eof = file_package.sb.st_size;
 
     /* for _WIN32 support. _WIN32 'stat' does not have st_blksize and st_blksize
        is only used for the H5_HAVE_GPFS case */
 #ifdef H5_HAVE_GPFS
-    file->blksize = sb.st_blksize;
+    file->blksize = file_package.sb.st_blksize;
 #endif
 
     /* Set this field in the H5FD_mpiposix_t struct for later use */
@@ -776,13 +777,13 @@ H5FD_mpiposix_open(const char *name, unsigned flags, hid_t fapl_id,
 
     /* Set the information for the file's device and inode */
 #ifdef _WIN32
-    filehandle = _get_osfhandle(fd);
+    filehandle = _get_osfhandle(file_package.fd);
     results = GetFileInformationByHandle((HANDLE)filehandle, &fileinfo);
     file->fileindexhi = fileinfo.nFileIndexHigh;
     file->fileindexlo = fileinfo.nFileIndexLow;
 #else
-    file->device = sb.st_dev;
-    file->inode = sb.st_ino;
+    file->device = file_package.sb.st_dev;
+    file->inode = file_package.sb.st_ino;
 #endif
 
     /* Indicate success */
@@ -792,8 +793,8 @@ done:
     /* Error cleanup */
     if(ret_value==NULL) {
         /* Close the file if it was left open */
-        if(fd!=(-1))
-            HDclose(fd);
+        if(file_package.fd!=(-1))
+            HDclose(file_package.fd);
 	if (MPI_COMM_NULL != comm_dup)
 	    MPI_Comm_free(&comm_dup);
     } /* end if */
