@@ -26,96 +26,6 @@
 
 
 /*-------------------------------------------------------------------------
- * Function:    test_timer_system_user
- *
- * Purpose:     Tests the ability to get system and user times from the
- *              timers.
- *              Some platforms may require special code to get system and
- *              user times.  If we do not support that particular platform
- *              dependent functionality, this test is skipped.
- *
- * Return:      Success:        0
- *              Failure:        -1
- *
- * Programmer:  Dana Robinson
- *              May 2011
- *
- *-------------------------------------------------------------------------
- */
-static herr_t
-test_timer_system_user(H5_timevals_t t1, H5_timevals_t t2)
-{
-    TESTING("system/user times");
-
-    /* The system and user times may not be present on some systems.  They
-      * will be -1.0 if they are not.
-     */
-    if(t1.system_ps < 0.0 || t2.system_ps < 0.0 
-        || t1.user_ps < 0.0 || t2.user_ps < 0.0) {
-        SKIPPED();
-        printf("NOTE: No suitable way to get system/user times on this platform.\n");
-        return 0;
-    }
-
-    /* Time should not have decreased.  Depending on the resolution of the
-     * timer, it may have stayed the same.
-     */
-    if(t2.system_ps < t1.system_ps || t2.user_ps < t1.user_ps)
-        TEST_ERROR;
-
-    PASSED();
-    return 0;
-
-error:
-    return -1;
-}
-
-
-
-
-/*-------------------------------------------------------------------------
- * Function:    test_timer_elapsed
- *
- * Purpose:     Tests the ability to get elapsed times from the timers.
- *              We should always be able to get an elapsed time,
- *              regardless of the time libraries or platform.
- *
- * Return:      Success:        0
- *              Failure:        -1
- *
- * Programmer:  Dana Robinson
- *              May 2011
- *
- *-------------------------------------------------------------------------
- */
-static herr_t
-test_timer_elapsed(H5_timevals_t t1, H5_timevals_t t2)
-{
-    TESTING("elapsed times");
-
-    /* Elapsed time should always be present.  Elapsed time will be -1.0
-     * if it is not.
-     */
-    if(t1.elapsed_ps < 0.0 || t2.elapsed_ps < 0.0)
-        TEST_ERROR;
-
-    /* Time should not have decreased.  Depending on the resolution of the
-     * timer, it may have stayed the same.
-     */
-    if(t2.elapsed_ps < t1.elapsed_ps)
-        TEST_ERROR;
-
-    PASSED();
-    return 0;
-
-error:
-    return -1;
-}
-
-
-
-
-/*-------------------------------------------------------------------------
  * Function:    test_time_formatting
  *
  * Purpose:     Tests time string creation.
@@ -196,6 +106,237 @@ error:
 
 
 /*-------------------------------------------------------------------------
+ * Function:    test_timer_system_user
+ *
+ * Purpose:     Tests the ability to get system and user times from the
+ *              timers.
+ *              Some platforms may require special code to get system and
+ *              user times.  If we do not support that particular platform
+ *              dependent functionality, this test is skipped.
+ *
+ * Return:      Success:        0
+ *              Failure:        -1
+ *
+ * Programmer:  Dana Robinson
+ *              May 2011
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+test_timer_system_user(void)
+{
+    int             i;
+    char            *buf = NULL;
+    H5_timer_t      timer;
+    H5_timevals_t   times;
+    herr_t          err;
+
+    TESTING("system/user times");
+
+    err = H5_timer_init(&timer);
+    if(err < 0)
+        TEST_ERROR;
+
+    err = H5_timer_start(&timer);
+    if(err < 0)
+        TEST_ERROR;
+
+    /* The system and user times may not be present on some systems.  They
+      * will be -1.0 if they are not.
+     */
+    if(timer.initial.system_ps < 0.0 || timer.initial.user_ps < 0.0) {
+        SKIPPED();
+        printf("NOTE: No suitable way to get system/user times on this platform.\n");
+        return 0;
+    }
+
+    /* Do some fake work */
+    for(i=0; i < 1024; i++) {
+        buf = (char *)HDmalloc(1024 * i * sizeof(char));
+        free(buf);
+    }
+
+    err = H5_timer_stop(&timer);
+    if(err < 0)
+        TEST_ERROR;
+
+    err = H5_timer_get_times(timer, &times);
+    if(err < 0)
+        TEST_ERROR;
+
+    /* System and user times should be non-negative. */
+    if(times.system_ps < 0.0 || times.user_ps < 0.0)
+        TEST_ERROR;
+
+    PASSED();
+    return 0;
+
+error:
+    return -1;
+}
+
+
+
+
+/*-------------------------------------------------------------------------
+ * Function:    test_timer_elapsed
+ *
+ * Purpose:     Tests the ability to get elapsed times from the timers.
+ *              We should always be able to get an elapsed time,
+ *              regardless of the time libraries or platform.
+ *
+ * Return:      Success:        0
+ *              Failure:        -1
+ *
+ * Programmer:  Dana Robinson
+ *              May 2011
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+test_timer_elapsed(void)
+{
+    int             i;
+    char            *buf = NULL;
+    H5_timer_t      timer;
+    H5_timevals_t   times;
+    herr_t          err;
+
+    TESTING("elapsed times");
+
+    err = H5_timer_init(&timer);
+    if(err < 0)
+        TEST_ERROR;
+
+    err = H5_timer_start(&timer);
+    if(err < 0)
+        TEST_ERROR;
+
+    /* Do some fake work */
+    for(i=0; i < 1024; i++) {
+        buf = (char *)HDmalloc(1024 * i * sizeof(char));
+        free(buf);
+    }
+
+    err = H5_timer_stop(&timer);
+    if(err < 0)
+        TEST_ERROR;
+
+    err = H5_timer_get_times(timer, &times);
+    if(err < 0)
+        TEST_ERROR;
+
+    /* Elapsed time should be non-negative. */
+    if(times.elapsed_ps < 0.0)
+        TEST_ERROR;
+
+    PASSED();
+    return 0;
+
+error:
+    return -1;
+}
+
+
+
+static herr_t
+test_timer_functionality(void)
+{
+    int             i;
+    char            *buf = NULL;
+    H5_timer_t      timer;
+    
+    H5_timevals_t   times;
+    double          prev_etime;
+    double          prev_total_etime;
+
+    herr_t          err;
+
+    TESTING("timer functionality");
+
+
+    /* CHECK STARTUP */
+
+    /* Should not be running
+     * Elapsed and total time should be zero
+     */
+
+    err = H5_timer_init(&timer);
+    if(timer.is_running)
+        TEST_ERROR;
+    
+    err = H5_timer_get_times(timer, &times);
+    if(times.elapsed_ps != 0.0)
+        TEST_ERROR;
+
+    err = H5_timer_get_total_times(timer, &times);
+    if(times.elapsed_ps != 0.0)
+        TEST_ERROR;
+
+
+    /* CHECK START/STOP */
+
+    /* Running state should change accordingly */
+
+    err = H5_timer_start(&timer);
+    if(!timer.is_running)
+        TEST_ERROR;
+
+    /* Do some fake work */
+    for(i=0; i < 1024; i++) {
+        buf = (char *)HDmalloc(1024 * i * sizeof(char));
+        free(buf);
+    }
+    
+    err = H5_timer_stop(&timer);
+
+    if(timer.is_running)
+        TEST_ERROR;
+
+
+    /* CHECK INTERRUPTING */
+
+    
+
+    err = H5_timer_init(&timer);
+
+    err = H5_timer_get_times(timer, &times);
+    err = H5_timer_get_total_times(timer, &times);
+
+
+    err = H5_timer_start(&timer);
+    /* Do some fake work */
+    for(i=0; i < 1024; i++) {
+        buf = (char *)HDmalloc(1024 * i * sizeof(char));
+        free(buf);
+    }
+
+    err = H5_timer_get_times(timer, &times);
+    err = H5_timer_get_total_times(timer, &times);
+    
+    /* Do some fake work */
+    for(i=0; i < 1024; i++) {
+        buf = (char *)HDmalloc(1024 * i * sizeof(char));
+        free(buf);
+    }
+    
+    err = H5_timer_stop(&timer);
+    
+    err = H5_timer_get_times(timer, &times);
+    err = H5_timer_get_total_times(timer, &times);
+
+
+    PASSED();
+    return 0;
+
+error:
+    return -1;
+}
+
+
+
+
+/*-------------------------------------------------------------------------
  * Function:    main
  *
  * Purpose:     Tests the basic functionality of the platform-independent
@@ -212,12 +353,6 @@ error:
 int
 main(void)
 {
-    H5_timer_t      timer;
-    H5_timevals_t   time1;
-    H5_timevals_t   time2;
-
-    char            *buf;
-    int             i;
 
     int             nerrors = 0;
 
@@ -225,29 +360,11 @@ main(void)
 
     printf("Testing platform-independent timer functionality.\n");
 
-
-    /* Start a timer */
-    H5_timer_start(&timer);
-
-    /* Do some fake work and get time 1 */
-    for(i=0; i < 1024; i++)
-    {
-        buf = (char *)HDmalloc(1024 * i * sizeof(char));
-        free(buf);
-    }
-    H5_timer_get_times(timer, &time1);
-
-    /* Do some fake work and get time 2 */
-    for(i=0; i < 1024; i++)
-    {
-        buf = (char *)HDmalloc(1024 * i * sizeof(char));
-        free(buf);
-    }
-    H5_timer_get_times(timer, &time2);
-
-    nerrors += test_timer_system_user(time1, time2)     < 0    ? 1 : 0;
-    nerrors += test_timer_elapsed(time1, time2)         < 0    ? 1 : 0;
-    nerrors += test_time_formatting()                   < 0    ? 1 : 0;
+    nerrors += test_time_formatting()       < 0 ? 1 : 0;
+    nerrors += test_timer_system_user()     < 0 ? 1 : 0;
+    nerrors += test_timer_elapsed()         < 0 ? 1 : 0;
+    nerrors += test_timer_functionality()   < 0 ? 1 : 0;
+    
 
     if(nerrors) {
         printf("***** %d platform-independent timer TEST%s FAILED! *****\n",
