@@ -56,19 +56,19 @@ H5_timer_begin (H5_timer_OLD_t *timer)
 #ifdef H5_HAVE_GETRUSAGE
     HDgetrusage (RUSAGE_SELF, &rusage);
     timer->utime = (double)rusage.ru_utime.tv_sec +
-                   ((double)rusage.ru_utime.tv_usec / 1e6);
+                   ((double)rusage.ru_utime.tv_usec / 1.0e6F);
     timer->stime = (double)rusage.ru_stime.tv_sec +
-                   ((double)rusage.ru_stime.tv_usec / 1e6);
+                   ((double)rusage.ru_stime.tv_usec / 1.0e6F);
 #else
-    timer->utime = 0.0;
-    timer->stime = 0.0;
+    timer->utime = 0.0F;
+    timer->stime = 0.0F;
 #endif
 
 #ifdef H5_HAVE_GETTIMEOFDAY
     HDgettimeofday (&etime, NULL);
-    timer->etime = (double)etime.tv_sec + ((double)etime.tv_usec / 1e6);
+    timer->etime = (double)etime.tv_sec + ((double)etime.tv_usec / 1.0e6F);
 #else
-    timer->etime = 0.0;
+    timer->etime = 0.0F;
 #endif
 
 } /* end H5_timer_begin() */
@@ -99,9 +99,9 @@ H5_timer_end (H5_timer_OLD_t *sum/*in,out*/, H5_timer_OLD_t *timer/*in,out*/)
     assert (timer);
     H5_timer_begin (&now);
 
-    timer->utime = MAX(0.0, now.utime - timer->utime);
-    timer->stime = MAX(0.0, now.stime - timer->stime);
-    timer->etime = MAX(0.0, now.etime - timer->etime);
+    timer->utime = MAX(0.0F, now.utime - timer->utime);
+    timer->stime = MAX(0.0F, now.stime - timer->stime);
+    timer->etime = MAX(0.0F, now.etime - timer->etime);
 
     if (sum) {
         sum->utime += timer->utime;
@@ -140,29 +140,29 @@ H5_bandwidth(char *buf/*out*/, double nbytes, double nseconds)
 {
     double      bw;
 
-    if(nseconds <= 0.0) {
+    if(nseconds <= 0.0F) {
         HDstrcpy(buf, "       NaN");
     } else {
         bw = nbytes/nseconds;
-        if(fabs(bw) < 0.0000000001) {
+        if(fabs(bw) < 0.0000000001F) {
             /* That is == 0.0, but direct comparison between floats is bad */
             HDstrcpy(buf, "0.000  B/s");
-        } else if(bw < 1.0) {
+        } else if(bw < 1.0F) {
             sprintf(buf, "%10.4e", bw);
-        } else if(bw < 1024.0) {
+        } else if(bw < 1024.0F) {
             sprintf(buf, "%05.4f", bw);
             HDstrcpy(buf+5, "  B/s");
-        } else if(bw < (1024.0 * 1024.0)) {
-            sprintf(buf, "%05.4f", bw / 1024.0);
+        } else if(bw < (1024.0F * 1024.0F)) {
+            sprintf(buf, "%05.4f", bw / 1024.0F);
             HDstrcpy(buf+5, " kB/s");
-        } else if(bw < (1024.0 * 1024.0 * 1024.0)) {
-            sprintf(buf, "%05.4f", bw / (1024.0 * 1024.0));
+        } else if(bw < (1024.0F * 1024.0F * 1024.0F)) {
+            sprintf(buf, "%05.4f", bw / (1024.0F * 1024.0F));
             HDstrcpy(buf+5, " MB/s");
-        } else if(bw < (1024.0 * 1024.0 * 1024.0 * 1024.0)) {
-            sprintf(buf, "%05.4f", bw / (1024.0 * 1024.0 * 1024.0));
+        } else if(bw < (1024.0F * 1024.0F * 1024.0F * 1024.0F)) {
+            sprintf(buf, "%05.4f", bw / (1024.0F * 1024.0F * 1024.0F));
             HDstrcpy(buf+5, " GB/s");
-        } else if(bw < (1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0)) {
-            sprintf(buf, "%05.4f", bw / (1024.0 * 1024.0 * 1024.0 * 1024.0));
+        } else if(bw < (1024.0F * 1024.0F * 1024.0F * 1024.0F * 1024.0F)) {
+            sprintf(buf, "%05.4f", bw / (1024.0F * 1024.0F * 1024.0F * 1024.0F));
             HDstrcpy(buf+5, " TB/s");
         } else {
             sprintf(buf, "%10.4e", bw);
@@ -217,8 +217,8 @@ H5_timer_get_timevals(H5_timevals_t *times /*in,out*/)
     err = getrusage(RUSAGE_SELF, &res);
     if(err < 0)
         return -1;
-    times->system_ps = (double)((res.ru_stime.tv_sec * 1.0E9) + (res.ru_stime.tv_usec * 1.0E3));
-    times->user_ps   = (double)((res.ru_utime.tv_sec * 1.0E9) + (res.ru_utime.tv_usec * 1.0E3));
+    times->system_ps = (double)((res.ru_stime.tv_sec * 1.0E9F) + (res.ru_stime.tv_usec * 1.0E3F));
+    times->user_ps   = (double)((res.ru_utime.tv_sec * 1.0E9F) + (res.ru_utime.tv_usec * 1.0E3F));
 
 #else
 
@@ -250,7 +250,7 @@ H5_timer_get_timevals(H5_timevals_t *times /*in,out*/)
     err = clock_gettime(CLOCK_MONOTONIC, &ts);
     if(err != 0)
         return -1;
-    times->elapsed_ps = (double)((ts.tv_sec * 1.0E12) + (ts.tv_nsec * 1.0E3);
+    times->elapsed_ps = (double)((ts.tv_sec * 1.0E12F) + (ts.tv_nsec * 1.0E3F));
 
 #else
 
@@ -287,17 +287,17 @@ H5_timer_init(H5_timer_t *timer /*in,out*/)
 
     /* Initialize everything */
 
-    timer->initial.elapsed_ps = 0.0;
-    timer->initial.system_ps  = 0.0;
-    timer->initial.user_ps    = 0.0;
+    timer->initial.elapsed_ps = 0.0F;
+    timer->initial.system_ps  = 0.0F;
+    timer->initial.user_ps    = 0.0F;
 
-    timer->final_interval.elapsed_ps = 0.0;
-    timer->final_interval.system_ps  = 0.0;
-    timer->final_interval.user_ps    = 0.0;
+    timer->final_interval.elapsed_ps = 0.0F;
+    timer->final_interval.system_ps  = 0.0F;
+    timer->final_interval.user_ps    = 0.0F;
 
-    timer->total.elapsed_ps = 0.0;
-    timer->total.system_ps  = 0.0;
-    timer->total.user_ps    = 0.0;
+    timer->total.elapsed_ps = 0.0F;
+    timer->total.system_ps  = 0.0F;
+    timer->total.user_ps    = 0.0F;
 
     timer->is_running       = 0;
 
@@ -463,13 +463,13 @@ char *
 H5_timer_get_time_string(double ps)
 {
 
-    double hours    = 0.0;
-    double minutes  = 0.0;
-    double seconds  = 0.0;
+    double hours    = 0.0F;
+    double minutes  = 0.0F;
+    double seconds  = 0.0F;
 
-    double display_hours    = 0.0;
-    double display_minutes  = 0.0;
-    double display_seconds  = 0.0;
+    double display_hours    = 0.0F;
+    double display_minutes  = 0.0F;
+    double display_seconds  = 0.0F;
 
     double fake_intpart;
 
@@ -480,17 +480,17 @@ H5_timer_get_time_string(double ps)
     if(NULL == s)
         return NULL;
 
-    if(ps > 0.0) {
+    if(ps > 0.0F) {
 
-        seconds = ps / 1.0E12;
+        seconds = ps / 1.0E12F;
 
-        hours   = seconds / 3600.0;
+        hours   = seconds / 3600.0F;
         display_hours = floor(hours);
 
-        minutes = modf(hours, &fake_intpart) * 60.0;
+        minutes = modf(hours, &fake_intpart) * 60.0F;
         display_minutes = floor(minutes);
 
-        display_seconds = modf(minutes, &fake_intpart) * 60.0;
+        display_seconds = modf(minutes, &fake_intpart) * 60.0F;
     }
 
     /* Do we need a format string? Some people might like a certain 
@@ -498,21 +498,21 @@ H5_timer_get_time_string(double ps)
      * time unit.  Perhaps this could be passed as an integer.
      * (name? round_up_size? ?)
      */
-    if(ps < 0.0) {
+    if(ps < 0.0F) {
         sprintf(s, "N/A");
-    }else if(ps < 1.0E6) {
+    }else if(ps < 1.0E6F) {
         /* t < 1 us, Print time in ns */
-        sprintf(s, "%.f ns", ps / 1.0E3);
-    } else if (ps < 1.0E9) {
+        sprintf(s, "%.f ns", ps / 1.0E3F);
+    } else if (ps < 1.0E9F) {
         /* t < 1 ms, Print time in us */
-        sprintf(s, "%.1f us", ps / 1.0E6);
-    } else if (ps < 1.0E12) {
+        sprintf(s, "%.1f us", ps / 1.0E6F);
+    } else if (ps < 1.0E12F) {
         /* t < 1 s, Print time in ms */
-        sprintf(s, "%.1f ms", ps / 1.0E9);
-    } else if (ps < 1.0E12 * 60) {
+        sprintf(s, "%.1f ms", ps / 1.0E9F);
+    } else if (ps < 1.0E12F * 60) {
         /* t < 1 m, Print time in s */
         sprintf(s, "%.2f s", display_seconds);
-    } else if (ps < 1.0E12 * 60 * 60) {
+    } else if (ps < 1.0E12F * 60 * 60) {
         /* t < 1 h, Print time in m and s */
         sprintf(s, "%.f m %.f s", display_minutes, display_seconds);
     } else {

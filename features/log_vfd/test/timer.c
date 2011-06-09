@@ -293,13 +293,13 @@ test_timer_functionality(void)
     if(err < 0 || timer.is_running)
         TEST_ERROR;
 
-    /* Times should be positive and non-zero */
+    /* Times should be positive and non-negative */
     err = H5_timer_get_times(timer, &times);
-    if(err < 0 || times.elapsed_ps <= 0.0)
+    if(err < 0 || times.elapsed_ps < 0.0)
         TEST_ERROR;
 
     err = H5_timer_get_total_times(timer, &times);
-    if(err < 0 || times.elapsed_ps <= 0.0)
+    if(err < 0 || times.elapsed_ps < 0.0)
         TEST_ERROR;
 
 
@@ -331,14 +331,14 @@ test_timer_functionality(void)
         free(buf);
     }
 
-    /* Times should be positive */
+    /* Times should be non-negative */
     err = H5_timer_get_times(timer, &times);
-    if(err < 0 || times.elapsed_ps <= 0.0)
+    if(err < 0 || times.elapsed_ps < 0.0)
         TEST_ERROR;
     prev_etime = times.elapsed_ps;
 
     err = H5_timer_get_total_times(timer, &times);
-    if(err < 0 || times.elapsed_ps <= 0.0)
+    if(err < 0 || times.elapsed_ps < 0.0)
         TEST_ERROR;
     prev_total_etime = times.elapsed_ps;
     
@@ -353,13 +353,13 @@ test_timer_functionality(void)
     if(err < 0 || timer.is_running)
         TEST_ERROR;
 
-    /* Times should be greater than the cached intermediate times */
+    /* Times should be >= than the cached intermediate times */
     err = H5_timer_get_times(timer, &times);
-    if(err < 0 || times.elapsed_ps <= prev_etime)
+    if(err < 0 || times.elapsed_ps < prev_etime)
         TEST_ERROR;
 
     err = H5_timer_get_total_times(timer, &times);
-    if(err < 0 || times.elapsed_ps <= prev_total_etime)
+    if(err < 0 || times.elapsed_ps < prev_total_etime)
         TEST_ERROR;
 
 
