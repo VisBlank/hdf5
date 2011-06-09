@@ -254,32 +254,32 @@ test_timer_functionality(void)
 
     TESTING("timer functionality");
 
+    /*****************
+     * CHECK STARTUP *
+     *****************/
 
-    /* CHECK STARTUP */
-
-    /* Should not be running
-     * Elapsed and total time should be zero
-     */
-
+    /* Timer should be running after start */
     err = H5_timer_init(&timer);
-    if(timer.is_running)
+    if(err < 0 || timer.is_running)
         TEST_ERROR;
-    
+
+    /* Times should be initialized to zero */
     err = H5_timer_get_times(timer, &times);
-    if(times.elapsed_ps != 0.0)
+    if(err < 0 || times.elapsed_ps != 0.0)
         TEST_ERROR;
 
     err = H5_timer_get_total_times(timer, &times);
-    if(times.elapsed_ps != 0.0)
+    if(err < 0 || times.elapsed_ps != 0.0)
         TEST_ERROR;
 
 
-    /* CHECK START/STOP */
+    /********************
+     * CHECK START/STOP *
+     ********************/
 
-    /* Running state should change accordingly */
-
+    /* Running state should change after start */
     err = H5_timer_start(&timer);
-    if(!timer.is_running)
+    if(err < 0 || !timer.is_running)
         TEST_ERROR;
 
     /* Do some fake work */
@@ -287,43 +287,80 @@ test_timer_functionality(void)
         buf = (char *)HDmalloc(1024 * i * sizeof(char));
         free(buf);
     }
-    
-    err = H5_timer_stop(&timer);
 
-    if(timer.is_running)
+    /* Running state should change after stop */
+    err = H5_timer_stop(&timer);
+    if(err < 0 || timer.is_running)
+        TEST_ERROR;
+
+    /* Times should be positive and non-zero */
+    err = H5_timer_get_times(timer, &times);
+    if(err < 0 || times.elapsed_ps <= 0.0)
+        TEST_ERROR;
+
+    err = H5_timer_get_total_times(timer, &times);
+    if(err < 0 || times.elapsed_ps <= 0.0)
         TEST_ERROR;
 
 
-    /* CHECK INTERRUPTING */
+    /**********************
+     * CHECK INTERRUPTING *
+     **********************/
 
-    
-
+    /* Timer should change stat and refresh to 0s */
     err = H5_timer_init(&timer);
+    if(err < 0 || timer.is_running)
+        TEST_ERROR;
 
     err = H5_timer_get_times(timer, &times);
+    if(err < 0 || times.elapsed_ps != 0.0)
+        TEST_ERROR;
+
     err = H5_timer_get_total_times(timer, &times);
+    if(err < 0 || times.elapsed_ps != 0.0)
+        TEST_ERROR;
 
-
+    /* Timer state should flip */
     err = H5_timer_start(&timer);
+    if(err < 0 || !timer.is_running)
+        TEST_ERROR;
+
     /* Do some fake work */
     for(i=0; i < 1024; i++) {
         buf = (char *)HDmalloc(1024 * i * sizeof(char));
         free(buf);
     }
 
+    /* Times should be positive */
     err = H5_timer_get_times(timer, &times);
+    if(err < 0 || times.elapsed_ps <= 0.0)
+        TEST_ERROR;
+    prev_etime = times.elapsed_ps;
+
     err = H5_timer_get_total_times(timer, &times);
+    if(err < 0 || times.elapsed_ps <= 0.0)
+        TEST_ERROR;
+    prev_total_etime = times.elapsed_ps;
     
     /* Do some fake work */
     for(i=0; i < 1024; i++) {
         buf = (char *)HDmalloc(1024 * i * sizeof(char));
         free(buf);
     }
-    
+
+    /* State should flip on stop */
     err = H5_timer_stop(&timer);
-    
+    if(err < 0 || timer.is_running)
+        TEST_ERROR;
+
+    /* Times should be greater than the cached intermediate times */
     err = H5_timer_get_times(timer, &times);
+    if(err < 0 || times.elapsed_ps <= prev_etime)
+        TEST_ERROR;
+
     err = H5_timer_get_total_times(timer, &times);
+    if(err < 0 || times.elapsed_ps <= prev_total_etime)
+        TEST_ERROR;
 
 
     PASSED();
