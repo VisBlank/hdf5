@@ -90,9 +90,10 @@ H5F_fake_alloc(uint8_t sizeof_size)
     ret_value = f;
 
 done:
-    if(!ret_value)
-        H5F_fake_free(f);
-
+    if(!ret_value) {
+        if(f && H5F_fake_free(f) < 0)
+            HDONE_ERROR(H5E_DATASPACE, H5E_CANTRELEASE, FAIL, "unable to release fake file struct")
+    }
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5F_fake_alloc() */
 
