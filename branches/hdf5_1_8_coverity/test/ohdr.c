@@ -139,8 +139,10 @@ test_cont(char *filename, hid_t fapl)
 
 error:
     H5E_BEGIN_TRY {
-        H5O_close(&oh_locA);
-        H5O_close(&oh_locB);
+        if(H5O_close(&oh_locA) < 0)
+            FAIL_STACK_ERROR
+        if(H5O_close(&oh_locB) < 0)
+            FAIL_STACK_ERROR
         H5Fclose(file);
     } H5E_END_TRY;
 

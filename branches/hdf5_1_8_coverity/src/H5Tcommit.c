@@ -855,8 +855,10 @@ H5T_open_oid(const H5G_loc_t *loc, hid_t dxpl_id)
 
 done:
     if(ret_value == NULL)
-        if(dt == NULL)
-            H5O_close(loc->oloc);
+        if(dt == NULL) {
+            if(H5O_close(loc->oloc) < 0)
+                HDONE_ERROR(H5E_DATASET, H5E_CLOSEERROR, NULL, "unable to release object header")
+        }
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5T_open_oid() */

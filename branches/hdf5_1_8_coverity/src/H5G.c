@@ -1132,8 +1132,10 @@ H5G_open_oid(H5G_t *grp, hid_t dxpl_id)
 
 done:
     if(ret_value < 0) {
-        if(obj_opened)
-            H5O_close(&(grp->oloc));
+        if(obj_opened) {
+            if(H5O_close(&(grp->oloc)) < 0)
+                HDONE_ERROR(H5E_DATASET, H5E_CLOSEERROR, NULL, "unable to release object header")
+        }
         if(grp->shared)
             grp->shared = H5FL_FREE(H5G_shared_t, grp->shared);
     } /* end if */
