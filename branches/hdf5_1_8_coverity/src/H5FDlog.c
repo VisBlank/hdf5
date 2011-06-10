@@ -1284,10 +1284,15 @@ H5FD_log_write(H5FD_t *_file, H5FD_mem_t type, hid_t UNUSED dxpl_id, haddr_t add
     HDassert(buf);
 
     /* Verify that we are writing out the type of data we allocated in this location */
-    if(file->flavor) {
-        HDassert(type == H5FD_MEM_DEFAULT || type == (H5FD_mem_t)file->flavor[addr] || (H5FD_mem_t)file->flavor[addr] == H5FD_MEM_DEFAULT);
-        HDassert(type == H5FD_MEM_DEFAULT || type == (H5FD_mem_t)file->flavor[(addr + size) - 1] || (H5FD_mem_t)file->flavor[(addr + size) - 1] == H5FD_MEM_DEFAULT);
-    } /* end if */
+    if(file->fa.flags & H5FD_LOG_FLAVOR) {
+        if(file->flavor) {
+            HDassert(type == H5FD_MEM_DEFAULT || type == (H5FD_mem_t)file->flavor[addr] || (H5FD_mem_t)file->flavor[addr] == H5FD_MEM_DEFAULT);
+            HDassert(type == H5FD_MEM_DEFAULT || type == (H5FD_mem_t)file->flavor[(addr + size) - 1] || (H5FD_mem_t)file->flavor[(addr + size) - 1] == H5FD_MEM_DEFAULT);
+        } /* end if */
+        else {
+            HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "file->flavor is not allocated")
+        } /* end else */
+    }/* end if */
 
     /* Check for overflow conditions */
     if(!H5F_addr_defined(addr))
