@@ -217,8 +217,8 @@ H5_timer_get_timevals(H5_timevals_t *times /*in,out*/)
     err = getrusage(RUSAGE_SELF, &res);
     if(err < 0)
         return -1;
-    times->system_ps = (double)((res.ru_stime.tv_sec * 1.0E9F) + (res.ru_stime.tv_usec * 1.0E3F));
-    times->user_ps   = (double)((res.ru_utime.tv_sec * 1.0E9F) + (res.ru_utime.tv_usec * 1.0E3F));
+    times->system_ps = ((double)res.ru_stime.tv_sec * 1.0E9F) + ((double)res.ru_stime.tv_usec * 1.0E3F);
+    times->user_ps   = ((double)res.ru_utime.tv_sec * 1.0E9F) + ((double)res.ru_utime.tv_usec * 1.0E3F);
 
 #else
 
@@ -250,7 +250,7 @@ H5_timer_get_timevals(H5_timevals_t *times /*in,out*/)
     err = clock_gettime(CLOCK_MONOTONIC, &ts);
     if(err != 0)
         return -1;
-    times->elapsed_ps = (double)((ts.tv_sec * 1.0E12F) + (ts.tv_nsec * 1.0E3F));
+    times->elapsed_ps = ((double)ts.tv_sec * 1.0E12F) + ((double)ts.tv_nsec * 1.0E3F);
 
 #else
 
