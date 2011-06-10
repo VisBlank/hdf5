@@ -175,8 +175,23 @@ H5_bandwidth(char *buf/*out*/, double nbytes, double nseconds)
 
 
 
+
+/*-------------------------------------------------------------------------
+ * Function:    _timer_get_timevals
+ *
+ * Purpose:     Internal platform-specific function to get time system,
+ *              user and elapsed time values.
+ *
+ * Return:      Success:    0
+ *              Failure:    -1
+ *
+ * Programmer:  Dana Robinson
+ *              May 2011
+ *
+ *-------------------------------------------------------------------------
+ */
 static herr_t
-H5_timer_get_timevals(H5_timevals_t *times /*in,out*/)
+_timer_get_timevals(H5_timevals_t *times /*in,out*/)
 {
     int err = 0;        /* Error code */
 
@@ -272,6 +287,46 @@ H5_timer_get_timevals(H5_timevals_t *times /*in,out*/)
  *
  * Purpose:     Initialize a platform-independent timer.
  *
+ *              Timer usage is as follows:
+ *
+ *              1) Call H5_timer_init(), passing in a timer struct, to set
+ *                 up the timer.
+ *
+ *              2) Wrap any code you'd like to time with calls to
+ *                 H5_timer_start/stop().  For accurate timing, place these
+ *                 calls as close to the code of interest as possible.  You
+ *                 can call start/stop multiple times on the same timer -
+ *                 when you do this, H5_timer_get_times() will return time
+ *                 values for the current/last session and
+ *                 H5_timer_get_total_times() will return the summed times
+ *                 of all sessions (see #3 and #4, below).
+ *
+ *              3) Use H5_timer_get_times() to get the current system, user
+ *                 and elapsed times from a running timer.  If called on a
+ *                 stopped timer, this will return the time recorded at the
+ *                 stop point.
+ *
+ *              4) Call H5_timer_get_total_times() to get the total system,
+ *                 user and elapsed times recorded across multiple start/stop
+ *                 sessions.  If called on a running timer, it will return the
+ *                 time recorded up to that point.  On a stopped timer, it
+ *                 will return the time recorded at the stop point.
+ *
+ *              NOTE: Obtaining a time point is not free!  Keep in mind that
+ *                    the time functions make system calls and can have
+ *                    non-trivial overhead.  If you call one of the get_time
+ *                    functions on a running timer, that overhead will be
+ *                    added to the reported times.
+ *
+ *              5) All times recorded will be in picoseconds (ps).  These can
+ *                 be converted into human-readable strings with the
+ *                 H5_timer_get_time_string() function.
+ *
+ *              6) A timer can be reset using by calling H5_timer_init() on
+ *                 it.  This will set its state to 'stopped' and reset all
+ *                 accumulated times to zero.
+ *
+ *
  * Return:      Success:    0
  *              Failure:    -1
  *
@@ -312,6 +367,20 @@ H5_timer_init(H5_timer_t *timer /*in,out*/)
 
 
 
+
+/*-------------------------------------------------------------------------
+ * Function:    H5_timer_start
+ *
+ * Purpose:     Start tracking time in a platform-independent timer.
+ *
+ * Return:      Success:    0
+ *              Failure:    -1
+ *
+ * Programmer:  Dana Robinson
+ *              May 2011
+ *
+ *-------------------------------------------------------------------------
+ */
 herr_t
 H5_timer_start(H5_timer_t *timer /*in,out*/)
 {
@@ -322,7 +391,7 @@ H5_timer_start(H5_timer_t *timer /*in,out*/)
     /* Start the timer
      * This sets the "initial" times to the system-defined start times.
      */
-    err = H5_timer_get_timevals(&(timer->initial));
+    err = _timer_get_timevals(&(timer->initial));
     if(err < 0)
         return -1;
 
@@ -333,6 +402,20 @@ H5_timer_start(H5_timer_t *timer /*in,out*/)
 
 
 
+
+/*-------------------------------------------------------------------------
+ * Function:    H5_timer_stop
+ *
+ * Purpose:     Stop tracking time in a platform-independent timer.
+ *
+ * Return:      Success:    0
+ *              Failure:    -1
+ *
+ * Programmer:  Dana Robinson
+ *              May 2011
+ *
+ *-------------------------------------------------------------------------
+ */
 herr_t
 H5_timer_stop(H5_timer_t *timer /*in,out*/)
 {
@@ -341,7 +424,7 @@ H5_timer_stop(H5_timer_t *timer /*in,out*/)
     assert(timer);
 
     /* Stop the timer */
-    err = H5_timer_get_timevals(&(timer->final_interval));
+    err = _timer_get_timevals(&(timer->final_interval));
     if(err < 0)
         return -1;
 
@@ -362,6 +445,33 @@ H5_timer_stop(H5_timer_t *timer /*in,out*/)
     return 0;
 }
 
+
+
+
+/*-------------------------------------------------------------------------
+ * Function:    H5_timer_get_times
+ *
+ * Purpose:     Get the system, user and elapsed times (in picoseconds) 
+ *              from a timer.  These are the times since the timer was last
+ *              started and will be 0.0 in a timer that has not been started
+ *              since it was initialized.
+ *
+ *              This function can be called either before or after 
+ *              H5_timer_stop() has been called.  If it is called before the
+ *              stop function, the timer will continue to run.
+ *
+ *              The system and user times will be -1.0 if those times cannot
+ *              be computed on a particular platform.  The elapsed time will
+ *              always be present.
+ *
+ * Return:      Success:    0
+ *              Failure:    -1
+ *
+ * Programmer:  Dana Robinson
+ *              May 2011
+ *
+ *-------------------------------------------------------------------------
+ */
 herr_t
 H5_timer_get_times(H5_timer_t timer, H5_timevals_t *times /*in,out*/)
 {
@@ -375,7 +485,7 @@ H5_timer_get_times(H5_timer_t timer, H5_timevals_t *times /*in,out*/)
         /* Get the current times and report the current intervals without
          * stopping the timer.
          */
-        err = H5_timer_get_timevals(&now);
+        err = _timer_get_timevals(&now);
         if(err < 0)
             return -1;
 
@@ -393,6 +503,36 @@ H5_timer_get_times(H5_timer_t timer, H5_timevals_t *times /*in,out*/)
     return 0;
 }
 
+
+
+
+/*-------------------------------------------------------------------------
+ * Function:    H5_timer_get_total_times
+ *
+ * Purpose:     Get the TOTAL system, user and elapsed times recorded by
+ *              the timer since its initialization.  This is the sum of all
+ *              times recorded while the timer was running.
+ *
+ *              These will be 0.0 in a timer that has not been started
+ *              since it was initialized.  Calling H5_timer_init() on a
+ *              timer will reset these values to 0.0.
+ *
+ *              This function can be called either before or after 
+ *              H5_timer_stop() has been called.  If it is called before the
+ *              stop function, the timer will continue to run.
+ *
+ *              The system and user times will be -1.0 if those times cannot
+ *              be computed on a particular platform.  The elapsed time will
+ *              always be present.
+ *
+ * Return:      Success:    0
+ *              Failure:    -1
+ *
+ * Programmer:  Dana Robinson
+ *              May 2011
+ *
+ *-------------------------------------------------------------------------
+ */
 herr_t
 H5_timer_get_total_times(H5_timer_t timer, H5_timevals_t *times /*in,out*/)
 {
@@ -406,7 +546,7 @@ H5_timer_get_total_times(H5_timer_t timer, H5_timevals_t *times /*in,out*/)
         /* Get the current times and report the current totals without
          * stopping the timer.
          */
-        err = H5_timer_get_timevals(&now);
+        err = _timer_get_timevals(&now);
         if(err < 0)
             return -1;
 
@@ -455,7 +595,7 @@ H5_timer_get_total_times(H5_timer_t timer, H5_timevals_t *times /*in,out*/)
 
 /* Size of the generated time string.
  * Most time strings should be < 20 or so characters (max!) so this should be a
- * safe size.  Allocating the correct size would be painful.
+ * safe size.  Dynamically allocating the correct size would be painful.
  */
 #define H5TIMER_TIME_STRING_LEN 256
 
