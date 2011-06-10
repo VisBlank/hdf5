@@ -133,8 +133,8 @@ H5G_traverse_slink_cb(H5G_loc_t UNUSED *grp_loc, const char UNUSED *name,
     } /* end if */
     else {
         /* Copy new location information for resolved object */
-        H5O_loc_copy(udata->obj_loc->oloc, obj_loc->oloc, H5_COPY_DEEP);
-
+        if (H5O_loc_copy(udata->obj_loc->oloc, obj_loc->oloc, H5_COPY_DEEP) < 0)
+            HGOTO_ERROR(H5E_DATASET, H5E_CANTCOPY, NULL, "can't copy object location")
         /* Indicate that the object exists */
         udata->exists = TRUE;
     } /* end else */
@@ -256,8 +256,8 @@ H5G_traverse_ud(const H5G_loc_t *grp_loc/*in,out*/, const H5O_link_t *lnk,
         HGOTO_ERROR(H5E_SYM, H5E_BADVALUE, FAIL, "unable to get object location from ID")
 
     /* Release any previous location information for the object */
-    H5G_loc_free(obj_loc);
-
+    if (H5G_loc_free(obj_loc) < 0)
+        HGOTO_ERROR(H5E_FILE, H5E_CANTFREE, FAIL, "unable to free object location")
     /* Copy new object's location information */
     H5G_loc_copy(obj_loc, &new_loc, H5_COPY_DEEP);
 
@@ -345,7 +345,9 @@ H5G_traverse_slink(const H5G_loc_t *grp_loc, const H5O_link_t *lnk,
 
     /* Hold the object's group hier. path to restore later */
     /* (Part of "tracking the names properly") */
-    H5G_name_copy(&tmp_obj_path, obj_loc->path, H5_COPY_SHALLOW);
+    if (H5G_name_copy(&tmp_obj_path, obj_loc->path, H5_COPY_SHALLOW) < 0) 
+        HGOTO_ERROR(H5E_DATASET, H5E_CANTCOPY, NULL, "can't copy path")
+
     tmp_obj_path_set = TRUE;
 
     /* Set up user data for traversal callback */
@@ -364,13 +366,16 @@ done:
     /* Restore object's group hier. path */
     if(tmp_obj_path_set) {
         H5G_name_free(obj_loc->path);
-        H5G_name_copy(obj_loc->path, &tmp_obj_path, H5_COPY_SHALLOW);
+        if (H5G_name_copy(obj_loc->path, &tmp_obj_path, H5_COPY_SHALLOW) < 0)
+            HGOTO_ERROR(H5E_DATASET, H5E_CANTCOPY, NULL, "can't copy path")
+
     } /* end if */
 
     /* Release cloned copy of group location */
-    if(tmp_grp_loc_set)
-        H5G_loc_free(&tmp_grp_loc);
-
+    if(tmp_grp_loc_set) {
+        if (H5G_loc_free(&tmp_grp_loc) < 0)
+            HGOTO_ERROR(H5E_FILE, H5E_CANTFREE, FAIL, "unable to free object location")
+    }
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5G_traverse_slink() */
 
