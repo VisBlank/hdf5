@@ -685,6 +685,8 @@ H5_get_win32_times(H5_timevals_t *tvs /*in,out*/)
         /* NOTE: This is just a pseudo handle and does not need to be closed. */
         process_handle = GetCurrentProcess();
         err = QueryPerformanceFrequency(&counts_freq);
+        if (0 == err)
+            return -1;
         is_initialized = 1;
     }
 
@@ -697,6 +699,8 @@ H5_get_win32_times(H5_timevals_t *tvs /*in,out*/)
         &ExitTime,
         &KernelTime,
         &UserTime);
+    if(0 == err)
+        return -1;
 
     /* The 1.0E5 factor seems strange but it's due to the clock
      * ticking in 100 ns increments plus a factor of 1000 to
@@ -715,10 +719,13 @@ H5_get_win32_times(H5_timevals_t *tvs /*in,out*/)
      ****************/
 
     err = QueryPerformanceCounter(&counts_start);
+    if (0 == err)
+        return -1;
+
     tvs->elapsed_ps
         = (double)(counts_start.QuadPart * 1.0E12) / (double)counts_freq.QuadPart;
 
-    return tvs;
+    return 0;
 }
 #endif
 
