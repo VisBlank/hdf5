@@ -105,23 +105,29 @@ herr_t
 H5T_print_stats(H5T_path_t UNUSED * path, int UNUSED * nprint/*in,out*/)
 {
 #ifdef H5T_DEBUG
-    hsize_t	nbytes;
-    char	bandwidth[32];
+    hsize_t     nbytes;
+    char        bandwidth[32];
+
+    /* Pretty time strings for debug output */
+    char        *elapsed_string = NULL;
+    char        *system_string = NULL;
+    char        *user_string = NULL;
 #endif
 
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5T_print_stats)
 
 #ifdef H5T_DEBUG
     if(H5DEBUG(T) && path->stats.ncalls > 0) {
-	if(nprint && 0 == (*nprint)++) {
-	    HDfprintf(H5DEBUG(T), "H5T: type conversion statistics:\n");
-	    HDfprintf(H5DEBUG(T), "   %-16s %10s %10s %8s %8s %8s %10s\n",
-		       "Conversion", "Elmts", "Calls", "User",
-		       "System", "Elapsed", "Bandwidth");
-	    HDfprintf(H5DEBUG(T), "   %-16s %10s %10s %8s %8s %8s %10s\n",
-		       "----------", "-----", "-----", "----",
-		       "------", "-------", "---------");
-	}
+        if(nprint && 0 == (*nprint)++) {
+            HDfprintf(H5DEBUG(T), "H5T: type conversion statistics:\n");
+            HDfprintf(H5DEBUG(T), "   %-16s %10s %10s %8s %8s %8s %10s\n",
+                   "Conversion", "Elmts", "Calls", "User",
+                   "System", "Elapsed", "Bandwidth");
+            HDfprintf(H5DEBUG(T), "   %-16s %10s %10s %8s %8s %8s %10s\n",
+                   "----------", "-----", "-----", "----",
+                   "------", "-------", "---------");
+        }
+
         if(path->src && path->dst)
             nbytes = MAX(H5T_get_size(path->src), H5T_get_size(path->dst));
         else if(path->src)
@@ -130,16 +136,26 @@ H5T_print_stats(H5T_path_t UNUSED * path, int UNUSED * nprint/*in,out*/)
             nbytes = H5T_get_size(path->dst);
         else
             nbytes = 0;
-	nbytes *= path->stats.nelmts;
-	H5_bandwidth(bandwidth, (double)nbytes, path->stats.timer.etime);
-	HDfprintf(H5DEBUG(T), "   %-16s %10Hd %10d %8.2f %8.2f %8.2f %10s\n",
-		   path->name,
-		   path->stats.nelmts,
-		   path->stats.ncalls,
-		   path->stats.timer.utime,
-		   path->stats.timer.stime,
-		   path->stats.timer.etime,
-		   bandwidth);
+
+        /* Get pretty time strings for output */
+        user_string = H5_timer_get_time_string(path->stats.times.user_ps);
+        system_string = H5_timer_get_time_string(path->stats.times.system_ps);
+        elapsed_string = H5_timer_get_time_string(path->stats.times.elapsed_ps);
+
+        nbytes *= path->stats.nelmts;
+        H5_bandwidth(bandwidth, (double)nbytes, path->stats.times.elapsed_ps / 1.0E12F);
+        HDfprintf(H5DEBUG(T), "   %-16s %10Hd %10d %8s %8s %8s %10s\n",
+           path->name,
+           path->stats.nelmts,
+           path->stats.ncalls,
+           user_string,
+           system_string,
+           elapsed_string,
+           bandwidth);
+
+        free(user_string);
+        free(system_string);
+        free(elapsed_string);
     }
 #endif
     FUNC_LEAVE_NOAPI(SUCCEED)

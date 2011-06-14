@@ -135,9 +135,14 @@ H5Z_term_interface(void)
 {
 
 #ifdef H5Z_DEBUG
-    size_t          i;
-    int             dir, nprint = 0;
-    char            comment[16], bandwidth[32];
+    size_t      i;
+    int         dir, nprint = 0;
+    char        comment[16], bandwidth[32];
+
+    /* Pretty time strings for debug output */
+    char        *elapsed_string = NULL;
+    char        *system_string = NULL;
+    char        *user_string = NULL;
 #endif
 
     if(H5_interface_initialize_g) {
@@ -175,15 +180,24 @@ H5Z_term_interface(void)
                     H5_bandwidth(bandwidth, (double)(H5Z_stat_table_g[i].stats[dir].total),
                         H5Z_stat_table_g[i].stats[dir].times.elapsed_ps / 1.0E12F);
 
+                    /* Get pretty time strings for output */
+                    user_string = H5_timer_get_time_string(H5Z_stat_table_g[i].stats[dir].times.user_ps);
+                    system_string = H5_timer_get_time_string(H5Z_stat_table_g[i].stats[dir].times.system_ps);
+                    elapsed_string = H5_timer_get_time_string(H5Z_stat_table_g[i].stats[dir].times.elapsed_ps);
+
                     /* Print the statistics */
                     HDfprintf (H5DEBUG(Z), "   %s%-15s %10Hd %10Hd %8s %8s %8s "
                         "%10s\n", dir ? "<" : ">", comment,
                         H5Z_stat_table_g[i].stats[dir].total,
                         H5Z_stat_table_g[i].stats[dir].errors,
-                        H5_timer_get_time_string(H5Z_stat_table_g[i].stats[dir].times.user_ps),
-                        H5_timer_get_time_string(H5Z_stat_table_g[i].stats[dir].times.system_ps),
-                        H5_timer_get_time_string(H5Z_stat_table_g[i].stats[dir].times.elapsed_ps),
+                        user_string,
+                        system_string,
+                        elapsed_string,
                         bandwidth);
+
+                    free(user_string);
+                    free(system_string);
+                    free(elapsed_string);
                 }
             }
         }
