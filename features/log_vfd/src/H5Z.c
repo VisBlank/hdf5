@@ -176,13 +176,13 @@ H5Z_term_interface(void)
                         H5Z_stat_table_g[i].stats[dir].times.elapsed_ps / 1.0E3F);
 
                     /* Print the statistics */
-                    HDfprintf (H5DEBUG(Z), "   %s%-15s %10Hd %10Hd %8.2f %8.2f %8.2f "
+                    HDfprintf (H5DEBUG(Z), "   %s%-15s %10Hd %10Hd %s %s %s "
                         "%10s\n", dir ? "<" : ">", comment,
                         H5Z_stat_table_g[i].stats[dir].total,
                         H5Z_stat_table_g[i].stats[dir].errors,
-                        H5Z_stat_table_g[i].stats[dir].times.user_ps / 1.0E3F,
-                        H5Z_stat_table_g[i].stats[dir].times.system_ps / 1.0E3F,
-                        H5Z_stat_table_g[i].stats[dir].times.elapsed_ps / 1.0E3F,
+                        H5_timer_get_time_string(H5Z_stat_table_g[i].stats[dir].times.user_ps),
+                        H5_timer_get_time_string(H5Z_stat_table_g[i].stats[dir].times.system_ps),
+                        H5_timer_get_time_string(H5Z_stat_table_g[i].stats[dir].times.elapsed_ps),
                         bandwidth);
                 }
             }
