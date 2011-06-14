@@ -173,7 +173,7 @@ H5Z_term_interface(void)
                      * the word `Inf' if the elapsed time is zero.
                      */
                     H5_bandwidth(bandwidth, (double)(H5Z_stat_table_g[i].stats[dir].total),
-                        H5Z_stat_table_g[i].stats[dir].times.elapsed_ps / 1.0E3F);
+                        H5Z_stat_table_g[i].stats[dir].times.elapsed_ps / 1.0E12F);
 
                     /* Print the statistics */
                     HDfprintf (H5DEBUG(Z), "   %s%-15s %10Hd %10Hd %8s %8s %8s "
