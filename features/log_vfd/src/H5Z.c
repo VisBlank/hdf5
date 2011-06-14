@@ -176,7 +176,7 @@ H5Z_term_interface(void)
                         H5Z_stat_table_g[i].stats[dir].times.elapsed_ps / 1.0E3F);
 
                     /* Print the statistics */
-                    HDfprintf (H5DEBUG(Z), "   %s%-15s %10Hd %10Hd %s %s %s "
+                    HDfprintf (H5DEBUG(Z), "   %s%-15s %10Hd %10Hd %8s %8s %8s "
                         "%10s\n", dir ? "<" : ">", comment,
                         H5Z_stat_table_g[i].stats[dir].total,
                         H5Z_stat_table_g[i].stats[dir].errors,
