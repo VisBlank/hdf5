@@ -120,18 +120,21 @@
 double
 H5_trace(const double *returning, const char *func, const char *type, ...)
 {
-    va_list		ap;
-    char		buf[64], *rest;
-    const char		*argname;
-    int			argno = 0, ptr, asize_idx;
-    hssize_t		asize[16];
-    hssize_t		i;
-    void		*vp = NULL;
-    FILE		*out = H5_debug_g.trace;
-    H5_timer_OLD_t          event_time;
-    static H5_timer_OLD_t   first_time = {0.0, 0.0, 0.0};
-    static int          current_depth = 0;
-    static int          last_call_depth = 0;
+    va_list                 ap;
+    char                    buf[64], *rest;
+    const char              *argname;
+    int                     argno = 0, ptr, asize_idx;
+    hssize_t                asize[16];
+    hssize_t                i;
+    void                    *vp = NULL;
+    FILE                    *out = H5_debug_g.trace;
+    static int              is_first_invocation = 1;
+    H5_timer_t              function_timer;
+    H5_timevals_t           function_times;
+    H5_timer_t              running_timer;
+    H5_timevals_t           running_times;
+    static int              current_depth = 0;
+    static int              last_call_depth = 0;
 
     /* FUNC_ENTER() should not be called */
 
@@ -155,14 +158,18 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
         } /* end else */
     } /* end if */
 
-    /* Get tim for event */
-    if(fabs(first_time.etime) < 0.0000000001)
-        /* That is == 0.0, but direct comparison between floats is bad */
-        H5_timer_begin(&first_time);
-    if(H5_debug_g.ttimes)
-        H5_timer_begin(&event_time);
-    else
-        HDmemset(&event_time, 0, sizeof event_time);
+    /* Get time for event if the trace times flag is set */
+    if(is_first_invocation && H5_debug_g.ttimes) {
+        /* start the library-wide timer */
+        is_first_invocation = 0;
+        H5_timer_init(&running_timer);
+        H5_timer_start(&running_timer);
+    }
+    if(H5_debug_g.ttimes) {
+        /* start the timer for this function */
+        H5_timer_init(&function_timer);
+        H5_timer_start(&function_timer);
+    }
 
     /* Print the first part of the line.  This is the indication of the
      * nesting depth followed by the function name and either start of
@@ -177,8 +184,9 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
             /* We are at the beginning of a line */
             if(H5_debug_g.ttimes) {
                 char tmp[128];
-
-                sprintf(tmp, "%.6f", event_time.etime-first_time.etime);
+                H5_timer_get_times(function_timer, &function_times);
+                H5_timer_get_times(running_timer, &running_times);
+                sprintf(tmp, "%.6f", (function_times.elapsed_ps - running_times.elapsed_ps) / 1.0E12);
                 fprintf(out, " %*s ", (int)strlen(tmp), "");
             } /* end if */
             for(i = 0; i < current_depth; i++)
@@ -193,8 +201,11 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
     else {
         if(current_depth>last_call_depth)
             fputs(" = <delayed>\n", out);
-        if(H5_debug_g.ttimes)
-            fprintf(out, "@%.6f ", event_time.etime - first_time.etime);
+        if(H5_debug_g.ttimes) {
+            H5_timer_get_times(function_timer, &function_times);
+            H5_timer_get_times(running_timer, &running_times);
+            fprintf(out, "@%.6f ", (function_times.elapsed_ps - running_times.elapsed_ps) / 1.0E12);
+        }
         for(i = 0; i < current_depth; i++)
             fputc('+', out);
         fprintf(out, "%*s%s(", 2*current_depth, "", func);
@@ -2438,9 +2449,12 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
     } /* end for */
 
     /* Display event time for return */
-    if(returning && H5_debug_g.ttimes)
-        fprintf(out, " @%.6f [dt=%.6f]", (event_time.etime - first_time.etime),
-                (event_time.etime - *returning));
+    if(returning && H5_debug_g.ttimes) {
+        H5_timer_get_times(function_timer, &function_times);
+        H5_timer_get_times(running_timer, &running_times);
+        fprintf(out, " @%.6f [dt=%.6f]", (function_times.elapsed_ps - running_times.elapsed_ps),
+                (function_times.elapsed_ps - *returning));
+    }
 
 error:
     va_end(ap);
@@ -2452,6 +2466,6 @@ error:
     } /* end else */
     HDfflush(out);
 
-    return event_time.etime;
+    return function_times.elapsed_ps;
 } /* end H5_trace() */
 
