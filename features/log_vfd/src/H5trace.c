@@ -131,7 +131,7 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
     static int              is_first_invocation = 1;
     H5_timer_t              function_timer;
     H5_timevals_t           function_times;
-    H5_timer_t              running_timer;
+    static H5_timer_t       running_timer;
     H5_timevals_t           running_times;
     static int              current_depth = 0;
     static int              last_call_depth = 0;
@@ -139,21 +139,21 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
     /* FUNC_ENTER() should not be called */
 
     if(!out)
-        return 0.0;	/*tracing is off*/
+        return 0.0F;	/*tracing is off*/
     va_start(ap, type);
 
     if(H5_debug_g.ttop) {
         if(returning) {
             if(current_depth > 1) {
                 --current_depth;
-                return 0.0;
+                return 0.0F;
             } /* end if */
         } /* end if */
         else {
             if(current_depth > 0) {
                 /*do not update last_call_depth*/
                 current_depth++;
-                return 0.0;
+                return 0.0F;
             } /* end if */
         } /* end else */
     } /* end if */
