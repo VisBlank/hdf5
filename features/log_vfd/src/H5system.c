@@ -648,6 +648,7 @@ Wgettimeofday(struct timeval *tv, struct timezone *tz)
  * Function:    H5_get_win32_times
  *
  * Purpose:     Gets the elapsed, system and user times on Windows platforms.
+ *              All time values are in seconds.
  *
  * Return:      Success:  0
  *              Failure:  -1
@@ -702,17 +703,16 @@ H5_get_win32_times(H5_timevals_t *tvs /*in,out*/)
     if(0 == err)
         return -1;
 
-    /* The 1.0E5 factor seems strange but it's due to the clock
-     * ticking in 100 ns increments plus a factor of 1000 to
-     * convert that to picoseconds.
+    /* The 1.0E7 factor seems strange but it's due to the clock
+     * ticking in 100 ns increments.
      */
     kernel_start.HighPart = KernelTime.dwHighDateTime;
     kernel_start.LowPart = KernelTime.dwLowDateTime;
-    tvs->system_ps = (double)(kernel_start.QuadPart * 1.0E5);
+    tvs->system = (double)(kernel_start.QuadPart / 1.0E7F);
 
     user_start.HighPart = UserTime.dwHighDateTime;
     user_start.LowPart = UserTime.dwLowDateTime;
-    tvs->user_ps = (double)(user_start.QuadPart * 1.0E5);
+    tvs->user = (double)(user_start.QuadPart / 1.0E7F);
 
     /****************
      * Elapsed time *
@@ -722,8 +722,8 @@ H5_get_win32_times(H5_timevals_t *tvs /*in,out*/)
     if (0 == err)
         return -1;
 
-    tvs->elapsed_ps
-        = (double)(counts_start.QuadPart * 1.0E12) / (double)counts_freq.QuadPart;
+    tvs->elapsed
+        = (double)(counts_start.QuadPart) / (double)counts_freq.QuadPart;
 
     return 0;
 }
@@ -733,13 +733,13 @@ H5_get_win32_times(H5_timevals_t *tvs /*in,out*/)
 
 
 /*-------------------------------------------------------------------------
- * Function:    H5_get_mach_time_ps
+ * Function:    H5_get_mach_time_seconds
  *
- * Purpose:     Gets the elapsed time in picoseconds on Mac OS X.
+ * Purpose:     Gets the elapsed time in seconds on Mac OS X.
  *              OS X does not have clock_gettime() so mach_absolute_time()
  *              must be used instead.
  *
- * Return:      Success:  An arbitrary, monotonic time in picoseconds.
+ * Return:      Success:  An arbitrary, monotonic time in seconds.
  *              Failure:  -1.0
  *
  * Programmer:  Dana Robinson
@@ -749,12 +749,12 @@ H5_get_win32_times(H5_timevals_t *tvs /*in,out*/)
  */
 #if defined(H5_HAVE_MACH_MACH_TIME_H)
 double
-H5_get_mach_time_ps()
+H5_get_mach_time_seconds()
 {
-    static double conversion = 0.0;
-    mach_timebase_info_data_t info;
-    kern_return_t err;
-    uint64_t now;
+    static double               conversion = 0.0;
+    mach_timebase_info_data_t   info;
+    kern_return_t               err;
+    uint64_t                    now;
 
     /* Conversion rate for mach ticks to nanoseconds */
     if (0.0 == conversion) {
@@ -767,7 +767,9 @@ H5_get_mach_time_ps()
 
     /* I don't think mach_absolute_time() can fail */
     now = mach_absolute_time();
-    return (double)now * conversion * 1.0E3;
+
+    /* Return the time in seconds */
+    return ((double)now * conversion) / 1.0E9;
 }
 #endif
 

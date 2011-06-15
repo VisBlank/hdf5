@@ -186,7 +186,7 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
                 char tmp[128];
                 H5_timer_get_times(function_timer, &function_times);
                 H5_timer_get_times(running_timer, &running_times);
-                sprintf(tmp, "%.6f", (function_times.elapsed_ps - running_times.elapsed_ps) / 1.0E12);
+                sprintf(tmp, "%.6f", (function_times.elapsed - running_times.elapsed) / 1.0E12);
                 fprintf(out, " %*s ", (int)strlen(tmp), "");
             } /* end if */
             for(i = 0; i < current_depth; i++)
@@ -204,7 +204,7 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
         if(H5_debug_g.ttimes) {
             H5_timer_get_times(function_timer, &function_times);
             H5_timer_get_times(running_timer, &running_times);
-            fprintf(out, "@%.6f ", (function_times.elapsed_ps - running_times.elapsed_ps) / 1.0E12);
+            fprintf(out, "@%.6f ", (function_times.elapsed - running_times.elapsed) / 1.0E12);
         }
         for(i = 0; i < current_depth; i++)
             fputc('+', out);
@@ -2452,8 +2452,8 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
     if(returning && H5_debug_g.ttimes) {
         H5_timer_get_times(function_timer, &function_times);
         H5_timer_get_times(running_timer, &running_times);
-        fprintf(out, " @%.6f [dt=%.6f]", (function_times.elapsed_ps - running_times.elapsed_ps),
-                (function_times.elapsed_ps - *returning));
+        fprintf(out, " @%.6f [dt=%.6f]", (function_times.elapsed - running_times.elapsed),
+                (function_times.elapsed - *returning));
     }
 
 error:
@@ -2466,6 +2466,6 @@ error:
     } /* end else */
     HDfflush(out);
 
-    return function_times.elapsed_ps;
+    return function_times.elapsed;
 } /* end H5_trace() */
 

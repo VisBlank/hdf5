@@ -138,12 +138,12 @@ H5T_print_stats(H5T_path_t UNUSED * path, int UNUSED * nprint/*in,out*/)
             nbytes = 0;
 
         /* Get pretty time strings for output */
-        user_string = H5_timer_get_time_string(path->stats.times.user_ps);
-        system_string = H5_timer_get_time_string(path->stats.times.system_ps);
-        elapsed_string = H5_timer_get_time_string(path->stats.times.elapsed_ps);
+        user_string = H5_timer_get_time_string(path->stats.times.user);
+        system_string = H5_timer_get_time_string(path->stats.times.system);
+        elapsed_string = H5_timer_get_time_string(path->stats.times.elapsed);
 
         nbytes *= path->stats.nelmts;
-        H5_bandwidth(bandwidth, (double)nbytes, path->stats.times.elapsed_ps / 1.0E12F);
+        H5_bandwidth(bandwidth, (double)nbytes, path->stats.times.elapsed / 1.0E12F);
         HDfprintf(H5DEBUG(T), "   %-16s %10Hd %10d %8s %8s %8s %10s\n",
            path->name,
            path->stats.nelmts,

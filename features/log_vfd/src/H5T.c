@@ -4767,9 +4767,9 @@ H5T_convert(H5T_path_t *tpath, hid_t src_id, hid_t dst_id, size_t nelmts,
     if (H5DEBUG(T)) {
         H5_timer_stop(&timer);
         H5_timer_get_times(timer, &times);
-        tpath->stats.times.elapsed_ps = times.elapsed_ps;
-        tpath->stats.times.system_ps  = times.system_ps;
-        tpath->stats.times.user_ps    = times.user_ps;
+        tpath->stats.times.elapsed = times.elapsed;
+        tpath->stats.times.system  = times.system;
+        tpath->stats.times.user    = times.user;
 
         tpath->stats.ncalls++;
         tpath->stats.nelmts += nelmts;

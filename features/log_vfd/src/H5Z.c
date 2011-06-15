@@ -178,12 +178,12 @@ H5Z_term_interface(void)
                      * the word `Inf' if the elapsed time is zero.
                      */
                     H5_bandwidth(bandwidth, (double)(H5Z_stat_table_g[i].stats[dir].total),
-                        H5Z_stat_table_g[i].stats[dir].times.elapsed_ps / 1.0E12F);
+                        H5Z_stat_table_g[i].stats[dir].times.elapsed / 1.0E12F);
 
                     /* Get pretty time strings for output */
-                    user_string = H5_timer_get_time_string(H5Z_stat_table_g[i].stats[dir].times.user_ps);
-                    system_string = H5_timer_get_time_string(H5Z_stat_table_g[i].stats[dir].times.system_ps);
-                    elapsed_string = H5_timer_get_time_string(H5Z_stat_table_g[i].stats[dir].times.elapsed_ps);
+                    user_string = H5_timer_get_time_string(H5Z_stat_table_g[i].stats[dir].times.user);
+                    system_string = H5_timer_get_time_string(H5Z_stat_table_g[i].stats[dir].times.system);
+                    elapsed_string = H5_timer_get_time_string(H5Z_stat_table_g[i].stats[dir].times.elapsed);
 
                     /* Print the statistics */
                     HDfprintf (H5DEBUG(Z), "   %s%-15s %10Hd %10Hd %8s %8s %8s "
@@ -1141,9 +1141,9 @@ H5Z_pipeline(const H5O_pline_t  *pline,
 #ifdef H5Z_DEBUG
             H5_timer_stop(&timer);
             H5_timer_get_times(timer, &times);
-            fstats->stats[1].times.elapsed_ps += times.elapsed_ps;
-            fstats->stats[1].times.system_ps  += times.system_ps;
-            fstats->stats[1].times.user_ps    += times.user_ps;
+            fstats->stats[1].times.elapsed += times.elapsed;
+            fstats->stats[1].times.system  += times.system;
+            fstats->stats[1].times.user    += times.user;
 
             fstats->stats[1].total += MAX(*nbytes, new_nbytes);
             if (0 == new_nbytes)
@@ -1194,9 +1194,9 @@ H5Z_pipeline(const H5O_pline_t  *pline,
 #ifdef H5Z_DEBUG
             H5_timer_stop(&timer);
             H5_timer_get_times(timer, &times);
-            fstats->stats[0].times.elapsed_ps += times.elapsed_ps;
-            fstats->stats[0].times.system_ps  += times.system_ps;
-            fstats->stats[0].times.user_ps    += times.user_ps;
+            fstats->stats[0].times.elapsed += times.elapsed;
+            fstats->stats[0].times.system  += times.system;
+            fstats->stats[0].times.user    += times.user;
 
             fstats->stats[0].total += MAX(*nbytes, new_nbytes);
             if (0 == new_nbytes)

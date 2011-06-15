@@ -212,9 +212,9 @@ _timer_get_timevals(H5_timevals_t *times /*in,out*/)
 #if defined(_WIN32)
     err = H5_get_win32_times(times);
     if(err < 0) {
-        times->elapsed_ps   = -1;
-        times->system_ps    = -1;
-        times->user_ps      = -1;
+        times->elapsed   = -1;
+        times->system    = -1;
+        times->user      = -1;
         return -1;
     }
     else {
@@ -232,15 +232,15 @@ _timer_get_timevals(H5_timevals_t *times /*in,out*/)
     err = getrusage(RUSAGE_SELF, &res);
     if(err < 0)
         return -1;
-    times->system_ps = ((double)res.ru_stime.tv_sec * 1.0E9F) + ((double)res.ru_stime.tv_usec * 1.0E3F);
-    times->user_ps   = ((double)res.ru_utime.tv_sec * 1.0E9F) + ((double)res.ru_utime.tv_usec * 1.0E3F);
+    times->system = (double)res.ru_stime.tv_sec + ((double)res.ru_stime.tv_usec / 1.0E6F);
+    times->user   = (double)res.ru_utime.tv_sec + ((double)res.ru_utime.tv_usec / 1.0E6F);
 
 #else
 
     /* No suitable way to get system/user times */
     /* This is not an error condition, they just won't be available */
-    times->system_ps = -1.0;
-    times->user_ps   = -1.0;
+    times->system = -1.0;
+    times->user   = -1.0;
 
 #endif
 
@@ -256,8 +256,8 @@ _timer_get_timevals(H5_timevals_t *times /*in,out*/)
 #if defined(H5_HAVE_MACH_MACH_TIME_H)
 
     /* Mac OS X */
-    times->elapsed_ps = H5_get_mach_time_ps();
-    if(times->elapsed_ps < 0.0)
+    times->elapsed = H5_get_mach_time_seconds();
+    if(times->elapsed < 0.0)
         return -1;
 
 #elif defined(H5_HAVE_CLOCK_GETTIME)
@@ -265,7 +265,7 @@ _timer_get_timevals(H5_timevals_t *times /*in,out*/)
     err = clock_gettime(CLOCK_MONOTONIC, &ts);
     if(err != 0)
         return -1;
-    times->elapsed_ps = ((double)ts.tv_sec * 1.0E12F) + ((double)ts.tv_nsec * 1.0E3F);
+    times->elapsed = (double)ts.tv_sec + ((double)ts.tv_nsec / 1.0E9F);
 
 #else
 
@@ -318,8 +318,8 @@ _timer_get_timevals(H5_timevals_t *times /*in,out*/)
  *                    functions on a running timer, that overhead will be
  *                    added to the reported times.
  *
- *              5) All times recorded will be in picoseconds (ps).  These can
- *                 be converted into human-readable strings with the
+ *              5) All times recorded will be in seconds.  These can be
+ *                 converted into human-readable strings with the
  *                 H5_timer_get_time_string() function.
  *
  *              6) A timer can be reset using by calling H5_timer_init() on
@@ -342,17 +342,17 @@ H5_timer_init(H5_timer_t *timer /*in,out*/)
 
     /* Initialize everything */
 
-    timer->initial.elapsed_ps = 0.0F;
-    timer->initial.system_ps  = 0.0F;
-    timer->initial.user_ps    = 0.0F;
+    timer->initial.elapsed = 0.0F;
+    timer->initial.system  = 0.0F;
+    timer->initial.user    = 0.0F;
 
-    timer->final_interval.elapsed_ps = 0.0F;
-    timer->final_interval.system_ps  = 0.0F;
-    timer->final_interval.user_ps    = 0.0F;
+    timer->final_interval.elapsed = 0.0F;
+    timer->final_interval.system  = 0.0F;
+    timer->final_interval.user    = 0.0F;
 
-    timer->total.elapsed_ps = 0.0F;
-    timer->total.system_ps  = 0.0F;
-    timer->total.user_ps    = 0.0F;
+    timer->total.elapsed = 0.0F;
+    timer->total.system  = 0.0F;
+    timer->total.user    = 0.0F;
 
     timer->is_running       = 0;
 
@@ -431,14 +431,14 @@ H5_timer_stop(H5_timer_t *timer /*in,out*/)
     /* The "final" times are stored as intervals (final - initial)
      * for more useful reporting to the user.
      */
-    timer->final_interval.elapsed_ps = timer->final_interval.elapsed_ps - timer->initial.elapsed_ps;
-    timer->final_interval.system_ps  = timer->final_interval.system_ps  - timer->initial.system_ps;
-    timer->final_interval.user_ps    = timer->final_interval.user_ps    - timer->initial.user_ps;
+    timer->final_interval.elapsed = timer->final_interval.elapsed - timer->initial.elapsed;
+    timer->final_interval.system  = timer->final_interval.system  - timer->initial.system;
+    timer->final_interval.user    = timer->final_interval.user    - timer->initial.user;
 
     /* Add the intervals to the elapsed time */
-    timer->total.elapsed_ps += timer->final_interval.elapsed_ps;
-    timer->total.system_ps  += timer->final_interval.system_ps;
-    timer->total.user_ps    += timer->final_interval.user_ps;
+    timer->total.elapsed += timer->final_interval.elapsed;
+    timer->total.system  += timer->final_interval.system;
+    timer->total.user    += timer->final_interval.user;
 
     timer->is_running = 0;
 
@@ -451,10 +451,10 @@ H5_timer_stop(H5_timer_t *timer /*in,out*/)
 /*-------------------------------------------------------------------------
  * Function:    H5_timer_get_times
  *
- * Purpose:     Get the system, user and elapsed times (in picoseconds) 
- *              from a timer.  These are the times since the timer was last
- *              started and will be 0.0 in a timer that has not been started
- *              since it was initialized.
+ * Purpose:     Get the system, user and elapsed times from a timer.  These
+ *              are the times since the timer was last started and will be
+ *              0.0 in a timer that has not been started since it was
+ *              initialized.
  *
  *              This function can be called either before or after 
  *              H5_timer_stop() has been called.  If it is called before the
@@ -489,15 +489,15 @@ H5_timer_get_times(H5_timer_t timer, H5_timevals_t *times /*in,out*/)
         if(err < 0)
             return -1;
 
-        times->elapsed_ps = now.elapsed_ps - timer.initial.elapsed_ps;
-        times->system_ps  = now.system_ps  - timer.initial.system_ps;
-        times->user_ps    = now.user_ps    - timer.initial.user_ps;
+        times->elapsed = now.elapsed - timer.initial.elapsed;
+        times->system  = now.system  - timer.initial.system;
+        times->user    = now.user    - timer.initial.user;
 
     }
     else {
-        times->elapsed_ps = timer.final_interval.elapsed_ps;
-        times->system_ps  = timer.final_interval.system_ps;
-        times->user_ps    = timer.final_interval.user_ps;
+        times->elapsed = timer.final_interval.elapsed;
+        times->system  = timer.final_interval.system;
+        times->user    = timer.final_interval.user;
     }
 
     return 0;
@@ -550,15 +550,15 @@ H5_timer_get_total_times(H5_timer_t timer, H5_timevals_t *times /*in,out*/)
         if(err < 0)
             return -1;
 
-        times->elapsed_ps = timer.total.elapsed_ps + (now.elapsed_ps - timer.initial.elapsed_ps);
-        times->system_ps  = timer.total.system_ps  + (now.system_ps  - timer.initial.system_ps);
-        times->user_ps    = timer.total.user_ps    + (now.user_ps    - timer.initial.user_ps);
+        times->elapsed = timer.total.elapsed + (now.elapsed - timer.initial.elapsed);
+        times->system  = timer.total.system  + (now.system  - timer.initial.system);
+        times->user    = timer.total.user    + (now.user    - timer.initial.user);
 
     }
     else {
-        times->elapsed_ps = timer.total.elapsed_ps;
-        times->system_ps  = timer.total.system_ps;
-        times->user_ps    = timer.total.user_ps;
+        times->elapsed = timer.total.elapsed;
+        times->system  = timer.total.system;
+        times->user    = timer.total.user;
     }
 
     return 0;
@@ -570,8 +570,8 @@ H5_timer_get_total_times(H5_timer_t timer, H5_timevals_t *times /*in,out*/)
 /*-------------------------------------------------------------------------
  * Function:    H5_timer_get_time_string
  *
- * Purpose:     Converts a time (in picoseconds) into a human-readable
- *              string suitable for log messages.
+ * Purpose:     Converts a time (in seconds) into a human-readable string
+ *              suitable for log messages.
  *
  * Return:      Success:  The time string.
  *
@@ -600,65 +600,84 @@ H5_timer_get_total_times(H5_timer_t timer, H5_timevals_t *times /*in,out*/)
 #define H5TIMER_TIME_STRING_LEN 256
 
 char *
-H5_timer_get_time_string(double ps)
+H5_timer_get_time_string(double seconds)
 {
-
-    double hours    = 0.0F;
-    double minutes  = 0.0F;
-    double seconds  = 0.0F;
-
-    double display_hours    = 0.0F;
-    double display_minutes  = 0.0F;
-    double display_seconds  = 0.0F;
-
-    double fake_intpart;
-
     char *s;                /* output string */
+
+    /* Used when the time is greater than 59 seconds */
+    double days;
+    double hours;
+    double minutes;
+    double remainder_sec;
+    double conversion;
+
+    if (seconds > 60.0F) {
+
+        remainder_sec = seconds;
+
+        /* Extract days */
+        conversion = 24.0F * 60.0F * 60.0F;  /* seconds per day */
+        days = floor(remainder_sec / conversion);
+        remainder_sec = remainder_sec - (days * conversion);
+
+        /* Extract hours */
+        conversion = 60.0F * 60.0F;
+        hours = floor(remainder_sec / conversion);
+        remainder_sec = remainder_sec - (hours * conversion);
+
+        /* Extract minutes */
+        conversion = 60.0F;
+        minutes = floor(remainder_sec / conversion);
+        remainder_sec = remainder_sec - (minutes * conversion);
+
+        /* The # of seconds left is stored in remainder_sec */
+    }
 
     /* Initialize */
     s = (char *)calloc(H5TIMER_TIME_STRING_LEN, sizeof(char));
     if(NULL == s)
         return NULL;
 
-    if(ps > 0.0F) {
-
-        seconds = ps / 1.0E12F;
-
-        hours   = seconds / 3600.0F;
-        display_hours = floor(hours);
-
-        minutes = modf(hours, &fake_intpart) * 60.0F;
-        display_minutes = floor(minutes);
-
-        display_seconds = modf(minutes, &fake_intpart) * 60.0F;
-    }
-
     /* Do we need a format string? Some people might like a certain 
      * number of milliseconds or s before spilling to the next highest
      * time unit.  Perhaps this could be passed as an integer.
      * (name? round_up_size? ?)
      */
-    if(ps < 0.0F) {
+    if(seconds < 0.0F) {
         sprintf(s, "N/A");
-    }else if(ps < 1.0E6F) {
-        /* t < 1 us, Print time in ns */
-        sprintf(s, "%.f ns", ps / 1.0E3F);
-    } else if (ps < 1.0E9F) {
-        /* t < 1 ms, Print time in us */
-        sprintf(s, "%.1f us", ps / 1.0E6F);
-    } else if (ps < 1.0E12F) {
-        /* t < 1 s, Print time in ms */
-        sprintf(s, "%.1f ms", ps / 1.0E9F);
-    } else if (ps < 1.0E12F * 60) {
-        /* t < 1 m, Print time in s */
-        sprintf(s, "%.2f s", display_seconds);
-    } else if (ps < 1.0E12F * 60 * 60) {
-        /* t < 1 h, Print time in m and s */
-        sprintf(s, "%.f m %.f s", display_minutes, display_seconds);
-    } else {
-        /* Print time in h, m and s */
-        sprintf(s, "%.f h %.f m %.f s", display_hours, display_minutes, display_seconds);
     }
+    else if(0.0F == seconds) {
+        sprintf(s, "0.0 s");
+    }
+    else if(seconds < 1.0E-6F) {
+        /* t < 1 us, Print time in ns */
+        sprintf(s, "%.f ns", seconds * 1.0E9F);
+    }
+    else if (seconds < 1.0E-3F) {
+        /* t < 1 ms, Print time in us */
+        sprintf(s, "%.1f us", seconds * 1.0E6F);
+    }
+    else if (seconds < 1.0F) {
+        /* t < 1 s, Print time in ms */
+        sprintf(s, "%.1f ms", seconds * 1.0E3F);
+    }
+    else if (seconds < 60.0F) {
+        /* t < 1 m, Print time in s */
+        sprintf(s, "%.2f s", seconds);
+    }
+    else if (seconds < 60.0F * 60.0F) {
+        /* t < 1 h, Print time in m and s */
+        sprintf(s, "%.f m %.f s", minutes, remainder_sec);
+    }
+    else if (seconds < 24.0F * 60.0F * 60.0F) {
+        /* Print time in h, m and s */
+        sprintf(s, "%.f h %.f m %.f s", hours, minutes, remainder_sec);
+    }
+    else {
+        /* Print time in d, h, m and s */
+        sprintf(s, "%.f d %.f h %.f m %.f s", days, hours, minutes, remainder_sec);
+    }
+
 
     return s;
 }

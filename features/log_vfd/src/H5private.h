@@ -454,9 +454,9 @@ typedef struct {
  * platform-independent timers.
  */
 typedef struct {
-    double user_ps;      /* User time in picoseconds */
-    double system_ps;    /* System time in picoseconds */
-    double elapsed_ps;   /* Elapsed (wall clock) time in picoseconds */
+    double user;      /* User time in seconds */
+    double system;    /* System time in seconds */
+    double elapsed;   /* Elapsed (wall clock) time in seconds */
 } H5_timevals_t;
 
 /* Timer structure for platform-independent timers */
@@ -482,12 +482,12 @@ H5_DLL herr_t H5_timer_start(H5_timer_t *timer /*in,out*/);
 H5_DLL herr_t H5_timer_stop(H5_timer_t *timer /*in,out*/);
 H5_DLL herr_t H5_timer_get_times(H5_timer_t timer, H5_timevals_t *times /*in,out*/);
 H5_DLL herr_t H5_timer_get_total_times(H5_timer_t timer, H5_timevals_t *times /*in,out*/);
-H5_DLL char * H5_timer_get_time_string(double ps);
+H5_DLL char * H5_timer_get_time_string(double seconds);
 
 /* Required for Mac OS X timer functionality */
 #if defined(H5_HAVE_MACH_MACH_TIME_H)
 #include <mach/mach_time.h>
-double H5_get_mach_time_ps();   /* From H5system.c */
+double H5_get_mach_time_seconds();   /* From H5system.c */
 #endif
 
 /* Depth of object copy */
