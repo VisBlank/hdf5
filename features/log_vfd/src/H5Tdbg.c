@@ -143,7 +143,7 @@ H5T_print_stats(H5T_path_t UNUSED * path, int UNUSED * nprint/*in,out*/)
         elapsed_string = H5_timer_get_time_string(path->stats.times.elapsed);
 
         nbytes *= path->stats.nelmts;
-        H5_bandwidth(bandwidth, (double)nbytes, path->stats.times.elapsed / 1.0E12F);
+        H5_bandwidth(bandwidth, (double)nbytes, path->stats.times.elapsed);
         HDfprintf(H5DEBUG(T), "   %-16s %10Hd %10d %8s %8s %8s %10s\n",
            path->name,
            path->stats.nelmts,

@@ -178,7 +178,7 @@ H5Z_term_interface(void)
                      * the word `Inf' if the elapsed time is zero.
                      */
                     H5_bandwidth(bandwidth, (double)(H5Z_stat_table_g[i].stats[dir].total),
-                        H5Z_stat_table_g[i].stats[dir].times.elapsed / 1.0E12F);
+                        H5Z_stat_table_g[i].stats[dir].times.elapsed);
 
                     /* Get pretty time strings for output */
                     user_string = H5_timer_get_time_string(H5Z_stat_table_g[i].stats[dir].times.user);
