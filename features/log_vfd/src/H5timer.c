@@ -26,90 +26,6 @@
 #include "H5private.h"
 
 
-
-
-/*-------------------------------------------------------------------------
- * Function: H5_timer_begin
- *
- * Purpose: Initialize a timer to time something.
- *
- * Return: void
- *
- * Programmer: Robb Matzke
- *             Thursday, April 16, 1998
- *-------------------------------------------------------------------------
- */
-void
-H5_timer_begin (H5_timer_OLD_t *timer)
-{
-
-#ifdef H5_HAVE_GETRUSAGE
-    struct rusage     rusage;
-#endif
-
-#ifdef H5_HAVE_GETTIMEOFDAY
-    struct timeval    etime;
-#endif
-
-    assert (timer);
-
-#ifdef H5_HAVE_GETRUSAGE
-    HDgetrusage (RUSAGE_SELF, &rusage);
-    timer->utime = (double)rusage.ru_utime.tv_sec +
-                   ((double)rusage.ru_utime.tv_usec / 1.0e6F);
-    timer->stime = (double)rusage.ru_stime.tv_sec +
-                   ((double)rusage.ru_stime.tv_usec / 1.0e6F);
-#else
-    timer->utime = 0.0F;
-    timer->stime = 0.0F;
-#endif
-
-#ifdef H5_HAVE_GETTIMEOFDAY
-    HDgettimeofday (&etime, NULL);
-    timer->etime = (double)etime.tv_sec + ((double)etime.tv_usec / 1.0e6F);
-#else
-    timer->etime = 0.0F;
-#endif
-
-} /* end H5_timer_begin() */
-
-
-/*-------------------------------------------------------------------------
- * Function:	H5_timer_end
- *
- * Purpose:	This function should be called at the end of a timed region.
- *		The SUM is an optional pointer which will accumulate times.
- *		TMS is the same struct that was passed to H5_timer_start().
- *		On return, TMS will contain total times for the timed region.
- *
- * Return:	void
- *
- * Programmer:	Robb Matzke
- *              Thursday, April 16, 1998
- *
- * Modifications:
- *
- *-------------------------------------------------------------------------
- */
-void
-H5_timer_end (H5_timer_OLD_t *sum/*in,out*/, H5_timer_OLD_t *timer/*in,out*/)
-{
-    H5_timer_OLD_t      now;
-
-    assert (timer);
-    H5_timer_begin (&now);
-
-    timer->utime = MAX(0.0F, now.utime - timer->utime);
-    timer->stime = MAX(0.0F, now.stime - timer->stime);
-    timer->etime = MAX(0.0F, now.etime - timer->etime);
-
-    if (sum) {
-        sum->utime += timer->utime;
-        sum->stime += timer->stime;
-        sum->etime += timer->etime;
-    }
-} /* end H5_timer_end() */
-
 
 /*-------------------------------------------------------------------------
  * Function: H5_bandwidth

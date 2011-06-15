@@ -443,13 +443,6 @@
 
 /* Data types and functions for timing certain parts of the library. */
 
-/* DEPRECATED  old timer structure DEPRECATED */
-typedef struct {
-    double  utime;      /*user time, (requires sys/resource.h)*/
-    double  stime;      /*system time, (requires sys/resource.h)*/
-    double  etime;      /*elapsed wall-clock time, (requires gettimeofday())*/
-} H5_timer_OLD_t;
-
 /* A set of elapsed/user/system times emitted as a time point by the
  * platform-independent timers.
  */
@@ -468,15 +461,10 @@ typedef struct {
     int             has_user_system_times;
 } H5_timer_t;
 
-/* OLD - will be removed */
-H5_DLL void H5_timer_begin (H5_timer_OLD_t *timer);
-H5_DLL void H5_timer_end (H5_timer_OLD_t *sum/*in,out*/,
-                          H5_timer_OLD_t *timer/*in,out*/);
-
-/* UNCHANGED for now */
+/* Returns library bandwidth as a pretty string */
 H5_DLL void H5_bandwidth(char *buf/*out*/, double nbytes, double nseconds);
 
-/* NEW - will replace the OLD functions */
+/* Timer functionality */
 H5_DLL herr_t H5_timer_init(H5_timer_t *timer /*in,out*/);
 H5_DLL herr_t H5_timer_start(H5_timer_t *timer /*in,out*/);
 H5_DLL herr_t H5_timer_stop(H5_timer_t *timer /*in,out*/);
@@ -484,7 +472,7 @@ H5_DLL herr_t H5_timer_get_times(H5_timer_t timer, H5_timevals_t *times /*in,out
 H5_DLL herr_t H5_timer_get_total_times(H5_timer_t timer, H5_timevals_t *times /*in,out*/);
 H5_DLL char * H5_timer_get_time_string(double seconds);
 
-/* Required for Mac OS X timer functionality */
+/* Required for Mac OS X timers */
 #if defined(H5_HAVE_MACH_MACH_TIME_H)
 #include <mach/mach_time.h>
 double H5_get_mach_time_seconds();   /* From H5system.c */
