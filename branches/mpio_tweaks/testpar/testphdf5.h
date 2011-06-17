@@ -173,6 +173,13 @@ enum H5TEST_COLL_CHUNK_API {API_NONE=0,API_LINK_HARD,
 #define TEST_ACTUAL_IO_LINK_CHUNK                       9
 #define TEST_ACTUAL_IO_CONTIGUOUS                       10
 
+/* Optimization modes for test_optimization_mode */
+#define LINK_CHUNK_AUTO             0
+#define LINK_CHUNK_FORCED           1
+#define MULTI_CHUNK_AUTO            2
+#define MULTI_CHUNK_AUTO_IRREGULAR  3
+#define MULTI_CHUNK_NO_OPT_FORCED   4
+
 /* Don't erase these lines, they are put here for debugging purposes */
 /*
 #define MSPACE1_RANK     1
@@ -236,6 +243,7 @@ void extend_readInd(void);
 void extend_readAll(void);
 void none_selection_chunk(void);
 void actual_io_mode_tests(void);
+void optimization_mode_tests(void);
 void test_chunk_alloc(void);
 void test_filter_read(void);
 void compact_dataset(void);
@@ -267,6 +275,7 @@ void link_chunk_collective_io_test(void);
 void contig_hyperslab_dr_pio_test(ShapeSameTestMethods sstest_type);
 void checker_board_hyperslab_dr_pio_test(ShapeSameTestMethods sstest_type);
 void test_actual_io_mode(int selection_mode);
+void test_optimization_mode(int opt_mode);
 #ifdef H5_HAVE_FILTER_DEFLATE
 void compress_readAll(void);
 #endif /* H5_HAVE_FILTER_DEFLATE */

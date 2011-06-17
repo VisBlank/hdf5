@@ -208,11 +208,11 @@ H5D_mpio_opt_possible(const H5D_io_info_t *io_info, const H5S_t *file_space,
     } /* end if */
 
     /* Can't currently handle point selections */
-    if(H5S_SEL_POINTS == H5S_GET_SELECT_TYPE(mem_space)
-            || H5S_SEL_POINTS == H5S_GET_SELECT_TYPE(file_space)) {
-        local_opinion = FALSE;
-        goto broadcast;
-    } /* end if */
+//    if(H5S_SEL_POINTS == H5S_GET_SELECT_TYPE(mem_space)
+//            || H5S_SEL_POINTS == H5S_GET_SELECT_TYPE(file_space)) {
+//        local_opinion = FALSE;
+//        goto broadcast;
+//    } /* end if */
 
     /* Dataset storage must be contiguous or chunked */
     if(!(io_info->dset->shared->layout.type == H5D_CONTIGUOUS ||

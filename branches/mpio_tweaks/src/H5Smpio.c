@@ -47,6 +47,8 @@ static herr_t H5S_mpio_hyper_type(const H5S_t *space, size_t elmt_size,
     MPI_Datatype *new_type, int *count, hbool_t *is_derived_type);
 static herr_t H5S_mpio_span_hyper_type(const H5S_t *space, size_t elmt_size,
     MPI_Datatype *new_type, int *count, hbool_t *is_derived_type);
+static herr_t H5S_mpio_point_type(const H5S_t *space, size_t elmt_size,
+    MPI_Datatype *new_type, int *count, hbool_t *is_derived_type);
 static herr_t H5S_obtain_datatype(const hsize_t down[], H5S_hyper_span_t* span,
     const MPI_Datatype *elmt_type, MPI_Datatype *span_type, size_t elmt_size);
 
@@ -187,7 +189,7 @@ H5S_mpio_hyper_type(const H5S_t *space, size_t elmt_size,
 
     /* Abbreviate args */
     diminfo = sel_iter.u.hyp.diminfo;
-    HDassert(diminfo);
+    assert(diminfo);
 
     /* make a local copy of the dimension info so we can operate with them */
 
@@ -479,7 +481,7 @@ done:
 
 
 /*-------------------------------------------------------------------------
- * Function:	H5S_obtain datatype
+ * Function:	H5S_obtain_datatype
  *
  * Purpose:	Obtain an MPI derived datatype based on span-tree
  *              implementation
@@ -656,6 +658,75 @@ done:
 
 
 /*-------------------------------------------------------------------------
+ * Function:	H5S_mpio_point_type
+ *
+ * Purpose:	
+ *
+ * Return:	non-negative on success, negative on failure.
+ *
+ * Outputs:	
+ *      *new_type	  the MPI type corresponding to the selection
+ *		*count		  how many objects of the new_type in selection
+ *				  (useful if this is the buffer type for xfer)
+ *		*is_derived_type  0 if MPI primitive type, 1 if derived
+ *
+ * Programmer:  Jacob Gruber (June 2011)
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t H5S_mpio_point_type(const H5S_t *space, size_t elmt_size,
+    MPI_Datatype *new_type, int *count, hbool_t *is_derived_type)
+{
+    MPI_Datatype    elmt_type;      /* MPI datatype for an element */
+    int             *offsets;
+    int             *blocklens;
+    H5S_pnt_node_t *node;
+    unsigned        u=0;
+    int             mpi_code;
+    herr_t          ret_value=SUCCEED;
+
+    FUNC_ENTER_NOAPI_NOINIT(H5S_mpio_point_type)
+
+    /* Check args */
+    HDassert(space);
+    HDassert(space->extent.size);
+    
+    /* Create the base type for an element */
+    if(MPI_SUCCESS != (mpi_code = MPI_Type_contiguous((int)elmt_size, MPI_BYTE, &elmt_type)))
+        HMPI_GOTO_ERROR(FAIL, "MPI_Type_contiguous failed", mpi_code)
+    
+    /* Allocate memory for linear offsets */
+    if (NULL == (offsets = (int *)H5MM_malloc(space->select.num_elem * sizeof(int))))
+        HGOTO_ERROR(H5E_DATASPACE, H5E_CANTALLOC, FAIL, "can't allocate array of offsets")
+
+    /* Allocate memory for block lengths */
+    if (NULL == (blocklens = (int *)H5MM_malloc(sizeof(int) * space->select.num_elem)))
+        HGOTO_ERROR(H5E_DATASPACE, H5E_CANTALLOC, FAIL, "can't allocate array of block lengths")
+
+    /* Find linear offsets of each point */
+    node = space->select.sel_info.pnt_lst->head;
+    while(node) {
+        blocklens[u] = elmt_size;
+        offsets[u++] = H5V_array_offset(space->extent.rank, space->extent.size, node->pnt);
+        node = node->next;
+    }
+
+    /* Create derived datatype */
+    mpi_code = MPI_Type_indexed(space->select.num_elem, blocklens, offsets, elmt_type, new_type);
+    if (mpi_code < 0)
+        HMPI_GOTO_ERROR(FAIL, "MPI_Type_indexed failed", mpi_code)
+
+    /* Fill in remaining return values */
+    *count = 1;
+    *is_derived_type = TRUE;
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+}
+
+
+
+/*-------------------------------------------------------------------------
  * Function:	H5S_mpio_space_type
  *
  * Purpose:	Translate an HDF5 dataspace selection into an MPI type.
@@ -701,8 +772,8 @@ H5S_mpio_space_type(const H5S_t *space, size_t elmt_size,
                     break;
 
                 case H5S_SEL_POINTS:
-                    /* not yet implemented */
-                    ret_value = FAIL;
+                    if(H5S_mpio_point_type(space, elmt_size, new_type, count, is_derived_type) < 0)
+                        HGOTO_ERROR(H5E_DATASPACE, H5E_BADTYPE, FAIL,"couldn't convert 'point' selection to MPI type")
                     break;
 
                 case H5S_SEL_HYPERSLABS:

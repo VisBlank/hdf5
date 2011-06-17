@@ -342,7 +342,7 @@ int main(int argc, char **argv)
      * calls.  By then, MPI calls may not work.
      */
     if (H5dont_atexit() < 0){
-	printf("Failed to turn off atexit processing. Continue.\n", mpi_rank);
+	printf("Failed to turn off atexit processing. Continue.\n");
     };
     H5open();
     h5_show_hostname();
@@ -500,6 +500,10 @@ int main(int argc, char **argv)
 
     AddTest("actualio", actual_io_mode_tests, NULL,
             "test actual io mode proprerty",
+            PARATESTFILE);
+
+    AddTest("optmode", optimization_mode_tests, NULL,
+            "test the decision process for optimization",
             PARATESTFILE);
 
     /* Display testing information */

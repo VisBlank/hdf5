@@ -690,12 +690,15 @@ H5FD_mpiposix_open(const char *name, unsigned flags, hid_t fapl_id,
         if(file_package.fd<0) {
             printf("%d %s \n",errno, strerror(errno));
         }
+        /* If the file pointer is bad, dont try to run stat.
+         * Instead of throwing an error here, all process throw one simulatenously
+         * after the Bcast tp avoid hanging
+         */
         if(file_package.fd>=0) {
             if (HDfstat(file_package.fd, &file_package.sb)<0)
                 HGOTO_ERROR(H5E_FILE, H5E_BADFILE, NULL, "unable to fstat file")
         }
-    }
- /* end if */
+    } /* end if */
 
     /* Broadcast the results of the open() from process 0 */
     /* This is necessary because of the "tentative open" code in H5F_open()
@@ -708,8 +711,8 @@ H5FD_mpiposix_open(const char *name, unsigned flags, hid_t fapl_id,
      */
     if (MPI_SUCCESS != (mpi_code= MPI_Bcast(&file_package, sizeof(int) + sizeof(h5_stat_t), MPI_BYTE, 0, comm_dup)))
         HMPI_GOTO_ERROR(NULL, "MPI_Bcast failed", mpi_code)
-    /* If the file open on process 0 failed, bail out on all processes now */
 
+    /* If the file open on process 0 failed, bail out on all processes now */
     if(file_package.fd<0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to open file")
 
@@ -719,8 +722,7 @@ H5FD_mpiposix_open(const char *name, unsigned flags, hid_t fapl_id,
         if ((file_package.fd=HDopen(name, o_flags, 0666))<0)
             HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to open file")
     } /* end if */
-    /* Process 0 fstat()s the file and broadcasts the results to the other processes */
-
+    
 #ifdef H5_HAVE_GPFS
     if (fa->use_gpfs) {
         /*
@@ -786,6 +788,13 @@ H5FD_mpiposix_open(const char *name, unsigned flags, hid_t fapl_id,
     file->inode = file_package.sb.st_ino;
 #endif
 
+    /* If the file was truncated, make sure all processes have opened it
+     * before continuing 
+     */
+    if (H5F_ACC_TRUNC & flags) {
+        MPI_Barrier(file->comm);
+    }
+
     /* Indicate success */
     ret_value=(H5FD_t *)file;
 
@@ -834,8 +843,6 @@ H5FD_mpiposix_close(H5FD_t *_file)
     if (HDclose(file->fd)<0)
         HGOTO_ERROR(H5E_IO, H5E_CANTCLOSEFILE, FAIL, "unable to close file")
 
-    /* make sure all processes have closed the file before returning. */
-    MPI_Barrier(file->comm);
     /* Clean up other stuff */
     MPI_Comm_free(&file->comm);
     H5MM_xfree(file);
