@@ -44,30 +44,30 @@ main(int argc, char *argv[])
     TestInit(argv[0], NULL, NULL);
 
     /* Tests are generally arranged from least to most complexity... */
-    AddTest("config", test_configure, cleanup_configure, "Configure definitions", NULL);
-    AddTest("metadata", test_metadata, cleanup_metadata, "Encoding/decoding metadata", NULL);
-    AddTest("checksum", test_checksum, cleanup_checksum, "Checksum algorithm", NULL);
-    AddTest("tst", test_tst, NULL,  "Ternary Search Trees", NULL);
-    AddTest("heap", test_heap, NULL,  "Memory Heaps", NULL);
-    AddTest("skiplist", test_skiplist, NULL,  "Skip Lists", NULL);
-    AddTest("refstr", test_refstr, NULL,  "Reference Counted Strings", NULL);
-    AddTest("file", test_file, cleanup_file, "Low-Level File I/O", NULL);
-    AddTest("objects", test_h5o, cleanup_h5o, "Generic Object Functions", NULL);
-    AddTest("h5s",  test_h5s,  cleanup_h5s,  "Dataspaces", NULL);
-    AddTest("coords",  test_coords,  cleanup_coords,  "Dataspace coordinates", NULL);
-    AddTest("sohm", test_sohm, cleanup_sohm,  "Shared Object Header Messages", NULL);
-    AddTest("attr", test_attr, cleanup_attr,  "Attributes", NULL);
-    AddTest("select", test_select, cleanup_select,  "Selections", NULL);
-    AddTest("time", test_time, cleanup_time,  "Time Datatypes", NULL);
-    AddTest("reference", test_reference, cleanup_reference,  "References", NULL);
-    AddTest("vltypes", test_vltypes, cleanup_vltypes,  "Variable-Length Datatypes", NULL);
-    AddTest("vlstrings", test_vlstrings, cleanup_vlstrings,  "Variable-Length Strings", NULL);
-    AddTest("iterate", test_iterate, cleanup_iterate,  "Group & Attribute Iteration", NULL);
     AddTest("array", test_array, cleanup_array,  "Array Datatypes", NULL);
+    AddTest("attr", test_attr, cleanup_attr,  "Attributes", NULL);
+    AddTest("checksum", test_checksum, cleanup_checksum, "Checksum algorithm", NULL);
+    AddTest("config", test_configure, cleanup_configure, "Configure definitions", NULL);
+    AddTest("coords",  test_coords,  cleanup_coords,  "Dataspace coordinates", NULL);
+    AddTest("file", test_file, cleanup_file, "Low-Level File I/O", NULL);
     AddTest("genprop", test_genprop, cleanup_genprop,  "Generic Properties", NULL);
-    AddTest("unicode", test_unicode, cleanup_unicode,  "UTF-8 Encoding", NULL);
+    AddTest("h5s",  test_h5s,  cleanup_h5s,  "Dataspaces", NULL);
+    AddTest("heap", test_heap, NULL,  "Memory Heaps", NULL);
     AddTest("id", test_ids, NULL,  "User-Created Identifiers", NULL);
+    AddTest("iterate", test_iterate, cleanup_iterate,  "Group & Attribute Iteration", NULL);
+    AddTest("metadata", test_metadata, cleanup_metadata, "Encoding/decoding metadata", NULL);
     AddTest("misc", test_misc, cleanup_misc,  "Miscellaneous", NULL);
+    AddTest("objects", test_h5o, cleanup_h5o, "Generic Object Functions", NULL);
+    AddTest("reference", test_reference, cleanup_reference,  "References", NULL);
+    AddTest("refstr", test_refstr, NULL,  "Reference Counted Strings", NULL);
+    AddTest("select", test_select, cleanup_select,  "Selections", NULL);
+    AddTest("skiplist", test_skiplist, NULL,  "Skip Lists", NULL);
+    AddTest("sohm", test_sohm, cleanup_sohm,  "Shared Object Header Messages", NULL);
+    AddTest("time", test_time, cleanup_time,  "Time Datatypes", NULL);
+    AddTest("tst", test_tst, NULL,  "Ternary Search Trees", NULL);
+    AddTest("unicode", test_unicode, cleanup_unicode,  "UTF-8 Encoding", NULL);
+    AddTest("vlstrings", test_vlstrings, cleanup_vlstrings,  "Variable-Length Strings", NULL);
+    AddTest("vltypes", test_vltypes, cleanup_vltypes,  "Variable-Length Datatypes", NULL);
 
     /* Display testing information */
     TestInfo(argv[0]);
