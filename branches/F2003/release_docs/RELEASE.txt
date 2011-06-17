@@ -1,4 +1,4 @@
-HDF5 version 1.9.81 currently under development
+HDF5 version 1.9.83 currently under development
 ================================================================================
 
 
@@ -91,6 +91,12 @@ New Features
 
     Library:
     --------
+    - The library added two new dataset transfer property to control whether
+      to fill 0xff in the destination data or convert to the destination data
+      when overflow happens to ENUM data (Issue 7579).  The two new functions
+      are H5Pset(get)_enum_conv_overflow. (SLU - 2011/05/27) 
+    - H5Tcreate now supports string type (fixed-length and variable-length).
+      (SLU - 2011/05/20)
     - Added ability to cache files opened through external links.  Added new
       public functions H5Pset_elink_file_cache_size(),
       H5Pget_elink_file_cache_size(), and H5Fclear_elink_file_cache().
@@ -280,6 +286,9 @@ Bug Fixes since HDF5-1.8.0 release
 
     Library
     -------
+      - When a dataset had filters and reading data failed, the error message 
+            didn't say which filter isn't registered. It's fixed now.
+            (SLU - 2011/6/3)  
       - The datatype handler created with H5Tencode/decode used to have the 
             reference count 0 (zero).  I have fixed it.  It is 1 (one) now.
             (SLU - 2011/2/18)
