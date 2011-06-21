@@ -14,6 +14,7 @@ SET (H5_TOOLS_LIB_SRCS
     ${HDF5_TOOLS_LIB_SOURCE_DIR}/h5diff_dset.c
     ${HDF5_TOOLS_LIB_SOURCE_DIR}/h5diff_util.c
     ${HDF5_TOOLS_LIB_SOURCE_DIR}/h5tools.c
+    ${HDF5_TOOLS_LIB_SOURCE_DIR}/h5tools_dump.c
     ${HDF5_TOOLS_LIB_SOURCE_DIR}/h5tools_filters.c
     ${HDF5_TOOLS_LIB_SOURCE_DIR}/h5tools_ref.c
     ${HDF5_TOOLS_LIB_SOURCE_DIR}/h5tools_str.c
@@ -25,6 +26,7 @@ SET (H5_TOOLS_LIB_SRCS
 SET (H5_TOOLS_LIB_HDRS
     ${HDF5_TOOLS_LIB_SOURCE_DIR}/h5trav.h
     ${HDF5_TOOLS_LIB_SOURCE_DIR}/h5tools.h
+    ${HDF5_TOOLS_LIB_SOURCE_DIR}/h5tools_dump.h
     ${HDF5_TOOLS_LIB_SOURCE_DIR}/h5tools_utils.h
     ${HDF5_TOOLS_LIB_SOURCE_DIR}/h5tools_str.h
     ${HDF5_TOOLS_LIB_SOURCE_DIR}/h5tools_ref.h
@@ -38,7 +40,7 @@ H5_SET_LIB_OPTIONS (
     ${HDF5_TOOLS_LIB_TARGET} ${HDF5_TOOLS_LIB_NAME}
     ${LIB_TYPE}
     HDF5_TOOLS_LIB_NAME_RELEASE
-	HDF5_TOOLS_LIB_NAME_DEBUG
+  HDF5_TOOLS_LIB_NAME_DEBUG
 )
 
 ##############################################################################
@@ -88,3 +90,20 @@ IF (HDF5_EXPORTED_TARGETS)
       RUNTIME DESTINATION ${HDF5_INSTALL_BIN_DIR}/tools COMPONENT toolslibraries
   )
 ENDIF (HDF5_EXPORTED_TARGETS)
+
+##############################################################################
+##############################################################################
+###           T E S T I N G                                                ###
+##############################################################################
+##############################################################################
+
+IF (BUILD_TESTING)
+  IF (H5_HAVE_CHECK)
+    ADD_EXECUTABLE (h5tools_unit ${HDF5_TOOLS_LIB_SOURCE_DIR}/h5tools_unit.c)
+    TARGET_NAMING (h5tools_unit ${LIB_TYPE})
+    TARGET_LINK_LIBRARIES (h5tools_unit ${HDF5_TOOLS_LIB_TARGET})
+    
+    ADD_TEST (NAME h5tools_unit COMMAND $<TARGET_FILE:h5tools_unit>)
+  ENDIF (H5_HAVE_CHECK)
+ENDIF (BUILD_TESTING)
+  

@@ -34,7 +34,7 @@
 
 /* global variables */
 int   nCols = 80;
-
+table_t *h5dump_type_table = NULL;  /*type table reference for datatype dump  */
 /* ``get_option'' variables */
 int         opt_err = 1;    /*get_option prints errors if this is on */
 int         opt_ind = 1;    /*token pointer                          */

@@ -211,6 +211,7 @@ CHECK_LIBRARY_EXISTS_CONCAT ("ws2_32" WSAStartup  H5_HAVE_LIBWS2_32)
 CHECK_LIBRARY_EXISTS_CONCAT ("wsock32" gethostbyname H5_HAVE_LIBWSOCK32)
 CHECK_LIBRARY_EXISTS_CONCAT ("ucb"    gethostname  H5_HAVE_LIBUCB)
 CHECK_LIBRARY_EXISTS_CONCAT ("socket" connect      H5_HAVE_LIBSOCKET)
+CHECK_LIBRARY_EXISTS_CONCAT ("check"  srunner_run_all H5_HAVE_CHECK)
 CHECK_LIBRARY_EXISTS ("c" gethostbyname "" NOT_NEED_LIBNSL)
 
 IF (NOT NOT_NEED_LIBNSL)
@@ -267,6 +268,7 @@ CHECK_INCLUDE_FILE_CONCAT ("dlfcn.h"         H5_HAVE_DLFCN_H)
 CHECK_INCLUDE_FILE_CONCAT ("features.h"      H5_HAVE_FEATURES_H)
 CHECK_INCLUDE_FILE_CONCAT ("inttypes.h"      H5_HAVE_INTTYPES_H)
 CHECK_INCLUDE_FILE_CONCAT ("netinet/in.h"    H5_HAVE_NETINET_IN_H)
+CHECK_INCLUDE_FILE_CONCAT ("check.h"         H5_HAVE_CHECK_H)
 
 IF (NOT CYGWIN)
   CHECK_INCLUDE_FILE_CONCAT ("winsock2.h"      H5_HAVE_WINSOCK_H)
@@ -645,7 +647,7 @@ IF (WINDOWS)
     ENDIF("${HAVE_IOEO_EXITCODE}" EQUAL 0)
   ENDIF("${H5_HAVE_IOEO}" MATCHES "^${H5_HAVE_IOEO}$")
 ENDIF (WINDOWS)
-	
+  
 
 #-----------------------------------------------------------------------------
 # Option to see if GPFS is available on this filesystem --enable-gpfs
