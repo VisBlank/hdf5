@@ -88,6 +88,7 @@ SET (HDF5_REFERENCE_TEST_FILES
     filespace_1_6.h5
     filespace_1_8.h5
     fill_old.h5
+    filter_error.h5
     group_old.h5
     le_data.h5
     le_extlink1.h5
@@ -105,7 +106,6 @@ SET (HDF5_REFERENCE_TEST_FILES
     tmtimen.h5
     tmtimeo.h5
     tsizeslheap.h5
-    vms_data.h5
 )
 
 FOREACH (h5_file ${HDF5_REFERENCE_TEST_FILES})

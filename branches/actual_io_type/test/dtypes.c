@@ -3900,6 +3900,67 @@ mkstr(size_t len, H5T_str_t strpad)
 
 
 /*-------------------------------------------------------------------------
+ * Function:	test_str_create
+ *
+ * Purpose:	Test string type creation using H5Tcreate
+ *
+ * Return:	Success:	0
+ *		Failure:	number of errors
+ *
+ * Programmer:	Raymond Lu
+ *              19 May 2011
+ *
+ *-------------------------------------------------------------------------
+ */
+static int
+test_str_create(void)
+{
+    hid_t  fixed_str1, fixed_str2;
+    hid_t  vlen_str1,  vlen_str2;
+    htri_t is_vl_str = FALSE;
+    size_t query_size, str_size = 10;
+
+    TESTING("string type creation using H5Tcreate");
+
+    /* Create fixed-length string in two ways and make sure they are the same */
+    if((fixed_str1 = mkstr(str_size, H5T_STR_NULLTERM)) < 0) goto error;
+
+    if((fixed_str2 = H5Tcreate(H5T_STRING, str_size)) < 0) goto error;
+    if(H5Tset_strpad(fixed_str2, H5T_STR_NULLTERM) < 0) goto error;
+
+    if(!H5Tequal(fixed_str1, fixed_str2)) goto error;
+
+    if((query_size = H5Tget_size(fixed_str1)) == 0) goto error;
+    if(query_size != str_size) goto error;
+
+    if((query_size = H5Tget_size(fixed_str2)) == 0) goto error;
+    if(query_size != str_size) goto error;
+
+    /* Create variable-length string in two ways and make sure they are the same */
+    if((vlen_str1 = mkstr((size_t)H5T_VARIABLE, H5T_STR_NULLTERM)) < 0) goto error;
+
+    if((vlen_str2 = H5Tcreate(H5T_STRING, (size_t)H5T_VARIABLE)) < 0) goto error;
+    if(H5Tset_strpad(vlen_str2, H5T_STR_NULLTERM) < 0) goto error;
+
+    if(!H5Tequal(vlen_str1, vlen_str2)) goto error;
+
+    if((is_vl_str = H5Tis_variable_str(vlen_str1)) < 0) goto error;
+    if(!is_vl_str) goto error; 
+
+    if((is_vl_str = H5Tis_variable_str(vlen_str2)) < 0) goto error;
+    if(!is_vl_str) goto error; 
+
+
+    PASSED();
+    return 0;
+
+error:
+    H5_FAILED();
+    return 1;
+}
+
+
+/*-------------------------------------------------------------------------
  * Function:	test_conv_str_1
  *
  * Purpose:	Test string conversions
@@ -4421,12 +4482,20 @@ error:
  * Programmer:  Robb Matzke, LLNL, 2003-06-09
  *
  * Modifications:
+ *              Raymond Lu
+ *              26 May 2011
+ *              I added a few overflowing values (beyond the range of enumerate
+ *              values) to make sure the library retains these values. The test
+ *              for overflowing values when no conversion happens is in 
+ *              test_noconv of enum.c. 
  *-------------------------------------------------------------------------
  */
 static int
 test_conv_enum_2(void)
 {
     hid_t       srctype=-1, dsttype=-1, oddsize=-1;
+    hid_t       dxpl_id=-1;
+    hbool_t     conv_overflow;
     int         *data=NULL, i, nerrors=0;
     const char  *mname[] = { "RED",
                              "GREEN",
@@ -4436,7 +4505,7 @@ test_conv_enum_2(void)
                              "PURPLE",
                              "ORANGE",
                              "WHITE" };
-
+   
     TESTING("non-native enumeration type conversion");
 
     /* Source enum type */
@@ -4478,11 +4547,108 @@ test_conv_enum_2(void)
         }
     }
 
+    /* Now make the source data overflow and see the conversion retain the original values by default.
+     * The initialization makes the first 128 values be -1, -2, -3,..., -128. In hexadecimal,
+     * they are 0xffffff, 0xfffffe, 0xfffffd,..., 0xffff7f.  The rest values are between 0 
+     * and 127. */
+    for (i=0; i<NTESTELEM; i++) {
+        if(i > 127) {
+	    ((char*)data)[i*3+2] = i % 128;
+	    ((char*)data)[i*3+0] = 0;
+	    ((char*)data)[i*3+1] = 0;
+        } else {
+	    ((char*)data)[i*3+2] = -(i+1);
+	    ((char*)data)[i*3+0] = -1;
+	    ((char*)data)[i*3+1] = -1;
+        }
+    }
+
+    /* Convert to destination type */
+    H5Tconvert(srctype, dsttype, (size_t)NTESTELEM, data, NULL, H5P_DEFAULT);
+
+    /* Check results */
+    for (i=0; i<NTESTELEM; i++) {
+        if(i > 127) {
+	    if (data[i] != i%128) {
+		if (!nerrors++) {
+		    H5_FAILED();
+		    printf("element %d is %d but should have been  %d\n",
+			   i, data[i], i%128);
+		}
+	    }
+        } else {
+	    if (data[i] != -(i+1)) {
+		if (!nerrors++) {
+		    H5_FAILED();
+		    printf("element %d is %d but should have been  %d\n",
+			   i, data[i], -(i+1));
+		}
+	    }
+        }
+    }
+
+    /* Now make the source data overflow and set the property for handling overflowing data to fill them
+     * them with 0xff (-1).  The initialization makes the first 128 values be -1, -2, -3,..., -128. In 
+     * hexadecimal, they are 0xffffff, 0xfffffe, 0xfffffd,..., 0xffff7f.  The next 128 values are 128 to 
+     * 255. The rest values are between 0 and 7. */
+    for (i=0; i<NTESTELEM; i++) {
+        if(i > 255) {
+            ((char*)data)[i*3+2] = i % 8;
+            ((char*)data)[i*3+0] = 0;
+            ((char*)data)[i*3+1] = 0;
+        } else if(i > 127) {
+	    ((char*)data)[i*3+2] = i;
+	    ((char*)data)[i*3+0] = 0;
+	    ((char*)data)[i*3+1] = 0;
+    
+        } else {
+	    ((char*)data)[i*3+2] = -(i+1);
+	    ((char*)data)[i*3+0] = -1;
+	    ((char*)data)[i*3+1] = -1;
+        }
+    }
+
+    /* Set the property for handling overflowing data */ 
+    dxpl_id = H5Pcreate(H5P_DATASET_XFER);
+
+    /* First verify it's TRUE by default */    
+    H5Pget_enum_conv_overflow(dxpl_id, &conv_overflow);
+    if(!conv_overflow)
+        nerrors++;
+
+    /* Then set it to FALSE */
+    H5Pset_enum_conv_overflow(dxpl_id, FALSE);
+
+    /* Convert to destination type */
+    H5Tconvert(srctype, dsttype, (size_t)NTESTELEM, data, NULL, dxpl_id);
+
+    /* Check results.  All overflowing values should turn to -1. */
+    for (i=0; i<NTESTELEM; i++) {
+        if(i > 255) {
+	    if (data[i] != i%8) {
+		if (!nerrors++) {
+		    H5_FAILED();
+		    printf("element %d is %d but should have been  %d\n",
+			   i, data[i], i%8);
+		}
+	    }
+        } else {
+	    if (data[i] != -1) {
+		if (!nerrors++) {
+		    H5_FAILED();
+		    printf("element %d is %d but should have been -1\n",
+			   i, data[i]);
+		}
+	    }
+        }
+    }
+
     /* Cleanup */
     free(data);
     H5Tclose(srctype);
     H5Tclose(dsttype);
     H5Tclose(oddsize);
+    H5Pclose(dxpl_id);
 
     /* Failure */
     if (nerrors) {
@@ -6640,6 +6806,7 @@ main(void)
     nerrors += test_int_float_except();
     nerrors += test_named_indirect_reopen(fapl);
     nerrors += test_set_order_compound(fapl);
+    nerrors += test_str_create();
 #ifndef H5_NO_DEPRECATED_SYMBOLS
     nerrors += test_deprec(fapl);
 #endif /* H5_NO_DEPRECATED_SYMBOLS */
@@ -6683,4 +6850,3 @@ main(void)
 
     return 0;
 }
-
