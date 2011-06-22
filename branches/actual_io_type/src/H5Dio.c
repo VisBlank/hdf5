@@ -951,8 +951,8 @@ H5D_ioinfo_adjust(H5D_io_info_t *io_info, const H5D_t *dset, hid_t dxpl_id,
     const H5D_type_info_t *type_info, const H5D_chunk_map_t *fm)
 {
     H5P_genplist_t *dx_plist;       /* Data transer property list */
-    H5D_mpio_actual_chunk_opt_mode_t actual_chunk_opt_mode; /* preformed chunk optimization */
-    H5D_mpio_actual_chunk_io_mode_t actual_chunk_io_mode; /* preformed io mode */
+    H5D_mpio_actual_chunk_opt_mode_t actual_chunk_opt_mode; /* performed chunk optimization */
+    H5D_mpio_actual_io_mode_t actual_io_mode; /* performed io mode */
     herr_t	ret_value = SUCCEED;	/* Return value	*/
 
     FUNC_ENTER_NOAPI_NOINIT(H5D_ioinfo_adjust)
@@ -972,11 +972,11 @@ H5D_ioinfo_adjust(H5D_io_info_t *io_info, const H5D_t *dset, hid_t dxpl_id,
     
     /* Set properties to defaults. */
     actual_chunk_opt_mode = H5D_MPIO_NO_CHUNK_OPTIMIZATION;
-    actual_chunk_io_mode = H5D_MPIO_NO_CHUNK_IO;
+    actual_io_mode = H5D_MPIO_NO_COLLECTIVE;
     if (H5P_set(dx_plist, H5D_MPIO_ACTUAL_CHUNK_OPT_MODE_NAME, &actual_chunk_opt_mode) < 0)
        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "couldn't set actual chunk opt mode property") 
-    if (H5P_set(dx_plist, H5D_MPIO_ACTUAL_CHUNK_IO_MODE_NAME, &actual_chunk_io_mode) < 0)
-       HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "couldn't set actual chunk io mode property") 
+    if (H5P_set(dx_plist, H5D_MPIO_ACTUAL_IO_MODE_NAME, &actual_io_mode) < 0)
+       HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "couldn't set actual io mode property") 
 
     /* Make any parallel I/O adjustments */
     if(io_info->using_mpi_vfd) {
