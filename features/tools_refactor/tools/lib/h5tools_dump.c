@@ -385,7 +385,6 @@ h5tools_dump_simple_data(FILE *stream, const h5tool_format_t *info, hid_t contai
         else {
             if(nelmts > 0) {
                 ctx->need_prefix = TRUE;
-                h5tools_simple_prefix(stream, info, ctx, curr_pos, 0);
             }
 
             for (i = 0; i < nelmts; i++, ctx->cur_elmt++, elmt_counter++) {
