@@ -33,14 +33,15 @@
 /* Use %ld to print the value because long should cover most cases. */
 /* Used to make certain a return value _is_not_ a value */
 #define CHECK(ret, val, where) do {					      \
-    if (VERBOSE_HI) print_func("   Call to routine: %15s at line %4d " \
-				"in %s returned %ld \n",		      \
-				where, (int)__LINE__, __FILE__,		      \
-				(long)(ret));				      \
+    if (VERBOSE_HI) \
+        print_func("   Call to routine: %15s at line %4d " \
+            "in %s returned %ld \n",		      \
+            where, (int)__LINE__, __FILE__,		      \
+            (long)(ret));				      \
     if ((ret) == (val)) {						      \
-	TestErrPrintf("*** UNEXPECTED RETURN from %s is %ld at line %4d "     \
-		   "in %s\n", where, (long)(ret), (int)__LINE__, __FILE__);   \
-	H5Eprint2(H5E_DEFAULT, stdout);				      \
+        TestErrPrintf("*** UNEXPECTED RETURN from %s is %ld at line %4d "     \
+            "in %s\n", where, (long)(ret), (int)__LINE__, __FILE__);   \
+        H5Eprint2(H5E_DEFAULT, stdout);				      \
     }									      \
 } while(0)
 

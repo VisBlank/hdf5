@@ -892,6 +892,8 @@
 ./test/mf.c
 ./test/mount.c
 ./test/mtime.c
+./test/multi_file_v16-r.h5
+./test/multi_file_v16-s.h5
 ./test/noencoder.h5
 ./test/ntypes.c
 ./test/ohdr.c
@@ -1949,6 +1951,7 @@
 ./hl/fortran/Makefile.in
 ./hl/fortran/examples/Makefile.am
 ./hl/fortran/examples/Makefile.in
+./hl/fortran/examples/ex_ds1.f90
 ./hl/fortran/examples/exlite.f90
 ./hl/fortran/examples/run-hlfortran-ex.sh.in
 ./hl/fortran/src/H5DSfc.c
