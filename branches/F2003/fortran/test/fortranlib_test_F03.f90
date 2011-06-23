@@ -4,7 +4,7 @@
 !  fortranlib_test_F03.f90
 !
 ! FUNCTION
-!  Basic testing of Fortran API's that require Fortran 2003
+!  Basic testing of Fortran API's requiring Fortran 2003
 !  compliance.
 !
 ! COPYRIGHT
@@ -43,9 +43,9 @@ PROGRAM fortranlibtest_F03
   CALL h5_env_nocleanup_f(status)
   IF(status) cleanup=.FALSE.
 
-  WRITE(*,*) '                       ==============================                            '
-  WRITE(*,*) '                              FORTRAN 2003 tests '
-  WRITE(*,*) '                       ==============================                            '
+  WRITE(*,'(24X,A)') '=============================='
+  WRITE(*,'(24X,A)') '      FORTRAN 2003 tests      '
+  WRITE(*,'(24X,A)') '=============================='
   CALL h5get_libversion_f(majnum, minnum, relnum, total_error)
   IF(total_error .EQ. 0) THEN
      WRITE(*, '(" FORTRANLIB_TEST is linked with HDF5 Library version ")', advance="NO")
