@@ -163,6 +163,18 @@ STRING (REGEX REPLACE ".*#define[ \t]+H5_VERS_RELEASE[ \t]+([0-9]*).*$"
 #MESSAGE (STATUS "VERSION: ${H5_VERS_MAJOR}.${H5_VERS_MINOR}.${H5_VERS_RELEASE}-${H5_VERS_SUBRELEASE}")
 
 #-----------------------------------------------------------------------------
+# parse the full soversion number from config/lt_vers.am and include in H5_SOVERS_INFO
+#-----------------------------------------------------------------------------
+FILE (READ ${HDF5_SOURCE_DIR}/config/lt_vers.am _lt_vers_am_contents)
+STRING (REGEX REPLACE ".*LT_VERS_INTERFACE[ \t]+=[ \t]+([0-9]*).*$"
+    "\\1" H5_SOVERS_MAJOR ${_lt_vers_am_contents})
+STRING (REGEX REPLACE ".*LT_VERS_REVISION[ \t]+=[ \t]+([0-9]*).*$"
+    "\\1" H5_SOVERS_MINOR ${_lt_vers_am_contents})
+STRING (REGEX REPLACE ".*LT_VERS_AGE[ \t]+=[ \t]+([0-9]*).*$"
+    "\\1" H5_SOVERS_RELEASE ${_lt_vers_am_contents})
+MESSAGE (STATUS "SOVERSION: ${H5_SOVERS_MAJOR}.${H5_SOVERS_MINOR}.${H5_SOVERS_RELEASE}")
+
+#-----------------------------------------------------------------------------
 # Basic HDF5 stuff here
 #-----------------------------------------------------------------------------
 SET (HDF5_PACKAGE "hdf5")
@@ -171,6 +183,7 @@ SET (HDF5_PACKAGE_VERSION "${H5_VERS_MAJOR}.${H5_VERS_MINOR}.${H5_VERS_RELEASE}"
 SET (HDF5_PACKAGE_VERSION_MAJOR "${H5_VERS_MAJOR}.${H5_VERS_MINOR}")
 SET (HDF5_PACKAGE_VERSION_MINOR "${H5_VERS_RELEASE}")
 SET (HDF5_PACKAGE_VERSION_STRING "${HDF5_PACKAGE_VERSION}")
+SET (HDF5_PACKAGE_SOVERSION "${H5_SOVERS_MAJOR}.${H5_SOVERS_MINOR}.${H5_SOVERS_RELEASE}")
 SET (HDF5_PACKAGE_STRING "${HDF5_PACKAGE_NAME} ${HDF5_PACKAGE_VERSION_STRING}")
 SET (HDF5_PACKAGE_TARNAME "hdf5")
 SET (HDF5_PACKAGE_URL "http://www.hdfgroup.org")
@@ -722,72 +735,12 @@ IF (NOT HDF5_INSTALL_NO_DEVELOPMENT)
 ENDIF (NOT HDF5_INSTALL_NO_DEVELOPMENT)
 
 #-----------------------------------------------------------------------------
-# Option for external libraries
-#-----------------------------------------------------------------------------
-IF (NOT HDF5_EXTERNALLY_CONFIGURED)
-  IF (HDF5_PACKAGE_EXTLIBS)
-    IF (WIN32 AND BUILD_SHARED_LIBS)
-      SET (HDF5_INSTALL_EXTLIB_DIR ${HDF5_INSTALL_BIN_DIR})
-    ELSE (WIN32 AND BUILD_SHARED_LIBS)
-      SET (HDF5_INSTALL_EXTLIB_DIR ${HDF5_INSTALL_LIB_DIR})
-    ENDIF (WIN32 AND BUILD_SHARED_LIBS)
-    IF (HDF5_ENABLE_Z_LIB_SUPPORT AND ZLIB_FOUND)
-      INSTALL (
-          FILES ${ZLIB_INCLUDE_DIR}/zlib.h
-          DESTINATION ${HDF5_INSTALL_INCLUDE_DIR}
-          COMPONENT headers
-      )
-      GET_PROPERTY (ZLIB_LIB TARGET ${ZLIB_LIBRARY} PROPERTY LOCATION_${BLDTYPE})
-      INSTALL(
-          FILES ${ZLIB_LIB}
-          DESTINATION ${HDF5_INSTALL_EXTLIB_DIR}
-          COMPONENT libraries
-      )
-      IF (WIN32 AND BUILD_SHARED_LIBS)
-        GET_PROPERTY (ZLIB_IMPLIB TARGET ${ZLIB_LIBRARY} PROPERTY IMPORTLIBRARY_${BLDTYPE})
-        INSTALL(
-            FILES ${ZLIB_IMPLIB}
-            DESTINATION ${HDF5_INSTALL_LIB_DIR}
-            COMPONENT libraries
-        )
-      ENDIF (WIN32 AND BUILD_SHARED_LIBS)
-    ENDIF (HDF5_ENABLE_Z_LIB_SUPPORT AND ZLIB_FOUND)
-    IF (HDF5_ENABLE_SZIP_SUPPORT AND SZIP_FOUND)
-      INSTALL (
-          FILES ${SZIP_INCLUDE_DIR}/szlib.h ${SZIP_INCLUDE_DIR}/szip_adpt.h ${SZIP_INCLUDE_DIR}/ricehdf.h
-          DESTINATION ${HDF5_INSTALL_INCLUDE_DIR}
-          COMPONENT headers
-      )
-      GET_PROPERTY (SZIP_LIB TARGET ${SZIP_LIBRARY} PROPERTY LOCATION_${BLDTYPE})
-      INSTALL(
-          FILES ${SZIP_LIB}
-          DESTINATION ${HDF5_INSTALL_EXTLIB_DIR}
-          COMPONENT libraries
-      )
-      IF (WIN32 AND BUILD_SHARED_LIBS)
-        GET_PROPERTY (SZIP_IMPLIB TARGET ${SZIP_LIBRARY} PROPERTY IMPORTLIBRARY_${BLDTYPE})
-        INSTALL(
-            FILES ${SZIP_IMPLIB}
-            DESTINATION ${HDF5_INSTALL_LIB_DIR}
-            COMPONENT libraries
-        )
-      ENDIF (WIN32 AND BUILD_SHARED_LIBS)
-    ENDIF (HDF5_ENABLE_SZIP_SUPPORT AND SZIP_FOUND)
-    INSTALL (
-        FILES ${EXTERNAL_HEADER_LIST}
-        DESTINATION ${HDF5_INSTALL_INCLUDE_DIR}
-        COMPONENT headers
-    )
-  ENDIF (HDF5_PACKAGE_EXTLIBS)
-ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED)
-
-#-----------------------------------------------------------------------------
 # Add Target(s) to CMake Install for import into other projects
 #-----------------------------------------------------------------------------
 IF (NOT HDF5_EXTERNALLY_CONFIGURED)
   INSTALL (
       EXPORT ${HDF5_EXPORTED_TARGETS}
-      DESTINATION ${HDF5_INSTALL_DATA_DIR}/cmake/hdf5-${HDF5_PACKAGE_VERSION}
+      DESTINATION ${HDF5_INSTALL_DATA_DIR}/cmake/hdf5
       FILE hdf5-targets.cmake
   )
 ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED)
@@ -828,7 +781,7 @@ IF (NOT HDF5_EXTERNALLY_CONFIGURED)
   )
   INSTALL (
       FILES ${HDF5_BINARY_DIR}/CMakeFiles/hdf5-config.cmake
-      DESTINATION ${HDF5_INSTALL_DATA_DIR}/cmake/hdf5-${HDF5_PACKAGE_VERSION}
+      DESTINATION ${HDF5_INSTALL_DATA_DIR}/cmake/hdf5
   )
 ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED)
 
@@ -842,7 +795,7 @@ IF (NOT HDF5_EXTERNALLY_CONFIGURED)
   )
   INSTALL (
       FILES ${HDF5_BINARY_DIR}/CMakeFiles/hdf5-config-version.cmake
-      DESTINATION ${HDF5_INSTALL_DATA_DIR}/cmake/hdf5-${HDF5_PACKAGE_VERSION}
+      DESTINATION ${HDF5_INSTALL_DATA_DIR}/cmake/hdf5
   )
 ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED)
 
@@ -861,6 +814,7 @@ IF (NOT HDF5_EXTERNALLY_CONFIGURED)
   IF (EXISTS "${HDF5_SOURCE_DIR}/release_docs" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/release_docs")
     SET (release_files
         ${HDF5_SOURCE_DIR}/release_docs/CMake.txt
+        ${HDF5_SOURCE_DIR}/release_docs/Using_CMake.txt
         ${HDF5_SOURCE_DIR}/release_docs/COPYING
         ${HDF5_SOURCE_DIR}/release_docs/HISTORY-1_9.txt
         ${HDF5_SOURCE_DIR}/release_docs/INSTALL
@@ -875,14 +829,13 @@ IF (NOT HDF5_EXTERNALLY_CONFIGURED)
       SET (release_files
           ${release_files}
           ${HDF5_SOURCE_DIR}/release_docs/INSTALL_Cygwin.txt
-          ${HDF5_SOURCE_DIR}/release_docs/INSTALL_MinGW.txt
           ${HDF5_SOURCE_DIR}/release_docs/INSTALL_VMS.txt
       )
     ENDIF (WIN32 AND NOT CYGWIN)
     IF (HDF5_ENABLE_PARALLEL)
       SET (release_files
           ${release_files}
-          ${HDF5_SOURCE_DIR}/release_docs/INSTALL_parallel.txt
+          ${HDF5_SOURCE_DIR}/release_docs/INSTALL_parallel
       )
     ENDIF (HDF5_ENABLE_PARALLEL)
     INSTALL (
@@ -910,8 +863,6 @@ IF (NOT HDF5_EXTERNALLY_CONFIGURED)
     SET (CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/release_docs/RELEASE.txt")
   ENDIF (EXISTS "${HDF5_SOURCE_DIR}/release_docs")
   SET (CPACK_PACKAGE_RELOCATABLE TRUE)
-  #only needed for cmake 2.8.3
-  SET (CPACK_MONOLITHIC_INSTALL 1)  
   IF (WIN32)
     SET (CPACK_NSIS_CONTACT "help@hdfgroup.org")
     SET (CPACK_NSIS_MODIFY_PATH ON)
@@ -919,9 +870,24 @@ IF (NOT HDF5_EXTERNALLY_CONFIGURED)
   ELSE (WIN32)
     SET (CPACK_RPM_COMPONENT_INSTALL ON)
   ENDIF (WIN32)
+  SET (CPACK_MONOLITHIC_INSTALL ON)
+  
+  INCLUDE(InstallRequiredSystemLibraries)
+
+  SET (CPACK_INSTALL_CMAKE_PROJECTS "${HDF5_BINARY_DIR};HDF5;ALL;/")
+  
+  IF (HDF5_PACKAGE_EXTLIBS)
+    IF (HDF5_ALLOW_EXTERNAL_SUPPORT MATCHES "SVN" OR HDF5_ALLOW_EXTERNAL_SUPPORT MATCHES "TGZ")
+      IF (ZLIB_FOUND AND ZLIB_USE_EXTERNAL)
+        SET (CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${ZLIB_INCLUDE_DIR_GEN};ZLIB;ALL;/")
+      ENDIF (ZLIB_FOUND AND ZLIB_USE_EXTERNAL)
+      IF (SZIP_FOUND AND SZIP_USE_EXTERNAL)
+        SET (CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${SZIP_INCLUDE_DIR_GEN};SZIP;ALL;/")
+      ENDIF (SZIP_FOUND AND SZIP_USE_EXTERNAL)
+    ENDIF (HDF5_ALLOW_EXTERNAL_SUPPORT MATCHES "SVN" OR HDF5_ALLOW_EXTERNAL_SUPPORT MATCHES "TGZ")
+  ENDIF (HDF5_PACKAGE_EXTLIBS)
   
   INCLUDE (CPack)
-  INCLUDE(InstallRequiredSystemLibraries)
 
   #---------------------------------------------------------------------------
   # Now list the cpack commands

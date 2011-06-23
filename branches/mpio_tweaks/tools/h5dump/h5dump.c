@@ -4560,7 +4560,7 @@ error:
     if (hand) {
         free_handler(hand, argc);
         hand = NULL;
-}
+    }
     h5tools_setstatus(EXIT_FAILURE);
 
     return hand;
@@ -4630,7 +4630,6 @@ main(int argc, const char *argv[])
     /* Initialize h5tools lib */
     h5tools_init();
     if((hand = parse_command_line(argc, argv))==NULL) {
-        h5tools_setstatus(EXIT_FAILURE);
         goto done;
     }
 
@@ -4834,14 +4833,17 @@ done:
     /* Free tables for objects */
     table_list_free();
 
-    if (H5Fclose(fid) < 0)
-        h5tools_setstatus(EXIT_FAILURE);
+    if(hand) 
+        free_handler(hand, argc);
 
-    if(hand)
-    free_handler(hand, argc);
-
-    HDfree(prefix);
-    HDfree(fname);
+    if(fid >=0)
+        if (H5Fclose(fid) < 0)
+            h5tools_setstatus(EXIT_FAILURE);
+    
+    if(prefix)
+        HDfree(prefix);
+    if(fname)
+        HDfree(fname);
 
     /* To Do:  clean up XML table */
 
@@ -6191,7 +6193,7 @@ xml_dump_group(hid_t gid, const char *name)
     if(HDstrcmp(name, "/") == 0) {
         isRoot = 1;
         tmp = HDstrdup("/");
-    } 
+    }
     else {
         tmp = (char *)HDmalloc(HDstrlen(prefix) + HDstrlen(name) + 2);
         HDstrcpy(tmp, prefix);
@@ -6211,7 +6213,7 @@ xml_dump_group(hid_t gid, const char *name)
     H5Oget_info(gid, &oinfo);
 
     if(oinfo.rc > 1) {
-        obj_t  *found_obj;    /* Found object */
+        obj_t *found_obj;    /* Found object */
 
         /* Group with more than one link to it... */
         found_obj = search_obj(group_table, oinfo.addr);
@@ -6220,7 +6222,7 @@ xml_dump_group(hid_t gid, const char *name)
             indentation(indent);
             error_msg("internal error (file %s:line %d)\n", __FILE__, __LINE__);
             h5tools_setstatus(EXIT_FAILURE);
-        } 
+        }
         else {
             char *t_name = xml_escape_the_name(name);
             char *grpxid = (char *)malloc(100);
@@ -6235,7 +6237,7 @@ xml_dump_group(hid_t gid, const char *name)
                     xml_name_to_XID("/", grpxid, 100, 1);
                     HDfprintf(stdout, "<%sRootGroup OBJ-XID=\"%s\" H5Path=\"%s\">\n",
                             xmlnsprefix, grpxid, "/");
-                } 
+                }
                 else {
                     t_objname = xml_escape_the_name(found_obj->objname);
                     par_name = xml_escape_the_name(par);
@@ -6261,7 +6263,7 @@ xml_dump_group(hid_t gid, const char *name)
                     free(par_name);
                 }
                 free(ptrstr);
-            } 
+            }
             else {
 
                 /* first time this group has been seen -- describe it  */
@@ -6269,7 +6271,7 @@ xml_dump_group(hid_t gid, const char *name)
                     xml_name_to_XID("/", grpxid, 100, 1);
                     HDfprintf(stdout, "<%sRootGroup OBJ-XID=\"%s\" H5Path=\"%s\">\n",
                             xmlnsprefix, grpxid, "/");
-                } 
+                }
                 else {
                     char *t_tmp = xml_escape_the_name(tmp);
 
@@ -6317,7 +6319,7 @@ xml_dump_group(hid_t gid, const char *name)
 
                 /* iterate through all the links */
 
-                if( (sort_by == H5_INDEX_CRT_ORDER) && (crt_order_flags & H5P_CRT_ORDER_TRACKED))
+                if((sort_by == H5_INDEX_CRT_ORDER) && (crt_order_flags & H5P_CRT_ORDER_TRACKED))
                     H5Literate(gid, sort_by, sort_order, NULL, dump_all_cb, NULL);
                 else
                     H5Literate(gid, H5_INDEX_NAME, sort_order, NULL, dump_all_cb, NULL);
@@ -6328,7 +6330,7 @@ xml_dump_group(hid_t gid, const char *name)
             free(grpxid);
             free(parentxid);
         }
-    } 
+    }
     else {
 
         /* only link -- must be first time! */
@@ -6339,7 +6341,7 @@ xml_dump_group(hid_t gid, const char *name)
         if(isRoot) {
             xml_name_to_XID("/", grpxid, 100, 1);
             HDfprintf(stdout, "<%sRootGroup OBJ-XID=\"%s\" H5Path=\"%s\">\n", xmlnsprefix, grpxid, "/");
-        } 
+        }
         else {
             char *t_tmp = xml_escape_the_name(tmp);
 
@@ -6401,11 +6403,11 @@ xml_dump_group(hid_t gid, const char *name)
     if(isRoot)
         HDfprintf(stdout, "</%sRootGroup>\n", xmlnsprefix);
     else
-        HDfprintf(stdout, "</%sGroup>\n" , xmlnsprefix);
+        HDfprintf(stdout, "</%sGroup>\n", xmlnsprefix);
     if(par)
         free(par);
     if(tmp)
-    free(tmp);
+        free(tmp);
 }
 
 /*-------------------------------------------------------------------------

@@ -88,11 +88,14 @@ SET (HDF5_REFERENCE_TEST_FILES
     filespace_1_6.h5
     filespace_1_8.h5
     fill_old.h5
+    filter_error.h5
     group_old.h5
     le_data.h5
     le_extlink1.h5
     le_extlink2.h5
     mergemsg.h5
+    multi_file_v16-r.h5
+    multi_file_v16-s.h5
     noencoder.h5
     specmetaread.h5
     tarrold.h5
@@ -105,7 +108,6 @@ SET (HDF5_REFERENCE_TEST_FILES
     tmtimen.h5
     tmtimeo.h5
     tsizeslheap.h5
-    vms_data.h5
 )
 
 FOREACH (h5_file ${HDF5_REFERENCE_TEST_FILES})
@@ -224,6 +226,8 @@ ADD_TEST (
         extlinks19B00027.h5
         extlinks19B00028.h5
         fheap.h5
+        new_multi_file_v16-r.h5
+        new_multi_file_v16-s.h5
         objcopy_ext.h5
         sys_file1
         tattr.h5

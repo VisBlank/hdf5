@@ -1,4 +1,4 @@
-HDF5 version 1.9.81 currently under development
+HDF5 version 1.9.84 currently under development
 ================================================================================
 
 
@@ -91,6 +91,12 @@ New Features
 
     Library:
     --------
+    - The library added two new dataset transfer property to control whether
+      to fill 0xff in the destination data or convert to the destination data
+      when overflow happens to ENUM data (Issue 7579).  The two new functions
+      are H5Pset(get)_enum_conv_overflow. (SLU - 2011/05/27) 
+    - H5Tcreate now supports string type (fixed-length and variable-length).
+      (SLU - 2011/05/20)
     - Added ability to cache files opened through external links.  Added new
       public functions H5Pset_elink_file_cache_size(),
       H5Pget_elink_file_cache_size(), and H5Fclear_elink_file_cache().
@@ -280,6 +286,17 @@ Bug Fixes since HDF5-1.8.0 release
 
     Library
     -------
+
+      - In v1.6 library, there was EOA for the whole MULTI file saved in the 
+            super block.  We took it out in v1.8 library because it's meaningless 
+            for the MULTI file.  v1.8 library saves the EOA for the metadata file, 
+            instead. But this caused some backward compatibility problem.
+            v1.8 library couldn't open the file created with v1.6 library.  We
+            fixed the problem by checking the EOA value to detect the file
+            created with v1.6 library. (SLU - 2011/6/22) 
+      - When a dataset had filters and reading data failed, the error message 
+            didn't say which filter isn't registered. It's fixed now.
+            (SLU - 2011/6/3)  
       - The datatype handler created with H5Tencode/decode used to have the 
             reference count 0 (zero).  I have fixed it.  It is 1 (one) now.
             (SLU - 2011/2/18)
@@ -510,7 +527,7 @@ Bug Fixes since HDF5-1.8.0 release
       prior to configuration. MAM - 2009/03/09 - BZ #1401.
     - Fixed error with 'make check install' failing due to h5dump
       needing other tools built first. MAM - 2008/10/24.
-    - When using shared szip, it is no longer necessary to specify
+    - Wpen using shared szip, it is no longer necessary to specify
       the path to the shared szip libraries in LD_LIBRARY_PATH. MAM - 
       2008/10/24.
     - The file libhdf5_fortran.settings is not installed since its content
@@ -525,13 +542,28 @@ Bug Fixes since HDF5-1.8.0 release
 
     Tools
     -----
+        - Fixed h5dump to display the first line of each element into correct 
+          position for multiple dimention array type.
+          Before this fix, the first line of each element in array were 
+          displayed after the last line of previous element without
+          moving to the next line (+indentation). 
+          Bug #HDFFV-5878  (JKM 06/15/2011)
+        - Fixed h5dump to display correct value for H5T_STD_I8LE dataset
+          on a system (ppc64, linux, Big-Endian, clustering). 
+          Bug #HDFFV-7594  (ABERT & JKM 05/12/2011)
+        - Fixed h5diff to compare file itself correctly. Previously h5diff
+          reported either different or not compatible in certain cases even
+          comparing file itself. This fix also improve performance when
+          comparing same target objects through verifying the obj&file
+          addresses before comparing the details in the objects (ex: datasets
+          or attributes) Bug #HDFFV-5928  (XCAO & JKM 05/06/2011)
         - Updated h5dump test case script to prevent entire test failure upon 
           source directory is read-only. Bug# HDFFV-4342 (JKM 2011/4/12)
         - Fixed h5dump displaying incorrect values for H5T_STD_I8BE type data in
-      attribute on Big-Endian machine. H5T_STD_I8BE is unsigned 8bit type,
-      so h5dump is supposed to display -2 instead of 254. It worked correctly
-      on Little-Endian system , but not on Big-Endian system.  Bug #HDFFV-4358
-      (JKM 04/08/2011)
+          attribute on Big-Endian machine. H5T_STD_I8BE is unsigned 8bit type,
+          so h5dump is supposed to display -2 instead of 254. It worked 
+          correctly on Little-Endian system , but not on Big-Endian system.  
+          Bug #HDFFV-4358 (JKM 04/08/2011)
         - Updated to unify option name to '--enable-error-stack' for printing 
           HDF5 error stack messages for HDF5 tools. h5ls and h5dump for now.
           For h5ls, this replaces "-e/--errors" option, which is deprecated. 
