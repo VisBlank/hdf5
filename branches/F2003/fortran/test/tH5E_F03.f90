@@ -1,9 +1,41 @@
+!****h* root/fortran/test/tH5E_F03.f90
+!
+! NAME
+!  tH5E_F03.f90
+!
+! FUNCTION
+!  Test FORTRAN HDF5 H5E APIs which are dependent on FORTRAN 2003
+!  features. 
+!
+! COPYRIGHT
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!   Copyright by The HDF Group.                                               *
+!   Copyright by the Board of Trustees of the University of Illinois.         *
+!   All rights reserved.                                                      *
+!                                                                             *
+!   This file is part of HDF5.  The full HDF5 copyright notice, including     *
+!   terms governing use, modification, and redistribution, is contained in    *
+!   the files COPYING and Copyright.html.  COPYING can be found at the root   *
+!   of the source code distribution tree; Copyright.html can be found at the  *
+!   root level of an installed copy of the electronic HDF5 document set and   *
+!   is linked from the top-level documents page.  It can also be found at     *
+!   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+!   access to either file, you may request a copy from help@hdfgroup.org.     *
+! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!
+! USES
+!  liter_cb_mod
+!
+! CONTAINS SUBROUTINES
+!  test_error
+!
+!*****
+
 ! *****************************************
 ! ***        H 5 E   T E S T S
 ! *****************************************
 
 MODULE test_my_hdf5_error_handler
-
 
   IMPLICIT NONE
 
@@ -64,240 +96,115 @@ CONTAINS
   END FUNCTION my_hdf5_error_handler_nodata
   
 END MODULE test_my_hdf5_error_handler
-          
-          
-!!$       
-!!$
-!!$    
-!!$
-!!$    switch(info->command) {
-!!$        case RET_ZERO:
-!!$            return(0);
-!!$
-!!$        case RET_TWO:
-!!$            return(2);
-!!$
-!!$        case RET_CHANGE:
-!!$            count++;
-!!$            return(count > 10 ? 1 : 0);
-!!$
-!!$        case RET_CHANGE2:
-!!$            count2++;
-!!$            return(count2 > 10 ? 1 : 0);
-!!$
-!!$        default:
-!!$            printf("invalid iteration command");
-!!$            return(-1);
-!!$    } /* end switch */
-!!$} /* end liter_cb() */
 
-
-!/****************************************************************
-!**
-!**  test_iter_group(): Test group iteration functionality
-!**
-!****************************************************************/
-SUBROUTINE test_iter_group(total_error)
+SUBROUTINE test_error(total_error)
 
   USE HDF5 
   USE ISO_C_BINDING
-  USE liter_cb_mod
+  USE test_my_hdf5_error_handler
+
   IMPLICIT NONE
 
-  INTEGER, INTENT(INOUT) :: total_error
-  INTEGER(HID_T) :: fapl
-  INTEGER(HID_T) :: file ! /* File ID */
-  INTEGER(hid_t) :: dataset          !/* Dataset ID */
-  INTEGER(hid_t) :: datatype         !/* Common datatype ID */
-  INTEGER(hid_t) :: filespace        !/* Common dataspace ID */
-  INTEGER(hid_t) :: root_group,grp   !/* Root group ID */
-  INTEGER i,j                  !/* counting variable */
-  INTEGER(hsize_t) idx            !/* Index in the group */
-  CHARACTER(LEN=11) :: DATAFILE = "titerate.h5"
-  INTEGER, PARAMETER :: ndatasets = 50
-  CHARACTER(LEN=10) :: name ! /* temporary name buffer */
-  CHARACTER(LEN=10), DIMENSION(1:ndatasets+2) :: lnames ! /* Names of the links created */
-!!$    char dataset_name[NAMELEN];  /* dataset name */
-
-  TYPE(iter_info), TARGET :: info
-
-!!$    iter_info info;         /* Custom iteration information */
-!!$    H5G_info_t ginfo;       /* Buffer for querying object's info */
-!!$    herr_t ret;		    /* Generic return value */
-
+  INTEGER(hid_t), PARAMETER :: FAKE_ID = -1
+  INTEGER :: total_error
+  INTEGER(hid_t) :: file
+  INTEGER(hid_t) :: dataset, space
+  INTEGER(hid_t)  :: estack_id
+  INTEGER(hsize_t), DIMENSION(1:2) :: dims
+  CHARACTER(LEN=10) :: FUNC_test_error = "test_error"
+  TYPE(C_FUNPTR) :: old_func
+  TYPE(C_PTR) :: old_data, null_data
   INTEGER :: error
-  INTEGER :: ret_value
+  TYPE(C_FUNPTR) :: op
+  INTEGER, DIMENSION(1:100,1:200), TARGET :: ipoints2
+  !!    INTEGER, DIMENSION(1:2), TARGET :: my_hdf5_error_handler_data
+  INTEGER, DIMENSION(:), POINTER :: ptr_data
+  INTEGER, TARGET :: my_hdf5_error_handler_data
   TYPE(C_PTR) :: f_ptr
-  TYPE(C_FUNPTR) :: f1
-  TYPE(C_PTR) :: f2
-  CHARACTER(LEN=2) :: ichr2
-  CHARACTER(LEN=10) :: ichr10
+  TYPE(C_FUNPTR) :: func
 
-  !/* Get the default FAPL */
-  CALL H5Pcreate_f(H5P_FILE_ACCESS_F, fapl, error)
-  CALL check("h5pcreate_f", error, total_error)
+  TYPE(C_PTR), TARGET :: f_ptr1
+  TYPE(C_FUNPTR), TARGET :: func1
 
-  !/* Set the "use the latest version of the format" bounds for creating objects in the file */
-  CALL H5Pset_libver_bounds_f(fapl, H5F_LIBVER_LATEST_F, H5F_LIBVER_LATEST_F, error)
-  CALL check("H5Pset_libver_bounds_f",error, total_error)
+  INTEGER, DIMENSION(1:1) :: array_shape
+  LOGICAL :: is_associated
 
-  !/* Create the test file with the datasets */
-  CALL h5fcreate_f(DATAFILE, H5F_ACC_TRUNC_F, file, error, H5P_DEFAULT_F, fapl)
+  !    my_hdf5_error_handler_data(1:2) =(/1,2/)
+  my_hdf5_error_handler_data = 99
+  CALL h5fcreate_f("terror.h5", H5F_ACC_TRUNC_F, file, error)
   CALL check("h5fcreate_f", error, total_error)
 
-  !/* Test iterating over empty group */
-  !    info.command = RET_ZERO;
+  ! Create the data space
+  dims(1) = 10
+  dims(2) = 20
+  CALL H5Screate_simple_f(2, dims, space, error)
+  CALL check("h5screate_simple_f", error, total_error)
 
-  !    info%command%RET_ZERO = 0
-  idx = 0
-  info%command = 0
-  f1 = C_FUNLOC(liter_cb)
-  f2 = C_LOC(info)
+  ! ** SET THE CUSTOMIZED PRINTING OF ERROR STACK **
+
+  ! set the customized error handling routine
+  func = c_funloc(my_hdf5_error_handler)
+
+  ! set the data sent to the customized routine
+  f_ptr = c_loc(my_hdf5_error_handler_data)
+
+  ! turn on automatic printing, and use a custom error routine with input data
+  CALL H5Eset_auto_f(1, error, H5E_DEFAULT_F, func, f_ptr)
+
+  ! Create the erring dataset
+  CALL h5dcreate_f(FAKE_ID,"a_dataset",H5T_NATIVE_INTEGER, space, dataset, error)
+  CALL VERIFY("h5dcreate_f", error, -1, total_error)
+
+!!$    CALL VERIFY("H5Eset_auto_f",my_hdf5_error_handler_data(1),10, total_error)
+!!$    CALL VERIFY("H5Eset_auto_f",my_hdf5_error_handler_data(2),20, total_error)
+
+  ! Test enabling and disabling default printing
+
+  CALL H5Eget_auto_f(H5E_DEFAULT_F, func1, f_ptr1, error)
+  CALL VERIFY("H5Eget_auto_f", error, 0, total_error)
+
+  !    PRINT*,c_associated(f_ptr1)
+
+  ALLOCATE(ptr_data(1:2))
+  ptr_data = 0
+  array_shape(1) = 2
+  CALL C_F_POINTER(f_ptr1, ptr_data, array_shape)
+
+  !    ptr_data => f_ptr1(1)
+
+  !    PRINT*,ptr_data(1)
+
+!!$    if(old_data != NULL)
+!!$	TEST_ERROR;
+!!$#ifdef H5_USE_16_API
+!!$    if (old_func != (H5E_auto_t)H5Eprint)
+!!$	TEST_ERROR;
+!!$#else /* H5_USE_16_API */
+!!$    if (old_func != (H5E_auto2_t)H5Eprint2)
+!!$	TEST_ERROR;
+!!$#endif /* H5_USE_16_API */
 
 
-  CALL H5Literate_f(file, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, f1, f2, ret_value, error)
-  CALL check("H5Literate_f", error, total_error)
+  ! set the customized error handling routine
+  func = c_funloc(my_hdf5_error_handler_nodata)
+  ! set the data sent to the customized routine as null
+  f_ptr = C_NULL_PTR
+  ! turn on automatic printing, and use a custom error routine with no input data
+  CALL H5Eset_auto_f(1, error, H5E_DEFAULT_F, func, f_ptr)
 
-  CALL H5Tcopy_f(H5T_NATIVE_INTEGER, datatype, error)
-  CALL check("H5Tcopy_f", error, total_error)
+  CALL h5dcreate_f(FAKE_ID,"a_dataset",H5T_NATIVE_INTEGER, space, dataset, error)
+  CALL VERIFY("h5dcreate_f", error, -1, total_error)
 
-  CALL H5Screate_f(H5S_SCALAR_F, filespace, error)
-  CALL check("H5Screate_f", error, total_error)
 
-  DO i = 1, ndatasets
-     WRITE(ichr2, '(I2.2)') i
+  ! turn on automatic printing with h5eprint_f which prints an error stack in the default manner.
 
-     name = 'Dataset '//ichr2
+  !    func = c_funloc(h5eprint_f)
+  !    CALL H5Eset_auto_f(0, error, H5E_DEFAULT_F, func, C_NULL_PTR)
 
-     CALL h5dcreate_f(file, name, datatype, filespace, dataset, error)
-     CALL check("H5dcreate_f", error, total_error)
+  CALL H5Eset_auto_f(0, error)
+  CALL h5dcreate_f(FAKE_ID,"a_dataset",H5T_NATIVE_INTEGER, space, dataset, error)
 
-     lnames(i) = name
+  CALL H5Eset_auto_f(1, error)
+  CALL h5dcreate_f(FAKE_ID,"a_dataset",H5T_NATIVE_INTEGER, space, dataset, error)
 
-     CALL h5dclose_f(dataset,error)
-     CALL check("H5dclose_f", error, total_error)
-
-  ENDDO
-
-  ! /* Create a group and named datatype under root group for testing */
-
-  CALL H5Gcreate_f(file, "grp0000000", grp, error)
-  CALL check("H5Gcreate_f", error, total_error)
-
-  lnames(ndatasets+2) = "grp0000000" 
-
-!!$
-!!$    lnames[NDATASETS] = HDstrdup("grp");
-!!$    CHECK(lnames[NDATASETS], NULL, "strdup");
-!!$
-
-  CALL H5Tcommit_f(file, "dtype00000", datatype, error)
-  CALL check("H5Tcommit_f", error, total_error)
-
-  lnames(ndatasets+1) = "dtype00000" 
-
-  ! /* Close everything up */
-
-  CALL H5Tclose_f(datatype, error)
-  CALL check("H5Tclose_f", error, total_error)
-
-  CALL H5Gclose_f(grp, error)
-  CALL check("H5Gclose_f", error, total_error)
-
-  CALL H5Sclose_f(filespace, error)
-  CALL check("H5Sclose_f", error, total_error)
-
-  CALL H5Fclose_f(file, error)
-  CALL check("H5Fclose_f", error, total_error)
-
-  ! /* Iterate through the datasets in the root group in various ways */
-  CALL H5Fopen_f(DATAFILE, H5F_ACC_RDONLY_F, file, error, access_prp=fapl)
-  CALL check("h5fopen_f", error, total_error)
-
-  !/* Test all objects in group, when callback always returns 0 */
-  info%command = 0
-  idx = 0
-  CALL H5Literate_f(file, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, f1, f2, ret_value, error)
-  IF(ret_value.GT.0)THEN
-     PRINT*,"ERROR: Group iteration function didn't return zero correctly!"
-     CALL verify("H5Literate_f", error, -1, total_error)
-  ENDIF
-
-  !  /* Test all objects in group, when callback always returns 1 */
-  !  /* This also tests the "restarting" ability, because the index changes */
-
-  info%command = 2
-  idx = 0
-  i = 0
-  f1 = C_FUNLOC(liter_cb)
-  f2 = C_LOC(info)
-  DO 
-     CALL H5Literate_f(file, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, f1, f2, ret_value, error)
-     IF(error.LT.0) EXIT
-     ! /* Verify return value from iterator gets propagated correctly */
-     CALL VERIFY("H5Literate", ret_value, 2, total_error)
-     ! /* Increment the number of times "2" is returned */
-     i = i + 1
-     !/* Verify that the index is the correct value */
-     CALL VERIFY("H5Literate", INT(idx), INT(i), total_error)
-     IF(idx .GT.ndatasets+2)THEN
-        PRINT*,"ERROR: Group iteration function walked too far!"
-     ENDIF
-
-     !/* Verify the correct name is retrieved */
-     DO j = 1, 10
-        ichr10(j:j) = info%name(j)(1:1)
-     ENDDO
-     CALL verifystring("H5Literate_f", ichr10, lnames(INT(idx)), total_error)
-     IF(i.EQ.52)EXIT ! prints out error message otherwise (for gcc/gfortran/g95) not intel (why) -FIXME- scot
-  END DO
-
-  ! put check if did not walk far enough -scot FIXME
-
-  IF(i .NE. (NDATASETS + 2)) THEN
-     CALL VERIFY("H5Literate_f", i, INT(NDATASETS + 2), total_error)
-     PRINT*,"ERROR: Group iteration function didn't perform multiple iterations correctly"
-  ENDIF
-
-  !/* Test all objects in group, when callback changes return value */
-  !/* This also tests the "restarting" ability, because the index changes */
-
-  info%command = 3
-  idx = 0
-  i = 0
-
-  f1 = C_FUNLOC(liter_cb)
-  f2 = C_LOC(info)
-  DO
-
-     CALL H5Literate_f(file, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, f1, f2, ret_value, error)
-     IF(error.LT.0) EXIT
-     CALL VERIFY("H5Literate_f", ret_value, 1, total_error)
-
-     !/* Increment the number of times "1" is returned */
-     i = i + 1
-
-     !/* Verify that the index is the correct value */
-     CALL VERIFY("H5Literate_f", INT(idx), INT(i+10), total_error)
-
-     IF(idx .GT.ndatasets+2)THEN
-        PRINT*,"Group iteration function walked too far!"
-     ENDIF
-
-     DO j = 1, 10
-        ichr10(j:j) = info%name(j)(1:1)
-     ENDDO
-     !/* Verify that the correct name is retrieved */
-     CALL verifystring("H5Literate_f", ichr10, lnames(INT(idx)), total_error)
-     IF(i.EQ.42)EXIT ! prints out error message otherwise (for gcc/gfortran/g95) not intel (why) -FIX- scot
-  ENDDO
-
-  IF(i .NE. 42 .OR. idx .NE. 52)THEN
-     PRINT*,"ERROR: Group iteration function didn't perform multiple iterations correctly!"
-     CALL check("H5Literate_f",-1,total_error)
-  ENDIF
-
-  CALL H5Fclose_f(file, error)
-  CALL check("H5Fclose_f", error, total_error)
-
-END SUBROUTINE test_iter_group
+END SUBROUTINE test_error
