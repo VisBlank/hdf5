@@ -122,8 +122,9 @@ typedef herr_t (*H5P_iterate_t)(hid_t id, const char *name, void *iter_data);
 
 /* Actual IO mode property */
 typedef enum H5D_mpio_actual_chunk_opt_mode_t {
-    /* The default property is used for all I/O opertions that do not use chunk 
-     * optimizations, including non-collective I/O. */
+    /* The default value is used for all I/O opertions that do not use chunk 
+     * optimizations, including non-collective I/O and contiguous collective I/O.
+     */
     H5D_MPIO_NO_CHUNK_OPTIMIZATION = 0,
     H5D_MPIO_LINK_CHUNK,
     H5D_MPIO_MULTI_CHUNK,

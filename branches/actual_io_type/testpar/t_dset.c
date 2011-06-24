@@ -2575,14 +2575,9 @@ actual_io_mode_tests(void) {
  *                  each process reports contiguous collective I/O
  *
  *
- *          TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_MIX has been intentionally left our because it is
- *          impossible.  Without optimization, a process breaks collective I/O after it
- *          has operated on more chunks than the minimum number of chunks that any process
- *          has selected. Whichever process selects this minimum number will never break
- *          collective I/O, and so even if collective I/O breaks for the rest of the
- *          processes, the result will still not be unanimous. 
- *          
- *
+ *          It may seem like TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_MIX has been accidentally
+ *          left out. This is intentional; this result is impossible.
+ * 
  * Programmer: Jacob Gruber
  * Date: 2011-04-06
  */
@@ -2626,7 +2621,7 @@ void test_actual_io_mode(int selection_mode) {
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
 
     MPI_Barrier(MPI_COMM_WORLD);
-    
+
     /* Do one instance of independent io if that's the selection */
     if (selection_mode == TEST_ACTUAL_IO_NO_COLLECTIVE) {
         if (mpi_rank == 0) {
@@ -2746,7 +2741,7 @@ void test_actual_io_mode(int selection_mode) {
     is_chunked = selection_mode != TEST_ACTUAL_IO_CONTIGUOUS;
 
     
-    HDassert( mpi_size >= 1 );
+    HDassert(mpi_size >= 1);
 
     mpi_comm = MPI_COMM_WORLD;
     mpi_info = MPI_INFO_NULL;

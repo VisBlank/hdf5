@@ -8181,8 +8181,8 @@ main(void)
         nerrors += (test_chunk_cache(my_fapl) < 0		? 1 : 0);
         nerrors += (test_big_chunks_bypass_cache(my_fapl) < 0   ? 1 : 0);
         nerrors += (test_chunk_expand(my_fapl) < 0		? 1 : 0);
-	    nerrors += (test_layout_extend(my_fapl) < 0		? 1 : 0);
-        
+        nerrors += (test_layout_extend(my_fapl) < 0		? 1 : 0);
+
         if(H5Fclose(file) < 0)
             goto error;
     } /* end for */

@@ -291,8 +291,8 @@ H5P_dxfr_reg_prop(H5P_genclass_t *pclass)
 /* Register the chunk optimization mode property. */
     if(H5P_register_real(pclass, H5D_MPIO_ACTUAL_CHUNK_OPT_MODE_NAME, H5D_MPIO_ACTUAL_CHUNK_OPT_MODE_SIZE, &def_mpio_actual_chunk_opt_mode, NULL, NULL, NULL, NULL, NULL, NULL, NULL) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class")
-        
-/* Register the multi chunk io mode property. */
+
+/* Register the actual io mode property. */
     if(H5P_register_real(pclass, H5D_MPIO_ACTUAL_IO_MODE_NAME, H5D_MPIO_ACTUAL_IO_MODE_SIZE, &def_mpio_actual_io_mode, NULL, NULL, NULL, NULL, NULL, NULL, NULL) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class")
 
@@ -1539,7 +1539,8 @@ done:
 /*-------------------------------------------------------------------------
  * Function:	H5Pget_mpio_actual_io_mode
  *
- * Purpose: Retreives the type of I/O preformed by the multi chunk I/O operations 
+ * Purpose: Retreives the type of I/O actually preformed when collective I/O
+ *          is requested.
  *
  * Return:	Non-negative on success/Negative on failure
  *

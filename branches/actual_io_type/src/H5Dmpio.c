@@ -1494,7 +1494,7 @@ if(H5DEBUG(D)) {
         make_ind = make_coll = FALSE;
 
         count_chunk++;
-        
+
         /* If the number of chunk is greater than minimum number of chunk,
          *      Do independent read.
          */
