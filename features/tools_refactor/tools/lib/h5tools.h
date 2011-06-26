@@ -101,6 +101,9 @@
 #define EXTERNAL_FILE   "EXTERNAL_FILE"
 #define FILLVALUE       "FILLVALUE"
 #define FILE_CONTENTS   "FILE_CONTENTS"
+#define PACKED_BITS     "PACKED_BITS"
+#define PACKED_OFFSET   "OFFSET"
+#define PACKED_LENGTH   "LENGTH"
 
 #define BEGIN           "{"
 #define END             "}"
@@ -536,6 +539,7 @@ extern "C" {
 
 H5TOOLS_DLLVAR int     packed_bits_num;     /* number of packed bits to display */
 H5TOOLS_DLLVAR int     packed_data_offset;  /* offset of packed bits to display */
+H5TOOLS_DLLVAR int     packed_data_length; /* lengtht of packed bits to display */
 H5TOOLS_DLLVAR unsigned long long packed_data_mask;  /* mask in which packed bits to display */
 H5TOOLS_DLLVAR FILE   *rawdatastream;       /* output stream for raw data */
 H5TOOLS_DLLVAR int     bin_output;          /* binary output */

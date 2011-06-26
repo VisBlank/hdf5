@@ -5,7 +5,7 @@
       <StorageLayout>
          <ContiguousLayout/>
       </StorageLayout>
-         <FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
+      <FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
          <FillValue>
                <NoFill/>
          </FillValue>
@@ -35,7 +35,7 @@
       <StorageLayout>
          <ContiguousLayout/>
       </StorageLayout>
-         <FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
+      <FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
          <FillValue>
                <NoFill/>
          </FillValue>
@@ -60,7 +60,7 @@
       <StorageLayout>
          <ContiguousLayout/>
       </StorageLayout>
-         <FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
+      <FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
          <FillValue>
                <NoFill/>
          </FillValue>
@@ -85,7 +85,7 @@
       <StorageLayout>
          <ContiguousLayout/>
       </StorageLayout>
-         <FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
+      <FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
          <FillValue>
                <NoFill/>
          </FillValue>
@@ -115,7 +115,7 @@
       <StorageLayout>
          <ContiguousLayout/>
       </StorageLayout>
-         <FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
+      <FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
          <FillValue>
                <NoFill/>
          </FillValue>

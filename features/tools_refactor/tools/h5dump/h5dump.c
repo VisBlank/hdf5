@@ -1384,7 +1384,7 @@ main(int argc, const char *argv[])
     init_prefix(&prefix, prefix_len);
 
     /* Prepare to find objects that might be targets of a reference */
-    fill_ref_path_table(fid);
+    assign_ref_path_table_id(fid);
 
     if(doxml) {
         /* initialize XML */
@@ -1488,9 +1488,11 @@ main(int argc, const char *argv[])
             h5tools_setstatus(EXIT_FAILURE);
         }
         else {
-            dump_indent += COL;
+            if (!doxml)
+                dump_indent += COL;
             dump_function_table->dump_group_function(gid, "/" );
-            dump_indent -= COL;
+            if (!doxml)
+                dump_indent -= COL;
             HDfprintf(stdout, "\n");
         }
 

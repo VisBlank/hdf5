@@ -15,10 +15,6 @@
 #ifndef H5DUMP_MAIN_H__
 #define H5DUMP_MAIN_H__
 
-/* internal functions */
-static void     dump_oid(hid_t oid);
-static void     print_packed_bits(h5tools_str_t *buffer, unsigned int packed_index, hid_t type);
-
 /* callback function used by H5Literate() */
 static herr_t   dump_all_cb(hid_t group, const char *name, const H5L_info_t *linfo, void *op_data);
 static int      dump_extlink(hid_t group, const char *linkname, const char *objname);

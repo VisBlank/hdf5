@@ -1101,10 +1101,11 @@ dump_dataset(hid_t did, const char *name, struct subset_t *sset)
                 h5tools_simple_prefix(stdout, outputformat, &ctx, 0, 0);
                 /* Render the element */
                 h5tools_str_reset(&buffer);
-                print_packed_bits(&buffer, i, type);
-                h5tools_render_element(stdout, outputformat, &ctx, &buffer, &curr_pos, ncols, 0, 0);
                 packed_data_mask = packed_mask[i];
                 packed_data_offset = packed_offset[i];
+                packed_data_length = packed_length[i];
+                h5tools_print_packed_bits(&buffer, type);
+                h5tools_render_element(stdout, outputformat, &ctx, &buffer, &curr_pos, ncols, 0, 0);
             }
             switch(H5Tget_class(type)) {
             case H5T_TIME:
@@ -1243,64 +1244,6 @@ dump_data(hid_t obj_id, int obj_data, struct subset_t *sset, int display_index)
     h5tools_dump_data(stdout, outputformat, &ctx, obj_id, print_dataset, sset, display_index, display_char);
 }
 
-/*-------------------------------------------------------------------------
- * Function:    print_packed_bits
- *
- * Purpose:     Prints the packed bits offset and length
- *
- * Return:      void
- *
- *-------------------------------------------------------------------------
- */
-static void
-print_packed_bits(h5tools_str_t *buffer, unsigned int packed_index, hid_t type)
-{
-    int     packed_bits_size = 0;
-    
-    hid_t n_type = h5tools_get_native_type(type);
-    if(H5Tget_class(n_type)==H5T_INTEGER) {
-        if(H5Tequal(n_type, H5T_NATIVE_SCHAR) == TRUE) {
-            packed_bits_size = 8 * sizeof(char);
-        } 
-        else if(H5Tequal(n_type, H5T_NATIVE_UCHAR) == TRUE) {
-            packed_bits_size = 8 * sizeof(unsigned char);
-        } 
-        else if(H5Tequal(n_type, H5T_NATIVE_SHORT) == TRUE) {
-            packed_bits_size = 8 * sizeof(short);
-        } 
-        else if(H5Tequal(n_type, H5T_NATIVE_USHORT) == TRUE) {
-            packed_bits_size = 8 * sizeof(unsigned short);
-        } 
-        else if(H5Tequal(n_type, H5T_NATIVE_INT) == TRUE) {
-            packed_bits_size = 8 * sizeof(int);
-        } 
-        else if(H5Tequal(n_type, H5T_NATIVE_UINT) == TRUE) {
-            packed_bits_size = 8 * sizeof(unsigned int);
-        } 
-        else if(H5Tequal(n_type, H5T_NATIVE_LONG) == TRUE) {
-            packed_bits_size = 8 * sizeof(long);
-        } 
-        else if(H5Tequal(n_type, H5T_NATIVE_ULONG) == TRUE) {
-            packed_bits_size = 8 * sizeof(unsigned long);
-        } 
-        else if(H5Tequal(n_type, H5T_NATIVE_LLONG) == TRUE) {
-            packed_bits_size = 8 * sizeof(long long);
-        } 
-        else if(H5Tequal(n_type, H5T_NATIVE_ULLONG) == TRUE) {
-            packed_bits_size = 8 * sizeof(unsigned long long);
-        }
-        else
-            error_msg("Packed Bit not valid for this datatype");
-    }
-
-    if ((packed_bits_size>0) && (packed_offset[packed_index] + packed_length[packed_index]) > packed_bits_size) {
-        error_msg("Packed Bit offset+length value(%d) too large. Max is %d\n",
-                  packed_offset[packed_index]+packed_length[packed_index], packed_bits_size);
-        packed_mask[packed_index] = 0;
-    };
-    h5tools_str_append(buffer, "%s %s=%d %s=%d", PACKED_BITS, PACKED_OFFSET, packed_offset[packed_index], PACKED_LENGTH, packed_length[packed_index]);
-}
-
 
 /*-------------------------------------------------------------------------
  * Function:    dump_fcpl
@@ -1319,12 +1262,14 @@ void
 dump_fcpl(hid_t fid)
 {
     hid_t    fcpl;      /* file creation property list ID */
-    hid_t    fapl;      /* file access property list ID */
     hsize_t  userblock; /* userblock size retrieved from FCPL */
     size_t   off_size;  /* size of offsets in the file */
     size_t   len_size;  /* size of lengths in the file */
+#ifdef SHOW_FILE_DRIVER
+    hid_t    fapl;      /* file access property list ID */
     hid_t    fdriver;   /* file driver */
     char     dname[32]; /* buffer to store driver name */
+#endif
     unsigned sym_lk;    /* symbol table B-tree leaf 'K' value */
     unsigned sym_ik;    /* symbol table B-tree internal 'K' value */
     unsigned istore_ik; /* indexed storage B-tree internal 'K' value */
@@ -1340,10 +1285,12 @@ dump_fcpl(hid_t fid)
     H5Pget_istore_k(fcpl,&istore_ik);
     H5Pget_file_space(fcpl, &fs_strategy, &fs_threshold);
     H5Pclose(fcpl);
+#ifdef SHOW_FILE_DRIVER
     fapl=h5_fileaccess();
     fdriver=H5Pget_driver(fapl);
     H5Pclose(fapl);
-
+#endif
+    
    /*-------------------------------------------------------------------------
     * SUPER_BLOCK
     *-------------------------------------------------------------------------
@@ -1366,6 +1313,7 @@ dump_fcpl(hid_t fid)
     indentation(dump_indent + COL);
     HDfprintf(stdout, "%s %d\n","BTREE_LEAF", sym_lk);
 
+#ifdef SHOW_FILE_DRIVER
     if (H5FD_CORE==fdriver)
         HDstrcpy(dname,"H5FD_CORE");
 #ifdef H5_HAVE_DIRECT
@@ -1395,6 +1343,7 @@ dump_fcpl(hid_t fid)
      * standard output. */
     /*indentation(dump_indent + COL);
     HDfprintf(stdout, "%s %s\n","FILE_DRIVER", dname);*/
+#endif
     indentation(dump_indent + COL);
     HDfprintf(stdout, "%s %u\n","ISTORE_K", istore_ik);
 

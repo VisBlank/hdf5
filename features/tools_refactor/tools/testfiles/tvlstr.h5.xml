@@ -16,7 +16,7 @@
       <hdf5:StorageLayout>
          <hdf5:ContiguousLayout/>
       </hdf5:StorageLayout>
-         <hdf5:FillValueInfo FillTime="FillOnAlloc" AllocationTime="Late">
+      <hdf5:FillValueInfo FillTime="FillOnAlloc" AllocationTime="Late">
          <hdf5:FillValue>
                <hdf5:Data>
                   <!-- String fill values not yet implemented. -->

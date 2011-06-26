@@ -3575,6 +3575,63 @@ h5tools_print_dims(h5tools_str_t *buffer, hsize_t *s, int dims)
 }
 
 /*-------------------------------------------------------------------------
+ * Function:    print_packed_bits
+ *
+ * Purpose:     Prints the packed bits offset and length
+ *
+ * Return:      void
+ *
+ *-------------------------------------------------------------------------
+ */
+void
+h5tools_print_packed_bits(h5tools_str_t *buffer, hid_t type)
+{
+    int     packed_bits_size = 0;
+    
+    hid_t n_type = h5tools_get_native_type(type);
+    if(H5Tget_class(n_type)==H5T_INTEGER) {
+        if(H5Tequal(n_type, H5T_NATIVE_SCHAR) == TRUE) {
+            packed_bits_size = 8 * sizeof(char);
+        } 
+        else if(H5Tequal(n_type, H5T_NATIVE_UCHAR) == TRUE) {
+            packed_bits_size = 8 * sizeof(unsigned char);
+        } 
+        else if(H5Tequal(n_type, H5T_NATIVE_SHORT) == TRUE) {
+            packed_bits_size = 8 * sizeof(short);
+        } 
+        else if(H5Tequal(n_type, H5T_NATIVE_USHORT) == TRUE) {
+            packed_bits_size = 8 * sizeof(unsigned short);
+        } 
+        else if(H5Tequal(n_type, H5T_NATIVE_INT) == TRUE) {
+            packed_bits_size = 8 * sizeof(int);
+        } 
+        else if(H5Tequal(n_type, H5T_NATIVE_UINT) == TRUE) {
+            packed_bits_size = 8 * sizeof(unsigned int);
+        } 
+        else if(H5Tequal(n_type, H5T_NATIVE_LONG) == TRUE) {
+            packed_bits_size = 8 * sizeof(long);
+        } 
+        else if(H5Tequal(n_type, H5T_NATIVE_ULONG) == TRUE) {
+            packed_bits_size = 8 * sizeof(unsigned long);
+        } 
+        else if(H5Tequal(n_type, H5T_NATIVE_LLONG) == TRUE) {
+            packed_bits_size = 8 * sizeof(long long);
+        } 
+        else if(H5Tequal(n_type, H5T_NATIVE_ULLONG) == TRUE) {
+            packed_bits_size = 8 * sizeof(unsigned long long);
+        }
+        else
+            error_msg("Packed Bit not valid for this datatype");
+    }
+
+    if ((packed_bits_size>0) && (packed_data_offset + packed_data_length) > packed_bits_size) {
+        error_msg("Packed Bit offset+length value(%d) too large. Max is %d\n", packed_data_offset+packed_data_length, packed_bits_size);
+        packed_data_mask = 0;
+    };
+    h5tools_str_append(buffer, "%s %s=%d %s=%d", PACKED_BITS, PACKED_OFFSET, packed_data_offset, PACKED_LENGTH, packed_data_length);
+}
+
+/*-------------------------------------------------------------------------
  * Function:    dump_subsetting_header
  *
  * Purpose:     Dump the subsetting header like specified in the DDL.

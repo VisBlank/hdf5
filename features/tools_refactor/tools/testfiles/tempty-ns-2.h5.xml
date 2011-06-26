@@ -5,7 +5,7 @@
       <thing:StorageLayout>
          <thing:ContiguousLayout/>
       </thing:StorageLayout>
-         <thing:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
+      <thing:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
          <thing:FillValue>
                <thing:NoFill/>
          </thing:FillValue>
@@ -35,7 +35,7 @@
       <thing:StorageLayout>
          <thing:ContiguousLayout/>
       </thing:StorageLayout>
-         <thing:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
+      <thing:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
          <thing:FillValue>
                <thing:NoFill/>
          </thing:FillValue>
@@ -60,7 +60,7 @@
       <thing:StorageLayout>
          <thing:ContiguousLayout/>
       </thing:StorageLayout>
-         <thing:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
+      <thing:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
          <thing:FillValue>
                <thing:NoFill/>
          </thing:FillValue>
@@ -85,7 +85,7 @@
       <thing:StorageLayout>
          <thing:ContiguousLayout/>
       </thing:StorageLayout>
-         <thing:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
+      <thing:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
          <thing:FillValue>
                <thing:NoFill/>
          </thing:FillValue>
@@ -115,7 +115,7 @@
       <thing:StorageLayout>
          <thing:ContiguousLayout/>
       </thing:StorageLayout>
-         <thing:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
+      <thing:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
          <thing:FillValue>
                <thing:NoFill/>
          </thing:FillValue>
