@@ -970,7 +970,9 @@ H5D_ioinfo_adjust(H5D_io_info_t *io_info, const H5D_t *dset, hid_t dxpl_id,
     if(NULL == (dx_plist = (H5P_genplist_t *)H5I_object(dxpl_id)))
        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataset transfer property list")
     
-    /* Set properties to defaults. */
+    /* Reset the actual io mode properties to the default values in case
+     * the dxpl was previously used in a collective I/O operation.
+     */
     actual_chunk_opt_mode = H5D_MPIO_NO_CHUNK_OPTIMIZATION;
     actual_io_mode = H5D_MPIO_NO_COLLECTIVE;
     if (H5P_set(dx_plist, H5D_MPIO_ACTUAL_CHUNK_OPT_MODE_NAME, &actual_chunk_opt_mode) < 0)

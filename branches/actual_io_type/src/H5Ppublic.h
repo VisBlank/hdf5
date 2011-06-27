@@ -122,8 +122,9 @@ typedef herr_t (*H5P_iterate_t)(hid_t id, const char *name, void *iter_data);
 
 /* Actual IO mode property */
 typedef enum H5D_mpio_actual_chunk_opt_mode_t {
-    /* The default value is used for all I/O opertions that do not use chunk 
-     * optimizations, including non-collective I/O and contiguous collective I/O.
+    /* The default value, H5D_MPIO_NO_CHUNK_OPTIMIZATION, is used for all I/O
+     * operations that do not use chunk optimizations, including non-collective
+     * I/O and contiguous collective I/O.
      */
     H5D_MPIO_NO_CHUNK_OPTIMIZATION = 0,
     H5D_MPIO_LINK_CHUNK,
@@ -133,16 +134,16 @@ typedef enum H5D_mpio_actual_chunk_opt_mode_t {
 }  H5D_mpio_actual_chunk_opt_mode_t;
 
 typedef enum H5D_mpio_actual_io_mode_t {    
-    H5D_MPIO_NO_COLLECTIVE = 0x0,
-
-    /* This property is conviniently defined in a bit field like manner so that
+    /* The following four values are conveniently defined as a bit field so that
      * we can switch from the default to indpendent or collective and then to
      * mixed without having to check the original value. */
+    H5D_MPIO_NO_COLLECTIVE = 0x0,
     H5D_MPIO_CHUNK_INDEPENDENT = 0x1,
     H5D_MPIO_CHUNK_COLLECTIVE = 0x2,
     H5D_MPIO_CHUNK_MIXED = 0x1 | 0x2,
 
-    H5D_MPIO_CONTIGUOUS_COLLECTIVE =0x3,
+    /* The contiguous case is separate from the bit field. */
+    H5D_MPIO_CONTIGUOUS_COLLECTIVE = 0x3,
 } H5D_mpio_actual_io_mode_t; 
 
 /********************/

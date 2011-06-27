@@ -522,7 +522,9 @@ H5D_contig_collective_read(H5D_io_info_t *io_info, const H5D_type_info_t *type_i
     if(NULL == (dx_plist = H5I_object(io_info->dxpl_id)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a data transfer property list")
 
-    /* Set the actual I/O mode property */
+    /* Set the actual I/O mode property. internal_collective_io will not break to
+     * independent I/O, so we set it here.
+     */
     if (H5P_set(dx_plist, H5D_MPIO_ACTUAL_IO_MODE_NAME, &actual_io_mode) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "couldn't set actual io mode property") 
  
@@ -567,7 +569,9 @@ H5D_contig_collective_write(H5D_io_info_t *io_info, const H5D_type_info_t *type_
     if(NULL == (dx_plist = H5I_object(io_info->dxpl_id)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a data transfer property list")
 
-    /* Set the actual I/O mode property */
+    /* Set the actual I/O mode property. internal_collective_io will not break to
+     * independent I/O, so we set it here.
+     */
     if (H5P_set(dx_plist, H5D_MPIO_ACTUAL_IO_MODE_NAME, &actual_io_mode) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "couldn't set actual io mode property") 
  
@@ -737,7 +741,9 @@ H5D_chunk_collective_io(H5D_io_info_t *io_info, const H5D_type_info_t *type_info
     /* step 2:  Go ahead to do IO.*/
 #ifdef H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS
     if(io_option == H5D_ONE_LINK_CHUNK_IO || io_option == H5D_ONE_LINK_CHUNK_IO_MORE_OPT) {
-        /* set the actual io mode properties to the correct values for link chunk io. */
+        /* set the actual io mode properties to the correct values for link chunk io.
+         * Link chunk I/O does not break to independent, so we can set the actual_io mode
+         * as well as the optimisation mode. */
         actual_chunk_opt_mode = H5D_MPIO_LINK_CHUNK;
         actual_io_mode = H5D_MPIO_CHUNK_COLLECTIVE;
         

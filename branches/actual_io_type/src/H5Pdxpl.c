@@ -1514,7 +1514,7 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5Pget_mpio_actual_chunk_opt_mode(hid_t plist_id, H5D_mpio_actual_chunk_opt_mode_t *actual_chunk_opt_mode )
+H5Pget_mpio_actual_chunk_opt_mode(hid_t plist_id, H5D_mpio_actual_chunk_opt_mode_t *actual_chunk_opt_mode)
 {
     H5P_genplist_t     *plist;
     herr_t ret_value=SUCCEED;   /* return value */
@@ -1549,7 +1549,7 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5Pget_mpio_actual_io_mode(hid_t plist_id, H5D_mpio_actual_io_mode_t * actual_io_mode )
+H5Pget_mpio_actual_io_mode(hid_t plist_id, H5D_mpio_actual_io_mode_t * actual_io_mode)
 {
     H5P_genplist_t     *plist;
     herr_t ret_value=SUCCEED;   /* return value */

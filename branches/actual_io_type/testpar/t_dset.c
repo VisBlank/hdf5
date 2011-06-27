@@ -2508,27 +2508,51 @@ none_selection_chunk(void)
  */
 void
 actual_io_mode_tests(void) {
+    int mpi_rank = -1;
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
     
     test_actual_io_mode(TEST_ACTUAL_IO_NO_COLLECTIVE);
-    test_actual_io_mode(TEST_ACTUAL_IO_RESET);
     
     test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_IND);
     test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_COL);
     test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_MIX);
     test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_MIX_DISAGREE);
 
-    
+/* Without H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS, all forms of
+ * multi chunk I/O no opt break to independent on all chunks.
+ *
+ * Additionally, link chunk I/O isn't possible, and breaks to
+ * multi chunk.
+ */
+#ifndef H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS
     test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_IND);
+    if (mpi_rank == 0) {
+        printf("Multi chunk collective I/O without optimization\
+not supported on this build.\n");
+        printf("Link chunk I/O not supported on this build.\n");
+    }
+
+/* Otherwise, the independent test relies on one process having an empty
+ * selection, which is only supported if H5_MPI_SPECIAL_COLLECTIVE_IO_WORKS
+ * is set.
+ */
+#else
+#ifdef H5_MPI_SPECIAL_COLLECTIVE_IO_WORKS
+    test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_IND);
+#else
+    if (mpi_rank == 0)
+        printf("Multi chunk collective I/O without optimization\
+independent test not supported on this build.\n");
+#endif
 
     test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_COL);
     test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_MIX_DISAGREE);
-
     test_actual_io_mode(TEST_ACTUAL_IO_LINK_CHUNK);
-    
+#endif
+
     test_actual_io_mode(TEST_ACTUAL_IO_CONTIGUOUS);
  
-    /* Check no collective again to make sure the porperty resets correctly. */
-    test_actual_io_mode(TEST_ACTUAL_IO_NO_COLLECTIVE);
+    test_actual_io_mode(TEST_ACTUAL_IO_RESET);
     return;
 }
 
@@ -2552,7 +2576,7 @@ actual_io_mode_tests(void) {
  *              TEST_ACTUAL_IO_MULTI_CHUNK_MIX:
  *                  H5D_mpi_chunk_collective_io, each process reports mixed I/O
  *
- *              TEST_ACTUAL_IO_MULTI_CHUNK_MIXED:
+ *              TEST_ACTUAL_IO_MULTI_CHUNK_MIXi_DISAGREE:
  *                  H5D_mpi_chunk_collective_io, processes disagree. The root reports
  *                  collective, the rest report independent I/O.
  *
@@ -2589,8 +2613,10 @@ void test_actual_io_mode(int selection_mode) {
     char        * filename;
     char        * test_name = NULL;
     char        skip = FALSE;
-    char        has_optimization;
+    char        multi_chunk_no_opt;
+    char        multi_chunk_with_opt;
     char        is_chunked;
+    char        is_collective;
     int         i;
     int         mpi_size = -1; 
     int         mpi_rank = -1;
@@ -2616,130 +2642,29 @@ void test_actual_io_mode(int selection_mode) {
     hbool_t     use_gpfs = FALSE;
     herr_t      ret;   
    
+    /* Set some local flags so future ifs need not be so long. */
+    multi_chunk_no_opt = (
+        selection_mode == TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_IND ||
+        selection_mode == TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_COL ||
+        selection_mode == TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_MIX_DISAGREE );
+    
+    multi_chunk_with_opt = (
+        selection_mode == TEST_ACTUAL_IO_MULTI_CHUNK_IND ||
+        selection_mode == TEST_ACTUAL_IO_MULTI_CHUNK_COL ||
+        selection_mode == TEST_ACTUAL_IO_MULTI_CHUNK_MIX ||
+        selection_mode == TEST_ACTUAL_IO_MULTI_CHUNK_MIX_DISAGREE );
+ 
+    is_chunked = (
+        selection_mode != TEST_ACTUAL_IO_CONTIGUOUS &&
+        selection_mode != TEST_ACTUAL_IO_NO_COLLECTIVE);
+    
+    is_collective = selection_mode != TEST_ACTUAL_IO_NO_COLLECTIVE;
+
     /* Set up MPI parameters */
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
 
     MPI_Barrier(MPI_COMM_WORLD);
-
-    /* Do one instance of independent io if that's the selection */
-    if (selection_mode == TEST_ACTUAL_IO_NO_COLLECTIVE) {
-        if (mpi_rank == 0) {
-            filename = (const char *)GetTestParameters();
-            HDassert(filename != NULL);
-
-            /* Create the file */
-            fid = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-            VRFY((fid >= 0), "H5Fcreate succeeded");
-            
-            /* Create the basic Space */    
-            dims[0] = dim0;
-            dims[1] = dim1;
-            sid = H5Screate_simple (RANK, dims, NULL);
-            VRFY((sid >= 0), "H5Screate_simple succeeded");
-
-            dataset = H5Dcreate2(fid, "chunk_io", data_type, sid, H5P_DEFAULT,
-            H5P_DEFAULT , H5P_DEFAULT);
-            VRFY((dataset != NULL), "H5Dcreate2() dataset succeeded");    
-
-           /* Inintialize buffer */
-            buffer = (int *)malloc(sizeof(int) * dim0*dim1 );
-            VRFY((buffer != NULL), "malloc of buffer succeeded"); 
-            for(i = 0; i < dim1*dim0; i++) 
-            buffer[i] = i;
-
-            /* Set up the dxpl */
-            dxpl = H5Pcreate(H5P_DATASET_XFER);
-            VRFY((dxpl >= 0), "H5Pcreate(H5P_DATASET_XFER) succeeded");
-
-            /* Write */
-            ret = H5Dwrite(dataset, data_type, H5S_ALL, H5S_ALL, dxpl, buffer);
-            VRFY((ret >= 0), "H5Dwrite() dataset multichunk write succeeded");
-
-            /* Check Properties */
-            ret = H5Pget_mpio_actual_io_mode(dxpl, &actual_io_mode);
-            VRFY( (ret >= 0), "retriving actual io mode succeeded" );
-
-            ret = H5Pget_mpio_actual_chunk_opt_mode(dxpl, &actual_chunk_opt_mode);
-            VRFY( (ret >= 0), "retriving actual chunk opt mode succeeded" );
-
-            VRFY(actual_chunk_opt_mode == H5D_MPIO_NO_CHUNK_OPTIMIZATION,
-             "actual_chunk_opt_mode has correct value for independent I/O");
-            VRFY(actual_io_mode == H5D_MPIO_NO_COLLECTIVE,
-             "actual_io_mode has correct value for independent I/O");
-            
-            /* Read */
-            ret = H5Dread(dataset, data_type, H5S_ALL, H5S_ALL, dxpl, buffer);
-            VRFY((ret >= 0), "H5Dwrite() dataset multichunk write succeeded");
-
-            /* Check Properties */
-            ret = H5Pget_mpio_actual_io_mode(dxpl, &actual_io_mode);
-            VRFY( (ret >= 0), "retriving actual io mode succeeded" );
-
-            ret = H5Pget_mpio_actual_chunk_opt_mode(dxpl, &actual_chunk_opt_mode);
-            VRFY( (ret >= 0), "retriving actual chunk opt mode succeeded" );
-
-            VRFY(actual_chunk_opt_mode == H5D_MPIO_NO_CHUNK_OPTIMIZATION,
-             "actual_chunk_opt_mode has correct value for independent I/O");
-            VRFY(actual_io_mode == H5D_MPIO_NO_COLLECTIVE,
-             "actual_io_mode has correct value for independent I/O");
-
-            /* Free some resources */
-            ret = H5Sclose(sid);
-            ret = H5Pclose(dxpl);
-            ret = H5Dclose(dataset);
-            ret = H5Fclose(fid);
-            free(buffer);
-        }
-        return;
-    }
-
-    /* Various sanity checks */
-    
-/* If H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS is not defined, all I/O without optimization 
- * breaks to multi chunk independent I/O. Since that case is already being tested, we skip
- * the remaining unoptimized tests under these settings.
- *
- * Link chunk I/O is only ever acheieved if this flag is set as well.
- */
-#ifndef H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS
-    if(selection_mode == TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_COL) {
-        test_name = "MULTI_CHUNK_NO_OPT_COL";
-        skip = TRUE;
-    } else if(selection_mode == TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_MIX_DISAGREE) {
-        test_name = "MULTI_CHUNK_NO_OPT_MIX_DISAGREE";
-        skip = TRUE;
-    } else if(selection_mode == TEST_ACTUAL_IO_LINK_CHUNK) {
-        test_name = "LINK_CHUNK";
-        skip = TRUE;
-    }
-#else
-/* If H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS, it is impossible achieve pure mpio independent I/O;
- * the library always manages to do some collectively, or doesn't try to use multiple processes
- * at all. If H5_MPI_SPECIAL_COLLECTIVE_IO_WORKS is defined, some of the cases that broke to out of
- * parallel I/O instead become mpio collective I/O, and so we test this case if both flags
- * are set.
- */
-#ifndef H5_MPI_SPECIAL_COLLECTIVE_IO_WORKS
-    if(selection_mode == TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_IND) {
-        test_name = "MULTI_CHUNK_NO_OPT_IND";
-        skip = TRUE;
-    }
-#endif
-#endif
-    if(skip) {
-        if(mpi_rank == 0)
-            printf("Case %s cannot be tested with this build.\n", test_name);
-        return;
-    }
-
-    /* Set some local flags so future ifs need not be so long. */
-    has_optimization = (
-        selection_mode != TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_IND &&
-        selection_mode != TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_COL &&
-        selection_mode != TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_MIX_DISAGREE );
-    is_chunked = selection_mode != TEST_ACTUAL_IO_CONTIGUOUS;
-
     
     HDassert(mpi_size >= 1);
 
@@ -2922,6 +2847,10 @@ void test_actual_io_mode(int selection_mode) {
             slab_set(mpi_rank, mpi_size, start, count, stride, block, BYROW);
             break;
 
+        case TEST_ACTUAL_IO_NO_COLLECTIVE:
+            slab_set(mpi_rank, mpi_size, start, count, stride, block, BYROW);
+            break;
+
         default:
             printf("Error: undefined selection mode = %d", selection_mode);
             break;
@@ -2941,7 +2870,6 @@ void test_actual_io_mode(int selection_mode) {
 
 
     /* Get the number of elements in the selection */
-    //length = H5Sget_select_npoints(file_space);
     length = dim0 * dim1;
 
     /* Allocate and initialize the buffer */
@@ -2953,29 +2881,27 @@ void test_actual_io_mode(int selection_mode) {
     /* Set up the dxpl */
     dxpl = H5Pcreate(H5P_DATASET_XFER);
     VRFY((dxpl >= 0), "H5Pcreate(H5P_DATASET_XFER) succeeded");
-
-    ret = H5Pset_dxpl_mpio(dxpl, H5FD_MPIO_COLLECTIVE);
-    VRFY((ret >= 0), "H5Pset_dxpl_mpio succeeded");
     
-    /* Set the maximum number of processes per chunk.
-     * Without this all chunked I/O becomes linked chunk I/O.
-     */
-    if(is_chunked) {
-        ret = H5Pset_dxpl_mpio_chunk_opt_num(dxpl, (unsigned) mpi_size*2);
-        VRFY((ret >= 0), "H5Pset_dxpl_mpio_chunk_opt_num succeeded");
-    }
+    /* Set collective I/O properties in the dxpl. */
+    if(is_collective) {
+        /* Request collective I/O */
+        ret = H5Pset_dxpl_mpio(dxpl, H5FD_MPIO_COLLECTIVE);
+        VRFY((ret >= 0), "H5Pset_dxpl_mpio succeeded");
+        
+        /* Set the threshold number of processes per chunk for link chunk I/O
+         * to twice mpi_size. This will prevent the threshold from ever being
+         * met, thus forcing multi chunk io instead of link chunk io.
+         */
+        if(multi_chunk_with_opt) {
+            ret = H5Pset_dxpl_mpio_chunk_opt_num(dxpl, (unsigned) mpi_size*2);
+            VRFY((ret >= 0), "H5Pset_dxpl_mpio_chunk_opt_num succeeded");
+        }
 
-    if(has_optimization == 0) {
-        /* Force no optimization */
-        ret = H5Pset_dxpl_mpio_chunk_opt(dxpl, H5FD_MPIO_CHUNK_MULTI_IO);
-        VRFY((ret >= 0), "H5Pset_dxpl_mpio succeeded");
-    }
-   
-    /* Linked Chunk I/O */
-    if(selection_mode == TEST_ACTUAL_IO_LINK_CHUNK ) {
-        /* Force linked chunk I/O */
-        ret = H5Pset_dxpl_mpio_chunk_opt(dxpl, H5FD_MPIO_CHUNK_ONE_IO);
-        VRFY((ret >= 0), "H5Pset_dxpl_mpio succeeded");
+        /* Request multi chunk I/O without optimization */
+        if(multi_chunk_no_opt) {
+            ret = H5Pset_dxpl_mpio_chunk_opt(dxpl, H5FD_MPIO_CHUNK_MULTI_IO);
+            VRFY((ret >= 0), "H5Pset_dxpl_mpio succeeded");
+        }
     }
 
     /* Write */
@@ -2995,7 +2921,7 @@ void test_actual_io_mode(int selection_mode) {
     if(ret < 0) H5Eprint2(H5E_DEFAULT, stdout);
     VRFY((ret >= 0), "H5Dread() dataset multichunk read succeeded");
    
-    /* Retreive Actual io valuess */
+    /* Retreive Actual io values */
     ret = H5Pget_mpio_actual_io_mode(dxpl, &temp_actual_io_mode);
     VRFY((ret >= 0), "retriving actual io mode succeeded" );
 
@@ -3121,6 +3047,13 @@ void test_actual_io_mode(int selection_mode) {
                     "actual_chunk_opt_mode has correct value for contiguous io");
                 VRFY(actual_io_mode == H5D_MPIO_CONTIGUOUS_COLLECTIVE,
                     "actual_io_mode has correct value for contiguous io");
+                break;
+
+            case TEST_ACTUAL_IO_NO_COLLECTIVE:
+                VRFY(actual_chunk_opt_mode == H5D_MPIO_NO_CHUNK_OPTIMIZATION,
+                    "actual_chunk_opt_mode has correct value for independent I/O");
+                VRFY(actual_io_mode == H5D_MPIO_NO_COLLECTIVE,
+                    "actual_io_mode has correct value for independent I/O");
                 break;
 
             default:
