@@ -12,8 +12,8 @@
  * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
  * access to either file, you may request a copy from help@hdfgroup.org.     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-#ifndef H5DUMP_MAIN_H__
-#define H5DUMP_MAIN_H__
+#ifndef H5DUMP_DDL_H__
+#define H5DUMP_DDL_H__
 
 /* callback function used by H5Literate() */
 static herr_t   dump_all_cb(hid_t group, const char *name, const H5L_info_t *linfo, void *op_data);
@@ -47,4 +47,4 @@ void handle_datatypes(hid_t fid, const char *type, void UNUSED * data, int pe, c
 }
 #endif
 
-#endif  /* !H5DUMP_MAIN_H__ */
+#endif  /* !H5DUMP_DDL_H__ */

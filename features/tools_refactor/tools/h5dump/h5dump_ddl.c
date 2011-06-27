@@ -22,7 +22,7 @@
 #include "h5tools_ref.h"
 #include "h5trav.h"
 #include "h5dump_extern.h"
-#include "h5dump_main.h"
+#include "h5dump_ddl.h"
 
 /*-------------------------------------------------------------------------
  * Function:    dump_datatype

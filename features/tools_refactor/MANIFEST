@@ -993,8 +993,8 @@
 ./tools/h5dump/h5dump.h
 ./tools/h5dump/h5dump_defines.h
 ./tools/h5dump/h5dump_extern.h
-./tools/h5dump/h5dump_main.c
-./tools/h5dump/h5dump_main.h
+./tools/h5dump/h5dump_ddl.c
+./tools/h5dump/h5dump_ddl.h
 ./tools/h5dump/h5dump_xml.c
 ./tools/h5dump/h5dump_xml.h
 ./tools/h5dump/h5dump_unit.c

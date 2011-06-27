@@ -12,7 +12,7 @@ INCLUDE_DIRECTORIES (${HDF5_PROJECT_DIR}/test)
 # --------------------------------------------------------------------
 ADD_EXECUTABLE (h5dump
     ${HDF5_TOOLS_H5DUMP_SOURCE_DIR}/h5dump.c
-    ${HDF5_TOOLS_H5DUMP_SOURCE_DIR}/h5dump_main.c
+    ${HDF5_TOOLS_H5DUMP_SOURCE_DIR}/h5dump_ddl.c
     ${HDF5_TOOLS_H5DUMP_SOURCE_DIR}/h5dump_xml.c
 )
 TARGET_NAMING (h5dump ${LIB_TYPE})

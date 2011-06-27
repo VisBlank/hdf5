@@ -16,7 +16,7 @@
 #include <stdlib.h>
 
 #include "h5dump.h"
-#include "h5dump_main.h"
+#include "h5dump_ddl.h"
 #include "h5dump_xml.h"
 
 /* Name of tool */
