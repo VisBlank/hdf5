@@ -2527,8 +2527,9 @@ actual_io_mode_tests(void) {
 #ifndef H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS
     test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_IND);
     if (mpi_rank == 0) {
-        printf("Multi chunk collective I/O without optimization not supported on this build.\n");
-        printf("Link chunk I/O not supported on this build.\n");
+        printf("%s%s","    actualio -- Multi chunk collective I/O without",
+            " optimization not supported on this build.\n");
+        printf("    actualio -- Link chunk I/O not supported on this build.\n");
     }
 
 /* Otherwise, the independent test relies on one process having an empty
@@ -2540,7 +2541,8 @@ actual_io_mode_tests(void) {
     test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_IND);
 #else
     if (mpi_rank == 0)
-        printf("Multi chunk collective I/O without optimization independent test not supported on this build.\n");
+        printf("%s%s","    actualio -- Multi chunk collective I/O without",
+            " optimization independent test not supported on this build.\n");
 #endif
 
     test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_COL);
@@ -2574,7 +2576,7 @@ actual_io_mode_tests(void) {
  *              TEST_ACTUAL_IO_MULTI_CHUNK_MIX:
  *                  H5D_mpi_chunk_collective_io, each process reports mixed I/O
  *
- *              TEST_ACTUAL_IO_MULTI_CHUNK_MIXi_DISAGREE:
+ *              TEST_ACTUAL_IO_MULTI_CHUNK_MIX_DISAGREE:
  *                  H5D_mpi_chunk_collective_io, processes disagree. The root reports
  *                  collective, the rest report independent I/O
  *
@@ -2597,7 +2599,7 @@ actual_io_mode_tests(void) {
  *                  each process reports contiguous collective I/O
  *
  *              TEST_ACTUAL_IO_NO_COLLECTIVE:
- *                  Simple independent I/O. This tests that the defaults are poerperly set.
+ *                  Simple independent I/O. This tests that the defaults are properly set.
  *
  *              TEST_ACTUAL_IO_RESET:
  *                  Perfroms collective and then independent I/O wit hthe same dxpl to
@@ -2749,7 +2751,7 @@ void test_actual_io_mode(int selection_mode) {
              * accessed by all, will be assigned collective I/O while each other chunk
              * will be accessed only by the root and the nth procecess and will be
              * assigned independent I/O. Each process will access one chunk collectively
-             * and at least one chunk independently, reportintg mixed I/O.
+             * and at least one chunk independently, reporting mixed I/O.
              */
             
             if(mpi_rank == 0) {
@@ -2768,11 +2770,15 @@ void test_actual_io_mode(int selection_mode) {
             }
             break;
 
-        /* RESET preforms collective I/O followed by independent. Reset doesn't need it's own
-         * collective test case, so we reuse MULTI_CHUMK_MIX_DISAGREE. This choice was made 
-         * MULTI_CHUNK_MIX_DISAGREE is a complex case that works on all builds.
+        /* RESET tests that the properties are properly reset to defaults each time I/O is
+         * performed. To acheive this, we have RESET perform collective I/O (which would change
+         * the values from the defaults) followed by independent I/O (which should report the
+         * default values). RESET doesn't need to have a unique selection, so we reuse
+         * MULTI_CHUMK_MIX_DISAGREE, which was chosen because it is a complex case that works 
+         * on all builds. The independent section of RESET can be found at the end of this function.
          */
         case TEST_ACTUAL_IO_RESET:
+
         /* Mixed I/O with optimization and internal disagreement */
         case TEST_ACTUAL_IO_MULTI_CHUNK_MIX_DISAGREE:
             /* A chunk will be assigned collective I/O only if it is selected by each
@@ -2838,7 +2844,7 @@ void test_actual_io_mode(int selection_mode) {
 
         /* Mixed I/O without optimization with disagreement */
         case TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_MIX_DISAGREE:
-            /* Each process takes a column, but the root's column is shortnened so that
+            /* Each process takes a column, but the root's column is shortened so that
              * it only reads the first chunk. Since all the other processes are writing
              * to more chunks, they will break collective after the first chunk.
              */
@@ -2995,17 +3001,20 @@ void test_actual_io_mode(int selection_mode) {
                 }
                 break;
  
+            /* RESET preforms the same collective I/O as MULTI_CHUNK_MIX_DISAGREE.
+             * The seperate section here  is for unique VRFY messages.
+             */
             case TEST_ACTUAL_IO_RESET:
                 if(mpi_rank == 0) {
                     VRFY(actual_chunk_opt_mode_write == H5D_MPIO_MULTI_CHUNK,
-                     "actual_chunk_opt_mode has correct value for reset multi chunk mixed I/O with disagreement (minority)");
+                     "actual_chunk_opt_mode has correct value for reset (collective, minority)");
                     VRFY(actual_io_mode_write == H5D_MPIO_CHUNK_COLLECTIVE,
-                     "actual_io_mode has correct value for reset multi chunk mixed I/O with disagreement (minority)");
+                     "actual_io_mode has correct value for reset (collective, minority)");
                 } else {
                     VRFY(actual_chunk_opt_mode_write == H5D_MPIO_MULTI_CHUNK,
-                     "actual_chunk_opt_mode has correct value for reset multi chunk mixed I/O with disagreement (majority)");
+                     "actual_chunk_opt_mode has correct value for reset (collective, majority)");
                     VRFY(actual_io_mode_write == H5D_MPIO_CHUNK_MIXED,
-                     "actual_chunk_opt_mode has correct value for reset multi chunk mixed I/O with disagreement (majority)");
+                     "actual_chunk_opt_mode has correct value for reset (collective, majority)");
                 }
                 break;
 
@@ -3104,9 +3113,9 @@ void test_actual_io_mode(int selection_mode) {
             VRFY( (ret >= 0), "retriving actual chunk opt mode succeeded" );
 
             VRFY(actual_chunk_opt_mode_write == H5D_MPIO_NO_CHUNK_OPTIMIZATION,
-             "actual_chunk_opt_mode has correct value for independent write (reset)");
+             "actual_chunk_opt_mode has correct value for reset write (independent)");
             VRFY(actual_io_mode_write == H5D_MPIO_NO_COLLECTIVE,
-             "actual_io_mode has correct value for independent write (reset)");
+             "actual_io_mode has correct value for reset write (independent)");
             
             /* Read */
             ret = H5Dread(dataset, data_type, H5S_ALL, H5S_ALL, dxpl_read, buffer);
@@ -3119,9 +3128,9 @@ void test_actual_io_mode(int selection_mode) {
             VRFY( (ret >= 0), "retriving actual chunk opt mode succeeded" );
             
             VRFY(actual_chunk_opt_mode_read == H5D_MPIO_NO_CHUNK_OPTIMIZATION,
-             "actual_chunk_opt_mode has correct value for independent read (reset)");
+             "actual_chunk_opt_mode has correct value for reset read (independent)");
             VRFY(actual_io_mode_read == H5D_MPIO_NO_COLLECTIVE,
-             "actual_io_mode has correct value for independent read (reset)");
+             "actual_io_mode has correct value for reset read (independent)");
          }
     }
 
