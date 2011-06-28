@@ -2527,8 +2527,7 @@ actual_io_mode_tests(void) {
 #ifndef H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS
     test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_IND);
     if (mpi_rank == 0) {
-        printf("Multi chunk collective I/O without optimization\
-not supported on this build.\n");
+        printf("Multi chunk collective I/O without optimization not supported on this build.\n");
         printf("Link chunk I/O not supported on this build.\n");
     }
 
@@ -2541,8 +2540,7 @@ not supported on this build.\n");
     test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_IND);
 #else
     if (mpi_rank == 0)
-        printf("Multi chunk collective I/O without optimization\
-independent test not supported on this build.\n");
+        printf("Multi chunk collective I/O without optimization independent test not supported on this build.\n");
 #endif
 
     test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_COL);
@@ -2578,7 +2576,7 @@ independent test not supported on this build.\n");
  *
  *              TEST_ACTUAL_IO_MULTI_CHUNK_MIXi_DISAGREE:
  *                  H5D_mpi_chunk_collective_io, processes disagree. The root reports
- *                  collective, the rest report independent I/O.
+ *                  collective, the rest report independent I/O
  *
  *              TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_IND:
  *                  H5D_mpi_chunk_collective_io_no_opt, one process reports that no parallel
@@ -2598,6 +2596,15 @@ independent test not supported on this build.\n");
  *                  H5D_contig_collective_write or H5D_contig_collective_read
  *                  each process reports contiguous collective I/O
  *
+ *              TEST_ACTUAL_IO_NO_COLLECTIVE:
+ *                  Simple independent I/O. This tests that the defaults are poerperly set.
+ *
+ *              TEST_ACTUAL_IO_RESET:
+ *                  Perfroms collective and then independent I/O wit hthe same dxpl to
+ *                  make sure the peroperty is correctly reset to the default on each use.
+ *                  Specifically, this test runs TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_MIX_DISAGREE
+ *                  (The most complex case that works on all builds) and then performs
+ *                  an independent read and write with the same dxpls.
  *
  *          It may seem like TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_MIX has been accidentally
  *          left out. This is intentional; this result is impossible.
@@ -2606,21 +2613,20 @@ independent test not supported on this build.\n");
  * Date: 2011-04-06
  */
 void test_actual_io_mode(int selection_mode) {
-    H5D_mpio_actual_chunk_opt_mode_t   actual_chunk_opt_mode = -1;
-    H5D_mpio_actual_chunk_opt_mode_t   temp_actual_chunk_opt_mode = -1;
-    H5D_mpio_actual_io_mode_t   actual_io_mode = -1;
-    H5D_mpio_actual_io_mode_t   temp_actual_io_mode = -1;
+    H5D_mpio_actual_chunk_opt_mode_t   actual_chunk_opt_mode_write = -1;
+    H5D_mpio_actual_chunk_opt_mode_t   actual_chunk_opt_mode_read = -1;
+    H5D_mpio_actual_io_mode_t   actual_io_mode_write = -1;
+    H5D_mpio_actual_io_mode_t   actual_io_mode_read = -1;
     char        * filename;
-    char        * test_name = NULL;
-    char        skip = FALSE;
     char        multi_chunk_no_opt;
     char        multi_chunk_with_opt;
     char        is_chunked;
     char        is_collective;
-    int         i;
     int         mpi_size = -1; 
     int         mpi_rank = -1;
+    int         length;
     int         * buffer;
+    int         i;
     MPI_Comm    mpi_comm = MPI_COMM_NULL;
     MPI_Info    mpi_info = MPI_INFO_NULL;
     hid_t       fid;
@@ -2631,28 +2637,32 @@ void test_actual_io_mode(int selection_mode) {
     hid_t       mem_space;
     hid_t       file_space;
     hid_t       dcpl = H5P_DEFAULT;
-    hid_t       dxpl;
+    hid_t       dxpl_write;
+    hid_t       dxpl_read;
     hsize_t     dims[RANK];
     hsize_t     chunk_dims[RANK];
     hsize_t     start[RANK];
     hsize_t     stride[RANK];
     hsize_t     count[RANK];
     hsize_t     block[RANK];
-    hsize_t     length;
     hbool_t     use_gpfs = FALSE;
     herr_t      ret;   
    
-    /* Set some local flags so future ifs need not be so long. */
+    /* Set up some flags to make some future if statements slightly more readable */
     multi_chunk_no_opt = (
         selection_mode == TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_IND ||
         selection_mode == TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_COL ||
         selection_mode == TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_MIX_DISAGREE );
     
+    /* Note: RESET preforms the same tests as MULTI_CHUNK_MIX_DISAGREE and then
+     * tests independent I/O
+     */
     multi_chunk_with_opt = (
         selection_mode == TEST_ACTUAL_IO_MULTI_CHUNK_IND ||
         selection_mode == TEST_ACTUAL_IO_MULTI_CHUNK_COL ||
         selection_mode == TEST_ACTUAL_IO_MULTI_CHUNK_MIX ||
-        selection_mode == TEST_ACTUAL_IO_MULTI_CHUNK_MIX_DISAGREE );
+        selection_mode == TEST_ACTUAL_IO_MULTI_CHUNK_MIX_DISAGREE ||
+        selection_mode == TEST_ACTUAL_IO_RESET );
  
     is_chunked = (
         selection_mode != TEST_ACTUAL_IO_CONTIGUOUS &&
@@ -2704,7 +2714,7 @@ void test_actual_io_mode(int selection_mode) {
     /* Create the dataset */
     dataset = H5Dcreate2(fid, "chunk_io", data_type, sid, H5P_DEFAULT,
             dcpl, H5P_DEFAULT);
-    VRFY((dataset != NULL), "H5Dcreate2() dataset succeeded");
+    VRFY((dataset >= 0), "H5Dcreate2() dataset succeeded");
 
     /* Create the file dataspace */
     file_space = H5Dget_space(dataset);
@@ -2758,7 +2768,10 @@ void test_actual_io_mode(int selection_mode) {
             }
             break;
 
-        /* Picked an arbitrary collective case for testing the reset */
+        /* RESET preforms collective I/O followed by independent. Reset doesn't need it's own
+         * collective test case, so we reuse MULTI_CHUMK_MIX_DISAGREE. This choice was made 
+         * MULTI_CHUNK_MIX_DISAGREE is a complex case that works on all builds.
+         */
         case TEST_ACTUAL_IO_RESET:
         /* Mixed I/O with optimization and internal disagreement */
         case TEST_ACTUAL_IO_MULTI_CHUNK_MIX_DISAGREE:
@@ -2878,14 +2891,14 @@ void test_actual_io_mode(int selection_mode) {
     for(i = 0; i < length; i++) 
         buffer[i] = i;
 
-    /* Set up the dxpl */
-    dxpl = H5Pcreate(H5P_DATASET_XFER);
-    VRFY((dxpl >= 0), "H5Pcreate(H5P_DATASET_XFER) succeeded");
+    /* Set up the dxpl for the write */
+    dxpl_write = H5Pcreate(H5P_DATASET_XFER);
+    VRFY((dxpl_write >= 0), "H5Pcreate(H5P_DATASET_XFER) succeeded");
     
     /* Set collective I/O properties in the dxpl. */
     if(is_collective) {
         /* Request collective I/O */
-        ret = H5Pset_dxpl_mpio(dxpl, H5FD_MPIO_COLLECTIVE);
+        ret = H5Pset_dxpl_mpio(dxpl_write, H5FD_MPIO_COLLECTIVE);
         VRFY((ret >= 0), "H5Pset_dxpl_mpio succeeded");
         
         /* Set the threshold number of processes per chunk for link chunk I/O
@@ -2893,93 +2906,106 @@ void test_actual_io_mode(int selection_mode) {
          * met, thus forcing multi chunk io instead of link chunk io.
          */
         if(multi_chunk_with_opt) {
-            ret = H5Pset_dxpl_mpio_chunk_opt_num(dxpl, (unsigned) mpi_size*2);
+            ret = H5Pset_dxpl_mpio_chunk_opt_num(dxpl_write, (unsigned) mpi_size*2);
             VRFY((ret >= 0), "H5Pset_dxpl_mpio_chunk_opt_num succeeded");
         }
 
         /* Request multi chunk I/O without optimization */
         if(multi_chunk_no_opt) {
-            ret = H5Pset_dxpl_mpio_chunk_opt(dxpl, H5FD_MPIO_CHUNK_MULTI_IO);
+            ret = H5Pset_dxpl_mpio_chunk_opt(dxpl_write, H5FD_MPIO_CHUNK_MULTI_IO);
             VRFY((ret >= 0), "H5Pset_dxpl_mpio succeeded");
         }
     }
 
+    /* Make a copy of the dxpl to test the read operation */
+    dxpl_read = H5Pcopy(dxpl_write);
+    VRFY((dxpl_read >= 0), "H5Pcopy succeeded");
+
     /* Write */
-    ret = H5Dwrite(dataset, data_type, mem_space, file_space, dxpl, buffer);
+    ret = H5Dwrite(dataset, data_type, mem_space, file_space, dxpl_write, buffer);
     if(ret < 0) H5Eprint2(H5E_DEFAULT, stdout);
     VRFY((ret >= 0), "H5Dwrite() dataset multichunk write succeeded");
 
     /* Retreive Actual io valuess */
-    ret = H5Pget_mpio_actual_io_mode(dxpl, &actual_io_mode);
+    ret = H5Pget_mpio_actual_io_mode(dxpl_write, &actual_io_mode_write);
     VRFY((ret >= 0), "retriving actual io mode suceeded" );
 
-    ret = H5Pget_mpio_actual_chunk_opt_mode(dxpl, &actual_chunk_opt_mode);
+    ret = H5Pget_mpio_actual_chunk_opt_mode(dxpl_write, &actual_chunk_opt_mode_write);
     VRFY((ret >= 0), "retriving actual chunk opt mode succeeded" );
     
     /* Read */
-    ret = H5Dread(dataset, data_type, mem_space, file_space, dxpl, buffer);
+    ret = H5Dread(dataset, data_type, mem_space, file_space, dxpl_read, buffer);
     if(ret < 0) H5Eprint2(H5E_DEFAULT, stdout);
     VRFY((ret >= 0), "H5Dread() dataset multichunk read succeeded");
    
     /* Retreive Actual io values */
-    ret = H5Pget_mpio_actual_io_mode(dxpl, &temp_actual_io_mode);
+    ret = H5Pget_mpio_actual_io_mode(dxpl_read, &actual_io_mode_read);
     VRFY((ret >= 0), "retriving actual io mode succeeded" );
 
-    ret = H5Pget_mpio_actual_chunk_opt_mode(dxpl, &temp_actual_chunk_opt_mode);
+    ret = H5Pget_mpio_actual_chunk_opt_mode(dxpl_read, &actual_chunk_opt_mode_read);
     VRFY((ret >= 0), "retriving actual chunk opt mode succeeded" );
 
     /* Check write vs read */
-    VRFY((temp_actual_io_mode == actual_io_mode),
+    VRFY((actual_io_mode_read == actual_io_mode_write),
         "reading and writing are the same for actual_io_mode");
-    VRFY((temp_actual_chunk_opt_mode == actual_chunk_opt_mode),
+    VRFY((actual_chunk_opt_mode_read == actual_chunk_opt_mode_write),
         "reading and writing are the same for actual_chunk_opt_mode");
 
     /* This property is only for mpio, not MPI POSIX, so it should always be the default values. */
     if (facc_type == FACC_MPIPOSIX) {
-            VRFY(actual_chunk_opt_mode == H5D_MPIO_NO_CHUNK_OPTIMIZATION,
+            VRFY(actual_chunk_opt_mode_write == H5D_MPIO_NO_CHUNK_OPTIMIZATION,
              "actual_chunk_opt_mode has correct value for mpi posix");
-            VRFY(actual_io_mode == H5D_MPIO_NO_COLLECTIVE,
+            VRFY(actual_io_mode_write == H5D_MPIO_NO_COLLECTIVE,
              "actual_io_mode has correct value for mpi posix");
     } else {
         /* Different tests for each selection */
         switch(selection_mode) {
             case TEST_ACTUAL_IO_MULTI_CHUNK_IND:
-                VRFY(actual_chunk_opt_mode == H5D_MPIO_MULTI_CHUNK,
+                VRFY(actual_chunk_opt_mode_write == H5D_MPIO_MULTI_CHUNK,
                  "actual_chunk_opt_mode has correct value for multi chunk independent I/O");
-                VRFY(actual_io_mode == H5D_MPIO_CHUNK_INDEPENDENT,
+                VRFY(actual_io_mode_write== H5D_MPIO_CHUNK_INDEPENDENT,
                  "actual_io_mode has correct value for multi chunk independent I/O");
                 break;
            
             case TEST_ACTUAL_IO_MULTI_CHUNK_COL:
-                VRFY(actual_chunk_opt_mode == H5D_MPIO_MULTI_CHUNK,
+                VRFY(actual_chunk_opt_mode_write == H5D_MPIO_MULTI_CHUNK,
                  "actual_chunk_opt_mode has correct value for multi chunk collective I/O");
-                VRFY(actual_io_mode == H5D_MPIO_CHUNK_COLLECTIVE,
+                VRFY(actual_io_mode_write == H5D_MPIO_CHUNK_COLLECTIVE,
                  "actual_io_mode has correct value for multi chunk collective I/O");
                 break;
            
             case TEST_ACTUAL_IO_MULTI_CHUNK_MIX:
-                VRFY(actual_chunk_opt_mode == H5D_MPIO_MULTI_CHUNK,
+                VRFY(actual_chunk_opt_mode_write == H5D_MPIO_MULTI_CHUNK,
                  "actual_chunk_opt_mode has correct value for multi chunk mixed I/O");
-                VRFY(actual_io_mode == H5D_MPIO_CHUNK_MIXED,
+                VRFY(actual_io_mode_write == H5D_MPIO_CHUNK_MIXED,
                  "actual_io_mode has correct value for multi chunk mixed I/O");
                 break;
             
-            case TEST_ACTUAL_IO_RESET:
             case TEST_ACTUAL_IO_MULTI_CHUNK_MIX_DISAGREE:
                 if(mpi_rank == 0) {
-                    VRFY(actual_chunk_opt_mode == H5D_MPIO_MULTI_CHUNK,
-                     "actual_chunk_opt_mode has correct value for multi chunk mixed I/O with \
-                     disagreement (minority)");
-                    VRFY(actual_io_mode == H5D_MPIO_CHUNK_COLLECTIVE,
-                     "actual_io_mode has correct value for multi chunk mixed I/O with \
-                     disagreement (minority)");
+                    VRFY(actual_chunk_opt_mode_write == H5D_MPIO_MULTI_CHUNK,
+                     "actual_chunk_opt_mode has correct value for multi chunk mixed I/O with disagreement (minority)");
+                    VRFY(actual_io_mode_write == H5D_MPIO_CHUNK_COLLECTIVE,
+                     "actual_io_mode has correct value for multi chunk mixed I/O with disagreement (minority)");
                 } else {
-                    VRFY(actual_chunk_opt_mode == H5D_MPIO_MULTI_CHUNK,
-                     "actual_chunk_opt_mode has correct value for multi chunk mixed I/O with \
-                     disagreement (majority)");
-                    VRFY(actual_io_mode == H5D_MPIO_CHUNK_MIXED,
-                     "actual_chunk_opt_mode has correct value for multi chunk mixed I/O with \
-                     disagreement (majority)");
+                    VRFY(actual_chunk_opt_mode_write == H5D_MPIO_MULTI_CHUNK,
+                     "actual_chunk_opt_mode has correct value for multi chunk mixed I/O with disagreement (majority)");
+                    VRFY(actual_io_mode_write == H5D_MPIO_CHUNK_MIXED,
+                     "actual_chunk_opt_mode has correct value for multi chunk mixed I/O with disagreement (majority)");
+                }
+                break;
+ 
+            case TEST_ACTUAL_IO_RESET:
+                if(mpi_rank == 0) {
+                    VRFY(actual_chunk_opt_mode_write == H5D_MPIO_MULTI_CHUNK,
+                     "actual_chunk_opt_mode has correct value for reset multi chunk mixed I/O with disagreement (minority)");
+                    VRFY(actual_io_mode_write == H5D_MPIO_CHUNK_COLLECTIVE,
+                     "actual_io_mode has correct value for reset multi chunk mixed I/O with disagreement (minority)");
+                } else {
+                    VRFY(actual_chunk_opt_mode_write == H5D_MPIO_MULTI_CHUNK,
+                     "actual_chunk_opt_mode has correct value for reset multi chunk mixed I/O with disagreement (majority)");
+                    VRFY(actual_io_mode_write == H5D_MPIO_CHUNK_MIXED,
+                     "actual_chunk_opt_mode has correct value for reset multi chunk mixed I/O with disagreement (majority)");
                 }
                 break;
 
@@ -2987,116 +3013,114 @@ void test_actual_io_mode(int selection_mode) {
 #ifdef H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS
 #ifdef H5_MPI_SPECIAL_COLLECTIVE_IO_WORKS
                 if(mpi_rank == 0) {
-                    VRFY(actual_chunk_opt_mode == H5D_MPIO_MULTI_CHUNK_NO_OPT,
-                     "actual_chunk_opt_mode has correct value for multi chunk no opt independent \
-                     (minority");
-                    VRFY(actual_io_mode == H5D_MPIO_NO_COLLECTIVE,
-                     "actual_io_mode has correct value for multi chunk no opt independent \
-                     (minority");
+                    VRFY(actual_chunk_opt_mode_write == H5D_MPIO_MULTI_CHUNK_NO_OPT,
+                     "actual_chunk_opt_mode has correct value for multi chunk no opt independent (minority");
+                    VRFY(actual_io_mode_write == H5D_MPIO_NO_COLLECTIVE,
+                     "actual_io_mode has correct value for multi chunk no opt independent (minority");
                 } else {
-                    VRFY(actual_chunk_opt_mode == H5D_MPIO_MULTI_CHUNK_NO_OPT,
-                     "actual_chunk_opt_mode has correct value for multi chunk no opt independent \
-                     (majority");
-                    VRFY(actual_io_mode == H5D_MPIO_CHUNK_INDEPENDENT,
-                     "actual_io_mode has correct value for multi chunk no opt independent \
-                     (majority");
+                    VRFY(actual_chunk_opt_mode_write == H5D_MPIO_MULTI_CHUNK_NO_OPT,
+                     "actual_chunk_opt_mode has correct value for multi chunk no opt independent (majority");
+                    VRFY(actual_io_mode_write == H5D_MPIO_CHUNK_INDEPENDENT,
+                     "actual_io_mode has correct value for multi chunk no opt independent (majority");
                 }
 #endif
 #else
-                VRFY(actual_chunk_opt_mode == H5D_MPIO_MULTI_CHUNK_NO_OPT,
+                VRFY(actual_chunk_opt_mode_write == H5D_MPIO_MULTI_CHUNK_NO_OPT,
                  "actual_chunk_opt_mode has correct value for multi chunk no opt independent");
-                VRFY(actual_io_mode == H5D_MPIO_CHUNK_INDEPENDENT,
+                VRFY(actual_io_mode_write == H5D_MPIO_CHUNK_INDEPENDENT,
                  "actual_io_mode has correct value for multi chunk no opt independent");
 #endif
                 break;
 
             case TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_COL:
-                VRFY(actual_chunk_opt_mode == H5D_MPIO_MULTI_CHUNK_NO_OPT,
+                VRFY(actual_chunk_opt_mode_write == H5D_MPIO_MULTI_CHUNK_NO_OPT,
                  "actual_chunk_opt_mode has correct value for multi chunk no opt collective");
-                VRFY(actual_io_mode == H5D_MPIO_CHUNK_COLLECTIVE,
+                VRFY(actual_io_mode_write == H5D_MPIO_CHUNK_COLLECTIVE,
                  "actual_io_mode has correct value for multi chunk no opt collective");
                 break;
 
             case TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_MIX_DISAGREE:
                 if(mpi_rank == 0) {
-                    VRFY(actual_chunk_opt_mode == H5D_MPIO_MULTI_CHUNK_NO_OPT,
-                     "actual_chunk_opt_mode has correct value for multi chunk no opt mixed I/O with \
-                     disagreement (minority)");
-                    VRFY(actual_io_mode == H5D_MPIO_CHUNK_COLLECTIVE,
-                     "actual_io_mode has correct value for multi chunk no opt mixed I/O with \
-                     disagreement (minority)");
+                    VRFY(actual_chunk_opt_mode_write == H5D_MPIO_MULTI_CHUNK_NO_OPT,
+                     "actual_chunk_opt_mode has correct value for multi chunk no opt mixed I/O with disagreement (minority)");
+                    VRFY(actual_io_mode_write == H5D_MPIO_CHUNK_COLLECTIVE,
+                     "actual_io_mode has correct value for multi chunk no opt mixed I/O with disagreement (minority)");
                 } else {
-                    VRFY(actual_chunk_opt_mode == H5D_MPIO_MULTI_CHUNK_NO_OPT,
-                     "actual_chunk_opt_mode has correct value for multi chunk no opt mixed I/O with \
-                     disagreement (majority)");
-                    VRFY(actual_io_mode == H5D_MPIO_CHUNK_MIXED,
-                     "actual_io_mode has correct value for multi chunk no opt mixed I/O with \
-                     disagreement (majority)");
+                    VRFY(actual_chunk_opt_mode_write == H5D_MPIO_MULTI_CHUNK_NO_OPT,
+                     "actual_chunk_opt_mode has correct value for multi chunk no opt mixed I/O with disagreement (majority)");
+                    VRFY(actual_io_mode_write == H5D_MPIO_CHUNK_MIXED,
+                     "actual_io_mode has correct value for multi chunk no opt mixed I/O with disagreement (majority)");
                 }
                 break;
 
             case TEST_ACTUAL_IO_LINK_CHUNK:
-                VRFY(actual_chunk_opt_mode == H5D_MPIO_LINK_CHUNK,
+                VRFY(actual_chunk_opt_mode_write == H5D_MPIO_LINK_CHUNK,
                     "actual_chunk_opt_mode has correct value for link chunk io");
-                VRFY(actual_io_mode == H5D_MPIO_CHUNK_COLLECTIVE,
+                VRFY(actual_io_mode_write == H5D_MPIO_CHUNK_COLLECTIVE,
                     "actual_io_mode has correct value for link chunk io");
                 break;
 
             case TEST_ACTUAL_IO_CONTIGUOUS:
-                VRFY(actual_chunk_opt_mode == H5D_MPIO_NO_CHUNK_OPTIMIZATION,
+                VRFY(actual_chunk_opt_mode_write == H5D_MPIO_NO_CHUNK_OPTIMIZATION,
                     "actual_chunk_opt_mode has correct value for contiguous io");
-                VRFY(actual_io_mode == H5D_MPIO_CONTIGUOUS_COLLECTIVE,
+                VRFY(actual_io_mode_write == H5D_MPIO_CONTIGUOUS_COLLECTIVE,
                     "actual_io_mode has correct value for contiguous io");
                 break;
 
             case TEST_ACTUAL_IO_NO_COLLECTIVE:
-                VRFY(actual_chunk_opt_mode == H5D_MPIO_NO_CHUNK_OPTIMIZATION,
+                VRFY(actual_chunk_opt_mode_write == H5D_MPIO_NO_CHUNK_OPTIMIZATION,
                     "actual_chunk_opt_mode has correct value for independent I/O");
-                VRFY(actual_io_mode == H5D_MPIO_NO_COLLECTIVE,
+                VRFY(actual_io_mode_write == H5D_MPIO_NO_COLLECTIVE,
                     "actual_io_mode has correct value for independent I/O");
                 break;
 
             default:
                 printf("Error: undefined selection mode = %d\n", selection_mode);        
                 printf("%d,%d: actual opt: %d \t actual io:%d\n", selection_mode, mpi_rank,
-                    actual_chunk_opt_mode, actual_io_mode);
+                    actual_chunk_opt_mode_write, actual_io_mode_write);
                 break;
         }
     } 
    
-    /* If we are testing that the property is reset correctly, run some independnet io */
+    /* To test that the property is succesfully reset to the default, we perform some
+     * independent I/O after the collective I/O
+     */
     if (selection_mode == TEST_ACTUAL_IO_RESET) {
         if (mpi_rank == 0) {
             /* Switch to independent io */
-            ret = H5Pset_dxpl_mpio(dxpl, H5FD_MPIO_INDEPENDENT);
+            ret = H5Pset_dxpl_mpio(dxpl_write, H5FD_MPIO_INDEPENDENT);
+            VRFY((ret >= 0), "H5Pset_dxpl_mpio succeeded");
+            ret = H5Pset_dxpl_mpio(dxpl_read, H5FD_MPIO_INDEPENDENT);
             VRFY((ret >= 0), "H5Pset_dxpl_mpio succeeded");
 
             /* Write */
-            ret = H5Dwrite(dataset, data_type, H5S_ALL, H5S_ALL, dxpl, buffer);
+            ret = H5Dwrite(dataset, data_type, H5S_ALL, H5S_ALL, dxpl_write, buffer);
             VRFY((ret >= 0), "H5Dwrite() dataset multichunk write succeeded");
 
             /* Check Properties */
-            ret = H5Pget_mpio_actual_io_mode(dxpl, &actual_io_mode);
+            ret = H5Pget_mpio_actual_io_mode(dxpl_write, &actual_io_mode_write);
             VRFY( (ret >= 0), "retriving actual io mode succeeded" );
-            ret = H5Pget_mpio_actual_chunk_opt_mode(dxpl, &actual_chunk_opt_mode);
+            ret = H5Pget_mpio_actual_chunk_opt_mode(dxpl_write, &actual_chunk_opt_mode_write);
             VRFY( (ret >= 0), "retriving actual chunk opt mode succeeded" );
-            VRFY(actual_chunk_opt_mode == H5D_MPIO_NO_CHUNK_OPTIMIZATION,
+
+            VRFY(actual_chunk_opt_mode_write == H5D_MPIO_NO_CHUNK_OPTIMIZATION,
              "actual_chunk_opt_mode has correct value for independent write (reset)");
-            VRFY(actual_io_mode == H5D_MPIO_NO_COLLECTIVE,
+            VRFY(actual_io_mode_write == H5D_MPIO_NO_COLLECTIVE,
              "actual_io_mode has correct value for independent write (reset)");
             
             /* Read */
-            ret = H5Dread(dataset, data_type, H5S_ALL, H5S_ALL, dxpl, buffer);
+            ret = H5Dread(dataset, data_type, H5S_ALL, H5S_ALL, dxpl_read, buffer);
             VRFY((ret >= 0), "H5Dwrite() dataset multichunk write succeeded");
 
             /* Check Properties */
-            ret = H5Pget_mpio_actual_io_mode(dxpl, &actual_io_mode);
+            ret = H5Pget_mpio_actual_io_mode(dxpl_read, &actual_io_mode_read);
             VRFY( (ret >= 0), "retriving actual io mode succeeded" );
-            ret = H5Pget_mpio_actual_chunk_opt_mode(dxpl, &actual_chunk_opt_mode);
+            ret = H5Pget_mpio_actual_chunk_opt_mode(dxpl_read, &actual_chunk_opt_mode_read);
             VRFY( (ret >= 0), "retriving actual chunk opt mode succeeded" );
-            VRFY(actual_chunk_opt_mode == H5D_MPIO_NO_CHUNK_OPTIMIZATION,
+            
+            VRFY(actual_chunk_opt_mode_read == H5D_MPIO_NO_CHUNK_OPTIMIZATION,
              "actual_chunk_opt_mode has correct value for independent read (reset)");
-            VRFY(actual_io_mode == H5D_MPIO_NO_COLLECTIVE,
+            VRFY(actual_io_mode_read == H5D_MPIO_NO_COLLECTIVE,
              "actual_io_mode has correct value for independent read (reset)");
          }
     }
@@ -3105,7 +3129,8 @@ void test_actual_io_mode(int selection_mode) {
     ret = H5Sclose(sid);
     ret = H5Pclose(fapl);
     ret = H5Pclose(dcpl);
-    ret = H5Pclose(dxpl);
+    ret = H5Pclose(dxpl_write);
+    ret = H5Pclose(dxpl_read);
     ret = H5Dclose(dataset);
     ret = H5Sclose(mem_space);
     ret = H5Sclose(file_space);
