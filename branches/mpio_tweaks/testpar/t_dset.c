@@ -3222,8 +3222,8 @@ void optimization_mode_tests(void) {
 void test_optimization_mode(int opt_mode) {
     H5D_mpio_actual_chunk_opt_mode_t   write_actual_chunk_opt_mode = -1;
     H5D_mpio_actual_chunk_opt_mode_t   read_actual_chunk_opt_mode = -1;
-    H5D_mpio_actual_chunk_io_mode_t    write_actual_chunk_io_mode = -1;
-    H5D_mpio_actual_chunk_io_mode_t    read_actual_chunk_io_mode = -1;
+    H5D_mpio_actual_io_mode_t    write_actual_chunk_io_mode = -1;
+    H5D_mpio_actual_io_mode_t    read_actual_chunk_io_mode = -1;
     
     MPI_Comm    mpi_comm = MPI_COMM_NULL;
     MPI_Info    mpi_info = MPI_INFO_NULL;
@@ -3413,7 +3413,7 @@ void test_optimization_mode(int opt_mode) {
     VRFY((ret >= 0), "H5Dwrite() dataset chunk write succeeded");
 
     /* Retreive Actual io valuess */
-    ret = H5Pget_mpio_actual_chunk_io_mode(dxpl, &write_actual_chunk_io_mode);
+    ret = H5Pget_mpio_actual_io_mode(dxpl, &write_actual_chunk_io_mode);
     VRFY((ret >= 0), "retriving actual chunk io mode suceeded" );
 
     ret = H5Pget_mpio_actual_chunk_opt_mode(dxpl, &write_actual_chunk_opt_mode);
@@ -3425,7 +3425,7 @@ void test_optimization_mode(int opt_mode) {
     VRFY((ret >= 0), "H5Dread() dataset chunk read succeeded");
    
     /* Retreive Actual io valuess */
-    ret = H5Pget_mpio_actual_chunk_io_mode(dxpl, &read_actual_chunk_io_mode);
+    ret = H5Pget_mpio_actual_io_mode(dxpl, &read_actual_chunk_io_mode);
     VRFY((ret >= 0), "retriving actual chunk io mode succeeded" );
 
     ret = H5Pget_mpio_actual_chunk_opt_mode(dxpl, &read_actual_chunk_opt_mode);
