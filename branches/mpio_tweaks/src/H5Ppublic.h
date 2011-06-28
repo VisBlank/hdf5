@@ -122,8 +122,9 @@ typedef herr_t (*H5P_iterate_t)(hid_t id, const char *name, void *iter_data);
 
 /* Actual IO mode property */
 typedef enum H5D_mpio_actual_chunk_opt_mode_t {
-    /* The default property is used for all I/O opertions that do not use chunk 
-     * optimizations, including non-collective I/O. */
+    /* The default value is used for all I/O opertions that do not use chunk 
+     * optimizations, including non-collective I/O and contiguous collective I/O.
+     */
     H5D_MPIO_NO_CHUNK_OPTIMIZATION = 0,
     H5D_MPIO_LINK_CHUNK,
     H5D_MPIO_MULTI_CHUNK,
@@ -131,8 +132,8 @@ typedef enum H5D_mpio_actual_chunk_opt_mode_t {
 
 }  H5D_mpio_actual_chunk_opt_mode_t;
 
-typedef enum H5D_mpio_actual_chunk_io_mode_t {    
-    H5D_MPIO_NO_CHUNK_IO = 0x0,
+typedef enum H5D_mpio_actual_io_mode_t {    
+    H5D_MPIO_NO_COLLECTIVE = 0x0,
 
     /* This property is conviniently defined in a bit field like manner so that
      * we can switch from the default to indpendent or collective and then to
@@ -140,7 +141,9 @@ typedef enum H5D_mpio_actual_chunk_io_mode_t {
     H5D_MPIO_CHUNK_INDEPENDENT = 0x1,
     H5D_MPIO_CHUNK_COLLECTIVE = 0x2,
     H5D_MPIO_CHUNK_MIXED = 0x1 | 0x2,
-} H5D_mpio_actual_chunk_io_mode_t; 
+
+    H5D_MPIO_CONTIGUOUS_COLLECTIVE =0x3,
+} H5D_mpio_actual_io_mode_t; 
 
 /********************/
 /* Public Variables */
@@ -383,7 +386,7 @@ H5_DLL herr_t H5Pset_enum_conv_overflow(hid_t plist_id, hbool_t conv_overflow);
 H5_DLL herr_t H5Pget_enum_conv_overflow(hid_t plist_id, hbool_t *conv_overflow/*out*/);
 #ifdef H5_HAVE_PARALLEL
 H5_DLL herr_t H5Pget_mpio_actual_chunk_opt_mode(hid_t plist_id, H5D_mpio_actual_chunk_opt_mode_t *actual_chunk_opt_mode);
-H5_DLL herr_t H5Pget_mpio_actual_chunk_io_mode(hid_t plist_id, H5D_mpio_actual_chunk_io_mode_t *actual_chunk_io_mode);
+H5_DLL herr_t H5Pget_mpio_actual_io_mode(hid_t plist_id, H5D_mpio_actual_io_mode_t *actual_io_mode);
 #endif /* H5_HAVE_PARALLEL */
 
 /* Link creation property list (LCPL) routines */

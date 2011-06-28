@@ -104,8 +104,8 @@
 #define H5D_MPIO_ACTUAL_CHUNK_OPT_MODE_SIZE     sizeof(H5D_mpio_actual_chunk_opt_mode_t)
 #define H5D_MPIO_ACTUAL_CHUNK_OPT_MODE_DEF      H5D_MPIO_NO_CHUNK_OPTIMIZATION
 /* Definitions for chunk io mode property. */
-#define H5D_MPIO_ACTUAL_CHUNK_IO_MODE_SIZE      sizeof(H5D_mpio_actual_chunk_io_mode_t)
-#define H5D_MPIO_ACTUAL_CHUNK_IO_MODE_DEF       H5D_MPIO_NO_CHUNK_IO
+#define H5D_MPIO_ACTUAL_IO_MODE_SIZE      sizeof(H5D_mpio_actual_io_mode_t)
+#define H5D_MPIO_ACTUAL_IO_MODE_DEF       H5D_MPIO_NO_COLLECTIVE
 /* Definitions for EDC property */
 #define H5D_XFER_EDC_SIZE       sizeof(H5Z_EDC_t)
 #define H5D_XFER_EDC_DEF        H5Z_ENABLE_EDC
@@ -212,7 +212,7 @@ H5P_dxfr_reg_prop(H5P_genclass_t *pclass)
     unsigned def_mpio_chunk_opt_num = H5D_XFER_MPIO_CHUNK_OPT_NUM_DEF;
     unsigned def_mpio_chunk_opt_ratio = H5D_XFER_MPIO_CHUNK_OPT_RATIO_DEF;
     H5D_mpio_actual_chunk_opt_mode_t def_mpio_actual_chunk_opt_mode = H5D_MPIO_ACTUAL_CHUNK_OPT_MODE_DEF;
-    H5D_mpio_actual_chunk_io_mode_t def_mpio_actual_chunk_io_mode = H5D_MPIO_ACTUAL_CHUNK_IO_MODE_DEF;
+    H5D_mpio_actual_io_mode_t def_mpio_actual_io_mode = H5D_MPIO_ACTUAL_IO_MODE_DEF;
 #endif /* H5_HAVE_PARALLEL */
     H5Z_EDC_t enable_edc = H5D_XFER_EDC_DEF;            /* Default value for EDC property */
     H5Z_cb_t filter_cb = H5D_XFER_FILTER_CB_DEF;        /* Default value for filter callback */
@@ -291,9 +291,9 @@ H5P_dxfr_reg_prop(H5P_genclass_t *pclass)
 /* Register the chunk optimization mode property. */
     if(H5P_register_real(pclass, H5D_MPIO_ACTUAL_CHUNK_OPT_MODE_NAME, H5D_MPIO_ACTUAL_CHUNK_OPT_MODE_SIZE, &def_mpio_actual_chunk_opt_mode, NULL, NULL, NULL, NULL, NULL, NULL, NULL) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class")
-        
-/* Register the multi chunk io mode property. */
-    if(H5P_register_real(pclass, H5D_MPIO_ACTUAL_CHUNK_IO_MODE_NAME, H5D_MPIO_ACTUAL_CHUNK_IO_MODE_SIZE, &def_mpio_actual_chunk_io_mode, NULL, NULL, NULL, NULL, NULL, NULL, NULL) < 0)
+
+/* Register the actual io mode property. */
+    if(H5P_register_real(pclass, H5D_MPIO_ACTUAL_IO_MODE_NAME, H5D_MPIO_ACTUAL_IO_MODE_SIZE, &def_mpio_actual_io_mode, NULL, NULL, NULL, NULL, NULL, NULL, NULL) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class")
 
 #endif /* H5_HAVE_PARALLEL */
@@ -1535,10 +1535,12 @@ done:
     FUNC_LEAVE_API(ret_value)
 } /* end H5Pget_mpio_actual_chunk_opt_mode() */
 
+
 /*-------------------------------------------------------------------------
- * Function:	H5Pget_mpio_actual_chunk_io_mode
+ * Function:	H5Pget_mpio_actual_io_mode
  *
- * Purpose: Retreives the type of I/O preformed by the multi chunk I/O operations 
+ * Purpose: Retreives the type of I/O actually preformed when collective I/O
+ *          is requested.
  *
  * Return:	Non-negative on success/Negative on failure
  *
@@ -1547,25 +1549,24 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5Pget_mpio_actual_chunk_io_mode(hid_t plist_id, H5D_mpio_actual_chunk_io_mode_t * actual_chunk_io_mode )
+H5Pget_mpio_actual_io_mode(hid_t plist_id, H5D_mpio_actual_io_mode_t * actual_io_mode )
 {
     H5P_genplist_t     *plist;
     herr_t ret_value=SUCCEED;   /* return value */
     
-    FUNC_ENTER_API(H5Pget_mpio_actual_chunk_io_mode, FAIL)
-    H5TRACE2("e","ix", plist_id, actual_chunk_io_mode);
+    FUNC_ENTER_API(H5Pget_mpio_actual_io_mode, FAIL)
+    H5TRACE2("e","ix", plist_id, actual_io_mode);
 
     /* Get the plist structure */
     if(NULL == (plist = H5P_object_verify(plist_id,H5P_DATASET_XFER)))
         HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "can't find object for ID")
 
     /* Return values */
-    if(actual_chunk_io_mode)
-        if(H5P_get(plist,H5D_MPIO_ACTUAL_CHUNK_IO_MODE_NAME, actual_chunk_io_mode)<0)
+    if(actual_io_mode)
+        if(H5P_get(plist,H5D_MPIO_ACTUAL_IO_MODE_NAME, actual_io_mode)<0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get value")
 
 done:
     FUNC_LEAVE_API(ret_value)
-} /* end H5Pget_mpio_actual_chunk_io_mode() */
+} /* end H5Pget_mpio_actual_io_mode() */
 #endif /* H5_HAVE_PARALLEL */
-

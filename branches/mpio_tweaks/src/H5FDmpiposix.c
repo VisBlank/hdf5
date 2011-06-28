@@ -687,13 +687,8 @@ H5FD_mpiposix_open(const char *name, unsigned flags, hid_t fapl_id,
     if(mpi_rank==0) {
         /* Open the file */
         file_package.fd=HDopen(name, o_flags, 0666);
-        if(file_package.fd<0) {
-            printf("%d %s \n",errno, strerror(errno));
-        }
-        /* If the file pointer is bad, dont try to run stat.
-         * Instead of throwing an error here, all process throw one simulatenously
-         * after the Bcast tp avoid hanging
-         */
+
+        /* Only run stat if the fd is good. */
         if(file_package.fd>=0) {
             if (HDfstat(file_package.fd, &file_package.sb)<0)
                 HGOTO_ERROR(H5E_FILE, H5E_BADFILE, NULL, "unable to fstat file")
