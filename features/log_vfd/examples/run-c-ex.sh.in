@@ -106,8 +106,11 @@ then
         rm h5_extlink &&\
         RunTest h5_elink_unix2win &&\
         rm h5_elink_unix2win &&\
+	OLD_DEBUG_STRING=$HDF5_DEBUG &&\
+	export HDF5_DEBUG="+all +trace +ttimes" &&\
 	RunTest h5_debug_trace &&\
-	rm h5_debug_trace_out &&\
+	HDF5_DEBUG=$OLD_DEBUG_STRING &&\
+	rm h5_debug_trace &&\
         RunTest h5_shared_mesg &&\
         rm h5_shared_mesg); then
         EXIT_VALUE=${EXIT_SUCCESS}

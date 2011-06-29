@@ -71,6 +71,16 @@ main(int argc, char **argv)
     
     /*************************************************************************/
 
+    /* Warn the user about trace deluge to come */
+
+    printf("Testing debug/trace/performance data generation\n");
+    printf("\n");
+    printf("This test should generate a large amount of trace data\n");
+    printf("\n");
+    printf("*** BEGIN TRACE OUTPUT ***\n");
+    printf("\n");
+    fflush(stdout);
+
     /* This will emit H5Tconvert() performance information */
     
     for(i = 0; i < N_LOOPS; i++) {
@@ -82,7 +92,7 @@ main(int argc, char **argv)
             data[j] = j;
         }
         
-        err = H5Tconvert(H5T_NATIVE_INT, H5T_NATIVE_DOUBLE, BUF_SIZE, data
+        err = H5Tconvert(H5T_NATIVE_INT, H5T_NATIVE_DOUBLE, BUF_SIZE, data,
             NULL, H5P_DEFAULT);
         
         if(err < 0) {
@@ -121,9 +131,14 @@ main(int argc, char **argv)
     
     free(data);
     
+    /* Finished */
+    fflush(stdout);
+    printf("\n");
+    printf("*** END TRACE OUTPUT ***\n");
+    printf("\n");
+
     remove(TESTFILE);
-    
-    printf("\nDONE\n");
     
     return 0;
 }
+
