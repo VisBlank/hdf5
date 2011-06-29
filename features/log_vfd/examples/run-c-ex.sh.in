@@ -106,6 +106,8 @@ then
         rm h5_extlink &&\
         RunTest h5_elink_unix2win &&\
         rm h5_elink_unix2win &&\
+	RunTest h5_debug_trace &&\
+	rm h5_debug_trace_out &&\
         RunTest h5_shared_mesg &&\
         rm h5_shared_mesg); then
         EXIT_VALUE=${EXIT_SUCCESS}

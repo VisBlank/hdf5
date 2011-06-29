@@ -20,6 +20,7 @@ SET (examples
     h5_extlink
     h5_elink_unix2win
     h5_shared_mesg
+    h5_debug_trace
 )
 
 FOREACH (example ${examples})
@@ -65,6 +66,7 @@ IF (BUILD_TESTING)
           small_lists_file.h5
           soft_link.h5
           unix2win.h5
+          h5_debug_trace_out.h5
   )
   IF (NOT "${last_test}" STREQUAL "")
     SET_TESTS_PROPERTIES (EXAMPLES-clear-objects PROPERTIES DEPENDS ${last_test})
