@@ -24,6 +24,9 @@
 
 static const char   *driver = NULL;      /* The driver to open the file with. */
 const char          *outfname=NULL;
+static int           doxml = 0;
+static int           useschema = 1;
+static const char   *xml_dtd_uri = NULL;
 
 /* module-scoped variables for XML option */
 #define DEFAULT_XSD     "http://www.hdfgroup.org/DTDs/HDF5-File.xsd"
@@ -959,7 +962,7 @@ parse_start:
             goto done;
             break;
         case 'w':
-            nCols = HDatoi(opt_arg);
+            h5tools_nCols = HDatoi(opt_arg);
             last_was_dset = FALSE;
             break;
         case 'a':
@@ -1102,6 +1105,7 @@ parse_start:
             useschema = TRUE;
             h5tools_dump_header_format = NULL;
             dump_function_table = &xml_function_table;
+            h5tools_nCols = 0;
             break;
         case 'u':
             doxml = TRUE;
@@ -1109,16 +1113,19 @@ parse_start:
             xmlnsprefix = "";
             h5tools_dump_header_format = NULL;
             dump_function_table = &xml_function_table;
+            h5tools_nCols = 0;
             break;
         case 'D':
             /* specify alternative XML DTD or schema */
             /* To Do: check format of this value?  */
             xml_dtd_uri = opt_arg;
+            h5tools_nCols = 0;
             break;
 
         case 'm':
             /* specify alternative floating point printing format */
             fp_format = opt_arg;
+            h5tools_nCols = 0;
             break;
 
         case 'X':
@@ -1134,6 +1141,7 @@ parse_start:
             else {
                 xmlnsprefix = opt_arg;
             }
+            h5tools_nCols = 0;
             break;
         /** end XML parameters **/
 

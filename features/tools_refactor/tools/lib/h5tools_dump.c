@@ -301,7 +301,6 @@ h5tools_dump_simple_data(FILE *stream, const h5tool_format_t *info, hid_t contai
     else {
         /* setup */
         HDmemset(&buffer, 0, sizeof(h5tools_str_t));
-        h5tools_str_reset(&buffer);
         size = H5Tget_size(type);
 
         if (info->line_ncols > 0)

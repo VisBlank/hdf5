@@ -413,7 +413,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static size_t
-h5tools_ncols(const char *s)
+h5tools_count_ncols(const char *s)
 {
     register size_t i;
 
@@ -748,7 +748,7 @@ h5tools_render_element(FILE *stream, const h5tool_format_t *info,
      * current location...
      */
     if (info->line_multi_new == 1 &&
-        (ctx->cur_column + h5tools_ncols(s) +
+        (ctx->cur_column + h5tools_count_ncols(s) +
          strlen(OPT(info->elmt_suf2, " ")) +
          strlen(OPT(info->line_suf, ""))) > ncols) {
         if (ctx->prev_multiline) {
@@ -758,7 +758,7 @@ h5tools_render_element(FILE *stream, const h5tool_format_t *info,
              */
             ctx->need_prefix = TRUE;
         }
-        else if ((ctx->prev_prefix_len + h5tools_ncols(s) +
+        else if ((ctx->prev_prefix_len + h5tools_count_ncols(s) +
                   strlen(OPT(info->elmt_suf2, " ")) +
                   strlen(OPT(info->line_suf, ""))) <= ncols) {
             /*
@@ -793,7 +793,7 @@ h5tools_render_element(FILE *stream, const h5tool_format_t *info,
     if (info->line_multi_new == 1 &&
             ctx->prev_multiline &&
             (ctx->cur_column +
-            h5tools_ncols(s) +
+            h5tools_count_ncols(s) +
             strlen(OPT(info->elmt_suf2, " ")) +
             strlen(OPT(info->line_suf, ""))) > ncols)
         ctx->need_prefix = TRUE;
@@ -902,7 +902,7 @@ h5tools_render_region_element(FILE *stream, const h5tool_format_t *info,
      * current location...
      */
     if (info->line_multi_new == 1 &&
-            (ctx->cur_column + h5tools_ncols(s) +
+            (ctx->cur_column + h5tools_count_ncols(s) +
             strlen(OPT(info->elmt_suf2, " ")) +
             strlen(OPT(info->line_suf, ""))) > ncols) {
         if (ctx->prev_multiline) {
@@ -912,7 +912,7 @@ h5tools_render_region_element(FILE *stream, const h5tool_format_t *info,
              */
             ctx->need_prefix = TRUE;
         }
-        else if ((ctx->prev_prefix_len + h5tools_ncols(s) +
+        else if ((ctx->prev_prefix_len + h5tools_count_ncols(s) +
                 strlen(OPT(info->elmt_suf2, " ")) +
                 strlen(OPT(info->line_suf, ""))) <= ncols) {
             /*
@@ -947,7 +947,7 @@ h5tools_render_region_element(FILE *stream, const h5tool_format_t *info,
     if (info->line_multi_new == 1 &&
             ctx->prev_multiline &&
             (ctx->cur_column +
-            h5tools_ncols(s) +
+            h5tools_count_ncols(s) +
             strlen(OPT(info->elmt_suf2, " ")) +
             strlen(OPT(info->line_suf, ""))) > ncols)
         ctx->need_prefix = TRUE;

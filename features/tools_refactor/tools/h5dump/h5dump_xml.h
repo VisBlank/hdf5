@@ -15,13 +15,7 @@
 #ifndef H5DUMP_XML_H__
 #define H5DUMP_XML_H__
 
-static int              doxml = 0;
-static int              useschema = 1;
-static const char       *xml_dtd_uri = NULL;
-static const char       *xmlnsprefix="hdf5:";
-
-/* internal functions */
-static int      xml_name_to_XID(const char *, char *, int , int );
+extern const char       *xmlnsprefix;
 
 /*
  *  Alternative formating for data dumped to XML
