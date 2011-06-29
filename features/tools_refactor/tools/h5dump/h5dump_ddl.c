@@ -437,8 +437,6 @@ dump_all_cb(hid_t group, const char *name, const H5L_info_t *linfo, void UNUSED 
                         goto done;
                     } 
                     else if(found_obj->displayed) {
-                        ctx.indent_level++;
-
                         ctx.need_prefix = TRUE;
                         h5tools_simple_prefix(stdout, outputformat, &ctx, 0, 0);
 
@@ -474,8 +472,6 @@ dump_all_cb(hid_t group, const char *name, const H5L_info_t *linfo, void UNUSED 
                         if(strlen(h5tools_dump_header_format->datasetend))
                             h5tools_str_append(&buffer, "%s", h5tools_dump_header_format->datasetend);
                         h5tools_render_element(stdout, outputformat, &ctx, &buffer, &curr_pos, outputformat->line_ncols, 0, 0);
-
-                        ctx.indent_level--;
 
                         H5Dclose(obj);
                         goto done;
@@ -1625,6 +1621,7 @@ handle_datasets(hid_t fid, const char *dset, void *data, int pe, const char *dis
 
         if(found_obj) {
             if (found_obj->displayed) {
+                HDfprintf(stdout, "\n");
                 indentation(dump_indent);
                 begin_obj(h5tools_dump_header_format->datasetbegin, real_name, h5tools_dump_header_format->datasetblockbegin);
                 HDfprintf(stdout, "\n");
