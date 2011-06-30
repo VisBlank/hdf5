@@ -1461,7 +1461,7 @@ H5FD_log_truncate(H5FD_t *_file, hid_t UNUSED dxpl_id, hbool_t UNUSED closing)
         /* Map the posix file handle to a Windows file handle */
         filehandle = (HANDLE)_get_osfhandle(file->fd);
         if(INVALID_HANDLE_VALUE == filehandle)
-            HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to get Windows file handle")
+            HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, FAIL, "unable to get Windows file handle")
 
         /* Translate 64-bit integers into form Windows wants */
         /* [This algorithm is from the Windows documentation for SetFilePointer()] */
