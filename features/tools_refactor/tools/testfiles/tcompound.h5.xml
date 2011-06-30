@@ -63,7 +63,11 @@
    <!-- Note: format of compound data not specified -->
       <hdf5:Data>
          <hdf5:DataFromFile>
-         0 0 1 1 1 0.5 2 4 0.333333 3 9 0.25 4 16 0.2
+         0 0 1
+         1 1 0.5
+         2 4 0.333333
+         3 9 0.25
+         4 16 0.2
          </hdf5:DataFromFile>
       </hdf5:Data>
    </hdf5:Dataset>
@@ -86,7 +90,11 @@
       <!-- Note: format of compound data not specified -->
          <hdf5:Data>
             <hdf5:DataFromFile>
-            0 0 1 1.1 2 2.2 3 3.3 4 4.4
+            0 0
+            1 1.1
+            2 2.2
+            3 3.3
+            4 4.4
             </hdf5:DataFromFile>
          </hdf5:Data>
       </hdf5:Dataset>
@@ -220,7 +228,11 @@
       <!-- Note: format of compound data not specified -->
          <hdf5:Data>
             <hdf5:DataFromFile>
-            0 3 1 4 2 5 3 6 4 7
+            0 3
+            1 4
+            2 5
+            3 6
+            4 7
             </hdf5:DataFromFile>
          </hdf5:Data>
       </hdf5:Dataset>
@@ -264,7 +276,11 @@
       <!-- Note: format of compound data not specified -->
          <hdf5:Data>
             <hdf5:DataFromFile>
-            0 0 1 0.1 2 0.2 3 0.3 4 0.4
+            0 0
+            1 0.1
+            2 0.2
+            3 0.3
+            4 0.4
             </hdf5:DataFromFile>
          </hdf5:Data>
       </hdf5:Dataset>

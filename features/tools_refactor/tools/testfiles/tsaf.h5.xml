@@ -667,12 +667,30 @@
    <!-- Note: format of compound data not specified -->
       <hdf5:Data>
          <hdf5:DataFromFile>
-         -1 1 0 1 9 0 1 -1 2 0 1 4 1 1 -1 3 0 1 7 2 1 -1 4 0 1 4 3 1
-         -1 5 0 1 5 4 1 -1 6 0 1 3 5 1 -1 7 0 1 4 6 1 -1 8 0 1 1 7 1
-         -1 9 0 1 10 8 1 -1 10 0 1 4 9 1 -1 11 0 1 3 10 1 -1 12 0 1 5 11 1
-         -1 13 0 1 5 12 1 -1 14 0 1 16 13 1 -1 15 0 1 9 14 1 -1 16 0 1 4 15 1
-         -1 17 0 1 16 16 1 -1 18 0 1 36 17 1 -1 19 0 1 5 18 1 -1 20 0 1 5 19 1
-         -1 21 0 1 36 20 1 -1 22 0 1 12 21 1 -1 23 0 1 7 22 1 -1 24 0 1 2 23 1
+         -1 1 0 1 9 0 1
+         -1 2 0 1 4 1 1
+         -1 3 0 1 7 2 1
+         -1 4 0 1 4 3 1
+         -1 5 0 1 5 4 1
+         -1 6 0 1 3 5 1
+         -1 7 0 1 4 6 1
+         -1 8 0 1 1 7 1
+         -1 9 0 1 10 8 1
+         -1 10 0 1 4 9 1
+         -1 11 0 1 3 10 1
+         -1 12 0 1 5 11 1
+         -1 13 0 1 5 12 1
+         -1 14 0 1 16 13 1
+         -1 15 0 1 9 14 1
+         -1 16 0 1 4 15 1
+         -1 17 0 1 16 16 1
+         -1 18 0 1 36 17 1
+         -1 19 0 1 5 18 1
+         -1 20 0 1 5 19 1
+         -1 21 0 1 36 20 1
+         -1 22 0 1 12 21 1
+         -1 23 0 1 7 22 1
+         -1 24 0 1 2 23 1
          </hdf5:DataFromFile>
       </hdf5:Data>
    </hdf5:Dataset>
@@ -820,8 +838,11 @@
    <!-- Note: format of compound data not specified -->
       <hdf5:Data>
          <hdf5:DataFromFile>
-         "nodes" TOPO 0 0 1 "elems" TOPO 2 1 1 "edges" USERD 1 2 1
-         "blocks" BLOCK 2 3 1 "side_sets" USERD 1 4 1
+         "nodes" TOPO 0 0 1
+         "elems" TOPO 2 1 1
+         "edges" USERD 1 2 1
+         "blocks" BLOCK 2 3 1
+         "side_sets" USERD 1 4 1
          </hdf5:DataFromFile>
       </hdf5:Data>
    </hdf5:Dataset>
@@ -1039,15 +1060,30 @@
    <!-- Note: format of compound data not specified -->
       <hdf5:Data>
          <hdf5:DataFromFile>
-         0 0 POINT 18 0 0 -2 0 1 0 1 MIXED 12 1 1 -2 1 1 0 3 NONE 4 2 1 0 2 1
-         0 4 NONE 2 3 0 1 3 1 1 0 POINT 9 4 0 -2 4 1 1 1 QUAD 4 5 1 -2 5 1
-         1 3 NONE 1 6 1 2 6 1 2 0 POINT 7 7 0 -2 7 1 2 1 MIXED 4 8 1 -2 8 1
-         2 3 NONE 2 9 1 3 9 1 3 0 POINT 10 10 0 -2 10 1 3 1 QUAD 4 11 1 -2 11 1
-         3 3 NONE 1 12 1 4 12 1 4 0 POINT 3 13 0 -2 13 1 4 2 LINE 2 14 1 -2 14 1
-         5 0 POINT 5 15 0 -2 15 1 5 2 LINE 4 16 1 -2 16 1
-         6 0 POINT 5 17 1 -2 17 1 7 0 POINT 5 18 0 -2 18 1
-         7 1 TRI 3 19 1 -2 19 1 7 3 NONE 1 20 1 5 20 1 8 0 POINT 4 21 0 -2 21 1
-         8 1 QUAD 1 22 1 -2 22 1 8 3 NONE 1 23 1 6 23 1
+         0 0 POINT 18 0 0 -2 0 1
+         0 1 MIXED 12 1 1 -2 1 1
+         0 3 NONE 4 2 1 0 2 1
+         0 4 NONE 2 3 0 1 3 1
+         1 0 POINT 9 4 0 -2 4 1
+         1 1 QUAD 4 5 1 -2 5 1
+         1 3 NONE 1 6 1 2 6 1
+         2 0 POINT 7 7 0 -2 7 1
+         2 1 MIXED 4 8 1 -2 8 1
+         2 3 NONE 2 9 1 3 9 1
+         3 0 POINT 10 10 0 -2 10 1
+         3 1 QUAD 4 11 1 -2 11 1
+         3 3 NONE 1 12 1 4 12 1
+         4 0 POINT 3 13 0 -2 13 1
+         4 2 LINE 2 14 1 -2 14 1
+         5 0 POINT 5 15 0 -2 15 1
+         5 2 LINE 4 16 1 -2 16 1
+         6 0 POINT 5 17 1 -2 17 1
+         7 0 POINT 5 18 0 -2 18 1
+         7 1 TRI 3 19 1 -2 19 1
+         7 3 NONE 1 20 1 5 20 1
+         8 0 POINT 4 21 0 -2 21 1
+         8 1 QUAD 1 22 1 -2 22 1
+         8 3 NONE 1 23 1 6 23 1
          </hdf5:DataFromFile>
       </hdf5:Data>
    </hdf5:Dataset>
@@ -2023,11 +2059,16 @@
    <!-- Note: format of compound data not specified -->
       <hdf5:Data>
          <hdf5:DataFromFile>
-         1 0 -2 0 0 -2 EQUAL TLIST -2 0 0 1 1 1 -2 0 1 -2 EQUAL TLIST -2 1 1 1
-         2 0 -2 0 0 -2 EQUAL TLIST -2 2 2 1 2 1 -2 0 1 -2 EQUAL TLIST -2 3 3 1
-         7 0 -2 0 0 -2 EQUAL TLIST -2 4 4 1 7 1 -2 0 1 -2 EQUAL TLIST -2 5 5 1
-         8 0 -2 0 0 -2 EQUAL TLIST -2 6 6 1 8 1 -2 0 1 -2 EQUAL TLIST -2 7 7 1
-         3 0 -2 0 0 -2 EQUAL TLIST -2 8 8 1 3 1 -2 0 1 -2 EQUAL TLIST -2 9 9 1
+         1 0 -2 0 0 -2 EQUAL TLIST -2 0 0 1
+         1 1 -2 0 1 -2 EQUAL TLIST -2 1 1 1
+         2 0 -2 0 0 -2 EQUAL TLIST -2 2 2 1
+         2 1 -2 0 1 -2 EQUAL TLIST -2 3 3 1
+         7 0 -2 0 0 -2 EQUAL TLIST -2 4 4 1
+         7 1 -2 0 1 -2 EQUAL TLIST -2 5 5 1
+         8 0 -2 0 0 -2 EQUAL TLIST -2 6 6 1
+         8 1 -2 0 1 -2 EQUAL TLIST -2 7 7 1
+         3 0 -2 0 0 -2 EQUAL TLIST -2 8 8 1
+         3 1 -2 0 1 -2 EQUAL TLIST -2 9 9 1
          4 0 -2 0 0 -2 EQUAL TLIST -2 10 10 1
          5 0 -2 0 0 -2 EQUAL TLIST -2 11 11 1
          6 0 -2 0 0 -2 EQUAL TLIST -2 12 12 1
@@ -2485,7 +2526,16 @@
    <!-- Note: format of compound data not specified -->
       <hdf5:Data>
          <hdf5:DataFromFile>
-         0 4 4 2 6 1 7 2 9 1 10 1 11 1 12 2 14 2 16 3
+         0 4
+         4 2
+         6 1
+         7 2
+         9 1
+         10 1
+         11 1
+         12 2
+         14 2
+         16 3
          </hdf5:DataFromFile>
       </hdf5:Data>
    </hdf5:Dataset>

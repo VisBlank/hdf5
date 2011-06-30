@@ -153,7 +153,10 @@
    <!-- Note: format of compound data not specified -->
       <hdf5:Data>
          <hdf5:DataFromFile>
-         0 0 0 0 0 0 0 0 0 0 0 0
+         0 0 0
+         0 0 0
+         0 0 0
+         0 0 0
          </hdf5:DataFromFile>
       </hdf5:Data>
    </hdf5:Dataset>
