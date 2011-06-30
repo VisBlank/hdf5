@@ -1134,7 +1134,6 @@ xml_print_datatype(hid_t type, unsigned in_group)
             /* Render the element */
             h5tools_str_reset(&buffer);
             h5tools_str_append(&buffer, "<%sOpaqueType Tag=\"%s\" ",xmlnsprefix, mname);
-            h5tools_render_element(stdout, outputformat, &ctx, &buffer, &curr_pos, outputformat->line_ncols, 0, 0);
             free(mname);
             size = H5Tget_size(type);
             h5tools_str_append(&buffer, "Size=\"%lu\"/>", (unsigned long)size);
@@ -1799,6 +1798,14 @@ xml_dump_data(hid_t obj_id, int obj_data, struct subset_t UNUSED * sset, int UNU
     /* Print all the values. */
     /* setup */
     HDmemset(&buffer, 0, sizeof(h5tools_str_t));
+    
+    string_dataformat = *outputformat;
+
+    if (fp_format) {
+        string_dataformat.fmt_double = fp_format;
+        string_dataformat.fmt_float = fp_format;
+    }
+    outputformat = &string_dataformat;
 
     ctx.need_prefix = TRUE;
     h5tools_simple_prefix(stdout, outputformat, &ctx, 0, 0);
@@ -2178,8 +2185,6 @@ xml_dump_attr(hid_t attr, const char *attr_name, const H5A_info_t UNUSED *info,
         else {
             /* The case of an attribute never yet written ??
              * Or dataspace is H5S_NULL. */
-            ctx.indent_level++;
-
             ctx.need_prefix = TRUE;
             h5tools_simple_prefix(stdout, outputformat, &ctx, 0, 0);
             
@@ -2207,8 +2212,6 @@ xml_dump_attr(hid_t attr, const char *attr_name, const H5A_info_t UNUSED *info,
             h5tools_str_reset(&buffer);
             h5tools_str_append(&buffer, "</%sData>", xmlnsprefix);
             h5tools_render_element(stdout, outputformat, &ctx, &buffer, &curr_pos, outputformat->line_ncols, 0, 0);
-
-            ctx.indent_level--;
         }
         ctx.indent_level--;
         dump_indent -= COL;
@@ -3097,7 +3100,6 @@ xml_print_strs(hid_t did, int source)
             HDstrncpy(onestring, bp, tsiz);
             str_size = tsiz;
         }
-        ctx.indent_level++;
 
         if (!onestring) {
             ctx.need_prefix = TRUE;
@@ -3121,8 +3123,6 @@ xml_print_strs(hid_t did, int source)
                 free(t_onestring);
             }
         }
-        ctx.indent_level--;
-
         bp += tsiz;
     }
 
@@ -3949,8 +3949,6 @@ xml_dump_dataset(hid_t did, const char *name, struct subset_t UNUSED * sset)
     h5tools_str_append(&buffer, "<%sFillValue>", xmlnsprefix);
     h5tools_render_element(stdout, outputformat, &ctx, &buffer, &curr_pos, outputformat->line_ncols, 0, 0);
 
-    ctx.indent_level++;
-    dump_indent += COL;
     H5Pfill_value_defined(dcpl, &fvstatus);
     if (fvstatus == H5D_FILL_VALUE_UNDEFINED || (fvstatus == H5D_FILL_VALUE_DEFAULT && ft == H5D_FILL_TIME_IFSET)) {
         ctx.indent_level++;
@@ -3967,9 +3965,6 @@ xml_dump_dataset(hid_t did, const char *name, struct subset_t UNUSED * sset)
     else {
         xml_dump_fill_value(dcpl, type);
     }
-
-    ctx.indent_level--;
-    dump_indent -= COL;
 
     ctx.need_prefix = TRUE;
     h5tools_simple_prefix(stdout, outputformat, &ctx, 0, 0);

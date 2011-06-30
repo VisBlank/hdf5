@@ -7,10 +7,10 @@
       </hdf5:StorageLayout>
       <hdf5:FillValueInfo FillTime="FillOnAlloc" AllocationTime="Late">
          <hdf5:FillValue>
-               <hdf5:Data>
-                  <!-- Compound fill not yet implemented. -->
-                  <hdf5:NoData />
-               </hdf5:Data>
+            <hdf5:Data>
+               <!-- Compound fill not yet implemented. -->
+               <hdf5:NoData />
+            </hdf5:Data>
          </hdf5:FillValue>
       </hdf5:FillValueInfo>
       <hdf5:Dataspace>

@@ -12,7 +12,7 @@
       </hdf5:StorageLayout>
       <hdf5:FillValueInfo FillTime="FillIfSet" AllocationTime="Incremental">
          <hdf5:FillValue>
-               <hdf5:NoFill/>
+            <hdf5:NoFill/>
          </hdf5:FillValue>
       </hdf5:FillValueInfo>
       <hdf5:Dataspace>
@@ -52,7 +52,7 @@
       </hdf5:StorageLayout>
       <hdf5:FillValueInfo FillTime="FillIfSet" AllocationTime="Incremental">
          <hdf5:FillValue>
-               <hdf5:NoFill/>
+            <hdf5:NoFill/>
          </hdf5:FillValue>
       </hdf5:FillValueInfo>
       <hdf5:Dataspace>

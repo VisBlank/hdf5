@@ -7,7 +7,7 @@
       </thing:StorageLayout>
       <thing:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
          <thing:FillValue>
-               <thing:NoFill/>
+            <thing:NoFill/>
          </thing:FillValue>
       </thing:FillValueInfo>
       <thing:Dataspace>
@@ -37,7 +37,7 @@
       </thing:StorageLayout>
       <thing:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
          <thing:FillValue>
-               <thing:NoFill/>
+            <thing:NoFill/>
          </thing:FillValue>
       </thing:FillValueInfo>
       <thing:Dataspace>
@@ -62,7 +62,7 @@
       </thing:StorageLayout>
       <thing:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
          <thing:FillValue>
-               <thing:NoFill/>
+            <thing:NoFill/>
          </thing:FillValue>
       </thing:FillValueInfo>
       <thing:Dataspace>
@@ -87,7 +87,7 @@
       </thing:StorageLayout>
       <thing:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
          <thing:FillValue>
-               <thing:NoFill/>
+            <thing:NoFill/>
          </thing:FillValue>
       </thing:FillValueInfo>
       <thing:Dataspace>
@@ -117,7 +117,7 @@
       </thing:StorageLayout>
       <thing:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
          <thing:FillValue>
-               <thing:NoFill/>
+            <thing:NoFill/>
          </thing:FillValue>
       </thing:FillValueInfo>
       <thing:Dataspace>
