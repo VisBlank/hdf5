@@ -136,14 +136,21 @@ typedef enum H5D_mpio_actual_chunk_opt_mode_t {
 typedef enum H5D_mpio_actual_io_mode_t {    
     /* The following four values are conveniently defined as a bit field so that
      * we can switch from the default to indpendent or collective and then to
-     * mixed without having to check the original value. */
+     * mixed without having to check the original value. 
+     * 
+     * NO_COLLECTIVE means that either collective I/O wasn't requested or that 
+     * no I/O took place.
+     *
+     * CHUNK_INDEPENDENT means that collective I/O was requested, but the
+     * chunk optimization scheme chose independent I/O for each chunk.
+     */
     H5D_MPIO_NO_COLLECTIVE = 0x0,
     H5D_MPIO_CHUNK_INDEPENDENT = 0x1,
     H5D_MPIO_CHUNK_COLLECTIVE = 0x2,
     H5D_MPIO_CHUNK_MIXED = 0x1 | 0x2,
 
     /* The contiguous case is separate from the bit field. */
-    H5D_MPIO_CONTIGUOUS_COLLECTIVE = 0x3,
+    H5D_MPIO_CONTIGUOUS_COLLECTIVE = 0x4,
 } H5D_mpio_actual_io_mode_t; 
 
 /********************/

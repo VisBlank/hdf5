@@ -2499,63 +2499,6 @@ none_selection_chunk(void)
     if(data_array) free(data_array);
 }
 
-/* Function: actual_io_mode_tests
- *
- * Purpose: Tests all possible cases of the actual_io_mode property. 
- *
- * Programmer: Jacob Gruber
- * Date: 2011-04-06
- */
-void
-actual_io_mode_tests(void) {
-    int mpi_rank = -1;
-    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-    
-    test_actual_io_mode(TEST_ACTUAL_IO_NO_COLLECTIVE);
-    
-    test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_IND);
-    test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_COL);
-    test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_MIX);
-    test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_MIX_DISAGREE);
-
-/* Without H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS, all forms of
- * multi chunk I/O no opt break to independent on all chunks.
- *
- * Additionally, link chunk I/O isn't possible, and breaks to
- * multi chunk.
- */
-#ifndef H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS
-    test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_IND);
-    if (mpi_rank == 0) {
-        printf("%s%s","    actualio -- Multi chunk collective I/O without",
-            " optimization not supported on this build.\n");
-        printf("    actualio -- Link chunk I/O not supported on this build.\n");
-    }
-
-/* Otherwise, the independent test relies on one process having an empty
- * selection, which is only supported if H5_MPI_SPECIAL_COLLECTIVE_IO_WORKS
- * is set.
- */
-#else
-#ifdef H5_MPI_SPECIAL_COLLECTIVE_IO_WORKS
-    test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_IND);
-#else
-    if (mpi_rank == 0)
-        printf("%s%s","    actualio -- Multi chunk collective I/O without",
-            " optimization independent test not supported on this build.\n");
-#endif
-
-    test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_COL);
-    test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_MIX_DISAGREE);
-    test_actual_io_mode(TEST_ACTUAL_IO_LINK_CHUNK);
-#endif
-
-    test_actual_io_mode(TEST_ACTUAL_IO_CONTIGUOUS);
- 
-    test_actual_io_mode(TEST_ACTUAL_IO_RESET);
-    return;
-}
-
 
 /* Function: test_actual_io_mode
  *
@@ -2614,7 +2557,8 @@ actual_io_mode_tests(void) {
  * Programmer: Jacob Gruber
  * Date: 2011-04-06
  */
-void test_actual_io_mode(int selection_mode) {
+static void 
+test_actual_io_mode(int selection_mode) {
     H5D_mpio_actual_chunk_opt_mode_t   actual_chunk_opt_mode_write = -1;
     H5D_mpio_actual_chunk_opt_mode_t   actual_chunk_opt_mode_read = -1;
     H5D_mpio_actual_io_mode_t   actual_io_mode_write = -1;
@@ -2873,8 +2817,8 @@ void test_actual_io_mode(int selection_mode) {
         default:
             printf("Error: undefined selection mode = %d", selection_mode);
             break;
-
     }
+
     ret = H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, stride, count, block);
     VRFY((ret >= 0), "H5Sset_hyperslab succeeded");
  
@@ -3145,5 +3089,63 @@ void test_actual_io_mode(int selection_mode) {
     ret = H5Sclose(file_space);
     ret = H5Fclose(fid);
     free(buffer);
+    return;
+}
+
+
+/* Function: actual_io_mode_tests
+ *
+ * Purpose: Tests all possible cases of the actual_io_mode property. 
+ *
+ * Programmer: Jacob Gruber
+ * Date: 2011-04-06
+ */
+void
+actual_io_mode_tests(void) {
+    int mpi_rank = -1;
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+    
+    test_actual_io_mode(TEST_ACTUAL_IO_NO_COLLECTIVE);
+    
+    test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_IND);
+    test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_COL);
+    test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_MIX);
+    test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_MIX_DISAGREE);
+
+/* Without H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS, all forms of
+ * multi chunk I/O no opt break to independent on all chunks.
+ *
+ * Additionally, link chunk I/O isn't possible, and breaks to
+ * multi chunk.
+ */
+#ifndef H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS
+    test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_IND);
+    if (mpi_rank == 0) {
+        printf("%s%s","    actualio -- Multi chunk collective I/O without",
+            " optimization not supported on this build.\n");
+        printf("    actualio -- Link chunk I/O not supported on this build.\n");
+    }
+
+/* Otherwise, the independent test relies on one process having an empty
+ * selection, which is only supported if H5_MPI_SPECIAL_COLLECTIVE_IO_WORKS
+ * is set.
+ */
+#else
+#ifdef H5_MPI_SPECIAL_COLLECTIVE_IO_WORKS
+    test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_IND);
+#else
+    if (mpi_rank == 0)
+        printf("%s%s","    actualio -- Multi chunk collective I/O without",
+            " optimization independent test not supported on this build.\n");
+#endif
+
+    test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_COL);
+    test_actual_io_mode(TEST_ACTUAL_IO_MULTI_CHUNK_NO_OPT_MIX_DISAGREE);
+    test_actual_io_mode(TEST_ACTUAL_IO_LINK_CHUNK);
+#endif
+
+    test_actual_io_mode(TEST_ACTUAL_IO_CONTIGUOUS);
+ 
+    test_actual_io_mode(TEST_ACTUAL_IO_RESET);
     return;
 }

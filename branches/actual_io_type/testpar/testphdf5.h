@@ -266,7 +266,6 @@ void lower_dim_size_comp_test(void);
 void link_chunk_collective_io_test(void);
 void contig_hyperslab_dr_pio_test(ShapeSameTestMethods sstest_type);
 void checker_board_hyperslab_dr_pio_test(ShapeSameTestMethods sstest_type);
-void test_actual_io_mode(int selection_mode);
 #ifdef H5_HAVE_FILTER_DEFLATE
 void compress_readAll(void);
 #endif /* H5_HAVE_FILTER_DEFLATE */
