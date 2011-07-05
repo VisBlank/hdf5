@@ -1,0 +1,2 @@
+There are parallel issues on Windows, so ph5diff is not
+built at this time.

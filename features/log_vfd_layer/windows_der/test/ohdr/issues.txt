@@ -1,0 +1,7 @@
+This test has some issues
+
+If you check out the source, you can see that you have to RECOMPILE the
+HDF5 library with a specific flag set and then run a separate test
+program to generate a specific test file.
+
+There HAS to be a better way to do this...
