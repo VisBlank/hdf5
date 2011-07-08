@@ -169,6 +169,9 @@ H5MF_init_merge_flags(H5F_t *f)
         } /* end else */
     } /* end else */
 
+    HDassert(mapping_type == H5MF_AGGR_MERGE_SEPARATE ||
+	     mapping_type == H5MF_AGGR_MERGE_DICHOTOMY || mapping_type == H5MF_AGGR_MERGE_TOGETHER);
+
     /* Based on mapping type, initialize merging flags for each free list type */
     switch(mapping_type) {
         case H5MF_AGGR_MERGE_SEPARATE:
@@ -194,8 +197,6 @@ H5MF_init_merge_flags(H5F_t *f)
             HDmemset(f->shared->fs_aggr_merge, (H5F_FS_MERGE_METADATA | H5F_FS_MERGE_RAWDATA), sizeof(f->shared->fs_aggr_merge));
             break;
 
-        default:
-            HGOTO_ERROR(H5E_RESOURCE, H5E_BADVALUE, FAIL, "invalid mapping type")
     } /* end switch */
 
 done:
