@@ -15,6 +15,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "H5private.h"
 #include "H5LTprivate.h"
 #include "H5TBprivate.h"
 
@@ -1733,11 +1734,11 @@ herr_t H5TBcombine_tables(hid_t loc_id1,
             /* get the member offset */
             member_offset = H5Tget_member_offset(tid_3, (unsigned)i);
 
-            strcpy(attr_name, "FIELD_");
-            sprintf(aux, "%d", (int)i);
-            strcat(attr_name, aux);
-            sprintf(aux, "%s", "_FILL");
-            strcat(attr_name, aux);
+            HDstrncpy(attr_name, "FIELD_", 7);
+            HDsnprintf(aux, 11, "%d", (int)i);
+            HDstrncat(attr_name, aux, strlen(aux));
+            HDsnprintf(aux, 5, "%s", "_FILL");
+            HDstrncat(attr_name, aux, strlen(aux));
 
             if((attr_id = H5Acreate2(did_3, attr_name, member_type_id, sid, H5P_DEFAULT, H5P_DEFAULT)) < 0)
                 goto out;
