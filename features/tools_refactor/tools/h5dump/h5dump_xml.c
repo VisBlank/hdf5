@@ -1840,6 +1840,7 @@ xml_dump_data(hid_t obj_id, int obj_data, struct subset_t UNUSED * sset, int UNU
         } 
         else {
             h5tools_context_t datactx = *(&ctx);            /* print context  */
+            datactx.need_prefix = TRUE;
             status = h5tools_dump_dset(stdout, outputformat, &datactx, obj_id, -1, NULL);
         }
     } 

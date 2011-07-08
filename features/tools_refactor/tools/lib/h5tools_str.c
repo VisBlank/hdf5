@@ -610,6 +610,32 @@ h5tools_print_char(h5tools_str_t *str, const h5tool_format_t *info, char ch)
         }
     }
 }
+void
+h5tools_str_indent(h5tools_str_t *str, const h5tool_format_t *info,
+                      h5tools_context_t *ctx)
+{
+    int i, indentlevel = 0;
+
+    /* Write new prefix */
+    if (ctx->indent_level >= 0) {
+        indentlevel = ctx->indent_level;
+    }
+    else {
+        /*
+         * This is because sometimes we don't print out all the header
+         * info for the data (like the tattr-2.ddl example). If that happens
+         * the ctx->indent_level is negative so we need to skip the above and
+         * just print out the default indent levels.
+         */
+        indentlevel = ctx->default_indent_level;
+    }
+
+    for (i = 0; i < indentlevel; i++) {
+        h5tools_str_append(str, "%s", OPT(info->line_indent, ""));
+    }
+
+    ctx->need_prefix = 0;
+}
 
 /*-------------------------------------------------------------------------
  * Function:    h5tools_str_sprint
@@ -908,26 +934,14 @@ h5tools_str_sprint(h5tools_str_t *str, const h5tool_format_t *info, hid_t contai
 
         nmembs = H5Tget_nmembers(type);
         h5tools_str_append(str, "%s", OPT(info->cmpd_pre, "{"));
+        ctx->indent_level++;
 
         for (j = 0; j < nmembs; j++) {
             if (j)
-                h5tools_str_append(str, "%s", OPT(info->cmpd_sep, ", " OPTIONAL_LINE_BREAK));
+                h5tools_str_append(str, "%s", OPT(info->cmpd_sep, ", "OPTIONAL_LINE_BREAK));
 
-            /* RPM 2000-10-31
-             * If the previous character is a line-feed (which is true when
-             * h5dump is running) then insert some white space for
-             * indentation. Be warned that column number calculations will be
-             * incorrect and that object indices at the beginning of the line
-             * will be missing (h5dump doesn't display them anyway).  */
-            if (ctx->indent_level >= 0 && str->len && str->s[str->len - 1] == '\n') {
-                int x;
-
-                h5tools_str_append(str, OPT(info->line_pre, ""), "");
-
-                for (x = 0; x < ctx->indent_level + 1; x++)
-                    h5tools_str_append(str, "%s", OPT(info->line_indent, ""));
-            }
-
+            h5tools_str_indent(str, info, ctx);
+            
             /* The name */
             name = H5Tget_member_name(type, j);
             h5tools_str_append(str, OPT(info->cmpd_name, ""), name);
@@ -937,30 +951,15 @@ h5tools_str_sprint(h5tools_str_t *str, const h5tool_format_t *info, hid_t contai
             offset = H5Tget_member_offset(type, j);
             memb = H5Tget_member_type(type, j);
 
-            ctx->indent_level++;
             h5tools_str_sprint(str, info, container, memb, cp_vp + offset, ctx);
-            ctx->indent_level--;
 
             H5Tclose(memb);
         }
+        ctx->indent_level--;
 
-        /* RPM 2000-10-31
-         * If the previous character is a line feed (which is true when
-         * h5dump is running) then insert some white space for indentation.
-         * Be warned that column number calculations will be incorrect and
-         * that object indices at the beginning of the line will be missing
-         * (h5dump doesn't display them anyway). */
         h5tools_str_append(str, "%s", OPT(info->cmpd_end, ""));
 
-        if (ctx->indent_level >= 0 && str->len && str->s[str->len - 1] == '\n') {
-            int x;
-
-            h5tools_str_append(str, OPT(info->line_pre, ""), "");
-
-            for (x = 0; x < ctx->indent_level; x++)
-                h5tools_str_append(str, "%s", OPT(info->line_indent, ""));
-        }
-
+        h5tools_str_indent(str, info, ctx);
         h5tools_str_append(str, "%s", OPT(info->cmpd_suf, "}"));
     }
     else if (H5Tget_class(type) == H5T_ENUM) {

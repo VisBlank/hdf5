@@ -1252,8 +1252,11 @@ dump_dataset_values(hid_t dset)
     hid_t  f_type = H5Dget_type(dset);
     size_t  size = H5Tget_size(f_type);
     h5tool_format_t  info;
+    h5tools_context_t ctx;            /* print context  */
     char  string_prefix[64];
     static char         fmt_double[16], fmt_float[16];
+
+    HDmemset(&ctx, 0, sizeof(ctx));
 
     /* Set to all default values and then override */
     memset(&info, 0, sizeof info);
@@ -1337,6 +1340,7 @@ dump_dataset_values(hid_t dset)
 
     /* Print all the values. */
     printf("    Data:\n");
+    ctx.need_prefix = TRUE;
     if (h5tools_dump_dset(stdout, &info, dset, -1, NULL, -1) < 0)
         printf("        Unable to print data.\n");
 

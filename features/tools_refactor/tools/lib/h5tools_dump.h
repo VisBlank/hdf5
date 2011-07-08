@@ -66,7 +66,9 @@ H5TOOLS_DLL int     h5tools_print_datatype(FILE *stream, h5tools_str_t *buffer/*
 H5TOOLS_DLL int     h5tools_print_dataspace(FILE *stream, h5tools_str_t *buffer/*in,out*/,
                             const h5tool_format_t *info, h5tools_context_t *ctx/*in,out*/,
                             hid_t space);
-H5TOOLS_DLL int     h5tools_print_enum(h5tools_str_t *buffer/*in,out*/, hid_t type);
+H5TOOLS_DLL int     h5tools_print_enum(FILE *stream, h5tools_str_t *buffer/*in,out*/,
+                            const h5tool_format_t *info, h5tools_context_t *ctx/*in,out*/,
+                            hid_t type);
 H5TOOLS_DLL void    h5tools_print_fill_value(h5tools_str_t *buffer/*in,out*/,
                             const h5tool_format_t *info, h5tools_context_t *ctx/*in,out*/, 
                             hid_t dcpl, hid_t type_id, hid_t obj_id);

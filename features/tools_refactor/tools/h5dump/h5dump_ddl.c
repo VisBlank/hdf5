@@ -450,7 +450,6 @@ dump_all_cb(hid_t group, const char *name, const H5L_info_t *linfo, void UNUSED 
                         ctx.indent_level++;
 
                         ctx.need_prefix = TRUE;
-                        h5tools_simple_prefix(stdout, outputformat, &ctx, 0, 0);
 
                         /* Render the element */
                         h5tools_str_reset(&buffer);
@@ -518,7 +517,6 @@ dump_all_cb(hid_t group, const char *name, const H5L_info_t *linfo, void UNUSED 
             HDassert(targbuf);
 
             ctx.need_prefix = TRUE;
-            h5tools_simple_prefix(stdout, outputformat, &ctx, 0, 0);
 
             /* Render the element */
             h5tools_str_reset(&buffer);
@@ -754,7 +752,6 @@ dump_named_datatype(hid_t tid, const char *name)
     }
 
     ctx.need_prefix = TRUE;
-    h5tools_simple_prefix(stdout, outputformat, &ctx, 0, 0);
     
     /* Render the element */
     h5tools_str_reset(&buffer);
@@ -791,7 +788,6 @@ dump_named_datatype(hid_t tid, const char *name)
     
     /* Render the element */
     h5tools_str_reset(&buffer);
-
     h5tools_print_datatype(stdout, &buffer, outputformat, &ctx, tid, FALSE);
 
     if(H5Tget_class(tid) != H5T_COMPOUND) {
@@ -822,9 +818,6 @@ dump_named_datatype(hid_t tid, const char *name)
     dump_indent -= COL;
 
 done:
-    ctx.need_prefix = TRUE;
-    h5tools_simple_prefix(stdout, outputformat, &ctx, 0, 0);
-
     /* Render the element */
     h5tools_str_reset(&buffer);
     if(strlen(h5tools_dump_header_format->datatypeblockend)) {
@@ -920,7 +913,6 @@ dump_group(hid_t gid, const char *name)
     outputformat = &string_dataformat;
 
     ctx.need_prefix = TRUE;
-    h5tools_simple_prefix(stdout, outputformat, &ctx, 0, 0);
 
     /* Render the element */
     h5tools_str_reset(&buffer);
@@ -969,7 +961,6 @@ dump_group(hid_t gid, const char *name)
         }
         else if (found_obj->displayed) {
             ctx.need_prefix = TRUE;
-            h5tools_simple_prefix(stdout, outputformat, &ctx, 0, 0);
 
             /* Render the element */
             h5tools_str_reset(&buffer);
@@ -1187,22 +1178,6 @@ dump_dataset(hid_t did, const char *name, struct subset_t *sset)
             case H5T_VLEN:
             case H5T_ARRAY:
                 {
-                    h5tool_format_t   string_dataformat = *outputformat;
-    
-                    if (fp_format) {
-                        string_dataformat.fmt_double = fp_format;
-                        string_dataformat.fmt_float = fp_format;
-                    }
-    
-                    if (h5tools_nCols==0) {
-                        outputformat->line_ncols = 65535;
-                        outputformat->line_per_line = 1;
-                    }
-                    else
-                        outputformat->line_ncols = h5tools_nCols;
-    
-                    string_dataformat.do_escape = display_escape;
-                    outputformat = &string_dataformat;
                     h5tools_dump_data(stdout, outputformat, &ctx, did, TRUE, sset, display_ai, display_char);
                 }
                 break;
@@ -1350,7 +1325,7 @@ dump_fcpl(hid_t fid)
     * SUPER_BLOCK
     *-------------------------------------------------------------------------
     */
-    HDfprintf(stdout, "%s %s\n",SUPER_BLOCK, BEGIN);
+    HDfprintf(stdout, "\n%s %s\n",SUPER_BLOCK, BEGIN);
     indentation(dump_indent + COL);
     HDfprintf(stdout, "%s %u\n","SUPERBLOCK_VERSION", finfo.super.version);
     indentation(dump_indent + COL);
@@ -1425,7 +1400,7 @@ dump_fcpl(hid_t fid)
     HDfprintf(stdout, "USER_BLOCK %s\n",BEGIN);
     indentation(dump_indent + COL);
     HDfprintf(stdout,"%s %Hu\n","USERBLOCK_SIZE", userblock);
-    HDfprintf(stdout, "%s\n",END);
+    HDfprintf(stdout, "%s",END);
 }
 
 /*-------------------------------------------------------------------------
@@ -1853,15 +1828,17 @@ handle_datatypes(hid_t fid, const char *type, void UNUSED * data, int pe, const 
         else {
             hid_t dsetid = H5Dopen2(fid, type_table->objs[idx].objname, H5P_DEFAULT);
             type_id = H5Dget_type(dsetid);
-//            dump_indent += COL;
+
             dump_named_datatype(type_id, real_name);
-//            dump_indent -= COL;
+
             H5Tclose(type_id);
             H5Dclose(dsetid);
         }
     }
     else {
+        dump_indent += COL;
         dump_named_datatype(type_id, real_name);
+        dump_indent -= COL;
 
         if(H5Tclose(type_id) < 0)
             h5tools_setstatus(EXIT_FAILURE);

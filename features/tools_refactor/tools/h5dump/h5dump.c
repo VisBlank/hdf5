@@ -1519,11 +1519,9 @@ main(int argc, const char *argv[])
         } /* end if */
 
         for(i = 0; i < argc; i++) {
-//            putc('Y', stdout);
             if(hand[i].func) {
                 hand[i].func(fid, hand[i].obj, hand[i].subset_info, 1, NULL);
             }
-//            putc('Z', stdout);
         }
         HDfprintf(stdout, "\n");
     }
