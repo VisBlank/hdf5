@@ -61,10 +61,10 @@ NULL, /*fmt_ullong */
 1, /*arr_linebreak */
 
 "", /*cmpd_name */
-",\n", /*cmpd_sep */
-"{\n", /*cmpd_pre */
+",", /*cmpd_sep */
+"{", /*cmpd_pre */
 "}", /*cmpd_suf */
-"\n", /*cmpd_end */
+"", /*cmpd_end */
 
 ", ", /*vlen_sep */
 "(", /*vlen_pre */
@@ -3762,12 +3762,10 @@ h5tools_dump_data(FILE *stream, const h5tool_format_t *info,
     }
     
     ctx->need_prefix = TRUE;
-    h5tools_simple_prefix(stream, &outputformat, ctx, 0, 0);
-   
     h5tools_str_reset(&buffer);
     h5tools_str_append(&buffer, "%s %s", h5tools_dump_header_format->databegin, h5tools_dump_header_format->datablockbegin);
     h5tools_render_element(stream, &outputformat, ctx, &buffer, &curr_pos, ncols, 0, 0);
-    
+
     /* Print all the values. */
     if(obj_data) {
         char                string_prefix[64];

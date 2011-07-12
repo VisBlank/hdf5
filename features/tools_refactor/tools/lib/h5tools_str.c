@@ -634,7 +634,7 @@ h5tools_str_indent(h5tools_str_t *str, const h5tool_format_t *info,
         h5tools_str_append(str, "%s", OPT(info->line_indent, ""));
     }
 
-    ctx->need_prefix = 0;
+//    ctx->need_prefix = 0;
 }
 
 /*-------------------------------------------------------------------------
@@ -934,11 +934,15 @@ h5tools_str_sprint(h5tools_str_t *str, const h5tool_format_t *info, hid_t contai
 
         nmembs = H5Tget_nmembers(type);
         h5tools_str_append(str, "%s", OPT(info->cmpd_pre, "{"));
+
         ctx->indent_level++;
 
         for (j = 0; j < nmembs; j++) {
             if (j)
                 h5tools_str_append(str, "%s", OPT(info->cmpd_sep, ", "OPTIONAL_LINE_BREAK));
+
+            h5tools_str_append(str, "%s", "\n");
+
 
             h5tools_str_indent(str, info, ctx);
             
@@ -958,6 +962,7 @@ h5tools_str_sprint(h5tools_str_t *str, const h5tool_format_t *info, hid_t contai
         ctx->indent_level--;
 
         h5tools_str_append(str, "%s", OPT(info->cmpd_end, ""));
+        h5tools_str_append(str, "%s", "\n");
 
         h5tools_str_indent(str, info, ctx);
         h5tools_str_append(str, "%s", OPT(info->cmpd_suf, "}"));
@@ -1060,6 +1065,8 @@ h5tools_str_sprint(h5tools_str_t *str, const h5tool_format_t *info, hid_t contai
         /* Print the opening bracket */
         h5tools_str_append(str, "%s", OPT(info->arr_pre, "["));
 
+        ctx->indent_level++;
+
         for (i = 0; i < nelmts; i++) {
             if (i)
                 h5tools_str_append(str, "%s", OPT(info->arr_sep, "," OPTIONAL_LINE_BREAK));
@@ -1068,14 +1075,8 @@ h5tools_str_sprint(h5tools_str_t *str, const h5tool_format_t *info, hid_t contai
                 int x;
 
                 h5tools_str_append(str, "%s", "\n");
+                h5tools_str_indent(str, info, ctx);
 
-                /* need to indent some more here*/
-                if (ctx->indent_level >= 0)
-                    if (!info->pindex)
-                        h5tools_str_append(str, "%s", OPT(info->line_pre, ""));
-
-                for (x = 0; x < ctx->indent_level + 1; x++)
-                    h5tools_str_append(str, "%s", OPT(info->line_indent, ""));
             } /* end if */
             else if (i && info->arr_sep) {
                 /* if next element begin, add next line with indent */
@@ -1084,13 +1085,8 @@ h5tools_str_sprint(h5tools_str_t *str, const h5tool_format_t *info, hid_t contai
                     is_next_arry_elmt = 0;
 
                     h5tools_str_append(str, "%s", "\n ");
+                    h5tools_str_indent(str, info, ctx);
 
-                    if (ctx->indent_level >= 0)
-                        if (!info->pindex)
-                            h5tools_str_append(str, "%s", OPT(info->line_pre, ""));
-
-                    for (x = 0; x < ctx->indent_level + 1; x++)
-                        h5tools_str_append(str, "%s", OPT(info->line_indent, ""));
                 }
                 /* otherwise just add space */
                 else
@@ -1098,14 +1094,12 @@ h5tools_str_sprint(h5tools_str_t *str, const h5tool_format_t *info, hid_t contai
                 
             } /* end else if */
 
-            ctx->indent_level++;
-
             /* Dump values in an array element */
             is_next_arry_elmt = 0; /* dump all values in the array element, so turn it off */
             h5tools_str_sprint(str, info, container, memb, cp_vp + i * size, ctx);
-
-            ctx->indent_level--;
         } /* end for */
+
+        ctx->indent_level--;
 
         /* Print the closing bracket */
         h5tools_str_append(str, "%s", OPT(info->arr_suf, "]"));
