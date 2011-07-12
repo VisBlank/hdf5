@@ -271,11 +271,11 @@ test_timer_functionality(void)
 
     /* Times should be initialized to zero */
     err = H5_timer_get_times(timer, &times);
-    if(err < 0 || times.elapsed != 0.0)
+    if(err < 0 || times.elapsed < 0.0F || times.elapsed > 0.0F)
         TEST_ERROR;
 
     err = H5_timer_get_total_times(timer, &times);
-    if(err < 0 || times.elapsed != 0.0)
+    if(err < 0 || times.elapsed < 0.0F || times.elapsed > 0.0F)
         TEST_ERROR;
 
 
@@ -319,11 +319,11 @@ test_timer_functionality(void)
         TEST_ERROR;
 
     err = H5_timer_get_times(timer, &times);
-    if(err < 0 || times.elapsed != 0.0)
+    if(err < 0 || times.elapsed < 0.0F || times.elapsed > 0.0F)
         TEST_ERROR;
 
     err = H5_timer_get_total_times(timer, &times);
-    if(err < 0 || times.elapsed != 0.0)
+    if(err < 0 || times.elapsed < 0.0F || times.elapsed > 0.0F)
         TEST_ERROR;
 
     /* Timer state should flip */

@@ -15,14 +15,19 @@
 
 /* This example demonstrates the proper use of HDF5 timers.  It is the
  * example code from the HDF5 timer documentation.
+ *
+ * This program does not look like the other tests.  We only include it
+ * here to ensure that it's compiled and will break if the timer
+ * API changes.
  */
  
 #include <stdio.h>
 #include <stdlib.h>
  
 #include "hdf5.h"
+#include "H5private.h"
 
-int main(int argc, char **argv)
+int main(void)
 {
     H5_timer_t      timer;
 
@@ -45,15 +50,15 @@ int main(int argc, char **argv)
     err = H5_timer_start(&timer);
     /* Do some work here */
     err = H5_timer_stop(&timer);
-    err = H5_timer_get_times(timer, &times1)
+    err = H5_timer_get_times(timer, &times1);
 
     /* Time another section of code */
     err = H5_timer_start(&timer);
     /* Do some work here */
     err = H5_timer_stop(&timer);
-    err = H5_timer_get_times(timer, &times2)
+    err = H5_timer_get_times(timer, &times2);
 
-    err = H5_timer_get_total_times(timer, &total_times)
+    err = H5_timer_get_total_times(timer, &total_times);
 
     /* Write out time statistics */
     e_string = H5_timer_get_time_string(times1.elapsed);
@@ -85,3 +90,4 @@ int main(int argc, char **argv)
 
     return EXIT_SUCCESS;
 }
+

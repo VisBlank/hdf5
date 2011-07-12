@@ -31,7 +31,8 @@ endif
 # Use the boilerplate in config/examples.am instead.
 TEST_PROG = h5_write h5_read h5_extend_write h5_chunk_read h5_compound   \
            h5_group h5_select h5_attribute h5_mount h5_reference h5_drivers \
-           h5_ref2reg h5_extlink h5_elink_unix2win h5_shared_mesg h5_debug_trace
+           h5_ref2reg h5_extlink h5_elink_unix2win h5_shared_mesg \
+           h5_debug_trace
 TEST_SCRIPT=testh5cc.sh
 
 # Install files
@@ -97,7 +98,6 @@ h5_extlink: $(srcdir)/h5_extlink.c $(EXTLINK_DIRS)
 h5_elink_unix2win: $(srcdir)/h5_elink_unix2win.c $(EXTLINK_DIRS)
 h5_shared_mesg: $(srcdir)/h5_shared_mesg.c
 h5_debug_trace: $(srcdir)/h5_debug_trace.c
-h5_timer_example: $(srcdir)/h5_timer_example.c
 
 if BUILD_SHARED_SZIP_CONDITIONAL
 LD_LIBRARY_PATH=$(LL_PATH)

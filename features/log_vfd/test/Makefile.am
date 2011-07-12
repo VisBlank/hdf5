@@ -42,7 +42,7 @@ TEST_PROG= testhdf5 lheap ohdr stab gheap cache cache_api cache_tagging \
            big mtime fillval mount flush1 flush2 app_ref enum \
            set_extent ttsafe timer \
            getname vfd ntypes dangle dtransform reserved cross_read \
-           freespace mf farray earray btree2 fheap
+           freespace mf farray earray btree2 fheap timer_example
 
 # List programs to be built when testing here. error_test and err_compat are
 # built at the same time as the other tests, but executed by testerror.sh.

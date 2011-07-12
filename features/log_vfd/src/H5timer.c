@@ -562,7 +562,7 @@ H5_timer_get_time_string(double seconds)
     if(seconds < 0.0F) {
         sprintf(s, "N/A");
     }
-    else if(0.0F == seconds) {
+    else if(seconds <= 0.0F) {
         sprintf(s, "0.0 s");
     }
     else if(seconds < 1.0E-6F) {
