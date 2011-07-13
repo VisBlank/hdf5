@@ -1707,11 +1707,11 @@ h5tools_dump_simple_mem(FILE *stream, const h5tool_format_t *info, h5tools_conte
     if (ctx->ndims > 0)
         init_acc_pos(ctx, ctx->p_max_idx);
 
-    /* Print it */
-    if(nelmts > 0) {
-        ctx->need_prefix = TRUE;
-        h5tools_simple_prefix(stream, info, ctx, 0, 0);
-    }
+//    /* Print it */
+//    if(nelmts > 0) {
+//        ctx->need_prefix = TRUE;
+//        h5tools_simple_prefix(stream, info, ctx, 0, 0);
+//    }
 
     h5tools_dump_simple_data(stream, info, obj_id, ctx, START_OF_DATA | END_OF_DATA, nelmts, type, mem);
 
@@ -3766,11 +3766,10 @@ h5tools_dump_data(FILE *stream, const h5tool_format_t *info,
     h5tools_str_append(&buffer, "%s %s", h5tools_dump_header_format->databegin, h5tools_dump_header_format->datablockbegin);
     h5tools_render_element(stream, &outputformat, ctx, &buffer, &curr_pos, ncols, 0, 0);
 
+    h5tools_context_t datactx = *ctx;            /* print context  */
     /* Print all the values. */
     if(obj_data) {
-        char                string_prefix[64];
         hid_t               f_type = H5Dget_type(obj_id);
-        h5tools_context_t datactx = *ctx;            /* print context  */
 
         if((display_char && H5Tget_size(f_type) == 1) && (H5Tget_class(f_type) == H5T_INTEGER)) {
             /*
@@ -3782,26 +3781,30 @@ h5tools_dump_data(FILE *stream, const h5tool_format_t *info,
              * copy of it instead.
              */
             string_dataformat = *info;
-            string_dataformat.idx_fmt = " ";
+            string_dataformat.idx_fmt = "\"";
+            info = &string_dataformat;
+            datactx.indent_level++;
+            datactx.need_prefix = TRUE;
+            h5tools_simple_prefix(stream, info, &datactx, 0, 0);
+            
+            string_dataformat = *info;
+            string_dataformat.idx_fmt = "\"";
             string_dataformat.line_multi_new = 1;
-            string_dataformat.line_1st = "        %s\"";
-            string_dataformat.line_pre = "        %s";
-            string_dataformat.line_cont = "        %s";
             string_dataformat.str_repeat = 8;
             string_dataformat.ascii = TRUE;
             string_dataformat.elmt_suf1 = "";
             string_dataformat.elmt_suf2 = "";
-            string_dataformat.line_indent = "";
-            strcpy(string_prefix, string_dataformat.line_pre);
-            strcat(string_prefix, "\"");
-            string_dataformat.line_pre = string_prefix;
             string_dataformat.line_suf = "\"";
             info = &string_dataformat;
         }
-
-        datactx.need_prefix = TRUE;
+        else
+            datactx.need_prefix = TRUE;
         status = h5tools_dump_dset(stream, info, &datactx, obj_id, -1, sset);
-
+        if((display_char && H5Tget_size(f_type) == 1) && (H5Tget_class(f_type) == H5T_INTEGER)) {
+            h5tools_str_reset(&buffer);
+            h5tools_str_append(&buffer, "\"");
+            h5tools_render_element(stream, &outputformat, ctx, &buffer, &curr_pos, ncols, 0, 0);
+        }
         H5Tclose(f_type);
     }
     else {
@@ -3848,24 +3851,31 @@ h5tools_dump_data(FILE *stream, const h5tool_format_t *info,
                          * copy of it instead.
                          */
                         string_dataformat = *info;
-                        string_dataformat.idx_fmt = " ";
+                        string_dataformat.idx_fmt = "\"";
+                        info = &string_dataformat;
+                        datactx.indent_level++;
+                        datactx.need_prefix = TRUE;
+                        h5tools_simple_prefix(stream, info, &datactx, 0, 0);
+                        
+                        string_dataformat = *info;
+                        string_dataformat.idx_fmt = "\"";
                         string_dataformat.line_multi_new = 1;
-                        string_dataformat.line_1st = "        %s\"";
-                        string_dataformat.line_pre = "        %s";
-                        string_dataformat.line_cont = "        %s";
                         string_dataformat.str_repeat = 8;
                         string_dataformat.ascii = TRUE;
                         string_dataformat.elmt_suf1 = "";
                         string_dataformat.elmt_suf2 = "";
-                        string_dataformat.line_indent = "";
-                        strcpy(string_prefix, string_dataformat.line_pre);
-                        strcat(string_prefix, "\"");
-                        string_dataformat.line_pre = string_prefix;
-                        string_dataformat.line_suf = "";
+                        string_dataformat.line_suf = "\"";
                         info = &string_dataformat;
                     }
+                    else
+                        datactx.need_prefix = TRUE;
 
-                status = h5tools_dump_mem(stream, info, ctx, obj_id, p_type, space, buf);
+                status = h5tools_dump_mem(stream, info, &datactx, obj_id, p_type, space, buf);
+                if (display_char && H5Tget_size(type) == 1 && H5Tget_class(type) == H5T_INTEGER) {
+                    h5tools_str_reset(&buffer);
+                    h5tools_str_append(&buffer, "\"");
+                    h5tools_render_element(stream, &outputformat, ctx, &buffer, &curr_pos, ncols, 0, 0);
+                }
 
                 /* Reclaim any VL memory, if necessary */
                 if (vl_data)
