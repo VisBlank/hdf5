@@ -1884,9 +1884,11 @@ xml_dump_data(hid_t obj_id, int obj_data, struct subset_t UNUSED * sset, int UNU
             buf = malloc((size_t)(nelmts * MAX(H5Tget_size(type), H5Tget_size(p_type))));
             assert(buf);
             
-            if (H5Aread(obj_id, p_type, buf) >= 0)
-                status = h5tools_dump_mem(stdout, outputformat, &ctx, obj_id, p_type, space, buf);
-
+            if (H5Aread(obj_id, p_type, buf) >= 0) {
+                h5tools_context_t datactx = *(&ctx);            /* print context  */
+                datactx.need_prefix = TRUE;
+                status = h5tools_dump_mem(stdout, outputformat, &datactx, obj_id, p_type, space, buf);
+            }
             /* Reclaim any VL memory, if necessary */
             if (vl_data)
                 H5Dvlen_reclaim(p_type, space, H5P_DEFAULT, buf);
