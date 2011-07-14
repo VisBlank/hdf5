@@ -499,61 +499,77 @@ done:
 static void
 H5_debug_mask(const char *s)
 {
-    FILE	*stream = stderr;
-    char	pkg_name[32], *rest;
-    size_t	i;
-    hbool_t	clear;
+    FILE        *stream = stderr;
+    char        pkg_name[32];
+    char        *rest = NULL;
+    size_t      i;
+    hbool_t     clear;
 
     while (s && *s) {
-	if (HDisalpha(*s) || '-'==*s || '+'==*s) {
-	    /* Enable or Disable debugging? */
-	    if ('-'==*s) {
-		clear = TRUE;
-		s++;
-	    } else if ('+'==*s) {
-		clear = FALSE;
-		s++;
-	    } else {
-		clear = FALSE;
-	    }
 
-	    /* Get the name */
-	    for (i=0; HDisalpha(*s); i++, s++)
-		if (i<sizeof pkg_name)
+        if (HDisalpha(*s) || '-' == *s || '+' == *s) {
+
+            /* SELECT A PACKAGE */
+
+            /* Check for +/- to enable or disable output for the package
+             * that follows it.
+             */
+            if ('-' == *s) {
+                clear = TRUE;
+                s++;
+            } else if ('+' == *s) {
+                clear = FALSE;
+                s++;
+            } else {
+                clear = FALSE;
+            }
+
+            /* Get the package name */
+            for (i = 0; HDisalpha(*s); i++, s++)
+                if (i < sizeof(pkg_name))
                     pkg_name[i] = *s;
-	    pkg_name[MIN(sizeof(pkg_name)-1, i)] = '\0';
+            pkg_name[MIN(sizeof(pkg_name)-1, i)] = '\0';
 
-	    /* Trace, all, or one? */
-	    if (!HDstrcmp(pkg_name, "trace")) {
-		H5_debug_g.trace = clear ? NULL : stream;
+            /* Turn debugging on/off for the various "packages"
+             *
+             * This includes special packages, like trace, etc.  A complete
+             * list of the single packages can be found in H5_init_library
+             * in H5.c.
+             */
+            if (!HDstrcmp(pkg_name, "trace")) {
+                H5_debug_g.trace = clear ? NULL : stream;
             } else if (!HDstrcmp(pkg_name, "ttop")) {
                 H5_debug_g.trace = stream;
                 H5_debug_g.ttop = (hbool_t)!clear;
             } else if (!HDstrcmp(pkg_name, "ttimes")) {
                 H5_debug_g.trace = stream;
                 H5_debug_g.ttimes = (hbool_t)!clear;
-	    } else if (!HDstrcmp(pkg_name, "all")) {
-		for (i=0; i<(size_t)H5_NPKGS; i++)
-		    H5_debug_g.pkg[i].stream = clear ? NULL : stream;
-	    } else {
-		for (i=0; i<(size_t)H5_NPKGS; i++) {
-		    if (!HDstrcmp(H5_debug_g.pkg[i].name, pkg_name)) {
-			H5_debug_g.pkg[i].stream = clear ? NULL : stream;
-			break;
-		    }
-		}
-		if (i>=(size_t)H5_NPKGS)
-		    fprintf(stderr, "HDF5_DEBUG: ignored %s\n", pkg_name);
-	    }
+            } else if (!HDstrcmp(pkg_name, "all")) {
+                for (i = 0; i < (size_t)H5_NPKGS; i++)
+                    H5_debug_g.pkg[i].stream = clear ? NULL : stream;
+            } else {
+                /* Single package case */
+                for (i = 0; i < (size_t)H5_NPKGS; i++) {
+                    if (!HDstrcmp(H5_debug_g.pkg[i].name, pkg_name)) {
+                        H5_debug_g.pkg[i].stream = clear ? NULL : stream;
+                        break;
+                    }
+                }
+                if (i >= (size_t)H5_NPKGS)
+                    fprintf(stderr, "HDF5_DEBUG: ignored %s\n", pkg_name);
+            }
 
-	} else if (HDisdigit(*s)) {
-	    int fd = (int)HDstrtol(s, &rest, 0);
-	    H5_debug_open_stream_t *open_stream;
+        } else if (HDisdigit(*s)) {
 
-	    if((stream = HDfdopen(fd, "w")) != NULL) {
-	        (void)HDsetvbuf(stream, NULL, _IOLBF, (size_t)0);
+            /* CHANGE OUTPUT STREAM */
 
-	        if(NULL == (open_stream = (H5_debug_open_stream_t *)H5MM_malloc(sizeof(H5_debug_open_stream_t)))) {
+            int fd = (int)HDstrtol(s, &rest, 0);
+            H5_debug_open_stream_t *open_stream;
+
+            if((stream = HDfdopen(fd, "w")) != NULL) {
+                (void)HDsetvbuf(stream, NULL, _IOLBF, (size_t)0);
+
+                if(NULL == (open_stream = (H5_debug_open_stream_t *)H5MM_malloc(sizeof(H5_debug_open_stream_t)))) {
                     (void)HDfclose(stream);
                     return;
                 } /* end if */
@@ -562,11 +578,19 @@ H5_debug_mask(const char *s)
                 open_stream->next = H5_debug_g.open_stream;
                 H5_debug_g.open_stream = open_stream;
             } /* end if */
-	    s = rest;
-	} else {
-	    s++;
-	}
-    }
+
+            s = rest;
+
+        } else {
+
+            /* UNINTERESTING CHARACTER */
+
+            s++;
+
+        } /* End of large, 1st-level if/else blocks */
+
+    } /* End big while loop */
+
 } /* end H5_debug_mask() */
 
 
