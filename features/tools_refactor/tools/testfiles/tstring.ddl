@@ -10,7 +10,7 @@ GROUP "/" {
       DATASPACE  SIMPLE { ( 1 ) / ( 1 ) }
       DATA {
       (0): "quote "  backspace form feed new line
-            tab   new line
+            tab	 new line
             carriage return           "
       }
    }

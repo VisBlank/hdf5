@@ -940,8 +940,8 @@ h5tools_str_sprint(h5tools_str_t *str, const h5tool_format_t *info, hid_t contai
         for (j = 0; j < nmembs; j++) {
             if (j)
                 h5tools_str_append(str, "%s", OPT(info->cmpd_sep, ", "OPTIONAL_LINE_BREAK));
-
-            h5tools_str_append(str, "%s", "\n");
+            else 
+                h5tools_str_append(str, "%s", OPT(info->cmpd_end, ""));
 
 
             h5tools_str_indent(str, info, ctx);
@@ -962,7 +962,6 @@ h5tools_str_sprint(h5tools_str_t *str, const h5tool_format_t *info, hid_t contai
         ctx->indent_level--;
 
         h5tools_str_append(str, "%s", OPT(info->cmpd_end, ""));
-        h5tools_str_append(str, "%s", "\n");
 
         h5tools_str_indent(str, info, ctx);
         h5tools_str_append(str, "%s", OPT(info->cmpd_suf, "}"));

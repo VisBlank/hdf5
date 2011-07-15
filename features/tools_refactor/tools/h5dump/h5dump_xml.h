@@ -50,13 +50,13 @@ static h5tool_format_t         xml_dataformat = {
     0,              /*str_locale */
     0,              /*str_repeat */
 
-    " ",            /*arr_pre */
+    "",            /*arr_pre */
     "",             /*arr_sep */
     "",             /*arr_suf */
     1,              /*arr_linebreak */
 
     "",             /*cmpd_name */
-    " ",            /*cmpd_sep */
+    "\n",            /*cmpd_sep */
     "",             /*cmpd_pre */
     "",             /*cmpd_suf */
     "",             /*cmpd_end */

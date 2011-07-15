@@ -61,10 +61,10 @@ NULL, /*fmt_ullong */
 1, /*arr_linebreak */
 
 "", /*cmpd_name */
-",", /*cmpd_sep */
+",\n", /*cmpd_sep */
 "{", /*cmpd_pre */
 "}", /*cmpd_suf */
-"", /*cmpd_end */
+"\n", /*cmpd_end */
 
 ", ", /*vlen_sep */
 "(", /*vlen_pre */
@@ -1793,7 +1793,7 @@ h5tools_dump_dset(FILE *stream, const h5tool_format_t *info, h5tools_context_t *
         if(!sset)
             status = h5tools_dump_simple_dset(rawdatastream, info, ctx, dset, p_type);
         else
-            status = h5tools_dump_simple_subset(rawdatastream, info, ctx, dset, p_type, sset);
+            status = h5tools_dump_simple_subset(stream, info, ctx, dset, p_type, sset);
     }
     else
         /* space is H5S_NULL */
@@ -1895,8 +1895,9 @@ h5tools_print_datatype(FILE *stream, h5tools_str_t *buffer, const h5tool_format_
         obj = search_obj(h5dump_type_table, oinfo.addr);
 
         if(obj) {
-            if(!obj->recorded)
-                h5tools_str_append(buffer,"\"/#%a\"", obj->objno);
+            if(!obj->recorded) {
+                h5tools_str_append(buffer,"\"/#"H5_PRINTF_HADDR_FMT"\"", obj->objno);
+            }
             else
                 h5tools_str_append(buffer, "\"%s\"", obj->objname);
         } 

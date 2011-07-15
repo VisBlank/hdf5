@@ -1805,6 +1805,13 @@ xml_dump_data(hid_t obj_id, int obj_data, struct subset_t UNUSED * sset, int UNU
         string_dataformat.fmt_double = fp_format;
         string_dataformat.fmt_float = fp_format;
     }
+
+//    if (h5tools_nCols==0) {
+//        string_dataformat.line_ncols = 65535;
+//        string_dataformat.line_per_line = 1;
+//    }
+//    else
+//        string_dataformat.line_ncols = h5tools_nCols;
     outputformat = &string_dataformat;
 
     ctx.need_prefix = TRUE;
