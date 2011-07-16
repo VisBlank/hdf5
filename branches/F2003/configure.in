@@ -395,6 +395,8 @@ if test "X$HDF_FORTRAN2003" = "Xyes"; then
  AC_SUBST(FC) HDF_FORTRAN=yes
 fi
 
+AC_SUBST([HAVE_FORTRAN_2003])
+
 if test "X$HDF_FORTRAN" = "Xyes"; then
   echo "yes"
 
