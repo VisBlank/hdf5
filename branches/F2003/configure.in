@@ -570,8 +570,10 @@ dnl     AM_FCFLAGS="$AM_FCFLAGS_saved")
 
                 dnl gfortran
                 if (${FC} --version 2>&1 | grep 'GNU Fortran') > /dev/null; then
-                  vers=[`${FC} --version 2>&1 | grep 'GNU Fortran (' | grep -o ' [0-9].[0-9].[0-9]'| sed -e 's/[^0-9]//g'`]
-                  if test -n "$vers" && test "$vers" -ge 420; then
+                  vers_major=[`${FC} --version 2>&1 | grep 'GNU Fortran (' | grep -o ' [0-9]*\.' | sed -e 's/[^0-9]//g'`]
+                  vers_minor=[`${FC} --version 2>&1 | grep 'GNU Fortran (' | grep -o '\.[0-9]*\.' | sed -e 's/[^0-9]//g'`]
+
+                  if test -n "$vers_major" && test -n "$vers_minor" && test "$vers_major" -ge 4 && test "$vers_minor" -ge 1; then
 		     HAVE_FORTRAN_2003="yes"
 		     echo $HAVE_FORTRAN_2003
                   else
