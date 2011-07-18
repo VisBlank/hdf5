@@ -53,7 +53,10 @@
          </hdf5:DataType>
          <hdf5:Data>
             <hdf5:DataFromFile>
-            0 3 6 9
+            0
+            3
+            6
+            9
             </hdf5:DataFromFile>
          </hdf5:Data>
       </hdf5:Dataset>
@@ -78,7 +81,10 @@
          </hdf5:DataType>
          <hdf5:Data>
             <hdf5:DataFromFile>
-            0 0 0 0
+            0
+            0
+            0
+            0
             </hdf5:DataFromFile>
          </hdf5:Data>
       </hdf5:Dataset>

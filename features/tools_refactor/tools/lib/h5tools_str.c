@@ -943,8 +943,9 @@ h5tools_str_sprint(h5tools_str_t *str, const h5tool_format_t *info, hid_t contai
             else 
                 h5tools_str_append(str, "%s", OPT(info->cmpd_end, ""));
 
-
-            h5tools_str_indent(str, info, ctx);
+//            if(strlen(info->line_pre)>0)
+            if(info->arr_linebreak)
+                h5tools_str_indent(str, info, ctx);
             
             /* The name */
             name = H5Tget_member_name(type, j);
@@ -961,10 +962,13 @@ h5tools_str_sprint(h5tools_str_t *str, const h5tool_format_t *info, hid_t contai
         }
         ctx->indent_level--;
 
-        h5tools_str_append(str, "%s", OPT(info->cmpd_end, ""));
 
-        h5tools_str_indent(str, info, ctx);
-        h5tools_str_append(str, "%s", OPT(info->cmpd_suf, "}"));
+//        if(strlen(info->line_pre)>0) {
+        if(info->arr_linebreak) {
+            h5tools_str_append(str, "%s", OPT(info->cmpd_end, ""));
+            h5tools_str_indent(str, info, ctx);
+            h5tools_str_append(str, "%s", OPT(info->cmpd_suf, "}"));
+        }
     }
     else if (H5Tget_class(type) == H5T_ENUM) {
         char enum_name[1024];
@@ -1062,7 +1066,8 @@ h5tools_str_sprint(h5tools_str_t *str, const h5tool_format_t *info, hid_t contai
             nelmts = (size_t) temp_nelmts;
         }
         /* Print the opening bracket */
-        h5tools_str_append(str, "%s", OPT(info->arr_pre, "["));
+        if(info->arr_linebreak)
+            h5tools_str_append(str, "%s", OPT(info->arr_pre, "["));
 
         ctx->indent_level++;
 

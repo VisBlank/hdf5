@@ -28,7 +28,10 @@
 <!-- Note: format of VL data not specified -->
       <Data>
          <DataFromFile>
-                
+          
+          
+          
+          
          </DataFromFile>
       </Data>
    </Dataset>
@@ -53,7 +56,10 @@
       </DataType>
       <Data>
          <DataFromFile>
-         0 0 0 0
+         0
+         0
+         0
+         0
          </DataFromFile>
       </Data>
    </Dataset>
@@ -78,7 +84,10 @@
       </DataType>
       <Data>
          <DataFromFile>
-         0 0 0 0
+         0
+         0
+         0
+         0
          </DataFromFile>
       </Data>
    </Dataset>
@@ -108,7 +117,10 @@
       </DataType>
       <Data>
          <DataFromFile>
-          0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0
+         0 0 0 0
+         0 0 0 0
+         0 0 0 0
+         0 0 0 0
          </DataFromFile>
       </Data>
    </Dataset>

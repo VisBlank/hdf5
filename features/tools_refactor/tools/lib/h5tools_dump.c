@@ -1707,12 +1707,6 @@ h5tools_dump_simple_mem(FILE *stream, const h5tool_format_t *info, h5tools_conte
     if (ctx->ndims > 0)
         init_acc_pos(ctx, ctx->p_max_idx);
 
-//    /* Print it */
-//    if(nelmts > 0) {
-//        ctx->need_prefix = TRUE;
-//        h5tools_simple_prefix(stream, info, ctx, 0, 0);
-//    }
-
     h5tools_dump_simple_data(stream, info, obj_id, ctx, START_OF_DATA | END_OF_DATA, nelmts, type, mem);
 
     return SUCCEED;

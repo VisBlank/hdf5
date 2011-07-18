@@ -62,10 +62,26 @@ green
       <hdf5:NamedDataTypePtr OBJ-XID="xid_976" H5Path="/enum normal" />
       <hdf5:Data>
          <hdf5:DataFromFile>
-         RED GREEN\ngreen BLUE blue GREEN\ngreen WHITE \"white\" WHITE \"white\"
-         BLACK \'black\' GREEN\ngreen BLUE blue RED RED BLUE blue GREEN\ngreen
-         BLACK \'black\' WHITE \"white\" RED WHITE \"white\" GREEN\ngreen
-         GREEN\ngreen BLUE blue
+         RED
+         GREEN\ngreen
+         BLUE blue
+         GREEN\ngreen
+         WHITE \"white\"
+         WHITE \"white\"
+         BLACK \'black\'
+         GREEN\ngreen
+         BLUE blue
+         RED
+         RED
+         BLUE blue
+         GREEN\ngreen
+         BLACK \'black\'
+         WHITE \"white\"
+         RED
+         WHITE \"white\"
+         GREEN\ngreen
+         GREEN\ngreen
+         BLUE blue
          </hdf5:DataFromFile>
       </hdf5:Data>
    </hdf5:Dataset>

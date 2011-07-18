@@ -1806,12 +1806,18 @@ xml_dump_data(hid_t obj_id, int obj_data, struct subset_t UNUSED * sset, int UNU
         string_dataformat.fmt_float = fp_format;
     }
 
-//    if (h5tools_nCols==0) {
-//        string_dataformat.line_ncols = 65535;
-//        string_dataformat.line_per_line = 1;
-//    }
-//    else
-//        string_dataformat.line_ncols = h5tools_nCols;
+    if (h5tools_nCols==0) {
+        string_dataformat.line_ncols = 65535;
+        string_dataformat.line_per_line = 1;
+    }
+    else
+        string_dataformat.line_ncols = h5tools_nCols;
+    string_dataformat.cmpd_sep = " ";
+    string_dataformat.cmpd_pre = "";
+    string_dataformat.cmpd_suf = " ";
+    string_dataformat.cmpd_end = "";
+    string_dataformat.arr_linebreak = 0;
+    string_dataformat.arr_pre = " ";
     outputformat = &string_dataformat;
 
     ctx.need_prefix = TRUE;
@@ -1928,7 +1934,6 @@ xml_dump_data(hid_t obj_id, int obj_data, struct subset_t UNUSED * sset, int UNU
     ctx.indent_level++;
 
     ctx.need_prefix = TRUE;
-    h5tools_simple_prefix(stdout, outputformat, &ctx, 0, 0);
     
     /* Render the element */
     h5tools_str_reset(&buffer);

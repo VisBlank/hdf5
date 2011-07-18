@@ -23,7 +23,10 @@
          </hdf5:DataType>
          <hdf5:Data>
             <hdf5:DataFromFile>
-            0 0 0 0
+            0
+            0
+            0
+            0
             </hdf5:DataFromFile>
          </hdf5:Data>
       </hdf5:Dataset>
@@ -48,7 +51,10 @@
          </hdf5:DataType>
          <hdf5:Data>
             <hdf5:DataFromFile>
-            0 3 6 9
+            0
+            3
+            6
+            9
             </hdf5:DataFromFile>
          </hdf5:Data>
       </hdf5:Dataset>
@@ -73,7 +79,10 @@
          </hdf5:DataType>
          <hdf5:Data>
             <hdf5:DataFromFile>
-            0 0 0 0
+            0
+            0
+            0
+            0
             </hdf5:DataFromFile>
          </hdf5:Data>
       </hdf5:Dataset>
@@ -98,7 +107,10 @@
          </hdf5:DataType>
          <hdf5:Data>
             <hdf5:DataFromFile>
-            0 0 0 0
+            0
+            0
+            0
+            0
             </hdf5:DataFromFile>
          </hdf5:Data>
       </hdf5:Dataset>
@@ -123,7 +135,10 @@
          </hdf5:DataType>
          <hdf5:Data>
             <hdf5:DataFromFile>
-            0 0 0 0
+            0
+            0
+            0
+            0
             </hdf5:DataFromFile>
          </hdf5:Data>
       </hdf5:Dataset>
@@ -148,7 +163,10 @@
          </hdf5:DataType>
          <hdf5:Data>
             <hdf5:DataFromFile>
-            0 0 0 0
+            0
+            0
+            0
+            0
             </hdf5:DataFromFile>
          </hdf5:Data>
       </hdf5:Dataset>
@@ -173,7 +191,10 @@
          </hdf5:DataType>
          <hdf5:Data>
             <hdf5:DataFromFile>
-            0 0 0 0
+            0
+            0
+            0
+            0
             </hdf5:DataFromFile>
          </hdf5:Data>
       </hdf5:Dataset>
@@ -211,9 +232,9 @@
                   </hdf5:AtomicType>
                </hdf5:DataType>
                <hdf5:Data>
-                  <hdf5:DataFromFile>
+               <hdf5:DataFromFile>
                   "/Group1/Dataset&amp;amp"
-                  </hdf5:DataFromFile>
+               </hdf5:DataFromFile>
                </hdf5:Data>
             </hdf5:Attribute>
             <hdf5:Attribute Name="reftoapos">
@@ -230,10 +251,10 @@
                   </hdf5:AtomicType>
                </hdf5:DataType>
                <hdf5:Data>
-                  <hdf5:DataFromFile>
+               <hdf5:DataFromFile>
                   "/Group1/Dataset&apos;apos"
-                  </hdf5:DataFromFile>
-            </hdf5:Data>
+               </hdf5:DataFromFile>
+               </hdf5:Data>
             </hdf5:Attribute>
             <hdf5:Attribute Name="reftogt">
                <hdf5:Dataspace>
@@ -249,9 +270,9 @@
                   </hdf5:AtomicType>
                </hdf5:DataType>
                <hdf5:Data>
-                  <hdf5:DataFromFile>
+               <hdf5:DataFromFile>
                   "/Group1/Dataset&gt;gt"
-                  </hdf5:DataFromFile>
+               </hdf5:DataFromFile>
                </hdf5:Data>
             </hdf5:Attribute>
             <hdf5:Attribute Name="reftolt">
@@ -268,9 +289,9 @@
                   </hdf5:AtomicType>
                </hdf5:DataType>
                <hdf5:Data>
-                  <hdf5:DataFromFile>
+               <hdf5:DataFromFile>
                   "/Group1/Dataset&lt;lt"
-                  </hdf5:DataFromFile>
+               </hdf5:DataFromFile>
                </hdf5:Data>
             </hdf5:Attribute>
             <hdf5:Attribute Name="reftoquote">
@@ -287,9 +308,9 @@
                   </hdf5:AtomicType>
                </hdf5:DataType>
                <hdf5:Data>
-                  <hdf5:DataFromFile>
+               <hdf5:DataFromFile>
                   "/Group1/Dataset\"quote"
-                  </hdf5:DataFromFile>
+               </hdf5:DataFromFile>
                </hdf5:Data>
             </hdf5:Attribute>
             <hdf5:Attribute Name="reftoslash">
@@ -306,9 +327,9 @@
                   </hdf5:AtomicType>
                </hdf5:DataType>
                <hdf5:Data>
-                  <hdf5:DataFromFile>
+               <hdf5:DataFromFile>
                   "/Group1/Dataset\\slash"
-                  </hdf5:DataFromFile>
+               </hdf5:DataFromFile>
                </hdf5:Data>
             </hdf5:Attribute>
             <hdf5:Attribute Name="reftospace">
@@ -325,9 +346,9 @@
                   </hdf5:AtomicType>
                </hdf5:DataType>
                <hdf5:Data>
-                  <hdf5:DataFromFile>
+               <hdf5:DataFromFile>
                   "/Group1/Dataset space"
-                  </hdf5:DataFromFile>
+               </hdf5:DataFromFile>
                </hdf5:Data>
             </hdf5:Attribute>
             <hdf5:Data>

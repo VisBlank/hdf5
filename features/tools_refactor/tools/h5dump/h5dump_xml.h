@@ -56,7 +56,7 @@ static h5tool_format_t         xml_dataformat = {
     1,              /*arr_linebreak */
 
     "",             /*cmpd_name */
-    "\n",            /*cmpd_sep */
+    "",             /*cmpd_sep */
     "",             /*cmpd_pre */
     "",             /*cmpd_suf */
     "",             /*cmpd_end */

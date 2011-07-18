@@ -14,7 +14,16 @@
       </hdf5:DataType>
       <hdf5:Data>
          <hdf5:DataFromFile>
-         97 98 99 100 101 102 103 104 105 0
+         97
+         98
+         99
+         100
+         101
+         102
+         103
+         104
+         105
+         0
          </hdf5:DataFromFile>
       </hdf5:Data>
    </hdf5:Attribute>
