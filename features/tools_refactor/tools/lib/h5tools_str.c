@@ -943,7 +943,6 @@ h5tools_str_sprint(h5tools_str_t *str, const h5tool_format_t *info, hid_t contai
             else 
                 h5tools_str_append(str, "%s", OPT(info->cmpd_end, ""));
 
-//            if(strlen(info->line_pre)>0)
             if(info->arr_linebreak)
                 h5tools_str_indent(str, info, ctx);
             
@@ -963,7 +962,6 @@ h5tools_str_sprint(h5tools_str_t *str, const h5tool_format_t *info, hid_t contai
         ctx->indent_level--;
 
 
-//        if(strlen(info->line_pre)>0) {
         if(info->arr_linebreak) {
             h5tools_str_append(str, "%s", OPT(info->cmpd_end, ""));
             h5tools_str_indent(str, info, ctx);
