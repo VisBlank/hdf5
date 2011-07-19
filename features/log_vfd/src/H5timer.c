@@ -22,9 +22,50 @@
  *-------------------------------------------------------------------------
  */
 
-/* Generic functions, including H5_timer_t */
-#include "H5private.h"
+/****************/
+/* Module Setup */
+/****************/
 
+
+/***********/
+/* Headers */
+/***********/
+#include "H5private.h"		/* Generic Functions			*/
+
+
+/****************/
+/* Local Macros */
+/****************/
+
+
+/******************/
+/* Local Typedefs */
+/******************/
+
+
+/********************/
+/* Package Typedefs */
+/********************/
+
+
+/********************/
+/* Local Prototypes */
+/********************/
+
+
+/*********************/
+/* Package Variables */
+/*********************/
+
+
+/*****************************/
+/* Library Private Variables */
+/*****************************/
+
+
+/*******************/
+/* Local Variables */
+/*******************/
 
 
 /*-------------------------------------------------------------------------
@@ -56,40 +97,42 @@ H5_bandwidth(char *buf/*out*/, double nbytes, double nseconds)
 {
     double      bw;
 
-    if(nseconds <= 0.0F) {
+    if(nseconds <= 0.0F)
         HDstrcpy(buf, "       NaN");
-    } else {
+    else {
         bw = nbytes/nseconds;
-        if(fabs(bw) < 0.0000000001F) {
+        if(fabs(bw) < 0.0000000001F)
             /* That is == 0.0, but direct comparison between floats is bad */
             HDstrcpy(buf, "0.000  B/s");
-        } else if(bw < 1.0F) {
+        else if(bw < 1.0F)
             sprintf(buf, "%10.4e", bw);
-        } else if(bw < 1024.0F) {
+        else if(bw < 1024.0F) {
             sprintf(buf, "%05.4f", bw);
             HDstrcpy(buf+5, "  B/s");
-        } else if(bw < (1024.0F * 1024.0F)) {
+        }
+        else if(bw < (1024.0F * 1024.0F)) {
             sprintf(buf, "%05.4f", bw / 1024.0F);
             HDstrcpy(buf+5, " kB/s");
-        } else if(bw < (1024.0F * 1024.0F * 1024.0F)) {
+        }
+        else if(bw < (1024.0F * 1024.0F * 1024.0F)) {
             sprintf(buf, "%05.4f", bw / (1024.0F * 1024.0F));
             HDstrcpy(buf+5, " MB/s");
-        } else if(bw < (1024.0F * 1024.0F * 1024.0F * 1024.0F)) {
+        }
+        else if(bw < (1024.0F * 1024.0F * 1024.0F * 1024.0F)) {
             sprintf(buf, "%05.4f", bw / (1024.0F * 1024.0F * 1024.0F));
             HDstrcpy(buf+5, " GB/s");
-        } else if(bw < (1024.0F * 1024.0F * 1024.0F * 1024.0F * 1024.0F)) {
+        }
+        else if(bw < (1024.0F * 1024.0F * 1024.0F * 1024.0F * 1024.0F)) {
             sprintf(buf, "%05.4f", bw / (1024.0F * 1024.0F * 1024.0F * 1024.0F));
             HDstrcpy(buf+5, " TB/s");
-        } else {
+        }
+        else {
             sprintf(buf, "%10.4e", bw);
-            if(HDstrlen(buf) > 10) {
+            if(HDstrlen(buf) > 10)
                 sprintf(buf, "%10.3e", bw);
-            }
         }
     }
 } /* end H5_bandwidth() */
-
-
 
 
 /*-------------------------------------------------------------------------
@@ -195,8 +238,6 @@ _timer_get_timevals(H5_timevals_t *times /*in,out*/)
     return 0;
 }
 
-
-
 
 /*-------------------------------------------------------------------------
  * Function:    H5_timer_init
@@ -281,8 +322,6 @@ H5_timer_init(H5_timer_t *timer /*in,out*/)
     return 0;
 }
 
-
-
 
 /*-------------------------------------------------------------------------
  * Function:    H5_timer_start
@@ -315,8 +354,6 @@ H5_timer_start(H5_timer_t *timer /*in,out*/)
 
     return 0;
 }
-
-
 
 
 /*-------------------------------------------------------------------------
@@ -360,8 +397,6 @@ H5_timer_stop(H5_timer_t *timer /*in,out*/)
 
     return 0;
 }
-
-
 
 
 /*-------------------------------------------------------------------------
@@ -418,8 +453,6 @@ H5_timer_get_times(H5_timer_t timer, H5_timevals_t *times /*in,out*/)
 
     return 0;
 }
-
-
 
 
 /*-------------------------------------------------------------------------
@@ -479,8 +512,6 @@ H5_timer_get_total_times(H5_timer_t timer, H5_timevals_t *times /*in,out*/)
 
     return 0;
 }
-
-
 
 
 /*-------------------------------------------------------------------------
@@ -562,7 +593,9 @@ H5_timer_get_time_string(double seconds)
     if(seconds < 0.0F) {
         sprintf(s, "N/A");
     }
-    else if(seconds <= 0.0F) {
+    /* Quiet warning about comparing floating point numbers.
+     */
+    else if(fabs(seconds - 0.0F) < DBL_EPSILON) {
         sprintf(s, "0.0 s");
     }
     else if(seconds < 1.0E-6F) {
@@ -597,3 +630,4 @@ H5_timer_get_time_string(double seconds)
 
     return s;
 }
+

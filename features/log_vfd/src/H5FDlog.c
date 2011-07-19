@@ -483,12 +483,10 @@ H5FD_log_open(const char *name, unsigned flags, hid_t fapl_id, haddr_t maxaddr)
     HANDLE filehandle;
     struct _BY_HANDLE_FILE_INFORMATION fileinfo;
 #endif
-
     H5_timer_t      open_timer;
     H5_timer_t      stat_timer;
     H5_timevals_t   open_times;
     H5_timevals_t   stat_times;
-
     h5_stat_t	sb;
     H5FD_t	*ret_value;     /* Return value */
 
@@ -615,11 +613,11 @@ H5FD_log_open(const char *name, unsigned flags, hid_t fapl_id, haddr_t maxaddr)
         if(file->fa.flags & H5FD_LOG_TIME_OPEN) {
             H5_timer_get_times(open_timer, &open_times);
             HDfprintf(file->logfp, "Open took: (%f s)\n", open_times.elapsed);
-        }
+        } /* end if */
         if(file->fa.flags & H5FD_LOG_TIME_STAT) {
             H5_timer_get_times(stat_timer, &stat_times);
             HDfprintf(file->logfp, "Stat took: (%f s)\n", stat_times.elapsed);
-        }
+        } /* end if */
 
     } /* end if */
 
@@ -702,7 +700,7 @@ H5FD_log_close(H5FD_t *_file)
         if(file->fa.flags & H5FD_LOG_TIME_CLOSE) {
             H5_timer_get_times(close_timer, &close_times);
             HDfprintf(file->logfp, "Close took: (%f s)\n", close_times.elapsed);
-        }
+        } /* end if */
 
 
         /* Dump the total number of seek/read/write operations */
@@ -1085,12 +1083,10 @@ H5FD_log_read(H5FD_t *_file, H5FD_mem_t type, hid_t UNUSED dxpl_id, haddr_t addr
     ssize_t		nbytes;
     size_t              orig_size = size; /* Save the original size for later */
     haddr_t             orig_addr = addr;
-
     H5_timer_t      read_timer;
     H5_timer_t      seek_timer;
     H5_timevals_t   read_times;
     H5_timevals_t   seek_times;
-
     herr_t          ret_value = SUCCEED;       /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5FD_log_read)
@@ -1145,7 +1141,7 @@ H5FD_log_read(H5FD_t *_file, H5FD_mem_t type, hid_t UNUSED dxpl_id, haddr_t addr
         if(file->fa.flags & H5FD_LOG_TIME_SEEK) {
             H5_timer_get_times(seek_timer, &seek_times);
             file->total_seek_time += seek_times.elapsed;
-        }
+        } /* end if */
 
         /* Emit log string if we're tracking individual seek events. */
         if(file->fa.flags & H5FD_LOG_LOC_SEEK) {
@@ -1159,7 +1155,7 @@ H5FD_log_read(H5FD_t *_file, H5FD_mem_t type, hid_t UNUSED dxpl_id, haddr_t addr
                 HDfprintf(file->logfp, " (%f s)\n", seek_times.elapsed);
             else
                 HDfprintf(file->logfp, "\n");
-        }
+        } /* end if */
     } /* end if */
 
     /*
@@ -1209,7 +1205,7 @@ H5FD_log_read(H5FD_t *_file, H5FD_mem_t type, hid_t UNUSED dxpl_id, haddr_t addr
     if(file->fa.flags & H5FD_LOG_TIME_READ) {
         H5_timer_get_times(read_timer, &read_times);
         file->total_read_time += read_times.elapsed;
-    }
+    } /* end if */
 
     if(file->fa.flags & H5FD_LOG_LOC_READ) {
         HDfprintf(file->logfp, "%10a-%10a (%10Zu bytes) (%s) Read", orig_addr, (orig_addr + orig_size) - 1, orig_size, flavors[type]);
@@ -1224,7 +1220,7 @@ H5FD_log_read(H5FD_t *_file, H5FD_mem_t type, hid_t UNUSED dxpl_id, haddr_t addr
             HDfprintf(file->logfp, " (%f s)\n", read_times.elapsed);
         else
             HDfprintf(file->logfp, "\n");
-    }
+    } /* end if */
 
     /* Update current position */
     file->pos = addr;
@@ -1265,12 +1261,10 @@ H5FD_log_write(H5FD_t *_file, H5FD_mem_t type, hid_t UNUSED dxpl_id, haddr_t add
     ssize_t		nbytes;
     size_t              orig_size = size; /* Save the original size for later */
     haddr_t             orig_addr = addr;
-
     H5_timer_t      write_timer;
     H5_timer_t      seek_timer;
     H5_timevals_t   write_times;
     H5_timevals_t   seek_times;
-
     herr_t              ret_value = SUCCEED;       /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5FD_log_write)
@@ -1298,7 +1292,6 @@ H5FD_log_write(H5FD_t *_file, H5FD_mem_t type, hid_t UNUSED dxpl_id, haddr_t add
         H5_timer_init(&seek_timer);
     if(file->fa.flags & H5FD_LOG_TIME_WRITE)
         H5_timer_init(&write_timer);
-
 
     /* Log the I/O information about the write */
     if(file->fa.flags & H5FD_LOG_FILE_WRITE) {
@@ -1331,7 +1324,7 @@ H5FD_log_write(H5FD_t *_file, H5FD_mem_t type, hid_t UNUSED dxpl_id, haddr_t add
         if(file->fa.flags & H5FD_LOG_TIME_SEEK) {
             H5_timer_get_times(seek_timer, &seek_times);
             file->total_seek_time += seek_times.elapsed;
-        }
+        } /* end if */
 
         /* Emit log string if we're tracking individual seek events. */
         if(file->fa.flags & H5FD_LOG_LOC_SEEK) {
@@ -1345,7 +1338,7 @@ H5FD_log_write(H5FD_t *_file, H5FD_mem_t type, hid_t UNUSED dxpl_id, haddr_t add
                 HDfprintf(file->logfp, " (%f s)\n", seek_times.elapsed);
             else
                 HDfprintf(file->logfp, "\n");
-        }
+        } /* end if */
     } /* end if */
 
     /*
@@ -1389,7 +1382,7 @@ H5FD_log_write(H5FD_t *_file, H5FD_mem_t type, hid_t UNUSED dxpl_id, haddr_t add
     if(file->fa.flags & H5FD_LOG_TIME_WRITE) {
         H5_timer_get_times(write_timer, &write_times);
         file->total_write_time += write_times.elapsed;
-    }
+    } /* end if */
 
     if(file->fa.flags & H5FD_LOG_LOC_WRITE) {
         HDfprintf(file->logfp, "%10a-%10a (%10Zu bytes) (%s) Written", orig_addr, (orig_addr + orig_size) - 1, orig_size, flavors[type]);
@@ -1398,7 +1391,7 @@ H5FD_log_write(H5FD_t *_file, H5FD_mem_t type, hid_t UNUSED dxpl_id, haddr_t add
         if(file->fa.flags & H5FD_LOG_FLAVOR) {
             if((H5FD_mem_t)file->flavor[orig_addr] == H5FD_MEM_DEFAULT)
                 HDmemset(&file->flavor[orig_addr], (int)type, orig_size);
-        }
+        } /* end if */
 
         /* Add the write time, if we're tracking that.
          * Note that the write time is NOT emitted for when just H5FD_LOG_TIME_WRITE
@@ -1408,7 +1401,7 @@ H5FD_log_write(H5FD_t *_file, H5FD_mem_t type, hid_t UNUSED dxpl_id, haddr_t add
             HDfprintf(file->logfp, " (%f s)\n", write_times.elapsed);
         else
             HDfprintf(file->logfp, "\n");
-    }
+    } /* end if */
 
     /* Update current position and eof */
     file->pos = addr;

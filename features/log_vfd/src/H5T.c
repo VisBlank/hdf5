@@ -4757,7 +4757,7 @@ H5T_convert(H5T_path_t *tpath, hid_t src_id, hid_t dst_id, size_t nelmts,
     if (H5DEBUG(T)) {
         H5_timer_init(&timer);
         H5_timer_start(&timer);
-    }
+    } /* end if */
 #endif
     tpath->cdata.command = H5T_CONV_CONV;
     if ((tpath->func)(src_id, dst_id, &(tpath->cdata), nelmts, buf_stride,

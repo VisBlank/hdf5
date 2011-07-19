@@ -641,8 +641,6 @@ Wgettimeofday(struct timeval *tv, struct timezone *tz)
 }
 #endif
 
-
-
 
 /*-------------------------------------------------------------------------
  * Function:    H5_get_win32_times
@@ -729,8 +727,6 @@ H5_get_win32_times(H5_timevals_t *tvs /*in,out*/)
 }
 #endif
 
-
-
 
 /*-------------------------------------------------------------------------
  * Function:    H5_get_mach_time_seconds
@@ -772,7 +768,6 @@ H5_get_mach_time_seconds()
     return ((double)now * conversion) / 1.0E9;
 }
 #endif
-
 
 
 /*-------------------------------------------------------------------------

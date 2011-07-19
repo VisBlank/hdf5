@@ -164,12 +164,12 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
         is_first_invocation = 0;
         H5_timer_init(&running_timer);
         H5_timer_start(&running_timer);
-    }
+    } /* end if */
     if(H5_debug_g.ttimes) {
         /* start the timer for this function */
         H5_timer_init(&function_timer);
         H5_timer_start(&function_timer);
-    }
+    } /* end if */
 
     /* Print the first part of the line.  This is the indication of the
      * nesting depth followed by the function name and either start of
@@ -205,7 +205,7 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
             H5_timer_get_times(function_timer, &function_times);
             H5_timer_get_times(running_timer, &running_times);
             fprintf(out, "@%.6f ", (function_times.elapsed - running_times.elapsed));
-        }
+        } /* end if */
         for(i = 0; i < current_depth; i++)
             fputc('+', out);
         fprintf(out, "%*s%s(", 2*current_depth, "", func);
@@ -2454,7 +2454,7 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
         H5_timer_get_times(running_timer, &running_times);
         fprintf(out, " @%.6f [dt=%.6f]", (function_times.elapsed - running_times.elapsed),
                 (function_times.elapsed - *returning));
-    }
+    } /* end if */
 
 error:
     va_end(ap);

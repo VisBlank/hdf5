@@ -133,7 +133,6 @@ done:
 int
 H5Z_term_interface(void)
 {
-
 #ifdef H5Z_DEBUG
     size_t      i;
     int         dir, nprint = 0;
@@ -146,7 +145,6 @@ H5Z_term_interface(void)
 #endif
 
     if(H5_interface_initialize_g) {
-
 #ifdef H5Z_DEBUG
         if (H5DEBUG(Z)) {
             for (i = 0; i < H5Z_table_used_g; i++) {
@@ -1086,7 +1084,6 @@ H5Z_pipeline(const H5O_pline_t  *pline,
     unsigned        failed = 0;
     unsigned        tmp_flags;
     herr_t          ret_value = SUCCEED;    /* Return value */
-
 #ifdef H5Z_DEBUG
     H5Z_stats_t     *fstats = NULL;         /* Filter stats pointer */
     H5_timer_t      timer;
@@ -1118,12 +1115,9 @@ H5Z_pipeline(const H5O_pline_t  *pline,
                  * is optional for the filter.
                  */
                 if(pline->filter[idx].name)
-                    HGOTO_ERROR(H5E_PLINE, H5E_READERROR, FAIL,
-                        "required filter '%s' is not registered",
-                        pline->filter[idx].name)
+                    HGOTO_ERROR(H5E_PLINE, H5E_READERROR, FAIL, "required filter '%s' is not registered", pline->filter[idx].name)
                 else
-                    HGOTO_ERROR(H5E_PLINE, H5E_READERROR, FAIL,
-                        "required filter (name unavailable) is not registered")
+                    HGOTO_ERROR(H5E_PLINE, H5E_READERROR, FAIL, "required filter (name unavailable) is not registered")
             }
             fclass = &H5Z_table_g[fclass_idx];
 
@@ -1154,8 +1148,7 @@ H5Z_pipeline(const H5O_pline_t  *pline,
                 if((cb_struct.func 
                     && (H5Z_CB_FAIL == cb_struct.func(pline->filter[idx].id, *buf, *buf_size, cb_struct.op_data)))
                     || !cb_struct.func) {
-                    HGOTO_ERROR(H5E_PLINE, H5E_READERROR, FAIL,
-                        "filter returned failure during read")
+                    HGOTO_ERROR(H5E_PLINE, H5E_READERROR, FAIL, "filter returned failure during read")
                 }
 
                 *nbytes = *buf_size;
@@ -1222,7 +1215,6 @@ H5Z_pipeline(const H5O_pline_t  *pline,
     *filter_mask = failed;
 
 done:
-
     FUNC_LEAVE_NOAPI(ret_value)
 }
 

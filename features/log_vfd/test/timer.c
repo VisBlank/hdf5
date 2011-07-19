@@ -103,12 +103,11 @@ test_time_formatting(void)
     return 0;
 
 error:
-    free(s);
+    if(s)
+        free(s);
     return -1;
 
 }
-
-
 
 
 /*-------------------------------------------------------------------------
@@ -180,8 +179,6 @@ test_timer_system_user(void)
 error:
     return -1;
 }
-
-
 
 
 /*-------------------------------------------------------------------------
@@ -271,11 +268,11 @@ test_timer_functionality(void)
 
     /* Times should be initialized to zero */
     err = H5_timer_get_times(timer, &times);
-    if(err < 0 || times.elapsed < 0.0F || times.elapsed > 0.0F)
+    if(err < 0 || !DBL_ABS_EQUAL(times.elapsed, 0.0))
         TEST_ERROR;
 
     err = H5_timer_get_total_times(timer, &times);
-    if(err < 0 || times.elapsed < 0.0F || times.elapsed > 0.0F)
+    if(err < 0 || !DBL_ABS_EQUAL(times.elapsed, 0.0))
         TEST_ERROR;
 
 
@@ -319,11 +316,11 @@ test_timer_functionality(void)
         TEST_ERROR;
 
     err = H5_timer_get_times(timer, &times);
-    if(err < 0 || times.elapsed < 0.0F || times.elapsed > 0.0F)
+    if(err < 0 || !DBL_ABS_EQUAL(times.elapsed, 0.0))
         TEST_ERROR;
 
     err = H5_timer_get_total_times(timer, &times);
-    if(err < 0 || times.elapsed < 0.0F || times.elapsed > 0.0F)
+    if(err < 0 || !DBL_ABS_EQUAL(times.elapsed, 0.0))
         TEST_ERROR;
 
     /* Timer state should flip */
@@ -376,8 +373,6 @@ error:
     return -1;
 }
 
-
-
 
 /*-------------------------------------------------------------------------
  * Function:    main
@@ -396,7 +391,6 @@ error:
 int
 main(void)
 {
-
     int             nerrors = 0;
 
     h5_reset();
@@ -418,3 +412,4 @@ main(void)
         return 0;
     }
 }
+
