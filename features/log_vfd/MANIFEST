@@ -106,7 +106,6 @@
 ./config/linux-gnulibc1
 ./config/linux-gnulibc2
 ./config/lt_vers.am
-./config/mpich
 ./config/nec-superux14.1
 ./config/Makefile.am.blank
 ./config/pgi-fflags
@@ -522,6 +521,7 @@
 ./src/H5EAtest.c
 ./src/H5F.c
 ./src/H5Faccum.c
+./src/H5Fcwfs.c
 ./src/H5Fdbg.c
 ./src/H5Fdeprec.c
 ./src/H5Fefc.c
@@ -634,6 +634,7 @@
 ./src/H5HGpkg.h
 ./src/H5HGprivate.h
 ./src/H5HGpublic.h
+./src/H5HGquery.c
 ./src/H5HL.c
 ./src/H5HLcache.c
 ./src/H5HLdbg.c
@@ -1046,8 +1047,8 @@
 ./tools/h5import/testfiles/txtuin32.h5
 ./tools/h5import/testfiles/txtuin16.h5
 ./tools/h5import/testfiles/textpfe.conf
-./tools/h5import/testfiles/in64.txt
-./tools/h5import/testfiles/test15.h5
+./tools/h5import/testfiles/textpfe64.txt
+./tools/h5import/testfiles/textpfe.h5
 
 # h5diff sources
 ./tools/h5diff/Makefile.am
