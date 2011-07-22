@@ -372,12 +372,73 @@ HDfprintf(FILE *stream, const char *fmt, ...)
 
             case 't':
                 {
-                    htri_t tri_var = va_arg (ap, htri_t);
+                    htri_t tri_var = va_arg(ap, htri_t);
                     if (tri_var > 0) fprintf (stream, "TRUE");
                     else if (!tri_var) fprintf (stream, "FALSE");
                     else fprintf (stream, "FAIL(%d)", (int)tri_var);
                 }
                 break;
+
+            case 'T':
+                {
+                    double seconds = va_arg(ap, double);
+                    double days;
+                    double hours;
+                    double minutes;
+                    double remainder_sec;
+                    double conversion;
+
+                    if (seconds > 60.0F) {
+
+                        remainder_sec = seconds;
+
+                        /* Extract days */
+                        conversion = 24.0F * 60.0F * 60.0F;  /* seconds per day */
+                        days = floor(remainder_sec / conversion);
+                        remainder_sec = remainder_sec - (days * conversion);
+
+                        /* Extract hours */
+                        conversion = 60.0F * 60.0F;
+                        hours = floor(remainder_sec / conversion);
+                        remainder_sec = remainder_sec - (hours * conversion);
+
+                        /* Extract minutes */
+                        conversion = 60.0F;
+                        minutes = floor(remainder_sec / conversion);
+                        remainder_sec = remainder_sec - (minutes * conversion);
+
+                        /* The # of seconds left is stored in remainder_sec */
+                    } /* end if */
+
+                    if(seconds < 0.0F)
+                        fprintf(stream, "N/A");
+                    /* Quiet warning about comparing floating point numbers.
+                     */
+                    else if(fabs(seconds - 0.0F) < DBL_EPSILON)
+                        fprintf(stream, "0.0 s");
+                    else if(seconds < 1.0E-6F)
+                        /* t < 1 us, Print time in ns */
+                        fprintf(stream, "%.f ns", seconds * 1.0E9F);
+                    else if (seconds < 1.0E-3F)
+                        /* t < 1 ms, Print time in us */
+                        fprintf(stream, "%.1f us", seconds * 1.0E6F);
+                    else if (seconds < 1.0F)
+                        /* t < 1 s, Print time in ms */
+                        fprintf(stream, "%.1f ms", seconds * 1.0E3F);
+                    else if (seconds < 60.0F)
+                        /* t < 1 m, Print time in s */
+                        fprintf(stream, "%.2f s", seconds);
+                    else if (seconds < 60.0F * 60.0F)
+                        /* t < 1 h, Print time in m and s */
+                        fprintf(stream, "%.f m %.f s", minutes, remainder_sec);
+                    else if (seconds < 24.0F * 60.0F * 60.0F)
+                        /* Print time in h, m and s */
+                        fprintf(stream, "%.f h %.f m %.f s", hours, minutes, remainder_sec);
+                    else
+                        /* Print time in d, h, m and s */
+                        fprintf(stream, "%.f d %.f h %.f m %.f s", days, hours, minutes, remainder_sec);
+
+                } /* end case 'T' */
 
 	    default:
 		HDfputs (format_templ, stream);
