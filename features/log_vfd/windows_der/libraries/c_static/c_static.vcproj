@@ -711,6 +711,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\H5Fcwfs.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\H5Fdbg.c"
 				>
 			</File>
@@ -1188,6 +1192,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\src\H5HGpublic.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\H5HGquery.c"
 				>
 			</File>
 		</Filter>
