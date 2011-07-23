@@ -731,9 +731,9 @@ test_compound_2(void)
     }
 
     /* Release resources */
-    free(buf);
-    free(bkg);
-    free(orig);
+    if(buf) HDfree(buf);
+    if(bkg) HDfree(bkg);
+    if(orig) HDfree(orig);
     CHECK_NMEMBS(nmembs , st, dt)
 
     PASSED();
@@ -741,6 +741,9 @@ test_compound_2(void)
     return 0;
 
  error:
+    if(buf) HDfree(buf);
+    if(bkg) HDfree(bkg);
+    if(orig) HDfree(orig);
     reset_hdf5();
     return 1;
 }
@@ -849,9 +852,9 @@ test_compound_3(void)
     }
 
     /* Release resources */
-    free(buf);
-    free(bkg);
-    free(orig);
+    if(buf) HDfree(buf);
+    if(bkg) HDfree(bkg);
+    if(orig) HDfree(orig);
     CHECK_NMEMBS(nmembs, st, dt)
 
     PASSED();
@@ -859,6 +862,9 @@ test_compound_3(void)
     return 0;
 
  error:
+    if(buf) HDfree(buf);
+    if(bkg) HDfree(bkg);
+    if(orig) HDfree(orig);
     reset_hdf5();
     return 1;
 }
@@ -975,9 +981,9 @@ test_compound_4(void)
     }
 
     /* Release resources */
-    free(buf);
-    free(bkg);
-    free(orig);
+    if(buf) HDfree(buf);
+    if(bkg) HDfree(bkg);
+    if(orig) HDfree(orig);
     CHECK_NMEMBS(nmembs, st, dt)
 
     PASSED();
@@ -985,6 +991,9 @@ test_compound_4(void)
     return 0;
 
  error:
+    if(buf) HDfree(buf);
+    if(bkg) HDfree(bkg);
+    if(orig) HDfree(orig);
     reset_hdf5();
     return 1;
 }
@@ -1194,9 +1203,9 @@ test_compound_6(void)
     }
 
     /* Release resources */
-    free(buf);
-    free(bkg);
-    free(orig);
+    if(buf) HDfree(buf);
+    if(bkg) HDfree(bkg);
+    if(orig) HDfree(orig);
     CHECK_NMEMBS(nmembs, st, dt)
 
     PASSED();
@@ -1204,6 +1213,9 @@ test_compound_6(void)
     return 0;
 
  error:
+    if(buf) HDfree(buf);
+    if(bkg) HDfree(bkg);
+    if(orig) HDfree(orig);
     reset_hdf5();
     return 1;
 }
