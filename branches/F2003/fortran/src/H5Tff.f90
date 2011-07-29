@@ -2638,13 +2638,14 @@ CONTAINS
   SUBROUTINE h5tget_tag_f(type_id, tag,taglen, hdferr)
             IMPLICIT NONE
             INTEGER(HID_T), INTENT(IN) :: type_id ! Datatype identifier
-            CHARACTER(LEN=*), INTENT(OUT) :: tag !Unique ASCII string with which
-                                                !the opaque datatype is to be tagged
-            INTEGER, INTENT(OUT) :: taglen !length of tag
+            CHARACTER(LEN=*), INTENT(OUT) :: tag  ! Unique ASCII string with which
+                                                  !  the opaque datatype is to be tagged
+            INTEGER, INTENT(OUT) :: taglen        ! Length of tag
+            INTEGER(SIZE_T)      :: tag_size      ! Declared character length of tab 
             INTEGER, INTENT(OUT) :: hdferr        ! Error code
 !*****
             INTERFACE
-              INTEGER FUNCTION h5tget_tag_c(type_id, tag, taglen)
+              INTEGER FUNCTION h5tget_tag_c(type_id, tag, tag_size, taglen)
               USE H5GLOBAL
               !DEC$IF DEFINED(HDF5F90_WINDOWS)
               !DEC$ATTRIBUTES C,reference,decorate,alias:'H5TGET_TAG_C'::h5tget_tag_c
@@ -2652,11 +2653,14 @@ CONTAINS
               !DEC$ATTRIBUTES reference :: tag
               INTEGER(HID_T), INTENT(IN) :: type_id
               CHARACTER(LEN=*), INTENT(OUT) :: tag
+              INTEGER, INTENT(IN) :: tag_size
               INTEGER, INTENT(OUT) :: taglen
               END FUNCTION h5tget_tag_c
             END INTERFACE
 
-            hdferr = h5tget_tag_c(type_id, tag, taglen)
+            tag_size = LEN(tag)
+
+            hdferr = h5tget_tag_c(type_id, tag, tag_size, taglen )
           END SUBROUTINE h5tget_tag_f
 
 !

@@ -731,7 +731,7 @@ H5_FCDLL int_f nh5tenum_nameof_c(hid_t_f *type_id, int_f* value, _fcd name, size
 H5_FCDLL int_f nh5tenum_valueof_c(hid_t_f *type_id, _fcd name, int_f* namelen, int_f* value);
 H5_FCDLL int_f nh5tget_member_value_c(hid_t_f *type_id, int_f* member_no, int_f* value);
 H5_FCDLL int_f nh5tset_tag_c(hid_t_f* type_id, _fcd tag, int_f* namelen);
-H5_FCDLL int_f nh5tget_tag_c(hid_t_f* type_id, _fcd tag, int_f* namelen);
+H5_FCDLL int_f nh5tget_tag_c(hid_t_f* type_id, _fcd tag, size_t_f* tag_size, int_f* namelen);
 H5_FCDLL int_f nh5tarray_create_c(hid_t_f * base_id, int_f *rank, hsize_t_f* dims, hid_t_f* type_id);
 H5_FCDLL int_f nh5tget_array_dims_c ( hid_t_f *type_id , hsize_t_f * dims);
 H5_FCDLL int_f nh5tget_array_ndims_c ( hid_t_f *type_id , int_f * ndims);

@@ -1956,24 +1956,24 @@ nh5tset_tag_c(hid_t_f* type_id, _fcd tag, int_f* namelen)
  * NAME
  *        h5tget_tag_c
  * PURPOSE
- *     Call H5Tset_tag to set an opaque datatype tag
+ *  Call H5Tset_tag to set an opaque datatype tag
  * INPUTS
- *      type_id - identifier of the datatype
+ *  type_id - identifier of the datatype
  * OUTPUTS
- *     tag -  Unique ASCII string with which the opaque
+ *      tag -  Unique ASCII string with which the opaque
  *                     datatype is to be tagged
- *              taglen - length of tag
+ *   taglen - length of tag
  * RETURNS
  *     0 on success, -1 on failure
  * AUTHOR
  *  XIANGYANG SU
- *              Wednesday, January 26, 2000
+ *  Wednesday, January 26, 2000
  * HISTORY
  *
  * SOURCE
 */
 int_f
-nh5tget_tag_c(hid_t_f* type_id, _fcd tag, int_f* taglen)
+nh5tget_tag_c(hid_t_f* type_id, _fcd tag, size_t_f* tag_size, int_f* taglen)
 /******/
 {
   int ret_value = -1;
@@ -1984,7 +1984,7 @@ nh5tget_tag_c(hid_t_f* type_id, _fcd tag, int_f* taglen)
   c_tag = H5Tget_tag(c_type_id);
   if (c_tag == NULL ) return ret_value;
 
-  HD5packFstring(c_tag, _fcdtocp(tag), strlen(c_tag));
+  HD5packFstring(c_tag, _fcdtocp(tag), (size_t)*tag_size);
   *taglen = (int_f)HDstrlen(c_tag);
   HDfree(c_tag);
   ret_value = 0;
