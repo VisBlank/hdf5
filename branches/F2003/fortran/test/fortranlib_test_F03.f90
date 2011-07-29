@@ -77,6 +77,42 @@ PROGRAM fortranlibtest_F03
   CALL write_test_status(ret_total_error, ' Testing 1-D Array of Compound Array Datatypes Functionality', total_error)
 
   ret_total_error = 0
+  CALL t_array(ret_total_error)
+  CALL write_test_status(ret_total_error, ' Testing 3-D array by dataset, using C_LOC', total_error)
+
+  ret_total_error = 0
+  CALL t_enum(ret_total_error)
+  CALL write_test_status(ret_total_error, ' Testing writing/reading enum dataset, using C_LOC', total_error)  
+
+  ret_total_error = 0
+  CALL t_bit(ret_total_error)
+  CALL write_test_status(ret_total_error, ' Testing writing/reading bitfield dataset, using C_LOC', total_error)
+
+  ret_total_error = 0
+  CALL t_opaque(ret_total_error)
+  CALL write_test_status(ret_total_error, ' Testing writing/reading opaque datatypes, using C_LOC', total_error) 
+
+  ret_total_error = 0
+  CALL t_objref(ret_total_error)
+  CALL write_test_status(ret_total_error, ' Testing writing/reading object references, using C_LOC', total_error)
+
+  ret_total_error = 0
+  CALL t_regref(ret_total_error)
+  CALL write_test_status(ret_total_error, ' Testing writing/reading region references, using C_LOC', total_error)  
+
+  ret_total_error = 0
+  CALL t_vlen(ret_total_error)
+  CALL write_test_status(ret_total_error, ' Testing writing/reading variable-length datatypes, using C_LOC', total_error)
+
+  ret_total_error = 0
+  CALL t_vlstring(ret_total_error)
+  CALL write_test_status(ret_total_error, ' Testing writing/reading variable-string datatypes, using C_LOC', total_error)
+
+  ret_total_error = 0
+  CALL t_string(ret_total_error)
+  CALL write_test_status(ret_total_error, ' Testing writing/reading string datatypes, using C_LOC', total_error)
+
+  ret_total_error = 0
   CALL test_create(ret_total_error)
   CALL write_test_status(ret_total_error, &
        ' Testing filling functions', &
