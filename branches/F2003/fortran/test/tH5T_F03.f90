@@ -2314,8 +2314,8 @@ SUBROUTINE t_vlstring(total_error)
   CHARACTER(LEN=18), PARAMETER :: filename  = "t_vlstring.h5"
   CHARACTER(LEN=3) , PARAMETER :: dataset   = "DS1"
 
-  INTEGER          , PARAMETER :: dim0      = 4
-  INTEGER(SIZE_T)  , PARAMETER :: sdim      = 7
+  INTEGER(SIZE_T), PARAMETER :: dim0      = 4
+  INTEGER(SIZE_T), PARAMETER :: sdim      = 7
   INTEGER(HID_T)  :: file, filetype, space, dset ! Handles
   INTEGER :: error
   INTEGER(HSIZE_T), DIMENSION(1:1) :: dims = (/dim0/)

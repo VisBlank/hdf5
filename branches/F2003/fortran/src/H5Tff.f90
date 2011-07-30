@@ -2653,7 +2653,7 @@ CONTAINS
               !DEC$ATTRIBUTES reference :: tag
               INTEGER(HID_T), INTENT(IN) :: type_id
               CHARACTER(LEN=*), INTENT(OUT) :: tag
-              INTEGER, INTENT(IN) :: tag_size
+              INTEGER(SIZE_T), INTENT(IN) :: tag_size
               INTEGER, INTENT(OUT) :: taglen
               END FUNCTION h5tget_tag_c
             END INTERFACE
