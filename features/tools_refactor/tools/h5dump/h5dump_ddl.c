@@ -1391,16 +1391,18 @@ dump_fcpl(hid_t fid)
     indentation(dump_indent + COL);
     HDfprintf(stdout, "%s %Hu\n","FREE_SPACE_THRESHOLD", fs_threshold);
 
-    HDfprintf(stdout, "%s\n",END);
-
     /*-------------------------------------------------------------------------
     * USER_BLOCK
     *-------------------------------------------------------------------------
     */
-    HDfprintf(stdout, "USER_BLOCK %s\n",BEGIN);
     indentation(dump_indent + COL);
+    HDfprintf(stdout, "USER_BLOCK %s\n",BEGIN);
+    indentation(dump_indent + COL + COL);
     HDfprintf(stdout,"%s %Hu\n","USERBLOCK_SIZE", userblock);
+    indentation(dump_indent + COL);
     HDfprintf(stdout, "%s",END);
+
+    HDfprintf(stdout, "%s\n",END);
 }
 
 /*-------------------------------------------------------------------------
