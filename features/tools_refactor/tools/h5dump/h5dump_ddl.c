@@ -924,12 +924,6 @@ dump_group(hid_t gid, const char *name)
     ctx.indent_level++;
     dump_indent += COL;
 
-    if(display_oid) {
-        h5tools_dump_oid(stdout, outputformat, &ctx, gid);
-    }
-
-    h5tools_dump_comment(stdout, outputformat, &ctx, gid);
-
     if(!HDstrcmp(name, "/") && unamedtype) {
         unsigned    u;  /* Local index variable */
 
@@ -944,6 +938,12 @@ dump_group(hid_t gid, const char *name)
                 H5Dclose(dset);
             }
     } /* end if */
+
+    if(display_oid) {
+        h5tools_dump_oid(stdout, outputformat, &ctx, gid);
+    }
+
+    h5tools_dump_comment(stdout, outputformat, &ctx, gid);
 
     H5Oget_info(gid, &oinfo);
 
@@ -1400,9 +1400,9 @@ dump_fcpl(hid_t fid)
     indentation(dump_indent + COL + COL);
     HDfprintf(stdout,"%s %Hu\n","USERBLOCK_SIZE", userblock);
     indentation(dump_indent + COL);
-    HDfprintf(stdout, "%s",END);
-
     HDfprintf(stdout, "%s\n",END);
+
+    HDfprintf(stdout, "%s",END);
 }
 
 /*-------------------------------------------------------------------------
