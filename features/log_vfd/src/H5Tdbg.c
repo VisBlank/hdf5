@@ -107,11 +107,6 @@ H5T_print_stats(H5T_path_t UNUSED * path, int UNUSED * nprint/*in,out*/)
 #ifdef H5T_DEBUG
     hsize_t     nbytes;
     char        bandwidth[32];
-
-    /* Pretty time strings for debug output */
-    char        *elapsed_string = NULL;
-    char        *system_string = NULL;
-    char        *user_string = NULL;
 #endif
 
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5T_print_stats)
@@ -137,25 +132,16 @@ H5T_print_stats(H5T_path_t UNUSED * path, int UNUSED * nprint/*in,out*/)
         else
             nbytes = 0;
 
-        /* Get pretty time strings for output */
-        user_string = H5_timer_get_time_string(path->stats.times.user);
-        system_string = H5_timer_get_time_string(path->stats.times.system);
-        elapsed_string = H5_timer_get_time_string(path->stats.times.elapsed);
-
         nbytes *= path->stats.nelmts;
         H5_bandwidth(bandwidth, (double)nbytes, path->stats.times.elapsed);
-        HDfprintf(H5DEBUG(T), "   %-16s %10Hd %10d %8s %8s %8s %10s\n",
+        HDfprintf(H5DEBUG(T), "   %-16s %10Hd %10d %8T %8T %8T %10s\n",
            path->name,
            path->stats.nelmts,
            path->stats.ncalls,
-           user_string,
-           system_string,
-           elapsed_string,
+           path->stats.times.user,
+           path->stats.times.system,
+           path->stats.times.elapsed,
            bandwidth);
-
-        free(user_string);
-        free(system_string);
-        free(elapsed_string);
     }
 #endif
     FUNC_LEAVE_NOAPI(SUCCEED)

@@ -85,6 +85,18 @@
  *		`hsize_t' or `hssize_t' type.  For instance, "0x%018Hx"
  *		prints an `hsize_t' value as a hex number right justified and
  *		zero filled in an 18-character field.
+
+ *              The format of the time conversion modifier 'T' for a given
+ *              number of seconds is:
+ *
+ *              "N/A"                 time < 0 (invalid time)
+ *              "%.f ns"              time < 1 microsecond
+ *              "%.1f us"             time < 1 millisecond
+ *              "%.1f ms"             time < 1 second
+ *              "%.2f s"              time < 1 minute
+ *              "%.f m %.f s"         time < 1 hour
+ *              "%.f h %.f m %.f s"   longer times
+
  *
  *		The conversion `a' refers to an `haddr_t' type.
  *

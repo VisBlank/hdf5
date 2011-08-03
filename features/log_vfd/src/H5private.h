@@ -470,7 +470,6 @@ H5_DLL herr_t H5_timer_start(H5_timer_t *timer /*in,out*/);
 H5_DLL herr_t H5_timer_stop(H5_timer_t *timer /*in,out*/);
 H5_DLL herr_t H5_timer_get_times(H5_timer_t timer, H5_timevals_t *times /*in,out*/);
 H5_DLL herr_t H5_timer_get_total_times(H5_timer_t timer, H5_timevals_t *times /*in,out*/);
-H5_DLL char * H5_timer_get_time_string(double seconds);
 
 /* Required for Mac OS X timers */
 #if defined(H5_HAVE_MACH_MACH_TIME_H)
