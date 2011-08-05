@@ -741,6 +741,9 @@ test_compound_2(void)
     return 0;
 
  error:
+    H5E_BEGIN_TRY {
+        H5Tclose(array_dt);
+    } H5E_END_TRY;
     if(buf) HDfree(buf);
     if(bkg) HDfree(bkg);
     if(orig) HDfree(orig);
