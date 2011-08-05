@@ -338,7 +338,7 @@ h5tools_dump_simple_data(FILE *stream, const h5tool_format_t *info, hid_t contai
                                 HERROR(H5E_tools_g, H5E_tools_min_id_g, "H5Rget_name failed");
 
                             ctx->need_prefix = TRUE;
-                            h5tools_simple_prefix(stream, info, ctx, curr_pos, 0);
+                            h5tools_simple_prefix(stream, info, ctx, curr_pos+i, 0);
 
                             /* Render the region element begin */
                             h5tools_str_reset(&buffer);
