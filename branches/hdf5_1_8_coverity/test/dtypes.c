@@ -249,6 +249,14 @@ test_classes(void)
     return 0;
 
   error:
+
+    H5E_BEGIN_TRY {
+        H5Tclose(memb_id);
+        H5Tclose(cmpd_id);
+        H5Tclose(vlc_id);
+        H5Tclose(vls_id);
+    } H5E_END_TRY;
+
     return 1;
 }
 
@@ -471,6 +479,16 @@ test_detect(void)
     return 0;
 
 error:
+
+    H5E_BEGIN_TRY {
+        H5Tclose(cplx_cmpd_id);
+        H5Tclose(atom_vlf_id);
+        H5Tclose(atom_vlc_id);
+        H5Tclose(atom_vls_id);
+        H5Tclose(atom_arr_id);
+        H5Tclose(atom_cmpd_id);
+    } H5E_END_TRY;
+
     return 1;
 }
 
@@ -621,6 +639,12 @@ test_compound_1(void)
 error:
     if(tag)
         HDfree(tag);
+
+    H5E_BEGIN_TRY {
+        H5Tclose(complex_id);
+    } H5E_END_TRY;
+
+
     return retval;
 }
 
@@ -865,6 +889,9 @@ test_compound_3(void)
     return 0;
 
  error:
+    H5E_BEGIN_TRY {
+        H5Tclose(array_dt);
+    } H5E_END_TRY;
     if(buf) HDfree(buf);
     if(bkg) HDfree(bkg);
     if(orig) HDfree(orig);
@@ -994,6 +1021,9 @@ test_compound_4(void)
     return 0;
 
  error:
+    H5E_BEGIN_TRY {
+        H5Tclose(array_dt);
+    } H5E_END_TRY;
     if(buf) HDfree(buf);
     if(bkg) HDfree(bkg);
     if(orig) HDfree(orig);
@@ -1216,6 +1246,12 @@ test_compound_6(void)
     return 0;
 
  error:
+
+    H5E_BEGIN_TRY {
+        H5Tclose(st);
+        H5Tclose(dt);
+    } H5E_END_TRY;
+
     if(buf) HDfree(buf);
     if(bkg) HDfree(bkg);
     if(orig) HDfree(orig);
@@ -1358,6 +1394,12 @@ test_compound_7(void)
     return 0;
 
  error:
+
+    H5E_BEGIN_TRY {
+        H5Tclose(tid1);
+        H5Tclose(tid2);
+    } H5E_END_TRY;
+
     reset_hdf5();
     return 1;
 }
