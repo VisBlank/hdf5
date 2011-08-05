@@ -808,8 +808,9 @@ H5O_fill_debug(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, const void *_fill, FILE *s
 {
     const H5O_fill_t *fill = (const H5O_fill_t *)_fill;
     H5D_fill_value_t fill_status;       /* Whether the fill value is defined */
+    herr_t      	ret_value = SUCCEED;        /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5O_fill_debug)
+    FUNC_ENTER_NOAPI_NOINIT(H5O_fill_debug)
 
     HDassert(f);
     HDassert(fill);
@@ -856,7 +857,9 @@ H5O_fill_debug(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, const void *_fill, FILE *s
 
     } /* end switch */
     HDfprintf(stream, "%*s%-*s ", indent, "", fwidth, "Fill Value Defined:");
-    H5P_is_fill_value_defined((const H5O_fill_t *)fill, &fill_status);
+    if(H5P_is_fill_value_defined((const H5O_fill_t *)fill, &fill_status) < 0) {
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't tell if fill value defined")
+    }
     switch(fill_status) {
         case H5D_FILL_VALUE_UNDEFINED:
             fprintf(stream,"Undefined\n");
@@ -885,6 +888,7 @@ H5O_fill_debug(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, const void *_fill, FILE *s
     else
 	fprintf(stream, "<dataset type>\n");
 
+ done:
     FUNC_LEAVE_NOAPI(SUCCEED);
 } /* end H5O_fill_debug() */
 

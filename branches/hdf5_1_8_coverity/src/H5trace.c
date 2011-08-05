@@ -143,6 +143,7 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
         if(returning) {
             if(current_depth > 1) {
                 --current_depth;
+                va_end(ap);
                 return 0.0;
             } /* end if */
         } /* end if */
@@ -150,6 +151,7 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
             if(current_depth > 0) {
                 /*do not update last_call_depth*/
                 current_depth++;
+                va_end(ap);
                 return 0.0;
             } /* end if */
         } /* end else */

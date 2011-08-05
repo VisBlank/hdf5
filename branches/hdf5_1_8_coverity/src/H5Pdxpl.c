@@ -570,8 +570,11 @@ H5Pset_data_transform(hid_t plist_id, const char *expression)
         HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "can't find object for ID")
 
     /* See if a data transform is already set, and free it if it is */
-    if(H5P_get(plist, H5D_XFER_XFORM_NAME, &data_xform_prop) >= 0)
-	H5Z_xform_destroy(data_xform_prop);
+    if(H5P_get(plist, H5D_XFER_XFORM_NAME, &data_xform_prop) >= 0) {
+	if(H5Z_xform_destroy(data_xform_prop) < 0) {
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTCLOSEOBJ, FAIL, "error closing the parse tree")
+        }
+    }
 
     /* Create data transform info from expression */
     if(NULL == (data_xform_prop = H5Z_xform_create(expression)))
