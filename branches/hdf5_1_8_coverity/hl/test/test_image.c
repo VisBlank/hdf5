@@ -608,12 +608,12 @@ static int test_generate(void)
 
     /* Test buffer sizes for overflow */
 
-    if(n_elements > INT_MAX / sizeof(float))
-        goto out;
-    
     if(n_elements > INT_MAX / sizeof(unsigned char))
         goto out;
 
+    if(n_elements > INT_MAX / sizeof(float))
+        goto out;
+    
     data = (float *) malloc(n_elements * sizeof(float));
     image_data = (unsigned char *) malloc(n_elements * sizeof(unsigned char));
 
