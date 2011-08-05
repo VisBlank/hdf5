@@ -2107,16 +2107,16 @@ next:
             indentation(indent + COL, *dt_str);
             tag = H5Tget_tag(dtype);
             if(tag) {
-                sprintf(tmp_str, "OPQ_TAG \"%s\";\n", tag);
+                HDsnprintf(tmp_str, HDstrlen(tag)+13, "OPQ_TAG \"%s\";\n", tag);
                 free(tag);
             } else
-                sprintf(tmp_str, "OPQ_TAG \"\";\n");
-            strcat(*dt_str, tmp_str);
+                snprintf(tmp_str, 13, "OPQ_TAG \"\";\n");
+            HDstrncat(*dt_str, tmp_str, HDstrlen(tmp_str));
 
             /* Print closing */
             indent -= COL;
             indentation(indent + COL, *dt_str);
-            strcat(*dt_str, "}");
+            HDstrncat(*dt_str, "}", 1);
 
             break;
             }
