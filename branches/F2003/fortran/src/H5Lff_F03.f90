@@ -60,10 +60,10 @@ CONTAINS
 !  op_data 	 - User-defined pointer to data required by the application for its processing of the link
 !
 ! OUTPUTS
-!  idx 	   - Position at which an interrupted iteration may be restarted
-!  hdferr  - error code:
-!             Success:  0
-!             Failure: -1
+!  idx 	         - Position at which an interrupted iteration may be restarted
+!  hdferr        - Error code:
+!                    Success:  0
+!                    Failure: -1
 ! AUTHOR
 !  M. Scot Breitenfeld
 !  July 8, 2008

@@ -963,9 +963,9 @@ done:
 
 /****if* H5Lf/h5literate_c
  * NAME
- *        h5literate_c
+ *  h5literate_c
  * PURPOSE
- *     Call H5Literate
+ *  Calls H5Literate
  * INPUTS
  *
  *     group_id - Identifier specifying subject group
@@ -980,17 +980,17 @@ done:
  *          idx - Position at which an interrupted iteration may be restarted
  *
  * RETURNS
- *     >0 on success, 0< on failure
+ *  >0 on success, 0< on failure
  * AUTHOR
- *  M.S. Breitenfeld
- *              July 8, 2008
+ *  M. Scot Breitenfeld
+ *  July 8, 2008
  * SOURCE
 */
 int_f
 nh5literate_c(hid_t_f *group_id, int_f *index_type, int_f *order, hsize_t_f *idx, H5L_iterate_t op, void *op_data )
 /******/
 {
-  int_f ret_value = -1;       /* Return value */
+  int_f ret_value = -1;  /* Return value */
   herr_t func_ret_value; /* H5Linterate return value */
   hsize_t idx_c = 0;
 

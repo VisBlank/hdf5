@@ -765,9 +765,8 @@ H5_FCDLL int_f nh5oopen_by_addr_c (hid_t_f *loc_id, haddr_t_f *addr, hid_t_f *ob
 H5_FCDLL int_f nh5olink_c (hid_t_f *object_id, hid_t_f *new_loc_id, _fcd name, size_t_f *namelen,
 			   hid_t_f *lcpl_id, hid_t_f *lapl_id);
 H5_FCDLL int_f nh5ovisit_c (hid_t_f *group_id, int_f *index_type, int_f *order, H5O_iterate_t op, void *op_data);
-/* H5_FCDLL int_f nh5oget_info_by_name_c (hid_t_f *loc_id, _fcd name, size_t_f *namelen,hid_t_f *lapl_id, */
-/* 				       int_f *corder_valid, int_f *corder, */
-/* 				       int_f *cset, hsize_t_f *data_size ); */
+H5_FCDLL int_f nh5oget_info_by_name_c (hid_t_f *loc_id, _fcd name, size_t_f *namelen,hid_t_f *lapl_id,
+				       H5O_info_t *object_info);
 /*
  * Functions from H5Pf.c
  */

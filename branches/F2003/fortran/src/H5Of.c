@@ -238,39 +238,52 @@ nh5oopen_by_addr_c (hid_t_f *loc_id, haddr_t_f *addr, hid_t_f *obj_id)
  *  December 1, 2008
  * SOURCE
 */
-/* int_f */
-/* nh5oget_info_by_name_c (hid_t_f *loc_id, _fcd name, size_t_f *namelen,hid_t_f *lapl_id, */
-/* 			int_f *corder_valid, int_f *corder, */
-/* 			int_f *cset, hsize_t_f *data_size ) */
-/* /\******\/ */
-/* { */
-/*   char *c_name = NULL;          /\* Buffer to hold C string *\/ */
-/*   int_f ret_value = 0;          /\* Return value *\/ */
-/*   H5O_info_t Oinfo; */
+int_f
+nh5oget_info_by_name_c (hid_t_f *loc_id, _fcd name, size_t_f *namelen, hid_t_f *lapl_id,
+			H5O_info_t *object_info)
+/******/
+{
+  char *c_name = NULL;          /* Buffer to hold C string */
+  int_f ret_value = 0;          /* Return value */
+  H5O_info_t Oinfo;
   
-/*   /\* */
-/*    * Convert FORTRAN name to C name */
-/*    *\/ */
-/*   if((c_name = HD5f2cstring(name, (size_t)*namelen)) == NULL) */
-/*     HGOTO_DONE(FAIL); */
+  /*
+   * Convert FORTRAN name to C name
+   */
+  if((c_name = HD5f2cstring(name, (size_t)*namelen)) == NULL)
+    HGOTO_DONE(FAIL);
 
-/*   /\* */
-/*    * Call H5Oinfo_by_name function. */
-/*    *\/ */
-/*   if(H5Oget_info_by_name((hid_t)*loc_id, c_name, */
-/* 			 &Oinfo, (hid_t)*lapl_id) < 0) */
-/*     HGOTO_DONE(FAIL); */
+  /*
+   * Call H5Oinfo_by_name function.
+   */
+  if(H5Oget_info_by_name((hid_t)*loc_id, c_name,
+			 &Oinfo, (hid_t)*lapl_id) < 0)
+    HGOTO_DONE(FAIL);
 
-/*   /\* Unpack the structure *\/ */
+  object_info->fileno    = Oinfo.fileno;
+  object_info->addr      = Oinfo.addr;
+  object_info->type      = Oinfo.type;
+  object_info->rc        = Oinfo.rc;
+  object_info->atime     = Oinfo.atime;
+  object_info->mtime     = Oinfo.mtime;
+  object_info->ctime     = Oinfo.ctime;
+  object_info->btime     = Oinfo.btime;
+  object_info->num_attrs = Oinfo.num_attrs;
 
-/*   *corder_valid = 0; */
-/*   if(Oinfo.corder_valid > 0) *corder_valid = 1; */
 
-/*   *corder = (int_f)Oinfo.corder; */
-/*   *cset = (int_f)Oinfo.cset; */
-/*   *data_size = (hsize_t)Oinfo.data_size; */
+/*      printf("fileno %d %d\n",object_info->fileno, Oinfo.fileno); */
+/*   printf("string %d %d\n",object_info.rc, Oinfo.rc); */
+  
+/*   printf("atime %lld %lld\n",(long long int)object_info.atime, (long long int)Oinfo.atime); */
+/*   printf("atime %lld %lld\n",(long long int)object_info.mtime, (long long int)Oinfo.mtime); */
+/*   printf("atime %lld %lld\n",(long long int)object_info.ctime, (long long int)Oinfo.ctime); */
+/*   printf("atime %lld %lld\n",(long long int)object_info.btime, (long long int)Oinfo.btime); */
+/*   printf("string %f %f\n",object_info.addr, Oinfo.addr); */
+/*   printf("num_attrs %d %d\n",object_info.num_attrs, Oinfo.num_attrs); */
+/*   printf("num_attrs %f %f\n",object_info.hdr.version, Oinfo.hdr.version); */
 
-/*  done: */
-/*   return ret_value; */
-/* } */
+
+ done:
+  return ret_value;
+}
 
