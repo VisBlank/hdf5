@@ -35,10 +35,6 @@ int main(void)
     H5_timevals_t   times2;
     H5_timevals_t   total_times;
 
-    char *e_string = NULL;
-    char *s_string = NULL;
-    char *u_string = NULL;
-
     herr_t          err;
     
     /* Clearly, this sample code would need real error checking... */
@@ -61,32 +57,14 @@ int main(void)
     err = H5_timer_get_total_times(timer, &total_times);
 
     /* Write out time statistics */
-    e_string = H5_timer_get_time_string(times1.elapsed);
-    s_string = H5_timer_get_time_string(times1.system);
-    u_string = H5_timer_get_time_string(times1.user);
-    printf("Event 1 times: (elapsed) %s    (system) %s    (user) %s\n\n",
-        e_string, s_string, u_string);
-    free(e_string);
-    free(s_string);
-    free(u_string);
+    printf("Event 1 times: (elapsed) %T    (system) %T    (user) %T\n\n",
+        times1.elapsed, times1.system, times1.user);
 
-    e_string = H5_timer_get_time_string(times2.elapsed);
-    s_string = H5_timer_get_time_string(times2.system);
-    u_string = H5_timer_get_time_string(times2.user);
-    printf("Event 2 times: (elapsed) %s    (system) %s    (user) %s\n\n",
-        e_string, s_string, u_string);
-    free(e_string);
-    free(s_string);
-    free(u_string);
+    printf("Event 2 times: (elapsed) %T    (system) %T    (user) %T\n\n",
+        times2.elapsed, times2.system, times2.user);
 
-    e_string = H5_timer_get_time_string(total_times.elapsed);
-    s_string = H5_timer_get_time_string(total_times.system);
-    u_string = H5_timer_get_time_string(total_times.user);
-    printf("Total times: (elapsed) %s    (system) %s    (user) %s\n\n",
-        e_string, s_string, u_string);
-    free(e_string);
-    free(s_string);
-    free(u_string);
+    printf("Total times: (elapsed) %T    (system) %T    (user) %T\n\n",
+        total_times.elapsed, total_times.system, total_times.user);
 
     return EXIT_SUCCESS;
 }
