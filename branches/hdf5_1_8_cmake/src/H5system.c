@@ -638,6 +638,23 @@ Wgettimeofday(struct timeval *tv, struct timezone *tz)
      Do not set errno on error.  */
   return 0;
 }
+
+#define WloginBuffer_count 256
+static char Wlogin_buffer[WloginBuffer_count];
+
+char*
+Wgetlogin()
+{
+
+#ifdef H5_HAVE_WINSOCK_H
+    long bufferCount = WloginBuffer_count;
+    if (GetUserName(Wlogin_buffer, &bufferCount) == 0)
+        return (Wlogin_buffer);
+    else
+#endif /* H5_HAVE_WINSOCK_H */
+        return NULL;
+}
+
 #endif
 
 

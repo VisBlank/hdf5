@@ -21,7 +21,7 @@
 
 /** From H5private.h **/
 
-#include "H5public.h"		 /* Include Public Definitions		*/
+#include "H5public.h"     /* Include Public Definitions    */
 
 
 /*
@@ -202,7 +202,11 @@ H5_DLL int HDfprintf (FILE *stream, const char *fmt, ...);
 #define HDgetgrgid(G)           getgrgid(G)
 #define HDgetgrnam(S)           getgrnam(S)
 #define HDgetgroups(Z,G)        getgroups(Z,G)
+#ifdef _WIN32
+#define HDgetlogin(F)           Wgetlogin(F)
+#else /* _WIN32 */
 #define HDgetlogin()            getlogin()
+#endif /* _WIN32 */
 #define HDgetpgrp()             getpgrp()
 #define HDgetpid()              getpid()
 #define HDgetppid()             getppid()
@@ -369,7 +373,7 @@ H5_DLL void HDsrand(unsigned int seed);
 #endif
 /* sscanf() variable arguments */
 
-#define HDstrcasecmp(X,Y)	strcasecmp(X,Y)
+#define HDstrcasecmp(X,Y)  		strcasecmp(X,Y)
 #define HDstrcat(X,Y)           strcat(X,Y)
 #define HDstrchr(S,C)           strchr(S,C)
 #define HDstrcmp(X,Y)           strcmp(X,Y)
@@ -487,7 +491,7 @@ extern const char *opt_arg;     /* flag argument (or value)                 */
 
 enum {
     no_arg = 0,         /* doesn't take an argument     */
-    require_arg,        /* requires an argument	        */
+    require_arg,        /* requires an argument          */
     optional_arg        /* argument is optional         */
 };
 
