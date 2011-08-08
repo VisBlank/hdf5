@@ -57,13 +57,13 @@ int main(void)
     err = H5_timer_get_total_times(timer, &total_times);
 
     /* Write out time statistics */
-    printf("Event 1 times: (elapsed) %T    (system) %T    (user) %T\n\n",
+    HDfprintf(stdout,"Event 1 times: (elapsed) %T    (system) %T    (user) %T\n\n",
         times1.elapsed, times1.system, times1.user);
 
-    printf("Event 2 times: (elapsed) %T    (system) %T    (user) %T\n\n",
+    HDfprintf(stdout, "Event 2 times: (elapsed) %T    (system) %T    (user) %T\n\n",
         times2.elapsed, times2.system, times2.user);
 
-    printf("Total times: (elapsed) %T    (system) %T    (user) %T\n\n",
+    HDfprintf(stdout, "Total times: (elapsed) %T    (system) %T    (user) %T\n\n",
         total_times.elapsed, total_times.system, total_times.user);
 
     return EXIT_SUCCESS;

@@ -451,7 +451,7 @@ HDfprintf(FILE *stream, const char *fmt, ...)
                         fprintf(stream, "%.f d %.f h %.f m %.f s", days, hours, minutes, remainder_sec);
 
                 } /* end case 'T' */
-
+                break;
 	    default:
 		HDfputs (format_templ, stream);
 		n = (int)HDstrlen (format_templ);
