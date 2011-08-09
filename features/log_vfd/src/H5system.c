@@ -89,13 +89,26 @@
  *              The format of the time conversion modifier 'T' for a given
  *              number of seconds is:
  *
- *              "N/A"                 time < 0 (invalid time)
- *              "%.f ns"              time < 1 microsecond
- *              "%.1f us"             time < 1 millisecond
- *              "%.1f ms"             time < 1 second
- *              "%.2f s"              time < 1 minute
- *              "%.f m %.f s"         time < 1 hour
- *              "%.f h %.f m %.f s"   longer times
+ *              "N/A"                   time < 0 (invalid time)
+ *              "%.f ns"                time < 1 microsecond
+ *              "%.1f us"               time < 1 millisecond
+ *              "%.1f ms"               time < 1 second
+ *              "%.2f s"                time < 1 minute
+ *              "%.f m %.f s"           time < 1 hour
+ *              "%.f h %.f m %.f s"     longer times
+ *
+ *              The format of the time conversion modifier 'B' for a given
+ *              number of bytes/second is:
+ *
+ *              "N/A"                   bandwidth < 0 (invalid bandwidth)
+ *              "0.0 B/s"               bandwidth == 0
+ *              "%.2f B/s"              bandwidth < 1 kB/s
+ *              "%.2f kB/s"             bandwidth < 1 MB/s
+ *              "%.2f MB/s"             bandwidth < 1 GB/s
+ *              "%.2f GB/s"             bandwidth < 1 TB/s
+ *              "%.2f TB/s"             bandwidth < 1 PB/s
+ *              "%.2f PB/s"             bandwidth < 1 EB/s
+ *              "%.2f EB/s"             bandwidth >= 1 EB/s
 
  *
  *		The conversion `a' refers to an `haddr_t' type.
@@ -393,6 +406,8 @@ HDfprintf(FILE *stream, const char *fmt, ...)
 
             case 'T':
                 {
+                    /* Format time string */
+
                     double seconds = va_arg(ap, double);
                     double days;
                     double hours;
@@ -451,6 +466,38 @@ HDfprintf(FILE *stream, const char *fmt, ...)
                         fprintf(stream, "%.f d %.f h %.f m %.f s", days, hours, minutes, remainder_sec);
 
                 } /* end case 'T' */
+                break;
+            case 'B':
+                {
+                    /* Format bandwidth string */
+
+                    double bw = va_arg(ap, double);
+                    static double kilo = 1024.0;
+                    static double mega = 1024.0 * 1024.0;
+                    static double giga = 1024.0 * 1024.0 * 1024.0;
+                    static double tera = 1024.0 * 1024.0 * 1024.0 * 1024.0;
+                    static double peta = 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0;
+                    static double exa  = 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0;
+
+                    if(bw <= 0.0F)
+                        fprintf(stream, "N/A");
+                    else if(fabs(bw - 0.0F) < DBL_EPSILON)
+                        fprintf(stream, "0.0 B/s");
+                    else if(bw < kilo)
+                        fprintf(stream, "%.2f B/s", bw);
+                    else if(bw < mega)
+                        fprintf(stream, "%.2f kB/s", bw / kilo);
+                    else if(bw < giga)
+                        fprintf(stream, "%.2f MB/s", bw / mega);
+                    else if(bw < tera)
+                        fprintf(stream, "%.2f GB/s", bw / giga);
+                    else if(bw < peta)
+                        fprintf(stream, "%.2f TB/s", bw / tera);
+                    else if(bw < exa)
+                        fprintf(stream, "%.2f TB/s", bw / peta);
+                    else
+                        fprintf(stream, "%.2f EB/s", bw / exa);
+                } /* end case 'B' */
                 break;
 	    default:
 		HDfputs (format_templ, stream);
