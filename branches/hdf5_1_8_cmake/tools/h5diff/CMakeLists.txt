@@ -370,7 +370,7 @@ IF (BUILD_TESTING)
       ADD_TEST (
           NAME PH5DIFF-${resultfile}
           COMMAND "${CMAKE_COMMAND}"
-              -D "TEST_PROGRAM=${MPIEXEC} ${MPIEXEC_PREFLAGS} ${MPIEXEC_NUMPROC_FLAG} ${MPIEXEC_MAX_NUMPROCS} ${MPIEXEC_POSTFLAGS} $<TARGET_FILE:ph5diff>"
+              -D "TEST_PROGRAM=${MPIEXEC};${MPIEXEC_PREFLAGS};${MPIEXEC_NUMPROC_FLAG};${MPIEXEC_MAX_NUMPROCS};${MPIEXEC_POSTFLAGS};$<TARGET_FILE:ph5diff>"
               -D "TEST_ARGS:STRING=${ARGN}"
               -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
               -D "TEST_OUTPUT=${resultfile}.out"
@@ -435,7 +435,6 @@ IF (BUILD_TESTING)
   # attrs with verbose option level
   SET (ATTR_VERBOSE_LEVEL_FILE1 h5diff_attr_v_level1.h5)
   SET (ATTR_VERBOSE_LEVEL_FILE2 h5diff_attr_v_level2.h5)
-
 
   # Remove any output file left over from previous test run
   ADD_TEST (
