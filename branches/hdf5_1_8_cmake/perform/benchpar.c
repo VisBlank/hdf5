@@ -26,7 +26,7 @@
 
 /* Local macros */
 #ifdef _WIN32
-#define HDgetlogin(F)           Wgetlogin(F)
+#define HDgetlogin()           Wgetlogin()
 #else /* _WIN32 */
 #define HDgetlogin()            getlogin()
 #endif /* _WIN32 */

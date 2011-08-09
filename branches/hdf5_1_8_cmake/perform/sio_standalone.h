@@ -203,7 +203,7 @@ H5_DLL int HDfprintf (FILE *stream, const char *fmt, ...);
 #define HDgetgrnam(S)           getgrnam(S)
 #define HDgetgroups(Z,G)        getgroups(Z,G)
 #ifdef _WIN32
-#define HDgetlogin(F)           Wgetlogin(F)
+#define HDgetlogin()            Wgetlogin()
 #else /* _WIN32 */
 #define HDgetlogin()            getlogin()
 #endif /* _WIN32 */
