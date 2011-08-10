@@ -29,8 +29,8 @@ static int           useschema = 1;
 static const char   *xml_dtd_uri = NULL;
 
 /* module-scoped variables for XML option */
-#define DEFAULT_XSD     "http://www.hdfgroup.org/DTDs/HDF5-File.xsd"
-#define DEFAULT_DTD     "http://www.hdfgroup.org/DTDs/HDF5-File.dtd"
+#define DEFAULT_XSD     "http://www.hdfgroup.org/HDF5/XML/schema/HDF5-File.xsd"
+#define DEFAULT_DTD     "http://www.hdfgroup.org/HDF5/XML/schema/HDF5-File.dtd"
 
 /* Standard DDL output */
 static const dump_functions ddl_function_table = {
@@ -1464,10 +1464,10 @@ main(int argc, const char *argv[])
                 indx = strrchr(ns,(int)':');
                 if (indx) *indx = '\0';
 
-                HDfprintf(stdout, "<%sHDF5-File xmlns:%s=\"http://hdfgroup.org/DTDs/HDF5-File\" "
+                HDfprintf(stdout, "<%sHDF5-File xmlns:%s=\"http://hdfgroup.org/HDF5/XML/schema/HDF5-File\" "
                        "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
-                       "xsi:schemaLocation=\"http://hdfgroup.org/DTDs/HDF5-File "
-                       "http://www.hdfgroup.org/DTDs/HDF5-File.xsd\">\n",xmlnsprefix,ns);
+                       "xsi:schemaLocation=\"http://hdfgroup.org/HDF5/XML/schema/HDF5-File "
+                       "http://www.hdfgroup.org/HDF5/XML/schema/HDF5-File.xsd\">\n",xmlnsprefix,ns);
                 HDfree(ns);
             }
         } 
