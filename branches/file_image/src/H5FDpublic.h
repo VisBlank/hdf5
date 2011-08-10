@@ -222,6 +222,19 @@ typedef enum H5F_mem_t	H5FD_mem_t;
      * instead of the default H5D_ALLOC_TIME_LATE
      */
 #define H5FD_FEAT_ALLOCATE_EARLY        0x00000200
+    /* 
+     * Defining the H5FD_FEAT_ALLOW_FILE_IMAGE for a VFL driver means that
+     * the driver is able to use a file image in the fapl as the initial
+     * contents of a file.
+     */
+#define H5FD_FEAT_ALLOW_FILE_IMAGE      0x00000400
+    /*
+     * Defineing the H5FD_FEAT_CAN_USE_FILE_IMAGE_CALLBACKS for a VFL driver
+     * means that the driver is able to use callbacks to make a copy of the
+     * image to store in memory.
+     */
+#define H5FD_FEAT_CAN_USE_FILE_IMAGE_CALLBACKS 0x00000800
+
 
 /* Forward declaration */
 typedef struct H5FD_t H5FD_t;
