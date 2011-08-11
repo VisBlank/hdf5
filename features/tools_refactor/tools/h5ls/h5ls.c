@@ -1341,8 +1341,9 @@ dump_dataset_values(hid_t dset)
     /* Print all the values. */
     printf("    Data:\n");
     ctx.need_prefix = TRUE;
-    if (h5tools_dump_dset(stdout, &info, dset, -1, NULL, -1) < 0)
-        printf("        Unable to print data.\n");
+    if (h5tools_dump_dset(stdout, &info, &ctx, dset, -1, NULL) < 0)
+        printf("        Unable to print data.");
+    printf("\n");
 
     H5Tclose(f_type);
 }

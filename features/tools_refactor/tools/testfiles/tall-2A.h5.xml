@@ -41,8 +41,10 @@
       </hdf5:DataType>
       <hdf5:Data>
          <hdf5:DataFromFile>
-         0 1
-         2 3
+         0
+         1
+         2
+         3
          </hdf5:DataFromFile>
       </hdf5:Data>
    </hdf5:Attribute>

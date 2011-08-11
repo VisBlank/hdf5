@@ -1852,8 +1852,11 @@ xml_dump_data(hid_t obj_id, int obj_data, struct subset_t UNUSED * sset, int UNU
             status = xml_print_strs(obj_id, DATASET_DATA);
         } 
         else {
-            h5tools_context_t datactx = *(&ctx);            /* print context  */
+            h5tools_context_t datactx;
+            memset(&datactx, 0, sizeof(datactx));
             datactx.need_prefix = TRUE;
+            datactx.indent_level = ctx.indent_level;
+            datactx.cur_column = ctx.cur_column;
             status = h5tools_dump_dset(stdout, outputformat, &datactx, obj_id, -1, NULL);
         }
     } 
@@ -1898,8 +1901,11 @@ xml_dump_data(hid_t obj_id, int obj_data, struct subset_t UNUSED * sset, int UNU
             assert(buf);
             
             if (H5Aread(obj_id, p_type, buf) >= 0) {
-                h5tools_context_t datactx = *(&ctx);            /* print context  */
+                h5tools_context_t datactx;
+                memset(&datactx, 0, sizeof(datactx));
                 datactx.need_prefix = TRUE;
+                datactx.indent_level = ctx.indent_level;
+                datactx.cur_column = ctx.cur_column;
                 status = h5tools_dump_mem(stdout, outputformat, &datactx, obj_id, p_type, space, buf);
             }
             /* Reclaim any VL memory, if necessary */
