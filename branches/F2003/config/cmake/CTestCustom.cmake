@@ -20,8 +20,16 @@ SET (CTEST_CUSTOM_MEMCHECK_IGNORE
     error_test       #uses runTest.cmake
     err_compat       #uses runTest.cmake
     links_env        #uses runTest.cmake
+    h5test-clear-testhdf5-objects
     h5test-clear-objects
-    h5perform-clear-objects
+    h5test-clear-cache-objects
+    h5test-clear-cache_api-objects
+    h5test-clear-cache_tagging-objects
+    h5test-clear-ttsafe-objects
+    h5test-clear-err_compat-objects
+    h5test-clear-error_test-objects
+    h5test-clear-links_env-objects
+    PERFORM_h5perform-clear-objects
     hl_test-clear-objects
     hl_fortran_test-clear-objects
     ######### tools/h5copy #########

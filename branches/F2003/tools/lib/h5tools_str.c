@@ -1001,7 +1001,7 @@ h5tools_str_sprint(h5tools_str_t *str, const h5tool_format_t *info, hid_t contai
             H5O_info_t oi;
             const char *path;
 
-            obj = H5Rdereference(container, H5R_OBJECT, vp);
+            obj = H5Rdereference2(container, H5P_DEFAULT, H5R_OBJECT, vp);
             H5Oget_info(obj, &oi);
 
             /* Print object type and close object */
@@ -1042,6 +1042,7 @@ h5tools_str_sprint(h5tools_str_t *str, const h5tool_format_t *info, hid_t contai
     else if (H5Tget_class(type) == H5T_ARRAY) {
         int k, ndims;
         hsize_t i, dims[H5S_MAX_RANK], temp_nelmts;
+        static int is_next_arry_elmt=0;
 
         /* Get the array's base datatype for each element */
         memb = H5Tget_super(type);
@@ -1077,12 +1078,31 @@ h5tools_str_sprint(h5tools_str_t *str, const h5tool_format_t *info, hid_t contai
                 for (x = 0; x < ctx->indent_level + 1; x++)
                     h5tools_str_append(str, "%s", OPT(info->line_indent, ""));
             } /* end if */
-            else if (i && info->arr_sep)
-                h5tools_str_append(str, " ");
+            else if (i && info->arr_sep) {
+                /* if next element begin, add next line with indent */
+                if (is_next_arry_elmt) {
+                    int x;
+                    is_next_arry_elmt = 0;
+
+                    h5tools_str_append(str, "%s", "\n ");
+
+                    if (ctx->indent_level >= 0)
+                        if (!info->pindex)
+                            h5tools_str_append(str, "%s", OPT(info->line_pre, ""));
+
+                    for (x = 0; x < ctx->indent_level + 1; x++)
+                        h5tools_str_append(str, "%s", OPT(info->line_indent, ""));
+                }
+                /* otherwise just add space */
+                else
+                    h5tools_str_append(str, " ");
+                
+            } /* end else if */
 
             ctx->indent_level++;
 
-            /* Dump the array element */
+            /* Dump values in an array element */
+            is_next_arry_elmt = 0; /* dump all values in the array element, so turn it off */
             h5tools_str_sprint(str, info, container, memb, cp_vp + i * size, ctx);
 
             ctx->indent_level--;
@@ -1090,6 +1110,7 @@ h5tools_str_sprint(h5tools_str_t *str, const h5tool_format_t *info, hid_t contai
 
         /* Print the closing bracket */
         h5tools_str_append(str, "%s", OPT(info->arr_suf, "]"));
+        is_next_arry_elmt = 1; /* set for begining of next array element */
         H5Tclose(memb);
     }
     else if (H5Tget_class(type) == H5T_VLEN) {
@@ -1170,7 +1191,7 @@ h5tools_str_sprint_region(h5tools_str_t *str, const h5tool_format_t *info,
     char    ref_name[1024];
     H5S_sel_type region_type;
 
-    obj = H5Rdereference(container, H5R_DATASET_REGION, vp);
+    obj = H5Rdereference2(container, H5P_DEFAULT, H5R_DATASET_REGION, vp);
     if (obj >= 0) {
         region = H5Rget_region(container, H5R_DATASET_REGION, vp);
         if (region >= 0) {

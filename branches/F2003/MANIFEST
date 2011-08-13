@@ -105,7 +105,6 @@
 ./config/linux-gnulibc1
 ./config/linux-gnulibc2
 ./config/lt_vers.am
-./config/mpich
 ./config/nec-superux14.1
 ./config/Makefile.am.blank
 ./config/pgi-fflags
@@ -309,24 +308,7 @@
 ./fortran/src/README_DEVELOPEMENT   _DO_NOT_DISTRIBUTE_
 ./fortran/src/h5fc.in
 ./fortran/src/hdf5_fortrandll.def
-./fortran/src/H5_ff_F03.f90
-./fortran/src/H5_ff_F90.f90
-./fortran/src/H5Aff_F90.f90
-./fortran/src/H5Dff_F90.f90
-./fortran/src/H5Eff_F90.f90
-./fortran/src/H5Lff_F90.f90
-./fortran/src/H5Off_F90.f90
-./fortran/src/H5Pff_F90.f90
-./fortran/src/H5Rff_F90.f90
-./fortran/src/H5Tff_F90.f90
-./fortran/src/H5Dff_F03.f90
-./fortran/src/H5Eff_F03.f90
-./fortran/src/H5Lff_F03.f90
-./fortran/src/H5Pff_F03.f90
-./fortran/src/H5Rff_F03.f90
-./fortran/src/H5Tff_F03.f90
-./fortran/src/H5Aff_F03.f90
-./fortran/src/H5Off_F03.f90
+./fortran/src/phdf5_fortrandll.def
 
 ./fortran/test/Makefile.am
 ./fortran/test/Makefile.in
@@ -633,6 +615,7 @@
 ./src/H5EAtest.c
 ./src/H5F.c
 ./src/H5Faccum.c
+./src/H5Fcwfs.c
 ./src/H5Fdbg.c
 ./src/H5Fdeprec.c
 ./src/H5Fefc.c
@@ -745,6 +728,7 @@
 ./src/H5HGpkg.h
 ./src/H5HGprivate.h
 ./src/H5HGpublic.h
+./src/H5HGquery.c
 ./src/H5HL.c
 ./src/H5HLcache.c
 ./src/H5HLdbg.c
@@ -1003,6 +987,8 @@
 ./test/mf.c
 ./test/mount.c
 ./test/mtime.c
+./test/multi_file_v16-r.h5
+./test/multi_file_v16-s.h5
 ./test/noencoder.h5
 ./test/ntypes.c
 ./test/ohdr.c
@@ -1154,8 +1140,8 @@
 ./tools/h5import/testfiles/txtuin32.h5
 ./tools/h5import/testfiles/txtuin16.h5
 ./tools/h5import/testfiles/textpfe.conf
-./tools/h5import/testfiles/in64.txt
-./tools/h5import/testfiles/test15.h5
+./tools/h5import/testfiles/textpfe64.txt
+./tools/h5import/testfiles/textpfe.h5
 
 # h5diff sources
 ./tools/h5diff/Makefile.am
@@ -1748,6 +1734,13 @@
 ./tools/h5diff/testfiles/h5diff_627.txt
 ./tools/h5diff/testfiles/h5diff_628.txt
 ./tools/h5diff/testfiles/h5diff_629.txt
+./tools/h5diff/testfiles/h5diff_640.txt
+./tools/h5diff/testfiles/h5diff_641.txt
+./tools/h5diff/testfiles/h5diff_642.txt
+./tools/h5diff/testfiles/h5diff_643.txt
+./tools/h5diff/testfiles/h5diff_644.txt
+./tools/h5diff/testfiles/h5diff_645.txt
+./tools/h5diff/testfiles/h5diff_646.txt
 ./tools/h5diff/testfiles/h5diff_70.txt
 ./tools/h5diff/testfiles/h5diff_700.txt
 ./tools/h5diff/testfiles/h5diff_701.txt
@@ -2059,6 +2052,7 @@
 ./hl/fortran/Makefile.in
 ./hl/fortran/examples/Makefile.am
 ./hl/fortran/examples/Makefile.in
+./hl/fortran/examples/ex_ds1.f90
 ./hl/fortran/examples/exlite.f90
 ./hl/fortran/examples/run-hlfortran-ex.sh.in
 ./hl/fortran/src/H5DSfc.c
@@ -2170,6 +2164,7 @@
 ./config/cmake/mccacheinit.cmake
 ./config/cmake/CTest.cmake
 ./config/cmake/grepTest.cmake
+./config/cmake/prunTest.cmake
 ./config/cmake/runTest.cmake
 ./config/cmake/userblockTest.cmake
 ./config/cmake/vfdTest.cmake
