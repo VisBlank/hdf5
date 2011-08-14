@@ -47,19 +47,19 @@ MODULE H5O_PROVISIONAL
   end enum
 
 
-  TYPE space_t
+  TYPE, BIND(C) :: space_t
      INTEGER(hsize_t) :: total ! Total space for storing object header in file
      INTEGER(hsize_t) :: meta  ! Space within header for object header metadata information
      INTEGER(hsize_t) :: mesg  ! Space within header for actual message information
      INTEGER(hsize_t) :: free  ! Free space within object header
   END TYPE space_t
   
-  TYPE mesg_t
+  TYPE, BIND(C) :: mesg_t
      INTEGER(c_int64_t) :: present ! Flags to indicate presence of message type in header 
      INTEGER(c_int64_t) :: shared  ! Flags to indicate message type is shared in header
   END TYPE mesg_t
   
-  TYPE hdr_t
+  TYPE, BIND(C) :: hdr_t
      INTEGER(c_int) :: version ! Version number of header format in file
                                  ! unsigned version 
      INTEGER(c_int) :: nmesgs  ! Number of object header messages
@@ -73,18 +73,18 @@ MODULE H5O_PROVISIONAL
   END TYPE hdr_t
 
   ! Extra metadata storage for obj & attributes
-  TYPE H5_ih_info_t
+  TYPE, BIND(C) :: H5_ih_info_t
      INTEGER(hsize_t) :: index_size ! btree and/or list
      INTEGER(hsize_t) :: heap_size
   END TYPE H5_ih_info_t
 
-  TYPE meta_size_t
+  TYPE, BIND(C) :: meta_size_t
      TYPE(H5_ih_info_t) :: obj  ! v1/v2 B-tree & local/fractal heap for groups, B-tree for chunked datasets
      TYPE(H5_ih_info_t) :: attr ! v2 B-tree & heap for attributes
   ENDTYPE meta_size_t
   
 
-  TYPE H5O_info_t
+  TYPE, BIND(C) :: H5O_info_t
      INTEGER(HADDR_T) ::  fileno ! File number that object is located in
                                    ! unsigned long
      INTEGER(HADDR_T) :: addr    ! Object address in file  
@@ -92,14 +92,10 @@ MODULE H5O_PROVISIONAL
                                    ! H5O_type_t          type
      INTEGER(c_int) :: rc        ! Reference count of object
                                    ! unsigned rc
-     INTEGER(c_int) :: atime
-     INTEGER(c_int) :: mtime
-     INTEGER(c_int) :: ctime  
-     INTEGER(c_int) :: btime
-!!$       time_t              atime;          ! Access time
-!!$       time_t              mtime;          ! Modification time
-!!$       time_t              ctime;          ! Change time
-!!$       time_t              btime;          ! Birth time
+     INTEGER(c_int) :: atime    ! Access time
+     INTEGER(c_int) :: mtime    ! Modification time
+     INTEGER(c_int) :: ctime    ! Change time
+     INTEGER(c_int) :: btime    ! Birth time
      INTEGER(hsize_t) :: num_attrs ! # of attributes attached to object
 
      TYPE(hdr_t) :: hdr
