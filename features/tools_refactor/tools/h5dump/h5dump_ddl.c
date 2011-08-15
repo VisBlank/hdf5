@@ -702,11 +702,11 @@ done:
 void
 dump_named_datatype(hid_t tid, const char *name)
 {
-    H5O_info_t  oinfo;
-    unsigned    attr_crt_order_flags;
-    hid_t       tcpl_id;  /* datatype creation property list ID */
-    hsize_t       curr_pos;        /* total data element position   */
-    h5tools_str_t buffer;          /* string into which to render   */
+    H5O_info_t        oinfo;
+    unsigned          attr_crt_order_flags;
+    hid_t             tcpl_id = -1;  /* datatype creation property list ID */
+    hsize_t           curr_pos = 0;        /* total data element position   */
+    h5tools_str_t     buffer;          /* string into which to render   */
     h5tools_context_t ctx;            /* print context  */
     h5tool_format_t  *outputformat = &h5tools_dataformat;
     h5tool_format_t   string_dataformat;

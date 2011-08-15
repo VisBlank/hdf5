@@ -2411,11 +2411,12 @@ dump_dataset_values(hid_t dset)
     char                string_prefix[64];
     static char         fmt_double[16];
     static char         fmt_float[16];
+    hsize_t             curr_pos = 0;        /* total data element position   */
     h5tools_str_t       buffer;          /* string into which to render   */
-    h5tools_context_t   ctx;            /* print context  */
-    hsize_t             curr_pos;        /* total data element position   */
+    h5tools_context_t   ctx;             /* print context  */
     h5tool_format_t     outputformat;
     h5tool_format_t    *info = &ls_dataformat;
+    
     hid_t  f_type = H5Dget_type(dset);
     size_t  size = H5Tget_size(f_type);
 
@@ -2499,7 +2500,7 @@ dump_dataset_values(hid_t dset)
 
     /* Print all the values. */
     h5tools_str_reset(&buffer);
-    h5tools_str_append(&buffer, "    Data:");
+    h5tools_str_append(&buffer, "    Data:\n");
     h5tools_render_element(stdout, info, &ctx, &buffer, &curr_pos, info->line_ncols, 0, 0);
     ctx.need_prefix = TRUE;
     ctx.indent_level = 2;
@@ -2538,18 +2539,24 @@ static herr_t
 list_attr(hid_t obj, const char *attr_name, const H5A_info_t UNUSED *ainfo,
     void UNUSED *op_data)
 {
-    hid_t attr, space, type, p_type;
-    hsize_t size[H5S_MAX_RANK], nelmts = 1;
-    int  ndims, i, n;
-    size_t need;
-    hsize_t     temp_need;
-    void *buf;
-    h5tool_format_t  *info = &ls_dataformat;
-    H5S_class_t space_type;
-    h5tools_context_t ctx;            /* print context  */
-    h5tool_format_t     outputformat;
+    hid_t               attr = -1;
+    hid_t               space = -1;
+    hid_t               type = -1;
+    hid_t               p_type = -1;
+    hsize_t             size[H5S_MAX_RANK];
+    hsize_t             nelmts = 1;
+    hsize_t             temp_need;
+    size_t              need;
+    int                 ndims;
+    int                 i;
+    int                 n;
+    void               *buf;
+    H5S_class_t         space_type;
+    hsize_t             curr_pos = 0;        /* total data element position   */
     h5tools_str_t       buffer;          /* string into which to render   */
-    hsize_t             curr_pos;        /* total data element position   */
+    h5tools_context_t   ctx;             /* print context  */
+    h5tool_format_t    *info = &ls_dataformat;
+    h5tool_format_t     outputformat;
 
     HDmemset(&ctx, 0, sizeof(ctx));
     HDmemset(&buffer, 0, sizeof(h5tools_str_t));

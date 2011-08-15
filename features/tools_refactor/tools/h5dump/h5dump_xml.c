@@ -1774,9 +1774,9 @@ xml_dump_dataspace(hid_t space)
 void
 xml_dump_data(hid_t obj_id, int obj_data, struct subset_t UNUSED * sset, int UNUSED pindex)
 {
-    hid_t               space;
-    hid_t               type;
-    hid_t               p_type;
+    hid_t               space = -1;
+    hid_t               type = -1;
+    hid_t               p_type = -1;
     hsize_t             size[64];
     hsize_t             nelmts = 1;
     int                 ndims;
@@ -1785,7 +1785,7 @@ xml_dump_data(hid_t obj_id, int obj_data, struct subset_t UNUSED * sset, int UNU
     int                 status = -1;
     int                 stdindent = COL;    /* should be 3 */
     void               *buf = NULL;
-    hsize_t             curr_pos;        /* total data element position   */
+    hsize_t             curr_pos = 0;        /* total data element position   */
     h5tools_str_t       buffer;          /* string into which to render   */
     h5tools_context_t   ctx;             /* print context  */
     h5tool_format_t    *outputformat = &xml_dataformat;
@@ -1976,12 +1976,12 @@ herr_t
 xml_dump_attr(hid_t attr, const char *attr_name, const H5A_info_t UNUSED *info,
     void UNUSED * op_data)
 {
-    hid_t           attr_id;
-    hid_t           type;
-    hid_t           space;
-    H5S_class_t     space_type;
-    hsize_t         curr_pos;        /* total data element position   */
-    h5tools_str_t   buffer;          /* string into which to render   */
+    hid_t             attr_id = -1;
+    hid_t             type = -1;
+    hid_t             space = -1;
+    H5S_class_t       space_type;
+    hsize_t           curr_pos = 0;        /* total data element position   */
+    h5tools_str_t     buffer;          /* string into which to render   */
     h5tools_context_t ctx;           /* print context  */
     h5tool_format_t  *outputformat = &xml_dataformat;
     h5tool_format_t   string_dataformat;
@@ -2297,17 +2297,17 @@ xml_dump_attr(hid_t attr, const char *attr_name, const H5A_info_t UNUSED *info,
 void
 xml_dump_named_datatype(hid_t type, const char *name)
 {
-    hsize_t       curr_pos;        /* total data element position   */
-    h5tools_str_t buffer;          /* string into which to render   */
+    hsize_t           curr_pos = 0;        /* total data element position   */
+    h5tools_str_t     buffer;          /* string into which to render   */
     h5tools_context_t ctx;            /* print context  */
     h5tool_format_t  *outputformat = &xml_dataformat;
     h5tool_format_t   string_dataformat;
-    char    *tmp;
-    char    *dtxid;
-    char    *parentxid;
-    char    *t_tmp;
-    char    *t_prefix;
-    char    *t_name;
+    char             *tmp;
+    char             *dtxid;
+    char             *parentxid;
+    char             *t_tmp;
+    char             *t_prefix;
+    char             *t_name;
 
     tmp = (char *)HDmalloc(HDstrlen(prefix) + HDstrlen(name) + 2);
     HDstrcpy(tmp, prefix);
