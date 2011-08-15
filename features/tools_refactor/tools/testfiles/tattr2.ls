@@ -271,19 +271,16 @@ dset                     Dataset {2/2}
 g1                       Group
     Attribute: array {2}
         Type:      [3] 32-bit little-endian integer
-
         Data:  [1,2,3], [4,5,6]
     Attribute: array2D {3, 2}
         Type:      [3] 32-bit little-endian integer
         Data:
-
             (0,0) [1,2,3], [4,5,6],
             (1,0) [7,8,9], [10,11,12],
             (2,0) [13,14,15], [16,17,18]
     Attribute: array3D {4, 3, 2}
         Type:      [3] 32-bit little-endian integer
         Data:
-
             (0,0,0) [1,2,3], [4,5,6],
             (0,1,0) [7,8,9], [10,11,12],
             (0,2,0) [13,14,15], [16,17,18],
@@ -298,19 +295,16 @@ g1                       Group
             (3,2,0) [67,68,69], [70,71,72]
     Attribute: bitfield {2}
         Type:      8-bit bitfield
-
         Data:  0x01, 0x02
     Attribute: bitfield2D {3, 2}
         Type:      8-bit bitfield
         Data:
-
             (0,0) 0x01, 0x02,
             (1,0) 0x03, 0x04,
             (2,0) 0x05, 0x06
     Attribute: bitfield3D {4, 3, 2}
         Type:      8-bit bitfield
         Data:
-
             (0,0,0) 0x01, 0x02,
             (0,1,0) 0x03, 0x04,
             (0,2,0) 0x05, 0x06,
@@ -328,7 +322,6 @@ g1                       Group
                    "a"                +0    8-bit integer
                    "b"                +4    IEEE 64-bit little-endian float
                } 12 bytes
-
         Data:  {1, 2}, {3, 4}
     Attribute: compound2D {3, 2}
         Type:      struct {
@@ -336,7 +329,6 @@ g1                       Group
                    "b"                +4    IEEE 64-bit little-endian float
                } 12 bytes
         Data:
-
             (0,0) {1, 2}, {3, 4},
             (1,0) {5, 6}, {7, 8},
             (2,0) {9, 10}, {11, 12}
@@ -346,7 +338,6 @@ g1                       Group
                    "b"                +4    IEEE 64-bit little-endian float
                } 12 bytes
         Data:
-
             (0,0,0) {1, 2}, {3, 4},
             (0,1,0) {5, 6}, {7, 8},
             (0,2,0) {9, 10}, {11, 12},
@@ -364,7 +355,6 @@ g1                       Group
                    RED              = 0
                    GREEN            = 1
                }
-
         Data:  RED, RED
     Attribute: enum2D {3, 2}
         Type:      enum 32-bit little-endian integer {
@@ -372,7 +362,6 @@ g1                       Group
                    GREEN            = 1
                }
         Data:
-
             (0,0) RED, RED,
             (1,0) RED, RED,
             (2,0) RED, RED
@@ -382,7 +371,6 @@ g1                       Group
                    GREEN            = 1
                }
         Data:
-
             (0,0,0) RED, RED,
             (0,1,0) RED, RED,
             (0,2,0) RED, RED,
@@ -397,19 +385,16 @@ g1                       Group
             (3,2,0) RED, RED
     Attribute: float {2}
         Type:      IEEE 32-bit little-endian float
-
         Data:  1, 2
     Attribute: float2D {3, 2}
         Type:      IEEE 32-bit little-endian float
         Data:
-
             (0,0) 1, 2,
             (1,0) 3, 4,
             (2,0) 5, 6
     Attribute: float3D {4, 3, 2}
         Type:      IEEE 32-bit little-endian float
         Data:
-
             (0,0,0) 1, 2,
             (0,1,0) 3, 4,
             (0,2,0) 5, 6,
@@ -424,19 +409,16 @@ g1                       Group
             (3,2,0) 23, 24
     Attribute: integer {2}
         Type:      32-bit little-endian integer
-
         Data:  1, 2
     Attribute: integer2D {3, 2}
         Type:      32-bit little-endian integer
         Data:
-
             (0,0) 1, 2,
             (1,0) 3, 4,
             (2,0) 5, 6
     Attribute: integer3D {4, 3, 2}
         Type:      32-bit little-endian integer
         Data:
-
             (0,0,0) 1, 2,
             (0,1,0) 3, 4,
             (0,2,0) 5, 6,
@@ -452,13 +434,11 @@ g1                       Group
     Attribute: opaque {2}
         Type:      1-byte opaque type
                (tag = "1-byte opaque type")
-
         Data:  0x01, 0x02
     Attribute: opaque2D {3, 2}
         Type:      1-byte opaque type
                (tag = "1-byte opaque type")
         Data:
-
             (0,0) 0x01, 0x02,
             (1,0) 0x03, 0x04,
             (2,0) 0x05, 0x06
@@ -466,7 +446,6 @@ g1                       Group
         Type:      1-byte opaque type
                (tag = "1-byte opaque type")
         Data:
-
             (0,0,0) 0x01, 0x02,
             (0,1,0) 0x03, 0x04,
             (0,2,0) 0x05, 0x06,
@@ -481,19 +460,16 @@ g1                       Group
             (3,2,0) 0x17, 0x18
     Attribute: string {2}
         Type:      2-byte null-terminated ASCII string
-
         Data:  "ab", "de"
     Attribute: string2D {3, 2}
         Type:      2-byte null-terminated ASCII string
         Data:
-
             (0,0) "ab", "cd",
             (1,0) "ef", "gh",
             (2,0) "ij", "kl"
     Attribute: string3D {4, 3, 2}
         Type:      2-byte null-terminated ASCII string
         Data:
-
             (0,0,0) "ab", "cd",
             (0,1,0) "ef", "gh",
             (0,2,0) "ij", "kl",
@@ -509,13 +485,11 @@ g1                       Group
     Attribute: vlen {2}
         Type:      variable length of
                    32-bit little-endian integer
-
         Data:  (1), (2,3)
     Attribute: vlen2D {3, 2}
         Type:      variable length of
                    32-bit little-endian integer
         Data:
-
             (0,0) (0), (1),
             (1,0) (2,3), (4,5),
             (2,0) (6,7,8), (9,10,11)
@@ -523,7 +497,6 @@ g1                       Group
         Type:      variable length of
                    32-bit little-endian integer
         Data:
-
             (0,0,0) (0), (1),
             (0,1,0) (2), (3),
             (0,2,0) (4), (5),
