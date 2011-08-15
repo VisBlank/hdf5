@@ -1814,10 +1814,10 @@ xml_dump_data(hid_t obj_id, int obj_data, struct subset_t UNUSED * sset, int UNU
         string_dataformat.line_ncols = h5tools_nCols;
     string_dataformat.cmpd_sep = " ";
     string_dataformat.cmpd_pre = "";
-    string_dataformat.cmpd_suf = " ";
+    string_dataformat.cmpd_suf = "";
     string_dataformat.cmpd_end = "";
     string_dataformat.arr_linebreak = 0;
-    string_dataformat.arr_pre = " ";
+    string_dataformat.arr_pre = "";
     outputformat = &string_dataformat;
 
     ctx.need_prefix = TRUE;

@@ -965,8 +965,9 @@ h5tools_str_sprint(h5tools_str_t *str, const h5tool_format_t *info, hid_t contai
         if(info->arr_linebreak) {
             h5tools_str_append(str, "%s", OPT(info->cmpd_end, ""));
             h5tools_str_indent(str, info, ctx);
-            h5tools_str_append(str, "%s", OPT(info->cmpd_suf, "}"));
         }
+        h5tools_str_append(str, "%s", OPT(info->cmpd_suf, "}"));
+
     }
     else if (H5Tget_class(type) == H5T_ENUM) {
         char enum_name[1024];
@@ -1047,7 +1048,7 @@ h5tools_str_sprint(h5tools_str_t *str, const h5tool_format_t *info, hid_t contai
     else if (H5Tget_class(type) == H5T_ARRAY) {
         int k, ndims;
         hsize_t i, dims[H5S_MAX_RANK], temp_nelmts;
-        static int is_next_arry_elmt=0;
+        static int is_next_arry_elmt = 0;
 
         /* Get the array's base datatype for each element */
         memb = H5Tget_super(type);
@@ -1064,8 +1065,7 @@ h5tools_str_sprint(h5tools_str_t *str, const h5tool_format_t *info, hid_t contai
             nelmts = (size_t) temp_nelmts;
         }
         /* Print the opening bracket */
-        if(info->arr_linebreak)
-            h5tools_str_append(str, "%s", OPT(info->arr_pre, "["));
+        h5tools_str_append(str, "%s", OPT(info->arr_pre, "["));
 
         ctx->indent_level++;
 

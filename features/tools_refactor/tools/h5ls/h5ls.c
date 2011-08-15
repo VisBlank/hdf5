@@ -2473,7 +2473,7 @@ dump_dataset_values(hid_t dset)
         outputformat.vlen_suf = NULL;
         outputformat.vlen_end = NULL;
     }
-
+    outputformat.arr_linebreak = 0;
     /* Floating point types should display full precision */
     sprintf(fmt_float, "%%1.%dg", FLT_DIG);
     outputformat.fmt_float = fmt_float;
@@ -2498,12 +2498,13 @@ dump_dataset_values(hid_t dset)
     }
     info = &outputformat;
 
+    ctx.indent_level = 2;
+    ctx.cur_column = curr_pos;
     /* Print all the values. */
     h5tools_str_reset(&buffer);
     h5tools_str_append(&buffer, "    Data:\n");
     h5tools_render_element(stdout, info, &ctx, &buffer, &curr_pos, info->line_ncols, 0, 0);
     ctx.need_prefix = TRUE;
-    ctx.indent_level = 2;
     ctx.cur_column = curr_pos;
     if (h5tools_dump_dset(stdout, info, &ctx, dset, -1, NULL) < 0) {
         h5tools_str_reset(&buffer);
