@@ -2408,15 +2408,16 @@ print_type(h5tools_str_t *buffer, hid_t type, int ind)
 static void
 dump_dataset_values(hid_t dset)
 {
+    char                string_prefix[64];
+    static char         fmt_double[16];
+    static char         fmt_float[16];
+    h5tools_str_t       buffer;          /* string into which to render   */
+    h5tools_context_t   ctx;            /* print context  */
+    hsize_t             curr_pos;        /* total data element position   */
+    h5tool_format_t     outputformat;
+    h5tool_format_t    *info = &ls_dataformat;
     hid_t  f_type = H5Dget_type(dset);
     size_t  size = H5Tget_size(f_type);
-    h5tool_format_t  *info = &ls_dataformat;
-    h5tools_context_t ctx;            /* print context  */
-    char  string_prefix[64];
-    static char         fmt_double[16], fmt_float[16];
-    h5tool_format_t     outputformat;
-    h5tools_str_t       buffer;          /* string into which to render   */
-    hsize_t             curr_pos;        /* total data element position   */
 
     HDmemset(&ctx, 0, sizeof(ctx));
     HDmemset(&buffer, 0, sizeof(h5tools_str_t));
@@ -2465,6 +2466,11 @@ dump_dataset_values(hid_t dset)
         outputformat.cmpd_pre = NULL;
         outputformat.cmpd_suf = NULL;
         outputformat.cmpd_sep = NULL;
+        
+        outputformat.vlen_sep = NULL;
+        outputformat.vlen_pre = NULL;
+        outputformat.vlen_suf = NULL;
+        outputformat.vlen_end = NULL;
     }
 
     /* Floating point types should display full precision */
@@ -2639,6 +2645,11 @@ list_attr(hid_t obj, const char *attr_name, const H5A_info_t UNUSED *ainfo,
         outputformat.cmpd_pre = NULL;
         outputformat.cmpd_suf = NULL;
         outputformat.cmpd_sep = NULL;
+        
+        outputformat.vlen_sep = NULL;
+        outputformat.vlen_pre = NULL;
+        outputformat.vlen_suf = NULL;
+        outputformat.vlen_end = NULL;
 
         info = &outputformat;
 
