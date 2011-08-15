@@ -279,13 +279,13 @@ h5tools_dump_simple_data(FILE *stream, const h5tool_format_t *info, hid_t contai
     unsigned char *mem = (unsigned char*) _mem;
     hsize_t        i;         /*element counter  */
     size_t         size;      /*size of each datum  */
-    hid_t          region_space;
-    hid_t          region_id;
+    hid_t          region_space = -1;
+    hid_t          region_id = -1;
     hbool_t        dimension_break = TRUE;
     H5S_sel_type   region_type;
     size_t         ncols = 80; /*available output width */
     h5tools_str_t  buffer;    /*string into which to render */
-    hsize_t        curr_pos;  /* total data element position   */
+    hsize_t        curr_pos = 0;  /* total data element position   */
     hsize_t        elmt_counter = 0;/*counts the # elements printed.
                                      *I (ptl?) needed something that
                                      *isn't going to get reset when a new
@@ -431,20 +431,20 @@ h5tools_print_region_data_blocks(hid_t region_id,
     hsize_t     *dims1 = NULL;
     hsize_t     *start = NULL;
     hsize_t     *count = NULL;
-    size_t       numelem;
+    hsize_t      blkndx;
     hsize_t      total_size[H5S_MAX_RANK];
     hsize_t      elmtno; /* elemnt index  */
+    hsize_t      curr_pos = 0;
     unsigned int region_flags; /* buffer extent flags */
-    hsize_t      curr_pos;
+    size_t       numelem;
     size_t       jndx;
     int          indx;
     int          type_size;
-    hid_t        mem_space = -1;
-    void        *region_buf = NULL;
-    hsize_t      blkndx;
-    hid_t        sid1 = -1;
     int          ret_value = SUCCEED;
+    hid_t        mem_space = -1;
+    hid_t        sid1 = -1;
     h5tools_context_t ctx;
+    void        *region_buf = NULL;
 
     assert(info);
     assert(cur_ctx);
@@ -602,8 +602,8 @@ h5tools_dump_region_data_blocks(hid_t region_space, hid_t region_id,
     hsize_t      alloc_size;
     hsize_t     *ptdata = NULL;
     int          ndims;
-    hid_t        dtype;
-    hid_t        type_id;
+    hid_t        dtype = -1;
+    hid_t        type_id = -1;
     int          i;
 
     assert(info);
@@ -786,15 +786,15 @@ h5tools_print_region_data_points(hid_t region_space, hid_t region_id,
     hbool_t  dimension_break = TRUE;
     hsize_t *dims1 = NULL;
     hsize_t  elmtno; /* elemnt index  */
-    unsigned int region_flags; /* buffer extent flags */
-    hsize_t  curr_pos;
+    hsize_t  curr_pos = 0;
     hsize_t  total_size[H5S_MAX_RANK];
-    int      indx;
     size_t   jndx;
+    int      indx;
     int      type_size;
+    int      ret_value = SUCCEED;
+    unsigned int region_flags; /* buffer extent flags */
     hid_t    mem_space = -1;
     void    *region_buf = NULL;
-    int      ret_value = SUCCEED;
     h5tools_context_t ctx;
 
     assert(info);
@@ -1859,25 +1859,26 @@ h5tools_print_datatype(FILE *stream, h5tools_str_t *buffer, const h5tool_format_
 {
     HERR_INIT(int, SUCCEED)
     char        *mname;
-    hid_t        mtype, str_type;
+    hid_t        mtype = -1;
+    hid_t        str_type = -1;
+    hid_t        super = -1;
+    hid_t        tmp_type = -1;
     int          snmembers;
-    unsigned     nmembers;
     int          sndims;
+    unsigned     nmembers;
     unsigned     i;
     size_t       size = 0;
+    size_t       ncols = 80; /*available output width */
     hsize_t      dims[H5TOOLS_DUMP_MAX_RANK];
+    hsize_t      curr_pos = 0;        /* total data element position   */
     H5T_str_t    str_pad;
     H5T_cset_t   cset;
     H5T_order_t  order;
     H5T_class_t  type_class;
-    hid_t        super;
-    hid_t        tmp_type;
-    htri_t       is_vlstr = FALSE;
-    const char  *order_s = NULL; /* byte order string */
     H5T_sign_t   sign;           /* sign scheme value */
+    htri_t       is_vlstr = FALSE;
     const char  *sign_s = NULL;  /* sign scheme string */
-    hsize_t      curr_pos;        /* total data element position   */
-    size_t       ncols = 80; /*available output width */
+    const char  *order_s = NULL; /* byte order string */
 
     if((type_class = H5Tget_class(type)) < 0)
         H5E_THROW(FAIL, H5E_tools_min_id_g, "H5Tget_class failed");
@@ -2518,17 +2519,17 @@ h5tools_print_enum(FILE *stream, h5tools_str_t *buffer, const h5tool_format_t *i
     char         **name = NULL;  /*member names                   */
     unsigned char *value = NULL; /*value array                    */
     unsigned char *copy = NULL;  /*a pointer to value array       */
+    unsigned       i;
     unsigned       nmembs = 0;   /*number of members              */
+    int            snmembs;
     int            nchars;       /*number of output characters    */
     hid_t          super = -1;   /*enum base integer type         */
     hid_t          native = -1;  /*native integer datatype        */
     H5T_sign_t     sign_type;    /*sign of value type             */
     size_t         type_size;    /*value type size                */
     size_t         dst_size;     /*destination value type size    */
-    int            snmembs;
-    unsigned       i;
-    hsize_t        curr_pos;        /* total data element position   */
     size_t         ncols = 80; /*available output width */
+    hsize_t        curr_pos = 0;        /* total data element position   */
 
     if (info->line_ncols > 0)
         ncols = info->line_ncols;
@@ -2657,21 +2658,19 @@ void
 h5tools_dump_datatype(FILE *stream, const h5tool_format_t *info,
         h5tools_context_t *ctx, hid_t type)
 {
-    size_t        ncols = 80;      /* available output width        */
     h5tools_str_t buffer;          /* string into which to render   */
-    hsize_t       curr_pos;        /* total data element position   */
+    size_t        ncols = 80;      /* available output width        */
+    hsize_t       curr_pos = ctx->sm_pos;   /* total data element position   */
+                                            /* pass to the prefix in h5tools_simple_prefix the total position
+                                             * instead of the current stripmine position i; this is necessary
+                                             * to print the array indices
+                                             */
 
     /* setup */
     HDmemset(&buffer, 0, sizeof(h5tools_str_t));
 
     if (info->line_ncols > 0)
         ncols = info->line_ncols;
-
-    /* pass to the prefix in h5tools_simple_prefix the total position
-     * instead of the current stripmine position i; this is necessary
-     * to print the array indices
-     */
-    curr_pos = ctx->sm_pos;
 
     ctx->need_prefix = TRUE;
     
@@ -2707,21 +2706,19 @@ void
 h5tools_dump_dataspace(FILE *stream, const h5tool_format_t *info,
         h5tools_context_t *ctx, hid_t type)
 {
-    size_t        ncols = 80;      /* available output width        */
     h5tools_str_t buffer;          /* string into which to render   */
-    hsize_t       curr_pos;        /* total data element position   */
+    size_t        ncols = 80;      /* available output width        */
+    hsize_t       curr_pos = ctx->sm_pos;   /* total data element position   */
+                                            /* pass to the prefix in h5tools_simple_prefix the total position
+                                             * instead of the current stripmine position i; this is necessary
+                                             * to print the array indices
+                                             */
 
     /* setup */
     HDmemset(&buffer, 0, sizeof(h5tools_str_t));
 
     if (info->line_ncols > 0)
         ncols = info->line_ncols;
-
-    /* pass to the prefix in h5tools_simple_prefix the total position
-     * instead of the current stripmine position i; this is necessary
-     * to print the array indices
-     */
-    curr_pos = ctx->sm_pos;
 
     ctx->need_prefix = TRUE;
     
@@ -2758,21 +2755,19 @@ void
 h5tools_dump_oid(FILE *stream, const h5tool_format_t *info,
         h5tools_context_t *ctx, hid_t oid)
 {
-    size_t        ncols = 80;      /* available output width        */
     h5tools_str_t buffer;          /* string into which to render   */
-    hsize_t       curr_pos;        /* total data element position   */
+    size_t        ncols = 80;      /* available output width        */
+    hsize_t       curr_pos = ctx->sm_pos;   /* total data element position   */
+                                            /* pass to the prefix in h5tools_simple_prefix the total position
+                                             * instead of the current stripmine position i; this is necessary
+                                             * to print the array indices
+                                             */
 
     /* setup */
     HDmemset(&buffer, 0, sizeof(h5tools_str_t));
 
     if (info->line_ncols > 0)
         ncols = info->line_ncols;
-
-    /* pass to the prefix in h5tools_simple_prefix the total position
-     * instead of the current stripmine position i; this is necessary
-     * to print the array indices
-     */
-    curr_pos = ctx->sm_pos;
 
     ctx->need_prefix = TRUE;
     h5tools_simple_prefix(stream, info, ctx, curr_pos, 0);
@@ -2838,29 +2833,29 @@ h5tools_dump_dcpl(FILE *stream, const h5tool_format_t *info,
         h5tools_context_t *ctx, hid_t dcpl_id,hid_t type_id, hid_t obj_id)
 {
     int              nfilters;       /* number of filters */
+    int              rank;           /* rank */
+    int              i;
+    unsigned         j;
     unsigned         filt_flags;     /* filter flags */
-    H5Z_filter_t     filtn;          /* filter identification number */
     unsigned         cd_values[20];  /* filter client data values */
-    size_t           cd_nelmts;      /* filter client number of values */
-    char             f_name[256];    /* filter name */
     unsigned         szip_options_mask;
     unsigned         szip_pixels_per_block;
-    hsize_t          chsize[64];     /* chunk size in elements */
-    int              rank;           /* rank */
-    char             name[256];      /* external file name       */
-    off_t            offset;         /* offset of external file     */
-    hsize_t          size;           /* size of external file   */
+    H5Z_filter_t     filtn;          /* filter identification number */
     H5D_fill_value_t fvstatus;
     H5D_alloc_time_t at;
     H5D_fill_time_t  ft;
-    hsize_t          storage_size;
-    haddr_t          ioffset;
-    int              i;
-    unsigned         j;
     size_t        ncols = 80;      /* available output width        */
-    h5tools_str_t buffer;          /* string into which to render   */
-    hsize_t       curr_pos;        /* total data element position   */
+    size_t           cd_nelmts;      /* filter client number of values */
+    off_t            offset;         /* offset of external file     */
+    char             f_name[256];    /* filter name */
+    char             name[256];      /* external file name       */
+    hsize_t          chsize[64];     /* chunk size in elements */
+    hsize_t          size;           /* size of external file   */
+    hsize_t          storage_size;
+    hsize_t       curr_pos = 0;        /* total data element position   */
     hsize_t       elmt_counter = 0;/* counts the # elements printed.*/
+    haddr_t          ioffset;
+    h5tools_str_t buffer;          /* string into which to render   */
 
     /* setup */
     HDmemset(&buffer, 0, sizeof(h5tools_str_t));
@@ -3378,25 +3373,23 @@ void
 h5tools_dump_comment(FILE *stream, const h5tool_format_t *info,
         h5tools_context_t *ctx, hid_t obj_id)
 {
-    size_t  buf_size = 0;
-    ssize_t cmt_bufsize = -1;
-    char   *comment = NULL;
+    char         *comment = NULL;
+    ssize_t       cmt_bufsize = -1;
+    size_t        buf_size = 0;
     size_t        ncols = 80;      /* available output width        */
     h5tools_str_t buffer;          /* string into which to render   */
-    hsize_t       curr_pos;        /* total data element position   */
     hsize_t       elmt_counter = 0;/* counts the # elements printed.*/
+    hsize_t       curr_pos = ctx->sm_pos;   /* total data element position   */
+                                            /* pass to the prefix in h5tools_simple_prefix the total position
+                                             * instead of the current stripmine position i; this is necessary
+                                             * to print the array indices
+                                             */
 
     /* setup */
     HDmemset(&buffer, 0, sizeof(h5tools_str_t));
 
     if (info->line_ncols > 0)
         ncols = info->line_ncols;
-
-    /* pass to the prefix in h5tools_simple_prefix the total position
-     * instead of the current stripmine position i; this is necessary
-     * to print the array indices
-     */
-    curr_pos = ctx->sm_pos;
 
     cmt_bufsize = H5Oget_comment(obj_id, comment, buf_size);
 
@@ -3437,22 +3430,20 @@ h5tools_dump_attribute(FILE *stream, const h5tool_format_t *info,
         h5tools_context_t *ctx, hid_t oid, const char *attr_name, hid_t attr_id, 
         int display_index, int display_char)
 {
-    size_t        ncols = 80;      /* available output width        */
     h5tools_str_t buffer;          /* string into which to render   */
-    hsize_t       curr_pos;        /* total data element position   */
+    size_t        ncols = 80;      /* available output width        */
     hsize_t       elmt_counter = 0;/* counts the # elements printed.*/
+    hsize_t       curr_pos = ctx->sm_pos;   /* total data element position   */
+                                            /* pass to the prefix in h5tools_simple_prefix the total position
+                                             * instead of the current stripmine position i; this is necessary
+                                             * to print the array indices
+                                             */
 
     /* setup */
     HDmemset(&buffer, 0, sizeof(h5tools_str_t));
 
     if (info->line_ncols > 0)
         ncols = info->line_ncols;
-
-    /* pass to the prefix in h5tools_simple_prefix the total position
-     * instead of the current stripmine position i; this is necessary
-     * to print the array indices
-     */
-    curr_pos = ctx->sm_pos;
 
     ctx->need_prefix = TRUE;
     h5tools_simple_prefix(stream, info, ctx, curr_pos, 0);
