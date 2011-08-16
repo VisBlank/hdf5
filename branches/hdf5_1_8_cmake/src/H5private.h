@@ -30,17 +30,17 @@
 
 /* include the pthread header */
 #ifdef H5_HAVE_THREADSAFE
- #ifdef _WIN32
+ #ifdef H5_HAVE_WIN32_API
   #ifndef H5_HAVE_WIN_THREADS
    #ifdef H5_HAVE_PTHREAD_H
     #include <pthread.h>
    #endif /* H5_HAVE_PTHREAD_H */
   #endif /* H5_HAVE_WIN_THREADS */
- #else /* _WIN32 */
+ #else /* H5_HAVE_WIN32_API */
   #ifdef H5_HAVE_PTHREAD_H
    #include <pthread.h>
   #endif /* H5_HAVE_PTHREAD_H */
- #endif /* _WIN32 */
+ #endif /* H5_HAVE_WIN32_API */
 #endif /* H5_HAVE_THREADSAFE */
 
 /*
@@ -150,7 +150,7 @@
 #endif
 
 
-#ifdef _WIN32
+#ifdef H5_HAVE_WIN32_API
 #define WIN32_LEAN_AND_MEAN    /*Exclude rarely-used stuff from Windows headers */
 
 #ifdef H5_HAVE_WINSOCK_H
@@ -160,7 +160,7 @@
 #include <windows.h>
 #include <direct.h>         /* For _getcwd() */
 
-#endif /*_WIN32*/
+#endif /*H5_HAVE_WIN32_API*/
 
 /* H5_inline */
 #ifndef H5_inline

@@ -25,11 +25,11 @@
 #include "hdf5.h"
 
 /* Local macros */
-#ifdef _WIN32
+#ifdef H5_HAVE_VISUAL_STUDIO
 #define HDgetlogin()           Wgetlogin()
-#else /* _WIN32 */
+#else /* H5_HAVE_VISUAL_STUDIO */
 #define HDgetlogin()            getlogin()
-#endif /* _WIN32 */
+#endif /* H5_HAVE_VISUAL_STUDIO */
 
 /*
  * HDF Boolean type.
@@ -122,13 +122,13 @@ static hid_t create_fapl(MPI_Comm comm, MPI_Info info, int acc_type )
 
     /* set parallel access with communicator, using MPI-I/O driver */
     if (acc_type == FACC_MPIO) {
-		ret = H5Pset_fapl_mpio(fapl, comm, info);
+    ret = H5Pset_fapl_mpio(fapl, comm, info);
         assert(ret>=0);
     } /* end if */
 
     /* set parallel access with communicator, using MPI-posix driver */
     if (acc_type == FACC_MPIPOSIX) {
-  		ret = H5Pset_fapl_mpiposix(fapl, comm, use_gpfs);
+      ret = H5Pset_fapl_mpiposix(fapl, comm, use_gpfs);
         assert(ret>=0);
     } /* end if */
 

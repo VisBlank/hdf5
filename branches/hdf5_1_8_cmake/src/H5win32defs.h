@@ -23,7 +23,9 @@
  *
  */
 
-#ifdef _WIN32
+#ifdef H5_HAVE_WIN32_API
+
+#ifdef H5_HAVE_VISUAL_STUDIO
 
 typedef struct _stati64     h5_stat_t;
 typedef __int64             h5_stat_size_t;
@@ -35,8 +37,6 @@ typedef __int64             h5_stat_size_t;
 #define HDfileno(F)         _fileno(F)
 #if _MSC_VER > 1310 /* Newer than VS.NET 2003 */
 #define HDftruncate(F,L)    _chsize_s(F,L)
-#else
-#define HDftruncate(F,L)    chsize(F,L)
 #endif
 #define HDfstat(F,B)        _fstati64(F,B)
 #define HDisatty(F)         _isatty(F)
@@ -64,12 +64,9 @@ struct timezone {
 #define HDgetdrive()        _getdrive()
 #define HDlseek(F,O,W)      _lseeki64(F,O,W)
 #define HDoff_t             __int64
-#define HDmemset(X,C,Z)     memset((void*)(X),C,Z)
 #define HDmkdir(S,M)        _mkdir(S)
 #define HDopen(S,F,M)       _open(S,F|_O_BINARY,M)
 #define HDread(F,M,Z)       _read(F,M,Z)
-#define HDsetvbuf(F,S,M,Z)  setvbuf(F,S,M,(Z>1?Z:2))
-#define HDsleep(S)          Sleep(S*1000)
 #define HDstrcasecmp(A,B)   _stricmp(A,B)
 #define HDstrtoull(S,R,N)   _strtoui64(S,R,N)
 #define HDstrdup(S)         _strdup(S)
@@ -78,6 +75,15 @@ struct timezone {
 #define HDunlink(S)         _unlink(S)
 #define HDvsnprintf(S,N,FMT,A) _vsnprintf(S,N,FMT,A)
 #define HDwrite(F,M,Z)      _write(F,M,Z)
+        
+#endif /* H5_HAVE_VISUAL_STUDIO */
+        
+#ifndef HDftruncate
+  #define HDftruncate(F,L)    chsize(F,L)
+#endif
+#define HDmemset(X,C,Z)     memset((void*)(X),C,Z)
+#define HDsetvbuf(F,S,M,Z)  setvbuf(F,S,M,(Z>1?Z:2))
+#define HDsleep(S)          Sleep(S*1000)
 
 /* Non-POSIX functions */
 
@@ -86,4 +92,4 @@ struct timezone {
 #define HDpthread_self_ulong() ((unsigned long)GetCurrentThreadId())
 
 
-#endif /* _WIN32 */
+#endif /* H5_HAVE_WIN32_API */
