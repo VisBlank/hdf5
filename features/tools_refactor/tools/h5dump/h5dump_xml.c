@@ -1985,6 +1985,8 @@ xml_dump_attr(hid_t attr, const char *attr_name, const H5A_info_t UNUSED *info,
     h5tools_context_t ctx;           /* print context  */
     h5tool_format_t  *outputformat = &xml_dataformat;
     h5tool_format_t   string_dataformat;
+    
+    char *t_aname = xml_escape_the_name(attr_name);
 
     /* setup */
     HDmemset(&buffer, 0, sizeof(h5tools_str_t));
@@ -2009,8 +2011,6 @@ xml_dump_attr(hid_t attr, const char *attr_name, const H5A_info_t UNUSED *info,
 
     string_dataformat.do_escape = display_escape;
     outputformat = &string_dataformat;
-    
-    char *t_aname = xml_escape_the_name(attr_name);
 
     ctx.need_prefix = TRUE;
     h5tools_simple_prefix(stdout, outputformat, &ctx, 0, 0);

@@ -3752,9 +3752,9 @@ h5tools_dump_data(FILE *stream, const h5tool_format_t *info,
     h5tools_str_append(&buffer, "%s %s", h5tools_dump_header_format->databegin, h5tools_dump_header_format->datablockbegin);
     h5tools_render_element(stream, &outputformat, ctx, &buffer, &curr_pos, ncols, 0, 0);
 
-    h5tools_context_t datactx = *ctx;            /* print context  */
     /* Print all the values. */
     if(obj_data) {
+        h5tools_context_t datactx = *ctx;            /* print context  */
         hid_t               f_type = H5Dget_type(obj_id);
 
         if((display_char && H5Tget_size(f_type) == 1) && (H5Tget_class(f_type) == H5T_INTEGER)) {
@@ -3794,6 +3794,7 @@ h5tools_dump_data(FILE *stream, const h5tool_format_t *info,
         H5Tclose(f_type);
     }
     else {
+        h5tools_context_t datactx = *ctx;            /* print context  */
         /* need to call h5tools_dump_mem for the attribute data */
         space = H5Aget_space(obj_id);
         space_type = H5Sget_simple_extent_type(space);
