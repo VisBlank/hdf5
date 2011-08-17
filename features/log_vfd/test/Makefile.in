@@ -93,8 +93,8 @@ am__EXEEXT_1 = testhdf5$(EXEEXT) lheap$(EXEEXT) ohdr$(EXEEXT) \
 	ntypes$(EXEEXT) dangle$(EXEEXT) dtransform$(EXEEXT) \
 	reserved$(EXEEXT) cross_read$(EXEEXT) freespace$(EXEEXT) \
 	mf$(EXEEXT) farray$(EXEEXT) earray$(EXEEXT) btree2$(EXEEXT) \
-	fheap$(EXEEXT) timer_example$(EXEEXT)
-am__EXEEXT_2 = gen_bad_ohdr$(EXEEXT) gen_bogus$(EXEEXT) \
+	fheap$(EXEEXT) timer_example$(EXEEXT) hdfprintf$(EXEEXT) \
+	am__EXEEXT_2 = gen_bad_ohdr$(EXEEXT) gen_bogus$(EXEEXT) \
 	gen_cross$(EXEEXT) gen_deflate$(EXEEXT) gen_filters$(EXEEXT) \
 	gen_new_array$(EXEEXT) gen_new_fill$(EXEEXT) \
 	gen_new_group$(EXEEXT) gen_new_mtime$(EXEEXT) \
@@ -291,6 +291,10 @@ gheap_SOURCES = gheap.c
 gheap_OBJECTS = gheap.$(OBJEXT)
 gheap_LDADD = $(LDADD)
 gheap_DEPENDENCIES = libh5test.la $(LIBHDF5)
+hdprintf_SOURCES = timer.c
+hdprintf_OBJECTS = timer.$(OBJEXT)
+hdprintf_LDADD = $(LDADD)
+hdprintf_DEPENDENCIES = libh5test.la $(LIBHDF5)
 hyperslab_SOURCES = hyperslab.c
 hyperslab_OBJECTS = hyperslab.$(OBJEXT)
 hyperslab_LDADD = $(LDADD)
@@ -437,7 +441,7 @@ SOURCES = $(libh5test_la_SOURCES) accum.c app_ref.c big.c bittests.c \
 	ntypes.c objcopy.c ohdr.c pool.c reserved.c set_extent.c \
 	space_overflow.c stab.c tcheck_version.c $(testhdf5_SOURCES) \
 	testmeta.c timer.c timer_example.c $(ttsafe_SOURCES) unlink.c \
-	vfd.c
+	vfd.c hdfprintf.c
 DIST_SOURCES = $(libh5test_la_SOURCES) accum.c app_ref.c big.c \
 	bittests.c btree2.c cache.c cache_api.c cache_tagging.c \
 	cmpd_dset.c cross_read.c dangle.c dsets.c dt_arith.c \
@@ -452,7 +456,7 @@ DIST_SOURCES = $(libh5test_la_SOURCES) accum.c app_ref.c big.c \
 	links.c links_env.c mf.c mount.c mtime.c ntypes.c objcopy.c \
 	ohdr.c pool.c reserved.c set_extent.c space_overflow.c stab.c \
 	tcheck_version.c $(testhdf5_SOURCES) testmeta.c timer.c \
-	timer_example.c $(ttsafe_SOURCES) unlink.c vfd.c
+	timer_example.c $(ttsafe_SOURCES) unlink.c vfd.c hdfprintf.c
 ETAGS = etags
 CTAGS = ctags
 am__tty_colors = \
@@ -780,7 +784,7 @@ SCRIPT_DEPEND = error_test$(EXEEXT) err_compat$(EXEEXT) links_env$(EXEEXT)
 # the library yet. Move them to the end so that their failure do not block
 # other current library code tests.
 TEST_PROG = testhdf5 lheap ohdr stab gheap cache cache_api cache_tagging \
-           pool accum hyperslab istore bittests dt_arith \
+           hdfprintf pool accum hyperslab istore bittests dt_arith \
            dtypes dsets cmpd_dset filter_fail extend external efc objcopy links unlink \
            big mtime fillval mount flush1 flush2 app_ref enum \
            set_extent ttsafe timer \
