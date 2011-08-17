@@ -1579,9 +1579,9 @@ main(void)
     nerrors += test_windows() < 0        ? 1 : 0;
 
     if(nerrors) {
-	printf("***** %d Virtual File Driver TEST%s FAILED! *****\n",
-		nerrors, nerrors > 1 ? "S" : "");
-	return 1;
+        printf("***** %d Virtual File Driver TEST%s FAILED! *****\n",
+        nerrors, nerrors > 1 ? "S" : "");
+        return 1;
     }
 
     printf("All Virtual File Driver tests passed.\n");
