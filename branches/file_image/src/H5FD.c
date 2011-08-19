@@ -1344,6 +1344,45 @@ done:
 
 
 /*-------------------------------------------------------------------------
+* Function:    H5FD_driver_query
+*
+* Purpose: Similar to H5FD_query(), but intended for cases when we don't
+*          have a file available (e.g. before one is opened). Since we
+*          can't use the file to get the driver, the driver is passed in
+*          as a parameter.
+*
+* Return:  Success:    non-negative
+*          Failure:    negative
+*
+* Programmer:  Jacob Gruber
+*              Wednesday, August 17, 2011
+*
+* Modifications:
+*
+*-------------------------------------------------------------------------
+*/
+int
+H5FD_driver_query(const H5FD_class_t *driver, unsigned long *flags/*out*/)
+{
+    int ret_value=0;
+
+    FUNC_ENTER_NOAPI(H5FD_driver_query, FAIL)
+
+    HDassert(driver);
+    HDassert(flags);
+
+    /* Check for query driver and call it */
+    if(driver->query)
+        ret_value = (driver->query)(NULL, flags);
+    else 
+        *flags=0;
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+}
+
+
+/*-------------------------------------------------------------------------
  * Function:	H5FDalloc
  *
  * Purpose:	Allocates SIZE bytes of memory from the FILE. The memory will

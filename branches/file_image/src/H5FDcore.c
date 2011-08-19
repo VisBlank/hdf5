@@ -680,7 +680,7 @@ H5FD_core_query(const H5FD_t * _file, unsigned long *flags /* out */)
         *flags |= H5FD_FEAT_AGGREGATE_SMALLDATA; /* OK to aggregate "small" raw data allocations */
 
         /* If the backing store is open, a POSIX file handle is available */
-        if(file->fd >= 0 && file->backing_store)
+        if(file && file->fd >= 0 && file->backing_store)
             *flags |= H5FD_FEAT_POSIX_COMPAT_HANDLE; /* VFD handle is POSIX I/O call compatible */
     } /* end if */
 

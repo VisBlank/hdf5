@@ -559,7 +559,7 @@ H5FD_windows_query(const H5FD_t *_file, unsigned long *flags /* out */)
         *flags|=H5FD_FEAT_AGGREGATE_SMALLDATA;	/* OK to aggregate "small" raw data allocations */
 
         /* Check for flags that are set by h5repart */
-        if(file->fam_to_sec2)
+        if(file && file->fam_to_sec2)
             *flags |= H5FD_FEAT_IGNORE_DRVRINFO; /* Ignore the driver info when file is opened (which eliminates it) */
     } /* end if */
 
