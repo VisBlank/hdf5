@@ -289,6 +289,24 @@ H5_DLL herr_t H5Pget_libver_bounds(hid_t plist_id, H5F_libver_t *low,
     H5F_libver_t *high);
 H5_DLL herr_t H5Pset_elink_file_cache_size(hid_t plist_id, unsigned efc_size);
 H5_DLL herr_t H5Pget_elink_file_cache_size(hid_t plist_id, unsigned *efc_size);
+H5_DLL herr_t H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len);
+H5_DLL herr_t H5Pget_file_image(hid_t fapl_id, void **buf_ptr, size_t *buf_len);
+H5_DLL herr_t H5Pset_file_image_callbacks(hid_t fapl_id,
+    void *(*image_malloc)(size_t size, H5_file_image_op_t file_image_op, void *udata),
+    void *(*image_memcpy)(void *dest, const void *src, size_t size, H5_file_image_op_t file_image_op, void *udata),
+    void *(*image_realloc)(void *ptr, size_t size, H5_file_image_op_t file_image_op, void *udata),
+    void  (*image_free)(void *ptr, H5_file_image_op_t file_image_op, void *udata),
+    void *(*udata_copy)(void *udata),
+    void  (*udata_free)(void *udata),
+    void *udata);
+H5_DLL herr_t H5Pget_file_image_callbacks(hid_t fapl_id,
+    void *(**image_malloc)(size_t size, H5_file_image_op_t file_image_op, void *udata),
+    void *(**image_memcpy)(void *dest, const void *src, size_t size, H5_file_image_op_t file_image_op, void *udata),
+    void *(**image_realloc)(void *ptr, size_t size, H5_file_image_op_t file_image_op, void *udata),
+    void  (**image_free)(void *ptr, H5_file_image_op_t file_image_op, void *udata),
+    void *(**udata_copy)(void *udata),
+    void  (**udata_free)(void *udata),
+    void **udata);
 
 /* Dataset creation property list (DCPL) routines */
 H5_DLL herr_t H5Pset_layout(hid_t plist_id, H5D_layout_t layout);
