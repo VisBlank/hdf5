@@ -2101,3 +2101,155 @@ done:
     FUNC_LEAVE_API(ret_value)
 } /* end H5Pget_elink_file_cache_size() */
 
+
+/*-------------------------------------------------------------------------
+ * Function: H5Pset_file_image
+ *
+ * Purpose:
+ *
+ * Return:      Non-negative on success/Negative on failure
+ *
+ * Programmer:  Jacob Gruber
+ *              Thurday, August 11, 2011
+ *
+ *-------------------------------------------------------------------------
+ */
+
+herr_t
+H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len)
+{
+    H5P_genplist_t *fapl;         /* Property list pointer */
+    H5FD_file_image_info_t image_info; /* file image info */
+    herr_t ret_value = SUCCEED;   /* return value */
+    
+    FUNC_ENTER_API(H5Pset_file_image, FAIL)
+    H5TRACE3("e", "i*xz", fapl_id, buf_ptr, buf_len);
+    
+    /* Get the plist structure */
+    if(NULL == (fapl = H5P_object_verify(fapl_id, H5P_FILE_ACCESS)))
+        HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "can't find object for ID")
+        
+    /* Get old image info */
+    if (H5P_get(fapl, H5F_ACS_FILE_IMAGE_INFO_NAME, &image_info) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get old file image pointer")
+        
+    /* Release previous buffer, if it exists */
+    if (image_info.buffer != NULL) {
+        if (image_info.callbacks.image_free)
+            image_info.callbacks.image_free(image_info.buffer, H5_FILE_IMAGE_OP_PROPERTY_LIST_SET, image_info.callbacks.udata);
+        else
+          free(image_info.buffer);
+    } /* end if */  
+    
+    /* If one of the parameters implies an empty buffer, make sure both of them do */
+    if (buf_ptr == NULL || buf_len == 0) {
+        buf_ptr = NULL;
+        buf_len = 0;
+    } /* end if */
+
+    /* Update struct */
+    if(buf_ptr) {
+        /* Allocate memory */
+        if(image_info.callbacks.image_malloc)
+            if(NULL == (image_info.buffer = image_info.callbacks.image_malloc(buf_len,
+                H5_FILE_IMAGE_OP_PROPERTY_LIST_SET, image_info.callbacks.udata)))
+                HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "image malloc callback failed")
+        else
+            if(NULL == (image_info.buffer = H5MM_malloc(buf_len)))
+                HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "unable to allocate memory block")
+
+        /* Copy data */
+        if(image_info.callbacks.image_memcpy)
+            image_info.callbacks.image_memcpy(image_info.buffer, buf_ptr, buf_len,
+                H5_FILE_IMAGE_OP_PROPERTY_LIST_SET, image_info.callbacks.udata);
+        else
+            HDmemcpy(image_info.buffer, buf_ptr, buf_len);
+    } /* end if */
+    else
+        image_info.buffer = NULL;
+
+    image_info.size = buf_len;
+
+    /* Set values */
+    if (H5Pset(fapl_id, H5F_ACS_FILE_IMAGE_INFO_NAME, &image_info) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set file image info")
+
+done:
+    FUNC_LEAVE_API(ret_value)
+} /* end H5Pset_file_image() */
+
+
+/*-------------------------------------------------------------------------
+ * Function: H5Pget_file_image
+ *
+ * Purpose:
+ *
+ * Return:      Non-negative on success/Negative on failure
+ *
+ * Programmer:  Jacob Gruber
+ *              Thurday, August 11, 2011
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5Pget_file_image(hid_t fapl_id, void **buf_ptr, size_t *buf_len)
+{
+    H5P_genplist_t *fapl;         /* Property list pointer */
+    H5FD_file_image_info_t image_info; /* file image info */
+    herr_t ret_value = SUCCEED;   /* return value */
+
+    FUNC_ENTER_API(H5Pget_file_image, FAIL)
+    H5TRACE3("e", "i**x*z", fapl_id, buf_ptr, buf_len);
+
+    /* Get the plist structure */
+    if(NULL == (fapl = H5P_object_verify(fapl_id, H5P_FILE_ACCESS)))
+        HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "can't find object for ID")
+
+    /* Get values */
+    if(H5P_get(fapl, H5F_ACS_FILE_IMAGE_INFO_NAME, &image_info) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get file image info")
+
+    if (buf_len) {
+        /* Set output size */
+        *buf_len = image_info.size;
+
+        /* Copy the image, using callbacks if available */
+        if (buf_ptr) {
+            if(image_info.size) {
+                HDassert(image_info.buffer);
+
+                /* Allocate new space */
+                if (image_info.callbacks.image_malloc)
+                    if(NULL == (*buf_ptr = image_info.callbacks.image_malloc(*buf_len,
+                        H5_FILE_IMAGE_OP_PROPERTY_LIST_GET, image_info.callbacks.udata)))
+                        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "image malloc callback failed")
+                else
+                    if(NULL == (*buf_ptr = H5MM_malloc(*buf_len)))
+                        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "unable to allocate memory block")
+
+                /* Copy Contents */
+                if (image_info.callbacks.image_memcpy)
+                    image_info.callbacks.image_memcpy(*buf_ptr, image_info.buffer, *buf_len,
+                        H5_FILE_IMAGE_OP_PROPERTY_LIST_GET, image_info.callbacks.udata);
+                else
+                    HDmemcpy(*buf_ptr, image_info.buffer, *buf_len);
+            } /* end if */
+            else {
+                *buf_ptr = NULL;
+            } /* end else */
+        } /* end if */
+    } /* end if */
+
+done:
+    FUNC_LEAVE_API(ret_value)
+} /* end H5Pget_file_image */
+
+
+
+
+
+
+
+
+
+

@@ -287,6 +287,17 @@ typedef struct H5FD_free_t {
     struct H5FD_free_t	*next;
 } H5FD_free_t;
 
+/* Define enum for the source of file image callbacks */
+typedef enum {
+    H5_FILE_IMAGE_OP_PROPERTY_LIST_SET,
+    H5_FILE_IMAGE_OP_PROPERTY_LIST_COPY,
+    H5_FILE_IMAGE_OP_PROPERTY_LIST_GET,
+    H5_FILE_IMAGE_OP_PROPERTY_LIST_CLOSE,
+    H5_FILE_IMAGE_OP_FILE_OPEN,
+    H5_FILE_IMAGE_OP_FILE_RESIZE,
+    H5_FILE_IMAGE_OP_FILE_CLOSE,
+} H5_file_image_op_t;
+
 /*
  * The main datatype for each driver. Public fields common to all drivers
  * are declared here and the driver appends private fields in memory.

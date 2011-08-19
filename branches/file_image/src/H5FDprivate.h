@@ -51,6 +51,40 @@ typedef enum {
     OP_WRITE = 2                /* Last file I/O operation was a write */
 } H5FD_file_op_t;
 
+/* Define structure to hold file image callbacks */
+typedef struct {
+    void *(*image_malloc)(size_t size, H5_file_image_op_t file_image_op, void *udata);
+    void *(*image_memcpy)(void *dest, const void *src, size_t size,
+        H5_file_image_op_t file_image_op, void *udata);
+    void *(*image_realloc)(void *ptr, size_t size, H5_file_image_op_t file_image_op, void *udata);
+    void  (*image_free)(void *ptr, H5_file_image_op_t file_image_op, void *udata);
+    void *(*udata_copy)(void *udata);
+    void  (*udata_free)(void *udata);
+    void *udata;
+} H5FD_file_image_callbacks_t;
+
+/* Define structure to hold initial file image and other relevant information */
+typedef struct {
+    void *buffer;
+    size_t size;
+    H5FD_file_image_callbacks_t callbacks;
+} H5FD_file_image_info_t;
+
+/* Define default file image info */
+#define H5FD__DEFAULT_FILE_IMAGE_INFO { \
+    /* file image buffer */ NULL,   \
+    /* buffer size */       0,      \
+    { /* Callbacks */               \
+        /* image_malloc */     NULL,    \
+        /* image_memcpy */     NULL,    \
+        /* image_realloc */   NULL,     \
+        /* image_free */       NULL,    \
+        /* udata_copy */ NULL,          \
+        /* udata_free */ NULL,          \
+        /* udata */      NULL,          \
+    }                               \
+}
+
 
 /*****************************/
 /* Library Private Variables */
