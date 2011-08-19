@@ -850,14 +850,14 @@ h5tools_str_sprint(h5tools_str_t *str, const h5tool_format_t *info, hid_t contai
     else if (H5Tequal(type, H5T_NATIVE_LONG)) {
         HDmemcpy(&templong, vp, sizeof(long));
         if(packed_bits_num) {
-                templong = (templong >> packed_data_offset) & packed_data_mask;
+            templong = (templong >> packed_data_offset) & packed_data_mask;
         }
         h5tools_str_append(str, OPT(info->fmt_long, "%ld"), templong);
     }
     else if (H5Tequal(type, H5T_NATIVE_ULONG)) {
         HDmemcpy(&tempulong, vp, sizeof(unsigned long));
         if(packed_bits_num) {
-                tempulong = (tempulong >> packed_data_offset) & packed_data_mask;
+            tempulong = (tempulong >> packed_data_offset) & packed_data_mask;
         }
         h5tools_str_append(str, OPT(info->fmt_ulong, "%lu"), tempulong);
     }
