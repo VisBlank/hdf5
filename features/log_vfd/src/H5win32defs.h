@@ -67,7 +67,18 @@ H5_DLL int H5_get_win32_times(H5_timevals_t *tvs);
 #define HDstat(S,B)         _stati64(S,B)
 #define HDgetcwd(S,Z)       _getcwd(S,Z)
 #define HDgetdcwd(D,S,Z)    _getdcwd(D,S,Z)
+
+#ifdef __cplusplus
+        extern "C" {
+#endif /* __cplusplus */
+        H5_DLL int Wgettimeofday(struct timeval *tv, struct timezone *tz);
+        H5_DLL char* Wgetlogin();
+#ifdef __cplusplus
+        }
+#endif /* __cplusplus */
 #define HDgettimeofday(V,Z) Wgettimeofday(V,Z)
+#define HDgetlogin() Wgetlogin()
+
 #define HDgetdrive()        _getdrive()
 #define HDlseek(F,O,W)      _lseeki64(F,O,W)
 #define HDoff_t             __int64
