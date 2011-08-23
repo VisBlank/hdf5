@@ -1,12 +1,3 @@
-!****h* root/fortran/test/tH5F.f90
-!
-! NAME
-!  tH5F.f90
-!
-! FUNCTION
-!  Basic testing of Fortran H5F APIs.
-!
-! COPYRIGHT
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
@@ -22,15 +13,15 @@
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-! CONTAINS SUBROUTINES
-!  mountingtest, reopentest, plisttest, file_close, file_space
 !
-!*****
 !
-!  In the mountingtest subroutine we create one file with a group in it, 
-!  and another file with a dataset. Mounting is used to
-!  access the dataset from the second file as a member of a group 
-!  in the first file. 
+!    Testing File Interface functionality.
+!
+!    In the mountingtest subroutine we create one file with a group in it,
+!    and another file with a dataset. Mounting is used to
+!    access the dataset from the second file as a member of a group
+!    in the first file.
+!
         SUBROUTINE mountingtest(cleanup, total_error)
         USE HDF5  ! This module contains all necessary modules
           IMPLICIT NONE

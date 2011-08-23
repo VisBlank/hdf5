@@ -1,12 +1,3 @@
-!****h* root/fortran/test/tH5P.f90
-!
-! NAME
-!  tH5P.f90
-!
-! FUNCTION
-!  Basic testing of Fortran H5P APIs.
-!
-! COPYRIGHT
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
@@ -22,11 +13,6 @@
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-! CONTAINS SUBROUTINES
-!  external_test, multi_file_test
-!
-!*****
-
     SUBROUTINE external_test(cleanup, total_error)
 
 !   This subroutine tests following functionalities:
@@ -245,8 +231,7 @@
           !
           CALL h5pget_cache_f(fapl, mdc_nelmts, rdcc_nelmts, rdcc_nbytes, &
                               rdcc_w0, error)
-               CALL check("h5pget_cache_f", error, total_error)  
-
+               CALL check("h5pget_cache_f", error, total_error)
 
           ! Set cache to some number
           !
@@ -254,6 +239,7 @@
           CALL h5pset_cache_f(fapl, mdc_nelmts, rdcc_nelmts, rdcc_nbytes, &
                               rdcc_w0, error)
                CALL check("h5pset_cache_f", error, total_error)
+
           CALL h5fcreate_f(fix_filename, H5F_ACC_TRUNC_F, file_id, error, access_prp = fapl)
               CALL check("h5fcreate_f", error, total_error)
           if(error .ne. 0) then
@@ -262,6 +248,7 @@
              call h5pclose_f(fapl, error)
              return
           endif
+
 
           !
           ! Create the dataspace.
@@ -390,7 +377,7 @@
           CALL check("h5pclose_f", error, total_error)
           IF(cleanup) CALL h5_cleanup_f(filename, H5P_DEFAULT_F, error)
           CALL check("h5_cleanup_f", error, total_error)
-          
+
           IF(cleanup) CALL h5_cleanup_f(filename//'.h5-b', H5P_DEFAULT_F, error)
           CALL check("h5_cleanup_f", error, total_error)
           IF(cleanup) CALL h5_cleanup_f(filename//'.h5-g', H5P_DEFAULT_F, error)
@@ -403,7 +390,7 @@
           CALL check("h5_cleanup_f", error, total_error)
           IF(cleanup) CALL h5_cleanup_f(filename//'.h5-s', H5P_DEFAULT_F, error)
           CALL check("h5_cleanup_f", error, total_error)
-     
+
           RETURN
         END SUBROUTINE multi_file_test
 
@@ -425,14 +412,14 @@
 !                     April 16, 2009
 !-------------------------------------------------------------------------
 !
-SUBROUTINE test_chunk_cache(cleanup, total_error) 
+SUBROUTINE test_chunk_cache(cleanup, total_error)
 
-  USE HDF5 ! This module contains all necessary modules 
-  
+  USE HDF5 ! This module contains all necessary modules
+
   IMPLICIT NONE
   LOGICAL, INTENT(IN)  :: cleanup
   INTEGER, INTENT(OUT) :: total_error
-   
+
   CHARACTER(LEN=14), PARAMETER :: filename="chunk_cache"
   CHARACTER(LEN=80) :: fix_filename
   INTEGER(hid_t) :: fid = -1        ! /* File ID */
@@ -470,7 +457,7 @@ SUBROUTINE test_chunk_cache(cleanup, total_error)
 
   !  Verify that H5Pget_chunk_cache(dapl) returns the same values as are in
   !  the default fapl.
-  ! 
+  !
   CALL H5Pget_cache_f(fapl_def, mdc_nelmts, nslots_1, nbytes_1, w0_1, error)
   CALL check("H5Pget_cache_f", error, total_error)
   CALL H5Pget_chunk_cache_f(dapl1, nslots_4, nbytes_4, w0_4, error)
@@ -527,7 +514,7 @@ SUBROUTINE test_chunk_cache(cleanup, total_error)
   ! /* Create dataset with default dapl */
   CALL H5Dcreate_f(fid, "dset", H5T_NATIVE_INTEGER, sid, dsid, error,  dcpl, H5P_DEFAULT_F,  dapl1)
   CALL check("H5Pcreate_f", error, total_error)
- 
+
   ! /* Retrieve dapl from dataset, verify cache values are the same as on fapl_local */
   CALL H5Dget_access_plist_f(dsid, dapl2, error)
   CALL check("H5Dget_access_plist_f", error, total_error)
@@ -539,7 +526,7 @@ SUBROUTINE test_chunk_cache(cleanup, total_error)
      CALL VERIFYlogical("H5Pget_chunk_cache_f", .TRUE., .FALSE., total_error)
   ENDIF
   CALL H5Pclose_f(dapl2,error); CALL check("H5Pclose_f", error, total_error)
-  
+
   ! Set new values on dapl1.  nbytes will be set to default, so the file
   ! property will override this setting
 
@@ -614,7 +601,7 @@ SUBROUTINE test_chunk_cache(cleanup, total_error)
   CALL check("H5Pset_cache_f", error, total_error)
 
   !  Close and reopen file with new fapl_local
-  
+
   CALL H5Dclose_f(dsid, error); CALL check("H5Dclose_f", error, total_error)
   CALL H5Fclose_f(fid,error); CALL check("h5fclose_f", error, total_error)
 
@@ -624,12 +611,12 @@ SUBROUTINE test_chunk_cache(cleanup, total_error)
   ! Verify that dapl2 retrieved earlier (using values from the old fapl)
   ! sets its values in the new file (test use of H5Dopen2 with a dapl)
   !
-  
+
   CALL h5dopen_f (fid, "dset", dsid, error, dapl2)
   CALL check("h5dopen_f", error, total_error)
-  
+
   CALL H5Pclose_f(dapl2,error); CALL check("H5Pclose_f", error, total_error) ! Close dapl2, to avoid id leak
-  
+
   CALL H5Dget_access_plist_f(dsid, dapl2, error)
   CALL check("H5Dget_access_plist_f", error, total_error)
   CALL H5Pget_chunk_cache_f(dapl2, nslots_4, nbytes_4, w0_4, error)
@@ -667,11 +654,11 @@ SUBROUTINE test_chunk_cache(cleanup, total_error)
 
   CALL H5Dclose_f(dsid, error); CALL check("H5Dclose_f", error, total_error)
   CALL H5Sclose_f(sid,error); CALL check("H5Sclose_f", error, total_error)
-  CALL H5Pclose_f(fapl_local,error); CALL check("H5Pclose_f", error, total_error) 
-  CALL H5Pclose_f(fapl_def,error); CALL check("H5Pclose_f", error, total_error) 
-  CALL H5Pclose_f(dapl1,error); CALL check("H5Pclose_f", error, total_error) 
-  CALL H5Pclose_f(dapl2,error); CALL check("H5Pclose_f", error, total_error) 
-  CALL H5Pclose_f(dcpl,error); CALL check("H5Pclose_f", error, total_error) 
+  CALL H5Pclose_f(fapl_local,error); CALL check("H5Pclose_f", error, total_error)
+  CALL H5Pclose_f(fapl_def,error); CALL check("H5Pclose_f", error, total_error)
+  CALL H5Pclose_f(dapl1,error); CALL check("H5Pclose_f", error, total_error)
+  CALL H5Pclose_f(dapl2,error); CALL check("H5Pclose_f", error, total_error)
+  CALL H5Pclose_f(dcpl,error); CALL check("H5Pclose_f", error, total_error)
   CALL H5Fclose_f(fid,error); CALL check("H5Fclose_f", error, total_error)
 
   IF(cleanup) CALL h5_cleanup_f(filename, H5P_DEFAULT_F, error)

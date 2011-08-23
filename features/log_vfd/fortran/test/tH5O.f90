@@ -1,12 +1,3 @@
-!****h* root/fortran/test/tH5O.f90
-!
-! NAME
-!  tH5O.f90
-!
-! FUNCTION
-!  Basic testing of Fortran H5O APIs.
-!
-! COPYRIGHT
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
@@ -22,11 +13,6 @@
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-! CONTAINS SUBROUTINES
-!  test_h5o, test_h5o_link, test_h5o_plist
-!
-!*****
-
 SUBROUTINE test_h5o(cleanup, total_error)
   USE HDF5 ! This module contains all necessary modules
 

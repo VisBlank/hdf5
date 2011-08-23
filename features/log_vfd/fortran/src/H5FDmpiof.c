@@ -1,10 +1,4 @@
-/****h* H5FDmpiof/H5FDmpiof
- *
- * PURPOSE
- *   This file contains C stubs for Parallel Fortran APIs
- *
- * COPYRIGHT
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Copyright by The HDF Group.                                               *
  * Copyright by the Board of Trustees of the University of Illinois.         *
  * All rights reserved.                                                      *
@@ -17,10 +11,9 @@
  * is linked from the top-level documents page.  It can also be found at     *
  * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
  * access to either file, you may request a copy from help@hdfgroup.org.     *
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *
- ******
-*/
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+/* This files contains C stubs for Parallel Fortran APIs */
 
 #include "H5f90.h"
 #include <mpi.h>
@@ -37,28 +30,20 @@
 #define MPI_Info_f2c(info) (MPI_Info)(info)
 #endif /*MPI Info*/
 
-/****if* H5FDmpiof/h5pset_fapl_mpio_c
- * NAME
- *        h5pset_fapl_mpio_c
- * PURPOSE
- *     Call H5Pset_fapl_mpio to set mode for parallel I/O and the user
+/*----------------------------------------------------------------------------
+ * Name:        h5pset_fapl_mpio_c
+ * Purpose:     Call H5Pset_fapl_mpio to set mode for parallel I/O and the user
  *              supplied communicator and info object
- * INPUTS
- *      prp_id - property list identifier
+ * Inputs:      prp_id - property list identifier
  *              comm   - MPI communicator
  *              info   - MPI info object
- * RETURNS
- *     0 on success, -1 on failure
- * AUTHOR
- *  Elena Pourmal
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  Elena Pourmal
  *              Thursday, October 26, 2000
- * HISTORY
- *
- * SOURCE
-*/
+ * Modifications:
+ *---------------------------------------------------------------------------*/
 int_f
 nh5pset_fapl_mpio_c(hid_t_f *prp_id, int_f* comm, int_f* info)
-/******/
 {
      int ret_value = -1;
      hid_t c_prp_id;
@@ -77,27 +62,20 @@ nh5pset_fapl_mpio_c(hid_t_f *prp_id, int_f* comm, int_f* info)
      ret_value = 0;
      return ret_value;
 }
-/****if* H5FDmpiof/h5pget_fapl_mpio_c
- * NAME
- *        h5pget_fapl_mpio_c
- * PURPOSE
- *     Call H5Pget_fapl_mpio to retrieve communicator and info object
- * INPUTS
- *      prp_id - property list identifier
+
+/*----------------------------------------------------------------------------
+ * Name:        h5pget_fapl_mpio_c
+ * Purpose:     Call H5Pget_fapl_mpio to retrieve communicator and info object
+ * Inputs:      prp_id - property list identifier
  *              comm   - buffer to return MPI communicator
  *              info   - buffer to return MPI info object
- * RETURNS
- *     0 on success, -1 on failure
- * AUTHOR
- *  Elena Pourmal
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  Elena Pourmal
  *              Thursday, October 26, 2000
- * HISTORY
- *
- * SOURCE
-*/
+ * Modifications:
+ *---------------------------------------------------------------------------*/
 int_f
 nh5pget_fapl_mpio_c(hid_t_f *prp_id, int_f* comm, int_f* info)
-/******/
 {
      int ret_value = -1;
      hid_t c_prp_id;
@@ -116,27 +94,19 @@ nh5pget_fapl_mpio_c(hid_t_f *prp_id, int_f* comm, int_f* info)
      ret_value = 0;
      return ret_value;
 }
-/****if* H5FDmpiof/h5pset_dxpl_mpio_c
- * NAME
- *        h5pset_dxpl_mpio_c
- * PURPOSE
- *     Call H5Pset_dxpl_mpio to set transfer mode of the dataset
+/*----------------------------------------------------------------------------
+ * Name:        h5pset_dxpl_mpio_c
+ * Purpose:     Call H5Pset_dxpl_mpio to set transfer mode of the dataset
  *              trasfer property list
- * INPUTS
- *      prp_id - property list identifier
+ * Inputs:      prp_id - property list identifier
  *              data_xfer_mode - transfer mode
- * RETURNS
- *     0 on success, -1 on failure
- * AUTHOR
- *  Elena Pourmal
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  Elena Pourmal
  *              Thursday, October 26, 2000
- * HISTORY
- *
- * SOURCE
-*/
+ * Modifications:
+ *---------------------------------------------------------------------------*/
 int_f
 nh5pset_dxpl_mpio_c(hid_t_f *prp_id, int_f* data_xfer_mode)
-/******/
 {
      int ret_value = -1;
      hid_t c_prp_id;
@@ -167,27 +137,19 @@ nh5pset_dxpl_mpio_c(hid_t_f *prp_id, int_f* data_xfer_mode)
      return ret_value;
 }
 
-/****if* H5FDmpiof/h5pget_dxpl_mpio_c
- * NAME
- *        h5pget_dxpl_mpio_c
- * PURPOSE
- *     Call H5Pget_dxpl_mpio to get transfer mode of the dataset
+/*----------------------------------------------------------------------------
+ * Name:        h5pget_dxpl_mpio_c
+ * Purpose:     Call H5Pget_dxpl_mpio to get transfer mode of the dataset
  *              trasfer property list
- * INPUTS
- *      prp_id - property list identifier
+ * Inputs:      prp_id - property list identifier
  *              data_xfer_mode  - buffer to retrieve transfer mode
- * RETURNS
- *     0 on success, -1 on failure
- * AUTHOR
- *  Elena Pourmal
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  Elena Pourmal
  *              Thursday, June 15, 2000
- * HISTORY
- *
- * SOURCE
-*/
+ * Modifications:
+ *---------------------------------------------------------------------------*/
 int_f
 nh5pget_dxpl_mpio_c(hid_t_f *prp_id, int_f* data_xfer_mode)
-/******/
 {
      int ret_value = -1;
      hid_t c_prp_id;
@@ -220,28 +182,20 @@ nh5pget_dxpl_mpio_c(hid_t_f *prp_id, int_f* data_xfer_mode)
      return ret_value;
 }
 
-/****if* H5FDmpiof/h5pset_fapl_mpiposix_c
- * NAME
- *        h5pset_fapl_mpiposix_c
- * PURPOSE
- *     Call H5Pset_fapl_mpiposix to set mode for parallel I/O and the user
+/*----------------------------------------------------------------------------
+ * Name:        h5pset_fapl_mpiposix_c
+ * Purpose:     Call H5Pset_fapl_mpiposix to set mode for parallel I/O and the user
  *              supplied communicator
- * INPUTS
- *      prp_id - property list identifier
+ * Inputs:      prp_id - property list identifier
  *              comm   - MPI communicator
  *              flag   - flag to use GPFS hints
- * RETURNS
- *     0 on success, -1 on failure
- * AUTHOR
- *  Elena Pourmal
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  Elena Pourmal
  *              Tuesday, May 6, 2003
- * HISTORY
- *
- * SOURCE
-*/
+ * Modifications:
+ *---------------------------------------------------------------------------*/
 int_f
 nh5pset_fapl_mpiposix_c(hid_t_f *prp_id, int_f* comm, int_f* flag)
-/******/
 {
      int ret_value = -1;
      hid_t c_prp_id;
@@ -260,28 +214,19 @@ nh5pset_fapl_mpiposix_c(hid_t_f *prp_id, int_f* comm, int_f* flag)
      return ret_value;
 }
 
-/****if* H5FDmpiof/h5pget_fapl_mpiposix_c
- * NAME
- *        h5pget_fapl_mpiposix_c
- * PURPOSE
- *     Call H5Pget_fapl_mpiposix to retrieve communicator and info object
- * INPUTS
- *      prp_id - property list identifier
- * OUTPUTS
- *     comm   - buffer to return MPI communicator
+/*----------------------------------------------------------------------------
+ * Name:        h5pget_fapl_mpiposix_c
+ * Purpose:     Call H5Pget_fapl_mpiposix to retrieve communicator and info object
+ * Inputs:      prp_id - property list identifier
+ * Outputs:     comm   - buffer to return MPI communicator
  *              flag - flag to use GPFS hints
- * RETURNS
- *     0 on success, -1 on failure
- * AUTHOR
- *  Elena Pourmal
+ * Returns:     0 on success, -1 on failure
+ * Programmer:  Elena Pourmal
  *              Tuesday, May 6, 2003
- * HISTORY
- *
- * SOURCE
-*/
+ * Modifications:
+ *---------------------------------------------------------------------------*/
 int_f
 nh5pget_fapl_mpiposix_c(hid_t_f *prp_id, int_f* comm, int_f* flag)
-/******/
 {
      int ret_value = -1;
      hid_t c_prp_id;

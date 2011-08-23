@@ -30,7 +30,7 @@
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
 ! AUTHOR
-!  M. Scot Breitenfeld
+!  M.S. Breitenfeld
 !
 !*****
 

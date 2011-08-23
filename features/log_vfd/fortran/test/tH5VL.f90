@@ -1,12 +1,3 @@
-!****h* root/fortran/test/tH5VL.f90
-!
-! NAME
-!  tH5VL.f90
-!
-! FUNCTION
-!  Basic testing of Fortran Variable_length datatypes APIs.
-!
-! COPYRIGHT
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
@@ -22,11 +13,12 @@
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-! CONTAINS SUBROUTINES
-!  vl_test_integer, vl_test_real, vl_test_string 
 !
-!*****
-
+!
+!    Testing Variable_length datatypes
+!
+!
+!
         SUBROUTINE vl_test_integer(cleanup, total_error)
         USE HDF5 ! This module contains all necessary modules
 
@@ -113,8 +105,7 @@
               CALL check("h5dwrite_int_f", error, total_error)
 
 
-
-          !   
+          !
           ! End access to the dataset and release resources used by it.
           !
           CALL h5dclose_f(dset_id, error)
@@ -162,6 +153,7 @@
                   write(*,*) "h5dread_vl_f returned incorrect data"
               endif
               enddo
+
 
           !
           CALL h5dclose_f(dset_id, error)
