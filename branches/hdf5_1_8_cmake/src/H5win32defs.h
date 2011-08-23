@@ -25,8 +25,6 @@
 
 #ifdef H5_HAVE_WIN32_API
 
-#ifdef H5_HAVE_VISUAL_STUDIO
-
 typedef struct _stati64     h5_stat_t;
 typedef __int64             h5_stat_size_t;
 
@@ -45,6 +43,8 @@ typedef __int64             h5_stat_size_t;
 #define HDgetcwd(S,Z)       _getcwd(S,Z)
 #define HDgetdcwd(D,S,Z)    _getdcwd(D,S,Z)
 
+#ifdef H5_HAVE_VISUAL_STUDIO
+
 struct timezone {
     int tz_minuteswest;
     int tz_dsttime;
@@ -61,6 +61,8 @@ struct timezone {
 #define HDgettimeofday(V,Z) Wgettimeofday(V,Z)
 #define HDgetlogin() Wgetlogin()
 
+#endif /* H5_HAVE_VISUAL_STUDIO */
+
 #define HDgetdrive()        _getdrive()
 #define HDlseek(F,O,W)      _lseeki64(F,O,W)
 #define HDoff_t             __int64
@@ -75,8 +77,6 @@ struct timezone {
 #define HDunlink(S)         _unlink(S)
 #define HDvsnprintf(S,N,FMT,A) _vsnprintf(S,N,FMT,A)
 #define HDwrite(F,M,Z)      _write(F,M,Z)
-        
-#endif /* H5_HAVE_VISUAL_STUDIO */
         
 #ifndef HDftruncate
   #define HDftruncate(F,L)    chsize(F,L)

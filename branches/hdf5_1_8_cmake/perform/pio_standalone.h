@@ -47,9 +47,9 @@
  * And now for a couple non-Posix functions...  Watch out for systems that
  * define these in terms of macros.
  */
-#ifdef H5_HAVE_VISUAL_STUDIO
+#ifdef H5_HAVE_WIN32_API
 #define HDstrdup(S)       _strdup(S)
-#else /* H5_HAVE_VISUAL_STUDIO */
+#else /* H5_HAVE_WIN32_API */
 
 #if !defined strdup && !defined H5_HAVE_STRDUP
 extern char *strdup(const char *s);
@@ -57,7 +57,7 @@ extern char *strdup(const char *s);
 
 #define HDstrdup(S)      strdup(S)
 
-#endif /* H5_HAVE_VISUAL_STUDIO */
+#endif /* H5_HAVE_WIN32_API */
 
 H5_DLL int HDfprintf (FILE *stream, const char *fmt, ...);
 #define HDstrcmp(S,T)    strcmp(S,T)
@@ -75,7 +75,7 @@ H5_DLL int HDfprintf (FILE *stream, const char *fmt, ...);
 #endif
 #define HDclose(F)    close(F)
 
-#ifdef H5_HAVE_VISUAL_STUDIO
+#ifdef H5_HAVE_WIN32_API
 #define HDlseek(F,O,W)    _lseeki64(F,O,W)
 #else
 #define HDlseek(F,O,W)    lseek(F,O,W)
@@ -85,13 +85,13 @@ H5_DLL int HDfprintf (FILE *stream, const char *fmt, ...);
 
 #define HDread(F,M,Z)    read(F,M,Z)
 
-#ifdef H5_HAVE_VISUAL_STUDIO
+#ifdef H5_HAVE_WIN32_API
      #define HDstat(S,B)  _stati64(S,B)
 #else
 #define HDstat(S,B)  stat(S,B)
 #endif
 
-#ifdef H5_HAVE_VISUAL_STUDIO
+#ifdef H5_HAVE_WIN32_API
 #define HDfstat(F,B)    _fstati64(F,B)
 typedef struct _stati64    h5_stat_t;
 typedef __int64              h5_stat_size_t;

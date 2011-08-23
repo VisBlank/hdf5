@@ -138,7 +138,7 @@ typedef struct H5FD_mpiposix_t {
 #   define file_offset_t  off64_t
 #   define file_seek    lseek64
 #   define file_truncate  ftruncate64
-#elif defined (H5_HAVE_VISUAL_STUDIO)
+#elif defined (H5_HAVE_WIN32_API)
 # /*MSVC*/
 #   define file_offset_t __int64
 #   define file_seek _lseeki64

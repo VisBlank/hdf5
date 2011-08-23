@@ -132,7 +132,7 @@ static void
 synchronize (void)
 {
 #ifdef H5_HAVE_SYSTEM
-#if defined(H5_HAVE_VISUAL_STUDIO)
+#if defined(WINDOWS)
     _flushall();
 #else
     HDsystem("sync");

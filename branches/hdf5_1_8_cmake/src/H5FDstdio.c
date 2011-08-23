@@ -114,18 +114,11 @@ typedef struct H5FD_stdio_t {
 } H5FD_stdio_t;
 
 /* Use similar structure as in H5private.h by defining Windows stuff first. */
-#ifdef H5_HAVE_VISUAL_STUDIO
-    #if _MSC_VER > 1310 /* Newer than VS.NET 2003 */
+#ifdef H5_HAVE_WIN32_API
     #   define file_fseek  _fseeki64
     #   define file_offset_t  __int64
     #   define file_ftruncate  _chsize_s   /* Supported in VS 2005 or newer */
     #   define file_ftell  _ftelli64
-    #else
-    #   define file_fseek  fseek
-    #   define file_offset_t  long
-    #   define file_ftruncate  _chsize
-    #   define file_ftell  ftell
-    #endif
 #endif
 
 /* Use file_xxx to indicate these are local macros, avoiding confusing 
