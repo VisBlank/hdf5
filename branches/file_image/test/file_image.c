@@ -1,0 +1,460 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Copyright by The HDF Group.                                               *
+ * Copyright by the Board of Trustees of the University of Illinois.         *
+ * All rights reserved.                                                      *
+ *                                                                           *
+ * This file is part of HDF5.  The full HDF5 copyright notice, including     *
+ * terms governing use, modification, and redistribution, is contained in    *
+ * the files COPYING and Copyright.html.  COPYING can be found at the root   *
+ * of the source code distribution tree; Copyright.html can be found at the  *
+ * root level of an installed copy of the electronic HDF5 document set and   *
+ * is linked from the top-level documents page.  It can also be found at     *
+ * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+ * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+/***********************************************************
+*
+* Test program:  file_image
+*
+* kajkfjsd,lfkjskdlfjds//
+*
+*************************************************************/
+
+#include "h5test.h"
+#include "H5Fprivate.h" /* required to test property removals */
+#define VERIFY(condition, string) if (!(condition)) FAIL_PUTS_ERROR(string)
+
+
+/* Values for callback bit field */
+#define MALLOC      0x01
+#define MEMCPY      0x02
+#define REALLOC     0x04
+#define FREE        0x08
+#define UDATA_COPY  0x10
+#define UDATA_FREE  0x20
+
+typedef struct {
+    unsigned char used_callbacks;       /* Bitfield for tracking calbacks */
+    H5_file_image_op_t malloc_src;  /* Source of callbacks for those that can record it */
+    H5_file_image_op_t memcpy_src;
+    H5_file_image_op_t realloc_src;
+    H5_file_image_op_t free_src;
+} udata_t;
+
+
+/******************************************************************************
+ * Function:    test_properties
+ *
+ * Purpose:     Tests that the file image properties (buffer pointer and length)
+ *              are set properly. Image callbacks are not set in this test.
+ *
+ * Returns:     Success: 0
+ *              Failure: 1
+ *
+ * Programmer:  Jacob Gruber
+ *              Monday, August 22, 2011
+ *
+ ******************************************************************************
+ */
+static int
+test_properties(void)
+{
+    hid_t   fapl_1;
+    hid_t   fapl_2;
+    char    *buffer;
+    int     count = 10; 
+    char    *temp;
+    char    *temp2;
+    int     i;   
+    size_t  size;
+    size_t  temp_size;
+    
+    /* Initialize file image buffer
+     *
+     * Note: this image will not contain a valid HDF5 file, as it complicates testing
+     * property list functions. In the file driver tests further down, this will
+     * not be the case.
+     */
+    size = count * sizeof(char);
+    buffer = (char *)malloc(size);
+    for (i = 0; i < count-1; i++) buffer[i] = 65+i;  buffer[count] = '\0';
+
+    /* Create fapl */
+    fapl_1 = H5Pcreate(H5P_FILE_ACCESS);
+
+    /* Get file image stuff */
+    H5Pget_file_image(fapl_1, NULL, &temp_size);
+    temp = (char *)malloc(temp_size);
+    H5Pget_file_image(fapl_1, (void **) &temp, &temp_size);
+
+    /* Check default values */
+    VERIFY(temp == NULL, "Default pointer is wrong");
+    VERIFY(temp_size == 0, "Default size is wrong");
+
+    /* Set file image stuff */
+    H5Pset_file_image(fapl_1, (void *)buffer, size);
+    
+    /* Get the same */
+    H5Pget_file_image(fapl_1, NULL, &temp_size);
+    temp = (char *)malloc(temp_size);
+    H5Pget_file_image(fapl_1, (void **) &temp, NULL);
+
+
+    /* Check that sizes are the same, and that the buffers are identical but separate */
+    VERIFY(temp != NULL,"temp is null!");
+    VERIFY(temp_size == size,"Sizes of buffers don't match");
+    VERIFY(temp != buffer, "Retrieved buffer is the same as original");
+    VERIFY(0 == memcmp(temp, buffer, size),"Buffers contain different data");
+
+    /* Copy the fapl */
+    fapl_2 = H5Pcopy(fapl_1);
+
+    /* Get values from the new fapl */
+    H5Pget_file_image(fapl_1, NULL, &temp_size);
+    temp2 = (char *)malloc(temp_size);
+    H5Pget_file_image(fapl_2, (void **) &temp2, &temp_size);
+    
+    /* Check that sizes are the same, and that the buffers are identical but separate */
+    VERIFY(temp_size == size,"Sizes of buffers don't match"); 
+    VERIFY(temp2 != NULL,"Recieved buffer not set");
+    VERIFY(temp2 != buffer, "Retrieved buffer is the same as original");
+    VERIFY(temp2 != temp, "Retrieved buffer is the same as previously retrieved buffer");
+    VERIFY(0 == memcmp(temp2, buffer, size),"Buffers contain different data");
+
+    /* Close everything */
+    H5Pclose(fapl_1);
+    H5Pclose(fapl_2);
+    free(buffer);
+    free(temp);
+    free(temp2);
+
+    return 0;
+
+error:
+    return 1; 
+}
+
+/******************************************************************************
+ * Function:    malloc_cb
+ *
+ * Purpose:     This function allows calls to the malloc callback to be tracked.
+ *
+ * Returns:     The result of a standard malloc
+ *
+ * Programmer:  Jacob Gruber
+ *              Monday, August 22, 2011
+ *
+ ******************************************************************************
+ */
+static void *
+malloc_cb(size_t size, H5_file_image_op_t op, void *udata)
+{
+    udata_t *u = (udata_t *)udata;
+    u->used_callbacks |= MALLOC;
+    u->malloc_src = op;
+    return malloc(size);
+}
+
+/******************************************************************************
+ * Function:    memcpy_cb
+ *
+ * Purpose:     This function allows calls to the memcpy callback to be tracked.
+ *
+ * Returns:     The result of a standard memcpy
+ *
+ * Programmer:  Jacob Gruber
+ *              Monday, August 22, 2011
+ *
+ ******************************************************************************
+ */
+static void *
+memcpy_cb(void *dest, const void *src, size_t size, H5_file_image_op_t op, void *udata)
+{
+    udata_t *u = (udata_t *)udata;
+    u->used_callbacks |= MEMCPY;
+    u->memcpy_src = op;
+    return memcpy(dest, src, size);
+}
+
+/******************************************************************************
+ * Function:    realloc_cb
+ *
+ * Purpose:     This function allows calls to the realloc callback to be tracked.
+ *
+ * Returns:     The result of a standard realloc
+ *
+ * Programmer:  Jacob Gruber
+ *              Monday, August 22, 2011
+ *
+ ******************************************************************************
+ */
+static void *
+realloc_cb(void *ptr, size_t size, H5_file_image_op_t op, void *udata)
+{
+    udata_t *u = (udata_t *)udata;
+    u->used_callbacks |= REALLOC;
+    u->realloc_src = op;
+    return realloc(ptr,size);
+}
+
+/******************************************************************************
+ * Function:    free_cb
+ *
+ * Purpose:     This function allows calls to the free callback to be tracked.
+ *
+ * Programmer:  Jacob Gruber
+ *              Monday, August 22, 2011
+ *
+ ******************************************************************************
+ */
+static void
+free_cb(void *ptr, H5_file_image_op_t op, void *udata)
+{
+    udata_t *u = (udata_t *)udata;
+    u->used_callbacks |= FREE;
+    u->free_src = op;
+    free(ptr);
+    return;
+}
+
+/******************************************************************************
+ * Function:    udata_copy_cb
+ *
+ * Purpose:     This function allows calls to the udata_copy callback to be tracked.
+ *              No copying actualy takes place; it is easier to deal with only one
+ *              instance of the udata.
+ *
+ * Returns:     A pointer to the same udata that was passed in.
+ *
+ * Programmer:  Jacob Gruber
+ *              Monday, August 22, 2011
+ *
+ ******************************************************************************
+ */
+static void *
+udata_copy_cb(void *udata)
+{
+    udata_t *u = (udata_t *)udata;
+    u->used_callbacks |= UDATA_COPY;
+    return udata;
+}
+
+/******************************************************************************
+ * Function:    udata_free_cb
+ *
+ * Purpose:     This function allows calls to the udata_free callback to be tracked.
+ *
+ *              Note: this callback doesn't actually do anything. Since the
+ *              udata_copy callback doesn't copy, only one instance of the udata
+ *              is kept alive. It is freed manually at the end of the tests.
+ *
+ * Programmer:  Jacob Gruber
+ *              Monday, August 22, 2011
+ *
+ ******************************************************************************
+ */
+static void
+udata_free_cb(void *udata)
+{
+    udata_t *u = (udata_t *)udata;
+    u->used_callbacks |= UDATA_FREE;
+    return;
+}
+
+/******************************************************************************
+ * Function:    reset_udata
+ *
+ * Purpose:     Resets the udata to default values. This facilitates storing only
+ *              the results of a single operation in the udata.
+ *
+ * Programmer:  Jacob Gruber
+ *              Monday, August 22, 2011
+ *
+ ******************************************************************************
+ */
+static void
+reset_udata(udata_t *u)
+{
+    u->used_callbacks = 0;
+    u->malloc_src = u->memcpy_src = u->realloc_src = u->free_src = H5_FILE_IMAGE_OP_NO_OP;
+}
+
+static int
+test_callbacks(void)
+{
+    hid_t fapl_1;
+    hid_t fapl_2;
+    void *(*image_malloc)(size_t, H5_file_image_op_t, void *);
+    void *(*image_memcpy)(void *, const void *, size_t, H5_file_image_op_t, void *);
+    void *(*image_realloc)(void *, size_t, H5_file_image_op_t, void *);
+    void  (*image_free)(void *, H5_file_image_op_t, void *);
+    void *(*udata_copy)(void *);
+    void  (*udata_free)(void *);
+    udata_t *udata;
+    void *temp_udata;
+    char *file_image;
+    char *temp_file_image;
+    int     count = 10;
+    int     i;
+    size_t size;
+    size_t temp_size;
+
+    /* Allocate and initialize udata */
+    udata = (udata_t *)malloc(sizeof(udata_t));
+    reset_udata(udata);
+
+    /* Allocate and initialize file image buffer */
+    size = count * sizeof(char);
+    file_image = (char *)malloc(size);
+    for (i = 0; i < count-1; i++) file_image[i] = 65+i;
+    file_image[count] = '\0';
+
+    /* Create fapl */
+    fapl_1 = H5Pcreate(H5P_FILE_ACCESS);
+
+    /* Get file image stuff */
+    H5Pget_file_image_callbacks(fapl_1, &image_malloc, &image_memcpy, &image_realloc, &image_free, &udata_copy, &udata_free, (void **)&temp_udata);
+
+    /* Check default values */
+    VERIFY(image_malloc == NULL, "Default malloc callback is wrong");
+    VERIFY(image_memcpy == NULL, "Default memcpy callback is wrong");
+    VERIFY(image_realloc == NULL, "Default realloc callback is wrong");
+    VERIFY(image_free == NULL, "Default free callback is wrong");
+    VERIFY(udata_copy == NULL, "Default udata copy callback is wrong");
+    VERIFY(udata_free == NULL, "Default udata free callback is wrong");
+    VERIFY(temp_udata == NULL, "Default udata is wrong");
+
+    /* Set file image callbacks */
+    H5Pset_file_image_callbacks(fapl_1, &malloc_cb, &memcpy_cb, &realloc_cb, &free_cb, &udata_copy_cb, &udata_free_cb, (void *)udata);
+
+    /* Get file image callbacks */
+    H5Pget_file_image_callbacks(fapl_1, &image_malloc, &image_memcpy, &image_realloc, &image_free, &udata_copy, &udata_free, &temp_udata);
+    
+    /* Verify values */
+    VERIFY(image_malloc == &malloc_cb, "malloc callback was not set or retrieved properly");   
+    VERIFY(image_memcpy == &memcpy_cb, "memcpy callback was not set or retrieved properly");
+    VERIFY(image_realloc == &realloc_cb, "realloc callback was not set or retrieved properly");
+    VERIFY(image_free == &free_cb, "free callback was not set or retrieved properly");
+    VERIFY(udata_copy == &udata_copy_cb, "udata copy callback was not set or retrieved properly");
+    VERIFY(udata_free == &udata_free_cb, "udata free callback was not set or retrieved properly");
+    VERIFY(temp_udata == udata, "udata was not set or retrieved properly");
+    
+    /*
+     * Check callbacks in internal function without a previously set file image
+     */
+
+    /* Copy fapl */
+    reset_udata(udata);
+    fapl_2 = H5Pcopy(fapl_1);
+    
+    /* Verify that the property's copy callback used the correct image callbacks */
+    VERIFY(udata->used_callbacks == (UDATA_COPY), "Copying a fapl with no image used incorrect callbacks");
+
+    /* Close fapl */
+    reset_udata(udata);
+    H5Pclose(fapl_2);
+
+    /* Verify that the udata free callback was used */
+    VERIFY(udata->used_callbacks == (UDATA_FREE), "Closing a fapl with no image used incorrect callbacks");
+
+    /* Copy again */
+    fapl_2 = H5Pcopy(fapl_1);
+    
+    /* Remove property from fapl */
+    reset_udata(udata);
+    H5Premove(fapl_2, H5F_ACS_FILE_IMAGE_INFO_NAME); 
+
+    /* Verify that the property's delete callback was called using the correct image callbacks */
+    VERIFY(udata->used_callbacks == (UDATA_FREE), "Removing a property from a fapl with no image used incorrect callbacks");
+    
+    /* Close it again */
+    H5Pclose(fapl_2);
+
+    /* Get file image */ //unsafe looking. probably should fix.
+    reset_udata(udata);
+    H5Pget_file_image(fapl_1, (void **)&temp_file_image, &temp_size);
+
+    /* Verify that the correct callbacks were used */
+    VERIFY(udata->used_callbacks == 0, "attempting to retrieve the image from a fapl without an image has an unexpected callback");
+
+    /* Set file image */
+    reset_udata(udata);
+    H5Pset_file_image(fapl_1, (void *)file_image, size);
+
+    VERIFY(udata->used_callbacks == (MALLOC | MEMCPY), "Setting a file image (first time) used incorrect callbacks");
+    
+    /*
+     * Check callbacks in internal functions with a previously set file image
+     */
+    
+    /* Copy fapl */
+    reset_udata(udata);
+    fapl_2 = H5Pcopy(fapl_1);
+    
+    /* Verify that the property's copy callback used the correct image callbacks */
+    VERIFY(udata->used_callbacks == (MALLOC | MEMCPY | UDATA_COPY), "Copying a fapl with an image used incorrect callbacks");
+    VERIFY(udata->malloc_src == H5_FILE_IMAGE_OP_PROPERTY_LIST_COPY, "malloc callback has wrong source");
+    VERIFY(udata->memcpy_src == H5_FILE_IMAGE_OP_PROPERTY_LIST_COPY, "memcpy callback has wrong source");
+
+    /* Close fapl */
+    reset_udata(udata);
+    H5Pclose(fapl_2);
+
+    /* Verify that the udata free callback was used */
+    VERIFY(udata->used_callbacks == (FREE|UDATA_FREE), "Closing a fapl with an image used incorrect callbacks");
+    VERIFY(udata->free_src == H5_FILE_IMAGE_OP_PROPERTY_LIST_CLOSE, "free callback has wrong source");
+
+    /* Copy again */
+    fapl_2 = H5Pcopy(fapl_1);
+    
+    /* Remove property from fapl */
+    reset_udata(udata);
+    H5Premove(fapl_2, H5F_ACS_FILE_IMAGE_INFO_NAME); 
+
+    /* Verify that the property's delete callback was called using the correct image callbacks */
+    VERIFY(udata->used_callbacks == (FREE|UDATA_FREE), "Removing a property from a fapl with an image used incorrect callbacks");
+    VERIFY(udata->free_src == H5_FILE_IMAGE_OP_PROPERTY_LIST_CLOSE, "free callback has wrong source");
+    
+    /* Close it again */
+    H5Pclose(fapl_2);
+
+    /* Get file image */ //potentially unsafe if code is modified. Should fix.
+    reset_udata(udata);
+    temp_file_image = (char *)malloc(size);
+    H5Pget_file_image(fapl_1, (void **)&temp_file_image, &temp_size);
+
+    /* Verify that the correct callbacks were used */
+    VERIFY(udata->used_callbacks == (MEMCPY), "attempting to retrieve the image from a fapl with an image has an unexpected callback");
+    VERIFY(udata->memcpy_src == H5_FILE_IMAGE_OP_PROPERTY_LIST_GET, "memcpy callback has wrong source");
+
+    /* Set file image */
+    reset_udata(udata);
+    H5Pset_file_image(fapl_1, (void *)file_image, size);
+
+    VERIFY(udata->used_callbacks == (FREE | MALLOC | MEMCPY), "Setting a file image (second time) used incorrect callbacks");
+    VERIFY(udata->malloc_src == H5_FILE_IMAGE_OP_PROPERTY_LIST_SET, "malloc callback has wrong source");
+    VERIFY(udata->memcpy_src == H5_FILE_IMAGE_OP_PROPERTY_LIST_SET, "memcpy callback has wrong source");
+    VERIFY(udata->free_src == H5_FILE_IMAGE_OP_PROPERTY_LIST_SET, "freec callback has wrong source");
+
+    /* Close stuff */
+    H5Pclose(fapl_1);
+    free(udata);
+
+    return 0;
+
+error:
+    return 1;
+}
+
+
+int
+main(void)
+{
+    int errors = 0;
+
+    errors += test_properties();
+    errors += test_callbacks();
+
+    return errors > 0;
+}
