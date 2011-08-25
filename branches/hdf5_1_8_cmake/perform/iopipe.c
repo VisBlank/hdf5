@@ -132,7 +132,7 @@ static void
 synchronize (void)
 {
 #ifdef H5_HAVE_SYSTEM
-#if defined(WINDOWS)
+#if defined(H5_HAVE_WIN32_API) && ! defined(__CYGWIN__)
     _flushall();
 #else
     HDsystem("sync");

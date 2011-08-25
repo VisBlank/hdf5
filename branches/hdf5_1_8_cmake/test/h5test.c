@@ -34,8 +34,6 @@
 
 #ifdef H5_HAVE_WIN32_API
 #include <process.h>
-#include <direct.h>
-#include <winsock2.h>
 #endif  /* H5_HAVE_WIN32_API */
 
 /*
