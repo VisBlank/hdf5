@@ -109,7 +109,10 @@ int main(int argc, const char **argv)
     h5tools_setstatus(EXIT_SUCCESS);
 
     /* initialize options  */
-    h5repack_init(&options,0);
+    if (h5repack_init(&options,0) < 0) {
+        error_msg("h5repack_init failed!\n");
+        exit(EXIT_FAILURE);
+    }
 
     parse_command_line(argc, argv, &options);
 
@@ -144,7 +147,10 @@ int main(int argc, const char **argv)
     ret=h5repack(infile,outfile,&options);
 
     /* free tables */
-    h5repack_end(&options);
+    if (h5repack_end(&options) < 0) {
+        error_msg("h5repack_end failed!\n");
+        exit(EXIT_FAILURE);
+    }
 
     if (ret==-1)
         return 1;
