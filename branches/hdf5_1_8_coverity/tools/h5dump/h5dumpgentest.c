@@ -465,8 +465,12 @@ static void gent_softlink(void)
 
     fid = H5Fcreate(FILE4, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
     root = H5Gopen2(fid, "/", H5P_DEFAULT);
-    H5Lcreate_soft("somevalue", root, "slink1", H5P_DEFAULT, H5P_DEFAULT);
-    H5Lcreate_soft("linkvalue", root, "slink2", H5P_DEFAULT, H5P_DEFAULT);
+    if(H5Lcreate_soft("somevalue", root, "slink1", H5P_DEFAULT, H5P_DEFAULT)<0) {
+        printf("H5Lcreate_soft failed to create slink1.\n");
+    }
+    if(H5Lcreate_soft("linkvalue", root, "slink2", H5P_DEFAULT, H5P_DEFAULT)<0) {
+        printf("H5Lcreate_soft failed to create slink2.\n");
+    }
 
     H5Gclose(root);
     H5Fclose(fid);
@@ -784,8 +788,12 @@ static void gent_extlink(void)
 
     /* This external link will dangle, but that's okay */
     fid = H5Fcreate(FILE53, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-    H5Lcreate_external("filename", "objname", fid, "extlink1", H5P_DEFAULT, H5P_DEFAULT);
-    H5Lcreate_external("anotherfile", "anotherobj", fid, "extlink2", H5P_DEFAULT, H5P_DEFAULT);
+    if(H5Lcreate_external("filename", "objname", fid, "extlink1", H5P_DEFAULT, H5P_DEFAULT)<0) {
+        printf("Failed to create external link extlink1.\n");
+    }
+    if(H5Lcreate_external("anotherfile", "anotherobj", fid, "extlink2", H5P_DEFAULT, H5P_DEFAULT)<0) {
+        printf("Failed to create external link extlink2.\n");
+    } 
 
     H5Fclose(fid);
 }
@@ -982,7 +990,9 @@ static void gent_compound_dt(void) {       /* test compound data type */
     dataset = H5Dcreate2(group, "dset5", type, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     H5Dwrite(dataset, type2, H5S_ALL, H5S_ALL, H5P_DEFAULT, dset5);
 
-    H5Ldelete(group, "type4", H5P_DEFAULT);
+    if(H5Ldelete(group, "type4", H5P_DEFAULT)<0) {
+        printf("H5Ldelete call failed to delete \"type4\".\n");
+    }
 
     H5Tclose(type);
     H5Tclose(type2);
@@ -1163,7 +1173,9 @@ static void gent_compound_dt2(void) {       /* test compound data type */
     H5Tinsert(type2, "float", HOFFSET(dset5_t, b), H5T_NATIVE_FLOAT);
     H5Dwrite(dataset, type2, H5S_ALL, H5S_ALL, H5P_DEFAULT, dset5);
 
-    H5Ldelete(group, "type4", H5P_DEFAULT);
+    if(H5Ldelete(group, "type4", H5P_DEFAULT)<0) {
+        printf("H5Ldelete call failed to delete \"type4\".\n");
+    }
 
     H5Tclose(type);
     H5Tclose(type2);
@@ -1280,11 +1292,15 @@ static void gent_all(void)
     H5Gclose(group);
 
     /* external link */
-    H5Lcreate_external("somefile", "somepath", fid, "/g1/g1.2/extlink", H5P_DEFAULT, H5P_DEFAULT);
+    if(H5Lcreate_external("somefile", "somepath", fid, "/g1/g1.2/extlink", H5P_DEFAULT, H5P_DEFAULT)<0) {
+        printf("H5Lcreate_soft call failed to create \"slink\".\n");
+    }
 
     /* soft link */
     group = H5Gopen2(fid, "/g1/g1.2/g1.2.1", H5P_DEFAULT);
-    H5Lcreate_soft("somevalue", group, "slink", H5P_DEFAULT, H5P_DEFAULT);
+    if(H5Lcreate_soft("somevalue", group, "slink", H5P_DEFAULT, H5P_DEFAULT)<0) {
+        printf("H5Lcreate_soft call failed to create \"slink\".\n");
+    }
     H5Gclose(group);
 
     group = H5Gopen2(fid, "/g2", H5P_DEFAULT);
@@ -1364,7 +1380,9 @@ static void gent_loop2(void)
     H5Lcreate_hard(fid, "/g2", H5L_SAME_LOC, "/g1/g1.1", H5P_DEFAULT, H5P_DEFAULT);
 
     /* create path from object at /g2 to object at /g1 and name it g2.1 */
-    H5Lcreate_soft("/g1", fid, "/g2/g2.1", H5P_DEFAULT, H5P_DEFAULT);
+    if(H5Lcreate_soft("/g1", fid, "/g2/g2.1", H5P_DEFAULT, H5P_DEFAULT)<0) {
+        printf("H5Lcreate_soft failed to create \"/g2/g2.1\".\n");
+    }
 
     H5Fclose(fid);
 }
@@ -3407,7 +3425,9 @@ void gent_split_file(void)
     int i, j, dset[10][15];
 
     fapl = H5Pcreate(H5P_FILE_ACCESS);
-    H5Pset_fapl_split(fapl, "-m.h5", H5P_DEFAULT, "-r.h5", H5P_DEFAULT);
+    if(H5Pset_fapl_split(fapl, "-m.h5", H5P_DEFAULT, "-r.h5", H5P_DEFAULT)<0) {
+        printf("H5Pset_fapl_split failed to set file extensions.\n");
+    }
     fid = H5Fcreate(FILE34, H5F_ACC_TRUNC, H5P_DEFAULT, fapl);
     root = H5Gopen2(fid, "/", H5P_DEFAULT);
 
@@ -3451,7 +3471,9 @@ void gent_family(void)
 #define FAMILY_SIZE     256
 
     fapl = H5Pcreate(H5P_FILE_ACCESS);
-    H5Pset_fapl_family(fapl, (hsize_t)FAMILY_SIZE, H5P_DEFAULT);
+    if(H5Pset_fapl_family(fapl, (hsize_t)FAMILY_SIZE, H5P_DEFAULT)<0) {
+        printf("H5Pset_fapl_family failed.\n");
+    }
 
     fid = H5Fcreate(FILE35, H5F_ACC_TRUNC, H5P_DEFAULT, fapl);
 
@@ -5247,7 +5269,9 @@ static void gent_filters(void)
  assert(ret >= 0);
 
  tid=H5Tcopy(H5T_NATIVE_INT);
- H5Tset_precision(tid,H5Tget_size(tid)-1);
+ if(H5Tset_precision(tid,H5Tget_size(tid)-1)<0) {
+     printf("H5Tset_precision failed.\n");
+ }
  ret=make_dset(fid,"nbit",sid,tid,dcpl,buf1);
  assert(ret >= 0);
 #endif
@@ -6714,8 +6738,12 @@ gent_extlinks(void)
  sid = H5Screate_simple(1, dims, NULL);
  did = H5Dcreate2(gid, "dset", H5T_NATIVE_INT, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
  H5Dwrite(did, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, buf);
- H5Lcreate_external(FILE61, "/", gid, "elink_t1", H5P_DEFAULT, H5P_DEFAULT);
- H5Lcreate_external(FILE61, "/ext_link4", gid, "elink_t2", H5P_DEFAULT, H5P_DEFAULT);
+ if(H5Lcreate_external(FILE61, "/", gid, "elink_t1", H5P_DEFAULT, H5P_DEFAULT)<0) {
+     printf("Failed to create external link elink_t1.\n");
+ }
+ if(H5Lcreate_external(FILE61, "/ext_link4", gid, "elink_t2", H5P_DEFAULT, H5P_DEFAULT)<0) {
+     printf("Failed to create external link elink_t2.\n");
+ }
 
  gid2 = H5Gcreate2(gid, "subgroup", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
  H5Lcreate_hard(target_fid, "/group", gid2, "link_to_group", H5P_DEFAULT, H5P_DEFAULT);
@@ -6741,17 +6769,29 @@ gent_extlinks(void)
  *-------------------------------------------------------------------------
  */
 
- H5Lcreate_external(FILE62, "group", source_fid, "ext_link1", H5P_DEFAULT, H5P_DEFAULT);
- H5Lcreate_external(FILE62, "dset", source_fid, "ext_link2", H5P_DEFAULT, H5P_DEFAULT);
- H5Lcreate_external(FILE62, "type", source_fid, "ext_link3", H5P_DEFAULT, H5P_DEFAULT);
- H5Lcreate_external(FILE62, "group/elink_t2", source_fid, "ext_link4", H5P_DEFAULT, H5P_DEFAULT);
- H5Lcreate_external(FILE62, "empty_group", source_fid, "ext_link5", H5P_DEFAULT, H5P_DEFAULT);
+ if(H5Lcreate_external(FILE62, "group", source_fid, "ext_link1", H5P_DEFAULT, H5P_DEFAULT)<0) {
+     printf("Failed to create external link ext_link1.\n");
+ }
+ if(H5Lcreate_external(FILE62, "dset", source_fid, "ext_link2", H5P_DEFAULT, H5P_DEFAULT)<0) {
+     printf("Failed to create external link ext_link2.\n");
+ }
+ if(H5Lcreate_external(FILE62, "type", source_fid, "ext_link3", H5P_DEFAULT, H5P_DEFAULT)<0) {
+     printf("Failed to create external link ext_link3.\n");
+ }
+ if(H5Lcreate_external(FILE62, "group/elink_t2", source_fid, "ext_link4", H5P_DEFAULT, H5P_DEFAULT)<0) {
+     printf("Failed to create external link ext_link4.\n");
+ }
+ if(H5Lcreate_external(FILE62, "empty_group", source_fid, "ext_link5", H5P_DEFAULT, H5P_DEFAULT)<0) {
+     printf("Failed to create external link ext_link5.\n");
+ } 
 
 /*-------------------------------------------------------------------------
  * create external link in the "far" file pointing to the source file
  *-------------------------------------------------------------------------
  */
- H5Lcreate_external(FILE61, "/", far_fid, "src_file", H5P_DEFAULT, H5P_DEFAULT);
+ if(H5Lcreate_external(FILE61, "/", far_fid, "src_file", H5P_DEFAULT, H5P_DEFAULT)<0) {
+     printf("Failed to create external link src_file.\n");
+ }
 
  /* close */
  H5Fclose(source_fid);
