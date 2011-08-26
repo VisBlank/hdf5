@@ -3250,12 +3250,14 @@ hid_t H5TB_create_type(hid_t loc_id,
 
     /* error zone */
 out:
-    for(i = 0; i < nfields; i++) {
-        if(fnames[i])
-            free(fnames[i]);
-    }
-    if(fnames)
+    if(fnames) {
+        for(i = 0; i < nfields; i++) {
+            if(fnames[i]) {
+                free(fnames[i]);
+            }
+        }
         free(fnames);
+    }
 
     H5E_BEGIN_TRY {
         H5Tclose(mtype_id);
