@@ -7244,7 +7244,10 @@ xml_print_enum(hid_t type)
 
     /* Convert values to native datatype */
     if (native > 0)
-        H5Tconvert(super, native, nmembs, value, NULL, H5P_DEFAULT);
+        if (H5Tconvert(super, native, nmembs, value, NULL, H5P_DEFAULT) < 0) {
+            error_msg("H5Tconvert failed!\n");
+            return -1;
+        }
 
     /* Sort members by increasing value */
     /*not implemented yet */
