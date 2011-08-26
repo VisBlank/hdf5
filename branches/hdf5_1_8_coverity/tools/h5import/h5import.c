@@ -2140,11 +2140,17 @@ createOutputDataType(struct Input *in)
                 case -1: /* default */
                 break;
                 case 0:
-                  H5Tset_order (new_type,H5T_ORDER_BE);
+                  if (H5Tset_order (new_type,H5T_ORDER_BE) < 0) {
+                    (void) fprintf(stderr, "%s", err1);
+                    return (-1);
+                  }
                 break;
 
                 case 1:
-                  H5Tset_order (new_type,H5T_ORDER_LE);
+                  if (H5Tset_order (new_type,H5T_ORDER_LE) < 0) {
+                    (void) fprintf(stderr, "%s", err1);
+                    return (-1);
+                  }
                 break;
               }
         break;
@@ -2232,11 +2238,17 @@ createOutputDataType(struct Input *in)
                 case -1: /* DEFAULT */
                 break;
                 case 0:
-                  H5Tset_order (new_type,H5T_ORDER_BE);
+                  if (H5Tset_order (new_type,H5T_ORDER_BE) < 0) {
+                    (void) fprintf(stderr, "%s", err1);
+                    return (-1);
+                  }
                 break;
 
                 case 1:
-                  H5Tset_order (new_type,H5T_ORDER_LE);
+                  if (H5Tset_order (new_type,H5T_ORDER_LE) < 0) {
+                    (void) fprintf(stderr, "%s", err1);
+                    return (-1);
+                  }
                 break;
               }
         break;
@@ -2308,11 +2320,17 @@ createOutputDataType(struct Input *in)
                 case -1: /* Default */
                 break;
                 case 0:
-                  H5Tset_order (new_type,H5T_ORDER_BE);
+                  if (H5Tset_order (new_type,H5T_ORDER_BE) < 0) {
+                    (void) fprintf(stderr, "%s", err1);
+                    return (-1);
+                  }
                 break;
 
                 case 1:
-                  H5Tset_order (new_type,H5T_ORDER_LE);
+                  if (H5Tset_order (new_type,H5T_ORDER_LE) < 0) {
+                    (void) fprintf(stderr, "%s", err1);
+                    return (-1);
+                  }
                 break;
               }
             break;
@@ -2589,7 +2607,13 @@ process(struct Options *opt)
         return (-1);
       }
       HDfclose(extfile);
-      H5Pset_external (proplist, in->externFilename, (off_t)0, numOfElements * in->inputSize / 8);
+      if (H5Pset_external (proplist, in->externFilename, (off_t)0, numOfElements * in->inputSize / 8) < 0) {
+        (void) fprintf(stderr, "%s", err4);
+        H5Pclose(proplist);
+        H5Sclose(dataspace);
+        H5Fclose(file_id);
+        return (-1);
+      }
     }
 
     /* create dataspace */
