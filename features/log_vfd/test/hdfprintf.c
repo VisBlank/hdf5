@@ -28,7 +28,11 @@
 
 /* Output file for HDfprintf(). Recycled for all tests.
  */
-#define HDPRINTF_TESTFILE "hdfprintf_TT_tests_out.txt"
+#define HDPRINTF_TESTFILE "hdfprintf_tests_out.txt"
+
+/* Size of lines read back from the output files.
+ */
+#define HDPRINTF_LINE_SIZE 256
 
 
 
@@ -48,52 +52,83 @@
  *
  *-------------------------------------------------------------------------
  */
+#define N_B_LINES 9
+
 static herr_t
 test_B(void)
 {
-    FILE *f = NULL;
+    char std[N_B_LINES][HDPRINTF_LINE_SIZE] = {
+        "N/A\n",
+        "0.0 B/s\n",
+        "100.00 B/s\n",
+        "97.66 kB/s\n",
+        "95.37 MB/s\n",
+        "93.13 GB/s\n",
+        "90.95 TB/s\n",
+        "88.82 PB/s\n",
+        "86.74 EB/s\n"
+    };
+    char line[HDPRINTF_LINE_SIZE];
+    FILE    *f      = NULL;
+    int     i       = -1;
+    int     err     = -1;
+    char    *err_p  = NULL;
 
     f = fopen(HDPRINTF_TESTFILE, "w+");
+    if(NULL == f)
+        TEST_ERROR;
 
-    /* Write representative bandwidths out to a file */
+    /* Write representative bandwidths out to a file
+     *
+     * It's unwise to test what happens at the interval boundaries
+     * due to floating point math issues.  For example, 1 MB/s
+     * might print as 1000 kB/s.
+     *
+     * Equality to zero is ok to test due to special handling
+     * in the library.
+     */
 
-    /* < 0.0 (invalid bandwidth) */
-    HDfprintf(f, "%B\n", -1.0);
-    /* = 0.0 */
-    HDfprintf(f, "%B\n", 0.0);
-    /* < 1 kB/s */
-    HDfprintf(f, "%B\n", 1.0E2);
-    /* = 1 kB/s */
-    HDfprintf(f, "%B\n", 1.0E3);
-    /* < 1 MB/s */
-    HDfprintf(f, "%B\n", 1.0E5);
-    /* = 1 MB/s */
-    HDfprintf(f, "%B\n", 1.0E6);
-    /* < 1 GB/s */
-    HDfprintf(f, "%B\n", 1.0E8);
-    /* = 1 GB/s */
-    HDfprintf(f, "%B\n", 1.0E9);
-    /* < 1 TB/s */
-    HDfprintf(f, "%B\n", 1.0E11);
-    /* = 1 TB/s */
-    HDfprintf(f, "%B\n", 1.0E12);
-    /* < 1 PB/s */
-    HDfprintf(f, "%B\n", 1.0E14);
-    /* = 1 PB/s */
-    HDfprintf(f, "%B\n", 1.0E15);
-    /* < 1 EB/s */
-    HDfprintf(f, "%B\n", 1.0E17);
-    /* = 1 EB/s */
-    HDfprintf(f, "%B\n", 1.0E18);
-    /* > 1 EB/s */
-    HDfprintf(f, "%B\n", 1.0E20);
+    HDfprintf(f, "%B\n", -1.0);         /* < 0.0 (invalid bandwidth) */
+    HDfprintf(f, "%B\n", 0.0);          /* = 0.0 */
+    HDfprintf(f, "%B\n", 1.0E2);        /* < 1 kB/s */
+    HDfprintf(f, "%B\n", 1.0E5);        /* < 1 MB/s */
+    HDfprintf(f, "%B\n", 1.0E8);        /* < 1 GB/s */
+    HDfprintf(f, "%B\n", 1.0E11);       /* < 1 TB/s */
+    HDfprintf(f, "%B\n", 1.0E14);       /* < 1 PB/s */
+    HDfprintf(f, "%B\n", 1.0E17);       /* < 1 EB/s */
+    HDfprintf(f, "%B\n", 1.0E20);       /* > 1 EB/s */
 
     rewind(f);
 
-    fclose(f);
-    remove(HDPRINTF_TESTFILE);
+    for(i = 0; i < N_B_LINES; i++)
+    {
+        err_p = fgets(line, sizeof(line), f);
+        if(NULL == err_p || feof(f) || strncmp(line, std[i], sizeof(line)))
+            TEST_ERROR;
+    }
+
+    /* Make sure that the output file does not have any
+     * more date in it...
+     */
+    fgets(line, sizeof(line), f);
+    if(!feof(f))
+        TEST_ERROR;
+
+    err = fclose(f);
+    if(EOF == err)
+        TEST_ERROR;
+
+    err = remove(HDPRINTF_TESTFILE);
+    if(EOF == err)
+        TEST_ERROR;
 
     return 0;
+
+error:
+    fclose(f);
+    remove(HDPRINTF_TESTFILE);
+    return -1;
+
 }
 
 
@@ -113,48 +148,86 @@ test_B(void)
  *
  *-------------------------------------------------------------------------
  */
+#define N_T_LINES 11
+
 static herr_t
 test_T(void)
 {
-    FILE *f = NULL;
+    char std[N_T_LINES][HDPRINTF_LINE_SIZE] = {
+        "N/A\n",
+        "0.0 s\n",
+        "100 ps\n",
+        "100.0 ns\n",
+        "100.0 us\n",
+        "100.0 ms\n",
+        "59.23 s\n",
+        "59 m 59 s\n",
+        "3 h 2 m 1 s\n",
+        "3 h 2 m 2 s\n",
+        "1 d 1 h 15 m 5 s\n"
+    };
+    char line[HDPRINTF_LINE_SIZE];
+    FILE    *f      = NULL;
+    int     i       = -1;
+    int     err     = -1;
+    char    *err_p  = NULL;
 
     f = fopen(HDPRINTF_TESTFILE, "w+");
+    if(NULL == f)
+        TEST_ERROR;
 
-    /* Write representative times out to a file */
+    /* Write representative times out to a file
+     *
+     * It's unwise to test what happens at the interval boundaries
+     * due to floating point math issues.  For example, 1 s
+     * might print as 1000 ms.
+     *
+     * Equality to zero is ok to test due to special handling
+     * in the library.
+     */
 
-    /* < 0.0 (invalid time) */
-    HDfprintf(f, "%T\n", -1.0);
-    /* = 0.0 */
-    HDfprintf(f, "%T\n", 0.0);
-    /* < 1 us */
-    HDfprintf(f, "%T\n", 1.0E-7);
-    /* = 1 us */
-    HDfprintf(f, "%T\n", 1.0E-6);
-    /* < 1 ms */
-    HDfprintf(f, "%T\n", 1.0E-4);
-    /* = 1 ms */
-    HDfprintf(f, "%T\n", 1.0E-3);
-    /* < 1 s */
-    HDfprintf(f, "%T\n", 1.0);
-    /* = 1 s */
-    HDfprintf(f, "%T\n", 1.0);
-    /* < 1 m */
-    HDfprintf(f, "%T\n", 59.0);
-    /* = 1 m */
-    HDfprintf(f, "%T\n", 60.0);
-    /* < 1 h */
-    HDfprintf(f, "%T\n", 3599.0);
-    /* = 1 h */
-    HDfprintf(f, "%T\n", 3600.0);
-    /* > 1 h */
-    HDfprintf(f, "%T\n", 3601.0);
+    HDfprintf(f, "%T\n", -1.0);         /* < 0.0 (invalid time) */
+    HDfprintf(f, "%T\n", 0.0);          /* = 0.0 */
+    HDfprintf(f, "%T\n", 1.0E-10);      /* < 1 ns (ps) */
+    HDfprintf(f, "%T\n", 1.0E-7);       /* < 1 us */
+    HDfprintf(f, "%T\n", 1.0E-4);       /* < 1 ms */
+    HDfprintf(f, "%T\n", 1.0E-1);       /* < 1 s */
+    HDfprintf(f, "%T\n", 59.23);        /* < 1 m */
+    HDfprintf(f, "%T\n", 3599.456);     /* < 1 h */
+    HDfprintf(f, "%T\n", 10921.476);    /* > 1 h */
+    HDfprintf(f, "%T\n", 10921.876);    /* > 1 h (test rounding)*/
+    HDfprintf(f, "%T\n", 90905.345);    /* >> 1 h */
 
     rewind(f);
 
-    fclose(f);
-    remove(HDPRINTF_TESTFILE);
+    for(i = 0; i < N_T_LINES; i++)
+    {
+        err_p = fgets(line, sizeof(line), f);
+        if(NULL == err_p || feof(f) || strncmp(line, std[i], sizeof(line)))
+            TEST_ERROR;
+    }
+
+    /* Make sure that the output file does not have any
+     * more date in it...
+     */
+    fgets(line, sizeof(line), f);
+    if(!feof(f))
+        TEST_ERROR;
+
+    err = fclose(f);
+    if(EOF == err)
+        TEST_ERROR;
+
+    err = remove(HDPRINTF_TESTFILE);
+    if(EOF == err)
+        TEST_ERROR;
 
     return 0;
+
+error:
+    fclose(f);
+    remove(HDPRINTF_TESTFILE);
+    return -1;
 }
 
 

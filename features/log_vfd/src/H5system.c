@@ -418,7 +418,7 @@ HDfprintf(FILE *stream, const char *fmt, ...)
                     double remainder_sec;
                     double conversion;
 
-                    if (seconds > 60.0F) {
+                    if (seconds >= 60.0F) {
 
                         remainder_sec = seconds;
 
@@ -446,9 +446,12 @@ HDfprintf(FILE *stream, const char *fmt, ...)
                      */
                     else if(fabs(seconds - 0.0F) < DBL_EPSILON)
                         fprintf(stream, "0.0 s");
+                    else if(seconds < 1.0E-9F)
+                        /* t < 1 ns, Print time in ps */
+                        fprintf(stream, "%.f ps", seconds * 1.0E12F);
                     else if(seconds < 1.0E-6F)
                         /* t < 1 us, Print time in ns */
-                        fprintf(stream, "%.f ns", seconds * 1.0E9F);
+                        fprintf(stream, "%.1f ns", seconds * 1.0E9F);
                     else if (seconds < 1.0E-3F)
                         /* t < 1 ms, Print time in us */
                         fprintf(stream, "%.1f us", seconds * 1.0E6F);
@@ -482,7 +485,7 @@ HDfprintf(FILE *stream, const char *fmt, ...)
                     static double peta = 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0;
                     static double exa  = 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0;
 
-                    if(bw <= 0.0F)
+                    if(bw < 0.0F)
                         fprintf(stream, "N/A");
                     else if(fabs(bw - 0.0F) < DBL_EPSILON)
                         fprintf(stream, "0.0 B/s");
@@ -497,7 +500,7 @@ HDfprintf(FILE *stream, const char *fmt, ...)
                     else if(bw < peta)
                         fprintf(stream, "%.2f TB/s", bw / tera);
                     else if(bw < exa)
-                        fprintf(stream, "%.2f TB/s", bw / peta);
+                        fprintf(stream, "%.2f PB/s", bw / peta);
                     else
                         fprintf(stream, "%.2f EB/s", bw / exa);
                 } /* end case 'B' */
