@@ -36,10 +36,26 @@ typedef __int64             h5_stat_size_t;
 #define HDftruncate(F,L)    _chsize_s(F,L)
 #define HDfstat(F,B)        _fstati64(F,B)
 #define HDisatty(F)         _isatty(F)
-#define HDlstat(S,B)        _lstati64(S,B)
-#define HDstat(S,B)         _stati64(S,B)
 #define HDgetcwd(S,Z)       _getcwd(S,Z)
 #define HDgetdcwd(D,S,Z)    _getdcwd(D,S,Z)
+#define HDgetdrive()        _getdrive()
+#define HDlseek(F,O,W)      _lseeki64(F,O,W)
+#define HDlstat(S,B)        _lstati64(S,B)
+#define HDmkdir(S,M)        _mkdir(S)
+#define HDoff_t             __int64
+#define HDopen(S,F,M)       _open(S,F|_O_BINARY,M)
+#define HDread(F,M,Z)       _read(F,M,Z)
+#define HDsetvbuf(F,S,M,Z)  setvbuf(F,S,M,(Z>1?Z:2))
+#define HDsleep(S)          Sleep(S*1000)
+#define HDstat(S,B)         _stati64(S,B)
+#define HDstrcasecmp(A,B)   _stricmp(A,B)
+#define HDstrtoull(S,R,N)   _strtoui64(S,R,N)
+#define HDstrdup(S)         _strdup(S)
+#define HDsnprintf          _snprintf /*varargs*/
+#define HDtzset()           _tzset()
+#define HDunlink(S)         _unlink(S)
+#define HDvsnprintf(S,N,FMT,A) _vsnprintf(S,N,FMT,A)
+#define HDwrite(F,M,Z)      _write(F,M,Z)
 
 #ifdef H5_HAVE_VISUAL_STUDIO
 /*
@@ -62,32 +78,13 @@ struct timezone {
 #endif /* __cplusplus */
 #define HDgettimeofday(V,Z) Wgettimeofday(V,Z)
 #define HDgetlogin() Wgetlogin()
-
-#endif /* H5_HAVE_VISUAL_STUDIO */
-
-#define HDgetdrive()        _getdrive()
-#define HDlseek(F,O,W)      _lseeki64(F,O,W)
-#define HDoff_t             __int64
-#define HDmkdir(S,M)        _mkdir(S)
-#define HDopen(S,F,M)       _open(S,F|_O_BINARY,M)
-#define HDread(F,M,Z)       _read(F,M,Z)
-#define HDstrcasecmp(A,B)   _stricmp(A,B)
-#define HDstrtoull(S,R,N)   _strtoui64(S,R,N)
-#define HDstrdup(S)         _strdup(S)
-#define HDsnprintf          _snprintf /*varargs*/
-#define HDtzset()           _tzset()
-#define HDunlink(S)         _unlink(S)
-#define HDvsnprintf(S,N,FMT,A) _vsnprintf(S,N,FMT,A)
-#define HDwrite(F,M,Z)      _write(F,M,Z)
         
-#define HDsetvbuf(F,S,M,Z)  setvbuf(F,S,M,(Z>1?Z:2))
-#define HDsleep(S)          Sleep(S*1000)
+#endif /* H5_HAVE_VISUAL_STUDIO */
 
 /* Non-POSIX functions */
 
 /* Don't use actual pthread_self on Windows because the return
  * type cannot be cast as a ulong like other systems. */
 #define HDpthread_self_ulong() ((unsigned long)GetCurrentThreadId())
-
 
 #endif /* H5_HAVE_WIN32_API */
