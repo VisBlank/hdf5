@@ -7248,7 +7248,7 @@ xml_print_enum(hid_t type)
     if (native > 0)
         if (H5Tconvert(super, native, nmembs, value, NULL, H5P_DEFAULT) < 0) {
             error_msg("H5Tconvert failed!\n");
-            return -1;
+            goto error;
         }
 
     /* Sort members by increasing value */
@@ -7288,6 +7288,7 @@ xml_print_enum(hid_t type)
     }
     indent -= COL;
 
+error:
     /* Release resources */
     for (i = 0; i < nmembs; i++)
         free(name[i]);
