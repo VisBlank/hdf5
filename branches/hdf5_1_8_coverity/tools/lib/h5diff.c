@@ -1063,6 +1063,7 @@ hsize_t diff_match(hid_t file1_id, const char *grp1, trav_info_t *info1,
     char * obj1_fullpath = NULL;
     char * obj2_fullpath = NULL;
 
+    HDassert(table);
 
     /* 
      * if not root, prepare object name to be pre-appended to group path to
@@ -1128,6 +1129,7 @@ hsize_t diff_match(hid_t file1_id, const char *grp1, trav_info_t *info1,
     MPI_Status Status;
 
     /*set all tasks as free */
+    HDassert(workerTasks);
     HDmemset(workerTasks, 1, (g_nTasks - 1));
 #endif
 
@@ -1137,11 +1139,13 @@ hsize_t diff_match(hid_t file1_id, const char *grp1, trav_info_t *info1,
         {
             /* make full path for obj1 */
             obj1_fullpath = (char*)HDcalloc (strlen(grp1_path) + strlen (table->objs[i].name) + 1, sizeof (char));
+            HDassert(obj1_fullpath);
             HDstrncpy(obj1_fullpath, grp1_path, HDstrlen(grp1_path)+1);
             HDstrncat(obj1_fullpath, table->objs[i].name, HDstrlen(table->objs[i].name));
 
             /* make full path for obj2 */
             obj2_fullpath = (char*)HDcalloc (strlen(grp2_path) + strlen (table->objs[i].name) + 1, sizeof (char));
+            HDassert(obj2_fullpath);
             HDstrncpy(obj2_fullpath, grp2_path, HDstrlen(grp2_path)+1);
             HDstrncat(obj2_fullpath, table->objs[i].name, HDstrlen(table->objs[i].name));
 
