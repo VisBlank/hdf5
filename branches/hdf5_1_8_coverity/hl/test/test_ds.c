@@ -4104,7 +4104,7 @@ static int test_rank(void)
 
     for(i=0; i<3; i++)
     {
-        sprintf(name,"ds_a_%d",i);
+        snprintf(name, 7, "ds_a_%d",i);
         if((dsid = H5Dopen2(fid,name, H5P_DEFAULT)) < 0)
             goto out;
         if(H5DSattach_scale(did,dsid,(unsigned)i) < 0)
