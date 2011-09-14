@@ -108,7 +108,7 @@ test_B(void)
     }
 
     /* Make sure that the output file does not have any
-     * more date in it...
+     * more data in it...
      */
     fgets(line, sizeof(line), f);
     if(!feof(f))
@@ -208,7 +208,7 @@ test_T(void)
     }
 
     /* Make sure that the output file does not have any
-     * more date in it...
+     * more data in it...
      */
     fgets(line, sizeof(line), f);
     if(!feof(f))
@@ -259,7 +259,7 @@ main(void)
 
     if(nerrors) {
         printf("***** %d HDfprintf TEST%s FAILED! *****\n",
-        nerrors, nerrors > 1 ? "S" : "");
+            nerrors, nerrors > 1 ? "S" : "");
         return 1;
     }
 

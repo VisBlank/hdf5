@@ -1580,7 +1580,7 @@ main(void)
 
     if(nerrors) {
         printf("***** %d Virtual File Driver TEST%s FAILED! *****\n",
-        nerrors, nerrors > 1 ? "S" : "");
+            nerrors, nerrors > 1 ? "S" : "");
         return 1;
     }
 
