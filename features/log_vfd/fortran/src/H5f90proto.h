@@ -996,6 +996,7 @@ H5_FCDLL int_f nh5pset_fclose_degree_c(hid_t_f *fapl, int_f *degree);
 H5_FCDLL int_f nh5pget_fclose_degree_c(hid_t_f *fapl, int_f *degree);
 H5_FCDLL int_f nh5pget_buffer_c(hid_t_f *plist, hsize_t_f *size);
 H5_FCDLL int_f nh5pset_buffer_c(hid_t_f *plist, hsize_t_f *size);
+H5_FCDLL int_f nh5pfill_value_defined_c(hid_t_f *plist, int_f *flag);
 H5_FCDLL int_f nh5pset_alloc_time_c(hid_t_f *plist, int_f *flag);
 H5_FCDLL int_f nh5pget_alloc_time_c(hid_t_f *plist, int_f *flag);
 H5_FCDLL int_f nh5pset_fill_time_c(hid_t_f *plist, int_f *flag);

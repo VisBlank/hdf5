@@ -175,6 +175,8 @@
           ! 
           !set the copied space to none before extend the dimensions.
           !
+          !set the copied space to none before extend the dimensions.
+          !
           CALL h5sset_extent_none_f(space2_id, error)
               CALL check("h5sset_extent_none_f", error, total_error)
 

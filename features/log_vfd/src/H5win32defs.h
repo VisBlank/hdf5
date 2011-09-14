@@ -23,79 +23,69 @@
  *
  */
 
-#ifdef _WIN32
+#ifdef H5_HAVE_WIN32_API
 
 typedef struct _stati64     h5_stat_t;
 typedef __int64             h5_stat_size_t;
-
-typedef int clockid_t;
-
-struct timespec {
-    time_t      tv_sec;     /* seconds */
-    long int    tv_nsec;    /* nanoseconds */
-};
-
-struct timezone {
-    int tz_minuteswest;
-    int tz_dsttime;
-};
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-H5_DLL int Wgettimeofday(struct timeval *tv, struct timezone *tz);
-H5_DLL int H5_get_win32_times(H5_timevals_t *tvs);
-
-#ifdef __cplusplus
-}
-#endif
 
 #define HDaccess(F,M)       _access(F,M)
 #define HDclose(F)          _close(F)
 #define HDdup(F)            _dup(F)
 #define HDfdopen(N,S)       _fdopen(N,S)
 #define HDfileno(F)         _fileno(F)
-#if _MSC_VER > 1310 /* Newer than VS.NET 2003 */
 #define HDftruncate(F,L)    _chsize_s(F,L)
-#else
-#define HDftruncate(F,L)    chsize(F,L)
-#endif
 #define HDfstat(F,B)        _fstati64(F,B)
 #define HDisatty(F)         _isatty(F)
-#define HDlstat(S,B)        _lstati64(S,B)
-#define HDstat(S,B)         _stati64(S,B)
 #define HDgetcwd(S,Z)       _getcwd(S,Z)
 #define HDgetdcwd(D,S,Z)    _getdcwd(D,S,Z)
+#define HDgetdrive()        _getdrive()
+#define HDlseek(F,O,W)      _lseeki64(F,O,W)
+#define HDlstat(S,B)        _lstati64(S,B)
+#define HDmkdir(S,M)        _mkdir(S)
+#define HDoff_t             __int64
+#define HDopen(S,F,M)       _open(S,F|_O_BINARY,M)
+#define HDread(F,M,Z)       _read(F,M,Z)
+#define HDsetvbuf(F,S,M,Z)  setvbuf(F,S,M,(Z>1?Z:2))
+#define HDsleep(S)          Sleep(S*1000)
+#define HDstat(S,B)         _stati64(S,B)
+#define HDstrcasecmp(A,B)   _stricmp(A,B)
+#define HDstrtoull(S,R,N)   _strtoui64(S,R,N)
+#define HDstrdup(S)         _strdup(S)
+#define HDsnprintf          _snprintf /*varargs*/
+#define HDtzset()           _tzset()
+#define HDunlink(S)         _unlink(S)
+#define HDvsnprintf(S,N,FMT,A) _vsnprintf(S,N,FMT,A)
+#define HDwrite(F,M,Z)      _write(F,M,Z)
+
+#ifdef H5_HAVE_VISUAL_STUDIO
+/*
+ * The (void*) cast just avoids a compiler warning in H5_HAVE_VISUAL_STUDIO
+ */
+#define HDmemset(X,C,Z)     memset((void*)(X),C,Z)
+
+struct timezone {
+    int tz_minuteswest;
+    int tz_dsttime;
+};
+
+struct timespec {
+    time_t      tv_sec;     /* seconds */
+    long int    tv_nsec;    /* nanoseconds */
+};
 
 #ifdef __cplusplus
         extern "C" {
 #endif /* __cplusplus */
         H5_DLL int Wgettimeofday(struct timeval *tv, struct timezone *tz);
+        H5_DLL int H5_get_win32_times(H5_timevals_t *tvs);
         H5_DLL char* Wgetlogin();
 #ifdef __cplusplus
         }
 #endif /* __cplusplus */
 #define HDgettimeofday(V,Z) Wgettimeofday(V,Z)
 #define HDgetlogin() Wgetlogin()
-
-#define HDgetdrive()        _getdrive()
-#define HDlseek(F,O,W)      _lseeki64(F,O,W)
-#define HDoff_t             __int64
-#define HDmemset(X,C,Z)     memset((void*)(X),C,Z)
-#define HDmkdir(S,M)        _mkdir(S)
-#define HDopen(S,F,M)       _open(S,F|_O_BINARY,M)
-#define HDread(F,M,Z)       _read(F,M,Z)
-#define HDsetvbuf(F,S,M,Z)  setvbuf(F,S,M,(Z>1?Z:2))
-#define HDsleep(S)          Sleep(S*1000)
-#define HDstrcasecmp(A,B)   _stricmp(A,B)
-#define HDstrtoull(S,R,N)   _strtoui64(S,R,N)
-#define HDstrdup(S)         _strdup(S)
-#define HDsnprintf          _snprintf /* varargs */
-#define HDtzset()           _tzset()
-#define HDunlink(S)         _unlink(S)
-#define HDvsnprintf(S,N,FMT,A) _vsnprintf(S,N,FMT,A)
-#define HDwrite(F,M,Z)      _write(F,M,Z)
+        
+#endif /* H5_HAVE_VISUAL_STUDIO */
 
 /* Non-POSIX functions */
 
@@ -103,5 +93,4 @@ H5_DLL int H5_get_win32_times(H5_timevals_t *tvs);
  * type cannot be cast as a ulong like other systems. */
 #define HDpthread_self_ulong() ((unsigned long)GetCurrentThreadId())
 
-
-#endif /* _WIN32 */
+#endif /* H5_HAVE_WIN32_API */
