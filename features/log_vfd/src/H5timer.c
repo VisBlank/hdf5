@@ -69,73 +69,6 @@
 
 
 /*-------------------------------------------------------------------------
- * Function: H5_bandwidth
- *
- * Purpose: Prints the bandwidth (bytes per second) in a field 10
- *          characters wide widh four digits of precision like this:
- *
- *  NaN             If <=0 seconds
- *  1234.  TB/s
- *  123.4  TB/s
- *  12.34  GB/s
- *  1.234  MB/s
- *  4.000  kB/s
- *  1.000  B/s
- *  0.000  B/s      If NBYTES==0
- *  1.2345e-10      For bandwidth less than 1
- *  6.7893e+94      For exceptionally large values
- *  6.678e+106      For really big values
- *
- * Return: void
- *
- * Programmer: Robb Matzke
- *             Wednesday, August  5, 1998
- *-------------------------------------------------------------------------
- */
-void
-H5_bandwidth(char *buf/*out*/, double nbytes, double nseconds)
-{
-    double      bw;
-
-    if(nseconds <= 0.0F)
-        HDstrcpy(buf, "       NaN");
-    else {
-        bw = nbytes/nseconds;
-        if(fabs(bw) < 0.0000000001F)
-            /* That is == 0.0, but direct comparison between floats is bad */
-            HDstrcpy(buf, "0.000  B/s");
-        else if(bw < 1.0F)
-            sprintf(buf, "%10.4e", bw);
-        else if(bw < 1024.0F) {
-            sprintf(buf, "%05.4f", bw);
-            HDstrcpy(buf+5, "  B/s");
-        }
-        else if(bw < (1024.0F * 1024.0F)) {
-            sprintf(buf, "%05.4f", bw / 1024.0F);
-            HDstrcpy(buf+5, " kB/s");
-        }
-        else if(bw < (1024.0F * 1024.0F * 1024.0F)) {
-            sprintf(buf, "%05.4f", bw / (1024.0F * 1024.0F));
-            HDstrcpy(buf+5, " MB/s");
-        }
-        else if(bw < (1024.0F * 1024.0F * 1024.0F * 1024.0F)) {
-            sprintf(buf, "%05.4f", bw / (1024.0F * 1024.0F * 1024.0F));
-            HDstrcpy(buf+5, " GB/s");
-        }
-        else if(bw < (1024.0F * 1024.0F * 1024.0F * 1024.0F * 1024.0F)) {
-            sprintf(buf, "%05.4f", bw / (1024.0F * 1024.0F * 1024.0F * 1024.0F));
-            HDstrcpy(buf+5, " TB/s");
-        }
-        else {
-            sprintf(buf, "%10.4e", bw);
-            if(HDstrlen(buf) > 10)
-                sprintf(buf, "%10.3e", bw);
-        }
-    }
-} /* end H5_bandwidth() */
-
-
-/*-------------------------------------------------------------------------
  * Function:    _timer_get_timevals
  *
  * Purpose:     Internal platform-specific function to get time system,

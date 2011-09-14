@@ -136,7 +136,8 @@ H5Z_term_interface(void)
 #ifdef H5Z_DEBUG
     size_t      i;
     int         dir, nprint = 0;
-    char        comment[16], bandwidth[32];
+    double      bandwidth = 0.0F;
+    char        comment[16];
 #endif
 
     if(H5_interface_initialize_g) {
@@ -165,17 +166,12 @@ H5Z_term_interface(void)
                     HDstrncpy(comment, H5Z_table_g[i].name, sizeof comment);
                     comment[sizeof(comment)-1] = '\0';
 
-                    /*
-                     * Format bandwidth to have four significant digits and
-                     * units of `B/s', `kB/s', `MB/s', `GB/s', or `TB/s' or
-                     * the word `Inf' if the elapsed time is zero.
-                     */
-                    H5_bandwidth(bandwidth, (double)(H5Z_stat_table_g[i].stats[dir].total),
-                        H5Z_stat_table_g[i].stats[dir].times.elapsed);
+                    bandwidth = (double)(H5Z_stat_table_g[i].stats[dir].total)
+                        / H5Z_stat_table_g[i].stats[dir].times.elapsed;
 
                     /* Print the statistics */
                     HDfprintf (H5DEBUG(Z), "   %s%-15s %10Hd %10Hd %8T %8T %8T "
-                        "%10s\n", dir ? "<" : ">", comment,
+                        "%10B\n", dir ? "<" : ">", comment,
                         H5Z_stat_table_g[i].stats[dir].total,
                         H5Z_stat_table_g[i].stats[dir].errors,
                         H5Z_stat_table_g[i].stats[dir].times.user,

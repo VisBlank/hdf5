@@ -106,7 +106,7 @@ H5T_print_stats(H5T_path_t UNUSED * path, int UNUSED * nprint/*in,out*/)
 {
 #ifdef H5T_DEBUG
     hsize_t     nbytes;
-    char        bandwidth[32];
+    double      bandwidth = 0.0F;
 #endif
 
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5T_print_stats)
@@ -133,8 +133,10 @@ H5T_print_stats(H5T_path_t UNUSED * path, int UNUSED * nprint/*in,out*/)
             nbytes = 0;
 
         nbytes *= path->stats.nelmts;
-        H5_bandwidth(bandwidth, (double)nbytes, path->stats.times.elapsed);
-        HDfprintf(H5DEBUG(T), "   %-16s %10Hd %10d %8T %8T %8T %10s\n",
+
+        bandwidth = (double)nbytes / path->stats.times.elapsed;
+
+        HDfprintf(H5DEBUG(T), "   %-16s %10Hd %10d %8T %8T %8T %10B\n",
            path->name,
            path->stats.nelmts,
            path->stats.ncalls,
