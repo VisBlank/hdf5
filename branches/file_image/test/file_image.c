@@ -45,8 +45,8 @@ const char *FILENAME[] = {
 
 
 typedef struct {
-    unsigned char used_callbacks;       /* Bitfield for tracking calbacks */
-    H5_file_image_op_t malloc_src;  /* Source of callbacks for those that can record it */
+    unsigned char used_callbacks;   /* Bitfield for tracking callbacks */
+    H5_file_image_op_t malloc_src;  /* Source of file image callbacks */
     H5_file_image_op_t memcpy_src;
     H5_file_image_op_t realloc_src;
     H5_file_image_op_t free_src;
@@ -315,8 +315,8 @@ test_callbacks(void)
     void *temp_udata;
     char *file_image;
     char *temp_file_image;
-    int     count = 10;
-    int     i;
+    int   count = 10;
+    int   i;
     size_t size;
     size_t temp_size;
 
@@ -601,10 +601,20 @@ main(void)
 {
     int errors = 0;
 
+    h5_reset();
+
+    printf("Testing File Image Functionality.\n");
 
     errors += test_properties();
     errors += test_callbacks();
     errors += test_core();
 
-    return errors > 0;
+    if(errors) { 
+        printf("***** %d File Image TEST%s FAILED! *****\n", 
+            errors, errors > 1 ? "S" : ""); 
+        return 1; 
+    }
+
+    printf("All File Image tests passed.\n");
+    return 0;
 }
