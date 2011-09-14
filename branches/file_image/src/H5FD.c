@@ -1039,6 +1039,8 @@ H5FD_open(const char *name, unsigned flags, hid_t fapl_id, haddr_t maxaddr)
     H5FD_t		*file = NULL;           /* VFD file struct */
     hid_t               driver_id = -1;         /* VFD ID */
     H5P_genplist_t      *plist;                 /* Property list pointer */
+    unsigned long       driver_flags = 0;       /* File-inspecific driver fe     ature flags */
+    H5FD_file_image_info_t file_image_info;     /* Initial file image */
     H5FD_t		*ret_value;             /* Return value */
 
     FUNC_ENTER_NOAPI(H5FD_open, NULL)
@@ -1060,6 +1062,17 @@ H5FD_open(const char *name, unsigned flags, hid_t fapl_id, haddr_t maxaddr)
 	HGOTO_ERROR(H5E_VFL, H5E_BADVALUE, NULL, "invalid driver ID in file access property list")
     if(NULL == driver->open)
 	HGOTO_ERROR(H5E_VFL, H5E_UNSUPPORTED, NULL, "file driver has no `open' method")
+
+    /* Query driver flag */
+    H5FD_driver_query(driver, &driver_flags);
+
+    /* Get initial file image info */
+    if(H5P_get(plist, H5F_ACS_FILE_IMAGE_INFO_NAME, &file_image_info) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get alignment")
+
+    /* If an image is provided, make sure the driver supports this feature */
+    if ((file_image_info.buffer || file_image_info.size > 0) && !(driver_flags & H5FD_FEAT_ALLOW_FILE_IMAGE))
+        HGOTO_ERROR(H5E_VFL, H5E_UNSUPPORTED, NULL, "file image set, but not      supported.")
 
     /* Dispatch to file driver */
     if(HADDR_UNDEF == maxaddr)

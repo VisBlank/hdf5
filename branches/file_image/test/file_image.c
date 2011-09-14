@@ -23,8 +23,7 @@
 
 #include "h5test.h"
 #include "H5Fprivate.h" /* required to test property removals */
-#define VERIFY(condition, string) if (!(condition)) FAIL_PUTS_ERROR(string)
-
+#define VERIFY(condition, string) do { if (!(condition)) FAIL_PUTS_ERROR(string) } while(0)
 
 /* Values for callback bit field */
 #define MALLOC      0x01
@@ -33,6 +32,17 @@
 #define FREE        0x08
 #define UDATA_COPY  0x10
 #define UDATA_FREE  0x20
+
+#define RANK 2
+#define DIM0 1024
+#define DIM1 32
+#define DSET_NAME "test_dset"
+
+const char *FILENAME[] = {
+    "file_image_core_test",
+    NULL
+};
+
 
 typedef struct {
     unsigned char used_callbacks;       /* Bitfield for tracking calbacks */
@@ -247,7 +257,7 @@ udata_copy_cb(void *udata)
  *
  *              Note: this callback doesn't actually do anything. Since the
  *              udata_copy callback doesn't copy, only one instance of the udata
- *              is kept alive. It is freed manually at the end of the tests.
+ *              is kept alive and such it must be freed explicitly at the end of the tests.
  *
  * Programmer:  Jacob Gruber
  *              Monday, August 22, 2011
@@ -280,6 +290,16 @@ reset_udata(udata_t *u)
     u->malloc_src = u->memcpy_src = u->realloc_src = u->free_src = H5_FILE_IMAGE_OP_NO_OP;
 }
 
+/******************************************************************************
+ * Function:    test_callbacks
+ *
+ * Purpose:     Tests that callbacks are called properly in property list functions.
+ *
+ * Programmer:  Jacob Gruber
+ *              Monday, August 22, 2011
+ *
+ ******************************************************************************
+ */
 static int
 test_callbacks(void)
 {
@@ -447,14 +467,144 @@ error:
     return 1;
 }
 
+/******************************************************************************
+ * Function:    test_core
+ *
+ * Purpose:     Tests that callbacks are called properly in the core VFD and
+ *              that the initial file image works properly.
+ *
+ * Programmer:  Jacob Gruber
+ *              Monday, August 22, 2011
+ *
+ ******************************************************************************
+ */
+static int
+test_core(void)
+{
+    hid_t   fapl;
+    hid_t   file;
+    hid_t   dset;
+    hid_t   space;
+    udata_t *udata;
+    unsigned char *file_image;
+    char    filename[1024];
+    size_t  size;
+    hsize_t dims[2];
+    int     fd;
+    struct stat  sb;
+    herr_t ret;
+
+
+    /* Create fapl */
+    fapl = h5_fileaccess();
+    VERIFY(fapl >= 0, "fapl creation failed");
+
+    /* Set up the core VFD */
+    ret = H5Pset_fapl_core(fapl, 0, 0);
+    VERIFY(ret >= 0, "setting core driver in fapl failed");
+
+    h5_fixname(FILENAME[0], fapl, filename, sizeof filename);
+
+    /* Allocate and initialize udata */
+    udata = (udata_t *)malloc(sizeof(udata_t));
+    VERIFY(udata != NULL, "udata malloc failed");
+
+    /* Set file image callbacks */
+    ret = H5Pset_file_image_callbacks(fapl, &malloc_cb, &memcpy_cb, &realloc_cb, &free_cb, &udata_copy_cb, &udata_free_cb, (void *)udata);
+    VERIFY(ret >= 0, "set image callbacks failed");
+
+    /* Test open (no file image) */
+    reset_udata(udata);
+    file = H5Fopen(filename, H5F_ACC_RDWR, fapl);
+    VERIFY(file >= 0, "H5Fopen failed");
+    VERIFY(udata->used_callbacks == MALLOC, "opening a core file used the wrong callbacks");
+    VERIFY(udata->malloc_src == H5_FILE_IMAGE_OP_FILE_OPEN, "Malloc callback came from wrong sourc in core open");
+
+    /* Close file
+     * Note: closing the file without writing to it generates a realloc callback (through truncate)
+     *       while closing after writing does not. This is because a write forces the eof
+     *       to be a multiple of the core increment, while an open does not. H5FD_core_truncate,
+     *       forces the eof to be a multiple of the increment, and thus must realloc if no write
+     *       was performed (assuming the file size is not a multiple of the increment).
+     */
+    reset_udata(udata);
+    ret = H5Fclose(file);
+    VERIFY(ret >= 0, "H5Fclose failed");
+    VERIFY(udata->used_callbacks == (FREE|REALLOC), "Closing a core file used the wrong callbacks");
+    VERIFY(udata->free_src == H5_FILE_IMAGE_OP_FILE_CLOSE, "Free callback came from wrong sourc in core close");
+    VERIFY(udata->realloc_src == H5_FILE_IMAGE_OP_FILE_RESIZE, "Realloc callback came from wrong sourc in core close");
+
+    /* Reopen file */
+    file = H5Fopen(filename, H5F_ACC_RDWR, fapl);
+    VERIFY(file >= 0, "H5Fopen failed");
+
+    /* Set up a new dset */
+    dims[0] = DIM0;
+    dims[1] = DIM1;
+    space = H5Screate_simple(RANK, dims, dims);
+    VERIFY(space >= 0, "H5Screate failed");
+    
+    /* Create new dset, invoking H5FD_core_write */
+    reset_udata(udata);
+    dset = H5Dcreate(file, DSET_NAME, H5T_NATIVE_INT, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    VERIFY(dset >=0, "H5Dcreate failed");
+    
+    /* Flush the write and check the realloc callback */
+    ret = H5Fflush(file, H5F_SCOPE_LOCAL);
+    VERIFY(ret >= 0, "H5Fflush failed");
+    VERIFY(udata->used_callbacks == (REALLOC), "core write used the wrong callbacks");
+    VERIFY(udata->realloc_src == H5_FILE_IMAGE_OP_FILE_RESIZE, "Realloc callback came from wrong source in core write");
+    
+    /* Close dset and space */
+    ret = H5Dclose(dset);
+    VERIFY(ret >= 0, "H5Dclose failed");
+    ret = H5Sclose(space);
+    VERIFY(ret >= 0, "H5Sclose failed");
+    
+    /* Test file close */
+    reset_udata(udata);
+    ret = H5Fclose(file);
+    VERIFY(ret >= 0, "H5Fclose failed");
+    VERIFY(udata->used_callbacks == (FREE), "Closing a core file used the wrong callbacks");
+    VERIFY(udata->free_src == H5_FILE_IMAGE_OP_FILE_CLOSE, "Free callback came from wrong sourc in core close");
+
+    /* Create file image buffer */
+    fd = open(filename,O_RDONLY);
+    VERIFY(fd > 0, "open failed");
+    ret = fstat(fd,&sb);
+    VERIFY(ret == 0, "fstat failed");
+    size = sb.st_size;
+    file_image = (unsigned char *)malloc(size);
+    read(fd, file_image, size);
+
+    /* Set file image in plist */
+    H5Pset_file_image(fapl, file_image, size);
+
+    /* Test open with file image */
+    file = H5Fopen("dne.h5", H5F_ACC_RDWR, fapl);
+    H5Fclose(file);
+
+    /* Release resources */
+    h5_cleanup(FILENAME, fapl); 
+    free(udata);
+    free(file_image);
+    
+    PASSED();
+    return 0;
+
+error:
+    return 1;
+}
 
 int
 main(void)
 {
     int errors = 0;
 
+
     errors += test_properties();
     errors += test_callbacks();
+    errors += test_core();
 
     return errors > 0;
 }
