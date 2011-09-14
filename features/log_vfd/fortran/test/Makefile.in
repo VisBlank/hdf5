@@ -78,8 +78,10 @@ libh5test_fortran_la_OBJECTS = $(am_libh5test_fortran_la_OBJECTS)
 AM_V_lt = $(am__v_lt_$(V))
 am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
 am__v_lt_0 = --silent
-am__EXEEXT_1 = fortranlib_test$(EXEEXT) fflush1$(EXEEXT) \
-	fflush2$(EXEEXT) fortranlib_test_1_8$(EXEEXT)
+@FORTRAN_2003_CONDITIONAL_F_TRUE@am__EXEEXT_1 =  \
+@FORTRAN_2003_CONDITIONAL_F_TRUE@	fortranlib_test_F03$(EXEEXT)
+am__EXEEXT_2 = fortranlib_test$(EXEEXT) fflush1$(EXEEXT) \
+	fflush2$(EXEEXT) fortranlib_test_1_8$(EXEEXT) $(am__EXEEXT_1)
 am_fflush1_OBJECTS = fflush1.$(OBJEXT)
 fflush1_OBJECTS = $(am_fflush1_OBJECTS)
 fflush1_LDADD = $(LDADD)
@@ -585,6 +587,9 @@ fortranlib_test$(EXEEXT): $(fortranlib_test_OBJECTS) $(fortranlib_test_DEPENDENC
 fortranlib_test_1_8$(EXEEXT): $(fortranlib_test_1_8_OBJECTS) $(fortranlib_test_1_8_DEPENDENCIES) 
 	@rm -f fortranlib_test_1_8$(EXEEXT)
 	$(AM_V_FCLD)$(FCLINK) $(fortranlib_test_1_8_OBJECTS) $(fortranlib_test_1_8_LDADD) $(LIBS)
+fortranlib_test_F03$(EXEEXT): $(fortranlib_test_F03_OBJECTS) $(fortranlib_test_F03_DEPENDENCIES) 
+	@rm -f fortranlib_test_F03$(EXEEXT)
+	$(AM_V_FCLD)$(FCLINK) $(fortranlib_test_F03_OBJECTS) $(fortranlib_test_F03_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
