@@ -158,6 +158,7 @@ IF (BUILD_TESTING)
       h5diff_517.txt
       h5diff_518.txt
       h5diff_530.txt
+      h5diff_540.txt
       h5diff_600.txt
       h5diff_601.txt
       h5diff_603.txt
@@ -185,6 +186,8 @@ IF (BUILD_TESTING)
       h5diff_627.txt
       h5diff_628.txt
       h5diff_629.txt
+      h5diff_630.txt
+      h5diff_631.txt
       h5diff_640.txt
       h5diff_641.txt
       h5diff_642.txt
@@ -243,6 +246,8 @@ IF (BUILD_TESTING)
       h5diff_comp_vl_strs.h5
       h5diff_attr_v_level1.h5
       h5diff_attr_v_level2.h5
+      compounds_array_vlen1.h5
+      compounds_array_vlen2.h5
   )
 
   FOREACH (txt_file ${HDF5_REFERENCE_FILES})
@@ -368,29 +373,66 @@ IF (BUILD_TESTING)
   MACRO (ADD_PH5_TEST resultfile resultcode)
     # If using memchecker add tests without using scripts
     IF (HDF5_ENABLE_USING_MEMCHECKER)
-      ADD_TEST (NAME PH5DIFF-${resultfile} COMMAND $<TARGET_FILE:ph5diff> ${ARGN})
+      ADD_TEST (NAME PH5DIFF-${resultfile} COMMAND $<TARGET_FILE:ph5diff> ${MPIEXEC} ${MPIEXEC_PREFLAGS} ${MPIEXEC_NUMPROC_FLAG} ${MPIEXEC_MAX_NUMPROCS} ${MPIEXEC_POSTFLAGS} ${ARGN})
       IF (NOT ${resultcode} STREQUAL "0")
         SET_TESTS_PROPERTIES (PH5DIFF-${resultfile} PROPERTIES WILL_FAIL "true")
       ENDIF (NOT ${resultcode} STREQUAL "0")
+      IF (NOT "${last_test}" STREQUAL "")
+        SET_TESTS_PROPERTIES (PH5DIFF-${resultfile} PROPERTIES DEPENDS ${last_test})
+      ENDIF (NOT "${last_test}" STREQUAL "")
+      SET (last_test "PH5DIFF-${resultfile}")
     ELSE (HDF5_ENABLE_USING_MEMCHECKER)
+      ADD_TEST (
+          NAME PH5DIFF-clear-${resultfile}-objects
+          COMMAND    ${CMAKE_COMMAND}
+              -E remove ${resultfile}_p.out ${resultfile}_p.out.err
+      )
       ADD_TEST (
           NAME PH5DIFF-${resultfile}
           COMMAND "${CMAKE_COMMAND}"
               -D "TEST_PROGRAM=${MPIEXEC};${MPIEXEC_PREFLAGS};${MPIEXEC_NUMPROC_FLAG};${MPIEXEC_MAX_NUMPROCS};${MPIEXEC_POSTFLAGS};$<TARGET_FILE:ph5diff>"
               -D "TEST_ARGS:STRING=${ARGN}"
               -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
-              -D "TEST_OUTPUT=${resultfile}.out"
+              -D "TEST_OUTPUT=P_${resultfile}.out"
               -D "TEST_EXPECT=${resultcode}"
               -D "TEST_REFERENCE=${resultfile}.txt"
-              -D "TEST_APPEND=EXIT CODE:"
-              -P "${HDF5_RESOURCES_DIR}/runTest.cmake"
+#              -D "TEST_APPEND=EXIT CODE: [0-9]"
+#              -D "TEST_REF_FILTER=EXIT CODE: 0"
+              -D "TEST_SKIP_COMPARE=TRUE"
+              -P "${HDF5_RESOURCES_DIR}/prunTest.cmake"
       )
+      SET_TESTS_PROPERTIES (PH5DIFF-${resultfile} PROPERTIES DEPENDS "PH5DIFF-clear-${resultfile}-objects")
     ENDIF (HDF5_ENABLE_USING_MEMCHECKER)
-    IF (NOT "${last_test}" STREQUAL "")
-      SET_TESTS_PROPERTIES (PH5DIFF-${resultfile} PROPERTIES DEPENDS ${last_test})
-    ENDIF (NOT "${last_test}" STREQUAL "")
-    SET (last_test "PH5DIFF-${resultfile}")
   ENDMACRO (ADD_PH5_TEST file)
+
+   # ADD_H5_NO_OUTPUT_TEST
+   # Purpose to verify only exitcode without output comparison
+   # Don't use this if possible; this may be removed.
+   MACRO (ADD_H5_NO_OUTPUT_TEST testname resultcode)
+    # If using memchecker add tests without using scripts
+    IF (NOT HDF5_ENABLE_USING_MEMCHECKER)
+      ADD_TEST (
+          NAME H5DIFF-clear-${testname}-objects
+          COMMAND    ${CMAKE_COMMAND}
+              -E remove ${testname}.out ${testname}.out.err
+      )
+      # if there was a previous test
+      IF (NOT "${last_test}" STREQUAL "")
+        SET_TESTS_PROPERTIES (H5DIFF-clear-${testname}-objects PROPERTIES DEPENDS ${last_test})
+      ENDIF (NOT "${last_test}" STREQUAL "")
+      SET (last_test "H5DIFF-clear-${testname}-objects")
+    ENDIF (NOT HDF5_ENABLE_USING_MEMCHECKER)
+
+    ADD_TEST (NAME H5DIFF-${testname} COMMAND $<TARGET_FILE:h5diff> ${ARGN})
+    IF (NOT ${resultcode} STREQUAL "0")
+      SET_TESTS_PROPERTIES (H5DIFF-${testname} PROPERTIES WILL_FAIL "true")
+    ENDIF (NOT ${resultcode} STREQUAL "0")
+
+    IF (NOT "${last_test}" STREQUAL "")
+      SET_TESTS_PROPERTIES (H5DIFF-${testname} PROPERTIES DEPENDS ${last_test})
+    ENDIF (NOT "${last_test}" STREQUAL "")
+    SET (last_test "H5DIFF-${testname}")
+  ENDMACRO (ADD_H5_NO_OUTPUT_TEST)
 
 ##############################################################################
 ##############################################################################
@@ -438,6 +480,9 @@ IF (BUILD_TESTING)
   SET (EXCLUDE_FILE2_2 h5diff_exclude2-2.h5)
   # compound type with multiple vlen string types
   SET (COMP_VL_STRS_FILE h5diff_comp_vl_strs.h5)
+  # container types (array,vlen) with multiple nested compound types
+  SET (COMPS_ARRAY_VLEN_FILE1 compounds_array_vlen1.h5)
+  SET (COMPS_ARRAY_VLEN_FILE2 compounds_array_vlen2.h5)
   # attrs with verbose option level
   SET (ATTR_VERBOSE_LEVEL_FILE1 h5diff_attr_v_level1.h5)
   SET (ATTR_VERBOSE_LEVEL_FILE2 h5diff_attr_v_level2.h5)
@@ -664,6 +709,8 @@ IF (BUILD_TESTING)
           h5diff_518.out.err
           h5diff_530.out
           h5diff_530.out.err
+          h5diff_540.out
+          h5diff_540.out.err
           h5diff_600.out
           h5diff_600.out.err
           h5diff_601.out
@@ -978,6 +1025,13 @@ ADD_H5_TEST (h5diff_628 1 -n 1 ${FILE1} ${FILE2} g1/dset3 g1/dset4)
 #ADD_H5_TEST (h5diff_629 2 file1.h6 file2.h6)
 
 # ##############################################################################
+# # NaN
+# ##############################################################################
+# 6.30: test (NaN == NaN) must be true based on our documentation -- XCAO
+ADD_H5_TEST (h5diff_630 0 -v -d "0.0001" ${FILE1} ${FILE1} g1/fp18 g1/fp18_COPY)
+ADD_H5_TEST (h5diff_631 0 -v --use-system-epsilon ${FILE1} ${FILE1} g1/fp18 g1/fp18_COPY)
+
+# ##############################################################################
 # 7.  attributes
 # ##############################################################################
 ADD_H5_TEST (h5diff_70 1 -v ${FILE5} ${FILE6}) 
@@ -1255,6 +1309,12 @@ ADD_H5_TEST (h5diff_484 0 -v --exclude-path "/dset3" ${EXCLUDE_FILE1_1} ${EXCLUD
 # # diff various multiple vlen and fixed strings in a compound type dataset
 # ##############################################################################
 ADD_H5_TEST (h5diff_530 0 -v  ${COMP_VL_STRS_FILE} ${COMP_VL_STRS_FILE} /group /group_copy)
+
+# ##############################################################################
+# # Test container types (array,vlen) with multiple nested compound types
+# # Complex compound types in dataset and attribute
+# ##############################################################################
+ADD_H5_TEST (h5diff_540 1 -v ${COMPS_ARRAY_VLEN_FILE1} ${COMPS_ARRAY_VLEN_FILE2})
 
 # ##############################################################################
 # # Test mutually exclusive options 

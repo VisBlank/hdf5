@@ -72,17 +72,17 @@ typedef struct {
 
 /* Define default file image info */
 #define H5FD__DEFAULT_FILE_IMAGE_INFO { \
-    /* file image buffer */ NULL,   \
-    /* buffer size */       0,      \
-    { /* Callbacks */               \
-        /* image_malloc */     NULL,    \
-        /* image_memcpy */     NULL,    \
-        /* image_realloc */   NULL,     \
-        /* image_free */       NULL,    \
-        /* udata_copy */ NULL,          \
-        /* udata_free */ NULL,          \
-        /* udata */      NULL,          \
-    }                               \
+    /* file image buffer */ NULL,       \
+    /* buffer size */       0,          \
+    { /* Callbacks */                   \
+        /* image_malloc */      NULL,   \
+        /* image_memcpy */      NULL,   \
+        /* image_realloc */     NULL,   \
+        /* image_free */        NULL,   \
+        /* udata_copy */        NULL,   \
+        /* udata_free */        NULL,   \
+        /* udata */             NULL,   \
+    }                                   \
 }
 
 

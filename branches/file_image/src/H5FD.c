@@ -1039,7 +1039,7 @@ H5FD_open(const char *name, unsigned flags, hid_t fapl_id, haddr_t maxaddr)
     H5FD_t		*file = NULL;           /* VFD file struct */
     hid_t               driver_id = -1;         /* VFD ID */
     H5P_genplist_t      *plist;                 /* Property list pointer */
-    unsigned long       driver_flags = 0;       /* File-inspecific driver fe     ature flags */
+    unsigned long       driver_flags = 0;       /* File-inspecific driver feature flags */
     H5FD_file_image_info_t file_image_info;     /* Initial file image */
     H5FD_t		*ret_value;             /* Return value */
 
@@ -1071,8 +1071,8 @@ H5FD_open(const char *name, unsigned flags, hid_t fapl_id, haddr_t maxaddr)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get alignment")
 
     /* If an image is provided, make sure the driver supports this feature */
-    if ((file_image_info.buffer || file_image_info.size > 0) && !(driver_flags & H5FD_FEAT_ALLOW_FILE_IMAGE))
-        HGOTO_ERROR(H5E_VFL, H5E_UNSUPPORTED, NULL, "file image set, but not      supported.")
+    if((file_image_info.buffer || file_image_info.size > 0) && !(driver_flags & H5FD_FEAT_ALLOW_FILE_IMAGE))
+        HGOTO_ERROR(H5E_VFL, H5E_UNSUPPORTED, NULL, "file image set, but not supported.")
 
     /* Dispatch to file driver */
     if(HADDR_UNDEF == maxaddr)
@@ -1384,7 +1384,7 @@ H5FD_driver_query(const H5FD_class_t *driver, unsigned long *flags/*out*/)
     HDassert(driver);
     HDassert(flags);
 
-    /* Check for query driver and call it */
+    /* Check for the driver to query and then query it */
     if(driver->query)
         ret_value = (driver->query)(NULL, flags);
     else 
