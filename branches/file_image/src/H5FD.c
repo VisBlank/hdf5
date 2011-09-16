@@ -1068,10 +1068,12 @@ H5FD_open(const char *name, unsigned flags, hid_t fapl_id, haddr_t maxaddr)
 
     /* Get initial file image info */
     if(H5P_get(plist, H5F_ACS_FILE_IMAGE_INFO_NAME, &file_image_info) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get alignment")
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get file image info")
 
     /* If an image is provided, make sure the driver supports this feature */
-    if((file_image_info.buffer || file_image_info.size > 0) && !(driver_flags & H5FD_FEAT_ALLOW_FILE_IMAGE))
+    HDassert(((file_image_info.buffer != NULL) && (file_image_info.size > 0)) ||
+             ((file_image_info.buffer == NULL) && (file_image_info.size == 0)));
+    if((file_image_info.buffer != NULL) && !(driver_flags & H5FD_FEAT_ALLOW_FILE_IMAGE))
         HGOTO_ERROR(H5E_VFL, H5E_UNSUPPORTED, NULL, "file image set, but not supported.")
 
     /* Dispatch to file driver */

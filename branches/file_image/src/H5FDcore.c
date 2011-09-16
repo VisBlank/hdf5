@@ -451,7 +451,9 @@ H5FD_core_open(const char *name, unsigned flags, hid_t fapl_id,
         HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get initial file image info")
 
     /* If the file image exists and this is an open, make sure the file doesn't exist */
-    if((file_image_info.buffer || file_image_info.size > 0) && !(H5F_ACC_CREAT & flags)) {
+    HDassert(((file_image_info.buffer != NULL) && (file_image_info.size > 0)) ||
+             ((file_image_info.buffer == NULL) && (file_image_info.size == 0)));
+    if((file_image_info.buffer != NULL) && !(H5F_ACC_CREAT & flags)) {
         if(HDopen(name, o_flags, 0666) >= 0)
             HGOTO_ERROR(H5E_FILE, H5E_FILEEXISTS, NULL, "file already exists")
         
@@ -1148,11 +1150,9 @@ H5FD_core_truncate(H5FD_t *_file, hid_t UNUSED dxpl_id, hbool_t UNUSED closing)
     if(file->eoa % file->increment)
         new_eof += file->increment;
 
-    fprintf(stderr, "J1\n");
     /* Extend the file to make sure it's large enough */
     if(!H5F_addr_eq(file->eof, (haddr_t)new_eof)) {
         unsigned char *x;       /* Pointer to new buffer for file data */
-    fprintf(stderr, "J2\n");
 
         /* (Re)allocate memory for the file buffer, using callback if available */
         if(file->callbacks.image_realloc) {

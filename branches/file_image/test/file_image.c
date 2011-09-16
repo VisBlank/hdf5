@@ -72,13 +72,16 @@ test_properties(void)
 {
     hid_t   fapl_1;
     hid_t   fapl_2;
+    hbool_t verbose = FALSE;
     char    *buffer;
     int     count = 10; 
-    char    *temp;
+    void    *temp;
     char    *temp2;
     int     i;   
     size_t  size;
     size_t  temp_size;
+
+    if(verbose) HDfprintf(stdout, "entering test_properties()\n");
     
     /* Initialize file image buffer
      *
@@ -86,16 +89,14 @@ test_properties(void)
      * property list functions. In the file driver tests further down, this will
      * not be the case.
      */
-    size = count * sizeof(char);
+    size = (size_t)count * sizeof(char);
     buffer = (char *)malloc(size);
-    for (i = 0; i < count-1; i++) buffer[i] = 65+i;  buffer[count] = '\0';
+    for (i = 0; i < count-1; i++) buffer[i] = (char)(65+i);  buffer[count] = '\0';
 
     /* Create fapl */
     fapl_1 = H5Pcreate(H5P_FILE_ACCESS);
 
     /* Get file image stuff */
-    H5Pget_file_image(fapl_1, NULL, &temp_size);
-    temp = (char *)malloc(temp_size);
     H5Pget_file_image(fapl_1, (void **) &temp, &temp_size);
 
     /* Check default values */
@@ -106,10 +107,7 @@ test_properties(void)
     H5Pset_file_image(fapl_1, (void *)buffer, size);
     
     /* Get the same */
-    H5Pget_file_image(fapl_1, NULL, &temp_size);
-    temp = (char *)malloc(temp_size);
-    H5Pget_file_image(fapl_1, (void **) &temp, NULL);
-
+    H5Pget_file_image(fapl_1, (void **) &temp, &temp_size);
 
     /* Check that sizes are the same, and that the buffers are identical but separate */
     VERIFY(temp != NULL,"temp is null!");
@@ -121,8 +119,6 @@ test_properties(void)
     fapl_2 = H5Pcopy(fapl_1);
 
     /* Get values from the new fapl */
-    H5Pget_file_image(fapl_1, NULL, &temp_size);
-    temp2 = (char *)malloc(temp_size);
     H5Pget_file_image(fapl_2, (void **) &temp2, &temp_size);
     
     /* Check that sizes are the same, and that the buffers are identical but separate */
@@ -138,6 +134,8 @@ test_properties(void)
     free(buffer);
     free(temp);
     free(temp2);
+
+    if(verbose) HDfprintf(stdout, "exiting test_properties()\n");
 
     return 0;
 
@@ -305,6 +303,7 @@ test_callbacks(void)
 {
     hid_t fapl_1;
     hid_t fapl_2;
+    hbool_t verbose = FALSE;
     void *(*image_malloc)(size_t, H5_file_image_op_t, void *);
     void *(*image_memcpy)(void *, const void *, size_t, H5_file_image_op_t, void *);
     void *(*image_realloc)(void *, size_t, H5_file_image_op_t, void *);
@@ -320,14 +319,16 @@ test_callbacks(void)
     size_t size;
     size_t temp_size;
 
+    if(verbose) HDfprintf(stdout, "entering test_callbacks()\n");
+
     /* Allocate and initialize udata */
     udata = (udata_t *)malloc(sizeof(udata_t));
     reset_udata(udata);
 
     /* Allocate and initialize file image buffer */
-    size = count * sizeof(char);
+    size = (size_t)count * sizeof(char);
     file_image = (char *)malloc(size);
-    for (i = 0; i < count-1; i++) file_image[i] = 65+i;
+    for (i = 0; i < count-1; i++) file_image[i] = (char)(65+i);
     file_image[count] = '\0';
 
     /* Create fapl */
@@ -439,13 +440,13 @@ test_callbacks(void)
     /* Close it again */
     H5Pclose(fapl_2);
 
-    /* Get file image */ //potentially unsafe if code is modified. Should fix.
+    /* Get file image */ 
     reset_udata(udata);
-    temp_file_image = (char *)malloc(size);
     H5Pget_file_image(fapl_1, (void **)&temp_file_image, &temp_size);
 
     /* Verify that the correct callbacks were used */
-    VERIFY(udata->used_callbacks == (MEMCPY), "attempting to retrieve the image from a fapl with an image has an unexpected callback");
+    VERIFY(udata->used_callbacks == (MALLOC|MEMCPY), "attempting to retrieve the image from a fapl with an image has an unexpected callback");
+    VERIFY(udata->malloc_src == H5_FILE_IMAGE_OP_PROPERTY_LIST_GET, "malloc callback has wrong source");
     VERIFY(udata->memcpy_src == H5_FILE_IMAGE_OP_PROPERTY_LIST_GET, "memcpy callback has wrong source");
 
     /* Set file image */
@@ -459,11 +460,16 @@ test_callbacks(void)
 
     /* Close stuff */
     H5Pclose(fapl_1);
+    free(file_image);
+    free(temp_file_image);
     free(udata);
+
+    if(verbose) HDfprintf(stdout, "regular exit test_callbacks()\n");
 
     return 0;
 
 error:
+    if(verbose) HDfprintf(stdout, "error exit test_callbacks()\n");
     return 1;
 }
 
@@ -485,6 +491,7 @@ test_core(void)
     hid_t   file;
     hid_t   dset;
     hid_t   space;
+    hbool_t verbose = FALSE;
     udata_t *udata;
     unsigned char *file_image;
     char    filename[1024];
@@ -494,6 +501,7 @@ test_core(void)
     struct stat  sb;
     herr_t ret;
 
+    if(verbose) HDfprintf(stdout, "entering test_core()\n");
 
     /* Create fapl */
     fapl = h5_fileaccess();
@@ -573,7 +581,7 @@ test_core(void)
     VERIFY(fd > 0, "open failed");
     ret = fstat(fd,&sb);
     VERIFY(ret == 0, "fstat failed");
-    size = sb.st_size;
+    size = (size_t)sb.st_size;
     file_image = (unsigned char *)malloc(size);
     read(fd, file_image, size);
 
@@ -590,9 +598,15 @@ test_core(void)
     free(file_image);
     
     PASSED();
+
+    if(verbose) HDfprintf(stdout, "regular exit test_core()\n");
+
     return 0;
 
 error:
+
+    if(verbose) HDfprintf(stdout, "error exit test_core()\n");
+
     return 1;
 }
 
