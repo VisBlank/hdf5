@@ -22,6 +22,7 @@
 *************************************************************/
 
 #include "h5test.h"
+#include "H5srcdir.h"
 #include "H5Fprivate.h" /* required to test property removals */
 #define VERIFY(condition, string) do { if (!(condition)) FAIL_PUTS_ERROR(string) } while(0)
 
@@ -495,6 +496,8 @@ test_core(void)
     udata_t *udata;
     unsigned char *file_image;
     char    filename[1024];
+    char    src_dir_filename[1024];
+    const char *tmp = NULL;
     size_t  size;
     hsize_t dims[2];
     int     fd;
@@ -511,7 +514,25 @@ test_core(void)
     ret = H5Pset_fapl_core(fapl, 0, 0);
     VERIFY(ret >= 0, "setting core driver in fapl failed");
 
-    h5_fixname(FILENAME[0], fapl, filename, sizeof filename);
+    if ( verbose )
+        HDfprintf(stdout, "FILENAME[0] = \"%s\".\n", FILENAME[0]);
+    tmp = h5_fixname(FILENAME[0], fapl, filename, sizeof(filename));
+    VERIFY(tmp != NULL, "h5_fixname failed");
+    if ( verbose ) 
+	 HDfprintf(stdout, "filename = \"%s\".\n", tmp);
+
+    /* convert file name to srcdir file name.  Make a copy as 
+     * H5_get_srcdir_filename() simply sets up the file name in its
+     * own buffer each time it is called -- overwriting the previous
+     * value.
+     */
+    tmp = H5_get_srcdir_filename(filename);
+    VERIFY(tmp != NULL, "H5_get_srcdir_filename failed");
+    VERIFY(strlen(tmp) < 1023, "srcdir file name too long.");
+    HDstrncpy(src_dir_filename, tmp, 1023);
+    src_dir_filename[1023] = '\0';
+    if ( verbose )
+        HDfprintf(stdout, "src_dir_filename = \"%s\".\n", src_dir_filename);
 
     /* Allocate and initialize udata */
     udata = (udata_t *)malloc(sizeof(udata_t));
@@ -523,7 +544,7 @@ test_core(void)
 
     /* Test open (no file image) */
     reset_udata(udata);
-    file = H5Fopen(filename, H5F_ACC_RDWR, fapl);
+    file = H5Fopen(src_dir_filename, H5F_ACC_RDWR, fapl);
     VERIFY(file >= 0, "H5Fopen failed");
     VERIFY(udata->used_callbacks == MALLOC, "opening a core file used the wrong callbacks");
     VERIFY(udata->malloc_src == H5_FILE_IMAGE_OP_FILE_OPEN, "Malloc callback came from wrong sourc in core open");
@@ -543,7 +564,7 @@ test_core(void)
     VERIFY(udata->realloc_src == H5_FILE_IMAGE_OP_FILE_RESIZE, "Realloc callback came from wrong sourc in core close");
 
     /* Reopen file */
-    file = H5Fopen(filename, H5F_ACC_RDWR, fapl);
+    file = H5Fopen(src_dir_filename, H5F_ACC_RDWR, fapl);
     VERIFY(file >= 0, "H5Fopen failed");
 
     /* Set up a new dset */
@@ -577,7 +598,7 @@ test_core(void)
     VERIFY(udata->free_src == H5_FILE_IMAGE_OP_FILE_CLOSE, "Free callback came from wrong sourc in core close");
 
     /* Create file image buffer */
-    fd = open(filename,O_RDONLY);
+    fd = open(src_dir_filename,O_RDONLY);
     VERIFY(fd > 0, "open failed");
     ret = fstat(fd,&sb);
     VERIFY(ret == 0, "fstat failed");
