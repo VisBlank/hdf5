@@ -82,6 +82,7 @@ test_properties(void)
     size_t  size;
     size_t  temp_size;
 
+    TESTING("File image property list functions");
     if(verbose) HDfprintf(stdout, "entering test_properties()\n");
     
     /* Initialize file image buffer
@@ -138,6 +139,7 @@ test_properties(void)
 
     if(verbose) HDfprintf(stdout, "exiting test_properties()\n");
 
+    PASSED();
     return 0;
 
 error:
@@ -320,6 +322,7 @@ test_callbacks(void)
     size_t size;
     size_t temp_size;
 
+    TESTING("Callback use in property list operations");
     if(verbose) HDfprintf(stdout, "entering test_callbacks()\n");
 
     /* Allocate and initialize udata */
@@ -467,6 +470,7 @@ test_callbacks(void)
 
     if(verbose) HDfprintf(stdout, "regular exit test_callbacks()\n");
 
+    PASSED();
     return 0;
 
 error:
@@ -504,8 +508,9 @@ test_core(void)
     struct stat  sb;
     herr_t ret;
 
+    TESTING("Initial file image and callbacks in Core VFD");
     if(verbose) HDfprintf(stdout, "entering test_core()\n");
-
+    
     /* Create fapl */
     fapl = h5_fileaccess();
     VERIFY(fapl >= 0, "fapl creation failed");
