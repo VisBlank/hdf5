@@ -577,6 +577,24 @@ TOOLTEST h5diff_207.txt -c $FILE2 $FILE2 g2/dset8  g2/dset9
 # not comparable in dataspace of zero dimension size
 TOOLTEST h5diff_208.txt -c $FILE19 $FILE20 
 
+# non-comparable dataset with comparable attribute, and other comparable datasets.
+# All the comparables should display differences.
+TOOLTEST h5diff_220.txt -c non_comparables1.h5 non_comparables2.h5 /g1
+
+# comparable dataset with non-comparable attribute and other comparable attributes.
+# All the comparables should display differences.
+TOOLTEST h5diff_221.txt -c non_comparables1.h5 non_comparables2.h5 /g2
+
+# entire file
+# All the comparables should display differences.
+if test -n "$pmode" -a "$mydomainname" = hdfgroup.uiuc.edu; then
+    # parallel mode: 
+    # skip due to ph5diff hangs on koala (linux64-LE) randomly.    
+    SKIP -c non_comparables1.h5 non_comparables2.h5
+else
+    TOOLTEST h5diff_222.txt -c non_comparables1.h5 non_comparables2.h5
+fi    
+    
 # ##############################################################################
 # # Links compare without --follow-symlinks nor --no-dangling-links
 # ##############################################################################

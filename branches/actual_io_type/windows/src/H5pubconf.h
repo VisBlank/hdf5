@@ -35,7 +35,7 @@
 #define H5_CXX_HAVE_OFFSETOF 1
 
 /* Define the default virtual file driver to compile */
-#define H5_DEFAULT_VFD H5FD_WINDOWS
+#define H5_DEFAULT_VFD H5FD_SEC2
 
 /* Define if `dev_t' is a scalar */
 #define H5_DEV_T_IS_SCALAR 1
@@ -480,13 +480,13 @@
 #define H5_PACKAGE_NAME "HDF5"
 
 /* Define to the full name and version of this package. */
-#define H5_PACKAGE_STRING "HDF5 1.9.85"
+#define H5_PACKAGE_STRING "HDF5 1.9.93"
 
 /* Define to the one symbol short name of this package. */
 #define H5_PACKAGE_TARNAME "hdf5"
 
 /* Define to the version of this package. */
-#define H5_PACKAGE_VERSION "1.9.85"
+#define H5_PACKAGE_VERSION "1.9.93"
 
 /* Width for printf() for type `long long' or `__int64', use `ll' */
 #define H5_PRINTF_LL_WIDTH "I64"
@@ -643,7 +643,7 @@
 /* #undef H5_USING_MEMCHECKER */
 
 /* Version number of package */
-#define H5_VERSION "1.9.85"
+#define H5_VERSION "1.9.93"
 
 /* Define if vsnprintf() returns the correct value for formatted strings that
    don't fit into size allowed */
