@@ -670,8 +670,6 @@ H5FD_direct_cmp(const H5FD_t *_f1, const H5FD_t *_f2)
     if (f1->inode < f2->inode) HGOTO_DONE(-1)
     if (f1->inode > f2->inode) HGOTO_DONE(1)
 
-#endif
-
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 }
