@@ -39,7 +39,24 @@
 #include "H5MMprivate.h"  /* Memory management      */
 #include "H5Pprivate.h"    /* Property lists      */
 
-#ifdef H5_HAVE_DIRECT
+/* NOTE: Direct I/O via the POSIX O_DIRECT flag is not available
+ *       on Windows, MacOS X or VMS.
+ *
+ * Direct I/O is possible via the Win32 API's CreateFile function
+ * (see MSDN entry for CreateFile, particularly the 'caching
+ * behavior' section) but this is not supported in HDF5 at this
+ * time.
+ *
+ * Link: http://msdn.microsoft.com/en-us/library/aa363858(VS.85).aspx
+ * 
+ * Direct I/O on MacOS X is available via the fcntl function but
+ * this is not supported in HDF5 at this time.
+ *
+ * Links:
+ * http://developer.apple.com/library/mac/#documentation/Darwin/Reference/ManPages/man2/fcntl.2.html
+ * http://lists.apple.com/archives/filesystem-dev/2007/Sep/msg00010.html
+ */
+#if defined(H5_HAVE_DIRECT) && !defined(H5_HAVE_WINDOWS) && !defined(H5_VMS)
 
 /* The driver identification number, initialized at runtime */
 static hid_t H5FD_DIRECT_g = 0;
@@ -77,30 +94,12 @@ typedef struct H5FD_direct_t {
     haddr_t  pos;      /*current file I/O position  */
     int    op;      /*last operation    */
     H5FD_direct_fapl_t  fa;    /*file access properties  */
-#ifndef H5_HAVE_WIN32_API
     /*
      * On most systems the combination of device and i-node number uniquely
      * identify a file.
      */
     dev_t  device;      /*file device number    */
-#ifdef H5_VMS
-    ino_t  inode[3];    /*file i-node number    */
-#else
     ino_t  inode;      /*file i-node number    */
-#endif /*H5_VMS*/
-#else
-    /*
-     * On H5_HAVE_WIN32_API the low-order word of a unique identifier associated with the
-     * file and the volume serial number uniquely identify a file. This number
-     * (which, both? -rpm) may change when the system is restarted or when the
-     * file is opened. After a process opens a file, the identifier is
-     * constant until the file is closed. An application can use this
-     * identifier and the volume serial number to determine whether two
-     * handles refer to the same file.
-     */
-    DWORD fileindexlo;
-    DWORD fileindexhi;
-#endif
 } H5FD_direct_t;
 
 /*
@@ -114,17 +113,11 @@ typedef struct H5FD_direct_t {
  * file_seek:    The function which adjusts the current file position,
  *      either lseek() or lseek64().
  */
-/* adding for windows NT file system support. */
 
 #ifdef H5_HAVE_LSEEK64
 #   define file_offset_t  off64_t
 #   define file_seek    lseek64
 #   define file_truncate  ftruncate64
-#elif defined (H5_HAVE_WIN32_API)
-# /*MSVC*/
-#   define file_offset_t __int64
-#   define file_seek _lseeki64
-#   define file_truncate  _chsize
 #else
 #   define file_offset_t  off_t
 #   define file_seek    lseek
@@ -493,10 +486,6 @@ H5FD_direct_open(const char *name, unsigned flags, hid_t fapl_id, haddr_t maxadd
     int      fd=(-1);
     H5FD_direct_t  *file=NULL;
     H5FD_direct_fapl_t  *fa;
-#ifdef H5_HAVE_WIN32_API
-    HFILE     filehandle;
-    struct _BY_HANDLE_FILE_INFORMATION fileinfo;
-#endif
     h5_stat_t    sb;
     H5P_genplist_t   *plist;      /* Property list */
     int                 *buf1, *buf2;
@@ -544,21 +533,8 @@ H5FD_direct_open(const char *name, unsigned flags, hid_t fapl_id, haddr_t maxadd
     H5_ASSIGN_OVERFLOW(file->eof,sb.st_size,h5_stat_size_t,haddr_t);
     file->pos = HADDR_UNDEF;
     file->op = OP_UNKNOWN;
-#ifdef H5_HAVE_WIN32_API
-    filehandle = _get_osfhandle(fd);
-    (void)GetFileInformationByHandle((HANDLE)filehandle, &fileinfo);
-    file->fileindexhi = fileinfo.nFileIndexHigh;
-    file->fileindexlo = fileinfo.nFileIndexLow;
-#else
     file->device = sb.st_dev;
-#ifdef H5_VMS
-    file->inode[0] = sb.st_ino[0];
-    file->inode[1] = sb.st_ino[1];
-    file->inode[2] = sb.st_ino[2];
-#else
     file->inode = sb.st_ino;
-#endif /*H5_VMS*/
-#endif /*H5_HAVE_WIN32_API*/
     file->fa.mboundary = fa->mboundary;
     file->fa.fbsize = fa->fbsize;
     file->fa.cbsize = fa->cbsize;
@@ -679,14 +655,6 @@ H5FD_direct_cmp(const H5FD_t *_f1, const H5FD_t *_f2)
 
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5FD_direct_cmp)
 
-#ifdef H5_HAVE_WIN32_API
-    if (f1->fileindexhi < f2->fileindexhi) HGOTO_DONE(-1)
-    if (f1->fileindexhi > f2->fileindexhi) HGOTO_DONE(1)
-
-    if (f1->fileindexlo < f2->fileindexlo) HGOTO_DONE(-1)
-    if (f1->fileindexlo > f2->fileindexlo) HGOTO_DONE(1)
-
-#else
 #ifdef H5_DEV_T_IS_SCALAR
     if (f1->device < f2->device) HGOTO_DONE(-1)
     if (f1->device > f2->device) HGOTO_DONE(1)
@@ -699,13 +667,8 @@ H5FD_direct_cmp(const H5FD_t *_f1, const H5FD_t *_f2)
     if(HDmemcmp(&(f1->device),&(f2->device),sizeof(dev_t))>0) HGOTO_DONE(1)
 #endif /* H5_DEV_T_IS_SCALAR */
 
-#ifndef H5_VMS
     if (f1->inode < f2->inode) HGOTO_DONE(-1)
     if (f1->inode > f2->inode) HGOTO_DONE(1)
-#else
-    if(HDmemcmp(&(f1->inode),&(f2->inode),3*sizeof(ino_t))<0) HGOTO_DONE(-1)
-    if(HDmemcmp(&(f1->inode),&(f2->inode),3*sizeof(ino_t))>0) HGOTO_DONE(1)
-#endif /*H5_VMS*/
 
 #endif
 
@@ -1340,23 +1303,8 @@ H5FD_direct_truncate(H5FD_t *_file, hid_t UNUSED dxpl_id, hbool_t UNUSED closing
 
     /* Extend the file to make sure it's large enough */
     if (file->eoa!=file->eof) {
-#ifdef H5_HAVE_WIN32_API
-        HFILE filehandle;   /* Windows file handle */
-        LARGE_INTEGER li;   /* 64-bit integer for SetFilePointer() call */
-
-        /* Map the posix file handle to a Windows file handle */
-        filehandle = _get_osfhandle(file->fd);
-
-        /* Translate 64-bit integers into form Windows wants */
-        /* [This algorithm is from the Windows documentation for SetFilePointer()] */
-        li.QuadPart = (LONGLONG)file->eoa;
-        (void)SetFilePointer((HANDLE)filehandle,li.LowPart,&li.HighPart,FILE_BEGIN);
-        if(SetEndOfFile((HANDLE)filehandle)==0)
-            HGOTO_ERROR(H5E_IO, H5E_SEEKERROR, FAIL, "unable to extend file properly")
-#else /* H5_HAVE_WIN32_API */
         if (-1==file_truncate(file->fd, (file_offset_t)file->eoa))
             HSYS_GOTO_ERROR(H5E_IO, H5E_SEEKERROR, FAIL, "unable to extend file properly")
-#endif /* H5_HAVE_WIN32_API */
 
         /* Update the eof value */
         file->eof = file->eoa;
