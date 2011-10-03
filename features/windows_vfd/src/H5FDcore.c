@@ -424,7 +424,7 @@ H5FD_core_open(const char *name, unsigned flags, hid_t fapl_id,
     H5FD_core_fapl_t	*fa=NULL;
     H5P_genplist_t *plist;      /* Property list pointer */
 #ifdef H5_HAVE_WIN32_API
-    HANDLE filehandle;
+    HANDLE hFile;
     struct _BY_HANDLE_FILE_INFORMATION fileinfo;
 #endif
     h5_stat_t		sb;
@@ -481,11 +481,11 @@ H5FD_core_open(const char *name, unsigned flags, hid_t fapl_id,
     if(fd >= 0) {
         /* Retrieve information for determining uniqueness of file */
 #ifdef H5_HAVE_WIN32_API
-        filehandle = (HANDLE)_get_osfhandle(fd);
-        if(INVALID_HANDLE_VALUE == filehandle)
+        hFile = (HANDLE)_get_osfhandle(fd);
+        if(INVALID_HANDLE_VALUE == hFile)
             HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to get Windows file handle")
 
-        if(!GetFileInformationByHandle((HANDLE)filehandle, &fileinfo))
+        if(!GetFileInformationByHandle((HANDLE)hFile, &fileinfo))
             HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to get Windows file information")
 
         file->nFileIndexHigh = fileinfo.nFileIndexHigh;

@@ -92,6 +92,8 @@ typedef struct H5FD_sec2_t {
     DWORD           nFileIndexLow;
     DWORD           nFileIndexHigh;
     DWORD           dwVolumeSerialNumber;
+    
+    HANDLE          hFile;      /* Native windows file handle */
 #endif  /* H5_HAVE_WIN32_API */
 
     /* Information from properties set by 'h5repart' tool
@@ -314,7 +316,6 @@ H5FD_sec2_open(const char *name, unsigned flags, hid_t fapl_id, haddr_t maxaddr)
     int		fd = (-1);      /* File descriptor */
     int		o_flags;        /* Flags for open() call */
 #ifdef H5_HAVE_WIN32_API
-    HANDLE filehandle;
     struct _BY_HANDLE_FILE_INFORMATION fileinfo;
 #endif
     h5_stat_t	sb;
@@ -360,11 +361,11 @@ H5FD_sec2_open(const char *name, unsigned flags, hid_t fapl_id, haddr_t maxaddr)
     file->pos = HADDR_UNDEF;
     file->op = OP_UNKNOWN;
 #ifdef H5_HAVE_WIN32_API
-    filehandle = (HANDLE)_get_osfhandle(fd);
-    if(INVALID_HANDLE_VALUE == filehandle)
+    file->hFile = (HANDLE)_get_osfhandle(fd);
+    if(INVALID_HANDLE_VALUE == file->hFile)
         HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to get Windows file handle")
 
-    if(!GetFileInformationByHandle((HANDLE)filehandle, &fileinfo))
+    if(!GetFileInformationByHandle((HANDLE)file->hFile, &fileinfo))
         HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to get Windows file information")
 
     file->nFileIndexHigh = fileinfo.nFileIndexHigh;
@@ -869,17 +870,30 @@ H5FD_sec2_truncate(H5FD_t *_file, hid_t UNUSED dxpl_id, hbool_t UNUSED closing)
     /* Extend the file to make sure it's large enough */
     if(!H5F_addr_eq(file->eoa, file->eof)) {
 #ifdef H5_HAVE_WIN32_API
-        HFILE filehandle;   /* Windows file handle */
-        LARGE_INTEGER li;   /* 64-bit integer for SetFilePointer() call */
+        LARGE_INTEGER   li;         /* 64-bit (union) integer for SetFilePointer() call */
+        DWORD           dwPtrLow;   /* Low-order pointer bits from SetFilePointer()
+                                     * Only used as an error code here.
+                                     */
+        DWORD           dwError;    /* DWORD error code from GetLastError() */
+        BOOL            bError;     /* Boolean error flag */
 
-        /* Map the posix file handle to a Windows file handle */
-        filehandle = _get_osfhandle(file->fd);
+        /* Windows uses this odd QuadPart union for 32/64-bit portability */
+        li.QuadPart = (__int64)file->eoa;
 
-        /* Translate 64-bit integers into form Windows wants */
-        /* [This algorithm is from the Windows documentation for SetFilePointer()] */
-        li.QuadPart = (LONGLONG)file->eoa;
-        (void)SetFilePointer((HANDLE)filehandle, li.LowPart, &li.HighPart, FILE_BEGIN);
-        if(SetEndOfFile((HANDLE)filehandle) == 0)
+        /* Extend the file to make sure it's large enough.
+         *
+         * Since INVALID_SET_FILE_POINTER can technically be a valid return value
+         * from SetFilePointer(), we also need to check GetLastError().
+         */
+        dwPtrLow = SetFilePointer(file->hFile, li.LowPart, &li.HighPart, FILE_BEGIN);
+        if(INVALID_SET_FILE_POINTER == dwPtrLow) {
+            dwError = GetLastError();
+            if(dwError != NO_ERROR )
+                HGOTO_ERROR(H5E_FILE, H5E_FILEOPEN, FAIL, "unable to set file pointer")
+        }
+
+        bError = SetEndOfFile(file->hFile);
+        if(0 == bError)
             HGOTO_ERROR(H5E_IO, H5E_SEEKERROR, FAIL, "unable to extend file properly")
 #else /* H5_HAVE_WIN32_API */
 #ifdef H5_VMS
