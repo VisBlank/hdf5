@@ -38,31 +38,32 @@
 /* The driver identification number, initialized at runtime */
 static hid_t H5FD_CORE_g = 0;
 
-/*
- * The description of a file belonging to this driver. The `eoa' and `eof'
+/* The description of a file belonging to this driver. The `eoa' and `eof'
  * determine the amount of hdf5 address space in use and the high-water mark
  * of the file (the current size of the underlying memory).
  */
 typedef struct H5FD_core_t {
-    H5FD_t	pub;			/*public stuff, must be first	*/
-    char	*name;			/*for equivalence testing	*/
-    unsigned char *mem;			/*the underlying memory		*/
-    haddr_t	eoa;			/*end of allocated region	*/
-    haddr_t	eof;			/*current allocated size	*/
-    size_t	increment;		/*multiples for mem allocation	*/
-    hbool_t	backing_store;		/*write to file name on flush	*/
-    int		fd;			/*backing store file descriptor	*/
+    H5FD_t          pub;            /* public stuff, must be first      */
+    char            *name;          /* for equivalence testing          */
+    unsigned char   *mem;           /* the underlying memory            */
+    haddr_t         eoa;            /* end of allocated region          */
+    haddr_t         eof;            /* current allocated size           */
+    size_t          increment;      /* multiples for mem allocation     */
+    hbool_t         backing_store;  /* write to file name on flush      */
+    int             fd;             /* backing store file descriptor    */
     /* Information for determining uniqueness of a file with a backing store */
 #ifndef H5_HAVE_WIN32_API
-    /*
-     * On most systems the combination of device and i-node number uniquely
-     * identify a file.
+    /* On most systems the combination of device and i-node number uniquely
+     * identify a file.  Note that Cygwin, MinGW and other Windows POSIX
+     * environments have the stat function (which fakes inodes)
+     * and will use the 'device + inodes' scheme as opposed to the
+     * Windows code further below.
      */
-    dev_t       device;                 /*file device number            */
+    dev_t           device;         /* file device number   */
 #ifdef H5_VMS
-    ino_t       inode[3];               /*file i-node number            */
+    ino_t           inode[3];       /* file i-node number   */
 #else
-    ino_t       inode;                  /*file i-node number            */
+    ino_t           inode;          /* file i-node number   */
 #endif /*H5_VMS*/
 #else
     /* Files in windows are uniquely identified by the volume serial
@@ -79,17 +80,17 @@ typedef struct H5FD_core_t {
      *
      * http://msdn.microsoft.com/en-us/library/aa363788(v=VS.85).aspx
      */
-    DWORD nFileIndexLow;
-    DWORD nFileIndexHigh;
-    DWORD dwVolumeSerialNumber;
-#endif
-    hbool_t	dirty;			/*changes not saved?		*/
+    DWORD           nFileIndexLow;
+    DWORD           nFileIndexHigh;
+    DWORD           dwVolumeSerialNumber;
+#endif  /* H5_HAVE_WIN32_API */
+    hbool_t         dirty;          /* changes not saved?   */
 } H5FD_core_t;
 
 /* Driver-specific file access properties */
 typedef struct H5FD_core_fapl_t {
-    size_t	increment;		/*how much to grow memory	*/
-    hbool_t	backing_store;		/*write to file name on flush	*/
+    size_t          increment;      /* how much to grow memory      */
+    hbool_t         backing_store;  /* write to file name on flush  */
 } H5FD_core_fapl_t;
 
 /* Allocate memory in multiples of this size by default */

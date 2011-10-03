@@ -42,11 +42,10 @@
 /* The driver identification number, initialized at runtime */
 static hid_t H5FD_SEC2_g = 0;
 
-/*
- * The description of a file belonging to this driver. The `eoa' and `eof'
+/* The description of a file belonging to this driver. The `eoa' and `eof'
  * determine the amount of hdf5 address space in use and the high-water mark
- * of the file (the current size of the underlying Unix file). The `pos'
- * value is used to eliminate file position updates when they would be a
+ * of the file (the current size of the underlying filesystem file). The
+ * `pos' value is used to eliminate file position updates when they would be a
  * no-op. Unfortunately we've found systems that use separate file position
  * indicators for reading and writing so the lseek can only be eliminated if
  * the current operation is the same as the previous operation.  When opening
@@ -55,24 +54,26 @@ static hid_t H5FD_SEC2_g = 0;
  * occurs), and `op' will be set to H5F_OP_UNKNOWN.
  */
 typedef struct H5FD_sec2_t {
-    H5FD_t	pub;			/*public stuff, must be first	*/
-    int		fd;			/*the unix file			*/
-    haddr_t	eoa;			/*end of allocated region	*/
-    haddr_t	eof;			/*end of file; current file size*/
-    haddr_t	pos;			/*current file I/O position	*/
-    H5FD_file_op_t	op;		/*last operation		*/
-    char	filename[H5FD_MAX_FILENAME_LEN];     /* Copy of file name from open operation */
+    H5FD_t          pub;    /* public stuff, must be first      */
+    int             fd;     /* the filesystem file descriptor   */
+    haddr_t         eoa;    /* end of allocated region          */
+    haddr_t         eof;    /* end of file; current file size   */
+    haddr_t         pos;    /* current file I/O position        */
+    H5FD_file_op_t  op;     /* last operation                   */
+    char            filename[H5FD_MAX_FILENAME_LEN];    /* Copy of file name from open operation */
 #ifndef H5_HAVE_WIN32_API
-    /*
-     * On most systems the combination of device and i-node number uniquely
-     * identify a file.
+    /* On most systems the combination of device and i-node number uniquely
+     * identify a file.  Note that Cygwin, MinGW and other Windows POSIX
+     * environments have the stat function (which fakes inodes)
+     * and will use the 'device + inodes' scheme as opposed to the
+     * Windows code further below.
      */
-    dev_t	device;			/*file device number		*/
+    dev_t           device;     /* file device number   */
 #ifdef H5_VMS
-    ino_t	inode[3];		/*file i-node number		*/
+    ino_t           inode[3];   /* file i-node number   */
 #else
-    ino_t	inode;			/*file i-node number		*/
-#endif /*H5_VMS*/
+    ino_t           inode;      /* file i-node number   */
+#endif /* H5_VMS */
 #else
     /* Files in windows are uniquely identified by the volume serial
      * number and the file index (both low and high parts).
@@ -88,26 +89,18 @@ typedef struct H5FD_sec2_t {
      *
      * http://msdn.microsoft.com/en-us/library/aa363788(v=VS.85).aspx
      */
-    DWORD nFileIndexLow;
-    DWORD nFileIndexHigh;
-    DWORD dwVolumeSerialNumber;
-#endif
+    DWORD           nFileIndexLow;
+    DWORD           nFileIndexHigh;
+    DWORD           dwVolumeSerialNumber;
+#endif  /* H5_HAVE_WIN32_API */
 
-    /* Information from properties set by 'h5repart' tool */
-    hbool_t     fam_to_sec2;    /* Whether to eliminate the family driver info
-                                 * and convert this file to a single file */
+    /* Information from properties set by 'h5repart' tool
+     *
+     * Whether to eliminate the family driver info and convert this file to
+     * a single file
+     */
+    hbool_t         fam_to_sec2;
 } H5FD_sec2_t;
-
-
-/*
- * This driver supports systems that have the lseek64() function by defining
- * some macros here so we don't have to have conditional compilations later
- * throughout the code.
- *
- * HDoff_t:	The datatype for file offsets, the second argument of
- *		the lseek() or lseek64() call.
- *
- */
 
 /*
  * These macros check for overflow of various quantities.  These macros
@@ -302,7 +295,7 @@ done:
 /*-------------------------------------------------------------------------
  * Function:	H5FD_sec2_open
  *
- * Purpose:	Create and/or opens a Unix file as an HDF5 file.
+ * Purpose:	Create and/or opens a file as an HDF5 file.
  *
  * Return:	Success:	A pointer to a new file data structure. The
  *				public fields will be initialized by the
@@ -429,7 +422,7 @@ done:
 /*-------------------------------------------------------------------------
  * Function:	H5FD_sec2_close
  *
- * Purpose:	Closes a Unix file.
+ * Purpose:	Closes an HDF5 file.
  *
  * Return:	Success:	0
  *		Failure:	-1, file not closed.
@@ -620,11 +613,11 @@ H5FD_sec2_set_eoa(H5FD_t *_file, H5FD_mem_t UNUSED type, haddr_t addr)
  * Function:	H5FD_sec2_get_eof
  *
  * Purpose:	Returns the end-of-file marker, which is the greater of
- *		either the Unix end-of-file or the HDF5 end-of-address
+ *		either the filesystem end-of-file or the HDF5 end-of-address
  *		markers.
  *
  * Return:	Success:	End of file address, the first address past
- *				the end of the "file", either the Unix file
+ *				the end of the "file", either the filesystem file
  *				or the HDF5 file.
  *		Failure:	HADDR_UNDEF
  *
