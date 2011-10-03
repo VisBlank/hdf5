@@ -97,17 +97,23 @@ typedef struct H5FD_log_t {
     ino_t	inode;			/*file i-node number		*/
 #endif /*H5_VMS*/
 #else
-    /*
-     * On H5_HAVE_WIN32_API the low-order word of a unique identifier associated with the
-     * file and the volume serial number uniquely identify a file. This number
-     * (which, both? -rpm) may change when the system is restarted or when the
-     * file is opened. After a process opens a file, the identifier is
-     * constant until the file is closed. An application can use this
-     * identifier and the volume serial number to determine whether two
-     * handles refer to the same file.
+    /* Files in windows are uniquely identified by the volume serial
+     * number and the file index (both low and high parts).
+     *
+     * There are caveats where these numbers can change, especially
+     * on FAT file systems.  On NTFS, however, a file should keep
+     * those numbers the same until renamed or deleted (though you
+     * can use ReplaceFile() on NTFS to keep the numbers the same
+     * while renaming).
+     *
+     * See the MSDN "BY_HANDLE_FILE_INFORMATION Structure" entry for
+     * more information.
+     *
+     * http://msdn.microsoft.com/en-us/library/aa363788(v=VS.85).aspx
      */
-    DWORD fileindexlo;
-    DWORD fileindexhi;
+    DWORD nFileIndexLow;
+    DWORD nFileIndexHigh;
+    DWORD dwVolumeSerialNumber;
 #endif
 
     /* Information from properties set by 'h5repart' tool */
@@ -474,7 +480,7 @@ H5FD_log_open(const char *name, unsigned flags, hid_t fapl_id, haddr_t maxaddr)
     int		fd = (-1);      /* File descriptor */
     int		o_flags;        /* Flags for open() call */
 #ifdef H5_HAVE_WIN32_API
-    HFILE filehandle;
+    HANDLE filehandle;
     struct _BY_HANDLE_FILE_INFORMATION fileinfo;
 #endif
 #ifdef H5_HAVE_GETTIMEOFDAY
@@ -571,10 +577,16 @@ H5FD_log_open(const char *name, unsigned flags, hid_t fapl_id, haddr_t maxaddr)
     file->pos = HADDR_UNDEF;
     file->op = OP_UNKNOWN;
 #ifdef H5_HAVE_WIN32_API
-    filehandle = _get_osfhandle(fd);
-    (void)GetFileInformationByHandle((HANDLE)filehandle, &fileinfo);
-    file->fileindexhi = fileinfo.nFileIndexHigh;
-    file->fileindexlo = fileinfo.nFileIndexLow;
+    filehandle = (HANDLE)_get_osfhandle(fd);
+    if(INVALID_HANDLE_VALUE == filehandle)
+        HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to get Windows file handle")
+
+    if(!GetFileInformationByHandle((HANDLE)filehandle, &fileinfo))
+        HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to get Windows file information")
+
+    file->nFileIndexHigh = fileinfo.nFileIndexHigh;
+    file->nFileIndexLow = fileinfo.nFileIndexLow;
+    file->dwVolumeSerialNumber = fileinfo.dwVolumeSerialNumber;
 #else /* H5_HAVE_WIN32_API */
     file->device = sb.st_dev;
 #ifdef H5_VMS
@@ -826,12 +838,14 @@ H5FD_log_cmp(const H5FD_t *_f1, const H5FD_t *_f2)
     FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5FD_log_cmp)
 
 #ifdef H5_HAVE_WIN32_API
-    if(f1->fileindexhi < f2->fileindexhi) HGOTO_DONE(-1)
-    if(f1->fileindexhi > f2->fileindexhi) HGOTO_DONE(1)
+    if(f1->dwVolumeSerialNumber < f2->dwVolumeSerialNumber) HGOTO_DONE(-1)
+    if(f1->dwVolumeSerialNumber > f2->dwVolumeSerialNumber) HGOTO_DONE(1)
 
-    if(f1->fileindexlo < f2->fileindexlo) HGOTO_DONE(-1)
-    if(f1->fileindexlo > f2->fileindexlo) HGOTO_DONE(1)
+    if(f1->nFileIndexHigh < f2->nFileIndexHigh) HGOTO_DONE(-1)
+    if(f1->nFileIndexHigh > f2->nFileIndexHigh) HGOTO_DONE(1)
 
+    if(f1->nFileIndexLow < f2->nFileIndexLow) HGOTO_DONE(-1)
+    if(f1->nFileIndexLow > f2->nFileIndexLow) HGOTO_DONE(1)
 #else
 #ifdef H5_DEV_T_IS_SCALAR
     if(f1->device < f2->device) HGOTO_DONE(-1)

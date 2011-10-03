@@ -99,17 +99,23 @@ typedef struct H5FD_stdio_t {
     dev_t  device;      /*file device number    */
     ino_t  inode;      /*file i-node number    */
 #else
-    /*
-     * On H5_HAVE_WIN32_API the low-order word of a unique identifier associated with the
-     * file and the volume serial number uniquely identify a file. This number
-     * (which, both? -rpm) may change when the system is restarted or when the
-     * file is opened. After a process opens a file, the identifier is
-     * constant until the file is closed. An application can use this
-     * identifier and the volume serial number to determine whether two
-     * handles refer to the same file.
+    /* Files in windows are uniquely identified by the volume serial
+     * number and the file index (both low and high parts).
+     *
+     * There are caveats where these numbers can change, especially
+     * on FAT file systems.  On NTFS, however, a file should keep
+     * those numbers the same until renamed or deleted (though you
+     * can use ReplaceFile() on NTFS to keep the numbers the same
+     * while renaming).
+     *
+     * See the MSDN "BY_HANDLE_FILE_INFORMATION Structure" entry for
+     * more information.
+     *
+     * http://msdn.microsoft.com/en-us/library/aa363788(v=VS.85).aspx
      */
-    DWORD fileindexlo;
-    DWORD fileindexhi;
+    DWORD nFileIndexLow;
+    DWORD nFileIndexHigh;
+    DWORD dwVolumeSerialNumber;
 #endif
 } H5FD_stdio_t;
 
@@ -340,9 +346,9 @@ H5FD_stdio_open( const char *name, unsigned flags, hid_t fapl_id,
     H5FD_stdio_t  *file=NULL;
     static const char *func="H5FD_stdio_open";  /* Function Name for error reporting */
 #ifdef H5_HAVE_WIN32_API
-  HFILE filehandle;
-  struct _BY_HANDLE_FILE_INFORMATION fileinfo;
-        int fd;
+    HANDLE filehandle;
+    struct _BY_HANDLE_FILE_INFORMATION fileinfo;
+    int fd;
 #else /* H5_HAVE_WIN32_API */
     struct stat        sb;
 #endif  /* H5_HAVE_WIN32_API */
@@ -404,12 +410,25 @@ H5FD_stdio_open( const char *name, unsigned flags, hid_t fapl_id,
 
     /* The unique key */
 #ifdef H5_HAVE_WIN32_API
-/*#error "Needs correct fileindexhi & fileindexlo, code below is from sec2 driver"*/
+    /* Note that the return value from _fileno() is undefined if the stream
+     * does not specify an open file so the error check only handles
+     * NULL pointers.  Note also that stderr/out will return -2 from this
+     * function, which is not considered an error condition here.
+     */
     fd = _fileno(f);
-    filehandle = _get_osfhandle(fd);
-    (void)GetFileInformationByHandle((HANDLE)filehandle, &fileinfo);
-    file->fileindexhi = fileinfo.nFileIndexHigh;
-    file->fileindexlo = fileinfo.nFileIndexLow;
+    if(-1 == fd)
+        HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to get file descriptor from FILE pointer")
+        
+    filehandle = (HANDLE)_get_osfhandle(fd);
+    if(INVALID_HANDLE_VALUE == filehandle)
+        HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to get Windows file handle")
+
+    if(!GetFileInformationByHandle((HANDLE)filehandle, &fileinfo))
+        HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to get Windows file information")
+
+    file->nFileIndexHigh = fileinfo.nFileIndexHigh;
+    file->nFileIndexLow = fileinfo.nFileIndexLow;
+    file->dwVolumeSerialNumber = fileinfo.dwVolumeSerialNumber;
 #else
     fstat(fileno(file->fp), &sb);
     file->device = sb.st_dev;
@@ -484,12 +503,14 @@ H5FD_stdio_cmp(const H5FD_t *_f1, const H5FD_t *_f2)
     H5Eclear2(H5E_DEFAULT);
 
 #ifdef H5_HAVE_WIN32_API
-    if (f1->fileindexhi < f2->fileindexhi) return -1;
-    if (f1->fileindexhi > f2->fileindexhi) return 1;
+    if(f1->dwVolumeSerialNumber < f2->dwVolumeSerialNumber) HGOTO_DONE(-1)
+    if(f1->dwVolumeSerialNumber > f2->dwVolumeSerialNumber) HGOTO_DONE(1)
 
-    if (f1->fileindexlo < f2->fileindexlo) return -1;
-    if (f1->fileindexlo > f2->fileindexlo) return 1;
+    if(f1->nFileIndexHigh < f2->nFileIndexHigh) HGOTO_DONE(-1)
+    if(f1->nFileIndexHigh > f2->nFileIndexHigh) HGOTO_DONE(1)
 
+    if(f1->nFileIndexLow < f2->nFileIndexLow) HGOTO_DONE(-1)
+    if(f1->nFileIndexLow > f2->nFileIndexLow) HGOTO_DONE(1)
 #else
 #ifdef H5_DEV_T_IS_SCALAR
     if (f1->device < f2->device) return -1;
