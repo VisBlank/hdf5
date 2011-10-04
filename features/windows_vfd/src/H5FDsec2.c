@@ -49,7 +49,7 @@ static hid_t H5FD_SEC2_g = 0;
 #ifdef H5_HAVE_WIN32_API
 typedef unsigned int    h5_sec2_io_t;
 typedef int             h5_sec2_io_ret_t;
-static int H5_SEC2_MAX_IO_BYTES_g = MAX_INT;
+static int H5_SEC2_MAX_IO_BYTES_g = INT_MAX;
 #else /* Unix, everyone else */
 typedef size_t          h5_sec2_io_t;
 typedef ssize_t         h5_sec2_io_ret_t;
