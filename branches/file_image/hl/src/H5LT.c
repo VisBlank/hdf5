@@ -17,6 +17,9 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <sys/file.h>
+#include <fcntl.h>
+
 #include "H5LTprivate.h"
 
 
@@ -30,7 +33,248 @@ char *myinput;
 int  indent = 0;
 
 
+/* Definition of callbacks for file image operations. Callbacks are only used when the file image is not copied */
 
+/* Data structure to pass user data to callbacks. */ 
+struct udata_t {
+    void *fapl_image_ptr;
+    size_t fapl_image_size;
+    int fapl_ref_count;
+    void *vfd_image_ptr;
+    size_t vfd_image_size;
+    int vfd_ref_count;
+    unsigned flags;
+};
+
+
+
+/*-------------------------------------------------------------------------
+* Function: image_malloc (prototype)
+*
+* Purpose: Emulates "malloc" function to avoid memory copying. 
+*
+* Return: Address of "allocated" buffer
+*
+* Programmer:  
+*
+* Date: October 3, 2011
+*
+*-------------------------------------------------------------------------
+*/
+
+void *image_malloc(size_t size, H5_file_image_op_t file_image_op, void *udata)
+{
+    void * return_value = NULL;
+
+    assert(((struct udata_t *)udata)->flags & H5LT_FILE_IMAGE_DONT_COPY);
+
+    switch ( file_image_op ) {
+        case H5_FILE_IMAGE_OP_PROPERTY_LIST_SET:
+	case H5_FILE_IMAGE_OP_PROPERTY_LIST_COPY:
+            assert(((struct udata_t *)udata)->fapl_image_ptr != NULL);
+            assert(((struct udata_t *)udata)->fapl_image_size == size);
+            assert(((struct udata_t *)udata)->fapl_ref_count >= 0);
+
+            return_value = ((struct udata_t *)udata)->fapl_image_ptr;
+            (((struct udata_t *)udata)->fapl_ref_count)++;
+	    break;
+
+        case H5_FILE_IMAGE_OP_PROPERTY_LIST_GET:
+            assert(((struct udata_t *)udata)->fapl_image_ptr != NULL);
+            assert(((struct udata_t *)udata)->vfd_image_size == size);
+            assert(((struct udata_t *)udata)->fapl_ref_count >= 1);
+
+            return_value = ((struct udata_t *)udata)->fapl_image_ptr;
+            /* don’t increment ref count */
+            break;
+
+        case H5_FILE_IMAGE_OP_FILE_OPEN:
+            assert(((struct udata_t *)udata)->vfd_image_ptr == NULL);
+            assert(((struct udata_t *)udata)->vfd_image_size == 0);
+            assert(((struct udata_t *)udata)->vfd_ref_count == 0);
+          
+            /* check whether the image is transmitted from FAPL or it is created */
+            if (((struct udata_t *)udata)->fapl_image_ptr == NULL ) {
+                assert((((struct udata_t *)udata)->vfd_image_ptr = malloc(size)) != NULL);
+		((struct udata_t *)udata)->vfd_image_size = size;
+            } /* end if */
+            else {
+                assert(((struct udata_t *)udata)->fapl_image_size == size);
+                assert(((struct udata_t *)udata)->fapl_ref_count >= 1);
+
+                ((struct udata_t *)udata)->vfd_image_ptr = ((struct udata_t *)udata)->fapl_image_ptr;
+		((struct udata_t *)udata)->vfd_image_size = size;
+            } /* end else */
+            return_value = ((struct udata_t *)udata)->vfd_image_ptr;
+            (((struct udata_t *)udata)->vfd_ref_count)++;
+            break;
+
+        default:
+            assert(FALSE);
+	}
+	return(return_value);
+}
+
+/*-------------------------------------------------------------------------
+* Function: image_memcpy (prototype)
+*
+* Purpose:  Emulates "memcpy" function to avoid memory copying.
+*
+* Return: The address of the destination buffer
+*
+* Programmer:  
+*
+* Date: October 3, 2011
+*
+*-------------------------------------------------------------------------
+*/
+
+void *image_memcpy(void *dest, const void *src, size_t size, H5_file_image_op_t file_image_op, void *udata)
+{
+    assert(((struct udata_t *)udata)->flags & H5LT_FILE_IMAGE_DONT_COPY);
+
+    switch(file_image_op) {
+        case H5_FILE_IMAGE_OP_PROPERTY_LIST_SET:
+        case H5_FILE_IMAGE_OP_PROPERTY_LIST_COPY:
+        case H5_FILE_IMAGE_OP_PROPERTY_LIST_GET:
+            assert(dest == ((struct udata_t *)udata)->fapl_image_ptr);
+            assert(src == ((struct udata_t *)udata)->fapl_image_ptr);
+            assert(size == ((struct udata_t *)udata)->fapl_image_size);
+            assert(((struct udata_t *)udata)->fapl_ref_count >= 1);
+            break;
+
+        case H5_FILE_IMAGE_OP_FILE_OPEN:
+            assert(dest == ((struct udata_t *)udata)->vfd_image_ptr);
+            assert(src == ((struct udata_t *)udata)->fapl_image_ptr);
+            assert(size == ((struct udata_t *)udata)->fapl_image_size);
+            assert(size == ((struct udata_t *)udata)->vfd_image_size);
+            assert(((struct udata_t *)udata)->fapl_ref_count >= 1);
+            assert(((struct udata_t *)udata)->vfd_ref_count == 1);
+            break;
+
+        default:
+            assert(FALSE);
+            break;
+    }
+    return(dest);
+}
+
+/*-------------------------------------------------------------------------
+* Function: image_realloc (prototype)
+*
+* Purpose:  Emulates "realloc" function to avoid memory copying.
+*
+* Return: Address of "reallocated" buffer 
+*
+* Programmer: 
+*
+* Date: October 3, 2011
+*
+*-------------------------------------------------------------------------
+*/
+
+void *image_realloc(void *ptr, size_t size, H5_file_image_op_t file_image_op, void *udata)
+{
+    assert(((struct udata_t *)udata)->flags & H5LT_FILE_IMAGE_DONT_COPY);
+    assert(!(((struct udata_t *)udata)->flags & H5LT_FILE_IMAGE_DONT_RELEASE));
+
+    assert(ptr == ((struct udata_t *)udata)->vfd_image_ptr);
+    assert(((struct udata_t *)udata)->vfd_ref_count == 1);
+
+    assert((((struct udata_t *)udata)->vfd_image_ptr = realloc(ptr, size)) != NULL);
+    ((struct udata_t *)udata)->vfd_image_size = size;
+
+    return(((struct udata_t *)udata)->vfd_image_ptr);
+}
+
+/*-------------------------------------------------------------------------
+* Function: image_free (prototype)
+*
+* Purpose: Emulates "free" function to handle reference counting and memory
+*          deallocation.
+*
+* Return: 
+*
+* Programmer: 
+*
+* Date: October 3, 2011
+*
+*-------------------------------------------------------------------------
+*/
+
+void image_free(void *ptr, H5_file_image_op_t file_image_op, void *udata)
+{
+    assert(((struct udata_t *)udata)->flags & H5LT_FILE_IMAGE_DONT_COPY);
+
+    switch(file_image_op) {
+        case H5_FILE_IMAGE_OP_PROPERTY_LIST_CLOSE:
+	    assert(ptr == ((struct udata_t *)udata)->fapl_image_ptr);
+            assert(((struct udata_t *)udata)->fapl_ref_count >= 1);
+
+            (((struct udata_t *)udata)->fapl_ref_count)--;
+            break;
+
+        case H5_FILE_IMAGE_OP_FILE_CLOSE:
+            assert(ptr == ((struct udata_t *)udata)->vfd_image_ptr);
+            assert(((struct udata_t *)udata)->vfd_ref_count == 1);
+
+            (((struct udata_t *)udata)->vfd_ref_count)--;
+
+            /* deallocates shared user buffer */
+            if (!(((struct udata_t *)udata)->flags & H5LT_FILE_IMAGE_DONT_RELEASE)) {
+                free(((struct udata_t *)udata)->vfd_image_ptr);
+            } /* end if */
+
+            /* deallocates user data structure */ 
+            free((struct udata_t *)udata);
+            break;
+
+	default:
+            assert(FALSE);
+            break;
+        }
+    return;
+}
+
+/*-------------------------------------------------------------------------
+* Function: udata_copy (prototype)
+*
+* Purpose: Emulates copy of the user data structure.
+*
+* Return: Address of "newly allocated" structure 
+*
+* Programmer: 
+*
+* Date: October 3, 2011
+*
+*-------------------------------------------------------------------------
+*/
+
+void *udata_copy(void *udata)
+{
+    return(udata);
+}
+
+/*-------------------------------------------------------------------------
+* Function: udata_free (prototype)
+*
+* Purpose: Emulates deallocation of the user data structure 
+*
+* Return: 
+*
+* Programmer: 
+*
+* Date: October 3, 2011
+*
+*-------------------------------------------------------------------------
+*/
+
+void udata_free(void *udata)
+{
+    return;
+}
+
+/* End of callbacks definitions */
 
 /*-------------------------------------------------------------------------
 *
@@ -105,6 +349,9 @@ out:
 *
 *-------------------------------------------------------------------------
 */
+
+
+
 
 /*-------------------------------------------------------------------------
 * Function: H5LTmake_dataset
@@ -387,6 +634,147 @@ out:
     return -1;
 }
 
+
+/*-------------------------------------------------------------------------
+* Function: H5LTget_file_image (prototype)
+*
+* Purpose:  Assigns a file image from a VFD to a user buffer.
+*
+* Return: File size in bytes, Failure: -1
+*
+* Programmer: Christian Chilan 
+*
+* Date: October 3, 2011
+*
+*-------------------------------------------------------------------------
+*/
+
+ssize_t H5LTget_file_image(hid_t file_id, void *buf_ptr, hsize_t buf_size)
+{
+    hsize_t       file_size, name_size;
+    char          *file_name = NULL;
+    int           file_des;
+
+    /* Flush file contents */
+    if (H5Fflush(file_id, H5F_SCOPE_LOCAL) < 0)
+        return -1;
+
+    /* Get the file size */ 
+    if (H5Fget_filesize(file_id, &file_size) < 0)
+        return -1;
+
+    /* Check whether there is an allocated buffer for image */ 
+    if (buf_ptr == NULL) {
+        return file_size;
+    } /* end if */ 
+    else {
+        /* Check whether the allocated buffer size is large enough */
+        if (buf_size < file_size) {
+            return -1;
+        } /* end if */
+        else {
+
+        /* Allocate buffer for file name */ 
+        if ((name_size = H5Fget_name(file_id, NULL, 0)) < 0)
+            return -1;
+       
+        if ((file_name = (char *)malloc(name_size+1)) == NULL)
+            return -1;
+
+        /* Read file name */
+        if ((name_size = H5Fget_name(file_id, file_name, name_size+1)) < 0)
+            return -1;
+
+        /* Use standard UNIX I/O for loading file content into an image */
+        if ((file_des = open(file_name, O_RDONLY)) < 0)
+            return -1;
+
+        if (read(file_des, buf_ptr, file_size) < 0)
+            return -1;
+
+        if (close(file_des) < 0)
+            return -1;
+
+        /* Free allocated buffer for file name */
+        free(file_name);
+
+        /* Return file size */
+        return (ssize_t)file_size;
+
+        } /* end else */
+    } /* end else */
+}
+
+
+/*-------------------------------------------------------------------------
+* Function: H5LTopen_file_image (prototype)
+*
+* Purpose: Assigns a file image from a user buffer to the core file driver. 
+*
+* Return: File identifier, Failure: -1
+*
+* Programmer: Christian Chilan 
+*
+* Date: October 3, 2011
+*
+*-------------------------------------------------------------------------
+*/
+
+hid_t H5LTopen_file_image(void *buf_ptr, size_t buf_size, unsigned flags)
+{
+    hid_t		fapl, file_id;
+    struct udata_t      *udata = NULL;
+
+    assert(buf_ptr != NULL);
+    assert(buf_size != 0);
+
+    /* Create FAPL to transmit file image */
+    if ((fapl = H5Pcreate(H5P_FILE_ACCESS)) < 0)
+        return -1;
+
+    /* Configure FAPL to use the core file driver */
+    if (H5Pset_fapl_core(fapl, (size_t)1024, 0) < 0)
+        return -1;
+
+    /* Set callbacks for file image ops ONLY if the file image is NOT copied */
+    if (flags & H5LT_FILE_IMAGE_DONT_COPY) {
+
+        /* Allocate buffer to communicate user data to callbacks */
+        if ((udata = (struct udata_t *)malloc(sizeof(struct udata_t))) == NULL)
+            return -1;
+
+        /* Set udata with info about user buffer containing file image  and flags */
+        udata->fapl_image_ptr = buf_ptr;
+        udata->fapl_image_size = buf_size;
+        udata->flags = flags;
+
+        /* Set file image callbacks */
+        if (H5Pset_file_image_callbacks(fapl, image_malloc, image_memcpy, image_realloc, image_free, udata_copy, udata_free, (void *)udata) < 0)
+            return -1;
+
+    } /* end if */
+    else {
+
+        /* do not set callbacks */
+        assert(!(flags & H5LT_FILE_IMAGE_DONT_RELEASE));
+
+    } /* end else */
+
+    /* Assign file image in user buffer to FAPL */
+    if (H5Pset_file_image(fapl, buf_ptr, buf_size) < 0)
+        return -1;
+
+    /* Assign file image in FAPL to the core file driver */ 
+    if ((file_id = H5Fopen("foo.h5", H5F_ACC_RDWR, fapl)) < 0)
+        return -1;
+
+    /* Close FAPL */
+    if (H5Pclose(fapl) < 0)
+        return -1;
+
+    /* Return file identifier */ 
+    return file_id; 
+}
 
 /*-------------------------------------------------------------------------
 * Function: H5LT_read_dataset
