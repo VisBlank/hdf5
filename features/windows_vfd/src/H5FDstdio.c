@@ -38,21 +38,52 @@
 
 #ifdef H5_HAVE_STDIO_H
 #include <stdio.h>
-#endif
+#endif /* H5_HAVE_STDIO_H */
+
 #ifdef H5_HAVE_UNISTD_H
 #include <unistd.h>
-#endif
+#endif /* H5_HAVE_UNISTD_H */
 
 #ifdef H5_HAVE_WIN32_API
 #include <windows.h>
 #include <io.h>
+#endif /* H5_HAVE_WIN32_API */
 
 /* This is not defined in the Windows header files */
 #ifndef F_OK
 #define F_OK 00
-#endif
+#endif /* F_OK */
 
-#endif
+/* Use file_xxx to indicate these are local macros, avoiding confusing 
+ * with the global HD_xxx macros. 
+ * Assume fseeko, which is POSIX standard, is always supported; 
+ * but prefer to use fseeko64 if supported. 
+ */
+#ifdef H5_HAVE_WIN32_API
+    /* Windows */
+    #   define file_fseek       _fseeki64
+    #   define file_offset_t    __int64
+    #   define file_ftruncate   _chsize_s   /* Supported in VS 2005 or newer */
+    #   define file_ftell       _ftelli64
+    #   define file_access      _access
+    #   define file_fileno      _fileno
+#else
+    /* Everyone else */
+    #ifdef H5_HAVE_FSEEKO64
+    #   define file_fseek       fseeko64
+    #   define file_offset_t    off64_t
+    #   define file_ftruncate   ftruncate64
+    #   define file_ftell       ftello64
+    #else
+    #   define file_fseek       fseeko
+    #   define file_offset_t    off_t
+    #   define file_ftruncate   ftruncate
+    #   define file_ftell       ftello
+    #endif
+
+    #   define file_access      access
+    #   define file_fileno      fileno
+#endif /* H5_HAVE_WIN32_API */
 
 
 #ifdef MAX
@@ -121,35 +152,10 @@ typedef struct H5FD_stdio_t {
     DWORD           nFileIndexLow;
     DWORD           nFileIndexHigh;
     DWORD           dwVolumeSerialNumber;
+
+    HANDLE          hFile;      /* Native windows file handle */
 #endif  /* H5_HAVE_WIN32_API */
 } H5FD_stdio_t;
-
-/* Use similar structure as in H5private.h by defining Windows stuff first. */
-#ifdef H5_HAVE_WIN32_API
-    #   define file_fseek  _fseeki64
-    #   define file_offset_t  __int64
-    #   define file_ftruncate  _chsize_s   /* Supported in VS 2005 or newer */
-    #   define file_ftell  _ftelli64
-#endif
-
-/* Use file_xxx to indicate these are local macros, avoiding confusing 
- * with the global HD_xxx macros. 
- * Assume fseeko, which is POSIX standard, is always supported; 
- * but prefer to use fseeko64 if supported. 
- */
-#ifndef file_fseek
-    #ifdef H5_HAVE_FSEEKO64
-    #   define file_fseek  fseeko64
-    #   define file_offset_t  off64_t
-    #   define file_ftruncate  ftruncate64
-    #   define file_ftell  ftello64
-    #else
-    #   define file_fseek  fseeko
-    #   define file_offset_t  off_t
-    #   define file_ftruncate  ftruncate
-    #   define file_ftell  ftello
-    #endif
-#endif
 
 /*
  * These macros check for overflow of various quantities.  These macros
@@ -351,7 +357,6 @@ H5FD_stdio_open( const char *name, unsigned flags, hid_t fapl_id,
     H5FD_stdio_t  *file=NULL;
     static const char *func="H5FD_stdio_open";  /* Function Name for error reporting */
 #ifdef H5_HAVE_WIN32_API
-    HANDLE filehandle;
     struct _BY_HANDLE_FILE_INFORMATION fileinfo;
     int fd;
 #else /* H5_HAVE_WIN32_API */
@@ -375,7 +380,7 @@ H5FD_stdio_open( const char *name, unsigned flags, hid_t fapl_id,
     if (ADDR_OVERFLOW(maxaddr))
         H5Epush_ret(func, H5E_ERR_CLS, H5E_ARGS, H5E_OVERFLOW, "maxaddr too large", NULL)
 
-    if (access(name, F_OK) < 0) {
+    if (file_access(name, F_OK) < 0) {
         if ((flags & H5F_ACC_CREAT) && (flags & H5F_ACC_RDWR)) {
             f = fopen(name, "wb+");
             write_access=1;     /* Note the write access */
@@ -420,15 +425,15 @@ H5FD_stdio_open( const char *name, unsigned flags, hid_t fapl_id,
      * NULL pointers.  Note also that stderr/out will return -2 from this
      * function, which is not considered an error condition here.
      */
-    fd = _fileno(f);
+    fd = file_fileno(f);
     if(-1 == fd)
         H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_CANTOPENFILE, "unable to get file descriptor from FILE pointer", NULL)
 
-    filehandle = (HANDLE)_get_osfhandle(fd);
-    if(INVALID_HANDLE_VALUE == filehandle)
+    file->hFile = (HANDLE)_get_osfhandle(fd);
+    if(INVALID_HANDLE_VALUE == file->hFile)
         H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_CANTOPENFILE, "unable to get Windows file handle", NULL)
 
-    if(!GetFileInformationByHandle((HANDLE)filehandle, &fileinfo))
+    if(!GetFileInformationByHandle(file->hFile, &fileinfo))
         H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_CANTOPENFILE, "unable to get Windows file information", NULL)
 
     file->nFileIndexHigh = fileinfo.nFileIndexHigh;
@@ -1032,23 +1037,21 @@ H5FD_stdio_truncate(H5FD_t *_file, hid_t dxpl_id, hbool_t closing)
     if(file->write_access) {
         /* Makes sure that the true file size is the same as the end-of-address. */
         if(file->eoa != file->eof) {
-            int fd = fileno(file->fp);     /* File descriptor for HDF5 file */
+            int fd = file_fileno(file->fp);     /* File descriptor for HDF5 file */
 
 #ifdef H5_HAVE_WIN32_API
-            HFILE filehandle;   /* Windows file handle */
             LARGE_INTEGER li;   /* 64-bit integer for SetFilePointer() call */
 
-      /* Reset seek offset to beginning of file, so that file isn't re-extended later */
+            /* Reset seek offset to beginning of file, so that file isn't
+             * re-extended later.
+             */
             rewind(file->fp);
-
-            /* Map the posix file handle to a Windows file handle */
-            filehandle = _get_osfhandle(fd);
 
             /* Translate 64-bit integers into form Windows wants */
             /* [This algorithm is from the Windows documentation for SetFilePointer()] */
             li.QuadPart = (LONGLONG)file->eoa;
-            (void)SetFilePointer((HANDLE)filehandle, li.LowPart, &li.HighPart, FILE_BEGIN);
-            if(SetEndOfFile((HANDLE)filehandle) == 0)
+            (void)SetFilePointer(file->hFile, li.LowPart, &li.HighPart, FILE_BEGIN);
+            if(SetEndOfFile(file->hFile) == 0)
                 H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_SEEKERROR, "unable to truncate/extend file properly", -1)
 #else /* H5_HAVE_WIN32_API */
             /* Reset seek offset to beginning of file, so that file isn't re-extended later */
