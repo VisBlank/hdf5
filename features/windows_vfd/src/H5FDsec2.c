@@ -50,11 +50,12 @@ static hid_t H5FD_SEC2_g = 0;
 typedef unsigned int    h5_sec2_io_t;
 typedef int             h5_sec2_io_ret_t;
 static int H5_SEC2_MAX_IO_BYTES_g = INT_MAX;
-#else /* Unix, everyone else */
+#else
+/* Unix, everyone else */
 typedef size_t          h5_sec2_io_t;
 typedef ssize_t         h5_sec2_io_ret_t;
 static size_t H5_SEC2_MAX_IO_BYTES_g = SSIZET_MAX;
-#endif
+#endif /* H5_HAVE_WIN32_API */
  
 /* The description of a file belonging to this driver. The `eoa' and `eof'
  * determine the amount of hdf5 address space in use and the high-water mark
@@ -732,18 +733,18 @@ H5FD_sec2_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id,
      * and the end of the file.
      */
     while(size > 0) {
-    
+
         h5_sec2_io_t        bytes_in        = 0;    /* # of bytes to read       */
         h5_sec2_io_ret_t    bytes_read      = -1;   /* # of bytes actually read */ 
-        
+
         /* Trying to read more bytes than the return type can handle is
          * undefined behavior in POSIX.
          */
         if(size > H5_SEC2_MAX_IO_BYTES_g)
             bytes_in = H5_SEC2_MAX_IO_BYTES_g;
         else
-            bytes_in = size;
-        
+            bytes_in = (h5_sec2_io_t)size;
+
         do {
             bytes_read = HDread(file->fd, buf, bytes_in);
         } while(-1 == bytes_read && EINTR == errno);
@@ -845,7 +846,7 @@ H5FD_sec2_write(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id, had
         if(size > H5_SEC2_MAX_IO_BYTES_g)
             bytes_in = H5_SEC2_MAX_IO_BYTES_g;
         else
-            bytes_in = size;
+            bytes_in = (h5_sec2_io_t)size;
 
         do {
             bytes_wrote = HDwrite(file->fd, buf, bytes_in);
