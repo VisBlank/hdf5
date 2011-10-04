@@ -42,6 +42,20 @@
 /* The driver identification number, initialized at runtime */
 static hid_t H5FD_SEC2_g = 0;
 
+/* Since Windows doesn't follow the rest of the world when it comes
+ * to POSIX I/O types, some typedefs and constants are needed to avoid
+ * making the code messy with #ifdefs.
+ */
+#ifdef H5_HAVE_WIN32_API
+typedef h5_sec2_io_t        unsigned int;
+typedef h5_sec2_io_ret_t    int;
+static int H5_SEC2_MAX_IO_BYTES_g = MAX_INT;
+#else /* Unix, everyone else */
+typedef h5_sec2_io_t        size_t;
+typedef h5_sec2_io_ret_t    ssize_t;
+static size_t H5_SEC2_MAX_IO_BYTES_g = SSIZET_MAX;
+#endif
+ 
 /* The description of a file belonging to this driver. The `eoa' and `eof'
  * determine the amount of hdf5 address space in use and the high-water mark
  * of the file (the current size of the underlying filesystem file). The
@@ -404,6 +418,15 @@ H5FD_sec2_open(const char *name, unsigned flags, hid_t fapl_id, haddr_t maxaddr)
             if(H5P_get(plist, H5F_ACS_FAMILY_TO_SEC2_NAME, &file->fam_to_sec2) < 0)
                 HGOTO_ERROR(H5E_VFL, H5E_CANTGET, NULL, "can't get property of changing family to sec2")
     } /* end if */
+    
+    /* Set the maximum # of bytes that can be read/written in a single I/O
+     * operation.
+     */
+#ifdef H5_HAVE_WIN32_API
+    file->max_io_bytes = INT_MAX;
+#else
+    file->max_io_bytes = SSIZET_MAX;
+#endif
 
     /* Set return value */
     ret_value = (H5FD_t*)file;
@@ -690,9 +713,8 @@ static herr_t
 H5FD_sec2_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id,
     haddr_t addr, size_t size, void *buf/*out*/)
 {
-    H5FD_sec2_t		*file = (H5FD_sec2_t *)_file;
-    ssize_t		nbytes;
-    herr_t              ret_value = SUCCEED;       /* Return value */
+    H5FD_sec2_t     *file       = (H5FD_sec2_t *)_file;
+    herr_t          ret_value   = SUCCEED;                  /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5FD_sec2_read)
 
@@ -719,28 +741,45 @@ H5FD_sec2_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id,
      * and the end of the file.
      */
     while(size > 0) {
+    
+        h5_sec2_io_t        bytes_in        = 0;    /* # of bytes to read       */
+        h5_sec2_io_ret_t    bytes_wrote     = -1;   /* # of bytes actually read */ 
+        
+        /* Trying to read more bytes than the return type can handle is
+         * undefined behavior in POSIX.
+         */
+        if(size > H5_SEC2_MAX_IO_BYTES_g)
+            bytes_in = H5_SEC2_MAX_IO_BYTES_g;
+        else
+            bytes_in = size;
+        
         do {
-            nbytes = HDread(file->fd, buf, size);
-        } while(-1 == nbytes && EINTR == errno);
-        if(-1 == nbytes) { /* error */
+            bytes_read = HDread(file->fd, buf, bytes_in);
+        } while(-1 == bytes_read && EINTR == errno);
+        
+        if(-1 == bytes_read) { /* error */
             int myerrno = errno;
             time_t mytime = HDtime(NULL);
             HDoff_t myoffset = HDlseek(file->fd, (HDoff_t)0, SEEK_CUR);
 
             HGOTO_ERROR(H5E_IO, H5E_READERROR, FAIL, "file read failed: time = %s, filename = '%s', file descriptor = %d, errno = %d, error message = '%s', buf = %p, size = %lu, offset = %llu", HDctime(&mytime), file->filename, file->fd, myerrno, HDstrerror(myerrno), buf, (unsigned long)size, (unsigned long long)myoffset);
         } /* end if */
-        if(0 == nbytes) {
+        
+        if(0 == bytes_read) {
             /* end of file but not end of format address space */
             HDmemset(buf, 0, size);
             break;
         } /* end if */
-        HDassert(nbytes >= 0);
-        HDassert((size_t)nbytes <= size);
-        H5_CHECK_OVERFLOW(nbytes, ssize_t, size_t);
-        size -= (size_t)nbytes;
-        H5_CHECK_OVERFLOW(nbytes, ssize_t, haddr_t);
-        addr += (haddr_t)nbytes;
-        buf = (char *)buf + nbytes;
+        
+        HDassert(bytes_read >= 0);
+        HDassert((size_t)bytes_read <= size);
+        
+        H5_CHECK_OVERFLOW(bytes_read, ssize_t, size_t);
+        size -= (size_t)bytes_read;
+        
+        H5_CHECK_OVERFLOW(bytes_read, ssize_t, haddr_t);
+        addr += (haddr_t)bytes_read;
+        buf = (char *)buf + bytes_read;
     } /* end while */
 
     /* Update current position */
@@ -778,9 +817,8 @@ static herr_t
 H5FD_sec2_write(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id, haddr_t addr,
 		size_t size, const void *buf)
 {
-    H5FD_sec2_t		*file = (H5FD_sec2_t *)_file;
-    ssize_t		nbytes;
-    herr_t              ret_value = SUCCEED;       /* Return value */
+    H5FD_sec2_t     *file       = (H5FD_sec2_t *)_file;
+    herr_t          ret_value   = SUCCEED;                  /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5FD_sec2_write)
 
@@ -806,23 +844,39 @@ H5FD_sec2_write(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id, had
      * results
      */
     while(size > 0) {
+
+        h5_sec2_io_t        bytes_in        = 0;    /* # of bytes to write  */
+        h5_sec2_io_ret_t    bytes_wrote     = -1;   /* # of bytes written   */ 
+
+        /* Trying to write more bytes than the return type can handle is
+         * undefined behavior in POSIX.
+         */
+        if(size > H5_SEC2_MAX_IO_BYTES_g)
+            bytes_in = H5_SEC2_MAX_IO_BYTES_g;
+        else
+            bytes_in = size;
+
         do {
-            nbytes = HDwrite(file->fd, buf, size);
-        } while(-1 == nbytes && EINTR == errno);
-        if(-1 == nbytes) { /* error */
+            bytes_wrote = HDwrite(file->fd, buf, bytes_in);
+        } while(-1 == bytes_wrote && EINTR == errno);
+        
+        if(-1 == bytes_wrote) { /* error */
             int myerrno = errno;
             time_t mytime = HDtime(NULL);
             HDoff_t myoffset = HDlseek(file->fd, (HDoff_t)0, SEEK_CUR);
 
             HGOTO_ERROR(H5E_IO, H5E_WRITEERROR, FAIL, "file write failed: time = %s, filename = '%s', file descriptor = %d, errno = %d, error message = '%s', buf = %p, size = %lu, offset = %llu", HDctime(&mytime), file->filename, file->fd, myerrno, HDstrerror(myerrno), buf, (unsigned long)size, (unsigned long long)myoffset);
         } /* end if */
-        HDassert(nbytes > 0);
-        HDassert((size_t)nbytes <= size);
-        H5_CHECK_OVERFLOW(nbytes, ssize_t, size_t);
-        size -= (size_t)nbytes;
-        H5_CHECK_OVERFLOW(nbytes, ssize_t, haddr_t);
-        addr += (haddr_t)nbytes;
-        buf = (const char *)buf + nbytes;
+        
+        HDassert(bytes_wrote > 0);
+        HDassert((size_t)bytes_wrote <= size);
+        
+        H5_CHECK_OVERFLOW(bytes_wrote, ssize_t, size_t);
+        size -= (size_t)bytes_wrote;
+        
+        H5_CHECK_OVERFLOW(bytes_wrote, ssize_t, haddr_t);
+        addr += (haddr_t)bytes_wrote;
+        buf = (const char *)buf + bytes_wrote;
     } /* end while */
 
     /* Update current position and eof */
@@ -902,7 +956,6 @@ H5FD_sec2_truncate(H5FD_t *_file, hid_t UNUSED dxpl_id, hbool_t UNUSED closing)
         if(-1 == HDlseek(file->fd, (HDoff_t)0, SEEK_SET))
             HSYS_GOTO_ERROR(H5E_IO, H5E_SEEKERROR, FAIL, "unable to seek to proper position")
 #endif
-
         if(-1 == HDftruncate(file->fd, (HDoff_t)file->eoa))
             HSYS_GOTO_ERROR(H5E_IO, H5E_SEEKERROR, FAIL, "unable to extend file properly")
 #endif /* H5_HAVE_WIN32_API */
