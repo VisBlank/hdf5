@@ -418,15 +418,6 @@ H5FD_sec2_open(const char *name, unsigned flags, hid_t fapl_id, haddr_t maxaddr)
             if(H5P_get(plist, H5F_ACS_FAMILY_TO_SEC2_NAME, &file->fam_to_sec2) < 0)
                 HGOTO_ERROR(H5E_VFL, H5E_CANTGET, NULL, "can't get property of changing family to sec2")
     } /* end if */
-    
-    /* Set the maximum # of bytes that can be read/written in a single I/O
-     * operation.
-     */
-#ifdef H5_HAVE_WIN32_API
-    file->max_io_bytes = INT_MAX;
-#else
-    file->max_io_bytes = SSIZET_MAX;
-#endif
 
     /* Set return value */
     ret_value = (H5FD_t*)file;
@@ -743,7 +734,7 @@ H5FD_sec2_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id,
     while(size > 0) {
     
         h5_sec2_io_t        bytes_in        = 0;    /* # of bytes to read       */
-        h5_sec2_io_ret_t    bytes_wrote     = -1;   /* # of bytes actually read */ 
+        h5_sec2_io_ret_t    bytes_read      = -1;   /* # of bytes actually read */ 
         
         /* Trying to read more bytes than the return type can handle is
          * undefined behavior in POSIX.
