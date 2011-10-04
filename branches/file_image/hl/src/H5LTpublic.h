@@ -16,6 +16,10 @@
 #ifndef _H5LTpublic_H
 #define _H5LTpublic_H
 
+#define H5LT_FILE_IMAGE_OPEN_RW         0x00000001 
+#define H5LT_FILE_IMAGE_DONT_COPY       0x00000002 
+#define H5LT_FILE_IMAGE_DONT_RELEASE    0x00000004 
+
 typedef enum H5LT_lang_t {
     H5LT_LANG_ERR = -1, /*this is the first*/
     H5LT_DDL      = 0,  /*for DDL*/
@@ -342,6 +346,17 @@ H5_HLDLL herr_t H5LTdtype_to_text(hid_t dtype, char *str, H5LT_lang_t lang_type,
 
 H5_HLDLL herr_t  H5LTfind_attribute( hid_t loc_id, const char *name );
 
+
+/*-------------------------------------------------------------------------
+ *
+ * File image operations functions
+ *
+ *-------------------------------------------------------------------------
+ */
+
+H5_HLDLL ssize_t H5LTget_file_image(hid_t file_id, void *buf_ptr, hsize_t buf_size);
+
+H5_HLDLL hid_t H5LTopen_file_image(void *buf_ptr, size_t buf_size, unsigned flags);
 
 #ifdef __cplusplus
 }
