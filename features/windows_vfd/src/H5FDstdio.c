@@ -422,14 +422,14 @@ H5FD_stdio_open( const char *name, unsigned flags, hid_t fapl_id,
      */
     fd = _fileno(f);
     if(-1 == fd)
-        HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to get file descriptor from FILE pointer")
-        
+        H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_CANTOPENFILE, "unable to get file descriptor from FILE pointer", NULL)
+
     filehandle = (HANDLE)_get_osfhandle(fd);
     if(INVALID_HANDLE_VALUE == filehandle)
-        HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to get Windows file handle")
+        H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_CANTOPENFILE, "unable to get Windows file handle", NULL)
 
     if(!GetFileInformationByHandle((HANDLE)filehandle, &fileinfo))
-        HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to get Windows file information")
+        H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_CANTOPENFILE, "unable to get Windows file information", NULL)
 
     file->nFileIndexHigh = fileinfo.nFileIndexHigh;
     file->nFileIndexLow = fileinfo.nFileIndexLow;
@@ -508,14 +508,14 @@ H5FD_stdio_cmp(const H5FD_t *_f1, const H5FD_t *_f2)
     H5Eclear2(H5E_DEFAULT);
 
 #ifdef H5_HAVE_WIN32_API
-    if(f1->dwVolumeSerialNumber < f2->dwVolumeSerialNumber) HGOTO_DONE(-1)
-    if(f1->dwVolumeSerialNumber > f2->dwVolumeSerialNumber) HGOTO_DONE(1)
+    if(f1->dwVolumeSerialNumber < f2->dwVolumeSerialNumber) return -1;
+    if(f1->dwVolumeSerialNumber > f2->dwVolumeSerialNumber) return 1;
 
-    if(f1->nFileIndexHigh < f2->nFileIndexHigh) HGOTO_DONE(-1)
-    if(f1->nFileIndexHigh > f2->nFileIndexHigh) HGOTO_DONE(1)
+    if(f1->nFileIndexHigh < f2->nFileIndexHigh) return -1;
+    if(f1->nFileIndexHigh > f2->nFileIndexHigh) return 1;
 
-    if(f1->nFileIndexLow < f2->nFileIndexLow) HGOTO_DONE(-1)
-    if(f1->nFileIndexLow > f2->nFileIndexLow) HGOTO_DONE(1)
+    if(f1->nFileIndexLow < f2->nFileIndexLow) return -1;
+    if(f1->nFileIndexLow > f2->nFileIndexLow) return 1;
 #else
 #ifdef H5_DEV_T_IS_SCALAR
     if (f1->device < f2->device) return -1;
