@@ -47,12 +47,12 @@ static hid_t H5FD_SEC2_g = 0;
  * making the code messy with #ifdefs.
  */
 #ifdef H5_HAVE_WIN32_API
-typedef h5_sec2_io_t        unsigned int;
-typedef h5_sec2_io_ret_t    int;
+typedef unsigned int    h5_sec2_io_t;
+typedef int             h5_sec2_io_ret_t;
 static int H5_SEC2_MAX_IO_BYTES_g = MAX_INT;
 #else /* Unix, everyone else */
-typedef h5_sec2_io_t        size_t;
-typedef h5_sec2_io_ret_t    ssize_t;
+typedef size_t          h5_sec2_io_t;
+typedef ssize_t         h5_sec2_io_ret_t;
 static size_t H5_SEC2_MAX_IO_BYTES_g = SSIZET_MAX;
 #endif
  
