@@ -318,8 +318,7 @@ H5FD_log_term(void)
  * Function:	H5Pset_fapl_log
  *
  * Purpose:	Modify the file access property list to use the H5FD_LOG
- *		driver defined in this source file.  There are no driver
- *		specific properties.
+ *		driver defined in this source file.
  *
  * Return:	Non-negative on success/Negative on failure
  *
@@ -331,17 +330,20 @@ H5FD_log_term(void)
 herr_t
 H5Pset_fapl_log(hid_t fapl_id, const char *logfile, unsigned long long flags, size_t buf_size)
 {
-    H5FD_log_fapl_t	fa;     /* File access property list information */
-    H5P_genplist_t *plist;      /* Property list pointer */
-    herr_t ret_value;
+    H5FD_log_fapl_t     fa;         /* File access property list information */
+    H5P_genplist_t      *plist;     /* Property list pointer */
+    herr_t              ret_value;  /* Return value */
 
     FUNC_ENTER_API(H5Pset_fapl_log, FAIL)
     H5TRACE4("e", "i*sULz", fapl_id, logfile, flags, buf_size);
 
+    /* Check arguments */
     if(NULL == (plist = H5P_object_verify(fapl_id, H5P_FILE_ACCESS)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a file access property list")
 
-    fa.logfile = (char *)logfile;
+    /* Deep copy the log filename */
+    fa.logfile = H5MM_xstrdup(logfile);
+
     fa.flags = flags;
     fa.buf_size = buf_size;
     ret_value = H5P_set_driver(plist, H5FD_LOG, &fa);
