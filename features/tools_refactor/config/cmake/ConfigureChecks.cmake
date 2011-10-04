@@ -10,6 +10,7 @@ INCLUDE (${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckTypeSize.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckVariableExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckFortranFunctionExists.cmake)
+INCLUDE (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
 
 #-----------------------------------------------------------------------------
 # Always SET this for now IF we are on an OS X box
@@ -128,8 +129,12 @@ ENDMACRO (CHECK_LIBRARY_EXISTS_CONCAT)
 
 SET (WINDOWS)
 IF (WIN32)
+  SET (H5_HAVE_WIN32_API 1)
   IF (NOT UNIX AND NOT CYGWIN AND NOT MINGW)
     SET (WINDOWS 1)
+    IF (MSVC_IDE)
+      SET (H5_HAVE_VISUAL_STUDIO 1)
+    ENDIF (MSVC_IDE)
   ENDIF (NOT UNIX AND NOT CYGWIN AND NOT MINGW)
 ENDIF (WIN32)
 
@@ -154,11 +159,9 @@ IF (WINDOWS)
   #
   SET (H5_HAVE_WINDOW_PATH 1)
   SET (WINDOWS_MAX_BUF (1024 * 1024 * 1024))
-  SET (H5_DEFAULT_VFD H5FD_WINDOWS)
   SET (LINK_LIBS ${LINK_LIBS} "kernel32")
-ELSE (WINDOWS)
-  SET (H5_DEFAULT_VFD H5FD_SEC2)
 ENDIF (WINDOWS)
+SET (H5_DEFAULT_VFD H5FD_SEC2)
 
 IF (WINDOWS)
   SET (H5_HAVE_IO_H 1)
@@ -211,7 +214,6 @@ CHECK_LIBRARY_EXISTS_CONCAT ("ws2_32" WSAStartup  H5_HAVE_LIBWS2_32)
 CHECK_LIBRARY_EXISTS_CONCAT ("wsock32" gethostbyname H5_HAVE_LIBWSOCK32)
 CHECK_LIBRARY_EXISTS_CONCAT ("ucb"    gethostname  H5_HAVE_LIBUCB)
 CHECK_LIBRARY_EXISTS_CONCAT ("socket" connect      H5_HAVE_LIBSOCKET)
-CHECK_LIBRARY_EXISTS_CONCAT ("check"  srunner_run_all H5_HAVE_CHECK)
 CHECK_LIBRARY_EXISTS ("c" gethostbyname "" NOT_NEED_LIBNSL)
 
 IF (NOT NOT_NEED_LIBNSL)
@@ -223,6 +225,9 @@ SET (USE_INCLUDES "")
 IF (WINDOWS)
   SET (USE_INCLUDES ${USE_INCLUDES} "windows.h")
 ENDIF (WINDOWS)
+
+TEST_BIG_ENDIAN(H5_WORDS_BIGENDIAN)
+
 #-----------------------------------------------------------------------------
 # Check IF header file exists and add it to the list.
 #-----------------------------------------------------------------------------
@@ -268,7 +273,6 @@ CHECK_INCLUDE_FILE_CONCAT ("dlfcn.h"         H5_HAVE_DLFCN_H)
 CHECK_INCLUDE_FILE_CONCAT ("features.h"      H5_HAVE_FEATURES_H)
 CHECK_INCLUDE_FILE_CONCAT ("inttypes.h"      H5_HAVE_INTTYPES_H)
 CHECK_INCLUDE_FILE_CONCAT ("netinet/in.h"    H5_HAVE_NETINET_IN_H)
-CHECK_INCLUDE_FILE_CONCAT ("check.h"         H5_HAVE_CHECK_H)
 
 IF (NOT CYGWIN)
   CHECK_INCLUDE_FILE_CONCAT ("winsock2.h"      H5_HAVE_WINSOCK_H)
@@ -580,7 +584,7 @@ IF (NOT WINDOWS)
     HDF5_FUNCTION_TEST (${test})
   ENDFOREACH (test)
   IF (NOT CYGWIN AND NOT MINGW)
-    HDF5_FUNCTION_TEST (HAVE_TIMEZONE)
+      HDF5_FUNCTION_TEST (HAVE_TIMEZONE)
 #      HDF5_FUNCTION_TEST (HAVE_STAT_ST_BLOCKS)
   ENDIF (NOT CYGWIN AND NOT MINGW)
 ENDIF (NOT WINDOWS)
@@ -588,7 +592,7 @@ ENDIF (NOT WINDOWS)
 #-----------------------------------------------------------------------------
 # Check if InitOnceExecuteOnce is available
 #-----------------------------------------------------------------------------
-IF (WINDOWS)
+IF (WINDOWS AND NOT HDF5_NO_IOEO_TEST)
   MESSAGE (STATUS "Checking for InitOnceExecuteOnce:")
   IF("${H5_HAVE_IOEO}" MATCHES "^${H5_HAVE_IOEO}$")
     IF (LARGEFILE)
@@ -646,7 +650,7 @@ IF (WINDOWS)
         "Return value: ${HAVE_IOEO_EXITCODE}\n")
     ENDIF("${HAVE_IOEO_EXITCODE}" EQUAL 0)
   ENDIF("${H5_HAVE_IOEO}" MATCHES "^${H5_HAVE_IOEO}$")
-ENDIF (WINDOWS)
+ENDIF (WINDOWS AND NOT HDF5_NO_IOEO_TEST)
   
 
 #-----------------------------------------------------------------------------

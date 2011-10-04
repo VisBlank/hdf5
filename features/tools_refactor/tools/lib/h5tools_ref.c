@@ -306,7 +306,7 @@ lookup_ref_path(haddr_t ref)
 }
 
 /*-------------------------------------------------------------------------
- * Function:    assign_ref_path_table_id
+ * Function:    fill_ref_path_table
  *
  * Purpose:     Called by interator to create references for
  *              all objects and enter them in the table.
@@ -318,7 +318,7 @@ lookup_ref_path(haddr_t ref)
  *-------------------------------------------------------------------------
  */
 herr_t
-assign_ref_path_table_id(hid_t fid)
+fill_ref_path_table(hid_t fid)
 {
     /* Set file ID for later queries (XXX: this should be fixed) */
     thefile = fid;

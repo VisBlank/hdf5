@@ -22,7 +22,7 @@
 extern "C" {
 #endif
 
-H5TOOLS_DLL herr_t      assign_ref_path_table_id(hid_t fid);
+H5TOOLS_DLL herr_t      fill_ref_path_table(hid_t fid);
 H5TOOLS_DLL const char *lookup_ref_path(haddr_t ref);
 H5TOOLS_DLL int         get_next_xid(void);
 H5TOOLS_DLL haddr_t     get_fake_xid(void);

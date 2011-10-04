@@ -56,7 +56,7 @@ INSTALL (
     FILES
         ${H5_TOOLS_LIB_HDRS}
     DESTINATION
-        ${HDF5_INSTALL_INCLUDE_DIR}/tools
+        ${HDF5_INSTALL_INCLUDE_DIR}
     COMPONENT
         toolsheaders
 )
@@ -70,7 +70,7 @@ IF (APPLE)
     IF (HDF5_BUILD_WITH_INSTALL_NAME)
       SET_TARGET_PROPERTIES(${HDF5_TOOLS_LIB_TARGET} PROPERTIES
       LINK_FLAGS "-current_version ${HDF5_PACKAGE_VERSION} -compatibility_version ${HDF5_PACKAGE_VERSION}"
-      INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib/tools"
+      INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib"
       BUILD_WITH_INSTALL_RPATH ${HDF5_BUILD_WITH_INSTALL_NAME}
       )
     ENDIF (HDF5_BUILD_WITH_INSTALL_NAME)
@@ -85,9 +85,9 @@ IF (HDF5_EXPORTED_TARGETS)
           ${HDF5_TOOLS_LIB_TARGET}
       EXPORT
           ${HDF5_EXPORTED_TARGETS}
-      LIBRARY DESTINATION ${HDF5_INSTALL_LIB_DIR}/tools COMPONENT toolslibraries
-      ARCHIVE DESTINATION ${HDF5_INSTALL_LIB_DIR}/tools COMPONENT toolslibraries
-      RUNTIME DESTINATION ${HDF5_INSTALL_BIN_DIR}/tools COMPONENT toolslibraries
+      LIBRARY DESTINATION ${HDF5_INSTALL_LIB_DIR} COMPONENT toolslibraries
+      ARCHIVE DESTINATION ${HDF5_INSTALL_LIB_DIR} COMPONENT toolslibraries
+      RUNTIME DESTINATION ${HDF5_INSTALL_BIN_DIR} COMPONENT toolslibraries
   )
 ENDIF (HDF5_EXPORTED_TARGETS)
 
@@ -97,13 +97,13 @@ ENDIF (HDF5_EXPORTED_TARGETS)
 ##############################################################################
 ##############################################################################
 
-IF (BUILD_TESTING)
-  IF (H5_HAVE_CHECK)
-    ADD_EXECUTABLE (h5tools_unit ${HDF5_TOOLS_LIB_SOURCE_DIR}/h5tools_unit.c)
-    TARGET_NAMING (h5tools_unit ${LIB_TYPE})
-    TARGET_LINK_LIBRARIES (h5tools_unit ${HDF5_TOOLS_LIB_TARGET})
-    
-    ADD_TEST (NAME h5tools_unit COMMAND $<TARGET_FILE:h5tools_unit>)
-  ENDIF (H5_HAVE_CHECK)
-ENDIF (BUILD_TESTING)
+#IF (BUILD_TESTING)
+#  IF (H5_HAVE_CHECK)
+#    ADD_EXECUTABLE (h5tools_unit ${HDF5_TOOLS_LIB_SOURCE_DIR}/h5tools_unit.c)
+#    TARGET_NAMING (h5tools_unit ${LIB_TYPE})
+#    TARGET_LINK_LIBRARIES (h5tools_unit ${HDF5_TOOLS_LIB_TARGET})
+#    
+#    ADD_TEST (NAME h5tools_unit COMMAND $<TARGET_FILE:h5tools_unit>)
+#  ENDIF (H5_HAVE_CHECK)
+#ENDIF (BUILD_TESTING)
   

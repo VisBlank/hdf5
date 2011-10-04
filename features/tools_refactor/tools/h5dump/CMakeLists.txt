@@ -27,13 +27,13 @@ SET (H5_DEP_EXECUTABLES h5dump)
 ##############################################################################
 
 IF (BUILD_TESTING)
-  IF (H5_HAVE_CHECK)
-    ADD_EXECUTABLE (h5dump_unit ${HDF5_TOOLS_H5DUMP_SOURCE_DIR}/h5dump_unit.c)
-    TARGET_NAMING (h5dump_unit ${LIB_TYPE})
-    TARGET_LINK_LIBRARIES (h5dump_unit ${HDF5_TOOLS_LIB_TARGET})
-    
-    ADD_TEST (NAME h5dump_unit COMMAND $<TARGET_FILE:h5dump_unit>)
-  ENDIF (H5_HAVE_CHECK)
+#  IF (H5_HAVE_CHECK)
+#    ADD_EXECUTABLE (h5dump_unit ${HDF5_TOOLS_H5DUMP_SOURCE_DIR}/h5dump_unit.c)
+#    TARGET_NAMING (h5dump_unit ${LIB_TYPE})
+#    TARGET_LINK_LIBRARIES (h5dump_unit ${HDF5_TOOLS_LIB_TARGET})
+#    
+#    ADD_TEST (NAME h5dump_unit COMMAND $<TARGET_FILE:h5dump_unit>)
+#  ENDIF (H5_HAVE_CHECK)
   # --------------------------------------------------------------------
   # Add the h5dump test executable
   # --------------------------------------------------------------------

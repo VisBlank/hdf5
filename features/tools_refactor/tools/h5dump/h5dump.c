@@ -1392,7 +1392,7 @@ main(int argc, const char *argv[])
     init_prefix(&prefix, prefix_len);
 
     /* Prepare to find objects that might be targets of a reference */
-    assign_ref_path_table_id(fid);
+    fill_ref_path_table(fid);
 
     if(doxml) {
         /* initialize XML */

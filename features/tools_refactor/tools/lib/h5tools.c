@@ -1404,7 +1404,7 @@ render_bin_output(FILE *stream, hid_t container, hid_t tid, void *_mem)
             hid_t   region_id, region_space;
             H5S_sel_type region_type;
 
-            region_id = H5Rdereference(container, H5R_DATASET_REGION, mem);
+            region_id = H5Rdereference2(container, H5P_DEFAULT, H5R_DATASET_REGION, mem);
             if (region_id >= 0) {
                 region_space = H5Rget_region(container, H5R_DATASET_REGION, mem);
                 if (region_space >= 0) {

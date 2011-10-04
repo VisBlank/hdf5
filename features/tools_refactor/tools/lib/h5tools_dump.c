@@ -318,7 +318,7 @@ h5tools_dump_simple_data(FILE *stream, const h5tool_format_t *info, hid_t contai
                 char ref_name[1024];
 
                 /* region data */
-                region_id = H5Rdereference(container, H5R_DATASET_REGION, memref);
+                region_id = H5Rdereference2(container, H5P_DEFAULT, H5R_DATASET_REGION, memref);
                 if (region_id >= 0) {
                     region_space = H5Rget_region(container, H5R_DATASET_REGION, memref);
                     if (region_space >= 0) {

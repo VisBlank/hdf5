@@ -9,6 +9,12 @@
 /* Define if the Windows virtual file driver should be compiled */
 #define H5_HAVE_WINDOWS 1
 
+/* Define if on the Windows platform */
+#define H5_HAVE_WIN32_API 1
+
+/* Define if using a Windows compiler (i.e. Visual Studio) */
+#define H5_HAVE_VISUAL_STUDIO 1
+
 /* Define if the Windows virtual file driver should use buffered IO functions */
 /* #undef WINDOWS_USE_STDIO */
 
@@ -35,7 +41,7 @@
 #define H5_CXX_HAVE_OFFSETOF 1
 
 /* Define the default virtual file driver to compile */
-#define H5_DEFAULT_VFD H5FD_WINDOWS
+#define H5_DEFAULT_VFD H5FD_SEC2
 
 /* Define if `dev_t' is a scalar */
 #define H5_DEV_T_IS_SCALAR 1
@@ -450,16 +456,9 @@
 /* Define if the metadata trace file code is to be compiled in */
 /* #undef H5_METADATA_TRACE_FILE */
 
-/* Define if your system can handle complicated MPI derived datatype
-   correctly. */
-#define H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS 1
-
 /* Define if your system's `MPI_File_set_size' function works for files over
    2GB. */
 #define H5_MPI_FILE_SET_SIZE_BIG 1
-
-/* Define if your system can handle special collective IO properly. */
-#define H5_MPI_SPECIAL_COLLECTIVE_IO_WORKS 1
 
 /* Define if we can violate pointer alignment restrictions */
 #define H5_NO_ALIGNMENT_RESTRICTIONS 1
@@ -480,13 +479,13 @@
 #define H5_PACKAGE_NAME "HDF5"
 
 /* Define to the full name and version of this package. */
-#define H5_PACKAGE_STRING "HDF5 1.9.84"
+#define H5_PACKAGE_STRING "HDF5 1.9.94"
 
 /* Define to the one symbol short name of this package. */
 #define H5_PACKAGE_TARNAME "hdf5"
 
 /* Define to the version of this package. */
-#define H5_PACKAGE_VERSION "1.9.84"
+#define H5_PACKAGE_VERSION "1.9.94"
 
 /* Width for printf() for type `long long' or `__int64', use `ll' */
 #define H5_PRINTF_LL_WIDTH "I64"
@@ -643,7 +642,7 @@
 /* #undef H5_USING_MEMCHECKER */
 
 /* Version number of package */
-#define H5_VERSION "1.9.84"
+#define H5_VERSION "1.9.94"
 
 /* Define if vsnprintf() returns the correct value for formatted strings that
    don't fit into size allowed */

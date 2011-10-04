@@ -74,6 +74,7 @@ int main(void)
       return -1;
 }
 
+
 int BasicTest()
 {
     herr_t err;
@@ -83,45 +84,46 @@ int BasicTest()
 
     TESTING("basic funtionality")
 
-    FL_PacketTable wrapper(fileID, "/basicTest", H5T_NATIVE_INT, 1);
-    if(! wrapper.IsValid())
+    FL_PacketTable *wrapper = new FL_PacketTable(fileID, "/basicTest", H5T_NATIVE_INT, 1);
+    if(! wrapper->IsValid())
       goto out;
 
     /* Ensure initial count is zero */
-    count = wrapper.GetPacketCount(error);
+    count = wrapper->GetPacketCount(error);
     if(count != 0 || error != 0)
       goto out;
 
     myRecord = 1;
 
     /* add some records test */
-    err = wrapper.AppendPacket(&myRecord);
+    err = wrapper->AppendPacket(&myRecord);
     if(err < 0)
         goto out;
 
     myRecord = 2;
 
-    wrapper.AppendPacket(&myRecord);
+    wrapper->AppendPacket(&myRecord);
 
     /* get number of records test */
-    count = wrapper.GetPacketCount();
+    count = wrapper->GetPacketCount();
     if(count != 2)
       goto out;
 
     /* get records test */
-    err = wrapper.GetPacket(0, &myRecord);
+    err = wrapper->GetPacket(0, &myRecord);
     if(err < 0)
       goto out;
 
     if(myRecord != 1)
       goto out;
 
-    err = wrapper.GetPacket(1, &myRecord);
+    err = wrapper->GetPacket(1, &myRecord);
     if(err < 0)
       goto out;
     if(myRecord != 2)
       goto out;
 
+    delete wrapper;
     PASSED();
     return 0;
 
@@ -153,9 +155,10 @@ int TestCompoundDatatype()
     H5Tinsert(dtypeID, "ebert", HOFFSET( compoundType, e ), H5T_NATIVE_INT);
 
     /* Create packet table.  Explicitly specify no compression */
-    FL_PacketTable wrapper(fileID, "/compoundTest", dtypeID, 1, -1);
+    FL_PacketTable *wrapper = new FL_PacketTable(fileID, "/compoundTest", dtypeID, 1, -1);
+    H5Tclose(dtypeID);
 
-    if(! wrapper.IsValid())
+    if(! wrapper->IsValid())
       goto out;
 
     compoundType first;
@@ -164,9 +167,9 @@ int TestCompoundDatatype()
     first.e = 5;
 
     /* Write packet */
-    wrapper.AppendPacket(&first);
+    wrapper->AppendPacket(&first);
 
-    count = wrapper.GetPacketCount(error);
+    count = wrapper->GetPacketCount(error);
     if(count != 1)
       goto out;
 
@@ -174,7 +177,7 @@ int TestCompoundDatatype()
     first.e = 0;
 
     /* Read packet back */
-    wrapper.GetPacket(0, &first);
+    wrapper->GetPacket(0, &first);
 
     if(first.a != 1)
       goto out;
@@ -182,9 +185,18 @@ int TestCompoundDatatype()
       goto out;
 
     PASSED();
+
+    delete wrapper;
     return 0;
 
 out:
+    delete wrapper;
+
+    H5E_BEGIN_TRY {
+        H5Tclose(dtypeID);
+    } H5E_END_TRY;
+
+
     H5_FAILED();
     return 1;
 }
@@ -199,54 +211,55 @@ int TestGetNext()
     TESTING("GetNextPacket")
 
     /* Create a dataset */
-    FL_PacketTable wrapper(fileID, "/TestGetNext", H5T_NATIVE_INT, 500);
+    FL_PacketTable *wrapper = new FL_PacketTable(fileID, "/TestGetNext", H5T_NATIVE_INT, 500);
 
-    if(! wrapper.IsValid())
+    if(! wrapper->IsValid())
       goto out;
 
     /* Append 5 records to the dataset */
     for(record = 1; record < 6; record++)
-        wrapper.AppendPacket(&record);
+        wrapper->AppendPacket(&record);
 
     /* Ensure that we can interate through the records and get the right ones */
     for(i = 1; i < 6; i++)
     {
-        wrapper.GetNextPacket(&record);
+        wrapper->GetNextPacket(&record);
         if(record != i)
           goto out;
     }
 
     /* Reset the index and check that it worked */
-    wrapper.ResetIndex();
-    if(wrapper.GetIndex(error) != 0) goto out;
+    wrapper->ResetIndex();
+    if(wrapper->GetIndex(error) != 0) goto out;
     if(error < 0) goto out;
 
     /* Ensure that we can interate through the records and get the right ones */
     for(i = 1; i < 6; i++)
     {
-        error = wrapper.GetNextPacket(&record);
+        error = wrapper->GetNextPacket(&record);
         if(record != i || error <0)
           goto out;
     }
 
-    wrapper.SetIndex(1);
-    if(wrapper.GetIndex(error) != 1) goto out;
+    wrapper->SetIndex(1);
+    if(wrapper->GetIndex(error) != 1) goto out;
     if(error < 0) goto out;
 
     /* Ensure we can get multiple records with our index pointer */
-    wrapper.GetNextPackets(2, records);
+    wrapper->GetNextPackets(2, records);
     if(records[0] != 2 || records[1] != 3)
       goto out;
 
     /* Ensure our pointer was updated correctly */
-    wrapper.GetNextPacket(&record);
+    wrapper->GetNextPacket(&record);
     if(record != 4)
       goto out;
-
+delete wrapper;
     PASSED();
     return 0;
 
 out:
+delete wrapper;
     H5_FAILED();
     return 1;
 }
@@ -254,7 +267,7 @@ out:
 int TestCompress()
 {
 
-	unsigned int flags = 0;
+  unsigned int flags = 0;
     unsigned int config = 0;
     size_t cd_nelemts = 0;
 
@@ -262,7 +275,7 @@ int TestCompress()
 #ifdef H5_HAVE_FILTER_DEFLATE
     try {
         /* Create packet table with compression. */
-        FL_PacketTable wrapper(fileID, "/compressTest", H5T_NATIVE_CHAR, 100, 8);
+        FL_PacketTable *wrapper = new FL_PacketTable(fileID, "/compressTest", H5T_NATIVE_CHAR, 100, 8);
 
         /* Create an HDF5 C++ file object */
         H5File file;
@@ -275,6 +288,7 @@ int TestCompress()
         DSetCreatPropList dcplID = dsetID.getCreatePlist();
 
         dcplID.getFilterById(H5Z_FILTER_DEFLATE, flags, cd_nelemts, NULL, 0, NULL, config);
+        delete wrapper;
     } catch (Exception e) {
       H5_FAILED();
       return 1;
@@ -295,32 +309,33 @@ int TestGetPacket()
     TESTING("GetPacket")
 
     /* Create a dataset.  Explicitly specify no compression */
-    FL_PacketTable wrapper(fileID, "/TestGetPacket", H5T_NATIVE_INT, 1, -1);
+    FL_PacketTable *wrapper = new FL_PacketTable(fileID, "/TestGetPacket", H5T_NATIVE_INT, 1, -1);
 
-    if(! wrapper.IsValid())
+    if(! wrapper->IsValid())
       goto out;
 
     /* Append 5 records to the dataset */
     for(record = 1; record < 6; record++)
-        wrapper.AppendPacket(&record);
+        wrapper->AppendPacket(&record);
 
     /* Ensure that the records were written properly */
-    wrapper.GetPacket(1, &record);
+    wrapper->GetPacket(1, &record);
     if(record != 2)
       goto out;
 
     /* Ensure that we can retrieve multiple records */
-    wrapper.GetPackets(1, 3, theRecs);
+    wrapper->GetPackets(1, 3, theRecs);
     for(i = 0; i < 3; i++)
     {
         if(theRecs[i] != i+2)
           goto out;
     }
-
+delete wrapper;
     PASSED();
     return 0;
 
 out:
+delete wrapper;
     H5_FAILED();
     return 1;
 }
@@ -330,9 +345,9 @@ int TestErrors()
     TESTING("error conditions")
 
     /* Create a dataset */
-    FL_PacketTable wrapper(fileID, "/TestErrors", H5T_NATIVE_INT, 1);
+    FL_PacketTable *wrapper = new FL_PacketTable(fileID, "/TestErrors", H5T_NATIVE_INT, 1);
 
-    if(! wrapper.IsValid())
+    if(! wrapper->IsValid())
       goto out;
 
     int record;
@@ -341,95 +356,96 @@ int TestErrors()
 
     /* Append 4 records to the dataset */
     for(record = 1; record < 5; record++)
-        wrapper.AppendPacket(&record);
+        wrapper->AppendPacket(&record);
 
     /* Try to confuse functions with bad indexes */
-    error = wrapper.GetPacket( (unsigned) -1, &record);
+    error = wrapper->GetPacket( (unsigned) -1, &record);
     if(error >= 0)
       goto out;
-    error = wrapper.GetPacket(4, &record);
+    error = wrapper->GetPacket(4, &record);
     if(error >= 0)
       goto out;
-    error = wrapper.GetPacket((unsigned) -250, &record);
+    error = wrapper->GetPacket((unsigned) -250, &record);
     if(error >= 0)
       goto out;
-    error = wrapper.GetPacket(3000, &record);
+    error = wrapper->GetPacket(3000, &record);
     if(error >= 0)
       goto out;
-    error = wrapper.GetPacket(1, &record);
+    error = wrapper->GetPacket(1, &record);
     if(error < 0)
       goto out;
 
-    error = wrapper.GetPackets((unsigned) -1, 1, records);
+    error = wrapper->GetPackets((unsigned) -1, 1, records);
     if(error >= 0)
       goto out;
-    error = wrapper.GetPackets(2, 4, records);
+    error = wrapper->GetPackets(2, 4, records);
     if(error >= 0)
       goto out;
-    error = wrapper.GetPackets((unsigned) -60, (unsigned) -62, records);
+    error = wrapper->GetPackets((unsigned) -60, (unsigned) -62, records);
      if(error >= 0)
       goto out;
-    error = wrapper.GetPackets(10, 12, records);
+    error = wrapper->GetPackets(10, 12, records);
     if(error >= 0)
       goto out;
-    error = wrapper.GetPackets(0, 2, records);
+    error = wrapper->GetPackets(0, 2, records);
     if(error < 0)
       goto out;
-    error = wrapper.GetPackets(2, 0, records);
+    error = wrapper->GetPackets(2, 0, records);
     if(error >= 0)
       goto out;
-    error = wrapper.GetPackets(1, 1, records);
+    error = wrapper->GetPackets(1, 1, records);
     if(error < 0)
       goto out;
-    error = wrapper.GetPackets(1, 3, records);
+    error = wrapper->GetPackets(1, 3, records);
     if(error < 0)
       goto out;
 
-    wrapper.ResetIndex();
-    error = wrapper.SetIndex((unsigned) -1);
+    wrapper->ResetIndex();
+    error = wrapper->SetIndex((unsigned) -1);
     if(error >= 0)
       goto out;
-    if(wrapper.GetIndex(error) != 0) goto out;
+    if(wrapper->GetIndex(error) != 0) goto out;
     if(error < 0) goto out;
-    error = wrapper.GetNextPacket(&record);
+    error = wrapper->GetNextPacket(&record);
     if(error < 0)
       goto out;
     if(record != 1)
       goto out;
-    if(wrapper.GetIndex(error) != 1) goto out;
+    if(wrapper->GetIndex(error) != 1) goto out;
     if(error < 0) goto out;
-    error = wrapper.SetIndex(20);
+    error = wrapper->SetIndex(20);
     if(error >= 0)
       goto out;
-    error = wrapper.GetNextPacket(&record);
+    error = wrapper->GetNextPacket(&record);
     if(error < 0)
       goto out;
     if(record != 2)
       goto out;
-    wrapper.SetIndex(3);
-    error = wrapper.GetNextPacket(&record);
+    wrapper->SetIndex(3);
+    error = wrapper->GetNextPacket(&record);
     if(error < 0)
       goto out;
     if(record != 4)
       goto out;
-    if(wrapper.GetIndex(error) != 4) goto out;
+    if(wrapper->GetIndex(error) != 4) goto out;
     if(error < 0) goto out;
-    error = wrapper.GetNextPacket(&record);
+    error = wrapper->GetNextPacket(&record);
     if(error >= 0)
       goto out;
 
-    wrapper.ResetIndex();
-    error = wrapper.GetNextPackets(10, records);
+    wrapper->ResetIndex();
+    error = wrapper->GetNextPackets(10, records);
     if(error >= 0)
       goto out;
-    error = wrapper.GetNextPackets(0, records);
+    error = wrapper->GetNextPackets(0, records);
     if(error < 0)
       goto out;
-
+delete wrapper;
     PASSED();
     return 0;
 
 out:
+delete wrapper;
     H5_FAILED();
     return 1;
 }
@@ -476,18 +492,21 @@ int SystemTest()
     ct2[0].g.e = 3000;
 
     /* Create the packet table datasets.  Make one of them compressed. */
-    FL_PacketTable wrapper1(fileID, "/SystemTest1", dtypeID1, 1);
-    FL_PacketTable wrapper2(fileID, "/SystemTest2", dtypeID2, 1, 5);
+    FL_PacketTable *wrapper1 = new FL_PacketTable(fileID, "/SystemTest1", dtypeID1, 1);
+    FL_PacketTable *wrapper2 = new FL_PacketTable(fileID, "/SystemTest2", dtypeID2, 1, 5);
 
-    if(! wrapper1.IsValid())
+    H5Tclose(dtypeID1);
+    H5Tclose(dtypeID2);
+
+    if(! wrapper1->IsValid())
       goto out;
-    if(! wrapper2.IsValid())
+    if(! wrapper2->IsValid())
       goto out;
 
     /* Write and read packets, ensure that nothing is unusual */
-    wrapper2.AppendPacket(ct2);
+    wrapper2->AppendPacket(ct2);
 
-    count = wrapper1.GetPacketCount();
+    count = wrapper1->GetPacketCount();
     if(count != 0)
       goto out;
 
@@ -500,24 +519,33 @@ int SystemTest()
     ct2[1].f = 'b';
     ct2[1].g = ct1[0];
 
-    wrapper1.AppendPacket(ct1);
-    wrapper2.AppendPacket(&ct2[1]);
+    wrapper1->AppendPacket(ct1);
+    wrapper2->AppendPacket(&ct2[1]);
 
-    wrapper1.ResetIndex();
-    wrapper1.GetNextPacket(&ct1[1]);
-    wrapper2.GetPacket(1, &ct2[2]);
-    if(wrapper1.GetIndex(error) != 1) goto out;
+    wrapper1->ResetIndex();
+    wrapper1->GetNextPacket(&ct1[1]);
+    wrapper2->GetPacket(1, &ct2[2]);
+    if(wrapper1->GetIndex(error) != 1) goto out;
     if(error < 0) goto out;
-    if(wrapper2.GetIndex(error) != 0) goto out;
+    if(wrapper2->GetIndex(error) != 0) goto out;
     if(error < 0) goto out;
 
     if(ct1[1].b != ct2[2].g.b)
       goto out;
-
+delete wrapper1;
+delete wrapper2;
     PASSED();
     return 0;
 
 out:
+delete wrapper1;
+delete wrapper2;
+
+    H5E_BEGIN_TRY {
+        H5Tclose(dtypeID1);
+        H5Tclose(dtypeID2);
+    } H5E_END_TRY;
+
     H5_FAILED();
     return 1;
 }
