@@ -258,7 +258,13 @@ herr_t create_char_dataset(hid_t fid, const char *dsidx, int fulldims)
     char    s33_wbuf[DIM3_SIZE] = {6,6,6,12,12,12,53,53,53,120,120,120};
     char name[32];
 
-    strcpy(name, DATASET_NAME);
+    if ( strlen(DATASET_NAME) <29) {
+        strncpy(name, DATASET_NAME, strlen(DATASET_NAME));
+    } else {
+        printf("Error:  %s is too long for buffer\n", DATASET_NAME);
+        return FAIL;
+    }
+
     strncat(name, dsidx, 3);
     /* make a dataset */
     if(H5LTmake_dataset_char(fid, name, rank, dims, buf) >= 0) {
@@ -503,14 +509,24 @@ herr_t create_DS1_char_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
 {
     char name[32];
 
-    strcpy(name, DS_1_NAME);
+    if (strlen(DS_1_NAME) < 29) {
+        strncpy(name, DS_1_NAME, strlen(DS_1_NAME)+1);
+    } else {
+        printf("Error:  %s is too long for buffer\n", DS_1_NAME); 
+        return FAIL;
+    }
     strncat(name, dsidx, 3);
     /* make a DS dataset for the first dimension */
     if(H5LTmake_dataset_char(fid, name, rankds, s_dim, s_wbuf) < 0)
         return FAIL;
 
     if(s1_wbuf!=NULL) {
-        strcpy(name, DS_11_NAME);
+        if (strlen(DS_11_NAME) < 29) {
+            strncpy(name, DS_11_NAME, strlen(DS_11_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_11_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the first dimension  */
         if(H5LTmake_dataset_char(fid, name, rankds, s_dim, s1_wbuf) < 0)
@@ -528,14 +544,24 @@ herr_t create_DS2_char_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
 {
     char name[32];
 
-    strcpy(name, DS_2_NAME);
+    if (strlen(DS_2_NAME) < 29) {
+        strncpy(name, DS_2_NAME, strlen(DS_2_NAME)+1);
+    } else {
+        printf("Error:  %s is too long for buffer\n", DS_2_NAME); 
+        return FAIL;
+    }
     strncat(name, dsidx, 3);
     /* make a DS dataset for the second dimension */
     if(H5LTmake_dataset_char(fid, name, rankds, s_dim, s_wbuf) < 0)
         return FAIL;
 
     if(s1_wbuf!=NULL) {
-        strcpy(name, DS_21_NAME);
+        if (strlen(DS_21_NAME) < 29) {
+            strncpy(name, DS_21_NAME, strlen(DS_21_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_21_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_char(fid, name, rankds, s_dim, s1_wbuf) < 0)
@@ -543,7 +569,12 @@ herr_t create_DS2_char_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
     }
 
     if(s2_wbuf!=NULL) {
-        strcpy(name, DS_22_NAME);
+        if (strlen(DS_22_NAME) < 29) {
+            strncpy(name, DS_22_NAME, strlen(DS_22_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_22_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_char(fid, name, rankds, s_dim, s2_wbuf) < 0)
@@ -561,14 +592,24 @@ herr_t create_DS3_char_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
 {
     char name[32];
 
-    strcpy(name, DS_3_NAME);
+    if (strlen(DS_3_NAME) < 29) {
+        strncpy(name, DS_3_NAME, strlen(DS_3_NAME)+1);
+    } else {
+        printf("Error:  %s is too long for buffer\n", DS_3_NAME);
+        return FAIL;
+    }
     strncat(name, dsidx, 3);
     /* make a DS dataset for the first dimension */
     if(H5LTmake_dataset_char(fid, name, rankds, s_dim, s_wbuf) < 0)
         return FAIL;
 
     if(s1_wbuf!=NULL) {
-        strcpy(name, DS_31_NAME);
+        if (strlen(DS_31_NAME) < 29) {
+            strncpy(name, DS_31_NAME, strlen(DS_31_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_31_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_char(fid, name, rankds, s_dim, s1_wbuf) < 0)
@@ -576,7 +617,12 @@ herr_t create_DS3_char_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
     }
 
     if(s2_wbuf!=NULL) {
-        strcpy(name, DS_32_NAME);
+        if (strlen(DS_32_NAME) < 29) {
+            strncpy(name, DS_32_NAME, strlen(DS_32_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_32_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_char(fid, name, rankds, s_dim, s2_wbuf) < 0)
@@ -584,7 +630,12 @@ herr_t create_DS3_char_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
     }
 
     if(s3_wbuf!=NULL) {
-        strcpy(name, DS_33_NAME);
+        if (strlen(DS_33_NAME) < 29) {
+            strncpy(name, DS_33_NAME, strlen(DS_33_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_33_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_char(fid, name, rankds, s_dim, s3_wbuf) < 0)
@@ -602,14 +653,24 @@ herr_t create_DS1_short_datasets(hid_t fid, const char *dsidx, int rankds, hsize
 {
     char name[32];
 
-    strcpy(name, DS_1_NAME);
+    if (strlen(DS_1_NAME) < 29) {
+        strncpy(name, DS_1_NAME, strlen(DS_1_NAME)+1);
+    } else {
+        printf("Error:  %s is too long for buffer\n", DS_1_NAME);
+        return FAIL;
+    }
     strncat(name, dsidx, 3);
     /* make a DS dataset for the first dimension */
     if(H5LTmake_dataset_short(fid, name, rankds, s_dim, s_wbuf) < 0)
         return FAIL;
 
     if(s1_wbuf!=NULL) {
-        strcpy(name, DS_11_NAME);
+        if (strlen(DS_11_NAME) < 29) {
+            strncpy(name, DS_11_NAME, strlen(DS_11_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_11_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the first dimension  */
         if(H5LTmake_dataset_short(fid, name, rankds, s_dim, s1_wbuf) < 0)
@@ -627,7 +688,12 @@ herr_t create_DS2_short_datasets(hid_t fid, const char *dsidx, int rankds, hsize
 {
     char name[32];
 
-    strcpy(name, DS_2_NAME);
+    if (strlen(DS_2_NAME) < 29) {
+        strncpy(name, DS_2_NAME, strlen(DS_2_NAME)+1);
+    } else {
+        printf("Error:  %s is too long for buffer\n", DS_2_NAME);
+        return FAIL;
+    }
     strncat(name, dsidx, 3);
 
     /* make a DS dataset for the second dimension */
@@ -635,7 +701,12 @@ herr_t create_DS2_short_datasets(hid_t fid, const char *dsidx, int rankds, hsize
         return FAIL;
 
     if(s1_wbuf!=NULL) {
-        strcpy(name, DS_21_NAME);
+        if (strlen(DS_21_NAME) < 29) {
+            strncpy(name, DS_21_NAME, strlen(DS_21_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_21_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_short(fid, name, rankds, s_dim, s1_wbuf) < 0)
@@ -643,7 +714,12 @@ herr_t create_DS2_short_datasets(hid_t fid, const char *dsidx, int rankds, hsize
     }
 
     if(s2_wbuf!=NULL) {
-        strcpy(name, DS_22_NAME);
+        if (strlen(DS_22_NAME) < 29) {
+            strncpy(name, DS_22_NAME, strlen(DS_22_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_22_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_short(fid, name, rankds, s_dim, s2_wbuf) < 0)
@@ -661,7 +737,12 @@ herr_t create_DS3_short_datasets(hid_t fid, const char *dsidx, int rankds, hsize
 {
     char name[32];
 
-    strcpy(name, DS_3_NAME);
+    if (strlen(DS_3_NAME) < 29) {
+        strncpy(name, DS_3_NAME, strlen(DS_3_NAME)+1);
+    } else {
+        printf("Error:  %s is too long for buffer\n", DS_3_NAME);
+        return FAIL;
+    }
     strncat(name, dsidx, 3);
 
     /* make a DS dataset for the first dimension */
@@ -669,7 +750,12 @@ herr_t create_DS3_short_datasets(hid_t fid, const char *dsidx, int rankds, hsize
         return FAIL;
 
     if(s1_wbuf!=NULL) {
-        strcpy(name, DS_31_NAME);
+        if (strlen(DS_31_NAME) < 29) {
+            strncpy(name, DS_31_NAME, strlen(DS_31_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_31_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset for the first dimension */
         if(H5LTmake_dataset_short(fid, name, rankds, s_dim, s1_wbuf) < 0)
@@ -677,7 +763,12 @@ herr_t create_DS3_short_datasets(hid_t fid, const char *dsidx, int rankds, hsize
     }
 
     if(s2_wbuf!=NULL) {
-        strcpy(name, DS_32_NAME);
+        if (strlen(DS_32_NAME) < 29) {
+            strncpy(name, DS_32_NAME, strlen(DS_32_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_32_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset for the first dimension */
         if(H5LTmake_dataset_short(fid, name, rankds, s_dim, s2_wbuf) < 0)
@@ -685,7 +776,12 @@ herr_t create_DS3_short_datasets(hid_t fid, const char *dsidx, int rankds, hsize
     }
 
     if(s3_wbuf!=NULL) {
-        strcpy(name, DS_33_NAME);
+        if (strlen(DS_33_NAME) < 29) {
+            strncpy(name, DS_33_NAME, strlen(DS_33_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_33_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset for the first dimension */
         if(H5LTmake_dataset_short(fid, name, rankds, s_dim, s3_wbuf) < 0)
@@ -703,7 +799,12 @@ herr_t create_DS1_int_datasets(hid_t fid, const char *dsidx, int rankds, hsize_t
 {
     char name[32];
 
-    strcpy(name, DS_1_NAME);
+    if (strlen(DS_1_NAME) < 29) {
+        strncpy(name, DS_1_NAME, strlen(DS_1_NAME)+1);
+    } else {
+        printf("Error:  %s is too long for buffer\n", DS_1_NAME);
+        return FAIL;
+    }
     strncat(name, dsidx, 3);
 
     /* make a DS dataset for the first dimension */
@@ -711,7 +812,12 @@ herr_t create_DS1_int_datasets(hid_t fid, const char *dsidx, int rankds, hsize_t
         return FAIL;
 
     if(s1_wbuf!=NULL) {
-        strcpy(name, DS_11_NAME);
+        if (strlen(DS_11_NAME) < 29) {
+            strncpy(name, DS_11_NAME, strlen(DS_11_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_11_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the first dimension  */
         if(H5LTmake_dataset_int(fid, name, rankds, s_dim, s1_wbuf) < 0)
@@ -729,7 +835,12 @@ herr_t create_DS2_int_datasets(hid_t fid, const char *dsidx, int rankds, hsize_t
 {
     char name[32];
 
-    strcpy(name, DS_2_NAME);
+    if (strlen(DS_2_NAME) < 29) {
+        strncpy(name, DS_2_NAME, strlen(DS_2_NAME)+1);
+    } else {
+        printf("Error:  %s is too long for buffer\n", DS_2_NAME);
+        return FAIL;
+    }
     strncat(name, dsidx, 3);
 
     /* make a DS dataset for the second dimension */
@@ -737,7 +848,12 @@ herr_t create_DS2_int_datasets(hid_t fid, const char *dsidx, int rankds, hsize_t
         return FAIL;
 
     if(s1_wbuf!=NULL) {
-        strcpy(name, DS_21_NAME);
+        if (strlen(DS_21_NAME) < 29) {
+            strncpy(name, DS_21_NAME, strlen(DS_21_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_21_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_int(fid, name, rankds, s_dim, s1_wbuf) < 0)
@@ -745,7 +861,12 @@ herr_t create_DS2_int_datasets(hid_t fid, const char *dsidx, int rankds, hsize_t
     }
 
     if(s2_wbuf!=NULL) {
-        strcpy(name, DS_22_NAME);
+        if (strlen(DS_22_NAME) < 29) {
+            strncpy(name, DS_22_NAME, strlen(DS_22_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_22_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_int(fid, name, rankds, s_dim, s2_wbuf) < 0)
@@ -763,7 +884,12 @@ herr_t create_DS3_int_datasets(hid_t fid, const char *dsidx, int rankds, hsize_t
 {
     char name[32];
 
-    strcpy(name, DS_3_NAME);
+    if (strlen(DS_3_NAME) < 29) {
+        strncpy(name, DS_3_NAME, strlen(DS_3_NAME)+1);
+    } else {
+        printf("Error:  %s is too long for buffer\n", DS_3_NAME);
+        return FAIL;
+    }
     strncat(name, dsidx, 3);
 
     /* make a DS dataset for the first dimension */
@@ -771,7 +897,12 @@ herr_t create_DS3_int_datasets(hid_t fid, const char *dsidx, int rankds, hsize_t
         return FAIL;
 
     if(s1_wbuf!=NULL) {
-        strcpy(name, DS_31_NAME);
+        if (strlen(DS_31_NAME) < 29) {
+            strncpy(name, DS_31_NAME, strlen(DS_31_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_31_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the first dimension  */
         if(H5LTmake_dataset_int(fid, name, rankds, s_dim, s1_wbuf) < 0)
@@ -779,7 +910,12 @@ herr_t create_DS3_int_datasets(hid_t fid, const char *dsidx, int rankds, hsize_t
     }
 
     if(s2_wbuf!=NULL) {
-        strcpy(name, DS_32_NAME);
+        if (strlen(DS_32_NAME) < 29) {
+            strncpy(name, DS_32_NAME, strlen(DS_32_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_32_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the first dimension  */
         if(H5LTmake_dataset_int(fid, name, rankds, s_dim, s2_wbuf) < 0)
@@ -787,7 +923,12 @@ herr_t create_DS3_int_datasets(hid_t fid, const char *dsidx, int rankds, hsize_t
     }
 
     if(s3_wbuf!=NULL) {
-        strcpy(name, DS_33_NAME);
+        if (strlen(DS_33_NAME) < 29) {
+            strncpy(name, DS_33_NAME, strlen(DS_33_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_33_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the first dimension  */
         if(H5LTmake_dataset_int(fid, name, rankds, s_dim, s3_wbuf) < 0)
@@ -805,7 +946,12 @@ herr_t create_DS1_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
 {
     char name[32];
 
-    strcpy(name, DS_1_NAME);
+    if (strlen(DS_1_NAME) < 29) {
+        strncpy(name, DS_1_NAME, strlen(DS_1_NAME)+1);
+    } else {
+        printf("Error:  %s is too long for buffer\n", DS_1_NAME);
+        return FAIL;
+    }
     strncat(name, dsidx, 3);
 
     /* make a DS dataset for the first dimension */
@@ -813,7 +959,12 @@ herr_t create_DS1_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
         return FAIL;
 
     if(s1_wbuf!=NULL) {
-        strcpy(name, DS_11_NAME);
+        if (strlen(DS_11_NAME) < 29) {
+            strncpy(name, DS_11_NAME, strlen(DS_11_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_11_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the first dimension  */
         if(H5LTmake_dataset_long(fid, name, rankds, s_dim, s1_wbuf) < 0)
@@ -831,7 +982,12 @@ herr_t create_DS2_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
 {
     char name[32];
 
-    strcpy(name, DS_2_NAME);
+    if (strlen(DS_2_NAME) < 29) {
+        strncpy(name, DS_2_NAME, strlen(DS_2_NAME)+1);
+    } else {
+        printf("Error:  %s is too long for buffer\n", DS_2_NAME);
+        return FAIL;
+    }
     strncat(name, dsidx, 3);
 
     /* make a DS dataset for the second dimension */
@@ -839,7 +995,12 @@ herr_t create_DS2_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
         return FAIL;
 
     if(s1_wbuf!=NULL) {
-        strcpy(name, DS_21_NAME);
+        if (strlen(DS_21_NAME) < 29) {
+            strncpy(name, DS_21_NAME, strlen(DS_21_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_21_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_long(fid, name, rankds, s_dim, s1_wbuf) < 0)
@@ -847,7 +1008,12 @@ herr_t create_DS2_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
     }
 
     if(s2_wbuf!=NULL) {
-        strcpy(name, DS_22_NAME);
+        if (strlen(DS_22_NAME) < 29) {
+            strncpy(name, DS_22_NAME, strlen(DS_22_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_22_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_long(fid, name, rankds, s_dim, s2_wbuf) < 0)
@@ -865,7 +1031,12 @@ herr_t create_DS3_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
 {
     char name[32];
 
-    strcpy(name, DS_3_NAME);
+    if (strlen(DS_3_NAME) < 29) {
+        strncpy(name, DS_3_NAME, strlen(DS_3_NAME)+1);
+    } else {
+        printf("Error:  %s is too long for buffer\n", DS_3_NAME);
+        return FAIL;
+    }
     strncat(name, dsidx, 3);
 
     /* make a DS dataset for the first dimension */
@@ -873,7 +1044,12 @@ herr_t create_DS3_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
         return FAIL;
 
     if(s1_wbuf!=NULL) {
-        strcpy(name, DS_31_NAME);
+        if (strlen(DS_31_NAME) < 29) {
+            strncpy(name, DS_31_NAME, strlen(DS_31_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_31_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_long(fid, name, rankds, s_dim, s1_wbuf) < 0)
@@ -881,7 +1057,12 @@ herr_t create_DS3_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
     }
 
     if(s2_wbuf!=NULL) {
-        strcpy(name, DS_32_NAME);
+        if (strlen(DS_32_NAME) < 29) {
+            strncpy(name, DS_32_NAME, strlen(DS_32_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_32_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_long(fid, name, rankds, s_dim, s2_wbuf) < 0)
@@ -889,7 +1070,12 @@ herr_t create_DS3_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
     }
 
     if(s3_wbuf!=NULL) {
-        strcpy(name, DS_33_NAME);
+        if (strlen(DS_33_NAME) < 29) {
+            strncpy(name, DS_33_NAME, strlen(DS_33_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_33_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_long(fid, name, rankds, s_dim, s3_wbuf) < 0)
@@ -906,8 +1092,12 @@ herr_t create_DS3_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
 herr_t create_DS4_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_t *s_dim, long *s_wbuf, long *s1_wbuf, long *s2_wbuf, long *s3_wbuf, long *s4_wbuf)
 {
     char name[32];
-
-    strcpy(name, DS_4_NAME);
+    if (strlen(DS_4_NAME) <29) {
+        strncpy(name, DS_4_NAME, strlen(DS_4_NAME)+1);
+    } else {
+        printf("Error:  %s is too long for buffer\n", DS_4_NAME);
+        return FAIL;
+    }
     strncat(name, dsidx, 3);
 
     /* make a DS dataset for the first dimension */
@@ -915,7 +1105,13 @@ herr_t create_DS4_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
         return FAIL;
 
     if(s1_wbuf!=NULL) {
-        strcpy(name, DS_41_NAME);
+        if (strlen(DS_41_NAME) <29) {
+            strncpy(name, DS_41_NAME, strlen(DS_41_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_41_NAME);
+            return FAIL;
+        }
+
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_long(fid, name, rankds, s_dim, s1_wbuf) < 0)
@@ -923,7 +1119,13 @@ herr_t create_DS4_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
     }
 
     if(s2_wbuf!=NULL) {
-        strcpy(name, DS_42_NAME);
+        if (strlen(DS_42_NAME) <29) {
+            strncpy(name, DS_42_NAME, strlen(DS_42_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_42_NAME);
+            return FAIL;
+        }
+
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_long(fid, name, rankds, s_dim, s2_wbuf) < 0)
@@ -931,7 +1133,13 @@ herr_t create_DS4_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
     }
 
     if(s3_wbuf!=NULL) {
-        strcpy(name, DS_43_NAME);
+        if (strlen(DS_43_NAME) <29) {
+            strncpy(name, DS_43_NAME, strlen(DS_43_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_43_NAME);
+            return FAIL;
+        }
+
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_long(fid, name, rankds, s_dim, s3_wbuf) < 0)
@@ -939,7 +1147,13 @@ herr_t create_DS4_long_datasets(hid_t fid, const char *dsidx, int rankds, hsize_
     }
 
     if(s4_wbuf!=NULL) {
-        strcpy(name, DS_44_NAME);
+        if (strlen(DS_44_NAME) <29) {
+            strncpy(name, DS_44_NAME, strlen(DS_44_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_44_NAME);
+            return FAIL;
+        }
+
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_long(fid, name, rankds, s_dim, s4_wbuf) < 0)
@@ -957,7 +1171,12 @@ herr_t create_DS1_float_datasets(hid_t fid, const char *dsidx, int rankds, hsize
 {
     char name[32];
 
-    strcpy(name, DS_1_NAME);
+    if (strlen(DS_1_NAME) < 29) {
+        strncpy(name, DS_1_NAME, strlen(DS_1_NAME)+1);
+    } else {
+        printf("Error:  %s is too long for buffer\n", DS_1_NAME);
+        return FAIL;
+    }
     strncat(name, dsidx, 3);
 
     /* make a DS dataset for the first dimension */
@@ -965,7 +1184,12 @@ herr_t create_DS1_float_datasets(hid_t fid, const char *dsidx, int rankds, hsize
         return FAIL;
 
     if(s1_wbuf!=NULL) {
-        strcpy(name, DS_11_NAME);
+        if (strlen(DS_11_NAME) < 29) {
+            strncpy(name, DS_11_NAME, strlen(DS_11_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_11_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the first dimension  */
         if(H5LTmake_dataset_float(fid, name, rankds, s_dim, s1_wbuf) < 0)
@@ -983,7 +1207,12 @@ herr_t create_DS2_float_datasets(hid_t fid, const char *dsidx, int rankds, hsize
 {
     char name[32];
 
-    strcpy(name, DS_2_NAME);
+    if (strlen(DS_2_NAME) < 29) {
+        strncpy(name, DS_2_NAME, strlen(DS_2_NAME)+1);
+    } else {
+        printf("Error:  %s is too long for buffer\n", DS_2_NAME);
+        return FAIL;
+    }
     strncat(name, dsidx, 3);
 
     /* make a DS dataset for the second dimension */
@@ -991,7 +1220,12 @@ herr_t create_DS2_float_datasets(hid_t fid, const char *dsidx, int rankds, hsize
         return FAIL;
 
     if(s1_wbuf!=NULL) {
-        strcpy(name, DS_21_NAME);
+        if (strlen(DS_21_NAME) < 29) {
+            strncpy(name, DS_21_NAME, strlen(DS_21_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_21_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_float(fid, name, rankds, s_dim, s1_wbuf) < 0)
@@ -999,7 +1233,12 @@ herr_t create_DS2_float_datasets(hid_t fid, const char *dsidx, int rankds, hsize
     }
 
     if(s2_wbuf!=NULL) {
-        strcpy(name, DS_22_NAME);
+        if (strlen(DS_22_NAME) < 29) {
+            strncpy(name, DS_22_NAME, strlen(DS_22_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_22_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_float(fid, name, rankds, s_dim, s2_wbuf) < 0)
@@ -1017,7 +1256,12 @@ herr_t create_DS3_float_datasets(hid_t fid, const char *dsidx, int rankds, hsize
 {
     char name[32];
 
-    strcpy(name, DS_3_NAME);
+    if (strlen(DS_3_NAME) < 29) {
+        strncpy(name, DS_3_NAME, strlen(DS_3_NAME)+1);
+    } else {
+        printf("Error:  %s is too long for buffer\n", DS_3_NAME);
+        return FAIL;
+    }
     strncat(name, dsidx, 3);
 
     /* make a DS dataset for the first dimension */
@@ -1025,7 +1269,12 @@ herr_t create_DS3_float_datasets(hid_t fid, const char *dsidx, int rankds, hsize
         return FAIL;
 
     if(s1_wbuf!=NULL) {
-        strcpy(name, DS_31_NAME);
+        if (strlen(DS_31_NAME) < 29) {
+            strncpy(name, DS_31_NAME, strlen(DS_31_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_31_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_float(fid, name, rankds, s_dim, s1_wbuf) < 0)
@@ -1033,7 +1282,12 @@ herr_t create_DS3_float_datasets(hid_t fid, const char *dsidx, int rankds, hsize
     }
 
     if(s2_wbuf!=NULL) {
-        strcpy(name, DS_32_NAME);
+        if (strlen(DS_32_NAME) < 29) {
+            strncpy(name, DS_32_NAME, strlen(DS_32_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_32_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_float(fid, name, rankds, s_dim, s2_wbuf) < 0)
@@ -1041,7 +1295,12 @@ herr_t create_DS3_float_datasets(hid_t fid, const char *dsidx, int rankds, hsize
     }
 
     if(s3_wbuf!=NULL) {
-        strcpy(name, DS_33_NAME);
+        if (strlen(DS_33_NAME) < 29) {
+            strncpy(name, DS_33_NAME, strlen(DS_33_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_33_NAME);
+            return FAIL;
+        }
         strncat(name, dsidx, 3);
         /* make a DS dataset with an alternate scale for the second dimension  */
         if(H5LTmake_dataset_float(fid, name, rankds, s_dim, s3_wbuf) < 0)
@@ -1770,38 +2029,76 @@ static int test_char_scalenames(const char *fileext) {
     char    dsname[32];
     char    scalename[32];
     char    name[32];
-    strcpy(dsname, DATASET_NAME);
-    strcat(dsname, "ac");
+    if (strlen(DATASET_NAME) < 29) {
+        strncpy(dsname, DATASET_NAME, strlen(DATASET_NAME)+1);
+    } else {
+        printf("Error:  %s is too long for buffer\n", DATASET_NAME);
+        return FAIL;
+    }
+    strncat(dsname, "ac", 2);
+
+
 
     if((fid = open_test_file(fileext)) < 0)
         goto out;
 
     TESTING2("set char scale/cmp scale name");
     if((did = H5Dopen2(fid, dsname, H5P_DEFAULT)) >= 0) {
-        strcpy(scalename, DS_1_NAME);
-        strcat(scalename, "ac");
-        strcpy(name, SCALE_1_NAME);
-        strcat(name, "ac");
+        if (strlen(DS_1_NAME) < 29) {
+            strncpy(scalename, DS_1_NAME, strlen(DS_1_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_1_NAME);
+            return FAIL;
+        }
+
+        strncat(scalename, "ac", 2);
+        if (strlen(SCALE_1_NAME) < 29) {
+            strncpy(name, SCALE_1_NAME, strlen(SCALE_1_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", SCALE_1_NAME);
+            return FAIL;
+        }
+        strncat(name, "ac", 2);
         if(test_set_scalename(fid, did, scalename, name, DIM0) < 0)
             goto out;
 
         if(test_cmp_scalename(fid, did, scalename, name, DIM0) < 0)
             goto out;
 
-        strcpy(scalename, DS_2_NAME);
-        strcat(scalename, "ac");
-        strcpy(name, SCALE_2_NAME);
-        strcat(name, "ac");
+        if (strlen(DS_2_NAME) < 29) {
+            strncpy(scalename, DS_2_NAME, strlen(DS_2_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_2_NAME);
+            return FAIL;
+        }
+        strncat(scalename, "ac", 2);
+        if (strlen(SCALE_2_NAME) < 29) {
+            strncpy(name, SCALE_2_NAME, strlen(SCALE_2_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", SCALE_2_NAME);
+            return FAIL;
+        }
+        strncat(name, "ac", 2);
         if(test_set_scalename(fid, did, scalename, name, DIM1) < 0)
             goto out;
 
         if(test_cmp_scalename(fid, did, scalename, name, DIM1) < 0)
             goto out;
 
-        strcpy(scalename, DS_3_NAME);
-        strcat(scalename, "ac");
-        strcpy(name, SCALE_3_NAME);
-        strcat(name, "ac");
+        if (strlen(DS_3_NAME) < 29) {
+            strncpy(scalename, DS_3_NAME, strlen(DS_3_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_3_NAME);
+            return FAIL;
+        }
+        strncat(scalename, "ac", 2);
+        if (strlen(SCALE_3_NAME) < 29) {
+            strncpy(name, SCALE_3_NAME, strlen(SCALE_3_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", SCALE_3_NAME);
+            return FAIL;
+        }
+        strncat(name, "ac", 2);
         if(test_set_scalename(fid, did, scalename, name, DIM2) < 0)
             goto out;
 
@@ -4133,7 +4430,7 @@ static int test_rank(void)
 
     for(i=0; i<3; i++)
     {
-        sprintf(name,"ds_a_%d",i);
+        snprintf(name, 7, "ds_a_%d",i);
         if((dsid = H5Dopen2(fid,name, H5P_DEFAULT)) < 0)
             goto out;
         if(H5DSdetach_scale(did,dsid,(unsigned)i) < 0)
@@ -4160,7 +4457,7 @@ static int test_rank(void)
 
     for(i=0; i<3; i++)
     {
-        sprintf(name,"ds_a_%d",i);
+        snprintf(name, 7, "ds_a_%d",i);
         if((dsid = H5Dopen2(fid,name, H5P_DEFAULT)) < 0)
             goto out;
         if(H5DSset_scale(dsid,name) < 0)
