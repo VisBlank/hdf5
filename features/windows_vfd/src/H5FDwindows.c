@@ -563,7 +563,6 @@ H5FD_windows_query(const H5FD_t *_file, unsigned long *flags /* out */)
             *flags |= H5FD_FEAT_IGNORE_DRVRINFO; /* Ignore the driver info when file is opened (which eliminates it) */
     } /* end if */
 
-done:
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5FD_windows_query() */
 
