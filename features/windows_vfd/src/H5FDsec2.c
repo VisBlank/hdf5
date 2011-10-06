@@ -114,7 +114,7 @@ typedef struct H5FD_sec2_t {
     /* Information from properties set by 'h5repart' tool
      *
      * Whether to eliminate the family driver info and convert this file to
-     * a single file
+     * a single file.
      */
     hbool_t         fam_to_sec2;
 } H5FD_sec2_t;
@@ -327,14 +327,14 @@ done:
 static H5FD_t *
 H5FD_sec2_open(const char *name, unsigned flags, hid_t fapl_id, haddr_t maxaddr)
 {
-    H5FD_sec2_t	*file = NULL;   /* sec2 VFD info */
-    int		fd = (-1);      /* File descriptor */
-    int		o_flags;        /* Flags for open() call */
+    H5FD_sec2_t     *file       = NULL;     /* sec2 VFD info            */
+    int             fd          = -1;       /* File descriptor          */
+    int             o_flags;                /* Flags for open() call    */
 #ifdef H5_HAVE_WIN32_API
     struct _BY_HANDLE_FILE_INFORMATION fileinfo;
 #endif
-    h5_stat_t	sb;
-    H5FD_t	*ret_value;     /* Return value */
+    h5_stat_t       sb;
+    H5FD_t          *ret_value;             /* Return value             */
 
     FUNC_ENTER_NOAPI_NOINIT(H5FD_sec2_open)
 
@@ -361,9 +361,9 @@ H5FD_sec2_open(const char *name, unsigned flags, hid_t fapl_id, haddr_t maxaddr)
     /* Open the file */
     if((fd = HDopen(name, o_flags, 0666)) < 0) {
         int myerrno = errno;
-
         HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to open file: name = '%s', errno = %d, error message = '%s', flags = %x, o_flags = %x", name, myerrno, HDstrerror(myerrno), flags, (unsigned)o_flags);
     } /* end if */
+
     if(HDfstat(fd, &sb) < 0)
         HSYS_GOTO_ERROR(H5E_FILE, H5E_BADFILE, NULL, "unable to fstat file")
 
@@ -392,10 +392,9 @@ H5FD_sec2_open(const char *name, unsigned flags, hid_t fapl_id, haddr_t maxaddr)
     file->inode[0] = sb.st_ino[0];
     file->inode[1] = sb.st_ino[1];
     file->inode[2] = sb.st_ino[2];
-#else
+#else /* H5_VMS */
     file->inode = sb.st_ino;
-#endif /*H5_VMS*/
-
+#endif /* H5_VMS */
 #endif /* H5_HAVE_WIN32_API */
 
     /* Retain a copy of the name used to open the file, for possible error reporting */
@@ -504,7 +503,7 @@ H5FD_sec2_cmp(const H5FD_t *_f1, const H5FD_t *_f2)
 
     if(f1->nFileIndexLow < f2->nFileIndexLow) HGOTO_DONE(-1)
     if(f1->nFileIndexLow > f2->nFileIndexLow) HGOTO_DONE(1)
-#else
+#else /* H5_HAVE_WIN32_API */
 #ifdef H5_DEV_T_IS_SCALAR
     if(f1->device < f2->device) HGOTO_DONE(-1)
     if(f1->device > f2->device) HGOTO_DONE(1)
@@ -516,16 +515,14 @@ H5FD_sec2_cmp(const H5FD_t *_f1, const H5FD_t *_f2)
     if(HDmemcmp(&(f1->device),&(f2->device),sizeof(dev_t)) < 0) HGOTO_DONE(-1)
     if(HDmemcmp(&(f1->device),&(f2->device),sizeof(dev_t)) > 0) HGOTO_DONE(1)
 #endif /* H5_DEV_T_IS_SCALAR */
-
-#ifndef H5_VMS
-    if(f1->inode < f2->inode) HGOTO_DONE(-1)
-    if(f1->inode > f2->inode) HGOTO_DONE(1)
-#else
+#ifdef H5_VMS
     if(HDmemcmp(&(f1->inode), &(f2->inode), 3 * sizeof(ino_t)) < 0) HGOTO_DONE(-1)
     if(HDmemcmp(&(f1->inode), &(f2->inode), 3 * sizeof(ino_t)) > 0) HGOTO_DONE(1)
-#endif /*H5_VMS*/
-
-#endif
+#else /* H5_VMS */
+    if(f1->inode < f2->inode) HGOTO_DONE(-1)
+    if(f1->inode > f2->inode) HGOTO_DONE(1)
+#endif /* H5_VMS */
+#endif /* H5_HAVE_WIN32_API */
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -556,11 +553,11 @@ H5FD_sec2_query(const H5FD_t *_file, unsigned long *flags /* out */)
     /* Set the VFL feature flags that this driver supports */
     if(flags) {
         *flags = 0;
-        *flags |= H5FD_FEAT_AGGREGATE_METADATA; /* OK to aggregate metadata allocations */
-        *flags |= H5FD_FEAT_ACCUMULATE_METADATA; /* OK to accumulate metadata for faster writes */
-        *flags |= H5FD_FEAT_DATA_SIEVE;       /* OK to perform data sieving for faster raw data reads & writes */
-        *flags |= H5FD_FEAT_AGGREGATE_SMALLDATA; /* OK to aggregate "small" raw data allocations */
-        *flags |= H5FD_FEAT_POSIX_COMPAT_HANDLE; /* VFD handle is POSIX I/O call compatible */
+        *flags |= H5FD_FEAT_AGGREGATE_METADATA;     /* OK to aggregate metadata allocations                             */
+        *flags |= H5FD_FEAT_ACCUMULATE_METADATA;    /* OK to accumulate metadata for faster writes                      */
+        *flags |= H5FD_FEAT_DATA_SIEVE;             /* OK to perform data sieving for faster raw data reads & writes    */
+        *flags |= H5FD_FEAT_AGGREGATE_SMALLDATA;    /* OK to aggregate "small" raw data allocations                     */
+        *flags |= H5FD_FEAT_POSIX_COMPAT_HANDLE;    /* VFD handle is POSIX I/O call compatible                          */
 
         /* Check for flags that are set by h5repart */
         if(file->fam_to_sec2)
@@ -586,6 +583,7 @@ H5FD_sec2_query(const H5FD_t *_file, unsigned long *flags /* out */)
  *
  *-------------------------------------------------------------------------
  */
+/* ARGSUSED */
 static haddr_t
 H5FD_sec2_get_eoa(const H5FD_t *_file, H5FD_mem_t UNUSED type)
 {
@@ -612,6 +610,7 @@ H5FD_sec2_get_eoa(const H5FD_t *_file, H5FD_mem_t UNUSED type)
  *
  *-------------------------------------------------------------------------
  */
+/* ARGSUSED */
 static herr_t
 H5FD_sec2_set_eoa(H5FD_t *_file, H5FD_mem_t UNUSED type, haddr_t addr)
 {
@@ -703,7 +702,7 @@ done:
 /* ARGSUSED */
 static herr_t
 H5FD_sec2_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id,
-    haddr_t addr, size_t size, void *buf/*out*/)
+    haddr_t addr, size_t size, void *buf /*out*/)
 {
     H5FD_sec2_t     *file       = (H5FD_sec2_t *)_file;
     herr_t          ret_value   = SUCCEED;                  /* Return value */
@@ -728,8 +727,7 @@ H5FD_sec2_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id,
             HSYS_GOTO_ERROR(H5E_IO, H5E_SEEKERROR, FAIL, "unable to seek to proper position")
     } /* end if */
 
-    /*
-     * Read data, being careful of interrupted system calls, partial results,
+    /* Read data, being careful of interrupted system calls, partial results,
      * and the end of the file.
      */
     while(size > 0) {
@@ -766,10 +764,7 @@ H5FD_sec2_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id,
         HDassert(bytes_read >= 0);
         HDassert((size_t)bytes_read <= size);
         
-        H5_CHECK_OVERFLOW(bytes_read, ssize_t, size_t);
         size -= (size_t)bytes_read;
-        
-        H5_CHECK_OVERFLOW(bytes_read, ssize_t, haddr_t);
         addr += (haddr_t)bytes_read;
         buf = (char *)buf + bytes_read;
     } /* end while */
@@ -806,8 +801,8 @@ done:
  */
 /* ARGSUSED */
 static herr_t
-H5FD_sec2_write(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id, haddr_t addr,
-		size_t size, const void *buf)
+H5FD_sec2_write(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id,
+                haddr_t addr, size_t size, const void *buf)
 {
     H5FD_sec2_t     *file       = (H5FD_sec2_t *)_file;
     herr_t          ret_value   = SUCCEED;                  /* Return value */
@@ -831,8 +826,7 @@ H5FD_sec2_write(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id, had
             HSYS_GOTO_ERROR(H5E_IO, H5E_SEEKERROR, FAIL, "unable to seek to proper position")
     } /* end if */
 
-    /*
-     * Write the data, being careful of interrupted system calls and partial
+    /* Write the data, being careful of interrupted system calls and partial
      * results
      */
     while(size > 0) {
@@ -862,11 +856,8 @@ H5FD_sec2_write(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id, had
         
         HDassert(bytes_wrote > 0);
         HDassert((size_t)bytes_wrote <= size);
-        
-        H5_CHECK_OVERFLOW(bytes_wrote, ssize_t, size_t);
+
         size -= (size_t)bytes_wrote;
-        
-        H5_CHECK_OVERFLOW(bytes_wrote, ssize_t, haddr_t);
         addr += (haddr_t)bytes_wrote;
         buf = (const char *)buf + bytes_wrote;
     } /* end while */

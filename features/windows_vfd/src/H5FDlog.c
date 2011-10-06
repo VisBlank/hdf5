@@ -1234,11 +1234,8 @@ H5FD_log_read(H5FD_t *_file, H5FD_mem_t type, hid_t UNUSED dxpl_id, haddr_t addr
 
         HDassert(bytes_read >= 0);
         HDassert((size_t)bytes_read <= size);
-
-        H5_CHECK_OVERFLOW(bytes_read, ssize_t, size_t);
+        
         size -= (size_t)bytes_read;
-
-        H5_CHECK_OVERFLOW(bytes_read, ssize_t, haddr_t);
         addr += (haddr_t)bytes_read;
         buf = (char *)buf + bytes_read;
 
@@ -1438,10 +1435,7 @@ H5FD_log_write(H5FD_t *_file, H5FD_mem_t type, hid_t UNUSED dxpl_id, haddr_t add
         HDassert(bytes_wrote > 0);
         HDassert((size_t)bytes_wrote <= size);
 
-        H5_CHECK_OVERFLOW(bytes_wrote, ssize_t, size_t);
         size -= (size_t)bytes_wrote;
-
-        H5_CHECK_OVERFLOW(bytes_wrote, ssize_t, haddr_t);
         addr += (haddr_t)bytes_wrote;
         buf = (const char *)buf + bytes_wrote;
     } /* end while */

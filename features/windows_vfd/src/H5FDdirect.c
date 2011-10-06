@@ -56,7 +56,7 @@
  * http://developer.apple.com/library/mac/#documentation/Darwin/Reference/ManPages/man2/fcntl.2.html
  * http://lists.apple.com/archives/filesystem-dev/2007/Sep/msg00010.html
  */
-#if defined(H5_HAVE_DIRECT) && !defined(H5_HAVE_WINDOWS) && !defined(H5_VMS)
+#if defined(H5_HAVE_DIRECT) && !defined(H5_HAVE_WIN32_API) && !defined(H5_VMS)
 
 /* The driver identification number, initialized at runtime */
 static hid_t H5FD_DIRECT_g = 0;

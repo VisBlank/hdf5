@@ -29,11 +29,6 @@
 #include <string.h>
 #include <sys/stat.h>
 
-/* Disable certain warnings in PC-Lint: */
-/*lint --emacro( {534, 830}, H5P_FILE_ACCESS) */
-/*lint --emacro( {534, 830}, H5F_ACC_RDWR, H5F_ACC_EXCL) */
-/*lint -esym( 534, H5Eclear2, H5Epush2) */
-
 #include "hdf5.h"
 
 #ifdef H5_HAVE_STDIO_H
@@ -96,10 +91,10 @@ static hid_t H5FD_STDIO_g = 0;
 
 /* File operations */
 typedef enum {
-    H5FD_STDIO_OP_UNKNOWN=0,
-    H5FD_STDIO_OP_READ=1,
-    H5FD_STDIO_OP_WRITE=2,
-    H5FD_STDIO_OP_SEEK=3
+    H5FD_STDIO_OP_UNKNOWN   = 0,
+    H5FD_STDIO_OP_READ      = 1,
+    H5FD_STDIO_OP_WRITE     = 2,
+    H5FD_STDIO_OP_SEEK      = 3
 } H5FD_stdio_file_op;
 
 /* The description of a file belonging to this driver. The `eoa' and `eof'
@@ -116,6 +111,7 @@ typedef enum {
 typedef struct H5FD_stdio_t {
     H5FD_t              pub;    /* public stuff, must be first      */
     FILE                *fp;    /* the file handle                  */
+    int                 fd;     /* The underlying file descriptor   */
     haddr_t             eoa;    /* end of allocated region          */
     haddr_t             eof;    /* end of file; current file size   */
     haddr_t             pos;    /* current file I/O position        */
@@ -247,9 +243,6 @@ static const H5FD_class_t H5FD_stdio_g = {
  * Programmer:  Robb Matzke
  *              Thursday, July 29, 1999
  *
- * Modifications:
- *      Stolen from the sec2 driver - QAK, 10/18/99
- *
  *-------------------------------------------------------------------------
  */
 hid_t
@@ -258,9 +251,9 @@ H5FD_stdio_init(void)
     /* Clear the error stack */
     H5Eclear2(H5E_DEFAULT);
 
-    if (H5I_VFL!=H5Iget_type(H5FD_STDIO_g))
+    if (H5I_VFL != H5Iget_type(H5FD_STDIO_g))
         H5FD_STDIO_g = H5FDregister(&H5FD_stdio_g);
-    return(H5FD_STDIO_g);
+    return H5FD_STDIO_g;
 }
 
 
@@ -298,15 +291,12 @@ H5FD_stdio_term(void)
  * Programmer:  Robb Matzke
  *    Thursday, February 19, 1998
  *
- * Modifications:
- *      Stolen from the sec2 driver - QAK, 10/18/99
- *
  *-------------------------------------------------------------------------
  */
 herr_t
 H5Pset_fapl_stdio(hid_t fapl_id)
 {
-    static const char *func="H5FDset_fapl_stdio";  /*for error reporting*/
+    static const char *func = "H5FDset_fapl_stdio";  /*for error reporting*/
 
     /*NO TRACE*/
 
@@ -343,31 +333,26 @@ H5Pset_fapl_stdio(hid_t fapl_id)
  * Programmer:  Robb Matzke
  *    Wednesday, October 22, 1997
  *
- * Modifications:
- *      Ported to VFL/H5FD layer - QAK, 10/18/99
- *
  *-------------------------------------------------------------------------
  */
 static H5FD_t *
-H5FD_stdio_open( const char *name, unsigned flags, hid_t fapl_id,
+H5FD_stdio_open( const char *name, unsigned flags, hid_t /*UNUSED*/ fapl_id,
     haddr_t maxaddr)
 {
-    FILE       *f = NULL;
-    unsigned    write_access=0;     /* File opened with write access? */
-    H5FD_stdio_t  *file=NULL;
+    H5FD_stdio_t    *file           = NULL; /* stdio VFD info           */
+    FILE            *f              = NULL; /* File pointer             */
+    unsigned        write_access    = 0;    /* Opened wb+ access flag   */
     static const char *func="H5FD_stdio_open";  /* Function Name for error reporting */
 #ifdef H5_HAVE_WIN32_API
     struct _BY_HANDLE_FILE_INFORMATION fileinfo;
-    int fd;
 #else /* H5_HAVE_WIN32_API */
     struct stat        sb;
 #endif  /* H5_HAVE_WIN32_API */
 
     /* Sanity check on file offsets */
-    assert(sizeof(file_offset_t)>=sizeof(size_t));
-
-    /* Shut compiler up */
-    fapl_id=fapl_id;
+    assert(sizeof(file_offset_t ) >= sizeof(size_t));
+    
+    (void)fapl_id;
 
     /* Clear the error stack */
     H5Eclear2(H5E_DEFAULT);
@@ -383,7 +368,7 @@ H5FD_stdio_open( const char *name, unsigned flags, hid_t fapl_id,
     if (file_access(name, F_OK) < 0) {
         if ((flags & H5F_ACC_CREAT) && (flags & H5F_ACC_RDWR)) {
             f = fopen(name, "wb+");
-            write_access=1;     /* Note the write access */
+            write_access = 1;   /* Note the write access */
         }
         else
             H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_CANTOPENFILE, "file doesn't exist and CREAT wasn't specified", NULL)
@@ -394,42 +379,36 @@ H5FD_stdio_open( const char *name, unsigned flags, hid_t fapl_id,
             f = fopen(name, "wb+");
         else
             f = fopen(name, "rb+");
-        write_access=1;     /* Note the write access */
+        write_access = 1;       /* Note the write access */
     } else {
         f = fopen(name, "rb");
     }
-    if (!f)
+    if(!f)
         H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_CANTOPENFILE, "fopen failed", NULL)
 
-    /* Build the return value */
+    /* Create the new file struct */
     if(NULL == (file = (H5FD_stdio_t *)calloc((size_t)1, sizeof(H5FD_stdio_t)))) {
         fclose(f);
         H5Epush_ret(func, H5E_ERR_CLS, H5E_RESOURCE, H5E_NOSPACE, "memory allocation failed", NULL)
     } /* end if */
     file->fp = f;
+    file->fd = file_fileno(file->fp);
+    if(file->fd == -1)
+        H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_CANTOPENFILE, "unable to get file descriptor for file", NULL)
     file->op = H5FD_STDIO_OP_SEEK;
     file->pos = HADDR_UNDEF;
-    file->write_access=write_access;    /* Note the write_access for later */
+    file->write_access = write_access;      /* Note the write_access for later */
     if(file_fseek(file->fp, (file_offset_t)0, SEEK_END) < 0) {
         file->op = H5FD_STDIO_OP_UNKNOWN;
     } else {
-        file_offset_t x = file_ftell (file->fp);
-        assert (x>=0);
+        file_offset_t x = file_ftell(file->fp);
+        assert(x >= 0);
         file->eof = (haddr_t)x;
     }
 
     /* The unique key */
 #ifdef H5_HAVE_WIN32_API
-    /* Note that the return value from _fileno() is undefined if the stream
-     * does not specify an open file so the error check only handles
-     * NULL pointers.  Note also that stderr/out will return -2 from this
-     * function, which is not considered an error condition here.
-     */
-    fd = file_fileno(f);
-    if(-1 == fd)
-        H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_CANTOPENFILE, "unable to get file descriptor from FILE pointer", NULL)
-
-    file->hFile = (HANDLE)_get_osfhandle(fd);
+    file->hFile = (HANDLE)_get_osfhandle(file->fd);
     if(INVALID_HANDLE_VALUE == file->hFile)
         H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_CANTOPENFILE, "unable to get Windows file handle", NULL)
 
@@ -439,12 +418,19 @@ H5FD_stdio_open( const char *name, unsigned flags, hid_t fapl_id,
     file->nFileIndexHigh = fileinfo.nFileIndexHigh;
     file->nFileIndexLow = fileinfo.nFileIndexLow;
     file->dwVolumeSerialNumber = fileinfo.dwVolumeSerialNumber;
-#else
+#else /* H5_HAVE_WIN32_API */
     fstat(fileno(file->fp), &sb);
     file->device = sb.st_dev;
+#ifdef H5_VMS
+    file->inode[0] = sb.st_ino[0];
+    file->inode[1] = sb.st_ino[1];
+    file->inode[2] = sb.st_ino[2];
+#else /* H5_VMS */
     file->inode = sb.st_ino;
-#endif
-    return((H5FD_t*)file);
+#endif /* H5_VMS */
+#endif /* H5_HAVE_WIN32_API */
+
+    return (H5FD_t*)file;
 }   /* end H5FD_stdio_open() */
 
 
@@ -460,9 +446,6 @@ H5FD_stdio_open( const char *name, unsigned flags, hid_t fapl_id,
  *
  * Programmer:  Robb Matzke
  *    Wednesday, October 22, 1997
- *
- * Modifications:
- *      Ported to VFL/H5FD layer - QAK, 10/18/99
  *
  *-------------------------------------------------------------------------
  */
@@ -480,7 +463,7 @@ H5FD_stdio_close(H5FD_t *_file)
 
     free(file);
 
-    return(0);
+    return 0;
 }
 
 
@@ -497,9 +480,6 @@ H5FD_stdio_close(H5FD_t *_file)
  *
  * Programmer:  Robb Matzke
  *              Thursday, July 29, 1999
- *
- * Modifications:
- *      Stolen from the sec2 driver - QAK, 10/18/99
  *
  *-------------------------------------------------------------------------
  */
@@ -521,7 +501,7 @@ H5FD_stdio_cmp(const H5FD_t *_f1, const H5FD_t *_f2)
 
     if(f1->nFileIndexLow < f2->nFileIndexLow) return -1;
     if(f1->nFileIndexLow > f2->nFileIndexLow) return 1;
-#else
+#else /* H5_HAVE_WIN32_API */
 #ifdef H5_DEV_T_IS_SCALAR
     if (f1->device < f2->device) return -1;
     if (f1->device > f2->device) return 1;
@@ -533,10 +513,15 @@ H5FD_stdio_cmp(const H5FD_t *_f1, const H5FD_t *_f2)
     if(memcmp(&(f1->device),&(f2->device),sizeof(dev_t))<0) return -1;
     if(memcmp(&(f1->device),&(f2->device),sizeof(dev_t))>0) return 1;
 #endif /* H5_DEV_T_IS_SCALAR */
-
+#ifdef H5_VMS
+    if(HDmemcmp(&(f1->inode), &(f2->inode), 3 * sizeof(ino_t)) < 0) HGOTO_DONE(-1)
+    if(HDmemcmp(&(f1->inode), &(f2->inode), 3 * sizeof(ino_t)) > 0) HGOTO_DONE(1)
+#else /* H5_VMS */
     if (f1->inode < f2->inode) return -1;
     if (f1->inode > f2->inode) return 1;
-#endif
+#endif /* H5_VMS */
+#endif /* H5_HAVE_WIN32_API */
+
     return 0;
 }
 
@@ -554,36 +539,29 @@ H5FD_stdio_cmp(const H5FD_t *_f1, const H5FD_t *_f2)
  * Programmer:  Quincey Koziol
  *              Friday, August 25, 2000
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 static herr_t
 H5FD_stdio_query(const H5FD_t *_f, unsigned long *flags /* out */)
 {
-    /* Shut compiler up */
-    _f=_f;
 
     /* Set the VFL feature flags that this driver supports */
     if(flags) {
         *flags = 0;
-        *flags|=H5FD_FEAT_AGGREGATE_METADATA; /* OK to aggregate metadata allocations */
-        *flags|=H5FD_FEAT_ACCUMULATE_METADATA; /* OK to accumulate metadata for faster writes */
-        *flags|=H5FD_FEAT_DATA_SIEVE;       /* OK to perform data sieving for faster raw data reads & writes */
-        *flags|=H5FD_FEAT_AGGREGATE_SMALLDATA; /* OK to aggregate "small" raw data allocations */
+        *flags |= H5FD_FEAT_AGGREGATE_METADATA;     /* OK to aggregate metadata allocations                             */
+        *flags |= H5FD_FEAT_ACCUMULATE_METADATA;    /* OK to accumulate metadata for faster writes                      */
+        *flags |= H5FD_FEAT_DATA_SIEVE;             /* OK to perform data sieving for faster raw data reads & writes    */
+        *flags |= H5FD_FEAT_AGGREGATE_SMALLDATA;    /* OK to aggregate "small" raw data allocations                     */
     }
 
-    return(0);
+    return 0;
 }
 
 
 /*-------------------------------------------------------------------------
  * Function:  H5FD_stdio_alloc
  *
- * Purpose:  Allocates file memory. If fseeko isn't available, makes
- *              sure the file size isn't bigger than 2GB because the
- *              parameter OFFSET of fseek is of the type LONG INT, limiting
- *              the file size to 2GB.
+ * Purpose:  Allocates file memory.
  *
  * Return:  Success:  Address of new memory
  *
@@ -591,8 +569,6 @@ H5FD_stdio_query(const H5FD_t *_f, unsigned long *flags /* out */)
  *
  * Programmer:  Raymond Lu
  *              30 March 2007
- *
- * Modifications:
  *
  *-------------------------------------------------------------------------
  */
@@ -603,9 +579,8 @@ H5FD_stdio_alloc(H5FD_t *_file, H5FD_mem_t /*UNUSED*/ type, hid_t /*UNUSED*/ dxp
     haddr_t    addr;
     haddr_t ret_value;          /* Return value */
 
-    /* Shut compiler up */
-    type = type;
-    dxpl_id = dxpl_id;
+    (void)type;
+    (void)dxpl_id;
 
     /* Clear the error stack */
     H5Eclear2(H5E_DEFAULT);
@@ -643,27 +618,19 @@ H5FD_stdio_alloc(H5FD_t *_file, H5FD_mem_t /*UNUSED*/ type, hid_t /*UNUSED*/ dxp
  * Programmer:  Robb Matzke
  *              Monday, August  2, 1999
  *
- * Modifications:
- *              Stolen from the sec2 driver - QAK, 10/18/99
- *
- *              Raymond Lu
- *              21 Dec. 2006
- *              Added the parameter TYPE.  It's only used for MULTI driver.
- *
  *-------------------------------------------------------------------------
  */
 static haddr_t
-H5FD_stdio_get_eoa(const H5FD_t *_file, H5FD_mem_t /*unused*/ type)
+H5FD_stdio_get_eoa(const H5FD_t *_file, H5FD_mem_t /*UNUSED*/ type)
 {
     const H5FD_stdio_t  *file = (const H5FD_stdio_t *)_file;
+
+    (void)type;
 
     /* Clear the error stack */
     H5Eclear2(H5E_DEFAULT);
 
-    /* Shut compiler up */
-    type = type;
-
-    return(file->eoa);
+    return file->eoa;
 }
 
 
@@ -681,28 +648,21 @@ H5FD_stdio_get_eoa(const H5FD_t *_file, H5FD_mem_t /*unused*/ type)
  * Programmer:  Robb Matzke
  *              Thursday, July 29, 1999
  *
- * Modifications:
- *              Stolen from the sec2 driver - QAK, 10/18/99
- *
- *              Raymond Lu
- *              21 Dec. 2006
- *              Added the parameter TYPE.  It's only used for MULTI driver.
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5FD_stdio_set_eoa(H5FD_t *_file, H5FD_mem_t /*unused*/ type, haddr_t addr)
+H5FD_stdio_set_eoa(H5FD_t *_file, H5FD_mem_t /*UNUSED*/ type, haddr_t addr)
 {
     H5FD_stdio_t  *file = (H5FD_stdio_t*)_file;
+
+    (void)type;
 
     /* Clear the error stack */
     H5Eclear2(H5E_DEFAULT);
 
-    /* Shut compiler up */
-    type = type;
-
     file->eoa = addr;
 
-    return(0);
+    return 0;
 }
 
 
@@ -722,9 +682,6 @@ H5FD_stdio_set_eoa(H5FD_t *_file, H5FD_mem_t /*unused*/ type, haddr_t addr)
  * Programmer:  Robb Matzke
  *              Thursday, July 29, 1999
  *
- * Modifications:
- *      Stolen from the sec2 driver - QAK, 10/18/99
- *
  *-------------------------------------------------------------------------
  */
 static haddr_t
@@ -735,7 +692,7 @@ H5FD_stdio_get_eof(const H5FD_t *_file)
     /* Clear the error stack */
     H5Eclear2(H5E_DEFAULT);
 
-    return(MAX(file->eof, file->eoa));
+    return MAX(file->eof, file->eoa);
 }
 
 
@@ -749,26 +706,27 @@ H5FD_stdio_get_eof(const H5FD_t *_file)
  * Programmer:     Raymond Lu
  *                 Sept. 16, 2002
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5FD_stdio_get_handle(H5FD_t *_file, hid_t fapl, void** file_handle)
+H5FD_stdio_get_handle(H5FD_t *_file, hid_t /*UNUSED*/ fapl, void** file_handle)
 {
     H5FD_stdio_t       *file = (H5FD_stdio_t *)_file;
-    static const char  *func="H5FD_stdio_get_handle";  /* Function Name for error reporting */
+    static const char  *func = "H5FD_stdio_get_handle";  /* Function Name for error reporting */
 
-    /* Shut compiler up */
-    fapl=fapl;
-
+    (void)fapl;
+    
     /* Clear the error stack */
     H5Eclear2(H5E_DEFAULT);
+    
+    if(!file_handle)
+        H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_BADVALUE, "file handle not valid", -1)
 
     *file_handle = &(file->fp);
-    if(*file_handle==NULL)
+    if(*file_handle == NULL)
         H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_WRITEERROR, "get handle failed", -1)
-    return(0);
+        
+    return 0;
 }
 
 
@@ -788,51 +746,42 @@ H5FD_stdio_get_handle(H5FD_t *_file, hid_t fapl, void** file_handle)
  * Programmer:  Robb Matzke
  *    Wednesday, October 22, 1997
  *
- * Modifications:
- *    June 2, 1998  Albert Cheng
- *    Added xfer_mode argument
- *
- *      Ported to VFL/H5FD layer - QAK, 10/18/99
- *
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5FD_stdio_read(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr, size_t size,
-    void *buf/*out*/)
+H5FD_stdio_read(H5FD_t *_file, H5FD_mem_t /*UNUSED*/ type, hid_t /*UNUSED*/ dxpl_id, 
+                haddr_t addr, size_t size, void *buf /*out*/)
 {
     size_t    n;
     H5FD_stdio_t    *file = (H5FD_stdio_t*)_file;
-    static const char *func="H5FD_stdio_read";  /* Function Name for error reporting */
+    static const char *func = "H5FD_stdio_read";  /* Function Name for error reporting */
 
-    /* Shut compiler up */
-    type=type;
-    dxpl_id=dxpl_id;
+    (void)type;
+    (void)dxpl_id;
 
     /* Clear the error stack */
     H5Eclear2(H5E_DEFAULT);
 
     /* Check for overflow */
-    if (HADDR_UNDEF==addr)
+    if(HADDR_UNDEF == addr)
         H5Epush_ret (func, H5E_ERR_CLS, H5E_IO, H5E_OVERFLOW, "file address overflowed", -1)
-    if (REGION_OVERFLOW(addr, size))
+    if(REGION_OVERFLOW(addr, size))
         H5Epush_ret (func, H5E_ERR_CLS, H5E_IO, H5E_OVERFLOW, "file address overflowed", -1)
     if((addr + size) > file->eoa)
         H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_OVERFLOW, "file address overflowed", -1)
 
     /* Check easy cases */
-    if (0 == size)
-        return(0);
-    if ((haddr_t)addr >= file->eof) {
+    if(0 == size)
+        return 0;
+    if((haddr_t)addr >= file->eof) {
         memset(buf, 0, size);
-        return(0);
+        return 0;
     }
 
-    /*
-     * Seek to the correct file position.
-     */
-    if (!(file->op == H5FD_STDIO_OP_READ || file->op==H5FD_STDIO_OP_SEEK) ||
+    /* Seek to the correct file position. */
+    if(!(file->op == H5FD_STDIO_OP_READ || file->op == H5FD_STDIO_OP_SEEK) ||
             file->pos != addr) {
-        if (file_fseek(file->fp, (file_offset_t)addr, SEEK_SET) < 0) {
+        if(file_fseek(file->fp, (file_offset_t)addr, SEEK_SET) < 0) {
             file->op = H5FD_STDIO_OP_UNKNOWN;
             file->pos = HADDR_UNDEF;
             H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_SEEKERROR, "fseek failed", -1)
@@ -840,17 +789,14 @@ H5FD_stdio_read(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr, siz
         file->pos = addr;
     }
 
-    /*
-     * Read zeros past the logical end of file (physical is handled below)
-     */
-    if (addr + size > file->eof) {
+    /* Read zeros past the logical end of file (physical is handled below) */
+    if(addr + size > file->eof) {
         size_t nbytes = (size_t) (addr + size - file->eof);
         memset((unsigned char *)buf + size - nbytes, 0, nbytes);
         size -= nbytes;
     }
 
-    /*
-     * Read the data.  Since we're reading single-byte values, a partial read
+    /* Read the data.  Since we're reading single-byte values, a partial read
      * will advance the file position by N.  If N is zero or an error
      * occurs then the file position is undefined.
      */
@@ -859,16 +805,14 @@ H5FD_stdio_read(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr, siz
         file->op = H5FD_STDIO_OP_UNKNOWN;
         file->pos = HADDR_UNDEF;
         H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_READERROR, "fread failed", -1)
-    } else if (n < size) {
+    } else if(n < size) {
         memset((unsigned char *)buf + n, 0, (size - n));
     }
 
-    /*
-     * Update the file position data.
-     */
+    /* Update the file position data. */
     file->op = H5FD_STDIO_OP_READ;
-    file->pos = addr+n; /*checked for overflow above*/
-    return(0);
+    file->pos = addr + n; /*checked for overflow above*/
+    return 0;
 }
 
 
@@ -887,42 +831,33 @@ H5FD_stdio_read(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr, siz
  * Programmer:  Robb Matzke
  *    Wednesday, October 22, 1997
  *
- * Modifications:
- *    June 2, 1998  Albert Cheng
- *    Added xfer_mode argument
- *
- *      Ported to VFL/H5FD layer - QAK, 10/18/99
- *
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5FD_stdio_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
-    size_t size, const void *buf)
+H5FD_stdio_write(H5FD_t *_file, H5FD_mem_t /*UNUSED*/ type, hid_t /*UNUSED*/ dxpl_id,
+                 haddr_t addr, size_t size, const void *buf)
 {
     H5FD_stdio_t    *file = (H5FD_stdio_t*)_file;
-    static const char *func="H5FD_stdio_write";  /* Function Name for error reporting */
+    static const char *func = "H5FD_stdio_write";  /* Function Name for error reporting */
 
-    /* Shut compiler up */
-    dxpl_id=dxpl_id;
-    type=type;
-
+    (void)type;
+    (void)dxpl_id;
+    
     /* Clear the error stack */
     H5Eclear2(H5E_DEFAULT);
 
     /* Check for overflow conditions */
-    if (HADDR_UNDEF==addr)
+    if(HADDR_UNDEF == addr)
         H5Epush_ret (func, H5E_ERR_CLS, H5E_IO, H5E_OVERFLOW, "file address overflowed", -1)
-    if (REGION_OVERFLOW(addr, size))
+    if(REGION_OVERFLOW(addr, size))
         H5Epush_ret (func, H5E_ERR_CLS, H5E_IO, H5E_OVERFLOW, "file address overflowed", -1)
-    if (addr+size>file->eoa)
+    if(addr+size > file->eoa)
         H5Epush_ret (func, H5E_ERR_CLS, H5E_IO, H5E_OVERFLOW, "file address overflowed", -1)
 
-    /*
-     * Seek to the correct file position.
-     */
-    if ((file->op != H5FD_STDIO_OP_WRITE && file->op != H5FD_STDIO_OP_SEEK) ||
+    /* Seek to the correct file position. */
+    if((file->op != H5FD_STDIO_OP_WRITE && file->op != H5FD_STDIO_OP_SEEK) ||
                 file->pos != addr) {
-        if (file_fseek(file->fp, (file_offset_t)addr, SEEK_SET) < 0) {
+        if(file_fseek(file->fp, (file_offset_t)addr, SEEK_SET) < 0) {
             file->op = H5FD_STDIO_OP_UNKNOWN;
             file->pos = HADDR_UNDEF;
             H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_SEEKERROR, "fseek failed", -1)
@@ -930,8 +865,7 @@ H5FD_stdio_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
         file->pos = addr;
     }
 
-    /*
-     * Write the buffer.  On successful return, the file position will be
+    /* Write the buffer.  On successful return, the file position will be
      * advanced by the number of bytes read.  Otherwise nobody knows where it
      * is.
      */
@@ -941,9 +875,7 @@ H5FD_stdio_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
         H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_WRITEERROR, "fwrite failed", -1)
     }
 
-    /*
-     * Update seek optimizing data.
-     */
+    /* Update seek optimizing data. */
     file->op = H5FD_STDIO_OP_WRITE;
     file->pos = addr + size;
 
@@ -951,7 +883,7 @@ H5FD_stdio_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
     if (file->pos>file->eof)
         file->eof = file->pos;
 
-    return(0);
+    return 0;
 }
 
 
@@ -972,22 +904,23 @@ H5FD_stdio_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5FD_stdio_flush(H5FD_t *_file, hid_t dxpl_id, unsigned closing)
+H5FD_stdio_flush(H5FD_t *_file, hid_t /*UNUSED*/ dxpl_id, unsigned closing)
 {
     H5FD_stdio_t  *file = (H5FD_stdio_t*)_file;
     static const char *func = "H5FD_stdio_flush";  /* Function Name for error reporting */
 
-    /* Shut compiler up */
-    dxpl_id = dxpl_id;
-
+    (void)dxpl_id;
+    
     /* Clear the error stack */
     H5Eclear2(H5E_DEFAULT);
+    
+    assert(file);
 
     /* Only try to flush the file if we have write access */
     if(file->write_access) {
         /* Flush */
         if(!closing) {
-            if(fflush(file->fp) < 0)
+            if(fflush(file->fp) == EOF)
                 H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_WRITEERROR, "fflush failed", -1)
 
             /* Reset last file I/O information */
@@ -996,7 +929,7 @@ H5FD_stdio_flush(H5FD_t *_file, hid_t dxpl_id, unsigned closing)
         } /* end if */
     } /* end if */
 
-    return(0);
+    return 0;
 } /* end H5FD_stdio_flush() */
 
 
@@ -1015,20 +948,16 @@ H5FD_stdio_flush(H5FD_t *_file, hid_t dxpl_id, unsigned closing)
  * Programmer:  Quincey Koziol
  *    Thursday, January 31, 2008
  *
- * Modifications:
- *  Vailin Choi; June 2010
- *  Fix for window failures manifested from tests in mf.c.
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5FD_stdio_truncate(H5FD_t *_file, hid_t dxpl_id, hbool_t closing)
+H5FD_stdio_truncate(H5FD_t *_file, hid_t /*UNUSED*/ dxpl_id, hbool_t /*UNUSED*/ closing)
 {
     H5FD_stdio_t  *file = (H5FD_stdio_t*)_file;
     static const char *func = "H5FD_stdio_truncate";  /* Function Name for error reporting */
 
-    /* Shut compiler up */
-    dxpl_id = dxpl_id;
-    closing = closing;
+    (void)dxpl_id;
+    (void)closing;
 
     /* Clear the error stack */
     H5Eclear2(H5E_DEFAULT);
@@ -1037,28 +966,15 @@ H5FD_stdio_truncate(H5FD_t *_file, hid_t dxpl_id, hbool_t closing)
     if(file->write_access) {
         /* Makes sure that the true file size is the same as the end-of-address. */
         if(file->eoa != file->eof) {
-            int fd = file_fileno(file->fp);     /* File descriptor for HDF5 file */
-
 #ifdef H5_HAVE_WIN32_API
-            LARGE_INTEGER li;   /* 64-bit integer for SetFilePointer() call */
-
-            /* Reset seek offset to beginning of file, so that file isn't
-             * re-extended later.
-             */
-            rewind(file->fp);
-
-            /* Translate 64-bit integers into form Windows wants */
-            /* [This algorithm is from the Windows documentation for SetFilePointer()] */
-            li.QuadPart = (LONGLONG)file->eoa;
-            (void)SetFilePointer(file->hFile, li.LowPart, &li.HighPart, FILE_BEGIN);
-            if(SetEndOfFile(file->hFile) == 0)
+            if(_chsize_s(file->fd, file->eoa))
                 H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_SEEKERROR, "unable to truncate/extend file properly", -1)
 #else /* H5_HAVE_WIN32_API */
             /* Reset seek offset to beginning of file, so that file isn't re-extended later */
             rewind(file->fp);
 
             /* Truncate file to proper length */
-            if(-1 == file_ftruncate(fd, (file_offset_t)file->eoa))
+            if(-1 == file_ftruncate(file->fd, (file_offset_t)file->eoa))
                 H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_SEEKERROR, "unable to truncate/extend file properly", -1)
 #endif /* H5_HAVE_WIN32_API */
 
@@ -1076,7 +992,7 @@ H5FD_stdio_truncate(H5FD_t *_file, hid_t dxpl_id, hbool_t closing)
             H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_TRUNCATED, "eoa>eof!", -1)
       } /* end else */
 
-    return(0);
+    return 0;
 } /* end H5FD_stdio_truncate() */
 
 
