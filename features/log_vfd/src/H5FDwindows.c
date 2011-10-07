@@ -1035,7 +1035,9 @@ H5FD_windows_truncate(H5FD_t *_file, hid_t UNUSED dxpl_id, hbool_t UNUSED closin
     H5FD_windows_t	*file = (H5FD_windows_t*)_file;
 #ifndef WINDOWS_USE_STDIO
     LARGE_INTEGER	li;
-    HANDLE		filehandle;
+    HANDLE		hFile;
+    DWORD               dwError;
+    BOOL                bError;
 #else
     int			fd;
 #endif /* WINDOWS_USE_STDIO */
@@ -1048,12 +1050,18 @@ H5FD_windows_truncate(H5FD_t *_file, hid_t UNUSED dxpl_id, hbool_t UNUSED closin
     if(file->eoa != file->eof) {
 #ifndef WINDOWS_USE_STDIO
         /* Extend the file to make sure it's large enough */
-        if((filehandle = (HANDLE)_get_osfhandle(file->fd)) == INVALID_HANDLE_VALUE)
+        hFile = (HANDLE)_get_osfhandle(file->fd);
+        if(INVALID_HANDLE_VALUE == hFile)
             HGOTO_ERROR(H5E_FILE, H5E_FILEOPEN, FAIL, "unable to get file handle for file")
 
         li.QuadPart = (__int64)file->eoa;
-        (void)SetFilePointer((HANDLE)filehandle, li.LowPart, &li.HighPart, FILE_BEGIN);
-        if(SetEndOfFile(filehandle) == 0)
+
+        dwError = SetFilePointer(hFile, li.LowPart, &li.HighPart, FILE_BEGIN);
+        if(INVALID_SET_FILE_POINTER == dwError)
+            HGOTO_ERROR(H5E_FILE, H5E_FILEOPEN, FAIL, "unable to set file pointer")
+
+        bError = SetEndOfFile(hFile);
+        if(0 == bError)
             HGOTO_ERROR(H5E_IO, H5E_SEEKERROR, FAIL, "unable to extend file properly")
 #else /* WINDOWS_USE_STDIO */
         /* Only try to flush if we have write access */

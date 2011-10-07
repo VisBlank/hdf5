@@ -817,7 +817,7 @@ H5FD_log_cmp(const H5FD_t *_f1, const H5FD_t *_f2)
 
 #ifdef H5_HAVE_WIN32_API
     if(f1->dwVolumeSerialNumber < f2->dwVolumeSerialNumber) HGOTO_DONE(-1)
-        if(f1->dwVolumeSerialNumber > f2->dwVolumeSerialNumber) HGOTO_DONE(1)
+    if(f1->dwVolumeSerialNumber > f2->dwVolumeSerialNumber) HGOTO_DONE(1)
 
     if(f1->nFileIndexHigh < f2->nFileIndexHigh) HGOTO_DONE(-1)
     if(f1->nFileIndexHigh > f2->nFileIndexHigh) HGOTO_DONE(1)
