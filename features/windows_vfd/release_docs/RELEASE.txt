@@ -303,6 +303,7 @@ Bug Fixes since HDF5-1.8.0 release
 
     Library
     -------
+
       - #ifdef _WIN32 instances changed to #ifdef H5_HAVE_WIN32_API and added
             H5_HAVE_VISUAL_STUDIO checks where necessary. CMake only as configure
             never set _WIN32.
@@ -508,6 +509,9 @@ Bug Fixes since HDF5-1.8.0 release
 
     Configuration
     -------------
+    - In Windows platform, the default VFD, was Windows VFD, is restored back
+      to the SEC2, aka POSIX, VFD.  The Windows VFD is deprecated. HDFFV-7740
+      (AKC 2011/09/26)
     - Removed config/ibm-aix6.x. All IBM-AIX settings are in one file,
       ibm-aix. (AKC - 2011/4/14)
     - Shared C libraries are no longer disabled on Mac when Fortran
@@ -966,13 +970,6 @@ Known Problems
 * Parallel mode in AIX will fail some of the testcheck_version.sh tests where
   it treats "exit(134) the same as if process 0 had received an abort signal.
   This is fixed and will be available in the next release. AKC - 2009/11/3
-
-* Some tests in tools/h5repack may fail in AIX systems when -q32 mode is used.
-  The error is due to insufficient memory requested. Request a large amount
-  of runtime memory by setting the following environment variable for more
-  memory.
-     LDR_CNTRL=MAXDATA=0x20000000@DSA
-  AKC - 2009/10/31
 
 * The PathScale MPI implementation, accessing a Panasas file system, would
   cause H5Fcreate() with H5F_ACC_EXCL to fail even when the file is not
