@@ -164,15 +164,15 @@ H5MM_xstrdup(const char *s)
 {
     char    *ret_value = NULL;
 
-    /* Use FUNC_ENTER_NOAPI_NOINIT_NOFUNC here to avoid performance issues */
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5MM_xstrdup)
+    FUNC_ENTER_NOAPI(H5MM_xstrdup, NULL)
 
     if(s) {
         ret_value = (char *)H5MM_malloc(HDstrlen(s) + 1);
-        HDassert(ret_value);
+        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
         HDstrcpy(ret_value, s);
     } /* end if */
 
+done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5MM_xstrdup() */
 
