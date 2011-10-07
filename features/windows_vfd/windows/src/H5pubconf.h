@@ -15,13 +15,6 @@
 /* Define if using a Windows compiler (i.e. Visual Studio) */
 #define H5_HAVE_VISUAL_STUDIO 1
 
-/* Define if the Windows virtual file driver should use buffered IO functions */
-/* #undef WINDOWS_USE_STDIO */
-
-/* Define the maximum write size for the Windows file driver.  Larger writes
-   will be split into many writes.  Safe values are 1 <= WINDOWS_MAX_BUF <= 2GB-1. */
-#define WINDOWS_MAX_BUF (1024 * 1024 * 1024)
-
 /*
  * End of Windows Specific Definitions
  */
