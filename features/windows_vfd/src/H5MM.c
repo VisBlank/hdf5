@@ -145,18 +145,18 @@ H5MM_realloc(void *mem, size_t size)
 
 
 /*-------------------------------------------------------------------------
- * Function:	H5MM_xstrdup
+ * Function:    H5MM_xstrdup
  *
- * Purpose:	Duplicates a string, including memory allocation.
+ * Purpose:     Duplicates a string, including memory allocation.
  *              NULL is an acceptable value for the input string.
  *
- * Return:	Success:    Pointer to a new string (NULL if s is NULL).
+ * Return:      Success:    Pointer to a new string (NULL if s is NULL).
  *
- *		Failure:    abort()
+ *              Failure:    abort()
  *
- * Programmer:	Robb Matzke
- *		matzke@llnl.gov
- *		Jul 10 1997
+ * Programmer:  Robb Matzke
+ *              matzke@llnl.gov
+ *              Jul 10 1997
  *-------------------------------------------------------------------------
  */
 char *
@@ -167,8 +167,8 @@ H5MM_xstrdup(const char *s)
     FUNC_ENTER_NOAPI(H5MM_xstrdup, NULL)
 
     if(s) {
-        ret_value = (char *)H5MM_malloc(HDstrlen(s) + 1);
-        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
+        if(NULL == (ret_value = (char *)H5MM_malloc(HDstrlen(s) + 1)))
+            HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
         HDstrcpy(ret_value, s);
     } /* end if */
 
@@ -178,27 +178,27 @@ done:
 
 
 /*-------------------------------------------------------------------------
- * Function:	H5MM_strdup
+ * Function:    H5MM_strdup
  *
- * Purpose:	Duplicates a string, including memory allocation.
+ * Purpose:     Duplicates a string, including memory allocation.
  *              NULL is NOT an acceptable value for the input string.
  *
  *              If the string to be duplicated is the NULL pointer, then
  *              an error will be raised.
  *
- * Return:	Success:    Pointer to a new string
+ * Return:      Success:    Pointer to a new string
  *
- *		Failure:    abort()
+ *              Failure:    abort()
  *
- * Programmer:	Robb Matzke
- *		matzke@llnl.gov
- *		Jul 10 1997
+ * Programmer:  Robb Matzke
+ *              matzke@llnl.gov
+ *              Jul 10 1997
  *-------------------------------------------------------------------------
  */
 char *
 H5MM_strdup(const char *s)
 {
-    char    *ret_value;
+    char *ret_value;
 
     FUNC_ENTER_NOAPI(H5MM_strdup, NULL)
 
