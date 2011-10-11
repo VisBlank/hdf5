@@ -146,146 +146,6 @@ dump_attr_cb(hid_t oid, const char *attr_name, const H5A_info_t UNUSED *info, vo
 }
 
 /*-------------------------------------------------------------------------
- * Function:    dump_selected_attr
- *
- * Purpose:     dump the selected attribute
- *
- * Return:      Success:        SUCCEED
- *
- *              Failure:        FAIL
- *
- * Programmer:  Ruey-Hsia Li
- *
- * Modifications:
- *
- *-------------------------------------------------------------------------
- */
-static herr_t
-dump_selected_attr(hid_t loc_id, const char *name)
-{
-    hid_t  oid = -1;
-    hid_t  attr_id = -1;
-    char *obj_name;
-    const char *attr_name;
-    int j;
-    h5tools_str_t buffer;          /* string into which to render   */
-    h5tools_context_t ctx;            /* print context  */
-    h5tool_format_t  *outputformat = &h5tools_dataformat;
-    h5tool_format_t   string_dataformat;
-    hsize_t     curr_pos = 0;        /* total data element position   */
-
-    j = (int)HDstrlen(name) - 1;
-    obj_name = (char *)HDmalloc((size_t)j + 2);
-    if(obj_name == NULL)
-        goto error;
-
-    /* find the last / */
-    while(j >= 0) {
-        if (name[j] == '/')
-            break;
-        j--;
-    }
-
-    /* object name */
-    if(j == -1)
-        HDstrcpy(obj_name, "/");
-    else {
-        HDstrncpy(obj_name, name, (size_t)j + 1);
-        obj_name[j + 1] = '\0';
-    } /* end else */
-
-    memset(&ctx, 0, sizeof(ctx));
-    ctx.indent_level = dump_indent/COL;
-    ctx.cur_column = dump_indent;
-    
-    string_dataformat = *outputformat;
-
-    if (fp_format) {
-        string_dataformat.fmt_double = fp_format;
-        string_dataformat.fmt_float = fp_format;
-    }
-
-    if (h5tools_nCols==0) {
-        string_dataformat.line_ncols = 65535;
-        string_dataformat.line_per_line = 1;
-    }
-    else
-        string_dataformat.line_ncols = h5tools_nCols;
-
-    string_dataformat.do_escape = display_escape;
-    outputformat = &string_dataformat;
-
-    attr_name = name + j + 1;
-
-    /* Open the object with the attribute */
-    if((oid = H5Oopen(loc_id, obj_name, H5P_DEFAULT)) < 0) {
-        /* setup */
-        HDmemset(&buffer, 0, sizeof(h5tools_str_t));
-
-        ctx.need_prefix = TRUE;
-        h5tools_simple_prefix(stdout, outputformat, &ctx, 0, 0);
-        
-        /* Render the element */
-        h5tools_str_reset(&buffer);
-        h5tools_str_append(&buffer, "%s \"%s\" %s",
-                            h5tools_dump_header_format->attributebegin, name,
-                            h5tools_dump_header_format->attributeblockbegin);
-        h5tools_render_element(stdout, outputformat, &ctx, &buffer, &curr_pos, outputformat->line_ncols, 0, 0);
-
-        error_msg("unable to open object \"%s\"\n", obj_name);
-
-        ctx.need_prefix = TRUE;
-        h5tools_simple_prefix(stdout, outputformat, &ctx, 0, 0);
-        /* Render the element */
-        h5tools_str_reset(&buffer);
-        if(strlen(h5tools_dump_header_format->attributeblockend)) {
-            h5tools_str_append(&buffer, "%s", h5tools_dump_header_format->attributeblockend);
-            if(strlen(h5tools_dump_header_format->attributeend))
-                h5tools_str_append(&buffer, " ");
-        }
-        if(strlen(h5tools_dump_header_format->attributeend))
-            h5tools_str_append(&buffer, "%s", h5tools_dump_header_format->attributeend);
-        h5tools_render_element(stdout, outputformat, &ctx, &buffer, &curr_pos, outputformat->line_ncols, 0, 0);
-
-        h5tools_str_close(&buffer);
-
-        goto error;
-    } /* end if */
-
-    attr_id = H5Aopen(oid, attr_name, H5P_DEFAULT);
-    oid_output = display_oid;
-    data_output = display_data;
-    attr_data_output = display_attr_data;
-
-    h5dump_type_table = type_table;
-    h5tools_dump_attribute(stdout, outputformat, &ctx, oid, name, attr_id, display_ai, display_char);
-    h5dump_type_table = NULL;
-
-    if(attr_id < 0) {
-        goto error;
-    }
-
-    /* Close object */
-    if(H5Oclose(oid) < 0) {
-        goto error;
-    } /* end if */
-
-    HDfree(obj_name);
-    return SUCCEED;
-    
-error:
-    h5tools_setstatus(EXIT_FAILURE);
-    if(obj_name)
-        HDfree(obj_name);
-    
-    H5E_BEGIN_TRY {
-        H5Oclose(oid);
-        H5Aclose(attr_id);
-    } H5E_END_TRY;
-    return FAIL;
-}
-
-/*-------------------------------------------------------------------------
  * Function:    dump_all_cb
  *
  * Purpose:     function callback called by H5Literate,
@@ -1459,8 +1319,127 @@ dump_fcontents(hid_t fid)
 void
 handle_attributes(hid_t fid, const char *attr, void UNUSED * data, int UNUSED pe, const char UNUSED *display_name)
 {
+    hid_t  oid = -1;
+    hid_t  attr_id = -1;
+    char *obj_name;
+    const char *attr_name;
+    int j;
+    h5tools_str_t buffer;          /* string into which to render   */
+    h5tools_context_t ctx;            /* print context  */
+    h5tool_format_t  *outputformat = &h5tools_dataformat;
+    h5tool_format_t   string_dataformat;
+    hsize_t     curr_pos = 0;        /* total data element position   */
+
+    j = (int)HDstrlen(attr) - 1;
+    obj_name = (char *)HDmalloc((size_t)j + 2);
+    if(obj_name == NULL)
+        goto error;
+
+    /* find the last / */
+    while(j >= 0) {
+        if (attr[j] == '/')
+            break;
+        j--;
+    }
+
+    /* object name */
+    if(j == -1)
+        HDstrcpy(obj_name, "/");
+    else {
+        HDstrncpy(obj_name, attr, (size_t)j + 1);
+        obj_name[j + 1] = '\0';
+    } /* end else */
+
     dump_indent += COL;
-    dump_selected_attr(fid, attr);
+    memset(&ctx, 0, sizeof(ctx));
+    ctx.indent_level = dump_indent/COL;
+    ctx.cur_column = dump_indent;
+
+    string_dataformat = *outputformat;
+
+    if (fp_format) {
+        string_dataformat.fmt_double = fp_format;
+        string_dataformat.fmt_float = fp_format;
+    }
+
+    if (h5tools_nCols==0) {
+        string_dataformat.line_ncols = 65535;
+        string_dataformat.line_per_line = 1;
+    }
+    else
+        string_dataformat.line_ncols = h5tools_nCols;
+
+    string_dataformat.do_escape = display_escape;
+    outputformat = &string_dataformat;
+
+    attr_name = attr + j + 1;
+
+    /* Open the object with the attribute */
+    if((oid = H5Oopen(fid, obj_name, H5P_DEFAULT)) < 0) {
+        /* setup */
+        HDmemset(&buffer, 0, sizeof(h5tools_str_t));
+
+        ctx.need_prefix = TRUE;
+        h5tools_simple_prefix(stdout, outputformat, &ctx, 0, 0);
+
+        /* Render the element */
+        h5tools_str_reset(&buffer);
+        h5tools_str_append(&buffer, "%s \"%s\" %s",
+                h5tools_dump_header_format->attributebegin, attr,
+                h5tools_dump_header_format->attributeblockbegin);
+        h5tools_render_element(stdout, outputformat, &ctx, &buffer, &curr_pos, outputformat->line_ncols, 0, 0);
+
+        error_msg("unable to open object \"%s\"\n", obj_name);
+
+        ctx.need_prefix = TRUE;
+        h5tools_simple_prefix(stdout, outputformat, &ctx, 0, 0);
+        /* Render the element */
+        h5tools_str_reset(&buffer);
+        if(strlen(h5tools_dump_header_format->attributeblockend)) {
+            h5tools_str_append(&buffer, "%s", h5tools_dump_header_format->attributeblockend);
+            if(strlen(h5tools_dump_header_format->attributeend))
+                h5tools_str_append(&buffer, " ");
+        }
+        if(strlen(h5tools_dump_header_format->attributeend))
+            h5tools_str_append(&buffer, "%s", h5tools_dump_header_format->attributeend);
+        h5tools_render_element(stdout, outputformat, &ctx, &buffer, &curr_pos, outputformat->line_ncols, 0, 0);
+
+        h5tools_str_close(&buffer);
+
+        goto error;
+    } /* end if */
+
+    attr_id = H5Aopen(oid, attr_name, H5P_DEFAULT);
+    oid_output = display_oid;
+    data_output = display_data;
+    attr_data_output = display_attr_data;
+
+    h5dump_type_table = type_table;
+    h5tools_dump_attribute(stdout, outputformat, &ctx, oid, attr, attr_id, display_ai, display_char);
+    h5dump_type_table = NULL;
+
+    if(attr_id < 0) {
+        goto error;
+    }
+
+    /* Close object */
+    if(H5Oclose(oid) < 0) {
+        goto error;
+    } /* end if */
+
+    HDfree(obj_name);
+    dump_indent -= COL;
+    return;
+
+error:
+    h5tools_setstatus(EXIT_FAILURE);
+    if(obj_name)
+        HDfree(obj_name);
+
+    H5E_BEGIN_TRY {
+        H5Oclose(oid);
+        H5Aclose(attr_id);
+    } H5E_END_TRY;
     dump_indent -= COL;
 }
 
