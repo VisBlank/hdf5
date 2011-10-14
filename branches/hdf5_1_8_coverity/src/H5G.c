@@ -1705,6 +1705,7 @@ H5G_visit_cb(const H5O_link_t *lnk, void *_udata)
                 H5G_loc_t *old_loc = udata->curr_loc;       /* Pointer to previous group location info */
                 H5_index_t idx_type = udata->idx_type;      /* Type of index to use */
                 H5O_linfo_t	linfo;		        /* Link info message */
+                linfo.nlinks = 0;
                 htri_t linfo_exists;                    /* Whether the link info message exists */
 
                 /* Add the path separator to the current path */
