@@ -217,15 +217,31 @@ static hid_t create_test_file(const char *fileext)
 {
     char filename[65];
 
-    strcpy(filename, FILENAME);
+    if (strlen(FILENAME) < 61) {
+        strncpy(filename, FILENAME, strlen(FILENAME)+1);
+    } else {
+        printf("Error:  %s is too long for buffer\n", FILENAME);
+        return FAIL;
+    }
     strncat(filename, fileext, 1);
-    strcat(filename, FILEEXT);
+    strncat(filename, FILEEXT, 3);
     return H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 }
 
 static hid_t open_test_file(const char *fileext)
 {
     char filename[65];
+
+/*
+    if (strlen(FILENAME) < 61) {
+        strncpy(filename, FILENAME, strlen(FILENAME)+1);
+    } else {
+        printf("Error:  %s is too long for buffer\n", FILENAME);
+        return FAIL;
+    }
+    strncat(filename, fileext, 1);
+    strncat(filename, FILEEXT, 3);
+*/
 
     strcpy(filename, FILENAME);
     strncat(filename, fileext, 1);
@@ -259,12 +275,11 @@ herr_t create_char_dataset(hid_t fid, const char *dsidx, int fulldims)
     char name[32];
 
     if ( strlen(DATASET_NAME) <29) {
-        strncpy(name, DATASET_NAME, strlen(DATASET_NAME));
+        strncpy(name, DATASET_NAME, strlen(DATASET_NAME)+1);
     } else {
         printf("Error:  %s is too long for buffer\n", DATASET_NAME);
         return FAIL;
     }
-
     strncat(name, dsidx, 3);
     /* make a dataset */
     if(H5LTmake_dataset_char(fid, name, rank, dims, buf) >= 0) {
@@ -317,7 +332,12 @@ herr_t create_short_dataset(hid_t fid, const char *dsidx, int fulldims)
     short    s33_wbuf[DIM3_SIZE] = {6,6,6,12,12,12,53,53,53,140,140,140};
     char name[32];
 
-    strcpy(name, DATASET_NAME);
+    if ( strlen(DATASET_NAME) <29) {
+        strncpy(name, DATASET_NAME, strlen(DATASET_NAME)+1);
+    } else {
+        printf("Error:  %s is too long for buffer\n", DATASET_NAME);
+        return FAIL;
+    }
     strncat(name, dsidx, 3);
 
     /* make a dataset */
@@ -366,7 +386,12 @@ herr_t create_int_dataset(hid_t fid, const char *dsidx, int fulldims)
     int     s22_wbuf[DIM2_SIZE] = {5,10,50,300};
     char name[32];
 
-    strcpy(name, DATASET_NAME);
+    if ( strlen(DATASET_NAME) <29) {
+        strncpy(name, DATASET_NAME, strlen(DATASET_NAME)+1);
+    } else {
+        printf("Error:  %s is too long for buffer\n", DATASET_NAME);
+        return FAIL;
+    }
     strncat(name, dsidx, 3);
 
     /* make a dataset */
@@ -419,7 +444,14 @@ herr_t create_long_dataset(hid_t fid, const char *dsname, const char *dsidx, int
     long    s44_wbuf[DIM4_SIZE] = {280,280};
     char name[32];
 
-    strncpy(name, dsname, 31);
+   
+    if ( strlen(DATASET_NAME) <29) {
+        strncpy(name, DATASET_NAME, strlen(DATASET_NAME)+1);
+    } else {
+        printf("Error:  %s is too long for buffer\n", DATASET_NAME);
+        return FAIL;
+    }
+    strncat(name, dsidx, 3);
 
     /* make a dataset */
     if(H5LTmake_dataset_long(fid, name, rank, dims, buf) >= 0) {
@@ -474,7 +506,12 @@ herr_t create_float_dataset(hid_t fid, const char *dsidx, int fulldims)
     float   s22_wbuf[DIM2_SIZE] = {5,10,50,300};
     char name[32];
 
-    strcpy(name, DATASET_NAME);
+    if ( strlen(DATASET_NAME) <29) {
+        strncpy(name, DATASET_NAME, strlen(DATASET_NAME)+1);
+    } else {
+        printf("Error:  %s is too long for buffer\n", DATASET_NAME);
+        return FAIL;
+    }
     strncat(name, dsidx, 3);
 
     /* make a dataset */
@@ -1427,14 +1464,14 @@ static int test_detachscales(void)
 
     /* make datasets; they are three dimensional*/
     for (i=0; i < 2; i++) {
-        sprintf(dname,"D%d", i);
+        snprintf(dname, 3, "D%d", i);
         if(H5LTmake_dataset_int(fid, dname, rank3, dims, buf) < 0)
             goto out;
     } 
     /* create datasets and make them dim. scales */
 
     for (i=0; i < 4; i++) {
-        sprintf(dname, "DS%d", i);
+        snprintf(dname, 4, "DS%d", i);
         if(H5LTmake_dataset_int(fid, dname, rank1, dims, buf) < 0)
             goto out;
     }
@@ -1442,7 +1479,7 @@ static int test_detachscales(void)
        two scales attached  */
     if((did = H5Dopen2(fid, "D0", H5P_DEFAULT)) >= 0) {
         for (i=0; i<4; i++) {
-           sprintf(dname, "DS%d", i);
+           snprintf(dname, 4, "DS%d", i);
            if((dsid = H5Dopen2(fid, dname, H5P_DEFAULT)) < 0)
                goto out;
            if(H5DSattach_scale(did, dsid, (unsigned int) i%3) < 0)
@@ -1459,7 +1496,7 @@ static int test_detachscales(void)
    /* attach scales to the second dataset */
     if((did = H5Dopen2(fid, "D1", H5P_DEFAULT)) >= 0) {
         for (i=0; i<3; i++) {
-           sprintf(dname, "DS%d", i);
+           snprintf(dname, 4, "DS%d", i);
            if((dsid = H5Dopen2(fid, dname, H5P_DEFAULT)) < 0)
                goto out;
            if(H5DSattach_scale(did, dsid, (unsigned int) i) < 0)
@@ -1480,7 +1517,7 @@ static int test_detachscales(void)
                goto out;
 
     for (i=0; i<2; i++) {
-        sprintf(dname, "D%d", i);
+        snprintf(dname, 3, "D%d", i);
         if((did = H5Dopen2(fid, dname, H5P_DEFAULT)) < 0)
             goto out;
         if(H5DSdetach_scale(did, dsid, (unsigned int)0) < 0)
@@ -1510,7 +1547,7 @@ static int test_detachscales(void)
        sure that attribute "DIMENSION_LIST" doesn't exist anymore */
     if((did = H5Dopen2(fid, "D0", H5P_DEFAULT)) >= 0) {
         for (i=1; i<4; i++) {
-           sprintf(dname, "DS%d", i);
+           snprintf(dname, 4, "DS%d", i);
            if((dsid = H5Dopen2(fid, dname, H5P_DEFAULT)) < 0)
                goto out;
            if(H5DSdetach_scale(did, dsid, (unsigned int) i%3) < 0)
@@ -1551,8 +1588,13 @@ static int test_char_attachscales(const char *fileext)
     hid_t   did = -1;
     char    dsname[32];
     char    scalename[32];
-    strcpy(dsname, DATASET_NAME);
-    strcat(dsname, "ac");
+    if (strlen(DATASET_NAME) < 29) {
+        strncpy(dsname, DATASET_NAME, strlen(DATASET_NAME)+1);
+    } else {
+        printf("Error:  %s is too long for buffer\n", DATASET_NAME);
+        return FAIL;
+    }
+    strncat(dsname, "ac", 2);
 
     TESTING2("test_char_attachscales");
 
@@ -1564,18 +1606,33 @@ static int test_char_attachscales(const char *fileext)
         goto out;
 
     if((did = H5Dopen2(fid, dsname, H5P_DEFAULT)) >= 0) {
-        strcpy(scalename, DS_1_NAME);
-        strcat(scalename, "ac");
+        if (strlen(DS_1_NAME) < 29) {
+            strncpy(scalename, DS_1_NAME, strlen(DS_1_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_1_NAME);
+            return FAIL;
+        }
+        strncat(scalename, "ac", 2);
         if(test_attach_scale(fid, did, scalename, DIM0) < 0)
             goto out;
 
-        strcpy(scalename, DS_2_NAME);
-        strcat(scalename, "ac");
+        if (strlen(DS_2_NAME) < 29) {
+            strncpy(scalename, DS_2_NAME, strlen(DS_2_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_3_NAME);
+            return FAIL;
+        }
+        strncat(scalename, "ac", 2);
         if(test_attach_scale(fid, did, scalename, DIM1) < 0)
             goto out;
 
-        strcpy(scalename, DS_3_NAME);
-        strcat(scalename, "ac");
+        if (strlen(DS_3_NAME) < 29) {
+            strncpy(scalename, DS_3_NAME, strlen(DS_3_NAME)+1);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_3_NAME);
+            return FAIL;
+        }
+        strncat(scalename, "ac", 2);
         if(test_attach_scale(fid, did, scalename, DIM2) < 0)
             goto out;
 
@@ -1820,8 +1877,13 @@ static int test_duplicatelong_attachscales(const char *fileext)
     hid_t   did = -1;
     char    dsname[32];
     char    scalename[32];
-    strcpy(dsname, DATASET_NAME);
-    strcat(dsname, "al2");
+    if(strlen(DATASET_NAME)<28) {
+        strcpy(dsname, DATASET_NAME);
+    } else {
+        printf("Error:  %s is too long for buffer\n", DATASET_NAME);
+        return FAIL; 
+    }
+    strncat(dsname, "al2", 3);
 
     TESTING2("test_duplicatelong_attachscales");
 
@@ -1833,23 +1895,43 @@ static int test_duplicatelong_attachscales(const char *fileext)
         goto out;
 
     if((did = H5Dopen2(fid, dsname, H5P_DEFAULT)) >= 0) {
-        strcpy(scalename, DS_1_NAME);
-        strcat(scalename, "al");
+        if(strlen(DS_1_NAME)<29) {
+            strcpy(scalename, DS_1_NAME);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_1_NAME);
+            return FAIL; 
+        }
+        strncat(scalename, "al", 2);
         if(test_attach_scale(fid, did, scalename, DIM0) < 0)
             goto out;
 
-        strcpy(scalename, DS_2_NAME);
-        strcat(scalename, "al");
+        if(strlen(DS_2_NAME)<29) {
+            strcpy(scalename, DS_2_NAME);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_2_NAME);
+            return FAIL; 
+        }
+        strncat(scalename, "al", 2);
         if(test_attach_scale(fid, did, scalename, DIM1) < 0)
             goto out;
 
-        strcpy(scalename, DS_3_NAME);
-        strcat(scalename, "al");
+        if(strlen(DS_3_NAME)<29) {
+            strcpy(scalename, DS_3_NAME);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_3_NAME);
+            return FAIL; 
+        }
+        strncat(scalename, "al", 2);
         if(test_attach_scale(fid, did, scalename, DIM2) < 0)
             goto out;
 
-        strcpy(scalename, DS_4_NAME);
-        strcat(scalename, "al");
+        if(strlen(DS_4_NAME)<29) {
+            strcpy(scalename, DS_4_NAME);
+        } else {
+            printf("Error:  %s is too long for buffer\n", DS_4_NAME);
+            return FAIL; 
+        }
+        strncat(scalename, "al", 2);
         if(test_attach_scale(fid, did, scalename, DIM3) < 0)
             goto out;
 
@@ -2036,8 +2118,6 @@ static int test_char_scalenames(const char *fileext) {
         return FAIL;
     }
     strncat(dsname, "ac", 2);
-
-
 
     if((fid = open_test_file(fileext)) < 0)
         goto out;
@@ -4922,15 +5002,26 @@ static int read_data( const char* fname,
     char     *srcdir = getenv("srcdir");  /* the source directory */
     char     data_file[512];              /* buffer to hold name of existing data file */
 
-    strcpy(data_file, "");
+    strncpy(data_file, "", 1);
     /* compose the name of the file to open, using the srcdir, if appropriate */
     if(srcdir)
     {
-        strncpy(data_file, srcdir, 496); /* Leave room for filename */
-        strcat(data_file, "/");
+        if(strlen(srcdir)<496) {
+            strncpy(data_file, srcdir, 496); /* Leave room for filename */
+        } else {
+            printf("Error:  %s is too long for buffer\n", FILENAME);
+            return FAIL;
+        }
     }
-    /* read first data file */
-    strncat(data_file,fname,12);
+    strncat(data_file, "/", 1);
+    
+    /* read first data file */ 
+    if(strlen(fname)<12) {
+        strncat(data_file,fname,12);
+    } else {
+        printf("Error:  %s is too long for buffer\n", FILENAME);
+        return FAIL;
+    }
 
     f = fopen(data_file, "r");
     if( f == NULL )
