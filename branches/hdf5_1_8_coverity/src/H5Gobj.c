@@ -812,6 +812,9 @@ H5G_obj_get_name_by_idx(H5O_loc_t *oloc, H5_index_t idx_type,
 
     FUNC_ENTER_NOAPI(H5G_obj_get_name_by_idx, FAIL)
 
+    /* Coverity complains about initialized member when calling H5G_obj_get_linfo */
+    linfo.nlinks = 0;
+
     /* Sanity check */
     HDassert(oloc && oloc->file);
 
