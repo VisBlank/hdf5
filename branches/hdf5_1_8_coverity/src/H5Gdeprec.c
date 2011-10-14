@@ -1143,6 +1143,7 @@ static H5G_obj_t
 H5G_obj_get_type_by_idx(H5O_loc_t *oloc, hsize_t idx, hid_t dxpl_id)
 {
     H5O_linfo_t	linfo;		/* Link info message */
+    linfo.nlinks = 0;
     htri_t linfo_exists;        /* Whether the link info message exists */
     H5G_obj_t ret_value;        /* Return value */
 
