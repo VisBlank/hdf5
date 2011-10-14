@@ -1051,6 +1051,9 @@ H5G_obj_remove_by_idx(H5O_loc_t *grp_oloc, H5RS_str_t *grp_full_path_r,
 
     FUNC_ENTER_NOAPI(H5G_obj_remove_by_idx, FAIL)
 
+    /* Coverity complains about this going unitialized into H5G_obj_get_linfo */
+    linfo.nlinks = 0;
+
     /* Sanity check */
     HDassert(grp_oloc && grp_oloc->file);
 
