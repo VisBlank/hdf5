@@ -385,6 +385,7 @@ H5G_new_dense_info_test(hid_t gid, hsize_t *name_count, hsize_t *corder_count)
     H5B2_t *bt2_name = NULL;    /* v2 B-tree handle for name index */
     H5B2_t *bt2_corder = NULL;  /* v2 B-tree handle for creation order index */
     H5O_linfo_t linfo;		/* Link info message */
+    linfo.nlinks = 0;
     H5G_t *grp = NULL;          /* Pointer to group */
     herr_t ret_value = SUCCEED; /* Return value */
 
