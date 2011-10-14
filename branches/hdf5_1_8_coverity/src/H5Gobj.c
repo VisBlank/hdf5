@@ -985,6 +985,9 @@ H5G_obj_remove(H5O_loc_t *oloc, H5RS_str_t *grp_full_path_r, const char *name, h
 
     FUNC_ENTER_NOAPI(H5G_obj_remove, FAIL)
 
+    /* Coverity complains about initialized member when calling H5G_obj_get_linfo */
+    linfo.nlinks = 0;
+
     /* Sanity check */
     HDassert(oloc);
     HDassert(name && *name);
@@ -1184,6 +1187,9 @@ H5G_obj_lookup_by_idx(H5O_loc_t *grp_oloc, H5_index_t idx_type,
     herr_t     ret_value = SUCCEED;     /* Return value */
 
     FUNC_ENTER_NOAPI(H5G_obj_lookup_by_idx, FAIL)
+
+    /* Coverity complains about this going unitialized into H5G_obj_get_linfo */
+    linfo.nlinks = 0;
 
     /* check arguments */
     HDassert(grp_oloc && grp_oloc->file);
