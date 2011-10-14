@@ -460,6 +460,7 @@ H5G_obj_insert(const H5O_loc_t *grp_oloc, const char *name, H5O_link_t *obj_lnk,
     H5O_pline_t tmp_pline;      /* Pipeline message */
     H5O_pline_t *pline = NULL;  /* Pointer to pipeline message */
     H5O_linfo_t linfo;		/* Link info message */
+    linfo.nlinks = 0;
     htri_t linfo_exists;        /* Whether the link info message exists */
     hbool_t use_old_format;     /* Whether to use 'old format' (symbol table) for insertions or not */
     hbool_t use_new_dense = FALSE;      /* Whether to use "dense" form of 'new format' group */
@@ -660,6 +661,7 @@ H5G_obj_iterate(const H5O_loc_t *grp_oloc,
     H5G_lib_iterate_t op, void *op_data, hid_t dxpl_id)
 {
     H5O_linfo_t	linfo;		/* Link info message */
+    linfo.nlinks = 0;
     htri_t linfo_exists;        /* Whether the link info message exists */
     herr_t ret_value;           /* Return value */
 
@@ -731,6 +733,7 @@ H5G_obj_info(H5O_loc_t *oloc, H5G_info_t *grp_info, hid_t dxpl_id)
     H5G_name_t  grp_path;            	/* Group hier. path */
     H5O_loc_t   grp_oloc;            	/* Group object location */
     H5O_linfo_t	linfo;		        /* Link info message */
+    linfo.nlinks = 0;
     htri_t linfo_exists;                /* Whether the link info message exists */
     herr_t ret_value = SUCCEED;         /* Return value */
 
@@ -1131,6 +1134,7 @@ H5G_obj_lookup(H5O_loc_t *grp_oloc, const char *name, H5O_link_t *lnk,
     hid_t dxpl_id)
 {
     H5O_linfo_t linfo;		        /* Link info message */
+    linfo.nlinks = 0;
     htri_t linfo_exists;                /* Whether the link info message exists */
     htri_t     ret_value = FALSE;       /* Return value */
 
