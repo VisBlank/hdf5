@@ -1,4 +1,4 @@
-HDF5 version 1.9.95 currently under development
+HDF5 version 1.9.96 currently under development
 ================================================================================
 
 
@@ -170,6 +170,38 @@ New Features
 
     Fortran Library:
     ----------------
+    HDF5 Fortran library was enhanced to support Fortran 2003 standard.
+    The following features are available when the HDF5 library is configured
+    using --enable-fortran --enable-fortran2003 configure flags AND
+    if fortran compiler is Fortran2003 compliant:
+
+     - Subroutines overloaded with the C_PTR derived type:
+         h5pget_f
+         h5pget_fill_value_f
+         h5pinsert_f
+         h5pregister_f
+         h5pset_f
+         h5pset_fill_value_f
+         h5rcreate_f
+         h5rderefrence_f
+         h5rget_name_f
+         h5rget_obj_type_f
+     - Subroutines overloaded with the C_PTR derived type
+       and simplified signatures:
+         h5aread_f
+         h5awrite_f
+         h5dread_f
+         h5dwrite_f
+     - New subroutines
+         h5dvlen_reclaim_f
+         h5literate_by_name_f
+         h5literate_f
+         h5ovisit_f
+         h5tconvert_f
+
+     - Subroutines with additional optional parameters:
+         h5pcreate_class_f
+                                               (EIP - 2011/10/14)
 
         - Added for the C APIs the Fortran wrappers:
             h5dget_access_plist_f
@@ -284,6 +316,17 @@ New Features
      - Table: In version 3.0 of Table, "NROWS" (used to store number of records) was 
            deprecated (PVN - 2008/11/24)
 
+      - Added Fortran wrappers for Dimension Scale APIs. HDFFV-3797
+          h5dsset_scale_f
+          h5dsattach_scale_f
+          h5dsdetach_scale_f
+          h5dsis_attached_f
+          h5dsis_scale_f
+          h5dsset_label_f
+          h5dsget_label_f
+          h5dsget_scale_name_f
+          h5dsget_num_scales_f
+                  (EIP for SB - 2011/10/13)
     
     Documentation 
     ------------- 
@@ -300,6 +343,9 @@ Bug Fixes since HDF5-1.8.0 release
     Library
     -------
 
+      - Fixed a bug that occurred when using H5Ocopy on a committed datatype
+            containing an attribute using that committed datatype.
+            (NAF - 2011/10/13 - Issue 5854)
       - #ifdef _WIN32 instances changed to #ifdef H5_HAVE_WIN32_API and added
             H5_HAVE_VISUAL_STUDIO checks where necessary. CMake only as configure
             never set _WIN32.
@@ -505,6 +551,11 @@ Bug Fixes since HDF5-1.8.0 release
 
     Configuration
     -------------
+    - Added --enable-fortran2003 flag to enable Fortran2003 support
+      in the HDF5 Fortran library. The flag should be used along with the
+      --enable-fortran flag and takes affect only when Fortran compiler
+      is Fortran2003 compliant.         (EIP - 2011/11/14)
+
     - In Windows platform, the default VFD, was Windows VFD, is restored back
       to the SEC2, aka POSIX, VFD.  The Windows VFD is deprecated. HDFFV-7740
       (AKC 2011/09/26)
@@ -761,14 +812,18 @@ Bug Fixes since HDF5-1.8.0 release
 
 
 
-
     Documentation 
     ------------- 
 
 
     F90 APIs
     --------
-
+       - Modified the h5open_f and h5close_f subroutines to not to call H5open
+         and H5close correspodningly. While the H5open call just adds overhead,
+         the H5close call called by an Fortran application shuts down the HDF5 
+         library making it unaccessible to the application. 
+                                              HDFFV-915 (EIP & SB - 2011/10/13)
+ 
 
     C++ APIs
     --------
