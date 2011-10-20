@@ -256,16 +256,6 @@ IF (WIN32 AND NOT CYGWIN)
 ENDIF (WIN32 AND NOT CYGWIN)
 
 #-----------------------------------------------------------------------------
-# Option to enable use of stdio instead of posix io
-#-----------------------------------------------------------------------------
-IF (WIN32)
-  OPTION (HDF5_ENABLE_WINDOWS_STDIO "Enable use of stdio instead of posix io" OFF)
-  IF (HDF5_ENABLE_WINDOWS_STDIO)
-    SET (H5_WINDOWS_USE_STDIO 1)   
-  ENDIF (HDF5_ENABLE_WINDOWS_STDIO)
-ENDIF (WIN32)
-
-#-----------------------------------------------------------------------------
 # Option to Build Shared/Static libs, default is static
 #-----------------------------------------------------------------------------
 OPTION (BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
@@ -614,6 +604,7 @@ ENDIF (HDF5_ENABLE_SZIP_SUPPORT)
 OPTION (HDF5_PACKAGE_EXTLIBS "CPACK - include external libraries" OFF)
 IF (NOT HDF5_EXTERNALLY_CONFIGURED)
   IF (HDF5_PACKAGE_EXTLIBS)
+    SET (HDF5_NO_PACKAGES OFF CACHE BOOL "CPACK - Disable packaging" FORCE)
     IF (HDF5_ENABLE_Z_LIB_SUPPORT AND ZLIB_FOUND)
       PACKAGE_ZLIB_LIBRARY (${HDF5_ALLOW_EXTERNAL_SUPPORT} ${LIB_TYPE})
     ENDIF (HDF5_ENABLE_Z_LIB_SUPPORT AND ZLIB_FOUND)
@@ -922,7 +913,7 @@ ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED)
 #-----------------------------------------------------------------------------
 # Set the cpack variables
 #-----------------------------------------------------------------------------
-IF (NOT HDF5_EXTERNALLY_CONFIGURED)
+IF (NOT HDF5_EXTERNALLY_CONFIGURED AND NOT HDF5_NO_PACKAGES)
   SET (CPACK_PACKAGE_VENDOR "HDF Group")
   SET (CPACK_PACKAGE_NAME "${HDF5_PACKAGE_NAME}")
   SET (CPACK_PACKAGE_INSTALL_DIRECTORY "${HDF5_PACKAGE_NAME}")
@@ -1070,4 +1061,4 @@ IF (NOT HDF5_EXTERNALLY_CONFIGURED)
     )
   ENDIF (HDF5_BUILD_HL_LIB)
   
-ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED)
+ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED AND NOT HDF5_NO_PACKAGES)

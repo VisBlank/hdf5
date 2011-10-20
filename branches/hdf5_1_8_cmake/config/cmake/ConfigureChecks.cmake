@@ -151,14 +151,11 @@ ENDIF (WIN32)
 #
 IF (WINDOWS)
   SET (H5_HAVE_WINDOWS 1)
-#  SET (H5_WINDOWS_USE_STDIO 0)
   # ----------------------------------------------------------------------
   # Set the flag to indicate that the machine has window style pathname,
   # that is, "drive-letter:\" (e.g. "C:") or "drive-letter:/" (e.g. "C:/").
   # (This flag should be _unset_ for all machines, except for Windows)
-  #
   SET (H5_HAVE_WINDOW_PATH 1)
-  SET (WINDOWS_MAX_BUF (1024 * 1024 * 1024))
   SET (LINK_LIBS ${LINK_LIBS} "kernel32")
 ENDIF (WINDOWS)
 SET (H5_DEFAULT_VFD H5FD_SEC2)
@@ -298,16 +295,43 @@ ENDIF (H5_HAVE_STDINT_H AND CMAKE_CXX_COMPILER_LOADED)
 SET (LINUX_LFS 0)
 
 SET (HDF5_EXTRA_FLAGS)
-IF (CMAKE_SYSTEM MATCHES "Linux-([3-9]\\.[0-9]|2\\.[4-9])\\.")
+#IF (CMAKE_SYSTEM MATCHES "Linux-([3-9]\\.[0-9]|2\\.[4-9])\\.")
+IF (NOT WINDOWS)
   # Linux Specific flags
   SET (HDF5_EXTRA_FLAGS -D_POSIX_SOURCE -D_BSD_SOURCE)
   OPTION (HDF5_ENABLE_LARGE_FILE "Enable support for large (64-bit) files on Linux." ON)
   IF (HDF5_ENABLE_LARGE_FILE)
-    SET (LARGEFILE 1)
-    SET (HDF5_EXTRA_FLAGS ${HDF5_EXTRA_FLAGS} -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -D_LARGEFILE_SOURCE)
+    SET (msg "Performing TEST_LFS_WORKS")
+    TRY_RUN (TEST_LFS_WORKS_RUN   TEST_LFS_WORKS_COMPILE
+        ${HDF5_BINARY_DIR}/CMake
+        ${HDF5_RESOURCES_DIR}/HDF5Tests.c
+        CMAKE_FLAGS -DCOMPILE_DEFINITIONS:STRING=-DTEST_LFS_WORKS
+        OUTPUT_VARIABLE OUTPUT
+    )
+    IF (TEST_LFS_WORKS_COMPILE)
+      IF (TEST_LFS_WORKS_RUN  MATCHES 0)
+        SET (TEST_LFS_WORKS 1 CACHE INTERNAL ${msg})
+        SET (LARGEFILE 1)
+        SET (HDF5_EXTRA_FLAGS ${HDF5_EXTRA_FLAGS} -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -D_LARGEFILE_SOURCE)
+        MESSAGE (STATUS "${msg}... yes")
+      ELSE (TEST_LFS_WORKS_RUN  MATCHES 0)
+        SET (TEST_LFS_WORKS "" CACHE INTERNAL ${msg})
+        MESSAGE (STATUS "${msg}... no")
+        FILE (APPEND ${CMAKE_BINARY_DIR}/CMakeFiles/CMakeError.log
+              "Test TEST_LFS_WORKS Run failed with the following output and exit code:\n ${OUTPUT}\n"
+        )
+      ENDIF (TEST_LFS_WORKS_RUN  MATCHES 0)
+    ELSE (TEST_LFS_WORKS_COMPILE )
+      SET (TEST_LFS_WORKS "" CACHE INTERNAL ${msg})
+      MESSAGE (STATUS "${msg}... no")
+      FILE (APPEND ${CMAKE_BINARY_DIR}/CMakeFiles/CMakeError.log
+          "Test TEST_LFS_WORKS Compile failed with the following output:\n ${OUTPUT}\n"
+      )
+    ENDIF (TEST_LFS_WORKS_COMPILE)
   ENDIF (HDF5_ENABLE_LARGE_FILE)
   SET (CMAKE_REQUIRED_DEFINITIONS ${CMAKE_REQUIRED_DEFINITIONS} ${HDF5_EXTRA_FLAGS})
-ENDIF (CMAKE_SYSTEM MATCHES "Linux-([3-9]\\.[0-9]|2\\.[4-9])\\.")
+ENDIF (NOT WINDOWS)
+#ENDIF (CMAKE_SYSTEM MATCHES "Linux-([3-9]\\.[0-9]|2\\.[4-9])\\.")
 
 ADD_DEFINITIONS (${HDF5_EXTRA_FLAGS})
 
