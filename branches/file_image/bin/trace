@@ -90,6 +90,7 @@ $Source = "";
                "unsigned long long"         => "UL",
                "void"                       => "x",
                "FILE"                       => "x",
+               "H5_file_image_callbacks_t"  => "x",
                "H5A_operator_t"             => "x",
 	       "H5A_operator1_t"            => "x",
 	       "H5A_operator2_t"            => "x",

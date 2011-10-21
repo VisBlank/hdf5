@@ -2300,19 +2300,14 @@ done:
  */
 herr_t
 H5Pset_file_image_callbacks(hid_t fapl_id,
-    void *(*image_malloc)(size_t size, H5_file_image_op_t file_image_op, void *udata),
-    void *(*image_memcpy)(void *dest, const void *src, size_t size, H5_file_image_op_t file_image_op, void *udata),
-    void *(*image_realloc)(void *ptr, size_t size, H5_file_image_op_t file_image_op, void *udata),
-    void  (*image_free)(void *ptr, H5_file_image_op_t file_image_op, void *udata),
-    void *(*udata_copy)(void *udata),
-    void  (*udata_free)(void *udata),
-    void *udata)
+    H5_file_image_callbacks_t *callbacks_ptr)
 {
     H5P_genplist_t *fapl;         /* property list pointer */
     H5FD_file_image_info_t info;  /* file image info */
     herr_t ret_value = SUCCEED;   /* return value */
 
     FUNC_ENTER_API(H5Pset_file_image_callbacks, FAIL)
+    H5TRACE2("e", "i*x", fapl_id, callbacks_ptr);
 
     /* Get the plist structure */
     if(NULL == (fapl = H5P_object_verify(fapl_id, H5P_FILE_ACCESS)))
@@ -2330,9 +2325,14 @@ H5Pset_file_image_callbacks(hid_t fapl_id,
     if (info.buffer != NULL || info.size > 0)
         HGOTO_ERROR(H5E_PLIST, H5E_SETDISALLOWED, FAIL, "setting callbacks when an image is already set is forbidden. It could cause memory leaks.")
 
+    /* verify that callbacks_ptr is not NULL */
+    if(NULL == callbacks_ptr)
+	HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "NULL callbacks_ptr")
+
     /* Make sure udata callbacks are going to be set if udata is going to be set */
-    if (udata) {
-        if (udata_copy == NULL || udata_free == NULL)
+    if (callbacks_ptr->udata) {
+        if (callbacks_ptr->udata_copy == NULL || 
+            callbacks_ptr->udata_free == NULL)
             HGOTO_ERROR(H5E_PLIST, H5E_SETDISALLOWED, FAIL, "udata callbacks must be set if udata is set")
     }
 
@@ -2343,19 +2343,13 @@ H5Pset_file_image_callbacks(hid_t fapl_id,
     }
 
     /* Update struct */
-    info.callbacks.image_malloc = image_malloc;
-    info.callbacks.image_memcpy = image_memcpy;
-    info.callbacks.image_realloc = image_realloc;
-    info.callbacks.image_free = image_free;
-    info.callbacks.udata_copy = udata_copy;
-    info.callbacks.udata_free = udata_free;
-    if(udata) {
-        HDassert(udata_copy);
-        HDassert(udata_free);
-        if((info.callbacks.udata = udata_copy(udata)) == NULL)
+    info.callbacks = *callbacks_ptr;
+
+    if(callbacks_ptr->udata) {
+        HDassert(callbacks_ptr->udata_copy);
+        HDassert(callbacks_ptr->udata_free);
+        if((info.callbacks.udata = callbacks_ptr->udata_copy(callbacks_ptr->udata)) == NULL)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't copy the suppplied udata")
-    } else {
-        info.callbacks.udata = NULL;
     }
 
     /* Set values */
@@ -2384,19 +2378,14 @@ done:
  */
 herr_t
 H5Pget_file_image_callbacks(hid_t fapl_id,
-    void *(**image_malloc_ptr)(size_t size, H5_file_image_op_t file_image_op, void *udata),
-    void *(**image_memcpy_ptr)(void *dest, const void *src, size_t size, H5_file_image_op_t file_image_op, void *udata),
-    void *(**image_realloc_ptr)(void *ptr, size_t size, H5_file_image_op_t file_image_op, void *udata),
-    void  (**image_free_ptr)(void *ptr, H5_file_image_op_t file_image_op, void *udata),
-    void *(**udata_copy_ptr)(void *udata),
-    void  (**udata_free_ptr)(void *udata),
-    void **udata_ptr)
+    H5_file_image_callbacks_t *callbacks_ptr)
 {
     H5P_genplist_t *fapl;        /* property list pointer */
     H5FD_file_image_info_t info; /* file image info */
     herr_t ret_value = SUCCEED;  /* return value */
 
     FUNC_ENTER_API(H5Pget_file_image_callbacks, FAIL)
+    H5TRACE2("e", "i*x", fapl_id, callbacks_ptr);
 
     /* Get the plist structure */
     if(NULL == (fapl = H5P_object_verify(fapl_id, H5P_FILE_ACCESS)))
@@ -2410,23 +2399,18 @@ H5Pget_file_image_callbacks(hid_t fapl_id,
     HDassert(((info.buffer != NULL) && (info.size > 0)) || 
              ((info.buffer == NULL) && (info.size == 0)));
 
+    /* verify that callbacks_ptr is not NULL */
+    if(NULL == callbacks_ptr)
+	HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "NULL callbacks_ptr")
+
     /* Transfer values to parameters */
-    if(image_malloc_ptr)  *image_malloc_ptr  = info.callbacks.image_malloc;
-    if(image_memcpy_ptr)  *image_memcpy_ptr  = info.callbacks.image_memcpy;
-    if(image_realloc_ptr) *image_realloc_ptr = info.callbacks.image_realloc;
-    if(image_free_ptr)    *image_free_ptr    = info.callbacks.image_free;
-    if(udata_copy_ptr)    *udata_copy_ptr    = info.callbacks.udata_copy;
-    if(udata_free_ptr)    *udata_free_ptr    = info.callbacks.udata_free;
+    *callbacks_ptr = info.callbacks;
 
     /* Copy udata if it exists */
-    if(udata_ptr) {
-        if(info.callbacks.udata != NULL) {
-            HDassert(info.callbacks.udata_copy);
-            if((*udata_ptr = info.callbacks.udata_copy(info.callbacks.udata)) == 0)
+    if(info.callbacks.udata != NULL) {
+        HDassert(info.callbacks.udata_copy);
+        if((callbacks_ptr->udata = info.callbacks.udata_copy(info.callbacks.udata)) == 0)
                 HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't copy udata")
-        } else {
-            *udata_ptr = NULL;
-        }
     }
 
 done:

@@ -307,14 +307,7 @@ test_callbacks(void)
     hid_t fapl_1;
     hid_t fapl_2;
     hbool_t verbose = FALSE;
-    void *(*image_malloc)(size_t, H5_file_image_op_t, void *);
-    void *(*image_memcpy)(void *, const void *, size_t, H5_file_image_op_t, void *);
-    void *(*image_realloc)(void *, size_t, H5_file_image_op_t, void *);
-    void  (*image_free)(void *, H5_file_image_op_t, void *);
-    void *(*udata_copy)(void *);
-    void  (*udata_free)(void *);
     udata_t *udata;
-    void *temp_udata;
     char *file_image;
     char *temp_file_image;
     int   count = 10;
@@ -322,12 +315,20 @@ test_callbacks(void)
     size_t size;
     size_t temp_size;
 
+    H5_file_image_callbacks_t real_callbacks = {&malloc_cb, &memcpy_cb, &realloc_cb, 
+	&free_cb, &udata_copy_cb, &udata_free_cb, NULL};
+    H5_file_image_callbacks_t null_callbacks = {NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+    H5_file_image_callbacks_t callbacks;
+
     TESTING("Callback use in property list operations");
     if(verbose) HDfprintf(stdout, "entering test_callbacks()\n");
 
     /* Allocate and initialize udata */
     udata = (udata_t *)malloc(sizeof(udata_t));
     reset_udata(udata);
+
+    /* copy the address of the user data into read_callbacks */
+    real_callbacks.udata = (void *)udata;
 
     /* Allocate and initialize file image buffer */
     size = (size_t)count * sizeof(char);
@@ -339,31 +340,36 @@ test_callbacks(void)
     fapl_1 = H5Pcreate(H5P_FILE_ACCESS);
 
     /* Get file image stuff */
-    H5Pget_file_image_callbacks(fapl_1, &image_malloc, &image_memcpy, &image_realloc, &image_free, &udata_copy, &udata_free, (void **)&temp_udata);
+    callbacks = real_callbacks;
+    H5Pget_file_image_callbacks(fapl_1, &callbacks);
 
     /* Check default values */
-    VERIFY(image_malloc == NULL, "Default malloc callback is wrong");
-    VERIFY(image_memcpy == NULL, "Default memcpy callback is wrong");
-    VERIFY(image_realloc == NULL, "Default realloc callback is wrong");
-    VERIFY(image_free == NULL, "Default free callback is wrong");
-    VERIFY(udata_copy == NULL, "Default udata copy callback is wrong");
-    VERIFY(udata_free == NULL, "Default udata free callback is wrong");
-    VERIFY(temp_udata == NULL, "Default udata is wrong");
+    VERIFY(callbacks.image_malloc == NULL, "Default malloc callback is wrong");
+    VERIFY(callbacks.image_memcpy == NULL, "Default memcpy callback is wrong");
+    VERIFY(callbacks.image_realloc == NULL, "Default realloc callback is wrong");
+    VERIFY(callbacks.image_free == NULL, "Default free callback is wrong");
+    VERIFY(callbacks.udata_copy == NULL, "Default udata copy callback is wrong");
+    VERIFY(callbacks.udata_free == NULL, "Default udata free callback is wrong");
+    VERIFY(callbacks.udata == NULL, "Default udata is wrong");
+
 
     /* Set file image callbacks */
-    H5Pset_file_image_callbacks(fapl_1, &malloc_cb, &memcpy_cb, &realloc_cb, &free_cb, &udata_copy_cb, &udata_free_cb, (void *)udata);
+    callbacks = real_callbacks;
+    H5Pset_file_image_callbacks(fapl_1, &callbacks);
 
     /* Get file image callbacks */
-    H5Pget_file_image_callbacks(fapl_1, &image_malloc, &image_memcpy, &image_realloc, &image_free, &udata_copy, &udata_free, &temp_udata);
+    callbacks = null_callbacks;
+    H5Pget_file_image_callbacks(fapl_1, &callbacks);
     
     /* Verify values */
-    VERIFY(image_malloc == &malloc_cb, "malloc callback was not set or retrieved properly");   
-    VERIFY(image_memcpy == &memcpy_cb, "memcpy callback was not set or retrieved properly");
-    VERIFY(image_realloc == &realloc_cb, "realloc callback was not set or retrieved properly");
-    VERIFY(image_free == &free_cb, "free callback was not set or retrieved properly");
-    VERIFY(udata_copy == &udata_copy_cb, "udata copy callback was not set or retrieved properly");
-    VERIFY(udata_free == &udata_free_cb, "udata free callback was not set or retrieved properly");
-    VERIFY(temp_udata == udata, "udata was not set or retrieved properly");
+    VERIFY(callbacks.image_malloc == &malloc_cb, "malloc callback was not set or retrieved properly");   
+    VERIFY(callbacks.image_memcpy == &memcpy_cb, "memcpy callback was not set or retrieved properly");
+    VERIFY(callbacks.image_realloc == &realloc_cb, "realloc callback was not set or retrieved properly");
+    VERIFY(callbacks.image_free == &free_cb, "free callback was not set or retrieved properly");
+    VERIFY(callbacks.udata_copy == &udata_copy_cb, "udata copy callback was not set or retrieved properly");
+    VERIFY(callbacks.udata_free == &udata_free_cb, "udata free callback was not set or retrieved properly");
+    VERIFY(callbacks.udata == udata, "udata was not set or retrieved properly");
+
     
     /*
      * Check callbacks in internal function without a previously set file image
@@ -507,6 +513,8 @@ test_core(void)
     int     fd;
     struct stat  sb;
     herr_t ret;
+    H5_file_image_callbacks_t callbacks = {&malloc_cb, &memcpy_cb, &realloc_cb, 
+	&free_cb, &udata_copy_cb, &udata_free_cb, NULL};
 
     TESTING("Initial file image and callbacks in Core VFD");
     if(verbose) HDfprintf(stdout, "entering test_core()\n");
@@ -543,8 +551,11 @@ test_core(void)
     udata = (udata_t *)malloc(sizeof(udata_t));
     VERIFY(udata != NULL, "udata malloc failed");
 
+    /* copy the address of the udata into the callbacks structure */
+    callbacks.udata = (void *)udata;
+
     /* Set file image callbacks */
-    ret = H5Pset_file_image_callbacks(fapl, &malloc_cb, &memcpy_cb, &realloc_cb, &free_cb, &udata_copy_cb, &udata_free_cb, (void *)udata);
+    ret = H5Pset_file_image_callbacks(fapl, &callbacks);
     VERIFY(ret >= 0, "set image callbacks failed");
 
     /* Test open (no file image) */

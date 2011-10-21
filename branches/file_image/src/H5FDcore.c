@@ -78,7 +78,7 @@ typedef struct H5FD_core_t {
     DWORD fileindexhi;
 #endif
     hbool_t	dirty;			/*changes not saved?		*/
-    H5FD_file_image_callbacks_t callbacks; /* file image callbacks */
+    H5_file_image_callbacks_t callbacks; /* file image callbacks */
 } H5FD_core_t;
 
 /* Driver-specific file access properties */

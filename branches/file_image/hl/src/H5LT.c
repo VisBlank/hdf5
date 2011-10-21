@@ -123,6 +123,11 @@ void *image_malloc(size_t size, H5_file_image_op_t file_image_op, void *udata)
             return_value = ((struct udata_t *)udata)->vfd_image_ptr;
             break;
 
+	/* added unused labels to shut the compiler up */
+	case H5_FILE_IMAGE_OP_NO_OP:
+	case H5_FILE_IMAGE_OP_PROPERTY_LIST_CLOSE:
+	case H5_FILE_IMAGE_OP_FILE_RESIZE:
+	case H5_FILE_IMAGE_OP_FILE_CLOSE:
         default:
             assert(FALSE);
 	}
@@ -180,6 +185,11 @@ void *image_memcpy(void *dest, const void *src, size_t size, H5_file_image_op_t 
             assert(((struct udata_t *)udata)->vfd_ref_count == 1);
             break;
 
+	/* added unused labels to shut the compiler up */
+	case H5_FILE_IMAGE_OP_NO_OP:
+	case H5_FILE_IMAGE_OP_PROPERTY_LIST_CLOSE:
+	case H5_FILE_IMAGE_OP_FILE_RESIZE:
+	case H5_FILE_IMAGE_OP_FILE_CLOSE:
         default:
             assert(FALSE);
             break;
@@ -270,6 +280,13 @@ void image_free(void *ptr, H5_file_image_op_t file_image_op, void *udata)
             free((struct udata_t *)udata);
             break;
 
+	/* added unused labels to keep the compiler quite */
+	case H5_FILE_IMAGE_OP_NO_OP:
+	case H5_FILE_IMAGE_OP_PROPERTY_LIST_SET:
+	case H5_FILE_IMAGE_OP_PROPERTY_LIST_COPY:
+	case H5_FILE_IMAGE_OP_PROPERTY_LIST_GET:
+	case H5_FILE_IMAGE_OP_FILE_OPEN:
+	case H5_FILE_IMAGE_OP_FILE_RESIZE:
 	default:
             assert(FALSE);
             break;
@@ -755,6 +772,10 @@ hid_t H5LTopen_file_image(void *buf_ptr, size_t buf_size, unsigned flags)
     unsigned            file_open_flags;
     char                file_name[64];
     static long         file_name_counter;
+    H5_file_image_callbacks_t callbacks = {&image_malloc, &image_memcpy, 
+                                           &image_realloc, &image_free, 
+                                           &udata_copy, &udata_free, 
+                                           (void *)NULL};
 
     assert(buf_ptr != NULL);
     assert(buf_size != 0);
@@ -784,9 +805,12 @@ hid_t H5LTopen_file_image(void *buf_ptr, size_t buf_size, unsigned flags)
         udata->vfd_image_size = 0;
         udata->vfd_ref_count = 0;
         udata->flags = flags;
-        
+
+        /* copy address of udata into callbacks */
+        callbacks.udata = (void *)udata;
+
         /* Set file image callbacks */
-        if (H5Pset_file_image_callbacks(fapl, image_malloc, image_memcpy, image_realloc, image_free, udata_copy, udata_free, (void *)udata) < 0)
+        if (H5Pset_file_image_callbacks(fapl, &callbacks) < 0)
             return -1;
 
     } /* end if */
@@ -804,7 +828,7 @@ hid_t H5LTopen_file_image(void *buf_ptr, size_t buf_size, unsigned flags)
     } /* end else */
 
     /* define a unique file name */
-    sprintf(file_name, "foo_abc_xyz%d", file_name_counter);
+    sprintf(file_name, "foo_abc_xyz%ld", file_name_counter);
     file_name_counter++;
    
     /* Assign file image in FAPL to the core file driver */ 
