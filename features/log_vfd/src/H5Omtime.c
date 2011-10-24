@@ -181,10 +181,12 @@ static void *
 H5O_mtime_decode(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, H5O_t UNUSED *open_oh,
     unsigned UNUSED mesg_flags, unsigned UNUSED *ioflags, const uint8_t *p)
 {
-    time_t	*mesg, the_time;
-    int	i;
-    struct tm	tm;
-    void        *ret_value;     /* Return value */
+    static long delta;          /* Time difference between local and gmt in seconds */
+    static int  has_delta;      /* If the the delta has been calculated already     */
+    time_t      *mesg, now;     /* Current time                                     */
+    int         i;              /* Iterator for message check                       */
+    struct tm   tm;             /* Broken down local time struct                    */
+    void        *ret_value;     /* Return value                                     */
 
     FUNC_ENTER_NOAPI_NOINIT(H5O_mtime_decode)
 
@@ -192,80 +194,63 @@ H5O_mtime_decode(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, H5O_t UNUSED *open_oh,
     HDassert(f);
     HDassert(p);
 
-    /* Initialize time zone information */
-    if(!ntzset) {
-        HDtzset();
-        ntzset = TRUE;
-    } /* end if */
-
     /* decode */
     for(i = 0; i < 14; i++)
-	if(!HDisdigit(p[i]))
-	    HGOTO_ERROR(H5E_OHDR, H5E_CANTINIT, NULL, "badly formatted modification time message")
+        if(!HDisdigit(p[i]))
+            HGOTO_ERROR(H5E_OHDR, H5E_CANTINIT, NULL, "badly formatted modification time message")
 
-    /*
-     * Convert YYYYMMDDhhmmss UTC to a time_t.  This is a little problematic
+    /* Convert YYYYMMDDhhmmss UTC to a time_t.  This is a little problematic
      * because mktime() operates on local times.  We convert to local time
      * and then figure out the adjustment based on the local time zone and
      * daylight savings setting.
      */
     HDmemset(&tm, 0, sizeof tm);
-    tm.tm_year = (p[0]-'0')*1000 + (p[1]-'0')*100 +
-		 (p[2]-'0')*10 + (p[3]-'0') - 1900;
-    tm.tm_mon = (p[4]-'0')*10 + (p[5]-'0') - 1;
-    tm.tm_mday = (p[6]-'0')*10 + (p[7]-'0');
-    tm.tm_hour = (p[8]-'0')*10 + (p[9]-'0');
-    tm.tm_min = (p[10]-'0')*10 + (p[11]-'0');
-    tm.tm_sec = (p[12]-'0')*10 + (p[13]-'0');
-    tm.tm_isdst = -1; /*figure it out*/
-    if((time_t)-1 == (the_time = HDmktime(&tm)))
-	HGOTO_ERROR(H5E_OHDR, H5E_CANTINIT, NULL, "badly formatted modification time message")
+    tm.tm_year  = (p[0]-'0')*1000 + (p[1]-'0')*100 + (p[2]-'0')*10 + (p[3]-'0') - 1900;
+    tm.tm_mon   = (p[4]-'0')*10 + (p[5]-'0') - 1;
+    tm.tm_mday  = (p[6]-'0')*10 + (p[7]-'0');
+    tm.tm_hour  = (p[8]-'0')*10 + (p[9]-'0');
+    tm.tm_min   = (p[10]-'0')*10 + (p[11]-'0');
+    tm.tm_sec   = (p[12]-'0')*10 + (p[13]-'0');
+    tm.tm_isdst = -1; /* Unknown now, determined during mktime() call */
 
-#if defined(H5_HAVE_TM_GMTOFF)
-    /* FreeBSD, OSF 4.0 */
-    the_time += tm.tm_gmtoff;
-#elif defined(H5_HAVE___TM_GMTOFF)
-    /* Linux libc-4 */
-    the_time += tm.__tm_gmtoff;
-#elif defined(H5_HAVE_TIMEZONE)
-    /* Linux libc-5 */
-    the_time -= timezone - (tm.tm_isdst?3600:0);
-#elif defined(H5_HAVE_BSDGETTIMEOFDAY) && defined(H5_HAVE_STRUCT_TIMEZONE)
-    /* Irix5.3 */
+    /* Get the current time */
+    if(-1 == (now = HDmktime(&tm)))
+        HGOTO_ERROR(H5E_OHDR, H5E_CANTINIT, NULL, "badly formatted modification time message")
+
+    if(!has_delta)
     {
-        struct timezone tz;
+        time_t      local, gmt;     /* local and gmt times                          */
+        struct tm   *ptm;           /* pointer to global broken down time struct    */
 
-        if(HDBSDgettimeofday(NULL, &tz) < 0)
-            HGOTO_ERROR(H5E_OHDR, H5E_CANTINIT, NULL, "unable to obtain local timezone information")
-        the_time -= tz.tz_minuteswest * 60 - (tm.tm_isdst ? 3600 : 0);
+        /* Find the offset in seconds between the current time and gmt */
+        /* NOTE: Should use the thread-safe time functions here - these write
+         * into a global struct, which can get overwritten in multithreaded
+         * code.
+         */
+        ptm = localtime(&now);
+        if(-1 == (local = HDmktime(ptm)))
+            HGOTO_ERROR(H5E_OHDR, H5E_CANTINIT, NULL, "problem converting to GMT")
+
+        ptm = gmtime(&now);
+        if(-1 == (gmt = HDmktime(ptm)))
+            HGOTO_ERROR(H5E_OHDR, H5E_CANTINIT, NULL, "problem converting to GMT")
+        delta = (long)(local - gmt);
+
+        has_delta = 1;
     }
-#elif defined(H5_HAVE_GETTIMEOFDAY) && defined(H5_HAVE_STRUCT_TIMEZONE) && defined(H5_GETTIMEOFDAY_GIVES_TZ)
-    {
-	struct timezone tz;
-	struct timeval tv;  /* Used as a placebo; some systems don't like NULL */
 
-	if(HDgettimeofday(&tv, &tz) < 0)
-	    HGOTO_ERROR(H5E_OHDR, H5E_CANTINIT, NULL, "unable to obtain local timezone information")
+    /* Fix up the time to GMT */
+    now += delta;
 
-	the_time -= tz.tz_minuteswest * 60 - (tm.tm_isdst ? 3600 : 0);
+    /* Adjust for daylight savings time */
+    if(tm.tm_isdst == 1) {
+        now += 3600;
     }
-#else
-    /*
-     * The catch-all.  If we can't convert a character string universal
-     * coordinated time to a time_t value reliably then we can't decode the
-     * modification time message. This really isn't as bad as it sounds -- the
-     * only way a user can get the modification time is from our internal
-     * query routines, which can gracefully recover.
-     */
-
-    /* Irix64 */
-    HGOTO_ERROR(H5E_OHDR, H5E_CANTINIT, NULL, "unable to obtain local timezone information")
-#endif
 
     /* The return value */
     if(NULL == (mesg = H5FL_MALLOC(time_t)))
-	HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
-    *mesg = the_time;
+        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
+    *mesg = now;
 
     /* Set return value */
     ret_value = mesg;
