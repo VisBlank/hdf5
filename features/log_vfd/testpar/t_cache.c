@@ -4339,7 +4339,7 @@ setup_noblock_dxpl_id(void)
  *
  * Function:	setup_rand()
  *
- * Purpose:	Use gettimeofday() to obtain a seed for rand(), print the
+ * Purpose:	Use time() to obtain a seed for rand(), print the
  *		seed to stdout, and then pass it to srand().
  *
  *		Increment nerrors if any errors are detected.
@@ -4363,8 +4363,6 @@ setup_rand(void)
     int num_predefined_seeds = 3;
     unsigned predefined_seeds[3] = {33402, 33505, 33422};
     unsigned seed;
-    struct timeval tv;
-    struct timezone tz;
 
     if ( ( use_predefined_seeds ) &&
          ( world_mpi_size == num_predefined_seeds ) ) {
@@ -4380,15 +4378,7 @@ setup_rand(void)
 
     } else {
 
-        if ( HDgettimeofday(&tv, &tz) != 0 ) {
-
-            nerrors++;
-            if ( verbose ) {
-	        HDfprintf(stdout, "%d:%s: gettimeofday() failed.\n",
-                          world_mpi_rank, fcn_name);
-            }
-        } else {
-            seed = (unsigned)tv.tv_usec;
+            seed = (unsigned)time(NULL);
             if ( verbose ) {
                 HDfprintf(stdout, "%d:%s: seed = %d.\n",
                           world_mpi_rank, fcn_name, seed);
