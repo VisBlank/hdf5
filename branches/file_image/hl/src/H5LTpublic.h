@@ -354,8 +354,6 @@ H5_HLDLL herr_t  H5LTfind_attribute( hid_t loc_id, const char *name );
  *-------------------------------------------------------------------------
  */
 
-H5_HLDLL ssize_t H5LTget_file_image(hid_t file_id, void *buf_ptr, hsize_t buf_size);
-
 H5_HLDLL hid_t H5LTopen_file_image(void *buf_ptr, size_t buf_size, unsigned flags);
 
 #ifdef __cplusplus
