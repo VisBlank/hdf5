@@ -447,6 +447,27 @@
 #  define H5_DEC_ENUM(TYPE,VAR) (VAR)=((TYPE)((VAR)-1))
 #endif
 
+/*
+ * The POSIX I/O size and types used in read and write calls.  These are
+ * used throughout the library and differ between Windows and most
+ * other operating systems.
+ *
+ * The H5_POSIX_MAX_IO_BYTES_g symbol is the maximum number of bytes
+ * that can be read or written at a time.  It corresponds to the
+ * signed return type.
+ */
+#ifdef H5_HAVE_WIN32_API
+typedef unsigned int    h5_posix_io_t;
+typedef int             h5_posix_io_ret_t;
+static int H5_POSIX_MAX_IO_BYTES_g = INT_MAX;
+#else
+/* Unix, everyone else */
+typedef size_t          h5_posix_io_t;
+typedef ssize_t         h5_posix_io_ret_t;
+static size_t H5_POSIX_MAX_IO_BYTES_g = SSIZET_MAX;
+#endif /* H5_HAVE_WIN32_API */
+
+
 /* Data types and functions for timing certain parts of the library. */
 
 /* A set of elapsed/user/system times emitted as a time point by the
