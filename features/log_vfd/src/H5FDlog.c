@@ -43,21 +43,6 @@
 /* The driver identification number, initialized at runtime */
 static hid_t H5FD_LOG_g = 0;
 
-/* Since Windows doesn't follow the rest of the world when it comes
- * to POSIX I/O types, some typedefs and constants are needed to avoid
- * making the code messy with #ifdefs.
- */
-#ifdef H5_HAVE_WIN32_API
-typedef unsigned int    h5_log_io_t;
-typedef int             h5_log_io_ret_t;
-static int H5_LOG_MAX_IO_BYTES_g = INT_MAX;
-#else
-/* Unix, everyone else */
-typedef size_t          h5_log_io_t;
-typedef ssize_t         h5_log_io_ret_t;
-static size_t H5_LOG_MAX_IO_BYTES_g = SSIZET_MAX;
-#endif /* H5_HAVE_WIN32_API */
-
 /* Driver-specific file access properties */
 typedef struct H5FD_log_fapl_t {
     char *logfile;              /* Allocated log file name */
@@ -1180,16 +1165,16 @@ H5FD_log_read(H5FD_t *_file, H5FD_mem_t type, hid_t UNUSED dxpl_id, haddr_t addr
 
     while(size > 0) {
 
-        h5_log_io_t         bytes_in        = 0;    /* # of bytes to read       */
-        h5_log_io_ret_t     bytes_read      = -1;   /* # of bytes actually read */ 
+        h5_posix_io_t       bytes_in        = 0;    /* # of bytes to read       */
+        h5_posix_io_ret_t   bytes_read      = -1;   /* # of bytes actually read */ 
 
         /* Trying to read more bytes than the return type can handle is
          * undefined behavior in POSIX.
          */
-        if(size > H5_LOG_MAX_IO_BYTES_g)
-            bytes_in = H5_LOG_MAX_IO_BYTES_g;
+        if(size > H5_POSIX_MAX_IO_BYTES_g)
+            bytes_in = H5_POSIX_MAX_IO_BYTES_g;
         else
-            bytes_in = (h5_log_io_t)size;
+            bytes_in = (h5_posix_io_t)size;
 
         do {
             bytes_read = HDread(file->fd, buf, bytes_in);
@@ -1376,16 +1361,16 @@ H5FD_log_write(H5FD_t *_file, H5FD_mem_t type, hid_t UNUSED dxpl_id, haddr_t add
 
     while(size > 0) {
 
-        h5_log_io_t         bytes_in        = 0;    /* # of bytes to write  */
-        h5_log_io_ret_t     bytes_wrote     = -1;   /* # of bytes written   */ 
+        h5_posix_io_t       bytes_in        = 0;    /* # of bytes to write  */
+        h5_posix_io_ret_t   bytes_wrote     = -1;   /* # of bytes written   */ 
 
         /* Trying to write more bytes than the return type can handle is
          * undefined behavior in POSIX.
          */
-        if(size > H5_LOG_MAX_IO_BYTES_g)
-            bytes_in = H5_LOG_MAX_IO_BYTES_g;
+        if(size > H5_POSIX_MAX_IO_BYTES_g)
+            bytes_in = H5_POSIX_MAX_IO_BYTES_g;
         else
-            bytes_in = (h5_log_io_t)size;
+            bytes_in = (h5_posix_io_t)size;
 
         do {
             bytes_wrote = HDwrite(file->fd, buf, bytes_in);
