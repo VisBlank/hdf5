@@ -1093,12 +1093,16 @@ hsize_t diff_match(hid_t file1_id, const char *grp1, trav_info_t *info1,
     }
     
     /* objects in one file and not the other */
-    for( i = 0; i < table->nobjs; i++)
+
+    if (table)
     {
-        if( table->objs[i].flags[0] != table->objs[i].flags[1] )
+        for( i = 0; i < table->nobjs; i++)
         {
-            options->contents = 0;
-            break;
+            if( table->objs[i].flags[0] != table->objs[i].flags[1] )
+            {
+                options->contents = 0;
+                break;
+            }
         }
     }
 
@@ -1140,14 +1144,20 @@ hsize_t diff_match(hid_t file1_id, const char *grp1, trav_info_t *info1,
             /* make full path for obj1 */
             obj1_fullpath = (char*)HDcalloc (strlen(grp1_path) + strlen (table->objs[i].name) + 1, sizeof (char));
             HDassert(obj1_fullpath);
-            HDstrncpy(obj1_fullpath, grp1_path, HDstrlen(grp1_path)+1);
-            HDstrncat(obj1_fullpath, table->objs[i].name, HDstrlen(table->objs[i].name));
+            if (obj1_fullpath)
+            {
+                HDstrncpy(obj1_fullpath, grp1_path, HDstrlen(grp1_path)+1);
+                HDstrncat(obj1_fullpath, table->objs[i].name, HDstrlen(table->objs[i].name));
+            }
 
             /* make full path for obj2 */
             obj2_fullpath = (char*)HDcalloc (strlen(grp2_path) + strlen (table->objs[i].name) + 1, sizeof (char));
             HDassert(obj2_fullpath);
-            HDstrncpy(obj2_fullpath, grp2_path, HDstrlen(grp2_path)+1);
-            HDstrncat(obj2_fullpath, table->objs[i].name, HDstrlen(table->objs[i].name));
+            if (obj2_fullpath)
+            {
+                HDstrncpy(obj2_fullpath, grp2_path, HDstrlen(grp2_path)+1);
+                HDstrncat(obj2_fullpath, table->objs[i].name, HDstrlen(table->objs[i].name));
+            }
 
             options->cmn_objs = 1;
             if(!g_Parallel)
