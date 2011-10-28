@@ -348,7 +348,13 @@ herr_t H5LTmake_dataset_string(hid_t loc_id,
     if((tid = H5Tcopy(H5T_C_S1)) < 0 )
         goto out;
 
-    size = strlen(buf) + 1; /* extra null term */
+    /* Get buffer size */
+    if(buf) {
+        size = strlen(buf) + 1; /* extra null term */
+    }
+    else {
+        goto out;
+    }
 
     if(H5Tset_size(tid, size) < 0)
         goto out;
