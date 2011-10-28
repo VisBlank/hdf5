@@ -7761,7 +7761,7 @@ H5S_hyper_get_seq_list_gen(const H5S_t *space,H5S_sel_iter_t *iter,
     } /* end if */
 
     /* Perform the I/O on the elements, based on the position of the iterator */
-    while(io_bytes_left > 0 && curr_seq < maxseq) {
+    while(curr_span && io_bytes_left > 0 && curr_seq < maxseq) {
         /* Sanity check */
         HDassert(curr_span);
 
