@@ -902,6 +902,7 @@ print_datatype(hid_t type,unsigned in_group)
     unsigned    nmembers;
     unsigned    ndims;
     unsigned    i;
+    int         status;
     size_t      size=0;
     hsize_t     dims[H5DUMP_MAX_RANK];
     H5T_str_t   str_pad;
@@ -1284,20 +1285,25 @@ print_datatype(hid_t type,unsigned in_group)
                 printf("H5T_ARRAY { ");
 
                 /* Get array information */
-                ndims = H5Tget_array_ndims(type);
-                H5Tget_array_dims2(type, dims);
+                status = H5Tget_array_ndims(type);
+                if (status >= 0)
+                {
+                    ndims = (unsigned) status;
+                    H5Tget_array_dims2(type, dims);
 
-                /* Print array dimensions */
-                for (i = 0; i < ndims; i++)
-                    printf("[%d]", (int) dims[i]);
-
-                printf(" ");
-
-                /* Print base type */
-                print_datatype(super,0);
-
-                /* Close array base type */
-                H5Tclose(super);
+                    /* Print array dimensions */
+                    for (i = 0; i < ndims; i++)
+                        printf("[%d]", (int) dims[i]);
+    
+                    printf(" ");
+    
+                    /* Print base type */
+                    print_datatype(super,0);
+    
+                    /* Close array base type */
+                    H5Tclose(super);
+    
+                }
 
                 /* Print closing */
                 printf(" }");
