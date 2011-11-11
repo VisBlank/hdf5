@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
 
       case 1: /* counting input files */
 				if (opt.fcount < 29) {
-	        (void) HDstrcpy(opt.infiles[opt.fcount].datafile, argv[i]);
+	        (void) HDstrncpy(opt.infiles[opt.fcount].datafile, argv[i], 255);
 					in = &(opt.infiles[opt.fcount].in);
 					opt.infiles[opt.fcount].config = 0;
 					setDefaultValues(in, opt.fcount);
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
       break;
 
       case 3: /* get configfile name */
-        (void) HDstrcpy(opt.infiles[opt.fcount-1].configfile, argv[i]);
+        (void) HDstrncpy(opt.infiles[opt.fcount-1].configfile, argv[i], 255);
 	opt.infiles[opt.fcount-1].config = 1;
       break;
 
@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
       break;
 
       case 5: /* get outfile found */
-        (void) HDstrcpy(opt.outfile, argv[i]);
+        (void) HDstrncpy(opt.outfile, argv[i], 255);
         outfile_named = TRUE;
       break;
 
