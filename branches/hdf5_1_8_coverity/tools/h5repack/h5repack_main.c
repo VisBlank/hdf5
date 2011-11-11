@@ -491,7 +491,7 @@ void read_info(const char *filename,
 
     /* compose the name of the file to open, using the srcdir, if appropriate */
     if (srcdir){
-        strcpy(data_file,srcdir);
+        strncpy(data_file,srcdir,510);
         strcat(data_file,"/");
     }
     strcat(data_file,filename);
