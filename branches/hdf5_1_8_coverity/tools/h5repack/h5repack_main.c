@@ -493,8 +493,13 @@ void read_info(const char *filename,
     if (srcdir){
         strncpy(data_file,srcdir,510);
         strcat(data_file,"/");
+        if (strlen(srcdir)+1 < 512) {
+            strncat(data_file,filename, 510-strlen(srcdir));
+        }
     }
-    strcat(data_file,filename);
+    else {
+        strncat(data_file,filename, 512);
+    }
 
 
     if ((fp = fopen(data_file, "r")) == (FILE *)NULL) {
