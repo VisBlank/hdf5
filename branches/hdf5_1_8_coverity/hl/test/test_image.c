@@ -766,6 +766,7 @@ static int read_data(const char* fname, /*IN*/
     FILE  *f;
     int    w;
     int    h;
+    int    len;
     char  *srcdir = getenv("srcdir");   /* the source directory */
     char   data_file[512] = "";         /* buffer to hold name of existing data file */
     int    n_elements = -1;
@@ -775,10 +776,15 @@ static int read_data(const char* fname, /*IN*/
     * compose the name of the file to open, using "srcdir", if appropriate
     *-------------------------------------------------------------------------
     */
-    strcpy(data_file, "");
+    data_file[0] = '\0';
     if (srcdir) {
-        strcpy(data_file, srcdir);
-        strcat(data_file, "/");
+        len = strlen(srcdir) + strlen(fname) + 1;
+        if(len < sizeof(data_file)) {
+            strncpy(data_file, srcdir, strlen(srcdir)+1);
+            strncat(data_file, "/", 1);
+        } else {
+            printf("Length of strings %s (srcdir) and %s (fname) too long for buffer\n", srcdir, fname);
+        }
     }
     strcat(data_file,fname);
 

@@ -232,7 +232,7 @@ static hid_t open_test_file(const char *fileext)
 {
     char filename[65];
 
-/*
+
     if (strlen(FILENAME) < 61) {
         strncpy(filename, FILENAME, strlen(FILENAME)+1);
     } else {
@@ -241,12 +241,12 @@ static hid_t open_test_file(const char *fileext)
     }
     strncat(filename, fileext, 1);
     strncat(filename, FILEEXT, 3);
-*/
 
+/*
     strcpy(filename, FILENAME);
     strncat(filename, fileext, 1);
     strcat(filename, FILEEXT);
-
+*/
     return H5Fopen(filename, H5F_ACC_RDWR, H5P_DEFAULT);
 }
 
@@ -5032,8 +5032,8 @@ static int read_data( const char* fname,
 
     for(i=0, nelms=1; i < ndims; i++)
     {
-        fscanf( f, "%s %u", str, &j);
-        fscanf( f, "%d",&n );
+        fscanf( f, "%19s %4u", str, &j);
+        fscanf( f, "%4d",&n );
         dims[i] = n;
         nelms *= n;
     }
@@ -5049,7 +5049,7 @@ static int read_data( const char* fname,
 
     for(j = 0; j < nelms; j++)
     {
-        fscanf( f, "%f",&val );
+        fscanf( f, "%4f",&val );
         (*buf)[j] = val;
     }
     fclose(f);

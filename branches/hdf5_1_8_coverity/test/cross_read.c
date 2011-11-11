@@ -72,17 +72,22 @@ static int read_data(char *fname)
     double      data_out[NX+1][NY]; /* output buffer */
     long long   int_data_in[NX+1][NY]; /* input buffer */
     long long   int_data_out[NX+1][NY]; /* output buffer */
-    int         i, j;
+    int         i, j, len;
     unsigned 	nerrors = 0;
     const char  *not_supported= "    Scaleoffset filter is not enabled.";
 
     pathname[0] = '\0';
     /* Generate correct name for test file by prepending the source path */
-    if(srcdir && ((strlen(srcdir) + strlen(fname) + 1) < sizeof(pathname))) {
-        strcpy(pathname, srcdir);
-        strcat(pathname, "/");
+    if (srcdir) {
+        len = strlen(srcdir) + strlen(fname) + 1; 
+        if(len < sizeof(pathname)) {
+            strncpy(pathname, srcdir, strlen(srcdir)+1);
+            strncat(pathname, "/", 1);
+        } else {
+            printf("Length of strings %s (srcdir) and %s (fname) too long for buffer\n", srcdir, fname);
+        }
     }
-    strcat(pathname, fname);
+    strncat(pathname, fname, strlen(fname));
 
     /*
      * Open the file.
