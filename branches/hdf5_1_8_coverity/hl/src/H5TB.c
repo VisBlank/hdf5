@@ -3017,7 +3017,7 @@ herr_t H5TBget_field_info(hid_t loc_id,
             char   *member_name;
 
             if((member_name = H5Tget_member_name(tid, (unsigned)i)) != NULL) {
-                strcpy(field_names[i], member_name);
+                HDstrncpy(field_names[i], member_name, HDstrlen(member_name)+1);
                 free(member_name);
             }
         } /* end if */
