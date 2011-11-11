@@ -3148,11 +3148,11 @@ herr_t H5TB_attach_attributes(const char *table_title,
         if((member_name = H5Tget_member_name(tid, (unsigned)i)) == NULL)
             goto out;
 
-        strcpy(attr_name, "FIELD_");
-        sprintf(aux, "%d", (int)i);
-        strcat(attr_name, aux);
-        sprintf(aux, "%s", "_NAME");
-        strcat(attr_name, aux);
+        HDstrncpy(attr_name, "FIELD_", 6);
+        HDsnprintf(aux, 11, "%d", (int)i);
+        HDstrncat(attr_name, aux, 11);
+        HDsnprintf(aux, 5, "%s", "_NAME");
+        HDstrncat(attr_name, aux, 6);
 
         /* attach the attribute */
         if(H5LTset_attribute_string(loc_id, dset_name, attr_name, member_name) < 0)
