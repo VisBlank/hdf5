@@ -395,7 +395,7 @@ void parse_command_line(int argc, const char **argv, pack_opt_t* options)
                 else
                 {
                     char msgType[10];
-                    strcpy(msgType, msgPtr+1);
+                    strncpy(msgType, msgPtr+1, 10);
                     msgPtr[0] = '\0';
                     ssize = atoi( opt_arg );
                     if (strncmp(msgType, "dspace",6) == 0) {
