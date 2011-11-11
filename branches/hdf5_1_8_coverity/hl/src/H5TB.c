@@ -2504,11 +2504,11 @@ herr_t H5TBdelete_field(hid_t loc_id,
         *-------------------------------------------------------------------------
         */
 
-        strcpy(attr_name, "FIELD_");
-        sprintf(aux, "%d", (int)i);
-        strcat(attr_name, aux);
-        sprintf(aux, "%s", "_FILL");
-        strcat(attr_name, aux);
+        HDstrncpy(attr_name, "FIELD_", 6);
+        HDsnprintf(aux, 12, "%d", (int)i);
+        HDstrncat(attr_name, aux, 12);
+        HDsnprintf(aux, 6, "%s", "_FILL");
+        HDstrncat(attr_name, aux, 7);
 
         /* check if we have the _FILL attribute */
         if((has_fill = H5LT_find_attribute(did_1, attr_name)) < 0)
@@ -3149,10 +3149,10 @@ herr_t H5TB_attach_attributes(const char *table_title,
             goto out;
 
         HDstrncpy(attr_name, "FIELD_", 6);
-        HDsnprintf(aux, 11, "%d", (int)i);
-        HDstrncat(attr_name, aux, 11);
-        HDsnprintf(aux, 5, "%s", "_NAME");
-        HDstrncat(attr_name, aux, 6);
+        HDsnprintf(aux, 12, "%d", (int)i);
+        HDstrncat(attr_name, aux, 12);
+        HDsnprintf(aux, 6, "%s", "_NAME");
+        HDstrncat(attr_name, aux, 7);
 
         /* attach the attribute */
         if(H5LTset_attribute_string(loc_id, dset_name, attr_name, member_name) < 0)
