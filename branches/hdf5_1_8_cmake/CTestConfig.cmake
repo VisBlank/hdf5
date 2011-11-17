@@ -5,7 +5,7 @@
 ##   ENABLE_TESTING()
 ##   INCLUDE(CTest)
 SET (CTEST_PROJECT_NAME "HDF5")
-  SET (CTEST_NIGHTLY_START_TIME "18:00:00 CST")
+SET (CTEST_NIGHTLY_START_TIME "18:00:00 CST")
 
 SET (CTEST_DROP_METHOD "http")
 IF (CDASH_LOCAL)
@@ -22,4 +22,6 @@ SET (VALGRIND_COMMAND "/usr/bin/valgrind")
 SET (VALGRIND_COMMAND_OPTIONS "-v --tool=memcheck --leak-check=full --track-fds=yes --num-callers=50 --show-reachable=yes --track-origins=yes --malloc-fill=0xff --free-fill=0xfe")
 
 SET (CTEST_TESTING_TIMEOUT 3600) 
-SET (DART_TESTING_TIMEOUT 3600) 
+SET (DART_TESTING_TIMEOUT 3600)
+
+SET (CTEST_SUBMIT_RETRY_DELAY 20)
