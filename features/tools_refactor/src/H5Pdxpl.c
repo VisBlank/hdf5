@@ -115,9 +115,6 @@
 /* Definitions for type conversion callback function property */
 #define H5D_XFER_CONV_CB_SIZE       sizeof(H5T_conv_cb_t)
 #define H5D_XFER_CONV_CB_DEF        {NULL,NULL}
-/* Definition for the property of converting enum overflowing values */
-#define H5D_XFER_CONV_ENUM_OVERFLOW_SIZE        sizeof(hbool_t)
-#define H5D_XFER_CONV_ENUM_OVERFLOW_DEF         TRUE
 /* Definitions for data transform property */
 #define H5D_XFER_XFORM_SIZE         sizeof(void *)
 #define H5D_XFER_XFORM_DEF          NULL
@@ -217,7 +214,6 @@ H5P_dxfr_reg_prop(H5P_genclass_t *pclass)
     H5Z_EDC_t enable_edc = H5D_XFER_EDC_DEF;            /* Default value for EDC property */
     H5Z_cb_t filter_cb = H5D_XFER_FILTER_CB_DEF;        /* Default value for filter callback */
     H5T_conv_cb_t conv_cb = H5D_XFER_CONV_CB_DEF;       /* Default value for datatype conversion callback */
-    hbool_t enum_conv = H5D_XFER_CONV_ENUM_OVERFLOW_DEF;/* Default value for enum overflow values handling*/
     void *def_xfer_xform = H5D_XFER_XFORM_DEF;          /* Default value for data transform */
     herr_t ret_value = SUCCEED;         /* Return value */
 
@@ -307,10 +303,6 @@ H5P_dxfr_reg_prop(H5P_genclass_t *pclass)
 
     /* Register the type conversion callback property */
     if(H5P_register_real(pclass, H5D_XFER_CONV_CB_NAME, H5D_XFER_CONV_CB_SIZE, &conv_cb, NULL, NULL, NULL, NULL, NULL, NULL, NULL) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class")
-
-    /* Register the enum overflow handling property */
-    if(H5P_register_real(pclass, H5D_XFER_CONV_ENUM_OVERFLOW_NAME, H5D_XFER_CONV_ENUM_OVERFLOW_SIZE, &enum_conv, NULL, NULL, NULL, NULL, NULL, NULL, NULL) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class")
 
     /* Register the data transform property */
@@ -1094,83 +1086,6 @@ done:
 
 
 /*-------------------------------------------------------------------------
- * Function:	H5Pset_enum_conv_overflow
- *
- * Purpose:     Sets the property of converting overflowing enum values 
- *              for dataset transfer property list. It indicates whether
- *              to convert the values or fill in the default value.
- *
- * Return:	Non-negative on success/Negative on failure
- *
- * Programmer:	Raymond Lu
- *              26 May 2011
- *
- * Modifications:
- *
- *-------------------------------------------------------------------------
- */
-herr_t
-H5Pset_enum_conv_overflow(hid_t plist_id, hbool_t conv_overflow)
-{
-    H5P_genplist_t      *plist;      /* Property list pointer */
-    herr_t              ret_value=SUCCEED;   /* return value */
-
-    FUNC_ENTER_API(H5Pset_enum_conv_overflow, FAIL)
-    H5TRACE2("e", "ib", plist_id, conv_overflow);
-
-    /* Get the plist structure */
-    if(NULL == (plist = H5P_object_verify(plist_id,H5P_DATASET_XFER)))
-        HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "can't find object for ID")
-
-    /* Update property list */
-    if (H5P_set(plist,H5D_XFER_CONV_ENUM_OVERFLOW_NAME,&conv_overflow)<0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set value")
-
-done:
-    FUNC_LEAVE_API(ret_value)
-}
-
-
-/*-------------------------------------------------------------------------
- * Function:	H5Pget_enum_conv_overflow
- *
- * Purpose:     Gets the property of converting overflowing enum values 
- *              for dataset transfer property list. It indicates whether
- *              to convert the values or fill in the default value.
- *
- * Return:	Non-negative on success/Negative on failure
- *
- * Programmer:	Raymond Lu
- *              26 May 2011
- *
- * Modifications:
- *
- *-------------------------------------------------------------------------
- */
-herr_t
-H5Pget_enum_conv_overflow(hid_t plist_id, hbool_t *conv_overflow/*out*/)
-{
-    H5P_genplist_t *plist;      /* Property list pointer */
-    herr_t ret_value=SUCCEED;   /* return value */
-
-    FUNC_ENTER_API(H5Pget_enum_conv_overflow, FAIL)
-    H5TRACE2("e", "ix", plist_id, conv_overflow);
-
-    /* Get the plist structure */
-    if(NULL == (plist = H5P_object_verify(plist_id,H5P_DATASET_XFER)))
-        HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "can't find object for ID")
-
-    /* Return values */
-    if (conv_overflow)
-        if (H5P_get(plist,H5D_XFER_CONV_ENUM_OVERFLOW_NAME,conv_overflow)<0)
-            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get value")
-
-done:
-    FUNC_LEAVE_API(ret_value)
-} /* end H5Pget_enum_conv_overflow() */
-
-
-/*-------------------------------------------------------------------------
  * Function:	H5Pget_btree_ratios
  *
  * Purpose:	Queries B-tree split ratios.  See H5Pset_btree_ratios().
@@ -1519,7 +1434,7 @@ H5Pget_mpio_actual_chunk_opt_mode(hid_t plist_id, H5D_mpio_actual_chunk_opt_mode
     herr_t ret_value = SUCCEED;   /* return value */
     
     FUNC_ENTER_API(H5Pget_mpio_actual_chunk_opt_mode, FAIL)
-    H5TRACE2("e","ix", plist_id, actual_chunk_opt_mode);
+    H5TRACE2("e", "i*Do", plist_id, actual_chunk_opt_mode);
 
     /* Get the plist structure */
     if(NULL == (plist = H5P_object_verify(plist_id, H5P_DATASET_XFER)))
@@ -1548,13 +1463,13 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5Pget_mpio_actual_io_mode(hid_t plist_id, H5D_mpio_actual_io_mode_t * actual_io_mode)
+H5Pget_mpio_actual_io_mode(hid_t plist_id, H5D_mpio_actual_io_mode_t *actual_io_mode)
 {
     H5P_genplist_t     *plist;
     herr_t ret_value = SUCCEED;   /* return value */
     
     FUNC_ENTER_API(H5Pget_mpio_actual_io_mode, FAIL)
-    H5TRACE2("e","ix", plist_id, actual_io_mode);
+    H5TRACE2("e", "i*Di", plist_id, actual_io_mode);
 
     /* Get the plist structure */
     if(NULL == (plist = H5P_object_verify(plist_id, H5P_DATASET_XFER)))
