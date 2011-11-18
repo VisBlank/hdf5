@@ -2551,6 +2551,89 @@ done:
 
 
 /*-------------------------------------------------------------------------
+ * Function:    H5Fget_file_image
+ *
+ * Purpose:     If a buffer is provided (via the buf_ptr argument) an is 
+ *		big enough (size in buf_len argument), load *buf_ptr with
+ *		an image of the open file whose ID is provided in the 
+ *		file_id parameter, and return the number of bytes copied
+ *		to the buffer.
+ *
+ *		If the buffer exists, but is too small to contain an image
+ *		of the indicated file, return a negative number.
+ *
+ *		Finally, if no buffer is provided, return the size of the 
+ *		buffer needed.  This value is simply the eoa of the target 
+ *		file.
+ *
+ *		Note that any user block is skipped.
+ *
+ * Return:      Success:        Bytes copied / number of bytes needed.
+ *              Failure:        negative value
+ *
+ * Programmer:  John Mainzer
+ *              11/15/11
+ *
+ *-------------------------------------------------------------------------
+ */
+ssize_t
+H5Fget_file_image(hid_t file_id, void * buf_ptr, size_t buf_len)
+{
+    H5F_t      *file;                   /* File object for file ID */
+    H5FD_t     *fd_ptr;                 /* file driver */
+    haddr_t     eoa;                    /* End of file address */
+    size_t	space_needed;		/* size of file image */
+    hid_t	dxpl_id = H5P_DATASET_XFER_DEFAULT;
+    H5FD_mem_t	type = H5FD_MEM_DEFAULT;
+    ssize_t     ret_value;              /* Return value */
+
+    FUNC_ENTER_API(H5Fget_file_image, FAIL)
+
+    /* Check args */
+    if(NULL == (file = (H5F_t *)H5I_object_verify(file_id, H5I_FILE)))
+        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "not a file ID")
+
+    if(!file || !file->shared || !file->shared->lf)
+        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, \
+                    "file_id yields invalid file pointer")
+
+    fd_ptr = file->shared->lf;
+
+    if(!fd_ptr || !fd_ptr->cls)
+        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, \
+                    "fd_ptr yields invalid class pointer")
+
+    /* Go get the actual file size */
+    if(HADDR_UNDEF == (eoa = H5FD_get_eoa(file->shared->lf, H5FD_MEM_DEFAULT)))
+        HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "unable to get file size")
+
+    /* set ret_value = to eoa -- will overwrite this if appropriate */
+    ret_value = (ssize_t)eoa;
+
+    /* test to see if a buffer was provided -- if not, we are done */
+    if(buf_ptr != NULL){
+
+        if((haddr_t)buf_len < eoa)
+            HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, (ssize_t)FAIL, \
+                        "supplied buffer too small")
+
+         space_needed = (size_t)eoa;
+
+        /* read in the file image */
+        /* (Note compensating for base address addition in internal routine) */
+        if(H5FD_read(fd_ptr, dxpl_id, type, fd_ptr->base_addr, 
+                     space_needed, buf_ptr) < 0)
+            HGOTO_ERROR(H5E_VFL, H5E_READERROR, FAIL, \
+                        "file image read request failed")
+        
+    }
+    
+done:
+    FUNC_LEAVE_API(ret_value)
+} /* H5Fget_file_image() */
+
+
+/*-------------------------------------------------------------------------
  * Function:    H5Fget_mdc_config
  *
  * Purpose:     Retrieves the current automatic cache resize configuration

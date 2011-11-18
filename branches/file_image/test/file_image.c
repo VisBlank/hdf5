@@ -44,6 +44,19 @@ const char *FILENAME[] = {
     NULL
 };
 
+/* need a second file name array, as the first file name array contains
+ * files we don't want to delete on cleanup.
+ */
+const char *FILENAME2[] = {
+    "sec2_get_file_image_test",
+    "stdio_get_file_image_test",
+    "core_get_file_image_test",
+    "family_get_file_image_test",
+    "multi_get_file_image_test",
+    NULL
+};
+
+
 
 typedef struct {
     unsigned char used_callbacks;   /* Bitfield for tracking callbacks */
@@ -527,7 +540,7 @@ test_core(void)
     ret = H5Pset_fapl_core(fapl, 0, 0);
     VERIFY(ret >= 0, "setting core driver in fapl failed");
 
-    if ( verbose )
+    if(verbose)
         HDfprintf(stdout, "FILENAME[0] = \"%s\".\n", FILENAME[0]);
     tmp = h5_fixname(FILENAME[0], fapl, filename, sizeof(filename));
     VERIFY(tmp != NULL, "h5_fixname failed");
@@ -647,10 +660,212 @@ error:
     return 1;
 }
 
+/******************************************************************************
+ * Function:    test_get_file_image
+ *
+ * Purpose:     Test the H5Fget_file_image() call.
+ *
+ * Programmer:  John Mainzer
+ *              Tuesday, November 15, 2011
+ *
+ ******************************************************************************
+ */
+static int
+test_get_file_image(const char * test_banner,
+                    const int file_name_num,
+                    hid_t fapl)
+{
+    const char * fcn_name = "test_get_file_image()";
+    char file_name[1024] = "\0";
+    void * image_ptr = NULL;
+    void * file_image_ptr = NULL;
+    hbool_t identical;
+    hbool_t all_null;
+    hbool_t verbose = FALSE;
+    int data[100];
+    int i;
+    int fd = -1;
+    int result;
+    hid_t file_id = -1;
+    hid_t dset_id = -1;
+    hid_t space_id = -1;
+    hid_t core_fapl_id = -1;
+    hid_t core_file_id = -1;
+    herr_t err;
+    hsize_t dims[2];
+    ssize_t bytes_read;
+    ssize_t image_size;
+    ssize_t file_size;
+    h5_stat_t stat_buf;
+
+    TESTING(test_banner);
+
+    /* setup the file name */
+    h5_fixname(FILENAME2[file_name_num], fapl, file_name, sizeof(file_name));
+    VERIFY(HDstrlen(file_name)>0, "h5_fixname failed");
+
+    if(verbose)
+        HDfprintf(stdout, "%s: file_name = \"%s\".\n", fcn_name, file_name);
+
+    /* create the file */
+    file_id = H5Fcreate(file_name, 0, H5P_DEFAULT, fapl);
+    VERIFY(file_id >= 0, "H5Fcreate() failed.");
+
+    /* Set up data space for new new data set */
+    dims[0] = 10;
+    dims[1] = 10;
+    space_id = H5Screate_simple(2, dims, dims);
+    VERIFY(space_id >= 0, "H5Screate() failed");
+
+    /* Create a dataset */
+    dset_id = H5Dcreate(file_id, "dset 0", H5T_NATIVE_INT, space_id, 
+                        H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    VERIFY(dset_id >=0, "H5Dcreate() failed");
+
+    /* write some data to the data set */
+    for (i = 0; i < 100; i++)
+        data[i] = i;
+    err = H5Dwrite(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, 
+                   H5P_DEFAULT, (void *)data);
+    VERIFY(err >= 0, "H5Dwrite() failed.");
+    
+    /* Flush the file */
+    err = H5Fflush(file_id, H5F_SCOPE_GLOBAL);
+    VERIFY(err >= 0, "H5Fflush failed");
+
+    /* get the size of the file */
+    image_size = H5Fget_file_image(file_id, NULL, (size_t)0);
+    VERIFY(image_size > 0, "H5Fget_file_image(1) failed.");
+    if(verbose)
+        HDfprintf(stdout, "image_size = %lld.\n", (long long)image_size);
+
+    /* allocate a buffer of the appropriate size */
+    image_ptr = HDmalloc((size_t)image_size);
+    VERIFY(image_ptr != NULL, "HDmalloc(1) failed.");
+
+    /* load the image of the file into the buffer */
+    bytes_read = H5Fget_file_image(file_id, image_ptr, (size_t)image_size);
+    VERIFY(bytes_read == image_size, "H5Fget_file_image(2) failed.");
+    if(verbose)
+        HDfprintf(stdout, "bytes_read = %lld.\n", (long long)bytes_read);
+
+    /* Close dset and space */
+    err = H5Dclose(dset_id); 
+    VERIFY(err >= 0, "H5Dclose failed");
+    err = H5Sclose(space_id);
+    VERIFY(err >= 0, "H5Sclose failed");
+
+    /* close the test file */
+    err = H5Fclose(file_id);
+    VERIFY(err == SUCCEED, "H5Fclose(file_id) failed.");
+
+    /* get the size of the test file */
+    result = HDstat(file_name, &stat_buf);
+    VERIFY(result == 0, "HDstat() failed.");
+
+    /* Since we use the eoa to calculate the image size, the file size
+     * may be larger.  This is OK, as long as (in this specialized instance)
+     * the remainder of the file is all '\0's.
+     */
+    file_size = (ssize_t)stat_buf.st_size;
+    if(verbose)
+        HDfprintf(stdout, "file_size = %lld.\n", (long long)file_size);
+    VERIFY(file_size >= image_size, "file size != image size.");
+
+    /* allocate a buffer for the test file image */
+    file_image_ptr = HDmalloc((size_t)file_size);
+    VERIFY(file_image_ptr != NULL, "HDmalloc(2) failed.");
+
+    /* open the test file using standard I/O calls */
+    fd = HDopen(file_name, O_RDONLY, 0666);
+    VERIFY(fd >= 0, "HDopen() failed.");
+
+    /* read the test file from disk into the buffer */
+    bytes_read = HDread(fd, file_image_ptr, (size_t)file_size);
+    VERIFY(bytes_read == file_size, "HDread() failed.");
+    if(verbose)
+        HDfprintf(stdout, "bytes_read from file = %lld.\n", 
+                  (long long)bytes_read);
+
+    /* close the test file */
+    result = HDclose(fd);
+    VERIFY(result == 0, "HDclose() failed.");
+
+    /* verify that the file and the image contain the same data */
+    identical = TRUE;
+    i = 0;
+    while((i < (int)image_size) && identical){
+        if(((char *)image_ptr)[i] != ((char *)file_image_ptr)[i])
+            identical = FALSE;
+        i++;
+    }
+    VERIFY(identical, "file and image differ.");
+
+    /* verify that any remaining data in the file is all null */
+    all_null = TRUE;
+    while((i < (int)file_size) && identical){
+        if(((char *)file_image_ptr)[i] != '\0')
+            all_null = FALSE;
+        i++;
+    }
+    VERIFY(all_null, "tail of file is not all null.");
+
+    /* finally, verify that we can use the core file driver to open the image */
+
+    /* create fapl for core file driver */
+    core_fapl_id = H5Pcreate(H5P_FILE_ACCESS);
+    VERIFY(core_fapl_id >=0, "H5Pcreate() failed");
+
+    /* setup core_fapl_id to use the core file driver */
+    err = H5Pset_fapl_core(core_fapl_id, (size_t)(64 * 1024), FALSE);
+    VERIFY(err == SUCCEED, "H5Pset_fapl_core() failed.");
+
+    /* Set file image in core fapl */
+    err = H5Pset_file_image(core_fapl_id, image_ptr, (size_t)image_size);
+    VERIFY(err == SUCCEED, "H5Pset_file_image() failed.");
+
+    /* open the file image with the core file driver */
+    core_file_id = H5Fopen("nonesuch", H5F_ACC_RDWR, core_fapl_id);
+    VERIFY(core_file_id >= 0, "H5Fopen() of file image failed.");
+
+    /* close the file image with the core file driver */
+    err = H5Fclose(core_file_id);
+    VERIFY(err == SUCCEED, "H5Fclose(core_file_id) failed.");
+
+    /* dicard core fapl */
+    err = H5Pclose(core_fapl_id);
+    VERIFY(err == SUCCEED, "H5Pclose(core_fapl_id) failed.");
+
+    /* tidy up */
+    result = h5_cleanup(FILENAME2, fapl);
+    VERIFY(result != 0, "h5_cleanup() failed.");
+
+    /* discard the image buffer if it exists */
+    if(image_ptr != NULL) 
+        HDfree(image_ptr);
+
+    /* discard the image buffer if it exists */
+    if(file_image_ptr != NULL) 
+        HDfree(file_image_ptr);
+    
+    PASSED();
+
+    if(verbose) HDfprintf(stdout, "regular exit test_get_file_image()\n");
+
+    return 0;
+
+error:
+
+    if(verbose) HDfprintf(stdout, "error exit test_get_file_image()\n");
+
+    return 1;
+}
+
 int
 main(void)
 {
     int errors = 0;
+    hid_t fapl;
 
     h5_reset();
 
@@ -659,6 +874,32 @@ main(void)
     errors += test_properties();
     errors += test_callbacks();
     errors += test_core();
+
+    /* test H5Fget_file_image() with sec2 driver */
+    fapl = H5Pcreate(H5P_FILE_ACCESS);
+    if(0 > H5Pset_fapl_sec2(fapl))
+        errors++;
+    else
+        errors += test_get_file_image("H5Fget_file_image() with sec2 driver",
+                                      0, fapl);
+
+    /* test H5Fget_file_image() with stdio driver */
+    fapl = H5Pcreate(H5P_FILE_ACCESS);
+    if(0 > H5Pset_fapl_stdio(fapl))
+        errors++;
+    else
+        errors += test_get_file_image("H5Fget_file_image() with stdio driver",
+                                      1, fapl);
+
+    /* test H5Fget_file_image() with core driver */
+    fapl = H5Pcreate(H5P_FILE_ACCESS);
+    if(0 > H5Pset_fapl_core(fapl, (size_t)(64 *1024), TRUE))
+        errors++;
+    else
+        errors += test_get_file_image("H5Fget_file_image() with core driver",
+                                      2, fapl);
+
+
 
     if(errors) { 
         printf("***** %d File Image TEST%s FAILED! *****\n", 
