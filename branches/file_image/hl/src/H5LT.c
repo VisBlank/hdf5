@@ -757,6 +757,10 @@ hid_t H5LTopen_file_image(void *buf_ptr, size_t buf_size, unsigned flags)
     /* Set callbacks for file image ops ONLY if the file image is NOT copied */
     if (flags & H5LT_FILE_IMAGE_DONT_COPY) {
 
+        /* Test for non valid flag combination */
+        if ((flags & H5LT_FILE_IMAGE_DONT_RELEASE) && (flags & H5LT_FILE_IMAGE_OPEN_RW))
+            return -1;
+
         /* Allocate buffer to communicate user data to callbacks */
         if ((udata = (struct udata_t *)malloc(sizeof(struct udata_t))) == NULL)
             return -1;
