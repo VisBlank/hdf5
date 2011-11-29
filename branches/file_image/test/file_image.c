@@ -39,6 +39,8 @@
 #define DIM1 32
 #define DSET_NAME "test_dset"
 
+#define FAMILY_SIZE (2 * 1024)
+
 const char *FILENAME[] = {
     "file_image_core_test",
     NULL
@@ -53,6 +55,8 @@ const char *FILENAME2[] = {
     "core_get_file_image_test",
     "family_get_file_image_test",
     "multi_get_file_image_test",
+    "split_get_file_image_test",
+    "get_file_image_error_rejection_test",
     NULL
 };
 
@@ -677,8 +681,10 @@ test_get_file_image(const char * test_banner,
 {
     const char * fcn_name = "test_get_file_image()";
     char file_name[1024] = "\0";
+    void * insertion_ptr = NULL;
     void * image_ptr = NULL;
     void * file_image_ptr = NULL;
+    hbool_t is_family_file = FALSE;
     hbool_t identical;
     hbool_t all_null;
     hbool_t verbose = FALSE;
@@ -686,6 +692,7 @@ test_get_file_image(const char * test_banner,
     int i;
     int fd = -1;
     int result;
+    hid_t driver = -1;
     hid_t file_id = -1;
     hid_t dset_id = -1;
     hid_t space_id = -1;
@@ -700,6 +707,13 @@ test_get_file_image(const char * test_banner,
 
     TESTING(test_banner);
 
+    /* set flag if we are dealing with a family file */
+    driver = H5Pget_driver(fapl);
+    VERIFY(driver >= 0, "H5Pget_driver(fapl) failed");
+
+    if(driver == H5FD_FAMILY)
+        is_family_file = TRUE;
+    
     /* setup the file name */
     h5_fixname(FILENAME2[file_name_num], fapl, file_name, sizeof(file_name));
     VERIFY(HDstrlen(file_name)>0, "h5_fixname failed");
@@ -759,37 +773,117 @@ test_get_file_image(const char * test_banner,
     err = H5Fclose(file_id);
     VERIFY(err == SUCCEED, "H5Fclose(file_id) failed.");
 
-    /* get the size of the test file */
-    result = HDstat(file_name, &stat_buf);
-    VERIFY(result == 0, "HDstat() failed.");
+    if(is_family_file){
+        char member_file_name[1024];
+        ssize_t bytes_to_read;
+        ssize_t member_size;
+        ssize_t size_remaining;
 
-    /* Since we use the eoa to calculate the image size, the file size
-     * may be larger.  This is OK, as long as (in this specialized instance)
-     * the remainder of the file is all '\0's.
-     */
-    file_size = (ssize_t)stat_buf.st_size;
-    if(verbose)
-        HDfprintf(stdout, "file_size = %lld.\n", (long long)file_size);
-    VERIFY(file_size >= image_size, "file size != image size.");
+        i = 0;
+        file_size = 0;
 
-    /* allocate a buffer for the test file image */
-    file_image_ptr = HDmalloc((size_t)file_size);
-    VERIFY(file_image_ptr != NULL, "HDmalloc(2) failed.");
+        do{
+            HDsnprintf(member_file_name, 1024, file_name, i);
 
-    /* open the test file using standard I/O calls */
-    fd = HDopen(file_name, O_RDONLY, 0666);
-    VERIFY(fd >= 0, "HDopen() failed.");
+            if(verbose) HDfprintf(stdout, "%s: member file name %d = \"%s\".\n",
+                                  fcn_name, i, member_file_name);
 
-    /* read the test file from disk into the buffer */
-    bytes_read = HDread(fd, file_image_ptr, (size_t)file_size);
-    VERIFY(bytes_read == file_size, "HDread() failed.");
-    if(verbose)
-        HDfprintf(stdout, "bytes_read from file = %lld.\n", 
-                  (long long)bytes_read);
+            /* get the size of the member file */
+            result = HDstat(member_file_name, &stat_buf);
+            VERIFY(result == 0, "HDstat() failed.");
 
-    /* close the test file */
-    result = HDclose(fd);
-    VERIFY(result == 0, "HDclose() failed.");
+            member_size = (ssize_t)stat_buf.st_size;
+
+            if(verbose) HDfprintf(stdout, "%s: member size %d = %lld.\n",
+                                  fcn_name, i, (long long)member_size);
+
+            i++;
+            file_size += member_size;
+        }while(member_size > 0);
+
+        /* Since we use the eoa to calculate the image size, the file size
+         * may be larger.  This is OK, as long as (in this specialized instance)
+         * the remainder of the file is all '\0's.
+         */
+        if(verbose)
+            HDfprintf(stdout, "%s: file_size = %lld.\n", 
+                      fcn_name, (long long)file_size);
+
+        VERIFY(file_size >= image_size, "file size != image size.");
+
+        /* allocate a buffer for the test file image */
+        file_image_ptr = HDmalloc((size_t)file_size);
+        VERIFY(file_image_ptr != NULL, "HDmalloc(2f) failed.");
+
+        size_remaining = image_size;
+        insertion_ptr = file_image_ptr;
+        i = 0;
+
+        while(size_remaining > 0){
+            /* construct the member file name */
+            HDsnprintf(member_file_name, 1024, file_name, i);
+
+            /* open the test file using standard I/O calls */
+            fd = HDopen(member_file_name, O_RDONLY, 0666);
+            VERIFY(fd >= 0, "HDopen() failed.");
+
+            if(size_remaining >= FAMILY_SIZE ){
+	        bytes_to_read = FAMILY_SIZE;
+                size_remaining -= FAMILY_SIZE;
+            } else {
+	        bytes_to_read = size_remaining;
+                size_remaining = 0;
+            }
+
+            /* read the member file from disk into the buffer */
+            bytes_read = HDread(fd, insertion_ptr, (size_t)bytes_to_read);
+            VERIFY(bytes_read == bytes_to_read, "HDread() failed.");
+            if(verbose)
+                 HDfprintf(stdout, "bytes_read from member file = %lld.\n", 
+                          (long long)bytes_read);
+
+            insertion_ptr = (void *)(((char *)insertion_ptr) + bytes_to_read);
+
+            i++;
+
+            /* close the test file */
+            result = HDclose(fd);
+            VERIFY(result == 0, "HDclose() failed.");
+        }
+    } else {
+        /* get the size of the test file */
+        result = HDstat(file_name, &stat_buf);
+        VERIFY(result == 0, "HDstat() failed.");
+
+        /* Since we use the eoa to calculate the image size, the file size
+         * may be larger.  This is OK, as long as (in this specialized instance)
+         * the remainder of the file is all '\0's.
+         */
+        file_size = (ssize_t)stat_buf.st_size;
+        if(verbose)
+            HDfprintf(stdout, "%s: file_size = %lld.\n", 
+                      fcn_name, (long long)file_size);
+        VERIFY(file_size >= image_size, "file size != image size.");
+
+        /* allocate a buffer for the test file image */
+        file_image_ptr = HDmalloc((size_t)file_size);
+        VERIFY(file_image_ptr != NULL, "HDmalloc(2) failed.");
+
+        /* open the test file using standard I/O calls */
+        fd = HDopen(file_name, O_RDONLY, 0666);
+        VERIFY(fd >= 0, "HDopen() failed.");
+
+        /* read the test file from disk into the buffer */
+        bytes_read = HDread(fd, file_image_ptr, (size_t)file_size);
+        VERIFY(bytes_read == file_size, "HDread() failed.");
+        if(verbose)
+            HDfprintf(stdout, "bytes_read from file = %lld.\n", 
+                      (long long)bytes_read);
+
+        /* close the test file */
+        result = HDclose(fd);
+        VERIFY(result == 0, "HDclose() failed.");
+    }
 
     /* verify that the file and the image contain the same data */
     identical = TRUE;
@@ -861,6 +955,354 @@ error:
     return 1;
 }
 
+/******************************************************************************
+ * Function:    test_get_file_image_error_rejection
+ *
+ * Purpose:     Verify that H5Fget_file_image() rejects invalid input.
+ *
+ * Programmer:  John Mainzer
+ *              Tuesday, November 22, 2011
+ *
+ ******************************************************************************
+ */
+
+#define TYPE_SLICE ((haddr_t)0x10000LL)
+
+static int
+test_get_file_image_error_rejection(void)
+{
+    const char * fcn_name = "test_get_file_image_error_rejection()";
+    const char  *memb_name[H5FD_MEM_NTYPES];
+    char file_name[1024] = "\0";
+    void * image_ptr = NULL;
+    hbool_t verbose = FALSE;
+    int data[100];
+    int i;
+    int result;
+    hid_t fapl_id = -1;
+    hid_t file_id = -1;
+    hid_t dset_id = -1;
+    hid_t space_id = -1;
+    herr_t err;
+    hsize_t dims[2];
+    ssize_t bytes_read;
+    ssize_t image_size;
+    hid_t memb_fapl[H5FD_MEM_NTYPES];
+    haddr_t max_addr;
+    haddr_t memb_addr[H5FD_MEM_NTYPES];
+    H5FD_mem_t mt;
+    H5FD_mem_t memb_map[H5FD_MEM_NTYPES];
+
+
+    TESTING("H5Fget_file_image() error rejection");
+
+    /************************ Sub-Test #1 ********************************/
+    /* set up a test file, and try to get its image with a buffer that is 
+     * too small.  Call to H5Fget_file_image() should fail.
+     *
+     * Since we have already done the necessary setup, verify that 
+     * H5Fget_file_image() will fail with:
+     *
+     *		bad file id, or
+     *
+     *		good id, but not a file id
+     */
+
+    if(verbose) HDfprintf(stdout, "%s: starting subtest 1\n", fcn_name);
+
+    /* setup fapl -- driver type doesn't matter much, so make it sec2 */
+    fapl_id = H5Pcreate(H5P_FILE_ACCESS);
+    VERIFY(fapl_id >= 0, "H5Pcreate(1) failed");
+
+    err = H5Pset_fapl_stdio(fapl_id);
+    VERIFY(err >= 0, "H5Pset_fapl_stdio() failed");
+
+    /* setup the file name */
+    h5_fixname(FILENAME2[6], fapl_id, file_name, sizeof(file_name));
+    VERIFY(HDstrlen(file_name)>0, "h5_fixname failed");
+
+    if(verbose)
+        HDfprintf(stdout, "%s: file_name = \"%s\".\n", fcn_name, file_name);
+
+    /* create the file */
+    file_id = H5Fcreate(file_name, 0, H5P_DEFAULT, fapl_id);
+    VERIFY(file_id >= 0, "H5Fcreate() failed.");
+
+    /* Set up data space for new new data set */
+    dims[0] = 10;
+    dims[1] = 10;
+    space_id = H5Screate_simple(2, dims, dims);
+    VERIFY(space_id >= 0, "H5Screate() failed");
+
+    /* Create a dataset */
+    dset_id = H5Dcreate(file_id, "dset 0", H5T_NATIVE_INT, space_id, 
+                        H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    VERIFY(dset_id >=0, "H5Dcreate() failed");
+
+    /* write some data to the data set */
+    for (i = 0; i < 100; i++)
+        data[i] = i;
+    err = H5Dwrite(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, 
+                   H5P_DEFAULT, (void *)data);
+    VERIFY(err >= 0, "H5Dwrite() failed.");
+    
+    /* Flush the file */
+    err = H5Fflush(file_id, H5F_SCOPE_GLOBAL);
+    VERIFY(err >= 0, "H5Fflush failed");
+
+    /* get the size of the file */
+    image_size = H5Fget_file_image(file_id, NULL, (size_t)0);
+    VERIFY(image_size > 0, "H5Fget_file_image(1 -- test 1) failed.");
+    if(verbose)
+        HDfprintf(stdout, "%s: image_size = %lld.\n", 
+                  fcn_name, (long long)image_size);
+
+    /* allocate a buffer of the appropriate size */
+    image_ptr = HDmalloc((size_t)image_size);
+    VERIFY(image_ptr != NULL, "HDmalloc(1) failed.");
+
+    /* load the image of the file into the buffer */
+    H5E_BEGIN_TRY {
+        bytes_read = H5Fget_file_image(file_id, image_ptr, 
+                                       (size_t)(image_size - 1));
+    } H5E_END_TRY;
+    VERIFY(bytes_read == -1, "H5Fget_file_image(2 -- test 1) succeeded.");
+    if(verbose)
+        HDfprintf(stdout, "%s: bytes_read = %lld.\n", 
+                  fcn_name, (long long)bytes_read);
+
+    /* Call H6Fget_file_image() with good buffer and buffer size,
+     * but non-existant file_id.  Should fail.
+     */
+    H5E_BEGIN_TRY {
+        bytes_read = H5Fget_file_image((hid_t)0, image_ptr, (size_t)(image_size));
+    } H5E_END_TRY;
+    VERIFY(bytes_read == -1, "H5Fget_file_image(3 -- test 1) succeeded.");
+
+    /* Call H6Fget_file_image() with good buffer and buffer size,
+     * but a file_id of the wrong type.  Should fail.
+     */
+    H5E_BEGIN_TRY {
+        bytes_read = H5Fget_file_image(dset_id, image_ptr, (size_t)(image_size));
+    } H5E_END_TRY;
+    VERIFY(bytes_read == -1, "H5Fget_file_image(4 -- test 1) succeeded.");
+
+    /* Close dset and space */
+    err = H5Dclose(dset_id); 
+    VERIFY(err >= 0, "H5Dclose failed");
+    err = H5Sclose(space_id);
+    VERIFY(err >= 0, "H5Sclose failed");
+
+    /* close the test file */
+    err = H5Fclose(file_id);
+    VERIFY(err == SUCCEED, "H5Fclose(file_id) failed.");
+
+    /* tidy up */
+    result = h5_cleanup(FILENAME2, fapl_id);
+    VERIFY(result != 0, "h5_cleanup(1) failed.");
+
+    /* discard the image buffer if it exists */
+    if(image_ptr != NULL) 
+        HDfree(image_ptr);
+
+    /************************** Test #2 **********************************/
+    /* set up a multi file driver test file, and try to get its image 
+     * with H5Fget_file_image().  Attempt should fail.
+     */
+
+    if(verbose) HDfprintf(stdout, "%s: starting subtest 2\n", fcn_name);
+
+    /* setup parameters for multi file driver */
+    for(mt = 0; mt < H5FD_MEM_NTYPES; mt++){
+        memb_addr[mt] = HADDR_UNDEF;
+        memb_fapl[mt] = H5P_DEFAULT;
+        memb_map[mt]  = H5FD_MEM_DRAW;
+        memb_name[mt] = NULL;
+    }
+
+    memb_map[H5FD_MEM_SUPER]  = H5FD_MEM_SUPER;
+    memb_fapl[H5FD_MEM_SUPER] = H5P_DEFAULT;
+    memb_name[H5FD_MEM_SUPER] = "%s-s.h5";
+    memb_addr[H5FD_MEM_SUPER] = 0;
+
+    memb_map[H5FD_MEM_BTREE]  = H5FD_MEM_BTREE;
+    memb_fapl[H5FD_MEM_BTREE] = H5P_DEFAULT;
+    memb_name[H5FD_MEM_BTREE] = "%s-b.h5";
+    memb_addr[H5FD_MEM_BTREE] = memb_addr[H5FD_MEM_SUPER] + TYPE_SLICE;
+
+    memb_map[H5FD_MEM_DRAW]   = H5FD_MEM_DRAW;
+    memb_fapl[H5FD_MEM_DRAW]  = H5P_DEFAULT;
+    memb_name[H5FD_MEM_DRAW]  = "%s-r.h5";
+    memb_addr[H5FD_MEM_DRAW]  =  memb_addr[H5FD_MEM_BTREE] + TYPE_SLICE;
+
+    memb_map[H5FD_MEM_GHEAP]  = H5FD_MEM_GHEAP;
+    memb_fapl[H5FD_MEM_GHEAP] = H5P_DEFAULT;
+    memb_name[H5FD_MEM_GHEAP] = "%s-g.h5";
+    memb_addr[H5FD_MEM_GHEAP] = memb_addr[H5FD_MEM_DRAW] + TYPE_SLICE;
+
+    memb_map[H5FD_MEM_LHEAP]  = H5FD_MEM_LHEAP;
+    memb_fapl[H5FD_MEM_LHEAP] = H5P_DEFAULT;
+    memb_name[H5FD_MEM_LHEAP] = "%s-l.h5";
+    memb_addr[H5FD_MEM_LHEAP] = memb_addr[H5FD_MEM_GHEAP] + TYPE_SLICE;
+
+    memb_map[H5FD_MEM_OHDR]   = H5FD_MEM_OHDR;
+    memb_fapl[H5FD_MEM_OHDR]  = H5P_DEFAULT;
+    memb_name[H5FD_MEM_OHDR]  = "%s-o.h5";
+    memb_addr[H5FD_MEM_OHDR]  = memb_addr[H5FD_MEM_LHEAP] + TYPE_SLICE;
+
+    max_addr = memb_addr[H5FD_MEM_OHDR] + TYPE_SLICE;
+
+    /* setup fapl */
+    fapl_id = H5Pcreate(H5P_FILE_ACCESS);
+    VERIFY(fapl_id >= 0, "H5Pcreate(2) failed");
+
+    /* setup the fapl for the multi file driver */
+    err = H5Pset_fapl_multi(fapl_id, memb_map, memb_fapl, memb_name, 
+                            memb_addr, FALSE);
+    VERIFY(err >= 0, "H5Pset_fapl_multi failed");
+
+    /* setup the file name */
+    h5_fixname(FILENAME2[4], fapl_id, file_name, sizeof(file_name));
+    VERIFY(HDstrlen(file_name)>0, "h5_fixname failed");
+
+    if(verbose)
+        HDfprintf(stdout, "%s: file_name = \"%s\".\n", fcn_name, file_name);
+
+    /* create the file */
+    file_id = H5Fcreate(file_name, 0, H5P_DEFAULT, fapl_id);
+    VERIFY(file_id >= 0, "H5Fcreate() failed.");
+
+    /* Set up data space for new new data set */
+    dims[0] = 10;
+    dims[1] = 10;
+    space_id = H5Screate_simple(2, dims, dims);
+    VERIFY(space_id >= 0, "H5Screate() failed");
+
+    /* Create a dataset */
+    dset_id = H5Dcreate(file_id, "dset 0", H5T_NATIVE_INT, space_id, 
+                        H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    VERIFY(dset_id >=0, "H5Dcreate() failed");
+
+    /* write some data to the data set */
+    for (i = 0; i < 100; i++)
+        data[i] = i;
+    err = H5Dwrite(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, 
+                   H5P_DEFAULT, (void *)data);
+    VERIFY(err >= 0, "H5Dwrite() failed.");
+    
+    /* Flush the file */
+    err = H5Fflush(file_id, H5F_SCOPE_GLOBAL);
+    VERIFY(err >= 0, "H5Fflush failed");
+
+    /* attempt to get the size of the file -- should fail */
+    H5E_BEGIN_TRY {
+        image_size = H5Fget_file_image(file_id, NULL, (size_t)0);
+    } H5E_END_TRY;
+    VERIFY(image_size == -1, "H5Fget_file_image(5) succeeded.");
+    if(verbose)
+        HDfprintf(stdout, "%s: image_size(test 5) = %lld.\n", 
+                  fcn_name, (long long)image_size);
+
+    /* Close dset and space */
+    err = H5Dclose(dset_id); 
+    VERIFY(err >= 0, "H5Dclose failed");
+    err = H5Sclose(space_id);
+    VERIFY(err >= 0, "H5Sclose failed");
+
+    /* close the test file */
+    err = H5Fclose(file_id);
+    VERIFY(err == SUCCEED, "H5Fclose(2) failed.");
+
+    /* tidy up */
+    result = h5_cleanup(FILENAME2, fapl_id);
+    VERIFY(result != 0, "h5_cleanup(2 failed.");
+
+    /************************** Test #3 **********************************/
+    /* set up a split file driver test file, and try to get its image 
+     * with H5Fget_file_image().  Attempt should fail.
+     */
+
+    if(verbose) HDfprintf(stdout, "%s: starting subtest 3\n", fcn_name);
+
+    /* create fapl */ 
+    fapl_id = H5Pcreate(H5P_FILE_ACCESS);
+    VERIFY(fapl_id >= 0, "H5Pcreate(3) failed");
+
+    /* setup the fapl for the split file driver */
+    err = H5Pset_fapl_split(fapl_id, "-m.h5", H5P_DEFAULT, "-r.h5", H5P_DEFAULT);
+    VERIFY(err >= 0, "H5Pset_fapl_split failed");
+
+    /* setup the file name */
+    h5_fixname(FILENAME2[5], fapl_id, file_name, sizeof(file_name));
+    VERIFY(HDstrlen(file_name)>0, "h5_fixname failed");
+
+    if(verbose)
+        HDfprintf(stdout, "%s: file_name = \"%s\".\n", fcn_name, file_name);
+
+    /* create the file */
+    file_id = H5Fcreate(file_name, 0, H5P_DEFAULT, fapl_id);
+    VERIFY(file_id >= 0, "H5Fcreate() failed.");
+
+    /* Set up data space for new new data set */
+    dims[0] = 10;
+    dims[1] = 10;
+    space_id = H5Screate_simple(2, dims, dims);
+    VERIFY(space_id >= 0, "H5Screate() failed");
+
+    /* Create a dataset */
+    dset_id = H5Dcreate(file_id, "dset 0", H5T_NATIVE_INT, space_id, 
+                        H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    VERIFY(dset_id >=0, "H5Dcreate() failed");
+
+    /* write some data to the data set */
+    for (i = 0; i < 100; i++)
+        data[i] = i;
+    err = H5Dwrite(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, 
+                   H5P_DEFAULT, (void *)data);
+    VERIFY(err >= 0, "H5Dwrite() failed.");
+    
+    /* Flush the file */
+    err = H5Fflush(file_id, H5F_SCOPE_GLOBAL);
+    VERIFY(err >= 0, "H5Fflush failed");
+
+    /* attempt to get the size of the file -- should fail */
+    H5E_BEGIN_TRY {
+        image_size = H5Fget_file_image(file_id, NULL, (size_t)0);
+    } H5E_END_TRY;
+    VERIFY(image_size == -1, "H5Fget_file_image(6) succeeded.");
+    if(verbose)
+        HDfprintf(stdout, "%s: image_size(test 6) = %lld.\n", 
+                  fcn_name, (long long)image_size);
+
+    /* Close dset and space */
+    err = H5Dclose(dset_id); 
+    VERIFY(err >= 0, "H5Dclose failed");
+    err = H5Sclose(space_id);
+    VERIFY(err >= 0, "H5Sclose failed");
+
+    /* close the test file */
+    err = H5Fclose(file_id);
+    VERIFY(err == SUCCEED, "H5Fclose(2) failed.");
+
+    /* tidy up */
+    result = h5_cleanup(FILENAME2, fapl_id);
+    VERIFY(result != 0, "h5_cleanup(2 failed.");
+    
+    PASSED();
+
+    if(verbose) 
+        HDfprintf(stdout, "regular exit test_get_file_image_error_rejection()\n");
+
+    return 0;
+
+error:
+
+    if(verbose) 
+        HDfprintf(stdout, "error exit test_get_file_image_error_rejection()\n");
+
+    return 1;
+}
+
 int
 main(void)
 {
@@ -898,7 +1340,17 @@ main(void)
     else
         errors += test_get_file_image("H5Fget_file_image() with core driver",
                                       2, fapl);
+#if 0
+    /* test H5Fget_file_image() with family file driver */
+    fapl = H5Pcreate(H5P_FILE_ACCESS);
+    if(H5Pset_fapl_family(fapl, (hsize_t)FAMILY_SIZE, H5P_DEFAULT) < 0)
+        errors++;
+    else
+        errors += test_get_file_image("H5Fget_file_image() with family driver",
+                                      3, fapl);
+#endif
 
+    errors += test_get_file_image_error_rejection();
 
 
     if(errors) { 

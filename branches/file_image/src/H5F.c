@@ -2553,7 +2553,7 @@ done:
 /*-------------------------------------------------------------------------
  * Function:    H5Fget_file_image
  *
- * Purpose:     If a buffer is provided (via the buf_ptr argument) an is 
+ * Purpose:     If a buffer is provided (via the buf_ptr argument) and is 
  *		big enough (size in buf_len argument), load *buf_ptr with
  *		an image of the open file whose ID is provided in the 
  *		file_id parameter, and return the number of bytes copied
@@ -2577,7 +2577,7 @@ done:
  *-------------------------------------------------------------------------
  */
 ssize_t
-H5Fget_file_image(hid_t file_id, void * buf_ptr, size_t buf_len)
+H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len)
 {
     H5F_t      *file;                   /* File object for file ID */
     H5FD_t     *fd_ptr;                 /* file driver */
@@ -2588,6 +2588,7 @@ H5Fget_file_image(hid_t file_id, void * buf_ptr, size_t buf_len)
     ssize_t     ret_value;              /* Return value */
 
     FUNC_ENTER_API(H5Fget_file_image, FAIL)
+    H5TRACE3("Zs", "i*xz", file_id, buf_ptr, buf_len);
 
     /* Check args */
     if(NULL == (file = (H5F_t *)H5I_object_verify(file_id, H5I_FILE)))
@@ -2602,6 +2603,28 @@ H5Fget_file_image(hid_t file_id, void * buf_ptr, size_t buf_len)
     if(!fd_ptr || !fd_ptr->cls)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, \
                     "fd_ptr yields invalid class pointer")
+
+    /* the address space used by the split and multi file drivers is not
+     * a good fit for this call.  Since the plan is to depreciate these
+     * drivers anyway, don't bother to do a "force fit".
+     *
+     * The following clause tests for the multi file driver, and fails
+     * if the supplied file has the multi file driver as its top level
+     * file driver.  However, this test will not work if there is some
+     * other file driver sitting on top of the multi file driver.
+     *
+     * I'm not sure if this is possible at present, but in all likelyhood,
+     * it will become possible in the future.  On the other hand, we may
+     * remove the split/multi file drivers before then.
+     *
+     * I am leaving this solution in for now, but we should review it,
+     * and improve the solution if necessary.
+     *
+     *                                          JRM -- 11/11/22
+     */
+    if(strcmp(fd_ptr->cls->name, "multi") == 0)
+        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, 
+                    "Not supported for multi file driver.")
 
     /* Go get the actual file size */
     if(HADDR_UNDEF == (eoa = H5FD_get_eoa(file->shared->lf, H5FD_MEM_DEFAULT)))
@@ -2620,9 +2643,8 @@ H5Fget_file_image(hid_t file_id, void * buf_ptr, size_t buf_len)
          space_needed = (size_t)eoa;
 
         /* read in the file image */
-        /* (Note compensating for base address addition in internal routine) */
-        if(H5FD_read(fd_ptr, dxpl_id, type, fd_ptr->base_addr, 
-                     space_needed, buf_ptr) < 0)
+        /* (Note compensation for base address addition in internal routine) */
+        if(H5FD_read(fd_ptr, dxpl_id, type, 0, space_needed, buf_ptr) < 0)
             HGOTO_ERROR(H5E_VFL, H5E_READERROR, FAIL, \
                         "file image read request failed")
         
