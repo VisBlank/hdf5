@@ -155,20 +155,10 @@ static int test_file_image(size_t open_images, unsigned *flags, size_t nflags)
         } /* end if */
         /* open rest of file images */
         else {
-
-            /* open a file image with an incorrect combination of flags */
-            if ((input_flags[i] & H5LT_FILE_IMAGE_DONT_COPY) && (input_flags[i] & H5LT_FILE_IMAGE_DONT_RELEASE) && (input_flags[i] & H5LT_FILE_IMAGE_OPEN_RW)) { 
-                /* set file image in the core driver */ 
-                file_id[i] = H5LTopen_file_image(buf_ptr[i], buf_size[i], input_flags[i]);
-                VERIFY(file_id[i] < 0, "H5LTopen_file_image() should have failed");
-            } /* end if */
             /* open file image with rest of flag combinations */
-            else {
-            
-                /* set file image in the core driver */ 
-                if ((file_id[i] = H5LTopen_file_image(buf_ptr[i], buf_size[i], input_flags[i])) < 0)
-                    FAIL_PUTS_ERROR("H5LTopen_file_image() failed");
-            }
+            /* set file image in the core driver */ 
+            if ((file_id[i] = H5LTopen_file_image(buf_ptr[i], buf_size[i], input_flags[i])) < 0)
+                FAIL_PUTS_ERROR("H5LTopen_file_image() failed");
         }
     }
 
@@ -273,8 +263,8 @@ int main( void )
 {
     int       nerrors = 0;
     size_t    open_images = 10; /* number of open file images */
-    size_t    nflags = 8; /* number of flag combinations */
-    unsigned  flags[8]; /* array with flag combinations */
+    size_t    nflags = 7; /* number of flag combinations */
+    unsigned  flags[7]; /* array with flag combinations */
    
     /* set flag combinations for testing */ 
     flags[0] = 0;
@@ -284,7 +274,7 @@ int main( void )
     flags[4] = H5LT_FILE_IMAGE_OPEN_RW;
     flags[5] = H5LT_FILE_IMAGE_OPEN_RW | H5LT_FILE_IMAGE_DONT_RELEASE;
     flags[6] = H5LT_FILE_IMAGE_OPEN_RW | H5LT_FILE_IMAGE_DONT_COPY;
-    flags[7] = H5LT_FILE_IMAGE_OPEN_RW | H5LT_FILE_IMAGE_DONT_COPY | H5LT_FILE_IMAGE_DONT_RELEASE;
+    //flags[7] = H5LT_FILE_IMAGE_OPEN_RW | H5LT_FILE_IMAGE_DONT_COPY | H5LT_FILE_IMAGE_DONT_RELEASE;
 
     /* Test file image operations. The flag combinations are assigned to file images in round-robin fashion */
     nerrors += test_file_image(open_images, flags, nflags) < 0? 1 : 0;
