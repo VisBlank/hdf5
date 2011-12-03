@@ -59,11 +59,11 @@ void *image_memcpy(void *dest, const void *src, size_t size, H5_file_image_op_t 
 
 void *image_realloc(void *ptr, size_t size, H5_file_image_op_t file_image_op, void *udata);
 
-void image_free(void *ptr, H5_file_image_op_t file_image_op, void *udata);
+herr_t image_free(void *ptr, H5_file_image_op_t file_image_op, void *udata);
 
 void *udata_copy(void *udata);
 
-void udata_free(void *udata);
+herr_t udata_free(void *udata);
 
 /*-------------------------------------------------------------------------
 * Function: image_malloc 
@@ -332,7 +332,7 @@ out:
 *-------------------------------------------------------------------------
 */
 
-void image_free(void *ptr, H5_file_image_op_t file_image_op, void *udata)
+herr_t image_free(void *ptr, H5_file_image_op_t file_image_op, void *udata)
 {
     if (((struct udata_t *)udata)->magic != UDATA_MAGIC) 
         goto out;
@@ -388,9 +388,12 @@ void image_free(void *ptr, H5_file_image_op_t file_image_op, void *udata)
 	case H5_FILE_IMAGE_OP_FILE_RESIZE:
 	default:
             goto out;
-        }
+    }
+
+    return(SUCCEED);
+
 out:
-    return;
+    return(FAIL);
 }
 
 /*-------------------------------------------------------------------------
@@ -437,7 +440,7 @@ out:
 *-------------------------------------------------------------------------
 */
 
-void udata_free(void *udata)
+herr_t udata_free(void *udata)
 {
     if (((struct udata_t *)udata)->magic != UDATA_MAGIC) 
         goto out;
@@ -456,8 +459,10 @@ void udata_free(void *udata)
         free((struct udata_t *)udata);
     } /* end if */
 
+    return(SUCCEED);
+
 out:        
-    return;
+    return(FAIL);
 }
 
 /* End of callbacks definitions */

@@ -545,9 +545,10 @@ H5FD_core_open(const char *name, unsigned flags, hid_t fapl_id,
 
             /* If there is an initial file image, copy it, using the callback if possible */
             if(file_image_info.buffer && file_image_info.size > 0) {
-                if(file->callbacks.image_memcpy)
-                    file->callbacks.image_memcpy(file->mem, file_image_info.buffer, size, H5_FILE_IMAGE_OP_FILE_OPEN, file->callbacks.udata);
-                else
+                if(file->callbacks.image_memcpy) {
+                    if(file->mem != file->callbacks.image_memcpy(file->mem, file_image_info.buffer, size, H5_FILE_IMAGE_OP_FILE_OPEN, file->callbacks.udata))
+                        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTCOPY, NULL, "image_memcpy callback failed")
+                }else
                     HDmemcpy(file->mem, file_image_info.buffer, size);
             }
             /* Read in existing data from the file if there is no image */
@@ -599,9 +600,10 @@ H5FD_core_close(H5FD_t *_file)
         H5MM_xfree(file->name);
     if(file->mem) {
         /* Use image callback if available */
-        if (file->callbacks.image_free)
-            file->callbacks.image_free(file->mem, H5_FILE_IMAGE_OP_FILE_CLOSE, file->callbacks.udata);
-        else
+        if (file->callbacks.image_free) {
+            if( SUCCEED != file->callbacks.image_free(file->mem, H5_FILE_IMAGE_OP_FILE_CLOSE, file->callbacks.udata))
+                HGOTO_ERROR(H5E_RESOURCE, H5E_CANTFREE, FAIL, "image_free callback failed")
+        }else
             H5MM_xfree(file->mem);
     }
     HDmemset(file, 0, sizeof(H5FD_core_t));
@@ -1125,6 +1127,28 @@ done:
  * Purpose:	Makes sure that the true file size is the same (or larger)
  *		than the end-of-address.
  *
+ *		Addendum -- 12/2/11
+ *		For file images opened with the core file driver, it is 
+ *		necessary that we avoid reallocating the core file driver's
+ *		buffer uneccessarily.
+ *
+ *		To this end, I have made the following functional changes
+ *		to this function.  
+ *
+ *		If we are closing, and there is no backing store, this 
+ *		function becomes a no-op.
+ *
+ *		If we are closing, and there is backing store, we set the
+ *		eof to equal the eoa, and truncate the backing store to 
+ *		the new eof
+ *
+ *		If we are not closing, we realloc the buffer to size equal 
+ *		to the smallest multiple of the allocation increment that 
+ *		equals or exceeds the eoa and set the eof accordingly.  
+ *		Note that we no longer truncate	the backing store to the 
+ *		new eof if applicable.
+ *							-- JRM
+ *
  * Return:	Success:	Non-negative
  *		Failure:	Negative
  *
@@ -1135,7 +1159,7 @@ done:
  */
 /* ARGSUSED */
 static herr_t
-H5FD_core_truncate(H5FD_t *_file, hid_t UNUSED dxpl_id, hbool_t UNUSED closing)
+H5FD_core_truncate(H5FD_t *_file, hid_t UNUSED dxpl_id, hbool_t closing)
 {
     H5FD_core_t *file = (H5FD_core_t*)_file;
     size_t new_eof;                             /* New size of memory buffer */
@@ -1145,47 +1169,54 @@ H5FD_core_truncate(H5FD_t *_file, hid_t UNUSED dxpl_id, hbool_t UNUSED closing)
 
     HDassert(file);
 
-    /* Determine new size of memory buffer */
-    H5_ASSIGN_OVERFLOW(new_eof, file->increment * (file->eoa / file->increment), hsize_t, size_t);
-    if(file->eoa % file->increment)
-        new_eof += file->increment;
+    /* if we are closing and not using backing store, do nothing */
+    if(!closing || file->backing_store) {
+        if(closing) /* set eof to eoa */
+            new_eof = file->eoa;
+        else { /* set eof to smallest multiple of increment that exceeds eoa */
+            /* Determine new size of memory buffer */
+            H5_ASSIGN_OVERFLOW(new_eof, file->increment * (file->eoa / file->increment), hsize_t, size_t);
+            if(file->eoa % file->increment)
+                new_eof += file->increment;
+        }
 
-    /* Extend the file to make sure it's large enough */
-    if(!H5F_addr_eq(file->eof, (haddr_t)new_eof)) {
-        unsigned char *x;       /* Pointer to new buffer for file data */
+        /* Extend the file to make sure it's large enough */
+        if(!H5F_addr_eq(file->eof, (haddr_t)new_eof)) {
+            unsigned char *x;       /* Pointer to new buffer for file data */
 
-        /* (Re)allocate memory for the file buffer, using callback if available */
-        if(file->callbacks.image_realloc) {
-            if(NULL == (x = (unsigned char *)file->callbacks.image_realloc(file->mem, new_eof, H5_FILE_IMAGE_OP_FILE_RESIZE, file->callbacks.udata)))
-              HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "unable to allocate memory block with callback")
-        } /* end if */
-        else {
-            if(NULL == (x = (unsigned char *)H5MM_realloc(file->mem, new_eof))) //
-                HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "unable to allocate memory block")
-        } /* end else */
+            /* (Re)allocate memory for the file buffer, using callback if available */
+            if(file->callbacks.image_realloc) {
+                if(NULL == (x = (unsigned char *)file->callbacks.image_realloc(file->mem, new_eof, H5_FILE_IMAGE_OP_FILE_RESIZE, file->callbacks.udata)))
+                  HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "unable to allocate memory block with callback")
+            } /* end if */
+            else {
+                if(NULL == (x = (unsigned char *)H5MM_realloc(file->mem, new_eof))) //
+                    HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "unable to allocate memory block")
+            } /* end else */
 
 #ifdef H5_CLEAR_MEMORY
-if(file->eof < new_eof)
-    HDmemset(x + file->eof, 0, (size_t)(new_eof - file->eof));
+            if(file->eof < new_eof)
+                HDmemset(x + file->eof, 0, (size_t)(new_eof - file->eof));
 #endif /* H5_CLEAR_MEMORY */
-        file->mem = x;
+            file->mem = x;
 
-        /* Update backing store, if using it */
-        if(file->fd >= 0 && file->backing_store) {
+            /* Update backing store, if using it and if closing */
+            if(closing && (file->fd >= 0) && file->backing_store) {
 #ifdef H5_VMS
-            /* Reset seek offset to the beginning of the file, so that the file isn't
-             * re-extended later.  This may happen on Open VMS. */
-            if(-1 == HDlseek(file->fd, 0, SEEK_SET))
-                HSYS_GOTO_ERROR(H5E_IO, H5E_SEEKERROR, FAIL, "unable to seek to proper position")
+                /* Reset seek offset to the beginning of the file, so that the file isn't
+                 * re-extended later.  This may happen on Open VMS. */
+                if(-1 == HDlseek(file->fd, 0, SEEK_SET))
+                    HSYS_GOTO_ERROR(H5E_IO, H5E_SEEKERROR, FAIL, "unable to seek to proper position")
 #endif
 
-            if(-1 == HDftruncate(file->fd, (off_t)new_eof))
-                HSYS_GOTO_ERROR(H5E_IO, H5E_SEEKERROR, FAIL, "unable to extend file properly")
-        } /* end if */
+                if(-1 == HDftruncate(file->fd, (off_t)new_eof))
+                    HSYS_GOTO_ERROR(H5E_IO, H5E_SEEKERROR, FAIL, "unable to extend file properly")
+            } /* end if */
 
-        /* Update the eof value */
-        file->eof = new_eof;
-    } /* end if */
+            /* Update the eof value */
+            file->eof = new_eof;
+        } /* end if */
+    }/* end if(file->eof < file->eoa) */
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)

@@ -318,16 +318,16 @@ typedef enum {
 
 /* Define structure to hold file image callbacks */
 typedef struct {
-    void *(*image_malloc)(size_t size, H5_file_image_op_t file_image_op, 
-                          void *udata);
-    void *(*image_memcpy)(void *dest, const void *src, size_t size,
+    void   *(*image_malloc)(size_t size, H5_file_image_op_t file_image_op, 
+                            void *udata);
+    void   *(*image_memcpy)(void *dest, const void *src, size_t size,
         H5_file_image_op_t file_image_op, void *udata);
-    void *(*image_realloc)(void *ptr, size_t size, 
-                           H5_file_image_op_t file_image_op, void *udata);
-    void  (*image_free)(void *ptr, H5_file_image_op_t file_image_op, 
-                        void *udata);
-    void *(*udata_copy)(void *udata);
-    void  (*udata_free)(void *udata);
+    void   *(*image_realloc)(void *ptr, size_t size, 
+                             H5_file_image_op_t file_image_op, void *udata);
+    herr_t  (*image_free)(void *ptr, H5_file_image_op_t file_image_op, 
+                          void *udata);
+    void   *(*udata_copy)(void *udata);
+    herr_t  (*udata_free)(void *udata);
     void *udata;
 } H5_file_image_callbacks_t;
 

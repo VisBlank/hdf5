@@ -236,14 +236,14 @@ realloc_cb(void *ptr, size_t size, H5_file_image_op_t op, void *udata)
  *
  ******************************************************************************
  */
-static void
+static herr_t
 free_cb(void *ptr, H5_file_image_op_t op, void *udata)
 {
     udata_t *u = (udata_t *)udata;
     u->used_callbacks |= FREE;
     u->free_src = op;
     free(ptr);
-    return;
+    return(SUCCEED);
 }
 
 /******************************************************************************
@@ -282,12 +282,12 @@ udata_copy_cb(void *udata)
  *
  ******************************************************************************
  */
-static void
+static herr_t
 udata_free_cb(void *udata)
 {
     udata_t *u = (udata_t *)udata;
     u->used_callbacks |= UDATA_FREE;
-    return;
+    return(SUCCEED);
 }
 
 /******************************************************************************
@@ -582,19 +582,12 @@ test_core(void)
     VERIFY(udata->used_callbacks == MALLOC, "opening a core file used the wrong callbacks");
     VERIFY(udata->malloc_src == H5_FILE_IMAGE_OP_FILE_OPEN, "Malloc callback came from wrong sourc in core open");
 
-    /* Close file
-     * Note: closing the file without writing to it generates a realloc callback (through truncate)
-     *       while closing after writing does not. This is because a write forces the eof
-     *       to be a multiple of the core increment, while an open does not. H5FD_core_truncate,
-     *       forces the eof to be a multiple of the increment, and thus must realloc if no write
-     *       was performed (assuming the file size is not a multiple of the increment).
-     */
+    /* Close file */
     reset_udata(udata);
     ret = H5Fclose(file);
     VERIFY(ret >= 0, "H5Fclose failed");
-    VERIFY(udata->used_callbacks == (FREE|REALLOC), "Closing a core file used the wrong callbacks");
+    VERIFY(udata->used_callbacks == FREE, "Closing a core file used the wrong callbacks");
     VERIFY(udata->free_src == H5_FILE_IMAGE_OP_FILE_CLOSE, "Free callback came from wrong sourc in core close");
-    VERIFY(udata->realloc_src == H5_FILE_IMAGE_OP_FILE_RESIZE, "Realloc callback came from wrong sourc in core close");
 
     /* Reopen file */
     file = H5Fopen(src_dir_filename, H5F_ACC_RDWR, fapl);
@@ -863,7 +856,10 @@ test_get_file_image(const char * test_banner,
         if(verbose)
             HDfprintf(stdout, "%s: file_size = %lld.\n", 
                       fcn_name, (long long)file_size);
-        VERIFY(file_size >= image_size, "file size != image size.");
+	/* with latest mods to truncate call in core file drive, 
+         * file size should match image size 
+         */
+        VERIFY(file_size == image_size, "file size != image size.");
 
         /* allocate a buffer for the test file image */
         file_image_ptr = HDmalloc((size_t)file_size);
@@ -895,14 +891,6 @@ test_get_file_image(const char * test_banner,
     }
     VERIFY(identical, "file and image differ.");
 
-    /* verify that any remaining data in the file is all null */
-    all_null = TRUE;
-    while((i < (int)file_size) && identical){
-        if(((char *)file_image_ptr)[i] != '\0')
-            all_null = FALSE;
-        i++;
-    }
-    VERIFY(all_null, "tail of file is not all null.");
 
     /* finally, verify that we can use the core file driver to open the image */
 
