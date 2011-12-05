@@ -135,9 +135,6 @@ typedef struct {
 /********************/
 /* Local Prototypes */
 /********************/
-static herr_t H5O_attr_iterate_real(hid_t loc_id, const H5O_loc_t *loc,
-    hid_t dxpl_id, H5_index_t idx_type, H5_iter_order_t order, hsize_t skip,
-    hsize_t *last_attr, const H5A_attr_iter_op_t *attr_op, void *op_data);
 static htri_t H5O_attr_find_opened_attr(const H5O_loc_t *loc, H5A_t **attr,
     const char* name_to_open);
 
@@ -1260,7 +1257,7 @@ done:
  *
  *-------------------------------------------------------------------------
  */
-static herr_t
+herr_t
 H5O_attr_iterate_real(hid_t loc_id, const H5O_loc_t *loc, hid_t dxpl_id,
     H5_index_t idx_type, H5_iter_order_t order, hsize_t skip,
     hsize_t *last_attr, const H5A_attr_iter_op_t *attr_op, void *op_data)
@@ -1270,7 +1267,7 @@ H5O_attr_iterate_real(hid_t loc_id, const H5O_loc_t *loc, hid_t dxpl_id,
     H5A_attr_table_t atable = {0, NULL};        /* Table of attributes */
     herr_t ret_value;                   /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT_TAG(H5O_attr_iterate_real, dxpl_id, loc->addr, FAIL)
+    FUNC_ENTER_NOAPI_TAG(H5O_attr_iterate_real, dxpl_id, loc->addr, FAIL)
 
     /* Check arguments */
     HDassert(loc);

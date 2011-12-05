@@ -99,7 +99,9 @@ typedef struct H5O_t H5O_t;
 #endif /* H5O_ENABLE_BAD_MESG_COUNT */
 
 /* ========= Object Copy properties ============ */
-#define H5O_CPY_OPTION_NAME 		"copy object"           /* Copy options */
+#define H5O_CPY_OPTION_NAME 		 "copy object"           /* Copy options */
+#define H5O_CPY_MERGE_NAMED_DT_LIST_NAME "merge named dtype list" /* List of datatype paths to search in the dest file for merging */
+#define H5O_CPY_MNDT_SEARCH_CB_NAME 	 "named dtype list search" /* Callback function when the search for a matching named datatype is complete */
 
 /* If the module using this macro is allowed access to the private variables, access them directly */
 #ifdef H5O_PACKAGE
@@ -133,6 +135,18 @@ typedef struct H5O_loc_t {
                                  * its file's count of open objects. */
 } H5O_loc_t;
 
+/* Typedef for linked list of datatype merge suggestions */
+typedef struct H5O_copy_dtype_merge_list_t {
+    char *path; /* Path to datatype in destination file */
+    struct H5O_copy_dtype_merge_list_t *next; /* Next object in list */
+} H5O_copy_dtype_merge_list_t;
+
+/* Structure for callback property before searching the global list of named datatypes at destination */
+typedef struct H5O_mndt_cb_info_t {
+    H5O_mndt_search_cb_t 	func;
+    void  			*user_data;
+} H5O_mndt_cb_info_t;
+
 /* Settings/flags for copying an object */
 typedef struct H5O_copy_t {
     hbool_t copy_shallow;               /* Flag to perform shallow hierarchy copy */
@@ -141,10 +155,16 @@ typedef struct H5O_copy_t {
     hbool_t expand_ref;                 /* Flag to expand object references */
     hbool_t copy_without_attr;          /* Flag to not copy attributes */
     hbool_t preserve_null;              /* Flag to not delete NULL messages */
+    hbool_t merge_named_dt;             /* Flag to merge named datatypes in dest file */
+    H5O_copy_dtype_merge_list_t *dst_dt_suggestion_list; /* Suggestions for merging named datatypes */
     int     curr_depth;                 /* Current depth in hierarchy copied */
     int     max_depth;                  /* Maximum depth in hierarchy to copy */
     H5SL_t  *map_list;                  /* Skip list to hold address mappings */
+    H5SL_t  *dst_dt_list;               /* Skip list to hold named datatypes in dest file */
+    hbool_t dst_dt_list_complete;       /* Whether the destination datatype list is complete (i.e. not only populated with "suggestions" from H5Padd_merge_named_dtype_path) */
     H5O_t   *oh_dst;                    /* The destination object header */
+    H5O_mndt_search_cb_t mndt_cb;	/* The callback to invoke before searching the global list of named datatypes at destination */
+    void *mndt_ud;			/* User data passed to callback */
 } H5O_copy_t;
 
 /* Header message IDs */
