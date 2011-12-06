@@ -33,23 +33,40 @@ char *myinput;
 int  indent = 0;
 
 
-/* Definition of callbacks for file image operations. */
+/* File Image operations					
+	
+   A file image is a representation of an HDF5 file in a memory	 
+   buffer. In order to perform operations on an image in a similar way	
+   to a  file, the application buffer is copied to a FAPL buffer, which
+   in turn is copied to a VFD buffer. Buffer copying can decrease	
+   performance, especially when using large file images. A solution to	
+   this issue is to simulate the copying of the application buffer,	
+   when actually the same buffer is used for the FAPL and the VFD.	
+   This is implemented by using callbacks that simulate the standard	
+   functions for memory management (additional callbacks are used for	
+   the management of associated data structures). From the application	
+   standpoint, a file handle can be obtained from a file image by using	
+   the API routine H5LTopen_file_image(). Flag arguments allow to	
+   indicate that the file image will be opened in read-write mode,	
+   the buffer will be copied, and the buffer will be released by the	
+   HDF5 library.							*/ 
 
-/* Data structure to pass user data to callbacks. */ 
-#define         UDATA_MAGIC     597
+#define         UDATA_MAGIC     597 /* Magic number for udata struct */
 
+/* Data structure to pass application data to callbacks. */ 
 struct udata_t {
-    int magic;
-    void *app_image_ptr;
-    size_t app_image_size;
-    void *fapl_image_ptr;
-    size_t fapl_image_size;
-    int fapl_ref_count;
-    void *vfd_image_ptr;
-    size_t vfd_image_size;
-    int vfd_ref_count;
-    unsigned flags;
-    int ref_count;
+    int magic;			/* Magic number */
+    void *app_image_ptr;	/* Pointer to application buffer */ 
+    size_t app_image_size;	/* Size of application buffer */
+    void *fapl_image_ptr;	/* Pointer to FAPL buffer */
+    size_t fapl_image_size;	/* Size of FAPL buffer */
+    int fapl_ref_count;		/* Reference counter for FAPL buffer */
+    void *vfd_image_ptr;	/* Pointer to VFD buffer */
+    size_t vfd_image_size;	/* Size of VFD buffer */
+    int vfd_ref_count;		/* Reference counter for VFD buffer */
+    unsigned flags;		/* Flags indicate how the file image will */
+                                /* be open */
+    int ref_count;		/* Reference counter on udata struct */
 };
 
 /* callbacks prototypes for file image ops */
@@ -65,12 +82,18 @@ void *udata_copy(void *udata);
 
 herr_t udata_free(void *udata);
 
+/* Definition of callbacks for file image operations. */
+
 /*-------------------------------------------------------------------------
 * Function: image_malloc 
 *
-* Purpose: Emulates "malloc" function to avoid memory copying. 
+* Purpose: Simulates malloc() function to avoid copying file images.
+*          The application buffer is set to the buffer on only one FAPL.
+*          Then the FAPL buffer can be copied to other FAPL buffers or
+*          to only one VFD buffer. 
 *
-* Return: Address of "allocated" buffer
+* Return: Address of "allocated" buffer, if successful. Otherwise, it returns
+*         NULL.
 *
 * Programmer: Christian Chilan 
 *
@@ -86,11 +109,12 @@ void *image_malloc(size_t size, H5_file_image_op_t file_image_op, void *udata)
     if (((struct udata_t *)udata)->magic != UDATA_MAGIC) 
         goto out;
 
+    /* callback is only used if the application buffer is not actually copied */
     if (!(((struct udata_t *)udata)->flags & H5LT_FILE_IMAGE_DONT_COPY)) 
         goto out;
 
     switch ( file_image_op ) {
-        /* the app buffer is copied to only one FAPL. Afterwards, FAPLs can copied */
+        /* the app buffer is "copied" to only one FAPL. Afterwards, FAPLs can be "copied" */
         case H5_FILE_IMAGE_OP_PROPERTY_LIST_SET:
             if (((struct udata_t *)udata)->app_image_ptr == NULL) 
                 goto out;
@@ -98,7 +122,6 @@ void *image_malloc(size_t size, H5_file_image_op_t file_image_op, void *udata)
             if (((struct udata_t *)udata)->app_image_size != size) 
                 goto out;
 
-            /* only the first FAPL will be set, additional FAPLs will be copied */
             if (((struct udata_t *)udata)->fapl_image_ptr != NULL) 
                 goto out;
 
@@ -132,6 +155,7 @@ void *image_malloc(size_t size, H5_file_image_op_t file_image_op, void *udata)
             goto out;
 
         case H5_FILE_IMAGE_OP_FILE_OPEN:
+            /* FAPL buffer is "copied" to only one VFD buffer */
             if (((struct udata_t *)udata)->vfd_image_ptr != NULL) 
                 goto out;
 
@@ -164,19 +188,26 @@ void *image_malloc(size_t size, H5_file_image_op_t file_image_op, void *udata)
         default:
             goto out;
 	}
+
 	return(return_value);
 
 out:
 
     return NULL;
-}
+
+} /* end image_malloc() */
+
 
 /*-------------------------------------------------------------------------
 * Function: image_memcpy
 *
-* Purpose:  Emulates "memcpy" function to avoid memory copying.
+* Purpose:  Simulates memcpy() function to avoid copying file images. 
+*           The image buffer can be set to only one FAPL buffer, and
+*           "copied" to only one VFD buffer. The FAPL buffer can be
+*           "copied" to other FAPLs buffers. 
 *
-* Return: The address of the destination buffer
+* Return: The address of the destination buffer, if successful. Otherwise, it
+*         returns NULL.
 *
 * Programmer: Christian Chilan 
 *
@@ -190,6 +221,7 @@ void *image_memcpy(void *dest, const void *src, size_t size, H5_file_image_op_t 
     if (((struct udata_t *)udata)->magic != UDATA_MAGIC) 
         goto out;
 
+    /* callback is only used if the application buffer is not actually copied */
     if (!(((struct udata_t *)udata)->flags & H5LT_FILE_IMAGE_DONT_COPY)) 
         goto out;
 
@@ -258,18 +290,24 @@ void *image_memcpy(void *dest, const void *src, size_t size, H5_file_image_op_t 
         default:
             goto out;
     }
+
     return(dest);
 
 out:
+
     return NULL;
-}
+
+} /* end image_memcpy() */
+
 
 /*-------------------------------------------------------------------------
 * Function: image_realloc 
 *
-* Purpose:  Emulates "realloc" function to avoid memory copying.
-*
-* Return: Address of "reallocated" buffer 
+* Purpose: Reallocates the shared application image buffer and updates data
+*          structures that manage buffer "copying". 
+*           
+* Return: Address of reallocated buffer, if successful. Otherwise, it returns
+*         NULL.  
 *
 * Programmer: Christian Chilan 
 *
@@ -285,15 +323,19 @@ void *image_realloc(void *ptr, size_t size, H5_file_image_op_t file_image_op, vo
     if (((struct udata_t *)udata)->magic != UDATA_MAGIC) 
         goto out;
 
+    /* callback is only used if the application buffer is not actually copied */
     if (!(((struct udata_t *)udata)->flags & H5LT_FILE_IMAGE_DONT_COPY)) 
         goto out;
 
+    /* realloc() is not allowed when the HDF5 library won't release the image 
+       buffer because reallocation may change the address of the buffer. The
+       new address cannot be communicated to the application to release it. */
     if (((struct udata_t *)udata)->flags & H5LT_FILE_IMAGE_DONT_RELEASE) 
         goto out; 
 
+    /* realloc() is not allowed if the image is open in read-only mode */
     if (!(((struct udata_t *)udata)->flags & H5LT_FILE_IMAGE_OPEN_RW)) 
         goto out; 
-
 
     if (file_image_op == H5_FILE_IMAGE_OP_FILE_RESIZE) {
         if (((struct udata_t *)udata)->vfd_image_ptr != ptr) 
@@ -313,17 +355,22 @@ void *image_realloc(void *ptr, size_t size, H5_file_image_op_t file_image_op, vo
     } /* end else */
 
     return(return_value);
+
 out:
+
     return NULL;
-}
+
+} /* end image_realloc() */
+
 
 /*-------------------------------------------------------------------------
 * Function: image_free
 *
-* Purpose: Emulates "free" function to handle reference counting and memory
-*          deallocation.
+* Purpose: Simulates deallocation of FAPL and VFD buffers by decreasing
+*          reference counters. Shared application buffer is actually
+*          deallocated if there are no outstanding references.
 *
-* Return: 
+* Return: SUCCEED or FAIL 
 *
 * Programmer: Christian Chilan 
 *
@@ -337,6 +384,7 @@ herr_t image_free(void *ptr, H5_file_image_op_t file_image_op, void *udata)
     if (((struct udata_t *)udata)->magic != UDATA_MAGIC) 
         goto out;
 
+    /* callback is only used if the application buffer is not actually copied */
     if (!(((struct udata_t *)udata)->flags & H5LT_FILE_IMAGE_DONT_COPY)) 
         goto out;
 
@@ -393,15 +441,20 @@ herr_t image_free(void *ptr, H5_file_image_op_t file_image_op, void *udata)
     return(SUCCEED);
 
 out:
+
     return(FAIL);
-}
+
+} /* end image_free() */
+
 
 /*-------------------------------------------------------------------------
 * Function: udata_copy 
 *
-* Purpose: Emulates copy of the user data structure.
+* Purpose: Simulates the copying of the user data structure utilized in the
+*          management of the "copying" of file images.
 *
-* Return: Address of "newly allocated" structure 
+* Return: Address of "newly allocated" structure, if successful. Otherwise, it
+*         returns NULL.
 *
 * Programmer: Christian Chilan 
 *
@@ -415,6 +468,10 @@ void *udata_copy(void *udata)
     if (((struct udata_t *)udata)->magic != UDATA_MAGIC) 
         goto out;
 
+    /* callback is only used if the application buffer is not actually copied */
+    if (!(((struct udata_t *)udata)->flags & H5LT_FILE_IMAGE_DONT_COPY)) 
+        goto out;
+
     if (((struct udata_t *)udata)->ref_count == 0) 
         goto out;
 
@@ -423,15 +480,20 @@ void *udata_copy(void *udata)
     return(udata);
 
 out:
+
     return NULL;
-}
+
+} /* end udata_copy */
+
 
 /*-------------------------------------------------------------------------
 * Function: udata_free
 *
-* Purpose: Emulates deallocation of the user data structure 
+* Purpose: Simulates deallocation of the user data structure utilized in the
+*          management of the "copying" of file images. The data structure is
+*          actually deallocated when there are no outstanding references. 
 *
-* Return: 
+* Return: SUCCEED or FAIL 
 *
 * Programmer: Christian Chilan 
 *
@@ -443,6 +505,10 @@ out:
 herr_t udata_free(void *udata)
 {
     if (((struct udata_t *)udata)->magic != UDATA_MAGIC) 
+        goto out;
+
+    /* callback is only used if the application buffer is not actually copied */
+    if (!(((struct udata_t *)udata)->flags & H5LT_FILE_IMAGE_DONT_COPY)) 
         goto out;
 
     if (((struct udata_t *)udata)->ref_count == 0) 
@@ -462,10 +528,12 @@ herr_t udata_free(void *udata)
     return(SUCCEED);
 
 out:        
-    return(FAIL);
-}
 
-/* End of callbacks definitions */
+    return(FAIL);
+
+} /* end udata_free */
+
+/* End of callbacks definitions for file image operations */
 
 /*-------------------------------------------------------------------------
 *
@@ -829,7 +897,7 @@ out:
 /*-------------------------------------------------------------------------
 * Function: H5LTopen_file_image
 *
-* Purpose: Assigns a file image from a user buffer to the core file driver. 
+* Purpose: Open a user supplied file image using the core file driver. 
 *
 * Return: File identifier, Failure: -1
 *
@@ -842,16 +910,17 @@ out:
 
 hid_t H5LTopen_file_image(void *buf_ptr, size_t buf_size, unsigned flags)
 {
-    hid_t		fapl, file_id;
-    struct udata_t      *udata = NULL;
-    unsigned            file_open_flags;
-    char                file_name[64];
-    static long         file_name_counter;
+    hid_t		fapl, file_id;	/* HDF5 identifiers */
+    struct udata_t      *udata = NULL;	/* Pointer to udata structure */
+    unsigned            file_open_flags;/* Flags for image open */
+    char                file_name[64];	/* Filename buffer */
+    static long         file_name_counter; 
     H5_file_image_callbacks_t callbacks = {&image_malloc, &image_memcpy, 
                                            &image_realloc, &image_free, 
                                            &udata_copy, &udata_free, 
                                            (void *)NULL};
 
+    /* check arguments */
     if (buf_ptr == NULL) 
         goto out;
 
@@ -922,9 +991,20 @@ hid_t H5LTopen_file_image(void *buf_ptr, size_t buf_size, unsigned flags)
     return file_id; 
 
 out:
+   
+    H5E_BEGIN_TRY {
+
+        H5Pclose(fapl);
+
+        if (udata != NULL)
+            free(udata);
+
+    } H5E_END_TRY;
 
     return -1;
-}
+
+} /* end H5LTopen_file_image() */
+
 
 /*-------------------------------------------------------------------------
 * Function: H5LT_read_dataset

@@ -16,9 +16,13 @@
 #ifndef _H5LTpublic_H
 #define _H5LTpublic_H
 
-#define H5LT_FILE_IMAGE_OPEN_RW         0x00000001 
-#define H5LT_FILE_IMAGE_DONT_COPY       0x00000002 
-#define H5LT_FILE_IMAGE_DONT_RELEASE    0x00000004 
+/* Flag definitions for H5LTopen_file_image() */
+#define H5LT_FILE_IMAGE_OPEN_RW      0x00000001 /* Open image for read-write */
+#define H5LT_FILE_IMAGE_DONT_COPY    0x00000002 /* The HDF5 lib won't copy   */
+/* user supplied image buffer. The same image is open with the core driver.  */
+#define H5LT_FILE_IMAGE_DONT_RELEASE 0x00000004 /* The HDF5 lib won't        */
+/* deallocate user supplied image buffer. The user application is reponsible */
+/* for doing so.                                                             */ 
 
 typedef enum H5LT_lang_t {
     H5LT_LANG_ERR = -1, /*this is the first*/

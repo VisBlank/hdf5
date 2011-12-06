@@ -52,7 +52,9 @@ static int test_file_image(size_t open_images, unsigned *flags, size_t nflags)
     unsigned    *input_flags; /* pointer to array of flag combinations */
     size_t      i, j, k, nrow, n_values; 
     herr_t      status1, status2, status3;
-
+    void        *handle_ptr = NULL; /* pointers to driver buffer */
+    unsigned char **core_buf_ptr_ptr = NULL; 
+ 
     VERIFY(open_images > 1 , "The number of open images must be greater than 1");
 
     VERIFY(nflags > 0, "The number of flag combinations  must be greater than 0");
@@ -169,7 +171,7 @@ static int test_file_image(size_t open_images, unsigned *flags, size_t nflags)
 
     PASSED();
 
-    TESTING("open file images");
+    TESTING("open file images and check image copies");
  
     /* open the file images with the core driver for data access */ 
     for (i = 0; i < open_images; i++) {
@@ -189,6 +191,28 @@ static int test_file_image(size_t open_images, unsigned *flags, size_t nflags)
             /* set file image in the core driver */ 
             if ((file_id[i] = H5LTopen_file_image(buf_ptr[i], (size_t)buf_size[i], input_flags[i])) < 0)
                 FAIL_PUTS_ERROR("H5LTopen_file_image() failed");
+
+           /* get pointer to the image buffer of the core driver */
+           if (H5Fget_vfd_handle(file_id[i], H5P_DEFAULT, &handle_ptr) < 0)
+               FAIL_PUTS_ERROR("H5Fget_vfd_handle() failed");
+
+            core_buf_ptr_ptr = (unsigned char **)handle_ptr;
+
+            /* test whether the user buffer has been copied or not */
+            if (input_flags[i] & H5LT_FILE_IMAGE_DONT_COPY) {
+
+                VERIFY(*core_buf_ptr_ptr == buf_ptr[i], "vfd buffer and user buffer should have been the same");
+            } /* end if */
+            else {
+                VERIFY(*core_buf_ptr_ptr != buf_ptr[i], "vfd buffer and user buffer should be different");
+
+            } /* end else */
+
+            /* test whether the contents of the user buffer and driver buffer */
+            /* are equal.                                                     */
+            if (memcmp(*core_buf_ptr_ptr, buf_ptr[i], (size_t)buf_size[i]) != 0)
+                FAIL_PUTS_ERROR("comparison of vfd and user buffer failed");
+              
         } /* end else */
     } /* end for */
 
@@ -425,6 +449,8 @@ static int test_file_image(size_t open_images, unsigned *flags, size_t nflags)
     return 0;
 
 error:
+
+    H5_FAILED();
 
     return -1;
 }
