@@ -996,9 +996,6 @@ out:
 
         H5Pclose(fapl);
 
-        if (udata != NULL)
-            free(udata);
-
     } H5E_END_TRY;
 
     return -1;
