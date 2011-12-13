@@ -27,7 +27,29 @@
 #define DSET_NAME "dset"
 
 #define RANK 2
- 
+
+/* Test of file image operations.
+
+   The following code provides a means to thoroughly test the file image
+   operations. Main objectives were testing operations with multiple open
+   images and using all possible flag combinations, which are set in the
+   main calling routine. Since the number of open images and flag combinations
+   may differ, the flag combinations are assigned to the images in round-robin
+   fashion. In order to simulate a realistic operation environment, the code
+   operates on as many open objects as possible by using several for-loops
+   instead of using a single loop that opens image i, accesses it, and closes
+   it. The first loop creates the files and obtains images using the function
+   H5Fget_file_image(). One image is filled with "wrong" data, another image 
+   is not valid. The second loop opens the images using the function 
+   H5LTopen_file_image(), and test whether the images have been copied in
+   accordance to the H5LT_FILE_IMAGE_DONT_COPY flag. The third loop reads the
+   contents of the open images and verifies that the contents are correct.
+   The fourth loop first perform writes in the images that do not extend the
+   image, and then performs writes that extend the images. The fifth loop
+   reads the contents of the extended images and verify that the contents
+   are correct. The sixth and final loop closes the file images and deallocates
+   the image buffers if appropriate.                                          */ 
+
 /*-------------------------------------------------------------------------
 * test file image operations 
 *-------------------------------------------------------------------------
@@ -154,7 +176,7 @@ static int test_file_image(size_t open_images, unsigned *flags, size_t nflags)
 
         /* buffer for file image 2 is filled with counter data (non-valid image)*/
         if (i == 2) {
-            for (j = 0; j < buf_size[i]; j++)
+            for (j = 0; j < (size_t)(size_t)(size_t)(size_t)(size_t)(size_t)(size_t)(size_t)(size_t)buf_size[i]; j++)
                 ((char*)(buf_ptr[i]))[j] = (char)j; 
         } /* end if */
         /* buffers for the rest of the file images are filled with data from the respective files */

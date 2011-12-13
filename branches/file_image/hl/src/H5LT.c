@@ -46,10 +46,24 @@ int  indent = 0;
    functions for memory management (additional callbacks are used for	
    the management of associated data structures). From the application	
    standpoint, a file handle can be obtained from a file image by using	
-   the API routine H5LTopen_file_image(). Flag arguments allow to	
-   indicate that the file image will be opened in read-write mode,	
-   the buffer will be copied, and the buffer will be released by the	
-   HDF5 library.							*/ 
+   the API routine H5LTopen_file_image(). This function takes a flag
+   argument that indicates the HDF5 library how to handle the given image;
+   several flag values can be combined by using the bitwise OR operator.
+   Valid flag values include:
+
+   H5LT_FILE_IMAGE_OPEN_RW indicates the HDF5 library to open the file
+   image in read/write mode. Default is read-only mode.
+
+   H5LT_FILE_IMAGE_DONT_COPY indicates the HDF5 library to not copy the
+   supplied user buffer; the same buffer will be handled by the FAPL and
+   the VFD driver. Default operation copies the user buffer to the FAPL and
+   VFD driver.
+
+   H5LT_FILE_IMAGE_DONT_RELEASE indicates the HDF5 library to not release
+   the buffer handled by the FAPL and the VFD upon closing. This flag value
+   is only applicable when the flag value H5LT_FILE_IMAGE_DONT_COPY is set as
+   well. The application is responsible to release the image buffer.       */
+
 
 #define         UDATA_MAGIC     597 /* Magic number for udata struct */
 
@@ -914,6 +928,10 @@ hid_t H5LTopen_file_image(void *buf_ptr, size_t buf_size, unsigned flags)
     struct udata_t      *udata = NULL;	/* Pointer to udata structure */
     unsigned            file_open_flags;/* Flags for image open */
     char                file_name[64];	/* Filename buffer */
+    size_t              alloc_incr;     /* Buffer allocation increment */
+    size_t              min_incr = 65536; /* Minimum buffer increment */
+    double              buf_prcnt = 0.1;  /* Percentage of buffer size to set
+                                             as increment */
     static long         file_name_counter; 
     H5_file_image_callbacks_t callbacks = {&image_malloc, &image_memcpy, 
                                            &image_realloc, &image_free, 
@@ -931,8 +949,17 @@ hid_t H5LTopen_file_image(void *buf_ptr, size_t buf_size, unsigned flags)
     if ((fapl = H5Pcreate(H5P_FILE_ACCESS)) < 0) 
         goto out;
 
+    /* set allocation increment to a percentage of the supplied buffer size, or
+    a pre-defined minimum increment value, whichever is larger */
+    if ((buf_prcnt * buf_size) > min_incr) {
+        alloc_incr = buf_prcnt * buf_size;
+    } /* end if */
+    else {
+        alloc_incr = min_incr;
+    } /* end else */
+
     /* Configure FAPL to use the core file driver */
-    if (H5Pset_fapl_core(fapl, (size_t)1024, 0) < 0) 
+    if (H5Pset_fapl_core(fapl, alloc_incr, 0) < 0) 
         goto out;
 
     /* Set callbacks for file image ops ONLY if the file image is NOT copied */
