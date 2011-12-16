@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-MACRO (EXTERNAL_JPEG_LIBRARY compress_type jpeg_pic)
+MACRO (EXTERNAL_JPEG_LIBRARY compress_type libtype jpeg_pic)
   # May need to build JPEG with PIC on x64 machines with gcc
   # Need to use CMAKE_ANSI_CFLAGS define so that compiler test works
 
@@ -9,7 +9,7 @@ MACRO (EXTERNAL_JPEG_LIBRARY compress_type jpeg_pic)
         # [SVN_REVISION rev] 
         INSTALL_COMMAND ""
         CMAKE_ARGS
-            -DBUILD_SHARED_LIBS:BOOL=OFF
+            -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
             -DJPEG_EXTERNALLY_CONFIGURED:BOOL=OFF
             -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
             -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
@@ -24,7 +24,7 @@ MACRO (EXTERNAL_JPEG_LIBRARY compress_type jpeg_pic)
         URL_MD5 ""
         INSTALL_COMMAND ""
         CMAKE_ARGS
-            -DBUILD_SHARED_LIBS:BOOL=OFF
+            -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
             -DJPEG_EXTERNALLY_CONFIGURED:BOOL=OFF
             -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
             -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
@@ -36,18 +36,18 @@ MACRO (EXTERNAL_JPEG_LIBRARY compress_type jpeg_pic)
   ENDIF (${compress_type} MATCHES "SVN")
   EXTERNALPROJECT_GET_PROPERTY (JPEG BINARY_DIR SOURCE_DIR) 
 
-  IF (${CMAKE_BUILD_TYPE} MATCHES "DEBUG")
+  IF (${CMAKE_BUILD_TYPE} MATCHES "Debug")
     IF (WIN32 AND NOT MINGW)
       SET (JPEG_LIB_NAME "jpeg_D")
     ELSE (WIN32 AND NOT MINGW)
       SET (JPEG_LIB_NAME "jpeg_debug")
     ENDIF (WIN32 AND NOT MINGW)
-  ELSE (${CMAKE_BUILD_TYPE} MATCHES "DEBUG")
+  ELSE (${CMAKE_BUILD_TYPE} MATCHES "Debug")
     SET (JPEG_LIB_NAME "jpeg")
-  ENDIF (${CMAKE_BUILD_TYPE} MATCHES "DEBUG")
+  ENDIF (${CMAKE_BUILD_TYPE} MATCHES "Debug")
 
   # Create imported target szip
-  ADD_LIBRARY(jpeg STATIC IMPORTED)
+  ADD_LIBRARY(jpeg ${libtype} IMPORTED)
   ADD_DEPENDENCIES (jpeg JPEG)
 
   IF (${libtype} MATCHES "SHARED")
@@ -136,15 +136,15 @@ MACRO (EXTERNAL_SZIP_LIBRARY compress_type libtype encoding)
   ENDIF (${compress_type} MATCHES "SVN")
   EXTERNALPROJECT_GET_PROPERTY (SZIP BINARY_DIR SOURCE_DIR) 
 
-  IF (${CMAKE_BUILD_TYPE} MATCHES "DEBUG")
+  IF (${CMAKE_BUILD_TYPE} MATCHES "Debug")
     IF (WIN32 AND NOT MINGW)
       SET (SZIP_LIB_NAME "szip_D")
     ELSE (WIN32 AND NOT MINGW)
       SET (SZIP_LIB_NAME "szip_debug")
     ENDIF (WIN32 AND NOT MINGW)
-  ELSE (${CMAKE_BUILD_TYPE} MATCHES "DEBUG")
+  ELSE (${CMAKE_BUILD_TYPE} MATCHES "Debug")
     SET (SZIP_LIB_NAME "szip")
-  ENDIF (${CMAKE_BUILD_TYPE} MATCHES "DEBUG")
+  ENDIF (${CMAKE_BUILD_TYPE} MATCHES "Debug")
 
   # Create imported target szip
   ADD_LIBRARY(szip ${libtype} IMPORTED)
@@ -234,19 +234,19 @@ MACRO (EXTERNAL_ZLIB_LIBRARY compress_type libtype)
   ENDIF (${compress_type} MATCHES "SVN")
   EXTERNALPROJECT_GET_PROPERTY (ZLIB BINARY_DIR SOURCE_DIR) 
 
-  IF (${CMAKE_BUILD_TYPE} MATCHES "DEBUG")
+  IF (${CMAKE_BUILD_TYPE} MATCHES "Debug")
     IF (WIN32 AND NOT MINGW)
       SET (ZLIB_LIB_NAME "zlib_D")
     ELSE (WIN32 AND NOT MINGW)
       SET (ZLIB_LIB_NAME "z_debug")
     ENDIF (WIN32 AND NOT MINGW)
-  ELSE (${CMAKE_BUILD_TYPE} MATCHES "DEBUG")
+  ELSE (${CMAKE_BUILD_TYPE} MATCHES "Debug")
     IF (WIN32 AND NOT MINGW)
       SET (ZLIB_LIB_NAME "zlib")
     ELSE (WIN32 AND NOT MINGW)
       SET (ZLIB_LIB_NAME "z")
     ENDIF (WIN32 AND NOT MINGW)
-  ENDIF (${CMAKE_BUILD_TYPE} MATCHES "DEBUG")
+  ENDIF (${CMAKE_BUILD_TYPE} MATCHES "Debug")
 
   # Create imported target szip
   ADD_LIBRARY(zlib ${libtype} IMPORTED)
