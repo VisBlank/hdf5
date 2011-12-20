@@ -72,8 +72,8 @@ static int test_file_image(size_t open_images, unsigned *flags, size_t nflags)
     void        **buf_ptr; /* pointer to array of pointers to image buffers */
     char        **filename; /* pointer to array of pointers to filenames */
     unsigned    *input_flags; /* pointer to array of flag combinations */
-    size_t      i, j, k, nrow, n_values; 
-    herr_t      status1, status2, status3;
+    size_t      i, j, k, l, nrow, n_values; 
+    herr_t      status1, status2;
     void        *handle_ptr = NULL; /* pointers to driver buffer */
     unsigned char **core_buf_ptr_ptr = NULL; 
  
@@ -340,25 +340,43 @@ static int test_file_image(size_t open_images, unsigned *flags, size_t nflags)
         /* test data write whe file image access is read-write */
         else {
             if ((input_flags[i] & H5LT_FILE_IMAGE_DONT_COPY) && (input_flags[i] & H5LT_FILE_IMAGE_DONT_RELEASE)) {
-
-                /* write dataset without extending it */
-                if (H5Dwrite(dset_id[i], H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,  data1) < 0)
-                    FAIL_PUTS_ERROR("H5Dwrite() failed");
-
 #if 0
+                int attr_rank = 1;
+                hsize_t attr_dims[] = {4096};
+                int attr_data[4096];
+                hid_t attr_space_id = -1;
+                hid_t attr_id = -1;
+
+                if ((attr_space_id = H5Screate_simple(attr_rank, attr_dims, attr_dims)) < 0)
+                    FAIL_PUTS_ERROR("attr_space H5Screate_simple() failed");
+
+                if((attr_id = H5Acreate_by_name(dset_id[i], ".", "int array_addr", H5T_NATIVE_INT, attr_space_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0)
+                    FAIL_PUTS_ERROR("H5Acreate_by_name() failed");
+
+                for(l = 0; l < 4096; l++)
+                    attr_data[l] = (int)l;
+
+                /* write data to the attribute and then flush the file.  One or the other should
+                 * should trigger an extension to the EOA, which in turn should cau se the realloc
+                 * callback to fail.
+                 */
                 H5E_BEGIN_TRY {
-                    status1 = H5Dset_extent(dset_id[i], dims4);
-                    status2 = H5Dwrite(dset_id[i], H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,  data4);
-                    status3 = H5Fflush(file_id[i], H5F_SCOPE_GLOBAL);
+                    status1 = status2 = -1;
+
+                    status1 = H5Awrite(attr_id, H5T_NATIVE_INT, (const void *)attr_data);
+                    if(status1 >= 0)
+                        status2 = H5Fflush(file_id[i], H5F_SCOPE_GLOBAL);
+
+                    VERIFY(status1 < 0 || status2 < 0, "writing and flushing attr should have failed");
                 } H5E_END_TRY;
 
-                VERIFY(status1 < 0 || status2 < 0 || status3 < 0, "Extending and writing should have failed");
+                /* close attr and attr_space -- expect errors on close */
+                H5E_BEGIN_TRY {
+                    H5Sclose(attr_space_id);
+                    H5Aclose(attr_id);
+                } H5E_END_TRY;
 #endif
-
-                /* close dataset */
-                if (H5Dclose(dset_id[i]) < 0)
-                    FAIL_PUTS_ERROR("H5Dclose() failed");
-
+                file_id[i] = -1;
             } /* end if */
             else {
                 /* write dataset without extending it */
@@ -467,6 +485,8 @@ static int test_file_image(size_t open_images, unsigned *flags, size_t nflags)
     free(input_flags);
 
     PASSED();
+
+    H5close();
 
     return 0;
 

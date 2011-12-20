@@ -82,7 +82,7 @@ H5FO_create(const H5F_t *f)
     assert(f->shared);
 
     /* Create container used to store open object info */
-    if((f->shared->open_objs = H5SL_create(H5SL_TYPE_HADDR)) == NULL)
+    if((f->shared->open_objs = H5SL_create(H5SL_TYPE_HADDR, NULL)) == NULL)
         HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "unable to create open object container")
 
 done:
@@ -355,7 +355,6 @@ H5FO_dest(const H5F_t *f)
     assert(f);
     assert(f->shared);
     assert(f->shared->open_objs);
-
     /* Check if the object info set is empty */
     if(H5SL_count(f->shared->open_objs)!=0)
         HGOTO_ERROR(H5E_CACHE, H5E_CANTRELEASE, FAIL, "objects still in open object info set")
@@ -400,7 +399,7 @@ H5FO_top_create(H5F_t *f)
     HDassert(f);
 
     /* Create container used to store open object info */
-    if((f->obj_count = H5SL_create(H5SL_TYPE_HADDR)) == NULL)
+    if((f->obj_count = H5SL_create(H5SL_TYPE_HADDR, NULL)) == NULL)
         HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "unable to create open object container")
 
 done:

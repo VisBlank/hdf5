@@ -377,12 +377,45 @@ H5Itype_exists(H5I_type_t type)
     if(type <= H5I_BADID || type >= H5I_next_type)
 	HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "invalid type number")
 
-    if(NULL == H5I_id_type_list_g[type])
-        ret_value = FALSE;
+    if(0 > (ret_value = H5I_type_exists(type)))
+	HGOTO_ERROR(H5E_INTERNAL, H5E_SYSERRSTR, FAIL, "H5I_type_exists() failed")
 
 done:
     FUNC_LEAVE_API(ret_value)
 } /* end H5Itype_exists() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5I_type_exists
+ *
+ * Purpose:     Determine if a given type is currently registered with 
+ *		the library.  Code derived from the previous version of 
+ *		H5Itype_exists().
+ *
+ * Return:	Success:        1 if the type is registered, 0 if it is not
+ *		Failure:	Negative
+ *
+ * Programmer:	John Mainzer
+ *              Thursday, Dec. 8, 2011
+ *
+ *-------------------------------------------------------------------------
+ */
+htri_t
+H5I_type_exists(H5I_type_t type)
+{
+    htri_t ret_value = TRUE;                      /* Return value */
+
+    FUNC_ENTER_NOAPI(H5I_type_exists, FAIL)
+
+    if(type <= H5I_BADID || type >= H5I_next_type)
+	HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "invalid type number")
+
+    if(NULL == H5I_id_type_list_g[type])
+        ret_value = FALSE;
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5I_type_exists() */
 
 
 /*-------------------------------------------------------------------------
@@ -1926,6 +1959,9 @@ done:
  *		Nathaniel Furrer
  *		Friday, April 23, 2004
  *
+ * Modifications: JRM -- 12/15/11 
+ *		Updated function for revisions to H5I_search().
+ *
  *-------------------------------------------------------------------------
  */
 void *
@@ -1938,7 +1974,10 @@ H5Isearch(H5I_type_t type, H5I_search_func_t func, void *key)
     if(H5I_IS_LIB_TYPE(type))
         HGOTO_ERROR(H5E_ATOM, H5E_BADGROUP, NULL, "cannot call public function on library type")
 
-    ret_value = H5I_search(type, func, key, TRUE);
+    /* Note that H5I_search now returns an error code.  We ignore it 
+     * here, as we can't do anything with it without revising the API.
+     */
+    H5I_search(type, func, key, TRUE, &ret_value);
 
 done:
     FUNC_LEAVE_API(ret_value)
@@ -1970,25 +2009,36 @@ done:
  *      Added app_ref parameter.  When set to TRUE, the function will only
  *      operate on ids that have a nonzero application reference count.
  *
+ * 	John Mainzer
+ *	Tuesday, Dec. 14, 2011
+ *	Reworked routine to return an error code, and to return the 
+ *	the result of the search in the location indicated by the 
+ *	result_ptr parameter.
+ *
  *-------------------------------------------------------------------------
  */
-void *
-H5I_search(H5I_type_t type, H5I_search_func_t func, void *key, hbool_t app_ref)
-{
-    H5I_id_type_t	*type_ptr;	/*ptr to the type	*/
-    void		*ret_value = NULL;	/*return value		*/
 
-    FUNC_ENTER_NOAPI(H5I_search, NULL)
+herr_t
+H5I_search(H5I_type_t type, H5I_search_func_t func, void *key, hbool_t app_ref, void **result_ptr)
+{
+    H5I_id_type_t *type_ptr;		/*ptr to the type	*/
+    herr_t	  ret_value = SUCCEED;	/*return value		*/
+
+    FUNC_ENTER_NOAPI(H5I_search, FAIL)
 
     /* Check arguments */
     if(type <= H5I_BADID || type >= H5I_next_type)
-	HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, NULL, "invalid type number")
+	HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "invalid type number")
+    if(result_ptr == NULL)
+	HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "result_ptr == NULL")
+    *result_ptr = NULL; /* will overwrite this if search is successful */
     type_ptr = H5I_id_type_list_g[type];
     if(type_ptr == NULL || type_ptr->count <= 0)
-	HGOTO_ERROR(H5E_ATOM, H5E_BADGROUP, NULL, "invalid type")
+	HGOTO_ERROR(H5E_ATOM, H5E_BADGROUP, FAIL, "invalid type")
 
     /* Only iterate through hash table if there are IDs in group */
     if(type_ptr->ids > 0) {
+	herr_t          func_ret_val;
         H5I_id_info_t	*id_ptr;	/*ptr to the new ID	*/
         H5I_id_info_t	*next_id;	/*ptr to the next ID	*/
         unsigned i;			/*counter		*/
@@ -1998,10 +2048,16 @@ H5I_search(H5I_type_t type, H5I_search_func_t func, void *key, hbool_t app_ref)
             id_ptr = type_ptr->id_list[i];
             while(id_ptr) {
                 next_id = id_ptr->next;      /* Protect against ID being deleted in callback */
-                /* (Casting away const OK -QAK) */
-                if((!app_ref || id_ptr->app_count) && (*func)((void *)id_ptr->obj_ptr, id_ptr->id, key))
+                if((!app_ref || id_ptr->app_count)){
                     /* (Casting away const OK -QAK) */
-                    HGOTO_DONE((void *)id_ptr->obj_ptr);	/*found the item*/
+		    func_ret_val = (*func)((void *)id_ptr->obj_ptr, id_ptr->id, key);
+		    if(func_ret_val > 0) { /* found it -- search is compete */
+                        /* (Casting away const OK -QAK) */
+			*result_ptr = (void *)id_ptr->obj_ptr;
+			HGOTO_DONE(SUCCEED)
+                    }else if(func_ret_val < 0) /* error -- bail now and report failure */
+			HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "func failed")
+                }
                 id_ptr = next_id;
             } /* end while */
         } /* end for */
@@ -2010,6 +2066,88 @@ H5I_search(H5I_type_t type, H5I_search_func_t func, void *key, hbool_t app_ref)
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5I_search() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5I_iterate
+ *
+ * Purpose:	Apply function FUNC to each member of type TYPE (with 
+ *		non-zero application reference count if app_ref is TRUE).  
+ *		Stop if FUNC returns a non zero value (i.e. anything 
+ *		other than H5_ITER_CONT).  
+ *
+ *		If FUNC returns a positive value (i.e. H5_ITER_STOP), 
+ *		return SUCCEED.
+ *
+ *		If FUNC returns a negative value (i.e. H5_ITER_ERROR), 
+ *		return FAIL.
+ *		
+ *		The FUNC should take a pointer to the object and the 
+ *		udata as arguments and return non-zero to terminate 
+ *		siteration, and zero to continue.
+ *
+ * Limitation:	Currently there is no way to start the itteration from 
+ *		where a previous itteration left off.
+ *
+ * Return:	Success:	SUCCEED
+ *		Failure:	FAIL
+ *
+ * Programmer:	John Mainzer
+ *		Monday, December 6, 2011
+ *
+ * Modifications:  None.
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5I_iterate(H5I_type_t type, H5I_search_func_t func, void *udata, hbool_t app_ref)
+{
+    H5I_id_type_t *type_ptr;		/*ptr to the type	*/
+    herr_t	   ret_value = SUCCEED;	/*return value		*/
+
+    FUNC_ENTER_NOAPI(H5I_iterate, FAIL)
+
+    /* Check arguments */
+    if(type <= H5I_BADID || type >= H5I_next_type)
+	HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "invalid type number")
+
+    type_ptr = H5I_id_type_list_g[type];
+
+    if(type_ptr == NULL || type_ptr->count <= 0)
+	HGOTO_ERROR(H5E_ATOM, H5E_BADGROUP, FAIL, "invalid type")
+
+    /* Only iterate through hash table if there are IDs in group */
+    if(type_ptr->ids > 0) {
+        herr_t		func_ret_val;
+        H5I_id_info_t	*id_ptr;	/*ptr to the new ID	*/
+        H5I_id_info_t	*next_id;	/*ptr to the next ID	*/
+        unsigned i;			/*counter		*/
+
+        /* Start at the beginning of the array */
+        for(i = 0; i < type_ptr->hash_size; i++) {
+            id_ptr = type_ptr->id_list[i];
+            while(id_ptr) {
+                /* Protect against ID being deleted in callback */
+                next_id = id_ptr->next;
+
+                if((!app_ref) || (id_ptr->app_count > 0)) {
+                    /* (Casting away const OK) */
+		    func_ret_val = 
+			(*func)((void *)id_ptr->obj_ptr, id_ptr->id, udata);
+
+		    if(func_ret_val > 0)
+                        HGOTO_DONE(SUCCEED)	/* terminate iteration early */
+		    else if(func_ret_val < 0)
+			HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "func failed")
+		}
+                id_ptr = next_id;
+            } /* end while */
+        } /* end for */
+    } /* end if */
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5I_iterate() */
 
 
 /*-------------------------------------------------------------------------

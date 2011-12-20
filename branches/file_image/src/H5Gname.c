@@ -686,6 +686,9 @@ done:
  *
  * Purpose: H5I_search callback function to replace group entry names
  *
+ *	    Note: Function now passed to H5I_iterate().  No function
+ *	    change required.			JRM -- 12/15/11
+ *
  * Return: Success: 0, Failure: -1
  *
  * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
@@ -963,6 +966,10 @@ done:
  *
  * Date: June 11, 2002
  *
+ * Changes:  Modified function to use H5I_iterate instead of H5I_search(), 
+ *		and to fail if that function reports failure.
+ *							JRM -- 12/15/11
+ *
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -1068,15 +1075,18 @@ H5G_name_replace(const H5O_link_t *lnk, H5G_names_op_t op, H5F_t *src_file,
 
             /* Search through group IDs */
             if(search_group)
-                H5I_search(H5I_GROUP, H5G_name_replace_cb, &names, FALSE);
+                if(0 > H5I_iterate(H5I_GROUP, H5G_name_replace_cb, &names, FALSE))
+		    HGOTO_ERROR(H5E_INTERNAL, H5E_BADITER, FAIL, "iteration failed(1)")
 
             /* Search through dataset IDs */
             if(search_dataset)
-                H5I_search(H5I_DATASET, H5G_name_replace_cb, &names, FALSE);
+                if(0 > H5I_iterate(H5I_DATASET, H5G_name_replace_cb, &names, FALSE))
+		    HGOTO_ERROR(H5E_INTERNAL, H5E_BADITER, FAIL, "iteration failed(2)")
 
             /* Search through datatype IDs */
             if(search_datatype)
-                H5I_search(H5I_DATATYPE, H5G_name_replace_cb, &names, FALSE);
+                if(0 > H5I_iterate(H5I_DATATYPE, H5G_name_replace_cb, &names, FALSE))
+		    HGOTO_ERROR(H5E_INTERNAL, H5E_BADITER, FAIL, "iteration failed(3)")
         } /* end if */
     } /* end if */
 

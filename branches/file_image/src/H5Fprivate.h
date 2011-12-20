@@ -529,8 +529,8 @@ H5_DLL H5F_t *H5F_get_parent(const H5F_t *f);
 H5_DLL unsigned H5F_get_nmounts(const H5F_t *f);
 H5_DLL hid_t H5F_get_access_plist(H5F_t *f, hbool_t app_ref);
 H5_DLL hid_t H5F_get_id(H5F_t *file, hbool_t app_ref);
-H5_DLL size_t H5F_get_obj_count(const H5F_t *f, unsigned types, hbool_t app_ref);
-H5_DLL size_t H5F_get_obj_ids(const H5F_t *f, unsigned types, size_t max_objs, hid_t *obj_id_list, hbool_t app_ref);
+H5_DLL herr_t H5F_get_obj_count(const H5F_t *f, unsigned types, hbool_t app_ref, size_t *obj_id_count_ptr);
+H5_DLL herr_t H5F_get_obj_ids(const H5F_t *f, unsigned types, size_t max_objs, hid_t *oid_list, hbool_t app_ref, size_t *obj_id_count_ptr);
 
 /* Functions than retrieve values set/cached from the superblock/FCPL */
 H5_DLL haddr_t H5F_get_base_addr(const H5F_t *f);

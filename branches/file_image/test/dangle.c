@@ -666,6 +666,7 @@ main(void)
     nerrors += test_dangle_datatype2(H5F_CLOSE_WEAK);
     nerrors += test_dangle_attribute(H5F_CLOSE_WEAK);
 
+
     /* Run tests w/semi file close */
     puts("Testing dangling objects with semi file close:");
     nerrors += test_dangle_dataset(H5F_CLOSE_SEMI);
@@ -674,6 +675,7 @@ main(void)
     nerrors += test_dangle_datatype2(H5F_CLOSE_SEMI);
     nerrors += test_dangle_attribute(H5F_CLOSE_SEMI);
 
+
     /* Run tests w/strong file close */
     puts("Testing dangling objects with strong file close:");
     nerrors += test_dangle_dataset(H5F_CLOSE_STRONG);
@@ -681,6 +683,7 @@ main(void)
     nerrors += test_dangle_datatype1(H5F_CLOSE_STRONG);
     nerrors += test_dangle_datatype2(H5F_CLOSE_STRONG);
     nerrors += test_dangle_attribute(H5F_CLOSE_STRONG);
+
 
     /* Close open IDs "the hard way" */
     nerrors += test_dangle_force();
