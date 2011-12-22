@@ -110,8 +110,8 @@ file_image_daisy_chain_test(void)
 	space_id = H5Screate_simple(1, dims, dims);
         VRFY((space_id >= 0), "created data space");
 
-        dset_id = H5Dcreate(file_id, "v", H5T_NATIVE_INT, space_id,
-                            H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        dset_id = H5Dcreate2(file_id, "v", H5T_NATIVE_INT, space_id,
+                             H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
         VRFY((dset_id >= 0), "created data set");
  
 

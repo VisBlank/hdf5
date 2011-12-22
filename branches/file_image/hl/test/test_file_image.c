@@ -136,7 +136,7 @@ static int test_file_image(size_t open_images, unsigned *flags, size_t nflags)
             FAIL_PUTS_ERROR("H5Pset_chunk() failed");
 
         /* create and write an integer type dataset named "dset" */
-        if ((dset_id[i] = H5Dcreate(file_id[i], DSET_NAME, H5T_NATIVE_INT, file_space, H5P_DEFAULT, plist, H5P_DEFAULT)) < 0)
+        if ((dset_id[i] = H5Dcreate2(file_id[i], DSET_NAME, H5T_NATIVE_INT, file_space, H5P_DEFAULT, plist, H5P_DEFAULT)) < 0)
             FAIL_PUTS_ERROR("H5Dcreate() failed");
      
         /* dataset in open image 1 is written with "wrong" data */        
@@ -250,7 +250,7 @@ static int test_file_image(size_t open_images, unsigned *flags, size_t nflags)
             continue;
 
         /* open dataset in file image */ 
-        if ((dset_id[i] = H5Dopen(file_id[i], DSET_NAME, H5P_DEFAULT)) < 0)
+        if ((dset_id[i] = H5Dopen2(file_id[i], DSET_NAME, H5P_DEFAULT)) < 0)
             FAIL_PUTS_ERROR("H5Dopen() failed");
 
         /* get dataspace for the dataset */
@@ -411,7 +411,7 @@ static int test_file_image(size_t open_images, unsigned *flags, size_t nflags)
             continue;
 
         /* open dataset in file image */ 
-        if ((dset_id[i] = H5Dopen(file_id[i], DSET_NAME, H5P_DEFAULT)) < 0)
+        if ((dset_id[i] = H5Dopen2(file_id[i], DSET_NAME, H5P_DEFAULT)) < 0)
             FAIL_PUTS_ERROR("H5Dopen() failed");
 
         /* get dataspace for the dataset */

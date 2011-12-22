@@ -601,7 +601,7 @@ test_core(void)
     
     /* Create new dset, invoking H5FD_core_write */
     reset_udata(udata);
-    dset = H5Dcreate(file, DSET_NAME, H5T_NATIVE_INT, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    dset = H5Dcreate2(file, DSET_NAME, H5T_NATIVE_INT, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     VERIFY(dset >=0, "H5Dcreate failed");
     
     /* Flush the write and check the realloc callback */
@@ -725,8 +725,8 @@ test_get_file_image(const char * test_banner,
     VERIFY(space_id >= 0, "H5Screate() failed");
 
     /* Create a dataset */
-    dset_id = H5Dcreate(file_id, "dset 0", H5T_NATIVE_INT, space_id, 
-                        H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    dset_id = H5Dcreate2(file_id, "dset 0", H5T_NATIVE_INT, space_id, 
+                         H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     VERIFY(dset_id >=0, "H5Dcreate() failed");
 
     /* write some data to the data set */
@@ -1023,8 +1023,8 @@ test_get_file_image_error_rejection(void)
     VERIFY(space_id >= 0, "H5Screate() failed");
 
     /* Create a dataset */
-    dset_id = H5Dcreate(file_id, "dset 0", H5T_NATIVE_INT, space_id, 
-                        H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    dset_id = H5Dcreate2(file_id, "dset 0", H5T_NATIVE_INT, space_id, 
+                         H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     VERIFY(dset_id >=0, "H5Dcreate() failed");
 
     /* write some data to the data set */
@@ -1167,8 +1167,8 @@ test_get_file_image_error_rejection(void)
     VERIFY(space_id >= 0, "H5Screate() failed");
 
     /* Create a dataset */
-    dset_id = H5Dcreate(file_id, "dset 0", H5T_NATIVE_INT, space_id, 
-                        H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    dset_id = H5Dcreate2(file_id, "dset 0", H5T_NATIVE_INT, space_id, 
+                         H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     VERIFY(dset_id >=0, "H5Dcreate() failed");
 
     /* write some data to the data set */
@@ -1238,8 +1238,8 @@ test_get_file_image_error_rejection(void)
     VERIFY(space_id >= 0, "H5Screate() failed");
 
     /* Create a dataset */
-    dset_id = H5Dcreate(file_id, "dset 0", H5T_NATIVE_INT, space_id, 
-                        H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    dset_id = H5Dcreate2(file_id, "dset 0", H5T_NATIVE_INT, space_id, 
+                         H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     VERIFY(dset_id >=0, "H5Dcreate() failed");
 
     /* write some data to the data set */
