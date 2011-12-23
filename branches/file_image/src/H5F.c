@@ -2648,6 +2648,21 @@ done:
  *
  *		Note that any user block is skipped.
  *
+ *		Also note that the function may not be used on files 
+ *		opened with either the split/multi file driver or the
+ *		family file driver.
+ *
+ *		In the former case, the sparse address space makes the 
+ *		get file image operation impractical, due to the size of
+ *		the image typically required.
+ *
+ *		In the case of the family file driver, the problem is
+ *		the driver message in the super block, which will prevent
+ *		the image being opened with any driver other than the
+ *		family file driver -- which negates the purpose of the 
+ *		operation.  This can be fixed, but no resources for 
+ *		this now.
+ *
  * Return:      Success:        Bytes copied / number of bytes needed.
  *              Failure:        negative value
  *
@@ -2705,6 +2720,30 @@ H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len)
     if(strcmp(fd_ptr->cls->name, "multi") == 0)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, 
                     "Not supported for multi file driver.")
+
+    /* While the family file driver is conceptually fully compatable 
+     * with the get file image operation, it sets a file driver message
+     * in the super block that prevents the image being opened with any
+     * driver other than the family file driver.  Needless to say, this
+     * rather defeats the purpose of the get file image operation.
+     *
+     * While this problem is quire solvable, the required time and 
+     * resources are lacking at present.  Hence, for now, we dont' 
+     * allow the get file image operation to be perfomed on files 
+     * opened with the family file driver.
+     *
+     * Observe that the following test only looks at the top level 
+     * driver, and fails if there is some other driver sitting on to
+     * of the family file driver.  
+     *
+     * I don't think this can happen at present, but that may change
+     * in the future.
+     *                                   JRM -- 12/21/11
+     */
+    if(strcmp(fd_ptr->cls->name, "family") == 0)
+        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, 
+                    "Not supported for family file driver.")
+
 
     /* Go get the actual file size */
     if(HADDR_UNDEF == (eoa = H5FD_get_eoa(file->shared->lf, H5FD_MEM_DEFAULT)))

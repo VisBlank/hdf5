@@ -1272,6 +1272,72 @@ test_get_file_image_error_rejection(void)
     err = H5Fclose(file_id);
     VERIFY(err == SUCCEED, "H5Fclose(2) failed.");
 
+
+    /************************** Test #4 **********************************/
+    /* set up a family file driver test file, and try to get its image 
+     * with H5Fget_file_image().  Attempt should fail.
+     */
+
+    if(verbose) HDfprintf(stdout, "%s: starting subtest 4\n", fcn_name);
+
+    /* create fapl */ 
+    fapl_id = H5Pcreate(H5P_FILE_ACCESS);
+    VERIFY(fapl_id >= 0, "H5Pcreate(3) failed");
+
+    err = H5Pset_fapl_family(fapl_id, (hsize_t)FAMILY_SIZE, H5P_DEFAULT);
+    VERIFY(err >= 0, "H5Pset_fapl_family failed");
+
+    h5_fixname(FILENAME2[3], fapl_id, file_name, sizeof(file_name));
+    VERIFY(HDstrlen(file_name)>0, "h5_fixname failed");
+
+    if(verbose)
+        HDfprintf(stdout, "%s: file_name = \"%s\".\n", fcn_name, file_name);
+
+    /* create the file */
+    file_id = H5Fcreate(file_name, 0, H5P_DEFAULT, fapl_id);
+    VERIFY(file_id >= 0, "H5Fcreate() failed.");
+
+    /* Set up data space for new new data set */
+    dims[0] = 10;
+    dims[1] = 10;
+    space_id = H5Screate_simple(2, dims, dims);
+    VERIFY(space_id >= 0, "H5Screate() failed");
+
+    /* Create a dataset */
+    dset_id = H5Dcreate2(file_id, "dset 0", H5T_NATIVE_INT, space_id, 
+                         H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    VERIFY(dset_id >=0, "H5Dcreate() failed");
+
+    /* write some data to the data set */
+    for (i = 0; i < 100; i++)
+        data[i] = i;
+    err = H5Dwrite(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, 
+                   H5P_DEFAULT, (void *)data);
+    VERIFY(err >= 0, "H5Dwrite() failed.");
+    
+    /* Flush the file */
+    err = H5Fflush(file_id, H5F_SCOPE_GLOBAL);
+    VERIFY(err >= 0, "H5Fflush failed");
+
+    /* attempt to get the size of the file -- should fail */
+    H5E_BEGIN_TRY {
+        image_size = H5Fget_file_image(file_id, NULL, (size_t)0);
+    } H5E_END_TRY;
+    VERIFY(image_size == -1, "H5Fget_file_image(7) succeeded.");
+    if(verbose)
+        HDfprintf(stdout, "%s: image_size(test 7) = %lld.\n", 
+                  fcn_name, (long long)image_size);
+
+    /* Close dset and space */
+    err = H5Dclose(dset_id); 
+    VERIFY(err >= 0, "H5Dclose failed");
+    err = H5Sclose(space_id);
+    VERIFY(err >= 0, "H5Sclose failed");
+
+    /* close the test file */
+    err = H5Fclose(file_id);
+    VERIFY(err == SUCCEED, "H5Fclose(2) failed.");
+
     /* tidy up */
     result = h5_cleanup(FILENAME2, fapl_id);
     VERIFY(result != 0, "h5_cleanup(2 failed.");
@@ -1329,6 +1395,16 @@ main(void)
         errors += test_get_file_image("H5Fget_file_image() with core driver",
                                       2, fapl);
 #if 0
+    /* at present, H5Fget_file_image() rejects files opened with the 
+     * family file driver, due to the addition of a driver info message
+     * in the super block.  This message prevents the image being opened
+     * with any driver other than the family file driver, which sort of 
+     * defeats the purpose of the get file image operation.
+     *
+     * While this issues is quite fixable, we don't have time or resources
+     * for this right now.  Once we do, the following code should be 
+     * suitable for testing the fix.
+     */
     /* test H5Fget_file_image() with family file driver */
     fapl = H5Pcreate(H5P_FILE_ACCESS);
     if(H5Pset_fapl_family(fapl, (hsize_t)FAMILY_SIZE, H5P_DEFAULT) < 0)
