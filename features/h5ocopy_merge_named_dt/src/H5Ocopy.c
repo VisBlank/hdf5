@@ -1896,7 +1896,7 @@ H5O_copy_insert_named_dt(H5F_t *file_src, H5O_t *oh_src, H5O_loc_t *oloc_dst,
 {
     H5O_copy_search_named_dt_key_t *key = NULL; /* Skiplist key */
     haddr_t     *addr = NULL;   /* Destination object address */
-    herr_t      ret_value;      /* Return value */
+    herr_t      ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT(H5O_copy_insert_named_dt)
 
