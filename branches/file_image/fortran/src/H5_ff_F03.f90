@@ -47,16 +47,13 @@ CONTAINS
 !  end 	 - ending pointer address
 !
 ! Outputs:
-!  offset - offset of a member within the derived type
+!  offset - offset
 !
 ! AUTHOR
 !  M. Scot Breitenfeld
 !  Augest 25, 2008
 !
-! ACKNOWLEDGEMENTS
-!  Joe Krahn
-!
-! Fortran2003 Interface:
+! Signature:
   FUNCTION h5offsetof(start,end) RESULT(offset)
     USE, INTRINSIC :: ISO_C_BINDING
     USE H5GLOBAL
