@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 2.8.6)
 PROJECT (HDF5 C CXX)
 
 #-----------------------------------------------------------------------------
@@ -69,12 +69,6 @@ PROJECT (HDF5 C CXX)
 #   # Add the sub project
 #   ADD_SUBDIRECTORY(Utilities/hdf5-1.8)
 #-----------------------------------------------------------------------------
-
-IF (BUILD_SHARED_LIBS)
-  SET (BUILD_NAME_EXT "SHARED")
-ELSE (BUILD_SHARED_LIBS)
-  SET (BUILD_NAME_EXT "STATIC")
-ENDIF (BUILD_SHARED_LIBS)
 
 #-----------------------------------------------------------------------------
 # Allow Visual Studio solution directories
@@ -209,6 +203,7 @@ SET (HDF5_PACKAGE_BUGREPORT "help@hdfgroup.org")
 # Include some macros for reusable code
 #-----------------------------------------------------------------------------
 INCLUDE (${HDF5_RESOURCES_DIR}/HDFMacros.cmake)
+INCLUDE (${HDF5_RESOURCES_DIR}/HDFLibMacros.cmake)
 INCLUDE (${HDF5_RESOURCES_DIR}/HDF5Macros.cmake)
 
 #-----------------------------------------------------------------------------
@@ -259,13 +254,6 @@ SET (EXTERNAL_LIBRARYDLL_LIST "")
 INCLUDE (${HDF5_RESOURCES_DIR}/ConfigureChecks.cmake)
 
 #-----------------------------------------------------------------------------
-# Option to use legacy naming for windows libs/programs, default is legacy
-#-----------------------------------------------------------------------------
-IF (WIN32 AND NOT CYGWIN)
-  OPTION (HDF_LEGACY_NAMING "Use Legacy Names for Libraries and Programs" OFF)
-ENDIF (WIN32 AND NOT CYGWIN)
-
-#-----------------------------------------------------------------------------
 # Option to Build Shared/Static libs, default is static
 #-----------------------------------------------------------------------------
 OPTION (BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
@@ -295,17 +283,6 @@ IF (BUILD_STATIC_EXECS)
     SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
   ENDIF (NOT WIN32)
 ENDIF (BUILD_STATIC_EXECS)
-
-#-----------------------------------------------------------------------------
-# Option to Build Static PIC
-#-----------------------------------------------------------------------------
-OPTION (BUILD_STATIC_PIC "Build Static PIC" OFF)
-IF (BUILD_STATIC_PIC)
-  IF (NOT WIN32)
-    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-  ENDIF (NOT WIN32)
-ENDIF (BUILD_STATIC_PIC)
 
 #-----------------------------------------------------------------------------
 # Option to use code coverage
@@ -402,6 +379,13 @@ IF (CMAKE_COMPILER_IS_GNUCC)
     SET (CMAKE_C_FLAGS "${CMAKE_ANSI_CFLAGS} ${CMAKE_C_FLAGS} -std=c99 -fomit-frame-pointer -finline-functions -fno-common")
   ENDIF (CMAKE_BUILD_TYPE MATCHES Debug)
 ENDIF (CMAKE_COMPILER_IS_GNUCC)
+IF (CMAKE_COMPILER_IS_GNUCXX)
+  IF (CMAKE_BUILD_TYPE MATCHES Debug)
+    SET (CMAKE_CXX_FLAGS "${CMAKE_ANSI_CFLAGS} ${CMAKE_CXX_FLAGS} -finline-functions -fno-common")
+  ELSE (CMAKE_BUILD_TYPE MATCHES Debug)
+    SET (CMAKE_CXX_FLAGS "${CMAKE_ANSI_CFLAGS} ${CMAKE_CXX_FLAGS} -fomit-frame-pointer -finline-functions -fno-common")
+  ENDIF (CMAKE_BUILD_TYPE MATCHES Debug)
+ENDIF (CMAKE_COMPILER_IS_GNUCXX)
 
 #-----------------------------------------------------------------------------
 # Option to embed library info into executables
@@ -420,9 +404,10 @@ IF (HDF5_DISABLE_COMPILER_WARNINGS)
   # warning level is given, so remove it.
   IF (MSVC)
     SET (HDF5_WARNINGS_BLOCKED 1)
-    STRING (REGEX REPLACE "(^| )([/-])W[0-9]( |$)" " "
-        CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+    STRING (REGEX REPLACE "(^| )([/-])W[0-9]( |$)" " " CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
     SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /w")
+    STRING (REGEX REPLACE "(^| )([/-])W[0-9]( |$)" " " CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /w")
   ENDIF (MSVC)
   IF (WIN32 AND NOT CYGWIN)
     ADD_DEFINITIONS (-D_CRT_SECURE_NO_WARNINGS)
@@ -436,6 +421,7 @@ IF (HDF5_DISABLE_COMPILER_WARNINGS)
   # Most compilers use -w to suppress warnings.
   IF (NOT HDF5_WARNINGS_BLOCKED)
     SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w")
+    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
   ENDIF (NOT HDF5_WARNINGS_BLOCKED)
 ENDIF (HDF5_DISABLE_COMPILER_WARNINGS)
 
@@ -622,11 +608,11 @@ IF (NOT HDF5_EXTERNALLY_CONFIGURED)
   IF (HDF5_PACKAGE_EXTLIBS)
     SET (HDF5_NO_PACKAGES OFF CACHE BOOL "CPACK - Disable packaging" FORCE)
     IF (HDF5_ENABLE_Z_LIB_SUPPORT AND ZLIB_FOUND)
-      PACKAGE_ZLIB_LIBRARY (${HDF5_ALLOW_EXTERNAL_SUPPORT} ${LIB_TYPE})
+      PACKAGE_ZLIB_LIBRARY (${HDF5_ALLOW_EXTERNAL_SUPPORT})
     ENDIF (HDF5_ENABLE_Z_LIB_SUPPORT AND ZLIB_FOUND)
     
     IF (HDF5_ENABLE_SZIP_SUPPORT AND SZIP_FOUND)
-      PACKAGE_SZIP_LIBRARY (${HDF5_ALLOW_EXTERNAL_SUPPORT} ${LIB_TYPE})
+      PACKAGE_SZIP_LIBRARY (${HDF5_ALLOW_EXTERNAL_SUPPORT})
     ENDIF (HDF5_ENABLE_SZIP_SUPPORT AND SZIP_FOUND)
   ENDIF (HDF5_PACKAGE_EXTLIBS)
 ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED)
