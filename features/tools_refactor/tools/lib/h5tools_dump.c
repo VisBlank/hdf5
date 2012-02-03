@@ -186,6 +186,7 @@ BLOCK, /*blockbegin */
 };
 
 const h5tools_dump_header_t* h5tools_dump_header_format;
+table_t *h5dump_type_table = NULL;  /*type table reference for datatype dump  */
 
 /* local prototypes */
 

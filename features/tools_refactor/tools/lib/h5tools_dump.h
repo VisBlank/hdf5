@@ -31,6 +31,8 @@
 extern "C" {
 #endif
 
+H5TOOLS_DLLVAR table_t *h5dump_type_table;  /*type table reference for datatype dump  */
+
 /* Definitions of useful routines */
 H5TOOLS_DLL void    h5tools_dump_init(void);
 

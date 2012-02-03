@@ -114,7 +114,6 @@ typedef struct find_objs_t {
 } find_objs_t;
 
 H5TOOLS_DLLVAR int     h5tools_nCols;               /*max number of columns for outputting  */
-H5TOOLS_DLLVAR table_t *h5dump_type_table;  /*type table reference for datatype dump  */
 
 /* Definitions of useful routines */
 H5TOOLS_DLL void     indentation(int);
