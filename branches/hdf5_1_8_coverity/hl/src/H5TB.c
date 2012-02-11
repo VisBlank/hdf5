@@ -180,11 +180,11 @@ herr_t H5TBmake_table(const char *table_title,
         if((member_name = H5Tget_member_name(mem_type_id, (unsigned)i)) == NULL)
             goto out;
 
-        strcpy(attr_name, "FIELD_");
-        sprintf(aux, "%d", (int)i);
-        strcat(attr_name, aux );
-        sprintf(aux, "%s", "_NAME");
-        strcat(attr_name, aux);
+        HDstrncpy(attr_name, "FIELD_", 6);
+        HDsnprintf(aux, 12, "%d", (int)i);
+        HDstrncat(attr_name, aux, 12);
+        HDsnprintf(aux, 6, "%s", "_NAME");
+        HDstrncat(attr_name, aux, 7);
 
         /* attach the attribute */
         if(H5LTset_attribute_string(loc_id, dset_name, attr_name, member_name) < 0)
@@ -210,11 +210,11 @@ herr_t H5TBmake_table(const char *table_title,
             if((member_name = H5Tget_member_name(mem_type_id, (unsigned)i)) == NULL)
                 goto out;
 
-            strcpy(attr_name, "FIELD_");
-            sprintf(aux, "%d", (int)i);
-            strcat(attr_name, aux);
-            sprintf(aux, "%s", "_FILL");
-            strcat(attr_name, aux);
+            HDstrncpy(attr_name, "FIELD_", 6);
+            HDsnprintf(aux, 12, "%d", (int)i);
+            HDstrncat(attr_name, aux, 12);
+            HDsnprintf(aux, 6, "%s", "_FILL");
+            HDstrncat(attr_name, aux, 7);
 
             if((attr_id = H5Acreate2(did, attr_name, field_types[i], sid, H5P_DEFAULT, H5P_DEFAULT)) < 0)
                 goto out;
@@ -2244,11 +2244,11 @@ herr_t H5TBinsert_field(hid_t loc_id,
         /* get the member offset */
         member_offset = H5Tget_member_offset(tid_1, (unsigned)i);
 
-        strcpy(attr_name, "FIELD_");
-        sprintf(aux, "%d", (int)i);
-        strcat(attr_name, aux);
-        sprintf(aux, "%s", "_FILL");
-        strcat(attr_name, aux);
+        HDstrncpy(attr_name, "FIELD_", 6);
+        HDsnprintf(aux, 12, "%d", (int)i);
+        HDstrncat(attr_name, aux, 12);
+        HDsnprintf(aux, 6, "%s", "_FILL");
+        HDstrncat(attr_name, aux, 7);
 
         if((attr_id = H5Acreate2(did_1, attr_name, member_type_id, sid_1, H5P_DEFAULT, H5P_DEFAULT)) < 0)
             goto out;
@@ -2269,11 +2269,11 @@ herr_t H5TBinsert_field(hid_t loc_id,
     *-------------------------------------------------------------------------
     */
     if(fill_data) {
-        strcpy(attr_name, "FIELD_");
-        sprintf(aux, "%d",(int)(nfields - 1));
-        strcat(attr_name, aux);
-        sprintf(aux, "%s", "_FILL");
-        strcat(attr_name, aux);
+        HDstrncpy(attr_name, "FIELD_", 6);
+        HDsnprintf(aux, 12, "%d",(int)(nfields - 1));
+        HDstrncat(attr_name, aux, 12);
+        HDsnprintf(aux, 6, "%s", "_FILL");
+        HDstrncat(attr_name, aux, 7);
 
         /* get the member type */
         if((member_type_id = H5Tget_member_type(tid_1, (unsigned)nfields - 1)) < 0)
@@ -2707,11 +2707,11 @@ herr_t H5TBdelete_field(hid_t loc_id,
             /* get the member offset */
             member_offset = H5Tget_member_offset(tid_1, (unsigned)i);
 
-            strcpy(attr_name, "FIELD_");
-            sprintf(aux, "%d", (int)i);
-            strcat(attr_name, aux);
-            sprintf(aux, "%s", "_FILL");
-            strcat(attr_name, aux);
+            HDstrncpy(attr_name, "FIELD_", 6);
+            HDsnprintf(aux, 12, "%d", (int)i);
+            HDstrncat(attr_name, aux, 12);
+            HDsnprintf(aux, 6, "%s", "_FILL");
+            HDstrncat(attr_name, aux, 7);
 
             if((attr_id = H5Acreate2(did_1, attr_name, member_type_id, sid_1, H5P_DEFAULT, H5P_DEFAULT)) < 0)
                 goto out;
@@ -2837,11 +2837,11 @@ herr_t H5TBAget_fill(hid_t loc_id,
         goto out;
 
     for(i = 0; i < nfields; i++) {
-        strcpy(attr_name, "FIELD_");
-        sprintf(aux, "%d", (int)i);
-        strcat(attr_name, aux);
-        sprintf(aux, "%s", "_FILL");
-        strcat(attr_name, aux);
+        HDstrncpy(attr_name, "FIELD_", 6);
+        HDsnprintf(aux, 12, "%d", (int)i);
+        HDstrncat(attr_name, aux, 12);
+        HDsnprintf(aux, 6, "%s", "_FILL");
+        HDstrncat(attr_name, aux, 7);
 
         /* check if we have the _FILL attribute */
         if((has_fill = H5LT_find_attribute(dset_id, attr_name)) < 0)
