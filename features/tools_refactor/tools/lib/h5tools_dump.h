@@ -19,6 +19,8 @@
 #ifndef H5TOOLS_DUMP_H__
 #define H5TOOLS_DUMP_H__
 
+#include "h5tools_utils.h"
+
 /* 3 private values: can't be set, but can be read.
    Note: these are defined in H5Zprivate, they are
    duplicated here.
