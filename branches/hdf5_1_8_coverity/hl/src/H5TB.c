@@ -1734,11 +1734,11 @@ herr_t H5TBcombine_tables(hid_t loc_id1,
             /* get the member offset */
             member_offset = H5Tget_member_offset(tid_3, (unsigned)i);
 
-            HDstrncpy(attr_name, "FIELD_", 7);
-            HDsnprintf(aux, 11, "%d", (int)i);
-            HDstrncat(attr_name, aux, strlen(aux));
-            HDsnprintf(aux, 5, "%s", "_FILL");
-            HDstrncat(attr_name, aux, strlen(aux));
+            HDstrncpy(attr_name, "FIELD_", 6);
+            HDsnprintf(aux, 12, "%d", (int)i);
+            HDstrncat(attr_name, aux, 12);
+            HDsnprintf(aux, 6, "%s", "_FILL");
+            HDstrncat(attr_name, aux, 7);
 
             if((attr_id = H5Acreate2(did_3, attr_name, member_type_id, sid, H5P_DEFAULT, H5P_DEFAULT)) < 0)
                 goto out;
