@@ -1726,26 +1726,26 @@ print_enum(hid_t type, char* str, int indt)
     /* Print members */
     for (i = 0; i < nmembs; i++) {
         indentation(indt + COL, str);
-        nchars = sprintf(tmp_str, "\"%s\"", name[i]);
-        strcat(str, tmp_str);
-        sprintf(tmp_str, "%*s   ", MAX(0, 16 - nchars), "");
-        strcat(str, tmp_str);
+        nchars = HDsnprintf(tmp_str, sizeof(tmp_str), "\"%s\"", name[i]);
+        HDstrncat(str, tmp_str, strlen(tmp_str));
+        HDsnprintf(tmp_str, sizeof(tmp_str), "%*s   ", MAX(0, 16 - nchars), "");
+        HDstrncat(str, tmp_str, strlen(tmp_str));
 
         if (H5T_SGN_NONE == H5Tget_sign(native)) {
             /*On SGI Altix(cobalt), wrong values were printed out with "value+i*dst_size"
             *strangely, unless use another pointer "copy".*/
             copy = value+i*dst_size;
-            sprintf(tmp_str,"%u", *((unsigned int*)((void *)copy)));
-            strcat(str, tmp_str);
+            HDsnprintf(tmp_str, sizeof(tmp_str), "%u", *((unsigned int*)((void *)copy)));
+            HDstrncat(str, tmp_str, strlen(tmp_str));
         } else {
             /*On SGI Altix(cobalt), wrong values were printed out with "value+i*dst_size"
             *strangely, unless use another pointer "copy".*/
             copy = value+i*dst_size;
-            sprintf(tmp_str,"%d", *((int*)((void *)copy)));
-            strcat(str, tmp_str);
+            HDsnprintf(tmp_str, sizeof(tmp_str), "%d", *((int*)((void *)copy)));
+            HDstrncat(str, tmp_str, strlen(tmp_str));
         }
 
-        strcat(str, ";\n");
+        HDstrncat(str, ";\n", 2);
     }
 
     /* Release resources */
@@ -1761,8 +1761,8 @@ print_enum(hid_t type, char* str, int indt)
 out:
 
     if(0 == nmembs) {
-        sprintf(tmp_str, "\n%*s <empty>", indt + 4, "");
-        strcat(str, tmp_str);
+        HDsnprintf(tmp_str, sizeof(tmp_str), "\n%*s <empty>", indt + 4, "");
+        HDstrncat(str, tmp_str, strlen(tmp_str));
     } /* end if */
 
     /* Release resources */
