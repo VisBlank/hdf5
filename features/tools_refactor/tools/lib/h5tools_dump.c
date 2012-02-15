@@ -1328,7 +1328,7 @@ h5tools_display_simple_subset(FILE *stream, const h5tool_format_t *info, h5tools
     if (ctx->ndims > 2)
         for (i = 0; i < (size_t) ctx->ndims - 2; i++) {
             /* consider block size */
-            outer_count = outer_count * sset->count.data[i] * sset->block.data[i];
+            outer_count = outer_count * sset->count.data[i];
         }
 
     /* initialize temporary start, count and maximum start */
