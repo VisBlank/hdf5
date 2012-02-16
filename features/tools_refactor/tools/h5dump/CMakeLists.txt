@@ -51,6 +51,7 @@ IF (BUILD_TESTING)
   # Copy all the HDF5 files from the test directory into the source directory
   # --------------------------------------------------------------------
   SET (HDF5_REFERENCE_FILES
+      file_space.ddl
       filter_fail.ddl
       packedbits.ddl
       tall-1.ddl
@@ -243,6 +244,7 @@ IF (BUILD_TESTING)
       tvlstr.h5.xml
   )
   SET (HDF5_REFERENCE_TEST_FILES
+      file_space.h5
       filter_fail.h5
       packedbits.h5
       taindices.h5
@@ -679,6 +681,8 @@ IF (BUILD_TESTING)
       COMMAND    ${CMAKE_COMMAND}
           -E remove 
           h5dump-help.out
+          file_space.out
+          file_space.out.err
           filter_fail.out
           filter_fail.out.err
           packedbits.out
@@ -966,7 +970,8 @@ IF (BUILD_TESTING)
   # test for named data types
   ADD_H5_TEST (tcomp-2 0 --enable-error-stack -t /type1 --datatype /type2 --datatype=/group1/type3 tcompound.h5)
   # test for unamed type 
-  #ADD_H5_TEST (tcomp-3 0 --enable-error-stack -t /#6632 -g /group2 tcompound.h5)
+  # JIRA HDFFV-7936 ADD_H5_TEST (tcomp-3 0 "--enable-error-stack;-t;/#6632;-g;/group2;tcompound.h5")
+  ADD_H5_TEST (tcomp-3 0 "-t;/#6632;-g;/group2;tcompound.h5")
   # test complicated compound datatype
   ADD_H5_TEST (tcomp-4 0 --enable-error-stack tcompound_complex.h5)
 
@@ -1047,6 +1052,7 @@ IF (BUILD_TESTING)
   # tests for super block
   ADD_H5_TEST (tboot1 0 --enable-error-stack -H -B -d dset tfcontents1.h5)
   ADD_H5_TEST (tboot2 0 --enable-error-stack -B tfcontents2.h5)
+  ADD_H5_TEST (file_space 0 --enable-error-stack -B file_space.h5)
 
   # test -p with a non existing dataset
   ADD_H5_TEST (tperror 1 -p -d bogus tfcontents1.h5)
@@ -1156,9 +1162,7 @@ IF (BUILD_TESTING)
   ADD_H5_TEST (tlonglinks 0 --enable-error-stack tlonglinks.h5)
 
   # dimensions over 4GB, print boundary 
-  # JIRA HDFFV-7936 
   ADD_H5_TEST (tbigdims 0 --enable-error-stack -d dset4gb -s 4294967284 -c 22 tbigdims.h5)
-  #ADD_H5_TEST (tbigdims 0 -d dset4gb -s 4294967284 -c 22 tbigdims.h5)
 
   # hyperslab read
   ADD_H5_TEST (thyperslab 0 --enable-error-stack thyperslab.h5)

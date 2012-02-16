@@ -1798,6 +1798,7 @@ handle_datatypes(hid_t fid, const char *type, void UNUSED * data, int pe, const 
         if(idx == type_table->nobjs) {
             if (pe) {
                 /* unknown type */
+                HDfprintf(stdout, "\n");
                 begin_obj(h5tools_dump_header_format->datatypebegin, real_name, h5tools_dump_header_format->datatypeblockbegin);
                 HDfprintf(stdout, "\n");
                 indentation(COL);
@@ -1810,7 +1811,9 @@ handle_datatypes(hid_t fid, const char *type, void UNUSED * data, int pe, const 
             hid_t dsetid = H5Dopen2(fid, type_table->objs[idx].objname, H5P_DEFAULT);
             type_id = H5Dget_type(dsetid);
 
+            dump_indent += COL;
             dump_named_datatype(type_id, real_name);
+            dump_indent -= COL;
 
             H5Tclose(type_id);
             H5Dclose(dsetid);
