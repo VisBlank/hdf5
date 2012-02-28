@@ -55,7 +55,7 @@ static void
 leave(int ret)
 {
     h5tools_close();
-    exit(ret);
+    HDexit(ret);
 }
 
 
@@ -75,7 +75,7 @@ leave(int ret)
 static void
 usage (void)
 {
-    fprintf(stdout, "\
+    HDfprintf(stdout, "\
 usage: h5copy [OPTIONS] [OBJECTS...]\n\
    OBJECTS\n\
       -i, --input        input file name\n\
@@ -219,6 +219,7 @@ main (int argc, const char *argv[])
 
     h5tools_setprogname(PROGRAMNAME);
     h5tools_setstatus(EXIT_SUCCESS);
+
     /* initialize h5tools lib */
     h5tools_init();
 

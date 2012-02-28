@@ -25,11 +25,11 @@
  * Debug printf macros. The prefix allows output filtering by test scripts.
  */
 #ifdef H5DIFF_DEBUG
-#define h5diffdebug(x) fprintf(stderr, "h5diff debug: " x)
-#define h5diffdebug2(x1, x2) fprintf(stderr, "h5diff debug: " x1, x2)
-#define h5diffdebug3(x1, x2, x3) fprintf(stderr, "h5diff debug: " x1, x2, x3)
-#define h5diffdebug4(x1, x2, x3, x4) fprintf(stderr, "h5diff debug: " x1, x2, x3, x4)
-#define h5diffdebug5(x1, x2, x3, x4, x5) fprintf(stderr, "h5diff debug: " x1, x2, x3, x4, x5)
+#define h5diffdebug(x) HDfprintf(stderr, "h5diff debug: " x)
+#define h5diffdebug2(x1, x2) HDfprintf(stderr, "h5diff debug: " x1, x2)
+#define h5diffdebug3(x1, x2, x3) HDfprintf(stderr, "h5diff debug: " x1, x2, x3)
+#define h5diffdebug4(x1, x2, x3, x4) HDfprintf(stderr, "h5diff debug: " x1, x2, x3, x4)
+#define h5diffdebug5(x1, x2, x3, x4, x5) HDfprintf(stderr, "h5diff debug: " x1, x2, x3, x4, x5)
 #else
 #define h5diffdebug(x)
 #define h5diffdebug2(x1, x2)
@@ -153,13 +153,13 @@ void print_manager_output(void)
             overflow_file = NULL;
         }
 
-        fflush(stdout);
-        memset(outBuff, 0, OUTBUFF_SIZE);
+        HDfflush(stdout);
+        HDmemset(outBuff, 0, OUTBUFF_SIZE);
         outBuffOffset = 0;
     }
     else if( (outBuffOffset>0) && !g_Parallel)
     {
-        fprintf(stderr, "h5diff error: outBuffOffset>0, but we're not in parallel!\n");
+        HDfprintf(stderr, "h5diff error: outBuffOffset>0, but we're not in parallel!\n");
     }
 }
 
@@ -189,7 +189,7 @@ static void print_incoming_data(void)
         MPI_Iprobe(MPI_ANY_SOURCE, MPI_TAG_PRINT_DATA, MPI_COMM_WORLD, &incomingMessage, &Status);
         if(incomingMessage)
         {
-            memset(data, 0, PRINT_DATA_MAX_SIZE+1);
+            HDmemset(data, 0, PRINT_DATA_MAX_SIZE+1);
             MPI_Recv(data, PRINT_DATA_MAX_SIZE, MPI_CHAR, Status.MPI_SOURCE, MPI_TAG_PRINT_DATA, MPI_COMM_WORLD, &Status);
 
             printf("%s", data);
@@ -274,7 +274,7 @@ static int is_exclude_path (char * path, h5trav_type_t type, diff_opt_t *options
         if (exclude_path_ptr->obj_type == H5TRAV_TYPE_GROUP)
         {
             ret_cmp = HDstrncmp(exclude_path_ptr->obj_path, path,
-                                strlen(exclude_path_ptr->obj_path));
+                                HDstrlen(exclude_path_ptr->obj_path));
             if (ret_cmp == 0)
             {
                 /* check if given path belong to an excluding group, if so 
@@ -531,7 +531,7 @@ static herr_t trav_grp_symlinks(const char *path, const H5L_info_t *linfo,
     const char *ext_path;
 
     /* init linkinfo struct */
-    memset(&lnk_info, 0, sizeof(h5tool_link_info_t));
+    HDmemset(&lnk_info, 0, sizeof(h5tool_link_info_t));
 
     if (!opts->follow_links)
     {
@@ -995,7 +995,7 @@ hsize_t h5diff(const char *fname1,
             if((HDstrlen(fname1) > MAX_FILENAME) || 
                (HDstrlen(fname2) > MAX_FILENAME))
             {
-                fprintf(stderr, "The parallel diff only supports path names up to %d characters\n", MAX_FILENAME);
+                HDfprintf(stderr, "The parallel diff only supports path names up to %d characters\n", MAX_FILENAME);
                 MPI_Abort(MPI_COMM_WORLD, 0);
             } /* end if */
 
@@ -1180,12 +1180,12 @@ hsize_t diff_match(hid_t file1_id, const char *grp1, trav_info_t *info1,
         {
             objtype = table->objs[i].type;
             /* make full path for obj1 */
-            obj1_fullpath = (char*)HDcalloc (strlen(grp1_path) + strlen (table->objs[i].name) + 1, sizeof (char));
+            obj1_fullpath = (char*)HDcalloc (HDstrlen(grp1_path) + strlen (table->objs[i].name) + 1, sizeof (char));
             HDstrcpy(obj1_fullpath, grp1_path);
             HDstrcat(obj1_fullpath, table->objs[i].name);
 
             /* make full path for obj2 */
-            obj2_fullpath = (char*)HDcalloc (strlen(grp2_path) + strlen (table->objs[i].name) + 1, sizeof (char));
+            obj2_fullpath = (char*)HDcalloc (HDstrlen(grp2_path) + strlen (table->objs[i].name) + 1, sizeof (char));
             HDstrcpy(obj2_fullpath, grp2_path);
             HDstrcat(obj2_fullpath, table->objs[i].name);
 
@@ -1474,7 +1474,7 @@ hsize_t diff_match(hid_t file1_id, const char *grp1, trav_info_t *info1,
     } /* end if */
     h5diffdebug("done with if block\n");
 
-    free(workerTasks);
+    HDfree(workerTasks);
     }
 #endif /* H5_HAVE_PARALLEL */
 
@@ -1938,7 +1938,7 @@ hsize_t diff(hid_t file1_id,
         *----------------------------------------------------------------------
         */
         case H5TRAV_TYPE_DATASET:
-			/* verbose (-v) and report (-r) mode */
+      /* verbose (-v) and report (-r) mode */
             if(options->m_verbose || options->m_report)
             {
                 do_print_objname("dataset", path1, path2, options);
@@ -1950,7 +1950,7 @@ hsize_t diff(hid_t file1_id,
             {
                 nfound = diff_dataset(file1_id, file2_id, path1, path2, options);
             }
-			/* the rest (-c, none, ...) */
+      /* the rest (-c, none, ...) */
             else
             {
                 nfound = diff_dataset(file1_id, file2_id, path1, path2, options);
@@ -1958,7 +1958,7 @@ hsize_t diff(hid_t file1_id,
                 if (nfound)
                 {
                     do_print_objname("dataset", path1, path2, options);
-                    print_found(nfound);	
+                    print_found(nfound);  
                 }
             }
             break;

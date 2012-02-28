@@ -139,7 +139,7 @@ leave(int ret)
 
     h5tools_close();
 
-    exit(ret);
+    HDexit(ret);
 }
 
 /*-------------------------------------------------------------------------
@@ -236,6 +236,9 @@ main (int argc, const char *argv[])
     /* Disable error reporting */
     H5Eget_auto2(H5E_DEFAULT, &func, &edata);
     H5Eset_auto2(H5E_DEFAULT, NULL, NULL);
+
+    /* Initialize h5tools lib */
+    h5tools_init();
 
     parse_command_line (argc, argv);
 
