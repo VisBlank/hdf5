@@ -164,16 +164,19 @@ static int make_references(hid_t loc_id);
 
 int main (void)
 {
+    pack_opt_t  pack_options;
+    diff_opt_t  diff_options;
+    hsize_t  fs_size = 0;  /* free space section threshold */
+    H5F_file_space_type_t fs_type = H5F_FILE_SPACE_DEFAULT;  /* file space handling strategy */
+#if defined (H5_HAVE_FILTER_SZIP)
+    int szip_can_encode = 0;
+#endif
+
     h5tools_setprogname(PROGRAMNAME);
     h5tools_setstatus(EXIT_SUCCESS);
 
     /* Initialize h5tools lib */
     h5tools_init();
-    pack_opt_t  pack_options;
-    diff_opt_t  diff_options;
-#if defined (H5_HAVE_FILTER_SZIP)
-    int szip_can_encode = 0;
-#endif
 
     /* initialize */
     HDmemset(&diff_options, 0, sizeof (diff_opt_t));
