@@ -2938,31 +2938,31 @@ out:
  *
  * Purpose: create datasets with contiguous and chunked layouts:
  *
- *  contig_small: < 1k, fixed dims datspace
- *  chunked_small_fixed: < 1k, fixed dims dataspace
+ *	contig_small: < 1k, fixed dims datspace
+ *	chunked_small_fixed: < 1k, fixed dims dataspace
  *
  *-------------------------------------------------------------------------
  */
-#define S_DIM1  4
-#define S_DIM2  10
-#define CONTIG_S  "contig_small"
-#define CHUNKED_S_FIX  "chunked_small_fixed"
+#define S_DIM1	4
+#define S_DIM2	10
+#define CONTIG_S	"contig_small"
+#define CHUNKED_S_FIX	"chunked_small_fixed"
 
 static
 int make_layout2(hid_t loc_id)
 {
 
-    hid_t    contig_dcpl = -1;   /* dataset creation property list */
+    hid_t    contig_dcpl = -1; 	/* dataset creation property list */
     hid_t    chunked_dcpl = -1; /* dataset creation property list */
 
-    int      i, j, n;    /* Local index variables */
-    int       ret_value = -1;  /* Return value */
-    hid_t    s_sid = -1;  /* dataspace ID */
+    int      i, j, n;		/* Local index variables */
+    int	     ret_value = -1;	/* Return value */
+    hid_t    s_sid = -1;	/* dataspace ID */
 
-    hsize_t  s_dims[RANK] = {S_DIM1,S_DIM2};  /* Dataspace (< 1 k) */
-    hsize_t  chunk_dims[RANK] = {S_DIM1/2, S_DIM2/2};  /* Dimension sizes for chunks */
+    hsize_t  s_dims[RANK] = {S_DIM1,S_DIM2};	/* Dataspace (< 1 k) */
+    hsize_t  chunk_dims[RANK] = {S_DIM1/2, S_DIM2/2};	/* Dimension sizes for chunks */
 
-    int      s_buf[S_DIM1][S_DIM2];  /* Temporary buffer */
+    int      s_buf[S_DIM1][S_DIM2];	/* Temporary buffer */
 
     for(i = n = 0; i < S_DIM1; i++) {
         for (j = 0; j < S_DIM2; j++) {
@@ -3153,8 +3153,8 @@ int make_external(hid_t loc_id)
     hid_t   sid=-1;
     hid_t   dcpl;
     int     buf[2]={1,2};
-    hsize_t cur_size[1];    /* data space current size  */
-    hsize_t max_size[1];    /* data space maximum size  */
+    hsize_t cur_size[1];		/* data space current size	*/
+    hsize_t max_size[1];		/* data space maximum size	*/
     hsize_t size;
 
     cur_size[0] = max_size[0] = 2;

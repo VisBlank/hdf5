@@ -126,7 +126,7 @@ int main(int argc, const char **argv)
             {
                 error_msg("file names cannot be the same\n");
                 usage(h5tools_getprogname());
-                exit(EXIT_FAILURE);
+                HDexit(EXIT_FAILURE);
 
             }
         }

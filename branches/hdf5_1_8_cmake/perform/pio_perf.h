@@ -39,23 +39,23 @@ typedef enum iotype_ {
 } iotype;
 
 typedef struct parameters_ {
-    iotype  io_type;        /* The type of IO test to perform       */
-    int    num_procs;      /* Maximum number of processes to use   */
-    long  num_files;      /* Number of files to create            */
-    long  num_dsets;      /* Number of datasets to create         */
-    off_t  num_bytes;      /* Number of bytes in each dset         */
+    iotype	io_type;        /* The type of IO test to perform       */
+    int		num_procs;      /* Maximum number of processes to use   */
+    long	num_files;      /* Number of files to create            */
+    long	num_dsets;      /* Number of datasets to create         */
+    off_t	num_bytes;      /* Number of bytes in each dset         */
     int         num_iters;      /* Number of times to loop doing the IO */
-    size_t   buf_size;       /* Buffer size                          */
-    size_t   blk_size;       /* Block size                           */
+    size_t 	buf_size;       /* Buffer size                          */
+    size_t 	blk_size;       /* Block size                           */
     unsigned    interleaved;    /* Interleaved vs. contiguous blocks    */
     unsigned    collective;     /* Collective vs. independent I/O       */
     unsigned    dim2d;          /* 1D vs. 2D                            */
-    hsize_t   h5_align;       /* HDF5 object alignment                */
-    hsize_t   h5_thresh;      /* HDF5 object alignment threshold      */
-    int   h5_use_chunks;  /* Make HDF5 dataset chunked            */
-    int      h5_write_only;  /* Perform the write tests only         */
+    hsize_t 	h5_align;       /* HDF5 object alignment                */
+    hsize_t 	h5_thresh;      /* HDF5 object alignment threshold      */
+    int 	h5_use_chunks;  /* Make HDF5 dataset chunked            */
+    int    	h5_write_only;  /* Perform the write tests only         */
     unsigned    h5_use_mpi_posix;   /* Use MPI-posix VFD for HDF5 I/O (instead of MPI-I/O VFD) */
-    int   verify;      /* Verify data correctness              */
+    int 	verify;    	/* Verify data correctness              */
 } parameters;
 
 typedef struct results_ {
