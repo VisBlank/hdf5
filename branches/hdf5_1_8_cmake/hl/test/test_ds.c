@@ -4993,6 +4993,8 @@ static int read_data( const char* fname,
         HDstrcat(data_file, "/");
     }
     /* read first data file */
+    HDstrcat(data_file,fname);
+
     f = HDfopen(data_file, "r");
     if( f == NULL ) {
         printf( "Could not open file %s\n", data_file );
