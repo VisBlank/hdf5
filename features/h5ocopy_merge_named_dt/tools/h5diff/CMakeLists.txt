@@ -1,11 +1,10 @@
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 2.8.6)
 PROJECT (HDF5_TOOLS_H5DIFF)
 
 #-----------------------------------------------------------------------------
 # Setup include Directories
 #-----------------------------------------------------------------------------
 INCLUDE_DIRECTORIES (${HDF5_TOOLS_SRC_DIR}/lib)
-INCLUDE_DIRECTORIES (${HDF5_PROJECT_DIR}/test)
 
 # --------------------------------------------------------------------
 # Add the h5diff executables
@@ -43,7 +42,7 @@ IF (BUILD_TESTING)
   IF (HDF5_BUILD_GENERATORS AND NOT BUILD_SHARED_LIBS)
     ADD_EXECUTABLE (h5diffgentest ${HDF5_TOOLS_H5DIFF_SOURCE_DIR}/h5diffgentest.c)
     TARGET_NAMING (h5diffgentest ${LIB_TYPE})
-    TARGET_LINK_LIBRARIES (h5diffgentest ${HDF5_LIB_TARGET} ${HDF5_TOOLS_LIB_TARGET})
+    TARGET_LINK_LIBRARIES (h5diffgentest ${HDF5_LIB_TARGET})
     SET_TARGET_PROPERTIES (h5diffgentest PROPERTIES FOLDER generator/tools)
     
     #ADD_TEST (NAME h5diffgentest COMMAND $<TARGET_FILE:h5diffgentest>)
@@ -130,6 +129,11 @@ IF (BUILD_TESTING)
       h5diff_457.txt
       h5diff_458.txt
       h5diff_459.txt
+      h5diff_465.txt
+      h5diff_466.txt
+      h5diff_467.txt
+      h5diff_468.txt
+      h5diff_469.txt
       h5diff_480.txt
       h5diff_481.txt
       h5diff_482.txt
@@ -655,6 +659,16 @@ IF (BUILD_TESTING)
           h5diff_458.out.err
           h5diff_459.out
           h5diff_459.out.err
+          h5diff_465.out
+          h5diff_465.out.err
+          h5diff_466.out
+          h5diff_466.out.err
+          h5diff_467.out
+          h5diff_467.out.err
+          h5diff_468.out
+          h5diff_468.out.err
+          h5diff_469.out
+          h5diff_469.out.err
           h5diff_480.out
           h5diff_480.out.err
           h5diff_481.out
@@ -1261,6 +1275,19 @@ ADD_H5_TEST (h5diff_458 2  --follow-symlinks -v --no-dangling-links  ${FILE15} $
 
 # dangling link found for ext links (obj to obj). Both dangle links
 ADD_H5_TEST (h5diff_459 2  --follow-symlinks -v --no-dangling-links  ${FILE15} ${FILE15} /ext_link_noexist1 /ext_link_noexist2)
+
+# dangling link --follow-symlinks (obj vs obj)
+# (HDFFV-7836)
+ADD_H5_TEST (h5diff_465 0 --follow-symlinks h5diff_danglelinks1.h5 h5diff_danglelinks2.h5 /soft_link1)
+# (HDFFV-7835)
+# soft dangling vs. soft dangling
+ADD_H5_TEST (h5diff_466 0 -v --follow-symlinks h5diff_danglelinks1.h5 h5diff_danglelinks2.h5 /soft_link1)
+# soft link  vs. soft dangling
+ADD_H5_TEST (h5diff_467 1 -v --follow-symlinks h5diff_danglelinks1.h5 h5diff_danglelinks2.h5 /soft_link2)
+# ext dangling vs. ext dangling
+ADD_H5_TEST (h5diff_468 0 -v --follow-symlinks h5diff_danglelinks1.h5 h5diff_danglelinks2.h5 /ext_link4)
+# ext link vs. ext dangling
+ADD_H5_TEST (h5diff_469 1 -v --follow-symlinks h5diff_danglelinks1.h5 h5diff_danglelinks2.h5 /ext_link2)
 
 # ##############################################################################
 # # test for group diff recursivly

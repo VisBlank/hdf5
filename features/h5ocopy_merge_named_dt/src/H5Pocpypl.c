@@ -137,7 +137,7 @@ H5P_ocpy_reg_prop(H5P_genclass_t *pclass)
     H5O_mndt_cb_info_t mndt_cb = H5O_CPY_MNDT_SEARCH_CB_DEF; /* Default callback before searching the global list of named datatypes at destination */
     herr_t ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_NOAPI(H5P_ocpy_reg_prop, FAIL)
+    FUNC_ENTER_NOAPI(FAIL)
 
     /* Register copy options property */
     if(H5P_register_real(pclass, H5O_CPY_OPTION_NAME, H5O_CPY_OPTION_SIZE, &ocpy_option, NULL, NULL, NULL, NULL, NULL, NULL, NULL) < 0)
@@ -180,7 +180,7 @@ H5P_ocpy_copy(hid_t dst_plist_id, hid_t src_plist_id, void UNUSED *copy_data)
     H5P_genplist_t *dst_plist;                  /* Pointer to destination property list */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5P_ocpy_copy)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* Verify property list IDs */
     if(NULL == (dst_plist = (H5P_genplist_t *)H5I_object(dst_plist_id)))
@@ -257,7 +257,7 @@ H5P_ocpy_close(hid_t ocpypl_id, void UNUSED *close_data)
     H5P_genplist_t *plist;                      /* Property list */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5P_ocpy_close)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* Check arguments */
     if(NULL == (plist = (H5P_genplist_t *)H5I_object(ocpypl_id)))
@@ -299,7 +299,7 @@ H5P_ocpy_merge_named_dt_list_cmp(const void *_dt_list1, const void *_dt_list2,
         *dt_list2 = *(H5O_copy_dtype_merge_list_t * const *)_dt_list2;
     herr_t ret_value = 0;       /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5P_ocpy_merge_named_dt_list_cmp)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* Sanity check */
     HDassert(_dt_list1);
@@ -343,7 +343,7 @@ H5P_free_merge_named_dtype_list(H5O_copy_dtype_merge_list_t *dt_list)
 {
     H5O_copy_dtype_merge_list_t *tmp_node;
 
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5P_free_merge_named_dtype_list)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* Free the list */
     while(dt_list) {
@@ -384,7 +384,7 @@ H5Pset_copy_object(hid_t plist_id, unsigned cpy_option)
     H5P_genplist_t *plist;      /* Property list pointer */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(H5Pset_copy_object, FAIL)
+    FUNC_ENTER_API(FAIL)
     H5TRACE2("e", "iIu", plist_id, cpy_option);
 
     /* Check parameters */
@@ -422,7 +422,7 @@ H5Pget_copy_object(hid_t plist_id, unsigned *cpy_option /*out*/)
     H5P_genplist_t *plist;      /* Property list pointer */
     herr_t ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(H5Pget_copy_object, FAIL)
+    FUNC_ENTER_API(FAIL)
     H5TRACE2("e", "ix", plist_id, cpy_option);
 
     /* Get the plist structure */
@@ -467,7 +467,7 @@ H5Padd_merge_named_dtype_path(hid_t plist_id, const char *path)
     H5O_copy_dtype_merge_list_t *new_obj = NULL; /* New object to add to list */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(H5Padd_merge_named_dtype_path, FAIL)
+    FUNC_ENTER_API(FAIL)
 
     /* Check parameters */
     if(!path)
@@ -526,7 +526,7 @@ H5Pfree_merge_named_dtype_paths(hid_t plist_id)
     H5O_copy_dtype_merge_list_t *dt_list; /* Merge named dtype list currently present */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(H5Pfree_merge_named_dtype_paths, FAIL)
+    FUNC_ENTER_API(FAIL)
 
     /* Get the plist structure */
     if(NULL == (plist = H5P_object_verify(plist_id, H5P_OBJECT_COPY)))
@@ -573,7 +573,7 @@ H5Pset_mndt_search_cb(hid_t plist_id, H5O_mndt_search_cb_t func, void *op_data)
     H5O_mndt_cb_info_t cb_info;		/* Callback info struct */
     herr_t ret_value = SUCCEED; 	/* Return value */
 
-    FUNC_ENTER_API(H5Pset_mndt_search_cb, FAIL)
+    FUNC_ENTER_API(FAIL)
 
     /* Check if the callback function is NULL and the user data is non-NULL.
      * This is almost certainly an error as the user data will not be used. */
@@ -621,7 +621,7 @@ H5Pget_mndt_search_cb(hid_t plist_id, H5O_mndt_search_cb_t *func, void **op_data
     H5O_mndt_cb_info_t cb_info;	/* Callback info struct */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(H5Pget_mndt_search_cb, FAIL)
+    FUNC_ENTER_API(FAIL)
 
     /* Get the plist structure */
     if(NULL == (plist = H5P_object_verify(plist_id, H5P_OBJECT_COPY)))

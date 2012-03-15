@@ -90,7 +90,7 @@ int
 h5repack_init(pack_opt_t *options, int verbose, H5F_file_space_type_t strategy, hsize_t threshold)
 {
     int k, n;
-    memset(options,0,sizeof(pack_opt_t));
+    HDmemset(options,0,sizeof(pack_opt_t));
     options->min_comp = 1024;
     options->verbose  = verbose;
 
@@ -157,7 +157,7 @@ int h5repack_addfilter(const char* str,
         if(options->n_filter_g > H5_REPACK_MAX_NFILTERS)
         {
             error_msg("maximum number of filters exceeded for <%s>\n", str);
-            free(obj_list);
+            HDfree(obj_list);
             return -1;
         }
 
@@ -166,7 +166,7 @@ int h5repack_addfilter(const char* str,
     else
         options_add_filter(obj_list, n_objs, filter, options->op_tbl);
 
-    free(obj_list);
+    HDfree(obj_list);
     return 0;
 }
 
@@ -232,7 +232,7 @@ int h5repack_addlayout(const char* str,
         &pack,
         options->op_tbl);
 
-    free(obj_list);
+    HDfree(obj_list);
     return 0;
 }
 
@@ -544,9 +544,9 @@ int copy_attr(hid_t loc_in,
             if(H5Aclose(attr_out) < 0)
                 goto error;
 
-            /* Check if we have VL data in the attribute's  datatype that must
+            /* Check if we have VL data and string in the attribute's  datatype that must
              * be reclaimed */
-            if(TRUE == H5Tdetect_class(wtype_id, H5T_VLEN))
+            if (TRUE == h5tools_detect_vlen(wtype_id))
                 H5Dvlen_reclaim(wtype_id, space_id, H5P_DEFAULT, buf);
             HDfree(buf);
             buf = NULL;
@@ -576,13 +576,13 @@ int copy_attr(hid_t loc_in,
 error:
     H5E_BEGIN_TRY {
         if(buf) {
-            /* Check if we have VL data in the attribute's  datatype that must
+            /* Check if we have VL data and string in the attribute's  datatype that must
              * be reclaimed */
-            if(TRUE == H5Tdetect_class(wtype_id, H5T_VLEN))
+            if (TRUE == h5tools_detect_vlen(wtype_id))
                 H5Dvlen_reclaim(wtype_id, space_id, H5P_DEFAULT, buf);
 
             /* Free buf */
-            free(buf);
+            HDfree(buf);
         } /* end if */
 
         H5Tclose(ftype_id);
@@ -1002,7 +1002,7 @@ static const char* get_sfilter(H5Z_filter_t filtn)
         return "SOFF";
     else {
         error_msg("input error in filter type\n");
-        exit(EXIT_FAILURE);
+        HDexit(EXIT_FAILURE);
     }
 }
 

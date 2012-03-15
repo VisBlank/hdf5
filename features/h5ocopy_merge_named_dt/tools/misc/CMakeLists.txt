@@ -1,11 +1,10 @@
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 2.8.6)
 PROJECT (HDF5_TOOLS_MISC)
 
 #-----------------------------------------------------------------------------
 # Setup include Directories
 #-----------------------------------------------------------------------------
 INCLUDE_DIRECTORIES (${HDF5_TOOLS_SRC_DIR}/lib)
-INCLUDE_DIRECTORIES (${HDF5_PROJECT_DIR}/test)
 
 # --------------------------------------------------------------------
 # Add the misc executables

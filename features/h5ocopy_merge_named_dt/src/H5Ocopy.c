@@ -216,7 +216,7 @@ H5Ocopy(hid_t src_loc_id, const char *src_name, hid_t dst_loc_id,
 
     herr_t      ret_value = SUCCEED;        /* Return value */
 
-    FUNC_ENTER_API(H5Ocopy, FAIL)
+    FUNC_ENTER_API(FAIL)
     H5TRACE6("e", "i*si*sii", src_loc_id, src_name, dst_loc_id, dst_name,
              ocpypl_id, lcpl_id);
 
@@ -339,7 +339,7 @@ H5O_copy_header_real(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out*/,
     size_t                 msghdr_size;
     herr_t                 ret_value = SUCCEED;
 
-    FUNC_ENTER_NOAPI_NOINIT_TAG(H5O_copy_header_real, dxpl_id, oloc_src->addr, FAIL)
+    FUNC_ENTER_NOAPI_NOINIT_TAG(dxpl_id, oloc_src->addr, FAIL)
 
     HDassert(oloc_src);
     HDassert(oloc_src->file);
@@ -897,7 +897,7 @@ H5O_copy_header_map(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out*/,
     hbool_t             inc_link;               /* Whether to increment the link count for the object */
     herr_t              ret_value = SUCCEED;
 
-    FUNC_ENTER_NOAPI(H5O_copy_header_map, FAIL)
+    FUNC_ENTER_NOAPI(FAIL)
 
     /* Sanity check */
     HDassert(oloc_src);
@@ -996,7 +996,7 @@ H5O_copy_free_addrmap_cb(void *_item, void UNUSED *key, void UNUSED *op_data)
 {
     H5O_addr_map_t *item = (H5O_addr_map_t *)_item;
 
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5O_copy_free_addrmap_cb)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
     HDassert(item);
 
@@ -1033,7 +1033,7 @@ H5O_copy_header(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
     H5O_copy_t  cpy_info;               /* Information for copying object */
     herr_t      ret_value = SUCCEED;
 
-    FUNC_ENTER_NOAPI_NOINIT(H5O_copy_header)
+    FUNC_ENTER_NOAPI_NOINIT
 
     HDassert(oloc_src);
     HDassert(oloc_src->file);
@@ -1073,8 +1073,7 @@ H5O_copy_header(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out */,
         HGOTO_ERROR(H5E_SLIST, H5E_CANTCREATE, FAIL, "cannot make skip list")
 
     /* copy the object from the source file to the destination file */
-    if(H5O_copy_header_real(oloc_src, oloc_dst, dxpl_id, &cpy_info, NULL, NULL)
-            < 0)
+    if(H5O_copy_header_real(oloc_src, oloc_dst, dxpl_id, &cpy_info, NULL, NULL) < 0)
         HGOTO_ERROR(H5E_OHDR, H5E_CANTCOPY, FAIL, "unable to copy object")
 
 done:
@@ -1115,7 +1114,7 @@ H5O_copy_obj(H5G_loc_t *src_loc, H5G_loc_t *dst_loc, const char *dst_name,
     H5O_copy_dtype_merge_list_t *dt_list = NULL; /* List of datatype merge suggestions */
     herr_t          ret_value = SUCCEED;        /* Return value */
 
-    FUNC_ENTER_NOAPI(H5O_copy_obj, FAIL)
+    FUNC_ENTER_NOAPI(FAIL)
 
     HDassert(src_loc);
     HDassert(src_loc->oloc->file);
@@ -1190,7 +1189,7 @@ H5O_copy_obj_by_ref(H5O_loc_t *src_oloc, hid_t dxpl_id, H5O_loc_t *dst_oloc,
 {
     herr_t  ret_value = SUCCEED;
 
-    FUNC_ENTER_NOAPI(H5O_copy_obj_by_ref, FAIL)
+    FUNC_ENTER_NOAPI(FAIL)
 
     HDassert(src_oloc);
     HDassert(dst_oloc);
@@ -1258,7 +1257,7 @@ H5O_copy_expand_ref(H5F_t *file_src, void *_src_ref, hid_t dxpl_id,
     size_t      i;                      /* Local index variable */
     herr_t	ret_value = SUCCEED;
 
-    FUNC_ENTER_NOAPI(H5O_copy_expand_ref, FAIL)
+    FUNC_ENTER_NOAPI(FAIL)
 
     /* Sanity checks */
     HDassert(file_src);
@@ -1386,7 +1385,7 @@ H5O_copy_free_named_dt_cb(void *item, void *_key, void UNUSED *op_data)
     haddr_t     *addr = (haddr_t *)item;
     H5O_copy_search_named_dt_key_t *key = (H5O_copy_search_named_dt_key_t *)_key;
 
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5O_copy_free_named_dt_cb)
+    FUNC_ENTER_NOAPI_NOINIT
 
     HDassert(addr);
     HDassert(key);
@@ -1422,7 +1421,7 @@ H5O_copy_named_dt_cmp(const void *_key1, const void *_key2)
     const H5O_copy_search_named_dt_key_t *key2 = (const H5O_copy_search_named_dt_key_t *)_key2;
     int ret_value = 0;
 
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5O_copy_named_dt_cmp)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* Check fileno.  It is unlikely to be different so check if they are equal
      * first so only one comparison needs to be made. */
@@ -1466,7 +1465,7 @@ H5O_copy_search_named_dt_attr_cb(const H5A_t *attr, void *_udata)
     hbool_t     obj_inserted = FALSE;   /* Object inserted into skip list */
     herr_t      ret_value = SUCCEED;    /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5O_copy_search_named_dt_attr_cb)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* Sanity checks */
     HDassert(attr);
@@ -1548,7 +1547,7 @@ H5O_copy_search_named_dt_check(H5O_loc_t *obj_oloc,
     H5A_attr_iter_op_t attr_op;         /* Attribute iteration operator */
     herr_t      ret_value = SUCCEED;    /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5O_copy_search_named_dt_check)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* Sanity checks */
     HDassert(obj_oloc);
@@ -1667,7 +1666,7 @@ H5O_copy_search_named_dt_cb(hid_t UNUSED group, const char *name,
     hbool_t     obj_found = FALSE;      /* Object at 'name' found */
     herr_t      ret_value = H5_ITER_CONT; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5O_copy_search_named_dt_cb)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* Sanity checks */
     HDassert(name);
@@ -1729,7 +1728,7 @@ H5O_copy_search_named_dt(H5F_t *file_src, H5O_t *oh_src,
     H5O_copy_search_named_dt_ud_t udata; /* Group iteration user data */
     herr_t      ret_value = FALSE; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5O_copy_search_named_dt)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* Sanity checks */
     HDassert(oh_src);
@@ -1898,7 +1897,7 @@ H5O_copy_insert_named_dt(H5F_t *file_src, H5O_t *oh_src, H5O_loc_t *oloc_dst,
     haddr_t     *addr = NULL;   /* Destination object address */
     herr_t      ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5O_copy_insert_named_dt)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* Sanity checks */
     HDassert(oh_src);

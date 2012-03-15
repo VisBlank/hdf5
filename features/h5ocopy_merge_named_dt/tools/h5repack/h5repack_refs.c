@@ -327,7 +327,7 @@ int do_copy_refobjs(hid_t fidin,
                             goto error;
                     } /* end else */
 
-                    assert(dset_out != FAIL);
+                    HDassert(dset_out != FAIL);
 
                     /*-------------------------------------------------------------------------
                     * copy referenced objects in attributes
@@ -533,6 +533,24 @@ static int copy_refs_attr(hid_t loc_in,
         		}
         		H5Tclose(mtid);
         	}
+            
+            /* if compound don't contain reference type member, free the above 
+             * mallocs. Otherwise there can be memory leaks by the 'continue' 
+             * statement below. */
+            if (!ref_comp_field_n) 
+            {
+                if (ref_comp_index) 
+                {
+                	HDfree(ref_comp_index);
+                	ref_comp_index = NULL;
+                }
+
+                if (ref_comp_size) 
+                {
+            	    HDfree(ref_comp_size);
+        	        ref_comp_size = NULL;
+                }
+            }
         }
 
         is_ref_comp = (ref_comp_field_n > 0);
@@ -840,9 +858,9 @@ static herr_t update_ref_value(hid_t obj_id, H5R_type_t ref_type, void *ref_in,
 	const char* ref_obj_name;
 	hid_t space_id=-1, ref_obj_id=-1;
 
-	ref_obj_id = H5Rdereference2(obj_id, H5P_DEFAULT, ref_type, ref_in);
-	if (ref_obj_id<0)
-		goto done;
+    ref_obj_id = H5Rdereference2(obj_id, H5P_DEFAULT, ref_type, ref_in);
+    if (ref_obj_id<0)
+       goto done;
 
 	ref_obj_name = MapIdToName(ref_obj_id, travt);
 	if (ref_obj_name == NULL)
@@ -863,8 +881,8 @@ static herr_t update_ref_value(hid_t obj_id, H5R_type_t ref_type, void *ref_in,
 
 done:
     H5E_BEGIN_TRY {
-    	H5Sclose(space_id);
-    	H5Oclose(ref_obj_id);
+      H5Sclose(space_id);
+      H5Oclose(ref_obj_id);
     } H5E_END_TRY;
 
 	return ret;
