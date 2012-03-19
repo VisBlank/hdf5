@@ -1294,6 +1294,10 @@
 ./tools/testfiles/tmulti-o.h5
 ./tools/testfiles/tmulti-r.h5
 ./tools/testfiles/tmulti-s.h5
+./tools/testfiles/tmultifile.ls
+./tools/testfiles/tmultifile.ddl
+./tools/testfiles/tqmarkfile.ddl
+./tools/testfiles/tstarfile.ddl
 ./tools/testfiles/tnbit.ddl
 ./tools/testfiles/tnestcomp-1.ddl
 ./tools/testfiles/tnestedcomp.h5
@@ -1734,6 +1738,10 @@
 ./tools/h5diff/testfiles/h5diff_458.txt
 ./tools/h5diff/testfiles/h5diff_459.txt
 ./tools/h5diff/testfiles/h5diff_465.txt
+./tools/h5diff/testfiles/h5diff_466.txt
+./tools/h5diff/testfiles/h5diff_467.txt
+./tools/h5diff/testfiles/h5diff_468.txt
+./tools/h5diff/testfiles/h5diff_469.txt
 ./tools/h5diff/testfiles/h5diff_480.txt
 ./tools/h5diff/testfiles/h5diff_481.txt
 ./tools/h5diff/testfiles/h5diff_482.txt
