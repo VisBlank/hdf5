@@ -75,7 +75,7 @@ H5FO_create(const H5F_t *f)
 {
     herr_t ret_value=SUCCEED;          /* Return value */
 
-    FUNC_ENTER_NOAPI(H5FO_create,FAIL)
+    FUNC_ENTER_NOAPI(FAIL)
 
     /* Sanity check */
     assert(f);
@@ -116,7 +116,7 @@ H5FO_opened(const H5F_t *f, haddr_t addr)
     H5FO_open_obj_t *open_obj;  /* Information about open object */
     void *ret_value;            /* Return value */
 
-    FUNC_ENTER_NOAPI_NOFUNC(H5FO_opened)
+    FUNC_ENTER_NOAPI_NOERR
 
     /* Sanity check */
     HDassert(f);
@@ -163,7 +163,7 @@ H5FO_insert(const H5F_t *f, haddr_t addr, void *obj, hbool_t delete_flag)
     H5FO_open_obj_t *open_obj;  /* Information about open object */
     herr_t ret_value=SUCCEED;   /* Return value */
 
-    FUNC_ENTER_NOAPI(H5FO_insert,FAIL)
+    FUNC_ENTER_NOAPI(FAIL)
 
     /* Sanity check */
     assert(f);
@@ -215,7 +215,7 @@ H5FO_delete(H5F_t *f, hid_t dxpl_id, haddr_t addr)
     H5FO_open_obj_t *open_obj;  /* Information about open object */
     herr_t ret_value=SUCCEED;   /* Return value */
 
-    FUNC_ENTER_NOAPI(H5FO_delete,FAIL)
+    FUNC_ENTER_NOAPI(FAIL)
 
     /* Sanity check */
     HDassert(f);
@@ -266,7 +266,7 @@ H5FO_mark(const H5F_t *f, haddr_t addr, hbool_t deleted)
     H5FO_open_obj_t *open_obj;  /* Information about open object */
     herr_t ret_value=SUCCEED;            /* Return value */
 
-    FUNC_ENTER_NOAPI_NOFUNC(H5FO_mark)
+    FUNC_ENTER_NOAPI_NOERR
 
     /* Sanity check */
     assert(f);
@@ -310,7 +310,7 @@ H5FO_marked(const H5F_t *f, haddr_t addr)
     H5FO_open_obj_t *open_obj;  /* Information about open object */
     hbool_t ret_value = FALSE;  /* Return value */
 
-    FUNC_ENTER_NOAPI_NOFUNC(H5FO_marked)
+    FUNC_ENTER_NOAPI_NOERR
 
     /* Sanity check */
     HDassert(f);
@@ -349,7 +349,7 @@ H5FO_dest(const H5F_t *f)
 {
     herr_t ret_value=SUCCEED;   /* Return value */
 
-    FUNC_ENTER_NOAPI(H5FO_dest,FAIL)
+    FUNC_ENTER_NOAPI(FAIL)
 
     /* Sanity check */
     assert(f);
@@ -393,7 +393,7 @@ H5FO_top_create(H5F_t *f)
 {
     herr_t ret_value = SUCCEED;          /* Return value */
 
-    FUNC_ENTER_NOAPI(H5FO_top_create, FAIL)
+    FUNC_ENTER_NOAPI(FAIL)
 
     /* Sanity check */
     HDassert(f);
@@ -432,7 +432,7 @@ H5FO_top_incr(const H5F_t *f, haddr_t addr)
     H5FO_obj_count_t *obj_count;  /* Ref. count for object */
     herr_t ret_value = SUCCEED;   /* Return value */
 
-    FUNC_ENTER_NOAPI(H5FO_top_incr, FAIL)
+    FUNC_ENTER_NOAPI(FAIL)
 
     /* Sanity check */
     HDassert(f);
@@ -487,7 +487,7 @@ H5FO_top_decr(const H5F_t *f, haddr_t addr)
     H5FO_obj_count_t *obj_count;  /* Ref. count for object */
     herr_t ret_value = SUCCEED;   /* Return value */
 
-    FUNC_ENTER_NOAPI(H5FO_top_decr, FAIL)
+    FUNC_ENTER_NOAPI(FAIL)
 
     /* Sanity check */
     HDassert(f);
@@ -541,7 +541,7 @@ H5FO_top_count(const H5F_t *f, haddr_t addr)
     H5FO_obj_count_t *obj_count;        /* Ref. count for object */
     hsize_t ret_value;                  /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5FO_top_count)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
     /* Sanity check */
     HDassert(f);
@@ -581,7 +581,7 @@ H5FO_top_dest(H5F_t *f)
 {
     herr_t ret_value = SUCCEED;   /* Return value */
 
-    FUNC_ENTER_NOAPI(H5FO_top_dest, FAIL)
+    FUNC_ENTER_NOAPI(FAIL)
 
     /* Sanity check */
     HDassert(f);
