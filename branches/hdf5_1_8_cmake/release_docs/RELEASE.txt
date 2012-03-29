@@ -1,4 +1,4 @@
-HDF5 version 1.8.9-snap14 currently under development
+HDF5 version 1.8.9-snap15 currently under development
 ================================================================================
 
 INTRODUCTION
@@ -64,10 +64,18 @@ New Features
  
     Parallel Library
     ----------------
-    - None
+    - Add two new routines to set/get the atomicity parameter in the
+      MPI library to perform atomic operations. Some file systems (for
+      example PVFS2) do not support atomic updates so those routines
+      would not be supported. See details at HDFFV-7961. (MSC - 2012/03/27)
  
     Tools
     -----
+    - h5dump: Added capability for "-a" option to show attributes containing "/" 
+      by using an escape character. For example, for a dataset "/dset" 
+      containing attribute "speed(m/h)", use "h5dump -a "/dset/speed(\/h)" 
+      to show the content of the attribute. See details at HDFFV-7523
+      (PC -- 2012/03/12)
     - h5dump: Added ability to apply command options across multiple files using a
       wildcard in the filename. Unix example; "h5dump -H -d Dataset1 tarr*.h5".
       Cross platform example; "h5dump -H -d Dataset1 tarray1.h5 tarray2.h5 tarray3.h5".
@@ -113,6 +121,15 @@ Bug Fixes since HDF5-1.8.8
 
     Library
     -------
+    - Fixed an error that would occur when copying an object with attribute
+      creation order tracked and indexed. (NAF - 2012/3/28 - HDFFV-7762)
+    - When an application tries to write or read many small data chunks and
+      runs out of memory, the library had a seg fault.  The fix is to
+      return the error stack with proper information. (SLU - 2012/3/23.
+      Issue 7785)
+    - H5Pset_data_transform had seg fault in some cases like x*-100.  It
+      works correctly now and handles other cases like 100-x or 2/x.
+      (SLU - 2012/3/15.  Issue 7922)
     - Fixed rare corruption bugs that could occur when using the new object
       header format. (NAF - 2012/3/15 - HDFFV-7879)
     - Fixed error when creating a contiguous dataset with a zero-sized dataspace
@@ -132,6 +149,15 @@ Bug Fixes since HDF5-1.8.8
     - Changed Windows thread creation to use _beginthread() instead of
       CreateThread().  Threads created by the latter can be killed in
       low-memory situations. (DER - 2012/2/10, HDFFV-7780)
+    - The istore test will now skip the sparse 50x50x50 test when the VFD does
+      not support sparse files on that platform.  The most important platforms
+      on which this will be skipped are Windows (NTFS sparse files are not
+      supported) and Mac OS-X (HFS sparse files are not supported).  This
+      fixes CTest timeout issues on Windows.  (DER - 2012/3/27, HDFFV-7769)
+    - Windows and POSIX correctness changes have been propagated from the SEC2
+      VFD to the core VFD.  This mainly affects file operations on the
+      driver's backing store and fixes a problem on Windows where large files
+      could not be read. (DER - 2012/3/27, HDFFV-7916, HDFFV-7603)
 
     Parallel Library
     ----------------
@@ -139,6 +165,15 @@ Bug Fixes since HDF5-1.8.8
 
     Tools
     -----
+    - h5diff: Fixed failure for comparing same named object with different
+      object types in comparing groups. Prior to the fix, h5diff resulted
+      in error. After the fix, h5diff detects such case as non-comparable
+      and display messages accordingly. HDFFV-7664 (JKM 2012/03/28)
+    - h5diff: If unique objects exists only in one file and try to exclude
+      the unique objects with --exclude-path option, h5diff missed 
+      excluding some objects. 
+      Fixed to exclude objects correctly in such case.
+      HDFFV-7837 (JKM 2012/03/20)
     - h5diff: When two symbolic dangling links are compared with
       --follow-symlinks option, the result should be same. It worked for
       comparing two files, but didn't work for comparing two objects.
@@ -242,21 +277,19 @@ The following platforms and compilers have been tested for this release.
 
     Windows XP                    Visual Studio 2008 w/ Intel Fortran 10.1 (project files)
                                   Visual Studio 2008 w/ Intel Fortran 11.1 (cmake)
-                                  Visual Studio 2010 (cmake)
-                                  Cygwin(1.7.9 native gcc(4.5.3) compiler and gfortran)
+                                  Visual Studio 2010 w/ Intel Fortran 12 (cmake)
 
     Windows XP x64                Visual Studio 2008 w/ Intel Fortran 10.1 (project files)
                                   Visual Studio 2008 w/ Intel Fortran 11.1 (cmake)
-                                  Visual Studio 2010 (cmake)
-                                  Cygwin(1.7.9 native gcc(4.5.3) compiler and gfortran)
-
-    Windows Vista                 Visual Studio 2008 w/ Intel Fortran 11.1 (cmake)
-
-    Windows Vista x64             Visual Studio 2008 w/ Intel Fortran 11.1 (cmake)
+                                  Visual Studio 2010 w/ Intel Fortran 12 (cmake)
 
     Windows 7                     Visual Studio 2008 w/ Intel Fortran 11.1 (cmake)
+                                  Visual Studio 2010 w/ Intel Fortran 12 (cmake)
+                                  Cygwin(1.7.9 native gcc(4.5.3) compiler and gfortran)
 
     Windows 7 x64                 Visual Studio 2008 w/ Intel Fortran 11.1 (cmake)
+                                  Visual Studio 2010 w/ Intel Fortran 12 (cmake)
+                                  Cygwin(1.7.9 native gcc(4.5.3) compiler and gfortran)
 
     Mac OS X 10.7.0 (Intel 64-bit) i686-apple-darwin10-gcc-4.2.1 (GCC) 4.2.1
     Darwin Kernel Version 10.7.0  GNU Fortran (GCC) 4.6.0 20101106 (experimental)
