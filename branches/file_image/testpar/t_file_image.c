@@ -85,14 +85,14 @@ file_image_daisy_chain_test(void)
 
 
     /* set up MPI parameters */
-    MPI_Comm_size(MPI_COMM_WORLD,&mpi_size);
-    MPI_Comm_rank(MPI_COMM_WORLD,&mpi_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
 
     /* setup file name */
     HDsnprintf(file_name, 1024, "file_image_daisy_chain_test_%05d.h5", 
                (int)mpi_rank);
 
-    if(mpi_rank == 0){
+    if(mpi_rank == 0) {
  
 	/* 1) Creates a core file with an integer vector data set 
          *    of length mpi_size, 
@@ -120,11 +120,10 @@ file_image_daisy_chain_test(void)
          */
 
 	vector_ptr = (int *)HDmalloc((size_t)(mpi_size) * sizeof(int));
-        VRFY((vector_ptr != NULL),"allocated in memory representation of vector");
+        VRFY((vector_ptr != NULL), "allocated in memory representation of vector");
 
         vector_ptr[0] = 0;
-
-        for(i=1; i<mpi_size; i++)
+        for(i = 1; i < mpi_size; i++)
             vector_ptr[i] = -1;
 
 	err = H5Dwrite(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL,
@@ -237,10 +236,9 @@ file_image_daisy_chain_test(void)
         VRFY((err >= 0), "read received vector.");
 
 	vector_ok = TRUE;
-	for(i = 0; i < mpi_size; i++){
+	for(i = 0; i < mpi_size; i++)
             if(vector_ptr[i] != i)
                 vector_ok = FALSE;
-        }
         VRFY((vector_ok), "verified received vector.");
  
 	/* 7) closes the core file and exit. */
@@ -260,7 +258,7 @@ file_image_daisy_chain_test(void)
         HDfree(image_ptr);
         image_ptr = NULL;
         image_len = 0;
-    }else{
+    } else {
         /* 1) Await receipt of file image from process (i - 1). */
 
 	mpi_result = MPI_Recv((void *)(&image_len), (int)sizeof(ssize_t),
@@ -323,10 +321,10 @@ file_image_daisy_chain_test(void)
 
 	vector_ok = TRUE;
 	for(i = 0; i < mpi_size; i++){
-            if(i < mpi_rank){
+            if(i < mpi_rank) {
                 if(vector_ptr[i] != i)
                     vector_ok = FALSE;
-	    }else{
+	    } else {
                 if(vector_ptr[i] != -1)
                     vector_ok = FALSE;
 	    }
@@ -389,11 +387,9 @@ file_image_daisy_chain_test(void)
 
 	err = H5Pclose(fapl_id);
 	VRFY((err >= 0), "closed fapl(1).");
-
     }
 
     return;
 
 } /* file_image_daisy_chain_test() */
-
 

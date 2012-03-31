@@ -695,7 +695,6 @@ H5O_attr_find_opened_attr(const H5O_loc_t *loc, H5A_t **attr, const char* name_t
     hid_t *attr_id_list = NULL;         /* List of IDs for opened attributes */
     unsigned long loc_fnum;             /* File serial # for object */
     size_t num_open_attr;               /* Number of opened attributes */
-    size_t check;
     htri_t ret_value = FALSE;           /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT
@@ -705,21 +704,22 @@ H5O_attr_find_opened_attr(const H5O_loc_t *loc, H5A_t **attr, const char* name_t
         HGOTO_ERROR(H5E_ATTR, H5E_BADVALUE, FAIL, "can't get file serial number")
 
     /* Count all opened attributes */
-    if(0 < H5F_get_obj_count(loc->file, H5F_OBJ_ATTR | H5F_OBJ_LOCAL, FALSE, &num_open_attr))
-        HGOTO_ERROR(H5E_INTERNAL, H5E_BADITER, FAIL, "H5F_get_obj_count failed")
+    if(H5F_get_obj_count(loc->file, H5F_OBJ_ATTR | H5F_OBJ_LOCAL, FALSE, &num_open_attr) < 0)
+        HGOTO_ERROR(H5E_ATTR, H5E_CANTGET, FAIL, "can't count opened attributes")
 
     /* Find out whether the attribute has been opened */
     if(num_open_attr) {
+        size_t check_num_attr;  /* Number of open attribute IDs */
         size_t u;          /* Local index variable */
 
         /* Allocate space for the attribute ID list */
         if(NULL == (attr_id_list = (hid_t *)H5MM_malloc(num_open_attr * sizeof(hid_t))))
-            HGOTO_ERROR(H5E_ATTR, H5E_NOSPACE, FAIL, "unable to allocate memory for attribute ID list")
+            HGOTO_ERROR(H5E_ATTR, H5E_CANTALLOC, FAIL, "unable to allocate memory for attribute ID list")
 
         /* Retrieve the IDs of all opened attributes */
-        if( 0 < H5F_get_obj_ids(loc->file, H5F_OBJ_ATTR | H5F_OBJ_LOCAL, num_open_attr, attr_id_list, FALSE, &check))
-            HGOTO_ERROR(H5E_INTERNAL, H5E_BADITER, FAIL, "H5F_get_obj_ids failed")
-	if(check != num_open_attr)
+        if(H5F_get_obj_ids(loc->file, H5F_OBJ_ATTR | H5F_OBJ_LOCAL, num_open_attr, attr_id_list, FALSE, &check_num_attr) < 0)
+            HGOTO_ERROR(H5E_ATTR, H5E_CANTGET, FAIL, "can't get IDs of opened attributes")
+	if(check_num_attr != num_open_attr)
             HGOTO_ERROR(H5E_INTERNAL, H5E_BADITER, FAIL, "open attribute count mismatch")
 
         /* Iterate over the attributes */

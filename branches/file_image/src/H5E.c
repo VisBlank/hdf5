@@ -543,9 +543,8 @@ H5E_unregister_class(H5E_cls_t *cls)
     HDassert(cls);
 
     /* Iterate over all the messages and delete those in this error class */
-    if(0 < H5I_iterate(H5I_ERROR_MSG, H5E_close_msg_cb, cls, FALSE))
-        HGOTO_ERROR(H5E_ERROR, H5E_CANTRELEASE, FAIL, \
-                    "unable to free all messages in this error class")
+    if(H5I_iterate(H5I_ERROR_MSG, H5E_close_msg_cb, cls, FALSE) < 0)
+        HGOTO_ERROR(H5E_ERROR, H5E_BADITER, FAIL, "unable to free all messages in this error class")
 
     /* Free error class structure */
     if(H5E_free_class(cls) < 0)

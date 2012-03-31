@@ -101,7 +101,7 @@ typedef struct H5FD_core_t {
     HANDLE          hFile;      /* Native windows file handle */
 #endif /* H5_HAVE_WIN32_API */
     hbool_t	dirty;			/*changes not saved?		*/
-    H5_file_image_callbacks_t callbacks; /* file image callbacks */
+    H5FD_file_image_callbacks_t fi_callbacks; /* file image callbacks */
 } H5FD_core_t;
 
 /* Driver-specific file access properties */
@@ -451,13 +451,13 @@ H5FD_core_open(const char *name, unsigned flags, hid_t fapl_id,
          * Note: We are forcing the O_CREAT flag here, even though this is 
          * technically an open.
          */
-        if (fa->backing_store) {
+        if(fa->backing_store) {
             if((fd = HDopen(name, o_flags | O_CREAT, 0666)) < 0)
                 HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to create file")
             if(HDfstat(fd, &sb) < 0)
                 HSYS_GOTO_ERROR(H5E_FILE, H5E_BADFILE, NULL, "unable to fstat file")
-        }
-    } 
+        } /* end if */
+    }  /* end if */
     /* Open backing store, and get stat() from file.  The only case that backing
      * store is off is when  the backing_store flag is off and H5F_ACC_CREAT is
      * on. */
@@ -485,7 +485,7 @@ H5FD_core_open(const char *name, unsigned flags, hid_t fapl_id,
     file->backing_store = fa->backing_store;
 
     /* Save file image callbacks */
-    file->callbacks = file_image_info.callbacks;
+    file->fi_callbacks = file_image_info.callbacks;
 
     if(fd >= 0) {
         /* Retrieve information for determining uniqueness of file */
@@ -516,7 +516,7 @@ H5FD_core_open(const char *name, unsigned flags, hid_t fapl_id,
     /* If an existing file is opened, load the whole file into memory. */
     if(!(H5F_ACC_CREAT & flags)) {
         size_t size;
-        
+
         /* Retrieve file size */
         if(file_image_info.buffer && file_image_info.size > 0)
             size = file_image_info.size;
@@ -526,27 +526,27 @@ H5FD_core_open(const char *name, unsigned flags, hid_t fapl_id,
         /* Check if we should allocate the memory buffer and read in existing data */
         if(size) {
             /* Allocate memory for the file's data, using the file image callback if available. */
-            if(file->callbacks.image_malloc) {
-                if (NULL == (file->mem = (unsigned char*)file->callbacks.image_malloc(size, H5_FILE_IMAGE_OP_FILE_OPEN, file->callbacks.udata)))
-                    HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "image malloc callback failed")
+            if(file->fi_callbacks.image_malloc) {
+                if(NULL == (file->mem = (unsigned char*)file->fi_callbacks.image_malloc(size, H5FD_FILE_IMAGE_OP_FILE_OPEN, file->fi_callbacks.udata)))
+                    HGOTO_ERROR(H5E_FILE, H5E_CANTALLOC, NULL, "image malloc callback failed")
             } /* end if */
             else {
                 if(NULL == (file->mem = (unsigned char*)H5MM_malloc(size)))
-                    HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "unable to allocate memory block")
-            }
+                    HGOTO_ERROR(H5E_FILE, H5E_CANTALLOC, NULL, "unable to allocate memory block")
+            } /* end else */
 
             /* Set up data structures */
             file->eof = size;
 
             /* If there is an initial file image, copy it, using the callback if possible */
             if(file_image_info.buffer && file_image_info.size > 0) {
-                if(file->callbacks.image_memcpy) {
-                    if(file->mem != file->callbacks.image_memcpy(file->mem, file_image_info.buffer, size, H5_FILE_IMAGE_OP_FILE_OPEN, file->callbacks.udata))
-                        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTCOPY, NULL, "image_memcpy callback failed")
+                if(file->fi_callbacks.image_memcpy) {
+                    if(file->mem != file->fi_callbacks.image_memcpy(file->mem, file_image_info.buffer, size, H5FD_FILE_IMAGE_OP_FILE_OPEN, file->fi_callbacks.udata))
+                        HGOTO_ERROR(H5E_FILE, H5E_CANTCOPY, NULL, "image_memcpy callback failed")
                 } /* end if */
                 else
                     HDmemcpy(file->mem, file_image_info.buffer, size);
-            }
+            } /* end if */
             /* Read in existing data from the file if there is no image */
             else {
                 /* Read in existing data, being careful of interrupted system calls,
@@ -626,12 +626,13 @@ H5FD_core_close(H5FD_t *_file)
         H5MM_xfree(file->name);
     if(file->mem) {
         /* Use image callback if available */
-        if (file->callbacks.image_free) {
-            if( SUCCEED != file->callbacks.image_free(file->mem, H5_FILE_IMAGE_OP_FILE_CLOSE, file->callbacks.udata))
-                HGOTO_ERROR(H5E_RESOURCE, H5E_CANTFREE, FAIL, "image_free callback failed")
-        }else
+        if(file->fi_callbacks.image_free) {
+            if(file->fi_callbacks.image_free(file->mem, H5FD_FILE_IMAGE_OP_FILE_CLOSE, file->fi_callbacks.udata) < 0)
+                HGOTO_ERROR(H5E_FILE, H5E_CANTFREE, FAIL, "image_free callback failed")
+        } /* end if */
+        else
             H5MM_xfree(file->mem);
-    }
+    } /* end if */
     HDmemset(file, 0, sizeof(H5FD_core_t));
     H5MM_xfree(file);
 
@@ -752,8 +753,8 @@ H5FD_core_query(const H5FD_t * _file, unsigned long *flags /* out */)
         *flags |= H5FD_FEAT_ACCUMULATE_METADATA; /* OK to accumulate metadata for faster writes */
         *flags |= H5FD_FEAT_DATA_SIEVE;       /* OK to perform data sieving for faster raw data reads & writes */
         *flags |= H5FD_FEAT_AGGREGATE_SMALLDATA; /* OK to aggregate "small" raw data allocations */
-        *flags |= H5FD_FEAT_ALLOW_FILE_IMAGE;
-        *flags |= H5FD_FEAT_CAN_USE_FILE_IMAGE_CALLBACKS;
+        *flags |= H5FD_FEAT_ALLOW_FILE_IMAGE;   /* OK to use file image feature with this VFD */
+        *flags |= H5FD_FEAT_CAN_USE_FILE_IMAGE_CALLBACKS;       /* OK to use file image callbacks with this VFD */
 
         /* If the backing store is open, a POSIX file handle is available */
         if(file && file->fd >= 0 && file->backing_store)
@@ -1031,14 +1032,14 @@ H5FD_core_write(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id, had
             new_eof += file->increment;
 
         /* (Re)allocate memory for the file buffer, using callbacks if available */
-        if(file->callbacks.image_realloc) {
-            if(NULL == (x = (unsigned char *)file->callbacks.image_realloc(file->mem, new_eof, H5_FILE_IMAGE_OP_FILE_RESIZE, file->callbacks.udata)))
-            HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "unable to allocate memory block of %llu bytes with callback", (unsigned long long)new_eof)
+        if(file->fi_callbacks.image_realloc) {
+            if(NULL == (x = (unsigned char *)file->fi_callbacks.image_realloc(file->mem, new_eof, H5FD_FILE_IMAGE_OP_FILE_RESIZE, file->fi_callbacks.udata)))
+                HGOTO_ERROR(H5E_FILE, H5E_CANTALLOC, FAIL, "unable to allocate memory block of %llu bytes with callback", (unsigned long long)new_eof)
         } /* end if */
         else {
             if(NULL == (x = (unsigned char *)H5MM_realloc(file->mem, new_eof)))
-                HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "unable to allocate memory block of %llu bytes", (unsigned long long)new_eof)
-        }
+                HGOTO_ERROR(H5E_FILE, H5E_CANTALLOC, FAIL, "unable to allocate memory block of %llu bytes", (unsigned long long)new_eof)
+        } /* end else */
 
 #ifdef H5_CLEAR_MEMORY
 HDmemset(x + file->eof, 0, (size_t)(new_eof - file->eof));
@@ -1051,6 +1052,7 @@ HDmemset(x + file->eof, 0, (size_t)(new_eof - file->eof));
     /* Write from BUF to memory */
     HDmemcpy(file->mem + addr, buf, size);
 
+    /* Mark memory buffer as modified */
     file->dirty = TRUE;
 
 done:
@@ -1195,13 +1197,13 @@ H5FD_core_truncate(H5FD_t *_file, hid_t UNUSED dxpl_id, hbool_t closing)
             unsigned char *x;       /* Pointer to new buffer for file data */
 
             /* (Re)allocate memory for the file buffer, using callback if available */
-            if(file->callbacks.image_realloc) {
-                if(NULL == (x = (unsigned char *)file->callbacks.image_realloc(file->mem, new_eof, H5_FILE_IMAGE_OP_FILE_RESIZE, file->callbacks.udata)))
-                  HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "unable to allocate memory block with callback")
+            if(file->fi_callbacks.image_realloc) {
+                if(NULL == (x = (unsigned char *)file->fi_callbacks.image_realloc(file->mem, new_eof, H5FD_FILE_IMAGE_OP_FILE_RESIZE, file->fi_callbacks.udata)))
+                  HGOTO_ERROR(H5E_FILE, H5E_CANTALLOC, FAIL, "unable to allocate memory block with callback")
             } /* end if */
             else {
-                if(NULL == (x = (unsigned char *)H5MM_realloc(file->mem, new_eof))) //
-                    HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "unable to allocate memory block")
+                if(NULL == (x = (unsigned char *)H5MM_realloc(file->mem, new_eof)))
+                    HGOTO_ERROR(H5E_FILE, H5E_CANTALLOC, FAIL, "unable to allocate memory block")
             } /* end else */
 
 #ifdef H5_CLEAR_MEMORY

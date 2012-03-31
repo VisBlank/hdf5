@@ -70,6 +70,10 @@ static herr_t H5FD_pl_copy(void *(*copy_func)(const void *), size_t pl_size,
 static herr_t H5FD_pl_close(hid_t driver_id, herr_t (*free_func)(void *),
     void *pl);
 static herr_t H5FD_free_cls(H5FD_class_t *cls);
+static herr_t H5FD_fapl_copy(hid_t driver_id, const void *fapl, void **copied_fapl);
+static herr_t H5FD_dxpl_copy(hid_t driver_id, const void *dxpl, void **copied_dxpl);
+static int H5FD_query(const H5FD_t *f, unsigned long *flags/*out*/);
+static int H5FD_driver_query(const H5FD_class_t *driver, unsigned long *flags/*out*/);
 
 /*********************/
 /* Package Variables */
@@ -750,17 +754,15 @@ done:
  * Programmer:	Robb Matzke
  *              Tuesday, August  3, 1999
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
-herr_t
+static herr_t
 H5FD_fapl_copy(hid_t driver_id, const void *old_fapl, void **copied_fapl)
 {
     H5FD_class_t *driver;
     herr_t ret_value = SUCCEED;       /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* Check args */
     if(NULL == (driver = (H5FD_class_t *)H5I_object(driver_id)))
@@ -871,17 +873,15 @@ done:
  * Programmer:	Robb Matzke
  *              Tuesday, August  3, 1999
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
-herr_t
+static herr_t
 H5FD_dxpl_copy(hid_t driver_id, const void *old_dxpl, void **copied_dxpl)
 {
     H5FD_class_t *driver;
     herr_t ret_value = SUCCEED;       /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* Check args */
     if(NULL == (driver = (H5FD_class_t *)H5I_object(driver_id)))
@@ -1333,19 +1333,17 @@ done:
  * Programmer:	Quincey Koziol
  *              Friday, August 25, 2000
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
-int
+static int
 H5FD_query(const H5FD_t *f, unsigned long *flags/*out*/)
 {
-    int	ret_value=0;
+    int	ret_value = 0;          /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_NOINIT
 
-    assert(f);
-    assert(flags);
+    HDassert(f);
+    HDassert(flags);
 
     /* Check for query driver and call it */
     if(f->cls->query)
@@ -1355,7 +1353,7 @@ H5FD_query(const H5FD_t *f, unsigned long *flags/*out*/)
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-}
+} /* end H5FD_query() */
 
 
 /*-------------------------------------------------------------------------
@@ -1372,16 +1370,14 @@ done:
 * Programmer:  Jacob Gruber
 *              Wednesday, August 17, 2011
 *
-* Modifications:
-*
 *-------------------------------------------------------------------------
 */
-int
+static int
 H5FD_driver_query(const H5FD_class_t *driver, unsigned long *flags/*out*/)
 {
-    int ret_value=0;
+    int ret_value = 0;          /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_NOINIT
 
     HDassert(driver);
     HDassert(flags);
@@ -1390,11 +1386,11 @@ H5FD_driver_query(const H5FD_class_t *driver, unsigned long *flags/*out*/)
     if(driver->query)
         ret_value = (driver->query)(NULL, flags);
     else 
-        *flags=0;
+        *flags = 0;
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-}
+} /* end H5FD_driver_query() */
 
 
 /*-------------------------------------------------------------------------

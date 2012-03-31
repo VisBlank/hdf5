@@ -355,6 +355,7 @@ H5FO_dest(const H5F_t *f)
     assert(f);
     assert(f->shared);
     assert(f->shared->open_objs);
+
     /* Check if the object info set is empty */
     if(H5SL_count(f->shared->open_objs)!=0)
         HGOTO_ERROR(H5E_CACHE, H5E_CANTRELEASE, FAIL, "objects still in open object info set")

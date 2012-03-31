@@ -23,9 +23,6 @@
 #ifndef _H5HLTEST_H
 #define _H5HLTEST_H
 
-/* Get the HDF5 public header */
-#include "hdf5.h"
-
 /* Get the HDF5 test header */
 #include "h5test.h"
 

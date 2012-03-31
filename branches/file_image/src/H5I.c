@@ -108,6 +108,11 @@ typedef struct {
     H5I_id_info_t **id_list;	/*pointer to an array of ptrs to IDs	    */
 } H5I_id_type_t;
 
+typedef struct {
+    H5I_search_func_t app_cb;   /* Application's callback routine */
+    void *app_key;              /* Application's "key" (user data) */
+    void *ret_obj;              /* Object to return */
+} H5I_search_ud_t;
 
 /*-------------------- Locally scoped variables -----------------------------*/
 
@@ -127,6 +132,7 @@ H5FL_DEFINE_STATIC(H5I_id_info_t);
 
 /*--------------------- Local function prototypes ---------------------------*/
 static H5I_id_info_t *H5I_find_id(hid_t id);
+static int H5I_search_cb(void *obj, hid_t id, void *udata);
 #ifdef H5I_DEBUG_OUTPUT
 static herr_t H5I_debug(H5I_type_t type);
 #endif /* H5I_DEBUG_OUTPUT */
@@ -377,7 +383,7 @@ H5Itype_exists(H5I_type_t type)
     if(type <= H5I_BADID || type >= H5I_next_type)
 	HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "invalid type number")
 
-    if(0 > (ret_value = H5I_type_exists(type)))
+    if((ret_value = H5I_type_exists(type)) < 0)
 	HGOTO_ERROR(H5E_INTERNAL, H5E_SYSERRSTR, FAIL, "H5I_type_exists() failed")
 
 done:
@@ -407,8 +413,8 @@ H5I_type_exists(H5I_type_t type)
 
     FUNC_ENTER_NOAPI(FAIL)
 
-    if(type <= H5I_BADID || type >= H5I_next_type)
-	HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "invalid type number")
+    /* Sanity check */
+    HDassert(type > H5I_BADID && type < H5I_next_type);
 
     if(NULL == H5I_id_type_list_g[type])
         ret_value = FALSE;
@@ -1938,6 +1944,40 @@ done:
 
 
 /*-------------------------------------------------------------------------
+ * Function:	H5I_search_cb
+ *
+ * Purpose:	Callback routine for H5Isearch, when it calls H5I_iterate.
+ *		Calls "user" callback search function, and then sets return
+ *		value, based on the result of that callback.
+ *
+ * Return:	Success:	The first object in the type for which FUNC
+ *				returns non-zero. NULL if FUNC returned zero
+ *				for every object in the type.
+ *		Failure:	NULL
+ *
+ * Programmer:	Quincey Koziol
+ *		Friday, March 30, 2012
+ *
+ *-------------------------------------------------------------------------
+ */
+static int
+H5I_search_cb(void *obj, hid_t id, void *_udata)
+{
+    H5I_search_ud_t *udata = (H5I_search_ud_t *)_udata; /* User data for callback */
+    int ret_value;     /* Callback return value */
+
+    FUNC_ENTER_NOAPI_NOINIT
+
+    ret_value = (*udata->app_cb)(obj, id, udata->app_key);
+    if(ret_value > 0)
+        udata->ret_obj = obj;
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5I_search_cb() */
+
+
+/*-------------------------------------------------------------------------
  * Function:	H5Isearch
  *
  * Purpose:	Apply function FUNC to each member of type TYPE and return a
@@ -1959,113 +1999,36 @@ done:
  *		Nathaniel Furrer
  *		Friday, April 23, 2004
  *
- * Modifications: JRM -- 12/15/11 
- *		Updated function for revisions to H5I_search().
- *
  *-------------------------------------------------------------------------
  */
 void *
 H5Isearch(H5I_type_t type, H5I_search_func_t func, void *key)
 {
-    void * ret_value;                      /* Return value */
+    H5I_search_ud_t udata;      /* Context for iteration */
+    void *ret_value;            /* Return value */
 
     FUNC_ENTER_API(NULL)
 
+    /* Check arguments */
     if(H5I_IS_LIB_TYPE(type))
         HGOTO_ERROR(H5E_ATOM, H5E_BADGROUP, NULL, "cannot call public function on library type")
 
-    /* Note that H5I_search now returns an error code.  We ignore it 
+    /* Set up udata struct */
+    udata.app_cb = func;
+    udata.app_key = key;
+    udata.ret_obj = NULL;
+
+    /* Note that H5I_iterate returns an error code.  We ignore it 
      * here, as we can't do anything with it without revising the API.
      */
-    H5I_search(type, func, key, TRUE, &ret_value);
+    H5I_iterate(type, H5I_search_cb, &udata, TRUE);
+
+    /* Set return value */
+    ret_value = udata.ret_obj;
 
 done:
     FUNC_LEAVE_API(ret_value)
 } /* end H5Isearch() */
-
-
-/*-------------------------------------------------------------------------
- * Function:	H5I_search
- *
- * Purpose:	Apply function FUNC to each member of type TYPE and return a
- *		pointer to the first object for which FUNC returns non-zero.
- *		The FUNC should take a pointer to the object and the KEY as
- *		arguments and return non-zero to terminate the search (zero
- *		to continue).
- *
- * Limitation:	Currently there is no way to start searching from where a
- *		previous search left off.
- *
- * Return:	Success:	The first object in the type for which FUNC
- *				returns non-zero. NULL if FUNC returned zero
- *				for every object in the type.
- *		Failure:	NULL
- *
- * Programmer:	Robb Matzke
- *		Friday, February 19, 1999
- *
- * Modifications:  Neil Fortner
- *      Wednesday, October 1, 2008
- *      Added app_ref parameter.  When set to TRUE, the function will only
- *      operate on ids that have a nonzero application reference count.
- *
- * 	John Mainzer
- *	Tuesday, Dec. 14, 2011
- *	Reworked routine to return an error code, and to return the 
- *	the result of the search in the location indicated by the 
- *	result_ptr parameter.
- *
- *-------------------------------------------------------------------------
- */
-
-herr_t
-H5I_search(H5I_type_t type, H5I_search_func_t func, void *key, hbool_t app_ref, void **result_ptr)
-{
-    H5I_id_type_t *type_ptr;		/*ptr to the type	*/
-    herr_t	  ret_value = SUCCEED;	/*return value		*/
-
-    FUNC_ENTER_NOAPI(FAIL)
-
-    /* Check arguments */
-    if(type <= H5I_BADID || type >= H5I_next_type)
-	HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "invalid type number")
-    if(result_ptr == NULL)
-	HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "result_ptr == NULL")
-    *result_ptr = NULL; /* will overwrite this if search is successful */
-    type_ptr = H5I_id_type_list_g[type];
-    if(type_ptr == NULL || type_ptr->count <= 0)
-	HGOTO_ERROR(H5E_ATOM, H5E_BADGROUP, FAIL, "invalid type")
-
-    /* Only iterate through hash table if there are IDs in group */
-    if(type_ptr->ids > 0) {
-	herr_t          func_ret_val;
-        H5I_id_info_t	*id_ptr;	/*ptr to the new ID	*/
-        H5I_id_info_t	*next_id;	/*ptr to the next ID	*/
-        unsigned i;			/*counter		*/
-
-        /* Start at the beginning of the array */
-        for(i = 0; i < type_ptr->hash_size; i++) {
-            id_ptr = type_ptr->id_list[i];
-            while(id_ptr) {
-                next_id = id_ptr->next;      /* Protect against ID being deleted in callback */
-                if((!app_ref || id_ptr->app_count)){
-                    /* (Casting away const OK -QAK) */
-		    func_ret_val = (*func)((void *)id_ptr->obj_ptr, id_ptr->id, key);
-		    if(func_ret_val > 0) { /* found it -- search is compete */
-                        /* (Casting away const OK -QAK) */
-			*result_ptr = (void *)id_ptr->obj_ptr;
-			HGOTO_DONE(SUCCEED)
-                    }else if(func_ret_val < 0) /* error -- bail now and report failure */
-			HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "func failed")
-                }
-                id_ptr = next_id;
-            } /* end while */
-        } /* end for */
-    } /* end if */
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5I_search() */
 
 
 /*-------------------------------------------------------------------------
@@ -2086,16 +2049,14 @@ done:
  *		udata as arguments and return non-zero to terminate 
  *		siteration, and zero to continue.
  *
- * Limitation:	Currently there is no way to start the itteration from 
- *		where a previous itteration left off.
+ * Limitation:	Currently there is no way to start the iteration from 
+ *		where a previous iteration left off.
  *
  * Return:	Success:	SUCCEED
  *		Failure:	FAIL
  *
  * Programmer:	John Mainzer
  *		Monday, December 6, 2011
- *
- * Modifications:  None.
  *
  *-------------------------------------------------------------------------
  */
@@ -2110,36 +2071,34 @@ H5I_iterate(H5I_type_t type, H5I_search_func_t func, void *udata, hbool_t app_re
     /* Check arguments */
     if(type <= H5I_BADID || type >= H5I_next_type)
 	HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "invalid type number")
-
     type_ptr = H5I_id_type_list_g[type];
-
     if(type_ptr == NULL || type_ptr->count <= 0)
 	HGOTO_ERROR(H5E_ATOM, H5E_BADGROUP, FAIL, "invalid type")
 
     /* Only iterate through hash table if there are IDs in group */
     if(type_ptr->ids > 0) {
-        herr_t		func_ret_val;
-        H5I_id_info_t	*id_ptr;	/*ptr to the new ID	*/
-        H5I_id_info_t	*next_id;	/*ptr to the next ID	*/
-        unsigned i;			/*counter		*/
+        unsigned u;			/* Counter		*/
 
         /* Start at the beginning of the array */
-        for(i = 0; i < type_ptr->hash_size; i++) {
-            id_ptr = type_ptr->id_list[i];
+        for(u = 0; u < type_ptr->hash_size; u++) {
+            H5I_id_info_t	*id_ptr;	/* Ptr to the new ID	*/
+
+            id_ptr = type_ptr->id_list[u];
             while(id_ptr) {
+                H5I_id_info_t	*next_id;	/* Ptr to the next ID	*/
+
                 /* Protect against ID being deleted in callback */
                 next_id = id_ptr->next;
-
                 if((!app_ref) || (id_ptr->app_count > 0)) {
-                    /* (Casting away const OK) */
-		    func_ret_val = 
-			(*func)((void *)id_ptr->obj_ptr, id_ptr->id, udata);
+                    herr_t cb_ret_val;  /* Callback return value */
 
-		    if(func_ret_val > 0)
+                    /* (Casting away const OK) */
+		    cb_ret_val = (*func)((void *)id_ptr->obj_ptr, id_ptr->id, udata);
+		    if(cb_ret_val > 0)
                         HGOTO_DONE(SUCCEED)	/* terminate iteration early */
-		    else if(func_ret_val < 0)
+		    else if(cb_ret_val < 0)
 			HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "func failed")
-		}
+		} /* end if */
                 id_ptr = next_id;
             } /* end while */
         } /* end for */

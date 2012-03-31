@@ -363,11 +363,6 @@ done:
  *
  * Programmer:	Raymond Lu
  *		Wednesday, Dec 5, 2001
- * Modification:
- *              Raymond Lu
- *              24 September 2008
- *              Changed the return value to ssize_t to  accommadate
- *              potential large number of objects.
  *
  *-------------------------------------------------------------------------
  */
@@ -375,21 +370,23 @@ ssize_t
 H5Fget_obj_count(hid_t file_id, unsigned types)
 {
     H5F_t    *f = NULL;         /* File to query */
-    size_t  obj_count;
-    ssize_t  ret_value;            /* Return value */
+    size_t  obj_count = 0;      /* Number of opened objects */
+    ssize_t  ret_value;         /* Return value */
 
     FUNC_ENTER_API(FAIL)
     H5TRACE2("Zs", "iIu", file_id, types);
 
+    /* Check arguments */
     if(file_id != (hid_t)H5F_OBJ_ALL && (NULL == (f = (H5F_t *)H5I_object_verify(file_id, H5I_FILE))))
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "not a file id")
     if(0 == (types & H5F_OBJ_ALL))
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "not an object type")
 
-    /* H5F_get_obj_count doesn't fail */
-    if(0 < H5F_get_obj_count(f, types, TRUE, &obj_count))
+    /* Perform the query */
+    if(H5F_get_obj_count(f, types, TRUE, &obj_count) < 0)
 	HGOTO_ERROR(H5E_INTERNAL, H5E_BADITER, FAIL, "H5F_get_obj_count failed")
 
+    /* Set the return value */
     ret_value = (ssize_t)obj_count;
 
 done:
@@ -408,16 +405,6 @@ done:
  * Programmer:  Raymond Lu
  *              Wednesday, Dec 5, 2001
  *
- * Modification:
- *              Raymond Lu
- *              24 September 2008
- *              Changed the return value to size_t to accommadate
- *              potential large number of objects.
- *
- *		John Mainzer 
- *		6 December, 2011
- *		Modified function to pass back success/failure.
- *
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -427,15 +414,16 @@ H5F_get_obj_count(const H5F_t *f, unsigned types, hbool_t app_ref, size_t *obj_i
 
     FUNC_ENTER_NOAPI(FAIL)
 
-    if(obj_id_count_ptr == NULL)
-	HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "invalid arg(s) on entry")
+    /* Sanity check */
+    HDassert(obj_id_count_ptr);
 
-    if(0 < (ret_value = H5F_get_objects(f, types, 0, NULL, app_ref, obj_id_count_ptr)))
+    /* Perform the query */
+    if((ret_value = H5F_get_objects(f, types, 0, NULL, app_ref, obj_id_count_ptr)) < 0)
         HGOTO_ERROR(H5E_INTERNAL, H5E_BADITER, FAIL, "H5F_get_objects failed")
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-}
+} /* end H5F_get_obj_count() */
 
 
 /*-------------------------------------------------------------------------
@@ -459,22 +447,25 @@ done:
 ssize_t
 H5Fget_obj_ids(hid_t file_id, unsigned types, size_t max_objs, hid_t *oid_list)
 {
-    H5F_t    *f = NULL;        		 /* File to query */
-    ssize_t   ret_value;                 /* Return value */
-    size_t   obj_id_count;
+    H5F_t    *f = NULL;         /* File to query */
+    size_t    obj_id_count = 0; /* Number of open objects */
+    ssize_t   ret_value;        /* Return value */
 
     FUNC_ENTER_API(FAIL)
     H5TRACE4("Zs", "iIuz*i", file_id, types, max_objs, oid_list);
 
+    /* Check arguments */
     if(file_id != (hid_t)H5F_OBJ_ALL && (NULL == (f = (H5F_t *)H5I_object_verify(file_id, H5I_FILE))))
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "not a file id")
     if(0 == (types & H5F_OBJ_ALL))
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "not an object type")
     HDassert(oid_list);
 
-    if(0 < H5F_get_obj_ids(f, types, max_objs, oid_list, TRUE, &obj_id_count))
+    /* Perform the query */
+    if(H5F_get_obj_ids(f, types, max_objs, oid_list, TRUE, &obj_id_count) < 0)
         HGOTO_ERROR(H5E_INTERNAL, H5E_BADITER, FAIL, "H5F_get_obj_ids failed")
 
+    /* Set the return value */
     ret_value = (ssize_t)obj_id_count;
 
 done:
@@ -492,16 +483,6 @@ done:
  * Programmer:  Raymond Lu
  *              Wednesday, Dec 5, 2001
  *
- * Modification:
- *              Raymond Lu
- *              24 September 2008
- *              Changed the return value and MAX_OBJTS to size_t to accommadate
- *              potential large number of objects.
- *
- *		John Mainzer 
- *		6 December, 2011
- *		Modified function to pass back success/failure.
- *
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -511,16 +492,16 @@ H5F_get_obj_ids(const H5F_t *f, unsigned types, size_t max_objs, hid_t *oid_list
 
     FUNC_ENTER_NOAPI(FAIL)
 
-    if(obj_id_count_ptr == NULL)
-	HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "invalid arg(s) on entry")
+    /* Sanity check */
+    HDassert(obj_id_count_ptr);
 
-    if(0 < (ret_value = H5F_get_objects(f, types, max_objs, oid_list, app_ref, obj_id_count_ptr)))
+    /* Perform the query */
+    if((ret_value = H5F_get_objects(f, types, max_objs, oid_list, app_ref, obj_id_count_ptr)) < 0)
         HGOTO_ERROR(H5E_INTERNAL, H5E_BADITER, FAIL, "H5F_get_objects failed")
 
 done:
-
     FUNC_LEAVE_NOAPI(ret_value)
-}
+} /* end H5F_get_obj_ids() */
 
 
 /*---------------------------------------------------------------------------
@@ -534,29 +515,20 @@ done:
  * Programmer:  Raymond Lu
  *              Wednesday, Dec 5, 2001
  *
- * Changes:	JRM -- 12/6/11
- *		Modified function to use H5I_iterate() instead of 
- *		H5I_search().  This allows the function to fail.
- *
- *		As a result of this, modified the function to return an 
- *		error value, and to place the object id count in the 
- *		location indicated by the object_id_count_ptr parameter.
- *
  *---------------------------------------------------------------------------
  */
-
 static herr_t
 H5F_get_objects(const H5F_t *f, unsigned types, size_t max_index, hid_t *obj_id_list, hbool_t app_ref, size_t *obj_id_count_ptr)
 {
     size_t obj_id_count=0;      /* Number of open IDs */
     H5F_olist_t olist;          /* Structure to hold search results */
-    htri_t type_exists;
+    htri_t type_exists;         /* Whether objects of a type are open */
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT
 
-    if(obj_id_count_ptr == NULL)
-	HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "invalid arg(s) on entry")
+    /* Sanity check */
+    HDassert(obj_id_count_ptr);
 
     /* Set up search information */
     olist.obj_id_list  = (max_index==0 ? NULL : obj_id_list);
@@ -577,69 +549,67 @@ H5F_get_objects(const H5F_t *f, unsigned types, size_t max_index, hid_t *obj_id_
     /* Iterate through file IDs to count the number, and put their
      * IDs on the object list.  */
     if(types & H5F_OBJ_FILE) {
-        if(0 > (type_exists = H5I_type_exists(H5I_FILE)))
-	    HGOTO_ERROR(H5E_INTERNAL, H5E_SYSERRSTR, FAIL, 
-                        "H5I_FILE out of range?!?")
-        else if (type_exists > 0) {
+        if((type_exists = H5I_type_exists(H5I_FILE)) < 0)
+	    HGOTO_ERROR(H5E_FILE, H5E_BADRANGE, FAIL, "H5I_FILE out of range?!?")
+        else if(type_exists > 0) {
             olist.obj_type = H5I_FILE;
-            if (0 > H5I_iterate(H5I_FILE, H5F_get_objects_cb, &olist, app_ref))
-	        HGOTO_ERROR(H5E_INTERNAL, H5E_BADITER, FAIL, "iteration failed(1)")
-        }
+            if(H5I_iterate(H5I_FILE, H5F_get_objects_cb, &olist, app_ref) < 0)
+	        HGOTO_ERROR(H5E_FILE, H5E_BADITER, FAIL, "iteration failed(1)")
+        } /* end if */
     } /* end if */
 
     /* Search through dataset IDs to count number of datasets, and put their
      * IDs on the object list */
     if(types & H5F_OBJ_DATASET) {
-        if(0 > (type_exists = H5I_type_exists(H5I_DATASET)))
-	    HGOTO_ERROR(H5E_INTERNAL, H5E_SYSERRSTR, FAIL, "H5I_DATASET out of range?!?")
-        else if(type_exists > 0){
+        if((type_exists = H5I_type_exists(H5I_DATASET)) < 0)
+	    HGOTO_ERROR(H5E_FILE, H5E_BADRANGE, FAIL, "H5I_DATASET out of range?!?")
+        else if(type_exists > 0) {
             olist.obj_type = H5I_DATASET;
-            if(0 > H5I_iterate(H5I_DATASET, H5F_get_objects_cb, &olist, app_ref))
-	        HGOTO_ERROR(H5E_INTERNAL, H5E_BADITER, FAIL, "iteration failed(2)")
-        }
-    }
+            if(H5I_iterate(H5I_DATASET, H5F_get_objects_cb, &olist, app_ref) < 0)
+	        HGOTO_ERROR(H5E_FILE, H5E_BADITER, FAIL, "iteration failed(2)")
+        } /* end if */
+    } /* end if */
 
     /* Search through group IDs to count number of groups, and put their
      * IDs on the object list */
     if(types & H5F_OBJ_GROUP) {
-        if(0 > (type_exists = H5I_type_exists(H5I_GROUP)))
-	    HGOTO_ERROR(H5E_INTERNAL, H5E_SYSERRSTR, FAIL, "H5I_GROUP out of range?!?")
-        else if(type_exists > 0){
+        if((type_exists = H5I_type_exists(H5I_GROUP)) < 0)
+	    HGOTO_ERROR(H5E_FILE, H5E_BADRANGE, FAIL, "H5I_GROUP out of range?!?")
+        else if(type_exists > 0) {
             olist.obj_type = H5I_GROUP;
-            if(0 > H5I_iterate(H5I_GROUP, H5F_get_objects_cb, &olist, app_ref))
-	        HGOTO_ERROR(H5E_INTERNAL, H5E_BADITER, FAIL, "iteration failed(3)")
-        }     
-    }
+            if(H5I_iterate(H5I_GROUP, H5F_get_objects_cb, &olist, app_ref) < 0)
+	        HGOTO_ERROR(H5E_FILE, H5E_BADITER, FAIL, "iteration failed(3)")
+        } /* end if */
+    } /* end if */
 
     /* Search through datatype IDs to count number of named datatypes, and put their
      * IDs on the object list */
     if(types & H5F_OBJ_DATATYPE) {
-        if(0 > (type_exists = H5I_type_exists(H5I_DATATYPE)))
-	    HGOTO_ERROR(H5E_INTERNAL, H5E_SYSERRSTR, FAIL, "H5I_DATATYPE out of range?!?")
-        else if(type_exists > 0){
+        if((type_exists = H5I_type_exists(H5I_DATATYPE)) < 0)
+	    HGOTO_ERROR(H5E_FILE, H5E_BADRANGE, FAIL, "H5I_DATATYPE out of range?!?")
+        else if(type_exists > 0) {
             olist.obj_type = H5I_DATATYPE;
-            if(0 > H5I_iterate(H5I_DATATYPE, H5F_get_objects_cb, &olist, app_ref))
-	        HGOTO_ERROR(H5E_INTERNAL, H5E_BADITER, FAIL, "iteration failed(4)")
-        }
-    }
+            if(H5I_iterate(H5I_DATATYPE, H5F_get_objects_cb, &olist, app_ref) < 0)
+	        HGOTO_ERROR(H5E_FILE, H5E_BADITER, FAIL, "iteration failed(4)")
+        } /* end if */
+    } /* end if */
 
     /* Search through attribute IDs to count number of attributes, and put their
      * IDs on the object list */
     if(types & H5F_OBJ_ATTR) {
-        if(0 > (type_exists = H5I_type_exists(H5I_ATTR)))
-	    HGOTO_ERROR(H5E_INTERNAL, H5E_SYSERRSTR, FAIL, "H5I_ATTR out of range?!?")
-        else if(type_exists > 0){
+        if((type_exists = H5I_type_exists(H5I_ATTR)) < 0)
+	    HGOTO_ERROR(H5E_FILE, H5E_BADRANGE, FAIL, "H5I_ATTR out of range?!?")
+        else if(type_exists > 0) {
             olist.obj_type = H5I_ATTR;
-            if(0 > H5I_iterate(H5I_ATTR, H5F_get_objects_cb, &olist, app_ref))
-	        HGOTO_ERROR(H5E_INTERNAL, H5E_BADITER, FAIL, "iteration failed(5)")
-        }
-    }
+            if(H5I_iterate(H5I_ATTR, H5F_get_objects_cb, &olist, app_ref) < 0)
+	        HGOTO_ERROR(H5E_FILE, H5E_BADITER, FAIL, "iteration failed(5)")
+        } /* end if */
+    } /* end if */
 
     /* Set the number of objects currently open */
     *obj_id_count_ptr = obj_id_count;
 
 done:
-
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5F_get_objects() */
 
@@ -656,8 +626,6 @@ done:
  *
  * Programmer:  Raymond Lu
  *              Wednesday, Dec 5, 2001
- *
- * Modification:
  *
  *-------------------------------------------------------------------------
  */
@@ -1803,14 +1771,6 @@ H5F_close(H5F_t *f)
     FUNC_ENTER_NOAPI_NOINIT
 
     /* Sanity check */
-    if(f == NULL)
-        HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "f == NULL")
-    else if(f->file_id <= 0)
-        HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "f->file_id <= 0")
-
-    /* the above error checks should mask the next two asserts.  Eventually, we
-     * should either remove the asserts of the error checks.  JRM -- 12/19/11
-     */
     HDassert(f);
     HDassert(f->file_id > 0);   /* This routine should only be called when a file ID's ref count drops to zero */
 
@@ -1857,8 +1817,6 @@ done:
  * Programmer:	Quincey Koziol
  *		Tuesday, July 19, 2005
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -1866,7 +1824,6 @@ H5F_try_close(H5F_t *f)
 {
     unsigned            nopen_files = 0;        /* Number of open files in file/mount hierarchy */
     unsigned            nopen_objs = 0;         /* Number of open objects in file/mount hierarchy */
-    herr_t		result;
     herr_t	        ret_value = SUCCEED;    /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT
@@ -1941,10 +1898,12 @@ H5F_try_close(H5F_t *f)
         if(f->nopen_objs > 0) {
             size_t obj_count;       /* # of open objects */
             hid_t objs[128];        /* Array of objects to close */
+            herr_t result;          /* Local result from obj ID query */
             size_t u;               /* Local index variable */
 
             /* Get the list of IDs of open dataset, group, & attribute objects */
-            while((0 >= (result = H5F_get_obj_ids(f, H5F_OBJ_LOCAL|H5F_OBJ_DATASET|H5F_OBJ_GROUP|H5F_OBJ_ATTR, (int)(sizeof(objs)/sizeof(objs[0])), objs, FALSE, &obj_count))) && (obj_count != 0)) {
+            while((result = H5F_get_obj_ids(f, H5F_OBJ_LOCAL | H5F_OBJ_DATASET | H5F_OBJ_GROUP | H5F_OBJ_ATTR, (int)(sizeof(objs) / sizeof(objs[0])), objs, FALSE, &obj_count)) <= 0
+                    && obj_count != 0 ) {
 
                 /* Try to close all the open objects in this file */
                 for(u = 0; u < obj_count; u++)
@@ -1959,13 +1918,13 @@ H5F_try_close(H5F_t *f)
              * they could be using one of the named datatypes and then the
              * open named datatype ID will get closed twice)
              */
-            while((0 >= (result = H5F_get_obj_ids(f, H5F_OBJ_LOCAL|H5F_OBJ_DATATYPE, (int)(sizeof(objs)/sizeof(objs[0])), objs, FALSE, &obj_count))) && (obj_count != 0)) {
+            while((result = H5F_get_obj_ids(f, H5F_OBJ_LOCAL | H5F_OBJ_DATATYPE, (int)(sizeof(objs) / sizeof(objs[0])), objs, FALSE, &obj_count)) <= 0
+                    && obj_count != 0) {
 
                 /* Try to close all the open objects in this file */
                 for(u = 0; u < obj_count; u++)
                     if(H5I_dec_ref(objs[u]) < 0)
                         HGOTO_ERROR(H5E_ATOM, H5E_CLOSEERROR, FAIL, "can't close object")
-
             } /* end while */
             if(result < 0)
                 HGOTO_ERROR(H5E_INTERNAL, H5E_BADITER, FAIL, "H5F_get_obj_ids failed(2)")
@@ -2677,9 +2636,6 @@ H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len)
     H5F_t      *file;                   /* File object for file ID */
     H5FD_t     *fd_ptr;                 /* file driver */
     haddr_t     eoa;                    /* End of file address */
-    size_t	space_needed;		/* size of file image */
-    hid_t	dxpl_id = H5P_DATASET_XFER_DEFAULT;
-    H5FD_mem_t	type = H5FD_MEM_DEFAULT;
     ssize_t     ret_value;              /* Return value */
 
     FUNC_ENTER_API(FAIL)
@@ -2688,16 +2644,11 @@ H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len)
     /* Check args */
     if(NULL == (file = (H5F_t *)H5I_object_verify(file_id, H5I_FILE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "not a file ID")
-
     if(!file || !file->shared || !file->shared->lf)
-        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, \
-                    "file_id yields invalid file pointer")
-
+        HGOTO_ERROR(H5E_FILE, H5E_BADVALUE, FAIL, "file_id yields invalid file pointer")
     fd_ptr = file->shared->lf;
-
-    if(!fd_ptr || !fd_ptr->cls)
-        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, \
-                    "fd_ptr yields invalid class pointer")
+    if(!fd_ptr->cls)
+        HGOTO_ERROR(H5E_FILE, H5E_BADVALUE, FAIL, "fd_ptr yields invalid class pointer")
 
     /* the address space used by the split and multi file drivers is not
      * a good fit for this call.  Since the plan is to depreciate these
@@ -2717,18 +2668,17 @@ H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len)
      *
      *                                          JRM -- 11/11/22
      */
-    if(strcmp(fd_ptr->cls->name, "multi") == 0)
-        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, 
-                    "Not supported for multi file driver.")
+    if(HDstrcmp(fd_ptr->cls->name, "multi") == 0)
+        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "Not supported for multi file driver.")
 
-    /* While the family file driver is conceptually fully compatable 
+    /* While the family file driver is conceptually fully compatible 
      * with the get file image operation, it sets a file driver message
      * in the super block that prevents the image being opened with any
      * driver other than the family file driver.  Needless to say, this
      * rather defeats the purpose of the get file image operation.
      *
      * While this problem is quire solvable, the required time and 
-     * resources are lacking at present.  Hence, for now, we dont' 
+     * resources are lacking at present.  Hence, for now, we don't
      * allow the get file image operation to be perfomed on files 
      * opened with the family file driver.
      *
@@ -2740,9 +2690,8 @@ H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len)
      * in the future.
      *                                   JRM -- 12/21/11
      */
-    if(strcmp(fd_ptr->cls->name, "family") == 0)
-        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, 
-                    "Not supported for family file driver.")
+    if(HDstrcmp(fd_ptr->cls->name, "family") == 0)
+        HGOTO_ERROR(H5E_FILE, H5E_BADVALUE, FAIL, "Not supported for family file driver.")
 
 
     /* Go get the actual file size */
@@ -2753,21 +2702,20 @@ H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len)
     ret_value = (ssize_t)eoa;
 
     /* test to see if a buffer was provided -- if not, we are done */
-    if(buf_ptr != NULL){
+    if(buf_ptr != NULL) {
+        size_t	space_needed;		/* size of file image */
 
+        /* Check for buffer too small */
         if((haddr_t)buf_len < eoa)
-            HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, (ssize_t)FAIL, \
-                        "supplied buffer too small")
+            HGOTO_ERROR(H5E_FILE, H5E_BADVALUE, FAIL, "supplied buffer too small")
 
-         space_needed = (size_t)eoa;
+        space_needed = (size_t)eoa;
 
         /* read in the file image */
         /* (Note compensation for base address addition in internal routine) */
-        if(H5FD_read(fd_ptr, dxpl_id, type, 0, space_needed, buf_ptr) < 0)
-            HGOTO_ERROR(H5E_VFL, H5E_READERROR, FAIL, \
-                        "file image read request failed")
-        
-    }
+        if(H5FD_read(fd_ptr, H5AC_ind_dxpl_id, H5FD_MEM_DEFAULT, 0, space_needed, buf_ptr) < 0)
+            HGOTO_ERROR(H5E_FILE, H5E_READERROR, FAIL, "file image read request failed")
+    } /* end if */
     
 done:
     FUNC_LEAVE_API(ret_value)

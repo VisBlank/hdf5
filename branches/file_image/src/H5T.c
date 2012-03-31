@@ -1400,9 +1400,6 @@ H5T_unlock_cb(void *_dt, hid_t UNUSED id, void UNUSED *key)
  * Programmer:	Robb Matzke
  *              Friday, November 20, 1998
  *
- * Changes:	Modified function to use H5I_iterate() instead of 
- *		H5I_search().		JRM -- 12/15/11
- *
  *-------------------------------------------------------------------------
  */
 int

@@ -40,8 +40,8 @@
 #include "H5Fprivate.h"	    /* Files                */
 #include "H5FDprivate.h"    /* File drivers         */
 #include "H5Iprivate.h"	    /* IDs                  */
-#include "H5Ppkg.h"         /* Property lists       */
 #include "H5MMprivate.h"    /* Memory Management    */
+#include "H5Ppkg.h"         /* Property lists       */
 
 /* Includes needed to set as default file driver */
 #include "H5FDsec2.h"		/* Posix unbuffered I/O	file driver	*/
@@ -125,7 +125,7 @@
 #define H5F_ACS_EFC_SIZE_DEF                    0
 /* Definition of pointer to initial file image info */
 #define H5F_ACS_FILE_IMAGE_INFO_SIZE            sizeof(H5FD_file_image_info_t)
-#define H5F_ACS_FILE_IMAGE_INFO_DEF             H5FD__DEFAULT_FILE_IMAGE_INFO
+#define H5F_ACS_FILE_IMAGE_INFO_DEF             H5FD_DEFAULT_FILE_IMAGE_INFO
 #define H5F_ACS_FILE_IMAGE_INFO_DEL             H5P_file_image_info_del
 #define H5F_ACS_FILE_IMAGE_INFO_COPY            H5P_file_image_info_copy
 #define H5F_ACS_FILE_IMAGE_INFO_CLOSE           H5P_file_image_info_close
@@ -2131,19 +2131,18 @@ done:
  *
  *-------------------------------------------------------------------------
  */
-
 herr_t
 H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len)
 {
-    H5P_genplist_t *fapl;         /* Property list pointer */
-    H5FD_file_image_info_t image_info; /* file image info */
-    herr_t ret_value = SUCCEED;   /* return value */
+    H5P_genplist_t *fapl;               /* Property list pointer */
+    H5FD_file_image_info_t image_info;  /* File image info */
+    herr_t ret_value = SUCCEED;         /* Return value */
     
     FUNC_ENTER_API(FAIL)
     H5TRACE3("e", "i*xz", fapl_id, buf_ptr, buf_len);
 
     /* validate parameters */
-    if( !(((buf_ptr == NULL) && (buf_len == 0)) || ((buf_ptr != NULL) && (buf_len > 0))))
+    if(!(((buf_ptr == NULL) && (buf_len == 0)) || ((buf_ptr != NULL) && (buf_len > 0))))
         HGOTO_ERROR (H5E_ARGS, H5E_BADVALUE, FAIL, "inconsistant buf_ptr and buf_len");
    
     /* Get the plist structure */
@@ -2151,13 +2150,13 @@ H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len)
         HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "can't find object for ID")
         
     /* Get old image info */
-    if (H5P_get(fapl, H5F_ACS_FILE_IMAGE_INFO_NAME, &image_info) < 0)
+    if(H5P_get(fapl, H5F_ACS_FILE_IMAGE_INFO_NAME, &image_info) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get old file image pointer")
         
     /* Release previous buffer, if it exists */
-    if (image_info.buffer != NULL) {
-        if (image_info.callbacks.image_free) {
-            if(SUCCEED !=image_info.callbacks.image_free(image_info.buffer, H5_FILE_IMAGE_OP_PROPERTY_LIST_SET, image_info.callbacks.udata))
+    if(image_info.buffer != NULL) {
+        if(image_info.callbacks.image_free) {
+            if(SUCCEED != image_info.callbacks.image_free(image_info.buffer, H5FD_FILE_IMAGE_OP_PROPERTY_LIST_SET, image_info.callbacks.udata))
                 HGOTO_ERROR(H5E_RESOURCE, H5E_CANTFREE, FAIL, "image_free callback failed")
         } /* end if */
         else
@@ -2169,17 +2168,17 @@ H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len)
         /* Allocate memory */
         if(image_info.callbacks.image_malloc) {
             if(NULL == (image_info.buffer = image_info.callbacks.image_malloc(buf_len,
-                H5_FILE_IMAGE_OP_PROPERTY_LIST_SET, image_info.callbacks.udata)))
+                    H5FD_FILE_IMAGE_OP_PROPERTY_LIST_SET, image_info.callbacks.udata)))
                 HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "image malloc callback failed")
          } /* end if */
          else
             if(NULL == (image_info.buffer = H5MM_malloc(buf_len)))
-                    HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "unable to allocate memory block")
+                HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "unable to allocate memory block")
     
         /* Copy data */
         if(image_info.callbacks.image_memcpy) {
             if(image_info.buffer != image_info.callbacks.image_memcpy(image_info.buffer, 
-                   buf_ptr, buf_len, H5_FILE_IMAGE_OP_PROPERTY_LIST_SET, 
+                   buf_ptr, buf_len, H5FD_FILE_IMAGE_OP_PROPERTY_LIST_SET, 
                    image_info.callbacks.udata))
 	        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTCOPY, FAIL, "image_memcpy callback failed")
         } /* end if */
@@ -2192,7 +2191,7 @@ H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len)
     image_info.size = buf_len;
 
     /* Set values */
-    if (H5Pset(fapl_id, H5F_ACS_FILE_IMAGE_INFO_NAME, &image_info) < 0)
+    if(H5P_set(fapl, H5F_ACS_FILE_IMAGE_INFO_NAME, &image_info) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set file image info")
 
 done:
@@ -2232,10 +2231,9 @@ done:
 herr_t
 H5Pget_file_image(hid_t fapl_id, void **buf_ptr_ptr, size_t *buf_len_ptr)
 {
-    H5P_genplist_t *fapl;         /* Property list pointer */
-    H5FD_file_image_info_t image_info; /* file image info */
-    void * copy_ptr = NULL;
-    herr_t ret_value = SUCCEED;   /* return value */
+    H5P_genplist_t *fapl;               /* Property list pointer */
+    H5FD_file_image_info_t image_info;  /* File image info */
+    herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_API(FAIL)
     H5TRACE3("e", "i**x*z", fapl_id, buf_ptr_ptr, buf_len_ptr);
@@ -2252,19 +2250,20 @@ H5Pget_file_image(hid_t fapl_id, void **buf_ptr_ptr, size_t *buf_len_ptr)
     HDassert(((image_info.buffer != NULL) && (image_info.size > 0)) || 
              ((image_info.buffer == NULL) && (image_info.size == 0)));
 
-    if (buf_len_ptr != NULL) {
-        /* Set output size */
+    /* Set output size */
+    if(buf_len_ptr != NULL)
         *buf_len_ptr = image_info.size;
-    }
 
     /* Duplicate the image if desired, using callbacks if available */
     if(buf_ptr_ptr != NULL) {
+        void * copy_ptr = NULL;         /* Copy of memory image */
+
         if(image_info.buffer != NULL) {
             /* Allocate memory */
             if(image_info.callbacks.image_malloc) {
                 if(NULL == (copy_ptr = image_info.callbacks.image_malloc(image_info.size,
-                            H5_FILE_IMAGE_OP_PROPERTY_LIST_GET, image_info.callbacks.udata)))
-                HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "image malloc callback failed")
+                        H5FD_FILE_IMAGE_OP_PROPERTY_LIST_GET, image_info.callbacks.udata)))
+                    HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "image malloc callback failed")
             } /* end if */
             else
                 if(NULL == (copy_ptr = H5MM_malloc(image_info.size)))
@@ -2273,7 +2272,7 @@ H5Pget_file_image(hid_t fapl_id, void **buf_ptr_ptr, size_t *buf_len_ptr)
             /* Copy data */
             if(image_info.callbacks.image_memcpy) {
                 if(copy_ptr != image_info.callbacks.image_memcpy(copy_ptr, image_info.buffer,
-                        image_info.size, H5_FILE_IMAGE_OP_PROPERTY_LIST_GET, 
+                        image_info.size, H5FD_FILE_IMAGE_OP_PROPERTY_LIST_GET, 
                         image_info.callbacks.udata))
                     HGOTO_ERROR(H5E_RESOURCE, H5E_CANTCOPY, FAIL, "image_memcpy callback failed")
             } /* end if */
@@ -2306,12 +2305,11 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5Pset_file_image_callbacks(hid_t fapl_id,
-    H5_file_image_callbacks_t *callbacks_ptr)
+H5Pset_file_image_callbacks(hid_t fapl_id, H5FD_file_image_callbacks_t *callbacks_ptr)
 {
-    H5P_genplist_t *fapl;         /* property list pointer */
-    H5FD_file_image_info_t info;  /* file image info */
-    herr_t ret_value = SUCCEED;   /* return value */
+    H5P_genplist_t *fapl;               /* Property list pointer */
+    H5FD_file_image_info_t info;        /* File image info */
+    herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_API(FAIL)
     H5TRACE2("e", "i*x", fapl_id, callbacks_ptr);
@@ -2321,7 +2319,7 @@ H5Pset_file_image_callbacks(hid_t fapl_id,
         HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "can't find object for ID")
 
     /* Get old info */
-    if (H5P_get(fapl, H5F_ACS_FILE_IMAGE_INFO_NAME, &info) < 0)
+    if(H5P_get(fapl, H5F_ACS_FILE_IMAGE_INFO_NAME, &info) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get old file image info")
 
     /* verify file image field consistancy */
@@ -2329,7 +2327,7 @@ H5Pset_file_image_callbacks(hid_t fapl_id,
              ((info.buffer == NULL) && (info.size == 0)));
 
     /* Make sure a file image hasn't already been set */
-    if (info.buffer != NULL || info.size > 0)
+    if(info.buffer != NULL || info.size > 0)
         HGOTO_ERROR(H5E_PLIST, H5E_SETDISALLOWED, FAIL, "setting callbacks when an image is already set is forbidden. It could cause memory leaks.")
 
     /* verify that callbacks_ptr is not NULL */
@@ -2337,18 +2335,16 @@ H5Pset_file_image_callbacks(hid_t fapl_id,
 	HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "NULL callbacks_ptr")
 
     /* Make sure udata callbacks are going to be set if udata is going to be set */
-    if (callbacks_ptr->udata) {
-        if (callbacks_ptr->udata_copy == NULL || 
-            callbacks_ptr->udata_free == NULL)
+    if(callbacks_ptr->udata)
+        if(callbacks_ptr->udata_copy == NULL || callbacks_ptr->udata_free == NULL)
             HGOTO_ERROR(H5E_PLIST, H5E_SETDISALLOWED, FAIL, "udata callbacks must be set if udata is set")
-    }
 
     /* Release old udata if it exists */
-    if (info.callbacks.udata != NULL) {
+    if(info.callbacks.udata != NULL) {
         HDassert(info.callbacks.udata_free);
-        if (SUCCEED != info.callbacks.udata_free(info.callbacks.udata))
+        if(info.callbacks.udata_free(info.callbacks.udata) < 0)
 	    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTFREE, FAIL, "udata_free callback failed")
-    }
+    } /* end if */
 
     /* Update struct */
     info.callbacks = *callbacks_ptr;
@@ -2358,15 +2354,15 @@ H5Pset_file_image_callbacks(hid_t fapl_id,
         HDassert(callbacks_ptr->udata_free);
         if((info.callbacks.udata = callbacks_ptr->udata_copy(callbacks_ptr->udata)) == NULL)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't copy the suppplied udata")
-    }
+    } /* end if */
 
     /* Set values */
-    if (H5Pset(fapl_id, H5F_ACS_FILE_IMAGE_INFO_NAME, &info) < 0)
+    if(H5P_set(fapl, H5F_ACS_FILE_IMAGE_INFO_NAME, &info) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set file image info")
 
 done:
     FUNC_LEAVE_API(ret_value)
-}
+} /* end H5Pset_file_image_callbacks() */
 
 
 /*-------------------------------------------------------------------------
@@ -2385,12 +2381,11 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5Pget_file_image_callbacks(hid_t fapl_id,
-    H5_file_image_callbacks_t *callbacks_ptr)
+H5Pget_file_image_callbacks(hid_t fapl_id, H5FD_file_image_callbacks_t *callbacks_ptr)
 {
-    H5P_genplist_t *fapl;        /* property list pointer */
-    H5FD_file_image_info_t info; /* file image info */
-    herr_t ret_value = SUCCEED;  /* return value */
+    H5P_genplist_t *fapl;               /* Property list pointer */
+    H5FD_file_image_info_t info;        /* File image info */
+    herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_API(FAIL)
     H5TRACE2("e", "i*x", fapl_id, callbacks_ptr);
@@ -2400,7 +2395,7 @@ H5Pget_file_image_callbacks(hid_t fapl_id,
         HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "can't find object for ID")
 
     /* Get old info */
-    if (H5P_get(fapl, H5F_ACS_FILE_IMAGE_INFO_NAME, &info) < 0)
+    if(H5P_get(fapl, H5F_ACS_FILE_IMAGE_INFO_NAME, &info) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get file image info")
 
     /* verify file image field consistancy */
@@ -2419,11 +2414,11 @@ H5Pget_file_image_callbacks(hid_t fapl_id,
         HDassert(info.callbacks.udata_copy);
         if((callbacks_ptr->udata = info.callbacks.udata_copy(info.callbacks.udata)) == 0)
                 HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't copy udata")
-    }
+    } /* end if */
 
 done:
     FUNC_LEAVE_API(ret_value)
-}
+} /* end H5Pget_file_image_callbacks() */
 
 
 /*-------------------------------------------------------------------------
@@ -2444,12 +2439,12 @@ done:
 herr_t
 H5P_file_image_info_del(hid_t UNUSED prop_id, const char UNUSED *name, size_t UNUSED size, void *value)
 {
-    H5FD_file_image_info_t info; /* Image info struct */
-    herr_t ret_value = SUCCEED;
+    H5FD_file_image_info_t info;        /* Image info struct */
+    herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT
 
-    if (value) {
+    if(value) {
         info = *(H5FD_file_image_info_t *)value;
 
         /* verify file image field consistancy */
@@ -2459,26 +2454,26 @@ H5P_file_image_info_del(hid_t UNUSED prop_id, const char UNUSED *name, size_t UN
         if(info.buffer && info.size > 0) {
             /* Free buffer */
             if(info.callbacks.image_free) {
-                if(SUCCEED != info.callbacks.image_free(info.buffer, H5_FILE_IMAGE_OP_PROPERTY_LIST_CLOSE, info.callbacks.udata))
+                if(info.callbacks.image_free(info.buffer, H5FD_FILE_IMAGE_OP_PROPERTY_LIST_CLOSE, info.callbacks.udata) < 0)
 		    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTFREE, FAIL, "image_free callback failed")
             } /* end if */
             else
                 free(info.buffer);
-        }
+        } /* end if */
 
         /* Free udata if it exists */
         if(info.callbacks.udata) {
-            if (info.callbacks.udata_free == NULL)
+            if(NULL == info.callbacks.udata_free)
                 HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "udata_free not defined")
 
-            if(SUCCEED != info.callbacks.udata_free(info.callbacks.udata))
+            if(info.callbacks.udata_free(info.callbacks.udata) < 0)
 	        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTFREE, FAIL, "udata_free callback failed")
-        }
-    }
+        } /* end if */
+    } /* end if */
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-}
+} /* end H5P_file_image_info_del() */
 
 
 /*-------------------------------------------------------------------------
@@ -2498,12 +2493,12 @@ done:
 herr_t
 H5P_file_image_info_copy(const char UNUSED *name, size_t UNUSED size, void *value)
 {
-    H5FD_file_image_info_t *info; /* Image info struct */
-    herr_t ret_value = SUCCEED;
+    H5FD_file_image_info_t *info;       /* Image info struct */
+    herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT
 
-    if (value) {
+    if(value) {
         info = (H5FD_file_image_info_t *)value;
 
         /* verify file image field consistancy */
@@ -2519,39 +2514,39 @@ H5P_file_image_info_copy(const char UNUSED *name, size_t UNUSED size, void *valu
             /* Allocate new buffer */
             if(info->callbacks.image_malloc) {
                 if(NULL == (info->buffer = info->callbacks.image_malloc(info->size,
-                    H5_FILE_IMAGE_OP_PROPERTY_LIST_COPY, info->callbacks.udata)))
+                        H5FD_FILE_IMAGE_OP_PROPERTY_LIST_COPY, info->callbacks.udata)))
                     HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "image malloc callback failed")
             } /* end if */
             else {
                 if(NULL == (info->buffer = H5MM_malloc(info->size)))
                     HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "unable to allocate memory block")
-            }
+            } /* end else */
             
             /* Copy data to new buffer */
             if(info->callbacks.image_memcpy) {
                 if(info->buffer != info->callbacks.image_memcpy(info->buffer, old_buffer, 
-			info->size, H5_FILE_IMAGE_OP_PROPERTY_LIST_COPY, 
+			info->size, H5FD_FILE_IMAGE_OP_PROPERTY_LIST_COPY, 
 			info->callbacks.udata))
 		    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTCOPY, FAIL, "image_memcpy callback failed")
             } /* end if */
 	    else
                 HDmemcpy(info->buffer, old_buffer, info->size);
-        }
-    }
+        } /* end if */
+    } /* end if */
 
     /* Copy udata if it exists */
     if(info->callbacks.udata) {
         void *old_udata = info->callbacks.udata;
 
-        if (info->callbacks.udata_copy == NULL)
-                HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "udata_copy not defined")
+        if(NULL == info->callbacks.udata_copy)
+            HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "udata_copy not defined")
 
         info->callbacks.udata = info->callbacks.udata_copy(old_udata);
-    }
+    } /* end if */
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-}
+} /* end H5P_file_image_info_copy() */
 
 
 /*-------------------------------------------------------------------------
@@ -2571,35 +2566,35 @@ done:
 herr_t
 H5P_file_image_info_close(const char UNUSED *name, size_t UNUSED size, void *value)
 {
-    H5FD_file_image_info_t info; /* Image info struct */
-    herr_t ret_value = SUCCEED;
+    H5FD_file_image_info_t info;        /* Image info struct */
+    herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT
 
-    if (value) {
+    if(value) {
         info = *(H5FD_file_image_info_t *)value;
              
         if(info.buffer != NULL && info.size > 0) { 
             /* Free buffer */
             if(info.callbacks.image_free) {
-                if(SUCCEED != info.callbacks.image_free(info.buffer, 
-                        H5_FILE_IMAGE_OP_PROPERTY_LIST_CLOSE, info.callbacks.udata))
+                if(info.callbacks.image_free(info.buffer, H5FD_FILE_IMAGE_OP_PROPERTY_LIST_CLOSE,
+                        info.callbacks.udata) < 0)
 		    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTFREE, FAIL, "image_free callback failed")
             } /* end if */
             else
-                free(info.buffer);
-        }    
-    }    
+                H5MM_xfree(info.buffer);
+        } /* end if */
+    } /* end if */
 
     /* Free udata if it exists */
     if(info.callbacks.udata) {
-        if (info.callbacks.udata_free == NULL)
+        if(NULL == info.callbacks.udata_free)
             HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "udata_free not defined")
-        if (SUCCEED != info.callbacks.udata_free(info.callbacks.udata))
-	        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTFREE, FAIL, "udata_free callback failed")
-    }    
+        if(info.callbacks.udata_free(info.callbacks.udata) < 0)
+            HGOTO_ERROR(H5E_RESOURCE, H5E_CANTFREE, FAIL, "udata_free callback failed")
+    } /* end if */
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-}
+} /* end H5P_file_image_info_close() */
 
