@@ -78,7 +78,6 @@
 #define FNAME17OUT  "h5repack_named_dtypes_out.h5"
 
 #define FNAME18     "h5repack_layout2.h5"
-#define FNAME18OUT  "h5repack_layout2_out.h5"
 
 #define FNAME_UB   "ublock.bin"
 
@@ -166,6 +165,8 @@ int main (void)
 {
     pack_opt_t  pack_options;
     diff_opt_t  diff_options;
+    h5_stat_t		file_stat;
+    h5_stat_size_t	fsize1, fsize2;	/* file sizes */
 #if defined (H5_HAVE_FILTER_SZIP)
     int szip_can_encode = 0;
 #endif
@@ -1546,6 +1547,48 @@ int main (void)
 
 
     PASSED();
+
+    /*-------------------------------------------------------------------------
+    * test --metadata_block_size option
+    * Also verify that output file using the metadata_block_size option is
+    * larger than the output file one not using it.
+    *-------------------------------------------------------------------------
+    */
+    TESTING("    metadata block size option");
+    /* First run without metadata option. No need to verify the correctness */
+    /* since this has been verified by earlier tests. Just record the file */
+    /* size of the output file. */
+    if(h5repack_init(&pack_options, 0) < 0)
+        GOERROR;
+    if(h5repack(FNAME4, FNAME4OUT, &pack_options) < 0)
+        GOERROR;
+    if(HDstat(FNAME4OUT, &file_stat) < 0)
+        GOERROR;
+    fsize1 = file_stat.st_size;
+    if(h5repack_end(&pack_options) < 0)
+        GOERROR;
+
+    /* run it again with metadata option */
+    if(h5repack_init(&pack_options, 0) < 0)
+        GOERROR;
+    pack_options.meta_block_size = 8192;
+    if(h5repack(FNAME4, FNAME4OUT, &pack_options) < 0)
+        GOERROR;
+    if(h5diff(FNAME4, FNAME4OUT, NULL, NULL, &diff_options) > 0)
+        GOERROR;
+    if(h5repack_verify(FNAME4OUT, &pack_options) <= 0)
+        GOERROR;
+    /* record the file size of the output file */
+    if(HDstat(FNAME4OUT, &file_stat) < 0)
+        GOERROR;
+    fsize2 = file_stat.st_size;
+    /* verify second file size is larger than the first one */
+    if(fsize2 <= fsize1)
+        GOERROR;
+    if(h5repack_end(&pack_options) < 0)
+        GOERROR;
+    PASSED();
+
 
     /*-------------------------------------------------------------------------
     * clean temporary test files
@@ -3229,7 +3272,7 @@ make_userblock(void)
 
     /* Initialize userblock data */
     for(u = 0; u < USERBLOCK_SIZE; u++)
-        ub[u] = 'a' + (u % 26);
+        ub[u] = 'a' + (char)(u % 26);
 
     /* Re-open HDF5 file, as "plain" file */
     if((fd = HDopen(FNAME16, O_WRONLY, 0644)) < 0)
@@ -3342,7 +3385,7 @@ make_userblock_file(void)
 
     /* initialize userblock data */
     for(u = 0; u < USERBLOCK_SIZE; u++)
-        ub[u] = 'a' + (u % 26);
+        ub[u] = 'a' + (char)(u % 26);
 
     /* open file */
     if((fd = HDopen(FNAME_UB,O_WRONLY|O_CREAT|O_TRUNC, 0644 )) < 0)
@@ -3818,7 +3861,7 @@ int write_dset_in(hid_t loc_id,
             int l;
 
             buf52[i][j].p = malloc((i + 1) * sizeof(int));
-            buf52[i][j].len = i + 1;
+            buf52[i][j].len = (size_t)(i + 1);
             for(l = 0; l < i + 1; l++)
             {
                 if(make_diffs)
@@ -4039,7 +4082,7 @@ int write_dset_in(hid_t loc_id,
                 int l;
 
                 buf53[i][j][k].p = malloc((i + 1) * sizeof(int));
-                buf53[i][j][k].len = i + 1;
+                buf53[i][j][k].len = (size_t)(i + 1);
                 for(l = 0; l < i + 1; l++)
                 {
                     if(make_diffs)
@@ -4830,7 +4873,7 @@ int write_attr_in(hid_t loc_id,
         {
             int l;
             buf52[i][j].p = malloc((i + 1) * sizeof(int));
-            buf52[i][j].len = i + 1;
+            buf52[i][j].len = (size_t)(i + 1);
             for (l = 0; l < i + 1; l++)
                 if (make_diffs)((int *)buf52[i][j].p)[l] = 0;
                 else ((int *)buf52[i][j].p)[l] = n++;
@@ -5296,7 +5339,7 @@ int write_attr_in(hid_t loc_id,
             {
                 int l;
                 buf53[i][j][k].p = malloc((i + 1) * sizeof(int));
-                buf53[i][j][k].len = i + 1;
+                buf53[i][j][k].len = (size_t)i + 1;
                 for (l = 0; l < i + 1; l++)
                     if (make_diffs)
                     {
@@ -5796,7 +5839,7 @@ static herr_t add_attr_with_regref(hid_t file_id, hid_t obj_id)
     }
 
     /* select elements space for reference */
-    status = H5Sselect_elements (sid_regrefed_dset, H5S_SELECT_SET, 3, coords_regrefed_dset[0]);
+    status = H5Sselect_elements (sid_regrefed_dset, H5S_SELECT_SET, (size_t)3, coords_regrefed_dset[0]);
     if (status < 0)
     {
         fprintf(stderr, "Error: %s %d> H5Sselect_elements failed.\n", FUNC, __LINE__);
@@ -6118,7 +6161,7 @@ static herr_t gen_region_ref(hid_t loc_id)
     }
 
     /* select elements space for reference */
-    status = H5Sselect_elements (sid_trg, H5S_SELECT_SET, 4, coords[0]);
+    status = H5Sselect_elements (sid_trg, H5S_SELECT_SET, (size_t)4, coords[0]);
     if (status < 0)
     {
         fprintf(stderr, "Error: %s %d> H5Sselect_elements failed.\n", FUNC, __LINE__);
