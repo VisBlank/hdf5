@@ -1,4 +1,4 @@
-HDF5 version 1.8.10-snap4 currently under development
+HDF5 version 1.8.10-snap5 currently under development
 ================================================================================
 
 INTRODUCTION
@@ -80,7 +80,10 @@ New Features
 
     Fortran API
     -----------
-    - None
+    - Fixed a typo in return value of the nh5dread_f_c function ( was 1 
+      instead of 0 on success); fixed the return value to make it consistent
+      with other Fortran functions; cleaned the code from debug statements.
+      (EIP - 2012/06/23)
 
     C++ API
     -------
