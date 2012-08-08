@@ -114,6 +114,16 @@ static int H5FD_driver_query(const H5FD_class_t *driver, unsigned long *flags/*o
  */
 static unsigned long file_serial_no;
 
+/* File driver ID class */
+static const H5I_class_t H5I_VFL_CLS[1] = {{
+    H5I_VFL,			/* ID class value */
+    0,				/* Class flags */
+    64,				/* Minimum hash size for class */
+    0,				/* # of reserved IDs for class */
+    (H5I_free_t)H5FD_free_cls	/* Callback routine for closing objects of this class */
+}};
+
+
 
 /*-------------------------------------------------------------------------
  * Function:	H5FD_init
@@ -164,7 +174,7 @@ H5FD_init_interface(void)
 
     FUNC_ENTER_NOAPI_NOINIT
 
-    if(H5I_register_type(H5I_VFL, (size_t)H5I_VFL_HASHSIZE, 0, (H5I_free_t)H5FD_free_cls)<H5I_FILE)
+    if(H5I_register_type(H5I_VFL_CLS) < 0)
 	HGOTO_ERROR(H5E_VFL, H5E_CANTINIT, FAIL, "unable to initialize interface")
 
     /* Reset the file serial numbers */
@@ -1358,7 +1368,7 @@ H5FD_query(const H5FD_t *f, unsigned long *flags/*out*/)
 {
     int	ret_value = 0;          /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
     HDassert(f);
     HDassert(flags);
@@ -1369,7 +1379,6 @@ H5FD_query(const H5FD_t *f, unsigned long *flags/*out*/)
     else
         *flags=0;
 
-done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5FD_query() */
 
@@ -1395,7 +1404,7 @@ H5FD_driver_query(const H5FD_class_t *driver, unsigned long *flags/*out*/)
 {
     int ret_value = 0;          /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
     HDassert(driver);
     HDassert(flags);
@@ -1406,7 +1415,6 @@ H5FD_driver_query(const H5FD_class_t *driver, unsigned long *flags/*out*/)
     else 
         *flags = 0;
 
-done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5FD_driver_query() */
 

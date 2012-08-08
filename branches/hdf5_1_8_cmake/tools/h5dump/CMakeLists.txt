@@ -780,14 +780,33 @@ IF (BUILD_TESTING)
   ENDMACRO (ADD_XML_H5_TEST file)
 
   # --------------------------------------------------------------------
-  # Determine which filters are available
+  # See which filters are usable (and skip tests for filters we
+  # don't have).  Do this by searching H5pubconf.h to see which
+  # filters are defined.
   # --------------------------------------------------------------------
-  SET (USE_FILTER_SZIP H5_HAVE_FILTER_SZIP)
-  SET (USE_FILTER_DEFLATE H5_HAVE_FILTER_DEFLATE)
-  SET (USE_FILTER_SHUFFLE H5_HAVE_FILTER_SHUFFLE)
-  SET (USE_FILTER_FLETCHER32 H5_HAVE_FILTER_FLETCHER32)
-  SET (USE_FILTER_NBIT H5_HAVE_FILTER_NBIT)
-  SET (USE_FILTER_SCALEOFFSET H5_HAVE_FILTER_SCALEOFFSET)
+  IF (H5_HAVE_FILTER_DEFLATE)
+    SET (USE_FILTER_DEFLATE "true")
+  ENDIF (H5_HAVE_FILTER_DEFLATE)
+
+  IF (H5_HAVE_FILTER_SZIP)
+    SET (USE_FILTER_SZIP "true")
+  ENDIF (H5_HAVE_FILTER_SZIP)
+
+  IF (H5_HAVE_FILTER_SHUFFLE)
+    SET (USE_FILTER_SHUFFLE "true")
+  ENDIF (H5_HAVE_FILTER_SHUFFLE)
+
+  IF (H5_HAVE_FILTER_FLETCHER32)
+    SET (USE_FILTER_FLETCHER32 "true")
+  ENDIF (H5_HAVE_FILTER_FLETCHER32)
+
+  IF (H5_HAVE_FILTER_NBIT)
+    SET (USE_FILTER_NBIT "true")
+  ENDIF (H5_HAVE_FILTER_NBIT)
+
+  IF (H5_HAVE_FILTER_SCALEOFFSET)
+    SET (USE_FILTER_SCALEOFFSET "true")
+  ENDIF (H5_HAVE_FILTER_SCALEOFFSET)
 
 ##############################################################################
 ##############################################################################
@@ -1352,11 +1371,21 @@ IF (BUILD_TESTING)
 
   # NATIVE default. the NATIVE test can be validated with h5import/h5diff
   ADD_H5_TEST (tbin1 0 --enable-error-stack -d integer -o out1.bin -b tbinary.h5)
+  IF (NOT "${last_test}" STREQUAL "")
+    SET_TESTS_PROPERTIES (H5DUMP-tbin1 PROPERTIES DEPENDS ${last_test})
+  ENDIF (NOT "${last_test}" STREQUAL "")
+  SET (last_test "H5DUMP-tbin1")
+  
   IF (NOT HDF5_ENABLE_USING_MEMCHECKER)
-    IF (NOT "${last_test}" STREQUAL "")
-      SET_TESTS_PROPERTIES (H5DUMP-tbin1 PROPERTIES DEPENDS ${last_test})
-    ENDIF (NOT "${last_test}" STREQUAL "")
-    SET (last_test "H5DUMP-tbin1")
+    ADD_TEST (NAME H5DUMP-clear-out1D COMMAND ${CMAKE_COMMAND} -E remove ./testfiles/out1D.h5)
+    SET_TESTS_PROPERTIES (H5DUMP-clear-out1D PROPERTIES DEPENDS H5DUMP-tbin1)
+    ADD_TEST (NAME H5DUMP-h5import-out1D COMMAND h5import out1.bin -c tbin1.out -o out1D.h5)
+    SET_TESTS_PROPERTIES (H5DUMP-h5import-out1D PROPERTIES WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/testfiles")
+    SET_TESTS_PROPERTIES (H5DUMP-h5import-out1D PROPERTIES DEPENDS H5DUMP-clear-out1D)
+    ADD_TEST (NAME H5DUMP-h5diff-out1D COMMAND h5diff tbinary.h5 out1D.h5 /integer /integer)
+    SET_TESTS_PROPERTIES (H5DUMP-h5diff-out1D PROPERTIES WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/testfiles")
+    SET_TESTS_PROPERTIES (H5DUMP-h5diff-out1D PROPERTIES DEPENDS H5DUMP-h5import-out1D)
+    SET (last_test "H5DUMP-h5diff-out1D")
   ENDIF (NOT HDF5_ENABLE_USING_MEMCHECKER)
   
   ADD_TEST (NAME H5DUMP-clear-out1 COMMAND ${CMAKE_COMMAND} -E remove ./testfiles/out1.h5)
@@ -1381,11 +1410,21 @@ IF (BUILD_TESTING)
 
   # the NATIVE test can be validated with h5import/h5diff
   ADD_H5_TEST (tbin3 0 --enable-error-stack -d integer -o out3.bin -b NATIVE tbinary.h5)
+  IF (NOT "${last_test}" STREQUAL "")
+    SET_TESTS_PROPERTIES (H5DUMP-tbin3 PROPERTIES DEPENDS ${last_test})
+  ENDIF (NOT "${last_test}" STREQUAL "")
+  SET (last_test "H5DUMP-tbin3")
+   
   IF (NOT HDF5_ENABLE_USING_MEMCHECKER)
-    IF (NOT "${last_test}" STREQUAL "")
-      SET_TESTS_PROPERTIES (H5DUMP-tbin3 PROPERTIES DEPENDS ${last_test})
-    ENDIF (NOT "${last_test}" STREQUAL "")
-    SET (last_test "H5DUMP-tbin3")
+    ADD_TEST (NAME H5DUMP-clear-out3D COMMAND ${CMAKE_COMMAND} -E remove ./testfiles/out3D.h5)
+    SET_TESTS_PROPERTIES (H5DUMP-clear-out3D PROPERTIES DEPENDS H5DUMP-tbin3)
+    ADD_TEST (NAME H5DUMP-h5import-out3D COMMAND h5import out3.bin -c tbin3.out -o out3D.h5)
+    SET_TESTS_PROPERTIES (H5DUMP-h5import-out3D PROPERTIES WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/testfiles")
+    SET_TESTS_PROPERTIES (H5DUMP-h5import-out3D PROPERTIES DEPENDS H5DUMP-clear-out3D)
+    ADD_TEST (NAME H5DUMP-h5diff-out3D COMMAND h5diff tbinary.h5 out3D.h5 /integer /integer -q)
+    SET_TESTS_PROPERTIES (H5DUMP-h5diff-out3D PROPERTIES WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/testfiles")
+    SET_TESTS_PROPERTIES (H5DUMP-h5diff-out3D PROPERTIES DEPENDS H5DUMP-h5import-out3D)
+    SET (last_test "H5DUMP-h5diff-out3D")
   ENDIF (NOT HDF5_ENABLE_USING_MEMCHECKER)
   
   ADD_TEST (NAME H5DUMP-clear-out3 COMMAND ${CMAKE_COMMAND} -E remove ./testfiles/out3.h5)
