@@ -1,0 +1,13 @@
+HDF5 klocwork feature branch
+
+This branch was created by Quincey Koziol on August 10, 2012.  Mark Miller
+(@LLNL) and he are the only people working on the branch.
+
+This branch is being used by Mark to check in changes that reduce/eliminate
+issues reported by the Klocwork static analysis tool.  This tool is installed
+on-site @ LLNL.
+
+This branch is off of the trunk.  Changes in this branch are scheduled for
+review and merge back to both the trunk and 1.8 release brances.
+
+All trunk changes through r22663 have been merged up to this feature branch.
