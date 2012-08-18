@@ -101,7 +101,7 @@ int main(int argc , char **argv)
             /* allocate space to store the image name */
             size_t len = strlen(argv[arg_index]);
             image_name = (CHAR*) malloc( len + 1);
-            strcpy(image_name , argv[arg_index]);
+	    strncpy(image_name , argv[arg_index], strlen(argv[arg_index])+1);
 
             bool_is_image = 0;
             continue;

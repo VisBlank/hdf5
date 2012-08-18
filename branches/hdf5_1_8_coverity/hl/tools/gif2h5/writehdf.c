@@ -58,6 +58,8 @@ WriteHDF(GIFTOMEM GifMemoryStruct, char *HDFName)
     /* temp counter */
     int i;
 
+    size_t len; /* length of string */
+
     /* get the GIFMem stuff */
     gifHead = *(GifMemoryStruct.GifHeader);
 
@@ -101,7 +103,8 @@ WriteHDF(GIFTOMEM GifMemoryStruct, char *HDFName)
         dims[1] = gifImageDesc->ImageWidth;
 
         /* create the image name */
-        sprintf(ImageName , "Image%d" , i);
+	len = snprintf(NULL, 0, "Image%d" , i);
+	snprintf(ImageName , len+1,"Image%d" , i);
 
         /* write image */
         if (H5IMmake_image_8bit(file_id,ImageName,dims[1],dims[0],(gifImageDesc->Image))<0)
