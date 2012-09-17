@@ -421,6 +421,9 @@ IF (CMAKE_COMPILER_IS_GNUCXX)
     SET (CMAKE_CXX_FLAGS "${CMAKE_ANSI_CFLAGS} ${CMAKE_CXX_FLAGS} -fomit-frame-pointer -finline-functions -fno-common")
   ENDIF (CMAKE_BUILD_TYPE MATCHES Debug)
 ENDIF (CMAKE_COMPILER_IS_GNUCXX)
+IF (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+  ADD_DEFINITIONS (${HDF5_C_EXTRA_FLAGS})
+ENDIF (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
 
 #-----------------------------------------------------------------------------
 # Option to embed library info into executables

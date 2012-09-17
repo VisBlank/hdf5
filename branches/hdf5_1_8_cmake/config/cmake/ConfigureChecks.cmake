@@ -422,7 +422,9 @@ IF (NOT WINDOWS)
   # correctly.
   # POSIX feature information can be found in the gcc manual at:
   # http://www.gnu.org/s/libc/manual/html_node/Feature-Test-Macros.html
-  SET (HDF5_EXTRA_FLAGS -D_POSIX_C_SOURCE=199506L -D_BSD_SOURCE)
+  SET (HDF5_C_EXTRA_FLAGS -D_POSIX_C_SOURCE=199506L)
+  SET (HDF5_EXTRA_FLAGS -D_BSD_SOURCE)
+  
   OPTION (HDF5_ENABLE_LARGE_FILE "Enable support for large (64-bit) files on Linux." ON)
   IF (HDF5_ENABLE_LARGE_FILE)
     SET (msg "Performing TEST_LFS_WORKS")
@@ -456,9 +458,7 @@ IF (NOT WINDOWS)
   SET (CMAKE_REQUIRED_DEFINITIONS ${CMAKE_REQUIRED_DEFINITIONS} ${HDF5_EXTRA_FLAGS})
 ENDIF (NOT WINDOWS)
 
-#ADD_DEFINITIONS (${HDF5_EXTRA_FLAGS})
-SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${HDF5_EXTRA_FLAGS}")
-SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${HDF5_EXTRA_FLAGS}")
+ADD_DEFINITIONS (${HDF5_EXTRA_FLAGS})
 
 #-----------------------------------------------------------------------------
 # Check for HAVE_OFF64_T functionality
