@@ -1545,10 +1545,10 @@ static int test_complicated_compound(void)
 
     /* compose the name of the file to open, using the srcdir, if appropriate */
     if(srcdir) {
-        strcpy(filename, srcdir);
-        strcat(filename, "/");
+        strncpy(filename, srcdir, strlen(srcdir));
+        strncat(filename, "/", 1);
     }
-    strcat(filename, INPUT_FILE);
+    strncat(filename, INPUT_FILE, strlen(INPUT_FILE));
 
     /* Open input file */
     fp = fopen(filename, "r");

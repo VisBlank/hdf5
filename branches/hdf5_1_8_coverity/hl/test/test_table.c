@@ -130,10 +130,10 @@ static hid_t h5file_open(const char *fname, unsigned flags)
     /* compose the name of the file to open, using the srcdir, if appropriate */
     if (srcdir)
     {
-        strcpy(data_file,srcdir);
-        strcat(data_file,"/");
+        strncpy(data_file, srcdir, strlen(srcdir));
+        strncat(data_file, "/", 1);
     }
-    strcat(data_file,fname);
+    strncat(data_file, fname, strlen(fname));
 
     /* open */
     if ((fid = H5Fopen(data_file,flags,H5P_DEFAULT))<0)

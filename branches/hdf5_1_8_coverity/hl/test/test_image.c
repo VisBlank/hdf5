@@ -733,6 +733,8 @@ out:
     } H5E_END_TRY;
     if(f)
         fclose(f);
+    if(data)
+        free(data);
     H5_FAILED();
     return FAIL;
 }
@@ -780,13 +782,13 @@ static int read_data(const char* fname, /*IN*/
     if (srcdir) {
         len = strlen(srcdir) + strlen(fname) + 1;
         if(len < sizeof(data_file)) {
-            strncpy(data_file, srcdir, strlen(srcdir)+1);
+            strncpy(data_file, srcdir, strlen(srcdir));
             strncat(data_file, "/", 1);
         } else {
             printf("Length of strings %s (srcdir) and %s (fname) too long for buffer\n", srcdir, fname);
         }
     }
-    strcat(data_file,fname);
+    strncat(data_file,fname,strlen(fname));
 
     /*-------------------------------------------------------------------------
     * read
@@ -880,6 +882,9 @@ static int read_palette(const char* fname,
     char          *srcdir = getenv("srcdir"); /* the source directory */
     char          data_file[512];             /* buffer to hold name of existing data file */
 
+
+    
+
     /*-------------------------------------------------------------------------
     * compose the name of the file to open, using "srcdir", if appropriate
     *-------------------------------------------------------------------------
@@ -887,10 +892,10 @@ static int read_palette(const char* fname,
     strcpy(data_file, "");
     if (srcdir)
     {
-        strcpy(data_file, srcdir);
-        strcat(data_file, "/");
+        strncpy(data_file, srcdir, strlen(srcdir));
+	strncat(data_file, "/", 1);
     }
-    strcat(data_file,fname);
+    strncat(data_file,fname,strlen(fname));
 
     /* ensure the given palette is valid */
     if (!palette)

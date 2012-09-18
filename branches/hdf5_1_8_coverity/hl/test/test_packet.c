@@ -452,7 +452,7 @@ static int    test_big_table(hid_t fid)
     hid_t table;
     hid_t part_t;
     size_t c;
-    particle_t readPart;
+    particle_t readPart[1];
     hsize_t count;
 
     TESTING("large packet table");
@@ -489,12 +489,12 @@ static int    test_big_table(hid_t fid)
     /* the first packet in the table                                     */
     for(c = 0; c < BIG_TABLE_SIZE; c++)
     {
-        err = H5PTget_next(table, 1, &readPart);
+        err = H5PTget_next(table, 1, &readPart[0]);
         if(err < 0)
             goto out;
 
         /* Ensure that particles were read correctly */
-        if( cmp_par(c % 8, 0, testPart, &readPart) != 0)
+        if( cmp_par(c % 8, 0, testPart, readPart) != 0)
             goto out;
     }
 

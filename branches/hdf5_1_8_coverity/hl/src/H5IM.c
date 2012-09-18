@@ -243,9 +243,9 @@ herr_t H5IMget_image_info( hid_t loc_id,
     hid_t       did;
     hid_t       sid;
     hsize_t     dims[IMAGE24_RANK];
-    hid_t       aid;
-    hid_t       asid;
-    hid_t       atid;
+    hid_t       aid = 0;
+    hid_t       asid = 0;
+    hid_t       atid = 0;
     H5T_class_t aclass;
     int         has_pal;
     int         has_attr;
