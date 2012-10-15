@@ -1,4 +1,4 @@
-HDF5 version 1.8.10-snap14 currently under development
+HDF5 version 1.8.10-pre1 currently under development
 ================================================================================
 
 INTRODUCTION
@@ -75,6 +75,8 @@ New Features
     - Add H5Pget_mpio_no_collective_cause() function that retrive reasons
       why the collective I/O was broken during read/write IO access. 
       (JKM - 2012/08/30 HDFFV-8143)
+
+    - Added H5Pget_mpio_actual_io_mode_f (MSB - 2012/09/27)
  
     Tools
     -----
@@ -183,7 +185,21 @@ Bug Fixes since HDF5-1.8.9
 
     F90 API
     -------
-    - None
+    
+    - Fixed a typo in return value of the nh5dread_f_c function ( was 1
+      instead of 0 on success); fixed the return value to make it consistent
+      with other Fortran functions; cleaned the code from debug statements.
+      (EIP - 2012/06/23)
+
+    - Fixed problem writing/reading control characters to a dataset; writing
+      a string containing: alerts, backspace, carriage_return, form_feed,
+      horizontal_tab, vertical_tab, new_line is now tested and working.
+      (MSB - 2012/09/01)
+
+    - Corrected the integer type of H5S_UNLIMITED_F to HSIZE_T (MSB - 2012/09/01)
+
+    - Corrected the number of continuation lines in the src files
+      to be less than 32 lines for F95 compliance. (MSB - 2012/10/01)
 
     C++ API
     ------
@@ -191,7 +207,16 @@ Bug Fixes since HDF5-1.8.9
 
     High-Level APIs:
     ------
-    - None
+
+    - Fixed problem with H5TBdelete_record destroying all data following the deletion
+      of a row. (MSB- 2012/7/26)
+
+    - Fixed H5LTget_attribute_string not closing an object identifier when an 
+      error occurs. (MSB- 2012/7/21)
+
+    - Corrected return type of H5TBAget_fill from herr_t to htri_t to reflect
+      that a return value of 1 indicates that a fill value is present, 0
+      indicates a fill value is not present and <0 indicates an error.
 
     Fortran High-Level APIs:
     ------
@@ -307,6 +332,12 @@ The following platforms and compilers have been tested for this release.
     32- and 64-bit                GNU Fortran (GCC) 4.6.1 gfortran
     (duck)                        GCC 4.2.1. g++
 
+    Mac OS X Mountain Lion 10.8.1 GCC 4.2.1 gcc
+    (owl)			  GNU Fortran (GCC) 4.6.1 gfortran
+                                  GCC 4.2.1. g++
+				  Apple clang version 4.0 (cc)
+				  Apple clang version 4.0 (c++)
+
     Debian6.0.3 2.6.32-5-686 #1 SMP i686 GNU/Linux
                                   gcc (Debian 4.4.5-8) 4.4.5
                                   GNU Fortran (Debian 4.4.5-8) 4.4.5
@@ -369,6 +400,7 @@ Mac OS X Snow Leopard 10.6.8 32-bit        n        y      n        y     y     
 Mac OS X Snow Leopard 10.6.8 64-bit        n        y      n        y     y     y
 Mac OS X Lion 10.7.3 32-bit                n        y      n        y     y     n
 Mac OS X Lion 10.7.3 64-bit                n        y      n        y     y     y
+Mac OS X Mountain Lion 10.8.1 64-bit       n        y      n        y     y     n
 AIX 5.3 32- and 64-bit                     y        y      y        y     y     y
 FreeBSD 8.2-STABLE 32&64 bit               n        x      n        x     y     y
 CentOS 5.5 Linux 2.6.18-194 i686 GNU (1)W  y        y(2)   y        y     y     y
@@ -393,6 +425,7 @@ Mac OS X Snow Leopard 10.6.8 32-bit        y       n         y         n
 Mac OS X Snow Leopard 10.6.8 64-bit        y       n         y         n        
 Mac OS X Lion 10.7.3 32-bit                y       n         y         y        
 Mac OS X Lion 10.7.3 64-bit                y       n         y         y        
+Mac OS X Mountain Lion 10.8.1 64-bit       y       n         y         y        
 AIX 5.3 32- and 64-bit                     n       n         n         y        
 FreeBSD 8.2-STABLE 32&64 bit               y       x         x         y        
 CentOS 5.5 Linux 2.6.18-194 i686 GNU (1)W  y       y(2)      y         y        
