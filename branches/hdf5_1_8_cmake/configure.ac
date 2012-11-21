@@ -16,7 +16,7 @@
 ## ----------------------------------------------------------------------
 ## Initialize configure.
 ##
-AC_REVISION($Id: configure.ac 22979 2012-10-27 00:14:40Z acheng $)
+AC_REVISION($Id: configure.ac 23040 2012-11-19 02:30:44Z hdftest $)
 AC_PREREQ([2.69])
 
 ## AC_INIT takes the name of the package, the version number, and an
@@ -26,7 +26,7 @@ AC_PREREQ([2.69])
 ## NOTE: Do not forget to change the version number here when we do a
 ## release!!!
 ##
-AC_INIT([HDF5], [1.8.10], [help@hdfgroup.org])
+AC_INIT([HDF5], [1.8.11-snap3], [help@hdfgroup.org])
 AC_CONFIG_SRCDIR([src/H5.c])
 AC_CONFIG_HEADER([src/H5config.h])
 
@@ -1219,7 +1219,7 @@ AC_ARG_ENABLE([production],
                               [Determines how to run the compiler.])])
 
 case "X-$enable_production" in
-  X-|X-yes)
+  X-yes)
     enable_production="yes"
     AC_MSG_RESULT([production])
     CONFIG_MODE=production
@@ -1228,7 +1228,7 @@ case "X-$enable_production" in
     H5_CXXFLAGS="$H5_CXXFLAGS $PROD_CXXFLAGS"
     H5_FCFLAGS="$H5_FCFLAGS $PROD_FCFLAGS"
     ;;
-  X-no)
+  X-|X-no)
     enable_production="no"
     AC_MSG_RESULT([development])
     CONFIG_MODE=development
@@ -2265,11 +2265,18 @@ AC_CACHE_CHECK([if lone colon can be used as an argument],
                [
   echo "int main(int argc, char * argv[]) {return 0;}" > conftest.c
   $CC $CFLAGS conftest.c > /dev/null 2> /dev/null
-  echo "./a.out :" > conftest.sh
+case "`uname`" in
+  CYGWIN*)
+    echo "./a.exe :" > conftest.sh
+    ;;
+  *)
+    echo "./a.out :" > conftest.sh
+    ;;
+esac
   chmod 700 conftest.sh
 
   ./conftest.sh 2> conftest.out
-  rm a.out
+  rm -f a.out a.exe
   TEST_OUTPUT=`cat conftest.out`
 
   if test "X$TEST_OUTPUT" = "X"; then
