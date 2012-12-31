@@ -507,7 +507,7 @@ error:
  *-------------------------------------------------------------------------
  */
 static herr_t
-test_userblock_offset(const char *env_h5_drvr, hid_t fapl)
+test_userblock_offset(const char *env_h5_drvr, hid_t fapl, hbool_t new_format)
 {
     char                filename[FILENAME_BUF_SIZE];
     hid_t		file, fcpl, dataset, space;
@@ -525,6 +525,9 @@ test_userblock_offset(const char *env_h5_drvr, hid_t fapl)
 
         if((fcpl=H5Pcreate(H5P_FILE_CREATE)) < 0) goto error;
         if(H5Pset_userblock(fcpl, (hsize_t)USER_BLOCK) < 0) goto error;
+	if(new_format)
+	    if(H5Pset_file_space_page_size(fcpl, (hsize_t)USER_BLOCK) < 0) 
+		goto error;
 
         if((file=H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0)
             goto error;
@@ -8285,7 +8288,7 @@ main(void)
         nerrors += (test_scaleoffset_double_2(file) < 0 	? 1 : 0);
         nerrors += (test_multiopen (file) < 0		? 1 : 0);
         nerrors += (test_types(file) < 0       		? 1 : 0);
-        nerrors += (test_userblock_offset(envval, my_fapl) < 0     	? 1 : 0);
+        nerrors += (test_userblock_offset(envval, my_fapl, new_format) < 0     	? 1 : 0);
         nerrors += (test_missing_filter(file) < 0		? 1 : 0);
         nerrors += (test_can_apply(file) < 0		? 1 : 0);
         nerrors += (test_can_apply2(file) < 0		? 1 : 0);

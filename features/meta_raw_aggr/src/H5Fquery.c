@@ -1073,3 +1073,102 @@ H5F_use_tmp_space(const H5F_t *f)
     FUNC_LEAVE_NOAPI(f->shared->use_tmp_space)
 } /* end H5F_use_tmp_space() */
 
+/*-------------------------------------------------------------------------
+ * Function:	H5F_get_alignment
+ *
+ * Purpose:	Retrieve the 'alignment' for the file.
+ *
+ * Return:	Success:	Non-negative, the 'alignment'
+ *
+ * 		Failure:	(can't happen)
+ *
+ * Programmer:	Vailin Choi; Dec 2012
+ *
+ *-------------------------------------------------------------------------
+ */
+hsize_t
+H5F_get_alignment(const H5F_t *f)
+{
+    /* Use FUNC_ENTER_NOAPI_NOINIT_NOERR here to avoid performance issues */
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
+
+    HDassert(f);
+    HDassert(f->shared);
+
+    FUNC_LEAVE_NOAPI(f->shared->alignment)
+} /* end H5F_get_alignment() */
+
+/*-------------------------------------------------------------------------
+ * Function:	H5F_get_threshold
+ *
+ * Purpose:	Retrieve the 'threshold' for alignment in the file.
+ *
+ * Return:	Success:	Non-negative, the 'threshold'
+ *
+ * 		Failure:	(can't happen)
+ *
+ * Programmer:	Vailin Choi; Dec 2012
+ *
+ *-------------------------------------------------------------------------
+ */
+hsize_t
+H5F_get_threshold(const H5F_t *f)
+{
+    /* Use FUNC_ENTER_NOAPI_NOINIT_NOERR here to avoid performance issues */
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
+
+    HDassert(f);
+    HDassert(f->shared);
+
+    FUNC_LEAVE_NOAPI(f->shared->threshold)
+} /* end H5F_get_threshold() */
+
+/*-------------------------------------------------------------------------
+ * Function:	H5F_get_fsp_size
+ *
+ * Purpose:	Retrieve the 'file space page size' for the file.
+ *
+ * Return:	Success:	Non-negative, the 'file space page size'
+ *
+ * 		Failure:	(can't happen)
+ *
+ * Programmer:	Vailin Choi; Dec 2012
+ *
+ *-------------------------------------------------------------------------
+ */
+hsize_t
+H5F_get_fsp_size(const H5F_t *f)
+{
+    /* Use FUNC_ENTER_NOAPI_NOINIT_NOERR here to avoid performance issues */
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
+
+    HDassert(f);
+    HDassert(f->shared);
+
+    FUNC_LEAVE_NOAPI(f->shared->fsp_size)
+} /* end H5F_get_fsp_size() */
+
+/*-------------------------------------------------------------------------
+ * Function:	H5F_get_pgend_meta_thres
+ *
+ * Purpose:	Retrieve the 'page end meta threshold size' for the file.
+ *
+ * Return:	Success:	Non-negative, the 'pgend_meta_thres'
+ *
+ * 		Failure:	(can't happen)
+ *
+ * Programmer:	Vailin Choi; Dec 2012
+ *
+ *-------------------------------------------------------------------------
+ */
+hsize_t
+H5F_get_pgend_meta_thres(const H5F_t *f)
+{
+    /* Use FUNC_ENTER_NOAPI_NOINIT_NOERR here to avoid performance issues */
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
+
+    HDassert(f);
+    HDassert(f->shared);
+
+    FUNC_LEAVE_NOAPI(f->shared->pgend_meta_thres)
+} /* end H5F_get_pgend_meta_thres() */

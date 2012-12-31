@@ -87,7 +87,7 @@ int h5repack(const char* infile,
 */
 
 int
-h5repack_init(pack_opt_t *options, int verbose, H5F_file_space_type_t strategy,
+h5repack_init(pack_opt_t *options, int verbose, H5F_fs_strategy_t strategy,
     hsize_t threshold)
 {
     int k, n;

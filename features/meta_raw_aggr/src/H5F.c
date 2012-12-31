@@ -371,6 +371,7 @@ H5F_get_access_plist(H5F_t *f, hbool_t app_ref)
     if(H5P_set(new_plist, H5F_ACS_EFC_SIZE_NAME, &efc_size) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't set elink file cache size")
 
+
     /*
      * Since we're resetting the driver ID and info, close them if they
      * exist in this new property list.
@@ -872,6 +873,10 @@ done:
  *		matzke@llnl.gov
  *		Jul 18 1997
  *
+ * Modifications:
+ * 	Vailin Choi; Dec 2012
+ *	Changes due to "page" file space management in support of level 2 page caching
+ *
  *-------------------------------------------------------------------------
  */
 static H5F_t *
@@ -900,8 +905,19 @@ H5F_new(H5F_file_t *shared, hid_t fcpl_id, hid_t fapl_id, H5FD_t *lf)
 
 	f->shared->sohm_addr = HADDR_UNDEF;
 	f->shared->sohm_vers = HDF5_SHAREDHEADER_VERSION;
-        for(u = 0; u < NELMTS(f->shared->fs_addr); u++)
-            f->shared->fs_addr[u] = HADDR_UNDEF;
+
+	/* Initialization for "aggr" file space management */
+        for(u = 0; u < NELMTS(f->shared->fs.aggr.fs_addr); u++) {
+            f->shared->fs.aggr.fs_state[u] = H5F_FS_STATE_CLOSED;
+            f->shared->fs.aggr.fs_addr[u] = HADDR_UNDEF;
+            f->shared->fs.aggr.fs_man[u] = NULL;
+	}
+
+	/* Initialization for "page" file space management */
+	f->shared->last_small = 0;
+	f->shared->track_last_small = 0;
+	f->shared->pgend_meta_thres = H5F_FILE_SPACE_PGEND_META_THRES;
+
 	f->shared->accum.loc = HADDR_UNDEF;
         f->shared->lf = lf;
 
@@ -926,6 +942,8 @@ H5F_new(H5F_file_t *shared, hid_t fcpl_id, hid_t fapl_id, H5FD_t *lf)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get file space strategy")
         if(H5P_get(plist, H5F_CRT_FREE_SPACE_THRESHOLD_NAME, &f->shared->fs_threshold) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get free-space section threshold")
+        if(H5P_get(plist, H5F_CRT_FILE_SPACE_PAGE_SIZE_NAME, &f->shared->fsp_size) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get file space block size")
 
         /* Get the FAPL values to cache */
         if(NULL == (plist = (H5P_genplist_t *)H5I_object(fapl_id)))
@@ -948,12 +966,15 @@ H5F_new(H5F_file_t *shared, hid_t fcpl_id, hid_t fapl_id, H5FD_t *lf)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get sieve buffer size")
         if(H5P_get(plist, H5F_ACS_LATEST_FORMAT_NAME, &(f->shared->latest_format)) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get 'latest format' flag")
+
+	
         if(H5P_get(plist, H5F_ACS_META_BLOCK_SIZE_NAME, &(f->shared->meta_aggr.alloc_size)) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get metadata cache size")
         f->shared->meta_aggr.feature_flag = H5FD_FEAT_AGGREGATE_METADATA;
         if(H5P_get(plist, H5F_ACS_SDATA_BLOCK_SIZE_NAME, &(f->shared->sdata_aggr.alloc_size)) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get 'small data' cache size")
         f->shared->sdata_aggr.feature_flag = H5FD_FEAT_AGGREGATE_SMALLDATA;
+
         if(H5P_get(plist, H5F_ACS_EFC_SIZE_NAME, &efc_size) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get elink file cache size")
         if(efc_size > 0)
@@ -966,10 +987,12 @@ H5F_new(H5F_file_t *shared, hid_t fcpl_id, hid_t fapl_id, H5FD_t *lf)
             HGOTO_ERROR(H5E_FILE, H5E_BADVALUE, NULL, "bad maximum address from VFD")
         if(H5FD_get_feature_flags(lf, &f->shared->feature_flags) < 0)
             HGOTO_ERROR(H5E_FILE, H5E_CANTGET, NULL, "can't get feature flags from VFD")
+
         if(H5FD_get_fs_type_map(lf, f->shared->fs_type_map) < 0)
             HGOTO_ERROR(H5E_FILE, H5E_CANTGET, NULL, "can't get free space type mapping from VFD")
         if(H5MF_init_merge_flags(f) < 0)
             HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "problem initializing free space merge flags")
+
         f->shared->tmp_addr = f->shared->maxaddr;
         /* Disable temp. space allocation for parallel I/O (for now) */
         /* (When we've arranged to have the relocated metadata addresses (and
@@ -1404,6 +1427,20 @@ H5F_open(const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_id,
             HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "file close degree doesn't match")
     } /* end if */
 
+    /* For page fs: fail Fopen/Fcreate when the following conditions are true */
+    if(shared->fsp_size) {
+       	if(shared->alignment != H5F_ALIGN_DEF)
+	    HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "should not set alignment when file space block size is set")
+	if(shared->threshold != H5F_ALIGN_THRHD_DEF)
+	    HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "should not set threshold when file space block size is set")
+	if(shared->meta_aggr.alloc_size != H5F_META_BLOCK_SIZE_DEF)
+	    HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "should not set meta data data block size when file space block size is set")
+	if(shared->sdata_aggr.alloc_size != H5F_SDATA_BLOCK_SIZE_DEF)
+	    HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "should not set small data block size when file space block size is set")
+	if(shared->fs_strategy == H5F_FILE_SPACE_AGGR_VFD)
+	    HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "invalid file space handling strategy when file space block size is set")
+    } 
+
     /* Formulate the absolute path for later search of target file for external links */
     if(H5_build_extpath(name, &file->extpath) < 0)
 	HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "unable to build extpath")
@@ -1752,7 +1789,7 @@ H5F_flush(H5F_t *f, hid_t dxpl_id, hbool_t closing)
     /* (needs to happen before cache flush, with superblock write, since the
      *  'eoa' value is written in superblock -QAK)
      */
-    if(H5MF_free_aggrs(f, dxpl_id) < 0)
+    if(H5MF_xfree_aggrs(f, dxpl_id) < 0)
         /* Push error, but keep going*/
         HDONE_ERROR(H5E_FILE, H5E_CANTRELEASE, FAIL, "can't release file space")
 
@@ -2750,7 +2787,7 @@ H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len)
 
         /* read in the file image */
         /* (Note compensation for base address addition in internal routine) */
-        if(H5FD_read(fd_ptr, H5AC_ind_dxpl_id, H5FD_MEM_DEFAULT, 0, space_needed, buf_ptr) < 0)
+        if(H5FD_read(fd_ptr, H5AC_ind_dxpl_id, H5FD_MEM_DEFAULT, (haddr_t)0, space_needed, buf_ptr) < 0)
             HGOTO_ERROR(H5E_FILE, H5E_READERROR, FAIL, "file image read request failed")
     } /* end if */
     

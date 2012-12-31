@@ -158,7 +158,7 @@ typedef enum H5F_libver_t {
 } H5F_libver_t;
 
 /* File space handling strategy */
-typedef enum H5F_file_space_type_t {
+typedef enum H5F_fs_strategy_t {
     H5F_FILE_SPACE_DEFAULT = 0,     /* Default (or current) free space strategy setting */
     H5F_FILE_SPACE_ALL_PERSIST = 1, /* Persistent free space managers, aggregators, virtual file driver */
     H5F_FILE_SPACE_ALL = 2,	    /* Non-persistent free space managers, aggregators, virtual file driver */
@@ -166,7 +166,7 @@ typedef enum H5F_file_space_type_t {
     H5F_FILE_SPACE_AGGR_VFD = 3,    /* Aggregators, Virtual file driver */
     H5F_FILE_SPACE_VFD = 4,	    /* Virtual file driver */
     H5F_FILE_SPACE_NTYPES	    /* must be last */
-} H5F_file_space_type_t;
+} H5F_fs_strategy_t;
 
 
 #ifdef __cplusplus

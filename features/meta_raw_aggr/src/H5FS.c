@@ -134,7 +134,7 @@ HDfprintf(stderr, "%s: Creating free space manager, nclasses = %Zu\n", FUNC, ncl
     fspace->max_sect_size = fs_create->max_sect_size;
 
     fspace->alignment = alignment;
-    fspace->threshold = threshold;
+    fspace->align_thres = threshold;
 
     /* Check if the free space tracker is supposed to be persistant */
     if(fs_addr) {
@@ -232,7 +232,7 @@ HDfprintf(stderr, "%s: fspace->rc = %u\n", FUNC, fspace->rc);
         HGOTO_ERROR(H5E_FSPACE, H5E_CANTINC, NULL, "unable to increment ref. count on free space header")
 
     fspace->alignment = alignment;
-    fspace->threshold = threshold;
+    fspace->align_thres = threshold;
 
     /* Unlock free space header */
     if(H5AC_unprotect(f, dxpl_id, H5AC_FSPACE_HDR, fs_addr, fspace, H5AC__NO_FLAGS_SET) < 0)
@@ -852,6 +852,8 @@ done:
 
 /*-------------------------------------------------------------------------
  * Function:	H5FS_alloc_sect()
+ *		ISSUE--allocation from VFD not crossing page boundary for small section
+ *		(see H5MF_realloc_thefs())
  *
  * Purpose:	Allocate space for the free-space manager section info header
  *
@@ -859,6 +861,9 @@ done:
  *
  * Programmer:	Vailin Choi; Feb 2009
  *
+ * Modifications:
+ *	Vailin Choi; Dec 2012
+ *	Allocate from vfd for section info when "page" file space management is enabled.
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -876,8 +881,13 @@ H5FS_alloc_sect(H5F_t *f, H5FS_t *fspace, hid_t dxpl_id)
 	/* Allocate space for section info from aggregator/vfd (or temp. address space) */
         /* (The original version called H5MF_alloc(), but that may cause sect_size to change again) */
         /* (This routine is only called during file close operations, so don't allocate from temp. address space) */
-        if(HADDR_UNDEF == (fspace->sect_addr = H5MF_aggr_vfd_alloc(f, H5FD_MEM_FSPACE_SINFO, dxpl_id, fspace->sect_size)))
-            HGOTO_ERROR(H5E_FSPACE, H5E_NOSPACE, FAIL, "file allocation failed for section info")
+	if(H5F_FSPACE_PAGE(f)) {
+	    if(HADDR_UNDEF == (fspace->sect_addr = H5MF_vfd_alloc(f, dxpl_id, H5FD_MEM_FSPACE_SINFO, fspace->sect_size)))
+		HGOTO_ERROR(H5E_FSPACE, H5E_NOSPACE, FAIL, "file allocation failed for section info")
+	} else {
+	    if(HADDR_UNDEF == (fspace->sect_addr = H5MF_aggr_vfd_alloc(f, H5FD_MEM_FSPACE_SINFO, dxpl_id, fspace->sect_size)))
+		HGOTO_ERROR(H5E_FSPACE, H5E_NOSPACE, FAIL, "file allocation failed for section info")
+	}
 	fspace->alloc_sect_size = fspace->sect_size;
 
 	/* Mark free-space header as dirty */

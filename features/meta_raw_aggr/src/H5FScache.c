@@ -552,6 +552,10 @@ H5FS_cache_hdr_size(const H5F_t UNUSED *f, const H5FS_t *fspace, size_t *size_pt
  *              koziol@ncsa.uiuc.edu
  *              July 31 2006
  *
+ * Modifications:
+ *	Vailin Choi; Dec 2012
+ *	The call to H5FS_sect_add() will have the parameter "udata".
+ *	This is the file space management change due to level 2 page caching.
  *-------------------------------------------------------------------------
  */
 static H5FS_sinfo_t *
@@ -662,7 +666,7 @@ H5FS_cache_sinfo_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, void *_udata
 
                 /* Insert section in free space manager, unless requested not to */
                 if(!(des_flags & H5FS_DESERIALIZE_NO_ADD))
-                    if(H5FS_sect_add(udata->f, udata->dxpl_id, udata->fspace, new_sect, H5FS_ADD_DESERIALIZING, NULL) < 0)
+                    if(H5FS_sect_add(udata->f, udata->dxpl_id, udata->fspace, new_sect, H5FS_ADD_DESERIALIZING, udata) < 0)
                         HGOTO_ERROR(H5E_FSPACE, H5E_CANTINSERT, NULL, "can't add section to free space manager")
             } /* end for */
         } while(p < ((buf + old_sect_size) - H5FS_SIZEOF_CHKSUM));

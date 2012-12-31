@@ -134,7 +134,7 @@ int copy_objects(const char* fnamein,
 
         if(!options->fs_strategy)
         {
-            if(H5Pget_file_space(fcpl_in, &options->fs_strategy, NULL) < 0)
+            if(H5Pget_file_space_strategy(fcpl_in, &options->fs_strategy, NULL) < 0)
             {
                 error_msg("failed to retrieve file space strategy\n");
                 goto out;
@@ -143,7 +143,7 @@ int copy_objects(const char* fnamein,
 
         if(!options->fs_threshold)
         {
-            if(H5Pget_file_space(fcpl_in, NULL, &options->fs_threshold) < 0)
+            if(H5Pget_file_space_strategy(fcpl_in, NULL, &options->fs_threshold) < 0)
             {
                 error_msg("failed to retrieve file space threshold\n");
                 goto out;
@@ -348,7 +348,7 @@ int copy_objects(const char* fnamein,
     }
 
     /* set file space strategy and free space threshold */
-    if(H5Pset_file_space(fcpl, options->fs_strategy, options->fs_threshold) < 0)
+    if(H5Pset_file_space_strategy(fcpl, options->fs_strategy, options->fs_threshold) < 0)
     {
         error_msg("failed to set file space strategy & threshold \n");
         goto out;

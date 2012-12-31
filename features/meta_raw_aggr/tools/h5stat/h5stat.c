@@ -103,7 +103,7 @@ typedef struct iter_t {
     hsize_t super_size;                 /* superblock size */
     hsize_t super_ext_size;             /* superblock extension size */
     hsize_t ublk_size;                  /* user block size (if exists) */
-    H5F_file_space_type_t fs_strategy;  /* File space management strategy */
+    H5F_fs_strategy_t fs_strategy;  /* File space management strategy */
     hsize_t fs_threshold;               /* Free-space section threshold */
     hsize_t free_space;                 /* amount of freespace in the file */
     hsize_t free_hdr;                   /* size of free space manager metadata in the file */
@@ -1641,7 +1641,7 @@ main(int argc, const char *argv[])
     if(H5Pget_userblock(fcpl, &iter.ublk_size) < 0)
         warn_msg("Unable to retrieve userblock size\n");
 
-    if(H5Pget_file_space(fcpl, &iter.fs_strategy, &iter.fs_threshold) < 0)
+    if(H5Pget_file_space_strategy(fcpl, &iter.fs_strategy, &iter.fs_threshold) < 0)
         warn_msg("Unable to retrieve file space information\n");
     HDassert(iter.fs_strategy != 0 && iter.fs_strategy < H5F_FILE_SPACE_NTYPES);
 

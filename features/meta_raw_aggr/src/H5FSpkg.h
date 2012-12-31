@@ -184,8 +184,8 @@ struct H5FS_t {
     hbool_t sinfo_modified;     /* Whether the section info has been modified while locked */
     H5AC_protect_t sinfo_accmode; /* Access mode for protecting the section info */
     size_t max_cls_serial_size; /* Max. additional size of serialized form of section */
-    hsize_t    threshold;      	/* Threshold for alignment              */
     hsize_t    alignment;      	/* Alignment                            */
+    hsize_t    align_thres;     /* Threshold for alignment              */
 
 
 /* Memory data structures (not stored directly) */

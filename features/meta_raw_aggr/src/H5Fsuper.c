@@ -32,6 +32,7 @@
 #include "H5Fpkg.h"             /* File access                          */
 #include "H5FDprivate.h"	/* File drivers                         */
 #include "H5Iprivate.h"		/* IDs                                  */
+#include "H5MFprivate.h"        /* File memory management               */
 #include "H5MMprivate.h"	/* Memory management			*/
 #include "H5Pprivate.h"		/* Property lists                       */
 #include "H5SMprivate.h"        /* Shared Object Header Messages        */
@@ -384,6 +385,9 @@ done:
  *              koziol@ncsa.uiuc.edu
  *              Sept 15, 2003
  *
+ * Modifications:
+ *	Vailin Choi; Dec 2012
+ *	Changes due to "page" file space management in support of level 2 page caching
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -425,17 +429,27 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
     if(H5P_get(plist, H5F_CRT_BTREE_RANK_NAME, &sblock->btree_k[0]) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get rank for btree internal nodes")
 
-    /* Bump superblock version if we are to use the latest version of the format */
-    if(f->shared->latest_format)
+    /* 
+     *	When using the latest version of the format:
+     *	-- Bump superblock version
+     *	-- Set file space page size to default if not set 
+     */
+    if(f->shared->latest_format) {
         super_vers = HDF5_SUPERBLOCK_VERSION_LATEST;
+	if(!f->shared->fsp_size)
+	    f->shared->fsp_size = H5F_FILE_SPACE_PAGE_SIZE;
     /* Bump superblock version to create superblock extension for SOHM info */
-    else if(f->shared->sohm_nindexes > 0)
+    } else if(f->shared->sohm_nindexes > 0)
         super_vers = HDF5_SUPERBLOCK_VERSION_2;
-    /* Bump superblock version to create superblock extension for
-     * non-default file space strategy or non-default free-space threshold
+    /* 
+     *	Bump superblock version to create superblock extension for:
+     * 	-- non-default file space strategy or 
+     *  -- non-default free-space threshold or
+     *  -- fsp_size is set
      */
     else if(f->shared->fs_strategy != H5F_FILE_SPACE_STRATEGY_DEF ||
-            f->shared->fs_threshold != H5F_FREE_SPACE_THRESHOLD_DEF)
+            f->shared->fs_threshold != H5F_FREE_SPACE_THRESHOLD_DEF ||
+	    f->shared->fsp_size)
         super_vers = HDF5_SUPERBLOCK_VERSION_2;
     /* Check for non-default indexed storage B-tree internal 'K' value
      * and set the version # of the superblock to 1 if it is a non-default
@@ -454,6 +468,17 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set superblock version")
     } /* end if */
 
+    /* For page fs: initialization before H5MF_alloc() of superblock later */
+    if(f->shared->fsp_size) {
+	H5F_mem_page_t type;
+
+	for(type = H5F_MEM_PAGE_META; type < H5F_MEM_PAGE_NTYPES; H5_INC_ENUM(H5F_mem_page_t, type)) {
+	    f->shared->fs.page.fs_addr[type] = HADDR_UNDEF;
+	    f->shared->fs.page.fs_man[type] = NULL;
+	    f->shared->fs.page.fs_state[type] = H5F_FS_STATE_CLOSED;
+	}
+    } 
+
     /*
      * The superblock starts immediately after the user-defined
      * header, which we have already insured is a proper size. The
@@ -465,9 +490,12 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
 
     /* Sanity check the userblock size vs. the file's allocation alignment */
     if(userblock_size > 0) {
-        if(userblock_size < f->shared->alignment)
+	/* Set up the alignment to use for page or aggr fs */
+	hsize_t alignment = f->shared->fsp_size ? f->shared->fsp_size : f->shared->alignment;
+
+        if(userblock_size < alignment)
             HGOTO_ERROR(H5E_FILE, H5E_BADVALUE, FAIL, "userblock size must be > file object alignment")
-        if(0 != (userblock_size % f->shared->alignment))
+        if(0 != (userblock_size % alignment))
             HGOTO_ERROR(H5E_FILE, H5E_BADVALUE, FAIL, "userblock size must be an integral multiple of file object alignment")
     } /* end if */
 
@@ -477,12 +505,12 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
     /* Reserve space for the userblock */
     if(H5FD_set_eoa(f->shared->lf, H5FD_MEM_SUPER, userblock_size) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "unable to set EOA value for userblock")
-
+   
     /* Set the base address for the file in the VFD now, after allocating
      *  space for userblock.
      */
     if(H5FD_set_base_addr(f->shared->lf, sblock->base_addr) < 0)
-        HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "failed to set base address for file driver")
+	HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "failed to set base address for file driver")
 
     /* Save a local copy of the superblock version number */
     sblock->super_vers = super_vers;
@@ -511,10 +539,6 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
     if(super_vers < HDF5_SUPERBLOCK_VERSION_2)
         superblock_size += driver_size;
 
-    /* Reserve space in the file for the superblock, instead of allocating it */
-    if(H5FD_set_eoa(f->shared->lf, H5FD_MEM_SUPER, superblock_size) < 0)
-        HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "unable to set EOA value for superblock")
-
     /* Insert superblock into cache, pinned */
     if(H5AC_insert_entry(f, dxpl_id, H5AC_SUPERBLOCK, (haddr_t)0, sblock, H5AC__PIN_ENTRY_FLAG | H5AC__FLUSH_LAST_FLAG | H5AC__FLUSH_COLLECTIVELY_FLAG) < 0)
         HGOTO_ERROR(H5E_CACHE, H5E_CANTINS, FAIL, "can't add superblock to cache")
@@ -522,6 +546,10 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
 
     /* Keep a copy of the superblock info */
     f->shared->sblock = sblock;
+
+    /* Allocate space for the superblock */
+    if(HADDR_UNDEF == H5MF_alloc(f, H5FD_MEM_SUPER, dxpl_id, superblock_size))
+	HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "file allocation failed for superblock")
 
     /*
      * Determine if we will need a superblock extension
@@ -534,7 +562,8 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
     } /* end if */
     /* Files with non-default free space settings always need the superblock extension */
     else if(f->shared->fs_strategy != H5F_FILE_SPACE_STRATEGY_DEF ||
-            f->shared->fs_threshold != H5F_FREE_SPACE_THRESHOLD_DEF) {
+            f->shared->fs_threshold != H5F_FREE_SPACE_THRESHOLD_DEF ||
+            f->shared->fsp_size) {
         HDassert(super_vers >= HDF5_SUPERBLOCK_VERSION_2);
         need_ext = TRUE;
     } /* end if */
@@ -615,15 +644,29 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
 
         /* Check for non-default free space settings */
 	if(f->shared->fs_strategy != H5F_FILE_SPACE_STRATEGY_DEF ||
-                f->shared->fs_threshold != H5F_FREE_SPACE_THRESHOLD_DEF) {
-	    H5FD_mem_t   type;         	/* Memory type for iteration */
+                f->shared->fs_threshold != H5F_FREE_SPACE_THRESHOLD_DEF ||
+		f->shared->fsp_size) {
             H5O_fsinfo_t fsinfo;	/* Free space manager info message */
 
 	    /* Write free-space manager info message to superblock extension object header if needed */
+	    fsinfo.version = H5O_FSINFO_VERSION_1;
 	    fsinfo.strategy = f->shared->fs_strategy;
 	    fsinfo.threshold = f->shared->fs_threshold;
-	    for(type = H5FD_MEM_SUPER; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type))
-                fsinfo.fs_addr[type-1] = HADDR_UNDEF;
+	    fsinfo.fsp_size = f->shared->fsp_size;
+	    fsinfo.last_small = f->shared->last_small;
+	    fsinfo.pgend_meta_thres = f->shared->pgend_meta_thres;
+
+	    if(f->shared->fsp_size) { /* page fs */
+		H5F_mem_page_t type;	/* Free-space types for iteration */
+		fsinfo.version = H5O_FSINFO_VERSION_2;
+		for(type = H5F_MEM_PAGE_META; type < H5F_MEM_PAGE_NTYPES; H5_INC_ENUM(H5F_mem_page_t, type))
+		    fsinfo.fs_addr.page[type] = HADDR_UNDEF;
+	    } else { /* aggr fs */
+		H5FD_mem_t   type; 	/* Free-spae types for iteration */
+
+		for(type = H5FD_MEM_SUPER; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type))
+		    fsinfo.fs_addr.aggr[type-1] = HADDR_UNDEF;
+	    }
 
             if(H5O_msg_create(&ext_loc, H5O_FSINFO_ID, H5O_MSG_FLAG_DONTSHARE, H5O_UPDATE_TIME, &fsinfo, dxpl_id) < 0)
                 HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "unable to update free-space info header message")

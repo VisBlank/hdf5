@@ -67,6 +67,12 @@
                                          *      managed sections is in flux)
                                          */
 
+#define H5FS_PAGE_END_NO_ADD    0x08  	/* For "small" page fs:
+					 * Don't add section to free space:
+					 * 	when the section is at page end and
+					 * 	when the section size is <= "small"
+				    	 */
+
 /* Flags for deserialize callback  */
 #define H5FS_DESERIALIZE_NO_ADD  0x01   /* Don't add section to free space
                                          *      manager after it's deserialized
@@ -98,11 +104,11 @@ typedef struct H5FS_section_class_t {
     herr_t (*term_cls)(struct H5FS_section_class_t *);                  /* Routine to terminate class-specific settings */
 
     /* Object methods */
-    herr_t (*add)(H5FS_section_info_t *, unsigned *, void *);       /* Routine called when section is about to be added to manager */
+    herr_t (*add)(H5FS_section_info_t **, unsigned *, void *);       /* Routine called when section is about to be added to manager */
     herr_t (*serialize)(const struct H5FS_section_class_t *, const H5FS_section_info_t *, uint8_t *);        /* Routine to serialize a "live" section into a buffer */
     H5FS_section_info_t *(*deserialize)(const struct H5FS_section_class_t *, hid_t dxpl_id, const uint8_t *, haddr_t, hsize_t, unsigned *);     /* Routine to deserialize a buffer into a "live" section */
     htri_t (*can_merge)(const H5FS_section_info_t *, const H5FS_section_info_t *, void *);  /* Routine to determine if two nodes are mergable */
-    herr_t (*merge)(H5FS_section_info_t *, H5FS_section_info_t *, void *);      /* Routine to merge two nodes */
+    herr_t (*merge)(H5FS_section_info_t **, H5FS_section_info_t *, void *);      /* Routine to merge two nodes */
     htri_t (*can_shrink)(const H5FS_section_info_t *, void *);        /* Routine to determine if node can shrink container */
     herr_t (*shrink)(H5FS_section_info_t **, void *);   /* Routine to shrink container */
     herr_t (*free)(H5FS_section_info_t *);              /* Routine to free node */
@@ -190,7 +196,7 @@ H5_DLL herr_t H5FS_sect_add(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace,
 H5_DLL htri_t H5FS_sect_try_merge(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace,
     H5FS_section_info_t *sect, unsigned flags, void *op_data);
 H5_DLL htri_t H5FS_sect_try_extend(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace,
-    haddr_t addr, hsize_t size, hsize_t extra_requested);
+    haddr_t addr, hsize_t size, hsize_t extra_requested, unsigned flags, void *op_data);
 H5_DLL herr_t H5FS_sect_remove(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace,
     H5FS_section_info_t *node);
 H5_DLL htri_t H5FS_sect_find(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace,
@@ -200,8 +206,9 @@ H5_DLL herr_t H5FS_sect_stats(const H5FS_t *fspace, hsize_t *tot_space,
     hsize_t *nsects);
 H5_DLL herr_t H5FS_sect_change_class(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace,
     H5FS_section_info_t *sect, unsigned new_class);
-H5_DLL htri_t H5FS_sect_try_shrink_eoa(const H5F_t *f, hid_t dxpl_id, const H5FS_t *fspace, void *op_data);
-H5_DLL herr_t H5FS_sect_query_last_sect(const H5FS_t *fspace, haddr_t *sect_addr, hsize_t *sect_size);
+H5_DLL htri_t H5FS_sect_try_shrink_eoa(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace, void *op_data, haddr_t *addr);
+H5_DLL herr_t H5FS_sect_query_last(const H5FS_t *fspace, haddr_t *sect_addr, hsize_t *sect_size);
+
 
 /* Statistics routine */
 H5_DLL herr_t H5FS_stat_info(const H5F_t *f, const H5FS_t *frsp, H5FS_stat_t *stats);

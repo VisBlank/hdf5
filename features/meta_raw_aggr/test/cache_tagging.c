@@ -842,15 +842,16 @@ static unsigned
 check_multi_group_creation_tags(hid_t fcpl, int type)
 {
     /* Variable Declarations */
-    hid_t fid = -1;          /* File Identifier */
-    hid_t gid = -1;          /* Group Identifier */
-    int verbose = FALSE;     /* verbose file outout */
-    char gname[10];          /* group name buffer */
-    int i = 0;               /* iterator */
-    hid_t fapl = -1;         /* File access prop list */
-    haddr_t g_tag = 0;      /* Group tag value */
-    haddr_t root_tag = 0;   /* Root group tag value */
+    hid_t fid = -1;        /* File Identifier */
+    hid_t gid = -1;        /* Group Identifier */
+    int verbose = FALSE;   /* verbose file outout */
+    char gname[10];        /* group name buffer */
+    int i = 0;             /* iterator */
+    hid_t fapl = -1;       /* File access prop list */
+    haddr_t g_tag = 0;     /* Group tag value */
+    haddr_t root_tag = 0;  /* Root group tag value */
     haddr_t sbe_tag = 0;   /* Root group tag value */
+    haddr_t fsp_tag = 0;   /* Superblock extension tag value for latest library format/file space page size */
 
     /* Testing Macro */
     TESTING("tag application during multiple group creation");
@@ -869,6 +870,9 @@ check_multi_group_creation_tags(hid_t fcpl, int type)
 
     /* Retrieve various tags */
     if ( type == TEST_DEFAULT ) {
+
+        /* determine tag value of file space block size extension object header */
+        if ( get_new_object_header_tag(fid, &root_tag) < 0 ) TEST_ERROR;
 
         /* determine tag value of root group's object header */
         if ( get_new_object_header_tag(fid, &root_tag) < 0 ) TEST_ERROR;
@@ -1085,9 +1089,10 @@ check_dense_attribute_tags(void)
     int verbose = FALSE;     /* verbose file outout */
     int i = 0;               /* iterator */
     hid_t fapl = -1;         /* File access property list */
-    haddr_t d_tag = 0;      /* Dataset tag value */
-    haddr_t root_tag = 0;   /* Root group tag value */
-    char attrname[500];      /* Name of attribute */
+    haddr_t d_tag = 0;       /* Dataset tag value */
+    haddr_t root_tag = 0;    /* Root group tag value */
+    haddr_t fsp_tag = 0;     /* Superblock extension tag value for latest library format/file space page size */
+    char attrname[500];	     /* Name of attribute */
 
     /* Testing Macro */
     TESTING("tag application during dense attribute manipulation");
@@ -1103,6 +1108,9 @@ check_dense_attribute_tags(void)
     /* Create File */
     /* =========== */
     if ( (fid = H5Fcreate(FILENAME, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0 ) TEST_ERROR;
+
+    /* Get superblock extension tag */
+    if ( get_new_object_header_tag(fid, &fsp_tag) < 0 ) TEST_ERROR;
 
     /* Get root group tag */
     if ( get_new_object_header_tag(fid, &root_tag) < 0 ) TEST_ERROR;
@@ -3934,7 +3942,7 @@ main(void)
     fcpl_shmesg_all = H5Pcreate(H5P_FILE_CREATE);
     H5Pset_shared_mesg_nindexes(fcpl_shmesg_all, 1);
     H5Pset_shared_mesg_index(fcpl_shmesg_all, 0, H5O_SHMESG_ALL_FLAG, 20);
-    H5Pset_file_space(fcpl_shmesg_all, H5F_FILE_SPACE_ALL_PERSIST, (hsize_t)0);
+    H5Pset_file_space_strategy(fcpl_shmesg_all, H5F_FILE_SPACE_ALL_PERSIST, (hsize_t)0);
 
     /* ========= */
     /* Run Tests */

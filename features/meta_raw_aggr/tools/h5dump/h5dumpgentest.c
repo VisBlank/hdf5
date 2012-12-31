@@ -6956,7 +6956,7 @@ gent_fs_strategy_threshold(void)
     fcpl = H5Pcreate(H5P_FILE_CREATE);
 
     /* Set file space information */
-    H5Pset_file_space(fcpl, STRATEGY, (hsize_t)THRESHOLD10);
+    H5Pset_file_space_strategy(fcpl, STRATEGY, (hsize_t)THRESHOLD10);
 
     /* Create the file with the specified strategy and threshold */
     fid = H5Fcreate(FILE65, H5F_ACC_TRUNC, fcpl, H5P_DEFAULT);

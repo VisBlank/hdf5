@@ -10750,15 +10750,27 @@ corder_delete(hid_t fapl)
     char        objname[NAME_BUF_SIZE]; /* Object name */
     char        filename[NAME_BUF_SIZE];/* File name */
     unsigned    u;                      /* Local index variable */
+    hid_t	fcpl, fcpl_persist;	/* File creation property list */
+    H5F_t    	*f = NULL;              /* Internal file object pointer */
+
 
     TESTING("deleting group with creation order indexing in dense form")
+
+    fcpl_persist = H5Pcreate(H5P_FILE_CREATE);
+    H5Pset_file_space_strategy(fcpl_persist, H5F_FILE_SPACE_ALL_PERSIST, (hsize_t)0);
+
+    fcpl = H5P_DEFAULT;
 
     /* Loop to leave file open when deleting group, or to close & re-open file
      *  before deleting group */
     for(reopen_file = FALSE; reopen_file <= TRUE; reopen_file++) {
         /* Create file */
         h5_fixname(FILENAME[0], fapl, filename, sizeof filename);
-        if((file_id = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) FAIL_STACK_ERROR
+
+	if(reopen_file)
+	    fcpl = fcpl_persist;
+
+        if((file_id = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) FAIL_STACK_ERROR
 
         /* Close file */
         if(H5Fclose(file_id) < 0) FAIL_STACK_ERROR
@@ -10768,6 +10780,10 @@ corder_delete(hid_t fapl)
 
         /* Re-open the file */
         if((file_id = H5Fopen(filename, H5F_ACC_RDWR, fapl)) < 0) FAIL_STACK_ERROR
+
+        /* Get a pointer to the internal file object */
+        if(NULL == (f = (H5F_t *)H5I_object(file_id)))
+            FAIL_STACK_ERROR
 
         /* Create group creation property list */
         if((gcpl_id = H5Pcreate(H5P_GROUP_CREATE)) < 0) FAIL_STACK_ERROR
@@ -10820,6 +10836,10 @@ corder_delete(hid_t fapl)
         if(reopen_file) {
             /* Re-open the file */
             if((file_id = H5Fopen(filename, H5F_ACC_RDWR, fapl)) < 0) FAIL_STACK_ERROR
+
+        /* Get a pointer to the internal file object */
+        if(NULL == (f = (H5F_t *)H5I_object(file_id)))
+            FAIL_STACK_ERROR
 
             /* Delete the group with the creation order index */
             if(H5Ldelete(file_id, CORDER_GROUP_NAME, H5P_DEFAULT) < 0) FAIL_STACK_ERROR

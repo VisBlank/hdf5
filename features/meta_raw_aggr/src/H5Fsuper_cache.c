@@ -108,6 +108,9 @@ H5FL_EXTERN(H5F_super_t);
  *              mamcgree@hdfgroup.org
  *              April 8, 2009
  *
+ * Modifications:
+ *	Vailin Choi; Dec 2012
+ * 	Modifications due to "page" file space management.
  *-------------------------------------------------------------------------
  */
 static H5F_super_t *
@@ -594,10 +597,32 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, void *_udata)
 		    HGOTO_ERROR(H5E_FILE, H5E_CANTSET, NULL, "unable to set file space strategy")
 	    } /* end if */
 
+	    if(shared->fsp_size != fsinfo.fsp_size) {
+		shared->fsp_size = fsinfo.fsp_size;
+
+		/* Set file space page size in the property list */
+		if(H5P_set(c_plist, H5F_CRT_FILE_SPACE_PAGE_SIZE_NAME, &fsinfo.fsp_size) < 0)
+		    HGOTO_ERROR(H5E_FILE, H5E_CANTSET, NULL, "unable to set file space page size")
+	    } /* end if */
+
+	    if(shared->last_small != fsinfo.last_small)
+		shared->last_small = fsinfo.last_small;
+
+	    if(shared->pgend_meta_thres != fsinfo.pgend_meta_thres)
+		shared->pgend_meta_thres = fsinfo.pgend_meta_thres;
+
 	    /* set free-space manager addresses */
-	    shared->fs_addr[0] = HADDR_UNDEF;
-	    for(u = 1; u < NELMTS(f->shared->fs_addr); u++)
-		shared->fs_addr[u] = fsinfo.fs_addr[u-1];
+	    if(fsinfo.version == H5O_FSINFO_VERSION_1) {
+		shared->fs.aggr.fs_addr[0] = HADDR_UNDEF;
+		for(u = 1; u < NELMTS(f->shared->fs.aggr.fs_addr); u++)
+		    shared->fs.aggr.fs_addr[u] = fsinfo.fs_addr.aggr[u-1];
+	    } else if(fsinfo.version == H5O_FSINFO_VERSION_2) {
+		for(u = 0; u < NELMTS(f->shared->fs.page.fs_addr); u++) {
+		    shared->fs.page.fs_addr[u] = fsinfo.fs_addr.page[u];
+		    shared->fs.page.fs_man[u] = NULL;
+		    shared->fs.page.fs_state[u] = H5F_FS_STATE_CLOSED;
+		}
+	    }
         } /* end if */
 
         /* Close superblock extension */

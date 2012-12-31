@@ -70,14 +70,14 @@
 #define H5F_ACS_PREEMPT_READ_CHUNKS_DEF         0.75
 /* Definition for threshold for alignment */
 #define H5F_ACS_ALIGN_THRHD_SIZE                sizeof(hsize_t)
-#define H5F_ACS_ALIGN_THRHD_DEF                 1
+#define H5F_ACS_ALIGN_THRHD_DEF                 H5F_ALIGN_THRHD_DEF
 /* Definition for alignment */
 #define H5F_ACS_ALIGN_SIZE                      sizeof(hsize_t)
-#define H5F_ACS_ALIGN_DEF                       1
+#define H5F_ACS_ALIGN_DEF                       H5F_ALIGN_DEF
 /* Definition for minimum metadata allocation block size (when
    aggregating metadata allocations. */
 #define H5F_ACS_META_BLOCK_SIZE_SIZE            sizeof(hsize_t)
-#define H5F_ACS_META_BLOCK_SIZE_DEF             2048
+#define H5F_ACS_META_BLOCK_SIZE_DEF             H5F_META_BLOCK_SIZE_DEF
 /* Definition for maximum sieve buffer size (when data sieving
    is allowed by file driver */
 #define H5F_ACS_SIEVE_BUF_SIZE_SIZE             sizeof(size_t)
@@ -85,7 +85,7 @@
 /* Definition for minimum "small data" allocation block size (when
    aggregating "small" raw data allocations. */
 #define H5F_ACS_SDATA_BLOCK_SIZE_SIZE           sizeof(hsize_t)
-#define H5F_ACS_SDATA_BLOCK_SIZE_DEF            2048
+#define H5F_ACS_SDATA_BLOCK_SIZE_DEF            H5F_SDATA_BLOCK_SIZE_DEF
 /* Definition for garbage-collect references */
 #define H5F_ACS_GARBG_COLCT_REF_SIZE            sizeof(unsigned)
 #define H5F_ACS_GARBG_COLCT_REF_DEF             0

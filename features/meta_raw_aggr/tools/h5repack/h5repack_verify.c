@@ -62,7 +62,7 @@ h5repack_verify(const char *in_fname, const char *out_fname, pack_opt_t *options
     int          ok = 1;
     hid_t       fcpl_in;  /* file creation property for input file */
     hid_t   	fcpl_out; /* file creation property for output file */
-    H5F_file_space_type_t in_strat, out_strat;	/* file space handling strategy for in/output file */
+    H5F_fs_strategy_t in_strat, out_strat;	/* file space handling strategy for in/output file */
     hsize_t	in_thresh, out_thresh;		/* free space section threshold for in/output file */
 
     /* open the output file */
@@ -216,7 +216,7 @@ h5repack_verify(const char *in_fname, const char *out_fname, pack_opt_t *options
     }
 
     /* Get file space management info for input file */
-    if(H5Pget_file_space(fcpl_in, &in_strat, &in_thresh) < 0) {
+    if(H5Pget_file_space_strategy(fcpl_in, &in_strat, &in_thresh) < 0) {
 	error_msg("failed to retrieve file space strategy & threshold\n");
 	goto error;
     }
@@ -229,7 +229,7 @@ h5repack_verify(const char *in_fname, const char *out_fname, pack_opt_t *options
     }
 
     /* Get file space management info for output file */
-    if(H5Pget_file_space(fcpl_out, &out_strat, &out_thresh) < 0) {
+    if(H5Pget_file_space_strategy(fcpl_out, &out_strat, &out_thresh) < 0) {
 	error_msg("failed to retrieve file space strategy & threshold\n");
 	goto error;
     }

@@ -1146,7 +1146,7 @@ dump_fcpl(hid_t fid)
     unsigned sym_lk;    /* symbol table B-tree leaf 'K' value */
     unsigned sym_ik;    /* symbol table B-tree internal 'K' value */
     unsigned istore_ik; /* indexed storage B-tree internal 'K' value */
-    H5F_file_space_type_t  fs_strategy;  /* file space strategy */
+    H5F_fs_strategy_t  fs_strategy;  /* file space strategy */
     hsize_t  fs_threshold;    /* free-space section threshold */
     H5F_info2_t finfo;  /* file information */
 
@@ -1156,7 +1156,7 @@ dump_fcpl(hid_t fid)
     H5Pget_sizes(fcpl,&off_size,&len_size);
     H5Pget_sym_k(fcpl,&sym_ik,&sym_lk);
     H5Pget_istore_k(fcpl,&istore_ik);
-    H5Pget_file_space(fcpl, &fs_strategy, &fs_threshold);
+    H5Pget_file_space_strategy(fcpl, &fs_strategy, &fs_threshold);
     H5Pclose(fcpl);
 #ifdef SHOW_FILE_DRIVER
     fapl=h5_fileaccess();

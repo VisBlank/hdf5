@@ -171,7 +171,7 @@ int main (void)
     pack_opt_t  pack_options;
     diff_opt_t  diff_options;
     hsize_t  fs_size = 0;  /* free space section threshold */
-    H5F_file_space_type_t fs_type = H5F_FILE_SPACE_DEFAULT;  /* file space handling strategy */
+    H5F_fs_strategy_t fs_type = H5F_FILE_SPACE_DEFAULT;  /* file space handling strategy */
     h5_stat_t		file_stat;
     h5_stat_size_t	fsize1, fsize2;	/* file sizes */
 #if defined (H5_HAVE_FILTER_SZIP)
@@ -482,7 +482,7 @@ int main (void)
 #ifdef H5_HAVE_FILTER_SHUFFLE
 
     /* fs_type = H5F_FILE_SPACE_ALL_PERSIST; fs_size = 1 */
-    if (h5repack_init (&pack_options, 0, H5_INC_ENUM(H5F_file_space_type_t, fs_type), ++fs_size) < 0)
+    if (h5repack_init (&pack_options, 0, H5_INC_ENUM(H5F_fs_strategy_t, fs_type), ++fs_size) < 0)
         GOERROR;
     if (h5repack_addfilter("SHUF",&pack_options) < 0)
         GOERROR;
@@ -738,7 +738,7 @@ int main (void)
     */
 
     /* fs_type = H5F_FILE_SPACE_ALL; fs_size = 2 */
-    if (h5repack_init (&pack_options, 0, H5_INC_ENUM(H5F_file_space_type_t, fs_type), ++fs_size) < 0)
+    if (h5repack_init (&pack_options, 0, H5_INC_ENUM(H5F_fs_strategy_t, fs_type), ++fs_size) < 0)
         GOERROR;
     if (h5repack_addlayout("COMPA",&pack_options) < 0)
         GOERROR;

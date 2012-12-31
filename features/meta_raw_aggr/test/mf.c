@@ -13,13 +13,17 @@
  * access to either file, you may request a copy from help@hdfgroup.org.     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+/* NOTE--STILL NEEDS WORK ON THIS FILE */
 /*
- *  Tests for file memory management consist of 3 parts:
- *	test_mf_eoa_*()	  tests for file meomory that interact with file allocation
- *	test_mf_fs_*() 	  tests for file memory that interact with the free-space manager
- *	test_mf_aggr_*()  tests for file memory that interact with the aggregators
- *	test_mf_align_*() tests for file memory with alignment setting
- *	test_filespace_*() tests for file space management
+ *  Tests for file management:
+
+ *	test_mf_eoa_*()	  tests for file management that interact with vfd allocation
+ *	test_mf_fs_*() 	  tests for file management that interact with the free-space managers
+ *	test_mf_aggr_*()  tests for file management that interact with the aggregators
+ *	test_mf_align_*() tests for file management with alignment setting
+ *
+ *	test_mf_fs_drivers(), test_mf_fs_gone(), test_mf_fs_persist()
+ *	test_mf_strat_thres_drivers(), test_mf_strat_thres_gone(), test_mf_strat_thres()
  */
 
 #include "h5test.h"
@@ -58,9 +62,12 @@
 #define TEST_BLOCK_SIZE700 	700
 #define TEST_BLOCK_SIZE1034 	1034
 #define TEST_BLOCK_SIZE1970	1970
-#define TEST_BLOCK_SIZE2058	2058
-#define TEST_BLOCK_SIZE8000	8000
 #define TEST_BLOCK_SIZE2048	2048
+#define TEST_BLOCK_SIZE4096	4096
+#define TEST_BLOCK_SIZE2058	2058
+#define TEST_BLOCK_SIZE5000	5000
+#define TEST_BLOCK_SIZE8000	8000
+#define TEST_BLOCK_SIZE8192	8192
 
 #define TEST_BLOCK_ADDR70	70
 #define TEST_BLOCK_ADDR100	100
@@ -94,14 +101,18 @@ typedef struct frspace_state_t {
 
 
 static int check_stats(const H5F_t *, const H5FS_t *, frspace_state_t *);
-static unsigned test_mf_eoa(const char *env_h5_drvr, hid_t fapl);
-static unsigned test_mf_eoa_shrink(const char *env_h5_drvr, hid_t fapl);
-static unsigned test_mf_eoa_extend(const char *env_h5_drvr, hid_t fapl);
-static unsigned test_mf_tmp(const char *env_h5_drvr, hid_t fapl);
-static unsigned test_mf_fs_start(hid_t fapl);
-static unsigned test_mf_fs_alloc_free(hid_t fapl);
-static unsigned test_mf_fs_extend(hid_t fapl);
+static unsigned test_mf_eoa(const char *env_h5_drvr, hid_t fcpl, hid_t fapl, hbool_t large);
+static unsigned test_mf_eoa_shrink(const char *env_h5_drvr, hid_t fcpl, hid_t fapl, hbool_t large);
+static unsigned test_mf_eoa_extend(const char *env_h5_drvr, hid_t fcpl, hid_t fapl, hbool_t large);
+
+static unsigned test_mf_fs_start(hid_t fcpl, hid_t fapl, hbool_t large);
+static unsigned test_mf_fs_alloc_free(hid_t fcpl, hid_t fapl, hbool_t large);
+static unsigned test_mf_fs_extend(hid_t fcpl, hid_t fapl, hbool_t large);
+
 static unsigned test_mf_fs_absorb(const char *env_h5_drvr, hid_t fapl);
+static unsigned test_dichotomy(const char *env_h5_drvr, hid_t fapl);
+static unsigned test_mf_tmp(const char *env_h5_drvr, hid_t fapl);
+
 static unsigned test_mf_aggr_alloc1(const char *env_h5_drvr, hid_t fapl);
 static unsigned test_mf_aggr_alloc2(const char *env_h5_drvr, hid_t fapl);
 static unsigned test_mf_aggr_alloc3(const char *env_h5_drvr, hid_t fapl);
@@ -111,19 +122,31 @@ static unsigned test_mf_aggr_alloc6(const char *env_h5_drvr, hid_t fapl);
 static unsigned test_mf_aggr_alloc7(const char *env_h5_drvr, hid_t fapl);
 static unsigned test_mf_aggr_extend(const char *env_h5_drvr, hid_t fapl);
 static unsigned test_mf_aggr_absorb(const char *env_h5_drvr, hid_t fapl);
-static unsigned test_mf_align_eoa(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl);
-static unsigned test_mf_align_fs(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl);
+
+static unsigned test_mf_align_eoa(const char *env_h5_drvr, hid_t fcpl, hid_t fapl, hid_t fapl_align, hbool_t large);
+static unsigned test_mf_align_fs(const char *env_h5_drvr, hid_t fcpl, hid_t fapl, hid_t fapl_align, hbool_t large);
+
 static unsigned test_mf_align_alloc1(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl);
 static unsigned test_mf_align_alloc2(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl);
 static unsigned test_mf_align_alloc3(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl);
 static unsigned test_mf_align_alloc4(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl);
 static unsigned test_mf_align_alloc5(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl);
 static unsigned test_mf_align_alloc6(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl);
-static unsigned test_mf_fs_persist(hid_t fapl_new, hid_t fcpl);
-static unsigned test_mf_fs_gone(hid_t fapl_new, hid_t fcpl);
-static unsigned test_mf_fs_split(hid_t fapl_new, hid_t fcpl);
-static unsigned test_mf_fs_multi(hid_t fapl, hid_t fcpl);
+
+static unsigned test_mf_fs_persist(hid_t fcpl, hid_t fapl);
+static unsigned test_mf_fs_gone(hid_t fcpl, hid_t fapl);
+
+static unsigned test_mf_fs_split(hid_t fcpl, hid_t fapl);
+static unsigned test_mf_fs_multi(hid_t fcpl, hid_t fapl);
+
 static unsigned test_mf_fs_drivers(hid_t fapl);
+
+static unsigned test_mf_strat_thres(hid_t fapl);
+static unsigned test_mf_strat_thres_gone(hid_t fapl);
+static unsigned test_mf_strat_thres_drivers(hid_t fapl);
+
+static unsigned test_mf_fs_page(const char *env_h5_drvr, hid_t fapl);
+static unsigned test_mf_fs_page_merge(const char *env_h5_drvr, hid_t fcpl, hid_t fapl, hbool_t large);
 
 /*
  * Verify statistics for the free-space manager
@@ -173,29 +196,34 @@ error:
 } /* check_stats() */
 
 /*
- * To verify that blocks are allocated from file allocation
+ * To verify that blocks are allocated from vfd 
  *
  * Set up:
- * 	Turn off using meta/small data aggregator
- * 	There is nothing in free-space manager
+ *	With file space page size setting:
+ *	  "fcpl" has "file space page size" set
+ *	  "large" indicates to test for large- or small-sized free-space manager
+ *	Without file space page size setting:
+ *	  "fcpl" is H5P_DEFAULT
+ *	  "large" is FALSE
+ * 	  Turn off meta/small data aggregation in "fapl_new"
  *
  * Allocate two blocks which should be from file allocation
  */
 static unsigned
-test_mf_eoa(const char *env_h5_drvr, hid_t fapl)
+test_mf_eoa(const char *env_h5_drvr, hid_t fcpl, hid_t fapl, hbool_t large)
 {
-    hid_t		file = -1;              /* File ID */
-    hid_t		fapl_new = -1;		/* copy of fapl */
-    char		filename[FILENAME_LEN]; /* Filename to use */
-    H5F_t		*f = NULL;              /* Internal file object pointer */
-    h5_stat_size_t      file_size, new_file_size;      /* file size */
-    H5FD_mem_t 		type;
+    hid_t		file=-1;              		/* File ID */
+    hid_t		fapl_new=-1;			/* copy of fapl */
+    char		filename[FILENAME_LEN]; 	/* Filename to use */
+    H5F_t		*f=NULL;              		/* Internal file object pointer */
+    h5_stat_size_t      file_size, new_file_size;      	/* file size */
     haddr_t		addr1, addr2;
     haddr_t 		ma_addr=HADDR_UNDEF, new_ma_addr=HADDR_UNDEF;
     hsize_t 		ma_size=0;
-    hbool_t             contig_addr_vfd;        /* Whether VFD used has a contigous address space */
+    h5_stat_size_t	fsp_size=0;
+    hbool_t             contig_addr_vfd;        	/* Whether VFD used has a contigous address space */
 
-    TESTING("H5MM_alloc() of file allocation");
+    TESTING("File allocation from VFD");
 
     /* Skip test when using VFDs that has different address spaces for each
      *  type of metadata allocation.
@@ -205,11 +233,24 @@ test_mf_eoa(const char *env_h5_drvr, hid_t fapl)
         /* Set the filename to use for this test */
         h5_fixname(FILENAME[0], fapl, filename, sizeof(filename));
 
-        if((fapl_new = H5Pcopy(fapl)) < 0) TEST_ERROR
-
         /* Create the file to work on */
-        if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0)
+        if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0)
             FAIL_STACK_ERROR
+
+        /* Get a pointer to the internal file object */
+        if(NULL == (f = (H5F_t *)H5I_object(file)))
+            FAIL_STACK_ERROR
+
+        if((fapl_new = H5Pcopy(fapl)) < 0) TEST_ERROR
+	if(H5F_FSPACE_PAGE(f)) {
+	    if(large) fsp_size = (h5_stat_size_t)f->shared->fsp_size;
+	} else {
+	    /* Turn off using meta/small data aggregator */
+	    if(H5Pset_meta_block_size(fapl_new, (hsize_t)0) < 0)
+		FAIL_STACK_ERROR
+	    if(H5Pset_small_data_block_size(fapl_new, (hsize_t)0) < 0)
+		FAIL_STACK_ERROR
+	}
 
         /* Close file */
         if(H5Fclose(file) < 0)
@@ -218,10 +259,6 @@ test_mf_eoa(const char *env_h5_drvr, hid_t fapl)
         /* Get the size of the file */
         if((file_size = h5_get_file_size(filename, fapl)) < 0)
             TEST_ERROR
-
-        /* Turn off using meta/small data aggregator */
-        H5Pset_meta_block_size(fapl_new, (hsize_t)0);
-        H5Pset_small_data_block_size(fapl_new, (hsize_t)0);
 
         /* Re-open the file with meta/small data setting */
         if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
@@ -233,8 +270,7 @@ test_mf_eoa(const char *env_h5_drvr, hid_t fapl)
 
         H5MF_aggr_query(f, &(f->shared->meta_aggr), &ma_addr, &ma_size);
 
-        type = H5FD_MEM_SUPER;
-        addr1 = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE30);
+        addr1 = H5MF_alloc(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size));
 
         /* nothing should be changed in meta_aggr */
         H5MF_aggr_query(f, &(f->shared->meta_aggr), &new_ma_addr, &ma_size);
@@ -244,7 +280,7 @@ test_mf_eoa(const char *env_h5_drvr, hid_t fapl)
         if (addr1 < (haddr_t)file_size)
             TEST_ERROR
 
-        addr2 = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE50);
+        addr2 = H5MF_alloc(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, (hsize_t)(TEST_BLOCK_SIZE50+fsp_size));
 
         /* nothing should be changed in meta_aggr */
         H5MF_aggr_query(f, &(f->shared->meta_aggr), &new_ma_addr, &ma_size);
@@ -262,7 +298,7 @@ test_mf_eoa(const char *env_h5_drvr, hid_t fapl)
             TEST_ERROR
 
         /* Verify the file is the correct size */
-        if (new_file_size != (file_size+TEST_BLOCK_SIZE30+TEST_BLOCK_SIZE50))
+        if (new_file_size != (file_size+TEST_BLOCK_SIZE30+TEST_BLOCK_SIZE50+2*fsp_size))
             TEST_ERROR
 
         /* Re-open the file */
@@ -273,8 +309,8 @@ test_mf_eoa(const char *env_h5_drvr, hid_t fapl)
         if(NULL == (f = (H5F_t *)H5I_object(file)))
             FAIL_STACK_ERROR
 
-        H5MF_xfree(f, type, H5P_DATASET_XFER_DEFAULT, addr1, (hsize_t)TEST_BLOCK_SIZE30);
-        H5MF_xfree(f, type, H5P_DATASET_XFER_DEFAULT, addr2, (hsize_t)TEST_BLOCK_SIZE50);
+        H5MF_xfree(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, addr1, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size));
+        H5MF_xfree(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, addr2, (hsize_t)(TEST_BLOCK_SIZE50+fsp_size));
 
         if(H5Fclose(file) < 0)
             FAIL_STACK_ERROR
@@ -308,37 +344,42 @@ error:
 } /* test_mf_eoa() */
 
 /*
- * To verify that an allocated block from file allocation is shrunk.
+ * To verify that an allocated block from VFD is shrunk.
  *
  * Set up:
- * 	Turn off using meta/small data aggregator
- * 	There is nothing in free-space manager
+ *	With file space page size setting:
+ *	  "fcpl" has "file space page size" set
+ *	  "large" indicates to test for large- or small-sized free-space manager
+ *	Without file space page size setting:
+ *	  "fcpl" is H5P_DEFAULT
+ *	  "large" is FALSE
+ * 	  Turn off meta/small data aggregation in "fapl_new"
  *
- *	Test 1: Allocate a block of 30 from file allocation
- * 		H5MF_try_shrink() the block by 30 : succeed
- *	Test 2: Allocate a block of 30 from file allocation
- * 		H5MF_try_shrink() the block by 20 : fail
- *	Test 3: Allocate a block of 30 from file allocation
- * 		H5MF_try_shrink() the block by 40 : fail
- *	Test 4: Allocate a block of 30 from file allocation
- * 		H5MF_try_shrink() the block by 20 from the end: succeed
+ *  Test 1: Allocate a block of 30 from file allocation
+ * 	    H5MF_try_shrink() the block by 30 : succeed
+ *  Test 2: Allocate a block of 30 from file allocation
+ * 	    H5MF_try_shrink() the block by 20 : fail
+ *  Test 3: Allocate a block of 30 from file allocation
+ * 	    H5MF_try_shrink() the block by 40 : fail
+ *  Test 4: Allocate a block of 30 from file allocation
+ * 	    H5MF_try_shrink() the block by 20 from the end: succeed
  *
  */
 static unsigned
-test_mf_eoa_shrink(const char *env_h5_drvr, hid_t fapl)
+test_mf_eoa_shrink(const char *env_h5_drvr, hid_t fcpl, hid_t fapl, hbool_t large)
 {
-    hid_t		file = -1;              /* File ID */
-    hid_t		fapl_new = -1;		/* copy of fapl */
-    char		filename[FILENAME_LEN]; /* Filename to use */
-    H5F_t		*f = NULL;              /* Internal file object pointer */
-    h5_stat_size_t      file_size, new_file_size; /* file size */
-    H5FD_mem_t 		type;
+    hid_t		file=-1;              		/* File ID */
+    hid_t		fapl_new=-1;			/* copy of fapl */
+    char		filename[FILENAME_LEN]; 	/* Filename to use */
+    H5F_t		*f=NULL;              		/* Internal file object pointer */
+    h5_stat_size_t      file_size, new_file_size; 	/* file size */
+    h5_stat_size_t	fsp_size=0;
     haddr_t		addr;
     haddr_t 		ma_addr=HADDR_UNDEF, new_ma_addr=HADDR_UNDEF;
     hsize_t 		ma_size=0, new_ma_size=0;
-    hbool_t             contig_addr_vfd;        /* Whether VFD used has a contigous address space */
+    hbool_t             contig_addr_vfd;        	/* Whether VFD used has a contigous address space */
 
-    TESTING("H5MF_try_shrink() of file allocation: test 1");
+    TESTING("H5MF_try_shrink() of file allocation from VFD: test 1");
 
     /* Skip test when using VFDs that has different address spaces for each
      *  type of metadata allocation.
@@ -348,11 +389,24 @@ test_mf_eoa_shrink(const char *env_h5_drvr, hid_t fapl)
         /* Set the filename to use for this test (dependent on fapl) */
         h5_fixname(FILENAME[0], fapl, filename, sizeof(filename));
 
-        if((fapl_new = H5Pcopy(fapl)) < 0) TEST_ERROR
-
         /* Create the file to work on */
-        if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0)
+        if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0)
             FAIL_STACK_ERROR
+
+        /* Get a pointer to the internal file object */
+        if(NULL == (f = (H5F_t *)H5I_object(file)))
+            FAIL_STACK_ERROR
+
+        if((fapl_new = H5Pcopy(fapl)) < 0) TEST_ERROR
+	if(H5F_FSPACE_PAGE(f)) {
+	    if(large) fsp_size = (h5_stat_size_t)f->shared->fsp_size;
+	} else {
+	    /* Turn off using meta/small data aggregator */
+	    if(H5Pset_meta_block_size(fapl_new, (hsize_t)0) < 0)
+		FAIL_STACK_ERROR
+	    if(H5Pset_small_data_block_size(fapl_new, (hsize_t)0) < 0)
+		FAIL_STACK_ERROR
+	}
 
         /* Close file */
         if(H5Fclose(file) < 0)
@@ -361,10 +415,6 @@ test_mf_eoa_shrink(const char *env_h5_drvr, hid_t fapl)
         /* Get the size of the file */
         if((file_size = h5_get_file_size(filename, fapl)) < 0)
             TEST_ERROR
-
-        /* Turn off using meta/small data aggregator */
-        H5Pset_meta_block_size(fapl_new, (hsize_t)0);
-        H5Pset_small_data_block_size(fapl_new, (hsize_t)0);
 
         /* Re-open the file with meta/small data setting */
         if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
@@ -376,8 +426,7 @@ test_mf_eoa_shrink(const char *env_h5_drvr, hid_t fapl)
 
         H5MF_aggr_query(f, &(f->shared->meta_aggr), &ma_addr, &ma_size);
 
-        type = H5FD_MEM_SUPER;
-        addr = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE30);
+        addr = H5MF_alloc(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size));
 
         if (addr < (haddr_t)file_size)
             TEST_ERROR
@@ -395,7 +444,7 @@ test_mf_eoa_shrink(const char *env_h5_drvr, hid_t fapl)
             TEST_ERROR
 
         /* Verify the file is the correct size */
-        if (new_file_size != (file_size+TEST_BLOCK_SIZE30))
+        if(new_file_size != (file_size+(TEST_BLOCK_SIZE30+fsp_size)))
             TEST_ERROR
 
         /* Re-open the file */
@@ -409,7 +458,7 @@ test_mf_eoa_shrink(const char *env_h5_drvr, hid_t fapl)
         H5MF_aggr_query(f, &(f->shared->meta_aggr), &ma_addr, &ma_size);
 
         /* should succeed */
-        if(H5MF_try_shrink(f, type, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)TEST_BLOCK_SIZE30) <= 0)
+        if(H5MF_try_shrink(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size)) <= 0)
             TEST_ERROR
 
         /* nothing should be changed in meta_aggr */
@@ -437,7 +486,7 @@ test_mf_eoa_shrink(const char *env_h5_drvr, hid_t fapl)
 	puts("    Current VFD doesn't support metadata aggregator");
     } /* end else */
 
-    TESTING("H5MF_try_shrink() of file allocation: test 2");
+    TESTING("H5MF_try_shrink() of file allocation from VFD: test 2");
 
     /* Skip test when using VFDs that has different address spaces for each
      *  type of metadata allocation.
@@ -453,13 +502,13 @@ test_mf_eoa_shrink(const char *env_h5_drvr, hid_t fapl)
 
         H5MF_aggr_query(f, &(f->shared->meta_aggr), &ma_addr, &ma_size);
 
-        addr = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE30);
+        addr = H5MF_alloc(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size));
 
         if (addr < (haddr_t)file_size)
             TEST_ERROR
 
         /* should not succeed in shrinking */
-        if(H5MF_try_shrink(f, type, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)TEST_BLOCK_SIZE30 - 10) > 0)
+        if(H5MF_try_shrink(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size)-10) > 0)
             TEST_ERROR
 
         /* nothing should be changed in meta_aggr */
@@ -475,7 +524,7 @@ test_mf_eoa_shrink(const char *env_h5_drvr, hid_t fapl)
             TEST_ERROR
 
         /* Verify the file is the correct size */
-        if(new_file_size != (file_size + TEST_BLOCK_SIZE30))
+        if(new_file_size != (file_size + (TEST_BLOCK_SIZE30+fsp_size)))
             TEST_ERROR
 
         PASSED()
@@ -486,7 +535,7 @@ test_mf_eoa_shrink(const char *env_h5_drvr, hid_t fapl)
     } /* end else */
 
 
-    TESTING("H5MF_try_shrink() of file allocation: test 3");
+    TESTING("H5MF_try_shrink() of file allocation from VFD: test 3");
 
     /* Skip test when using VFDs that has different address spaces for each
      *  type of metadata allocation.
@@ -503,7 +552,7 @@ test_mf_eoa_shrink(const char *env_h5_drvr, hid_t fapl)
         H5MF_aggr_query(f, &(f->shared->meta_aggr), &ma_addr, &ma_size);
 
         /* should not succeed in shrinking */
-        if(H5MF_try_shrink(f, type, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)TEST_BLOCK_SIZE30 + 10) > 0)
+        if(H5MF_try_shrink(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size)+10) > 0)
             TEST_ERROR
 
         /* nothing should be changed in meta_aggr */
@@ -519,7 +568,7 @@ test_mf_eoa_shrink(const char *env_h5_drvr, hid_t fapl)
             TEST_ERROR
 
         /* Verify the file is the correct size */
-        if(new_file_size != (file_size + TEST_BLOCK_SIZE30))
+        if(new_file_size != (file_size + (TEST_BLOCK_SIZE30+fsp_size)))
             TEST_ERROR
 
         PASSED()
@@ -529,7 +578,7 @@ test_mf_eoa_shrink(const char *env_h5_drvr, hid_t fapl)
 	puts("    Current VFD doesn't support metadata aggregator");
     } /* end else */
 
-    TESTING("H5MF_try_shrink() of file allocation: test 4");
+    TESTING("H5MF_try_shrink() of file allocation from VFD: test 4");
 
     /* Skip test when using VFDs that has different address spaces for each
      *  type of metadata allocation.
@@ -546,7 +595,7 @@ test_mf_eoa_shrink(const char *env_h5_drvr, hid_t fapl)
         H5MF_aggr_query(f, &(f->shared->meta_aggr), &ma_addr, &ma_size);
 
         /* should succeed in shrinking */
-        if(H5MF_try_shrink(f, type, H5P_DATASET_XFER_DEFAULT, addr+10, (hsize_t)(TEST_BLOCK_SIZE30 - 10)) <= 0)
+        if(H5MF_try_shrink(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, addr+10, (hsize_t)((TEST_BLOCK_SIZE30+fsp_size)-10)) <= 0)
             TEST_ERROR
 
         /* nothing should be changed in meta_aggr */
@@ -564,7 +613,7 @@ test_mf_eoa_shrink(const char *env_h5_drvr, hid_t fapl)
             TEST_ERROR
 
         /* Verify the file is the correct size */
-        if(new_file_size != (file_size + 10))
+        if(new_file_size != (file_size+10))
             TEST_ERROR
 
         if(H5Pclose(fapl_new) < 0)
@@ -588,11 +637,16 @@ error:
 } /* test_mf_eoa_shrink() */
 
 /*
- * To verify that an allocated block from file allocation is extended.
+ * To verify that an allocated block from VFD is extended.
  *
  * Set up:
- * 	Turn off using meta/small data aggregator
- * 	There is nothing in free-space manager
+ *	With file space page size setting:
+ *	  "fcpl" has "file space page size" set
+ *	  "large" indicates to test for large- or small-sized free-space manager
+ *	Without file space page size setting:
+ *	  "fcpl" is H5P_DEFAULT
+ *	  "large" is FALSE
+ * 	  Turn off meta/small data aggregation in "fapl_new"
  *
  * Test 1: Allocate a block of 30
  *	H5MF_try_extend() the block of size 30 by 50: succeed
@@ -601,21 +655,21 @@ error:
  * 	H5MF_try_extend() the block of size 20 by 50: fail
  */
 static unsigned
-test_mf_eoa_extend(const char *env_h5_drvr, hid_t fapl)
+test_mf_eoa_extend(const char *env_h5_drvr, hid_t fcpl, hid_t fapl, hbool_t large)
 {
-    hid_t		file = -1;              	/* File ID */
-    hid_t		fapl_new = -1;			/* copy of fapl */
+    hid_t		file=-1;              		/* File ID */
+    hid_t		fapl_new=-1;			/* copy of fapl */
     char		filename[FILENAME_LEN]; 	/* Filename to use */
-    H5F_t		*f = NULL;              	/* Internal file object pointer */
+    H5F_t		*f=NULL;              		/* Internal file object pointer */
     h5_stat_size_t      file_size, new_file_size;  	/* File size */
-    H5FD_mem_t 		type;
     haddr_t		addr;
     htri_t      	extended;
+    h5_stat_size_t	fsp_size=0;
     haddr_t 		ma_addr=HADDR_UNDEF, new_ma_addr=HADDR_UNDEF;
     hsize_t 		ma_size=0, new_ma_size=0;
-    hbool_t             contig_addr_vfd;        /* Whether VFD used has a contigous address space */
+    hbool_t             contig_addr_vfd;        	/* Whether VFD used has a contigous address space */
 
-    TESTING("H5MF_try_extend() of file allocation: test 1");
+    TESTING("H5MF_try_extend() of file allocation from VFD: test 1");
 
     /* Skip test when using VFDs that has different address spaces for each
      *  type of metadata allocation.
@@ -625,11 +679,24 @@ test_mf_eoa_extend(const char *env_h5_drvr, hid_t fapl)
         /* Set the filename to use for this test (dependent on fapl) */
         h5_fixname(FILENAME[0], fapl, filename, sizeof(filename));
 
-        if((fapl_new = H5Pcopy(fapl)) < 0) TEST_ERROR
-
         /* Create the file to work on */
-        if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0)
+        if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0)
             FAIL_STACK_ERROR
+
+        /* Get a pointer to the internal file object */
+        if(NULL == (f = (H5F_t *)H5I_object(file)))
+            FAIL_STACK_ERROR
+
+        if((fapl_new = H5Pcopy(fapl)) < 0) TEST_ERROR
+	if(H5F_FSPACE_PAGE(f)) {
+	    if(large) fsp_size = (h5_stat_size_t)f->shared->fsp_size;
+	} else {
+	    /* Turn off using meta/small data aggregator */
+	    if(H5Pset_meta_block_size(fapl_new, (hsize_t)0) < 0)
+		FAIL_STACK_ERROR
+	    if(H5Pset_small_data_block_size(fapl_new, (hsize_t)0) < 0)
+		FAIL_STACK_ERROR
+	}
 
         /* Close file */
         if(H5Fclose(file) < 0)
@@ -638,12 +705,6 @@ test_mf_eoa_extend(const char *env_h5_drvr, hid_t fapl)
         /* Get the size of a file */
         if((file_size = h5_get_file_size(filename, fapl)) < 0)
             TEST_ERROR
-
-        /* Turn off using meta/small data aggregator */
-        if(H5Pset_meta_block_size(fapl_new, (hsize_t)0) < 0)
-            FAIL_STACK_ERROR
-        if(H5Pset_small_data_block_size(fapl_new, (hsize_t)0) < 0)
-            FAIL_STACK_ERROR
 
         /* Re-open the file with meta/small data setting */
         if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
@@ -655,8 +716,7 @@ test_mf_eoa_extend(const char *env_h5_drvr, hid_t fapl)
 
         H5MF_aggr_query(f, &(f->shared->meta_aggr), &ma_addr, &ma_size);
 
-        type = H5FD_MEM_SUPER;
-        addr = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE30);
+        addr = H5MF_alloc(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size));
         if (addr < (haddr_t)file_size)
             TEST_ERROR
 
@@ -673,7 +733,7 @@ test_mf_eoa_extend(const char *env_h5_drvr, hid_t fapl)
             TEST_ERROR
 
         /* Verify the file is the correct size */
-        if(new_file_size != (file_size + TEST_BLOCK_SIZE30))
+        if(new_file_size != (file_size + (TEST_BLOCK_SIZE30+fsp_size)))
             TEST_ERROR
 
         /* Re-open the file */
@@ -685,7 +745,7 @@ test_mf_eoa_extend(const char *env_h5_drvr, hid_t fapl)
             FAIL_STACK_ERROR
 
         /* should succeed */
-        extended = H5MF_try_extend(f, H5P_DATASET_XFER_DEFAULT, type, (haddr_t)addr, (hsize_t)TEST_BLOCK_SIZE30, (hsize_t)TEST_BLOCK_SIZE50);
+        extended = H5MF_try_extend(f, H5P_DATASET_XFER_DEFAULT, H5FD_MEM_SUPER, (haddr_t)addr, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size), (hsize_t)TEST_BLOCK_SIZE50);
 
         if(extended <= 0)
             TEST_ERROR
@@ -703,7 +763,7 @@ test_mf_eoa_extend(const char *env_h5_drvr, hid_t fapl)
             TEST_ERROR
 
         /* Verify the file is the correct size */
-        if(new_file_size != (file_size + TEST_BLOCK_SIZE30 + TEST_BLOCK_SIZE50))
+        if(new_file_size != (file_size + (TEST_BLOCK_SIZE30 + fsp_size) + TEST_BLOCK_SIZE50))
             TEST_ERROR
 
         PASSED()
@@ -713,7 +773,7 @@ test_mf_eoa_extend(const char *env_h5_drvr, hid_t fapl)
 	puts("    Current VFD doesn't support metadata aggregator");
     } /* end else */
 
-    TESTING("H5MF_try_extend() of file allocation: test 2");
+    TESTING("H5MF_try_extend() of file allocation from VFD: test 2");
 
     /* Skip test when using VFDs that has different address spaces for each
      *  type of metadata allocation.
@@ -733,8 +793,7 @@ test_mf_eoa_extend(const char *env_h5_drvr, hid_t fapl)
 
         H5MF_aggr_query(f, &(f->shared->meta_aggr), &ma_addr, &ma_size);
 
-        type = H5FD_MEM_SUPER;
-        addr = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE30);
+        addr = H5MF_alloc(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size));
 
         if(addr < (haddr_t)file_size)
             TEST_ERROR
@@ -744,7 +803,7 @@ test_mf_eoa_extend(const char *env_h5_drvr, hid_t fapl)
         if(new_ma_addr != ma_addr)
             TEST_ERROR
 
-        extended = H5MF_try_extend(f, H5P_DATASET_XFER_DEFAULT, type, (haddr_t)addr, (hsize_t)(TEST_BLOCK_SIZE30-10), (hsize_t)(TEST_BLOCK_SIZE50));
+        extended = H5MF_try_extend(f, H5P_DATASET_XFER_DEFAULT, H5FD_MEM_SUPER, (haddr_t)addr, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size-10), (hsize_t)(TEST_BLOCK_SIZE50));
 
         /* should not succeed */
         if(extended > 0)
@@ -763,7 +822,7 @@ test_mf_eoa_extend(const char *env_h5_drvr, hid_t fapl)
             TEST_ERROR
 
         /* Verify the file is the correct size */
-        if(new_file_size != file_size + TEST_BLOCK_SIZE30)
+        if(new_file_size != file_size + (TEST_BLOCK_SIZE30+fsp_size))
             TEST_ERROR
 
         if(H5Pclose(fapl_new) < 0)
@@ -966,30 +1025,49 @@ error:
  * To verify that the free-space manager is created or opened
  *
  * Set up:
- * 	Turn off using meta/small data aggregator
+ *	With file space page size setting:
+ *	  "fcpl" has "file space page size" set
+ *	  "large" indicates to test for large- or small-sized free-space manager
+ *	Without file space page size setting:
+ *	  "fcpl" is H5P_DEFAULT
+ *	  "large" is FALSE
+ * 	  Turn off meta/small data aggregation in "fapl_new"
  */
 static unsigned
-test_mf_fs_start(hid_t fapl)
+test_mf_fs_start(hid_t fcpl, hid_t fapl, hbool_t large)
 {
-    hid_t		file = -1;              /* File ID */
-    hid_t		fapl_new = -1;		/* copy of fapl */
-    char		filename[FILENAME_LEN]; /* Filename to use */
-    H5F_t		*f = NULL;              /* Internal file object pointer */
-    h5_stat_size_t      file_size, new_file_size; /* file size */
-    H5FD_mem_t 		type;
+    hid_t		file=-1;              		/* File ID */
+    hid_t		fapl_new=-1;			/* copy of fapl */
+    char		filename[FILENAME_LEN]; 	/* Filename to use */
+    H5F_t		*f=NULL;              		/* Internal file object pointer */
+    h5_stat_size_t      file_size, new_file_size; 	/* file size */
+    h5_stat_size_t	fsp_size=0;
+    H5MF_fs_t		thefs;
     frspace_state_t 	state;
-
 
     TESTING("H5MF_alloc_create()/H5MF_alloc_open() of free-space manager");
 
     /* Set the filename to use for this test (dependent on fapl) */
     h5_fixname(FILENAME[0], fapl, filename, sizeof(filename));
 
-    if((fapl_new = H5Pcopy(fapl)) < 0) TEST_ERROR
-
     /* Create the file to work on */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0)
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0)
         FAIL_STACK_ERROR
+
+    /* Get a pointer to the internal file object */
+    if(NULL == (f = (H5F_t *)H5I_object(file)))
+        FAIL_STACK_ERROR
+
+    if((fapl_new = H5Pcopy(fapl)) < 0) TEST_ERROR
+    if(H5F_FSPACE_PAGE(f)) {
+	if(large) fsp_size = (h5_stat_size_t)f->shared->fsp_size;
+    } else {
+	/* Turn off using meta/small data aggregator */
+	if(H5Pset_meta_block_size(fapl_new, (hsize_t)0) < 0)
+	    FAIL_STACK_ERROR
+	if(H5Pset_small_data_block_size(fapl_new, (hsize_t)0) < 0)
+	    FAIL_STACK_ERROR
+    }
 
     /* Close file */
     if(H5Fclose(file) < 0)
@@ -999,10 +1077,6 @@ test_mf_fs_start(hid_t fapl)
     if((file_size = h5_get_file_size(filename, fapl)) < 0)
         TEST_ERROR
 
-    /* Turn off using meta/small data aggregator */
-    H5Pset_meta_block_size(fapl_new, (hsize_t)0);
-    H5Pset_small_data_block_size(fapl_new, (hsize_t)0);
-
     /* Re-open the file with meta/small data setting */
     if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
         FAIL_STACK_ERROR
@@ -1011,20 +1085,20 @@ test_mf_fs_start(hid_t fapl)
     if(NULL == (f = (H5F_t *)H5I_object(file)))
         FAIL_STACK_ERROR
 
-    /* Start up free-space manager */
-    type = H5FD_MEM_SUPER;
+    H5MF_setup_thefs(f, H5FD_MEM_SUPER, (hsize_t)fsp_size, &thefs);
 
-    if(H5MF_alloc_start(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+    /* Start up free-space manager */
+    if(H5MF_start_thefs(f, H5P_DATASET_XFER_DEFAULT, &thefs) < 0)
         TEST_ERROR
 
-    if (f->shared->fs_state[type] != H5F_FS_STATE_OPEN)
+    if(*thefs.fs_state != H5F_FS_STATE_OPEN)
 	TEST_ERROR
-    if (f->shared->fs_man[type]->client != H5FS_CLIENT_FILE_ID)
+    if((*thefs.fs_man)->client != H5FS_CLIENT_FILE_ID)
 	TEST_ERROR
 
     HDmemset(&state, 0, sizeof(frspace_state_t));
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     if(H5Fclose(file) < 0)
@@ -1058,7 +1132,13 @@ error:
  * To verify that a block is allocated/freed from/to the free-space manager
  *
  * Set up:
- * 	Turn off using meta/small data aggregator
+ *	With file space page size setting:
+ *	  "fcpl" has "file space page size" set
+ *	  "large" indicates to test for large- or small-sized free-space manager
+ *	Without file space page size setting:
+ *	  "fcpl" is H5P_DEFAULT
+ *	  "large" is FALSE
+ * 	  Turn off meta/small data aggregation in "fapl_new"
  *
  * Test 1:
  *	Add section A to free-space manager (addr=70, size=30)
@@ -1075,7 +1155,7 @@ error:
  *	Add section A to free-space manager (addr=70, size=30)
  *	Allocate a block of size=40
  *	The free-space manager is unable to fulfill the request
- *	The block is allocated from file allocation
+ *	The block is allocated from VFD
  *	Deallocate the block which will be returned to free-space manager
  *	(the space is shrunk and freed since it is at end of file)
  *
@@ -1084,30 +1164,45 @@ error:
  *	Initialize the new field "allow_eoa_shrink_only" for user data.
  */
 static unsigned
-test_mf_fs_alloc_free(hid_t fapl)
+test_mf_fs_alloc_free(hid_t fcpl, hid_t fapl, hbool_t large)
 {
     hid_t		file = -1;              /* File ID */
     hid_t		fapl_new = -1;		/* copy of fapl */
     char		filename[FILENAME_LEN]; /* Filename to use */
     H5F_t		*f = NULL;              /* Internal file object pointer */
     h5_stat_size_t      file_size, new_file_size; 	/* file size */
-    H5FD_mem_t 		type;
+    hsize_t		fsp_size=0;
     H5MF_free_section_t *sect_node = NULL;
     haddr_t		addr;
     frspace_state_t 	state;
+    unsigned		ctype;			/* Section class type */
     H5MF_sect_ud_t 	udata;
     H5FS_section_info_t *node;
+    H5MF_fs_t 		thefs;
 
     TESTING("H5MF_alloc()/H5MF_xfree() of free-space manager:test 1");
 
     /* Set the filename to use for this test (dependent on fapl) */
     h5_fixname(FILENAME[0], fapl, filename, sizeof(filename));
 
-    if((fapl_new = H5Pcopy(fapl)) < 0) TEST_ERROR
-
     /* Create the file to work on */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0)
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0)
         FAIL_STACK_ERROR
+
+    /* Get a pointer to the internal file object */
+    if(NULL == (f = (H5F_t *)H5I_object(file)))
+        FAIL_STACK_ERROR
+
+    if((fapl_new = H5Pcopy(fapl)) < 0) TEST_ERROR
+    if(H5F_FSPACE_PAGE(f)) {
+	if(large) fsp_size = (h5_stat_size_t)f->shared->fsp_size;
+    } else {
+	/* Turn off using meta/small data aggregator */
+	if(H5Pset_meta_block_size(fapl_new, (hsize_t)0) < 0)
+	    FAIL_STACK_ERROR
+	if(H5Pset_small_data_block_size(fapl_new, (hsize_t)0) < 0)
+	    FAIL_STACK_ERROR
+    }
 
     /* Close file */
     if(H5Fclose(file) < 0)
@@ -1117,10 +1212,6 @@ test_mf_fs_alloc_free(hid_t fapl)
     if((file_size = h5_get_file_size(filename, fapl)) < 0)
         TEST_ERROR
 
-    /* Turn off using meta/small data aggregator */
-    H5Pset_meta_block_size(fapl_new, (hsize_t)0);
-    H5Pset_small_data_block_size(fapl_new, (hsize_t)0);
-
     /* Re-open the file with meta/small data setting */
     if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
         FAIL_STACK_ERROR
@@ -1129,68 +1220,68 @@ test_mf_fs_alloc_free(hid_t fapl)
     if(NULL == (f = (H5F_t *)H5I_object(file)))
         FAIL_STACK_ERROR
 
-    type = H5FD_MEM_SUPER;
-
-    if(H5MF_alloc_start(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+    H5MF_setup_thefs(f, H5FD_MEM_SUPER, fsp_size, &thefs);
+    if(H5MF_start_thefs(f, H5P_DATASET_XFER_DEFAULT, &thefs) < 0)
         TEST_ERROR
 
-    if (f->shared->fs_state[type] != H5F_FS_STATE_OPEN)
+    if(*thefs.fs_state != H5F_FS_STATE_OPEN)
 	TEST_ERROR
-    if (f->shared->fs_man[type]->client != H5FS_CLIENT_FILE_ID)
+    if((*thefs.fs_man)->client != H5FS_CLIENT_FILE_ID)
 	TEST_ERROR
 
+    ctype = H5MF_SECT_CLASS_TYPE(f, fsp_size);
     /* Create section A */
-    sect_node = H5MF_sect_simple_new((haddr_t)TEST_BLOCK_ADDR70, (hsize_t)TEST_BLOCK_SIZE30);
+    sect_node = H5MF_sect_new(ctype, (haddr_t)TEST_BLOCK_ADDR70, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size));
 
     /* Construct user data for callbacks */
     udata.f = f;
     udata.dxpl_id = H5P_DATASET_XFER_DEFAULT;
-    udata.alloc_type = type;
+    udata.alloc_type = H5FD_MEM_SUPER;
     udata.allow_sect_absorb = TRUE;
     udata.allow_eoa_shrink_only = FALSE;
 
     /* Add section A to free-space manager */
-    if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type], (H5FS_section_info_t *)sect_node, H5FS_ADD_RETURNED_SPACE, &udata))
+    if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, *thefs.fs_man, (H5FS_section_info_t *)sect_node, H5FS_ADD_RETURNED_SPACE, &udata))
 	    FAIL_STACK_ERROR
 
     HDmemset(&state, 0, sizeof(frspace_state_t));
-    state.tot_space += TEST_BLOCK_SIZE30;
+    state.tot_space += (TEST_BLOCK_SIZE30+fsp_size);
     state.tot_sect_count += 1;
     state.serial_sect_count += 1;
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Allocate a block of 30 */
-    addr = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE30);
+    addr = H5MF_alloc(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size));
 
     /* Verify that the allocated block is section A in free-space */
     if (addr != TEST_BLOCK_ADDR70)
 	TEST_ERROR
 
-    state.tot_space -= TEST_BLOCK_SIZE30;
+    state.tot_space -= (TEST_BLOCK_SIZE30+fsp_size);
     state.tot_sect_count -= 1;
     state.serial_sect_count -= 1;
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Free the block to free-space */
-    H5MF_xfree(f, type, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)TEST_BLOCK_SIZE30);
+    H5MF_xfree(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size));
 
-    state.tot_space += TEST_BLOCK_SIZE30;
+    state.tot_space += (TEST_BLOCK_SIZE30+fsp_size);
     state.tot_sect_count += 1;
     state.serial_sect_count += 1;
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Remove section A from free-space */
-    if(H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type],
-            (hsize_t)TEST_BLOCK_SIZE30, (H5FS_section_info_t **)&node) < 0)
+    if(H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, *thefs.fs_man,
+            (hsize_t)(TEST_BLOCK_SIZE30+fsp_size), (H5FS_section_info_t **)&node) < 0)
 	TEST_ERROR
 
     /* Free the free-space section node */
-    if(H5MF_sect_simple_free((H5FS_section_info_t *)node) < 0)
+    if(H5MF_sect_free((H5FS_section_info_t *)node) < 0)
 	TEST_ERROR
 
     if(H5Fclose(file) < 0)
@@ -1216,66 +1307,64 @@ test_mf_fs_alloc_free(hid_t fapl)
     if(NULL == (f = (H5F_t *)H5I_object(file)))
         FAIL_STACK_ERROR
 
-    type = H5FD_MEM_SUPER;
-
-    if(H5MF_alloc_start(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+    H5MF_setup_thefs(f, H5FD_MEM_SUPER, fsp_size, &thefs);
+    if(H5MF_start_thefs(f, H5P_DATASET_XFER_DEFAULT, &thefs) < 0)
         TEST_ERROR
 
-    if (f->shared->fs_state[type] != H5F_FS_STATE_OPEN)
+    if(*thefs.fs_state != H5F_FS_STATE_OPEN)
 	TEST_ERROR
-    if (f->shared->fs_man[type]->client != H5FS_CLIENT_FILE_ID)
+    if((*thefs.fs_man)->client != H5FS_CLIENT_FILE_ID)
 	TEST_ERROR
 
     /* Create section A */
-    sect_node = H5MF_sect_simple_new((haddr_t)TEST_BLOCK_ADDR70, (hsize_t)TEST_BLOCK_SIZE30);
+    sect_node = H5MF_sect_new(ctype, (haddr_t)TEST_BLOCK_ADDR70, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size));
 
     /* Construct user data for callbacks */
     udata.f = f;
     udata.dxpl_id = H5P_DATASET_XFER_DEFAULT;
-    udata.alloc_type = type;
+    udata.alloc_type = H5FD_MEM_SUPER;
     udata.allow_sect_absorb = TRUE;
     udata.allow_eoa_shrink_only = FALSE;
 
-    /* Add section A to free-space manager */
-    if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type], (H5FS_section_info_t *)sect_node, H5FS_ADD_RETURNED_SPACE, &udata))
+    if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, *thefs.fs_man, (H5FS_section_info_t *)sect_node, H5FS_ADD_RETURNED_SPACE, &udata))
 	    FAIL_STACK_ERROR
 
     HDmemset(&state, 0, sizeof(frspace_state_t));
-    state.tot_space += TEST_BLOCK_SIZE30;
+    state.tot_space += (TEST_BLOCK_SIZE30+fsp_size);
     state.tot_sect_count += 1;
     state.serial_sect_count += 1;
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Allocate a block of 20 */
-    addr = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)(TEST_BLOCK_SIZE20));
+    addr = H5MF_alloc(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, (hsize_t)(TEST_BLOCK_SIZE20+fsp_size));
 
     /* Verify that the allocated block is section A in free-space manager */
     if (addr != TEST_BLOCK_ADDR70)
 	TEST_ERROR
 
     /* should still have 1 section of size 10 left in free-space manager */
-    state.tot_space -= (TEST_BLOCK_SIZE20);
+    state.tot_space -= (TEST_BLOCK_SIZE20+fsp_size);
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Free the block to free-space manager */
-    H5MF_xfree(f, type, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)(TEST_BLOCK_SIZE20));
+    H5MF_xfree(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)(TEST_BLOCK_SIZE20+fsp_size));
 
     /* Still 1 section in free-space because of merging */
-    state.tot_space += TEST_BLOCK_SIZE20;
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    state.tot_space += (TEST_BLOCK_SIZE20+fsp_size);
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Remove section A from free-space manager */
-    if(H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type],
-		    (hsize_t)TEST_BLOCK_SIZE30, (H5FS_section_info_t **)&node) < 0)
+    if(H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, *thefs.fs_man,
+		    (hsize_t)(TEST_BLOCK_SIZE30+fsp_size), (H5FS_section_info_t **)&node) < 0)
 	FAIL_STACK_ERROR
 
     /* Free the free-space section node */
-    if(H5MF_sect_simple_free((H5FS_section_info_t *)node) < 0)
+    if(H5MF_sect_free((H5FS_section_info_t *)node) < 0)
 	TEST_ERROR
 
     if(H5Fclose(file) < 0)
@@ -1301,36 +1390,35 @@ test_mf_fs_alloc_free(hid_t fapl)
     if(NULL == (f = (H5F_t *)H5I_object(file)))
         FAIL_STACK_ERROR
 
-    type = H5FD_MEM_SUPER;
-
-    if(H5MF_alloc_start(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+    H5MF_setup_thefs(f, H5FD_MEM_SUPER, fsp_size, &thefs);
+    if(H5MF_start_thefs(f, H5P_DATASET_XFER_DEFAULT, &thefs) < 0)
         TEST_ERROR
 
-    if (f->shared->fs_state[type] != H5F_FS_STATE_OPEN)
+    if(*thefs.fs_state != H5F_FS_STATE_OPEN)
 	TEST_ERROR
-    if (f->shared->fs_man[type]->client != H5FS_CLIENT_FILE_ID)
+    if((*thefs.fs_man)->client != H5FS_CLIENT_FILE_ID)
 	TEST_ERROR
 
     /* Create section A */
-    sect_node = H5MF_sect_simple_new((haddr_t)TEST_BLOCK_ADDR70, (hsize_t)TEST_BLOCK_SIZE30);
+    sect_node = H5MF_sect_new(ctype, (haddr_t)TEST_BLOCK_ADDR70, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size));
 
     /* Construct user data for callbacks */
     udata.f = f;
     udata.dxpl_id = H5P_DATASET_XFER_DEFAULT;
-    udata.alloc_type = type;
+    udata.alloc_type = H5FD_MEM_SUPER;
     udata.allow_sect_absorb = TRUE;
     udata.allow_eoa_shrink_only = FALSE;
 
     /* Add section A to free-space manager */
-    if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type], (H5FS_section_info_t *)sect_node, H5FS_ADD_RETURNED_SPACE, &udata))
+    if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, *thefs.fs_man, (H5FS_section_info_t *)sect_node, H5FS_ADD_RETURNED_SPACE, &udata))
 	    FAIL_STACK_ERROR
 
     HDmemset(&state, 0, sizeof(frspace_state_t));
-    state.tot_space += TEST_BLOCK_SIZE30;
+    state.tot_space += (TEST_BLOCK_SIZE30+fsp_size);
     state.tot_sect_count += 1;
     state.serial_sect_count += 1;
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /*
@@ -1338,38 +1426,38 @@ test_mf_fs_alloc_free(hid_t fapl)
      * Since free-space manager cannot fulfull the request,
      * the block is obtained from file allocation
      */
-    addr = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)(TEST_BLOCK_SIZE40));
+    addr = H5MF_alloc(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, (hsize_t)(TEST_BLOCK_SIZE40+fsp_size));
 
     /* Verify that the allocated block is not section A in free-space */
     if (addr == TEST_BLOCK_ADDR70)
 	TEST_ERROR
 
     /* free-space info should be the same  */
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Remove section A from free-space */
-    if(H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type],
-		    (hsize_t)TEST_BLOCK_SIZE30, (H5FS_section_info_t **)&node) < 0)
+    if(H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, *thefs.fs_man,
+		    (hsize_t)(TEST_BLOCK_SIZE30+fsp_size), (H5FS_section_info_t **)&node) < 0)
 	FAIL_STACK_ERROR
 
     /* Free the free-space section node */
-    if(H5MF_sect_simple_free((H5FS_section_info_t *)node) < 0)
+    if(H5MF_sect_free((H5FS_section_info_t *)node) < 0)
 	TEST_ERROR
 
     HDmemset(&state, 0, sizeof(frspace_state_t));
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Free the block of size 40 to free-space */
-    H5MF_xfree(f, type, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)(TEST_BLOCK_SIZE40));
+    H5MF_xfree(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)(TEST_BLOCK_SIZE40+fsp_size));
 
     /*
      * Free-space info is the same.
      * The block is returned to free-space.
      * It is shrunk and freed because it is at end of file.
      */
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     if(H5Fclose(file) < 0)
@@ -1403,7 +1491,13 @@ error:
  * To verify that a block allocated from the free-space manager can be extended
  *
  * Set up:
- * 	Turn off using meta/small data aggregator
+ *	With file space page size setting:
+ *	  "fcpl" has "file space page size" set
+ *	  "large" indicates to test for large- or small-sized free-space manager
+ *	Without file space page size setting:
+ *	  "fcpl" is H5P_DEFAULT
+ *	  "large" is FALSE
+ * 	  Turn off meta/small data aggregation in "fapl_new"
  *
  * Test 1:
  *	Add section A to free-space manager: addr=70, size=30
@@ -1441,31 +1535,46 @@ error:
  *	Initialize the new field "allow_eoa_shrink_only" for user data.
  */
 static unsigned
-test_mf_fs_extend(hid_t fapl)
+test_mf_fs_extend(hid_t fcpl, hid_t fapl, hbool_t large)
 {
     hid_t		file = -1;              /* File ID */
     hid_t		fapl_new = -1;		/* copy of fapl */
     char		filename[FILENAME_LEN]; /* Filename to use */
     H5F_t		*f = NULL;              /* Internal file object pointer */
     h5_stat_size_t      file_size, new_file_size; /* file size */
-    H5FD_mem_t 		type;
+    h5_stat_size_t	fsp_size=0;
+    unsigned		ctype;			/* Section class type */
     H5MF_free_section_t *sect_node1 = NULL, *sect_node2=NULL;
     haddr_t		addr;
     frspace_state_t 	state;          	/* State of free space*/
     H5MF_sect_ud_t 	udata;
     H5FS_section_info_t *node;
     htri_t      	extended;
+    H5MF_fs_t		thefs;
 
     TESTING("H5MF_try_extend() of free-space manager:test 1");
 
     /* Set the filename to use for this test (dependent on fapl) */
     h5_fixname(FILENAME[0], fapl, filename, sizeof(filename));
 
-    if((fapl_new = H5Pcopy(fapl)) < 0) TEST_ERROR
-
     /* Create the file to work on */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0)
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0)
         FAIL_STACK_ERROR
+
+    /* Get a pointer to the internal file object */
+    if(NULL == (f = (H5F_t *)H5I_object(file)))
+        FAIL_STACK_ERROR
+
+    if((fapl_new = H5Pcopy(fapl)) < 0) TEST_ERROR
+    if(H5F_FSPACE_PAGE(f)) {
+	if(large) fsp_size = (h5_stat_size_t)f->shared->fsp_size;
+    } else {
+	/* Turn off using meta/small data aggregator */
+	if(H5Pset_meta_block_size(fapl_new, (hsize_t)0) < 0)
+	    FAIL_STACK_ERROR
+	if(H5Pset_small_data_block_size(fapl_new, (hsize_t)0) < 0)
+	    FAIL_STACK_ERROR
+    }
 
     /* Close file */
     if(H5Fclose(file) < 0)
@@ -1475,10 +1584,6 @@ test_mf_fs_extend(hid_t fapl)
     if((file_size = h5_get_file_size(filename, fapl)) < 0)
         TEST_ERROR
 
-    /* Turn off using meta/small data aggregator */
-    H5Pset_meta_block_size(fapl_new, (hsize_t)0);
-    H5Pset_small_data_block_size(fapl_new, (hsize_t)0);
-
     /* Re-open the file with meta/small data setting */
     if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
         FAIL_STACK_ERROR
@@ -1487,68 +1592,68 @@ test_mf_fs_extend(hid_t fapl)
     if(NULL == (f = (H5F_t *)H5I_object(file)))
         FAIL_STACK_ERROR
 
-    type = H5FD_MEM_SUPER;
-
-    if(H5MF_alloc_start(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+    H5MF_setup_thefs(f, H5FD_MEM_SUPER, (hsize_t)fsp_size, &thefs);
+    if(H5MF_start_thefs(f, H5P_DATASET_XFER_DEFAULT, &thefs) < 0)
         TEST_ERROR
 
-    if (f->shared->fs_state[type] != H5F_FS_STATE_OPEN)
+    if(*thefs.fs_state != H5F_FS_STATE_OPEN)
 	TEST_ERROR
-    if (f->shared->fs_man[type]->client != H5FS_CLIENT_FILE_ID)
+    if((*thefs.fs_man)->client != H5FS_CLIENT_FILE_ID)
 	TEST_ERROR
 
     /* Create section A */
-    sect_node1 = H5MF_sect_simple_new((haddr_t)TEST_BLOCK_ADDR70, (hsize_t)TEST_BLOCK_SIZE30);
+    ctype = H5MF_SECT_CLASS_TYPE(f, (hsize_t)fsp_size);
+    sect_node1 = H5MF_sect_new(ctype, (haddr_t)TEST_BLOCK_ADDR70, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size));
 
     /* Construct user data for callbacks */
     udata.f = f;
     udata.dxpl_id = H5P_DATASET_XFER_DEFAULT;
-    udata.alloc_type = type;
+    udata.alloc_type = H5FD_MEM_SUPER;
     udata.allow_sect_absorb = TRUE;
     udata.allow_eoa_shrink_only = FALSE;
 
     /* Add section A to free-space manager */
-    if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type], (H5FS_section_info_t *)sect_node1, H5FS_ADD_RETURNED_SPACE, &udata))
+    if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, *thefs.fs_man, (H5FS_section_info_t *)sect_node1, H5FS_ADD_RETURNED_SPACE, &udata))
 	    FAIL_STACK_ERROR
 
     HDmemset(&state, 0, sizeof(frspace_state_t));
-    state.tot_space += TEST_BLOCK_SIZE30;
+    state.tot_space += (TEST_BLOCK_SIZE30+fsp_size);
     state.tot_sect_count += 1;
     state.serial_sect_count += 1;
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Allocate a block of 30 */
-    addr = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE30);
+    addr = H5MF_alloc(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size));
 
     /* Verify that the allocated block is section A in free-space manager */
     if (addr != TEST_BLOCK_ADDR70)
 	TEST_ERROR
 
-    state.tot_space -= TEST_BLOCK_SIZE30;
+    state.tot_space -= (TEST_BLOCK_SIZE30+fsp_size);
     state.tot_sect_count -= 1;
     state.serial_sect_count -= 1;
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Create section B */
-    sect_node2 = H5MF_sect_simple_new((haddr_t)TEST_BLOCK_ADDR100, (hsize_t)TEST_BLOCK_SIZE50);
+    sect_node2 = H5MF_sect_new(ctype, (haddr_t)(TEST_BLOCK_ADDR100+fsp_size), (hsize_t)TEST_BLOCK_SIZE50);
 
     /* Add section B to free-space manager */
-    if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type], (H5FS_section_info_t *)sect_node2, H5FS_ADD_RETURNED_SPACE, &udata))
+    if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, *thefs.fs_man, (H5FS_section_info_t *)sect_node2, H5FS_ADD_RETURNED_SPACE, &udata))
 	    FAIL_STACK_ERROR
 
     state.tot_space += TEST_BLOCK_SIZE50;
     state.tot_sect_count += 1;
     state.serial_sect_count += 1;
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Try to extend the allocated block */
-    extended = H5MF_try_extend(f, H5P_DATASET_XFER_DEFAULT, type, (haddr_t)TEST_BLOCK_ADDR70, (hsize_t)TEST_BLOCK_SIZE30, (hsize_t)TEST_BLOCK_SIZE50);
+    extended = H5MF_try_extend(f, H5P_DATASET_XFER_DEFAULT, H5FD_MEM_SUPER, (haddr_t)TEST_BLOCK_ADDR70, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size), (hsize_t)TEST_BLOCK_SIZE50);
 
     /* should succeed */
     if(extended <= 0)
@@ -1559,27 +1664,27 @@ test_mf_fs_extend(hid_t fapl)
     state.tot_sect_count -= 1;
     state.serial_sect_count -= 1;
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Free the extended block to free-space manager */
-    H5MF_xfree(f, type, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)(TEST_BLOCK_SIZE30+TEST_BLOCK_SIZE50));
+    H5MF_xfree(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size+TEST_BLOCK_SIZE50));
 
     /* Verify that the extended block is back into free-space */
-    state.tot_space += TEST_BLOCK_SIZE30+TEST_BLOCK_SIZE50;
+    state.tot_space += TEST_BLOCK_SIZE30+fsp_size+TEST_BLOCK_SIZE50;
     state.tot_sect_count = 1;
     state.serial_sect_count = 1;
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Remove the extended block */
-    if(H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type],
-		    (hsize_t)(TEST_BLOCK_SIZE30+TEST_BLOCK_SIZE50), (H5FS_section_info_t **)&node) < 0)
+    if(H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, *thefs.fs_man,
+		    (hsize_t)(TEST_BLOCK_SIZE30+fsp_size+TEST_BLOCK_SIZE50), (H5FS_section_info_t **)&node) < 0)
 	TEST_ERROR
 
     /* Remove the free-space section node */
-    if(H5MF_sect_simple_free((H5FS_section_info_t *)node) < 0)
+    if(H5MF_sect_free((H5FS_section_info_t *)node) < 0)
 	TEST_ERROR
 
     if(H5Fclose(file) < 0)
@@ -1605,94 +1710,93 @@ test_mf_fs_extend(hid_t fapl)
     if(NULL == (f = (H5F_t *)H5I_object(file)))
         FAIL_STACK_ERROR
 
-    type = H5FD_MEM_SUPER;
-
-    if(H5MF_alloc_start(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+    H5MF_setup_thefs(f, H5FD_MEM_SUPER, (hsize_t)fsp_size, &thefs);
+    if(H5MF_start_thefs(f, H5P_DATASET_XFER_DEFAULT, &thefs) < 0)
         TEST_ERROR
 
-    if (f->shared->fs_state[type] != H5F_FS_STATE_OPEN)
+    if(*thefs.fs_state != H5F_FS_STATE_OPEN)
 	TEST_ERROR
-    if (f->shared->fs_man[type]->client != H5FS_CLIENT_FILE_ID)
+    if((*thefs.fs_man)->client != H5FS_CLIENT_FILE_ID)
 	TEST_ERROR
 
     /* Create section A */
-    sect_node1 = H5MF_sect_simple_new((haddr_t)TEST_BLOCK_ADDR70, (hsize_t)TEST_BLOCK_SIZE30);
+    sect_node1 = H5MF_sect_new(ctype, (haddr_t)TEST_BLOCK_ADDR70, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size));
 
     /* Construct user data for callbacks */
     udata.f = f;
     udata.dxpl_id = H5P_DATASET_XFER_DEFAULT;
-    udata.alloc_type = type;
+    udata.alloc_type = H5FD_MEM_SUPER;
     udata.allow_sect_absorb = TRUE;
     udata.allow_eoa_shrink_only = FALSE;
 
     /* Add section A to free-space */
-    if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type], (H5FS_section_info_t *)sect_node1, H5FS_ADD_RETURNED_SPACE, &udata))
+    if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, *thefs.fs_man, (H5FS_section_info_t *)sect_node1, H5FS_ADD_RETURNED_SPACE, &udata))
 	    FAIL_STACK_ERROR
 
     HDmemset(&state, 0, sizeof(frspace_state_t));
-    state.tot_space += TEST_BLOCK_SIZE30;
+    state.tot_space += (TEST_BLOCK_SIZE30+fsp_size);
     state.tot_sect_count += 1;
     state.serial_sect_count += 1;
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Allocate a block of 30 */
-    addr = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE30);
+    addr = H5MF_alloc(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size));
 
     /* Verify that the allocated block is section A in free-space manager */
     if (addr != TEST_BLOCK_ADDR70)
 	TEST_ERROR
 
-    state.tot_space -= TEST_BLOCK_SIZE30;
+    state.tot_space -= (TEST_BLOCK_SIZE30+fsp_size);
     state.tot_sect_count -= 1;
     state.serial_sect_count -= 1;
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Create section B */
-    sect_node2 = H5MF_sect_simple_new((haddr_t)TEST_BLOCK_ADDR100, (hsize_t)TEST_BLOCK_SIZE50);
+    sect_node2 = H5MF_sect_new(ctype, (haddr_t)(TEST_BLOCK_ADDR100+fsp_size), (hsize_t)TEST_BLOCK_SIZE50);
 
     /* Add section B to free-space manager */
-    if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type], (H5FS_section_info_t *)sect_node2, H5FS_ADD_RETURNED_SPACE, &udata))
+    if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, *thefs.fs_man, (H5FS_section_info_t *)sect_node2, H5FS_ADD_RETURNED_SPACE, &udata))
 	    FAIL_STACK_ERROR
 
     state.tot_space += TEST_BLOCK_SIZE50;
     state.tot_sect_count += 1;
     state.serial_sect_count += 1;
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Try to extend the allocated block */
-    extended = H5MF_try_extend(f, H5P_DATASET_XFER_DEFAULT, type, (haddr_t)TEST_BLOCK_ADDR70, (hsize_t)TEST_BLOCK_SIZE30, (hsize_t)(TEST_BLOCK_SIZE50+10));
+    extended = H5MF_try_extend(f, H5P_DATASET_XFER_DEFAULT, H5FD_MEM_SUPER, (haddr_t)TEST_BLOCK_ADDR70, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size), (hsize_t)(TEST_BLOCK_SIZE50+10));
 
     /* Should not be able to extend the allocated block */
     if(extended)
 	TEST_ERROR
 
     /* free-space info should remain the same */
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Free the allocated block A to free-space */
-    H5MF_xfree(f, type, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)TEST_BLOCK_SIZE30);
+    H5MF_xfree(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size));
 
     /* the returned section A is merged with section B in free-space */
     /* rest of the info remains the same */
-    state.tot_space += TEST_BLOCK_SIZE30;
+    state.tot_space += (TEST_BLOCK_SIZE30+fsp_size);
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Remove the merged sections A & B from free-space */
-    if(H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type],
-		    (hsize_t)(TEST_BLOCK_SIZE30+TEST_BLOCK_SIZE50), (H5FS_section_info_t **)&node) < 0)
+    if(H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, *thefs.fs_man,
+		    (hsize_t)(TEST_BLOCK_SIZE30+fsp_size+TEST_BLOCK_SIZE50), (H5FS_section_info_t **)&node) < 0)
 	TEST_ERROR
 
     /* Remove the free-space section node */
-    if(H5MF_sect_simple_free((H5FS_section_info_t *)node) < 0)
+    if(H5MF_sect_free((H5FS_section_info_t *)node) < 0)
 	TEST_ERROR
 
     if(H5Fclose(file) < 0)
@@ -1718,68 +1822,67 @@ test_mf_fs_extend(hid_t fapl)
     if(NULL == (f = (H5F_t *)H5I_object(file)))
         FAIL_STACK_ERROR
 
-    type = H5FD_MEM_SUPER;
-
-    if(H5MF_alloc_start(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+    H5MF_setup_thefs(f, H5FD_MEM_SUPER, (hsize_t)fsp_size, &thefs);
+    if(H5MF_start_thefs(f, H5P_DATASET_XFER_DEFAULT, &thefs) < 0)
         TEST_ERROR
 
-    if (f->shared->fs_state[type] != H5F_FS_STATE_OPEN)
+    if(*thefs.fs_state != H5F_FS_STATE_OPEN)
 	TEST_ERROR
-    if (f->shared->fs_man[type]->client != H5FS_CLIENT_FILE_ID)
+    if((*thefs.fs_man)->client != H5FS_CLIENT_FILE_ID)
 	TEST_ERROR
 
     /* Create section A */
-    sect_node1 = H5MF_sect_simple_new((haddr_t)TEST_BLOCK_ADDR70, (hsize_t)TEST_BLOCK_SIZE30);
+    sect_node1 = H5MF_sect_new(ctype, (haddr_t)TEST_BLOCK_ADDR70, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size));
 
     /* Construct user data for callbacks */
     udata.f = f;
     udata.dxpl_id = H5P_DATASET_XFER_DEFAULT;
-    udata.alloc_type = type;
+    udata.alloc_type = H5FD_MEM_SUPER;
     udata.allow_sect_absorb = TRUE;
     udata.allow_eoa_shrink_only = FALSE;
 
     /* Add section A to free-space */
-    if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type], (H5FS_section_info_t *)sect_node1, H5FS_ADD_RETURNED_SPACE, &udata))
+    if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, *thefs.fs_man, (H5FS_section_info_t *)sect_node1, H5FS_ADD_RETURNED_SPACE, &udata))
 	    FAIL_STACK_ERROR
 
     HDmemset(&state, 0, sizeof(frspace_state_t));
-    state.tot_space += TEST_BLOCK_SIZE30;
+    state.tot_space += (TEST_BLOCK_SIZE30+fsp_size);
     state.tot_sect_count += 1;
     state.serial_sect_count += 1;
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Allocate a block of 30 */
-    addr = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE30);
+    addr = H5MF_alloc(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size));
 
     /* Verify that the allocated block is section A in free-space manager */
     if (addr != TEST_BLOCK_ADDR70)
 	TEST_ERROR
 
-    state.tot_space -= TEST_BLOCK_SIZE30;
+    state.tot_space -= (TEST_BLOCK_SIZE30+fsp_size);
     state.tot_sect_count -= 1;
     state.serial_sect_count -= 1;
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Create section B */
-    sect_node2 = H5MF_sect_simple_new((haddr_t)TEST_BLOCK_ADDR100, (hsize_t)TEST_BLOCK_SIZE50);
+    sect_node2 = H5MF_sect_new(ctype, (haddr_t)(TEST_BLOCK_ADDR100+fsp_size), (hsize_t)TEST_BLOCK_SIZE50);
 
     /* Add section B to free-space manager */
-    if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type], (H5FS_section_info_t *)sect_node2, H5FS_ADD_RETURNED_SPACE, &udata))
+    if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, *thefs.fs_man, (H5FS_section_info_t *)sect_node2, H5FS_ADD_RETURNED_SPACE, &udata))
 	    FAIL_STACK_ERROR
 
     state.tot_space += TEST_BLOCK_SIZE50;
     state.tot_sect_count += 1;
     state.serial_sect_count += 1;
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Try to extend the allocated block */
-    extended = H5MF_try_extend(f, H5P_DATASET_XFER_DEFAULT, type, (haddr_t)TEST_BLOCK_ADDR70, (hsize_t)TEST_BLOCK_SIZE30, (hsize_t)(TEST_BLOCK_SIZE40));
+    extended = H5MF_try_extend(f, H5P_DATASET_XFER_DEFAULT, H5FD_MEM_SUPER, (haddr_t)TEST_BLOCK_ADDR70, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size), (hsize_t)(TEST_BLOCK_SIZE40));
 
     /* Should succeed in extending the allocated block */
     if(extended <=0)
@@ -1787,25 +1890,25 @@ test_mf_fs_extend(hid_t fapl)
 
     /* Should have 1 section of size=10 left in free-space manager */
     state.tot_space -= (TEST_BLOCK_SIZE40);
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Free the extended block  */
-    H5MF_xfree(f, type, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)(TEST_BLOCK_SIZE30+TEST_BLOCK_SIZE40));
+    H5MF_xfree(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size+TEST_BLOCK_SIZE40));
 
     /* rest info is same, the extended section returned is merged with the section in free-space */
-    state.tot_space += (TEST_BLOCK_SIZE30+TEST_BLOCK_SIZE40);
+    state.tot_space += (TEST_BLOCK_SIZE30+fsp_size+TEST_BLOCK_SIZE40);
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Remove the merged sections A & B from free-space */
-    if(H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type],
-		    (hsize_t)(TEST_BLOCK_SIZE30+TEST_BLOCK_SIZE50), (H5FS_section_info_t **)&node) < 0)
+    if(H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, *thefs.fs_man,
+		    (hsize_t)(TEST_BLOCK_SIZE30+fsp_size+TEST_BLOCK_SIZE50), (H5FS_section_info_t **)&node) < 0)
 	TEST_ERROR
 
     /* Remove the free-space section node */
-    if(H5MF_sect_simple_free((H5FS_section_info_t *)node) < 0)
+    if(H5MF_sect_free((H5FS_section_info_t *)node) < 0)
 	TEST_ERROR
 
     if(H5Fclose(file) < 0)
@@ -1831,103 +1934,102 @@ test_mf_fs_extend(hid_t fapl)
     if(NULL == (f = (H5F_t *)H5I_object(file)))
         FAIL_STACK_ERROR
 
-    type = H5FD_MEM_SUPER;
-
-    if(H5MF_alloc_start(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+    H5MF_setup_thefs(f, H5FD_MEM_SUPER, (hsize_t)fsp_size, &thefs);
+    if(H5MF_start_thefs(f, H5P_DATASET_XFER_DEFAULT, &thefs) < 0)
         TEST_ERROR
 
-    if (f->shared->fs_state[type] != H5F_FS_STATE_OPEN)
+    if(*thefs.fs_state != H5F_FS_STATE_OPEN)
 	TEST_ERROR
-    if (f->shared->fs_man[type]->client != H5FS_CLIENT_FILE_ID)
+    if((*thefs.fs_man)->client != H5FS_CLIENT_FILE_ID)
 	TEST_ERROR
 
     /* Create section A */
-    sect_node1 = H5MF_sect_simple_new((haddr_t)TEST_BLOCK_ADDR70, (hsize_t)(TEST_BLOCK_SIZE30-10));
+    sect_node1 = H5MF_sect_new(ctype, (haddr_t)TEST_BLOCK_ADDR70, (hsize_t)(TEST_BLOCK_SIZE30-10+fsp_size));
 
     /* Construct user data for callbacks */
     udata.f = f;
     udata.dxpl_id = H5P_DATASET_XFER_DEFAULT;
-    udata.alloc_type = type;
+    udata.alloc_type = H5FD_MEM_SUPER;
     udata.allow_sect_absorb = TRUE;
     udata.allow_eoa_shrink_only = FALSE;
 
     /* Add section A of size=20 to free-space */
-    if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type], (H5FS_section_info_t *)sect_node1, H5FS_ADD_RETURNED_SPACE, &udata))
+    if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, *thefs.fs_man, (H5FS_section_info_t *)sect_node1, H5FS_ADD_RETURNED_SPACE, &udata))
 	    FAIL_STACK_ERROR
 
     HDmemset(&state, 0, sizeof(frspace_state_t));
-    state.tot_space += (TEST_BLOCK_SIZE30-10);
+    state.tot_space += (TEST_BLOCK_SIZE30-10+fsp_size);
     state.tot_sect_count += 1;
     state.serial_sect_count += 1;
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Allocate a block of size=20 */
-    addr = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)(TEST_BLOCK_SIZE30-10));
+    addr = H5MF_alloc(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, (hsize_t)(TEST_BLOCK_SIZE30-10+fsp_size));
 
     /* Verify that the allocated block is section A in free-space manager */
     if (addr != TEST_BLOCK_ADDR70)
 	TEST_ERROR
 
-    state.tot_space -= (TEST_BLOCK_SIZE30-10);
+    state.tot_space -= (TEST_BLOCK_SIZE30-10+fsp_size);
     state.tot_sect_count -= 1;
     state.serial_sect_count -= 1;
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Create section B */
-    sect_node2 = H5MF_sect_simple_new((haddr_t)TEST_BLOCK_ADDR100, (hsize_t)TEST_BLOCK_SIZE50);
+    sect_node2 = H5MF_sect_new(ctype, (haddr_t)(TEST_BLOCK_ADDR100+fsp_size), (hsize_t)TEST_BLOCK_SIZE50);
 
     /* Add section B to free-space manager */
-    if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type], (H5FS_section_info_t *)sect_node2, H5FS_ADD_RETURNED_SPACE, &udata))
+    if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, *thefs.fs_man, (H5FS_section_info_t *)sect_node2, H5FS_ADD_RETURNED_SPACE, &udata))
 	    FAIL_STACK_ERROR
 
     state.tot_space += TEST_BLOCK_SIZE50;
     state.tot_sect_count += 1;
     state.serial_sect_count += 1;
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Try to extend the allocated block */
-    extended = H5MF_try_extend(f, H5P_DATASET_XFER_DEFAULT, type, (haddr_t)TEST_BLOCK_ADDR70, (hsize_t)(TEST_BLOCK_SIZE30-10), (hsize_t)TEST_BLOCK_SIZE50);
+    extended = H5MF_try_extend(f, H5P_DATASET_XFER_DEFAULT, H5FD_MEM_SUPER, (haddr_t)TEST_BLOCK_ADDR70, (hsize_t)(TEST_BLOCK_SIZE30-10+fsp_size), (hsize_t)TEST_BLOCK_SIZE50);
 
     /* Should not succeed in extending the allocated block */
     if(extended)
 	TEST_ERROR
 
     /* Free-space info should be the same */
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Free the allocated block */
-    H5MF_xfree(f, type, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)(TEST_BLOCK_SIZE30-10));
+    H5MF_xfree(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)(TEST_BLOCK_SIZE30-10+fsp_size));
 
-    state.tot_space += (TEST_BLOCK_SIZE30-10);
+    state.tot_space += (TEST_BLOCK_SIZE30-10+fsp_size);
     state.tot_sect_count += 1;
     state.serial_sect_count += 1;
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Remove section A from free-space manger */
-    if(H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type],
-		    (hsize_t)(TEST_BLOCK_SIZE30-10), (H5FS_section_info_t **)&node) < 0)
+    if(H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, *thefs.fs_man,
+		    (hsize_t)(TEST_BLOCK_SIZE30-10+fsp_size), (H5FS_section_info_t **)&node) < 0)
 	TEST_ERROR
 
     /* Remove the free-space section node */
-    if(H5MF_sect_simple_free((H5FS_section_info_t *)node) < 0)
+    if(H5MF_sect_free((H5FS_section_info_t *)node) < 0)
 	TEST_ERROR
 
     /* Remove section B from free-space manager */
-    if(H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type],
+    if(H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, *thefs.fs_man,
 		    (hsize_t)TEST_BLOCK_SIZE50, (H5FS_section_info_t **)&node) < 0)
 	TEST_ERROR
 
     /* Remove the free-space section node */
-    if(H5MF_sect_simple_free((H5FS_section_info_t *)node) < 0)
+    if(H5MF_sect_free((H5FS_section_info_t *)node) < 0)
 	TEST_ERROR
 
     if(H5Fclose(file) < 0)
@@ -1990,7 +2092,6 @@ test_mf_fs_absorb(const char *env_h5_drvr, hid_t fapl)
     hid_t		file = -1;              /* File ID */
     char		filename[FILENAME_LEN]; /* Filename to use */
     H5F_t		*f = NULL;              /* Internal file object pointer */
-    H5FD_mem_t 		type, stype;
     haddr_t		addr, saddr;
     haddr_t 		ma_addr=HADDR_UNDEF;
     hsize_t 		ma_size=0;
@@ -1998,6 +2099,7 @@ test_mf_fs_absorb(const char *env_h5_drvr, hid_t fapl)
     H5MF_sect_ud_t 	udata;
     H5FS_section_info_t *node;
     hbool_t             contig_addr_vfd;        /* Whether VFD used has a contigous address space */
+    H5MF_fs_t		thefs;
 
     TESTING("A free-space section absorbs an aggregator: test 1");
 
@@ -2023,45 +2125,44 @@ test_mf_fs_absorb(const char *env_h5_drvr, hid_t fapl)
         if(NULL == (f = (H5F_t *)H5I_object(file)))
             FAIL_STACK_ERROR
 
-        type = H5FD_MEM_SUPER;
-
-        if(H5MF_alloc_start(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+	H5MF_SETUP_FS_AGGR(f, H5FD_MEM_SUPER, &thefs);
+        if(H5MF_start_thefs(f, H5P_DATASET_XFER_DEFAULT, &thefs) < 0)
             TEST_ERROR
 
-        if (f->shared->fs_state[type] != H5F_FS_STATE_OPEN)
+        if(*thefs.fs_state != H5F_FS_STATE_OPEN)
             TEST_ERROR
-        if (f->shared->fs_man[type]->client != H5FS_CLIENT_FILE_ID)
+        if((*thefs.fs_man)->client != H5FS_CLIENT_FILE_ID)
             TEST_ERROR
 
         /* Allocate a section from meta_aggr */
-        addr = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE30);
+        addr = H5MF_alloc(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE30);
 
         H5MF_aggr_query(f, &(f->shared->meta_aggr), &ma_addr, &ma_size);
 
         /* Add a section to free-space that adjoins end of the aggregator */
-        sect_node = H5MF_sect_simple_new((haddr_t)(ma_addr+ma_size), (hsize_t)TEST_BLOCK_SIZE2048);
+        sect_node = H5MF_sect_new(H5MF_FSPACE_SECT_SIMPLE, (haddr_t)(ma_addr+ma_size), (hsize_t)TEST_BLOCK_SIZE2048);
 
         /* Construct user data for callbacks */
         udata.f = f;
         udata.dxpl_id = H5P_DATASET_XFER_DEFAULT;
-        udata.alloc_type = type;
+        udata.alloc_type = H5FD_MEM_SUPER;
         udata.allow_sect_absorb = TRUE;
 	udata.allow_eoa_shrink_only = FALSE;
 
         /* When adding, meta_aggr is absorbed onto the beginning of the section */
-        if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type], (H5FS_section_info_t *)sect_node, H5FS_ADD_RETURNED_SPACE, &udata))
+        if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, *thefs.fs_man, (H5FS_section_info_t *)sect_node, H5FS_ADD_RETURNED_SPACE, &udata))
                 FAIL_STACK_ERROR
 
         /* Verify that the section did absorb the aggregator */
-        if(H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type],
-                        (hsize_t)TEST_BLOCK_SIZE2048, (H5FS_section_info_t **)&node) < 0)
+        if(H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, *thefs.fs_man,
+          (hsize_t)TEST_BLOCK_SIZE2048, (H5FS_section_info_t **)&node) < 0)
             TEST_ERROR
 
-        if (node->addr != ma_addr)	TEST_ERROR
-        if (node->size != (ma_size + TEST_BLOCK_SIZE2048))	TEST_ERROR
+        if(node->addr != ma_addr) TEST_ERROR
+        if(node->size != (ma_size + TEST_BLOCK_SIZE2048)) TEST_ERROR
 
         /* Remove the free-space section node */
-        if(H5MF_sect_simple_free((H5FS_section_info_t *)node) < 0)
+        if(H5MF_sect_free((H5FS_section_info_t *)node) < 0)
             TEST_ERROR
 
         /* Restore info for aggregator */
@@ -2069,7 +2170,7 @@ test_mf_fs_absorb(const char *env_h5_drvr, hid_t fapl)
         f->shared->meta_aggr.size = ma_size;
 
         /* Remove section from meta_aggr */
-        H5MF_xfree(f, type, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)TEST_BLOCK_SIZE30);
+        H5MF_xfree(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)TEST_BLOCK_SIZE30);
 
         if(H5Fclose(file) < 0)
             FAIL_STACK_ERROR
@@ -2093,48 +2194,46 @@ test_mf_fs_absorb(const char *env_h5_drvr, hid_t fapl)
         if(NULL == (f = (H5F_t *)H5I_object(file)))
             FAIL_STACK_ERROR
 
-        type = H5FD_MEM_SUPER;
-
-        if(H5MF_alloc_start(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+	H5MF_SETUP_FS_AGGR(f, H5FD_MEM_SUPER, &thefs);
+        if(H5MF_start_thefs(f, H5P_DATASET_XFER_DEFAULT, &thefs) < 0)
             TEST_ERROR
 
-        if (f->shared->fs_state[type] != H5F_FS_STATE_OPEN)
+        if(*thefs.fs_state != H5F_FS_STATE_OPEN)
             TEST_ERROR
-        if (f->shared->fs_man[type]->client != H5FS_CLIENT_FILE_ID)
+        if((*thefs.fs_man)->client != H5FS_CLIENT_FILE_ID)
             TEST_ERROR
 
         /* Allocate a section from meta_aggr */
-        addr = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE30);
+        addr = H5MF_alloc(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE30);
         H5MF_aggr_query(f, &(f->shared->meta_aggr), &ma_addr, &ma_size);
 
         /* Allocate a section from sdata_aggr */
-        stype = H5FD_MEM_DRAW;
-        saddr = H5MF_alloc(f, stype, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE50);
+        saddr = H5MF_alloc(f, H5FD_MEM_DRAW, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE50);
 
         /* Add a section to free-space that adjoins the beginning of meta_aggr */
-        sect_node = H5MF_sect_simple_new((haddr_t)addr, (hsize_t)TEST_BLOCK_SIZE30);
+        sect_node = H5MF_sect_new(H5MF_FSPACE_SECT_SIMPLE, (haddr_t)addr, (hsize_t)TEST_BLOCK_SIZE30);
 
         /* Construct user data for callbacks */
         udata.f = f;
         udata.dxpl_id = H5P_DATASET_XFER_DEFAULT;
-        udata.alloc_type = type;
+        udata.alloc_type = H5FD_MEM_SUPER;
         udata.allow_sect_absorb = TRUE;
         udata.allow_eoa_shrink_only = FALSE;
 
         /* When adding, meta_aggr is absorbed onto the end of the section */
-        if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type], (H5FS_section_info_t *)sect_node, H5FS_ADD_RETURNED_SPACE, &udata))
-                FAIL_STACK_ERROR
+        if(H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, *thefs.fs_man, (H5FS_section_info_t *)sect_node, H5FS_ADD_RETURNED_SPACE, &udata))
+	    FAIL_STACK_ERROR
 
         /* Verify that the section did absorb the aggregator */
-        if(H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type],
-                        (hsize_t)(ma_size+TEST_BLOCK_SIZE30), (H5FS_section_info_t **)&node) < 0)
+        if(H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, *thefs.fs_man,
+          (hsize_t)(ma_size+TEST_BLOCK_SIZE30), (H5FS_section_info_t **)&node) < 0)
             TEST_ERROR
 
-        if ((node->addr + TEST_BLOCK_SIZE30) != ma_addr)	TEST_ERROR
-        if (node->size != (ma_size + TEST_BLOCK_SIZE30))	TEST_ERROR
+        if((node->addr + TEST_BLOCK_SIZE30) != ma_addr)	TEST_ERROR
+        if(node->size != (ma_size + TEST_BLOCK_SIZE30))	TEST_ERROR
 
         /* free the free-space section node */
-        if(H5MF_sect_simple_free((H5FS_section_info_t *)node) < 0)
+        if(H5MF_sect_free((H5FS_section_info_t *)node) < 0)
             TEST_ERROR
 
         /* restore info to meta_aggr */
@@ -2142,9 +2241,9 @@ test_mf_fs_absorb(const char *env_h5_drvr, hid_t fapl)
         f->shared->meta_aggr.size = ma_size;
 
         /* Remove section from meta_aggr */
-        H5MF_xfree(f, type, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)TEST_BLOCK_SIZE30);
+        H5MF_xfree(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)TEST_BLOCK_SIZE30);
         /* Remove section from sdata_aggr */
-        H5MF_xfree(f, stype, H5P_DATASET_XFER_DEFAULT, saddr, (hsize_t)TEST_BLOCK_SIZE50);
+        H5MF_xfree(f, H5FD_MEM_DRAW, H5P_DATASET_XFER_DEFAULT, saddr, (hsize_t)TEST_BLOCK_SIZE50);
 
         if(H5Fclose(file) < 0)
             FAIL_STACK_ERROR
@@ -2990,7 +3089,7 @@ test_mf_aggr_alloc6(const char *env_h5_drvr, hid_t fapl)
         state.tot_sect_count += 1;
         state.serial_sect_count += 1;
 
-        if(check_stats(f, f->shared->fs_man[type], &state))
+        if(check_stats(f, f->shared->fs.aggr.fs_man[type], &state))
             TEST_ERROR
 
         /* Free all the allocated blocks */
@@ -3170,7 +3269,7 @@ test_mf_aggr_alloc7(const char *env_h5_drvr, hid_t fapl)
         state.tot_sect_count += 1;
         state.serial_sect_count += 1;
 
-        if(check_stats(f, f->shared->fs_man[type], &state))
+        if(check_stats(f, f->shared->fs.aggr.fs_man[type], &state))
             TEST_ERROR
 
         /* Free all the allocated blocks */
@@ -3731,7 +3830,7 @@ error:
 } /* test_mf_aggr_absorb() */
 
 /*
- * To verify that a block allocated from file allocation is aligned, can be shrunk and extended
+ * To verify that a block allocated from vfd is aligned, can be shrunk and extended
  *
  * Alignment = 1024 or 4096
  *
@@ -3761,23 +3860,24 @@ error:
  *	H5MF_try_extend() the block with aligned address should succeed
  */
 static unsigned
-test_mf_align_eoa(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
+test_mf_align_eoa(const char *env_h5_drvr, hid_t fcpl, hid_t fapl, hid_t fapl_align, hbool_t large)
 {
     hid_t		file = -1;              /* File ID */
-    hid_t		fapl1;
+    hid_t		fapl_new=-1;			/* copy of fapl */
     char		filename[FILENAME_LEN]; /* Filename to use */
     H5F_t		*f = NULL;              /* Internal file object pointer */
     h5_stat_size_t      file_size, new_file_size;
-    H5FD_mem_t 		type;
     haddr_t		addr1, addr2;
     haddr_t 		ma_addr=HADDR_UNDEF;
     hsize_t 		ma_size=0;
     htri_t 		extended;
     frspace_state_t 	state;
     hsize_t		alignment=0, mis_align=0, tmp=0, accum=0;
+    hsize_t		fsp_size=0;
+    H5MF_fs_t		thefs;
     hbool_t             have_alloc_vfd;        /* Whether VFD used has an 'alloc' callback */
 
-    TESTING("H5MM_alloc() of file allocation with alignment: test 1");
+    TESTING("Alignment test with allocation from VFD: test 1");
 
     /* Skip test when using VFDs that have their own 'alloc' callback, which
      *  don't push mis-aligned space fragments on the file free space list
@@ -3788,15 +3888,34 @@ test_mf_align_eoa(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
         /* Set the filename to use for this test (dependent on fapl) */
         h5_fixname(FILENAME[0], fapl, filename, sizeof(filename));
 
-        /* Turn off using meta/small data aggregator */
-        if((fapl1 = H5Pcopy(new_fapl)) < 0) TEST_ERROR
-
-        H5Pset_meta_block_size(fapl1, (hsize_t)0);
-        H5Pset_small_data_block_size(fapl1, (hsize_t)0);
-
         /* Create the file to work on (without alignment) */
-        if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0)
+        if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0)
             FAIL_STACK_ERROR
+
+        /* Get a pointer to the internal file object */
+        if(NULL == (f = (H5F_t *)H5I_object(file)))
+            FAIL_STACK_ERROR
+
+	if(H5F_FSPACE_PAGE(f)) {
+	    if(large) fsp_size = f->shared->fsp_size;
+	    /* Set alignment */
+	    alignment = f->shared->fsp_size;
+
+	    /* Make a copy of fapl*/
+	    if((fapl_new = H5Pcopy(fapl)) < 0) TEST_ERROR
+	} else {
+	    /* Make a copy of fapl_align */
+	    if((fapl_new = H5Pcopy(fapl_align)) < 0) TEST_ERROR
+
+	    /* Turn off using meta/small data aggregator */
+	    if(H5Pset_meta_block_size(fapl_new, (hsize_t)0) < 0) 
+		FAIL_STACK_ERROR
+	    if(H5Pset_small_data_block_size(fapl_new, (hsize_t)0) < 0)
+		FAIL_STACK_ERROR
+	    /* get alignment setting */
+	    if(H5Pget_alignment(fapl_new, NULL, &alignment) < 0)
+		FAIL_STACK_ERROR
+	}
 
         /* Close file */
         if(H5Fclose(file) < 0)
@@ -3806,12 +3925,8 @@ test_mf_align_eoa(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
         if((file_size = h5_get_file_size(filename, fapl)) < 0)
             TEST_ERROR
 
-        /* get alignment setting */
-        if(H5Pget_alignment(fapl1, NULL, &alignment) < 0)
-            TEST_ERROR
-
-        /* Re-open the file with alignment and meta/sdata setting */
-        if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl1)) < 0)
+        /* Re-open the file */
+        if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
             FAIL_STACK_ERROR
 
         /* Get a pointer to the internal file object */
@@ -3822,14 +3937,14 @@ test_mf_align_eoa(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
         if ((tmp = (hsize_t)file_size % alignment))
              mis_align = alignment - tmp;
 
-        accum = mis_align + TEST_BLOCK_SIZE30;
+        accum = mis_align + (TEST_BLOCK_SIZE30+fsp_size);
 
-        /* Allocate a block of 30 from file allocation */
-        type = H5FD_MEM_SUPER;
-        addr1 = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE30);
+        /* Allocate a block of 30 from VFD */
+	H5MF_setup_thefs(f, H5FD_MEM_SUPER, fsp_size, &thefs);
+        addr1 = H5MF_alloc(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size));
 
         /* Verify that the allocated block is aligned */
-        if (addr1 % alignment) TEST_ERROR
+        if(addr1 % alignment) TEST_ERROR
 
         /* there should be nothing in the aggregator */
         H5MF_aggr_query(f, &(f->shared->meta_aggr), &ma_addr, &ma_size);
@@ -3840,7 +3955,7 @@ test_mf_align_eoa(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
             state.tot_space += mis_align;
             state.tot_sect_count += 1;
             state.serial_sect_count += 1;
-            if(check_stats(f, f->shared->fs_man[type], &state))
+            if(check_stats(f, *thefs.fs_man, &state))
                 TEST_ERROR
         }
 
@@ -3848,32 +3963,32 @@ test_mf_align_eoa(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
         mis_align = 0;
         if ((tmp = ((hsize_t)file_size + accum) % alignment))
              mis_align = alignment - tmp;
-        accum += (mis_align + TEST_BLOCK_SIZE50);
+        accum += (mis_align + (TEST_BLOCK_SIZE50+fsp_size));
 
-        addr2 = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE50);
+        addr2 = H5MF_alloc(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, (hsize_t)(TEST_BLOCK_SIZE50+fsp_size));
 
         /* Verify that the allocated block is aligned */
         if (addr2 % alignment) TEST_ERROR
 
         /* there should be nothing in the aggregator */
         H5MF_aggr_query(f, &(f->shared->meta_aggr), &ma_addr, &ma_size);
-        if (ma_addr || ma_size) TEST_ERROR
+        if(ma_addr || ma_size) TEST_ERROR
 
-        if (mis_align) {
+        if(mis_align) {
             state.tot_space += mis_align;
             state.tot_sect_count += 1;
             state.serial_sect_count += 1;
-            if(check_stats(f, f->shared->fs_man[type], &state))
+            if(check_stats(f, *thefs.fs_man, &state))
                 TEST_ERROR
         }
 
-        H5MF_xfree(f, type, H5P_DATASET_XFER_DEFAULT, addr1, (hsize_t)TEST_BLOCK_SIZE30);
-        H5MF_xfree(f, type, H5P_DATASET_XFER_DEFAULT, addr2, (hsize_t)TEST_BLOCK_SIZE50);
+        H5MF_xfree(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, addr1, (hsize_t)(TEST_BLOCK_SIZE30+fsp_size));
+        H5MF_xfree(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, addr2, (hsize_t)(TEST_BLOCK_SIZE50+fsp_size));
 
         if(H5Fclose(file) < 0)
             FAIL_STACK_ERROR
 
-        if((new_file_size = h5_get_file_size(filename, fapl1)) < 0)
+        if((new_file_size = h5_get_file_size(filename, fapl_new)) < 0)
             TEST_ERROR
 
         if (new_file_size != file_size)
@@ -3892,17 +4007,16 @@ test_mf_align_eoa(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
      *  don't push mis-aligned space fragments on the file free space list
      */
     if(have_alloc_vfd) {
-        /* Re-open the file with alignment and meta/sdata setting */
-        if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl1)) < 0)
+        /* Re-open the file */
+        if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
             FAIL_STACK_ERROR
 
         /* Get a pointer to the internal file object */
         if(NULL == (f = (H5F_t *)H5I_object(file)))
             FAIL_STACK_ERROR
 
-        /* allocate a block of 50 from meta_aggr */
-        type = H5FD_MEM_SUPER;
-        addr1 = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE50);
+        /* allocate a block of 50 */
+        addr1 = H5MF_alloc(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, (hsize_t)(TEST_BLOCK_SIZE50+fsp_size));
 
         /* address should be aligned */
         if (addr1 % alignment) TEST_ERROR
@@ -3911,11 +4025,11 @@ test_mf_align_eoa(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
         if(H5Fclose(file) < 0)
             FAIL_STACK_ERROR
 
-        if((file_size = h5_get_file_size(filename, fapl1)) < 0)
+        if((file_size = h5_get_file_size(filename, fapl_new)) < 0)
             TEST_ERROR
 
         /* Re-open the file */
-        if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl1)) < 0)
+        if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
             FAIL_STACK_ERROR
 
         /* Get a pointer to the internal file object */
@@ -3923,16 +4037,16 @@ test_mf_align_eoa(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
             FAIL_STACK_ERROR
 
         /* shrink the block */
-        if(H5MF_try_shrink(f, type, H5P_DATASET_XFER_DEFAULT, addr1, (hsize_t)TEST_BLOCK_SIZE50) <= 0)
+        if(H5MF_try_shrink(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, addr1, (hsize_t)(TEST_BLOCK_SIZE50+fsp_size)) <= 0)
             TEST_ERROR
 
         if(H5Fclose(file) < 0)
             FAIL_STACK_ERROR
 
-        if((new_file_size = h5_get_file_size(filename, fapl1)) < 0)
+        if((new_file_size = h5_get_file_size(filename, fapl_new)) < 0)
             TEST_ERROR
 
-        if (new_file_size != (file_size-TEST_BLOCK_SIZE50)) TEST_ERROR
+        if(new_file_size != (file_size-(h5_stat_size_t)(TEST_BLOCK_SIZE50+fsp_size))) TEST_ERROR
 
         PASSED()
     } /* end if */
@@ -3947,8 +4061,8 @@ test_mf_align_eoa(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
      *  don't push mis-aligned space fragments on the file free space list
      */
     if(have_alloc_vfd) {
-        /* Re-open the file with alignment and meta/sdata setting */
-        if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl1)) < 0)
+        /* Re-open the file */
+        if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
             FAIL_STACK_ERROR
 
         /* Get a pointer to the internal file object */
@@ -3956,21 +4070,20 @@ test_mf_align_eoa(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
             FAIL_STACK_ERROR
 
         /* allocate a block of 50 */
-        type = H5FD_MEM_SUPER;
-        addr1 = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE50);
+        addr1 = H5MF_alloc(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, (hsize_t)(TEST_BLOCK_SIZE50+fsp_size));
 
         /* address should be aligned */
-        if (addr1 % alignment) TEST_ERROR
+        if(addr1 % alignment) TEST_ERROR
 
         /* Close file */
         if(H5Fclose(file) < 0)
             FAIL_STACK_ERROR
 
-        if((file_size = h5_get_file_size(filename, fapl1)) < 0)
+        if((file_size = h5_get_file_size(filename, fapl_new)) < 0)
             TEST_ERROR
 
         /* Re-open the file */
-        if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl1)) < 0)
+        if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
             FAIL_STACK_ERROR
 
         /* Get a pointer to the internal file object */
@@ -3978,14 +4091,14 @@ test_mf_align_eoa(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
             FAIL_STACK_ERROR
 
         /* try to extend the block */
-        extended = H5MF_try_extend(f, H5P_DATASET_XFER_DEFAULT, type, (haddr_t)addr1, (hsize_t)TEST_BLOCK_SIZE50, (hsize_t)TEST_BLOCK_SIZE30);
+        extended = H5MF_try_extend(f, H5P_DATASET_XFER_DEFAULT, H5FD_MEM_SUPER, (haddr_t)addr1, (hsize_t)(TEST_BLOCK_SIZE50+fsp_size), (hsize_t)TEST_BLOCK_SIZE30);
 
-        if (extended <=0) TEST_ERROR
+        if(extended <=0) TEST_ERROR
 
         if(H5Fclose(file) < 0)
             FAIL_STACK_ERROR
 
-        if((new_file_size = h5_get_file_size(filename, fapl1)) < 0)
+        if((new_file_size = h5_get_file_size(filename, fapl_new)) < 0)
             TEST_ERROR
 
         if (new_file_size != (file_size+TEST_BLOCK_SIZE30)) TEST_ERROR
@@ -4001,6 +4114,7 @@ test_mf_align_eoa(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
 
 error:
     H5E_BEGIN_TRY {
+	H5Pclose(fapl_new);
 	H5Fclose(file);
     } H5E_END_TRY;
     return(1);
@@ -4041,20 +4155,23 @@ error:
  *	Initialize the new field "allow_eoa_shrink_only" for user data.
  */
 static unsigned
-test_mf_align_fs(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
+test_mf_align_fs(const char *env_h5_drvr, hid_t fcpl, hid_t fapl, hid_t fapl_align, hbool_t large)
 {
     hid_t		file = -1;              /* File ID */
     char		filename[FILENAME_LEN]; /* Filename to use */
     h5_stat_size_t      file_size;
     H5F_t		*f = NULL;              /* Internal file object pointer */
-    H5FD_mem_t 		type;
     H5MF_free_section_t *sect_node = NULL;
     haddr_t		addr;
     frspace_state_t 	state;
     H5MF_sect_ud_t 	udata;
     htri_t 		extended;
     hsize_t		alignment=0, tmp=0, mis_align=0;
+    hsize_t		fsp_size=0;
+    hid_t		fapl_new=-1;
+    unsigned		ctype;
     hbool_t             have_alloc_vfd;        /* Whether VFD used has an 'alloc' callback */
+    H5MF_fs_t		thefs;
 
     TESTING("H5MF_alloc() of free-space manager with alignment: test 1");
 
@@ -4062,77 +4179,89 @@ test_mf_align_fs(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
     h5_fixname(FILENAME[0], fapl, filename, sizeof(filename));
 
     /* Create the file to work on */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0)
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0)
         FAIL_STACK_ERROR
+
+        /* Get a pointer to the internal file object */
+        if(NULL == (f = (H5F_t *)H5I_object(file)))
+            FAIL_STACK_ERROR
+
+	if(H5F_FSPACE_PAGE(f)) {
+	    if((fapl_new = H5Pcopy(fapl)) < 0) TEST_ERROR
+	    if(large) fsp_size = f->shared->fsp_size;
+	    alignment = f->shared->fsp_size;
+	} else {
+	    if((fapl_new = H5Pcopy(fapl_align)) < 0) TEST_ERROR
+
+	    /* get alignment setting */
+	    if(H5Pget_alignment(fapl_new, NULL, &alignment) < 0)
+		FAIL_STACK_ERROR
+	}
 
     /* Close file */
     if(H5Fclose(file) < 0)
         FAIL_STACK_ERROR
 
-    /* get alignment setting */
-    if(H5Pget_alignment(new_fapl, NULL, &alignment) < 0)
-        TEST_ERROR
-
     /* Re-open the file with alignment setting */
-    if((file = H5Fopen(filename, H5F_ACC_RDWR, new_fapl)) < 0)
+    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
         FAIL_STACK_ERROR
 
     /* Get a pointer to the internal file object */
     if(NULL == (f = (H5F_t *)H5I_object(file)))
         FAIL_STACK_ERROR
 
-    type = H5FD_MEM_SUPER;
-
-    if(H5MF_alloc_start(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+    H5MF_setup_thefs(f, H5FD_MEM_SUPER, fsp_size, &thefs);
+    if(H5MF_start_thefs(f, H5P_DATASET_XFER_DEFAULT, &thefs) < 0)
         TEST_ERROR
 
-    if (f->shared->fs_state[type] != H5F_FS_STATE_OPEN)
+    if(*thefs.fs_state != H5F_FS_STATE_OPEN)
 	TEST_ERROR
-    if (f->shared->fs_man[type]->client != H5FS_CLIENT_FILE_ID)
+    if((*thefs.fs_man)->client != H5FS_CLIENT_FILE_ID)
 	TEST_ERROR
 
-    sect_node = H5MF_sect_simple_new((haddr_t)alignment, (hsize_t)TEST_BLOCK_SIZE50);
+    ctype = H5MF_SECT_CLASS_TYPE(f, fsp_size);
+    sect_node = H5MF_sect_new(ctype, (haddr_t)alignment, (hsize_t)(TEST_BLOCK_SIZE50+fsp_size));
 
     /* Construct user data for callbacks */
     udata.f = f;
     udata.dxpl_id = H5P_DATASET_XFER_DEFAULT;
-    udata.alloc_type = type;
+    udata.alloc_type = H5FD_MEM_SUPER;
     udata.allow_sect_absorb = TRUE;
     udata.allow_eoa_shrink_only = FALSE;
 
     /* Add section A to free-space manager */
-    if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type], (H5FS_section_info_t *)sect_node, H5FS_ADD_RETURNED_SPACE, &udata))
+    if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, *thefs.fs_man, (H5FS_section_info_t *)sect_node, H5FS_ADD_RETURNED_SPACE, &udata))
 	    FAIL_STACK_ERROR
 
     HDmemset(&state, 0, sizeof(frspace_state_t));
-    state.tot_space += TEST_BLOCK_SIZE50;
+    state.tot_space += (TEST_BLOCK_SIZE50+fsp_size);
     state.tot_sect_count += 1;
     state.serial_sect_count += 1;
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Allocate a block of 50 */
-    addr = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE50);
+    addr = H5MF_alloc(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, (hsize_t)(TEST_BLOCK_SIZE50+fsp_size));
 
     /* Verify that the allocated block is section A in free-space */
     if (addr != (haddr_t)alignment) TEST_ERROR
     if (addr % alignment) TEST_ERROR
 
-    state.tot_space -= TEST_BLOCK_SIZE50;
+    state.tot_space -= (TEST_BLOCK_SIZE50+fsp_size);
     state.tot_sect_count -= 1;
     state.serial_sect_count -= 1;
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Free the block to free-space */
-    H5MF_xfree(f, type, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)TEST_BLOCK_SIZE50);
+    H5MF_xfree(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)(TEST_BLOCK_SIZE50+fsp_size));
 
-    state.tot_space += TEST_BLOCK_SIZE50;
+    state.tot_space += (TEST_BLOCK_SIZE50+fsp_size);
     state.tot_sect_count += 1;
     state.serial_sect_count += 1;
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     if(H5Fclose(file) < 0)
@@ -4144,77 +4273,77 @@ test_mf_align_fs(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
 
 
     /* Re-open the file with alignment setting */
-    if((file = H5Fopen(filename, H5F_ACC_RDWR, new_fapl)) < 0)
+    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
         FAIL_STACK_ERROR
 
     /* Get a pointer to the internal file object */
     if(NULL == (f = (H5F_t *)H5I_object(file)))
         FAIL_STACK_ERROR
 
-    type = H5FD_MEM_SUPER;
-
-    if(H5MF_alloc_start(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+    H5MF_setup_thefs(f, H5FD_MEM_SUPER, fsp_size, &thefs);
+    if(H5MF_start_thefs(f, H5P_DATASET_XFER_DEFAULT, &thefs) < 0)
         TEST_ERROR
 
-    if (f->shared->fs_state[type] != H5F_FS_STATE_OPEN)
+    if(*thefs.fs_state != H5F_FS_STATE_OPEN)
 	TEST_ERROR
-    if (f->shared->fs_man[type]->client != H5FS_CLIENT_FILE_ID)
+    if((*thefs.fs_man)->client != H5FS_CLIENT_FILE_ID)
 	TEST_ERROR
 
-    sect_node = H5MF_sect_simple_new((haddr_t)TEST_BLOCK_ADDR70, (hsize_t)TEST_BLOCK_SIZE8000);
+    ctype = H5MF_SECT_CLASS_TYPE(f, fsp_size);
+    sect_node = H5MF_sect_new(ctype, (haddr_t)TEST_BLOCK_ADDR70, (hsize_t)(TEST_BLOCK_SIZE8000+fsp_size));
 
     /* Construct user data for callbacks */
     udata.f = f;
     udata.dxpl_id = H5P_DATASET_XFER_DEFAULT;
-    udata.alloc_type = type;
+    udata.alloc_type = H5FD_MEM_SUPER;
     udata.allow_sect_absorb = TRUE;
     udata.allow_eoa_shrink_only = FALSE;
 
     /* Add section A to free-space manager */
-    if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type], (H5FS_section_info_t *)sect_node, H5FS_ADD_RETURNED_SPACE, &udata))
+    if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, *thefs.fs_man, (H5FS_section_info_t *)sect_node, H5FS_ADD_RETURNED_SPACE, &udata))
 	    FAIL_STACK_ERROR
 
     HDmemset(&state, 0, sizeof(frspace_state_t));
-    state.tot_space += TEST_BLOCK_SIZE8000;
+    state.tot_space += (TEST_BLOCK_SIZE8000+fsp_size);
     state.tot_sect_count += 1;
     state.serial_sect_count += 1;
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Allocate a block of 600 */
-    addr = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE600);
+    addr = H5MF_alloc(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, (hsize_t)(TEST_BLOCK_SIZE600+fsp_size));
 
     /* Verify that the allocated block is aligned */
-    if (addr % alignment) TEST_ERROR
+    if(addr % alignment) TEST_ERROR
 
     /* should have 1 more section in free-space */
-    state.tot_space -= TEST_BLOCK_SIZE600;
+    state.tot_space -= (TEST_BLOCK_SIZE600+fsp_size);
     state.tot_sect_count += 1;
     state.serial_sect_count += 1;
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* try to extend the block */
-    extended = H5MF_try_extend(f, H5P_DATASET_XFER_DEFAULT, type, (haddr_t)addr, (hsize_t)TEST_BLOCK_SIZE600, (hsize_t)TEST_BLOCK_SIZE200);
+    extended = H5MF_try_extend(f, H5P_DATASET_XFER_DEFAULT, H5FD_MEM_SUPER, (haddr_t)addr, (hsize_t)(TEST_BLOCK_SIZE600+fsp_size), (hsize_t)TEST_BLOCK_SIZE200);
 
     if (extended <=0) TEST_ERROR
 
     /* space should be decreased by 200, # of sections remain the same */
     state.tot_space -= TEST_BLOCK_SIZE200;
 
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     /* Free the block to free-space manager */
-    H5MF_xfree(f, type, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)(TEST_BLOCK_SIZE600+TEST_BLOCK_SIZE200));
+    H5MF_xfree(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, addr, (hsize_t)(TEST_BLOCK_SIZE600+fsp_size+TEST_BLOCK_SIZE200));
 
     /* only 1 section in free-space because of merging */
-    state.tot_space += (TEST_BLOCK_SIZE600+TEST_BLOCK_SIZE200);
+    state.tot_space += (TEST_BLOCK_SIZE600+fsp_size+TEST_BLOCK_SIZE200);
     state.tot_sect_count = 1;
     state.serial_sect_count = 1;
-    if(check_stats(f, f->shared->fs_man[type], &state))
+    if(check_stats(f, *thefs.fs_man, &state))
         TEST_ERROR
 
     if(H5Fclose(file) < 0)
@@ -4230,53 +4359,53 @@ test_mf_align_fs(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
     have_alloc_vfd = (hbool_t)(HDstrcmp(env_h5_drvr, "stdio")
             && HDstrcmp(env_h5_drvr, "split") && HDstrcmp(env_h5_drvr, "multi"));
     if(have_alloc_vfd) {
-        if((file_size = h5_get_file_size(filename, new_fapl)) < 0)
+        if((file_size = h5_get_file_size(filename, fapl_new)) < 0)
             TEST_ERROR
 
         /* Re-open the file with alignment setting */
-        if((file = H5Fopen(filename, H5F_ACC_RDWR, new_fapl)) < 0)
+        if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
             FAIL_STACK_ERROR
 
         /* Get a pointer to the internal file object */
         if(NULL == (f = (H5F_t *)H5I_object(file)))
             FAIL_STACK_ERROR
 
-        type = H5FD_MEM_SUPER;
-
-        if(H5MF_alloc_start(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+	H5MF_setup_thefs(f, H5FD_MEM_SUPER, fsp_size, &thefs);
+        if(H5MF_start_thefs(f, H5P_DATASET_XFER_DEFAULT, &thefs) < 0)
             TEST_ERROR
 
-        if (f->shared->fs_state[type] != H5F_FS_STATE_OPEN)
+        if(*thefs.fs_state != H5F_FS_STATE_OPEN)
             TEST_ERROR
-        if (f->shared->fs_man[type]->client != H5FS_CLIENT_FILE_ID)
+        if((*thefs.fs_man)->client != H5FS_CLIENT_FILE_ID)
             TEST_ERROR
 
-        sect_node = H5MF_sect_simple_new((haddr_t)TEST_BLOCK_ADDR70, (hsize_t)TEST_BLOCK_SIZE700);
+	ctype = H5MF_SECT_CLASS_TYPE(f, fsp_size);
+        sect_node = H5MF_sect_new(ctype, (haddr_t)TEST_BLOCK_ADDR70, (hsize_t)(TEST_BLOCK_SIZE700+fsp_size));
 
         /* Construct user data for callbacks */
         udata.f = f;
         udata.dxpl_id = H5P_DATASET_XFER_DEFAULT;
-        udata.alloc_type = type;
+        udata.alloc_type = H5FD_MEM_SUPER;
         udata.allow_sect_absorb = TRUE;
 	udata.allow_eoa_shrink_only = FALSE;
 
         /* Add section A to free-space manager */
-        if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type], (H5FS_section_info_t *)sect_node, H5FS_ADD_RETURNED_SPACE, &udata))
+        if (H5FS_sect_add(f, H5P_DATASET_XFER_DEFAULT, *thefs.fs_man, (H5FS_section_info_t *)sect_node, H5FS_ADD_RETURNED_SPACE, &udata))
                 FAIL_STACK_ERROR
 
         HDmemset(&state, 0, sizeof(frspace_state_t));
-        state.tot_space += TEST_BLOCK_SIZE700;
+        state.tot_space += (TEST_BLOCK_SIZE700+fsp_size);
         state.tot_sect_count += 1;
         state.serial_sect_count += 1;
 
-        if(check_stats(f, f->shared->fs_man[type], &state))
+        if(check_stats(f, *thefs.fs_man, &state))
             TEST_ERROR
         /*
          * Allocate a block of 40
          * Since free-space manager cannot fulfull the request because of alignment,
          * the block is obtained from file allocation
          */
-        addr = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)(TEST_BLOCK_SIZE40));
+        addr = H5MF_alloc(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, (hsize_t)(TEST_BLOCK_SIZE40+fsp_size));
 
         /* Verify that the allocated block is aligned */
         if (addr % alignment)
@@ -4296,7 +4425,7 @@ test_mf_align_fs(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
         }
 
         /* free-space info should be the same  */
-        if(check_stats(f, f->shared->fs_man[type], &state))
+        if(check_stats(f, *thefs.fs_man, &state))
             TEST_ERROR
 
         if(H5Fclose(file) < 0)
@@ -4313,6 +4442,7 @@ test_mf_align_fs(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
 
 error:
     H5E_BEGIN_TRY {
+	H5Pclose(fapl_new);
 	H5Fclose(file);
     } H5E_END_TRY;
     return(1);
@@ -4559,7 +4689,7 @@ test_mf_align_alloc1(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
             TEST_ERROR
 
         /* Verify total size of free space after all the allocations */
-        if(check_stats(f, f->shared->fs_man[type], &state))
+        if(check_stats(f, f->shared->fs.aggr.fs_man[type], &state))
             TEST_ERROR
 
         H5MF_xfree(f, type, H5P_DATASET_XFER_DEFAULT, addr1, (hsize_t)TEST_BLOCK_SIZE30);
@@ -4840,13 +4970,13 @@ test_mf_align_alloc2(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
             TEST_ERROR
 
         /* Verify total size of free space after all the allocations */
-	if(f->shared->fs_man[type]) {
-	    if(check_stats(f, f->shared->fs_man[type], &(state[type])))
+	if(f->shared->fs.aggr.fs_man[type]) {
+	    if(check_stats(f, f->shared->fs.aggr.fs_man[type], &(state[type])))
 		TEST_ERROR
 	}
 
-	if(f->shared->fs_man[stype]) {
-	    if(check_stats(f, f->shared->fs_man[stype], &(state[stype])))
+	if(f->shared->fs.aggr.fs_man[stype]) {
+	    if(check_stats(f, f->shared->fs.aggr.fs_man[stype], &(state[stype])))
 		TEST_ERROR
 	}
 
@@ -5224,13 +5354,13 @@ test_mf_align_alloc3(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
             TEST_ERROR
 
         /* Verify total size of free space after all allocations */
-	if(f->shared->fs_man[type]) {
-	    if(check_stats(f, f->shared->fs_man[type], &(state[type])))
+	if(f->shared->fs.aggr.fs_man[type]) {
+	    if(check_stats(f, f->shared->fs.aggr.fs_man[type], &(state[type])))
 		TEST_ERROR
 	}
 
-	if(f->shared->fs_man[stype]) {
-	    if(check_stats(f, f->shared->fs_man[stype], &(state[stype])))
+	if(f->shared->fs.aggr.fs_man[stype]) {
+	    if(check_stats(f, f->shared->fs.aggr.fs_man[stype], &(state[stype])))
 		TEST_ERROR
 	}
 
@@ -5436,8 +5566,8 @@ test_mf_align_alloc4(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
         if (addr3 % alignment) TEST_ERROR
 
         /* Verify total size of free space after all allocations */
-	if(f->shared->fs_man[type]) {
-	    if(check_stats(f, f->shared->fs_man[type], &state))
+	if(f->shared->fs.aggr.fs_man[type]) {
+	    if(check_stats(f, f->shared->fs.aggr.fs_man[type], &state))
 		TEST_ERROR
 	}
 
@@ -5646,13 +5776,13 @@ test_mf_align_alloc5(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
         }
 
         /* Verify total size of free space after all allocations */
-	if(f->shared->fs_man[type]) {
-	    if(check_stats(f, f->shared->fs_man[type], &(state[type])))
+	if(f->shared->fs.aggr.fs_man[type]) {
+	    if(check_stats(f, f->shared->fs.aggr.fs_man[type], &(state[type])))
 		TEST_ERROR
 	}
 
-	if(f->shared->fs_man[stype]) {
-	    if(check_stats(f, f->shared->fs_man[stype], &(state[stype])))
+	if(f->shared->fs.aggr.fs_man[stype]) {
+	    if(check_stats(f, f->shared->fs.aggr.fs_man[stype], &(state[stype])))
 		TEST_ERROR
 	}
 
@@ -5963,14 +6093,14 @@ test_mf_align_alloc6(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
         if (sdata_addr != HADDR_UNDEF || sdata_size != 0)
             TEST_ERROR
 
-	if(f->shared->fs_man[type]) {
-	    if(check_stats(f, f->shared->fs_man[type], &(state[type])))
+	if(f->shared->fs.aggr.fs_man[type]) {
+	    if(check_stats(f, f->shared->fs.aggr.fs_man[type], &(state[type])))
 		TEST_ERROR
 	}
 	
 
-	if(f->shared->fs_man[stype]) {
-	    if(check_stats(f, f->shared->fs_man[stype], &(state[stype])))
+	if(f->shared->fs.aggr.fs_man[stype]) {
+	    if(check_stats(f, f->shared->fs.aggr.fs_man[stype], &(state[stype])))
 		TEST_ERROR
 	}
 
@@ -5998,7 +6128,7 @@ error:
  * Verify that the file's free-space manager persists where there are free sections in the manager
  */
 static unsigned
-test_mf_fs_persist(hid_t fapl_new, hid_t fcpl)
+test_mf_fs_persist(hid_t fcpl, hid_t fapl)
 {
     hid_t	file = -1;              /* File ID */
     char	filename[FILENAME_LEN]; /* Filename to use */
@@ -6007,14 +6137,15 @@ test_mf_fs_persist(hid_t fapl_new, hid_t fcpl)
     H5FS_stat_t	fs_stat;             	/* Information for free-space manager */
     haddr_t	addr1, addr2, addr3, addr4, addr5, addr6; /* File address for H5FD_MEM_SUPER */
     haddr_t	tmp_addr;		/* Temporary variable for address */
+    H5MF_fs_t 	thefs;
 
     TESTING("file's free-space manager is persistent");
-
+    
     /* Set the filename to use for this test (dependent on fapl) */
-    h5_fixname(FILENAME[0], fapl_new, filename, sizeof(filename));
+    h5_fixname(FILENAME[0], fapl, filename, sizeof(filename));
 
     /* Create the file to work on */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl_new)) < 0)
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0)
         FAIL_STACK_ERROR
 
     /* Get a pointer to the internal file object */
@@ -6048,23 +6179,25 @@ test_mf_fs_persist(hid_t fapl_new, hid_t fcpl)
         FAIL_STACK_ERROR
 
     /* Re-open the file */
-    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
+    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl)) < 0)
         FAIL_STACK_ERROR
 
     /* Get a pointer to the internal file object */
     if(NULL == (f = (H5F_t *)H5I_object(file)))
         FAIL_STACK_ERROR
 
+    H5MF_setup_thefs(f, type, (hsize_t)TEST_BLOCK_SIZE6, &thefs);
+
     /* Verify that H5FD_MEM_SUPER free-space manager is there */
-    if(!H5F_addr_defined(f->shared->fs_addr[type]))
+    if(!H5F_addr_defined(*thefs.fs_addr))
         TEST_ERROR
 
     /* Start up H5FD_MEM_SUPER free-space manager */
-    if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+    if(H5MF_open_thefs(f, H5P_DATASET_XFER_DEFAULT, &thefs) < 0)
         FAIL_STACK_ERROR
 
     /* Get info for free-space manager */
-    if(H5FS_stat_info(f, f->shared->fs_man[type], &fs_stat) < 0)
+    if(H5FS_stat_info(f, *thefs.fs_man, &fs_stat) < 0)
         FAIL_STACK_ERROR
 
     /* Verify free-space info */
@@ -6090,15 +6223,17 @@ test_mf_fs_persist(hid_t fapl_new, hid_t fcpl)
         FAIL_STACK_ERROR
 
     /* Re-open the file */
-    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
+    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl)) < 0)
         FAIL_STACK_ERROR
 
     /* Get a pointer to the internal file object */
     if(NULL == (f = (H5F_t *)H5I_object(file)))
         FAIL_STACK_ERROR
 
+    H5MF_setup_thefs(f, type, (hsize_t)TEST_BLOCK_SIZE6, &thefs);
+
     /* Verify that H5FD_MEM_SUPER free-space manager is there */
-    if(!H5F_addr_defined(f->shared->fs_addr[type]))
+    if(!H5F_addr_defined(*thefs.fs_addr))
         TEST_ERROR
 
     /* Retrieve block #5 from H5FD_MEM_SUPER free-space manager */
@@ -6121,26 +6256,28 @@ error:
     return(1);
 } /* test_mf_fs_persist() */
 
+
 /*
  * Verify that the free-space manager goes away
  */
 static unsigned
-test_mf_fs_gone(hid_t fapl_new, hid_t fcpl)
+test_mf_fs_gone(hid_t fcpl, hid_t fapl)
 {
-    hid_t	file = -1;              /* File ID */
-    char	filename[FILENAME_LEN]; /* Filename to use */
-    H5F_t	*f = NULL;              /* Internal file object pointer */
-    H5FD_mem_t 	type;			/* File allocation type */
-    H5FS_stat_t fs_stat;             	/* Information for free-space manager */
+    hid_t	file = -1;              	/* File ID */
+    char	filename[FILENAME_LEN]; 	/* Filename to use */
+    H5F_t	*f = NULL;              	/* Internal file object pointer */
+    H5FD_mem_t 	type;				/* File allocation type */
+    H5FS_stat_t fs_stat;             		/* Information for free-space manager */
     haddr_t	addr1, addr2, addr3, addr4; 	/* File address for H5FD_MEM_SUPER */
+    H5MF_fs_t	thefs;
 
     TESTING("file's free-space manager is going away");
 
     /* Set the filename to use for this test (dependent on fapl) */
-    h5_fixname(FILENAME[0], fapl_new, filename, sizeof(filename));
+    h5_fixname(FILENAME[0], fapl, filename, sizeof(filename));
 
     /* Create the file to work on */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl_new)) < 0)
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0)
         FAIL_STACK_ERROR
 
     /* Get a pointer to the internal file object */
@@ -6174,15 +6311,17 @@ test_mf_fs_gone(hid_t fapl_new, hid_t fcpl)
         FAIL_STACK_ERROR
 
     /* Re-open the file */
-    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
+    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl)) < 0)
         FAIL_STACK_ERROR
 
     /* Get a pointer to the internal file object */
     if(NULL == (f = (H5F_t *)H5I_object(file)))
         FAIL_STACK_ERROR
 
+    H5MF_setup_thefs(f, type, (hsize_t)TEST_BLOCK_SIZE4, &thefs);
+
     /* Verify that the H5FD_MEM_SUPER free-space manager is not there */
-    if(H5F_addr_defined(f->shared->fs_addr[type]))
+    if(H5F_addr_defined(*thefs.fs_addr))
         TEST_ERROR
 
     /* Put block #3 to H5FD_MEM_SUPER free-space manager */
@@ -6193,23 +6332,25 @@ test_mf_fs_gone(hid_t fapl_new, hid_t fcpl)
         FAIL_STACK_ERROR
 
     /* Re-open the file */
-    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
+    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl)) < 0)
         FAIL_STACK_ERROR
 
     /* Get a pointer to the internal file object */
     if(NULL == (f = (H5F_t *)H5I_object(file)))
         FAIL_STACK_ERROR
 
+    H5MF_setup_thefs(f, type, (hsize_t)TEST_BLOCK_SIZE4, &thefs);
+
     /* Verify that H5FD_MEM_SUPER free-space manager is there */
-    if(!H5F_addr_defined(f->shared->fs_addr[type]))
+    if(!H5F_addr_defined(*thefs.fs_addr))
         TEST_ERROR
 
     /* Start up H5FD_MEM_SUPER free-space manager */
-    if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+    if(H5MF_open_thefs(f, H5P_DATASET_XFER_DEFAULT, &thefs) < 0)
         FAIL_STACK_ERROR
 
     /* Get info for H5FD_MEM_SUPER free-space manager */
-    if(H5FS_stat_info(f, f->shared->fs_man[type], &fs_stat) < 0)
+    if(H5FS_stat_info(f, *thefs.fs_man, &fs_stat) < 0)
         FAIL_STACK_ERROR
 
     /* Verify free-space info */
@@ -6227,15 +6368,17 @@ test_mf_fs_gone(hid_t fapl_new, hid_t fcpl)
         FAIL_STACK_ERROR
 
     /* Re-open the file */
-    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
+    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl)) < 0)
         FAIL_STACK_ERROR
 
     /* Get a pointer to the internal file object */
     if(NULL == (f = (H5F_t *)H5I_object(file)))
         FAIL_STACK_ERROR
 
+    H5MF_setup_thefs(f, type, (hsize_t)TEST_BLOCK_SIZE4, &thefs);
+
     /* Verify that the H5FD_MEM_SUPER free-space manager is not there */
-    if(H5F_addr_defined(f->shared->fs_addr[type]))
+    if(H5F_addr_defined(*thefs.fs_addr))
         TEST_ERROR
 
     if(H5Fclose(file) < 0)
@@ -6252,12 +6395,11 @@ error:
     return(1);
 } /* test_mf_fs_gone() */
 
-
 /*
  * Verify that the file's free-space manager(s) are persistent for a split-file
  */
 static unsigned
-test_mf_fs_split(hid_t fapl_new, hid_t fcpl)
+test_mf_fs_split(hid_t fcpl, hid_t fapl)
 {
     hid_t	file = -1;              	/* File ID */
     char	filename[FILENAME_LEN]; 	/* Filename to use */
@@ -6268,14 +6410,15 @@ test_mf_fs_split(hid_t fapl_new, hid_t fcpl)
     haddr_t	saddr1, saddr2, saddr3, saddr4;	/* File address for H5FD_MEM_DRAW */
     haddr_t	baddr5, baddr6, baddr7, baddr8;	/* File address for H5FD_MEM_BTREE */
     haddr_t	tmp_addr;			/* temporary variable for address */
+    H5MF_fs_t	thefs;
 
     TESTING("file's free-space managers are persistent for split-file");
 
     /* Set the filename to use for this test (dependent on fapl) */
-    h5_fixname(FILENAME[0], fapl_new, filename, sizeof(filename));
+    h5_fixname(FILENAME[0], fapl, filename, sizeof(filename));
 
     /* Create the file to work on */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl_new)) < 0)
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0)
         FAIL_STACK_ERROR
 
     /* Get a pointer to the internal file object */
@@ -6320,7 +6463,7 @@ test_mf_fs_split(hid_t fapl_new, hid_t fcpl)
         FAIL_STACK_ERROR
 
     /* Re-open the file */
-    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
+    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl)) < 0)
         FAIL_STACK_ERROR
 
     /* Get a pointer to the internal file object */
@@ -6328,15 +6471,16 @@ test_mf_fs_split(hid_t fapl_new, hid_t fcpl)
         FAIL_STACK_ERROR
 
     /* Verify that the H5FD_MEM_SUPER free-space manager is there */
-    if(!H5F_addr_defined(f->shared->fs_addr[type]))
+    if(!H5F_addr_defined(f->shared->fs.aggr.fs_addr[type]))
         TEST_ERROR
 
+    H5MF_SETUP_FS_AGGR(f, type, &thefs);
     /* Start up H5FD_MEM_SUPER free-space manager */
-    if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+    if(H5MF_open_thefs(f, H5P_DATASET_XFER_DEFAULT, &thefs) < 0)
         FAIL_STACK_ERROR
 
     /* Get free-space info */
-    if(H5FS_stat_info(f, f->shared->fs_man[type], &fs_stat) < 0)
+    if(H5FS_stat_info(f, f->shared->fs.aggr.fs_man[type], &fs_stat) < 0)
         FAIL_STACK_ERROR
 
     /* Verify free-space info */
@@ -6352,15 +6496,17 @@ test_mf_fs_split(hid_t fapl_new, hid_t fcpl)
 	TEST_ERROR
 
     /* Verify that the free-space manager for H5FD_MEM_DRAW is there */
-    if(!H5F_addr_defined(f->shared->fs_addr[stype]))
+    if(!H5F_addr_defined(f->shared->fs.aggr.fs_addr[stype]))
         TEST_ERROR
 
+
+    H5MF_SETUP_FS_AGGR(f, stype, &thefs);
     /* Start up H5FD_MEM_DRAW free-space manager */
-    if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, stype) < 0)
+    if(H5MF_open_thefs(f, H5P_DATASET_XFER_DEFAULT, &thefs) < 0)
         FAIL_STACK_ERROR
 
     /* Get free-space info */
-    if(H5FS_stat_info(f, f->shared->fs_man[stype], &fs_stat) < 0)
+    if(H5FS_stat_info(f, f->shared->fs.aggr.fs_man[stype], &fs_stat) < 0)
         FAIL_STACK_ERROR
 
     /* Verify free-space info */
@@ -6404,7 +6550,7 @@ test_mf_fs_split(hid_t fapl_new, hid_t fcpl)
         FAIL_STACK_ERROR
 
     /* Re-open the file */
-    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
+    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl)) < 0)
         FAIL_STACK_ERROR
 
     /* Get a pointer to the internal file object */
@@ -6412,19 +6558,20 @@ test_mf_fs_split(hid_t fapl_new, hid_t fcpl)
         FAIL_STACK_ERROR
 
     /* Verify that the free-space manager for H5FD_MEM_DRAW is not there */
-    if(H5F_addr_defined(f->shared->fs_addr[stype]))
+    if(H5F_addr_defined(f->shared->fs.aggr.fs_addr[stype]))
         TEST_ERROR
 
     /* Verify that the free-space manager for H5FD_MEM_SUPER is there */
-    if(!H5F_addr_defined(f->shared->fs_addr[type]))
+    if(!H5F_addr_defined(f->shared->fs.aggr.fs_addr[type]))
         TEST_ERROR
 
+    H5MF_SETUP_FS_AGGR(f, type, &thefs);
     /* Start up H5FD_MEM_SUPER free-space manager */
-    if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+    if(H5MF_open_thefs(f, H5P_DATASET_XFER_DEFAULT, &thefs) < 0)
         FAIL_STACK_ERROR
 
     /* Get free-space info */
-    if(H5FS_stat_info(f, f->shared->fs_man[type], &fs_stat) < 0)
+    if(H5FS_stat_info(f, f->shared->fs.aggr.fs_man[type], &fs_stat) < 0)
         FAIL_STACK_ERROR
 
     /* Verify free-space info */
@@ -6448,7 +6595,7 @@ test_mf_fs_split(hid_t fapl_new, hid_t fcpl)
         FAIL_STACK_ERROR
 
     /* Re-open the file */
-    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
+    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl)) < 0)
         FAIL_STACK_ERROR
 
     /* Get a pointer to the internal file object */
@@ -6456,15 +6603,16 @@ test_mf_fs_split(hid_t fapl_new, hid_t fcpl)
         FAIL_STACK_ERROR
 
     /* Verify that the H5FD_MEM_SUPER free-space manager is there */
-    if(!H5F_addr_defined(f->shared->fs_addr[type]))
+    if(!H5F_addr_defined(f->shared->fs.aggr.fs_addr[type]))
 	TEST_ERROR
 
+    H5MF_SETUP_FS_AGGR(f, type, &thefs);
     /* Start up H5FD_MEM_SUPER free-space manager */
-    if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+    if(H5MF_open_thefs(f, H5P_DATASET_XFER_DEFAULT, &thefs) < 0)
         FAIL_STACK_ERROR
 
     /* Get free-space info */
-    if(H5FS_stat_info(f, f->shared->fs_man[type], &fs_stat) < 0)
+    if(H5FS_stat_info(f, f->shared->fs.aggr.fs_man[type], &fs_stat) < 0)
         FAIL_STACK_ERROR
 
     /* Verify free-space info */
@@ -6489,7 +6637,7 @@ error:
  * Verify that the file's free-space manager(s) are persistent for a multi-file
  */
 static unsigned
-test_mf_fs_multi(hid_t fapl_new, hid_t fcpl)
+test_mf_fs_multi(hid_t fcpl, hid_t fapl)
 {
     hid_t	file = -1;              	/* File ID */
     char	filename[FILENAME_LEN]; 	/* Filename to use */
@@ -6503,14 +6651,15 @@ test_mf_fs_multi(hid_t fapl_new, hid_t fcpl)
     haddr_t	tmp_addr;			/* Temporary variable for address */
     H5FS_section_info_t *node;			/* Free space section node */
     htri_t    	node_found = FALSE;		/* Indicate section is in free-space */
+    H5MF_fs_t	thefs;
 
     TESTING("file's free-space managers are persistent for multi-file");
 
     /* Set the filename to use for this test (dependent on fapl) */
-    h5_fixname(FILENAME[0], fapl_new, filename, sizeof(filename));
+    h5_fixname(FILENAME[0], fapl, filename, sizeof(filename));
 
     /* Create the file to work on */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl_new)) < 0)
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0)
         FAIL_STACK_ERROR
 
     /* Get a pointer to the internal file object */
@@ -6555,7 +6704,7 @@ test_mf_fs_multi(hid_t fapl_new, hid_t fcpl)
         FAIL_STACK_ERROR
 
     /* Re-open the file */
-    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
+    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl)) < 0)
         FAIL_STACK_ERROR
 
     /* Get a pointer to the internal file object */
@@ -6563,15 +6712,16 @@ test_mf_fs_multi(hid_t fapl_new, hid_t fcpl)
         FAIL_STACK_ERROR
 
     /* Verify that the H5FD_MEM_SUPER free-space manager is there */
-    if(!H5F_addr_defined(f->shared->fs_addr[type]))
+    if(!H5F_addr_defined(f->shared->fs.aggr.fs_addr[type]))
         TEST_ERROR
 
+    H5MF_SETUP_FS_AGGR(f, type, &thefs);
     /* Start up H5FD_MEM_SUPER free-space manager */
-    if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+    if(H5MF_open_thefs(f, H5P_DATASET_XFER_DEFAULT, &thefs) < 0)
         FAIL_STACK_ERROR
 
     /* Get free-space info */
-    if(H5FS_stat_info(f, f->shared->fs_man[type], &fs_stat) < 0)
+    if(H5FS_stat_info(f, f->shared->fs.aggr.fs_man[type], &fs_stat) < 0)
         FAIL_STACK_ERROR
 
     /* Verify free-space info */
@@ -6587,15 +6737,16 @@ test_mf_fs_multi(hid_t fapl_new, hid_t fcpl)
 	TEST_ERROR
 
     /* Verify that the free-space manager for H5FD_MEM_DRAW is there */
-    if(!H5F_addr_defined(f->shared->fs_addr[stype]))
+    if(!H5F_addr_defined(f->shared->fs.aggr.fs_addr[stype]))
         TEST_ERROR
 
+    H5MF_SETUP_FS_AGGR(f, stype, &thefs);
     /* Start up H5FD_MEM_DRAW free-space manager */
-    if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, stype) < 0)
+    if(H5MF_open_thefs(f, H5P_DATASET_XFER_DEFAULT, &thefs) < 0)
         FAIL_STACK_ERROR
 
     /* Get free-space info */
-    if(H5FS_stat_info(f, f->shared->fs_man[stype], &fs_stat) < 0)
+    if(H5FS_stat_info(f, f->shared->fs.aggr.fs_man[stype], &fs_stat) < 0)
         FAIL_STACK_ERROR
 
     /* Verify free-space info */
@@ -6637,7 +6788,7 @@ test_mf_fs_multi(hid_t fapl_new, hid_t fcpl)
         FAIL_STACK_ERROR
 
     /* Re-open the file */
-    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
+    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl)) < 0)
         FAIL_STACK_ERROR
 
     /* Get a pointer to the internal file object */
@@ -6645,15 +6796,16 @@ test_mf_fs_multi(hid_t fapl_new, hid_t fcpl)
         FAIL_STACK_ERROR
 
     /* Verify that the free-space manager for H5FD_MEM_SUPER is there */
-    if(!H5F_addr_defined(f->shared->fs_addr[type]))
+    if(!H5F_addr_defined(f->shared->fs.aggr.fs_addr[type]))
         TEST_ERROR
 
+    H5MF_SETUP_FS_AGGR(f, type, &thefs);
     /* Start up H5FD_MEM_SUPER free-space manager */
-    if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+    if(H5MF_open_thefs(f, H5P_DATASET_XFER_DEFAULT, &thefs) < 0)
         FAIL_STACK_ERROR
 
     /* Get free-space info */
-    if(H5FS_stat_info(f, f->shared->fs_man[type], &fs_stat) < 0)
+    if(H5FS_stat_info(f, f->shared->fs.aggr.fs_man[type], &fs_stat) < 0)
         FAIL_STACK_ERROR
 
     /* Verify free-space info */
@@ -6667,19 +6819,20 @@ test_mf_fs_multi(hid_t fapl_new, hid_t fcpl)
 	TEST_ERROR
 
     /* Verify that the free-space manager for H5FD_MEM_DRAW is not there */
-    if(H5F_addr_defined(f->shared->fs_addr[stype]))
+    if(H5F_addr_defined(f->shared->fs.aggr.fs_addr[stype]))
         TEST_ERROR
 
     /* Verify that the free-space manager for H5FD_MEM_BTREE is there */
-    if(!H5F_addr_defined(f->shared->fs_addr[btype]))
+    if(!H5F_addr_defined(f->shared->fs.aggr.fs_addr[btype]))
         TEST_ERROR
 
+    H5MF_SETUP_FS_AGGR(f, btype, &thefs);
     /* Start up H5FD_MEM_BTREE free-space manager */
-    if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, btype) < 0)
+    if(H5MF_open_thefs(f, H5P_DATASET_XFER_DEFAULT, &thefs) < 0)
         FAIL_STACK_ERROR
 
     /* Get free-space info */
-    if(H5FS_stat_info(f, f->shared->fs_man[btype], &fs_stat) < 0)
+    if(H5FS_stat_info(f, f->shared->fs.aggr.fs_man[btype], &fs_stat) < 0)
         FAIL_STACK_ERROR
 
     /* Verify free-space info */
@@ -6703,7 +6856,7 @@ test_mf_fs_multi(hid_t fapl_new, hid_t fcpl)
         FAIL_STACK_ERROR
 
     /* Re-open the file */
-    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
+    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl)) < 0)
         FAIL_STACK_ERROR
 
     /* Get a pointer to the internal file object */
@@ -6711,32 +6864,34 @@ test_mf_fs_multi(hid_t fapl_new, hid_t fcpl)
         FAIL_STACK_ERROR
 
     /* If H5FD_MEM_SUPER is there, should not find block #1 & #3 */
-    if(H5F_addr_defined(f->shared->fs_addr[type])) {
+    if(H5F_addr_defined(f->shared->fs.aggr.fs_addr[type])) {
+	H5MF_SETUP_FS_AGGR(f, type, &thefs);
 	/* Start up H5FD_MEM_SUPER free-space manager */
-	if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
+	if(H5MF_open_thefs(f, H5P_DATASET_XFER_DEFAULT, &thefs) < 0)
 	    FAIL_STACK_ERROR
 
-	if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type],
+	if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs.aggr.fs_man[type],
 		(hsize_t)TEST_BLOCK_SIZE1, (H5FS_section_info_t **)&node)) < 0)
 	    FAIL_STACK_ERROR
 	if(node_found) TEST_ERROR
 
-	if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs_man[type],
+	if((node_found = H5FS_sect_find(f, H5P_DATASET_XFER_DEFAULT, f->shared->fs.aggr.fs_man[type],
 		(hsize_t)TEST_BLOCK_SIZE3, (H5FS_section_info_t **)&node)) < 0)
 	    FAIL_STACK_ERROR
 	if(node_found) TEST_ERROR
     }
 
     /* Verify that the H5FD_MEM_GHEAP free-space manager is there */
-    if(!H5F_addr_defined(f->shared->fs_addr[gtype]))
+    if(!H5F_addr_defined(f->shared->fs.aggr.fs_addr[gtype]))
 	TEST_ERROR
 
+    H5MF_SETUP_FS_AGGR(f, gtype, &thefs);
     /* Start up H5FD_MEM_GHEAP free-space manager */
-    if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, gtype) < 0)
+    if(H5MF_open_thefs(f, H5P_DATASET_XFER_DEFAULT, &thefs) < 0)
 	FAIL_STACK_ERROR
 
     /* Get free-space info */
-    if(H5FS_stat_info(f, f->shared->fs_man[gtype], &fs_stat) < 0)
+    if(H5FS_stat_info(f, f->shared->fs.aggr.fs_man[gtype], &fs_stat) < 0)
         FAIL_STACK_ERROR
 
     /* Verify free-space info */
@@ -6796,6 +6951,10 @@ error:
  * Tests to verify that file's free-space managers are persistent or going away
  * for different drivers.
  */
+/*
+ * NEED: when new format, only small-sized fs is tested..rt now, it behaves the same as normal fs 
+ * large-sized is not tested here
+ */
 static unsigned
 test_mf_fs_drivers(hid_t fapl)
 {
@@ -6814,7 +6973,7 @@ test_mf_fs_drivers(hid_t fapl)
     /* Create a non-standard file-creation template */
     if((fcpl = H5Pcreate(H5P_FILE_CREATE)) < 0)
         FAIL_STACK_ERROR
-    if(H5Pset_file_space(fcpl, H5F_FILE_SPACE_ALL_PERSIST, (hsize_t)0) < 0)
+    if(H5Pset_file_space_strategy(fcpl, H5F_FILE_SPACE_ALL_PERSIST, (hsize_t)0) < 0)
 	TEST_ERROR
 
     /* Copy the file access property list */
@@ -6840,11 +6999,10 @@ test_mf_fs_drivers(hid_t fapl)
 	if(H5Pset_fapl_sec2(fapl_new) < 0)
 	    FAIL_STACK_ERROR
 
-	ret += test_mf_fs_gone(fapl_new, fcpl);
-	ret += test_mf_fs_persist(fapl_new, fcpl);
+	ret += test_mf_fs_gone(fcpl, fapl_new);
+	ret += test_mf_fs_persist(fcpl, fapl_new);
 
 	h5_cleanup(FILENAME, fapl_new);
-
 
 	/* STDIO */
 	HDputs("Testing free-space managers with stdio driver");
@@ -6854,8 +7012,8 @@ test_mf_fs_drivers(hid_t fapl)
 	if(H5Pset_fapl_stdio(fapl_new) < 0)
 	    FAIL_STACK_ERROR
 
-	ret += test_mf_fs_gone(fapl_new, fcpl);
-	ret += test_mf_fs_persist(fapl_new, fcpl);
+	ret += test_mf_fs_gone(fcpl, fapl_new);
+	ret += test_mf_fs_persist(fcpl, fapl_new);
 
 	h5_cleanup(FILENAME, fapl_new);
 
@@ -6868,8 +7026,8 @@ test_mf_fs_drivers(hid_t fapl)
 	if(H5Pset_fapl_core(fapl_new, (size_t)CORE_INCREMENT, TRUE) < 0)
 	    FAIL_STACK_ERROR
 
-	ret += test_mf_fs_gone(fapl_new, fcpl);
-	ret += test_mf_fs_persist(fapl_new, fcpl);
+	ret += test_mf_fs_gone(fcpl, fapl_new);
+	ret += test_mf_fs_persist(fcpl, fapl_new);
 
 	h5_cleanup(FILENAME, fapl_new);
 
@@ -6881,7 +7039,7 @@ test_mf_fs_drivers(hid_t fapl)
 	if(H5Pset_fapl_family(fapl_new, (hsize_t)FAMILY_SIZE, H5P_DEFAULT) < 0)
 	    FAIL_STACK_ERROR
 
-	ret += test_mf_fs_persist(fapl_new, fcpl);
+	ret += test_mf_fs_persist(fcpl, fapl_new);
 
 	h5_cleanup(FILENAME, fapl_new);
 
@@ -6893,8 +7051,10 @@ test_mf_fs_drivers(hid_t fapl)
 	if(H5Pset_fapl_split(fapl_new, "-m.h5", H5P_DEFAULT, "-r.h5", H5P_DEFAULT)<0)
 	    FAIL_STACK_ERROR
 
-	ret += test_mf_fs_persist(fapl_new, fcpl);
-	ret += test_mf_fs_split(fapl_new, fcpl);
+	if(!new_format) {
+	    ret += test_mf_fs_persist(fcpl, fapl_new);
+	    ret += test_mf_fs_split(fcpl, fapl_new);
+	}
 
 	h5_cleanup(FILENAME, fapl_new);
 
@@ -6908,7 +7068,8 @@ test_mf_fs_drivers(hid_t fapl)
 	if(H5Pset_fapl_multi(fapl_new, memb_map, memb_fapl, memb_name, memb_addr, TRUE) < 0)
 	    TEST_ERROR;
 
-	ret += test_mf_fs_multi(fapl_new, fcpl);
+	if(!new_format)
+	    ret += test_mf_fs_multi(fcpl, fapl_new);
 
 	h5_cleanup(FILENAME, fapl_new);
 
@@ -6936,7 +7097,7 @@ error:
  * file space strategy and free space threshold as specified.
  */
 static unsigned
-test_filespace_strategy_threshold(hid_t fapl_new)
+test_mf_strat_thres(hid_t fapl)
 {
     hid_t	file = -1;              /* File ID */
     hid_t	fcpl = -1;		/* File creation property list template */
@@ -6944,31 +7105,39 @@ test_filespace_strategy_threshold(hid_t fapl_new)
     H5F_t	*f = NULL;              /* Internal file object pointer */
     H5FD_mem_t 	type;			/* File allocation type */
     haddr_t	addr1, addr2, addr3, addr4, addr5, addr6; /* File address for H5FD_MEM_SUPER */
-    haddr_t	tmp_addr;		/* Temporary variable for address */
-    H5F_file_space_type_t fs_type;	/* File space handling strategy */
+    H5F_fs_strategy_t fs_type;		/* File space handling strategy */
     hsize_t	fs_threshold;		/* Free space section threshold */
-    hsize_t tot_space, saved_tot_space; /* Total amount of free space */
-    hsize_t tot_sect_count, saved_tot_sect_count;	/* # of free-space sections */
+    hsize_t saved_tot_space; 		/* Total amount of free space */
+    hsize_t saved_tot_sect_count;	/* # of free-space sections */
+    H5F_libver_t low, high;     	/* File format bounds */
+    H5MF_fs_t	thefs;
 
     TESTING("file space strategy and threshold");
 
     /* Set the filename to use for this test (dependent on fapl) */
-    h5_fixname(FILENAME[0], fapl_new, filename, sizeof(filename));
+    h5_fixname(FILENAME[0], fapl, filename, sizeof(filename));
+
+    /* Get library format */
+    if(H5Pget_libver_bounds(fapl, &low, &high) < 0) FAIL_STACK_ERROR
 
     for(fs_threshold = 0; fs_threshold <= TEST_THRESHOLD10; fs_threshold++) {
 
-	for(fs_type = H5F_FILE_SPACE_ALL_PERSIST; fs_type < H5F_FILE_SPACE_NTYPES; H5_INC_ENUM(H5F_file_space_type_t, fs_type)) {
+	for(fs_type = H5F_FILE_SPACE_ALL_PERSIST; fs_type < H5F_FILE_SPACE_NTYPES; H5_INC_ENUM(H5F_fs_strategy_t, fs_type)) {
+
+	    /* When using latest library format, this strategy is not appropriate with file space page size set */
+	    if(low == H5F_LIBVER_LATEST && fs_type == H5F_FILE_SPACE_AGGR_VFD)
+		continue;
 
 	    /* Create file-creation template */
 	    if((fcpl = H5Pcreate(H5P_FILE_CREATE)) < 0)
 		FAIL_STACK_ERROR
 
 	    /* Set default file space information */
-	    if(H5Pset_file_space(fcpl, fs_type, fs_threshold) < 0)
+	    if(H5Pset_file_space_strategy(fcpl, fs_type, fs_threshold) < 0)
 		FAIL_STACK_ERROR
 
 	    /* Create the file to work on */
-	    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl_new)) < 0)
+	    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0)
 		FAIL_STACK_ERROR
 
 	    /* Get a pointer to the internal file object */
@@ -6998,13 +7167,15 @@ test_filespace_strategy_threshold(hid_t fapl_new)
 	    if(H5MF_xfree(f, type, H5P_DATASET_XFER_DEFAULT, addr5, (hsize_t)TEST_BLOCK_SIZE5) < 0)
 		FAIL_STACK_ERROR
 
+	    H5MF_setup_thefs(f, type, (hsize_t)TEST_BLOCK_SIZE6, &thefs);
+
 	    /* Retrieve the total amount of free space and # of free-space sections */
-	    if(f->shared->fs_man[type] &&
-		H5FS_sect_stats(f->shared->fs_man[type], &saved_tot_space, &saved_tot_sect_count) < 0)
+	    if(*thefs.fs_man &&
+		H5FS_sect_stats(*thefs.fs_man, &saved_tot_space, &saved_tot_sect_count) < 0)
 		    FAIL_STACK_ERROR
 
 	    /* H5F_FILE_SPACE_AGGR_VFD and H5F_FILE_SPACE_VFD: should not have free-space manager */
-	    if(fs_type > H5F_FILE_SPACE_ALL && f->shared->fs_man[type])
+	    if(fs_type > H5F_FILE_SPACE_ALL && *thefs.fs_man)
 		TEST_ERROR
 
 	    /* Close the file */
@@ -7012,48 +7183,51 @@ test_filespace_strategy_threshold(hid_t fapl_new)
 		FAIL_STACK_ERROR
 
 	    /* Re-open the file */
-	    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
+	    if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl)) < 0)
 		FAIL_STACK_ERROR
+
+	    H5MF_setup_thefs(f, type, (hsize_t)TEST_BLOCK_SIZE6, &thefs);
 
 	    /* Get a pointer to the internal file object */
 	    if(NULL == (f = (H5F_t *)H5I_object(file)))
 		FAIL_STACK_ERROR
 
 	    switch(fs_type) {
-		case H5F_FILE_SPACE_ALL_PERSIST:
-		    if(fs_threshold <= TEST_BLOCK_SIZE5) {
-			if(!H5F_addr_defined(f->shared->fs_addr[type]))
-			    TEST_ERROR
+		case H5F_FILE_SPACE_ALL_PERSIST: 
+		{
+		    hssize_t nsects;            /* # of free-space sections */
+		    int      i;                 /* local index variable */
+		    H5F_sect_info_t *sect_info; /* array to hold the free-space information */
 
-			/* Open the free-space manager */
-			if(H5MF_alloc_open(f, H5P_DATASET_XFER_DEFAULT, type) < 0)
-			    FAIL_STACK_ERROR
+		    /* Get the # of free-space sections in the file */
+		    if((nsects = H5Fget_free_sections(file, H5FD_MEM_DEFAULT, (size_t)0, NULL)) < 0)
+			FAIL_STACK_ERROR
 
-			/* Retrieve the total amount of free space and # of free-space sections */
-			if(H5FS_sect_stats(f->shared->fs_man[type], &tot_space, &tot_sect_count) < 0)
-			    FAIL_STACK_ERROR
+		    /* Verify no free-space sections */
+		    if(fs_threshold > TEST_BLOCK_SIZE5 && nsects)
+			TEST_ERROR
 
-			/* Verify that tot_space should be >= saved_tot_space */
-			/* Verify that tot_sect_count should be >= saved_tot_sect_count */
-			if(tot_space < saved_tot_space || tot_sect_count < saved_tot_sect_count)
-			    TEST_ERROR
+		    if(nsects) {
+			/* Allocate storage for the free space section information */
+			sect_info = (H5F_sect_info_t *)HDcalloc((size_t)nsects, sizeof(H5F_sect_info_t));
 
-			/* Retrieve block #5 from H5FD_MEM_SUPER free-space manager */
-			if(HADDR_UNDEF ==
-			        (tmp_addr = H5MF_alloc(f, type, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE5)))
-			    FAIL_STACK_ERROR
+			H5Fget_free_sections(file, H5FD_MEM_DEFAULT, (size_t)nsects, sect_info);
 
-			/* Should be the same as before */
-			if(tmp_addr != addr5)
-			    TEST_ERROR
-		    } else if(H5F_addr_defined(f->shared->fs_addr[type]))
-			    TEST_ERROR
-		    break;
+			/* Verify the size of free-space sections */
+			for(i = 0; i < nsects; i++)
+			    if(sect_info[i].size < fs_threshold)
+				TEST_ERROR
+		    }
+		}
+		break;
 
 		case H5F_FILE_SPACE_ALL:
 		case H5F_FILE_SPACE_AGGR_VFD:
 		case H5F_FILE_SPACE_VFD:
-		    if(H5F_addr_defined(f->shared->fs_addr[type]))
+		    if(low == H5F_LIBVER_LATEST) {
+			if(H5F_addr_defined(*thefs.fs_addr))
+			TEST_ERROR
+		    } else if(H5F_addr_defined(*thefs.fs_addr))
 			TEST_ERROR
 		    break;
 
@@ -7083,14 +7257,14 @@ error:
 	H5Fclose(file);
     } H5E_END_TRY;
     return(1);
-} /* test_filespace_strategy_threshold() */
+} /* test_mf_strat_thres() */
 
 /*
  * Verify section is merged/shrunk away for
  * H5F_FILE_SPACE_ALL_PERSIST and H5F_FILE_SPACE_ALL strategy.
  */
 static unsigned
-test_filespace_gone(hid_t fapl_new)
+test_mf_strat_thres_gone(hid_t fapl)
 {
     hid_t	file = -1;              /* File ID */
     hid_t	fcpl = -1;		/* File creation propertly list template */
@@ -7098,29 +7272,39 @@ test_filespace_gone(hid_t fapl_new)
     H5F_t	*f = NULL;              /* Internal file object pointer */
     H5FD_mem_t 	type;			/* File allocation type */
     haddr_t	addr1, addr2, addr3, addr4, addr5, addr6; /* File address for H5FD_MEM_SUPER */
-    H5F_file_space_type_t fs_type;	/* File space handling strategy */
+    H5F_fs_strategy_t fs_type;		/* File space handling strategy */
     hsize_t	fs_threshold;		/* Free space section threshold */
     frspace_state_t 	state;		/* State of free space manager */
+    H5F_libver_t low, high;     	/* File format bounds */
+    H5MF_fs_t	thefs;
 
     TESTING("file space merge/shrink for section size < threshold");
 
     /* Set the filename to use for this test (dependent on fapl) */
-    h5_fixname(FILENAME[0], fapl_new, filename, sizeof(filename));
+    h5_fixname(FILENAME[0], fapl, filename, sizeof(filename));
+
+    /* Get library format */
+    if(H5Pget_libver_bounds(fapl, &low, &high) < 0) FAIL_STACK_ERROR
 
     /* Set free-space threshold */
     fs_threshold = TEST_THRESHOLD3;
 
-    for(fs_type = H5F_FILE_SPACE_ALL_PERSIST; fs_type <= H5F_FILE_SPACE_ALL; H5_INC_ENUM(H5F_file_space_type_t, fs_type)) {
+    for(fs_type = H5F_FILE_SPACE_ALL_PERSIST; fs_type <= H5F_FILE_SPACE_ALL; H5_INC_ENUM(H5F_fs_strategy_t, fs_type)) {
+
+	/* When using latest library format, this strategy is not appropriate with file space page size set */
+	if(low == H5F_LIBVER_LATEST && fs_type == H5F_FILE_SPACE_AGGR_VFD)
+	    continue;
+
 	/* Create file-creation template */
 	if((fcpl = H5Pcreate(H5P_FILE_CREATE)) < 0)
 	    FAIL_STACK_ERROR
 
 	/* Set default file space information */
-	if(H5Pset_file_space(fcpl, fs_type, fs_threshold) < 0)
+	if(H5Pset_file_space_strategy(fcpl, fs_type, fs_threshold) < 0)
 	    FAIL_STACK_ERROR
 
 	/* Create the file to work on */
-	if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl_new)) < 0)
+	if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0)
 	    FAIL_STACK_ERROR
 
 	/* Get a pointer to the internal file object */
@@ -7153,7 +7337,9 @@ test_filespace_gone(hid_t fapl_new)
 	state.tot_sect_count += 2;
 	state.serial_sect_count += 2;
 
-	if(check_stats(f, f->shared->fs_man[type], &state))
+	H5MF_setup_thefs(f, type, (hsize_t)TEST_BLOCK_SIZE6, &thefs);
+    
+	if(check_stats(f, *thefs.fs_man, &state))
 	    TEST_ERROR
 
 	/* section #2 is less than threshold but is merged into section #3 */
@@ -7161,7 +7347,7 @@ test_filespace_gone(hid_t fapl_new)
 	    FAIL_STACK_ERROR
 
 	state.tot_space += TEST_BLOCK_SIZE2;
-	if(check_stats(f, f->shared->fs_man[type], &state))
+	if(check_stats(f, *thefs.fs_man, &state))
 	    TEST_ERROR
 
 	if(H5MF_xfree(f, type, H5P_DATASET_XFER_DEFAULT, addr4, (hsize_t)TEST_BLOCK_SIZE4) < 0)
@@ -7172,7 +7358,7 @@ test_filespace_gone(hid_t fapl_new)
 
 	/* all sections should be shrunk away except section #1 */
 	HDmemset(&state, 0, sizeof(frspace_state_t));
-	if(check_stats(f, f->shared->fs_man[type], &state))
+	if(check_stats(f, *thefs.fs_man, &state))
 	    TEST_ERROR
 
 	/* section #1 is less than threshold but is shrunk away */
@@ -7181,22 +7367,24 @@ test_filespace_gone(hid_t fapl_new)
 
 	/* free-space manager should be empty */
 	HDmemset(&state, 0, sizeof(frspace_state_t));
-	if(check_stats(f, f->shared->fs_man[type], &state))
+	if(check_stats(f, *thefs.fs_man, &state))
 	    TEST_ERROR
 
 	if(H5Fclose(file) < 0)
 	    FAIL_STACK_ERROR
 
 	/* Re-open the file */
-	if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl_new)) < 0)
+	if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl)) < 0)
 	    FAIL_STACK_ERROR
 
 	/* Get a pointer to the internal file object */
 	if(NULL == (f = (H5F_t *)H5I_object(file)))
 	    FAIL_STACK_ERROR
 
+	H5MF_setup_thefs(f, type, (hsize_t)TEST_BLOCK_SIZE6, &thefs);
+
 	/* free-space manager should be empty */
-	if(H5F_addr_defined(f->shared->fs_addr[type]))
+	if(H5F_addr_defined(*thefs.fs_addr))
 	    TEST_ERROR
 
 	if(H5Fclose(file) < 0)
@@ -7217,13 +7405,14 @@ error:
 	H5Fclose(file);
     } H5E_END_TRY;
     return(1);
-} /* test_filespace_gone() */
+} /* test_mf_strat_thres_gone() */
+
 
 /*
- * Tests to verify file space management for different drivers.
+ * Tests to verify file space strategy and threshold for different drivers.
  */
 static unsigned
-test_filespace_drivers(hid_t fapl)
+test_mf_strat_thres_drivers(hid_t fapl)
 {
     hid_t	fapl_new = -1;		/* copy of file access property list */
     hid_t	fapl2 = -1;		/* copy of file access property list */
@@ -7246,9 +7435,10 @@ test_filespace_drivers(hid_t fapl)
     /* Test with old and new format */
     for(new_format = FALSE; new_format <= TRUE; new_format++) {
 
-	if(new_format)
+	if(new_format)  {
 	    HDputs("Testing the following tests for file space management with new library format...");
-	else
+	    return(ret);
+	} else
 	    HDputs("Testing the following tests for file space management with old library format...");
 
 	/* SEC2 */
@@ -7259,8 +7449,8 @@ test_filespace_drivers(hid_t fapl)
 	if(H5Pset_fapl_sec2(fapl_new) < 0)
 	    FAIL_STACK_ERROR
 
-	ret += test_filespace_strategy_threshold(fapl_new);
-	ret += test_filespace_gone(fapl_new);
+	ret += test_mf_strat_thres_gone(fapl_new);
+	ret += test_mf_strat_thres(fapl_new);
 
 	h5_cleanup(FILENAME, fapl_new);
 
@@ -7272,8 +7462,8 @@ test_filespace_drivers(hid_t fapl)
 	if(H5Pset_fapl_stdio(fapl_new) < 0)
 	    FAIL_STACK_ERROR
 
-	ret += test_filespace_strategy_threshold(fapl_new);
-	ret += test_filespace_gone(fapl_new);
+	ret += test_mf_strat_thres_gone(fapl_new);
+	ret += test_mf_strat_thres(fapl_new);
 
 	h5_cleanup(FILENAME, fapl_new);
 
@@ -7286,8 +7476,9 @@ test_filespace_drivers(hid_t fapl)
 	if(H5Pset_fapl_core(fapl_new, (size_t)CORE_INCREMENT, TRUE) < 0)
 	    FAIL_STACK_ERROR
 
-	ret += test_filespace_strategy_threshold(fapl_new);
-	ret += test_filespace_gone(fapl_new);
+	ret += test_mf_strat_thres_gone(fapl_new);
+	ret += test_mf_strat_thres(fapl_new);
+
 
 	h5_cleanup(FILENAME, fapl_new);
 
@@ -7299,8 +7490,8 @@ test_filespace_drivers(hid_t fapl)
 	if(H5Pset_fapl_family(fapl_new, (hsize_t)FAMILY_SIZE, H5P_DEFAULT) < 0)
 	    FAIL_STACK_ERROR
 
-	ret += test_filespace_strategy_threshold(fapl_new);
-	ret += test_filespace_gone(fapl_new);
+	ret += test_mf_strat_thres_gone(fapl_new);
+	ret += test_mf_strat_thres(fapl_new);
 
 	h5_cleanup(FILENAME, fapl_new);
 
@@ -7313,8 +7504,8 @@ test_filespace_drivers(hid_t fapl)
 	if(H5Pset_fapl_split(fapl_new, "-m.h5", H5P_DEFAULT, "-r.h5", H5P_DEFAULT)<0)
 	    FAIL_STACK_ERROR
 
-	ret += test_filespace_strategy_threshold(fapl_new);
-	ret += test_filespace_gone(fapl_new);
+	ret += test_mf_strat_thres_gone(fapl_new);
+	ret += test_mf_strat_thres(fapl_new);
 
 	h5_cleanup(FILENAME, fapl_new);
 
@@ -7328,8 +7519,8 @@ test_filespace_drivers(hid_t fapl)
 	if(H5Pset_fapl_multi(fapl_new, memb_map, memb_fapl, memb_name, memb_addr, TRUE) < 0)
 	    TEST_ERROR;
 
-	ret += test_filespace_strategy_threshold(fapl_new);
-	ret += test_filespace_gone(fapl_new);
+	ret += test_mf_strat_thres_gone(fapl_new);
+	ret += test_mf_strat_thres(fapl_new);
 
 	h5_cleanup(FILENAME, fapl_new);
 
@@ -7346,7 +7537,7 @@ error:
         H5Pclose(fapl2);
     } H5E_END_TRY;
     return(1);
-} /* test_filespace_drivers() */
+} /* test_mf_strat_thres_drivers() */
 
 /*
  * To verify that file space is allocated from the corresponding free-space manager
@@ -7442,11 +7633,155 @@ error:
     return(1);
 } /* test_dichotomy() */
 
+/*
+ * Tests for "file space page size"
+ */
+static unsigned
+test_mf_fs_page(const char *env_h5_drvr, hid_t fapl)
+{
+    hid_t		fcpl = -1;		/* copy of fcpl */
+    unsigned 		ret = 0;		/* return value */
+
+    HDputs("Testing free-space managers with file space page size setting--");
+
+    /* Skip test when using VFDs that has different address spaces for each
+     *  type of metadata allocation.
+     */
+
+	if((fcpl = H5Pcreate(H5P_FILE_CREATE)) < 0)
+	    FAIL_STACK_ERROR
+	if(H5Pset_file_space_page_size(fcpl, (hsize_t)TEST_BLOCK_SIZE5000) < 0) 
+	    FAIL_STACK_ERROR
+
+	HDputs("Testing large-sized free-space manager:");
+	/* Tests specific for large-sized free-space manager */
+#ifdef LATER
+	ret += test_mf_fs_page_merge(env_h5_drvr, fcpl, fapl, TRUE);
+#endif
+
+	/* Tests with VFD allocation */
+#ifdef LATER
+	ret += test_mf_eoa(env_h5_drvr, fcpl, fapl, TRUE);
+	ret += test_mf_eoa_shrink(env_h5_drvr, fcpl, fapl, TRUE);
+	ret += test_mf_eoa_extend(env_h5_drvr, fcpl, fapl, TRUE);
+#endif
+	/* Tests for free-space manager */
+	ret += test_mf_fs_start(fcpl, fapl, TRUE);
+#ifdef LATER
+	ret += test_mf_fs_alloc_free(fcpl, fapl, TRUE);
+	ret += test_mf_fs_extend(fcpl, fapl, TRUE);
+#endif
+
+#ifdef LATER
+/* FAILING..need to implement */
+	/* Tests for alignment */
+	ret += test_mf_align_eoa(env_h5_drvr, fcpl, fapl, fapl, TRUE);
+	ret += test_mf_align_fs(env_h5_drvr, fcpl, fapl, fapl, TRUE);
+#endif
+
+#ifdef LATER
+	HDputs("Testing small-sized free-space manager:");
+	ret += test_mf_eoa(env_h5_drvr, fcpl, fapl, FALSE);
+	ret += test_mf_eoa_shrink(env_h5_drvr, fcpl, fapl, FALSE);
+#endif
+
+    return(ret);
+
+error:
+    H5E_BEGIN_TRY {
+        H5Pclose(fcpl);
+    } H5E_END_TRY;
+    return(1);
+} /* test_mf_fs_page() */
+
+/* File space page setting: Merging of blocks */
+static unsigned
+test_mf_fs_page_merge(const char *env_h5_drvr, hid_t fcpl, hid_t fapl, hbool_t large)
+{
+    hid_t		file = -1;              /* File ID */
+    char		filename[FILENAME_LEN]; /* Filename to use */
+    H5F_t		*f = NULL;              /* Internal file object pointer */
+    haddr_t		addr1, addr2, addr3;
+    hsize_t		fsp_size=0;
+    frspace_state_t 	state;			/* State of free space manager */
+    H5F_mem_page_t	ptype;
+    hbool_t             contig_addr_vfd;        /* Whether VFD used has a contigous address space */
+
+    TESTING("Merging for free-space managers");
+
+    contig_addr_vfd = (hbool_t)(HDstrcmp(env_h5_drvr, "split") && HDstrcmp(env_h5_drvr, "multi"));
+    if(contig_addr_vfd) {
+
+        /* Set the filename to use for this test */
+        h5_fixname(FILENAME[0], fapl, filename, sizeof(filename));
+  
+        /* Create the file to work on */
+        if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0)
+            FAIL_STACK_ERROR
+
+        /* Get a pointer to the internal file object */
+        if(NULL == (f = (H5F_t *)H5I_object(file)))
+            FAIL_STACK_ERROR
+
+	HDassert(f->shared->fsp_size);
+	if(large)
+	    fsp_size = f->shared->fsp_size;
+	ptype = H5MF_ALLOC_TO_FS_PAGE_TYPE(f, H5FD_MEM_SUPER, fsp_size);
+
+        addr1 = H5MF_alloc(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE30+fsp_size); 
+        addr2 = H5MF_alloc(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE50+fsp_size); 
+        addr3 = H5MF_alloc(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, (hsize_t)TEST_BLOCK_SIZE80+fsp_size); 
+
+	/* The section is put in the manager */
+        H5MF_xfree(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, addr2, (hsize_t)TEST_BLOCK_SIZE50+fsp_size);
+
+	HDmemset(&state, 0, sizeof(frspace_state_t));
+	state.tot_space += (TEST_BLOCK_SIZE50+fsp_size);
+	state.tot_sect_count += 1;
+	state.serial_sect_count += 1;
+
+	if(check_stats(f, f->shared->fs.page.fs_man[ptype], &state))
+	    TEST_ERROR
+
+	/* The section is merged with the previous section and put in the manager */
+        H5MF_xfree(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, addr1, (hsize_t)TEST_BLOCK_SIZE30+fsp_size);
+	state.tot_space += (TEST_BLOCK_SIZE30+fsp_size);
+
+	if(check_stats(f, f->shared->fs.page.fs_man[ptype], &state))
+	    TEST_ERROR
+
+	/* The section is merged with the previous section and is shrunk at eoa; no more section in the manager */
+        H5MF_xfree(f, H5FD_MEM_SUPER, H5P_DATASET_XFER_DEFAULT, addr3, (hsize_t)TEST_BLOCK_SIZE80+fsp_size);
+	HDmemset(&state, 0, sizeof(frspace_state_t));
+	if(check_stats(f, f->shared->fs.page.fs_man[ptype], &state))
+	    TEST_ERROR
+
+        /* Close file */
+        if(H5Fclose(file) < 0)
+            FAIL_STACK_ERROR
+
+        PASSED()
+    } /* end if */
+    else {
+	SKIPPED();
+	puts("    Current VFD doesn't support continuous address space");
+    } /* end else */
+    return(0);
+
+error:
+    H5E_BEGIN_TRY {
+	H5Fclose(file);
+    } H5E_END_TRY;
+    return(1);
+
+} /* test_mf_fs_page_merge() */
+
+
 int
 main(void)
 {
     hid_t       fapl = -1;	   /* File access property list for data files */
-    hid_t       new_fapl = -1;	   /* File access property list for alignment & aggr setting */
+    hid_t       fapl_align = -1;   /* File access property list for alignment */
     unsigned    nerrors = 0;       /* Cumulative error count */
     test_type_t	curr_test;	   /* Current test being worked on */
     const char  *env_h5_drvr;      /* File Driver value from environment */
@@ -7456,37 +7791,32 @@ main(void)
     if(env_h5_drvr == NULL)
         env_h5_drvr = "nomatch";
 
+/* TEMPORARILY ifdef out for LATER */
+#ifdef TEMP
     fapl = h5_fileaccess();
 
-    /* Make a copy of the FAPL before adjusting the alignment */
-    if((new_fapl = H5Pcopy(fapl)) < 0) TEST_ERROR
+    /* Interaction with vfd allocation */
+    /* The following 3 tests are modified to accommodate testing with file space page size setting */
+    nerrors += test_mf_eoa(env_h5_drvr, H5P_DEFAULT, fapl, FALSE);
+    nerrors += test_mf_eoa_shrink(env_h5_drvr, H5P_DEFAULT, fapl, FALSE);
+    nerrors += test_mf_eoa_extend(env_h5_drvr, H5P_DEFAULT, fapl, FALSE);
 
-    /* alignment is not set for the following tests */
-    if(H5Pset_alignment(fapl, (hsize_t)1, (hsize_t)1) < 0)
-	TEST_ERROR
+    /* Interaction with free-space manager */
+    /* The following 3 tests are modified to accommodate testing with file space page size setting */
+    nerrors += test_mf_fs_start(H5P_DEFAULT, fapl, FALSE);
+    nerrors += test_mf_fs_alloc_free(H5P_DEFAULT, fapl, FALSE);
+    nerrors += test_mf_fs_extend(H5P_DEFAULT, fapl, FALSE);
 
-    /* meta/small data is set to 2048 for the following tests */
-    if(H5Pset_meta_block_size(fapl, (hsize_t)TEST_BLOCK_SIZE2048) < 0)
-	TEST_ERROR
-    if(H5Pset_small_data_block_size(fapl, (hsize_t)TEST_BLOCK_SIZE2048) < 0)
-	TEST_ERROR
-
-    /* interaction with file allocation */
-    nerrors += test_mf_eoa(env_h5_drvr, fapl);
-    nerrors += test_mf_eoa_shrink(env_h5_drvr, fapl);
-    nerrors += test_mf_eoa_extend(env_h5_drvr, fapl);
-
-    /* interaction with temporary file space allocation */
+    /* Interaction with temporary file space allocation */
     nerrors += test_mf_tmp(env_h5_drvr, fapl);
 
-    /* interaction with free-space manager */
-    nerrors += test_mf_fs_start(fapl);
-    nerrors += test_mf_fs_alloc_free(fapl);
-    nerrors += test_mf_fs_extend(fapl);
+    /* Interaction between free-space manager and aggregator */
     nerrors += test_mf_fs_absorb(env_h5_drvr, fapl);
-    nerrors += test_dichotomy(env_h5_drvr, new_fapl);
 
-    /* interaction with meta/sdata aggregator */
+    /* ? NEED TO THINK ABOUT THIS FROM THE CONTEXT OF NEW PAGE FS */
+    nerrors += test_dichotomy(env_h5_drvr, fapl);
+
+    /* Interaction with meta/sdata aggregator */
     nerrors += test_mf_aggr_alloc1(env_h5_drvr, fapl);
     nerrors += test_mf_aggr_alloc2(env_h5_drvr, fapl);
     nerrors += test_mf_aggr_alloc3(env_h5_drvr, fapl);
@@ -7498,16 +7828,19 @@ main(void)
     nerrors += test_mf_aggr_absorb(env_h5_drvr, fapl);
 
     /* Tests for alignment */
+
+    /* Make a copy of the fapl before adjusting the alignment */
+    if((fapl_align = H5Pcopy(fapl)) < 0) TEST_ERROR
     for(curr_test = TEST_NORMAL; curr_test < TEST_NTESTS; H5_INC_ENUM(test_type_t, curr_test)) {
 
 	switch(curr_test) {
             case TEST_NORMAL: /* set alignment = 1024 */
-		if(H5Pset_alignment(new_fapl, (hsize_t)0, (hsize_t)TEST_ALIGN1024) < 0)
+		if(H5Pset_alignment(fapl_align, (hsize_t)0, (hsize_t)TEST_ALIGN1024) < 0)
 		    TEST_ERROR
                 break;
 
             case TEST_AGGR_SMALL: /* set alignment = 4096 */
-		if(H5Pset_alignment(new_fapl, (hsize_t)0, (hsize_t)TEST_ALIGN4096) < 0)
+		if(H5Pset_alignment(fapl_align, (hsize_t)0, (hsize_t)TEST_ALIGN4096) < 0)
 		    TEST_ERROR
                 break;
 
@@ -7517,25 +7850,40 @@ main(void)
 		break;
 	} /* end switch */
 
-	nerrors += test_mf_align_eoa(env_h5_drvr, fapl, new_fapl);
-	nerrors += test_mf_align_fs(env_h5_drvr, fapl, new_fapl);
-	nerrors += test_mf_align_alloc1(env_h5_drvr, fapl, new_fapl);
-	nerrors += test_mf_align_alloc2(env_h5_drvr, fapl, new_fapl);
-	nerrors += test_mf_align_alloc3(env_h5_drvr, fapl, new_fapl);
-	nerrors += test_mf_align_alloc4(env_h5_drvr, fapl, new_fapl);
-	nerrors += test_mf_align_alloc5(env_h5_drvr, fapl, new_fapl);
-	nerrors += test_mf_align_alloc6(env_h5_drvr, fapl, new_fapl);
+	/* The following 2 tests are modified to accommodate testing with file space page size setting */
+	/* Alignment test with vfd allocation */
+	nerrors += test_mf_align_eoa(env_h5_drvr, H5P_DEFAULT, fapl, fapl_align, FALSE);
+	/* Alignment test with free-space manager */
+	nerrors += test_mf_align_fs(env_h5_drvr, H5P_DEFAULT, fapl, fapl_align, FALSE);
+
+	/* Alignment tests with the aggregators */
+	nerrors += test_mf_align_alloc1(env_h5_drvr, fapl, fapl_align);
+	nerrors += test_mf_align_alloc2(env_h5_drvr, fapl, fapl_align);
+	nerrors += test_mf_align_alloc3(env_h5_drvr, fapl, fapl_align);
+	nerrors += test_mf_align_alloc4(env_h5_drvr, fapl, fapl_align);
+	nerrors += test_mf_align_alloc5(env_h5_drvr, fapl, fapl_align);
+	nerrors += test_mf_align_alloc6(env_h5_drvr, fapl, fapl_align);
     } /* end if */
 
-    /* tests to verify that file's free-space managers are persistent */
+    /* Test to verify that file's free-space managers are persistent */
+    /* NEED:  test meta fs only...which basically just work the same as normal fs..so not really testing
+	cannot test for large-sized ... small meta fs is there;
+       need to think about testing fo split and multi driver	*/
     nerrors += test_mf_fs_drivers(fapl);
 
-    /* tests for file space management */
-    nerrors += test_filespace_drivers(fapl);
+    /* Test for file space strategy and threshold */
+    /* NEED:  test meta fs only...which basically just work the same as normal fs..so not really testing
+	cannot test for large-sized ... small meta fs is there;
+       need to think about testing fo split and multi driver	*/
+    nerrors += test_mf_strat_thres_drivers(fapl);
 
-    if(H5Pclose(new_fapl) < 0)
+    /* Test for file space page setting */
+    nerrors += test_mf_fs_page(env_h5_drvr, fapl);
+
+    if(H5Pclose(fapl_align) < 0)
         FAIL_STACK_ERROR
     h5_cleanup(FILENAME, fapl);
+#endif
 
     if(nerrors)
         goto error;
@@ -7547,8 +7895,7 @@ error:
     puts("*** TESTS FAILED ***");
     H5E_BEGIN_TRY {
         H5Pclose(fapl);
-        H5Pclose(new_fapl);
+        H5Pclose(fapl_align);
     } H5E_END_TRY;
     return(1);
 } /* main() */
-

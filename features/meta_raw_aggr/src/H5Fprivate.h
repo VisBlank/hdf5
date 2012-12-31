@@ -37,6 +37,23 @@
 typedef struct H5F_t H5F_t;
 typedef struct H5F_file_t H5F_file_t;
 
+/* Enum for free space manager state */
+typedef enum H5F_fs_state_t {
+    H5F_FS_STATE_CLOSED = 0,                /* Free space manager is closed */
+    H5F_FS_STATE_OPEN = 1,                  /* Free space manager has been opened */
+    H5F_FS_STATE_DELETING = 2               /* Free space manager is being deleted */
+} H5F_fs_state_t;
+
+/* File space types mapped to free-space managers in support of level-2 page caching */
+typedef enum H5F_mem_page_t {
+    H5F_MEM_PAGE_META = 0,              /* small-sized meta data */
+    H5F_MEM_PAGE_RAW = 1,               /* small-sized raw data */
+    H5F_MEM_PAGE_GENERIC = 2,   /* large-sized untyped data (meta or raw data) */
+    H5F_MEM_PAGE_NTYPES         /* Sentinel value - must be last */
+} H5F_mem_page_t;
+
+
+
 /* Block aggregation structure */
 typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
 
@@ -263,6 +280,10 @@ typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
 #define H5F_SET_GRP_BTREE_SHARED(F, RC) (((F)->shared->grp_btree_shared = (RC)) ? SUCCEED : FAIL)
 #define H5F_USE_TMP_SPACE(F)    ((F)->shared->use_tmp_space)
 #define H5F_IS_TMP_ADDR(F, ADDR) (H5F_addr_le((F)->shared->tmp_addr, (ADDR)))
+#define H5F_ALIGNMENT(F)   	((F)->shared->alignment)
+#define H5F_THRESHOLD(F)   	((F)->shared->threshold)
+#define H5F_FSPACE_PAGE(F)    		((F)->shared->fsp_size)
+#define H5F_PGEND_META_THRES(F)    	((F)->shared->pgend_meta_thres)
 #else /* H5F_PACKAGE */
 #define H5F_INTENT(F)           (H5F_get_intent(F))
 #define H5F_OPEN_NAME(F)        (H5F_get_open_name(F))
@@ -305,6 +326,10 @@ typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
 #define H5F_SET_GRP_BTREE_SHARED(F, RC) (H5F_set_grp_btree_shared((F), (RC)))
 #define H5F_USE_TMP_SPACE(F)    (H5F_use_tmp_space(F))
 #define H5F_IS_TMP_ADDR(F, ADDR) (H5F_is_tmp_addr((F), (ADDR)))
+#define H5F_ALIGNMENT(F)    	(H5F_get_alignment(F))
+#define H5F_THRESHOLD(F)    	(H5F_get_threshold(F))
+#define H5F_FSPACE_PAGE(F)     		(H5F_get_fsp_size(F))
+#define H5F_PGEND_META_THRES(F)     	(H5F_get_pgend_meta_thres(F))
 #endif /* H5F_PACKAGE */
 
 
@@ -379,6 +404,7 @@ typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
 #define H5F_CRT_SHMSG_BTREE_MIN_NAME "shmsg_btree_min"  /* Shared message B-tree minimum size */
 #define H5F_CRT_FILE_SPACE_STRATEGY_NAME "file_space_strategy"  /* File space handling strategy */
 #define H5F_CRT_FREE_SPACE_THRESHOLD_NAME "free_space_threshold"  /* Free space section threshold */
+#define H5F_CRT_FILE_SPACE_PAGE_SIZE_NAME "file_space_page_size"  /* File space page size */
 
 
 
@@ -435,8 +461,29 @@ typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
 
 /* Default file space handling strategy */
 #define H5F_FILE_SPACE_STRATEGY_DEF	        H5F_FILE_SPACE_ALL
+
 /* Default free space section threshold used by free-space managers */
 #define H5F_FREE_SPACE_THRESHOLD_DEF	        1
+
+/* For page fs: default file space page size when not set and when using new library format */
+#define H5F_FILE_SPACE_PAGE_SIZE      	4096    
+
+/* For page fs: drop free-space with size <= this threshold for small meta section */
+#define H5F_FILE_SPACE_PGEND_META_THRES  10    
+
+/* For page fs: flags to track the EOF file space section type */
+#define H5F_FILE_SPACE_EOF_SMALL_META	0x01
+#define H5F_FILE_SPACE_EOF_SMALL_RAW	0x02
+#define H5F_FILE_SPACE_EOF_SMALL_ALL_FLAGS  	(H5F_FILE_SPACE_EOF_SMALL_META | H5F_FILE_SPACE_EOF_SMALL_RAW)
+
+/* Default for threshold for alignment (can be set via H5Pset_alignment()) */
+#define H5F_ALIGN_DEF			1
+/* Default for alignment (can be set via H5Pset_alignment()) */
+#define H5F_ALIGN_THRHD_DEF		1
+/* Default size for meta data aggregation block (can be set via H5Pset_meta_block_size()) */
+#define H5F_META_BLOCK_SIZE_DEF		2048
+/* Default size for small data aggregation block (can be set via H5Pset_small_data_block_size()) */
+#define H5F_SDATA_BLOCK_SIZE_DEF	2048
 
 /* Macros to define signatures of all objects in the file */
 
@@ -517,6 +564,8 @@ H5_DLL hid_t H5F_get_access_plist(H5F_t *f, hbool_t app_ref);
 H5_DLL hid_t H5F_get_id(H5F_t *file, hbool_t app_ref);
 H5_DLL herr_t H5F_get_obj_count(const H5F_t *f, unsigned types, hbool_t app_ref, size_t *obj_id_count_ptr);
 H5_DLL herr_t H5F_get_obj_ids(const H5F_t *f, unsigned types, size_t max_objs, hid_t *oid_list, hbool_t app_ref, size_t *obj_id_count_ptr);
+H5_DLL hsize_t H5F_get_fsp_size(const H5F_t *f);
+H5_DLL hsize_t H5F_get_pgend_meta_thres(const H5F_t *f);
 
 /* Functions than retrieve values set/cached from the superblock/FCPL */
 H5_DLL haddr_t H5F_get_base_addr(const H5F_t *f);
@@ -545,6 +594,8 @@ H5_DLL struct H5RC_t *H5F_grp_btree_shared(const H5F_t *f);
 H5_DLL herr_t H5F_set_grp_btree_shared(H5F_t *f, struct H5RC_t *rc);
 H5_DLL hbool_t H5F_use_tmp_space(const H5F_t *f);
 H5_DLL hbool_t H5F_is_tmp_addr(const H5F_t *f, haddr_t addr);
+H5_DLL hsize_t H5F_get_alignment(const H5F_t *f);
+H5_DLL hsize_t H5F_get_threshold(const H5F_t *f);
 
 /* Functions that retrieve values from VFD layer */
 H5_DLL hid_t H5F_get_driver_id(const H5F_t *f);

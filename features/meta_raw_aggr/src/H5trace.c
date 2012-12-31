@@ -770,7 +770,7 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
                                 fprintf(out, "NULL");
                         } /* end if */
                         else {
-                            H5F_file_space_type_t fs_type = (H5F_file_space_type_t)va_arg(ap, int);
+                            H5F_fs_strategy_t fs_type = (H5F_fs_strategy_t)va_arg(ap, int);
 
                             switch(fs_type) {
                                 case H5F_FILE_SPACE_DEFAULT:
