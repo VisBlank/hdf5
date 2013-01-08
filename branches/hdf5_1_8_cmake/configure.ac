@@ -16,7 +16,7 @@
 ## ----------------------------------------------------------------------
 ## Initialize configure.
 ##
-AC_REVISION($Id: configure.ac 23123 2012-12-31 04:17:59Z hdftest $)
+AC_REVISION($Id: configure.ac 23142 2013-01-08 02:19:17Z derobins $)
 AC_PREREQ([2.69])
 
 ## AC_INIT takes the name of the package, the version number, and an
@@ -1290,6 +1290,12 @@ AC_CHECK_HEADERS([stdint.h], [C9x=yes])
 
 ## Darwin
 AC_CHECK_HEADERS([mach/mach_time.h])
+## Also need to detect Darwin for pubconf
+case $host_os in
+  darwin*)
+    AC_DEFINE([HAVE_DARWIN], [1], [Define if Darwin or Mac OS X])
+  ;;
+esac
 
 ## Windows
 case "`uname`" in
