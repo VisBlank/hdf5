@@ -677,24 +677,36 @@ H5MF_sect_small_add(H5FS_section_info_t **_sect, unsigned *flags, void *_udata)
 
     FUNC_ENTER_NOAPI_NOINIT
 
+#ifdef H5MF_ALLOC_DEBUG_MORE
+HDfprintf(stderr, "%s: Entering, section {%a, %Hu}\n", FUNC, (*sect)->sect_info.addr, (*sect)->sect_info.size);
+#endif /* H5MF_ALLOC_DEBUG_MORE */
+
     /* Do not adjust the section raw data or global heap data */
     if(udata->alloc_type == H5FD_MEM_DRAW || udata->alloc_type == H5FD_MEM_GHEAP)
 	HGOTO_DONE(ret_value);
 
     sect_end = (*sect)->sect_info.addr + (*sect)->sect_info.size;
     rem = sect_end % H5F_FSPACE_PAGE(udata->f);
+    prem = H5F_FSPACE_PAGE(udata->f) - rem;
 
-    /* section is at page end and its size is <= page end threshold */
+    /* Drop the section if it is at page end and its size is <= pgend threshold */
     if(!rem && (*sect)->sect_info.size <= H5F_PGEND_META_THRES(udata->f) && (*flags & H5FS_ADD_RETURNED_SPACE)) {
 	if(H5MF_sect_free((H5FS_section_info_t *)(*sect)) < 0)
 	    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTRELEASE, FAIL, "can't free section node")
 	*sect = NULL;
 	*flags &= ~H5FS_ADD_RETURNED_SPACE;
 	*flags |= H5FS_PAGE_END_NO_ADD;
+#ifdef H5MF_ALLOC_DEBUG_MORE
+HDfprintf(stderr, "%s: section is dropped\n", FUNC);
+#endif /* H5MF_ALLOC_DEBUG_MORE */
     }
-    /* section is not at page end but (section size + page end threshold) is at page end */
-    else if((prem = H5F_FSPACE_PAGE(udata->f) - rem) <= H5F_PGEND_META_THRES(udata->f))
+    /* Adjust the section if it is not at page end but its size + pgend threshold is at page end */
+    else if(prem <= H5F_PGEND_META_THRES(udata->f)) {
 	(*sect)->sect_info.size += prem;
+#ifdef H5MF_ALLOC_DEBUG_MORE
+HDfprintf(stderr, "%s: section is adjusted {%a, %Hu}\n", FUNC, (*sect)->sect_info.addr, (*sect)->sect_info.size);
+#endif /* H5MF_ALLOC_DEBUG_MORE */
+    }
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5MF_sect_small_add() */
@@ -840,6 +852,10 @@ H5MF_sect_small_can_merge(const H5FS_section_info_t *_sect1,
 	    ret_value = FALSE;
     }
 
+#ifdef H5MF_ALLOC_DEBUG_MORE
+HDfprintf(stderr, "%s: Leaving: ret_value = %t\n", FUNC, ret_value);
+#endif /* H5MF_ALLOC_DEBUG_MORE */
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5MF_sect_small_can_merge() */
 
@@ -921,8 +937,8 @@ static htri_t
 H5MF_sect_large_can_merge(const H5FS_section_info_t *_sect1,
     const H5FS_section_info_t *_sect2, void UNUSED *_udata)
 {
-    const H5MF_free_section_t *sect1 = (const H5MF_free_section_t *)_sect1;   /* File free section */
-    const H5MF_free_section_t *sect2 = (const H5MF_free_section_t *)_sect2;   /* File free section */
+    const H5MF_free_section_t *sect1 = (const H5MF_free_section_t *)_sect1;   	/* File free section */
+    const H5MF_free_section_t *sect2 = (const H5MF_free_section_t *)_sect2;   	/* File free section */
     htri_t ret_value;                   /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT_NOERR
@@ -933,11 +949,14 @@ H5MF_sect_large_can_merge(const H5FS_section_info_t *_sect1,
     HDassert(sect1->sect_info.type == sect2->sect_info.type);   /* Checks "MERGE_SYM" flag */
     HDassert(H5F_addr_lt(sect1->sect_info.addr, sect2->sect_info.addr));
 
-    /* Check if second section adjoins first section */
     ret_value = H5F_addr_eq(sect1->sect_info.addr + sect1->sect_info.size, sect2->sect_info.addr);
 
+#ifdef H5MF_ALLOC_DEBUG_MORE
+HDfprintf(stderr, "%s: Leaving: ret_value = %t\n", FUNC, ret_value);
+#endif /* H5MF_ALLOC_DEBUG_MORE */
+
     FUNC_LEAVE_NOAPI(ret_value)
-} /* H5MF_sect_simple_can_merge() */
+} /* H5MF_sect_large_can_merge() */
 
 
 /*-------------------------------------------------------------------------

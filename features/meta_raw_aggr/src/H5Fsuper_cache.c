@@ -605,8 +605,10 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, void *_udata)
 		    HGOTO_ERROR(H5E_FILE, H5E_CANTSET, NULL, "unable to set file space page size")
 	    } /* end if */
 
-	    if(shared->last_small != fsinfo.last_small)
+	    if(shared->last_small != fsinfo.last_small) {
 		shared->last_small = fsinfo.last_small;
+		shared->track_last_small = fsinfo.last_small;
+	    }
 
 	    if(shared->pgend_meta_thres != fsinfo.pgend_meta_thres)
 		shared->pgend_meta_thres = fsinfo.pgend_meta_thres;

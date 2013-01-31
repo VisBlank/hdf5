@@ -2405,23 +2405,17 @@ HDfprintf(stderr, "%s: sect->size = %Hu, sect->addr = %a, sect->type = %u\n", "H
 /*-------------------------------------------------------------------------
  * Function:	H5FS_sect_try_shrink_eoa
  *
- * Purpose:	To shrink a section on the merge list if the section is at EOF--
- *		"addr" is NULL: try to shrink the last section on the merge list
- *		"addr" is nonNUll: try to shrink the section with "addr"
+ * Purpose:	To shrink the last section on the merge list if it is at EOF
  *
  * Return:      Success:        non-negative (TRUE/FALSE)
  *              Failure:        negative
  *
  * Programmer:	Vailin Choi
  *
- * Modifications:
- *	Vailin Choi; Dec 2012
- *	Modifications due to "page" file space management--
- *	shrink the last section or the specified section if the section is at EOF.
  *-------------------------------------------------------------------------
  */
 htri_t
-H5FS_sect_try_shrink_eoa(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace, void *op_data, haddr_t *addr)
+H5FS_sect_try_shrink_eoa(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace, void *op_data)
 {
     hbool_t sinfo_valid = FALSE;        /* Whether the section info is valid */
     hbool_t section_removed = FALSE;    /* Whether a section was removed */
@@ -2439,18 +2433,13 @@ H5FS_sect_try_shrink_eoa(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace, void *op_data,
     if(fspace->sinfo && fspace->sinfo->merge_list) {
 	H5FS_section_info_t *sect = NULL;
 	H5FS_section_class_t *sect_cls;		/* section's class */
+	H5SL_node_t *last_node;         	/* Last node in merge list */
 
-        if(addr != NULL)
-            sect = (H5FS_section_info_t *)H5SL_search(fspace->sinfo->merge_list, addr);
-	else {
-	    H5SL_node_t *last_node;         	/* Last node in merge list */
+	/* Check for last node in the merge list */
+	if(NULL != (last_node = H5SL_last(fspace->sinfo->merge_list)))
+	    /* Get the pointer to the last section, from the last node */
+	    sect = (H5FS_section_info_t *)H5SL_item(last_node);
 
-	    /* Check for last node in the merge list */
-	    if(NULL != (last_node = H5SL_last(fspace->sinfo->merge_list))) {
-		/* Get the pointer to the last section, from the last node */
-		sect = (H5FS_section_info_t *)H5SL_item(last_node);
-	    }
-	}
 	if(!sect) HGOTO_DONE(FALSE);
 
 	HDassert(sect);
@@ -2498,30 +2487,45 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5FS_sect_query_last(const H5FS_t *fspace, haddr_t *sect_addr, hsize_t *sect_size)
+H5FS_sect_query_last(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace, haddr_t *sect_addr, hsize_t *sect_size)
 {
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    hbool_t sinfo_valid = FALSE;                /* Whether the section info is valid */
+    herr_t ret_value = SUCCEED;                 /* Return value */
+
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* Check arguments. */
     HDassert(fspace);
 
-    if(fspace->sinfo && fspace->sinfo->merge_list) {
-	H5FS_section_info_t *sect = NULL;
-	H5SL_node_t *last_node;             /* Last node in merge list */
+    if(fspace->tot_sect_count) {
+	/* Get a pointer to the section info */
+        if(H5FS_sinfo_lock(f, dxpl_id, fspace, H5AC_READ) < 0)
+            HGOTO_ERROR(H5E_FSPACE, H5E_CANTGET, FAIL, "can't get section info")
+        sinfo_valid = TRUE;
 
-	/* Check for last node in the merge list */
-	if(NULL != (last_node = H5SL_last(fspace->sinfo->merge_list))) {
-	    /* Get the pointer to the last section, from the last node */
-	    sect = (H5FS_section_info_t *)H5SL_item(last_node);
-	}
+	if(fspace->sinfo && fspace->sinfo->merge_list) {
+	    H5FS_section_info_t *sect = NULL;
+	    H5SL_node_t *last_node;             /* Last node in merge list */
 
-	if(sect) {
-	    if(sect_addr)
-                *sect_addr = sect->addr;
-	    if(sect_size)
-                *sect_size = sect->size;
-	}
-    } /* end if */
+	    /* Check for last node in the merge list */
+	    if(NULL != (last_node = H5SL_last(fspace->sinfo->merge_list))) {
+		/* Get the pointer to the last section, from the last node */
+		sect = (H5FS_section_info_t *)H5SL_item(last_node);
+	    }
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+	    if(sect) {
+		if(sect_addr)
+		    *sect_addr = sect->addr;
+		if(sect_size)
+		    *sect_size = sect->size;
+	    }
+	} /* end if */
+    }
+
+done:
+    /* Release the section info */
+    if(sinfo_valid && H5FS_sinfo_unlock(f, dxpl_id, fspace, FALSE) < 0)
+        HDONE_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't release section info")
+
+    FUNC_LEAVE_NOAPI(ret_value)
 } /* H5FS_sect_query_last() */

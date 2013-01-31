@@ -102,9 +102,9 @@ H5MF_aggr_vfd_alloc(H5F_t *f, H5FD_mem_t alloc_type, hid_t dxpl_id, hsize_t size
     haddr_t	ret_value;              /* Return value */
 
     FUNC_ENTER_NOAPI(HADDR_UNDEF)
-#ifdef H5MF_ALLOC_DEBUG
+#ifdef H5MF_AGGR_DEBUG
 HDfprintf(stderr, "%s: alloc_type = %u, size = %Hu\n", FUNC, (unsigned)alloc_type, size);
-#endif /* H5MF_ALLOC_DEBUG */
+#endif /* H5MF_AGGR_DEBUG */
 
     /* check arguments */
     HDassert(f);
@@ -128,12 +128,9 @@ HDfprintf(stderr, "%s: alloc_type = %u, size = %Hu\n", FUNC, (unsigned)alloc_typ
     HDassert(H5F_addr_le((ret_value + size), f->shared->tmp_addr));
 
 done:
-#ifdef H5MF_ALLOC_DEBUG
+#ifdef H5MF_AGGR_DEBUG
 HDfprintf(stderr, "%s: Leaving: ret_value = %a, size = %Hu\n", FUNC, ret_value, size);
-#endif /* H5MF_ALLOC_DEBUG */
-#ifdef H5MF_ALLOC_DEBUG_DUMP
-H5MF_sects_dump(f, dxpl_id, stderr);
-#endif /* H5MF_ALLOC_DEBUG_DUMP */
+#endif /* H5MF_AGGR_DEBUG */
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5MF_aggr_vfd_alloc() */
@@ -362,6 +359,9 @@ H5MF_vfd_alloc(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, hsize_t size)
     haddr_t 	ret_value;              /* Return value */
 
     FUNC_ENTER_NOAPI(HADDR_UNDEF)
+#ifdef H5MF_AGGR_DEBUG
+HDfprintf(stderr, "%s: type = %u, size = %Hu\n", FUNC, (unsigned)type, size);
+#endif /* H5MF_AGGR_DEBUG */
 
     HDassert(f);
     HDassert(type >= H5FD_MEM_DEFAULT && type < H5FD_MEM_NTYPES);
@@ -386,9 +386,9 @@ H5MF_vfd_alloc(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, hsize_t size)
 	    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTFREE, HADDR_UNDEF, "can't free eoa fragment")
 
 done:
-#ifdef H5MF_ALLOC_DEBUG_MORE
+#ifdef H5MF_AGGR_DEBUG
 HDfprintf(stderr, "%s: ret_value = %a\n", FUNC, ret_value);
-#endif /* H5MF_ALLOC_DEBUG_MORE */
+#endif /* H5MF_AGGR_DEBUG */
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5MF_vfd_alloc() */
 

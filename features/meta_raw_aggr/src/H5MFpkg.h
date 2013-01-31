@@ -103,6 +103,11 @@
 #define H5MF_PAGE_TO_ALLOC_TYPE(PT)                                           	\
 ( (PT == H5F_MEM_PAGE_META) ? H5FD_MEM_SUPER : ((PT == H5F_MEM_PAGE_RAW) ? H5FD_MEM_DRAW : H5FD_MEM_DEFAULT) )
 
+#define H5MF_EOA_MISALIGN(F, E, M, FR)						\
+    if(H5F_addr_gt(E, 0) && (M = (E + H5F_BASE_ADDR(F)) % H5F_FSPACE_PAGE(F)))	\
+        FR = H5F_FSPACE_PAGE(F) - M;
+
+
 /****************************/
 /* Package Private Typedefs */
 /****************************/
@@ -201,24 +206,18 @@ H5_DLLVAR H5FS_section_class_t H5MF_FSPACE_SECT_CLS_LARGE[1];
 /* Package Private Prototypes */
 /******************************/
 
-/* Allocator routines */
+/* Allocator routines -- for the specified free-space manager */
 H5_DLL herr_t H5MF_open_thefs(H5F_t *f, hid_t dxpl_id, H5MF_fs_t *thefs);
 H5_DLL herr_t H5MF_start_thefs(H5F_t *f, hid_t dxpl_id, H5MF_fs_t *thefs);
 H5_DLL herr_t H5MF_sects_dump(H5F_t *f, hid_t dxpl_id, FILE *stream);
-
-/* Set up the specific free-space manager to use */
 H5_DLL void H5MF_setup_thefs(H5F_t *f, H5FD_mem_t alloc_type, hsize_t size, H5MF_fs_t *thefs);
+H5_DLL herr_t H5MF_sect_add_thefs(H5F_t *f, H5FD_mem_t alloc_type, hid_t dxpl_id, H5MF_fs_t *thefs, H5MF_free_section_t *node);
+H5_DLL htri_t H5MF_sect_find_thefs(H5F_t *f, H5FD_mem_t alloc_type, hid_t dxpl_id, hsize_t size, H5MF_fs_t *thefs, haddr_t *addr);
 
-/* Create a 'simple/small/large' section */
+/* 'simple/small/large' section routines */
 H5_DLL H5MF_free_section_t *H5MF_sect_new(unsigned ctype, haddr_t sect_off,
     hsize_t sect_size);
-
-/* Free a 'simple/small/large' section */
 H5_DLL herr_t H5MF_sect_free(H5FS_section_info_t *sect);
-
-/* 'simple' section routines */
-
-/* 'large' section routines */
 
 /* Block aggregator routines */
 H5_DLL htri_t H5MF_aggr_try_extend(H5F_t *f, H5F_blk_aggr_t *aggr,

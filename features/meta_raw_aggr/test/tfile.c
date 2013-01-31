@@ -13,8 +13,6 @@
  * access to either file, you may request a copy from help@hdfgroup.org.     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/* NOTE--STILL NEEDS WORK ON THIS FILE */
-
 /***********************************************************
 *
 * Test program:	 tfile
@@ -130,6 +128,7 @@ const char *FILENAME[] = {
     "stdio_tfile",
     "core_tfile",
     "family_tfile",
+    "fsp_tfile",
     NULL
 };
 
@@ -1349,7 +1348,7 @@ test_file_perm2(void)
 **	(A change due to H5FD_FLMAP_DICHOTOMY.)
 **
 **	Vailin Choi; Dec 2012
-**	Add changes due to file space page size setting for new format and 
+**	Add changes due to file space paging via new format:
 **	the amount of freespace is different.
 **
 *****************************************************************/
@@ -2654,8 +2653,18 @@ test_userblock_alignment(void)
     CHECK(ret, FAIL, "H5Pclose");
 } /* end test_userblock_alignment() */
 
+/****************************************************************
+**
+**  test_userblock_alignment_fsp(): low-level file test routine.
+**      This test checks to ensure that files with both a userblock and
+**      alignment set (via H5Pset_file_space_page_size or latest format) 
+**	interact properly.
+**
+**  Programmer: Vailin Choi; Jan 2013
+**
+*****************************************************************/
 static void
-test_userblock_alignment_new(void)
+test_userblock_alignment_fsp(void)
 {
     hid_t fid;          /* File ID */
     hid_t fcpl;         /* File creation property list ID */
@@ -2663,7 +2672,7 @@ test_userblock_alignment_new(void)
     herr_t ret;         /* Generic return value */
 
     /* Output message about test being performed */
-    MESSAGE(5, ("Testing that non-zero userblocks and object alignment interact correctly.\n"));
+    MESSAGE(5, ("Testing that non-zero userblocks and alignment (file space paging) interact correctly.\n"));
 
     /* Case 1:
      *  Userblock size = 0, fsp_size != 0
@@ -2680,7 +2689,7 @@ test_userblock_alignment_new(void)
     fapl = H5Pcreate(H5P_FILE_ACCESS);
     CHECK(fapl, FAIL, "H5Pcreate");
 
-    /* Set the "use the latest version of the format" bounds */
+    /* Set the "use the latest version of the format" bounds which will set fsp_size */
     ret = H5Pset_libver_bounds(fapl, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST);
     CHECK(ret, FAIL, "H5Pset_libver_bounds");
 
@@ -2832,7 +2841,7 @@ test_userblock_alignment_new(void)
      *  File re-opened with:
      *          Userblock size = 512, alignment = 1024
      * Outcome:
-     *  Should fail--cannot set alignment when fsp_size is set
+     *  H5Fopen should fail--cannot set alignment when fsp_size is set
      */
     /* Create file creation property list with user block */
     fcpl = H5Pcreate(H5P_FILE_CREATE);
@@ -2866,7 +2875,7 @@ test_userblock_alignment_new(void)
     ret = H5Pclose(fapl);
     CHECK(ret, FAIL, "H5Pclose");
 
-} /* end test_userblock_alignment() */
+} /* end test_userblock_alignment_fsp() */
 
 /****************************************************************
 **
@@ -2874,6 +2883,10 @@ test_userblock_alignment_new(void)
 **      This routine does the actual work of checking information for
 **	free space sections available in a file in various situations.
 **
+** Modifications:
+**	Vailin Choi; Jan 2013
+**	Add the creation of a large dataset and test for free space
+**	when file space paging is enabled via new library format.
 *****************************************************************/
 static void
 test_free_sections(hid_t fapl, char *fname)
@@ -2893,6 +2906,8 @@ test_free_sections(hid_t fapl, char *fname)
     hsize_t  last_size;        	/* size of last free-space section */
     H5F_sect_info_t *sect_info;	/* array to hold the free-space information */
     H5F_sect_info_t *saved_sect_info;	/* array to hold the free-space information */
+    H5F_libver_t low, high;             /* File format bounds */
+    hsize_t  dims[1];
     herr_t   ret;		/* return value */
 
     /* Create file-creation template */
@@ -2907,10 +2922,6 @@ test_free_sections(hid_t fapl, char *fname)
     file = H5Fcreate(fname, H5F_ACC_TRUNC, fcpl, fapl);
     CHECK(file, FAIL, "H5Fcreate");
 
-    /* Create dataspace for datasets */
-    dspace = H5Screate(H5S_SCALAR);
-    CHECK(dspace, FAIL, "H5Screate");
-
     /* Create a dataset creation property list */
     dcpl = H5Pcreate(H5P_DATASET_CREATE);
     CHECK(dcpl, FAIL, "H5Pcreate");
@@ -2918,6 +2929,24 @@ test_free_sections(hid_t fapl, char *fname)
     /* Set the space allocation time to early */
     ret = H5Pset_alloc_time(dcpl, H5D_ALLOC_TIME_EARLY);
     CHECK(ret, FAIL, "H5Pset_alloc_time");
+
+    /* Create 1 large dataset */
+    dims[0] = 1200;
+    dspace = H5Screate_simple(1, dims, NULL);
+    dset = H5Dcreate2(file, "Dataset_large", H5T_STD_U32LE, dspace, H5P_DEFAULT, dcpl, H5P_DEFAULT);
+    CHECK(dset, FAIL, "H5Dcreate2");
+
+    /* Close dataset */
+    ret = H5Dclose(dset);
+    CHECK(ret, FAIL, "H5Dclose");
+
+    /* Close dataspace */
+    ret = H5Sclose(dspace);
+    CHECK(ret, FAIL, "H5Sclose");
+
+    /* Create dataspace for datasets */
+    dspace = H5Screate(H5S_SCALAR);
+    CHECK(dspace, FAIL, "H5Screate");
 
     /* Create datasets in file */
     for(u = 0; u < 10; u++) {
@@ -3023,9 +3052,42 @@ test_free_sections(hid_t fapl, char *fname)
     VERIFY(free_space, total, "H5Fget_free_sections");
     HDfree(sect_info);
 
-    /* Verify that there is no free-space section for this type */
-    nsects = H5Fget_free_sections(file, H5FD_MEM_BTREE, (size_t)0, NULL);
-    VERIFY(nsects, 0, "H5Fget_free_sections");
+    /* Get library format */
+    ret = H5Pget_libver_bounds(fapl, &low, &high);
+    CHECK(ret, FAIL, "H5Pget_libver_bounds");
+
+    /* For latest format: file space paging is enabled */
+    if(low == H5F_LIBVER_LATEST) {
+	hssize_t nmeta, nraw; 		/* # of small meta/raw data free-space sections */
+	H5F_sect_info_t meta[5];	/* Free-space sections for small meta data */
+	H5F_sect_info_t raw[5];		/* Free-space sections for small raw data */
+	hsize_t  subtotal=0;        	/* Sum of the free-space section sizes */
+
+	/* Retrieve the small meta data free-space sections */
+	nmeta = H5Fget_free_sections(file, H5FD_MEM_BTREE, (size_t)0, NULL);
+	VERIFY(nmeta, 5, "H5Fget_free_sections");
+	nmeta = H5Fget_free_sections(file, H5FD_MEM_BTREE, (size_t)nmeta, meta);
+
+	/* Retrieve the small raw data free-space sections */
+	nraw = H5Fget_free_sections(file, H5FD_MEM_DRAW, (size_t)0, NULL);
+	VERIFY(nraw, 5, "H5Fget_free_sections");
+	nraw = H5Fget_free_sections(file, H5FD_MEM_DRAW, (size_t)nraw, raw);
+
+	/* Sum all the free-space sections */
+	for(i = 0; i < nmeta; i++) {
+	    subtotal += meta[i].size;
+	    subtotal += raw[i].size;
+	}
+
+	/* There is 1 large "generic" free-space section of size 3392 */
+	VERIFY(nmeta+nraw, saved_nsects-1, "H5Fget_free_sections");
+	VERIFY(total-subtotal, 3392, "H5Fget_free_sections");
+
+    } else {
+	/* Verify that there is no free-space section for this type */
+	nsects = H5Fget_free_sections(file, H5FD_MEM_BTREE, (size_t)0, NULL);
+	VERIFY(nsects, 0, "H5Fget_free_sections");
+    }
 
     /* Close file */
     ret = H5Fclose(file);
@@ -3042,8 +3104,10 @@ test_free_sections(hid_t fapl, char *fname)
 **
 **  test_filespace_sects():
 **      This test checks free space section info for
-**	files created with sec2 and split drivers.
+**	files created with different drivers.
 **
+** Modifications:
+**	Add the test for checking free space section info for file space paging.
 *****************************************************************/
 static void
 test_filespace_sects(void)
@@ -3053,6 +3117,7 @@ test_filespace_sects(void)
     hid_t	fapl_core;	/* File access property id with core driver */
     hid_t	fapl_stdio;	/* File access property id with stdio driver */
     hid_t	fapl_family;	/* File access property id with family driver */
+    hid_t	new_fapl;	/* File access property id with latest library format */
     char        filename[FILENAME_LEN];	/* Filename to use */
     herr_t   	ret;		/* Return value */
 
@@ -3105,10 +3170,10 @@ test_filespace_sects(void)
     /* Set the filename to use for this test (dependent on fapl) */
     h5_fixname(FILENAME[2], fapl_stdio, filename, sizeof(filename));
 
-    /* perform free space information test for file with stdio driver */
+    /* Perform free space information test for file with stdio driver */
     test_free_sections(fapl_stdio, filename);
 
-    /* close fapl and remove the file */
+    /* Close fapl and remove the file */
     h5_cleanup(FILENAME, fapl_split);
 
     /* CORE */
@@ -3123,10 +3188,10 @@ test_filespace_sects(void)
     /* Set the filename to use for this test (dependent on fapl) */
     h5_fixname(FILENAME[3], fapl_core, filename, sizeof(filename));
 
-    /* perform free space information test for file with core driver */
+    /* Perform free space information test for file with core driver */
     test_free_sections(fapl_core, filename);
 
-    /* close fapl_ and remove the file */
+    /* Close fapl_ and remove the file */
     h5_cleanup(FILENAME, fapl_core);
 
 
@@ -3142,11 +3207,30 @@ test_filespace_sects(void)
     /* Set the filename to use for this test (dependent on fapl) */
     h5_fixname(FILENAME[4], fapl_family, filename, sizeof(filename));
 
-    /* perform free space information test for file with family driver */
+    /* Perform free space information test for file with family driver */
     test_free_sections(fapl_family, filename);
 
-    /* close fapl and remove the file */
+    /* Close fapl and remove the file */
     h5_cleanup(FILENAME, fapl_family);
+
+    /* File space paging */
+    MESSAGE(5, ("Testing File free space information with file space paging\n"));
+
+    new_fapl = H5Pcreate(H5P_FILE_ACCESS);
+    CHECK(new_fapl, FAIL, "h5_fileaccess");
+
+    /* Set the "use the latest version of the format" bounds which will enable file space pagin */
+    ret = H5Pset_libver_bounds(new_fapl, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST);
+    CHECK(ret, FAIL, "H5Pset_libver_bounds");
+
+    /* Set the filename to use for this test (dependent on fapl) */
+    h5_fixname(FILENAME[5], new_fapl, filename, sizeof(filename));
+
+    /* Perform free space information test for file with latest library format */
+    test_free_sections(new_fapl, filename);
+
+    /* close fapl and remove the file */
+    h5_cleanup(FILENAME, new_fapl);
 
 } /* end test_filespace_sects() */
 
@@ -3158,9 +3242,10 @@ test_filespace_sects(void)
 **	section threshold as specified.
 **
 **  Modifications:
-**	When using new format, new file space management is active,
+**	When using new format, the new file space management is enabled
 **	(file space block size is set), the Aggregator VFD strategy 
 **	is not appropriate and error is expected from H5Fcreate().
+**
 ****************************************************************/
 static void
 test_filespace_strategy(void)
@@ -3413,6 +3498,8 @@ test_filespace_compatible(void)
 **	    Create the file, reopen the file, should get the library default value
 **	(C) When file space page size is set via H5Pset_space_page_size and via latest library format:
 **	    Create the file, reopen the file, should get the specified value set via H5Pset_file_space_page_size
+**	(D) When file space page size is not set -- the file is created with H5P_DEFAULT for fcpl & fapl:
+**	    Create the file, reopen the file with latest library format for fcpl, f->shared->fsp_size should be 0 
 **
 ****************************************************************/
 static void
@@ -3567,6 +3654,41 @@ test_filespace_page_size(void)
 
     /* Check file space page size */
     VERIFY(f->shared->fsp_size, H5F_FILE_SPACE_PAGE_SIZE*2, "File space page size");
+
+    /* Close the file */
+    ret = H5Fclose(fid);
+    CHECK(ret, FAIL, "H5Fclose");
+
+    /*
+     * 	Test case (D) 
+     * 	Create the file with H5P_DEFAULT for fcpl and fapl
+     *  Re-open the file with latest library format
+     *  Verify that file space page size is not set
+     */
+    fid = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    CHECK(fid, FAIL, "H5Fcreate");
+
+    /* Get internal file pointer */
+    f = (H5F_t *)H5I_object(fid);
+    CHECK(f, NULL, "H5I_object");
+
+    /* Check file space page size */
+    VERIFY(f->shared->fsp_size, 0, "File space page size");
+
+    /* Close the file */
+    ret = H5Fclose(fid);
+    CHECK(ret, FAIL, "H5Fclose");
+
+    /* Reopen the file */
+    fid = H5Fopen(filename, H5F_ACC_RDWR, new_fapl);
+    CHECK(fid, FAIL, "H5Fopen");
+
+    /* Get internal file pointer */
+    f = (H5F_t *)H5I_object(fid);
+    CHECK(f, NULL, "H5I_object");
+
+    /* Check file space page size */
+    VERIFY(f->shared->fsp_size, 0, "File space page size");
 
     /* Close the file */
     ret = H5Fclose(fid);
@@ -4199,7 +4321,6 @@ test_file(void)
     test_get_file_id();         /* Test H5Iget_file_id */
     test_file_perm();           /* Test file access permissions */
     test_file_perm2();          /* Test file access permission again */
-    test_file_freespace();      /* Test file public routine H5Fget_freespace() */
     test_file_ishdf5();         /* Test detecting HDF5 files correctly */
     test_file_open_dot();       /* Test opening objects with "." for a name */
 #ifndef H5_CANNOT_OPEN_TWICE
@@ -4215,8 +4336,9 @@ test_file(void)
     test_userblock_file_size(); /* Tests that files created with a userblock have the correct size */
     test_cached_stab_info();    /* Tests that files are created with cached stab info in the superblock */
     test_rw_noupdate();         /* Test to ensure that RW permissions don't write the file unless dirtied */
-    test_userblock_alignment(); /* Tests that files created with a userblock and alignment interact properly */
-    test_userblock_alignment_new(); /* Tests that files created with a userblock and alignment interact properly */
+    test_userblock_alignment(); 	/* Tests that files created with a userblock and alignment interact properly */
+    test_userblock_alignment_fsp(); 	/* Tests that files created with a userblock and alignment (file space page size) interact properly */
+    test_file_freespace();      /* Test file public routine H5Fget_freespace() */
     test_filespace_sects();     /* Test file free space section information */
     test_filespace_strategy();	/* Test file creation public routines:H5Pget/set_file_space_strategy */
     test_filespace_compatible();/* Test compatibility for file space management */
