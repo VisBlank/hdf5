@@ -1,4 +1,4 @@
-HDF5 version 1.8.11-snap7 currently under development
+HDF5 version 1.8.11-snap8 currently under development
 ================================================================================
 
 INTRODUCTION
@@ -57,7 +57,9 @@ New Features
 
     Configuration
     -------------
-    - None
+    - A new tool, cmakehdf5, which is a build command script similar to
+      buildhdf5 is added and is available in the bin directory.
+      (AKC - 2013/01/16)
     
     Library
     -------
