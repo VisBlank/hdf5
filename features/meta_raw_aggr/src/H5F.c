@@ -914,8 +914,7 @@ H5F_new(H5F_file_t *shared, hid_t fcpl_id, hid_t fapl_id, H5FD_t *lf)
 	}
 
 	/* Initialization for "page" file space management */
-	f->shared->last_small = 0;
-	f->shared->track_last_small = 0;
+	f->shared->last_small = f->shared->track_last_small = 0;
 	f->shared->pgend_meta_thres = H5F_FILE_SPACE_PGEND_META_THRES;
 
 	f->shared->accum.loc = HADDR_UNDEF;

@@ -191,9 +191,9 @@ typedef struct H5O_copy_t {
 #define H5O_DRVINFO_ID  0x0014          /* Driver info message.  */
 #define H5O_AINFO_ID    0x0015          /* Attribute info message.  */
 #define H5O_REFCOUNT_ID 0x0016          /* Reference count message.  */
-#define H5O_FSINFO_ID   0x0017          /* Free-space manager info message.  */
-#define H5O_UNKNOWN_ID  0x0018          /* Placeholder message ID for unknown message.  */
+#define H5O_UNKNOWN_ID  0x0017          /* Placeholder message ID for unknown message (same as 1.8 branch).  */
                                         /* (this should never exist in a file) */
+#define H5O_FSINFO_ID   0x0018          /* File space info message.  */
 
 
 /* Shared object message types.
@@ -599,7 +599,7 @@ typedef uint32_t H5O_refcount_t;        /* Contains # of links to object, if >1 
 typedef unsigned H5O_unknown_t;         /* Original message type ID */
 
 /*
- * Free space manager info Message.
+ * File space info Message.
  * Contains file space management info and
  * addresses of free space managers for file memory
  * (Data structure in memory)
@@ -612,8 +612,8 @@ typedef unsigned H5O_unknown_t;         /* Original message type ID */
 
 typedef struct H5O_fsinfo_t {
     unsigned 	     	version;		/* Version of message */
-    unsigned char	last_small;		/* For page fs: allocation at EOF is a small (< fsp_size) meta or raw section */
-    size_t		pgend_meta_thres;	/* For page fs: do not track small meta sections below this threshold */
+    unsigned char	last_small;		/* For file space paging: allocation at EOF is a small (< fsp_size) meta or raw section */
+    size_t		pgend_meta_thres;	/* For file space paging: do not track small meta sections below this threshold */
     H5F_fs_strategy_t 	strategy;	/* File space strategy */
     hsize_t	  	threshold;	/* Free space section threshold */
     hsize_t	  	fsp_size;	/* File space page size */
@@ -741,6 +741,7 @@ H5_DLL void* H5O_msg_decode(H5F_t *f, hid_t dxpl_id, H5O_t *open_oh,
 H5_DLL herr_t H5O_msg_delete(H5F_t *f, hid_t dxpl_id, H5O_t *open_oh,
     unsigned type_id, void *mesg);
 H5_DLL int H5O_msg_get_chunkno(const H5O_loc_t *loc, unsigned type_id, hid_t dxpl_id);
+H5_DLL uint8_t H5O_msg_get_flags(const H5O_loc_t *loc, unsigned type_id, hid_t dxpl_id);
 H5_DLL herr_t H5O_msg_lock(const H5O_loc_t *loc, unsigned type_id, hid_t dxpl_id);
 H5_DLL herr_t H5O_msg_unlock(const H5O_loc_t *loc, unsigned type_id, hid_t dxpl_id);
 

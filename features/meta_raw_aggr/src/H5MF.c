@@ -1404,6 +1404,9 @@ HDfprintf(stderr, "%s: Leaving\n", FUNC);
  *      modifications are needed to shrink EOA if the last section of each free-space manager
  *      and the remaining space in the two aggregators are at EOA.
  *
+ *	Vailin Choi; Feb 2013
+ *	Write the file space info message with "mark if unknown" flag in the
+ *	superblock extension.
  *-------------------------------------------------------------------------
  */
 static herr_t
@@ -1436,10 +1439,10 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
     /* Making free-space managers persistent for superblock version >= 2 */
     if(f->shared->sblock->super_vers >= HDF5_SUPERBLOCK_VERSION_2
             && f->shared->fs_strategy == H5F_FILE_SPACE_ALL_PERSIST) {
-        H5O_fsinfo_t fsinfo;		/* Free space manager info message */
+        H5O_fsinfo_t fsinfo;		/* File space info message */
         hbool_t update = FALSE;		/* To update info for the message */
 
-        /* Check to remove free-space manager info message from superblock extension */
+        /* Check to remove file space info message from superblock extension */
         if(H5F_addr_defined(f->shared->sblock->ext_addr))
             if(H5F_super_ext_remove_msg(f, dxpl_id, H5O_FSINFO_ID) < 0)
                 HGOTO_ERROR(H5E_RESOURCE, H5E_CANTRELEASE, FAIL, "error in removing message from superblock extension")
@@ -1456,7 +1459,7 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
 	    fsinfo.fs_addr.aggr[type-1] = HADDR_UNDEF;
 	} /* end for */
 
-	/* Set up free-space manager info message */
+	/* Set up file space info message */
 	fsinfo.version = H5O_FSINFO_VERSION_1;
 	fsinfo.strategy = f->shared->fs_strategy;
 	fsinfo.threshold = f->shared->fs_threshold;
@@ -1466,9 +1469,9 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
 	HDassert(!f->shared->track_last_small);
 	fsinfo.last_small = f->shared->track_last_small;
 
-	/* Write free-space manager info message to superblock extension object header */
+	/* Write file space info message to superblock extension object header */
 	/* Create the superblock extension object header in advance if needed */
-	if(H5F_super_ext_write_msg(f, dxpl_id, &fsinfo, H5O_FSINFO_ID, TRUE) < 0)
+	if(H5F_super_ext_write_msg(f, dxpl_id, &fsinfo, H5O_FSINFO_ID, H5O_MSG_FLAG_DONTSHARE|H5O_MSG_FLAG_MARK_IF_UNKNOWN, TRUE) < 0)
 	    HGOTO_ERROR(H5E_RESOURCE, H5E_WRITEERROR, FAIL, "error in writing message to superblock extension")
 
 	/* Re-allocate free-space manager header and/or section info header */
@@ -1480,9 +1483,9 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
 		HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't re-allocate the free space manager")
 	} /* end for */
 
-	/* Update the free space manager info message in superblock extension object header */
+	/* Update the file space info message in superblock extension object header */
 	if(update)
-            if(H5F_super_ext_write_msg(f, dxpl_id, &fsinfo, H5O_FSINFO_ID, FALSE) < 0)
+            if(H5F_super_ext_write_msg(f, dxpl_id, &fsinfo, H5O_FSINFO_ID, H5O_MSG_FLAG_DONTSHARE|H5O_MSG_FLAG_MARK_IF_UNKNOWN, FALSE) < 0)
 	        HGOTO_ERROR(H5E_RESOURCE, H5E_WRITEERROR, FAIL, "error in writing message to superblock extension")
 
 	/* Trying shrinking the EOA for the file */
@@ -1545,11 +1548,16 @@ HDfprintf(stderr, "%s: Leaving\n", FUNC);
 /*-------------------------------------------------------------------------
  * Function:    H5MF_close_pagefs
  *
- * Purpose:     Close the free space tracker(s) for a file: "pagefs"
+ * Purpose:     Close the free space tracker(s) for a file: page fs
  *
  * Return:	SUCCEED/FAIL
  *
  * Programmer:  Vailin Choi; Dec 2012
+ *
+ * Modifications:
+ *	Vailin Choi; Feb 2013
+ *	Write the file space info message with "mark if unknown" flag in the
+ *	superblock extension.
  *
  *-------------------------------------------------------------------------
  */
@@ -1558,7 +1566,7 @@ H5MF_close_pagefs(H5F_t *f, hid_t dxpl_id)
 {
     H5F_mem_page_t type; 	/* Memory type for iteration */
     H5MF_fs_t thefs;		/* The specified free-space manager */
-    H5O_fsinfo_t fsinfo;	/* Free space manager info message */
+    H5O_fsinfo_t fsinfo;	/* File space info message */
     herr_t ret_value = SUCCEED;	/* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
@@ -1578,7 +1586,7 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
     if(H5MF_close_shrink_eoa(f, dxpl_id) < 0)
         HGOTO_ERROR(H5E_RESOURCE, H5E_CANTSHRINK, FAIL, "can't shrink eoa")
 
-    /* Set up free-space manager info message */
+    /* Set up file space info message */
     fsinfo.version = H5O_FSINFO_VERSION_2;
     fsinfo.strategy = f->shared->fs_strategy;
     fsinfo.threshold = f->shared->fs_threshold;
@@ -1592,7 +1600,7 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
     if(f->shared->fs_strategy == H5F_FILE_SPACE_ALL_PERSIST) {
         hbool_t update = FALSE;		/* To update info for the message */
 
-        /* Check to remove free-space manager info message from superblock extension */
+        /* Check to remove file space info message from superblock extension */
         if(H5F_addr_defined(f->shared->sblock->ext_addr))
             if(H5F_super_ext_remove_msg(f, dxpl_id, H5O_FSINFO_ID) < 0)
                 HGOTO_ERROR(H5E_RESOURCE, H5E_CANTRELEASE, FAIL, "error in removing message from superblock extension")
@@ -1609,9 +1617,9 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
 
 	} /* end for */
 
-	/* Write free-space manager info message to superblock extension object header */
+	/* Write file space info message to superblock extension object header */
 	/* Create the superblock extension object header in advance if needed */
-	if(H5F_super_ext_write_msg(f, dxpl_id, &fsinfo, H5O_FSINFO_ID, TRUE) < 0)
+	if(H5F_super_ext_write_msg(f, dxpl_id, &fsinfo, H5O_FSINFO_ID, H5O_MSG_FLAG_DONTSHARE|H5O_MSG_FLAG_MARK_IF_UNKNOWN, TRUE) < 0)
 	    HGOTO_ERROR(H5E_RESOURCE, H5E_WRITEERROR, FAIL, "error in writing message to superblock extension")
 
 	/* Trying shrinking the EOA for the file */
@@ -1629,10 +1637,10 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
 	} /* end for */
 
 
-	/* Update the free-space manager info message in superblock extension object header */
+	/* Update the file space info message in superblock extension object header */
 	if(update) {
 	    fsinfo.last_small = f->shared->track_last_small;
-            if(H5F_super_ext_write_msg(f, dxpl_id, &fsinfo, H5O_FSINFO_ID, FALSE) < 0)
+            if(H5F_super_ext_write_msg(f, dxpl_id, &fsinfo, H5O_FSINFO_ID, H5O_MSG_FLAG_DONTSHARE|H5O_MSG_FLAG_MARK_IF_UNKNOWN, FALSE) < 0)
 	        HGOTO_ERROR(H5E_RESOURCE, H5E_WRITEERROR, FAIL, "error in writing message to superblock extension")
 	}
 
@@ -1670,9 +1678,9 @@ HDfprintf(stderr, "%s: Check 2.0 - type = %u, *thefs.fs_man = %p, *thefs.fs_addr
 
 	} /* end for */
 
-	/* Write free-space manager info message to superblock extension object header */
+	/* Write file space info message to superblock extension object header */
 	/* Create the superblock extension object header in advance if needed */
-	if(H5F_super_ext_write_msg(f, dxpl_id, &fsinfo, H5O_FSINFO_ID, FALSE) < 0)
+	if(H5F_super_ext_write_msg(f, dxpl_id, &fsinfo, H5O_FSINFO_ID, H5O_MSG_FLAG_DONTSHARE|H5O_MSG_FLAG_MARK_IF_UNKNOWN, FALSE) < 0)
 	    HGOTO_ERROR(H5E_RESOURCE, H5E_WRITEERROR, FAIL, "error in writing message to superblock extension")
 
     } /* end else */

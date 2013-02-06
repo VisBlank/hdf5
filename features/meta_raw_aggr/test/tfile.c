@@ -113,10 +113,22 @@
 /* Declaration for test_libver_macros2() */
 #define FILE6			"tfile6.h5"	/* Test file */
 
-const char *OLD_FILENAME[] = {  /* Files created under 1.6 branch and 1.8 branch */
+/* Files created under 1.6 branch and 1.8 branch--used in test_filespace_compatible() */
+const char *OLD_FILENAME[] = {  
     "filespace_1_6.h5",	/* 1.6 HDF5 file */
     "filespace_1_8.h5"	/* 1.8 HDF5 file */
 };
+
+/* Files used in test_filespace_round_compatible() */
+const char *FSPACE_FILENAMES[] = { 
+    "fsp_fspace_persist.h5", 	/* H5F_FILE_SPACE_ALL_PERSIST, default threshold, file space paging */
+    "fsp_fspace_all.h5",	/* H5F_FILE_SPACE_ALL, default threshold, file space paging */
+    "fsp_fspace_vfd.h5", 	/* H5F_FILE_SPACE_AGGR_VFD, default threshold, non-paging */
+    "fspace_aggr_vfd.h5", 	/* H5F_FILE_SPACE_VFD, default threshold, file space paging */
+    "fspace_thres.h5" 		/* H5F_FILE_SPACE_ALL, non-default threshold, non-paging */
+};
+
+
 const char *FILESPACE_NAME[] = {
     "tfilespace",
     NULL
@@ -3370,7 +3382,7 @@ test_filespace_strategy(void)
 /****************************************************************
 **
 **  test_filespace_compatible():
-**	Verify that the branch with file space management enhancement
+**	Verify that the trunk with the latest file space management
 **	can open, read and modify 1.6 HDF5 file and 1.8 HDF5 file.
 **	Also verify the correct file space strategy/threshold in use
 **	and the amount of free space.
@@ -3380,26 +3392,26 @@ static void
 test_filespace_compatible(void)
 {
     int fd_old = (-1), fd_new = (-1);   /* File descriptors for copying data */
-    hid_t	fid;	/* File id */
-    hid_t	fcpl;	/* File creation property list template */
-    hid_t       did;	/* Dataset id */
-    int         check[100]; 	/* Temporary buffer for verifying dataset data */
-    int         rdbuf[100];	/* Temporary buffer for reading in dataset data */
+    hid_t	fid = -1;		/* File id */
+    hid_t       did = -1;		/* Dataset id */
+    hid_t	fcpl;			/* File creation property list template */
+    int         check[100]; 		/* Temporary buffer for verifying dataset data */
+    int         rdbuf[100];		/* Temporary buffer for reading in dataset data */
     uint8_t     buf[READ_OLD_BUFSIZE];	/* temporary buffer for reading */
-    ssize_t 	nread;  	/* Number of bytes read in */
-    unsigned    i, j;		/* Local index variable */
-    hssize_t	free_space;	/* Amount of free space in the file */
-    hsize_t	threshold;	/* Free space section threshold */
-    H5F_fs_strategy_t strategy;	/* File space handling strategy */
-    herr_t	ret;		/* Return value */
+    ssize_t 	nread;  		/* Number of bytes read in */
+    unsigned    i, j;			/* Local index variable */
+    hssize_t	free_space;		/* Amount of free space in the file */
+    hsize_t	threshold;		/* Free space section threshold */
+    H5F_fs_strategy_t strategy;		/* File space handling strategy */
+    herr_t	ret;			/* Return value */
 
     /* Output message about test being performed */
-    MESSAGE(5, ("Testing File space compatibility for 1.6 and 1.8 files\n"));
+    MESSAGE(5, ("File space compatibility testing for 1.6 and 1.8 files\n"));
 
     for(j = 0; j < NELMTS(OLD_FILENAME); j++) {
         const char *filename = H5_get_srcdir_filename(OLD_FILENAME[j]); /* Corrected test file name */
 
-	/* Copy old file into test file */
+	/* Open and copy the test file into a temporary file */
 	fd_old = HDopen(filename, O_RDONLY, 0666);
 	CHECK(fd_old, FAIL, "HDopen");
 	fd_new = HDopen(FILE5, O_RDWR|O_CREAT|O_TRUNC, 0666);
@@ -3415,7 +3427,7 @@ test_filespace_compatible(void)
 	ret = HDclose(fd_new);
 	CHECK(ret, FAIL, "HDclose");
 
-	/* Open the test file */
+	/* Open the temporary test file */
 	fid = H5Fopen(FILE5, H5F_ACC_RDWR, H5P_DEFAULT);
 	CHECK(fid, FAIL, "H5Fopen");
 
@@ -3425,9 +3437,10 @@ test_filespace_compatible(void)
 	VERIFY(free_space, (hssize_t)0, "H5Fget_freespace");
 
 	/* Get the file's file creation property list */
-	/* Retrieve the file space handling stretegy and threshold */
 	fcpl = H5Fget_create_plist(fid);
 	CHECK(fcpl, FAIL, "H5Fget_create_plist");
+
+	/* Retrieve the file space handling stretegy and threshold */
 	ret = H5Pget_file_space_strategy(fcpl, &strategy, &threshold);
 	CHECK(ret, FAIL, "H5Pget_file_space_strategy");
 
@@ -3480,6 +3493,87 @@ test_filespace_compatible(void)
 	CHECK(ret, FAIL, "H5Fclose");
     } /* end for */
 } /* test_filespace_compatible */
+
+/****************************************************************
+**
+**  test_filespace_round_compatible():
+**	Verify that the trunk can open, read and modify these files--
+**	  1) They are initially created (via gen_filespace.c) in the trunk 
+**	     with combinations of file space strategies, default/non-default
+**	     threshold, and file spacing paging enabled/disbled.  
+**	     The library creates the file space info message with 
+**	     "mark if unknown" in these files.
+**	  2) They are copied to the 1.8 branch, and are opened/read/modified 
+**	     there via test_filespace_compatible() in test/tfile.c. 
+**	     The 1.8 library marks the file space info message as "unknown"
+**	     in these files.
+**	  3) They are then copied back from the 1.8 branch to the trunk for
+**	     compatibility testing via this routine.
+**	  4) Upon encountering the file space info message which is marked
+**	     as "unknown", the library will use the default file space management
+**	     from then on: non-persistent free-space managers, default threshold,
+**	     and non-paging file space.
+**
+****************************************************************/
+static void
+test_filespace_round_compatible(void)
+{
+    int fd_old = (-1), fd_new = (-1);   /* File descriptors for copying data */
+    hid_t	fid = -1;		/* File id */
+    uint8_t     buf[READ_OLD_BUFSIZE];	/* Temporary buffer for reading */
+    ssize_t 	nread;  		/* Number of bytes read in */
+    unsigned    j;			/* Local index variable */
+    H5F_t 	*f = NULL;		/* Internal file pointer */
+    hssize_t	free_space;		/* Amount of free space in the file */
+    herr_t	ret;			/* Return value */
+
+    /* Output message about test being performed */
+    MESSAGE(5, ("File space compatibility testing for files from trunk to 1_8 to trunk\n"));
+
+    for(j = 0; j < NELMTS(FSPACE_FILENAMES); j++) {
+        const char *filename = H5_get_srcdir_filename(FSPACE_FILENAMES[j]);
+
+	/* Open and copy the test file into a temporary file */
+	fd_old = HDopen(filename, O_RDONLY, 0666);
+	CHECK(fd_old, FAIL, "HDopen");
+	fd_new = HDopen(FILE5, O_RDWR|O_CREAT|O_TRUNC, 0666);
+	CHECK(fd_new, FAIL, "HDopen");
+
+	/* Copy data */
+	while((nread = HDread(fd_old, buf, (size_t)READ_OLD_BUFSIZE)) > 0)
+	    HDwrite(fd_new, buf, (size_t)nread);
+
+	/* Close the files */
+	ret = HDclose(fd_old);
+	CHECK(ret, FAIL, "HDclose");
+	ret = HDclose(fd_new);
+	CHECK(ret, FAIL, "HDclose");
+
+	/* Open the temporary test file */
+	fid = H5Fopen(FILE5, H5F_ACC_RDWR, H5P_DEFAULT);
+	CHECK(fid, FAIL, "H5Fopen");
+
+	/* Get internal file pointer */
+	f = (H5F_t *)H5I_object(fid);
+
+	/* Verify file space page size -- should be disabled */
+	VERIFY(f->shared->fsp_size, (hssize_t)0, "fsp_size");
+	/* Verify file space handling strategy -- should be H5F_FILE_SPACE_ALL */
+	VERIFY(f->shared->fs_strategy, (hssize_t)2, "fs_strategy");
+	/* Verify file space threshold -- should be the default */
+	VERIFY(f->shared->fs_threshold, (hssize_t)1, "fs_threshold");
+
+	/* There should not be any free space in the file */
+	free_space = H5Fget_freespace(fid);
+	CHECK(free_space, FAIL, "H5Fget_freespace");
+	VERIFY(free_space, (hssize_t)0, "H5Fget_freespace");
+
+	/* Close the file */
+	ret = H5Fclose(fid);
+	CHECK(ret, FAIL, "H5Fclose");
+    } /* end for */
+
+} /* test_filespace_round_compatible */
 
 /****************************************************************
 **
@@ -4344,6 +4438,7 @@ test_file(void)
     test_filespace_compatible();/* Test compatibility for file space management */
     test_filespace_page_size();		/* Test file creation public routines:H5Pget/set_file_space_page_size() */
     test_filespace_page_size_err();	/* Test error return from H5Open/H5Fcreate when file space page size is set */
+    test_filespace_round_compatible(); 	/* Testing file space compatibility for files from trunk to 1_8 to trunk */
     test_libver_bounds();       /* Test compatibility for file space management */
     test_libver_macros();       /* Test the macros for library version comparison */
     test_libver_macros2();      /* Test the macros for library version comparison */

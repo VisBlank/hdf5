@@ -388,6 +388,9 @@ done:
  * Modifications:
  *	Vailin Choi; Dec 2012
  *	Changes due to "page" file space management in support of level 2 page caching
+ *
+ *	Vailin Choi; Feb 2013
+ * 	Create the "fsinfo" message with "mark if unknown" flag.
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -668,7 +671,7 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
 		    fsinfo.fs_addr.aggr[type-1] = HADDR_UNDEF;
 	    }
 
-            if(H5O_msg_create(&ext_loc, H5O_FSINFO_ID, H5O_MSG_FLAG_DONTSHARE, H5O_UPDATE_TIME, &fsinfo, dxpl_id) < 0)
+            if(H5O_msg_create(&ext_loc, H5O_FSINFO_ID, H5O_MSG_FLAG_DONTSHARE|H5O_MSG_FLAG_MARK_IF_UNKNOWN, H5O_UPDATE_TIME, &fsinfo, dxpl_id) < 0)
                 HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "unable to update free-space info header message")
 	} /* end if */
     } /* end if */
@@ -837,10 +840,13 @@ done:
  *
  * Programmer:  Vailin Choi; Feb 2009
  *
+ * Modifications:
+ *	Vailin Choi; Feb 2013
+ *	Create the message with the specified "mesg_flags".
  *-------------------------------------------------------------------------
  */
 herr_t
-H5F_super_ext_write_msg(H5F_t *f, hid_t dxpl_id, void *mesg, unsigned id, hbool_t may_create)
+H5F_super_ext_write_msg(H5F_t *f, hid_t dxpl_id, void *mesg, unsigned id, unsigned mesg_flags, hbool_t may_create)
 {
     hbool_t     ext_created = FALSE;   /* Whether superblock extension was created */
     hbool_t     ext_opened = FALSE;    /* Whether superblock extension was opened */
@@ -879,7 +885,7 @@ H5F_super_ext_write_msg(H5F_t *f, hid_t dxpl_id, void *mesg, unsigned id, hbool_
 	    HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "Message should not exist")
 
 	/* Create the message with ID in the superblock extension */
-	if(H5O_msg_create(&ext_loc, id, H5O_MSG_FLAG_DONTSHARE, H5O_UPDATE_TIME, mesg, dxpl_id) < 0)
+	if(H5O_msg_create(&ext_loc, id, mesg_flags, H5O_UPDATE_TIME, mesg, dxpl_id) < 0)
 	    HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "unable to create the message in object header")
     } /* end if */
     else {
@@ -887,7 +893,7 @@ H5F_super_ext_write_msg(H5F_t *f, hid_t dxpl_id, void *mesg, unsigned id, hbool_
 	    HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "Message should exist")
 
 	/* Update the message with ID in the superblock extension */
-	if(H5O_msg_write(&ext_loc, id, H5O_MSG_FLAG_DONTSHARE, H5O_UPDATE_TIME, mesg, dxpl_id) < 0)
+	if(H5O_msg_write(&ext_loc, id, mesg_flags, H5O_UPDATE_TIME, mesg, dxpl_id) < 0)
 	    HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "unable to write the message in object header")
     } /* end else */
 
@@ -968,4 +974,3 @@ done:
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5F_super_ext_remove_msg() */
-
