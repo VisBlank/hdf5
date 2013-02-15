@@ -79,6 +79,23 @@
 
 #define FNAME18     "h5repack_layout2.h5"
 
+/* Files for testing file space paging */
+#define NELMTS(X)               (sizeof(X)/sizeof(X[0]))        /* # of elements */
+const char *H5REPACK_FSP_FILENAMES[] = {
+    "h5repack_fsp_latest.h5",   
+    "h5repack_fsp_latest_out.h5",   
+    "h5repack_fsp_def.h5",   
+    "h5repack_fsp_def_out.h5",   
+    "h5repack_def_latest.h5",   
+    "h5repack_def_latest_out.h5",
+    "h5repack_def_def.h5",   
+    "h5repack_def_def_out.h5",
+    "h5repack_nofsp_def.h5",   
+    "h5repack_nofsp_def_out.h5",   
+    "h5repack_nofsp_latest.h5",   
+    "h5repack_nofsp_latest_out.h5"
+};
+
 #define FNAME_UB   "ublock.bin"
 
 /* obj and region references */
@@ -163,6 +180,10 @@ static int make_complex_attr_references(hid_t loc_id);
 * Programmer:  Pedro Vicente <pvn@ncsa.uiuc.edu>
 *             January, 6, 2004
 *
+* Modifications:
+*	Vailin Choi; Feb 2013
+*	Add tests for file space paging.
+*	Add tests for interaction of file space paging and existing options.
 *-------------------------------------------------------------------------
 */
 
@@ -170,7 +191,9 @@ int main (void)
 {
     pack_opt_t  pack_options;
     diff_opt_t  diff_options;
-    hsize_t  fs_size = 0;  /* free space section threshold */
+    hsize_t  fs_size = 0;  	/* Free space section threshold */
+    hbool_t  new_format;	/* Using latest library format or not */
+    unsigned j;			/* Local index variable */
     H5F_fs_strategy_t fs_type = H5F_FILE_SPACE_DEFAULT;  /* file space handling strategy */
     h5_stat_t		file_stat;
     h5_stat_size_t	fsize1, fsize2;	/* file sizes */
@@ -205,6 +228,141 @@ int main (void)
     *-------------------------------------------------------------------------
     */
 
+    /*-------------------------------------------------------------------------
+    * files with combinations of file space paging (enabled/disabled) and latest format (yes/no)
+    *-------------------------------------------------------------------------
+    */
+
+    TESTING("    h5repack 6 files with combinations of file space paging (enabled/disabled) and latest library format (yes/no):\n");
+
+    for(j = 0; j < NELMTS(H5REPACK_FSP_FILENAMES); j++) { /* the 6 filenames */
+        const char *fname = H5REPACK_FSP_FILENAMES[j];
+        const char *fname_out = H5REPACK_FSP_FILENAMES[++j];
+
+	for(new_format = FALSE; new_format <= TRUE; new_format++) { /* using latest library format */
+
+	    /* 
+	     * Settings: -P is not set, -L is set depending on "new_format"
+	     */
+	    if(h5repack_init(&pack_options, 0, fs_type, fs_size) < 0)
+		GOERROR;
+	    pack_options.latest = new_format;
+	    if(h5repack(fname, fname_out, &pack_options) < 0)
+		GOERROR;
+	    if(h5diff(fname, fname_out, NULL, NULL, &diff_options) > 0)
+		GOERROR;
+	    if(h5repack_verify(fname, fname_out, &pack_options)<=0)
+		GOERROR;
+	    if(h5repack_end(&pack_options) < 0)
+		GOERROR;
+
+	    /* 
+	     * Settings: -P 512 is set, -L is set depending on "new_format"
+	     */
+	    if(h5repack_init(&pack_options, 0, fs_type, fs_size) < 0)
+		GOERROR;
+	    pack_options.fsp_size = 512;
+	    pack_options.latest = new_format;
+	    if(h5repack(fname, fname_out, &pack_options) < 0)
+		GOERROR;
+	    if(h5diff(fname, fname_out, NULL, NULL, &diff_options) > 0)
+		GOERROR;
+	    if(h5repack_verify(fname, fname_out, &pack_options)<=0)
+		GOERROR;
+	    if(h5repack_end(&pack_options) < 0)
+		GOERROR;
+
+	    /* 
+	     * Settings: -P 0 is set, -L is set depending on "new_format"
+	     */
+	    if(h5repack_init(&pack_options, 0, fs_type, fs_size) < 0)
+		GOERROR;
+	    pack_options.fsp_size = (hsize_t) -1;	/* Set to a "specific" zero value */
+	    pack_options.latest = new_format;
+	    if(h5repack(fname, fname_out,&pack_options) < 0)
+		GOERROR;
+	    if(h5diff(fname, fname_out, NULL, NULL, &diff_options) > 0)
+		GOERROR;
+	    if(h5repack_verify(fname, fname_out, &pack_options)<=0)
+		GOERROR;
+	    if(h5repack_end(&pack_options) < 0)
+		GOERROR;
+
+	} /* end for new_format */
+	PASSED();
+    } /* end for H5REPACK_FSP_FILENAMES[] */
+
+    TESTING("    interaction of h5repack alignment/threshold/metadata block size/AGGR_VFD strategy with file space paging:\n");
+
+    for(j = 0; j < NELMTS(H5REPACK_FSP_FILENAMES); j++) { /* the 6 filenames */
+        const char *fname = H5REPACK_FSP_FILENAMES[j];
+        const char *fname_out = H5REPACK_FSP_FILENAMES[++j];
+
+	for(new_format = FALSE; new_format <= TRUE; new_format++) { /* using latest library format */
+
+	    /* 
+	     * Settings: -P is not set, -L is either on/off (depends on new_format)
+	     *		 -a 2048 -t 10
+	     * h5repack should fail when file space paging is on due to
+	     *	the input file's file space paging or -L option is set.
+	     * h5repack should succeed otherwise.
+	     */
+	    if(h5repack_init(&pack_options, 0, fs_type, fs_size) < 0)
+		GOERROR;
+	    pack_options.latest = new_format;
+	    pack_options.alignment = 2048;
+	    pack_options.threshold = 10;
+
+	    if(j < (3*2) || new_format) { /* h5repack should fail for the 1st 3 files or latest format */
+		if(h5repack(fname, fname_out, &pack_options) >= 0)
+		    GOERROR;
+	    } else { /* h5repack should succeed */
+		if(h5repack(fname, fname_out,&pack_options) < 0)
+		    GOERROR;
+		if(h5diff(fname, fname_out, NULL, NULL, &diff_options) > 0)
+		    GOERROR;
+		if(h5repack_verify(fname, fname_out, &pack_options)<=0)
+		    GOERROR;
+	    }
+	    if(h5repack_end(&pack_options) < 0)
+		GOERROR;
+
+	    /* 
+	     * Settings: -P 512 is set, -L is set depending on "new_format"
+	     *		 -M 4096
+	     * h5repack should fail because file space paging is enabled via -P.
+	     */
+	    if(h5repack_init(&pack_options, 0, fs_type, fs_size) < 0)
+		GOERROR;
+	    pack_options.fsp_size = 512;
+	    pack_options.latest = new_format;
+	    pack_options.meta_block_size = 4096;
+	    if(h5repack(fname, fname_out, &pack_options) >= 0)
+		GOERROR;
+	    if(h5repack_end(&pack_options) < 0)
+		GOERROR;
+
+	    /* 
+	     * Settings: -P 0 is set, -L is set depending on "new_format"
+	     *		 -S AGGR_VFD
+	     * h5repack should succeed because file space paging is disabled via -P 0.
+	     */
+	    if(h5repack_init(&pack_options, 0, fs_type, fs_size) < 0)
+		GOERROR;
+	    pack_options.fsp_size = (hsize_t) -1;	/* Set to a "specific" zero value */
+	    pack_options.latest = new_format;
+	    pack_options.fs_strategy = H5F_FILE_SPACE_AGGR_VFD;
+	    if(h5repack(fname, fname_out,&pack_options) < 0)
+		GOERROR;
+	    if(h5diff(fname, fname_out, NULL, NULL, &diff_options) > 0)
+		GOERROR;
+	    if(h5repack_verify(fname, fname_out, &pack_options)<=0)
+		GOERROR;
+	    if(h5repack_end(&pack_options) < 0)
+		GOERROR;
+
+	} /* end for new_format */
+    } /* end for H5REPACK_FSP_FILENAMES[] */
 
     /*-------------------------------------------------------------------------
     * file with fill values
@@ -1643,6 +1801,9 @@ static
 int make_testfiles(void)
 {
     hid_t  fid;
+    hid_t  fcpl;	/* File creation property list */
+    hid_t  fapl;	/* File access property list */
+    int	   j;		/* Local index variable */
 
     /*-------------------------------------------------------------------------
     * create a file for general copy test
@@ -1880,6 +2041,84 @@ int make_testfiles(void)
         return -1;
     if (make_complex_attr_references(fid) < 0)
         goto out;
+    if(H5Fclose(fid) < 0)
+        return -1;
+
+    /*-------------------------------------------------------------------------
+    * create 6 files with combinations of file space paging (enabled/disabled)
+    * and latest library format (yes/no).
+    *-------------------------------------------------------------------------*/
+
+    /* Create file access property list */
+    if((fapl = H5Pcreate(H5P_FILE_ACCESS)) < 0) {
+	error_msg("Could not create file access property list\n");
+	goto out;
+    } /* end if */
+
+    /* Set to use latest library format */
+    if(H5Pset_libver_bounds(fapl, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) {
+	error_msg("Could not set property for using latest version of the format\n");
+	goto out;
+    } /* end if */
+
+    /* Create file access property list */
+    if((fcpl = H5Pcreate(H5P_FILE_CREATE)) < 0) {
+	error_msg("Could not create file creation property list\n");
+	goto out;
+    } /* end if */
+
+    /* Set file space page size to 8192 */
+    if(H5Pset_file_space_page_size(fcpl, (hsize_t)8192) < 0) {
+	error_msg("Could not set file space page size\n");
+        return -1;
+    }
+
+    /* "h5repack_fsp_latest.h5"--file space paging, latest library format */
+    j = 0;
+    if((fid = H5Fcreate(H5REPACK_FSP_FILENAMES[j], H5F_ACC_TRUNC, fcpl, fapl)) < 0)
+        return -1;
+    if(H5Fclose(fid) < 0)
+        return -1;
+
+    j += 2;
+    /* "h5repack_fsp_def.h5"--file space paging */
+    if((fid = H5Fcreate(H5REPACK_FSP_FILENAMES[j], H5F_ACC_TRUNC, fcpl, H5P_DEFAULT)) < 0)
+        return -1;
+    if(H5Fclose(fid) < 0)
+        return -1;
+
+    j += 2;
+    /* "h5repack_def_latest.h5"--latest library format */
+    if((fid = H5Fcreate(H5REPACK_FSP_FILENAMES[j], H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0)
+        return -1;
+    if(H5Fclose(fid) < 0)
+        return -1;
+
+    j += 2;
+    /* "h5repack_def_def.h5" */
+    if((fid = H5Fcreate(H5REPACK_FSP_FILENAMES[j], H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) < 0)
+        return -1;
+    if(H5Fclose(fid) < 0)
+        return -1;
+
+    /* Set file space page size to 0 */
+    if(H5Pset_file_space_page_size(fcpl, (hsize_t)0) < 0) {
+	error_msg("Could not set file space page size\n");
+        return -1;
+    }
+
+    j += 2;
+    /* "h5repack_nofsp_def.h5"--disable file space paging */
+    if((fid = H5Fcreate(H5REPACK_FSP_FILENAMES[j], H5F_ACC_TRUNC, fcpl, H5P_DEFAULT)) < 0)
+        return -1;
+    if(H5Fclose(fid) < 0)
+        return -1;
+
+
+    j += 2;
+    /* "h5repack_nofsp_latest.h5"--disable file space paging, latest library format */
+    if((fid = H5Fcreate(H5REPACK_FSP_FILENAMES[j], H5F_ACC_TRUNC, fcpl, fapl)) < 0)
+        return -1;
     if(H5Fclose(fid) < 0)
         return -1;
 

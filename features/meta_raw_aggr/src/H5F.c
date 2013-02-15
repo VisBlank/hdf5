@@ -1243,6 +1243,9 @@ H5F_dest(H5F_t *f, hid_t dxpl_id, hbool_t flush)
  * Programmer:	Robb Matzke
  *		Tuesday, September 23, 1997
  *
+ * Modfications:
+ *	Vailin Choi; Feb 2013
+ *	Remove threshold check for failing H5Fopen/H5Fcreate--alignment is what matters.
  *-------------------------------------------------------------------------
  */
 H5F_t *
@@ -1430,8 +1433,6 @@ H5F_open(const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_id,
     if(shared->fsp_size) {
        	if(shared->alignment != H5F_ALIGN_DEF)
 	    HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "should not set alignment when file space block size is set")
-	if(shared->threshold != H5F_ALIGN_THRHD_DEF)
-	    HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "should not set threshold when file space block size is set")
 	if(shared->meta_aggr.alloc_size != H5F_META_BLOCK_SIZE_DEF)
 	    HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "should not set meta data data block size when file space block size is set")
 	if(shared->sdata_aggr.alloc_size != H5F_SDATA_BLOCK_SIZE_DEF)

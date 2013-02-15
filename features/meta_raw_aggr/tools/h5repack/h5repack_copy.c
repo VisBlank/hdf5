@@ -102,9 +102,10 @@ int copy_objects(const char* fnamein,
     hid_t         fidin;
     hid_t         fidout = -1;
     trav_table_t  *travt = NULL;
-    hsize_t       ub_size = 0;        /* size of user block */
-    hid_t         fcpl = H5P_DEFAULT; /* file creation property list ID */
-    hid_t         fapl = H5P_DEFAULT; /* file access property list ID */
+    hsize_t       ub_size = 0;        	/* size of user block */
+    hsize_t       in_fsp_size = 0; 	/* File space page size */ 
+    hid_t         fcpl = H5P_DEFAULT; 	/* file creation property list ID */
+    hid_t         fapl = H5P_DEFAULT; 	/* file access property list ID */
 
     /*-------------------------------------------------------------------------
     * open input file
@@ -149,6 +150,14 @@ int copy_objects(const char* fnamein,
                 goto out;
             }
         }
+	
+	/* If the -P option is not set, get file space page size from the input file */
+	if(options->fsp_size == 0) {
+            if(H5Pget_file_space_page_size(fcpl_in, &in_fsp_size) < 0) {
+                error_msg("failed to retrieve file space threshold\n");
+                goto out;
+	    }
+	}
 
         if(H5Pclose(fcpl_in) < 0)
         {
@@ -354,6 +363,36 @@ int copy_objects(const char* fnamein,
         goto out;
     }
 
+    /* 
+     * Cannot set alignment/metadata block size/AGGR_VFD strategy if file space paging is enabled via
+     *		-P # or -L or the input file's file space paging
+     */
+
+    if(options->alignment > 1 || options->meta_block_size > 0 || options->fs_strategy == H5F_FILE_SPACE_AGGR_VFD) {
+	if(options->fsp_size != (hsize_t)-1 &&
+	   (options->latest || options->fsp_size > 0 || in_fsp_size)) {
+	    error_msg("Could not set alignment/metadata block size/AGGR_VFD strategy when file space paging is enabled\n");
+	    goto out;
+	}
+    }
+
+    /* set file space page size */
+    if(options->fsp_size == (hsize_t)(-1)) { /* A 0 value disables file space paging */
+	if(H5Pset_file_space_page_size(fcpl, (hsize_t)0) < 0) {
+	    error_msg("failed to set file space page size\n");
+	    goto out;
+	}
+    } else if (options->fsp_size) { /* File space page size is set via -P */
+	if(H5Pset_file_space_page_size(fcpl, options->fsp_size) < 0) {
+	    error_msg("failed to set file space page size\n");
+	    goto out;
+	}
+    } else if (!options->fsp_size && in_fsp_size) { /* the input file's file space page size is set */
+	if(H5Pset_file_space_page_size(fcpl, in_fsp_size) < 0) {
+	    error_msg("failed to set file space page size\n");
+	    goto out;
+	}
+    }
     /*-------------------------------------------------------------------------
     * create the output file
     *-------------------------------------------------------------------------

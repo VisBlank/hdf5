@@ -109,6 +109,8 @@
 #define READ_OLD_BUFSIZE	1024		/* Buffer for holding file data */
 #define FILE5			"tfile5.h5"	/* Test file */
 #define TEST_THRESHOLD10        10		/* Free space section threshold */
+#define TBLOCK_SIZE4096 	4096
+#define TBLOCK_SIZE8192 	8192
 
 /* Declaration for test_libver_macros2() */
 #define FILE6			"tfile6.h5"	/* Test file */
@@ -2791,7 +2793,7 @@ test_userblock_alignment_fsp(void)
     /* Create file creation property list with user block */
     fcpl = H5Pcreate(H5P_FILE_CREATE);
     CHECK(fcpl, FAIL, "H5Pcreate");
-    ret = H5Pset_userblock(fcpl, (hsize_t)4096);
+    ret = H5Pset_userblock(fcpl, (hsize_t)TBLOCK_SIZE4096);
     CHECK(ret, FAIL, "H5Pset_userblock");
 
     ret = H5Pset_file_space_page_size(fcpl, (hsize_t)511);
@@ -3559,7 +3561,7 @@ test_filespace_round_compatible(void)
 	/* Verify file space page size -- should be disabled */
 	VERIFY(f->shared->fsp_size, (hssize_t)0, "fsp_size");
 	/* Verify file space handling strategy -- should be H5F_FILE_SPACE_ALL */
-	VERIFY(f->shared->fs_strategy, (hssize_t)2, "fs_strategy");
+	VERIFY(f->shared->fs_strategy, (hssize_t)H5F_FILE_SPACE_ALL, "fs_strategy");
 	/* Verify file space threshold -- should be the default */
 	VERIFY(f->shared->fs_threshold, (hssize_t)1, "fs_threshold");
 
@@ -3575,33 +3577,32 @@ test_filespace_round_compatible(void)
 
 } /* test_filespace_round_compatible */
 
-/****************************************************************
+/*******************************************************************************************************************************
 **
 **  test_filespace_page_size():
-**	Verify that the public routines H5Pget/set_file_space_page_size
-**	retrieve and set the file space page size correctly.
-**	(1) Should return error when setting size to 0
-**	(2) Should return the library default size when the page size is not set
-**	(3) Should set to the specified value
+**    Verify that the public routines H5Pget/set_file_space_page_size
+**    retrieve and set the file space page size correctly.
 **
-**	The following tests get the internal file pointer and check the
-**	field "f->shared->fsp_size" directly:
-**	(A) When file space page size is set via H5Pset_file_space_page_size:
-**	    Create the file, reopen the file, should get the specified value
-**	(B) When file space page size is set via latest library format:
-**	    Create the file, reopen the file, should get the library default value
-**	(C) When file space page size is set via H5Pset_space_page_size and via latest library format:
-**	    Create the file, reopen the file, should get the specified value set via H5Pset_file_space_page_size
-**	(D) When file space page size is not set -- the file is created with H5P_DEFAULT for fcpl & fapl:
-**	    Create the file, reopen the file with latest library format for fcpl, f->shared->fsp_size should be 0 
+**  Test cases:
+**	H5P_set_file_space_page_size	latest format 	file space paging	H5P_get_file_space_page_size/f->shared->fsp_size
+**	----------------------------  	-------------	-----------------	------------------------------------------------
+**  (1)	yes--K > 0			yes		yes			K/K 			
+**  (2)	yes--K > 0			no		yes			K/K		
 **
-****************************************************************/
+**  (3)	yes--K = 0			yes		no			0/0	
+**  (4)	yes--K = 0			no		no			0/0
+**
+**  (5)	not set				yes		yes			4096/4096 (library default)	
+**  (6)	not set				no		no			0/0			
+**
+*********************************************************************************************************************************/
 static void
 test_filespace_page_size(void)
 {
     hid_t	fid; 			/* HDF5 File ID	*/
     hid_t	fapl, new_fapl;		/* File access property */
     hid_t	fsp_fcpl;		/* File creation property */
+    hid_t	fcpl;			/* File creation property */
     char        filename[FILENAME_LEN];	/* Filename to use */
     hsize_t	fsp_size = 0;		/* File space page size */
     H5F_t 	*f = NULL;		/* Internal file pointer */
@@ -3617,92 +3618,238 @@ test_filespace_page_size(void)
     new_fapl = H5Pcopy(fapl);
     CHECK(new_fapl, FAIL, "H5Pcopy");
 
+    /* Set to latest library format */
     ret = H5Pset_libver_bounds(new_fapl, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST);
     CHECK(ret, FAIL, "H5Pset_libver_bounds");
 
-    /* Create file creation property list with file space page size set */
+    /* Get a copy of file creation property list */
     fsp_fcpl = H5Pcreate(H5P_FILE_CREATE);
     CHECK(fsp_fcpl, FAIL, "H5Pcreate");
 
     /*
      * Test case (1)
      */
-    /* Set file space page size to 0 */
-    ret = H5Pset_file_space_page_size(fsp_fcpl, (hsize_t)0);
-    /* Should return error */
-    VERIFY(ret, FAIL, "H5Pget_file_space_page_size");
+    /* Set file space page size to a specified value -- 8192 */
+    ret = H5Pset_file_space_page_size(fsp_fcpl, (hsize_t)TBLOCK_SIZE8192);
+    CHECK(ret, FAIL, "H5Pset_file_space_page_size");
 
-    /*
-     * Test case (2)
-     */
-    /* Retrieve the default file space page size when not set */
-    ret = H5Pget_file_space_page_size(fsp_fcpl, &fsp_size);
-    VERIFY(fsp_size, H5F_FILE_SPACE_PAGE_SIZE, "H5Pget_file_space_page_size");
-
-    /* Set file space page size to a non-default value */
-    ret = H5Pset_file_space_page_size(fsp_fcpl, (hsize_t)H5F_FILE_SPACE_PAGE_SIZE*2);
-    CHECK(fsp_fcpl, FAIL, "H5Pset_file_space_page_size");
-
-    /*
-     * Test case (3)
-     */
-    /* Retrieve the specified value set */
     fsp_size = 0;
     ret = H5Pget_file_space_page_size(fsp_fcpl, &fsp_size);
-    VERIFY(fsp_size, H5F_FILE_SPACE_PAGE_SIZE*2, "H5Pget_file_space_page_size");
+    VERIFY(fsp_size, TBLOCK_SIZE8192, "H5Pget_file_space_page_size");
 
-    /*
-     *	Test case (A):
-     *	Verify file space page size when set via H5Pset_file_space_page_size
-     */
-    /* Create the file */
-    fid = H5Fcreate(filename, H5F_ACC_TRUNC, fsp_fcpl, H5P_DEFAULT);
+    /* Create a file with file space paging enabled and latest library format */
+    fid = H5Fcreate(filename, H5F_ACC_TRUNC, fsp_fcpl, new_fapl);
     CHECK(fid, FAIL, "H5Fcreate");
 
     /* Get internal file pointer */
     f = (H5F_t *)H5I_object(fid);
-    CHECK(f, NULL, "H5I_object");
+    /* Should be 8192 */
+    VERIFY(f->shared->fsp_size, TBLOCK_SIZE8192, "f->shared->fsp_size");
 
-    /* Check file space page size */
-    VERIFY(f->shared->fsp_size, H5F_FILE_SPACE_PAGE_SIZE*2, "File space page size");
+    /* Get the file's file creation property list */
+    fcpl = H5Fget_create_plist(fid);
+    CHECK(fcpl, FAIL, "H5Pget_create_plist");
+
+    /* Get the file space page size -- should be 8192 */
+    fsp_size = 0;
+    ret = H5Pget_file_space_page_size(fcpl, &fsp_size);
+    VERIFY(fsp_size, TBLOCK_SIZE8192, "H5Pget_file_space_page_size");
 
     /* Close the file */
-    ret = H5Fclose(fid);
-    CHECK(ret, FAIL, "H5Fclose");
+    H5Fclose(fid);
+    CHECK(fid, FAIL, "H5Fclose");
 
-    /* Reopen the file */
+    /* Reopen the file with latest library format */
     fid = H5Fopen(filename, H5F_ACC_RDWR, new_fapl);
     CHECK(fid, FAIL, "H5Fopen");
 
     /* Get internal file pointer */
     f = (H5F_t *)H5I_object(fid);
-    CHECK(f, NULL, "H5I_object");
+    /* Should be 8192 */
+    VERIFY(f->shared->fsp_size, TBLOCK_SIZE8192, "f->shared->fsp_size");
 
-    /* Check file space page size */
-    VERIFY(f->shared->fsp_size, H5F_FILE_SPACE_PAGE_SIZE*2, "File space page size");
+    /* Get the file's file creation property list */
+    fcpl = H5Fget_create_plist(fid);
+    CHECK(fcpl, FAIL, "H5Pget_create_plist");
+
+    /* Get the file space page size -- should be 8192 */
+    fsp_size = 0;
+    ret = H5Pget_file_space_page_size(fcpl, &fsp_size);
+    VERIFY(fsp_size, TBLOCK_SIZE8192, "H5Pget_file_space_page_size");
 
     /* Close the file */
-    ret = H5Fclose(fid);
-    CHECK(ret, FAIL, "H5Fclose");
+    H5Fclose(fid);
+    CHECK(fid, FAIL, "H5Fclose");
 
     /*
-     *	Test case (B):
-     *	Verify file space page size when set via latest library format
+     * Test case (2)
      */
-    /* Create the file */
+    /* Create a file with file space paging enabled */
+    /* fsp_fcpl already has page size set to 8192 */
+    fid = H5Fcreate(filename, H5F_ACC_TRUNC, fsp_fcpl, H5P_DEFAULT);
+    CHECK(fid, FAIL, "H5Fcreate");
+
+    /* Get internal file pointer */
+    f = (H5F_t *)H5I_object(fid);
+    VERIFY(f->shared->fsp_size, TBLOCK_SIZE8192, "f->shared->fsp_size");
+
+    /* Get the file's file creation property list */
+    fcpl = H5Fget_create_plist(fid);
+    CHECK(fcpl, FAIL, "H5Pget_create_plist");
+
+    /* Get the file space page size -- should be 8192 */
+    fsp_size = 0;
+    ret = H5Pget_file_space_page_size(fcpl, &fsp_size);
+    VERIFY(fsp_size, TBLOCK_SIZE8192, "H5Pget_file_space_page_size");
+
+    /* Close the file */
+    H5Fclose(fid);
+    CHECK(fid, FAIL, "H5Fclose");
+
+    /* Reopen the file with latest library format */
+    fid = H5Fopen(filename, H5F_ACC_RDWR, new_fapl);
+    CHECK(fid, FAIL, "H5Fopen");
+
+    /* Get internal file pointer */
+    f = (H5F_t *)H5I_object(fid);
+    VERIFY(f->shared->fsp_size, TBLOCK_SIZE8192, "f->shared->fsp_size");
+
+    /* Get the file's file creation property list */
+    fcpl = H5Fget_create_plist(fid);
+    CHECK(fcpl, FAIL, "H5Pget_create_plist");
+
+    /* Get the file space page size -- should be 8192 */
+    fsp_size = 0;
+    ret = H5Pget_file_space_page_size(fcpl, &fsp_size);
+    VERIFY(fsp_size, TBLOCK_SIZE8192, "H5Pget_file_space_page_size");
+
+    /* Close the file */
+    H5Fclose(fid);
+    CHECK(fid, FAIL, "H5Fclose");
+
+    /*
+     * Test case (3)
+     */
+    /* Set file space page size to 0--disable file space paging */
+    ret = H5Pset_file_space_page_size(fsp_fcpl, (hsize_t)0);
+    CHECK(ret, FAIL, "H5Pset_file_space_page_size");
+
+    /* Get the file space page size -- should be 0 */
+    fsp_size = 0;
+    ret = H5Pget_file_space_page_size(fsp_fcpl, &fsp_size);
+    VERIFY(fsp_size, 0, "H5Pget_file_space_page_size");
+
+    /* Create a file with file space paging disabled and latest library format */
+    fid = H5Fcreate(filename, H5F_ACC_TRUNC, fsp_fcpl, new_fapl);
+    CHECK(fid, FAIL, "H5Fcreate");
+
+    /* Get internal file pointer */
+    f = (H5F_t *)H5I_object(fid);
+    VERIFY(f->shared->fsp_size, 0, "f->shared->fsp_size");
+
+    /* Get the file's file creation property list */
+    fcpl = H5Fget_create_plist(fid);
+    CHECK(fcpl, FAIL, "H5Pget_create_plist");
+
+    /* Get the file space page size -- should be 0 */
+    fsp_size = 0;
+    ret = H5Pget_file_space_page_size(fcpl, &fsp_size);
+    VERIFY(fsp_size, 0, "H5Pget_file_space_page_size");
+
+    /* Close the file */
+    H5Fclose(fid);
+    CHECK(fid, FAIL, "H5Fclose");
+
+    /* Reopen the file with latest library format */
+    fid = H5Fopen(filename, H5F_ACC_RDWR, new_fapl);
+    CHECK(fid, FAIL, "H5Fopen");
+
+    /* Get internal file pointer */
+    f = (H5F_t *)H5I_object(fid);
+    VERIFY(f->shared->fsp_size, 0, "f->shared->fsp_size");
+
+    /* Get the file's file creation property list */
+    fcpl = H5Fget_create_plist(fid);
+    CHECK(fcpl, FAIL, "H5Pget_create_plist");
+
+    /* Get the file space page size -- should be 0 */
+    fsp_size = 0;
+    ret = H5Pget_file_space_page_size(fcpl, &fsp_size);
+    VERIFY(fsp_size, 0, "H5Pget_file_space_page_size");
+
+    /* Close the file */
+    H5Fclose(fid);
+    CHECK(fid, FAIL, "H5Fclose");
+
+    /*
+     * Test case (4)
+     */
+    /* Create a file with file space paging diabled */
+    /* fsp_fcpl already has file space page size set to 0 */
+    fid = H5Fcreate(filename, H5F_ACC_TRUNC, fsp_fcpl, H5P_DEFAULT);
+    CHECK(fid, FAIL, "H5Fcreate");
+
+    /* Get internal file pointer */
+    f = (H5F_t *)H5I_object(fid);
+    VERIFY(f->shared->fsp_size, 0, "f->shared->fsp_size");
+
+    /* Get the file's file creation property list */
+    fcpl = H5Fget_create_plist(fid);
+    CHECK(fcpl, FAIL, "H5Pget_create_plist");
+
+    /* Get the file space page size -- should be 0 */
+    fsp_size = 0;
+    ret = H5Pget_file_space_page_size(fcpl, &fsp_size);
+    VERIFY(fsp_size, 0, "H5Pget_file_space_page_size");
+
+    /* Close the file */
+    H5Fclose(fid);
+    CHECK(fid, FAIL, "H5Fclose");
+
+    /* Reopen the file with latest library format */
+    fid = H5Fopen(filename, H5F_ACC_RDWR, new_fapl);
+    CHECK(fid, FAIL, "H5Fopen");
+
+    /* Get internal file pointer */
+    f = (H5F_t *)H5I_object(fid);
+    VERIFY(f->shared->fsp_size, 0, "f->shared->fsp_size");
+
+    /* Get the file's file creation property list */
+    fcpl = H5Fget_create_plist(fid);
+    CHECK(fcpl, FAIL, "H5Pget_create_plist");
+
+    /* Get the file space page size -- should be 0 */
+    fsp_size = 0;
+    ret = H5Pget_file_space_page_size(fcpl, &fsp_size);
+    VERIFY(fsp_size, 0, "H5Pget_file_space_page_size");
+
+    /* Close the file */
+    H5Fclose(fid);
+    CHECK(fid, FAIL, "H5Fclose");
+
+    /*
+     * Test case (5)
+     */
+    /* Create a file with the latest library format */
     fid = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, new_fapl);
     CHECK(fid, FAIL, "H5Fcreate");
 
     /* Get internal file pointer */
     f = (H5F_t *)H5I_object(fid);
-    CHECK(f, NULL, "H5I_object");
+    VERIFY(f->shared->fsp_size, TBLOCK_SIZE4096, "f->shared->fsp_size");
 
-    /* Check file space page size */
-    VERIFY(f->shared->fsp_size, H5F_FILE_SPACE_PAGE_SIZE, "File space page size");
+    /* Get the file's file creation property list */
+    fcpl = H5Fget_create_plist(fid);
+    CHECK(fcpl, FAIL, "H5Pget_create_plist");
+
+    /* Get the file space page size -- should be 4096 (library default) since the file is created with latest format */
+    fsp_size = 0;
+    ret = H5Pget_file_space_page_size(fcpl, &fsp_size);
+    VERIFY(fsp_size, TBLOCK_SIZE4096, "H5Pget_file_space_page_size");
 
     /* Close the file */
-    ret = H5Fclose(fid);
-    CHECK(ret, FAIL, "H5Fclose");
+    H5Fclose(fid);
+    CHECK(fid, FAIL, "H5Fclose");
 
     /* Reopen the file */
     fid = H5Fopen(filename, H5F_ACC_RDWR, H5P_DEFAULT);
@@ -3710,89 +3857,77 @@ test_filespace_page_size(void)
 
     /* Get internal file pointer */
     f = (H5F_t *)H5I_object(fid);
-    CHECK(f, NULL, "H5I_object");
+    /* File space page size should be the library default -- 4096 */
+    VERIFY(f->shared->fsp_size, TBLOCK_SIZE4096, "f->shared->fsp_size");
 
-    /* Check file space page size */
-    VERIFY(f->shared->fsp_size, H5F_FILE_SPACE_PAGE_SIZE, "File space page size");
+    /* Get the file's file creation property list */
+    fcpl = H5Fget_create_plist(fid);
+    CHECK(fcpl, FAIL, "H5Pget_create_plist");
+
+    /* Get the file space page size -- should be 4096 since the file is created with latest format */
+    fsp_size = 0;
+    ret = H5Pget_file_space_page_size(fcpl, &fsp_size);
+    VERIFY(fsp_size, TBLOCK_SIZE4096, "H5Pget_file_space_page_size");
 
     /* Close the file */
-    ret = H5Fclose(fid);
-    CHECK(ret, FAIL, "H5Fclose");
+    H5Fclose(fid);
+    CHECK(fid, FAIL, "H5Fclose");
 
     /*
-     * 	Test case (C) 
-     * 	Verify file space page size when set via H5Pset_file_space_page_size and 
-     *	with latest library format
+     * Test case (6)
      */
-    fid = H5Fcreate(filename, H5F_ACC_TRUNC, fsp_fcpl, new_fapl);
-    CHECK(fid, FAIL, "H5Fcreate");
-
-    /* Get internal file pointer */
-    f = (H5F_t *)H5I_object(fid);
-    CHECK(f, NULL, "H5I_object");
-
-    /* Check file space page size */
-    VERIFY(f->shared->fsp_size, H5F_FILE_SPACE_PAGE_SIZE*2, "File space page size");
-
-    /* Close the file */
-    ret = H5Fclose(fid);
-    CHECK(ret, FAIL, "H5Fclose");
-
-    /* Reopen the file */
-    fid = H5Fopen(filename, H5F_ACC_RDWR, new_fapl);
-    CHECK(fid, FAIL, "H5Fopen");
-
-    /* Get internal file pointer */
-    f = (H5F_t *)H5I_object(fid);
-    CHECK(f, NULL, "H5I_object");
-
-    /* Check file space page size */
-    VERIFY(f->shared->fsp_size, H5F_FILE_SPACE_PAGE_SIZE*2, "File space page size");
-
-    /* Close the file */
-    ret = H5Fclose(fid);
-    CHECK(ret, FAIL, "H5Fclose");
-
-    /*
-     * 	Test case (D) 
-     * 	Create the file with H5P_DEFAULT for fcpl and fapl
-     *  Re-open the file with latest library format
-     *  Verify that file space page size is not set
-     */
+    /* Create a file */
     fid = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
     CHECK(fid, FAIL, "H5Fcreate");
 
     /* Get internal file pointer */
     f = (H5F_t *)H5I_object(fid);
-    CHECK(f, NULL, "H5I_object");
+    /* File space page size should be 0 since it is not set */
+    VERIFY(f->shared->fsp_size, 0, "f->shared->fsp_size");
 
-    /* Check file space page size */
-    VERIFY(f->shared->fsp_size, 0, "File space page size");
+    /* Get the file's file creation property list */
+    fcpl = H5Fget_create_plist(fid);
+    CHECK(fcpl, FAIL, "H5Pget_create_plist");
+
+    /* Get the file space page size -- should be 0 since it is not set */
+    fsp_size = 0;
+    ret = H5Pget_file_space_page_size(fcpl, &fsp_size);
+    VERIFY(fsp_size, 0, "H5Pget_file_space_page_size");
 
     /* Close the file */
-    ret = H5Fclose(fid);
-    CHECK(ret, FAIL, "H5Fclose");
+    H5Fclose(fid);
+    CHECK(fid, FAIL, "H5Fclose");
 
-    /* Reopen the file */
+    /* Reopen the file with latest library format */
     fid = H5Fopen(filename, H5F_ACC_RDWR, new_fapl);
     CHECK(fid, FAIL, "H5Fopen");
 
     /* Get internal file pointer */
     f = (H5F_t *)H5I_object(fid);
-    CHECK(f, NULL, "H5I_object");
+    /* File space page size should be 0 */
+    VERIFY(f->shared->fsp_size, 0, "f->shared->fsp_size");
 
-    /* Check file space page size */
-    VERIFY(f->shared->fsp_size, 0, "File space page size");
+    /* Get the file's file creation property list */
+    fcpl = H5Fget_create_plist(fid);
+    CHECK(fcpl, FAIL, "H5Pget_create_plist");
+
+    /* Get the file space page size -- should be 0 since it is not set */
+    fsp_size = 0;
+    ret = H5Pget_file_space_page_size(fcpl, &fsp_size);
+    VERIFY(fsp_size, 0, "H5Pget_file_space_page_size");
 
     /* Close the file */
-    ret = H5Fclose(fid);
-    CHECK(ret, FAIL, "H5Fclose");
+    H5Fclose(fid);
+    CHECK(fid, FAIL, "H5Fclose");
 
     /* Close the property lists */
     ret = H5Pclose(fsp_fcpl);
     CHECK(ret, FAIL, "H5Pclose");
 
     ret = H5Pclose(new_fapl);
+    CHECK(ret, FAIL, "H5Pclose");
+
+    ret = H5Pclose(fcpl);
     CHECK(ret, FAIL, "H5Pclose");
 
 }  /* test_filespace_page_size() */
@@ -3848,7 +3983,7 @@ test_filespace_page_size_err(void)
     CHECK(my_fapl, FAIL, "H5Pcopy");
 
     /* Set meta data block size */
-    ret = H5Pset_meta_block_size(my_fapl, (hsize_t)4096);
+    ret = H5Pset_meta_block_size(my_fapl, (hsize_t)TBLOCK_SIZE4096);
     CHECK(ret, FAIL, "H5Pset_meta_block_size");
 
     /* Create the file */
@@ -3887,7 +4022,7 @@ test_filespace_page_size_err(void)
     CHECK(ret, FAIL, "H5Pset_libver_bounds");
 
     /* Set the small data block size */
-    ret = H5Pset_small_data_block_size(my_fapl, (hsize_t)4096);
+    ret = H5Pset_small_data_block_size(my_fapl, (hsize_t)TBLOCK_SIZE4096);
     CHECK(ret, FAIL, "H5Pset_small_data_block_size");
 
     /* Create the file */
@@ -3911,7 +4046,7 @@ test_filespace_page_size_err(void)
     CHECK(my_fapl, FAIL, "H5Pcopy");
 
     /* Set the small data block size */
-    ret = H5Pset_small_data_block_size(my_fapl, (hsize_t)4096);
+    ret = H5Pset_small_data_block_size(my_fapl, (hsize_t)TBLOCK_SIZE4096);
     CHECK(ret, FAIL, "H5Pset_small_data_block_size");
 
     /* Reopen the file */
@@ -3938,7 +4073,7 @@ test_filespace_page_size_err(void)
     CHECK(ret, FAIL, "H5Pset_libver_bounds");
 
     /* Set alignment */
-    ret = H5Pset_alignment(my_fapl, (hsize_t)0, (hsize_t)4096);
+    ret = H5Pset_alignment(my_fapl, (hsize_t)0, (hsize_t)TBLOCK_SIZE4096);
     CHECK(ret, FAIL, "H5Pset_alignment");
 
     /* Create the file */
@@ -3962,7 +4097,7 @@ test_filespace_page_size_err(void)
     CHECK(my_fapl, FAIL, "H5Pcopy");
 
     /* Set the alignment */
-    ret = H5Pset_alignment(my_fapl, (hsize_t)0, (hsize_t)4096);
+    ret = H5Pset_alignment(my_fapl, (hsize_t)0, (hsize_t)TBLOCK_SIZE4096);
     CHECK(ret, FAIL, "H5Pset_alignment");
 
     /* Reopen the file */

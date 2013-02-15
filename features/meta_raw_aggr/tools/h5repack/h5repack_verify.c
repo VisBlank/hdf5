@@ -64,6 +64,8 @@ h5repack_verify(const char *in_fname, const char *out_fname, pack_opt_t *options
     hid_t   	fcpl_out; /* file creation property for output file */
     H5F_fs_strategy_t in_strat, out_strat;	/* file space handling strategy for in/output file */
     hsize_t	in_thresh, out_thresh;		/* free space section threshold for in/output file */
+    hsize_t	in_fsp_size;			/* file space page size for input file */
+    hsize_t	out_fsp_size;			/* file space page size for output file */
 
     /* open the output file */
     if((fidout = H5Fopen(out_fname, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0 )
@@ -221,6 +223,12 @@ h5repack_verify(const char *in_fname, const char *out_fname, pack_opt_t *options
 	goto error;
     }
 
+    /* Get file space page size for input file */
+    if(H5Pget_file_space_page_size(fcpl_in, &in_fsp_size) < 0) {
+	error_msg("failed to retrieve file space page size\n");
+	goto error;
+    }
+
     /* Output file is already opened */
     /* Get file creation property list for output file */
     if((fcpl_out = H5Fget_create_plist(fidout)) < 0) {
@@ -234,13 +242,19 @@ h5repack_verify(const char *in_fname, const char *out_fname, pack_opt_t *options
 	goto error;
     }
 
+    /* Get file space page size for output file */
+    if(H5Pget_file_space_page_size(fcpl_out, &out_fsp_size) < 0) {
+	error_msg("failed to retrieve file space page size\n");
+	goto error;
+    }
+
     /*
-     * If the strategy option is not set,
+     * If the -S option is not set,
      * file space handling strategy should be the same for both
      * input & output files.
-     * If the strategy option is set,
+     * If -S option is set,
      * the output file's file space handling strategy should be the same
-     * as what is set via the strategy option
+     * as what is set via the -S option
      */
     if(!options->fs_strategy && out_strat != in_strat) {
 	error_msg("file space strategy not set as unexpected\n");
@@ -252,20 +266,66 @@ h5repack_verify(const char *in_fname, const char *out_fname, pack_opt_t *options
     }
 
     /*
-     * If the threshold option is not set,
+     * If the -T option is not set,
      * the free space section threshold should be the same for both
      * input & output files.
-     * If the threshold option is set,
+     * If the -T option is set,
      * the output file's free space section threshold should be the same
-     * as what is set via the threshold option.
+     * as what is set via the -T option.
      */
     if(!options->fs_threshold && out_thresh != in_thresh) {
 	error_msg("free space threshold not set as unexpected\n");
 	goto error;
 
     } else if(options->fs_threshold && out_thresh != options->fs_threshold) {
-	error_msg("free space threshold not set as unexpectec\n");
+	error_msg("free space threshold not set as unexpected\n");
 	goto error;
+    }
+
+    /*
+     * Verify the expected setting for file space paging:
+     *
+     * 1) -P 0 is set: the output file's file space page size should not be set
+     * 2) -P # (> 0) is set: the output file's file space page size should be set to #
+     * 3) -P option is not set: 
+     *			the output file's file space page size should be set to--
+     * 		------------------------------------------------------------------------
+     * 		|	         | input file's file space paging (with page size = K) |
+     * 		|	         |     enabled     |	  disabled		       |
+     * 		|-----------------------------------------------------------------------
+     * 		| -L is set      | 	K	   |	library default (4096)	       |
+     * 		| -L is not set  | 	K	   |	0			       |
+     * 		|-----------------------------------------------------------------------
+     *
+     */
+    if(options->fsp_size == (hsize_t)-1) {
+	if(out_fsp_size) {
+	    error_msg("file space page size is not set as unexpected\n");
+	    goto error;
+	}
+    } else if(options->fsp_size > 0) {
+       if(out_fsp_size != options->fsp_size) {
+	    error_msg("file space page size is not set as unexpected\n");
+	    goto error;
+	}
+    } else {
+	HDassert(!options->fsp_size);
+	if(in_fsp_size) {
+	    if(in_fsp_size != out_fsp_size) {
+		error_msg("file space page size is not set as unexpected\n");
+		goto error;
+	    }
+	} else {
+	    if(options->latest) {
+		if(out_fsp_size != FILE_SPACE_PAGE_SIZE_DEF) {
+		    error_msg("file space page size is not set as unexpected\n");
+		    goto error;
+		}
+	    } else if(out_fsp_size) {
+		error_msg("file space page size is not set as unexpected\n");
+		goto error;
+	    }
+	}
     }
 
     /* Closing */

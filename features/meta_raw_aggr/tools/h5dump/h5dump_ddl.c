@@ -1147,8 +1147,9 @@ dump_fcpl(hid_t fid)
     unsigned sym_ik;    /* symbol table B-tree internal 'K' value */
     unsigned istore_ik; /* indexed storage B-tree internal 'K' value */
     H5F_fs_strategy_t  fs_strategy;  /* file space strategy */
-    hsize_t  fs_threshold;    /* free-space section threshold */
-    H5F_info2_t finfo;  /* file information */
+    hsize_t  fs_threshold;   	/* free-space section threshold */
+    hsize_t  fsp_size;    	/* file space page size */
+    H5F_info2_t finfo;  	/* file information */
 
     fcpl=H5Fget_create_plist(fid);
     H5Fget_info2(fid, &finfo);
@@ -1157,6 +1158,7 @@ dump_fcpl(hid_t fid)
     H5Pget_sym_k(fcpl,&sym_ik,&sym_lk);
     H5Pget_istore_k(fcpl,&istore_ik);
     H5Pget_file_space_strategy(fcpl, &fs_strategy, &fs_threshold);
+    H5Pget_file_space_page_size(fcpl, &fsp_size);
     H5Pclose(fcpl);
 #ifdef SHOW_FILE_DRIVER
     fapl=h5_fileaccess();
@@ -1233,6 +1235,8 @@ dump_fcpl(hid_t fid)
         HDfprintf(rawoutstream, "%s %s\n", "FILE_SPACE_STRATEGY", "Unknown strategy");
     indentation(dump_indent + COL);
     HDfprintf(rawoutstream, "%s %Hu\n","FREE_SPACE_THRESHOLD", fs_threshold);
+    indentation(dump_indent + COL);
+    HDfprintf(rawoutstream, "%s %Hu\n","FILE_SPACE_PAGE_SIZE", fsp_size);
 
     /*-------------------------------------------------------------------------
     * USER_BLOCK

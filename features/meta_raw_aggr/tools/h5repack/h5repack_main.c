@@ -35,7 +35,7 @@ const char  *outfile = NULL;
  * Command-line options: The user can specify short or long-named
  * parameters.
  */
-static const char *s_opts = "hVvf:l:m:e:nLc:d:s:u:b:M:t:a:i:o:S:T:";
+static const char *s_opts = "hVvf:l:m:e:nLc:d:s:u:b:M:t:a:i:o:S:T:P:";
 static struct long_options l_opts[] = {
     { "help", no_arg, 'h' },
     { "version", no_arg, 'V' },
@@ -58,6 +58,7 @@ static struct long_options l_opts[] = {
     { "outfile", require_arg, 'o' },  /* -o for backward compability */
     { "fs_strategy", require_arg, 'S' },
     { "fs_threshold", require_arg, 'T' },
+    { "fs_page", require_arg, 'P' },
     { NULL, 0, '\0' }
 };
 
@@ -175,8 +176,9 @@ static void usage(const char *prog)
  printf("   -a A, --alignment=A     Alignment value for H5Pset_alignment\n");
  printf("   -f FILT, --filter=FILT  Filter type\n");
  printf("   -l LAYT, --layout=LAYT  Layout type\n");
- printf("   -S FS_STRGY, --fs_strategy=FS_STRGY  File space management strategy\n");
- printf("   -T FS_THRD, --fs_threshold=FS_THRD   Free-space section threshold\n");
+ printf("   -S FS_STRGY, --fs_strategy=FS_STRGY  File space management strategy for H5Pset_file_space_strategy\n");
+ printf("   -T FS_THRD, --fs_threshold=FS_THRD   Free-space section threshold for H5Pset_file_space_strategy\n");
+ printf("   -P FS_PAGE, --fs_page=FS_PAGE        File space page size for H5Pset_file_space_page_size\n");
 
  printf("\n");
 
@@ -191,8 +193,7 @@ static void usage(const char *prog)
  printf("    F - is the shared object header message type, any of <dspace|dtype|fill|\n");
  printf("        pline|attr>. If F is not specified, S applies to all messages\n");
  printf("\n");
- printf("    FS_STRGY is the file space management strategy to use for the output file.\n");
- printf("             It is a string as listed below:\n");
+ printf("    FS_STRGY is a string as listed below:\n");
  printf("        ALL_PERSIST - Use persistent free-space managers, aggregators and virtual file driver\n");
  printf("                      for file space allocation\n");
  printf("        ALL - Use non-persistent free-space managers, aggregators and virtual file driver\n");
@@ -200,9 +201,11 @@ static void usage(const char *prog)
  printf("        AGGR_VFD - Use aggregators and virtual file driver for file space allocation\n");
  printf("        VFD - Use virtual file driver for file space allocation\n");
  printf("\n");
- printf("    FS_THRD is the free-space section threshold to use for the output file.\n");
- printf("            It is the minimum size (in bytes) of free-space sections to be tracked\n");
- printf("            by the the library's free-space managers.\n");
+ printf("    FS_THRD is minimum size (in bytes) of free-space sections to be tracked by the library.\n");
+ printf("\n");
+
+ printf("    FS_PAGE is the size > 0 (in bytes) used by the library for paging file space.\n");
+ printf("    A zero value will disable file space paging.\n");
  printf("\n");
 
  printf("    FILT - is a string with the format:\n");
@@ -279,6 +282,9 @@ static void usage(const char *prog)
  *
  * Purpose: parse command line input
  *
+ * Modifications:
+ *	Vailin Choi; Feb 2013
+ *	Add new option "-P #"
  *-------------------------------------------------------------------------
  */
 
@@ -466,6 +472,17 @@ void parse_command_line(int argc, const char **argv, pack_opt_t* options)
 
             options->fs_threshold = (hsize_t)HDatol( opt_arg );
             break;
+
+        case 'P':
+
+            options->fsp_size = (hsize_t)HDatol( opt_arg );
+
+	    if(!options->fsp_size) /* A zero value will disable file space paging */
+		/* To distinguish the zero value being set */
+	       options->fsp_size = (hsize_t) -1;	
+
+            break;
+
         default:
             break;
         } /* switch */

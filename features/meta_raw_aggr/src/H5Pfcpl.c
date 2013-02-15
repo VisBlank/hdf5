@@ -1020,6 +1020,10 @@ done:
  *
  * Programmer:  Vailin Choi; August 2012
  *
+ * Modifications:
+ *	Vailin Choi; Feb 2013
+ *	A "0" value set via this routine diables file space paging.
+ *	Distinguish this "0" value by setting it to "-1".
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -1036,7 +1040,7 @@ H5Pset_file_space_page_size(hid_t plist_id, hsize_t fsp_size)
         HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "can't find object for ID")
 
     if(!fsp_size)
-        HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "file space page size cannot be 0")
+	fsp_size = (hsize_t)(-1);
 
     /* Set value, if non-zero */
     if(H5P_set(plist, H5F_CRT_FILE_SPACE_PAGE_SIZE_NAME, &fsp_size) < 0)
@@ -1052,13 +1056,14 @@ done:
  *
  * Purpose:     Retrieves the file space page size for aggregating small metadata
  *		or raw data in the parameter "fsp_size".
- *		If the file space page size is not set (i.e. 0), this routine
- *		will return the library default--H5F_FILE_SPACE_PAGE_SIZE.
  *
  * Return:      Non-negative on success/Negative on failure
  *
  * Programmer:  Vailin Choi; August 2012
  *
+ * Modifications:
+ *	Vailin Choi; Feb 2013
+ *	A "-1" value indicates a "0" value is set.
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -1078,8 +1083,8 @@ H5Pget_file_space_page_size(hid_t plist_id, hsize_t *fsp_size)
     if(fsp_size) {
         if(H5P_get(plist, H5F_CRT_FILE_SPACE_PAGE_SIZE_NAME, fsp_size) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get file space page size")
-	if(!(*fsp_size))
-	    *fsp_size = H5F_FILE_SPACE_PAGE_SIZE;
+	if((*fsp_size) == (hsize_t)(-1))
+	    *fsp_size = 0;
     }
 done:
     FUNC_LEAVE_API(ret_value)

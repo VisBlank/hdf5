@@ -91,6 +91,7 @@ Free-space section bins:
 	# of sections of size 1000 - 9999: 1
 	Total # of sections: 1414
 File space management strategy: H5F_FILE_SPACE_ALL_PERSIST
+File space page size: 4096 bytes
 Summary of file space information:
   File metadata: 6374818 bytes
   Raw data: 0 bytes

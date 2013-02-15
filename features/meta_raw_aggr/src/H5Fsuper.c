@@ -391,6 +391,8 @@ done:
  *
  *	Vailin Choi; Feb 2013
  * 	Create the "fsinfo" message with "mark if unknown" flag.
+ *	A "0" value in "fsp_size" will disable file space paging.
+ *	Set the updated "fsp_size" value in the file creation property list.
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -406,6 +408,7 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
     H5O_loc_t       ext_loc;            /* Superblock extension object location */
     hbool_t         need_ext;           /* Whether the superblock extension is needed */
     hbool_t         ext_created = FALSE; /* Whether the extension has been created */
+    hsize_t	    saved_fsp_size = f->shared->fsp_size;
     herr_t          ret_value = SUCCEED; /* Return Value                              */
 
     FUNC_ENTER_NOAPI_TAG(dxpl_id, H5AC__SUPERBLOCK_TAG, FAIL)
@@ -432,6 +435,22 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
     if(H5P_get(plist, H5F_CRT_BTREE_RANK_NAME, &sblock->btree_k[0]) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get rank for btree internal nodes")
 
+    /* A "0" value is set: disable file space paging */
+    /* Latest format is set: use library default */
+    if(f->shared->fsp_size == (hsize_t)(-1))	
+	f->shared->fsp_size = 0;
+    else if(f->shared->latest_format && !f->shared->fsp_size)	
+	f->shared->fsp_size = H5F_FILE_SPACE_PAGE_SIZE;	
+
+    if(f->shared->fsp_size != saved_fsp_size) {
+        H5P_genplist_t *c_plist;              /* Property list */
+
+        if(NULL == (c_plist = (H5P_genplist_t *)H5I_object(f->shared->fcpl_id)))
+            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not property list")
+        if(H5P_set(c_plist, H5F_CRT_FILE_SPACE_PAGE_SIZE_NAME, &f->shared->fsp_size) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set fsp_size")
+    }
+
     /* 
      *	When using the latest version of the format:
      *	-- Bump superblock version
@@ -439,8 +458,6 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
      */
     if(f->shared->latest_format) {
         super_vers = HDF5_SUPERBLOCK_VERSION_LATEST;
-	if(!f->shared->fsp_size)
-	    f->shared->fsp_size = H5F_FILE_SPACE_PAGE_SIZE;
     /* Bump superblock version to create superblock extension for SOHM info */
     } else if(f->shared->sohm_nindexes > 0)
         super_vers = HDF5_SUPERBLOCK_VERSION_2;

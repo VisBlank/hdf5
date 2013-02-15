@@ -90,6 +90,7 @@ Small size free-space sections (< 10 bytes):
 Free-space section bins:
 	Total # of sections: 0
 File space management strategy: H5F_FILE_SPACE_ALL
+File space page size: 0 bytes
 Summary of file space information:
   File metadata: 37312 bytes
   Raw data: 8659 bytes

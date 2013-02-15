@@ -29,6 +29,7 @@
 #define FORMAT_OBJ      " %-27s %s\n"   /* obj type, name */
 #define FORMAT_OBJ_ATTR "  %-27s %s\n"  /* obj type, name */
 #define MAX_COMPACT_DSIZE  64512  /* max data size for compact layout. -1k for header size */
+#define FILE_SPACE_PAGE_SIZE_DEF	4096	/* Same as the library's private define H5F_FILE_SPACE_PAGE_SIZE */
 
 /*-------------------------------------------------------------------------
  * data structures for command line options
@@ -115,8 +116,9 @@ typedef struct {
  hsize_t         meta_block_size;  /* metadata aggregation block size (for H5Pset_meta_block_size) */
  hsize_t         threshold;        /* alignment threshold for H5Pset_alignment */
  hsize_t         alignment ;       /* alignment for H5Pset_alignment */
- H5F_fs_strategy_t fs_strategy;     /* File space handling strategy */
- hsize_t         fs_threshold;      /* Free space section threshold */
+ H5F_fs_strategy_t fs_strategy;	/* File space handling strategy */
+ hsize_t         fs_threshold; 	/* Free space section threshold */
+ hsize_t         fsp_size;   	/* File space page size */
 } pack_opt_t;
 
 
