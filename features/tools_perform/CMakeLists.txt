@@ -713,38 +713,42 @@ ENDIF (HDF5_BUILD_TOOLS AND BUILD_TESTING)
 # Dashboard and Testing Settings
 #-----------------------------------------------------------------------------
 OPTION (BUILD_TESTING "Build HDF5 Unit Testing" OFF)
-IF (BUILD_TESTING)
+OPTION (TOOLS_PERFORM "Build HDF5 Tools Preformance Testing" OFF)
+IF (BUILD_TESTING OR TOOLS_PERFORM)
   SET (DART_TESTING_TIMEOUT 1200
       CACHE INTEGER
       "Timeout in seconds for each test (default 1200=20minutes)"
   )
   ENABLE_TESTING ()
   INCLUDE (CTest)
-  IF (NOT HDF5_EXTERNALLY_CONFIGURED)
-    IF (EXISTS "${HDF5_SOURCE_DIR}/test" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/test")
-      ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/tools/lib ${PROJECT_BINARY_DIR}/tools/lib)
-      ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/test      ${PROJECT_BINARY_DIR}/test)
-    ENDIF (EXISTS "${HDF5_SOURCE_DIR}/test" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/test")
-    IF (EXISTS "${HDF5_SOURCE_DIR}/perform" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/perform")
-      ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/perform   ${PROJECT_BINARY_DIR}/perform)
-    ENDIF(EXISTS "${HDF5_SOURCE_DIR}/perform" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/perform")
-    IF (H5_HAVE_PARALLEL)
-      IF (EXISTS "${HDF5_SOURCE_DIR}/testpar" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/testpar")
-        ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/testpar ${PROJECT_BINARY_DIR}/testpar)
-      ENDIF (EXISTS "${HDF5_SOURCE_DIR}/testpar" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/testpar")
-    ENDIF (H5_HAVE_PARALLEL)
-  ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED)
+  
+  IF (NOT TOOLS_PERFORM)
+    IF (NOT HDF5_EXTERNALLY_CONFIGURED)
+      IF (EXISTS "${HDF5_SOURCE_DIR}/test" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/test")
+        ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/tools/lib ${PROJECT_BINARY_DIR}/tools/lib)
+        ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/test      ${PROJECT_BINARY_DIR}/test)
+      ENDIF (EXISTS "${HDF5_SOURCE_DIR}/test" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/test")
+      IF (EXISTS "${HDF5_SOURCE_DIR}/perform" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/perform")
+        ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/perform   ${PROJECT_BINARY_DIR}/perform)
+      ENDIF(EXISTS "${HDF5_SOURCE_DIR}/perform" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/perform")
+      IF (H5_HAVE_PARALLEL)
+        IF (EXISTS "${HDF5_SOURCE_DIR}/testpar" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/testpar")
+          ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/testpar ${PROJECT_BINARY_DIR}/testpar)
+        ENDIF (EXISTS "${HDF5_SOURCE_DIR}/testpar" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/testpar")
+      ENDIF (H5_HAVE_PARALLEL)
+    ENDIF (NOT HDF5_EXTERNALLY_CONFIGURED)
 
-  OPTION (HDF5_TEST_VFD "Execute tests with different VFDs" OFF)
-  MARK_AS_ADVANCED (HDF5_TEST_VFD)
-  IF (HDF5_TEST_VFD)
-    OPTION (HDF5_TEST_FHEAP_VFD "Execute tests with different VFDs" ON)
-    MARK_AS_ADVANCED (HDF5_TEST_FHEAP_VFD)
-  ENDIF (HDF5_TEST_VFD)
+    OPTION (HDF5_TEST_VFD "Execute tests with different VFDs" OFF)
+    MARK_AS_ADVANCED (HDF5_TEST_VFD)
+    IF (HDF5_TEST_VFD)
+      OPTION (HDF5_TEST_FHEAP_VFD "Execute tests with different VFDs" ON)
+      MARK_AS_ADVANCED (HDF5_TEST_FHEAP_VFD)
+    ENDIF (HDF5_TEST_VFD)
+  ENDIF (NOT TOOLS_PERFORM)
   
   INCLUDE (${HDF5_SOURCE_DIR}/CTestConfig.cmake)
   CONFIGURE_FILE (${HDF5_RESOURCES_DIR}/CTestCustom.cmake ${HDF5_BINARY_DIR}/CTestCustom.ctest @ONLY)
-ENDIF (BUILD_TESTING)
+ENDIF (BUILD_TESTING OR TOOLS_PERFORM)
 
 #-----------------------------------------------------------------------------
 # Option to build Fortran bindings/tests/examples
@@ -830,6 +834,15 @@ IF (EXISTS "${HDF5_SOURCE_DIR}/hl" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/hl")
     ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/hl ${PROJECT_BINARY_DIR}/hl)
   ENDIF (HDF5_BUILD_HL_LIB)
 ENDIF (EXISTS "${HDF5_SOURCE_DIR}/hl" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/hl")
+
+#-----------------------------------------------------------------------------
+# Option to test performance of HDF5 Tools
+#-----------------------------------------------------------------------------
+IF (EXISTS "${HDF5_SOURCE_DIR}/tools" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/tools/perform")
+  IF (TOOLS_PERFORM)
+    ADD_SUBDIRECTORY (${HDF5_SOURCE_DIR}/tools/perform ${PROJECT_BINARY_DIR}/tools/perform)
+  ENDIF (TOOLS_PERFORM)
+ENDIF (EXISTS "${HDF5_SOURCE_DIR}/tools" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/tools/perform")
 
 #-----------------------------------------------------------------------------
 # Generate the H5pubconf.h file containing user settings needed by compilation
