@@ -1,11 +1,11 @@
-HDF5 version 1.8.11-snap11 currently under development
+HDF5 version 1.8.11-snap15 currently under development
 ================================================================================
 
 INTRODUCTION
 ============
 
 This document describes the differences between HDF5-1.8.10 and 
-HDF5 1.8.11-*, and contains information on the platforms tested and 
+HDF5-1.8.11-*, and contains information on the platforms tested and 
 known problems in HDF5-1.8.11-*. 
 For more details, see the files HISTORY-1_0-1_8_0_rc3.txt 
 and HISTORY-1_8.txt in the release_docs/ directory of the HDF5 source.
@@ -80,10 +80,14 @@ New Features
 
     High-Level APIs
     ---------------
-    - None
+    - A new API function, H5DOwrite_chunk.  This function writes a data chunk 
+      directly into a file, bypassing hyperslab selection, data conversion, 
+      and the filter pipeline.  The user must be careful with the function and
+      clearly understand the I/O process of the library. (SLU - 2013/2/11)
 
     Fortran API
     -----------
+    - None
 
     C++ API
     -------
@@ -124,6 +128,10 @@ Bug Fixes since HDF5-1.8.10
 
     Tools
     -----
+    - h5dump: Fixed displaying comporession ratio for unknown or user-defined 
+      filters. HDFFV-8344 (XCAO 2013/03/19)
+    - h5dump: Changed UNKNOWN_FILTER to USER_DEFINED_FILTER for user defined filter.
+      HDFFV-8346 (XCAO 2013/03/19)
     - h5diff: Fixed to return correct exit code 1 when detect unique extra
       attribute. Prior to this fix, h5diff returned exit code 0 indicating 
       two files are identical.   HDFFV-7643 (JKM 2013/02/15)
@@ -147,11 +155,6 @@ Bug Fixes since HDF5-1.8.10
 
     High-Level APIs:
     ------
-    - A new API function H5DOwrite_chunk.  It writes a data chunk directly
-      into a file bypassing hyperslab selection, data conversion, and
-      filter pipeline.  The user must be careful with the function and
-      clearly understand the I/O process of the library. (SLU - 2013/2/11)
-
     - Fixed problem with H5DSget_scale_name including the NULL terminator in
       the size calculation returned by the function. The API was changed to NOT
       include the NULL terminator in the size of name returned (MSB- 2013/2/10)
@@ -162,8 +165,17 @@ Bug Fixes since HDF5-1.8.10
 
     Testing
     -------
+      - In some Mac system, testlibinfo.sh failed with this error:
+           Check file ../src/.libs/libhdf5.7.dylib
+           strings: object: ../src/.libs/libhdf5.7.dylib malformed object \
+	   (unknown load command 15)
+        The strings command of Mac inspects library files and older
+	versions of strings may not know newer library format, resulting
+	in errors.  Fixed by sending the library file as stdin to the strings
+	coommand to avoid this problem. (AKC - 2013/03/08 HDFFV-8305)
+
       - Fixed a typo in the ERROR macro in test/testhdf5.h. It segmentation
-      faulted when used before. (AKC - 2013/02/12 HDFFV-8267)
+        faulted when used before. (AKC - 2013/02/12 HDFFV-8267)
 
 Supported Platforms
 ===================
