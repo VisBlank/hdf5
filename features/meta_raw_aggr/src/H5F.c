@@ -875,8 +875,10 @@ done:
  *
  * Modifications:
  * 	Vailin Choi; Dec 2012
- *	Changes due to "page" file space management in support of level 2 page caching
+ *	Changes due to paged aggregation in support of level 2 page caching
  *
+ *	Vailin Choi; April 2013
+ *	Changes to file space info.
  *-------------------------------------------------------------------------
  */
 static H5F_t *
@@ -906,14 +908,14 @@ H5F_new(H5F_file_t *shared, hid_t fcpl_id, hid_t fapl_id, H5FD_t *lf)
 	f->shared->sohm_addr = HADDR_UNDEF;
 	f->shared->sohm_vers = HDF5_SHAREDHEADER_VERSION;
 
-	/* Initialization for "aggr" file space management */
-        for(u = 0; u < NELMTS(f->shared->fs.aggr.fs_addr); u++) {
-            f->shared->fs.aggr.fs_state[u] = H5F_FS_STATE_CLOSED;
-            f->shared->fs.aggr.fs_addr[u] = HADDR_UNDEF;
-            f->shared->fs.aggr.fs_man[u] = NULL;
+	/* Initialization for handling file space */
+        for(u = 0; u < NELMTS(f->shared->fs_addr); u++) {
+            f->shared->fs_state[u] = H5F_FS_STATE_CLOSED;
+            f->shared->fs_addr[u] = HADDR_UNDEF;
+            f->shared->fs_man[u] = NULL;
 	}
 
-	/* Initialization for "page" file space management */
+	/* Initialization for handling file space (for paged aggregation) */
 	f->shared->last_small = f->shared->track_last_small = 0;
 	f->shared->pgend_meta_thres = H5F_FILE_SPACE_PGEND_META_THRES;
 
@@ -939,6 +941,8 @@ H5F_new(H5F_file_t *shared, hid_t fcpl_id, hid_t fapl_id, H5FD_t *lf)
         HDassert(f->shared->sohm_nindexes < 255);
         if(H5P_get(plist, H5F_CRT_FILE_SPACE_STRATEGY_NAME, &f->shared->fs_strategy) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get file space strategy")
+        if(H5P_get(plist, H5F_CRT_FREE_SPACE_PERSIST_NAME, &f->shared->fs_persist) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get file space persisting status")
         if(H5P_get(plist, H5F_CRT_FREE_SPACE_THRESHOLD_NAME, &f->shared->fs_threshold) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get free-space section threshold")
         if(H5P_get(plist, H5F_CRT_FILE_SPACE_PAGE_SIZE_NAME, &f->shared->fsp_size) < 0)
@@ -1428,18 +1432,6 @@ H5F_open(const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_id,
         if(fc_degree != H5F_CLOSE_DEFAULT && fc_degree != shared->fc_degree)
             HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "file close degree doesn't match")
     } /* end if */
-
-    /* For page fs: fail Fopen/Fcreate when the following conditions are true */
-    if(shared->fsp_size) {
-       	if(shared->alignment != H5F_ALIGN_DEF)
-	    HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "should not set alignment when file space block size is set")
-	if(shared->meta_aggr.alloc_size != H5F_META_BLOCK_SIZE_DEF)
-	    HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "should not set meta data data block size when file space block size is set")
-	if(shared->sdata_aggr.alloc_size != H5F_SDATA_BLOCK_SIZE_DEF)
-	    HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "should not set small data block size when file space block size is set")
-	if(shared->fs_strategy == H5F_FILE_SPACE_AGGR_VFD)
-	    HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "invalid file space handling strategy when file space block size is set")
-    } 
 
     /* Formulate the absolute path for later search of target file for external links */
     if(H5_build_extpath(name, &file->extpath) < 0)
@@ -3156,10 +3148,14 @@ done:
  *
  * Programmer:  Vailin Choi; July 1st, 2009
  *
+ * Modifications:
+ *	Vailin Choi; April 2013
+ *	Create new enum type H5F_fspace_type_t for the parameter TYPE.
+ * 	H5FD_mem_t and H5F_mem_page_t will be mapped to this.
  *-------------------------------------------------------------------------
  */
 ssize_t
-H5Fget_free_sections(hid_t file_id, H5F_mem_t type, size_t nsects,
+H5Fget_free_sections(hid_t file_id, H5F_fspace_type_t type, size_t nsects,
     H5F_sect_info_t *sect_info/*out*/)
 {
     H5F_t         *file;        /* Top file in mount hierarchy */

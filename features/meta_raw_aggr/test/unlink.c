@@ -354,7 +354,7 @@ error:
  *-------------------------------------------------------------------------
  */
 static int
-test_new_move(hid_t fapl)
+test_new_move(hid_t fcpl, hid_t fapl)
 {
     hid_t 	file_a, file_b=(-1);
     hid_t	grp_1=(-1), grp_2=(-1), grp_move=(-1), moved_grp=(-1);
@@ -364,9 +364,9 @@ test_new_move(hid_t fapl)
 
     /* Create a second file */
     h5_fixname(FILENAME[1], fapl, filename, sizeof filename);
-    if((file_a = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) FAIL_STACK_ERROR
+    if((file_a = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) FAIL_STACK_ERROR
     h5_fixname(FILENAME[2], fapl, filename, sizeof filename);
-    if((file_b = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) FAIL_STACK_ERROR
+    if((file_b = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) FAIL_STACK_ERROR
 
     /* Create groups in first file */
     if((grp_1 = H5Gcreate2(file_a, "group1", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
@@ -493,7 +493,7 @@ error:
  *-------------------------------------------------------------------------
  */
 static int
-test_filespace(hid_t fapl)
+test_filespace(hid_t fcpl, hid_t fapl)
 {
     hid_t 	fapl_nocache;   /* File access property list with raw data cache turned off */
     hid_t 	contig_dcpl;    /* Dataset creation property list for contiguous dataset */
@@ -546,7 +546,7 @@ test_filespace(hid_t fapl)
 /* Create empty file for size comparisons later */
 
     /* Create file */
-    if ((file=H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
+    if ((file=H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) TEST_ERROR
 
     /* Close file */
     if(H5Fclose(file) < 0) TEST_ERROR
@@ -597,7 +597,7 @@ test_filespace(hid_t fapl)
     TESTING("    contiguous dataset with late allocation");
 
     /* Create file */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) FAIL_STACK_ERROR
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) FAIL_STACK_ERROR
 
     /* Create a single dataset to remove */
     if((dataset = H5Dcreate2(file, DATASETNAME, H5T_NATIVE_INT, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
@@ -622,7 +622,7 @@ test_filespace(hid_t fapl)
     TESTING("    contiguous dataset with early allocation");
 
     /* Create file */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) FAIL_STACK_ERROR
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) FAIL_STACK_ERROR
 
     /* Create a single dataset to remove */
     if((dataset = H5Dcreate2(file, DATASETNAME, H5T_NATIVE_INT, space, H5P_DEFAULT, contig_dcpl, H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
@@ -647,7 +647,7 @@ test_filespace(hid_t fapl)
     TESTING("    chunked dataset with late allocation");
 
     /* Create file */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) FAIL_STACK_ERROR
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) FAIL_STACK_ERROR
 
     /* Create a single dataset to remove */
     if((dataset = H5Dcreate2(file, DATASETNAME, H5T_NATIVE_INT, space, H5P_DEFAULT, late_chunk_dcpl, H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
@@ -672,7 +672,7 @@ test_filespace(hid_t fapl)
     TESTING("    chunked dataset with early allocation");
 
     /* Create file */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) FAIL_STACK_ERROR
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) FAIL_STACK_ERROR
 
     /* Create a single dataset to remove */
     if((dataset = H5Dcreate2(file, DATASETNAME, H5T_NATIVE_INT, space, H5P_DEFAULT, early_chunk_dcpl, H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
@@ -697,7 +697,7 @@ test_filespace(hid_t fapl)
     TESTING("    compressed, chunked dataset");
 
     /* Create file */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) FAIL_STACK_ERROR
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) FAIL_STACK_ERROR
 
     /* Create a single dataset to remove */
     if((dataset = H5Dcreate2(file, DATASETNAME, H5T_NATIVE_INT, space, H5P_DEFAULT, comp_dcpl, H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
@@ -725,7 +725,7 @@ test_filespace(hid_t fapl)
     TESTING("    re-writing compressed, chunked dataset");
 
     /* Create file (using FAPL with disabled raw data cache) */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl_nocache)) < 0) FAIL_STACK_ERROR
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl_nocache)) < 0) FAIL_STACK_ERROR
 
     /* Create a single dataset to remove */
     if((dataset = H5Dcreate2(file, DATASETNAME, H5T_NATIVE_INT, space, H5P_DEFAULT, comp_dcpl, H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
@@ -769,7 +769,7 @@ test_filespace(hid_t fapl)
     TESTING("    compact dataset");
 
     /* Create file */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) FAIL_STACK_ERROR
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) FAIL_STACK_ERROR
 
     /* Create a single dataset to remove */
     if((dataset = H5Dcreate2(file, DATASETNAME, H5T_NATIVE_INT, space, H5P_DEFAULT, compact_dcpl, H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
@@ -797,7 +797,7 @@ test_filespace(hid_t fapl)
     TESTING("    object header continuations");
 
     /* Create file */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) FAIL_STACK_ERROR
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) FAIL_STACK_ERROR
 
     /* Create datasets to remove */
     if((dataset = H5Dcreate2(file, DATASETNAME, H5T_NATIVE_INT, space, H5P_DEFAULT, contig_dcpl, H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
@@ -858,7 +858,7 @@ test_filespace(hid_t fapl)
     TESTING("    named datatype");
 
     /* Create file */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) FAIL_STACK_ERROR
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) FAIL_STACK_ERROR
 
     /* Create datatype to commit */
     if((type = H5Tcopy(H5T_NATIVE_INT)) < 0) FAIL_STACK_ERROR
@@ -886,7 +886,7 @@ test_filespace(hid_t fapl)
     TESTING("    single group");
 
     /* Create file */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) FAIL_STACK_ERROR
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) FAIL_STACK_ERROR
 
     /* Create a single group to remove */
     if((group = H5Gcreate2(file, GROUPNAME, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
@@ -911,7 +911,7 @@ test_filespace(hid_t fapl)
     TESTING("    multiple groups");
 
     /* Create file */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) FAIL_STACK_ERROR
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) FAIL_STACK_ERROR
 
     /* Create a many groups to remove */
     for(u = 0; u < UNLINK_NGROUPS; u++) {
@@ -943,7 +943,7 @@ test_filespace(hid_t fapl)
     TESTING("    simple group hierarchy");
 
     /* Create file */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) FAIL_STACK_ERROR
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) FAIL_STACK_ERROR
 
     /* Create a small group hierarchy to remove */
     if((group = H5Gcreate2(file, GROUPNAME, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
@@ -973,7 +973,7 @@ test_filespace(hid_t fapl)
     TESTING("    complex group hierarchy");
 
     /* Create file */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) FAIL_STACK_ERROR
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) FAIL_STACK_ERROR
 
     /* Create a complex group hierarchy to remove */
     for(u = 0; u < FILESPACE_TOP_GROUPS; u++) {
@@ -1055,7 +1055,7 @@ test_filespace(hid_t fapl)
     TESTING("    duplicate dataset");
 
     /* Create file */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) FAIL_STACK_ERROR
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) FAIL_STACK_ERROR
 
     /* Create a single dataset to remove */
     if((dataset = H5Dcreate2(file, DATASETNAME, H5T_NATIVE_INT, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
@@ -1089,7 +1089,7 @@ test_filespace(hid_t fapl)
     TESTING("    duplicate group");
 
     /* Create file */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) FAIL_STACK_ERROR
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) FAIL_STACK_ERROR
 
     /* Create a single group to remove */
     if((group = H5Gcreate2(file, GROUPNAME, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
@@ -1123,7 +1123,7 @@ test_filespace(hid_t fapl)
     TESTING("    duplicate named datatype");
 
     /* Create file */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) FAIL_STACK_ERROR
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) FAIL_STACK_ERROR
 
     /* Create datatype to commit */
     if((type = H5Tcopy(H5T_NATIVE_INT)) < 0) FAIL_STACK_ERROR
@@ -1161,7 +1161,7 @@ test_filespace(hid_t fapl)
     TESTING("    duplicate attribute");
 
     /* Create file */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) FAIL_STACK_ERROR
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) FAIL_STACK_ERROR
 
     /* Create datasets to remove */
     if((dataset = H5Dcreate2(file, DATASETNAME, H5T_NATIVE_INT, space, H5P_DEFAULT, contig_dcpl, H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
@@ -1252,7 +1252,7 @@ error:
  *-------------------------------------------------------------------------
  */
 static int
-test_create_unlink(const char *msg, hid_t fapl)
+test_create_unlink(const char *msg, hid_t fcpl, hid_t fapl)
 {
     hid_t 	file, group;
     unsigned u;
@@ -1263,7 +1263,7 @@ test_create_unlink(const char *msg, hid_t fapl)
 
     /* Create file */
     h5_fixname(FILENAME[3], fapl, filename, sizeof filename);
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0)
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0)
         FAIL_PUTS_ERROR("    Creating file failed")
 
     /* Create a many groups to remove */
@@ -1865,7 +1865,7 @@ error:
  *-------------------------------------------------------------------------
  */
 static int
-test_resurrect_dataset(hid_t fapl)
+test_resurrect_dataset(hid_t fcpl, hid_t fapl)
 {
     hid_t       f = -1, s = -1, d = -1;
     char	filename[1024];
@@ -1876,7 +1876,7 @@ test_resurrect_dataset(hid_t fapl)
     h5_fixname(FILENAME[6], fapl, filename, sizeof filename);
 
     /* Create the file */
-    if((f = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) FAIL_STACK_ERROR
+    if((f = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) FAIL_STACK_ERROR
 
     /* Create a dataset in the file */
     if((s = H5Screate(H5S_SCALAR)) < 0) FAIL_STACK_ERROR
@@ -1936,7 +1936,7 @@ error:
  *-------------------------------------------------------------------------
  */
 static int
-test_resurrect_datatype(hid_t fapl)
+test_resurrect_datatype(hid_t fcpl, hid_t fapl)
 {
     hid_t       file = -1, type = -1;
     char        filename[1024];
@@ -1947,7 +1947,7 @@ test_resurrect_datatype(hid_t fapl)
     h5_fixname(FILENAME[7], fapl, filename, sizeof filename);
 
     /* Create the file */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) FAIL_STACK_ERROR
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) FAIL_STACK_ERROR
 
     /* Create a named datatype in the file */
     if((type = H5Tcopy (H5T_NATIVE_INT)) < 0) FAIL_STACK_ERROR
@@ -2005,7 +2005,7 @@ error:
  *-------------------------------------------------------------------------
  */
 static int
-test_resurrect_group(hid_t fapl)
+test_resurrect_group(hid_t fcpl, hid_t fapl)
 {
     hid_t       file = -1, group = -1;
     char        filename[1024];
@@ -2016,7 +2016,7 @@ test_resurrect_group(hid_t fapl)
     h5_fixname(FILENAME[8], fapl, filename, sizeof filename);
 
     /* Create the file */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) FAIL_STACK_ERROR
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) FAIL_STACK_ERROR
 
     /* Create a group in the file */
     if((group = H5Gcreate2(file, GROUPNAME, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
@@ -2072,7 +2072,7 @@ error:
  *-------------------------------------------------------------------------
  */
 static int
-test_unlink_chunked_dataset(hid_t fapl)
+test_unlink_chunked_dataset(hid_t fcpl, hid_t fapl)
 {
     hid_t file_id = -1;
     hid_t dset_id = -1;
@@ -2082,6 +2082,7 @@ test_unlink_chunked_dataset(hid_t fapl)
     hsize_t max_dims[FILESPACE_NDIMS] = {H5S_UNLIMITED, H5S_UNLIMITED, H5S_UNLIMITED};
     hsize_t chunk_dims[FILESPACE_NDIMS] = {FILESPACE_CHUNK0, FILESPACE_CHUNK1, FILESPACE_CHUNK2};
     char filename[1024];
+    hbool_t contig_addr_vfd;    /* Whether VFD used has a contigous address space */
 
     TESTING("unlinking chunked dataset");
 
@@ -2089,7 +2090,7 @@ test_unlink_chunked_dataset(hid_t fapl)
     h5_fixname(FILENAME[9], fapl, filename, sizeof filename);
 
     /* Create the file */
-    if((file_id = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) FAIL_STACK_ERROR
+    if((file_id = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) FAIL_STACK_ERROR
 
     /* Create the dataspace */
     if((space_id = H5Screate_simple(FILESPACE_NDIMS, dims, max_dims)) < 0) FAIL_STACK_ERROR
@@ -2155,7 +2156,7 @@ error:
  *-------------------------------------------------------------------------
  */
 static int
-test_full_group_compact(hid_t fapl)
+test_full_group_compact(hid_t fcpl, hid_t fapl)
 {
     hid_t file_id = -1;
     hid_t gid = -1, gid2 = -1;  /* Group IDs */
@@ -2173,7 +2174,7 @@ test_full_group_compact(hid_t fapl)
     h5_fixname(FILENAME[10], fapl, filename, sizeof filename);
 
     /* Create the file */
-    if((file_id = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) FAIL_STACK_ERROR
+    if((file_id = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) FAIL_STACK_ERROR
 
     /* Create group to link objects to */
     if((gid = H5Gcreate2(file_id, "/keep", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
@@ -2288,7 +2289,7 @@ error:
  *-------------------------------------------------------------------------
  */
 static int
-test_full_group_dense(hid_t fapl)
+test_full_group_dense(hid_t fcpl, hid_t fapl)
 {
     hid_t file_id = -1;
     hid_t gcpl = (-1);          /* Group creation property list ID */
@@ -2307,7 +2308,7 @@ test_full_group_dense(hid_t fapl)
     h5_fixname(FILENAME[10], fapl, filename, sizeof filename);
 
     /* Create the file */
-    if((file_id = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) FAIL_STACK_ERROR
+    if((file_id = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) FAIL_STACK_ERROR
 
     /* Create group to link objects to */
     if((gid = H5Gcreate2(file_id, "/keep", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) FAIL_STACK_ERROR
@@ -2441,15 +2442,25 @@ int
 main(void)
 {
     hid_t	fapl, fapl2, file;
-    int	nerrors = 0;
+    hid_t	fcpl;			/* File creation property list ID */
+    int		nerrors = 0;
     char	filename[1024];
-    hbool_t new_format;
+    hbool_t 	new_format;
 
     /* Metadata cache parameters */
     int mdc_nelmts;
     size_t rdcc_nelmts;
     size_t rdcc_nbytes;
     double rdcc_w0;
+    const char  *env_h5_drvr;      /* File Driver value from environment */
+    hbool_t contig_addr_vfd;    /* Whether VFD used has a contigous address space */
+
+    env_h5_drvr = HDgetenv("HDF5_DRIVER");
+    if(env_h5_drvr == NULL)
+        env_h5_drvr = "nomatch";
+
+    /* Current VFD that does not support contigous address space */
+    contig_addr_vfd = (hbool_t)(HDstrcmp(env_h5_drvr, "split") && HDstrcmp(env_h5_drvr, "multi"));
 
     /* Set the random # seed */
     HDsrandom((unsigned)HDtime(NULL));
@@ -2464,6 +2475,8 @@ main(void)
     /* Set the "use the latest version of the format" bounds for creating objects in the file */
     if(H5Pset_libver_bounds(fapl2, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) TEST_ERROR
 
+    if((fcpl = H5Pcreate(H5P_FILE_CREATE)) < 0) TEST_ERROR
+
     /* Test with old & new format groups */
     for(new_format = FALSE; new_format <= TRUE; new_format++) {
         hid_t my_fapl;
@@ -2472,6 +2485,9 @@ main(void)
         if(new_format) {
             puts("\nTesting with new group format:");
             my_fapl = fapl2;
+	    if(!contig_addr_vfd)
+		if(H5Pset_file_space_strategy(fcpl, H5F_FSPACE_STRATEGY_AGGR, FALSE, (hsize_t)1) < 0)
+		    TEST_ERROR
         } /* end if */
         else {
             puts("Testing with old group format:");
@@ -2479,7 +2495,7 @@ main(void)
         } /* end else */
 
         h5_fixname(FILENAME[0], my_fapl, filename, sizeof filename);
-        if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, my_fapl)) < 0) TEST_ERROR
+        if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, my_fapl)) < 0) TEST_ERROR
 
         /* Tests */
         nerrors += test_one(file);
@@ -2487,12 +2503,13 @@ main(void)
         nerrors += test_symlink(file);
         nerrors += test_rename(file);
 
-        nerrors += test_new_move(my_fapl);
+        nerrors += test_new_move(fcpl, my_fapl);
         nerrors += check_new_move(my_fapl);
-        nerrors += test_filespace(my_fapl);
+        nerrors += test_filespace(fcpl, my_fapl);
 
         /* Test creating & unlinking lots of objects with default FAPL */
-        nerrors += test_create_unlink("create and unlink large number of objects", my_fapl);
+        nerrors += test_create_unlink("create and unlink large number of objects", fcpl, my_fapl);
+
 
         {
             hid_t fapl_small_mdc;
@@ -2511,7 +2528,7 @@ main(void)
                 printf("H5Pset_cache failed\n");
 
             /* Test creating & unlinking lots of objects with a 1-element metadata cache FAPL */
-            nerrors += test_create_unlink("create and unlink large number of objects with small cache", fapl_small_mdc);
+            nerrors += test_create_unlink("create and unlink large number of objects with small cache", fcpl, fapl_small_mdc);
 
             if(H5Pclose(fapl_small_mdc) < 0) TEST_ERROR
         } /* end block */
@@ -2528,18 +2545,18 @@ main(void)
         } /* end if */
 
         /* Test "resurrecting" objects */
-        nerrors += test_resurrect_dataset(my_fapl);
-        nerrors += test_resurrect_datatype(my_fapl);
-        nerrors += test_resurrect_group(my_fapl);
+        nerrors += test_resurrect_dataset(fcpl, my_fapl);
+        nerrors += test_resurrect_datatype(fcpl, my_fapl);
+        nerrors += test_resurrect_group(fcpl, my_fapl);
 
         /* Test unlinking chunked datasets */
-        nerrors += test_unlink_chunked_dataset(my_fapl);
+        nerrors += test_unlink_chunked_dataset(fcpl, my_fapl);
 
         /* Test unlinked groups which still have objects in them */
         /* (only for new format groups) */
         if(new_format) {
-            nerrors += test_full_group_compact(my_fapl);
-            nerrors += test_full_group_dense(my_fapl);
+            nerrors += test_full_group_compact(fcpl, my_fapl);
+            nerrors += test_full_group_dense(fcpl, my_fapl);
         } /* end if */
 
         /* Close */
@@ -2548,6 +2565,7 @@ main(void)
 
     /* Close 2nd FAPL */
     H5Pclose(fapl2);
+    H5Pclose(fcpl);
 
     /* Verify symbol table messages are cached */
     nerrors += (h5_verify_cached_stabs(FILENAME, fapl) < 0 ? 1 : 0);

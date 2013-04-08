@@ -937,6 +937,10 @@ H5FD_log_query(const H5FD_t *_file, unsigned long *flags /* out */)
  * Programmer:	Quincey Koziol
  *              Monday, April 17, 2000
  *
+ * Modifications:
+ *      Vailin Choi; April 2013
+ *      Do not handle alignment for paged aggregation.
+ *
  *-------------------------------------------------------------------------
  */
 /* ARGSUSED */
@@ -953,7 +957,7 @@ H5FD_log_alloc(H5FD_t *_file, H5FD_mem_t type, hid_t UNUSED dxpl_id, hsize_t siz
     addr = file->eoa;
 
     /* Check if we need to align this block */
-    if(size >= file->pub.threshold) {
+    if(!file->pub.paged_aggr && size >= file->pub.threshold) {
         /* Check for an already aligned block */
         if(addr % file->pub.alignment != 0)
             addr = ((addr / file->pub.alignment) + 1) * file->pub.alignment;

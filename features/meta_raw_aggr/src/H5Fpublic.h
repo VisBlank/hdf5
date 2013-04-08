@@ -151,6 +151,18 @@ typedef struct H5F_sect_info_t {
     hsize_t             size;   /* Size of free space section */
 } H5F_sect_info_t;
 
+/* File space type for the public routine H5Fget_free_sections */
+/* H5F_mem_t and H5F_mem_page_t will be mapped to this */
+typedef enum H5F_fspace_type_t {
+    H5F_FSPACE_TYPE_META = 0,    	/* Metadata: H5FD_MEM_SUPER, H5FD_MEM_BTREE, H5FD_MEM_LHEAP, H5FD_OHDR  */
+					/* For paged aggregation: H5F_MEM_PAGE_META */
+    H5F_FSPACE_TYPE_RAW = 1,    	/* Raw data: H5FD_MEM_DRAW, H5FD_MEM_GHEAP */
+					/* For paged aggregation: H5F_MEM_PAGE_RAW */
+    H5F_FSPACE_TYPE_GENERIC = 2,	/* Untyped data (for paged aggregation only): H5F_MEM_PAGE_GENERIC */
+    H5F_FSPACE_TYPE_ALL = 3,    	/* All of the above */
+    H5F_FSPACE_TYPE_NTYPES             	/* Sentinel value - must be last */
+} H5F_fspace_type_t;
+
 /* Library's file format versions */
 typedef enum H5F_libver_t {
     H5F_LIBVER_EARLIEST,        /* Use the earliest possible format for storing objects */
@@ -158,15 +170,14 @@ typedef enum H5F_libver_t {
 } H5F_libver_t;
 
 /* File space handling strategy */
-typedef enum H5F_fs_strategy_t {
-    H5F_FILE_SPACE_DEFAULT = 0,     /* Default (or current) free space strategy setting */
-    H5F_FILE_SPACE_ALL_PERSIST = 1, /* Persistent free space managers, aggregators, virtual file driver */
-    H5F_FILE_SPACE_ALL = 2,	    /* Non-persistent free space managers, aggregators, virtual file driver */
-				    /* This is the library default */
-    H5F_FILE_SPACE_AGGR_VFD = 3,    /* Aggregators, Virtual file driver */
-    H5F_FILE_SPACE_VFD = 4,	    /* Virtual file driver */
-    H5F_FILE_SPACE_NTYPES	    /* must be last */
-} H5F_fs_strategy_t;
+typedef enum H5F_fspace_strategy_t {
+    H5F_FSPACE_STRATEGY_ERROR = -1,	/* Error */
+    H5F_FSPACE_STRATEGY_AGGR = 0, 	/* Aggregation: mechanisms are free-space managers, aggregators, and virtual file driver */
+			    		/* This is the library default when not set */
+    H5F_FSPACE_STRATEGY_PAGE = 1,	/* Paged aggregation: mechanisms are free-space managers with embedded paged aggregation and virtual file driver */
+    H5F_FSPACE_STRATEGY_NONE = 2,    	/* No aggregation: mechanisms are free-space managers and virtual file driver */
+    H5F_FSPACE_STRATEGY_NTYPES		/* must be last */
+} H5F_fspace_strategy_t;
 
 
 #ifdef __cplusplus
@@ -206,7 +217,7 @@ H5_DLL herr_t H5Fget_mdc_size(hid_t file_id,
 H5_DLL herr_t H5Freset_mdc_hit_rate_stats(hid_t file_id);
 H5_DLL ssize_t H5Fget_name(hid_t obj_id, char *name, size_t size);
 H5_DLL herr_t H5Fget_info2(hid_t obj_id, H5F_info2_t *finfo);
-H5_DLL ssize_t H5Fget_free_sections(hid_t file_id, H5F_mem_t type,
+H5_DLL ssize_t H5Fget_free_sections(hid_t file_id, H5F_fspace_type_t type,
     size_t nsects, H5F_sect_info_t *sect_info/*out*/);
 H5_DLL herr_t H5Fclear_elink_file_cache(hid_t file_id);
 #ifdef H5_HAVE_PARALLEL

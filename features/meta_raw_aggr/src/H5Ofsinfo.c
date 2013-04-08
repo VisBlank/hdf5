@@ -80,14 +80,18 @@ H5FL_DEFINE_STATIC(H5O_fsinfo_t);
  *
  * Modifications:
  *	Vailin Choi; Dec 2012
- * 	Decode new fields due to changes for "page" file space management.
+ * 	Decode new fields due to paged aggregation for handling file space.
+ *
+ *	Vailin Choi; April 2013
+ * 	The message will store all 6 addresses of the free-space managers.
  *-------------------------------------------------------------------------
  */
 static void *
 H5O_fsinfo_decode(H5F_t *f, hid_t UNUSED dxpl_id, H5O_t UNUSED *open_oh,
     unsigned UNUSED mesg_flags, unsigned UNUSED *ioflags, const uint8_t *p)
 {
-    H5O_fsinfo_t	*fsinfo = NULL; /* free-space manager info */
+    H5O_fsinfo_t 	*fsinfo = NULL; /* File space info message */
+    H5FD_mem_t 		type;		/* Memory type for iteration */
     void        	*ret_value;  	/* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT
@@ -96,51 +100,32 @@ H5O_fsinfo_decode(H5F_t *f, hid_t UNUSED dxpl_id, H5O_t UNUSED *open_oh,
     HDassert(f);
     HDassert(p);
 
-
     /* Allocate space for message */
     if(NULL == (fsinfo = H5FL_CALLOC(H5O_fsinfo_t)))
 	HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
 
-    /* Version of message */
-    fsinfo->version = *p++;
+    fsinfo->version = *p++; 			/* Message version */
+    fsinfo->strategy = (H5F_fspace_strategy_t)*p++;	/* File space strategy */
+    fsinfo->persist = *p++;			/* Free-space persist or not */
+    H5F_DECODE_LENGTH(f, p, fsinfo->threshold);	/* Free-space section threshold */
 
-    if(fsinfo->version < H5O_FSINFO_VERSION_1 || fsinfo->version > H5O_FSINFO_VERSION_2)
-        HGOTO_ERROR(H5E_OHDR, H5E_CANTLOAD, NULL, "bad version number for message")
+    H5F_DECODE_LENGTH(f, p, fsinfo->fsp_size);	/* File space page size */
+    UINT16DECODE(p, fsinfo->pgend_meta_thres);	/* Page end metdata threshold */
+    fsinfo->last_small = *p++;			/* EOF file space section type */
 
-    fsinfo->strategy = (H5F_fs_strategy_t)*p++;	/* file space strategy */
-    H5F_DECODE_LENGTH(f, p, fsinfo->threshold);	/* free space section size threshold */
 
-    fsinfo->fsp_size = 0;
-    if(fsinfo->version == H5O_FSINFO_VERSION_2) {
-	H5F_mem_page_t type;	/* Memory type for iteration */
+    /* Addresses of free space managers */
+    for(type = H5FD_MEM_SUPER; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type)) {
+	H5F_addr_decode(f, &p, &(fsinfo->fs_addr[type-1]));
+	if(!fsinfo->persist)
+	    HDassert(!H5F_addr_defined(fsinfo->fs_addr[type-1]));
+    }
 
-	H5F_DECODE_LENGTH(f, p, fsinfo->fsp_size);
-	UINT16DECODE(p, fsinfo->pgend_meta_thres);
-
-	/* Whether the last allocation is a small-sized section or not */
-	fsinfo->last_small = *p++;
-
-	/* Addresses of free space managers: only exist for H5F_FILE_SPACE_ALL_PERSIST */
-	if(fsinfo->strategy == H5F_FILE_SPACE_ALL_PERSIST) {
-	    for(type = H5F_MEM_PAGE_META; type < H5F_MEM_PAGE_NTYPES; H5_INC_ENUM(H5F_mem_page_t, type))
-		H5F_addr_decode(f, &p, &(fsinfo->fs_addr.page[type]));
-	} else {
-	    for(type = H5F_MEM_PAGE_META; type < H5F_MEM_PAGE_NTYPES; H5_INC_ENUM(H5F_mem_page_t, type))
-		fsinfo->fs_addr.page[type] = HADDR_UNDEF;
-	}
-    } else {
-	H5FD_mem_t type;	/* Memory type for iteration */
-
-	HDassert(fsinfo->version == H5O_FSINFO_VERSION_1);
-	/* Addresses of free space managers: only exist for H5F_FILE_SPACE_ALL_PERSIST */
-	if(fsinfo->strategy == H5F_FILE_SPACE_ALL_PERSIST) {
-	    for(type = H5FD_MEM_SUPER; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type))
-		H5F_addr_decode(f, &p, &(fsinfo->fs_addr.aggr[type-1]));
-	} else {
-	    for(type = H5FD_MEM_SUPER; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type))
-		fsinfo->fs_addr.aggr[type-1] = HADDR_UNDEF;
-	}
-    } /* end else */
+    if(fsinfo->strategy == H5F_FSPACE_STRATEGY_PAGE && fsinfo->fsp_size) {
+	HDassert(!H5F_addr_defined(fsinfo->fs_addr[H5F_MEM_PAGE_NTYPES]));
+	HDassert(!H5F_addr_defined(fsinfo->fs_addr[H5F_MEM_PAGE_NTYPES+1]));
+	HDassert(!H5F_addr_defined(fsinfo->fs_addr[H5F_MEM_PAGE_NTYPES+2]));
+    }
 
     /* Set return value */
     ret_value = fsinfo;
@@ -164,13 +149,17 @@ done:
  *
  * Modifications:
  *	Vailin Choi; Dec 2012
- * 	Encode new fields due to changes for "page" file space management.
+ * 	Encode new fields due to paged aggregation for handling file space.
+ *
+ *	Vailin Choi; April 2013
+ * 	The message will store all 6 addresses of the free-space managers.
  *-------------------------------------------------------------------------
  */ 
 static herr_t 
 H5O_fsinfo_encode(H5F_t *f, hbool_t UNUSED disable_shared, uint8_t *p, const void *_mesg)
 {
     const H5O_fsinfo_t  *fsinfo = (const H5O_fsinfo_t *)_mesg;
+    H5FD_mem_t 	type;	/* Memory type for iteration */
 
     FUNC_ENTER_NOAPI_NOINIT_NOERR
 
@@ -179,32 +168,27 @@ H5O_fsinfo_encode(H5F_t *f, hbool_t UNUSED disable_shared, uint8_t *p, const voi
     HDassert(p);
     HDassert(fsinfo);
 
-    *p++ = fsinfo->version;		/* message version */
-    *p++ = fsinfo->strategy;	/* file space strategy */
-    H5F_ENCODE_LENGTH(f, p, fsinfo->threshold); /* free-space section size threshold */
 
-    if(fsinfo->version == H5O_FSINFO_VERSION_2) {
-	H5F_ENCODE_LENGTH(f, p, fsinfo->fsp_size); /* file space page size */
-	UINT16ENCODE(p, fsinfo->pgend_meta_thres);
-	*p++ = fsinfo->last_small;		/* the last allocation is a small-sized section or not */
+    *p++ = fsinfo->version;	/* Message version */
+    *p++ = fsinfo->strategy;	/* File space strategy */
+    *p++ = fsinfo->persist;	/* Free-space persist or not */
+    H5F_ENCODE_LENGTH(f, p, fsinfo->threshold); /* Free-space section size threshold */
 
-	/* Addresses of free space managers: only exist for H5F_FILE_SPACE_ALL_PERSIST */
-	if(fsinfo->strategy == H5F_FILE_SPACE_ALL_PERSIST) {
-	    H5F_mem_page_t type;
+    H5F_ENCODE_LENGTH(f, p, fsinfo->fsp_size);	/* File space page size */
+    UINT16ENCODE(p, fsinfo->pgend_meta_thres);	/* Page end metadata threshold */
+    *p++ = fsinfo->last_small;			/* EOF file space section type */
 
-	    for(type = H5F_MEM_PAGE_META; type < H5F_MEM_PAGE_NTYPES; H5_INC_ENUM(H5F_mem_page_t, type))
-		H5F_addr_encode(f, &p, fsinfo->fs_addr.page[type]);
-	} /* end if */
-    } else {
-	HDassert(fsinfo->version == H5O_FSINFO_VERSION_1);
+    if(fsinfo->strategy == H5F_FSPACE_STRATEGY_PAGE && fsinfo->fsp_size) {
+	HDassert(!H5F_addr_defined(fsinfo->fs_addr[H5F_MEM_PAGE_NTYPES]));
+	HDassert(!H5F_addr_defined(fsinfo->fs_addr[H5F_MEM_PAGE_NTYPES+1]));
+	HDassert(!H5F_addr_defined(fsinfo->fs_addr[H5F_MEM_PAGE_NTYPES+2]));
+    }
 
-	/* Addresses of free space managers: only exist for H5F_FILE_SPACE_ALL_PERSIST */
-	if(fsinfo->strategy == H5F_FILE_SPACE_ALL_PERSIST) {
-	    H5FD_mem_t 	type;	/* Memory type for iteration */
-
-	    for(type = H5FD_MEM_SUPER; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type))
-		H5F_addr_encode(f, &p, fsinfo->fs_addr.aggr[type-1]);
-	} /* end if */
+   /* Addresses of free-space managers */
+   for(type = H5FD_MEM_SUPER; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type)) {
+	if(!fsinfo->persist)
+	    HDassert(!H5F_addr_defined(fsinfo->fs_addr[type-1]));
+	H5F_addr_encode(f, &p, fsinfo->fs_addr[type-1]);
     }
 
     FUNC_LEAVE_NOAPI(SUCCEED)
@@ -263,32 +247,27 @@ done:
  *
  * Modifications:
  *	Vailin Choi; Dec 2012
- * 	Changes to the size due "page" file space management.
+ * 	Changes to the size due to paged aggregation.
+ *
+ *	Vailin Choi; April 2013
+ * 	The message will store all 6 addresses of the free-space managers.
  *-------------------------------------------------------------------------
  */
 static size_t
 H5O_fsinfo_size(const H5F_t *f, hbool_t UNUSED disable_shared, const void *_mesg)
 {
-    const H5O_fsinfo_t   *fsinfo = (const H5O_fsinfo_t *)_mesg;
     size_t ret_value;   /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT_NOERR
 
-    /* For both version 1 and version 2 */
-    ret_value = 2 				/* version & fs strategy */
-		+ (size_t)H5F_SIZEOF_SIZE(f);	/* fs threshold */
-
-    if(fsinfo->version == H5O_FSINFO_VERSION_2)
-	ret_value += ((size_t)H5F_SIZEOF_SIZE(f) 	/* File space page size */
-			+ 2				/* page end meta threshold */
-			+ 1);				/* Is the section at EOF a small meta or raw */
+    ret_value = 3 				/* Version & strategy & persist */
+		+ (size_t)H5F_SIZEOF_SIZE(f)	/* Free-space section threshold */
+		+ (size_t)H5F_SIZEOF_SIZE(f) 	/* File space page size */
+		+ 2				/* Page end meta threshold */
+		+ 1;				/* EOF file space section type */
     
-    if(H5F_FILE_SPACE_ALL_PERSIST == fsinfo->strategy) {
-	if(fsinfo->version == H5O_FSINFO_VERSION_1)
-	    ret_value += (H5FD_MEM_NTYPES - 1) * (size_t)H5F_SIZEOF_ADDR(f);
-	else 
-	    ret_value += (H5F_MEM_PAGE_NTYPES * (size_t)H5F_SIZEOF_ADDR(f));
-    }
+    /* Free-space manager addresses */
+    ret_value += (H5FD_MEM_NTYPES - 1) * (size_t)H5F_SIZEOF_ADDR(f);
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5O_fsinfo_size() */
@@ -329,7 +308,11 @@ H5O_fsinfo_free(void *mesg)
  *
  * Modifcations:
  *	Vailin Choi; Dec 2012
- *	Changes to the message due to "page" file space management.
+ *	Changes to the message due paged aggregation for handling file space.
+ * 
+ *	Vailin Choi; April 2013
+ *	Changes for file space handling strategies and the 6 addresses of
+ *	the free-space managers.
  *
  *-------------------------------------------------------------------------
  */
@@ -338,6 +321,7 @@ H5O_fsinfo_debug(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, const void *_mesg, FILE 
 	       int indent, int fwidth)
 {
     const H5O_fsinfo_t	*fsinfo = (const H5O_fsinfo_t *) _mesg;
+    H5FD_mem_t 	type;	/* Free-space types for iteration */
 
     FUNC_ENTER_NOAPI_NOINIT_NOERR
 
@@ -351,41 +335,53 @@ H5O_fsinfo_debug(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, const void *_mesg, FILE 
     HDfprintf(stream, "%*s%-*s %u\n", indent, "", fwidth,
               "File space version:", fsinfo->version);
 
-    HDfprintf(stream, "%*s%-*s %u\n", indent, "", fwidth,
-              "File space strategy:", fsinfo->strategy);
+    HDfprintf(stream, "%*s%-*s ", indent, "", fwidth, "File space strategy:");
+    switch(fsinfo->strategy) {
+        case H5F_FSPACE_STRATEGY_AGGR:
+	    HDfprintf(stream, "%s\n", "H5F_FSPACE_STRATEGY_AGGR");
+            break;
+
+        case H5F_FSPACE_STRATEGY_PAGE:
+	    HDfprintf(stream, "%s\n", "H5F_FSPACE_STRATEGY_PAGE");
+            break;
+
+        case H5F_FSPACE_STRATEGY_NONE:
+	    HDfprintf(stream, "%s\n", "H5F_FSPACE_STRATEGY_NONE");
+            break;
+
+        default:
+	    HDfprintf(stream, "%s\n", "unknown");
+
+    } /* end switch */
+
+    HDfprintf(stream, "%*s%-*s %s\n", indent, "", fwidth,
+              "Free-space persist:", fsinfo->persist ? "TRUE" : "FALSE");
 
     HDfprintf(stream, "%*s%-*s %Hu\n", indent, "", fwidth,
-              "Free space section threshold:", fsinfo->threshold);
+              "Free-space section threshold:", fsinfo->threshold);
 
     HDfprintf(stream, "%*s%-*s %Hu\n", indent, "", fwidth,
               "File space page size:", fsinfo->fsp_size);
 
-    if(fsinfo->fsp_size) {
+    HDfprintf(stream, "%*s%-*s %u\n", indent, "", fwidth,
+	"Page end metadata threshold:", fsinfo->pgend_meta_thres);
+
+    if(fsinfo->strategy == H5F_FSPACE_STRATEGY_PAGE && fsinfo->fsp_size) {
 	if(fsinfo->last_small) {
 	    HDfprintf(stream, "%*s%-*s %s\n", indent, "", fwidth,
-		"The file space section at EOF :", fsinfo->last_small == H5F_FILE_SPACE_EOF_SMALL_META ? "small meta data" : "small raw data");
+		"EOF file space section type:", fsinfo->last_small == H5F_FILE_SPACE_EOF_SMALL_META ? "small meta data" : "small raw data");
 	} else
 	    HDfprintf(stream, "%*s%-*s %s\n", indent, "", fwidth,
-		"The file space section at EOF :", "large generic");
-
+		"EOF file space section type:", "large generic");
+    } else {
+	HDassert(!fsinfo->last_small);
 	HDfprintf(stream, "%*s%-*s %u\n", indent, "", fwidth,
-              "Page end metadata threshold:", fsinfo->pgend_meta_thres);
+	    "EOF file space section type:", fsinfo->last_small);
     }
 
-    if(fsinfo->strategy == H5F_FILE_SPACE_ALL_PERSIST) {
-	if(fsinfo->fsp_size) {
-	    H5F_mem_page_t type; 	/* Free-space types for iteration */
-	    for(type = H5F_MEM_PAGE_META; type < H5F_MEM_PAGE_NTYPES; H5_INC_ENUM(H5F_mem_page_t, type))
-		HDfprintf(stream, "%*s%-*s %a\n", indent, "", fwidth,
-		    "Free space manager address:", fsinfo->fs_addr.page[type]);
-	} else {
-	    H5FD_mem_t 	type;	/* Free-space types for iteration */
-	    for(type = H5FD_MEM_SUPER; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type))
-		HDfprintf(stream, "%*s%-*s %a\n", indent, "", fwidth,
-		    "Free space manager address:", fsinfo->fs_addr.aggr[type-1]);
-	}
-	
-    } /* end if */
+    for(type = H5FD_MEM_SUPER; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type))
+	HDfprintf(stream, "%*s%-*s %a\n", indent, "", fwidth,
+	    "Free space manager address:", fsinfo->fs_addr[type-1]);
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5O_fsinfo_debug() */

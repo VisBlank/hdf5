@@ -770,30 +770,22 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
                                 fprintf(out, "NULL");
                         } /* end if */
                         else {
-                            H5F_fs_strategy_t fs_type = (H5F_fs_strategy_t)va_arg(ap, int);
+                            H5F_fspace_strategy_t fs_type = (H5F_fspace_strategy_t)va_arg(ap, int);
 
                             switch(fs_type) {
-                                case H5F_FILE_SPACE_DEFAULT:
-                                    fprintf(out, "H5F_FILE_SPACE_DEFAULT");
+                                case H5F_FSPACE_STRATEGY_AGGR:
+                                    fprintf(out, "H5F_FSPACE_STRATEGY_AGGR");
                                     break;
 
-                                case H5F_FILE_SPACE_ALL_PERSIST:
-                                    fprintf(out, "H5F_FILE_SPACE_ALL_PERSIST");
+                                case H5F_FSPACE_STRATEGY_PAGE:
+                                    fprintf(out, "H5F_FSPACE_STRATEGY_PAGE");
                                     break;
 
-                                case H5F_FILE_SPACE_ALL:
-                                    fprintf(out, "H5F_FILE_SPACE_ALL");
+                                case H5F_FSPACE_STRATEGY_NONE:
+                                    fprintf(out, "H5F_FSPACE_STRATEGY_NONE");
                                     break;
 
-                                case H5F_FILE_SPACE_AGGR_VFD:
-                                    fprintf(out, "H5F_FILE_SPACE_AGGR_VFD");
-                                    break;
-
-                                case H5F_FILE_SPACE_VFD:
-                                    fprintf(out, "H5F_FILE_SPACE_VFD");
-                                    break;
-
-                                case H5F_FILE_SPACE_NTYPES:
+                                case H5F_FSPACE_STRATEGY_NTYPES:
                                 default:
                                     fprintf(out, "%ld", (long)fs_type);
                                     break;

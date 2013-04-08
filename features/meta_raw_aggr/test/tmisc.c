@@ -1800,8 +1800,9 @@ test_misc11(void)
     unsigned    sym_lk;         /* Symbol table B-tree leaf 'K' value */
     unsigned 	nindexes;       /* Shared message number of indexes */
     H5F_info2_t finfo;          /* global information about file */
-    H5F_fs_strategy_t strategy;  /* File/free space strategy */
+    H5F_fspace_strategy_t strategy;  /* File space strategy */
     hsize_t  	threshold;      /* Free-space section threshold */
+    hbool_t	persist;	/* To persist free-space or not */
     herr_t      ret;            /* Generic return value */
 
     /* Output message about test being performed */
@@ -1847,7 +1848,7 @@ test_misc11(void)
     ret=H5Pset_shared_mesg_nindexes(fcpl,MISC11_NINDEXES);
     CHECK(ret, FAIL, "H5Pset_shared_mesg");
 
-    ret = H5Pset_file_space_strategy(fcpl, H5F_FILE_SPACE_VFD, (hsize_t)0);
+    ret = H5Pset_file_space_strategy(fcpl, H5F_FSPACE_STRATEGY_NONE, TRUE, (hsize_t)0);
     CHECK(ret, FAIL, "H5Pset_file_space");
 
     /* Creating a file with the non-default file creation property list should
@@ -1911,10 +1912,11 @@ test_misc11(void)
     CHECK(ret, FAIL, "H5Pget_shared_mesg_nindexes");
     VERIFY(nindexes, MISC11_NINDEXES, "H5Pget_shared_mesg_nindexes");
 
-    ret = H5Pget_file_space_strategy(fcpl, &strategy, &threshold);
+    ret = H5Pget_file_space_strategy(fcpl, &strategy, &persist, &threshold);
     CHECK(ret, FAIL, "H5Pget_file_space_strategy");
-    VERIFY(strategy, 4, "H5Pget_file_space_strategy");
-    VERIFY(threshold, 1, "H5Pget_file_space_strategy");
+    VERIFY(strategy, 2, "H5Pget_file_space_strategy");
+    VERIFY(persist, TRUE, "H5Pget_file_space_strategy");
+    VERIFY(threshold, 0, "H5Pget_file_space_strategy");
 
     /* Close file */
     ret=H5Fclose(file);

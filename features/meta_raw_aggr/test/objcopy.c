@@ -5879,7 +5879,7 @@ test_copy_ext_link(hid_t fcpl_src, hid_t fcpl_dst, hid_t src_fapl, hid_t dst_fap
     if(H5Gclose(gid) < 0) TEST_ERROR
 
     /* create file to hold external links to the src file */
-    if((fid_ext = H5Fcreate(ext_filename, H5F_ACC_TRUNC, H5P_DEFAULT, src_fapl)) < 0) TEST_ERROR
+    if((fid_ext = H5Fcreate(ext_filename, H5F_ACC_TRUNC, fcpl_src, src_fapl)) < 0) TEST_ERROR
 
     /* create group in the file that will hold the external link */
     if((gid = H5Gcreate2(fid_ext, NAME_GROUP_LINK, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR
@@ -12177,10 +12177,21 @@ main(void)
     int     nerrors = 0;
     hid_t	fapl, fapl2;
     hid_t   fcpl_shared, ocpl;
+    hid_t	fcpl;
     unsigned    max_compact, min_dense;
     int     configuration;  /* Configuration of tests. */
     int	ExpressMode;
     hbool_t same_file;  /* Whether to run tests that only use one file */
+    const char  *env_h5_drvr;           /* File Driver value from environment */
+    hbool_t contig_addr_vfd;    /* Whether VFD used has a contigous address space */
+
+    /* Get the VFD to use */
+    env_h5_drvr = HDgetenv("HDF5_DRIVER");
+    if(env_h5_drvr == NULL)
+        env_h5_drvr = "nomatch";
+
+    /* Current VFD that does not support contigous address space */
+    contig_addr_vfd = (hbool_t)(HDstrcmp(env_h5_drvr, "split") && HDstrcmp(env_h5_drvr, "multi"));
 
     /* Setup */
     h5_reset();
@@ -12197,7 +12208,8 @@ main(void)
     if(H5Pset_libver_bounds(fapl2, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) TEST_ERROR
 
     /* Create an FCPL with sharing enabled */
-    if((fcpl_shared = H5Pcreate(H5P_FILE_CREATE)) < 0) TEST_ERROR
+    if((fcpl = H5Pcreate(H5P_FILE_CREATE)) < 0) TEST_ERROR
+    if((fcpl_shared = H5Pcopy(fcpl)) < 0) TEST_ERROR
     if(H5Pset_shared_mesg_nindexes(fcpl_shared, 1) < 0) TEST_ERROR
     if(H5Pset_shared_mesg_index(fcpl_shared, 0, H5O_SHMESG_ALL_FLAG, 10) < 0) TEST_ERROR
 
@@ -12229,7 +12241,7 @@ main(void)
         }
         else {
             puts("\nTesting without shared src messages:");
-            fcpl_src = H5P_DEFAULT;
+            fcpl_src = fcpl;
         }
         if(configuration & CONFIG_SHARE_DST) {
             puts("Testing with shared dst messages:");
@@ -12238,13 +12250,17 @@ main(void)
         }
         else {
             puts("Testing without shared dst messages:");
-            fcpl_dst = H5P_DEFAULT;
+            fcpl_dst = fcpl;
         }
 
         /* Set the FAPL for the source file's type of format */
         if(configuration & CONFIG_SRC_NEW_FORMAT) {
             puts("Testing with latest format for source file:");
             src_fapl = fapl2;
+
+	    if(!contig_addr_vfd)
+		if(H5Pset_file_space_strategy(fcpl_src, H5F_FSPACE_STRATEGY_AGGR, FALSE, (hsize_t)1) < 0)
+		    TEST_ERROR
 
             /* Test with and without dense attributes */
             if(configuration & CONFIG_DENSE) {
@@ -12267,6 +12283,10 @@ main(void)
             puts("Testing with latest format for destination file:");
             dst_fapl = fapl2;
             same_file = FALSE;
+
+	    if(!contig_addr_vfd)
+		if(H5Pset_file_space_strategy(fcpl_dst, H5F_FSPACE_STRATEGY_AGGR, FALSE, (hsize_t)1) < 0)
+		    TEST_ERROR
         } /* end if */
         else {
             puts("Testing with oldest file format for destination file:");

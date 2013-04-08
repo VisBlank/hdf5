@@ -259,9 +259,9 @@ typedef struct s1_t {
 #define F64_DIM1            (F64_ARRAY_BUF_LEN / sizeof(int) + 1)
 
 /* File 65 macros */
-#define STRATEGY  H5F_FILE_SPACE_VFD  	/* File space handling strategy */
-#define THRESHOLD10   		10   	/* Free-space section threshold */
-#define FSPACE_PAGE_SIZE     	8192 	/* File space page size */
+#define STRATEGY  H5F_FSPACE_STRATEGY_NONE 	/* File space handling strategy */
+#define THRESHOLD10   		10   		/* Free-space section threshold */
+#define FSPACE_PAGE_SIZE     	8192 		/* File space page size */
 
 /* "FILE66" macros and for FILE69 */
 #define F66_XDIM	    8
@@ -6958,7 +6958,7 @@ gent_fs_strategy_threshold(void)
     fcpl = H5Pcreate(H5P_FILE_CREATE);
 
     /* Set file space information */
-    H5Pset_file_space_strategy(fcpl, STRATEGY, (hsize_t)THRESHOLD10);
+    H5Pset_file_space_strategy(fcpl, STRATEGY, TRUE, (hsize_t)THRESHOLD10);
     H5Pset_file_space_page_size(fcpl, (hsize_t)FSPACE_PAGE_SIZE);
 
     /* Create the file with the specified strategy and threshold */

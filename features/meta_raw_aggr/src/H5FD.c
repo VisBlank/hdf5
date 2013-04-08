@@ -1314,6 +1314,10 @@ H5FD_driver_query(const H5FD_class_t *driver, unsigned long *flags/*out*/)
  * Programmer:	Robb Matzke
  *              Tuesday, July 27, 1999
  *
+ * Modifications:
+ *	Vailin Choi; April 2013
+ *	Remove the two parameters for mis-aligned fragment.
+ *	The fragment was handled in the MF layer.
  *-------------------------------------------------------------------------
  */
 haddr_t
@@ -1338,7 +1342,7 @@ H5FDalloc(H5FD_t *file, H5FD_mem_t type, hid_t dxpl_id, hsize_t size)
             HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, HADDR_UNDEF, "not a data transfer property list")
 
     /* Do the real work */
-    if(HADDR_UNDEF == (ret_value = H5FD_alloc_real(file, dxpl_id, type, size, NULL, NULL)))
+    if(HADDR_UNDEF == (ret_value = H5FD_alloc_real(file, dxpl_id, type, size)))
 	HGOTO_ERROR(H5E_VFL, H5E_CANTINIT, HADDR_UNDEF, "unable to allocate file memory")
 
     /* (Note compensating for base address subtraction in internal routine) */
@@ -2030,3 +2034,27 @@ H5FD_get_base_addr(const H5FD_t *file)
     FUNC_LEAVE_NOAPI(file->base_addr)
 } /* end H5FD_get_base_addr() */
 
+
+/*--------------------------------------------------------------------------
+ * Function:    H5FD_set_paged_aggr
+ *
+ * Purpose:     Set "paged_aggr" for the file.
+ *
+ * Return:      Non-negative if succeed; negative if fails.
+ *
+ * Programmer:  Vailin Choi; April 2013
+ *
+ *--------------------------------------------------------------------------
+ */
+herr_t
+H5FD_set_paged_aggr(H5FD_t *file, hbool_t paged)
+{
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
+
+    HDassert(file);
+
+    /* Indicate whether paged aggregation for handling file space is enabled or not */
+    file->paged_aggr = paged;
+
+    FUNC_LEAVE_NOAPI(SUCCEED)
+} /* end H5FD_set_paged_aggr() */

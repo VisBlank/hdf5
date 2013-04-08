@@ -171,31 +171,27 @@ H5MF_sects_debug(H5F_t *f, hid_t dxpl_id, haddr_t fs_addr, FILE *stream, int ind
     HDassert(fwidth >= 0);
 
     for(type = H5FD_MEM_DEFAULT; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type)) {
-	H5MF_fs_t thefs;
-	H5MF_SETUP_FS_AGGR(f, type, &thefs);
 
-	if(H5F_addr_eq(*thefs.fs_addr, fs_addr)) {
-	    if(!(*thefs.fs_man)) {
-
-		if(H5MF_open_thefs(f, dxpl_id, &thefs) < 0)
+	if(H5F_addr_eq(f->shared->fs_addr[type], fs_addr)) {
+	    if(!f->shared->fs_man[type])
+		if(H5MF_open_fstype(f, dxpl_id, type) < 0)
 		    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINIT, FAIL, "can't initialize file free space")
-	    }
 
-	    if(*thefs.fs_man) {
+	    if(f->shared->fs_man[type]) {
 		H5MF_debug_iter_ud_t udata;        /* User data for callbacks */
 
 		/* Prepare user data for section iteration callback */
-		udata.fspace = *thefs.fs_man;
+		udata.fspace = f->shared->fs_man[type];
 		udata.stream = stream;
 		udata.indent = indent;
 		udata.fwidth = fwidth;
 
 		/* Iterate over all the free space sections */
-		if(H5FS_sect_iterate(f, dxpl_id, *thefs.fs_man, H5MF_sects_debug_cb, &udata) < 0)
+		if(H5FS_sect_iterate(f, dxpl_id, f->shared->fs_man[type], H5MF_sects_debug_cb, &udata) < 0)
 		    HGOTO_ERROR(H5E_HEAP, H5E_BADITER, FAIL, "can't iterate over heap's free space")
 
 		/* Close the free space information */
-		if(H5FS_close(f, dxpl_id, *thefs.fs_man) < 0)
+		if(H5FS_close(f, dxpl_id, f->shared->fs_man[type]) < 0)
 		    HGOTO_ERROR(H5E_HEAP, H5E_CANTRELEASE, FAIL, "can't release free space info")
 	    } /* end if */
 	    break;
@@ -222,7 +218,7 @@ done:
  * Modifications:
  *	Vailin Choi; Jan 2013
  *	Add printing of section information for free-space managers 
- *	when file space paging is enabled.
+ *	when paged aggregation is enabled.
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -257,7 +253,7 @@ HDfprintf(stderr, "%s: Dumping file free space sections\n", FUNC);
 HDfprintf(stderr, "%s: for type = H5FD_MEM_DEFAULT, eoa = %a\n", FUNC, eoa);
 #endif /* H5MF_ALLOC_DEBUG */
 
-    if(H5F_FSPACE_PAGE(f)) { /* File space paging */
+    if(H5F_PAGED_AGGR(f)) { /* File space paging */
 
 	for(ptype = H5F_MEM_PAGE_META; ptype < H5F_MEM_PAGE_NTYPES; H5_INC_ENUM(H5F_mem_page_t, ptype)) {
 	    /* Print header for type */
@@ -267,7 +263,7 @@ HDfprintf(stderr, "%s: for type = H5FD_MEM_DEFAULT, eoa = %a\n", FUNC, eoa);
 	    HDfprintf(stream, "%*sSections:\n", indent + 3, "");
 
 	    /* If there is a free space manager for this type, iterate over them */
-	    if(f->shared->fs.page.fs_man[ptype]) {
+	    if(f->shared->fs_man[ptype]) {
 		H5MF_debug_iter_ud_t udata;        /* User data for callbacks */
 
 		/* Prepare user data for section iteration callback */
@@ -277,7 +273,7 @@ HDfprintf(stderr, "%s: for type = H5FD_MEM_DEFAULT, eoa = %a\n", FUNC, eoa);
 		udata.fwidth = MAX(0, fwidth - 6);
 
 		/* Iterate over all the free space sections */
-		if(H5FS_sect_iterate(f, dxpl_id, f->shared->fs.page.fs_man[ptype], H5MF_sects_debug_cb, &udata) < 0)
+		if(H5FS_sect_iterate(f, dxpl_id, f->shared->fs_man[ptype], H5MF_sects_debug_cb, &udata) < 0)
 		    HGOTO_ERROR(H5E_HEAP, H5E_BADITER, FAIL, "can't iterate over heap's free space")
 	    } /* end if */
 	    else {
@@ -320,13 +316,13 @@ HDfprintf(stderr, "%s: sda_addr = %a, sda_size = %Hu, end of sda = %a\n", FUNC, 
 		    H5MF_debug_iter_ud_t udata;        /* User data for callbacks */
 
 		    /* Prepare user data for section iteration callback */
-		    udata.fspace = f->shared->fs.aggr.fs_man[atype];
+		    udata.fspace = f->shared->fs_man[atype];
 		    udata.stream = stream;
 		    udata.indent = indent + 6;
 		    udata.fwidth = MAX(0, fwidth - 6);
 
 		    /* Iterate over all the free space sections */
-		    if(H5FS_sect_iterate(f, dxpl_id, f->shared->fs.aggr.fs_man[atype], H5MF_sects_debug_cb, &udata) < 0)
+		    if(H5FS_sect_iterate(f, dxpl_id, f->shared->fs_man[atype], H5MF_sects_debug_cb, &udata) < 0)
 			HGOTO_ERROR(H5E_HEAP, H5E_BADITER, FAIL, "can't iterate over heap's free space")
 		} /* end if */
 		else {

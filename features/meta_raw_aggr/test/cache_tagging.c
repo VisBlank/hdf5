@@ -1,5 +1,5 @@
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * All rights reserved.                                                      *
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     * All rights reserved.                                                      *
  *                                                                           *
  * This file is part of HDF5.  The full HDF5 copyright notice, including     *
  * terms governing use, modification, and redistribution, is contained in    *
@@ -851,7 +851,6 @@ check_multi_group_creation_tags(hid_t fcpl, int type)
     haddr_t g_tag = 0;     /* Group tag value */
     haddr_t root_tag = 0;  /* Root group tag value */
     haddr_t sbe_tag = 0;   /* Root group tag value */
-    haddr_t fsp_tag = 0;   /* Superblock extension tag value for latest library format/file space page size */
 
     /* Testing Macro */
     TESTING("tag application during multiple group creation");
@@ -1770,9 +1769,11 @@ check_attribute_rename_tags(hid_t fcpl, int type)
 	 * 3 calls to verify_tag() for verifying free space: 
 	 *   one freespace header tag for H5FD_MEM_DRAW manager, 
 	 *   one freespace header tag for H5FD_MEM_SUPER manager 
+	 *   one freespace section info tag for H5FD_MEM_SUPER manager 
          */
         if ( verify_tag(fid, H5AC_FSPACE_HDR_ID, H5AC__FREESPACE_TAG) < 0 ) TEST_ERROR;
         if ( verify_tag(fid, H5AC_FSPACE_HDR_ID, H5AC__FREESPACE_TAG) < 0 ) TEST_ERROR;
+        if ( verify_tag(fid, H5AC_FSPACE_SINFO_ID, H5AC__FREESPACE_TAG) < 0 ) TEST_ERROR;
 
         /* verify btree header and leaf node belonging to group */
         if ( verify_tag(fid, H5AC_BT2_HDR_ID, g_tag) < 0 ) TEST_ERROR;
@@ -3942,7 +3943,7 @@ main(void)
     fcpl_shmesg_all = H5Pcreate(H5P_FILE_CREATE);
     H5Pset_shared_mesg_nindexes(fcpl_shmesg_all, 1);
     H5Pset_shared_mesg_index(fcpl_shmesg_all, 0, H5O_SHMESG_ALL_FLAG, 20);
-    H5Pset_file_space_strategy(fcpl_shmesg_all, H5F_FILE_SPACE_ALL_PERSIST, (hsize_t)0);
+    H5Pset_file_space_strategy(fcpl_shmesg_all, H5F_FSPACE_STRATEGY_AGGR, TRUE, (hsize_t)0);
 
     /* ========= */
     /* Run Tests */

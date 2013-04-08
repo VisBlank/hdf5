@@ -1131,6 +1131,10 @@ h5_make_local_copy(const char *origfilename, const char *local_copy_name)
 #else
     char * srcdir = HDgetenv("srcdir"); /* The source directory */
 
+    /* Check for using the srcdir from configure time */
+    if(NULL == srcdir)
+        srcdir = config_srcdir;
+
     if(srcdir && ((HDstrlen(srcdir) +
                    HDstrlen(origfilename) + 6) < FILENAME_BUF_SIZE)) {
         HDstrcpy(filename, srcdir);

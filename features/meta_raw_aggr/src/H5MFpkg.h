@@ -51,41 +51,19 @@
 /* Define this to dump free space tracker contents after they've been modified */
 /* #define H5MF_ALLOC_DEBUG_DUMP */
 
-/* Free space section types for file */
+/* Free-space section types for file */
 /* (values stored in free space data structures in file) */
-#define H5MF_FSPACE_SECT_SIMPLE         0       /* For aggr fs: section is a range of actual bytes in file */
-#define H5MF_FSPACE_SECT_SMALL        	1	/* For page fs: "small" section which is < fsp_size) */
-#define H5MF_FSPACE_SECT_LARGE		2	/* For page fs: "large" Section which is >= fsp_size) */
+#define H5MF_FSPACE_SECT_SIMPLE         0       /* For non-paged aggregation: section is a range of actual bytes in file */
+#define H5MF_FSPACE_SECT_SMALL        	1	/* For paged aggregation: "small" meta/raw data section which is < fsp_size) */
+#define H5MF_FSPACE_SECT_LARGE		2	/* For paged aggregation: "large" Section which is >= fsp_size) */
 
-/* For page fs: set up the current free-space manager to use */
-/* F -- H5F_t *; T -- H5F_mem_page_t; FS -- H5MF_fs_t * */
-#define H5MF_SETUP_FS_PAGE(F, T, FS) {                                          				\
-        HDassert((T) < H5F_MEM_PAGE_NTYPES);                                    				\
-        (FS)->fs_man = &((F)->shared->fs.page.fs_man[T]);                       				\
-        (FS)->fs_addr = &((F)->shared->fs.page.fs_addr[T]);                     				\
-        (FS)->fs_state = &((F)->shared->fs.page.fs_state[T]);                   				\
-        (FS)->alignment = ((T) == H5F_MEM_PAGE_GENERIC) ? (hsize_t)H5F_FSPACE_PAGE(F) : (hsize_t)H5F_ALIGN_DEF;     	\
-        (FS)->align_thres = H5F_ALIGN_THRHD_DEF; 									\
-        }
-
-/* For aggr fs: set up the current free-space manager to use */
-/* F -- pointer to H5F_t; T -- H5FD_mem_t; FS -- pointer to H5MF_fs_t */
-#define H5MF_SETUP_FS_AGGR(F, T, FS) {                                          \
-        HDassert((T) != H5FD_MEM_NOLIST);                                       \
-        (FS)->fs_man = &((F)->shared->fs.aggr.fs_man[T]);                       \
-        (FS)->fs_addr = &((F)->shared->fs.aggr.fs_addr[T]);                     \
-        (FS)->fs_state = &((F)->shared->fs.aggr.fs_state[T]);                   \
-        (FS)->alignment = H5F_ALIGNMENT(F);                   			\
-        (FS)->align_thres = H5F_THRESHOLD(F);                   			\
-        }
-
-/* For page fs: map allocation request type to tracked free-space type */
-/* F -- pointer to H5F_t; T -- H5FD_mem_t; S -- size of allocation request */
+/* For paged aggregation: map allocation request type to tracked free-space type */
+/* F -- pointer to H5F_t; T -- allocation type (H5FD_mem_t); S -- size of allocation request */
 #define H5MF_ALLOC_TO_FS_PAGE_TYPE(F, T, S)                                                     	\
-        ( S >= H5F_FSPACE_PAGE(F) ? H5F_MEM_PAGE_GENERIC :                                           	\
+        ( S >= (F)->shared->fsp_size ? H5F_MEM_PAGE_GENERIC :                                           	\
         ( ((T == H5FD_MEM_DRAW || T == H5FD_MEM_GHEAP) ? H5F_MEM_PAGE_RAW : H5F_MEM_PAGE_META) ))
 
-/* For aggr fs: map allocation request type to tracked free-space type */
+/* For non-paged aggregation: map allocation request type to tracked free-space type */
 /* F -- pointer to H5F_t; T -- H5FD_mem_t */
 #define H5MF_ALLOC_TO_FS_AGGR_TYPE(F, T)                                        \
         ((H5FD_MEM_DEFAULT == (F)->shared->fs_type_map[T])                      \
@@ -93,19 +71,22 @@
 
 /* Get section class type based on size */
 #define H5MF_SECT_CLASS_TYPE(F, S)      					\
-((H5F_FSPACE_PAGE(F)) ? ((S >= H5F_FSPACE_PAGE(F)) ? H5MF_FSPACE_SECT_LARGE : H5MF_FSPACE_SECT_SMALL) : H5MF_FSPACE_SECT_SIMPLE)
+((H5F_PAGED_AGGR(F)) ? ((S >= (F)->shared->fsp_size) ? H5MF_FSPACE_SECT_LARGE : H5MF_FSPACE_SECT_SMALL) : H5MF_FSPACE_SECT_SIMPLE)
 
 /* Get section class cls */
 #define H5MF_SECT_CLS_TYPE(F, S)      						\
-((H5F_FSPACE_PAGE(F)) ? ((S >= H5F_FSPACE_PAGE(F)) ? H5MF_FSPACE_SECT_CLS_LARGE : H5MF_FSPACE_SECT_CLS_SMALL) : H5MF_FSPACE_SECT_CLS_SIMPLE)
+((H5F_PAGED_AGGR(F)) ? ((S >= (F)->shared->fsp_size) ? H5MF_FSPACE_SECT_CLS_LARGE : H5MF_FSPACE_SECT_CLS_SMALL) : H5MF_FSPACE_SECT_CLS_SIMPLE)
 
-/* For page fs: map free-space type PT (H5F_mem_page_t) to allocation type */
+/* For paged aggregation : map tracked free-space type PT (H5F_mem_page_t) to allocation type */
 #define H5MF_PAGE_TO_ALLOC_TYPE(PT)                                           	\
 ( (PT == H5F_MEM_PAGE_META) ? H5FD_MEM_SUPER : ((PT == H5F_MEM_PAGE_RAW) ? H5FD_MEM_DRAW : H5FD_MEM_DEFAULT) )
 
-#define H5MF_EOA_MISALIGN(F, E, M, FR)						\
-    if(H5F_addr_gt(E, 0) && (M = (E + H5F_BASE_ADDR(F)) % H5F_FSPACE_PAGE(F)))	\
-        FR = H5F_FSPACE_PAGE(F) - M;
+/* Calculate the mis-aligned fragment */
+#define H5MF_EOA_MISALIGN(F, E, A, FR){				\
+    hsize_t m;							\
+    if(H5F_addr_gt(E, 0) && (m = (E + H5F_BASE_ADDR(F)) % A))	\
+        FR = A - m;						\
+}
 
 
 /****************************/
@@ -206,13 +187,14 @@ H5_DLLVAR H5FS_section_class_t H5MF_FSPACE_SECT_CLS_LARGE[1];
 /* Package Private Prototypes */
 /******************************/
 
-/* Allocator routines -- for the specified free-space manager */
-H5_DLL herr_t H5MF_open_thefs(H5F_t *f, hid_t dxpl_id, H5MF_fs_t *thefs);
-H5_DLL herr_t H5MF_start_thefs(H5F_t *f, hid_t dxpl_id, H5MF_fs_t *thefs);
+/* Allocator routines */
+H5_DLL herr_t H5MF_open_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type);
+H5_DLL herr_t H5MF_start_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type);
+
+H5_DLL htri_t H5MF_find_sect(H5F_t *f, H5FD_mem_t alloc_type, hid_t dxpl_id, hsize_t size, H5FS_t *fspace, haddr_t *addr);
+H5_DLL herr_t H5MF_add_sect(H5F_t *f, H5FD_mem_t alloc_type, hid_t dxpl_id, H5FS_t *fspace, H5MF_free_section_t *node);
+
 H5_DLL herr_t H5MF_sects_dump(H5F_t *f, hid_t dxpl_id, FILE *stream);
-H5_DLL void H5MF_setup_thefs(H5F_t *f, H5FD_mem_t alloc_type, hsize_t size, H5MF_fs_t *thefs);
-H5_DLL herr_t H5MF_sect_add_thefs(H5F_t *f, H5FD_mem_t alloc_type, hid_t dxpl_id, H5MF_fs_t *thefs, H5MF_free_section_t *node);
-H5_DLL htri_t H5MF_sect_find_thefs(H5F_t *f, H5FD_mem_t alloc_type, hid_t dxpl_id, hsize_t size, H5MF_fs_t *thefs, haddr_t *addr);
 
 /* 'simple/small/large' section routines */
 H5_DLL H5MF_free_section_t *H5MF_sect_new(unsigned ctype, haddr_t sect_off,

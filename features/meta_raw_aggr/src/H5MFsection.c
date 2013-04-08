@@ -686,8 +686,8 @@ HDfprintf(stderr, "%s: Entering, section {%a, %Hu}\n", FUNC, (*sect)->sect_info.
 	HGOTO_DONE(ret_value);
 
     sect_end = (*sect)->sect_info.addr + (*sect)->sect_info.size;
-    rem = sect_end % H5F_FSPACE_PAGE(udata->f);
-    prem = H5F_FSPACE_PAGE(udata->f) - rem;
+    rem = sect_end % udata->f->shared->fsp_size;
+    prem = udata->f->shared->fsp_size - rem;
 
     /* Drop the section if it is at page end and its size is <= pgend threshold */
     if(!rem && (*sect)->sect_info.size <= H5F_PGEND_META_THRES(udata->f) && (*flags & H5FS_ADD_RETURNED_SPACE)) {
@@ -848,7 +848,7 @@ H5MF_sect_small_can_merge(const H5FS_section_info_t *_sect1,
     /* Check if second section adjoins first section */
     ret_value = H5F_addr_eq(sect1->sect_info.addr + sect1->sect_info.size, sect2->sect_info.addr);
     if(ret_value > 0) {
-	if((sect1->sect_info.addr / H5F_FSPACE_PAGE(udata->f)) != (((sect2->sect_info.addr + sect2->sect_info.size - 1) / H5F_FSPACE_PAGE(udata->f))))
+	if((sect1->sect_info.addr / udata->f->shared->fsp_size) != (((sect2->sect_info.addr + sect2->sect_info.size - 1) / udata->f->shared->fsp_size)))
 	    ret_value = FALSE;
     }
 
@@ -897,7 +897,7 @@ H5MF_sect_small_merge(H5FS_section_info_t **_sect1, H5FS_section_info_t *_sect2,
     /* Add second section's size to first section */
     (*sect1)->sect_info.size += sect2->sect_info.size;
 
-    if((*sect1)->sect_info.size == H5F_FSPACE_PAGE(udata->f)) {
+    if((*sect1)->sect_info.size == udata->f->shared->fsp_size) {
 	if(H5MF_xfree(udata->f, udata->alloc_type, udata->dxpl_id, (*sect1)->sect_info.addr, (*sect1)->sect_info.size) < 0)
 	    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTFREE, FAIL, "can't free merged section")
 	if(H5MF_sect_free((H5FS_section_info_t *)(*sect1)) < 0)

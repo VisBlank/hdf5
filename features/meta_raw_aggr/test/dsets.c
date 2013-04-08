@@ -400,7 +400,7 @@ test_simple_io(const char *env_h5_drvr, hid_t fapl)
 
     TESTING("simple I/O");
 
-    /* Can't run this test with multi-file VFDs */
+    /* Can't run this test with multi-file VFDs because of HDopen/read/seek the file directly */
     if(HDstrcmp(env_h5_drvr, "split") && HDstrcmp(env_h5_drvr, "multi") && HDstrcmp(env_h5_drvr, "family")) {
         h5_fixname(FILENAME[4], fapl, filename, sizeof filename);
 
@@ -519,7 +519,7 @@ test_userblock_offset(const char *env_h5_drvr, hid_t fapl, hbool_t new_format)
 
     TESTING("dataset offset with user block");
 
-    /* Can't run this test with multi-file VFDs */
+    /* Can't run this test with multi-file VFDs because of HDopen/read/seek the file directly */
     if(HDstrcmp(env_h5_drvr, "split") && HDstrcmp(env_h5_drvr, "multi") && HDstrcmp(env_h5_drvr, "family")) {
         h5_fixname(FILENAME[2], fapl, filename, sizeof filename);
 
@@ -700,7 +700,7 @@ test_compact_io(hid_t fapl)
  *-------------------------------------------------------------------------
  */
 static herr_t
-test_max_compact(hid_t fapl)
+test_max_compact(hid_t fcpl, hid_t fapl)
 {
     hid_t       file = -1;
     hid_t       dataset = -1;
@@ -737,7 +737,7 @@ test_max_compact(hid_t fapl)
 
     /* Create a file */
     h5_fixname(FILENAME[3], fapl, filename, sizeof filename);
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0)
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0)
         FAIL_STACK_ERROR
 
     /* Create property list for compact dataset creation */
@@ -861,7 +861,7 @@ error:
  *-------------------------------------------------------------------------
  */
 static herr_t
-test_layout_extend(hid_t fapl)
+test_layout_extend(hid_t fcpl, hid_t fapl)
 {
     char filename[FILENAME_BUF_SIZE];	/* File name */
     hid_t fid = -1; 				/* File id */
@@ -877,7 +877,7 @@ test_layout_extend(hid_t fapl)
 
     /* Create a file */
     h5_fixname(FILENAME[12], fapl, filename, sizeof filename);
-    if((fid = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0)
+    if((fid = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0)
         FAIL_STACK_ERROR
 
     /* Create dataspace */
@@ -1106,6 +1106,7 @@ test_conv_buffer(hid_t fid)
   HDfree(cf);
   HDfree(cfrR);
   puts(" PASSED");
+
   return(0);
 
 error:
@@ -1134,6 +1135,8 @@ test_tconv(hid_t file)
     hsize_t	dims[1];
     hid_t	space = -1, dataset = -1;
     int		i;
+
+    TESTING("data type conversion");
 
     if ((out = (char *)HDmalloc((size_t)(4 * 1000 * 1000))) == NULL)
         goto error;
@@ -1185,6 +1188,7 @@ test_tconv(hid_t file)
     HDfree(in);
 
     puts(" PASSED");
+
     return 0;
 
 error:
@@ -1621,6 +1625,7 @@ test_filter_internal(hid_t fid, const char *name, hid_t dcpl, int if_fletcher32,
 
     PASSED();
 
+
     /*----------------------------------------------------------------------
      * STEP 3: Try to read the data we just wrote.
      *----------------------------------------------------------------------
@@ -1736,6 +1741,7 @@ test_filter_internal(hid_t fid, const char *name, hid_t dcpl, int if_fletcher32,
      */
     TESTING("    filters (re-open)");
 
+
     if(H5Dclose(dataset) < 0) TEST_ERROR;
     if((dataset = H5Dopen2(fid, name, H5P_DEFAULT)) < 0) TEST_ERROR;
 
@@ -1843,10 +1849,11 @@ test_filter_internal(hid_t fid, const char *name, hid_t dcpl, int if_fletcher32,
         }
     }
 
-    PASSED();
-
     /* Get the storage size of the dataset */
     if((*dset_size=H5Dget_storage_size(dataset))==0) goto error;
+
+    PASSED();
+
     /* Clean up objects used for this test */
     if(H5Dclose (dataset) < 0) goto error;
     if(H5Sclose (sid) < 0) goto error;
@@ -2108,6 +2115,7 @@ UNUSED
     hsize_t     combo_size;     /* Size of dataset with shuffle+deflate filter */
 #endif /* H5_HAVE_FILTER_DEFLATE && H5_HAVE_FILTER_SHUFFLE && H5_HAVE_FILTER_FLETCHER32 */
 
+    
     /* test the H5Zget_filter_info function */
     if(test_get_filter_info() < 0) goto error;
 
@@ -2116,6 +2124,7 @@ UNUSED
      *----------------------------------------------------------
      */
     puts("Testing 'null' filter");
+
     if((dc = H5Pcreate(H5P_DATASET_CREATE)) < 0) goto error;
     if(H5Pset_chunk (dc, 2, chunk_size) < 0) goto error;
     if(H5Zregister (H5Z_BOGUS) < 0) goto error;
@@ -2131,6 +2140,7 @@ UNUSED
      *----------------------------------------------------------
      */
 #ifdef H5_HAVE_FILTER_FLETCHER32
+
     puts("Testing Fletcher32 checksum(enabled for read)");
     if((dc = H5Pcreate(H5P_DATASET_CREATE)) < 0) goto error;
     if(H5Pset_chunk (dc, 2, chunk_size) < 0) goto error;
@@ -2183,6 +2193,7 @@ UNUSED
      */
 #ifdef H5_HAVE_FILTER_DEFLATE
     puts("Testing deflate filter");
+
     if((dc = H5Pcreate(H5P_DATASET_CREATE)) < 0) goto error;
     if(H5Pset_chunk (dc, 2, chunk_size) < 0) goto error;
     if(H5Pset_deflate (dc, 6) < 0) goto error;
@@ -2190,6 +2201,7 @@ UNUSED
     if(test_filter_internal(file,DSET_DEFLATE_NAME,dc,DISABLE_FLETCHER32,DATA_NOT_CORRUPTED,&deflate_size) < 0) goto error;
     /* Clean up objects used for this test */
     if(H5Pclose (dc) < 0) goto error;
+
 #else /* H5_HAVE_FILTER_DEFLATE */
     TESTING("deflate filter");
     SKIPPED();
@@ -2201,6 +2213,7 @@ UNUSED
      *----------------------------------------------------------
      */
 #ifdef H5_HAVE_FILTER_SZIP
+
     TESTING("szip filter (with encoder)");
     if( h5_szip_can_encode() == 1) {
         if((dc = H5Pcreate(H5P_DATASET_CREATE)) < 0) goto error;
@@ -2235,6 +2248,7 @@ UNUSED
      */
 #ifdef H5_HAVE_FILTER_SHUFFLE
     puts("Testing shuffle filter");
+
     if((dc = H5Pcreate(H5P_DATASET_CREATE)) < 0) goto error;
     if(H5Pset_chunk (dc, 2, chunk_size) < 0) goto error;
     if(H5Pset_shuffle (dc) < 0) goto error;
@@ -2248,6 +2262,7 @@ UNUSED
 
     /* Clean up objects used for this test */
     if(H5Pclose (dc) < 0) goto error;
+
 #else /* H5_HAVE_FILTER_SHUFFLE */
     TESTING("shuffle filter");
     SKIPPED();
@@ -2259,6 +2274,7 @@ UNUSED
      *----------------------------------------------------------
      */
 #if defined H5_HAVE_FILTER_DEFLATE && defined H5_HAVE_FILTER_SHUFFLE && defined H5_HAVE_FILTER_FLETCHER32
+
     puts("Testing shuffle+deflate+checksum filters(checksum first)");
     if((dc = H5Pcreate(H5P_DATASET_CREATE)) < 0) goto error;
     if(H5Pset_chunk (dc, 2, chunk_size) < 0) goto error;
@@ -2282,6 +2298,7 @@ UNUSED
 
     /* Clean up objects used for this test */
     if(H5Pclose (dc) < 0) goto error;
+
 #else /* H5_HAVE_FILTER_DEFLATE && H5_HAVE_FILTER_SHUFFLE && H5_HAVE_FILTER_FLETCHER32 */
     TESTING("shuffle+deflate+fletcher32 filters");
     SKIPPED();
@@ -2691,17 +2708,19 @@ test_onebyte_shuffle(hid_t file)
 	}
     }
 
-    /*----------------------------------------------------------------------
-     * Cleanup
-     *----------------------------------------------------------------------
-     */
-    if(H5Pclose (dc) < 0) goto error;
-    if(H5Dclose(dataset) < 0) goto error;
-
     PASSED();
 #else
     SKIPPED();
     puts(not_supported);
+#endif
+
+    /*----------------------------------------------------------------------
+     * Cleanup
+     *----------------------------------------------------------------------
+     */
+#ifdef H5_HAVE_FILTER_SHUFFLE
+    if(H5Pclose (dc) < 0) goto error;
+    if(H5Dclose(dataset) < 0) goto error;
 #endif
 
     return 0;
@@ -2830,21 +2849,24 @@ test_nbit_int(hid_t file)
         }
     }
 
-    /*----------------------------------------------------------------------
-     * Cleanup
-     *----------------------------------------------------------------------
-     */
-    if(H5Tclose(datatype) < 0) goto error;
-    if(H5Tclose(mem_datatype) < 0) goto error;
-    if(H5Pclose(dc) < 0) goto error;
-    if(H5Sclose(space) < 0) goto error;
-    if(H5Dclose(dataset) < 0) goto error;
-
     PASSED();
 #else
     SKIPPED();
     puts(not_supported);
 #endif
+
+    /*----------------------------------------------------------------------
+     * Cleanup
+     *----------------------------------------------------------------------
+     */
+#ifdef H5_HAVE_FILTER_NBIT
+    if(H5Tclose(datatype) < 0) goto error;
+    if(H5Tclose(mem_datatype) < 0) goto error;
+    if(H5Pclose(dc) < 0) goto error;
+    if(H5Sclose(space) < 0) goto error;
+    if(H5Dclose(dataset) < 0) goto error;
+#endif
+
     return 0;
 error:
     return -1;
@@ -5875,7 +5897,7 @@ const H5Z_class2_t H5Z_SET_LOCAL_TEST[1] = {{
  *-------------------------------------------------------------------------
  */
 static herr_t
-test_set_local(hid_t fapl)
+test_set_local(hid_t fcpl, hid_t fapl)
 {
     char        filename[FILENAME_BUF_SIZE];
     hid_t       file;           /* File ID */
@@ -5902,7 +5924,7 @@ test_set_local(hid_t fapl)
 	}
 
     /* Open file */
-    if((file=H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) {
+    if((file=H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) {
         H5_FAILED();
         printf("    Line %d: Can't open file\n",__LINE__);
 	goto error;
@@ -6817,7 +6839,7 @@ error:
  *-------------------------------------------------------------------------
  */
 static herr_t
-test_random_chunks(hid_t fapl)
+test_random_chunks(hid_t fcpl, hid_t fapl)
 {
     char        filename[FILENAME_BUF_SIZE];
     hid_t       s=-1, m=-1, d=-1, dcpl=-1, file=-1;
@@ -6839,7 +6861,7 @@ test_random_chunks(hid_t fapl)
     h5_fixname(FILENAME[6], fapl, filename, sizeof filename);
 
     /* Create file for first test */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR;
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) TEST_ERROR;
 
     /* Create dataspace */
     if((s = H5Screate_simple(2, dsize, NULL)) < 0) TEST_ERROR;
@@ -6923,7 +6945,7 @@ test_random_chunks(hid_t fapl)
 
 
     /* Create file for second test */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR;
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) TEST_ERROR;
 
     /* Create dataspace with unlimited maximum dimensions */
     if((s = H5Screate_simple(2, dsize, dmax)) < 0) TEST_ERROR;
@@ -7366,7 +7388,7 @@ error:
  *-------------------------------------------------------------------------
  */
 static herr_t
-test_chunk_cache(hid_t fapl)
+test_chunk_cache(hid_t fcpl, hid_t fapl)
 {
     char        filename[FILENAME_BUF_SIZE];
     hid_t       fid = -1;       /* File ID */
@@ -7415,7 +7437,7 @@ test_chunk_cache(hid_t fapl)
     h5_fixname(FILENAME[8], fapl, filename, sizeof filename);
 
     /* Create file */
-    if ((fid = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl_local)) < 0) FAIL_STACK_ERROR
+    if ((fid = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl_local)) < 0) FAIL_STACK_ERROR
 
     /* Create dataset creation property list */
     if ((dcpl = H5Pcreate(H5P_DATASET_CREATE)) < 0) FAIL_STACK_ERROR
@@ -7578,7 +7600,7 @@ error:
  *-------------------------------------------------------------------------
  */
 static herr_t
-test_big_chunks_bypass_cache(hid_t fapl)
+test_big_chunks_bypass_cache(hid_t fcpl, hid_t fapl)
 {
     char        filename[FILENAME_BUF_SIZE];
     hid_t       fid = -1;       /* File ID */
@@ -7607,7 +7629,7 @@ test_big_chunks_bypass_cache(hid_t fapl)
     if(H5Pset_cache(fapl_local, 0, rdcc_nelmts, rdcc_nbytes, (double)0.0) < 0) FAIL_STACK_ERROR
 
     /* Create file */
-    if((fid = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl_local)) < 0) FAIL_STACK_ERROR
+    if((fid = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl_local)) < 0) FAIL_STACK_ERROR
 
     /* Create 1-D dataspace */
     dim = BYPASS_DIM;
@@ -8083,7 +8105,7 @@ error:
  *-------------------------------------------------------------------------
  */
 static herr_t
-test_large_chunk_shrink(hid_t fapl)
+test_large_chunk_shrink(hid_t fcpl, hid_t fapl)
 {
     char        filename[FILENAME_BUF_SIZE];
     hid_t       fid = -1;       /* File ID */
@@ -8101,7 +8123,7 @@ test_large_chunk_shrink(hid_t fapl)
     h5_fixname(FILENAME[10], fapl, filename, sizeof filename);
 
     /* Create file */
-    if((fid = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) FAIL_STACK_ERROR
+    if((fid = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) FAIL_STACK_ERROR
 
     /* Create dataset creation property list */
     if((dcpl = H5Pcreate(H5P_DATASET_CREATE)) < 0) FAIL_STACK_ERROR
@@ -8209,11 +8231,16 @@ main(void)
     double rdcc_w0;
     int	nerrors = 0;
     const char *envval;
+    hid_t   fcpl;		/* File access property list */
+    hbool_t contig_addr_vfd;    /* Whether VFD used has a contigous address space */
 
     /* Don't run this test using certain file drivers */
     envval = HDgetenv("HDF5_DRIVER");
     if(envval == NULL)
         envval = "nomatch";
+
+    /* Current VFD that does not support contigous address space */
+    contig_addr_vfd = (hbool_t)(HDstrcmp(envval, "split") && HDstrcmp(envval, "multi"));
 
     /* Set the random # seed */
     HDsrandom((unsigned)HDtime(NULL));
@@ -8235,6 +8262,8 @@ main(void)
     /* Set the "use the latest version of the format" bounds for creating objects in the file */
     if(H5Pset_libver_bounds(fapl2, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) TEST_ERROR
 
+    if((fcpl = H5Pcreate(H5P_FILE_CREATE)) < 0) TEST_ERROR
+
     h5_fixname(FILENAME[0], fapl, filename, sizeof filename);
 
     /* Test with old & new format groups */
@@ -8245,6 +8274,9 @@ main(void)
         if(new_format) {
             puts("\nTesting with new file format:");
             my_fapl = fapl2;
+	    if(!contig_addr_vfd)
+		if(H5Pset_file_space_strategy(fcpl, H5F_FSPACE_STRATEGY_AGGR, FALSE, (hsize_t)1) < 0)
+		    TEST_ERROR
         } /* end if */
         else {
             puts("Testing with old file format:");
@@ -8252,7 +8284,7 @@ main(void)
         } /* end else */
 
         /* Create the file for this test */
-        if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, my_fapl)) < 0)
+        if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, my_fapl)) < 0)
             goto error;
 
         /* Cause the library to emit initial messages */
@@ -8266,15 +8298,15 @@ main(void)
         nerrors += (test_create(file) < 0 			? 1 : 0);
         nerrors += (test_simple_io(envval, my_fapl) < 0		? 1 : 0);
         nerrors += (test_compact_io(my_fapl) < 0  		? 1 : 0);
-        nerrors += (test_max_compact(my_fapl) < 0  		? 1 : 0);
-        nerrors += (test_conv_buffer(file) < 0		? 1 : 0);
+        nerrors += (test_max_compact(fcpl, my_fapl) < 0		? 1 : 0);
+        nerrors += (test_conv_buffer(file) < 0			? 1 : 0);
         nerrors += (test_tconv(file) < 0			? 1 : 0);
         nerrors += (test_filters(file, my_fapl) < 0		? 1 : 0);
         nerrors += (test_onebyte_shuffle(file) < 0 		? 1 : 0);
-        nerrors += (test_nbit_int(file) < 0 		? 1 : 0);
-        nerrors += (test_nbit_float(file) < 0         	? 1 : 0);
-        nerrors += (test_nbit_double(file) < 0         	? 1 : 0);
-        nerrors += (test_nbit_array(file) < 0 		? 1 : 0);
+        nerrors += (test_nbit_int(file) < 0 			? 1 : 0);
+        nerrors += (test_nbit_float(file) < 0         		? 1 : 0);
+        nerrors += (test_nbit_double(file) < 0         		? 1 : 0);
+        nerrors += (test_nbit_array(file) < 0 			? 1 : 0);
         nerrors += (test_nbit_compound(file) < 0 		? 1 : 0);
         nerrors += (test_nbit_compound_2(file) < 0 		? 1 : 0);
         nerrors += (test_nbit_compound_3(file) < 0 		? 1 : 0);
@@ -8292,7 +8324,7 @@ main(void)
         nerrors += (test_missing_filter(file) < 0		? 1 : 0);
         nerrors += (test_can_apply(file) < 0		? 1 : 0);
         nerrors += (test_can_apply2(file) < 0		? 1 : 0);
-        nerrors += (test_set_local(my_fapl) < 0		? 1 : 0);
+        nerrors += (test_set_local(fcpl, my_fapl) < 0		? 1 : 0);
         nerrors += (test_can_apply_szip(file) < 0		? 1 : 0);
         nerrors += (test_compare_dcpl(file) < 0		? 1 : 0);
         nerrors += (test_copy_dcpl(file, my_fapl) < 0	? 1 : 0);
@@ -8300,16 +8332,19 @@ main(void)
         nerrors += (test_filters_endianess() < 0	? 1 : 0);
         nerrors += (test_zero_dims(file) < 0		? 1 : 0);
         nerrors += (test_missing_chunk(file) < 0		? 1 : 0);
-        nerrors += (test_random_chunks(my_fapl) < 0		? 1 : 0);
+        nerrors += (test_random_chunks(fcpl, my_fapl) < 0	? 1 : 0);
+
 #ifndef H5_NO_DEPRECATED_SYMBOLS
         nerrors += (test_deprec(file) < 0			? 1 : 0);
 #endif /* H5_NO_DEPRECATED_SYMBOLS */
+
+
         nerrors += (test_huge_chunks(my_fapl) < 0		? 1 : 0);
-        nerrors += (test_chunk_cache(my_fapl) < 0		? 1 : 0);
-        nerrors += (test_big_chunks_bypass_cache(my_fapl) < 0   ? 1 : 0);
+        nerrors += (test_chunk_cache(fcpl, my_fapl) < 0		? 1 : 0);
+        nerrors += (test_big_chunks_bypass_cache(fcpl, my_fapl) < 0   ? 1 : 0);
         nerrors += (test_chunk_expand(my_fapl) < 0		? 1 : 0);
-	nerrors += (test_layout_extend(my_fapl) < 0		? 1 : 0);
-	nerrors += (test_large_chunk_shrink(my_fapl) < 0        ? 1 : 0);
+	nerrors += (test_layout_extend(fcpl, my_fapl) < 0		? 1 : 0);
+	nerrors += (test_large_chunk_shrink(fcpl, my_fapl) < 0        ? 1 : 0);
 
         if(H5Fclose(file) < 0)
             goto error;
@@ -8317,6 +8352,8 @@ main(void)
 
     /* Close 2nd FAPL */
     if(H5Pclose(fapl2) < 0) TEST_ERROR
+    /* Close the fcpl */
+    if(H5Pclose(fcpl) < 0) TEST_ERROR
 
     /* Verify symbol table messages are cached */
     nerrors += (h5_verify_cached_stabs(FILENAME, fapl) < 0 ? 1 : 0);
@@ -8338,4 +8375,3 @@ error:
             nerrors, 1 == nerrors ? "" : "S");
     return 1;
 }
-

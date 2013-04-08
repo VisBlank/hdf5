@@ -604,23 +604,17 @@ typedef unsigned H5O_unknown_t;         /* Original message type ID */
  * addresses of free space managers for file memory
  * (Data structure in memory)
  */
-/* version, strategy, threshold, 6 addresses of free-space managers */
-#define H5O_FSINFO_VERSION_1  1
-
-/* version, strategy, threshold, 3 addresses of free-space managers, fsp_size, last_small, pgend_meta_thres */
-#define H5O_FSINFO_VERSION_2  2
-
+#define H5O_FSINFO_VERSION_0  0
 typedef struct H5O_fsinfo_t {
-    unsigned 	     	version;		/* Version of message */
-    unsigned char	last_small;		/* For file space paging: allocation at EOF is a small (< fsp_size) meta or raw section */
-    size_t		pgend_meta_thres;	/* For file space paging: do not track small meta sections below this threshold */
-    H5F_fs_strategy_t 	strategy;	/* File space strategy */
-    hsize_t	  	threshold;	/* Free space section threshold */
-    hsize_t	  	fsp_size;	/* File space page size */
-    union {
-	haddr_t    aggr[H5FD_MEM_NTYPES-1];    /* version 1: 6 addresses of free space managers */
-	haddr_t    page[H5F_MEM_PAGE_NTYPES];  /* version 2: 3 addresses of free space managers */
-    } fs_addr;
+    unsigned 	     		version;	/* Version of message */
+    H5F_fspace_strategy_t 	strategy;	/* File space strategy */
+    hbool_t			persist;	/* Persisting free-space or not */
+    hsize_t	  		threshold;	/* Free-space section threshold */
+    hsize_t	  		fsp_size;	/* For paged aggregation: file space page size */
+    size_t			pgend_meta_thres;	/* For paged aggregation: page end metadata threshold */
+    unsigned char		last_small;		/* For paged aggregation: EOF file space section type */
+    haddr_t			fs_addr[H5FD_MEM_NTYPES-1];	/* For non-paged aggregation: 6 addresses of free-space managers */
+							/* For paged aggregation: 3 address of free-space managers, remaining 3 should be undefined */
 } H5O_fsinfo_t;
 
 /* Typedef for "application" iteration operations */

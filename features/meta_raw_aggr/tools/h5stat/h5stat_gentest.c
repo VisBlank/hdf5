@@ -42,7 +42,7 @@ static void gen_file(void)
 {
     hid_t	fcpl; 	/* File creation property */
     hid_t	fapl; 	/* File access property */
-    hid_t   file;	/* File id */
+    hid_t   	file;	/* File id */
     hid_t	gid;	/* Group id */
     hid_t	type_id;	/* Datatype id */
     hid_t	space_id; 	/* Dataspace id */
@@ -59,7 +59,7 @@ static void gen_file(void)
 
     /* Set file space handling strategy */
     fcpl = H5Pcreate(H5P_FILE_CREATE);
-    ret = H5Pset_file_space_strategy(fcpl, H5F_FILE_SPACE_ALL_PERSIST, (hsize_t)0);
+    ret = H5Pset_file_space_strategy(fcpl, H5F_FSPACE_STRATEGY_AGGR, 1, (hsize_t)1);
     assert(ret >= 0);
 
      /* Create dataset */

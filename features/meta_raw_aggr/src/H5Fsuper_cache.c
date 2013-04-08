@@ -604,6 +604,14 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, void *_udata)
 			HGOTO_ERROR(H5E_FILE, H5E_CANTSET, NULL, "unable to set file space strategy")
 		} /* end if */
 
+		if(shared->fs_persist != fsinfo.persist) {
+		    shared->fs_persist = fsinfo.persist;
+
+		    /* Set non-default strategy in the property list */
+		    if(H5P_set(c_plist, H5F_CRT_FREE_SPACE_PERSIST_NAME, &fsinfo.persist) < 0)
+			HGOTO_ERROR(H5E_FILE, H5E_CANTSET, NULL, "unable to set file space strategy")
+		} /* end if */
+
 		if(shared->fs_threshold != fsinfo.threshold) {
 		    shared->fs_threshold = fsinfo.threshold;
 
@@ -629,17 +637,19 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, void *_udata)
 		    shared->pgend_meta_thres = fsinfo.pgend_meta_thres;
 
 		/* set free-space manager addresses */
-		if(fsinfo.version == H5O_FSINFO_VERSION_1) {
-		    shared->fs.aggr.fs_addr[0] = HADDR_UNDEF;
-		    for(u = 1; u < NELMTS(f->shared->fs.aggr.fs_addr); u++)
-			shared->fs.aggr.fs_addr[u] = fsinfo.fs_addr.aggr[u-1];
-		} else if(fsinfo.version == H5O_FSINFO_VERSION_2) {
-		    for(u = 0; u < NELMTS(f->shared->fs.page.fs_addr); u++) {
-			shared->fs.page.fs_addr[u] = fsinfo.fs_addr.page[u];
-			shared->fs.page.fs_man[u] = NULL;
-			shared->fs.page.fs_state[u] = H5F_FS_STATE_CLOSED;
+		if(fsinfo.strategy == H5F_FSPACE_STRATEGY_PAGE && fsinfo.fsp_size) {
+		    for(u = 0; u < (NELMTS(f->shared->fs_addr) - 1); u++) {
+			shared->fs_addr[u] = fsinfo.fs_addr[u];
 		    } /* end for */
-		}
+		} else {
+		    shared->fs_addr[0] = HADDR_UNDEF;
+		    for(u = 1; u < NELMTS(f->shared->fs_addr); u++)
+			shared->fs_addr[u] = fsinfo.fs_addr[u-1];
+		} 
+#ifdef TEMP_OUT
+		if(H5FD_set_paged_aggr(lf, (hbool_t)H5F_PAGED_AGGR(f)) < 0)
+		    HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "failed to set paged_aggr status for file driver")
+#endif
 	    } /* end if not marked "unknown" */
 	} /* end if status */
 
@@ -648,6 +658,8 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, void *_udata)
 	    HGOTO_ERROR(H5E_FILE, H5E_CANTRELEASE, NULL, "unable to close file's superblock extension")
     } /* end if ext_addr */
 
+    if(H5FD_set_paged_aggr(lf, (hbool_t)H5F_PAGED_AGGR(f)) < 0)
+	HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "failed to set paged_aggr status for file driver")
     /* Set return value */
     ret_value = sblock;
 

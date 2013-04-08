@@ -35,7 +35,7 @@ const char  *outfile = NULL;
  * Command-line options: The user can specify short or long-named
  * parameters.
  */
-static const char *s_opts = "hVvf:l:m:e:nLc:d:s:u:b:M:t:a:i:o:S:T:P:";
+static const char *s_opts = "hVvf:l:m:e:nLc:d:s:u:b:M:t:a:i:o:S:P:T:G:";
 static struct long_options l_opts[] = {
     { "help", no_arg, 'h' },
     { "version", no_arg, 'V' },
@@ -57,8 +57,9 @@ static struct long_options l_opts[] = {
     { "infile", require_arg, 'i' },   /* -i for backward compability */
     { "outfile", require_arg, 'o' },  /* -o for backward compability */
     { "fs_strategy", require_arg, 'S' },
+    { "fs_persist", require_arg, 'P' },
     { "fs_threshold", require_arg, 'T' },
-    { "fs_page", require_arg, 'P' },
+    { "fs_pagesize", require_arg, 'G' },
     { NULL, 0, '\0' }
 };
 
@@ -99,7 +100,7 @@ int main(int argc, const char **argv)
         HDexit(EXIT_FAILURE);
 
     /* initialize options  */
-    h5repack_init(&options, 0, H5F_FILE_SPACE_DEFAULT, (hsize_t)0);
+    h5repack_init(&options, 0);
 
     parse_command_line(argc, argv, &options);
 
@@ -151,6 +152,9 @@ int main(int argc, const char **argv)
  *
  * Return: void
  *
+ * Modifications:
+ *	Vailin Choi; April 2013
+ *	Add/modify options due to changes for H5Pget_file_space_strategy().
  *-------------------------------------------------------------------------
  */
 static void usage(const char *prog)
@@ -176,9 +180,10 @@ static void usage(const char *prog)
  printf("   -a A, --alignment=A     Alignment value for H5Pset_alignment\n");
  printf("   -f FILT, --filter=FILT  Filter type\n");
  printf("   -l LAYT, --layout=LAYT  Layout type\n");
- printf("   -S FS_STRGY, --fs_strategy=FS_STRGY  File space management strategy for H5Pset_file_space_strategy\n");
- printf("   -T FS_THRD, --fs_threshold=FS_THRD   Free-space section threshold for H5Pset_file_space_strategy\n");
- printf("   -P FS_PAGE, --fs_page=FS_PAGE        File space page size for H5Pset_file_space_page_size\n");
+ printf("   -S FS_STRATEGY, --fs_strategy=FS_STRATEGY  	   File space management strategy for H5Pset_file_space_strategy\n");
+ printf("   -P FS_PERSIST, --fs_persist=FS_PERSIST   	   Persist or not persist free-space for H5Pset_file_space_strategy\n");
+ printf("   -T FS_THRESHOLD, --fs_threshold=FS_THRESHOLD    Free-space section threshold for H5Pset_file_space_strategy\n");
+ printf("   -G FS_PAGESIZE, --fs_pagesize=FS_PAGESIZE  	   File space page size for H5Pset_file_space_page_size\n");
 
  printf("\n");
 
@@ -193,19 +198,24 @@ static void usage(const char *prog)
  printf("    F - is the shared object header message type, any of <dspace|dtype|fill|\n");
  printf("        pline|attr>. If F is not specified, S applies to all messages\n");
  printf("\n");
- printf("    FS_STRGY is a string as listed below:\n");
- printf("        ALL_PERSIST - Use persistent free-space managers, aggregators and virtual file driver\n");
- printf("                      for file space allocation\n");
- printf("        ALL - Use non-persistent free-space managers, aggregators and virtual file driver\n");
- printf("              for file space allocation\n");
- printf("        AGGR_VFD - Use aggregators and virtual file driver for file space allocation\n");
- printf("        VFD - Use virtual file driver for file space allocation\n");
+ printf("    FS_STRATEGY is a string as listed below:\n");
+ printf("        AGGR - Aggregation strategy:\n");
+ printf("               The mechanisms used in managing file space are free-space managers, aggregators and virtual file driver.\n");
+ printf("        PAGE - Paged aggregation strategy:\n");
+ printf("               The mechanisms used in managing file space are free-space managers with embedded paged aggregation and virtual file driver.\n");
+ printf("        NONE - No aggregation strategy:\n");
+ printf("               The mechanisms used in managing file space are free-space managers and virtual file driver.\n");
+ printf("        The default strategy when not set is AGGR with non-persistent free-space.\n");
+ printf("        The default strategy when creating a file with the latest format is PAGE with persistent free-space.\n");
  printf("\n");
- printf("    FS_THRD is minimum size (in bytes) of free-space sections to be tracked by the library.\n");
+ printf("    FS_PERSIST is 1 to persist free-space or 0 to not persist free-space.\n");
+ printf("      The default when not set is non-persistent free-space.\n");
+ printf("\n");
+ printf("    FS_THRESHOLD is minimum size (in bytes) of free-space sections to be tracked by the library.\n");
  printf("\n");
 
- printf("    FS_PAGE is the size > 0 (in bytes) used by the library for paging file space.\n");
- printf("    A zero value will disable file space paging.\n");
+ printf("    FS_PAGESIZE is the size (in bytes) >=0 that is used by the library when the file space strategy PAGE is used.\n");
+ printf("      A zero value will disable paged aggregation.\n");
  printf("\n");
 
  printf("    FILT - is a string with the format:\n");
@@ -285,6 +295,9 @@ static void usage(const char *prog)
  * Modifications:
  *	Vailin Choi; Feb 2013
  *	Add new option "-P #"
+ *
+ *	Vailin Choi; April 2013
+ *	Add/modify options due to changes for H5Pset_file_space_strategy().
  *-------------------------------------------------------------------------
  */
 
@@ -449,37 +462,49 @@ void parse_command_line(int argc, const char **argv, pack_opt_t* options)
             break;
 
         case 'S':
-            {
+        {
             char strategy[MAX_NC_NAME];
 
             HDstrcpy(strategy, opt_arg);
-            if(!HDstrcmp(strategy, "ALL_PERSIST"))
-                options->fs_strategy = H5F_FILE_SPACE_ALL_PERSIST;
-            else if(!HDstrcmp(strategy, "ALL"))
-                options->fs_strategy = H5F_FILE_SPACE_ALL;
-            else if(!HDstrcmp(strategy, "AGGR_VFD"))
-                options->fs_strategy = H5F_FILE_SPACE_AGGR_VFD;
-            else if(!HDstrcmp(strategy, "VFD"))
-                options->fs_strategy = H5F_FILE_SPACE_VFD;
+            if(!HDstrcmp(strategy, "AGGR"))
+                options->fs_strategy = H5F_FSPACE_STRATEGY_AGGR;
+            else if(!HDstrcmp(strategy, "PAGE"))
+                options->fs_strategy = H5F_FSPACE_STRATEGY_PAGE;
+            else if(!HDstrcmp(strategy, "NONE"))
+                options->fs_strategy = H5F_FSPACE_STRATEGY_NONE;
             else {
                 error_msg("invalid file space management strategy\n", opt_arg );
                 HDexit(EXIT_FAILURE);
             }
+	    if(options->fs_strategy == (H5F_fspace_strategy_t)0)
+		/* To distinguish the "specified" zero value */
+		options->fs_strategy = (H5F_fspace_strategy_t)-1;
             break;
-            }
+        }
+
+        case 'P':
+
+            options->fs_persist = (hsize_t)HDatol( opt_arg );
+	    if(options->fs_persist == (hbool_t)0)
+		/* To distinguish the "specified" zero value */
+		options->fs_persist = (hbool_t)-1;
+            break;
 
         case 'T':
 
             options->fs_threshold = (hsize_t)HDatol( opt_arg );
+	    if(options->fs_threshold == (hsize_t)0)
+		/* To distinguish the "specified" zero value */
+		options->fs_threshold = (hbool_t)-1;
             break;
 
-        case 'P':
+        case 'G':
 
-            options->fsp_size = (hsize_t)HDatol( opt_arg );
+            options->fs_pagesize = (hsize_t)HDatol( opt_arg );
 
-	    if(!options->fsp_size) /* A zero value will disable file space paging */
-		/* To distinguish the zero value being set */
-	       options->fsp_size = (hsize_t) -1;	
+	    if(options->fs_pagesize == (hsize_t)0)
+		/* To distinguish the "specified" zero value */
+	       options->fs_pagesize = (hsize_t) -1;	
 
             break;
 

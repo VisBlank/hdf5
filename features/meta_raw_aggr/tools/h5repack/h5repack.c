@@ -87,8 +87,7 @@ int h5repack(const char* infile,
 */
 
 int
-h5repack_init(pack_opt_t *options, int verbose, H5F_fs_strategy_t strategy,
-    hsize_t threshold)
+h5repack_init(pack_opt_t *options, int verbose)
 {
     int k, n;
 
@@ -104,12 +103,8 @@ h5repack_init(pack_opt_t *options, int verbose, H5F_fs_strategy_t strategy,
             options->filter_g[n].cd_values[k] = 0;
     }
 
-    options->fs_strategy = strategy;
-    options->fs_threshold = threshold;
-
     return (options_table_init(&(options->op_tbl)));
 }
-
 
 /*-------------------------------------------------------------------------
 * Function: h5repack_end

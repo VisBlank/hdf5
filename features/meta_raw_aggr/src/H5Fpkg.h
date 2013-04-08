@@ -69,11 +69,6 @@
 #define H5F_FS_MERGE_METADATA           0x01    /* Section can merge with metadata aggregator */
 #define H5F_FS_MERGE_RAWDATA            0x02    /* Section can merge with small 'raw' data aggregator */
 
-/* Macro to abstract checking whether file is using a free space manager */
-#define H5F_HAVE_FREE_SPACE_MANAGER(F)  \
-    ((F)->shared->fs_strategy == H5F_FILE_SPACE_ALL ||                        \
-            (F)->shared->fs_strategy == H5F_FILE_SPACE_ALL_PERSIST)
-
 /* Macros for encoding/decoding superblock */
 #define H5F_MAX_DRVINFOBLOCK_SIZE  1024         /* Maximum size of superblock driver info buffer */
 #define H5F_DRVINFOBLOCK_HDR_SIZE 16            /* Size of superblock driver info header */
@@ -244,8 +239,9 @@ struct H5F_file_t {
     H5RC_t *grp_btree_shared;   /* Ref-counted group B-tree node info   */
 
     /* File space allocation information */
-    H5F_fs_strategy_t fs_strategy;	/* File space handling strategy		*/
-    hsize_t     fs_threshold;		/* Free space section threshold 	*/
+    H5F_fspace_strategy_t fs_strategy;	/* File space handling strategy		*/
+    hsize_t     fs_threshold;		/* Free-space section threshold 	*/
+    hbool_t     fs_persist;		/* Free-space persist or not 		*/
     hbool_t     use_tmp_space;  	/* Whether temp. file space allocation is allowed */
     hsize_t     fsp_size;		/* File space page size */
     unsigned char last_small;		/* For page fs only: the allocation at EOF is a small section or not */
@@ -253,10 +249,9 @@ struct H5F_file_t {
     hbool_t	pgend_meta_thres; 	/* For page fs only: do not track page end meta section <= this threshold */
     haddr_t	tmp_addr;       	/* Next address to use for temp. space in the file */
 
-    union {
-	H5F_fs_aggr_t aggr;		/* Aggr fs */
-	H5F_fs_page_t page;		/* Page fs: in support of level 2 page caching */
-    } fs;
+    H5F_fs_state_t fs_state[H5FD_MEM_NTYPES];   /* State of free space manager for each type */
+    haddr_t fs_addr[H5FD_MEM_NTYPES];   	/* Address of free space manager info for each type */
+    H5FS_t *fs_man[H5FD_MEM_NTYPES];    	/* Free space manager for each file space type */
 
     unsigned fs_aggr_merge[H5FD_MEM_NTYPES];    /* For aggr fs: flags for whether free space can merge with aggregator(s) */
     H5FD_mem_t fs_type_map[H5FD_MEM_NTYPES]; 	/* For aggr fs: mapping of "real" file space type into tracked type */

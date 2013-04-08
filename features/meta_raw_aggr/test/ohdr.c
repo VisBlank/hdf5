@@ -161,7 +161,7 @@ error:
  *      checked as verifying that the object header has remained in the cache.
  */
 static herr_t
-test_ohdr_cache(char *filename, hid_t fapl)
+test_ohdr_cache(char *filename, hid_t fcpl, hid_t fapl)
 {
     hid_t	file = -1;              /* File ID */
     hid_t       my_fapl;                /* FAPL ID */
@@ -196,7 +196,7 @@ test_ohdr_cache(char *filename, hid_t fapl)
         FAIL_STACK_ERROR
 
     /* Create the file to operate on */
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, my_fapl)) < 0)
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, my_fapl)) < 0)
         FAIL_STACK_ERROR
     if(H5Pclose(my_fapl) < 0)
 	FAIL_STACK_ERROR
@@ -313,6 +313,7 @@ int
 main(void)
 {
     hid_t	fapl = -1, file = -1;
+    hid_t 	fcpl = -1;		/* File creation property list ID */
     hid_t	dset = -1;
     H5F_t	*f = NULL;
     char	filename[1024];
@@ -322,7 +323,17 @@ main(void)
     int         chunkno;                /* Chunk index for message */
     int		i;                      /* Local index variable */
     hbool_t     b;                      /* Index for "new format" loop */
+    const char  *envval;      		/* File Driver value from environment */
+    hbool_t 	contig_addr_vfd;    	/* Whether VFD used has a contigous address space */
     herr_t      ret;                    /* Generic return value */
+
+    /* Don't run this test using certain file drivers */
+    envval = HDgetenv("HDF5_DRIVER");
+    if(envval == NULL)
+        envval = "nomatch";
+
+    /* Current VFD that does not support contigous address space */
+    contig_addr_vfd = (hbool_t)(HDstrcmp(envval, "split") && HDstrcmp(envval, "multi"));
 
     /* Reset library */
     h5_reset();
@@ -331,6 +342,7 @@ main(void)
 
     /* Loop over old & new formats */
     for(b = FALSE; b <= TRUE; b++) {
+
         /* Display info about testing */
         if(b)
             HDputs("Using new file format:");
@@ -341,12 +353,18 @@ main(void)
         if(H5Pset_libver_bounds(fapl, (b ? H5F_LIBVER_LATEST : H5F_LIBVER_EARLIEST), H5F_LIBVER_LATEST) < 0)
             FAIL_STACK_ERROR
 
+	if((fcpl = H5Pcreate(H5P_FILE_CREATE)) < 0) TEST_ERROR
+
+	if(b && !contig_addr_vfd)
+	    if(H5Pset_file_space_strategy(fcpl, H5F_FSPACE_STRATEGY_AGGR, FALSE, (hsize_t)1) < 0)
+		FAIL_STACK_ERROR
+
 	/* test on object continuation block */
 	if(test_cont(filename, fapl) < 0)
             FAIL_STACK_ERROR
 
         /* Create the file to operate on */
-        if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0)
+        if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0)
             TEST_ERROR
         if(NULL == (f = (H5F_t *)H5I_object(file)))
             FAIL_STACK_ERROR
@@ -791,7 +809,10 @@ main(void)
             TEST_ERROR
 
 	/* Test object header creation metadata cache issues */
-	if(test_ohdr_cache(filename, fapl) < 0)
+	if(test_ohdr_cache(filename, fcpl, fapl) < 0)
+            TEST_ERROR
+
+        if(H5Pclose(fcpl) < 0)
             TEST_ERROR
     } /* end for */
 

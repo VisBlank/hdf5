@@ -1146,7 +1146,8 @@ dump_fcpl(hid_t fid)
     unsigned sym_lk;    /* symbol table B-tree leaf 'K' value */
     unsigned sym_ik;    /* symbol table B-tree internal 'K' value */
     unsigned istore_ik; /* indexed storage B-tree internal 'K' value */
-    H5F_fs_strategy_t  fs_strategy;  /* file space strategy */
+    H5F_fspace_strategy_t  fs_strategy;  /* file space strategy */
+    hbool_t fs_persist; 	/* Persisting free-space or not */
     hsize_t  fs_threshold;   	/* free-space section threshold */
     hsize_t  fsp_size;    	/* file space page size */
     H5F_info2_t finfo;  	/* file information */
@@ -1157,7 +1158,7 @@ dump_fcpl(hid_t fid)
     H5Pget_sizes(fcpl,&off_size,&len_size);
     H5Pget_sym_k(fcpl,&sym_ik,&sym_lk);
     H5Pget_istore_k(fcpl,&istore_ik);
-    H5Pget_file_space_strategy(fcpl, &fs_strategy, &fs_threshold);
+    H5Pget_file_space_strategy(fcpl, &fs_strategy, &fs_persist, &fs_threshold);
     H5Pget_file_space_page_size(fcpl, &fsp_size);
     H5Pclose(fcpl);
 #ifdef SHOW_FILE_DRIVER
@@ -1223,18 +1224,18 @@ dump_fcpl(hid_t fid)
     HDfprintf(rawoutstream, "%s %u\n","ISTORE_K", istore_ik);
 
     indentation(dump_indent + COL);
-    if(fs_strategy == H5F_FILE_SPACE_ALL_PERSIST)
-        HDfprintf(rawoutstream, "%s %s\n", "FILE_SPACE_STRATEGY", "H5F_FILE_SPACE_ALL_PERSIST");
-    else if(fs_strategy == H5F_FILE_SPACE_ALL)
-        HDfprintf(rawoutstream, "%s %s\n", "FILE_SPACE_STRATEGY", "H5F_FILE_SPACE_ALL");
-    else if(fs_strategy == H5F_FILE_SPACE_AGGR_VFD)
-        HDfprintf(rawoutstream, "%s %s\n", "FILE_SPACE_STRATEGY", "H5F_FILE_SPACE_AGGR_VFD");
-    else if(fs_strategy == H5F_FILE_SPACE_VFD)
-        HDfprintf(rawoutstream, "%s %s\n", "FILE_SPACE_STRATEGY", "H5F_FILE_SPACE_VFD");
+    if(fs_strategy == H5F_FSPACE_STRATEGY_AGGR)
+        HDfprintf(rawoutstream, "%s %s\n", "FILE_SPACE_STRATEGY", "H5F_FSPACE_STRATEGY_AGGR");
+    else if(fs_strategy == H5F_FSPACE_STRATEGY_PAGE)
+        HDfprintf(rawoutstream, "%s %s\n", "FILE_SPACE_STRATEGY", "H5F_FSPACE_STRATEGY_PAGE");
+    else if(fs_strategy == H5F_FSPACE_STRATEGY_NONE)
+        HDfprintf(rawoutstream, "%s %s\n", "FILE_SPACE_STRATEGY", "H5F_FSPACE_STRATEGY_NONE");
     else
         HDfprintf(rawoutstream, "%s %s\n", "FILE_SPACE_STRATEGY", "Unknown strategy");
     indentation(dump_indent + COL);
-    HDfprintf(rawoutstream, "%s %Hu\n","FREE_SPACE_THRESHOLD", fs_threshold);
+    HDfprintf(rawoutstream, "%s %s\n","FREE_SPACE_PERSIST", fs_persist ? "TRUE" : "FALSE");
+    indentation(dump_indent + COL);
+    HDfprintf(rawoutstream, "%s %Hu\n","FREE_SPACE_SECTION_THRESHOLD", fs_threshold);
     indentation(dump_indent + COL);
     HDfprintf(rawoutstream, "%s %Hu\n","FILE_SPACE_PAGE_SIZE", fsp_size);
 

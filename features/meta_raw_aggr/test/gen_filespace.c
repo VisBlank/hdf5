@@ -14,25 +14,29 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "hdf5.h"
+#include <assert.h>
 
 #define NELMTS(X)    	(sizeof(X)/sizeof(X[0]))	/* # of elements */
-#define TEST_THRESHOLD2	2             			/* Free-space section threshold */
 
 const char *FILENAMES[] = {
-    "fsp_fspace_persist.h5",	/* H5F_FILE_SPACE_ALL_PERSIST, default threshold, file space paging */
-    "fsp_fspace_all.h5",	/* H5F_FILE_SPACE_ALL, default threshold, file space paging */
-    "fspace_aggr_vfd.h5",	/* H5F_FILE_SPACE_AGGR_VFD, default threshold, non-paging */
-    "fsp_fspace_vfd.h5",	/* H5F_FILE_SPACE_VFD, default threshold, file space paging */
-    "fspace_thres.h5"		/* H5F_FILE_SPACE_ALL, non-default threshold, non-paging */
+    "aggr_nopersist.h5",	/* H5F_FILE_SPACE_AGGR + not persisting free-space */
+    "aggr_persist.h5",		/* H5F_FILE_SPACE_AGGR + persisting free-space */
+    "paged_nopersist.h5",	/* H5F_FILE_SPACE_PAGE + not persisting free-space */
+    "paged_persist.h5",		/* H5F_FILE_SPACE_PAGE + persisting free-space */
+    "none_nopersist.h5",	/* H5F_FILE_SPACE_NONE + not persisting free-space */
+    "none_persist.h5"		/* H5F_FILE_SPACE_NONE + persisting free-space */
 };
 
 #define DATASET		"dset"
 #define NUM_ELMTS	100
+#define FALSE		0
+#define TRUE		1
+#define INC_ENUM(TYPE,VAR) (VAR)=((TYPE)((VAR)+1))
 
 /*
  * Compile and run this program in the trunk to generate
- * HDF5 files with combinations of file space strategies,
- * default/non-default threshold, and file spacing paging enabled/disbled.
+ * HDF5 files with combinations of 3 file space strategies
+ * and persist/not persist free-space.
  * The library creates the file space info message with "mark if unknown"
  * in these files.
  *
@@ -52,44 +56,40 @@ static void gen_file(void)
     hsize_t     dim[1];			/* Dimension sizes */
     int         data[NUM_ELMTS];	/* Buffer for data */
     unsigned    i, j;			/* Local index variables */
-    H5F_fs_strategy_t fs_type;		/* File space handling strategy */
+    H5F_fspace_strategy_t fs_strategy;		/* File space handling strategy */
+    hbool_t    	fs_persist;
 
-    for(j = 0, fs_type = H5F_FILE_SPACE_ALL_PERSIST; j < NELMTS(FILENAMES); j++, fs_type = (H5F_fs_strategy_t)(fs_type + 1)) {
-	/* Get a copy of the default file creation property */
-	fcpl = H5Pcreate(H5P_FILE_CREATE);
+    j = 0;
+    for(fs_strategy = H5F_FSPACE_STRATEGY_AGGR; fs_strategy < H5F_FSPACE_STRATEGY_NTYPES; INC_ENUM(H5F_fspace_strategy_t, fs_strategy)) {
+	for(fs_persist = FALSE; fs_persist <= TRUE; fs_persist++) {
+	    /* Get a copy of the default file creation property */
+	    fcpl = H5Pcreate(H5P_FILE_CREATE);
 
-	if(fs_type == H5F_FILE_SPACE_NTYPES) /* last file */
-	    /* Set default strategy, non-default threshold, non-paging */
-	    H5Pset_file_space_strategy(fcpl, H5F_FILE_SPACE_ALL, (hsize_t)TEST_THRESHOLD2);
-	else if(fs_type == H5F_FILE_SPACE_AGGR_VFD)
-            /* Set the specified strategy, default threshold, non-paging */
-            H5Pset_file_space_strategy(fcpl, fs_type, (hsize_t)0);
-	else {
-	    /* Set the specified strategy, default threshold */
-	    H5Pset_file_space_strategy(fcpl, fs_type, (hsize_t)0);
-	    /* Set file space paging */
-	    H5Pset_file_space_page_size(fcpl, (hsize_t)4096);
+	    H5Pset_file_space_strategy(fcpl, fs_strategy, fs_persist, (hsize_t)1);
+
+	    /* Create the file with the file space info */
+	    fid = H5Fcreate(FILENAMES[j], H5F_ACC_TRUNC, fcpl, H5P_DEFAULT);
+
+	    /* Create the dataset */
+	    dim[0] = NUM_ELMTS;
+	    space = H5Screate_simple(1, dim, NULL);
+	    dataset = H5Dcreate2(fid, DATASET, H5T_NATIVE_INT, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+	    for(i = 0; i < NUM_ELMTS; i++)
+		data[i] = i;
+
+	    /* Write the dataset */
+	    H5Dwrite(dataset, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, data);
+
+	    /* Closing */
+	    H5Dclose(dataset);
+	    H5Sclose(space);
+	    H5Fclose(fid);
+	    H5Pclose(fcpl);
+	    ++j;
 	}
-
-	/* Create the file with the file space info */
-	fid = H5Fcreate(FILENAMES[j], H5F_ACC_TRUNC, fcpl, H5P_DEFAULT);
-
-	/* Create the dataset */
-	dim[0] = NUM_ELMTS;
-	space = H5Screate_simple(1, dim, NULL);
-	dataset = H5Dcreate2(fid, DATASET, H5T_NATIVE_INT, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-
-	for(i = 0; i < NUM_ELMTS; i++)
-	    data[i] = i;
-
-	/* Write the dataset */
-	H5Dwrite(dataset, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, data);
-
-	/* Closing */
-	H5Dclose(dataset);
-	H5Sclose(space);
-	H5Fclose(fid);
     }
+    assert(j == NELMTS(FILENAMES));
 }
 
 int main(void)

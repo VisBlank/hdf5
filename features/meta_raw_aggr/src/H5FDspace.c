@@ -121,10 +121,15 @@ H5FD_space_init_interface(void)
  * Programmer:  Bill Wendling
  *              Wednesday, 04. December, 2002
  *
+ * Modifications:
+ *      Vailin Choi; April 2013
+ *      Remove the two parameters for mis-aligned fragment.
+ *      The fragment was handled in the MF layer.
+ *	Do not handle alignment for paged aggregation.
  *-------------------------------------------------------------------------
  */
 static haddr_t
-H5FD_extend(H5FD_t *file, H5FD_mem_t type, hbool_t new_block, hsize_t size, haddr_t *frag_addr, hsize_t *frag_size)
+H5FD_extend(H5FD_t *file, H5FD_mem_t type, hbool_t new_block, hsize_t size)
 {
     hsize_t orig_size = size;   /* Original allocation size */
     haddr_t eoa;                /* Address of end-of-allocated space */
@@ -144,17 +149,12 @@ H5FD_extend(H5FD_t *file, H5FD_mem_t type, hbool_t new_block, hsize_t size, hadd
 
     /* Compute extra space to allocate, if this is a new block and should be aligned */
     extra = 0;
-    if(new_block && file->alignment > 1 && orig_size >= file->threshold) {
+    if(new_block && !file->paged_aggr && file->alignment > 1 && orig_size >= file->threshold) {
         hsize_t mis_align;              /* Amount EOA is misaligned */
 
         /* Check for EOA already aligned */
-        if((mis_align = (eoa % file->alignment)) > 0) {
+        if((mis_align = (eoa % file->alignment)) > 0)
             extra = file->alignment - mis_align;
-	    if(frag_addr)
-                *frag_addr = eoa - file->base_addr;     /* adjust for file's base address */
-	    if(frag_size)
-                *frag_size = extra;
-	} /* end if */
     } /* end if */
 
     /* Add in extra allocation amount */
@@ -173,7 +173,7 @@ H5FD_extend(H5FD_t *file, H5FD_mem_t type, hbool_t new_block, hsize_t size, hadd
         HGOTO_ERROR(H5E_VFL, H5E_NOSPACE, HADDR_UNDEF, "file allocation request failed")
 
     /* Post-condition sanity check */
-    if(new_block && file->alignment && orig_size >= file->threshold)
+    if(new_block && !file->paged_aggr && file->alignment && orig_size >= file->threshold)
 	HDassert(!(ret_value % file->alignment));
 
 done:
@@ -192,10 +192,14 @@ done:
  * Programmer:  Robb Matzke
  *              Wednesday, August  4, 1999
  *
+ * Modifications:
+ *      Vailin Choi; April 2013
+ *      Remove the two parameters for mis-aligned fragment.
+ *      The fragment was handled in the MF layer.
  *-------------------------------------------------------------------------
  */
 haddr_t
-H5FD_alloc_real(H5FD_t *file, hid_t dxpl_id, H5FD_mem_t type, hsize_t size, haddr_t *frag_addr, hsize_t *frag_size)
+H5FD_alloc_real(H5FD_t *file, hid_t dxpl_id, H5FD_mem_t type, hsize_t size)
 {
     haddr_t     ret_value;              /* Return value */
 
@@ -216,7 +220,7 @@ HDfprintf(stderr, "%s: type = %u, size = %Hu\n", FUNC, (unsigned)type, size);
             HGOTO_ERROR(H5E_VFL, H5E_NOSPACE, HADDR_UNDEF, "driver allocation request failed")
     } /* end if */
     else {
-        if((ret_value = H5FD_extend(file, type, TRUE, size, frag_addr, frag_size)) == HADDR_UNDEF)
+        if((ret_value = H5FD_extend(file, type, TRUE, size)) == HADDR_UNDEF)
             HGOTO_ERROR(H5E_VFL, H5E_NOSPACE, HADDR_UNDEF, "driver eoa update request failed")
     } /* end else */
 
@@ -247,11 +251,14 @@ HDfprintf(stderr, "%s: ret_value = %a\n", FUNC, ret_value);
  * Programmer:  Quincey Koziol
  *              Friday, August 14, 2009
  *
+ * Modifications:
+ *      Vailin Choi; April 2013
+ *      Remove the two parameters for mis-aligned fragment.
+ *      The fragment was handled in the MF layer.
  *-------------------------------------------------------------------------
  */
 haddr_t
-H5FD_alloc(H5FD_t *file, hid_t dxpl_id, H5FD_mem_t type, H5F_t *f, hsize_t size,
-    haddr_t *frag_addr, hsize_t *frag_size)
+H5FD_alloc(H5FD_t *file, hid_t dxpl_id, H5FD_mem_t type, H5F_t *f, hsize_t size)
 {
     haddr_t     ret_value;              /* Return value */
 
@@ -264,7 +271,7 @@ H5FD_alloc(H5FD_t *file, hid_t dxpl_id, H5FD_mem_t type, H5F_t *f, hsize_t size,
     HDassert(size > 0);
 
     /* Call the real 'alloc' routine */
-    ret_value = H5FD_alloc_real(file, dxpl_id, type, size, frag_addr, frag_size);
+    ret_value = H5FD_alloc_real(file, dxpl_id, type, size);
     if(!H5F_addr_defined(ret_value))
         HGOTO_ERROR(H5E_VFL, H5E_CANTALLOC, HADDR_UNDEF, "real 'alloc' request failed")
 
@@ -417,6 +424,10 @@ done:
  * Programmer:  Quincey Koziol
  *              Thursday, 17. January, 2008
  *
+ * Modifications:
+ *      Vailin Choi; April 2013
+ *      Remove the two parameters to H5FD_extend() for mis-aligned fragment.
+ *      The fragment was handled in the MF layer.
  *-------------------------------------------------------------------------
  */
 htri_t
@@ -445,7 +456,7 @@ H5FD_try_extend(H5FD_t *file, H5FD_mem_t type, H5F_t *f, haddr_t blk_end,
     /* Check if the block is exactly at the end of the file */
     if(H5F_addr_eq(blk_end, eoa)) {
         /* Extend the object by extending the underlying file */
-        if(HADDR_UNDEF == H5FD_extend(file, type, FALSE, extra_requested, NULL, NULL))
+        if(HADDR_UNDEF == H5FD_extend(file, type, FALSE, extra_requested))
             HGOTO_ERROR(H5E_VFL, H5E_CANTEXTEND, FAIL, "driver extend request failed")
 
         /* Mark superblock dirty in cache, so change to EOA will get encoded */

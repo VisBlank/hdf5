@@ -579,6 +579,10 @@ H5FD_stdio_query(const H5FD_t *_f, unsigned long *flags /* out */)
  * Programmer:  Raymond Lu
  *              30 March 2007
  *
+ * Modifications:
+ *	Vailin Choi; April 2013
+ *	Do not handle alignment for paged aggregation.
+ *
  *-------------------------------------------------------------------------
  */
 static haddr_t
@@ -598,7 +602,7 @@ H5FD_stdio_alloc(H5FD_t *_file, H5FD_mem_t /*UNUSED*/ type, hid_t /*UNUSED*/ dxp
     addr = file->eoa;
 
     /* Check if we need to align this block */
-    if(size >= file->pub.threshold) {
+    if(!file->pub.paged_aggr && size >= file->pub.threshold) {
         /* Check for an already aligned block */
         if((addr % file->pub.alignment) != 0)
             addr = ((addr / file->pub.alignment) + 1) * file->pub.alignment;

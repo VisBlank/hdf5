@@ -383,7 +383,7 @@ test_getset_vl(hid_t fapl)
  *-------------------------------------------------------------------------
  */
 static int
-test_create(hid_t fapl, const char *base_name, H5D_layout_t layout)
+test_create(hid_t fcpl, hid_t fapl, const char *base_name, H5D_layout_t layout)
 {
     hid_t	file=-1, space=-1, dcpl=-1, comp_type_id=-1;
     hid_t	dset1=-1, dset2=-1, dset3=-1, dset4=-1, dset5=-1,
@@ -410,7 +410,7 @@ test_create(hid_t fapl, const char *base_name, H5D_layout_t layout)
      * Create a file.
      */
     h5_fixname(base_name, fapl, filename, sizeof filename);
-    if((file=H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0)
+    if((file=H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0)
 	goto error;
     if((space=H5Screate_simple(5, cur_size, cur_size)) < 0) goto error;
     if((dcpl=H5Pcreate(H5P_DATASET_CREATE)) < 0) goto error;
@@ -1072,7 +1072,7 @@ test_rdwr_cases(hid_t file, hid_t dcpl, const char *dname, void *_fillval,
  *-------------------------------------------------------------------------
  */
 static int
-test_rdwr(hid_t fapl, const char *base_name, H5D_layout_t layout)
+test_rdwr(hid_t fcpl, hid_t fapl, const char *base_name, H5D_layout_t layout)
 {
     char        filename[1024];
     hid_t 	file=-1, dcpl=-1, ctype_id=-1;
@@ -1090,7 +1090,7 @@ test_rdwr(hid_t fapl, const char *base_name, H5D_layout_t layout)
     }
 
     h5_fixname(base_name, fapl, filename, sizeof filename);
-    if((file=H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0)
+    if((file=H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0)
         goto error;
 
     if((dcpl=H5Pcreate(H5P_DATASET_CREATE)) < 0) goto error;
@@ -1828,7 +1828,7 @@ error:
  *-------------------------------------------------------------------------
  */
 static int
-test_extend(hid_t fapl, const char *base_name, H5D_layout_t layout)
+test_extend(hid_t fcpl, hid_t fapl, const char *base_name, H5D_layout_t layout)
 {
     hid_t	file = -1;              /* File ID */
     hid_t	dcpl = -1;              /* Dataset creation property list ID */
@@ -1912,7 +1912,7 @@ test_extend(hid_t fapl, const char *base_name, H5D_layout_t layout)
 
     /* Create a file and dataset */
     h5_fixname(base_name, fapl, filename, sizeof filename);
-    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl)) < 0) TEST_ERROR
+    if((file = H5Fcreate(filename, H5F_ACC_TRUNC, fcpl, fapl)) < 0) TEST_ERROR
 
     /* Get the compound+vl datatype */
     if((cmpd_vl_tid = create_compound_vl_type()) < 0) TEST_ERROR
@@ -2107,7 +2107,17 @@ main(int argc, char *argv[])
 {
     int	nerrors=0, argno, test_contig=1, test_chunk=1, test_compact=1;
     hid_t	fapl = (-1), fapl2 = (-1);    /* File access property lists */
-    hbool_t new_format;     /* Whether to use the new format or not */
+    hid_t	fcpl = (-1), fcpl2 = (-1);    /* File creation property lists */
+    hbool_t new_format;     	/* Whether to use the new format or not */
+    const char  *env_h5_drvr;	/* File Driver value from environment */
+    hbool_t contig_addr_vfd;
+
+    env_h5_drvr = HDgetenv("HDF5_DRIVER");
+    if(env_h5_drvr == NULL)
+        env_h5_drvr = "nomatch";
+
+    /* Current VFD that does not support contigous address space */
+    contig_addr_vfd = (hbool_t)(HDstrcmp(env_h5_drvr, "split") && HDstrcmp(env_h5_drvr, "multi"));
 
     if(argc >= 2) {
         test_contig = test_chunk = test_compact = 0;
@@ -2138,14 +2148,25 @@ main(int argc, char *argv[])
     /* Set the "use the latest version of the format" bounds for creating objects in the file */
     if(H5Pset_libver_bounds(fapl2, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) TEST_ERROR
 
+    /* Create file-creation template */
+    if((fcpl = H5Pcreate(H5P_FILE_CREATE)) < 0)
+        TEST_ERROR
+
+    if((fcpl2 = H5Pcopy(fcpl)) < 0) TEST_ERROR
+    if(H5Pset_file_space_strategy(fcpl2, H5F_FSPACE_STRATEGY_AGGR, FALSE, (hsize_t)1) < 0)
+        TEST_ERROR
+
     /* Loop over using new group format */
     for(new_format = FALSE; new_format <= TRUE; new_format++) {
         hid_t my_fapl;
+	hid_t my_fcpl = fcpl;
 
         /* Set the FAPL for the type of format */
         if(new_format) {
             puts("\nTesting with new file format:");
             my_fapl = fapl2;
+	    if(!contig_addr_vfd)
+                my_fcpl = fcpl2;
         } /* end if */
         else {
             puts("Testing with old file format:");
@@ -2154,28 +2175,31 @@ main(int argc, char *argv[])
 
         /* Chunked storage layout tests */
         if(test_chunk) {
-            nerrors += test_create(my_fapl, FILENAME[0], H5D_CHUNKED);
-            nerrors += test_rdwr  (my_fapl, FILENAME[2], H5D_CHUNKED);
-            nerrors += test_extend(my_fapl, FILENAME[4], H5D_CHUNKED);
+            nerrors += test_create(my_fcpl, my_fapl, FILENAME[0], H5D_CHUNKED);
+            nerrors += test_rdwr  (my_fcpl, my_fapl, FILENAME[2], H5D_CHUNKED);
+            nerrors += test_extend(my_fcpl, my_fapl, FILENAME[4], H5D_CHUNKED);
         } /* end if */
 
         /* Contiguous storage layout tests */
         if(test_contig) {
-            nerrors += test_create(my_fapl, FILENAME[1], H5D_CONTIGUOUS);
-            nerrors += test_rdwr  (my_fapl, FILENAME[3], H5D_CONTIGUOUS);
-            nerrors += test_extend(my_fapl, FILENAME[5], H5D_CONTIGUOUS);
+            nerrors += test_create(my_fcpl, my_fapl, FILENAME[1], H5D_CONTIGUOUS);
+            nerrors += test_rdwr  (my_fcpl, my_fapl, FILENAME[3], H5D_CONTIGUOUS);
+            nerrors += test_rdwr  (my_fcpl, my_fapl, FILENAME[3], H5D_CONTIGUOUS);
+            nerrors += test_extend(my_fcpl, my_fapl, FILENAME[5], H5D_CONTIGUOUS);
             nerrors += test_compatible();
         } /* end if */
 
         /* Compact dataset storage tests */
         if(test_compact) {
-            nerrors += test_create(my_fapl, FILENAME[6], H5D_COMPACT);
-            nerrors += test_rdwr  (my_fapl, FILENAME[7], H5D_COMPACT);
+            nerrors += test_create(my_fcpl, my_fapl, FILENAME[6], H5D_COMPACT);
+            nerrors += test_rdwr  (my_fcpl, my_fapl, FILENAME[7], H5D_COMPACT);
         } /* end if */
     } /* end for */
 
     /* Close 2nd FAPL */
     H5Pclose(fapl2);
+    H5Pclose(fcpl);
+    H5Pclose(fcpl2);
 
     /* Verify symbol table messages are cached */
     nerrors += (h5_verify_cached_stabs(FILENAME, fapl) < 0 ? 1 : 0);
