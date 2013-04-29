@@ -57,10 +57,12 @@ New Features
 
     Configuration
     -------------
+    - Mac OS X 10.7 (Lion) and 10.8 (Mountain Lion) uses clang/clang++ as the
+      default C and C++ compilers. (AKC - 2013/04/19 HDFFV-8245)
     - CMake minimum is now 2.8.10. (ADB 2013/1/14)
     - A new tool, cmakehdf5, which is a build command script similar to
       buildhdf5 is added and is available in the bin directory.
-      (AKC - 2013/01/16)
+      (AKC - 2013/01/16 HDFFV-8336)
     
     Library
     -------
@@ -112,11 +114,15 @@ Support for New Platforms, Languages, and Compilers
     - SunOS 5.11 (emu) 32-bit and 64-bit with Sun C/C++ 5.12 compiler and
       Sun Fortran 95 8.6 compiler.
 
+    - Visual Studio 2012 w/ Intel Fortran 13 on Windows 7 and Windows 8
+
 Bug Fixes since HDF5-1.8.10
 ==========================
 
     Configuration
     -------------
+    - Fixed Thread-safe configure failure for the AIX platform.
+      (AKC - 2013/04/19 HDFFV-8390)
     - Configure will check the result of header searches before searching for
       the library. 
       Fixes HDFFV-8257 (ADB 2013/03/04)
@@ -158,6 +164,14 @@ Bug Fixes since HDF5-1.8.10
 
     Tools
     -----
+    - h5redeploy is changed to do this by default:
+	Installation directories:
+	prefix       architecture-independent files.
+	exec_prefix  architecture-dependent files, default is <prefix>.
+	libdir       libraries, default is <exec_prefix>/lib.
+	includedir   header files, default is <prefix/include>.
+      This allows users to just change the first line of prefix=<...> and the
+      effect will change libdir and includedir too.  (AKC 2013/04/05 HDFFV-8358)
     - h5repack: Fixed failure to convert the layout of a small chunked 
       dataset (size < 1K) to contiguous layout.  HDFFV-8214 (JKM 2013/03/26)
     - h5dump: Fixed displaying compression ratio for unknown or user-defined 
@@ -326,6 +340,8 @@ Solaris2.11 32-bit                      n        y/y    n        y    y     y
 Solaris2.11 64-bit                      n        y/n    n        y    y     y
 Windows 7                               y        y/y    n        y    y     y
 Windows 7     x64                       y        y/y    n        y    y     y
+Windows 8                               n        y/n    n        y    y     y
+Windows 8     x64                       n        y/n    n        y    y     y
 Mac OS X Snow Leopard 10.6.8 64-bit     n        y/y    n        y    y     y
 Mac OS X Lion 10.7.3 64-bit             n        y/y    n        y    y     y
 Mac OS X Mountain Lion 10.8.1 64-bit    n        y/n    n        y    y     n
@@ -345,10 +361,12 @@ Solaris2.11 32-bit                         y       y         y         y
 Solaris2.11 64-bit                         y       y         y         y        
 Windows 7                                  y       y         y         y
 Windows 7 x64                              y       y         y         y
+Windows 8                                  y       y         y         n
+Windows 8 x64                              y       y         y         n
 Mac OS X Snow Leopard 10.6.8 64-bit        y       n         y         n        
 Mac OS X Lion 10.7.3 64-bit                y       n         y         y        
 Mac OS X Mountain Lion 10.8.1 64-bit       y       n         y         y        
-AIX 5.3 32- and 64-bit                     y       n         n         n        
+AIX 5.3 32- and 64-bit                     y       n         n         y        
 CentOS 5.5 Linux 2.6.18-308 i686 GNU       y       y         y         y        
 CentOS 5.5 Linux 2.6.18-308 i686 Intel     y       y         y         n        
 CentOS 5.5 Linux 2.6.18-308 i686 PGI       y       y         y         n        
@@ -411,8 +429,13 @@ The following platforms are not supported but have been tested for this release.
 
 Known Problems
 ==============
-* Thread-safe feature failed in AIX during configure stage. (AKC - 2013/04/16
-  HDFFV-8390)
+
+* When building using the Cray compilers on Cray machines, HDF5
+  configure mistakenly thinks the compiler is an intel compiler and
+  sets the -std=c99 flag which breaks configure on Cray. To build HDF5
+  properly on a Cray machine, please consult with the instructions in
+  INSTALL_parallel for building on Hopper.
+  (MSC - 2013/04/26 - HDFFV-8429)
 
 * The h5dump and h5diff utilities occasionally produce different output
   between Linux and Windows systems. This is caused by lower-level library
