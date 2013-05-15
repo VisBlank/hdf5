@@ -1,4 +1,4 @@
-HDF5 version 1.8.11 released on 2013-05-08
+HDF5 version 1.8.11-post1 currently under development
 ================================================================================
 
 INTRODUCTION
@@ -45,6 +45,7 @@ CONTENTS
 
 - New Features
 - Support for New Platforms, Languages, and Compilers
+- Bug Fixes since HDF5-1.8.11
 - Bug Fixes since HDF5-1.8.10
 - Supported Platforms
 - Supported Configuration Features Summary
@@ -117,6 +118,20 @@ Support for New Platforms, Languages, and Compilers
       Sun Fortran 95 8.6 compiler.
     - Visual Studio 2012 w/ Intel Fortran 13 on Windows 7
     - g95 released new version recently and is tested in this release.
+
+Bug Fixes since HDF5-1.8.11
+===========================
+    Library
+    -------
+    - None
+
+    Tools
+    -----
+    - None
+
+    Testing
+    -------
+    - None
 
 Bug Fixes since HDF5-1.8.10
 ==========================
@@ -433,7 +448,6 @@ The following platforms are not supported but have been tested for this release.
 
 Known Problems
 ==============
-
 * When building using the Cray compilers on Cray machines, HDF5
   configure mistakenly thinks the compiler is an intel compiler and
   sets the -std=c99 flag which breaks configure on Cray. To build HDF5
