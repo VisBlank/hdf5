@@ -19,7 +19,6 @@
 /* Interface initialization */
 #define H5_INTERFACE_INIT_FUNC	H5PL__init_interface
 
-
 /***********/
 /* Headers */
 /***********/
@@ -29,6 +28,7 @@
 #include "H5PLprivate.h"	/* Plugin       			*/
 #include "H5Zprivate.h"		/* Filter pipeline			*/
 
+#ifndef H5_VMS
 
 /****************/
 /* Local Macros */
@@ -415,7 +415,7 @@ H5PL__find(H5PL_type_t plugin_type, int type_id, char *dir, const void **info)
 
             /* Get info for directory entry */
             if(HDstat(pathname, &my_stat) == -1)
-                HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "can't stat file: %s", strerror(errno))
+                HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "can't stat file: %s", HDstrerror(errno))
 
             /* If it is a directory, skip it */ 
             if(S_ISDIR(my_stat.st_mode))
@@ -437,7 +437,7 @@ H5PL__find(H5PL_type_t plugin_type, int type_id, char *dir, const void **info)
 done:
     if(dirp) 
         if(HDclosedir(dirp) < 0)
-            HDONE_ERROR(H5E_FILE, H5E_CLOSEERROR, FAIL, "can't close directory: %s", strerror(errno))
+            HDONE_ERROR(H5E_FILE, H5E_CLOSEERROR, FAIL, "can't close directory: %s", HDstrerror(errno))
     if(pathname) 
         pathname = (char *)H5MM_xfree(pathname);
 
@@ -658,4 +658,4 @@ H5PL__close(H5PL_HANDLE handle)
    
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5PL__close() */
-
+#endif /*H5_VMS*/

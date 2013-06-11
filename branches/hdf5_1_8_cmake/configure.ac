@@ -16,7 +16,7 @@
 ## ----------------------------------------------------------------------
 ## Initialize configure.
 ##
-AC_REVISION($Id: configure.ac 23670 2013-05-06 00:31:40Z hdftest $)
+AC_REVISION($Id: configure.ac 23742 2013-06-09 21:40:23Z hdftest $)
 AC_PREREQ([2.69])
 
 ## AC_INIT takes the name of the package, the version number, and an
@@ -26,7 +26,7 @@ AC_PREREQ([2.69])
 ## NOTE: Do not forget to change the version number here when we do a
 ## release!!!
 ##
-AC_INIT([HDF5], [1.8.12-snap3], [help@hdfgroup.org])
+AC_INIT([HDF5], [1.8.12-snap6], [help@hdfgroup.org])
 AC_CONFIG_SRCDIR([src/H5.c])
 AC_CONFIG_HEADER([src/H5config.h])
 
@@ -4305,7 +4305,7 @@ fi
 ## Enable strict file format checks
 ##
 AC_SUBST([STRICT_FORMAT_CHECKS])
-AC_MSG_CHECKING([Whether to perform strict file format checks]);
+AC_MSG_CHECKING([whether to perform strict file format checks]);
 AC_ARG_ENABLE([strict-format-checks],
               [AS_HELP_STRING([--enable-strict-format-checks],
                      [Enable strict file format checks, default=yes if
@@ -4338,7 +4338,7 @@ esac
 ## ----------------------------------------------------------------------
 ## Enable embedded library information
 ##
-AC_MSG_CHECKING([Whether to have library information embedded in the executables])
+AC_MSG_CHECKING([whether to have library information embedded in the executables])
 AC_ARG_ENABLE([embedded-libinfo],
     [AS_HELP_STRING([--enable-embedded-libinfo],
 	[Enable embedded library information [default=yes]])],

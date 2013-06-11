@@ -975,6 +975,7 @@
 ./test/tvlstr.c
 ./test/tvltypes.c
 ./test/unlink.c
+./test/unregister.c
 ./test/vfd.c
 ./test/test_filters_le.h5
 ./test/test_filters_be.h5
@@ -1360,6 +1361,8 @@
 ./tools/testfiles/topaque.h5
 ./tools/testfiles/trawdatafile.ddl
 ./tools/testfiles/trawdatafile.exp
+./tools/testfiles/trawssetfile.ddl
+./tools/testfiles/trawssetfile.exp
 ./tools/testfiles/tsaf.ddl
 ./tools/testfiles/tsaf.h5
 ./tools/testfiles/tscalarattrintsize.ddl
@@ -2242,8 +2245,12 @@
 ./config/cmake/NSIS.template.in
 ./config/cmake/NSIS.InstallOptions.ini.in
 
+# CMake-specific User Files
+./config/cmake/UserMacros/Windows_MT.cmake
+
 ./CMakeLists.txt
 ./CTestConfig.cmake
+./UserMacros.cmake
 ./c++/CMakeLists.txt
 ./c++/examples/CMakeLists.txt
 ./c++/src/CMakeLists.txt
