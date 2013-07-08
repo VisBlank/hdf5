@@ -48,7 +48,7 @@ CONTENTS
 - Bug Fixes since HDF5-1.8.11
 - Bug Fixes since HDF5-1.8.10
 - Supported Platforms
-- Supported Configuration Features Summary
+- Tested Configuration Features Summary
 - More Tested Platforms
 - Known Problems
 
@@ -161,7 +161,7 @@ Bug Fixes since HDF5-1.8.10
     - Fixed a bug in the core VFD that causes failures when opening files 
       > 2 GB.
       Fixes HDFFV-8124 and HDFFV-8158 (DER 2013/01/07)
-    - Fixed a bug where unintialized memory was read during variable-length
+    - Fixed a bug where uninitialized memory was read during variable-length
       type conversion.  This caused segfaults in netCDF.  Fixes HDFFV-8159.
       (DER 2013/03/30)
     - Removed the H5Pset/get_dxpl_multi functions from the library.  The
@@ -229,7 +229,7 @@ Bug Fixes since HDF5-1.8.10
       seemed that the problem happened when c_str() was used to generate 
       an equivalent const char* from a std::string and the resulting string 
       was passed to the internal function.  As a work-around, we added a 
-      try/catch around the the call to the internal function and when the 
+      try/catch around the call to the internal function and when the 
       exception is caught there, it is re-thrown.  Fixes HDFFV-8067.  
       (BMR 2013/03/30)
 
@@ -508,7 +508,7 @@ Known Problems
 
 * The data conversion test dt_arith.c fails in "long double" to integer
   conversion on Ubuntu 11.10 (3.0.0.13 kernel) with GCC 4.6.1 if the library
-  is built with optimization -O3 or -O2.  The older GCC (4.5) or newer kernal
+  is built with optimization -O3 or -O2.  The older GCC (4.5) or newer kernel
   (3.2.2 on Fedora) doesn't have the problem.  Users should lower the 
   optimization level (-O1 or -O0) by defining CFLAGS in the command line of 
   "configure" like:
