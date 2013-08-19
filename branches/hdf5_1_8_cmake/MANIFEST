@@ -112,6 +112,7 @@
 ./config/powerpc-ibm-aix5.x
 ./config/solaris2.x
 ./config/sv1-cray
+./config/x86_64-pc-cygwin
 ./config/x86_64-redstorm-linux-gnu
 
 ./config/site-specific/BlankForm
@@ -1178,6 +1179,12 @@
 # h5stat test files
 ./tools/h5stat/h5stat_gentest.c
 ./tools/h5stat/testh5stat.sh.in
+./tools/h5stat/testfiles/h5stat_dims1.ddl
+./tools/h5stat/testfiles/h5stat_dims2.ddl
+./tools/h5stat/testfiles/h5stat_err1_dims.ddl
+./tools/h5stat/testfiles/h5stat_err1_links.ddl
+./tools/h5stat/testfiles/h5stat_err1_numattrs.ddl
+./tools/h5stat/testfiles/h5stat_err2_numattrs.ddl
 ./tools/h5stat/testfiles/h5stat_filters.ddl
 ./tools/h5stat/testfiles/h5stat_filters-d.ddl
 ./tools/h5stat/testfiles/h5stat_filters-dT.ddl
@@ -1189,11 +1196,22 @@
 ./tools/h5stat/testfiles/h5stat_filters.h5
 ./tools/h5stat/testfiles/h5stat_help1.ddl
 ./tools/h5stat/testfiles/h5stat_help2.ddl
+./tools/h5stat/testfiles/h5stat_links1.ddl
+./tools/h5stat/testfiles/h5stat_links2.ddl
+./tools/h5stat/testfiles/h5stat_links3.ddl
+./tools/h5stat/testfiles/h5stat_links4.ddl
+./tools/h5stat/testfiles/h5stat_links5.ddl
 ./tools/h5stat/testfiles/h5stat_newgrat.ddl
 ./tools/h5stat/testfiles/h5stat_newgrat-UA.ddl
 ./tools/h5stat/testfiles/h5stat_newgrat-UG.ddl
 ./tools/h5stat/testfiles/h5stat_newgrat.h5
+./tools/h5stat/testfiles/h5stat_nofile.ddl
 ./tools/h5stat/testfiles/h5stat_notexist.ddl
+./tools/h5stat/testfiles/h5stat_numattrs1.ddl
+./tools/h5stat/testfiles/h5stat_numattrs2.ddl
+./tools/h5stat/testfiles/h5stat_numattrs3.ddl
+./tools/h5stat/testfiles/h5stat_numattrs4.ddl
+./tools/h5stat/testfiles/h5stat_threshold.h5
 ./tools/h5stat/testfiles/h5stat_tsohm.ddl
 ./tools/h5stat/testfiles/h5stat_tsohm.h5
 
@@ -1229,6 +1247,8 @@
 ./tools/testfiles/tall-5s.ddl
 ./tools/testfiles/tall-6.ddl
 ./tools/testfiles/tall-6.exp
+./tools/testfiles/tall-7.ddl
+./tools/testfiles/tall-7N.ddl
 ./tools/testfiles/tall.h5
 ./tools/testfiles/tarray1.ddl
 ./tools/testfiles/tarray1.h5
@@ -2244,6 +2264,8 @@
 ./config/cmake/CTestCustom.cmake
 ./config/cmake/ConfigureChecks.cmake
 ./config/cmake/CPack.cmake
+./config/cmake/CPack.Info.plist.in
+./config/cmake/hdf.gif
 ./config/cmake/NSIS.template.in
 ./config/cmake/NSIS.InstallOptions.ini.in
 
