@@ -1467,7 +1467,7 @@ case "$host_cpu-$host_vendor-$host_os" in
     ;;
 esac
 
-## Need to add the AM_ and H5_ into CPFLAGS/CPPFLAGS to make them visible 
+## Need to add the AM_ and H5_ into CFLAGS/CPPFLAGS to make them visible 
 ## for configure checks.
 ## Note: Both will be restored by the end of configure.
 CPPFLAGS="$H5_CPPFLAGS $AM_CPPFLAGS $CPPFLAGS"
@@ -2715,7 +2715,10 @@ case "X-$enable_parallel" in
           integer:: ierr
           call mpi_file_open( ierr )
           end],,
-          [AC_CHECK_LIB([mpi], [mpi_file_open],, [PARALLEL=no])])
+          [AC_CHECK_LIB([mpi], [AC_LANG_SOURCE([
+            include 'mpif.h'
+            integer:: ierr
+            call mpi_file_open( ierr )])],, [PARALLEL=no])])
 
       ## Then try link a simple MPI-IO program.  If fail, try again with
       ## -lmpio.
@@ -2726,7 +2729,10 @@ case "X-$enable_parallel" in
             integer:: ierr
             call mpi_file_open( ierr )
             end],,
-            [AC_CHECK_LIB([mpio], [mpi_file_open],, [PARALLEL=no])])
+            [AC_CHECK_LIB([mpio], [AC_LANG_SOURCE([
+              include 'mpif.h'
+              integer:: ierr
+              call mpi_file_open( ierr )])],, [PARALLEL=no])])
       fi
 
       ## Change to the C language

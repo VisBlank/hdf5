@@ -22,7 +22,7 @@ include $(top_srcdir)/config/commence.am
 include $(top_srcdir)/config/lt_vers.am
 
 # Add include directories to the C preprocessor flags
-AM_CPPFLAGS+=-I$(top_srcdir)/src
+AM_CPPFLAGS++=-I$(top_srcdir)/src
 
 # This library is our main target.
 lib_LTLIBRARIES=libhdf5_hl.la
