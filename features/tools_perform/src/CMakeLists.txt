@@ -477,6 +477,15 @@ SET (H5P_HDRS
 )
 IDE_GENERATED_PROPERTIES ("H5P" "${H5P_HDRS}" "${H5P_SRCS}" )
 
+SET (H5PL_SRCS
+    ${HDF5_SRC_DIR}/H5PL.c
+)
+
+SET (H5PL_HDRS
+    ${HDF5_SRC_DIR}/H5PLextern.h
+)
+IDE_GENERATED_PROPERTIES ("H5PL" "${H5PL_HDRS}" "${H5PL_SRCS}" )
+
 
 SET (H5R_SRCS
     ${HDF5_SRC_DIR}/H5R.c
@@ -662,6 +671,7 @@ SET (common_SRCS
     ${H5MP_SRCS}
     ${H5O_SRCS}
     ${H5P_SRCS}
+    ${H5PL_SRCS}
     ${H5R_SRCS}
     ${H5RC_SRCS}
     ${H5RS_SRCS}
@@ -701,6 +711,7 @@ SET (H5_PUBLIC_HEADERS
     ${H5MP_HDRS}
     ${H5O_HDRS}
     ${H5P_HDRS}
+    ${H5PL_HDRS}
     ${H5R_HDRS}
     ${H5S_HDRS}
     ${H5SM_HDRS}
@@ -739,6 +750,7 @@ SET (H5_PRIVATE_HEADERS
     ${HDF5_SRC_DIR}/H5MPprivate.h
     ${HDF5_SRC_DIR}/H5Oprivate.h
     ${HDF5_SRC_DIR}/H5Pprivate.h
+    ${HDF5_SRC_DIR}/H5PLprivate.h
     ${HDF5_SRC_DIR}/H5RCprivate.h
     ${HDF5_SRC_DIR}/H5Rprivate.h
     ${HDF5_SRC_DIR}/H5RSprivate.h
@@ -762,6 +774,7 @@ INCLUDE_DIRECTORIES (${CMAKE_BINARY_DIR})
 # specific type checks inside
 #-----------------------------------------------------------------------------
 ADD_EXECUTABLE (H5detect ${HDF5_SRC_DIR}/H5detect.c)
+TARGET_C_PROPERTIES (H5detect " " " ")
 IF (MSVC)
   TARGET_LINK_LIBRARIES (H5detect "ws2_32.lib")
 ENDIF (MSVC)
@@ -775,6 +788,7 @@ ADD_CUSTOM_COMMAND (
 )
 
 ADD_EXECUTABLE (H5make_libsettings ${HDF5_SRC_DIR}/H5make_libsettings.c)
+TARGET_C_PROPERTIES (H5make_libsettings " " " ")
 IF (MSVC)
   TARGET_LINK_LIBRARIES (H5make_libsettings "ws2_32.lib")
 ENDIF (MSVC)
@@ -824,7 +838,11 @@ SET (common_SRCS ${common_SRCS} ${HDF5_BINARY_DIR}/H5overflow.h)
 SET_SOURCE_FILES_PROPERTIES (${HDF5_BINARY_DIR}/H5overflow.h GENERATED)
 
 ADD_LIBRARY (${HDF5_LIB_TARGET} ${LIB_TYPE} ${common_SRCS} ${H5_PUBLIC_HEADERS} ${H5_PRIVATE_HEADERS})
+TARGET_C_PROPERTIES (${HDF5_LIB_TARGET} " " " ")
 TARGET_LINK_LIBRARIES (${HDF5_LIB_TARGET} ${LINK_LIBS})
+IF (NOT WIN32)
+  TARGET_LINK_LIBRARIES (${HDF5_LIB_TARGET} dl)
+ENDIF (NOT WIN32)
 SET_GLOBAL_VARIABLE (HDF5_LIBRARIES_TO_EXPORT ${HDF5_LIB_TARGET})
 H5_SET_LIB_OPTIONS (${HDF5_LIB_TARGET} ${HDF5_LIB_NAME} ${LIB_TYPE})
 SET_TARGET_PROPERTIES (${HDF5_LIB_TARGET} PROPERTIES FOLDER libraries)

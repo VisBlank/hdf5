@@ -113,6 +113,7 @@
 ./config/powerpc-ibm-aix5.x
 ./config/solaris2.x
 ./config/sv1-cray
+./config/x86_64-pc-cygwin
 ./config/x86_64-redstorm-linux-gnu
 
 ./config/site-specific/BlankForm
@@ -293,6 +294,8 @@
 ./fortran/src/H5FDmpioff.f90
 ./fortran/src/H5Ff.c
 ./fortran/src/H5Fff.f90
+./fortran/src/H5Fff_F90.f90
+./fortran/src/H5Fff_F03.f90
 ./fortran/src/H5Gf.c
 ./fortran/src/H5Gff.f90
 ./fortran/src/H5If.c
@@ -354,6 +357,7 @@
 ./fortran/test/tH5E_F03.f90
 ./fortran/test/tH5E.f90
 ./fortran/test/tH5F.f90
+./fortran/test/tH5F_F03.f90
 ./fortran/test/tH5G.f90
 ./fortran/test/tH5G_1_8.f90
 ./fortran/test/tH5I.f90
@@ -526,19 +530,18 @@
 ./perform/sio_timer.h
 ./perform/zip_perf.c
 
-./release_docs/CMake.txt
+./release_docs/INSTALL_CMake.txt
 ./release_docs/COPYING
 ./release_docs/HISTORY-1_0-1_8_0_rc3.txt
 ./release_docs/HISTORY-1_9.txt
 ./release_docs/INSTALL
 ./release_docs/INSTALL_Cygwin.txt
-./release_docs/INSTALL_MinGW.txt
 ./release_docs/INSTALL_parallel
 ./release_docs/INSTALL_VMS.txt
 ./release_docs/INSTALL_Windows.txt
 ./release_docs/RELEASE.txt
-./release_docs/USING_CMake.txt
-./release_docs/USING_Windows.txt
+./release_docs/USING_HDF5_CMake.txt
+./release_docs/USING_HDF5_VS.txt
 
 ./src/.indent.pro      _DO_NOT_DISTRIBUTE_
 ./src/hdf5.lnt        _DO_NOT_DISTRIBUTE_
@@ -846,6 +849,9 @@
 ./src/H5Ppublic.h
 ./src/H5Pstrcpl.c
 ./src/H5Ptest.c
+./src/H5PL.c
+./src/H5PLprivate.h
+./src/H5PLextern.h
 ./src/H5R.c
 ./src/H5Rdeprec.c
 ./src/H5Rpkg.h
@@ -955,6 +961,9 @@
 ./test/dt_arith.c
 ./test/dtypes.c
 ./test/dtransform.c
+./test/dynlib1.c
+./test/dynlib2.c
+./test/dynlib3.c
 ./test/earray.c
 ./test/efc.c
 ./test/enc_dec_plist.c
@@ -982,29 +991,31 @@
 ./test/filter_fail.c
 ./test/flush1.c
 ./test/flush2.c
-./test/gen_bad_ohdr.c           _DO_NOT_DISTRIBUTE_
-./test/gen_bad_compound.c       _DO_NOT_DISTRIBUTE_
-./test/gen_bogus.c              _DO_NOT_DISTRIBUTE_
-./test/gen_cross.c              _DO_NOT_DISTRIBUTE_
-./test/gen_deflate.c            _DO_NOT_DISTRIBUTE_
-./test/gen_file_image.c         _DO_NOT_DISTRIBUTE_
-./test/gen_filespace.c          _DO_NOT_DISTRIBUTE_
-./test/gen_mergemsg.c           _DO_NOT_DISTRIBUTE_
-./test/gen_new_array.c          _DO_NOT_DISTRIBUTE_
-./test/gen_new_fill.c           _DO_NOT_DISTRIBUTE_
-./test/gen_new_group.c          _DO_NOT_DISTRIBUTE_
-./test/gen_new_mtime.c          _DO_NOT_DISTRIBUTE_
-./test/gen_new_super.c          _DO_NOT_DISTRIBUTE_
-./test/gen_noencoder.c          _DO_NOT_DISTRIBUTE_
-./test/gen_nullspace.c          _DO_NOT_DISTRIBUTE_
-./test/gen_old_array.c          _DO_NOT_DISTRIBUTE_
-./test/gen_old_group.c          _DO_NOT_DISTRIBUTE_
-./test/gen_old_layout.c         _DO_NOT_DISTRIBUTE_
-./test/gen_old_mtime.c          _DO_NOT_DISTRIBUTE_
-./test/gen_plist.c              _DO_NOT_DISTRIBUTE_
-./test/gen_sizes_lheap.c        _DO_NOT_DISTRIBUTE_
-./test/gen_specmetaread.c       _DO_NOT_DISTRIBUTE_
-./test/gen_udlinks.c            _DO_NOT_DISTRIBUTE_
+# ====distribute this for now. See HDFFV-8236====
+./test/gen_bad_ohdr.c
+./test/gen_bad_compound.c
+./test/gen_bogus.c
+./test/gen_cross.c
+./test/gen_deflate.c
+./test/gen_file_image.c
+./test/gen_filespace.c
+./test/gen_mergemsg.c
+./test/gen_new_array.c
+./test/gen_new_fill.c
+./test/gen_new_group.c
+./test/gen_new_mtime.c
+./test/gen_new_super.c
+./test/gen_noencoder.c
+./test/gen_nullspace.c
+./test/gen_old_array.c
+./test/gen_old_group.c
+./test/gen_old_layout.c
+./test/gen_old_mtime.c
+./test/gen_plist.c
+./test/gen_sizes_lheap.c
+./test/gen_specmetaread.c
+./test/gen_udlinks.c
+# ====end distribute this for now. See HDFFV-8236====
 ./test/getname.c
 ./test/gheap.c
 ./test/group_old.h5
@@ -1027,10 +1038,13 @@
 ./test/ntypes.c
 ./test/ohdr.c
 ./test/objcopy.c
+./test/plugin.c
 ./test/reserved.c
 ./test/pool.c
 ./test/set_extent.c
-./test/space_overflow.c      _DO_NOT_DISTRIBUTE_
+# ====distribute this for now. See HDFFV-8236====
+./test/space_overflow.c
+# ====end distribute this for now. See HDFFV-8236====
 ./test/specmetaread.h5
 ./test/stab.c
 ./test/tarray.c
@@ -1049,6 +1063,7 @@
 ./test/testhdf5.c
 ./test/testhdf5.h
 ./test/testlibinfo.sh.in
+./test/test_plugin.sh.in
 ./test/testmeta.c
 ./test/tfile.c
 ./test/tgenprop.c
@@ -1081,6 +1096,7 @@
 ./test/tvlstr.c
 ./test/tvltypes.c
 ./test/unlink.c
+./test/unregister.c
 ./test/vfd.c
 ./test/test_filters_le.h5
 ./test/test_filters_be.h5
@@ -1311,6 +1327,12 @@
 # h5stat test files
 ./tools/h5stat/h5stat_gentest.c
 ./tools/h5stat/testh5stat.sh.in
+./tools/h5stat/testfiles/h5stat_dims1.ddl
+./tools/h5stat/testfiles/h5stat_dims2.ddl
+./tools/h5stat/testfiles/h5stat_err1_dims.ddl
+./tools/h5stat/testfiles/h5stat_err1_links.ddl
+./tools/h5stat/testfiles/h5stat_err1_numattrs.ddl
+./tools/h5stat/testfiles/h5stat_err2_numattrs.ddl
 ./tools/h5stat/testfiles/h5stat_filters.ddl
 ./tools/h5stat/testfiles/h5stat_filters-d.ddl
 ./tools/h5stat/testfiles/h5stat_filters-dT.ddl
@@ -1322,11 +1344,22 @@
 ./tools/h5stat/testfiles/h5stat_filters.h5
 ./tools/h5stat/testfiles/h5stat_help1.ddl
 ./tools/h5stat/testfiles/h5stat_help2.ddl
+./tools/h5stat/testfiles/h5stat_links1.ddl
+./tools/h5stat/testfiles/h5stat_links2.ddl
+./tools/h5stat/testfiles/h5stat_links3.ddl
+./tools/h5stat/testfiles/h5stat_links4.ddl
+./tools/h5stat/testfiles/h5stat_links5.ddl
 ./tools/h5stat/testfiles/h5stat_newgrat.ddl
 ./tools/h5stat/testfiles/h5stat_newgrat-UA.ddl
 ./tools/h5stat/testfiles/h5stat_newgrat-UG.ddl
 ./tools/h5stat/testfiles/h5stat_newgrat.h5
+./tools/h5stat/testfiles/h5stat_nofile.ddl
 ./tools/h5stat/testfiles/h5stat_notexist.ddl
+./tools/h5stat/testfiles/h5stat_numattrs1.ddl
+./tools/h5stat/testfiles/h5stat_numattrs2.ddl
+./tools/h5stat/testfiles/h5stat_numattrs3.ddl
+./tools/h5stat/testfiles/h5stat_numattrs4.ddl
+./tools/h5stat/testfiles/h5stat_threshold.h5
 ./tools/h5stat/testfiles/h5stat_tsohm.ddl
 ./tools/h5stat/testfiles/h5stat_tsohm.h5
 
@@ -1364,6 +1397,8 @@
 ./tools/testfiles/tall-5s.ddl
 ./tools/testfiles/tall-6.ddl
 ./tools/testfiles/tall-6.exp
+./tools/testfiles/tall-7.ddl
+./tools/testfiles/tall-7N.ddl
 ./tools/testfiles/tall.h5
 ./tools/testfiles/tarray1.ddl
 ./tools/testfiles/tarray1.h5
@@ -1496,6 +1531,8 @@
 ./tools/testfiles/topaque.h5
 ./tools/testfiles/trawdatafile.ddl
 ./tools/testfiles/trawdatafile.exp
+./tools/testfiles/trawssetfile.ddl
+./tools/testfiles/trawssetfile.exp
 ./tools/testfiles/tsaf.ddl
 ./tools/testfiles/tsaf.h5
 ./tools/testfiles/tscalarattrintsize.ddl
@@ -1536,6 +1573,7 @@
 ./tools/testfiles/tudlink-2.ddl
 ./tools/testfiles/tattr2.h5
 ./tools/testfiles/tall-2A.ddl
+./tools/testfiles/tall-2A0.ddl
 ./tools/testfiles/tall-2B.ddl
 ./tools/testfiles/tattrcontents1.ddl
 ./tools/testfiles/tattrcontents2.ddl
@@ -1595,6 +1633,7 @@
 ./tools/h5dump/errfiles/filter_fail.err
 ./tools/h5dump/errfiles/tall-1.err
 ./tools/h5dump/errfiles/tall-2A.err
+./tools/h5dump/errfiles/tall-2A0.err
 ./tools/h5dump/errfiles/tall-2B.err
 ./tools/h5dump/errfiles/tarray1_big.err
 ./tools/h5dump/errfiles/tattr-3.err
@@ -2128,16 +2167,18 @@
 ./tools/h5copy/testfiles/h5copy_misc1.out
 
 # test files for h5mkgrp
-./tools/testfiles/h5mkgrp_help.ls
-./tools/testfiles/h5mkgrp_nested.ls
-./tools/testfiles/h5mkgrp_nested_latest.ls
-./tools/testfiles/h5mkgrp_nested_mult.ls
-./tools/testfiles/h5mkgrp_nested_mult_latest.ls
+./tools/testfiles/h5mkgrp_nested_p.ls
+./tools/testfiles/h5mkgrp_nested_lp.ls
+./tools/testfiles/h5mkgrp_nested_mult_p.ls
+./tools/testfiles/h5mkgrp_nested_mult_lp.ls
 ./tools/testfiles/h5mkgrp_several.ls
-./tools/testfiles/h5mkgrp_several_latest.ls
+./tools/testfiles/h5mkgrp_several_v.ls
+./tools/testfiles/h5mkgrp_several_p.ls
+./tools/testfiles/h5mkgrp_several_l.ls
 ./tools/testfiles/h5mkgrp_single.ls
-./tools/testfiles/h5mkgrp_single_latest.ls
-./tools/testfiles/h5mkgrp_version.ls
+./tools/testfiles/h5mkgrp_single_v.ls
+./tools/testfiles/h5mkgrp_single_p.ls
+./tools/testfiles/h5mkgrp_single_l.ls
 
 
 # high level libraries
@@ -2374,48 +2415,87 @@
 ./config/cmake/CTestCustom.cmake
 ./config/cmake/ConfigureChecks.cmake
 ./config/cmake/CPack.cmake
+./config/cmake/CPack.Info.plist.in
+./config/cmake/hdf.gif
 ./config/cmake/NSIS.template.in
 ./config/cmake/NSIS.InstallOptions.ini.in
 
+# CMake-specific User Files
+./config/cmake/UserMacros/Windows_MT.cmake
+
+# CMake-specific Examples Files
+./config/cmake/HDF518_Examples.cmake.in
+./release_docs/USING_CMake_Examples.txt
+
 ./CMakeLists.txt
+./CMakeFilters.cmake
+./CMakeInstallation.cmake
 ./CTestConfig.cmake
+./UserMacros.cmake
 ./c++/CMakeLists.txt
 ./c++/examples/CMakeLists.txt
+./c++/examples/CMakeTests.cmake
 ./c++/src/CMakeLists.txt
 ./c++/test/CMakeLists.txt
+./c++/test/CMakeTests.cmake
 ./examples/CMakeLists.txt
+./examples/CMakeTests.cmake
 ./examples/run-all-ex.sh
 ./examples/run-c-ex.sh.in
 ./fortran/CMakeLists.txt
 ./fortran/examples/CMakeLists.txt
+./fortran/examples/CMakeTests.cmake
 ./fortran/src/CMakeLists.txt
 ./fortran/test/CMakeLists.txt
+./fortran/test/CMakeTests.cmake
 ./fortran/testpar/CMakeLists.txt
+./fortran/testpar/CMakeTests.cmake
 ./hl/CMakeLists.txt
 ./hl/c++/CMakeLists.txt
 ./hl/c++/examples/CMakeLists.txt
+./hl/c++/examples/CMakeTests.cmake
 ./hl/c++/src/CMakeLists.txt
 ./hl/c++/test/CMakeLists.txt
+./hl/c++/test/CMakeTests.cmake
 ./hl/examples/CMakeLists.txt
+./hl/examples/CMakeTests.cmake
 ./hl/fortran/CMakeLists.txt
 ./hl/fortran/examples/CMakeLists.txt
+./hl/fortran/examples/CMakeTests.cmake
 ./hl/fortran/src/CMakeLists.txt
 ./hl/fortran/test/CMakeLists.txt
+./hl/fortran/test/CMakeTests.cmake
 ./hl/src/CMakeLists.txt
 ./hl/test/CMakeLists.txt
+./hl/test/CMakeTests.cmake
 ./hl/tools/CMakeLists.txt
+./hl/tools/CMakeTests.cmake
 ./perform/CMakeLists.txt
+./perform/CMakeTests.cmake
 ./src/CMakeLists.txt
 ./test/CMakeLists.txt
+./test/CMakeTests.cmake
 ./testpar/CMakeLists.txt
+./testpar/CMakeTests.cmake
 ./tools/CMakeLists.txt
 ./tools/h5copy/CMakeLists.txt
+./tools/h5copy/CMakeTests.cmake
 ./tools/h5diff/CMakeLists.txt
+./tools/h5diff/CMakeTests.cmake
 ./tools/h5dump/CMakeLists.txt
+./tools/h5dump/CMakeTests.cmake
+./tools/h5dump/CMakeTestsPBITS.cmake
+./tools/h5dump/CMakeTestsXML.cmake
 ./tools/h5import/CMakeLists.txt
+./tools/h5import/CMakeTests.cmake
 ./tools/h5jam/CMakeLists.txt
+./tools/h5jam/CMakeTests.cmake
 ./tools/h5ls/CMakeLists.txt
+./tools/h5ls/CMakeTests.cmake
 ./tools/h5repack/CMakeLists.txt
+./tools/h5repack/CMakeTests.cmake
 ./tools/h5stat/CMakeLists.txt
+./tools/h5stat/CMakeTests.cmake
 ./tools/lib/CMakeLists.txt
 ./tools/misc/CMakeLists.txt
+./tools/misc/CMakeTests.cmake
