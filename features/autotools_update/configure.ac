@@ -2715,10 +2715,7 @@ case "X-$enable_parallel" in
           integer:: ierr
           call mpi_file_open( ierr )
           end],,
-          [AC_CHECK_LIB([mpi], [AC_LANG_SOURCE([
-            include 'mpif.h'
-            integer:: ierr
-            call mpi_file_open( ierr )])],, [PARALLEL=no])])
+          [AC_CHECK_LIB([mpi], [mpi_file_open],, [PARALLEL=no])])
 
       ## Then try link a simple MPI-IO program.  If fail, try again with
       ## -lmpio.
@@ -2729,10 +2726,7 @@ case "X-$enable_parallel" in
             integer:: ierr
             call mpi_file_open( ierr )
             end],,
-            [AC_CHECK_LIB([mpio], [AC_LANG_SOURCE([
-              include 'mpif.h'
-              integer:: ierr
-              call mpi_file_open( ierr )])],, [PARALLEL=no])])
+            [AC_CHECK_LIB([mpio], [mpi_file_open],, [PARALLEL=no])])
       fi
 
       ## Change to the C language

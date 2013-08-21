@@ -43,9 +43,9 @@
 # Configure should set AM_MAKEFLAGS to -V to solve this problem in
 # subdirectories.
 # NOTE: This means that invoking pmake in a subdirectory will not work.
-#xxx.MAKEFLAGS:@AM_MAKEFLAGS@
-#xxx	$(MAKE) all
-#xxx
+.MAKEFLAGS:@AM_MAKEFLAGS@
+	$(MAKE) all
+
 VPATH = @srcdir@
 am__is_gnu_make = test -n '$(MAKEFILE_LIST)' && test -n '$(MAKELEVEL)'
 am__make_running_with_option = \
@@ -113,13 +113,12 @@ host_triplet = @host@
 DIST_COMMON = $(top_srcdir)/config/commence.am $(srcdir)/Makefile.in \
 	$(srcdir)/Makefile.am $(top_srcdir)/configure \
 	$(am__configure_deps) $(top_srcdir)/bin/mkinstalldirs COPYING \
-	bin/COPYING bin/INSTALL bin/README bin/ar-lib bin/compile \
-	bin/config.guess bin/config.sub bin/depcomp bin/install-sh \
-	bin/mdate-sh bin/missing bin/mkinstalldirs bin/py-compile \
-	bin/texinfo.tex bin/ylwrap bin/ltmain.sh \
-	$(top_srcdir)/bin/config.guess $(top_srcdir)/bin/config.sub \
-	$(top_srcdir)/bin/install-sh $(top_srcdir)/bin/ltmain.sh \
-	$(top_srcdir)/bin/missing
+	bin/COPYING bin/README bin/ar-lib bin/compile bin/config.guess \
+	bin/config.sub bin/depcomp bin/install-sh bin/mdate-sh \
+	bin/missing bin/mkinstalldirs bin/py-compile bin/texinfo.tex \
+	bin/ylwrap bin/ltmain.sh $(top_srcdir)/bin/config.guess \
+	$(top_srcdir)/bin/config.sub $(top_srcdir)/bin/install-sh \
+	$(top_srcdir)/bin/ltmain.sh $(top_srcdir)/bin/missing
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
