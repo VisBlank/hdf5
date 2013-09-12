@@ -212,6 +212,8 @@ $SRC_H5DUMP_TESTFILES/tbinregR.ddl
 $SRC_H5DUMP_TESTFILES/tbigdims.ddl
 $SRC_H5DUMP_TESTFILES/tboot1.ddl
 $SRC_H5DUMP_TESTFILES/tboot2.ddl
+$SRC_H5DUMP_TESTFILES/tboot2A.ddl
+$SRC_H5DUMP_TESTFILES/tboot2B.ddl
 $SRC_H5DUMP_TESTFILES/tchar1.ddl
 $SRC_H5DUMP_TESTFILES/tchunked.ddl
 $SRC_H5DUMP_TESTFILES/tcmpdattrintsize.ddl
@@ -795,6 +797,40 @@ TOOLTEST5() {
     fi
 
 }
+# ADD_HELP_TEST
+TOOLTEST_HELP() {
+
+    expect="$TESTDIR/$1"
+    actual="$TESTDIR/`basename $1 .txt`.out"
+    actual_err="$TESTDIR/`basename $1 .txt`.err"
+    shift
+
+    # Run test.
+    TESTING $DUMPER $@
+    (
+      cd $TESTDIR
+      $RUNSERIAL $DUMPER_BIN "$@"
+    ) >$actual 2>$actual_err
+    cat $actual_err >> $actual
+
+    if [ ! -f $expectdata ]; then
+    # Create the expect data file if it doesn't yet exist.
+      echo " CREATED"
+      cp $actual $expect-CREATED
+    elif $CMP $expect $actual; then
+      echo " PASSED"
+    else
+      echo "*FAILED*"
+      echo "    Expected output (*.txt) differs from actual output (*.out)"
+      nerrors="`expr $nerrors + 1`"
+    fi
+    
+    # Clean up output file
+    if test -z "$HDF5_NOCLEANUP"; then
+     rm -f $actual $actual_err
+    fi
+
+}
 
 # Print a "SKIP" message
 SKIP() {
@@ -871,7 +907,7 @@ IMPORTTEST()
 # prepare for test
 COPY_TESTFILES_TO_TESTDIR
 
-#TOOLTEST h5dump-help.txt -h
+TOOLTEST_HELP h5dump-help.txt -h
 
 # test data output redirection
 TOOLTEST tnoddl.ddl --enable-error-stack --ddl -y packedbits.h5
@@ -1040,6 +1076,8 @@ TOOLTEST charsets.ddl --enable-error-stack charsets.h5
 # tests for super block
 TOOLTEST tboot1.ddl --enable-error-stack -H -B -d dset tfcontents1.h5
 TOOLTEST tboot2.ddl --enable-error-stack -B tfcontents2.h5
+TOOLTEST tboot2A.ddl --enable-error-stack --boot-block tfcontents2.h5
+TOOLTEST tboot2B.ddl --enable-error-stack --superblock tfcontents2.h5
 TOOLTEST file_space.ddl --enable-error-stack -B file_space.h5
 
 # test -p with a non existing dataset

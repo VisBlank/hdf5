@@ -26,7 +26,7 @@ AC_PREREQ([2.69])
 ## NOTE: Do not forget to change the version number here when we do a
 ## release!!!
 ##
-AC_INIT([HDF5], [1.9.162], [help@hdfgroup.org])
+AC_INIT([HDF5], [1.9.164], [help@hdfgroup.org])
 AC_CONFIG_SRCDIR([src/H5.c])
 AC_CONFIG_HEADER([src/H5config.h])
 
@@ -1046,12 +1046,15 @@ if test "X$STATIC_EXEC" = "Xyes"; then
   ## Issue a warning if -static flag is not supported.
   if test "X$lt_cv_prog_compiler_static_works" = "Xno"; then
       echo "    warning: -static flag not supported on this system; executable won't statically link shared system libraries."
+      LT_STATIC_EXEC=""
+  else
+    LT_STATIC_EXEC="-all-static"
   fi
-  LT_STATIC_EXEC="-all-static"
 else
   echo "no"
   LT_STATIC_EXEC=""
 fi
+AM_CONDITIONAL([USE_PLUGINS_CONDITIONAL], [test "X$LT_STATIC_EXEC" = X])
 
 AC_SUBST([LT_STATIC_EXEC])
 
@@ -3052,6 +3055,27 @@ if test "X$default_vfd" = "Xyes"; then
 fi
 
 ## ----------------------------------------------------------------------
+## Enable custom plugin default path for library.  It requires SHARED support.
+##
+AC_MSG_CHECKING([for Custom Plugin Default Path definition])
+AC_ARG_WITH([default-plugin],
+            [AS_HELP_STRING([--with-default-plugin=location],
+                            [Specify default location for plugins
+                            [default="/usr/local/hdf5/lib/plugin"]])],,
+            withval="/usr/local/hdf5/lib/plugin")
+
+if test "X$withval" = "X"; then
+    AC_MSG_RESULT([default])
+    default_plugin="/usr/local/hdf5/lib/plugin"
+else
+    AC_MSG_RESULT([$withval])
+    default_plugin=$withval
+fi
+
+AC_DEFINE_UNQUOTED([DEFAULT_PLUGIN], ["$default_plugin"],
+            [Define the default plugins path to compile])
+
+## ----------------------------------------------------------------------
 ## Check if Direct I/O driver is enabled by --enable-direct-vfd
 ##
 
@@ -4516,6 +4540,7 @@ AC_CONFIG_FILES([src/libhdf5.settings
                  tools/h5jam/testh5jam.sh
                  tools/h5repack/Makefile
                  tools/h5repack/h5repack.sh
+                 tools/h5repack/h5repack_plugin.sh
                  tools/h5ls/Makefile
                  tools/h5copy/Makefile
                  tools/h5copy/testh5copy.sh
