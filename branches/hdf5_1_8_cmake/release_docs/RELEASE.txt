@@ -1,4 +1,4 @@
-HDF5 version 1.8.12-snap18 currently under development
+HDF5 version 1.8.12-snap19 currently under development
 ================================================================================
 
 INTRODUCTION
@@ -102,7 +102,9 @@ Bug Fixes since HDF5-1.8.11
 
     Configuration
     -------------
-    - None
+    - Modified H5detect.c to scan floating point types for padding bits before
+      analyzing the type further.  This should fix problems with gcc 4.8
+      (NAF - 2013/09/19 - HDFFV-8523/HDFFV-8500)
 
     Library
     -------
@@ -148,6 +150,8 @@ Bug Fixes since HDF5-1.8.11
 
     Testing
     -------
+    - test/big sometimes failed with the message of "file selection+offset not
+      within extent". This has been fixed. (AKC - 2013/09/28 HDFFV-8271).
     - tools/h5diff/testh5diff.sh is run in every "make check", even after it
       has passed in the previous run. It should not run again if there is no
       code changes. Fixed. (AKC - 2013/07/19 HDFFV-8392)

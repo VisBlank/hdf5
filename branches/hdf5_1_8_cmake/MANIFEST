@@ -318,6 +318,15 @@
 ./c++/examples/expected.out
 ./c++/examples/extend_ds.cpp
 ./c++/examples/h5group.cpp
+./c++/examples/h5tutr_cmprss.cpp
+./c++/examples/h5tutr_crtatt.cpp
+./c++/examples/h5tutr_crtdat.cpp
+./c++/examples/h5tutr_crtgrpar.cpp
+./c++/examples/h5tutr_crtgrp.cpp
+./c++/examples/h5tutr_crtgrpd.cpp
+./c++/examples/h5tutr_extend.cpp
+./c++/examples/h5tutr_rdwt.cpp
+./c++/examples/h5tutr_subset.cpp
 ./c++/examples/readdata.cpp
 ./c++/examples/testh5c++.sh.in
 ./c++/examples/writedata.cpp
@@ -372,6 +381,8 @@
 ./c++/src/H5IntType.h
 ./c++/src/H5Library.cpp
 ./c++/src/H5Library.h
+./c++/src/H5Location.cpp
+./c++/src/H5Location.h
 ./c++/src/H5Object.cpp
 ./c++/src/H5Object.h
 ./c++/src/H5PredType.cpp
