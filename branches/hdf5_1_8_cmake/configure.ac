@@ -16,7 +16,7 @@
 ## ----------------------------------------------------------------------
 ## Initialize configure.
 ##
-AC_REVISION($Id: configure.ac 24219 2013-09-29 22:03:42Z hdftest $)
+AC_REVISION($Id: configure.ac 24231 2013-09-30 21:51:26Z songyulu $)
 AC_PREREQ([2.69])
 
 ## AC_INIT takes the name of the package, the version number, and an
@@ -1017,18 +1017,6 @@ if test "X${ALLOW_UNSUPPORTED}" != "Xyes"; then
       ;;
   esac
 fi
-
-## ----------------------------------------------------------------------
-## The GCC compiler on Cygwin running on Windows XP has rounding problem
-## in the data conversion dt_arith.c from unsigned long long to long 
-## double (see bug HDFFV-1264).  I define a macro here to skip the test for
-## Cygwin.  I'll come back and figure out the problem once I'm available.
-## 2010/5/5 - SLU
-case "`uname`" in
-  CYGWIN*)
-    AC_DEFINE([CYGWIN_ULLONG_TO_LDOUBLE_ROUND_PROBLEM], [1], [Define a macro for Cygwin (on XP only) where the compiler has rounding problem converting from unsigned long long to long double])
-    ;;
-esac
 
 ## ----------------------------------------------------------------------
 ## Windows won't create DLLs without the following macro.
