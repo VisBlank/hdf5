@@ -515,8 +515,8 @@ CONTENTS
 
             $ bin/deploy NEW_DIR
 
-        This will install HDF5 in NEW_DIR.  Alternately, you can do this
-        manually by issuing the command:
+        This will install HDF5 in NEW_DIR.  Alternately, if shared libraries 
+        were disabled, you can do this manually by issuing the command:
 
             $ make install prefix=NEW_DIR
 
@@ -524,6 +524,11 @@ CONTENTS
         If you do not use the deploy script, you should run h5redeploy in
         NEW_DIR/bin directory.  This utility will fix the h5cc, h5fc and
         h5c++ scripts to reflect the new NEW_DIR location.
+
+        If shared libraries were enabled, configure must be run with 
+        --prefix=<final install directory>.  HDF5 can then be installed 
+        directly with "make install" or using a stage directory with 
+        "make install DESTDIR=STAGE_DIR".
 
         The library can be used without installing it by pointing the
         compiler at the `src' and 'src/.libs' directory for include files and
