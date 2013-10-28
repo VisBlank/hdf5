@@ -61,6 +61,11 @@ if BUILD_CXX_CONDITIONAL
 else
    CXX_DIR=
 endif
+if BUILD_OBJC_CONDITIONAL
+   OBJC_DIR =obj-c
+else
+   OBJC_DIR=
+endif
 if BUILD_FORTRAN_CONDITIONAL
    FORTRAN_DIR =fortran
 else
@@ -73,8 +78,8 @@ else
 endif
 
 SUBDIRS = src test $(TESTPARALLEL_DIR) tools . $(CXX_DIR) $(FORTRAN_DIR) \
-          $(HDF5_HL_DIR) perform
-DIST_SUBDIRS = src test testpar tools . c++ fortran hl perform examples
+          $(OBJC_DIR) $(HDF5_HL_DIR) perform
+DIST_SUBDIRS = src test testpar tools . c++ fortran hl perform obj-c examples
 
 # Some files generated during configure that should be cleaned
 DISTCLEANFILES=config/stamp1 config/stamp2

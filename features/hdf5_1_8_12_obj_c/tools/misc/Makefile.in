@@ -220,6 +220,7 @@ AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AM_FCFLAGS = @AM_FCFLAGS@ @H5_FCFLAGS@
 AM_LDFLAGS = @AM_LDFLAGS@ @H5_LDFLAGS@
 AM_MAKEFLAGS = @AM_MAKEFLAGS@
+AM_OBJCFLAGS = @AM_OBJCFLAGS@ @H5_OBJCFLAGS@
 AR = @AR@
 AS = @AS@
 AUTOCONF = @AUTOCONF@
@@ -284,6 +285,8 @@ H5_FCFLAGS = @H5_FCFLAGS@
 H5_FORTRAN_SHARED = @H5_FORTRAN_SHARED@
 H5_LDFLAGS = @H5_LDFLAGS@
 H5_LONE_COLON = @H5_LONE_COLON@
+H5_OBJCFLAGS = @H5_OBJCFLAGS@
+H5_OBJC_SHARED = @H5_OBJC_SHARED@
 H5_VERSION = @H5_VERSION@
 HADDR_T = @HADDR_T@
 HAVE_DMALLOC = @HAVE_DMALLOC@
@@ -294,6 +297,7 @@ HDF5_INTERFACES = @HDF5_INTERFACES@
 HDF_CXX = @HDF_CXX@
 HDF_FORTRAN = @HDF_FORTRAN@
 HDF_FORTRAN2003 = @HDF_FORTRAN2003@
+HDF_OBJC = @HDF_OBJC@
 HID_T = @HID_T@
 HL = @HL@
 HL_FOR = @HL_FOR@
@@ -325,6 +329,10 @@ MPE = @MPE@
 MPI_GET_SIZE = @MPI_GET_SIZE@
 NM = @NM@
 NMEDIT = @NMEDIT@
+OBJC = @OBJC@
+OBJCDEPMODE = @OBJCDEPMODE@
+OBJCFLAGS = @OBJCFLAGS@
+OBJC_VERSION = @OBJC_VERSION@
 OBJDUMP = @OBJDUMP@
 OBJECT_NAMELEN_DEFAULT_F = @OBJECT_NAMELEN_DEFAULT_F@
 OBJEXT = @OBJEXT@
@@ -380,6 +388,7 @@ ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
 ac_ct_DUMPBIN = @ac_ct_DUMPBIN@
 ac_ct_FC = @ac_ct_FC@
+ac_ct_OBJC = @ac_ct_OBJC@
 am__include = @am__include@
 am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
@@ -449,10 +458,12 @@ LIBH5TEST = $(top_builddir)/test/libh5test.la
 LIBH5F = $(top_builddir)/fortran/src/libhdf5_fortran.la
 LIBH5FTEST = $(top_builddir)/fortran/test/libh5test_fortran.la
 LIBH5CPP = $(top_builddir)/c++/src/libhdf5_cpp.la
+LIBH5OBJC = $(top_builddir)/obj-c/src/libhdf5_objc.la
 LIBH5TOOLS = $(top_builddir)/tools/lib/libh5tools.la
 LIBH5_HL = $(top_builddir)/hl/src/libhdf5_hl.la
 LIBH5F_HL = $(top_builddir)/hl/fortran/src/libhdf5hl_fortran.la
 LIBH5CPP_HL = $(top_builddir)/hl/c++/src/libhdf5_hl_cpp.la
+LIBH5OBJC_HL = $(top_builddir)/hl/obj-c/src/libhdf5_hl_objc.la
 
 # Note that in svn revision 19400 the '/' after DESTDIR in H5* variables below  
 # has been removed. According to the official description of DESTDIR by Gnu at 
@@ -472,6 +483,7 @@ H5CC_PP = ${DESTDIR}$(bindir)/h5pcc
 H5FC = ${DESTDIR}$(bindir)/h5fc
 H5FC_PP = ${DESTDIR}$(bindir)/h5pfc
 H5CPP = ${DESTDIR}$(bindir)/h5c++
+H5OBJC = ${DESTDIR}$(bindir)/h5objc
 ACLOCAL_AMFLAGS = "-I m4"
 
 # The trace script; this is used on source files from the C library to
@@ -1070,6 +1082,9 @@ $(TEST_PROG_CHKEXE) $(TEST_PROG_PARA_CHKEXE) dummy.chkexe_:
 	      elif test "X$(CXX_API)" = "Xyes"; then \
 	         echo "C++ API: Testing $(HDF5_DRIVER) $${tname} $(TEST_FLAGS)"; \
 	         echo "C++ API: $(HDF5_DRIVER) $${tname} $(TEST_FLAGS) Test Log" >> $${log};\
+	      elif test "X$(OBJC_API)" = "Xyes"; then \
+	         echo "Objective-C API: Testing $(HDF5_DRIVER) $${tname} $(TEST_FLAGS)"; \
+	         echo "Objective-C API: $(HDF5_DRIVER) $${tname} $(TEST_FLAGS) Test Log" >> $${log};\
 	      else \
 	         echo "Testing $(HDF5_DRIVER) $${tname} $(TEST_FLAGS)"; \
 	         echo "$(HDF5_DRIVER) $${tname} $(TEST_FLAGS) Test Log" >> $${log}; \
@@ -1109,6 +1124,9 @@ $(TEST_SCRIPT_CHKSH) $(TEST_SCRIPT_PARA_CHKSH) dummysh.chkexe_:
 	      elif test "X$(CXX_API)" = "Xyes"; then \
 	         echo "C++ API: Testing $${tname} $(TEST_FLAGS)"; \
 	         echo "C++ API: $${tname} $(TEST_FLAGS) Test Log" >> $${log}; \
+	      elif test "X$(OBJC_API)" = "Xyes"; then \
+	         echo "Objective-C API: Testing $${tname} $(TEST_FLAGS)"; \
+	         echo "Objective-C API: $${tname} $(TEST_FLAGS) Test Log" >> $${log}; \
 	      else \
 	         echo "Testing $${tname} $(TEST_FLAGS)"; \
 	         echo "$${tname} $(TEST_FLAGS) Test Log" >> $${log}; \

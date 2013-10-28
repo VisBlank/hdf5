@@ -37,10 +37,12 @@ LIBH5TEST=$(top_builddir)/test/libh5test.la
 LIBH5F=$(top_builddir)/fortran/src/libhdf5_fortran.la
 LIBH5FTEST=$(top_builddir)/fortran/test/libh5test_fortran.la
 LIBH5CPP=$(top_builddir)/c++/src/libhdf5_cpp.la
+LIBH5OBJC=$(top_builddir)/obj-c/src/libhdf5_objc.la
 LIBH5TOOLS=$(top_builddir)/tools/lib/libh5tools.la
 LIBH5_HL=$(top_builddir)/hl/src/libhdf5_hl.la
 LIBH5F_HL=$(top_builddir)/hl/fortran/src/libhdf5hl_fortran.la
 LIBH5CPP_HL=$(top_builddir)/hl/c++/src/libhdf5_hl_cpp.la
+LIBH5OBJC_HL=$(top_builddir)/hl/obj-c/src/libhdf5_hl_objc.la
 
 # Install directories that automake doesn't know about
 docdir = $(exec_prefix)/doc
@@ -63,6 +65,7 @@ H5CC_PP=${DESTDIR}$(bindir)/h5pcc
 H5FC=${DESTDIR}$(bindir)/h5fc
 H5FC_PP=${DESTDIR}$(bindir)/h5pfc
 H5CPP=${DESTDIR}$(bindir)/h5c++
+H5OBJC=${DESTDIR}$(bindir)/h5objc
   
 
 # H5_CFLAGS holds flags that should be used when building hdf5,
@@ -74,6 +77,7 @@ H5CPP=${DESTDIR}$(bindir)/h5c++
 AM_CFLAGS=@AM_CFLAGS@ @H5_CFLAGS@
 AM_FCFLAGS=@AM_FCFLAGS@ @H5_FCFLAGS@
 AM_CXXFLAGS=@AM_CXXFLAGS@ @H5_CXXFLAGS@
+AM_OBJCFLAGS=@AM_OBJCFLAGS@ @H5_OBJCFLAGS@
 AM_CPPFLAGS=@AM_CPPFLAGS@ @H5_CPPFLAGS@
 AM_LDFLAGS=@AM_LDFLAGS@ @H5_LDFLAGS@
 

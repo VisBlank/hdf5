@@ -100,6 +100,7 @@ AC_SUBST([H5_CFLAGS])
 AC_SUBST([H5_CPPFLAGS])
 AC_SUBST([H5_FCFLAGS])
 AC_SUBST([H5_CXXFLAGS])
+AC_SUBST([H5_OBJCFLAGS])
 AC_SUBST([H5_LDFLAGS])
 
 ## AM_CFLAGS (and company) are for CFLAGS that should be used on HDF5,
@@ -107,17 +108,20 @@ AC_SUBST([H5_LDFLAGS])
 AC_SUBST([AM_CFLAGS])
 AC_SUBST([AM_FCFLAGS])
 AC_SUBST([AM_CXXFLAGS])
+AC_SUBST([AM_OBJCFLAGS])
 AC_SUBST([AM_CPPFLAGS])
 AC_SUBST([AM_LDFLAGS])
 
 ## Make sure flags are set to something (otherwise macros may set them later).
 AM_CFLAGS="${AM_CFLAGS}"
 AM_CXXFLAGS="${AM_CXXFLAGS}"
+AM_OBJCFLAGS="${AM_OBJCFLAGS}"
 AM_FCFLAGS="${AM_FCFLAGS}"
 AM_CPPFLAGS="${AM_CPPFLAGS}"
 AM_LDFLAGS="${AM_LDFLAGS}"
 CFLAGS="${CFLAGS}"
 CXXFLAGS="${CXXFLAGS}"
+OBJCFLAGS="${OBJCFLAGS}"
 FCFLAGS="${FCFLAGS}"
 CPPFLAGS="${CPPFLAGS}"
 LDFLAGS="${LDFLAGS}"
@@ -127,6 +131,7 @@ LDFLAGS="${LDFLAGS}"
 ## can be restored once all configure checks are complete.
 saved_user_CFLAGS="$CFLAGS"
 saved_user_CXXFLAGS="$CXXFLAGS"
+saved_user_OBJCFLAGS="$OBJCFLAGS"
 saved_user_FCFLAGS="$FCFLAGS"
 saved_user_LDFLAGS="$LDFLAGS"
 saved_user_CPPFLAGS="$CPPFLAGS"
@@ -159,6 +164,8 @@ AC_MSG_RESULT([done])
 ## FC: Fortran compiler.
 ## HDF_CXX: whether C++ is enabled. Default no.
 ## CXX: C++ compiler.
+## HDF_OBJC: whether Objective-C is enabled. Default no.
+## OBJC: Objective-C compiler.
 ## HDF5_HL: whether high-level library is enabled. Default is yes.
 ## GPFS: whether gpfs is enabled. Default no.
 ## LARGEFILE: whether largefile support is enabled. Default yes.
@@ -181,6 +188,8 @@ AC_SUBST([FC]) HDF_FORTRAN=no
 AC_SUBST([FC2003]) HDF_FORTRAN2003=no
 AC_SUBST([HDF_CXX]) HDF_CXX=no
 AC_SUBST([CXX]) HDF_CXX=no
+AC_SUBST([HDF_OBJC]) HDF_OBJC=no
+AC_SUBST([OBJC]) HDF_OBJC=no
 AC_SUBST([HDF5_HL]) HDF5_HL=yes
 AC_SUBST([GPFS]) GPFS=no
 AC_SUBST([LARGEFILE]) LARGEFILE=yes
@@ -327,6 +336,7 @@ done
 CFLAGS="${AM_CFLAGS} ${CFLAGS}"
 FCFLAGS="${AM_FCFLAGS} ${FCFLAGS}"
 CXXFLAGS="${AM_CXXFLAGS} ${CXXFLAGS}"
+OBJCFLAGS="${AM_OBJCFLAGS} ${OBJCFLAGS}"
 CPPFLAGS="${AM_CPPFLAGS} ${CPPFLAGS}"
 LDFLAGS="${AM_LDFLAGS} ${LDFLAGS}"
 
@@ -690,6 +700,32 @@ fi
 AC_LANG_POP(C++)
 
 ## ----------------------------------------------------------------------
+## Check if they would like the Objective-C interface compiled
+##
+  AC_PROG_OBJC
+##  AC_PROG_OBJCCPP	## Re-enable when we have a newer autotools chain.
+
+AC_MSG_CHECKING([if Objective-C interface enabled])
+
+AC_ARG_ENABLE([objc],
+              [AS_HELP_STRING([--enable-objc],
+                              [Compile the Objective-C interface [default=no]])],
+              [HDF_OBJC=$enableval])
+
+if test "X$HDF_OBJC" = "Xyes"; then
+  echo "yes"
+  HDF5_INTERFACES="$HDF5_INTERFACES Objective-C"
+
+  ## Change to the C++ language
+  AC_LANG_PUSH(Objective C)
+
+  ## Any specialized Objective-C tests go here.
+fi
+
+## Change back to the C language
+AC_LANG_POP(Objective C)
+
+## ----------------------------------------------------------------------
 ## Check if they have Perl installed on their system. We only need Perl
 ## if they're using a GNU compiler.
 ##
@@ -991,6 +1027,36 @@ fi
 AM_CONDITIONAL([CXX_SHARED_CONDITIONAL], [test "X$H5_CXX_SHARED" = "Xyes"])
 
 ## ----------------------------------------------------------------------
+## Objective-C shared library check.
+##
+AC_SUBST([H5_OBJC_SHARED])
+H5_OBJC_SHARED="no"
+if test "X${HDF_OBJC}" = "Xyes" && test "X${enable_shared}" != "Xno"; then
+  AC_MSG_CHECKING([if shared Objective-C libraries are supported])
+  H5_OBJC_SHARED="yes"
+
+  ## Report results of check(s)
+  
+  if test "X${H5_OBJC_SHARED}" = "Xno"; then
+    AC_MSG_RESULT([no])
+    AC_MSG_WARN([$CHECK_WARN])
+    if test "X${ALLOW_UNSUPPORTED}" != "Xyes"; then
+      AC_MSG_WARN([Disabling shared Objective-C libraries.])
+      AC_MSG_WARN([To override this behavior, please use --enable-unsupported configure option.])
+      if test "X${enable_static}" = "Xno"; then
+        AC_MSG_ERROR([both static and shared Objective-C libraries are disabled])
+      fi
+    else
+      AC_MSG_WARN([Allowing unsupported Objective-C shared librares due to use of --enable-unsupported flag])
+    fi
+  else
+    AC_MSG_RESULT([yes])
+  fi
+fi
+
+AM_CONDITIONAL([OBJC_SHARED_CONDITIONAL], [test "X$H5_OBJC_SHARED" = "Xyes"])
+
+## ----------------------------------------------------------------------
 ## pgcc version 6.0x have optimization (-O, -O2 or -O3) problem.  Detect
 ## these versions and add option "-Mx,28,0x8" to the compiler to avoid
 ## the problem if optimization is enabled.
@@ -1211,6 +1277,7 @@ case "X-$enable_production" in
     H5_CFLAGS="$H5_CFLAGS $PROD_CFLAGS"
     H5_CPPFLAGS="$H5_CPPFLAGS $PROD_CPPFLAGS"
     H5_CXXFLAGS="$H5_CXXFLAGS $PROD_CXXFLAGS"
+    H5_OBJCFLAGS="$H5_OBJCFLAGS $PROD_OBJCFLAGS"
     H5_FCFLAGS="$H5_FCFLAGS $PROD_FCFLAGS"
     ;;
   X-no)
@@ -1220,6 +1287,7 @@ case "X-$enable_production" in
     H5_CFLAGS="$H5_CFLAGS $DEBUG_CFLAGS"
     H5_CPPFLAGS="$H5_CPPFLAGS $DEBUG_CPPFLAGS"
     H5_CXXFLAGS="$H5_CXXFLAGS $DEBUG_CXXFLAGS"
+    H5_OBJCFLAGS="$H5_OBJCFLAGS $DEBUG_OBJCFLAGS"
     H5_FCFLAGS="$H5_FCFLAGS $DEBUG_FCFLAGS"
     ;;
   X-pg|X-profile)
@@ -1229,6 +1297,7 @@ case "X-$enable_production" in
     H5_CFLAGS="$H5_CFLAGS $PROFILE_CFLAGS"
     H5_CPPFLAGS="$H5_CPPFLAGS $PROFILE_CPPFLAGS"
     H5_CXXFLAGS="$H5_CXXFLAGS $PROFILE_CXXFLAGS"
+    H5_OBJCFLAGS="$H5_OBJCFLAGS $PROFILE_OBJCFLAGS"
     H5_FCFLAGS="$H5_FCFLAGS $PROFILE_FCFLAGS"
     ;;
   *)
@@ -1495,6 +1564,7 @@ esac
 ## Note: Both will be restored by the end of configure.
 CPPFLAGS="$H5_CPPFLAGS $AM_CPPFLAGS $CPPFLAGS"
 CFLAGS="$H5_CFLAGS $AM_CFLAGS $CFLAGS"
+OBJCFLAGS="$H5_OBJCFLAGS $AM_OBJCFLAGS $OBJCFLAGS"
 
 AC_TRY_COMPILE([#include <sys/types.h>],
                [off64_t n = 0;],
@@ -4110,7 +4180,7 @@ if test -n "$cc_version_info"; then
 fi
 
 AC_SUBST([FC_VERSION])
-## Strip anything that looks like a flag off of $CC
+## Strip anything that looks like a flag off of $FC
 FC_NOFLAGS=`echo $FC | sed 's/ -.*//'`
 
 if `echo $FC_NOFLAGS | grep ^/ >/dev/null 2>&1`; then
@@ -4129,7 +4199,7 @@ if test -n "$fc_version_info"; then
 fi
 
 AC_SUBST([CXX_VERSION])
-## Strip anything that looks like a flag off of $CC
+## Strip anything that looks like a flag off of $CXX
 CXX_NOFLAGS=`echo $CXX | sed 's/ -.*//'`
 
 if `echo $CXX_NOFLAGS | grep ^/ >/dev/null 2>&1`; then
@@ -4145,6 +4215,25 @@ else
 fi
 if test -n "$cxx_version_info"; then
   CXX_VERSION="$CXX_VERSION ( $cxx_version_info)"
+fi
+
+AC_SUBST([OBJC_VERSION])
+## Strip anything that looks like a flag off of $OBJC
+OBJC_NOFLAGS=`echo $OBJC | sed 's/ -.*//'`
+
+if `echo $OBJC_NOFLAGS | grep ^/ >/dev/null 2>&1`; then
+  OBJC_VERSION="$OBJC"
+else
+  OBJC_VERSION="$OBJC";
+  for x in `echo $PATH | sed -e 's/:/ /g'`; do
+    if test -x $x/$OBJC_NOFLAGS; then
+      OBJC_VERSION="$x/$OBJC"
+      break
+    fi
+  done
+fi
+if test -n "$objc_version_info"; then
+  OBJC_VERSION="$OBJC_VERSION ( $objc_version_info)"
 fi
 
 ## ----------------------------------------------------------------------
@@ -4412,6 +4501,7 @@ AC_RUN_IFELSE([
 CFLAGS="$saved_user_CFLAGS"
 FCFLAGS="$saved_user_FCFLAGS"
 CXXFLAGS="$saved_user_CXXFLAGS"
+OBJCFLAGS="$saved_user_OBJCFLAGS"
 CPPFLAGS="$saved_user_CPPFLAGS"
 LDFLAGS="$saved_user_LDFLAGS"
 
@@ -4421,6 +4511,7 @@ LDFLAGS="$saved_user_LDFLAGS"
 ## need to be compiled
 
 AM_CONDITIONAL([BUILD_CXX_CONDITIONAL], [test "X$HDF_CXX" = "Xyes"])
+AM_CONDITIONAL([BUILD_OBJC_CONDITIONAL], [test "X$HDF_OBJC" = "Xyes"])
 AM_CONDITIONAL([BUILD_PARALLEL_CONDITIONAL], [test -n "$TESTPARALLEL"])
 AM_CONDITIONAL([BUILD_FORTRAN_CONDITIONAL], [test "X$HDF_FORTRAN" = "Xyes"])
 AM_CONDITIONAL([BUILD_HDF5_HL_CONDITIONAL], [test "X$HDF5_HL" = "Xyes"])
@@ -4579,6 +4670,14 @@ AC_CONFIG_FILES([src/libhdf5.settings
                  c++/examples/Makefile
                  c++/examples/run-c++-ex.sh
                  c++/examples/testh5c++.sh
+                 obj-c/Makefile
+                 obj-c/src/Makefile
+                 obj-c/src/h5objc
+                 obj-c/test/Makefile
+                 obj-c/test/H5srcdir_str.h
+                 obj-c/examples/Makefile
+                 obj-c/examples/run-objc-ex.sh
+                 obj-c/examples/testh5objc.sh
                  fortran/Makefile
                  fortran/src/h5fc
                  fortran/src/Makefile
@@ -4601,6 +4700,11 @@ AC_CONFIG_FILES([src/libhdf5.settings
                  hl/c++/test/Makefile
                  hl/c++/examples/Makefile
                  hl/c++/examples/run-hlc++-ex.sh
+                 hl/obj-c/Makefile
+                 hl/obj-c/src/Makefile
+                 hl/obj-c/test/Makefile
+                 hl/obj-c/examples/Makefile
+                 hl/obj-c/examples/run-hlobjc-ex.sh
                  hl/fortran/Makefile
                  hl/fortran/src/Makefile
                  hl/fortran/test/Makefile
@@ -4617,6 +4721,10 @@ fi
 
 if test "X$HDF_CXX" = "Xyes"; then
   chmod 755 c++/src/h5c++
+fi
+
+if test "X$HDF_OBJ" = "Xyes"; then
+  chmod 755 obj-c/src/h5objc
 fi
 
 ## We don't want inline defined for C++ compilers

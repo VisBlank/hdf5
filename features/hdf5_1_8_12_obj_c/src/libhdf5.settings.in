@@ -54,6 +54,14 @@ Languages:
 @BUILD_CXX_CONDITIONAL_TRUE@             Shared C++ Library: @H5_CXX_SHARED@
 @BUILD_CXX_CONDITIONAL_TRUE@             Static C++ Library: @enable_static@
 
+                    Objective-C: @HDF_OBJC@
+@BUILD_OBJC_CONDITIONAL_TRUE@                   Objective-C Compiler: @OBJC_VERSION@
+@BUILD_OBJC_CONDITIONAL_TRUE@                      Objective-C Flags: @OBJCFLAGS@
+@BUILD_OBJC_CONDITIONAL_TRUE@                   H5 Objective-C Flags: @H5_OBJCFLAGS@
+@BUILD_OBJC_CONDITIONAL_TRUE@                   AM Objective-C Flags: @AM_OBJCFLAGS@
+@BUILD_OBJC_CONDITIONAL_TRUE@             Shared Objective-C Library: @H5_OBJC_SHARED@
+@BUILD_OBJC_CONDITIONAL_TRUE@             Static Objective-C Library: @enable_static@
+
 Features:
 ---------
                   Parallel HDF5: @PARALLEL@
