@@ -1,0 +1,4 @@
+This branch is for creating Objective-C wrappers and possibly changes
+to the build system so that we can more easily target iOS.
+
+Owned by: Dana Robinson (derobins@hdfgroup.org)
