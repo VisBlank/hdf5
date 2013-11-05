@@ -16,7 +16,7 @@
 ## ----------------------------------------------------------------------
 ## Initialize configure.
 ##
-AC_REVISION($Id: configure.ac 24276 2013-10-09 22:00:11Z epourmal $)
+AC_REVISION($Id: configure.ac 24404 2013-11-04 22:57:14Z epourmal $)
 AC_PREREQ([2.69])
 
 ## AC_INIT takes the name of the package, the version number, and an
@@ -26,7 +26,7 @@ AC_PREREQ([2.69])
 ## NOTE: Do not forget to change the version number here when we do a
 ## release!!!
 ##
-AC_INIT([HDF5], [1.8.12-pre2], [help@hdfgroup.org])
+AC_INIT([HDF5], [1.8.12], [help@hdfgroup.org])
 AC_CONFIG_SRCDIR([src/H5.c])
 AC_CONFIG_HEADER([src/H5config.h])
 
