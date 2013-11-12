@@ -16,7 +16,7 @@
 ## ----------------------------------------------------------------------
 ## Initialize configure.
 ##
-AC_REVISION($Id: configure.ac 24404 2013-11-04 22:57:14Z epourmal $)
+AC_REVISION($Id: configure.ac 24377 2013-10-31 05:18:51Z derobins $)
 AC_PREREQ([2.69])
 
 ## AC_INIT takes the name of the package, the version number, and an
@@ -26,7 +26,7 @@ AC_PREREQ([2.69])
 ## NOTE: Do not forget to change the version number here when we do a
 ## release!!!
 ##
-AC_INIT([HDF5], [1.8.12], [help@hdfgroup.org])
+AC_INIT([HDF5], [1.8.13-snap2], [help@hdfgroup.org])
 AC_CONFIG_SRCDIR([src/H5.c])
 AC_CONFIG_HEADER([src/H5config.h])
 
@@ -1204,7 +1204,7 @@ AC_ARG_ENABLE([production],
                               [Determines how to run the compiler.])])
 
 case "X-$enable_production" in
-  X-|X-yes)
+  X-yes)
     enable_production="yes"
     AC_MSG_RESULT([production])
     CONFIG_MODE=production
@@ -1213,7 +1213,7 @@ case "X-$enable_production" in
     H5_CXXFLAGS="$H5_CXXFLAGS $PROD_CXXFLAGS"
     H5_FCFLAGS="$H5_FCFLAGS $PROD_FCFLAGS"
     ;;
-  X-no)
+  X-|X-no)
     enable_production="no"
     AC_MSG_RESULT([development])
     CONFIG_MODE=development
@@ -2864,7 +2864,7 @@ if test -n "$PARALLEL"; then
     X-yes)
       AC_CHECK_HEADERS([mpe.h],, [unset MPE])
       AC_CHECK_LIB([mpe], [MPE_Init_log],, [unset MPE])
-      AC_CHECK_LIB([lmpe], [CLOG_Init],, [unset MPE])
+      AC_CHECK_LIB([lmpe], [MPE_Init_mpi_io],, [unset MPE])
       ;;
     *)
       case "$withval" in
@@ -2906,12 +2906,12 @@ if test -n "$PARALLEL"; then
         AM_LDFLAGS="$AM_LDFLAGS -L$mpe_lib"
         AC_CHECK_LIB([mpe], [MPE_Init_log],,
                      [LDFLAGS="$saved_LDFLAGS"; AM_LDFLAGS="$saved_AM_LDFLAGS"; unset MPE])
-        AC_CHECK_LIB([lmpe], [CLOG_Init],,
+        AC_CHECK_LIB([lmpe], [MPE_Init_mpi_io],,
                      [LDFLAGS="$saved_LDFLAGS"; AM_LDFLAGS="$saved_AM_LDFLAGS"; unset MPE])
 
       else
         AC_CHECK_LIB([mpe], [MPE_Init_log],, [unset MPE])
-        AC_CHECK_LIB([lmpe], [CLOG_Init],, [unset MPE])
+        AC_CHECK_LIB([lmpe], [MPE_Init_mpi_io],, [unset MPE])
       fi
       ;;
   esac
@@ -4110,7 +4110,7 @@ if test -n "$cc_version_info"; then
 fi
 
 AC_SUBST([FC_VERSION])
-## Strip anything that looks like a flag off of $CC
+## Strip anything that looks like a flag off of $FC
 FC_NOFLAGS=`echo $FC | sed 's/ -.*//'`
 
 if `echo $FC_NOFLAGS | grep ^/ >/dev/null 2>&1`; then
@@ -4129,7 +4129,7 @@ if test -n "$fc_version_info"; then
 fi
 
 AC_SUBST([CXX_VERSION])
-## Strip anything that looks like a flag off of $CC
+## Strip anything that looks like a flag off of $CXX
 CXX_NOFLAGS=`echo $CXX | sed 's/ -.*//'`
 
 if `echo $CXX_NOFLAGS | grep ^/ >/dev/null 2>&1`; then
@@ -4279,7 +4279,7 @@ esac
 AC_SUBST([DEFAULT_API_VERSION])
 AC_MSG_CHECKING([which version of public symbols to use by default])
 AC_ARG_WITH([default-api-version],
-            [AS_HELP_STRING([--with-default-api-version=(v16|v18)],
+            [AS_HELP_STRING([--with-default-api-version=(v16|v18|v110)],
                             [Specify default release version of public symbols
                              [default=v18]])],,
             withval=v18)
