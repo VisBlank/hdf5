@@ -468,7 +468,9 @@ ENDIF (HDF5_DISABLE_COMPILER_WARNINGS)
 # break into groups (from the config/gnu-flags file)
 #-----------------------------------------------------------------------------
 IF (NOT MSVC)
-    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wundef -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Wconversion -Waggregate-return -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wnested-externs -Winline")
+  IF (NOT ${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
+    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wextra -Wundef -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Wconversion -Waggregate-return -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wnested-externs -Winline")
+  ENDIF (NOT ${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
     # Append warning flags
     # Don't use the '-Wtraditional' flag, we're way past having K&R C code
     # SET (H5_CFLAGS "${H5_CFLAGS} -Wtraditional")
