@@ -43,25 +43,25 @@ M4_VERSION="m4 (GNU M4) 1.4.16"
 # If paths to autotools are not specified by the user, assume tools are
 # running on jam in /mnt/hdf/packages and set paths accordingly.
 if test -z ${AUTORECONF}; then
-  AUTORECONF=/mnt/hdf/packages/autoconf/autoconf-2.69/bin/autoreconf
+  AUTORECONF=/usr/bin/autoreconf
 fi
 if test -z ${AUTOCONF}; then
-  AUTOCONF=/mnt/hdf/packages/autoconf/autoconf-2.69/bin/autoconf
+  AUTOCONF=/usr/bin/autoconf
 fi
 if test -z ${AUTOMAKE}; then
-  AUTOMAKE=/mnt/hdf/packages/automake/automake-1.13.4/bin/automake-1.13
+  AUTOMAKE=/usr/bin/automake-1.13
 fi
 if test -z ${AUTOHEADER}; then
-  AUTOHEADER=/mnt/hdf/packages/autoconf/autoconf-2.69/bin/autoheader
+  AUTOHEADER=/usr/bin/autoheader
 fi
 if test -z ${ACLOCAL}; then
-  ACLOCAL=/mnt/hdf/packages/automake/automake-1.13.4/bin/aclocal-1.13
+  ACLOCAL=/usr/bin/aclocal-1.13
 fi
 if test -z ${LIBTOOL}; then
-  LIBTOOL=/mnt/hdf/packages/libtool/libtool-2.4.2/bin/libtool
+  LIBTOOL=/usr/bin/libtool
 fi
 if test -z ${M4}; then
-  M4=/mnt/hdf/packages/m4/m4-1.4.16/bin/m4
+  M4=/usr/bin/m4
 fi
 
 # Check version numbers of all autotools against the "correct" versions

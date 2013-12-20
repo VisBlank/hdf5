@@ -185,11 +185,12 @@ STRING (REGEX REPLACE ".*#define[ \t]+H5_VERS_SUBRELEASE[ \t]+\"([0-9A-Za-z._]*)
 #-----------------------------------------------------------------------------
 FILE (READ ${HDF5_SOURCE_DIR}/config/lt_vers.am _lt_vers_am_contents)
 STRING (REGEX REPLACE ".*LT_VERS_INTERFACE[ \t]+=[ \t]+([0-9]*).*$"
-    "\\1" H5_SOVERS_MAJOR ${_lt_vers_am_contents})
+    "\\1" H5_SOVERS_INTERFACE ${_lt_vers_am_contents})
 STRING (REGEX REPLACE ".*LT_VERS_REVISION[ \t]+=[ \t]+([0-9]*).*$"
     "\\1" H5_SOVERS_MINOR ${_lt_vers_am_contents})
 STRING (REGEX REPLACE ".*LT_VERS_AGE[ \t]+=[ \t]+([0-9]*).*$"
     "\\1" H5_SOVERS_RELEASE ${_lt_vers_am_contents})
+MATH(EXPR H5_SOVERS_MAJOR ${H5_SOVERS_INTERFACE}-${H5_SOVERS_RELEASE})
 MESSAGE (STATUS "SOVERSION: ${H5_SOVERS_MAJOR}.${H5_SOVERS_RELEASE}.${H5_SOVERS_MINOR}")
 
 #-----------------------------------------------------------------------------
@@ -282,6 +283,9 @@ ELSE (BUILD_SHARED_LIBS)
   IF (NOT WIN32)
     # should this be a user setting : Everyone uses it anyway ?
     ADD_DEFINITIONS (-DPIC)
+    IF (${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
+      ADD_DEFINITIONS (-KPIC)
+    ENDIF (${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
   ENDIF (NOT WIN32)
 ENDIF (BUILD_SHARED_LIBS)
 
@@ -460,6 +464,11 @@ ENDIF (HDF5_DISABLE_COMPILER_WARNINGS)
 # break into groups (from the config/gnu-flags file)
 #-----------------------------------------------------------------------------
 IF (NOT MSVC)
+  IF (NOT ${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
+    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wextra -Wundef -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Wconversion -Waggregate-return -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wnested-externs -Winline")
+  ELSE (NOT ${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
+    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -erroff=%none -DBSD_COMP")
+  ENDIF (NOT ${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
     # Append warning flags
     # Don't use the '-Wtraditional' flag, we're way past having K&R C code
     # SET (H5_CFLAGS "${H5_CFLAGS} -Wtraditional")

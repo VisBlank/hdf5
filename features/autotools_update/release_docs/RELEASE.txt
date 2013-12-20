@@ -1,4 +1,4 @@
-HDF5 version 1.9.164 currently under development
+HDF5 version 1.9.170 currently under development
 ================================================================================
 
 
@@ -43,8 +43,9 @@ New Features
     -------------
     - New configuration option added to change the default plugin path.
       configure option is --with-default-plugin=location
-      cmake option is -DH5_DEFAULT_PLUGIN:PATH=location
+      cmake option is -DH5_DEFAULT_PLUGINDIR:PATH=location
       HDFFV-8513.  (ADB 2013/09/04)
+    - Rename FFLAGS to FCFLAGS in configure (ADB 2013/08/13)
     - CMake minimum is now 2.8.10. (ADB 2013/01/14)
     - A new tool, cmakehdf5, which is a build command script similar to
       buildhdf5 is added and is available in the bin directory.
@@ -677,6 +678,9 @@ Bug Fixes since HDF5-1.8.0 release
 
     Configuration
     -------------
+    - Modified H5detect.c to scan floating point types for padding bits before
+      analyzing the type further.  This should fix problems with gcc 4.8
+      (NAF - 2013/09/19 - HDFFV-8523/HDFFV-8500)
     - Fixed Makefile issue in which "-Wl," was not properly specified
       prior to -rpath when building parallel fortran libraries with
       an Intel compiler. (MAM - 2012/03/26)
@@ -1171,17 +1175,17 @@ Supported Platforms
     Windows 7                     Visual Studio 2008 w/ Intel Fortran 11 (cmake)
                                   Visual Studio 2010 w/ Intel Fortran 12 (cmake)
                                   Visual Studio 2012 w/ Intel Fortran 13 (cmake)
-                                  Cygwin(CYGWIN_NT-6.1 1.7.15(0.260/5/3) gcc(4.5.3) compiler and gfortran)
+                                  Cygwin(CYGWIN_NT-6.1 1.7.25(0.270/5/3) gcc(4.7.3) compiler and gfortran)
                                   (cmake and autotools)
 
     Windows 7 x64                 Visual Studio 2008 w/ Intel Fortran 11 (cmake)
                                   Visual Studio 2010 w/ Intel Fortran 12 (cmake)
                                   Visual Studio 2012 w/ Intel Fortran 13 (cmake)
-                                  Cygwin(CYGWIN_NT-6.1 1.7.15(0.260/5/3) gcc(4.5.3) compiler and gfortran)
+                                  Cygwin(CYGWIN_NT-6.1 1.7.25(0.270/5/3) gcc(4.8.1) compiler and gfortran)
                                   (cmake and autotools)
-    Windows 8                     Visual Studio 2012 w/ Intel Fortran 13 (cmake)
+    Windows 8.1                   Visual Studio 2012 w/ Intel Fortran 13 (cmake)
 
-    Windows 8 x64                 Visual Studio 2012 w/ Intel Fortran 13 (cmake)
+    Windows 8.1 x64               Visual Studio 2012 w/ Intel Fortran 13 (cmake)
 
     Mac OS X Snow Leopard 10.6.8  gcc i686-apple-darwin11-llvm-gcc-4.2 (GCC) 4.2.1 from Xcode 3.2.6
     Darwin Kernel Version 10.8.0  g++ i686-apple-darwin11-llvm-g++-4.2 (GCC) 4.2.1 from Xcode 3.2.6
@@ -1218,7 +1222,7 @@ Platform                              C         F90/   F90      C++  zlib  SZIP
 Solaris2.11 32-bit                      n        y/y    n        y    y     y
 Solaris2.11 64-bit                      n        y/n    n        y    y     y
 Windows 7                               y        y/y    n        y    y     y
-Windows 7     x64                       y        y/y    n        y    y     y
+Windows 7 x64                           y        y/y    n        y    y     y
 Windows 7 Cygwin                        n        y/n    n        y    y     y
 Windows 7 x64 Cygwin                    n        y/n    n        y    y     y
 Windows 8                               y        y/y    n        y    y     y
@@ -1278,44 +1282,44 @@ The following platforms are not supported but have been tested for this release.
                                   g++ 4.6.1 20110422
                                   gfortran 4.6.1 20110422
 
-    Debian7.1.0 3.2.0-4-686 #1 SMP Debian 3.2.46-1 i686 GNU/Linux
+    Debian7.2.0 3.2.0-4-686 #1 SMP Debian 3.2.51-1 i686 GNU/Linux
                                   gcc (Debian 4.7.2-5) 4.7.2
                                   GNU Fortran (Debian 4.7.2-5) 4.7.2
                                   (cmake and autotools)
 
-    Debian7.1.0 3.2.0-4-amd64 #1 SMP Debian 3.2.46-1 x86_64 GNU/Linux
+    Debian7.2.0 3.2.0-4-amd64 #1 SMP Debian 3.2.51-1 x86_64 GNU/Linux
                                   gcc (Debian 4.7.2-5) 4.7.2
                                   GNU Fortran (Debian 4.7.2-5) 4.7.2
                                   (cmake and autotools)
 
-    Fedora19 3.9.9-301.fc19.i6866 #1 SMP i686 i686 i386 GNU/Linux
-                                  gcc (GCC) 4.8.1 20130603 (Red Hat 4.8.1-1)
-                                  GNU Fortran (GCC) 4.8.1 20130603 (Red Hat 4.8.1-1)
+    Fedora20 3.11.10-301.fc20.i6866 #1 SMP i686 i686 i386 GNU/Linux
+                                  gcc (GCC) 4.8.2 20131212 (Red Hat 4.8.2-7)
+                                  GNU Fortran (GCC) 4.8.2 20130603 (Red Hat 4.8.2-7)
                                   (cmake and autotools)
 
-    Fedora19 3.9.9-301.fc19.x86_64 #1 SMP x86_64 x86_64 x86_64 GNU/Linux
-                                  gcc (GCC) 4.8.1 20130603 (Red Hat 4.8.1-1)
-                                  GNU Fortran (GCC) 4.8.1 20130603 (Red Hat 4.8.1-1)
+    Fedora20 3.11.10-301.fc20.x86_64 #1 SMP x86_64 x86_64 x86_64 GNU/Linux
+                                  gcc (GCC) 4.8.2 20131212 (Red Hat 4.8.2-7)
+                                  GNU Fortran (GCC) 4.8.2 20130603 (Red Hat 4.8.2-7)
                                   (cmake and autotools)
 
-    SUSE 12.3 3.4.6-2.10-desktop #1 SMP PREEMPT i686 i686 i386 GNU/Linux
-                                  gcc (SUSE Linux) 4.7.1
-                                  GNU Fortran (SUSE Linux) 4.7.1
+    SUSE 13.1 3.11.6-4-desktop #1 SMP PREEMPT i686 athlon i386 GNU/Linux
+                                  gcc (SUSE Linux) 4.8.1
+                                  GNU Fortran (SUSE Linux) 4.8.1
                                   (cmake and autotools)
 
-    SUSE 12.3 3.4.6-2.10-desktop #1 SMP PREEMPT x86_64 x86_64 x86_64 GNU/Linux
-                                  gcc (SUSE Linux) 4.7.1
-                                  GNU Fortran (SUSE Linux) 4.7.1 
+    SUSE 13.1 3.11.6-4-desktop #1 SMP PREEMPT x86_64 x86_64 x86_64 GNU/Linux
+                                  gcc (SUSE Linux) 4.8.1
+                                  GNU Fortran (SUSE Linux) 4.8.1
                                   (cmake and autotools)
 
-    Ubuntu 13.04 3.8.0-26-generic #38-Ubuntu SMP i686 GNU/Linux
-                                  gcc (Ubuntu/Linaro 4.7.3-1ubuntu1) 4.7.3
-                                  GNU Fortran (Ubuntu/Linaro 4.6.3-1ubuntu1) 4.7.3
+    Ubuntu 13.10 3.11.0-13-generic #20-Ubuntu SMP i686 GNU/Linux
+                                  gcc (Ubuntu/Linaro 4.8.1-10ubuntu8) 4.8.1
+                                  GNU Fortran (Ubuntu/Linaro 4.8.1-10ubuntu8) 4.8.1
                                   (cmake and autotools)
 
-    Ubuntu 13.04 3.8.0-26-generic #38-Ubuntu SMP x86_64 GNU/Linux
-                                  gcc (Ubuntu/Linaro 4.7.3-1ubuntu1) 4.7.3
-                                  GNU Fortran (Ubuntu/Linaro 4.7.3-1ubuntu1) 4.7.3
+    Ubuntu 13.10 3.11.0-13-generic #20-Ubuntu SMP x86_64 GNU/Linux
+                                  gcc (Ubuntu/Linaro 4.8.1-10ubuntu8) 4.8.1
+                                  GNU Fortran (Ubuntu/Linaro 4.8.1-10ubuntu8) 4.8.1
                                   (cmake and autotools)
     
     Cray Linux Environment (CLE)  PrgEnv-pgi/4.0.46
@@ -1326,6 +1330,13 @@ The following platforms are not supported but have been tested for this release.
 
 Known Problems
 ==============
+* CLANG compiler with the options -fcatch-undefined-behavior and -ftrapv
+  catches some undefined behavior in the alignment algorithm of the macro DETECT_I
+  in H5detect.c (Issue 8147).  Since the algorithm is trying to detect the alignment 
+  of integers, ideally the flag -fcatch-undefined-behavior shouldn't to be used for 
+  H5detect.c. In the future, we can separate flags for H5detect.c from the rest of 
+  the library. (SLU - 2013/10/16)
+
 * The 5.9 C++ compiler on Sun failed to compile a C++ test ttypes.cpp.  It
   complains with this message:
       "/home/hdf5/src/H5Vprivate.h", line 130: Error: __func__ is not defined.

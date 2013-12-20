@@ -21,6 +21,8 @@
 #define PROGRAMNAME "h5repack"
 
 static int parse_command_line(int argc, const char **argv, pack_opt_t* options);
+static void leave(int ret) NORETURN;
+
 
 /* module-scoped variables */
 static int has_i_o = 0;
@@ -32,19 +34,30 @@ const char *outfile = NULL;
  * parameters.
  */
 static const char *s_opts = "hVvf:l:m:e:nLc:d:s:u:b:M:t:a:i:o:S:T:";
-static struct long_options l_opts[] = { { "help", no_arg, 'h' }, { "version",
-		no_arg, 'V' }, { "verbose", no_arg, 'v' },
-		{ "filter", require_arg, 'f' }, { "layout", require_arg, 'l' }, {
-				"minimum", require_arg, 'm' }, { "file", require_arg, 'e' }, {
-				"native", no_arg, 'n' }, { "latest", no_arg, 'L' }, { "compact",
-				require_arg, 'c' }, { "indexed", require_arg, 'd' }, { "ssize",
-				require_arg, 's' }, { "ublock", require_arg, 'u' }, { "block",
-				require_arg, 'b' }, { "metadata_block_size", require_arg, 'M' },
-		{ "threshold", require_arg, 't' }, { "alignment", require_arg, 'a' }, {
-				"infile", require_arg, 'i' }, /* -i for backward compability */
-		{ "outfile", require_arg, 'o' }, /* -o for backward compability */
-		{ "fs_strategy", require_arg, 'S' },
-		{ "fs_threshold", require_arg, 'T' }, { NULL, 0, '\0' } };
+static struct long_options l_opts[] = {
+	{ "help", no_arg, 'h' },
+	{ "version", no_arg, 'V' },
+	{ "verbose", no_arg, 'v' },
+	{ "filter", require_arg, 'f' },
+	{ "layout", require_arg, 'l' },
+	{ "minimum", require_arg, 'm' },
+	{ "file", require_arg, 'e' },
+	{ "native", no_arg, 'n' },
+	{ "latest", no_arg, 'L' },
+	{ "compact", require_arg, 'c' },
+	{ "indexed", require_arg, 'd' },
+	{ "ssize", require_arg, 's' },
+	{ "ublock", require_arg, 'u' },
+	{ "block", require_arg, 'b' },
+	{ "metadata_block_size", require_arg, 'M' },
+	{ "threshold", require_arg, 't' },
+	{ "alignment", require_arg, 'a' },
+	{ "infile", require_arg, 'i' }, /* -i for backward compability */
+	{ "outfile", require_arg, 'o' }, /* -o for backward compability */
+	{ "fs_strategy", require_arg, 'S' },
+	{ "fs_threshold", require_arg, 'T' },
+	{ NULL, 0, '\0' }
+};
 
 /*-------------------------------------------------------------------------
  * Function: usage
@@ -552,7 +565,6 @@ done:
 int main(int argc, const char **argv) {
 
 	pack_opt_t options; /*the global options */
-	int ret = -1;
 
 	h5tools_setprogname(PROGRAMNAME);
 	h5tools_setstatus(EXIT_SUCCESS);
