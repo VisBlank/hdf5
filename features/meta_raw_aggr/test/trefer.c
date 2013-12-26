@@ -90,9 +90,9 @@ test_reference_params(void)
     MESSAGE(5, ("Testing Reference Parameters\n"));
 
     /* Allocate write & read buffers */
-    wbuf = (hobj_ref_t *)malloc(MAX(sizeof(unsigned), sizeof(hobj_ref_t)) * SPACE1_DIM1);
-    rbuf = (hobj_ref_t *)malloc(MAX(sizeof(unsigned), sizeof(hobj_ref_t)) * SPACE1_DIM1);
-    tbuf = (hobj_ref_t *)malloc(MAX(sizeof(unsigned), sizeof(hobj_ref_t)) * SPACE1_DIM1);
+    wbuf = (hobj_ref_t *)HDmalloc(MAX(sizeof(unsigned), sizeof(hobj_ref_t)) * SPACE1_DIM1);
+    rbuf = (hobj_ref_t *)HDmalloc(MAX(sizeof(unsigned), sizeof(hobj_ref_t)) * SPACE1_DIM1);
+    tbuf = (hobj_ref_t *)HDmalloc(MAX(sizeof(unsigned), sizeof(hobj_ref_t)) * SPACE1_DIM1);
 
     /* Create file */
     fid1 = H5Fcreate(FILE1, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
@@ -234,9 +234,9 @@ test_reference_params(void)
     CHECK(ret, FAIL, "H5Fclose");
 
     /* Free memory buffers */
-    free(wbuf);
-    free(rbuf);
-    free(tbuf);
+    HDfree(wbuf);
+    HDfree(rbuf);
+    HDfree(tbuf);
 }   /* test_reference_obj() */
 
 /****************************************************************
@@ -271,9 +271,9 @@ test_reference_obj(void)
     MESSAGE(5, ("Testing Object Reference Functions\n"));
 
     /* Allocate write & read buffers */
-    wbuf = (hobj_ref_t *)malloc(MAX(sizeof(unsigned), sizeof(hobj_ref_t)) * SPACE1_DIM1);
-    rbuf = (hobj_ref_t *)malloc(MAX(sizeof(unsigned), sizeof(hobj_ref_t)) * SPACE1_DIM1);
-    tbuf = (hobj_ref_t *)malloc(MAX(sizeof(unsigned), sizeof(hobj_ref_t)) * SPACE1_DIM1);
+    wbuf = (hobj_ref_t *)HDmalloc(MAX(sizeof(unsigned), sizeof(hobj_ref_t)) * SPACE1_DIM1);
+    rbuf = (hobj_ref_t *)HDmalloc(MAX(sizeof(unsigned), sizeof(hobj_ref_t)) * SPACE1_DIM1);
+    tbuf = (hobj_ref_t *)HDmalloc(MAX(sizeof(unsigned), sizeof(hobj_ref_t)) * SPACE1_DIM1);
 
     /* Create file */
     fid1 = H5Fcreate(FILE1, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
@@ -482,9 +482,9 @@ test_reference_obj(void)
     CHECK(ret, FAIL, "H5Fclose");
 
     /* Free memory buffers */
-    free(wbuf);
-    free(rbuf);
-    free(tbuf);
+    HDfree(wbuf);
+    HDfree(rbuf);
+    HDfree(tbuf);
 }   /* test_reference_obj() */
 
 /****************************************************************
@@ -514,7 +514,7 @@ test_reference_region(void)
     hsize_t	high[SPACE2_RANK];	/* Selection bounds */
     hdset_reg_ref_t      *wbuf,		/* buffer to write to disk */
                *rbuf;       /* buffer read from disk */
-    hdset_reg_ref_t  nvrbuf[3]={0,101,1000000000}; /* buffer with non-valid refs */
+    hdset_reg_ref_t  nvrbuf[3]={{0},{101},{1000000000}}; /* buffer with non-valid refs */
     uint8_t    *dwbuf,      /* Buffer for writing numeric data to disk */
                *drbuf;      /* Buffer for reading numeric data from disk */
     uint8_t    *tu8;        /* Temporary pointer to uint8 data */
@@ -763,10 +763,10 @@ test_reference_region(void)
     CHECK(ret, FAIL, "H5Fclose");
 
     /* Free memory buffers */
-    free(wbuf);
-    free(rbuf);
-    free(dwbuf);
-    free(drbuf);
+    HDfree(wbuf);
+    HDfree(rbuf);
+    HDfree(dwbuf);
+    HDfree(drbuf);
 }   /* test_reference_region() */
 
 /****************************************************************
@@ -1048,10 +1048,10 @@ test_reference_region_1D(void)
     CHECK(ret, FAIL, "H5Fclose");
 
     /* Free memory buffers */
-    free(wbuf);
-    free(rbuf);
-    free(dwbuf);
-    free(drbuf);
+    HDfree(wbuf);
+    HDfree(rbuf);
+    HDfree(dwbuf);
+    HDfree(drbuf);
 }   /* test_reference_region_1D() */
 
 /****************************************************************

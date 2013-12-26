@@ -1,5 +1,10 @@
-cmake_minimum_required (VERSION 2.8.6)
+cmake_minimum_required (VERSION 2.8.10)
 PROJECT (HDF5_TOOLS)
+
+#-----------------------------------------------------------------------------
+# Apply Definitions to compiler in this directory and below
+#-----------------------------------------------------------------------------
+ADD_DEFINITIONS (${HDF5_EXTRA_C_FLAGS})
 
 #-----------------------------------------------------------------------------
 # Setup include Directories

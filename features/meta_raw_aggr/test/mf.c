@@ -8371,7 +8371,6 @@ error:
 static unsigned
 test_page_small(const char *env_h5_drvr, hid_t fapl)
 {
-
     hid_t fid = -1;			/* File ID */
     hid_t fcpl = -1;			/* File creation property list */
     H5F_t *f = NULL;              	/* Internal file object pointer */

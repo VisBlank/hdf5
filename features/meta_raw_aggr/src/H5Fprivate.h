@@ -27,6 +27,7 @@
 #include "H5FDpublic.h"		/* File drivers				*/
 
 /* Private headers needed by this file */
+#include "H5Vprivate.h"		/* Vectors and arrays */
 
 
 /****************************/
@@ -132,6 +133,35 @@ typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
 /* (Assumes that the high bits of the integer are zero) */
 #  define UINT64ENCODE_VAR(p, n, l)     ENCODE_VAR(p, uint64_t, n, l)
 
+/* Encode a 64-bit unsigned integer and its length into a variable-sized buffer */
+/* (Assumes that the high bits of the integer are zero) */
+#  define UINT64ENCODE_VARLEN(p, n) {					      \
+   uint64_t __n = (uint64_t)(n);							      \
+   unsigned _s = H5V_limit_enc_size(__n);				      \
+									      \
+   *(p)++ = (uint8_t)_s;						      \
+   UINT64ENCODE_VAR(p, __n, _s);						      \
+}
+
+#  define H5_ENCODE_UNSIGNED(p, n) {					      \
+    HDcompile_assert(sizeof(unsigned) == sizeof(uint32_t));		      \
+    UINT32ENCODE(p, n)							      \
+}
+
+/* Assumes the endianness of uint64_t is the same as double */
+#  define H5_ENCODE_DOUBLE(p, n) {					      \
+    uint64_t _n;							      \
+    size_t _u;								      \
+    uint8_t *_p = (uint8_t*)(p);					      \
+									      \
+    HDcompile_assert(sizeof(double) == 8);				      \
+    HDcompile_assert(sizeof(double) == sizeof(uint64_t));		      \
+    HDmemcpy(&_n, &n, sizeof(double));					      \
+    for(_u = 0; _u < sizeof(uint64_t); _u++, _n >>= 8)			      \
+        *_p++ = (uint8_t)(_n & 0xff);					      \
+    (p) = (uint8_t *)(p) + 8;						      \
+}
+
 /* DECODE converts little endian bytes pointed by p to integer values and store
  * it in i.  For signed values, need to do sign-extension when converting
  * the last byte which carries the sign bit.
@@ -152,11 +182,11 @@ typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
 }
 
 #  define INT32DECODE(p, i) {						      \
-   (i)	= (	     *(p) & 0xff);	  (p)++;			      \
-   (i) |= ((int32_t)(*(p) & 0xff) <<  8); (p)++;			      \
-   (i) |= ((int32_t)(*(p) & 0xff) << 16); (p)++;			      \
-   (i) |= ((int32_t)(((*(p) & 0xff) << 24) |                                  \
-                   ((*(p) & 0x80) ? ~0xffffffff : 0x0))); (p)++;	      \
+   (i)	= ((int32_t)(*(p) & (unsigned)0xff));	  (p)++;		      \
+   (i) |= ((int32_t)(*(p) & (unsigned)0xff) <<  8); (p)++;		      \
+   (i) |= ((int32_t)(*(p) & (unsigned)0xff) << 16); (p)++;		      \
+   (i) |= ((int32_t)(((*(p) & (unsigned)0xff) << 24) |                        \
+                   ((*(p) & (unsigned)0x80) ? (unsigned)(~0xffffffff) : (unsigned)0x0))); (p)++; \
 }
 
 #  define UINT32DECODE(p, i) {						      \
@@ -208,6 +238,34 @@ typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
 /* (Assumes that the high bits of the integer will be zero) */
 #  define UINT64DECODE_VAR(p, n, l)     DECODE_VAR(p, n, l)
 
+/* Decode a 64-bit unsigned integer and its length from a variable-sized buffer */
+/* (Assumes that the high bits of the integer will be zero) */
+#  define UINT64DECODE_VARLEN(p, n) {					      \
+   unsigned _s = *(p)++;						      \
+									      \
+   UINT64DECODE_VAR(p, n, _s);						      \
+}
+
+#  define H5_DECODE_UNSIGNED(p, n) {					      \
+    HDcompile_assert(sizeof(unsigned) == sizeof(uint32_t));		      \
+    UINT32DECODE(p, n)							      \
+}
+
+/* Assumes the endianness of uint64_t is the same as double */
+#  define H5_DECODE_DOUBLE(p, n) {					      \
+    uint64_t _n;							      \
+    size_t _u;								      \
+									      \
+    HDcompile_assert(sizeof(double) == 8);				      \
+    HDcompile_assert(sizeof(double) == sizeof(uint64_t));		      \
+    _n = 0;								      \
+    (p) += 8;								      \
+    for(_u = 0; _u < sizeof(uint64_t); _u++)				      \
+        _n = (_n << 8) | *(--p);					      \
+    HDmemcpy(&(n), &_n, sizeof(double));					      \
+    (p) += 8;								      \
+}
+
 /* Address-related macros */
 #define H5F_addr_overflow(X,Z)	(HADDR_UNDEF==(X) ||			      \
 				 HADDR_UNDEF==(X)+(haddr_t)(Z) ||	      \
@@ -240,7 +298,7 @@ typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
 
 /* If the module using this macro is allowed access to the private variables, access them directly */
 #ifdef H5F_PACKAGE
-#define H5F_INTENT(F)           ((F)->intent)
+#define H5F_INTENT(F)           ((F)->shared->flags)
 #define H5F_OPEN_NAME(F)        ((F)->open_name)
 #define H5F_ACTUAL_NAME(F)      ((F)->actual_name)
 #define H5F_EXTPATH(F)          ((F)->extpath)
@@ -543,7 +601,7 @@ typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
 
 /* Forward declarations for prototype arguments */
 struct H5B_class_t;
-struct H5RC_t;
+struct H5UC_t;
 struct H5O_loc_t;
 struct H5HG_heap_t;
 
@@ -596,8 +654,8 @@ H5_DLL unsigned H5F_gc_ref(const H5F_t *f);
 H5_DLL hbool_t H5F_use_latest_format(const H5F_t *f);
 H5_DLL hbool_t H5F_store_msg_crt_idx(const H5F_t *f);
 H5_DLL herr_t H5F_set_store_msg_crt_idx(H5F_t *f, hbool_t flag);
-H5_DLL struct H5RC_t *H5F_grp_btree_shared(const H5F_t *f);
-H5_DLL herr_t H5F_set_grp_btree_shared(H5F_t *f, struct H5RC_t *rc);
+H5_DLL struct H5UC_t *H5F_grp_btree_shared(const H5F_t *f);
+H5_DLL herr_t H5F_set_grp_btree_shared(H5F_t *f, struct H5UC_t *rc);
 H5_DLL hbool_t H5F_use_tmp_space(const H5F_t *f);
 H5_DLL hbool_t H5F_is_tmp_addr(const H5F_t *f, haddr_t addr);
 H5_DLL hsize_t H5F_get_alignment(const H5F_t *f);
@@ -615,6 +673,7 @@ H5_DLL herr_t H5F_get_vfd_handle(const H5F_t *file, hid_t fapl,
 H5_DLL hbool_t H5F_is_mount(const H5F_t *file);
 H5_DLL hbool_t H5F_has_mount(const H5F_t *file);
 H5_DLL herr_t H5F_traverse_mount(struct H5O_loc_t *oloc/*in,out*/);
+H5_DLL herr_t H5F_flush_mounts(H5F_t *f, hid_t dxpl_id);
 
 /* Functions that operate on blocks of bytes wrt super block */
 H5_DLL herr_t H5F_block_read(const H5F_t *f, H5FD_mem_t type, haddr_t addr,
@@ -632,7 +691,7 @@ H5_DLL void H5F_addr_decode_len(size_t addr_len, const uint8_t **pp, haddr_t *ad
 H5_DLL herr_t H5P_facc_close(hid_t dxpl_id, void *close_data);
 
 /* Shared file list related routines */
-H5_DLL herr_t H5F_sfile_assert_num(unsigned n);
+H5_DLL void H5F_sfile_assert_num(unsigned n);
 
 /* Routines for creating & destroying "fake" file structures */
 H5_DLL H5F_t *H5F_fake_alloc(uint8_t sizeof_size);

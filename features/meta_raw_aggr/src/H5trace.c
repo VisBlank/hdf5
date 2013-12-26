@@ -156,7 +156,7 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
     } /* end if */
 
     /* Get tim for event */
-    if(fabs(first_time.etime) < 0.0000000001)
+    if(HDfabs(first_time.etime) < 0.0000000001)
         /* That is == 0.0, but direct comparison between floats is bad */
         H5_timer_begin(&first_time);
     if(H5_debug_g.ttimes)
@@ -179,10 +179,10 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
                 char tmp[128];
 
                 sprintf(tmp, "%.6f", event_time.etime-first_time.etime);
-                fprintf(out, " %*s ", (int)strlen(tmp), "");
+                fprintf(out, " %*s ", (int)HDstrlen(tmp), "");
             } /* end if */
             for(i = 0; i < current_depth; i++)
-                fputc('+', out);
+                HDfputc('+', out);
             fprintf(out, "%*s%s = ", 2*current_depth, "", func);
         } /* end if */
         else {
@@ -192,11 +192,11 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
     } /* end if */
     else {
         if(current_depth>last_call_depth)
-            fputs(" = <delayed>\n", out);
+            HDfputs(" = <delayed>\n", out);
         if(H5_debug_g.ttimes)
             fprintf(out, "@%.6f ", event_time.etime - first_time.etime);
         for(i = 0; i < current_depth; i++)
-            fputc('+', out);
+            HDfputc('+', out);
         fprintf(out, "%*s%s(", 2*current_depth, "", func);
     } /* end else */
 
@@ -535,6 +535,60 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
                         } /* end else */
                         break;
 
+                    case 'n':
+                        if(ptr) {
+                            if(vp)
+                                fprintf(out, "0x%lx", (unsigned long)vp);
+                            else
+                                fprintf(out, "NULL");
+                        } /* end if */
+                        else {
+                            H5D_mpio_no_collective_cause_t nocol_cause_mode = (H5D_mpio_no_collective_cause_t)va_arg(ap, int);
+
+                            switch(nocol_cause_mode) {
+                                case H5D_MPIO_COLLECTIVE:
+                                    fprintf(out, "H5D_MPIO_COLLECTIVE");
+                                    break;
+
+                                case H5D_MPIO_SET_INDEPENDENT:
+                                    fprintf(out, "H5D_MPIO_SET_INDEPENDENT");
+                                    break;
+
+                                case H5D_MPIO_DATATYPE_CONVERSION:
+                                    fprintf(out, "H5D_MPIO_DATATYPE_CONVERSION");
+                                    break;
+
+                                case H5D_MPIO_DATA_TRANSFORMS:
+                                    fprintf(out, "H5D_MPIO_DATA_TRANSFORMS");
+                                    break;
+
+                                case H5D_MPIO_SET_MPIPOSIX:
+                                    fprintf(out, "H5D_MPIO_SET_MPIPOSIX");
+                                    break;
+
+                                case H5D_MPIO_NOT_SIMPLE_OR_SCALAR_DATASPACES:
+                                    fprintf(out, "H5D_MPIO_NOT_SIMPLE_OR_SCALAR_DATASPACES");
+                                    break;
+
+                                case H5D_MPIO_POINT_SELECTIONS:
+                                    fprintf(out, "H5D_MPIO_POINT_SELECTIONS");
+                                    break;
+
+                                case H5D_MPIO_NOT_CONTIGUOUS_OR_CHUNKED_DATASET:
+                                    fprintf(out, "H5D_MPIO_NOT_CONTIGUOUS_OR_CHUNKED_DATASET");
+                                    break;
+
+                                case H5D_MPIO_FILTERS:
+                                    fprintf(out, "H5D_MPIO_FILTERS");
+                                    break;
+
+                                default:
+                                    fprintf(out, "%ld", (long)nocol_cause_mode);
+                                    break;
+                            } /* end switch */
+                        } /* end else */
+                        break;
+
                     case 'o':
                         if(ptr) {
                             if(vp)
@@ -556,10 +610,6 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
 
                                 case H5D_MPIO_MULTI_CHUNK:
                                     fprintf(out, "H5D_MPIO_MULTI_CHUNK");
-                                    break;
-
-                                case H5D_MPIO_MULTI_CHUNK_NO_OPT:
-                                    fprintf(out, "H5D_MPIO_MULTI_CHUNK_NO_OPT");
                                     break;
 
                                 default:

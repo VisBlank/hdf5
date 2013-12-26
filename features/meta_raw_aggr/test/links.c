@@ -558,8 +558,8 @@ cklinks(hid_t fapl, hbool_t new_format)
     } /* end if */
     if(H5F_addr_ne(oinfo1.addr, oinfo2.addr)) {
 	H5_FAILED();
-	puts("    Hard link test failed. Link seems not to point to the ");
-	puts("    expected file location.");
+	HDputs("    Hard link test failed. Link seems not to point to the ");
+	HDputs("    expected file location.");
 	TEST_ERROR
     } /* end if */
     if(H5Lexists(file, "d1", H5P_DEFAULT) != TRUE) FAIL_STACK_ERROR
@@ -574,14 +574,14 @@ cklinks(hid_t fapl, hbool_t new_format)
     } /* end if */
     if(H5F_addr_ne(oinfo1.addr, oinfo2.addr)) {
 	H5_FAILED();
-	puts("    Soft link test failed. Link seems not to point to the ");
-	puts("    expected file location.");
+	HDputs("    Soft link test failed. Link seems not to point to the ");
+	HDputs("    expected file location.");
 	TEST_ERROR
     } /* end if */
     if(H5Lget_val(file, "grp1/soft", linkval, sizeof linkval, H5P_DEFAULT) < 0) FAIL_STACK_ERROR
     if(HDstrcmp(linkval, "/d1")) {
 	H5_FAILED();
-	puts("    Soft link test failed. Wrong link value");
+	HDputs("    Soft link test failed. Wrong link value");
 	TEST_ERROR
     } /* end if */
     if(H5Lexists(file, "grp1/soft", H5P_DEFAULT) != TRUE) FAIL_STACK_ERROR
@@ -592,7 +592,7 @@ cklinks(hid_t fapl, hbool_t new_format)
     } H5E_END_TRY;
     if(status >= 0) {
 	H5_FAILED();
-	puts("    H5Oget_info_by_name() should have failed for a dangling link.");
+	HDputs("    H5Oget_info_by_name() should have failed for a dangling link.");
 	TEST_ERROR
     } /* end if */
     if(H5Lget_info(file, "grp1/dangle", &linfo2, H5P_DEFAULT) < 0) FAIL_STACK_ERROR
@@ -608,7 +608,7 @@ cklinks(hid_t fapl, hbool_t new_format)
     } /* end if */
     if(HDstrcmp(linkval, "foobar")) {
 	H5_FAILED();
-	puts("    Dangling link test failed. Wrong link value");
+	HDputs("    Dangling link test failed. Wrong link value");
 	TEST_ERROR
     } /* end if */
     if(H5Lexists(file, "grp1/dangle", H5P_DEFAULT) != TRUE) FAIL_STACK_ERROR
@@ -619,7 +619,7 @@ cklinks(hid_t fapl, hbool_t new_format)
     } H5E_END_TRY;
     if(status >= 0) {
 	H5_FAILED();
-	puts("    H5Oget_info_by_name() should have failed for a recursive link.");
+	HDputs("    H5Oget_info_by_name() should have failed for a recursive link.");
 	TEST_ERROR
     } /* end if */
     if(H5Lget_info(file, "grp1/recursive", &linfo2, H5P_DEFAULT) < 0) FAIL_STACK_ERROR
@@ -635,7 +635,7 @@ cklinks(hid_t fapl, hbool_t new_format)
     } /* end if */
     if(HDstrcmp(linkval, "/grp1/recursive")) {
 	H5_FAILED();
-	puts("   Recursive link test failed. Wrong link value");
+	HDputs("   Recursive link test failed. Wrong link value");
 	TEST_ERROR
     } /* end if */
 
@@ -700,8 +700,8 @@ ck_new_links(hid_t fapl, hbool_t new_format)
     }
     if(H5F_addr_ne(oi_dset.addr, oi_hard1.addr) || H5F_addr_ne(oi_dset.addr, oi_hard2.addr)) {
 	H5_FAILED();
-	puts("    Hard link test failed.  Link seems not to point to the ");
-	puts("    expected file location.");
+	HDputs("    Hard link test failed.  Link seems not to point to the ");
+	HDputs("    expected file location.");
 	TEST_ERROR
     }
 
@@ -905,7 +905,7 @@ toomany(hid_t fcpl, hid_t fapl, hbool_t new_format)
     } H5E_END_TRY;
     if(gid >= 0) {
 	H5_FAILED();
-	puts("    Should have failed for sequence of too many nested links.");
+	HDputs("    Should have failed for sequence of too many nested links.");
 	TEST_ERROR
     } /* end if */
 
@@ -1189,7 +1189,7 @@ test_move(hid_t fapl, hbool_t new_format)
     } H5E_END_TRY;
     if(moved_grp >= 0) {
 	H5_FAILED();
-	puts("    Group still in original location?");
+	HDputs("    Group still in original location?");
 	TEST_ERROR
     } /* end if */
 
@@ -1684,8 +1684,8 @@ test_deprec(hid_t fapl, hbool_t new_format)
 
     if(HDmemcmp(&sb_hard1.objno, sb_hard2.objno, sizeof(sb_hard1.objno))) {
         H5_FAILED();
-        puts("    Hard link test failed.  Link seems not to point to the ");
-        puts("    expected file location.");
+        HDputs("    Hard link test failed.  Link seems not to point to the ");
+        HDputs("    expected file location.");
         TEST_ERROR
     } /* end if */
 
@@ -1695,8 +1695,8 @@ test_deprec(hid_t fapl, hbool_t new_format)
 
     if(HDmemcmp(&sb_hard1.objno, sb_hard2.objno, sizeof(sb_hard1.objno))) {
         H5_FAILED();
-        puts("    Hard link test failed.  Link seems not to point to the ");
-        puts("    expected file location.");
+        HDputs("    Hard link test failed.  Link seems not to point to the ");
+        HDputs("    expected file location.");
         TEST_ERROR
     } /* end if */
 
@@ -1812,19 +1812,19 @@ external_link_root(hid_t fcpl, hid_t fapl, hbool_t new_format)
     if(H5Lget_info(fid, "ext_link", &linfo, H5P_DEFAULT) < 0) goto error;
     if(H5L_TYPE_EXTERNAL != linfo.type) {
 	H5_FAILED();
-	puts("    Unexpected object type - should have been an external link");
+	HDputs("    Unexpected object type - should have been an external link");
 	goto error;
     }
     if(H5Lget_val(fid, "ext_link", objname, sizeof(objname), H5P_DEFAULT) < 0) TEST_ERROR
     if(H5Lunpack_elink_val(objname, linfo.u.val_size, NULL, &file, &path) < 0) TEST_ERROR
     if(HDstrcmp(file, filename1)) {
 	H5_FAILED();
-	puts("    External link file name incorrect");
+	HDputs("    External link file name incorrect");
 	goto error;
     }
     if(HDstrcmp(path, "/")) {
 	H5_FAILED();
-	puts("    External link path incorrect");
+	HDputs("    External link path incorrect");
 	goto error;
     }
 
@@ -1836,19 +1836,19 @@ external_link_root(hid_t fcpl, hid_t fapl, hbool_t new_format)
     if(H5Lget_info(fid, "ext_link", &linfo, H5P_DEFAULT) < 0) goto error;
     if(H5L_TYPE_EXTERNAL != linfo.type) {
 	H5_FAILED();
-	puts("    Unexpected object type - should have been an external link");
+	HDputs("    Unexpected object type - should have been an external link");
 	goto error;
     }
     if(H5Lget_val(fid, "ext_link", objname, sizeof(objname), H5P_DEFAULT) < 0) TEST_ERROR
     if(H5Lunpack_elink_val(objname, linfo.u.val_size, NULL, &file, &path) < 0) TEST_ERROR
     if(HDstrcmp(file, filename1)) {
 	H5_FAILED();
-	puts("    External link file name incorrect");
+	HDputs("    External link file name incorrect");
 	goto error;
     }
     if(HDstrcmp(path, "/")) {
 	H5_FAILED();
-	puts("    External link path incorrect");
+	HDputs("    External link path incorrect");
 	goto error;
     }
 
@@ -1884,7 +1884,7 @@ external_link_root(hid_t fcpl, hid_t fapl, hbool_t new_format)
 
     /* Check that all file IDs have been closed */
     if(H5I_nmembers(H5I_FILE) != 0) TEST_ERROR
-    if(H5F_sfile_assert_num(0) != 0) TEST_ERROR
+    H5F_sfile_assert_num(0);
 
     /* Open first file again with read-only access and check on objects created */
     if((fid = H5Fopen(filename1, H5F_ACC_RDONLY, fapl)) < 0) TEST_ERROR
@@ -1908,7 +1908,7 @@ external_link_root(hid_t fcpl, hid_t fapl, hbool_t new_format)
 
     /* Check that all file IDs have been closed */
     if(H5I_nmembers(H5I_FILE) != 0) TEST_ERROR
-    if(H5F_sfile_assert_num(0) != 0) TEST_ERROR
+    H5F_sfile_assert_num(0);
 
     /* Verify that new objects can't be created through a read-only external
      * link.
@@ -1925,7 +1925,7 @@ external_link_root(hid_t fcpl, hid_t fapl, hbool_t new_format)
 
     /* Check that all file IDs have been closed */
     if(H5I_nmembers(H5I_FILE) != 0) TEST_ERROR
-    if(H5F_sfile_assert_num(0) != 0) TEST_ERROR
+    H5F_sfile_assert_num(0);
 
     PASSED();
     return 0;
@@ -2694,7 +2694,7 @@ external_link_dangling(hid_t fcpl, hid_t fapl, hbool_t new_format)
     } H5E_END_TRY;
     if (gid >= 0) {
 	H5_FAILED();
-	puts("    Should have failed for sequence of too many nested links.");
+	HDputs("    Should have failed for sequence of too many nested links.");
 	goto error;
     }
 
@@ -2704,7 +2704,7 @@ external_link_dangling(hid_t fcpl, hid_t fapl, hbool_t new_format)
     } H5E_END_TRY;
     if (gid >= 0) {
 	H5_FAILED();
-	puts("    Should have failed for sequence of too many nested links.");
+	HDputs("    Should have failed for sequence of too many nested links.");
 	goto error;
     }
 
@@ -2714,7 +2714,7 @@ external_link_dangling(hid_t fcpl, hid_t fapl, hbool_t new_format)
     } H5E_END_TRY;
     if (status >= 0) {
         H5_FAILED();
-        puts("    Retreiving name of object by index through dangling file external link should have failed.");
+        HDputs("    Retreiving name of object by index through dangling file external link should have failed.");
     } /* end if */
 
     /* Close root group */
@@ -2811,7 +2811,7 @@ external_link_prefix(hid_t fcpl, hid_t fapl, hbool_t new_format)
     /* should be able to find the target file from pathnames set via H5Pset_elink_prefix() */
     if (gid < 0) {
 	H5_FAILED();
-	puts("    Should have found the file in tmp directory.");
+	HDputs("    Should have found the file in tmp directory.");
 	goto error;
     }
 
@@ -2906,7 +2906,7 @@ external_link_abs_mainpath(hid_t fcpl, hid_t fapl, hbool_t new_format)
     /* should be able to find the target file from absolute path set for main file */
     if(gid < 0) {
 	H5_FAILED();
-	puts("    Should have found the file in tmp directory.");
+	HDputs("    Should have found the file in tmp directory.");
 	goto error;
     }
 
@@ -2992,7 +2992,7 @@ external_link_rel_mainpath(hid_t fcpl, hid_t fapl, hbool_t new_format)
     /* should be able to find the target file from the main file's relative pathname */
     if (gid < 0) {
 	H5_FAILED();
-	puts("    Should have found the file in current working directory");
+	HDputs("    Should have found the file in current working directory");
 	goto error;
     }
 
@@ -3084,7 +3084,7 @@ external_link_cwd(hid_t fcpl, hid_t fapl, hbool_t new_format)
     /* should be able to find the target file from the current working directory */
     if(gid < 0) {
 	H5_FAILED();
-	puts("    Should have found the file in current working directory");
+	HDputs("    Should have found the file in current working directory");
 	goto error;
     }
 
@@ -3180,7 +3180,7 @@ external_link_abstar(hid_t fcpl, hid_t fapl, hbool_t new_format)
     /* should be able to find the target file with abolute path */
     if(gid < 0) {
 	H5_FAILED();
-	puts("    Should have found the file in tmp directory.");
+	HDputs("    Should have found the file in tmp directory.");
 	goto error;
     }
 
@@ -3274,7 +3274,7 @@ external_link_abstar_cur(hid_t fcpl, hid_t fapl, hbool_t new_format)
     /* should be able to find the target file from main file's current working directory */
     if (gid < 0) {
 	H5_FAILED();
-	puts("    Should have found the file in current working directory.");
+	HDputs("    Should have found the file in current working directory.");
 	goto error;
     }
 
@@ -3354,7 +3354,7 @@ external_link_reltar(hid_t fcpl, hid_t fapl, hbool_t new_format)
     /* Open object through external link */
     if((gid = H5Gopen2(fid, "ext_link", H5P_DEFAULT)) < 0) {
 	H5_FAILED();
-	puts("    Should have found the file in tmp directory.");
+	HDputs("    Should have found the file in tmp directory.");
 	goto error;
     } /* end if */
 
@@ -3451,7 +3451,7 @@ external_link_chdir(hid_t fcpl, hid_t fapl, hbool_t new_format)
      */
     if (gid < 0) {
 	H5_FAILED();
-	puts("    Should have found the file in tmp directory.");
+	HDputs("    Should have found the file in tmp directory.");
 	goto error;
     }
 
@@ -3626,7 +3626,7 @@ external_set_elink_fapl1(hid_t fapl, hbool_t new_format)
     /* should succeed in opening the target object A in the current working directory */
     if (oidA < 0) {
 	H5_FAILED();
-	puts("    Should succeed in opening family target file A in current working directory");
+	HDputs("    Should succeed in opening family target file A in current working directory");
 	goto error;
     }
 
@@ -3640,7 +3640,7 @@ external_set_elink_fapl1(hid_t fapl, hbool_t new_format)
     /* should succeed in opening the target object B in the current working directory */
     if (oidB < 0) {
 	H5_FAILED();
-	puts("    Should succeed in opening multi target file B in current working directory");
+	HDputs("    Should succeed in opening multi target file B in current working directory");
 	goto error;
     }
 
@@ -3786,7 +3786,7 @@ external_set_elink_fapl2(hid_t fapl, hbool_t new_format)
     did = H5Dopen2(fid, "ext_link", dapl_id);
     if(did < 0) {
 	H5_FAILED();
-	puts("    Should succeed in opening the target dataset");
+	HDputs("    Should succeed in opening the target dataset");
 	goto error;
     }
 
@@ -4002,6 +4002,9 @@ external_set_elink_acc_flags(hid_t fcpl, hid_t fapl, hbool_t new_format)
     /* Create a group through the external link using gapl (should succeed) */
     if((group = H5Gcreate2(file1, "/ext_link/group", H5P_DEFAULT, H5P_DEFAULT, gapl)) < 0) TEST_ERROR
 
+    /* Close group */
+    if(H5Gclose(group) < 0) TEST_ERROR
+
     /* Unset elink access flags on gapl */
     if(H5Pset_elink_acc_flags(gapl, H5F_ACC_DEFAULT) < 0) TEST_ERROR
 
@@ -4029,8 +4032,7 @@ external_set_elink_acc_flags(hid_t fcpl, hid_t fapl, hbool_t new_format)
     } H5E_END_TRY;
     if(ret != FAIL) TEST_ERROR
 
-    /* Close file1 and group */
-    if(H5Gclose(group) < 0) TEST_ERROR
+    /* Close file1 */
     if(H5Fclose(file1) < 0) TEST_ERROR
 
     /* Verify that H5Fcreate and H5Fopen reject H5F_ACC_DEFAULT */
@@ -4372,7 +4374,7 @@ external_link_win1(hid_t fapl, hbool_t new_format)
     /* should be able to find the target file via main file's CWD*/
     if(gid < 0) {
 	H5_FAILED();
-	puts("    Should have found the file in CWD.");
+	HDputs("    Should have found the file in CWD.");
 	goto error;
     }
 
@@ -4466,7 +4468,7 @@ external_link_win2(hid_t fapl, hbool_t new_format)
     /* should be able to find the target file directly */
     if(gid < 0) {
 	H5_FAILED();
-	puts("    Should have found the file in tmp.");
+	HDputs("    Should have found the file in tmp.");
 	goto error;
     }
 
@@ -4559,7 +4561,7 @@ external_link_win3(hid_t fapl, hbool_t new_format)
     /* should be able to find the target file directly */
     if (gid < 0) {
 	H5_FAILED();
-	puts("    Should have found the file in tmp.");
+	HDputs("    Should have found the file in tmp.");
 	goto error;
     }
 
@@ -4648,7 +4650,7 @@ external_link_win4(hid_t fapl, hbool_t new_format)
     /* should be able to find the target file via main file's absolute drive/relative path */
     if (gid < 0) {
 	H5_FAILED();
-	puts("    Should have found the file in CWD.");
+	HDputs("    Should have found the file in CWD.");
 	goto error;
     }
 
@@ -4744,7 +4746,7 @@ external_link_win5(hid_t fapl, hbool_t new_format)
     /* should be able to find the target file via main file's rel drive/abs path */
     if(gid < 0) {
 	H5_FAILED();
-	puts("    Should have found the file in CWD.");
+	HDputs("    Should have found the file in CWD.");
 	goto error;
     }
 
@@ -4837,7 +4839,7 @@ external_link_win6(hid_t fapl, hbool_t new_format)
     /* should be able to find the target file via target file's rel path in current drive */
     if (gid < 0) {
 	H5_FAILED();
-	puts("    Should have found the file in tmp.");
+	HDputs("    Should have found the file in tmp.");
 	goto error;
     }
 
@@ -4924,7 +4926,7 @@ external_link_win7(hid_t fapl, hbool_t new_format)
     /* should be able to find the target file via main file's local host/main drive*/
     if(gid < 0) {
         H5_FAILED();
-        puts("    Should have found the file in local host/main drive.");
+        HDputs("    Should have found the file in local host/main drive.");
         goto error;
     }
 
@@ -5016,7 +5018,7 @@ external_link_win8(hid_t fapl, hbool_t new_format)
     /* should be able to find the target file directly */
     if(gid < 0) {
         H5_FAILED();
-        puts("    Should have found the file in tmp.");
+        HDputs("    Should have found the file in tmp.");
         goto error;
     }
 
@@ -5103,7 +5105,7 @@ external_link_win9(hid_t fapl, hbool_t new_format)
     /* should be able to find the target file via main file's local host/main drive*/
     if(gid < 0) {
         H5_FAILED();
-        puts("    Should have found the file in local host/main drive.");
+        HDputs("    Should have found the file in local host/main drive.");
         goto error;
     }
 
@@ -5174,7 +5176,7 @@ external_link_recursive(hid_t fcpl, hid_t fapl, hbool_t new_format)
     } H5E_END_TRY;
     if (gid >= 0) {
 	H5_FAILED();
-	puts("    Should have failed for recursive external links.");
+	HDputs("    Should have failed for recursive external links.");
 	goto error;
     }
 
@@ -5244,7 +5246,7 @@ external_link_query(hid_t fcpl, hid_t fapl, hbool_t new_format)
     if(li.u.val_size != (1 + (HDstrlen(filename2) + 1) + (HDstrlen("/dst") + 1))) TEST_ERROR
     if (H5L_TYPE_EXTERNAL != li.type) {
 	H5_FAILED();
-	puts("    Unexpected link class - should have been an external link");
+	HDputs("    Unexpected link class - should have been an external link");
 	goto error;
     }
 
@@ -5270,7 +5272,7 @@ external_link_query(hid_t fcpl, hid_t fapl, hbool_t new_format)
     if(li.u.val_size != (1 + (HDstrlen(filename2) + 1) + (HDstrlen("/dst") + 1))) TEST_ERROR
     if(H5L_TYPE_EXTERNAL != li.type) {
 	H5_FAILED();
-	puts("    Unexpected link class - should have been an external link");
+	HDputs("    Unexpected link class - should have been an external link");
 	goto error;
     }
 
@@ -5288,7 +5290,7 @@ external_link_query(hid_t fcpl, hid_t fapl, hbool_t new_format)
     if(H5Oget_info_by_name(fid, "src", &oi, H5P_DEFAULT) < 0) FAIL_STACK_ERROR
     if(H5O_TYPE_GROUP != oi.type) {
 	H5_FAILED();
-	puts("    Unexpected object type - should have been a group");
+	HDputs("    Unexpected object type - should have been a group");
 	goto error;
     }
 
@@ -6512,7 +6514,7 @@ external_symlink(const char *env_h5_drvr, hid_t fapl, hbool_t new_format)
     } /* end if */
     else {
 	SKIPPED();
-	puts("    Current VFD doesn't support POSIX I/O calls");
+	HDputs("    Current VFD doesn't support POSIX I/O calls");
     } /* end else */
 
     return 0;
@@ -6532,7 +6534,7 @@ external_symlink(const char *env_h5_drvr, hid_t fapl, hbool_t new_format)
     return -1;
 #else /* H5_HAVE_SYMLINK */
     SKIPPED();
-    puts("    Current file system or operating system doesn't support symbolic links");
+    HDputs("    Current file system or operating system doesn't support symbolic links");
 
     return 0;
 #endif /* H5_HAVE_SYMLINK */
@@ -6755,8 +6757,7 @@ external_file_cache(hid_t fcpl, hid_t fapl, hbool_t new_format)
         TEST_ERROR
 
     /* Verify that only 1 file is open */
-    if(H5F_sfile_assert_num(1) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(1);
 
     /* Open and close the target of the external link */
     if((oid = H5Oopen(fid1, "link_to_2", H5P_DEFAULT)) < 0)
@@ -6765,16 +6766,14 @@ external_file_cache(hid_t fcpl, hid_t fapl, hbool_t new_format)
         TEST_ERROR
 
     /* Verify that both files are now open */
-    if(H5F_sfile_assert_num(2) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(2);
 
     /* Close file 1 */
     if(H5Fclose(fid1) < 0)
         TEST_ERROR
 
     /* Verify that both files are now closed */
-    if(H5F_sfile_assert_num(0) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(0);
 
 
     /*
@@ -6796,8 +6795,7 @@ external_file_cache(hid_t fcpl, hid_t fapl, hbool_t new_format)
         TEST_ERROR
 
     /* Verify that only 1 file is open */
-    if(H5F_sfile_assert_num(1) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(1);
 
     /* Open and close the target of the external link */
     if((oid = H5Oopen(fid1, "link_to_2", H5P_DEFAULT)) < 0)
@@ -6806,24 +6804,21 @@ external_file_cache(hid_t fcpl, hid_t fapl, hbool_t new_format)
         TEST_ERROR
 
     /* Verify that both files are now open */
-    if(H5F_sfile_assert_num(2) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(2);
 
     /* Release file 1's EFC */
     if(H5Fclear_elink_file_cache(fid1) < 0)
         TEST_ERROR
 
     /* Verify that only the parent file is now open */
-    if(H5F_sfile_assert_num(1) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(1);
 
     /* Close file 1 */
     if(H5Fclose(fid1) < 0)
         TEST_ERROR
 
     /* Verify that both files are now closed */
-    if(H5F_sfile_assert_num(0) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(0);
 
 
     /*
@@ -6859,8 +6854,7 @@ external_file_cache(hid_t fcpl, hid_t fapl, hbool_t new_format)
         TEST_ERROR
 
     /* Verify that only 1 file is open */
-    if(H5F_sfile_assert_num(1) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(1);
 
     /* Open and close one branch of the tree */
     if((oid = H5Oopen(fid1, "link_to_2/link_to_3", H5P_DEFAULT)) < 0)
@@ -6869,8 +6863,7 @@ external_file_cache(hid_t fcpl, hid_t fapl, hbool_t new_format)
         TEST_ERROR
 
     /* Verify that files 2 and 3 are now open */
-    if(H5F_sfile_assert_num(3) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(3);
 
     /* Open and close the other branch of the tree */
     if((oid = H5Oopen(fid1, "link_to_2/link_to_4", H5P_DEFAULT)) < 0)
@@ -6879,16 +6872,14 @@ external_file_cache(hid_t fcpl, hid_t fapl, hbool_t new_format)
         TEST_ERROR
 
     /* Verify that all files are now open */
-    if(H5F_sfile_assert_num(4) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(4);
 
     /* Close file 1 */
     if(H5Fclose(fid1) < 0)
         TEST_ERROR
 
     /* Verify that all files are now closed */
-    if(H5F_sfile_assert_num(0) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(0);
 
 
     /*
@@ -6924,8 +6915,7 @@ external_file_cache(hid_t fcpl, hid_t fapl, hbool_t new_format)
         TEST_ERROR
 
     /* Verify that only 1 file is open */
-    if(H5F_sfile_assert_num(1) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(1);
 
     /* Open and close one branch of the tree */
     if((oid = H5Oopen(fid1, "link_to_2/link_to_3", H5P_DEFAULT)) < 0)
@@ -6934,8 +6924,7 @@ external_file_cache(hid_t fcpl, hid_t fapl, hbool_t new_format)
         TEST_ERROR
 
     /* Verify that files 2 and 3 are now open */
-    if(H5F_sfile_assert_num(3) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(3);
 
     /* Open and close the other branch of the tree */
     if((oid = H5Oopen(fid1, "link_to_2/link_to_4", H5P_DEFAULT)) < 0)
@@ -6944,24 +6933,21 @@ external_file_cache(hid_t fcpl, hid_t fapl, hbool_t new_format)
         TEST_ERROR
 
     /* Verify that all files are now open */
-    if(H5F_sfile_assert_num(4) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(4);
 
     /* Release file 1's EFC */
     if(H5Fclear_elink_file_cache(fid1) < 0)
         TEST_ERROR
 
     /* Verify that only file 1 is now open */
-    if(H5F_sfile_assert_num(1) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(1);
 
     /* Close file 1 */
     if(H5Fclose(fid1) < 0)
         TEST_ERROR
 
     /* Verify that all files are now closed */
-    if(H5F_sfile_assert_num(0) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(0);
 
 #ifndef H5_CANNOT_OPEN_TWICE
     /*
@@ -6993,8 +6979,7 @@ external_file_cache(hid_t fcpl, hid_t fapl, hbool_t new_format)
         TEST_ERROR
 
     /* Verify that only 1 file is open */
-    if(H5F_sfile_assert_num(1) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(1);
 
     /* Open and close one complete cycle */
     if((oid = H5Oopen(fid1, "link_to_2/link_to_3/link_to_1", H5P_DEFAULT)) < 0)
@@ -7003,16 +6988,14 @@ external_file_cache(hid_t fcpl, hid_t fapl, hbool_t new_format)
         TEST_ERROR
 
     /* Verify that all files are now open */
-    if(H5F_sfile_assert_num(3) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(3);
 
     /* Close file 1 */
     if(H5Fclose(fid1) < 0)
         TEST_ERROR
 
     /* Verify that all files are now closed */
-    if(H5F_sfile_assert_num(0) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(0);
 
 
     /*
@@ -7044,8 +7027,7 @@ external_file_cache(hid_t fcpl, hid_t fapl, hbool_t new_format)
         TEST_ERROR
 
     /* Verify that only 1 file is open */
-    if(H5F_sfile_assert_num(1) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(1);
 
     /* Open and close one complete cycle */
     if((oid = H5Oopen(fid1, "link_to_2/link_to_3/link_to_1", H5P_DEFAULT)) < 0)
@@ -7054,24 +7036,21 @@ external_file_cache(hid_t fcpl, hid_t fapl, hbool_t new_format)
         TEST_ERROR
 
     /* Verify that all files are now open */
-    if(H5F_sfile_assert_num(3) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(3);
 
     /* Release file 1's EFC */
     if(H5Fclear_elink_file_cache(fid1) < 0)
         TEST_ERROR
 
     /* Verify that only file 1 is now open */
-    if(H5F_sfile_assert_num(1) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(1);
 
     /* Close file 1 */
     if(H5Fclose(fid1) < 0)
         TEST_ERROR
 
     /* Verify that all files are now closed */
-    if(H5F_sfile_assert_num(0) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(0);
 #endif /* H5_CANNOT_OPEN_TWICE */
 
     /* Close fapl */
@@ -7166,8 +7145,7 @@ external_open_twice(hid_t fcpl, hid_t fapl, hbool_t new_format)
         TEST_ERROR
 
     /* Verify that both files are now closed */
-    if(H5F_sfile_assert_num(0) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(0);
 
 
     /*
@@ -7213,8 +7191,7 @@ external_open_twice(hid_t fcpl, hid_t fapl, hbool_t new_format)
         TEST_ERROR
 
     /* Verify that both files are now closed */
-    if(H5F_sfile_assert_num(0) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(0);
 
 
     /*
@@ -7264,8 +7241,7 @@ external_open_twice(hid_t fcpl, hid_t fapl, hbool_t new_format)
         TEST_ERROR
 
     /* Verify that both files are now closed */
-    if(H5F_sfile_assert_num(0) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(0);
 
 
     /*
@@ -7313,8 +7289,7 @@ external_open_twice(hid_t fcpl, hid_t fapl, hbool_t new_format)
         TEST_ERROR
 
     /* Verify that both files are now closed */
-    if(H5F_sfile_assert_num(0) < 0)
-        TEST_ERROR
+    H5F_sfile_assert_num(0);
 
 
     PASSED();
@@ -7598,7 +7573,7 @@ ud_hard_links(hid_t fcpl, hid_t fapl)
     if(li.u.val_size != 0) TEST_ERROR
     if(UD_HARD_TYPE != li.type) {
 	H5_FAILED();
-	puts("    Unexpected link class - should have been a UD hard link");
+	HDputs("    Unexpected link class - should have been a UD hard link");
 	goto error;
     } /* end if */
 
@@ -8012,7 +7987,7 @@ ud_callbacks(hid_t fapl, hbool_t new_format)
     if(li.u.val_size != 16) TEST_ERROR
     if (UD_CB_TYPE != li.type) {
 	H5_FAILED();
-	puts("    Unexpected link class - should have been a UD hard link");
+	HDputs("    Unexpected link class - should have been a UD hard link");
 	goto error;
     }
 
@@ -8660,7 +8635,7 @@ lapl_nlinks(hid_t fapl, hbool_t new_format)
     } H5E_END_TRY;
     if (gid >= 0) {
 	H5_FAILED();
-	puts("    Should have failed for sequence of too many nested links.");
+	HDputs("    Should have failed for sequence of too many nested links.");
 	goto error;
     }
 
@@ -10176,7 +10151,7 @@ corder_create_empty(hid_t fcpl, hid_t fapl)
     } H5E_END_TRY;
     if(ret > 0) {
 	H5_FAILED();
-	puts("    H5Pset_link_create_order() should have failed for a creation order index with no tracking.");
+	HDputs("    H5Pset_link_create_order() should have failed for a creation order index with no tracking.");
 	TEST_ERROR
     } /* end if */
 
@@ -14766,7 +14741,7 @@ main(void)
     if(nerrors) {
         printf("***** %d LINK TEST%s FAILED! *****\n",
                 nerrors, 1 == nerrors ? "" : "S");
-        exit(1);
+        HDexit(1);
     }
     printf("All link tests passed.\n");
 
@@ -14781,6 +14756,6 @@ main(void)
     return 0;
 
 error:
-    puts("*** TESTS FAILED ***");
+    HDputs("*** TESTS FAILED ***");
     return 1;
 }

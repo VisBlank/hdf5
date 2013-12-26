@@ -103,7 +103,7 @@ SUBROUTINE test_array_compound_atomic(total_error)
 
   ! Create file 
   CALL h5fcreate_f(FILENAME,H5F_ACC_TRUNC_F,fid1,error)
-  CALL check("h5fcreate_f", error, total_error)    
+  CALL check("h5fcreate_f", error, total_error)
 
   ! Create dataspace for datasets 
   CALL h5screate_simple_f(SPACE1_RANK, sdims1, sid1, error)
@@ -405,7 +405,7 @@ END SUBROUTINE test_array_compound_atomic
     CALL check("h5tarray_create_f", error, total_error)
 
     ! Insert character array field 
-    CALL h5tinsert_f(tid2, "c", H5OFFSETOF(C_LOC(wdata(1,1)),C_LOC(wdata(1,1)%c(1))), tid4, error)
+    CALL h5tinsert_f(tid2, "c", H5OFFSETOF(C_LOC(wdata(1,1)),C_LOC(wdata(1,1)%c(1)(1:1))), tid4, error)
     CALL check("h5tinsert2_f", error, total_error)
 
     !  Close array of floats field datatype 
@@ -551,7 +551,7 @@ END SUBROUTINE test_array_compound_atomic
     CALL H5Tget_member_offset_f(tid2, 2, off, error)
     CALL check("H5Tget_member_offset_f", error, total_error)
     CALL VERIFY("H5Tget_member_offset_f",INT(off),&
-         INT(H5OFFSETOF(C_LOC(wdata(1,1)),C_LOC(wdata(1,1)%c(1)))), total_error) 
+         INT(H5OFFSETOF(C_LOC(wdata(1,1)),C_LOC(wdata(1,1)%c(1)(1:1)))), total_error) 
 
     !  Check the 3rd field's datatype 
     CALL H5Tget_member_type_f(tid2, 2, mtid2, error)
@@ -1028,8 +1028,8 @@ END SUBROUTINE test_array_compound_atomic
     INTEGER, PARAMETER :: int_kind_8 = SELECTED_INT_KIND(Fortran_INTEGER_4)  !should map to INTEGER*4 on most modern processors
     INTEGER, PARAMETER :: int_kind_16 = SELECTED_INT_KIND(Fortran_INTEGER_8) !should map to INTEGER*8 on most modern processors
     
-    INTEGER, PARAMETER :: real_kind_7 = SELECTED_REAL_KIND(Fortran_REAL_4) !should map to REAL*4 on most modern processors
-    INTEGER, PARAMETER :: real_kind_15 = SELECTED_REAL_KIND(Fortran_REAL_8) !should map to REAL*8 on most modern processors
+    INTEGER, PARAMETER :: real_kind_7 = SELECTED_REAL_KIND(Fortran_REAL_4)   !should map to REAL*4 on most modern processors
+    INTEGER, PARAMETER :: real_kind_15 = SELECTED_REAL_KIND(Fortran_REAL_8)  !should map to REAL*8 on most modern processors
     
     CHARACTER(LEN=12), PARAMETER :: filename = "dsetf_F03.h5" ! File name
     CHARACTER(LEN=5), PARAMETER :: dsetname1 = "dset1"     ! Dataset name
@@ -1710,7 +1710,7 @@ SUBROUTINE t_opaque(total_error)
   !
   CALL h5dcreate_f(file, dataset, dtype, space, dset, error)
   CALL check("h5dcreate_f",error, total_error)
-  f_ptr = C_LOC(wdata(1))
+  f_ptr = C_LOC(wdata(1)(1:1))
   CALL h5dwrite_f(dset, dtype, f_ptr, error)
   CALL check("h5dwrite_f",error, total_error)
   !
@@ -1774,7 +1774,7 @@ SUBROUTINE t_opaque(total_error)
   !
   ! Read the data.
   !
-  f_ptr = C_LOC(rdata(1))
+  f_ptr = C_LOC(rdata(1)(1:1))
   CALL h5dread_f(dset, dtype, f_ptr, error)
   CALL check("H5Dread_f",error, total_error)
   !
@@ -1976,8 +1976,8 @@ SUBROUTINE t_regref(total_error)
 
   INTEGER(HSIZE_T), DIMENSION(1:1) :: maxdims
   INTEGER(hssize_t) :: npoints
-  TYPE(hdset_reg_ref_t_f), DIMENSION(1:dim0), TARGET :: wdata ! Write buffer
-  TYPE(hdset_reg_ref_t_f), DIMENSION(:), ALLOCATABLE, TARGET :: rdata ! Read buffer
+  TYPE(hdset_reg_ref_t_f03), DIMENSION(1:dim0), TARGET :: wdata ! Write buffer
+  TYPE(hdset_reg_ref_t_f03), DIMENSION(:), ALLOCATABLE, TARGET :: rdata ! Read buffer
 
   INTEGER(size_t) :: size
   CHARACTER(LEN=1), DIMENSION(1:ds2dim0,1:ds2dim1), TARGET :: wdata2
@@ -2058,7 +2058,6 @@ SUBROUTINE t_regref(total_error)
   CALL check("h5sclose_f",error, total_error)
   CALL h5fclose_f(file , error)
   CALL check("h5fclose_f",error, total_error)
-
   !
   ! Now we begin the read section of this example.
   !
@@ -2095,10 +2094,11 @@ SUBROUTINE t_regref(total_error)
      ! Open the referenced object, retrieve its region as a
      ! dataspace selection.
      !
-     CALL H5Rdereference_f(dset, rdata(i), dset2, error)
+     f_ptr = C_LOC(rdata(i))
+     CALL H5Rdereference_f(dset, H5R_DATASET_REGION_F, f_ptr, dset2, error)
      CALL check("H5Rdereference_f",error, total_error)
-     
-     CALL H5Rget_region_f(dset, rdata(i), space, error)
+ 
+     CALL H5Rget_region_f(dset, f_ptr, space, error)
      CALL check("H5Rget_region_f",error, total_error)
   
      !
@@ -2123,7 +2123,7 @@ SUBROUTINE t_regref(total_error)
      CALL h5screate_simple_f(1, dims3, memspace, error)
      CALL check("h5screate_simple_f",error, total_error)
 
-     f_ptr = C_LOC(rdata2(1))
+     f_ptr = C_LOC(rdata2(1)(1:1))
      CALL h5dread_f( dset2, H5T_NATIVE_INTEGER_1, f_ptr, error, memspace, space)
      CALL check("H5Dread_f",error, total_error)
      CALL verifystring("h5dread_f",rdata2(1)(1:npoints),TRIM(chrref_correct(i)), total_error)
@@ -2473,24 +2473,24 @@ SUBROUTINE t_vlstring_readwrite(total_error)
 
   ! Initialize array of C pointers
 
-  wdata(1) = C_LOC(A(1))
-  wdata(2) = C_LOC(B(1))
-  wdata(3) = C_LOC(C(1))
-  wdata(4) = C_LOC(D(1))
+  wdata(1) = C_LOC(A(1)(1:1))
+  wdata(2) = C_LOC(B(1)(1:1))
+  wdata(3) = C_LOC(C(1)(1:1))
+  wdata(4) = C_LOC(D(1)(1:1))
 
   data_w(1) = A(1)
   data_w(2) = B(1)
   data_w(3) = C(1)
   data_w(4) = D(1)
 
-  wdata2D(1,1) = C_LOC(A11(1))
-  wdata2D(1,2) = C_LOC(A12(1))
-  wdata2D(1,3) = C_LOC(A13(1))
-  wdata2D(1,4) = C_LOC(A14(1))
-  wdata2D(2,1) = C_LOC(A21(1))
-  wdata2D(2,2) = C_LOC(A22(1))
-  wdata2D(2,3) = C_LOC(A23(1))
-  wdata2D(2,4) = C_LOC(A24(1))
+  wdata2D(1,1) = C_LOC(A11(1)(1:1))
+  wdata2D(1,2) = C_LOC(A12(1)(1:1))
+  wdata2D(1,3) = C_LOC(A13(1)(1:1))
+  wdata2D(1,4) = C_LOC(A14(1)(1:1))
+  wdata2D(2,1) = C_LOC(A21(1)(1:1))
+  wdata2D(2,2) = C_LOC(A22(1)(1:1))
+  wdata2D(2,3) = C_LOC(A23(1)(1:1))
+  wdata2D(2,4) = C_LOC(A24(1)(1:1))
 
   data2D_w(1,1) = A11(1)
   data2D_w(1,2) = A12(1)
@@ -2754,7 +2754,7 @@ SUBROUTINE t_string(total_error)
   CALL check("H5Dget_type_f",error, total_error)
   CALL H5Tget_size_f(filetype, size, error)
   CALL check("H5Tget_size_f",error, total_error)
-  CALL VERIFY("H5Tget_size_f", size, sdim, total_error)
+  CALL VERIFY("H5Tget_size_f", INT(size), INT(sdim), total_error)
   !
   ! Get dataspace.
   !
@@ -2800,4 +2800,647 @@ SUBROUTINE t_string(total_error)
 
 END SUBROUTINE t_string
 
+SUBROUTINE vl_test_special_char(cleanup, total_error)
+  
+  USE hdf5
+  IMPLICIT NONE
+  
+  INTERFACE
+     SUBROUTINE setup_buffer(data_in, line_lengths, char_type)
+       USE hdf5
+       USE ISO_C_BINDING
+       IMPLICIT NONE
+       CHARACTER(len=*), DIMENSION(:) :: data_in
+       INTEGER(size_t), DIMENSION(:) :: line_lengths
+       CHARACTER(KIND=C_CHAR,LEN=*) :: char_type
+     END SUBROUTINE setup_buffer
+  END INTERFACE
+  
+  LOGICAL, INTENT(IN) :: cleanup
+  INTEGER, INTENT(OUT) :: total_error
+  
+  CHARACTER(LEN=16), PARAMETER :: filename  = "t_controlchar.h5"
+  INTEGER, PARAMETER :: line_length = 10
+  INTEGER(hid_t) :: file
+  INTEGER(hid_t) :: dataset0
+  CHARACTER(len=line_length), DIMENSION(1:100) :: data_in
+  CHARACTER(len=line_length), DIMENSION(1:100) :: data_out
+  INTEGER(size_t), DIMENSION(1:100) :: line_lengths
+  INTEGER(hid_t) :: string_id, space, dcpl
+  INTEGER(hsize_t), DIMENSION(1:1) :: dims = (/0/)
+  INTEGER(hsize_t), DIMENSION(1:1) :: max_dims = (/0/)
+  INTEGER(hsize_t), DIMENSION(1:2) :: data_dims = (/0,0/)
+  INTEGER(hsize_t), DIMENSION(1:1) :: chunk =(/10/)
+  INTEGER, PARAMETER :: ncontrolchar = 7
+  CHARACTER(KIND=C_CHAR,LEN=1), DIMENSION(1:ncontrolchar) :: controlchar = &
+       (/C_ALERT, C_BACKSPACE,C_CARRIAGE_RETURN, C_FORM_FEED,C_HORIZONTAL_TAB,C_VERTICAL_TAB, C_NEW_LINE/)
+  INTEGER :: i, j, n, error
+  n = 8
+  !
+  ! Create a new file using the default properties.
+  !
+  CALL h5fcreate_f(filename, H5F_ACC_TRUNC_F, file, error)
+  CALL check("h5fcreate_f",error, total_error)
+ 
+  max_dims = (/H5S_UNLIMITED_F/)
+
+  !
+  ! Create the memory datatype.
+  !
+  CALL h5tcopy_f(h5t_string, string_id, error)
+  CALL check("h5tcopy_f", error, total_error)
+  CALL h5tset_strpad_f(string_id, h5t_str_nullpad_f, error)
+  CALL check("h5tset_strpad_f", error, total_error)
+  dims(1) = n
+  !
+  ! Create dataspace.
+  !
+  CALL h5screate_simple_f(1, dims, space, error, max_dims)
+  CALL check("h5screate_simple_f", error, total_error)
+  CALL h5pcreate_f(h5p_dataset_create_f, dcpl, error)
+  CALL check("h5pcreate_f", error, total_error)
+  CALL h5pset_chunk_f(dcpl, 1, chunk, error)
+  CALL check("h5pset_chunk_f", error, total_error)
+  
+  data_dims(1) = line_length
+  data_dims(2) = n
+  !
+  ! Create data with strings containing various control characters.
+  !
+  DO i = 1, ncontrolchar
+     !
+     ! Create the dataset, for the string with control character and write the string data to it.
+     !
+     CALL h5dcreate_f(file, controlchar(i), string_id, space, dataset0, error, dcpl)
+     CALL check("h5dcreate_f", error, total_error)
+     CALL setup_buffer(data_in(1:n), line_lengths, controlchar(i))
+     CALL h5dwrite_vl_f(dataset0, string_id, data_in(1:n), data_dims, line_lengths(1:n), error, space)
+     CALL check("h5dwrite_vl_f", error, total_error)
+     !
+     ! Read the string back.
+     !
+     CALL h5dread_vl_f(dataset0, string_id, data_out(1:n), data_dims, line_lengths(1:n), error, space)
+     CALL check("h5dread_vl_f", error, total_error)
+  
+     DO j = 1, n
+        IF(data_in(j).NE.data_out(j))THEN
+           total_error = total_error + 1
+           EXIT
+        ENDIF
+     ENDDO
+
+     CALL h5dclose_f(dataset0, error)
+     CALL check("h5dclose_f", error, total_error)
+  ENDDO
+
+  CALL h5pclose_f(dcpl, error)
+  CALL check("h5pclose_f", error, total_error)
+  CALL h5sclose_f(space, error)
+  CALL check("h5sclose_f", error, total_error)
+  CALL h5fclose_f(file, error)
+  CALL check("h5fclose_f", error, total_error)
+  
+END SUBROUTINE vl_test_special_char
+
+
+SUBROUTINE setup_buffer(data_in, line_lengths, char_type)
+  
+  USE HDF5
+  USE ISO_C_BINDING
+  
+  IMPLICIT NONE
+  
+  ! Creates a simple "Data_in" consisting of the letters of the alphabet,
+  ! one per line, with a control character.
+  
+  CHARACTER(len=10), DIMENSION(:) :: data_in
+  INTEGER(size_t), DIMENSION(:) :: line_lengths
+  INTEGER, DIMENSION(1:3) :: letters
+  CHARACTER(LEN=3) :: lets
+  CHARACTER(KIND=C_CHAR,LEN=*) :: char_type
+  CHARACTER(KIND=C_CHAR,LEN=1) :: char_tmp
+  INTEGER :: i, j, n, ff
+
+  ! Convert the letters and special character to integers    
+  lets = 'abc'
+  
+  READ(lets,'(3A1)') letters
+  READ(char_type,'(A1)') ff
+  n = SIZE(data_in)
+  j = 1
+  DO i=1,n-1
+     IF( j .EQ. 4 )THEN
+        WRITE(char_tmp,'(A1)') ff
+        data_in(i:i) = char_tmp
+     ELSE
+        WRITE(char_tmp,'(A1)') letters(j)
+        data_in(i:i) = char_tmp
+     ENDIF
+     line_lengths(i) = LEN_TRIM(data_in(i))
+     j = j + 1
+     IF( j .EQ. 5 ) j = 1
+  END DO
+  WRITE(char_tmp,'(A1)') ff
+  data_in(n:n) =  char_tmp
+  line_lengths(n) = 1
+  
+END SUBROUTINE setup_buffer
+
+!-------------------------------------------------------------------------
+! Function:    test_nbit
+!
+! Purpose:     Tests (real, 4 byte) datatype for nbit filter
+!
+! Return:      Success:        0
+!              Failure:        >0
+!
+! Programmer:  M. Scot Breitenfeld
+!              Decemeber 7, 2010
+!
+! Modifications: Moved this subroutine from the 1.8 test file and
+! modified it to use F2003 features. 
+! This routine requires 4 byte reals, so we use F2003 features to 
+! ensure the requirement is satisfied in a portable way. 
+! The need for this arises when a user specifies the default real is 8 bytes.
+! MSB 7/31/12
+!
+!-------------------------------------------------------------------------
+!
+
+SUBROUTINE test_nbit(cleanup, total_error )
+
+  USE HDF5
+  USE ISO_C_BINDING
+
+  IMPLICIT NONE
+  INTEGER, PARAMETER :: wp = SELECTED_REAL_KIND(Fortran_REAL_4) !should map to REAL*4 on most modern processors
+  LOGICAL, INTENT(IN)  :: cleanup
+  INTEGER, INTENT(INOUT) :: total_error
+  INTEGER(hid_t) :: file
+  
+  INTEGER(hid_t) :: dataset, datatype, space, dc, mem_type_id
+  INTEGER(hsize_t), DIMENSION(1:2) :: dims = (/2,5/)
+  INTEGER(hsize_t), DIMENSION(1:2) :: chunk_dim = (/2,5/)
+  ! orig_data[] are initialized to be within the range that can be represented by
+  ! dataset datatype (no precision loss during datatype conversion)
+  !
+  REAL(kind=wp), DIMENSION(1:2,1:5), TARGET :: orig_data = &
+       RESHAPE( (/188384.00, 19.103516, -1.0831790e9, -84.242188, &
+       5.2045898, -49140.000, 2350.2500, -3.2110596e-1, 6.4998865e-5, -0.0000000/) , (/2,5/) )
+  REAL(kind=wp), DIMENSION(1:2,1:5), TARGET :: new_data
+  INTEGER(size_t) :: PRECISION, offset
+  INTEGER :: error
+  LOGICAL :: status
+  INTEGER(size_t) :: i, j
+  TYPE(C_PTR) :: f_ptr
+
+  ! check to see if filter is available
+  CALL H5Zfilter_avail_f(H5Z_FILTER_NBIT_F, status, error)
+  IF(.NOT.status)THEN ! We don't have H5Z_FILTER_NBIT_F filter
+     total_error = -1     ! so return
+     RETURN
+  ENDIF
+
+  CALL H5Fcreate_f("nbit.h5", H5F_ACC_TRUNC_F, file, error)
+  CALL check("H5Fcreate_f", error, total_error)
+
+  ! Define dataset datatype (integer), and set precision, offset
+  CALL H5Tcopy_f(H5T_IEEE_F32BE, datatype, error)
+  CALL CHECK(" H5Tcopy_f", error, total_error)
+  CALL H5Tset_fields_f(datatype, 26_size_t, 20_size_t, 6_size_t, 7_size_t, 13_size_t, error)
+  CALL CHECK(" H5Tset_fields_f", error, total_error)
+  offset = 7
+  CALL H5Tset_offset_f(datatype, offset, error)
+  CALL CHECK(" H5Tset_offset_f", error, total_error)
+  PRECISION = 20
+  CALL H5Tset_precision_f(datatype,PRECISION, error)
+  CALL CHECK(" H5Tset_precision_f", error, total_error)
+  
+  CALL H5Tset_size_f(datatype, 4_size_t, error)
+  CALL CHECK(" H5Tset_size_f", error, total_error)
+  
+  CALL H5Tset_ebias_f(datatype, 31_size_t, error)
+  CALL CHECK(" H5Tset_ebias_f", error, total_error)
+ 
+  ! Create the data space 
+  CALL H5Screate_simple_f(2, dims, space, error)
+  CALL CHECK(" H5Screate_simple_f", error, total_error)
+
+  ! USE nbit filter
+  CALL H5Pcreate_f(H5P_DATASET_CREATE_F, dc, error)
+  CALL CHECK(" H5Pcreate_f", error, total_error)
+
+  CALL H5Pset_chunk_f(dc, 2, chunk_dim, error)
+  CALL CHECK(" H5Pset_chunk_f", error, total_error)
+  CALL H5Pset_nbit_f(dc, error)
+  CALL CHECK(" H5Pset_nbit_f", error, total_error)
+
+  ! Create the dataset
+  CALL  H5Dcreate_f(file, "nbit_real", datatype, &
+       space, dataset, error, dc)
+  CALL CHECK(" H5Dcreate_f", error, total_error)
+
+  !----------------------------------------------------------------------
+  ! STEP 1: Test nbit by setting up a chunked dataset and writing
+  ! to it.
+  !----------------------------------------------------------------------
+  !
+  mem_type_id = h5kind_to_type(wp,H5_REAL_KIND)
+
+  f_ptr = C_LOC(orig_data(1,1))
+  CALL H5Dwrite_f(dataset, mem_type_id, f_ptr, error)
+  CALL CHECK(" H5Dwrite_f", error, total_error)
+
+  !----------------------------------------------------------------------
+  ! STEP 2: Try to read the data we just wrote.
+  !----------------------------------------------------------------------
+  !  
+  f_ptr = C_LOC(new_data(1,1))
+  CALL H5Dread_f(dataset, mem_type_id, f_ptr, error)
+  CALL CHECK(" H5Dread_f", error, total_error)
+
+  ! Check that the values read are the same as the values written
+  ! Assume size of long long = size of double
+  !
+  i_loop: DO i = 1, dims(1)
+     j_loop: DO j = 1, dims(2)
+        IF(.NOT.(orig_data(i,j).EQ.orig_data(i,j))) CYCLE  ! skip IF value is NaN
+        IF(new_data(i,j) .NE. orig_data(i,j))THEN
+           total_error = total_error + 1
+           WRITE(*,'("    Read different values than written.")')
+           WRITE(*,'("    At index ", 2(1X,I0))') i, j
+           EXIT i_loop
+        END IF
+     ENDDO j_loop
+  ENDDO i_loop
+
+  !----------------------------------------------------------------------
+  ! Cleanup
+  !----------------------------------------------------------------------
+  !
+  CALL H5Tclose_f(datatype, error)
+  CALL CHECK(" H5Tclose_f", error, total_error)
+  CALL H5Pclose_f(dc, error)
+  CALL CHECK(" H5Pclose_f", error, total_error)
+  CALL H5Sclose_f(space, error)
+  CALL CHECK(" H5Sclose_f", error, total_error)
+  CALL H5Dclose_f(dataset, error)
+  CALL CHECK(" H5Dclose_f", error, total_error)
+  CALL H5Fclose_f(file, error)
+  CALL CHECK(" H5Fclose_f", error, total_error)
+
+END SUBROUTINE test_nbit
+
+
+SUBROUTINE t_enum_conv(total_error)
+
+!-------------------------------------------------------------------------
+! Subroutine: t_enum_conv
+!
+! Purpose: Tests converting data from enumeration datatype
+!          to numeric (integer or floating-point number)
+!          datatype. Tests various KINDs of INTEGERs
+!          and REALs. Checks reading enum data into
+!          INTEGER and REAL KINDs.
+!
+! Return: Success:	0
+!	  Failure:	number of errors
+!
+! Programmer:  M. Scot Breitenfeld
+!              October 27, 2012
+!
+! Note:        Adapted from C test (enum.c -- test_conv)
+!              No reliance on C tests.
+!-------------------------------------------------------------------------
+!
+  USE HDF5
+  USE ISO_C_BINDING
+
+  IMPLICIT NONE
+
+  INTEGER, INTENT(INOUT) :: total_error
+
+  INTEGER, PARAMETER :: int_kind_8 = SELECTED_INT_KIND(Fortran_INTEGER_4) !should map to INTEGER*4 on most modern processors
+  INTEGER, PARAMETER :: int_kind_16 = SELECTED_INT_KIND(Fortran_INTEGER_8)!should map to INTEGER*8 on most modern processors
+  
+  INTEGER, PARAMETER :: real_kind_7 = SELECTED_REAL_KIND(Fortran_REAL_4)  !should map to REAL*4 on most modern processors
+
+  INTEGER(hid_t) :: cwg=-1, dtype=-1, space=-1, dset=-1, memtype ! Handles
+  INTEGER(hid_t) :: file ! Handles
+
+  ! Enumerated type
+  ENUM, BIND(C)
+    ENUMERATOR :: E1_RED, E1_GREEN, E1_BLUE, E1_WHITE, E1_BLACK
+  END ENUM
+
+  INTEGER :: val
+
+  ! Enumerated data array 
+  ! Some values are out of range for testing. The library should accept them
+  INTEGER(KIND(E1_RED)), DIMENSION(1:20), TARGET :: data1 = (/INT(E1_RED,KIND(E1_RED)), &
+       INT(E1_GREEN,KIND(E1_RED)), INT(E1_BLUE,KIND(E1_RED)),  &
+       INT(E1_GREEN,KIND(E1_RED)), INT(E1_WHITE,KIND(E1_RED)), &
+       INT(E1_WHITE,KIND(E1_RED)), INT(E1_BLACK,KIND(E1_RED)), &
+       INT(E1_GREEN,KIND(E1_RED)), INT(E1_BLUE,KIND(E1_RED)), &
+       INT(E1_RED,KIND(E1_RED)), INT(E1_RED,KIND(E1_RED)), INT(E1_BLUE,KIND(E1_RED)), &
+       INT(E1_GREEN,KIND(E1_RED)), INT(E1_BLACK,KIND(E1_RED)), INT(E1_WHITE,KIND(E1_RED)),&
+       INT(E1_RED,KIND(E1_RED)), INT(E1_WHITE,KIND(E1_RED)), &
+       INT(0,KIND(E1_RED)), INT(-1,KIND(E1_RED)), INT(-2,KIND(E1_RED))/)
+
+  ! Reading array for enum data
+  INTEGER(KIND(E1_RED)), DIMENSION(1:20), TARGET :: data2
+
+  ! Reading array's for converted enum data
+  INTEGER(C_SHORT), DIMENSION(1:20), TARGET :: data_short
+  INTEGER(C_INT), DIMENSION(1:20), TARGET :: data_int
+  REAL(C_DOUBLE), DIMENSION(1:20), TARGET :: data_double
+
+  INTEGER(int_kind_8), DIMENSION(1:20), TARGET :: data_i8
+  INTEGER(int_kind_16), DIMENSION(1:20), TARGET :: data_i16
+  REAL(real_kind_7), DIMENSION(1:20), TARGET :: data_r7
+
+  INTEGER(hsize_t), DIMENSION(1:1) :: ds_size = (/20/)
+  INTEGER(size_t) :: i
+  INTEGER :: error
+  TYPE(C_PTR) :: f_ptr
+  INTEGER(HID_T) :: m_baset  ! Memory base type
+  !
+  ! Create a new file using the default properties.
+  !
+  CALL h5fcreate_f("enum1.h5", H5F_ACC_TRUNC_F, file, error)
+  CALL check("h5fcreate_f", error, total_error)
+  !
+  ! Create a new group using the default properties.
+  !
+  CALL h5gcreate_f(file, "test_conv", cwg, error)
+  CALL check("h5gcreate_f",error, total_error)
+  !
+  ! Create a enum type
+  !
+  CALL H5Tcreate_f(H5T_ENUM_F, H5OFFSETOF(C_LOC(data1(1)), C_LOC(data1(2))), dtype, error)
+  CALL check("h5tcreate_f",error, total_error)
+  !
+  ! Initialize enum data.
+  !
+  val = E1_RED
+  CALL H5Tenum_insert_f(dtype, "RED", val, error)
+  CALL check("h5tenum_insert_f",error, total_error)
+  val = E1_GREEN
+  CALL H5Tenum_insert_f(dtype, "GREEN", val, error)
+  CALL check("h5tenum_insert_f",error, total_error)
+  val = E1_BLUE
+  CALL H5Tenum_insert_f(dtype, "BLUE", val, error)
+  CALL check("h5tenum_insert_f",error, total_error)
+  val = E1_WHITE
+  CALL H5Tenum_insert_f(dtype, "WHITE", val, error)
+  CALL check("h5tenum_insert_f",error, total_error)
+  val = E1_BLACK
+  CALL H5Tenum_insert_f(dtype, "BLACK", val, error)
+  CALL check("h5tenum_insert_f",error, total_error)
+  !
+  ! Create dataspace.  Setting maximum size to be the current size.
+  !
+  CALL h5screate_simple_f(1, ds_size, space, error)
+  CALL check("h5screate_simple_f", error, total_error)
+
+  ! ***************************************
+  ! * Dataset of enumeration type
+  ! ***************************************
+  !
+  ! Create a dataset of enum type and write enum data to it
+
+  CALL h5dcreate_f(cwg, "color_table1", dtype, space, dset, error)
+  CALL check("h5dcreate_f", error, total_error)
+
+  f_ptr = C_LOC(data1(1))
+  CALL h5dwrite_f(dset, dtype, f_ptr, error, space, space)
+  CALL check(" h5dwrite_f", error, total_error)
+
+  ! Test reading back the data with no conversion
+
+  f_ptr = C_LOC(data2(1))
+  CALL h5dread_f(dset, dtype, f_ptr, error, space, space)
+  CALL check(" h5dread_f", error, total_error)
+
+  ! Check values
+  DO i = 1, ds_size(1)
+     IF(data1(i) .NE. data2(i))THEN
+        total_error = total_error + 1
+        WRITE(*,'("    1. data1(",I0,")=",I0," .NE. data2(",I0,")=",I0)') i, data1(i),i,data2(i)
+        EXIT
+     ENDIF
+  ENDDO
+
+  ! Test converting the data to integer (KIND=C_SHORT). Read enum data back as integer
+  m_baset = h5kind_to_type(KIND(data_short(1)), H5_INTEGER_KIND) ! Memory base type
+  f_ptr = C_LOC(data_short(1))
+  CALL h5dread_f(dset, m_baset, f_ptr, error, space, space)
+  CALL check("h5dread_f", error, total_error)
+  ! Check values
+  DO i = 1, ds_size(1)
+     IF(data1(i) .NE. data_short(i))THEN
+        total_error = total_error + 1
+        WRITE(*,'("    2. data1(",I0,")=",I0," .NE. data_short(",I0,")=",I0)') i, data1(i),i,data_short(i)
+        EXIT
+     ENDIF
+  ENDDO
+
+  ! Test converting the data to (KIND=C_double) number. 
+  ! Read enum data back as (KIND=C_double) number
+
+  m_baset = h5kind_to_type(KIND(data_double(1)), H5_REAL_KIND) ! Memory base type
+  f_ptr = C_LOC(data_double(1))
+  CALL h5dread_f(dset,  m_baset, f_ptr, error, space, space)
+  CALL check("h5dread_f", error, total_error)
+  ! Check values
+  DO i = 1, ds_size(1)
+     IF(data1(i) .NE. INT(data_double(i)))THEN
+        total_error = total_error + 1
+        WRITE(*,'("    3. data_double(",I0,")=",I0," .NE. data_double(",I0,")=",I0)') &
+             i, INT(data1(i)), i, INT(data_double(i))
+        EXIT
+     ENDIF
+  ENDDO
+
+  ! Test converting the data to (SELECTED_INT_KIND(Fortran_INTEGER_4)) number. 
+  ! Read enum data back as (SELECTED_INT_KIND(Fortran_INTEGER_4)) number
+
+  m_baset = h5kind_to_type(int_kind_8, H5_INTEGER_KIND) ! Memory base type
+  f_ptr = C_LOC(data_i8(1))
+  CALL h5dread_f(dset,  m_baset, f_ptr, error, space, space)
+  CALL check("h5dread_f", error, total_error)
+  ! Check values
+  DO i = 1, ds_size(1)
+     IF(data1(i) .NE. INT(data_i8(i)))THEN
+        total_error = total_error + 1
+        WRITE(*,'("    4. data_i8(",I0,")=",I0," .NE. data_i8(",I0,")=",I0)') &
+             i, INT(data1(i)), i, INT(data_i8(i))
+        EXIT
+     ENDIF
+  ENDDO
+
+  ! Test converting the data to (SELECTED_INT_KIND(Fortran_INTEGER_8)) number. 
+  ! Read enum data back as (SELECTED_INT_KIND(Fortran_INTEGER_8)) number
+
+  m_baset = h5kind_to_type(int_kind_16, H5_INTEGER_KIND) ! Memory base type
+  f_ptr = C_LOC(data_i16(1))
+  CALL h5dread_f(dset,  m_baset, f_ptr, error, space, space)
+  CALL check("h5dread_f", error, total_error)
+  ! Check values
+  DO i = 1, ds_size(1)
+     IF(data1(i) .NE. INT(data_i16(i)))THEN
+        total_error = total_error + 1
+        WRITE(*,'("    5. data_i16(",I0,")=",I0," .NE. data_i16(",I0,")=",I0)') &
+             i, INT(data1(i)), i, INT(data_i16(i))
+        EXIT
+     ENDIF
+  ENDDO
+
+  ! Test converting the data to  SELECTED_REAL_KIND(Fortran_REAL_4) number. 
+  ! Read enum data back as  SELECTED_REAL_KIND(Fortran_REAL_4) number
+
+  m_baset = h5kind_to_type(KIND(data_r7(1)), H5_REAL_KIND) ! Memory base type
+  f_ptr = C_LOC(data_r7(1))
+  CALL h5dread_f(dset,  m_baset, f_ptr, error, space, space)
+  CALL check("h5dread_f", error, total_error)
+  ! Check values
+  DO i = 1, ds_size(1)
+     IF(data1(i) .NE. INT(data_r7(i)))THEN
+        total_error = total_error + 1
+        WRITE(*,'("    6. data_r7(",I0,")=",I0," .NE. data_r7(",I0,")=",I0)') &
+             i, INT(data1(i)), i, INT(data_r7(i))
+        EXIT
+     ENDIF
+  ENDDO
+
+  CALL h5dclose_f(dset, error)
+  CALL check("h5dclose_f", error, total_error)
+
+  ! ***************************************
+  ! *    Dataset of C_int type
+  ! ***************************************
+
+  ! Create a integer dataset of KIND=C_INT and write enum data to it
+  m_baset = h5kind_to_type(KIND(data_int(1)), H5_INTEGER_KIND) ! Memory base type
+  CALL h5dcreate_f(cwg, "color_table2", m_baset, space, dset, error)
+  CALL check("h5dcreate_f", error, total_error)
+  
+  ! Write the enum data
+  f_ptr = C_LOC(data1(1))
+  CALL h5dwrite_f(dset, dtype, f_ptr, error, space, space)
+  CALL check("h5dwrite_f", error, total_error)
+
+  ! Test reading back the data with no conversion 
+  f_ptr = C_LOC(data_int(1))
+  CALL h5dread_f(dset, m_baset, f_ptr, error, space, space)
+  CALL check("h5dread_f", error, total_error)
+
+  DO i = 1, ds_size(1)
+     IF(data1(i) .NE. data_int(i))THEN
+        total_error = total_error + 1
+        WRITE(*,'("    7. data1(",I0,")=",I0," .NE. data_int(",I0,")=",I0)') i, data1(i),i,data_int(i)
+        EXIT
+     ENDIF
+  ENDDO
+  CALL h5dclose_f(dset, error)
+  CALL check("h5dclose_f", error, total_error)
+
+  !**************************************
+  !*    Dataset of C_double type
+  !**************************************
+
+  ! Create a dataset of KIND=C_DOUBLE and write enum data to it
+  m_baset = h5kind_to_type(KIND(data_double(1)), H5_REAL_KIND) ! Memory base type
+  CALL h5dcreate_f(cwg, "color_table3", m_baset, space, dset,  error)
+  CALL check("h5dcreate_f", error, total_error)
+
+  f_ptr = C_LOC(data1(1))
+  CALL h5dwrite_f(dset, dtype, f_ptr, error, space, space)
+  CALL check("h5dwrite_f", error, total_error)
+
+  ! Test reading back the data with no conversion 
+  f_ptr = C_LOC(data_double(1))
+  CALL h5dread_f(dset, m_baset, f_ptr, error, space, space)
+  CALL check("h5dread_f", error, total_error)
+
+  DO i = 1, ds_size(1)
+     IF(data1(i) .NE. INT(data_double(i)))THEN
+        total_error = total_error + 1
+        WRITE(*,'("    8. data1(",I0,")=",I0," .NE. data_double(",I0,")=",I0)') i, data1(i),i,INT(data_double(i))
+        EXIT
+     ENDIF
+  ENDDO
+  CALL h5dclose_f(dset, error)
+  CALL check("h5dclose_f", error, total_error)
+
+  !*********************************************************
+  !* Dataset of real SELECTED_REAL_KIND(Fortran_REAL_4) type
+  !*********************************************************
+
+  ! Create a dataset of SELECTED_REAL_KIND(Fortran_REAL_4) and write enum data to it
+  m_baset = h5kind_to_type(KIND(data_r7(1)), H5_REAL_KIND) ! Memory base type
+  CALL h5dcreate_f(cwg, "color_table4", m_baset, space, dset,  error)
+  CALL check("h5dcreate_f", error, total_error)
+
+  f_ptr = C_LOC(data1(1))
+  CALL h5dwrite_f(dset, dtype, f_ptr, error, space, space)
+  CALL check("h5dwrite_f", error, total_error)
+
+  ! Test reading back the data with no conversion 
+  f_ptr = C_LOC(data_r7(1))
+  CALL h5dread_f(dset, m_baset, f_ptr, error, space, space)
+  CALL check("h5dread_f", error, total_error)
+
+  DO i = 1, ds_size(1)
+     IF(data1(i) .NE. INT(data_r7(i)))THEN
+        total_error = total_error + 1
+        WRITE(*,'("    9. data1(",I0,")=",I0," .NE. data_r7(",I0,")=",I0)') i, data1(i),i,INT(data_r7(i))
+        EXIT
+     ENDIF
+  ENDDO
+  CALL h5dclose_f(dset, error)
+  CALL check("h5dclose_f", error, total_error)
+
+  ! *****************************************************************
+  ! * Dataset of integer SELECTED_INT_KIND(Fortran_INTEGER_8) type
+  ! *****************************************************************
+
+  ! Create a integer dataset of (SELECTED_INT_KIND(Fortran_INTEGER_8)) and write enum data to it
+  m_baset = h5kind_to_type(KIND(data_i16(1)), H5_INTEGER_KIND) ! Memory base type
+  CALL h5dcreate_f(cwg, "color_table5", m_baset, space, dset, error)
+  CALL check("h5dcreate_f", error, total_error)
+  
+  ! Write the enum data
+  f_ptr = C_LOC(data1(1))
+  CALL h5dwrite_f(dset, dtype, f_ptr, error, space, space)
+  CALL check("h5dwrite_f", error, total_error)
+
+  ! Test reading back the data with no conversion 
+  f_ptr = C_LOC(data_i16(1))
+  CALL h5dread_f(dset, m_baset, f_ptr, error, space, space)
+  CALL check("h5dread_f", error, total_error)
+
+  DO i = 1, ds_size(1)
+     IF(data1(i) .NE. data_i16(i))THEN
+        total_error = total_error + 1
+        WRITE(*,'("    10. data1(",I0,")=",I0," .NE. data_i16(",I0,")=",I0)') i, data1(i),i,data_i16(i)
+        EXIT
+     ENDIF
+  ENDDO
+  CALL h5dclose_f(dset, error)
+  CALL check("h5dclose_f", error, total_error)
+
+  !
+  ! Close and release resources.
+  !
+  CALL h5sclose_f(space, error)
+  CALL check("H5Sclose_f", error, total_error)
+  CALL h5tclose_f(dtype, error)
+  CALL check("H5Tclose_f", error, total_error)
+  CALL h5gclose_f(cwg, error)
+  CALL check("h5gclose_f",error, total_error)
+  CALL h5fclose_f(file, error)
+  CALL check("H5Fclose_f", error, total_error)
+
+END SUBROUTINE t_enum_conv
 

@@ -106,47 +106,6 @@ void phdiff_dismiss_workers(void)
 
 
 /*-------------------------------------------------------------------------
- * Function: print_manager_output
- *
- * Purpose: special function that prints any output accumulated by the
- *      manager task.
- *
- * Return: none
- *
- * Programmer: Leon Arber
- *
- * Date: Feb 7, 2005
- *
- *-------------------------------------------------------------------------
- */
-void print_manager_output(void)
-{
-    /* If there was something we buffered, let's print it now */
-    if( (outBuffOffset>0) && g_Parallel)
-    {
-        printf("%s", outBuff);
-
-        if(overflow_file)
-        {
-            int     tmp;
-            rewind(overflow_file);
-            while((tmp = getc(overflow_file)) >= 0)
-                putchar(tmp);
-            fclose(overflow_file);
-            overflow_file = NULL;
-        }
-
-        HDfflush(stdout);
-        HDmemset(outBuff, 0, OUTBUFF_SIZE);
-        outBuffOffset = 0;
-    }
-    else if( (outBuffOffset>0) && !g_Parallel)
-    {
-        HDfprintf(stderr, "h5diff error: outBuffOffset>0, but we're not in parallel!\n");
-    }
-}
-
-/*-------------------------------------------------------------------------
  * Function: print_incoming_data
  *
  * Purpose: special function that prints any output that has been sent to the manager
@@ -241,7 +200,6 @@ static int is_exclude_path (char * path, h5trav_type_t type, diff_opt_t *options
     struct exclude_path_list * exclude_path_ptr;
     int ret_cmp;
     int ret = 0;
-    int len_grp;
 
     /* check if exclude path option is given */
     if (!options->exclude_path)
@@ -260,6 +218,8 @@ static int is_exclude_path (char * path, h5trav_type_t type, diff_opt_t *options
                                 HDstrlen(exclude_path_ptr->obj_path));
             if (ret_cmp == 0)  /* found matching members */
             {
+                size_t len_grp;
+
                 /* check if given path belong to an excluding group, if so 
                  * exclude it as well.
                  * This verifies if “/grp1/dset1” is only under “/grp1”, but
@@ -338,7 +298,6 @@ static void free_exclude_path_list(diff_opt_t *options)
  *------------------------------------------------------------------------*/
 static void build_match_list (const char *objname1, trav_info_t *info1, const char *objname2, trav_info_t *info2, trav_table_t ** table_out, diff_opt_t *options)
 {
-    unsigned i;
     size_t curr1 = 0;
     size_t curr2 = 0;
     unsigned infile[2];
@@ -346,8 +305,8 @@ static void build_match_list (const char *objname1, trav_info_t *info1, const ch
     char * path2_lp;
     h5trav_type_t type1_l;
     h5trav_type_t type2_l;
-    int path1_offset = 0;
-    int path2_offset = 0;
+    size_t path1_offset = 0;
+    size_t path2_offset = 0;
     int cmp;
     trav_table_t *table;
     size_t  idx;
@@ -616,8 +575,8 @@ hsize_t h5diff(const char *fname1,
     int i;
     int l_ret1 = -1;
     int l_ret2 = -1;
-    const char * obj1fullname = NULL;
-    const char * obj2fullname = NULL;
+    char * obj1fullname = NULL;
+    char * obj2fullname = NULL;
     int both_objs_grp = 0;
     /* init to group type */
     h5trav_type_t obj1type = H5TRAV_TYPE_GROUP;
@@ -701,26 +660,26 @@ hsize_t h5diff(const char *fname1,
         /* make the given object1 fullpath, start with "/"  */
         if (HDstrncmp(objname1, "/", 1))
         {
-            HDstrcpy((char *)obj1fullname, "/");
-            HDstrcat((char *)obj1fullname, objname1);
+            HDstrcpy(obj1fullname, "/");
+            HDstrcat(obj1fullname, objname1);
         }
         else
-            HDstrcpy((char *)obj1fullname, objname1);
+            HDstrcpy(obj1fullname, objname1);
 
         /* make the given object2 fullpath, start with "/" */
         if (HDstrncmp(objname2, "/", 1))
         {
-            HDstrcpy((char *)obj2fullname, "/");
-            HDstrcat((char *)obj2fullname, objname2);
+            HDstrcpy(obj2fullname, "/");
+            HDstrcat(obj2fullname, objname2);
         }
         else
-            HDstrcpy((char *)obj2fullname, objname2);
+            HDstrcpy(obj2fullname, objname2);
 
         /*----------------------------------------------------------
          * check if obj1 is root, group, single object or symlink
          */
         h5difftrace("h5diff check if obj1 is root, group, single object or symlink\n");
-        if(!HDstrcmp((char *)obj1fullname, "/"))
+        if(!HDstrcmp(obj1fullname, "/"))
         {
             obj1type = H5TRAV_TYPE_GROUP;
         }
@@ -839,11 +798,11 @@ hsize_t h5diff(const char *fname1,
     {
         h5difftrace("h5diff no object specified\n");
         /* set root group */
-        obj1fullname = (char*)HDcalloc(2, sizeof(char));
-        HDstrcat((char *)obj1fullname, "/");
+        obj1fullname = (char*)HDcalloc((size_t)2, sizeof(char));
+        HDstrcat(obj1fullname, "/");
         obj1type = H5TRAV_TYPE_GROUP;
-        obj2fullname = (char*)HDcalloc(2, sizeof(char));
-        HDstrcat((char *)obj2fullname, "/");
+        obj2fullname = (char*)HDcalloc((size_t)2, sizeof(char));
+        HDstrcat(obj2fullname, "/");
         obj2type = H5TRAV_TYPE_GROUP;
     }
 
@@ -1078,9 +1037,9 @@ out:
 
     /* free buffers */
     if (obj1fullname)
-        HDfree((char *)obj1fullname);
+        HDfree(obj1fullname);
     if (obj2fullname)
-        HDfree((char *)obj2fullname);
+        HDfree(obj2fullname);
 
     /* free link info buffer */
     if (trg_linfo1.trg_path)
@@ -1547,14 +1506,16 @@ hsize_t diff(hid_t file1_id,
               diff_opt_t * options,
               diff_args_t *argdata)
 {
+    hid_t   dset1_id = (-1);
+    hid_t   dset2_id = (-1);
     hid_t   type1_id = (-1);
     hid_t   type2_id = (-1);
     hid_t   grp1_id = (-1);
     hid_t   grp2_id = (-1);
     int     ret;
-    int     is_dangle_link1 = 0;
-    int     is_dangle_link2 = 0;
-    int     is_hard_link = 0;
+    hbool_t     is_dangle_link1 = FALSE;
+    hbool_t     is_dangle_link2 = FALSE;
+    hbool_t     is_hard_link = FALSE;
     hsize_t nfound = 0;
     h5trav_type_t object_type;
 
@@ -1596,7 +1557,7 @@ hsize_t diff(hid_t file1_id,
                 goto out;
             }
             else
-                is_dangle_link1 = 1;
+                is_dangle_link1 = TRUE;
         }
         else if (ret < 0)
             goto out;
@@ -1614,7 +1575,7 @@ hsize_t diff(hid_t file1_id,
                 goto out;
             }
             else
-                is_dangle_link2 = 1;
+                is_dangle_link2 = TRUE;
         }
         else if (ret < 0)
             goto out;
@@ -1714,6 +1675,10 @@ hsize_t diff(hid_t file1_id,
         *----------------------------------------------------------------------
         */
         case H5TRAV_TYPE_DATASET:
+            if((dset1_id = H5Dopen2(file1_id, path1, H5P_DEFAULT)) < 0)
+                goto out;
+            if((dset2_id = H5Dopen2(file2_id, path2, H5P_DEFAULT)) < 0)
+                goto out;
       /* verbose (-v) and report (-r) mode */
             if(options->m_verbose || options->m_report)
             {
@@ -1737,6 +1702,22 @@ hsize_t diff(hid_t file1_id,
                     print_found(nfound);  
                 }
             }
+
+
+            /*---------------------------------------------------------
+             * compare attributes
+             * if condition refers to cases when the dataset is a 
+             * referenced object
+             *---------------------------------------------------------
+             */
+            if(path1)
+                nfound += diff_attr(dset1_id, dset2_id, path1, path2, options);
+
+
+            if(H5Dclose(dset1_id) < 0)
+                goto out;
+            if(H5Dclose(dset2_id) < 0)
+                goto out;
             break;
 
        /*----------------------------------------------------------------------

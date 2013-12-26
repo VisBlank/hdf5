@@ -470,8 +470,11 @@ test_free(void)
     if(HDmemcmp(expect + 76, rbuf, 116 * sizeof(int32_t)) != 0) TEST_ERROR;
 
     HDfree(wbuf);
+    wbuf = NULL;
     HDfree(rbuf);
+    rbuf = NULL;
     HDfree(expect);
+    expect = NULL;
 
     if(accum_reset() < 0) FAIL_STACK_ERROR;
 
@@ -480,9 +483,12 @@ test_free(void)
     return 0;
 
 error:
-    HDfree(wbuf);
-    HDfree(rbuf);
-    HDfree(expect);
+    if(wbuf)
+        HDfree(wbuf);
+    if(rbuf)
+        HDfree(rbuf);
+    if(expect)
+        HDfree(expect);
 
     return 1;
 } /* test_free */ 
@@ -1646,7 +1652,7 @@ unsigned
 test_random_write(void)
 {
     uint8_t *wbuf, *rbuf;       /* Buffers for reading & writing */
-    unsigned long seed = 0;     /* Random # seed */
+    unsigned seed = 0;          /* Random # seed */
     size_t *off;                /* Offset of buffer segments to write */
     size_t *len;                /* Size of buffer segments to write */
     size_t cur_off;             /* Current offset */
@@ -1655,9 +1661,9 @@ test_random_write(void)
     unsigned u;                 /* Local index variable */
 
     /* Allocate space for the write & read buffers */
-    wbuf = (uint8_t *)malloc(RANDOM_BUF_SIZE);
+    wbuf = (uint8_t *)HDmalloc(RANDOM_BUF_SIZE);
     HDassert(wbuf);
-    rbuf = (uint8_t *)calloc(RANDOM_BUF_SIZE, 1);
+    rbuf = (uint8_t *)HDcalloc(RANDOM_BUF_SIZE, 1);
     HDassert(rbuf);
 
     /* Initialize write buffer */
@@ -1667,17 +1673,17 @@ test_random_write(void)
     TESTING("random writes to accumulator");
 
     /* Choose random # seed */
-    seed = (unsigned long)HDtime(NULL);
+    seed = (unsigned)HDtime(NULL);
 #ifdef QAK
-/* seed = (unsigned long)1155438845; */
-HDfprintf(stderr, "Random # seed was: %lu\n", seed);
+/* seed = (unsigned)1155438845; */
+HDfprintf(stderr, "Random # seed was: %u\n", seed);
 #endif /* QAK */
     HDsrandom(seed);
 
     /* Allocate space for the segment length buffer */
-    off = (size_t *)malloc(MAX_RANDOM_SEGMENTS * sizeof(size_t));
+    off = (size_t *)HDmalloc(MAX_RANDOM_SEGMENTS * sizeof(size_t));
     HDassert(off);
-    len = (size_t *)malloc(MAX_RANDOM_SEGMENTS * sizeof(size_t));
+    len = (size_t *)HDmalloc(MAX_RANDOM_SEGMENTS * sizeof(size_t));
     HDassert(len);
 
     /* Randomly choose lengths of segments */
@@ -1762,7 +1768,7 @@ error:
     HDfree(off);
     HDfree(len);
 
-    HDfprintf(stderr, "Random # seed was: %lu\n", seed);
+    HDfprintf(stderr, "Random # seed was: %u\n", seed);
     return 1;
 } /* end test_random_write() */
 

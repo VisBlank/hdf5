@@ -30,7 +30,7 @@
 ! NOTES
 !                         *** IMPORTANT ***
 !  If you add a new function you must add the function name to the
-!  Windows dll file 'hdf5_fortrandll.def' in the fortran/src directory.
+!  Windows dll file 'hdf5_fortrandll.def.in' in the fortran/src directory.
 !  This is needed for Windows based operating systems.
 !
 !*****
@@ -100,6 +100,7 @@ CONTAINS
             i_H5P_flags_int, &
             i_H5R_flags, &
             i_H5S_flags, &
+            i_H5S_hsize_flags, &
             i_H5T_flags, &
             i_H5Z_flags, &
             i_H5generic_flags)
@@ -118,6 +119,7 @@ CONTAINS
          INTEGER i_H5P_flags_int(H5P_FLAGS_INT_LEN)
          INTEGER i_H5R_flags(H5R_FLAGS_LEN)
          INTEGER i_H5S_flags(H5S_FLAGS_LEN)
+         INTEGER(HSIZE_T) i_H5S_hsize_flags(H5S_HSIZE_FLAGS_LEN)
          INTEGER i_H5T_flags(H5T_FLAGS_LEN)
          INTEGER i_H5Z_flags(H5Z_FLAGS_LEN)
          INTEGER i_H5generic_flags(H5generic_FLAGS_LEN)
@@ -150,6 +152,7 @@ CONTAINS
          H5P_flags_int, &
          H5R_flags, &
          H5S_flags, &
+         H5S_hsize_flags, &
          H5T_flags, &
          H5Z_flags, &
          H5generic_flags)

@@ -14,10 +14,10 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
- * Programmer:  Quincey Koziol <koziol@ncsa.uiuc.ed>
+ * Programmer:  Quincey Koziol <koziol@hdfgroup.org>
  *              Thursday, July 11, 2002
  *
- * Purpose:  This is a "combination" MPI-2 and posix I/O driver.
+ * Purpose:     This is a "combination" MPI-2 and posix I/O driver.
  *              It uses MPI for coordinating the actions of several processes
  *              and posix I/O calls to do the actual I/O to the disk.
  *
@@ -70,21 +70,6 @@
  * compliant when H5_HAVE_PARALLEL isn't defined)
  */
 static hid_t H5FD_MPIPOSIX_g = 0;
-
-/* Since Windows doesn't follow the rest of the world when it comes
- * to POSIX I/O types, some typedefs and constants are needed to avoid
- * making the code messy with #ifdefs.
- */
-#ifdef H5_HAVE_WIN32_API
-typedef unsigned int    h5_mpiposix_io_t;
-typedef int             h5_mpiposix_io_ret_t;
-static int H5_MPIPOSIX_MAX_IO_BYTES_g = INT_MAX;
-#else
-/* Unix, everyone else */
-typedef size_t          h5_mpiposix_io_t;
-typedef ssize_t         h5_mpiposix_io_ret_t;
-static size_t H5_MPIPOSIX_MAX_IO_BYTES_g = SSIZET_MAX;
-#endif /* H5_HAVE_WIN32_API */
 
 /*
  * The description of a file belonging to this driver.
@@ -230,7 +215,7 @@ static const H5FD_class_mpi_t H5FD_mpiposix_g = {
     H5FD_mpiposix_truncate,         /* truncate         */
     NULL,                           /* lock             */
     NULL,                           /* unlock           */
-    H5FD_FLMAP_SINGLE               /* fl_map           */
+    H5FD_FLMAP_DICHOTOMY            /* fl_map           */
     },  /* End of superclass information */
     H5FD_mpiposix_mpi_rank,         /* get_rank         */
     H5FD_mpiposix_mpi_size,         /* get_size         */
@@ -238,19 +223,16 @@ static const H5FD_class_mpi_t H5FD_mpiposix_g = {
 };
 
 
-/*--------------------------------------------------------------------------
-NAME
-   H5FD_mpiposix_init_interface -- Initialize interface-specific information
-USAGE
-    herr_t H5FD_mpiposix_init_interface()
-
-RETURNS
-    Non-negative on success/Negative on failure
-DESCRIPTION
-    Initializes any interface-specific data or routines.  (Just calls
-    H5FD_mpiposix_init currently).
-
---------------------------------------------------------------------------*/
+/*-------------------------------------------------------------------------
+ * Function:    H5FD_mpiposix_init_interface
+ *
+ * Purpose:     Initializes any interface-specific data or routines. 
+ *
+ * Return:      Success:    The driver ID for the mpiposix driver.
+ *              Failure:    Negative.
+ *
+ *-------------------------------------------------------------------------
+ */
 static herr_t
 H5FD_mpiposix_init_interface(void)
 {
@@ -281,8 +263,8 @@ H5FD_mpiposix_init(void)
 
     FUNC_ENTER_NOAPI(FAIL)
 
-    if (H5I_VFL != H5Iget_type(H5FD_MPIPOSIX_g))
-        H5FD_MPIPOSIX_g = H5FD_register((const H5FD_class_t *)&H5FD_mpiposix_g,sizeof(H5FD_class_mpi_t),FALSE);
+    if(H5I_VFL != H5I_get_type(H5FD_MPIPOSIX_g))
+        H5FD_MPIPOSIX_g = H5FD_register((const H5FD_class_t *)&H5FD_mpiposix_g, sizeof(H5FD_class_mpi_t), FALSE);
 
     /* Set return value */
     ret_value = H5FD_MPIPOSIX_g;
@@ -600,8 +582,8 @@ H5FD_mpiposix_open(const char *name, unsigned flags, hid_t fapl_id,
         fa = &_fa;
     } /* end if */
     else {
-        fa = H5P_get_driver_info(plist);
-        HDassert(fa);
+        if(NULL == (fa = (const H5FD_mpiposix_fapl_t *)H5P_get_driver_info(plist)))
+            HGOTO_ERROR(H5E_PLIST, H5E_BADVALUE, NULL, "bad VFL driver info")
     } /* end else */
 
     /* Duplicate the communicator for use by this file. */
@@ -1081,16 +1063,16 @@ H5FD_mpiposix_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id,
      */
     while(size > 0) {
 
-        h5_mpiposix_io_t        bytes_in    = 0;    /* # of bytes to read       */
-        h5_mpiposix_io_ret_t    bytes_read  = -1;   /* # of bytes actually read */ 
+        h5_posix_io_t           bytes_in    = 0;    /* # of bytes to read       */
+        h5_posix_io_ret_t       bytes_read  = -1;   /* # of bytes actually read */ 
 
         /* Trying to read more bytes than the return type can handle is
          * undefined behavior in POSIX.
          */
-        if(size > H5_MPIPOSIX_MAX_IO_BYTES_g)
-            bytes_in = H5_MPIPOSIX_MAX_IO_BYTES_g;
+        if(size > H5_POSIX_MAX_IO_BYTES)
+            bytes_in = H5_POSIX_MAX_IO_BYTES;
         else
-            bytes_in = (h5_mpiposix_io_t)size;
+            bytes_in = (h5_posix_io_t)size;
 
         do {
             bytes_read = HDread(file->fd, buf, bytes_in);
@@ -1101,7 +1083,7 @@ H5FD_mpiposix_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t UNUSED dxpl_id,
             time_t mytime = HDtime(NULL);
             HDoff_t myoffset = HDlseek(file->fd, (HDoff_t)0, SEEK_CUR);
 
-            HGOTO_ERROR(H5E_IO, H5E_READERROR, FAIL, "file read failed: time = %s, file descriptor = %d, errno = %d, error message = '%s', buf = %p, size = %lu, offset = %llu", HDctime(&mytime), file->fd, myerrno, HDstrerror(myerrno), buf, (unsigned long)size, (unsigned long long)myoffset);
+            HGOTO_ERROR(H5E_IO, H5E_READERROR, FAIL, "file read failed: time = %s, file descriptor = %d, errno = %d, error message = '%s', buf = %p, total read size = %llu, bytes this sub-read = %llu, bytes actually read = %llu, offset = %llu", HDctime(&mytime), file->fd, myerrno, HDstrerror(myerrno), buf, (unsigned long long)size, (unsigned long long)bytes_in, (unsigned long long)bytes_read, (unsigned long long)myoffset);
         } /* end if */
         
         if(0 == bytes_read) {
@@ -1265,16 +1247,16 @@ H5FD_mpiposix_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
      */
     while(size > 0) {
 
-        h5_mpiposix_io_t        bytes_in    = 0;    /* # of bytes to write          */
-        h5_mpiposix_io_ret_t    bytes_wrote = -1;   /* # of bytes actually written  */ 
+        h5_posix_io_t           bytes_in    = 0;    /* # of bytes to write          */
+        h5_posix_io_ret_t       bytes_wrote = -1;   /* # of bytes actually written  */ 
 
         /* Trying to write more bytes than the return type can handle is
          * undefined behavior in POSIX.
          */
-        if(size > H5_MPIPOSIX_MAX_IO_BYTES_g)
-            bytes_in = H5_MPIPOSIX_MAX_IO_BYTES_g;
+        if(size > H5_POSIX_MAX_IO_BYTES)
+            bytes_in = H5_POSIX_MAX_IO_BYTES;
         else
-            bytes_in = (h5_mpiposix_io_t)size;
+            bytes_in = (h5_posix_io_t)size;
 
         do {
             bytes_wrote = HDwrite(file->fd, buf, bytes_in);
@@ -1285,7 +1267,7 @@ H5FD_mpiposix_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
             time_t mytime = HDtime(NULL);
             HDoff_t myoffset = HDlseek(file->fd, (HDoff_t)0, SEEK_CUR);
 
-            HGOTO_ERROR(H5E_IO, H5E_READERROR, FAIL, "file write failed: time = %s, file descriptor = %d, errno = %d, error message = '%s', buf = %p, size = %lu, offset = %llu", HDctime(&mytime), file->fd, myerrno, HDstrerror(myerrno), buf, (unsigned long)size, (unsigned long long)myoffset);
+            HGOTO_ERROR(H5E_IO, H5E_READERROR, FAIL, "file write failed: time = %s, file descriptor = %d, errno = %d, error message = '%s', buf = %p, total write size = %llu, bytes this sub-write = %llu, bytes actually written = %llu, offset = %llu", HDctime(&mytime), file->fd, myerrno, HDstrerror(myerrno), buf, (unsigned long long)size, (unsigned long long)bytes_in, (unsigned long long)bytes_wrote, (unsigned long long)myoffset);
         } /* end if */
         
         if(0 == bytes_wrote) {

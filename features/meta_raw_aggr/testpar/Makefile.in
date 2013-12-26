@@ -117,7 +117,7 @@ am_testphdf5_OBJECTS = testphdf5.$(OBJEXT) t_dset.$(OBJEXT) \
 	t_file.$(OBJEXT) t_file_image.$(OBJEXT) t_mdset.$(OBJEXT) \
 	t_ph5basic.$(OBJEXT) t_coll_chunk.$(OBJEXT) \
 	t_span_tree.$(OBJEXT) t_chunk_alloc.$(OBJEXT) \
-	t_filter_read.$(OBJEXT)
+	t_filter_read.$(OBJEXT) t_prop.$(OBJEXT)
 testphdf5_OBJECTS = $(am_testphdf5_OBJECTS)
 testphdf5_LDADD = $(LDADD)
 testphdf5_DEPENDENCIES = $(LIBH5TEST) $(LIBHDF5)
@@ -255,6 +255,7 @@ H5_VERSION = @H5_VERSION@
 HADDR_T = @HADDR_T@
 HAVE_DMALLOC = @HAVE_DMALLOC@
 HAVE_FORTRAN_2003 = @HAVE_FORTRAN_2003@
+HAVE_PTHREAD = @HAVE_PTHREAD@
 HDF5_HL = @HDF5_HL@
 HDF5_INTERFACES = @HDF5_INTERFACES@
 HDF_CXX = @HDF_CXX@
@@ -282,6 +283,7 @@ LIPO = @LIPO@
 LL_PATH = @LL_PATH@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
+LT_ADD_LIBHDF5_DEPENDENCY = @LT_ADD_LIBHDF5_DEPENDENCY@
 LT_STATIC_EXEC = @LT_STATIC_EXEC@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
@@ -306,7 +308,6 @@ PACKAGE_VERSION = @PACKAGE_VERSION@
 PARALLEL = @PARALLEL@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PERL = @PERL@
-PTHREAD = @PTHREAD@
 RANLIB = @RANLIB@
 ROOT = @ROOT@
 RUNPARALLEL = @RUNPARALLEL@
@@ -463,7 +464,8 @@ TEST_PROG_PARA = t_mpi t_posix_compliant testphdf5 t_cache t_pflush1 t_pflush2 t
 TEST_SCRIPT_PARA = testph5.sh
 check_SCRIPTS = $(TEST_SCRIPT)
 testphdf5_SOURCES = testphdf5.c t_dset.c t_file.c t_file_image.c t_mdset.c \
-	t_ph5basic.c t_coll_chunk.c t_span_tree.c t_chunk_alloc.c t_filter_read.c
+	t_ph5basic.c t_coll_chunk.c t_span_tree.c t_chunk_alloc.c t_filter_read.c \
+	t_prop.c
 
 
 # The tests all depend on the hdf5 library and the test library
@@ -576,6 +578,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t_pflush2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t_ph5basic.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t_posix_compliant.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t_prop.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t_shapesame.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t_span_tree.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/testphdf5.Po@am__quote@

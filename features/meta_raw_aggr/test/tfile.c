@@ -114,6 +114,11 @@
 /* Declaration for test_libver_macros2() */
 #define FILE6			"tfile6.h5"	/* Test file */
 
+/* Declaration for test_get_obj_ids() */
+#define FILE7			"tfile7.h5"	/* Test file */
+#define NGROUPS			2
+#define NDSETS			4
+
 /* Files created under 1.6 branch and 1.8 branch--used in test_filespace_compatible() */
 const char *OLD_FILENAME[] = {  
     "filespace_1_6.h5",	/* 1.6 HDF5 file */
@@ -530,6 +535,9 @@ test_file_open(void)
     /* Close dataset from first open */
     ret = H5Dclose(did);
     CHECK(ret, FAIL, "H5Dclose");
+
+    ret = H5Pclose(fapl_id);
+    CHECK(ret, FAIL, "H5Pclose");
 }   /* test_file_open() */
 
 /****************************************************************
@@ -953,6 +961,131 @@ create_objects(hid_t fid1, hid_t fid2, hid_t *ret_did, hid_t *ret_gid1,
 
 /****************************************************************
 **
+**  test_get_obj_ids(): Test the bug and the fix for Jira 8528.
+**                      H5Fget_obj_ids overfilled the list of 
+**                      object IDs by one.  This is an enhancement
+**                      for test_obj_count_and_id().
+**
+****************************************************************/
+static void
+test_get_obj_ids(void)
+{
+    hid_t    fid, gid[NGROUPS], dset[NDSETS];
+    hid_t    filespace;
+    hsize_t  file_dims[F2_RANK] = {F2_DIM0, F2_DIM1};
+    ssize_t  oid_count, ret_count;
+    hid_t *oid_list = NULL;
+    herr_t   ret;
+    int i, m, n;
+    ssize_t oid_list_size = NDSETS;
+    char gname[64], dname[64];
+
+    /* Create a new file */
+    fid = H5Fcreate(FILE7, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    CHECK(fid, FAIL, "H5Fcreate");
+
+    filespace = H5Screate_simple(F2_RANK, file_dims,  NULL);
+    CHECK(filespace, FAIL, "H5Screate_simple");
+
+    /* creates NGROUPS groups under the root group */
+    for(m = 0; m < NGROUPS; m++) {
+        sprintf(gname, "group%d", m);
+        gid[m] = H5Gcreate2(fid, gname, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        CHECK(gid[m], FAIL, "H5Gcreate2");
+    }
+
+    /* create NDSETS datasets under the root group */
+    for(n = 0; n < NDSETS; n++) {
+         sprintf(dname, "dataset%d", n);
+         dset[n] = H5Dcreate2(fid, dname, H5T_NATIVE_INT, filespace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+         CHECK(dset[n], FAIL, "H5Dcreate2");
+    }
+
+    /* The number of opened objects should be NGROUPS + NDSETS + 1.  One is opened file. */
+    oid_count = H5Fget_obj_count(fid, H5F_OBJ_ALL);
+    CHECK(oid_count, FAIL, "H5Fget_obj_count");
+    VERIFY(oid_count, (NGROUPS + NDSETS + 1), "H5Fget_obj_count");
+
+    oid_list = (hid_t *)HDcalloc((size_t)oid_list_size, sizeof(hid_t));
+    CHECK(oid_list, NULL, "HDcalloc");
+
+    /* Call the public function H5F_get_obj_ids to use H5F_get_objects.  User reported having problem here. 
+     * that the returned size (ret_count) from H5Fget_obj_ids is one greater than the size passed in 
+     * (oid_list_size) */
+    ret_count = H5Fget_obj_ids(fid, H5F_OBJ_ALL, (size_t)oid_list_size, oid_list);
+    CHECK(ret_count, FAIL, "H5Fget_obj_ids");
+    VERIFY(ret_count, oid_list_size, "H5Fget_obj_count");
+
+    /* Close all object IDs on the list except the file ID. The first ID is supposed to be file ID according 
+     * to the library design */
+    for(i = 0; i< ret_count; i++) {
+        if(fid != oid_list[i]) {
+            ret = H5Oclose(oid_list[i]);
+            CHECK(ret, FAIL, "H5Oclose");
+        }
+    }
+
+    /* The number of opened objects should be NGROUPS + 1 + 1.  The first one is opened file. The second one
+     * is the dataset ID left open from the previous around of H5Fget_obj_ids */
+    oid_count = H5Fget_obj_count(fid, H5F_OBJ_ALL);
+    CHECK(oid_count, FAIL, "H5Fget_obj_count");
+    VERIFY(oid_count, NGROUPS + 2, "H5Fget_obj_count");
+
+    /* Get the IDs of the left opend objects */ 
+    ret_count = H5Fget_obj_ids(fid, H5F_OBJ_ALL, (size_t)oid_list_size, oid_list);
+    CHECK(ret_count, FAIL, "H5Fget_obj_ids");
+    VERIFY(ret_count, oid_list_size, "H5Fget_obj_count");
+
+    /* Close all object IDs on the list except the file ID. The first ID is still the file ID */
+    for(i = 0; i< ret_count; i++) {
+        if(fid != oid_list[i]) {
+            ret = H5Oclose(oid_list[i]);
+            CHECK(ret, FAIL, "H5Oclose");
+        }
+    }
+  
+    H5Sclose(filespace);
+    H5Fclose(fid);
+
+    HDfree(oid_list);
+
+    /* Reopen the file to check whether H5Fget_obj_count and H5Fget_obj_ids still works 
+     * when the file is closed first */ 
+    fid = H5Fopen(FILE7, H5F_ACC_RDONLY, H5P_DEFAULT);
+    CHECK(fid, FAIL, "H5Fopen");
+
+    /* Open NDSETS datasets under the root group */
+    for(n = 0; n < NDSETS; n++) {
+         sprintf(dname, "dataset%d", n);
+         dset[n] = H5Dopen2(fid, dname, H5P_DEFAULT);
+         CHECK(dset[n], FAIL, "H5Dcreate2");
+    }
+
+    /* Close the file first */
+    H5Fclose(fid);
+
+    /* Get the number of all opened objects */
+    oid_count = H5Fget_obj_count(H5F_OBJ_ALL, H5F_OBJ_ALL);
+    CHECK(oid_count, FAIL, "H5Fget_obj_count");
+    VERIFY(oid_count, NDSETS, "H5Fget_obj_count");
+
+    oid_list = (hid_t *)HDcalloc((size_t)oid_count, sizeof(hid_t));
+    CHECK(oid_list, NULL, "HDcalloc");
+
+    /* Get the list of all opened objects */
+    ret_count = H5Fget_obj_ids(H5F_OBJ_ALL, H5F_OBJ_ALL, (size_t)oid_count, oid_list);
+    CHECK(ret_count, FAIL, "H5Fget_obj_ids");
+    VERIFY(ret_count, NDSETS, "H5Fget_obj_count");
+
+    /* Close all open objects with H5Oclose */
+    for(n = 0; n < oid_count; n++)
+         H5Oclose(oid_list[n]);
+
+    HDfree(oid_list);
+}
+
+/****************************************************************
+**
 **  test_get_file_id(): Test H5Iget_file_id()
 **
 *****************************************************************/
@@ -1064,6 +1197,9 @@ test_get_file_id(void)
     VERIFY(fid2, FAIL, "H5Iget_file_id");
 
     /* Close objects */
+    ret = H5Pclose(plist);
+    CHECK(ret, FAIL, "H5Pclose");
+
     ret = H5Tclose(datatype_id);
     CHECK(ret, FAIL, "H5Tclose");
 
@@ -3068,7 +3204,7 @@ test_filespace_info(const char *env_h5_drvr)
     CHECK(ret, FAIL, "H5Pget_file_space_page_size");
     VERIFY(fsp_size, FSP_SIZE_DEF, "H5Pget_file_space_page_size");
 
-    /* CLose property lists */
+    /* Close property lists */
     ret = H5Fclose(fid);
     CHECK(ret, FAIL, "H5Fclose");
     ret = H5Pclose(fcpl1);
@@ -3703,9 +3839,13 @@ test_filespace_compatible(void)
 	ret = H5Ldelete(fid, DSETNAME, H5P_DEFAULT);
 	CHECK(ret, FAIL, "H5Ldelete");
 
-	/* Close the file */
-	ret = H5Fclose(fid);
-	CHECK(ret, FAIL, "H5Fclose");
+    /* Close the plist */
+    ret = H5Pclose(fcpl);
+    CHECK(ret, FAIL, "H5Pclose");
+
+    /* Close the file */
+    ret = H5Fclose(fid);
+    CHECK(ret, FAIL, "H5Fclose");
 
 	/* Re-Open the file */
 	fid = H5Fopen(FILE5, H5F_ACC_RDONLY, H5P_DEFAULT);
@@ -3901,6 +4041,9 @@ test_libver_bounds_real(H5F_libver_t libver_create, unsigned oh_vers_create,
 
     ret = H5Fclose(file);
     CHECK(ret, FAIL, "H5Fclose");
+
+    ret = H5Pclose(fapl);
+    CHECK(ret, FAIL, "H5Pclose");
 } /* end test_libver_bounds_real() */
 
 /****************************************************************
@@ -4209,6 +4352,7 @@ test_file(void)
     test_file_close();          /* Test file close behavior */
 #endif /* H5_NO_SHARED_WRITING */
     test_get_file_id();         /* Test H5Iget_file_id */
+    test_get_obj_ids();         /* Test H5Fget_obj_ids for Jira Issue 8528 */
     test_file_perm();           /* Test file access permissions */
     test_file_perm2();          /* Test file access permission again */
     test_file_ishdf5();         /* Test detecting HDF5 files correctly */

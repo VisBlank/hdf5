@@ -296,8 +296,8 @@ static int without_hardware_g = 0;
     HDmemset(BUF, 0, NELMTS*MAX(SRC_SIZE, DST_SIZE));                                           \
     HDmemset(SAVED, 0, NELMTS*MAX(SRC_SIZE, DST_SIZE));                                         \
                                                                                                 \
-    tmp1 = (unsigned char*)calloc((size_t)1, (size_t)SRC_SIZE);                                                 \
-    tmp2 = (unsigned char*)calloc((size_t)1, (size_t)SRC_SIZE);                                                 \
+    tmp1 = (unsigned char*)HDcalloc((size_t)1, (size_t)SRC_SIZE);                                                 \
+    tmp2 = (unsigned char*)HDcalloc((size_t)1, (size_t)SRC_SIZE);                                                 \
                                                                                                 \
     buf_p = BUF;                                                                                \
     saved_p = SAVED;                                                                            \
@@ -325,8 +325,8 @@ static int without_hardware_g = 0;
         buf_p += SRC_SIZE;                                                                      \
         saved_p += SRC_SIZE;                                                                    \
     }                                                                                           \
-    free(tmp1);                                                                                 \
-    free(tmp2);                                                                                 \
+    HDfree(tmp1);                                                                                 \
+    HDfree(tmp2);                                                                                 \
 }
 
 /* Allocate buffer and initialize it with floating-point special values, +/-0, +/-infinity,
@@ -348,7 +348,7 @@ static int without_hardware_g = 0;
     SAVED = (unsigned char*)aligned_malloc( NELMTS*MAX(SRC_SIZE, DST_SIZE));                    \
     HDmemset(BUF, 0, NELMTS*MAX(SRC_SIZE, DST_SIZE));                                           \
     HDmemset(SAVED, 0, NELMTS*MAX(SRC_SIZE, DST_SIZE));                                         \
-    value = (unsigned char*)calloc(SRC_SIZE, sizeof(unsigned char));                            \
+    value = (unsigned char*)HDcalloc(SRC_SIZE, sizeof(unsigned char));                            \
                                                                                                 \
     buf_p = BUF;                                                                                \
                                                                                                 \
@@ -391,7 +391,7 @@ static int without_hardware_g = 0;
     }                                                                                           \
                                                                                                 \
     HDmemcpy(SAVED, BUF, NELMTS*MAX(SRC_SIZE, DST_SIZE));                                         \
-    free(value);                                                                                \
+    HDfree(value);                                                                                \
 }
 
 void some_dummy_func(float x);
@@ -751,8 +751,8 @@ static int test_particular_fp_integer(void)
     endian = H5Tget_order(H5T_NATIVE_DOUBLE);
     src_size1 = H5Tget_size(H5T_NATIVE_DOUBLE);
     dst_size1 = H5Tget_size(H5T_NATIVE_SCHAR);
-    buf1 = (unsigned char*)calloc((size_t)1, (size_t)MAX(src_size1, dst_size1));
-    saved_buf1 = (unsigned char*)calloc((size_t)1, (size_t)MAX(src_size1, dst_size1));
+    buf1 = (unsigned char*)HDcalloc((size_t)1, (size_t)MAX(src_size1, dst_size1));
+    saved_buf1 = (unsigned char*)HDcalloc((size_t)1, (size_t)MAX(src_size1, dst_size1));
 
     memcpy(buf1, &src_d, src_size1);
     memcpy(saved_buf1, &src_d, src_size1);
@@ -801,8 +801,8 @@ static int test_particular_fp_integer(void)
     /* Test conversion from float (the value is INT_MAX) to int. */
     src_size2 = H5Tget_size(H5T_NATIVE_FLOAT);
     dst_size2 = H5Tget_size(H5T_NATIVE_INT);
-    buf2 = (unsigned char*)calloc((size_t)1, (size_t)MAX(src_size2, dst_size2));
-    saved_buf2 = (unsigned char*)calloc((size_t)1, (size_t)MAX(src_size2, dst_size2));
+    buf2 = (unsigned char*)HDcalloc((size_t)1, (size_t)MAX(src_size2, dst_size2));
+    saved_buf2 = (unsigned char*)HDcalloc((size_t)1, (size_t)MAX(src_size2, dst_size2));
     HDmemcpy(buf2, &src_f, src_size2);
     HDmemcpy(saved_buf2, &src_f, src_size2);
 
@@ -852,13 +852,13 @@ static int test_particular_fp_integer(void)
     }
 
     if(buf1)
-        free(buf1);
+        HDfree(buf1);
     if(buf2)
-        free(buf2);
+        HDfree(buf2);
     if(saved_buf1)
-        free(saved_buf1);
+        HDfree(saved_buf1);
     if(saved_buf2)
-        free(saved_buf2);
+        HDfree(saved_buf2);
 
     PASSED();
     return 0;
@@ -869,13 +869,13 @@ error:
         H5Pclose(dxpl_id);
     } H5E_END_TRY;
     if(buf1)
-        free(buf1);
+        HDfree(buf1);
     if(buf2)
-        free(buf2);
+        HDfree(buf2);
     if(saved_buf1)
-        free(saved_buf1);
+        HDfree(saved_buf1);
     if(saved_buf2)
-        free(saved_buf2);
+        HDfree(saved_buf2);
 
     reset_hdf5(); /*print statistics*/
     return MAX((int)fails_this_test, 1);
@@ -1044,11 +1044,11 @@ test_derived_flt(void)
      */
     src_size = H5Tget_size(H5T_NATIVE_INT);
     endian = H5Tget_order(H5T_NATIVE_INT);
-    buf = (unsigned char*)malloc(nelmts * (MAX(src_size, size)));
-    saved_buf = (unsigned char*)malloc(nelmts * src_size);
+    buf = (unsigned char*)HDmalloc(nelmts * (MAX(src_size, size)));
+    saved_buf = (unsigned char*)HDmalloc(nelmts * src_size);
     HDmemset(buf, 0, nelmts * MAX(src_size, size));
     HDmemset(saved_buf, 0, nelmts * src_size);
-    aligned = (int*)calloc((size_t)1, src_size);
+    aligned = (int*)HDcalloc((size_t)1, src_size);
 
     for(i = 0; i < nelmts * src_size; i++)
         buf[i] = saved_buf[i] = HDrand();
@@ -1105,9 +1105,9 @@ test_derived_flt(void)
     }
 
     fails_this_test = 0;
-    free(buf);
-    free(saved_buf);
-    free(aligned);
+    HDfree(buf);
+    HDfree(saved_buf);
+    HDfree(aligned);
     buf = NULL;
     saved_buf = NULL;
     aligned = NULL;
@@ -1204,8 +1204,8 @@ test_derived_flt(void)
     src_size = H5Tget_size(tid2);
     dst_size = H5Tget_size(tid1);
     endian = H5Tget_order(tid2);
-    buf = (unsigned char*)malloc(nelmts*(MAX(src_size, dst_size)));
-    saved_buf = (unsigned char*)malloc(nelmts*src_size);
+    buf = (unsigned char*)HDmalloc(nelmts*(MAX(src_size, dst_size)));
+    saved_buf = (unsigned char*)HDmalloc(nelmts*src_size);
     HDmemset(buf, 0, nelmts*MAX(src_size, dst_size));
     HDmemset(saved_buf, 0, nelmts*src_size);
 
@@ -1268,8 +1268,8 @@ test_derived_flt(void)
         }
     }
 
-    if (buf) free(buf);
-    if (saved_buf) free(saved_buf);
+    if (buf) HDfree(buf);
+    if (saved_buf) HDfree(saved_buf);
 
     if(H5Tclose(tid1) < 0) {
         H5_FAILED();
@@ -1301,9 +1301,9 @@ test_derived_flt(void)
     return 0;
 
  error:
-    if (buf) free(buf);
-    if (saved_buf) free(saved_buf);
-    if (aligned) free(aligned);
+    if (buf) HDfree(buf);
+    if (saved_buf) HDfree(saved_buf);
+    if (aligned) HDfree(aligned);
     HDfflush(stdout);
     H5E_BEGIN_TRY {
         H5Tclose (tid1);
@@ -1594,8 +1594,8 @@ test_derived_integer(void)
         goto error;
     } /* end if */
 
-    free(buf);
-    free(saved_buf);
+    HDfree(buf);
+    HDfree(saved_buf);
 
     PASSED();
     reset_hdf5();	/*print statistics*/
@@ -1603,8 +1603,8 @@ test_derived_integer(void)
     return 0;
 
  error:
-    if (buf) free(buf);
-    if (saved_buf) free(saved_buf);
+    if (buf) HDfree(buf);
+    if (saved_buf) HDfree(saved_buf);
     HDfflush(stdout);
     H5E_BEGIN_TRY {
         H5Tclose (tid1);
@@ -1853,6 +1853,7 @@ test_conv_int_1(const char *name, hid_t src, hid_t dst)
             case FLT_LDOUBLE:
             case OTHER:
             default:
+                HDassert(0 && "Unknown type");
                 break;
             }
         } else if (INT_UCHAR==dst_type) {
@@ -1903,6 +1904,7 @@ test_conv_int_1(const char *name, hid_t src, hid_t dst)
             case FLT_LDOUBLE:
             case OTHER:
             default:
+                HDassert(0 && "Unknown type");
                 break;
             }
         } else if (INT_SHORT==dst_type) {
@@ -1954,6 +1956,7 @@ test_conv_int_1(const char *name, hid_t src, hid_t dst)
             case FLT_LDOUBLE:
             case OTHER:
             default:
+                HDassert(0 && "Unknown type");
                 break;
             }
         } else if (INT_USHORT==dst_type) {
@@ -2004,6 +2007,7 @@ test_conv_int_1(const char *name, hid_t src, hid_t dst)
             case FLT_LDOUBLE:
             case OTHER:
             default:
+                HDassert(0 && "Unknown type");
                 break;
             }
         } else if (INT_INT==dst_type) {
@@ -2054,6 +2058,7 @@ test_conv_int_1(const char *name, hid_t src, hid_t dst)
             case FLT_LDOUBLE:
             case OTHER:
             default:
+                HDassert(0 && "Unknown type");
                 break;
             }
         } else if (INT_UINT==dst_type) {
@@ -2104,6 +2109,7 @@ test_conv_int_1(const char *name, hid_t src, hid_t dst)
             case FLT_LDOUBLE:
             case OTHER:
             default:
+                HDassert(0 && "Unknown type");
                 break;
             }
         } else if (INT_LONG==dst_type) {
@@ -2154,6 +2160,7 @@ test_conv_int_1(const char *name, hid_t src, hid_t dst)
             case FLT_LDOUBLE:
             case OTHER:
             default:
+                HDassert(0 && "Unknown type");
                 break;
             }
         } else if (INT_ULONG==dst_type) {
@@ -2204,6 +2211,7 @@ test_conv_int_1(const char *name, hid_t src, hid_t dst)
             case FLT_LDOUBLE:
             case OTHER:
             default:
+                HDassert(0 && "Unknown type");
                 break;
             }
         } else if (INT_LLONG==dst_type) {
@@ -2254,6 +2262,7 @@ test_conv_int_1(const char *name, hid_t src, hid_t dst)
             case FLT_LDOUBLE:
             case OTHER:
             default:
+                HDassert(0 && "Unknown type");
                 break;
             }
         } else if (INT_ULLONG==dst_type) {
@@ -2304,6 +2313,7 @@ test_conv_int_1(const char *name, hid_t src, hid_t dst)
             case FLT_LDOUBLE:
             case OTHER:
             default:
+                HDassert(0 && "Unknown type");
                 break;
             }
         }
@@ -2482,6 +2492,7 @@ test_conv_int_1(const char *name, hid_t src, hid_t dst)
             case FLT_LDOUBLE:
             case OTHER:
             default:
+                HDassert(0 && "Unknown type");
                 break;
         }
 
@@ -2535,6 +2546,7 @@ test_conv_int_1(const char *name, hid_t src, hid_t dst)
             case FLT_LDOUBLE:
             case OTHER:
             default:
+                HDassert(0 && "Unknown type");
                 break;
         }
 
@@ -2578,6 +2590,7 @@ test_conv_int_1(const char *name, hid_t src, hid_t dst)
             case FLT_LDOUBLE:
             case OTHER:
             default:
+                HDassert(0 && "Unknown type");
                 break;
         }
 
@@ -2768,7 +2781,7 @@ my_isinf(int endian, unsigned char *val, size_t size,
     int retval = 0;
     size_t i;
 
-    bits = (unsigned char*)calloc((size_t)1, size);
+    bits = (unsigned char*)HDcalloc((size_t)1, size);
 
 #ifdef H5_VMS
     if(H5T_ORDER_VAX==endian) {
@@ -2792,7 +2805,7 @@ my_isinf(int endian, unsigned char *val, size_t size,
             H5T__bit_find(bits, epos, esize, H5T_BIT_LSB, 0) < 0)
         retval = 1;
 
-    free(bits);
+    HDfree(bits);
 
     return retval;
 }
@@ -3442,6 +3455,8 @@ done:
         HDexit(MIN((int)fails_all_tests, 254));
     else if(run_test==TEST_DENORM || run_test==TEST_SPECIAL)
         HDexit(0);
+    HDassert(0 && "Should not reach this point!");
+    return 1;
 #else
     reset_hdf5();
 
@@ -3463,6 +3478,8 @@ error:
         HDexit(MIN(MAX((int)fails_all_tests, 1), 254));
     else if(run_test==TEST_DENORM || run_test==TEST_SPECIAL)
         HDexit(1);
+    HDassert(0 && "Should not reach this point!");
+    return 1;
 #else
     reset_hdf5();
     if(run_test==TEST_NOOP || run_test==TEST_NORMAL)
@@ -3867,6 +3884,7 @@ test_conv_int_fp(const char *name, int run_test, hid_t src, hid_t dst)
             case FLT_LDOUBLE:
             case OTHER:
             default:
+                HDassert(0 && "Unknown type");
                 break;
             }
         } else if (FLT_DOUBLE==dst_type) {
@@ -3919,6 +3937,7 @@ test_conv_int_fp(const char *name, int run_test, hid_t src, hid_t dst)
             case FLT_LDOUBLE:
             case OTHER:
             default:
+                HDassert(0 && "Unknown type");
                 break;
             }
 #if H5_SIZEOF_LONG_DOUBLE !=0
@@ -3972,6 +3991,7 @@ test_conv_int_fp(const char *name, int run_test, hid_t src, hid_t dst)
             case FLT_LDOUBLE:
             case OTHER:
             default:
+                HDassert(0 && "Unknown type");
                 break;
             }
 #endif
@@ -4004,6 +4024,7 @@ test_conv_int_fp(const char *name, int run_test, hid_t src, hid_t dst)
             case INT_ULLONG:
             case OTHER:
             default:
+                HDassert(0 && "Unknown type");
                 break;
             }
         } else if (INT_UCHAR==dst_type) {
@@ -4035,6 +4056,7 @@ test_conv_int_fp(const char *name, int run_test, hid_t src, hid_t dst)
             case INT_ULLONG:
             case OTHER:
             default:
+                HDassert(0 && "Unknown type");
                 break;
             }
         } else if (INT_SHORT==dst_type) {
@@ -4066,6 +4088,7 @@ test_conv_int_fp(const char *name, int run_test, hid_t src, hid_t dst)
             case INT_ULLONG:
             case OTHER:
             default:
+                HDassert(0 && "Unknown type");
                 break;
             }
         } else if (INT_USHORT==dst_type) {
@@ -4097,6 +4120,7 @@ test_conv_int_fp(const char *name, int run_test, hid_t src, hid_t dst)
             case INT_ULLONG:
             case OTHER:
             default:
+                HDassert(0 && "Unknown type");
                 break;
             }
         } else if (INT_INT==dst_type) {
@@ -4128,6 +4152,7 @@ test_conv_int_fp(const char *name, int run_test, hid_t src, hid_t dst)
             case INT_ULLONG:
             case OTHER:
             default:
+                HDassert(0 && "Unknown type");
                 break;
             }
         } else if (INT_UINT==dst_type) {
@@ -4159,6 +4184,7 @@ test_conv_int_fp(const char *name, int run_test, hid_t src, hid_t dst)
             case INT_ULLONG:
             case OTHER:
             default:
+                HDassert(0 && "Unknown type");
                 break;
             }
         } else if (INT_LONG==dst_type) {
@@ -4190,6 +4216,7 @@ test_conv_int_fp(const char *name, int run_test, hid_t src, hid_t dst)
             case INT_ULLONG:
             case OTHER:
             default:
+                HDassert(0 && "Unknown type");
                 break;
             }
         } else if (INT_ULONG==dst_type) {
@@ -4221,6 +4248,7 @@ test_conv_int_fp(const char *name, int run_test, hid_t src, hid_t dst)
             case INT_ULLONG:
             case OTHER:
             default:
+                HDassert(0 && "Unknown type");
                 break;
             }
         } else if (INT_LLONG==dst_type) {
@@ -4252,6 +4280,7 @@ test_conv_int_fp(const char *name, int run_test, hid_t src, hid_t dst)
             case INT_ULLONG:
             case OTHER:
             default:
+                HDassert(0 && "Unknown type");
                 break;
             }
         } else if (INT_ULLONG==dst_type) {
@@ -4283,6 +4312,7 @@ test_conv_int_fp(const char *name, int run_test, hid_t src, hid_t dst)
             case INT_ULLONG:
             case OTHER:
             default:
+                HDassert(0 && "Unknown type");
                 break;
             }
         }
@@ -4549,6 +4579,8 @@ test_conv_int_fp(const char *name, int run_test, hid_t src, hid_t dst)
                 break;
 #endif
             case OTHER:
+            default:
+                HDassert(0 && "Unknown type");
                 break;
         }
 
@@ -4612,6 +4644,8 @@ test_conv_int_fp(const char *name, int run_test, hid_t src, hid_t dst)
                 break;
 #endif
             case OTHER:
+            default:
+                HDassert(0 && "Unknown type");
                 break;
         }
 
@@ -4662,6 +4696,8 @@ test_conv_int_fp(const char *name, int run_test, hid_t src, hid_t dst)
                 break;
 #endif
             case OTHER:
+            default:
+                HDassert(0 && "Unknown type");
                 break;
         }
 

@@ -110,7 +110,6 @@ static H5D_shared_t H5D_def_dset;
 static const H5I_class_t H5I_DATASET_CLS[1] = {{
     H5I_DATASET,		/* ID class value */
     0,				/* Class flags */
-    64,				/* Minimum hash size for class */
     0,				/* # of reserved IDs for class */
     (H5I_free_t)H5D_close       /* Callback routine for closing objects of this class */
 }};
@@ -374,7 +373,7 @@ H5D__get_dxpl_cache(hid_t dxpl_id, H5D_dxpl_cache_t **cache)
     FUNC_ENTER_PACKAGE
 
     /* Check args */
-    assert(cache);
+    HDassert(cache);
 
     /* Check for the default DXPL */
     if(dxpl_id==H5P_DATASET_XFER_DEFAULT)
@@ -2052,18 +2051,18 @@ H5D__vlen_get_buf_size(void UNUSED *elem, hid_t type_id, unsigned UNUSED ndim, c
 
     /* Check args */
     if(NULL == (dt = (H5T_t *)H5I_object(type_id)))
-        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a datatype")
+        HGOTO_ERROR(H5E_DATASET, H5E_BADTYPE, FAIL, "not a datatype")
 
     /* Make certain there is enough fixed-length buffer available */
     if(NULL == (vlen_bufsize->fl_tbuf = H5FL_BLK_REALLOC(vlen_fl_buf, vlen_bufsize->fl_tbuf, H5T_get_size(dt))))
-        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "can't resize tbuf")
+        HGOTO_ERROR(H5E_DATASET, H5E_NOSPACE, FAIL, "can't resize tbuf")
 
     /* Select point to read in */
-    if(H5Sselect_elements(vlen_bufsize->fspace_id, H5S_SELECT_SET, (size_t)1, point) < 0)
-        HGOTO_ERROR(H5E_DATASPACE, H5E_CANTCREATE, FAIL, "can't select point")
+    if(H5S_select_elements(vlen_bufsize->fspace, H5S_SELECT_SET, (size_t)1, point) < 0)
+        HGOTO_ERROR(H5E_DATASET, H5E_CANTCREATE, FAIL, "can't select point")
 
     /* Read in the point (with the custom VL memory allocator) */
-    if(H5Dread(vlen_bufsize->dataset_id, type_id, vlen_bufsize->mspace_id, vlen_bufsize->fspace_id, vlen_bufsize->xfer_pid, vlen_bufsize->fl_tbuf) < 0)
+    if(H5D__read(vlen_bufsize->dset, type_id, vlen_bufsize->mspace, vlen_bufsize->fspace, vlen_bufsize->xfer_pid, vlen_bufsize->fl_tbuf) < 0)
         HGOTO_ERROR(H5E_DATASET, H5E_READERROR, FAIL, "can't read point")
 
 done:
@@ -2358,7 +2357,7 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5D__mark(H5D_t *dataset, hid_t dxpl_id, unsigned flags)
+H5D__mark(H5D_t *dataset, hid_t UNUSED dxpl_id, unsigned flags)
 {
     herr_t ret_value = SUCCEED;         /* Return value */
 

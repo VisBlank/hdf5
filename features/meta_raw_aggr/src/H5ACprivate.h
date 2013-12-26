@@ -199,6 +199,11 @@ typedef H5C_t	H5AC_t;
 #define H5AC_BLOCK_BEFORE_META_WRITE_SIZE       sizeof(unsigned)
 #define H5AC_BLOCK_BEFORE_META_WRITE_DEF        0
 
+/* Definitions for "collective metadata write" property */
+#define H5AC_COLLECTIVE_META_WRITE_NAME         "H5AC_collective_metadata_write"
+#define H5AC_COLLECTIVE_META_WRITE_SIZE         sizeof(unsigned)
+#define H5AC_COLLECTIVE_META_WRITE_DEF          0
+
 /* Definitions for "library internal" property */
 #define H5AC_LIBRARY_INTERNAL_NAME       "H5AC_library_internal"
 #define H5AC_LIBRARY_INTERNAL_SIZE       sizeof(unsigned)
@@ -236,27 +241,27 @@ H5_DLLVAR hid_t H5AC_ind_dxpl_id;
   /* hbool_t     evictions_enabled      = */ TRUE,                            \
   /* hbool_t     set_initial_size       = */ TRUE,                            \
   /* size_t      initial_size           = */ ( 2 * 1024 * 1024),              \
-  /* double      min_clean_fraction     = */ 0.3,                             \
+  /* double      min_clean_fraction     = */ 0.3f,                            \
   /* size_t      max_size               = */ (32 * 1024 * 1024),              \
   /* size_t      min_size               = */ (1 * 1024 * 1024),               \
   /* long int    epoch_length           = */ 50000,                           \
   /* enum H5C_cache_incr_mode incr_mode = */ H5C_incr__threshold,             \
-  /* double      lower_hr_threshold     = */ 0.9,                             \
-  /* double      increment              = */ 2.0,                             \
+  /* double      lower_hr_threshold     = */ 0.9f,                            \
+  /* double      increment              = */ 2.0f,                            \
   /* hbool_t     apply_max_increment    = */ TRUE,                            \
   /* size_t      max_increment          = */ (4 * 1024 * 1024),               \
   /* enum H5C_cache_flash_incr_mode       */                                  \
   /*                    flash_incr_mode = */ H5C_flash_incr__add_space,       \
-  /* double      flash_multiple         = */ 1.0,                             \
-  /* double      flash_threshold        = */ 0.25,                            \
+  /* double      flash_multiple         = */ 1.0f,                            \
+  /* double      flash_threshold        = */ 0.25f,                           \
   /* enum H5C_cache_decr_mode decr_mode = */ H5C_decr__age_out_with_threshold, \
-  /* double      upper_hr_threshold     = */ 0.999,                           \
-  /* double      decrement              = */ 0.9,                             \
+  /* double      upper_hr_threshold     = */ 0.999f,                          \
+  /* double      decrement              = */ 0.9f,                            \
   /* hbool_t     apply_max_decrement    = */ TRUE,                            \
   /* size_t      max_decrement          = */ (1 * 1024 * 1024),               \
   /* int         epochs_before_eviction = */ 3,                               \
   /* hbool_t     apply_empty_reserve    = */ TRUE,                            \
-  /* double      empty_reserve          = */ 0.1,                             \
+  /* double      empty_reserve          = */ 0.1f,                            \
   /* int	 dirty_bytes_threshold  = */ (256 * 1024),                    \
   /* int	metadata_write_strategy = */                                  \
 				       H5AC__DEFAULT_METADATA_WRITE_STRATEGY  \
@@ -272,27 +277,27 @@ H5_DLLVAR hid_t H5AC_ind_dxpl_id;
   /* hbool_t     evictions_enabled      = */ TRUE,                            \
   /* hbool_t     set_initial_size       = */ TRUE,                            \
   /* size_t      initial_size           = */ ( 2 * 1024 * 1024),              \
-  /* double      min_clean_fraction     = */ 0.01,                            \
+  /* double      min_clean_fraction     = */ 0.01f,                           \
   /* size_t      max_size               = */ (32 * 1024 * 1024),              \
   /* size_t      min_size               = */ ( 1 * 1024 * 1024),              \
   /* long int    epoch_length           = */ 50000,                           \
   /* enum H5C_cache_incr_mode incr_mode = */ H5C_incr__threshold,             \
-  /* double      lower_hr_threshold     = */ 0.9,                             \
-  /* double      increment              = */ 2.0,                             \
+  /* double      lower_hr_threshold     = */ 0.9f,                            \
+  /* double      increment              = */ 2.0f,                            \
   /* hbool_t     apply_max_increment    = */ TRUE,                            \
   /* size_t      max_increment          = */ (4 * 1024 * 1024),               \
   /* enum H5C_cache_flash_incr_mode       */                                  \
   /*                    flash_incr_mode = */ H5C_flash_incr__add_space,       \
-  /* double      flash_multiple         = */ 1.4,                             \
-  /* double      flash_threshold        = */ 0.25,                            \
+  /* double      flash_multiple         = */ 1.4f,                            \
+  /* double      flash_threshold        = */ 0.25f,                           \
   /* enum H5C_cache_decr_mode decr_mode = */ H5C_decr__age_out_with_threshold,\
-  /* double      upper_hr_threshold     = */ 0.999,                           \
-  /* double      decrement              = */ 0.9,                             \
+  /* double      upper_hr_threshold     = */ 0.999f,                          \
+  /* double      decrement              = */ 0.9f,                            \
   /* hbool_t     apply_max_decrement    = */ TRUE,                            \
   /* size_t      max_decrement          = */ (1 * 1024 * 1024),               \
   /* int         epochs_before_eviction = */ 3,                               \
   /* hbool_t     apply_empty_reserve    = */ TRUE,                            \
-  /* double      empty_reserve          = */ 0.1,                             \
+  /* double      empty_reserve          = */ 0.1f,                            \
   /* int	 dirty_bytes_threshold  = */ (256 * 1024),                    \
   /* int	metadata_write_strategy = */                                  \
 				       H5AC__DEFAULT_METADATA_WRITE_STRATEGY  \
@@ -348,8 +353,7 @@ H5_DLL herr_t H5AC_insert_entry(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *typ
 H5_DLL herr_t H5AC_pin_protected_entry(void *thing);
 H5_DLL herr_t H5AC_create_flush_dependency(void *parent_thing, void *child_thing);
 H5_DLL void * H5AC_protect(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type,
-                           haddr_t addr, void *udata,
-                           H5AC_protect_t rw);
+    haddr_t addr, void *udata, H5AC_protect_t rw);
 H5_DLL herr_t H5AC_resize_entry(void *thing, size_t new_size);
 H5_DLL herr_t H5AC_unpin_entry(void *thing);
 H5_DLL herr_t H5AC_destroy_flush_dependency(void *parent_thing, void *child_thing);

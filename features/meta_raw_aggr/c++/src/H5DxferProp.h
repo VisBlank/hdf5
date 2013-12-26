@@ -14,13 +14,17 @@
  * access to either file, you may request a copy from help@hdfgroup.org.     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef _H5DSetMemXferPropList_H
-#define _H5DSetMemXferPropList_H
+#ifndef __H5DSetMemXferPropList_H
+#define __H5DSetMemXferPropList_H
 
 #ifndef H5_NO_NAMESPACE
 namespace H5 {
 #endif
 
+/*! \class DSetMemXferPropList
+    \brief Class DSetMemXferPropList represents the dataset memory and
+    transfer property list.
+*/
 class H5_DLLCPP DSetMemXferPropList : public PropList {
    public:
 	static const DSetMemXferPropList DEFAULT;
@@ -66,12 +70,6 @@ class H5_DLLCPP DSetMemXferPropList : public PropList {
 	void getVlenMemManager( H5MM_allocate_t& alloc, void** alloc_info,
 				H5MM_free_t& free, void** free_info ) const;
 
-	// Sets the data transfer property list for the multi-file driver.
-	void setMulti(const hid_t *memb_dxpl);
-
-	// Returns multi-file data transfer property list information.
-	void getMulti(hid_t *memb_dxpl);
-
 	// Sets the size of a contiguous block reserved for small data.
 	void setSmallDataBlockSize(hsize_t size);
 
@@ -92,7 +90,7 @@ class H5_DLLCPP DSetMemXferPropList : public PropList {
 	// Determines whether error-detection is enabled for dataset reads.
 	H5Z_EDC_t getEDCCheck();
 
-	// Returns this class name.
+	///\brief Returns this class name.
 	virtual H5std_string fromClass () const { return("DSetMemXferPropList"); }
 
 	// Copy constructor: makes a copy of a DSetMemXferPropList object.
@@ -108,4 +106,5 @@ class H5_DLLCPP DSetMemXferPropList : public PropList {
 #ifndef H5_NO_NAMESPACE
 }
 #endif
-#endif
+#endif // __H5DSetMemXferPropList_H
+

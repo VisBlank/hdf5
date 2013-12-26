@@ -193,6 +193,7 @@ H5_VERSION = @H5_VERSION@
 HADDR_T = @HADDR_T@
 HAVE_DMALLOC = @HAVE_DMALLOC@
 HAVE_FORTRAN_2003 = @HAVE_FORTRAN_2003@
+HAVE_PTHREAD = @HAVE_PTHREAD@
 HDF5_HL = @HDF5_HL@
 HDF5_INTERFACES = @HDF5_INTERFACES@
 HDF_CXX = @HDF_CXX@
@@ -220,6 +221,7 @@ LIPO = @LIPO@
 LL_PATH = @LL_PATH@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
+LT_ADD_LIBHDF5_DEPENDENCY = @LT_ADD_LIBHDF5_DEPENDENCY@
 LT_STATIC_EXEC = @LT_STATIC_EXEC@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
@@ -244,7 +246,6 @@ PACKAGE_VERSION = @PACKAGE_VERSION@
 PARALLEL = @PARALLEL@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PERL = @PERL@
-PTHREAD = @PTHREAD@
 RANLIB = @RANLIB@
 ROOT = @ROOT@
 RUNPARALLEL = @RUNPARALLEL@
@@ -390,10 +391,10 @@ CHECK_CLEANFILES = *.chkexe *.chklog *.clog *.h5
 
 # These are the programs that 'make all' or 'make prog' will build and
 # which 'make check' will run.  List them in the order they should be run.
-EXAMPLE_PROG = ptExampleFL ptExampleVL
+EXAMPLE_PROG = ptExampleFL
 
 # These are the example files to be installed
-INSTALL_FILES = ptExampleFL.cpp ptExampleVL.cpp
+INSTALL_FILES = ptExampleFL.cpp
 INSTALL_SCRIPT_FILES = run-hlc++-ex.sh
 
 # Tell conclude.am that these are C++ tests.
@@ -651,7 +652,6 @@ $(EXTRA_PROG): $(H5CPP)
 # will try to build them with the normal C++ compiler, not h5c++.  This is
 # an inelegant way of solving the problem, unfortunately.
 ptExampleFL: ptExampleFL.cpp
-ptExampleVL: ptExampleVL.cpp
 
 # How to create EXAMPLEDIR if it doesn't already exist
 $(EXAMPLEDIR):
