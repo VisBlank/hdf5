@@ -539,15 +539,15 @@ HDfprintf(stderr, "%s: section {%a, %Hu}, shrinks file, eoa = %a\n", FUNC, sect-
             HGOTO_DONE(FALSE)
 
         /* Check if this section is allowed to merge with metadata aggregation block */
-        if(udata->f->shared->fs_aggr_merge[udata->alloc_type] & H5F_FS_MERGE_METADATA) {
+        if(udata->f->shared->fs.aggr_merge[udata->alloc_type] & H5F_FS_MERGE_METADATA) {
             htri_t status;              /* Status from aggregator adjoin */
 
             /* See if section can absorb the aggregator & vice versa */
-            if((status = H5MF_aggr_can_absorb(udata->f, &(udata->f->shared->meta_aggr), sect, &(udata->shrink))) < 0)
+            if((status = H5MF_aggr_can_absorb(udata->f, &(udata->f->shared->fs.meta_aggr), sect, &(udata->shrink))) < 0)
                 HGOTO_ERROR(H5E_RESOURCE, H5E_CANTMERGE, FAIL, "error merging section with aggregation block")
             else if(status > 0) {
                 /* Set the aggregator to operate on */
-                udata->aggr = &(udata->f->shared->meta_aggr);
+                udata->aggr = &(udata->f->shared->fs.meta_aggr);
 #ifdef H5MF_ALLOC_DEBUG_MORE
 HDfprintf(stderr, "%s: section {%a, %Hu}, adjoins metadata aggregator\n", FUNC, sect->sect_info.addr, sect->sect_info.size);
 #endif /* H5MF_ALLOC_DEBUG_MORE */
@@ -558,15 +558,15 @@ HDfprintf(stderr, "%s: section {%a, %Hu}, adjoins metadata aggregator\n", FUNC, 
         } /* end if */
 
         /* Check if this section is allowed to merge with small 'raw' aggregation block */
-        if(udata->f->shared->fs_aggr_merge[udata->alloc_type] & H5F_FS_MERGE_RAWDATA) {
+        if(udata->f->shared->fs.aggr_merge[udata->alloc_type] & H5F_FS_MERGE_RAWDATA) {
             htri_t status;              /* Status from aggregator adjoin */
 
             /* See if section can absorb the aggregator & vice versa */
-            if((status = H5MF_aggr_can_absorb(udata->f, &(udata->f->shared->sdata_aggr), sect, &(udata->shrink))) < 0)
+            if((status = H5MF_aggr_can_absorb(udata->f, &(udata->f->shared->fs.sdata_aggr), sect, &(udata->shrink))) < 0)
                 HGOTO_ERROR(H5E_RESOURCE, H5E_CANTMERGE, FAIL, "error merging section with aggregation block")
             else if(status > 0) {
                 /* Set the aggregator to operate on */
-                udata->aggr = &(udata->f->shared->sdata_aggr);
+                udata->aggr = &(udata->f->shared->fs.sdata_aggr);
 #ifdef H5MF_ALLOC_DEBUG_MORE
 HDfprintf(stderr, "%s: section {%a, %Hu}, adjoins small data aggregator\n", FUNC, sect->sect_info.addr, sect->sect_info.size);
 #endif /* H5MF_ALLOC_DEBUG_MORE */
@@ -686,27 +686,29 @@ HDfprintf(stderr, "%s: Entering, section {%a, %Hu}\n", FUNC, (*sect)->sect_info.
 	HGOTO_DONE(ret_value);
 
     sect_end = (*sect)->sect_info.addr + (*sect)->sect_info.size;
-    rem = sect_end % udata->f->shared->fsp_size;
-    prem = udata->f->shared->fsp_size - rem;
+    rem = sect_end % udata->f->shared->fs.page_size;
+    prem = udata->f->shared->fs.page_size - rem;
 
     /* Drop the section if it is at page end and its size is <= pgend threshold */
     if(!rem && (*sect)->sect_info.size <= H5F_PGEND_META_THRES(udata->f) && (*flags & H5FS_ADD_RETURNED_SPACE)) {
 	if(H5MF_sect_free((H5FS_section_info_t *)(*sect)) < 0)
 	    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTRELEASE, FAIL, "can't free section node")
 	*sect = NULL;
-	*flags &= ~H5FS_ADD_RETURNED_SPACE;
+	*flags &= (unsigned)~H5FS_ADD_RETURNED_SPACE;
 	*flags |= H5FS_PAGE_END_NO_ADD;
 #ifdef H5MF_ALLOC_DEBUG_MORE
 HDfprintf(stderr, "%s: section is dropped\n", FUNC);
 #endif /* H5MF_ALLOC_DEBUG_MORE */
-    }
+    } /* end if */
     /* Adjust the section if it is not at page end but its size + pgend threshold is at page end */
-    else if(prem <= H5F_PGEND_META_THRES(udata->f)) {
-	(*sect)->sect_info.size += prem;
+    else
+        if(prem <= H5F_PGEND_META_THRES(udata->f)) {
+            (*sect)->sect_info.size += prem;
 #ifdef H5MF_ALLOC_DEBUG_MORE
 HDfprintf(stderr, "%s: section is adjusted {%a, %Hu}\n", FUNC, (*sect)->sect_info.addr, (*sect)->sect_info.size);
 #endif /* H5MF_ALLOC_DEBUG_MORE */
-    }
+        } /* end if */
+
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5MF_sect_small_add() */
@@ -765,7 +767,6 @@ HDfprintf(stderr, "%s: section {%a, %Hu}, shrinks file, eoa = %a\n", FUNC, sect-
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5MF_sect_small_can_shrink() */
-
 
 
 /*-------------------------------------------------------------------------
@@ -847,10 +848,9 @@ H5MF_sect_small_can_merge(const H5FS_section_info_t *_sect1,
 
     /* Check if second section adjoins first section */
     ret_value = H5F_addr_eq(sect1->sect_info.addr + sect1->sect_info.size, sect2->sect_info.addr);
-    if(ret_value > 0) {
-	if((sect1->sect_info.addr / udata->f->shared->fsp_size) != (((sect2->sect_info.addr + sect2->sect_info.size - 1) / udata->f->shared->fsp_size)))
+    if(ret_value > 0)
+	if((sect1->sect_info.addr / udata->f->shared->fs.page_size) != (((sect2->sect_info.addr + sect2->sect_info.size - 1) / udata->f->shared->fs.page_size)))
 	    ret_value = FALSE;
-    }
 
 #ifdef H5MF_ALLOC_DEBUG_MORE
 HDfprintf(stderr, "%s: Leaving: ret_value = %t\n", FUNC, ret_value);
@@ -897,13 +897,13 @@ H5MF_sect_small_merge(H5FS_section_info_t **_sect1, H5FS_section_info_t *_sect2,
     /* Add second section's size to first section */
     (*sect1)->sect_info.size += sect2->sect_info.size;
 
-    if((*sect1)->sect_info.size == udata->f->shared->fsp_size) {
+    if((*sect1)->sect_info.size == udata->f->shared->fs.page_size) {
 	if(H5MF_xfree(udata->f, udata->alloc_type, udata->dxpl_id, (*sect1)->sect_info.addr, (*sect1)->sect_info.size) < 0)
 	    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTFREE, FAIL, "can't free merged section")
 	if(H5MF_sect_free((H5FS_section_info_t *)(*sect1)) < 0)
 	    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTRELEASE, FAIL, "can't free section node")
 	*sect1 = NULL;
-    }
+    } /* end if */
 
     /* Get rid of second section */
     if(H5MF_sect_free((H5FS_section_info_t *)sect2) < 0)

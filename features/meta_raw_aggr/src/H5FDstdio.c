@@ -605,10 +605,6 @@ H5FD_stdio_query(const H5FD_t *_f, unsigned long *flags /* out */)
  * Programmer:  Raymond Lu
  *              30 March 2007
  *
- * Modifications:
- *	Vailin Choi; April 2013
- *	Do not handle alignment for paged aggregation.
- *
  *-------------------------------------------------------------------------
  */
 static haddr_t

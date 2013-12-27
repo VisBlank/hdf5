@@ -1734,11 +1734,6 @@ done:
  * Programmer:	Quincey Koziol
  *		koziol@ncsa.uiuc.edu
  *		Oct 10 2005
- * Modifcations:
- *	Vailin Choi; Dec 2012
- *	Check for merged null message that might possibly span the entire chunk.
- *	Such scenario occurred due to the bug in H5O_condense_header(). 
- *	(See Modifications dated Dec 2012)
  *
  *-------------------------------------------------------------------------
  */
@@ -2133,11 +2128,6 @@ done:
  * Programmer:	Neil Fortner
  *		nfortne2@hdfgroup.org
  *		Oct 20 2008
- *
- * Modifications:
- *	Vailin Choi; Nov 2012
- *	Fix a bug: use oh->nmesgs as the index to oh->mesg[] for the newly
- *	created NULL message; then increment oh->nmesgs.
  *
  *-------------------------------------------------------------------------
  */

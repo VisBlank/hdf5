@@ -552,10 +552,6 @@ H5FS_cache_hdr_size(const H5F_t UNUSED *f, const H5FS_t *fspace, size_t *size_pt
  *              koziol@ncsa.uiuc.edu
  *              July 31 2006
  *
- * Modifications:
- *	Vailin Choi; Dec 2012
- *	The call to H5FS_sect_add() will have the parameter "udata".
- *	This is the file space management change due to level 2 page caching.
  *-------------------------------------------------------------------------
  */
 static H5FS_sinfo_t *

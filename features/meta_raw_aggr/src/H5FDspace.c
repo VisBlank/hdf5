@@ -121,11 +121,6 @@ H5FD_space_init_interface(void)
  * Programmer:  Bill Wendling
  *              Wednesday, 04. December, 2002
  *
- * Modifications:
- *      Vailin Choi; April 2013
- *      Remove the two parameters for mis-aligned fragment.
- *      The fragment was handled in the MF layer.
- *	Do not handle alignment for paged aggregation.
  *-------------------------------------------------------------------------
  */
 static haddr_t
@@ -192,10 +187,6 @@ done:
  * Programmer:  Robb Matzke
  *              Wednesday, August  4, 1999
  *
- * Modifications:
- *      Vailin Choi; April 2013
- *      Remove the two parameters for mis-aligned fragment.
- *      The fragment was handled in the MF layer.
  *-------------------------------------------------------------------------
  */
 haddr_t
@@ -251,10 +242,6 @@ HDfprintf(stderr, "%s: ret_value = %a\n", FUNC, ret_value);
  * Programmer:  Quincey Koziol
  *              Friday, August 14, 2009
  *
- * Modifications:
- *      Vailin Choi; April 2013
- *      Remove the two parameters for mis-aligned fragment.
- *      The fragment was handled in the MF layer.
  *-------------------------------------------------------------------------
  */
 haddr_t
@@ -424,10 +411,6 @@ done:
  * Programmer:  Quincey Koziol
  *              Thursday, 17. January, 2008
  *
- * Modifications:
- *      Vailin Choi; April 2013
- *      Remove the two parameters to H5FD_extend() for mis-aligned fragment.
- *      The fragment was handled in the MF layer.
  *-------------------------------------------------------------------------
  */
 htri_t

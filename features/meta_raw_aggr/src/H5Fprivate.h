@@ -53,9 +53,6 @@ typedef enum H5F_mem_page_t {
     H5F_MEM_PAGE_NTYPES         /* Sentinel value - must be last */
 } H5F_mem_page_t;
 
-
-#define H5F_PAGED_AGGR(F) (f->shared->fs_strategy == H5F_FSPACE_STRATEGY_PAGE && f->shared->fsp_size)
-
 /* Block aggregation structure */
 typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
 
@@ -337,12 +334,11 @@ typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
 #define H5F_SET_STORE_MSG_CRT_IDX(F, FL)    ((F)->shared->store_msg_crt_idx = (FL))
 #define H5F_GRP_BTREE_SHARED(F) ((F)->shared->grp_btree_shared)
 #define H5F_SET_GRP_BTREE_SHARED(F, RC) (((F)->shared->grp_btree_shared = (RC)) ? SUCCEED : FAIL)
-#define H5F_USE_TMP_SPACE(F)    ((F)->shared->use_tmp_space)
-#define H5F_IS_TMP_ADDR(F, ADDR) (H5F_addr_le((F)->shared->tmp_addr, (ADDR)))
+#define H5F_USE_TMP_SPACE(F)    ((F)->shared->fs.use_tmp_space)
+#define H5F_IS_TMP_ADDR(F, ADDR) (H5F_addr_le((F)->shared->fs.tmp_addr, (ADDR)))
 #define H5F_ALIGNMENT(F)   	((F)->shared->alignment)
 #define H5F_THRESHOLD(F)   	((F)->shared->threshold)
-#define H5F_FSP_SIZE(F)    	((F)->shared->fsp_size)
-#define H5F_PGEND_META_THRES(F) ((F)->shared->pgend_meta_thres)
+#define H5F_PGEND_META_THRES(F) ((F)->shared->fs.pgend_meta_thres)
 #else /* H5F_PACKAGE */
 #define H5F_INTENT(F)           (H5F_get_intent(F))
 #define H5F_OPEN_NAME(F)        (H5F_get_open_name(F))
@@ -387,8 +383,7 @@ typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
 #define H5F_IS_TMP_ADDR(F, ADDR) (H5F_is_tmp_addr((F), (ADDR)))
 #define H5F_ALIGNMENT(F)    	(H5F_get_alignment(F))
 #define H5F_THRESHOLD(F)    	(H5F_get_threshold(F))
-#define H5F_FSP_SIZE(F)     		(H5F_get_fsp_size(F))
-#define H5F_PGEND_META_THRES(F)     	(H5F_get_pgend_meta_thres(F))
+#define H5F_PGEND_META_THRES(F) (H5F_get_pgend_meta_thres(F))
 #endif /* H5F_PACKAGE */
 
 
@@ -548,6 +543,8 @@ typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
 /* Default size for small data aggregation block (can be set via H5Pset_small_data_block_size()) */
 #define H5F_SDATA_BLOCK_SIZE_DEF	2048
 
+#define H5F_PAGED_AGGR(F) (f->shared->fs.strategy == H5F_FSPACE_STRATEGY_PAGE && f->shared->fs.page_size)
+
 /* Macros to define signatures of all objects in the file */
 
 /* Size of signature information (on disk) */
@@ -627,9 +624,7 @@ H5_DLL hid_t H5F_get_access_plist(H5F_t *f, hbool_t app_ref);
 H5_DLL hid_t H5F_get_id(H5F_t *file, hbool_t app_ref);
 H5_DLL herr_t H5F_get_obj_count(const H5F_t *f, unsigned types, hbool_t app_ref, size_t *obj_id_count_ptr);
 H5_DLL herr_t H5F_get_obj_ids(const H5F_t *f, unsigned types, size_t max_objs, hid_t *oid_list, hbool_t app_ref, size_t *obj_id_count_ptr);
-H5_DLL hsize_t H5F_get_fsp_size(const H5F_t *f);
 H5_DLL hsize_t H5F_get_pgend_meta_thres(const H5F_t *f);
-
 
 /* Functions than retrieve values set/cached from the superblock/FCPL */
 H5_DLL haddr_t H5F_get_base_addr(const H5F_t *f);

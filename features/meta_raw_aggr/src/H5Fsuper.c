@@ -387,13 +387,6 @@ done:
  *              koziol@ncsa.uiuc.edu
  *              Sept 15, 2003
  *
- * Modifications:
- *	Vailin Choi; Dec 2012
- *	Changes due to "page" file space management in support of level 2 page caching
- *
- *	Vailin Choi; Feb 2013
- * 	Create the "fsinfo" message with "mark if unknown" flag.
- *	Changes to handle file space info for paged aggregation.
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -409,8 +402,9 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
     H5O_loc_t       ext_loc;            /* Superblock extension object location */
     hbool_t         need_ext;           /* Whether the superblock extension is needed */
     hbool_t         ext_created = FALSE; /* Whether the extension has been created */
-    H5F_fspace_strategy_t	saved_fs_strategy = f->shared->fs_strategy;	/* The file space handling strategy */
-    hbool_t	    saved_fs_persist = f->shared->fs_persist;			/* The file space "persist" status */
+    H5F_fspace_strategy_t	saved_fs_strategy = f->shared->fs.strategy;	/* The original file space handling strategy */
+    hbool_t	    saved_fs_persist = f->shared->fs.persist;			/* The original file space "persist" status */
+    hbool_t         non_default_fs_settings = FALSE;    /* Whether the file has non-default free-space settings */
     herr_t          ret_value = SUCCEED; /* Return Value                              */
 
     FUNC_ENTER_NOAPI_TAG(dxpl_id, H5AC__SUPERBLOCK_TAG, FAIL)
@@ -437,56 +431,60 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
     if(H5P_get(plist, H5F_CRT_BTREE_RANK_NAME, &sblock->btree_k[0]) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get rank for btree internal nodes")
 
-    if(f->shared->fs_strategy == (H5F_fspace_strategy_t)(-1))	/* A default strategy set by user */
-	f->shared->fs_strategy = H5F_FILE_SPACE_STRATEGY_DEF;
-    else if(f->shared->latest_format && f->shared->fs_strategy == H5F_FILE_SPACE_STRATEGY_DEF) /* A library default strategy */
-	f->shared->fs_strategy = H5F_FSPACE_STRATEGY_PAGE;
+    if(f->shared->fs.strategy == (H5F_fspace_strategy_t)(-1))	/* A default strategy set by user */
+	f->shared->fs.strategy = H5F_FILE_SPACE_STRATEGY_DEF;
+    else if(f->shared->latest_format && f->shared->fs.strategy == H5F_FILE_SPACE_STRATEGY_DEF) /* A library default strategy */
+	f->shared->fs.strategy = H5F_FSPACE_STRATEGY_PAGE;
 
     /* The file space strategy is changed */
-    if(f->shared->fs_strategy != saved_fs_strategy) {
+    if(f->shared->fs.strategy != saved_fs_strategy) {
         H5P_genplist_t *c_plist;              /* Property list */
 
         if(NULL == (c_plist = (H5P_genplist_t *)H5I_object(f->shared->fcpl_id)))
             HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not property list")
-        if(H5P_set(c_plist, H5F_CRT_FILE_SPACE_STRATEGY_NAME, &f->shared->fs_strategy) < 0)
+        if(H5P_set(c_plist, H5F_CRT_FILE_SPACE_STRATEGY_NAME, &f->shared->fs.strategy) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set file space strategy")
-    }
+    } /* end if */
 
-    if(f->shared->fs_persist == (hbool_t)(-1))	/* A default "persist" set by user */
-	f->shared->fs_persist = H5F_FREE_SPACE_PERSIST_DEF;
-    else if(f->shared->latest_format && f->shared->fs_persist == H5F_FREE_SPACE_PERSIST_DEF) /* A library default "persist" */
-	f->shared->fs_persist = TRUE;
+    if(f->shared->fs.persist == (hbool_t)(-1))	/* A default "persist" set by user */
+	f->shared->fs.persist = H5F_FREE_SPACE_PERSIST_DEF;
+    else if(f->shared->latest_format && f->shared->fs.persist == H5F_FREE_SPACE_PERSIST_DEF) /* A library default "persist" */
+	f->shared->fs.persist = TRUE;
 
     /* The file space "persist" status is changed */
-    if(f->shared->fs_persist != saved_fs_persist) {
+    if(f->shared->fs.persist != saved_fs_persist) {
         H5P_genplist_t *c_plist;              /* Property list */
 
         if(NULL == (c_plist = (H5P_genplist_t *)H5I_object(f->shared->fcpl_id)))
             HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not property list")
-        if(H5P_set(c_plist, H5F_CRT_FREE_SPACE_PERSIST_NAME, &f->shared->fs_persist) < 0)
+        if(H5P_set(c_plist, H5F_CRT_FREE_SPACE_PERSIST_NAME, &f->shared->fs.persist) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set free space persist status")
-    }
+    } /* end if */
+
+    /* Check for non-default free-space settings */
+    if(!(f->shared->fs.strategy == H5F_FILE_SPACE_STRATEGY_DEF &&
+            f->shared->fs.persist == H5F_FREE_SPACE_PERSIST_DEF &&
+            f->shared->fs.threshold == H5F_FREE_SPACE_THRESHOLD_DEF &&
+	    f->shared->fs.page_size == H5F_FILE_SPACE_PAGE_SIZE_DEF))
+        non_default_fs_settings = TRUE;
 
     /* 
      *	When using the latest version of the format:
      *	-- Bump superblock version
      */
-    if(f->shared->latest_format) {
+    if(f->shared->latest_format)
         super_vers = HDF5_SUPERBLOCK_VERSION_LATEST;
     /* Bump superblock version to create superblock extension for SOHM info */
-    } else if(f->shared->sohm_nindexes > 0)
+    else if(f->shared->sohm_nindexes > 0)
         super_vers = HDF5_SUPERBLOCK_VERSION_2;
     /* 
      *	Bump superblock version to create superblock extension for:
      * 	-- non-default file space strategy or 
      * 	-- non-default persisting free-space or 
      *  -- non-default free-space threshold or
-     *  -- non-default fsp_size
+     *  -- non-default page_size
      */
-    else if(!(f->shared->fs_strategy == H5F_FILE_SPACE_STRATEGY_DEF &&
-            f->shared->fs_persist == H5F_FREE_SPACE_PERSIST_DEF &&
-            f->shared->fs_threshold == H5F_FREE_SPACE_THRESHOLD_DEF &&
-	    f->shared->fsp_size == H5F_FILE_SPACE_PAGE_SIZE_DEF))
+    else if(non_default_fs_settings)
         super_vers = HDF5_SUPERBLOCK_VERSION_2;
     /* Check for non-default indexed storage B-tree internal 'K' value
      * and set the version # of the superblock to 1 if it is a non-default
@@ -520,12 +518,12 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
     /* Sanity check the userblock size vs. the file's allocation alignment */
     if(userblock_size > 0) {
 	/* Set up the alignment to use for page or aggr fs */
-	hsize_t alignment = H5F_PAGED_AGGR(f) ? f->shared->fsp_size : f->shared->alignment;
+	hsize_t alignment = H5F_PAGED_AGGR(f) ? f->shared->fs.page_size : f->shared->alignment;
 
         if(userblock_size < alignment)
-            HGOTO_ERROR(H5E_FILE, H5E_BADVALUE, FAIL, "userblock size must be > file object alignment")
+            HGOTO_ERROR(H5E_FILE, H5E_BADVALUE, FAIL, "userblock size (of %Hu) must be > file object alignment (of %Hu)", userblock_size, alignment)
         if(0 != (userblock_size % alignment))
-            HGOTO_ERROR(H5E_FILE, H5E_BADVALUE, FAIL, "userblock size must be an integral multiple of file object alignment")
+            HGOTO_ERROR(H5E_FILE, H5E_BADVALUE, FAIL, "userblock size (of %Hu) must be an integral multiple of file object alignment (of %Hu)", userblock_size, alignment)
     } /* end if */
 
     sblock->base_addr = userblock_size;
@@ -534,7 +532,7 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
     /* Reserve space for the userblock */
     if(H5FD_set_eoa(f->shared->lf, H5FD_MEM_SUPER, userblock_size) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "unable to set EOA value for userblock")
-   
+
     /* Set the base address for the file in the VFD now, after allocating
      *  space for userblock.
      */
@@ -590,13 +588,10 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
         need_ext = TRUE;
     } /* end if */
     /* Files with non-default free space settings always need the superblock extension */
-    else if(!(f->shared->fs_strategy == H5F_FILE_SPACE_STRATEGY_DEF &&
-            f->shared->fs_persist == H5F_FREE_SPACE_PERSIST_DEF &&
-            f->shared->fs_threshold == H5F_FREE_SPACE_THRESHOLD_DEF &&
-	    f->shared->fsp_size == H5F_FILE_SPACE_PAGE_SIZE_DEF)) {
+    else if(non_default_fs_settings) {
         HDassert(super_vers >= HDF5_SUPERBLOCK_VERSION_2);
         need_ext = TRUE;
-    }
+    } /* end if */
     /* If we're going to use a version of the superblock format which allows
      *  for the superblock extension, check for non-default values to store
      *  in it.
@@ -673,25 +668,20 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
         } /* end if */
 
         /* Check for non-default free-space info settings */
-	if(!(f->shared->fs_strategy == H5F_FILE_SPACE_STRATEGY_DEF &&
-            f->shared->fs_persist == H5F_FREE_SPACE_PERSIST_DEF &&
-            f->shared->fs_threshold == H5F_FREE_SPACE_THRESHOLD_DEF &&
-	    f->shared->fsp_size == H5F_FILE_SPACE_PAGE_SIZE_DEF)) {
-
-            H5O_fsinfo_t fsinfo;	/* Free space manager info message */
+	if(non_default_fs_settings) {
 	    H5FD_mem_t   type; 		/* Free-space types for iteration */
+            H5O_fsinfo_t fsinfo;	/* Free space manager info message */
 
 	    /* Write free-space manager info message to superblock extension object header if needed */
-	    fsinfo.version = H5O_FSINFO_VERSION_0;
-	    fsinfo.strategy = f->shared->fs_strategy;
-	    fsinfo.persist = f->shared->fs_persist;
-	    fsinfo.threshold = f->shared->fs_threshold;
-	    fsinfo.fsp_size = f->shared->fsp_size;
-	    fsinfo.last_small = f->shared->last_small;
-	    fsinfo.pgend_meta_thres = f->shared->pgend_meta_thres;
+	    fsinfo.strategy = f->shared->fs.strategy;
+	    fsinfo.persist = f->shared->fs.persist;
+	    fsinfo.threshold = f->shared->fs.threshold;
+	    fsinfo.page_size = f->shared->fs.page_size;
+	    fsinfo.last_small = f->shared->fs.last_small;
+	    fsinfo.pgend_meta_thres = f->shared->fs.pgend_meta_thres;
 
 	    for(type = H5FD_MEM_SUPER; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type))
-		fsinfo.fs_addr[type-1] = HADDR_UNDEF;
+		fsinfo.fs_addr[type - 1] = HADDR_UNDEF;
 
             if(H5O_msg_create(&ext_loc, H5O_FSINFO_ID, H5O_MSG_FLAG_DONTSHARE|H5O_MSG_FLAG_MARK_IF_UNKNOWN, H5O_UPDATE_TIME, &fsinfo, dxpl_id) < 0)
                 HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "unable to update free-space info header message")
@@ -862,9 +852,6 @@ done:
  *
  * Programmer:  Vailin Choi; Feb 2009
  *
- * Modifications:
- *	Vailin Choi; Feb 2013
- *	Create the message with the specified "mesg_flags".
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -996,3 +983,4 @@ done:
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5F_super_ext_remove_msg() */
+

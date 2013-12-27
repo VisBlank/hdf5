@@ -604,16 +604,14 @@ typedef unsigned H5O_unknown_t;         /* Original message type ID */
  * addresses of free space managers for file memory
  * (Data structure in memory)
  */
-#define H5O_FSINFO_VERSION_0  0
 typedef struct H5O_fsinfo_t {
-    unsigned 	     		version;	/* Version of message */
     H5F_fspace_strategy_t 	strategy;	/* File space strategy */
     hbool_t			persist;	/* Persisting free-space or not */
     hsize_t	  		threshold;	/* Free-space section threshold */
-    hsize_t	  		fsp_size;	/* For paged aggregation: file space page size */
+    hsize_t	  		page_size;	/* For paged aggregation: file space page size */
     size_t			pgend_meta_thres;	/* For paged aggregation: page end metadata threshold */
     unsigned char		last_small;		/* For paged aggregation: EOF file space section type */
-    haddr_t			fs_addr[H5FD_MEM_NTYPES-1];	/* For non-paged aggregation: 6 addresses of free-space managers */
+    haddr_t			fs_addr[H5FD_MEM_NTYPES - 1];	/* For non-paged aggregation: 6 addresses of free-space managers */
 							/* For paged aggregation: 3 address of free-space managers, remaining 3 should be undefined */
 } H5O_fsinfo_t;
 
@@ -621,11 +619,6 @@ typedef struct H5O_fsinfo_t {
 typedef herr_t (*H5O_operator_t)(const void *mesg/*in*/, unsigned idx,
     void *operator_data/*in,out*/);
 
-#ifdef OUT
-/* Typedef for "internal library" iteration operations */
-typedef herr_t (*H5O_lib_operator_t)(H5O_t *oh, H5O_mesg_t *mesg/*in,out*/,
-    unsigned sequence, hbool_t *oh_modified/*out*/, void *operator_data/*in,out*/);
-#endif
 /* Typedef for "internal library" iteration operations */
 typedef herr_t (*H5O_lib_operator_t)(H5O_t *oh, H5O_mesg_t *mesg/*in,out*/,
     unsigned sequence, unsigned *oh_modified/*out*/, void *operator_data/*in,out*/);
@@ -735,7 +728,7 @@ H5_DLL void* H5O_msg_decode(H5F_t *f, hid_t dxpl_id, H5O_t *open_oh,
 H5_DLL herr_t H5O_msg_delete(H5F_t *f, hid_t dxpl_id, H5O_t *open_oh,
     unsigned type_id, void *mesg);
 H5_DLL int H5O_msg_get_chunkno(const H5O_loc_t *loc, unsigned type_id, hid_t dxpl_id);
-H5_DLL uint8_t H5O_msg_get_flags(const H5O_loc_t *loc, unsigned type_id, hid_t dxpl_id);
+H5_DLL herr_t H5O_msg_get_flags(const H5O_loc_t *loc, unsigned type_id, hid_t dxpl_id, uint8_t *flags);
 H5_DLL herr_t H5O_msg_lock(const H5O_loc_t *loc, unsigned type_id, hid_t dxpl_id);
 H5_DLL herr_t H5O_msg_unlock(const H5O_loc_t *loc, unsigned type_id, hid_t dxpl_id);
 

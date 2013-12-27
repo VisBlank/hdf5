@@ -1042,7 +1042,7 @@ H5F_is_tmp_addr(const H5F_t *f, haddr_t addr)
     HDassert(f);
     HDassert(f->shared);
 
-    FUNC_LEAVE_NOAPI(H5F_addr_le(f->shared->tmp_addr, addr))
+    FUNC_LEAVE_NOAPI(H5F_addr_le(f->shared->fs.tmp_addr, addr))
 } /* end H5F_is_tmp_addr() */
 
 
@@ -1070,9 +1070,10 @@ H5F_use_tmp_space(const H5F_t *f)
     HDassert(f);
     HDassert(f->shared);
 
-    FUNC_LEAVE_NOAPI(f->shared->use_tmp_space)
+    FUNC_LEAVE_NOAPI(f->shared->fs.use_tmp_space)
 } /* end H5F_use_tmp_space() */
 
+
 /*-------------------------------------------------------------------------
  * Function:	H5F_get_alignment
  *
@@ -1098,6 +1099,7 @@ H5F_get_alignment(const H5F_t *f)
     FUNC_LEAVE_NOAPI(f->shared->alignment)
 } /* end H5F_get_alignment() */
 
+
 /*-------------------------------------------------------------------------
  * Function:	H5F_get_threshold
  *
@@ -1123,31 +1125,7 @@ H5F_get_threshold(const H5F_t *f)
     FUNC_LEAVE_NOAPI(f->shared->threshold)
 } /* end H5F_get_threshold() */
 
-/*-------------------------------------------------------------------------
- * Function:	H5F_get_fsp_size
- *
- * Purpose:	Retrieve the 'file space page size' for the file.
- *
- * Return:	Success:	Non-negative, the 'file space page size'
- *
- * 		Failure:	(can't happen)
- *
- * Programmer:	Vailin Choi; Dec 2012
- *
- *-------------------------------------------------------------------------
- */
-hsize_t
-H5F_get_fsp_size(const H5F_t *f)
-{
-    /* Use FUNC_ENTER_NOAPI_NOINIT_NOERR here to avoid performance issues */
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
-
-    HDassert(f);
-    HDassert(f->shared);
-
-    FUNC_LEAVE_NOAPI(f->shared->fsp_size)
-} /* end H5F_get_fsp_size() */
-
+
 /*-------------------------------------------------------------------------
  * Function:	H5F_get_pgend_meta_thres
  *
@@ -1170,5 +1148,6 @@ H5F_get_pgend_meta_thres(const H5F_t *f)
     HDassert(f);
     HDassert(f->shared);
 
-    FUNC_LEAVE_NOAPI(f->shared->pgend_meta_thres)
+    FUNC_LEAVE_NOAPI(f->shared->fs.pgend_meta_thres)
 } /* end H5F_get_pgend_meta_thres() */
+

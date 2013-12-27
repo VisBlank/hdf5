@@ -209,8 +209,6 @@ H5_DLL herr_t H5FS_sect_change_class(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace,
 H5_DLL htri_t H5FS_sect_try_shrink_eoa(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace, void *op_data);
 H5_DLL herr_t H5FS_sect_query_last(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace, haddr_t *sect_addr, hsize_t *sect_size);
 
-
-
 /* Statistics routine */
 H5_DLL herr_t H5FS_stat_info(const H5F_t *f, const H5FS_t *frsp, H5FS_stat_t *stats);
 

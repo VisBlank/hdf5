@@ -807,10 +807,6 @@ done:
  * Programmer:	Quincey Koziol
  *              Thursday, July 27, 2006
  *
- * Modifications:
- *	Vailin Choi; Dec 2012
- *	Changes to the first parameter for the "add" method to H5FS_section_class_t
- *	due to the "page" file space management.
  *-------------------------------------------------------------------------
  */
 static herr_t
@@ -949,10 +945,6 @@ done:
  * Programmer:	Quincey Koziol
  *              Wednesday, May 17, 2006
  *
- * Modifications:
- *	Vailin Choi; Dec 2012
- *	Changes to the first parameter for the "merge" method to H5FS_section_class_t
- *	due to the "page" file space management.
  *-------------------------------------------------------------------------
  */
 static herr_t
@@ -1775,10 +1767,6 @@ done:
  * Programmer:	Quincey Koziol
  *              Thursday, July  6, 2006
  *
- * Modifications:
- *	Vailin Choi; Dec 2012
- *	Changes to the first parameter for the "merge" method to H5FS_section_class_t
- *	due to the "page" file space management.
  *-------------------------------------------------------------------------
  */
 static herr_t

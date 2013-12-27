@@ -108,14 +108,6 @@ H5FL_EXTERN(H5F_super_t);
  *              mamcgree@hdfgroup.org
  *              April 8, 2009
  *
- * Modifications:
- *	Vailin Choi; Dec 2012
- * 	Modifications due to "page" file space management.
- *	
- *	Vailin Choi; Feb 2013
- *	Check whether file space info message is marked as "unknown".
- *	If marked, use default file space management.
- *	Otherwise, set up file space info as specified by the message.
  *-------------------------------------------------------------------------
  */
 static H5F_super_t *
@@ -586,7 +578,7 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, void *_udata)
 	    uint8_t flags;		/* Message flags */
 
 	    /* Get message flags */
-	    if((flags = H5O_msg_get_flags(&ext_loc, H5O_FSINFO_ID, dxpl_id)) == (uint8_t)-1)
+	    if(H5O_msg_get_flags(&ext_loc, H5O_FSINFO_ID, dxpl_id, &flags) < 0)
                 HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, NULL, "unable to message flags for free-space manager info message")
 
 	    /* If message is NOT marked "unknown"--set up file space info  */
@@ -596,60 +588,52 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, void *_udata)
 		if(NULL == H5O_msg_read(&ext_loc, H5O_FSINFO_ID, &fsinfo, dxpl_id))
 		    HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, NULL, "unable to get free-space manager info message")
 
-		if(shared->fs_strategy != fsinfo.strategy) {
-		    shared->fs_strategy = fsinfo.strategy;
+                /* Update changed values */
+		if(shared->fs.strategy != fsinfo.strategy) {
+		    shared->fs.strategy = fsinfo.strategy;
 
 		    /* Set non-default strategy in the property list */
 		    if(H5P_set(c_plist, H5F_CRT_FILE_SPACE_STRATEGY_NAME, &fsinfo.strategy) < 0)
 			HGOTO_ERROR(H5E_FILE, H5E_CANTSET, NULL, "unable to set file space strategy")
 		} /* end if */
-
-		if(shared->fs_persist != fsinfo.persist) {
-		    shared->fs_persist = fsinfo.persist;
+		if(shared->fs.persist != fsinfo.persist) {
+		    shared->fs.persist = fsinfo.persist;
 
 		    /* Set non-default strategy in the property list */
 		    if(H5P_set(c_plist, H5F_CRT_FREE_SPACE_PERSIST_NAME, &fsinfo.persist) < 0)
 			HGOTO_ERROR(H5E_FILE, H5E_CANTSET, NULL, "unable to set file space strategy")
 		} /* end if */
-
-		if(shared->fs_threshold != fsinfo.threshold) {
-		    shared->fs_threshold = fsinfo.threshold;
+		if(shared->fs.threshold != fsinfo.threshold) {
+		    shared->fs.threshold = fsinfo.threshold;
 
 		    /* Set non-default threshold in the property list */
 		    if(H5P_set(c_plist, H5F_CRT_FREE_SPACE_THRESHOLD_NAME, &fsinfo.threshold) < 0)
 			HGOTO_ERROR(H5E_FILE, H5E_CANTSET, NULL, "unable to set file space strategy")
 		} /* end if */
-
-		if(shared->fsp_size != fsinfo.fsp_size) {
-		    shared->fsp_size = fsinfo.fsp_size;
+		if(shared->fs.page_size != fsinfo.page_size) {
+		    shared->fs.page_size = fsinfo.page_size;
 
 		    /* Set file space page size in the property list */
-		    if(H5P_set(c_plist, H5F_CRT_FILE_SPACE_PAGE_SIZE_NAME, &fsinfo.fsp_size) < 0)
+		    if(H5P_set(c_plist, H5F_CRT_FILE_SPACE_PAGE_SIZE_NAME, &fsinfo.page_size) < 0)
 			HGOTO_ERROR(H5E_FILE, H5E_CANTSET, NULL, "unable to set file space page size")
 		} /* end if */
-
-		if(shared->last_small != fsinfo.last_small)
+		if(shared->fs.last_small != fsinfo.last_small)
 		    /* Initialize the tracking of last section at EOF */
-		    shared->last_small = shared->track_last_small = fsinfo.last_small;
-
-		if(shared->pgend_meta_thres != fsinfo.pgend_meta_thres)
+		    shared->fs.last_small = shared->fs.track_last_small = fsinfo.last_small;
+		if(shared->fs.pgend_meta_thres != fsinfo.pgend_meta_thres)
 		    /* Initialize page end meta threshold */
-		    shared->pgend_meta_thres = fsinfo.pgend_meta_thres;
+		    shared->fs.pgend_meta_thres = fsinfo.pgend_meta_thres;
 
 		/* set free-space manager addresses */
-		if(fsinfo.strategy == H5F_FSPACE_STRATEGY_PAGE && fsinfo.fsp_size) {
-		    for(u = 0; u < (NELMTS(f->shared->fs_addr) - 1); u++) {
-			shared->fs_addr[u] = fsinfo.fs_addr[u];
-		    } /* end for */
-		} else {
-		    shared->fs_addr[0] = HADDR_UNDEF;
-		    for(u = 1; u < NELMTS(f->shared->fs_addr); u++)
-			shared->fs_addr[u] = fsinfo.fs_addr[u-1];
-		} 
-#ifdef TEMP_OUT
-		if(H5FD_set_paged_aggr(lf, (hbool_t)H5F_PAGED_AGGR(f)) < 0)
-		    HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "failed to set paged_aggr status for file driver")
-#endif
+		if(fsinfo.strategy == H5F_FSPACE_STRATEGY_PAGE && fsinfo.page_size) {
+		    for(u = 0; u < (NELMTS(f->shared->fs.man_addr) - 1); u++)
+			shared->fs.man_addr[u] = fsinfo.fs_addr[u];
+		} /* end if */
+                else {
+		    shared->fs.man_addr[0] = HADDR_UNDEF;
+		    for(u = 1; u < NELMTS(f->shared->fs.man_addr); u++)
+			shared->fs.man_addr[u] = fsinfo.fs_addr[u - 1];
+		} /* end else */
 	    } /* end if not marked "unknown" */
 	} /* end if status */
 
@@ -660,6 +644,7 @@ H5F_sblock_load(H5F_t *f, hid_t dxpl_id, haddr_t UNUSED addr, void *_udata)
 
     if(H5FD_set_paged_aggr(lf, (hbool_t)H5F_PAGED_AGGR(f)) < 0)
 	HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "failed to set paged_aggr status for file driver")
+
     /* Set return value */
     ret_value = sblock;
 

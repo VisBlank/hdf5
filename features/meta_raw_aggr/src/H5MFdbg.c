@@ -13,8 +13,6 @@
  * access to either file, you may request a copy from help@hdfgroup.org.     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/* NOTE: NEED WORK ON THIS */
-
 /*-------------------------------------------------------------------------
  *
  * Created:             H5MFdbg.c
@@ -118,7 +116,9 @@ H5MF_sects_debug_cb(H5FS_section_info_t *_sect, void *_udata)
     /* Print generic section information */
     HDfprintf(udata->stream, "%*s%-*s %s\n", udata->indent, "", udata->fwidth,
 	      "Section type:",
-	      (sect->sect_info.type == H5MF_FSPACE_SECT_SIMPLE ? "simple" : "unknown"));
+	      (sect->sect_info.type == H5MF_FSPACE_SECT_SIMPLE ? "simple" : 
+                  (sect->sect_info.type == H5MF_FSPACE_SECT_SMALL ? "small" : 
+                      (sect->sect_info.type == H5MF_FSPACE_SECT_LARGE ? "large" : "unknown"))));
     HDfprintf(udata->stream, "%*s%-*s %a\n", udata->indent, "", udata->fwidth,
 	      "Section address:",
 	      sect->sect_info.addr);
@@ -170,33 +170,31 @@ H5MF_sects_debug(H5F_t *f, hid_t dxpl_id, haddr_t fs_addr, FILE *stream, int ind
     HDassert(indent >= 0);
     HDassert(fwidth >= 0);
 
-    for(type = H5FD_MEM_DEFAULT; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type)) {
-
-	if(H5F_addr_eq(f->shared->fs_addr[type], fs_addr)) {
-	    if(!f->shared->fs_man[type])
+    for(type = H5FD_MEM_DEFAULT; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type))
+	if(H5F_addr_eq(f->shared->fs.man_addr[type], fs_addr)) {
+	    if(!f->shared->fs.man[type])
 		if(H5MF_open_fstype(f, dxpl_id, type) < 0)
 		    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINIT, FAIL, "can't initialize file free space")
 
-	    if(f->shared->fs_man[type]) {
+	    if(f->shared->fs.man[type]) {
 		H5MF_debug_iter_ud_t udata;        /* User data for callbacks */
 
 		/* Prepare user data for section iteration callback */
-		udata.fspace = f->shared->fs_man[type];
+		udata.fspace = f->shared->fs.man[type];
 		udata.stream = stream;
 		udata.indent = indent;
 		udata.fwidth = fwidth;
 
 		/* Iterate over all the free space sections */
-		if(H5FS_sect_iterate(f, dxpl_id, f->shared->fs_man[type], H5MF_sects_debug_cb, &udata) < 0)
+		if(H5FS_sect_iterate(f, dxpl_id, f->shared->fs.man[type], H5MF_sects_debug_cb, &udata) < 0)
 		    HGOTO_ERROR(H5E_HEAP, H5E_BADITER, FAIL, "can't iterate over heap's free space")
 
 		/* Close the free space information */
-		if(H5FS_close(f, dxpl_id, f->shared->fs_man[type]) < 0)
+		if(H5FS_close(f, dxpl_id, f->shared->fs.man[type]) < 0)
 		    HGOTO_ERROR(H5E_HEAP, H5E_CANTRELEASE, FAIL, "can't release free space info")
 	    } /* end if */
 	    break;
-	}
-    } /* end for */
+	} /* end if */
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -215,22 +213,12 @@ done:
  *		koziol@hdfgroup.org
  *		Jan 31 2008
  *
- * Modifications:
- *	Vailin Choi; Jan 2013
- *	Add printing of section information for free-space managers 
- *	when paged aggregation is enabled.
  *-------------------------------------------------------------------------
  */
 herr_t
 H5MF_sects_dump(H5F_t *f, hid_t dxpl_id, FILE *stream)
 {
     haddr_t eoa;                        /* End of allocated space in the file */
-    haddr_t ma_addr = HADDR_UNDEF;      /* Base "metadata aggregator" address */
-    hsize_t ma_size = 0;                /* Size of "metadata aggregator" */
-    haddr_t sda_addr = HADDR_UNDEF;     /* Base "small data aggregator" address */
-    hsize_t sda_size = 0;               /* Size of "small data aggregator" */
-    H5FD_mem_t atype;                   /* Memory type for iteration -- aggr fs */
-    H5F_mem_page_t ptype;		/* Memory type for iteration -- page fs */
     int indent = 0;                     /* Amount to indent */
     int fwidth = 50;                    /* Field width */
     herr_t ret_value = SUCCEED;         /* Return value */
@@ -254,6 +242,7 @@ HDfprintf(stderr, "%s: for type = H5FD_MEM_DEFAULT, eoa = %a\n", FUNC, eoa);
 #endif /* H5MF_ALLOC_DEBUG */
 
     if(H5F_PAGED_AGGR(f)) { /* File space paging */
+        H5F_mem_page_t ptype;		/* Memory type for iteration -- page fs */
 
 	for(ptype = H5F_MEM_PAGE_META; ptype < H5F_MEM_PAGE_NTYPES; H5_INC_ENUM(H5F_mem_page_t, ptype)) {
 	    /* Print header for type */
@@ -276,13 +265,16 @@ HDfprintf(stderr, "%s: for type = H5FD_MEM_DEFAULT, eoa = %a\n", FUNC, eoa);
 		if(H5FS_sect_iterate(f, dxpl_id, f->shared->fs_man[ptype], H5MF_sects_debug_cb, &udata) < 0)
 		    HGOTO_ERROR(H5E_HEAP, H5E_BADITER, FAIL, "can't iterate over heap's free space")
 	    } /* end if */
-	    else {
-		/* No sections of this type */
+	    else /* No sections of this type */
 		HDfprintf(stream, "%*s<none>\n", indent + 6, "");
-	    } /* end else */
 	} /* end for */
-
-    } else { /* not file space paging */
+    } /* end if */
+    else { /* not file space paging */
+        H5FD_mem_t atype;                   /* Memory type for iteration -- aggr fs */
+        haddr_t ma_addr = HADDR_UNDEF;      /* Base "metadata aggregator" address */
+        hsize_t ma_size = 0;                /* Size of "metadata aggregator" */
+        haddr_t sda_addr = HADDR_UNDEF;     /* Base "small data aggregator" address */
+        hsize_t sda_size = 0;               /* Size of "small data aggregator" */
 
 	/* Retrieve metadata aggregator info, if available */
 	H5MF_aggr_query(f, &(f->shared->meta_aggr), &ma_addr, &ma_size);
@@ -325,16 +317,13 @@ HDfprintf(stderr, "%s: sda_addr = %a, sda_size = %Hu, end of sda = %a\n", FUNC, 
 		    if(H5FS_sect_iterate(f, dxpl_id, f->shared->fs_man[atype], H5MF_sects_debug_cb, &udata) < 0)
 			HGOTO_ERROR(H5E_HEAP, H5E_BADITER, FAIL, "can't iterate over heap's free space")
 		} /* end if */
-		else {
-		    /* No sections of this type */
+		else /* No sections of this type */
 		    HDfprintf(stream, "%*s<none>\n", indent + 6, "");
-		} /* end else */
 	    } /* end if */
-	    else {
+	    else
 		HDfprintf(stream, "%*sMapped to type = %u\n", indent, "", (unsigned)f->shared->fs_type_map[atype]);
-	    } /* end else */
 	} /* end for */
-    } /* not page fs */
+    } /* end else */
 
 done:
 HDfprintf(stderr, "%s: Done dumping file free space sections\n", FUNC);

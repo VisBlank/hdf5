@@ -2803,7 +2803,7 @@ main(void)
 
     /* Seed random #'s */
     curr_time = HDtime(NULL);
-    HDsrandom((unsigned long)curr_time);
+    HDsrandom((unsigned)curr_time);
 
     /* Create an empty file to retrieve size */
     {

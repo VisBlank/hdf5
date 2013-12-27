@@ -60,29 +60,29 @@
 /* For paged aggregation: map allocation request type to tracked free-space type */
 /* F -- pointer to H5F_t; T -- allocation type (H5FD_mem_t); S -- size of allocation request */
 #define H5MF_ALLOC_TO_FS_PAGE_TYPE(F, T, S)                                                     	\
-        ( S >= (F)->shared->fsp_size ? H5F_MEM_PAGE_GENERIC :                                           	\
+        ( (S >= (F)->shared->fs.page_size) ? H5F_MEM_PAGE_GENERIC :                                     \
         ( ((T == H5FD_MEM_DRAW || T == H5FD_MEM_GHEAP) ? H5F_MEM_PAGE_RAW : H5F_MEM_PAGE_META) ))
 
 /* For non-paged aggregation: map allocation request type to tracked free-space type */
 /* F -- pointer to H5F_t; T -- H5FD_mem_t */
 #define H5MF_ALLOC_TO_FS_AGGR_TYPE(F, T)                                        \
-        ((H5FD_MEM_DEFAULT == (F)->shared->fs_type_map[T])                      \
-        ? (T) : (F)->shared->fs_type_map[T])
+        ((H5FD_MEM_DEFAULT == (F)->shared->fs.type_map[T])                      \
+            ? (T) : (F)->shared->fs.type_map[T])
 
 /* Get section class type based on size */
 #define H5MF_SECT_CLASS_TYPE(F, S)      					\
-((H5F_PAGED_AGGR(F)) ? ((S >= (F)->shared->fsp_size) ? H5MF_FSPACE_SECT_LARGE : H5MF_FSPACE_SECT_SMALL) : H5MF_FSPACE_SECT_SIMPLE)
+((H5F_PAGED_AGGR(F)) ? ((S >= (F)->shared->fs.page_size) ? H5MF_FSPACE_SECT_LARGE : H5MF_FSPACE_SECT_SMALL) : H5MF_FSPACE_SECT_SIMPLE)
 
 /* Get section class cls */
 #define H5MF_SECT_CLS_TYPE(F, S)      						\
-((H5F_PAGED_AGGR(F)) ? ((S >= (F)->shared->fsp_size) ? H5MF_FSPACE_SECT_CLS_LARGE : H5MF_FSPACE_SECT_CLS_SMALL) : H5MF_FSPACE_SECT_CLS_SIMPLE)
+((H5F_PAGED_AGGR(F)) ? ((S >= (F)->shared->fs.page_size) ? H5MF_FSPACE_SECT_CLS_LARGE : H5MF_FSPACE_SECT_CLS_SMALL) : H5MF_FSPACE_SECT_CLS_SIMPLE)
 
 /* For paged aggregation : map tracked free-space type PT (H5F_mem_page_t) to allocation type */
 #define H5MF_PAGE_TO_ALLOC_TYPE(PT)                                           	\
 ( (PT == H5F_MEM_PAGE_META) ? H5FD_MEM_SUPER : ((PT == H5F_MEM_PAGE_RAW) ? H5FD_MEM_DRAW : H5FD_MEM_DEFAULT) )
 
 /* Calculate the mis-aligned fragment */
-#define H5MF_EOA_MISALIGN(F, E, A, FR){				\
+#define H5MF_EOA_MISALIGN(F, E, A, FR) {			\
     hsize_t m;							\
     if(H5F_addr_gt(E, 0) && (m = (E + H5F_BASE_ADDR(F)) % A))	\
         FR = A - m;						\

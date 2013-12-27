@@ -96,10 +96,10 @@
 #define H5F_CRT_SHMSG_BTREE_MIN_ENC     H5P__encode_unsigned
 #define H5F_CRT_SHMSG_BTREE_MIN_DEC     H5P__decode_unsigned
 /* Definitions for file space handling strategy */
-#define H5F_CRT_FILE_SPACE_STRATEGY_SIZE        sizeof(unsigned)
+#define H5F_CRT_FILE_SPACE_STRATEGY_SIZE        sizeof(H5F_fspace_strategy_t)
 #define H5F_CRT_FILE_SPACE_STRATEGY_DEF         H5F_FILE_SPACE_STRATEGY_DEF
-#define H5F_CRT_FILE_SPACE_STRATEGY_ENC         H5P__encode_unsigned
-#define H5F_CRT_FILE_SPACE_STRATEGY_DEC         H5P__decode_unsigned
+#define H5F_CRT_FILE_SPACE_STRATEGY_ENC         H5P__fcrt_fspace_strategy_enc
+#define H5F_CRT_FILE_SPACE_STRATEGY_DEC         H5P__fcrt_fspace_strategy_dec
 #define H5F_CRT_FREE_SPACE_PERSIST_SIZE         sizeof(hbool_t)
 #define H5F_CRT_FREE_SPACE_PERSIST_DEF          H5F_FREE_SPACE_PERSIST_DEF
 #define H5F_CRT_FREE_SPACE_PERSIST_ENC          H5P__encode_hbool_t
@@ -139,6 +139,8 @@ static herr_t H5P__fcrt_shmsg_index_types_enc(const void *value, void **_pp, siz
 static herr_t H5P__fcrt_shmsg_index_types_dec(const void **_pp, void *value);
 static herr_t H5P__fcrt_shmsg_index_minsize_enc(const void *value, void **_pp, size_t *size);
 static herr_t H5P__fcrt_shmsg_index_minsize_dec(const void **_pp, void *value);
+static herr_t H5P__fcrt_fspace_strategy_enc(const void *value, void **_pp, size_t *size);
+static herr_t H5P__fcrt_fspace_strategy_dec(const void **_pp, void *_value);
 
 
 /*********************/
@@ -183,7 +185,7 @@ static const unsigned H5F_def_sohm_index_flags_g[H5O_SHMESG_MAX_NINDEXES]    = H
 static const unsigned H5F_def_sohm_index_minsizes_g[H5O_SHMESG_MAX_NINDEXES] = H5F_CRT_SHMSG_INDEX_MINSIZE_DEF;
 static const unsigned H5F_def_sohm_list_max_g  = H5F_CRT_SHMSG_LIST_MAX_DEF;
 static const unsigned H5F_def_sohm_btree_min_g  = H5F_CRT_SHMSG_BTREE_MIN_DEF;
-static const unsigned H5F_def_file_space_strategy_g = H5F_CRT_FILE_SPACE_STRATEGY_DEF;
+static const H5F_fspace_strategy_t H5F_def_file_space_strategy_g = H5F_CRT_FILE_SPACE_STRATEGY_DEF;
 static const hbool_t H5F_def_free_space_persist_g = H5F_CRT_FREE_SPACE_PERSIST_DEF;
 static const hsize_t H5F_def_free_space_threshold_g = H5F_CRT_FREE_SPACE_THRESHOLD_DEF;
 static const hsize_t H5F_def_file_space_page_size_g = H5F_CRT_FILE_SPACE_PAGE_SIZE_DEF;
@@ -1299,7 +1301,7 @@ H5Pset_file_space_strategy(hid_t plist_id, H5F_fspace_strategy_t strategy, hbool
     H5TRACE4("e", "iFfbh", plist_id, strategy, persist, threshold);
 
     /* Check arguments */
-    if(strategy <= H5F_FSPACE_STRATEGY_ERROR || strategy >= H5F_FSPACE_STRATEGY_NTYPES)
+    if(strategy < H5F_FSPACE_STRATEGY_AGGR || strategy >= H5F_FSPACE_STRATEGY_NTYPES)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "invalid strategy")
 
     /* Get the plist structure */
@@ -1309,13 +1311,11 @@ H5Pset_file_space_strategy(hid_t plist_id, H5F_fspace_strategy_t strategy, hbool
     /* Set value(s), if non-zero */
     if(strategy == H5F_CRT_FILE_SPACE_STRATEGY_DEF)
 	strategy = (H5F_fspace_strategy_t)(-1);
-
     if(H5P_set(plist, H5F_CRT_FILE_SPACE_STRATEGY_NAME, &strategy) < 0)
 	HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't set file space strategy")
 
     if(persist == H5F_CRT_FREE_SPACE_PERSIST_DEF) /* A default "persist" set by user */
 	persist = (hbool_t)(-1);
-
     if(H5P_set(plist, H5F_CRT_FREE_SPACE_PERSIST_NAME, &persist) < 0)
 	HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't set free-space persisting status")
 
@@ -1359,14 +1359,14 @@ H5Pget_file_space_strategy(hid_t plist_id, H5F_fspace_strategy_t *strategy, hboo
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get file space strategy")
 	if(*strategy == (H5F_fspace_strategy_t)(-1))
             *strategy = H5F_CRT_FILE_SPACE_STRATEGY_DEF;
-    }
+    } /* end if */
 
     if(persist) {
         if(H5P_get(plist, H5F_CRT_FREE_SPACE_PERSIST_NAME, persist) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get free-space persisting status")
 	if(*persist == (hbool_t)(-1))
             *persist = H5F_CRT_FREE_SPACE_PERSIST_DEF;
-    }
+    } /* end if */
 
     if(threshold)
         if(H5P_get(plist, H5F_CRT_FREE_SPACE_THRESHOLD_NAME, threshold) < 0)
@@ -1375,6 +1375,79 @@ H5Pget_file_space_strategy(hid_t plist_id, H5F_fspace_strategy_t *strategy, hboo
 done:
     FUNC_LEAVE_API(ret_value)
 } /* H5Pget_file_space_strategy() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:       H5P__fcrt_fspace_strategy_enc
+ *
+ * Purpose:        Callback routine which is called whenever the free-space
+ *                 strategy property in the file creation property list
+ *                 is encoded.
+ *
+ * Return:	   Success:	Non-negative
+ *		   Failure:	Negative
+ *
+ * Programmer:     Quincey Koziol
+ *                 Friday, December 27, 2013
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+H5P__fcrt_fspace_strategy_enc(const void *value, void **_pp, size_t *size)
+{
+    const H5F_fspace_strategy_t *strategy = (const H5F_fspace_strategy_t *)value; /* Create local alias for values */
+    uint8_t **pp = (uint8_t **)_pp;
+
+    FUNC_ENTER_STATIC_NOERR
+
+    /* Sanity check */
+    HDassert(strategy);
+    HDassert(size);
+
+    if(NULL != *pp)
+        /* Encode free-space strategy */
+        *(*pp)++ = (uint8_t)*strategy;
+
+    /* Size of free-space strategy */
+    (*size)++;
+
+    FUNC_LEAVE_NOAPI(SUCCEED)
+} /* end H5P__fcrt_fspace_strategy_enc() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:       H5P__fcrt_fspace_strategy_dec
+ *
+ * Purpose:        Callback routine which is called whenever the free-space
+ *                 strategy property in the file creation property list
+ *                 is decoded.
+ *
+ * Return:	   Success:	Non-negative
+ *		   Failure:	Negative
+ *
+ * Programmer:     Quincey Koziol
+ *                 Friday, December 27, 2013
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+H5P__fcrt_fspace_strategy_dec(const void **_pp, void *_value)
+{
+    H5F_fspace_strategy_t *strategy = (H5F_fspace_strategy_t *)_value;         /* Free-space strategy */
+    const uint8_t **pp = (const uint8_t **)_pp;
+
+    FUNC_ENTER_STATIC_NOERR
+
+    /* Sanity checks */
+    HDassert(pp);
+    HDassert(*pp);
+    HDassert(strategy);
+
+    /* Decode free-space strategy */
+    *strategy = (H5F_fspace_strategy_t)*(*pp)++;
+
+    FUNC_LEAVE_NOAPI(SUCCEED)
+} /* end H5P__fcrt_fspace_strategy_dec() */
 
 
 /*-------------------------------------------------------------------------

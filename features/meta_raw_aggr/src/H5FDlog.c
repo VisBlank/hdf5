@@ -916,10 +916,6 @@ H5FD_log_query(const H5FD_t *_file, unsigned long *flags /* out */)
  * Programmer:  Quincey Koziol
  *              Monday, April 17, 2000
  *
- * Modifications:
- *      Vailin Choi; April 2013
- *      Do not handle alignment for paged aggregation.
- *
  *-------------------------------------------------------------------------
  */
 static haddr_t

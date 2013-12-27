@@ -171,7 +171,6 @@ typedef enum H5F_libver_t {
 
 /* File space handling strategy */
 typedef enum H5F_fspace_strategy_t {
-    H5F_FSPACE_STRATEGY_ERROR = -1,	/* Error */
     H5F_FSPACE_STRATEGY_AGGR = 0, 	/* Aggregation: mechanisms are free-space managers, aggregators, and virtual file driver */
 			    		/* This is the library default when not set */
     H5F_FSPACE_STRATEGY_PAGE = 1,	/* Paged aggregation: mechanisms are free-space managers with embedded paged aggregation and virtual file driver */

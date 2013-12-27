@@ -179,18 +179,6 @@ typedef struct H5F_super_t {
     H5G_entry_t *root_ent;      /* Root group symbol table entry              */
 } H5F_super_t;
 
-typedef struct H5F_fs_aggr_t {
-    H5F_fs_state_t fs_state[H5FD_MEM_NTYPES];   /* State of free space manager for each type */
-    haddr_t fs_addr[H5FD_MEM_NTYPES];   	/* Address of free space manager info for each type */
-    H5FS_t *fs_man[H5FD_MEM_NTYPES];    	/* Free space manager for each file space type */
-} H5F_fs_aggr_t;
-
-typedef struct H5F_fs_page_t {
-    H5F_fs_state_t fs_state[H5F_MEM_PAGE_NTYPES];   /* State of free space manager for each type */
-    haddr_t fs_addr[H5F_MEM_PAGE_NTYPES];   /* Address of free space manager info for each type */
-    H5FS_t *fs_man[H5F_MEM_PAGE_NTYPES];    /* Free space manager for each file space type */
-} H5F_fs_page_t;
-
 /*
  * Define the structure to store the file information for HDF5 files. One of
  * these structures is allocated per file, not per H5Fopen(). That is, set of
@@ -239,25 +227,29 @@ struct H5F_file_t {
     H5UC_t *grp_btree_shared;   /* Ref-counted group B-tree node info   */
 
     /* File space allocation information */
-    H5F_fspace_strategy_t fs_strategy;	/* File space handling strategy		*/
-    hsize_t     fs_threshold;		/* Free-space section threshold 	*/
-    hbool_t     fs_persist;		/* Free-space persist or not 		*/
-    hbool_t     use_tmp_space;  	/* Whether temp. file space allocation is allowed */
-    hsize_t     fsp_size;		/* File space page size */
-    unsigned char last_small;		/* For page fs only: the allocation at EOF is a small section or not */
-    unsigned char track_last_small; 	/* For page fs only: tracking of the current allocation is a small section or not */
-    hbool_t	pgend_meta_thres; 	/* For page fs only: do not track page end meta section <= this threshold */
-    haddr_t	tmp_addr;       	/* Next address to use for temp. space in the file */
+    struct {
+        H5F_fspace_strategy_t strategy;	/* File space handling strategy	*/
+        hsize_t threshold;		/* Free-space section threshold */
+        hbool_t persist;		/* Free-space persist or not */
+        hbool_t use_tmp_space;  	/* Whether temp. file space allocation is allowed */
+        haddr_t	tmp_addr;       	/* Next address to use for temp. space in the file */
 
-    H5F_fs_state_t fs_state[H5FD_MEM_NTYPES];   /* State of free space manager for each type */
-    haddr_t fs_addr[H5FD_MEM_NTYPES];   	/* Address of free space manager info for each type */
-    H5FS_t *fs_man[H5FD_MEM_NTYPES];    	/* Free space manager for each file space type */
+        H5F_fs_state_t man_state[H5FD_MEM_NTYPES];  /* State of free space manager for each type */
+        haddr_t man_addr[H5FD_MEM_NTYPES];  /* Address of free space manager info for each type */
+        H5FS_t *man[H5FD_MEM_NTYPES];   /* Free space manager for each file space type */
 
-    unsigned fs_aggr_merge[H5FD_MEM_NTYPES];    /* For aggr fs: flags for whether free space can merge with aggregator(s) */
-    H5FD_mem_t fs_type_map[H5FD_MEM_NTYPES]; 	/* For aggr fs: mapping of "real" file space type into tracked type */
-    H5F_blk_aggr_t meta_aggr;   		/* For aggr fs: metadata aggregation info */
-                                		/* (if aggregating metadata allocations) */
-    H5F_blk_aggr_t sdata_aggr;  		/* For aggr fs: "Small data" aggregation info */
+        /* Free-space aggregation info */
+        unsigned aggr_merge[H5FD_MEM_NTYPES];   /* Flags for whether free space can merge with aggregator(s) */
+        H5FD_mem_t type_map[H5FD_MEM_NTYPES]; 	/* Mapping of "real" file space type into tracked type */
+        H5F_blk_aggr_t meta_aggr;   	/* Metadata aggregation info (if aggregating metadata allocations) */
+        H5F_blk_aggr_t sdata_aggr;  	/* "Small data" aggregation info */
+
+        /* Free-space paging info */
+        hsize_t page_size;		/* File space page size */
+        unsigned char last_small;	/* The allocation at EOF is a small section or not */
+        unsigned char track_last_small; /* Tracking of the current allocation is a small section or not */
+        hbool_t	pgend_meta_thres; 	/* Do not track page end meta section <= this threshold */
+    } fs;
 
     /* Metadata accumulator information */
     H5F_meta_accum_t accum;     /* Metadata accumulator info           	*/

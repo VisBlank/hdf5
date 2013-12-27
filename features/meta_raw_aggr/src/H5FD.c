@@ -1313,10 +1313,6 @@ H5FD_driver_query(const H5FD_class_t *driver, unsigned long *flags/*out*/)
  * Programmer:	Robb Matzke
  *              Tuesday, July 27, 1999
  *
- * Modifications:
- *	Vailin Choi; April 2013
- *	Remove the two parameters for mis-aligned fragment.
- *	The fragment was handled in the MF layer.
  *-------------------------------------------------------------------------
  */
 haddr_t
@@ -2057,3 +2053,4 @@ H5FD_set_paged_aggr(H5FD_t *file, hbool_t paged)
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5FD_set_paged_aggr() */
+

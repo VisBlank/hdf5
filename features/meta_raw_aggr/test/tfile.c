@@ -837,6 +837,7 @@ test_file_close(void)
             ret = H5Gclose(group_id3);
             CHECK(ret, FAIL, "H5Gclose");
 	    break;
+        case H5F_CLOSE_DEFAULT:
         default:
             CHECK(fc_degree, H5F_CLOSE_DEFAULT, "H5Pget_fclose_degree");
             break;
@@ -1324,6 +1325,19 @@ test_obj_count_and_id(hid_t fid1, hid_t fid2, hid_t did, hid_t gid1,
                         VERIFY(oid_list[i], did, "H5Fget_obj_ids");
                         break;
 
+                    case H5I_UNINIT:
+                    case H5I_BADID:
+                    case H5I_DATATYPE:
+                    case H5I_DATASPACE:
+                    case H5I_ATTR:
+                    case H5I_REFERENCE:
+                    case H5I_VFL:
+                    case H5I_GENPROP_CLS:
+                    case H5I_GENPROP_LST:
+                    case H5I_ERROR_CLASS:
+                    case H5I_ERROR_MSG:
+                    case H5I_ERROR_STACK:
+                    case H5I_NTYPES:
                     default:
                         ERROR("H5Fget_obj_ids");
                 } /* end switch */
@@ -1694,7 +1708,7 @@ test_file_open_overlap(void)
     hid_t did1, did2;
     hid_t gid;
     hid_t sid;
-    int nobjs;          /* # of open objects */
+    ssize_t nobjs;      /* # of open objects */
     unsigned intent;
     herr_t ret;         /* Generic return value */
 
@@ -2261,7 +2275,7 @@ test_rw_noupdate(void)
     diff = HDdifftime(sb2.st_mtime, sb1.st_mtime);
 
     /* Check That Timestamps Are Equal */
-    if(diff > 0.0) {
+    if(diff > (double)0.0f) {
         /* Output message about test being performed */
         MESSAGE(1, ("Testing to verify that nothing is written if nothing is changed: This test is skipped on this system because the modification time from stat is the same as the last access time (We know OpenVMS behaves in this way).\n"));
     } /* end if */
@@ -2294,7 +2308,7 @@ test_rw_noupdate(void)
 
         /* Ensure That Timestamps Are Equal */
         diff = HDdifftime(sb2.st_mtime, sb1.st_mtime);
-        ret = (diff > 0.0);
+        ret = (diff > (double)0.0f);
         VERIFY(ret, 0, "Timestamp");
     } /* end else */
 } /* end test_rw_noupdate() */
@@ -3322,7 +3336,7 @@ test_filespace_info(const char *env_h5_drvr)
 			VERIFY(threshold, fs_threshold, "H5Pget_file_space_strategy");
 
 			/* Retrieve and verify file space page size */
-			ret = H5Pget_file_space_page_size(fcpl1, &fsp_size);
+			ret = H5Pget_file_space_page_size(fcpl2, &fsp_size);
 			CHECK(ret, FAIL, "H5Pget_file_space_page_size");
 			VERIFY(fsp_size, pp > 0 ? FSP_SIZE512 : (pp == 0 ? 0 : FSP_SIZE_DEF), "H5Pget_file_space_page_size");
 
@@ -3417,7 +3431,7 @@ test_file_freespace(const char *env_h5_drvr)
 	    /* Latest format with non-contiguous VFD: aggregation, non-persistent free-space */
 	    if(contig_addr_vfd) {
 		H5Pset_file_space_strategy(fcpl, H5F_FSPACE_STRATEGY_PAGE, FALSE, (hsize_t)1);
-		expected_freespace = 302;
+		expected_freespace = 350;
 	    } else
 		H5Pset_file_space_strategy(fcpl, H5F_FSPACE_STRATEGY_AGGR, FALSE, (hsize_t)1);
 

@@ -819,9 +819,6 @@ done:
  *
  * Programmer:	Vailin Choi; Feb 2009
  *
- * Modifications:
- *	Vailin Choi; April 2013
- *	Allocate via H5MF_close_allocate() at file closing.
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -837,8 +834,10 @@ H5FS_alloc_hdr(H5F_t *f, H5FS_t *fspace, haddr_t *fs_addr, hid_t dxpl_id)
 
     if(!H5F_addr_defined(fspace->addr)) {
 	/* Allocate space for the free space header */
+        /* (The original version called H5MF_alloc(), but that may cause sect_size to change again) */
 	if(HADDR_UNDEF == (fspace->addr = H5MF_close_allocate(f, H5FD_MEM_FSPACE_HDR, dxpl_id, (hsize_t)H5FS_HEADER_SIZE(f))))
 	    HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "file allocation failed for free space header")
+
 	/* Cache the new free space header (pinned) */
 	if(H5AC_insert_entry(f, dxpl_id, H5AC_FSPACE_HDR, fspace->addr, fspace, H5AC__PIN_ENTRY_FLAG) < 0)
 	    HGOTO_ERROR(H5E_FSPACE, H5E_CANTINIT, FAIL, "can't add free space header to cache")
@@ -861,9 +860,6 @@ done:
  *
  * Programmer:	Vailin Choi; Feb 2009
  *
- * Modifications:
- *	Vailin Choi; April 2013
- *	Allocate via H5MF_close_allocate() at file closing.
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -881,7 +877,7 @@ H5FS_alloc_sect(H5F_t *f, H5FS_t *fspace, hid_t dxpl_id)
 	/* Allocate space for section info from aggregator/vfd (or temp. address space) */
         /* (The original version called H5MF_alloc(), but that may cause sect_size to change again) */
         /* (This routine is only called during file close operations, so don't allocate from temp. address space) */
-	if((fspace->sect_addr = H5MF_close_allocate(f, H5FD_MEM_FSPACE_SINFO, dxpl_id, fspace->sect_size)) == HADDR_UNDEF)
+	if(HADDR_UNDEF == (fspace->sect_addr = H5MF_close_allocate(f, H5FD_MEM_FSPACE_SINFO, dxpl_id, fspace->sect_size)))
 	    HGOTO_ERROR(H5E_FSPACE, H5E_NOSPACE, FAIL, "file allocation failed for section info")
 	fspace->alloc_sect_size = fspace->sect_size;
 
