@@ -1,5 +1,5 @@
-    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-     * All rights reserved.                                                      *
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * All rights reserved.                                                      *
  *                                                                           *
  * This file is part of HDF5.  The full HDF5 copyright notice, including     *
  * terms governing use, modification, and redistribution, is contained in    *
@@ -870,10 +870,10 @@ check_multi_group_creation_tags(hid_t fcpl, int type)
     /* Retrieve various tags */
     if ( type == TEST_DEFAULT ) {
 
-        /* determine tag value of file space block size extension object header */
+        /* determine tag value of root group's object header */
         if ( get_new_object_header_tag(fid, &root_tag) < 0 ) TEST_ERROR;
 
-        /* determine tag value of root group's object header */
+        /* determine tag value of root group's object header extension */
         if ( get_new_object_header_tag(fid, &root_tag) < 0 ) TEST_ERROR;
 
     } else if ( type == TEST_SHMESG ) {

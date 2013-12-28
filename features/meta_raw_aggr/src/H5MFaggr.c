@@ -148,9 +148,6 @@ HDfprintf(stderr, "%s: Leaving: ret_value = %a, size = %Hu\n", FUNC, ret_value, 
  * Programmer:  Quincey Koziol
  *              Thursday, December 13, 2007
  *
- * Modifications:
- *	Vailin Choi; Dec 2012
- *	Move the coding for allocation from VFD to another routine.
  *-------------------------------------------------------------------------
  */
 static haddr_t
@@ -229,7 +226,6 @@ HDfprintf(stderr, "%s: aggr = {%a, %Hu, %Hu}\n", FUNC, aggr->addr, aggr->tot_siz
 		    aggr->addr += ext_size;
 		    aggr->tot_size += ext_size;
 		} else {
-
                     /* Release "other" aggregator, if it exists, is at the end of the allocated space,
                      * has allocated more than one block and the unallocated space is greater than its
                      * allocation block size.
@@ -240,9 +236,9 @@ HDfprintf(stderr, "%s: aggr = {%a, %Hu, %Hu}\n", FUNC, aggr->addr, aggr->tot_siz
                                 HGOTO_ERROR(H5E_RESOURCE, H5E_CANTFREE, HADDR_UNDEF, "can't free aggregation block")
 		    } /* end if */
 
+                    /* Allocate space from the VFD (i.e. at the end of the file) */
 		    if(HADDR_UNDEF == (ret_value = H5MF_vfd_alloc(f, dxpl_id, alloc_type, size, TRUE)))
 			HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, HADDR_UNDEF, "can't allocate file space")
-
                 } /* end else */
             } /* end if */
 	    else {
@@ -279,6 +275,7 @@ HDfprintf(stderr, "%s: Allocating block\n", FUNC);
                                 HGOTO_ERROR(H5E_RESOURCE, H5E_CANTFREE, HADDR_UNDEF, "can't free aggregation block")
 		    } /* end if */
 
+                    /* Allocate space from the VFD (i.e. at the end of the file) */
 		    if(HADDR_UNDEF == (new_space = H5MF_vfd_alloc(f, dxpl_id, alloc_type, aggr->alloc_size, TRUE)))
 			HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, HADDR_UNDEF, "can't allocate file space")
 
@@ -317,9 +314,9 @@ HDfprintf(stderr, "%s: Allocating block\n", FUNC);
         } /* end else */
     } /* end if */
     else {
+        /* Allocate data from the file */
         if(HADDR_UNDEF == (ret_value = H5MF_vfd_alloc(f, dxpl_id, type, size, TRUE)))
             HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, HADDR_UNDEF, "can't allocate file space")
-    
     } /* end else */
 
     /* Sanity check for overlapping into file's temporary allocation space */
@@ -342,19 +339,19 @@ HDfprintf(stderr, "%s: ret_value = %a\n", FUNC, ret_value);
  *
  * Purpose:     Try to allocate SIZE bytes of memory from VFD for non-paged aggregation.
  *
+ * Notes:
+ *	Calculate mis-aligned to free depending on the parameter "xfree".
+ *	"xfree" is FALSE only on file closing i.e. the mis-aligned fragment
+ *	is dropped to the floor (see explanation in H5MF_close_allocate()).
+ *	This is pushed up from the vfd layer so that the interface for 
+ *	the driver specific allocation routine does not need to change.
+ *
  * Return:      Success:    The format address of the new file memory.
  *              Failure:    The undefined address HADDR_UNDEF
  *
  * Programmer:  Vailin Choi
  *              December, 2012
  *
- * Modifications:
- *	Vailin Choi; April 2013
- *	Calculate mis-aligned to free depending on the parameter "xfree".
- *	"xfree" is FALSE only on file closing i.e. the mis-aligned fragment
- *	is dropped to the floor (see explanation in H5MF_close_allocate()).
- *	This is pushed up from the vfd layer so that the interface for 
- *	the driver specific allocation routine does not need to change.
  *-------------------------------------------------------------------------
  */
 haddr_t
@@ -378,9 +375,8 @@ HDfprintf(stderr, "%s: type = %u, size = %Hu\n", FUNC, (unsigned)type, size);
 	HGOTO_ERROR(H5E_RESOURCE, H5E_CANTGET, HADDR_UNDEF, "Unable to get eoa")
 
     /* Calculate the mis-aligned fragment */
-    if(f->shared->alignment > 1 && size >= f->shared->threshold) {
-	H5MF_EOA_MISALIGN(f, eoa, f->shared->alignment, frag_size);
-    }
+    if(H5F_ALIGNMENT(f) > 1 && size >= H5F_THRESHOLD(f))
+	H5MF_EOA_MISALIGN(f, eoa, H5F_ALIGNMENT(f), frag_size);
 
     /* Check for overlapping into file's temporary allocation space */
     if(H5F_addr_gt((eoa + size + frag_size), f->shared->fs.tmp_addr))
@@ -396,7 +392,7 @@ HDfprintf(stderr, "%s: type = %u, size = %Hu\n", FUNC, (unsigned)type, size);
 	/* Put fragment on the free list */
 	if(H5MF_xfree(f, type, dxpl_id, eoa, frag_size) < 0)
 	    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTFREE, HADDR_UNDEF, "can't free eoa fragment")
-    }
+    } /* end if */
 
 done:
 #ifdef H5MF_AGGR_DEBUG
@@ -404,7 +400,6 @@ HDfprintf(stderr, "%s: ret_value = %a\n", FUNC, ret_value);
 #endif /* H5MF_AGGR_DEBUG */
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5MF_vfd_alloc() */
-
 
 
 /*-------------------------------------------------------------------------
@@ -640,6 +635,7 @@ HDfprintf(stderr, "%s: section {%a, %Hu} adjoins front of aggr = {%a, %Hu}\n", "
         else {
             /* Sanity check */
             HDassert(H5F_addr_eq((aggr->addr + aggr->size), sect->sect_info.addr));
+
 #ifdef H5MF_AGGR_DEBUG
 HDfprintf(stderr, "%s: section {%a, %Hu} adjoins end of aggr = {%a, %Hu}\n", "H5MF_aggr_absorb", sect->sect_info.addr, sect->sect_info.size, aggr->addr, aggr->size);
 #endif /* H5MF_AGGR_DEBUG */

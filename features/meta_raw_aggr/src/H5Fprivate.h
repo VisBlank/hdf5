@@ -543,6 +543,7 @@ typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
 /* Default size for small data aggregation block (can be set via H5Pset_small_data_block_size()) */
 #define H5F_SDATA_BLOCK_SIZE_DEF	2048
 
+/* Check for file using paged aggregation */
 #define H5F_PAGED_AGGR(F) (f->shared->fs.strategy == H5F_FSPACE_STRATEGY_PAGE && f->shared->fs.page_size)
 
 /* Macros to define signatures of all objects in the file */

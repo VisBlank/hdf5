@@ -193,6 +193,7 @@ H5_DLL herr_t H5MF_start_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type);
 
 H5_DLL htri_t H5MF_find_sect(H5F_t *f, H5FD_mem_t alloc_type, hid_t dxpl_id, hsize_t size, H5FS_t *fspace, haddr_t *addr);
 H5_DLL herr_t H5MF_add_sect(H5F_t *f, H5FD_mem_t alloc_type, hid_t dxpl_id, H5FS_t *fspace, H5MF_free_section_t *node);
+H5_DLL haddr_t H5MF_vfd_alloc(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, hsize_t size, hbool_t xfree);
 
 H5_DLL herr_t H5MF_sects_dump(H5F_t *f, hid_t dxpl_id, FILE *stream);
 
