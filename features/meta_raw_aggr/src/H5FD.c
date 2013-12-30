@@ -1337,7 +1337,7 @@ H5FDalloc(H5FD_t *file, H5FD_mem_t type, hid_t dxpl_id, hsize_t size)
             HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, HADDR_UNDEF, "not a data transfer property list")
 
     /* Do the real work */
-    if(HADDR_UNDEF == (ret_value = H5FD_alloc_real(file, dxpl_id, type, size)))
+    if(HADDR_UNDEF == (ret_value = H5FD_alloc(file, dxpl_id, type, size)))
 	HGOTO_ERROR(H5E_VFL, H5E_CANTINIT, HADDR_UNDEF, "unable to allocate file memory")
 
     /* (Note compensating for base address subtraction in internal routine) */
@@ -1390,7 +1390,7 @@ H5FDfree(H5FD_t *file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr, hsize_t siz
 
     /* Do the real work */
     /* (Note compensating for base address addition in internal routine) */
-    if(H5FD_free_real(file, dxpl_id, type, addr - file->base_addr, size) < 0)
+    if(H5FD_free(file, dxpl_id, type, addr - file->base_addr, size) < 0)
         HGOTO_ERROR(H5E_VFL, H5E_CANTFREE, FAIL, "file deallocation request failed")
 
 done:

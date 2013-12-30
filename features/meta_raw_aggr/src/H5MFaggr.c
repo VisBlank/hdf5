@@ -179,7 +179,7 @@ HDfprintf(stderr, "%s: type = %u, size = %Hu\n", FUNC, (unsigned)type, size);
     /*
      * If the aggregation feature is enabled for this file and strategy is not H5F_FILE_SPACE_NONE,
      * allocate "generic" space and sub-allocate out of that, if possible.
-     * Otherwise just allocate through H5FD_alloc().
+     * Otherwise just allocate through H5MF_vfd_alloc().
      */
     if((f->shared->feature_flags & aggr->feature_flag) && f->shared->fs.strategy != H5F_FSPACE_STRATEGY_NONE) {
         haddr_t	aggr_frag_addr = HADDR_UNDEF;   /* Address of aggregrator fragment */
@@ -218,7 +218,7 @@ HDfprintf(stderr, "%s: aggr = {%a, %Hu, %Hu}\n", FUNC, aggr->addr, aggr->tot_siz
                 if(H5F_addr_gt((aggr->addr + aggr->size + ext_size), f->shared->fs.tmp_addr))
                     HGOTO_ERROR(H5E_RESOURCE, H5E_BADRANGE, HADDR_UNDEF, "'normal' file space allocation request will overlap into 'temporary' file space")
 
-		if ((aggr->addr > 0) && (extended = H5FD_try_extend(f->shared->lf, alloc_type, f, aggr->addr + aggr->size, ext_size)) < 0)
+		if ((aggr->addr > 0) && (extended = H5F_try_extend(f, alloc_type, (aggr->addr + aggr->size), ext_size)) < 0)
 		    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, HADDR_UNDEF, "can't extending space")
 		else if (extended) {
 		    /* aggr->size is unchanged */
@@ -256,7 +256,7 @@ HDfprintf(stderr, "%s: Allocating block\n", FUNC);
                 if(H5F_addr_gt((aggr->addr + aggr->size + ext_size), f->shared->fs.tmp_addr))
                     HGOTO_ERROR(H5E_RESOURCE, H5E_BADRANGE, HADDR_UNDEF, "'normal' file space allocation request will overlap into 'temporary' file space")
 
-		if((aggr->addr > 0) && (extended = H5FD_try_extend(f->shared->lf, alloc_type, f, aggr->addr + aggr->size, ext_size)) < 0)
+		if((aggr->addr > 0) && (extended = H5F_try_extend(f, alloc_type, (aggr->addr + aggr->size), ext_size)) < 0)
 		    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, HADDR_UNDEF, "can't extending space")
 		else if (extended) {
 		    aggr->addr += aggr_frag_size;
@@ -323,7 +323,7 @@ HDfprintf(stderr, "%s: Allocating block\n", FUNC);
     HDassert(H5F_addr_le((ret_value + size), f->shared->fs.tmp_addr));
 
     /* Post-condition sanity check */
-    if(H5F_ALIGNMENT(f)&& size >= H5F_THRESHOLD(f))
+    if(H5F_ALIGNMENT(f) && size >= H5F_THRESHOLD(f))
 	HDassert(!((ret_value + H5FD_get_base_addr(f->shared->lf)) % H5F_ALIGNMENT(f)));
 
 done:
@@ -357,9 +357,9 @@ HDfprintf(stderr, "%s: ret_value = %a\n", FUNC, ret_value);
 haddr_t
 H5MF_vfd_alloc(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, hsize_t size, hbool_t xfree)
 {
-    haddr_t	eoa = HADDR_UNDEF;      /* Initial EOA for the file */
-    hsize_t 	frag_size=0;
-    haddr_t 	ret_value;              /* Return value */
+    haddr_t eoa;                /* Initial EOA for the file */
+    hsize_t frag_size = 0;      /* Size of fragment generated */
+    haddr_t ret_value;          /* Return value */
 
     FUNC_ENTER_NOAPI(HADDR_UNDEF)
 #ifdef H5MF_AGGR_DEBUG
@@ -370,28 +370,29 @@ HDfprintf(stderr, "%s: type = %u, size = %Hu\n", FUNC, (unsigned)type, size);
     HDassert(type >= H5FD_MEM_DEFAULT && type < H5FD_MEM_NTYPES);
     HDassert(size > 0);
 
-    /* Get the EOA for the file */
-    if(HADDR_UNDEF == (eoa = H5F_get_eoa(f, type)))
-	HGOTO_ERROR(H5E_RESOURCE, H5E_CANTGET, HADDR_UNDEF, "Unable to get eoa")
+    /* Check if fragment is generated and needs to be freed */
+    if(xfree) {
+        /* Get the EOA for the file */
+        if(HADDR_UNDEF == (eoa = H5F_get_eoa(f, type)))
+            HGOTO_ERROR(H5E_RESOURCE, H5E_CANTGET, HADDR_UNDEF, "Unable to get eoa")
 
-    /* Calculate the mis-aligned fragment */
-    if(H5F_ALIGNMENT(f) > 1 && size >= H5F_THRESHOLD(f))
-	H5MF_EOA_MISALIGN(f, eoa, H5F_ALIGNMENT(f), frag_size);
-
-    /* Check for overlapping into file's temporary allocation space */
-    if(H5F_addr_gt((eoa + size + frag_size), f->shared->fs.tmp_addr))
-	HGOTO_ERROR(H5E_RESOURCE, H5E_BADRANGE, HADDR_UNDEF, "'normal' file space allocation request will overlap into 'temporary' file space")
+        /* Calculate the mis-aligned fragment */
+        if(H5F_ALIGNMENT(f) > 1 && size >= H5F_THRESHOLD(f))
+            H5MF_EOA_MISALIGN(f, eoa, H5F_ALIGNMENT(f), frag_size);
+    } /* end if */
 
     /* Allocate space from vfd */
-    if(HADDR_UNDEF == (ret_value = H5FD_alloc(f->shared->lf, dxpl_id, type, f, size)))
+    if(HADDR_UNDEF == (ret_value = H5F_alloc(f, dxpl_id, type, size)))
 	HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, HADDR_UNDEF, "can't allocate file space")
 
     /* Check if fragment is generated and needs to be freed */
     if(frag_size && xfree) {
-	HDassert(H5F_addr_eq(eoa+frag_size, ret_value));
+        /* Verify that the VFD allocated space on an aligned boundary */
+        HDassert(H5F_addr_eq((eoa + frag_size), ret_value));
+
 	/* Put fragment on the free list */
-	if(H5MF_xfree(f, type, dxpl_id, eoa, frag_size) < 0)
-	    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTFREE, HADDR_UNDEF, "can't free eoa fragment")
+        if(H5MF_xfree(f, type, dxpl_id, eoa, frag_size) < 0)
+            HGOTO_ERROR(H5E_RESOURCE, H5E_CANTFREE, HADDR_UNDEF, "can't free eoa fragment")
     } /* end if */
 
 done:
@@ -471,7 +472,7 @@ H5MF_aggr_try_extend(H5F_t *f, H5F_blk_aggr_t *aggr, H5FD_mem_t type,
 		else {
 		    hsize_t extra = (extra_requested < aggr->alloc_size) ? aggr->alloc_size : extra_requested;
 
-		    if((ret_value = H5FD_try_extend(f->shared->lf, type, f, (aggr->addr + aggr->size), extra)) < 0)
+		    if((ret_value = H5F_try_extend(f, type, (aggr->addr + aggr->size), extra)) < 0)
 			HGOTO_ERROR(H5E_RESOURCE, H5E_CANTEXTEND, FAIL, "error extending file")
 		    else if(ret_value == TRUE) {
 			/* Shift the aggregator block by the extra requested */
@@ -882,7 +883,7 @@ H5MF_aggr_free(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, H5F_blk_aggr_t *aggr)
     HDassert(f->shared->feature_flags & aggr->feature_flag);
 
     /* Free the remaining space at EOA in the aggregator */
-    if(H5FD_free(f->shared->lf, dxpl_id, type, f, aggr->addr, aggr->size) < 0)
+    if(H5F_free(f, dxpl_id, type, aggr->addr, aggr->size) < 0)
         HGOTO_ERROR(H5E_RESOURCE, H5E_CANTFREE, FAIL, "can't free aggregation block")
 
     /* Reset the aggregator */

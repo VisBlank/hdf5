@@ -19,7 +19,7 @@
  *			Jan  3 2008
  *			Quincey Koziol <koziol@hdfgroup.org>
  *
- * Purpose:		Space allocation routines for the file.
+ * Purpose:		Space allocation routines for the file driver code.
  *
  *-------------------------------------------------------------------------
  */
@@ -177,7 +177,7 @@ done:
 
 
 /*-------------------------------------------------------------------------
- * Function:    H5FD_alloc_real
+ * Function:    H5FD_alloc
  *
  * Purpose:     Allocate space in the file with the VFD
  *
@@ -190,7 +190,7 @@ done:
  *-------------------------------------------------------------------------
  */
 haddr_t
-H5FD_alloc_real(H5FD_t *file, hid_t dxpl_id, H5FD_mem_t type, hsize_t size)
+H5FD_alloc(H5FD_t *file, hid_t dxpl_id, H5FD_mem_t type, hsize_t size)
 {
     haddr_t     ret_value;              /* Return value */
 
@@ -207,11 +207,13 @@ HDfprintf(stderr, "%s: type = %u, size = %Hu\n", FUNC, (unsigned)type, size);
 
     /* Dispatch to driver `alloc' callback or extend the end-of-address marker */
     if(file->cls->alloc) {
-        if((ret_value = (file->cls->alloc)(file, type, dxpl_id, size)) == HADDR_UNDEF)
+        ret_value = (file->cls->alloc)(file, type, dxpl_id, size);
+        if(!H5F_addr_defined(ret_value))
             HGOTO_ERROR(H5E_VFL, H5E_NOSPACE, HADDR_UNDEF, "driver allocation request failed")
     } /* end if */
     else {
-        if((ret_value = H5FD_extend(file, type, TRUE, size)) == HADDR_UNDEF)
+        ret_value = H5FD_extend(file, type, TRUE, size);
+        if(!H5F_addr_defined(ret_value))
             HGOTO_ERROR(H5E_VFL, H5E_NOSPACE, HADDR_UNDEF, "driver eoa update request failed")
     } /* end else */
 
@@ -223,56 +225,11 @@ done:
 HDfprintf(stderr, "%s: ret_value = %a\n", FUNC, ret_value);
 #endif /* H5FD_ALLOC_DEBUG */
     FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5FD_alloc_real() */
-
-
-/*-------------------------------------------------------------------------
- * Function:    H5FD_alloc
- *
- * Purpose:     Wrapper for H5FD_alloc, to make certain EOA changes are
- *		reflected in superblock.
- *
- * Note:	When the metadata cache routines are updated to allow
- *		marking an entry dirty without a H5F_t*, this routine should
- *		be changed to take a H5F_super_t* directly.
- *
- * Return:      Success:    The format address of the new file memory.
- *              Failure:    The undefined address HADDR_UNDEF
- *
- * Programmer:  Quincey Koziol
- *              Friday, August 14, 2009
- *
- *-------------------------------------------------------------------------
- */
-haddr_t
-H5FD_alloc(H5FD_t *file, hid_t dxpl_id, H5FD_mem_t type, H5F_t *f, hsize_t size)
-{
-    haddr_t     ret_value;              /* Return value */
-
-    FUNC_ENTER_NOAPI(HADDR_UNDEF)
-
-    /* check args */
-    HDassert(file);
-    HDassert(file->cls);
-    HDassert(type >= H5FD_MEM_DEFAULT && type < H5FD_MEM_NTYPES);
-    HDassert(size > 0);
-
-    /* Call the real 'alloc' routine */
-    ret_value = H5FD_alloc_real(file, dxpl_id, type, size);
-    if(!H5F_addr_defined(ret_value))
-        HGOTO_ERROR(H5E_VFL, H5E_CANTALLOC, HADDR_UNDEF, "real 'alloc' request failed")
-
-    /* Mark superblock dirty in cache, so change to EOA will get encoded */
-    if(H5F_super_dirty(f) < 0)
-        HGOTO_ERROR(H5E_VFL, H5E_CANTMARKDIRTY, HADDR_UNDEF, "unable to mark superblock as dirty")
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5FD_alloc() */
 
 
 /*-------------------------------------------------------------------------
- * Function:    H5FD_free_real
+ * Function:    H5FD_free
  *
  * Purpose:     Release space back to the VFD
  *
@@ -285,7 +242,7 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5FD_free_real(H5FD_t *file, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr, hsize_t size)
+H5FD_free(H5FD_t *file, hid_t dxpl_id, H5FD_mem_t type, haddr_t addr, hsize_t size)
 {
     herr_t      ret_value = SUCCEED;       /* Return value */
 
@@ -347,51 +304,6 @@ HDfprintf(stderr, "%s: LEAKED MEMORY!!! type = %u, addr = %a, size = %Hu\n", FUN
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5FD_free_real() */
-
-
-/*-------------------------------------------------------------------------
- * Function:    H5FD_free
- *
- * Purpose:     Wrapper for H5FD_free_real, to make certain EOA changes are
- *		reflected in superblock.
- *
- * Note:	When the metadata cache routines are updated to allow
- *		marking an entry dirty without a H5F_t*, this routine should
- *		be changed to take a H5F_super_t* directly.
- *
- * Return:      Success:        Non-negative
- *              Failure:        Negative
- *
- * Programmer:  Quincey Koziol
- *              Friday, August 14, 2009
- *
- *-------------------------------------------------------------------------
- */
-herr_t
-H5FD_free(H5FD_t *file, hid_t dxpl_id, H5FD_mem_t type, H5F_t *f, haddr_t addr,
-    hsize_t size)
-{
-    herr_t      ret_value = SUCCEED;       /* Return value */
-
-    FUNC_ENTER_NOAPI(FAIL)
-
-    /* Check args */
-    HDassert(file);
-    HDassert(file->cls);
-    HDassert(type >= H5FD_MEM_DEFAULT && type < H5FD_MEM_NTYPES);
-    HDassert(size > 0);
-
-    /* Call the real 'free' routine */
-    if(H5FD_free_real(file, dxpl_id, type, addr, size) < 0)
-        HGOTO_ERROR(H5E_VFL, H5E_CANTFREE, FAIL, "real 'free' request failed")
-
-    /* Mark superblock dirty in cache, so change to EOA will get encoded */
-    if(H5F_super_dirty(f) < 0)
-        HGOTO_ERROR(H5E_VFL, H5E_CANTMARKDIRTY, FAIL, "unable to mark superblock as dirty")
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5FD_free() */
 
 
@@ -414,7 +326,7 @@ done:
  *-------------------------------------------------------------------------
  */
 htri_t
-H5FD_try_extend(H5FD_t *file, H5FD_mem_t type, H5F_t *f, haddr_t blk_end,
+H5FD_try_extend(H5FD_t *file, H5FD_mem_t type, haddr_t blk_end,
     hsize_t extra_requested)
 {
     haddr_t eoa;                /* End of allocated space in file */
@@ -427,7 +339,6 @@ H5FD_try_extend(H5FD_t *file, H5FD_mem_t type, H5F_t *f, haddr_t blk_end,
     HDassert(file->cls);
     HDassert(type >= H5FD_MEM_DEFAULT && type < H5FD_MEM_NTYPES);
     HDassert(extra_requested > 0);
-    HDassert(f);
 
     /* Retrieve the end of the address space */
     if(HADDR_UNDEF == (eoa = file->cls->get_eoa(file, type)))
@@ -442,12 +353,8 @@ H5FD_try_extend(H5FD_t *file, H5FD_mem_t type, H5F_t *f, haddr_t blk_end,
         if(HADDR_UNDEF == H5FD_extend(file, type, FALSE, extra_requested))
             HGOTO_ERROR(H5E_VFL, H5E_CANTEXTEND, FAIL, "driver extend request failed")
 
-        /* Mark superblock dirty in cache, so change to EOA will get encoded */
-        if(H5F_super_dirty(f) < 0)
-            HGOTO_ERROR(H5E_VFL, H5E_CANTMARKDIRTY, FAIL, "unable to mark superblock as dirty")
-
         /* Indicate success */
-        HGOTO_DONE(TRUE)
+        ret_value = TRUE;
     } /* end if */
 
 done:

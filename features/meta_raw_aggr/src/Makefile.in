@@ -132,7 +132,7 @@ am_libhdf5_la_OBJECTS = H5.lo H5checksum.lo H5dbg.lo H5system.lo \
 	H5EAiblock.lo H5EAint.lo H5EAsblock.lo H5EAstat.lo H5EAtest.lo \
 	H5F.lo H5Faccum.lo H5Fcwfs.lo H5Fdbg.lo H5Fdeprec.lo H5Fefc.lo \
 	H5Ffake.lo H5Fio.lo H5Fmount.lo H5Fmpi.lo H5Fquery.lo \
-	H5Fsfile.lo H5Fsuper.lo H5Fsuper_cache.lo H5Ftest.lo H5FA.lo \
+	H5Fsfile.lo H5Fspace.lo H5Fsuper.lo H5Fsuper_cache.lo H5Ftest.lo H5FA.lo \
 	H5FAcache.lo H5FAdbg.lo H5FAdblock.lo H5FAdblkpage.lo \
 	H5FAhdr.lo H5FAstat.lo H5FAtest.lo H5FD.lo H5FDcore.lo \
 	H5FDdirect.lo H5FDfamily.lo H5FDint.lo H5FDlog.lo H5FDmpi.lo \
@@ -550,7 +550,7 @@ libhdf5_la_SOURCES = H5.c H5checksum.c H5dbg.c H5system.c H5timer.c H5trace.c \
         H5F.c H5Faccum.c H5Fcwfs.c \
         H5Fdbg.c H5Fdeprec.c H5Fefc.c H5Ffake.c H5Fio.c \
         H5Fmount.c H5Fmpi.c H5Fquery.c \
-        H5Fsfile.c H5Fsuper.c H5Fsuper_cache.c H5Ftest.c \
+        H5Fsfile.c H5Fspace.c H5Fsuper.c H5Fsuper_cache.c H5Ftest.c \
         H5FA.c H5FAcache.c H5FAdbg.c H5FAdblock.c H5FAdblkpage.c H5FAhdr.c \
         H5FAstat.c H5FAtest.c \
         H5FD.c H5FDcore.c  \
@@ -844,6 +844,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5Fmpi.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5Fquery.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5Fsfile.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5Fspace.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5Fsuper.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5Fsuper_cache.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5Ftest.Plo@am__quote@

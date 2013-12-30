@@ -82,10 +82,14 @@
 ( (PT == H5F_MEM_PAGE_META) ? H5FD_MEM_SUPER : ((PT == H5F_MEM_PAGE_RAW) ? H5FD_MEM_DRAW : H5FD_MEM_DEFAULT) )
 
 /* Calculate the mis-aligned fragment */
-#define H5MF_EOA_MISALIGN(F, E, A, FR) {			\
-    hsize_t m;							\
-    if(H5F_addr_gt(E, 0) && (m = (E + H5F_BASE_ADDR(F)) % A))	\
-        FR = A - m;						\
+#define H5MF_EOA_MISALIGN(F, E, A, FR)                                  \
+{				                                        \
+    hsize_t m;								\
+									\
+    if(H5F_addr_gt((E), 0) && ((m) = ((E) + H5F_BASE_ADDR(F)) % (A)))	\
+        (FR) = (A) - m;							\
+    else								\
+        (FR) = 0;							\
 }
 
 

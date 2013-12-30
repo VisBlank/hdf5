@@ -336,6 +336,11 @@ H5_DLL herr_t H5F_efc_release(H5F_efc_t *efc);
 H5_DLL herr_t H5F_efc_destroy(H5F_efc_t *efc);
 H5_DLL herr_t H5F_efc_try_close(H5F_t *f);
 
+/* Space allocation routines */
+H5_DLL haddr_t H5F_alloc(H5F_t *f, hid_t dxpl_id, H5F_mem_t type, hsize_t size);
+H5_DLL herr_t H5F_free(H5F_t *f, hid_t dxpl_id, H5F_mem_t type, haddr_t addr, hsize_t size);
+H5_DLL htri_t H5F_try_extend(H5F_t *f, H5FD_mem_t type, haddr_t blk_end, hsize_t extra_requested);
+
 /* Testing functions */
 #ifdef H5F_TESTING
 H5_DLL herr_t H5F_get_sohm_mesg_count_test(hid_t fid, unsigned type_id,
