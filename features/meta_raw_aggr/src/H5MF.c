@@ -92,7 +92,7 @@ static herr_t H5MF_get_free_sects(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace, H5MF_
 /* Free-space type manager routines */
 static herr_t H5MF_create_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type);
 static herr_t H5MF_free_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type);
-static herr_t H5MF_realloc_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t *fsaddr, hbool_t *update);
+static herr_t H5MF_recreate_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t *fsaddr, hbool_t *update);
 static herr_t H5MF_close_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type);
 static herr_t H5MF_delete_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type);
 
@@ -412,7 +412,7 @@ done:
 
 
 /*-------------------------------------------------------------------------
- * Function:    H5MF_realloc_fstype
+ * Function:    H5MF_recreate_fstype
  *
  * Purpose:     Re-allocate data structures for the free-space manager
  *		as specified by TYPE.
@@ -426,7 +426,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5MF_realloc_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t *fsaddr, hbool_t *update)
+H5MF_recreate_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t *fsaddr, hbool_t *update)
 {
     herr_t ret_value = SUCCEED; 	/* Return value */
 
@@ -481,7 +481,7 @@ done:
 HDfprintf(stderr, "%s: Leaving\n", FUNC);
 #endif /* H5MF_ALLOC_DEBUG */
     FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5MF_realloc_fstype() */
+} /* end H5MF_recreate_fstype() */
 
 
 /*-------------------------------------------------------------------------
@@ -835,7 +835,7 @@ HDfprintf(stderr, "%s: Check 2.0\n", FUNC);
 HDfprintf(stderr, "%s: Check 3.0\n", FUNC);
 #endif /* H5MF_ALLOC_DEBUG_MORE */
 
-    /* For paged aggregation, determine the section at EOF is small meta/raw/large */
+    /* For paged aggregation, determine the section at EOA is small meta/raw/large */
     if(H5F_PAGED_AGGR(f))
 	if(H5MF_set_last_small(f, alloc_type, dxpl_id, ret_value, size, FALSE) < 0)
 	    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTSET, HADDR_UNDEF, "can't determine track_last_small")
@@ -908,15 +908,15 @@ HDfprintf(stderr, "%s: alloc_type = %u, size = %Hu\n", FUNC, (unsigned)alloc_typ
                 /* Return the aligned address */
                 ret_value += frag_size;
 
-                /* If there is a mis-aligned fragment at EOF */
+                /* If there is a mis-aligned fragment at EOA */
                 if(frag_size) {
                     unsigned ctype;			/* Section class type */
 
                     /* Initialize to "large" free-space section */
                     ctype = H5MF_FSPACE_SECT_LARGE;
 
-                    /* Check the EOF section type when the file is last closed */
-                    if(f->shared->fs.last_small) { /* A small meta or raw data section type at EOF */
+                    /* Check the EOA section type when the file is last closed */
+                    if(f->shared->fs.last_small) { /* A small meta or raw data section type at EOA */
                         /* A "small" free-space section */
                         ctype = H5MF_FSPACE_SECT_SMALL;	
 
@@ -940,7 +940,7 @@ HDfprintf(stderr, "%s: alloc_type = %u, size = %Hu\n", FUNC, (unsigned)alloc_typ
                     node = NULL;
                 } /* end if */
 
-                /* If the EOF section type was a small meta or raw data section, reset it now */
+                /* If the EOA section type was a small meta or raw data section, reset it now */
                 if(f->shared->fs.last_small)
                     f->shared->fs.last_small = 0;
             }
@@ -953,57 +953,8 @@ HDfprintf(stderr, "%s: alloc_type = %u, size = %Hu\n", FUNC, (unsigned)alloc_typ
 		    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, HADDR_UNDEF, "can't allocate file space")
 	    } /* end if */
             else {
-#ifdef OLD_WAY
-                haddr_t new_page;		/* The address for the new file size page */
-                htri_t node_found = FALSE;      /* Whether an existing free list node was found */
-
-                /* Allocate one file space page */
-                if(HADDR_UNDEF == (new_page = H5MF_alloc(f, alloc_type, dxpl_id, f->shared->fs.page_size)))
-                    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, HADDR_UNDEF, "can't allocate file space")
-
-                /* Check if the free space manager for the file has been initialized */
-                if(!(f->shared->fs.man[ptype]) && H5F_addr_defined(f->shared->fs.man_addr[ptype]))
-                    if(H5MF_open_fstype(f, dxpl_id, (H5FD_mem_t)ptype) < 0)
-                        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTOPENOBJ, HADDR_UNDEF, "can't initialize file free space")
-
-                /*
-                 * Check the small free space manager again for the space request as there might
-                 * possibly a "mis-aligned" fragment added to the small manager while allocating
-                 * the page from the large manager.
-                 */
-                if(f->shared->fs.man[ptype])
-                    if((node_found = H5MF_find_sect(f, alloc_type, dxpl_id, size, f->shared->fs.man[ptype], &ret_value)) < 0)
-                        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, HADDR_UNDEF, "error locating a node")
-
-                if(node_found) { /* Space is found from small manager */
-                    HDassert(H5F_addr_defined(new_page));
-
-                    /* Free the newly allocated page */
-                    if(H5MF_xfree(f, alloc_type, dxpl_id, new_page, f->shared->fs.page_size) < 0)
-                        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTFREE, HADDR_UNDEF, "can't free the new page")
-                } /* end if */
-                else { /* Space is not found from the small manager */
-                    /* Start up the free-space manager */
-                    if(!(f->shared->fs.man[ptype]))
-                        if(H5MF_start_fstype(f, dxpl_id, (H5FD_mem_t)ptype) < 0)
-                            HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINIT, HADDR_UNDEF, "can't initialize file free space")
-                    HDassert(f->shared->fs.man[ptype]);
-
-                    /* Create section for remaining space in the page */
-                    if(NULL == (node = H5MF_sect_new(H5MF_FSPACE_SECT_SMALL, (new_page + size), (f->shared->fs.page_size - size))))
-                        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINIT, HADDR_UNDEF, "can't initialize free space section")
-
-                    /* Add the remaining space in the page to the manager */
-                    if(H5MF_add_sect(f, alloc_type, dxpl_id, f->shared->fs.man[ptype], node) < 0)
-                        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINSERT, HADDR_UNDEF, "can't re-add section to file free space")
-
-                    node = NULL;
-
-                    ret_value = new_page;
-                } /* end else */
-#else /* OLD_WAY */
                 /* Check if there's a small, misaligned space at the EOA */
-                if(f->shared->fs.last_small) { /* A small meta or raw data section type at EOF */
+                if(f->shared->fs.last_small) { /* A small meta or raw data section type at EOA */
                     H5F_mem_page_t frag_ptype;		/* Free-space mananger type of fragment */
                     haddr_t eoa;      	                /* EOA for the file */
                     hsize_t frag_size;             	/* Fragment size */
@@ -1056,7 +1007,6 @@ HDfprintf(stderr, "%s: alloc_type = %u, size = %Hu\n", FUNC, (unsigned)alloc_typ
 
                     ret_value = new_page;
                 } /* end else */
-#endif /* OLD_WAY */
             } /* end else */
 	    break;
 
@@ -1177,7 +1127,7 @@ done:
 /*-------------------------------------------------------------------------
  * Function:    H5MF_set_last_small
  *
- * Purpose:     Determine the section at EOF is a small meta/raw or large data section.
+ * Purpose:     Determine the section at EOA is a small meta/raw or large data section.
  *
  * Return:      Non-negative on success/Negative on failure
  *
@@ -1189,7 +1139,7 @@ static herr_t
 H5MF_set_last_small(H5F_t *f, H5FD_mem_t alloc_type, hid_t dxpl_id,
     haddr_t addr, hsize_t size, hbool_t xfree)
 {
-    haddr_t eoa = HADDR_UNDEF; 	/* Initial EOA for the file */
+    haddr_t eoa; 		/* Initial EOA for the file */
     herr_t ret_value = SUCCEED;	/* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
@@ -1206,16 +1156,17 @@ HDfprintf(stderr, "%s: Entering: alloc_type = %u, addr = %a, size = %Hu, xfree =
     if(HADDR_UNDEF == (eoa = H5F_get_eoa(f, alloc_type)))
 	HGOTO_ERROR(H5E_RESOURCE, H5E_CANTGET, FAIL, "Unable to get eoa")
 
-    if(size < f->shared->fs.page_size) { /* For small section */
-	/* If the section is on the same page as EOF, the last section at EOF is a small section */
-	if(((eoa-1) / f->shared->fs.page_size) == (addr / f->shared->fs.page_size)) {
-
+    /* For small section */
+    if(size < f->shared->fs.page_size) {
+	/* If the section is on the same page as EOA, the last section at EOA is a small section */
+	if(((eoa - 1) / f->shared->fs.page_size) == (addr / f->shared->fs.page_size)) {
 	    H5F_mem_page_t ptype = H5MF_ALLOC_TO_FS_PAGE_TYPE(f, alloc_type, size);
+
 	    f->shared->fs.track_last_small = (ptype == H5F_MEM_PAGE_META) ? H5F_FILE_SPACE_EOF_SMALL_META : H5F_FILE_SPACE_EOF_SMALL_RAW;
 	} /* end if */
     } /* end if */
     else
-        if(H5F_addr_eq(addr+size, eoa)) { /* For large section */
+        if(H5F_addr_eq(addr + size, eoa)) { /* For large section */
             HDassert(!(addr % f->shared->fs.page_size));
             if(xfree) { /* from H5MF_xfree() */
                 H5F_mem_page_t ptype;	/* Local index variable */
@@ -1232,8 +1183,8 @@ HDfprintf(stderr, "%s: Entering: alloc_type = %u, addr = %a, size = %Hu, xfree =
 
                         /*
                          * If the section being freed adjoins the last section,
-                         * the section at EOF is determined by the type of the last section.
-                         * If not, EOF is at page boundary and the tracking does not matter.
+                         * the section at EOA is determined by the type of the last section.
+                         * If not, EOA is at page boundary and the tracking does not matter.
                          */
                         if(H5F_addr_defined(sect_addr) && H5F_addr_eq(sect_addr + sect_size, addr)) {
                             if(ptype == H5F_MEM_PAGE_GENERIC)
@@ -1244,9 +1195,9 @@ HDfprintf(stderr, "%s: Entering: alloc_type = %u, addr = %a, size = %Hu, xfree =
                         } /* end if */
                     } /* end if */
                 } /* end for */
-            }
+            } /* end if */
             else /* from H5MF_alloc() */
-                /* The section at EOF is not a small section */
+                /* The section at EOA is not a small section */
                 f->shared->fs.track_last_small = 0;
         } /* end if */
 
@@ -1352,7 +1303,7 @@ HDfprintf(stderr, "%s: Entering - alloc_type = %u, addr = %a, size = %Hu\n", FUN
         HGOTO_DONE(SUCCEED);
     HDassert(addr != 0);        /* Can't deallocate the superblock :-) */
 
-    /* Determine the EOF section type */
+    /* Determine the EOA section type */
     if(H5F_PAGED_AGGR(f))
 	if(H5MF_set_last_small(f, alloc_type, dxpl_id, addr, size, TRUE) < 0)
 	    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, FAIL, "can't determine track_last_small")
@@ -1486,7 +1437,7 @@ H5MF_sects_dump(f, dxpl_id, stderr);
  * Notes:
  *	For paged aggregation--
  *	A small block cannot be extended across page boundary.
- *	1) Try extending the block if it is at EOF
+ *	1) Try extending the block if it is at EOA
  *	2) Try extending the block into a free-space section
  *	3) For a small meta block that is within page end threshold--
  *	     check if extension is possible
@@ -1603,9 +1554,9 @@ HDfprintf(stderr, "%s: Leaving: ret_value = %t\n", FUNC, ret_value);
 H5MF_sects_dump(f, dxpl_id, stderr);
 #endif /* H5MF_ALLOC_DEBUG_DUMP */
 
-    /* For paged aggregation --determine the section at EOF is small or not */
+    /* For paged aggregation --determine the section at EOA is small or not */
     if(ret_value == TRUE && H5F_PAGED_AGGR(f))
-	if(H5MF_set_last_small(f, alloc_type, dxpl_id, addr, size+extra_requested, FALSE) < 0)
+	if(H5MF_set_last_small(f, alloc_type, dxpl_id, addr, (size + extra_requested), FALSE) < 0)
 	    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTALLOC, FAIL, "can't determine track_last_small")
 
     FUNC_LEAVE_NOAPI(ret_value)
@@ -1732,6 +1683,7 @@ HDfprintf(stderr, "%s: Leaving\n", FUNC);
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5MF_close() */
 
+
 /*-------------------------------------------------------------------------
  * Function:    H5MF_close_aggrfs
  *
@@ -1762,7 +1714,7 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
     HDassert(f->shared->sblock);
 
     /* Free the space in aggregators */
-    /* (for space not at EOF, it may be put into free space managers) */
+    /* (for space not at EOA, it may be put into free space managers) */
     if(H5MF_free_aggrs(f, dxpl_id) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTFREE, FAIL, "can't free aggregators")
 
@@ -1811,7 +1763,7 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
 	for(type = H5FD_MEM_SUPER; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type)) {
 	    haddr_t *fsaddr = &(fsinfo.fs_addr[type-1]);
 
-	    if(H5MF_realloc_fstype(f, dxpl_id, type, fsaddr, &update) < 0)
+	    if(H5MF_recreate_fstype(f, dxpl_id, type, fsaddr, &update) < 0)
 		HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't re-allocate the free space manager")
 	} /* end for */
 
@@ -1874,6 +1826,7 @@ HDfprintf(stderr, "%s: Leaving\n", FUNC);
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5MF_close_aggrfs() */
 
+
 /*-------------------------------------------------------------------------
  * Function:    H5MF_close_pagefs
  *
@@ -1917,7 +1870,6 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
     fsinfo.page_size = f->shared->fs.page_size;
     fsinfo.last_small = f->shared->fs.track_last_small;
     fsinfo.pgend_meta_thres = f->shared->fs.pgend_meta_thres;
-
     for(type = H5FD_MEM_SUPER; type < H5FD_MEM_NTYPES; H5_INC_ENUM(H5FD_mem_t, type))
 	fsinfo.fs_addr[type - 1] = HADDR_UNDEF;
 
@@ -1952,10 +1904,9 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
 	for(ptype = H5F_MEM_PAGE_META; ptype < H5F_MEM_PAGE_NTYPES; H5_INC_ENUM(H5F_mem_page_t, ptype)) {
 	    haddr_t *fsaddr = &(fsinfo.fs_addr[ptype]);
 
-	    if(H5MF_realloc_fstype(f, dxpl_id, (H5FD_mem_t)ptype, fsaddr, &update) < 0)
+	    if(H5MF_recreate_fstype(f, dxpl_id, (H5FD_mem_t)ptype, fsaddr, &update) < 0)
 		HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't re-allocate the free space manager")
 	} /* end for */
-
 
 	/* Update the file space info message in superblock extension object header */
 	if(update) {
