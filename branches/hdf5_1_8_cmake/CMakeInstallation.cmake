@@ -234,12 +234,9 @@ IF (NOT HDF5_EXTERNALLY_CONFIGURED AND NOT HDF5_NO_PACKAGES)
       LIST (APPEND CPACK_GENERATOR "Bundle")
       SET (CPACK_BUNDLE_NAME "${HDF5_PACKAGE_STRING}")
       SET (CPACK_BUNDLE_LOCATION "/")    # make sure CMAKE_INSTALL_PREFIX ends in /
-      IF(NOT DEFINED CMAKE_INSTALL_PREFIX)
-        SET (CMAKE_INSTALL_PREFIX "/${CPACK_BUNDLE_NAME}.framework/Versions/${CPACK_PACKAGE_VERSION}/${CPACK_PACKAGE_NAME}/")
-      ENDIF(NOT DEFINED CMAKE_INSTALL_PREFIX)
+      SET (CMAKE_INSTALL_PREFIX "/${CPACK_BUNDLE_NAME}.framework/Versions/${CPACK_PACKAGE_VERSION}/${CPACK_PACKAGE_NAME}/")
       SET (CPACK_BUNDLE_ICON "${HDF5_RESOURCES_DIR}/hdf.gif")
       SET (CPACK_BUNDLE_PLIST "${HDF5_BINARY_DIR}/CMakeFiles/Info.plist")
-#      SET (CPACK_BUNDLE_STARTUP_COMMAND "${HDF5_BINARY_DIR}/CMakeFiles/${HDF5_PACKAGE}${HDF_PACKAGE_EXT}-startup.sh")
       SET (CPACK_APPLE_GUI_INFO_STRING "HDF5 (Hierarchical Data Format 5) Software Library and Utilities")
       SET (CPACK_APPLE_GUI_COPYRIGHT "Copyright © 2006-2013 by The HDF Group. All rights reserved.")
       SET (CPACK_SHORT_VERSION_STRING "${CPACK_PACKAGE_VERSION}")
@@ -258,7 +255,9 @@ IF (NOT HDF5_EXTERNALLY_CONFIGURED AND NOT HDF5_NO_PACKAGES)
 
     SET (CPACK_DEBIAN_PACKAGE_SECTION "Libraries")
     SET (CPACK_DEBIAN_PACKAGE_MAINTAINER "${HDF5_PACKAGE_BUGREPORT}")
-    
+
+#    LIST (APPEND CPACK_GENERATOR "RPM") 
+    SET (CPACK_RPM_PACKAGE_RELEASE "1")
     SET (CPACK_RPM_COMPONENT_INSTALL ON)
     SET (CPACK_RPM_PACKAGE_RELOCATABLE ON)
     SET (CPACK_RPM_PACKAGE_LICENSE "BSD-style")
@@ -281,6 +280,12 @@ IF (NOT HDF5_EXTERNALLY_CONFIGURED AND NOT HDF5_NO_PACKAGES)
 The HDF5 data model, file format, API, library, and tools are open and distributed without charge.
 "
     )
+    
+    #-----------------------------------------------------------------------------
+    # Configure the spec file for the install RPM
+    #-----------------------------------------------------------------------------
+#    CONFIGURE_FILE ("${HDF5_RESOURCES_DIR}/hdf5.spec.in" "${CMAKE_CURRENT_BINARY_DIR}/${HDF5_PACKAGE_NAME}.spec" @ONLY IMMEDIATE)
+#    SET (CPACK_RPM_USER_BINARY_SPECFILE "${CMAKE_CURRENT_BINARY_DIR}/${HDF5_PACKAGE_NAME}.spec")
   ENDIF (WIN32)
   
   INCLUDE(InstallRequiredSystemLibraries)
