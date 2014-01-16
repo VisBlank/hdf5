@@ -381,7 +381,6 @@ int main(int argc, char **argv)
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
-#include <time.h>
 int main(void)
 {
  struct timeval tv;
