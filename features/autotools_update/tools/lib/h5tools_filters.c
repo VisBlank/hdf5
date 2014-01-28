@@ -43,12 +43,13 @@ static void print_warning(const char *dname, const char *fname) {
  *-------------------------------------------------------------------------
  */
 int h5tools_canreadf(const char* name, /* object name, serves also as boolean print */
-hid_t dcpl_id) /* dataset creation property list */
+                     hid_t dcpl_id)    /* dataset creation property list */
 {
 
 	int nfilters; /* number of filters */
 	H5Z_filter_t filtn; /* filter identification number */
 	int i; /* index */
+	int udfilter_avail; /* index */
 
 	/* get information about filters */
 	if ((nfilters = H5Pget_nfilters(dcpl_id)) < 0)
@@ -69,7 +70,9 @@ hid_t dcpl_id) /* dataset creation property list */
 		 *-------------------------------------------------------------------------
 		 */
 		default:
-			if (H5Zfilter_avail(filtn) < 0) {
+			if ((udfilter_avail = H5Zfilter_avail(filtn)) < 0)
+				return -1;
+			else if (udfilter_avail == 0) {
 				if (name)
 					print_warning(name, "user defined");
 				return 0;
