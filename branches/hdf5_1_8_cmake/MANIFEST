@@ -1999,6 +1999,7 @@
 ./tools/h5repack/testfiles/h5repack_layouto.h5
 ./tools/h5repack/testfiles/h5repack_layout2.h5
 ./tools/h5repack/testfiles/h5repack_layout3.h5
+./tools/h5repack/testfiles/h5repack_layout.UD.h5
 ./tools/h5repack/testfiles/h5repack_named_dtypes.h5
 ./tools/h5repack/testfiles/h5repack_nbit.h5
 ./tools/h5repack/testfiles/h5repack_objs.h5
@@ -2008,10 +2009,12 @@
 ./tools/h5repack/testfiles/h5repack_szip.h5
 ./tools/h5repack/testfiles/ublock.bin
 ./tools/h5repack/testfiles/deflate_limit.h5repack_layout.h5.ddl
+./tools/h5repack/testfiles/plugin_none.h5repack_layout.UD.h5.tst
 ./tools/h5repack/testfiles/plugin_test.h5repack_layout.h5.tst
 ./tools/h5repack/testfiles/h5repack-help.txt
 ./tools/h5repack/testfiles/h5repack_filters.h5.tst
 ./tools/h5repack/testfiles/h5repack_layout.h5.ddl
+./tools/h5repack/testfiles/h5repack_layout.UD.h5-plugin_none.ddl
 ./tools/h5repack/testfiles/h5repack_layout.h5-plugin_test.ddl
 
 # jam utility and tests
@@ -2272,7 +2275,6 @@
 ./config/cmake/GetTimeOfDayTest.cpp
 ./config/cmake/HDF5CXXTests.cpp
 ./config/cmake/HDF5Tests.c
-./config/cmake/xlatefile.c
 ./config/cmake/CheckTypeSize.cmake
 ./config/cmake/H5cxx_config.h.in
 ./config/cmake/H5pubconf.h.in
@@ -2295,7 +2297,6 @@
 ./config/cmake/vfdTest.cmake
 ./config/cmake/CTestCustom.cmake
 ./config/cmake/ConfigureChecks.cmake
-./config/cmake/CPack.cmake
 ./config/cmake/CPack.Info.plist.in
 ./config/cmake/hdf.gif
 ./config/cmake/NSIS.template.in

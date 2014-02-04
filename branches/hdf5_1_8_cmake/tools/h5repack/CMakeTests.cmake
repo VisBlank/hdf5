@@ -55,6 +55,7 @@
       ${HDF5_TOOLS_H5REPACK_SOURCE_DIR}/testfiles/h5repack_layouto.h5
       ${HDF5_TOOLS_H5REPACK_SOURCE_DIR}/testfiles/h5repack_layout2.h5
       ${HDF5_TOOLS_H5REPACK_SOURCE_DIR}/testfiles/h5repack_layout3.h5
+      ${HDF5_TOOLS_H5REPACK_SOURCE_DIR}/testfiles/h5repack_layout.UD.h5
       ${HDF5_TOOLS_H5REPACK_SOURCE_DIR}/testfiles/h5repack_named_dtypes.h5
       ${HDF5_TOOLS_H5REPACK_SOURCE_DIR}/testfiles/h5repack_nbit.h5
       ${HDF5_TOOLS_H5REPACK_SOURCE_DIR}/testfiles/h5repack_objs.h5
@@ -88,6 +89,8 @@
       ${HDF5_TOOLS_H5REPACK_SOURCE_DIR}/testfiles/h5repack_filters.h5.tst
       ${HDF5_TOOLS_H5REPACK_SOURCE_DIR}/testfiles/h5repack_layout.h5-plugin_test.ddl
       ${HDF5_TOOLS_H5REPACK_SOURCE_DIR}/testfiles/plugin_test.h5repack_layout.h5.tst
+      ${HDF5_TOOLS_H5REPACK_SOURCE_DIR}/testfiles/h5repack_layout.UD.h5-plugin_none.ddl
+      ${HDF5_TOOLS_H5REPACK_SOURCE_DIR}/testfiles/plugin_none.h5repack_layout.UD.h5.tst
   )
 
   FOREACH (h5_file ${LIST_HDF5_TEST_FILES} ${LIST_OTHER_TEST_FILES})
@@ -206,12 +209,12 @@
             NAME H5REPACK_CMP-${testname}
             COMMAND "${CMAKE_COMMAND}"
                 -D "TEST_PROGRAM=$<TARGET_FILE:h5repack>"
-                -D "TEST_ARGS:STRING=${ARGN};testfiles/${resultfile};testfiles/out-${testname}.${resultfile}"
-                -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
-                -D "TEST_OUTPUT=./testfiles/${resultfile}-${testname}.out"
+                -D "TEST_ARGS:STRING=${ARGN};${resultfile};out-${testname}.${resultfile}"
+                -D "TEST_FOLDER=${PROJECT_BINARY_DIR}/testfiles"
+                -D "TEST_OUTPUT=${resultfile}-${testname}.out"
                 -D "TEST_EXPECT=${resultcode}"
                 -D "TEST_FILTER:STRING=${testfilter}"
-                -D "TEST_REFERENCE=testfiles/${resultfile}.tst"
+                -D "TEST_REFERENCE=${resultfile}.tst"
                 -P "${HDF5_RESOURCES_DIR}/runTest.cmake"
         )
       ENDIF (HDF5_ENABLE_USING_MEMCHECKER)
@@ -242,11 +245,11 @@
             NAME H5REPACK_DMP-h5dump-${testname}
             COMMAND "${CMAKE_COMMAND}"
                 -D "TEST_PROGRAM=$<TARGET_FILE:h5dump>"
-                -D "TEST_ARGS:STRING=-pH;./testfiles/out-${testname}.${resultfile}"
-                -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
-                -D "TEST_OUTPUT=./testfiles/${resultfile}-${testname}.out"
+                -D "TEST_ARGS:STRING=-pH;out-${testname}.${resultfile}"
+                -D "TEST_FOLDER=${PROJECT_BINARY_DIR}/testfiles"
+                -D "TEST_OUTPUT=${resultfile}-${testname}.out"
                 -D "TEST_EXPECT=${resultcode}"
-                -D "TEST_REFERENCE=testfiles/${testname}.${resultfile}.ddl"
+                -D "TEST_REFERENCE=${testname}.${resultfile}.ddl"
                 -P "${HDF5_RESOURCES_DIR}/runTest.cmake"
         )
         SET_TESTS_PROPERTIES (H5REPACK_DMP-h5dump-${testname} PROPERTIES DEPENDS "H5REPACK_DMP-${testname}")
@@ -281,9 +284,9 @@
               NAME H5REPACK_VERIFY_LAYOUT-${testname}_DMP
               COMMAND "${CMAKE_COMMAND}"
                   -D "TEST_PROGRAM=$<TARGET_FILE:h5dump>"
-                  -D "TEST_ARGS:STRING=-d;${testdset};-pH;testfiles/out-${testname}.${testfile}"
-                  -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
-                  -D "TEST_OUTPUT=./testfiles/${testfile}-${testname}-v.out"
+                  -D "TEST_ARGS:STRING=-d;${testdset};-pH;out-${testname}.${testfile}"
+                  -D "TEST_FOLDER=${PROJECT_BINARY_DIR}/testfiles"
+                  -D "TEST_OUTPUT=${testfile}-${testname}-v.out"
                   -D "TEST_EXPECT=${resultcode}"
                   -D "TEST_FILTER:STRING=${testfilter}"
                   -D "TEST_REFERENCE=${testfilter}"
@@ -304,9 +307,9 @@
               NAME H5REPACK_VERIFY_LAYOUT-${testname}_DMP
               COMMAND "${CMAKE_COMMAND}"
                   -D "TEST_PROGRAM=$<TARGET_FILE:h5dump>"
-                  -D "TEST_ARGS:STRING=-pH;testfiles/out-${testname}.${testfile}"
-                  -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
-                  -D "TEST_OUTPUT=./testfiles/${testfile}-${testname}-v.out"
+                  -D "TEST_ARGS:STRING=-pH;out-${testname}.${testfile}"
+                  -D "TEST_FOLDER=${PROJECT_BINARY_DIR}/testfiles"
+                  -D "TEST_OUTPUT=${testfile}-${testname}-v.out"
                   -D "TEST_EXPECT=${resultcode}"
                   -D "TEST_FILTER:STRING=${nottestfilter}"
                   -D "TEST_REFERENCE=${testfilter}"
@@ -341,7 +344,7 @@
     IF (HDF5_BUILD_TOOLS AND NOT HDF5_ENABLE_USING_MEMCHECKER)
       # Remove any output file left over from previous test run
       ADD_TEST (
-          NAME H5REPACK_UD-clearall-objects
+          NAME H5REPACK_UD-${testname}-clearall-objects
           COMMAND    ${CMAKE_COMMAND}
               -E remove 
               testfiles/out-${testname}.${resultfile}
@@ -354,26 +357,26 @@
           NAME H5REPACK_UD-${testname}
           COMMAND "${CMAKE_COMMAND}"
               -D "TEST_PROGRAM=$<TARGET_FILE:h5repack>"
-              -D "TEST_ARGS:STRING=${ARGN};${PROJECT_BINARY_DIR}/testfiles/${resultfile};${PROJECT_BINARY_DIR}/testfiles/out-${testname}.${resultfile}"
-              -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
+              -D "TEST_ARGS:STRING=${ARGN};${resultfile};out-${testname}.${resultfile}"
+              -D "TEST_FOLDER=${PROJECT_BINARY_DIR}/testfiles"
               -D "TEST_EXPECT=${resultcode}"
               -D "TEST_FILTER:STRING=O?...ing file[^\n]+\n"
-              -D "TEST_OUTPUT=./testfiles/${testname}.${resultfile}.out"
-              -D "TEST_REFERENCE=testfiles/${testname}.${resultfile}.tst"
+              -D "TEST_OUTPUT=${testname}.${resultfile}.out"
+              -D "TEST_REFERENCE=${testname}.${resultfile}.tst"
               -D "TEST_ENV_VAR=HDF5_PLUGIN_PATH"
               -D "TEST_ENV_VALUE=${CMAKE_BINARY_DIR}/plugins"
               -P "${HDF5_RESOURCES_DIR}/runTest.cmake"
       )
-      SET_TESTS_PROPERTIES (H5REPACK_UD-${testname} PROPERTIES DEPENDS H5REPACK_UD-clearall-objects)
+      SET_TESTS_PROPERTIES (H5REPACK_UD-${testname} PROPERTIES DEPENDS H5REPACK_UD-${testname}-clearall-objects)
       ADD_TEST (
           NAME H5REPACK_UD-h5dump-${testname}
           COMMAND "${CMAKE_COMMAND}"
               -D "TEST_PROGRAM=$<TARGET_FILE:h5dump>"
-              -D "TEST_ARGS:STRING=-pH;testfiles/out-${testname}.${resultfile}"
-              -D "TEST_FOLDER=${PROJECT_BINARY_DIR}"
-              -D "TEST_OUTPUT=./testfiles/${resultfile}-${testname}.out"
+              -D "TEST_ARGS:STRING=-pH;out-${testname}.${resultfile}"
+              -D "TEST_FOLDER=${PROJECT_BINARY_DIR}/testfiles"
+              -D "TEST_OUTPUT=${resultfile}-${testname}.out"
               -D "TEST_EXPECT=${resultcode}"
-              -D "TEST_REFERENCE=testfiles/${resultfile}-${testname}.ddl"
+              -D "TEST_REFERENCE=${resultfile}-${testname}.ddl"
               -D "TEST_ENV_VAR=HDF5_PLUGIN_PATH"
               -D "TEST_ENV_VALUE=${CMAKE_BINARY_DIR}/plugins"
               -P "${HDF5_RESOURCES_DIR}/runTest.cmake"
@@ -1063,6 +1066,7 @@ ADD_H5_VERIFY_TEST (ckdim_smaller "TEST" 0 h5repack_layout3.h5 chunk_unlimit3 CO
 ##############################################################################
 IF (BUILD_SHARED_LIBS)
   ADD_H5_UD_TEST (plugin_test 0 h5repack_layout.h5 -v -f UD=257,1,9)
+  ADD_H5_UD_TEST (plugin_none 0 h5repack_layout.UD.h5 -v -f NONE)
 ELSE (BUILD_SHARED_LIBS)
   MESSAGE (STATUS " **** Plugins libraries must be built as shared libraries **** ")
   ADD_TEST (
