@@ -7,4 +7,6 @@ This branch is where improvements to the log VFD are taking place.  Since
 some of these changes may not be propagated to the 1.8.x branch, they are
 being made in a separate branch.
 
-This branch tracks the trunk.  It is merged with the trunk every few days.
+This branch tracks the trunk.  It is currently inactive since the project
+sponsor is no longer funding development. It has not been updated in some
+time.
