@@ -16,7 +16,7 @@
 ## ----------------------------------------------------------------------
 ## Initialize configure.
 ##
-AC_REVISION($Id: configure.ac 24466 2013-11-25 04:53:59Z hdftest $)
+AC_REVISION($Id: configure.ac 24732 2014-02-22 19:22:26Z lrknox $)
 AC_PREREQ([2.69])
 
 ## AC_INIT takes the name of the package, the version number, and an
@@ -1092,6 +1092,13 @@ case "X-$RPATH" in
     AC_MSG_ERROR([\'$enableval\' is not a valid rpath type])
     ;;
 esac
+## ----------------------------------------------------------------------
+## When sharedlib-rpath is disabled, setting runpath_var to "" above, don't
+## add libhdf5 as a dependency for the other hdf5 libs, either.  This keeps
+## the rpath to libhdf5 out of the lib files as well as the executables.
+AM_CONDITIONAL([LT_ADD_LIBHDF5_DEPENDENCY], [test "X$runpath_var" != X])
+
+AC_SUBST([LT_ADD_LIBHDF5_DEPENDENCY])
 
 AC_MSG_CHECKING([make])
 
@@ -4033,7 +4040,7 @@ fi
 
 ## ----------------------------------------------------------------------
 ## Set the flag to indicate that the machine generates bad code
-## for the H5V_log2_gen() routine in src/H5Vprivate.h
+## for the H5VM_log2_gen() routine in src/H5VMprivate.h
 ## (This flag should be set to no for all machines, except for SGI IRIX64,
 ## where the cache value is set to yes in it's config file)
 ##
