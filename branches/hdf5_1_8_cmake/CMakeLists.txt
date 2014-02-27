@@ -213,6 +213,22 @@ SET (HDF5_PACKAGE_URL "http://www.hdfgroup.org")
 SET (HDF5_PACKAGE_BUGREPORT "help@hdfgroup.org")
 
 #-----------------------------------------------------------------------------
+# Set Install folder value
+#-----------------------------------------------------------------------------
+IF (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  IF(CMAKE_HOST_UNIX)
+    SET(CMAKE_INSTALL_PREFIX "/HDF_Group/${HDF5_PACKAGE_NAME}/${HDF5_PACKAGE_VERSION}"
+      CACHE PATH "Install path prefix, prepended onto install directories." FORCE)
+  ELSE(CMAKE_HOST_UNIX)
+    GetDefaultWindowsPrefixBase(CMAKE_GENERIC_PROGRAM_FILES)
+    SET(CMAKE_INSTALL_PREFIX
+      "${CMAKE_GENERIC_PROGRAM_FILES}/HDF_Group/${HDF5_PACKAGE_NAME}/${HDF5_PACKAGE_VERSION}"
+      CACHE PATH "Install path prefix, prepended onto install directories." FORCE)
+    SET(CMAKE_GENERIC_PROGRAM_FILES)
+  ENDIF(CMAKE_HOST_UNIX)
+ENDIF (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+
+#-----------------------------------------------------------------------------
 # Include some macros for reusable code
 #-----------------------------------------------------------------------------
 INCLUDE (${HDF5_RESOURCES_DIR}/HDFMacros.cmake)
@@ -265,13 +281,6 @@ SET (EXTERNAL_LIBRARYDLL_LIST "")
 # Run all the CMake configuration tests for our build environment
 #-----------------------------------------------------------------------------
 INCLUDE (${HDF5_RESOURCES_DIR}/ConfigureChecks.cmake)
-
-#-----------------------------------------------------------------------------
-# Option to use legacy naming for windows libs/programs, default is legacy
-#-----------------------------------------------------------------------------
-IF (WIN32 AND NOT CYGWIN)
-  OPTION (HDF_LEGACY_NAMING "Use Legacy Names for Libraries and Programs" OFF)
-ENDIF (WIN32 AND NOT CYGWIN)
 
 #-----------------------------------------------------------------------------
 # Option to Build Shared/Static libs, default is static
@@ -673,7 +682,7 @@ ENDIF (HDF5_ENABLE_PARALLEL)
 IF (H5_HAVE_PARALLEL)
   SET (LINK_LIBS ${LINK_LIBS} ${MPI_C_LIBRARIES})
   IF (MPI_C_LINK_FLAGS)
-    SET (CMAKE_EXE_LINKER_FLAGS ${MPI_C_LINK_FLAGS} ${CMAKE_EXE_LINKER_FLAGS})
+    SET (CMAKE_EXE_LINKER_FLAGS "${MPI_C_LINK_FLAGS} ${CMAKE_EXE_LINKER_FLAGS}")
   ENDIF (MPI_C_LINK_FLAGS)
 ENDIF (H5_HAVE_PARALLEL)
 
