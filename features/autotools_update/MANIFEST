@@ -921,8 +921,8 @@
 ./src/H5Tvlen.c
 ./src/H5TS.c
 ./src/H5TSprivate.h
-./src/H5V.c
-./src/H5Vprivate.h
+./src/H5VM.c
+./src/H5VMprivate.h
 ./src/H5WB.c
 ./src/H5WBprivate.h
 ./src/H5Z.c
@@ -2445,7 +2445,11 @@
 ./config/cmake/CTestCustom.cmake
 ./config/cmake/ConfigureChecks.cmake
 ./config/cmake/CPack.Info.plist.in
-./config/cmake/hdf.gif
+./config/cmake/hdf.bmp
+./config/cmake/hdf.icns
+./config/cmake/hdf.ico
+./config/cmake/PkgInfo.in
+./config/cmake/version.plist.in
 ./config/cmake/NSIS.template.in
 ./config/cmake/NSIS.InstallOptions.ini.in
 ./config/cmake/README.txt.cmake.in
