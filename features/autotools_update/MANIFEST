@@ -39,6 +39,7 @@
 ./configure
 ./configure.ac
 
+./bin/ar-lib
 ./bin/COPYING
 ./bin/buildhdf5
 ./bin/checkapi        _DO_NOT_DISTRIBUTE_
@@ -66,10 +67,12 @@
 ./bin/make_overflow
 ./bin/make_vers
 ./bin/makehelp
+./bin/mdate-sh
 ./bin/missing
 ./bin/mkdirs
 ./bin/mkinstalldirs
 ./bin/newer
+./bin/py-compile
 ./bin/reconfigure      _DO_NOT_DISTRIBUTE_
 ./bin/output_filter.sh
 ./bin/README        _DO_NOT_DISTRIBUTE_
@@ -77,8 +80,13 @@
 ./bin/runtest        _DO_NOT_DISTRIBUTE_
 ./bin/snapshot
 ./bin/snapshot_version      _DO_NOT_DISTRIBUTE_
+./bin/tap-driver.pl
+./bin/tap-driver.sh
+./bin/test-driver
+./bin/texinfo.tex
 ./bin/timekeeper      _DO_NOT_DISTRIBUTE_
 ./bin/trace
+./bin/ylwrap
 ./bin/yodconfigure
 
 ./config/COPYING
