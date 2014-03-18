@@ -64,6 +64,7 @@ set (H5B_SRCS
     ${HDF5_SRC_DIR}/H5Bcache.c
     ${HDF5_SRC_DIR}/H5Bdbg.c
 )
+
 set (H5B_HDRS
     ${HDF5_SRC_DIR}/H5B2pkg.h
     ${HDF5_SRC_DIR}/H5B2public.h
@@ -114,7 +115,6 @@ set (H5E_HDRS
 )
 IDE_GENERATED_PROPERTIES ("H5E" "${H5E_HDRS}" "${H5E_SRCS}" )
 
-
 set (H5F_SRCS
     ${HDF5_SRC_DIR}/H5F.c
     ${HDF5_SRC_DIR}/H5Faccum.c
@@ -137,7 +137,6 @@ set (H5F_HDRS
     ${HDF5_SRC_DIR}/H5Fpublic.h
 )
 IDE_GENERATED_PROPERTIES ("H5F" "${H5F_HDRS}" "${H5F_SRCS}" )
-
 
 set (H5FD_SRCS
     ${HDF5_SRC_DIR}/H5FD.c
@@ -170,7 +169,6 @@ set (H5FD_HDRS
     ${HDF5_SRC_DIR}/H5FDstdio.h
 )
 IDE_GENERATED_PROPERTIES ("H5FD" "${H5FD_HDRS}" "${H5FD_SRCS}" )
-
 
 set (H5FS_SRCS
     ${HDF5_SRC_DIR}/H5FS.c
@@ -264,7 +262,6 @@ set (H5HL_HDRS
     ${HDF5_SRC_DIR}/H5HLpublic.h
 )
 IDE_GENERATED_PROPERTIES ("H5HL" "${H5HL_HDRS}" "${H5HL_SRCS}" )
-
 
 set (H5MF_SRCS
     ${HDF5_SRC_DIR}/H5MF.c
@@ -390,7 +387,6 @@ set (H5RS_SRCS
 set (H5RS_HDRS
 )
 IDE_GENERATED_PROPERTIES ("H5RS" "${H5RS_HDRS}" "${H5RS_SRCS}" )
-
 
 set (H5S_SRCS
     ${HDF5_SRC_DIR}/H5S.c
@@ -562,10 +558,10 @@ set (H5_PUBLIC_HEADERS
 # --------------------------------------------------------------------
 # If we are compiling on Windows then add the windows specific files
 # --------------------------------------------------------------------
-IF (WIN32 AND NOT CYGWIN)
-  SET (common_SRCS  ${common_SRCS}  ${HDF5_SRC_DIR}/H5FDwindows.c)
-  SET (H5_PUBLIC_HEADERS ${H5_PUBLIC_HEADERS}  ${HDF5_SRC_DIR}/H5FDwindows.h)
-ENDIF (WIN32 AND NOT CYGWIN)
+if (WIN32)
+  set (common_SRCS  ${common_SRCS}  ${HDF5_SRC_DIR}/H5FDwindows.c)
+  set (H5_PUBLIC_HEADERS ${H5_PUBLIC_HEADERS}  ${HDF5_SRC_DIR}/H5FDwindows.h)
+endif (WIN32)
 
 set (H5_PRIVATE_HEADERS
     ${HDF5_SRC_DIR}/H5private.h
