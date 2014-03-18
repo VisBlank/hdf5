@@ -34,7 +34,7 @@
 #include "H5DataSpace.h"
 #include "H5File.h"
 #include "H5Attribute.h"
-#include "H5private.h"		// for HDfree
+#include "H5private.h"		// for HDfree and HDmemset
 
 #ifndef H5_NO_NAMESPACE
 namespace H5 {
@@ -303,31 +303,71 @@ H5std_string Attribute::getFileName() const
 ///\param	attr_name - OUT: Buffer for the name string
 ///\return	Length of the attribute name
 ///\exception	H5::AttributeIException
+// Programmer	Binh-Minh Ribler - Mar, 2014
+//--------------------------------------------------------------------------
+ssize_t Attribute::getName(size_t buf_size, char* attr_name) const
+{
+    // Call H5Aget_name, passing in null arguments to get the size of
+    // the attribute name first
+    ssize_t name_size = H5Aget_name(id, (size_t)0, NULL);
+
+    // If H5Aget_name returns a negative value, raise an exception
+    if (name_size < 0)
+    {
+	throw AttributeIException("Attribute::getName", "H5Aget_name failed");
+    }
+
+    // If attribute name exists, calls C routine again to get it
+    if (name_size > 0)
+    {
+	// Name is smaller than provided buffer, get the entire name
+	if (name_size < buf_size)
+	    name_size = H5Aget_name(id, name_size+1, attr_name);
+
+	// Provided buffer is too small, only get buf_size-1 chars
+	else
+	    name_size = H5Aget_name(id, buf_size, attr_name);
+    }
+
+    // If attribute name is null, i.e., name_size = 0, return 0 and
+    // keep attr_name intact
+
+    return(name_size);
+}
+
+//--------------------------------------------------------------------------
+// Function:	Attribute::getName
+///\brief	Gets the name of this attribute, returning its length.
+///\param	buf_size  -  IN: Desired length of the name
+///\param	attr_name - OUT: Buffer for the name string
+///\return	Length of the attribute name
+///\exception	H5::AttributeIException
 // Programmer	Binh-Minh Ribler - Nov, 2001
 //--------------------------------------------------------------------------
 ssize_t Attribute::getName( size_t buf_size, H5std_string& attr_name ) const
 {
-   char* name_C = new char[buf_size+1];  // temporary C-string for C API
+    char* name_C = new char[buf_size+1];  // temporary C-string for attr name
+    HDmemset(name_C, 0, buf_size+1); // clear buffer
 
-   // Calls C routine H5Aget_name to get the name of the attribute
-   ssize_t name_size = H5Aget_name( id, buf_size, name_C );
+    // Used overloaded function
+    ssize_t name_size = getName(buf_size+1, name_C);
 
-   // If H5Aget_name returns a negative value, raise an exception,
-   if( name_size < 0 )
-   {
-      throw AttributeIException("Attribute::getName", "H5Aget_name failed");
-   }
-   // otherwise, convert the C attribute name and return
-   attr_name = name_C;
-   delete []name_C;
-   return( name_size );
+    if (name_size > 0)
+    {
+	// Convert the C attribute name to return
+	attr_name = name_C;
+    }
+
+    // Clean up resource and return size of attr name
+    delete []name_C;
+    return(name_size);
 }
 
 //--------------------------------------------------------------------------
 // Function:	Attribute::getName
 ///\brief	This is an overloaded member function, provided for convenience.
 ///		It differs from the above function in that it returns the
-///		attribute's name, not the length.
+///		attribute's name, not the length, and as a H5std_string.
 ///\return	Name of the attribute
 ///\param	buf_size  -  IN: Desired length of the name
 ///\exception	H5::AttributeIException
@@ -345,29 +385,29 @@ H5std_string Attribute::getName( size_t buf_size ) const
 // Function:	Attribute::getName
 ///\brief	This is an overloaded member function, provided for convenience.
 ///		It differs from the above functions in that it doesn't take
-///		any arguments and returns the attribute's name.
+///		any arguments and returns the attribute name as an H5std_string.
 ///\return	Name of the attribute
 ///\exception	H5::AttributeIException
 // Programmer	Binh-Minh Ribler - May, 2004
 //--------------------------------------------------------------------------
 H5std_string Attribute::getName() const
 {
-   // Try with 256 characters for the name first, if the name's length
-   // returned is more than that then, read the name again with the
-   // appropriate space allocation
-   char* name_C = new char[256];  // temporary C-string for C API
-   ssize_t name_size = H5Aget_name(id, 255, name_C);
+    // Call H5Aget_name, passing in null arguments to get the size of
+    // the attribute name first
+    ssize_t name_size = H5Aget_name(id, (size_t)0, NULL);
 
-   H5std_string attr_name;
-   if (name_size >= 256)
-      name_size = getName(name_size, attr_name);
+    // If name exists, use overloaded getName which calls H5Aget_name
+    // again with appropriate arguments
+    H5std_string attr_name;
+    if (name_size > 0)
+	name_size = getName(name_size, attr_name);
 
-   // otherwise, convert the C attribute name and return
-   else
-      attr_name = name_C;
+    // Otherwise, return the "" string
+    else
+	attr_name = "";
 
-   delete []name_C;
-   return( attr_name );
+    // Return attribute's name as an H5std_string
+    return(attr_name);
 }
 
 //--------------------------------------------------------------------------
