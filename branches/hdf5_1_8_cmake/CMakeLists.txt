@@ -67,7 +67,7 @@ PROJECT (HDF5 C CXX)
 #   endif (HDF5_ENABLE_Z_LIB_SUPPORT)
 # 
 #   # Add the sub project
-#   ADD_SUBDIRECTORY(Utilities/hdf5-1.8)
+#   add_subdirectory (Utilities/hdf5-1.8)
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
@@ -169,7 +169,7 @@ endif (NOT HDF5_INSTALL_DATA_DIR)
 #-----------------------------------------------------------------------------
 # parse the full version number from H5public.h and include in H5_VERS_INFO
 #-----------------------------------------------------------------------------
-FILE (READ ${HDF5_SRC_DIR}/H5public.h _h5public_h_contents)
+file (READ ${HDF5_SRC_DIR}/H5public.h _h5public_h_contents)
 string (REGEX REPLACE ".*#define[ \t]+H5_VERS_MAJOR[ \t]+([0-9]*).*$"
     "\\1" H5_VERS_MAJOR ${_h5public_h_contents})
 string (REGEX REPLACE ".*#define[ \t]+H5_VERS_MINOR[ \t]+([0-9]*).*$"
@@ -183,14 +183,14 @@ string (REGEX REPLACE ".*#define[ \t]+H5_VERS_SUBRELEASE[ \t]+\"([0-9A-Za-z._]*)
 #-----------------------------------------------------------------------------
 # parse the full soversion number from config/lt_vers.am and include in H5_SOVERS_INFO
 #-----------------------------------------------------------------------------
-FILE (READ ${HDF5_SOURCE_DIR}/config/lt_vers.am _lt_vers_am_contents)
+file (READ ${HDF5_SOURCE_DIR}/config/lt_vers.am _lt_vers_am_contents)
 string (REGEX REPLACE ".*LT_VERS_INTERFACE[ \t]+=[ \t]+([0-9]*).*$"
     "\\1" H5_SOVERS_INTERFACE ${_lt_vers_am_contents})
 string (REGEX REPLACE ".*LT_VERS_REVISION[ \t]+=[ \t]+([0-9]*).*$"
     "\\1" H5_SOVERS_MINOR ${_lt_vers_am_contents})
 string (REGEX REPLACE ".*LT_VERS_AGE[ \t]+=[ \t]+([0-9]*).*$"
     "\\1" H5_SOVERS_RELEASE ${_lt_vers_am_contents})
-MATH(EXPR H5_SOVERS_MAJOR ${H5_SOVERS_INTERFACE}-${H5_SOVERS_RELEASE})
+MATH (EXPR H5_SOVERS_MAJOR ${H5_SOVERS_INTERFACE}-${H5_SOVERS_RELEASE})
 message (STATUS "SOVERSION: ${H5_SOVERS_MAJOR}.${H5_SOVERS_RELEASE}.${H5_SOVERS_MINOR}")
 
 #-----------------------------------------------------------------------------
@@ -327,7 +327,7 @@ endif (HDF5_ENABLE_COVERAGE)
 #-----------------------------------------------------------------------------
 # option (HDF5_ENABLE_USING_DMALLOC "Indicate that dmalloc is used" OFF)
 # if (HDF5_ENABLE_USING_DMALLOC)
-#   FIND_PACKAGE (DMALLOC)
+#   find_package (DMALLOC)
 #   set (H5_HAVE_DMALLOC DMALLOC_FOUND)   
 # endif (HDF5_ENABLE_USING_DMALLOC)
 

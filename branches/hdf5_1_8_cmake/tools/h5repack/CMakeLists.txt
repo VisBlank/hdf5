@@ -65,7 +65,7 @@ if (BUILD_TESTING)
     )
 
     # make plugins dir
-    FILE (MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/plugins")
+    file (MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/plugins")
     #-----------------------------------------------------------------------------
     # Copy plugin library to a plugins folder
     #-----------------------------------------------------------------------------
