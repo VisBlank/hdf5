@@ -318,7 +318,7 @@ static void test_attr_getname()
 	// using buffer smaller than the actual name
 	buf_size = 4;
 	H5std_string fattr1_name2;
-	name_size = fattr1.getName(buf_size, fattr1_name2);
+	name_size = fattr1.getName(fattr1_name2, buf_size);
 
 	// Get attribute name with
 	// H5std_string Attribute::getName()
@@ -346,9 +346,9 @@ static void test_attr_getname()
 	verify_val(dattr_name1, ATTR1_NAME, "Attribute::getName", __LINE__, __FILE__);
 
 	// Get attribute name with
-	// H5std_string Attribute::getName(size_t buf_size)
-	buf_size = 5;
-	H5std_string dattr_name2 = attr1.getName(buf_size);
+	// H5std_string Attribute::getName(H5std_string attr_name, buf_size=0)
+	H5std_string dattr_name2;
+	name_size = attr1.getName(dattr_name2);
 	verify_val(dattr_name2, ATTR1_NAME, "Attribute::getName", __LINE__, __FILE__);
 
 	PASSED();
