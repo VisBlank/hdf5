@@ -35,8 +35,8 @@ set (CTEST_CUSTOM_MEMCHECK_IGNORE
     H5TEST-clear-links_env-objects
     PERFORM_h5perform-clear-objects
     HL_TOOLS-clear-objects
-    hl_test-clear-objects
-    hl_fortran_test-clear-objects
+    HL_test-clear-objects
+    HL_fortran_test-clear-objects
     ######### tools/h5copy #########
     H5COPY-clearall-objects
     ######### tools/h5diff #########
