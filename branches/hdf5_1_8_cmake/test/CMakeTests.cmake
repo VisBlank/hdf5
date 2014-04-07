@@ -413,7 +413,7 @@ if (HDF5_TEST_VFD)
       unregister
   )
   if (NOT CYGWIN)
-    set (H5_VFD_TESTS "${H5_VFD_TESTS} big")
+    set (H5_VFD_TESTS ${H5_VFD_TESTS} big)
   endif (NOT CYGWIN)
   
   if (DIRECT_VFD)
