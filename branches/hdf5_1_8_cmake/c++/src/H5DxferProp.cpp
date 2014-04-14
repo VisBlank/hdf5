@@ -229,7 +229,7 @@ void DSetMemXferPropList::setDataTransform(const H5std_string& expression) const
 //--------------------------------------------------------------------------
 // Function:	DSetMemXferPropList::getDataTransform
 ///\brief	Sets data transform expression.
-///\param	expression - OUT: buffer for data transform expression (char*)
+///\param	exp - OUT: buffer for data transform expression (char*)
 ///\param	buf_size   - IN: size of buffer for expression, including the
 ///				 null terminator
 ///\exception	H5::PropListIException
@@ -237,9 +237,8 @@ void DSetMemXferPropList::setDataTransform(const H5std_string& expression) const
 //--------------------------------------------------------------------------
 ssize_t DSetMemXferPropList::getDataTransform(char* exp, size_t buf_size) const
 {
-    // If application does not pass in 
-    // H5Pget_data_transform will get buf_size characters of the expression including
-    // the null terminator
+    // H5Pget_data_transform will get buf_size characters of the expression
+    // including the null terminator
     ssize_t exp_len;
     exp_len = H5Pget_data_transform(id, exp, buf_size);
 
@@ -254,7 +253,7 @@ ssize_t DSetMemXferPropList::getDataTransform(char* exp, size_t buf_size) const
     // expression or at [buf_size-1] if the expression is at least the size
     // of the buffer.
 
-    // Return the actual comment length, which might be different from buf_size
+    // Return the expression length, which might be different from buf_size
     return(exp_len);
 }
 
@@ -285,7 +284,6 @@ H5std_string DSetMemXferPropList::getDataTransform() const
     {
         // Temporary buffer for char* expression
         char* exp_C = new char[exp_len+1];
-	exp_C = (char *)HDmalloc(exp_len+1);
         HDmemset(exp_C, 0, exp_len+1); // clear buffer
 
         // Used overloaded function

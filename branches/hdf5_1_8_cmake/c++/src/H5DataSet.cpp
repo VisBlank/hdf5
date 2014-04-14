@@ -85,6 +85,7 @@ DataSet::DataSet(const DataSet& original) : AbstractDs(original), H5Object(origi
 ///			  object that the dataset is located within.
 ///\param	ref - IN: Reference pointer
 ///\param	ref_type - IN: Reference type - default to H5R_OBJECT
+///\param	plist - IN: Property list - default to PropList::DEFAULT
 ///\exception	H5::DataSetIException
 ///\par Description
 ///		\c loc can be DataSet, Group, H5File, or named DataType, that
@@ -106,6 +107,7 @@ DataSet::DataSet(const H5Location& loc, const void* ref, H5R_type_t ref_type) : 
 ///\param	attr - IN: Specifying location where the referenced object is in
 ///\param	ref - IN: Reference pointer
 ///\param	ref_type - IN: Reference type - default to H5R_OBJECT
+///\param	plist - IN: Property list - default to PropList::DEFAULT
 ///\exception	H5::ReferenceException
 // Programmer	Binh-Minh Ribler - Oct, 2006
 // Modification
@@ -294,7 +296,7 @@ void DataSet::getSpaceStatus(H5D_space_status_t& status) const
 ///\exception	H5::DataSetIException
 // Programmer	Binh-Minh Ribler - 2000
 //--------------------------------------------------------------------------
-hsize_t DataSet::getVlenBufSize( DataType& type, DataSpace& space ) const
+hsize_t DataSet::getVlenBufSize(const DataType& type, const DataSpace& space ) const
 {
    // Obtain identifiers for C API
    hid_t type_id = type.getId();
@@ -577,7 +579,7 @@ void DataSet::extend( const hsize_t* size ) const
 ///\exception	H5::DataSetIException
 // Programmer	Binh-Minh Ribler - 2000
 //--------------------------------------------------------------------------
-void DataSet::fillMemBuf(const void *fill, DataType& fill_type, void *buf, DataType& buf_type, DataSpace& space)
+void DataSet::fillMemBuf(const void *fill, const DataType& fill_type, void *buf, const DataType& buf_type, const DataSpace& space)
 {
     hid_t fill_type_id = fill_type.getId();
     hid_t buf_type_id = buf_type.getId();
@@ -600,7 +602,7 @@ void DataSet::fillMemBuf(const void *fill, DataType& fill_type, void *buf, DataT
 ///\exception	H5::DataSetIException
 // Programmer	Binh-Minh Ribler - 2000
 //--------------------------------------------------------------------------
-void DataSet::fillMemBuf(void *buf, DataType& buf_type, DataSpace& space)
+void DataSet::fillMemBuf(void *buf, const DataType& buf_type, const DataSpace& space)
 {
     hid_t buf_type_id = buf_type.getId();
     hid_t space_id = space.getId();
