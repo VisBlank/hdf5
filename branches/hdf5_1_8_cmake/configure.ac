@@ -16,7 +16,7 @@
 ## ----------------------------------------------------------------------
 ## Initialize configure.
 ##
-AC_REVISION($Id: configure.ac 25072 2014-04-20 21:53:16Z epourmal $)
+AC_REVISION($Id: configure.ac 25134 2014-04-29 01:57:33Z epourmal $)
 AC_PREREQ([2.69])
 
 ## AC_INIT takes the name of the package, the version number, and an
@@ -26,7 +26,7 @@ AC_PREREQ([2.69])
 ## NOTE: Do not forget to change the version number here when we do a
 ## release!!!
 ##
-AC_INIT([HDF5], [1.8.13-pre2], [help@hdfgroup.org])
+AC_INIT([HDF5], [1.8.13-pre3], [help@hdfgroup.org])
 AC_CONFIG_SRCDIR([src/H5.c])
 AC_CONFIG_HEADER([src/H5config.h])
 
@@ -1081,6 +1081,7 @@ case "X-$RPATH" in
     runpath_var=
     hardcode_libdir_flag_spec=
     hardcode_libdir_flag_spec_ld=
+    hardcode_into_libs=no
     ;;
   X-|X-yes)
     AC_MSG_RESULT([yes])
@@ -1090,15 +1091,6 @@ case "X-$RPATH" in
     AC_MSG_ERROR([\'$enableval\' is not a valid rpath type])
     ;;
 esac
-## ----------------------------------------------------------------------
-## When sharedlib-rpath is disabled, setting runpath_var to "" above, don't
-## add libhdf5 as a dependency for the other hdf5 libs, either.  This keeps
-## the rpath to libhdf5 out of the lib files as well as the executables.
-AM_CONDITIONAL([LT_ADD_LIBHDF5_DEPENDENCY], [test "X$runpath_var" != X])
-
-AC_SUBST([LT_ADD_LIBHDF5_DEPENDENCY])
-
-AC_MSG_CHECKING([make])
 
 ## ----------------------------------------------------------------------
 ## Sometimes makes think the `.PATH:' appearing before the first rule
