@@ -1121,7 +1121,7 @@ test_get_file_id(void)
     CHECK(ret, FAIL, "H5Fclose");
 
     /* Test H5Iget_file_id() */
-    check_file_id(-1, group_id);
+    check_file_id((hid_t)-1, group_id);
 
     ret = H5Gclose(group_id);
     CHECK(ret, FAIL, "H5Gclose");

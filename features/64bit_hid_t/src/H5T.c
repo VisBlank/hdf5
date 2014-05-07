@@ -1449,7 +1449,7 @@ H5T_term_interface(void)
 	    if(path->func) {
 		H5T__print_stats(path, &nprint/*in,out*/);
 		path->cdata.command = H5T_CONV_FREE;
-		if((path->func)(FAIL, FAIL, &(path->cdata), (size_t)0,
+		if((path->func)((hid_t)FAIL, (hid_t)FAIL, &(path->cdata), (size_t)0,
                         (size_t)0, (size_t)0, NULL, NULL,H5AC_dxpl_id) < 0) {
 #ifdef H5T_DEBUG
 		    if (H5DEBUG(T)) {
@@ -2580,7 +2580,7 @@ H5T_unregister(H5T_pers_t pers, const char *name, H5T_t *src, H5T_t *dst,
             /* Shut down path */
             H5T__print_stats(path, &nprint);
             path->cdata.command = H5T_CONV_FREE;
-            if((path->func)(FAIL, FAIL, &(path->cdata),
+            if((path->func)((hid_t)FAIL, (hid_t)FAIL, &(path->cdata),
                     (size_t)0, (size_t)0, (size_t)0, NULL, NULL, dxpl_id) < 0) {
 #ifdef H5T_DEBUG
                 if(H5DEBUG(T)) {
@@ -4394,7 +4394,7 @@ H5T_path_find(const H5T_t *src, const H5T_t *dst, const char *name,
         HDsnprintf(H5T_g.path[0]->name, sizeof(H5T_g.path[0]->name), "no-op");
 	H5T_g.path[0]->func = H5T__conv_noop;
 	H5T_g.path[0]->cdata.command = H5T_CONV_INIT;
-	if(H5T__conv_noop(FAIL, FAIL, &(H5T_g.path[0]->cdata), (size_t)0, (size_t)0, (size_t)0, NULL, NULL, dxpl_id) < 0) {
+	if(H5T__conv_noop((hid_t)FAIL, (hid_t)FAIL, &(H5T_g.path[0]->cdata), (size_t)0, (size_t)0, (size_t)0, NULL, NULL, dxpl_id) < 0) {
 #ifdef H5T_DEBUG
 	    if(H5DEBUG(T))
 		fprintf(H5DEBUG(T), "H5T: unable to initialize no-op conversion function (ignored)\n");
@@ -4553,7 +4553,7 @@ H5T_path_find(const H5T_t *src, const H5T_t *dst, const char *name,
 	HDassert(table == H5T_g.path[md]);
 	H5T__print_stats(table, &nprint/*in,out*/);
 	table->cdata.command = H5T_CONV_FREE;
-	if((table->func)(FAIL, FAIL, &(table->cdata), (size_t)0, (size_t)0, (size_t)0, NULL, NULL, dxpl_id) < 0) {
+	if((table->func)((hid_t)FAIL, (hid_t)FAIL, &(table->cdata), (size_t)0, (size_t)0, (size_t)0, NULL, NULL, dxpl_id) < 0) {
 #ifdef H5T_DEBUG
 	    if(H5DEBUG(T)) {
 		fprintf(H5DEBUG(T), "H5T: conversion function 0x%08lx free "

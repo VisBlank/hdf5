@@ -3855,7 +3855,7 @@ h5tools_dump_data(FILE *stream, const h5tool_format_t *info,
         }
         else
             datactx.need_prefix = TRUE;
-        status = h5tools_dump_dset(stream, info, &datactx, obj_id, -1, sset);
+        status = h5tools_dump_dset(stream, info, &datactx, obj_id, (hid_t)-1, sset);
         if((display_char && H5Tget_size(f_type) == 1) && (H5Tget_class(f_type) == H5T_INTEGER)) {
             h5tools_str_reset(&buffer);
             h5tools_str_append(&buffer, "\"");

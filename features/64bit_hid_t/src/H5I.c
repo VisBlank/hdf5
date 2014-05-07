@@ -1299,7 +1299,7 @@ H5I_dec_ref(hid_t id)
 	HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "invalid type number")
     type_ptr = H5I_id_type_list_g[type];
     if(NULL == type_ptr || type_ptr->init_count <= 0)
-	HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "invalid type number")
+        HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "invalid type number")
 
     /* General lookup of the ID */
     if(NULL == (id_ptr = (H5I_id_info_t *)H5SL_search(type_ptr->ids, &id)))

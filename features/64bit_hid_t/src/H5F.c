@@ -75,7 +75,7 @@ typedef struct H5F_olist_t {
 /********************/
 /* Local Prototypes */
 /********************/
-static herr_t H5F_get_objects(const H5F_t *f, unsigned types, size_t max_index, hid_t *obj_id_list, hbool_t app_ref, size_t *obj_id_count_ptr);
+static herr_t H5F_get_objects(const H5F_t *f, uint64_t types, size_t max_index, hid_t *obj_id_list, hbool_t app_ref, size_t *obj_id_count_ptr);
 static int H5F_get_objects_cb(void *obj_ptr, hid_t obj_id, void *key);
 static H5F_t *H5F_new(H5F_file_t *shared, unsigned flags, hid_t fcpl_id,
     hid_t fapl_id, H5FD_t *lf);
@@ -417,7 +417,7 @@ done:
  *-------------------------------------------------------------------------
  */
 ssize_t
-H5Fget_obj_count(hid_t file_id, unsigned types)
+H5Fget_obj_count(hid_t file_id, uint64_t types)
 {
     H5F_t    *f = NULL;         /* File to query */
     size_t  obj_count = 0;      /* Number of opened objects */
@@ -458,7 +458,7 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5F_get_obj_count(const H5F_t *f, unsigned types, hbool_t app_ref, size_t *obj_id_count_ptr)
+H5F_get_obj_count(const H5F_t *f, uint64_t types, hbool_t app_ref, size_t *obj_id_count_ptr)
 {
     herr_t   ret_value = SUCCEED;
 
@@ -495,7 +495,7 @@ done:
  *-------------------------------------------------------------------------
  */
 ssize_t
-H5Fget_obj_ids(hid_t file_id, unsigned types, size_t max_objs, hid_t *oid_list)
+H5Fget_obj_ids(hid_t file_id, uint64_t types, size_t max_objs, hid_t *oid_list)
 {
     H5F_t    *f = NULL;         /* File to query */
     size_t    obj_id_count = 0; /* Number of open objects */
@@ -537,7 +537,7 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5F_get_obj_ids(const H5F_t *f, unsigned types, size_t max_objs, hid_t *oid_list, hbool_t app_ref, size_t *obj_id_count_ptr)
+H5F_get_obj_ids(const H5F_t *f, uint64_t types, size_t max_objs, hid_t *oid_list, hbool_t app_ref, size_t *obj_id_count_ptr)
 {
     herr_t ret_value = SUCCEED;              /* Return value */
 
@@ -569,7 +569,7 @@ done:
  *---------------------------------------------------------------------------
  */
 static herr_t
-H5F_get_objects(const H5F_t *f, unsigned types, size_t max_nobjs, hid_t *obj_id_list, hbool_t app_ref, size_t *obj_id_count_ptr)
+H5F_get_objects(const H5F_t *f, uint64_t types, size_t max_nobjs, hid_t *obj_id_list, hbool_t app_ref, size_t *obj_id_count_ptr)
 {
     size_t obj_id_count=0;      /* Number of open IDs */
     H5F_olist_t olist;          /* Structure to hold search results */

@@ -59,7 +59,8 @@
 #define STRING 311
 #define NUMBER 312
 typedef union {
-    int   ival;         /*for integer token*/
-    char  *sval;        /*for name string*/
+    int     ival;         /*for integer token*/
+    char    *sval;        /*for name string*/
+    int64_t ival64;       /*for integer token*/
 } YYSTYPE;
 extern YYSTYPE H5LTyylval;

@@ -6077,7 +6077,7 @@ external_link_closing(hid_t fapl, hbool_t new_format)
     } H5E_END_TRY
 
     /* Test H5Rcreate */
-    if(H5Rcreate(&obj_ref, fid1, "elink/elink/elink/type1_moved", H5R_OBJECT, (-1)) < 0) TEST_ERROR
+    if(H5Rcreate(&obj_ref, fid1, "elink/elink/elink/type1_moved", H5R_OBJECT, (hid_t)(-1)) < 0) TEST_ERROR
 
     /* Test unlink */
     if(H5Ldelete(fid1, "elink/elink/elink/group1_moved", H5P_DEFAULT) < 0) TEST_ERROR
@@ -12601,13 +12601,13 @@ link_iterate_old_check(hid_t group_id, H5_iter_order_t order,
     /* Check for iteration w/bad location ID */
     skip = 0;
     H5E_BEGIN_TRY {
-        ret = H5Literate((-1), H5_INDEX_NAME, order, &skip, link_iterate_fail_cb, NULL);
+        ret = H5Literate((hid_t)(-1), H5_INDEX_NAME, order, &skip, link_iterate_fail_cb, NULL);
     } H5E_END_TRY;
     if(ret >= 0) TEST_ERROR
 
 #ifndef H5_NO_DEPRECATED_SYMBOLS
     H5E_BEGIN_TRY {
-        ret = H5Giterate((-1), ".", &gskip, group_iterate_old_cb, iter_info);
+        ret = H5Giterate((hid_t)(-1), ".", &gskip, group_iterate_old_cb, iter_info);
     } H5E_END_TRY;
     if(ret >= 0) TEST_ERROR
 #endif /* H5_NO_DEPRECATED_SYMBOLS */

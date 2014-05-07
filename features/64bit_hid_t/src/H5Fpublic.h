@@ -54,14 +54,14 @@
 #define H5F_ACC_DEFAULT (H5CHECK 0xffffu)	/*ignore setting on lapl     */
 
 /* Flags for H5Fget_obj_count() & H5Fget_obj_ids() calls */
-#define H5F_OBJ_FILE	(0x0001u)       /* File objects */
-#define H5F_OBJ_DATASET	(0x0002u)       /* Dataset objects */
-#define H5F_OBJ_GROUP	(0x0004u)       /* Group objects */
-#define H5F_OBJ_DATATYPE (0x0008u)      /* Named datatype objects */
-#define H5F_OBJ_ATTR    (0x0010u)       /* Attribute objects */
+#define H5F_OBJ_FILE	(uint64_t)(0x0001u)       /* File objects */
+#define H5F_OBJ_DATASET	(uint64_t)(0x0002u)       /* Dataset objects */
+#define H5F_OBJ_GROUP	(uint64_t)(0x0004u)       /* Group objects */
+#define H5F_OBJ_DATATYPE (uint64_t)(0x0008u)      /* Named datatype objects */
+#define H5F_OBJ_ATTR    (uint64_t)(0x0010u)       /* Attribute objects */
 #define H5F_OBJ_ALL 	(H5F_OBJ_FILE|H5F_OBJ_DATASET|H5F_OBJ_GROUP|H5F_OBJ_DATATYPE|H5F_OBJ_ATTR)
-#define H5F_OBJ_LOCAL   (0x0020u)       /* Restrict search to objects opened through current file ID */
-                                        /* (as opposed to objects opened through any file ID accessing this file) */
+#define H5F_OBJ_LOCAL   (uint64_t)(0x0020u)       /* Restrict search to objects opened through current file ID */
+                                                 /* (as opposed to objects opened through any file ID accessing this file) */
 
 #define H5F_FAMILY_DEFAULT (hsize_t)0
 
@@ -185,8 +185,8 @@ H5_DLL herr_t H5Fclose(hid_t file_id);
 H5_DLL hid_t  H5Fget_create_plist(hid_t file_id);
 H5_DLL hid_t  H5Fget_access_plist(hid_t file_id);
 H5_DLL herr_t H5Fget_intent(hid_t file_id, unsigned * intent);
-H5_DLL ssize_t H5Fget_obj_count(hid_t file_id, unsigned types);
-H5_DLL ssize_t H5Fget_obj_ids(hid_t file_id, unsigned types, size_t max_objs, hid_t *obj_id_list);
+H5_DLL ssize_t H5Fget_obj_count(hid_t file_id, uint64_t types);
+H5_DLL ssize_t H5Fget_obj_ids(hid_t file_id, uint64_t types, size_t max_objs, hid_t *obj_id_list);
 H5_DLL herr_t H5Fget_vfd_handle(hid_t file_id, hid_t fapl, void **file_handle);
 H5_DLL herr_t H5Fmount(hid_t loc, const char *name, hid_t child, hid_t plist);
 H5_DLL herr_t H5Funmount(hid_t loc, const char *name);

@@ -283,7 +283,7 @@ H5_GCC_DIAG_ON(long-long)
 #endif
 
 /* Default value for all property list classes */
-#define H5P_DEFAULT     0
+#define H5P_DEFAULT     (hid_t)0
 
 /* Common iteration orders */
 typedef enum {
