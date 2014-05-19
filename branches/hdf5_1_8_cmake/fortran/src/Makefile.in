@@ -733,7 +733,7 @@ CHECK_CLEANFILES = *.chkexe *.chklog *.clog
 # Add libtool shared library version numbers to the HDF5 library
 # See libtool versioning documentation online.
 LT_VERS_INTERFACE = 8
-LT_VERS_REVISION = 2 
+LT_VERS_REVISION = 3
 LT_VERS_AGE = 0
 AM_FCLIBS = $(LIBHDF5)
 
@@ -772,7 +772,7 @@ libhdf5_fortran_la_SOURCES = H5f90global.f90 \
 	  H5Off$(F_STATUS).f90 H5Pff$(F_STATUS).f90 H5Rff$(F_STATUS).f90 H5Tff$(F_STATUS).f90 $(PARALLEL_COND_SRC)
 
 
-# HDF5 Fortran library depends on HDF5 Library.
+# HDF5 Fortran library depends on HDF5 Library. 
 libhdf5_fortran_la_LIBADD = $(LIBHDF5)
 
 # h5fc is generated during configure.

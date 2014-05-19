@@ -74,7 +74,7 @@ class H5_DLLCPP Exception {
 	// Prints the error stack in a default manner.
 	static void printErrorStack(FILE* stream = stderr,
 				    hid_t err_stack = H5E_DEFAULT); // Static
-	virtual void printError(FILE* stream = NULL) const;
+	void printError(FILE* stream = NULL) const;
 
 	// Default constructor
 	Exception();

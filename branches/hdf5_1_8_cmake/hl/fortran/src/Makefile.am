@@ -49,7 +49,7 @@ endif
 libhdf5hl_fortran_la_SOURCES=H5DSfc.c H5LTfc.c  H5IMfc.c H5IMcc.c H5TBfc.c \
 	H5DSff.f90 H5LTff.f90 H5IMff.f90 H5TBff.f90
 
-# HDF5 HL Fortran library depends on HDF5 Library.
+# HDF5 HL Fortran library depends on HDF5 Library. 
 libhdf5hl_fortran_la_LIBADD=$(LIBH5_HL) $(LIBH5F)
 
 # Fortran module files can have different extensions and different names
