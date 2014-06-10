@@ -16,7 +16,7 @@
 ## ----------------------------------------------------------------------
 ## Initialize configure.
 ##
-AC_REVISION($Id: configure.ac 25217 2014-05-25 23:50:34Z hdftest $)
+AC_REVISION($Id: configure.ac 25233 2014-06-02 04:37:57Z hdftest $)
 AC_PREREQ([2.69])
 
 ## AC_INIT takes the name of the package, the version number, and an
@@ -26,7 +26,7 @@ AC_PREREQ([2.69])
 ## NOTE: Do not forget to change the version number here when we do a
 ## release!!!
 ##
-AC_INIT([HDF5], [1.8.14-snap5], [help@hdfgroup.org])
+AC_INIT([HDF5], [1.8.14-snap6], [help@hdfgroup.org])
 AC_CONFIG_SRCDIR([src/H5.c])
 AC_CONFIG_HEADER([src/H5config.h])
 
@@ -2217,7 +2217,7 @@ AC_CHECK_FUNCS([gethostname getpwuid getrusage lstat])
 AC_CHECK_FUNCS([rand_r random setsysinfo])
 AC_CHECK_FUNCS([signal longjmp setjmp siglongjmp sigsetjmp sigprocmask])
 AC_CHECK_FUNCS([snprintf srandom strdup symlink system])
-AC_CHECK_FUNCS([tmpfile vasprintf waitpid])
+AC_CHECK_FUNCS([tmpfile asprintf vasprintf waitpid])
 
 ## Check for vsnprintf() separately, so we can detect situations where it
 ## doesn't return the correct size for formatted strings that are too large
