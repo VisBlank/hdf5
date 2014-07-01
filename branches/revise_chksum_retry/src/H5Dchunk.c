@@ -3793,24 +3793,20 @@ H5D__chunk_allocate(H5D_t *dset, hid_t dxpl_id, hbool_t full_overwrite,
         } /* end else */
 
         while(!carry) {
-#ifndef NDEBUG
             /* None of the chunks should be allocated */
-            {
-                hsize_t chunk_idx;
+	    hsize_t chunk_idx;
 
-                /* Calculate the index of this chunk */
-                if(H5V_chunk_index((unsigned)space_ndims, chunk_offset,
-                        layout->u.chunk.dim, layout->u.chunk.down_chunks,
-                        &chunk_idx) < 0)
-                    HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, "can't get chunk index")
+	    /* Calculate the index of this chunk */
+	    if(H5V_chunk_index((unsigned)space_ndims, chunk_offset, layout->u.chunk.dim, 
+				layout->u.chunk.down_chunks, &chunk_idx) < 0)
+		HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, "can't get chunk index")
+	    if(H5D__chunk_lookup(dset, dxpl_id, chunk_offset, chunk_idx, &udata) < 0)
+		HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "error looking up chunk address")
 
-                if(H5D__chunk_lookup(dset, dxpl_id, chunk_offset, chunk_idx,
-                        &udata) < 0)
-                    HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "error looking up chunk address")
+#ifndef NDEBUG
 
-		if(H5D_CHUNK_IDX_NONE != layout->storage.u.chunk.idx_type)
-		    HDassert(!H5F_addr_defined(udata.addr));
-            } /* end block */
+	    if(H5D_CHUNK_IDX_NONE != layout->storage.u.chunk.idx_type)
+		HDassert(!H5F_addr_defined(udata.addr));
 
             /* Make sure the chunk is really in the dataset and outside the
              * original dimensions */
