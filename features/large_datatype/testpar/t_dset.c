@@ -1173,7 +1173,6 @@ dataset_large_writeAll(void)
     hid_t mem_dataspace;	/* memory dataspace ID */
     hid_t dataset1, dataset2, dataset3, dataset4;	/* Dataset ID */
     hid_t datatype;		/* Datatype ID */
-    hbool_t use_gpfs = FALSE;   /* Use GPFS hints */
     hsize_t dims[RANK];   	/* dataset dim sizes */
     DATATYPE *data_array1 = NULL;  /* data buffer */
     const char *filename;
@@ -1204,7 +1203,7 @@ dataset_large_writeAll(void)
      * START AN HDF5 FILE
      * -------------------*/
     /* setup file access template */
-    acc_tpl = create_faccess_plist(comm, info, facc_type, use_gpfs);
+    acc_tpl = create_faccess_plist(comm, info, facc_type);
     VRFY((acc_tpl >= 0), "");
 
     /* create the file collectively */

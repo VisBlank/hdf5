@@ -379,8 +379,6 @@ H5S_mpio_permute_type(const H5S_t *space, size_t elmt_size, hsize_t **permute,
     MPI_Aint *disp = NULL;      /* Datatype displacement for each point*/
     H5S_sel_iter_t sel_iter;    /* Selection iteration info */
     hbool_t sel_iter_init = FALSE;      /* Selection iteration info has been initialized */
-    hsize_t off[H5D_IO_VECTOR_SIZE];    /* Array to store sequence offsets */
-    size_t len[H5D_IO_VECTOR_SIZE];     /* Array to store sequence lengths */
     hssize_t snum_points;       /* Signed number of elements in selection */
     hsize_t num_points;         /* Number of points in the selection */
     size_t max_elem;            /* Maximum number of elements allowed in sequences */
@@ -672,7 +670,6 @@ H5S_mpio_hyper_type(const H5S_t *space, size_t elmt_size,
             HMPI_GOTO_ERROR(FAIL, "MPI_Type_contiguous failed", mpi_code)
     }
     else {
-        printf ("LARGE inner selection in hyper_type\n");
         if (H5S_mpio_create_large_type (elmt_size, 0, MPI_BYTE, &inner_type) < 0) {
             HGOTO_ERROR(H5E_DATASPACE, H5E_BADTYPE, FAIL,
                         "couldn't ccreate a large inner datatype in hyper selection")
@@ -892,7 +889,6 @@ H5S_mpio_span_hyper_type(const H5S_t *space, size_t elmt_size,
             HMPI_GOTO_ERROR(FAIL, "MPI_Type_contiguous failed", mpi_code)
     }
     else {
-        printf ("LARGE element selection in span_hyper\n");
         if (H5S_mpio_create_large_type (elmt_size, 0, MPI_BYTE, &elmt_type) < 0) {
             HGOTO_ERROR(H5E_DATASPACE, H5E_BADTYPE, FAIL,
                         "couldn't create a large element datatype in span_hyper selection")
@@ -1384,7 +1380,7 @@ static herr_t H5S_mpio_create_large_type (hsize_t num_elements,
     MPI_Aint      disp[2], old_extent;
     herr_t	  ret_value = SUCCEED;    /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5S_mpio_create_large_type)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* Create a contiguous datatype of size equal to the largest
      * number a 32 bit integer can hold x size of old type.
@@ -1395,7 +1391,7 @@ static herr_t H5S_mpio_create_large_type (hsize_t num_elements,
                                                           old_type, 
                                                           &inner_type))) {
             HMPI_GOTO_ERROR(FAIL, "MPI_Type_contiguous failed", mpi_code)
-        }
+                }
     }
     else {
         if(MPI_SUCCESS != (mpi_code = MPI_Type_create_hvector (2147483647, 
