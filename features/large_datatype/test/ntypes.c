@@ -331,7 +331,7 @@ test_compound_dtype2(hid_t file)
             temp_point->st.c2 = (short)(i + j);
             temp_point->st.l2 = (i * 5 + j * 50) * n;
             temp_point->st.ll2 = (i * 10 + j * 100) * n;
-            temp_point->l = (unsigned long long)((i * 100 + j * 1000) * n);
+            temp_point->l = (unsigned long long)((i * 40 + j * 400) * n);
         } /* end for */
     } /* end for */
 
@@ -1776,6 +1776,7 @@ test_vl_dtype(hid_t file)
             } /* end for */
 
             HDfree(tmp);
+            tmp = NULL;
         } /* end for */
     } /* end for */
 
@@ -2187,7 +2188,7 @@ test_refer_dtype(hid_t file)
         TEST_ERROR;
 
     /* Open datatype object */
-    if((tid1 = H5Rdereference(dataset, H5R_OBJECT, rbuf)) < 0)
+    if((tid1 = H5Rdereference2(dataset, H5P_DEFAULT, H5R_OBJECT, rbuf)) < 0)
         TEST_ERROR;
 
     /* Verify correct datatype */
@@ -2372,7 +2373,7 @@ test_refer_dtype2(hid_t file)
         TEST_ERROR;
 
     /* Try to open objects */
-    if((dset2 = H5Rdereference(dset1, H5R_DATASET_REGION, &rbuf)) < 0)
+    if((dset2 = H5Rdereference2(dset1, H5P_DEFAULT, H5R_DATASET_REGION, &rbuf)) < 0)
         TEST_ERROR;
 
     /* Check what H5Rget_obj_type2 function returns */
@@ -2604,7 +2605,7 @@ test_bitfield_dtype(hid_t file)
 
     if((ntype_size = H5Tget_size(native_type)) == 0) TEST_ERROR;
 
-    rbuf = malloc((size_t)nelmts*ntype_size);
+    rbuf = HDmalloc((size_t)nelmts*ntype_size);
 
     /* Read the data and compare them */
     if(H5Dread(dataset1, native_type, H5S_ALL, H5S_ALL, H5P_DEFAULT, rbuf) < 0) TEST_ERROR;
@@ -2623,7 +2624,7 @@ test_bitfield_dtype(hid_t file)
     if(H5Tclose(dtype) < 0) TEST_ERROR;
     if(H5Tclose(native_type) < 0) TEST_ERROR;
     if(H5Dclose(dataset1) < 0) TEST_ERROR;
-    if(rbuf) free(rbuf);
+    if(rbuf) HDfree(rbuf);
 
     /* Open dataset2 again to check H5Tget_native_type */
     if((dataset2 = H5Dopen2(file, DSET2_BITFIELD_NAME, H5P_DEFAULT)) < 0) TEST_ERROR;

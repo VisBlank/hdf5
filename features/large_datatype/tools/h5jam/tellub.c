@@ -21,10 +21,8 @@
 
 #include "hdf5.h"
 #include "H5private.h"
+#include "h5tools.h"
 #include "h5tools_utils.h"
-
-#define TRUE 1
-#define FALSE 0
 
 /* Name of tool */
 #define PROGRAMNAME "tellub"
@@ -60,7 +58,7 @@ usage (const char *prog)
   fflush (stdout);
   fprintf (stdout, "usage: %s h5_file\n", prog);
   fprintf (stdout,
-	   "           Check that h5_fil is HDF5 file and print size of user block \n");
+     "           Check that h5_fil is HDF5 file and print size of user block \n");
   fprintf (stdout, "       %s -h\n", prog);
   fprintf (stdout, "           Print a usage message and exit\n");
 }
@@ -84,21 +82,21 @@ usage (const char *prog)
 static void
 parse_command_line (int argc, const char *argv[])
 {
-  int opt = FALSE;
+  int opt;
 
   /* parse command line options */
   while ((opt = get_option (argc, argv, s_opts, l_opts)) != EOF)
     {
       switch ((char) opt)
-	{
-	case 'h':
-	  usage (h5tools_getprogname());
-	  exit (EXIT_SUCCESS);
-	case '?':
-	default:
-	  usage (h5tools_getprogname());
-	  exit (EXIT_FAILURE);
-	}
+      {
+      case 'h':
+        usage (h5tools_getprogname());
+        exit (EXIT_SUCCESS);
+      case '?':
+      default:
+        usage (h5tools_getprogname());
+        exit (EXIT_FAILURE);
+      }
     }
 
   /* check for file name to be processed */
@@ -139,6 +137,9 @@ main (int argc, const char *argv[])
   h5tools_setprogname(PROGRAMNAME);
   h5tools_setstatus(EXIT_SUCCESS);
 
+  /* Initialize h5tools lib */
+  h5tools_init();
+
   /* Disable error reporting */
   H5Eget_auto2(H5E_DEFAULT, &func, &edata);
   H5Eset_auto2(H5E_DEFAULT, NULL, NULL);
@@ -174,7 +175,7 @@ main (int argc, const char *argv[])
   if (plist < 0)
     {
       error_msg("Can't get file creation plist for file \"%s\"\n",
-		 ifname);
+     ifname);
       return (EXIT_FAILURE);
     }
 

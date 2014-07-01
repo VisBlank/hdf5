@@ -49,6 +49,7 @@
 
 const H5std_string	FILE1("dataset.h5");
 const H5std_string	DSET_DEFAULT_NAME("default");
+const H5std_string	DSET_DEFAULT_NAME_PATH("/default");
 const H5std_string	DSET_CHUNKED_NAME("chunked");
 const H5std_string	DSET_SIMPLE_IO_NAME("simple_io");
 const H5std_string	DSET_TCONV_NAME	("tconv");
@@ -61,7 +62,6 @@ const int H5Z_FILTER_BOGUS = 305;
 static size_t filter_bogus(unsigned int flags, size_t cd_nelmts,
     const unsigned int *cd_values, size_t nbytes, size_t *buf_size, void **buf);
 
-
 /*-------------------------------------------------------------------------
  * Function:	test_create
  *
@@ -97,6 +97,7 @@ test_create( H5File& file)
 	dataset = new DataSet (file.createDataSet
 		(DSET_DEFAULT_NAME, PredType::NATIVE_DOUBLE, space));
 
+
 	// Add a comment to the dataset
 	file.setComment (DSET_DEFAULT_NAME, "This is a dataset");
 
@@ -120,6 +121,16 @@ test_create( H5File& file)
 	// Open the dataset we created above and then close it.  This is one
 	// way to open an existing dataset for accessing.
 	dataset = new DataSet (file.openDataSet (DSET_DEFAULT_NAME));
+
+	// Get and verify the name of this dataset, using
+	// H5std_string getObjName()
+	H5std_string ds_name = dataset->getObjName();
+	verify_val(ds_name, DSET_DEFAULT_NAME_PATH, "DataSet::getObjName", __LINE__, __FILE__);
+
+	// Get and verify the comment from this dataset, using
+	// H5std_string getComment(const H5std_string& name, <buf_size=0, by default>)
+	H5std_string comment = file.getComment(DSET_DEFAULT_NAME);
+	verify_val(comment, "This is a dataset", "DataSet::getComment", __LINE__, __FILE__);
 
 	// Close the dataset when accessing is completed
 	delete dataset;
@@ -179,7 +190,7 @@ test_create( H5File& file)
 	return -1;
     }
 }   // test_create
-
+
 /*-------------------------------------------------------------------------
  * Function:	test_simple_io
  *
@@ -266,7 +277,76 @@ test_simple_io( H5File& file)
 	return -1;
     }
 }   // test_simple_io
-
+
+/*-------------------------------------------------------------------------
+ * Function:	test_datasize
+ *
+ * Purpose:	Tests DataSet::getInMemDataSize().  
+ *
+ * Return:	Success:	0
+ *
+ *		Failure:	-1
+ *
+ * Programmer:	Binh-Minh Ribler
+ *		Thursday, March 22, 2012
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+test_datasize(FileAccPropList &fapl)
+{
+    SUBTEST("DataSet::getInMemDataSize()");
+    try
+    {
+	// Open FILE1.
+	H5File file(FILE1, H5F_ACC_RDWR, FileCreatPropList::DEFAULT, fapl);
+
+	// Open dataset DSET_SIMPLE_IO_NAME.
+	DataSet dset = file.openDataSet (DSET_SIMPLE_IO_NAME);
+
+	// Get the dataset's dataspace to calculate the size for verification.
+	DataSpace space(dset.getSpace());
+
+	// Get the dimension sizes.
+	hsize_t dims[2];
+	int n_dims = space.getSimpleExtentDims(dims);
+	if (n_dims < 0)
+	{
+	    throw Exception("test_compression", "DataSpace::getSimpleExtentDims() failed");
+	}
+
+	// Calculate the supposed size.  Size of each value is int (4), from
+	// test_simple_io.
+	size_t expected_size = 4 * dims[0] * dims[1];
+
+	// getInMemDataSize() returns the in memory size of the data.
+	size_t ds_size = dset.getInMemDataSize();
+
+	// Verify the data size.
+	if (ds_size != expected_size)
+	{
+	    H5_FAILED();
+	    cerr << " Expected data size = " << expected_size;
+	    cerr << " but dset.getInMemDataSize() returned " << ds_size << endl;
+	    throw Exception("test_compression", "Failed in testing DataSet::getInMemDataSize()");
+	}
+
+	PASSED();
+	return 0;
+    }  // end try
+
+    // catch all dataset, space, plist exceptions
+    catch (Exception E)
+    {
+	cerr << " FAILED" << endl;
+	cerr << "    <<<  " << E.getDetailMsg() << "  >>>" << endl << endl;
+
+	return -1;
+    }
+}   // test_datasize
+
 /*-------------------------------------------------------------------------
  * Function:	test_tconv
  *
@@ -389,7 +469,6 @@ filter_bogus(unsigned int flags, size_t cd_nelmts,
     return nbytes;
 }
 
-
 /*-------------------------------------------------------------------------
  * Function:	test_compression
  *
@@ -759,7 +838,6 @@ test_multiopen (H5File& file)
     }
 }   // test_multiopen
 
-
 /*-------------------------------------------------------------------------
  * Function:	test_types
  *
@@ -948,7 +1026,7 @@ test_types(H5File& file)
 	return -1;
     }
 }   // test_types
-
+
 /*-------------------------------------------------------------------------
  * Function:	test_dset
  *
@@ -983,11 +1061,6 @@ void test_dset()
 
     try
     {
-	// Turn of the auto-printing when failure occurs so that we can
-	// handle the errors appropriately since sometime failures are
-	// caused deliberately and expected.
-	Exception::dontPrint();
-
 	// Use the file access template id to create a file access prop.
 	// list object to pass in H5File::H5File
 	FileAccPropList fapl(fapl_id);
@@ -996,14 +1069,21 @@ void test_dset()
 
 	// Cause the library to emit initial messages
 	Group grp = file.createGroup( "emit diagnostics", 0);
-	grp.setComment( ".", "Causes diagnostic messages to be emitted");
+	grp.setComment("Causes diagnostic messages to be emitted");
 
-	nerrors += test_create(file)<0 	?1:0;
-	nerrors += test_simple_io(file)<0	?1:0;
-	nerrors += test_tconv(file)<0	?1:0;
-	nerrors += test_compression(file)<0	?1:0;
-	nerrors += test_multiopen (file)<0	?1:0;
-	nerrors += test_types(file)<0       ?1:0;
+	nerrors += test_create(file) < 0 ? 1:0;
+	nerrors += test_simple_io(file) < 0 ? 1:0;
+	nerrors += test_tconv(file) < 0 ? 1:0;
+	nerrors += test_compression(file) < 0 ? 1:0;
+	nerrors += test_multiopen (file) < 0 ? 1:0;
+	nerrors += test_types(file) < 0 ? 1:0;
+
+	// Close group "emit diagnostics".
+	grp.close();
+
+	// Close the file before testing data size.
+	file.close();
+	nerrors += test_datasize(fapl) <0 ? 1:0;
     }
     catch (Exception E)
     {

@@ -1,3 +1,12 @@
+!****h* root/fortran/test/tH5A_1_8.f90
+!
+! NAME
+!  tH5A_1_8.f90
+!
+! FUNCTION
+!  Basic testing of Fortran H5A APIs introduced in 1.8.
+!
+! COPYRIGHT
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
@@ -13,6 +22,17 @@
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
+! CONTAINS SUBROUTINES
+!  attribute_test_1_8, test_attr_corder_create_compact, test_attr_null_space,
+!  test_attr_create_by_name, test_attr_info_by_idx, attr_info_by_idx_check,
+!  test_attr_shared_rename, test_attr_delete_by_idx, test_attr_shared_delete,
+!  test_attr_dense_open, test_attr_dense_verify, test_attr_corder_create_basic,
+!  test_attr_basic_write, test_attr_many, attr_open_check, 
+!
+!*****
+MODULE TH5A_1_8
+
+CONTAINS
 SUBROUTINE attribute_test_1_8(cleanup, total_error)
 
 !   This subroutine tests following 1.8 functionalities:
@@ -22,26 +42,11 @@ SUBROUTINE attribute_test_1_8(cleanup, total_error)
 !
 
   USE HDF5 ! This module contains all necessary modules
+  USE TH5_MISC
 
   IMPLICIT NONE
   LOGICAL, INTENT(IN)  :: cleanup
   INTEGER, INTENT(INOUT) :: total_error
-
-  CHARACTER(LEN=5), PARAMETER :: filename = "atest"    !File name
-  CHARACTER(LEN=9), PARAMETER :: dsetname = "atestdset"        !Dataset name
-  CHARACTER(LEN=11), PARAMETER :: aname = "attr_string"   !String Attribute name
-  CHARACTER(LEN=14), PARAMETER :: aname2 = "attr_character"!Character Attribute name
-  CHARACTER(LEN=11), PARAMETER :: aname3 = "attr_double"   !DOuble Attribute name
-  CHARACTER(LEN=9), PARAMETER :: aname4 = "attr_real"      !Real Attribute name
-  CHARACTER(LEN=12), PARAMETER :: aname5 = "attr_integer"  !Integer Attribute name
-  CHARACTER(LEN=9), PARAMETER :: aname6 = "attr_null"     !Null Attribute name
-
-  !
-  !data space rank and dimensions
-  !
-  INTEGER, PARAMETER :: RANK = 2
-  INTEGER, PARAMETER :: NX = 4
-  INTEGER, PARAMETER :: NY = 5
 
   !
   !general purpose integer
@@ -96,18 +101,6 @@ SUBROUTINE attribute_test_1_8(cleanup, total_error)
           '  - Tests INT attributes on both datasets and groups', &
           total_error)
 
-!!$        CALL test_attr_basic_read(my_fapl)
-!!$        CALL test_attr_flush(my_fapl)
-!!$        CALL test_attr_plist(my_fapl) ! this is next
-!!$        CALL test_attr_compound_write(my_fapl)
-!!$        CALL test_attr_compound_read(my_fapl)
-!!$        CALL test_attr_scalar_write(my_fapl)
-!!$        CALL test_attr_scalar_read(my_fapl)
-!!$        CALL test_attr_mult_write(my_fapl)
-!!$        CALL test_attr_mult_read(my_fapl)
-!!$        CALL test_attr_iterate(my_fapl)
-!!$        CALL test_attr_delete(my_fapl)
-!!$        CALL test_attr_dtype_shared(my_fapl)
      IF(new_format(i)) THEN
         DO j = 1, 2
            IF (use_shared(j)) THEN
@@ -117,7 +110,6 @@ SUBROUTINE attribute_test_1_8(cleanup, total_error)
               WRITE(*,*) " - Testing without shared attributes:"
               my_fcpl = fcpl
            END IF
-!!$              CALL test_attr_dense_create(my_fcpl, my_fapl)
 
            ret_total_error = 0
            CALL test_attr_dense_open(my_fcpl, my_fapl, ret_total_error)
@@ -125,17 +117,11 @@ SUBROUTINE attribute_test_1_8(cleanup, total_error)
                 '   - Testing INT attributes on both datasets and groups', &
                 total_error)
 
-!!$              CALL test_attr_dense_delete(my_fcpl, my_fapl)
-!!$              CALL test_attr_dense_rename(my_fcpl, my_fapl)
-!!$              CALL test_attr_dense_unlink(my_fcpl, my_fapl)
-!!$              CALL test_attr_dense_limits(my_fcpl, my_fapl)
-!!$              CALL test_attr_big(my_fcpl, my_fapl)
            ret_total_error = 0
            CALL test_attr_null_space(my_fcpl, my_fapl, ret_total_error)
            CALL write_test_status(ret_total_error, &
                 '   - Testing storing attribute with "null" dataspace', &
                 total_error)
-!!$              CALL test_attr_deprec(fcpl, my_fapl)
            ret_total_error = 0
            CALL test_attr_many(new_format(i), my_fcpl, my_fapl, ret_total_error)
            CALL write_test_status(ret_total_error, &
@@ -153,10 +139,6 @@ SUBROUTINE attribute_test_1_8(cleanup, total_error)
            CALL write_test_status(ret_total_error, &
                 '   - Testing compact storage on objects with attribute creation order', &
                 total_error)
-!!$              CALL test_attr_corder_create_dense(my_fcpl, my_fapl)
-!!$              CALL test_attr_corder_create_reopen(my_fcpl, my_fapl)
-!!$              CALL test_attr_corder_transition(my_fcpl, my_fapl)
-!!$              CALL test_attr_corder_delete(my_fcpl, my_fapl)
            ret_total_error = 0
            CALL test_attr_info_by_idx(new_format(i), my_fcpl, my_fapl, ret_total_error)
            CALL write_test_status(ret_total_error, &
@@ -169,9 +151,6 @@ SUBROUTINE attribute_test_1_8(cleanup, total_error)
                 '   - Testing deleting attribute by index', &
                 total_error)
 
-!!$              CALL test_attr_iterate2(new_format, my_fcpl, my_fapl)
-!!$              CALL test_attr_open_by_idx(new_format, my_fcpl, my_fapl)
-!!$              CALL test_attr_open_by_name(new_format, my_fcpl, my_fapl)
            ret_total_error = 0
            CALL test_attr_create_by_name(new_format(i), my_fcpl, my_fapl, ret_total_error)
            CALL write_test_status(ret_total_error, &
@@ -180,7 +159,6 @@ SUBROUTINE attribute_test_1_8(cleanup, total_error)
 
              ! /* More complex tests with both "new format" and "shared" attributes */
            IF( use_shared(j) ) THEN
-!!$                 CALL test_attr_shared_write(my_fcpl, my_fapl)
               ret_total_error = 0
               CALL test_attr_shared_rename(my_fcpl, my_fapl, ret_total_error)
               CALL write_test_status(ret_total_error,&
@@ -193,24 +171,8 @@ SUBROUTINE attribute_test_1_8(cleanup, total_error)
                    '   - Testing deleting shared attributes in "compact" & "dense" storage', &
                    total_error)
 
-
-!!$                 CALL test_attr_shared_unlink(my_fcpl, my_fapl)
            END IF
-!!$              CALL test_attr_bug1(my_fcpl, my_fapl)
         END DO
-!!$        ELSE
-!!$           CALL test_attr_big(fcpl, my_fapl)
-!!$           CALL test_attr_null_space(fcpl, my_fapl)
-!!$           CALL test_attr_deprec(fcpl, my_fapl)
-!!$           CALL test_attr_many(new_format, fcpl, my_fapl)
-!!$           CALL test_attr_info_by_idx(new_format, fcpl, my_fapl)
-!!$           CALL test_attr_delete_by_idx(new_format, fcpl, my_fapl)
-!!$           CALL test_attr_iterate2(new_format, fcpl, my_fapl)
-!!$           CALL test_attr_open_by_idx(new_format, fcpl, my_fapl)
-!!$           CALL test_attr_open_by_name(new_format, fcpl, my_fapl)
-!!$           CALL test_attr_create_by_name(new_format, fcpl, my_fapl)
-!!$           CALL test_attr_bug1(fcpl, my_fapl)
-
      END IF
   ENDDO
 
@@ -238,8 +200,10 @@ SUBROUTINE test_attr_corder_create_compact(fcpl,fapl, total_error)
 ! Needed for get_info_by_name
 
   USE HDF5 ! This module contains all necessary modules
+  USE TH5_MISC
 
   IMPLICIT NONE
+
 ! - - - arg types - - -
 
   INTEGER(HID_T), INTENT(IN) :: fcpl
@@ -315,13 +279,7 @@ SUBROUTINE test_attr_corder_create_compact(fcpl,fapl, total_error)
         my_dataset = dset2
      CASE (2)
         my_dataset = dset3
-!     CASE DEFAULT
-!        CALL HDassert(0.AND."Toomanydatasets!")
      END SELECT
-!!$    is_empty = H5O_is_attr_empty_test(my_dataset)
-!!$    CALL VERIFY(is_empty, TRUE, "H5O_is_attr_empty_test")
-!!$    is_dense = H5O_is_attr_dense_test(my_dataset)
-!!$    CALL VERIFY(is_dense, FALSE, "H5O_is_attr_dense_test")
     DO u = 0, max_compact - 1
        ! /* Create attribute */
        WRITE(chr2,'(I2.2)') u
@@ -337,13 +295,6 @@ SUBROUTINE test_attr_corder_create_compact(fcpl,fapl, total_error)
        CALL h5aclose_f(attr, error)
        CALL check("h5aclose_f",error,total_error)
 
-!!$      ret = H5O_num_attrs_test(my_dataset, nattrs)
-!!$      CALL CHECK(ret, FAIL, "H5O_num_attrs_test")
-!!$      CALL VERIFY(nattrs, (u + 1))
-!!$      is_empty = H5O_is_attr_empty_test(my_dataset)
-!!$      CALL VERIFY(is_empty, FALSE, "H5O_is_attr_empty_test")
-!!$      is_dense = H5O_is_attr_dense_test(my_dataset)
-!!$      CALL VERIFY(is_dense, FALSE, "H5O_is_attr_dense_test")
     END DO
   END DO
 
@@ -387,14 +338,6 @@ SUBROUTINE test_attr_corder_create_compact(fcpl,fapl, total_error)
      CASE DEFAULT
         WRITE(*,*) " WARNING: To many data sets! "
      END SELECT
-!!$    ret = H5O_num_attrs_test(my_dataset, nattrs)
-!!$    CALL CHECK(ret, FAIL, "H5O_num_attrs_test")
-!!$    CALL VERIFY(nattrs, max_compact, "H5O_num_attrs_test")
-!!$    is_empty = H5O_is_attr_empty_test(my_dataset)
-!!$    CALL VERIFY(is_empty, FALSE, "H5O_is_attr_empty_test")
-!!$    is_dense = H5O_is_attr_dense_test(my_dataset)
-!!$    CALL VERIFY(is_dense, FALSE, "H5O_is_attr_dense_test")
-
      DO u = 0,max_compact-1
         WRITE(chr2,'(I2.2)') u
         attrname = 'attr '//chr2
@@ -447,6 +390,8 @@ SUBROUTINE test_attr_null_space(fcpl, fapl, total_error)
 !**
 !****************************************************************/
   USE HDF5
+  USE TH5_MISC
+
   IMPLICIT NONE
 
   INTEGER(HID_T), INTENT(IN) :: fcpl
@@ -459,8 +404,6 @@ SUBROUTINE test_attr_null_space(fcpl, fapl, total_error)
   INTEGER(HID_T) :: dataset
 
   CHARACTER(LEN=8) :: DSET1_NAME = "Dataset1"
-  INTEGER, PARAMETER :: NUM_DSETS = 3
-
 
   INTEGER :: error
 
@@ -483,8 +426,6 @@ SUBROUTINE test_attr_null_space(fcpl, fapl, total_error)
 
   data_dims = 0
 
-  ! /* Output message about test being performed */
-!  WRITE(*,*) "     - Testing Storing Attributes with 'null' dataspace"
   ! /* Create file */
   CALL h5fcreate_f(FileName, H5F_ACC_TRUNC_F, fid, error, fcpl, fapl)
   CALL check("h5fcreate_f",error,total_error)
@@ -513,6 +454,7 @@ SUBROUTINE test_attr_null_space(fcpl, fapl, total_error)
   ! /* Try to read data from the attribute */
   ! /* (shouldn't fail, but should leave buffer alone) */
   value(1) = 103
+  data_dims(1) = 1
   CALL h5aread_f(attr, H5T_NATIVE_INTEGER, value, data_dims, error)
   CALL check("h5aread_f",error,total_error)
   CALL verify("h5aread_f",value(1),103,total_error)
@@ -532,9 +474,6 @@ SUBROUTINE test_attr_null_space(fcpl, fapl, total_error)
   CALL H5Sextent_equal_f(attr_sid, null_sid, equal, error)
   CALL check("H5Sextent_equal_f",error,total_error)
   CALL Verifylogical("H5Sextent_equal_f",equal,.TRUE.,total_error)
-
-!!$  ret = H5Sclose(attr_sid)
-!!$  CALL CHECK(ret, FAIL, "H5Sclose")
 
   CALL h5aget_storage_size_f(attr, storage_size, error)
   CALL check("h5aget_storage_size_f",error,total_error)
@@ -582,6 +521,7 @@ SUBROUTINE test_attr_create_by_name(new_format,fcpl,fapl, total_error)
 !****************************************************************/
 
   USE HDF5
+  USE TH5_MISC
 
   IMPLICIT NONE
 
@@ -639,11 +579,11 @@ SUBROUTINE test_attr_create_by_name(new_format,fcpl,fapl, total_error)
   ! /* Loop over using index for creation order value */
   DO i = 1, 2
      ! /* Print appropriate test message */
-!!$     IF(use_index(i))THEN
-!!$        WRITE(*,*) "       - Testing Creating Attributes By Name w/Creation Order Index"
-!!$     ELSE
-!!$        WRITE(*,*) "       - Testing Creating Attributes By Name w/o Creation Order Index"
-!!$     ENDIF
+     IF(use_index(i))THEN
+        WRITE(*,*) "   - Testing Creating Attributes By Name w/Creation Order Index"
+     ELSE
+        WRITE(*,*) "   - Testing Creating Attributes By Name w/o Creation Order Index"
+     ENDIF
      ! /* Create file */
      CALL h5fcreate_f(FileName, H5F_ACC_TRUNC_F, fid, error, fcpl, fapl)
      CALL check("h5fcreate_f",error,total_error)
@@ -691,11 +631,6 @@ SUBROUTINE test_attr_create_by_name(new_format,fcpl,fapl, total_error)
            !        CALL HDassert(0.AND."Toomanydatasets!")
         END SELECT
 
-        ! /* Check on dataset's attribute storage status */
-!!$            is_empty = H5O_is_attr_empty_test(my_dataset);
-!!$            VERIFY(is_empty, TRUE, "H5O_is_attr_empty_test");
-!!$            is_dense = H5O_is_attr_dense_test(my_dataset);
-!!$            VERIFY(is_dense, FALSE, "H5O_is_attr_dense_test");
 
         !/* Create attributes, up to limit of compact form */
 
@@ -721,15 +656,6 @@ SUBROUTINE test_attr_create_by_name(new_format,fcpl,fapl, total_error)
            CALL attr_info_by_idx_check(my_dataset, attrname, INT(u,HSIZE_T), use_index(i), total_error)
          !   CALL check("FAILED IN attr_info_by_idx_check",total_error)
         ENDDO
-
-        ! /* Verify state of object */
-!!$            ret = H5O_num_attrs_test(my_dataset, &nattrs);
-!!$            CHECK(ret, FAIL, "H5O_num_attrs_test");
-!!$            VERIFY(nattrs, max_compact, "H5O_num_attrs_test");
-!!$            is_empty = H5O_is_attr_empty_test(my_dataset);
-!!$            VERIFY(is_empty, FALSE, "H5O_is_attr_empty_test");
-!!$            is_dense = H5O_is_attr_dense_test(my_dataset);
-!!$            VERIFY(is_dense, FALSE, "H5O_is_attr_dense_test");
 
         ! /* Test opening attributes stored compactly */
 
@@ -771,38 +697,7 @@ SUBROUTINE test_attr_create_by_name(new_format,fcpl,fapl, total_error)
            CALL h5aclose_f(attr, error)
            CALL check("h5aclose_f",error,total_error)
 
-           ! /* Verify state of object */
-!!$                if(u >= max_compact) {
-!!$                    is_dense = H5O_is_attr_dense_test(my_dataset);
-!!$                    VERIFY(is_dense, (new_format ? TRUE : FALSE), "H5O_is_attr_dense_test");
-!!$                } /* end if */
-!!$
-!!$                /* Verify information for new attribute */
-!!$                ret = attr_info_by_idx_check(my_dataset, attrname, (hsize_t)u, use_index);
-!!$                CHECK(ret, FAIL, "attr_info_by_idx_check");
         ENDDO
-
-        ! /* Verify state of object */
-!!$            ret = H5O_num_attrs_test(my_dataset, &nattrs);
-!!$            CHECK(ret, FAIL, "H5O_num_attrs_test");
-!!$            VERIFY(nattrs, (max_compact * 2), "H5O_num_attrs_test");
-!!$            is_empty = H5O_is_attr_empty_test(my_dataset);
-!!$            VERIFY(is_empty, FALSE, "H5O_is_attr_empty_test");
-!!$            is_dense = H5O_is_attr_dense_test(my_dataset);
-!!$            VERIFY(is_dense, (new_format ? TRUE : FALSE), "H5O_is_attr_dense_test");
-
-!!$            if(new_format) {
-!!$                /* Retrieve & verify # of records in the name & creation order indices */
-!!$                ret = H5O_attr_dense_info_test(my_dataset, &name_count, &corder_count);
-!!$                CHECK(ret, FAIL, "H5O_attr_dense_info_test");
-!!$                if(use_index)
-!!$                    VERIFY(name_count, corder_count, "H5O_attr_dense_info_test");
-!!$                VERIFY(name_count, (max_compact * 2), "H5O_attr_dense_info_test");
-!!$            } /* end if */
-
-!!$            /* Test opening attributes stored compactly */
-!!$            ret = attr_open_check(fid, dsetname, my_dataset, u);
-!!$            CHECK(ret, FAIL, "attr_open_check");
 
      ENDDO
 
@@ -841,6 +736,7 @@ SUBROUTINE test_attr_info_by_idx(new_format, fcpl, fapl, total_error)
 !****************************************************************/
 
   USE HDF5
+  USE TH5_MISC
 
   IMPLICIT NONE
 
@@ -914,13 +810,6 @@ SUBROUTINE test_attr_info_by_idx(new_format, fcpl, fapl, total_error)
 
   DO i = 1, 2
 
-     ! /* Output message about test being performed */
-!!$     IF(use_index(i))THEN
-!!$        WRITE(*,'(A72)') "       - Testing Querying Attribute Info By Index w/Creation Order Index"
-!!$     ELSE
-!!$        WRITE(*,'(A74)') "       - Testing Querying Attribute Info By Index w/o Creation Order Index"
-!!$     ENDIF
-
      ! /* Create file */
      CALL h5fcreate_f(FileName, H5F_ACC_TRUNC_F, fid, error, fcpl, fapl)
      CALL check("h5fcreate_f",error,total_error)
@@ -958,15 +847,7 @@ SUBROUTINE test_attr_info_by_idx(new_format, fcpl, fapl, total_error)
            my_dataset = dset2
         CASE (2)
            my_dataset = dset3
-           !     CASE DEFAULT
-           !        CALL HDassert(0.AND."Toomanydatasets!")
         END SELECT
-
-        !/* Check on dataset's attribute storage status */
-!!$            is_empty = H5O_is_attr_empty_test(my_dataset);
-!!$            VERIFY(is_empty, TRUE, "H5O_is_attr_empty_test");
-!!$            is_dense = H5O_is_attr_dense_test(my_dataset);
-!!$            VERIFY(is_dense, FALSE, "H5O_is_attr_dense_test");
 
         ! /* Check for query on non-existant attribute */
 
@@ -1005,7 +886,6 @@ SUBROUTINE test_attr_info_by_idx(new_format, fcpl, fapl, total_error)
            WRITE(chr2,'(I2.2)') j
            attrname = 'attr '//chr2
 
-           ! attr = H5Acreate2(my_dataset, attrname, H5T_NATIVE_UINT, sid, H5P_DEFAULT, H5P_DEFAULT);
            ! check with the optional information create2 specs.
            CALL h5acreate_f(my_dataset, attrname, H5T_NATIVE_INTEGER, sid, attr, error, H5P_DEFAULT_F, H5P_DEFAULT_F)
            CALL check("h5acreate_f",error,total_error)
@@ -1062,6 +942,7 @@ END SUBROUTINE test_attr_info_by_idx
 SUBROUTINE attr_info_by_idx_check(obj_id, attrname, n, use_index, total_error )
 
   USE HDF5
+  USE TH5_MISC
 
   IMPLICIT NONE
 
@@ -1138,7 +1019,6 @@ SUBROUTINE attr_info_by_idx_check(obj_id, attrname, n, use_index, total_error )
   END IF
 
 
-  ! CALL HDmemset(ainfo, 0, SIZEOF(ainfo)
   CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_DEC_F, n, &
        f_corder_valid, corder, cset, data_size, error)
   CALL check("h5aget_info_by_idx_f",error,total_error)
@@ -1178,9 +1058,7 @@ SUBROUTINE attr_info_by_idx_check(obj_id, attrname, n, use_index, total_error )
        f_corder_valid, corder, cset, data_size, error)
   CALL check("h5aget_info_by_idx_f",error,total_error)
   CALL VERIFY("h5aget_info_by_idx_f",corder,INT(n),total_error)
-!!$    ret = H5Aget_name_by_idx(obj_id, ".", H5_INDEX_NAME, H5_ITER_INC, n, tmpname, (size_t)NAME_BUF_SIZE, H5P_DEFAULT)
-!!$    CALL CHECK(ret, FAIL, "H5Aget_name_by_idx")
-!!$    IF (HDstrcmp(attrname, tmpname)) CALL TestErrPrintf("Line %d: attribute name size wrong!\n"C, __LINE__)
+
   CALL h5aget_info_by_idx_f(obj_id, ".", H5_INDEX_NAME_F, H5_ITER_DEC_F, n, &
        f_corder_valid, corder, cset, data_size, error)
   CALL check("h5aget_info_by_idx_f",error,total_error)
@@ -1190,9 +1068,7 @@ SUBROUTINE attr_info_by_idx_check(obj_id, attrname, n, use_index, total_error )
        f_corder_valid, corder, cset, data_size, error)
   CALL check("h5aget_info_by_idx_f",error,total_error)
   CALL VERIFY("h5aget_info_by_idx_f",corder,INT(n),total_error)
-!!$    ret = H5Aget_name_by_idx(obj_id, ".", H5_INDEX_NAME, H5_ITER_DEC, (hsize_t)0, tmpname, (size_t)NAME_BUF_SIZE, H5P_DEFAULT)
-!!$    CALL CHECK(ret, FAIL, "H5Aget_name_by_idx")
-!!$    IF (HDstrcmp(attrname, tmpname)) CALL TestErrPrintf("Line %d: attribute name size wrong!\n"C, __LINE__)
+
 
 END SUBROUTINE attr_info_by_idx_check
 
@@ -1207,6 +1083,7 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
 !****************************************************************/
 
   USE HDF5
+  USE TH5_MISC
 
   IMPLICIT NONE
 
@@ -1221,7 +1098,6 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
 
   CHARACTER(LEN=8) :: DSET1_NAME = "Dataset1"
   CHARACTER(LEN=8) :: DSET2_NAME = "Dataset2"
-  INTEGER, PARAMETER :: NUM_DSETS = 3
 
 
   INTEGER(HID_T) :: dataset, dataset2
@@ -1243,29 +1119,16 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
   CHARACTER(LEN=7) :: attrname
   CHARACTER(LEN=11) :: attrname2
 
-  CHARACTER(LEN=1), PARAMETER :: chr1 = '.'
-
   INTEGER :: u
-  INTEGER, PARAMETER :: SPACE1_RANK = 3
-  INTEGER, PARAMETER :: NX = 20
-  INTEGER, PARAMETER :: NY = 5
-  INTEGER, PARAMETER :: NZ = 10
   INTEGER(HID_T) :: my_fcpl
 
   CHARACTER(LEN=5), PARAMETER :: TYPE1_NAME = "/Type"
-
-  INTEGER, PARAMETER :: SPACE1_DIM1 = 4
-  INTEGER, PARAMETER :: SPACE1_DIM2 = 8
-  INTEGER, PARAMETER :: SPACE1_DIM3 = 10
-
 
   INTEGER :: test_shared
   INTEGER(HSIZE_T), DIMENSION(1) :: adims2 = (/1/) ! Attribute dimension
   INTEGER     ::   arank = 1                      ! Attribure rank
 
-  ! /* Output message about test being performed */
-!  WRITE(*,*) "     - Testing Renaming Shared & Unshared Attributes in Compact & Dense Storage"
-!!$ /* Initialize "big" attribute data */
+  ! /* Initialize "big" attribute data */
 
   ! /* Create dataspace for dataset */
   CALL h5screate_f(H5S_SCALAR_F, sid, error)
@@ -1338,19 +1201,6 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
      CALL h5dcreate_f(fid, DSET2_NAME, H5T_NATIVE_CHARACTER, sid, dataset2, error, dcpl_id=dcpl )
      CALL check("h5dcreate_f",error,total_error)
 
-     ! /* Check on dataset's message storage status */
-!!$        if(test_shared != 0) {
-!!$            /* Datasets' datatypes can be shared */
-!!$            ret = H5F_get_sohm_mesg_count_test(fid, H5O_DTYPE_ID, &mesg_count);
-!!$            CHECK(ret, FAIL, "H5F_get_sohm_mesg_count_test");
-!!$            VERIFY(mesg_count, 1, "H5F_get_sohm_mesg_count_test");
-!!$
-!!$            /* Datasets' dataspace can be shared */
-!!$            ret = H5F_get_sohm_mesg_count_test(fid, H5O_SDSPACE_ID, &mesg_count);
-!!$            CHECK(ret, FAIL, "H5F_get_sohm_mesg_count_test");
-!!$            VERIFY(mesg_count, 1, "H5F_get_sohm_mesg_count_test");
-!!$        } /* end if */
-
      ! /* Retrieve limits for compact/dense attribute storage */
      CALL H5Pget_attr_phase_change_f(dcpl, max_compact, min_dense, error)
      CALL check("H5Pget_attr_phase_change_f",error,total_error)
@@ -1358,16 +1208,8 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
      ! /* Close property list */
      CALL h5pclose_f(dcpl,error)
      CALL check("h5pclose_f", error, total_error)
-!!$
-!!$
-!!$        /* Check on datasets' attribute storage status */
-!!$        is_dense = H5O_is_attr_dense_test(dataset);
-!!$        VERIFY(is_dense, FALSE, "H5O_is_attr_dense_test");
-!!$        is_dense = H5O_is_attr_dense_test(dataset2);
-!!$        VERIFY(is_dense, FALSE, "H5O_is_attr_dense_test");
+
      ! /* Add attributes to each dataset, until after converting to dense storage */
-
-
      DO u = 0, (max_compact * 2) - 1
 
         ! /* Create attribute name */
@@ -1382,10 +1224,6 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
            CALL h5acreate_f(dataset, attrname, attr_tid, sid, attr, error, H5P_DEFAULT_F, H5P_DEFAULT_F)
            CALL check("h5acreate_f",error,total_error)
 
-!!$                /* Check that attribute is not shared */
-!!$                is_shared = H5A_is_shared_test(attr);
-!!$                VERIFY(is_shared, FALSE, "H5A_is_shared_test");
-
            ! /* Write data into the attribute */
            attr_integer_data(1) = u + 1
            data_dims(1) = 1
@@ -1397,15 +1235,6 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
            CALL h5acreate_f(dataset, attrname, attr_tid, big_sid, attr, error, H5P_DEFAULT_F, H5P_DEFAULT_F)
            CALL check("h5acreate_f",error,total_error)
 
-           !  Check that attribute is shared */
-!!$                is_shared = H5A_is_shared_test(attr);
-!!$                VERIFY(is_shared, TRUE, "H5A_is_shared_test");
-
-           !  Check refcount for attribute */
-!!$                ret = H5A_get_shared_rc_test(attr, &shared_refcount);
-!!$                CHECK(ret, FAIL, "H5A_get_shared_rc_test");
-!!$                VERIFY(shared_refcount, 1, "H5A_get_shared_rc_test");
-!!$
            !  Write data into the attribute */
 
            data_dims(1) = 1
@@ -1413,24 +1242,12 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
            CALL h5awrite_f(attr, attr_tid, attr_integer_data, data_dims, error)
            CALL check("h5awrite_f",error,total_error)
 
-           !  Check refcount for attribute */
-!!$                ret = H5A_get_shared_rc_test(attr, &shared_refcount);
-!!$                CHECK(ret, FAIL, "H5A_get_shared_rc_test");
-!!$                VERIFY(shared_refcount, 1, "H5A_get_shared_rc_test");
         ENDIF
 
         ! /* Close attribute */
         CALL h5aclose_f(attr, error)
         CALL check("h5aclose_f",error,total_error)
 
-        ! /* Check on dataset's attribute storage status */
-!!$            is_dense = H5O_is_attr_dense_test(dataset);
-!!$            if(u < max_compact)
-!!$                VERIFY(is_dense, FALSE, "H5O_is_attr_dense_test");
-!!$            else
-!!$                VERIFY(is_dense, TRUE, "H5O_is_attr_dense_test");
-!!$
-!!$
         ! /* Alternate between creating "small" & "big" attributes */
         IF(MOD(u+1,2).EQ.0)THEN
 
@@ -1439,10 +1256,6 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
            CALL h5acreate_f(dataset2, attrname, attr_tid, sid, attr, error, H5P_DEFAULT_F, H5P_DEFAULT_F)
            CALL check("h5acreate_f",error,total_error)
 
-           !  /* Check that attribute is not shared */
-!!$                is_shared = H5A_is_shared_test(attr);
-!!$                VERIFY(is_shared, FALSE, "H5A_is_shared_test");
-!!$
            ! /* Write data into the attribute */
 
            attr_integer_data(1) = u + 1
@@ -1456,15 +1269,6 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
            CALL h5acreate_f(dataset2, attrname, attr_tid, big_sid, attr, error, H5P_DEFAULT_F, H5P_DEFAULT_F)
            CALL check("h5acreate_f",error,total_error)
 
-! /* Check that attribute is shared */
-!!$                is_shared = H5A_is_shared_test(attr);
-!!$                VERIFY(is_shared, TRUE, "H5A_is_shared_test");
-!!$
-! /* Check refcount for attribute */
-!!$                ret = H5A_get_shared_rc_test(attr, &shared_refcount);
-!!$                CHECK(ret, FAIL, "H5A_get_shared_rc_test");
-!!$                VERIFY(shared_refcount, 1, "H5A_get_shared_rc_test");
-!!$
 ! /* Write data into the attribute */
 
 
@@ -1475,22 +1279,10 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
 
 
 ! /* Check refcount for attribute */
-!!$                ret = H5A_get_shared_rc_test(attr, &shared_refcount);
-!!$                CHECK(ret, FAIL, "H5A_get_shared_rc_test");
-!!$                VERIFY(shared_refcount, 2, "H5A_get_shared_rc_test");
-
         ENDIF
         ! /* Close attribute */
         CALL h5aclose_f(attr, error)
         CALL check("h5aclose_f",error,total_error)
-
-        !    /* Check on dataset's attribute storage status */
-!!$            is_dense = H5O_is_attr_dense_test(dataset2);
-!!$            if(u < max_compact)
-!!$                VERIFY(is_dense, FALSE, "H5O_is_attr_dense_test");
-!!$            else
-!!$                VERIFY(is_dense, TRUE, "H5O_is_attr_dense_test");
-
 
         ! /* Create new attribute name */
 
@@ -1510,22 +1302,6 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
         CALL H5Aopen_f(dataset2, attrname2, attr, error, aapl_id=H5P_DEFAULT_F)
         CALL check("H5Aopen_f",error,total_error)
 
-!!$
-!!$        IF(MOD(u+1,2).EQ.0)THEN
-!!$           ! /* Check that attribute is not shared */
-!!$           is_shared = H5A_is_shared_test(attr);
-!!$           CALL VERIFY("H5A_is_shared_test", error, minusone)
-!!$        ELSE
-!!$                ! /* Check that attribute is shared */
-!!$                is_shared = H5A_is_shared_test(attr);
-!!$                VERIFY(is_shared, TRUE, "H5A_is_shared_test");
-!!$
-!!$                /* Check refcount for attribute */
-!!$                ret = H5A_get_shared_rc_test(attr, &shared_refcount);
-!!$                CHECK(ret, FAIL, "H5A_get_shared_rc_test");
-!!$                VERIFY(shared_refcount, 1, "H5A_get_shared_rc_test")
-!!$             ENDIF
-
         ! /* Close attribute */
         CALL h5aclose_f(attr, error)
         CALL check("h5aclose_f",error,total_error)
@@ -1533,22 +1309,6 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
         ! /* Check refcount on original attribute */
         CALL H5Aopen_f(dataset, attrname, attr, error)
         CALL check("H5Aopen",error,total_error)
-
-!!$            if(u % 2) {
-!!$                /* Check that attribute is not shared */
-!!$                is_shared = H5A_is_shared_test(attr);
-!!$                VERIFY(is_shared, FALSE, "H5A_is_shared_test");
-!!$            } /* end if */
-!!$            else {
-!!$                /* Check that attribute is shared */
-!!$                is_shared = H5A_is_shared_test(attr);
-!!$                VERIFY(is_shared, TRUE, "H5A_is_shared_test");
-!!$
-!!$                /* Check refcount for attribute */
-!!$                ret = H5A_get_shared_rc_test(attr, &shared_refcount);
-!!$                CHECK(ret, FAIL, "H5A_get_shared_rc_test");
-!!$                VERIFY(shared_refcount, 1, "H5A_get_shared_rc_test");
-!!$            } /* end else */
 
         ! /* Close attribute */
         CALL h5aclose_f(attr, error)
@@ -1565,22 +1325,6 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
         ! /* Check refcount on renamed attribute */
         CALL H5Aopen_f(dataset2, attrname, attr, error)
         CALL check("H5Aopen",error,total_error)
-!!$
-!!$            if(u % 2) {
-!!$                /* Check that attribute is not shared */
-!!$                is_shared = H5A_is_shared_test(attr);
-!!$                VERIFY(is_shared, FALSE, "H5A_is_shared_test");
-!!$            } /* end if */
-!!$            else {
-!!$                /* Check that attribute is shared */
-!!$                is_shared = H5A_is_shared_test(attr);
-!!$                VERIFY(is_shared, TRUE, "H5A_is_shared_test");
-!!$
-!!$                /* Check refcount for attribute */
-!!$                ret = H5A_get_shared_rc_test(attr, &shared_refcount);
-!!$                CHECK(ret, FAIL, "H5A_get_shared_rc_test");
-!!$                VERIFY(shared_refcount, 2, "H5A_get_shared_rc_test");
-!!$            } /* end else */
 
         ! /* Close attribute */
         CALL h5aclose_f(attr, error)
@@ -1591,22 +1335,6 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
         ! /* Check refcount on renamed attribute */
         CALL H5Aopen_f(dataset, attrname, attr, error)
         CALL check("H5Aopen",error,total_error)
-
-!!$            if(u % 2) {
-!!$                /* Check that attribute is not shared */
-!!$                is_shared = H5A_is_shared_test(attr);
-!!$                VERIFY(is_shared, FALSE, "H5A_is_shared_test");
-!!$            } /* end if */
-!!$            else {
-!!$                /* Check that attribute is shared */
-!!$                is_shared = H5A_is_shared_test(attr);
-!!$                VERIFY(is_shared, TRUE, "H5A_is_shared_test");
-!!$
-!!$                /* Check refcount for attribute */
-!!$                ret = H5A_get_shared_rc_test(attr, &shared_refcount);
-!!$                CHECK(ret, FAIL, "H5A_get_shared_rc_test");
-!!$                VERIFY(shared_refcount, 2, "H5A_get_shared_rc_test");
-!!$            } /* end else */
 
         ! /* Close attribute */
         CALL h5aclose_f(attr, error)
@@ -1624,20 +1352,6 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
      CALL h5dclose_f(dataset2, error)
      CALL check("h5dclose_f",error,total_error)
 
-!!$        /* Check on shared message status now */
-!!$        if(test_shared != 0) {
-!!$            if(test_shared == 1) {
-!!$                /* Check on datatype storage status */
-!!$                ret = H5F_get_sohm_mesg_count_test(fid, H5O_DTYPE_ID, &mesg_count);
-!!$                CHECK(ret, FAIL, "H5F_get_sohm_mesg_count_test");
-!!$                VERIFY(mesg_count, 2, "H5F_get_sohm_mesg_count_test");
-!!$            } /* end if */
-!!$
-!!$            /* Check on dataspace storage status */
-!!$            ret = H5F_get_sohm_mesg_count_test(fid, H5O_SDSPACE_ID, &mesg_count);
-!!$            CHECK(ret, FAIL, "H5F_get_sohm_mesg_count_test");
-!!$            VERIFY(mesg_count, 2, "H5F_get_sohm_mesg_count_test");
-!!$        } /* end if */
 
      ! /* Unlink datasets with attributes */
      CALL H5Ldelete_f(fid, DSET1_NAME, error, H5P_DEFAULT_F)
@@ -1650,23 +1364,6 @@ SUBROUTINE test_attr_shared_rename( fcpl, fapl, total_error)
         CALL H5Ldelete_f(fid, TYPE1_NAME, error)
         CALL check("HLdelete_f",error,total_error)
      ENDIF
-
-     ! /* Check on attribute storage status */
-!!$        ret = H5F_get_sohm_mesg_count_test(fid, H5O_ATTR_ID, &mesg_count);
-!!$        CHECK(ret, FAIL, "H5F_get_sohm_mesg_count_test");
-!!$        VERIFY(mesg_count, 0, "H5F_get_sohm_mesg_count_test");
-!!$
-!!$        if(test_shared != 0) {
-!!$            /* Check on datatype storage status */
-!!$            ret = H5F_get_sohm_mesg_count_test(fid, H5O_DTYPE_ID, &mesg_count);
-!!$            CHECK(ret, FAIL, "H5F_get_sohm_mesg_count_test");
-!!$            VERIFY(mesg_count, 0, "H5F_get_sohm_mesg_count_test");
-!!$
-!!$            /* Check on dataspace storage status */
-!!$            ret = H5F_get_sohm_mesg_count_test(fid, H5O_SDSPACE_ID, &mesg_count);
-!!$            CHECK(ret, FAIL, "H5F_get_sohm_mesg_count_test");
-!!$            VERIFY(mesg_count, 0, "H5F_get_sohm_mesg_count_test");
-!!$        } /* end if */
 
      ! /* Close file */
      CALL h5fclose_f(fid, error)
@@ -1696,6 +1393,7 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
 !****************************************************************/
 
   USE HDF5
+  USE TH5_MISC
 
   IMPLICIT NONE
 
@@ -1741,7 +1439,6 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
 
   INTEGER(SIZE_T) :: size
   CHARACTER(LEN=8) :: tmpname
-  CHARACTER(LEN=1), PARAMETER :: chr1 = '.'
 
   INTEGER :: idx_type
   INTEGER :: order
@@ -1773,41 +1470,6 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
 
         ! /* Loop over using index for creation order value */
         DO i = 1, 2
-
-           ! /* Print appropriate test message */
-!!$           IF(idx_type .EQ. H5_INDEX_CRT_ORDER_F)THEN
-!!$              IF(order .EQ. H5_ITER_INC_F) THEN
-!!$                 IF(use_index(i))THEN
-!!$                    WRITE(*,'(A102)') &
-!!$                         "       - Testing Deleting Attribute By Creation Order Index in Increasing Order w/Creation Order Index"
-!!$                 ELSE
-!!$                    WRITE(*,'(A104)') &
-!!$                         "       - Testing Deleting Attribute By Creation Order Index in Increasing Order w/o Creation Order Index"
-!!$                 ENDIF
-!!$              ELSE
-!!$                 IF(use_index(i))THEN
-!!$                    WRITE(*,'(A102)') &
-!!$                         "       - Testing Deleting Attribute By Creation Order Index in Decreasing Order w/Creation Order Index"
-!!$                 ELSE
-!!$                    WRITE(*,'(A104)') &
-!!$                         "       - Testing Deleting Attribute By Creation Order Index in Decreasing Order w/o Creation Order Index"
-!!$                 ENDIF
-!!$              ENDIF
-!!$           ELSE
-!!$              IF(order .EQ. H5_ITER_INC_F)THEN
-!!$                 IF(use_index(i))THEN
-!!$                    WRITE(*,'(7X,A86)')"- Testing Deleting Attribute By Name Index in Increasing Order w/Creation Order Index"
-!!$                 ELSE
-!!$                    WRITE(*,'(7X,A88)')"- Testing Deleting Attribute By Name Index in Increasing Order w/o Creation Order Index"
-!!$                 ENDIF
-!!$              ELSE
-!!$                 IF(use_index(i))THEN
-!!$                    WRITE(*,'(7X,A86)') "- Testing Deleting Attribute By Name Index in Decreasing Order w/Creation Order Index"
-!!$                 ELSE
-!!$                    WRITE(*,'(7X,A88)') "- Testing Deleting Attribute By Name Index in Decreasing Order w/o Creation Order Index"
-!!$                 ENDIF
-!!$              ENDIF
-!!$           ENDIF
 
            ! /* Create file */
            CALL h5fcreate_f(FileName, H5F_ACC_TRUNC_F, fid, error, fcpl, fapl)
@@ -1852,11 +1514,6 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
                  !        CALL HDassert(0.AND."Toomanydatasets!")
               END SELECT
 
-              ! /* Check on dataset's attribute storage status */
-!!$                is_empty = H5O_is_attr_empty_test(my_dataset);
-!!$                VERIFY(is_empty, TRUE, "H5O_is_attr_empty_test");
-!!$                is_dense = H5O_is_attr_dense_test(my_dataset);
-!!$                VERIFY(is_dense, FALSE, "H5O_is_attr_dense_test");
 
               ! /* Check for deleting non-existant attribute */
 !EP              CALL H5Adelete_by_idx_f(my_dataset, '.', idx_type, order, 0_HSIZE_T,error, lapl_id=H5P_DEFAULT_F)
@@ -1886,18 +1543,6 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
                  CALL attr_info_by_idx_check(my_dataset, attrname, INT(u,HSIZE_T), use_index(i), total_error )
 
               ENDDO
-
-
-
-              !  /* Verify state of object */
-
-!!$                ret = H5O_num_attrs_test(my_dataset, &nattrs);
-!!$                CHECK(ret, FAIL, "H5O_num_attrs_test");
-!!$                VERIFY(nattrs, max_compact, "H5O_num_attrs_test");
-!!$                is_empty = H5O_is_attr_empty_test(my_dataset);
-!!$                VERIFY(is_empty, FALSE, "H5O_is_attr_empty_test");
-!!$                is_dense = H5O_is_attr_dense_test(my_dataset);
-!!$                VERIFY(is_dense, FALSE, "H5O_is_attr_dense_test");
 
               !/* Check for out of bound deletions */
               CALL H5Adelete_by_idx_f(my_dataset, ".", idx_type, order, INT(u,HSIZE_T), error, lapl_id=H5P_DEFAULT_F)
@@ -1946,7 +1591,6 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
                  ENDIF
 
                    ! /* Verify the name for first attribute in appropriate order */
-                   ! HDmemset(tmpname, 0, (size_t)NAME_BUF_SIZE);
 
                  size = 7 ! *CHECK* IF NOT THE SAME SIZE
                  CALL h5aget_name_by_idx_f(my_dataset, ".", idx_type, order,INT(0,hsize_t), &
@@ -1969,10 +1613,6 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
               CALL H5Adelete_by_idx_f(my_dataset, ".", idx_type, order, hzero, error)
               CALL check("H5Adelete_by_idx_f",error,total_error)
 
-
-              ! /* Verify state of attribute storage (empty) */
-!!$                is_empty = H5O_is_attr_empty_test(my_dataset);
-!!$                VERIFY(is_empty, TRUE, "H5O_is_attr_empty_test");
            ENDDO
 
 !   /* Work on all the datasets */
@@ -2011,34 +1651,8 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
                  CALL h5aclose_f(attr, error)
                  CALL check("h5aclose_f",error,total_error)
 
-                 ! /* Verify state of object */
-                 IF(u .GE. max_compact)THEN
-!!$                  is_dense = H5O_is_attr_dense_test(my_dataset);
-!!$                  VERIFY(is_dense, (new_format ? TRUE : FALSE), "H5O_is_attr_dense_test");
-                 ENDIF
 
-                 ! /* Verify information for new attribute */
-!!$              CALL check("attr_info_by_idx_check",error,total_error)
               ENDDO
-
-              ! /* Verify state of object */
-!!$                    ret = H5O_num_attrs_test(my_dataset, &nattrs);
-!!$                    CHECK(ret, FAIL, "H5O_num_attrs_test");
-!!$                    VERIFY(nattrs, (max_compact * 2), "H5O_num_attrs_test");
-!!$                    is_empty = H5O_is_attr_empty_test(my_dataset);
-!!$                    VERIFY(is_empty, FALSE, "H5O_is_attr_empty_test");
-!!$                    is_dense = H5O_is_attr_dense_test(my_dataset);
-!!$                    VERIFY(is_dense, (new_format ? TRUE : FALSE), "H5O_is_attr_dense_test");
-!!$
-              IF(new_format)THEN
-!!$                 ! /* Retrieve & verify # of records in the name & creation order indices */
-!!$                 ret = H5O_attr_dense_info_test(my_dataset, &name_count, &corder_count);
-!!$                 CHECK(ret, FAIL, "H5O_attr_dense_info_test");
-!!$                 IF(use_index)
-!!$                 VERIFY(name_count, corder_count, "H5O_attr_dense_info_test");
-!!$                 VERIFY(name_count, (max_compact * 2), "H5O_attr_dense_info_test");
-              ENDIF
-
               ! /* Check for out of bound deletion */
               CALL H5Adelete_by_idx_f(my_dataset, ".", idx_type, order, INT(u,HSIZE_T), error)
               CALL VERIFY("H5Adelete_by_idx_f",error,minusone,total_error)
@@ -2054,8 +1668,6 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
                  my_dataset = dset2
               CASE (2)
                  my_dataset = dset3
-                 !     CASE DEFAULT
-                 !        CALL HDassert(0.AND."Toomanydatasets!")
               END SELECT
 
               ! /* Delete attributes from dense storage */
@@ -2101,9 +1713,6 @@ SUBROUTINE test_attr_delete_by_idx(new_format, fcpl, fapl, total_error)
 
               CALL H5Adelete_by_idx_f(my_dataset, ".", idx_type, order, INT(0,HSIZE_T), error, lapl_id=H5P_DEFAULT_F)
               CALL check("H5Adelete_by_idx_f",error,total_error)
-              ! /* Verify state of attribute storage (empty) */
-!!$                    is_empty = H5O_is_attr_empty_test(my_dataset);
-!!$                    VERIFY(is_empty, TRUE, "H5O_is_attr_empty_test");
 
               !/* Check for deletion on empty attribute storage again */
               CALL H5Adelete_by_idx_f(my_dataset, ".", idx_type, order, INT(0,HSIZE_T), error)
@@ -2145,6 +1754,7 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
 !****************************************************************/
 
   USE HDF5
+  USE TH5_MISC
 
   IMPLICIT NONE
 
@@ -2158,7 +1768,6 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
 
   CHARACTER(LEN=8) :: DSET1_NAME = "Dataset1"
   CHARACTER(LEN=8) :: DSET2_NAME = "Dataset2"
-  INTEGER, PARAMETER :: NUM_DSETS = 3
 
 
   INTEGER(HID_T) :: dataset, dataset2
@@ -2178,13 +1787,7 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
   INTEGER, DIMENSION(1) ::  attr_integer_data
   CHARACTER(LEN=7) :: attrname
 
-  CHARACTER(LEN=1), PARAMETER :: chr1 = '.'
-
   INTEGER :: u
-  INTEGER, PARAMETER :: SPACE1_RANK = 3
-  INTEGER, PARAMETER :: NX = 20
-  INTEGER, PARAMETER :: NY = 5
-  INTEGER, PARAMETER :: NZ = 10
   INTEGER(HID_T) :: my_fcpl
 
   CHARACTER(LEN=5), PARAMETER :: TYPE1_NAME = "/Type"
@@ -2194,7 +1797,6 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
   INTEGER     ::   arank = 1                      ! Attribure rank
 
   ! /* Output message about test being performed */
-!  WRITE(*,*) "     - Testing Deleting Shared & Unshared Attributes in Compact & Dense Storage"
 
   ! /* Initialize "big" attribute DATA */
   !    /* Create dataspace for dataset */
@@ -2225,11 +1827,9 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
         ! /* Make attributes > 500 bytes shared */
         CALL H5Pset_shared_mesg_nindexes_f(my_fcpl,1,error)
         CALL check("H5Pset_shared_mesg_nindexes_f",error, total_error)
-!!$     CHECK_I(ret, "H5Pset_shared_mesg_nindexes");
         CALL H5Pset_shared_mesg_index_f(my_fcpl, 0, H5O_SHMESG_ATTR_FLAG_F, 500,error)
         CALL check(" H5Pset_shared_mesg_index_f",error, total_error)
 
-!!$     CHECK_I(ret, "H5Pset_shared_mesg_index");
      ELSE
         ! /* Set up copy of file creation property list */
         CALL H5Pset_shared_mesg_nindexes_f(my_fcpl,3,error)
@@ -2238,7 +1838,6 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
         ! /* Make datatypes & dataspaces > 1 byte shared (i.e. all of them :-) */
         CALL H5Pset_shared_mesg_index_f(my_fcpl, 1, H5O_SHMESG_DTYPE_FLAG_F, 1,error)
         CALL H5Pset_shared_mesg_index_f(my_fcpl, 2,  H5O_SHMESG_SDSPACE_FLAG_F, 1,error)
-!!$            CHECK_I(ret, "H5Pset_shared_mesg_index");
      ENDIF
 
      ! /* Create file */
@@ -2275,19 +1874,6 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
      CALL h5dcreate_f(fid, DSET2_NAME, H5T_NATIVE_CHARACTER, sid, dataset2, error, dcpl_id=dcpl )
      CALL check("h5dcreate_f",error,total_error)
 
-     ! /* Check on dataset's message storage status */
-!!$        if(test_shared != 0) {
-!!$            /* Datasets' datatypes can be shared */
-!!$            ret = H5F_get_sohm_mesg_count_test(fid, H5O_DTYPE_ID, &mesg_count);
-!!$            CHECK(ret, FAIL, "H5F_get_sohm_mesg_count_test");
-!!$            VERIFY(mesg_count, 1, "H5F_get_sohm_mesg_count_test");
-!!$
-!!$            /* Datasets' dataspace can be shared */
-!!$            ret = H5F_get_sohm_mesg_count_test(fid, H5O_SDSPACE_ID, &mesg_count);
-!!$            CHECK(ret, FAIL, "H5F_get_sohm_mesg_count_test");
-!!$            VERIFY(mesg_count, 1, "H5F_get_sohm_mesg_count_test");
-!!$        } /* end if */
-!!$
      ! /* Retrieve limits for compact/dense attribute storage */
      CALL H5Pget_attr_phase_change_f(dcpl, max_compact, min_dense, error)
      CALL check("H5Pget_attr_phase_change_f",error,total_error)
@@ -2295,13 +1881,7 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
      ! /* Close property list */
      CALL h5pclose_f(dcpl,error)
      CALL check("h5pclose_f", error, total_error)
-!!$
-!!$        /* Check on datasets' attribute storage status */
-!!$        is_dense = H5O_is_attr_dense_test(dataset);
-!!$        VERIFY(is_dense, FALSE, "H5O_is_attr_dense_test");
-!!$        is_dense = H5O_is_attr_dense_test(dataset2);
-!!$        VERIFY(is_dense, FALSE, "H5O_is_attr_dense_test");
-!!$
+
      ! /* Add attributes to each dataset, until after converting to dense storage */
 
      DO u = 0, (max_compact * 2) - 1
@@ -2318,10 +1898,6 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
            CALL h5acreate_f(dataset, attrname, attr_tid, sid, attr, error, H5P_DEFAULT_F, H5P_DEFAULT_F)
            CALL check("h5acreate_f",error,total_error)
 
-!!$                /* Check that attribute is not shared */
-!!$                is_shared = H5A_is_shared_test(attr);
-!!$                VERIFY(is_shared, FALSE, "H5A_is_shared_test");
-
            ! /* Write data into the attribute */
            attr_integer_data(1) = u + 1
            data_dims(1) = 1
@@ -2332,16 +1908,7 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
 
            CALL h5acreate_f(dataset, attrname, attr_tid, big_sid, attr, error)
            CALL check("h5acreate_f",error,total_error)
-!!$
-           !  Check that attribute is shared */
-!!$                is_shared = H5A_is_shared_test(attr);
-!!$                VERIFY(is_shared, TRUE, "H5A_is_shared_test");
 
-           !  Check refcount for attribute */
-!!$                ret = H5A_get_shared_rc_test(attr, &shared_refcount);
-!!$                CHECK(ret, FAIL, "H5A_get_shared_rc_test");
-!!$                VERIFY(shared_refcount, 1, "H5A_get_shared_rc_test");
-!!$
            !  Write data into the attribute */
 
            attr_integer_data(1) = u + 1
@@ -2349,24 +1916,12 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
            CALL h5awrite_f(attr,  attr_tid, attr_integer_data, data_dims, error)
            CALL check("h5awrite_f",error,total_error)
 
-           !  Check refcount for attribute */
-!!$                ret = H5A_get_shared_rc_test(attr, &shared_refcount);
-!!$                CHECK(ret, FAIL, "H5A_get_shared_rc_test");
-!!$                VERIFY(shared_refcount, 1, "H5A_get_shared_rc_test");
         ENDIF
 
         ! /* Close attribute */
         CALL h5aclose_f(attr, error)
         CALL check("h5aclose_f",error,total_error)
 
-        ! /* Check on dataset's attribute storage status */
-!!$            is_dense = H5O_is_attr_dense_test(dataset);
-!!$            if(u < max_compact)
-!!$                VERIFY(is_dense, FALSE, "H5O_is_attr_dense_test");
-!!$            else
-!!$                VERIFY(is_dense, TRUE, "H5O_is_attr_dense_test");
-!!$
-!!$
         ! /* Alternate between creating "small" & "big" attributes */
         IF(MOD(u+1,2).EQ.0)THEN
 
@@ -2375,10 +1930,6 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
            CALL h5acreate_f(dataset2, attrname, attr_tid, sid, attr, error)
            CALL check("h5acreate_f",error,total_error)
 
-           !  /* Check that attribute is not shared */
-!!$                is_shared = H5A_is_shared_test(attr);
-!!$                VERIFY(is_shared, FALSE, "H5A_is_shared_test");
-!!$
            ! /* Write data into the attribute */
            attr_integer_data(1) = u + 1
            data_dims(1) = 1
@@ -2391,15 +1942,6 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
            CALL h5acreate_f(dataset2, attrname, attr_tid, big_sid, attr, error, acpl_id=H5P_DEFAULT_F, aapl_id=H5P_DEFAULT_F)
            CALL check("h5acreate_f",error,total_error)
 
-! /* Check that attribute is shared */
-!!$                is_shared = H5A_is_shared_test(attr);
-!!$                VERIFY(is_shared, TRUE, "H5A_is_shared_test");
-!!$
-! /* Check refcount for attribute */
-!!$                ret = H5A_get_shared_rc_test(attr, &shared_refcount);
-!!$                CHECK(ret, FAIL, "H5A_get_shared_rc_test");
-!!$                VERIFY(shared_refcount, 1, "H5A_get_shared_rc_test");
-!!$
 ! /* Write data into the attribute */
 
 
@@ -2408,23 +1950,11 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
            CALL h5awrite_f(attr,  attr_tid, attr_integer_data, data_dims, error)
            CALL check("h5awrite_f",error,total_error)
 
-
-! /* Check refcount for attribute */
-!!$                ret = H5A_get_shared_rc_test(attr, &shared_refcount);
-!!$                CHECK(ret, FAIL, "H5A_get_shared_rc_test");
-!!$                VERIFY(shared_refcount, 2, "H5A_get_shared_rc_test");
-
         ENDIF
         ! /* Close attribute */
         CALL h5aclose_f(attr, error)
         CALL check("h5aclose_f",error,total_error)
 
-        ! /* Check on dataset's attribute storage status */
-!!$            is_dense = H5O_is_attr_dense_test(dataset2);
-!!$            if(u < max_compact)
-!!$                VERIFY(is_dense, FALSE, "H5O_is_attr_dense_test");
-!!$            else
-!!$                VERIFY(is_dense, TRUE, "H5O_is_attr_dense_test");
      ENDDO
 
      ! /* Delete attributes from second dataset */
@@ -2439,29 +1969,9 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
         CALL H5Adelete_by_name_f(fid, DSET2_NAME, attrname,error,lapl_id=H5P_DEFAULT_F)
         CALL check("H5Adelete_by_name", error, total_error)
 
-!!$            /* Check refcount on attributes now */
-!!$
-!!$            /* Check refcount on first dataset's attribute */
-
         CALL h5aopen_f(dataset, attrname, attr, error, aapl_id=H5P_DEFAULT_F)
         CALL check("h5aopen_f",error,total_error)
 
-!!$
-!!$            if(u % 2) {
-! /* Check that attribute is not shared */
-!!$                is_shared = H5A_is_shared_test(attr);
-!!$                VERIFY(is_shared, FALSE, "H5A_is_shared_test");
-!!$            } /* end if */
-!!$            else {
-!/*  Check that attribute is shared */
-!!$                is_shared = H5A_is_shared_test(attr);
-!!$                VERIFY(is_shared, TRUE, "H5A_is_shared_test");
-!!$
-!/*  Check refcount for attribute */
-!!$                ret = H5A_get_shared_rc_test(attr, &shared_refcount);
-!!$                CHECK(ret, FAIL, "H5A_get_shared_rc_test");
-!!$                VERIFY(shared_refcount, 1, "H5A_get_shared_rc_test");
-!!$            } /* end else */
 
         ! /* Close attribute */
         CALL h5aclose_f(attr, error)
@@ -2480,21 +1990,6 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
      CALL h5dclose_f(dataset2, error)
      CALL check("h5dclose_f",error,total_error)
 
-     ! /* Check on shared message status now */
-!!$        if(test_shared != 0) {
-!!$            if(test_shared == 1) {
-     ! /*  Check on datatype storage status */
-!!$                ret = H5F_get_sohm_mesg_count_test(fid, H5O_DTYPE_ID, &mesg_count);
-!!$                CHECK(ret, FAIL, "H5F_get_sohm_mesg_count_test");
-!!$                VERIFY(mesg_count, 2, "H5F_get_sohm_mesg_count_test");
-!!$            } /* end if */
-!!$
-!!$            /* Check on dataspace storage status */
-!!$            ret = H5F_get_sohm_mesg_count_test(fid, H5O_SDSPACE_ID, &mesg_count);
-!!$            CHECK(ret, FAIL, "H5F_get_sohm_mesg_count_test");
-!!$            VERIFY(mesg_count, 2, "H5F_get_sohm_mesg_count_test");
-!!$        } /* end if */
-!!$
      ! /* Unlink datasets WITH attributes */
 
      CALL h5ldelete_f(fid, DSET1_NAME, error, H5P_DEFAULT_F)
@@ -2509,31 +2004,11 @@ SUBROUTINE test_attr_shared_delete(fcpl, fapl, total_error)
         CALL check("H5Ldelete_f", error, total_error)
      ENDIF
 
-     ! /* Check on attribute storage status */
-!!$        ret = H5F_get_sohm_mesg_count_test(fid, H5O_ATTR_ID, &mesg_count);
-!!$        CHECK(ret, FAIL, "H5F_get_sohm_mesg_count_test");
-!!$        VERIFY(mesg_count, 0, "H5F_get_sohm_mesg_count_test");
-!!$
-!!$        if(test_shared != 0) {
-!!$            /* Check on datatype storage status */
-!!$            ret = H5F_get_sohm_mesg_count_test(fid, H5O_DTYPE_ID, &mesg_count);
-!!$            CHECK(ret, FAIL, "H5F_get_sohm_mesg_count_test");
-!!$            VERIFY(mesg_count, 0, "H5F_get_sohm_mesg_count_test");
-!!$
-!!$            /* Check on dataspace storage status */
-!!$            ret = H5F_get_sohm_mesg_count_test(fid, H5O_SDSPACE_ID, &mesg_count);
-!!$            CHECK(ret, FAIL, "H5F_get_sohm_mesg_count_test");
-!!$            VERIFY(mesg_count, 0, "H5F_get_sohm_mesg_count_test");
-!!$        } /* end if */
-!!$
 
      ! /* Close file */
      CALL h5fclose_f(fid, error)
      CALL check("h5fclose_f",error,total_error)
-!!$
-!!$        /* Check size of file */
-!!$        filesize = h5_get_file_size(FILENAME);
-!!$        VERIFY(filesize, empty_filesize, "h5_get_file_size");
+
   ENDDO
 
   ! /* Close dataspaces */
@@ -2556,6 +2031,7 @@ SUBROUTINE test_attr_dense_open( fcpl, fapl, total_error)
 !****************************************************************/
 
   USE HDF5
+  USE TH5_MISC
 
   IMPLICIT NONE
 
@@ -2587,8 +2063,6 @@ SUBROUTINE test_attr_dense_open( fcpl, fapl, total_error)
 
   data_dims = 0
 
-  ! /* Output message about test being performed */
-!  WRITE(*,*) "     - Testing Opening Attributes in Dense Storage"
 
   ! /* Create file */
 
@@ -2631,10 +2105,6 @@ SUBROUTINE test_attr_dense_open( fcpl, fapl, total_error)
   CALL h5pclose_f(dcpl, error)
   CALL check("h5pclose_f",error,total_error)
 
-  ! /* Check on dataset's attribute storage status */
-  !  is_dense = H5O_is_attr_dense_test(dataset);
-  !  VERIFY(is_dense, FALSE, "H5O_is_attr_dense_test");
-
   ! /* Add attributes, until just before converting to dense storage */
 
   DO u = 0, max_compact - 1
@@ -2657,13 +2127,8 @@ SUBROUTINE test_attr_dense_open( fcpl, fapl, total_error)
 
      ! /* Verify attributes written so far */
      CALL test_attr_dense_verify(dataset, u, total_error)
-     ! CHECK(ret, FAIL, "test_attr_dense_verify");
   ENDDO
-
-  ! /* Check on dataset's attribute storage status */
-!!$    is_dense = H5O_is_attr_dense_test(dataset);
-!!$    VERIFY(is_dense, FALSE, "H5O_is_attr_dense_test");
-
+!
 !    /* Add one more attribute, to push into "dense" storage */
 !    /* Create attribute */
 
@@ -2673,11 +2138,6 @@ SUBROUTINE test_attr_dense_open( fcpl, fapl, total_error)
   CALL h5acreate_f(dataset, attrname, H5T_NATIVE_INTEGER, sid, attr, error, aapl_id=H5P_DEFAULT_F)
   CALL check("h5acreate_f",error,total_error)
 
-  ! /* Check on dataset's attribute storage status */
-!!$    is_dense = H5O_is_attr_dense_test(dataset);
-!!$    VERIFY(is_dense, TRUE, "H5O_is_attr_dense_test");
-
-
   ! /* Write data into the attribute */
   data_dims(1) = 1
   CALL h5awrite_f(attr, H5T_NATIVE_INTEGER, u, data_dims, error)
@@ -2686,7 +2146,6 @@ SUBROUTINE test_attr_dense_open( fcpl, fapl, total_error)
   ! /* Close attribute */
   CALL h5aclose_f(attr, error)
   CALL check("h5aclose_f",error,total_error)
-
 
   ! /* Close dataspace */
   CALL h5sclose_f(sid, error)
@@ -2724,6 +2183,7 @@ END SUBROUTINE test_attr_dense_open
 SUBROUTINE test_attr_dense_verify(loc_id, max_attr, total_error)
 
   USE HDF5
+  USE TH5_MISC
 
   IMPLICIT NONE
 
@@ -2819,6 +2279,7 @@ END SUBROUTINE test_attr_dense_verify
 SUBROUTINE test_attr_corder_create_basic( fcpl, fapl, total_error )
 
   USE HDF5
+  USE TH5_MISC
 
   IMPLICIT NONE
 
@@ -2941,6 +2402,7 @@ END SUBROUTINE test_attr_corder_create_basic
 SUBROUTINE test_attr_basic_write(fapl, total_error)
 
   USE HDF5
+  USE TH5_MISC
 
   IMPLICIT NONE
 
@@ -2961,8 +2423,6 @@ SUBROUTINE test_attr_basic_write(fapl, total_error)
 
   CHARACTER(LEN=25) :: check_name
   CHARACTER(LEN=18) :: chr_exact_size
-
-  INTEGER, PARAMETER :: SPACE1_RANK = 2
 
   CHARACTER(LEN=5), PARAMETER ::  ATTR1_NAME="Attr1"
   INTEGER, PARAMETER :: ATTR1_RANK = 1
@@ -2990,8 +2450,6 @@ SUBROUTINE test_attr_basic_write(fapl, total_error)
   attr_data1a(2) = 1087
   attr_data1a(3) = -99890
 
-  ! /* Output message about test being performed */
-!  WRITE(*,*) "     - Testing Basic Scalar Attribute Writing Functions"
 
   ! /* Create file */
   CALL h5fcreate_f(FileName, H5F_ACC_TRUNC_F, fid1, error, H5P_DEFAULT_F, fapl)
@@ -3056,8 +2514,6 @@ SUBROUTINE test_attr_basic_write(fapl, total_error)
   CALL check("h5aget_storage_size_f",error,total_error)
 !EP  CALL VERIFY("h5aget_storage_size_f", INT(attr_size), 2*HSIZE_T, total_error)
 
-!  attr_size = H5Aget_storage_size(attr);
-!  VERIFY(attr_size, (ATTR1_DIM1 * sizeof(int)), "H5A_get_storage_size");
 
   ! /* Read attribute information immediately, without closing attribute */
   CALL h5aread_f(attr, H5T_NATIVE_INTEGER, read_data1, dimsa, error)
@@ -3144,6 +2600,7 @@ END SUBROUTINE test_attr_basic_write
 SUBROUTINE test_attr_many(new_format, fcpl, fapl, total_error)
 
   USE HDF5
+  USE TH5_MISC
 
   IMPLICIT NONE
 
@@ -3156,9 +2613,6 @@ SUBROUTINE test_attr_many(new_format, fcpl, fapl, total_error)
   INTEGER(HID_T) :: sid
   INTEGER(HID_T) :: gid
   INTEGER(HID_T) :: aid
-
-
-
   INTEGER :: error
 
   INTEGER(HSIZE_T), DIMENSION(7) :: data_dims
@@ -3175,8 +2629,6 @@ SUBROUTINE test_attr_many(new_format, fcpl, fapl, total_error)
 
   data_dims = 0
 
-  ! /* Output message about test being performed */
-!  WRITE(*,*) "     - Testing Storing Many Attributes"
 
   !/* Create file */
   CALL h5fcreate_f(FileName, H5F_ACC_TRUNC_F, fid, error, fcpl, fapl)
@@ -3266,6 +2718,7 @@ END SUBROUTINE test_attr_many
 SUBROUTINE attr_open_check(fid, dsetname, obj_id, max_attrs, total_error )
 
   USE HDF5
+  USE TH5_MISC
 
   IMPLICIT NONE
   INTEGER(HID_T), INTENT(IN) :: fid
@@ -3276,7 +2729,6 @@ SUBROUTINE attr_open_check(fid, dsetname, obj_id, max_attrs, total_error )
 
   INTEGER :: u
   CHARACTER (LEN=8) :: attrname
-  INTEGER, PARAMETER :: NUM_DSETS = 3
   INTEGER :: error
   LOGICAL :: f_corder_valid ! Indicates whether the the creation order data is valid for this attribute
   INTEGER :: corder ! Is a positive integer containing the creation order of the attribute
@@ -3361,3 +2813,4 @@ SUBROUTINE attr_open_check(fid, dsetname, obj_id, max_attrs, total_error )
   ENDDO
 
 END SUBROUTINE attr_open_check
+END MODULE TH5A_1_8

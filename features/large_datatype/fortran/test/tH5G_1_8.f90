@@ -1,3 +1,12 @@
+!****h* root/fortran/test/tH5G_1_8.f90
+!
+! NAME
+!  tH5G_1_8.f90
+!
+! FUNCTION
+!  Basic testing of Fortran H5G APIs introduced in 1.8.
+!
+! COPYRIGHT
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
@@ -13,12 +22,24 @@
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
+! CONTAINS SUBROUTINES
+!  group_test, group_info, timestamps, mklinks, test_move_preserves, lifecycle
+!  cklinks, delete_by_idx, link_info_by_idx_check, test_lcpl, objcopy, 
+!  lapl_nlinks
+!
+!*****
+
+MODULE TH5G_1_8
+
+CONTAINS
+
 SUBROUTINE group_test(cleanup, total_error)
   USE HDF5 ! This module contains all necessary modules
+  USE TH5_MISC
 
   IMPLICIT NONE
   LOGICAL, INTENT(IN)  :: cleanup
-  INTEGER, INTENT(OUT) :: total_error
+  INTEGER, INTENT(INOUT) :: total_error
 
   INTEGER(HID_T) :: fapl, fapl2, my_fapl ! /* File access property lists */
 
@@ -119,9 +140,10 @@ END SUBROUTINE group_test
 SUBROUTINE group_info(cleanup, fapl, total_error)
 
   USE HDF5 ! This module contains all necessary modules
+  USE TH5_MISC
 
   IMPLICIT NONE
-  INTEGER, INTENT(OUT) :: total_error
+  INTEGER, INTENT(INOUT) :: total_error
   INTEGER(HID_T), INTENT(IN) :: fapl
 
   INTEGER(HID_T) :: gcpl_id ! /* Group creation property list ID */
@@ -435,9 +457,10 @@ SUBROUTINE group_info(cleanup, fapl, total_error)
    SUBROUTINE timestamps(cleanup, fapl, total_error)
 
      USE HDF5 ! This module contains all necessary modules
+     USE TH5_MISC
 
      IMPLICIT NONE
-     INTEGER, INTENT(OUT) :: total_error
+     INTEGER, INTENT(INOUT) :: total_error
      INTEGER(HID_T), INTENT(IN) :: fapl
 
      INTEGER(HID_T) :: file_id !/* File ID */
@@ -631,9 +654,10 @@ SUBROUTINE group_info(cleanup, fapl, total_error)
    SUBROUTINE mklinks(fapl, total_error)
 
      USE HDF5 ! This module contains all necessary modules
+     USE TH5_MISC
 
      IMPLICIT NONE
-     INTEGER, INTENT(OUT) :: total_error
+     INTEGER, INTENT(INOUT) :: total_error
      INTEGER(HID_T), INTENT(IN) :: fapl
 
      INTEGER(HID_T) :: file, scalar, grp, d1
@@ -646,10 +670,10 @@ SUBROUTINE group_info(cleanup, fapl, total_error)
      INTEGER :: corder ! Specifies the link’s creation order position.
      LOGICAL :: f_corder_valid ! Indicates whether the value in corder is valid.
      INTEGER :: link_type ! Specifies the link class:
-     	                              !  H5L_TYPE_HARD_F      - Hard link
-     	                              !  H5L_TYPE_SOFT_F      - Soft link
-     	                              !  H5L_TYPE_EXTERNAL_F  - External link
-     	                              !  H5L_TYPE_ERROR _F    - Error
+                          !  H5L_TYPE_HARD_F      - Hard link
+                          !  H5L_TYPE_SOFT_F      - Soft link
+                          !  H5L_TYPE_EXTERNAL_F  - External link
+                          !  H5L_TYPE_ERROR _F    - Error
      INTEGER(HADDR_T) :: address  ! If the link is a hard link, address specifies the file address that the link points to
      INTEGER(SIZE_T) :: val_size ! If the link is a symbolic link, val_size will be the length of the link value
 
@@ -726,9 +750,10 @@ SUBROUTINE group_info(cleanup, fapl, total_error)
   SUBROUTINE test_move_preserves(fapl_id, total_error)
 
     USE HDF5 ! This module contains all necessary modules
+    USE TH5_MISC
 
     IMPLICIT NONE
-    INTEGER, INTENT(OUT) :: total_error
+    INTEGER, INTENT(INOUT) :: total_error
     INTEGER(HID_T), INTENT(IN) :: fapl_id
 
     INTEGER(HID_T):: file_id
@@ -753,10 +778,10 @@ SUBROUTINE group_info(cleanup, fapl, total_error)
     INTEGER :: corder ! Specifies the link’s creation order position.
     LOGICAL :: f_corder_valid ! Indicates whether the value in corder is valid.
     INTEGER :: link_type ! Specifies the link class:
-     	                              !  H5L_TYPE_HARD_F      - Hard link
-     	                              !  H5L_TYPE_SOFT_F      - Soft link
-     	                              !  H5L_TYPE_EXTERNAL_F  - External link
-     	                              !  H5L_TYPE_ERROR _F    - Error
+                         !  H5L_TYPE_HARD_F      - Hard link
+                         !  H5L_TYPE_SOFT_F      - Soft link
+                         !  H5L_TYPE_EXTERNAL_F  - External link
+                         !  H5L_TYPE_ERROR _F    - Error
     INTEGER(HADDR_T) :: address  ! If the link is a hard link, address specifies the file address that the link points to
     INTEGER(SIZE_T) :: val_size ! If the link is a symbolic link, val_size will be the length of the link value
 
@@ -933,9 +958,10 @@ SUBROUTINE lifecycle(cleanup, fapl2, total_error)
 
 
   USE HDF5 ! This module contains all necessary modules
+  USE TH5_MISC
 
   IMPLICIT NONE
-  INTEGER, INTENT(OUT) :: total_error
+  INTEGER, INTENT(INOUT) :: total_error
   INTEGER(HID_T), INTENT(IN) :: fapl2
   INTEGER :: error
 
@@ -947,8 +973,8 @@ SUBROUTINE lifecycle(cleanup, fapl2, total_error)
   INTEGER(size_t) :: lheap_size_hint !/* Local heap size hint */
   INTEGER :: max_compact            !/* Maximum # of links to store in group compactly */
   INTEGER :: min_dense              !/* Minimum # of links to store in group "densely" */
-  INTEGER :: est_num_entries	!/* Estimated # of entries in group */
-  INTEGER :: est_name_len		!/* Estimated length of entry name */
+  INTEGER :: est_num_entries        !/* Estimated # of entries in group */
+  INTEGER :: est_name_len           !/* Estimated length of entry name */
   CHARACTER(LEN=NAME_BUF_SIZE) :: filename = 'fixx.h5'
   INTEGER(SIZE_T) :: LIFECYCLE_LOCAL_HEAP_SIZE_HINT = 256
   INTEGER :: LIFECYCLE_MAX_COMPACT = 4
@@ -1057,6 +1083,7 @@ SUBROUTINE lifecycle(cleanup, fapl2, total_error)
     CALL check("h5_cleanup_f", error, total_error)
 
   END SUBROUTINE lifecycle
+
 !/*-------------------------------------------------------------------------
 ! * Function:	cklinks
 ! *
@@ -1070,7 +1097,7 @@ SUBROUTINE lifecycle(cleanup, fapl2, total_error)
 ! * Programmer:	M.S. Breitenfeld
 ! *             April 14, 2008
 ! *
-! * Modifications: Modified Original C code
+! * Modifications: Modified original C code
 ! *
 ! *-------------------------------------------------------------------------
 ! */
@@ -1080,9 +1107,10 @@ SUBROUTINE lifecycle(cleanup, fapl2, total_error)
 
 !    USE ISO_C_BINDING
   USE HDF5 ! This module contains all necessary modules
+  USE TH5_MISC
 
   IMPLICIT NONE
-  INTEGER, INTENT(OUT) :: total_error
+  INTEGER, INTENT(INOUT) :: total_error
   INTEGER(HID_T), INTENT(IN) :: fapl
   INTEGER :: error
 
@@ -1118,10 +1146,10 @@ SUBROUTINE lifecycle(cleanup, fapl2, total_error)
 
 
   CALL H5Lexists_f(file,"d1",Lexists, error)
-  CALL verifylogical("test_lcpl.H5Lexists", Lexists,.TRUE.,total_error)
+  CALL verifylogical("H5Lexists", Lexists,.TRUE.,total_error)
 
   CALL H5Lexists_f(file,"grp1/hard",Lexists, error)
-  CALL verifylogical("test_lcpl.H5Lexists", Lexists,.TRUE.,total_error)
+  CALL verifylogical("H5Lexists", Lexists,.TRUE.,total_error)
 
   ! /* Cleanup */
   CALL H5Fclose_f(file,error)
@@ -1149,9 +1177,10 @@ END SUBROUTINE cklinks
 SUBROUTINE delete_by_idx(cleanup, fapl, total_error)
 
   USE HDF5 ! This module contains all necessary modules
+  USE TH5_MISC
 
   IMPLICIT NONE
-  INTEGER, INTENT(OUT) :: total_error
+  INTEGER, INTENT(INOUT) :: total_error
   INTEGER(HID_T), INTENT(IN) :: fapl
 
   INTEGER(HID_T) :: file_id  ! /* File ID */
@@ -1390,6 +1419,7 @@ SUBROUTINE link_info_by_idx_check(group_id, linkname, n, &
     hard_link, use_index, total_error)
 
   USE HDF5 ! This module contains all necessary modules
+  USE TH5_MISC
 
   IMPLICIT NONE
   INTEGER, INTENT(INOUT) :: total_error
@@ -1490,10 +1520,10 @@ SUBROUTINE link_info_by_idx_check(group_id, linkname, n, &
 ! *-------------------------------------------------------------------------
 ! */
 
-
   SUBROUTINE test_lcpl(cleanup, fapl, total_error)
 
   USE HDF5 ! This module contains all necessary modules
+  USE TH5_MISC
 
   IMPLICIT NONE
   INTEGER, INTENT(INOUT) :: total_error
@@ -1511,10 +1541,10 @@ SUBROUTINE link_info_by_idx_check(group_id, linkname, n, &
   INTEGER :: corder ! Specifies the link’s creation order position.
   LOGICAL :: f_corder_valid ! Indicates whether the value in corder is valid.
   INTEGER :: link_type ! Specifies the link class:
-     	                              !  H5L_TYPE_HARD_F      - Hard link
-     	                              !  H5L_TYPE_SOFT_F      - Soft link
-     	                              !  H5L_TYPE_EXTERNAL_F  - External link
-     	                              !  H5L_TYPE_ERROR _F    - Error
+                       !  H5L_TYPE_HARD_F      - Hard link
+                       !  H5L_TYPE_SOFT_F      - Soft link
+                       !  H5L_TYPE_EXTERNAL_F  - External link
+                       !  H5L_TYPE_ERROR _F    - Error
   INTEGER(HADDR_T) :: address  ! If the link is a hard link, address specifies the file address that the link points to
   INTEGER(SIZE_T) :: val_size ! If the link is a symbolic link, val_size will be the length of the link value
 
@@ -1542,13 +1572,13 @@ SUBROUTINE link_info_by_idx_check(group_id, linkname, n, &
   !  h5_fixname(FILENAME[0], fapl, filename, sizeof filename);
 
   CALL H5Fcreate_f(filename, H5F_ACC_TRUNC_F, file_id, error, H5P_DEFAULT_F, fapl)
-  CALL check("test_lcpl.H5Fcreate_f", error, total_error)
+  CALL check("H5Fcreate_f", error, total_error)
 
 
   ! /* Create and link a group with the default LCPL */
 
   CALL H5Gcreate_f(file_id, "/group", group_id, error)
-  CALL check("test_lcpl.H5Gcreate_f", error, total_error)
+  CALL check("H5Gcreate_f", error, total_error)
 
 
   ! /* Check that its character encoding is the default */
@@ -1561,49 +1591,54 @@ SUBROUTINE link_info_by_idx_check(group_id, linkname, n, &
 ! * creation property list and is always ASCII. */
 !#define H5F_DEFAULT_CSET H5T_CSET_ASCII  -- FROM H5Fprivate.h --
 
-  CALL VERIFY("test_lcpl.H5Lget_info_f",cset, H5T_CSET_ASCII_F,total_error)
+  CALL VERIFY("H5Lget_info_f",cset, H5T_CSET_ASCII_F,total_error)
 
   ! /* Create and commit a datatype with the default LCPL */
   CALL h5tcopy_f(H5T_NATIVE_INTEGER, type_id, error)
-  CALL check("test_lcpl.h5tcopy_f",error,total_error)
+  CALL check("h5tcopy_f",error,total_error)
   CALL h5tcommit_f(file_id, "/type", type_id, error)
-  CALL check("test_lcpl.h5tcommit_f", error, total_error)
+  CALL check("h5tcommit_f", error, total_error)
   CALL h5tclose_f(type_id, error)
-  CALL check("test_lcpl.h5tclose_f", error, total_error)
+  CALL check("h5tclose_f", error, total_error)
 
 
   ! /* Check that its character encoding is the default */
   CALL H5Lget_info_f(file_id, "type", &
        cset, corder, f_corder_valid, link_type, address, val_size, &
        error)
-  CALL check("test_lcpl.h5tclose_f", error, total_error)
+  CALL check("h5tclose_f", error, total_error)
 
 !/* File-wide default character encoding can not yet be set via the file
 ! * creation property list and is always ASCII. */
 !#define H5F_DEFAULT_CSET H5T_CSET_ASCII  -- FROM H5Fprivate.h --
 
-  CALL verify("test_lcpl.H5Lget_info_f",cset, H5T_CSET_ASCII_F,total_error)
+  CALL verify("H5Lget_info_f",cset, H5T_CSET_ASCII_F,total_error)
 
   !/* Create a dataspace */
   CALL h5screate_simple_f(2, dims, space_id, error)
-  CALL check("test_lcpl.h5screate_simple_f",error,total_error)
+  CALL check("h5screate_simple_f",error,total_error)
+  CALL h5pcreate_f(H5P_DATASET_CREATE_F, crp_list, error)
+  CALL h5pset_chunk_f(crp_list, 2, dims, error)
+  CALL h5pcreate_f(H5P_DATASET_CREATE_F, crp_list, error)
+  CALL h5pset_chunk_f(crp_list, 2, dims, error)
   CALL h5pcreate_f(H5P_DATASET_CREATE_F, crp_list, error)
   CALL h5pset_chunk_f(crp_list, 2, dims, error)
 
   ! /* Create a dataset using the default LCPL */
   CALL h5dcreate_f(file_id, "/dataset", H5T_NATIVE_INTEGER, space_id, dset_id, error, crp_list)
-  CALL check("test_lcpl.h5dcreate_f", error, total_error)
+  CALL check("h5dcreate_f", error, total_error)
+
   CALL h5dclose_f(dset_id, error)
-  CALL check("test_lcpl.h5dclose_f", error, total_error)
+  CALL check("h5dclose_f", error, total_error)
 
   ! Reopen
 
   CALL H5Dopen_f(file_id, "/dataset", dset_id, error)
-  CALL check("test_lcpl.h5dopen_f", error, total_error)
+  CALL check("h5dopen_f", error, total_error)
 
   !  /* Extend the  dataset */
   CALL H5Dset_extent_f(dset_id, extend_dim, error)
-  CALL check("test_lcpl.H5Dset_extent_f", error, total_error)
+  CALL check("H5Dset_extent_f", error, total_error)
   !  /* Verify the dataspaces */
         !
           !Get dataset's dataspace handle.
@@ -1612,186 +1647,184 @@ SUBROUTINE link_info_by_idx_check(group_id, linkname, n, &
   CALL check("h5dget_space_f",error,total_error)
 
   CALL h5sget_simple_extent_dims_f(data_space, dimsout, maxdimsout, error)
-  CALL check("test_lcpl.h5sget_simple_extent_dims_f",error, total_error)
+  CALL check("h5sget_simple_extent_dims_f",error, total_error)
 
   DO i = 1, 2
-     tmp1 = dimsout(i)
-     tmp2 = extend_dim(i)
-!EP     CALL VERIFY("H5Sget_simple_extent_dims", dimsout(i), extend_dim(i), total_error)
+     tmp1 = INT(dimsout(i))
+     tmp2 = INT(extend_dim(i))
      CALL VERIFY("H5Sget_simple_extent_dims", tmp1, tmp2, total_error)
-!EP     CALL VERIFY("H5Sget_simple_extent_dims", maxdimsout(i), dims(i), total_error)
-     tmp1 = maxdimsout(i)
-     tmp2 = dims(i)
+     tmp1 = INT(maxdimsout(i))
+     tmp2 = INT(dims(i))
      CALL VERIFY("H5Sget_simple_extent_dims", tmp1, tmp2, total_error)
   ENDDO
 
   ! /* close data set */
 
   CALL h5dclose_f(dset_id, error)
-  CALL check("test_lcpl.h5dclose_f", error, total_error)
+  CALL check("h5dclose_f", error, total_error)
 
   ! /* Check that its character encoding is the default */
   CALL H5Lget_info_f(file_id, "dataset", &
        cset, corder, f_corder_valid, link_type, address, val_size, &
        error)
-  CALL check("test_lcpl.H5Lget_info_f", error, total_error)
+  CALL check("H5Lget_info_f", error, total_error)
 
 !/* File-wide default character encoding can not yet be set via the file
 ! * creation property list and is always ASCII. */
 !#define H5F_DEFAULT_CSET H5T_CSET_ASCII  -- FROM H5Fprivate.h --
 
-  CALL verify("test_lcpl.h5tclose_f",cset, H5T_CSET_ASCII_F,total_error)
+  CALL verify("h5tclose_f",cset, H5T_CSET_ASCII_F,total_error)
 
   !/* Create a link creation property list with the UTF-8 character encoding */
   CALL H5Pcreate_f(H5P_LINK_CREATE_F,lcpl_id,error)
-  CALL check("test_lcpl.h5Pcreate_f",error,total_error)
+  CALL check("h5Pcreate_f",error,total_error)
   CALL H5Pset_char_encoding_f(lcpl_id, H5T_CSET_UTF8_F, error)
-  CALL check("test_lcpl.H5Pset_char_encoding_f",error, total_error)
+  CALL check("H5Pset_char_encoding_f",error, total_error)
 
   ! /* Create and link a group with the new LCPL */
   CALL H5Gcreate_f(file_id, "/group2", group_id, error,lcpl_id=lcpl_id)
-  CALL check("test_lcpl.test_lcpl.H5Gcreate_f", error, total_error)
+  CALL check("H5Gcreate_f", error, total_error)
   CALL H5Gclose_f(group_id, error)
-  CALL check("test_lcpl.test_lcpl.H5Gclose_f", error, total_error)
+  CALL check("H5Gclose_f", error, total_error)
 
 
   !/* Check that its character encoding is UTF-8 */
   CALL H5Lget_info_f(file_id, "group2", &
        cset, corder, f_corder_valid, link_type, address, val_size, &
        error)
-  CALL check("test_lcpl.H5Lget_info_f", error, total_error)
-  CALL verify("test_lcpl.H5Lget_info_f",cset, H5T_CSET_UTF8_F,total_error)
+  CALL check("H5Lget_info_f", error, total_error)
+  CALL verify("H5Lget_info_f",cset, H5T_CSET_UTF8_F,total_error)
 
 
   ! /* Create and commit a datatype with the new LCPL */
 
   CALL h5tcopy_f(H5T_NATIVE_INTEGER, type_id, error)
-  CALL check("test_lcpl.h5tcopy_f",error,total_error)
+  CALL check("h5tcopy_f",error,total_error)
   CALL h5tcommit_f(file_id, "/type2", type_id, error, lcpl_id=lcpl_id)
-  CALL check("test_lcpl.h5tcommit_f", error, total_error)
+  CALL check("h5tcommit_f", error, total_error)
   CALL h5tclose_f(type_id, error)
-  CALL check("test_lcpl.h5tclose_f", error, total_error)
+  CALL check("h5tclose_f", error, total_error)
 
 
   !/* Check that its character encoding is UTF-8 */
   CALL H5Lget_info_f(file_id, "type2", &
        cset, corder, f_corder_valid, link_type, address, val_size, &
        error)
-  CALL check("test_lcpl.H5Lget_info_f", error, total_error)
-  CALL verify("test_lcpl.H5Lget_info_f",cset, H5T_CSET_UTF8_F,total_error)
+  CALL check("H5Lget_info_f", error, total_error)
+  CALL verify("H5Lget_info_f",cset, H5T_CSET_UTF8_F,total_error)
 
   ! /* Create a dataset using the new LCPL */
   CALL h5dcreate_f(file_id, "/dataset2", H5T_NATIVE_INTEGER, space_id, dset_id, error,lcpl_id=lcpl_id)
-  CALL check("test_lcpl.h5dcreate_f", error, total_error)
+  CALL check("h5dcreate_f", error, total_error)
 
   CALL h5dclose_f(dset_id, error)
-  CALL check("test_lcpl.h5dclose_f", error, total_error)
+  CALL check("h5dclose_f", error, total_error)
 
   CALL H5Pget_char_encoding_f(lcpl_id, encoding, error)
-  CALL check("test_lcpl.H5Pget_char_encoding_f", error, total_error)
-  CALL VERIFY("test_lcpl.H5Pget_char_encoding_f", encoding, H5T_CSET_UTF8_F, total_error)
+  CALL check("H5Pget_char_encoding_f", error, total_error)
+  CALL VERIFY("H5Pget_char_encoding_f", encoding, H5T_CSET_UTF8_F, total_error)
 
   ! /* Check that its character encoding is UTF-8 */
   CALL H5Lget_info_f(file_id, "dataset2", &
        cset, corder, f_corder_valid, link_type, address, val_size, &
        error)
-  CALL check("test_lcpl.H5Lget_info_f", error, total_error)
-  CALL verify("test_lcpl.H5Lget_info_f2",cset, H5T_CSET_UTF8_F,total_error)
+  CALL check("H5Lget_info_f", error, total_error)
+  CALL verify("H5Lget_info_f2",cset, H5T_CSET_UTF8_F,total_error)
 
   ! /* Create a new link to the dataset with a different character encoding. */
   CALL H5Pclose_f(lcpl_id, error)
-  CALL check("test_lcpl.H5Pclose_f", error, total_error)
+  CALL check("H5Pclose_f", error, total_error)
 
   CALL H5Pcreate_f(H5P_LINK_CREATE_F,lcpl_id,error)
-  CALL check("test_lcpl.h5Pcreate_f",error,total_error)
+  CALL check("h5Pcreate_f",error,total_error)
   CALL H5Pset_char_encoding_f(lcpl_id, H5T_CSET_ASCII_F, error)
-  CALL check("test_lcpl.H5Pset_char_encoding_f",error, total_error)
+  CALL check("H5Pset_char_encoding_f",error, total_error)
   CALL H5Lcreate_hard_f(file_id, "/dataset2", file_id, "/dataset2_link", error, lcpl_id)
-  CALL check("test_lcpl.H5Lcreate_hard_f",error, total_error)
+  CALL check("H5Lcreate_hard_f",error, total_error)
 
   CALL H5Lexists_f(file_id,"/dataset2_link",Lexists, error)
-  CALL check("test_lcpl.H5Lexists",error, total_error)
-  CALL verifylogical("test_lcpl.H5Lexists", Lexists,.TRUE.,total_error)
+  CALL check("H5Lexists",error, total_error)
+  CALL verifylogical("H5Lexists", Lexists,.TRUE.,total_error)
 
   ! /* Check that its character encoding is ASCII */
   CALL H5Lget_info_f(file_id, "/dataset2_link", &
        cset, corder, f_corder_valid, link_type, address, val_size, &
        error)
-  CALL check("test_lcpl.H5Lget_info_f", error, total_error)
-  CALL verify("test_lcpl.H5Lget_info_f",cset, H5T_CSET_ASCII_F,total_error)
+  CALL check("H5Lget_info_f", error, total_error)
+  CALL verify("H5Lget_info_f",cset, H5T_CSET_ASCII_F,total_error)
 
   ! /* Check that the first link's encoding hasn't changed */
 
   CALL H5Lget_info_f(file_id, "/dataset2", &
        cset, corder, f_corder_valid, link_type, address, val_size, &
        error)
-  CALL check("test_lcpl.H5Lget_info_f", error, total_error)
-  CALL verify("test_lcpl.H5Lget_info_f3",cset, H5T_CSET_UTF8_F,total_error)
+  CALL check("H5Lget_info_f", error, total_error)
+  CALL verify("H5Lget_info_f3",cset, H5T_CSET_UTF8_F,total_error)
 
 
   !/* Make sure that LCPLs work properly for other API calls: */
   !/* H5Lcreate_soft */
 
   CALL H5Pset_char_encoding_f(lcpl_id, H5T_CSET_UTF8_F, error)
-  CALL check("test_lcpl.H5Pset_char_encoding_f",error, total_error)
+  CALL check("H5Pset_char_encoding_f",error, total_error)
   CALL H5Lcreate_soft_f("dataset2", file_id, "slink_to_dset2",error,lcpl_id)
   CALL check("H5Lcreate_soft_f", error, total_error)
 
   CALL H5Lget_info_f(file_id, "slink_to_dset2", &
        cset, corder, f_corder_valid, link_type, address, val_size, &
        error)
-  CALL check("test_lcpl.H5Lget_info_f", error, total_error)
-  CALL verify("test_lcpl.H5Lget_info_f",cset, H5T_CSET_UTF8_F,total_error)
+  CALL check("H5Lget_info_f", error, total_error)
+  CALL verify("H5Lget_info_f",cset, H5T_CSET_UTF8_F,total_error)
 
 
   ! /* H5Lmove */
   CALL H5Pset_char_encoding_f(lcpl_id, H5T_CSET_ASCII_F, error)
-  CALL check("test_lcpl.H5Pset_char_encoding_f",error, total_error)
+  CALL check("H5Pset_char_encoding_f",error, total_error)
 
   CALL H5Lmove_f(file_id, "slink_to_dset2", file_id, "moved_slink", error, lcpl_id, H5P_DEFAULT_F)
-  CALL check("test_lcpl.H5Lmove_f",error, total_error)
+  CALL check("H5Lmove_f",error, total_error)
 
   CALL H5Lget_info_f(file_id, "moved_slink", &
        cset, corder, f_corder_valid, link_type, address, val_size, &
        error)
-  CALL check("test_lcpl.H5Lget_info_f", error, total_error)
-  CALL verify("test_lcpl.H5Lget_info_f",cset, H5T_CSET_ASCII_F,total_error)
+  CALL check("H5Lget_info_f", error, total_error)
+  CALL verify("H5Lget_info_f",cset, H5T_CSET_ASCII_F,total_error)
 
 
   ! /* H5Lcopy */
 
   CALL H5Pset_char_encoding_f(lcpl_id, H5T_CSET_UTF8_F, error)
-  CALL check("test_lcpl.H5Pset_char_encoding_f",error, total_error)
+  CALL check("H5Pset_char_encoding_f",error, total_error)
 
   CALL H5Lcopy_f(file_id, "moved_slink", file_id, "copied_slink", error, lcpl_id)
 
   CALL H5Lget_info_f(file_id, "copied_slink", &
        cset, corder, f_corder_valid, link_type, address, val_size, &
        error)
-  CALL check("test_lcpl.H5Lget_info_f", error, total_error)
-  CALL verify("test_lcpl.H5Lget_info_f",cset, H5T_CSET_UTF8_F,total_error)
+  CALL check("H5Lget_info_f", error, total_error)
+  CALL verify("H5Lget_info_f",cset, H5T_CSET_UTF8_F,total_error)
 
 
   ! /* H5Lcreate_external */
 
-  CALL H5Lcreate_external_f("test_lcpl.filename", "path", file_id, "extlink", error, lcpl_id)
-  CALL check("test_lcpl.H5Lcreate_external_f", error, total_error)
+  CALL H5Lcreate_external_f("filename", "path", file_id, "extlink", error, lcpl_id)
+  CALL check("H5Lcreate_external_f", error, total_error)
 
   CALL H5Lget_info_f(file_id, "extlink", &
        cset, corder, f_corder_valid, link_type, address, val_size, &
        error)
-  CALL check("test_lcpl.H5Lget_info_f", error, total_error)
-  CALL verify("test_lcpl.H5Lget_info_f",cset, H5T_CSET_UTF8_F,total_error)
+  CALL check("H5Lget_info_f", error, total_error)
+  CALL verify("H5Lget_info_f",cset, H5T_CSET_UTF8_F,total_error)
 
 
   ! /* Close open IDs */
 
   CALL H5Pclose_f(lcpl_id, error)
-  CALL check("test_lcpl.H5Pclose_f", error, total_error)
+  CALL check("H5Pclose_f", error, total_error)
   CALL H5Sclose_f(space_id, error)
-  CALL check("test_lcpl.h5Sclose_f",error,total_error)
+  CALL check("h5Sclose_f",error,total_error)
   CALL H5Fclose_f(file_id, error)
-  CALL check("test_lcpl.H5Fclose_f", error, total_error)
+  CALL check("H5Fclose_f", error, total_error)
 
   IF(cleanup) CALL h5_cleanup_f("tempfile", H5P_DEFAULT_F, error)
   CALL check("h5_cleanup_f", error, total_error)
@@ -1802,6 +1835,7 @@ END SUBROUTINE test_lcpl
 SUBROUTINE objcopy(fapl, total_error)
 
   USE HDF5 ! This module contains all necessary modules
+  USE TH5_MISC
 
   IMPLICIT NONE
   INTEGER, INTENT(INOUT) :: total_error
@@ -1865,6 +1899,7 @@ END SUBROUTINE objcopy
 SUBROUTINE lapl_nlinks( fapl, total_error)
 
   USE HDF5
+  USE TH5_MISC
 
   IMPLICIT NONE
   INTEGER(HID_T), INTENT(IN) :: fapl
@@ -2120,3 +2155,5 @@ SUBROUTINE lapl_nlinks( fapl, total_error)
   CALL check("H5Fclose_f", error, total_error)
 
 END SUBROUTINE lapl_nlinks
+
+END MODULE TH5G_1_8

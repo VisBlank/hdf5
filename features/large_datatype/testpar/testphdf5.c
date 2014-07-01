@@ -81,7 +81,7 @@ void pause_proc(void)
     MPI_Get_processor_name(mpi_name, &mpi_namelen);
 
     if (MAINPROCESS)
-	while ((stat(greenlight, &statbuf) == -1) && loops < maxloop){
+  while ((HDstat(greenlight, &statbuf) == -1) && loops < maxloop){
 	    if (!loops++){
 		printf("Proc %d (%*s, %d): to debug, attach %d\n",
 		    mpi_rank, mpi_namelen, mpi_name, pid, pid);
@@ -118,7 +118,6 @@ usage(void)
         "\tset number of groups for the multiple group test\n");
     printf("\t-f <prefix>\tfilename prefix\n");
     printf("\t-2\t\tuse Split-file together with MPIO\n");
-    printf("\t-p\t\tuse combo MPI-POSIX driver\n");
     printf("\t-d <factor0> <factor1>\tdataset dimensions factors. Defaults (%d,%d)\n",
 	ROW_FACTOR, COL_FACTOR);
     printf("\t-c <dim0> <dim1>\tdataset chunk dimensions. Defaults (dim0/10,dim1/10)\n");
@@ -168,9 +167,6 @@ parse_options(int argc, char **argv)
 				return(1);
 			    }
 			    paraprefix = *argv;
-			    break;
-		case 'p':   /* Use the MPI-POSIX driver access */
-			    facc_type = FACC_MPIPOSIX;
 			    break;
 		case 'i':   /* Collective MPI-IO access with independent IO  */
 			    dxfer_coll_type = DXFER_INDEPENDENT_IO;
@@ -257,8 +253,7 @@ parse_options(int argc, char **argv)
  * Create the appropriate File access property list
  */
 hid_t
-create_faccess_plist(MPI_Comm comm, MPI_Info info, int l_facc_type,
-                     hbool_t use_gpfs)
+create_faccess_plist(MPI_Comm comm, MPI_Info info, int l_facc_type)
 {
     hid_t ret_pl = -1;
     herr_t ret;                 /* generic return value */
@@ -299,13 +294,6 @@ create_faccess_plist(MPI_Comm comm, MPI_Info info, int l_facc_type,
 	return(ret_pl);
     }
 
-    if (l_facc_type == FACC_MPIPOSIX) {
-	/* set Parallel access with communicator */
-	ret = H5Pset_fapl_mpiposix(ret_pl, comm, use_gpfs);
-	VRFY((ret >= 0), "H5Pset_fapl_mpiposix succeeded");
-	return(ret_pl);
-    }
-
     /* unknown file access types */
     return (ret_pl);
 }
@@ -342,7 +330,7 @@ int main(int argc, char **argv)
      * calls.  By then, MPI calls may not work.
      */
     if (H5dont_atexit() < 0){
-	printf("Failed to turn off atexit processing. Continue.\n", mpi_rank);
+	printf("Failed to turn off atexit processing. Continue.\n");
     };
     H5open();
     h5_show_hostname();
@@ -353,8 +341,6 @@ int main(int argc, char **argv)
     /* Tests are generally arranged from least to most complexity... */
     AddTest("mpiodup", test_fapl_mpio_dup, NULL,
 	    "fapl_mpio duplicate", NULL);
-    AddTest("posixdup", test_fapl_mpiposix_dup, NULL,
-	    "fapl_mpiposix duplicate", NULL);
 
     AddTest("split", test_split_comm_access, NULL,
 	    "dataset using split communicators", PARATESTFILE);
@@ -412,8 +398,12 @@ int main(int argc, char **argv)
 	    "collective group and dataset write", &collngroups_params);
     AddTest("ingrpr", independent_group_read, NULL,
 	    "independent group and dataset read", &collngroups_params);
+#ifndef H5_HAVE_WIN32_API
     AddTest("bigdset", big_dataset, NULL,
             "big dataset test", PARATESTFILE);
+#else
+    printf("big dataset test will be skipped on Windows (JIRA HDDFV-8064)\n");
+#endif
     AddTest("fill", dataset_fillvalue, NULL,
 	    "dataset fill value", PARATESTFILE);
 
@@ -436,7 +426,7 @@ int main(int argc, char **argv)
 	"linked chunk collective IO without optimization",PARATESTFILE);
     AddTest((mpi_size < 3)? "-cchunk6" : "cchunk6",
 	coll_chunk6,NULL,
-	"multi-chunk collective IO without optimization",PARATESTFILE);
+	"multi-chunk collective IO with direct request",PARATESTFILE);
     AddTest((mpi_size < 3)? "-cchunk7" : "cchunk7",
 	coll_chunk7,NULL,
 	"linked chunk collective IO with optimization",PARATESTFILE);
@@ -482,11 +472,17 @@ int main(int argc, char **argv)
 	    "I/O mode confusion test -- hangs quickly on failure",
             &io_mode_confusion_params);
 
-    rr_obj_flush_confusion_params.name = PARATESTFILE;
-    rr_obj_flush_confusion_params.count = 0; /* value not used */
-    AddTest("rrobjflushconf", rr_obj_hdr_flush_confusion, NULL,
-	    "round robin object header flush confusion test",
-            &rr_obj_flush_confusion_params);
+    if((mpi_size < 3) && MAINPROCESS) {
+        printf("rr_obj_hdr_flush_confusion test needs at least 3 processes.\n");
+        printf("rr_obj_hdr_flush_confusion test will be skipped \n");
+    }
+    if(mpi_size > 2) {
+        rr_obj_flush_confusion_params.name = PARATESTFILE;
+        rr_obj_flush_confusion_params.count = 0; /* value not used */
+        AddTest("rrobjflushconf", rr_obj_hdr_flush_confusion, NULL,
+                "round robin object header flush confusion test",
+                &rr_obj_flush_confusion_params);
+    }
 
     AddTest("tldsc",
             lower_dim_size_comp_test, NULL,
@@ -498,6 +494,39 @@ int main(int argc, char **argv)
             "test mpi derived type management", 
             PARATESTFILE);
 
+    AddTest("actualio", actual_io_mode_tests, NULL,
+            "test actual io mode proprerty",
+            PARATESTFILE);
+
+    AddTest("nocolcause", no_collective_cause_tests, NULL,
+            "test cause for broken collective io",
+            PARATESTFILE);
+
+    AddTest("edpl", test_plist_ed, NULL,
+	    "encode/decode Property Lists", NULL);
+
+    if((mpi_size < 2) && MAINPROCESS) {
+        printf("File Image Ops daisy chain test needs at least 2 processes.\n");
+        printf("File Image Ops daisy chain test will be skipped \n");
+    }
+    AddTest((mpi_size < 2)? "-fiodc" : "fiodc", file_image_daisy_chain_test, NULL,
+            "file image ops daisy chain", NULL);
+
+    if((mpi_size < 2)&& MAINPROCESS ) {
+	printf("Atomicity tests need at least 2 processes to participate\n");
+	printf("8 is more recommended.. Atomicity tests will be skipped \n");
+    }
+    else if (facc_type != FACC_MPIO && MAINPROCESS) {
+	printf("Atomicity tests will not work with a non MPIO VFD\n");        
+    }
+    else if(mpi_size >= 2 && facc_type == FACC_MPIO){
+        AddTest("atomicity", dataset_atomicity, NULL,
+                "dataset atomic updates", PARATESTFILE);
+    }
+
+    AddTest("denseattr", test_dense_attr, NULL,
+	    "Store Dense Attributes", NULL);
+
 
     /* Display testing information */
     TestInfo(argv[0]);
@@ -508,12 +537,6 @@ int main(int argc, char **argv)
 
     /* Parse command line arguments */
     TestParseCmdLine(argc, argv);
-
-    if (facc_type == FACC_MPIPOSIX && MAINPROCESS){
-	printf("===================================\n"
-	       "   Using MPIPOSIX driver\n"
-	       "===================================\n");
-    }
 
     if (dxfer_coll_type == DXFER_INDEPENDENT_IO && MAINPROCESS){
 	printf("===================================\n"

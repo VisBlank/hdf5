@@ -7,7 +7,4 @@ DATASET "/dset2" {
    DATATYPE  H5T_IEEE_F64BE
    DATASPACE  SIMPLE { ( 30, 20 ) / ( 30, 20 ) }
 }
-DATASET "dset3" {
-   }
 }
-h5dump error: unable to open dataset "dset3"

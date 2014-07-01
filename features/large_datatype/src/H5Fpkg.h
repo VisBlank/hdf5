@@ -42,7 +42,7 @@
 #include "H5FSprivate.h"	/* File free space                      */
 #include "H5Gprivate.h"		/* Groups 			  	*/
 #include "H5Oprivate.h"         /* Object header messages               */
-#include "H5RCprivate.h"	/* Reference counted object functions	*/
+#include "H5UCprivate.h"	/* Reference counted object functions	*/
 
 
 /*
@@ -52,10 +52,6 @@
 #ifdef NDEBUG
 #  undef H5F_DEBUG
 #endif
-
-/* Define the HDF5 file signature */
-#define H5F_SIGNATURE	  "\211HDF\r\n\032\n"
-#define H5F_SIGNATURE_LEN 8
 
 /* Superblock status flags */
 #define H5F_SUPER_WRITE_ACCESS          0x01
@@ -198,7 +194,7 @@ typedef struct H5F_super_t {
  * count in this struct indicates the number of H5F_t structs which are
  * pointing to this struct.
  */
-typedef struct H5F_file_t {
+struct H5F_file_t {
     H5FD_t	*lf; 		/* Lower level file handle for I/O	*/
     H5F_super_t *sblock;        /* Pointer to (pinned) superblock for file */
     unsigned	nrefs;		/* Ref count for times file is opened	*/
@@ -236,7 +232,7 @@ typedef struct H5F_file_t {
     struct H5HG_heap_t **cwfs;	/* Global heap cache			*/
     struct H5G_t *root_grp;	/* Open root group			*/
     H5FO_t *open_objs;          /* Open objects in file                 */
-    H5RC_t *grp_btree_shared;   /* Ref-counted group B-tree node info   */
+    H5UC_t *grp_btree_shared;   /* Ref-counted group B-tree node info   */
 
     /* File space allocation information */
     H5F_file_space_type_t fs_strategy;	/* File space handling strategy		*/
@@ -255,7 +251,7 @@ typedef struct H5F_file_t {
 
     /* Metadata accumulator information */
     H5F_meta_accum_t accum;     /* Metadata accumulator info           	*/
-} H5F_file_t;
+};
 
 /*
  * This is the top-level file descriptor.  One of these structures is
@@ -263,7 +259,6 @@ typedef struct H5F_file_t {
  * to shared H5F_file_t structs.
  */
 struct H5F_t {
-    unsigned		intent;		/* The flags passed to H5F_open()*/
     char		*open_name;	/* Name used to open file	*/
     char		*actual_name;	/* Actual name of the file, after resolving symlinks, etc. */
     char               	*extpath;       /* Path for searching target external link file */
@@ -296,14 +291,13 @@ H5_DLLVAR const H5AC_class_t H5AC_SUPERBLOCK[1];
 
 /* General routines */
 H5_DLL herr_t H5F_init(void);
-H5_DLL haddr_t H5F_locate_signature(H5FD_t *file, hid_t dxpl_id);
+H5_DLL herr_t H5F__term_deprec_interface(void);
 H5_DLL herr_t H5F_flush(H5F_t *f, hid_t dxpl_id, hbool_t closing);
 
 /* File mount related routines */
 H5_DLL herr_t H5F_close_mounts(H5F_t *f);
 H5_DLL int H5F_term_unmount_cb(void *obj_ptr, hid_t obj_id, void *key);
 H5_DLL herr_t H5F_mount_count_ids(H5F_t *f, unsigned *nopen_files, unsigned *nopen_objs);
-H5_DLL herr_t H5F_flush_mounts(H5F_t *f, hid_t dxpl_id);
 
 /* Superblock related routines */
 H5_DLL herr_t H5F_super_init(H5F_t *f, hid_t dxpl_id);
@@ -319,14 +313,14 @@ H5_DLL herr_t H5F_super_ext_close(H5F_t *f, H5O_loc_t *ext_ptr, hid_t dxpl_id,
     hbool_t was_created);
 
 /* Metadata accumulator routines */
-H5_DLL herr_t H5F_accum_read(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type,
+H5_DLL herr_t H5F__accum_read(const H5F_io_info_t *fio_info, H5FD_mem_t type,
     haddr_t addr, size_t size, void *buf);
-H5_DLL herr_t H5F_accum_write(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type,
+H5_DLL herr_t H5F__accum_write(const H5F_io_info_t *fio_info, H5FD_mem_t type,
     haddr_t addr, size_t size, const void *buf);
-H5_DLL herr_t H5F_accum_free(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type,
+H5_DLL herr_t H5F__accum_free(const H5F_io_info_t *fio_info, H5FD_mem_t type,
     haddr_t addr, hsize_t size);
-H5_DLL herr_t H5F_accum_flush(const H5F_t *f, hid_t dxpl_id);
-H5_DLL herr_t H5F_accum_reset(const H5F_t *f, hid_t dxpl_id, hbool_t flush);
+H5_DLL herr_t H5F__accum_flush(const H5F_io_info_t *fio_info);
+H5_DLL herr_t H5F__accum_reset(const H5F_io_info_t *fio_info, hbool_t flush);
 
 /* Shared file list related routines */
 H5_DLL herr_t H5F_sfile_add(H5F_file_t *shared);

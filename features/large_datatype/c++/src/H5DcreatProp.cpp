@@ -106,8 +106,8 @@ int DSetCreatPropList::getChunk( int max_ndims, hsize_t* dim ) const
 ///\param	layout - IN: Type of storage layout for raw data
 ///\exception	H5::PropListIException
 ///\par Description
-///		For information on setting layout type, please refer to
-/// http://hdf.ncsa.uiuc.edu/HDF5/doc/RM_H5P.html#Property-SetLayout
+///		For information on valid layout types, please refer to
+/// http://www.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-SetLayout
 // Programmer	Binh-Minh Ribler - 2000
 //--------------------------------------------------------------------------
 void DSetCreatPropList::setLayout(H5D_layout_t layout) const
@@ -211,7 +211,7 @@ void DSetCreatPropList::setSzip(unsigned int options_mask, unsigned int pixels_p
 ///\par
 ///		For information on setting fill value, please refer to the
 ///		C layer Reference Manual at:
-/// http://hdf.ncsa.uiuc.edu/HDF5/doc/RM_H5P.html#Property-SetFillValue
+/// http://www.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-SetFillValue
 // Programmer	Binh-Minh Ribler - 2000
 //--------------------------------------------------------------------------
 void DSetCreatPropList::setFillValue( const DataType& fvalue_type, const void* value ) const
@@ -349,13 +349,16 @@ int DSetCreatPropList::getNfilters() const
 ///\param	cd_nelmts  - IN/OUT: Number of elements in \a cd_values /Number
 ///				     of values defined by the filter
 ///\param	cd_values     - OUT: Array to hold the data; allocated by the user
-///\param	namelen       - OUT: Length of \a name
+///\param	namelen       - IN: Length of \a name
 ///\param	name          - OUT: Name of the filter
 ///\param	filter_config - OUT: Flags indicating whether filter can encode/decode
 ///\return	Filter id
 ///\exception	H5::PropListIException
 ///\par Description
 ///		Failure occurs when \a filter_number is out of range.
+//		Note: the first argument was mistakenly typed as int instead
+//		of unsigned int, but for backward compatibility, it cannot be
+//		changed. -BMR (2014/04/15)
 //--------------------------------------------------------------------------
 H5Z_filter_t DSetCreatPropList::getFilter(int filter_number,
 	unsigned int &flags, size_t &cd_nelmts, unsigned int* cd_values,
@@ -459,7 +462,7 @@ bool DSetCreatPropList::allFiltersAvail()
 ///\par Description
 ///		Please refer to the Reference Manual of \c H5Pset_shuffle for
 ///		details.
-/// http://hdf.ncsa.uiuc.edu/HDF5/doc/RM_H5P.html#Property-SetShuffle
+/// http://www.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-SetShuffle
 // Programmer	Binh-Minh Ribler - 2000
 //--------------------------------------------------------------------------
 void DSetCreatPropList::setShuffle() const
@@ -635,8 +638,8 @@ int DSetCreatPropList::getExternalCount() const
 ///\param	idx    - IN: Index of the external file, ranges [0-(N-1)] and
 ///		                returned by getExternalCount()
 ///\param	name_size - IN: Maximum length of \a name
-///\param	name   - IN: Name of the external file
-///\param	offset - IN: Location to return an offset value
+///\param	name   - OUT: Name of the external file
+///\param	offset - OUT: Location to return an offset value
 ///\param	size   - OUT: Location to return the size of the external file data
 ///\exception	H5::PropListIException
 ///\par Description

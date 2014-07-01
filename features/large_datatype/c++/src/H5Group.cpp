@@ -79,7 +79,7 @@ hid_t Group::getLocId() const
 //--------------------------------------------------------------------------
 // Function:	Group overloaded constructor
 ///\brief	Creates a Group object using the id of an existing group.
-///\param	group_id - IN: Id of an existing group
+///\param	existing_id - IN: Id of an existing group
 // Programmer	Binh-Minh Ribler - 2000
 //--------------------------------------------------------------------------
 Group::Group(const hid_t existing_id) : H5Object()
@@ -90,42 +90,19 @@ Group::Group(const hid_t existing_id) : H5Object()
 //--------------------------------------------------------------------------
 // Function:	Group overload constructor - dereference
 ///\brief	Given a reference, ref, to an hdf5 group, creates a Group object
-///\param	obj - IN: Specifying location referenced object is in
+///\param	loc - IN: Specifying location referenced object is in
 ///\param	ref - IN: Reference pointer
 ///\param	ref_type - IN: Reference type - default to H5R_OBJECT
+///\param	plist - IN: Property list - default to PropList::DEFAULT
 ///\exception	H5::ReferenceException
 ///\par Description
 ///		\c obj can be DataSet, Group, or named DataType, that
 ///		is a datatype that has been named by DataType::commit.
 // Programmer	Binh-Minh Ribler - Oct, 2006
 //--------------------------------------------------------------------------
-Group::Group(H5Object& obj, const void* ref, H5R_type_t ref_type) : H5Object()
+Group::Group(const H5Location& loc, const void* ref, H5R_type_t ref_type, const PropList& plist) : H5Object(), id(0)
 {
-    try {
-	id = p_dereference(obj.getId(), ref, ref_type);
-    } catch (ReferenceException deref_error) {
-	throw ReferenceException("Group constructor - located by an H5Object",
-		deref_error.getDetailMsg());
-    }
-}
-
-//--------------------------------------------------------------------------
-// Function:	Group overload constructor - dereference
-///\brief	Given a reference, ref, to an hdf5 group, creates a Group object
-///\param	h5file - IN: Location referenced object is in
-///\param	ref - IN: Reference pointer
-///\param	ref_type - IN: Reference type - default to H5R_OBJECT
-///\exception	H5::ReferenceException
-// Programmer	Binh-Minh Ribler - Oct, 2006
-//--------------------------------------------------------------------------
-Group::Group(H5File& h5file, const void* ref, H5R_type_t ref_type) : H5Object()
-{
-    try {
-	id = p_dereference(h5file.getId(), ref, ref_type);
-    } catch (ReferenceException deref_error) {
-	throw ReferenceException("Group constructor - located by an H5File",
-		deref_error.getDetailMsg());
-    }
+    id = H5Location::p_dereference(loc.getId(), ref, ref_type, plist, "constructor - by dereference");
 }
 
 //--------------------------------------------------------------------------
@@ -134,75 +111,25 @@ Group::Group(H5File& h5file, const void* ref, H5R_type_t ref_type) : H5Object()
 ///\param	attr - IN: Specifying location where the referenced object is in
 ///\param	ref - IN: Reference pointer
 ///\param	ref_type - IN: Reference type - default to H5R_OBJECT
+///\param	plist - IN: Property list - default to PropList::DEFAULT
 ///\exception	H5::ReferenceException
 // Programmer	Binh-Minh Ribler - Oct, 2006
 //--------------------------------------------------------------------------
-Group::Group(Attribute& attr, const void* ref, H5R_type_t ref_type) : H5Object()
+Group::Group(const Attribute& attr, const void* ref, H5R_type_t ref_type, const PropList& plist) : H5Object(), id(0)
 {
-    try {
-	id = p_dereference(attr.getId(), ref, ref_type);
-    } catch (ReferenceException deref_error) {
-	throw ReferenceException("Group constructor - located by an Attribute",
-		deref_error.getDetailMsg());
-    }
-}
-
-#ifndef H5_NO_DEPRECATED_SYMBOLS
-//--------------------------------------------------------------------------
-// Function:	Group::getObjType
-///\brief	Retrieves the type of object that an object reference points to.
-///\param	ref      - IN: Reference to query
-///\param	ref_type - IN: Type of reference to query, valid values are:
-///		\li \c H5R_OBJECT \tReference is an object reference.
-///		\li \c H5R_DATASET_REGION \tReference is a dataset region reference.
-///\return	An object type, which can be one of the following:
-///			H5G_LINK Object is a symbolic link.
-///			H5G_GROUP Object is a group.
-///			H5G_DATASET   Object is a dataset.
-///			H5G_TYPE Object is a named datatype
-///\exception	H5::GroupIException
-// Programmer	Binh-Minh Ribler - May, 2004
-//--------------------------------------------------------------------------
-H5G_obj_t Group::getObjType(void *ref, H5R_type_t ref_type) const
-{
-   try {
-      return(p_get_obj_type(ref, ref_type));
-   }
-   catch (IdComponentException E) {
-      throw GroupIException("Group::getObjType", E.getDetailMsg());
-   }
-}
-#endif /* H5_NO_DEPRECATED_SYMBOLS */
-
-//--------------------------------------------------------------------------
-// Function:	Group::getRegion
-///\brief	Retrieves a dataspace with the region pointed to selected.
-///\param	ref      - IN: Reference to get region of
-///\param	ref_type - IN: Type of reference to get region of - default
-///\return	DataSpace instance
-///\exception	H5::GroupIException
-// Programmer	Binh-Minh Ribler - May, 2004
-//--------------------------------------------------------------------------
-DataSpace Group::getRegion(void *ref, H5R_type_t ref_type) const
-{
-   try {
-      DataSpace dataspace(p_get_region(ref, ref_type));
-      return(dataspace);
-   }
-   catch (IdComponentException E) {
-      throw GroupIException("Group::getRegion", E.getDetailMsg());
-   }
+    id = H5Location::p_dereference(attr.getId(), ref, ref_type, plist, "constructor - by dereference");
 }
 
 //--------------------------------------------------------------------------
 // Function:    Group::getId
-// Purpose:     Get the id of this attribute
+///\brief	Get the id of this group
+///\return	Group identifier
 // Modification:
 //      May 2008 - BMR
-//              Class hierarchy is revised to address bugzilla 1068.  Class
-//              AbstractDS and Attribute are moved out of H5Object.  In
-//              addition, member IdComponent::id is moved into subclasses, and
-//              IdComponent::getId now becomes pure virtual function.
+//		Class hierarchy is revised to address bugzilla 1068.  Class
+//		AbstractDS and Attribute are moved out of H5Object.  In
+//		addition, member IdComponent::id is moved into subclasses, and
+//		IdComponent::getId now becomes pure virtual function.
 // Programmer   Binh-Minh Ribler - May, 2008
 //--------------------------------------------------------------------------
 hid_t Group::getId() const
@@ -210,16 +137,17 @@ hid_t Group::getId() const
    return(id);
 }
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 //--------------------------------------------------------------------------
 // Function:    Group::p_setId
 ///\brief       Sets the identifier of this object to a new value.
 ///
 ///\exception   H5::IdComponentException when the attempt to close the HDF5
-///             object fails
+///		object fails
 // Description:
-//              The underlaying reference counting in the C library ensures
-//              that the current valid id of this object is properly closed.
-//              Then the object's id is reset to the new id.
+//		The underlaying reference counting in the C library ensures
+//		that the current valid id of this object is properly closed.
+//		Then the object's id is reset to the new id.
 // Programmer   Binh-Minh Ribler - 2000
 //--------------------------------------------------------------------------
 void Group::p_setId(const hid_t new_id)
@@ -234,6 +162,7 @@ void Group::p_setId(const hid_t new_id)
    // reset object's id to the given id
    id = new_id;
 }
+#endif // DOXYGEN_SHOULD_SKIP_THIS
 
 //--------------------------------------------------------------------------
 // Function:	Group::close

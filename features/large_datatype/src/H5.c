@@ -108,7 +108,7 @@ H5_init_library(void)
 {
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_NOAPI(H5_init_library, FAIL)
+    FUNC_ENTER_NOAPI(FAIL)
     /*
      * Make sure the package information is updated.
      */
@@ -144,20 +144,30 @@ H5_init_library(void)
 	MPI_Initialized(&mpi_initialized);
 	if (mpi_initialized){
 	    mpe_code = MPE_Init_log();
-	    assert(mpe_code >=0);
+	    HDassert(mpe_code >=0);
 	    H5_MPEinit_g = TRUE;
 	}
     }
 #endif
 
     /*
-     * Install atexit() library cleanup routine unless the H5dont_atexit()
+     * Install atexit() library cleanup routines unless the H5dont_atexit()
      * has been called.  Once we add something to the atexit() list it stays
      * there permanently, so we set H5_dont_atexit_g after we add it to prevent
      * adding it again later if the library is cosed and reopened.
      */
     if (!H5_dont_atexit_g) {
-	(void)HDatexit(H5_term_library);
+
+#if defined(H5_HAVE_THREADSAFE) && defined(H5_HAVE_WIN_THREADS)
+        /* Clean up Win32 thread resources. Pthreads automatically cleans up.
+         * This must be entered before the library cleanup code so it's
+         * executed in LIFO order (i.e., last).
+         */
+	    (void)HDatexit(H5TS_win32_process_exit);
+#endif /* H5_HAVE_THREADSAFE && H5_HAVE_WIN_THREADS */
+
+        /* Normal library termination code */
+        (void)HDatexit(H5_term_library);
 	H5_dont_atexit_g = TRUE;
     } /* end if */
 
@@ -271,6 +281,7 @@ H5_term_library(void)
             pending += DOWN(Z);
             pending += DOWN(FD);
             pending += DOWN(P);
+            pending += DOWN(PL);
             /* Don't shut down the error code until other APIs which use it are shut down */
             if(pending == 0)
                 pending += DOWN(E);
@@ -307,8 +318,8 @@ H5_term_library(void)
 
 	MPI_Initialized(&mpi_initialized);
 	if(mpi_initialized) {
-	    mpe_code = MPE_Finish_log("cpilog");
-	    assert(mpe_code >=0);
+	    mpe_code = MPE_Finish_log("h5log");
+	    HDassert(mpe_code >=0);
 	} /* end if */
 	H5_MPEinit_g = FALSE;	/* turn it off no matter what */
     } /* end if */
@@ -329,7 +340,7 @@ H5_term_library(void)
 done:
 #ifdef H5_HAVE_THREADSAFE
     H5_API_UNLOCK
-#endif
+#endif /* H5_HAVE_THREADSAFE */
     return;
 } /* end H5_term_library() */
 
@@ -364,7 +375,7 @@ H5dont_atexit(void)
 {
     herr_t ret_value = SUCCEED;       /* Return value */
 
-    FUNC_ENTER_API_NOINIT_NOERR_NOFS(H5dont_atexit)
+    FUNC_ENTER_API_NOINIT_NOERR_NOFS
     H5TRACE0("e","");
 
     if(H5_dont_atexit_g)
@@ -403,7 +414,7 @@ H5garbage_collect(void)
 {
     herr_t                  ret_value = SUCCEED;
 
-    FUNC_ENTER_API(H5garbage_collect, FAIL)
+    FUNC_ENTER_API(FAIL)
     H5TRACE0("e","");
 
     /* Call the garbage collection routines in the library */
@@ -455,7 +466,7 @@ H5set_free_list_limits(int reg_global_lim, int reg_list_lim, int arr_global_lim,
 {
     herr_t                  ret_value = SUCCEED;
 
-    FUNC_ENTER_API(H5set_free_list_limits, FAIL)
+    FUNC_ENTER_API(FAIL)
     H5TRACE6("e", "IsIsIsIsIsIs", reg_global_lim, reg_list_lim, arr_global_lim,
              arr_list_lim, blk_global_lim, blk_list_lim);
 
@@ -598,7 +609,7 @@ H5get_libversion(unsigned *majnum, unsigned *minnum, unsigned *relnum)
 {
     herr_t                  ret_value = SUCCEED;
 
-    FUNC_ENTER_API(H5get_libversion, FAIL)
+    FUNC_ENTER_API(FAIL)
     H5TRACE3("e", "*Iu*Iu*Iu", majnum, minnum, relnum);
 
     /* Set the version information */
@@ -653,7 +664,7 @@ H5check_version(unsigned majnum, unsigned minnum, unsigned relnum)
     static const char *version_mismatch_warning = VERSION_MISMATCH_WARNING;
     herr_t      ret_value = SUCCEED;    /* Return value */
 
-    FUNC_ENTER_API_NOINIT_NOERR_NOFS(H5check_version)
+    FUNC_ENTER_API_NOINIT_NOERR_NOFS
     H5TRACE3("e", "IuIuIu", majnum, minnum, relnum);
 
     /* Don't check again, if we already have */
@@ -714,14 +725,14 @@ H5check_version(unsigned majnum, unsigned minnum, unsigned relnum)
 
     if (!disable_version_check){
 	/*
-	 *verify if H5_VERS_INFO is consistent with the other version information.
-	 *Check only the first sizeof(lib_str) char.  Assume the information
-	 *will fit within this size or enough significance.
+	 * Verify if H5_VERS_INFO is consistent with the other version information.
+	 * Check only the first sizeof(lib_str) char.  Assume the information
+	 * will fit within this size or enough significance.
 	 */
-	sprintf(lib_str, "HDF5 library version: %d.%d.%d",
+	HDsnprintf(lib_str, sizeof(lib_str), "HDF5 library version: %d.%d.%d",
 	    H5_VERS_MAJOR, H5_VERS_MINOR, H5_VERS_RELEASE);
 	if(*substr) {
-	    HDstrcat(lib_str, "-");
+	    HDstrncat(lib_str, "-", (size_t)1);
 	    HDstrncat(lib_str, substr, (sizeof(lib_str) - HDstrlen(lib_str)) - 1);
 	} /* end if */
 	if (HDstrcmp(lib_str, H5_lib_vers_info_g)){
@@ -767,7 +778,7 @@ H5open(void)
 {
     herr_t ret_value=SUCCEED;   /* Return value */
 
-    FUNC_ENTER_API_NOCLEAR(H5open, FAIL)
+    FUNC_ENTER_API_NOCLEAR(FAIL)
     H5TRACE0("e","");
     /* all work is done by FUNC_ENTER() */
 done:
@@ -797,7 +808,7 @@ H5close(void)
      * whole library just to release it all right away.  It is safe to call
      * this function for an uninitialized library.
      */
-    FUNC_ENTER_API_NOINIT_NOERR_NOFS(H5close)
+    FUNC_ENTER_API_NOINIT_NOERR_NOFS
     H5TRACE0("e","");
 
     H5_term_library();
@@ -805,3 +816,89 @@ H5close(void)
     FUNC_LEAVE_API_NOFS(SUCCEED)
 } /* end H5close() */
 
+
+/*-------------------------------------------------------------------------
+ * Function:	H5free_memory
+ *
+ * Purpose:	Frees memory allocated by the library that it is the user's
+ *              responsibility to free.  Ensures that the same library
+ *              that was used to allocate the memory frees it.  Passing
+ *              NULL pointers is allowed.
+ *
+ * Return:	SUCCEED/FAIL
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5free_memory(void *mem)
+{
+    FUNC_ENTER_API_NOINIT
+    H5TRACE1("e", "*x", mem);
+
+    /* At this time, it is impossible for this to fail. */
+    HDfree(mem);
+
+    FUNC_LEAVE_API(SUCCEED)
+} /* end H5free_memory() */
+
+
+#if defined(H5_HAVE_THREADSAFE) && defined(H5_BUILT_AS_DYNAMIC_LIB) \
+    && defined(H5_HAVE_WIN32_API) && defined(H5_HAVE_WIN_THREADS)
+/*-------------------------------------------------------------------------
+ * Function:    DllMain
+ *
+ * Purpose:     Handles various conditions in the library on Windows.
+ *
+ *    NOTE:     The main purpose of this is for handling Win32 thread cleanup
+ *              on thread/process detach.
+ *
+ *              Only enabled when the shared Windows library is built with
+ *              thread safety enabled.
+ *
+ * Return:      TRUE on success, FALSE on failure
+ *
+ *-------------------------------------------------------------------------
+ */
+BOOL WINAPI
+DllMain(_In_ HINSTANCE hinstDLL, _In_ DWORD fdwReason, _In_ LPVOID lpvReserved)
+{
+    /* Don't add our function enter/leave macros since this function will be
+     * called before the library is initialized.
+     *
+     * NOTE: Do NOT call any CRT functions in DllMain!
+     * This includes any functions that are called by from here!
+     */
+
+    BOOL fOkay = TRUE;
+
+    switch(fdwReason)
+    {
+    case DLL_PROCESS_ATTACH:
+        break;
+
+    case DLL_PROCESS_DETACH:
+        break;
+
+    case DLL_THREAD_ATTACH:
+#ifdef H5_HAVE_WIN_THREADS
+        if(H5TS_win32_thread_enter() < 0)
+            fOkay = FALSE;
+#endif /* H5_HAVE_WIN_THREADS */
+        break;
+
+    case DLL_THREAD_DETACH:
+#ifdef H5_HAVE_WIN_THREADS
+        if(H5TS_win32_thread_exit() < 0)
+            fOkay = FALSE;
+#endif /* H5_HAVE_WIN_THREADS */
+        break;
+
+    default:
+        /* Shouldn't get here */
+        fOkay = FALSE;
+        break;
+    }
+
+    return fOkay;
+}
+#endif /* H5_HAVE_WIN32_API && H5_BUILT_AS_DYNAMIC_LIB && H5_HAVE_WIN_THREADS && H5_HAVE_THREADSAFE*/

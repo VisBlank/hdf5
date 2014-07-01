@@ -91,7 +91,7 @@ H5O_fsinfo_decode(H5F_t *f, hid_t UNUSED dxpl_id, H5O_t UNUSED *open_oh,
     H5FD_mem_t 		type;		/* Memory type for iteration */
     void        	*ret_value;  	/* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5O_fsinfo_decode)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* check args */
     HDassert(f);
@@ -105,7 +105,7 @@ H5O_fsinfo_decode(H5F_t *f, hid_t UNUSED dxpl_id, H5O_t UNUSED *open_oh,
     if(NULL == (fsinfo = H5FL_CALLOC(H5O_fsinfo_t)))
 	HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
 
-    fsinfo->strategy = *p++;	/* file space strategy */
+    fsinfo->strategy = (H5F_file_space_type_t)*p++;	/* file space strategy */
     H5F_DECODE_LENGTH(f, p, fsinfo->threshold);	/* free space section size threshold */
 
     /* Addresses of free space managers: only exist for H5F_FILE_SPACE_ALL_PERSIST */
@@ -146,7 +146,7 @@ H5O_fsinfo_encode(H5F_t *f, hbool_t UNUSED disable_shared, uint8_t *p, const voi
     const H5O_fsinfo_t  *fsinfo = (const H5O_fsinfo_t *)_mesg;
     H5FD_mem_t 		type;	/* Memory type for iteration */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5O_fsinfo_encode)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
     /* check args */
     HDassert(f);
@@ -187,7 +187,7 @@ H5O_fsinfo_copy(const void *_mesg, void *_dest)
     H5O_fsinfo_t         *dest = (H5O_fsinfo_t *) _dest;
     void                *ret_value;     /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5O_fsinfo_copy)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* check args */
     HDassert(fsinfo);
@@ -226,15 +226,15 @@ H5O_fsinfo_size(const H5F_t *f, hbool_t UNUSED disable_shared, const void *_mesg
     size_t fs_addr_size = 0;
     size_t ret_value;   /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5O_fsinfo_size)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
 
     /* Addresses of free-space managers exist only for H5F_FILE_SPACE_ALL_PERSIST type */
     if(H5F_FILE_SPACE_ALL_PERSIST == fsinfo->strategy)
-	fs_addr_size = (H5FD_MEM_NTYPES - 1) * H5F_SIZEOF_ADDR(f);
+	fs_addr_size = (H5FD_MEM_NTYPES - 1) * (size_t)H5F_SIZEOF_ADDR(f);
 
     ret_value = 2                       /* Version & strategy */
-		+ H5F_SIZEOF_SIZE(f)	/* Threshold */
+		+ (size_t)H5F_SIZEOF_SIZE(f)	/* Threshold */
                 + fs_addr_size;		/* Addresses of free-space managers */
 
     FUNC_LEAVE_NOAPI(ret_value)
@@ -255,7 +255,7 @@ H5O_fsinfo_size(const H5F_t *f, hbool_t UNUSED disable_shared, const void *_mesg
 static herr_t
 H5O_fsinfo_free(void *mesg)
 {
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5O_fsinfo_free)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
     HDassert(mesg);
 
@@ -283,7 +283,7 @@ H5O_fsinfo_debug(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, const void *_mesg, FILE 
     const H5O_fsinfo_t	*fsinfo = (const H5O_fsinfo_t *) _mesg;
     H5FD_mem_t 		type;	/* Memory type for iteration */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5O_fsinfo_debug)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
     /* check args */
     HDassert(f);

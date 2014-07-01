@@ -22,7 +22,7 @@
 include $(top_srcdir)/config/commence.am
 include $(top_srcdir)/config/lt_vers.am
 
-INCLUDES=-I$(top_srcdir)/src -I$(top_srcdir)/hl/src -I$(top_builddir)/hl/src \
+AM_CPPFLAGS+=-I$(top_srcdir)/src -I$(top_srcdir)/hl/src -I$(top_builddir)/hl/src \
          -I$(top_srcdir)/fortran/src -I$(top_builddir)/fortran/src
 AM_FCFLAGS+=-I$(top_builddir)/fortran/src $(F9XMODFLAG)$(top_builddir)/fortran/src
 
@@ -46,10 +46,10 @@ endif
 #endif
 
 # List sources to include in the HDF5 HL Fortran library.
-libhdf5hl_fortran_la_SOURCES=H5LTfc.c  H5IMfc.c H5IMcc.c H5TBfc.c H5LTff.f90  \
-                H5IMff.f90 H5TBff.f90
+libhdf5hl_fortran_la_SOURCES=H5DSfc.c H5LTfc.c  H5IMfc.c H5IMcc.c H5TBfc.c \
+	H5DSff.f90 H5LTff.f90 H5IMff.f90 H5TBff.f90
 
-# HDF5 HL Fortran library depends on HDF5 HL Library and HDF5 Fortran Library.
+# HDF5 HL Fortran library depends on HDF5 Library.
 libhdf5hl_fortran_la_LIBADD=$(LIBH5_HL) $(LIBH5F)
 
 # Fortran module files can have different extensions and different names
@@ -79,6 +79,7 @@ uninstall-local:
 # determining this automagically (like we do with the C files). So, when
 # doing a parallel make, some modules could be made way before the
 # modules they depend upon are actually made. *sigh*
+H5DSff.lo:          $(srcdir)/H5DSff.f90
 H5LTff.lo:          $(srcdir)/H5LTff.f90
 H5IMff.lo:          $(srcdir)/H5IMff.f90
 H5TBff.lo:          $(srcdir)/H5TBff.f90

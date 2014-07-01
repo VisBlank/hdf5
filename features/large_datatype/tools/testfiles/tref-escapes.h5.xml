@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<hdf5:HDF5-File xmlns:hdf5="http://hdfgroup.org/DTDs/HDF5-File" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://hdfgroup.org/DTDs/HDF5-File http://www.hdfgroup.org/DTDs/HDF5-File.xsd">
+<hdf5:HDF5-File xmlns:hdf5="http://hdfgroup.org/HDF5/XML/schema/HDF5-File.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://hdfgroup.org/HDF5/XML/schema/HDF5-File http://www.hdfgroup.org/HDF5/XML/schema/HDF5-File.xsd">
 <hdf5:RootGroup OBJ-XID="xid_696" H5Path="/">
    <hdf5:Group Name="Group1" OBJ-XID="xid_1344" H5Path="/Group1" Parents="xid_696" H5ParentPaths="/" >
       <hdf5:Dataset Name="Dataset space" OBJ-XID="xid_1720" H5Path= "/Group1/Dataset space" Parents="xid_1344" H5ParentPaths="/Group1">
          <hdf5:StorageLayout>
             <hdf5:ContiguousLayout/>
          </hdf5:StorageLayout>
-               <hdf5:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
+         <hdf5:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
             <hdf5:FillValue>
-                  <hdf5:NoFill/>
+               <hdf5:NoFill/>
             </hdf5:FillValue>
          </hdf5:FillValueInfo>
          <hdf5:Dataspace>
@@ -23,7 +23,10 @@
          </hdf5:DataType>
          <hdf5:Data>
             <hdf5:DataFromFile>
-            0 0 0 0
+            0
+            0
+            0
+            0
             </hdf5:DataFromFile>
          </hdf5:Data>
       </hdf5:Dataset>
@@ -31,9 +34,9 @@
          <hdf5:StorageLayout>
             <hdf5:ContiguousLayout/>
          </hdf5:StorageLayout>
-               <hdf5:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
+         <hdf5:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
             <hdf5:FillValue>
-                  <hdf5:NoFill/>
+               <hdf5:NoFill/>
             </hdf5:FillValue>
          </hdf5:FillValueInfo>
          <hdf5:Dataspace>
@@ -48,7 +51,10 @@
          </hdf5:DataType>
          <hdf5:Data>
             <hdf5:DataFromFile>
-            0 3 6 9
+            0
+            3
+            6
+            9
             </hdf5:DataFromFile>
          </hdf5:Data>
       </hdf5:Dataset>
@@ -56,9 +62,9 @@
          <hdf5:StorageLayout>
             <hdf5:ContiguousLayout/>
          </hdf5:StorageLayout>
-               <hdf5:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
+         <hdf5:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
             <hdf5:FillValue>
-                  <hdf5:NoFill/>
+               <hdf5:NoFill/>
             </hdf5:FillValue>
          </hdf5:FillValueInfo>
          <hdf5:Dataspace>
@@ -73,7 +79,10 @@
          </hdf5:DataType>
          <hdf5:Data>
             <hdf5:DataFromFile>
-            0 0 0 0
+            0
+            0
+            0
+            0
             </hdf5:DataFromFile>
          </hdf5:Data>
       </hdf5:Dataset>
@@ -81,9 +90,9 @@
          <hdf5:StorageLayout>
             <hdf5:ContiguousLayout/>
          </hdf5:StorageLayout>
-               <hdf5:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
+         <hdf5:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
             <hdf5:FillValue>
-                  <hdf5:NoFill/>
+               <hdf5:NoFill/>
             </hdf5:FillValue>
          </hdf5:FillValueInfo>
          <hdf5:Dataspace>
@@ -98,7 +107,10 @@
          </hdf5:DataType>
          <hdf5:Data>
             <hdf5:DataFromFile>
-            0 0 0 0
+            0
+            0
+            0
+            0
             </hdf5:DataFromFile>
          </hdf5:Data>
       </hdf5:Dataset>
@@ -106,9 +118,9 @@
          <hdf5:StorageLayout>
             <hdf5:ContiguousLayout/>
          </hdf5:StorageLayout>
-               <hdf5:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
+         <hdf5:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
             <hdf5:FillValue>
-                  <hdf5:NoFill/>
+               <hdf5:NoFill/>
             </hdf5:FillValue>
          </hdf5:FillValueInfo>
          <hdf5:Dataspace>
@@ -123,7 +135,10 @@
          </hdf5:DataType>
          <hdf5:Data>
             <hdf5:DataFromFile>
-            0 0 0 0
+            0
+            0
+            0
+            0
             </hdf5:DataFromFile>
          </hdf5:Data>
       </hdf5:Dataset>
@@ -131,9 +146,9 @@
          <hdf5:StorageLayout>
             <hdf5:ContiguousLayout/>
          </hdf5:StorageLayout>
-               <hdf5:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
+         <hdf5:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
             <hdf5:FillValue>
-                  <hdf5:NoFill/>
+               <hdf5:NoFill/>
             </hdf5:FillValue>
          </hdf5:FillValueInfo>
          <hdf5:Dataspace>
@@ -148,7 +163,10 @@
          </hdf5:DataType>
          <hdf5:Data>
             <hdf5:DataFromFile>
-            0 0 0 0
+            0
+            0
+            0
+            0
             </hdf5:DataFromFile>
          </hdf5:Data>
       </hdf5:Dataset>
@@ -156,9 +174,9 @@
          <hdf5:StorageLayout>
             <hdf5:ContiguousLayout/>
          </hdf5:StorageLayout>
-               <hdf5:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
+         <hdf5:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
             <hdf5:FillValue>
-                  <hdf5:NoFill/>
+               <hdf5:NoFill/>
             </hdf5:FillValue>
          </hdf5:FillValueInfo>
          <hdf5:Dataspace>
@@ -173,7 +191,10 @@
          </hdf5:DataType>
          <hdf5:Data>
             <hdf5:DataFromFile>
-            0 0 0 0
+            0
+            0
+            0
+            0
             </hdf5:DataFromFile>
          </hdf5:Data>
       </hdf5:Dataset>
@@ -182,9 +203,9 @@
             <hdf5:StorageLayout>
                <hdf5:ContiguousLayout/>
             </hdf5:StorageLayout>
-                     <hdf5:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
+            <hdf5:FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
                <hdf5:FillValue>
-                     <hdf5:NoFill/>
+                  <hdf5:NoFill/>
                </hdf5:FillValue>
             </hdf5:FillValueInfo>
             <hdf5:Dataspace>

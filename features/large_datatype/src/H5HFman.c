@@ -38,7 +38,7 @@
 #include "H5HFpkg.h"		/* Fractal heaps			*/
 #include "H5MFprivate.h"	/* File memory management		*/
 #include "H5MMprivate.h"	/* Memory management			*/
-#include "H5Vprivate.h"		/* Vectors and arrays 			*/
+#include "H5VMprivate.h"		/* Vectors and arrays 			*/
 
 /****************/
 /* Local Macros */
@@ -116,7 +116,7 @@ H5HF_man_insert(H5HF_hdr_t *hdr, hid_t dxpl_id, size_t obj_size, const void *obj
     htri_t node_found;                  /* Whether an existing free list node was found */
     herr_t ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5HF_man_insert)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /*
      * Check arguments.
@@ -157,7 +157,7 @@ H5HF_man_insert(H5HF_hdr_t *hdr, hid_t dxpl_id, size_t obj_size, const void *obj
     HDassert(sec_node->sect_info.state == H5FS_SECT_LIVE);
 
     /* Retrieve direct block address from section */
-    if(H5HF_sect_single_dblock_info(hdr, dxpl_id, sec_node, &dblock_addr, &dblock_size) < 0)
+    if(H5HF_sect_single_dblock_info(hdr, sec_node, &dblock_addr, &dblock_size) < 0)
         HGOTO_ERROR(H5E_HEAP, H5E_CANTGET, FAIL, "can't retrieve direct block information")
 
     /* Lock direct block */
@@ -218,6 +218,44 @@ done:
 
 
 /*-------------------------------------------------------------------------
+ * Function:    H5HF_man_get_obj_len
+ *
+ * Purpose:     Get the size of a managed heap object
+ *
+ * Return:      SUCCEED (Can't fail)
+ *
+ * Programmer:  Dana Robinson (derobins@hdfgroup.org)
+ *              August 2012
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5HF_man_get_obj_len(H5HF_hdr_t *hdr, const uint8_t *id, size_t *obj_len_p)
+{
+
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
+
+    /*
+     * Check arguments.
+     */
+    HDassert(hdr);
+    HDassert(id);
+    HDassert(obj_len_p);
+    
+    /* Skip over the flag byte */
+    id++;
+
+    /* Skip over object offset */
+    id += hdr->heap_off_size;
+
+    /* Retrieve the entry length */
+    UINT64DECODE_VAR(id, *obj_len_p, hdr->heap_len_size);
+
+    FUNC_LEAVE_NOAPI(SUCCEED)
+} /* end H5HF_man_get_obj_len() */
+
+
+/*-------------------------------------------------------------------------
  * Function:	H5HF_man_op_real
  *
  * Purpose:	Internal routine to perform an operation on a managed heap
@@ -246,7 +284,7 @@ H5HF_man_op_real(H5HF_hdr_t *hdr, hid_t dxpl_id, const uint8_t *id,
     uint8_t *p;                         /* Temporary pointer to obj info in block */
     herr_t ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5HF_man_op_real)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /*
      * Check arguments.
@@ -274,12 +312,14 @@ H5HF_man_op_real(H5HF_hdr_t *hdr, hid_t dxpl_id, const uint8_t *id,
     /* Decode the object offset within the heap & its length */
     UINT64DECODE_VAR(id, obj_off, hdr->heap_off_size);
     UINT64DECODE_VAR(id, obj_len, hdr->heap_len_size);
-    HDassert(obj_off > 0);
-    HDassert(obj_len > 0);
 
     /* Check for bad offset or length */
+    if(obj_off == 0)
+        HGOTO_ERROR(H5E_HEAP, H5E_BADRANGE, FAIL, "invalid fractal heap offset")
     if(obj_off > hdr->man_size)
         HGOTO_ERROR(H5E_HEAP, H5E_BADRANGE, FAIL, "fractal heap object offset too large")
+    if(obj_len == 0)
+        HGOTO_ERROR(H5E_HEAP, H5E_BADRANGE, FAIL, "invalid fractal heap object size")
     if(obj_len > hdr->man_dtable.cparam.max_direct_size)
         HGOTO_ERROR(H5E_HEAP, H5E_BADRANGE, FAIL, "fractal heap object size too large for direct block")
     if(obj_len > hdr->max_man_size)
@@ -379,7 +419,7 @@ H5HF_man_read(H5HF_hdr_t *hdr, hid_t dxpl_id, const uint8_t *id, void *obj)
 {
     herr_t ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5HF_man_read)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /*
      * Check arguments.
@@ -416,7 +456,7 @@ H5HF_man_write(H5HF_hdr_t *hdr, hid_t dxpl_id, const uint8_t *id,
 {
     herr_t ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5HF_man_write)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /*
      * Check arguments.
@@ -454,7 +494,7 @@ H5HF_man_op(H5HF_hdr_t *hdr, hid_t dxpl_id, const uint8_t *id,
 {
     herr_t ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5HF_man_op)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /*
      * Check arguments.
@@ -499,7 +539,7 @@ H5HF_man_remove(H5HF_hdr_t *hdr, hid_t dxpl_id, const uint8_t *id)
     size_t blk_off;                     /* Offset of object in block */
     herr_t ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5HF_man_remove)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /*
      * Check arguments.
@@ -516,12 +556,14 @@ H5HF_man_remove(H5HF_hdr_t *hdr, hid_t dxpl_id, const uint8_t *id)
     /* Decode the object offset within the heap & it's length */
     UINT64DECODE_VAR(id, obj_off, hdr->heap_off_size);
     UINT64DECODE_VAR(id, obj_len, hdr->heap_len_size);
-    HDassert(obj_off > 0);
-    HDassert(obj_len > 0);
 
     /* Check for bad offset or length */
+    if(obj_off == 0)
+        HGOTO_ERROR(H5E_HEAP, H5E_BADRANGE, FAIL, "invalid fractal heap offset")
     if(obj_off > hdr->man_size)
         HGOTO_ERROR(H5E_HEAP, H5E_BADRANGE, FAIL, "fractal heap object offset too large")
+    if(obj_len == 0)
+        HGOTO_ERROR(H5E_HEAP, H5E_BADRANGE, FAIL, "invalid fractal heap object size")
     if(obj_len > hdr->man_dtable.cparam.max_direct_size)
         HGOTO_ERROR(H5E_HEAP, H5E_BADRANGE, FAIL, "fractal heap object size too large for direct block")
     if(obj_len > hdr->max_man_size)

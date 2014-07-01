@@ -371,6 +371,23 @@ typedef herr_t (*H5C_log_flush_func_t)(H5C_t * cache_ptr,
  *		H5C__FLUSH_MARKED_ENTRIES_FLAG.  The flag is reset when
  *		the entry is flushed for whatever reason.
  *
+ * flush_me_last:  Boolean flag indicating that this entry should not be
+ *                 flushed from the cache until all other entries without
+ *                 the flush_me_last flag set have been flushed.
+ *
+ * flush_me_collectively:  Boolean flag indicating that this entry needs
+ *                         to be flushed collectively when in a parallel
+ *                         situation.
+ * 
+ *      Note: At this time, the flush_me_last and flush_me_collectively
+ *            flags will only be applied to one entry, the superblock,
+ *            and the code utilizing these flags is protected with HDasserts
+ *            to enforce this. This restraint can certainly be relaxed in
+ *            the future if the the need for multiple entries getting flushed
+ *            last or collectively arises, though the code allowing for that
+ *            will need to be expanded and tested appropriately if that
+ *            functionality is desired.
+ *
  * clear_on_unprotect:  Boolean flag used only in PHDF5.  When H5C is used
  *		to implement the metadata cache In the parallel case, only
  *		the cache with mpi rank 0 is allowed to actually write to
@@ -578,7 +595,7 @@ typedef struct H5C_cache_entry_t
     haddr_t			addr;
     size_t			size;
     const H5C_class_t *		type;
-    haddr_t		    tag;
+    haddr_t		        tag;
     hbool_t			is_dirty;
     hbool_t			dirtied;
     hbool_t			is_protected;
@@ -587,13 +604,15 @@ typedef struct H5C_cache_entry_t
     hbool_t			is_pinned;
     hbool_t			in_slist;
     hbool_t			flush_marker;
+    hbool_t                     flush_me_last;
 #ifdef H5_HAVE_PARALLEL
+    hbool_t                     flush_me_collectively;
     hbool_t			clear_on_unprotect;
-    hbool_t		flush_immediately;
+    hbool_t		        flush_immediately;
 #endif /* H5_HAVE_PARALLEL */
     hbool_t			flush_in_progress;
     hbool_t			destroy_in_progress;
-    hbool_t		free_file_space_on_destroy;
+    hbool_t		        free_file_space_on_destroy;
 
     /* fields supporting the 'flush dependency' feature: */
 
@@ -886,20 +905,20 @@ typedef struct H5C_cache_entry_t
 
 #define H5C__MAX_EPOCH_MARKERS  		10
 
-#define H5C__DEF_AR_UPPER_THRESHHOLD		0.9999
-#define H5C__DEF_AR_LOWER_THRESHHOLD		0.9
+#define H5C__DEF_AR_UPPER_THRESHHOLD		0.9999f
+#define H5C__DEF_AR_LOWER_THRESHHOLD		0.9f
 #define H5C__DEF_AR_MAX_SIZE			((size_t)(16 * 1024 * 1024))
 #define H5C__DEF_AR_INIT_SIZE			((size_t)( 1 * 1024 * 1024))
 #define H5C__DEF_AR_MIN_SIZE			((size_t)( 1 * 1024 * 1024))
-#define H5C__DEF_AR_MIN_CLEAN_FRAC		0.5
-#define H5C__DEF_AR_INCREMENT			2.0
+#define H5C__DEF_AR_MIN_CLEAN_FRAC		0.5f
+#define H5C__DEF_AR_INCREMENT			2.0f
 #define H5C__DEF_AR_MAX_INCREMENT		((size_t)( 2 * 1024 * 1024))
-#define H5C__DEF_AR_FLASH_MULTIPLE              1.0
-#define H5C__DEV_AR_FLASH_THRESHOLD             0.25
-#define H5C__DEF_AR_DECREMENT			0.9
+#define H5C__DEF_AR_FLASH_MULTIPLE              1.0f
+#define H5C__DEV_AR_FLASH_THRESHOLD             0.25f
+#define H5C__DEF_AR_DECREMENT			0.9f
 #define H5C__DEF_AR_MAX_DECREMENT		((size_t)( 1 * 1024 * 1024))
 #define H5C__DEF_AR_EPCHS_B4_EVICT		3
-#define H5C__DEF_AR_EMPTY_RESERVE		0.05
+#define H5C__DEF_AR_EMPTY_RESERVE		0.05f
 #define H5C__MIN_AR_EPOCH_LENGTH		100
 #define H5C__DEF_AR_EPOCH_LENGTH		50000
 #define H5C__MAX_AR_EPOCH_LENGTH		1000000
@@ -1042,6 +1061,8 @@ typedef struct H5C_auto_size_ctl_t
 #define H5C__READ_ONLY_FLAG			0x0200
 #define H5C__FREE_FILE_SPACE_FLAG		0x0800
 #define H5C__TAKE_OWNERSHIP_FLAG		0x1000
+#define H5C__FLUSH_LAST_FLAG			0x2000
+#define H5C__FLUSH_COLLECTIVELY_FLAG		0x4000
 
 #ifdef H5_HAVE_PARALLEL
 H5_DLL herr_t H5C_apply_candidate_list(H5F_t * f,
@@ -1201,6 +1222,18 @@ H5_DLL herr_t H5C_validate_resize_config(H5C_auto_size_ctl_t * config_ptr,
 H5_DLL herr_t H5C_ignore_tags(H5C_t * cache_ptr);
 
 H5_DLL void H5C_retag_copied_metadata(H5C_t * cache_ptr, haddr_t metadata_tag);
+
+#ifndef NDEBUG	/* debugging functions */
+
+H5_DLL herr_t H5C_get_entry_ptr_from_addr(const H5F_t *f, haddr_t addr,
+                                          void ** entry_ptr_ptr);
+
+H5_DLL herr_t H5C_verify_entry_type(const H5F_t * f, haddr_t addr,
+                                    const H5C_class_t * expected_type,
+                                    hbool_t * in_cache_ptr,
+                                    hbool_t * type_ok_ptr);
+
+#endif /* NDEBUG */
 
 #endif /* !_H5Cprivate_H */
 

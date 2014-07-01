@@ -35,7 +35,7 @@
 #define H5O_PACKAGE		/*suppress error about including H5Opkg	*/
 
 /* Interface initialization */
-#define H5_INTERFACE_INIT_FUNC	H5A_init_deprec_interface
+#define H5_INTERFACE_INIT_FUNC	H5A__init_deprec_interface
 
 
 /***********/
@@ -87,9 +87,9 @@
 
 /*--------------------------------------------------------------------------
 NAME
-   H5A_init_deprec_interface -- Initialize interface-specific information
+   H5A__init_deprec_interface -- Initialize interface-specific information
 USAGE
-    herr_t H5A_init_deprec_interface()
+    herr_t H5A__init_deprec_interface()
 RETURNS
     Non-negative on success/Negative on failure
 DESCRIPTION
@@ -98,12 +98,36 @@ DESCRIPTION
 
 --------------------------------------------------------------------------*/
 static herr_t
-H5A_init_deprec_interface(void)
+H5A__init_deprec_interface(void)
 {
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5A_init_deprec_interface)
+    FUNC_ENTER_STATIC_NOERR
 
     FUNC_LEAVE_NOAPI(H5A_init())
-} /* H5A_init_deprec_interface() */
+} /* H5A__init_deprec_interface() */
+
+
+/*--------------------------------------------------------------------------
+NAME
+   H5A__term_deprec_interface -- Terminate interface
+USAGE
+    herr_t H5A__term_deprec_interface()
+RETURNS
+    Non-negative on success/Negative on failure
+DESCRIPTION
+    Terminates interface.  (Just resets H5_interface_initialize_g
+    currently).
+
+--------------------------------------------------------------------------*/
+herr_t
+H5A__term_deprec_interface(void)
+{
+    FUNC_ENTER_PACKAGE_NOERR
+
+    /* Mark closed */
+    H5_interface_initialize_g = 0;
+
+    FUNC_LEAVE_NOAPI(0)
+} /* H5A__term_deprec_interface() */
 
 #ifndef H5_NO_DEPRECATED_SYMBOLS
 
@@ -143,7 +167,7 @@ H5Acreate1(hid_t loc_id, const char *name, hid_t type_id, hid_t space_id,
     H5S_t		*space;                 /* Dataspace to use for attribute */
     hid_t		ret_value;              /* Return value */
 
-    FUNC_ENTER_API(H5Acreate1, FAIL)
+    FUNC_ENTER_API(FAIL)
     H5TRACE5("i", "i*siii", loc_id, name, type_id, space_id, plist_id);
 
     /* check arguments */
@@ -158,7 +182,7 @@ H5Acreate1(hid_t loc_id, const char *name, hid_t type_id, hid_t space_id,
     if(NULL == (type = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
 	HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a type")
     if(NULL == (space = (H5S_t *)H5I_object_verify(space_id, H5I_DATASPACE)))
-	HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a data space")
+	HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataspace")
 
     /* Go do the real work for attaching the attribute to the dataset */
     if((ret_value = H5A_create(&loc, name, type, space, plist_id, H5AC_dxpl_id)) < 0)
@@ -198,7 +222,7 @@ H5Aopen_name(hid_t loc_id, const char *name)
     H5A_t               *attr = NULL;   /* Attribute opened */
     hid_t		ret_value;
 
-    FUNC_ENTER_API(H5Aopen_name, FAIL)
+    FUNC_ENTER_API(FAIL)
     H5TRACE2("i", "i*s", loc_id, name);
 
     /* check arguments */
@@ -256,7 +280,7 @@ H5Aopen_idx(hid_t loc_id, unsigned idx)
     H5A_t       *attr = NULL;   /* Attribute opened */
     hid_t	ret_value;
 
-    FUNC_ENTER_API(H5Aopen_idx, FAIL)
+    FUNC_ENTER_API(FAIL)
     H5TRACE2("i", "iIu", loc_id, idx);
 
     /* check arguments */
@@ -308,7 +332,7 @@ H5Aget_num_attrs(hid_t loc_id)
     void           	*obj;
     int			ret_value;
 
-    FUNC_ENTER_API(H5Aget_num_attrs, FAIL)
+    FUNC_ENTER_API(FAIL)
     H5TRACE1("Is", "i", loc_id);
 
     /* check arguments */
@@ -405,7 +429,7 @@ H5Aiterate1(hid_t loc_id, unsigned *attr_num, H5A_operator1_t op, void *op_data)
     hsize_t		last_attr;      /* Index of last attribute examined */
     herr_t	        ret_value;      /* Return value */
 
-    FUNC_ENTER_API(H5Aiterate1, FAIL)
+    FUNC_ENTER_API(FAIL)
     H5TRACE4("e", "i*Iux*x", loc_id, attr_num, op, op_data);
 
     /* check arguments */

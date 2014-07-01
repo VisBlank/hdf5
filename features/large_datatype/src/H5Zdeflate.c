@@ -51,7 +51,7 @@ const H5Z_class2_t H5Z_DEFLATE[1] = {{
     H5Z_filter_deflate,         /* The actual filter function	*/
 }};
 
-#define H5Z_DEFLATE_SIZE_ADJUST(s) (HDceil(((double)(s))*1.001)+12)
+#define H5Z_DEFLATE_SIZE_ADJUST(s) (HDceil(((double)(s)) * (double)1.001f) + 12)
 
 
 /*-------------------------------------------------------------------------
@@ -79,7 +79,7 @@ H5Z_filter_deflate (unsigned flags, size_t cd_nelmts,
     int		status;                 /* Status from zlib operation */
     size_t	ret_value;              /* Return value */
 
-    FUNC_ENTER_NOAPI(H5Z_filter_deflate, 0)
+    FUNC_ENTER_NOAPI(0)
 
     /* Sanity check */
     HDassert(*buf_size > 0);

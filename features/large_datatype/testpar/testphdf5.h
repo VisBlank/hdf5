@@ -43,6 +43,15 @@ enum H5TEST_COLL_CHUNK_API {API_NONE=0,API_LINK_HARD,
 #define DATASETNAME2	"Data2"
 #define DATASETNAME3	"Data3"
 #define DATASETNAME4	"Data4"
+#define DATASETNAME5	"Data5"
+#define DATASETNAME6	"Data6"
+#define DATASETNAME7	"Data7"
+#define DATASETNAME8	"Data8"
+#define DATASETNAME9	"Data9"
+
+/* point selection order */
+#define IN_ORDER 1
+#define OUT_OF_ORDER 2
 
 /* Hyperslab layout styles */
 #define BYROW           1       /* divide into slabs of rows */
@@ -54,8 +63,6 @@ enum H5TEST_COLL_CHUNK_API {API_NONE=0,API_LINK_HARD,
 #define FACC_DEFAULT    0x0     /* default */
 #define FACC_MPIO       0x1     /* MPIO */
 #define FACC_SPLIT      0x2     /* Split File */
-#define FACC_MULTI      0x4     /* Multi File */
-#define FACC_MPIPOSIX   0x8     /* MPIPOSIX */
 
 #define DXFER_COLLECTIVE_IO 0x1  /* Collective IO*/
 #define DXFER_INDEPENDENT_IO 0x2 /* Independent IO collectively */
@@ -160,6 +167,31 @@ enum H5TEST_COLL_CHUNK_API {API_NONE=0,API_LINK_HARD,
 #define NPOINTS          4          /* Number of points that will be selected
                                                                 and overwritten */
 
+/* Definitions of the selection mode for the test_actual_io_function. */
+#define TEST_ACTUAL_IO_NO_COLLECTIVE                    0
+#define TEST_ACTUAL_IO_RESET                            1
+#define TEST_ACTUAL_IO_MULTI_CHUNK_IND                  2
+#define TEST_ACTUAL_IO_MULTI_CHUNK_COL                  3
+#define TEST_ACTUAL_IO_MULTI_CHUNK_MIX                  4
+#define TEST_ACTUAL_IO_MULTI_CHUNK_MIX_DISAGREE         5
+#define TEST_ACTUAL_IO_DIRECT_MULTI_CHUNK_IND           6
+#define TEST_ACTUAL_IO_DIRECT_MULTI_CHUNK_COL           7
+#define TEST_ACTUAL_IO_LINK_CHUNK                       8
+#define TEST_ACTUAL_IO_CONTIGUOUS                       9
+
+/* Definitions of the selection mode for the no_collective_cause_tests function. */
+#define TEST_COLLECTIVE                                 0x001
+#define TEST_SET_INDEPENDENT                            0x002 
+#define TEST_DATATYPE_CONVERSION                        0x004
+#define TEST_DATA_TRANSFORMS                            0x008
+#define TEST_NOT_SIMPLE_OR_SCALAR_DATASPACES            0x010
+#define TEST_NOT_CONTIGUOUS_OR_CHUNKED_DATASET_COMPACT  0x020
+#define TEST_NOT_CONTIGUOUS_OR_CHUNKED_DATASET_EXTERNAL 0x040
+#define TEST_FILTERS                                    0x080
+/* TEST_FILTERS will take place of this after supporting mpio + filter for 
+ * H5Dcreate and H5Dwrite */
+#define TEST_FILTERS_READ                               0x100
+
 /* Don't erase these lines, they are put here for debugging purposes */
 /*
 #define MSPACE1_RANK     1
@@ -173,9 +205,9 @@ enum H5TEST_COLL_CHUNK_API {API_NONE=0,API_LINK_HARD,
 #define MSPACE_DIM1      8
 #define MSPACE_DIM2      9
 #define NPOINTS          4
-
-
 */ /* end of debugging macro */
+
+
 /* type definitions */
 typedef struct H5Ptest_param_t  /* holds extra test parameters */
 {
@@ -204,14 +236,15 @@ extern int facc_type;				/*Test file access type */
 extern int dxfer_coll_type;
 
 /* Test program prototypes */
+void test_plist_ed(void);
 void multiple_dset_write(void);
 void multiple_group_write(void);
 void multiple_group_read(void);
 void collective_group_write(void);
 void independent_group_read(void);
 void test_fapl_mpio_dup(void);
-void test_fapl_mpiposix_dup(void);
 void test_split_comm_access(void);
+void dataset_atomicity(void);
 void dataset_writeInd(void);
 void dataset_writeAll(void);
 void dataset_large_writeAll(void);
@@ -223,6 +256,8 @@ void dataset_readAll(void);
 void extend_readInd(void);
 void extend_readAll(void);
 void none_selection_chunk(void);
+void actual_io_mode_tests(void);
+void no_collective_cause_tests(void);
 void test_chunk_alloc(void);
 void test_filter_read(void);
 void compact_dataset(void);
@@ -253,14 +288,17 @@ void lower_dim_size_comp_test(void);
 void link_chunk_collective_io_test(void);
 void contig_hyperslab_dr_pio_test(ShapeSameTestMethods sstest_type);
 void checker_board_hyperslab_dr_pio_test(ShapeSameTestMethods sstest_type);
+void file_image_daisy_chain_test(void);
 #ifdef H5_HAVE_FILTER_DEFLATE
 void compress_readAll(void);
 #endif /* H5_HAVE_FILTER_DEFLATE */
+void test_dense_attr(void);
 
 /* commonly used prototypes */
-hid_t create_faccess_plist(MPI_Comm comm, MPI_Info info, int l_facc_type, hbool_t use_gpfs);
+hid_t create_faccess_plist(MPI_Comm comm, MPI_Info info, int l_facc_type);
 MPI_Offset h5_mpi_get_file_size(const char *filename, MPI_Comm comm, MPI_Info info);
 int dataset_vrfy(hsize_t start[], hsize_t count[], hsize_t stride[],
                  hsize_t block[], DATATYPE *dataset, DATATYPE *original);
-
+void point_set (hsize_t start[], hsize_t count[], hsize_t stride[], hsize_t block[],
+                size_t num_points, hsize_t coords[], int order);
 #endif /* PHDF5TEST_H */

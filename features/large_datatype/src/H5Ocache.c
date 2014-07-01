@@ -170,7 +170,7 @@ H5O_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, void *_udata)
     haddr_t     eoa;		/* Relative end of file address	*/
     H5O_t	*ret_value;     /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5O_load)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* Check arguments */
     HDassert(f);
@@ -374,7 +374,7 @@ H5O_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t UNUSED addr, H5O_t *
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5O_flush)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* Check arguments */
     HDassert(f);
@@ -520,7 +520,7 @@ H5O_dest(H5F_t *f, H5O_t *oh)
 {
     herr_t ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5O_dest)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* check args */
     HDassert(oh);
@@ -583,7 +583,7 @@ H5O_clear(H5F_t *f, H5O_t *oh, hbool_t destroy)
     unsigned	u;      /* Local index variable */
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_NOAPI_NOINIT(H5O_clear)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* check args */
     HDassert(oh);
@@ -650,7 +650,7 @@ done:
 static herr_t
 H5O_size(const H5F_t UNUSED *f, const H5O_t *oh, size_t *size_ptr)
 {
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5O_size)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
     /* check args */
     HDassert(oh);
@@ -658,7 +658,7 @@ H5O_size(const H5F_t UNUSED *f, const H5O_t *oh, size_t *size_ptr)
 
     /* Report the object header's prefix+first chunk length */
     if(oh->chunk0_size)
-       *size_ptr = H5O_SIZEOF_HDR(oh) + oh->chunk0_size;
+       *size_ptr = (size_t)H5O_SIZEOF_HDR(oh) + oh->chunk0_size;
     else
        *size_ptr = oh->chunk[0].size;
 
@@ -690,7 +690,7 @@ H5O_cache_chk_load(H5F_t *f, hid_t dxpl_id, haddr_t addr, void *_udata)
     uint8_t     *buf;                   /* Buffer to decode */
     H5O_chunk_proxy_t	*ret_value;     /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5O_cache_chk_load)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* Check arguments */
     HDassert(f);
@@ -783,7 +783,7 @@ H5O_cache_chk_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t addr,
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5O_cache_chk_flush)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* flush */
     if(chk_proxy->cache_info.is_dirty) {
@@ -829,7 +829,7 @@ H5O_cache_chk_dest(H5F_t *f, H5O_chunk_proxy_t *chk_proxy)
 {
     herr_t      ret_value = SUCCEED;    /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5O_cache_chk_dest)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* Check arguments */
     HDassert(chk_proxy);
@@ -901,7 +901,7 @@ H5O_cache_chk_clear(H5F_t *f, H5O_chunk_proxy_t *chk_proxy, hbool_t destroy)
     unsigned	u;      /* Local index variable */
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_NOAPI_NOINIT(H5O_cache_chk_clear)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* check args */
     HDassert(chk_proxy);
@@ -952,7 +952,7 @@ done:
 static herr_t
 H5O_cache_chk_size(const H5F_t UNUSED *f, const H5O_chunk_proxy_t *chk_proxy, size_t *size_ptr)
 {
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5O_cache_chk_size)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
     /* check args */
     HDassert(chk_proxy);
@@ -983,10 +983,10 @@ H5O_cache_chk_size(const H5F_t UNUSED *f, const H5O_chunk_proxy_t *chk_proxy, si
 static herr_t
 H5O_add_cont_msg(H5O_cont_msgs_t *cont_msg_info, const H5O_cont_t *cont)
 {
-    unsigned contno;            /* Continuation message index */
+    size_t contno;              /* Continuation message index */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5O_add_cont_msg)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* Check arguments */
     HDassert(cont_msg_info);
@@ -1034,7 +1034,7 @@ H5O_chunk_deserialize(H5O_t *oh, haddr_t addr, size_t len, const uint8_t *image,
 {
     const uint8_t *p;           /* Pointer into buffer to decode */
     uint8_t *eom_ptr;           /* Pointer to end of messages for a chunk */
-    unsigned curmesg;           /* Current message being decoded in object header */
+    size_t curmesg;             /* Current message being decoded in object header */
     unsigned merged_null_msgs = 0;  /* Number of null messages merged together */
     unsigned chunkno;           /* Current chunk's index */
 #ifndef NDEBUG
@@ -1042,7 +1042,7 @@ H5O_chunk_deserialize(H5O_t *oh, haddr_t addr, size_t len, const uint8_t *image,
 #endif /* NDEBUG */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5O_chunk_deserialize)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* Check arguments */
     HDassert(oh);
@@ -1104,7 +1104,7 @@ H5O_chunk_deserialize(H5O_t *oh, haddr_t addr, size_t len, const uint8_t *image,
     nullcnt = 0;
 #endif /* NDEBUG */
     while(p < eom_ptr) {
-        unsigned mesgno;        /* Current message to operate on */
+        size_t mesgno;          /* Current message to operate on */
         size_t mesg_size;       /* Size of message read in */
         unsigned id;            /* ID (type) of current message */
         uint8_t	flags;          /* Flags for current message */
@@ -1166,7 +1166,7 @@ H5O_chunk_deserialize(H5O_t *oh, haddr_t addr, size_t len, const uint8_t *image,
 
             /* Combine adjacent null messages */
             mesgno = oh->nmesgs - 1;
-            oh->mesg[mesgno].raw_size += H5O_SIZEOF_MSGHDR_OH(oh) + mesg_size;
+            oh->mesg[mesgno].raw_size += (size_t)H5O_SIZEOF_MSGHDR_OH(oh) + mesg_size;
             oh->mesg[mesgno].dirty = TRUE;
             merged_null_msgs++;
             udata->merged_null_msgs++;
@@ -1373,7 +1373,7 @@ H5O_chunk_serialize(const H5F_t *f, H5O_t *oh, unsigned chunkno)
     unsigned	u;              /* Local index variable */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5O_chunk_serialize)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* Check arguments */
     HDassert(f);
@@ -1436,13 +1436,13 @@ H5O_chunk_proxy_dest(H5O_chunk_proxy_t *chk_proxy)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5O_chunk_proxy_dest)
+    FUNC_ENTER_NOAPI_NOINIT
 
     /* Check arguments */
     HDassert(chk_proxy);
 
     /* Decrement reference count of object header */
-    if(H5O_dec_rc(chk_proxy->oh) < 0)
+    if(chk_proxy->oh && H5O_dec_rc(chk_proxy->oh) < 0)
         HGOTO_ERROR(H5E_OHDR, H5E_CANTDEC, FAIL, "can't decrement reference count on object header")
 
     /* Release the chunk proxy object */

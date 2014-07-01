@@ -48,7 +48,8 @@
 /* Definitions for create intermediate groups flag */
 #define H5L_CRT_INTERMEDIATE_GROUP_SIZE         sizeof(unsigned)
 #define H5L_CRT_INTERMEDIATE_GROUP_DEF          0
-
+#define H5L_CRT_INTERMEDIATE_GROUP_ENC          H5P__encode_unsigned
+#define H5L_CRT_INTERMEDIATE_GROUP_DEC          H5P__decode_unsigned
 
 /******************/
 /* Local Typedefs */
@@ -75,10 +76,14 @@ static herr_t H5P_lcrt_reg_prop(H5P_genclass_t *pclass);
 /* Link creation property list class library initialization object */
 const H5P_libclass_t H5P_CLS_LCRT[1] = {{
     "link create",		/* Class name for debugging     */
-    &H5P_CLS_STRING_CREATE_g,	/* Parent class ID              */
-    &H5P_CLS_LINK_CREATE_g,	/* Pointer to class ID          */
-    &H5P_LST_LINK_CREATE_g,	/* Pointer to default property list ID */
+    H5P_TYPE_LINK_CREATE,       /* Class type                   */
+
+    &H5P_CLS_STRING_CREATE_g,	/* Parent class                 */
+    &H5P_CLS_LINK_CREATE_g,	/* Pointer to class             */
+    &H5P_CLS_LINK_CREATE_ID_g,	/* Pointer to class ID          */
+    &H5P_LST_LINK_CREATE_ID_g,	/* Pointer to default property list ID */
     H5P_lcrt_reg_prop,		/* Default property registration routine */
+
     NULL,		        /* Class creation callback      */
     NULL,		        /* Class creation callback info */
     NULL,			/* Class copy callback          */
@@ -97,6 +102,9 @@ const H5P_libclass_t H5P_CLS_LCRT[1] = {{
 /* Local Variables */
 /*******************/
 
+/* Property value defaults */
+static const unsigned H5L_def_intmd_group_g = H5L_CRT_INTERMEDIATE_GROUP_DEF;      /* Default setting for creating intermediate groups */
+
 
 
 /*-------------------------------------------------------------------------
@@ -113,14 +121,15 @@ const H5P_libclass_t H5P_CLS_LCRT[1] = {{
 herr_t
 H5P_lcrt_reg_prop(H5P_genclass_t *pclass)
 {
-    unsigned intmd_group = H5L_CRT_INTERMEDIATE_GROUP_DEF;      /* Default setting for creating intermediate groups */
     herr_t ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_NOAPI(H5P_lcrt_reg_prop, FAIL)
+    FUNC_ENTER_NOAPI(FAIL)
 
     /* Register create intermediate groups property */
-    if(H5P_register_real(pclass, H5L_CRT_INTERMEDIATE_GROUP_NAME, H5L_CRT_INTERMEDIATE_GROUP_SIZE, &intmd_group, NULL, NULL, NULL, NULL, NULL, NULL, NULL) < 0)
-         HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class")
+    if(H5P_register_real(pclass, H5L_CRT_INTERMEDIATE_GROUP_NAME, H5L_CRT_INTERMEDIATE_GROUP_SIZE, &H5L_def_intmd_group_g, 
+            NULL, NULL, NULL, H5L_CRT_INTERMEDIATE_GROUP_ENC, H5L_CRT_INTERMEDIATE_GROUP_DEC,
+            NULL, NULL, NULL, NULL) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class")
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -147,7 +156,7 @@ H5Pset_create_intermediate_group(hid_t plist_id, unsigned crt_intmd_group)
     H5P_genplist_t *plist;      /* Property list pointer */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(H5Pset_create_intermediate_group, FAIL);
+    FUNC_ENTER_API(FAIL)
     H5TRACE2("e", "iIu", plist_id, crt_intmd_group);
 
     /* Get the plist structure */
@@ -182,7 +191,7 @@ H5Pget_create_intermediate_group(hid_t plist_id, unsigned *crt_intmd_group /*out
     H5P_genplist_t *plist;      /* Property list pointer */
     herr_t ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(H5Pget_create_intermediate_group, FAIL);
+    FUNC_ENTER_API(FAIL)
     H5TRACE2("e", "ix", plist_id, crt_intmd_group);
 
     /* Get the plist structure */

@@ -15,15 +15,16 @@
 
 #include "h5repack.h"
 #include "h5tools.h"
+#include "h5tools_utils.h"
 
 /* number of members in an array */
 #ifndef NELMTS
-#    define NELMTS(X)		(sizeof(X)/sizeof(X[0]))
+#    define NELMTS(X)    (sizeof(X)/sizeof(X[0]))
 #endif
 
 /* minimum of two values */
 #undef MIN
-#define MIN(a,b)		(((a)<(b)) ? (a) : (b))
+#define MIN(a,b)    (((a)<(b)) ? (a) : (b))
 
 /*-------------------------------------------------------------------------
  * Function: aux_find_obj
@@ -329,7 +330,7 @@ int apply_filters(const char* name,    /* object name from traverse list */
                     size = 1;
                 sm_size[i - 1] = MIN(dims[i - 1], size);
                 sm_nbytes *= sm_size[i - 1];
-                assert(sm_nbytes > 0);
+                HDassert(sm_nbytes > 0);
 
             }
 
@@ -344,8 +345,13 @@ int apply_filters(const char* name,    /* object name from traverse list */
         {
             switch (obj.filter[i].filtn)
             {
-            default:
-                break;
+
+            /*-------------------------------------------------------------------------
+             * H5Z_FILTER_NONE       0 , uncompress if compressed
+             *-------------------------------------------------------------------------
+             */
+            case H5Z_FILTER_NONE:
+            	break;
 
            /*-------------------------------------------------------------------------
             * H5Z_FILTER_DEFLATE       1 , deflation like gzip
@@ -434,6 +440,14 @@ int apply_filters(const char* name,    /* object name from traverse list */
                     if (H5Pset_scaleoffset(dcpl_id,scale_type,scale_factor)<0)
                         return -1;
                 }
+                break;
+            default:
+            	{
+            		if (H5Pset_filter (dcpl_id, obj.filter[i].filtn, H5Z_FLAG_MANDATORY, obj.filter[i].cd_nelmts, obj.filter[i].cd_values)<0)
+                		return -1;
+            		if(H5Pset_chunk(dcpl_id, obj.chunk.rank, obj.chunk.chunk_lengths)<0)
+            			return -1;
+            	}
                 break;
             } /* switch */
         }/*i*/

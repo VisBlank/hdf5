@@ -63,6 +63,7 @@ static herr_t H5O_fill_debug(H5F_t *f, hid_t dxpl_id, const void *_mesg, FILE *s
 #undef H5O_SHARED_COPY_FILE_REAL
 #define H5O_SHARED_POST_COPY_FILE	H5O_fill_shared_post_copy_file
 #undef H5O_SHARED_POST_COPY_FILE_REAL
+#undef  H5O_SHARED_POST_COPY_FILE_UPD
 #define H5O_SHARED_DEBUG		H5O_fill_shared_debug
 #define H5O_SHARED_DEBUG_REAL		H5O_fill_debug
 #include "H5Oshared.h"			/* Shared Object Header Message Callbacks */
@@ -95,6 +96,7 @@ static herr_t H5O_fill_debug(H5F_t *f, hid_t dxpl_id, const void *_mesg, FILE *s
 #undef H5O_SHARED_POST_COPY_FILE
 #define H5O_SHARED_POST_COPY_FILE	H5O_fill_new_shared_post_copy_file
 #undef H5O_SHARED_POST_COPY_FILE_REAL
+#undef  H5O_SHARED_POST_COPY_FILE_UPD
 #undef H5O_SHARED_DEBUG
 #define H5O_SHARED_DEBUG		H5O_fill_new_shared_debug
 #undef H5O_SHARED_DEBUG_REAL
@@ -120,7 +122,7 @@ const H5O_msg_class_t H5O_MSG_FILL[1] = {{
     NULL,		    	/*can share method		*/
     NULL,			/* pre copy native value to file	*/
     H5O_fill_shared_copy_file,	/* copy native value to file		*/
-    NULL,			/* post copy native value to file	*/
+    H5O_fill_shared_post_copy_file,	/* post copy native value to file	*/
     NULL,			/* get creation index		*/
     NULL,			/* set creation index		*/
     H5O_fill_shared_debug       /*debug the message			*/
@@ -144,7 +146,7 @@ const H5O_msg_class_t H5O_MSG_FILL_NEW[1] = {{
     NULL,		    	/*can share method		*/
     NULL,			/* pre copy native value to file	*/
     H5O_fill_new_shared_copy_file, /* copy native value to file		*/
-    NULL,			/* post copy native value to file	*/
+    H5O_fill_new_shared_post_copy_file,	/* post copy native value to file	*/
     NULL,			/* get creation index		*/
     NULL,			/* set creation index		*/
     H5O_fill_new_shared_debug	/*debug the message			*/
@@ -188,7 +190,7 @@ H5O_fill_new_decode(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, H5O_t UNUSED *open_oh
     H5O_fill_t	*fill = NULL;
     void	*ret_value;
 
-    FUNC_ENTER_NOAPI_NOINIT(H5O_fill_new_decode)
+    FUNC_ENTER_NOAPI_NOINIT
 
     HDassert(f);
     HDassert(p);
@@ -302,7 +304,7 @@ H5O_fill_old_decode(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, H5O_t UNUSED *open_oh
     H5O_fill_t *fill = NULL;		/* Decoded fill value message */
     void *ret_value;                    /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5O_fill_old_decode)
+    FUNC_ENTER_NOAPI_NOINIT
 
     HDassert(f);
     HDassert(p);
@@ -361,7 +363,7 @@ H5O_fill_new_encode(H5F_t UNUSED *f, uint8_t *p, const void *_fill)
 {
     const H5O_fill_t	*fill = (const H5O_fill_t *)_fill;
 
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5O_fill_new_encode)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
     HDassert(f);
     HDassert(p);
@@ -395,11 +397,11 @@ H5O_fill_new_encode(H5F_t UNUSED *f, uint8_t *p, const void *_fill)
 
         /* Encode space allocation time */
         HDassert(fill->alloc_time == (H5O_FILL_MASK_ALLOC_TIME & fill->alloc_time));
-        flags |= (H5O_FILL_MASK_ALLOC_TIME & fill->alloc_time) << H5O_FILL_SHIFT_ALLOC_TIME;
+        flags = (uint8_t)(flags | ((H5O_FILL_MASK_ALLOC_TIME & fill->alloc_time) << H5O_FILL_SHIFT_ALLOC_TIME));
 
         /* Encode fill value writing time */
         HDassert(fill->fill_time == (H5O_FILL_MASK_FILL_TIME & fill->fill_time));
-        flags |= (H5O_FILL_MASK_FILL_TIME & fill->fill_time) << H5O_FILL_SHIFT_FILL_TIME;
+        flags = (uint8_t)(flags | ((H5O_FILL_MASK_FILL_TIME & fill->fill_time) << H5O_FILL_SHIFT_FILL_TIME));
 
         /* Check if we need to encode a fill value size */
         if(fill->size < 0) {
@@ -457,7 +459,7 @@ H5O_fill_old_encode(H5F_t UNUSED *f, uint8_t *p, const void *_fill)
 {
     const H5O_fill_t *fill = (const H5O_fill_t *)_fill;
 
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5O_fill_old_encode)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
     HDassert(f);
     HDassert(p);
@@ -494,7 +496,7 @@ H5O_fill_copy(const void *_src, void *_dst)
     H5O_fill_t		*dst = (H5O_fill_t *)_dst;
     void		*ret_value;
 
-    FUNC_ENTER_NOAPI_NOINIT(H5O_fill_copy)
+    FUNC_ENTER_NOAPI_NOINIT
 
     HDassert(src);
 
@@ -611,7 +613,7 @@ H5O_fill_new_size(const H5F_t UNUSED *f, const void *_fill)
     const H5O_fill_t	*fill = (const H5O_fill_t *)_fill;
     size_t		ret_value;
 
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5O_fill_new_size)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
     HDassert(f);
     HDassert(fill);
@@ -658,7 +660,7 @@ H5O_fill_old_size(const H5F_t UNUSED *f, const void *_fill)
 {
     const H5O_fill_t *fill = (const H5O_fill_t *)_fill;
 
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5O_fill_old_size)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
     HDassert(fill);
 
@@ -684,7 +686,7 @@ H5O_fill_reset_dyn(H5O_fill_t *fill)
     hid_t fill_type_id = -1;            /* Datatype ID for fill value datatype when reclaiming VL fill values */
     herr_t ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_NOAPI(H5O_fill_reset_dyn, FAIL)
+    FUNC_ENTER_NOAPI(FAIL)
 
     HDassert(fill);
 
@@ -749,7 +751,7 @@ H5O_fill_reset(void *_fill)
 {
     H5O_fill_t	*fill = (H5O_fill_t *)_fill;
 
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5O_fill_reset)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
     HDassert(fill);
 
@@ -780,7 +782,7 @@ H5O_fill_reset(void *_fill)
 static herr_t
 H5O_fill_free(void *fill)
 {
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5O_fill_free)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
     HDassert(fill);
 
@@ -809,7 +811,7 @@ H5O_fill_debug(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, const void *_fill, FILE *s
     const H5O_fill_t *fill = (const H5O_fill_t *)_fill;
     H5D_fill_value_t fill_status;       /* Whether the fill value is defined */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5O_fill_debug)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
     HDassert(f);
     HDassert(fill);
@@ -831,10 +833,11 @@ H5O_fill_debug(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, const void *_fill, FILE *s
             fprintf(stream,"Incremental\n");
             break;
 
+        case H5D_ALLOC_TIME_DEFAULT:
+        case H5D_ALLOC_TIME_ERROR:
         default:
             fprintf(stream,"Unknown!\n");
             break;
-
     } /* end switch */
     HDfprintf(stream, "%*s%-*s ", indent, "", fwidth, "Fill Time:");
     switch(fill->fill_time) {
@@ -850,6 +853,7 @@ H5O_fill_debug(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, const void *_fill, FILE *s
             fprintf(stream,"If Set\n");
             break;
 
+        case H5D_FILL_TIME_ERROR:
         default:
             fprintf(stream,"Unknown!\n");
             break;
@@ -870,6 +874,7 @@ H5O_fill_debug(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, const void *_fill, FILE *s
             fprintf(stream,"User Defined\n");
             break;
 
+        case H5D_FILL_VALUE_ERROR:
         default:
             fprintf(stream,"Unknown!\n");
             break;
@@ -912,7 +917,7 @@ H5O_fill_convert(H5O_fill_t *fill, H5T_t *dset_type, hbool_t *fill_changed, hid_
     hid_t		src_id = -1, dst_id = -1;   /* Datatype identifiers	*/
     herr_t      	ret_value = SUCCEED;        /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT(H5O_fill_convert)
+    FUNC_ENTER_NOAPI_NOINIT
 
     HDassert(fill);
     HDassert(dset_type);
@@ -1007,7 +1012,7 @@ done:
 herr_t
 H5O_fill_set_latest_version(H5O_fill_t *fill)
 {
-    FUNC_ENTER_NOAPI_NOFUNC(H5O_fill_set_latest_version)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
     /* Sanity check */
     HDassert(fill);

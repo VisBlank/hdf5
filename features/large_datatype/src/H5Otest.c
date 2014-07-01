@@ -101,7 +101,7 @@ H5O_is_attr_dense_test(hid_t oid)
     H5O_loc_t *loc;             /* Pointer to object's location */
     htri_t ret_value;           /* Return value */
 
-    FUNC_ENTER_NOAPI(H5O_is_attr_dense_test, FAIL)
+    FUNC_ENTER_NOAPI(FAIL)
 
     /* Get object location for object */
     if(NULL == (loc = H5O_get_loc(oid)))
@@ -166,7 +166,7 @@ H5O_is_attr_empty_test(hid_t oid)
     hsize_t nattrs;             /* Number of attributes */
     htri_t ret_value;           /* Return value */
 
-    FUNC_ENTER_NOAPI(H5O_is_attr_empty_test, FAIL)
+    FUNC_ENTER_NOAPI(FAIL)
 
     /* Get object location for object */
     if(NULL == (loc = H5O_get_loc(oid)))
@@ -193,13 +193,13 @@ H5O_is_attr_empty_test(hid_t oid)
             if(H5F_addr_defined(ainfo.fheap_addr)) {
                 /* Check for any messages in object header */
                 HDassert(nattrs == 0);
-            
+
                 /* Set metadata tag in dxpl_id */
                 H5_BEGIN_TAG(H5AC_ind_dxpl_id, loc->addr, FAIL);
 
                 /* Open the name index v2 B-tree */
                 if(NULL == (bt2_name = H5B2_open(loc->file, H5AC_ind_dxpl_id, ainfo.name_bt2_addr, NULL)))
-                    HGOTO_ERROR(H5E_OHDR, H5E_CANTOPENOBJ, FAIL, "unable to open v2 B-tree for name index")
+                    HGOTO_ERROR_TAG(H5E_OHDR, H5E_CANTOPENOBJ, FAIL, "unable to open v2 B-tree for name index")
 
                 /* Reset metadata tag in dxpl_id */
                 H5_END_TAG(FAIL);
@@ -259,7 +259,7 @@ H5O_num_attrs_test(hid_t oid, hsize_t *nattrs)
     hsize_t obj_nattrs;         /* Number of attributes */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(H5O_num_attrs_test, FAIL)
+    FUNC_ENTER_NOAPI(FAIL)
 
     /* Get object location for object */
     if(NULL == (loc = H5O_get_loc(oid)))
@@ -292,7 +292,7 @@ H5O_num_attrs_test(hid_t oid, hsize_t *nattrs)
 
             /* Open the name index v2 B-tree */
             if(NULL == (bt2_name = H5B2_open(loc->file, H5AC_ind_dxpl_id, ainfo.name_bt2_addr, NULL)))
-                HGOTO_ERROR(H5E_OHDR, H5E_CANTOPENOBJ, FAIL, "unable to open v2 B-tree for name index")
+                HGOTO_ERROR_TAG(H5E_OHDR, H5E_CANTOPENOBJ, FAIL, "unable to open v2 B-tree for name index")
 
             /* Reset metadata tag in dxpl_id */
             H5_END_TAG(FAIL);
@@ -351,7 +351,7 @@ H5O_attr_dense_info_test(hid_t oid, hsize_t *name_count, hsize_t *corder_count)
     H5O_loc_t *loc;            /* Pointer to object's location */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(H5O_attr_dense_info_test, FAIL)
+    FUNC_ENTER_NOAPI(FAIL)
 
     /* Get object location for object */
     if(NULL == (loc = H5O_get_loc(oid)))
@@ -362,42 +362,45 @@ H5O_attr_dense_info_test(hid_t oid, hsize_t *name_count, hsize_t *corder_count)
 
     /* Get the object header */
     if(NULL == (oh = H5O_protect(loc, H5AC_ind_dxpl_id, H5AC_READ)))
-	HGOTO_ERROR(H5E_OHDR, H5E_CANTPROTECT, FAIL, "unable to load object header")
+	HGOTO_ERROR_TAG(H5E_OHDR, H5E_CANTPROTECT, FAIL, "unable to load object header")
 
     /* Check for attribute info stored */
     ainfo.fheap_addr = HADDR_UNDEF;
     if(oh->version > H5O_VERSION_1) {
         /* Check for (& retrieve if available) attribute info */
         if(H5A_get_ainfo(loc->file, H5AC_ind_dxpl_id, oh, &ainfo) < 0)
-            HGOTO_ERROR(H5E_ATTR, H5E_CANTGET, FAIL, "can't check for attribute info message")
+            HGOTO_ERROR_TAG(H5E_ATTR, H5E_CANTGET, FAIL, "can't check for attribute info message")
     } /* end if */
 
     /* Check for 'dense' attribute storage file addresses being defined */
     if(!H5F_addr_defined(ainfo.fheap_addr))
-        HGOTO_DONE(FAIL)
+        HGOTO_DONE_TAG(FAIL, FAIL)
     if(!H5F_addr_defined(ainfo.name_bt2_addr))
-        HGOTO_DONE(FAIL)
+        HGOTO_DONE_TAG(FAIL, FAIL)
 
     /* Open the name index v2 B-tree */
     if(NULL == (bt2_name = H5B2_open(loc->file, H5AC_ind_dxpl_id, ainfo.name_bt2_addr, NULL)))
-        HGOTO_ERROR(H5E_OHDR, H5E_CANTOPENOBJ, FAIL, "unable to open v2 B-tree for name index")
+        HGOTO_ERROR_TAG(H5E_OHDR, H5E_CANTOPENOBJ, FAIL, "unable to open v2 B-tree for name index")
 
     /* Retrieve # of records in name index */
     if(H5B2_get_nrec(bt2_name, name_count) < 0)
-        HGOTO_ERROR(H5E_OHDR, H5E_CANTCOUNT, FAIL, "unable to retrieve # of records from name index")
+        HGOTO_ERROR_TAG(H5E_OHDR, H5E_CANTCOUNT, FAIL, "unable to retrieve # of records from name index")
 
     /* Check if there is a creation order index */
     if(H5F_addr_defined(ainfo.corder_bt2_addr)) {
         /* Open the creation order index v2 B-tree */
         if(NULL == (bt2_corder = H5B2_open(loc->file, H5AC_ind_dxpl_id, ainfo.corder_bt2_addr, NULL)))
-            HGOTO_ERROR(H5E_OHDR, H5E_CANTOPENOBJ, FAIL, "unable to open v2 B-tree for creation order index")
+            HGOTO_ERROR_TAG(H5E_OHDR, H5E_CANTOPENOBJ, FAIL, "unable to open v2 B-tree for creation order index")
 
         /* Retrieve # of records in creation order index */
         if(H5B2_get_nrec(bt2_corder, corder_count) < 0)
-            HGOTO_ERROR(H5E_OHDR, H5E_CANTCOUNT, FAIL, "unable to retrieve # of records from creation order index")
+            HGOTO_ERROR_TAG(H5E_OHDR, H5E_CANTCOUNT, FAIL, "unable to retrieve # of records from creation order index")
     } /* end if */
     else
         *corder_count = 0;
+
+    /* Reset metadata tag in dxpl_id */
+    H5_END_TAG(FAIL);
 
 done:
     /* Release resources */
@@ -407,9 +410,6 @@ done:
         HDONE_ERROR(H5E_OHDR, H5E_CANTCLOSEOBJ, FAIL, "can't close v2 B-tree for creation order index")
     if(oh && H5O_unprotect(loc, H5AC_ind_dxpl_id, oh, H5AC__NO_FLAGS_SET) < 0)
 	HDONE_ERROR(H5E_OHDR, H5E_CANTUNPROTECT, FAIL, "unable to release object header")
-
-    /* Reset metadata tag in dxpl_id */
-    H5_END_TAG(FAIL);
 
     FUNC_LEAVE_NOAPI(ret_value)
 }   /* H5O_attr_dense_info_test() */
@@ -445,7 +445,7 @@ H5O_check_msg_marked_test(hid_t oid, hbool_t flag_val)
     unsigned idx;               /* Index of message */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(H5O_check_msg_marked_test, FAIL)
+    FUNC_ENTER_NOAPI(FAIL)
 
     /* Get object location for object */
     if(NULL == (loc = H5O_get_loc(oid)))
@@ -504,11 +504,11 @@ H5O_expunge_chunks_test(const H5O_loc_t *loc, hid_t dxpl_id)
 {
     H5O_t *oh = NULL;           /* Object header */
     haddr_t chk_addr[16];       /* Array of chunk addresses */
-    unsigned nchunks;           /* Number of chunks in object header */
-    unsigned u;                 /* Local index variable */
+    size_t nchunks;             /* Number of chunks in object header */
+    size_t u;                   /* Local index variable */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(H5O_expunge_chunks_test, FAIL)
+    FUNC_ENTER_NOAPI(FAIL)
 
     /* Get the object header */
     if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC_WRITE)))
@@ -516,7 +516,7 @@ H5O_expunge_chunks_test(const H5O_loc_t *loc, hid_t dxpl_id)
 
     /* Safety check */
     nchunks = oh->nchunks;
-    HDassert(nchunks < NELMTS(chk_addr));
+    HDassert(0 < nchunks && nchunks < NELMTS(chk_addr));
 
     /* Iterate over all the chunks, saving the chunk addresses */
     for(u = 0; u < oh->nchunks; u++)
@@ -564,7 +564,7 @@ H5O_get_rc(const H5O_loc_t *loc, hid_t dxpl_id, unsigned *rc)
     H5O_t *oh = NULL;           /* Object header */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(H5O_get_rc, FAIL)
+    FUNC_ENTER_NOAPI(FAIL)
 
     /* Sanity check */
     HDassert(loc);

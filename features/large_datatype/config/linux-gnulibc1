@@ -41,7 +41,6 @@ fi
 # Figure out Intel C compiler flags
 . $srcdir/config/intel-flags
 
-echo "CC_BASENAME is $CC_BASENAME."
 # Use default Fortran 90 compiler according to what C compiler is used.
 if test "X-" = "X-$FC"; then
     case $CC_BASENAME in
@@ -125,23 +124,6 @@ if test -z "$CXX"; then
   CXX_BASENAME=g++
 fi
 
-# Check MPICH settings
-. $srcdir/config/mpich
-
-# The ChaMPIon on NCSA tungsten doesn't work correctly for either of the following
-# cases:
-#     1. collective I/O when some processes don't have any contributions;
-#     2. complex derived MPI data type.
-if test $CC_BASENAME = cmpicc; then
-  hdf5_cv_mpi_special_collective_io_works=${hdf5_cv_mpi_special_collective_io_works='no'}
-  hdf5_cv_mpi_complex_derived_datatype_works=${hdf5_cv_mpi_complex_derived_datatype_works='no'}
-fi
-
-#Comment out the following line if your system supports collective IO when some processes
-#don't have any contributions to IOs.
-hdf5_cv_mpi_special_collective_io_works=${hdf5_cv_mpi_special_collective_io_works='no'}
-hdf5_cv_mpi_complex_derived_datatype_works=${hdf5_cv_mpi_complex_derived_datatype_works='no'}
-
 # compiler version strings
 case $CC in
     # whatever matches *pgcc* will also match *gcc*, so this one must come first
@@ -153,6 +135,13 @@ case $CC in
         cc_version_info=`$CC $CFLAGS $H5_CFLAGS --version 2>&1 | grep -v 'PathScale' |\
             grep 'GCC' | sed 's/\(.*(GCC) [-a-z0-9\. ]*\).*/\1/'`
         ;;
+    # this must come before *icc* for the same reason
+    *mpicc*)
+        cc_version_info=`$CC $CCFLAGS $H5_CCFLAGS -v 2>&1 | grep 'version' |\
+            sed 's/^[a-z0-9]* for //' |\
+            sed 's/^\([a-z]* \)/ built with \1/1'`
+        cc_version_info=`echo $cc_version_info`
+        ;; 
 
     *icc*)
         cc_version_info=`$CC $CCFLAGS $H5_CCFLAGS -V 2>&1 | grep 'Version' |\
@@ -169,6 +158,13 @@ case $FC in
     *gfortran*)
         fc_version_info=`$FC $FCFLAGS $H5_FCFLAGS --version 2>&1 |\
             grep 'GCC' | sed 's/\(.*(GCC) [-a-z0-9\. ]*\).*/\1/'`
+        ;;
+
+    *mpif90*)
+        fc_version_info=`$FC $FCFLAGS $H5_FCFLAGS -v 2>&1 | grep 'version' |\
+            sed 's/^[a-z0-9]* for //' |\
+            sed 's/^\([a-z]* \)/ built with \1/1'`
+        fc_version_info=`echo $fc_version_info`
         ;;
 
     *ifc*|*ifort*)
@@ -219,6 +215,12 @@ case $CXX in
         cxx_version_info=`$CXX $CXXFLAGS $H5_CXXFLAGS -V 2>&1 | grep 'pgCC'`
         ;;
 
+    *mpicxx*)
+        cxx_version_info=`$CXX $CXXFLAGS $H5_CXXFLAGS -v 2>&1 | grep 'version' |\
+            sed 's/^[a-z0-9]* for //' |\
+            sed 's/^\([a-z]* \)/ built with \1/1'`
+        cxx_version_info=`echo $cxx_version_info`
+        ;; 
 
     *)
         echo "No match to get cxx_version_info for $CXX"

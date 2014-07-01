@@ -6,14 +6,14 @@ COMMENT "This is a dataset with contiguous storage"
    STORAGE_LAYOUT {
       CONTIGUOUS
       SIZE 800
-      OFFSET 4096
+      OFFSET 2472
    }
    FILTERS {
       NONE
    }
    FILLVALUE {
       FILL_TIME H5D_FILL_TIME_IFSET
-      VALUE  0   
+      VALUE  0
    }
    ALLOCATION_TIME {
       H5D_ALLOC_TIME_LATE

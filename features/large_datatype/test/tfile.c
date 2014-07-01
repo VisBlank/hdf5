@@ -112,6 +112,11 @@
 /* Declaration for test_libver_macros2() */
 #define FILE6			"tfile6.h5"	/* Test file */
 
+/* Declaration for test_get_obj_ids() */
+#define FILE7			"tfile7.h5"	/* Test file */
+#define NGROUPS			2
+#define NDSETS			4
+
 const char *OLD_FILENAME[] = {  /* Files created under 1.6 branch and 1.8 branch */
     "filespace_1_6.h5",	/* 1.6 HDF5 file */
     "filespace_1_8.h5"	/* 1.8 HDF5 file */
@@ -526,6 +531,9 @@ test_file_open(void)
     /* Close dataset from first open */
     ret = H5Dclose(did);
     CHECK(ret, FAIL, "H5Dclose");
+
+    ret = H5Pclose(fapl_id);
+    CHECK(ret, FAIL, "H5Pclose");
 }   /* test_file_open() */
 
 /****************************************************************
@@ -949,6 +957,131 @@ create_objects(hid_t fid1, hid_t fid2, hid_t *ret_did, hid_t *ret_gid1,
 
 /****************************************************************
 **
+**  test_get_obj_ids(): Test the bug and the fix for Jira 8528.
+**                      H5Fget_obj_ids overfilled the list of 
+**                      object IDs by one.  This is an enhancement
+**                      for test_obj_count_and_id().
+**
+****************************************************************/
+static void
+test_get_obj_ids(void)
+{
+    hid_t    fid, gid[NGROUPS], dset[NDSETS];
+    hid_t    filespace;
+    hsize_t  file_dims[F2_RANK] = {F2_DIM0, F2_DIM1};
+    ssize_t  oid_count, ret_count;
+    hid_t *oid_list = NULL;
+    herr_t   ret;
+    int i, m, n;
+    ssize_t oid_list_size = NDSETS;
+    char gname[64], dname[64];
+
+    /* Create a new file */
+    fid = H5Fcreate(FILE7, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    CHECK(fid, FAIL, "H5Fcreate");
+
+    filespace = H5Screate_simple(F2_RANK, file_dims,  NULL);
+    CHECK(filespace, FAIL, "H5Screate_simple");
+
+    /* creates NGROUPS groups under the root group */
+    for(m = 0; m < NGROUPS; m++) {
+        sprintf(gname, "group%d", m);
+        gid[m] = H5Gcreate2(fid, gname, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        CHECK(gid[m], FAIL, "H5Gcreate2");
+    }
+
+    /* create NDSETS datasets under the root group */
+    for(n = 0; n < NDSETS; n++) {
+         sprintf(dname, "dataset%d", n);
+         dset[n] = H5Dcreate2(fid, dname, H5T_NATIVE_INT, filespace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+         CHECK(dset[n], FAIL, "H5Dcreate2");
+    }
+
+    /* The number of opened objects should be NGROUPS + NDSETS + 1.  One is opened file. */
+    oid_count = H5Fget_obj_count(fid, H5F_OBJ_ALL);
+    CHECK(oid_count, FAIL, "H5Fget_obj_count");
+    VERIFY(oid_count, (NGROUPS + NDSETS + 1), "H5Fget_obj_count");
+
+    oid_list = (hid_t *)HDcalloc((size_t)oid_list_size, sizeof(hid_t));
+    CHECK(oid_list, NULL, "HDcalloc");
+
+    /* Call the public function H5F_get_obj_ids to use H5F_get_objects.  User reported having problem here. 
+     * that the returned size (ret_count) from H5Fget_obj_ids is one greater than the size passed in 
+     * (oid_list_size) */
+    ret_count = H5Fget_obj_ids(fid, H5F_OBJ_ALL, (size_t)oid_list_size, oid_list);
+    CHECK(ret_count, FAIL, "H5Fget_obj_ids");
+    VERIFY(ret_count, oid_list_size, "H5Fget_obj_count");
+
+    /* Close all object IDs on the list except the file ID. The first ID is supposed to be file ID according 
+     * to the library design */
+    for(i = 0; i< ret_count; i++) {
+        if(fid != oid_list[i]) {
+            ret = H5Oclose(oid_list[i]);
+            CHECK(ret, FAIL, "H5Oclose");
+        }
+    }
+
+    /* The number of opened objects should be NGROUPS + 1 + 1.  The first one is opened file. The second one
+     * is the dataset ID left open from the previous around of H5Fget_obj_ids */
+    oid_count = H5Fget_obj_count(fid, H5F_OBJ_ALL);
+    CHECK(oid_count, FAIL, "H5Fget_obj_count");
+    VERIFY(oid_count, NGROUPS + 2, "H5Fget_obj_count");
+
+    /* Get the IDs of the left opend objects */ 
+    ret_count = H5Fget_obj_ids(fid, H5F_OBJ_ALL, (size_t)oid_list_size, oid_list);
+    CHECK(ret_count, FAIL, "H5Fget_obj_ids");
+    VERIFY(ret_count, oid_list_size, "H5Fget_obj_count");
+
+    /* Close all object IDs on the list except the file ID. The first ID is still the file ID */
+    for(i = 0; i< ret_count; i++) {
+        if(fid != oid_list[i]) {
+            ret = H5Oclose(oid_list[i]);
+            CHECK(ret, FAIL, "H5Oclose");
+        }
+    }
+  
+    H5Sclose(filespace);
+    H5Fclose(fid);
+
+    HDfree(oid_list);
+
+    /* Reopen the file to check whether H5Fget_obj_count and H5Fget_obj_ids still works 
+     * when the file is closed first */ 
+    fid = H5Fopen(FILE7, H5F_ACC_RDONLY, H5P_DEFAULT);
+    CHECK(fid, FAIL, "H5Fopen");
+
+    /* Open NDSETS datasets under the root group */
+    for(n = 0; n < NDSETS; n++) {
+         sprintf(dname, "dataset%d", n);
+         dset[n] = H5Dopen2(fid, dname, H5P_DEFAULT);
+         CHECK(dset[n], FAIL, "H5Dcreate2");
+    }
+
+    /* Close the file first */
+    H5Fclose(fid);
+
+    /* Get the number of all opened objects */
+    oid_count = H5Fget_obj_count(H5F_OBJ_ALL, H5F_OBJ_ALL);
+    CHECK(oid_count, FAIL, "H5Fget_obj_count");
+    VERIFY(oid_count, NDSETS, "H5Fget_obj_count");
+
+    oid_list = (hid_t *)HDcalloc((size_t)oid_count, sizeof(hid_t));
+    CHECK(oid_list, NULL, "HDcalloc");
+
+    /* Get the list of all opened objects */
+    ret_count = H5Fget_obj_ids(H5F_OBJ_ALL, H5F_OBJ_ALL, (size_t)oid_count, oid_list);
+    CHECK(ret_count, FAIL, "H5Fget_obj_ids");
+    VERIFY(ret_count, NDSETS, "H5Fget_obj_count");
+
+    /* Close all open objects with H5Oclose */
+    for(n = 0; n < oid_count; n++)
+         H5Oclose(oid_list[n]);
+
+    HDfree(oid_list);
+}
+
+/****************************************************************
+**
 **  test_get_file_id(): Test H5Iget_file_id()
 **
 *****************************************************************/
@@ -1060,6 +1193,9 @@ test_get_file_id(void)
     VERIFY(fid2, FAIL, "H5Iget_file_id");
 
     /* Close objects */
+    ret = H5Pclose(plist);
+    CHECK(ret, FAIL, "H5Pclose");
+
     ret = H5Tclose(datatype_id);
     CHECK(ret, FAIL, "H5Tclose");
 
@@ -1263,9 +1399,87 @@ test_file_perm(void)
 
 /****************************************************************
 **
+**  test_file_perm2(): low-level file test routine.
+**      This test verifies that no object can be created in a 
+**      file that is opened for read-only.
+**
+*****************************************************************/
+static void 
+test_file_perm2(void)
+{
+    hid_t    file;      /* File opened with read-write permission */
+    hid_t    filero;    /* Same file opened with read-only permission */
+    hid_t    dspace;    /* Dataspace ID */
+    hid_t    group;     /* Group ID */
+    hid_t    dset;      /* Dataset ID */
+    hid_t    type;      /* Datatype ID */
+    hid_t    attr;      /* Attribute ID */
+    herr_t   ret; 
+
+    /* Output message about test being performed */
+    MESSAGE(5, ("Testing Low-Level File Permissions again\n"));
+
+    dspace = H5Screate(H5S_SCALAR);
+    CHECK(dspace, FAIL, "H5Screate");
+
+    /* Create the file (with read-write permission) */
+    file = H5Fcreate(FILE2, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    CHECK(file, FAIL, "H5Fcreate");
+
+    ret = H5Fclose(file);
+    CHECK(ret, FAIL, "H5Fclose");
+
+    /* Open the file (with read-only permission) */
+    filero = H5Fopen(FILE2, H5F_ACC_RDONLY, H5P_DEFAULT);
+    CHECK(filero, FAIL, "H5Fopen");
+
+    /* Create a group with the read-only file handle (should fail) */
+    H5E_BEGIN_TRY {
+        group = H5Gcreate2(filero, "MY_GROUP", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    } H5E_END_TRY;
+    VERIFY(group, FAIL, "H5Gcreate2");
+
+    /* Create a dataset with the read-only file handle (should fail) */
+    H5E_BEGIN_TRY {
+        dset = H5Dcreate2(filero, F2_DSET, H5T_NATIVE_INT, dspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    } H5E_END_TRY;
+    VERIFY(dset, FAIL, "H5Dcreate2");
+
+    /* Create an attribute with the read-only file handle (should fail) */
+    H5E_BEGIN_TRY {
+        attr = H5Acreate2(filero, "MY_ATTR", H5T_NATIVE_INT, dspace, H5P_DEFAULT, H5P_DEFAULT);
+    } H5E_END_TRY;
+    VERIFY(attr, FAIL, "H5Acreate2");
+
+    type = H5Tcopy(H5T_NATIVE_SHORT);
+    CHECK(type, FAIL, "H5Tcopy");
+
+    /* Commit a datatype with the read-only file handle (should fail) */
+    H5E_BEGIN_TRY {
+        ret = H5Tcommit2(filero, "MY_DTYPE", type, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    } H5E_END_TRY;
+    VERIFY(ret, FAIL, "H5Tcommit2");
+
+    ret = H5Tclose(type);
+    CHECK(ret, FAIL, "H5Tclose");
+
+    ret = H5Fclose(filero);
+    CHECK(ret, FAIL, "H5Fclose");
+
+    ret = H5Sclose(dspace);
+    CHECK(ret, FAIL, "H5Sclose");
+} /* end test_file_perm2() */
+
+/****************************************************************
+**
 **  test_file_freespace(): low-level file test routine.
 **      This test checks the free space available in a file in various
 **      situations.
+**
+**  Modifications:
+**	Vailin Choi; July 2012
+**	Remove datasets in reverse order so that all file spaces are shrunk.
+**	(A change due to H5FD_FLMAP_DICHOTOMY.)
 **
 *****************************************************************/
 static void
@@ -1278,6 +1492,7 @@ test_file_freespace(void)
     hid_t    dspace;    /* Dataspace ID */
     hid_t    dset;      /* Dataset ID */
     hid_t    dcpl;      /* Dataset creation property list */
+    int k;		/* Local index variable */
     unsigned u;         /* Local index variable */
     char     name[32];  /* Dataset name */
     herr_t   ret;
@@ -1337,11 +1552,11 @@ test_file_freespace(void)
     /* Check that there is the right amount of free space in the file */
     free_space = H5Fget_freespace(file);
     CHECK(free_space, FAIL, "H5Fget_freespace");
-    VERIFY(free_space, 2008, "H5Fget_freespace");
+    VERIFY(free_space, 2360, "H5Fget_freespace");
 
     /* Delete datasets in file */
-    for(u = 0; u < 10; u++) {
-        sprintf(name, "Dataset %u", u);
+    for(k = 9; k >= 0; k--) {
+        sprintf(name, "Dataset %u", (unsigned)k);
         ret = H5Ldelete(file, name, H5P_DEFAULT);
         CHECK(ret, FAIL, "H5Ldelete");
     } /* end for */
@@ -2776,7 +2991,7 @@ test_filespace_sects(void)
     test_free_sections(fapl_stdio, filename);
 
     /* close fapl and remove the file */
-    h5_cleanup(FILENAME, fapl_split);
+    h5_cleanup(FILENAME, fapl_stdio);
 
     /* CORE */
     MESSAGE(5, ("Testing File free space information for a core file\n"));
@@ -2999,7 +3214,7 @@ test_filespace_compatible(void)
 	VERIFY(free_space, (hssize_t)0, "H5Fget_freespace");
 
 	/* Get the file's file creation property list */
-	/* Retrieve the file space handling stretegy and threshold */
+	/* Retrieve the file space handling strategy and threshold */
 	fcpl = H5Fget_create_plist(fid);
 	CHECK(fcpl, FAIL, "H5Fget_create_plist");
 	ret = H5Pget_file_space(fcpl, &strategy, &threshold);
@@ -3032,9 +3247,13 @@ test_filespace_compatible(void)
 	ret = H5Ldelete(fid, DSETNAME, H5P_DEFAULT);
 	CHECK(ret, FAIL, "H5Ldelete");
 
-	/* Close the file */
-	ret = H5Fclose(fid);
-	CHECK(ret, FAIL, "H5Fclose");
+    /* Close the plist */
+    ret = H5Pclose(fcpl);
+    CHECK(ret, FAIL, "H5Pclose");
+
+    /* Close the file */
+    ret = H5Fclose(fid);
+    CHECK(ret, FAIL, "H5Fclose");
 
 	/* Re-Open the file */
 	fid = H5Fopen(FILE5, H5F_ACC_RDONLY, H5P_DEFAULT);
@@ -3057,63 +3276,116 @@ test_filespace_compatible(void)
 
 /****************************************************************
 **
-**  test_libver_bounds():
-**	Verify that a file created with "LATEST, LATEST" can be
-**      opened later, with no setting.  (Further testing welcome)
+**  test_libver_bounds_real():
+**      Verify that a file created and modified with the
+**      specified libver bounds has the specified object header
+**      versions for the right objects.
 **
 ****************************************************************/
 static void
-test_libver_bounds(void)
+test_libver_bounds_real(H5F_libver_t libver_create, unsigned oh_vers_create,
+    H5F_libver_t libver_mod, unsigned oh_vers_mod)
 {
     hid_t       file, group;            /* Handles */
     hid_t       fapl;                   /* File access property list */
-    herr_t	ret;                    /* Return value */
-
-    /* Output message about test being performed */
-    MESSAGE(5, ("Testing setting library version bounds\n"));
+    H5O_info_t  oinfo;                  /* Object info */
+    herr_t      ret;                    /* Return value */
 
     /*
-     * Create a new file using the default properties.
+     * Create a new file using the creation properties.
      */
     fapl = H5Pcreate(H5P_FILE_ACCESS);
     CHECK(fapl, FAIL, "H5Pcreate");
 
-    ret = H5Pset_libver_bounds(fapl, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST);
+    ret = H5Pset_libver_bounds(fapl, libver_create, H5F_LIBVER_LATEST);
     CHECK(ret, FAIL, "H5Pset_libver_bounds");
 
     file = H5Fcreate("tfile5.h5", H5F_ACC_TRUNC, H5P_DEFAULT, fapl);
     CHECK(file, FAIL, "H5Fcreate");
 
+    /*
+     * Make sure the root group has the correct object header version
+     */
+    ret = H5Oget_info_by_name(file, "/", &oinfo, H5P_DEFAULT);
+    CHECK(ret, FAIL, "H5Oget_info_by_name");
+    VERIFY(oinfo.hdr.version, oh_vers_create, "H5Oget_info_by_name");
+
+    /*
+     * Reopen the file and make sure the root group still has the correct version
+     */
     ret = H5Fclose(file);
     CHECK(ret, FAIL, "H5Fclose");
 
-    ret = H5Pset_libver_bounds(fapl, H5F_LIBVER_EARLIEST, H5F_LIBVER_LATEST);
+    ret = H5Pset_libver_bounds(fapl, libver_mod, H5F_LIBVER_LATEST);
     CHECK(ret, FAIL, "H5Pset_libver_bounds");
 
     file = H5Fopen("tfile5.h5", H5F_ACC_RDWR, fapl);
     CHECK(file, FAIL, "H5Fopen");
 
+    ret = H5Oget_info_by_name(file, "/", &oinfo, H5P_DEFAULT);
+    CHECK(ret, FAIL, "H5Oget_info_by_name");
+    VERIFY(oinfo.hdr.version, oh_vers_create, "H5Oget_info_by_name");
+
     /*
-     * Create a group named "G1" in the file.
+     * Create a group named "G1" in the file, and make sure it has the correct
+     * object header version
      */
     group = H5Gcreate2(file, "/G1", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     CHECK(group, FAIL, "H5Gcreate");
 
+    ret = H5Oget_info(group, &oinfo);
+    CHECK(ret, FAIL, "H5Oget_info_by_name");
+    VERIFY(oinfo.hdr.version, oh_vers_mod, "H5Oget_info_by_name");
+
     ret = H5Gclose(group);
     CHECK(ret, FAIL, "H5Gclose");
 
     /*
-     * Create a group named "/G1/G3" in the file.
+     * Create a group named "/G1/G3" in the file, and make sure it has the
+     * correct object header version
      */
     group = H5Gcreate2(file, "/G1/G3", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     CHECK(group, FAIL, "H5Gcreate");
 
+    ret = H5Oget_info(group, &oinfo);
+    CHECK(ret, FAIL, "H5Oget_info_by_name");
+    VERIFY(oinfo.hdr.version, oh_vers_mod, "H5Oget_info_by_name");
+
     ret = H5Gclose(group);
     CHECK(ret, FAIL, "H5Gclose");
 
+    /*
+     * Make sure the root group still has the correct object header version
+     */
+    ret = H5Oget_info_by_name(file, "/", &oinfo, H5P_DEFAULT);
+    CHECK(ret, FAIL, "H5Oget_info_by_name");
+    VERIFY(oinfo.hdr.version, oh_vers_create, "H5Oget_info_by_name");
+
     ret = H5Fclose(file);
     CHECK(ret, FAIL, "H5Fclose");
-} /* test_libver_bounds() */
+
+    ret = H5Pclose(fapl);
+    CHECK(ret, FAIL, "H5Pclose");
+} /* end test_libver_bounds_real() */
+
+/****************************************************************
+**
+**  test_libver_bounds():
+**      Verify that a file created and modified with various
+**      libver bounds is handled correctly.  (Further testing
+**      welcome)
+**
+****************************************************************/
+static void
+test_libver_bounds(void)
+{
+    /* Output message about test being performed */
+    MESSAGE(5, ("Testing setting library version bounds\n"));
+
+    /* Run the tests */
+    test_libver_bounds_real(H5F_LIBVER_EARLIEST, 1, H5F_LIBVER_LATEST, 2);
+    test_libver_bounds_real(H5F_LIBVER_LATEST, 2, H5F_LIBVER_EARLIEST, 1);
+} /* end test_libver_bounds() */
 
 /****************************************************************
 **
@@ -3384,7 +3656,9 @@ test_file(void)
     test_file_close();          /* Test file close behavior */
 #endif /* H5_NO_SHARED_WRITING */
     test_get_file_id();         /* Test H5Iget_file_id */
+    test_get_obj_ids();         /* Test H5Fget_obj_ids for Jira Issue 8528 */
     test_file_perm();           /* Test file access permissions */
+    test_file_perm2();          /* Test file access permission again */
     test_file_freespace();      /* Test file free space information */
     test_file_ishdf5();         /* Test detecting HDF5 files correctly */
     test_file_open_dot();       /* Test opening objects with "." for a name */

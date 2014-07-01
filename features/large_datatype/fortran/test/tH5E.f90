@@ -1,3 +1,12 @@
+!****h* root/fortran/test/tH5E.f90
+!
+! NAME
+!  tH5E.f90
+!
+! FUNCTION
+!  Basic testing of Fortran H5E APIs.
+!
+! COPYRIGHT
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
@@ -13,15 +22,29 @@
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
+! NOTES
+!  Tests the H5D APIs functionalities of:
+!   h5eprint_f
+!
+! CONTAINS SUBROUTINES
+!  error_report_test
+!
+!*****
+!
+MODULE TH5E
+
+CONTAINS
+
     SUBROUTINE error_report_test(cleanup, total_error)
 
 !   This subroutine tests following functionalities: h5eprint_f
 
    USE HDF5 ! This module contains all necessary modules
+   USE TH5_MISC
 
      IMPLICIT NONE
      LOGICAL, INTENT(IN)  :: cleanup
-     INTEGER, INTENT(OUT) :: total_error
+     INTEGER, INTENT(INOUT) :: total_error
 
      CHARACTER(LEN=6), PARAMETER :: filename = "etestf" ! File name
      CHARACTER(LEN=80) :: fix_filename
@@ -74,3 +97,6 @@
               CALL check("h5_cleanup_f", error, total_error)
      RETURN
      END SUBROUTINE error_report_test
+
+END MODULE TH5E
+

@@ -21,7 +21,7 @@
 
 /** From H5private.h **/
 
-#include "H5public.h"		 /* Include Public Definitions		*/
+#include "H5public.h"     /* Include Public Definitions    */
 
 
 /*
@@ -62,7 +62,15 @@
  */
 #define HDabort()               abort()
 #define HDabs(X)                abs(X)
+#ifdef H5_HAVE_WIN32_API
+#define HDaccess(F,M)           _access(F, M)
+#define R_OK    4       /* Test for read permission.  */
+#define W_OK    2       /* Test for write permission.  */
+#define X_OK    1       /* Test for execute permission.  */
+#define F_OK    0       /* Test for existence.  */
+#else /* H5_HAVE_WIN32_API */
 #define HDaccess(F,M)           access(F, M)
+#endif /* H5_HAVE_WIN32_API */
 #define HDacos(X)               acos(X)
 #ifdef H5_HAVE_ALARM
 #define HDalarm(N)              alarm(N)
@@ -71,6 +79,7 @@
 #endif /* H5_HAVE_ALARM */
 #define HDasctime(T)            asctime(T)
 #define HDasin(X)               asin(X)
+#define HDasprintf              asprintf /*varargs*/
 #define HDassert(X)             assert(X)
 #define HDatan(X)               atan(X)
 #define HDatan2(X,Y)            atan2(X,Y)
@@ -129,11 +138,11 @@
 #define HDfgetc(F)              fgetc(F)
 #define HDfgetpos(F,P)          fgetpos(F,P)
 #define HDfgets(S,N,F)          fgets(S,N,F)
-#ifdef _WIN32
+#ifdef H5_HAVE_WIN32_API
 #define HDfileno(F)             _fileno(F)
-#else /* _WIN32 */
+#else /* H5_HAVE_WIN32_API */
 #define HDfileno(F)             fileno(F)
-#endif /* _WIN32 */
+#endif /* H5_HAVE_WIN32_API */
 #define HDfloor(X)              floor(X)
 #define HDfmod(X,Y)             fmod(X,Y)
 #define HDfopen(S,M)            fopen(S,M)
@@ -169,7 +178,7 @@ H5_DLL int HDfprintf (FILE *stream, const char *fmt, ...);
  * For Unix, if off_t is not 64bit big, try use the pseudo-standard
  * xxx64 versions if available.
  */
-#ifdef _WIN32
+#ifdef H5_HAVE_WIN32_API
     #define HDfstat(F,B)        _fstati64(F,B)
     #define HDlstat(S,B)        _lstati64(S,B)
     #define HDstat(S,B)         _stati64(S,B)
@@ -202,7 +211,11 @@ H5_DLL int HDfprintf (FILE *stream, const char *fmt, ...);
 #define HDgetgrgid(G)           getgrgid(G)
 #define HDgetgrnam(S)           getgrnam(S)
 #define HDgetgroups(Z,G)        getgroups(Z,G)
+#ifdef H5_HAVE_VISUAL_STUDIO
+#define HDgetlogin()            Wgetlogin()
+#else /* H5_HAVE_VISUAL_STUDIO */
 #define HDgetlogin()            getlogin()
+#endif /* H5_HAVE_VISUAL_STUDIO */
 #define HDgetpgrp()             getpgrp()
 #define HDgetpid()              getpid()
 #define HDgetppid()             getppid()
@@ -210,7 +223,12 @@ H5_DLL int HDfprintf (FILE *stream, const char *fmt, ...);
 #define HDgetpwuid(U)           getpwuid(U)
 #define HDgetrusage(X,S)        getrusage(X,S)
 #define HDgets(S)               gets(S)
+#ifdef H5_HAVE_VISUAL_STUDIO
+    H5_DLL int Wgettimeofday(struct timeval *tv, struct timezone *tz);
+#define HDgettimeofday(V,Z) Wgettimeofday(V,Z)
+#else /* H5_HAVE_VISUAL_STUDIO */
 #define HDgettimeofday(S,P)     gettimeofday(S,P)
+#endif /* H5_HAVE_VISUAL_STUDIO */
 #define HDgetuid()              getuid()
 #define HDgmtime(T)             gmtime(T)
 #define HDisalnum(C)            isalnum((int)(C)) /*cast for solaris warning*/
@@ -235,7 +253,7 @@ H5_DLL int HDfprintf (FILE *stream, const char *fmt, ...);
 #define HDlog(X)                log(X)
 #define HDlog10(X)              log10(X)
 #define HDlongjmp(J,N)          longjmp(J,N)
-#ifdef _WIN32
+#ifdef H5_HAVE_WIN32_API
     #define HDlseek(F,O,W)  _lseeki64(F,O,W)
 #else
     #ifdef H5_HAVE_LSEEK64
@@ -258,18 +276,18 @@ H5_DLL int HDfprintf (FILE *stream, const char *fmt, ...);
 #define HDmemcpy(X,Y,Z)         memcpy((char*)(X),(const char*)(Y),Z)
 #define HDmemmove(X,Y,Z)        memmove((char*)(X),(const char*)(Y),Z)
 /*
- * The (void*) cast just avoids a compiler warning in _WIN32
+ * The (void*) cast just avoids a compiler warning in H5_HAVE_VISUAL_STUDIO
  */
-#ifdef _WIN32
+#ifdef H5_HAVE_VISUAL_STUDIO
 #define HDmemset(X,C,Z)         memset((void*)(X),C,Z)
-#else /* _WIN32 */
+#else /* H5_HAVE_VISUAL_STUDIO */
 #define HDmemset(X,C,Z)         memset(X,C,Z)
-#endif /* _WIN32 */
-#ifdef _WIN32
+#endif /* H5_HAVE_VISUAL_STUDIO */
+#ifdef H5_HAVE_WIN32_API
 #define HDmkdir(S,M)            _mkdir(S)
-#else /* _WIN32 */
+#else /* H5_HAVE_WIN32_API */
 #define HDmkdir(S,M)            mkdir(S,M)
-#endif /* _WIN32 */
+#endif /* H5_HAVE_WIN32_API */
 #define HDmkfifo(S,M)           mkfifo(S,M)
 #define HDmktime(T)             mktime(T)
 #define HDmodf(X,Y)             modf(X,Y)
@@ -331,7 +349,7 @@ int HDremove_all(const char * fname);
 #define HDsetuid(U)             setuid(U)
 /* Windows does not permit setting the buffer size to values
    less than 2.  */
-#ifndef _WIN32
+#ifndef H5_HAVE_WIN32_API
 #define HDsetvbuf(F,S,M,Z)      setvbuf(F,S,M,Z)
 #else
 #define HDsetvbuf(F,S,M,Z)  setvbuf(F,S,M,(Z>1?Z:2))
@@ -350,8 +368,9 @@ int HDremove_all(const char * fname);
 #define HDsin(X)                sin(X)
 #define HDsinh(X)               sinh(X)
 #define HDsleep(N)              sleep(N)
-#ifdef _WIN32
-#define HDsnprintf              _snprintf /*varargs*/
+#ifdef H5_HAVE_WIN32_API
+H5_DLL int c99_snprintf(char* str, size_t size, const char* format, ...);
+#define HDsnprintf          c99_snprintf /*varargs*/
 #else
 #define HDsnprintf              snprintf /*varargs*/
 #endif
@@ -369,7 +388,11 @@ H5_DLL void HDsrand(unsigned int seed);
 #endif
 /* sscanf() variable arguments */
 
-#define HDstrcasecmp(X,Y)	strcasecmp(X,Y)
+#ifdef H5_HAVE_WIN32_API
+#define HDstrcasecmp(A,B)   _stricmp(A,B)
+#else
+#define HDstrcasecmp(X,Y)      strcasecmp(X,Y)
+#endif
 #define HDstrcat(X,Y)           strcat(X,Y)
 #define HDstrchr(S,C)           strchr(S,C)
 #define HDstrcmp(X,Y)           strcmp(X,Y)
@@ -415,7 +438,7 @@ H5_DLL int64_t HDstrtoll (const char *s, const char **rest, int base);
 #define HDumask(N)              umask(N)
 #define HDuname(S)              uname(S)
 #define HDungetc(C,F)           ungetc(C,F)
-#ifdef _WIN32
+#ifdef H5_HAVE_WIN32_API
 #define HDunlink(S)             _unlink(S)
 #else
 #define HDunlink(S)             unlink(S)
@@ -428,8 +451,9 @@ H5_DLL int64_t HDstrtoll (const char *s, const char **rest, int base);
 #define HDvfprintf(F,FMT,A)     vfprintf(F,FMT,A)
 #define HDvprintf(FMT,A)        vprintf(FMT,A)
 #define HDvsprintf(S,FMT,A)     vsprintf(S,FMT,A)
-#ifdef _WIN32
-#   define HDvsnprintf(S,N,FMT,A) _vsnprintf(S,N,FMT,A)
+#ifdef H5_HAVE_WIN32_API
+H5_DLL int c99_vsnprintf(char* str, size_t size, const char* format, va_list ap);
+#define HDvsnprintf         c99_vsnprintf
 #else
 #   define HDvsnprintf(S,N,FMT,A) vsnprintf(S,N,FMT,A)
 #endif
@@ -443,9 +467,9 @@ H5_DLL int64_t HDstrtoll (const char *s, const char **rest, int base);
  * And now for a couple non-Posix functions...  Watch out for systems that
  * define these in terms of macros.
  */
-#ifdef _WIN32
+#ifdef H5_HAVE_WIN32_API
 #define HDstrdup(S)    _strdup(S)
-#else /* _WIN32 */
+#else /* H5_HAVE_WIN32_API */
 
 #if !defined strdup && !defined H5_HAVE_STRDUP
 extern char *strdup(const char *s);
@@ -453,7 +477,7 @@ extern char *strdup(const char *s);
 
 #define HDstrdup(S)     strdup(S)
 
-#endif /* _WIN32 */
+#endif /* H5_HAVE_WIN32_API */
 
 /*
  * HDF Boolean type.
@@ -487,7 +511,7 @@ extern const char *opt_arg;     /* flag argument (or value)                 */
 
 enum {
     no_arg = 0,         /* doesn't take an argument     */
-    require_arg,        /* requires an argument	        */
+    require_arg,        /* requires an argument          */
     optional_arg        /* argument is optional         */
 };
 

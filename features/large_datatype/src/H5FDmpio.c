@@ -44,6 +44,15 @@
  */
 static hid_t H5FD_MPIO_g = 0;
 
+/* Whether to allow collective I/O operations */
+/* (Value can be set from environment variable also) */
+hbool_t H5FD_mpi_opt_types_g = TRUE;
+
+/*
+ * The view is set to this value
+ */
+static char H5FD_mpi_native_g[] = "native";
+
 /*
  * The description of a file belonging to this driver.
  * The EOF value is only used just after the file is opened in order for the
@@ -127,7 +136,7 @@ static const H5FD_class_mpi_t H5FD_mpio_g = {
     H5FD_mpio_truncate,				/*truncate		*/
     NULL,                                       /*lock                  */
     NULL,                                       /*unlock                */
-    H5FD_FLMAP_SINGLE                           /*fl_map                */
+    H5FD_FLMAP_DICHOTOMY                        /*fl_map                */
     },  /* End of superclass information */
     H5FD_mpio_mpi_rank,                         /*get_rank              */
     H5FD_mpio_mpi_size,                         /*get_size              */
@@ -171,7 +180,7 @@ DESCRIPTION
 static herr_t
 H5FD_mpio_init_interface(void)
 {
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5FD_mpio_init_interface)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
     FUNC_LEAVE_NOAPI(H5FD_mpio_init())
 } /* H5FD_mpio_init_interface() */
@@ -184,13 +193,10 @@ H5FD_mpio_init_interface(void)
  *		library.
  *
  * Return:	Success:	The driver ID for the mpio driver.
- *
  *		Failure:	Negative.
  *
  * Programmer:	Robb Matzke
  *              Thursday, August 5, 1999
- *
- * Modifications:
  *
  *-------------------------------------------------------------------------
  */
@@ -198,37 +204,43 @@ hid_t
 H5FD_mpio_init(void)
 {
 #ifdef H5FDmpio_DEBUG
-    static int H5FD_mpio_Debug_inited=0;
+    static int H5FD_mpio_Debug_inited = 0;
 #endif /* H5FDmpio_DEBUG */
+    const char *s;              /* String for environment variables */
     hid_t ret_value;        	/* Return value */
 
-    FUNC_ENTER_NOAPI(H5FD_mpio_init, FAIL)
+    FUNC_ENTER_NOAPI(FAIL)
 
-    if (H5I_VFL!=H5I_get_type(H5FD_MPIO_g))
-        H5FD_MPIO_g = H5FD_register((const H5FD_class_t *)&H5FD_mpio_g,sizeof(H5FD_class_mpi_t),FALSE);
+    /* Register the MPI-IO VFD, if it isn't already */
+    if(H5I_VFL != H5I_get_type(H5FD_MPIO_g))
+        H5FD_MPIO_g = H5FD_register((const H5FD_class_t *)&H5FD_mpio_g, sizeof(H5FD_class_mpi_t), FALSE);
+
+    /* Allow MPI buf-and-file-type optimizations? */
+    s = HDgetenv("HDF5_MPI_OPT_TYPES");
+    if(s && HDisdigit(*s))
+        H5FD_mpi_opt_types_g = (hbool_t)HDstrtol(s, NULL, 0);
 
 #ifdef H5FDmpio_DEBUG
-    if (!H5FD_mpio_Debug_inited)
-    {
-	/* set debug mask */
-	/* Should this be done in H5F global initialization instead of here? */
-        const char *s = HDgetenv ("H5FD_mpio_Debug");
-        if (s) {
-	    while (*s){
+    if(!H5FD_mpio_Debug_inited) {
+        /* Retrieve MPI-IO debugging environment variable */
+        s = HDgetenv("H5FD_mpio_Debug");
+        if(s) {
+            /* Set debug mask */
+	    while(*s) {
 		H5FD_mpio_Debug[(int)*s]++;
 		s++;
-	    }
-        }
+	    } /* end while */
+        } /* end if */
 	H5FD_mpio_Debug_inited++;
-    }
+    } /* end if */
 #endif /* H5FDmpio_DEBUG */
 
     /* Set return value */
-    ret_value=H5FD_MPIO_g;
+    ret_value = H5FD_MPIO_g;
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-}
+} /* end H5FD_mpio_init() */
 
 
 /*---------------------------------------------------------------------------
@@ -246,7 +258,7 @@ done:
 static herr_t
 H5FD_mpio_term(void)
 {
-    FUNC_ENTER_NOAPI_NOINIT_NOFUNC(H5FD_mpio_term)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
     /* Reset VFL ID */
     H5FD_MPIO_g=0;
@@ -321,7 +333,7 @@ H5Pset_fapl_mpio(hid_t fapl_id, MPI_Comm comm, MPI_Info info)
     H5P_genplist_t *plist;      /* Property list pointer */
     herr_t ret_value;
 
-    FUNC_ENTER_API(H5Pset_fapl_mpio, FAIL)
+    FUNC_ENTER_API(FAIL)
     H5TRACE3("e", "iMcMi", fapl_id, comm, info);
 
     if(fapl_id == H5P_DEFAULT)
@@ -392,7 +404,7 @@ H5Pget_fapl_mpio(hid_t fapl_id, MPI_Comm *comm/*out*/, MPI_Info *info/*out*/)
     int		mpi_code;		/* mpi return code */
     herr_t      ret_value=SUCCEED;      /* Return value */
 
-    FUNC_ENTER_API(H5Pget_fapl_mpio, FAIL)
+    FUNC_ENTER_API(FAIL)
     H5TRACE3("e", "ixx", fapl_id, comm, info);
 
     if(NULL == (plist = H5P_object_verify(fapl_id, H5P_FILE_ACCESS)))
@@ -449,27 +461,23 @@ done:
  *			Use collective I/O access.
  *
  * Return:	Success:	Non-negative
- *
  * 		Failure:	Negative
  *
  * Programmer:	Albert Cheng
  *		April 2, 1998
  *
- * Modifications:
- * 		Robb Matzke, 1999-08-06
- *		Modified to work with the virtual file layer.
  *-------------------------------------------------------------------------
  */
 herr_t
 H5Pset_dxpl_mpio(hid_t dxpl_id, H5FD_mpio_xfer_t xfer_mode)
 {
     H5P_genplist_t *plist;      /* Property list pointer */
-    herr_t ret_value;
+    herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(H5Pset_dxpl_mpio, FAIL)
+    FUNC_ENTER_API(FAIL)
     H5TRACE2("e", "iDt", dxpl_id, xfer_mode);
 
-    if(dxpl_id==H5P_DEFAULT)
+    if(dxpl_id == H5P_DEFAULT)
         HGOTO_ERROR(H5E_PLIST, H5E_BADVALUE, FAIL, "can't set values in default property list")
 
     /* Check arguments */
@@ -479,15 +487,12 @@ H5Pset_dxpl_mpio(hid_t dxpl_id, H5FD_mpio_xfer_t xfer_mode)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "incorrect xfer_mode")
 
     /* Set the transfer mode */
-    if (H5P_set(plist,H5D_XFER_IO_XFER_MODE_NAME,&xfer_mode)<0)
+    if(H5P_set(plist, H5D_XFER_IO_XFER_MODE_NAME, &xfer_mode) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set value")
-
-    /* Initialize driver-specific properties */
-    ret_value= H5P_set_driver(plist, H5FD_MPIO, NULL);
 
 done:
     FUNC_LEAVE_API(ret_value)
-}
+} /* end H5Pset_dxpl_mpio() */
 
 
 /*-------------------------------------------------------------------------
@@ -505,65 +510,56 @@ done:
  * Programmer:	Albert Cheng
  *		April 2, 1998
  *
- * Modifications:
- * 		Robb Matzke, 1999-08-06
- *		Modified to work with the virtual file layer.
  *-------------------------------------------------------------------------
  */
 herr_t
 H5Pget_dxpl_mpio(hid_t dxpl_id, H5FD_mpio_xfer_t *xfer_mode/*out*/)
 {
-    H5P_genplist_t *plist;      /* Property list pointer */
-    herr_t      ret_value=SUCCEED;       /* Return value */
+    H5P_genplist_t *plist;              /* Property list pointer */
+    herr_t      ret_value = SUCCEED;    /* Return value */
 
-    FUNC_ENTER_API(H5Pget_dxpl_mpio, FAIL)
+    FUNC_ENTER_API(FAIL)
     H5TRACE2("e", "ix", dxpl_id, xfer_mode);
 
     if(NULL == (plist = H5P_object_verify(dxpl_id, H5P_DATASET_XFER)))
         HGOTO_ERROR(H5E_PLIST, H5E_BADTYPE, FAIL, "not a dxpl")
-    if(H5FD_MPIO != H5P_get_driver(plist))
-        HGOTO_ERROR(H5E_PLIST, H5E_BADVALUE, FAIL, "incorrect VFL driver")
 
     /* Get the transfer mode */
-    if (xfer_mode)
-        if (H5P_get(plist,H5D_XFER_IO_XFER_MODE_NAME,xfer_mode)<0)
+    if(xfer_mode)
+        if(H5P_get(plist, H5D_XFER_IO_XFER_MODE_NAME, xfer_mode) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to get value")
 
 done:
     FUNC_LEAVE_API(ret_value)
-}
+} /* end H5Pget_dxpl_mpio() */
+
 
 /*-------------------------------------------------------------------------
  * Function:	H5Pset_dxpl_mpio_collective_opt
-
-Purpose:
-	To set a flag to choose linked chunk IO or multi-chunk IO without
-        involving decision-making inside HDF5
-
-Description:
-        The library will do linked chunk IO or multi-chunk IO without
-        involving communications for decision-making process.
-        The library won't behave as it asks for only when we find
-        that the low-level MPI-IO package doesn't support this.
-
-Parameters:
-        hid_t dxpl_id	      		in: Data transfer property list identifier
-	H5FD_mpio_chunk_opt_t   	in: The optimization flag for linked chunk IO
-                                            or multi-chunk IO.
-
-
-Returns:
-Returns a non-negative value if successful. Otherwise returns a negative value.
-*
+ *
+ * Purpose:	To set a flag to choose linked chunk I/O or multi-chunk I/O
+ *		without involving decision-making inside HDF5
+ *
+ * Note:	The library will do linked chunk I/O or multi-chunk I/O without
+ *		involving communications for decision-making process.
+ *		The library won't behave as it asks for only when we find
+ *		that the low-level MPI-IO package doesn't support this.
+ *
+ * Return:	Success:	Non-negative
+ * 		Failure:	Negative
+ *
+ * Programmer:	Kent Yang
+ *		? ?, ?
+ *
  *-------------------------------------------------------------------------
  */
 herr_t
 H5Pset_dxpl_mpio_collective_opt(hid_t dxpl_id, H5FD_mpio_collective_opt_t opt_mode)
 {
     H5P_genplist_t *plist;      /* Property list pointer */
-    herr_t ret_value;
+    herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(H5Pset_dxpl_mpio_collective_opt, FAIL)
+    FUNC_ENTER_API(FAIL)
     H5TRACE2("e", "iDc", dxpl_id, opt_mode);
 
     if(dxpl_id == H5P_DEFAULT)
@@ -577,9 +573,6 @@ H5Pset_dxpl_mpio_collective_opt(hid_t dxpl_id, H5FD_mpio_collective_opt_t opt_mo
     if(H5P_set(plist, H5D_XFER_MPIO_COLLECTIVE_OPT_NAME, &opt_mode) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set value")
 
-    /* Initialize driver-specific properties */
-    ret_value = H5P_set_driver(plist, H5FD_MPIO, NULL);
-
 done:
     FUNC_LEAVE_API(ret_value)
 } /* end H5Pset_dxpl_mpio_collective_opt() */
@@ -587,35 +580,30 @@ done:
 
 /*-------------------------------------------------------------------------
  * Function:	H5Pset_dxpl_mpio_chunk_opt
-
-Purpose:
-	To set a flag to choose linked chunk IO or multi-chunk IO without
-        involving decision-making inside HDF5
-
-Description:
-        The library will do linked chunk IO or multi-chunk IO without
-        involving communications for decision-making process.
-        The library won't behave as it asks for only when we find
-        that the low-level MPI-IO package doesn't support this.
-
-Parameters:
-        hid_t dxpl_id	      		in: Data transfer property list identifier
-	H5FD_mpio_chunk_opt_t   	in: The optimization flag for linked chunk IO
-                                            or multi-chunk IO.
-
-
-Returns:
-Returns a non-negative value if successful. Otherwise returns a negative value.
-*
+ *
+ * Purpose:	To set a flag to choose linked chunk I/O or multi-chunk I/O
+ *		without involving decision-making inside HDF5
+ *
+ * Note:	The library will do linked chunk I/O or multi-chunk I/O without
+ *		involving communications for decision-making process.
+ *		The library won't behave as it asks for only when we find
+ *		that the low-level MPI-IO package doesn't support this.
+ *
+ * Return:	Success:	Non-negative
+ * 		Failure:	Negative
+ *
+ * Programmer:	Kent Yang
+ *		? ?, ?
+ *
  *-------------------------------------------------------------------------
  */
 herr_t
 H5Pset_dxpl_mpio_chunk_opt(hid_t dxpl_id, H5FD_mpio_chunk_opt_t opt_mode)
 {
     H5P_genplist_t *plist;      /* Property list pointer */
-    herr_t ret_value;
+    herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(H5Pset_dxpl_mpio_chunk_opt, FAIL)
+    FUNC_ENTER_API(FAIL)
     H5TRACE2("e", "iDh", dxpl_id, opt_mode);
 
     if(dxpl_id == H5P_DEFAULT)
@@ -626,43 +614,38 @@ H5Pset_dxpl_mpio_chunk_opt(hid_t dxpl_id, H5FD_mpio_chunk_opt_t opt_mode)
         HGOTO_ERROR(H5E_PLIST, H5E_BADTYPE, FAIL, "not a dxpl")
 
     /* Set the transfer mode */
-    if (H5P_set(plist,H5D_XFER_MPIO_CHUNK_OPT_HARD_NAME,&opt_mode)<0)
+    if(H5P_set(plist, H5D_XFER_MPIO_CHUNK_OPT_HARD_NAME, &opt_mode) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set value")
-
-    /* Initialize driver-specific properties */
-    ret_value= H5P_set_driver(plist, H5FD_MPIO, NULL);
 
 done:
     FUNC_LEAVE_API(ret_value)
-}
+} /* end H5Pset_dxpl_mpio_chunk_opt() */
 
 
 /*-------------------------------------------------------------------------
  * Function:	H5Pset_dxpl_mpio_chunk_opt_num
-
-Purpose:
-	To set a threshold for doing linked chunk IO
-
-Description:
-        If the number is greater than the threshold set by the user,
-        the library will do linked chunk IO; otherwise, IO will be done for every chunk.
-
-Parameters:
-        hid_t dxpl_id	      		in: Data transfer property list identifier
-	unsigned num_proc_per_chunk	in: the threshold of the average number of chunks selected by each process
-
-Returns:
-Returns a non-negative value if successful. Otherwise returns a negative value.
-*
+ *
+ * Purpose:	To set a threshold for doing linked chunk IO
+ *
+ * Note:	If the number is greater than the threshold set by the user,
+ *		the library will do linked chunk I/O; otherwise, I/O will be
+ *		done for every chunk.
+ *
+ * Return:	Success:	Non-negative
+ * 		Failure:	Negative
+ *
+ * Programmer:	Kent Yang
+ *		? ?, ?
+ *
  *-------------------------------------------------------------------------
  */
 herr_t
 H5Pset_dxpl_mpio_chunk_opt_num(hid_t dxpl_id, unsigned num_chunk_per_proc)
 {
     H5P_genplist_t *plist;      /* Property list pointer */
-    herr_t ret_value;
+    herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(H5Pset_dxpl_mpio_chunk_opt_num, FAIL)
+    FUNC_ENTER_API(FAIL)
     H5TRACE2("e", "iIu", dxpl_id, num_chunk_per_proc);
 
     if(dxpl_id == H5P_DEFAULT)
@@ -673,43 +656,41 @@ H5Pset_dxpl_mpio_chunk_opt_num(hid_t dxpl_id, unsigned num_chunk_per_proc)
         HGOTO_ERROR(H5E_PLIST, H5E_BADTYPE, FAIL, "not a dxpl")
 
     /* Set the transfer mode */
-    if (H5P_set(plist,H5D_XFER_MPIO_CHUNK_OPT_NUM_NAME,&num_chunk_per_proc)<0)
+    if(H5P_set(plist, H5D_XFER_MPIO_CHUNK_OPT_NUM_NAME, &num_chunk_per_proc) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set value")
-
-    /* Initialize driver-specific properties */
-    ret_value= H5P_set_driver(plist, H5FD_MPIO, NULL);
 
 done:
     FUNC_LEAVE_API(ret_value)
-}
+} /* end H5Pset_dxpl_mpio_chunk_opt_num() */
 
 
 /*-------------------------------------------------------------------------
  * Function:	H5Pset_dxpl_mpio_chunk_opt_ratio
-
-Purpose:
-	To set a threshold for doing collective IO for each chunk
-Description:
-	The library will calculate the percentage of the number of process holding selections at each chunk. If that percentage of number of process in the individual chunk is greater than the threshold set by the user, the library will do collective chunk IO for this chunk; otherwise, independent IO will be done for this chunk.
-Parameters:
-	hid_t dxpl_id
-		in: Data transfer property list identifier
-	unsigned percent_num_proc_per_chunk
-		in: the threshold of the percentage of the number of process holding selections per chunk
-Returns:
-Returns a non-negative value if successful. Otherwise returns a negative value.
-
-
-*
+ *
+ * Purpose:	To set a threshold for doing collective I/O for each chunk
+ *
+ * Note:	The library will calculate the percentage of the number of
+ *		process holding selections at each chunk. If that percentage
+ *		of number of process in the individual chunk is greater than
+ *		the threshold set by the user, the library will do collective
+ *		chunk I/O for this chunk; otherwise, independent I/O will be
+ *		done for this chunk.
+ *
+ * Return:	Success:	Non-negative
+ * 		Failure:	Negative
+ *
+ * Programmer:	Kent Yang
+ *		? ?, ?
+ *
  *-------------------------------------------------------------------------
  */
 herr_t
 H5Pset_dxpl_mpio_chunk_opt_ratio(hid_t dxpl_id, unsigned percent_num_proc_per_chunk)
 {
     H5P_genplist_t *plist;      /* Property list pointer */
-    herr_t ret_value;
+    herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(H5Pset_dxpl_mpio_chunk_opt_ratio, FAIL)
+    FUNC_ENTER_API(FAIL)
     H5TRACE2("e", "iIu", dxpl_id, percent_num_proc_per_chunk);
 
     if(dxpl_id == H5P_DEFAULT)
@@ -720,15 +701,12 @@ H5Pset_dxpl_mpio_chunk_opt_ratio(hid_t dxpl_id, unsigned percent_num_proc_per_ch
         HGOTO_ERROR(H5E_PLIST, H5E_BADTYPE, FAIL, "not a dxpl")
 
     /* Set the transfer mode */
-    if (H5P_set(plist,H5D_XFER_MPIO_CHUNK_OPT_RATIO_NAME,&percent_num_proc_per_chunk)<0)
+    if(H5P_set(plist, H5D_XFER_MPIO_CHUNK_OPT_RATIO_NAME, &percent_num_proc_per_chunk) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set value")
-
-    /* Initialize driver-specific properties */
-    ret_value= H5P_set_driver(plist, H5FD_MPIO, NULL);
 
 done:
     FUNC_LEAVE_API(ret_value)
-}
+} /* end H5Pset_dxpl_mpio_chunk_opt_ratio() */
 
 
 /*-------------------------------------------------------------------------
@@ -745,10 +723,6 @@ done:
  * Programmer:	Robb Matzke
  *              Friday, August 13, 1999
  *
- * Modifications:
- * 		Albert Cheng, 2003-04-17
- * 		Duplicate the communicator and Info object so that the new
- * 		property list is insulated from the old one.
  *-------------------------------------------------------------------------
  */
 static void *
@@ -758,7 +732,7 @@ H5FD_mpio_fapl_get(H5FD_t *_file)
     H5FD_mpio_fapl_t	*fa = NULL;
     void      *ret_value;       /* Return value */
 
-    FUNC_ENTER_NOAPI(H5FD_mpio_fapl_get, NULL)
+    FUNC_ENTER_NOAPI_NOINIT
 
     HDassert(file);
     HDassert(H5FD_MPIO == file->pub.driver_id);
@@ -790,8 +764,6 @@ done:
  * Programmer:	Albert Cheng
  *              Jan  8, 2003
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 static void *
@@ -801,7 +773,7 @@ H5FD_mpio_fapl_copy(const void *_old_fa)
     const H5FD_mpio_fapl_t *old_fa = (const H5FD_mpio_fapl_t*)_old_fa;
     H5FD_mpio_fapl_t	*new_fa = NULL;
 
-    FUNC_ENTER_NOAPI(H5FD_mpio_fapl_copy, NULL)
+    FUNC_ENTER_NOAPI_NOINIT
 #ifdef H5FDmpio_DEBUG
 if (H5FD_mpio_Debug[(int)'t'])
 fprintf(stderr, "enter H5FD_mpio_fapl_copy\n");
@@ -855,25 +827,118 @@ H5FD_mpio_fapl_free(void *_fa)
     herr_t		ret_value = SUCCEED;
     H5FD_mpio_fapl_t	*fa = (H5FD_mpio_fapl_t*)_fa;
 
-    FUNC_ENTER_NOAPI(H5FD_mpio_fapl_free, FAIL)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 #ifdef H5FDmpio_DEBUG
 if (H5FD_mpio_Debug[(int)'t'])
 fprintf(stderr, "in H5FD_mpio_fapl_free\n");
 #endif
-    assert(fa);
+    HDassert(fa);
 
     /* Free the internal communicator and INFO object */
-    assert(MPI_COMM_NULL!=fa->comm);
+    HDassert(MPI_COMM_NULL!=fa->comm);
     H5FD_mpi_comm_info_free(&fa->comm, &fa->info);
     H5MM_xfree(fa);
 
-done:
 #ifdef H5FDmpio_DEBUG
 if (H5FD_mpio_Debug[(int)'t'])
 fprintf(stderr, "leaving H5FD_mpio_fapl_free\n");
 #endif
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5FD_mpio_fapl_free() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5FD_set_mpio_atomicity
+ *
+ * Purpose:	Sets the atomicity mode
+ *
+ * Return:	Success:	Non-negative
+ *
+ * 		Failure:	Negative
+ *
+ * Programmer:	Mohamad Chaarawi
+ *		Feb 14, 2012
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5FD_set_mpio_atomicity(H5FD_t *_file, hbool_t flag)
+{
+    H5FD_mpio_t *file = (H5FD_mpio_t*)_file;
+    int          mpi_code;               /* MPI return code */
+    int          temp_flag;
+    herr_t       ret_value = SUCCEED;
+
+    FUNC_ENTER_NOAPI_NOINIT
+
+#ifdef H5FDmpio_DEBUG
+    if (H5FD_mpio_Debug[(int)'t'])
+    	fprintf(stdout, "Entering H5FD_set_mpio_atomicity\n");
+#endif
+
+    if (FALSE == flag)
+        temp_flag = 0;
+    else
+        temp_flag = 1;
+
+    /* set atomicity value */
+    if (MPI_SUCCESS != (mpi_code=MPI_File_set_atomicity(file->f, temp_flag)))
+        HMPI_GOTO_ERROR(FAIL, "MPI_File_set_atomicity", mpi_code)
+
+done:
+#ifdef H5FDmpio_DEBUG
+    if (H5FD_mpio_Debug[(int)'t'])
+    	fprintf(stdout, "Leaving H5FD_set_mpio_atomicity\n");
+#endif
+    FUNC_LEAVE_NOAPI(ret_value)
+}
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5FD_get_mpio_atomicity
+ *
+ * Purpose:	Returns the atomicity mode
+ *
+ * Return:	Success:	Non-negative
+ *
+ * 		Failure:	Negative
+ *
+ * Programmer:	Mohamad Chaarawi
+ *		Feb 14, 2012
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5FD_get_mpio_atomicity(H5FD_t *_file, hbool_t *flag)
+{
+    H5FD_mpio_t *file = (H5FD_mpio_t*)_file;
+    int          mpi_code;               /* MPI return code */
+    int          temp_flag;
+    herr_t       ret_value = SUCCEED;
+
+    FUNC_ENTER_NOAPI_NOINIT
+
+#ifdef H5FDmpio_DEBUG
+    if (H5FD_mpio_Debug[(int)'t'])
+    	fprintf(stdout, "Entering H5FD_get_mpio_atomicity\n");
+#endif
+
+    /* get atomicity value */
+    if (MPI_SUCCESS != (mpi_code=MPI_File_get_atomicity(file->f, &temp_flag)))
+        HMPI_GOTO_ERROR(FAIL, "MPI_File_get_atomicity", mpi_code)
+
+    if (0 != temp_flag)
+        *flag = TRUE;
+    else
+        *flag = FALSE;
+
+done:
+#ifdef H5FDmpio_DEBUG
+    if (H5FD_mpio_Debug[(int)'t'])
+    	fprintf(stdout, "Leaving H5FD_get_mpio_atomicity\n");
+#endif
+    FUNC_LEAVE_NOAPI(ret_value)
+}
 
 
 /*-------------------------------------------------------------------------
@@ -940,10 +1005,10 @@ H5FD_mpio_open(const char *name, unsigned flags, hid_t fapl_id,
     MPI_Info                    info_dup=MPI_INFO_NULL;
     H5FD_t			*ret_value;     /* Return value */
 #ifndef H5_HAVE_MPI_GET_SIZE
-    struct stat                 stat_buf;
+    h5_stat_t                 stat_buf;
 #endif
 
-    FUNC_ENTER_NOAPI(H5FD_mpio_open, NULL)
+    FUNC_ENTER_NOAPI_NOINIT
 
 #ifdef H5FDmpio_DEBUG
     if (H5FD_mpio_Debug[(int)'t']) {
@@ -960,8 +1025,8 @@ H5FD_mpio_open(const char *name, unsigned flags, hid_t fapl_id,
 	_fa.info = MPI_INFO_NULL; /*default*/
 	fa = &_fa;
     } else {
-	fa = (const H5FD_mpio_fapl_t *)H5P_get_driver_info(plist);
-	assert(fa);
+        if(NULL == (fa = (const H5FD_mpio_fapl_t *)H5P_get_driver_info(plist)))
+	    HGOTO_ERROR(H5E_PLIST, H5E_BADVALUE, NULL, "bad VFL driver info")
     }
 
     /* Duplicate communicator and Info object for use by this file. */
@@ -1103,14 +1168,14 @@ H5FD_mpio_close(H5FD_t *_file)
     int		mpi_code;	        /* MPI return code */
     herr_t      ret_value=SUCCEED;      /* Return value */
 
-    FUNC_ENTER_NOAPI(H5FD_mpio_close, FAIL)
+    FUNC_ENTER_NOAPI_NOINIT
 
 #ifdef H5FDmpio_DEBUG
     if (H5FD_mpio_Debug[(int)'t'])
     	fprintf(stdout, "Entering H5FD_mpio_close\n");
 #endif
-    assert(file);
-    assert(H5FD_MPIO==file->pub.driver_id);
+    HDassert(file);
+    HDassert(H5FD_MPIO==file->pub.driver_id);
 
     /* MPI_File_close sets argument to MPI_FILE_NULL */
     if (MPI_SUCCESS != (mpi_code=MPI_File_close(&(file->f)/*in,out*/)))
@@ -1156,9 +1221,7 @@ done:
 static herr_t
 H5FD_mpio_query(const H5FD_t UNUSED *_file, unsigned long *flags /* out */)
 {
-    herr_t ret_value=SUCCEED;
-
-    FUNC_ENTER_NOAPI(H5FD_mpio_query, FAIL)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
     /* Set the VFL feature flags that this driver supports */
     if(flags) {
@@ -1169,8 +1232,7 @@ H5FD_mpio_query(const H5FD_t UNUSED *_file, unsigned long *flags /* out */)
         *flags|=H5FD_FEAT_ALLOCATE_EARLY;      /* Allocate space early instead of late */
     } /* end if */
 
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI(SUCCEED)
 }
 
 
@@ -1199,18 +1261,13 @@ static haddr_t
 H5FD_mpio_get_eoa(const H5FD_t *_file, H5FD_mem_t UNUSED type)
 {
     const H5FD_mpio_t	*file = (const H5FD_mpio_t*)_file;
-    haddr_t ret_value;          /* Return value */
 
-    FUNC_ENTER_NOAPI(H5FD_mpio_get_eoa, HADDR_UNDEF)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
-    assert(file);
-    assert(H5FD_MPIO==file->pub.driver_id);
+    HDassert(file);
+    HDassert(H5FD_MPIO==file->pub.driver_id);
 
-    /* Set return value */
-    ret_value=file->eoa;
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI(file->eoa)
 }
 
 
@@ -1239,17 +1296,15 @@ static herr_t
 H5FD_mpio_set_eoa(H5FD_t *_file, H5FD_mem_t UNUSED type, haddr_t addr)
 {
     H5FD_mpio_t	*file = (H5FD_mpio_t*)_file;
-    herr_t ret_value=SUCCEED;   /* Return value */
 
-    FUNC_ENTER_NOAPI(H5FD_mpio_set_eoa, FAIL)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
-    assert(file);
-    assert(H5FD_MPIO==file->pub.driver_id);
+    HDassert(file);
+    HDassert(H5FD_MPIO==file->pub.driver_id);
 
     file->eoa = addr;
 
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI(SUCCEED)
 }
 
 
@@ -1286,18 +1341,13 @@ static haddr_t
 H5FD_mpio_get_eof(const H5FD_t *_file)
 {
     const H5FD_mpio_t	*file = (const H5FD_mpio_t*)_file;
-    haddr_t ret_value;          /* Return value */
 
-    FUNC_ENTER_NOAPI(H5FD_mpio_get_eof, HADDR_UNDEF)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
-    assert(file);
-    assert(H5FD_MPIO==file->pub.driver_id);
+    HDassert(file);
+    HDassert(H5FD_MPIO==file->pub.driver_id);
 
-    /* Set return value */
-    ret_value=file->eof;
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI(file->eof)
 }
 
 
@@ -1321,7 +1371,7 @@ H5FD_mpio_get_handle(H5FD_t *_file, hid_t UNUSED fapl, void** file_handle)
     H5FD_mpio_t         *file = (H5FD_mpio_t *)_file;
     herr_t              ret_value = SUCCEED;
 
-    FUNC_ENTER_NOAPI(H5FD_mpio_get_handle, FAIL)
+    FUNC_ENTER_NOAPI_NOINIT
 
     if(!file_handle)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "file handle not valid")
@@ -1419,18 +1469,18 @@ H5FD_mpio_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t dxpl_id, haddr_t add
     hbool_t			use_view_this_time = FALSE;
     herr_t              	ret_value = SUCCEED;
 
-    FUNC_ENTER_NOAPI(H5FD_mpio_read, FAIL)
+    FUNC_ENTER_NOAPI_NOINIT
 
 #ifdef H5FDmpio_DEBUG
     if (H5FD_mpio_Debug[(int)'t'])
     	fprintf(stdout, "Entering H5FD_mpio_read\n" );
 #endif
-    assert(file);
-    assert(H5FD_MPIO==file->pub.driver_id);
+    HDassert(file);
+    HDassert(H5FD_MPIO==file->pub.driver_id);
     /* Make certain we have the correct type of property list */
-    assert(H5I_GENPROP_LST==H5I_get_type(dxpl_id));
-    assert(TRUE==H5P_isa_class(dxpl_id,H5P_DATASET_XFER));
-    assert(buf);
+    HDassert(H5I_GENPROP_LST==H5I_get_type(dxpl_id));
+    HDassert(TRUE==H5P_isa_class(dxpl_id,H5P_DATASET_XFER));
+    HDassert(buf);
 
     /* Portably initialize MPI status variable */
     HDmemset(&mpi_stat,0,sizeof(MPI_Status));
@@ -1703,18 +1753,18 @@ H5FD_mpio_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
     H5P_genplist_t              *plist = NULL;  /* Property list pointer */
     herr_t              	ret_value = SUCCEED;
 
-    FUNC_ENTER_NOAPI(H5FD_mpio_write, FAIL)
+    FUNC_ENTER_NOAPI_NOINIT
 
 #ifdef H5FDmpio_DEBUG
     if (H5FD_mpio_Debug[(int)'t'])
     	fprintf(stdout, "Entering H5FD_mpio_write\n" );
 #endif
-    assert(file);
-    assert(H5FD_MPIO==file->pub.driver_id);
+    HDassert(file);
+    HDassert(H5FD_MPIO==file->pub.driver_id);
     /* Make certain we have the correct type of property list */
-    assert(H5I_GENPROP_LST==H5I_get_type(dxpl_id));
-    assert(TRUE==H5P_isa_class(dxpl_id,H5P_DATASET_XFER));
-    assert(buf);
+    HDassert(H5I_GENPROP_LST==H5I_get_type(dxpl_id));
+    HDassert(TRUE==H5P_isa_class(dxpl_id,H5P_DATASET_XFER));
+    HDassert(buf);
 
     /* Portably initialize MPI status variable */
     HDmemset(&mpi_stat, 0, sizeof(MPI_Status));
@@ -1880,7 +1930,7 @@ H5FD_mpio_flush(H5FD_t *_file, hid_t UNUSED dxpl_id, unsigned closing)
     int			mpi_code;	/* mpi return code */
     herr_t              ret_value = SUCCEED;
 
-    FUNC_ENTER_NOAPI(H5FD_mpio_flush, FAIL)
+    FUNC_ENTER_NOAPI_NOINIT
 
 #ifdef H5FDmpio_DEBUG
     if(H5FD_mpio_Debug[(int)'t'])
@@ -1924,7 +1974,7 @@ H5FD_mpio_truncate(H5FD_t *_file, hid_t UNUSED dxpl_id, hbool_t UNUSED closing)
     H5FD_mpio_t		*file = (H5FD_mpio_t*)_file;
     herr_t              ret_value = SUCCEED;
 
-    FUNC_ENTER_NOAPI(H5FD_mpio_truncate, FAIL)
+    FUNC_ENTER_NOAPI_NOINIT
 
 #ifdef H5FDmpio_DEBUG
     if(H5FD_mpio_Debug[(int)'t'])
@@ -2014,18 +2064,13 @@ static int
 H5FD_mpio_mpi_rank(const H5FD_t *_file)
 {
     const H5FD_mpio_t	*file = (const H5FD_mpio_t*)_file;
-    int ret_value;              /* Return value */
 
-    FUNC_ENTER_NOAPI(H5FD_mpio_mpi_rank, FAIL)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
-    assert(file);
-    assert(H5FD_MPIO==file->pub.driver_id);
+    HDassert(file);
+    HDassert(H5FD_MPIO==file->pub.driver_id);
 
-    /* Set return value */
-    ret_value=file->mpi_rank;
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI(file->mpi_rank)
 } /* end H5FD_mpio_mpi_rank() */
 
 
@@ -2048,18 +2093,13 @@ static int
 H5FD_mpio_mpi_size(const H5FD_t *_file)
 {
     const H5FD_mpio_t	*file = (const H5FD_mpio_t*)_file;
-    int ret_value;              /* Return value */
 
-    FUNC_ENTER_NOAPI(H5FD_mpio_mpi_size, FAIL)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
-    assert(file);
-    assert(H5FD_MPIO==file->pub.driver_id);
+    HDassert(file);
+    HDassert(H5FD_MPIO==file->pub.driver_id);
 
-    /* Set return value */
-    ret_value=file->mpi_size;
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI(file->mpi_size)
 } /* end H5FD_mpio_mpi_size() */
 
 
@@ -2083,18 +2123,14 @@ static MPI_Comm
 H5FD_mpio_communicator(const H5FD_t *_file)
 {
     const H5FD_mpio_t	*file = (const H5FD_mpio_t*)_file;
-    MPI_Comm ret_value;         /* Return value */
 
-    FUNC_ENTER_NOAPI(H5FD_mpio_communicator, MPI_COMM_NULL)
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
 
-    assert(file);
-    assert(H5FD_MPIO==file->pub.driver_id);
+    HDassert(file);
+    HDassert(H5FD_MPIO==file->pub.driver_id);
 
-    /* Set return value */
-    ret_value=file->comm;
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI(file->comm)
 }
 
 #endif /* H5_HAVE_PARALLEL */
+

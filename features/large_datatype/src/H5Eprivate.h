@@ -39,8 +39,9 @@ typedef struct H5E_t H5E_t;
  * (Shouldn't need to be used outside this header file)
  */
 #define HCOMMON_ERROR(maj, min, ...)  				              \
-   HERROR(maj, min, __VA_ARGS__);						      \
-   err_occurred = TRUE;
+   HERROR(maj, min, __VA_ARGS__);					      \
+   err_occurred = TRUE;                                                       \
+   err_occurred = err_occurred;         /* Shut GCC warnings up! */
 
 /*
  * HDONE_ERROR macro, used to facilitate error reporting between a
@@ -69,12 +70,33 @@ typedef struct H5E_t H5E_t;
 }
 
 /*
+ * HGOTO_ERROR_TAG macro, used like HGOTO_ERROR between H5_BEGIN_TAG and
+ * H5_END_TAG statements.  Resets the metadata tag before leaving the function.
+ */
+#define HGOTO_ERROR_TAG(maj, min, ret_val, ...) {                              \
+   if(H5AC_tag(my_dxpl_id, prv_tag, NULL) < 0)                                 \
+      HERROR(H5E_CACHE, H5E_CANTTAG, "unable to apply metadata tag");          \
+   HCOMMON_ERROR(maj, min, __VA_ARGS__);                                       \
+   HGOTO_DONE(ret_val)                                                         \
+}
+
+/*
  * HGOTO_DONE macro, used to facilitate normal return between a FUNC_ENTER()
  * and a FUNC_LEAVE() within a function body. The argument is the return
  * value which is assigned to the `ret_value' variable.	 Control branches to
  * the `done' label.
  */
 #define HGOTO_DONE(ret_val) {ret_value = ret_val; goto done;}
+
+/*
+ * HGOTO_DONE_TAG macro, used like HGOTO_DONE between H5_BEGIN_TAG and
+ * H5_END_TAG statements.  Resets the metadata tag before leaving the function.
+ */
+#define HGOTO_DONE_TAG(ret_val, err) {                                         \
+   if(H5AC_tag(my_dxpl_id, prv_tag, NULL) < 0)                                 \
+      HGOTO_ERROR(H5E_CACHE, H5E_CANTTAG, err, "unable to apply metadata tag") \
+   HGOTO_DONE(ret_val)                                                         \
+}
 
 /*
  * Macros handling system error messages as described in C standard.
@@ -126,7 +148,7 @@ extern	int	H5E_mpi_error_str_len;
  * error number, a description of the error (as a printf-like format string),
  * and an optional set of arguments for the printf format arguments.
  */
-#define H5E_PRINTF(...) H5E_printf_stack(NULL, __FILE__, FUNCNAME, __LINE__, H5E_ERR_CLS_g, H5_MY_PKG_ERR,  __VA_ARGS__)
+#define H5E_PRINTF(...) H5E_printf_stack(NULL, __FILE__, FUNC, __LINE__, H5E_ERR_CLS_g, H5_MY_PKG_ERR,  __VA_ARGS__)
 
 /*
  * H5_LEAVE macro, used to facilitate control flow between a

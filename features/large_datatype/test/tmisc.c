@@ -15,7 +15,7 @@
 
 /***********************************************************
 *
-* Test program:	 tmisc
+* Test program:   tmisc
 *
 * Test miscellaneous features not tested elsewhere.  Generally
 *       regression tests for bugs that are reported and don't
@@ -23,7 +23,7 @@
 *
 *************************************************************/
 
-#define H5D_PACKAGE		/*suppress error about including H5Dpkg	  */
+#define H5D_PACKAGE    /*suppress error about including H5Dpkg    */
 
 /* Define this macro to indicate that the testing APIs should be available */
 #define H5D_TESTING
@@ -31,10 +31,10 @@
 #include "hdf5.h"
 #include "testhdf5.h"
 #include "H5srcdir.h"
-#include "H5Dpkg.h"		/* Datasets 				*/
+#include "H5Dpkg.h"    /* Datasets         */
 
 /* Definitions for misc. test #1 */
-#define MISC1_FILE	"tmisc1.h5"
+#define MISC1_FILE  "tmisc1.h5"
 #define MISC1_VAL       (13417386)      /* 0xccbbaa */
 #define MISC1_VAL2      (15654348)      /* 0xeeddcc */
 #define MISC1_DSET_NAME "/scalar_set"
@@ -166,8 +166,8 @@ typedef struct
 /* Definitions for misc. test #12 */
 #define MISC12_FILE             "tmisc12.h5"
 #define MISC12_DSET_NAME        "Dataset"
-#define MISC12_SPACE1_RANK	1
-#define MISC12_SPACE1_DIM1	4
+#define MISC12_SPACE1_RANK  1
+#define MISC12_SPACE1_DIM1  4
 #define MISC12_CHUNK_SIZE       2
 #define MISC12_APPEND_SIZE      5
 
@@ -239,6 +239,7 @@ unsigned m13_rdata[MISC13_DIM1][MISC13_DIM2];          /* Data read from dataset
 #define MISC20_SPACE2_DIM0      8
 #define MISC20_SPACE2_DIM1      4
 
+#ifdef H5_HAVE_FILTER_SZIP
 /* Definitions for misc. test #21 */
 #define MISC21_FILE             "tmisc21.h5"
 #define MISC21_DSET_NAME        "Dataset"
@@ -256,6 +257,7 @@ unsigned m13_rdata[MISC13_DIM1][MISC13_DIM2];          /* Data read from dataset
 #define MISC22_CHUNK_DIM1       512
 #define MISC22_SPACE_DIM0       639
 #define MISC22_SPACE_DIM1       1308
+#endif /* H5_HAVE_FILTER_SZIP */
 
 /* Definitions for misc. test #23 */
 #define MISC23_FILE             "tmisc23.h5"
@@ -310,6 +312,18 @@ unsigned m13_rdata[MISC13_DIM1][MISC13_DIM2];          /* Data read from dataset
 #define MISC29_ORIG_FILE        "specmetaread.h5"
 #define MISC29_COPY_FILE        "tmisc29.h5"
 #define MISC29_DSETNAME         "dset2"
+
+/* Definitions for misc. test #30 */
+#define MISC30_FILE             "tmisc30.h5"
+
+/* Definitions for misc. test #31 */
+#define MISC31_FILE             "tmisc31.h5"
+#define MISC31_DSETNAME         "dset"
+#define MISC31_ATTRNAME1        "attr1"
+#define MISC31_ATTRNAME2        "attr2"
+#define MISC31_GROUPNAME        "group"
+#define MISC31_PROPNAME         "misc31_prop"
+#define MISC31_DTYPENAME        "dtype"
 
 /****************************************************************
 **
@@ -448,7 +462,7 @@ static void test_misc2_write_attribute(void)
     ret = H5Aread(att1, type, &data_check);
     CHECK(ret, FAIL, "H5Aread");
 
-    free(data_check.string);
+    HDfree(data_check.string);
 
     ret = H5Aclose(att1);
     CHECK(ret, FAIL, "HAclose");
@@ -458,8 +472,6 @@ static void test_misc2_write_attribute(void)
 
     ret = H5Fclose(file1);
     CHECK(ret, FAIL, "H5Fclose");
-
-
 
     root2 = H5Gopen2(file2, "/", H5P_DEFAULT);
     CHECK(root2, FAIL, "H5Gopen2");
@@ -475,7 +487,7 @@ static void test_misc2_write_attribute(void)
     ret = H5Aread(att2, type, &data_check);
     CHECK(ret, FAIL, "H5Aread");
 
-    free(data_check.string);
+    HDfree(data_check.string);
 
     ret = H5Aclose(att2);
     CHECK(ret, FAIL, "HAclose");
@@ -492,8 +504,8 @@ static void test_misc2_write_attribute(void)
     ret = H5Fclose(file2);
     CHECK(ret, FAIL, "H5Fclose");
 
-    free(string_att1);
-    free(string_att2);
+    HDfree(string_att1);
+    HDfree(string_att2);
     return;
 }
 
@@ -519,7 +531,7 @@ static void test_misc2_read_attribute(const char *filename, const char *att_name
     ret = H5Aread(att, type, &data_check);
     CHECK(ret, FAIL, "H5Aread");
 
-    free(data_check.string);
+    HDfree(data_check.string);
 
     ret = H5Aclose(att);
     CHECK(ret, FAIL, "H5Aclose");
@@ -727,7 +739,7 @@ delete_struct3(misc5_struct3_hndl *str3hndl)
     ret=H5Tclose(str3hndl->st3h_base);
     CHECK(ret,FAIL,"H5Tclose");
 
-    free(str3hndl);
+    HDfree(str3hndl);
 }
 
 static void
@@ -778,7 +790,7 @@ delete_struct2(misc5_struct2_hndl *str2hndl)
     H5Tclose(str2hndl->st2h_base);
     CHECK(ret,FAIL,"H5Tclose");
 
-    free(str2hndl);
+    HDfree(str2hndl);
 }
 
 static void
@@ -789,7 +801,7 @@ set_struct2(misc5_struct2 *buf)
     buf->st2_el1=MISC5_DBGELVAL2;
     buf->st2_el2.len=MISC5_DBGNELM3;
 
-    buf->st2_el2.p=malloc((buf->st2_el2.len)*sizeof(misc5_struct3));
+    buf->st2_el2.p=HDmalloc((buf->st2_el2.len)*sizeof(misc5_struct3));
     CHECK(buf->st2_el2.p,NULL,"malloc");
 
     for(i=0; i<(buf->st2_el2.len); i++)
@@ -799,7 +811,7 @@ set_struct2(misc5_struct2 *buf)
 static void
 clear_struct2(misc5_struct2 *buf)
 {
-    free(buf->st2_el2.p);
+    HDfree(buf->st2_el2.p);
 }
 
 /*********************** struct1 ***********************/
@@ -844,7 +856,7 @@ delete_struct1(misc5_struct1_hndl *str1hndl)
     ret=H5Tclose(str1hndl->st1h_base);
     CHECK(ret,FAIL,"H5Tclose");
 
-    free(str1hndl);
+    HDfree(str1hndl);
 }
 
 static void
@@ -855,7 +867,7 @@ set_struct1(misc5_struct1 *buf)
     buf->st1_el1=MISC5_DBGELVAL1;
     buf->st1_el2.len=MISC5_DBGNELM2;
 
-    buf->st1_el2.p=malloc((buf->st1_el2.len)*sizeof(misc5_struct2));
+    buf->st1_el2.p=HDmalloc((buf->st1_el2.len)*sizeof(misc5_struct2));
     CHECK(buf->st1_el2.p,NULL,"malloc");
 
     for(i=0; i<(buf->st1_el2.len); i++)
@@ -869,7 +881,7 @@ clear_struct1(misc5_struct1 *buf)
 
     for(i=0;i<buf->st1_el2.len;i++)
         clear_struct2(&((( misc5_struct2 *)(buf->st1_el2.p))[i]));
-    free(buf->st1_el2.p);
+    HDfree(buf->st1_el2.p);
 }
 
 static void
@@ -905,7 +917,7 @@ test_misc5(void)
 
     /* Create the variable-length buffer */
     buf.len = MISC5_DBGNELM1;
-    buf.p = malloc((buf.len) * sizeof(misc5_struct1));
+    buf.p = HDmalloc((buf.len) * sizeof(misc5_struct1));
     CHECK(buf.p, NULL, "malloc");
 
     /* Create the top-level VL information */
@@ -921,7 +933,7 @@ test_misc5(void)
         clear_struct1(&(((misc5_struct1 *)(buf.p))[j]));
 
     /* Free the variable-length buffer */
-    free(buf.p);
+    HDfree(buf.p);
 
     /* Close dataset */
     ret = H5Dclose(dataset_id);
@@ -1231,10 +1243,10 @@ test_misc8(void)
     MESSAGE(5, ("Testing dataset storage sizes\n"));
 
     /* Allocate space for the data to write & read */
-    wdata=malloc(sizeof(int)*MISC8_DIM0*MISC8_DIM1);
+    wdata=HDmalloc(sizeof(int)*MISC8_DIM0*MISC8_DIM1);
     CHECK(wdata,NULL,"malloc");
 #ifdef VERIFY_DATA
-    rdata=malloc(sizeof(int)*MISC8_DIM0*MISC8_DIM1);
+    rdata=HDmalloc(sizeof(int)*MISC8_DIM0*MISC8_DIM1);
     CHECK(rdata,NULL,"malloc");
 #endif /* VERIFY_DATA */
 
@@ -1672,9 +1684,9 @@ test_misc8(void)
     CHECK(ret, FAIL, "H5Fclose");
 
     /* Free the read & write buffers */
-    free(wdata);
+    HDfree(wdata);
 #ifdef VERIFY_DATA
-    free(rdata);
+    HDfree(rdata);
 #endif /* VERIFY_DATA */
 } /* end test_misc8() */
 
@@ -1795,10 +1807,10 @@ test_misc11(void)
     unsigned    sym_ik;         /* Symbol table B-tree initial 'K' value */
     unsigned    istore_ik;      /* Indexed storage B-tree initial 'K' value */
     unsigned    sym_lk;         /* Symbol table B-tree leaf 'K' value */
-    unsigned nindexes;          /* Shared message number of indexes */
-    H5F_info2_t	finfo;		/* global information about file */
-    H5F_file_space_type_t       strategy;	/* File/free space strategy */
-    hsize_t	threshold;	/* Free-space section threshold */
+    unsigned 	nindexes;       /* Shared message number of indexes */
+    H5F_info2_t finfo;          /* global information about file */
+    H5F_file_space_type_t strategy;  /* File/free space strategy */
+    hsize_t  	threshold;      /* Free-space section threshold */
     herr_t      ret;            /* Generic return value */
 
     /* Output message about test being performed */
@@ -1953,10 +1965,10 @@ test_misc12(void)
     hsize_t		dimsn[] = {MISC12_APPEND_SIZE};
     hsize_t		maxdims1[1] = {H5S_UNLIMITED};
     hsize_t		chkdims1[1] = {MISC12_CHUNK_SIZE};
-    hsize_t     	newsize[1] = {MISC12_SPACE1_DIM1+MISC12_APPEND_SIZE};
-    hsize_t    		offset[1] = {MISC12_SPACE1_DIM1};
-    hsize_t     	count[1] = {MISC12_APPEND_SIZE};
-    int                 i;          /* counting variable */
+    hsize_t     newsize[1] = {MISC12_SPACE1_DIM1+MISC12_APPEND_SIZE};
+    hsize_t    	offset[1] = {MISC12_SPACE1_DIM1};
+    hsize_t     count[1] = {MISC12_APPEND_SIZE};
+    int         i;          /* counting variable */
     herr_t		ret;		/* Generic return value  */
 
     /* Output message about test being performed */
@@ -2210,7 +2222,7 @@ create_hdf_file(const char *name)
 
     /* Close the file */
     ret = H5Fclose(fid);
-    assert(ret >= 0);
+    HDassert(ret >= 0);
     CHECK(ret, FAIL, "H5Fclose");
 }
 
@@ -2240,7 +2252,7 @@ insert_user_block(const char *old_name, const char *new_name,const char *str,siz
     VERIFY(written, size, "HDfwrite");
 
     /* Open the old file */
-    old_fp=fopen(old_name,"rb");
+    old_fp=HDfopen(old_name,"rb");
     CHECK(old_fp, NULL, "HDfopen");
 
     /* Allocate space for the copy buffer */
@@ -2263,10 +2275,10 @@ insert_user_block(const char *old_name, const char *new_name,const char *str,siz
     VERIFY(ret, 0, "HDfclose");
 
     /* Free the copy buffer */
-    free(copy_buf);
+    HDfree(copy_buf);
 
     /* Free the user block */
-    free(user_block);
+    HDfree(user_block);
 }
 
 static void
@@ -3457,14 +3469,14 @@ test_misc20(void)
     CHECK(did, FAIL, "H5Dopen2");
 
     /* Get the layout version */
-    ret = H5D_layout_version_test(did,&version);
-    CHECK(ret, FAIL, "H5D_layout_version_test");
-    VERIFY(version, 3, "H5D_layout_version_test");
+    ret = H5D__layout_version_test(did,&version);
+    CHECK(ret, FAIL, "H5D__layout_version_test");
+    VERIFY(version, 3, "H5D__layout_version_test");
 
     /* Get the layout contiguous storage size */
-    ret = H5D_layout_contig_size_test(did,&contig_size);
-    CHECK(ret, FAIL, "H5D_layout_contig_size_test");
-    VERIFY(contig_size, (MISC20_SPACE_DIM0 * MISC20_SPACE_DIM1 * H5Tget_size(H5T_NATIVE_INT)), "H5D_layout_contig_size_test");
+    ret = H5D__layout_contig_size_test(did,&contig_size);
+    CHECK(ret, FAIL, "H5D__layout_contig_size_test");
+    VERIFY(contig_size, (MISC20_SPACE_DIM0 * MISC20_SPACE_DIM1 * H5Tget_size(H5T_NATIVE_INT)), "H5D__layout_contig_size_test");
 
     /* Close datasset */
     ret = H5Dclose(did);
@@ -3475,14 +3487,14 @@ test_misc20(void)
     CHECK(did, FAIL, "H5Dopen2");
 
     /* Get the layout version */
-    ret = H5D_layout_version_test(did,&version);
-    CHECK(ret, FAIL, "H5D_layout_version_test");
-    VERIFY(version, 3, "H5D_layout_version_test");
+    ret = H5D__layout_version_test(did,&version);
+    CHECK(ret, FAIL, "H5D__layout_version_test");
+    VERIFY(version, 3, "H5D__layout_version_test");
 
     /* Get the layout contiguous storage size */
-    ret = H5D_layout_contig_size_test(did,&contig_size);
-    CHECK(ret, FAIL, "H5D_layout_contig_size_test");
-    VERIFY(contig_size, (MISC20_SPACE2_DIM0 * MISC20_SPACE2_DIM1 * H5Tget_size(H5T_NATIVE_INT)), "H5D_layout_contig_size_test");
+    ret = H5D__layout_contig_size_test(did,&contig_size);
+    CHECK(ret, FAIL, "H5D__layout_contig_size_test");
+    VERIFY(contig_size, (MISC20_SPACE2_DIM0 * MISC20_SPACE2_DIM1 * H5Tget_size(H5T_NATIVE_INT)), "H5D__layout_contig_size_test");
 
     /* Close datasset */
     ret = H5Dclose(did);
@@ -3505,14 +3517,14 @@ test_misc20(void)
     CHECK(did, FAIL, "H5Dopen2");
 
     /* Get the layout version */
-    ret = H5D_layout_version_test(did,&version);
-    CHECK(ret, FAIL, "H5D_layout_version_test");
-    VERIFY(version, 2, "H5D_layout_version_test");
+    ret = H5D__layout_version_test(did,&version);
+    CHECK(ret, FAIL, "H5D__layout_version_test");
+    VERIFY(version, 2, "H5D__layout_version_test");
 
     /* Get the layout contiguous storage size */
-    ret = H5D_layout_contig_size_test(did,&contig_size);
-    CHECK(ret, FAIL, "H5D_layout_contig_size_test");
-    VERIFY(contig_size, (MISC20_SPACE_DIM0 * MISC20_SPACE_DIM1 * H5Tget_size(H5T_STD_I32LE)), "H5D_layout_contig_size_test");
+    ret = H5D__layout_contig_size_test(did,&contig_size);
+    CHECK(ret, FAIL, "H5D__layout_contig_size_test");
+    VERIFY(contig_size, (MISC20_SPACE_DIM0 * MISC20_SPACE_DIM1 * H5Tget_size(H5T_STD_I32LE)), "H5D__layout_contig_size_test");
 
     /* Close datasset */
     ret = H5Dclose(did);
@@ -3529,7 +3541,7 @@ test_misc20(void)
    and encoder is available.
                             EIP 2004/8/04
 */
-#if defined H5_HAVE_FILTER_SZIP
+#ifdef H5_HAVE_FILTER_SZIP
 
 /****************************************************************
 **
@@ -4447,7 +4459,6 @@ test_misc25a(void)
     CHECK(ret, FAIL, "H5Fclose");
 
 
-
     /* Re-open file */
     fid = H5Fopen(MISC25A_FILE, H5F_ACC_RDWR, H5P_DEFAULT);
     CHECK(fid, FAIL, "H5Fopen");
@@ -4489,7 +4500,6 @@ test_misc25a(void)
     /* Close file */
     ret = H5Fclose(fid);
     CHECK(ret, FAIL, "H5Fclose");
-
 
 
     /* Re-open file */
@@ -4962,10 +4972,10 @@ test_misc28(void)
     CHECK(did, FAIL, "H5Dcreate2");
 
     /* Verify that the chunk cache is empty */
-    ret = H5D_current_cache_size_test(did, &nbytes_used, &nused);
-    CHECK(ret, FAIL, "H5D_current_cache_size_test");
-    VERIFY(nbytes_used, (size_t) 0, "H5D_current_cache_size_test");
-    VERIFY(nused, 0, "H5D_current_cache_size_test");
+    ret = H5D__current_cache_size_test(did, &nbytes_used, &nused);
+    CHECK(ret, FAIL, "H5D__current_cache_size_test");
+    VERIFY(nbytes_used, (size_t) 0, "H5D__current_cache_size_test");
+    VERIFY(nused, 0, "H5D__current_cache_size_test");
 
     /* Initialize write buffer */
     for(i=0; i<MISC28_SIZE; i++)
@@ -4983,10 +4993,10 @@ test_misc28(void)
     CHECK(ret, FAIL, "H5Dwrite");
 
     /* Verify that all 10 chunks written have been cached */
-    ret = H5D_current_cache_size_test(did, &nbytes_used, &nused);
-    CHECK(ret, FAIL, "H5D_current_cache_size_test");
-    VERIFY(nbytes_used, (size_t) MISC28_SIZE, "H5D_current_cache_size_test");
-    VERIFY(nused, MISC28_SIZE, "H5D_current_cache_size_test");
+    ret = H5D__current_cache_size_test(did, &nbytes_used, &nused);
+    CHECK(ret, FAIL, "H5D__current_cache_size_test");
+    VERIFY(nbytes_used, (size_t) MISC28_SIZE, "H5D__current_cache_size_test");
+    VERIFY(nused, MISC28_SIZE, "H5D__current_cache_size_test");
 
     /* Initialize write buffer */
     for(i=0; i<MISC28_SIZE; i++)
@@ -5002,10 +5012,10 @@ test_misc28(void)
     CHECK(ret, FAIL, "H5Dwrite");
 
     /* Verify that the size of the cache remains at 10 */
-    ret = H5D_current_cache_size_test(did, &nbytes_used, &nused);
-    CHECK(ret, FAIL, "H5D_current_cache_size_test");
-    VERIFY(nbytes_used, (size_t) MISC28_SIZE, "H5D_current_cache_size_test");
-    VERIFY(nused, MISC28_SIZE, "H5D_current_cache_size_test");
+    ret = H5D__current_cache_size_test(did, &nbytes_used, &nused);
+    CHECK(ret, FAIL, "H5D__current_cache_size_test");
+    VERIFY(nbytes_used, (size_t) MISC28_SIZE, "H5D__current_cache_size_test");
+    VERIFY(nused, MISC28_SIZE, "H5D__current_cache_size_test");
 
     /* Close dataset */
     ret = H5Dclose(did);
@@ -5017,10 +5027,10 @@ test_misc28(void)
     CHECK(did, FAIL, "H5Dopen2");
 
     /* Verify that the chunk cache is empty */
-    ret = H5D_current_cache_size_test(did, &nbytes_used, &nused);
-    CHECK(ret, FAIL, "H5D_current_cache_size_test");
-    VERIFY(nbytes_used, (size_t) 0, "H5D_current_cache_size_test");
-    VERIFY(nused, 0, "H5D_current_cache_size_test");
+    ret = H5D__current_cache_size_test(did, &nbytes_used, &nused);
+    CHECK(ret, FAIL, "H5D__current_cache_size_test");
+    VERIFY(nbytes_used, (size_t) 0, "H5D__current_cache_size_test");
+    VERIFY(nused, 0, "H5D__current_cache_size_test");
 
     /* Select hyperslabe for reading */
     start[1] = 0;
@@ -5036,10 +5046,10 @@ test_misc28(void)
         VERIFY(buf[i], i, "H5Dread");
 
     /* Verify that all 10 chunks read have been cached */
-    ret = H5D_current_cache_size_test(did, &nbytes_used, &nused);
-    CHECK(ret, FAIL, "H5D_current_cache_size_test");
-    VERIFY(nbytes_used, (size_t) MISC28_SIZE, "H5D_current_cache_size_test");
-    VERIFY(nused, MISC28_SIZE, "H5D_current_cache_size_test");
+    ret = H5D__current_cache_size_test(did, &nbytes_used, &nused);
+    CHECK(ret, FAIL, "H5D__current_cache_size_test");
+    VERIFY(nbytes_used, (size_t) MISC28_SIZE, "H5D__current_cache_size_test");
+    VERIFY(nused, MISC28_SIZE, "H5D__current_cache_size_test");
 
     /* Select new hyperslab */
     start[1] = 1;
@@ -5055,10 +5065,10 @@ test_misc28(void)
         VERIFY(buf[i], MISC28_SIZE - 1 - i, "H5Dread");
 
     /* Verify that the size of the cache remains at 10 */
-    ret = H5D_current_cache_size_test(did, &nbytes_used, &nused);
-    CHECK(ret, FAIL, "H5D_current_cache_size_test");
-    VERIFY(nbytes_used, (size_t) MISC28_SIZE, "H5D_current_cache_size_test");
-    VERIFY(nused, MISC28_SIZE, "H5D_current_cache_size_test");
+    ret = H5D__current_cache_size_test(did, &nbytes_used, &nused);
+    CHECK(ret, FAIL, "H5D__current_cache_size_test");
+    VERIFY(nbytes_used, (size_t) MISC28_SIZE, "H5D__current_cache_size_test");
+    VERIFY(nused, MISC28_SIZE, "H5D__current_cache_size_test");
 
     /* Close dataset */
     ret = H5Dclose(did);
@@ -5113,6 +5123,186 @@ test_misc29(void)
     CHECK(ret, FAIL, "H5Fclose");
 } /* end test_misc29() */
 
+
+static int
+test_misc30_get_info_cb(hid_t loc_id, const char *name, const H5L_info_t UNUSED *info,
+    void UNUSED *op_data)
+{
+    H5O_info_t object_info;
+
+    return H5Oget_info_by_name(loc_id, name, &object_info, H5P_DEFAULT);  
+}
+
+static int
+test_misc30_get_info(hid_t loc_id)
+{
+    return H5Literate(loc_id, H5_INDEX_NAME, H5_ITER_INC, NULL, test_misc30_get_info_cb, NULL);
+}
+
+
+/****************************************************************
+**
+**  test_misc30(): Exercise local heap code that loads prefix
+**                 separately from data block, causing the free
+**                 block information to get lost.
+**
+****************************************************************/
+static void
+test_misc30(void)
+{
+    hsize_t file_size[] = {0, 0};       /* Sizes of file created */
+    hbool_t get_info;                   /* Whether to perform the get info call */
+
+    /* Output message about test being performed */
+    MESSAGE(5, ("Local heap dropping free block info\n"));
+
+    for(get_info = FALSE; get_info <= TRUE; get_info++) {
+        hid_t fid;                  /* File ID */
+        hid_t gid;                  /* Group ID */
+        int i;                      /* Local index counter */
+        herr_t  ret;                /* Generic return value */
+
+        fid = H5Fcreate(MISC30_FILE, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+        CHECK(fid, FAIL, "H5Fcreate");
+        gid = H5Gcreate2(fid, "/g0", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        CHECK(gid, FAIL, "H5Gcreate2");
+
+        ret = H5Gclose(gid);
+        CHECK(ret, FAIL, "H5Gclose");
+        ret = H5Fclose(fid);
+        CHECK(ret, FAIL, "H5Fclose");
+        
+        for(i = 0; i < 20; i++) {
+            char gname[32];
+
+            fid = H5Fopen(MISC30_FILE, H5F_ACC_RDWR, H5P_DEFAULT);
+            CHECK(fid, FAIL, "H5Fopen");
+    
+            if(get_info) {
+                ret = test_misc30_get_info(fid);      
+                CHECK(ret, FAIL, "test_misc30_get_info");
+            }
+
+            sprintf(gname, "/g0/group%d", i);
+            gid = H5Gcreate2(fid, gname, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+            CHECK(gid, FAIL, "H5Gcreate2");
+
+            ret = H5Gclose(gid);
+            CHECK(ret, FAIL, "H5Gclose");
+            ret = H5Fclose(fid);
+            CHECK(ret, FAIL, "H5Fclose");
+        } 
+        
+        fid = H5Fopen(MISC30_FILE, H5F_ACC_RDONLY, H5P_DEFAULT);
+        CHECK(fid, FAIL, "H5Fopen");
+        ret = H5Fget_filesize(fid, &file_size[get_info]);
+        CHECK(fid, FAIL, "H5Fget_filesize");
+        ret = H5Fclose(fid);
+        CHECK(ret, FAIL, "H5Fclose");
+    } 
+    
+    VERIFY(file_size[0], file_size[1], "test_misc30");
+} /* end test_misc30() */
+
+
+/****************************************************************
+**
+**  test_misc31(): Test reentering library through deprecated
+*                  routines that register an id after calling
+*                  H5close().
+**
+****************************************************************/
+static void
+test_misc31(void)
+{
+    hid_t file_id;              /* File id */
+    hid_t space_id;             /* Dataspace id */
+    hid_t dset_id;              /* Dataset id */
+    hid_t attr_id;              /* Attribute id */
+    hid_t group_id;             /* Group id */
+    hid_t dtype_id;             /* Datatype id */
+    herr_t ret;                 /* Generic return value */
+
+    /* Output message about test being performed */
+    MESSAGE(5, ("Deprecated routines initialize after H5close()\n"));
+
+#ifndef H5_NO_DEPRECATED_SYMBOLS
+    file_id = H5Fcreate(MISC31_FILE, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    CHECK(file_id, FAIL, "H5Fcreate");
+
+    /* Test dataset package */
+    space_id = H5Screate(H5S_SCALAR);
+    CHECK(space_id, FAIL, "H5Screate");
+    dset_id = H5Dcreate1(file_id, MISC31_DSETNAME, H5T_NATIVE_INT, space_id, H5P_DEFAULT);
+    CHECK(dset_id, FAIL, "H5Dcreate1");
+    ret = H5close();
+    CHECK(ret, FAIL, "H5close");
+    file_id = H5Fopen(MISC31_FILE, H5F_ACC_RDWR, H5P_DEFAULT);
+    CHECK(file_id, FAIL, "H5Fopen");
+    dset_id = H5Dopen1(file_id, MISC31_DSETNAME);
+    CHECK(dset_id, FAIL, "H5Dopen1");
+
+    /* Test attribute package */
+    space_id = H5Screate(H5S_SCALAR);
+    CHECK(space_id, FAIL, "H5Screate");
+    attr_id = H5Acreate1(dset_id, MISC31_ATTRNAME1, H5T_NATIVE_INT, space_id, H5P_DEFAULT);
+    CHECK(attr_id, FAIL, "H5Acreate1");
+    ret = H5close();
+    CHECK(ret, FAIL, "H5close");
+    file_id = H5Fopen(MISC31_FILE, H5F_ACC_RDWR, H5P_DEFAULT);
+    CHECK(file_id, FAIL, "H5Fopen");
+    dset_id = H5Dopen1(file_id, MISC31_DSETNAME);
+    CHECK(dset_id, FAIL, "H5Dopen1");
+    space_id = H5Screate(H5S_SCALAR);
+    CHECK(space_id, FAIL, "H5Screate");
+    attr_id = H5Acreate1(dset_id, MISC31_ATTRNAME2, H5T_NATIVE_INT, space_id, H5P_DEFAULT);
+    CHECK(attr_id, FAIL, "H5Acreate1");
+
+    /* Test group package */
+    group_id = H5Gcreate1(file_id, MISC31_GROUPNAME, 0);
+    CHECK(group_id, FAIL, "H5Gcreate1");
+    ret = H5close();
+    CHECK(ret, FAIL, "H5close");
+    file_id = H5Fopen(MISC31_FILE, H5F_ACC_RDWR, H5P_DEFAULT);
+    CHECK(file_id, FAIL, "H5Fopen");
+    group_id = H5Gopen1(file_id, MISC31_GROUPNAME);
+    CHECK(group_id, FAIL, "H5Gopen1");
+
+    /* Test property list package */
+    ret = H5Pregister1(H5P_OBJECT_CREATE, MISC31_PROPNAME, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+    CHECK(ret, FAIL, "H5Pregister1");
+    ret = H5close();
+    CHECK(ret, FAIL, "H5close");
+    ret = H5Pregister1(H5P_OBJECT_CREATE, MISC31_PROPNAME, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+    CHECK(ret, FAIL, "H5Pregister1");
+    ret = H5close();
+    CHECK(ret, FAIL, "H5close");
+
+    /* Test datatype package */
+    file_id = H5Fopen(MISC31_FILE, H5F_ACC_RDWR, H5P_DEFAULT);
+    CHECK(file_id, FAIL, "H5Fopen");
+    dtype_id = H5Tcopy(H5T_NATIVE_INT);
+    CHECK(dtype_id, FAIL, "H5Tcopy");
+    ret = H5Tcommit1(file_id, MISC31_DTYPENAME, dtype_id);
+    CHECK(ret, FAIL, "H5Tcommit1");
+    ret = H5close();
+    CHECK(ret, FAIL, "H5close");
+    file_id = H5Fopen(MISC31_FILE, H5F_ACC_RDWR, H5P_DEFAULT);
+    CHECK(file_id, FAIL, "H5Fopen");
+    dtype_id = H5Topen1(file_id, MISC31_DTYPENAME);
+    CHECK(ret, FAIL, "H5Topen1");
+    ret = H5Fclose(file_id);
+    CHECK(ret, FAIL, "H5Fclose");
+    ret = H5Tclose(dtype_id);
+    CHECK(ret, FAIL, "H5Tclose");
+    
+#else /* H5_NO_DEPRECATED_SYMBOLS */
+    /* Output message about test being skipped */
+    MESSAGE(5, (" ...Skipped"));
+#endif /* H5_NO_DEPRECATED_SYMBOLS */
+} /* end test_misc31() */
+
+
 /****************************************************************
 **
 **  test_misc(): Main misc. test routine.
@@ -5144,7 +5334,7 @@ test_misc(void)
     test_misc18();      /* Test new object header information in H5O_info_t struct */
     test_misc19();      /* Test incrementing & decrementing ref count on IDs */
     test_misc20();      /* Test problems with truncated dimensions in version 2 of storage layout message */
-#if defined H5_HAVE_FILTER_SZIP
+#ifdef H5_HAVE_FILTER_SZIP
     test_misc21();      /* Test that "late" allocation time is treated the same as "incremental", for chunked datasets w/a filters */
     test_misc22();      /* check szip bits per pixel */
 #endif /* H5_HAVE_FILTER_SZIP */
@@ -5157,6 +5347,8 @@ test_misc(void)
     test_misc27();      /* Test opening file with object that has bad # of object header messages */
     test_misc28();      /* Test that chunks are cached appropriately */
     test_misc29();      /* Test that speculative metadata reads are handled correctly */
+    test_misc30();      /* Exercise local heap loading bug where free lists were getting dropped */
+    test_misc31();      /* Test Reentering library through deprecated routines after H5close() */
 
 } /* test_misc() */
 
@@ -5201,7 +5393,7 @@ cleanup_misc(void)
     HDremove(MISC18_FILE);
     HDremove(MISC19_FILE);
     HDremove(MISC20_FILE);
-#if defined H5_HAVE_FILTER_SZIP
+#ifdef H5_HAVE_FILTER_SZIP
     HDremove(MISC21_FILE);
     HDremove(MISC22_FILE);
 #endif /* H5_HAVE_FILTER_SZIP */
@@ -5212,5 +5404,7 @@ cleanup_misc(void)
     HDremove(MISC26_FILE);
     HDremove(MISC28_FILE);
     HDremove(MISC29_COPY_FILE);
+    HDremove(MISC30_FILE);
+    HDremove(MISC31_FILE);
 }
 

@@ -564,7 +564,7 @@ herr_t H5IMlink_palette( hid_t loc_id,
         /* close */
         if(H5Sclose(asid) < 0)
             goto out;
-        if ( H5Tclose( atid ) < 0)
+        if(H5Tclose(atid) < 0)
             goto out;
         if(H5Aclose(aid) < 0)
             goto out;
@@ -594,7 +594,7 @@ herr_t H5IMlink_palette( hid_t loc_id,
 
         dim_ref = n_refs + 1;
 
-        refbuf = (hobj_ref_t*)malloc( sizeof(hobj_ref_t) * (int)dim_ref );
+        refbuf = (hobj_ref_t*)HDmalloc( sizeof(hobj_ref_t) * (int)dim_ref );
 
         if ( H5Aread( aid, atid, refbuf ) < 0)
             goto out;
@@ -630,10 +630,12 @@ herr_t H5IMlink_palette( hid_t loc_id,
         /* close */
         if(H5Sclose(asid) < 0)
             goto out;
+        if(H5Tclose(atid) < 0)
+            goto out;
         if(H5Aclose(aid) < 0)
             goto out;
 
-        free( refbuf );
+        HDfree( refbuf );
 
     } /* ok_pal ==  1 */
 
@@ -899,13 +901,13 @@ herr_t H5IMget_palette_info( hid_t loc_id,
 
         dim_ref = n_refs;
 
-        refbuf = (hobj_ref_t*)malloc( sizeof(hobj_ref_t) * (int)dim_ref );
+        refbuf = (hobj_ref_t*)HDmalloc( sizeof(hobj_ref_t) * (int)dim_ref );
 
         if ( H5Aread( aid, atid, refbuf ) < 0)
             goto out;
 
         /* Get the actual palette */
-        if ( (pal_id = H5Rdereference( did, H5R_OBJECT, &refbuf[pal_number] )) < 0)
+        if ( (pal_id = H5Rdereference2(did, H5P_DEFAULT, H5R_OBJECT, &refbuf[pal_number])) < 0)
             goto out;
 
         if ( (pal_space_id = H5Dget_space( pal_id )) < 0)
@@ -928,7 +930,7 @@ herr_t H5IMget_palette_info( hid_t loc_id,
             goto out;
         if ( H5Aclose( aid ) < 0)
             goto out;
-        free( refbuf );
+        HDfree( refbuf );
 
 
     }
@@ -1010,13 +1012,13 @@ herr_t H5IMget_palette( hid_t loc_id,
 
         dim_ref = n_refs;
 
-        refbuf = (hobj_ref_t*)malloc( sizeof(hobj_ref_t) * (int)dim_ref );
+        refbuf = (hobj_ref_t*)HDmalloc( sizeof(hobj_ref_t) * (int)dim_ref );
 
         if ( H5Aread( aid, atid, refbuf ) < 0)
             goto out;
 
         /* Get the palette id */
-        if ( (pal_id = H5Rdereference( did, H5R_OBJECT, &refbuf[pal_number] )) < 0)
+        if ( (pal_id = H5Rdereference2(did, H5P_DEFAULT, H5R_OBJECT, &refbuf[pal_number])) < 0)
             goto out;
 
         /* Read the palette dataset */
@@ -1032,7 +1034,7 @@ herr_t H5IMget_palette( hid_t loc_id,
             goto out;
         if ( H5Aclose( aid ) < 0)
             goto out;
-        free( refbuf );
+        HDfree( refbuf );
     }
 
     /* Close the image dataset. */

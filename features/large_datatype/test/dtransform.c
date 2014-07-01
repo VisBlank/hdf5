@@ -23,6 +23,7 @@ static int init_test(hid_t file_id);
 static int test_copy(const hid_t dxpl_id_c_to_f_copy, const hid_t dxpl_id_polynomial_copy);
 static int test_trivial(const hid_t dxpl_id_simple);
 static int test_poly(const hid_t dxpl_id_polynomial);
+static int test_specials(hid_t file);
 static int test_set(void);
 static int test_getset(const hid_t dxpl_id_simple);
 
@@ -34,30 +35,30 @@ hid_t dset_id_float_chunk = -1;
 
 
 const float windchillFfloat[ROWS][COLS] =
-    {   {36.0, 31.0, 25.0, 19.0, 13.0, 7.0, 1.0, -5.0, -11.0, -16.0, -22.0, -28.0, -34.0, -40.0, -46.0, -52.0, -57.0, -63.0 },
-	{34.0, 27.0, 21.0, 15.0, 9.0, 3.0, -4.0, -10.0, -16.0, -22.0, -28.0, -35.0, -41.0, -47.0, -53.0, -59.0, -66.0, -72.0 } ,
-	{32.0, 25.0, 19.0, 13.0, 6.0, 0.0, -7.0, -13.0, -19.0, -26.0, -32.0, -39.0, -45.0, -51.0, -58.0, -64.0, -71.0, -77.0 },
-	{30.0, 24.0, 17.0, 11.0, 4.0, -2.0, -9.0, -15.0, -22.0, -29.0, -35.0, -42.0, -48.0, -55.0, -61.0, -68.0, -74.0, -81.0 },
-	{29.0, 23.0, 16.0, 9.0, 3.0, -4.0, -11.0, -17.0, -24.0, -31.0, -37.0, -44.0, -51.0, -58.0, -64.0, -71.0, -78.0, -84.0 },
-	{28.0, 22.0, 15.0, 8.0, 1.0, -5.0, -12.0, -19.0, -26.0, -33.0, -39.0, -46.0, -53.0, -60.0, -67.0, -73.0, -80.0, -87.0 },
-	{28.0, 21.0, 14.0, 7.0, 0.0, -7.0, -14.0, -21.0, -27.0, -34.0, -41.0, -48.0, -55.0, -62.0, -69.0, -76.0, -82.0, -89.0 },
-	{27.0, 20.0, 13.0, 6.0, -1.0, -8.0, -15.0, -22.0, -29.0, -36.0, -43.0, -50.0, -57.0, -64.0, -71.0, -78.0, -84.0, -91.0 },
-	{26.0, 19.0, 12.0, 5.0, -2.0, -9.0, -16.0, -23.0, -30.0, -37.0, -44.0, -51.0, -58.0, -65.0, -72.0, -79.0, -86.0, -93.0 },
-	{26.0, 19.0, 12.0, 4.0, -3.0, -10.0, -17.0, -24.0, -31.0, -38.0, -45.0, -52.0, -60.0, -67.0, -74.0, -81.0, -88.0, -95.0},
-	{25.0, 18.0, 11.0, 4.0, -3.0, -11.0, -18.0, -25.0, -32.0, -39.0, -46.0, -54.0, -61.0, -68.0, -75.0, -82.0, -89.0, -97.0},
-	{25.0, 17.0, 10.0, 3.0, -4.0, -11.0, -19.0, -26.0, -33.0, -40.0, -48.0, -55.0, -62.0, -69.0, -76.0, -84.0, -91.0, -98.0}
+    {   {36.0f, 31.0f, 25.0f, 19.0f, 13.0f,   7.0f,   1.0f,  -5.0f, -11.0f, -16.0f, -22.0f, -28.0f, -34.0f, -40.0f, -46.0f, -52.0f, -57.0f, -63.0f},
+	{34.0f, 27.0f, 21.0f, 15.0f,  9.0f,   3.0f,  -4.0f, -10.0f, -16.0f, -22.0f, -28.0f, -35.0f, -41.0f, -47.0f, -53.0f, -59.0f, -66.0f, -72.0f} ,
+	{32.0f, 25.0f, 19.0f, 13.0f,  6.0f,   0.0f,  -7.0f, -13.0f, -19.0f, -26.0f, -32.0f, -39.0f, -45.0f, -51.0f, -58.0f, -64.0f, -71.0f, -77.0f},
+	{30.0f, 24.0f, 17.0f, 11.0f,  4.0f,  -2.0f,  -9.0f, -15.0f, -22.0f, -29.0f, -35.0f, -42.0f, -48.0f, -55.0f, -61.0f, -68.0f, -74.0f, -81.0f},
+	{29.0f, 23.0f, 16.0f,  9.0f,  3.0f,  -4.0f, -11.0f, -17.0f, -24.0f, -31.0f, -37.0f, -44.0f, -51.0f, -58.0f, -64.0f, -71.0f, -78.0f, -84.0f},
+	{28.0f, 22.0f, 15.0f,  8.0f,  1.0f,  -5.0f, -12.0f, -19.0f, -26.0f, -33.0f, -39.0f, -46.0f, -53.0f, -60.0f, -67.0f, -73.0f, -80.0f, -87.0f},
+	{28.0f, 21.0f, 14.0f,  7.0f,  0.0f,  -7.0f, -14.0f, -21.0f, -27.0f, -34.0f, -41.0f, -48.0f, -55.0f, -62.0f, -69.0f, -76.0f, -82.0f, -89.0f},
+	{27.0f, 20.0f, 13.0f,  6.0f, -1.0f,  -8.0f, -15.0f, -22.0f, -29.0f, -36.0f, -43.0f, -50.0f, -57.0f, -64.0f, -71.0f, -78.0f, -84.0f, -91.0f},
+	{26.0f, 19.0f, 12.0f,  5.0f, -2.0f,  -9.0f, -16.0f, -23.0f, -30.0f, -37.0f, -44.0f, -51.0f, -58.0f, -65.0f, -72.0f, -79.0f, -86.0f, -93.0f},
+	{26.0f, 19.0f, 12.0f,  4.0f, -3.0f, -10.0f, -17.0f, -24.0f, -31.0f, -38.0f, -45.0f, -52.0f, -60.0f, -67.0f, -74.0f, -81.0f, -88.0f, -95.0f},
+	{25.0f, 18.0f, 11.0f,  4.0f, -3.0f, -11.0f, -18.0f, -25.0f, -32.0f, -39.0f, -46.0f, -54.0f, -61.0f, -68.0f, -75.0f, -82.0f, -89.0f, -97.0f},
+	{25.0f, 17.0f, 10.0f,  3.0f, -4.0f, -11.0f, -19.0f, -26.0f, -33.0f, -40.0f, -48.0f, -55.0f, -62.0f, -69.0f, -76.0f, -84.0f, -91.0f, -98.0f}
     };
 
 const int transformData[ROWS][COLS] =
     {   {36, 31, 25, 19, 13, 7, 1, 5, 11, 16, 22, 28, 34, 40, 46, 52, 57, 63 },
-        {34, 27, 21, 15, 9, 3, 4, 10, 16, 22, 28, 35, 41, 47, 53, 59, 66, 0 } ,
-        {32, 25, 19, 13, 6, 0, 7, 13, 19, 26, 32, 39, 45, 51, 58, 64, 71, 5 },
+        {34, 27, 21, 15, 9, 3, 4, 10, 16, 22, 28, 35, 41, 47, 53, 59, 66, 1 } ,
+        {32, 25, 19, 13, 6, 2, 7, 13, 19, 26, 32, 39, 45, 51, 58, 64, 71, 5 },
         {30, 24, 17, 11, 4, 2, 9, 15, 22, 29, 35, 42, 48, 55, 61, 68, 2, 9 },
         {29, 23, 16, 9, 3, 4, 11, 17, 24, 31, 37, 44, 51, 58, 64, 71, 6, 12 },
         {28, 22, 15, 8, 1, 5, 12, 19, 26, 33, 39, 46, 53, 60, 67, 1, 8, 15 },
-        {28, 21, 14, 7, 0, 7, 14, 21, 27, 34, 41, 48, 55, 62, 69, 4, 10, 17 },
+        {28, 21, 14, 7, 6, 7, 14, 21, 27, 34, 41, 48, 55, 62, 69, 4, 10, 17 },
         {27, 20, 13, 6, 1, 8, 15, 22, 29, 36, 43, 50, 57, 64, 71, 6, 12, 19 },
-        {26, 19, 12, 5, 2, 9, 16, 23, 30, 37, 44, 51, 58, 65, 0, 7, 14, 21 },
+        {26, 19, 12, 5, 2, 9, 16, 23, 30, 37, 44, 51, 58, 65, 5, 7, 14, 21 },
         {26, 19, 12, 4, 3, 10, 17, 24, 31, 38, 45, 52, 60, 67, 2, 9, 16, 23},
         {25, 18, 11, 4, 3, 11, 18, 25, 32, 39, 46, 54, 61, 68, 3, 10, 17, 25},
         {25, 17, 10, 3, 4, 11, 19, 26, 33, 40, 48, 55, 62, 69, 4, 12, 19, 26}
@@ -95,6 +96,22 @@ const int transformData[ROWS][COLS] =
             }						\
         }							\
     PASSED();						\
+}
+
+#define COMPARE_INT(VAR1,VAR2)			        \
+{							\
+    size_t i,j;						\
+							\
+    for(i=0; i<ROWS; i++)				\
+        for(j=0; j<COLS; j++)				\
+        {						\
+            if( (VAR1)[i][j] != (VAR2)[i][j] )	        \
+            {						\
+                H5_FAILED();				\
+                fprintf(stderr, "    ERROR: data  failed to match computed data\n");	\
+                goto error;				\
+            }						\
+        }						\
 }
 
 #define TEST_TYPE_CONTIG(XFORM, TYPE, HDF_TYPE, TEST_STR, COMPARE_DATA, SIGNED)	\
@@ -332,6 +349,7 @@ int main(void)
     if(test_trivial(dxpl_id_simple) < 0) TEST_ERROR;
     if(test_poly(dxpl_id_polynomial) < 0) TEST_ERROR;
     if(test_getset(dxpl_id_c_to_f) < 0) TEST_ERROR;
+    if(test_specials(file_id) < 0) TEST_ERROR;
 
     /* Close the objects we opened/created */
     if(H5Dclose(dset_id_int) < 0) TEST_ERROR;
@@ -471,8 +489,8 @@ test_poly(const hid_t dxpl_id_polynomial)
 
     for(row = 0; row < ROWS; row++)
         for(col = 0; col < COLS; col++) {
-            windchillC = (int) ((5.0 / 9.0) * (windchillFfloat[row][col] - 32));
-            polyflres[row][col] = (float) ((2.0 + windchillC) * ((windchillC - 8.0) / 2.0));
+            windchillC = (int) ((5.0f / 9.0f) * (windchillFfloat[row][col] - 32));
+            polyflres[row][col] = (float) ((2.0f + windchillC) * ((windchillC - 8.0f) / 2.0f));
         }
 
     TESTING("data transform, polynomial transform (int->float)")
@@ -480,11 +498,11 @@ test_poly(const hid_t dxpl_id_polynomial)
             dxpl_id_polynomial, polyflread) < 0)
         TEST_ERROR
         
-    COMPARE(float, polyflread, polyflres, 2.0)
+    COMPARE(float, polyflread, polyflres, 2.0f)
 
     for(row = 0; row < ROWS; row++)
         for(col = 0; col < COLS; col++) {
-            windchillC = (int) ((5.0 / 9.0) * (windchillFfloat[row][col] - 32));
+            windchillC = (int) ((5.0f / 9.0f) * (windchillFfloat[row][col] - 32));
             polyflres[row][col] = (float) ((2 + windchillC) * ((windchillC - 8) / 2));
         }
 
@@ -502,6 +520,160 @@ error:
 }
 
 static int
+test_specials(hid_t file)
+{
+    hid_t dxpl_id, dset_id, dataspace;
+    hsize_t dim[2] = { ROWS, COLS };
+    int read_buf[ROWS][COLS];
+    int data_res[ROWS][COLS];
+    int row, col;
+    const char* special1 = "x*-100";
+    const char* special2 = "100-x";
+    const char* special3 = "1000/x";
+    const char* special4 = "-x";
+    const char* special5 = "+x";
+
+    TESTING("data transform of some special cases")
+
+    if((dataspace = H5Screate_simple(2, dim, NULL)) < 0)
+        TEST_ERROR
+
+    if((dxpl_id = H5Pcreate(H5P_DATASET_XFER)) < 0) TEST_ERROR;
+
+    /*-----------------------------
+     * Operation 1: x*-100
+     *----------------------------*/
+    if(H5Pset_data_transform(dxpl_id, special1) < 0) TEST_ERROR;
+
+    for(row = 0; row < ROWS; row++)
+        for(col = 0; col < COLS; col++)
+            data_res[row][col] = transformData[row][col] * -100;
+
+    if((dset_id = H5Dcreate2(file, "/special1", H5T_NATIVE_INT,
+            dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0)
+        TEST_ERROR
+    if(H5Dwrite(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL,
+            dxpl_id, transformData) < 0)
+        TEST_ERROR
+    if(H5Dread(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL,
+            H5P_DEFAULT, read_buf) < 0)
+        TEST_ERROR
+ 
+    COMPARE_INT(read_buf, data_res)
+
+    if(H5Dclose(dset_id) < 0)
+        TEST_ERROR
+
+    /*-----------------------------
+     * Operation 2: 100-x
+     *----------------------------*/
+    if(H5Pset_data_transform(dxpl_id, special2) < 0) TEST_ERROR;
+
+    for(row = 0; row < ROWS; row++)
+        for(col = 0; col < COLS; col++)
+            data_res[row][col] = 100 - transformData[row][col];
+
+    if((dset_id = H5Dcreate2(file, "/special2", H5T_NATIVE_INT,
+            dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0)
+        TEST_ERROR
+    if(H5Dwrite(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL,
+            dxpl_id, transformData) < 0)
+        TEST_ERROR
+    if(H5Dread(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL,
+            H5P_DEFAULT, read_buf) < 0)
+        TEST_ERROR
+ 
+    COMPARE_INT(read_buf, data_res)
+
+    if(H5Dclose(dset_id) < 0)
+        TEST_ERROR
+
+    /*-----------------------------
+     * Operation 3: 1000/x
+     *----------------------------*/
+    if(H5Pset_data_transform(dxpl_id, special3) < 0) TEST_ERROR;
+
+    for(row = 0; row < ROWS; row++)
+        for(col = 0; col < COLS; col++)
+            data_res[row][col] = 1000 / transformData[row][col];
+
+    if((dset_id = H5Dcreate2(file, "/special3", H5T_NATIVE_INT,
+            dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0)
+        TEST_ERROR
+    if(H5Dwrite(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL,
+            dxpl_id, transformData) < 0)
+        TEST_ERROR
+    if(H5Dread(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL,
+            H5P_DEFAULT, read_buf) < 0)
+        TEST_ERROR
+ 
+    COMPARE_INT(read_buf, data_res)
+
+    if(H5Dclose(dset_id) < 0)
+        TEST_ERROR
+
+    /*-----------------------------
+     * Operation 4: -x
+     *----------------------------*/
+    if(H5Pset_data_transform(dxpl_id, special4) < 0) TEST_ERROR;
+
+    for(row = 0; row < ROWS; row++)
+        for(col = 0; col < COLS; col++)
+            data_res[row][col] = -1 * transformData[row][col];
+
+    if((dset_id = H5Dcreate2(file, "/special4", H5T_NATIVE_INT,
+            dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0)
+        TEST_ERROR
+    if(H5Dwrite(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL,
+            dxpl_id, transformData) < 0)
+        TEST_ERROR
+    if(H5Dread(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL,
+            H5P_DEFAULT, read_buf) < 0)
+        TEST_ERROR
+ 
+    COMPARE_INT(read_buf, data_res)
+
+    if(H5Dclose(dset_id) < 0)
+        TEST_ERROR
+
+    /*-----------------------------
+     * Operation 5: +x
+     *----------------------------*/
+    if(H5Pset_data_transform(dxpl_id, special5) < 0) TEST_ERROR;
+
+    for(row = 0; row < ROWS; row++)
+        for(col = 0; col < COLS; col++)
+            data_res[row][col] = transformData[row][col];
+
+    if((dset_id = H5Dcreate2(file, "/special5", H5T_NATIVE_INT,
+            dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0)
+        TEST_ERROR
+    if(H5Dwrite(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL,
+            dxpl_id, transformData) < 0)
+        TEST_ERROR
+    if(H5Dread(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL,
+            H5P_DEFAULT, read_buf) < 0)
+        TEST_ERROR
+ 
+    COMPARE_INT(read_buf, data_res)
+
+    if(H5Dclose(dset_id) < 0)
+        TEST_ERROR
+
+
+    if(H5Pclose(dxpl_id) < 0)
+        TEST_ERROR
+    if(H5Sclose(dataspace) < 0)
+        TEST_ERROR
+
+    PASSED();
+    return 0;
+
+error: 
+     return -1;
+}
+
+static int
 test_copy(const hid_t dxpl_id_c_to_f_copy, const hid_t dxpl_id_polynomial_copy)
 {
     int windchillC;
@@ -512,7 +684,7 @@ test_copy(const hid_t dxpl_id_c_to_f_copy, const hid_t dxpl_id_polynomial_copy)
 
     for(row = 0; row < ROWS; row++)
         for(col = 0; col < COLS; col++) {
-            windchillC = (int) ((5.0 / 9.0) * (windchillFfloat[row][col] - 32));
+            windchillC = (int) ((5.0f / 9.0f) * (windchillFfloat[row][col] - 32));
             polyflres[row][col] = (float) ((2 + windchillC) * ((windchillC - 8) / 2));
         }
 
@@ -549,7 +721,7 @@ test_trivial(const hid_t dxpl_id_simple)
         TEST_ERROR
     for(row = 0; row < ROWS; row++)
         for(col = 0; col < COLS; col++) {
-            if((windchillFfloatread[row][col] - 4.8) > FLOAT_TOL) 
+            if((windchillFfloatread[row][col] - 4.8f) > FLOAT_TOL) 
                 FAIL_PUTS_ERROR("    ERROR: Conversion failed to match computed data\n");
         }
 
@@ -608,7 +780,7 @@ test_getset(const hid_t dxpl_id_c_to_f)
         
     for(row = 0; row < ROWS; row++)
         for(col = 0; col < COLS; col++) {
-            if((windchillFfloatread[row][col] - 4.8) > FLOAT_TOL) 
+            if((windchillFfloatread[row][col] - 4.8f) > FLOAT_TOL) 
                 FAIL_PUTS_ERROR("    ERROR: Conversion failed to match computed data\n")
         }
 

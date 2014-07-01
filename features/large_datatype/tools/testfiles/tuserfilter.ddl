@@ -4,20 +4,21 @@ DATASET "myfilter" {
    DATASPACE  SIMPLE { ( 20, 10 ) / ( 20, 10 ) }
    STORAGE_LAYOUT {
       CHUNKED ( 10, 5 )
-      SIZE 800
-    }
+      SIZE 800 (1.000:1 COMPRESSION)
+   }
    FILTERS {
-      UNKNOWN_FILTER {
+      USER_DEFINED_FILTER {
          FILTER_ID 405
          COMMENT myfilter
          PARAMS { 5 6 }
       }
-      FILLVALUE {
-         FILL_TIME H5D_FILL_TIME_IFSET
-         VALUE  0      
-      }
-      ALLOCATION_TIME {
-         H5D_ALLOC_TIME_INCR
-      }
    }
+   FILLVALUE {
+      FILL_TIME H5D_FILL_TIME_IFSET
+      VALUE  0
+   }
+   ALLOCATION_TIME {
+      H5D_ALLOC_TIME_INCR
+   }
+}
 }

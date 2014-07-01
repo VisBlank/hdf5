@@ -218,6 +218,7 @@ hsize_t diff_datasetid( hid_t did1,
     int        i;
     unsigned int  vl_data = 0;         /*contains VL datatypes */
 
+    h5difftrace("diff_datasetid start\n");
     /* Get the dataspace handle */
     if ( (sid1 = H5Dget_space(did1)) < 0 )
         goto error;
@@ -263,6 +264,7 @@ hsize_t diff_datasetid( hid_t did1,
     * check for empty datasets
     *-------------------------------------------------------------------------
     */
+    h5difftrace("check for empty datasets\n");
 
     storage_size1=H5Dget_storage_size(did1);
     storage_size2=H5Dget_storage_size(did2);
@@ -300,6 +302,7 @@ hsize_t diff_datasetid( hid_t did1,
     * memory type and sizes
     *-------------------------------------------------------------------------
     */
+    h5difftrace("check for memory type and sizes\n");
     if ((m_tid1=h5tools_get_native_type(f_tid1)) < 0)
         goto error;
 
@@ -313,36 +316,41 @@ hsize_t diff_datasetid( hid_t did1,
     * check for different signed/unsigned types
     *-------------------------------------------------------------------------
     */
-
-    sign1=H5Tget_sign(m_tid1);
-    sign2=H5Tget_sign(m_tid2);
-    if ( sign1 != sign2 )
+    if (can_compare)
     {
-        if ((options->m_verbose||options->m_list_not_cmp) && obj1_name && obj2_name)
+        h5difftrace("can_compare for sign\n");
+        sign1=H5Tget_sign(m_tid1);
+        sign2=H5Tget_sign(m_tid2);
+        if ( sign1 != sign2 )
         {
-            parallel_print("Not comparable: <%s> has sign %s ", obj1_name, get_sign(sign1));
-            parallel_print("and <%s> has sign %s\n", obj2_name, get_sign(sign2));
-        }
-
-        can_compare=0;
-        options->not_cmp=1;
-    }
+            h5difftrace("sign1 != sign2\n");
+            if ((options->m_verbose||options->m_list_not_cmp) && obj1_name && obj2_name)
+            {
+                parallel_print("Not comparable: <%s> has sign %s ", obj1_name, get_sign(sign1));
+                parallel_print("and <%s> has sign %s\n", obj2_name, get_sign(sign2));
+            }
     
+            can_compare=0;
+            options->not_cmp=1;
+        }
+    }
+
     /* Check if type is either VLEN-data or VLEN-string to reclaim any
      * VLEN memory buffer later */
     if( TRUE == h5tools_detect_vlen(m_tid1) )
         vl_data = TRUE;
 
-    /*-------------------------------------------------------------------------
+    /*------------------------------------------------------------------------
     * only attempt to compare if possible
     *-------------------------------------------------------------------------
     */
     if(can_compare) /* it is possible to compare */
     {
+        h5difftrace("can_compare attempt\n");
 
-        /*-------------------------------------------------------------------------
+        /*-----------------------------------------------------------------
         * get number of elements
-        *-------------------------------------------------------------------------
+        *------------------------------------------------------------------
         */
         nelmts1 = 1;
         for(i = 0; i < rank1; i++)
@@ -354,30 +362,16 @@ hsize_t diff_datasetid( hid_t did1,
 
         HDassert(nelmts1 == nelmts2);
 
-        /*-------------------------------------------------------------------------
+        /*-----------------------------------------------------------------
         * "upgrade" the smaller memory size
-        *-------------------------------------------------------------------------
+        *------------------------------------------------------------------
         */
+        h5difftrace("upgrade the smaller memory size?\n");
 
-        if(m_size1 != m_size2) {
-            if(m_size1 < m_size2) {
-                H5Tclose(m_tid1);
-
-                if((m_tid1 = h5tools_get_native_type(f_tid2)) < 0)
-                    goto error;
-
-                m_size1 = H5Tget_size(m_tid1);
-            } /* end if */
-            else {
-                H5Tclose(m_tid2);
-
-                if((m_tid2 = h5tools_get_native_type(f_tid1)) < 0)
-                    goto error;
-
-                m_size2 = H5Tget_size(m_tid2);
-            } /* end else */
-        } /* end if */
-        HDassert(m_size1 == m_size2);
+        if (FAIL == match_up_memsize (f_tid1, f_tid2,
+                                      &m_tid1, &m_tid2, 
+                                      &m_size1, &m_size2))
+            goto error;
 
         /* print names */
         if(obj1_name)
@@ -386,11 +380,10 @@ hsize_t diff_datasetid( hid_t did1,
             name2 = diff_basename(obj2_name);
 
 
-        /*-------------------------------------------------------------------------
+        /*----------------------------------------------------------------
         * read/compare
-        *-------------------------------------------------------------------------
+        *-----------------------------------------------------------------
         */
-
         need = (size_t)(nelmts1 * m_size1);  /* bytes needed */
         if(need < H5TOOLS_MALLOCSIZE) {
             buf1 = HDmalloc(need);
@@ -398,6 +391,7 @@ hsize_t diff_datasetid( hid_t did1,
         } /* end if */
 
         if(buf1 != NULL && buf2 != NULL) {
+            h5difftrace("buf1 != NULL && buf2 != NULL\n");
             if(H5Dread(did1, m_tid1, H5S_ALL, H5S_ALL, H5P_DEFAULT, buf1) < 0)
                 goto error;
             if(H5Dread(did2, m_tid2, H5S_ALL, H5S_ALL, H5P_DEFAULT, buf2) < 0)
@@ -408,7 +402,7 @@ hsize_t diff_datasetid( hid_t did1,
                 options, name1, name2, m_tid1, did1, did2);
 
             /* reclaim any VL memory, if necessary */
-       	    if(vl_data) {
+            if(vl_data) {
                 H5Dvlen_reclaim(m_tid1, sid1, H5P_DEFAULT, buf1);
                 H5Dvlen_reclaim(m_tid2, sid2, H5P_DEFAULT, buf2);
             } /* end if */
@@ -444,27 +438,27 @@ hsize_t diff_datasetid( hid_t did1,
                     size = 1;
                 sm_size[i - 1] = MIN(dims1[i - 1], size);
                 sm_nbytes *= sm_size[i - 1];
-                assert(sm_nbytes > 0);
+                HDassert(sm_nbytes > 0);
             } /* end for */
 
-	    /* malloc return code should be verified.
+            /* malloc return code should be verified.
              * If fail, need to handle the error.
              * This else branch should be recoded as a separate function.
              * Note that there are many "goto error" within this branch
              * that fails to address freeing other objects created here.
-	     * E.g., sm_space.
-	     */
-            sm_buf1 = malloc((size_t)sm_nbytes);
-	    assert(sm_buf1);
-            sm_buf2 = malloc((size_t)sm_nbytes);
-	    assert(sm_buf2);
+             * E.g., sm_space.
+             */
+            sm_buf1 = HDmalloc((size_t)sm_nbytes);
+            HDassert(sm_buf1);
+            sm_buf2 = HDmalloc((size_t)sm_nbytes);
+            HDassert(sm_buf2);
 
             sm_nelmts = sm_nbytes / p_type_nbytes;
             sm_space = H5Screate_simple(1, &sm_nelmts, NULL);
 
             /* the stripmine loop */
-            memset(hs_offset, 0, sizeof hs_offset);
-            memset(zero, 0, sizeof zero);
+            HDmemset(hs_offset, 0, sizeof hs_offset);
+            HDmemset(zero, 0, sizeof zero);
 
             for(elmtno = 0; elmtno < p_nelmts; elmtno += hs_nelmts) {
                 /* calculate the hyperslab size */
@@ -513,34 +507,28 @@ hsize_t diff_datasetid( hid_t did1,
         } /* hyperslab read */
     } /*can_compare*/
 
-    /*-------------------------------------------------------------------------
-     * compare attributes
-     * the if condition refers to cases when the dataset is a referenced object
-     *-------------------------------------------------------------------------
-     */
-    if(obj1_name)
-        nfound += diff_attr(did1,did2,obj1_name,obj2_name,options);
 
     /*-------------------------------------------------------------------------
      * close
      *-------------------------------------------------------------------------
      */
+    h5difftrace("compare attributes?\n");
 
     /* free */
     if(buf1 != NULL) {
-        free(buf1);
+        HDfree(buf1);
         buf1 = NULL;
     } /* end if */
     if(buf2 != NULL) {
-        free(buf2);
+        HDfree(buf2);
         buf2 = NULL;
     } /* end if */
     if(sm_buf1 != NULL) {
-        free(sm_buf1);
+        HDfree(sm_buf1);
         sm_buf1 = NULL;
     } /* end if */
     if(sm_buf2 != NULL) {
-        free(sm_buf2);
+        HDfree(sm_buf2);
         sm_buf2 = NULL;
     } /* end if */
 
@@ -552,6 +540,7 @@ hsize_t diff_datasetid( hid_t did1,
         H5Tclose(m_tid1);
         H5Tclose(m_tid2);
     } H5E_END_TRY;
+    h5difftrace("diff_datasetid finish\n");
 
     return nfound;
 
@@ -562,17 +551,17 @@ error:
     if (buf1!=NULL)
     {
         /* reclaim any VL memory, if necessary */
-        if(vl_data) 
+        if(vl_data)
             H5Dvlen_reclaim(m_tid1, sid1, H5P_DEFAULT, buf1);
-        free(buf1);
+        HDfree(buf1);
         buf1=NULL;
     }
     if (buf2!=NULL)
     {
         /* reclaim any VL memory, if necessary */
-        if(vl_data) 
+        if(vl_data)
             H5Dvlen_reclaim(m_tid2, sid2, H5P_DEFAULT, buf2);
-        free(buf2);
+        HDfree(buf2);
         buf2=NULL;
     }
     if (sm_buf1!=NULL)
@@ -580,7 +569,7 @@ error:
         /* reclaim any VL memory, if necessary */
         if(vl_data)
             H5Dvlen_reclaim(m_tid1, sm_space, H5P_DEFAULT, sm_buf1);
-        free(sm_buf1);
+        HDfree(sm_buf1);
         sm_buf1=NULL;
     }
     if (sm_buf2!=NULL)
@@ -588,7 +577,7 @@ error:
         /* reclaim any VL memory, if necessary */
         if(vl_data)
             H5Dvlen_reclaim(m_tid1, sm_space, H5P_DEFAULT, sm_buf2);
-        free(sm_buf2);
+        HDfree(sm_buf2);
         sm_buf2=NULL;
     }
 
@@ -602,6 +591,7 @@ error:
         H5Tclose(m_tid2);
         /* enable error reporting */
     } H5E_END_TRY;
+    h5difftrace("diff_datasetid errored\n");
 
     return nfound;
 }
@@ -694,7 +684,7 @@ int diff_can_type( hid_t       f_tid1, /* file data type */
     *-------------------------------------------------------------------------
     */
 
-    assert(tclass1==tclass2);
+    HDassert(tclass1==tclass2);
     switch (tclass1)
     {
     case H5T_INTEGER:
@@ -783,7 +773,7 @@ int diff_can_type( hid_t       f_tid1, /* file data type */
     *-------------------------------------------------------------------------
     */
 
-    assert(rank1==rank2);
+    HDassert(rank1==rank2);
     for ( i=0; i<rank1; i++)
     {
         if (maxdim1 && maxdim2)

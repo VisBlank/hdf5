@@ -1,3 +1,12 @@
+!****h* root/fortran/test/tH5G.f90
+!
+! NAME
+!  tH5G.f90
+!
+! FUNCTION
+!  Basic testing of Fortran H5G APIs.
+!
+! COPYRIGHT
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
@@ -13,6 +22,15 @@
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
+! CONTAINS SUBROUTINES
+!  group_test
+!
+!*****
+
+MODULE TH5G
+
+CONTAINS
+
     SUBROUTINE group_test(cleanup, total_error)
 
 !   This subroutine tests following functionalities:
@@ -21,10 +39,11 @@
 !   h5gget_comment_f
 
      USE HDF5 ! This module contains all necessary modules
+     USE TH5_MISC
 
      IMPLICIT NONE
      LOGICAL, INTENT(IN)  :: cleanup
-     INTEGER, INTENT(OUT) :: total_error
+     INTEGER, INTENT(INOUT) :: total_error
 
      CHARACTER(LEN=5), PARAMETER :: filename = "gtest"    !File name
      CHARACTER(LEN=80) :: fix_filename
@@ -236,6 +255,9 @@
      CALL h5sclose_f(dspace_id, error)
      CALL check("h5sclose_f", error, total_error)
 
+
           if(cleanup) CALL h5_cleanup_f(filename, H5P_DEFAULT_F, error)
               CALL check("h5_cleanup_f", error, total_error)
   END SUBROUTINE group_test
+
+END MODULE TH5G

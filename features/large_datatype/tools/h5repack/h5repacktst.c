@@ -17,6 +17,7 @@
 #include "h5test.h"
 #include "h5diff.h"
 #include "h5tools.h"
+#include "h5tools_utils.h"
 
 #define GOERROR  {H5_FAILED(); goto error;}
 
@@ -77,7 +78,6 @@
 #define FNAME17OUT  "h5repack_named_dtypes_out.h5"
 
 #define FNAME18     "h5repack_layout2.h5"
-#define FNAME18OUT  "h5repack_layout2_out.h5"
 
 #define FNAME_UB   "ublock.bin"
 
@@ -124,6 +124,7 @@ static int make_hlinks(hid_t loc_id);
 static int make_early(void);
 static int make_layout(hid_t loc_id);
 static int make_layout2(hid_t loc_id);
+static int make_layout3(hid_t loc_id);
 #ifdef H5_HAVE_FILTER_SZIP
 static int make_szip(hid_t loc_id);
 #endif /* H5_HAVE_FILTER_SZIP */
@@ -169,15 +170,23 @@ int main (void)
 {
     pack_opt_t  pack_options;
     diff_opt_t  diff_options;
-    hsize_t	fs_size = 0;	/* free space section threshold */
-    H5F_file_space_type_t fs_type = H5F_FILE_SPACE_DEFAULT;	/* file space handling strategy */
+    hsize_t  fs_size = 0;  /* free space section threshold */
+    H5F_file_space_type_t fs_type = H5F_FILE_SPACE_DEFAULT;  /* file space handling strategy */
+    h5_stat_t		file_stat;
+    h5_stat_size_t	fsize1, fsize2;	/* file sizes */
 #if defined (H5_HAVE_FILTER_SZIP)
     int szip_can_encode = 0;
 #endif
 
+    h5tools_setprogname(PROGRAMNAME);
+    h5tools_setstatus(EXIT_SUCCESS);
+
+    /* Initialize h5tools lib */
+    h5tools_init();
+
     /* initialize */
-    memset(&diff_options, 0, sizeof (diff_opt_t));
-    memset(&pack_options, 0, sizeof (pack_opt_t));
+    HDmemset(&diff_options, 0, sizeof (diff_opt_t));
+    HDmemset(&pack_options, 0, sizeof (pack_opt_t));
 
     /* run tests  */
     puts("Testing h5repack:");
@@ -937,7 +946,7 @@ int main (void)
 
 #if defined (H5_HAVE_FILTER_SZIP)
     if (szip_can_encode) {
-	/* fs_type = H5F_FILE_SPACE_AGGR_VFD; fs_size = 3 */
+  /* fs_type = H5F_FILE_SPACE_AGGR_VFD; fs_size = 3 */
         if (h5repack_init (&pack_options, 0, H5_INC_ENUM(H5F_file_space_type_t, fs_type), ++fs_size) < 0)
             GOERROR;
         if (h5repack(FNAME7,FNAME7OUT,&pack_options) < 0)
@@ -1254,7 +1263,7 @@ int main (void)
     && defined (H5_HAVE_FILTER_FLETCHER32) && defined (H5_HAVE_FILTER_SHUFFLE)
 
     if (szip_can_encode) {
-	/* fs_type = H5F_FILE_SPACE_VFD; fs_size = 4 */
+  /* fs_type = H5F_FILE_SPACE_VFD; fs_size = 4 */
         if (h5repack_init (&pack_options, 0, H5_INC_ENUM(H5F_file_space_type_t, fs_type), ++fs_size) < 0)
             GOERROR;
         if (h5repack_addfilter("dset_deflate:SZIP=8,NN",&pack_options) < 0)
@@ -1554,6 +1563,50 @@ int main (void)
     PASSED();
 
     /*-------------------------------------------------------------------------
+    * test --metadata_block_size option
+    * Also verify that output file using the metadata_block_size option is
+    * larger than the output file one not using it.
+    * FNAME4 is used because it is the same as the test file used for the
+    * shell script version of this test (h5repack.sh).
+    *-------------------------------------------------------------------------
+    */
+    TESTING("    metadata block size option");
+    /* First run without metadata option. No need to verify the correctness */
+    /* since this has been verified by earlier tests. Just record the file */
+    /* size of the output file. */
+    if(h5repack_init(&pack_options, 0, H5F_FILE_SPACE_DEFAULT, (hsize_t)0) < 0)
+        GOERROR;
+    if(h5repack(FNAME4, FNAME4OUT, &pack_options) < 0)
+        GOERROR;
+    if(HDstat(FNAME4OUT, &file_stat) < 0)
+        GOERROR;
+    fsize1 = file_stat.st_size;
+    if(h5repack_end(&pack_options) < 0)
+        GOERROR;
+
+    /* run it again with metadata option */
+    if(h5repack_init(&pack_options, 0, H5F_FILE_SPACE_DEFAULT, (hsize_t)0) < 0)
+        GOERROR;
+    pack_options.meta_block_size = 8192;
+    if(h5repack(FNAME4, FNAME4OUT, &pack_options) < 0)
+        GOERROR;
+    if(h5diff(FNAME4, FNAME4OUT, NULL, NULL, &diff_options) > 0)
+        GOERROR;
+    if(h5repack_verify(FNAME4, FNAME4OUT, &pack_options) <= 0)
+        GOERROR;
+    /* record the file size of the output file */
+    if(HDstat(FNAME4OUT, &file_stat) < 0)
+        GOERROR;
+    fsize2 = file_stat.st_size;
+    /* verify second file size is larger than the first one */
+    if(fsize2 <= fsize1)
+        GOERROR;
+    if(h5repack_end(&pack_options) < 0)
+        GOERROR;
+    PASSED();
+
+
+    /*-------------------------------------------------------------------------
     * clean temporary test files
     *-------------------------------------------------------------------------
     */
@@ -1654,6 +1707,19 @@ int make_testfiles(void)
         return -1;
 
     if(make_layout2(fid) < 0)
+        goto out;
+
+    if(H5Fclose(fid) < 0)
+        return -1;
+
+    /*-------------------------------------------------------------------------
+    * for test layout conversions form chunk with unlimited max dims
+    *-------------------------------------------------------------------------
+    */
+    if((fid = H5Fcreate("h5repack_layout3.h5", H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) < 0)
+        return -1;
+
+    if(make_layout3(fid) < 0)
         goto out;
 
     if(H5Fclose(fid) < 0)
@@ -2955,31 +3021,31 @@ out:
  *
  * Purpose: create datasets with contiguous and chunked layouts:
  *
- *	contig_small: < 1k, fixed dims datspace
- *	chunked_small_fixed: < 1k, fixed dims dataspace
+ *  contig_small: < 1k, fixed dims datspace
+ *  chunked_small_fixed: < 1k, fixed dims dataspace
  *
  *-------------------------------------------------------------------------
  */
-#define S_DIM1	4
-#define S_DIM2	10
-#define CONTIG_S	"contig_small"
-#define CHUNKED_S_FIX	"chunked_small_fixed"
+#define S_DIM1  4
+#define S_DIM2  10
+#define CONTIG_S  "contig_small"
+#define CHUNKED_S_FIX  "chunked_small_fixed"
 
 static
 int make_layout2(hid_t loc_id)
 {
 
-    hid_t    contig_dcpl = -1; 	/* dataset creation property list */
+    hid_t    contig_dcpl = -1;   /* dataset creation property list */
     hid_t    chunked_dcpl = -1; /* dataset creation property list */
 
-    int      i, j, n;		/* Local index variables */
-    int	     ret_value = -1;	/* Return value */
-    hid_t    s_sid = -1;	/* dataspace ID */
+    int      i, j, n;    /* Local index variables */
+    int       ret_value = -1;  /* Return value */
+    hid_t    s_sid = -1;  /* dataspace ID */
 
-    hsize_t  s_dims[RANK] = {S_DIM1,S_DIM2};	/* Dataspace (< 1 k) */
-    hsize_t  chunk_dims[RANK] = {S_DIM1/2, S_DIM2/2};	/* Dimension sizes for chunks */
+    hsize_t  s_dims[RANK] = {S_DIM1,S_DIM2};  /* Dataspace (< 1 k) */
+    hsize_t  chunk_dims[RANK] = {S_DIM1/2, S_DIM2/2};  /* Dimension sizes for chunks */
 
-    int      s_buf[S_DIM1][S_DIM2];	/* Temporary buffer */
+    int      s_buf[S_DIM1][S_DIM2];  /* Temporary buffer */
 
     for(i = n = 0; i < S_DIM1; i++) {
         for (j = 0; j < S_DIM2; j++) {
@@ -3021,6 +3087,151 @@ out:
     return(ret_value);
 
 } /* make_layout2() */
+
+/*-------------------------------------------------------------------------
+* Function: make_layout3
+*
+* Purpose: make chunked datasets with unlimited max dim and chunk dim is
+*          bigger than current dim. (HDFFV-7933)
+*          Test for converting chunk to chunk , chunk to conti and chunk
+*          to compact.  
+*          - The chunk to chunk changes layout bigger than any current dim 
+*            again. 
+*          - The chunk to compact test dataset bigger than 64K, should
+*            remain original layout.*
+*
+*-------------------------------------------------------------------------
+*/
+#define DIM1_L3 300
+#define DIM2_L3 200
+/* small size */
+#define SDIM1_L3 4
+#define SDIM2_L3 50
+static
+int make_layout3(hid_t loc_id)
+{
+    hid_t    dcpl1=-1; /* dataset creation property list */
+    hid_t    dcpl2=-1; /* dataset creation property list */
+    hid_t    dcpl3=-1; /* dataset creation property list */
+    hid_t    sid1=-1;  /* dataspace ID */
+    hid_t    sid2=-1;  /* dataspace ID */
+    hsize_t  dims1[RANK]={DIM1_L3,DIM2_L3};
+    hsize_t  dims2[RANK]={SDIM1_L3,SDIM2_L3};
+    hsize_t  maxdims[RANK]={H5S_UNLIMITED, H5S_UNLIMITED};
+    hsize_t  chunk_dims1[RANK]={DIM1_L3*2,5};
+    hsize_t  chunk_dims2[RANK]={SDIM1_L3 + 2, SDIM2_L3/2};
+    hsize_t  chunk_dims3[RANK]={SDIM1_L3 - 2, SDIM2_L3/2};
+    int      buf1[DIM1_L3][DIM2_L3];
+    int      buf2[SDIM1_L3][SDIM2_L3];
+    int      i, j, n;
+
+    /* init buf1 */
+    for (i=n=0; i<DIM1_L3; i++)
+    {
+        for (j=0; j<DIM2_L3; j++)
+        {
+            buf1[i][j]=n++;
+        }
+    }
+
+    /* init buf2 */
+    for (i=n=0; i<SDIM1_L3; i++)
+    {
+        for (j=0; j<SDIM2_L3; j++)
+        {
+            buf2[i][j]=n++;
+        }
+    }
+
+    /*-------------------------------------------------------------------------
+    * make chunked dataset with
+    *  - dset maxdims are UNLIMIT
+    *  - a chunk dim is bigger than dset dim
+    *  - dset size bigger than compact max (64K)
+    *-------------------------------------------------------------------------
+    */
+    /* create a space */
+    if((sid1 = H5Screate_simple(RANK, dims1, maxdims)) < 0)
+        return -1;
+    /* create a dataset creation property list; the same DCPL is used for all dsets */
+    if ((dcpl1 = H5Pcreate(H5P_DATASET_CREATE)) < 0)
+    {
+        goto out;
+    }
+
+    if(H5Pset_chunk(dcpl1, RANK, chunk_dims1) < 0)
+        goto out;
+    if (make_dset(loc_id,"chunk_unlimit1",sid1,dcpl1,buf1) < 0)
+    {
+        goto out;
+    }
+
+    /*-------------------------------------------------------------------------
+    * make chunked dataset with
+    *  - dset maxdims are UNLIMIT
+    *  - a chunk dim is bigger than dset dim
+    *  - dset size smaller than compact (64K)
+    *-------------------------------------------------------------------------
+    */
+
+    /* create a space */
+    if((sid2 = H5Screate_simple(RANK, dims2, maxdims)) < 0)
+        return -1;
+    /* create a dataset creation property list; the same DCPL is used for all dsets */
+    if ((dcpl2 = H5Pcreate(H5P_DATASET_CREATE)) < 0)
+        goto out;
+
+    if(H5Pset_chunk(dcpl2, RANK, chunk_dims2) < 0)
+        goto out;
+
+    if (make_dset(loc_id,"chunk_unlimit2",sid2,dcpl2,buf2) < 0)
+        goto out;
+
+    /*-------------------------------------------------------------------------
+    * make chunked dataset with
+    *  - dset maxdims are UNLIMIT
+    *  - a chunk dims are smaller than dset dims
+    *  - dset size smaller than compact (64K)
+    *-------------------------------------------------------------------------
+    */
+    /* create a dataset creation property list; the same DCPL is used for all dsets */
+    if ((dcpl3 = H5Pcreate(H5P_DATASET_CREATE)) < 0)
+        goto out;
+
+    if(H5Pset_chunk(dcpl3, RANK, chunk_dims3) < 0)
+        goto out;
+
+    if (make_dset(loc_id,"chunk_unlimit3",sid2,dcpl3,buf2) < 0)
+        goto out;
+
+    /*-------------------------------------------------------------------------
+    * close space and dcpl
+    *-------------------------------------------------------------------------
+    */
+    if(H5Sclose(sid1) < 0)
+        goto out;
+    if(H5Sclose(sid2) < 0)
+        goto out;
+    if(H5Pclose(dcpl1) < 0)
+        goto out;
+    if(H5Pclose(dcpl2) < 0)
+        goto out;
+    if(H5Pclose(dcpl3) < 0)
+        goto out;
+
+    return 0;
+
+out:
+    H5E_BEGIN_TRY
+    {
+        H5Sclose(sid1);
+        H5Sclose(sid2);
+        H5Pclose(dcpl1);
+        H5Pclose(dcpl2);
+        H5Pclose(dcpl3);
+    } H5E_END_TRY;
+    return -1;
+}
 
 /*-------------------------------------------------------------------------
 * Function: make a file with an integer dataset with a fill value
@@ -3122,14 +3333,14 @@ int make_big(hid_t loc_id)
         goto out;
 
     /* initialize buffer to 0  */
-    buf=(signed  char *) calloc( nelmts, size);
+    buf=(signed  char *) HDcalloc( nelmts, size);
 
     if (H5Sselect_hyperslab (f_sid,H5S_SELECT_SET,hs_start,NULL,hs_size, NULL) < 0)
         goto out;
     if (H5Dwrite (did,H5T_NATIVE_SCHAR,m_sid,f_sid,H5P_DEFAULT,buf) < 0)
         goto out;
 
-    free(buf);
+    HDfree(buf);
     buf=NULL;
 
     /* close */
@@ -3170,8 +3381,8 @@ int make_external(hid_t loc_id)
     hid_t   sid=-1;
     hid_t   dcpl;
     int     buf[2]={1,2};
-    hsize_t cur_size[1];		/* data space current size	*/
-    hsize_t max_size[1];		/* data space maximum size	*/
+    hsize_t cur_size[1];    /* data space current size  */
+    hsize_t max_size[1];    /* data space maximum size  */
     hsize_t size;
 
     cur_size[0] = max_size[0] = 2;
@@ -3246,7 +3457,7 @@ make_userblock(void)
 
     /* Initialize userblock data */
     for(u = 0; u < USERBLOCK_SIZE; u++)
-        ub[u] = 'a' + (u % 26);
+        ub[u] = 'a' + (char)(u % 26);
 
     /* Re-open HDF5 file, as "plain" file */
     if((fd = HDopen(FNAME16, O_WRONLY, 0644)) < 0)
@@ -3254,7 +3465,7 @@ make_userblock(void)
 
     /* Write userblock data */
     nwritten = HDwrite(fd, ub, (size_t)USERBLOCK_SIZE);
-    assert(nwritten == USERBLOCK_SIZE);
+    HDassert(nwritten == USERBLOCK_SIZE);
 
     /* Close file */
     HDclose(fd);
@@ -3318,7 +3529,7 @@ verify_userblock( const char* filename)
 
     /* Read userblock data */
     nread = HDread(fd, ub, (size_t)USERBLOCK_SIZE);
-    assert(nread == USERBLOCK_SIZE);
+    HDassert(nread == USERBLOCK_SIZE);
 
     /* Verify userblock data */
     for(u = 0; u < USERBLOCK_SIZE; u++)
@@ -3359,7 +3570,7 @@ make_userblock_file(void)
 
     /* initialize userblock data */
     for(u = 0; u < USERBLOCK_SIZE; u++)
-        ub[u] = 'a' + (u % 26);
+        ub[u] = 'a' + (char)(u % 26);
 
     /* open file */
     if((fd = HDopen(FNAME_UB,O_WRONLY|O_CREAT|O_TRUNC, 0644 )) < 0)
@@ -3367,7 +3578,7 @@ make_userblock_file(void)
 
     /* write userblock data */
     nwritten = HDwrite(fd, ub, (size_t)USERBLOCK_SIZE);
-    assert(nwritten == USERBLOCK_SIZE);
+    HDassert(nwritten == USERBLOCK_SIZE);
 
     /* close file */
     HDclose(fd);
@@ -3393,7 +3604,6 @@ out:
 *
 *-------------------------------------------------------------------------
 */
-
 static
 int write_dset_in(hid_t loc_id,
                    const char* dset_name, /* for saving reference to dataset*/
@@ -3423,7 +3633,7 @@ int write_dset_in(hid_t loc_id,
     /* create 1D attributes with dimension [2], 2 elements */
     hsize_t    dims[1]={2};
     hsize_t    dims1r[1]={2};
-    char       buf1[2][2]= {"ab","de"};        /* string */
+    char       buf1[2][3]= {"ab","de"};        /* string */
     char       buf2[2]= {1,2};                 /* bitfield, opaque */
     s_t        buf3[2]= {{1,2},{3,4}};         /* compound */
     hobj_ref_t buf4[2];                        /* reference */
@@ -3437,7 +3647,7 @@ int write_dset_in(hid_t loc_id,
     /* create 2D attributes with dimension [3][2], 6 elements */
     hsize_t    dims2[2]={3,2};
     hsize_t    dims2r[2]={1,1};
-    char       buf12[6][2]= {"ab","cd","ef","gh","ij","kl"};         /* string */
+    char       buf12[6][3]= {"ab","cd","ef","gh","ij","kl"};         /* string */
     char       buf22[3][2]= {{1,2},{3,4},{5,6}};                     /* bitfield, opaque */
     s_t        buf32[6]= {{1,2},{3,4},{5,6},{7,8},{9,10},{11,12}};   /* compound */
     hobj_ref_t buf42[1][1];                                          /* reference */
@@ -3449,7 +3659,7 @@ int write_dset_in(hid_t loc_id,
     /* create 3D attributes with dimension [4][3][2], 24 elements */
     hsize_t    dims3[3]={4,3,2};
     hsize_t    dims3r[3]={1,1,1};
-    char       buf13[24][2]= {"ab","cd","ef","gh","ij","kl","mn","pq",
+    char       buf13[24][3]= {"ab","cd","ef","gh","ij","kl","mn","pq",
         "rs","tu","vw","xz","AB","CD","EF","GH",
         "IJ","KL","MN","PQ","RS","TU","VW","XZ"};  /* string */
     char       buf23[4][3][2];    /* bitfield, opaque */
@@ -3604,10 +3814,10 @@ int write_dset_in(hid_t loc_id,
     /* Allocate and initialize VL dataset to write */
 
     buf5[0].len = 1;
-    buf5[0].p = malloc( 1 * sizeof(int));
+    buf5[0].p = HDmalloc( 1 * sizeof(int));
     ((int *)buf5[0].p)[0]=1;
     buf5[1].len = 2;
-    buf5[1].p = malloc( 2 * sizeof(int));
+    buf5[1].p = HDmalloc( 2 * sizeof(int));
     ((int *)buf5[1].p)[0] = 2;
     ((int *)buf5[1].p)[1] = 3;
 
@@ -3657,17 +3867,23 @@ int write_dset_in(hid_t loc_id,
 
     {
 
+        hsize_t TEST_BUFSIZE = (128 * 1024 * 1024);  /* 128MB */
         double   *dbuf;                           /* information to write */
         size_t   size;
         hsize_t  sdims[] = {1};
-        hsize_t  tdims[] = {H5TOOLS_MALLOCSIZE / sizeof(double) + 1};
+        hsize_t  tdims[] = {TEST_BUFSIZE / sizeof(double) + 1};
         unsigned u;
 
         /* allocate and initialize array data to write */
-        size = ( H5TOOLS_MALLOCSIZE / sizeof(double) + 1 ) * sizeof(double);
-        dbuf = (double*)malloc( size );
+        size = ( TEST_BUFSIZE / sizeof(double) + 1 ) * sizeof(double);
+        dbuf = (double*)HDmalloc( size );
+        if (NULL == dbuf)
+        {
+            printf ("\nError: Cannot allocate memory for \"arrayd\" data buffer size %dMB.\n", (int) size / 1000000 );
+            goto out;
+        }
 
-        for( u = 0; u < H5TOOLS_MALLOCSIZE / sizeof(double) + 1; u++)
+        for( u = 0; u < TEST_BUFSIZE / sizeof(double) + 1; u++)
             dbuf[u] = u;
 
         if (make_diffs)
@@ -3676,7 +3892,7 @@ int write_dset_in(hid_t loc_id,
             dbuf[6] = 0;
         }
 
-        /* create a type larger than H5TOOLS_MALLOCSIZE */
+        /* create a type larger than TEST_BUFSIZE */
         if ((tid = H5Tarray_create2(H5T_NATIVE_DOUBLE, 1, tdims)) < 0)
             goto out;
         size = H5Tget_size(tid);
@@ -3692,7 +3908,7 @@ int write_dset_in(hid_t loc_id,
         H5Dclose(did);
         H5Tclose(tid);
         H5Sclose(sid);
-        free( dbuf );
+        HDfree( dbuf );
     }
 
     /*-------------------------------------------------------------------------
@@ -3727,7 +3943,7 @@ int write_dset_in(hid_t loc_id,
 
     if (make_diffs)
     {
-        memset(buf12, 'z', sizeof buf12);
+        HDmemset(buf12, 'z', sizeof buf12);
     }
 
 
@@ -3748,7 +3964,7 @@ int write_dset_in(hid_t loc_id,
 
     if (make_diffs)
     {
-        memset(buf22,0,sizeof buf22);
+        HDmemset(buf22,0,sizeof buf22);
     }
 
     if ((tid = H5Tcopy(H5T_STD_B8LE)) < 0)
@@ -3778,7 +3994,7 @@ int write_dset_in(hid_t loc_id,
 
     if (make_diffs)
     {
-        memset(buf32,0,sizeof buf32);
+        HDmemset(buf32,0,sizeof buf32);
     }
 
     if ((tid = H5Tcreate (H5T_COMPOUND, sizeof(s_t))) < 0)
@@ -3834,8 +4050,8 @@ int write_dset_in(hid_t loc_id,
         {
             int l;
 
-            buf52[i][j].p = malloc((i + 1) * sizeof(int));
-            buf52[i][j].len = i + 1;
+            buf52[i][j].p = HDmalloc((i + 1) * sizeof(int));
+            buf52[i][j].len = (size_t)(i + 1);
             for(l = 0; l < i + 1; l++)
             {
                 if(make_diffs)
@@ -3870,7 +4086,7 @@ int write_dset_in(hid_t loc_id,
 
     if (make_diffs)
     {
-        memset(buf62,0,sizeof buf62);
+        HDmemset(buf62,0,sizeof buf62);
     }
 
 
@@ -3888,8 +4104,8 @@ int write_dset_in(hid_t loc_id,
 
 
     if(make_diffs) {
-        memset(buf72, 0, sizeof buf72);
-        memset(buf82, 0, sizeof buf82);
+        HDmemset(buf72, 0, sizeof buf72);
+        HDmemset(buf82, 0, sizeof buf82);
     }
 
 
@@ -3929,7 +4145,7 @@ int write_dset_in(hid_t loc_id,
 
     if (make_diffs)
     {
-        memset(buf13,'z',sizeof buf13);
+        HDmemset(buf13,'z',sizeof buf13);
     }
 
     if ((tid = H5Tcopy(H5T_C_S1)) < 0)
@@ -4055,8 +4271,8 @@ int write_dset_in(hid_t loc_id,
             {
                 int l;
 
-                buf53[i][j][k].p = malloc((i + 1) * sizeof(int));
-                buf53[i][j][k].len = i + 1;
+                buf53[i][j][k].p = HDmalloc((i + 1) * sizeof(int));
+                buf53[i][j][k].len = (size_t)(i + 1);
                 for(l = 0; l < i + 1; l++)
                 {
                     if(make_diffs)
@@ -4185,8 +4401,8 @@ int make_dset_reg_ref(hid_t loc_id)
     int             retval = -1;  /* return value */
 
     /* Allocate write & read buffers */
-    wbuf = (hdset_reg_ref_t *)calloc(sizeof(hdset_reg_ref_t), (size_t)SPACE1_DIM1);
-    dwbuf = (int *)malloc(sizeof(int) * SPACE2_DIM1 * SPACE2_DIM2);
+    wbuf = (hdset_reg_ref_t *)HDcalloc(sizeof(hdset_reg_ref_t), (size_t)SPACE1_DIM1);
+    dwbuf = (int *)HDmalloc(sizeof(int) * SPACE2_DIM1 * SPACE2_DIM2);
 
     /* Create dataspace for datasets */
     if ((sid2 = H5Screate_simple(SPACE2_RANK, dims2, NULL)) < 0)
@@ -4242,9 +4458,9 @@ int make_dset_reg_ref(hid_t loc_id)
 
 out:
     if(wbuf)
-        free(wbuf);
+        HDfree(wbuf);
     if(dwbuf)
-        free(dwbuf);
+        HDfree(dwbuf);
 
     H5E_BEGIN_TRY
     {
@@ -4296,7 +4512,7 @@ int write_attr_in(hid_t loc_id,
 
     /* create 1D attributes with dimension [2], 2 elements */
     hsize_t    dims[1]={2};
-    char       buf1[2][2]= {"ab","de"};        /* string */
+    char       buf1[2][3]= {"ab","de"};        /* string */
     char       buf2[2]= {1,2};                 /* bitfield, opaque */
     s_t        buf3[2]= {{1,2},{3,4}};         /* compound */
     hobj_ref_t buf4[2];                        /* reference */
@@ -4309,7 +4525,7 @@ int write_attr_in(hid_t loc_id,
 
     /* create 2D attributes with dimension [3][2], 6 elements */
     hsize_t    dims2[2]={3,2};
-    char       buf12[6][2]= {"ab","cd","ef","gh","ij","kl"};         /* string */
+    char       buf12[6][3]= {"ab","cd","ef","gh","ij","kl"};         /* string */
     char       buf22[3][2]= {{1,2},{3,4},{5,6}};                     /* bitfield, opaque */
     s_t        buf32[6]= {{1,2},{3,4},{5,6},{7,8},{9,10},{11,12}};   /* compound */
     hobj_ref_t buf42[3][2];                                          /* reference */
@@ -4321,7 +4537,7 @@ int write_attr_in(hid_t loc_id,
 
     /* create 3D attributes with dimension [4][3][2], 24 elements */
     hsize_t    dims3[3]={4,3,2};
-    char       buf13[24][2]= {"ab","cd","ef","gh","ij","kl","mn","pq",
+    char       buf13[24][3]= {"ab","cd","ef","gh","ij","kl","mn","pq",
         "rs","tu","vw","xz","AB","CD","EF","GH",
         "IJ","KL","MN","PQ","RS","TU","VW","XZ"};  /* string */
     char       buf23[4][3][2];    /* bitfield, opaque */
@@ -4526,10 +4742,10 @@ int write_attr_in(hid_t loc_id,
     /* Allocate and initialize VL dataset to write */
 
     buf5[0].len = 1;
-    buf5[0].p = malloc( 1 * sizeof(int));
+    buf5[0].p = HDmalloc( 1 * sizeof(int));
     ((int *)buf5[0].p)[0]=1;
     buf5[1].len = 2;
-    buf5[1].p = malloc(2 * sizeof(int));
+    buf5[1].p = HDmalloc(2 * sizeof(int));
     ((int *)buf5[1].p)[0] = 2;
     ((int *)buf5[1].p)[1] = 3;
 
@@ -4649,7 +4865,7 @@ int write_attr_in(hid_t loc_id,
     */
     if (make_diffs)
     {
-        memset(buf12, 'z', sizeof buf12);
+        HDmemset(buf12, 'z', sizeof buf12);
     }
 
     /*
@@ -4689,7 +4905,7 @@ int write_attr_in(hid_t loc_id,
 
     if (make_diffs)
     {
-        memset(buf22,0,sizeof buf22);
+        HDmemset(buf22,0,sizeof buf22);
     }
 
     /*
@@ -4749,7 +4965,7 @@ int write_attr_in(hid_t loc_id,
     */
     if (make_diffs)
     {
-        memset(buf32,0,sizeof buf32);
+        HDmemset(buf32,0,sizeof buf32);
     }
 
     /*
@@ -4846,8 +5062,8 @@ int write_attr_in(hid_t loc_id,
         for (j = 0; j < 2; j++)
         {
             int l;
-            buf52[i][j].p = malloc((i + 1) * sizeof(int));
-            buf52[i][j].len = i + 1;
+            buf52[i][j].p = HDmalloc((i + 1) * sizeof(int));
+            buf52[i][j].len = (size_t)(i + 1);
             for (l = 0; l < i + 1; l++)
                 if (make_diffs)((int *)buf52[i][j].p)[l] = 0;
                 else ((int *)buf52[i][j].p)[l] = n++;
@@ -4897,7 +5113,7 @@ int write_attr_in(hid_t loc_id,
 
     if (make_diffs)
     {
-        memset(buf62,0,sizeof buf62);
+        HDmemset(buf62,0,sizeof buf62);
     }
     /*
     buf62[6][3]= {{1,2,3},{4,5,6},{7,8,9},{10,11,12},{13,14,15},{16,17,18}};
@@ -4983,7 +5199,7 @@ int write_attr_in(hid_t loc_id,
 
     if (make_diffs)
     {
-        memset(buf13,'z',sizeof buf13);
+        HDmemset(buf13,'z',sizeof buf13);
     }
 
     /*
@@ -5312,8 +5528,8 @@ int write_attr_in(hid_t loc_id,
             for (k = 0; k < 2; k++)
             {
                 int l;
-                buf53[i][j][k].p = malloc((i + 1) * sizeof(int));
-                buf53[i][j][k].len = i + 1;
+                buf53[i][j][k].p = HDmalloc((i + 1) * sizeof(int));
+                buf53[i][j][k].len = (size_t)i + 1;
                 for (l = 0; l < i + 1; l++)
                     if (make_diffs)
                     {
@@ -5812,7 +6028,7 @@ static herr_t add_attr_with_regref(hid_t file_id, hid_t obj_id)
     }
 
     /* select elements space for reference */
-    status = H5Sselect_elements (sid_regrefed_dset, H5S_SELECT_SET, 3, coords_regrefed_dset[0]);
+    status = H5Sselect_elements (sid_regrefed_dset, H5S_SELECT_SET, (size_t)3, coords_regrefed_dset[0]);
     if (status < 0)
     {
         fprintf(stderr, "Error: %s %d> H5Sselect_elements failed.\n", FUNC, __LINE__);
@@ -6134,7 +6350,7 @@ static herr_t gen_region_ref(hid_t loc_id)
     }
 
     /* select elements space for reference */
-    status = H5Sselect_elements (sid_trg, H5S_SELECT_SET, 4, coords[0]);
+    status = H5Sselect_elements (sid_trg, H5S_SELECT_SET, (size_t)4, coords[0]);
     if (status < 0)
     {
         fprintf(stderr, "Error: %s %d> H5Sselect_elements failed.\n", FUNC, __LINE__);
@@ -6501,7 +6717,7 @@ static herr_t make_complex_attr_references(hid_t loc_id)
     /*
      * create the region reference 
      */
-    status = H5Sselect_elements (objsid, H5S_SELECT_SET, 4, coords[0]);
+    status = H5Sselect_elements (objsid, H5S_SELECT_SET, (size_t)4, coords[0]);
     if (status < 0)
     {
         fprintf(stderr, "Error: %s %d> H5Sselect_elements failed.\n", FUNC, __LINE__);
@@ -6538,11 +6754,11 @@ static herr_t make_complex_attr_references(hid_t loc_id)
      * prepare vlen data
      */
      vlen_objref_data[0].len = LEN0_VLEN_OBJREF;
-     vlen_objref_data[0].p = malloc (vlen_objref_data[0].len * sizeof(hobj_ref_t));
+     vlen_objref_data[0].p = HDmalloc (vlen_objref_data[0].len * sizeof(hobj_ref_t));
      vlen_objref_data[1].len = LEN1_VLEN_OBJREF;
-     vlen_objref_data[1].p = malloc (vlen_objref_data[1].len * sizeof(hobj_ref_t));
+     vlen_objref_data[1].p = HDmalloc (vlen_objref_data[1].len * sizeof(hobj_ref_t));
      vlen_objref_data[2].len = LEN2_VLEN_OBJREF;
-     vlen_objref_data[2].p = malloc (vlen_objref_data[2].len * sizeof(hobj_ref_t));
+     vlen_objref_data[2].p = HDmalloc (vlen_objref_data[2].len * sizeof(hobj_ref_t));
 
      /* 
       * create obj references 
@@ -6607,12 +6823,12 @@ static herr_t make_complex_attr_references(hid_t loc_id)
      * prepare vlen data
      */
     vlen_regref_data[0].len = LEN0_VLEN_REGREF;
-    vlen_regref_data[0].p = malloc (vlen_regref_data[0].len * sizeof(hdset_reg_ref_t));
+    vlen_regref_data[0].p = HDmalloc (vlen_regref_data[0].len * sizeof(hdset_reg_ref_t));
 
     /*
      * create region reference 
      */
-    status = H5Sselect_elements(objsid, H5S_SELECT_SET, 4, coords[0]);
+    status = H5Sselect_elements(objsid, H5S_SELECT_SET, (size_t)4, coords[0]);
     if (status < 0)
     {
         fprintf(stderr, "Error: %s %d> H5Sselect_elements failed.\n", FUNC, __LINE__);
@@ -6656,49 +6872,49 @@ static herr_t make_complex_attr_references(hid_t loc_id)
 
 out:
     /* release resources */
-    if (objgid < 0)
+    if (objgid > 0)
         H5Gclose(objgid);
-    if (objsid < 0)
+    if (objsid > 0)
         H5Sclose(objsid);
-    if (objdid < 0)
+    if (objdid > 0)
         H5Dclose(objdid);
-    if (objtid < 0)
+    if (objtid > 0)
         H5Tclose(objtid);
 
-    if (main_gid < 0)
+    if (main_gid > 0)
         H5Gclose(main_gid);
-    if (main_sid < 0)
+    if (main_sid > 0)
         H5Sclose(main_sid);
-    if (main_did < 0)
+    if (main_did > 0)
         H5Dclose(main_did);
     /* comp obj ref */
-    if (comp_objref_tid < 0)
+    if (comp_objref_tid > 0)
         H5Tclose(comp_objref_tid);
-    if (comp_objref_aid < 0)
+    if (comp_objref_aid > 0)
         H5Aclose(comp_objref_aid);
-    if (comp_objref_attr_sid < 0)
+    if (comp_objref_attr_sid > 0)
         H5Sclose(comp_objref_attr_sid);
     /* comp region ref */
-    if (comp_regref_tid < 0)
+    if (comp_regref_tid > 0)
         H5Tclose(comp_regref_tid);
-    if (comp_regref_aid < 0)
+    if (comp_regref_aid > 0)
         H5Aclose(comp_regref_aid);
-    if (comp_regref_attr_sid < 0)
+    if (comp_regref_attr_sid > 0)
         H5Sclose(comp_regref_attr_sid);
     /* vlen obj ref */
-    if (vlen_objref_attr_id < 0);
-        H5Aclose (vlen_objref_attr_id);
-    if (vlen_objref_attr_sid < 0);
-        H5Sclose (vlen_objref_attr_sid);
-    if (vlen_objref_attr_tid < 0);
-        H5Tclose (vlen_objref_attr_tid);
+    if (vlen_objref_attr_id > 0)
+        H5Aclose(vlen_objref_attr_id);
+    if (vlen_objref_attr_sid > 0)
+        H5Sclose(vlen_objref_attr_sid);
+    if (vlen_objref_attr_tid > 0)
+        H5Tclose(vlen_objref_attr_tid);
     /* vlen region ref */
-    if (vlen_regref_attr_id < 0);
-        H5Aclose (vlen_regref_attr_id);
-    if (vlen_regref_attr_sid < 0);
-        H5Sclose (vlen_regref_attr_sid);
-    if (vlen_regref_attr_tid < 0);
-        H5Tclose (vlen_regref_attr_tid);
+    if (vlen_regref_attr_id > 0)
+        H5Aclose(vlen_regref_attr_id);
+    if (vlen_regref_attr_sid > 0)
+        H5Sclose(vlen_regref_attr_sid);
+    if (vlen_regref_attr_tid > 0)
+        H5Tclose(vlen_regref_attr_tid);
 
     return ret;
 }

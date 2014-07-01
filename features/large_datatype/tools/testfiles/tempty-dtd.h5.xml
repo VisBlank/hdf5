@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE HDF5-File PUBLIC "HDF5-File.dtd" "http://www.hdfgroup.org/DTDs/HDF5-File.dtd">
+<!DOCTYPE HDF5-File PUBLIC "HDF5-File.dtd" "http://www.hdfgroup.org/HDF5/XML/DTD/HDF5-File.dtd">
 <HDF5-File>
 <RootGroup OBJ-XID="xid_928" H5Path="/">
    <Dataset Name="Dataset1.0" OBJ-XID="xid_976" H5Path= "/Dataset1.0" Parents="xid_928" H5ParentPaths="/">
       <StorageLayout>
          <ContiguousLayout/>
       </StorageLayout>
-         <FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
+      <FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
          <FillValue>
-               <NoFill/>
+            <NoFill/>
          </FillValue>
       </FillValueInfo>
       <Dataspace>
@@ -28,7 +28,10 @@
 <!-- Note: format of VL data not specified -->
       <Data>
          <DataFromFile>
-                
+          
+          
+          
+          
          </DataFromFile>
       </Data>
    </Dataset>
@@ -36,9 +39,9 @@
       <StorageLayout>
          <ContiguousLayout/>
       </StorageLayout>
-         <FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
+      <FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
          <FillValue>
-               <NoFill/>
+            <NoFill/>
          </FillValue>
       </FillValueInfo>
       <Dataspace>
@@ -53,7 +56,10 @@
       </DataType>
       <Data>
          <DataFromFile>
-         0 0 0 0
+         0
+         0
+         0
+         0
          </DataFromFile>
       </Data>
    </Dataset>
@@ -61,9 +67,9 @@
       <StorageLayout>
          <ContiguousLayout/>
       </StorageLayout>
-         <FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
+      <FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
          <FillValue>
-               <NoFill/>
+            <NoFill/>
          </FillValue>
       </FillValueInfo>
       <Dataspace>
@@ -78,7 +84,10 @@
       </DataType>
       <Data>
          <DataFromFile>
-         0 0 0 0
+         0
+         0
+         0
+         0
          </DataFromFile>
       </Data>
    </Dataset>
@@ -86,9 +95,9 @@
       <StorageLayout>
          <ContiguousLayout/>
       </StorageLayout>
-         <FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
+      <FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
          <FillValue>
-               <NoFill/>
+            <NoFill/>
          </FillValue>
       </FillValueInfo>
       <Dataspace>
@@ -108,7 +117,10 @@
       </DataType>
       <Data>
          <DataFromFile>
-          0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0
+         0 0 0 0
+         0 0 0 0
+         0 0 0 0
+         0 0 0 0
          </DataFromFile>
       </Data>
    </Dataset>
@@ -116,9 +128,9 @@
       <StorageLayout>
          <ContiguousLayout/>
       </StorageLayout>
-         <FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
+      <FillValueInfo FillTime="FillIfSet" AllocationTime="Late">
          <FillValue>
-               <NoFill/>
+            <NoFill/>
          </FillValue>
       </FillValueInfo>
       <Dataspace>
@@ -154,7 +166,10 @@
    <!-- Note: format of compound data not specified -->
       <Data>
          <DataFromFile>
-         0 0 0 0 0 0 0 0 0 0 0 0
+         0 0 0
+         0 0 0
+         0 0 0
+         0 0 0
          </DataFromFile>
       </Data>
    </Dataset>

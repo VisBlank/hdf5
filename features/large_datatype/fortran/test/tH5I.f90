@@ -1,3 +1,12 @@
+!****h* root/fortran/test/tH5I.f90
+!
+! NAME
+!  tH5I.f90
+!
+! FUNCTION
+!  Basic testing of Fortran H5I APIs.
+!
+! COPYRIGHT
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !   Copyright by The HDF Group.                                               *
 !   Copyright by the Board of Trustees of the University of Illinois.         *
@@ -13,15 +22,24 @@
 !   access to either file, you may request a copy from help@hdfgroup.org.     *
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
+! CONTAINS SUBROUTINES
+!  identifier_test
+!
+!*****
+MODULE TH5I
+
+CONTAINS
+
     SUBROUTINE identifier_test(cleanup, total_error)
 
 !   This subroutine tests following functionalities: h5iget_type_f
 
    USE HDF5 ! This module contains all necessary modules
+   USE TH5_MISC
 
      IMPLICIT NONE
      LOGICAL, INTENT(IN)  :: cleanup
-     INTEGER, INTENT(OUT) :: total_error
+     INTEGER, INTENT(INOUT) :: total_error
 
      CHARACTER(LEN=6), PARAMETER :: filename = "itestf" ! File name
      CHARACTER(LEN=80) :: fix_filename
@@ -69,21 +87,21 @@
      ! check that the ID is not valid
      dtype = -1
      CALL H5Iis_valid_f(dtype, tri_ret, error)
-     CALL check("H5Iis_valid_f", error, total_error)
+     CALL check("H5Iis_valid_f", error, total_error) 
      CALL VerifyLogical("H5Iis_valid_f", tri_ret, .FALSE., total_error)
-
+     
      ! Create a datatype id
      CALL H5Tcopy_f(H5T_NATIVE_INTEGER,dtype,error)
-     CALL check("H5Tcopy_f", error, total_error)
-
+     CALL check("H5Tcopy_f", error, total_error) 
+     
      ! Check that the ID is valid
      CALL H5Iis_valid_f(dtype, tri_ret, error)
-     CALL check("H5Iis_valid_f", error, total_error)
+     CALL check("H5Iis_valid_f", error, total_error) 
      CALL VerifyLogical("H5Tequal_f", tri_ret, .TRUE., total_error)
-
+     
      CALL H5Tclose_f(dtype, error)
-     CALL check("H5Tclose_f", error, total_error)
-
+     CALL check("H5Tclose_f", error, total_error) 
+  
      !
      ! Create a new file using default properties.
      !
@@ -297,3 +315,5 @@
 
      RETURN
      END SUBROUTINE identifier_test
+
+END MODULE TH5I
