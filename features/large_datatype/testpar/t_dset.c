@@ -30,8 +30,8 @@
 
 #include "testphdf5.h"
 
-size_t tempdim0 = 536870912;
-size_t tempdim1 = 1;
+size_t largedim0 = 536870912;
+size_t largedim1 = 1;
 
 /*
  * The following are various utility routines used by the tests.
@@ -137,8 +137,8 @@ slab_set_large(int mpi_rank, int mpi_size, hsize_t start[], hsize_t count[],
     switch (mode){
     case BYROW:
 	/* Each process takes a slabs of rows. */
-	block[0] = tempdim0/mpi_size;
-	block[1] = tempdim1;
+	block[0] = largedim0/mpi_size;
+	block[1] = largedim1;
 	stride[0] = block[0];
 	stride[1] = block[1];
 	count[0] = 1;
@@ -149,8 +149,8 @@ if(VERBOSE_MED) printf("slab_set BYROW\n");
 	break;
     case BYCOL:
 	/* Each process takes a block of columns. */
-	block[0] = tempdim0;
-	block[1] = tempdim1/mpi_size;
+	block[0] = largedim0;
+	block[1] = largedim1/mpi_size;
 	stride[0] = block[0];
 	stride[1] = block[1];
 	count[0] = 1;
@@ -161,8 +161,8 @@ if(VERBOSE_MED) printf("slab_set BYCOL\n");
 	break;
     case ZROW:
 	/* Similar to BYROW except process 0 gets 0 row */
-	block[0] = (mpi_rank ? tempdim0/mpi_size : 0);
-	block[1] = tempdim1;
+	block[0] = (mpi_rank ? largedim0/mpi_size : 0);
+	block[1] = largedim1;
         stride[0] = (mpi_rank ? block[0] : 1);  /* avoid setting stride to 0 */
 	stride[1] = block[1];
 	count[0] = 1;
@@ -173,8 +173,8 @@ if(VERBOSE_MED) printf("slab_set ZROW\n");
 	break;
     case ZCOL:
 	/* Similar to BYCOL except process 0 gets 0 column */
-	block[0] = tempdim0;
-	block[1] = (mpi_rank ? tempdim1/mpi_size : 0);
+	block[0] = largedim0;
+	block[1] = (mpi_rank ? largedim1/mpi_size : 0);
 	stride[0] = block[0];
         stride[1] = (mpi_rank ? block[1] : 1);  /* avoid setting stride to 0 */
 	count[0] = 1;
@@ -186,8 +186,8 @@ if(VERBOSE_MED) printf("slab_set ZCOL\n");
     default:
 	/* Unknown mode.  Set it to cover the whole dataset. */
 	printf("unknown slab_set mode (%d)\n", mode);
-	block[0] = tempdim0;
-	block[1] = tempdim1;
+	block[0] = largedim0;
+	block[1] = largedim1;
 	stride[0] = block[0];
 	stride[1] = block[1];
 	count[0] = 1;
@@ -1196,7 +1196,7 @@ dataset_large_writeAll(void)
     MPI_Comm_rank(MPI_COMM_WORLD,&mpi_rank);
 
     /* allocate memory for data buffer 2*/
-    data_array1 = (DATATYPE *)malloc(tempdim0*tempdim1*sizeof(DATATYPE));
+    data_array1 = (DATATYPE *)malloc(largedim0*largedim1*sizeof(DATATYPE));
     VRFY((data_array1 != NULL), "data_array1 malloc succeeded");
 
     /* -------------------
@@ -1219,8 +1219,8 @@ dataset_large_writeAll(void)
      * and create the dataset
      * ------------------------- */
     /* setup 2-D dimensionality object */
-    dims[0] = tempdim0;
-    dims[1] = tempdim1;
+    dims[0] = largedim0;
+    dims[1] = largedim1;
     sid = H5Screate_simple (RANK, dims, NULL);
     VRFY((sid >= 0), "H5Screate_simple succeeded");
 
@@ -1235,13 +1235,12 @@ dataset_large_writeAll(void)
     /* release space ID created */
     H5Sclose(sid);
 
-
     /* Dataset1: all processes select everything */
     slab_set_large (mpi_rank, mpi_size, start, count, stride, block, 0);
-    /* create a file dataspace independently */
+
+    /* create a file dataspace selection */
     file_dataspace = H5Dget_space (dataset1);
     VRFY((file_dataspace >= 0), "H5Dget_space succeeded");
-
     if(MAINPROCESS) {
         ret = H5Sselect_all(file_dataspace);
         VRFY((ret >= 0), "H5Sselect_all file_dataspace succeeded");
@@ -1279,14 +1278,14 @@ dataset_large_writeAll(void)
     ret = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
     VRFY((ret >= 0), "H5Pset_dxpl_mpio succeeded");
     if(dxfer_coll_type == DXFER_INDEPENDENT_IO) {
-     ret = H5Pset_dxpl_mpio_collective_opt(xfer_plist,H5FD_MPIO_INDIVIDUAL_IO);
-     VRFY((ret>= 0),"set independent IO collectively succeeded");
+        ret = H5Pset_dxpl_mpio_collective_opt(xfer_plist,H5FD_MPIO_INDIVIDUAL_IO);
+        VRFY((ret>= 0),"set independent IO collectively succeeded");
     }
 
     /* write data collectively */
     MESG("writeAll");
     ret = H5Dwrite(dataset1, H5T_NATIVE_INT, mem_dataspace, file_dataspace,
-	    xfer_plist, data_array1);
+                   xfer_plist, data_array1);
     VRFY((ret >= 0), "H5Dwrite dataset1 succeeded");
 
     /* release all temporary handles. */
