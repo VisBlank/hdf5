@@ -357,8 +357,6 @@ H5S_mpio_permute_type(const H5S_t *space, size_t elmt_size, hsize_t **permute,
     MPI_Aint *disp = NULL;      /* Datatype displacement for each point*/
     H5S_sel_iter_t sel_iter;    /* Selection iteration info */
     hbool_t sel_iter_init = FALSE;      /* Selection iteration info has been initialized */
-    hsize_t off[H5D_IO_VECTOR_SIZE];    /* Array to store sequence offsets */
-    size_t len[H5D_IO_VECTOR_SIZE];     /* Array to store sequence lengths */
     hssize_t snum_points;       /* Signed number of elements in selection */
     hsize_t num_points;         /* Number of points in the selection */
     size_t max_elem;            /* Maximum number of elements allowed in sequences */
@@ -1095,7 +1093,7 @@ H5S_mpio_space_type(const H5S_t *space, size_t elmt_size, MPI_Datatype *new_type
 
         case H5S_NO_CLASS:
         default:
-            HDassert("unknown data space type" && 0);
+            HDassert("unknown dataspace type" && 0);
             break;
     } /* end switch */
 

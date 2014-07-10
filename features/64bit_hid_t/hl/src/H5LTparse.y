@@ -68,7 +68,7 @@ hbool_t is_opq_tag = 0;             /*flag to lexer for opaque type tag*/
 %union {
     int     ival;         /*for integer token*/
     char    *sval;        /*for name string*/
-    int64_t ival64;       /*for integer token*/
+    int64_t ival64;       /*for hid_t token*/
 }
 
 %token <ival64> H5T_STD_I8BE_TOKEN H5T_STD_I8LE_TOKEN H5T_STD_I16BE_TOKEN  H5T_STD_I16LE_TOKEN
