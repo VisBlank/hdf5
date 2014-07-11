@@ -1580,6 +1580,8 @@ H5FD_mpio_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t dxpl_id, haddr_t add
             HMPI_GOTO_ERROR(FAIL, "MPI_File_read_at failed", mpi_code)
     }
 
+    /* MSC SKIP THIS FOR NOW.. need num elements not bytes */
+#if 0
     /* How many bytes were actually read? */
     /* [This works because the "basic elements" we use for all our MPI derived
      *  types are MPI_BYTE.  We should be using the 'buf_type' for the MPI
@@ -1605,6 +1607,7 @@ H5FD_mpio_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t dxpl_id, haddr_t add
      */
     if ((n=(io_size-bytes_read)) > 0)
         HDmemset((char*)buf+bytes_read, 0, (size_t)n);
+#endif
 
 done:
 #ifdef H5FDmpio_DEBUG

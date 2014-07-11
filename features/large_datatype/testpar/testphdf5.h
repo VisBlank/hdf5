@@ -237,6 +237,7 @@ extern int dxfer_coll_type;
 
 /* Test program prototypes */
 void test_plist_ed(void);
+void zero_dim_dset(void);
 void multiple_dset_write(void);
 void multiple_group_write(void);
 void multiple_group_read(void);
@@ -247,7 +248,6 @@ void test_split_comm_access(void);
 void dataset_atomicity(void);
 void dataset_writeInd(void);
 void dataset_writeAll(void);
-void dataset_large_writeAll(void);
 void extend_writeInd(void);
 void extend_writeInd2(void);
 void extend_writeAll(void);

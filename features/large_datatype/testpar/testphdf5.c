@@ -350,7 +350,7 @@ int main(int argc, char **argv)
     AddTest("idsetr", dataset_readInd, NULL,
 	    "dataset independent read", PARATESTFILE);
 
-    AddTest("cdsetw", dataset_large_writeAll, NULL,
+    AddTest("cdsetw", dataset_writeAll, NULL,
 	    "dataset collective write", PARATESTFILE);
     AddTest("cdsetr", dataset_readAll, NULL,
 	    "dataset collective read", PARATESTFILE);
@@ -376,6 +376,9 @@ int main(int argc, char **argv)
     AddTest("cmpdsetr", compress_readAll, NULL,
 	    "compressed dataset collective read", PARATESTFILE);
 #endif /* H5_HAVE_FILTER_DEFLATE */
+
+    AddTest("zerodsetr", zero_dim_dset, NULL,
+	    "zero dim dset", PARATESTFILE);
 
     ndsets_params.name = PARATESTFILE;
     ndsets_params.count = ndatasets;

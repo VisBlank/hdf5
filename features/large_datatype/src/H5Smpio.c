@@ -61,6 +61,7 @@ static herr_t H5S_mpio_create_large_type (hsize_t total_bytes, MPI_Aint strid_by
                                           MPI_Datatype old_type, MPI_Datatype *new_type);
 
 #define H5S_MPIO_INITIAL_ALLOC_COUNT    256
+#define H5S_MAX_MPI_COUNT 2147483647
 
 
 /*-------------------------------------------------------------------------
@@ -108,15 +109,15 @@ H5S_mpio_all_type(const H5S_t *space, size_t elmt_size,
      * If yes then just set the new_type to MPI_BYTE and count to total_bytes
      * Otherwise create a derived datatype by iterating as many times as needed
      * in order for a selection greater than 2^31 Bytes to be possible */
-    if(2147483647 >= total_bytes) {
-        printf("SMALL ALL SELECTION\n");
+    if(H5S_MAX_MPI_COUNT >= total_bytes) {
+        printf ("SMALL ALL SELECTION\n");
         /* fill in the return values */
         *new_type = MPI_BYTE;
         H5_ASSIGN_OVERFLOW(*count, total_bytes, hsize_t, int);
         *is_derived_type = FALSE;
     }
     else {
-        printf ("LARGE ALL SELECTION\n");
+        printf ("LARGE ALL SELECTION - total bytes: %zu\n", (size_t)total_bytes);
         if (H5S_mpio_create_large_type (total_bytes, 0, MPI_BYTE, new_type) < 0) {
             HGOTO_ERROR(H5E_DATASPACE, H5E_BADTYPE, FAIL,
                         "couldn't ccreate a large datatype from the all selection")
@@ -182,6 +183,8 @@ H5S_mpio_create_point_datatype (size_t elmt_size, hsize_t num_points,
     int            mpi_code;            /* MPI error code */
     int            *blocks = NULL;      /* Array of block sizes for MPI hindexed create call */
     hsize_t        u;                   /* Local index variable */
+    int            *inner_blocks;
+    MPI_Aint       *inner_disps;
     herr_t	   ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT
@@ -200,8 +203,79 @@ H5S_mpio_create_point_datatype (size_t elmt_size, hsize_t num_points,
         blocks[u] = 1;
 
     /* Create an MPI datatype for the whole point selection */
-    if(MPI_SUCCESS != (mpi_code = MPI_Type_create_hindexed((int)num_points, blocks, disp, elmt_type, new_type)))
-        HMPI_GOTO_ERROR(FAIL, "MPI_Type_create_indexed_block failed", mpi_code)
+    if(H5S_MAX_MPI_COUNT >= num_points) {
+        /* if NUM points fit in an int, use 1 hindexed call */
+        if(MPI_SUCCESS != (mpi_code = MPI_Type_create_hindexed((int)num_points, blocks, 
+                                                               disp, elmt_type, new_type)))
+            HMPI_GOTO_ERROR(FAIL, "MPI_Type_create_indexed_block failed", mpi_code)
+    }
+    else {
+        int remaining_points;
+        int num_big_types;
+        int total_types, i;
+        hsize_t leftover;
+        MPI_Datatype *inner_types = NULL;
+
+        /* create an Hindexed type for every 2G point count, then combine them */
+
+        /* Calculate how many Big MPI datatypes are needed to represent the buffer */
+        num_big_types = (int)(num_points/H5S_MAX_MPI_COUNT);
+
+        leftover = num_points - num_big_types * (hsize_t)H5S_MAX_MPI_COUNT;
+        H5_ASSIGN_OVERFLOW(remaining_points, leftover, hsize_t, int);
+        printf("Number of Big types = %d; Remaining points = %d\n", 
+               num_big_types, remaining_points);
+
+        if(remaining_points)
+            total_types = num_big_types + 1;
+        else
+            total_types = num_big_types;
+
+        /* Allocate array if MPI derived types needed */
+        if(NULL == (inner_types = (MPI_Datatype *)H5MM_malloc(sizeof(MPI_Datatype) * total_types)))
+            HGOTO_ERROR(H5E_DATASPACE, H5E_CANTALLOC, FAIL, "can't allocate array of blocks")
+
+        if(NULL == (inner_blocks = (int *)H5MM_malloc(sizeof(int) * total_types)))
+            HGOTO_ERROR(H5E_DATASPACE, H5E_CANTALLOC, FAIL, "can't allocate array of blocks")
+
+        if(NULL == (inner_disps = (MPI_Aint *)H5MM_malloc(sizeof(MPI_Aint) * total_types)))
+            HGOTO_ERROR(H5E_DATASPACE, H5E_CANTALLOC, FAIL, "can't allocate array of blocks")
+
+        for(i=0 ; i<num_big_types ; i++) {
+            if(MPI_SUCCESS != (mpi_code = MPI_Type_create_hindexed(H5S_MAX_MPI_COUNT, 
+                                                                   &blocks[i*H5S_MAX_MPI_COUNT], 
+                                                                   &disp[i*H5S_MAX_MPI_COUNT], 
+                                                                   elmt_type, 
+                                                                   &inner_types[i])))
+                HMPI_GOTO_ERROR(FAIL, "MPI_Type_create_indexed_block failed", mpi_code);
+
+            inner_blocks[i*H5S_MAX_MPI_COUNT] = 1;
+            inner_disps[i*H5S_MAX_MPI_COUNT] = 0;
+        }
+
+        if(remaining_points) {
+            if(MPI_SUCCESS != (mpi_code = MPI_Type_create_hindexed(remaining_points, 
+                                                                   &blocks[num_big_types*H5S_MAX_MPI_COUNT], 
+                                                                   &disp[num_big_types*H5S_MAX_MPI_COUNT], 
+                                                                   elmt_type, 
+                                                                   &inner_types[num_big_types])))
+                HMPI_GOTO_ERROR(FAIL, "MPI_Type_create_indexed_block failed", mpi_code);
+
+            inner_blocks[num_big_types] = 1;
+            inner_disps[num_big_types] = 0;
+        }
+        
+        if(MPI_SUCCESS != (mpi_code = 
+                           MPI_Type_create_struct(total_types, inner_blocks, inner_disps, inner_types, new_type)))
+            HMPI_GOTO_ERROR(FAIL, "MPI_Type_contiguous failed", mpi_code);
+
+        for(i=0 ; i<total_types ; i++) {
+            MPI_Type_free(inner_types);
+        }
+        H5MM_free(inner_types);
+        H5MM_free(inner_blocks);
+        H5MM_free(inner_disps);
+    }
 
     /* Commit MPI datatype for later use */
     if(MPI_SUCCESS != (mpi_code = MPI_Type_commit(new_type)))
@@ -664,7 +738,7 @@ H5S_mpio_hyper_type(const H5S_t *space, size_t elmt_size,
      * If yes then just create the innertype with MPI_Type_contiguous.
      * Otherwise create a compound datatype by iterating as many times as needed
      * in order for the innertype to be created */
-    if(2147483647 >= elmt_size) {
+    if(H5S_MAX_MPI_COUNT >= elmt_size) {
         if(MPI_SUCCESS != (mpi_code = MPI_Type_contiguous((int)elmt_size, MPI_BYTE, 
                                                           &inner_type)))
             HMPI_GOTO_ERROR(FAIL, "MPI_Type_contiguous failed", mpi_code)
@@ -697,9 +771,9 @@ H5S_mpio_hyper_type(const H5S_t *space, size_t elmt_size,
        ****************************************/
 
         /* If all the parameters fit into 32 bit integers create the vector type normally */
-        if (2147483647 >= d[i].count && 
-            2147483647 >= d[i].block && 
-            2147483647 >= d[i].strid) {
+        if (H5S_MAX_MPI_COUNT >= d[i].count && 
+            H5S_MAX_MPI_COUNT >= d[i].block && 
+            H5S_MAX_MPI_COUNT >= d[i].strid) {
             mpi_code = MPI_Type_vector((int)(d[i].count),   /* count */
                                        (int)(d[i].block),   /* blocklength */
                                        (int)(d[i].strid),   /* stride */
@@ -716,7 +790,7 @@ H5S_mpio_hyper_type(const H5S_t *space, size_t elmt_size,
             /* create a contiguous datatype inner_type x number of blocks.
              * Again need to check if the number of blocks can fit into 
              * the 32 bit integer */
-            if (2147483647 < d[i].block) {
+            if (H5S_MAX_MPI_COUNT < d[i].block) {
                 printf ("LARGE block selection in hyper_type\n");
                 if (H5S_mpio_create_large_type(d[i].block, 0, inner_type, 
                                                &block_type) < 0) {
@@ -736,7 +810,7 @@ H5S_mpio_hyper_type(const H5S_t *space, size_t elmt_size,
 
             /* Now if the count is larger than what a 32 bit integer can hold,
              * call the large creation function to handle that */
-            if (2147483647 < d[i].count) {
+            if (H5S_MAX_MPI_COUNT < d[i].count) {
                 printf ("LARGE outer selection in hyper_type\n");
                 if (H5S_mpio_create_large_type (d[i].count, strid_in_bytes, block_type,
                                                 &outer_type) < 0) {
@@ -793,11 +867,11 @@ H5S_mpio_hyper_type(const H5S_t *space, size_t elmt_size,
         FUNC, i, (long)displacement[0], (long)displacement[1], (long)displacement[2]);
 #endif
 
-            mpi_code = MPI_Type_struct(3,               /* count */
-                                       block_length,    /* blocklengths */
-                                       displacement,    /* displacements */
-                                       old_types,       /* old types */
-                                       &inner_type);    /* new type */
+            mpi_code = MPI_Type_create_struct(3,               /* count */
+                                              block_length,    /* blocklengths */
+                                              displacement,    /* displacements */
+                                              old_types,       /* old types */
+                                              &inner_type);    /* new type */
 
             MPI_Type_free(&outer_type);
     	    if(mpi_code != MPI_SUCCESS)
@@ -883,7 +957,7 @@ H5S_mpio_span_hyper_type(const H5S_t *space, size_t elmt_size,
     HDassert(space->select.sel_info.hslab->span_lst->head);
 
     /* Create the base type for an element while checking the 32-bit int limit size*/
-    if (2147483647 >= elmt_size) {
+    if (H5S_MAX_MPI_COUNT >= elmt_size) {
         if(MPI_SUCCESS != (mpi_code = MPI_Type_contiguous((int)elmt_size, 
                                                           MPI_BYTE, &elmt_type)))
             HMPI_GOTO_ERROR(FAIL, "MPI_Type_contiguous failed", mpi_code)
@@ -996,7 +1070,7 @@ H5S_obtain_datatype(const hsize_t *down, H5S_hyper_span_t *span,
             /* H5_CHECK_OVERFLOW(tspan->nelem, hsize_t, int) */
             blocklen[outercount]  = tspan->nelem;
 
-            if (2147483647 < blocklen[outercount]) {
+            if (H5S_MAX_MPI_COUNT < blocklen[outercount]) {
                 large_block = TRUE; /* at least one block type is large, so set this flag to true */
             }
             tspan                 = tspan->next;
@@ -1004,7 +1078,7 @@ H5S_obtain_datatype(const hsize_t *down, H5S_hyper_span_t *span,
         } /* end while */
 
         /* everything fits into integers, so cast them and use hindexed */
-        if (2147483647 >= outercount && large_block == FALSE) {
+        if (H5S_MAX_MPI_COUNT >= outercount && large_block == FALSE) {
             /* MSC blocklen array here must be of type int... how to fix it?
              * make a casted copy?? urgghhh */
             int *tmp_blocklen;
@@ -1027,7 +1101,7 @@ H5S_obtain_datatype(const hsize_t *down, H5S_hyper_span_t *span,
                 MPI_Datatype temp_type, outer_type;
 
                 /* create the block type from elmt_type while checking the 32 bit int limit */
-                if (blocklen[i] > 2147483647) {
+                if (blocklen[i] > H5S_MAX_MPI_COUNT) {
                     if (H5S_mpio_create_large_type (blocklen[i], 0, *elmt_type, &temp_type) < 0) {
                         HGOTO_ERROR(H5E_DATASPACE, H5E_BADTYPE, FAIL,
                                     "couldn't create a large element datatype in span_hyper selection")
@@ -1114,7 +1188,7 @@ H5S_obtain_datatype(const hsize_t *down, H5S_hyper_span_t *span,
             stride = (*down) * elmt_size;
 
             /* If all the parameters fit into 32 bit integers create the vector type normally */
-            if (2147483647 >= tspan->nelem) {
+            if (H5S_MAX_MPI_COUNT >= tspan->nelem) {
                 H5_CHECK_OVERFLOW(tspan->nelem, hsize_t, int)
                     if(MPI_SUCCESS != (mpi_code = MPI_Type_hvector((int)tspan->nelem, 
                                                                    1, 
@@ -1143,7 +1217,7 @@ H5S_obtain_datatype(const hsize_t *down, H5S_hyper_span_t *span,
 
         /* building the whole vector datatype */
         /* everything fits into integers, so cast them and use hindexed */
-        if (2147483647 >= outercount && large_block == FALSE) {
+        if (H5S_MAX_MPI_COUNT >= outercount && large_block == FALSE) {
             /* MSC blocklen array here must be of type int... how to fix it?? 
                make a casted copy?? urgghhh again */
             int *tmp_blocklen;
@@ -1153,11 +1227,11 @@ H5S_obtain_datatype(const hsize_t *down, H5S_hyper_span_t *span,
                 tmp_blocklen[i] = (int)blocklen[i];
             }
 
-            if(MPI_SUCCESS != (mpi_code = MPI_Type_struct((int)outercount, 
-                                                          tmp_blocklen, 
-                                                          disp, 
-                                                          inner_type, 
-                                                          span_type)))
+            if(MPI_SUCCESS != (mpi_code = MPI_Type_create_struct((int)outercount, 
+                                                                 tmp_blocklen, 
+                                                                 disp, 
+                                                                 inner_type, 
+                                                                 span_type)))
                 HMPI_GOTO_ERROR(FAIL, "MPI_Type_struct failed", mpi_code)
         }
         /* something doesn't fit */
@@ -1167,7 +1241,7 @@ H5S_obtain_datatype(const hsize_t *down, H5S_hyper_span_t *span,
                 MPI_Datatype temp_type, outer_type;
 
                 /* create the block type from elmt_type while checking the 32 bit int limit */
-                if (blocklen[i] > 2147483647) {
+                if (blocklen[i] > H5S_MAX_MPI_COUNT) {
                     if (H5S_mpio_create_large_type (blocklen[i], 0, inner_type[i], &temp_type) < 0) {
                         HGOTO_ERROR(H5E_DATASPACE, H5E_BADTYPE, FAIL,
                                     "couldn't create a large element datatype in span_hyper selection")
@@ -1373,28 +1447,37 @@ static herr_t H5S_mpio_create_large_type (hsize_t num_elements,
                                           MPI_Datatype old_type, 
                                           MPI_Datatype *new_type) 
 {
-    int           num_inner_types = 1; /* num times the 2G datatype will be repeated */
+    int           num_big_types; /* num times the 2G datatype will be repeated */
+    int           remaining_bytes; /* the number of bytes left that can be held in an int value */
+    hsize_t       leftover;
     int           block_len[2];
     int           mpi_code; /* MPI return code */
-    MPI_Datatype  inner_type, outer_type, type[2];
+    MPI_Datatype  inner_type, outer_type, leftover_type, type[2];
     MPI_Aint      disp[2], old_extent;
     herr_t	  ret_value = SUCCEED;    /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT
+
+    /* Calculate how many Big MPI datatypes are needed to represent the buffer */
+    num_big_types = (int)(num_elements/H5S_MAX_MPI_COUNT);
+    leftover = num_elements - num_big_types * (hsize_t)H5S_MAX_MPI_COUNT;
+    H5_ASSIGN_OVERFLOW(remaining_bytes, leftover, hsize_t, int);
+    printf("%d: Number of Big types = %d; Remaining Bytes = %d\n", 
+           (int)strid_bytes, num_big_types, remaining_bytes);
 
     /* Create a contiguous datatype of size equal to the largest
      * number a 32 bit integer can hold x size of old type.
      * If the displacement is 0, then the type is contiguous, otherwise 
      * use type_hvector to create the type with the displacement provided  */
     if (0 == strid_bytes) {
-        if(MPI_SUCCESS != (mpi_code = MPI_Type_contiguous(2147483647, 
+        if(MPI_SUCCESS != (mpi_code = MPI_Type_contiguous(H5S_MAX_MPI_COUNT, 
                                                           old_type, 
                                                           &inner_type))) {
             HMPI_GOTO_ERROR(FAIL, "MPI_Type_contiguous failed", mpi_code)
-                }
+        }
     }
     else {
-        if(MPI_SUCCESS != (mpi_code = MPI_Type_create_hvector (2147483647, 
+        if(MPI_SUCCESS != (mpi_code = MPI_Type_create_hvector (H5S_MAX_MPI_COUNT, 
                                                                1,
                                                                strid_bytes,
                                                                old_type, 
@@ -1402,23 +1485,18 @@ static herr_t H5S_mpio_create_large_type (hsize_t num_elements,
             HMPI_GOTO_ERROR(FAIL, "MPI_Type_contiguous failed", mpi_code)
         }
     }
-    /* Calculate how many types of the created inner type are needed to
-     * represent the buffer */
-    while (num_elements > (hsize_t)(num_inner_types+1) * 2147483647) {
-        num_inner_types ++;
-    }
 
     /* Create a contiguous datatype of the buffer (minus the remainng < 2GB part) 
      * If a strid is present, use hvector */
     if (0 == strid_bytes) {
-        if(MPI_SUCCESS != (mpi_code = MPI_Type_contiguous(num_inner_types, 
+        if(MPI_SUCCESS != (mpi_code = MPI_Type_contiguous(num_big_types, 
                                                           inner_type, 
                                                           &outer_type))) {
             HMPI_GOTO_ERROR(FAIL, "MPI_Type_contiguous failed", mpi_code)
         }
     }
     else {
-        if(MPI_SUCCESS != (mpi_code = MPI_Type_create_hvector (num_inner_types, 
+        if(MPI_SUCCESS != (mpi_code = MPI_Type_create_hvector (num_big_types, 
                                                                1,
                                                                strid_bytes,
                                                                inner_type, 
@@ -1431,22 +1509,21 @@ static herr_t H5S_mpio_create_large_type (hsize_t num_elements,
 
     /* If there is a remaining part create a contiguous/vector datatype and then
      * a struct datatype for the buffer */
-    if((hsize_t)num_inner_types * 2147483647 != num_elements) {
+    if(remaining_bytes) {
         if (strid_bytes == 0) {
-            if(MPI_SUCCESS != (mpi_code = MPI_Type_contiguous
-                               ((int)(num_elements - (hsize_t)num_inner_types*2147483647),
-                                old_type, 
-                                &inner_type))) {
+            if(MPI_SUCCESS != (mpi_code = MPI_Type_contiguous (remaining_bytes,
+                                                               old_type, 
+                                                               &leftover_type))) {
                 HMPI_GOTO_ERROR(FAIL, "MPI_Type_contiguous failed", mpi_code)
             }
         }
         else {
             if(MPI_SUCCESS != (mpi_code = MPI_Type_create_hvector 
-                               ((int)(num_elements - (hsize_t)num_inner_types*2147483647), 
+                               ((int)(num_elements - (hsize_t)num_big_types*H5S_MAX_MPI_COUNT), 
                                 1,
                                 strid_bytes,
                                 old_type, 
-                                &inner_type))) {
+                                &leftover_type))) {
                 HMPI_GOTO_ERROR(FAIL, "MPI_Type_contiguous failed", mpi_code)
             }
         }
@@ -1455,24 +1532,23 @@ static herr_t H5S_mpio_create_large_type (hsize_t num_elements,
 
         /* Set up the arguments for MPI_Type_struct constructor */
         type[0] = outer_type;
-        type[1] = inner_type;
+        type[1] = leftover_type;
         block_len[0] = 1;
         block_len[1] = 1;
         disp[0] = 0;
-        disp[1] = (old_extent+strid_bytes)*num_inner_types*2147483647;
+        disp[1] = (old_extent+strid_bytes)*num_big_types*(MPI_Aint)H5S_MAX_MPI_COUNT;
 
         if(MPI_SUCCESS != (mpi_code = 
-                           MPI_Type_struct(2, block_len, disp, type, new_type))) {
+                           MPI_Type_create_struct(2, block_len, disp, type, new_type))) {
             HMPI_GOTO_ERROR(FAIL, "MPI_Type_contiguous failed", mpi_code)
         }
 
         MPI_Type_free(&outer_type);
-        MPI_Type_free(&inner_type);
+        MPI_Type_free(&leftover_type);
     }
-
-    /* There are no remaining bytes so just set the new type to
-     * the outer type created */
     else {
+        /* There are no remaining bytes so just set the new type to
+         * the outer type created */
         *new_type = outer_type;
     }
 
