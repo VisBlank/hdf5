@@ -508,7 +508,7 @@ dataset_big_write(void)
     ret = H5Dclose(dataset);
     VRFY((ret >= 0), "H5Dclose1 succeeded");
 
-#if 0
+
     /* Point selection */
     printf("\nTesting Dataset4 write point selection\n");
     /* Create a large dataset */
@@ -529,15 +529,9 @@ dataset_big_write(void)
     start[0] = 0;
     start[1] = dims[1]/4 * mpi_rank;
 
-    dataset_fill(start, block, wdata);
-    MESG("data_array initialized");
-    if(VERBOSE_MED){
-	MESG("data_array created");
-	dataset_print(start, block, wdata);
-    }
-
     num_points = bigcount;
 
+    free(wdata);
     coords = (hsize_t *)malloc(num_points * RANK * sizeof(hsize_t));
     VRFY((coords != NULL), "coords malloc succeeded");
 
@@ -549,6 +543,16 @@ dataset_big_write(void)
     VRFY((ret >= 0), "H5Sselect_elements succeeded");
 
     if(coords) free(coords);
+
+    wdata = (DATATYPE *)malloc(bigcount*sizeof(DATATYPE));
+    VRFY((wdata != NULL), "wdata malloc succeeded");
+
+    dataset_fill(start, block, wdata);
+    MESG("data_array initialized");
+    if(VERBOSE_MED){
+	MESG("data_array created");
+	dataset_print(start, block, wdata);
+    }
 
     /* create a memory dataspace */
     mem_dataspace = H5Screate_simple (1, &bigcount, NULL);
@@ -577,7 +581,7 @@ dataset_big_write(void)
     VRFY((ret >= 0), "H5Dclose1 succeeded");
 
 
-
+#if 0
     /* Irregular selection */
     /* Need larger memory for data buffer */
     free(wdata);
