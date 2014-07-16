@@ -336,8 +336,8 @@ out:
 static int test_is_valid(void)
 {
     hid_t   dtype;      /* datatype id */
-    int     nmembs1;    /* number of type memnbers */
-    int     nmembs2;
+    int64_t nmembs1;    /* number of type memnbers */
+    int64_t nmembs2;
     htri_t  tri_ret;    /* htri_t return value */
     herr_t  ret;        /* return value */
 

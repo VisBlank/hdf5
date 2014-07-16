@@ -1436,14 +1436,17 @@ H5T_unlock_cb(void *_dt, hid_t UNUSED id, void UNUSED *key)
 int
 H5T_term_interface(void)
 {
-    int	i, nprint=0, n=0;
-    H5T_path_t	*path = NULL;
+    int	n = 0;
 
     FUNC_ENTER_NOAPI_NOINIT_NOERR
 
     if(H5_interface_initialize_g) {
+        int i, nprint = 0;
+
 	/* Unregister all conversion functions */
 	for(i = 0; i < H5T_g.npaths; i++) {
+            H5T_path_t *path;
+
 	    path = H5T_g.path[i];
 	    HDassert(path);
 	    if(path->func) {
@@ -1486,7 +1489,9 @@ H5T_term_interface(void)
         /* Close deprecated interface */
         n += H5T__term_deprec_interface();
 
-	H5I_dec_type_ref(H5I_DATATYPE);
+        /* Destroy the datatype object id group */
+	(void)H5I_dec_type_ref(H5I_DATATYPE);
+	n++; /*H5I*/
 
         /* Reset all the datatype IDs */
         H5T_IEEE_F32BE_g			= FAIL;
@@ -1586,7 +1591,6 @@ H5T_term_interface(void)
 
 	/* Mark interface as closed */
 	H5_interface_initialize_g = 0;
-	n = 1; /*H5I*/
     } /* end if */
 
     FUNC_LEAVE_NOAPI(n)

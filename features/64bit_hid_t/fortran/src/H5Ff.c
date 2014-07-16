@@ -505,12 +505,12 @@ nh5fget_obj_count_c ( hid_t_f *file_id , int_f *obj_type, size_t_f * obj_count)
 {
   int ret_value = 0;
   hid_t c_file_id;
-  int64_t c_obj_type;
+  unsigned c_obj_type;
   ssize_t c_obj_count;
 
 
   c_file_id = (hid_t)*file_id;
-  c_obj_type = (uint64_t) *obj_type;
+  c_obj_type = (unsigned) *obj_type;
   if ( (c_obj_count=H5Fget_obj_count(c_file_id, c_obj_type)) < 0  ) ret_value = -1;
   *obj_count = (size_t_f)c_obj_count;
   return ret_value;
@@ -544,14 +544,14 @@ nh5fget_obj_ids_c ( hid_t_f *file_id , int_f *obj_type, size_t_f *max_objs,
 {
     int ret_value = 0;
     hid_t c_file_id;
-    int64_t c_obj_type;
+    unsigned c_obj_type;
     size_t u;
     size_t c_max_objs;
     ssize_t c_num_objs;
     hid_t *c_obj_ids;
 
     c_file_id = (hid_t)*file_id;
-    c_obj_type = (uint64_t) *obj_type;
+    c_obj_type = (unsigned) *obj_type;
     c_max_objs = (size_t)*max_objs;
     c_obj_ids = (hid_t *)HDmalloc(sizeof(hid_t)*c_max_objs);
 

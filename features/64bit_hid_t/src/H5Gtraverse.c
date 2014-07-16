@@ -171,7 +171,7 @@ H5G_traverse_ud(const H5G_loc_t *grp_loc/*in,out*/, const H5O_link_t *lnk,
     hbool_t *obj_exists, hid_t _lapl_id, hid_t dxpl_id)
 {
     const H5L_class_t   *link_class;       /* User-defined link class */
-    hid_t               cb_return = -1;  /* The ID the user-defined callback returned */
+    hid_t               cb_return = -1;         /* The ID the user-defined callback returned */
     H5G_loc_t           grp_loc_copy;
     H5G_name_t          grp_path_copy;
     H5O_loc_t           grp_oloc_copy;

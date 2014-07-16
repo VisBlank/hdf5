@@ -75,7 +75,7 @@ typedef struct H5F_olist_t {
 /********************/
 /* Local Prototypes */
 /********************/
-static herr_t H5F_get_objects(const H5F_t *f, uint64_t types, size_t max_index, hid_t *obj_id_list, hbool_t app_ref, size_t *obj_id_count_ptr);
+static herr_t H5F_get_objects(const H5F_t *f, unsigned types, size_t max_index, hid_t *obj_id_list, hbool_t app_ref, size_t *obj_id_count_ptr);
 static int H5F_get_objects_cb(void *obj_ptr, hid_t obj_id, void *key);
 static H5F_t *H5F_new(H5F_file_t *shared, unsigned flags, hid_t fcpl_id,
     hid_t fapl_id, H5FD_t *lf);
@@ -198,23 +198,28 @@ H5F_term_interface(void)
     FUNC_ENTER_NOAPI_NOINIT_NOERR
 
     if(H5_interface_initialize_g) {
-	if((n = H5I_nmembers(H5I_FILE)) != 0) {
-            H5I_clear_type(H5I_FILE, FALSE, FALSE);
-	} else {
+	if(H5I_nmembers(H5I_FILE) > 0) {
+            (void)H5I_clear_type(H5I_FILE, FALSE, FALSE);
+            n++; /*H5I*/
+	} /* end if */
+        else {
             /* Make certain we've cleaned up all the shared file objects */
             H5F_sfile_assert_num(0);
 
             /* Close deprecated interface */
             n += H5F__term_deprec_interface();
 
-	    H5I_dec_type_ref(H5I_FILE);
+            /* Destroy the file object id group */
+	    (void)H5I_dec_type_ref(H5I_FILE);
+            n++; /*H5I*/
+
+	    /* Mark closed */
 	    H5_interface_initialize_g = 0;
-	    n = 1; /*H5I*/
 	} /* end else */
     } /* end if */
 
     FUNC_LEAVE_NOAPI(n)
-} /* H5F_term_interface() */
+} /* end H5F_term_interface() */
 
 
 /*-------------------------------------------------------------------------
@@ -417,7 +422,7 @@ done:
  *-------------------------------------------------------------------------
  */
 ssize_t
-H5Fget_obj_count(hid_t file_id, uint64_t types)
+H5Fget_obj_count(hid_t file_id, unsigned types)
 {
     H5F_t    *f = NULL;         /* File to query */
     size_t  obj_count = 0;      /* Number of opened objects */
@@ -458,7 +463,7 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5F_get_obj_count(const H5F_t *f, uint64_t types, hbool_t app_ref, size_t *obj_id_count_ptr)
+H5F_get_obj_count(const H5F_t *f, unsigned types, hbool_t app_ref, size_t *obj_id_count_ptr)
 {
     herr_t   ret_value = SUCCEED;
 
@@ -495,7 +500,7 @@ done:
  *-------------------------------------------------------------------------
  */
 ssize_t
-H5Fget_obj_ids(hid_t file_id, uint64_t types, size_t max_objs, hid_t *oid_list)
+H5Fget_obj_ids(hid_t file_id, unsigned types, size_t max_objs, hid_t *oid_list)
 {
     H5F_t    *f = NULL;         /* File to query */
     size_t    obj_id_count = 0; /* Number of open objects */
@@ -537,7 +542,7 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5F_get_obj_ids(const H5F_t *f, uint64_t types, size_t max_objs, hid_t *oid_list, hbool_t app_ref, size_t *obj_id_count_ptr)
+H5F_get_obj_ids(const H5F_t *f, unsigned types, size_t max_objs, hid_t *oid_list, hbool_t app_ref, size_t *obj_id_count_ptr)
 {
     herr_t ret_value = SUCCEED;              /* Return value */
 
@@ -569,7 +574,7 @@ done:
  *---------------------------------------------------------------------------
  */
 static herr_t
-H5F_get_objects(const H5F_t *f, uint64_t types, size_t max_nobjs, hid_t *obj_id_list, hbool_t app_ref, size_t *obj_id_count_ptr)
+H5F_get_objects(const H5F_t *f, unsigned types, size_t max_nobjs, hid_t *obj_id_list, hbool_t app_ref, size_t *obj_id_count_ptr)
 {
     size_t obj_id_count=0;      /* Number of open IDs */
     H5F_olist_t olist;          /* Structure to hold search results */
