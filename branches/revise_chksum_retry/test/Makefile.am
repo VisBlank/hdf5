@@ -21,7 +21,7 @@
 
 include $(top_srcdir)/config/commence.am
 
-INCLUDES=-I$(top_srcdir)/src -I$(top_builddir)/src
+AM_CPPFLAGS+=-I$(top_srcdir)/src -I$(top_builddir)/src
 
 # Test scripts--
 #       testerror.sh: err_compat, error_test
@@ -32,7 +32,7 @@ INCLUDES=-I$(top_srcdir)/src -I$(top_builddir)/src
 #       test_usecases.sh: use_append_chunk, use_append_mchunks, use_disable_mdc_flushes
 #       testswmr.sh: swmr*
 TEST_SCRIPT = testerror.sh testlibinfo.sh testcheck_version.sh testlinks_env.sh \
-	testflushrefresh.sh test_usecases.sh $(srcdir)/testswmr.sh
+    testswmr.sh testflushrefresh.sh test_usecases.sh
 SCRIPT_DEPEND = error_test$(EXEEXT) err_compat$(EXEEXT) links_env$(EXEEXT) \
     flushrefresh$(EXEEXT) use_append_chunk$(EXEEXT) use_append_mchunks$(EXEEXT) use_disable_mdc_flushes$(EXEEXT) \
     swmr_generator$(EXEEXT) swmr_reader$(EXEEXT) swmr_writer$(EXEEXT) \
