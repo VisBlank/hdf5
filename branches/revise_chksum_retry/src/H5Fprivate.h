@@ -30,22 +30,9 @@
 #include "H5VMprivate.h"		/* Vectors and arrays */
 
 
-/****************************/
-/* Library Private Typedefs */
-/****************************/
-
-/* Main file structure */
-typedef struct H5F_t H5F_t;
-typedef struct H5F_file_t H5F_file_t;
-
-/* Block aggregation structure */
-typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
-
-/* Structure for object flush callback property (H5Pset_object_flush_cb)*/
-typedef struct H5F_object_flush_t {
-    H5F_flush_cb_t func;	/* The callback function */
-    void *udata;		/* User data */
-} H5F_object_flush_t;
+/**************************/
+/* Library Private Macros */
+/**************************/
 
 /*
  * Encode and decode macros for file meta-data.
@@ -475,6 +462,8 @@ typedef struct H5F_object_flush_t {
 #define H5F_ACS_USE_MDC_LOGGING_NAME            "use_mdc_logging" /* Whether to use metadata cache logging */
 #define H5F_ACS_MDC_LOG_LOCATION_NAME           "mdc_log_location" /* Name of metadata cache log location */
 #define H5F_ACS_START_MDC_LOG_ON_ACCESS_NAME    "start_mdc_log_on_access" /* Whether logging starts on file create/open */
+#define H5F_ACS_CORE_WRITE_TRACKING_FLAG_NAME       "core_write_tracking_flag" /* Whether or not core VFD backing store write tracking is enabled */
+#define H5F_ACS_CORE_WRITE_TRACKING_PAGE_SIZE_NAME  "core_write_tracking_page_size" /* The page size in kiB when core VFD write tracking is enabled */
 
 /* ======================== File Mount properties ====================*/
 #define H5F_MNT_SYM_LOCAL_NAME 		"local"                 /* Whether absolute symlinks local to file. */
@@ -484,6 +473,10 @@ typedef struct H5F_object_flush_t {
 /* Which process writes metadata */
 #define H5_PAR_META_WRITE 0
 #endif /* H5_HAVE_PARALLEL */
+
+/* Define the HDF5 file signature */
+#define H5F_SIGNATURE	  "\211HDF\r\n\032\n"
+#define H5F_SIGNATURE_LEN 8
 
 /* Version #'s of the major components of the file format */
 #define HDF5_SUPERBLOCK_VERSION_DEF	0	/* The default super block format	  */
@@ -571,11 +564,49 @@ typedef struct H5F_object_flush_t {
 #define H5SM_LIST_MAGIC                 "SMLI"          /* Shared Message List */
 
 
-/* Forward declarations for prototype arguments */
+/****************************/
+/* Library Private Typedefs */
+/****************************/
+
+/* Forward declarations (for prototypes & type definitions) */
 struct H5B_class_t;
 struct H5UC_t;
 struct H5O_loc_t;
 struct H5HG_heap_t;
+struct H5P_genplist_t;
+
+/* Forward declarations for anonymous H5F objects */
+
+/* Main file structures */
+typedef struct H5F_t H5F_t;
+typedef struct H5F_file_t H5F_file_t;
+
+/* Block aggregation structure */
+typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
+
+/* Structure for object flush callback property (H5Pset_object_flush_cb)*/
+typedef struct H5F_object_flush_t {
+    H5F_flush_cb_t func;	/* The callback function */
+    void *udata;		/* User data */
+} H5F_object_flush_t;
+
+
+/* I/O Info for an operation */
+typedef struct H5F_io_info_t {
+    const H5F_t *f;                     /* File object */
+    const struct H5P_genplist_t *dxpl;         /* DXPL object */
+} H5F_io_info_t;
+
+
+/*****************************/
+/* Library-private Variables */
+/*****************************/
+
+
+/***************************************/
+/* Library-private Function Prototypes */
+/***************************************/
+
 
 /* Private functions */
 H5_DLL H5F_t *H5F_open(const char *name, unsigned flags, hid_t fcpl_id,
