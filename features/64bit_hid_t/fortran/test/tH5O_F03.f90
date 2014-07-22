@@ -80,6 +80,7 @@ CONTAINS
 
     ! Since the name is generated in C and passed to a Fortran string, it
     ! will be NULL terminated, so we need to find the end of the string.
+    write(*,*) group_id
 
     len = 1
     DO len = 1, 180
