@@ -405,6 +405,9 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #define H5_HAVE_UNISTD_H 1
 
+/* Define to 1 if you have the `asprintf' function. */
+/* #undef H5_HAVE_ASPRINTF */
+
 /* Define to 1 if you have the `vasprintf' function. */
 /* #undef H5_HAVE_VASPRINTF */
 
@@ -505,7 +508,7 @@
 #define H5_PACKAGE_NAME "HDF5"
 
 /* Define to the full name and version of this package. */
-#define H5_PACKAGE_STRING "HDF5 1.9.178-swmr_chksum6"
+#define H5_PACKAGE_STRING "HDF5 1.9.184-swmr_chksum6"
 
 /* Define to the one symbol short name of this package. */
 #define H5_PACKAGE_TARNAME "hdf5"
@@ -514,7 +517,7 @@
 #define H5_PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define H5_PACKAGE_VERSION "1.9.178-swmr_chksum6"
+#define H5_PACKAGE_VERSION "1.9.184-swmr_chksum6"
 
 /* Width for printf() for type `long long' or `__int64', use `ll' */
 #define H5_PRINTF_LL_WIDTH "ll"
@@ -677,7 +680,7 @@
 /* #undef H5_USING_MEMCHECKER */
 
 /* Version number of package */
-#define H5_VERSION "1.9.178-swmr_chksum6"
+#define H5_VERSION "1.9.184-swmr_chksum6"
 
 /* Define if vsnprintf() returns the correct value for formatted strings that
    don't fit into size allowed */

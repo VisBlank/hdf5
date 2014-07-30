@@ -397,7 +397,7 @@ H5D__chunk_direct_write(const H5D_t *dset, hid_t dxpl_id, uint32_t filters, hsiz
 
 done:
     FUNC_LEAVE_NOAPI_TAG(ret_value, FAIL)
-}
+} /* end H5D__chunk_direct_write() */
 
 
 /*-------------------------------------------------------------------------
@@ -2957,7 +2957,7 @@ void *
 H5D__chunk_lock(const H5D_io_info_t *io_info, H5D_chunk_ud_t *udata,
     hbool_t relax, hbool_t prev_unfilt_chunk)
 {
-    const H5D_t *dset = io_info->dset;          /* Local pointer to the dataset info */
+    const H5D_t         *dset = io_info->dset;  /* Local pointer to the dataset info */
     const H5O_pline_t   *pline = &(dset->shared->dcpl_cache.pline); /* I/O pipeline info - always equal to the pline passed to H5D__chunk_alloc */
     const H5O_pline_t   *old_pline = pline;     /* Old pipeline, i.e. pipeline used to read the chunk */
     const H5O_layout_t  *layout = &(dset->shared->layout); /* Dataset layout */
