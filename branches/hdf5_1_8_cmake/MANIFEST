@@ -57,6 +57,7 @@
 ./bin/distdep
 ./bin/errors              _DO_NOT_DISTRIBUTE_
 ./bin/gcov_script            _DO_NOT_DISTRIBUTE_
+./bin/genltanalyze      _DO_NOT_DISTRIBUTE_
 ./bin/h5vers
 ./bin/install-sh
 ./bin/iostats
@@ -248,6 +249,7 @@
 ./fortran/src/H5f90proto.h
 ./fortran/src/H5test_kind.f90
 ./fortran/src/H5test_kind_SIZEOF.f90
+./fortran/src/H5test_kind_STORAGE_SIZE.f90
 ./fortran/src/H5match_types.c
 ./fortran/src/HDF5.f90
 ./fortran/src/HDF5mpio.f90
@@ -268,6 +270,9 @@
 ./fortran/test/t.c
 ./fortran/test/t.h
 ./fortran/test/tf.f90
+./fortran/test/tf_F90.f90
+./fortran/test/tf_F03.f90
+./fortran/test/tf_F08.f90
 ./fortran/test/tH5A.f90
 ./fortran/test/tH5A_1_8.f90
 ./fortran/test/tH5D.f90
@@ -570,6 +575,7 @@
 ./src/H5Fdbg.c
 ./src/H5Fefc.c
 ./src/H5Ffake.c
+./src/H5Fint.c
 ./src/H5Fio.c
 ./src/H5Fmount.c
 ./src/H5Fmpi.c

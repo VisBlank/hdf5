@@ -16,7 +16,7 @@
 ## ----------------------------------------------------------------------
 ## Initialize configure.
 ##
-AC_REVISION($Id: configure.ac 25402 2014-07-10 14:36:34Z chaarawi $)
+AC_REVISION($Id: configure.ac 25436 2014-07-20 23:00:51Z hdftest $)
 AC_PREREQ([2.69])
 
 ## AC_INIT takes the name of the package, the version number, and an
@@ -26,7 +26,7 @@ AC_PREREQ([2.69])
 ## NOTE: Do not forget to change the version number here when we do a
 ## release!!!
 ##
-AC_INIT([HDF5], [1.8.14-snap9], [help@hdfgroup.org])
+AC_INIT([HDF5], [1.8.14-snap10], [help@hdfgroup.org])
 AC_CONFIG_SRCDIR([src/H5.c])
 AC_CONFIG_HEADER([src/H5config.h])
 
@@ -403,6 +403,8 @@ else
 fi
 
 HAVE_SIZEOF="no"
+HAVE_C_SIZEOF="no"
+HAVE_STORAGE_SIZE="no"
 FORTRAN_DEFAULT_REALisDBLE="no"
 
 if test "X$HDF_FORTRAN" = "Xyes"; then
@@ -483,6 +485,33 @@ if test "X$HDF_FORTRAN" = "Xyes"; then
      	HAVE_SIZEOF="yes"],
      [AC_MSG_RESULT([no])])
 
+  ## See if the fortran compiler supports the intrinsic function "C_SIZEOF"
+
+  AC_MSG_CHECKING([if Fortran compiler supports intrinsic C_SIZEOF])
+  AC_TRY_RUN([ 
+   PROGRAM main
+     USE ISO_C_BINDING
+     INTEGER(C_INT) :: a
+     INTEGER(C_SIZE_T) :: result
+     result = C_SIZEOF(a)
+   END PROGRAM
+  ], [AC_MSG_RESULT([yes])
+     	HAVE_C_SIZEOF="yes"],
+     [AC_MSG_RESULT([no])])
+
+  ## See if the fortran compiler supports the intrinsic function "STORAGE_SIZE"
+
+  AC_MSG_CHECKING([if Fortran compiler supports intrinsic STORAGE_SIZE])
+  AC_TRY_RUN([ 
+   PROGRAM main
+     INTEGER :: a
+     INTEGER :: result
+     result = STORAGE_SIZE(a)
+   END PROGRAM
+  ], [AC_MSG_RESULT([yes])
+     	HAVE_STORAGE_SIZE="yes"],
+     [AC_MSG_RESULT([no])])
+
   ## Check to see if -r8 was specified to determine if we need to
   ## compile the DOUBLE PRECISION interfaces.
 
@@ -552,6 +581,8 @@ fi
 AC_LANG_POP(Fortran)
 
 AM_CONDITIONAL([FORTRAN_HAVE_SIZEOF], [test "X$HAVE_SIZEOF" = "Xyes"])
+AM_CONDITIONAL([FORTRAN_HAVE_C_SIZEOF], [test "X$HAVE_C_SIZEOF" = "Xyes"])
+AM_CONDITIONAL([FORTRAN_HAVE_STORAGE_SIZE], [test "X$HAVE_STORAGE_SIZE" = "Xyes"])
 AM_CONDITIONAL([FORTRAN_2003_CONDITIONAL_F], [test "X$HAVE_FORTRAN_2003" = "Xyes"])
 AM_CONDITIONAL([FORTRAN_DEFAULT_REALisDBLE_F], [test "X$FORTRAN_DEFAULT_REALisDBLE" = "Xyes"])
 
