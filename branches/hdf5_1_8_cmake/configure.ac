@@ -16,7 +16,7 @@
 ## ----------------------------------------------------------------------
 ## Initialize configure.
 ##
-AC_REVISION($Id: configure.ac 25436 2014-07-20 23:00:51Z hdftest $)
+AC_REVISION($Id: configure.ac 25547 2014-08-24 22:56:55Z hdftest $)
 AC_PREREQ([2.69])
 
 ## AC_INIT takes the name of the package, the version number, and an
@@ -26,7 +26,7 @@ AC_PREREQ([2.69])
 ## NOTE: Do not forget to change the version number here when we do a
 ## release!!!
 ##
-AC_INIT([HDF5], [1.8.14-snap10], [help@hdfgroup.org])
+AC_INIT([HDF5], [1.8.14-snap13], [help@hdfgroup.org])
 AC_CONFIG_SRCDIR([src/H5.c])
 AC_CONFIG_HEADER([src/H5config.h])
 
@@ -585,6 +585,8 @@ AM_CONDITIONAL([FORTRAN_HAVE_C_SIZEOF], [test "X$HAVE_C_SIZEOF" = "Xyes"])
 AM_CONDITIONAL([FORTRAN_HAVE_STORAGE_SIZE], [test "X$HAVE_STORAGE_SIZE" = "Xyes"])
 AM_CONDITIONAL([FORTRAN_2003_CONDITIONAL_F], [test "X$HAVE_FORTRAN_2003" = "Xyes"])
 AM_CONDITIONAL([FORTRAN_DEFAULT_REALisDBLE_F], [test "X$FORTRAN_DEFAULT_REALisDBLE" = "Xyes"])
+
+
 
 ## ----------------------------------------------------------------------
 ## Check if they would like the C++ interface compiled
@@ -4173,9 +4175,16 @@ if test "X$HDF5_HL" = "Xyes"; then
  HL="hl"
  AC_DEFINE([INCLUDE_HL], [1],
            [Define if HDF5's high-level library headers should be included in hdf5.h])
+
+## Check if Fortran's default real is double precision. If it is and HL is being built then configure
+## should fail due to bug HDFFV-889.
+  if test "X$FORTRAN_DEFAULT_REALisDBLE" = "Xyes"; then
+    AC_MSG_ERROR([Fortran high-level routines are not supported when the default REAL is DOUBLE PRECISION, use configure option --disable-hl.])
+  fi
 else
  echo "no"
 fi
+
 
 ## ----------------------------------------------------------------------
 ## Some programs shouldn't be built by default (e.g., programs to generate
