@@ -1454,10 +1454,10 @@ H5FD_mpio_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t dxpl_id, haddr_t add
     int				mpi_code;	/* mpi return code */
     MPI_Datatype		buf_type = MPI_BYTE;      /* MPI description of the selection in memory */
     int         		size_i;         /* Integer copy of 'size' to read */
-    int         		bytes_read;     /* Number of bytes read in */
+    MPI_Count         		bytes_read;     /* Number of bytes read in */
     int         		n;
-    int                         type_size;      /* MPI datatype used for I/O's size */
-    int                         io_size;        /* Actual number of bytes requested */
+    MPI_Count                   type_size;      /* MPI datatype used for I/O's size */
+    MPI_Count                   io_size;        /* Actual number of bytes requested */
     H5P_genplist_t              *plist = NULL;  /* Property list pointer */
     hbool_t			use_view_this_time = FALSE;
     herr_t              	ret_value = SUCCEED;
@@ -1573,19 +1573,12 @@ H5FD_mpio_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t dxpl_id, haddr_t add
             HMPI_GOTO_ERROR(FAIL, "MPI_File_read_at failed", mpi_code)
     }
 
-    /* MSC SKIP THIS FOR NOW.. need num elements not bytes */
-#if 0
     /* How many bytes were actually read? */
-    /* [This works because the "basic elements" we use for all our MPI derived
-     *  types are MPI_BYTE.  We should be using the 'buf_type' for the MPI
-     *  datatype in this call though... (We aren't because using it causes
-     *  the LANL "qsc" machine to dump core - 12/19/03) - QAK]
-     */
-    if (MPI_SUCCESS != (mpi_code=MPI_Get_elements(&mpi_stat, MPI_BYTE, &bytes_read)))
+    if (MPI_SUCCESS != (mpi_code=MPI_Get_elements_x(&mpi_stat, buf_type, &bytes_read)))
         HMPI_GOTO_ERROR(FAIL, "MPI_Get_elements failed", mpi_code)
 
     /* Get the type's size */
-    if (MPI_SUCCESS != (mpi_code=MPI_Type_size(buf_type,&type_size)))
+    if (MPI_SUCCESS != (mpi_code=MPI_Type_size_x(buf_type,&type_size)))
         HMPI_GOTO_ERROR(FAIL, "MPI_Type_size failed", mpi_code)
 
     /* Compute the actual number of bytes requested */
@@ -1600,7 +1593,6 @@ H5FD_mpio_read(H5FD_t *_file, H5FD_mem_t UNUSED type, hid_t dxpl_id, haddr_t add
      */
     if ((n=(io_size-bytes_read)) > 0)
         HDmemset((char*)buf+bytes_read, 0, (size_t)n);
-#endif
 
 done:
 #ifdef H5FDmpio_DEBUG
@@ -1742,9 +1734,10 @@ H5FD_mpio_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
     MPI_Status  		mpi_stat;       /* Status from I/O operation */
     MPI_Datatype		buf_type = MPI_BYTE;      /* MPI description of the selection in memory */
     int			        mpi_code;	/* MPI return code */
-    int         		size_i, bytes_written;
-    int                         type_size;      /* MPI datatype used for I/O's size */
-    int                         io_size;        /* Actual number of bytes requested */
+    MPI_Count         		bytes_written;
+    int                         size_i;
+    MPI_Count                   type_size;      /* MPI datatype used for I/O's size */
+    MPI_Count                   io_size;        /* Actual number of bytes requested */
     hbool_t			use_view_this_time = FALSE;
     H5P_genplist_t              *plist = NULL;  /* Property list pointer */
     herr_t              	ret_value = SUCCEED;
@@ -1870,19 +1863,12 @@ H5FD_mpio_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
             HMPI_GOTO_ERROR(FAIL, "MPI_File_write_at failed", mpi_code)
     }
 
-    /* MSC SKIP THIS FOR NOW.. need num elements not bytes */
-#if 0
     /* How many bytes were actually written? */
-    /* [This works because the "basic elements" we use for all our MPI derived
-     *  types are MPI_BYTE.  We should be using the 'buf_type' for the MPI
-     *  datatype in this call though... (We aren't because using it causes
-     *  the LANL "qsc" machine to dump core - 12/19/03) - QAK]
-     */
-    if(MPI_SUCCESS != (mpi_code = MPI_Get_elements(&mpi_stat, MPI_BYTE, &bytes_written)))
+    if(MPI_SUCCESS != (mpi_code = MPI_Get_elements_x(&mpi_stat, buf_type, &bytes_written)))
         HMPI_GOTO_ERROR(FAIL, "MPI_Get_elements failed", mpi_code)
 
     /* Get the type's size */
-    if(MPI_SUCCESS != (mpi_code = MPI_Type_size(buf_type, &type_size)))
+    if(MPI_SUCCESS != (mpi_code = MPI_Type_size_x(buf_type, &type_size)))
         HMPI_GOTO_ERROR(FAIL, "MPI_Type_size failed", mpi_code)
 
     /* Compute the actual number of bytes requested */
@@ -1891,7 +1877,7 @@ H5FD_mpio_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr,
     /* Check for write failure */
     if(bytes_written != io_size)
         HGOTO_ERROR(H5E_IO, H5E_WRITEERROR, FAIL, "file write failed")
-#endif
+
     /* Forget the EOF value (see H5FD_mpio_get_eof()) --rpm 1999-08-06 */
     file->eof = HADDR_UNDEF;
 
