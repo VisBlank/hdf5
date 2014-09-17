@@ -1,0 +1,9 @@
+This branch was created by Dana Robinson for testing a strategy
+that will eliminate Windows error reporting dialog boxes when
+the library is testing.
+
+It should be a very short-lived branch and should be deleted after
+the feature is incorporated into the trunk (before the HDF5 1.8.14
+release).
+
+As far as I know, I am the only person using this branch.
