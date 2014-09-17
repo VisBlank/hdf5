@@ -1,4 +1,4 @@
-HDF5 version 1.8.14-snap13 currently under development
+HDF5 version 1.8.14-snap16 currently under development
 ================================================================================
 
 INTRODUCTION
@@ -88,12 +88,7 @@ New Features
 
     C++ API
     -------
-    - The following new features are added:
-      + Wrappers to get object's name
-      + Wrappers to get a child object's type from a group or file
-      + Wrappers for setting/getting transform property list
-      + Wrapper for setting size to compound datatype
-      + Additional wrapper to get comment as a char*
+    - None
 
 
 
@@ -155,17 +150,7 @@ Bug Fixes since HDF5-1.8.13
 
     C++ API
     ------
-    - There are significant changes to the Attribute::getName member functions
-      + Removed H5std_string Attribute::getName(size_t buf_size)
-      + Overloaded Atribute::getName to take a char* for the attribute name:
-          ssize_t Attribute::getName(char* attr_name, size_t buf_size=0) 
-      + Switched the arguments in this function:
-          ssize_t getName(size_t buf_size, H5std_string& attr_name)
-        so it became:
-          ssize_t getName(H5std_string& attr_name, size_t buf_size=0)
-        The second argument is then default to 0.
-    - Changed default value from 256 to 0 for two getComment methods
-    - Applied patches from user Jason Newton, where applicable.
+    - None
 
     High-Level APIs:
     ------
@@ -236,16 +221,20 @@ They are built with the configure process unless specified otherwise.
     Windows 7                     Visual Studio 2008 w/ Intel Fortran 14 (cmake)
                                   Visual Studio 2010 w/ Intel Fortran 14 (cmake)
                                   Visual Studio 2012 w/ Intel Fortran 14 (cmake)
-                                  Cygwin(CYGWIN_NT-6.1 1.7.28(0.271/5/3) gcc(4.8.2) compiler and gfortran)
+                                  Visual Studio 2013 w/ Intel Fortran 14 (cmake)
+                                  Cygwin(CYGWIN_NT-6.1 1.7.32(0.274/5/3) gcc(4.8.3) compiler and gfortran)
                                   (cmake and autotools)
 
     Windows 7 x64                 Visual Studio 2008 w/ Intel Fortran 14 (cmake)
                                   Visual Studio 2010 w/ Intel Fortran 14 (cmake)
                                   Visual Studio 2012 w/ Intel Fortran 14 (cmake)
+                                  Visual Studio 2013 w/ Intel Fortran 14 (cmake)
                                   
     Windows 8.1                   Visual Studio 2012 w/ Intel Fortran 14 (cmake)
+                                  Visual Studio 2013 w/ Intel Fortran 14 (cmake)
 
     Windows 8.1 x64               Visual Studio 2012 w/ Intel Fortran 14 (cmake)
+                                  Visual Studio 2013 w/ Intel Fortran 14 (cmake)
 
     Mac OS X Lion 10.7.3          Apple clang/clang++ version 3.0 from Xcode 4.6.1
     64-bit                        gfortran GNU Fortran (GCC) 4.6.2
@@ -350,24 +339,24 @@ The following platforms are not supported but have been tested for this release.
                                   g++ 4.6.1 20110527
                                   gfortran 4.6.1 20110527
 
-    Debian7.1.0 3.2.0-4-amd64 #1 SMP Debian 3.2.51-1 x86_64 GNU/Linux
+    Debian7.5.0 3.2.0-4-amd64 #1 SMP Debian 3.2.51-1 x86_64 GNU/Linux
                                   gcc (Debian 4.7.2-5) 4.7.2
                                   GNU Fortran (Debian 4.7.2-5) 4.7.2
                                   (cmake and autotools)
 
-    Fedora20 3.11.10-301.fc20.x86_64 #1 SMP x86_64 x86_64 x86_64 GNU/Linux
-                                  gcc (GCC) 4.8.2 20131212 (Red Hat 4.8.2-7)
-                                  GNU Fortran (GCC) 4.8.2 20130603 (Red Hat 4.8.2-7)
+    Fedora20 3.15.3-200.fc20.x86_64 #1 SMP x86_64 x86_64 x86_64 GNU/Linux
+                                  gcc (GCC) 4.8.3 20140624 (Red Hat 4.8.3-1)
+                                  GNU Fortran (GCC) 4.8.3 20140624 (Red Hat 4.8.3-1)
                                   (cmake and autotools)
 
-    SUSE 13.1 3.11.6-4-desktop #1 SMP PREEMPT x86_64 x86_64 x86_64 GNU/Linux
+    SUSE 13.1 3.11.10-17-desktop #1 SMP PREEMPT x86_64 x86_64 x86_64 GNU/Linux
                                   gcc (SUSE Linux) 4.8.1
                                   GNU Fortran (SUSE Linux) 4.8.1
                                   (cmake and autotools)
 
-    Ubuntu 13.10 3.11.0-13-generic #20-Ubuntu SMP x86_64 GNU/Linux
-                                  gcc (Ubuntu/Linaro 4.8.1-10ubuntu8) 4.8.1
-                                  GNU Fortran (Ubuntu/Linaro 4.8.1-10ubuntu8) 4.8.1
+    Ubuntu 14.04 3.13.0-32-generic #57-Ubuntu SMP x86_64 GNU/Linux
+                                  gcc (Ubuntu/Linaro 4.8.2-19ubuntu1) 4.8.2
+                                  GNU Fortran (Ubuntu/Linaro 4.8.2-19ubuntu1) 4.8.2
                                   (cmake and autotools)
     
     Cray Linux Environment (CLE)  PrgEnv-pgi/4.0.46
