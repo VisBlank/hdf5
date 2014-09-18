@@ -470,6 +470,8 @@ main(void)
     hid_t		file, fapl;
     char		filename[1024];
     const char          *FUNC_main="main";
+    
+    H5_TEST_ENTER
 
     fprintf(stderr, "   This program tests the Error API compatible with HDF5 v1.6.  There're supposed to be some error messages\n");
     fapl = h5_fileaccess();

@@ -25,8 +25,10 @@ static int test_plists(const char *filename1, const char *filename2);
 int
 main(void)
 {
+    H5_TEST_ENTER
+    
     if(VERBOSE_MED)
-	printf("Encode/Decode property list endianess\n");
+        printf("Encode/Decode property list endianess\n");
 
     /******* ENCODE/DECODE DCPLS *****/
     TESTING("DCPL Encoding/Decoding");

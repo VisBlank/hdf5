@@ -40,6 +40,8 @@
 int
 main(int argc, char *argv[])
 {
+    H5_TEST_ENTER
+    
     /* Initialize testing framework */
     TestInit(argv[0], NULL, NULL);
 

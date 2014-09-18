@@ -117,6 +117,8 @@ main(void)
         0.2f,
         (256 * 2048),
         H5AC__DEFAULT_METADATA_WRITE_STRATEGY};
+    
+    H5_TEST_ENTER
 
     if(VERBOSE_MED)
 	printf("Encode/Decode DCPLs\n");

@@ -155,6 +155,8 @@ main(void)
     hid_t fapl; 	/* File access property lists */
     int	nerrors = 0;	/* Error from tests */
     const char  *env_h5_drvr;      /* File Driver value from environment */
+    
+    H5_TEST_ENTER
 
     env_h5_drvr = HDgetenv("HDF5_DRIVER");
     if(env_h5_drvr == NULL)

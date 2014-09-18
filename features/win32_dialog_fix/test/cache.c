@@ -33714,6 +33714,8 @@ int
 main(void)
 {
     unsigned nerrs = 0;
+    
+    H5_TEST_ENTER
 
     H5open();
 

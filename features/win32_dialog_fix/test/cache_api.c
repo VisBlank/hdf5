@@ -3528,6 +3528,8 @@ int
 main(void)
 {
     int express_test;
+    
+    H5_TEST_ENTER
 
     H5open();
 

@@ -2174,6 +2174,8 @@ main (int argc, char *argv[])
     hid_t	fapl_id;
     char	fname[256];
     unsigned 	nerrors = 0;
+    
+    H5_TEST_ENTER
 
     h5_reset();
 

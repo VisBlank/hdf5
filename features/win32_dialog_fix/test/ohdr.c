@@ -323,6 +323,8 @@ main(void)
     int		i;                      /* Local index variable */
     hbool_t     b;                      /* Index for "new format" loop */
     herr_t      ret;                    /* Generic return value */
+    
+    H5_TEST_ENTER
 
     /* Reset library */
     h5_reset();

@@ -16357,6 +16357,8 @@ main(void)
     unsigned    u;                      /* Local index variable */
     unsigned	nerrors = 0;            /* Cumulative error count */
     int		ExpressMode;            /* Express testing level */
+    
+    H5_TEST_ENTER
 
     /* Reset library */
     h5_reset();

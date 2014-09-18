@@ -1170,6 +1170,8 @@ main(void)
     hid_t	fapl, fapl2;    /* File access property list IDs */
     hbool_t new_format;     /* Whether to use the new format or not */
     int	nerrors = 0;
+    
+    H5_TEST_ENTER
 
     /* Reset library */
     h5_reset();

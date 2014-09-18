@@ -369,6 +369,8 @@ int main(void)
     double      rdcc_w0     = 0;
     char        filename[1024];
     unsigned 	nerrors = 0;
+    
+    H5_TEST_ENTER
 
     h5_reset();
     fapl = h5_fileaccess();

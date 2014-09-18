@@ -47,6 +47,8 @@ int main( void )
     int     buf[4][4];
     int     fillvalue = 0;
     int     i, j, ii, jj;
+    
+    H5_TEST_ENTER
 
     /* create a new file using default properties. */
     if ((fid = H5Fcreate(H5FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR;

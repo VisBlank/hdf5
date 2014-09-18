@@ -942,6 +942,8 @@ main (void)
     char	filename[1024];		/*file name for test_1* funcs	*/
     hid_t	grp=-1;			/*group to emit diagnostics	*/
     int		nerrors=0;		/*number of errors		*/
+    
+    H5_TEST_ENTER
 
     h5_reset();
     fapl = h5_fileaccess();

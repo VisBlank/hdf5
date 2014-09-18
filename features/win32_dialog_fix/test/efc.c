@@ -3164,6 +3164,8 @@ int
 main(void)
 {
     unsigned nerrors = 0;        /* track errors */
+    
+    H5_TEST_ENTER
 
     /* Test Setup */
     puts("Testing the external file cache");

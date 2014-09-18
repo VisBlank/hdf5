@@ -417,6 +417,8 @@ int main(void)
 {
     char        filename[1024];
     unsigned 	nerrors = 0;
+    
+    H5_TEST_ENTER
 
     h5_reset();
 

@@ -2835,6 +2835,8 @@ main(void)
     hid_t       	fapl = -1;	/* File access property list for data files */
     unsigned    	nerrors = 0;    /* Cumulative error count */
     const char *env_h5_drvr = NULL;     /* File Driver value from environment */
+    
+    H5_TEST_ENTER
 
     /* Get the VFD to use */
     env_h5_drvr = HDgetenv("HDF5_DRIVER");

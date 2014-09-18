@@ -645,6 +645,8 @@ main(void)
     size_t rdcc_nbytes;
     double rdcc_w0;
     int	nerrors = 0;
+    
+    H5_TEST_ENTER
 
     /* Testing setup */
     h5_reset();

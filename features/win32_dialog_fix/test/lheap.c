@@ -66,6 +66,8 @@ main(void)
     int		i, j;			/*miscellaneous counters	*/
     char	buf[1024];		/*the value to store		*/
     const char	*s;			/*value to read			*/
+    
+    H5_TEST_ENTER
 
     /* Reset library */
     h5_reset();

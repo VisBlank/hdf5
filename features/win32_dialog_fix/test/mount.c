@@ -4339,6 +4339,8 @@ main(void)
 {
     int		nerrors = 0;
     hid_t	fapl = -1;
+    
+    H5_TEST_ENTER
 
     h5_reset();
     fapl = h5_fileaccess();

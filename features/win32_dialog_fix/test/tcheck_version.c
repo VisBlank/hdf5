@@ -113,6 +113,8 @@ abort_intercept (int UNUSED sig)
 int
 main(int ac, char **av)
 {
+    H5_TEST_ENTER
+    
     parse(ac, av);
     HDsignal(SIGABRT, &abort_intercept);
     H5check_version(major, minor, release);

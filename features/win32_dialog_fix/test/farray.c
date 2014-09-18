@@ -1522,6 +1522,8 @@ main(void)
     unsigned	nerrors = 0;            /* Cumulative error count */
     time_t      curr_time;              /* Current time, for seeding random number generator */
     int		ExpressMode;            /* Test express value */
+    
+    H5_TEST_ENTER
 
     /* Reset library */
     h5_reset();

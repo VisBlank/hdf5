@@ -646,6 +646,8 @@ main(void)
     hid_t	fapl=-1, file=-1;
     char	name[1024];
     int		nerrors=0;
+    
+    H5_TEST_ENTER
 
     h5_reset();
     fapl = h5_fileaccess();

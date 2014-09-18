@@ -119,6 +119,8 @@ int main( void )
     hbool_t new_format;         /* Whether to use the latest file format */
     hbool_t chunk_cache;        /* Whether to enable chunk caching */
     int	  nerrors = 0;
+    
+    H5_TEST_ENTER
 
     /* Initialize random number seed */
     HDsrandom((unsigned)HDtime(NULL));

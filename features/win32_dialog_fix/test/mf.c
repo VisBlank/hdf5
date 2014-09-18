@@ -7450,6 +7450,8 @@ main(void)
     unsigned    nerrors = 0;       /* Cumulative error count */
     test_type_t	curr_test;	   /* Current test being worked on */
     const char  *env_h5_drvr;      /* File Driver value from environment */
+    
+    H5_TEST_ENTER
 
     /* Get the VFD to use */
     env_h5_drvr = HDgetenv("HDF5_DRIVER");

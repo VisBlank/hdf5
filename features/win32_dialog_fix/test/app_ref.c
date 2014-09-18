@@ -99,6 +99,8 @@ main (void)
     int     ninc;
     int     i;
     char    filename[1024];
+    
+    H5_TEST_ENTER
 
     h5_reset();
     h5_fixname (FILENAME[0], H5P_DEFAULT, filename, sizeof filename);

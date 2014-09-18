@@ -7267,6 +7267,8 @@ main(void)
 {
     long	nerrors = 0;
     hid_t		fapl = -1;
+    
+    H5_TEST_ENTER
 
     /* Set the random # seed */
     HDsrandom((unsigned)HDtime(NULL));

@@ -9314,6 +9314,8 @@ main(void)
     double rdcc_w0;
     int	nerrors = 0;
     const char *envval;
+    
+    H5_TEST_ENTER
 
     /* Don't run this test using certain file drivers */
     envval = HDgetenv("HDF5_DRIVER");

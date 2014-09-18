@@ -1285,6 +1285,8 @@ main(void)
 {
     int errors = 0;
     hid_t fapl;
+    
+    H5_TEST_ENTER
 
     h5_reset();
 

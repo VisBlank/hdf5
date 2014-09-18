@@ -3920,6 +3920,8 @@ main(void)
     unsigned nerrs = 0;         /* Error Encountered */
     int test_type = 0;          /* test type iterator */
     
+    H5_TEST_ENTER
+    
     /* Open the HDF5 Library */
     H5open();
  

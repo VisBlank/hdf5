@@ -12163,6 +12163,8 @@ main(void)
     int     configuration;  /* Configuration of tests. */
     int	ExpressMode;
     hbool_t same_file;  /* Whether to run tests that only use one file */
+    
+    H5_TEST_ENTER
 
     /* Setup */
     h5_reset();

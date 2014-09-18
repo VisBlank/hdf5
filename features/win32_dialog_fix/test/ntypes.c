@@ -2866,6 +2866,8 @@ main(void)
     hid_t	file, fapl;
     int		nerrors = 0;
     char	filename[1024];
+    
+    H5_TEST_ENTER
 
     h5_reset();
     fapl = h5_fileaccess();

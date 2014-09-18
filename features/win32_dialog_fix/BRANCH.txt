@@ -6,4 +6,6 @@ It should be a very short-lived branch and should be deleted after
 the feature is incorporated into the trunk (before the HDF5 1.8.14
 release).
 
+This branch follows the trunk.
+
 As far as I know, I am the only person using this branch.

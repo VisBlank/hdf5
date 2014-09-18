@@ -1225,3 +1225,46 @@ error:
     return -1;
 }
 
+
+/*-------------------------------------------------------------------------
+ * Function:    h5_disable_dialog_boxes()
+ *
+ * Purpose:     Disables dialog boxes in test code.
+ *              
+ *              This is only a problem on Windows systems, which can raise
+ *              dialog boxes on certain system and file not found errors.
+ *              These dialog boxes hang the test suite and should be
+ *              disabled.
+ *
+ * Return:      Success:        0
+ *              Failure:        -1
+ *
+ * Programmer:  Dana Robinson
+ *              September 2014
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+h5_disable_dialog_boxes(void) {
+
+#ifdef H5_HAVE_WIN32_API
+    /* SetErrorMode() is used to disable dialog boxes on Windows platforms.
+     * It only works when the program is run normally - i.e. not in the Visual
+     * Studio debugger. The VS debugger has its own dialog boxes that it will
+     * raise, which are not controlled by this function.
+     *
+     * Technically, SetThreadErrorMode() is recommended for Win7+, but there's
+     * no need to add platform dependency nightmares to test code that runs for
+     * a limited duration.
+     *
+     * The odd double call to SetErrorMode() is to preserve the previous settings,
+     * particularly any alignment settings. GetErrorMode() isn't available until
+     * Windows Vista, so I'm also using the most backward-compatible method.
+     */
+    UINT oldErrorMode = SetErrorMode(0);
+    SetErrorMode(oldErrorMode | SEM_NOGPFAULTERRORBOX | SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);
+#endif
+
+    return 0;
+} /* end h5_disable_dialog_boxes() */
+

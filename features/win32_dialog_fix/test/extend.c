@@ -251,6 +251,8 @@ main (void)
     static hsize_t		maxdims[2] = {H5S_UNLIMITED, H5S_UNLIMITED};
     char			filename[1024];
     int				i, j;
+    
+    H5_TEST_ENTER
 
     h5_reset();
     fapl = h5_fileaccess();

@@ -607,6 +607,8 @@ main(int argc, char *argv[])
     char		filename[1024];
     int                 skip_test = 0;
     int                 has_sparse_support = 0;
+    
+    H5_TEST_ENTER
 
     /* Parse arguments or assume these tests (`small', `medium' ) */
     if (1 == argc) {

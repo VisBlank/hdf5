@@ -232,6 +232,8 @@ main(void)
 {
     hid_t		fapl;
     int	nerrors = 0;
+    
+    H5_TEST_ENTER
 
     /* Testing setup */
     h5_reset();

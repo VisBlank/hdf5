@@ -2450,6 +2450,8 @@ main(void)
     size_t rdcc_nelmts;
     size_t rdcc_nbytes;
     double rdcc_w0;
+    
+    H5_TEST_ENTER
 
     /* Set the random # seed */
     HDsrandom((unsigned)HDtime(NULL));

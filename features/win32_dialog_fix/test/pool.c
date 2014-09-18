@@ -742,6 +742,8 @@ int
 main(void)
 {
     int nerrors = 0;
+    
+    H5_TEST_ENTER
 
     /* Reset library */
     h5_reset();

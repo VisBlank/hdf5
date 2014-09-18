@@ -430,6 +430,8 @@ main(void)
     int num_errs=0;
     hid_t fapl;
     const char *envval = NULL;
+    
+    H5_TEST_ENTER
 
     envval = HDgetenv("HDF5_DRIVER");
     if (envval == NULL)

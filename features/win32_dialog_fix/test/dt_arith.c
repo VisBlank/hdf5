@@ -5455,6 +5455,8 @@ int
 main(void)
 {
     unsigned long	nerrors = 0;
+    
+    H5_TEST_ENTER
 
     /* Set the random # seed */
     HDsrandom((unsigned)HDtime(NULL));

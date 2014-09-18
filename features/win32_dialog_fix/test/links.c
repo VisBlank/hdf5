@@ -14515,6 +14515,8 @@ main(void)
     hbool_t new_format;     /* Whether to use the new format or not */
     hbool_t efc;            /* Whether to use the external file cache */
     const char  *env_h5_drvr;      /* File Driver value from environment */
+    
+    H5_TEST_ENTER
 
     env_h5_drvr = HDgetenv("HDF5_DRIVER");
     if(env_h5_drvr == NULL)

@@ -2925,6 +2925,8 @@ main(void)
     int nerrors = 0;
     hid_t fapl;
     char filename0[1024];
+    
+    H5_TEST_ENTER
 
     /* Reset the library and get the file access property list */
     h5_reset();

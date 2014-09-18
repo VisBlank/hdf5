@@ -7628,6 +7628,8 @@ main(void)
     hbool_t     reopen;                 /* Whether to reopen B-tree during tests */
     int		ExpressMode;
     const char  *envval = NULL;
+    
+    H5_TEST_ENTER
 
     envval = HDgetenv("HDF5_DRIVER");
     if(envval == NULL)

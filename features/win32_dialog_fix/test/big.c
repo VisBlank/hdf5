@@ -755,6 +755,8 @@ main (int ac, char **av)
     unsigned long seed = 0;             /* Random # seed */
     hid_t fapl = -1;
     hid_t driver = -1;
+    
+    H5_TEST_ENTER
 
     /* parameters setup */
 

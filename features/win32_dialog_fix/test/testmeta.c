@@ -26,6 +26,7 @@
 
 
 #include "hdf5.h"
+#include "h5test.h"
 
 #define FILEN		"testmeta.h5"
 
@@ -53,6 +54,8 @@ int main(void)
     hsize_t	start[1]			= {0};
     hsize_t	stride[1]			= {1};
     hsize_t	count[1]			= {1};
+    
+    H5_TEST_ENTER
 
     /* Create a file */
     file_id = H5Fcreate(FILEN, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);

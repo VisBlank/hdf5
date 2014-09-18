@@ -657,6 +657,8 @@ int
 main(void)
 {
     int		nerrors=0;
+    
+    H5_TEST_ENTER
 
     /* Run tests w/weak file close */
     puts("Testing dangling objects with weak file close:");

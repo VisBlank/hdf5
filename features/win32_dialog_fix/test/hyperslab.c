@@ -1203,6 +1203,8 @@ main(int argc, char *argv[])
     herr_t		    status;
     int			    nerrors = 0;
     unsigned		size_of_test;
+    
+    H5_TEST_ENTER
 
     /* Parse arguments or assume `small' & `medium' */
     if(1 == argc)

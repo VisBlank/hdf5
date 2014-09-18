@@ -85,6 +85,8 @@ main(void)
     H5F_io_info_t fio_info;             /* I/O info for operation */
     unsigned nerrors = 0;        /* track errors */
     hid_t fid = -1;
+    
+    H5_TEST_ENTER
 
     /* Test Setup */
     puts("Testing the metadata accumulator");

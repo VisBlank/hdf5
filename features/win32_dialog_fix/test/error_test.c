@@ -689,6 +689,8 @@ main(void)
     hid_t               estack_id;
     char		filename[1024];
     const char          *FUNC_main = "main";
+    
+    H5_TEST_ENTER
 
     HDfprintf(stderr, "   This program tests the Error API.  There're supposed to be some error messages\n");
 

@@ -270,6 +270,8 @@ int main(void)
     const char* polynomial = "(2+x)* ((x-8)/2)";
     /* inverses the utrans transform in init_test to get back original array */
     const char* utrans_inv = "(x/3)*4 - 100";
+    
+    H5_TEST_ENTER
 
     if((file_id = H5Fcreate("dtransform.h5", H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) < 0) TEST_ERROR;
 

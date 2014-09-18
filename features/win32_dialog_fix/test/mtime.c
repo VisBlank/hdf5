@@ -67,6 +67,8 @@ main(void)
     H5O_info_t	oi1, oi2;
     signed char	buf1[32], buf2[32];
     char	filename[1024];
+    
+    H5_TEST_ENTER
 
     h5_reset();
     fapl = h5_fileaccess();

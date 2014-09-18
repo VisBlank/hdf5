@@ -51,6 +51,8 @@ main(void)
     hid_t	file, space, dset;
     hsize_t	cur_dim[H5S_MAX_RANK];
     int		i;
+    
+    H5_TEST_ENTER
 
     file = H5Fcreate("th5s.h5", H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
     if(file < 0)
