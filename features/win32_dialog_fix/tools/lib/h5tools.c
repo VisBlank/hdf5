@@ -103,6 +103,12 @@ h5tools_init(void)
     char lib_str[256];
 
     if (!h5tools_init_g) {
+    
+        /* Disable error dialog boxes on graphical operating systems
+         * like Windows.
+         */
+        H5_disable_dialog_boxes();
+        
         /* register the error class */
         HDsnprintf(lib_str, sizeof(lib_str), "%d.%d.%d",H5_VERS_MAJOR, H5_VERS_MINOR, H5_VERS_RELEASE);
 

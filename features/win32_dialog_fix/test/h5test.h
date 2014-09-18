@@ -136,6 +136,14 @@ H5TEST_DLLVAR MPI_Info h5_io_info_g;         /* MPI INFO object for IO */
 #define DBL_REL_EQUAL(X,Y,M)    (fabs((Y-X)/X)<M)
 #define LDBL_REL_EQUAL(X,Y,M)    (fabsl((Y-X)/X)<M)
 
+/* H5_TEST_ENTER is used at the beginning of the main function for each
+ * unit test. It performs any per-test setup.
+ */
+#define H5_TEST_ENTER \
+{ \
+    H5_disable_dialog_boxes(); \
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -153,7 +161,6 @@ H5TEST_DLL h5_stat_size_t h5_get_file_size(const char *filename, hid_t fapl);
 H5TEST_DLL int print_func(const char *format, ...);
 H5TEST_DLL int h5_make_local_copy(const char *origfilename, const char *local_copy_name);
 H5TEST_DLL herr_t h5_verify_cached_stabs(const char *base_name[], hid_t fapl);
-H5TEST_DLL herr_t h5_disable_dialog_boxes(); 
 
 /* Routines for operating on the list of tests (for the "all in one" tests) */
 H5TEST_DLL void TestUsage(void);
@@ -198,11 +205,5 @@ H5TEST_DLLVAR int TestVerbosity;
 #ifdef __cplusplus
 }
 #endif
-
-/* H5_TEST_ENTER is used at the beginning of the main function for each
- * unit test. It performs any per-test setup.
- */
-#define H5_TEST_ENTER \
-    h5_disable_dialog_boxes();
 
 #endif

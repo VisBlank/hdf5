@@ -1418,6 +1418,11 @@ extern char *strdup(const char *s);
     #define HDpthread_self_ulong()    ((unsigned long)pthread_self())
 #endif /* HDpthread_self_ulong */
 
+/* A function that turns off error dialog boxes on graphical operating
+ * systems (i.e. Windows). Can be called from any OS.
+ */
+H5_DLL herr_t H5_disable_dialog_boxes(void); 
+
 /*
  * A macro for detecting over/under-flow when casting between types
  */
