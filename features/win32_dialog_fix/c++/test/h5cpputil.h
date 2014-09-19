@@ -127,6 +127,13 @@ template <class Type1, class Type2>
     }
 }
 
+/* H5_TEST_CPP_ENTER is used at the beginning of the main function for each
+ * C++ unit test. It performs any per-test setup.
+ */
+#define H5_TEST_CPP_ENTER \
+{ \
+    H5_disable_dialog_boxes(); \
+}
 
 /* Prototypes for the test routines */
 #ifdef __cplusplus

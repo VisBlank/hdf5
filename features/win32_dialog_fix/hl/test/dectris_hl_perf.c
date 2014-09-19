@@ -617,6 +617,16 @@ main (void)
 {
     hid_t       fapl = H5P_DEFAULT;
     int         i;
+    
+#ifdef H5_HAVE_WIN32_API
+    /* Can't use test macros from h5test.h here so we have to duplicate code.
+     * This disables error dialog boxes on Windows.
+     * See the H5_disable_dialog_boxes() code in H5system.c for
+     * details of how/why it's needed.
+     */
+    UINT oldErrorMode = SetErrorMode(0);
+    SetErrorMode(oldErrorMode | SEM_NOGPFAULTERRORBOX | SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);
+#endif
 
     /* Testing setup */
 /*    h5_reset();

@@ -1108,6 +1108,8 @@ int main( void )
 {
     hid_t file_id;
     int   nerrors=0;
+    
+    H5_TEST_ENTER
 
     /*
      * Create a new file. If file exists its contents will be overwritten.

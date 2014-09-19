@@ -493,6 +493,8 @@ int main( void )
     size_t    open_images = 10; /* number of open file images */
     size_t    nflags = 8; /* number of flag combinations */
     unsigned  flags[8]; /* array with flag combinations */
+    
+    H5_TEST_ENTER
    
     /* set flag combinations for testing */ 
     flags[0] = 0;

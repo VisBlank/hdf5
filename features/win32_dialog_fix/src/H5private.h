@@ -1420,8 +1420,16 @@ extern char *strdup(const char *s);
 
 /* A function that turns off error dialog boxes on graphical operating
  * systems (i.e. Windows). Can be called from any OS.
+ *
+ * The C++ test code calls this directly so we need the cplusplus wrappers.
  */
-H5_DLL herr_t H5_disable_dialog_boxes(void); 
+#ifdef __cplusplus
+extern "C" {
+#endif
+H5_DLL herr_t H5_disable_dialog_boxes(void);
+#ifdef __cplusplus
+}
+#endif
 
 /*
  * A macro for detecting over/under-flow when casting between types

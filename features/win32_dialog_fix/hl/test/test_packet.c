@@ -1047,26 +1047,28 @@ static int test_packet_table(hid_t fid)
 
 int main(void)
 {
- /* identifier for the file */
- hid_t       fid;
- int         status = 0;
+    /* identifier for the file */
+    hid_t       fid;
+    int         status = 0;
+ 
+    H5_TEST_ENTER
 
-/*-------------------------------------------------------------------------
- * Packet test: test each function of the packet table
- *-------------------------------------------------------------------------
- */
+    /*-------------------------------------------------------------------------
+     * Packet test: test each function of the packet table
+     *-------------------------------------------------------------------------
+     */
 
- /* create a file using default properties */
- fid=H5Fcreate(TEST_FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+     /* create a file using default properties */
+     fid=H5Fcreate(TEST_FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
- HDputs("Testing packet table");
+     HDputs("Testing packet table");
 
- /* run tests */
- if ( test_packet_table(fid) < 0)
-     status = 1;
+     /* run tests */
+     if ( test_packet_table(fid) < 0)
+         status = 1;
 
- /* close */
- H5Fclose(fid);
+     /* close */
+     H5Fclose(fid);
 
- return status;
+     return status;
 }

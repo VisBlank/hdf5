@@ -2142,6 +2142,8 @@ static int test_valid_path(void)
 int main( void )
 {
     int  nerrors=0;
+    
+    H5_TEST_ENTER
 
     /* test dataset functions */
     nerrors += test_dsets();

@@ -67,6 +67,8 @@
 int
 main(int argc, char *argv[])
 {
+    H5_TEST_CPP_ENTER
+    
     try
     {
 	// Turn of the auto-printing when failure occurs so that we can

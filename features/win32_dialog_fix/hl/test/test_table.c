@@ -1670,6 +1670,8 @@ int main(void)
 {
     hid_t    fid;  /* identifier for the file */
     unsigned flags=H5F_ACC_RDONLY;
+    
+    H5_TEST_ENTER
 
     /*-------------------------------------------------------------------------
     * test1: create a file for the write/read test

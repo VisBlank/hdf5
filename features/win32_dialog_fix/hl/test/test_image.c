@@ -71,6 +71,8 @@ unsigned char *image_data = NULL;
 int main(void)
 {
     int nerrors=0;
+    
+    H5_TEST_ENTER
 
     nerrors += test_simple()<0  ?1:0;
     nerrors += test_data()<0  ?1:0;

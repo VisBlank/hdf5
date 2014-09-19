@@ -149,6 +149,8 @@ static int test_attach_detach(void);
 int main(void)
 {
     int nerrors=0;
+    
+    H5_TEST_ENTER
 
     /* create file to be used in following tests */
     if(create_test_file("1") < 0) {
