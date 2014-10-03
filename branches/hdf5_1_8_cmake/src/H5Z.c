@@ -663,8 +663,7 @@ H5Zfilter_avail(H5Z_filter_t id)
     if(id<0 || id>H5Z_FILTER_MAX)
         HGOTO_ERROR (H5E_ARGS, H5E_BADVALUE, FAIL, "invalid filter identification number")
  
-    ret_value = H5Z_filter_avail(id);
-    if(ret_value < 0)
+    if((ret_value = H5Z_filter_avail(id)) < 0)
     	HGOTO_ERROR(H5E_PLINE, H5E_NOTFOUND, FAIL, "unable to check the availability of the filter")
     else if(ret_value == FALSE) {
         const H5Z_class2_t *filter_info;
