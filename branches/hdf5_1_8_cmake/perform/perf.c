@@ -46,6 +46,7 @@
 #   include <mpio.h>
 #endif
 
+
 /* Macro definitions */
 /* Verify:
  * if val is false (0), print mesg and if fatal is true (non-zero), die.
@@ -63,8 +64,6 @@
     }                                                                          \
 } while(0)
 #define RANK 1
-#define MAX_PATH 1024
-
 hsize_t dims[RANK];     /* dataset dim sizes */
 hsize_t block[RANK], stride[RANK], count[RANK];
 hssize_t start[RANK];
@@ -91,11 +90,6 @@ char    opt_file[256] = "perftest.out";
 char    opt_pvfstab[256] = "notset";
 int     opt_pvfstab_set = 0;
 
-const char *FILENAME[] = {
-   opt_file,
-   NULL
-};
-
 /* function prototypes */
 static int parse_args(int argc, char **argv);
 
@@ -120,7 +114,6 @@ int main(int argc, char **argv)
     MPI_File fh;
     MPI_Status status;
     int nchars;
-    char filename[MAX_PATH];
     herr_t ret;           /* Generic return value */
 
     /* startup MPI and determine the rank of this process */
@@ -132,6 +125,7 @@ int main(int argc, char **argv)
     parse_args(argc, argv);
 
     if (mynod == 0) printf("# Using hdf5-io calls.\n");
+
 
     /* kindof a weird hack- if the location of the pvfstab file was
      * specified on the command line, then spit out this location into
@@ -204,10 +198,8 @@ int main(int argc, char **argv)
   	}
     }
 
-    h5_fixname_no_suffix(FILENAME[0], acc_tpl, filename, sizeof filename);
-
     /* create the parallel file */
-    fid = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, acc_tpl);
+    fid = H5Fcreate(opt_file, H5F_ACC_TRUNC, H5P_DEFAULT, acc_tpl);
     VRFY((fid >= 0), "H5Fcreate succeeded", H5FATAL);
 
     /* define a contiquous dataset of opt_iter*nprocs*opt_block chars */
@@ -269,7 +261,7 @@ int main(int argc, char **argv)
     MPI_Barrier(MPI_COMM_WORLD);
 
     /* reopen the file for reading */
-    fid=H5Fopen(filename,H5F_ACC_RDONLY,acc_tpl);
+    fid=H5Fopen(opt_file,H5F_ACC_RDONLY,acc_tpl);
     VRFY((fid >= 0), "", H5FATAL);
 
     /* open the dataset */
@@ -390,7 +382,6 @@ die_jar_jar_die:
 
     free(tmp);
     if (opt_correct) free(tmp2);
-    
     MPI_Finalize();
 
     return(0);
@@ -414,7 +405,6 @@ parse_args(int argc, char **argv)
                 break;
             case 'f': /* filename */
                 strncpy(opt_file, optarg, 255);
-                FILENAME[0] = opt_file;
                 break;
             case 'p': /* pvfstab file */
                 strncpy(opt_pvfstab, optarg, 255);

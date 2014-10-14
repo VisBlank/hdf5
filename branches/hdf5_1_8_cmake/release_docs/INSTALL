@@ -125,30 +125,30 @@ CONTENTS
         filter will succeed but the data will not be compressed.
 
 3.2. Szip (optional)
-        The HDF5 Library includes a predefined compression filter that
-        uses the extended-Rice lossless compression algorithm for chunked
-        datasets. For more information about Szip compression and license
+        The HDF5 Library includes a predefined compression filter that 
+        uses the extended-Rice lossless compression algorithm for chunked 
+        datasets. For more information about Szip compression and license 
         terms, see http://hdfgroup.org/doc_resource/SZIP/.
 
         The Szip source code can be obtained from the HDF5 Download page
-        http://www.hdfgroup.org/HDF5/release/obtain5.html#extlibs. Building
-        instructions are available with the Szip source code.
+        http://www.hdfgroup.org/HDF5/release/obtain5.html#extlibs. Building 
+        instructions are available with the Szip source code. 
 
         The HDF Group does not distribute separate Szip precompiled libraries,
-        but the HDF5 binaries available from
+        but the HDF5 binaries available from 
         http://www.hdfgroup.org/HDF5/release/obtain5.html include 
         the Szip encoder enabled binary for the corresponding platform.
 
-        To configure the HDF5 Library with the Szip compression filter, use
-        the '--with-szlib=/PATH_TO_SZIP' flag. For more information, see
+        To configure the HDF5 Library with the Szip compression filter, use 
+        the '--with-szlib=/PATH_TO_SZIP' flag. For more information, see 
         section 4.3.7, "Specifying other libraries and headers."
 
         Please notice that if HDF5 configure cannot find a valid Szip library,
         configure will not fail; in this case, the compression filter will 
-        not be available to the applications.
-
+        not be available to the applications. 
+        
         To check if Szip compression was successfully configured in, 
-        check the "I/O filters (external):" line in the configure output,
+        check the "I/O filters (external):" line in the configure output, 
         summary section, printed to the standard output.
 
 3.3. MPI and MPI-IO
