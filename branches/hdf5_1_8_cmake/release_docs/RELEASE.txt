@@ -103,23 +103,45 @@ Bug Fixes since HDF5-1.8.13
 
     Configuration
     -------------
+    - CMake: Removed module name from package list of fortran modules because
+      that module was never generated. This was only an issue for Fortran
+      compliers that are not F2003 compatible. (ADB - 2014/10/16 HDFFV-8932).
     - Library version number is changed due to interface changes since
       previous version 1.8.13. (AKC - 2014/10/03 HDFFV-8937).
     - Mac platforms now builds library with "-O3" optimization when the
-      default clang compiler is used. (AKC - 2014/10/01 HDFFV-8933). 
-    - Autotools: An export of LD_LIBRARY_PATH=<szip library location> was
-      removed from configure and make installcheck was revised to run
-      scripts installed in share/hdf5_examples to use the installed h5cc, etc. 
-      to compile and run example source files also installed there. Make
-      installcheck will now fail when a shared szip or other external lib file
-      cannot be found in the same manner that executables compiled and linked
-      with h5cc will fail to run when those lib files cannot be found after
-      install.  Make installcheck should pass after setting LD_LIBRARY_PATH to the
-      szip location.
-      (LRK - 2014/04/16)
+      default clang compiler is used. (AKC - 2014/10/01 HDFFV-8933).
+    - CMake: Propagated configure test changes to H5_LDOUBLE_TO_INTEGER_WORKS_TEST
+      and H5_ULLONG_TO_LDOUBLE_PRECISION_TEST to ConfigureChecks.cmake (added
+      stdlib.h and string.h in HDFTests.c file). (ADB - 2014/09/02 HDFFV-8845)
+    - CMake: removed parallel test, t_posix_compliant, because source file
+      was removed from library. (ADB - 2014/8/14 HDFFV-8880)
+    - Autotools: Bison was upgraded to 2.7 and flex upgraded to 2.5.37. The 
+      bin/reconfigure script now will execute bison and flex and update the 
+      hl/src files. (ADB - 2014/06/16 HDFFV-8709)
+    - Autotools: m4 upgraded to 1.4.17. (ADB - 2014/06/12 HDFFV-8743)
+    - Autotools: Modified configure to add an entry at the beginning of AM_LDFLAGS 
+      for the hdf5 install directory.  Without this entry the relink commands 
+      invoked by "make install" to create libraries dependent on libhdf5.so added 
+      a dependency on the first libhdf5.so found in any directory in AM_LDFLAGS 
+      regardless of its version.  (LRK - 2014/10/17 HDFFV-8944)
+
+    - Changed autotools build behavior
+
+      The Fortran HL library does not compile if the default size of a REAL is
+      DOUBLE PRECISION; build fails during compilation.
+
+      Configure now checks for: if REAL is DOUBLE PRECISION, Fortran is enabled and
+      HL library is enabled. If this is true then configure will stop with an error
+      message.
+
+      (MSB - 2014/8/11, HDFFV-8883/HDFFV-889)
 
     Library
     -------
+    - Corrected ID management code that was failing with 'duplicate key
+      inserted' error, and was not handling other situations where many/all
+      IDs of a type are opened/closed.  (QAK - 2014/10/16 - HDFFV-8930)
+
     - Removal of DllMain() from static Windows builds. 
       A DllMain() function was added in HDF5 1.8.13 in order to handle win32 thread
       cleanup. The preprocessor #ifdefs around the DllMain function allowed it
@@ -137,6 +159,18 @@ Bug Fixes since HDF5-1.8.13
       an error code if it is.
       (DER - 2014/08/11 HDFFV-8891)
 
+    - H5Ldelete_by_idx() fails on non-existent group name.
+      (MSC - 2014/07/31 HDFFV-8888)
+
+    - Bug in test when building Parallel HDF5 on PVFS2.
+      Use MPI_File_get_size() instead of stat().
+      (MSC - 2014/07/14 HDFFV-8856)
+
+    - MPI-IO driver tries to allocate space for zero-length dataset
+      and asserts. Fixed and added a regression test to make sure this
+      doesn't happen again.
+      (MSC - 2014/07/03 HDFFV-8761)
+
     Parallel Library
     ----------------
     - None
@@ -149,9 +183,50 @@ Bug Fixes since HDF5-1.8.13
     -----
     - 
 
-    F90 API
+    Fortran API
     -------
-    - None
+    - Non-standard Fortran
+  
+      Intrinsic function SIZEOF is non-standard and should be replaced with a 
+      standard intrinsic function.
+
+      If the F2008 intrinsic C_SIZEOF and STORAGE_SIZE are available then they will 
+      be used instead of the non-standard SIZEOF intrinsic, even when the SIZEOF 
+      function is available.
+
+      (MSB - 2014/6/16, HDFFV-8653)
+
+    - Non-functional API
+ 
+      The Fortran wrapper for H5Pget_fill_value_f calls the wrong C API.
+
+      The correct C API, H5Pget_fill_value, was used instead in the C wrapper.
+
+      (MSB - 2014/9/25, HDFFV-8879)
+
+    - Interoperability with C HDF5
+
+      H5literate_f assumes the return value for the callback function to be of type 
+      int (or int_f in C). However, in the C wrapper the return value of H5Literate 
+      is type herr_t and this could cause interoperability issues.
+
+      The callback function should be declared INTEGER(C_INT) for portability. The
+      tests were updated accordingly.
+
+      (MSB - 2014/9/26, HDFFV-8909)
+
+    - Interoperability with C HDF5
+
+      Wrong type cast of constant Fortran INTEGER parameters.
+
+      The following parameter constants types were change from INTEGER to INTEGER(HID_T) 
+      to match the C types:
+
+      H5FD_CORE, H5FD_FAMILY, H5FD_LOG, H5FD_MPIO, H5FD_MULTI, H5FD_SEC2, H5FD_STDIO.
+
+      Other internal 'int' types where changed to 'hid_t', which are transparent to the user.
+
+      (MSB - 2014/7/18, HDFFV-8748)
 
     C++ API
     ------
@@ -165,11 +240,41 @@ Bug Fixes since HDF5-1.8.13
 
     High-Level APIs:
     ------
-    - None
+    - Seg faults in H5TBread_field_name and H5TBread_field_name_f
+
+      H5TBread_field_name (H5TBread_field_name_f) seg faults if the name of the field is wrong.
+
+      Both C and Fortran APIs no longer seg fault if the name of the field is wrong, and both APIs
+      return a negative value if the field is wrong.
+
+      (MSB - 2014/09/29, HDFFV-8912)
+
+    - Possible data corruption
+
+      Multiple HL APIs have issues,
+        (1) the type from the file is re-used as the memory type, and
+        (2) no effort is made to ensure the string is actually null-terminated.
+     
+      All the HL routines now check: for NULL pointers, if they received a string which
+      is null terminated, and if string buffers are short enough not to overflow the buffer. 
+      The minimum length of the buffers is now used in strncmp to avoid overflow.
+
+      (MSB - 2014/9/29, HDFFV-8670)
+
+    - Behavior change of HL API
+
+      For H5LTdtype_to_text; if a user buffer is passed in along with the 
+      length then the function does not truncate at the end of the buffer, but 
+      may exceed the end of the user buffer.
+
+      H5LTdtype_to_text was changed to truncate the string if the buffer is 
+      to small.
+
+      (MSB - 2014/9/29, HDFFV-8855)
 
     Fortran High-Level APIs:
     ------
-    - None
+     - See entry for HDFFV-8912 above.
 
     Testing
     -------
@@ -244,15 +349,15 @@ They are built with the configure process unless specified otherwise.
     Windows 8.1 x64               Visual Studio 2012 w/ Intel Fortran 14 (cmake)
                                   Visual Studio 2013 w/ Intel Fortran 14 (cmake)
 
-    Mac OS X Lion 10.7.3          Apple clang/clang++ version 3.0 from Xcode 4.6.1
-    64-bit                        gfortran GNU Fortran (GCC) 4.6.2
+    Mac OS X Lion 10.7.5          Apple clang/clang++ version 3.0 from Xcode 4.6.1
+    64-bit                        gfortran GNU Fortran (GCC) 4.8.2
     (duck)                        Intel icc/icpc/ifort version 13.0.3
 
-    Mac OS X Mt. Lion 10.8.5      Apple clang/clang++ version 5.0 from Xcode 5.0.2
+    Mac OS X Mt. Lion 10.8.5      Apple clang/clang++ version 5.1 from Xcode 5.1
     64-bit    			  gfortran GNU Fortran (GCC) 4.8.2
     (swallow/kite)                Intel icc/icpc/ifort version 14.0.2
 
-    Mac OS X Mavericks 10.9.2     Apple clang/clang++ version 5.1 from Xcode 5.1
+    Mac OS X Mavericks 10.9.5     Apple clang/clang++ version 6.0 from Xcode 6.0.1
     64-bit    			  gfortran GNU Fortran (GCC) 4.8.2
     (wren)                        Intel icc/icpc/ifort version 14.0.2
 
@@ -282,9 +387,9 @@ Windows 7 x64                           y        y/y    n        y    y     y
 Windows 7 Cygwin                        n        y/y    n        y    y     y
 Windows 8.1                             n        y/y    n        y    y     y
 Windows 8.1   x64                       n        y/y    n        y    y     y
-Mac OS X Lion 10.7.3 64-bit             n        y/y    n        y    y     y
-Mac OS X Mountain Lion 10.8.1 64-bit    n        y/y    n        y    y     y
-Mac OS X Mavericks 10.9.1 64-bit        n        y/y    n        y    y     ?
+Mac OS X Lion 10.7.5 64-bit             n        y/y    n        y    y     y
+Mac OS X Mountain Lion 10.8.5 64-bit    n        y/y    n        y    y     y
+Mac OS X Mavericks 10.9.5 64-bit        n        y/y    n        y    y     ?
 AIX 5.3 32- and 64-bit                  n        y/n    n        y    y     y
 CentOS 5.9 Linux 2.6.18-308 i686 GNU    y        y/y    y        y    y     y
 CentOS 5.9 Linux 2.6.18-308 i686 Intel  n        y/y    n        y    y     y
@@ -306,9 +411,9 @@ Windows 7 x64                              y       y         y         y
 Windows 7 Cygwin                           n       n         n         y
 Windows 8.1                                y       y         y         y
 Windows 8.1 x64                            y       y         y         y
-Mac OS X Lion 10.7.3 64-bit                y       n         y         y        
-Mac OS X Mountain Lion 10.8.1 64-bit       y       n         y         y        
-Mac OS X Mavericks 10.9.1 64-bit           y       n         y         y
+Mac OS X Lion 10.7.5 64-bit                y       n         y         y        
+Mac OS X Mountain Lion 10.8.5 64-bit       y       n         y         y        
+Mac OS X Mavericks 10.9.5 64-bit           y       n         y         y
 AIX 5.3 32- and 64-bit                     y       n         n         y        
 CentOS 5.9 Linux 2.6.18-308 i686 GNU       y       y         y         y        
 CentOS 5.9 Linux 2.6.18-308 i686 Intel     y       y         y         n        
@@ -378,6 +483,7 @@ Known Problems
 * On windows platforms in debug configurations, the VFD flush1 tests will fail
   with the split and multi VFD drivers. These tests will display a modal debug 
   dialog which must be answered or wait for the test timeout to expire.
+  The flush1 and flush2 tests will be skipped under debug for this release.
   (ADB - 2014/06/23 - HDFFV-8851)
 
 * CLANG compiler with the options -fcatch-undefined-behavior and -ftrapv
