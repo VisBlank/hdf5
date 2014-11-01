@@ -183,7 +183,8 @@ CHECK_CLEANFILES+=accum.h5 cmpd_dset.h5 compact_dataset.h5 dataset.h5 \
     swmr_data.h5 use_use_append_chunk.h5 use_append_mchunks.h5 use_disable_mdc_flushes.h5     \
     flushrefresh.h5 flushrefresh_VERIFICATION_START                  \
     flushrefresh_VERIFICATION_CHECKPOINT1 flushrefresh_VERIFICATION_CHECKPOINT2 \
-    flushrefresh_VERIFICATION_DONE atomic_data accum_swmr_big.h5 ohdr_swmr.h5 test_swmr.h5
+    flushrefresh_VERIFICATION_DONE atomic_data accum_swmr_big.h5 ohdr_swmr.h5 \
+    test_swmr*.h5
 
 # Sources for testhdf5 executable
 testhdf5_SOURCES=testhdf5.c tarray.c tattr.c tchecksum.c tconfig.c tfile.c \
