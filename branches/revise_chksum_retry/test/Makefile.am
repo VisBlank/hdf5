@@ -61,10 +61,6 @@ TEST_PROG= testhdf5 lheap ohdr stab gheap cache cache_api cache_tagging \
            freespace mf farray earray btree2 fheap file_image unregister \
            cache_logging cork test_swmr
 
-#bin_PROGRAMS=swmr_generator swmr_start_write swmr_reader swmr_writer swmr_remove_reader \
-#    swmr_remove_writer swmr_addrem_writer swmr_sparse_reader swmr_sparse_writer \
-#    use_append_chunk use_append_mchunks use_disable_mdc_flushes atomic_writer atomic_reader accum_swmr_reader
-
 # List programs to be built when testing here.
 # error_test and err_compat are built at the same time as the other tests, but executed by testerror.sh.
 # tcheck_version is used by testcheck_version.sh.
