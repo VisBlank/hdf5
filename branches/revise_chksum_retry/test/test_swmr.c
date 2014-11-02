@@ -39,6 +39,11 @@
 #define H5F_TESTING
 #include "H5Fpkg.h"		/* File access	 			*/
 
+/* This file needs to access the file driver testing code */
+#define H5FD_PACKAGE
+#define H5FD_TESTING
+#include "H5FDpkg.h"	/* File drivers	 			*/
+
 
 const char *FILENAME[] = {
     "test_swmr",		/* 0 */
@@ -3774,6 +3779,16 @@ main(void)
 {
     int nerrors = 0;	/* The # of errors */
     hid_t fapl = -1;	/* File access property list ID */
+    char *driver = NULL;    /* VFD string (from env variable) */
+
+    /* Skip this test if SWMR I/O is not supported for the VFD specified
+     * by the environment variable.
+     */
+    driver = HDgetenv("HDF5_DRIVER");
+    if(!H5FD_supports_swmr_test(driver)) {
+        printf("This VFD does not support SWMR I/O\n");
+        return EXIT_SUCCESS;
+    }
 
     /* Set up */
     h5_reset();
@@ -3804,8 +3819,11 @@ main(void)
     nerrors += test_append_flush_dataset_fixed(fapl);
     nerrors += test_append_flush_dataset_multiple(fapl);
 
-    /* Tests SWMR VFD compatibility flag */
-    nerrors += test_swmr_vfd_flag();
+    /* Tests SWMR VFD compatibility flag.
+     * Only needs to run when the VFD is the default (sec2).
+     */
+    if(NULL == driver || !HDstrcmp(driver, "") || !HDstrcmp(driver, "sec2"))
+        nerrors += test_swmr_vfd_flag();
     
     if(nerrors)
 	    goto error;
