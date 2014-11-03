@@ -117,7 +117,8 @@ check_PROGRAMS = $(am__EXEEXT_1) error_test$(EXEEXT) \
 	swmr_reader$(EXEEXT) swmr_writer$(EXEEXT) \
 	swmr_remove_reader$(EXEEXT) swmr_remove_writer$(EXEEXT) \
 	swmr_addrem_writer$(EXEEXT) swmr_sparse_reader$(EXEEXT) \
-	swmr_sparse_writer$(EXEEXT) $(am__EXEEXT_2)
+	swmr_sparse_writer$(EXEEXT) swmr_check_compat_vfd$(EXEEXT) \
+	$(am__EXEEXT_2)
 @HAVE_SHARED_CONDITIONAL_TRUE@am__append_3 = plugin
 @BUILD_ALL_CONDITIONAL_TRUE@noinst_PROGRAMS = $(am__EXEEXT_3)
 @DIRECT_VFD_CONDITIONAL_TRUE@am__append_4 = direct
@@ -528,6 +529,10 @@ swmr_addrem_writer_SOURCES = swmr_addrem_writer.c
 swmr_addrem_writer_OBJECTS = swmr_addrem_writer.$(OBJEXT)
 swmr_addrem_writer_LDADD = $(LDADD)
 swmr_addrem_writer_DEPENDENCIES = libh5test.la $(LIBHDF5)
+swmr_check_compat_vfd_SOURCES = swmr_check_compat_vfd.c
+swmr_check_compat_vfd_OBJECTS = swmr_check_compat_vfd.$(OBJEXT)
+swmr_check_compat_vfd_LDADD = $(LDADD)
+swmr_check_compat_vfd_DEPENDENCIES = libh5test.la $(LIBHDF5)
 swmr_generator_SOURCES = swmr_generator.c
 swmr_generator_OBJECTS = swmr_generator.$(OBJEXT)
 swmr_generator_LDADD = $(LDADD)
@@ -674,12 +679,12 @@ SOURCES = $(libdynlib1_la_SOURCES) $(libdynlib2_la_SOURCES) \
 	istore.c lheap.c links.c links_env.c mf.c mount.c mtime.c \
 	ntypes.c objcopy.c ohdr.c plugin.c pool.c reserved.c \
 	set_extent.c space_overflow.c stab.c swmr_addrem_writer.c \
-	swmr_generator.c swmr_reader.c swmr_remove_reader.c \
-	swmr_remove_writer.c swmr_sparse_reader.c swmr_sparse_writer.c \
-	swmr_start_write.c swmr_writer.c tcheck_version.c test_swmr.c \
-	$(testhdf5_SOURCES) testmeta.c $(ttsafe_SOURCES) twriteorder.c \
-	unlink.c unregister.c $(use_append_chunk_SOURCES) \
-	$(use_append_mchunks_SOURCES) \
+	swmr_check_compat_vfd.c swmr_generator.c swmr_reader.c \
+	swmr_remove_reader.c swmr_remove_writer.c swmr_sparse_reader.c \
+	swmr_sparse_writer.c swmr_start_write.c swmr_writer.c \
+	tcheck_version.c test_swmr.c $(testhdf5_SOURCES) testmeta.c \
+	$(ttsafe_SOURCES) twriteorder.c unlink.c unregister.c \
+	$(use_append_chunk_SOURCES) $(use_append_mchunks_SOURCES) \
 	$(use_disable_mdc_flushes_SOURCES) vfd.c
 DIST_SOURCES = $(am__libdynlib1_la_SOURCES_DIST) \
 	$(am__libdynlib2_la_SOURCES_DIST) \
@@ -700,12 +705,12 @@ DIST_SOURCES = $(am__libdynlib1_la_SOURCES_DIST) \
 	istore.c lheap.c links.c links_env.c mf.c mount.c mtime.c \
 	ntypes.c objcopy.c ohdr.c plugin.c pool.c reserved.c \
 	set_extent.c space_overflow.c stab.c swmr_addrem_writer.c \
-	swmr_generator.c swmr_reader.c swmr_remove_reader.c \
-	swmr_remove_writer.c swmr_sparse_reader.c swmr_sparse_writer.c \
-	swmr_start_write.c swmr_writer.c tcheck_version.c test_swmr.c \
-	$(testhdf5_SOURCES) testmeta.c $(ttsafe_SOURCES) twriteorder.c \
-	unlink.c unregister.c $(use_append_chunk_SOURCES) \
-	$(use_append_mchunks_SOURCES) \
+	swmr_check_compat_vfd.c swmr_generator.c swmr_reader.c \
+	swmr_remove_reader.c swmr_remove_writer.c swmr_sparse_reader.c \
+	swmr_sparse_writer.c swmr_start_write.c swmr_writer.c \
+	tcheck_version.c test_swmr.c $(testhdf5_SOURCES) testmeta.c \
+	$(ttsafe_SOURCES) twriteorder.c unlink.c unregister.c \
+	$(use_append_chunk_SOURCES) $(use_append_mchunks_SOURCES) \
 	$(use_disable_mdc_flushes_SOURCES) vfd.c
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
@@ -1769,6 +1774,10 @@ swmr_addrem_writer$(EXEEXT): $(swmr_addrem_writer_OBJECTS) $(swmr_addrem_writer_
 	@rm -f swmr_addrem_writer$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(swmr_addrem_writer_OBJECTS) $(swmr_addrem_writer_LDADD) $(LIBS)
 
+swmr_check_compat_vfd$(EXEEXT): $(swmr_check_compat_vfd_OBJECTS) $(swmr_check_compat_vfd_DEPENDENCIES) $(EXTRA_swmr_check_compat_vfd_DEPENDENCIES) 
+	@rm -f swmr_check_compat_vfd$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(swmr_check_compat_vfd_OBJECTS) $(swmr_check_compat_vfd_LDADD) $(LIBS)
+
 swmr_generator$(EXEEXT): $(swmr_generator_OBJECTS) $(swmr_generator_DEPENDENCIES) $(EXTRA_swmr_generator_DEPENDENCIES) 
 	@rm -f swmr_generator$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(swmr_generator_OBJECTS) $(swmr_generator_LDADD) $(LIBS)
@@ -1937,6 +1946,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/space_overflow.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stab.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/swmr_addrem_writer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/swmr_check_compat_vfd.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/swmr_common.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/swmr_generator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/swmr_reader.Po@am__quote@

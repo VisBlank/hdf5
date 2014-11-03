@@ -77,7 +77,8 @@ check_PROGRAMS=$(TEST_PROG) error_test err_compat tcheck_version \
     testmeta accum_swmr_reader atomic_writer atomic_reader \
     links_env flushrefresh use_append_chunk use_append_mchunks use_disable_mdc_flushes \
     swmr_generator swmr_start_write swmr_reader swmr_writer swmr_remove_reader \
-    swmr_remove_writer swmr_addrem_writer swmr_sparse_reader swmr_sparse_writer
+    swmr_remove_writer swmr_addrem_writer swmr_sparse_reader swmr_sparse_writer \
+    swmr_check_compat_vfd
 if HAVE_SHARED_CONDITIONAL
   check_PROGRAMS+= plugin
 endif
