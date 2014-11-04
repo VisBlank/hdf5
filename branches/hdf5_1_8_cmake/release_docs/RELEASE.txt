@@ -7,8 +7,12 @@ INTRODUCTION
 This document describes the differences between HDF5-1.8.13 and 
 HDF5-1.8.14-*, and contains information on the platforms tested and 
 known problems in HDF5-1.8.14-*. 
-For more details, see the files HISTORY-1_0-1_8_0_rc3.txt 
-and HISTORY-1_8.txt in the release_docs/ directory of the HDF5 source.
+
+All new and modified APIs are listed in the "HDF5 Software Changes 
+from Release to Release" document along with details about previous
+releases at:
+
+     http://www.hdfgroup.org/HDF5/doc/ADGuide/Changes.html
 
 Links to the HDF5 1.8.13 source code, documentation, and additional materials
 can be found on the HDF5 web page at:
@@ -22,18 +26,6 @@ The HDF5 1.8.13 release can be obtained from:
 User documentation for 1.8.13 can be accessed directly at this location: 
 
      http://www.hdfgroup.org/HDF5/doc/
-
-New features in the HDF5-1.8.x release series, including brief general 
-descriptions of some new and modified APIs, are described in the "What's New 
-in 1.8.0?" document:
-
-     http://www.hdfgroup.org/HDF5/doc/ADGuide/WhatsNew180.html
-
-All new and modified APIs are listed in detail in the "HDF5 Software Changes 
-from Release to Release" document, in the section "Release 1.8.14 (current 
-release) versus Release 1.8.13":
-
-     http://www.hdfgroup.org/HDF5/doc/ADGuide/Changes.html
 
 If you have any questions or comments, please send them to the HDF Help Desk:
 
@@ -57,28 +49,33 @@ New Features
 
     Configuration
     -------------
-    - [Example] New feature 
-      (EIP - 2014/04/14)
-    - 
+    - None
     
     Library
     -------
-    - 
- 
+    - None
+
     Parallel Library
     ----------------
-    - Optimize the chunk fill algorithm of datasets by writing out all
-      the chunk fill values collectively in a single MPI-IO
-      call. Previously it was done independently by rank 0
-      one block at a time. This should show a great performance
-      improvement when creating chunked datasets in parallel when the
-      chunk dimensions are fairly small.
- 
+     - Chunk Fill Writes Changed to Collective
+    
+      Slow performance in chunk fill writes. Chunk fills 
+      in the past were written independently by rank 0 one block 
+      at a time. 
+      
+      Optimized the chunk fill write algorithm so that all 
+      chunk fill values will be written collectively in a single MPI-IO 
+      call. This should show a great performance improvement when 
+      creating chunked datasets in parallel when the chunk dimensions 
+      are fairly small.
+      
+      (MSC - 2014/08/22, HDFFV-8878)
+
     Tools
     -----
     - None
 
-    High-Level APIs
+    High-level APIs
     ---------------
     - None
 
@@ -109,13 +106,13 @@ Bug Fixes since HDF5-1.8.13
 
     Configuration
     -------------
-    - CMake and svn urls
+    - CMake and SVN URLs
     
-      The svn urls will be different when the HDF Group domain name changes.
+      The SVN URLs will be different when the HDF Group domain name changes.
     
-      Removed the svn url references in the cacheinit.cmake and release_docs files.
+      Removed the SVN URL references in the cacheinit.cmake and release_docs files.
       
-      (ADB - 2014/10/27 HDFFV-8953)
+      (ADB - 2014/10/27, HDFFV-8953)
 
     - CMake Packaging
     
@@ -126,12 +123,33 @@ Bug Fixes since HDF5-1.8.13
       that module was never generated. This was only an issue for Fortran
       compliers that are not F2003 compatible.
       
-      (ADB - 2014/10/16 HDFFV-8932)
+      (ADB - 2014/10/16, HDFFV-8932)
 
-    - Library version number is changed due to interface changes since
-      previous version 1.8.13. (AKC - 2014/10/03 HDFFV-8937).
-    - Mac platforms now builds library with "-O3" optimization when the
-      default clang compiler is used. (AKC - 2014/10/01 HDFFV-8933).
+    - Shared Library Interface Version Number (soname)
+      
+      In order to increase the maintainability of HDF5, an architectural
+      change was made which required the renaming of several public symbols in
+      H5Ppublic.h.
+
+      The shared libary interface version number ("soname") has been increased
+      on account of these changes. For a full list of the changed symbols, see
+      the interface compatibility report, which is available as a link off of
+      the 'HDF5 Software Changes from Release to Release' document:
+
+          http://www.hdfgroup.org/HDF5/doc/ADGuide/Changes.html
+      
+      (AKC - 2014/10/03, HDFFV-8937)
+
+    - Configure Settings for Mac OSX Need Defaults for PROD_XXX, DEBUG_XXX, 
+      and PROFILE_XXX
+      
+      The configure setting files for Mac OSX (config/apple) did not 
+      have the default settings of PROD_XXX, DEBUG_XXX, PROFILE_XXX. 
+      
+      Added the default settings. Mac platforms now builds library with 
+      "-O3" optimization when the default clang compiler is used. 
+      
+      (AKC - 2014/10/01, HDFFV-8933)
 
     - CMake ConfigureChecks
     
@@ -192,9 +210,16 @@ Bug Fixes since HDF5-1.8.13
 
     Library
     -------
-    - Corrected ID management code that was failing with 'duplicate key
-      inserted' error, and was not handling other situations where many/all
-      IDs of a type are opened/closed.  (QAK - 2014/10/16 - HDFFV-8930)
+    - Fixed Identifier Management Code
+      
+      Opening an object returns an identifier; closing the object should 
+      free up the identifier. A problem was found where the identifiers 
+      were not being freed up correctly.
+      
+      Fixed the problem so that identifiers that have been used can be 
+      used again after their object has been closed.
+      
+      (QAK - 2014/10/16, HDFFV-8930)
 
     - Removal of DllMain() from Static Windows Builds 
 
@@ -208,7 +233,7 @@ Bug Fixes since HDF5-1.8.13
       DllMain() in static builds. Our DllMain function is now only 
       compiled when the shared, thread-safe library is built on Windows.
 
-      (DER - 2014/06/13 HDFFV-8837)
+      (DER - 2014/06/13, HDFFV-8837)
 
     - Enforce Constraint on page_size Parameter in H5Pset_core_write_tracking()
 
@@ -218,19 +243,37 @@ Bug Fixes since HDF5-1.8.13
       This change checks the page_size parameter to see it is zero and 
       returns an error code if it is.
 
-      (DER - 2014/08/11 HDFFV-8891)
+      (DER - 2014/08/11, HDFFV-8891)
 
     - H5Ldelete_by_idx() fails on non-existent group name.
-      (MSC - 2014/07/31 HDFFV-8888)
+      (MSC - 2014/07/31, HDFFV-8888)
 
-    - Bug in test when building Parallel HDF5 on PVFS2.
-      Use MPI_File_get_size() instead of stat().
-      (MSC - 2014/07/14 HDFFV-8856)
+    - H5Ldelete_by_idx() Seg Fault on Non-existent Group Name
+      
+      If a non-existent group name was used by H5Ldelete_by_idx(), a 
+      segmentation fault would result. 
+      
+      Bug was fixed.
+      
+      (MSC - 2014/07/31, HDFFV-8888)
 
-    - MPI-IO driver tries to allocate space for zero-length dataset
-      and asserts. Fixed and added a regression test to make sure this
-      doesn't happen again.
-      (MSC - 2014/07/03 HDFFV-8761)
+    - Bug in Test When Building Parallel HDF5 on PVFS2
+      
+      There was a bug in a test when building Parallel HDF5 on PVFS2.
+      
+      The build now uses MPI_File_get_size() instead of stat().
+      
+      (MSC - 2014/07/14, HDFFV-8856)
+
+    - MPI-IO Driver Tried to Allocate Space for Zero-length Dataset
+      
+      MPI-IO driver tried to allocate space for zero-length dataset
+      and asserts. 
+      
+      Fixed driver and added a regression test.
+      
+      (MSC - 2014/07/03, HDFFV-8761)
+      
 
     Parallel Library
     ----------------
@@ -322,7 +365,7 @@ Bug Fixes since HDF5-1.8.13
 
       (BMR - 2014/09/29, HDFFV-8852)
 
-    High-Level APIs:
+    High-level APIs:
     ------
     - Seg Faults in H5TBread_field_name and H5TBread_field_name_f
 
@@ -336,15 +379,18 @@ Bug Fixes since HDF5-1.8.13
 
       (MSB - 2014/09/29, HDFFV-8912)
 
-    - Possible data corruption
+    - Possible Buffer Overflow in High-level (HL) APIs
 
-      Multiple HL APIs have issues,
-        (1) the type from the file is re-used as the memory type, and
-        (2) no effort is made to ensure the string is actually null-terminated.
+      Multiple HL APIs (H5DSis_scale is one example) had issues:
+        (1) The datatype from the file was re-used as the memory datatype, 
+            and
+        (2) No effort was made to ensure that strings were actually 
+            null-terminated.
      
-      All the HL routines now check: for NULL pointers, if they received a string which
-      is null terminated, and if string buffers are short enough not to overflow the buffer. 
-      The minimum length of the buffers is now used in strncmp to avoid overflow.
+      All of the HL routines now check for NULL pointers, for null-terminated 
+      strings, and to see if string buffers are short enough not to overflow 
+      the buffer. The minimum length of the buffers is now used in strncmp 
+      to avoid overflow.
 
       (MSB - 2014/9/29, HDFFV-8670)
 
@@ -359,7 +405,7 @@ Bug Fixes since HDF5-1.8.13
 
       (MSB - 2014/9/29, HDFFV-8855)
 
-    Fortran High-Level APIs:
+    Fortran High-level APIs:
     ------
      - See entry for HDFFV-8912 above.
 
@@ -368,6 +414,14 @@ Bug Fixes since HDF5-1.8.13
     - Fixed incorrect exit code values (was -1) in testframe which is commonly
       used by several test programs. (AKC - 2014/07/22 HDFFV-8881)
 
+    - Fixed Incorrect Exit Code Values in Test Frame
+
+      The test frame which is commonly used by several test programs 
+      had some incorrect exit code values. 
+
+      Fixed the incorrect exit code values. 
+      
+      (AKC - 2014/07/22, HDFFV-8881)
 
 Supported Platforms
 ===================
