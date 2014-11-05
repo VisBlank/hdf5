@@ -8280,7 +8280,7 @@ error:
  *-------------------------------------------------------------------------
  */
 static herr_t
-test_chunk_fast(const char *env_h5_drvr, hid_t fapl)
+test_chunk_fast(const char *env_h5_driver, hid_t fapl)
 {
     char        filename[FILENAME_BUF_SIZE];
     hid_t       fid = -1;       /* File ID */
@@ -8294,7 +8294,6 @@ test_chunk_fast(const char *env_h5_drvr, hid_t fapl)
     hsize_t     chunk_dim[EARRAY_MAX_RANK]; /* Chunk dimensions */
     H5F_libver_t low;           /* File format low bound */
     hbool_t     swmr;           /* Whether file should be written with SWMR access enabled */
-    hbool_t     swmr_compat_vfd;    /* Whether the VFD supports SWMR */
 
     TESTING("datasets w/extensible array as chunk index");
 
@@ -8337,14 +8336,12 @@ test_chunk_fast(const char *env_h5_drvr, hid_t fapl)
         if(swmr && H5F_LIBVER_LATEST != low)
             continue;
 
-        /* SWMR is only compatible with certain VFDs */
-        swmr_compat_vfd = !HDstrcmp(env_h5_drvr, "core")
-            || !HDstrcmp(env_h5_drvr, "core-paged")
-            || !HDstrcmp(env_h5_drvr, "direct")
-            || !HDstrcmp(env_h5_drvr, "log")
-            || !HDstrcmp(env_h5_drvr, "sec2");
-        if(!(swmr && swmr_compat_vfd))
+        /* Skip this iteration if SWMR I/O is not supported for the VFD specified
+         * by the environment variable.
+         */
+        if(!H5FD_supports_swmr_test(env_h5_driver)) {
             continue;
+        }
 
 #ifdef H5_HAVE_FILTER_DEFLATE
         /* Loop over compressing chunks */
@@ -10051,7 +10048,7 @@ error:
  *-------------------------------------------------------------------------
  */
 static herr_t
-test_swmr_v1_btree_ci_fail(const char *env_h5_drvr, hid_t fapl)
+test_swmr_v1_btree_ci_fail(const char *env_h5_driver, hid_t fapl)
 {
     char        filename[FILENAME_BUF_SIZE];
     hid_t       fid = -1;       /* File ID */
@@ -10066,19 +10063,15 @@ test_swmr_v1_btree_ci_fail(const char *env_h5_drvr, hid_t fapl)
     herr_t      err = -1;       /* Error return value */
     H5D_chunk_index_t idx_type; /* Chunk index type */
     int         data = 42;      /* Data to be written to the dataset */
-    hbool_t     swmr_compat_vfd;    /* Whether the testing VFD supports SWMR */
 
     TESTING("expected SWMR behavior using v-1 B-trees");
 
-    /* SWMR is only compatible with certain VFDs */
-    swmr_compat_vfd = !HDstrcmp(env_h5_drvr, "core")
-        || !HDstrcmp(env_h5_drvr, "core-paged")
-        || !HDstrcmp(env_h5_drvr, "direct")
-        || !HDstrcmp(env_h5_drvr, "log")
-        || !HDstrcmp(env_h5_drvr, "sec2");
-    if(!swmr_compat_vfd) {
+    /* Skip this test if SWMR I/O is not supported for the VFD specified
+     * by the environment variable.
+     */
+    if(!H5FD_supports_swmr_test(env_h5_driver)) {
         SKIPPED();
-        puts("    Current VFD not compatible with SWMR access");
+        HDputs("    Test skipped due to VFD not supporting SWMR I/O.");
         return 0;
     }
 
