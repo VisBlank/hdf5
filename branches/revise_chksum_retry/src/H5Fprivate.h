@@ -624,6 +624,7 @@ H5_DLL unsigned H5F_get_nopen_objs(const H5F_t *f);
 H5_DLL unsigned H5F_incr_nopen_objs(H5F_t *f);
 H5_DLL unsigned H5F_decr_nopen_objs(H5F_t *f);
 H5_DLL hid_t H5F_get_file_id(const H5F_t *f);
+H5_DLL ssize_t H5F_get_file_image(H5F_t *f, void *buf_ptr, size_t buf_len);
 H5_DLL H5F_t *H5F_get_parent(const H5F_t *f);
 H5_DLL unsigned H5F_get_nmounts(const H5F_t *f);
 H5_DLL unsigned H5F_get_read_attempts(const H5F_t *f);
@@ -666,6 +667,7 @@ H5_DLL hid_t H5F_get_driver_id(const H5F_t *f);
 H5_DLL herr_t H5F_get_fileno(const H5F_t *f, unsigned long *filenum);
 H5_DLL hbool_t H5F_has_feature(const H5F_t *f, unsigned feature);
 H5_DLL haddr_t H5F_get_eoa(const H5F_t *f, H5FD_mem_t type);
+H5_DLL herr_t H5F_get_vfd_handle(const H5F_t *file, hid_t fapl, void **file_handle);
 /* Functions that check file mounting information */
 H5_DLL hbool_t H5F_is_mount(const H5F_t *file);
 H5_DLL hbool_t H5F_has_mount(const H5F_t *file);
@@ -692,6 +694,7 @@ H5_DLL herr_t H5F_get_checksums(const uint8_t *buf, size_t chk_size, uint32_t *s
 
 /* Routine to track the # of retries */
 H5_DLL herr_t H5F_track_metadata_read_retries(H5F_t *f, unsigned actype, unsigned retries);
+H5_DLL herr_t H5F_set_retries(H5F_t *f);
 
 /* Routine to invoke callback function upon object flush */
 H5_DLL herr_t H5F_object_flush_cb(H5F_t *f, hid_t obj_id);
