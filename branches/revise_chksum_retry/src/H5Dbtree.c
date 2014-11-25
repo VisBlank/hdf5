@@ -844,7 +844,6 @@ static herr_t
 H5D__btree_idx_create(const H5D_chk_idx_info_t *idx_info)
 {
     H5D_chunk_common_ud_t udata;        /* User data for B-tree callback */
-    H5O_loc_t oloc;                     /* Temporary object header location for dataset */
     herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_STATIC
@@ -915,7 +914,6 @@ H5D__btree_idx_is_space_alloc(const H5O_storage_chunk_t *storage)
 static herr_t
 H5D__btree_idx_insert_addr(const H5D_chk_idx_info_t *idx_info, H5D_chunk_ud_t *udata)
 {
-    H5O_loc_t   oloc;                   /* Temporary object header location for dataset */
     herr_t	ret_value = SUCCEED;    /* Return value */
 
     FUNC_ENTER_STATIC
@@ -957,7 +955,6 @@ done:
 static herr_t
 H5D__btree_idx_get_addr(const H5D_chk_idx_info_t *idx_info, H5D_chunk_ud_t *udata)
 {
-    H5O_loc_t   oloc;                   /* Temporary object header location for dataset */
     herr_t	ret_value = SUCCEED;	/* Return value */
 
     FUNC_ENTER_STATIC
@@ -1046,10 +1043,9 @@ H5D__btree_idx_iterate(const H5D_chk_idx_info_t *idx_info,
     H5D_chunk_cb_func_t chunk_cb, void *chunk_udata)
 {
     H5D_btree_it_ud_t	udata;  /* User data for B-tree iterator callback */
-    H5O_loc_t   oloc;           /* Temporary object header location for dataset */
     int ret_value;              /* Return value */
 
-    FUNC_ENTER_STATIC
+    FUNC_ENTER_STATIC_NOERR
 
     HDassert(idx_info);
     HDassert(idx_info->f);
@@ -1071,7 +1067,6 @@ H5D__btree_idx_iterate(const H5D_chk_idx_info_t *idx_info,
     if((ret_value = H5B_iterate(idx_info->f, idx_info->dxpl_id, H5B_BTREE, idx_info->storage->idx_addr, H5D__btree_idx_iterate_cb, &udata)) < 0)
         HERROR(H5E_DATASET, H5E_BADITER, "unable to iterate over chunk B-tree");
 
-done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5D__btree_idx_iterate() */
 
@@ -1091,7 +1086,6 @@ done:
 static herr_t
 H5D__btree_idx_remove(const H5D_chk_idx_info_t *idx_info, H5D_chunk_common_ud_t *udata)
 {
-    H5O_loc_t   oloc;                   /* Temporary object header location for dataset */
     herr_t	ret_value = SUCCEED;	/* Return value */
 
     FUNC_ENTER_STATIC
@@ -1133,7 +1127,6 @@ done:
 static herr_t
 H5D__btree_idx_delete(const H5D_chk_idx_info_t *idx_info)
 {
-    H5O_loc_t   oloc;                   /* Temporary object header location for dataset */
     herr_t      ret_value = SUCCEED;    /* Return value */
 
     FUNC_ENTER_STATIC
@@ -1281,7 +1274,6 @@ H5D__btree_idx_size(const H5D_chk_idx_info_t *idx_info, hsize_t *index_size)
     H5D_chunk_common_ud_t udata;              /* User-data for loading B-tree nodes */
     H5B_info_t bt_info;                 /* B-tree info */
     hbool_t shared_init = FALSE;        /* Whether shared B-tree info is initialized */
-    H5O_loc_t oloc;                     /* Temporary object header location for dataset */
     herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_STATIC

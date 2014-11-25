@@ -44,7 +44,7 @@ static hid_t create_file(const char *filename, unsigned verbose,
     const char *index_type, unsigned random_seed);
 static int create_datasets(hid_t fid, int comp_level, unsigned verbose);
 static int create_close_datasets(hid_t fid, int comp_level, unsigned verbose);
-static hid_t open_datasets(hid_t fid, unsigned verbose);
+static int open_datasets(hid_t fid, unsigned verbose);
 static hid_t open_file(const char *filename, unsigned verbose);
 
 static int add_records(hid_t fid, unsigned verbose, unsigned long nrecords,
