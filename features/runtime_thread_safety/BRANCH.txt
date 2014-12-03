@@ -1,0 +1,8 @@
+This purpose of this branch is to try out enabling thread-safety at run
+time instead of configure time.
+
+It was created by Dana Robinson in Dec 2014 and tracks the trunk, though
+it will probably not be updated frequently.
+
+It will be deleted either when the code is merged into the trunk or Dana
+decides that the feature is not worth implementing.
