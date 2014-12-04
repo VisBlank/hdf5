@@ -2437,25 +2437,16 @@
 ./hl/tools/testfiles/w-ext-cmpd.ddl
 ./hl/tools/testfiles/w-ext-cmpd-esc.ddl
 ./hl/tools/testfiles/w-ext-cmpd-esc-f1.ddl
-./hl/tools/testfiles/w-ext-cmpd-esc-f2.ddl
 ./hl/tools/testfiles/w-ext-cmpd-esc-f3.ddl
-./hl/tools/testfiles/w-ext-cmpd-esc-ff1.ddl
 ./hl/tools/testfiles/w-ext-cmpd-esc-ff2.ddl
-./hl/tools/testfiles/w-ext-cmpd-esc-ff3.ddl
 ./hl/tools/testfiles/w-ext-cmpd-f1.ddl
 ./hl/tools/testfiles/w-ext-cmpd-f2.ddl
-./hl/tools/testfiles/w-ext-cmpd-f3.ddl
-./hl/tools/testfiles/w-ext-cmpd-ff1.ddl
-./hl/tools/testfiles/w-ext-cmpd-ff2.ddl
 ./hl/tools/testfiles/w-ext-cmpd-ff3.ddl
 ./hl/tools/testfiles/w-ext-cmpd-label.ddl
 ./hl/tools/testfiles/w-ext-cmpd-two.ddl
 ./hl/tools/testfiles/w-ext-cmpd-two-f1.ddl
-./hl/tools/testfiles/w-ext-cmpd-two-f2.ddl
 ./hl/tools/testfiles/w-ext-cmpd-two-f3.ddl
-./hl/tools/testfiles/w-ext-cmpd-two-ff1.ddl
 ./hl/tools/testfiles/w-ext-cmpd-two-ff2.ddl
-./hl/tools/testfiles/w-ext-cmpd-two-ff3.ddl
 ./hl/tools/testfiles/w-ext-early.ddl
 ./hl/tools/testfiles/w-ext-late.ddl
 ./hl/tools/testfiles/w-ext-one-d.ddl
@@ -2465,7 +2456,6 @@
 ./hl/tools/testfiles/w-ext-two.ddl
 ./hl/tools/testfiles/w-ext-two-width.ddl
 ./hl/tools/testfiles/w-help1.ddl
-./hl/tools/testfiles/w-help2.ddl
 
 #
 # hl fortran
