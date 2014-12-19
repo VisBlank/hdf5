@@ -16,7 +16,7 @@
 ## ----------------------------------------------------------------------
 ## Initialize configure.
 ##
-AC_REVISION($Id: configure.ac 25887 2014-12-15 00:08:51Z hdftest $)
+AC_REVISION($Id: configure.ac 25901 2014-12-19 01:52:34Z acheng $)
 AC_PREREQ([2.69])
 
 ## AC_INIT takes the name of the package, the version number, and an
@@ -4502,7 +4502,6 @@ AC_CONFIG_FILES([src/libhdf5.settings
                  test/testlinks_env.sh
                  test/test_plugin.sh
                  testpar/Makefile
-                 perform/Makefile
                  tools/Makefile
                  tools/h5dump/Makefile
                  tools/h5dump/testh5dump.sh
@@ -4529,6 +4528,7 @@ AC_CONFIG_FILES([src/libhdf5.settings
                  tools/misc/testh5repart.sh
                  tools/h5stat/testh5stat.sh
                  tools/h5stat/Makefile
+                 tools/perform/Makefile
                  examples/Makefile
                  examples/run-c-ex.sh
                  examples/testh5cc.sh
