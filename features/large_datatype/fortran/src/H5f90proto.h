@@ -143,7 +143,7 @@ H5_FCDLL int_f nh5fget_filesize_c(hid_t_f *file_id, hsize_t_f *size);
 #define nh5sselect_hyperslab_c   H5_FC_FUNC_(h5sselect_hyperslab_c, H5SSELECT_HYPERSLAB_C)
 #define nh5scombine_hyperslab_c   H5_FC_FUNC_(h5scombine_hyperslab_c, H5SCOMBINE_HYPERSLAB_C)
 #define nh5scombine_select_c   H5_FC_FUNC_(h5scombine_select_c, H5SCOMBINE_SELECT_C)
-#define nh5smodify_select_c   H5_FC_FUNC_(h5smodify_select_c, H5SMODIFY_SELECT_C)
+#define nh5sselect_select_c   H5_FC_FUNC_(h5sselect_select_c, H5SSELECT_SELECT_C)
 #define nh5sget_select_type_c   H5_FC_FUNC_(h5sget_select_type_c, H5SGET_SELECT_TYPE_C)
 #define nh5sselect_elements_c    H5_FC_FUNC_(h5sselect_elements_c, H5SSELECT_ELEMENTS_C)
 #define nh5sdecode_c    H5_FC_FUNC_(h5sdecode_c, H5SDECODE_C)
@@ -178,7 +178,7 @@ H5_FCDLL int_f nh5sget_select_type_c ( hid_t_f *space_id , int_f *op);
 H5_FCDLL int_f nh5sselect_elements_c ( hid_t_f *space_id , int_f *op, size_t_f *nelements, hsize_t_f *coord);
 H5_FCDLL int_f nh5scombine_hyperslab_c ( hid_t_f *space_id , int_f *op, hsize_t_f *start, hsize_t_f *count, hsize_t_f *stride, hsize_t_f *block, hid_t_f *hyper_id);
 H5_FCDLL int_f nh5scombine_select_c ( hid_t_f *space1_id , int_f *op, hid_t_f *space2_id, hid_t_f *ds_id);
-H5_FCDLL int_f nh5smodify_select_c ( hid_t_f *space1_id , int_f *op, hid_t_f *space2_id);
+H5_FCDLL int_f nh5sselect_select_c ( hid_t_f *space1_id , int_f *op, hid_t_f *space2_id);
 H5_FCDLL int_f nh5sdecode_c ( _fcd buf, hid_t_f *obj_id );
 H5_FCDLL int_f nh5sencode_c (_fcd buf, hid_t_f *obj_id, size_t_f *nalloc );
 H5_FCDLL int_f nh5sextent_equal_c ( hid_t_f * space1_id, hid_t_f *space2_id, hid_t_f *c_equal);
@@ -490,7 +490,6 @@ H5_FCDLL int_f nh5gget_info_by_name_c(hid_t_f *loc_id, _fcd group_name, size_t_f
 #define nh5awritec_5_c      H5_FC_FUNC_(h5awritec_5_c, H5AWRITEC_5_C)
 #define nh5awritec_6_c      H5_FC_FUNC_(h5awritec_6_c, H5AWRITEC_6_C)
 #define nh5awritec_7_c      H5_FC_FUNC_(h5awritec_7_c, H5AWRITEC_7_C)
-#define nh5awrite_f_c       H5_FC_FUNC_(h5awrite_f_c, H5AWRITE_F_C)
 #define nh5aread_c                 H5_FC_FUNC_(h5aread_c, H5AREAD_C)
 #define nh5aread_integer_s_c        H5_FC_FUNC_(h5aread_integer_s_c, H5AREAD_INTEGER_S_C)
 #define nh5aread_integer_1_c        H5_FC_FUNC_(h5aread_integer_1_c, H5AREAD_INTEGER_1_C)
@@ -586,7 +585,7 @@ H5_FCDLL int_f nh5awrite_double_4_c (hid_t_f *attr_id, hid_t_f *mem_type_id, voi
 H5_FCDLL int_f nh5awrite_double_5_c (hid_t_f *attr_id, hid_t_f *mem_type_id, void *buf, void *dims);
 H5_FCDLL int_f nh5awrite_double_6_c (hid_t_f *attr_id, hid_t_f *mem_type_id, void *buf, void *dims);
 H5_FCDLL int_f nh5awrite_double_7_c (hid_t_f *attr_id, hid_t_f *mem_type_id, void *buf, void *dims);
-H5_FCDLL int_f nh5awrite_f_c (hid_t_f *attr_id, hid_t_f *mem_type_id, void *buf);
+H5_FCDLL int_f h5awrite_f_c (hid_t_f *attr_id, hid_t_f *mem_type_id, void *buf);
 H5_FCDLL int_f nh5areadc_c (hid_t_f *attr_id, hid_t_f *mem_type_id, _fcd buf, void *dims);
 H5_FCDLL int_f nh5areadc_s_c (hid_t_f *attr_id, hid_t_f *mem_type_id, _fcd buf, void *dims);
 H5_FCDLL int_f nh5areadc_1_c (hid_t_f *attr_id, hid_t_f *mem_type_id, _fcd buf, void *dims);

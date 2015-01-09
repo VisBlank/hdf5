@@ -181,8 +181,6 @@ H5S_mpio_create_point_datatype (size_t elmt_size, hsize_t num_points,
     MPI_Datatype   elmt_type;           /* MPI datatype for individual element */
     hbool_t        elmt_type_created = FALSE;   /* Whether the element MPI datatype was created */
     int            mpi_code;            /* MPI error code */
-    int            *blocks = NULL;      /* Array of block sizes for MPI hindexed create call */
-    hsize_t        u;                   /* Local index variable */
     int            *inner_blocks;
     MPI_Aint       *inner_disps;
     herr_t	   ret_value = SUCCEED; /* Return value */
@@ -193,30 +191,21 @@ H5S_mpio_create_point_datatype (size_t elmt_size, hsize_t num_points,
     if(MPI_SUCCESS != (mpi_code = MPI_Type_contiguous((int)elmt_size, MPI_BYTE, &elmt_type)))
         HMPI_GOTO_ERROR(FAIL, "MPI_Type_contiguous failed", mpi_code)
     elmt_type_created = TRUE;
-    
-    /* Allocate block sizes for MPI datatype call */
-    if(NULL == (blocks = (int *)H5MM_malloc(sizeof(int) * num_points)))
-        HGOTO_ERROR(H5E_DATASPACE, H5E_CANTALLOC, FAIL, "can't allocate array of blocks")
-
-    /* Would be nice to have Create_Hindexed_block to avoid this array of all ones */
-    for(u = 0; u < num_points; u++)
-        blocks[u] = 1;
 
     /* Create an MPI datatype for the whole point selection */
     if(H5S_MAX_MPI_COUNT >= num_points) {
-        /* if NUM points fit in an int, use 1 hindexed call */
-        if(MPI_SUCCESS != (mpi_code = MPI_Type_create_hindexed((int)num_points, blocks, 
-                                                               disp, elmt_type, new_type)))
-            HMPI_GOTO_ERROR(FAIL, "MPI_Type_create_indexed_block failed", mpi_code)
+        /* if NUM points fit in an int, use 1 hindexed_block call */
+        if(MPI_SUCCESS != (mpi_code = MPI_Type_create_hindexed_block((int)num_points, 1, disp, 
+                                                                     elmt_type, new_type)))
+            HMPI_GOTO_ERROR(FAIL, "MPI_Type_create_hindexed_block failed", mpi_code)
     }
+    /* create an Hindexed_block type for every 2G point count, then combine them */
     else {
         int remaining_points;
         int num_big_types;
         int total_types, i;
         hsize_t leftover;
         MPI_Datatype *inner_types = NULL;
-
-        /* create an Hindexed type for every 2G point count, then combine them */
 
         /* Calculate how many Big MPI datatypes are needed to represent the buffer */
         num_big_types = (int)(num_points/H5S_MAX_MPI_COUNT);
@@ -226,10 +215,7 @@ H5S_mpio_create_point_datatype (size_t elmt_size, hsize_t num_points,
         printf("Number of Big types = %d; Remaining points = %d\n", 
                num_big_types, remaining_points);
 
-        if(remaining_points)
-            total_types = num_big_types + 1;
-        else
-            total_types = num_big_types;
+        total_types = (remaining_points) ? (num_big_types + 1) : num_big_types;
 
         /* Allocate array if MPI derived types needed */
         if(NULL == (inner_types = (MPI_Datatype *)H5MM_malloc(sizeof(MPI_Datatype) * total_types)))
@@ -242,36 +228,39 @@ H5S_mpio_create_point_datatype (size_t elmt_size, hsize_t num_points,
             HGOTO_ERROR(H5E_DATASPACE, H5E_CANTALLOC, FAIL, "can't allocate array of blocks")
 
         for(i=0 ; i<num_big_types ; i++) {
-            if(MPI_SUCCESS != (mpi_code = MPI_Type_create_hindexed(H5S_MAX_MPI_COUNT, 
-                                                                   &blocks[i*H5S_MAX_MPI_COUNT], 
-                                                                   &disp[i*H5S_MAX_MPI_COUNT], 
-                                                                   elmt_type, 
-                                                                   &inner_types[i])))
-                HMPI_GOTO_ERROR(FAIL, "MPI_Type_create_indexed_block failed", mpi_code);
+            if(MPI_SUCCESS != (mpi_code = MPI_Type_create_hindexed_block(H5S_MAX_MPI_COUNT, 
+                                                                         1,
+                                                                         &disp[i*H5S_MAX_MPI_COUNT], 
+                                                                         elmt_type, 
+                                                                         &inner_types[i])))
+                HMPI_GOTO_ERROR(FAIL, "MPI_Type_create_hindexed_block failed", mpi_code);
 
-            inner_blocks[i*H5S_MAX_MPI_COUNT] = 1;
-            inner_disps[i*H5S_MAX_MPI_COUNT] = 0;
+            inner_blocks[i] = 1;
+            inner_disps[i] = 0;
         }
 
         if(remaining_points) {
-            if(MPI_SUCCESS != (mpi_code = MPI_Type_create_hindexed(remaining_points, 
-                                                                   &blocks[num_big_types*H5S_MAX_MPI_COUNT], 
-                                                                   &disp[num_big_types*H5S_MAX_MPI_COUNT], 
-                                                                   elmt_type, 
-                                                                   &inner_types[num_big_types])))
-                HMPI_GOTO_ERROR(FAIL, "MPI_Type_create_indexed_block failed", mpi_code);
+            if(MPI_SUCCESS != (mpi_code = MPI_Type_create_hindexed_block(remaining_points, 
+                                                                         1,
+                                                                         &disp[num_big_types*H5S_MAX_MPI_COUNT], 
+                                                                         elmt_type, 
+                                                                         &inner_types[num_big_types])))
+                HMPI_GOTO_ERROR(FAIL, "MPI_Type_create_hindexed_block failed", mpi_code);
 
             inner_blocks[num_big_types] = 1;
             inner_disps[num_big_types] = 0;
         }
         
-        if(MPI_SUCCESS != (mpi_code = 
-                           MPI_Type_create_struct(total_types, inner_blocks, inner_disps, inner_types, new_type)))
-            HMPI_GOTO_ERROR(FAIL, "MPI_Type_contiguous failed", mpi_code);
+        if(MPI_SUCCESS != (mpi_code = MPI_Type_create_struct(total_types, 
+                                                             inner_blocks, 
+                                                             inner_disps, 
+                                                             inner_types, 
+                                                             new_type)))
+            HMPI_GOTO_ERROR(FAIL, "MPI_Type_create_struct", mpi_code);
 
-        for(i=0 ; i<total_types ; i++) {
+        for(i=0 ; i<total_types ; i++)
             MPI_Type_free(inner_types);
-        }
+
         H5MM_free(inner_types);
         H5MM_free(inner_blocks);
         H5MM_free(inner_disps);
@@ -284,8 +273,6 @@ H5S_mpio_create_point_datatype (size_t elmt_size, hsize_t num_points,
 done:
     if(elmt_type_created)
         MPI_Type_free(&elmt_type);
-    if(blocks)
-        H5MM_free(blocks);
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5S_mpio_create_point_datatype() */
@@ -1407,7 +1394,7 @@ H5S_mpio_space_type(const H5S_t *space, size_t elmt_size, MPI_Datatype *new_type
 
         case H5S_NO_CLASS:
         default:
-            HDassert("unknown dataspace type" && 0);
+            HDassert("unknown data space type" && 0);
             break;
     } /* end switch */
 
