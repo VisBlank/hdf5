@@ -1,0 +1,12 @@
+direct_io
+
+This branch was originally created by Ray Lu (?) to add some optimizations
+for direct I/O on Linux. It looks like it was at almost completed but does
+not seem to have been checked back into the trunk.
+
+This branch follows the trunk but has not been updated in some time.
+
+Dana Robinson is the current branch owner. These changes may be merged
+into the trunk and/or 1.8 branch as a part of current (as of 2015)
+direct VFD work.
+
