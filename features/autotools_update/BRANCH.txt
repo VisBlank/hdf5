@@ -1,0 +1,12 @@
+autotools_update
+
+The purpose of this branch is to make changes to the autotools files,
+particularly configure.ac. This will remove a lot of old cruft and update
+the input files. This effort was started in January 2015 and should be
+completed within the year.
+
+This branch tracks the trunk.
+
+Allen is the owner of this branch, but Dana and Elena could also
+possibly answer questions about this branch.
+
