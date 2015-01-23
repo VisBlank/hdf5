@@ -10,3 +10,5 @@ Dana Robinson is the current branch owner. These changes may be merged
 into the trunk and/or 1.8 branch as a part of current (as of 2015)
 direct VFD work.
 
+UPDATE: This branch is being deleted. It is superseded by the
+        branches/direct_io_2 branch.
