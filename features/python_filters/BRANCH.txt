@@ -1,8 +1,0 @@
-Experimental branch that shows what it would look like if we included
-BLOSC (used by PyTables) and lzf (used by h5py) compression filter
-plugins in the HDF5 source distribution.
-
-Created by Dana Robinson in the fall of 2014. As far as I know, I am
-the only person working on this branch.
-
-Tracks branches/hdf5_1_8
