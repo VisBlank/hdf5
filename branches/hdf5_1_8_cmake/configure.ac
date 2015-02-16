@@ -16,7 +16,7 @@
 ## ----------------------------------------------------------------------
 ## Initialize configure.
 ##
-AC_REVISION($Id: configure.ac 26147 2015-02-09 00:30:46Z hdftest $)
+AC_REVISION($Id: configure.ac 26178 2015-02-16 00:17:46Z hdftest $)
 AC_PREREQ([2.69])
 
 ## AC_INIT takes the name of the package, the version number, and an
@@ -26,7 +26,7 @@ AC_PREREQ([2.69])
 ## NOTE: Do not forget to change the version number here when we do a
 ## release!!!
 ##
-AC_INIT([HDF5], [1.8.15-snap10], [help@hdfgroup.org])
+AC_INIT([HDF5], [1.8.15-snap11], [help@hdfgroup.org])
 AC_CONFIG_SRCDIR([src/H5.c])
 AC_CONFIG_HEADER([src/H5config.h])
 
@@ -754,14 +754,8 @@ AC_PROG_INSTALL
 
 
 ## ----------------------------------------------------------------------
-## Check that the tr utility is working properly.
-
+## Set up ${TR} which is used to process DEBUG_PKG.
 AC_PATH_PROG([TR], [tr])
-
-TR_TEST=`echo Test | ${TR} ${as_cr_letters}"," ${as_cr_LETTERS}" "`
-if test "X${TR_TEST}" != "XTEST"; then
-  AC_MSG_ERROR([tr program doesn't work])
-fi
 
 
 ## ----------------------------------------------------------------------
