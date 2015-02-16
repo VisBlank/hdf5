@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include "H5Sprivate.h"		/* Dataspace			  	*/
 /* Constants definitions */
 #define MAX_ERR_REPORT  10      /* Maximum number of errors reported */
 
@@ -101,7 +101,6 @@ size_t bigcount = 536870916;
 char filename[20] = "bigio_test.h5";
 int nerrors = 0;
 int mpi_size, mpi_rank;
-
 
 /*
  * Setup the coordinates for point selection.
@@ -528,7 +527,7 @@ dataset_big_write(void)
     count[0] = 1;
     count[1] = 1;
     start[0] = 0;
-    start[1] = dims[1]/4 * mpi_rank;
+    start[1] = dims[1]/mpi_size * mpi_rank;
 
     num_points = bigcount;
 
@@ -576,7 +575,7 @@ dataset_big_write(void)
 
     ret = H5Dclose(dataset);
     VRFY((ret >= 0), "H5Dclose1 succeeded");
-
+#endif
 
     /* Irregular selection */
     /* Need larger memory for data buffer */
@@ -607,12 +606,16 @@ dataset_big_write(void)
     /* create a file dataspace */
     file_dataspace = H5Dget_space (dataset);
     VRFY((file_dataspace >= 0), "H5Dget_space succeeded");
+
+    dims[1] = 4;
     /* create a memory dataspace */
     mem_dataspace = H5Screate_simple (RANK, dims, NULL);
     VRFY((mem_dataspace >= 0), "");
 
     ret = H5Sselect_hyperslab(file_dataspace, H5S_SELECT_SET, start, stride, count, block);
     VRFY((ret >= 0), "H5Sset_hyperslab succeeded");
+
+    start[1] = 0;
     ret = H5Sselect_hyperslab(mem_dataspace, H5S_SELECT_SET, start, stride, count, block);
     VRFY((ret >= 0), "H5Sset_hyperslab succeeded");
 
@@ -630,6 +633,8 @@ dataset_big_write(void)
 
         ret = H5Sselect_hyperslab(file_dataspace, H5S_SELECT_OR, start, stride, count, block);
         VRFY((ret >= 0), "H5Sset_hyperslab succeeded");
+
+        start[1] = 0;
         ret = H5Sselect_hyperslab(mem_dataspace, H5S_SELECT_OR, start, stride, count, block);
         VRFY((ret >= 0), "H5Sset_hyperslab succeeded");
     }
@@ -643,6 +648,15 @@ dataset_big_write(void)
         ret = H5Pset_dxpl_mpio_collective_opt(xfer_plist,H5FD_MPIO_INDIVIDUAL_IO);
         VRFY((ret>= 0),"set independent IO collectively succeeded");
     }
+
+        {
+            H5S_t *mem_space = NULL;
+            mem_space = (const H5S_t *)H5I_object_verify(mem_dataspace, H5I_DATASPACE);
+            if(H5S_SELECT_VALID(mem_space) != TRUE) {
+                fprintf(stderr, "%llu: memory selection+offset not within extent\n", h);
+                exit(1);
+            }
+        }
 
     /* fill the local slab with some trivial data */
     dataset_fill(start, dims, wdata);
@@ -662,7 +676,6 @@ dataset_big_write(void)
 
     ret = H5Dclose(dataset);
     VRFY((ret >= 0), "H5Dclose1 succeeded");
-#endif
 
     H5Fclose(fid);
     free(wdata);
@@ -958,7 +971,7 @@ dataset_big_read(void)
     count[0] = 1;
     count[1] = 1;
     start[0] = 0;
-    start[1] = dims[1]/4 * mpi_rank;
+    start[1] = dims[1]/mpi_size * mpi_rank;
 
     dataset_fill(start, block, wdata);
     MESG("data_array initialized");
@@ -1009,14 +1022,14 @@ dataset_big_read(void)
     H5Pclose(xfer_plist);
     ret = H5Dclose(dataset);
     VRFY((ret >= 0), "H5Dclose1 succeeded");
+#endif
 
     printf("\nRead Testing Dataset5 with Irregular selection\n");
     /* Need larger memory for data buffer */
     free(wdata);
+    free(rdata);
     wdata = (DATATYPE *)malloc(bigcount*4*sizeof(DATATYPE));
     VRFY((wdata != NULL), "wdata malloc succeeded");
-
-    free(rdata);
     rdata = (DATATYPE *)malloc(bigcount*4*sizeof(DATATYPE));
     VRFY((rdata != NULL), "rdata malloc succeeded");
 
@@ -1036,15 +1049,19 @@ dataset_big_read(void)
     start[0] = 0;
     start[1] = mpi_rank * 4;
 
-    /* create a file dataspace */
+    /* get file dataspace */
     file_dataspace = H5Dget_space (dataset);
     VRFY((file_dataspace >= 0), "H5Dget_space succeeded");
+
     /* create a memory dataspace */
+    dims[1] = 4;
     mem_dataspace = H5Screate_simple (RANK, dims, NULL);
     VRFY((mem_dataspace >= 0), "");
 
     ret = H5Sselect_hyperslab(file_dataspace, H5S_SELECT_SET, start, stride, count, block);
     VRFY((ret >= 0), "H5Sset_hyperslab succeeded");
+
+    start[1] = 0;
     ret = H5Sselect_hyperslab(mem_dataspace, H5S_SELECT_SET, start, stride, count, block);
     VRFY((ret >= 0), "H5Sset_hyperslab succeeded");
 
@@ -1062,15 +1079,12 @@ dataset_big_read(void)
 
         ret = H5Sselect_hyperslab(file_dataspace, H5S_SELECT_OR, start, stride, count, block);
         VRFY((ret >= 0), "H5Sset_hyperslab succeeded");
+
+        start[1] = 0;
         ret = H5Sselect_hyperslab(mem_dataspace, H5S_SELECT_OR, start, stride, count, block);
         VRFY((ret >= 0), "H5Sset_hyperslab succeeded");
-    }
 
-    /* fill dataset with test data */
-    dataset_fill(start, block, wdata);
-    MESG("data_array initialized");
-    if(VERBOSE_MED){
-	MESG("data_array created");
+        //fprintf(stderr, "%d: %d - %d\n", mpi_rank, (int)h, (int)H5Sget_select_npoints(mem_dataspace));
     }
 
     /* set up the collective transfer properties list */
@@ -1088,6 +1102,15 @@ dataset_big_read(void)
                   xfer_plist, rdata);
     VRFY((ret >= 0), "H5Dread dataset1 succeeded");
 
+    /* fill dataset with test data */
+    dataset_fill(start, dims, wdata);
+    MESG("data_array initialized");
+    if(VERBOSE_MED){
+	MESG("data_array created");
+    }
+
+
+
     /* verify the read data with original expected data */
     block[0] = dims[0];
     block[1] = 1;
@@ -1096,7 +1119,7 @@ dataset_big_read(void)
     count[0] = 1;
     count[1] = 1;
     start[0] = 0;
-    start[1] = mpi_rank * 4;
+    start[1] = 0;
     ret = dataset_vrfy(start, count, stride, block, rdata, wdata);
     if(ret) {fprintf(stderr, "verify failed\n"); exit(1);}
 
@@ -1108,7 +1131,7 @@ dataset_big_read(void)
         count[0] = 1;
         count[1] = 1;
         start[0] = h;
-        start[1] = mpi_rank * 4;
+        start[1] = 0;
         ret = dataset_vrfy(start, count, stride, block, rdata, wdata);
         if(ret) {fprintf(stderr, "verify failed\n"); exit(1);}
     }
@@ -1119,7 +1142,6 @@ dataset_big_read(void)
     H5Pclose(xfer_plist);
     ret = H5Dclose(dataset);
     VRFY((ret >= 0), "H5Dclose1 succeeded");
-#endif
 
     H5Fclose(fid);
 

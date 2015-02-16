@@ -171,7 +171,7 @@ void point_set(hsize_t start[],
  * Fill the dataset with trivial data for testing.
  * Assume dimension rank is 2 and data is stored contiguous.
  */
-static void
+void
 dataset_fill(hsize_t start[], hsize_t block[], DATATYPE * dataset)
 {
     DATATYPE *dataptr = dataset;
