@@ -105,13 +105,14 @@ int mpi_size, mpi_rank;
 /*
  * Setup the coordinates for point selection.
  */
-void point_set(hsize_t start[],
-               hsize_t count[],
-               hsize_t stride[],
-               hsize_t block[],
-               size_t num_points, 
-               hsize_t coords[],
-               int order)
+static void 
+point_set(hsize_t start[],
+          hsize_t count[],
+          hsize_t stride[],
+          hsize_t block[],
+          size_t num_points, 
+          hsize_t coords[],
+          int order)
 {
     hsize_t i,j, k = 0, m ,n, s1 ,s2;
 
@@ -187,7 +188,7 @@ dataset_print(hsize_t start[], hsize_t block[], DATATYPE * dataset)
 /*
  * Print the content of the dataset.
  */
-int
+static int
 dataset_vrfy(hsize_t start[], hsize_t count[], hsize_t stride[], hsize_t block[], DATATYPE *dataset, DATATYPE *original)
 {
     hsize_t i, j;
@@ -236,7 +237,7 @@ dataset_vrfy(hsize_t start[], hsize_t count[], hsize_t stride[], hsize_t block[]
  * each process controls a hyperslab within.]
  */
 
-void
+static void
 dataset_big_write(void)
 {
 
@@ -329,7 +330,7 @@ dataset_big_write(void)
     /* write data collectively */
     MESG("writeAll by Row");
     { 
-        int i,j,k =0;
+        int j,k =0;
         for (i=0; i < block[0]; i++){
             for (j=0; j < block[1]; j++){
                 if(k < 10) {
@@ -406,7 +407,7 @@ dataset_big_write(void)
     /* write data collectively */
     MESG("writeAll by Col");
     { 
-        int i,j,k =0;
+        int j,k =0;
         for (i=0; i < block[0]; i++){
             for (j=0; j < block[1]; j++){
                 if(k < 10) {
@@ -483,7 +484,7 @@ dataset_big_write(void)
     /* write data collectively */
     MESG("writeAll by process 0");
     { 
-        int i,j,k =0;
+        int j,k =0;
         for (i=0; i < block[0]; i++){
             for (j=0; j < block[1]; j++){
                 if(k < 10) {
@@ -575,7 +576,6 @@ dataset_big_write(void)
 
     ret = H5Dclose(dataset);
     VRFY((ret >= 0), "H5Dclose1 succeeded");
-#endif
 
     /* Irregular selection */
     /* Need larger memory for data buffer */
@@ -676,6 +676,7 @@ dataset_big_write(void)
 
     ret = H5Dclose(dataset);
     VRFY((ret >= 0), "H5Dclose1 succeeded");
+#endif
 
     H5Fclose(fid);
     free(wdata);
@@ -690,7 +691,7 @@ dataset_big_write(void)
  * each process controls a hyperslab within.]
  */
 
-void
+static void
 dataset_big_read(void)
 {
     hid_t fid;                  /* HDF5 file ID */
@@ -782,7 +783,6 @@ dataset_big_read(void)
     VRFY((ret >= 0), "H5Dread dataset1 succeeded");
 
     { 
-        int i,j,k =0;
         for (i=0; i < block[0]; i++){
             for (j=0; j < block[1]; j++){
                 if(k < 10) {
@@ -856,7 +856,6 @@ dataset_big_read(void)
     VRFY((ret >= 0), "H5Dread dataset2 succeeded");
 
     { 
-        int i,j,k =0;
         for (i=0; i < block[0]; i++){
             for (j=0; j < block[1]; j++){
                 if(k < 10) {
@@ -931,7 +930,6 @@ dataset_big_read(void)
     VRFY((ret >= 0), "H5Dread dataset3 succeeded");
 
     { 
-        int i,j,k =0;
         for (i=0; i < block[0]; i++){
             for (j=0; j < block[1]; j++){
                 if(k < 10) {
@@ -1022,7 +1020,6 @@ dataset_big_read(void)
     H5Pclose(xfer_plist);
     ret = H5Dclose(dataset);
     VRFY((ret >= 0), "H5Dclose1 succeeded");
-#endif
 
     printf("\nRead Testing Dataset5 with Irregular selection\n");
     /* Need larger memory for data buffer */
@@ -1142,6 +1139,7 @@ dataset_big_read(void)
     H5Pclose(xfer_plist);
     ret = H5Dclose(dataset);
     VRFY((ret >= 0), "H5Dclose1 succeeded");
+#endif
 
     H5Fclose(fid);
 
