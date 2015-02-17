@@ -25,7 +25,10 @@ AM_CPPFLAGS+=-I$(top_srcdir)/src -I$(top_srcdir)/test
 
 # Test programs.  These are our main targets.
 #
-TEST_PROG_PARA=t_mpi testphdf5 t_cache t_pflush1 t_pflush2 t_shapesame t_bigio
+TEST_PROG_PARA=t_mpi testphdf5 t_cache t_pflush1 t_pflush2 t_shapesame
+if BIGIO_TEST_CONDITIONAL
+  TEST_PROG_PARA += t_bigio
+endif
 
 check_PROGRAMS = $(TEST_PROG_PARA)
 

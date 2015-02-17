@@ -670,6 +670,8 @@ CONFIG_DATE
 H5_VERSION
 DIRECT_VFD_CONDITIONAL_FALSE
 DIRECT_VFD_CONDITIONAL_TRUE
+BIGIO_TEST_CONDITIONAL_FALSE
+BIGIO_TEST_CONDITIONAL_TRUE
 USE_FILTER_SCALEOFFSET
 USE_FILTER_NBIT
 USE_FILTER_FLETCHER32
@@ -778,6 +780,7 @@ ac_ct_CC
 LDFLAGS
 CFLAGS
 CC
+BIGIO_TESTS
 UNAME_INFO
 enable_static
 enable_shared
@@ -921,6 +924,7 @@ enable_parallel
 with_mpe
 enable_filters
 with_default_vfd
+enable_bigio_tests
 enable_direct_vfd
 with_default_plugindir
 enable_dconv_exception
@@ -1616,6 +1620,7 @@ Optional Features:
   --enable-filters=all    Turn on all internal I/O filters. One may also
                           specify a comma-separated list of filters or the
                           word no. The default is all internal I/O filters.
+  --enable-bigio-tests    Enable the bigio tests.
   --enable-direct-vfd     Build the Direct I/O Virtual File Driver
                           [default=yes]
   --enable-dconv-exception
@@ -4056,6 +4061,7 @@ $as_echo "done" >&6; }
 ## enable_shared: whether shared lib is enabled.
 ## enable_static: whether static lib is enabled.
 ## UNAME_INFO: System information.
+## BIGIO_TESTS: whether bigio tests should be compiled in and tested. Default no.
 
 
  MPE=no
@@ -4076,6 +4082,7 @@ $as_echo "done" >&6; }
 
 
  UNAME_INFO=`uname -a`
+ BIGIO_TESTS=no
 
 ## ----------------------------------------------------------------------
 ## Some platforms have broken basename, and/or xargs programs. Check
@@ -28560,6 +28567,42 @@ _ACEOF
 
 fi
 
+
+## ----------------------------------------------------------------------
+## Check if BIGIO tests should be enabled by --enable-bigio-tests
+##
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether BIGIO testing is enabled" >&5
+$as_echo_n "checking whether BIGIO testing is enabled... " >&6; }
+
+# Check whether --enable-bigio-tests was given.
+if test "${enable_bigio_tests+set}" = set; then :
+  enableval=$enable_bigio_tests; BIGIO_TESTS=$enableval
+fi
+
+
+case "X-$BIGIO_TESTS" in
+  X-yes)
+      BIGIO_TESTS=yes
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+    ;;
+  *)
+      BIGIO_TESTS=no
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+    ;;
+esac
+
+ if test "X$BIGIO_TESTS" = "Xyes"; then
+  BIGIO_TEST_CONDITIONAL_TRUE=
+  BIGIO_TEST_CONDITIONAL_FALSE='#'
+else
+  BIGIO_TEST_CONDITIONAL_TRUE='#'
+  BIGIO_TEST_CONDITIONAL_FALSE=
+fi
+
+
 ## ----------------------------------------------------------------------
 ## Check if Direct I/O driver is enabled by --enable-direct-vfd
 ##
@@ -32655,6 +32698,10 @@ fi
 
 if test -z "${BUILD_SHARED_SZIP_CONDITIONAL_TRUE}" && test -z "${BUILD_SHARED_SZIP_CONDITIONAL_FALSE}"; then
   as_fn_error $? "conditional \"BUILD_SHARED_SZIP_CONDITIONAL\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${BIGIO_TEST_CONDITIONAL_TRUE}" && test -z "${BIGIO_TEST_CONDITIONAL_FALSE}"; then
+  as_fn_error $? "conditional \"BIGIO_TEST_CONDITIONAL\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${DIRECT_VFD_CONDITIONAL_TRUE}" && test -z "${DIRECT_VFD_CONDITIONAL_FALSE}"; then

@@ -99,7 +99,8 @@ DIST_COMMON = $(top_srcdir)/config/commence.am \
 	$(srcdir)/Makefile.am $(top_srcdir)/bin/mkinstalldirs \
 	$(top_srcdir)/bin/depcomp $(top_srcdir)/bin/test-driver \
 	COPYING
-check_PROGRAMS = $(am__EXEEXT_1)
+@BIGIO_TEST_CONDITIONAL_TRUE@am__append_1 = t_bigio
+check_PROGRAMS = $(am__EXEEXT_2)
 TESTS =
 subdir = testpar
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -110,9 +111,10 @@ mkinstalldirs = $(SHELL) $(top_srcdir)/bin/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/src/H5config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am__EXEEXT_1 = t_mpi$(EXEEXT) testphdf5$(EXEEXT) t_cache$(EXEEXT) \
+@BIGIO_TEST_CONDITIONAL_TRUE@am__EXEEXT_1 = t_bigio$(EXEEXT)
+am__EXEEXT_2 = t_mpi$(EXEEXT) testphdf5$(EXEEXT) t_cache$(EXEEXT) \
 	t_pflush1$(EXEEXT) t_pflush2$(EXEEXT) t_shapesame$(EXEEXT) \
-	t_bigio$(EXEEXT)
+	$(am__EXEEXT_1)
 t_bigio_SOURCES = t_bigio.c
 t_bigio_OBJECTS = t_bigio.$(OBJEXT)
 t_bigio_LDADD = $(LDADD)
@@ -435,6 +437,7 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
+BIGIO_TESTS = @BIGIO_TESTS@
 BYTESEX = @BYTESEX@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
@@ -697,7 +700,8 @@ CHECK_CLEANFILES = *.chkexe *.chklog *.clog MPItest.h5 Para*.h5 \
 
 # Test programs.  These are our main targets.
 #
-TEST_PROG_PARA = t_mpi testphdf5 t_cache t_pflush1 t_pflush2 t_shapesame t_bigio
+TEST_PROG_PARA = t_mpi testphdf5 t_cache t_pflush1 t_pflush2 \
+	t_shapesame $(am__append_1)
 testphdf5_SOURCES = testphdf5.c t_dset.c t_file.c t_file_image.c t_mdset.c \
 	t_ph5basic.c t_coll_chunk.c t_span_tree.c t_chunk_alloc.c t_filter_read.c \
 	t_prop.c

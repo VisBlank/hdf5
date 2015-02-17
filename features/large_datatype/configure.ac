@@ -169,6 +169,7 @@ AC_MSG_RESULT([done])
 ## enable_shared: whether shared lib is enabled.
 ## enable_static: whether static lib is enabled.
 ## UNAME_INFO: System information.
+## BIGIO_TESTS: whether bigio tests should be compiled in and tested. Default no.
 
 AC_SUBST([EXTERNAL_FILTERS])
 AC_SUBST([MPE]) MPE=no
@@ -189,6 +190,7 @@ AC_SUBST([STATIC_SHARED])
 AC_SUBST([enable_shared])
 AC_SUBST([enable_static])
 AC_SUBST([UNAME_INFO]) UNAME_INFO=`uname -a`
+AC_SUBST([BIGIO_TESTS]) BIGIO_TESTS=no
 
 ## ----------------------------------------------------------------------
 ## Some platforms have broken basename, and/or xargs programs. Check
@@ -2740,6 +2742,31 @@ if test "X$default_vfd" = "Xyes"; then
   AC_DEFINE_UNQUOTED([DEFAULT_VFD], [$vfd_define],
             [Define the default virtual file driver to compile])
 fi
+
+
+## ----------------------------------------------------------------------
+## Check if BIGIO tests should be enabled by --enable-bigio-tests
+##
+
+AC_MSG_CHECKING([whether BIGIO testing is enabled])
+
+AC_ARG_ENABLE([bigio-tests],
+              [AS_HELP_STRING([--enable-bigio-tests],
+                              [Enable the bigio tests.])],
+              [BIGIO_TESTS=$enableval])
+
+case "X-$BIGIO_TESTS" in
+  X-yes)
+      BIGIO_TESTS=yes
+      AC_MSG_RESULT([yes])
+    ;;
+  *)
+      BIGIO_TESTS=no
+      AC_MSG_RESULT([no])
+    ;;
+esac
+
+AM_CONDITIONAL([BIGIO_TEST_CONDITIONAL], [test "X$BIGIO_TESTS" = "Xyes"])
 
 ## ----------------------------------------------------------------------
 ## Check if Direct I/O driver is enabled by --enable-direct-vfd

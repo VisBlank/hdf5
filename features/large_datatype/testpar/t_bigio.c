@@ -1,87 +1,18 @@
 
 #include "hdf5.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "H5Sprivate.h"		/* Dataspace			  	*/
+#include "testphdf5.h"
+
 /* Constants definitions */
 #define MAX_ERR_REPORT  10      /* Maximum number of errors reported */
 
 /* Define some handy debugging shorthands, routines, ... */
 /* debugging tools */
 
-/* Print message mesg if verbose level is at least medium and
- * mesg is not an empty string.
- */
-#define MESG(mesg)                                                     \
-    if (VERBOSE_MED && *mesg != '\0')                                  \
-	printf("%s\n", mesg)
-
-/* 
- * VRFY: Verify if the condition val is true.
- * If it is true, then call MESG to print mesg, depending on the verbose
- * level.
- * If val is not true, it prints error messages and if the verbose
- * level is lower than medium, it calls MPI_Abort to abort the program.
- * If verbose level is at least medium, it will not abort.
- * This will allow program to continue and can be used for debugging.
- * (The "do {...} while(0)" is to group all the statements as one unit.)
- */
-#define VRFY(val, mesg) do {                                            \
-    if (val) {                                                          \
-	MESG(mesg);                                                     \
-    } else {                                                            \
-        printf("Proc %d: ", mpi_rank);                                  \
-        printf("*** Parallel ERROR ***\n");                             \
-        printf("    VRFY (%s) failed at line %4d in %s\n",              \
-               mesg, (int)__LINE__, __FILE__);                          \
-        ++nerrors;                                                      \
-        fflush(stdout);                                                 \
-        if (!VERBOSE_MED) {                                             \
-            printf("aborting MPI processes\n");                         \
-            MPI_Abort(MPI_COMM_WORLD, 1);                               \
-        }                                                               \
-    }                                                                   \
-} while(0)
-
-/*
- * Checking for information purpose.
- * If val is false, print mesg; else nothing.
- * Either case, no error setting.
- */
-#define INFO(val, mesg) do {                                            \
-    if (val) {                                                          \
-	MESG(mesg);                                                 \
-    } else {                                                            \
-        printf("Proc %d: ", mpi_rank);                                  \
-        printf("*** PHDF5 REMARK (not an error) ***\n");                \
-        printf("        Condition (%s) failed at line %4d in %s\n",     \
-               mesg, (int)__LINE__, __FILE__);                          \
-        fflush(stdout);                                                 \
-    }                                                                   \
-} while(0)
-
-#define MPI_BANNER(mesg) do {                                           \
-    if (VERBOSE_MED || MAINPROCESS){                                    \
-	printf("--------------------------------\n");                   \
-	printf("Proc %d: ", mpi_rank);                                  \
-	printf("*** %s\n", mesg);                                       \
-	printf("--------------------------------\n");                   \
-    }                                                                   \
-} while(0)
-
 #define MAINPROCESS     (!mpi_rank) /* define process 0 as main process */
-
 
 /* Constants definitions */
 #define RANK		2
 
-/* Hyperslab layout styles */
-#define BYROW           1       /* divide into slabs of rows */
-#define BYCOL           2       /* divide into blocks of columns */
-#define ZROW            3       /* same as BYCOL except process 0 gets 0 rows */
-#define ZCOL            4       /* same as BYCOL except process 0 gets 0 columns */
-#define VERBOSE_MED 0
 #define IN_ORDER     1
 #define OUT_OF_ORDER 2
 
@@ -94,7 +25,7 @@
 #define DXFER_INDEPENDENT_IO 0x2 /* Independent IO collectively */
 
 /* Dataset data type.  Int's can be easily octo dumped. */
-typedef hsize_t DATATYPE;
+typedef hsize_t B_DATATYPE;
 
 int dxfer_coll_type = DXFER_COLLECTIVE_IO;
 size_t bigcount = 536870916;
@@ -106,7 +37,7 @@ int mpi_size, mpi_rank;
  * Setup the coordinates for point selection.
  */
 static void 
-point_set(hsize_t start[],
+set_coords(hsize_t start[],
           hsize_t count[],
           hsize_t stride[],
           hsize_t block[],
@@ -143,15 +74,15 @@ point_set(hsize_t start[],
  * Assume dimension rank is 2 and data is stored contiguous.
  */
 static void
-dataset_fill(hsize_t start[], hsize_t block[], DATATYPE * dataset)
+fill_datasets(hsize_t start[], hsize_t block[], B_DATATYPE * dataset)
 {
-    DATATYPE *dataptr = dataset;
+    B_DATATYPE *dataptr = dataset;
     hsize_t i, j;
 
     /* put some trivial data in the data_array */
     for (i=0; i < block[0]; i++){
 	for (j=0; j < block[1]; j++){
-	    *dataptr = (DATATYPE)((i+start[0])*100 + (j+start[1]+1));
+	    *dataptr = (B_DATATYPE)((i+start[0])*100 + (j+start[1]+1));
 	    dataptr++;
 	}
     }
@@ -162,9 +93,9 @@ dataset_fill(hsize_t start[], hsize_t block[], DATATYPE * dataset)
  * Print the content of the dataset.
  */
 static void
-dataset_print(hsize_t start[], hsize_t block[], DATATYPE * dataset)
+dataset_print(hsize_t start[], hsize_t block[], B_DATATYPE * dataset)
 {
-    DATATYPE *dataptr = dataset;
+    B_DATATYPE *dataptr = dataset;
     hsize_t i, j;
 
     /* print the column heading */
@@ -178,7 +109,7 @@ dataset_print(hsize_t start[], hsize_t block[], DATATYPE * dataset)
     for (i=0; i < block[0]; i++){
 	printf("Row %2lu: ", (unsigned long)(i+start[0]));
 	for (j=0; j < block[1]; j++){
-	    printf("%03d ", *dataptr++);
+	    printf("%llu ", *dataptr++);
 	}
 	printf("\n");
     }
@@ -189,14 +120,14 @@ dataset_print(hsize_t start[], hsize_t block[], DATATYPE * dataset)
  * Print the content of the dataset.
  */
 static int
-dataset_vrfy(hsize_t start[], hsize_t count[], hsize_t stride[], hsize_t block[], DATATYPE *dataset, DATATYPE *original)
+verify_data(hsize_t start[], hsize_t count[], hsize_t stride[], hsize_t block[], B_DATATYPE *dataset, B_DATATYPE *original)
 {
     hsize_t i, j;
     int vrfyerrs;
 
     /* print it if VERBOSE_MED */
     if(VERBOSE_MED) {
-	printf("dataset_vrfy dumping:::\n");
+	printf("verify_data dumping:::\n");
 	printf("start(%lu, %lu), count(%lu, %lu), stride(%lu, %lu), block(%lu, %lu)\n",
 	    (unsigned long)start[0], (unsigned long)start[1], (unsigned long)count[0], (unsigned long)count[1],
 	    (unsigned long)stride[0], (unsigned long)stride[1], (unsigned long)block[0], (unsigned long)block[1]);
@@ -211,10 +142,10 @@ dataset_vrfy(hsize_t start[], hsize_t count[], hsize_t stride[], hsize_t block[]
 	for (j=0; j < block[1]; j++){
 	    if(*dataset != *original){
 		if(vrfyerrs++ < MAX_ERR_REPORT || VERBOSE_MED){
-		    printf("Dataset Verify failed at [%lu][%lu](row %lu, col %lu): expect %d, got %d\n",
-			(unsigned long)i, (unsigned long)j,
-			(unsigned long)(i+start[0]), (unsigned long)(j+start[1]),
-			*(original), *(dataset));
+		    printf("Dataset Verify failed at [%lu][%lu](row %lu, col %lu): expect %llu, got %llu\n",
+                           (unsigned long)i, (unsigned long)j,
+                           (unsigned long)(i+start[0]), (unsigned long)(j+start[1]),
+                           *(original), *(dataset));
 		}
 		dataset++;
 		original++;
@@ -224,7 +155,7 @@ dataset_vrfy(hsize_t start[], hsize_t count[], hsize_t stride[], hsize_t block[]
     if(vrfyerrs > MAX_ERR_REPORT && !VERBOSE_MED)
 	printf("[more errors ...]\n");
     if(vrfyerrs)
-	printf("%d errors found in dataset_vrfy\n", vrfyerrs);
+	printf("%d errors found in verify_data\n", vrfyerrs);
     return(vrfyerrs);
 }
 
@@ -258,11 +189,11 @@ dataset_big_write(void)
     hid_t acc_tpl;		/* File access templates */
     hsize_t h;
     size_t num_points;
-    DATATYPE * wdata;
+    B_DATATYPE * wdata;
 
 
     /* allocate memory for data buffer */
-    wdata = (DATATYPE *)malloc(bigcount*sizeof(DATATYPE));
+    wdata = (B_DATATYPE *)malloc(bigcount*sizeof(B_DATATYPE));
     VRFY((wdata != NULL), "wdata malloc succeeded");
 
     /* setup file access template */
@@ -310,7 +241,7 @@ dataset_big_write(void)
     VRFY((mem_dataspace >= 0), "");
 
     /* fill the local slab with some trivial data */
-    dataset_fill(start, block, wdata);
+    fill_datasets(start, block, wdata);
     MESG("data_array initialized");
     if(VERBOSE_MED){
 	MESG("data_array created");
@@ -387,7 +318,7 @@ dataset_big_write(void)
     VRFY((mem_dataspace >= 0), "");
 
     /* fill the local slab with some trivial data */
-    dataset_fill(start, block, wdata);
+    fill_datasets(start, block, wdata);
     MESG("data_array initialized");
     if(VERBOSE_MED){
 	MESG("data_array created");
@@ -475,7 +406,7 @@ dataset_big_write(void)
     }
 
     /* fill the local slab with some trivial data */
-    dataset_fill(start, dims, wdata);
+    fill_datasets(start, dims, wdata);
     MESG("data_array initialized");
     if(VERBOSE_MED){
 	MESG("data_array created");
@@ -535,7 +466,7 @@ dataset_big_write(void)
     coords = (hsize_t *)malloc(num_points * RANK * sizeof(hsize_t));
     VRFY((coords != NULL), "coords malloc succeeded");
 
-    point_set (start, count, stride, block, num_points, coords, IN_ORDER);
+    set_coords (start, count, stride, block, num_points, coords, IN_ORDER);
     /* create a file dataspace */
     file_dataspace = H5Dget_space (dataset);
     VRFY((file_dataspace >= 0), "H5Dget_space succeeded");
@@ -544,7 +475,7 @@ dataset_big_write(void)
 
     if(coords) free(coords);
 
-    dataset_fill(start, block, wdata);
+    fill_datasets(start, block, wdata);
     MESG("data_array initialized");
     if(VERBOSE_MED){
 	MESG("data_array created");
@@ -580,7 +511,7 @@ dataset_big_write(void)
     /* Irregular selection */
     /* Need larger memory for data buffer */
     free(wdata);
-    wdata = (DATATYPE *)malloc(bigcount*4*sizeof(DATATYPE));
+    wdata = (B_DATATYPE *)malloc(bigcount*4*sizeof(B_DATATYPE));
     VRFY((wdata != NULL), "wdata malloc succeeded");
 
     printf("\nTesting Dataset5 write irregular selection\n");
@@ -659,7 +590,7 @@ dataset_big_write(void)
         }
 
     /* fill the local slab with some trivial data */
-    dataset_fill(start, dims, wdata);
+    fill_datasets(start, dims, wdata);
     MESG("data_array initialized");
     if(VERBOSE_MED){
 	MESG("data_array created");
@@ -700,8 +631,8 @@ dataset_big_read(void)
     hid_t file_dataspace;	/* File dataspace ID */
     hid_t mem_dataspace;	/* memory dataspace ID */
     hid_t dataset;
-    DATATYPE *rdata = NULL;	/* data buffer */
-    DATATYPE *wdata = NULL; 	/* expected data buffer */
+    B_DATATYPE *rdata = NULL;	/* data buffer */
+    B_DATATYPE *wdata = NULL; 	/* expected data buffer */
     hsize_t dims[RANK];   	/* dataset dim sizes */
     hsize_t start[RANK];			/* for hyperslab setting */
     hsize_t count[RANK], stride[RANK];		/* for hyperslab setting */
@@ -713,12 +644,12 @@ dataset_big_read(void)
     herr_t ret;         	/* Generic return value */
 
     /* allocate memory for data buffer */
-    rdata = (DATATYPE *)malloc(bigcount*sizeof(DATATYPE));
+    rdata = (B_DATATYPE *)malloc(bigcount*sizeof(B_DATATYPE));
     VRFY((rdata != NULL), "rdata malloc succeeded");
-    wdata = (DATATYPE *)malloc(bigcount*sizeof(DATATYPE));
+    wdata = (B_DATATYPE *)malloc(bigcount*sizeof(B_DATATYPE));
     VRFY((wdata != NULL), "wdata malloc succeeded");
 
-    memset(rdata, 0, bigcount*sizeof(DATATYPE));
+    memset(rdata, 0, bigcount*sizeof(B_DATATYPE));
 
     /* setup file access template */
     acc_tpl = H5Pcreate (H5P_FILE_ACCESS);
@@ -761,7 +692,7 @@ dataset_big_read(void)
     VRFY((mem_dataspace >= 0), "");
 
     /* fill dataset with test data */
-    dataset_fill(start, block, wdata);
+    fill_datasets(start, block, wdata);
     MESG("data_array initialized");
     if(VERBOSE_MED){
 	MESG("data_array created");
@@ -795,7 +726,7 @@ dataset_big_read(void)
     }
 
     /* verify the read data with original expected data */
-    ret = dataset_vrfy(start, count, stride, block, rdata, wdata);
+    ret = verify_data(start, count, stride, block, rdata, wdata);
     if(ret) {fprintf(stderr, "verify failed\n"); exit(1);}
 
     /* release all temporary handles. */
@@ -807,7 +738,7 @@ dataset_big_read(void)
 
 
     printf("\nRead Testing Dataset2 by ROW\n");
-    memset(rdata, 0, bigcount*sizeof(DATATYPE));
+    memset(rdata, 0, bigcount*sizeof(B_DATATYPE));
     dataset = H5Dopen2(fid, DATASET2, H5P_DEFAULT);
     VRFY((dataset >= 0), "H5Dopen2 succeeded");
 
@@ -834,7 +765,7 @@ dataset_big_read(void)
     VRFY((mem_dataspace >= 0), "");
 
     /* fill dataset with test data */
-    dataset_fill(start, block, wdata);
+    fill_datasets(start, block, wdata);
     MESG("data_array initialized");
     if(VERBOSE_MED){
 	MESG("data_array created");
@@ -868,7 +799,7 @@ dataset_big_read(void)
     }
 
     /* verify the read data with original expected data */
-    ret = dataset_vrfy(start, count, stride, block, rdata, wdata);
+    ret = verify_data(start, count, stride, block, rdata, wdata);
     if(ret) {fprintf(stderr, "verify failed\n"); exit(1);}
 
     /* release all temporary handles. */
@@ -880,7 +811,7 @@ dataset_big_read(void)
 
 
     printf("\nRead Testing Dataset3 read select ALL proc 0, NONE others\n");
-    memset(rdata, 0, bigcount*sizeof(DATATYPE));
+    memset(rdata, 0, bigcount*sizeof(B_DATATYPE));
     dataset = H5Dopen2(fid, DATASET3, H5P_DEFAULT);
     VRFY((dataset >= 0), "H5Dopen2 succeeded");
 
@@ -908,7 +839,7 @@ dataset_big_read(void)
     }
 
     /* fill dataset with test data */
-    dataset_fill(start, dims, wdata);
+    fill_datasets(start, dims, wdata);
     MESG("data_array initialized");
     if(VERBOSE_MED){
 	MESG("data_array created");
@@ -943,7 +874,7 @@ dataset_big_read(void)
 
     if(MAINPROCESS) {
         /* verify the read data with original expected data */
-        ret = dataset_vrfy(start, count, stride, block, rdata, wdata);
+        ret = verify_data(start, count, stride, block, rdata, wdata);
         if(ret) {fprintf(stderr, "verify failed\n"); exit(1);}
     }
 
@@ -971,7 +902,7 @@ dataset_big_read(void)
     start[0] = 0;
     start[1] = dims[1]/mpi_size * mpi_rank;
 
-    dataset_fill(start, block, wdata);
+    fill_datasets(start, block, wdata);
     MESG("data_array initialized");
     if(VERBOSE_MED){
 	MESG("data_array created");
@@ -983,7 +914,7 @@ dataset_big_read(void)
     coords = (hsize_t *)malloc(num_points * RANK * sizeof(hsize_t));
     VRFY((coords != NULL), "coords malloc succeeded");
 
-    point_set (start, count, stride, block, num_points, coords, IN_ORDER);
+    set_coords (start, count, stride, block, num_points, coords, IN_ORDER);
     /* create a file dataspace */
     file_dataspace = H5Dget_space (dataset);
     VRFY((file_dataspace >= 0), "H5Dget_space succeeded");
@@ -1011,7 +942,7 @@ dataset_big_read(void)
                   xfer_plist, rdata);
     VRFY((ret >= 0), "H5Dread dataset1 succeeded");
 
-    ret = dataset_vrfy(start, count, stride, block, rdata, wdata);
+    ret = verify_data(start, count, stride, block, rdata, wdata);
     if(ret) {fprintf(stderr, "verify failed\n"); exit(1);}
 
     /* release all temporary handles. */
@@ -1025,9 +956,9 @@ dataset_big_read(void)
     /* Need larger memory for data buffer */
     free(wdata);
     free(rdata);
-    wdata = (DATATYPE *)malloc(bigcount*4*sizeof(DATATYPE));
+    wdata = (B_DATATYPE *)malloc(bigcount*4*sizeof(B_DATATYPE));
     VRFY((wdata != NULL), "wdata malloc succeeded");
-    rdata = (DATATYPE *)malloc(bigcount*4*sizeof(DATATYPE));
+    rdata = (B_DATATYPE *)malloc(bigcount*4*sizeof(B_DATATYPE));
     VRFY((rdata != NULL), "rdata malloc succeeded");
 
     dataset = H5Dopen2(fid, DATASET5, H5P_DEFAULT);
@@ -1100,7 +1031,7 @@ dataset_big_read(void)
     VRFY((ret >= 0), "H5Dread dataset1 succeeded");
 
     /* fill dataset with test data */
-    dataset_fill(start, dims, wdata);
+    fill_datasets(start, dims, wdata);
     MESG("data_array initialized");
     if(VERBOSE_MED){
 	MESG("data_array created");
@@ -1117,7 +1048,7 @@ dataset_big_read(void)
     count[1] = 1;
     start[0] = 0;
     start[1] = 0;
-    ret = dataset_vrfy(start, count, stride, block, rdata, wdata);
+    ret = verify_data(start, count, stride, block, rdata, wdata);
     if(ret) {fprintf(stderr, "verify failed\n"); exit(1);}
 
     for(h=0 ; h<dims[0] ; h+=2) {
@@ -1129,7 +1060,7 @@ dataset_big_read(void)
         count[1] = 1;
         start[0] = h;
         start[1] = 0;
-        ret = dataset_vrfy(start, count, stride, block, rdata, wdata);
+        ret = verify_data(start, count, stride, block, rdata, wdata);
         if(ret) {fprintf(stderr, "verify failed\n"); exit(1);}
     }
 
@@ -1165,6 +1096,3 @@ int main(int argc, char **argv)
 
     return 0;
 }
-
-/*  LocalWords:  stdout
- */
