@@ -16,7 +16,7 @@
 ## ----------------------------------------------------------------------
 ## Initialize configure.
 ##
-AC_REVISION($Id: configure.ac 26224 2015-02-18 23:01:17Z chaarawi $)
+AC_REVISION($Id: configure.ac 26264 2015-02-21 14:52:48Z derobins $)
 AC_PREREQ([2.69])
 
 ## AC_INIT takes the name of the package, the version number, and an
@@ -760,6 +760,11 @@ AC_PATH_PROG([TR], [tr])
 ## Check that time can be used with srcdir.  This is okay on most systems,
 ## but seems to cause problems on Cygwin.
 ## The solution on Cygwin is not to record execution time for tests.
+##
+## Note: This is still true as of Cygwin 1.7.32 (Aug 2014) on both 32-
+## and 64-bit platforms. Given how long this has been true, it seems
+## unlikely to change, but we should probably re-test this periodically.
+
 AC_MSG_CHECKING([if srcdir= and time commands work together])
 
 AC_SUBST([TIME])
@@ -2706,15 +2711,6 @@ if test -n "$FILTERS"; then
       USE_FILTER_SCALEOFFSET="yes"
     fi
   done
-fi
-
-## ----------------------------------------------------------------------
-## This is defined only when we're using CodeWarrior, since it has a
-## broken "open()" call.
-#
-if test 1 = 2; then
-  AC_DEFINE([NO_SHARED_WRITING], [1],
-            [Define if shared writing must be disabled (CodeWarrior only)])
 fi
 
 ## --------------------------------------------------------------------------
