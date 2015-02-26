@@ -92,7 +92,8 @@ check_PROGRAMS = $(am__EXEEXT_2)
 TESTS = $(am__EXEEXT_2)
 subdir = fortran/test
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/aclocal_cxx.m4 \
+	$(top_srcdir)/m4/aclocal_fc.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(SHELL) $(top_srcdir)/bin/mkinstalldirs
@@ -734,10 +735,10 @@ TRACE = perl $(top_srcdir)/bin/trace
 
 # .chkexe files are used to mark tests that have run successfully.
 # .chklog files are output from those tests.
-# *.clog are from the MPE option.
+# *.clog and *.clog2 are from the MPE option.
 
 # Temporary files
-CHECK_CLEANFILES = *.chkexe *.chklog *.clog *.h5 *.raw
+CHECK_CLEANFILES = *.chkexe *.chklog *.clog *.clog2 *.h5 *.raw
 
 # The Fortran test library
 noinst_LTLIBRARIES = libh5test_fortran.la

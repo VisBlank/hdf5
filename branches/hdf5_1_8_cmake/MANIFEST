@@ -33,6 +33,8 @@
 ./m4/ltversion.m4                       _DO_NOT_DISTRIBUTE_
 ./m4/lt~obsolete.m4                     _DO_NOT_DISTRIBUTE_
 ./m4/ltoptions.m4                       _DO_NOT_DISTRIBUTE_
+./m4/aclocal_cxx.m4
+./m4/aclocal_fc.m4
 ./README.txt
 ./aclocal.m4
 ./acsite.m4
@@ -1005,6 +1007,8 @@
 ./testpar/t_coll_chunk.c
 ./testpar/t_filter_read.c
 ./testpar/t_shapesame.c
+./testpar/t_pshutdown.c
+./testpar/t_prestart.c
 ./testpar/t_span_tree.c
 ./testpar/testpar.h
 ./testpar/testphdf5.c
