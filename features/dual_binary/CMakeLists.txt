@@ -869,6 +869,12 @@ if (EXISTS "${HDF5_SOURCE_DIR}/c++" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/c++")
       set (H5_NO_STD 1)
     endif (CMAKE_NO_STD_NAMESPACE)
     add_subdirectory (${HDF5_SOURCE_DIR}/c++ ${PROJECT_BINARY_DIR}/c++)
+    if (HDF5_BUILD_HL_LIB)
+      if (EXISTS "${HDF5_SOURCE_DIR}/hl/c++" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/hl/c++")
+        #-- Build the High Level Fortran source codes
+        add_subdirectory (${HDF5_SOURCE_DIR}/hl/c++ ${PROJECT_BINARY_DIR}/hl/c++)
+      endif (EXISTS "${HDF5_SOURCE_DIR}/hl/c++" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/hl/c++")
+    endif (HDF5_BUILD_HL_LIB)
   endif (HDF5_BUILD_CPP_LIB)
 endif (EXISTS "${HDF5_SOURCE_DIR}/c++" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/c++")
 
