@@ -16,7 +16,7 @@
 ## ----------------------------------------------------------------------
 ## Initialize configure.
 ##
-AC_REVISION($Id: configure.ac 26326 2015-02-27 04:01:50Z derobins $)
+AC_REVISION($Id: configure.ac 26358 2015-03-04 18:15:04Z lrknox $)
 AC_PREREQ([2.69])
 
 ## AC_INIT takes the name of the package, the version number, and an
@@ -115,12 +115,7 @@ AM_CFLAGS="${AM_CFLAGS}"
 AM_CXXFLAGS="${AM_CXXFLAGS}"
 AM_FCFLAGS="${AM_FCFLAGS}"
 AM_CPPFLAGS="${AM_CPPFLAGS}"
-# Added to address HDFFV-8944
-if test "x$prefix" = xNONE; then
-  AM_LDFLAGS="$AM_LDFLAGS -L$ac_default_prefix/lib"
-else
-  AM_LDFLAGS="$AM_LDFLAGS -L$prefix/lib"
-fi
+AM_LDFLAGS="${AM_LDFLAGS}"
 CFLAGS="${CFLAGS}"
 CXXFLAGS="${CXXFLAGS}"
 FCFLAGS="${FCFLAGS}"
