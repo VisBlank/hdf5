@@ -210,6 +210,7 @@ H5PLset_loading_state(unsigned int plugin_type)
     char *preload_path;
     herr_t ret_value = SUCCEED; /* Return value */
     FUNC_ENTER_API(FAIL)
+    H5TRACE1("e", "Iu", plugin_type);
     /* change the bit value of the requested plugin type(s) */
     H5PL_plugin_g = plugin_type;
     /* check if special ENV variable is set and disable all plugin types */
