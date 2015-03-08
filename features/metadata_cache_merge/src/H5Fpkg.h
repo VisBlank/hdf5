@@ -168,7 +168,8 @@ typedef struct H5F_superblock_cache_ud_t {
 
 /* Structure for passing 'user data' to driver info block cache callbacks */
 typedef struct H5F_drvrinfo_cache_ud_t {
-    H5F_t *f;               /* Pointer to file */
+    H5F_t   *f;               /* Pointer to file */
+    haddr_t driver_addr;      /* address of driver info block */
 } H5F_drvrinfo_cache_ud_t;
 
 /* Structure for metadata & "small [raw] data" block aggregation fields */
@@ -243,6 +244,13 @@ typedef struct H5F_super_t {
 struct H5F_file_t {
     H5FD_t	*lf; 		/* Lower level file handle for I/O	*/
     H5F_super_t *sblock;        /* Pointer to (pinned) superblock for file */
+    H5O_drvinfo_t *drvinfo;	/* Pointer to the (pinned) driver info 
+                                 * cache entry.  This field is only defined
+                                 * for older versions of the super block,
+                                 * and then only when a driver information
+                                 * block is present.  At all other times
+                                 * it should be NULL.
+                                 */
     unsigned	nrefs;		/* Ref count for times file is opened	*/
     unsigned	flags;		/* Access Permissions for file          */
     H5F_mtab_t	mtab;		/* File mount table                     */

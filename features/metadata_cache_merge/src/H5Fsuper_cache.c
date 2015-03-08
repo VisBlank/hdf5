@@ -835,6 +835,25 @@ H5F__cache_drvrinfo_deserialize(const void *_image, size_t len, void *_udata,
     if(len != (H5F_DRVINFOBLOCK_HDR_SIZE + drvinfo->len)) {
         /* Sanity check */
         HDassert(len == H5F_DRVINFOBLOCK_HDR_SIZE);
+
+        /* extend the eoa if required so that we can read the complete driver info block */
+        {
+            haddr_t eoa;
+            haddr_t min_eoa;
+
+            /* get current eoa... */
+	    if ((eoa = H5FD_get_eoa(udata->f->shared->lf, H5FD_MEM_SUPER)) == HADDR_UNDEF)
+                HGOTO_ERROR(H5E_RESOURCE, H5E_CANTGET, NULL, "driver get_eoa request failed")
+
+            /* ... if it is too small, extend it. */
+            min_eoa = udata->driver_addr + H5F_DRVINFOBLOCK_HDR_SIZE + drvinfo->len;
+
+            if ( H5F_addr_gt(min_eoa, eoa) )
+                if(H5FD_set_eoa(udata->f->shared->lf, H5FD_MEM_SUPER, min_eoa) < 0)
+                    HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, \
+                        "set end of space allocation request failed")
+        }        
+
     } /* end if */
     else {
         /* Validate and decode driver information */

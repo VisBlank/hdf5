@@ -268,6 +268,11 @@ H5F__super_read(H5F_t *f, hid_t dxpl_id)
 
     FUNC_ENTER_PACKAGE_TAG(dxpl_id, H5AC__SUPERBLOCK_TAG, FAIL)
 
+    /* initialize the drvinfo to NULL -- we will overwrite this if there
+     * is a driver information block 
+     */
+    f->shared->drvinfo = NULL;
+
     /* Get the DXPL plist object for DXPL ID */
     if(NULL == (dxpl = (H5P_genplist_t *)H5I_object(dxpl_id)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "can't get property list")
@@ -413,9 +418,6 @@ H5F__super_read(H5F_t *f, hid_t dxpl_id)
      * Tell the file driver how much address space has already been
      * allocated so that it knows how to allocate additional memory.
      */
-    /* (Account for the stored EOA being absolute offset -NAF) */
-    if(H5F__set_eoa(f, H5FD_MEM_SUPER, udata.stored_eof - sblock->base_addr) < 0)
-        HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "unable to set end-of-address marker for file")
 
     /* Decode the optional driver information block */
     if(H5F_addr_defined(sblock->driver_addr)) {
@@ -429,7 +431,15 @@ H5F__super_read(H5F_t *f, hid_t dxpl_id)
         HDassert(sblock->super_vers < HDF5_SUPERBLOCK_VERSION_2);
 
         /* Set up user data */
-        drvrinfo_udata.f = f;
+        drvrinfo_udata.f           = f;
+        drvrinfo_udata.driver_addr = sblock->driver_addr;
+
+        /* extend EOA so we can read at least the fixed sized 
+         * portion of the driver info block 
+         */
+        if(H5FD_set_eoa(f->shared->lf, H5FD_MEM_SUPER, sblock->driver_addr + H5F_DRVINFOBLOCK_HDR_SIZE) < 0) /* will extend eoa later if required */ 
+            HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, \
+                        "set end of space allocation request failed")
 
         /* Look up the driver info block */
         if(NULL == (drvinfo = (H5O_drvinfo_t *)H5AC_protect(f, dxpl_id, H5AC_DRVRINFO, sblock->driver_addr, &drvrinfo_udata, rw_flags)))
@@ -445,10 +455,22 @@ H5F__super_read(H5F_t *f, hid_t dxpl_id)
             drvinfo_flags |= H5AC__DIRTIED_FLAG;
         } /* end if */
 
+        /* set the pin entry flag so that the driver information block 
+         * cache entry will be pinned in the cache.
+         */
+        drvinfo_flags |= H5AC__PIN_ENTRY_FLAG;
+
         /* Release the driver info block */
         if(H5AC_unprotect(f, dxpl_id, H5AC_DRVRINFO, sblock->driver_addr, drvinfo, drvinfo_flags) < 0)
             HGOTO_ERROR(H5E_FILE, H5E_CANTUNPROTECT, FAIL, "unable to release driver info block")
+
+        /* save a pointer to the driver information cache entry */
+        f->shared->drvinfo = drvinfo;
     } /* end if */
+
+    /* (Account for the stored EOA being absolute offset -NAF) */
+    if(H5F__set_eoa(f, H5FD_MEM_SUPER, udata.stored_eof - sblock->base_addr) < 0)
+        HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "unable to set end-of-address marker for file")
 
     /* Decode the optional superblock extension info */
     if(H5F_addr_defined(sblock->ext_addr)) {
@@ -630,6 +652,34 @@ done:
     if(sblock && H5AC_unprotect(f, dxpl_id, H5AC_SUPERBLOCK, (haddr_t)0, sblock, sblock_flags) < 0)
         HDONE_ERROR(H5E_FILE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
 
+    /* if we have failed, make sure no entries are left in the 
+     * metadata cache so that it can be shut down and discarded.
+     */
+    if ( ret_value < 0 ) { 
+
+        if ( f->shared->drvinfo ) { /* unpin and discard drvinfo cache entry */
+
+            if(H5AC_unpin_entry(f->shared->drvinfo) < 0)
+                    HDONE_ERROR(H5E_FILE, H5E_CANTUNPIN, FAIL, "unable to unpin driver info")
+
+            /* Evict the driver info block from the cache */
+            if(H5AC_expunge_entry(f, dxpl_id, H5AC_DRVRINFO, sblock->driver_addr, H5AC__NO_FLAGS_SET) < 0)
+                HDONE_ERROR(H5E_FILE, H5E_CANTEXPUNGE, FAIL, "unable to expunge driver info block")
+
+        }
+
+        if ( sblock ) { /* unpin & discard superblock */
+
+            /* Unpin superblock in cache */
+            if(H5AC_unpin_entry(sblock) < 0)
+                HDONE_ERROR(H5E_FILE, H5E_CANTUNPIN, FAIL, "unable to unpin superblock")
+
+            /* Evict the superblock from the cache */
+            if(H5AC_expunge_entry(f, dxpl_id, H5AC_SUPERBLOCK, (haddr_t)0, H5AC__NO_FLAGS_SET) < 0)
+                HDONE_ERROR(H5E_FILE, H5E_CANTEXPUNGE, FAIL, "unable to expunge superblock")
+        }
+    }
+
     FUNC_LEAVE_NOAPI_TAG(ret_value, FAIL)
 } /* end H5F__super_read() */
 
@@ -791,6 +841,9 @@ H5F__super_init(H5F_t *f, hid_t dxpl_id)
     /* Keep a copy of the superblock info */
     f->shared->sblock = sblock;
 
+    /* set the drvinfo filed to NULL -- will overwrite this later if needed */
+    f->shared->drvinfo = NULL;
+
     /*
      * Determine if we will need a superblock extension
      */
@@ -916,9 +969,10 @@ H5F__super_init(H5F_t *f, hid_t dxpl_id)
             H5_ASSIGN_OVERFLOW(drvinfo->len, H5FD_sb_size(f->shared->lf), hsize_t, size_t);
 
             /* Insert driver info block into cache */
-            if(H5AC_insert_entry(f, dxpl_id, H5AC_DRVRINFO, sblock->driver_addr, drvinfo, H5AC__NO_FLAGS_SET) < 0)
+            if(H5AC_insert_entry(f, dxpl_id, H5AC_DRVRINFO, sblock->driver_addr, drvinfo, H5AC__PIN_ENTRY_FLAG | H5AC__FLUSH_LAST_FLAG | H5AC__FLUSH_COLLECTIVELY_FLAG) < 0)
                 HGOTO_ERROR(H5E_FILE, H5E_CANTINS, FAIL, "can't add driver info block to cache")
             drvinfo_in_cache = TRUE;
+            f->shared->drvinfo = drvinfo;
         } /* end if */
         else
             HDassert(!H5F_addr_defined(sblock->driver_addr));
@@ -935,6 +989,9 @@ done:
         if(drvinfo) {
             /* Check if we've cached it already */
             if(drvinfo_in_cache) {
+                /* Unpin drvinfo in cache */
+                if(H5AC_unpin_entry(drvinfo) < 0)
+                    HDONE_ERROR(H5E_FILE, H5E_CANTUNPIN, FAIL, "unable to unpin driver info")
                 /* Evict the driver info block from the cache */
                 if(H5AC_expunge_entry(f, dxpl_id, H5AC_DRVRINFO, sblock->driver_addr, H5AC__NO_FLAGS_SET) < 0)
                     HDONE_ERROR(H5E_FILE, H5E_CANTEXPUNGE, FAIL, "unable to expunge driver info block")
@@ -998,6 +1055,14 @@ H5F_super_dirty(H5F_t *f)
     /* Mark superblock dirty in cache, so change to EOA will get encoded */
     if(H5AC_mark_entry_dirty(f->shared->sblock) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTMARKDIRTY, FAIL, "unable to mark superblock as dirty")
+
+    /* if the driver information block exists, mark it dirty as well 
+     * so that the change in eoa will be reflected there as well if 
+     * appropriate.
+     */
+    if ( f->shared->drvinfo )
+        if(H5AC_mark_entry_dirty(f->shared->drvinfo) < 0)
+            HGOTO_ERROR(H5E_FILE, H5E_CANTMARKDIRTY, FAIL, "unable to mark drvinfo as dirty")
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
