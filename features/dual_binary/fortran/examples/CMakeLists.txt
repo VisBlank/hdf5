@@ -50,6 +50,20 @@ foreach (example ${examples})
       LINKER_LANGUAGE Fortran
       FOLDER examples/fortran
   )
+  if (BUILD_SHARED_LIBS)
+    add_executable (f90_ex_${example}-shared ${HDF5_F90_EXAMPLES_SOURCE_DIR}/${example}.f90)
+    TARGET_NAMING (f90_ex_${example}-shared SHARED)
+    TARGET_FORTRAN_PROPERTIES (f90_ex_${example}-shared SHARED " " " ")
+    target_link_libraries (f90_ex_${example}-shared
+        ${HDF5_F90_LIBSH_TARGET}
+        ${HDF5_LIBSH_TARGET}
+    )
+    set_target_properties (f90_ex_${example}-shared PROPERTIES
+        LINKER_LANGUAGE Fortran
+        FOLDER examples/fortran
+        Fortran_MODULE_DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}/shared
+    )
+  endif (BUILD_SHARED_LIBS)
 endforeach (example ${examples})
 
 if (HDF5_ENABLE_F2003)
@@ -65,6 +79,20 @@ if (HDF5_ENABLE_F2003)
         LINKER_LANGUAGE Fortran
         FOLDER examples/fortran03
     )
+    if (BUILD_SHARED_LIBS)
+      add_executable (f03_ex_${example}-shared ${HDF5_F90_EXAMPLES_SOURCE_DIR}/${example}.f90)
+      TARGET_NAMING (f03_ex_${example}-shared SHARED)
+      TARGET_FORTRAN_PROPERTIES (f03_ex_${example}-shared SHARED " " " ")
+      target_link_libraries (f03_ex_${example}-shared
+          ${HDF5_F90_LIBSH_TARGET}
+          ${HDF5_LIBSH_TARGET}
+      )
+      set_target_properties (f03_ex_${example}-shared PROPERTIES
+          LINKER_LANGUAGE Fortran
+          FOLDER examples/fortran03
+          Fortran_MODULE_DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}/shared
+      )
+    endif (BUILD_SHARED_LIBS)
   endforeach (example ${F2003_examples})
 endif (HDF5_ENABLE_F2003)
 
@@ -81,6 +109,21 @@ if (H5_HAVE_PARALLEL AND MPI_Fortran_FOUND)
       LINKER_LANGUAGE Fortran
       FOLDER examples/fortran
   )
+  if (BUILD_SHARED_LIBS)
+    add_executable (f90_ex_ph5example-shared ${HDF5_F90_EXAMPLES_SOURCE_DIR}/ph5example.f90)
+    TARGET_NAMING (f90_ex_ph5example-shared SHARED)
+    TARGET_FORTRAN_PROPERTIES (f90_ex_ph5example-shared SHARED " " " ")
+    target_link_libraries (f90_ex_ph5example-shared
+        ${HDF5_F90_LIBSH_TARGET}
+        ${HDF5_LIBSH_TARGET}
+        ${MPI_Fortran_LIBRARIES}
+    )
+    set_target_properties (f90_ex_ph5example-shared PROPERTIES
+        LINKER_LANGUAGE Fortran
+        FOLDER examples/fortran
+        Fortran_MODULE_DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}/shared
+    )
+  endif (BUILD_SHARED_LIBS)
 endif (H5_HAVE_PARALLEL AND MPI_Fortran_FOUND)
 
 if (BUILD_TESTING)
