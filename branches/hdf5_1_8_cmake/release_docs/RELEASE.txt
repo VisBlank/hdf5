@@ -1,4 +1,4 @@
-HDF5 version 1.8.15-snap11 currently under development
+HDF5 version 1.8.15-snap12 currently under development
 ================================================================================
 
 INTRODUCTION
@@ -132,6 +132,29 @@ New Features
 
       (DER - 2015-02-26, HDFFV-9057, 7567, 9088, 7566)
 
+    - _POSIX_C_SOURCE, _GNU_SOURCE, and _BSD_SOURCE no longer exported to
+      h5cc and other compiler wrappers.
+
+      These definitions are not required for using API functions and may
+      conflict with user code requirements.
+
+      (DER - 2015-03-08, HDFFV-9152)
+
+    - Removed the --enable-filters option from configure.
+
+      This option allowed the user to disable selected internal filters,
+      presumably to make the library smaller. It has been removed since
+      it saved little space (the internal filters are small with respect
+      to the overall library size) and was not generally extendible to
+      the library at large due to the large number of #ifdefs that would
+      be required.
+
+      Note that this features applied to internal filters such as suffle
+      and n-bit, not external filters like gzip or szip. Those are still
+      enabled or disabled via their own configure options.
+
+      (DER - 2015-03-08, HDFFV-9086)
+
     Library
     -------
     - None
@@ -160,6 +183,7 @@ New Features
 
 Support for New Platforms, Languages, and Compilers
 ===================================================
+    - Support for Mac OS X Yosemeti 10.10 added (AKC - 2015/03/04, HDFFV-9007)
     - Support for AIX 6.1 added and AIX 5.3 is retired. (AKC - 2015/01/09)
 
 Bug Fixes since HDF5-1.8.14
@@ -257,7 +281,13 @@ Bug Fixes since HDF5-1.8.14
 
     High-Level APIs:
     ------
-    - None
+    - Suppress warnings from flex/bison-generated code.
+
+      Warning suppression #pragmas, etc. have been added to H5LTparse.c and
+      H5LTanalyze.c. We have no control over this code since it's created by
+      a generator.
+
+      (DER - 2015/03/08 - HDFFV-9149)
 
     Fortran High-Level APIs:
     ------
@@ -343,9 +373,13 @@ They are built with the configure process unless specified otherwise.
     64-bit    			  gfortran GNU Fortran (GCC) 4.8.2
     (swallow/kite)                Intel icc/icpc/ifort version 14.0.2
 
-    Mac OS X Mavericks 10.9.5     Apple clang/clang++ version 6.0 from Xcode 6.0.1
+    Mac OS X Mavericks 10.9.5     Apple clang/clang++ version 6.0 from Xcode 6.1.1
     64-bit    			  gfortran GNU Fortran (GCC) 4.8.2
     (wren)                        Intel icc/icpc/ifort version 14.0.2
+
+    Mac OS X Yosemeti 10.10.2     Apple clang/clang++ version 6.0 from Xcode 6.1.1
+    64-bit    			  gfortran GNU Fortran (GCC) 4.9.2
+    (osx1010dev)                  Intel icc/icpc/ifort version 15.0.1
 
 
 Tested Configuration Features Summary
@@ -372,7 +406,8 @@ Windows 8.1                             n        y/y    n        y    y     y
 Windows 8.1 x64                         n        y/y    n        y    y     y
 Mac OS X Lion 10.7.5 64-bit             n        y/y    n        y    y     y
 Mac OS X Mountain Lion 10.8.5 64-bit    n        y/y    n        y    y     y
-Mac OS X Mavericks 10.9.5 64-bit        n        y/y    n        y    y     ?
+Mac OS X Mavericks 10.9.5 64-bit        n        y/y    n        y    y     y
+Mac OS X Yosemeti 10.10.2 64-bit        n        y/y    n        y    y     y
 AIX 6.1 32- and 64-bit                  n        y/n    n        y    y     y
 CentOS 5.9 Linux 2.6.18-308 i686 GNU    y        y/y    y        y    y     y
 CentOS 5.9 Linux 2.6.18-308 i686 Intel  n        y/y    n        y    y     y
@@ -396,6 +431,7 @@ Windows 8.1 x64                            y       y         y         y
 Mac OS X Lion 10.7.5 64-bit                y       n         y         y        
 Mac OS X Mountain Lion 10.8.5 64-bit       y       n         y         y        
 Mac OS X Mavericks 10.9.5 64-bit           y       n         y         y
+Mac OS X Yosemeti 10.10.2 64-bit           y       n         y         y
 AIX 6.1 32- and 64-bit                     y       n         n         y        
 CentOS 5.9 Linux 2.6.18-308 i686 GNU       y       y         y         y        
 CentOS 5.9 Linux 2.6.18-308 i686 Intel     y       y         y         n        
