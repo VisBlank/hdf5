@@ -36,11 +36,24 @@
 #include "H5private.h"		/* Generic Functions			*/
 #include "H5Fprivate.h"		/* File access				*/
 
+#ifndef NDEBUG
 
 #define H5C_DO_SANITY_CHECKS		1
 #define H5C_DO_SLIST_SANITY_CHECKS	0
 #define H5C_DO_TAGGING_SANITY_CHECKS	1
 #define H5C_DO_EXTREME_SANITY_CHECKS	0
+
+#else /* NDEBUG */
+
+/* With rare execptions, the following defines should be set 
+ * to 0 if NDEBUG is defined 
+ */
+#define H5C_DO_SANITY_CHECKS		0
+#define H5C_DO_SLIST_SANITY_CHECKS	0
+#define H5C_DO_TAGGING_SANITY_CHECKS	0
+#define H5C_DO_EXTREME_SANITY_CHECKS	0
+
+#endif /* NDEBUG */
 
 /* Note: The memory sanity checks aren't going to work until I/O filters are
  *      changed to call a particular alloc/free routine for their buffers,
@@ -1223,16 +1236,12 @@ typedef herr_t (*H5C_log_flush_func_t)(H5C_t * cache_ptr,
  *
  ****************************************************************************/
 
-#ifndef NDEBUG
 #define H5C__H5C_CACHE_ENTRY_T_MAGIC		0x005CAC0A
 #define H5C__H5C_CACHE_ENTRY_T_BAD_MAGIC	0xDeadBeef
-#endif /* NDEBUG */
 
 typedef struct H5C_cache_entry_t
 {
-#ifndef NDEBUG
     uint32_t			magic;
-#endif /* NDEBUG */
     H5C_t *                     cache_ptr;
     haddr_t			addr;
     size_t			size;

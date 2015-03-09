@@ -1179,9 +1179,7 @@ H5C_create(size_t		      max_cache_size,
      * the fields.
      */
 
-#ifndef NDEBUG
     cache_ptr->magic 				= H5C__H5C_T_MAGIC;
-#endif /* NDEBUG */
 
     cache_ptr->flush_in_progress		= FALSE;
 
@@ -1301,10 +1299,8 @@ H5C_create(size_t		      max_cache_size,
     /* Set non-zero/FALSE/NULL fields for epoch markers */
     for ( i = 0; i < H5C__MAX_EPOCH_MARKERS; i++ )
     {
-#ifndef NDEBUG
         ((cache_ptr->epoch_markers)[i]).magic		 =
 					       H5C__H5C_CACHE_ENTRY_T_MAGIC;
-#endif /* NDEBUG */
         ((cache_ptr->epoch_markers)[i]).addr		 = (haddr_t)i;
         ((cache_ptr->epoch_markers)[i]).type		 = &epoch_marker_class;
     }
@@ -1336,9 +1332,8 @@ done:
             if ( cache_ptr->slist_ptr != NULL )
                 H5SL_close(cache_ptr->slist_ptr);
 
-#ifndef NDEBUG
             cache_ptr->magic = 0;
-#endif /* NDEBUG */
+
             cache_ptr = H5FL_FREE(H5C_t, cache_ptr);
 
         } /* end if */
@@ -2374,9 +2369,7 @@ H5C_get_cache_auto_resize_config(const H5C_t * cache_ptr,
     FUNC_ENTER_NOAPI(FAIL)
 
     if ( ( cache_ptr == NULL )
-#ifndef NDEBUG
         || ( cache_ptr->magic != H5C__H5C_T_MAGIC )
-#endif /* NDEBUG */
         ) {
 
         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad cache_ptr on entry.")
@@ -2427,9 +2420,7 @@ H5C_get_cache_size(H5C_t * cache_ptr,
     FUNC_ENTER_NOAPI(FAIL)
 
     if ( ( cache_ptr == NULL )
-#ifndef NDEBUG
         || ( cache_ptr->magic != H5C__H5C_T_MAGIC )
-#endif /* NDEBUG */
         ) {
 
         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad cache_ptr on entry.")
@@ -2486,9 +2477,7 @@ H5C_get_cache_hit_rate(H5C_t * cache_ptr, double * hit_rate_ptr)
     FUNC_ENTER_NOAPI(FAIL)
 
     if((cache_ptr == NULL )
-#ifndef NDEBUG
         || (cache_ptr->magic != H5C__H5C_T_MAGIC)
-#endif /* NDEBUG */
         )
         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad cache_ptr on entry.")
     if(hit_rate_ptr == NULL)
@@ -2561,9 +2550,7 @@ H5C_get_entry_status(const H5F_t *f,
      * invocation of HGOTO_ERROR to keep the compiler happy.
      */
     if ( ( cache_ptr == NULL )
-#ifndef NDEBUG
         || ( cache_ptr->magic != H5C__H5C_T_MAGIC )
-#endif /* NDEBUG */
         ) {
 
         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad cache_ptr on entry.")
@@ -2642,9 +2629,7 @@ H5C_get_evictions_enabled(const H5C_t *cache_ptr,
     FUNC_ENTER_NOAPI(FAIL)
 
     if ( ( cache_ptr == NULL )
-#ifndef NDEBUG
         || ( cache_ptr->magic != H5C__H5C_T_MAGIC )
-#endif /* NDEBUG */
         ) {
 
         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad cache_ptr on entry.")
@@ -2826,9 +2811,7 @@ H5C_insert_entry(H5F_t *             f,
             HGOTO_ERROR(H5E_CACHE, H5E_CANTINS, FAIL, "duplicate entry in cache.")
     } /* end if */
 
-#ifndef NDEBUG
     entry_ptr->magic = H5C__H5C_CACHE_ENTRY_T_MAGIC;
-#endif /* NDEBUG */
     entry_ptr->cache_ptr = cache_ptr;
     entry_ptr->addr  = addr;
     entry_ptr->type  = type;
@@ -4309,9 +4292,7 @@ H5C_reset_cache_hit_rate_stats(H5C_t * cache_ptr)
     FUNC_ENTER_NOAPI(FAIL)
 
     if ( ( cache_ptr == NULL )
-#ifndef NDEBUG
         || ( cache_ptr->magic != H5C__H5C_T_MAGIC )
-#endif /* NDEBUG */
         ) {
 
         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad cache_ptr on entry.")
@@ -4358,9 +4339,7 @@ H5C_set_cache_auto_resize_config(H5C_t *cache_ptr,
     FUNC_ENTER_NOAPI(FAIL)
 
     if ( ( cache_ptr == NULL )
-#ifndef NDEBUG
         || ( cache_ptr->magic != H5C__H5C_T_MAGIC )
-#endif /* NDEBUG */
         ) {
 
         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad cache_ptr on entry.")
@@ -4636,9 +4615,7 @@ H5C_set_evictions_enabled(H5C_t *cache_ptr,
     FUNC_ENTER_NOAPI(FAIL)
 
     if ( ( cache_ptr == NULL )
-#ifndef NDEBUG
         || ( cache_ptr->magic != H5C__H5C_T_MAGIC )
-#endif /* NDEBUG */
         ) {
 
         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad cache_ptr on entry.")
@@ -4694,9 +4671,7 @@ H5C_set_prefix(H5C_t * cache_ptr, char * prefix)
     FUNC_ENTER_NOAPI(FAIL)
 
     if ( ( cache_ptr == NULL ) ||
-#ifndef NDEBUG
          ( cache_ptr->magic != H5C__H5C_T_MAGIC ) ||
-#endif /* NDEBUG */
          ( prefix == NULL ) ||
          ( HDstrlen(prefix) >= H5C__PREFIX_LEN ) ) {
 
@@ -4741,9 +4716,7 @@ H5C_set_trace_file_ptr(H5C_t * cache_ptr,
      * call to shut up the compiler.
      */
     if ( ( ! cache_ptr )
-#ifndef NDEBUG
         || ( cache_ptr->magic != H5C__H5C_T_MAGIC )
-#endif /* NDEBUG */
         ) {
 
         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad cache_ptr")
@@ -4832,9 +4805,7 @@ H5C_stats(H5C_t * cache_ptr,
      * call to shut up the compiler.
      */
     if ( ( ! cache_ptr ) ||
-#ifndef NDEBUG
          ( cache_ptr->magic != H5C__H5C_T_MAGIC ) ||
-#endif /* NDEBUG */
          ( !cache_name ) ) {
 
         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad cache_ptr or cache_name")
@@ -7316,7 +7287,6 @@ H5C__autoadjust__ageout__evict_aged_out_entries(H5F_t * f,
             }
 
             if ( prev_ptr != NULL ) {
-#ifndef NDEBUG
                 if ( prev_ptr->magic != H5C__H5C_CACHE_ENTRY_T_MAGIC ) {
 
                     /* something horrible has happened to *prev_ptr --
@@ -7326,7 +7296,6 @@ H5C__autoadjust__ageout__evict_aged_out_entries(H5F_t * f,
                                 "*prev_ptr corrupt")
 
                 } else
-#endif /* NDEBUG */
 		if ( ( prev_ptr->is_dirty != prev_is_dirty )
                          ||
                          ( prev_ptr->next != next_ptr )
@@ -8312,9 +8281,7 @@ H5C_flush_invalidate_cache(const H5F_t * f,
                 while ( next_entry_ptr != NULL )
                 {
                     entry_ptr = next_entry_ptr;
-#ifndef NDEBUG
                     HDassert( entry_ptr->magic == H5C__H5C_CACHE_ENTRY_T_MAGIC );
-#endif /* NDEBUG */
 
                     next_entry_ptr = entry_ptr->ht_next;
                     HDassert ( ( next_entry_ptr == NULL ) ||
@@ -8384,7 +8351,6 @@ H5C_flush_invalidate_cache(const H5F_t * f,
                      * of dynamically allocated memory, so we just scream and
                      * die.
                      */
-#ifndef NDEBUG
                     if ( ( next_entry_ptr != NULL ) &&
                          ( next_entry_ptr->magic !=
                            H5C__H5C_CACHE_ENTRY_T_MAGIC ) ) {
@@ -8395,7 +8361,6 @@ H5C_flush_invalidate_cache(const H5F_t * f,
                         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
                                     "next_entry_ptr->magic is invalid?!?!?.")
                     }
-#endif /* NDEBUG */
                 } /* end while loop scanning hash table bin */
             } /* end for loop scanning hash table */
 
@@ -9214,13 +9179,11 @@ H5C_flush_single_entry(const H5F_t *	   f,
                     }
                 }
 
-#ifndef NDEBUG
                 /* we are about to discard the in core representation --
                  * set the magic field to bad magic so we can detect a
                  * freed entry if we see one.
                  */
 	        entry_ptr->magic = H5C__H5C_CACHE_ENTRY_T_BAD_MAGIC;
-#endif /* NDEBUG */
 
 
                 /* verify that the image has been freed */
@@ -9236,13 +9199,11 @@ H5C_flush_single_entry(const H5F_t *	   f,
             {
                 HDassert(take_ownership);
 
-#ifndef NDEBUG
                 /* client is taking ownership of the entry.
                  * set bad magic here too so the cache will choke 
                  * unless the entry is re-inserted properly
                  */
 	        entry_ptr->magic = H5C__H5C_CACHE_ENTRY_T_BAD_MAGIC;
-#endif /* NDEBUG */
             }
         } /* if ( destroy ) */
     }
@@ -9447,9 +9408,7 @@ H5C_load_entry(H5F_t *             f,
          * chance that we had to re-try the deserialization.
          */
         entry = (H5C_cache_entry_t *)thing;
-#ifndef NDEBUG
         entry->magic = H5C__H5C_CACHE_ENTRY_T_MAGIC;
-#endif /* NDEBUG */
         entry->type  = type;
 
         /* Get the actual image size for the thing */
@@ -9508,9 +9467,8 @@ H5C_load_entry(H5F_t *             f,
                      * two other fields before the call to free_icr
                      * so as to avoid sanity check failures.
                      */
-#ifndef NDEBUG
                     entry->magic = H5C__H5C_CACHE_ENTRY_T_BAD_MAGIC;
-#endif /* NDEBUG */
+
                     entry->addr  = addr;
 
                     if ( type->free_icr(thing) < 0 )
@@ -9587,9 +9545,7 @@ H5C_load_entry(H5F_t *             f,
      */
 
     HDassert( ( dirty == FALSE ) || ( type->id == 5 || type->id == 6) );
-#ifndef NDEBUG
     entry->magic                = H5C__H5C_CACHE_ENTRY_T_MAGIC;
-#endif /* NDEBUG */
     entry->cache_ptr            = f->shared->cache;
     entry->addr                 = addr;
     entry->size                 = len;
@@ -9847,7 +9803,7 @@ H5C_make_space_in_cache(H5F_t *	f,
             }
 
 	    if ( prev_ptr != NULL ) {
-#ifndef NDEBUG
+
 		if ( prev_ptr->magic != H5C__H5C_CACHE_ENTRY_T_MAGIC ) {
 
 		    /* something horrible has happened to *prev_ptr --
@@ -9857,7 +9813,7 @@ H5C_make_space_in_cache(H5F_t *	f,
 				"*prev_ptr corrupt 1")
 
                 }
-#endif /* NDEBUG */
+
 		if ( didnt_flush_entry ) {
 
 		    /* epoch markers don't get flushed, and we don't touch 
