@@ -9348,9 +9348,19 @@ H5C_load_entry(H5F_t *             f,
 #else /* modified code */ /* JRM */
 
         haddr_t eoa;                /* End-of-allocation in the file */
+        H5FD_mem_t  cooked_type;
+
+	/* if type == H5FD_MEM_GHEAP, H5F_block_read() forces 
+         * type to H5FD_MEM_DRAW via its call to H5F__accum_read().
+         * Thus we do the same for purposes of computing the eoa
+         * for sanity checks.
+         */
+        cooked_type = 
+            (type->mem_type == H5FD_MEM_GHEAP) ? H5FD_MEM_DRAW : type->mem_type;
 
         /* Get the file's end-of-allocation value */
-        eoa = H5F_get_eoa(f, type->mem_type);
+        eoa = H5F_get_eoa(f, cooked_type);
+
         HDassert(H5F_addr_defined(eoa));
 
         /* Check for bad address in general */

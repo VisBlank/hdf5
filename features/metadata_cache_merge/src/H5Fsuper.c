@@ -448,9 +448,8 @@ H5F__super_read(H5F_t *f, hid_t dxpl_id)
         /* Loading the driver info block is enough to set up the right info */
 
         /* Check if we need to rewrite the driver info block info */
-        if(H5F_HAS_FEATURE(f, H5FD_FEAT_DIRTY_DRVRINFO_LOAD)) {
-
-            HDassert((rw_flags & H5AC__READ_ONLY_FLAG) == 0);
+        if ( ( (rw_flags & H5AC__READ_ONLY_FLAG) == 0 ) &&
+             ( H5F_HAS_FEATURE(f, H5FD_FEAT_DIRTY_DRVRINFO_LOAD) ) ) {
 
             drvinfo_flags |= H5AC__DIRTIED_FLAG;
         } /* end if */
