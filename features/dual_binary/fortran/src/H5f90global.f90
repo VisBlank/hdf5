@@ -45,6 +45,10 @@ MODULE H5GLOBAL
   USE H5FORTRAN_TYPES
 
   IMPLICIT NONE
+  !DEC$if defined(BUILD_HDF5_DLL)
+  !DEC$ATTRIBUTES DLLEXPORT :: H5D_ALLOC_TIME_DEFAULT_F
+  !DEC$endif
+
 
   ! Definitions for reference datatypes.
   ! If you change the value of these parameters, do not forget to change corresponding
