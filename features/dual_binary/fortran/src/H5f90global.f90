@@ -78,7 +78,7 @@ MODULE H5GLOBAL
   ! integer data types are added
   INTEGER, PARAMETER :: INTEGER_TYPES_LEN = 27
 
-  INTEGER(HID_T), VOLATILE :: H5T_NATIVE_INTEGER_1, &
+  INTEGER(HID_T) :: H5T_NATIVE_INTEGER_1, &
        H5T_NATIVE_INTEGER_2, &
        H5T_NATIVE_INTEGER_4, &
        H5T_NATIVE_INTEGER_8, &
@@ -113,7 +113,7 @@ MODULE H5GLOBAL
 !       continuation lines to 39; the F03/F08 standard limits the number 
 !       to 255 lines.
 
-  INTEGER(HID_T), VOLATILE :: H5T_STD_U32LE,   &
+  INTEGER(HID_T) :: H5T_STD_U32LE,   &
        H5T_STD_U64BE,   &
        H5T_STD_U64LE,   &
        H5T_STRING,      &
@@ -133,7 +133,7 @@ MODULE H5GLOBAL
        H5T_C_S1
 
 
-  INTEGER(HID_T), DIMENSION(PREDEF_TYPES_LEN) :: predef_types
+  INTEGER(HID_T), VOLATILE, DIMENSION(PREDEF_TYPES_LEN) :: predef_types
   EQUIVALENCE (predef_types(1), H5T_NATIVE_INTEGER)
   EQUIVALENCE (predef_types(2), H5T_NATIVE_REAL)
   EQUIVALENCE (predef_types(3), H5T_NATIVE_DOUBLE)
@@ -152,13 +152,13 @@ MODULE H5GLOBAL
   EQUIVALENCE (predef_types(16), H5T_NATIVE_B32)
   EQUIVALENCE (predef_types(17), H5T_NATIVE_B64)  
 
-  INTEGER(HID_T), DIMENSION(FLOATING_TYPES_LEN) :: floating_types
+  INTEGER(HID_T), VOLATILE, DIMENSION(FLOATING_TYPES_LEN) :: floating_types
   EQUIVALENCE (floating_types(1), H5T_IEEE_F32BE )
   EQUIVALENCE (floating_types(2), H5T_IEEE_F32LE)
   EQUIVALENCE (floating_types(3), H5T_IEEE_F64BE)
   EQUIVALENCE (floating_types(4), H5T_IEEE_F64LE)
 
-  INTEGER(HID_T), DIMENSION(INTEGER_TYPES_LEN) :: integer_types
+  INTEGER(HID_T), VOLATILE, DIMENSION(INTEGER_TYPES_LEN) :: integer_types
   EQUIVALENCE (integer_types(1), H5T_STD_I8BE )
   EQUIVALENCE (integer_types(2), H5T_STD_I8LE)
   EQUIVALENCE (integer_types(3), H5T_STD_I16BE)
