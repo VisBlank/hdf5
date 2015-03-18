@@ -58,6 +58,11 @@ CONTAINS
 !  Elena Pourmal
 !  August 12, 1999
 !
+! NOTES
+!  The size of the C arrays in H5_f.c has to match the values of the variables
+!  declared as PARAMETER, hence if the size of an array in H5_f.c is changed
+!  then the PARAMETER of that corresponding array in Fortran must also be changed.
+!
 ! HISTORY
 !  Explicit Fortran interfaces were added for
 !  called C functions (it is needed for Windows
@@ -147,7 +152,7 @@ CONTAINS
     INTEGER, PARAMETER :: H5S_FLAGS_LEN = 19
     INTEGER :: H5S_flags(H5S_FLAGS_LEN)
     INTEGER, PARAMETER :: H5S_HSIZE_FLAGS_LEN = 1
-    INTEGER(HSIZE_T) H5S_hsize_flags(H5S_HSIZE_FLAGS_LEN)
+    INTEGER(HSIZE_T) :: H5S_hsize_flags(H5S_HSIZE_FLAGS_LEN)
     !
     ! H5T flags declaration
     !

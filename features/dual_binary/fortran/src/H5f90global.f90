@@ -55,8 +55,8 @@ MODULE H5GLOBAL
   ! The flag is used to tell the function whether the kind input variable
   ! is for a REAL or INTEGER data type.
 
-  INTEGER, PARAMETER :: H5_REAL_KIND = 1
   INTEGER, PARAMETER :: H5_INTEGER_KIND = 0
+  INTEGER, PARAMETER :: H5_REAL_KIND    = 1
 
   TYPE :: hobj_ref_t_f
      INTEGER(HADDR_T) ref
