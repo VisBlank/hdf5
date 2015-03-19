@@ -233,19 +233,23 @@
 
 #else
   #define H5_DLL
-  #define H5_HLDLL
-  #define H5_HLCPPDLL
-  #define HDF5_HL_F90CSTUBDLL
   #define H5_DLLVAR extern
-  #define H5_DLLCPP
   #define H5TEST_DLL
   #define H5TEST_DLLVAR extern
   #define H5TOOLS_DLL
   #define H5TOOLS_DLLVAR extern
+  #define H5_DLLCPP
+  #define H5_DLLCPPVAR extern
+  #define H5_HLDLL
+  #define H5_HLDLLVAR extern
+  #define H5_HLCPPDLL
+  #define H5_HLCPPDLLVAR extern
   #define H5_FCDLL
   #define H5_FCDLLVAR extern
   #define H5_FCTESTDLL
   #define H5_FCTESTDLLVAR extern
+  #define HDF5_HL_F90CSTUBDLL
+  #define HDF5_HL_F90CSTUBDLLVAR extern
 #endif /* H5_BUILT_AS_DYNAMIC_LIB */
 
 #endif /* H5API_ADPT_H */
