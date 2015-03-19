@@ -653,44 +653,15 @@ AC_SUBST([RUNPARALLEL])
 AC_SUBST([TESTPARALLEL])
 
 ## ----------------------------------------------------------------------
-## Fortran libraries are not currently supported on Mac. Disable them.
-## (this is overridable with --enable-unsupported).
+## Check for Fortran shared libraries.
 ##
 AC_SUBST([H5_FORTRAN_SHARED])
 H5_FORTRAN_SHARED="no"
 if test "X${HDF_FORTRAN}" = "Xyes" && test "X${enable_shared}" != "Xno"; then
   AC_MSG_CHECKING([if shared Fortran libraries are supported])
   H5_FORTRAN_SHARED="yes"
-
-  ## Disable fortran shared libraries on Mac. (MAM - 03/30/11)
-  
-  case "`uname`" in
-    Darwin*)
-    H5_FORTRAN_SHARED="no"
-    CHECK_WARN="Shared Fortran libraries not currently supported on Mac."
-      ;;
-  esac
-
-  ## Report results of check(s)
-  
-  if test "X${H5_FORTRAN_SHARED}" = "Xno"; then
-    AC_MSG_RESULT([no])
-    AC_MSG_WARN([$CHECK_WARN])
-    if test "X${ALLOW_UNSUPPORTED}" != "Xyes"; then
-      AC_MSG_WARN([Disabling shared Fortran libraries.])
-      AC_MSG_WARN([To override this behavior, please use --enable-unsupported configure option.])
-        if test "X${enable_static}" = "Xno"; then
-          AC_MSG_ERROR([both static and shared Fortran libraries are disabled])
-        fi
-    else
-      AC_MSG_WARN([Allowing unsupported Fortran shared libraries due to use of --enable-unsupported flag])
-      H5_FORTRAN_SHARED="yes"
-    fi
-  else
-    AC_MSG_RESULT([yes])
-  fi
+  AC_MSG_RESULT([yes])
 fi
-
 AM_CONDITIONAL([FORTRAN_SHARED_CONDITIONAL], [test "X$H5_FORTRAN_SHARED" = "Xyes"])
 
 ## ----------------------------------------------------------------------
@@ -2585,29 +2556,6 @@ case "`uname`" in
     AC_MSG_RESULT([no])
     ;;
 esac
-
-## -----------------------------------------------------------------------
-## Set flag to indicate that the machine can handle conversion from 
-## long double to integers accurately.  This flag should be set "yes" for 
-## all machines except all SGIs.  For SGIs, some conversions are
-## incorrect and its cache value is set "no" in its config/irix6.x and 
-## irix5.x.
-##
-AC_MSG_CHECKING([if converting from long double to integers is accurate])
-
-if test ${ac_cv_sizeof_long_double} = 0; then
-   hdf5_cv_ldouble_to_integer_accurate=${hdf5_cv_ldouble_to_integer_accurate=no}
-else
-   AC_CACHE_VAL([hdf5_cv_ldouble_to_integer_accurate], [hdf5_cv_ldouble_to_integer_accurate=yes])
-fi
-
-if test "${hdf5_cv_ldouble_to_integer_accurate}" = "yes"; then
-  AC_DEFINE([LDOUBLE_TO_INTEGER_ACCURATE], [1],
-            [Define if your system can convert long double to integers accurately.])
-  AC_MSG_RESULT([yes])
-else
-  AC_MSG_RESULT([no])
-fi
 
 ## -----------------------------------------------------------------------
 ## Set flag to indicate that the machine can do conversion from 
