@@ -1346,6 +1346,7 @@ H5D_open(const H5G_loc_t *loc, hid_t dapl_id, hid_t dxpl_id)
 
     } /* end else */
 
+    /* Set the dataset to return */
     ret_value = dataset;
 
 done:
@@ -2529,7 +2530,7 @@ H5D__set_extent(H5D_t *dset, const hsize_t *size, hid_t dxpl_id)
                     && (dset->shared->dcpl_cache.pline.nused > 0))
                 if(H5D__chunk_update_old_edge_chunks(dset, dxpl_id, curr_dims) < 0)
                     HGOTO_ERROR(H5E_DATASET, H5E_WRITEERROR, FAIL, "unable to do update old edge chunks")
-        } /* end if */
+	}
 
         /* Mark the dataspace as dirty, for later writing to the file */
         if(H5D__mark(dset, dxpl_id, H5D_MARK_SPACE) < 0)
