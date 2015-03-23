@@ -131,12 +131,6 @@ saved_user_FCFLAGS="$FCFLAGS"
 saved_user_LDFLAGS="$LDFLAGS"
 saved_user_CPPFLAGS="$CPPFLAGS"
 
-## Different compilers may need default libraries. They are specified in
-## the config/* files, so we put this statement here so that it'll be
-## set by the code which follows...
-##
-DEFAULT_LIBS=""
-
 ## Support F9X variable to define Fortran compiler if FC variable is
 ## not used.  This should be deprecated in the future.
 if test "x" = "x$FC"; then
@@ -254,12 +248,6 @@ case $host_os in
     ;;
   freebsd*)
     host_os_novers=freebsd
-    ;;
-  irix5.*)
-    host_os_novers=irix5.x
-    ;;
-  irix6.*)
-    host_os_novers=irix6.x
     ;;
   osf4.*)
     host_os_novers=osf4.x
@@ -653,15 +641,44 @@ AC_SUBST([RUNPARALLEL])
 AC_SUBST([TESTPARALLEL])
 
 ## ----------------------------------------------------------------------
-## Check for Fortran shared libraries.
+## Fortran libraries are not currently supported on Mac. Disable them.
+## (this is overridable with --enable-unsupported).
 ##
 AC_SUBST([H5_FORTRAN_SHARED])
 H5_FORTRAN_SHARED="no"
 if test "X${HDF_FORTRAN}" = "Xyes" && test "X${enable_shared}" != "Xno"; then
   AC_MSG_CHECKING([if shared Fortran libraries are supported])
   H5_FORTRAN_SHARED="yes"
-  AC_MSG_RESULT([yes])
+
+  ## Disable fortran shared libraries on Mac. (MAM - 03/30/11)
+  
+  case "`uname`" in
+    Darwin*)
+    H5_FORTRAN_SHARED="no"
+    CHECK_WARN="Shared Fortran libraries not currently supported on Mac."
+      ;;
+  esac
+
+  ## Report results of check(s)
+  
+  if test "X${H5_FORTRAN_SHARED}" = "Xno"; then
+    AC_MSG_RESULT([no])
+    AC_MSG_WARN([$CHECK_WARN])
+    if test "X${ALLOW_UNSUPPORTED}" != "Xyes"; then
+      AC_MSG_WARN([Disabling shared Fortran libraries.])
+      AC_MSG_WARN([To override this behavior, please use --enable-unsupported configure option.])
+        if test "X${enable_static}" = "Xno"; then
+          AC_MSG_ERROR([both static and shared Fortran libraries are disabled])
+        fi
+    else
+      AC_MSG_WARN([Allowing unsupported Fortran shared libraries due to use of --enable-unsupported flag])
+      H5_FORTRAN_SHARED="yes"
+    fi
+  else
+    AC_MSG_RESULT([yes])
+  fi
 fi
+
 AM_CONDITIONAL([FORTRAN_SHARED_CONDITIONAL], [test "X$H5_FORTRAN_SHARED" = "Xyes"])
 
 ## ----------------------------------------------------------------------
@@ -1006,7 +1023,7 @@ case "$host" in
     ## many problems with including them.
     AC_CHECK_HEADERS([sys/sysinfo.h sys/proc.h])
     ;;
-  mips*-sgi*-irix*)
+  mips*-sgi*)
     ## The <sys/fpu.h> is needed on the SGI machines to turn off
     ## denormalized floating-point values going to zero.  We do *not*
     ## attempt to locate these files on other systems because there
@@ -2560,9 +2577,7 @@ esac
 ## -----------------------------------------------------------------------
 ## Set flag to indicate that the machine can handle conversion from 
 ## integers to long double.  (This flag should be set "yes" for all 
-## machines except all SGIs, where some conversions are
-## incorrect and its cache value is set "no" in its config/irix6.x and 
-## irix5.x) 
+## machines except all SGIs, where some conversions are incorrect) 
 ##
 AC_MSG_CHECKING([if accurately converting from integers to long double])
 
@@ -2633,8 +2648,7 @@ fi
 ## ----------------------------------------------------------------------
 ## Set the flag to indicate that the machine can accurately convert
 ## 'unsigned (long) long' values to 'float' and 'double' values.
-## (This flag should be set for all machines, except for the SGIs, where
-## the cache value is set in the config/irix6.x config file) and Solaris
+## (This flag should be set for all machines, except for the SGIs) and Solaris
 ## 64-bit machines, where the short program below tests if round-up is 
 ## correctly handled.
 ##
@@ -3305,7 +3319,7 @@ fi
 
 ## ----------------------------------------------------------------------
 ## Set some variables for general configuration information to be saved
-## and installed with the libraries.
+## and installed with the libraries (used to generate libhdf5.settings).
 ##
 
 ## HDF5 version from the first line of the README.txt file.
@@ -3414,53 +3428,6 @@ else
   pwd=pwd
 fi
 AC_SUBST([ROOT]) ROOT="`$pwd`"
-
-## ----------------------------------------------------------------------
-## Move any compiler-specific libraries into the main LIBS varaible.
-## 
-LIBS="$DEFAULT_LIBS $LIBS"
-
-## ----------------------------------------------------------------------
-## Determine the runtime libraries we may need to include in the
-## libtools command so that executables will find the correct dynamic
-## libraries.
-## 
-AC_SUBST([DYNAMIC_DIRS]) DYNAMIC_DIRS=""
-
-if test -n "$AM_LDFLAGS $LDFLAGS"; then
-  for d in $AM_LDFLAGS $LDFLAGS ; do
-    case "$d" in
-      -L*)
-        d="`echo $d | sed -e 's/-L//g'`"
-        case "$d" in
-          .*)
-            ## If the path isn't absolute, make it so by
-            ## prepending the ROOT directory to it.
-            d=${ROOT}/$d
-            ;;
-        esac
-        DYNAMIC_DIRS="-R${d} $DYNAMIC_DIRS"
-        ;;
-    esac
-  done
-fi
-
-if test -n "$AM_CPPFLAGS"; then
-  TEMP_CPPFLAGS=""
-  for d in $AM_CPPFLAGS ; do
-    case "$d" in
-      -I.*)
-        ## If the path isn't absolute, make it so by prepending
-        ## the ROOT directory to it.
-        d="`echo $d | sed -e 's/-I//g'`"
-        d="-I${ROOT}/${d}"
-        ;;
-    esac
-    TEMP_CPPFLAGS="$d $TEMP_CPPFLAGS"
-  done
-  AM_CPPFLAGS=$TEMP_CPPFLAGS
-fi
-
 
 ## ----------------------------------------------------------------------
 ## Some programs shouldn't be built by default (e.g., programs to generate
@@ -3671,14 +3638,6 @@ AC_SUBST([SEARCH]) SEARCH='$(srcdir) $(top_builddir)/src $(top_srcdir)/src'
 cmd='echo $SEARCH |sed "s/ /'$SEARCH_SEP'/g"'
 SEARCH="$SEARCH_RULE`eval $cmd`"
 export SEARCH
-
-## We don't need to say when we're entering directories if we're using
-## GNU make because make does it for us.
-if test "X$GMAKE" = "Xyes"; then
-  AC_SUBST([SETX]) SETX=":"
-else
-  AC_SUBST([SETX]) SETX="set -x"
-fi
 
 ## Some cleanup stuff
 rm -f conftest conftest.o conftest.c dummy.o *.mod

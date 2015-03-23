@@ -640,7 +640,6 @@ LTLIBOBJS
 LIBOBJS
 HAVE_SHARED_CONDITIONAL_FALSE
 HAVE_SHARED_CONDITIONAL_TRUE
-SETX
 SEARCH
 BUILD_HDF5_HL_CONDITIONAL_FALSE
 BUILD_HDF5_HL_CONDITIONAL_TRUE
@@ -655,7 +654,6 @@ DEFAULT_API_VERSION
 DEPRECATED_SYMBOLS
 BUILD_ALL_CONDITIONAL_FALSE
 BUILD_ALL_CONDITIONAL_TRUE
-DYNAMIC_DIRS
 ROOT
 CXX_VERSION
 FC_VERSION
@@ -3851,12 +3849,6 @@ saved_user_FCFLAGS="$FCFLAGS"
 saved_user_LDFLAGS="$LDFLAGS"
 saved_user_CPPFLAGS="$CPPFLAGS"
 
-## Different compilers may need default libraries. They are specified in
-## the config/* files, so we put this statement here so that it'll be
-## set by the code which follows...
-##
-DEFAULT_LIBS=""
-
 ## Support F9X variable to define Fortran compiler if FC variable is
 ## not used.  This should be deprecated in the future.
 if test "x" = "x$FC"; then
@@ -3988,12 +3980,6 @@ case $host_os in
     ;;
   freebsd*)
     host_os_novers=freebsd
-    ;;
-  irix5.*)
-    host_os_novers=irix5.x
-    ;;
-  irix6.*)
-    host_os_novers=irix6.x
     ;;
   osf4.*)
     host_os_novers=osf4.x
@@ -7710,7 +7696,8 @@ fi
 
 
 ## ----------------------------------------------------------------------
-## Check for Fortran shared libraries.
+## Fortran libraries are not currently supported on Mac. Disable them.
+## (this is overridable with --enable-unsupported).
 ##
 
 H5_FORTRAN_SHARED="no"
@@ -7718,9 +7705,42 @@ if test "X${HDF_FORTRAN}" = "Xyes" && test "X${enable_shared}" != "Xno"; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if shared Fortran libraries are supported" >&5
 $as_echo_n "checking if shared Fortran libraries are supported... " >&6; }
   H5_FORTRAN_SHARED="yes"
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+
+  ## Disable fortran shared libraries on Mac. (MAM - 03/30/11)
+
+  case "`uname`" in
+    Darwin*)
+    H5_FORTRAN_SHARED="no"
+    CHECK_WARN="Shared Fortran libraries not currently supported on Mac."
+      ;;
+  esac
+
+  ## Report results of check(s)
+
+  if test "X${H5_FORTRAN_SHARED}" = "Xno"; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $CHECK_WARN" >&5
+$as_echo "$as_me: WARNING: $CHECK_WARN" >&2;}
+    if test "X${ALLOW_UNSUPPORTED}" != "Xyes"; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Disabling shared Fortran libraries." >&5
+$as_echo "$as_me: WARNING: Disabling shared Fortran libraries." >&2;}
+      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: To override this behavior, please use --enable-unsupported configure option." >&5
+$as_echo "$as_me: WARNING: To override this behavior, please use --enable-unsupported configure option." >&2;}
+        if test "X${enable_static}" = "Xno"; then
+          as_fn_error $? "both static and shared Fortran libraries are disabled" "$LINENO" 5
+        fi
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Allowing unsupported Fortran shared libraries due to use of --enable-unsupported flag" >&5
+$as_echo "$as_me: WARNING: Allowing unsupported Fortran shared libraries due to use of --enable-unsupported flag" >&2;}
+      H5_FORTRAN_SHARED="yes"
+    fi
+  else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
+  fi
 fi
+
  if test "X$H5_FORTRAN_SHARED" = "Xyes"; then
   FORTRAN_SHARED_CONDITIONAL_TRUE=
   FORTRAN_SHARED_CONDITIONAL_FALSE='#'
@@ -22629,7 +22649,7 @@ fi
 done
 
     ;;
-  mips*-sgi*-irix*)
+  mips*-sgi*)
     ## The <sys/fpu.h> is needed on the SGI machines to turn off
     ## denormalized floating-point values going to zero.  We do *not*
     ## attempt to locate these files on other systems because there
@@ -28133,9 +28153,7 @@ esac
 ## -----------------------------------------------------------------------
 ## Set flag to indicate that the machine can handle conversion from
 ## integers to long double.  (This flag should be set "yes" for all
-## machines except all SGIs, where some conversions are
-## incorrect and its cache value is set "no" in its config/irix6.x and
-## irix5.x)
+## machines except all SGIs, where some conversions are incorrect)
 ##
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking if accurately converting from integers to long double" >&5
 $as_echo_n "checking if accurately converting from integers to long double... " >&6; }
@@ -28241,8 +28259,7 @@ fi
 ## ----------------------------------------------------------------------
 ## Set the flag to indicate that the machine can accurately convert
 ## 'unsigned (long) long' values to 'float' and 'double' values.
-## (This flag should be set for all machines, except for the SGIs, where
-## the cache value is set in the config/irix6.x config file) and Solaris
+## (This flag should be set for all machines, except for the SGIs) and Solaris
 ## 64-bit machines, where the short program below tests if round-up is
 ## correctly handled.
 ##
@@ -29205,7 +29222,7 @@ fi
 
 ## ----------------------------------------------------------------------
 ## Set some variables for general configuration information to be saved
-## and installed with the libraries.
+## and installed with the libraries (used to generate libhdf5.settings).
 ##
 
 ## HDF5 version from the first line of the README.txt file.
@@ -29314,53 +29331,6 @@ else
   pwd=pwd
 fi
  ROOT="`$pwd`"
-
-## ----------------------------------------------------------------------
-## Move any compiler-specific libraries into the main LIBS varaible.
-##
-LIBS="$DEFAULT_LIBS $LIBS"
-
-## ----------------------------------------------------------------------
-## Determine the runtime libraries we may need to include in the
-## libtools command so that executables will find the correct dynamic
-## libraries.
-##
- DYNAMIC_DIRS=""
-
-if test -n "$AM_LDFLAGS $LDFLAGS"; then
-  for d in $AM_LDFLAGS $LDFLAGS ; do
-    case "$d" in
-      -L*)
-        d="`echo $d | sed -e 's/-L//g'`"
-        case "$d" in
-          .*)
-            ## If the path isn't absolute, make it so by
-            ## prepending the ROOT directory to it.
-            d=${ROOT}/$d
-            ;;
-        esac
-        DYNAMIC_DIRS="-R${d} $DYNAMIC_DIRS"
-        ;;
-    esac
-  done
-fi
-
-if test -n "$AM_CPPFLAGS"; then
-  TEMP_CPPFLAGS=""
-  for d in $AM_CPPFLAGS ; do
-    case "$d" in
-      -I.*)
-        ## If the path isn't absolute, make it so by prepending
-        ## the ROOT directory to it.
-        d="`echo $d | sed -e 's/-I//g'`"
-        d="-I${ROOT}/${d}"
-        ;;
-    esac
-    TEMP_CPPFLAGS="$d $TEMP_CPPFLAGS"
-  done
-  AM_CPPFLAGS=$TEMP_CPPFLAGS
-fi
-
 
 ## ----------------------------------------------------------------------
 ## Some programs shouldn't be built by default (e.g., programs to generate
@@ -29669,14 +29639,6 @@ fi
 cmd='echo $SEARCH |sed "s/ /'$SEARCH_SEP'/g"'
 SEARCH="$SEARCH_RULE`eval $cmd`"
 export SEARCH
-
-## We don't need to say when we're entering directories if we're using
-## GNU make because make does it for us.
-if test "X$GMAKE" = "Xyes"; then
-   SETX=":"
-else
-   SETX="set -x"
-fi
 
 ## Some cleanup stuff
 rm -f conftest conftest.o conftest.c dummy.o *.mod
