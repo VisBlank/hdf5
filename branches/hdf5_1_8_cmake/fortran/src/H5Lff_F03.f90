@@ -70,8 +70,7 @@ MODULE H5L_PROVISIONAL
 !     	H5L_TYPE_ERROR 	Error 
 !cset specifies the character set in which the link name is encoded. Valid values include the following:
 !     	H5T_CSET_ASCII 	US ASCII
-!     	H5T_CSET_UTF8     	UTF-8 Unicode encoding
-
+!     	H5T_CSET_UTF8     	UTF-8 Unicode encoding 
 
 CONTAINS
 

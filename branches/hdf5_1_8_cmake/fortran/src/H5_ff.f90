@@ -72,7 +72,7 @@ CONTAINS
     IMPLICIT NONE
     INTEGER, INTENT(OUT) :: error
 !*****
-    INTEGER :: error_1, error_2, error_3
+    INTEGER ::  error_1, error_2, error_3
 
     INTERFACE
        INTEGER FUNCTION h5init_types_c(p_types, f_types, i_types)
@@ -367,11 +367,11 @@ CONTAINS
 !
 ! Inputs:
 !  kind    - Fortran KIND parameter
-!  flag    - whether KIND is of type INTEGER or REAL:
+!  flag    - Whether KIND is of type INTEGER or REAL:
 !              H5_INTEGER_KIND - integer
 !              H5_REAL_KIND    - real
 ! Outputs:
-!  h5_type - returns the type
+!  h5_type - Returns the type
 !
 ! AUTHOR
 !  M. Scot Breitenfeld
