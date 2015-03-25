@@ -391,17 +391,6 @@ install (
         fortheaders
 )
 
-if (H5_TEST_KIND_NAME)
-  install (
-      FILES
-          ${MOD_BUILD_DIR}/${H5_TEST_KIND_NAME}.mod
-      DESTINATION
-          ${HDF5_INSTALL_INCLUDE_DIR}
-      COMPONENT
-          fortheaders
-  )
-endif (H5_TEST_KIND_NAME)
-
 #-----------------------------------------------------------------------------
 # Add Target(s) to CMake Install for import into other projects
 #-----------------------------------------------------------------------------
