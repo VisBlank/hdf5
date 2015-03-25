@@ -8,8 +8,12 @@ INCLUDE_DIRECTORIES (
     ${HDF5_HL_SRC_DIR}/src
     ${HDF5_F90_SRC_DIR}/src
     ${HDF5_F90_BINARY_DIR}
-    ${CMAKE_Fortran_MODULE_DIRECTORY}
 )
+if (BUILD_SHARED_LIBS)
+  INCLUDE_DIRECTORIES (${CMAKE_Fortran_MODULE_DIRECTORY}/shared)
+else (BUILD_SHARED_LIBS)
+  INCLUDE_DIRECTORIES (${CMAKE_Fortran_MODULE_DIRECTORY}/static)
+endif (BUILD_SHARED_LIBS)
 
 #-----------------------------------------------------------------------------
 # hl_f90CStub lib
@@ -73,6 +77,7 @@ set_target_properties (${HDF5_HL_F90_LIB_TARGET} PROPERTIES
     FOLDER libraries/hl/fortran
     LINKER_LANGUAGE Fortran
     INTERFACE_INCLUDE_DIRECTORIES "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>"
+    Fortran_MODULE_DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}/static
 )
 if (WIN32)
   set_property (TARGET ${HDF5_HL_F90_LIB_TARGET} 
@@ -109,31 +114,28 @@ endif (BUILD_SHARED_LIBS)
 #-----------------------------------------------------------------------------
 # Add file(s) to CMake Install
 #-----------------------------------------------------------------------------
-if (WIN32)
-  install (
-      FILES
-          ${CMAKE_Fortran_MODULE_DIRECTORY}/\${BUILD_TYPE}/h5ds.mod
-          ${CMAKE_Fortran_MODULE_DIRECTORY}/\${BUILD_TYPE}/h5tb.mod
-          ${CMAKE_Fortran_MODULE_DIRECTORY}/\${BUILD_TYPE}/h5lt.mod
-          ${CMAKE_Fortran_MODULE_DIRECTORY}/\${BUILD_TYPE}/h5im.mod
-      DESTINATION
-          ${HDF5_INSTALL_INCLUDE_DIR}
-      COMPONENT
-          fortheaders
-  )
-else (WIN32)
-  install (
-      FILES
-          ${CMAKE_Fortran_MODULE_DIRECTORY}/h5ds.mod
-          ${CMAKE_Fortran_MODULE_DIRECTORY}/h5tb.mod
-          ${CMAKE_Fortran_MODULE_DIRECTORY}/h5lt.mod
-          ${CMAKE_Fortran_MODULE_DIRECTORY}/h5im.mod
-      DESTINATION
-          ${HDF5_INSTALL_INCLUDE_DIR}
-      COMPONENT
-          fortheaders
-  )
-endif (WIN32)
+
+if (BUILD_SHARED_LIBS)
+  set (MOD_BUILD_DIR ${CMAKE_Fortran_MODULE_DIRECTORY}/shared)
+else (BUILD_SHARED_LIBS)
+  set (MOD_BUILD_DIR ${CMAKE_Fortran_MODULE_DIRECTORY}/static)
+endif (BUILD_SHARED_LIBS)
+
+set (mod_files
+    ${MOD_BUILD_DIR}/h5ds.mod
+    ${MOD_BUILD_DIR}/h5tb.mod
+    ${MOD_BUILD_DIR}/h5lt.mod
+    ${MOD_BUILD_DIR}/h5im.mod
+)
+
+install (
+    FILES
+        ${mod_files}
+    DESTINATION
+        ${HDF5_INSTALL_INCLUDE_DIR}
+    COMPONENT
+        fortheaders
+)
 
 #-----------------------------------------------------------------------------
 # Add Target(s) to CMake Install for import into other projects
