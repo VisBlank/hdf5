@@ -9,11 +9,6 @@ INCLUDE_DIRECTORIES (
     ${HDF5_F90_SRC_DIR}/src
     ${HDF5_F90_BINARY_DIR}
 )
-if (BUILD_SHARED_LIBS)
-  INCLUDE_DIRECTORIES (${CMAKE_Fortran_MODULE_DIRECTORY}/shared)
-else (BUILD_SHARED_LIBS)
-  INCLUDE_DIRECTORIES (${CMAKE_Fortran_MODULE_DIRECTORY}/static)
-endif (BUILD_SHARED_LIBS)
 
 #-----------------------------------------------------------------------------
 # hl_f90CStub lib
@@ -116,9 +111,17 @@ endif (BUILD_SHARED_LIBS)
 #-----------------------------------------------------------------------------
 
 if (BUILD_SHARED_LIBS)
-  set (MOD_BUILD_DIR ${CMAKE_Fortran_MODULE_DIRECTORY}/shared)
+  if (WIN32)
+    set (MOD_BUILD_DIR ${CMAKE_Fortran_MODULE_DIRECTORY}/\${BUILD_TYPE}/shared)
+  else (WIN32)
+    set (MOD_BUILD_DIR ${CMAKE_Fortran_MODULE_DIRECTORY}/shared)
+  endif (WIN32)
 else (BUILD_SHARED_LIBS)
-  set (MOD_BUILD_DIR ${CMAKE_Fortran_MODULE_DIRECTORY}/static)
+  if (WIN32)
+    set (MOD_BUILD_DIR ${CMAKE_Fortran_MODULE_DIRECTORY}/\${BUILD_TYPE}/static)
+  else (WIN32)
+    set (MOD_BUILD_DIR ${CMAKE_Fortran_MODULE_DIRECTORY}/static)
+  endif (WIN32)
 endif (BUILD_SHARED_LIBS)
 
 set (mod_files

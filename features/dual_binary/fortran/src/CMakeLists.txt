@@ -339,9 +339,17 @@ install (
 )
 
 if (BUILD_SHARED_LIBS)
-  set (MOD_BUILD_DIR ${CMAKE_Fortran_MODULE_DIRECTORY}/shared)
+  if (WIN32)
+    set (MOD_BUILD_DIR ${CMAKE_Fortran_MODULE_DIRECTORY}/\${BUILD_TYPE}/shared)
+  else (WIN32)
+    set (MOD_BUILD_DIR ${CMAKE_Fortran_MODULE_DIRECTORY}/shared)
+  endif (WIN32)
 else (BUILD_SHARED_LIBS)
-  set (MOD_BUILD_DIR ${CMAKE_Fortran_MODULE_DIRECTORY}/static)
+  if (WIN32)
+    set (MOD_BUILD_DIR ${CMAKE_Fortran_MODULE_DIRECTORY}/\${BUILD_TYPE}/static)
+  else (WIN32)
+    set (MOD_BUILD_DIR ${CMAKE_Fortran_MODULE_DIRECTORY}/static)
+  endif (WIN32)
 endif (BUILD_SHARED_LIBS)
 
 set (mod_files
