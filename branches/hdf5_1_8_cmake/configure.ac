@@ -16,7 +16,7 @@
 ## ----------------------------------------------------------------------
 ## Initialize configure.
 ##
-AC_REVISION($Id: configure.ac 26520 2015-03-22 23:32:41Z hdftest $)
+AC_REVISION($Id: configure.ac 26561 2015-03-24 22:10:02Z koziol $)
 AC_PREREQ([2.69])
 
 ## AC_INIT takes the name of the package, the version number, and an
@@ -2568,29 +2568,6 @@ case "`uname`" in
     AC_MSG_RESULT([no])
     ;;
 esac
-
-## -----------------------------------------------------------------------
-## Set flag to indicate that the machine can handle conversion from 
-## long double to integers accurately.  This flag should be set "yes" for 
-## all machines except all SGIs.  For SGIs, some conversions are
-## incorrect and its cache value is set "no" in its config/irix6.x and 
-## irix5.x.
-##
-AC_MSG_CHECKING([if converting from long double to integers is accurate])
-
-if test ${ac_cv_sizeof_long_double} = 0; then
-   hdf5_cv_ldouble_to_integer_accurate=${hdf5_cv_ldouble_to_integer_accurate=no}
-else
-   AC_CACHE_VAL([hdf5_cv_ldouble_to_integer_accurate], [hdf5_cv_ldouble_to_integer_accurate=yes])
-fi
-
-if test "${hdf5_cv_ldouble_to_integer_accurate}" = "yes"; then
-  AC_DEFINE([LDOUBLE_TO_INTEGER_ACCURATE], [1],
-            [Define if your system can convert long double to integers accurately.])
-  AC_MSG_RESULT([yes])
-else
-  AC_MSG_RESULT([no])
-fi
 
 ## -----------------------------------------------------------------------
 ## Set flag to indicate that the machine can do conversion from 
