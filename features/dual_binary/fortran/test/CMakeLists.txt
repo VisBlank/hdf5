@@ -71,6 +71,7 @@ set_target_properties (${HDF5_F90_TEST_LIB_TARGET} PROPERTIES
     FOLDER libraries/test/fortran
     LINKER_LANGUAGE Fortran
     INTERFACE_INCLUDE_DIRECTORIES "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>"
+    Fortran_MODULE_DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}/static
 )
 if (WIN32)
   set_property (TARGET ${HDF5_F90_TEST_LIB_TARGET} APPEND PROPERTY
@@ -139,6 +140,7 @@ endif (WIN32 AND MSVC)
 set_target_properties (testhdf5_fortran PROPERTIES
     LINKER_LANGUAGE Fortran
     FOLDER test/fortran
+    Fortran_MODULE_DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}/static
 )
 if (BUILD_SHARED_LIBS)
   add_executable (testhdf5_fortran-shared
@@ -197,6 +199,7 @@ endif (WIN32 AND MSVC)
 set_target_properties (testhdf5_fortran_1_8 PROPERTIES
     LINKER_LANGUAGE Fortran
     FOLDER test/fortran
+    Fortran_MODULE_DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}/static
 )
 if (BUILD_SHARED_LIBS)
   add_executable (testhdf5_fortran_1_8-shared
@@ -249,6 +252,7 @@ if (HDF5_ENABLE_F2003)
   set_target_properties (fortranlib_test_F03 PROPERTIES
       LINKER_LANGUAGE Fortran
       FOLDER test/fortran
+      Fortran_MODULE_DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}/static
   )
   if (BUILD_SHARED_LIBS)
     add_executable (fortranlib_test_F03-shared
@@ -294,6 +298,7 @@ endif (WIN32 AND MSVC)
 set_target_properties (fflush1 PROPERTIES
     LINKER_LANGUAGE Fortran
     FOLDER test/fortran
+    Fortran_MODULE_DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}/static
 )
 if (BUILD_SHARED_LIBS)
   add_executable (fflush1-shared fflush1.f90)
@@ -329,6 +334,7 @@ endif (WIN32 AND MSVC)
 set_target_properties (fflush2 PROPERTIES
     LINKER_LANGUAGE Fortran
     FOLDER test/fortran
+    Fortran_MODULE_DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}/static
 )
 if (BUILD_SHARED_LIBS)
   add_executable (fflush2-shared fflush2.f90)

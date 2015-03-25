@@ -49,6 +49,7 @@ foreach (example ${examples})
   set_target_properties (f90_ex_${example} PROPERTIES
       LINKER_LANGUAGE Fortran
       FOLDER examples/fortran
+      Fortran_MODULE_DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}/static
   )
   if (BUILD_SHARED_LIBS)
     add_executable (f90_ex_${example}-shared ${HDF5_F90_EXAMPLES_SOURCE_DIR}/${example}.f90)
@@ -78,6 +79,7 @@ if (HDF5_ENABLE_F2003)
     set_target_properties (f03_ex_${example} PROPERTIES
         LINKER_LANGUAGE Fortran
         FOLDER examples/fortran03
+        Fortran_MODULE_DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}/static
     )
     if (BUILD_SHARED_LIBS)
       add_executable (f03_ex_${example}-shared ${HDF5_F90_EXAMPLES_SOURCE_DIR}/${example}.f90)
@@ -108,6 +110,7 @@ if (H5_HAVE_PARALLEL AND MPI_Fortran_FOUND)
   set_target_properties (f90_ex_ph5example PROPERTIES
       LINKER_LANGUAGE Fortran
       FOLDER examples/fortran
+      Fortran_MODULE_DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}/static
   )
   if (BUILD_SHARED_LIBS)
     add_executable (f90_ex_ph5example-shared ${HDF5_F90_EXAMPLES_SOURCE_DIR}/ph5example.f90)
