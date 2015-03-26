@@ -2522,40 +2522,6 @@ else
 fi
 
 ## ----------------------------------------------------------------------
-## Set the flag to indicate that the machine can handle converting
-## denormalized floating-point values.
-## (This flag should be set for all machines, except for the Crays, where
-## the cache value is set in it's config file)
-##
-AC_MSG_CHECKING([if converting denormalized floating-point values is possible])
-AC_CACHE_VAL([hdf5_cv_convert_denormal_float], [hdf5_cv_convert_denormal_float=yes])
-
-if test ${hdf5_cv_convert_denormal_float} = "yes"; then
-  AC_DEFINE([CONVERT_DENORMAL_FLOAT], [1],
-            [Define if your system can handle converting denormalized floating-point values.])
-  AC_MSG_RESULT([yes])
-else
-  AC_MSG_RESULT([no])
-fi
-
-## ----------------------------------------------------------------------
-## Set the flag to indicate that the machine can handle converting
-## floating-point to long long values.
-## (This flag should be _unset_ for all machines, except for Windows, where
-## it's set in the custom Windows H5pubconf.h file)
-##
-AC_MSG_CHECKING([if converting floating-point values to long long is not working])
-AC_CACHE_VAL([hdf5_cv_convert_float_llong_not_works], [hdf5_cv_convert_float_llong_not_works=no])
-
-if test ${hdf5_cv_convert_float_llong_not_works} = "yes"; then
-  AC_DEFINE([HW_FP_TO_LLONG_NOT_WORKS], [1],
-            [Define if your system can't handle converting floating-point values to long long.])
-  AC_MSG_RESULT([true])
-else
-  AC_MSG_RESULT([false])
-fi
-
-## ----------------------------------------------------------------------
 ## Set the flag to indicate that the machine has window style pathname,
 ## that is, "drive-letter:\" (e.g. "C:") or "drive-letter:/" (e.g. "C:/").
 ## (This flag should be _unset_ for all machines, except for Windows, where
