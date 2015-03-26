@@ -259,38 +259,6 @@ ENDMACRO (H5MiscConversionTest)
 #-----------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------
-# Set the flag to indicate that the machine can accurately convert
-# 'long double' to 'unsigned int' values.  (This flag should be set for
-# all machines, except for some Intel compilers on some Linux.)
-#
-H5ConversionTests (H5_LDOUBLE_TO_UINT_ACCURATE "Checking IF correctly converting long double to unsigned int values")
-# ----------------------------------------------------------------------
-# Set the flag to indicate that the machine can _compile_
-# 'unsigned long long' to 'float' and 'double' typecasts.
-# (This flag should be set for all machines.)
-#
-if (H5_ULLONG_TO_FP_CAST_WORKS MATCHES ^H5_ULLONG_TO_FP_CAST_WORKS$)
-  set (H5_ULLONG_TO_FP_CAST_WORKS 1 CACHE INTERNAL "Checking IF compiling unsigned long long to floating-point typecasts work")
-  message (STATUS "Checking IF compiling unsigned long long to floating-point typecasts work... yes")
-endif (H5_ULLONG_TO_FP_CAST_WORKS MATCHES ^H5_ULLONG_TO_FP_CAST_WORKS$)
-# ----------------------------------------------------------------------
-# Set the flag to indicate that the machine can _compile_
-# 'long long' to 'float' and 'double' typecasts.
-# (This flag should be set for all machines.)
-#
-if (H5_LLONG_TO_FP_CAST_WORKS MATCHES ^H5_LLONG_TO_FP_CAST_WORKS$)
-  set (H5_LLONG_TO_FP_CAST_WORKS 1 CACHE INTERNAL "Checking IF compiling long long to floating-point typecasts work")
-  message (STATUS "Checking IF compiling long long to floating-point typecasts work... yes")
-endif (H5_LLONG_TO_FP_CAST_WORKS MATCHES ^H5_LLONG_TO_FP_CAST_WORKS$)
-# ----------------------------------------------------------------------
-# Set the flag to indicate that the machine can convert from
-# 'unsigned long long' to 'long double' without precision loss.
-# (This flag should be set for all machines, except for FreeBSD(sleipnir)
-# where the last 2 bytes of mantissa are lost when compiler tries to do
-# the conversion, and Cygwin where compiler doesn't do rounding correctly.)
-#
-H5ConversionTests (H5_ULLONG_TO_LDOUBLE_PRECISION "Checking IF converting unsigned long long to long double with precision")
-# ----------------------------------------------------------------------
 # Set the flag to indicate that the machine can handle overflow converting
 # all floating-point to all integer types.
 # (This flag should be set for all machines, except for Cray X1 where

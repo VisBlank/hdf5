@@ -3877,12 +3877,10 @@ test_conv_int_fp(const char *name, int run_test, hid_t src, hid_t dst)
                 HDmemcpy(aligned, saved+j*sizeof(long long), sizeof(long long));
                 hw_float = (float)(*((long long*)aligned));
                 break;
-#ifdef H5_ULLONG_TO_FP_CAST_WORKS
             case INT_ULLONG:
                 HDmemcpy(aligned, saved+j*sizeof(unsigned long long), sizeof(unsigned long long));
                 hw_float = (float)(*((unsigned long long*)aligned));
                 break;
-#endif /* H5_ULLONG_TO_FP_CAST_WORKS */
             case FLT_FLOAT:
             case FLT_DOUBLE:
             case FLT_LDOUBLE:
@@ -3930,12 +3928,10 @@ test_conv_int_fp(const char *name, int run_test, hid_t src, hid_t dst)
                 HDmemcpy(aligned, saved+j*sizeof(long long), sizeof(long long));
                 hw_double = (double)(*((long long*)aligned));
                 break;
-#ifdef H5_ULLONG_TO_FP_CAST_WORKS
             case INT_ULLONG:
                 HDmemcpy(aligned, saved+j*sizeof(unsigned long long), sizeof(unsigned long long));
                 hw_double = (double)(*((unsigned long long*)aligned));
                 break;
-#endif /* H5_ULLONG_TO_FP_CAST_WORKS */
             case FLT_FLOAT:
             case FLT_DOUBLE:
             case FLT_LDOUBLE:
@@ -3984,12 +3980,10 @@ test_conv_int_fp(const char *name, int run_test, hid_t src, hid_t dst)
                 HDmemcpy(aligned, saved+j*sizeof(long long), sizeof(long long));
                 hw_ldouble = (long double)(*((long long*)aligned));
                 break;
-#ifdef H5_ULLONG_TO_FP_CAST_WORKS
             case INT_ULLONG:
                 HDmemcpy(aligned, saved+j*sizeof(unsigned long long), sizeof(unsigned long long));
                 hw_ldouble = (long double)(*((unsigned long long*)aligned));
                 break;
-#endif /* H5_ULLONG_TO_FP_CAST_WORKS */
             case FLT_FLOAT:
             case FLT_DOUBLE:
             case FLT_LDOUBLE:
@@ -4494,24 +4488,6 @@ test_conv_int_fp(const char *name, int run_test, hid_t src, hid_t dst)
                 continue; /*no error*/
         }
 #endif /*end H5_FP_TO_ULLONG_BOTTOM_BIT_WORKS*/
-
-/* For GNU compilers on FreeBSD(sleipnir), during conversion from 'unsigned long long'
-* to 'long double', the last 2 bytes of mantissa are lost.  But this loss seems
-* acceptable.  We allow it to go through instead of fail it.  Sometimes, there's roundup
-* to the 3rd last byte of mantissa.  So we only try to compare all but the last 3 bytes.
-*/
-#ifndef H5_ULLONG_TO_LDOUBLE_PRECISION
-#if H5_SIZEOF_LONG_DOUBLE !=0
-        if(src_type==INT_ULLONG && dst_type==FLT_LDOUBLE) {
-            long double tmp_s, tmp_h;
-            HDmemcpy(&tmp_s,&buf[j*dst_size],sizeof(long double));
-            HDmemcpy(&tmp_h,&hw[0],sizeof(long double));
-            /*Don't compare the last 3 bytes of mantissa*/
-            if(!HDmemcmp(&tmp_s+4, &tmp_h+4, sizeof(long double)-4))
-                continue; /*no error*/
-        }
-#endif
-#endif /*end H5_ULLONG_TO_LDOUBLE_PRECISION*/
 
         /* Print errors */
         if (0==fails_this_test++) {
@@ -5120,26 +5096,8 @@ run_int_fp_conv(const char *name)
     nerrors += test_conv_int_fp(name, TEST_NORMAL, H5T_NATIVE_LLONG, H5T_NATIVE_FLOAT);
     nerrors += test_conv_int_fp(name, TEST_NORMAL, H5T_NATIVE_LLONG, H5T_NATIVE_DOUBLE);
 
-#ifdef H5_ULLONG_TO_FP_CAST_WORKS
     nerrors += test_conv_int_fp(name, TEST_NORMAL, H5T_NATIVE_ULLONG, H5T_NATIVE_FLOAT);
     nerrors += test_conv_int_fp(name, TEST_NORMAL, H5T_NATIVE_ULLONG, H5T_NATIVE_DOUBLE);
-#else /* H5_ULLONG_TO_FP_CAST_WORKS */
-    {
-        char		str[256];		/*hello string		*/
-
-        HDsnprintf(str, sizeof(str), "Testing %s %s -> %s conversions",
-                name, "unsigned long long", "float");
-        printf("%-70s", str);
-        SKIPPED();
-        HDputs("    Test skipped due to compiler not handling conversion.");
-
-        HDsnprintf(str, sizeof(str), "Testing %s %s -> %s conversions",
-                name, "unsigned long long", "double");
-        printf("%-70s", str);
-        SKIPPED();
-        HDputs("    Test skipped due to compiler not handling conversion.");
-    }
-#endif /* H5_ULLONG_TO_FP_CAST_WORKS */
 #endif
 
 #if H5_SIZEOF_LONG_DOUBLE!=H5_SIZEOF_DOUBLE
@@ -5183,9 +5141,9 @@ run_int_fp_conv(const char *name)
         HDputs("    Test skipped due to compiler error in handling conversion.");
     }
 #endif /* H5_LLONG_TO_LDOUBLE_CORRECT */
-#if H5_ULLONG_TO_FP_CAST_WORKS && H5_ULLONG_TO_LDOUBLE_PRECISION && H5_LLONG_TO_LDOUBLE_CORRECT
+#if H5_LLONG_TO_LDOUBLE_CORRECT
     nerrors += test_conv_int_fp(name, TEST_NORMAL, H5T_NATIVE_ULLONG, H5T_NATIVE_LDOUBLE);
-#else /* H5_ULLONG_TO_FP_CAST_WORKS && H5_ULLONG_TO_LDOUBLE_PRECISION && H5_LLONG_TO_LDOUBLE_CORRECT */
+#else /* H5_LLONG_TO_LDOUBLE_CORRECT */
     {
         char		str[256];		/*hello string		*/
 
@@ -5195,7 +5153,7 @@ run_int_fp_conv(const char *name)
         SKIPPED();
         HDputs("    Test skipped due to compiler not handling conversion.");
     }
-#endif /* H5_ULLONG_TO_FP_CAST_WORKS && H5_ULLONG_TO_LDOUBLE_PRECISION && H5_LLONG_TO_LDOUBLE_CORRECT */
+#endif /* H5_LLONG_TO_LDOUBLE_CORRECT */
 #endif
 #endif
 
@@ -5278,23 +5236,7 @@ run_fp_int_conv(const char *name)
         nerrors += test_conv_int_fp(name, test_values, H5T_NATIVE_LDOUBLE, H5T_NATIVE_SHORT);
         nerrors += test_conv_int_fp(name, test_values, H5T_NATIVE_LDOUBLE, H5T_NATIVE_USHORT);
         nerrors += test_conv_int_fp(name, test_values, H5T_NATIVE_LDOUBLE, H5T_NATIVE_INT);
-#if H5_LDOUBLE_TO_UINT_ACCURATE
         nerrors += test_conv_int_fp(name, test_values, H5T_NATIVE_LDOUBLE, H5T_NATIVE_UINT);
-#else /*H5_LDOUBLE_TO_UINT_ACCURATE*/
-        {
-            char		str[256];		/*string		*/
-
-            HDsnprintf(str, sizeof(str), "Testing %s %s -> %s conversions",
-                    name, "long double", "unsigned int");
-            printf("%-70s", str);
-            SKIPPED();
-#if H5_SIZEOF_LONG_DOUBLE!=0
-            HDputs("    Test skipped due to hardware conversion error.");
-#else
-            HDputs("    Test skipped due to disabled long double.");
-#endif
-        }
-#endif /*H5_LDOUBLE_TO_UINT_ACCURATE*/
 #if H5_SIZEOF_LONG!=H5_SIZEOF_INT && H5_SIZEOF_LONG_DOUBLE!=0
 #ifndef H5_LDOUBLE_TO_LONG_SPECIAL
         nerrors += test_conv_int_fp(name, test_values, H5T_NATIVE_LDOUBLE, H5T_NATIVE_LONG);
