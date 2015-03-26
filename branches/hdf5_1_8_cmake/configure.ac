@@ -16,7 +16,7 @@
 ## ----------------------------------------------------------------------
 ## Initialize configure.
 ##
-AC_REVISION($Id: configure.ac 26561 2015-03-24 22:10:02Z koziol $)
+AC_REVISION($Id: configure.ac 26588 2015-03-25 19:56:23Z koziol $)
 AC_PREREQ([2.69])
 
 ## AC_INIT takes the name of the package, the version number, and an
@@ -130,12 +130,6 @@ saved_user_CXXFLAGS="$CXXFLAGS"
 saved_user_FCFLAGS="$FCFLAGS"
 saved_user_LDFLAGS="$LDFLAGS"
 saved_user_CPPFLAGS="$CPPFLAGS"
-
-## Different compilers may need default libraries. They are specified in
-## the config/* files, so we put this statement here so that it'll be
-## set by the code which follows...
-##
-DEFAULT_LIBS=""
 
 ## Support F9X variable to define Fortran compiler if FC variable is
 ## not used.  This should be deprecated in the future.
@@ -254,12 +248,6 @@ case $host_os in
     ;;
   freebsd*)
     host_os_novers=freebsd
-    ;;
-  irix5.*)
-    host_os_novers=irix5.x
-    ;;
-  irix6.*)
-    host_os_novers=irix6.x
     ;;
   osf4.*)
     host_os_novers=osf4.x
@@ -1035,7 +1023,7 @@ case "$host" in
     ## many problems with including them.
     AC_CHECK_HEADERS([sys/sysinfo.h sys/proc.h])
     ;;
-  mips*-sgi*-irix*)
+  mips*-sgi*)
     ## The <sys/fpu.h> is needed on the SGI machines to turn off
     ## denormalized floating-point values going to zero.  We do *not*
     ## attempt to locate these files on other systems because there
@@ -2569,76 +2557,6 @@ case "`uname`" in
     ;;
 esac
 
-## -----------------------------------------------------------------------
-## Set flag to indicate that the machine can do conversion from 
-## long double to integers regardless of accuracy.  This flag should be 
-## set "yes" for all machines except HP-UX 11.00.  For HP-UX 11.00, the
-## compiler has 'floating exception' when converting 'long double' to all 
-## integers except 'unsigned long long'.  Other HP-UX systems are unknown
-## yet. (1/8/05 - SLU)
-
-AC_MSG_CHECKING([if converting from long double to integers works])
-
-if test ${ac_cv_sizeof_long_double} = 0; then
-   hdf5_cv_ldouble_to_integer_works=${hdf5_cv_ldouble_to_integer_works=no}
-else
-   AC_CACHE_VAL([hdf5_cv_ldouble_to_integer_works],
-        [AC_TRY_RUN([
-        int main(void)
-        {
-            void *align;
-            long double ld= 9701917572145405952.00L;
-            unsigned char v1;
-            short v2;
-            unsigned int v3;
-            int  ret = 0;
-
-            align = (void*)malloc(sizeof(long double));
-            memcpy(align, &ld, sizeof(long double));
-
-            /*For HU-UX11.00, there's floating exception(core dump) when doing some of casting
-             *from 'long double' to integers*/
-            v1=(unsigned char)(*((long double*)align));
-            v2=(short)(*((long double*)align));
-            v3=(unsigned int)(*((long double*)align));
-
-    done:
-            exit(ret);
-        }
-        ], [hdf5_cv_ldouble_to_integer_works=yes], [hdf5_cv_ldouble_to_integer_works=no],)])
-fi
-
-if test ${hdf5_cv_ldouble_to_integer_works} = "yes"; then
-  AC_DEFINE([LDOUBLE_TO_INTEGER_WORKS], [1],
-            [Define if your system can convert from long double to integer values.])
-  AC_MSG_RESULT([yes])
-else
-  AC_MSG_RESULT([no])
-fi
-
-## -----------------------------------------------------------------------
-## Set flag to indicate that the machine can handle conversion from 
-## integers to long double.  (This flag should be set "yes" for all 
-## machines except all SGIs, where some conversions are
-## incorrect and its cache value is set "no" in its config/irix6.x and 
-## irix5.x) 
-##
-AC_MSG_CHECKING([if accurately converting from integers to long double])
-
-if test ${ac_cv_sizeof_long_double} = 0; then
-   hdf5_cv_integer_to_ldouble_accurate=${hdf5_cv_integer_to_ldouble_accurate=no}
-else
-   AC_CACHE_VAL([hdf5_cv_integer_to_ldouble_accurate], [hdf5_cv_integer_to_ldouble_accurate=yes])
-fi
-
-if test ${hdf5_cv_integer_to_ldouble_accurate} = "yes"; then
-  AC_DEFINE([INTEGER_TO_LDOUBLE_ACCURATE], [1],
-            [Define if your system can accurately convert from integers to long double values.])
-  AC_MSG_RESULT([yes])
-else
-  AC_MSG_RESULT([no])
-fi
-
 ## ----------------------------------------------------------------------
 ## Set the flag to indicate that the machine can accurately convert
 ## 'unsigned long' to 'float' values.
@@ -2692,8 +2610,7 @@ fi
 ## ----------------------------------------------------------------------
 ## Set the flag to indicate that the machine can accurately convert
 ## 'unsigned (long) long' values to 'float' and 'double' values.
-## (This flag should be set for all machines, except for the SGIs, where
-## the cache value is set in the config/irix6.x config file) and Solaris
+## (This flag should be set for all machines, except for the SGIs) and Solaris
 ## 64-bit machines, where the short program below tests if round-up is 
 ## correctly handled.
 ##
@@ -3364,7 +3281,7 @@ fi
 
 ## ----------------------------------------------------------------------
 ## Set some variables for general configuration information to be saved
-## and installed with the libraries.
+## and installed with the libraries (used to generate libhdf5.settings).
 ##
 
 ## HDF5 version from the first line of the README.txt file.
@@ -3473,53 +3390,6 @@ else
   pwd=pwd
 fi
 AC_SUBST([ROOT]) ROOT="`$pwd`"
-
-## ----------------------------------------------------------------------
-## Move any compiler-specific libraries into the main LIBS varaible.
-## 
-LIBS="$DEFAULT_LIBS $LIBS"
-
-## ----------------------------------------------------------------------
-## Determine the runtime libraries we may need to include in the
-## libtools command so that executables will find the correct dynamic
-## libraries.
-## 
-AC_SUBST([DYNAMIC_DIRS]) DYNAMIC_DIRS=""
-
-if test -n "$AM_LDFLAGS $LDFLAGS"; then
-  for d in $AM_LDFLAGS $LDFLAGS ; do
-    case "$d" in
-      -L*)
-        d="`echo $d | sed -e 's/-L//g'`"
-        case "$d" in
-          .*)
-            ## If the path isn't absolute, make it so by
-            ## prepending the ROOT directory to it.
-            d=${ROOT}/$d
-            ;;
-        esac
-        DYNAMIC_DIRS="-R${d} $DYNAMIC_DIRS"
-        ;;
-    esac
-  done
-fi
-
-if test -n "$AM_CPPFLAGS"; then
-  TEMP_CPPFLAGS=""
-  for d in $AM_CPPFLAGS ; do
-    case "$d" in
-      -I.*)
-        ## If the path isn't absolute, make it so by prepending
-        ## the ROOT directory to it.
-        d="`echo $d | sed -e 's/-I//g'`"
-        d="-I${ROOT}/${d}"
-        ;;
-    esac
-    TEMP_CPPFLAGS="$d $TEMP_CPPFLAGS"
-  done
-  AM_CPPFLAGS=$TEMP_CPPFLAGS
-fi
-
 
 ## ----------------------------------------------------------------------
 ## Some programs shouldn't be built by default (e.g., programs to generate
@@ -3727,14 +3597,6 @@ AC_SUBST([SEARCH]) SEARCH='$(srcdir) $(top_builddir)/src $(top_srcdir)/src'
 cmd='echo $SEARCH |sed "s/ /'$SEARCH_SEP'/g"'
 SEARCH="$SEARCH_RULE`eval $cmd`"
 export SEARCH
-
-## We don't need to say when we're entering directories if we're using
-## GNU make because make does it for us.
-if test "X$GMAKE" = "Xyes"; then
-  AC_SUBST([SETX]) SETX=":"
-else
-  AC_SUBST([SETX]) SETX="set -x"
-fi
 
 ## Some cleanup stuff
 rm -f conftest conftest.o conftest.c dummy.o *.mod

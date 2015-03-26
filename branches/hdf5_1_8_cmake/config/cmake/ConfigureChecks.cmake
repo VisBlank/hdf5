@@ -258,23 +258,6 @@ ENDMACRO (H5MiscConversionTest)
 # Check various conversion capabilities
 #-----------------------------------------------------------------------------
 
-# -----------------------------------------------------------------------
-# Set flag to indicate that the machine can do conversion from
-# long double to integers regardless of accuracy.  This flag should be
-# set "yes" for all machines except HP-UX 11.00.  For HP-UX 11.00, the
-# compiler has 'floating exception' when converting 'long double' to all
-# integers except 'unsigned long long'.  Other HP-UX systems are unknown
-# yet. (1/8/05 - SLU)
-#
-H5ConversionTests (H5_LDOUBLE_TO_INTEGER_WORKS "Checking IF converting from long double to integers works")
-# -----------------------------------------------------------------------
-# Set flag to indicate that the machine can handle conversion from
-# integers to long double.  (This flag should be set "yes" for all
-# machines except all SGIs, where some conversions are
-# incorrect and its cache value is set "no" in its config/irix6.x and
-# irix5.x)
-#
-H5MiscConversionTest (H5_SIZEOF_LONG_DOUBLE H5_INTEGER_TO_LDOUBLE_ACCURATE "checking IF accurately converting from integers to long double")
 # ----------------------------------------------------------------------
 # Set the flag to indicate that the machine can accurately convert
 # 'unsigned long' to 'float' values.
@@ -287,8 +270,7 @@ H5ConversionTests (H5_ULONG_TO_FLOAT_ACCURATE "Checking IF accurately converting
 # ----------------------------------------------------------------------
 # Set the flag to indicate that the machine can accurately convert
 # 'unsigned (long) long' values to 'float' and 'double' values.
-# (This flag should be set for all machines, except for the SGIs, where
-# the cache value is set in the config/irix6.x config file) and Solaris
+# (This flag should be set for all machines, except for the SGIs) and Solaris
 # 64-bit machines, where the short program below tests if round-up is
 # correctly handled.
 #

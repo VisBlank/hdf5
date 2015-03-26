@@ -124,12 +124,6 @@
 #define H5T_CONV_INTERNAL_FP_LDOUBLE      1
 #endif /*H5_SIZEOF_LONG_DOUBLE && H5_CONVERT_DENORMAL_FLOAT*/
 
-/* Define an internal macro for converting all integers to long double.  SGI compilers give some
- * incorrect conversions. */
-#if (H5_WANT_DATA_ACCURACY && H5_INTEGER_TO_LDOUBLE_ACCURATE) || (!H5_WANT_DATA_ACCURACY)
-#define H5T_CONV_INTERNAL_INTEGER_LDOUBLE         1
-#endif
-
 /* Define an internal macro for converting unsigned long to float.
  * Pathscale compiler on Sandia's Linux machine has some problem.
  * 64-bit Solaris does different rounding. */
@@ -146,14 +140,14 @@
 
 /* Define an internal macro for converting unsigned long to long double.  SGI compilers give some
  * incorrect conversions. 64-bit Solaris does different rounding. */
-#if (H5_WANT_DATA_ACCURACY && H5_INTEGER_TO_LDOUBLE_ACCURATE && H5_ULONG_TO_FP_BOTTOM_BIT_ACCURATE) || \
+#if (H5_WANT_DATA_ACCURACY && H5_ULONG_TO_FP_BOTTOM_BIT_ACCURATE) || \
     (!H5_WANT_DATA_ACCURACY)
 #define H5T_CONV_INTERNAL_ULONG_LDOUBLE       1
 #endif
 
 /* Define an internal macro for converting long long to long double.  Mac OS 10.4 gives some
  * incorrect conversions. */
-#if (H5_WANT_DATA_ACCURACY && H5_INTEGER_TO_LDOUBLE_ACCURATE && defined(H5_LLONG_TO_LDOUBLE_CORRECT)) || \
+#if (H5_WANT_DATA_ACCURACY && defined(H5_LLONG_TO_LDOUBLE_CORRECT)) || \
     (!H5_WANT_DATA_ACCURACY)
 #define H5T_CONV_INTERNAL_LLONG_LDOUBLE       1
 #endif
@@ -177,18 +171,11 @@
 #define H5T_CONV_INTERNAL_ULLONG_LDOUBLE         1
 #endif
 
-/* Define an internal macro for converting long double to all integers.  SGI compilers give some incorrect
- * conversions.  HP-UX 11.00 compiler generates floating exception. */
-#if (H5_WANT_DATA_ACCURACY && H5_LDOUBLE_TO_INTEGER_WORKS) || \
-    (!H5_WANT_DATA_ACCURACY && H5_LDOUBLE_TO_INTEGER_WORKS)
-#define H5T_CONV_INTERNAL_LDOUBLE_INTEGER         1
-#endif
-
 /* Define an internal macro for converting long double to unsigned int.  SGI compilers give some incorrect
  * conversions.  HP-UX 11.00 compiler generates floating exception.  Some Intel compilers on some Linux
  * give incorrect values. */
-#if (H5_WANT_DATA_ACCURACY && H5_LDOUBLE_TO_UINT_ACCURATE && \
-    H5_LDOUBLE_TO_INTEGER_WORKS) || (!H5_WANT_DATA_ACCURACY && H5_LDOUBLE_TO_INTEGER_WORKS)
+#if (H5_WANT_DATA_ACCURACY && H5_LDOUBLE_TO_UINT_ACCURATE) \
+    || (!H5_WANT_DATA_ACCURACY)
 #define H5T_CONV_INTERNAL_LDOUBLE_UINT         1
 #endif
 
@@ -202,8 +189,8 @@
  * conversions. Mac OS 10.4 gives incorrect conversions. HP-UX 11.00 compiler generates floating exception.
  * The hard conversion on Windows .NET 2003 has a bug and gives wrong exception value. */
 #if (H5_WANT_DATA_ACCURACY && !defined(H5_HW_FP_TO_LLONG_NOT_WORKS) && \
-    H5_LDOUBLE_TO_INTEGER_WORKS && defined(H5_LDOUBLE_TO_LLONG_ACCURATE)) || \
-    (!H5_WANT_DATA_ACCURACY && !defined(H5_HW_FP_TO_LLONG_NOT_WORKS) && H5_LDOUBLE_TO_INTEGER_WORKS)
+    defined(H5_LDOUBLE_TO_LLONG_ACCURATE)) || \
+    (!H5_WANT_DATA_ACCURACY && !defined(H5_HW_FP_TO_LLONG_NOT_WORKS))
 #define H5T_CONV_INTERNAL_LDOUBLE_LLONG         1
 #endif
 
@@ -220,9 +207,9 @@
 /* Define an internal macro for converting long double to unsigned long long.  SGI compilers give some
  * incorrect conversions.  Mac OS 10.4 gives incorrect conversions. HP-UX 11.00 compiler generates
  * floating exception. */
-#if (H5_WANT_DATA_ACCURACY && H5_LDOUBLE_TO_INTEGER_WORKS && \
+#if (H5_WANT_DATA_ACCURACY && \
     H5_FP_TO_ULLONG_ACCURATE && defined(H5_FP_TO_ULLONG_RIGHT_MAXIMUM) && defined(H5_LDOUBLE_TO_LLONG_ACCURATE)) || \
-    (!H5_WANT_DATA_ACCURACY && H5_LDOUBLE_TO_INTEGER_WORKS)
+    (!H5_WANT_DATA_ACCURACY)
 #define H5T_CONV_INTERNAL_LDOUBLE_ULLONG         1
 #else
 #define H5T_CONV_INTERNAL_LDOUBLE_ULLONG         0
