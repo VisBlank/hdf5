@@ -41,14 +41,6 @@
    integer values. */
 #undef FP_TO_INTEGER_OVERFLOW_WORKS
 
-/* Define if your system roundup accurately converting floating-point to
-   unsigned long long values. */
-#undef FP_TO_ULLONG_ACCURATE
-
-/* Define if your system has right maximum convert floating-point to unsigned
-   long long values. */
-#undef FP_TO_ULLONG_RIGHT_MAXIMUM
-
 /* Define to 1 if you have the `alarm' function. */
 #undef HAVE_ALARM
 
@@ -390,13 +382,6 @@
    special algorithm. */
 #undef LDOUBLE_TO_LONG_SPECIAL
 
-/* Define if your system can convert long double to unsigned int values
-   correctly. */
-#undef LDOUBLE_TO_UINT_ACCURATE
-
-/* Define if your system can compile long long to floating-point casts. */
-#undef LLONG_TO_FP_CAST_WORKS
-
 /* Define if your system can convert (unsigned) long long to long double
    values correctly. */
 #undef LLONG_TO_LDOUBLE_CORRECT
@@ -572,22 +557,6 @@
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #undef TIME_WITH_SYS_TIME
 
-/* Define if your system can compile unsigned long long to floating-point
-   casts. */
-#undef ULLONG_TO_FP_CAST_WORKS
-
-/* Define if your system can convert unsigned long long to long double with
-   correct precision. */
-#undef ULLONG_TO_LDOUBLE_PRECISION
-
-/* Define if your system accurately converting unsigned long to float values.
-   */
-#undef ULONG_TO_FLOAT_ACCURATE
-
-/* Define if your system can accurately convert unsigned (long) long values to
-   floating-point values. */
-#undef ULONG_TO_FP_BOTTOM_BIT_ACCURATE
-
 /* Define using v1.6 public API symbols by default */
 #undef USE_16_API_DEFAULT
 
@@ -598,10 +567,6 @@
 
 /* Version number of package */
 #undef VERSION
-
-/* Define if vsnprintf() returns the correct value for formatted strings that
-   don't fit into size allowed */
-#undef VSNPRINTF_WORKS
 
 /* Data accuracy is prefered to speed during data conversions */
 #undef WANT_DATA_ACCURACY

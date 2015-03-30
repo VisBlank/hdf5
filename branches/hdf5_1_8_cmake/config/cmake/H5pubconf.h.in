@@ -74,14 +74,6 @@
    integer values. */
 #cmakedefine H5_FP_TO_INTEGER_OVERFLOW_WORKS @H5_FP_TO_INTEGER_OVERFLOW_WORKS@
 
-/* Define if your system roundup accurately converting floating-point to
-   unsigned long long values. */
-#cmakedefine H5_FP_TO_ULLONG_ACCURATE @H5_FP_TO_ULLONG_ACCURATE@
-
-/* Define if your system has right maximum convert floating-point to unsigned
-   long long values. */
-#cmakedefine H5_FP_TO_ULLONG_RIGHT_MAXIMUM @H5_FP_TO_ULLONG_RIGHT_MAXIMUM@
-
 /* Define to 1 if you have the `alarm' function. */
 #cmakedefine H5_HAVE_ALARM @H5_HAVE_ALARM@
 
@@ -457,13 +449,6 @@
    special algorithm. */
 #cmakedefine H5_LDOUBLE_TO_LONG_SPECIAL @H5_LDOUBLE_TO_LONG_SPECIAL@
 
-/* Define if your system can convert long double to unsigned int values
-   correctly. */
-#cmakedefine H5_LDOUBLE_TO_UINT_ACCURATE @H5_LDOUBLE_TO_UINT_ACCURATE@
-
-/* Define if your system can compile long long to floating-point casts. */
-#cmakedefine H5_LLONG_TO_FP_CAST_WORKS @H5_LLONG_TO_FP_CAST_WORKS@
-
 /* Define if your system can convert (unsigned) long long to long double
    values correctly. */
 #cmakedefine H5_LLONG_TO_LDOUBLE_CORRECT @H5_LLONG_TO_LDOUBLE_CORRECT@
@@ -661,22 +646,6 @@
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 #cmakedefine H5_TM_IN_SYS_TIME @H5_TM_IN_SYS_TIME@
 
-/* Define if your system can compile unsigned long long to floating-point
-   casts. */
-#cmakedefine H5_ULLONG_TO_FP_CAST_WORKS @H5_ULLONG_TO_FP_CAST_WORKS@
-
-/* Define if your system can convert unsigned long long to long double with
-   correct precision. */
-#cmakedefine H5_ULLONG_TO_LDOUBLE_PRECISION @H5_ULLONG_TO_LDOUBLE_PRECISION@
-
-/* Define if your system accurately converting unsigned long to float values.
-   */
-#cmakedefine H5_ULONG_TO_FLOAT_ACCURATE @H5_ULONG_TO_FLOAT_ACCURATE@
-
-/* Define if your system can accurately convert unsigned (long) long values to
-   floating-point values. */
-#cmakedefine H5_ULONG_TO_FP_BOTTOM_BIT_ACCURATE @H5_ULONG_TO_FP_BOTTOM_BIT_ACCURATE@
-
 /* Define using v1.6 public API symbols by default */
 #cmakedefine H5_USE_16_API_DEFAULT @H5_USE_16_API_DEFAULT@
 
@@ -687,10 +656,6 @@
 
 /* Version number of package */
 #define H5_VERSION "@HDF5_PACKAGE_VERSION_STRING@"
-
-/* Define if vsnprintf() returns the correct value for formatted strings that
-   don't fit into size allowed */
-#cmakedefine H5_VSNPRINTF_WORKS @H5_VSNPRINTF_WORKS@
 
 /* Data accuracy is prefered to speed during data conversions */
 #cmakedefine H5_WANT_DATA_ACCURACY @H5_WANT_DATA_ACCURACY@
