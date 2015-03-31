@@ -170,7 +170,9 @@ static void *earray_cache_test_deserialize(const void *image_ptr,
                                            hbool_t *dirty_ptr);
 
 static herr_t earray_cache_test_image_len(const void *thing,
-                                          size_t *image_len_ptr);
+                                          size_t *image_len_ptr,
+                                          hbool_t *compressed_ptr,
+                                          size_t * compressed_len_ptr);
 
 static herr_t earray_cache_test_serialize(const H5F_t *f,
                                           void *image_ptr,
@@ -719,7 +721,8 @@ earray_cache_test_deserialize(const void *image_ptr,
  */
 
 static herr_t
-earray_cache_test_image_len(const void *thing, size_t *image_len_ptr)
+earray_cache_test_image_len(const void *thing, size_t *image_len_ptr,
+    hbool_t UNUSED * compressed_ptr, size_t UNUSED * compressed_len_ptr)
 {
 
     HDassert(thing);

@@ -70,10 +70,13 @@
 static herr_t H5F__cache_superblock_get_load_size(const void *udata, size_t *image_len);
 static void *H5F__cache_superblock_deserialize(const void *image, size_t len,
     void *udata, hbool_t *dirty);
-static herr_t H5F__cache_superblock_image_len(const void *thing, size_t *image_len);
-static herr_t H5F__cache_superblock_pre_serialize(const H5F_t *f, hid_t dxpl_id, void *thing,
-     haddr_t addr, size_t len, haddr_t *new_addr, size_t *new_len, 
-     unsigned *flags);
+static herr_t H5F__cache_superblock_image_len(const void *thing, 
+    size_t *image_len, hbool_t *compressed_ptr, 
+    size_t *compressed_image_len_ptr);
+static herr_t H5F__cache_superblock_pre_serialize(const H5F_t *f, 
+    hid_t dxpl_id, void *thing, haddr_t addr, size_t len, 
+    size_t compressed_len, haddr_t *new_addr, size_t *new_len, 
+    size_t *new_compressed_len, unsigned *flags);
 static herr_t H5F__cache_superblock_serialize(const H5F_t *f, void *image, size_t len,
     void *thing);
 static herr_t H5F__cache_superblock_free_icr(void *thing);
@@ -81,7 +84,9 @@ static herr_t H5F__cache_superblock_free_icr(void *thing);
 static herr_t H5F__cache_drvrinfo_get_load_size(const void *udata, size_t *image_len);
 static void *H5F__cache_drvrinfo_deserialize(const void *image, size_t len,
     void *udata, hbool_t *dirty);
-static herr_t H5F__cache_drvrinfo_image_len(const void *thing, size_t *image_len);
+static herr_t H5F__cache_drvrinfo_image_len(const void *thing, 
+    size_t *image_len, hbool_t *compressed_ptr, 
+    size_t *compressed_image_len_ptr);
 static herr_t H5F__cache_drvrinfo_serialize(const H5F_t *f, void *image, size_t len,
     void *thing);
 static herr_t H5F__cache_drvrinfo_free_icr(void *thing);
@@ -448,7 +453,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5F__cache_superblock_image_len(const void *_thing, size_t *image_len)
+H5F__cache_superblock_image_len(const void *_thing, size_t *image_len, hbool_t *compressed_ptr, size_t UNUSED *compressed_image_len_ptr)
 {
     const H5F_super_t *sblock = (const H5F_super_t *)_thing;    /* Pointer to the object */
 
@@ -459,9 +464,13 @@ H5F__cache_superblock_image_len(const void *_thing, size_t *image_len)
     HDassert(sblock->cache_info.magic == H5C__H5C_CACHE_ENTRY_T_MAGIC);
     HDassert(sblock->cache_info.type == H5AC_SUPERBLOCK);
     HDassert(image_len);
+    HDassert(compressed_ptr);
 
     /* Set the image length size */
     *image_len = (size_t)H5F_SUPERBLOCK_SIZE(sblock);
+
+    /* Set *compressed_ptr to FALSE unconditionally */
+    *compressed_ptr;
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5F__cache_superblock_image_len() */
@@ -475,20 +484,21 @@ H5F__cache_superblock_image_len(const void *_thing, size_t *image_len)
  *		version 3 cache.  
  *
  *		In the V2 metadata cache callbacks, the superblock dirver info 
- *     		message was updated in the flush routine.  Note that this operation
- *     		only applies to version 2 or later superblocks.
+ *     		message was updated in the flush routine.  Note that this 
+ *		operation only applies to version 2 or later superblocks.
  *
  *     		Somehow, this functionality was lost in the conversion to use 
  *     		the V3 cache, causing failures with the multi file driver 
  *     		(and possibly the family file driver as well).
  *
- *     		Performing this operation is impossible in the current serialize
- *     		routine, as the dxpl_id is not available.  While I am pretty sure
- *     		that this is not the correct place for this functionality, as I 
- *     		can see it causing problems with both journaling and possibly 
- *     		parallel HDF5 as well, I am placing code for the necessary update
- *     		in the pre_serialize call for now for testing purposes.  We will
- *		almost certainly want to change this.
+ *     		Performing this operation is impossible in the current 
+ *		serialize routine, as the dxpl_id is not available.  While 
+ *		I am pretty sure that this is not the correct place for this 
+ *		functionality, as I can see it causing problems with both 
+ *		journaling and possibly parallel HDF5 as well, I am placing 
+ *		code for the necessary update in the pre_serialize call for 
+ *		now for testing purposes.  We will almost certainly want to 
+ *		change this.
  *
  * Return:      Success:        SUCCEED
  *              Failure:        FAIL
@@ -499,9 +509,11 @@ H5F__cache_superblock_image_len(const void *_thing, size_t *image_len)
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5F__cache_superblock_pre_serialize(const H5F_t *f, hid_t dxpl_id, void *_thing,
-    haddr_t UNUSED addr, size_t UNUSED len, haddr_t UNUSED *new_addr,
-    size_t UNUSED *new_len, unsigned UNUSED *flags)
+H5F__cache_superblock_pre_serialize(const H5F_t *f, hid_t dxpl_id, 
+    void *_thing, haddr_t UNUSED addr, size_t UNUSED len, 
+    size_t UNUSED compressed_len, haddr_t UNUSED *new_addr, 
+    size_t UNUSED *new_len, size_t UNUSED *new_compressed_len, 
+    unsigned UNUSED *flags)
 {
     H5F_super_t *sblock = (H5F_super_t *)_thing; /* Pointer to the super block */
     herr_t ret_value = SUCCEED; /* Return value */
@@ -890,7 +902,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5F__cache_drvrinfo_image_len(const void *_thing, size_t *image_len)
+H5F__cache_drvrinfo_image_len(const void *_thing, size_t *image_len, hbool_t *compressed_ptr, size_t UNUSED *compressed_image_len_ptr)
 {
     const H5O_drvinfo_t *drvinfo = (const H5O_drvinfo_t *)_thing;       /* Pointer to the object */
 
@@ -901,10 +913,14 @@ H5F__cache_drvrinfo_image_len(const void *_thing, size_t *image_len)
     HDassert(drvinfo->cache_info.magic == H5C__H5C_CACHE_ENTRY_T_MAGIC);
     HDassert(drvinfo->cache_info.type == H5AC_DRVRINFO);
     HDassert(image_len);
+    HDassert(compressed_ptr);
 
     /* Set the image length size */
     *image_len = (size_t)(H5F_DRVINFOBLOCK_HDR_SIZE +   /* Fixed-size portion of driver info block */
         drvinfo->len);                                  /* Variable-size portion of driver info block */
+
+    /* Set *compressed_ptr to FALSE unconditionally */
+    *compressed_ptr;
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5F__cache_drvrinfo_image_len() */

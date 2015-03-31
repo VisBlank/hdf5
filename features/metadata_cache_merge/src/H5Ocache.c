@@ -71,7 +71,8 @@
 static herr_t H5O__cache_get_load_size(const void *udata, size_t *image_len);
 static void *H5O__cache_deserialize(const void *image, size_t len,
     void *udata, hbool_t *dirty); 
-static herr_t H5O__cache_image_len(const void *thing, size_t *image_len);
+static herr_t H5O__cache_image_len(const void *thing, size_t *image_len,
+    hbool_t *compressed_ptr, size_t *compressed_image_len_ptr);
 static herr_t H5O__cache_serialize(const H5F_t *f, void *image, size_t len,
     void *thing); 
 static herr_t H5O__cache_free_icr(void *thing);
@@ -80,7 +81,8 @@ static herr_t H5O__cache_clear(const H5F_t *f, void *thing, hbool_t about_to_des
 static herr_t H5O__cache_chk_get_load_size(const void *udata, size_t *image_len);
 static void *H5O__cache_chk_deserialize(const void *image, size_t len,
     void *udata, hbool_t *dirty); 
-static herr_t H5O__cache_chk_image_len(const void *thing, size_t *image_len);
+static herr_t H5O__cache_chk_image_len(const void *thing, size_t *image_len,
+    hbool_t *compressed_ptr, size_t *compressed_image_len_ptr);
 static herr_t H5O__cache_chk_serialize(const H5F_t *f, void *image, size_t len,
     void *thing);
 static herr_t H5O__cache_chk_free_icr(void *thing);
@@ -398,7 +400,8 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5O__cache_image_len(const void *_thing, size_t *image_len)
+H5O__cache_image_len(const void *_thing, size_t *image_len,
+    hbool_t UNUSED *compressed_ptr, size_t UNUSED *compressed_image_len_ptr)
 {
     const H5O_t *oh = (const H5O_t *)_thing;    /* Object header to query */
 
@@ -801,7 +804,8 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5O__cache_chk_image_len(const void *_thing, size_t *image_len)
+H5O__cache_chk_image_len(const void *_thing, size_t *image_len,
+    hbool_t UNUSED *compressed_ptr, size_t UNUSED *compressed_image_len_ptr)
 {
     const H5O_chunk_proxy_t * chk_proxy = (const H5O_chunk_proxy_t *)_thing;    /* Chunk proxy to query */
 

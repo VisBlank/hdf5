@@ -223,14 +223,18 @@ static void * H5C__epoch_marker_deserialize(const void * image_ptr,
 			                    void * udata,
 			                    hbool_t * dirty_ptr);
 static herr_t H5C__epoch_marker_image_len(const void * thing,
-		                          size_t *image_len_ptr);
+		                          size_t *image_len_ptr,
+                                          hbool_t compressed_ptr,
+                                          size_t *compressed_len_ptr);
 static herr_t H5C__epoch_marker_pre_serialize(const H5F_t *f,
 		                             hid_t dxpl_id,
                                              void * thing,
                                              haddr_t addr,
 		                             size_t len,
+					     size_t compressed_len,
 		                             haddr_t * new_addr_ptr,
 		                             size_t * new_len_ptr,
+					     size_t * new_compressed_len_ptr,
 		                             unsigned * flags_ptr);
 static herr_t H5C__epoch_marker_serialize(const H5F_t *f,
 		                          void * image_ptr,
@@ -297,7 +301,8 @@ H5C__epoch_marker_deserialize(const void UNUSED * image_ptr, size_t UNUSED len,
 
 static herr_t
 H5C__epoch_marker_image_len(const void UNUSED *thing,
-    size_t UNUSED *image_len_ptr)
+    size_t UNUSED *image_len_ptr, hbool_t UNUSED compressed_ptr,
+    size_t UNUSED *compressed_len_ptr)
 {
     FUNC_ENTER_STATIC_NOERR /* Yes, even though this pushes an error on the stack */
 
@@ -310,7 +315,8 @@ H5C__epoch_marker_image_len(const void UNUSED *thing,
 static herr_t
 H5C__epoch_marker_pre_serialize(const H5F_t UNUSED *f, hid_t UNUSED dxpl_id,
     void UNUSED *thing, haddr_t UNUSED addr, size_t UNUSED len,
-    haddr_t UNUSED *new_addr_ptr, size_t UNUSED *new_len_ptr,
+    size_t UNUSED compressed_len, haddr_t UNUSED *new_addr_ptr, 
+    size_t UNUSED *new_len_ptr, size_t UNUSED *new_compressed_len_ptr,
     unsigned UNUSED *flags_ptr)
 {
     FUNC_ENTER_STATIC_NOERR /* Yes, even though this pushes an error on the stack */
@@ -2841,10 +2847,27 @@ H5C_insert_entry(H5F_t *             f,
     /* not protected, so can't be dirtied */
     entry_ptr->dirtied  = FALSE;
 
-    /* Retrieve the size of the thing */
-    if((type->image_len)(thing, &(entry_ptr->size)) < 0)
+    /* Retrieve the size of the thing.  Set the compressed field to FALSE
+     * and the compressed_size field to zero first, as they may not be 
+     * initialized by the image_len call.
+     */
+    entry_ptr->compressed = FALSE;
+    entry_ptr->compressed_size = 0;
+    if((type->image_len)(thing, &(entry_ptr->size), &(entry_ptr->compressed), 
+                         &(entry_ptr->compressed_size)) < 0)
         HGOTO_ERROR(H5E_RESOURCE, H5E_CANTGETSIZE, FAIL, "Can't get size of thing")
     HDassert(entry_ptr->size > 0 &&  entry_ptr->size < H5C_MAX_ENTRY_SIZE);
+    HDassert(((type->flags & H5C__CLASS_COMPRESSED_FLAG) != 0) ||
+             (entry_ptr->compressed == FALSE));
+
+    /* entry has just been inserted -- thus compressed size cannot have 
+     * been computed yet.  Thus if entry_ptr->compressed is TRUE, 
+     * entry_ptr->size must equal entry_ptr->compressed_size.
+     */
+    HDassert((entry_ptr->compressed == FALSE) ||
+             (entry_ptr->size == entry_ptr->compressed_size));
+    HDassert((entry_ptr->compressed == TRUE) || 
+             (entry_ptr->compressed_size == 0));
 
     entry_ptr->in_slist = FALSE;
 
@@ -8525,6 +8548,7 @@ H5C_flush_single_entry(const H5F_t *	   f,
     haddr_t		new_addr = HADDR_UNDEF;
     haddr_t		old_addr = HADDR_UNDEF;
     size_t		new_len = 0;
+    size_t		new_compressed_len = 0;
     H5C_cache_entry_t * entry_ptr = NULL;
     herr_t		ret_value = SUCCEED;      /* Return value */
 
@@ -8689,8 +8713,17 @@ H5C_flush_single_entry(const H5F_t *	   f,
 
         if ( NULL == entry_ptr->image_ptr ) 
         {
+            size_t image_size;
+
+            if ( entry_ptr->compressed )
+                image_size = entry_ptr->compressed_size;
+            else
+                image_size = entry_ptr->size;
+
+            HDassert(image_size > 0);
+
             entry_ptr->image_ptr = 
-                    H5MM_malloc(entry_ptr->size + H5C_IMAGE_EXTRA_SPACE);
+                H5MM_malloc(image_size + H5C_IMAGE_EXTRA_SPACE);
 
             if ( NULL == entry_ptr->image_ptr) 
             {
@@ -8699,7 +8732,7 @@ H5C_flush_single_entry(const H5F_t *	   f,
             }
 #if H5C_DO_MEMORY_SANITY_CHECKS
 
-            HDmemcpy(((uint8_t *)entry_ptr->image_ptr) + entry_ptr->size, 
+            HDmemcpy(((uint8_t *)entry_ptr->image_ptr) + image_size, 
                      H5C_IMAGE_SANITY_VALUE, H5C_IMAGE_EXTRA_SPACE);
 
 #endif /* H5C_DO_MEMORY_SANITY_CHECKS */
@@ -8722,7 +8755,9 @@ H5C_flush_single_entry(const H5F_t *	   f,
                                                     (void *)entry_ptr,
                                                     entry_ptr->addr, 
                                                     entry_ptr->size,
+						    entry_ptr->compressed_size,
                                                     &new_addr, &new_len, 
+                                                    &new_compressed_len,
                                                     &serialize_flags) < 0 ) )
             {
                 HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, \
@@ -8740,7 +8775,8 @@ H5C_flush_single_entry(const H5F_t *	   f,
             {
                 /* Check for unexpected flags from serialize callback */
                 if ( serialize_flags & ~(H5C__SERIALIZE_RESIZED_FLAG | 
-                                         H5C__SERIALIZE_MOVED_FLAG) )
+                                         H5C__SERIALIZE_MOVED_FLAG |
+                                         H5C__SERIALIZE_COMPRESSED_FLAG))
                 {
                     HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, \
                                 "unknown serialize flag(s)")
@@ -8779,8 +8815,20 @@ H5C_flush_single_entry(const H5F_t *	   f,
 #endif /* H5_HAVE_PARALLEL */
 
                 /* Resize the buffer if required */
-                if ( serialize_flags & H5C__SERIALIZE_RESIZED_FLAG ) 
+                if ( ( ( ! entry_ptr->compressed ) &&
+                       ( serialize_flags & H5C__SERIALIZE_RESIZED_FLAG ) ) ||
+                     ( ( entry_ptr->compressed ) &&
+                       ( serialize_flags & H5C__SERIALIZE_COMPRESSED_FLAG ) ) )
                 {
+                    size_t new_image_size;
+
+            	    if ( entry_ptr->compressed )
+                        new_image_size = new_compressed_len;
+                    else
+                        new_image_size = new_len;
+
+                    HDassert(new_image_size > 0);
+
                     /* Release the current image */
                     if ( entry_ptr->image_ptr )
                     {
@@ -8789,7 +8837,7 @@ H5C_flush_single_entry(const H5F_t *	   f,
 
                     /* Allocate a new image buffer */
                     entry_ptr->image_ptr = 
-                        H5MM_malloc(new_len + H5C_IMAGE_EXTRA_SPACE);
+                        H5MM_malloc(new_image_size + H5C_IMAGE_EXTRA_SPACE);
 
                     if ( NULL == entry_ptr->image_ptr )
                     {
@@ -8799,7 +8847,7 @@ H5C_flush_single_entry(const H5F_t *	   f,
 
 #if H5C_DO_MEMORY_SANITY_CHECKS
 
-                    HDmemcpy(((uint8_t *)entry_ptr->image_ptr) + entry_ptr->size,
+                    HDmemcpy(((uint8_t *)entry_ptr->image_ptr) + new_image_size,
                              H5C_IMAGE_SANITY_VALUE, 
                              H5C_IMAGE_EXTRA_SPACE);
 
@@ -8901,38 +8949,57 @@ H5C_flush_single_entry(const H5F_t *	   f,
                         HDassert(entry_ptr->addr == new_addr);
                     }
                 } /* end if */
+
+                if ( serialize_flags & H5C__SERIALIZE_COMPRESSED_FLAG ) {
+		    /* just save the new compressed entry size in 
+                     * entry_ptr->compressed_size.  We don't need to 
+ 		     * do more, as compressed size is only used for I/O.
+                     */
+                    HDassert(entry_ptr->compressed);
+                    entry_ptr->compressed_size = new_compressed_len;
+                }
             } /* end if ( serialize_flags != H5C__SERIALIZE_NO_FLAGS_SET ) */
 
-            /* reset cache_ptr->slist_changed so we can detect slist
-             * modifications in the serialize call.
-             */
-            cache_ptr->slist_changed = FALSE;
-
             /* Serialize object into buffer */
-            if ( entry_ptr->type->serialize(f, entry_ptr->image_ptr, 
-                                            entry_ptr->size, 
-                                            (void *)entry_ptr) < 0 )
             {
-                HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, \
-                            "unable to serialize entry")
-            }
+                size_t image_len;
 
-            /* set cache_ptr->slist_change_in_serialize if the 
-             * slist was modified.
-             */
-            if ( cache_ptr->slist_changed )
-                cache_ptr->slist_change_in_pre_serialize = TRUE;
+                if ( entry_ptr->compressed )
+                    image_len = entry_ptr->compressed_size;
+                else
+                    image_len = entry_ptr->size;
+
+                /* reset cache_ptr->slist_changed so we can detect slist
+                 * modifications in the serialize call.
+                 */
+                cache_ptr->slist_changed = FALSE;
+
+            
+                if ( entry_ptr->type->serialize(f, entry_ptr->image_ptr, 
+                                                image_len,
+                                                (void *)entry_ptr) < 0 )
+                {
+                    HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, \
+                                "unable to serialize entry")
+                }
+
+                /* set cache_ptr->slist_change_in_serialize if the 
+                 * slist was modified.
+                 */
+                if ( cache_ptr->slist_changed )
+                    cache_ptr->slist_change_in_pre_serialize = TRUE;
 
 #if H5C_DO_MEMORY_SANITY_CHECKS
 
-            HDassert(0 == HDmemcmp(((uint8_t *)entry_ptr->image_ptr) + 
-                                       entry_ptr->size, 
-                                   H5C_IMAGE_SANITY_VALUE, 
-                                   H5C_IMAGE_EXTRA_SPACE));
+                HDassert(0 == HDmemcmp(((uint8_t *)entry_ptr->image_ptr) + 
+                                       image_len, 
+                                       H5C_IMAGE_SANITY_VALUE, 
+                                       H5C_IMAGE_EXTRA_SPACE));
 
 #endif /* H5C_DO_MEMORY_SANITY_CHECKS */
 
-            entry_ptr->image_up_to_date = TRUE;
+                entry_ptr->image_up_to_date = TRUE;
+            }
         } /* end if ( ! (entry_ptr->image_up_to_date) ) */
 
         /* Finally, write the image to disk.  
@@ -8945,9 +9012,20 @@ H5C_flush_single_entry(const H5F_t *	   f,
         if ( ( ((entry_ptr->type->flags) & H5C__CLASS_NO_IO_FLAG) == 0 ) &&
              ( ((entry_ptr->type->flags) & H5C__CLASS_SKIP_WRITES) == 0 ) )
         {
+	    /* If compression is not enabled, the size of the entry on 
+             * disk is entry_prt->size.  However if entry_ptr->compressed
+             * is TRUE, the on disk size is entry_ptr->compressed_size.
+             */
+            size_t image_size;
+
+            if ( entry_ptr->compressed )
+                image_size = entry_ptr->compressed_size;
+            else
+                image_size = entry_ptr->size;
+
             if ( ( H5F_block_write(f, entry_ptr->type->mem_type, 
                                    entry_ptr->addr,
-                                   entry_ptr->size, dxpl_id, 
+                                   image_size, dxpl_id, 
                                    entry_ptr->image_ptr) < 0 ) )
             {
                 HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, \
@@ -9115,17 +9193,23 @@ H5C_flush_single_entry(const H5F_t *	   f,
                 HDassert(!H5F_IS_TMP_ADDR(f, entry_ptr->addr));
 #ifndef NDEBUG
 {
+                hbool_t curr_compressed = FALSE;
                 size_t curr_len;
+                size_t curr_compressed_len = 0;
 
                 /* Get the actual image size for the thing again */
-                entry_ptr->type->image_len((void *)entry_ptr, &curr_len);
+                entry_ptr->type->image_len((void *)entry_ptr, &curr_len, &curr_compressed, &curr_compressed_len);
                 HDassert(curr_len == entry_ptr->size);
+		HDassert(curr_compressed == entry_ptr->compressed);
+                HDassert(curr_compressed_len == entry_ptr->compressed_size);
 }
 #endif /* NDEBUG */
 
 		/* if the file space free size callback is defined, use
  		 * it to get the size of the block of file space to free.
- 		 * Otherwise use entry_ptr->size.
+ 		 * Otherwise use entry_ptr->compressed_size if 
+                 * entry_ptr->compressed == TRUE, and entry_ptr->size
+                 * if entry_ptr->compressed == FALSE.
                  */
 		if ( entry_ptr->type->fsf_size )
                 {
@@ -9135,6 +9219,10 @@ H5C_flush_single_entry(const H5F_t *	   f,
                         HGOTO_ERROR(H5E_CACHE, H5E_CANTFREE, FAIL, \
                                     "unable to get file space free size")
                     }
+                }
+                else if ( entry_ptr->compressed ) /* use compressed size */
+                {
+                    fsf_size = entry_ptr->compressed_size;
                 }
                 else /* no file space free size callback -- use entry size */
                 {
@@ -9262,6 +9350,14 @@ H5C_load_entry(H5F_t *             f,
                void *              udata)
 {
     hbool_t		dirty = FALSE;  /* Flag indicating whether thing was dirtied during deserialize */
+    hbool_t		compressed = FALSE; /* flag indicating whether thing */
+ 					/* will be run through filters on    */
+                                        /* on read and write.  Usually FALSE */
+					/* set to true if appropriate.       */
+    size_t		compressed_size = 0; /* entry compressed size if     */
+                                        /* known -- otherwise uncompressed.  */
+				        /* Zero indicates compression not    */
+                                        /* enabled.                          */
     void *		image = NULL;   /* Buffer for disk image */
     void *		thing = NULL;   /* Pointer to thing loaded */
     H5C_cache_entry_t *	entry;          /* Alias for thing loaded, as cache entry */
@@ -9275,12 +9371,29 @@ H5C_load_entry(H5F_t *             f,
     HDassert(f->shared);
     HDassert(f->shared->cache);
     HDassert(type);
+
+    /* verify absence of prohibited or unsupported type flag combinations */
     HDassert(!(type->flags & H5C__CLASS_NO_IO_FLAG));
+ 
+    /* for now, we do not combine the speculative load and compressed flags */
+    HDassert(!((type->flags & H5C__CLASS_SPECULATIVE_LOAD_FLAG) &&
+               (type->flags & H5C__CLASS_COMPRESSED_FLAG)));
+
+    /* Can't see how skip reads could be usefully combined with 
+     * either the speculative read or compressed flags.  Hence disallow.
+     */
+    HDassert(!((type->flags & H5C__CLASS_SKIP_READS) &&
+               (type->flags & H5C__CLASS_SPECULATIVE_LOAD_FLAG)));
+    HDassert(!((type->flags & H5C__CLASS_SKIP_READS) &&
+               (type->flags & H5C__CLASS_COMPRESSED_FLAG)));
+
     HDassert(H5F_addr_defined(addr));
     HDassert(type->get_load_size);
     HDassert(type->deserialize);
 
-    /* Call the get_load_size callback, to retrieve the initial size of image */
+    /* Call the get_load_size callback, to retrieve the initial 
+     * size of image 
+     */
     if(type->get_load_size(udata, &len) < 0)
         HGOTO_ERROR(H5E_CACHE, H5E_CANTGET, NULL, "can't retrieve image size")
 
@@ -9356,7 +9469,7 @@ H5C_load_entry(H5F_t *             f,
          * for sanity checks.
          */
         cooked_type = 
-            (type->mem_type == H5FD_MEM_GHEAP) ? H5FD_MEM_DRAW : type->mem_type;
+           (type->mem_type == H5FD_MEM_GHEAP) ? H5FD_MEM_DRAW : type->mem_type;
 
         /* Get the file's end-of-allocation value */
         eoa = H5F_get_eoa(f, cooked_type);
@@ -9374,8 +9487,8 @@ H5C_load_entry(H5F_t *             f,
 
             /* Trim down the length of the metadata */
 
-            /* Note that for some clients, this will cause an assertion 
-             * failure.			JRM -- 8/29/14
+            /* Note that for some cache clients, this will cause an 
+             * assertion failure.		JRM -- 8/29/14
              */
             len = (size_t)(eoa - addr);
         }
@@ -9421,34 +9534,60 @@ H5C_load_entry(H5F_t *             f,
         entry->magic = H5C__H5C_CACHE_ENTRY_T_MAGIC;
         entry->type  = type;
 
+	/* verify that compressed and compressed_len are initialized */
+        HDassert(compressed == FALSE);
+        HDassert(compressed_size == 0);
+
         /* Get the actual image size for the thing */
-        if(type->image_len(thing, &new_len) < 0)
+        if(type->image_len(thing, &new_len, &compressed, &compressed_size) < 0)
 
 	    HGOTO_ERROR(H5E_CACHE, H5E_CANTGET, NULL, \
                         "can't retrieve image length")
 
-	else if(new_len == 0)
+	if(new_len == 0)
 
 	    HGOTO_ERROR(H5E_CACHE, H5E_BADVALUE, NULL, "image length is 0")
 
-	else if(new_len != len) {
+        HDassert(((type->flags & H5C__CLASS_COMPRESSED_FLAG) != 0) ||
+                 ((compressed == FALSE) && (compressed_size == 0)));
+        HDassert((compressed == TRUE) || (compressed_size == 0));
 
-            /* Check for size changing on non-speculatively loaded, 
-             * non-compressed thing 
-             */
-            if( 0 == (type->flags & (H5C__CLASS_SPECULATIVE_LOAD_FLAG | 
-                                     H5C__CLASS_COMPRESSED_FLAG)) )
+	if(new_len != len) {
 
-                HGOTO_ERROR(H5E_CACHE, H5E_UNSUPPORTED, NULL, \
-                     "size of non-speculative, non-compressed object changed")
+            if(type->flags & H5C__CLASS_COMPRESSED_FLAG) {
 
-            else {
+                /* if new_len != len, then compression must be 
+                 * enabled on the entry.  In this case, the image_len
+                 * callback should have set compressed to TRUE, set 
+                 * new_len equal to the uncompressed size of the 
+                 * entry, and compressed_len equal to the compressed
+                 * size -- which must equal len.
+                 *
+                 * We can't verify the uncompressed size, but we can 
+		 * verify the rest with the following assertions.
+                 */
+		HDassert(compressed);
+                HDassert(compressed_size == len);
+
+		/* new_len should contain the uncompressed size.  Set len
+                 * equal to new_len, so that the cache will use the 
+                 * uncompressed size for purposes of space allocation, etc.
+                 */
+                len = new_len;
+
+            } else if (type->flags & H5C__CLASS_SPECULATIVE_LOAD_FLAG) {
 
                 void *new_image;       /* Buffer for disk image */
 
-                /* Allocate differently sized buffer */
+		/* compressed must be FALSE, and compressed_size 
+                 * must be zero.
+                 */
+		HDassert(!compressed);
+		HDassert(compressed_size == 0);
+
+                /* Adjust the size of the image to match new_len */
                 if(NULL == (new_image = H5MM_realloc(image, 
-                                              new_len + H5C_IMAGE_EXTRA_SPACE)))
+                                            new_len + H5C_IMAGE_EXTRA_SPACE)))
 
                     HGOTO_ERROR(H5E_CACHE, H5E_CANTALLOC, NULL, \
                                "image null after H5MM_realloc()")
@@ -9462,14 +9601,10 @@ H5C_load_entry(H5F_t *             f,
 
 #endif /* H5C_DO_MEMORY_SANITY_CHECKS */
 
-		HDassert((new_len < len) || \
-                         (type->flags & H5C__CLASS_SPECULATIVE_LOAD_FLAG));
-
                 /* If the thing's image needs to be bigger for a speculatively
                  *      loaded thing, free the thing and retry with new length
                  */
-                if((type->flags & H5C__CLASS_SPECULATIVE_LOAD_FLAG) && 
-                   (new_len > len)) {
+                if (new_len > len) {
 
                     /* Release previous (possibly partially initialized) 
                      * thing.  Note that we must set entry->magic to 
@@ -9486,14 +9621,6 @@ H5C_load_entry(H5F_t *             f,
                         HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, NULL, \
                                     "free_icr callback failed")
 
-		    /* H5AC__CLASS_SKIP_READS flag is used only in test 
-                     * code, and never if combination with either the 
-                     * H5C__CLASS_SPECULATIVE_LOAD_FLAG or the 
-                     * H5C__CLASS_COMPRESSED_FLAG.  If that changes,
-                     * the following assert will have to be re-visited.
-                     */
-		    HDassert( 0 == (type->flags & H5AC__CLASS_SKIP_READS) );
-
                     /* Go get the on-disk image again */
                     if(H5F_block_read(f, type->mem_type, addr, 
                                       new_len, dxpl_id, image) < 0)
@@ -9501,7 +9628,9 @@ H5C_load_entry(H5F_t *             f,
                         HGOTO_ERROR(H5E_CACHE, H5E_CANTLOAD, NULL, \
                                     "Can't read image")
 
-                    /* Deserialize on-disk image into native memory form again */
+                    /* Deserialize on-disk image into native memory 
+                     * form again 
+                     */
                     if(NULL == (thing = type->deserialize(image, new_len, 
                                                           udata, &dirty)))
 
@@ -9509,28 +9638,42 @@ H5C_load_entry(H5F_t *             f,
                                     "Can't deserialize image")
 
 #ifndef NDEBUG
-    {
-                    size_t new_new_len;
+    		    {
+			/* new_compressed and new_compressed_size must be 
+                         * initialize to FALSE / 0 respectively, as clients
+                         * that don't use compression may ignore these two 
+                         * parameters.
+                         */
+                        hbool_t new_compressed = FALSE;
+                        size_t new_compressed_size = 0;
+                        size_t new_new_len;
 
-                    /* Get the actual image size for the thing again.  Note
-                     * that since this is a new thing, we have to set 
-                     * the magic and type fields again so as to avoid
-                     * failing sanity checks.
-                     */
-                    entry = (H5C_cache_entry_t *)thing;
-                    entry->magic = H5C__H5C_CACHE_ENTRY_T_MAGIC;
-                    entry->type  = type;
+                        /* Get the actual image size for the thing again.  Note
+                         * that since this is a new thing, we have to set 
+                         * the magic and type fields again so as to avoid
+                         * failing sanity checks.
+                         */
+                        entry = (H5C_cache_entry_t *)thing;
+                        entry->magic = H5C__H5C_CACHE_ENTRY_T_MAGIC;
+                        entry->type  = type;
 
-                    type->image_len(thing, &new_new_len);
-                    HDassert(new_new_len == new_len);
-    }
+                        type->image_len(thing, &new_new_len, &new_compressed, &new_compressed_size);
+                        HDassert(new_new_len == new_len);
+                        HDassert(!new_compressed);
+                        HDassert(new_compressed_size == 0);
+    		    }
 #endif /* NDEBUG */
-                } /* end else */
-            } /* end if */
+                } /* end if (new_len > len) */
 
-            /* Retain adjusted size */
-            len = new_len;
-	} /* end if */
+                /* Retain adjusted size */
+                len = new_len;
+
+            } else { /* throw an error */
+
+                HGOTO_ERROR(H5E_CACHE, H5E_UNSUPPORTED, NULL, \
+                     "size of non-speculative, non-compressed object changed")
+            }
+	} /* end if (new_len != len) */
     } /* end if */
 
     entry = (H5C_cache_entry_t *)thing;
@@ -9546,8 +9689,8 @@ H5C_load_entry(H5F_t *             f,
      *
      * 	HDassert( ( dirty == FALSE ) || ( type->id == 5 || type->id == 6 ) );
      *
-     * note that type ids 5 & 6 are associated with object headers in the metadata
-     * cache.
+     * note that type ids 5 & 6 are associated with object headers in the 
+     * metadata cache.
      *
      * When we get to using H5C for other purposes, we may wish to
      * tighten up the assert so that the loophole only applies to the
@@ -9555,11 +9698,14 @@ H5C_load_entry(H5F_t *             f,
      */
 
     HDassert( ( dirty == FALSE ) || ( type->id == 5 || type->id == 6) );
+
     entry->magic                = H5C__H5C_CACHE_ENTRY_T_MAGIC;
     entry->cache_ptr            = f->shared->cache;
     entry->addr                 = addr;
     entry->size                 = len;
     HDassert(entry->size < H5C_MAX_ENTRY_SIZE);
+    entry->compressed		= compressed;
+    entry->compressed_size	= compressed_size;
     entry->image_ptr            = image;
     entry->image_up_to_date     = TRUE;
     entry->type                 = type;

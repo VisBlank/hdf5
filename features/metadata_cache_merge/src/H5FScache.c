@@ -79,10 +79,12 @@ static herr_t H5FS__sinfo_serialize_node_cb(void *_item, void UNUSED *key, void 
 static herr_t H5FS__cache_hdr_get_load_size(const void *udata, size_t *image_len);
 static void *H5FS__cache_hdr_deserialize(const void *image, size_t len,
     void *udata, hbool_t *dirty);
-static herr_t H5FS__cache_hdr_image_len(const void *thing, size_t *image_len);
+static herr_t H5FS__cache_hdr_image_len(const void *thing, size_t *image_len,
+    hbool_t *compressed_ptr, size_t *compressed_image_len_ptr);
 static herr_t H5FS__cache_hdr_pre_serialize(const H5F_t *f, hid_t dxpl_id,
-    void *thing, haddr_t addr, size_t len, haddr_t *new_addr,
-    size_t *new_len, unsigned *flags);
+    void *thing, haddr_t addr, size_t len, size_t compressed_len, 
+    haddr_t *new_addr, size_t *new_len, size_t *new_compressed_len, 
+    unsigned *flags);
 static herr_t H5FS__cache_hdr_serialize(const H5F_t *f, void *image, 
     size_t len, void *thing);
 static herr_t H5FS__cache_hdr_free_icr(void *thing);
@@ -90,10 +92,12 @@ static herr_t H5FS__cache_hdr_free_icr(void *thing);
 static herr_t H5FS__cache_sinfo_get_load_size(const void *udata, size_t *image_len);
 static void *H5FS__cache_sinfo_deserialize(const void *image, size_t len,
     void *udata, hbool_t *dirty);
-static herr_t H5FS__cache_sinfo_image_len(const void *thing, size_t *image_len);
+static herr_t H5FS__cache_sinfo_image_len(const void *thing, size_t *image_len,
+    hbool_t *compressed_ptr, size_t *compressed_image_len_ptr);
 static herr_t H5FS__cache_sinfo_pre_serialize(const H5F_t *f, hid_t dxpl_id,
-    void *thing, haddr_t addr, size_t len, haddr_t *new_addr,
-    size_t *new_len, unsigned *flags);
+    void *thing, haddr_t addr, size_t len, size_t compressed_len, 
+    haddr_t *new_addr, size_t *new_len, size_t *new_compressed_len, 
+    unsigned *flags);
 static herr_t H5FS__cache_sinfo_serialize(const H5F_t *f, void *image,
     size_t len, void *thing);
 static herr_t H5FS__cache_sinfo_free_icr(void *thing);
@@ -318,7 +322,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5FS__cache_hdr_image_len(const void *_thing, size_t *image_len)
+H5FS__cache_hdr_image_len(const void *_thing, size_t *image_len, hbool_t UNUSED *compressed_ptr, size_t UNUSED *compressed_image_len_ptr)
 {
     const H5FS_t *fspace = (const H5FS_t *)_thing;       /* Pointer to the object */
 
@@ -366,8 +370,9 @@ H5FS__cache_hdr_image_len(const void *_thing, size_t *image_len)
  */
 static herr_t 
 H5FS__cache_hdr_pre_serialize(const H5F_t *f, hid_t dxpl_id, void *_thing,
-    haddr_t addr, size_t UNUSED len, haddr_t *new_addr,
-    size_t *new_len, unsigned *flags)
+    haddr_t addr, size_t UNUSED len, size_t UNUSED compressed_len, 
+    haddr_t *new_addr, size_t *new_len, size_t UNUSED *new_compressed_len, 
+    unsigned *flags)
 {
     H5FS_t 	*fspace = (H5FS_t *)_thing;     /* Pointer to the object */
     herr_t     	 ret_value = SUCCEED;           /* Return value */
@@ -967,7 +972,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5FS__cache_sinfo_image_len(const void *_thing, size_t *image_len)
+H5FS__cache_sinfo_image_len(const void *_thing, size_t *image_len, hbool_t UNUSED *compressed_ptr, size_t UNUSED *compressed_image_len_ptr)
 {
     const H5FS_sinfo_t *sinfo = (const H5FS_sinfo_t *)_thing;   /* Pointer to the object */
     const H5FS_t *fspace;               /* Free space header */
@@ -1009,8 +1014,8 @@ H5FS__cache_sinfo_image_len(const void *_thing, size_t *image_len)
  */
 static herr_t 
 H5FS__cache_sinfo_pre_serialize(const H5F_t *f, hid_t dxpl_id, void *_thing,
-    haddr_t addr, size_t len, haddr_t *new_addr, size_t *new_len,
-    unsigned *flags)
+    haddr_t addr, size_t len, size_t UNUSED compressed_len, haddr_t *new_addr,
+    size_t *new_len, size_t UNUSED *new_compressed_len, unsigned *flags)
 {
     H5FS_sinfo_t 	*sinfo = (H5FS_sinfo_t *)_thing;        /* Pointer to the object */
     H5FS_t 		*fspace;                /* Free space header */

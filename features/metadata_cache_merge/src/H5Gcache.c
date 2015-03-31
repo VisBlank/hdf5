@@ -66,7 +66,8 @@
 static herr_t H5G__cache_node_get_load_size(const void *udata, size_t *image_len);
 static void *H5G__cache_node_deserialize(const void *image, size_t len,
     void *udata, hbool_t *dirty);
-static herr_t H5G__cache_node_image_len(const void *thing, size_t *image_len);
+static herr_t H5G__cache_node_image_len(const void *thing, size_t *image_len,
+    hbool_t *compressed_ptr, size_t *compressed_image_len_ptr);
 static herr_t H5G__cache_node_serialize(const H5F_t *f, void *image,
     size_t len, void *thing);
 static herr_t H5G__cache_node_free_icr(void *thing);
@@ -240,7 +241,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5G__cache_node_image_len(const void *_thing, size_t *image_len)
+H5G__cache_node_image_len(const void *_thing, size_t *image_len, hbool_t UNUSED *compressed_ptr, size_t UNUSED *compressed_image_len_ptr)
 {
     const H5G_node_t *sym = (const H5G_node_t *)_thing; /* Pointer to object */
 
