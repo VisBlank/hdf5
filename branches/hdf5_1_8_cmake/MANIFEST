@@ -1225,6 +1225,7 @@
 ./tools/h5stat/testfiles/h5stat_tsohm.h5
 
 # h5dump test files
+./tools/testfiles/README
 ./tools/testfiles/charsets.h5
 ./tools/testfiles/charsets.ddl
 ./tools/testfiles/family_file00000.h5
@@ -1306,6 +1307,8 @@
 ./tools/testfiles/tbinregR.exp
 ./tools/testfiles/tbinregR.ddl
 ./tools/testfiles/tbitfields.h5
+./tools/testfiles/tbitnopaque.ddl
+./tools/testfiles/tbitnopaque.h5
 ./tools/testfiles/tboot1.ddl
 ./tools/testfiles/tboot2.ddl
 ./tools/testfiles/tboot2A.ddl
@@ -1331,6 +1334,8 @@
 ./tools/testfiles/tcompound.h5
 ./tools/testfiles/tcompound2.h5
 ./tools/testfiles/tcompound_complex.h5
+./tools/testfiles/tcompound_enum.ddl
+./tools/testfiles/tcompound_enum.h5
 ./tools/testfiles/tdatareg.h5
 ./tools/testfiles/tdatareg.ddl 
 ./tools/testfiles/tdataregR.ddl 
@@ -2195,6 +2200,8 @@
 ./hl/tools/gif2h5/writehdf.c
 ./hl/tools/gif2h5/h52gifgentst.c
 ./hl/tools/gif2h5/h52giftest.sh.in
+./hl/tools/gif2h5/testfiles/REAMDE
+./hl/tools/gif2h5/testfiles/ex_image2.h5
 ./hl/tools/gif2h5/testfiles/image1.gif
 ./hl/tools/gif2h5/testfiles/h52giftst.h5
 
