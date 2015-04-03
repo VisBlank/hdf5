@@ -94,7 +94,7 @@ endif ()
 # Handle default component(static) :
 if (NOT ${HDF5_PACKAGE_NAME}_FIND_COMPONENTS)
     set (${HDF5_PACKAGE_NAME}_LIB_TYPE)
-    set (${HDF5_PACKAGE_NAME}_FIND_COMPONENTS C static)
+    set (${HDF5_PACKAGE_NAME}_FIND_COMPONENTS C HL static)
     set (${HDF5_PACKAGE_NAME}_FIND_REQUIRED_static_C true)
 endif ()
 
