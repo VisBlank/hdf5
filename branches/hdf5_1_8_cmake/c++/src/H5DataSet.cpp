@@ -52,7 +52,7 @@ namespace H5 {
 ///\brief	Default constructor: creates a stub DataSet.
 // Programmer	Binh-Minh Ribler - 2000
 //--------------------------------------------------------------------------
-DataSet::DataSet() : AbstractDs(), H5Object(), id(H5I_INVALID_HID) {}
+DataSet::DataSet() : H5Object(), AbstractDs(), id(H5I_INVALID_HID) {}
 
 //--------------------------------------------------------------------------
 // Function:	DataSet overloaded constructor
@@ -60,9 +60,10 @@ DataSet::DataSet() : AbstractDs(), H5Object(), id(H5I_INVALID_HID) {}
 ///\param	existing_id - IN: Id of an existing dataset
 // Programmer	Binh-Minh Ribler - 2000
 //--------------------------------------------------------------------------
-DataSet::DataSet(const hid_t existing_id) : AbstractDs(), H5Object()
+DataSet::DataSet(const hid_t existing_id) : H5Object(), AbstractDs()
 {
     id = existing_id;
+    incRefCount(); // increment number of references to this id
 }
 
 //--------------------------------------------------------------------------
@@ -71,7 +72,7 @@ DataSet::DataSet(const hid_t existing_id) : AbstractDs(), H5Object()
 ///\param	original - IN: DataSet instance to copy
 // Programmer	Binh-Minh Ribler - 2000
 //--------------------------------------------------------------------------
-DataSet::DataSet(const DataSet& original) : AbstractDs(original), H5Object(original)
+DataSet::DataSet(const DataSet& original) : H5Object(), AbstractDs()
 {
     id = original.getId();
     incRefCount(); // increment number of references to this id
@@ -135,7 +136,8 @@ DataSpace DataSet::getSpace() const
       throw DataSetIException("DataSet::getSpace", "H5Dget_space failed");
    }
    //create dataspace object using the existing id then return the object
-   DataSpace data_space( dataspace_id );
+   DataSpace data_space;
+   f_DataSpace_setId(&data_space, dataspace_id);
    return( data_space );
 }
 
@@ -168,8 +170,8 @@ DSetCreatPropList DataSet::getCreatePlist() const
       throw DataSetIException("DataSet::getCreatePlist", "H5Dget_create_plist failed");
    }
    // create and return the DSetCreatPropList object
-   DSetCreatPropList create_plist( create_plist_id );
-   return( create_plist );
+   DSetCreatPropList create_plist(create_plist_id); // ok to use existing id const
+   return(create_plist);
 }
 
 //--------------------------------------------------------------------------
