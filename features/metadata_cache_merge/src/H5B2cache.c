@@ -15,11 +15,11 @@
 
 /*-------------------------------------------------------------------------
  *
- * Created:		H5B2cache.c
- *			Jan 31 2005
- *			Quincey Koziol <koziol@ncsa.uiuc.edu>
+ * Created:     H5B2cache.c
+ *              Jan 31 2005
+ *              Quincey Koziol <koziol@hdfgroup.org>
  *
- * Purpose:		Implement v2 B-tree metadata cache methods.
+ * Purpose:     Implement v2 B-tree metadata cache methods.
  *
  *-------------------------------------------------------------------------
  */
@@ -226,7 +226,7 @@ H5B2__cache_hdr_deserialize(const void *_image, size_t UNUSED len,
 
     /* Allocate new B-tree header and reset cache info */
     if(NULL == (hdr = H5B2__hdr_alloc(udata->f)))
-	HGOTO_ERROR(H5E_BTREE, H5E_CANTALLOC, NULL, "allocation failed for B-tree header")
+        HGOTO_ERROR(H5E_BTREE, H5E_CANTALLOC, NULL, "allocation failed for B-tree header")
 
     /* Get temporary pointer to serialized header */
 
@@ -242,7 +242,7 @@ H5B2__cache_hdr_deserialize(const void *_image, size_t UNUSED len,
     /* B-tree class */
     id = (H5B2_subid_t)*image++;
     if(id >= H5B2_NUM_BTREE_ID)
-	HGOTO_ERROR(H5E_BTREE, H5E_BADTYPE, NULL, "incorrect B-tree type")
+        HGOTO_ERROR(H5E_BTREE, H5E_BADTYPE, NULL, "incorrect B-tree type")
 
     /* Node size (in bytes) */
     UINT32DECODE(image, cparam.node_size);
@@ -273,12 +273,12 @@ H5B2__cache_hdr_deserialize(const void *_image, size_t UNUSED len,
 
     /* Verify checksum */
     if(stored_chksum != computed_chksum)
-	HGOTO_ERROR(H5E_BTREE, H5E_BADVALUE, NULL, "incorrect metadata checksum for v2 B-tree header")
+        HGOTO_ERROR(H5E_BTREE, H5E_BADVALUE, NULL, "incorrect metadata checksum for v2 B-tree header")
 
     /* Initialize B-tree header info */
     cparam.cls = H5B2_client_class_g[id];
     if(H5B2__hdr_init(hdr, &cparam, udata->ctx_udata, depth) < 0)
-	HGOTO_ERROR(H5E_BTREE, H5E_CANTINIT, NULL, "can't initialize B-tree header info")
+        HGOTO_ERROR(H5E_BTREE, H5E_CANTINIT, NULL, "can't initialize B-tree header info")
 
     /* Set the B-tree header's address */
     hdr->addr = udata->addr;
@@ -506,7 +506,7 @@ H5B2__cache_int_deserialize(const void *_image, size_t UNUSED len,
 
     /* Increment ref. count on B-tree header */
     if(H5B2__hdr_incr(udata->hdr) < 0)
-	HGOTO_ERROR(H5E_BTREE, H5E_CANTINC, NULL, "can't increment ref. count on B-tree header")
+        HGOTO_ERROR(H5E_BTREE, H5E_CANTINC, NULL, "can't increment ref. count on B-tree header")
 
     /* Share B-tree information */
     internal->hdr = udata->hdr;
@@ -522,7 +522,7 @@ H5B2__cache_int_deserialize(const void *_image, size_t UNUSED len,
 
     /* B-tree type */
     if(*image++ != (uint8_t)udata->hdr->cls->id)
-	HGOTO_ERROR(H5E_BTREE, H5E_BADTYPE, NULL, "incorrect B-tree type")
+        HGOTO_ERROR(H5E_BTREE, H5E_BADTYPE, NULL, "incorrect B-tree type")
 
     /* Allocate space for the native keys in memory */
     if(NULL == (internal->int_native = (uint8_t *)H5FL_FAC_MALLOC(udata->hdr->node_info[udata->depth].nat_rec_fac)))
@@ -574,7 +574,7 @@ H5B2__cache_int_deserialize(const void *_image, size_t UNUSED len,
 
     /* Verify checksum */
     if(stored_chksum != computed_chksum)
-	HGOTO_ERROR(H5E_BTREE, H5E_BADVALUE, NULL, "incorrect metadata checksum for v2 internal node")
+        HGOTO_ERROR(H5E_BTREE, H5E_BADVALUE, NULL, "incorrect metadata checksum for v2 internal node")
 
     /* Set return value */
     ret_value = internal;
@@ -808,7 +808,7 @@ H5B2__cache_leaf_deserialize(const void *_image, size_t UNUSED len,
 
     /* Increment ref. count on B-tree header */
     if(H5B2__hdr_incr(udata->hdr) < 0)
-	HGOTO_ERROR(H5E_BTREE, H5E_CANTINC, NULL, "can't increment ref. count on B-tree header")
+        HGOTO_ERROR(H5E_BTREE, H5E_CANTINC, NULL, "can't increment ref. count on B-tree header")
 
     /* Share B-tree header information */
     leaf->hdr = udata->hdr;
@@ -824,7 +824,7 @@ H5B2__cache_leaf_deserialize(const void *_image, size_t UNUSED len,
 
     /* B-tree type */
     if(*image++ != (uint8_t)udata->hdr->cls->id)
-	HGOTO_ERROR(H5E_BTREE, H5E_BADTYPE, NULL, "incorrect B-tree type")
+        HGOTO_ERROR(H5E_BTREE, H5E_BADTYPE, NULL, "incorrect B-tree type")
 
     /* Allocate space for the native keys in memory */
     if(NULL == (leaf->leaf_native = (uint8_t *)H5FL_FAC_MALLOC(udata->hdr->node_info[0].nat_rec_fac)))

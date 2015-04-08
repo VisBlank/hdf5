@@ -62,7 +62,6 @@ Features:
             Default API Mapping: @DEFAULT_API_VERSION@
  With Deprecated Public Symbols: @DEPRECATED_SYMBOLS@
          I/O filters (external): @EXTERNAL_FILTERS@
-         I/O filters (internal): @FILTERS@
                             MPE: @MPE@
                      Direct VFD: @DIRECT_VFD@
                         dmalloc: @HAVE_DMALLOC@
@@ -71,4 +70,3 @@ Clear file buffers before write: @CLEARFILEBUF@
          Function Stack Tracing: @CODESTACK@
       Strict File Format Checks: @STRICT_FORMAT_CHECKS@
    Optimization Instrumentation: @INSTRUMENT@
-       Large File Support (LFS): @LARGEFILE@
