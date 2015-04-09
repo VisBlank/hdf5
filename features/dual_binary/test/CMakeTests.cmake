@@ -968,7 +968,7 @@ if (HDF5_TEST_VFD)
                   -D "TEST_ARGS:STRING="
                   -D "TEST_VFD:STRING=${vfdname}"
                   -D "TEST_EXPECT=${resultcode}"
-                  -D "TEST_OUTPUT=${vfdtest}-${vfdtest}"
+                  -D "TEST_OUTPUT=${vfdname}-${vfdtest}"
                   -D "TEST_FOLDER=${PROJECT_BINARY_DIR}/${vfdname}"
                   -P "${HDF_RESOURCES_DIR}/vfdTest.cmake"
           )
@@ -1013,7 +1013,7 @@ if (HDF5_TEST_VFD)
                 -D "TEST_ARGS:STRING="
                 -D "TEST_VFD:STRING=${vfdname}"
                 -D "TEST_EXPECT=${resultcode}"
-                -D "TEST_OUTPUT=${vfdtest}-${vfdtest}"
+                -D "TEST_OUTPUT=${vfdname}-${vfdtest}"
                 -D "TEST_FOLDER=${PROJECT_BINARY_DIR}/${vfdname}"
                 -P "${HDF_RESOURCES_DIR}/vfdTest.cmake"
         )
@@ -1047,7 +1047,7 @@ if (HDF5_TEST_VFD)
               -D "TEST_ARGS:STRING="
               -D "TEST_VFD:STRING=${vfdname}"
               -D "TEST_EXPECT=${resultcode}"
-              -D "TEST_OUTPUT=${vfdtest}-${vfdtest}"
+              -D "TEST_OUTPUT=${vfdname}-${vfdtest}"
               -D "TEST_FOLDER=${PROJECT_BINARY_DIR}/${vfdname}"
               -P "${HDF_RESOURCES_DIR}/vfdTest.cmake"
       )
