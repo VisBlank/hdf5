@@ -138,12 +138,14 @@
 				 * directly pinned by a single entry.
 				 */
 
-#define FLUSH_OP__NO_OP		0
-#define FLUSH_OP__DIRTY		1
-#define FLUSH_OP__RESIZE	2
-#define FLUSH_OP__MOVE		3
-#define FLUSH_OP__ORDER		4
-#define FLUSH_OP__MAX_OP	4
+#define FLUSH_OP__NO_OP			0
+#define FLUSH_OP__DIRTY			1
+#define FLUSH_OP__RESIZE		2
+#define FLUSH_OP__MOVE			3
+#define FLUSH_OP__ORDER			4
+#define FLUSH_OP__EXPUNGE		5
+#define FLUSH_OP__DEST_FLUSH_DEP	6
+#define FLUSH_OP__MAX_OP		6
 
 #define MAX_FLUSH_OPS		10	/* Maximum number of flush operations
 					 * that can be associated with a

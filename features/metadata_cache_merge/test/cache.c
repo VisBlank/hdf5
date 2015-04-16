@@ -197,6 +197,12 @@ static unsigned check_flush_deps(void);
 static unsigned check_flush_deps_err(void);
 static unsigned check_flush_deps_order(void);
 static unsigned check_notify_cb(void);
+static unsigned check_entry_deletions_during_scans(void);
+static void cedds__expunge_dirty_entry_in_flush_test(H5F_t * file_ptr);
+static void cedds__H5C_make_space_in_cache(H5F_t * file_ptr);
+static void cedds__H5C__autoadjust__ageout__evict_aged_out_entries(H5F_t * file_ptr);
+static void cedds__H5C_flush_invalidate_cache__bucket_scan(H5F_t * file_ptr);
+static unsigned check_stats(void);
 
 
 /**************************************************************************/
@@ -10722,8 +10728,9 @@ check_flush_cache__flush_op_eviction_test(H5F_t * file_ptr)
 	if ( ( cache_ptr->insertions[VARIABLE_ENTRY_TYPE] != 0 ) ||
              ( cache_ptr->pinned_insertions[VARIABLE_ENTRY_TYPE] != 0 ) ||
              ( cache_ptr->clears[VARIABLE_ENTRY_TYPE] != 0 ) ||
-             ( cache_ptr->flushes[VARIABLE_ENTRY_TYPE] != 19 ) ||
+             ( cache_ptr->flushes[VARIABLE_ENTRY_TYPE] != 8 ) ||
              ( cache_ptr->evictions[VARIABLE_ENTRY_TYPE] != 11 ) ||
+             ( cache_ptr->take_ownerships[VARIABLE_ENTRY_TYPE] != 0 ) ||
              ( cache_ptr->moves[VARIABLE_ENTRY_TYPE] != 1 ) ||
              ( cache_ptr->entry_flush_moves[VARIABLE_ENTRY_TYPE] != 0 ) ||
              ( cache_ptr->cache_flush_moves[VARIABLE_ENTRY_TYPE] != 0 ) ||
@@ -10738,7 +10745,7 @@ check_flush_cache__flush_op_eviction_test(H5F_t * file_ptr)
              ( cache_ptr->cache_flush_size_changes[VARIABLE_ENTRY_TYPE] != 0 ) ) {
 
             pass = FALSE;
-            failure_mssg = "Unexpected variable size entry stats.";
+            failure_mssg = "Unexpected variable size entry stats in check_flush_cache__flush_op_eviction_test().";
         }
     }
 
@@ -10747,8 +10754,9 @@ check_flush_cache__flush_op_eviction_test(H5F_t * file_ptr)
 	if ( ( cache_ptr->insertions[LARGE_ENTRY_TYPE] != 0 ) ||
              ( cache_ptr->pinned_insertions[LARGE_ENTRY_TYPE] != 0 ) ||
              ( cache_ptr->clears[LARGE_ENTRY_TYPE] != 0 ) ||
-             ( cache_ptr->flushes[LARGE_ENTRY_TYPE] != 38 ) ||
+             ( cache_ptr->flushes[LARGE_ENTRY_TYPE] != 25 ) ||
              ( cache_ptr->evictions[LARGE_ENTRY_TYPE] != 14 ) ||
+             ( cache_ptr->take_ownerships[LARGE_ENTRY_TYPE] != 0 ) ||
              ( cache_ptr->moves[LARGE_ENTRY_TYPE] != 0 ) ||
              ( cache_ptr->entry_flush_moves[LARGE_ENTRY_TYPE] != 0 ) ||
              ( cache_ptr->cache_flush_moves[LARGE_ENTRY_TYPE] != 0 ) ||
@@ -10763,7 +10771,7 @@ check_flush_cache__flush_op_eviction_test(H5F_t * file_ptr)
              ( cache_ptr->cache_flush_size_changes[LARGE_ENTRY_TYPE] != 0 ) ) {
 
             pass = FALSE;
-            failure_mssg = "Unexpected monster entry stats.";
+            failure_mssg = "Unexpected large entry stats in check_flush_cache__flush_op_eviction_test().";
         }
     }
 
@@ -10772,8 +10780,9 @@ check_flush_cache__flush_op_eviction_test(H5F_t * file_ptr)
 	if ( ( cache_ptr->insertions[MONSTER_ENTRY_TYPE] != 0 ) ||
              ( cache_ptr->pinned_insertions[MONSTER_ENTRY_TYPE] != 0 ) ||
              ( cache_ptr->clears[MONSTER_ENTRY_TYPE] != 0 ) ||
-             ( cache_ptr->flushes[MONSTER_ENTRY_TYPE] != 93 ) ||
-             ( cache_ptr->evictions[MONSTER_ENTRY_TYPE] != 31 ) ||
+             ( cache_ptr->flushes[MONSTER_ENTRY_TYPE] != 62 ) ||
+             ( cache_ptr->evictions[MONSTER_ENTRY_TYPE] != 32 ) ||
+             ( cache_ptr->take_ownerships[MONSTER_ENTRY_TYPE] != 0 ) ||
              ( cache_ptr->moves[MONSTER_ENTRY_TYPE] != 0 ) ||
              ( cache_ptr->entry_flush_moves[MONSTER_ENTRY_TYPE] != 0 ) ||
              ( cache_ptr->cache_flush_moves[MONSTER_ENTRY_TYPE] != 0 ) ||
@@ -10788,7 +10797,7 @@ check_flush_cache__flush_op_eviction_test(H5F_t * file_ptr)
              ( cache_ptr->cache_flush_size_changes[MONSTER_ENTRY_TYPE] != 0 ) ) {
 
             pass = FALSE;
-            failure_mssg = "Unexpected monster entry stats.";
+            failure_mssg = "Unexpected monster entry stats in check_flush_cache__flush_op_eviction_test().";
         }
     }
 #endif /* H5C_COLLECT_CACHE_STATS */
@@ -33052,6 +33061,1602 @@ done:
 
 
 /*-------------------------------------------------------------------------
+ * Function:	check_entry_deletions_during_scans()
+ *
+ * Purpose:	With the addition of the H5C__TAKE_OWNERSHIP_FLAG, it is 
+ *		possible for an entry to be removed from the cache as a 
+ *		side effect of flushing an entry.  
+ *
+ *		For the most part, this doesn't cause problems.  However, 
+ *		during the scans of lists, it is possible that the entry 
+ *		removed will be the next entry in the scan -- which if not 
+ *		detected, will typeically cause the cache to attempt to flush
+ *		an entry that is no longer in the cache, and which may have
+ *		been deleted.
+ *
+ *		This function contans tests for correct handling on this 
+ *		situation.
+ *
+ *              Do nothing if pass is FALSE on entry.
+ *
+ * Return:	void
+ *
+ * Programmer:	John Mainzer
+ *              4/3/15
+ *
+ * Modifications:
+ *
+ *		None.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+static unsigned
+check_entry_deletions_during_scans(void)
+{
+    const char * fcn_name = "check_entry_deletions_during_scans";
+    H5F_t *      file_ptr = NULL;
+
+    TESTING("entry deletion during list scan detection and adaption");
+
+    pass = TRUE;
+
+    /* allocate a cache, and flush it under various circumstances.
+     * To the extent possible, verify that the desired actions took
+     * place.
+     */
+
+    if ( pass ) {
+
+        reset_entries();
+
+        file_ptr = setup_cache((size_t)(2 * 1024 * 1024),
+                                (size_t)(1 * 1024 * 1024));
+    }
+
+    /* run the tests.  This set of tests is somewhat eclectic, as 
+     * we are trying to test all locations where the deletion of 
+     * an entry from the cache as a side effect of the fluch of 
+     * a different entry could cause problems.
+     */
+
+    if ( pass ) {
+
+        cedds__expunge_dirty_entry_in_flush_test(file_ptr);
+    }
+
+    if ( pass ) {
+
+        cedds__H5C_make_space_in_cache(file_ptr);
+    }
+
+    if ( pass ) {
+
+        cedds__H5C__autoadjust__ageout__evict_aged_out_entries(file_ptr);
+    }
+
+    if ( pass ) {
+
+        cedds__H5C_flush_invalidate_cache__bucket_scan(file_ptr);
+    }
+
+
+    if ( pass ) {
+
+        takedown_cache(file_ptr, FALSE, FALSE);
+    }
+
+    if ( pass ) { PASSED(); } else { H5_FAILED(); }
+
+    if ( ! pass ) {
+
+        HDfprintf(stdout, "%s(): failure_mssg = \"%s\".\n",
+                  fcn_name, failure_mssg);
+    }
+
+    return (unsigned)!pass;
+
+} /* check_entry_deletions_during_scans() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	cedds__expunge_dirty_entry_in_flush_test()
+ *
+ * Purpose:	Verify that H5C_flush_cache() can handle the removal of 
+ *		a dirty entry from the cache during its scan of the 
+ *		skip list.
+ *
+ *		Do this by setting up a full cache, with the last entry 
+ *		on the LRU being both dirty and having a flush operation 
+ *		that deletes the second to last entry on the LRU.  Then 
+ *		flush the cache, triggering the flush of the last
+ *		item, and thereby the deletion of the second to last item.
+ *
+ *		H5C_flush_cache() should handle this deletion gracefully.
+ *
+ *              Do nothing if pass is FALSE on entry.
+ *
+ * Return:	void
+ *
+ * Programmer:	John Mainzer
+ *              4/4/15
+ *
+ * Modifications:
+ *
+ *		None.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+static void
+cedds__expunge_dirty_entry_in_flush_test(H5F_t * file_ptr)
+{
+    /* const char *   fcn_name = "cedds__expunge_dirty_entry_in_flush_test"; */
+    H5C_t *        cache_ptr = file_ptr->shared->cache;
+    int		   i;
+    herr_t	   result;
+    test_entry_t * entry_ptr;
+    test_entry_t * base_addr;
+    struct expected_entry_status expected[36] =
+    {
+      /* the expected array is used to maintain a table of the expected status of every
+       * entry used in this test.  Note that since the function that processes this
+       * array only processes as much of it as it is told to, we don't have to
+       * worry about maintaining the status of entries that we haven't used yet.
+       */
+      /* entry			entry				in	at main                                               flush dep  flush dep    child flush  flush   flush */
+      /* type:			index:	size:			cache:	addr:	dirty:	prot:	pinned:	dsrlzd:	srlzd:	dest:  par idx: dep ref.count: dep height: order: */
+      { HUGE_ENTRY_TYPE, 	0,	HUGE_ENTRY_SIZE, 	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,  -1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { HUGE_ENTRY_TYPE, 	1,	HUGE_ENTRY_SIZE, 	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,  -1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { HUGE_ENTRY_TYPE, 	2,	HUGE_ENTRY_SIZE, 	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,  -1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { HUGE_ENTRY_TYPE, 	3,	HUGE_ENTRY_SIZE, 	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,  -1,       -1,      {0,0,0,0,0,0}, 0,          -1 }
+    };
+
+    if ( pass ) {
+
+         if ( cache_ptr == NULL ) {
+
+            pass = FALSE;
+            failure_mssg = "cache_ptr NULL on entry to cedds expunge dirty entry in flush test.";
+        }
+        else if ( ( cache_ptr->index_len != 0 ) ||
+                  ( cache_ptr->index_size != 0 ) ) {
+
+            pass = FALSE;
+            failure_mssg = "cache not empty on entry to cedds expunge dirty entry in flush test.";
+        }
+        else if ( ( cache_ptr->max_cache_size != (2 * 1024 * 1024 ) ) ||
+                  ( cache_ptr->min_clean_size != (1 * 1024 * 1024 ) ) ) {
+
+	    pass = FALSE;
+	    failure_mssg =
+	        "unexpected cache config at start of cedds expunge dirty entry in flush test.";
+
+        } else {
+
+            /* set min clean size to zero for this test as it simplifies
+	     * computing the expected cache size after each operation.
+	     */
+
+            cache_ptr->min_clean_size = 0;
+        }
+    }
+
+    if ( pass ) {
+
+	/* The basic idea of this test is to setup the cache such 
+ 	 * that:
+ 	 * 
+	 * 1) the cache contains several dirty entries.
+	 * 
+	 * 2) the first entry on the slist is dirty, and has a flush
+	 *    operation that will remove the second entry on the 
+         *    slist.
+         *
+         * Then load flush the cache.  Cache should handle the 
+	 * removal of the next entry in the slist scan gracefully.
+         */
+
+	/* reset the stats before we start.  If stats are enabled, we will
+	 * check to see if they are as expected at the end.
+	 */
+	H5C_stats__reset(cache_ptr);
+
+
+	/* Load four huge entries into the cache.  Recall that huge entries
+         * are one fourth the size of monster entries (16 KB vs. 64 KB).
+         */
+	for ( i = 0; i < 4; i++ ) {
+
+	    protect_entry(file_ptr, HUGE_ENTRY_TYPE, i);
+	    unprotect_entry(file_ptr, HUGE_ENTRY_TYPE, i, H5C__DIRTIED_FLAG);
+        }
+
+	if ( ( cache_ptr->index_len != 4 ) ||
+             ( cache_ptr->index_size != (4 * HUGE_ENTRY_SIZE) ) ) {
+
+            pass = FALSE;
+
+	    failure_mssg = "unexpected size/len in cedds expunge dirty entry in flush test (1)";
+	}
+    }
+
+    if ( pass ) {
+
+	/* Next, set up the flush operation:
+	 *
+	 *     (HET, 0) expunges (HET, 1)
+	 *
+	 */
+        add_flush_op(HUGE_ENTRY_TYPE, 0, FLUSH_OP__EXPUNGE,
+                     HUGE_ENTRY_TYPE, 1, FALSE, (size_t)0, NULL);
+
+    }
+
+    if ( pass ) {
+
+	/* to summarize, at present the following entries
+	 * are in cache with the following characteristics:
+	 *
+	 * 		in
+	 * entry:	cache?	size:	dirty?	pinned?	pins:	flush operations:
+	 *
+	 * (HET, 0) 	Y	16 KB	Y	N	-	expunge (HET 1)
+	 *
+	 * (HET, 1)	Y	16 KB	Y	N	-	-
+         *
+	 * (HET, 2)	Y	16 KB	Y	N	-	-
+         *
+	 * (HET, 3)	Y	16 KB	Y	N	-	-
+	 *
+	 * Recall that in this test bed, flush operations are excuted the
+	 * first time the associated entry is flushed, and are then
+	 * deleted.
+	 */
+
+	/* verify the expected status of all entries we have loaded to date: */
+	verify_entry_status(cache_ptr, 0, 4, expected);
+    }
+
+    /* flush the cache to run the test.  In the process, clean up after test. */
+
+    if ( pass ) {
+
+        result = H5C_flush_cache(file_ptr, H5P_DATASET_XFER_DEFAULT, H5C__FLUSH_INVALIDATE_FLAG);
+
+        if ( result < 0 ) {
+
+            pass = FALSE;
+            failure_mssg = "Cache flush invalidate failed in cedds expunge dirty entry in flush test";
+        }
+        else if ( ( cache_ptr->index_len != 0 ) ||
+                  ( cache_ptr->index_size != 0 ) ) {
+
+            pass = FALSE;
+            failure_mssg = "Unexpected cache len/size after cedds expunge dirty entry in flush test";
+
+        }
+    }
+
+#if H5C_COLLECT_CACHE_STATS
+    /* If we are collecting stats, check to see if we get the expected
+     * values.
+     */
+    if ( pass ) {
+
+	if ( ( cache_ptr->insertions[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->pinned_insertions[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->clears[HUGE_ENTRY_TYPE] != 1 ) ||
+             ( cache_ptr->flushes[HUGE_ENTRY_TYPE] != 3 ) ||
+             ( cache_ptr->evictions[HUGE_ENTRY_TYPE] != 4 ) ||
+             ( cache_ptr->take_ownerships[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->moves[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->entry_flush_moves[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->cache_flush_moves[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->pins[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->unpins[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->dirty_pins[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->pinned_flushes[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->pinned_clears[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->size_increases[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->size_decreases[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->entry_flush_size_changes[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->cache_flush_size_changes[HUGE_ENTRY_TYPE] != 0 ) ) {
+
+            pass = FALSE;
+            failure_mssg = "Unexpected huge size entry stats in cedds__expunge_dirty_entry_in_flush_test().";
+        }
+    }
+
+    if ( pass ) {
+
+	if ( ( cache_ptr->slist_scan_restarts != 1 ) ||
+             ( cache_ptr->LRU_scan_restarts != 0 ) ||
+             ( cache_ptr->hash_bucket_scan_restarts != 0 ) ) {
+
+            pass = FALSE;
+            failure_mssg = "unexpected scan restart stats in cedds__expunge_dirty_entry_in_flush_test().";
+        }
+    }
+#endif /* H5C_COLLECT_CACHE_STATS */
+
+    if ( pass ) {
+
+	reset_entries();
+    }
+
+    if ( pass ) {
+
+	/* reset cache min clean size to its expected value */
+        cache_ptr->min_clean_size = (1 * 1024 * 1024);
+    }
+
+    return;
+
+} /* cedds__expunge_dirty_entry_in_flush_test() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	cedds__H5C_make_space_in_cache()
+ *
+ * Purpose:	Verify that H5C_make_space_in_cache() can handle the 
+ *		removal from the cache of the next item in its reverse scan
+ *		of the LRU list.  
+ *
+ *		Do this by setting up a full cache, with the last entry 
+ *		on the LRU being both dirty and having a flush operation 
+ *		that deleted the second to last entry on the LRU.  Then 
+ *		load an additional entry, triggering the flush of the last
+ *		item, and thereby the deletion of the second to last item.
+ *
+ *		H5C_make_space_in_cache() should detect this deletion, and 
+ *		restart its scan of the LRU from the tail, instead of 
+ *		examining the now deleted next item up on the LRU.
+ *
+ *              Do nothing if pass is FALSE on entry.
+ *
+ * Return:	void
+ *
+ * Programmer:	John Mainzer
+ *              4/4/15
+ *
+ * Modifications:
+ *
+ *		None.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+static void
+cedds__H5C_make_space_in_cache(H5F_t * file_ptr)
+{
+    /* const char *fcn_name = "cedds__H5C_make_space_in_cache"; */
+    H5C_t *        cache_ptr = file_ptr->shared->cache;
+    int		   i;
+    const int	   num_huge_entries = 4;
+    const int	   num_monster_entries = 32;
+    herr_t	   result;
+    test_entry_t * entry_ptr;
+    test_entry_t * base_addr;
+    struct expected_entry_status expected[36] =
+    {
+      /* the expected array is used to maintain a table of the expected status of every
+       * entry used in this test.  Note that since the function that processes this
+       * array only processes as much of it as it is told to, we don't have to
+       * worry about maintaining the status of entries that we haven't used yet.
+       */
+      /* entry			entry				in	at main                                               flush dep  flush dep    child flush  flush   flush */
+      /* type:			index:	size:			cache:	addr:	dirty:	prot:	pinned:	dsrlzd:	srlzd:	dest:  par idx: dep ref.count: dep height: order: */
+      { HUGE_ENTRY_TYPE, 	0,	HUGE_ENTRY_SIZE, 	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,  -1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { HUGE_ENTRY_TYPE, 	1,	HUGE_ENTRY_SIZE, 	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,  -1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { HUGE_ENTRY_TYPE, 	2,	HUGE_ENTRY_SIZE, 	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,  -1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { HUGE_ENTRY_TYPE, 	3,	HUGE_ENTRY_SIZE, 	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,  -1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	0,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,  -1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	1,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	2,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	3,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	4,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	5,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	6,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	7,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	8,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	9,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	10,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	11,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	12,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	13,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	14,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	15,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	16,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	17,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	18,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	19,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	20,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	21,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	22,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	23,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	24,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	25,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	26,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	27,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	28,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	29,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	30,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	31,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 } 
+    };
+
+    if ( pass ) {
+
+         if ( cache_ptr == NULL ) {
+
+            pass = FALSE;
+            failure_mssg = "cache_ptr NULL on entry to cedds for H5C_make_space_in_cache() test.";
+        }
+        else if ( ( cache_ptr->index_len != 0 ) ||
+                  ( cache_ptr->index_size != 0 ) ) {
+
+            pass = FALSE;
+            failure_mssg = "cache not empty at start of flush ops eviction test.";
+        }
+        else if ( ( cache_ptr->max_cache_size != (2 * 1024 * 1024 ) ) ||
+                  ( cache_ptr->min_clean_size != (1 * 1024 * 1024 ) ) ) {
+
+	    pass = FALSE;
+	    failure_mssg =
+	        "unexpected cache config at start of cedds H5C__make_space_in_cache() test.";
+
+        } else {
+
+            /* set min clean size to zero for this test as it simplifies
+	     * computing the expected cache size after each operation.
+	     */
+
+            cache_ptr->min_clean_size = 0;
+        }
+    }
+
+    if ( pass ) {
+
+	/* The basic idea of this test is to setup the cache such 
+ 	 * that:
+ 	 * 
+	 * 1) the cache is full
+	 * 
+	 * 2) the last entry on the LRU is dirty, and has a flush
+	 *    operation that will remove the second to last entry 
+         *    on the LRU from the cache.
+         *
+         * Then load another entry into the cache.  See if 
+	 * H5C__make_space_in_cache() detects the removal of 
+	 * the next item in the scan, and restarts the scan 
+         * from the bottom of the LRU.  Note that the newly 
+         * loaded entry must be large enough to require that
+         * the scan continue after the entry is expunged.
+         */
+
+	/* reset the stats before we start.  If stats are enabled, we will
+	 * check to see if they are as expected at the end.
+	 */
+	H5C_stats__reset(cache_ptr);
+
+
+	/* Load four huge entries into the cache.  Recall that huge entries
+         * are one fourth the size of monster entries (16 KB vs. 64 KB).
+         */
+	for ( i = 0; i < 4; i++ ) {
+
+	    protect_entry(file_ptr, HUGE_ENTRY_TYPE, i);
+	    unprotect_entry(file_ptr, HUGE_ENTRY_TYPE, i, H5C__DIRTIED_FLAG);
+        }
+
+	if ( ( cache_ptr->index_len != 4 ) ||
+             ( cache_ptr->index_size != (4 * HUGE_ENTRY_SIZE) ) ) {
+
+            pass = FALSE;
+
+	    failure_mssg = "unexpected size/len in H5C__make_space_in_cache() test (1)";
+	}
+    }
+
+    if ( pass ) {
+
+	/* Next, set up the flush operation:
+	 *
+	 *     (HET, 0) expunges (HET, 1)
+	 *
+	 */
+        add_flush_op(HUGE_ENTRY_TYPE, 0, FLUSH_OP__EXPUNGE,
+                     HUGE_ENTRY_TYPE, 1, FALSE, (size_t)0, NULL);
+
+    }
+
+    if ( pass ) {
+
+	/* to summarize, at present the following entries
+	 * are in cache with the following characteristics:
+	 *
+	 * 		in
+	 * entry:	cache?	size:	dirty?	pinned?	pins:	flush operations:
+	 *
+	 * (HET, 0) 	Y	16 KB	Y	N	-	expunge (HET 1)
+	 *
+	 * (HET, 1)	Y	16 KB	N	N	-	-
+         *
+	 * (HET, 2)	Y	16 KB	N	N	-	-
+         *
+	 * (HET, 3)	Y	16 KB	N	N	-	-
+	 *
+	 * Recall that in this test bed, flush operations are excuted the
+	 * first time the associated entry is flushed, and are then
+	 * deleted.
+	 */
+
+        /* Now fill up the cache with other, unrelated entries.  Recall
+         * that the cache size is 2 MB and 31 * 64 KB  + 4 * 16 KP == 2 MB.
+         */
+	for ( i = 0; i < 31; i++ )
+	{
+	    protect_entry(file_ptr, MONSTER_ENTRY_TYPE, i);
+            unprotect_entry(file_ptr, MONSTER_ENTRY_TYPE, i, H5C__DIRTIED_FLAG);
+	}
+
+	/* The cache should now be exactly full */
+	if ( ( cache_ptr->index_len != 35 ) ||
+             ( cache_ptr->index_size != 2 * 1024 * 1024 ) ||
+	     ( cache_ptr->index_size != ((4 * HUGE_ENTRY_SIZE) +
+                                         (31 * MONSTER_ENTRY_SIZE)) ) ) {
+
+            pass = FALSE;
+	    failure_mssg = "unexpected size/len in H5C__make_space_in_cache() test (2)";
+
+	} else {
+
+	    /* verify the expected status of all entries we have loaded to date: */
+	    verify_entry_status(cache_ptr, 0, 35, expected);
+	}
+    }
+
+    if ( pass ) {
+
+        /* now load another monster entry.  This should cause 
+ 	 * H5C__make_space_in_cache() to be called.  (HET 0) is dirty, and is at 
+	 * the bottom of the LRU.  * Thus it will be flushed, and moved to the 
+	 * head of the LRU.  However, during the flush, (HET 1) should be expunged 
+	 * from the cache.  Since (MET 1) is the next item in 
+	 * H5C__make_space_in_cache(), must detect its removal from the cache,
+         * and refrain from trying to flush it.
+         *
+         * Since all entries in the cache are dirty, all entries will be flushed,
+         * and HET 0, 2, and 3 will be evicted to make room for the new 
+         * monster entry (MET, 31).
+         *
+         * Verify this.  If H5C_make_space_in_cache() chokes, failure will
+         * be detected in protect_entry().  Thus end the "if ( pass )" clause
+         * there so the error message will not be overwritten.
+         */
+
+        protect_entry(file_ptr, MONSTER_ENTRY_TYPE, 31);
+    }
+
+    if ( pass ) {
+
+        /* if the protect succeeded, unprotect and verify that all is at 
+         * it should be.
+         */
+
+        unprotect_entry(file_ptr, MONSTER_ENTRY_TYPE, 31, H5C__DIRTIED_FLAG);
+
+	/* The cache should now be exactly full */
+	if ( ( cache_ptr->index_len != 32 ) ||
+             ( cache_ptr->index_size != 2 * 1024 * 1024 ) ||
+	     ( cache_ptr->index_size != (32 * MONSTER_ENTRY_SIZE) ) ) {
+
+            pass = FALSE;
+	    failure_mssg = "unexpected size/len in H5C__make_space_in_cache() test (3)";
+
+	} else {
+
+	    /* modify the expected table to match the new situation, and 
+             * then call verify_entry_status().
+             */
+            for ( i = 0; i < num_huge_entries; i++ )
+            {
+		expected[i].in_cache = FALSE;
+		expected[i].is_dirty = FALSE;
+		expected[i].serialized = TRUE;
+	        expected[i].destroyed = TRUE;
+            }
+
+            /* (HET, 1) was expunged, so touch its entry up accordingly */
+	    expected[1].is_dirty = TRUE;
+	    expected[1].serialized = FALSE;
+
+            for ( i = num_huge_entries; i < num_huge_entries + num_monster_entries - 1; i++ )
+            {
+		expected[i].is_dirty = FALSE;
+		expected[i].serialized = TRUE;
+            }
+
+	    /* verify the expected status of all entries: */
+	    verify_entry_status(cache_ptr, 0, 36, expected);
+        }
+    }
+
+    /* flush the cache and end the test. */
+
+    if ( pass ) {
+
+        result = H5C_flush_cache(file_ptr, H5P_DATASET_XFER_DEFAULT, H5C__FLUSH_INVALIDATE_FLAG);
+
+        if ( result < 0 ) {
+
+            pass = FALSE;
+            failure_mssg = "Cache flush invalidate failed after flush op eviction test";
+        }
+        else if ( ( cache_ptr->index_len != 0 ) ||
+                  ( cache_ptr->index_size != 0 ) ) {
+
+            pass = FALSE;
+            failure_mssg = "Unexpected cache len/size after cleanup of flush op eviction test";
+
+        }
+    }
+
+#if H5C_COLLECT_CACHE_STATS
+    /* If we are collecting stats, check to see if we get the expected
+     * values.
+     */
+
+    if ( pass ) {
+
+	if ( ( cache_ptr->insertions[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->pinned_insertions[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->clears[HUGE_ENTRY_TYPE] != 1 ) ||
+             ( cache_ptr->flushes[HUGE_ENTRY_TYPE] != 3 ) ||
+             ( cache_ptr->evictions[HUGE_ENTRY_TYPE] != 4 ) ||
+             ( cache_ptr->take_ownerships[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->moves[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->entry_flush_moves[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->cache_flush_moves[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->pins[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->unpins[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->dirty_pins[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->pinned_flushes[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->pinned_clears[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->size_increases[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->size_decreases[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->entry_flush_size_changes[HUGE_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->cache_flush_size_changes[HUGE_ENTRY_TYPE] != 0 ) ) {
+
+            pass = FALSE;
+            failure_mssg = "Unexpected large entry stats in cedds__H5C_make_space_in_cache().";
+        }
+    }
+
+    if ( pass ) {
+
+	if ( ( cache_ptr->insertions[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->pinned_insertions[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->clears[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->flushes[MONSTER_ENTRY_TYPE] != 32 ) ||
+             ( cache_ptr->evictions[MONSTER_ENTRY_TYPE] != 32 ) ||
+             ( cache_ptr->take_ownerships[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->moves[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->entry_flush_moves[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->cache_flush_moves[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->pins[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->unpins[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->dirty_pins[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->pinned_flushes[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->pinned_clears[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->size_increases[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->size_decreases[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->entry_flush_size_changes[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->cache_flush_size_changes[MONSTER_ENTRY_TYPE] != 0 ) ) {
+
+            pass = FALSE;
+            failure_mssg = "Unexpected monster entry stats in cedds__H5C_make_space_in_cache().";
+        }
+    }
+
+    if ( pass ) {
+
+	if ( ( cache_ptr->slist_scan_restarts != 0 ) ||
+             ( cache_ptr->LRU_scan_restarts != 1 ) ||
+             ( cache_ptr->hash_bucket_scan_restarts != 0 ) ) {
+
+            pass = FALSE;
+            failure_mssg = "unexpected scan restart stats in cedds__H5C_make_space_in_cache().";
+        }
+    }
+#endif /* H5C_COLLECT_CACHE_STATS */
+
+    if ( pass ) {
+
+	reset_entries();
+    } 
+
+    if ( pass ) {
+
+	/* reset cache min clean size to its expected value */
+        cache_ptr->min_clean_size = (1 * 1024 * 1024);
+    }
+
+    return;
+
+} /* cedds__H5C_make_space_in_cache() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	cedds__H5C__autoadjust__ageout__evict_aged_out_entries()
+ *
+ * Purpose:	Verify that H5C__autoadjust__ageout__evict_aged_out_entries() 
+ *		can handle the removal from the cache of the next item in 
+ *		its reverse scan of the LRU list.  
+ *
+ *		Do this by setting up a full cache, with the last entry 
+ *		on the LRU being both dirty and having a flush operation 
+ *		that deletes the second to last entry on the LRU.  Then 
+ *		access the first item in the LRU repeatedly until the 
+ *		item, and thereby the deletion of the second to last item.
+ *
+ *		H5C_make_space_in_cache() should detect this deletion, and 
+ *		restart its scan of the LRU from the tail, instead of 
+ *		examining the now deleted next item up on the LRU.
+ *
+ *              Do nothing if pass is FALSE on entry.
+ *
+ * Return:	void
+ *
+ * Programmer:	John Mainzer
+ *              4/4/15
+ *
+ * Modifications:
+ *
+ *		None.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+static void
+cedds__H5C__autoadjust__ageout__evict_aged_out_entries(H5F_t * file_ptr)
+{
+    /* const char *fcn_name = "H5C__autoadjust__ageout__evict_aged_out_entries"; */
+    H5C_t *        cache_ptr = file_ptr->shared->cache;
+    int		   i;
+    herr_t	   result;
+    test_entry_t * entry_ptr;
+    test_entry_t * base_addr;
+    struct expected_entry_status expected[36] =
+    {
+      /* the expected array is used to maintain a table of the expected status of every
+       * entry used in this test.  Note that since the function that processes this
+       * array only processes as much of it as it is told to, we don't have to
+       * worry about maintaining the status of entries that we haven't used yet.
+       */
+      /* entry			entry				in	at main                                               flush dep  flush dep    child flush  flush   flush */
+      /* type:			index:	size:			cache:	addr:	dirty:	prot:	pinned:	dsrlzd:	srlzd:	dest:  par idx: dep ref.count: dep height: order: */
+      { MONSTER_ENTRY_TYPE,	0,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,  -1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	1,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	2,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	3,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	4,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	5,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	6,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	7,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	8,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	9,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	10,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	11,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	12,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	13,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	14,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	15,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	16,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	17,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	18,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	19,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	20,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	21,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	22,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	23,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	24,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	25,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	26,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	27,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	28,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	29,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	30,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,	31,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,	-1,       -1,      {0,0,0,0,0,0}, 0,          -1 } 
+    };
+    H5C_auto_size_ctl_t saved_auto_size_ctl;
+    H5C_auto_size_ctl_t test_auto_size_ctl =
+    {
+        /* int32_t     version                = */ H5C__CURR_AUTO_SIZE_CTL_VER,
+        /* H5C_auto_resize_report_fcn rpt_fcn = */ test_rpt_fcn,
+
+        /* hbool_t     set_initial_size       = */ TRUE,
+        /* size_t      initial_size           = */ (2 * 1024 * 1024),
+
+        /* double      min_clean_fraction     = */ 0.5f,
+
+        /* size_t      max_size               = */ (8 * 1024 * 1024),
+        /* size_t      min_size               = */ (1 * 1024 * 1024),
+
+        /* int64_t     epoch_length           = */ 1000,
+
+
+        /* enum H5C_cache_incr_mode incr_mode = */ H5C_incr__threshold,
+
+        /* double     lower_hr_threshold      = */ 0.75f,
+
+        /* double      increment              = */ 2.0f,
+
+        /* hbool_t     apply_max_increment    = */ TRUE,
+        /* size_t      max_increment          = */ (4 * 1024 * 1024),
+
+        /* enum H5C_cache_flash_incr_mode       */
+	/*                    flash_incr_mode = */ H5C_flash_incr__off,
+	/* double      flash_multiple         = */ 2.0f,
+	/* double      flash_threshold        = */ 0.5f,
+
+
+        /* enum H5C_cache_decr_mode decr_mode = */ H5C_decr__age_out,
+
+        /* double      upper_hr_threshold     = */ 0.995f,
+
+        /* double      decrement              = */ 0.5f,
+
+        /* hbool_t     apply_max_decrement    = */ FALSE,
+        /* size_t      max_decrement          = */ (1 * 1024 * 1024),
+
+        /* int32_t     epochs_before_eviction = */ 1,
+
+        /* hbool_t     apply_empty_reserve    = */ TRUE,
+        /* double      empty_reserve          = */ 0.05f
+    };
+
+    if ( pass ) {
+
+         if ( cache_ptr == NULL ) {
+
+            pass = FALSE;
+            failure_mssg = "cache_ptr NULL on entry to cedds for H5C__autoadjust__ageout__evict_aged_out_entries() test.";
+        }
+        else if ( ( cache_ptr->index_len != 0 ) ||
+                  ( cache_ptr->index_size != 0 ) ) {
+
+            pass = FALSE;
+            failure_mssg = "cache not empty at start cedds for H5C__autoadjust__ageout__evict_aged_out_entries() test.";
+        }
+        else if ( ( cache_ptr->max_cache_size != (2 * 1024 * 1024 ) ) ||
+                  ( cache_ptr->min_clean_size != (1 * 1024 * 1024 ) ) ) {
+
+	    pass = FALSE;
+	    failure_mssg =
+	        "unexpected cache config at start of cedds H5C__autoadjust__ageout__evict_aged_out_entries() test.";
+
+        } else {
+
+            /* set min clean size to zero for this test as it simplifies
+	     * computing the expected cache size after each operation.
+	     */
+
+            cache_ptr->min_clean_size = 0;
+        }
+    }
+
+    /* save the initial resize configuration so we can restore it later */
+    if ( pass ) {
+
+        saved_auto_size_ctl.version = H5C__CURR_AUTO_SIZE_CTL_VER;
+
+        result = H5C_get_cache_auto_resize_config(cache_ptr,
+                                                  &saved_auto_size_ctl);
+
+        if ( result != SUCCEED ) {
+
+            pass = FALSE;
+            failure_mssg = "H5C_get_cache_auto_resize_config failed.";
+
+        }
+    }
+
+    /* set the resize configuration we will be using in the test */
+    if ( pass ) {
+
+        result = H5C_set_cache_auto_resize_config(cache_ptr, &test_auto_size_ctl);
+
+        if ( result != SUCCEED ) {
+
+            pass = FALSE;
+            failure_mssg = "H5C_set_cache_auto_resize_config failed 1.\n";
+        }
+    }
+
+    if ( pass ) {
+
+	/* The basic idea of this test is to setup the cache such 
+ 	 * that:
+ 	 * 
+	 * 1) the cache is full
+	 * 
+	 * 2) the last entry on the LRU is dirty, and has a flush
+	 *    operation that will remove the second to last entry 
+         *    on the LRU from the cache.
+         *
+         * Then access the first item in the LRU until the epoch
+	 * and H5C__autoadjust__ageout__evict_aged_out_entries()
+         * is invoked.  Verify that the function deals with the 
+	 * deletion of the next item in its scan cleanly.
+         */
+
+	/* reset the stats before we start.  If stats are enabled, we will
+	 * check to see if they are as expected at the end.
+	 */
+	H5C_stats__reset(cache_ptr);
+
+
+        /* load the first entry -- mark it dirty */
+	protect_entry(file_ptr, MONSTER_ENTRY_TYPE, 0);
+	unprotect_entry(file_ptr, MONSTER_ENTRY_TYPE, 0, H5C__DIRTIED_FLAG);
+
+        /* Then load the rest of the entries to fill the cache: 
+         *
+         * Recall that the cache size is 2 MB and 32 * 64 KB == 2 MB.
+         */
+	for ( i = 1; i < 32; i++ )
+	{
+	    protect_entry(file_ptr, MONSTER_ENTRY_TYPE, i);
+            unprotect_entry(file_ptr, MONSTER_ENTRY_TYPE, i, H5C__NO_FLAGS_SET);
+	}
+    }
+
+    if ( pass ) {
+
+	/* Next, set up the flush operation:
+	 *
+	 *     (MET, 0) expunges (MET, 1)
+	 *
+	 */
+        add_flush_op(MONSTER_ENTRY_TYPE, 0, FLUSH_OP__EXPUNGE,
+                     MONSTER_ENTRY_TYPE, 1, FALSE, (size_t)0, NULL);
+
+    }
+
+    if ( pass ) {
+
+	/* to summarize, at present the following entries
+	 * are in cache with the following characteristics:
+	 *
+	 * 		in
+	 * entry:	cache?	size:	dirty?	pinned?	pins:	flush operations:
+	 *
+	 * (MET, 0) 	Y	64 KB	Y	N	-	expunge (MET 1)
+	 *
+	 * (MET, 1-31)	Y	64 KB	N	N	-	-
+	 *
+	 * Recall that in this test bed, flush operations are excuted the
+	 * first time the associated entry is flushed, and are then
+	 * deleted.
+	 */
+
+	/* The cache should now be exactly full */
+	if ( ( cache_ptr->index_len != 32 ) ||
+             ( cache_ptr->index_size != 2 * 1024 * 1024 ) ||
+	     ( cache_ptr->index_size != (32 * MONSTER_ENTRY_SIZE) ) ) {
+
+            pass = FALSE;
+	    failure_mssg = "unexpected size/len in H5C__autoadjust__ageout__evict_aged_out_entries() test (1)";
+
+	} else {
+
+	    /* verify the expected status of all entries we have loaded to date: */
+	    verify_entry_status(cache_ptr, 0, 32, expected);
+	}
+    }
+
+    /* protect and unprotect (MET, 31) repeatedly until the end of the first epoch */
+    while ( ( pass ) && ( cache_ptr->cache_accesses > 0 ) ) {
+
+        protect_entry(file_ptr, MONSTER_ENTRY_TYPE, 31);
+        unprotect_entry(file_ptr, MONSTER_ENTRY_TYPE, 31, H5C__NO_FLAGS_SET);
+    }
+
+    /* at this point, an epoch marker entry should have been inserted into the LRU */
+
+    if ( pass ) {
+
+        /* protect and unprotect (MET, 31) again to get cache_accesses > 0 */
+        protect_entry(file_ptr, MONSTER_ENTRY_TYPE, 31);
+        unprotect_entry(file_ptr, MONSTER_ENTRY_TYPE, 31, H5C__NO_FLAGS_SET);
+    }
+
+    /* protect and unprotect (MET, 31) repeatedly until the end of the second epoch */
+    while ( ( pass ) && ( cache_ptr->cache_accesses > 0 ) ) {
+
+        protect_entry(file_ptr, MONSTER_ENTRY_TYPE, 31);
+        unprotect_entry(file_ptr, MONSTER_ENTRY_TYPE, 31, H5C__NO_FLAGS_SET);
+    }
+
+    /* at this point, only (MET, 0) and (MET, 31) should remain in the cache, 
+     * all other entries having been evicted by the ageout adaptive cache 
+     * resizing algorithm. (Since (MET, 0) was dirty, it was flushed and 
+     * moved to the head of the LRU by the ageout algorithm.)
+     */
+
+    if ( pass ) {
+
+	if ( ( cache_ptr->index_len != 2 ) ||
+             ( cache_ptr->index_size != 2 * MONSTER_ENTRY_SIZE ) ) {
+
+            pass = FALSE;
+	    failure_mssg = "unexpected size/len in H5C__autoadjust__ageout__evict_aged_out_entries() test (2)";
+
+	} else {
+
+            /* update the expected table to reflect the expected values at 
+             * this point, and then verify.
+             */
+
+            expected[0].is_dirty = FALSE;
+	    expected[0].serialized = TRUE;
+
+            for ( i = 1; i < 31; i++ )
+            {
+		expected[i].in_cache = FALSE;
+		expected[i].is_dirty = FALSE;
+	        expected[i].destroyed = TRUE;
+            }
+
+	    verify_entry_status(cache_ptr, 0, 32, expected);
+	}
+    }
+
+    /* restore the initial resize configuration */
+    if ( pass ) {
+
+        saved_auto_size_ctl.set_initial_size = TRUE;
+        saved_auto_size_ctl.initial_size     = 2 * 1024 * 1024;
+
+        result = H5C_set_cache_auto_resize_config(cache_ptr, &saved_auto_size_ctl);
+
+        if ( result != SUCCEED ) {
+
+            pass = FALSE;
+            failure_mssg = "H5C_set_cache_auto_resize_config failed 2.\n";
+        }
+    }
+
+    /* flush the cache and end the test. */
+
+    if ( pass ) {
+
+        result = H5C_flush_cache(file_ptr, H5P_DATASET_XFER_DEFAULT, H5C__FLUSH_INVALIDATE_FLAG);
+
+        if ( result < 0 ) {
+
+            pass = FALSE;
+            failure_mssg = "Cache flush invalidate failed after flush op eviction test";
+        }
+        else if ( ( cache_ptr->index_len != 0 ) ||
+                  ( cache_ptr->index_size != 0 ) ) {
+
+            pass = FALSE;
+            failure_mssg = "Unexpected cache len/size after cleanup of flush op eviction test";
+
+        }
+    }
+
+#if H5C_COLLECT_CACHE_STATS
+    /* If we are collecting stats, check to see if we get the expected
+     * values.
+     */
+
+    if ( pass ) {
+
+	if ( ( cache_ptr->insertions[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->pinned_insertions[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->clears[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->flushes[MONSTER_ENTRY_TYPE] != 1 ) ||
+             ( cache_ptr->evictions[MONSTER_ENTRY_TYPE] != 32 ) ||
+             ( cache_ptr->take_ownerships[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->moves[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->entry_flush_moves[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->cache_flush_moves[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->pins[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->unpins[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->dirty_pins[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->pinned_flushes[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->pinned_clears[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->size_increases[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->size_decreases[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->entry_flush_size_changes[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->cache_flush_size_changes[MONSTER_ENTRY_TYPE] != 0 ) ) {
+
+            pass = FALSE;
+            failure_mssg = "Unexpected monster entry stats in cedds__H5C__autoadjust__ageout__evict_aged_out_entries().";
+        }
+    }
+
+    if ( pass ) {
+
+	if ( ( cache_ptr->slist_scan_restarts != 0 ) ||
+             ( cache_ptr->LRU_scan_restarts != 1 ) ||
+             ( cache_ptr->hash_bucket_scan_restarts != 0 ) ) {
+
+            pass = FALSE;
+            failure_mssg = "unexpected scan restart stats in cedds__H5C__autoadjust__ageout__evict_aged_out_entries().";
+        }
+    }
+#endif /* H5C_COLLECT_CACHE_STATS */
+
+    if ( pass ) {
+
+	reset_entries();
+    }
+
+    if ( pass ) {
+
+	/* reset cache min clean size to its expected value */
+        cache_ptr->min_clean_size = (1 * 1024 * 1024);
+    }
+
+    return;
+
+} /* cedds__H5C__autoadjust__ageout__evict_aged_out_entries() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	cedds__H5C_flush_invalidate_cache__bucket_scan()
+ *
+ * Purpose:	Verify that H5C_flush_invalidate_cache() can handle
+ *		the removal from the cache of the next item in 
+ *		its scans of hash buckets.
+ *
+ *		!!!!!!!!!! WARNING !!!!!!!!!!
+ *
+ *		This test may fail to function correctly if the hash 
+ *		table size or hash function is altered.  
+ *
+ *		To setup the test, this function depends on the fact that 
+ *		H5C_flush_invalidate_cache() does alternating scans of the
+ *		slist and the index.  If this changes, the test will likely
+ *		also cease to function correctly.
+ *
+ *		The test relies on a known hash function and hash table 
+ *		size to select a set of test entries that will all hash 
+ *		to the same hash bucket -- call it the test hash bucket.  
+ *		It also relies on known behavior of the cache to place 
+ *		the entries in the test bucket in a known order.
+ *
+ *		To avoid pre-mature flushes of the entries in the 
+ *		test hash bucket, all entries are initially clean,
+ *		with the exception of the first entry which is dirty.
+ *		It avoids premature flushing by being the parent in 
+ *		a flush dependency.  The first entry in the test bucket
+ *		also has a flush op which expunges the second entry --
+ *		setting up the failure.
+ *
+ *		An additional dirty entry is added (which must hash
+ *		to a different bucket, and must have a higher address 
+ *		than at least the first entry in the test hash bucket.
+ *		This entry is the child in a flush dependency with the 
+ *		first entry in the above hash bucket, and contains
+ *		a flush op to destroy this flush dependency. 
+ *
+ *		Since the first entry in the test hash bucket has a lower
+ *		address that the other dirty entry, the scan of the 
+ *		slist encounters it first, and passes over it because 
+ *		it has a flush dependency height of 1.
+ *
+ *		The scan then encounters the second dirty entry and flushes
+ *		it -- causing it to destroy the flush dependency and thus 
+ *		reducing the flush dependency height of the first entry in 
+ *		the test hash bucket to zero.
+ *
+ *		After completing a scan of the slist, 
+ *		H5C_flush_invalidate_cache() then scans the index,
+ *		flushing all entries of flush dependency height zero.
+ *
+ *		This sets up the potential error when the first entry
+ *		in the test hash bucket is flushed -- expunging the 
+ *		second entry as a side effect.  If 
+ *		H5C_flush_invalidate_cache() fails to detect this, 
+ *		it will attempt to continue its scan of the bucket with
+ *		an entry that has been deleted from the cache.
+ *
+ *              Do nothing if pass is FALSE on entry.
+ *
+ * Return:	void
+ *
+ * Programmer:	John Mainzer
+ *              4/9/15
+ *
+ * Modifications:
+ *
+ *		None.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+static void
+cedds__H5C_flush_invalidate_cache__bucket_scan(H5F_t * file_ptr)
+{
+    /* const char *fcn_name = "cedds__H5C_flush_invalidate_cache__bucket_scan"; */
+    H5C_t *                    cache_ptr = file_ptr->shared->cache;
+    int		               i;
+    int		               expected_hash_bucket;
+    herr_t	               result;
+    haddr_t                    entry_addr;
+    test_entry_t *             entry_ptr;
+    test_entry_t *             base_addr;
+    struct H5C_cache_entry_t * scan_ptr;
+    struct expected_entry_status expected[5] =
+    {
+      /* the expected array is used to maintain a table of the expected status of every
+       * entry used in this test.  Note that since the function that processes this
+       * array only processes as much of it as it is told to, we don't have to
+       * worry about maintaining the status of entries that we haven't used yet.
+       */
+      /* entry			entry				in	at main                                                  flush dep         flush dep   child flush  flush       flush */
+      /* type:			index:	size:			cache:	addr:	dirty:	prot:	pinned:	dsrlzd:	srlzd:	dest:     par type:         par idx: dep ref.count: dep height: order: */
+      { MONSTER_ENTRY_TYPE,	 0,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	TRUE,	TRUE,	FALSE,	FALSE,      -1,               -1,      {1,0,0,0,0,0}, 1,          -1 },
+      { MONSTER_ENTRY_TYPE,	 8,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,      -1,               -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,     16,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,      -1,               -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,     24,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	FALSE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE,      -1,               -1,      {0,0,0,0,0,0}, 0,          -1 },
+      { MONSTER_ENTRY_TYPE,     31,	MONSTER_ENTRY_SIZE,	TRUE,	TRUE,	TRUE,	FALSE,	FALSE,	TRUE,	FALSE,	FALSE, MONSTER_ENTRY_TYPE,     0,      {0,0,0,0,0,0}, 0,          -1 } 
+    };
+
+    if ( pass ) {
+
+         if ( cache_ptr == NULL ) {
+
+            pass = FALSE;
+            failure_mssg = "cache_ptr NULL on entry to cedds for H5C__autoadjust__ageout__evict_aged_out_entries() test.";
+        }
+        else if ( ( cache_ptr->index_len != 0 ) ||
+                  ( cache_ptr->index_size != 0 ) ) {
+
+            pass = FALSE;
+            failure_mssg = "cache not empty at start cedds for H5C__autoadjust__ageout__evict_aged_out_entries() test.";
+        }
+        else if ( ( cache_ptr->max_cache_size != (2 * 1024 * 1024 ) ) ||
+                  ( cache_ptr->min_clean_size != (1 * 1024 * 1024 ) ) ) {
+
+	    pass = FALSE;
+	    failure_mssg =
+	        "unexpected cache config at start of cedds H5C__autoadjust__ageout__evict_aged_out_entries() test.";
+
+        } else {
+
+            /* set min clean size to zero for this test as it simplifies
+	     * computing the expected cache size after each operation.
+	     */
+
+            cache_ptr->min_clean_size = 0;
+        }
+    }
+
+
+    if ( pass ) {
+
+	/* reset the stats before we start.  If stats are enabled, we will
+	 * check to see if they are as expected at the end.
+	 */
+
+	H5C_stats__reset(cache_ptr);
+
+
+	/* load one dirty and three clean entries that should hash to the 
+         * same hash bucket.  
+         */
+
+        protect_entry(file_ptr, MONSTER_ENTRY_TYPE, 0);
+        unprotect_entry(file_ptr, MONSTER_ENTRY_TYPE, 0, H5C__DIRTIED_FLAG);
+
+	for ( i = 8; i <= 24; i += 8 )
+	{
+	    protect_entry(file_ptr, MONSTER_ENTRY_TYPE, i);
+            unprotect_entry(file_ptr, MONSTER_ENTRY_TYPE, i, H5C__NO_FLAGS_SET);
+	}
+    }
+
+    if ( pass ) {
+
+        /* verify that the above entries hash to the same bucket */
+        base_addr = entries[MONSTER_ENTRY_TYPE];
+        entry_ptr = &(base_addr[0]);
+        entry_addr = entry_ptr->header.addr;
+
+        HDassert(entry_addr == entry_ptr->addr);
+
+        expected_hash_bucket = H5C__HASH_FCN(entry_addr);
+
+        for ( i = 8; i <= 24; i += 8 ) {
+        
+            entry_ptr = &(base_addr[i]);
+            entry_addr = entry_ptr->header.addr;
+
+            if ( expected_hash_bucket != H5C__HASH_FCN(entry_addr) ) {
+
+                pass = FALSE;
+                failure_mssg = "Test entries don't map to same bucket -- hash table size or hash fcn change?";
+            }
+        }
+    }
+
+    if ( pass ) {
+
+       /* setup the expunge flush operation:
+	 *
+	 *     (MET, 0) expunges (MET, 8)
+	 *
+	 */
+        add_flush_op(MONSTER_ENTRY_TYPE, 0, FLUSH_OP__EXPUNGE,
+                     MONSTER_ENTRY_TYPE, 8, FALSE, (size_t)0, NULL);
+    }
+
+    if ( pass ) {
+
+        /* load the entry that will have a flush dependencey with (MET, 0),
+         * thus preventing it from being flushed on the first pass through
+         * the skip list. 
+         */
+
+	protect_entry(file_ptr, MONSTER_ENTRY_TYPE, 31);
+	unprotect_entry(file_ptr, MONSTER_ENTRY_TYPE, 31, H5C__DIRTIED_FLAG);
+    }
+
+    if ( pass ) {
+
+        /* verify that the dirty entry doesn't map to the same 
+         * hash bucket as the clean entries.
+         */
+
+        entry_ptr = &(base_addr[31]);
+        entry_addr = entry_ptr->header.addr;
+
+        if ( expected_hash_bucket == H5C__HASH_FCN(entry_addr) ) {
+
+            pass = FALSE;
+            failure_mssg = "Dirty entry maps to same hash bucket as clean entries?!?!";
+        }
+    }
+
+    if ( pass ) {
+
+	/* Next, create the flush dependency requiring (MET, 31) to 
+         * be flushed prior to (MET, 0).
+	 */
+
+        protect_entry(file_ptr, MONSTER_ENTRY_TYPE, 0);
+        create_flush_dependency(MONSTER_ENTRY_TYPE, 0, MONSTER_ENTRY_TYPE, 31);
+        unprotect_entry(file_ptr, MONSTER_ENTRY_TYPE, 0, H5C__DIRTIED_FLAG);
+
+    }
+
+    if ( pass ) {
+
+        /* Then, setup the flush operation to take down the flush 
+         * dependency when (MET, 31) is flushed.
+	 *
+	 *     (MET, 31) destroys flush dependency with (MET, 8)
+	 *
+         */
+        add_flush_op(MONSTER_ENTRY_TYPE, 31, FLUSH_OP__DEST_FLUSH_DEP,
+                     MONSTER_ENTRY_TYPE, 0, FALSE, (size_t)0, NULL);
+
+    }
+
+    if ( pass ) {
+
+	/* verify the expected status of all entries we have loaded to date: */
+        verify_entry_status(cache_ptr, 0, 5, expected);
+    }
+
+    if ( pass ) {
+
+        /* now do some protect / unprotect cycles to force the 
+         * entries into the desired order in the hash bucket.
+         * Recall that entries are moved to the head of the 
+         * hash bucket list on lookup.
+         */
+
+	for ( i = 24; i >= 0; i -= 8 )
+	{
+	    protect_entry(file_ptr, MONSTER_ENTRY_TYPE, i);
+            unprotect_entry(file_ptr, MONSTER_ENTRY_TYPE, i, H5C__NO_FLAGS_SET);
+	}
+    }
+
+    if ( pass ) {
+
+        /* scan the hash bucket to verify that the expected entries appear
+         * in the expected order.
+         */
+        scan_ptr = cache_ptr->index[expected_hash_bucket];
+
+        i = 0;
+
+        while ( ( pass ) && ( i <= 24 ) )
+	{
+            entry_ptr = &(base_addr[i]);
+
+            if ( scan_ptr == NULL ) {
+
+                pass = FALSE;
+                failure_mssg = "premature end of hash bucket list?!?!";
+
+            } else if ( ( scan_ptr == NULL ) ||
+                        ( scan_ptr != &(entry_ptr->header) ) ) {
+
+                pass = FALSE;
+                failure_mssg = "bad test hash bucket setup?!?!";
+            }
+
+            if ( pass ) {
+
+                scan_ptr = scan_ptr->ht_next;
+                i += 8;
+            }
+	}
+    }
+
+
+    /* test setup complete -- flush the cache to run and end the test. */
+
+    if ( pass ) {
+
+        result = H5C_flush_cache(file_ptr, H5P_DATASET_XFER_DEFAULT, H5C__FLUSH_INVALIDATE_FLAG);
+
+        if ( result < 0 ) {
+
+            pass = FALSE;
+            failure_mssg = "Cache flush invalidate failed after flush op eviction test";
+        }
+        else if ( ( cache_ptr->index_len != 0 ) ||
+                  ( cache_ptr->index_size != 0 ) ) {
+
+            pass = FALSE;
+            failure_mssg = "Unexpected cache len/size after cleanup of flush op eviction test";
+
+        }
+    }
+
+#if H5C_COLLECT_CACHE_STATS
+    /* If we are collecting stats, check to see if we get the expected
+     * values.
+     */
+
+    if ( pass ) {
+
+	if ( ( cache_ptr->insertions[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->pinned_insertions[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->clears[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->flushes[MONSTER_ENTRY_TYPE] != 2 ) ||
+             ( cache_ptr->evictions[MONSTER_ENTRY_TYPE] != 5 ) ||
+             ( cache_ptr->take_ownerships[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->moves[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->entry_flush_moves[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->cache_flush_moves[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->pins[MONSTER_ENTRY_TYPE] != 1 ) ||
+             ( cache_ptr->unpins[MONSTER_ENTRY_TYPE] != 1 ) ||
+             ( cache_ptr->dirty_pins[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->pinned_flushes[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->pinned_clears[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->size_increases[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->size_decreases[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->entry_flush_size_changes[MONSTER_ENTRY_TYPE] != 0 ) ||
+             ( cache_ptr->cache_flush_size_changes[MONSTER_ENTRY_TYPE] != 0 ) ) {
+
+            pass = FALSE;
+            failure_mssg = "Unexpected monster entry stats in cedds__H5C_flush_invalidate_cache__bucket_scan().";
+        }
+    }
+
+    if ( pass ) {
+
+	if ( ( cache_ptr->slist_scan_restarts != 0 ) ||
+             ( cache_ptr->LRU_scan_restarts != 0 ) ||
+             ( cache_ptr->hash_bucket_scan_restarts != 1 ) ) {
+
+            pass = FALSE;
+            failure_mssg = "unexpected scan restart stats in cedds__H5C_flush_invalidate_cache__bucket_scan().";
+        }
+    }
+#endif /* H5C_COLLECT_CACHE_STATS */
+
+    if ( pass ) {
+
+	reset_entries();
+    }
+
+    if ( pass ) {
+
+	/* reset cache min clean size to its expected value */
+        cache_ptr->min_clean_size = (1 * 1024 * 1024);
+    }
+
+    return;
+
+} /* cedds__H5C_flush_invalidate_cache__bucket_scan() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	check_stats()
+ *
+ * Purpose:	If stats are enabled, conduct tests to verify correct 
+ *		functioning of the cache statistics collection code.
+ *
+ *		Skip the test if stats are not enabled.
+ *
+ *		At present this test is a shell -- fill it out at time
+ *		permits.
+ *
+ * Return:	void
+ *
+ * Programmer:	John Mainzer
+ *              4/12/15
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+
+static unsigned
+check_stats(void)
+{
+
+#if H5C_COLLECT_CACHE_STATS
+
+    const char * fcn_name = "check_stats";
+    H5F_t * file_ptr = NULL;
+
+#endif /* H5C_COLLECT_CACHE_STATS */
+
+    TESTING("metadata cache statistics collection");
+
+#if H5C_COLLECT_CACHE_STATS
+
+    pass = TRUE;
+
+    reset_entries();
+
+    file_ptr = setup_cache((size_t)(1 * 1024 * 1024),
+                            (size_t)(0));
+
+
+    /* run tests here */
+
+
+    if ( pass ) {
+
+        takedown_cache(file_ptr, FALSE, FALSE);
+    }
+
+    if ( pass ) { PASSED(); } else { H5_FAILED(); }
+
+    if ( ! pass ) {
+
+        HDfprintf(stdout, "%s(): failure_mssg = \"%s\".\n",
+                  fcn_name, failure_mssg);
+    }
+
+#else /* H5C_COLLECT_CACHE_STATS */
+
+    SKIPPED();
+
+    HDfprintf(stdout, "	Statistics collection disabled.\n");
+
+#endif /* H5C_COLLECT_CACHE_STATS */
+
+    return (unsigned)!pass;
+
+} /* check_stats() */
+
+
+/*-------------------------------------------------------------------------
  * Function:	main
  *
  * Purpose:	Run tests on the cache code contained in H5C.c
@@ -33132,6 +34737,8 @@ main(void)
     nerrs += check_flush_deps_err();
     nerrs += check_flush_deps_order();
     nerrs += check_notify_cb();
+    nerrs += check_entry_deletions_during_scans();
+    nerrs += check_stats();
 
     return( nerrs > 0 );
 

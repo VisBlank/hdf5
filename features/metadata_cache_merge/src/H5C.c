@@ -224,7 +224,7 @@ static void * H5C__epoch_marker_deserialize(const void * image_ptr,
 			                    hbool_t * dirty_ptr);
 static herr_t H5C__epoch_marker_image_len(const void * thing,
 		                          size_t *image_len_ptr,
-                                          hbool_t compressed_ptr,
+                                          hbool_t *compressed_ptr,
                                           size_t *compressed_len_ptr);
 static herr_t H5C__epoch_marker_pre_serialize(const H5F_t *f,
 		                             hid_t dxpl_id,
@@ -301,7 +301,7 @@ H5C__epoch_marker_deserialize(const void UNUSED * image_ptr, size_t UNUSED len,
 
 static herr_t
 H5C__epoch_marker_image_len(const void UNUSED *thing,
-    size_t UNUSED *image_len_ptr, hbool_t UNUSED compressed_ptr,
+    size_t UNUSED *image_len_ptr, hbool_t UNUSED *compressed_ptr,
     size_t UNUSED *compressed_len_ptr)
 {
     FUNC_ENTER_STATIC_NOERR /* Yes, even though this pushes an error on the stack */
@@ -466,6 +466,31 @@ H5C__epoch_marker_fsf_size(const void UNUSED * thing, size_t UNUSED *fsf_size_pt
  * Programmer:  John Mainzer
  *              3/17/10
  *
+ * Changes:     Ported code to detect next entry status changes as the 
+ *              the result of a flush from the serial code in the scan of 
+ *              the LRU.  Also added code to detect and adapt to the 
+ *              removal from the cache of the next entry in the scan of 
+ *		the LRU.
+ *
+ *		Note that at present, all of these changes should not 
+ *		be required as the operations on entries as they are 
+ *		flushed that can cause these condiditions are not premitted
+ *		in the parallel case.  However, Quincey indicates that 
+ *		this may change, and thus has requested the modification.
+ *
+ *		Note the assert(FALSE) in the if statement whose body 
+ *		restarts the scan of the LRU.  As the body of the if 
+ *		statement should be unreachable, it should never be 
+ *		triggered until the constraints on the parallel case 
+ *		are relaxed.  Please remove the assertion at that time.
+ *
+ *		Also added warning on the Pinned Entry List scan, as it
+ *		is potentially subject to the same issue.  As there is 
+ *		no cognate of this scan in the serial code, I don't have
+ *		a fix to port to it.
+ *
+ *						JRM -- 4/10/19
+ *		
  *-------------------------------------------------------------------------
  */
 #ifdef H5_HAVE_PARALLEL
@@ -479,6 +504,8 @@ H5C_apply_candidate_list(H5F_t * f,
                          int mpi_rank,
                          int mpi_size)
 {
+    hbool_t		restart_scan;
+    hbool_t		prev_is_dirty;
     int                 i;
     int			m;
     int			n;
@@ -498,6 +525,7 @@ H5C_apply_candidate_list(H5F_t * f,
     int               * candidate_assignment_table = NULL;
     haddr_t		addr;
     H5C_cache_entry_t *	clear_ptr = NULL;
+    H5C_cache_entry_t *	next_ptr = NULL;
     H5C_cache_entry_t *	entry_ptr = NULL;
     H5C_cache_entry_t *	flush_ptr = NULL;
     H5C_cache_entry_t * delayed_ptr = NULL;
@@ -662,7 +690,7 @@ H5C_apply_candidate_list(H5F_t * f,
               (int)(cache_ptr->LRU_list_len));
 #endif /* H5C_APPLY_CANDIDATE_LIST__DEBUG */
 
-    /* ====================================================================== *
+    /* ===================================================================== *
      * Now scan the LRU and PEL lists, flushing or clearing entries as
      * needed.
      *
@@ -673,18 +701,31 @@ H5C_apply_candidate_list(H5F_t * f,
      * to account for this one case where they come into play. If these flags
      * are ever expanded upon, this function and the following flushing steps
      * should be reworked to account for additional cases.
-     * ====================================================================== */
+     * ===================================================================== */
 
+    HDassert(entries_to_flush >= 0);
+
+    restart_scan = FALSE;
     entries_examined = 0;
     initial_list_len = cache_ptr->LRU_list_len;
     entry_ptr = cache_ptr->LRU_tail_ptr;
 
     /* Examine each entry in the LRU list */
-    while((entry_ptr != NULL) && (entries_examined <= initial_list_len) &&
-            ((entries_cleared + entries_flushed) < num_candidates)) {
+    while ( ( entry_ptr != NULL ) 
+            && 
+            ( entries_examined <= (entries_to_flush + 1) * initial_list_len ) 
+            &&
+            ( (entries_cleared + entries_flushed) < num_candidates ) ) {
+
+        if ( entry_ptr->prev != NULL )
+            prev_is_dirty = entry_ptr->prev->is_dirty;
 
         /* If this process needs to clear this entry. */
         if(entry_ptr->clear_on_unprotect) {
+
+            HDassert(entry_ptr->is_dirty);
+
+            next_ptr = entry_ptr->next; 
             entry_ptr->clear_on_unprotect = FALSE;
             clear_ptr = entry_ptr;
             entry_ptr = entry_ptr->prev;
@@ -694,6 +735,11 @@ H5C_apply_candidate_list(H5F_t * f,
     HDfprintf(stdout, "%s:%d: clearing 0x%llx.\n", FUNC, mpi_rank,
               (long long)clear_ptr->addr);
 #endif /* H5C_APPLY_CANDIDATE_LIST__DEBUG */
+
+	    /* No need to check for the next entry in the scan being 
+             * removed from the cache, as this call to H5C_flush_single_entry()
+             * will not call either the pre_serialize or serialize callbacks.
+             */
 
             if(H5C_flush_single_entry(f,
                                       dxpl_id,
@@ -707,6 +753,9 @@ H5C_apply_candidate_list(H5F_t * f,
         /* Else, if this process needs to flush this entry. */
         else if (entry_ptr->flush_immediately) {
 
+	    HDassert(entry_ptr->is_dirty);
+
+            next_ptr = entry_ptr->next; 
             entry_ptr->flush_immediately = FALSE;
             flush_ptr = entry_ptr;
             entry_ptr = entry_ptr->prev;
@@ -717,6 +766,31 @@ H5C_apply_candidate_list(H5F_t * f,
               (long long)flush_ptr->addr);
 #endif /* H5C_APPLY_CANDIDATE_LIST__DEBUG */
 
+            /* reset entries_removed_counter and
+             * last_entry_removed_ptr prior to the call to
+             * H5C_flush_single_entry() so that we can spot
+             * unexpected removals of entries from the cache,
+             * and set the restart_scan flag if proceeding
+             * would be likely to cause us to scan an entry
+             * that is no longer in the cache.
+             *
+             * Note that as of this writing (April 2015) this 
+             * case cannot occur in the parallel case.  However 
+             * Quincey is making noises about changing this, hence 
+             * the insertion of this test.
+             *
+             * Note also that there is no test code to verify 
+             * that this code actually works (although similar code
+             * in the serial version exists and is tested).  
+             * 
+             * Implementing a test will likely require implementing
+             * flush op like facilities in the parallel tests.  At
+             * a guess this will not be terribly painful, but it 
+             * will take a bit of time.
+             */
+            cache_ptr->entries_removed_counter = 0;
+            cache_ptr->last_entry_removed_ptr  = NULL;
+
             if(H5C_flush_single_entry(f,
                                       dxpl_id,
                                       flush_ptr->addr,
@@ -724,12 +798,61 @@ H5C_apply_candidate_list(H5F_t * f,
                                       TRUE,
                                       NULL) < 0)
                 HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Can't flush entry.")
+
+            if ( ( cache_ptr->entries_removed_counter > 1 ) ||
+                 ( cache_ptr->last_entry_removed_ptr == entry_ptr ) )
+
+                restart_scan = TRUE;
+
         } /* end else-if */
 
         /* Otherwise, no action to be taken on this entry. Grab the next. */
         else {
             entry_ptr = entry_ptr->prev;
+
+            if ( entry_ptr != NULL )
+                next_ptr = entry_ptr->next; 
+
         } /* end else */
+
+        if ( ( entry_ptr != NULL ) 
+             &&
+             ( ( restart_scan )
+               ||
+               ( entry_ptr->is_dirty != prev_is_dirty )
+               ||
+               ( entry_ptr->next != next_ptr )
+               ||
+               ( entry_ptr->is_protected )
+               ||
+               ( entry_ptr->is_pinned ) 
+             ) 
+           ) {
+
+            /* something has happened to the LRU -- start over
+             * from the tail.
+             *
+             * Recall that this code should be un-reachable at present,
+             * as all the operations by entries on flush that could cause
+             * it to be reachable are disallowed in the parallel case at
+             * present.  Hence the following assertion which should be 
+             * removed if the above changes.
+             */
+
+	    HDassert( ! restart_scan );
+            HDassert( entry_ptr->is_dirty == prev_is_dirty );
+            HDassert( entry_ptr->next == next_ptr );
+            HDassert( ! entry_ptr->is_protected );
+            HDassert( ! entry_ptr->is_pinned );
+
+            HDassert(FALSE); /* see comment above */
+
+            restart_scan = FALSE;
+            entry_ptr = cache_ptr->LRU_tail_ptr;
+/* 
+	    H5C__UPDATE_STATS_FOR_LRU_SCAN_RESTART(cache_ptr)
+*/
+        }
 
         entries_examined++;
     } /* end while */
@@ -742,6 +865,30 @@ H5C_apply_candidate_list(H5F_t * f,
 
     /* It is also possible that some of the cleared entries are on the
      * pinned list.  Must scan that also.
+     *
+     * WARNING:
+     *
+     *	As we now allow unpinning, and removal of other entries as a side 
+     *  effect of flushing an entry, it is possible that the next entry
+     *  in a PEL scan could either be no longer pinned, or no longer in
+     *  the cache by the time we get to it.
+     *
+     *  At present, this is not possible in this case, as we disallow such
+     *  operations in the parallel version of the library.  However, Quincey
+     *  has been making noises about relaxing this.  If and when he does,
+     *  we have a potential problem here.
+     *
+     *  The same issue exists in the serial cache, and there are tests 
+     *  to detect this problem when it occurs, and adjust to it.  As seen
+     *  above in the LRU scan, I have ported such tests to the parallel 
+     *  code where a close cognate exists in the serial code.  
+     *
+     *  I haven't done so here, as there are no PEL scans where the problem
+     *  can occur in the serial code.  Needless to say, this will have to 
+     *  be repaired if the constraints on pre_serialize and serialize 
+     *  callbacks are relaxed in the parallel version of the metadata cache.
+     *
+     *						JRM -- 4/1/15
      */
 
 #if H5C_APPLY_CANDIDATE_LIST__DEBUG
@@ -1231,6 +1378,9 @@ H5C_create(size_t		      max_cache_size,
         (cache_ptr->index)[i] = NULL;
     }
 
+    cache_ptr->entries_removed_counter		= 0;
+    cache_ptr->last_entry_removed_ptr		= NULL;
+
     cache_ptr->pl_len				= 0;
     cache_ptr->pl_size				= (size_t)0;
     cache_ptr->pl_head_ptr			= NULL;
@@ -1634,6 +1784,7 @@ H5C_expunge_entry(H5F_t *f, hid_t dxpl_id, const H5C_class_t *type,
     unsigned            flush_flags = (H5C__FLUSH_INVALIDATE_FLAG | H5C__FLUSH_CLEAR_ONLY_FLAG);
     herr_t		ret_value = SUCCEED;      /* Return value */
 
+
     FUNC_ENTER_NOAPI(FAIL)
 
     HDassert(f);
@@ -1645,6 +1796,10 @@ H5C_expunge_entry(H5F_t *f, hid_t dxpl_id, const H5C_class_t *type,
     HDassert(cache_ptr->magic == H5C__H5C_T_MAGIC);
     HDassert(type);
     HDassert(H5F_addr_defined(addr));
+#if H5C_DO_SANITY_CHECKS
+    hbool_t entry_was_dirty;
+    hsize_t entry_size;
+#endif /* H5C_DO_SANITY_CHECKS */
 
 #if H5C_DO_EXTREME_SANITY_CHECKS
     if(H5C_validate_lru_list(cache_ptr) < 0)
@@ -1675,8 +1830,26 @@ H5C_expunge_entry(H5F_t *f, hid_t dxpl_id, const H5C_class_t *type,
     /* Pass along 'free file space' flag to  cache client.  */
     flush_flags |= (flags & H5C__FREE_FILE_SPACE_FLAG);
 
+#if H5C_DO_SANITY_CHECKS
+    entry_was_dirty = entry_ptr->is_dirty;
+    entry_size      = entry_ptr->size;
+#endif /* H5C_DO_EXTREME_SANITY_CHECKS */
+
     if(H5C_flush_single_entry(f, dxpl_id, entry_ptr->addr, flush_flags, TRUE, NULL) < 0)
         HGOTO_ERROR(H5E_CACHE, H5E_CANTEXPUNGE, FAIL, "H5C_flush_single_entry() failed.")
+
+#if H5C_DO_SANITY_CHECKS
+    if ( entry_was_dirty )
+    {
+        /* we have just removed an entry from the skip list.  Thus 
+         * we must touch up cache_ptr->slist_len_increase and
+         * cache_ptr->slist_size_increase to keep from skewing
+         * the sanity checks on flushes.
+         */
+        cache_ptr->slist_len_increase -= 1;
+        cache_ptr->slist_size_increase -= (int64_t)(entry_size);
+    }
+#endif /* H5C_DO_SANITY_CHECKS */
 
 done:
 #if H5C_DO_EXTREME_SANITY_CHECKS
@@ -2027,6 +2200,8 @@ H5C_flush_cache(H5F_t *f, hid_t dxpl_id, unsigned flags)
                                         = FALSE;
                                     cache_ptr->slist_change_in_serialize 
                                         = FALSE;
+
+				    H5C__UPDATE_STATS_FOR_SLIST_SCAN_RESTART(cache_ptr)
                                 }
                             } /* end if */
                             else if(entry_ptr->flush_dep_height < curr_flush_dep_height)
@@ -2085,6 +2260,8 @@ H5C_flush_cache(H5F_t *f, hid_t dxpl_id, unsigned flags)
                                         = FALSE;
                                     cache_ptr->slist_change_in_serialize 
                                         = FALSE;
+
+                                    H5C__UPDATE_STATS_FOR_SLIST_SCAN_RESTART(cache_ptr)
                                 }
                             } /* end if */
                             else if(entry_ptr->flush_dep_height < curr_flush_dep_height)
@@ -3072,6 +3249,29 @@ done:
  * Programmer:  John Mainzer
  *              7/5/05
  *
+ * Changes:     Tidied up code, removeing some old commented out 
+ *		code that had been left in pending success of the 
+ *		new version.
+ *
+ *		Note that unlike H5C_apply_candidate_list(), 
+ *		H5C_mark_entries_as_clean() makes all its calls to 
+ *		H6C_flush_single_entry() with the 
+ *		H5C__FLUSH_CLEAR_ONLY_FLAG set.  As a result, 
+ *		the pre_serialize() and serialize calls are not made.
+ *
+ *		This then implies that (assuming such actions were 
+ *		permitted in the parallel case) no loads, dirties, 
+ *		resizes, or removals of other entries can occur as 
+ *		a side effect of the flush.  Hence, there is no need
+ *		for the checks for entry removal / status change 
+ *		that I ported to H5C_apply_candidate_list().
+ *
+ *		However, if (in addition to allowing such operations
+ *		in the parallel case), we allow such operations outside
+ *		of the pre_serialize / serialize routines, this may 
+ *		cease to be the case -- requiring a review of this 
+ *		function.
+ *
  *-------------------------------------------------------------------------
  */
 #ifdef H5_HAVE_PARALLEL
@@ -3175,25 +3375,9 @@ H5C_mark_entries_as_clean(H5F_t *  f,
 #endif /* H5C_DO_SANITY_CHECKS */
             HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
                         "Listed entry not dirty?!?!?.")
-#if 0 /* original code */
-        } else if ( entry_ptr->is_protected ) {
-
-            entry_ptr->clear_on_unprotect = TRUE;
 
         } else {
 
-            if ( H5C_flush_single_entry(f,
-                                        dxpl_id,
-                                        addr,
-                                        H5C__FLUSH_CLEAR_ONLY_FLAG,
-                                        TRUE,
-                                        NULL) < 0 ) {
-
-                HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Can't clear entry.")
-            }
-        }
-#else /* modified code */
-        } else {
             /* Mark the entry to be cleared on unprotect.  We will
              * scan the LRU list shortly, and clear all those entries
              * not currently protected.
@@ -3214,13 +3398,32 @@ H5C_mark_entries_as_clean(H5F_t *  f,
 	    }
 #endif /* H5C_DO_SANITY_CHECKS */
         }
-#endif /* end modified code */
     }
-#if 1 /* modified code */
+
     /* Scan through the LRU list from back to front, and flush the
      * entries whose clear_on_unprotect flags are set.  Observe that
      * any protected entries will not be on the LRU, and therefore
      * will not be flushed at this time.
+     *
+     * Note that unlike H5C_apply_candidate_list(), 
+     * H5C_mark_entries_as_clean() makes all its calls to 
+     * H6C_flush_single_entry() with the H5C__FLUSH_CLEAR_ONLY_FLAG 
+     * set.  As a result, the pre_serialize() and serialize calls are 
+     * not made.
+     *
+     * This then implies that (assuming such actions were 
+     * permitted in the parallel case) no loads, dirties, 
+     * resizes, or removals of other entries can occur as 
+     * a side effect of the flush.  Hence, there is no need
+     * for the checks for entry removal / status change 
+     * that I ported to H5C_apply_candidate_list().
+     *
+     * However, if (in addition to allowing such operations
+     * in the parallel case), we allow such operations outside
+     * of the pre_serialize / serialize routines, this may 
+     * cease to be the case -- requiring a review of this 
+     * point.
+     *					JRM -- 4/7/15
      */
 
     entries_cleared = 0;
@@ -3310,7 +3513,6 @@ H5C_mark_entries_as_clean(H5F_t *  f,
     }
     HDassert( (entries_cleared + i) == ce_array_len );
 #endif /* H5C_DO_SANITY_CHECKS */
-#endif /* modified code */
 
 done:
 
@@ -4772,6 +4974,10 @@ done:
  *              total_entries_skipped_in_msic, total_entries_scanned_in_msic,
  *              and max_entries_skipped_in_msic fields.
  *
+ *		JRM -- 4/11/15
+ *		Added code displaying the new slist_scan_restarts,
+ *		LRU_scan_restarts, and hash_bucket_scan_restarts fields;
+ *
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -4785,6 +4991,8 @@ H5C_stats(H5C_t * cache_ptr,
 {
     herr_t	ret_value = SUCCEED;   /* Return value */
 
+    HDassert( cache_ptr->magic == H5C__H5C_T_MAGIC );
+
 #if H5C_COLLECT_CACHE_STATS
     int		i;
     int64_t     total_hits = 0;
@@ -4797,6 +5005,7 @@ H5C_stats(H5C_t * cache_ptr,
     int64_t     total_clears = 0;
     int64_t     total_flushes = 0;
     int64_t     total_evictions = 0;
+    int64_t     total_take_ownerships = 0;
     int64_t     total_moves = 0;
     int64_t     total_entry_flush_moves = 0;
     int64_t     total_cache_flush_moves = 0;
@@ -4850,11 +5059,10 @@ H5C_stats(H5C_t * cache_ptr,
         total_clears            += cache_ptr->clears[i];
         total_flushes           += cache_ptr->flushes[i];
         total_evictions         += cache_ptr->evictions[i];
-        total_moves           += cache_ptr->moves[i];
-	total_entry_flush_moves
-				+= cache_ptr->entry_flush_moves[i];
-	total_cache_flush_moves
-				+= cache_ptr->cache_flush_moves[i];
+        total_take_ownerships   += cache_ptr->take_ownerships[i];
+        total_moves             += cache_ptr->moves[i];
+	total_entry_flush_moves += cache_ptr->entry_flush_moves[i];
+	total_cache_flush_moves += cache_ptr->cache_flush_moves[i];
         total_size_increases    += cache_ptr->size_increases[i];
         total_size_decreases    += cache_ptr->size_decreases[i];
     	total_entry_flush_size_changes
@@ -5003,21 +5211,26 @@ H5C_stats(H5C_t * cache_ptr,
               (long)max_read_protects);
 
     HDfprintf(stdout,
-              "%s  Total clears / flushes / evictions = %ld / %ld / %ld\n",
+              "%s  Total clears / flushes             = %ld / %ld\n",
               cache_ptr->prefix,
               (long)total_clears,
-              (long)total_flushes,
-              (long)total_evictions);
+              (long)total_flushes);
 
     HDfprintf(stdout,
-	      "%s  Total insertions(pinned) / moves = %ld(%ld) / %ld\n",
+              "%s  Total evictions / take ownerships  = %ld / %ld\n",
+              cache_ptr->prefix,
+              (long)total_evictions,
+              (long)total_take_ownerships);
+
+    HDfprintf(stdout,
+	      "%s  Total insertions(pinned) / moves   = %ld(%ld) / %ld\n",
               cache_ptr->prefix,
               (long)total_insertions,
               (long)total_pinned_insertions,
               (long)total_moves);
 
     HDfprintf(stdout,
-	      "%s  Total entry / cache flush moves  = %ld / %ld\n",
+	      "%s  Total entry / cache flush moves    = %ld / %ld\n",
               cache_ptr->prefix,
               (long)total_entry_flush_moves,
               (long)total_cache_flush_moves);
@@ -5079,6 +5292,13 @@ H5C_stats(H5C_t * cache_ptr,
               (long long)(cache_ptr->total_entries_scanned_in_msic -
                             cache_ptr->entries_scanned_to_make_space));
 
+    HDfprintf(stdout, 
+              "%s  slist/LRU/hash bkt scan restarts   = %lld / %lld / %lld.\n",
+              cache_ptr->prefix, 
+              (long long)(cache_ptr->slist_scan_restarts),
+              (long long)(cache_ptr->LRU_scan_restarts),
+              (long long)(cache_ptr->hash_bucket_scan_restarts));
+
 #if H5C_COLLECT_CACHE_ENTRY_STATS
 
     HDfprintf(stdout, "%s  aggregate max / min accesses       = %d / %d\n",
@@ -5132,21 +5352,26 @@ H5C_stats(H5C_t * cache_ptr,
                       (int)(cache_ptr->max_read_protects[i]));
 
             HDfprintf(stdout,
-                     "%s    clears / flushes / evictions   = %ld / %ld / %ld\n",
+                      "%s    clears / flushes               = %ld / %ld\n", 
                       cache_ptr->prefix,
                       (long)(cache_ptr->clears[i]),
-                      (long)(cache_ptr->flushes[i]),
-                      (long)(cache_ptr->evictions[i]));
+                      (long)(cache_ptr->flushes[i]));
 
             HDfprintf(stdout,
-                      "%s    insertions(pinned) / moves   = %ld(%ld) / %ld\n",
+                      "%s    evictions / take ownerships    = %ld / %ld\n",
+                      cache_ptr->prefix,
+                      (long)(cache_ptr->evictions[i]),
+                      (long)(cache_ptr->take_ownerships[i]));
+
+            HDfprintf(stdout,
+                      "%s    insertions(pinned) / moves     = %ld(%ld) / %ld\n",
                       cache_ptr->prefix,
                       (long)(cache_ptr->insertions[i]),
                       (long)(cache_ptr->pinned_insertions[i]),
                       (long)(cache_ptr->moves[i]));
 
             HDfprintf(stdout,
-                      "%s    entry / cache flush moves    = %ld / %ld\n",
+                      "%s    entry / cache flush moves      = %ld / %ld\n",
                       cache_ptr->prefix,
                       (long)(cache_ptr->entry_flush_moves[i]),
                       (long)(cache_ptr->cache_flush_moves[i]));
@@ -5171,7 +5396,7 @@ H5C_stats(H5C_t * cache_ptr,
                       (long)(cache_ptr->unpins[i]));
 
             HDfprintf(stdout,
-                      "%s    entry dirty pins/pin'd flushes  = %ld / %ld\n",
+                      "%s    entry dirty pins/pin'd flushes = %ld / %ld\n",
                       cache_ptr->prefix,
                       (long)(cache_ptr->dirty_pins[i]),
                       (long)(cache_ptr->pinned_flushes[i]));
@@ -5231,6 +5456,11 @@ done:
  *              total_entries_skipped_in_msic, total_entries_scanned_in_msic,
  *              and max_entries_skipped_in_msic fields.
  *
+ *		JRM 4/11/15
+ *		Added code to initialize the new slist_scan_restarts,
+ *		LRU_scan_restarts, hash_bucket_scan_restarts, and 
+ *		take_ownerships fields.
+ *
  *-------------------------------------------------------------------------
  */
 void
@@ -5264,9 +5494,10 @@ H5C_stats__reset(H5C_t UNUSED * cache_ptr)
         cache_ptr->clears[i]			= 0;
         cache_ptr->flushes[i]			= 0;
         cache_ptr->evictions[i]	 		= 0;
+        cache_ptr->take_ownerships[i] 		= 0;
         cache_ptr->moves[i]	 		= 0;
-        cache_ptr->entry_flush_moves[i]	= 0;
-        cache_ptr->cache_flush_moves[i]	= 0;
+        cache_ptr->entry_flush_moves[i]		= 0;
+        cache_ptr->cache_flush_moves[i]		= 0;
         cache_ptr->pins[i]	 		= 0;
         cache_ptr->unpins[i]	 		= 0;
         cache_ptr->dirty_pins[i]	 	= 0;
@@ -5305,6 +5536,10 @@ H5C_stats__reset(H5C_t UNUSED * cache_ptr)
     cache_ptr->max_entries_skipped_in_msic      = 0;
     cache_ptr->max_entries_scanned_in_msic      = 0;
     cache_ptr->entries_scanned_to_make_space    = 0;
+
+    cache_ptr->slist_scan_restarts		= 0;
+    cache_ptr->LRU_scan_restarts		= 0;
+    cache_ptr->hash_bucket_scan_restarts	= 0;
 
 #if H5C_COLLECT_CACHE_ENTRY_STATS
 
@@ -7227,6 +7462,19 @@ done:
  *
  * Programmer:  John Mainzer, 11/22/04
  *
+ * Changes:	Modified function to detect deletions of entries
+ *              during a scan of the LRU, and where appropriate,
+ *              restart the scan to avoid proceeding with a next
+ *              entry that is no longer in the cache.
+ *
+ *              Note the absence of checks after flushes of clean
+ *              entries.  As a second entry can only be removed by
+ *              by a call to the pre_serialize or serialize callback
+ *              of the first, and as these callbacks will not be called
+ *              on clean entries, no checks are needed.
+ *
+ *                                              JRM -- 4/6/15
+ *
  *-------------------------------------------------------------------------
  */
 static herr_t
@@ -7239,6 +7487,7 @@ H5C__autoadjust__ageout__evict_aged_out_entries(H5F_t * f,
     size_t		eviction_size_limit;
     size_t		bytes_evicted = 0;
     hbool_t		prev_is_dirty = FALSE;
+    hbool_t             restart_scan;
     H5C_cache_entry_t * entry_ptr;
     H5C_cache_entry_t * next_ptr;
     H5C_cache_entry_t * prev_ptr;
@@ -7267,13 +7516,17 @@ H5C__autoadjust__ageout__evict_aged_out_entries(H5F_t * f,
 
     if ( write_permitted ) {
 
+        restart_scan = FALSE;
         entry_ptr = cache_ptr->LRU_tail_ptr;
 
         while ( ( entry_ptr != NULL ) &&
                 ( (entry_ptr->type)->id != H5C__EPOCH_MARKER_TYPE ) &&
                 ( bytes_evicted < eviction_size_limit ) )
         {
+            HDassert(entry_ptr->magic == H5C__H5C_CACHE_ENTRY_T_MAGIC);
             HDassert( ! (entry_ptr->is_protected) );
+            HDassert( ! (entry_ptr->is_read_only) );
+            HDassert( (entry_ptr->ro_ref_count) == 0 );
 
 	    next_ptr = entry_ptr->next;
             prev_ptr = entry_ptr->prev;
@@ -7285,12 +7538,29 @@ H5C__autoadjust__ageout__evict_aged_out_entries(H5F_t * f,
 
             if ( entry_ptr->is_dirty ) {
 
+                /* reset entries_removed_counter and
+                 * last_entry_removed_ptr prior to the call to
+                 * H5C_flush_single_entry() so that we can spot
+                 * unexpected removals of entries from the cache,
+                 * and set the restart_scan flag if proceeding
+                 * would be likely to cause us to scan an entry
+                 * that is no longer in the cache.
+                 */
+                cache_ptr->entries_removed_counter = 0;
+                cache_ptr->last_entry_removed_ptr  = NULL;
+
                 result = H5C_flush_single_entry(f,
                                                 dxpl_id,
                                                 entry_ptr->addr,
                                                 H5C__NO_FLAGS_SET,
                                                 FALSE,
                                                 NULL);
+
+                if ( ( cache_ptr->entries_removed_counter > 1 ) ||
+                     ( cache_ptr->last_entry_removed_ptr == prev_ptr ) )
+
+                    restart_scan = TRUE;
+
             } else {
 
                 bytes_evicted += entry_ptr->size;
@@ -7310,27 +7580,24 @@ H5C__autoadjust__ageout__evict_aged_out_entries(H5F_t * f,
             }
 
             if ( prev_ptr != NULL ) {
-                if ( prev_ptr->magic != H5C__H5C_CACHE_ENTRY_T_MAGIC ) {
 
-                    /* something horrible has happened to *prev_ptr --
-                     * scream and die.
-                     */
-                    HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
-                                "*prev_ptr corrupt")
-
-                } else
-		if ( ( prev_ptr->is_dirty != prev_is_dirty )
-                         ||
-                         ( prev_ptr->next != next_ptr )
-                         ||
-                         ( prev_ptr->is_protected )
-                         ||
-                         ( prev_ptr->is_pinned ) ) {
+		if ( ( restart_scan )
+                     ||
+                     ( prev_ptr->is_dirty != prev_is_dirty )
+                     ||
+                     ( prev_ptr->next != next_ptr )
+                     ||
+                     ( prev_ptr->is_protected )
+                     ||
+                     ( prev_ptr->is_pinned ) ) {
 
                     /* something has happened to the LRU -- start over
 		     * from the tail.
                      */
+                    restart_scan = FALSE;
                     entry_ptr = cache_ptr->LRU_tail_ptr;
+
+		    H5C__UPDATE_STATS_FOR_LRU_SCAN_RESTART(cache_ptr)
 
                 } else {
 
@@ -7920,9 +8187,9 @@ H5C_flush_invalidate_cache(const H5F_t * f,
     H5C_cache_entry_t *	entry_ptr = NULL;
     H5C_cache_entry_t *	next_entry_ptr = NULL;
 #if H5C_DO_SANITY_CHECKS
-    int64_t		actual_slist_len = 0;
+    int64_t		flushed_slist_len = 0;
     int64_t		initial_slist_len = 0;
-    size_t              actual_slist_size = 0;
+    size_t              flushed_slist_size = 0;
     size_t              initial_slist_size = 0;
     int64_t		entry_size_change;
     int64_t	      * entry_size_change_ptr = &entry_size_change;
@@ -8029,13 +8296,13 @@ H5C_flush_invalidate_cache(const H5F_t * f,
             cache_ptr->slist_len_increase = 0;
             cache_ptr->slist_size_increase = 0;
 
-            /* Finally, reset the actual_slist_len and actual_slist_size
+            /* Finally, reset the flushed_slist_len and flushed_slist_size
              * fields to zero, as these fields are used to accumulate
              * the slist lenght and size that we see as we scan through
              * the slist.
              */
-            actual_slist_len = 0;
-            actual_slist_size = 0;
+            flushed_slist_len = 0;
+            flushed_slist_size = 0;
 #endif /* H5C_DO_SANITY_CHECKS */
 
             /* set the cache_ptr->slist_change_in_pre_serialize and
@@ -8139,22 +8406,6 @@ H5C_flush_invalidate_cache(const H5F_t * f,
                        ( cache_ptr->num_last_entries >=
                          cache_ptr->slist_len ) ) ) {
 
-#if H5C_DO_SANITY_CHECKS
-                    /* update actual_slist_len & actual_slist_size before
-                     * the flush.  Note that the entry will be removed
-                     * from the slist after the flush, and thus may be
-                     * resized by the flush callback.  This is OK, as
-                     * we will catch the size delta in
-                     * cache_ptr->slist_size_increase.
-                     *
-                     * Note that we include pinned entries in this count, even
-                     * though we will not actually flush them.
-                     */
-                    actual_slist_len++;
-                    actual_slist_size += entry_ptr->size;
-		    entry_size_change = 0;
-#endif /* H5C_DO_SANITY_CHECKS */
-
                     if ( entry_ptr->is_protected ) {
 
                         /* we have major problems -- but lets flush
@@ -8170,6 +8421,20 @@ H5C_flush_invalidate_cache(const H5F_t * f,
                          * as pinned entries can't be evicted.
                          */
                         if(entry_ptr->flush_dep_height == curr_flush_dep_height ) {
+#if H5C_DO_SANITY_CHECKS
+                            /* update flushed_slist_len & flushed_slist_size 
+                             * before the flush.  Note that the entry will 
+                             * be removed from the slist after the flush, 
+                             * and thus may be resized by the flush callback.
+                             * This is OK, as we will catch the size delta in
+                             * cache_ptr->slist_size_increase.
+                             *
+                             */
+                            flushed_slist_len++;
+                            flushed_slist_size += entry_ptr->size;
+		            entry_size_change = 0;
+#endif /* H5C_DO_SANITY_CHECKS */
+
                             status = H5C_flush_single_entry(f,
                                                             dxpl_id,
                                                             entry_ptr->addr,
@@ -8188,9 +8453,9 @@ H5C_flush_invalidate_cache(const H5F_t * f,
 
 #if H5C_DO_SANITY_CHECKS
                             /* entry size may have changed during the flush.
-                             * Update actual_slist_size to account for this.
+                             * Update flushed_slist_size to account for this.
                              */
-                            actual_slist_size += entry_size_change;
+                            flushed_slist_size += entry_size_change;
 #endif /* H5C_DO_SANITY_CHECKS */
 
                             flushed_during_dep_loop = TRUE;
@@ -8209,6 +8474,7 @@ H5C_flush_invalidate_cache(const H5F_t * f,
                                 cache_ptr->slist_change_in_pre_serialize 
                                     = FALSE;
                                 cache_ptr->slist_change_in_serialize = FALSE;
+				H5C__UPDATE_STATS_FOR_SLIST_SCAN_RESTART(cache_ptr);
                             }
                         } /* end if */
                         else if(entry_ptr->flush_dep_height < curr_flush_dep_height)
@@ -8217,6 +8483,19 @@ H5C_flush_invalidate_cache(const H5F_t * f,
                     } /* end if */
                     else {
                         if(entry_ptr->flush_dep_height == curr_flush_dep_height ){
+#if H5C_DO_SANITY_CHECKS
+                            /* update flushed_slist_len & flushed_slist_size 
+                             * before the flush.  Note that the entry will 
+                             * be removed from the slist after the flush, 
+                             * and thus may be resized by the flush callback.
+                             * This is OK, as we will catch the size delta in
+                             * cache_ptr->slist_size_increase.
+                             *
+                             */
+                            flushed_slist_len++;
+                            flushed_slist_size += entry_ptr->size;
+		            entry_size_change = 0;
+#endif /* H5C_DO_SANITY_CHECKS */
 
                             status = H5C_flush_single_entry(f,
                                     dxpl_id,
@@ -8236,9 +8515,9 @@ H5C_flush_invalidate_cache(const H5F_t * f,
 
 #if H5C_DO_SANITY_CHECKS
                             /* entry size may have changed during the flush.
-                             * Update actual_slist_size to account for this.
+                             * Update flushed_slist_size to account for this.
                              */
-                            actual_slist_size += entry_size_change;
+                            flushed_slist_size += entry_size_change;
 #endif /* H5C_DO_SANITY_CHECKS */
 
                             flushed_during_dep_loop = TRUE;
@@ -8257,6 +8536,7 @@ H5C_flush_invalidate_cache(const H5F_t * f,
                                 cache_ptr->slist_change_in_pre_serialize
                                     = FALSE;
                                 cache_ptr->slist_change_in_serialize = FALSE;
+				H5C__UPDATE_STATS_FOR_SLIST_SCAN_RESTART(cache_ptr)
                             }
                         } /* end if */
                         else if(entry_ptr->flush_dep_height < curr_flush_dep_height)
@@ -8278,9 +8558,9 @@ H5C_flush_invalidate_cache(const H5F_t * f,
 
             if ( node_ptr == NULL ) {
 
-                HDassert( (actual_slist_len + cache_ptr->slist_len) ==
+                HDassert( (flushed_slist_len + cache_ptr->slist_len) ==
                           (initial_slist_len + cache_ptr->slist_len_increase) );
-                HDassert( (actual_slist_size + cache_ptr->slist_size) ==
+                HDassert( (flushed_slist_size + cache_ptr->slist_size) ==
                           (initial_slist_size + 
                            (size_t)(cache_ptr->slist_size_increase)) );
             }
@@ -8333,6 +8613,33 @@ H5C_flush_invalidate_cache(const H5F_t * f,
                              * If we can, go ahead and flush.
                              */
                             if(entry_ptr->flush_dep_height == curr_flush_dep_height ){
+				/* if *entry_ptr is dirty, it is possible 
+                                 * that one or more other entries may be 
+                                 * either removed from the cache, loaded 
+                                 * into the cache, or moved to a new location
+                                 * in the file as a side effect of the flush.
+                                 *
+                                 * If this happens, and one of the target 
+                                 * entries happens to be the next entry in 
+                                 * the hash bucket, we could find ourselves 
+				 * either find ourselves either scanning a 
+                                 * non-existant entry, scanning through a 
+                                 * different bucket, or skipping an entry.
+                                 *
+                                 * Neither of these are good, so restart the 
+                                 * the scan at the head of the hash bucket 
+                                 * after the flush if *entry_ptr was dirty,
+                                 * on the off chance that the next entry was
+                                 * a target.
+                                 *
+                                 * This is not as inefficient at it might seem,
+                                 * as hash buckets typically have at most two
+                                 * or three entries.
+                                 */
+                                hbool_t entry_was_dirty;
+
+                                entry_was_dirty = entry_ptr->is_dirty;
+
                                 status = H5C_flush_single_entry(f,
                                     dxpl_id,
                                     entry_ptr->addr,
@@ -8349,6 +8656,17 @@ H5C_flush_invalidate_cache(const H5F_t * f,
                                     HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, \
                                                 "Entry flush destroy failed.")
                                 }
+
+				if ( entry_was_dirty ) {
+
+                                    /* update stats for hash bucket scan
+                                     * restart here.
+                                     *                   -- JRM 
+                                     */
+                                    next_entry_ptr = cache_ptr->index[i];
+				    H5C__UPDATE_STATS_FOR_HASH_BUCKET_SCAN_RESTART(cache_ptr)
+                                }
+
                                 flushed_during_dep_loop = TRUE;
                             } /* end if */
                             else if(entry_ptr->flush_dep_height < curr_flush_dep_height)
@@ -8373,6 +8691,12 @@ H5C_flush_invalidate_cache(const H5F_t * f,
                      * test is triggred, we are accessing a deallocated piece
                      * of dynamically allocated memory, so we just scream and
                      * die.
+                     *
+                     * Update: The code to restart the scan after flushes
+                     *         of dirty entries should make it impossible 
+                     *         to satisfy the following test.  Leave it in
+                     *         in case I am wrong.
+                     *                                    -- JRM
                      */
                     if ( ( next_entry_ptr != NULL ) &&
                          ( next_entry_ptr->magic !=
@@ -9060,25 +9384,34 @@ H5C_flush_single_entry(const H5F_t *	   f,
         /* start by updating the statistics */
 
         if ( clear_only ) {
-            H5C__UPDATE_STATS_FOR_CLEAR(cache_ptr, entry_ptr)
-        } else {
+
+	    /* only log a clear if the entry was dirty */
+            if ( was_dirty ) {
+
+                H5C__UPDATE_STATS_FOR_CLEAR(cache_ptr, entry_ptr)
+            }
+        } else if ( write_entry ) {
+
+	    HDassert( was_dirty );
+
+	    /* only log a flush if we actually wrote to disk */
             H5C__UPDATE_STATS_FOR_FLUSH(cache_ptr, entry_ptr)
+
         }
 
         if ( destroy ) 
         {
             if ( take_ownership )
             {
-		/* we should keep stats on take ownership.  Fix this,
-                 * but for now make no note.
-                 */
                 HDassert(!destroy_entry);
             }
             else
             {
                 HDassert(destroy_entry);
-                H5C__UPDATE_STATS_FOR_EVICTION(cache_ptr, entry_ptr)
             }
+
+	    H5C__UPDATE_STATS_FOR_EVICTION(cache_ptr, entry_ptr, \
+                                           take_ownership)
         }
 
         /* If the entry's type has a 'notify' callback and the entry is about
@@ -9242,6 +9575,19 @@ H5C_flush_single_entry(const H5F_t *	   f,
 	    /* Reset the pointer to the cache the entry is within. -QAK */
             entry_ptr->cache_ptr = NULL;
 
+            /* increment entries_removed_counter and set 
+             * last_entry_removed_ptr.  As we are likely abuut to 
+             * free the entry, recall that last_entry_removed_ptr 
+             * must NEVER be dereferenced.
+             *
+	     * Recall that these fields are maintained to allow functions
+	     * that perform scans of lists of entries to detect the 
+	     * unexpected removal of entries (via expunge, eviction, 
+             * or take ownership at present), so that they can re-start
+	     * their scans if necessary.
+             */
+            cache_ptr->last_entry_removed_ptr++;
+            cache_ptr->last_entry_removed_ptr = entry_ptr;
 
             /* Check for actually destroying the entry in memory */
             /* (As opposed to taking ownership of it) */
@@ -9812,6 +10158,19 @@ done:
  *
  *						JRM -- 12/26/14
  *
+ *		Modified function to detect deletions of entries 
+ *		during a scan of the LRU, and where appropriate, 
+ *		restart the scan to avoid proceeding with a next 
+ *		entry that is no longer in the cache.
+ *
+ *		Note the absence of checks after flushes of clean 
+ *		entries.  As a second entry can only be removed by 
+ *		by a call to the pre_serialize or serialize callback
+ *		of the first, and as these callbacks will not be called
+ *		on clean entries, no checks are needed.
+ *
+ *						JRM -- 4/6/15
+ *
  *-------------------------------------------------------------------------
  */
 static herr_t
@@ -9831,6 +10190,7 @@ H5C_make_space_in_cache(H5F_t *	f,
     size_t		empty_space;
     hbool_t		prev_is_dirty = FALSE;
     hbool_t             didnt_flush_entry = FALSE;
+    hbool_t		restart_scan;
     H5C_cache_entry_t *	entry_ptr;
     H5C_cache_entry_t *	prev_ptr;
     H5C_cache_entry_t *	next_ptr;
@@ -9846,6 +10206,7 @@ H5C_make_space_in_cache(H5F_t *	f,
 
     if ( write_permitted ) {
 
+        restart_scan = FALSE;
         initial_list_len = cache_ptr->LRU_list_len;
         entry_ptr = cache_ptr->LRU_tail_ptr;
 
@@ -9876,6 +10237,7 @@ H5C_make_space_in_cache(H5F_t *	f,
                 ( entry_ptr != NULL )
               )
         {
+            HDassert(entry_ptr->magic == H5C__H5C_CACHE_ENTRY_T_MAGIC);
             HDassert( ! (entry_ptr->is_protected) );
             HDassert( ! (entry_ptr->is_read_only) );
             HDassert( (entry_ptr->ro_ref_count) == 0 );
@@ -9904,12 +10266,29 @@ H5C_make_space_in_cache(H5F_t *	f,
                     }
 #endif /* H5C_COLLECT_CACHE_STATS */
 
+		    /* reset entries_removed_counter and 
+                     * last_entry_removed_ptr prior to the call to 
+                     * H5C_flush_single_entry() so that we can spot 
+                     * unexpected removals of entries from the cache,
+                     * and set the restart_scan flag if proceeding 
+                     * would be likely to cause us to scan an entry 
+                     * that is no longer in the cache.
+                     */
+                    cache_ptr->entries_removed_counter = 0;
+                    cache_ptr->last_entry_removed_ptr  = NULL;
+
                     result = H5C_flush_single_entry(f,
                                                     dxpl_id,
                                                     entry_ptr->addr,
                                                     H5C__NO_FLAGS_SET,
                                                     FALSE,
                                                     NULL);
+
+		    if ( ( cache_ptr->entries_removed_counter > 1 ) ||
+                         ( cache_ptr->last_entry_removed_ptr == prev_ptr ) )
+
+                        restart_scan = TRUE;
+
                 } else if ( (cache_ptr->index_size + space_needed)
                               >
                              cache_ptr->max_cache_size ) {
@@ -9923,6 +10302,7 @@ H5C_make_space_in_cache(H5F_t *	f,
                                                     H5C__FLUSH_INVALIDATE_FLAG,
                                                     TRUE,
                                                     NULL);
+
                 } else {
 
                     /* We have enough space so don't flush clean entry.
@@ -9940,7 +10320,6 @@ H5C_make_space_in_cache(H5F_t *	f,
 #if H5C_COLLECT_CACHE_STATS
                 total_entries_scanned++;
 #endif /* H5C_COLLECT_CACHE_STATS */
-
 
             } else {
 
@@ -9960,16 +10339,6 @@ H5C_make_space_in_cache(H5F_t *	f,
 
 	    if ( prev_ptr != NULL ) {
 
-		if ( prev_ptr->magic != H5C__H5C_CACHE_ENTRY_T_MAGIC ) {
-
-		    /* something horrible has happened to *prev_ptr --
-		     * scream and die.
-		     */
-                    HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
-				"*prev_ptr corrupt 1")
-
-                }
-
 		if ( didnt_flush_entry ) {
 
 		    /* epoch markers don't get flushed, and we don't touch 
@@ -9980,7 +10349,9 @@ H5C_make_space_in_cache(H5F_t *	f,
 		     */
                     entry_ptr = prev_ptr;
 
-		} else if ( ( prev_ptr->is_dirty != prev_is_dirty )
+		} else if ( ( restart_scan ) 
+                            ||
+                            ( prev_ptr->is_dirty != prev_is_dirty )
 		            ||
 		            ( prev_ptr->next != next_ptr )
 		            ||
@@ -9991,7 +10362,9 @@ H5C_make_space_in_cache(H5F_t *	f,
 		    /* something has happened to the LRU -- start over
 		     * from the tail.
 		     */
+                    restart_scan = FALSE;
 	            entry_ptr = cache_ptr->LRU_tail_ptr;
+		    H5C__UPDATE_STATS_FOR_LRU_SCAN_RESTART(cache_ptr)
 
 		} else {
 

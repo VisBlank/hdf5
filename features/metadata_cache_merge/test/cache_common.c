@@ -2015,6 +2015,33 @@ execute_flush_op(H5F_t * file_ptr,
                 (*op_ptr->order_ptr)++;
 		break;
 
+	    case FLUSH_OP__EXPUNGE:
+		/* the expunge flush op exists to allow us to simulate the 
+		 * case in which an entry is removed from the cashe as the 
+ 		 * the result of the flush of a second entry.  At present,
+		 * this can only happen via the take ownership flag, but 
+		 * we will make this test feature more general to as to make
+		 * tests easier to write.
+		 *
+		 * When this operation is executed, the target entry is 
+		 * removed from the cache without being flushed if dirty
+		 * via the expunge_entry() test function (which calls 
+ 		 * H5C_expunge_entry()).  Note that this flush operation 
+		 * must always be executed on an entry other than the 
+		 * entry being flushed.
+		 */
+		HDassert( ( entry_ptr->type != op_ptr->type ) ||
+                          ( entry_ptr->index != op_ptr->idx ) );
+		expunge_entry(file_ptr, op_ptr->type, op_ptr->idx);
+		break;
+
+	    case FLUSH_OP__DEST_FLUSH_DEP:
+		HDassert( ( entry_ptr->type != op_ptr->type ) ||
+                          ( entry_ptr->index != op_ptr->idx ) );
+		destroy_flush_dependency(op_ptr->type, op_ptr->idx,
+                                         entry_ptr->type, entry_ptr->index);
+                break;
+
 	    default:
                 pass = FALSE;
                 failure_mssg = "Undefined flush op code.";

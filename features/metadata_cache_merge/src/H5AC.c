@@ -834,11 +834,12 @@ H5AC_flush(H5F_t *f, hid_t dxpl_id)
     /* For the flush, only the flags are really necessary in the trace file.
      * Write the result to catch occult errors.
      */
-    if((f != NULL) &&
-            (f->shared != NULL) &&
-            (f->shared->cache != NULL) &&
-            (H5C_get_trace_file_ptr(f->shared->cache, &trace_file_ptr) >= 0) &&
-            (trace_file_ptr != NULL))
+    if ( ( f != NULL ) &&
+         ( f->shared != NULL ) &&
+         ( f->shared->cache != NULL ) &&
+         ( H5C_get_trace_file_ptr(f->shared->cache, &trace_file_ptr) >= 0 ) &&
+         ( trace_file_ptr != NULL ) )
+
 	sprintf(trace, "H5AC_flush");
 #endif /* H5AC__TRACE_FILE_ENABLED */
 
@@ -1062,7 +1063,8 @@ H5AC_mark_entry_dirty(void *thing)
      * is really necessary in the trace file.  Write the result to catch
      * occult errors.
      */
-    if((H5C_get_trace_file_ptr_from_entry(thing, &trace_file_ptr) >= 0) &&
+    if((H5C_get_trace_file_ptr_from_entry((const H5C_cache_entry_t *) thing, 
+                                          &trace_file_ptr) >= 0) &&
             (NULL != trace_file_ptr))
         sprintf(trace, "%s 0x%lx", FUNC,
 	        (unsigned long)(((H5C_cache_entry_t *)thing)->addr));
@@ -1210,7 +1212,8 @@ H5AC_pin_protected_entry(void *thing)
     /* For the pin protected entry call, only the addr is really necessary
      * in the trace file.  Also write the result to catch occult errors.
      */
-    if((H5C_get_trace_file_ptr_from_entry(thing, &trace_file_ptr) >= 0) &&
+    if((H5C_get_trace_file_ptr_from_entry((const H5C_cache_entry_t *)thing, 
+                                          &trace_file_ptr) >= 0) &&
             (NULL != trace_file_ptr))
         sprintf(trace, "%s 0x%lx", FUNC,
 	        (unsigned long)(((H5C_cache_entry_t *)thing)->addr));
@@ -1258,7 +1261,8 @@ H5AC_create_flush_dependency(void * parent_thing, void * child_thing)
     HDassert(child_thing);
 
 #if H5AC__TRACE_FILE_ENABLED
-    if((H5C_get_trace_file_ptr_from_entry(parent_thing, &trace_file_ptr) >= 0) &&
+    if((H5C_get_trace_file_ptr_from_entry((H5C_cache_entry_t *)parent_thing, 
+                                          &trace_file_ptr) >= 0) &&
             (NULL != trace_file_ptr))
         sprintf(trace, "%s %lx %lx",
                 FUNC,
@@ -1353,10 +1357,9 @@ H5AC_protect(H5F_t *f,
 	HGOTO_ERROR(H5E_CACHE, H5E_BADVALUE, NULL, "no write intent on file")
 
 #if H5AC__TRACE_FILE_ENABLED
-    /* For the protect call, only the addr and type id is really necessary
-     * in the trace file.  Include the size of the entry protected as a
-     * sanity check.  Also indicate whether the call was successful to
-     * catch occult errors.
+    /* For the protect call, only the addr, size, type id, and flags are 
+     * necessary in the trace file.  Also indicate whether the call was 
+     * successful to catch occult errors.
      */
     if ( ( f != NULL ) &&
          ( f->shared != NULL ) &&
@@ -1364,25 +1367,10 @@ H5AC_protect(H5F_t *f,
          ( H5C_get_trace_file_ptr(f->shared->cache, &trace_file_ptr) >= 0) &&
          ( trace_file_ptr != NULL ) ) {
 
-	const char * rw_string;
-
-        if ( rw == H5AC_WRITE ) {
-
-	    rw_string = "H5AC_WRITE";
-
-	} else if ( rw == H5AC_READ ) {
-
-	    rw_string = "H5AC_READ";
-
-	} else {
-
-	    rw_string = "???";
-	}
-
-        sprintf(trace, "H5AC_protect 0x%lx %d %s",
+        sprintf(trace, "H5AC_protect 0x%lx %d 0x%x",
 	        (unsigned long)addr,
 		(int)(type->id),
-		rw_string);
+		flags);
     }
 #endif /* H5AC__TRACE_FILE_ENABLED */
 
@@ -1466,8 +1454,10 @@ H5AC_resize_entry(void *thing, size_t new_size)
      * really necessary in the trace file. Write the result to catch
      * occult errors.
      */
-    if((H5C_get_trace_file_ptr_from_entry(thing, &trace_file_ptr) >= 0) &&
-            (NULL != trace_file_ptr))
+    if ( ( H5C_get_trace_file_ptr_from_entry((H5C_cache_entry_t *)thing, 
+                                              &trace_file_ptr) >= 0 ) &&
+         ( NULL != trace_file_ptr ) )
+
         sprintf(trace, "%s 0x%lx %d", FUNC,
 	        (unsigned long)(((H5C_cache_entry_t *)thing)->addr),
 		(int)new_size);
@@ -1532,8 +1522,10 @@ H5AC_unpin_entry(void *thing)
     /* For the unpin entry call, only the addr is really necessary
      * in the trace file.  Also write the result to catch occult errors.
      */
-    if((H5C_get_trace_file_ptr_from_entry(thing, &trace_file_ptr) >= 0) &&
-            (NULL != trace_file_ptr))
+    if ( ( H5C_get_trace_file_ptr_from_entry((H5C_cache_entry_t *)thing, 
+                                             &trace_file_ptr) >= 0 ) &&
+         ( NULL != trace_file_ptr ) )
+
         sprintf(trace, "%s 0x%lx", FUNC,
 	        (unsigned long)(((H5C_cache_entry_t *)thing)->addr));
 #endif /* H5AC__TRACE_FILE_ENABLED */
@@ -1579,8 +1571,10 @@ H5AC_destroy_flush_dependency(void * parent_thing, void * child_thing)
     HDassert(child_thing);
 
 #if H5AC__TRACE_FILE_ENABLED
-    if((H5C_get_trace_file_ptr_from_entry(parent_thing, &trace_file_ptr) >= 0) &&
-          (NULL != trace_file_ptr))
+    if ( ( H5C_get_trace_file_ptr_from_entry((H5C_cache_entry_t *)parent_thing,
+                                             &trace_file_ptr) >= 0 ) &&
+          ( NULL != trace_file_ptr ) )
+
         sprintf(trace, "%s %llx %llx",
                 FUNC,
 	        (unsigned long long)(((H5C_cache_entry_t *)parent_thing)->addr),
@@ -1732,7 +1726,7 @@ H5AC_unprotect(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type, haddr_t addr,
 done:
 #if H5AC__TRACE_FILE_ENABLED
     if(trace_file_ptr != NULL)
-	HDfprintf(trace_file_ptr, "%s %x %d\n",
+	HDfprintf(trace_file_ptr, "%s 0x%x %d\n",
 		  trace, (unsigned)flags, (int)ret_value);
 #endif /* H5AC__TRACE_FILE_ENABLED */
 
@@ -2534,7 +2528,7 @@ H5AC_open_trace_file(H5AC_t * cache_ptr,
         HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, FAIL, "trace file open failed.")
     }
 
-    HDfprintf(file_ptr, "### HDF5 metadata cache trace file ###\n");
+    HDfprintf(file_ptr, "### HDF5 metadata cache trace file version 1 ###\n");
 
     if ( H5C_set_trace_file_ptr(cache_ptr, file_ptr) < 0 ) {
 

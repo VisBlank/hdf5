@@ -91,6 +91,17 @@ typedef enum {
  * times for debugging purposes.
  *
  * Hence the following, somewhat odd set of #defines.
+ *
+ * NOTE: test/cache plays games with the f->shared->cache, and thus 
+ *       setting H5AC_DUMP_STATS_ON_CLOSE will generate constant, 
+ *	 irrelevant data when run with that test program.  See 
+ * 	 comments on setup_cache() / takedown_cache() in test/cache_common.c.
+ *       for details.
+ *
+ *	 If you need to dump stats at file close in test/cache.c,
+ *	 use the dump_stats parameter to takedown_cache(), or call 
+ *	 H5C_stats() directly.
+ *					JRM -- 4/12/15
  */
 #if H5C_COLLECT_CACHE_STATS
 

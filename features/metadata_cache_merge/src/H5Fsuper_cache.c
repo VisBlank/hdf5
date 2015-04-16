@@ -902,7 +902,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5F__cache_drvrinfo_image_len(const void *_thing, size_t *image_len, hbool_t *compressed_ptr, size_t UNUSED *compressed_image_len_ptr)
+H5F__cache_drvrinfo_image_len(const void *_thing, size_t *image_len, hbool_t UNUSED *compressed_ptr, size_t UNUSED *compressed_image_len_ptr)
 {
     const H5O_drvinfo_t *drvinfo = (const H5O_drvinfo_t *)_thing;       /* Pointer to the object */
 
@@ -918,9 +918,6 @@ H5F__cache_drvrinfo_image_len(const void *_thing, size_t *image_len, hbool_t *co
     /* Set the image length size */
     *image_len = (size_t)(H5F_DRVINFOBLOCK_HDR_SIZE +   /* Fixed-size portion of driver info block */
         drvinfo->len);                                  /* Variable-size portion of driver info block */
-
-    /* Set *compressed_ptr to FALSE unconditionally */
-    *compressed_ptr;
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5F__cache_drvrinfo_image_len() */

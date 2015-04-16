@@ -243,6 +243,37 @@
  *		changing the H5C__HASH_FCN macro and the deletion of the
  *		H5C__HASH_MASK #define.  No other changes should be required.
  *
+ * With the addition of the take ownership flag, it is possible that 
+ * an entry may be removed from the cache as the result of the flush of 
+ * a second entry.  In general, this causes little trouble, but it is 
+ * possible that the entry removed may be the next entry in the scan of 
+ * a list.  In this case, we must be able to detect the fact that the 
+ * entry has been removed, so that the scan doesn't attempt to proceed with
+ * an entry that is no longer in the cache.
+ *
+ * The following fields are maintained to facilitate this.
+ *
+ * entries_removed_counter:	Counter that is incremented each time an
+ *		entry is removed from the cache by any means (eviction, 
+ *		expungement, or take ownership at this point in time).
+ *		Functions that perform scans on lists may set this field
+ *		to zero prior to calling H5C_flush_single_entry().  
+ *		Unexpected changes to the counter indicate that an entry 
+ *		was removed from the cache as a side effect of the flush.
+ *
+ * last_entry_removed_ptr:	Pointer to the instance of H5C_cache_entry_t
+ *		which contained the last entry to be removed from the cache,
+ *		or NULL if there either is no such entry, or if a function
+ *		performing a scan of a list has set this field to NULL prior
+ *		to calling H5C_flush_single_entry().
+ *
+ *		WARNING!!! This field must NEVER be dereferenced.  It is 
+ *		maintained to allow functions that perform scans of lists
+ *		to compare this pointer with their pointers to next, thus
+ *		allowing them to avoid uncessary restarts of scans if the
+ *		pointers don't match, and if entries_removed_counter is 
+ *		one.
+ *
  *
  * When we flush the cache, we need to write entries out in increasing
  * address order.  An instance of a skip list is used to store dirty entries in
@@ -681,7 +712,7 @@
  * 		pinned into the cache in the current epoch.
  *
  * clears:      Array of int64 of length H5C__MAX_NUM_TYPE_IDS + 1.  The cells
- *		are used to record the number of times an entry with type
+ *		are used to record the number of times a dirty entry with type
  *		id equal to the array index has been cleared in the current
  *		epoch.
  *
@@ -694,6 +725,11 @@
  *		are used to record the number of times an entry with type id
  *		equal to the array index has been evicted from the cache in
  *		the current epoch.
+ *
+ * take_ownerships: Array of int64 of length H5C__MAX_NUM_TYPE_IDS + 1.  The 
+ *		cells are used to record the number of times an entry with 
+ *		type id equal to the array index has been removed from the 
+ *		cache via the H5C__TAKE_OWNERSHIP_FLAG in the current epoch.
  *
  * moves:       Array of int64 of length H5C__MAX_NUM_TYPE_IDS + 1.  The cells
  *		are used to record the number of times an entry with type
@@ -822,7 +858,33 @@
  *
  * entries_scanned_to_make_space: Number of entries scanned only when looking
  *              for entries to evict in order to make space in cache.
-
+ *
+ * 
+ * As entries are now capable of moving, loading, dirtying, and deleting 
+ * other entries in their pre_serialize and serialize callbacks, it has 
+ * been necessary to insert code to restart scans of lists so as to avoid 
+ * improper behavior if the next entry in the list is the target of one on 
+ * these operations.
+ *
+ * The folloing fiels are use to count such occurances.  They are used 
+ * both in tests (to verify that the scan has been restarted), and to 
+ * obtain estimates of how frequently these restarts occur.
+ *
+ * slist_scan_restarts: Number of times a scan of the slist (that contains
+ *		calls to H5C_flush_single_entry()) has been restarted to 
+ *		avoid potential issues with change of status of the next 
+ *		entry in the scan.
+ *
+ * LRU_scan_restarts: Number of times a scan of the LRU list (that contains
+ *              calls to H5C_flush_single_entry()) has been restarted to 
+ *              avoid potential issues with change of status of the next 
+ *              entry in the scan.
+ *
+ * hash_bucket_scan_restarts: Number of times a scan of a hash bucket list
+ *		(that contains calls to H5C_flush_single_entry()) has been 
+ *		restarted to avoid potential issues with change of status 
+ *		of the next entry in the scan.
+ *
  * The remaining stats are collected only when both H5C_COLLECT_CACHE_STATS
  * and H5C_COLLECT_CACHE_ENTRY_STATS are true.
  *
@@ -905,6 +967,9 @@ struct H5C_t
     size_t			dirty_index_size;
     H5C_cache_entry_t *		(index[H5C__HASH_TABLE_LEN]);
 
+    int64_t			entries_removed_counter;
+    H5C_cache_entry_t *		last_entry_removed_ptr;
+
     hbool_t                     ignore_tags;
 
     hbool_t			slist_changed;
@@ -977,6 +1042,7 @@ struct H5C_t
     int64_t                     clears[H5C__MAX_NUM_TYPE_IDS + 1];
     int64_t                     flushes[H5C__MAX_NUM_TYPE_IDS + 1];
     int64_t                     evictions[H5C__MAX_NUM_TYPE_IDS + 1];
+    int64_t                     take_ownerships[H5C__MAX_NUM_TYPE_IDS + 1];
     int64_t                     moves[H5C__MAX_NUM_TYPE_IDS + 1];
     int64_t                     entry_flush_moves[H5C__MAX_NUM_TYPE_IDS + 1];
     int64_t                     cache_flush_moves[H5C__MAX_NUM_TYPE_IDS + 1];
@@ -1017,6 +1083,10 @@ struct H5C_t
     int32_t                     max_entries_skipped_in_msic;
     int32_t                     max_entries_scanned_in_msic;
     int64_t                     entries_scanned_to_make_space;
+ 
+    int64_t			slist_scan_restarts;
+    int64_t			LRU_scan_restarts;
+    int64_t			hash_bucket_scan_restarts;
 
 #if H5C_COLLECT_CACHE_ENTRY_STATS
 
@@ -1240,78 +1310,86 @@ if ( ( (new_size) > (dll_size) ) ||                                            \
 
 
 #define H5C__DLL_APPEND(entry_ptr, head_ptr, tail_ptr, len, Size, fail_val) \
-        H5C__DLL_PRE_INSERT_SC(entry_ptr, head_ptr, tail_ptr, len, Size,    \
-                               fail_val)                                    \
-        if ( (head_ptr) == NULL )                                           \
-        {                                                                   \
-           (head_ptr) = (entry_ptr);                                        \
-           (tail_ptr) = (entry_ptr);                                        \
-        }                                                                   \
-        else                                                                \
-        {                                                                   \
-           (tail_ptr)->next = (entry_ptr);                                  \
-           (entry_ptr)->prev = (tail_ptr);                                  \
-           (tail_ptr) = (entry_ptr);                                        \
-        }                                                                   \
-        (len)++;                                                            \
-        (Size) += (entry_ptr)->size;
+{                                                                           \
+    H5C__DLL_PRE_INSERT_SC(entry_ptr, head_ptr, tail_ptr, len, Size,        \
+                           fail_val)                                        \
+    if ( (head_ptr) == NULL )                                               \
+    {                                                                       \
+       (head_ptr) = (entry_ptr);                                            \
+       (tail_ptr) = (entry_ptr);                                            \
+    }                                                                       \
+    else                                                                    \
+    {                                                                       \
+       (tail_ptr)->next = (entry_ptr);                                      \
+       (entry_ptr)->prev = (tail_ptr);                                      \
+       (tail_ptr) = (entry_ptr);                                            \
+    }                                                                       \
+    (len)++;                                                                \
+    (Size) += (entry_ptr)->size;                                            \
+} /* H5C__DLL_APPEND() */
 
 #define H5C__DLL_PREPEND(entry_ptr, head_ptr, tail_ptr, len, Size, fail_val) \
-        H5C__DLL_PRE_INSERT_SC(entry_ptr, head_ptr, tail_ptr, len, Size,     \
-                               fail_val)                                     \
-        if ( (head_ptr) == NULL )                                            \
-        {                                                                    \
-           (head_ptr) = (entry_ptr);                                         \
-           (tail_ptr) = (entry_ptr);                                         \
-        }                                                                    \
-        else                                                                 \
-        {                                                                    \
-           (head_ptr)->prev = (entry_ptr);                                   \
-           (entry_ptr)->next = (head_ptr);                                   \
-           (head_ptr) = (entry_ptr);                                         \
-        }                                                                    \
-        (len)++;                                                             \
-        (Size) += entry_ptr->size;
+{                                                                            \
+    H5C__DLL_PRE_INSERT_SC(entry_ptr, head_ptr, tail_ptr, len, Size,         \
+                           fail_val)                                         \
+    if ( (head_ptr) == NULL )                                                \
+    {                                                                        \
+       (head_ptr) = (entry_ptr);                                             \
+       (tail_ptr) = (entry_ptr);                                             \
+    }                                                                        \
+    else                                                                     \
+    {                                                                        \
+       (head_ptr)->prev = (entry_ptr);                                       \
+       (entry_ptr)->next = (head_ptr);                                       \
+       (head_ptr) = (entry_ptr);                                             \
+    }                                                                        \
+    (len)++;                                                                 \
+    (Size) += entry_ptr->size;                                               \
+} /* H5C__DLL_PREPEND() */
 
 #define H5C__DLL_REMOVE(entry_ptr, head_ptr, tail_ptr, len, Size, fail_val) \
-        H5C__DLL_PRE_REMOVE_SC(entry_ptr, head_ptr, tail_ptr, len, Size,    \
-                               fail_val)                                    \
-        {                                                                   \
-           if ( (head_ptr) == (entry_ptr) )                                 \
-           {                                                                \
-              (head_ptr) = (entry_ptr)->next;                               \
-              if ( (head_ptr) != NULL )                                     \
-              {                                                             \
-                 (head_ptr)->prev = NULL;                                   \
-              }                                                             \
-           }                                                                \
-           else                                                             \
-           {                                                                \
-              (entry_ptr)->prev->next = (entry_ptr)->next;                  \
-           }                                                                \
-           if ( (tail_ptr) == (entry_ptr) )                                 \
-           {                                                                \
-              (tail_ptr) = (entry_ptr)->prev;                               \
-              if ( (tail_ptr) != NULL )                                     \
-              {                                                             \
-                 (tail_ptr)->next = NULL;                                   \
-              }                                                             \
-           }                                                                \
-           else                                                             \
-           {                                                                \
-              (entry_ptr)->next->prev = (entry_ptr)->prev;                  \
-           }                                                                \
-           entry_ptr->next = NULL;                                          \
-           entry_ptr->prev = NULL;                                          \
-           (len)--;                                                         \
-           (Size) -= entry_ptr->size;                                       \
-        }
+{                                                                           \
+    H5C__DLL_PRE_REMOVE_SC(entry_ptr, head_ptr, tail_ptr, len, Size,        \
+                           fail_val)                                        \
+    {                                                                       \
+       if ( (head_ptr) == (entry_ptr) )                                     \
+       {                                                                    \
+          (head_ptr) = (entry_ptr)->next;                                   \
+          if ( (head_ptr) != NULL )                                         \
+          {                                                                 \
+             (head_ptr)->prev = NULL;                                       \
+          }                                                                 \
+       }                                                                    \
+       else                                                                 \
+       {                                                                    \
+          (entry_ptr)->prev->next = (entry_ptr)->next;                      \
+       }                                                                    \
+       if ( (tail_ptr) == (entry_ptr) )                                     \
+       {                                                                    \
+          (tail_ptr) = (entry_ptr)->prev;                                   \
+          if ( (tail_ptr) != NULL )                                         \
+          {                                                                 \
+             (tail_ptr)->next = NULL;                                       \
+          }                                                                 \
+       }                                                                    \
+       else                                                                 \
+       {                                                                    \
+          (entry_ptr)->next->prev = (entry_ptr)->prev;                      \
+       }                                                                    \
+       entry_ptr->next = NULL;                                              \
+       entry_ptr->prev = NULL;                                              \
+       (len)--;                                                             \
+       (Size) -= entry_ptr->size;                                           \
+    }                                                                       \
+} /* H5C__DLL_REMOVE() */
 
 #define H5C__DLL_UPDATE_FOR_SIZE_CHANGE(dll_len, dll_size, old_size, new_size) \
-        H5C__DLL_PRE_SIZE_UPDATE_SC(dll_len, dll_size, old_size, new_size)     \
-	(dll_size) -= (old_size);                                              \
-	(dll_size) += (new_size);                                              \
-        H5C__DLL_POST_SIZE_UPDATE_SC(dll_len, dll_size, old_size, new_size)
+{                                                                              \
+    H5C__DLL_PRE_SIZE_UPDATE_SC(dll_len, dll_size, old_size, new_size)         \
+    (dll_size) -= (old_size);                                                  \
+    (dll_size) += (new_size);                                                  \
+    H5C__DLL_POST_SIZE_UPDATE_SC(dll_len, dll_size, old_size, new_size)        \
+} /* H5C__DLL_UPDATE_FOR_SIZE_CHANGE() */
 
 #if H5C_DO_SANITY_CHECKS
 
@@ -1391,72 +1469,76 @@ if ( ( (entry_ptr) == NULL ) ||                                                \
 
 
 #define H5C__AUX_DLL_APPEND(entry_ptr, head_ptr, tail_ptr, len, Size, fail_val)\
-        H5C__AUX_DLL_PRE_INSERT_SC(entry_ptr, head_ptr, tail_ptr, len, Size,   \
-                                   fail_val)                                   \
-        if ( (head_ptr) == NULL )                                              \
-        {                                                                      \
-           (head_ptr) = (entry_ptr);                                           \
-           (tail_ptr) = (entry_ptr);                                           \
-        }                                                                      \
-        else                                                                   \
-        {                                                                      \
-           (tail_ptr)->aux_next = (entry_ptr);                                 \
-           (entry_ptr)->aux_prev = (tail_ptr);                                 \
-           (tail_ptr) = (entry_ptr);                                           \
-        }                                                                      \
-        (len)++;                                                               \
-        (Size) += entry_ptr->size;
+{                                                                              \
+    H5C__AUX_DLL_PRE_INSERT_SC(entry_ptr, head_ptr, tail_ptr, len, Size,       \
+                               fail_val)                                       \
+    if ( (head_ptr) == NULL )                                                  \
+    {                                                                          \
+       (head_ptr) = (entry_ptr);                                               \
+       (tail_ptr) = (entry_ptr);                                               \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+       (tail_ptr)->aux_next = (entry_ptr);                                     \
+       (entry_ptr)->aux_prev = (tail_ptr);                                     \
+       (tail_ptr) = (entry_ptr);                                               \
+    }                                                                          \
+    (len)++;                                                                   \
+    (Size) += entry_ptr->size;                                                 \
+} /* H5C__AUX_DLL_APPEND() */
 
 #define H5C__AUX_DLL_PREPEND(entry_ptr, head_ptr, tail_ptr, len, Size, fv)   \
-        H5C__AUX_DLL_PRE_INSERT_SC(entry_ptr, head_ptr, tail_ptr, len, Size, \
-                                   fv)                                       \
-        if ( (head_ptr) == NULL )                                            \
-        {                                                                    \
-           (head_ptr) = (entry_ptr);                                         \
-           (tail_ptr) = (entry_ptr);                                         \
-        }                                                                    \
-        else                                                                 \
-        {                                                                    \
-           (head_ptr)->aux_prev = (entry_ptr);                               \
-           (entry_ptr)->aux_next = (head_ptr);                               \
-           (head_ptr) = (entry_ptr);                                         \
-        }                                                                    \
-        (len)++;                                                             \
-        (Size) += entry_ptr->size;
+{                                                                            \
+    H5C__AUX_DLL_PRE_INSERT_SC(entry_ptr, head_ptr, tail_ptr, len, Size, fv) \
+    if ( (head_ptr) == NULL )                                                \
+    {                                                                        \
+       (head_ptr) = (entry_ptr);                                             \
+       (tail_ptr) = (entry_ptr);                                             \
+    }                                                                        \
+    else                                                                     \
+    {                                                                        \
+       (head_ptr)->aux_prev = (entry_ptr);                                   \
+       (entry_ptr)->aux_next = (head_ptr);                                   \
+       (head_ptr) = (entry_ptr);                                             \
+    }                                                                        \
+    (len)++;                                                                 \
+    (Size) += entry_ptr->size;                                               \
+} /* H5C__AUX_DLL_PREPEND() */
 
 #define H5C__AUX_DLL_REMOVE(entry_ptr, head_ptr, tail_ptr, len, Size, fv)    \
-        H5C__AUX_DLL_PRE_REMOVE_SC(entry_ptr, head_ptr, tail_ptr, len, Size, \
-                                   fv)                                       \
-        {                                                                    \
-           if ( (head_ptr) == (entry_ptr) )                                  \
-           {                                                                 \
-              (head_ptr) = (entry_ptr)->aux_next;                            \
-              if ( (head_ptr) != NULL )                                      \
-              {                                                              \
-                 (head_ptr)->aux_prev = NULL;                                \
-              }                                                              \
-           }                                                                 \
-           else                                                              \
-           {                                                                 \
-              (entry_ptr)->aux_prev->aux_next = (entry_ptr)->aux_next;       \
-           }                                                                 \
-           if ( (tail_ptr) == (entry_ptr) )                                  \
-           {                                                                 \
-              (tail_ptr) = (entry_ptr)->aux_prev;                            \
-              if ( (tail_ptr) != NULL )                                      \
-              {                                                              \
-                 (tail_ptr)->aux_next = NULL;                                \
-              }                                                              \
-           }                                                                 \
-           else                                                              \
-           {                                                                 \
-              (entry_ptr)->aux_next->aux_prev = (entry_ptr)->aux_prev;       \
-           }                                                                 \
-           entry_ptr->aux_next = NULL;                                       \
-           entry_ptr->aux_prev = NULL;                                       \
-           (len)--;                                                          \
-           (Size) -= entry_ptr->size;                                        \
-        }
+{                                                                            \
+    H5C__AUX_DLL_PRE_REMOVE_SC(entry_ptr, head_ptr, tail_ptr, len, Size, fv) \
+    {                                                                        \
+       if ( (head_ptr) == (entry_ptr) )                                      \
+       {                                                                     \
+          (head_ptr) = (entry_ptr)->aux_next;                                \
+          if ( (head_ptr) != NULL )                                          \
+          {                                                                  \
+             (head_ptr)->aux_prev = NULL;                                    \
+          }                                                                  \
+       }                                                                     \
+       else                                                                  \
+       {                                                                     \
+          (entry_ptr)->aux_prev->aux_next = (entry_ptr)->aux_next;           \
+       }                                                                     \
+       if ( (tail_ptr) == (entry_ptr) )                                      \
+       {                                                                     \
+          (tail_ptr) = (entry_ptr)->aux_prev;                                \
+          if ( (tail_ptr) != NULL )                                          \
+          {                                                                  \
+             (tail_ptr)->aux_next = NULL;                                    \
+          }                                                                  \
+       }                                                                     \
+       else                                                                  \
+       {                                                                     \
+          (entry_ptr)->aux_next->aux_prev = (entry_ptr)->aux_prev;           \
+       }                                                                     \
+       entry_ptr->aux_next = NULL;                                           \
+       entry_ptr->aux_prev = NULL;                                           \
+       (len)--;                                                              \
+       (Size) -= entry_ptr->size;                                            \
+    }                                                                        \
+} /* H5C__AUX_DLL_REMOVE() */
 
 
 /***********************************************************************
@@ -1567,62 +1649,84 @@ if ( ( (entry_ptr) == NULL ) ||                                                \
 #define H5C__UPDATE_STATS_FOR_UNPIN(cache_ptr, entry_ptr) \
 	((cache_ptr)->unpins)[(entry_ptr)->type->id]++;
 
+#define H5C__UPDATE_STATS_FOR_SLIST_SCAN_RESTART(cache_ptr) \
+	((cache_ptr)->slist_scan_restarts)++;
+
+#define H5C__UPDATE_STATS_FOR_LRU_SCAN_RESTART(cache_ptr) \
+	((cache_ptr)->LRU_scan_restarts)++;
+
+#define H5C__UPDATE_STATS_FOR_HASH_BUCKET_SCAN_RESTART(cache_ptr) \
+	((cache_ptr)->hash_bucket_scan_restarts)++;
+
 #if H5C_COLLECT_CACHE_ENTRY_STATS
 
-#define H5C__RESET_CACHE_ENTRY_STATS(entry_ptr) \
-        (entry_ptr)->accesses = 0;              \
-        (entry_ptr)->clears   = 0;              \
-        (entry_ptr)->flushes  = 0;              \
-	(entry_ptr)->pins     = 0;
+#define H5C__RESET_CACHE_ENTRY_STATS(entry_ptr)     \
+	{                                           \
+            (entry_ptr)->accesses = 0;              \
+            (entry_ptr)->clears   = 0;              \
+            (entry_ptr)->flushes  = 0;              \
+	    (entry_ptr)->pins     = 0;              \
+        }
 
 #define H5C__UPDATE_STATS_FOR_CLEAR(cache_ptr, entry_ptr)            \
-	(((cache_ptr)->clears)[(entry_ptr)->type->id])++;            \
+    {                                                                \
+        (((cache_ptr)->clears)[(entry_ptr)->type->id])++;            \
         if ( (entry_ptr)->is_pinned ) {                              \
-	    (((cache_ptr)->pinned_clears)[(entry_ptr)->type->id])++; \
-	}                                                            \
-        ((entry_ptr)->clears)++;
+            (((cache_ptr)->pinned_clears)[(entry_ptr)->type->id])++; \
+        }                                                            \
+        ((entry_ptr)->clears)++;                                     \
+    }
 
 #define H5C__UPDATE_STATS_FOR_FLUSH(cache_ptr, entry_ptr)             \
+    {                                                                 \
 	(((cache_ptr)->flushes)[(entry_ptr)->type->id])++;            \
         if ( (entry_ptr)->is_pinned ) {                               \
 	    (((cache_ptr)->pinned_flushes)[(entry_ptr)->type->id])++; \
 	}                                                             \
-        ((entry_ptr)->flushes)++;
+        ((entry_ptr)->flushes)++;                                     \
+    }
 
-#define H5C__UPDATE_STATS_FOR_EVICTION(cache_ptr, entry_ptr)        \
-	(((cache_ptr)->evictions)[(entry_ptr)->type->id])++;        \
-        if ( (entry_ptr)->accesses >                                \
-             ((cache_ptr)->max_accesses)[(entry_ptr)->type->id] ) { \
-            ((cache_ptr)->max_accesses)[(entry_ptr)->type->id]      \
-                = (entry_ptr)->accesses;                            \
-        }                                                           \
-        if ( (entry_ptr)->accesses <                                \
-             ((cache_ptr)->min_accesses)[(entry_ptr)->type->id] ) { \
-            ((cache_ptr)->min_accesses)[(entry_ptr)->type->id]      \
-                = (entry_ptr)->accesses;                            \
-        }                                                           \
-        if ( (entry_ptr)->clears >                                  \
-             ((cache_ptr)->max_clears)[(entry_ptr)->type->id] ) {   \
-            ((cache_ptr)->max_clears)[(entry_ptr)->type->id]        \
-                 = (entry_ptr)->clears;                             \
-        }                                                           \
-        if ( (entry_ptr)->flushes >                                 \
-             ((cache_ptr)->max_flushes)[(entry_ptr)->type->id] ) {  \
-            ((cache_ptr)->max_flushes)[(entry_ptr)->type->id]       \
-                 = (entry_ptr)->flushes;                            \
-        }                                                           \
-        if ( (entry_ptr)->size >                                    \
-             ((cache_ptr)->max_size)[(entry_ptr)->type->id] ) {     \
-            ((cache_ptr)->max_size)[(entry_ptr)->type->id]          \
-                 = (entry_ptr)->size;                               \
-        }                                                           \
-        if ( (entry_ptr)->pins >                                    \
-             ((cache_ptr)->max_pins)[(entry_ptr)->type->id] ) {     \
-            ((cache_ptr)->max_pins)[(entry_ptr)->type->id]          \
-                 = (entry_ptr)->pins;                               \
-        }
+#define H5C__UPDATE_STATS_FOR_EVICTION(cache_ptr, entry_ptr, take_ownership) \
+    {                                                                        \
+        if ( take_ownership ) {                                              \
+	    (((cache_ptr)->take_ownerships)[(entry_ptr)->type->id])++;       \
+        } else {                                                             \
+	    (((cache_ptr)->evictions)[(entry_ptr)->type->id])++;             \
+        }                                                                    \
+        if ( (entry_ptr)->accesses >                                         \
+             ((cache_ptr)->max_accesses)[(entry_ptr)->type->id] ) {          \
+            ((cache_ptr)->max_accesses)[(entry_ptr)->type->id]               \
+                = (entry_ptr)->accesses;                                     \
+        }                                                                    \
+        if ( (entry_ptr)->accesses <                                         \
+             ((cache_ptr)->min_accesses)[(entry_ptr)->type->id] ) {          \
+            ((cache_ptr)->min_accesses)[(entry_ptr)->type->id]               \
+                = (entry_ptr)->accesses;                                     \
+        }                                                                    \
+        if ( (entry_ptr)->clears >                                           \
+             ((cache_ptr)->max_clears)[(entry_ptr)->type->id] ) {            \
+            ((cache_ptr)->max_clears)[(entry_ptr)->type->id]                 \
+                 = (entry_ptr)->clears;                                      \
+        }                                                                    \
+        if ( (entry_ptr)->flushes >                                          \
+             ((cache_ptr)->max_flushes)[(entry_ptr)->type->id] ) {           \
+            ((cache_ptr)->max_flushes)[(entry_ptr)->type->id]                \
+                 = (entry_ptr)->flushes;                                     \
+        }                                                                    \
+        if ( (entry_ptr)->size >                                             \
+             ((cache_ptr)->max_size)[(entry_ptr)->type->id] ) {              \
+            ((cache_ptr)->max_size)[(entry_ptr)->type->id]                   \
+                 = (entry_ptr)->size;                                        \
+        }                                                                    \
+        if ( (entry_ptr)->pins >                                             \
+             ((cache_ptr)->max_pins)[(entry_ptr)->type->id] ) {              \
+            ((cache_ptr)->max_pins)[(entry_ptr)->type->id]                   \
+                 = (entry_ptr)->pins;                                        \
+        }                                                                    \
+    }
 
 #define H5C__UPDATE_STATS_FOR_INSERTION(cache_ptr, entry_ptr)            \
+    {                                                                    \
 	(((cache_ptr)->insertions)[(entry_ptr)->type->id])++;            \
 	if ( (entry_ptr)->is_pinned ) {                                  \
 	    (((cache_ptr)->pinned_insertions)[(entry_ptr)->type->id])++; \
@@ -1644,9 +1748,11 @@ if ( ( (entry_ptr) == NULL ) ||                                                \
              ((cache_ptr)->max_size)[(entry_ptr)->type->id] ) {          \
             ((cache_ptr)->max_size)[(entry_ptr)->type->id]               \
                  = (entry_ptr)->size;                                    \
-        }
+        }                                                                \
+    }
 
 #define H5C__UPDATE_STATS_FOR_PROTECT(cache_ptr, entry_ptr, hit)             \
+    {                                                                        \
 	if ( hit )                                                           \
             ((cache_ptr)->hits)[(entry_ptr)->type->id]++;                    \
 	else                                                                 \
@@ -1673,36 +1779,50 @@ if ( ( (entry_ptr) == NULL ) ||                                                \
             ((cache_ptr)->max_size)[(entry_ptr)->type->id]                   \
                  = (entry_ptr)->size;                                        \
         }                                                                    \
-        ((entry_ptr)->accesses)++;
+        ((entry_ptr)->accesses)++;                                           \
+    }
 
 #define H5C__UPDATE_STATS_FOR_PIN(cache_ptr, entry_ptr)          \
+    {                                                            \
 	((cache_ptr)->pins)[(entry_ptr)->type->id]++;            \
         (entry_ptr)->pins++;                                     \
 	if ( (cache_ptr)->pel_len > (cache_ptr)->max_pel_len )   \
 	    (cache_ptr)->max_pel_len = (cache_ptr)->pel_len;     \
 	if ( (cache_ptr)->pel_size > (cache_ptr)->max_pel_size ) \
-	    (cache_ptr)->max_pel_size = (cache_ptr)->pel_size;
+	    (cache_ptr)->max_pel_size = (cache_ptr)->pel_size;   \
+    }
 
 #else /* H5C_COLLECT_CACHE_ENTRY_STATS */
 
 #define H5C__RESET_CACHE_ENTRY_STATS(entry_ptr)
 
 #define H5C__UPDATE_STATS_FOR_CLEAR(cache_ptr, entry_ptr)             \
+    {                                                                 \
         if ( (entry_ptr)->is_pinned ) {                               \
 	    (((cache_ptr)->pinned_clears)[(entry_ptr)->type->id])++;  \
 	}                                                             \
-	(((cache_ptr)->clears)[(entry_ptr)->type->id])++;
+	(((cache_ptr)->clears)[(entry_ptr)->type->id])++;             \
+    }
 
 #define H5C__UPDATE_STATS_FOR_FLUSH(cache_ptr, entry_ptr)             \
+    {                                                                 \
 	(((cache_ptr)->flushes)[(entry_ptr)->type->id])++;            \
         if ( (entry_ptr)->is_pinned ) {                               \
 	    (((cache_ptr)->pinned_flushes)[(entry_ptr)->type->id])++; \
-	}
+	}                                                             \
+    }
 
-#define H5C__UPDATE_STATS_FOR_EVICTION(cache_ptr, entry_ptr) \
-	(((cache_ptr)->evictions)[(entry_ptr)->type->id])++;
+#define H5C__UPDATE_STATS_FOR_EVICTION(cache_ptr, entry_ptr, take_ownership) \
+    {                                                                        \
+        if ( take_ownership ) {                                              \
+	    (((cache_ptr)->take_ownerships)[(entry_ptr)->type->id])++;       \
+        } else {                                                             \
+	    (((cache_ptr)->evictions)[(entry_ptr)->type->id])++;             \
+        }                                                                    \
+    }
 
 #define H5C__UPDATE_STATS_FOR_INSERTION(cache_ptr, entry_ptr)            \
+    {                                                                    \
 	(((cache_ptr)->insertions)[(entry_ptr)->type->id])++;            \
 	if ( (entry_ptr)->is_pinned ) {                                  \
 	    (((cache_ptr)->pinned_insertions)[(entry_ptr)->type->id])++; \
@@ -1718,9 +1838,11 @@ if ( ( (entry_ptr) == NULL ) ||                                                \
         if ( (cache_ptr)->slist_len > (cache_ptr)->max_slist_len )       \
 	    (cache_ptr)->max_slist_len = (cache_ptr)->slist_len;         \
         if ( (cache_ptr)->slist_size > (cache_ptr)->max_slist_size )     \
-	    (cache_ptr)->max_slist_size = (cache_ptr)->slist_size;
+	    (cache_ptr)->max_slist_size = (cache_ptr)->slist_size;       \
+    }
 
 #define H5C__UPDATE_STATS_FOR_PROTECT(cache_ptr, entry_ptr, hit)             \
+    {                                                                        \
 	if ( hit )                                                           \
             ((cache_ptr)->hits)[(entry_ptr)->type->id]++;                    \
 	else                                                                 \
@@ -1741,14 +1863,17 @@ if ( ( (entry_ptr) == NULL ) ||                                                \
         if ( (cache_ptr)->pl_len > (cache_ptr)->max_pl_len )                 \
             (cache_ptr)->max_pl_len = (cache_ptr)->pl_len;                   \
         if ( (cache_ptr)->pl_size > (cache_ptr)->max_pl_size )               \
-            (cache_ptr)->max_pl_size = (cache_ptr)->pl_size;
+            (cache_ptr)->max_pl_size = (cache_ptr)->pl_size;                 \
+    }
 
 #define H5C__UPDATE_STATS_FOR_PIN(cache_ptr, entry_ptr)          \
+    {                                                            \
 	((cache_ptr)->pins)[(entry_ptr)->type->id]++;            \
 	if ( (cache_ptr)->pel_len > (cache_ptr)->max_pel_len )   \
 	    (cache_ptr)->max_pel_len = (cache_ptr)->pel_len;     \
 	if ( (cache_ptr)->pel_size > (cache_ptr)->max_pel_size ) \
-	    (cache_ptr)->max_pel_size = (cache_ptr)->pel_size;
+	    (cache_ptr)->max_pel_size = (cache_ptr)->pel_size;   \
+    }
 
 #endif /* H5C_COLLECT_CACHE_ENTRY_STATS */
 
@@ -1765,10 +1890,13 @@ if ( ( (entry_ptr) == NULL ) ||                                                \
 #define H5C__UPDATE_STATS_FOR_INSERTION(cache_ptr, entry_ptr)
 #define H5C__UPDATE_STATS_FOR_CLEAR(cache_ptr, entry_ptr)
 #define H5C__UPDATE_STATS_FOR_FLUSH(cache_ptr, entry_ptr)
-#define H5C__UPDATE_STATS_FOR_EVICTION(cache_ptr, entry_ptr)
+#define H5C__UPDATE_STATS_FOR_EVICTION(cache_ptr, entry_ptr, take_ownership)
 #define H5C__UPDATE_STATS_FOR_PROTECT(cache_ptr, entry_ptr, hit)
 #define H5C__UPDATE_STATS_FOR_PIN(cache_ptr, entry_ptr)
 #define H5C__UPDATE_STATS_FOR_UNPIN(cache_ptr, entry_ptr)
+#define H5C__UPDATE_STATS_FOR_SLIST_SCAN_RESTART(cache_ptr)
+#define H5C__UPDATE_STATS_FOR_LRU_SCAN_RESTART(cache_ptr)
+#define H5C__UPDATE_STATS_FOR_HASH_BUCKET_SCAN_RESTART(cache_ptr)
 
 #endif /* H5C_COLLECT_CACHE_STATS */
 
