@@ -191,7 +191,7 @@ typedef struct H5C_t H5C_t;
  *		This has the following implications:
  *
  *		On load, uncompressed size and load size may be different.  
- *		Presumeably, load size will be smaller than uncompressed 
+ *		Presumably, load size will be smaller than uncompressed 
  *		size, but there is no requirement for this in the code 
  *		(but note that I have inserted an assertion to this effect, 
  *		which has not been triggered to date).
@@ -249,9 +249,11 @@ typedef struct H5C_t H5C_t;
  *	Note that if either the H5C__CLASS_SPECULATIVE_LOAD_FLAG or
  *	the H5C__CLASS_COMPRESSED_FLAG is set, the disk image size 
  *	returned by this callback is either a first guess (if the 
- *	H5C__CLASS_SPECULATIVE_LOAD_FLAG is set) or an upper bound
- *	(if the H5C__CLASS_COMPRESSED_FLAG is set).  In all other cases,
- *	the value returned should be correct.
+ *	H5C__CLASS_SPECULATIVE_LOAD_FLAG is set) or (if the
+ *      H5C__CLASS_COMPRESSED_FLAG is set), the exact on disk size 
+ *	of the entry whether it has been run through filters or not.
+ *	In all other cases, the value returned should be the correct 
+ *	uncompressed size of the entry.
  *
  *	The typedef for the deserialize callback is as follows:
  *
@@ -382,9 +384,9 @@ typedef struct H5C_t H5C_t;
  *
  *	For the H5C__CLASS_COMPRESSED_FLAG, it is used to allow the client
  *	to indicate whether the entry is compressed (i.e. whether entries
- *	are run through filters) and to specify the compressed entry size
- *	(i.e. the actual on disk size after the entry has been run through
- *	filters) if that value is known.
+ *	are run through filters) and if so, to report both the uncompressed 
+ *	and the compressed entry size (i.e. the actual on disk size after
+ *	the entry has been run through filters) if that value is known.
  *
  *	The callback is also used in H5C_insert_entry() to obtain the 
  *	size of the newly inserted entry.
@@ -1092,7 +1094,7 @@ typedef herr_t (*H5C_log_flush_func_t)(H5C_t * cache_ptr,
  *
  *		With the exception of compressed entries, the file space
  *		allocations for cache entries implied by the addr and size
- *		fields must be disjoint.  For compressessed entries,
+ *		fields must be disjoint.  For compressed entries,
  *		the size field contains the uncompressed size -- thus in
  *		in this case, substitution of compressed size for size 
  *		must result in disjoint file space allocations.  However, 

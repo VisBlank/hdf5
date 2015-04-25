@@ -270,7 +270,7 @@
  *		WARNING!!! This field must NEVER be dereferenced.  It is 
  *		maintained to allow functions that perform scans of lists
  *		to compare this pointer with their pointers to next, thus
- *		allowing them to avoid uncessary restarts of scans if the
+ *		allowing them to avoid unnecessary restarts of scans if the
  *		pointers don't match, and if entries_removed_counter is 
  *		one.
  *
@@ -575,7 +575,7 @@
  *
  * cache_full:	Boolean flag used to keep track of whether the cache is
  *		full, so we can refrain from increasing the size of a
- *		cache which hasn't used up the space alotted to it.
+ *		cache which hasn't used up the space allotted to it.
  *
  *		The field is initialized to FALSE, and then set to TRUE
  *		whenever we attempt to make space in the cache.
@@ -587,7 +587,7 @@
  *		    resize_enabled = size_increase_possible ||
  *                                   size_decrease_possible;
  *
- * size_decreased:  Boolean flag set to TRUE whenever the maximun cache
+ * size_decreased:  Boolean flag set to TRUE whenever the maximum cache
  *		size is decreased.  The flag triggers a call to
  *		H5C_make_space_in_cache() on the next call to H5C_protect().
  *
@@ -866,7 +866,7 @@
  * improper behavior if the next entry in the list is the target of one on 
  * these operations.
  *
- * The folloing fiels are use to count such occurances.  They are used 
+ * The following fields are use to count such occurances.  They are used 
  * both in tests (to verify that the scan has been restarted), and to 
  * obtain estimates of how frequently these restarts occur.
  *
