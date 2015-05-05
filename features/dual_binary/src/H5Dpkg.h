@@ -255,9 +255,6 @@ typedef struct H5D_chunk_common_ud_t {
     const H5O_layout_chunk_t *layout;           /* Chunk layout description */
     const H5O_storage_chunk_t *storage;         /* Chunk storage description */
     const hsize_t *offset;	                /* Logical offset of chunk */
-    const struct H5D_rdcc_t *rdcc;              /* Chunk cache.  Only necessary if the index may
-                                                 * be modified, and if any chunks in the dset
-                                                 * may be cached */
 } H5D_chunk_common_ud_t;
 
 /* B-tree callback info for various operations */
@@ -388,7 +385,7 @@ typedef struct H5D_rdcc_t {
     struct H5D_rdcc_ent_t **slot; /* Chunk slots, each points to a chunk*/
     H5SL_t		*sel_chunks; /* Skip list containing information for each chunk selected */
     H5S_t		*single_space; /* Dataspace for single element I/O on chunks */
-    H5D_chunk_info_t *single_chunk_info;  /* Pointer to single chunk's info */
+    H5D_chunk_info_t    *single_chunk_info;  /* Pointer to single chunk's info */
 } H5D_rdcc_t;
 
 /* The raw data contiguous data cache */
@@ -496,7 +493,7 @@ typedef struct {
 typedef struct H5D_rdcc_ent_t {
     hbool_t	locked;		/*entry is locked in cache		*/
     hbool_t	dirty;		/*needs to be written to disk?		*/
-    hbool_t     deleted;        /*chunk about to be deleted (do not flush) */
+    hbool_t     deleted;        /*chunk about to be deleted		*/
     hsize_t	offset[H5O_LAYOUT_NDIMS]; /*chunk name			*/
     uint32_t	rd_count;	/*bytes remaining to be read		*/
     uint32_t	wr_count;	/*bytes remaining to be written		*/
