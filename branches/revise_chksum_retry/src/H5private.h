@@ -282,12 +282,10 @@
 #endif
 
 /*
- * Does the compiler support the __attribute__(()) syntax?  This is how gcc
- * suppresses warnings about unused function arguments.   It's no big deal if
- * we don't.
+ * Does the compiler support the __attribute__(()) syntax?  It's no
+ * big deal if we don't.
  */
 #ifdef __cplusplus
-#   define __attribute__(X)  /*void*/
 #   define UNUSED    /*void*/
 #   define NORETURN  /*void*/
 #else /* __cplusplus */
@@ -295,7 +293,6 @@
 #   define UNUSED    __attribute__((unused))
 #   define NORETURN  __attribute__((noreturn))
 #else
-#   define __attribute__(X)  /*void*/
 #   define UNUSED    /*void*/
 #   define NORETURN  /*void*/
 #endif
