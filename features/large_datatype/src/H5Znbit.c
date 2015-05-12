@@ -25,8 +25,6 @@
 #include "H5Tprivate.h"		/* Datatypes         			*/
 #include "H5Zpkg.h"		/* Data filters				*/
 
-#ifdef H5_HAVE_FILTER_NBIT
-
 /* Struct of parameters needed for compressing/decompressing
  * one nbit atomic datatype: integer or floating-point
  */
@@ -805,7 +803,7 @@ H5Z_set_local_nbit(hid_t dcpl_id, hid_t type_id, hid_t space_id)
     cd_values_index = 2;
 
     /* Set "local" parameter for number of elements in the chunk */
-    H5_ASSIGN_OVERFLOW(cd_values[cd_values_index++], npoints, hssize_t, unsigned);
+    H5_CHECKED_ASSIGN(cd_values[cd_values_index++], unsigned, npoints, hssize_t);
 
     /* Assume no need to compress now, will be changed to FALSE later if not */
     need_not_compress = TRUE;
@@ -1424,4 +1422,4 @@ static void H5Z_nbit_compress(unsigned char *data, unsigned d_nelmts, unsigned c
     * the last byte, increment the value by 1. */
    *buffer_size = new_size + 1;
 }
-#endif /* H5_HAVE_FILTER_NBIT */
+

@@ -101,7 +101,7 @@ H5S_mpio_all_type(const H5S_t *space, size_t elmt_size,
     /* Just treat the entire extent as a block of bytes */
     if((snelmts = (hssize_t)H5S_GET_EXTENT_NPOINTS(space)) < 0)
 	HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "src dataspace has invalid selection")
-    H5_ASSIGN_OVERFLOW(nelmts, snelmts, hssize_t, hsize_t);
+    H5_CHECKED_ASSIGN(nelmts, hsize_t, snelmts, hssize_t);
 
     total_bytes = (hsize_t)elmt_size * nelmts;
 
@@ -113,7 +113,7 @@ H5S_mpio_all_type(const H5S_t *space, size_t elmt_size,
         printf ("SMALL ALL SELECTION\n");
         /* fill in the return values */
         *new_type = MPI_BYTE;
-        H5_ASSIGN_OVERFLOW(*count, total_bytes, hsize_t, int);
+        H5_CHECKED_ASSIGN(*count, int, total_bytes, hsize_t);
         *is_derived_type = FALSE;
     }
     else {
@@ -211,7 +211,7 @@ H5S_mpio_create_point_datatype (size_t elmt_size, hsize_t num_points,
         num_big_types = (int)(num_points/H5S_MAX_MPI_COUNT);
 
         leftover = num_points - num_big_types * (hsize_t)H5S_MAX_MPI_COUNT;
-        H5_ASSIGN_OVERFLOW(remaining_points, leftover, hsize_t, int);
+        H5_CHECKED_ASSIGN(remaining_points, int, leftover, hsize_t);
         printf("Number of Big types = %d; Remaining points = %d\n", 
                num_big_types, remaining_points);
 
@@ -466,7 +466,7 @@ H5S_mpio_permute_type(const H5S_t *space, size_t elmt_size, hsize_t **permute,
     sel_iter_init = TRUE;	/* Selection iteration info has been initialized */
 
     /* Set the number of elements to iterate over */
-    H5_ASSIGN_OVERFLOW(max_elem, num_points, hsize_t, size_t);
+    H5_CHECKED_ASSIGN(max_elem, size_t, num_points, hsize_t);
 
     /* Loop, while elements left in selection */
     u = 0;
@@ -1436,7 +1436,7 @@ static herr_t H5S_mpio_create_large_type (hsize_t num_elements,
     /* Calculate how many Big MPI datatypes are needed to represent the buffer */
     num_big_types = (int)(num_elements/H5S_MAX_MPI_COUNT);
     leftover = num_elements - num_big_types * (hsize_t)H5S_MAX_MPI_COUNT;
-    H5_ASSIGN_OVERFLOW(remaining_bytes, leftover, hsize_t, int);
+    H5_CHECKED_ASSIGN(remaining_bytes, int, leftover, hsize_t);
     printf("%d: Number of Big types = %d; Remaining Bytes = %d\n", 
            (int)strid_bytes, num_big_types, remaining_bytes);
 

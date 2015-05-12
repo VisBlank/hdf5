@@ -141,7 +141,7 @@ const char *FILENAME[] = {
 #define H5L_DIM1 100
 #define H5L_DIM2 100
 
-#define FILTER_FILESIZE_MAX_FRACTION .9
+#define FILTER_FILESIZE_MAX_FRACTION 0.9F
 
 /* Creation order macros */
 #define CORDER_GROUP_NAME       "corder_group"
@@ -4020,10 +4020,6 @@ external_set_elink_acc_flags(hid_t fapl, hbool_t new_format)
     if(ret != FAIL) TEST_ERROR
     H5E_BEGIN_TRY {
         ret = H5Pset_elink_acc_flags(gapl, H5F_ACC_EXCL);
-    } H5E_END_TRY;
-    if(ret != FAIL) TEST_ERROR
-    H5E_BEGIN_TRY {
-        ret = H5Pset_elink_acc_flags(gapl, H5F_ACC_DEBUG);
     } H5E_END_TRY;
     if(ret != FAIL) TEST_ERROR
     H5E_BEGIN_TRY {
