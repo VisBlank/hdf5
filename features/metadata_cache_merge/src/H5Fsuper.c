@@ -593,7 +593,7 @@ H5F__super_read(H5F_t *f, hid_t dxpl_id)
             size_t          driver_size;    /* Size of driver info block (bytes) */
 
             /* Check for driver info message */
-            H5_ASSIGN_OVERFLOW(driver_size, H5FD_sb_size(f->shared->lf), hsize_t, size_t);
+            H5_CHECKED_ASSIGN(driver_size, size_t, H5FD_sb_size(f->shared->lf), hsize_t);
             if(driver_size > 0) {
                 H5O_drvinfo_t drvinfo;      /* Driver info */
                 uint8_t dbuf[H5F_MAX_DRVINFOBLOCK_SIZE];  /* Driver info block encoding buffer */
@@ -808,7 +808,7 @@ H5F__super_init(H5F_t *f, hid_t dxpl_id)
     superblock_size = (hsize_t)H5F_SUPERBLOCK_SIZE(sblock);
 
     /* Compute the size of the driver information block */
-    H5_ASSIGN_OVERFLOW(driver_size, H5FD_sb_size(f->shared->lf), hsize_t, size_t);
+    H5_CHECKED_ASSIGN(driver_size, size_t, H5FD_sb_size(f->shared->lf), hsize_t);
     if(driver_size > 0) {
         driver_size += H5F_DRVINFOBLOCK_HDR_SIZE;
 
@@ -965,7 +965,7 @@ H5F__super_init(H5F_t *f, hid_t dxpl_id)
              *          will be encoded by the VFD's 'encode' callback, so it
              *          doesn't need to be set here. -QAK, 7/20/2013
              */
-            H5_ASSIGN_OVERFLOW(drvinfo->len, H5FD_sb_size(f->shared->lf), hsize_t, size_t);
+            H5_CHECKED_ASSIGN(drvinfo->len, size_t, H5FD_sb_size(f->shared->lf), hsize_t);
 
             /* Insert driver info block into cache */
             if(H5AC_insert_entry(f, dxpl_id, H5AC_DRVRINFO, sblock->driver_addr, drvinfo, H5AC__PIN_ENTRY_FLAG | H5AC__FLUSH_LAST_FLAG | H5AC__FLUSH_COLLECTIVELY_FLAG) < 0)

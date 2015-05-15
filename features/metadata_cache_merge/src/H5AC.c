@@ -106,11 +106,6 @@ H5FL_DEFINE_STATIC(H5AC_slist_entry_t);
 /* (Global variable definition, declaration is in H5ACprivate.h also) */
 hid_t H5AC_dxpl_id=(-1);
 
-/* Private dataset transfer property list for metadata I/O calls */
-/* (Collective set and "library internal" set) */
-/* (Static variable definition) */
-static hid_t H5AC_noblock_dxpl_id=(-1);
-
 /* Dataset transfer property list for independent metadata I/O calls */
 /* (just "library internal" set - i.e. independent transfer mode) */
 /* (Global variable definition, declaration is in H5ACprivate.h also) */
@@ -257,9 +252,7 @@ H5AC_init_interface(void)
 {
 #ifdef H5_HAVE_PARALLEL
     H5P_genplist_t  *xfer_plist;    /* Dataset transfer property list object */
-    unsigned block_before_meta_write; /* "block before meta write" property value */
     unsigned coll_meta_write;       /* "collective metadata write" property value */
-    unsigned library_internal = 1;  /* "library internal" property value */
 #endif /* H5_HAVE_PARALLEL */
     herr_t ret_value = SUCCEED;     /* Return value */
 
@@ -269,7 +262,7 @@ H5AC_init_interface(void)
     /* Sanity check */
     HDassert(H5P_CLS_DATASET_XFER_g != NULL);
 
-    /* Get an ID for the blocking, collective H5AC dxpl */
+    /* Get an ID for the collective H5AC dxpl */
     if((H5AC_dxpl_id = H5P_create_id(H5P_CLS_DATASET_XFER_g, FALSE)) < 0)
         HGOTO_ERROR(H5E_CACHE, H5E_CANTCREATE, FAIL, "unable to register property list")
 
@@ -277,51 +270,13 @@ H5AC_init_interface(void)
     if (NULL == (xfer_plist = (H5P_genplist_t *)H5I_object(H5AC_dxpl_id)))
         HGOTO_ERROR(H5E_CACHE, H5E_BADATOM, FAIL, "can't get new property list object")
 
-    /* Insert 'block before metadata write' property */
-    block_before_meta_write=1;
-    if(H5P_insert(xfer_plist,H5AC_BLOCK_BEFORE_META_WRITE_NAME,H5AC_BLOCK_BEFORE_META_WRITE_SIZE,&block_before_meta_write,
-                  NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL)<0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't insert metadata cache dxpl property")
-
-    /* Insert 'library internal' property */
-    if(H5P_insert(xfer_plist,H5AC_LIBRARY_INTERNAL_NAME,H5AC_LIBRARY_INTERNAL_SIZE,&library_internal,
-                  NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL)<0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't insert metadata cache dxpl property")
-
     /* Insert 'collective metadata write' property */
     coll_meta_write = 1;
     if(H5P_insert(xfer_plist, H5AC_COLLECTIVE_META_WRITE_NAME, H5AC_COLLECTIVE_META_WRITE_SIZE, &coll_meta_write,
                   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't insert metadata cache dxpl property")
 
-
-    /* Get an ID for the non-blocking, collective H5AC dxpl */
-    if((H5AC_noblock_dxpl_id = H5P_create_id(H5P_CLS_DATASET_XFER_g, FALSE)) < 0)
-        HGOTO_ERROR(H5E_CACHE, H5E_CANTCREATE, FAIL, "unable to register property list")
-
-    /* Get the property list object */
-    if (NULL == (xfer_plist = (H5P_genplist_t *)H5I_object(H5AC_noblock_dxpl_id)))
-        HGOTO_ERROR(H5E_CACHE, H5E_BADATOM, FAIL, "can't get new property list object")
-
-    /* Insert 'block before metadata write' property */
-    block_before_meta_write=0;
-    if(H5P_insert(xfer_plist,H5AC_BLOCK_BEFORE_META_WRITE_NAME,H5AC_BLOCK_BEFORE_META_WRITE_SIZE,&block_before_meta_write,
-                  NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL)<0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't insert metadata cache dxpl property")
-
-    /* Insert 'library internal' property */
-    if(H5P_insert(xfer_plist,H5AC_LIBRARY_INTERNAL_NAME,H5AC_LIBRARY_INTERNAL_SIZE,&library_internal,
-                  NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL)<0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't insert metadata cache dxpl property")
-
-    /* Insert 'collective metadata write' property */
-    coll_meta_write = 1;
-    if(H5P_insert(xfer_plist, H5AC_COLLECTIVE_META_WRITE_NAME, H5AC_COLLECTIVE_META_WRITE_SIZE, &coll_meta_write,
-                  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't insert metadata cache dxpl property")
-
-
-    /* Get an ID for the non-blocking, independent H5AC dxpl */
+    /* Get an ID for the independent H5AC dxpl */
     if((H5AC_ind_dxpl_id = H5P_create_id(H5P_CLS_DATASET_XFER_g, FALSE)) < 0)
         HGOTO_ERROR(H5E_CACHE, H5E_CANTCREATE, FAIL, "unable to register property list")
 
@@ -329,29 +284,16 @@ H5AC_init_interface(void)
     if(NULL == (H5AC_ind_dxpl_g = (H5P_genplist_t *)H5I_object(H5AC_ind_dxpl_id)))
         HGOTO_ERROR(H5E_CACHE, H5E_BADATOM, FAIL, "can't get new property list object")
 
-    /* Insert 'block before metadata write' property */
-    block_before_meta_write=0;
-    if(H5P_insert(H5AC_ind_dxpl_g, H5AC_BLOCK_BEFORE_META_WRITE_NAME, H5AC_BLOCK_BEFORE_META_WRITE_SIZE, &block_before_meta_write,
-                  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't insert metadata cache dxpl property")
-
-    /* Insert 'library internal' property */
-    if(H5P_insert(H5AC_ind_dxpl_g, H5AC_LIBRARY_INTERNAL_NAME, H5AC_LIBRARY_INTERNAL_SIZE, &library_internal,
-                  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't insert metadata cache dxpl property")
-
     /* Insert 'collective metadata write' property */
     coll_meta_write = 0;
     if(H5P_insert(H5AC_ind_dxpl_g, H5AC_COLLECTIVE_META_WRITE_NAME, H5AC_COLLECTIVE_META_WRITE_SIZE, &coll_meta_write,
                   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't insert metadata cache dxpl property")
-
 #else /* H5_HAVE_PARALLEL */
     /* Sanity check */
     HDassert(H5P_LST_DATASET_XFER_ID_g!=(-1));
 
     H5AC_dxpl_id = H5P_DATASET_XFER_DEFAULT;
-    H5AC_noblock_dxpl_id = H5P_DATASET_XFER_DEFAULT;
     H5AC_ind_dxpl_id = H5P_DATASET_XFER_DEFAULT;
 
     /* Get the property list objects for the IDs */
@@ -388,19 +330,17 @@ H5AC_term_interface(void)
 
     if (H5_interface_initialize_g) {
 #ifdef H5_HAVE_PARALLEL
-        if(H5AC_dxpl_id > 0 || H5AC_noblock_dxpl_id > 0 || H5AC_ind_dxpl_id > 0) {
+        if(H5AC_dxpl_id > 0 || H5AC_ind_dxpl_id > 0) {
             /* Indicate more work to do */
             n = 1; /* H5I */
 
             /* Close H5AC dxpl */
             if(H5I_dec_ref(H5AC_dxpl_id) < 0 ||
-                    H5I_dec_ref(H5AC_noblock_dxpl_id) < 0 ||
                     H5I_dec_ref(H5AC_ind_dxpl_id) < 0)
                 H5E_clear_stack(NULL); /*ignore error*/
             else {
                 /* Reset static IDs */
                 H5AC_dxpl_id = (-1);
-                H5AC_noblock_dxpl_id = (-1);
                 H5AC_ind_dxpl_id = (-1);
 
                 /* Reset interface initialization flag */
@@ -411,7 +351,6 @@ H5AC_term_interface(void)
 #else /* H5_HAVE_PARALLEL */
             /* Reset static IDs */
             H5AC_dxpl_id=(-1);
-            H5AC_noblock_dxpl_id=(-1);
             H5AC_ind_dxpl_id=(-1);
 #endif /* H5_HAVE_PARALLEL */
             /* Reset interface initialization flag */
@@ -660,7 +599,7 @@ H5AC_dest(H5F_t *f, hid_t dxpl_id)
 #ifdef H5_HAVE_PARALLEL
     H5AC_aux_t * aux_ptr = NULL;
 #endif /* H5_HAVE_PARALLEL */
-    herr_t ret_value = SUCCEED;      /* Return value */
+    herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
 
@@ -703,8 +642,7 @@ H5AC_dest(H5F_t *f, hid_t dxpl_id)
         if(aux_ptr->candidate_slist_ptr != NULL)
             H5SL_close(aux_ptr->candidate_slist_ptr);
         aux_ptr->magic = 0;
-        H5FL_FREE(H5AC_aux_t, aux_ptr);
-        aux_ptr = NULL;
+        aux_ptr = H5FL_FREE(H5AC_aux_t, aux_ptr);
     } /* end if */
 #endif /* H5_HAVE_PARALLEL */
 
@@ -1012,7 +950,7 @@ H5AC_insert_entry(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type, haddr_t add
 
         /* Check if we should try to flush */
         if(aux_ptr->dirty_bytes >= aux_ptr->dirty_bytes_threshold)
-            if(H5AC_run_sync_point(f, H5AC_noblock_dxpl_id, H5AC_SYNC_POINT_OP__FLUSH_TO_MIN_CLEAN) < 0)
+            if(H5AC_run_sync_point(f, H5AC_dxpl_id, H5AC_SYNC_POINT_OP__FLUSH_TO_MIN_CLEAN) < 0)
                 HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "Can't run sync point.")
     } /* end if */
 }
@@ -1166,7 +1104,7 @@ H5AC_move_entry(H5F_t *f, const H5AC_class_t *type, haddr_t old_addr, haddr_t ne
 #ifdef H5_HAVE_PARALLEL
     /* Check if we should try to flush */
     if(NULL != aux_ptr && aux_ptr->dirty_bytes >= aux_ptr->dirty_bytes_threshold) {
-        if(H5AC_run_sync_point(f, H5AC_noblock_dxpl_id, H5AC_SYNC_POINT_OP__FLUSH_TO_MIN_CLEAN) < 0)
+        if(H5AC_run_sync_point(f, H5AC_dxpl_id, H5AC_SYNC_POINT_OP__FLUSH_TO_MIN_CLEAN) < 0)
             HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "Can't run sync point.")
     } /* end if */
 #endif /* H5_HAVE_PARALLEL */
@@ -1718,7 +1656,7 @@ H5AC_unprotect(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type, haddr_t addr,
 #ifdef H5_HAVE_PARALLEL
     /* Check if we should try to flush */
     if((aux_ptr != NULL) && (aux_ptr->dirty_bytes >= aux_ptr->dirty_bytes_threshold)) {
-        if(H5AC_run_sync_point(f, H5AC_noblock_dxpl_id, H5AC_SYNC_POINT_OP__FLUSH_TO_MIN_CLEAN) < 0)
+        if(H5AC_run_sync_point(f, H5AC_dxpl_id, H5AC_SYNC_POINT_OP__FLUSH_TO_MIN_CLEAN) < 0)
             HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "Can't run sync point.")
     } /* end if */
 #endif /* H5_HAVE_PARALLEL */
@@ -2941,8 +2879,7 @@ H5AC_broadcast_clean_list(H5AC_t * cache_ptr)
          */
         if ( aux_ptr->sync_point_done != NULL ) {
 
-            addr_buf_ptr = (haddr_t *)
-		H5MM_malloc((size_t)num_entries * sizeof(haddr_t));
+            addr_buf_ptr = (haddr_t *)H5MM_malloc((size_t)num_entries * sizeof(haddr_t));
 
             if ( addr_buf_ptr == NULL ) {
 
@@ -2988,8 +2925,7 @@ H5AC_broadcast_clean_list(H5AC_t * cache_ptr)
             }
 
             slist_entry_ptr->magic = 0;
-            H5FL_FREE(H5AC_slist_entry_t, slist_entry_ptr);
-            slist_entry_ptr = NULL;
+            slist_entry_ptr = H5FL_FREE(H5AC_slist_entry_t, slist_entry_ptr);
 
             aux_ptr->c_slist_len -= 1;
 
@@ -3006,8 +2942,7 @@ H5AC_broadcast_clean_list(H5AC_t * cache_ptr)
                     HGOTO_ERROR(H5E_CACHE, H5E_CANTDELETE, FAIL, "Can't delete entry from dirty entry slist.")
 
                 slist_entry_ptr->magic = 0;
-                H5FL_FREE(H5AC_slist_entry_t, slist_entry_ptr);
-                slist_entry_ptr = NULL;
+                slist_entry_ptr = H5FL_FREE(H5AC_slist_entry_t, slist_entry_ptr);
 
                 aux_ptr->d_slist_len -= 1;
 
@@ -3299,8 +3234,7 @@ H5AC_copy_candidate_list_to_buffer(H5AC_t * cache_ptr,
             HGOTO_ERROR(H5E_CACHE, H5E_CANTDELETE, FAIL, "Can't delete entry from candidate entry slist.")
 
         slist_entry_ptr->magic = 0;
-        H5FL_FREE(H5AC_slist_entry_t, slist_entry_ptr);
-        slist_entry_ptr = NULL;
+        slist_entry_ptr = H5FL_FREE(H5AC_slist_entry_t, slist_entry_ptr);
 
         aux_ptr->candidate_slist_len -= 1;
 
@@ -3467,8 +3401,7 @@ H5AC_log_deleted_entry(H5AC_t * cache_ptr,
                 HGOTO_ERROR(H5E_CACHE, H5E_CANTDELETE, FAIL, "Can't delete entry from dirty entry slist.")
 
             slist_entry_ptr->magic = 0;
-            H5FL_FREE(H5AC_slist_entry_t, slist_entry_ptr);
-            slist_entry_ptr = NULL;
+            slist_entry_ptr = H5FL_FREE(H5AC_slist_entry_t, slist_entry_ptr);
 
             aux_ptr->d_slist_len -= 1;
 
@@ -3484,8 +3417,7 @@ H5AC_log_deleted_entry(H5AC_t * cache_ptr,
                 HGOTO_ERROR(H5E_CACHE, H5E_CANTDELETE, FAIL, "Can't delete entry from cleaned entry slist.")
 
             slist_entry_ptr->magic = 0;
-            H5FL_FREE(H5AC_slist_entry_t, slist_entry_ptr);
-            slist_entry_ptr = NULL;
+            slist_entry_ptr = H5FL_FREE(H5AC_slist_entry_t, slist_entry_ptr);
 
             aux_ptr->c_slist_len -= 1;
 
@@ -3594,8 +3526,7 @@ H5AC_log_dirtied_entry(const H5AC_info_t * entry_ptr,
                     HGOTO_ERROR(H5E_CACHE, H5E_CANTDELETE, FAIL, "Can't delete entry from clean entry slist.")
 
                 slist_entry_ptr->magic = 0;
-                H5FL_FREE(H5AC_slist_entry_t, slist_entry_ptr);
-                slist_entry_ptr = NULL;
+                slist_entry_ptr = H5FL_FREE(H5AC_slist_entry_t, slist_entry_ptr);
 
                 aux_ptr->c_slist_len -= 1;
 
@@ -3689,8 +3620,7 @@ H5AC_log_flushed_entry(H5C_t * cache_ptr,
             }
 
             slist_entry_ptr->magic = 0;
-            H5FL_FREE(H5AC_slist_entry_t, slist_entry_ptr);
-            slist_entry_ptr = NULL;
+            slist_entry_ptr = H5FL_FREE(H5AC_slist_entry_t, slist_entry_ptr);
 
             aux_ptr->c_slist_len -= 1;
 
@@ -3711,8 +3641,7 @@ H5AC_log_flushed_entry(H5C_t * cache_ptr,
             }
 
             slist_entry_ptr->magic = 0;
-            H5FL_FREE(H5AC_slist_entry_t, slist_entry_ptr);
-            slist_entry_ptr = NULL;
+            slist_entry_ptr = H5FL_FREE(H5AC_slist_entry_t, slist_entry_ptr);
 
             aux_ptr->d_slist_len -= 1;
 
@@ -3942,8 +3871,7 @@ H5AC_log_moved_entry(const H5F_t *f,
             }
 
             slist_entry_ptr->magic = 0;
-            H5FL_FREE(H5AC_slist_entry_t, slist_entry_ptr);
-            slist_entry_ptr = NULL;
+            slist_entry_ptr = H5FL_FREE(H5AC_slist_entry_t, slist_entry_ptr);
 
             aux_ptr->c_slist_len -= 1;
 
@@ -4323,7 +4251,7 @@ H5AC_propagate_flushed_and_still_clean_entries_list(H5F_t  * f,
         HDassert( aux_ptr->c_slist_len == 0 );
     } /* end if */
     else {
-        if(H5AC_receive_and_apply_clean_list(f, dxpl_id, H5AC_noblock_dxpl_id, cache_ptr) < 0)
+        if(H5AC_receive_and_apply_clean_list(f, dxpl_id, H5AC_dxpl_id, cache_ptr) < 0)
             HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Can't receive and/or process clean slist broadcast.")
     } /* end else */
 
@@ -4896,7 +4824,7 @@ H5AC_rsp__p0_only__flush(H5F_t *f,
     } /* end if */
 
     /* Propagate cleaned entries to other ranks. */
-    if(H5AC_propagate_flushed_and_still_clean_entries_list(f, H5AC_noblock_dxpl_id, cache_ptr) < 0)
+    if(H5AC_propagate_flushed_and_still_clean_entries_list(f, H5AC_dxpl_id, cache_ptr) < 0)
         HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "Can't propagate clean entries list.")
 
 done:
@@ -5247,7 +5175,7 @@ H5AC_tidy_cache_0_lists(H5AC_t * cache_ptr,
                 HGOTO_ERROR(H5E_CACHE, H5E_CANTDELETE, FAIL, "Can't delete entry from dirty entry slist.")
 
             d_slist_entry_ptr->magic = 0;
-            H5FL_FREE(H5AC_slist_entry_t, d_slist_entry_ptr);
+            d_slist_entry_ptr = H5FL_FREE(H5AC_slist_entry_t, d_slist_entry_ptr);
 
             aux_ptr->d_slist_len -= 1;
 
@@ -5263,7 +5191,7 @@ H5AC_tidy_cache_0_lists(H5AC_t * cache_ptr,
                 HGOTO_ERROR(H5E_CACHE, H5E_CANTDELETE, FAIL, "Can't delete entry from clean entry slist.")
 
             c_slist_entry_ptr->magic = 0;
-            H5FL_FREE(H5AC_slist_entry_t, c_slist_entry_ptr);
+            c_slist_entry_ptr = H5FL_FREE(H5AC_slist_entry_t, c_slist_entry_ptr);
 
             aux_ptr->c_slist_len -= 1;
 
@@ -5306,7 +5234,7 @@ H5AC_flush_entries(H5F_t *f)
 
     /* Check if we have >1 ranks */
     if(f->shared->cache->aux_ptr) {
-        if(H5AC_run_sync_point(f, H5AC_noblock_dxpl_id, H5AC_SYNC_POINT_OP__FLUSH_CACHE) < 0)
+        if(H5AC_run_sync_point(f, H5AC_dxpl_id, H5AC_SYNC_POINT_OP__FLUSH_CACHE) < 0)
             HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "Can't run sync point.")
     } /* end if */
 

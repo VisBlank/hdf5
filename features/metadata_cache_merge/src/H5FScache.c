@@ -841,7 +841,7 @@ H5FS__cache_sinfo_deserialize(const void *_image, size_t len, void *_udata,
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
 
     /* initialize old_sect_size */
-    H5_ASSIGN_OVERFLOW(/* To: */ old_sect_size, /* From: */ udata->fspace->sect_size, /* From: */ hsize_t, /* To: */ size_t);
+    H5_CHECKED_ASSIGN(old_sect_size, size_t, udata->fspace->sect_size, hsize_t);
 
     /* Magic number */
     if(HDmemcmp(image, H5FS_SINFO_MAGIC, (size_t)H5_SIZEOF_MAGIC))
@@ -990,7 +990,7 @@ H5FS__cache_sinfo_image_len(const void *_thing, size_t *image_len, hbool_t UNUSE
     HDassert(image_len);
 
     /* Set the image length size */
-    H5_ASSIGN_OVERFLOW(*image_len, sinfo->fspace->alloc_sect_size, hsize_t, size_t);
+    H5_CHECKED_ASSIGN(*image_len, size_t, sinfo->fspace->alloc_sect_size, hsize_t);
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5FS__cache_sinfo_image_len() */
