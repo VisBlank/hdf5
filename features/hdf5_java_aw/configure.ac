@@ -94,6 +94,7 @@ esac
 
 AC_CANONICAL_HOST
 AC_SUBST([CPPFLAGS])
+AC_SUBST([JNIFLAGS])
 
 ## H5_CFLAGS (and company) are for CFLAGS that should be used on HDF5, but
 ## not exported to h5cc (or h5fc, etc.)
@@ -101,6 +102,7 @@ AC_SUBST([H5_CFLAGS])
 AC_SUBST([H5_CPPFLAGS])
 AC_SUBST([H5_FCFLAGS])
 AC_SUBST([H5_CXXFLAGS])
+AC_SUBST([H5_JNIFLAGS])
 AC_SUBST([H5_LDFLAGS])
 
 ## AM_CFLAGS (and company) are for CFLAGS that should be used on HDF5,
@@ -109,6 +111,7 @@ AC_SUBST([AM_CFLAGS])
 AC_SUBST([AM_FCFLAGS])
 AC_SUBST([AM_CXXFLAGS])
 AC_SUBST([AM_CPPFLAGS])
+AC_SUBST([AM_JNIFLAGS])
 AC_SUBST([AM_LDFLAGS])
 
 ## Make sure flags are initialized.
@@ -121,6 +124,7 @@ CFLAGS="${CFLAGS}"
 CXXFLAGS="${CXXFLAGS}"
 FCFLAGS="${FCFLAGS}"
 CPPFLAGS="${CPPFLAGS}"
+JNIFLAGS="${JNIFLAGS}"
 LDFLAGS="${LDFLAGS}"
 
 ## Configure may need to alter any of the *FLAGS variables in order for
@@ -154,6 +158,7 @@ AC_MSG_RESULT([done])
 ## FC: Fortran compiler.
 ## HDF_CXX: whether C++ is enabled. Default no.
 ## CXX: C++ compiler.
+## HDF_JNI: whether the Java JNI interface is enabled. Default no.
 ## HDF5_HL: whether high-level library is enabled. Default is yes.
 ## INSTRUMENT: whether INSTRUMENT is enabled. No default set here.
 ## CODESTACK: whether CODESTACK is enabled. Default no.
@@ -174,6 +179,7 @@ AC_SUBST([FC]) HDF_FORTRAN=no
 AC_SUBST([FC2003]) HDF_FORTRAN2003=no
 AC_SUBST([HDF_CXX]) HDF_CXX=no
 AC_SUBST([CXX]) HDF_CXX=no
+AC_SUBST([HDF_JNI]) HDF_JNI=no
 AC_SUBST([HDF5_HL]) HDF5_HL=yes
 AC_SUBST([INSTRUMENT])
 AC_SUBST([CODESTACK]) CODESTACK=no
@@ -510,6 +516,32 @@ fi
 
 ## Change back to the C language
 AC_LANG_POP(C++)
+
+
+## ----------------------------------------------------------------------
+## Check if they would like the Java native interface (JNI) compiled
+##
+
+AC_MSG_CHECKING([if Java JNI interface enabled])
+
+AC_ARG_ENABLE([jni],
+              [AS_HELP_STRING([--enable-jni],
+                              [Compile the Java JNI interface [default=no]])],
+              [HDF_JNI=$enableval])
+
+## Find the include directories needed for building JNI code
+AX_JNI_INCLUDE_DIR
+for JNI_INCLUDE_DIR in $JNI_INCLUDE_DIRS
+do
+    JNIFLAGS="$JNIFLAGS -I$JNI_INCLUDE_DIR"
+done
+
+if test "X$HDF_JNI" = "Xyes"; then
+  echo "yes"
+
+else
+  AC_MSG_RESULT([no])
+fi
 
 
 ## ----------------------------------------------------------------------
@@ -2719,6 +2751,7 @@ LDFLAGS="$saved_user_LDFLAGS"
 AM_CONDITIONAL([BUILD_CXX_CONDITIONAL], [test "X$HDF_CXX" = "Xyes"])
 AM_CONDITIONAL([BUILD_PARALLEL_CONDITIONAL], [test -n "$TESTPARALLEL"])
 AM_CONDITIONAL([BUILD_FORTRAN_CONDITIONAL], [test "X$HDF_FORTRAN" = "Xyes"])
+AM_CONDITIONAL([BUILD_JNI_CONDITIONAL], [test "X$HDF_JNI" = "Xyes"])
 AM_CONDITIONAL([BUILD_HDF5_HL_CONDITIONAL], [test "X$HDF5_HL" = "Xyes"])
 
 
@@ -2855,6 +2888,8 @@ AC_CONFIG_FILES([src/libhdf5.settings
                  fortran/examples/Makefile
                  fortran/examples/run-fortran-ex.sh
                  fortran/examples/testh5fc.sh
+                 jni/Makefile
+                 jni/src/Makefile
                  hl/Makefile
                  hl/src/Makefile
                  hl/test/Makefile
