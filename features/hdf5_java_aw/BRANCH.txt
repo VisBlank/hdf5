@@ -1,15 +1,10 @@
-autotools_rework
+hdf5_java_merge
 
-The purpose of this branch is to make changes to the autotools files,
-particularly configure.ac. This will remove a lot of old cruft and update
-the input files. This effort was started in January 2015 and should be
-completed within the year.
+The purpose of this branch is to demonstrate that the Java JNI code can
+be integrated with the HDF5 repository.
 
-This branch tracks the trunk.
+This branch tracks the autotools_rework branch.
 
-Dana Robinson and Allen Byrne are the owners of this branch.
+Dana Robinson is the owner of this branch.
 
-This branch should be closed when the bulk of the autotools work is
-complete and has been merged into the trunk and 1.8 branch. This
-work should be completed by mid-2015.
-
+This branch can be removed after the HDF5-JNI integration is complete.
