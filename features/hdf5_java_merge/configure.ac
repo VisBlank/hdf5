@@ -529,16 +529,14 @@ AC_ARG_ENABLE([jni],
                               [Compile the Java JNI interface [default=no]])],
               [HDF_JNI=$enableval])
 
-## Find the include directories needed for building JNI code
-AX_JNI_INCLUDE_DIR
-for JNI_INCLUDE_DIR in $JNI_INCLUDE_DIRS
-do
-    JNIFLAGS="$JNIFLAGS -I$JNI_INCLUDE_DIR"
-done
-
 if test "X$HDF_JNI" = "Xyes"; then
-  echo "yes"
-
+  ## Find the include directories needed for building JNI code
+  AX_JNI_INCLUDE_DIR
+  for JNI_INCLUDE_DIR in $JNI_INCLUDE_DIRS
+  do
+    JNIFLAGS="$JNIFLAGS -I$JNI_INCLUDE_DIR"
+  done
+  AC_MSG_RESULT([yes])
 else
   AC_MSG_RESULT([no])
 fi
