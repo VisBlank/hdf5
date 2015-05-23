@@ -439,7 +439,7 @@ H5HF__cache_hdr_deserialize(const void *_image, size_t len, void *_udata,
 
     /* Magic number */
     if(HDmemcmp(image, H5HF_HDR_MAGIC, (size_t)H5_SIZEOF_MAGIC))
-        HGOTO_ERROR(H5E_HEAP, H5E_CANTLOAD, NULL, "wrong fractal heap header signature")
+        HGOTO_ERROR(H5E_HEAP, H5E_BADVALUE, NULL, "wrong fractal heap header signature")
     image += H5_SIZEOF_MAGIC;
 
     /* Version */
@@ -936,7 +936,7 @@ H5HF__cache_iblock_deserialize(const void *_image, size_t len, void *_udata,
 
     /* Magic number */
     if(HDmemcmp(image, H5HF_IBLOCK_MAGIC, (size_t)H5_SIZEOF_MAGIC))
-        HGOTO_ERROR(H5E_HEAP, H5E_CANTLOAD, NULL, "wrong fractal heap indirect block signature")
+        HGOTO_ERROR(H5E_HEAP, H5E_BADVALUE, NULL, "wrong fractal heap indirect block signature")
     image += H5_SIZEOF_MAGIC;
 
     /* Version */
@@ -1672,7 +1672,7 @@ H5HF__cache_dblock_deserialize(const void *_image, size_t len, void *_udata,
 
     /* Magic number */
     if(HDmemcmp(image, H5HF_DBLOCK_MAGIC, (size_t)H5_SIZEOF_MAGIC))
-        HGOTO_ERROR(H5E_HEAP, H5E_CANTLOAD, NULL, "wrong fractal heap direct block signature")
+        HGOTO_ERROR(H5E_HEAP, H5E_BADVALUE, NULL, "wrong fractal heap direct block signature")
     image += H5_SIZEOF_MAGIC;
 
     /* Version */

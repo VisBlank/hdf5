@@ -1470,7 +1470,7 @@ notify_serialize(const H5F_t UNUSED *f, void *image_ptr, size_t len,
 static herr_t
 notify(H5C_notify_action_t action, void *thing, int32_t entry_type)
 {
-    test_entry_t * entry;
+    test_entry_t *entry;
     test_entry_t *base_addr;
 
     HDassert(thing);

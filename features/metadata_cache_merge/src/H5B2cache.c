@@ -99,7 +99,7 @@ static herr_t H5B2__cache_leaf_free_icr(void *thing);
 /* H5B2 inherits cache-like properties from H5AC */
 const H5AC_class_t H5AC_BT2_HDR[1] = {{
     H5AC_BT2_HDR_ID,                    /* Metadata client ID */
-    "v2 b-tree header",                 /* Metadata client name (for debugging) */
+    "v2 B-tree header",                 /* Metadata client name (for debugging) */
     H5FD_MEM_BTREE,                     /* File space memory type for client */
     H5AC__CLASS_NO_FLAGS_SET,           /* Client class behavior flags */
     H5B2__cache_hdr_get_load_size,      /* 'get_load_size' callback */
@@ -116,7 +116,7 @@ const H5AC_class_t H5AC_BT2_HDR[1] = {{
 /* H5B2 inherits cache-like properties from H5AC */
 const H5AC_class_t H5AC_BT2_INT[1] = {{
     H5AC_BT2_INT_ID,                    /* Metadata client ID */
-    "v2 b-tree internal node",          /* Metadata client name (for debugging) */
+    "v2 B-tree internal node",          /* Metadata client name (for debugging) */
     H5FD_MEM_BTREE,                     /* File space memory type for client */
     H5AC__CLASS_NO_FLAGS_SET,           /* Client class behavior flags */
     H5B2__cache_int_get_load_size,      /* 'get_load_size' callback */
@@ -133,7 +133,7 @@ const H5AC_class_t H5AC_BT2_INT[1] = {{
 /* H5B2 inherits cache-like properties from H5AC */
 const H5AC_class_t H5AC_BT2_LEAF[1] = {{
     H5AC_BT2_LEAF_ID,                   /* Metadata client ID */
-    "v2 b-tree leaf node",              /* Metadata client name (for debugging) */
+    "v2 B-tree leaf node",              /* Metadata client name (for debugging) */
     H5FD_MEM_BTREE,                     /* File space memory type for client */
     H5AC__CLASS_NO_FLAGS_SET,           /* Client class behavior flags */
     H5B2__cache_leaf_get_load_size,     /* 'get_load_size' callback */
@@ -424,7 +424,7 @@ H5B2__cache_hdr_free_icr(void *thing)
     /* Check arguments */
     HDassert(thing);
 
-    /* Destroy v2 b-tree header */
+    /* Destroy v2 B-tree header */
     if(H5B2__hdr_free((H5B2_hdr_t *)thing) < 0)
         HGOTO_ERROR(H5E_BTREE, H5E_CANTFREE, FAIL, "unable to free v2 B-tree header")
 
@@ -727,7 +727,7 @@ H5B2__cache_int_free_icr(void *thing)
     /* Check arguments */
     HDassert(thing);
 
-    /* Release v2 b-tree internal node */
+    /* Release v2 B-tree internal node */
     if(H5B2__internal_free((H5B2_internal_t *)thing) < 0)
         HGOTO_ERROR(H5E_BTREE, H5E_CANTFREE, FAIL, "unable to release v2 B-tree internal node")
 
@@ -944,7 +944,7 @@ H5B2__cache_leaf_serialize(const H5F_t *f, void *_image, size_t UNUSED len,
     /* version # */
     *image++ = H5B2_LEAF_VERSION;
 
-    /* b-tree type */
+    /* B-tree type */
     *image++ = leaf->hdr->cls->id;
     HDassert((size_t)(image - (uint8_t *)_image) == (H5B2_LEAF_PREFIX_SIZE - H5B2_SIZEOF_CHKSUM));
 
@@ -998,7 +998,7 @@ H5B2__cache_leaf_free_icr(void *thing)
     /* Check arguments */
     HDassert(thing);
 
-    /* Destroy v2 b-tree leaf node */
+    /* Destroy v2 B-tree leaf node */
     if(H5B2__leaf_free((H5B2_leaf_t *)thing) < 0)
         HGOTO_ERROR(H5E_BTREE, H5E_CANTFREE, FAIL, "unable to destroy B-tree leaf node")
 

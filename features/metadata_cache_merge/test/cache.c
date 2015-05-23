@@ -35221,7 +35221,6 @@ main(void)
     nerrs += check_entry_deletions_during_scans();
     nerrs += check_stats();
 
-    return( nerrs > 0 );
-
+    return(nerrs > 0);
 } /* main() */
 

@@ -3653,7 +3653,7 @@ mark_entry_dirty(int32_t idx)
  *              4/11/06
  *
  *****************************************************************************/
-void
+static void
 pin_entry(H5F_t * file_ptr,
           int32_t idx,
 	  hbool_t global,

@@ -350,7 +350,6 @@ H5_DLL herr_t H5AC_reset_cache_hit_rate_stats(H5AC_t *cache_ptr);
 H5_DLL herr_t H5AC_set_cache_auto_resize_config(H5AC_t *cache_ptr,
     H5AC_cache_config_t *config_ptr);
 H5_DLL herr_t H5AC_validate_config(H5AC_cache_config_t *config_ptr);
-H5_DLL hbool_t H5AC_validate_cache_config_ver(int version_num);
 H5_DLL herr_t H5AC_close_trace_file(H5AC_t *cache_ptr);
 H5_DLL herr_t H5AC_open_trace_file(H5AC_t *cache_ptr, const char *trace_file_name);
 H5_DLL herr_t H5AC_tag(hid_t dxpl_id, haddr_t metadata_tag, haddr_t * prev_tag);

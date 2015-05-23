@@ -299,6 +299,8 @@ H5C__epoch_marker_deserialize(const void UNUSED * image_ptr, size_t UNUSED len,
 } /* end H5C__epoch_marker_deserialize() */
 
 
+
+
 static herr_t
 H5C__epoch_marker_image_len(const void UNUSED *thing,
     size_t UNUSED *image_len_ptr, hbool_t UNUSED *compressed_ptr,
@@ -310,6 +312,8 @@ H5C__epoch_marker_image_len(const void UNUSED *thing,
 
     FUNC_LEAVE_NOAPI(FAIL)
 } /* end H5C__epoch_marker_image_len() */
+
+
 
 
 static herr_t
@@ -1782,24 +1786,21 @@ H5C_expunge_entry(H5F_t *f, hid_t dxpl_id, const H5C_class_t *type,
     H5C_t *		cache_ptr;
     H5C_cache_entry_t *	entry_ptr = NULL;
     unsigned            flush_flags = (H5C__FLUSH_INVALIDATE_FLAG | H5C__FLUSH_CLEAR_ONLY_FLAG);
+#if H5C_DO_SANITY_CHECKS
+    hbool_t entry_was_dirty;
+    hsize_t entry_size;
+#endif /* H5C_DO_SANITY_CHECKS */
     herr_t		ret_value = SUCCEED;      /* Return value */
-
 
     FUNC_ENTER_NOAPI(FAIL)
 
     HDassert(f);
     HDassert(f->shared);
-
     cache_ptr = f->shared->cache;
-
     HDassert(cache_ptr);
     HDassert(cache_ptr->magic == H5C__H5C_T_MAGIC);
     HDassert(type);
     HDassert(H5F_addr_defined(addr));
-#if H5C_DO_SANITY_CHECKS
-    hbool_t entry_was_dirty;
-    hsize_t entry_size;
-#endif /* H5C_DO_SANITY_CHECKS */
 
 #if H5C_DO_EXTREME_SANITY_CHECKS
     if(H5C_validate_lru_list(cache_ptr) < 0)
@@ -2659,9 +2660,7 @@ H5C_get_cache_hit_rate(H5C_t * cache_ptr, double * hit_rate_ptr)
 
     FUNC_ENTER_NOAPI(FAIL)
 
-    if((cache_ptr == NULL )
-        || (cache_ptr->magic != H5C__H5C_T_MAGIC)
-        )
+    if((cache_ptr == NULL) || (cache_ptr->magic != H5C__H5C_T_MAGIC))
         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad cache_ptr on entry.")
     if(hit_rate_ptr == NULL)
         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad hit_rate_ptr on entry.")
@@ -4909,7 +4908,6 @@ H5C_set_prefix(H5C_t * cache_ptr, char * prefix)
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-
 } /* H5C_set_prefix() */
 
 
@@ -6086,6 +6084,7 @@ H5C_unprotect(H5F_t *		  f,
 
         /* Mark the entry as dirty if appropriate */
         entry_ptr->is_dirty = (entry_ptr->is_dirty || dirtied);
+
         /* the image_up_to_date field was introduced to support 
          * journaling.  Until we re-introduce journaling, this 
          * field should be equal to !entry_ptr->is_dirty.  
@@ -8885,7 +8884,6 @@ H5C_flush_single_entry(const H5F_t *	   f,
 
     /* If defined, initialize *entry_size_change_ptr to 0 */
     if ( entry_size_change_ptr != NULL )
-
         *entry_size_change_ptr = 0;
 
 

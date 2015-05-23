@@ -181,7 +181,7 @@ H5B__deserialize(const void *_image, size_t UNUSED len, void *_udata,
     /* magic number */
     if(HDmemcmp(image, H5B_MAGIC, (size_t)H5_SIZEOF_MAGIC))
 	HGOTO_ERROR(H5E_BTREE, H5E_BADVALUE, NULL, "wrong B-tree signature")
-    image += 4;
+    image += H5_SIZEOF_MAGIC;
 
     /* node type and level */
     if(*image++ != (uint8_t)udata->type->id)

@@ -197,12 +197,12 @@ H5G__cache_node_deserialize(const void *_image, size_t len, void *_udata,
 
     /* magic */
     if(HDmemcmp(image, H5G_NODE_MAGIC, (size_t)H5_SIZEOF_MAGIC))
-        HGOTO_ERROR(H5E_SYM, H5E_CANTLOAD, NULL, "bad symbol table node signature")
+        HGOTO_ERROR(H5E_SYM, H5E_BADVALUE, NULL, "bad symbol table node signature")
     image += H5_SIZEOF_MAGIC;
 
     /* version */
     if(H5G_NODE_VERS != *image++)
-        HGOTO_ERROR(H5E_SYM, H5E_CANTLOAD, NULL, "bad symbol table node version")
+        HGOTO_ERROR(H5E_SYM, H5E_VERSION, NULL, "bad symbol table node version")
 
     /* reserved */
     image++;
