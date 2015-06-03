@@ -625,13 +625,6 @@ void create_pinned_entry_dependency(H5F_t * file_ptr,
 		                    int pinned_type,
 		                    int pinned_idx);
 
-#if 0 /* delete this eventually -- JRM */
-void execute_flush_op(H5F_t * file_ptr,
-		      struct test_entry_t * entry_ptr,
-                      struct flush_op * op_ptr,
-		      unsigned * flags_ptr);
-#endif /* JRM */
-
 void reset_entries(void);
 
 void resize_entry(H5F_t * file_ptr,

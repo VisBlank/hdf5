@@ -81,19 +81,6 @@
 #define H5F_SUPERBLOCK_FIXED_SIZE ( H5F_SIGNATURE_LEN                   \
         + 1) /* superblock version */
 
-/* Macros for computing variable-size superblock size */
-
-/* In the trunk versions of the superblock size macros, the parameters
- * are the file and the H5F_SUPERBLOCK_VARLEN_SIZE macro are the
- * superblock version and the file pointer.  Unfortunately, we can't
- * do this with the V3 cache, as the image_len callback does not have
- * access to the file pointer -- only the superblock.
- *
- * Hence the following versions of the superblock image size macros,
- * which use only the super block, or values stored in the fields
- * thereof.
- */
-
 /* The H5F_SUPERBLOCK_MINIMAL_VARLEN_SIZE is the minimal amount of super block
  * variable length data guarnateed to load the sizeof offsets and the sizeof 
  * lengths fields in all versions of the superblock.
@@ -109,6 +96,7 @@
  */
 #define H5F_SUPERBLOCK_MINIMAL_VARLEN_SIZE	7
 
+/* Macros for computing variable-size superblock size */
 #define H5F_SUPERBLOCK_VARLEN_SIZE_COMMON                               \
         (2  /* freespace, and root group versions */			\
         + 1 /* reserved */                                              \

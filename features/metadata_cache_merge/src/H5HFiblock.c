@@ -1647,10 +1647,10 @@ H5HF_man_iblock_delete(H5HF_hdr_t *hdr, hid_t dxpl_id, haddr_t iblock_addr,
 }
 #endif /* NDEBUG */
 
-    /* Indicate that the indirect block should be deleted & file space freed */
+    /* Indicate that the indirect block should be deleted  */
     cache_flags |= H5AC__DIRTIED_FLAG | H5AC__DELETED_FLAG;
 
-    /* if the indirect block is in real file space, tell
+    /* If the indirect block is in real file space, tell
      * the cache to free its file space as well.
      */
     if (!H5F_IS_TMP_ADDR(hdr->f, iblock_addr))

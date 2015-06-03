@@ -64,10 +64,10 @@
  *-------------------------------------------------------------------------
  */
 
-#define H5AC__MIN_DIRTY_BYTES_THRESHOLD		(int32_t) \
+#define H5AC__MIN_DIRTY_BYTES_THRESHOLD		(size_t) \
 						(H5C__MIN_MAX_CACHE_SIZE / 2)
 #define H5AC__DEFAULT_DIRTY_BYTES_THRESHOLD	(256 * 1024)
-#define H5AC__MAX_DIRTY_BYTES_THRESHOLD   	(int32_t) \
+#define H5AC__MAX_DIRTY_BYTES_THRESHOLD   	(size_t) \
 						(H5C__MAX_MAX_CACHE_SIZE / 4)
 
 
@@ -371,24 +371,24 @@ typedef struct H5AC_aux_t
 
     hbool_t	write_permitted;
 
-    int32_t	dirty_bytes_threshold;
+    size_t	dirty_bytes_threshold;
 
-    int32_t	dirty_bytes;
+    size_t	dirty_bytes;
 
     int32_t	metadata_write_strategy;
 
 #if H5AC_DEBUG_DIRTY_BYTES_CREATION
 
-    int32_t	dirty_bytes_propagations;
+    unsigned	dirty_bytes_propagations;
 
-    int32_t     unprotect_dirty_bytes;
-    int32_t     unprotect_dirty_bytes_updates;
+    size_t      unprotect_dirty_bytes;
+    unsigned    unprotect_dirty_bytes_updates;
 
-    int32_t     insert_dirty_bytes;
-    int32_t     insert_dirty_bytes_updates;
+    size_t      insert_dirty_bytes;
+    unsigned    insert_dirty_bytes_updates;
 
-    int32_t     move_dirty_bytes;
-    int32_t     move_dirty_bytes_updates;
+    size_t      move_dirty_bytes;
+    unsigned    move_dirty_bytes_updates;
 
 #endif /* H5AC_DEBUG_DIRTY_BYTES_CREATION */
 

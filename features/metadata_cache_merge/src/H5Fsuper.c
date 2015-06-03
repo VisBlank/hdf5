@@ -651,24 +651,22 @@ done:
     if(sblock && H5AC_unprotect(f, dxpl_id, H5AC_SUPERBLOCK, (haddr_t)0, sblock, sblock_flags) < 0)
         HDONE_ERROR(H5E_FILE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
 
-    /* if we have failed, make sure no entries are left in the 
-     * metadata cache so that it can be shut down and discarded.
+    /* If we have failed, make sure no entries are left in the 
+     * metadata cache, so that it can be shut down and discarded.
      */
-    if ( ret_value < 0 ) { 
-
-        if ( f->shared->drvinfo ) { /* unpin and discard drvinfo cache entry */
-
+    if(ret_value < 0) { 
+        /* Unpin and discard drvinfo cache entry */
+        if(f->shared->drvinfo) {
             if(H5AC_unpin_entry(f->shared->drvinfo) < 0)
-                    HDONE_ERROR(H5E_FILE, H5E_CANTUNPIN, FAIL, "unable to unpin driver info")
+                HDONE_ERROR(H5E_FILE, H5E_CANTUNPIN, FAIL, "unable to unpin driver info")
 
             /* Evict the driver info block from the cache */
             if(H5AC_expunge_entry(f, dxpl_id, H5AC_DRVRINFO, sblock->driver_addr, H5AC__NO_FLAGS_SET) < 0)
                 HDONE_ERROR(H5E_FILE, H5E_CANTEXPUNGE, FAIL, "unable to expunge driver info block")
+        } /* end if */
 
-        }
-
-        if ( sblock ) { /* unpin & discard superblock */
-
+        /* Unpin & discard superblock */
+        if(sblock) {
             /* Unpin superblock in cache */
             if(H5AC_unpin_entry(sblock) < 0)
                 HDONE_ERROR(H5E_FILE, H5E_CANTUNPIN, FAIL, "unable to unpin superblock")
@@ -676,8 +674,8 @@ done:
             /* Evict the superblock from the cache */
             if(H5AC_expunge_entry(f, dxpl_id, H5AC_SUPERBLOCK, (haddr_t)0, H5AC__NO_FLAGS_SET) < 0)
                 HDONE_ERROR(H5E_FILE, H5E_CANTEXPUNGE, FAIL, "unable to expunge superblock")
-        }
-    }
+        } /* end if */
+    } /* end if */
 
     FUNC_LEAVE_NOAPI_TAG(ret_value, FAIL)
 } /* end H5F__super_read() */
@@ -916,20 +914,20 @@ H5F__super_init(H5F_t *f, hid_t dxpl_id)
 
         /* Check for driver info to store */
         if(driver_size > 0) {
-            H5O_drvinfo_t drvinfo_msg;      /* Driver info */
+            H5O_drvinfo_t drvinfo;      /* Driver info */
             uint8_t dbuf[H5F_MAX_DRVINFOBLOCK_SIZE];  /* Driver info block encoding buffer */
 
             /* Sanity check */
             HDassert(driver_size <= H5F_MAX_DRVINFOBLOCK_SIZE);
 
             /* Encode driver-specific data */
-            if(H5FD_sb_encode(f->shared->lf, drvinfo_msg.name, dbuf) < 0)
+            if(H5FD_sb_encode(f->shared->lf, drvinfo.name, dbuf) < 0)
                 HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "unable to encode driver information")
 
             /* Write driver info information to the superblock extension */
-            drvinfo_msg.len = driver_size;
-            drvinfo_msg.buf = dbuf;
-            if(H5O_msg_create(&ext_loc, H5O_DRVINFO_ID, H5O_MSG_FLAG_DONTSHARE, H5O_UPDATE_TIME, &drvinfo_msg, dxpl_id) < 0)
+            drvinfo.len = driver_size;
+            drvinfo.buf = dbuf;
+            if(H5O_msg_create(&ext_loc, H5O_DRVINFO_ID, H5O_MSG_FLAG_DONTSHARE, H5O_UPDATE_TIME, &drvinfo, dxpl_id) < 0)
                 HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "unable to update driver info header message")
         } /* end if */
 
@@ -991,6 +989,7 @@ done:
                 /* Unpin drvinfo in cache */
                 if(H5AC_unpin_entry(drvinfo) < 0)
                     HDONE_ERROR(H5E_FILE, H5E_CANTUNPIN, FAIL, "unable to unpin driver info")
+
                 /* Evict the driver info block from the cache */
                 if(H5AC_expunge_entry(f, dxpl_id, H5AC_DRVRINFO, sblock->driver_addr, H5AC__NO_FLAGS_SET) < 0)
                     HDONE_ERROR(H5E_FILE, H5E_CANTEXPUNGE, FAIL, "unable to expunge driver info block")

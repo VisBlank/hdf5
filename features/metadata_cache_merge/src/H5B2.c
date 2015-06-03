@@ -1035,8 +1035,8 @@ H5B2_modify(H5B2_t *bt2, hid_t dxpl_id, void *udata, H5B2_modify_t op,
 {
     H5B2_hdr_t	*hdr;                   /* Pointer to the B-tree header */
     H5B2_node_ptr_t curr_node_ptr;      /* Node pointer info for current node */
-    uint16_t    depth;                  /* Current depth of the tree */
     H5B2_nodepos_t curr_pos;            /* Position of current node */
+    uint16_t    depth;                  /* Current depth of the tree */
     int         cmp;                    /* Comparison value of records */
     unsigned    idx;                    /* Location of record which matches key */
     herr_t	ret_value = SUCCEED;    /* Return value */

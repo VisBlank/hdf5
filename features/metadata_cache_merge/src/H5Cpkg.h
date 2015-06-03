@@ -1232,7 +1232,6 @@ if ( ( (head_ptr) == NULL ) ||                                               \
        )                                                                     \
      )                                                                       \
    ) {                                                                       \
-    /* HDassert(0 && "DLL pre remove SC failed"); */                         \
     HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, (fv), "DLL pre remove SC failed")     \
 }
 
@@ -1253,7 +1252,6 @@ if ( ( ( ( (head_ptr) == NULL ) || ( (tail_ptr) == NULL ) ) &&           \
        )                                                                 \
      )                                                                   \
    ) {                                                                   \
-    /* HDassert(0 && "DLL sanity check failed"); */                      \
     HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, (fv), "DLL sanity check failed")  \
 }
 
@@ -1276,7 +1274,6 @@ if ( ( (entry_ptr) == NULL ) ||                                              \
        )                                                                     \
      )                                                                       \
    ) {                                                                       \
-    /* HDassert(0 && "DLL pre insert SC failed"); */                         \
     HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, (fv), "DLL pre insert SC failed")     \
 }
 
@@ -1287,14 +1284,12 @@ if ( ( (dll_len) <= 0 ) ||                                                    \
      ( (old_size) > (dll_size) ) ||                                           \
      ( (new_size) <= 0 ) ||                                                   \
      ( ( (dll_len) == 1 ) && ( (old_size) != (dll_size) ) ) ) {               \
-    /* HDassert(0 && "DLL pre size update SC failed"); */                     \
     HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "DLL pre size update SC failed") \
 }
 
 #define H5C__DLL_POST_SIZE_UPDATE_SC(dll_len, dll_size, old_size, new_size)    \
 if ( ( (new_size) > (dll_size) ) ||                                            \
      ( ( (dll_len) == 1 ) && ( (new_size) != (dll_size) ) ) ) {                \
-    /* HDassert(0 && "DLL post size update SC failed"); */                     \
     HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "DLL post size update SC failed") \
 }
 
@@ -1356,26 +1351,18 @@ if ( ( (new_size) > (dll_size) ) ||                                            \
        {                                                                    \
           (head_ptr) = (entry_ptr)->next;                                   \
           if ( (head_ptr) != NULL )                                         \
-          {                                                                 \
              (head_ptr)->prev = NULL;                                       \
-          }                                                                 \
        }                                                                    \
        else                                                                 \
-       {                                                                    \
           (entry_ptr)->prev->next = (entry_ptr)->next;                      \
-       }                                                                    \
        if ( (tail_ptr) == (entry_ptr) )                                     \
        {                                                                    \
           (tail_ptr) = (entry_ptr)->prev;                                   \
           if ( (tail_ptr) != NULL )                                         \
-          {                                                                 \
              (tail_ptr)->next = NULL;                                       \
-          }                                                                 \
        }                                                                    \
        else                                                                 \
-       {                                                                    \
           (entry_ptr)->next->prev = (entry_ptr)->prev;                      \
-       }                                                                    \
        entry_ptr->next = NULL;                                              \
        entry_ptr->prev = NULL;                                              \
        (len)--;                                                             \
@@ -1411,7 +1398,6 @@ if ( ( (hd_ptr) == NULL ) ||                                                   \
        )                                                                       \
      )                                                                         \
    ) {                                                                         \
-    /* HDassert(0 && "aux DLL pre remove SC failed"); */                       \
     HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, (fv), "aux DLL pre remove SC failed")   \
 }
 
@@ -1432,7 +1418,6 @@ if ( ( ( ( (head_ptr) == NULL ) || ( (tail_ptr) == NULL ) ) &&              \
        )                                                                    \
      )                                                                      \
    ) {                                                                      \
-    /* HDassert(0 && "AUX DLL sanity check failed"); */                     \
     HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, (fv), "AUX DLL sanity check failed") \
 }
 
@@ -1455,7 +1440,6 @@ if ( ( (entry_ptr) == NULL ) ||                                                \
        )                                                                       \
      )                                                                         \
    ) {                                                                         \
-    /* HDassert(0 && "AUX DLL pre insert SC failed"); */                       \
     HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, (fv), "AUX DLL pre insert SC failed")   \
 }
 
@@ -1513,26 +1497,18 @@ if ( ( (entry_ptr) == NULL ) ||                                                \
        {                                                                     \
           (head_ptr) = (entry_ptr)->aux_next;                                \
           if ( (head_ptr) != NULL )                                          \
-          {                                                                  \
              (head_ptr)->aux_prev = NULL;                                    \
-          }                                                                  \
        }                                                                     \
        else                                                                  \
-       {                                                                     \
           (entry_ptr)->aux_prev->aux_next = (entry_ptr)->aux_next;           \
-       }                                                                     \
        if ( (tail_ptr) == (entry_ptr) )                                      \
        {                                                                     \
           (tail_ptr) = (entry_ptr)->aux_prev;                                \
           if ( (tail_ptr) != NULL )                                          \
-          {                                                                  \
              (tail_ptr)->aux_next = NULL;                                    \
-          }                                                                  \
        }                                                                     \
        else                                                                  \
-       {                                                                     \
           (entry_ptr)->aux_next->aux_prev = (entry_ptr)->aux_prev;           \
-       }                                                                     \
        entry_ptr->aux_next = NULL;                                           \
        entry_ptr->aux_prev = NULL;                                           \
        (len)--;                                                              \
@@ -1660,157 +1636,142 @@ if ( ( (entry_ptr) == NULL ) ||                                                \
 
 #if H5C_COLLECT_CACHE_ENTRY_STATS
 
-#define H5C__RESET_CACHE_ENTRY_STATS(entry_ptr)     \
-	{                                           \
-            (entry_ptr)->accesses = 0;              \
-            (entry_ptr)->clears   = 0;              \
-            (entry_ptr)->flushes  = 0;              \
-	    (entry_ptr)->pins     = 0;              \
-        }
+#define H5C__RESET_CACHE_ENTRY_STATS(entry_ptr) \
+{                                           \
+    (entry_ptr)->accesses = 0;              \
+    (entry_ptr)->clears   = 0;              \
+    (entry_ptr)->flushes  = 0;              \
+    (entry_ptr)->pins     = 0;              \
+}
 
-#define H5C__UPDATE_STATS_FOR_CLEAR(cache_ptr, entry_ptr)            \
-    {                                                                \
-        (((cache_ptr)->clears)[(entry_ptr)->type->id])++;            \
-        if ( (entry_ptr)->is_pinned ) {                              \
-            (((cache_ptr)->pinned_clears)[(entry_ptr)->type->id])++; \
-        }                                                            \
-        ((entry_ptr)->clears)++;                                     \
-    }
+#define H5C__UPDATE_STATS_FOR_CLEAR(cache_ptr, entry_ptr)        \
+{                                                                \
+    (((cache_ptr)->clears)[(entry_ptr)->type->id])++;            \
+    if ( (entry_ptr)->is_pinned )                                \
+        (((cache_ptr)->pinned_clears)[(entry_ptr)->type->id])++; \
+    ((entry_ptr)->clears)++;                                     \
+}
 
-#define H5C__UPDATE_STATS_FOR_FLUSH(cache_ptr, entry_ptr)             \
-    {                                                                 \
-	(((cache_ptr)->flushes)[(entry_ptr)->type->id])++;            \
-        if ( (entry_ptr)->is_pinned ) {                               \
-	    (((cache_ptr)->pinned_flushes)[(entry_ptr)->type->id])++; \
-	}                                                             \
-        ((entry_ptr)->flushes)++;                                     \
-    }
+#define H5C__UPDATE_STATS_FOR_FLUSH(cache_ptr, entry_ptr)         \
+{                                                                 \
+    (((cache_ptr)->flushes)[(entry_ptr)->type->id])++;            \
+    if ( (entry_ptr)->is_pinned )                                 \
+        (((cache_ptr)->pinned_flushes)[(entry_ptr)->type->id])++; \
+    ((entry_ptr)->flushes)++;                                     \
+}
 
 #define H5C__UPDATE_STATS_FOR_EVICTION(cache_ptr, entry_ptr, take_ownership) \
-    {                                                                        \
-        if ( take_ownership ) {                                              \
-	    (((cache_ptr)->take_ownerships)[(entry_ptr)->type->id])++;       \
-        } else {                                                             \
-	    (((cache_ptr)->evictions)[(entry_ptr)->type->id])++;             \
-        }                                                                    \
-        if ( (entry_ptr)->accesses >                                         \
-             ((cache_ptr)->max_accesses)[(entry_ptr)->type->id] ) {          \
-            ((cache_ptr)->max_accesses)[(entry_ptr)->type->id]               \
-                = (entry_ptr)->accesses;                                     \
-        }                                                                    \
-        if ( (entry_ptr)->accesses <                                         \
-             ((cache_ptr)->min_accesses)[(entry_ptr)->type->id] ) {          \
-            ((cache_ptr)->min_accesses)[(entry_ptr)->type->id]               \
-                = (entry_ptr)->accesses;                                     \
-        }                                                                    \
-        if ( (entry_ptr)->clears >                                           \
-             ((cache_ptr)->max_clears)[(entry_ptr)->type->id] ) {            \
-            ((cache_ptr)->max_clears)[(entry_ptr)->type->id]                 \
-                 = (entry_ptr)->clears;                                      \
-        }                                                                    \
-        if ( (entry_ptr)->flushes >                                          \
-             ((cache_ptr)->max_flushes)[(entry_ptr)->type->id] ) {           \
-            ((cache_ptr)->max_flushes)[(entry_ptr)->type->id]                \
-                 = (entry_ptr)->flushes;                                     \
-        }                                                                    \
-        if ( (entry_ptr)->size >                                             \
-             ((cache_ptr)->max_size)[(entry_ptr)->type->id] ) {              \
-            ((cache_ptr)->max_size)[(entry_ptr)->type->id]                   \
-                 = (entry_ptr)->size;                                        \
-        }                                                                    \
-        if ( (entry_ptr)->pins >                                             \
-             ((cache_ptr)->max_pins)[(entry_ptr)->type->id] ) {              \
-            ((cache_ptr)->max_pins)[(entry_ptr)->type->id]                   \
-                 = (entry_ptr)->pins;                                        \
-        }                                                                    \
-    }
+{                                                                            \
+    if ( take_ownership )                                                    \
+        (((cache_ptr)->take_ownerships)[(entry_ptr)->type->id])++;           \
+    else                                                                     \
+        (((cache_ptr)->evictions)[(entry_ptr)->type->id])++;                 \
+    if ( (entry_ptr)->accesses >                                         \
+            ((cache_ptr)->max_accesses)[(entry_ptr)->type->id] )         \
+        ((cache_ptr)->max_accesses)[(entry_ptr)->type->id] =             \
+            (entry_ptr)->accesses;                                       \
+    if ( (entry_ptr)->accesses <                                         \
+            ((cache_ptr)->min_accesses)[(entry_ptr)->type->id] )         \
+        ((cache_ptr)->min_accesses)[(entry_ptr)->type->id] =             \
+            (entry_ptr)->accesses;                                       \
+    if ( (entry_ptr)->clears >                                           \
+             ((cache_ptr)->max_clears)[(entry_ptr)->type->id] )          \
+            ((cache_ptr)->max_clears)[(entry_ptr)->type->id]             \
+                 = (entry_ptr)->clears;                                  \
+    if ( (entry_ptr)->flushes >                                          \
+            ((cache_ptr)->max_flushes)[(entry_ptr)->type->id] )          \
+        ((cache_ptr)->max_flushes)[(entry_ptr)->type->id]                \
+            = (entry_ptr)->flushes;                                      \
+    if ( (entry_ptr)->size >                                             \
+            ((cache_ptr)->max_size)[(entry_ptr)->type->id] )             \
+        ((cache_ptr)->max_size)[(entry_ptr)->type->id]                   \
+            = (entry_ptr)->size;                                         \
+    if ( (entry_ptr)->pins >                                             \
+            ((cache_ptr)->max_pins)[(entry_ptr)->type->id] )             \
+        ((cache_ptr)->max_pins)[(entry_ptr)->type->id]                   \
+            = (entry_ptr)->pins;                                         \
+}
 
-#define H5C__UPDATE_STATS_FOR_INSERTION(cache_ptr, entry_ptr)            \
-    {                                                                    \
-	(((cache_ptr)->insertions)[(entry_ptr)->type->id])++;            \
-	if ( (entry_ptr)->is_pinned ) {                                  \
-	    (((cache_ptr)->pinned_insertions)[(entry_ptr)->type->id])++; \
-	    ((cache_ptr)->pins)[(entry_ptr)->type->id]++;                \
-            (entry_ptr)->pins++;                                         \
-	    if ( (cache_ptr)->pel_len > (cache_ptr)->max_pel_len )       \
-	        (cache_ptr)->max_pel_len = (cache_ptr)->pel_len;         \
-	    if ( (cache_ptr)->pel_size > (cache_ptr)->max_pel_size )     \
-	        (cache_ptr)->max_pel_size = (cache_ptr)->pel_size;       \
-	}                                                                \
-        if ( (cache_ptr)->index_len > (cache_ptr)->max_index_len )       \
-	    (cache_ptr)->max_index_len = (cache_ptr)->index_len;         \
-        H5C__UPDATE_MAX_INDEX_SIZE_STATS(cache_ptr)                      \
-        if ( (cache_ptr)->slist_len > (cache_ptr)->max_slist_len )       \
-	    (cache_ptr)->max_slist_len = (cache_ptr)->slist_len;         \
-        if ( (cache_ptr)->slist_size > (cache_ptr)->max_slist_size )     \
-	    (cache_ptr)->max_slist_size = (cache_ptr)->slist_size;       \
-        if ( (entry_ptr)->size >                                         \
-             ((cache_ptr)->max_size)[(entry_ptr)->type->id] ) {          \
-            ((cache_ptr)->max_size)[(entry_ptr)->type->id]               \
-                 = (entry_ptr)->size;                                    \
-        }                                                                \
-    }
+#define H5C__UPDATE_STATS_FOR_INSERTION(cache_ptr, entry_ptr)        \
+{                                                                    \
+    (((cache_ptr)->insertions)[(entry_ptr)->type->id])++;            \
+    if ( (entry_ptr)->is_pinned ) {                                  \
+        (((cache_ptr)->pinned_insertions)[(entry_ptr)->type->id])++; \
+        ((cache_ptr)->pins)[(entry_ptr)->type->id]++;                \
+        (entry_ptr)->pins++;                                         \
+        if ( (cache_ptr)->pel_len > (cache_ptr)->max_pel_len )       \
+            (cache_ptr)->max_pel_len = (cache_ptr)->pel_len;         \
+        if ( (cache_ptr)->pel_size > (cache_ptr)->max_pel_size )     \
+            (cache_ptr)->max_pel_size = (cache_ptr)->pel_size;       \
+    }                                                                \
+    if ( (cache_ptr)->index_len > (cache_ptr)->max_index_len )       \
+        (cache_ptr)->max_index_len = (cache_ptr)->index_len;         \
+    H5C__UPDATE_MAX_INDEX_SIZE_STATS(cache_ptr)                      \
+    if ( (cache_ptr)->slist_len > (cache_ptr)->max_slist_len )       \
+        (cache_ptr)->max_slist_len = (cache_ptr)->slist_len;         \
+    if ( (cache_ptr)->slist_size > (cache_ptr)->max_slist_size )     \
+        (cache_ptr)->max_slist_size = (cache_ptr)->slist_size;       \
+    if ( (entry_ptr)->size >                                         \
+            ((cache_ptr)->max_size)[(entry_ptr)->type->id] )         \
+        ((cache_ptr)->max_size)[(entry_ptr)->type->id]               \
+             = (entry_ptr)->size;                                    \
+}
 
-#define H5C__UPDATE_STATS_FOR_PROTECT(cache_ptr, entry_ptr, hit)             \
-    {                                                                        \
-	if ( hit )                                                           \
-            ((cache_ptr)->hits)[(entry_ptr)->type->id]++;                    \
-	else                                                                 \
-            ((cache_ptr)->misses)[(entry_ptr)->type->id]++;                  \
-        if ( ! ((entry_ptr)->is_read_only) ) {                               \
-	    ((cache_ptr)->write_protects)[(entry_ptr)->type->id]++;          \
-	} else {                                                             \
-	    ((cache_ptr)->read_protects)[(entry_ptr)->type->id]++;           \
-	    if ( ((entry_ptr)->ro_ref_count) >                               \
-		 ((cache_ptr)->max_read_protects)[(entry_ptr)->type->id] ) { \
-	        ((cache_ptr)->max_read_protects)[(entry_ptr)->type->id] =    \
-			((entry_ptr)->ro_ref_count);                         \
-	    }                                                                \
-	}                                                                    \
-        if ( (cache_ptr)->index_len > (cache_ptr)->max_index_len )           \
-            (cache_ptr)->max_index_len = (cache_ptr)->index_len;             \
-        H5C__UPDATE_MAX_INDEX_SIZE_STATS(cache_ptr)                          \
-        if ( (cache_ptr)->pl_len > (cache_ptr)->max_pl_len )                 \
-            (cache_ptr)->max_pl_len = (cache_ptr)->pl_len;                   \
-        if ( (cache_ptr)->pl_size > (cache_ptr)->max_pl_size )               \
-            (cache_ptr)->max_pl_size = (cache_ptr)->pl_size;                 \
-        if ( (entry_ptr)->size >                                             \
-             ((cache_ptr)->max_size)[(entry_ptr)->type->id] ) {              \
-            ((cache_ptr)->max_size)[(entry_ptr)->type->id]                   \
-                 = (entry_ptr)->size;                                        \
-        }                                                                    \
-        ((entry_ptr)->accesses)++;                                           \
-    }
+#define H5C__UPDATE_STATS_FOR_PROTECT(cache_ptr, entry_ptr, hit)            \
+{                                                                           \
+    if ( hit )                                                              \
+        ((cache_ptr)->hits)[(entry_ptr)->type->id]++;                       \
+    else                                                                    \
+        ((cache_ptr)->misses)[(entry_ptr)->type->id]++;                     \
+    if ( ! ((entry_ptr)->is_read_only) ) {                                  \
+        ((cache_ptr)->write_protects)[(entry_ptr)->type->id]++;             \
+    } else {                                                                \
+        ((cache_ptr)->read_protects)[(entry_ptr)->type->id]++;              \
+        if ( ((entry_ptr)->ro_ref_count) >                                  \
+                ((cache_ptr)->max_read_protects)[(entry_ptr)->type->id] )   \
+            ((cache_ptr)->max_read_protects)[(entry_ptr)->type->id] =       \
+                    ((entry_ptr)->ro_ref_count);                            \
+    }                                                                       \
+    if ( (cache_ptr)->index_len > (cache_ptr)->max_index_len )              \
+        (cache_ptr)->max_index_len = (cache_ptr)->index_len;                \
+    H5C__UPDATE_MAX_INDEX_SIZE_STATS(cache_ptr)                             \
+    if ( (cache_ptr)->pl_len > (cache_ptr)->max_pl_len )                    \
+        (cache_ptr)->max_pl_len = (cache_ptr)->pl_len;                      \
+    if ( (cache_ptr)->pl_size > (cache_ptr)->max_pl_size )                  \
+        (cache_ptr)->max_pl_size = (cache_ptr)->pl_size;                    \
+    if ( (entry_ptr)->size >                                                \
+            ((cache_ptr)->max_size)[(entry_ptr)->type->id] )                \
+        ((cache_ptr)->max_size)[(entry_ptr)->type->id] = (entry_ptr)->size; \
+    ((entry_ptr)->accesses)++;                                              \
+}
 
-#define H5C__UPDATE_STATS_FOR_PIN(cache_ptr, entry_ptr)          \
-    {                                                            \
-	((cache_ptr)->pins)[(entry_ptr)->type->id]++;            \
-        (entry_ptr)->pins++;                                     \
-	if ( (cache_ptr)->pel_len > (cache_ptr)->max_pel_len )   \
-	    (cache_ptr)->max_pel_len = (cache_ptr)->pel_len;     \
-	if ( (cache_ptr)->pel_size > (cache_ptr)->max_pel_size ) \
-	    (cache_ptr)->max_pel_size = (cache_ptr)->pel_size;   \
-    }
+#define H5C__UPDATE_STATS_FOR_PIN(cache_ptr, entry_ptr)      \
+{                                                            \
+    ((cache_ptr)->pins)[(entry_ptr)->type->id]++;            \
+    (entry_ptr)->pins++;                                     \
+    if ( (cache_ptr)->pel_len > (cache_ptr)->max_pel_len )   \
+        (cache_ptr)->max_pel_len = (cache_ptr)->pel_len;     \
+    if ( (cache_ptr)->pel_size > (cache_ptr)->max_pel_size ) \
+        (cache_ptr)->max_pel_size = (cache_ptr)->pel_size;   \
+}
 
 #else /* H5C_COLLECT_CACHE_ENTRY_STATS */
 
 #define H5C__RESET_CACHE_ENTRY_STATS(entry_ptr)
 
-#define H5C__UPDATE_STATS_FOR_CLEAR(cache_ptr, entry_ptr)             \
-    {                                                                 \
-        if ( (entry_ptr)->is_pinned ) {                               \
-	    (((cache_ptr)->pinned_clears)[(entry_ptr)->type->id])++;  \
-	}                                                             \
-	(((cache_ptr)->clears)[(entry_ptr)->type->id])++;             \
-    }
+#define H5C__UPDATE_STATS_FOR_CLEAR(cache_ptr, entry_ptr)         \
+{                                                                 \
+    if ( (entry_ptr)->is_pinned )                                 \
+        (((cache_ptr)->pinned_clears)[(entry_ptr)->type->id])++;  \
+    (((cache_ptr)->clears)[(entry_ptr)->type->id])++;             \
+}
 
-#define H5C__UPDATE_STATS_FOR_FLUSH(cache_ptr, entry_ptr)             \
-    {                                                                 \
-	(((cache_ptr)->flushes)[(entry_ptr)->type->id])++;            \
-        if ( (entry_ptr)->is_pinned ) {                               \
-	    (((cache_ptr)->pinned_flushes)[(entry_ptr)->type->id])++; \
-	}                                                             \
-    }
+#define H5C__UPDATE_STATS_FOR_FLUSH(cache_ptr, entry_ptr)         \
+{                                                                 \
+    (((cache_ptr)->flushes)[(entry_ptr)->type->id])++;            \
+    if ( (entry_ptr)->is_pinned )                                 \
+        (((cache_ptr)->pinned_flushes)[(entry_ptr)->type->id])++; \
+}
 
 #define H5C__UPDATE_STATS_FOR_EVICTION(cache_ptr, entry_ptr, take_ownership) \
     {                                                                        \
@@ -1821,59 +1782,58 @@ if ( ( (entry_ptr) == NULL ) ||                                                \
         }                                                                    \
     }
 
-#define H5C__UPDATE_STATS_FOR_INSERTION(cache_ptr, entry_ptr)            \
-    {                                                                    \
-	(((cache_ptr)->insertions)[(entry_ptr)->type->id])++;            \
-	if ( (entry_ptr)->is_pinned ) {                                  \
-	    (((cache_ptr)->pinned_insertions)[(entry_ptr)->type->id])++; \
-	    ((cache_ptr)->pins)[(entry_ptr)->type->id]++;                \
-	    if ( (cache_ptr)->pel_len > (cache_ptr)->max_pel_len )       \
-	        (cache_ptr)->max_pel_len = (cache_ptr)->pel_len;         \
-	    if ( (cache_ptr)->pel_size > (cache_ptr)->max_pel_size )     \
-	        (cache_ptr)->max_pel_size = (cache_ptr)->pel_size;       \
-	}                                                                \
-        if ( (cache_ptr)->index_len > (cache_ptr)->max_index_len )       \
-	    (cache_ptr)->max_index_len = (cache_ptr)->index_len;         \
-        H5C__UPDATE_MAX_INDEX_SIZE_STATS(cache_ptr)                      \
-        if ( (cache_ptr)->slist_len > (cache_ptr)->max_slist_len )       \
-	    (cache_ptr)->max_slist_len = (cache_ptr)->slist_len;         \
-        if ( (cache_ptr)->slist_size > (cache_ptr)->max_slist_size )     \
-	    (cache_ptr)->max_slist_size = (cache_ptr)->slist_size;       \
-    }
+#define H5C__UPDATE_STATS_FOR_INSERTION(cache_ptr, entry_ptr)        \
+{                                                                    \
+    (((cache_ptr)->insertions)[(entry_ptr)->type->id])++;            \
+    if ( (entry_ptr)->is_pinned ) {                                  \
+        (((cache_ptr)->pinned_insertions)[(entry_ptr)->type->id])++; \
+        ((cache_ptr)->pins)[(entry_ptr)->type->id]++;                \
+        if ( (cache_ptr)->pel_len > (cache_ptr)->max_pel_len )       \
+            (cache_ptr)->max_pel_len = (cache_ptr)->pel_len;         \
+        if ( (cache_ptr)->pel_size > (cache_ptr)->max_pel_size )     \
+            (cache_ptr)->max_pel_size = (cache_ptr)->pel_size;       \
+    }                                                                \
+    if ( (cache_ptr)->index_len > (cache_ptr)->max_index_len )       \
+        (cache_ptr)->max_index_len = (cache_ptr)->index_len;         \
+    H5C__UPDATE_MAX_INDEX_SIZE_STATS(cache_ptr)                      \
+    if ( (cache_ptr)->slist_len > (cache_ptr)->max_slist_len )       \
+        (cache_ptr)->max_slist_len = (cache_ptr)->slist_len;         \
+    if ( (cache_ptr)->slist_size > (cache_ptr)->max_slist_size )     \
+        (cache_ptr)->max_slist_size = (cache_ptr)->slist_size;       \
+}
 
-#define H5C__UPDATE_STATS_FOR_PROTECT(cache_ptr, entry_ptr, hit)             \
-    {                                                                        \
-	if ( hit )                                                           \
-            ((cache_ptr)->hits)[(entry_ptr)->type->id]++;                    \
-	else                                                                 \
-            ((cache_ptr)->misses)[(entry_ptr)->type->id]++;                  \
-        if ( ! ((entry_ptr)->is_read_only) ) {                               \
-	    ((cache_ptr)->write_protects)[(entry_ptr)->type->id]++;          \
-	} else {                                                             \
-	    ((cache_ptr)->read_protects)[(entry_ptr)->type->id]++;           \
-	    if ( ((entry_ptr)->ro_ref_count) >                               \
-		 ((cache_ptr)->max_read_protects)[(entry_ptr)->type->id] ) { \
-	        ((cache_ptr)->max_read_protects)[(entry_ptr)->type->id] =    \
-			((entry_ptr)->ro_ref_count);                         \
-	    }                                                                \
-	}                                                                    \
-        if ( (cache_ptr)->index_len > (cache_ptr)->max_index_len )           \
-            (cache_ptr)->max_index_len = (cache_ptr)->index_len;             \
-        H5C__UPDATE_MAX_INDEX_SIZE_STATS(cache_ptr)                          \
-        if ( (cache_ptr)->pl_len > (cache_ptr)->max_pl_len )                 \
-            (cache_ptr)->max_pl_len = (cache_ptr)->pl_len;                   \
-        if ( (cache_ptr)->pl_size > (cache_ptr)->max_pl_size )               \
-            (cache_ptr)->max_pl_size = (cache_ptr)->pl_size;                 \
-    }
+#define H5C__UPDATE_STATS_FOR_PROTECT(cache_ptr, entry_ptr, hit)            \
+{                                                                           \
+    if ( hit )                                                              \
+        ((cache_ptr)->hits)[(entry_ptr)->type->id]++;                       \
+    else                                                                    \
+        ((cache_ptr)->misses)[(entry_ptr)->type->id]++;                     \
+    if ( ! ((entry_ptr)->is_read_only) )                                    \
+        ((cache_ptr)->write_protects)[(entry_ptr)->type->id]++;             \
+    else {                                                                  \
+        ((cache_ptr)->read_protects)[(entry_ptr)->type->id]++;              \
+        if ( ((entry_ptr)->ro_ref_count) >                                  \
+                ((cache_ptr)->max_read_protects)[(entry_ptr)->type->id] )   \
+            ((cache_ptr)->max_read_protects)[(entry_ptr)->type->id] =       \
+                    ((entry_ptr)->ro_ref_count);                            \
+    }                                                                       \
+    if ( (cache_ptr)->index_len > (cache_ptr)->max_index_len )              \
+        (cache_ptr)->max_index_len = (cache_ptr)->index_len;                \
+    H5C__UPDATE_MAX_INDEX_SIZE_STATS(cache_ptr)                             \
+    if ( (cache_ptr)->pl_len > (cache_ptr)->max_pl_len )                    \
+        (cache_ptr)->max_pl_len = (cache_ptr)->pl_len;                      \
+    if ( (cache_ptr)->pl_size > (cache_ptr)->max_pl_size )                  \
+        (cache_ptr)->max_pl_size = (cache_ptr)->pl_size;                    \
+}
 
-#define H5C__UPDATE_STATS_FOR_PIN(cache_ptr, entry_ptr)          \
-    {                                                            \
-	((cache_ptr)->pins)[(entry_ptr)->type->id]++;            \
-	if ( (cache_ptr)->pel_len > (cache_ptr)->max_pel_len )   \
-	    (cache_ptr)->max_pel_len = (cache_ptr)->pel_len;     \
-	if ( (cache_ptr)->pel_size > (cache_ptr)->max_pel_size ) \
-	    (cache_ptr)->max_pel_size = (cache_ptr)->pel_size;   \
-    }
+#define H5C__UPDATE_STATS_FOR_PIN(cache_ptr, entry_ptr)      \
+{                                                            \
+    ((cache_ptr)->pins)[(entry_ptr)->type->id]++;            \
+    if ( (cache_ptr)->pel_len > (cache_ptr)->max_pel_len )   \
+        (cache_ptr)->max_pel_len = (cache_ptr)->pel_len;     \
+    if ( (cache_ptr)->pel_size > (cache_ptr)->max_pel_size ) \
+        (cache_ptr)->max_pel_size = (cache_ptr)->pel_size;   \
+}
 
 #endif /* H5C_COLLECT_CACHE_ENTRY_STATS */
 
@@ -2015,7 +1975,6 @@ if ( ( (cache_ptr) == NULL ) ||                                             \
      ( ! H5F_addr_defined(Addr) ) ||                                        \
      ( H5C__HASH_FCN(Addr) < 0 ) ||                                         \
      ( H5C__HASH_FCN(Addr) >= H5C__HASH_TABLE_LEN ) ) {                     \
-    /* HDassert(0 && "Pre HT search SC failed"); */                         \
     HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, fail_val, "Pre HT search SC failed") \
 }
 
@@ -2039,7 +1998,6 @@ if ( ( (cache_ptr) == NULL ) ||                                             \
        ( (entry_ptr)->ht_prev->ht_next != (entry_ptr) ) ) ||                \
      ( ( (entry_ptr)->ht_next != NULL ) &&                                  \
        ( (entry_ptr)->ht_next->ht_prev != (entry_ptr) ) ) ) {               \
-    /* HDassert(0 && "Post successful HT search SC failed"); */             \
     HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, fail_val,                            \
                 "Post successful HT search SC failed")                      \
 }
@@ -2049,7 +2007,6 @@ if ( ( (cache_ptr) == NULL ) ||                                             \
 if ( ( (cache_ptr) == NULL ) ||                                        \
      ( ((cache_ptr)->index)[k] != (entry_ptr) ) ||                     \
      ( (entry_ptr)->ht_prev != NULL ) ) {                              \
-    /* HDassert(0 && "Post HT shift to front SC failed"); */           \
     HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, fail_val,                       \
                 "Post HT shift to front SC failed")                    \
 }
@@ -2074,7 +2031,6 @@ if ( ( (cache_ptr) == NULL ) ||                                         \
 	  ( ( (was_clean) ) ||                                          \
 	    ( (cache_ptr)->dirty_index_size < (old_size) ) ) ) ||       \
      ( (entry_ptr) == NULL ) ) {                                        \
-    /* HDassert(0 && "Pre HT entry size change SC failed"); */          \
     HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL,                            \
                 "Pre HT entry size change SC failed")                   \
 }
@@ -2096,7 +2052,6 @@ if ( ( (cache_ptr) == NULL ) ||                                           \
 	    ( (cache_ptr)->clean_index_size < (new_size) ) ) ) ||         \
      ( ( (cache_ptr)->index_len == 1 ) &&                                 \
        ( (cache_ptr)->index_size != (new_size) ) ) ) {                    \
-    /* HDassert(0 && "Post HT entry size change SC failed"); */           \
     HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL,                              \
                 "Post HT entry size change SC failed")                    \
 }
@@ -2114,7 +2069,6 @@ if (                                                                          \
        ((cache_ptr)->clean_index_size + (cache_ptr)->dirty_index_size) ) ||   \
     ( (cache_ptr)->index_size < ((cache_ptr)->clean_index_size) ) ||          \
     ( (cache_ptr)->index_size < ((cache_ptr)->dirty_index_size) ) ) {         \
-    /* HDassert(0 && "Pre HT update for entry clean SC failed"); */           \
     HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL,                                  \
                 "Pre HT update for entry clean SC failed")                    \
 }
@@ -2132,7 +2086,6 @@ if (                                                                          \
        ((cache_ptr)->clean_index_size + (cache_ptr)->dirty_index_size) ) ||   \
     ( (cache_ptr)->index_size < ((cache_ptr)->clean_index_size) ) ||          \
     ( (cache_ptr)->index_size < ((cache_ptr)->dirty_index_size) ) ) {         \
-    /* HDassert(0 && "Pre HT update for entry dirty SC failed"); */           \
     HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL,                                  \
                 "Pre HT update for entry dirty SC failed")                    \
 }
@@ -2142,7 +2095,6 @@ if ( ( (cache_ptr)->index_size !=                                           \
        ((cache_ptr)->clean_index_size + (cache_ptr)->dirty_index_size) ) || \
      ( (cache_ptr)->index_size < ((cache_ptr)->clean_index_size) ) ||       \
      ( (cache_ptr)->index_size < ((cache_ptr)->dirty_index_size) ) ) {      \
-    /* HDassert(0 && "Post HT update for entry clean SC failed"); */        \
     HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL,                                \
                 "Post HT update for entry clean SC failed")                 \
 }
@@ -2152,7 +2104,6 @@ if ( ( (cache_ptr)->index_size !=                                           \
        ((cache_ptr)->clean_index_size + (cache_ptr)->dirty_index_size) ) || \
      ( (cache_ptr)->index_size < ((cache_ptr)->clean_index_size) ) ||       \
      ( (cache_ptr)->index_size < ((cache_ptr)->dirty_index_size) ) ) {      \
-    /* HDassert(0 && "Post HT update for entry dirty SC failed"); */        \
     HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL,                                \
                 "Post HT update for entry dirty SC failed")                 \
 }

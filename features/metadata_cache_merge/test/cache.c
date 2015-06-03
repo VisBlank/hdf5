@@ -684,7 +684,7 @@ smoke_check_3(int express_test)
                   fcn_name, mile_stone++, (int)pass);
 
     row_major_scan_forward(/* file_ptr               */ file_ptr,
-		            /* max_index              */ max_index,
+		           /* max_index              */ max_index,
                            /* lag                    */ lag,
                            /* verbose                */ FALSE,
                            /* reset_stats            */ TRUE,
@@ -703,7 +703,7 @@ smoke_check_3(int express_test)
                   fcn_name, mile_stone++, (int)pass);
 
     row_major_scan_backward(/* file_ptr              */ file_ptr,
-                             /* max_index              */ max_index,
+                            /* max_index              */ max_index,
                             /* lag                    */ lag,
                             /* verbose                */ FALSE,
                             /* reset_stats            */ TRUE,
@@ -722,7 +722,7 @@ smoke_check_3(int express_test)
                   fcn_name, mile_stone++, (int)pass);
 
     row_major_scan_forward(/* file_ptr              */ file_ptr,
-		            /* max_index              */ max_index,
+		           /* max_index              */ max_index,
                            /* lag                    */ lag,
                            /* verbose                */ FALSE,
                            /* reset_stats            */ TRUE,
@@ -752,7 +752,7 @@ smoke_check_3(int express_test)
                   fcn_name, mile_stone++, (int)pass);
 
     col_major_scan_forward(/* file_ptr              */ file_ptr,
-		            /* max_index              */ max_index,
+		           /* max_index              */ max_index,
                            /* lag                    */ lag,
                            /* verbose                */ FALSE,
                            /* reset_stats            */ TRUE,
@@ -777,7 +777,7 @@ smoke_check_3(int express_test)
                   fcn_name, mile_stone++, (int)pass);
 
     col_major_scan_backward(/* file_ptr              */ file_ptr,
-		             /* max_index              */ max_index,
+		            /* max_index              */ max_index,
                             /* lag                    */ lag,
                             /* verbose                */ FALSE,
                             /* reset_stats            */ TRUE,
@@ -902,8 +902,8 @@ smoke_check_4(int express_test)
         HDfprintf(stdout, "%s() - %0d -- pass = %d\n",
                   fcn_name, mile_stone++, (int)pass);
 
-    row_major_scan_backward(/* file_ptr              */ file_ptr,
-                             /* max_index              */ max_index,
+    row_major_scan_backward(/* file_ptr               */ file_ptr,
+                            /* max_index              */ max_index,
                             /* lag                    */ lag,
                             /* verbose                */ FALSE,
                             /* reset_stats            */ TRUE,
@@ -921,8 +921,8 @@ smoke_check_4(int express_test)
         HDfprintf(stdout, "%s() - %0d -- pass = %d\n",
                   fcn_name, mile_stone++, (int)pass);
 
-    row_major_scan_forward(/* file_ptr              */ file_ptr,
-		            /* max_index              */ max_index,
+    row_major_scan_forward(/* file_ptr               */ file_ptr,
+		           /* max_index              */ max_index,
                            /* lag                    */ lag,
                            /* verbose                */ FALSE,
                            /* reset_stats            */ TRUE,
@@ -951,8 +951,8 @@ smoke_check_4(int express_test)
         HDfprintf(stdout, "%s() - %0d -- pass = %d\n",
                   fcn_name, mile_stone++, (int)pass);
 
-    col_major_scan_forward(/* file_ptr              */ file_ptr,
-		            /* max_index              */ max_index,
+    col_major_scan_forward(/* file_ptr               */ file_ptr,
+		           /* max_index              */ max_index,
                            /* lag                    */ lag,
                            /* verbose                */ FALSE,
                            /* reset_stats            */ TRUE,
@@ -976,8 +976,8 @@ smoke_check_4(int express_test)
         HDfprintf(stdout, "%s() - %0d -- pass = %d\n",
                   fcn_name, mile_stone++, (int)pass);
 
-    col_major_scan_backward(/* file_ptr              */ file_ptr,
-		             /* max_index              */ max_index,
+    col_major_scan_backward(/* file_ptr               */ file_ptr,
+		            /* max_index              */ max_index,
                             /* lag                    */ lag,
                             /* verbose                */ FALSE,
                             /* reset_stats            */ TRUE,
@@ -15090,7 +15090,6 @@ check_evictions_enabled(void)
     hbool_t	   in_cache;
     int 	   i;
     int		   mile_stone = 1;
-    size_t	   entry_size;
     H5F_t *        file_ptr = NULL;
     H5C_t *        cache_ptr = NULL;
     test_entry_t * base_addr = NULL;
@@ -15157,7 +15156,6 @@ check_evictions_enabled(void)
             cache_ptr = file_ptr->shared->cache;
 
             base_addr = entries[MONSTER_ENTRY_TYPE];
-            entry_size = MONSTER_ENTRY_SIZE;
         }
     }
 
@@ -32923,15 +32921,7 @@ check_notify_cb(void)
     for(u = 0; u < 5; u++) {
         expunge_entry(file_ptr, entry_type, (int32_t)u);
         if ( !pass ) CACHE_ERROR("expunge_entry failed")
-#if 0 /* original code */ /* JRM */
-        /* Change expected values, and verify the status of the entries
-         * after each insertion
-         */
-        expected[u].in_cache = FALSE;
-        expected[u].is_dirty = FALSE;
-        expected[u].serialized = TRUE;
-        expected[u].destroyed = TRUE;
-#else /* modified code */ /* JRM */
+
         /* Change expected values, and verify the status of the entries
          * after each expunge
          */
@@ -32939,7 +32929,6 @@ check_notify_cb(void)
         expected[u].is_dirty = TRUE;
         expected[u].serialized = FALSE;
         expected[u].destroyed = TRUE;
-#endif /* modified code */ /* JRM */
 
         /* Verify the status */
         verify_entry_status(cache_ptr,  /* H5C_t * cache_ptr */
@@ -33016,15 +33005,6 @@ check_notify_cb(void)
         expunge_entry(file_ptr, entry_type, (int32_t)u);
         if ( !pass ) CACHE_ERROR("expunge_entry failed")
 
-#if 0 /* original code */ /* JRM */
-        /* Change expected values, and verify the status of the entries
-         * after each insertion
-         */
-        expected[u].in_cache = FALSE;
-        expected[u].is_dirty = FALSE;
-        expected[u].serialized = TRUE;
-        expected[u].destroyed = TRUE;
-#else /* modified code */ /* JRM */
         /* Change expected values, and verify the status of the entries
          * after each expunge
          */
@@ -33032,7 +33012,6 @@ check_notify_cb(void)
         expected[u].is_dirty = TRUE;
         expected[u].serialized = FALSE;
         expected[u].destroyed = TRUE;
-#endif /* modified code */ /* JRM */
 
         /* Verify the status */
         verify_entry_status(cache_ptr,  /* H5C_t * cache_ptr */

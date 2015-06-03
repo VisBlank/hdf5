@@ -1493,7 +1493,6 @@ done:
                 H5SL_close(cache_ptr->slist_ptr);
 
             cache_ptr->magic = 0;
-
             cache_ptr = H5FL_FREE(H5C_t, cache_ptr);
 
         } /* end if */
@@ -2552,9 +2551,7 @@ H5C_get_cache_auto_resize_config(const H5C_t * cache_ptr,
 
     FUNC_ENTER_NOAPI(FAIL)
 
-    if ( ( cache_ptr == NULL )
-        || ( cache_ptr->magic != H5C__H5C_T_MAGIC )
-        ) {
+    if ( ( cache_ptr == NULL ) || ( cache_ptr->magic != H5C__H5C_T_MAGIC ) ) {
 
         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad cache_ptr on entry.")
     }
@@ -2603,9 +2600,7 @@ H5C_get_cache_size(H5C_t * cache_ptr,
 
     FUNC_ENTER_NOAPI(FAIL)
 
-    if ( ( cache_ptr == NULL )
-        || ( cache_ptr->magic != H5C__H5C_T_MAGIC )
-        ) {
+    if ( ( cache_ptr == NULL ) || ( cache_ptr->magic != H5C__H5C_T_MAGIC ) ) {
 
         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad cache_ptr on entry.")
     }
@@ -2731,9 +2726,7 @@ H5C_get_entry_status(const H5F_t *f,
     /* this test duplicates two of the above asserts, but we need an
      * invocation of HGOTO_ERROR to keep the compiler happy.
      */
-    if ( ( cache_ptr == NULL )
-        || ( cache_ptr->magic != H5C__H5C_T_MAGIC )
-        ) {
+    if ( ( cache_ptr == NULL ) || ( cache_ptr->magic != H5C__H5C_T_MAGIC ) ) {
 
         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad cache_ptr on entry.")
     }
@@ -2810,9 +2803,7 @@ H5C_get_evictions_enabled(const H5C_t *cache_ptr,
 
     FUNC_ENTER_NOAPI(FAIL)
 
-    if ( ( cache_ptr == NULL )
-        || ( cache_ptr->magic != H5C__H5C_T_MAGIC )
-        ) {
+    if ( ( cache_ptr == NULL ) || ( cache_ptr->magic != H5C__H5C_T_MAGIC ) ) {
 
         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad cache_ptr on entry.")
     }
@@ -4515,9 +4506,7 @@ H5C_reset_cache_hit_rate_stats(H5C_t * cache_ptr)
 
     FUNC_ENTER_NOAPI(FAIL)
 
-    if ( ( cache_ptr == NULL )
-        || ( cache_ptr->magic != H5C__H5C_T_MAGIC )
-        ) {
+    if ( ( cache_ptr == NULL ) || ( cache_ptr->magic != H5C__H5C_T_MAGIC ) ) {
 
         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad cache_ptr on entry.")
     }
@@ -4562,9 +4551,7 @@ H5C_set_cache_auto_resize_config(H5C_t *cache_ptr,
 
     FUNC_ENTER_NOAPI(FAIL)
 
-    if ( ( cache_ptr == NULL )
-        || ( cache_ptr->magic != H5C__H5C_T_MAGIC )
-        ) {
+    if ( ( cache_ptr == NULL ) || ( cache_ptr->magic != H5C__H5C_T_MAGIC ) ) {
 
         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad cache_ptr on entry.")
     }
@@ -4838,9 +4825,7 @@ H5C_set_evictions_enabled(H5C_t *cache_ptr,
 
     FUNC_ENTER_NOAPI(FAIL)
 
-    if ( ( cache_ptr == NULL )
-        || ( cache_ptr->magic != H5C__H5C_T_MAGIC )
-        ) {
+    if ( ( cache_ptr == NULL ) || ( cache_ptr->magic != H5C__H5C_T_MAGIC ) ) {
 
         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad cache_ptr on entry.")
     }
@@ -4938,9 +4923,7 @@ H5C_set_trace_file_ptr(H5C_t * cache_ptr,
     /* This would normally be an assert, but we need to use an HGOTO_ERROR
      * call to shut up the compiler.
      */
-    if ( ( ! cache_ptr )
-        || ( cache_ptr->magic != H5C__H5C_T_MAGIC )
-        ) {
+    if ( ( ! cache_ptr ) || ( cache_ptr->magic != H5C__H5C_T_MAGIC ) ) {
 
         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad cache_ptr")
     }
