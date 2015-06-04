@@ -177,7 +177,7 @@ H5FL_SEQ_DEFINE(H5O_cont_t);
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5O__cache_get_load_size(const void UNUSED *_udata, size_t *image_len)
+H5O__cache_get_load_size(const void H5_ATTR_UNUSED *_udata, size_t *image_len)
 {
     FUNC_ENTER_STATIC_NOERR
 
@@ -401,7 +401,7 @@ done:
  */
 static herr_t
 H5O__cache_image_len(const void *_thing, size_t *image_len,
-    hbool_t UNUSED *compressed_ptr, size_t UNUSED *compressed_image_len_ptr)
+    hbool_t H5_ATTR_UNUSED *compressed_ptr, size_t H5_ATTR_UNUSED *compressed_image_len_ptr)
 {
     const H5O_t *oh = (const H5O_t *)_thing;    /* Object header to query */
 
@@ -805,7 +805,7 @@ done:
  */
 static herr_t
 H5O__cache_chk_image_len(const void *_thing, size_t *image_len,
-    hbool_t UNUSED *compressed_ptr, size_t UNUSED *compressed_image_len_ptr)
+    hbool_t H5_ATTR_UNUSED *compressed_ptr, size_t H5_ATTR_UNUSED *compressed_image_len_ptr)
 {
     const H5O_chunk_proxy_t * chk_proxy = (const H5O_chunk_proxy_t *)_thing;    /* Chunk proxy to query */
 

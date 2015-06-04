@@ -173,7 +173,7 @@ H5G__cache_node_get_load_size(const void *_udata, size_t *image_len)
  */
 static void *
 H5G__cache_node_deserialize(const void *_image, size_t len, void *_udata,
-    hbool_t UNUSED *dirty)
+    hbool_t H5_ATTR_UNUSED *dirty)
 {
     H5F_t                  *f = (H5F_t *)_udata;        /* User data for callback */
     H5G_node_t             *sym = NULL; /* Symbol table node created */
@@ -241,7 +241,8 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5G__cache_node_image_len(const void *_thing, size_t *image_len, hbool_t UNUSED *compressed_ptr, size_t UNUSED *compressed_image_len_ptr)
+H5G__cache_node_image_len(const void *_thing, size_t *image_len,
+    hbool_t H5_ATTR_UNUSED *compressed_ptr, size_t H5_ATTR_UNUSED *compressed_image_len_ptr)
 {
     const H5G_node_t *sym = (const H5G_node_t *)_thing; /* Pointer to object */
 

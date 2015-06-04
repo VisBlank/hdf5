@@ -177,7 +177,7 @@ H5SM__cache_table_get_load_size(const void *_udata, size_t *image_len)
  */
 static void *
 H5SM__cache_table_deserialize(const void *_image, size_t len, void *_udata,
-    hbool_t UNUSED *dirty)
+    hbool_t H5_ATTR_UNUSED *dirty)
 {
     H5F_t		   *f;                  /* File pointer -- from user data */
     H5SM_master_table_t    *table = NULL;       /* Shared message table that we deserializing */
@@ -302,7 +302,7 @@ done:
  */
 static herr_t
 H5SM__cache_table_image_len(const void *_thing, size_t *image_len,
-    hbool_t UNUSED *compressed_ptr, size_t UNUSED *compressed_image_len_ptr)
+    hbool_t H5_ATTR_UNUSED *compressed_ptr, size_t H5_ATTR_UNUSED *compressed_image_len_ptr)
 {
     const H5SM_master_table_t *table = (const H5SM_master_table_t *)_thing;     /* Shared message table to query */
 
@@ -502,7 +502,7 @@ H5SM__cache_list_get_load_size(const void *_udata, size_t *image_len)
  */
 static void *
 H5SM__cache_list_deserialize(const void *_image, size_t len, void *_udata,
-    hbool_t UNUSED *dirty)
+    hbool_t H5_ATTR_UNUSED *dirty)
 {
     H5SM_list_t          *list = NULL;     /* The SOHM list being read in */
     H5SM_list_cache_ud_t *udata = (H5SM_list_cache_ud_t *)_udata;    /* User data for callback */
@@ -593,7 +593,7 @@ done:
  */
 static herr_t
 H5SM__cache_list_image_len(const void *_thing, size_t *image_len,
-    hbool_t UNUSED *compressed_ptr, size_t UNUSED *compressed_image_len_ptr)
+    hbool_t H5_ATTR_UNUSED *compressed_ptr, size_t H5_ATTR_UNUSED *compressed_image_len_ptr)
 {
     const H5SM_list_t *list = (const H5SM_list_t *)_thing;      /* Shared message list to query */
 

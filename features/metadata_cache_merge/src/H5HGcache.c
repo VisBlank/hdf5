@@ -123,7 +123,7 @@ const H5AC_class_t H5AC_GHEAP[1] = {{
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5HG__cache_heap_get_load_size(const void UNUSED *_udata, size_t *image_len)
+H5HG__cache_heap_get_load_size(const void H5_ATTR_UNUSED *_udata, size_t *image_len)
 {
     FUNC_ENTER_STATIC_NOERR
 
@@ -156,7 +156,7 @@ H5HG__cache_heap_get_load_size(const void UNUSED *_udata, size_t *image_len)
  */
 static void *
 H5HG__cache_heap_deserialize(const void *_image, size_t len, void *_udata,
-    hbool_t UNUSED *dirty)
+    hbool_t H5_ATTR_UNUSED *dirty)
 {
     H5F_t       *f = (H5F_t *)_udata;   /* File pointer -- obtained from user data */
     H5HG_heap_t *heap = NULL;   /* New global heap */
@@ -332,7 +332,7 @@ done:
  */
 static herr_t
 H5HG__cache_heap_image_len(const void *_thing, size_t *image_len, 
-    hbool_t UNUSED *compressed_ptr, size_t UNUSED *compressed_image_len_ptr)
+    hbool_t H5_ATTR_UNUSED *compressed_ptr, size_t H5_ATTR_UNUSED *compressed_image_len_ptr)
 {
     const H5HG_heap_t *heap = (const H5HG_heap_t *)_thing;
 

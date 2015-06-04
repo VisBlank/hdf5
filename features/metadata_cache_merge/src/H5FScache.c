@@ -72,8 +72,8 @@ typedef struct {
 /********************/
 
 /* Section info routines */
-static herr_t H5FS__sinfo_serialize_sect_cb(void *_item, void UNUSED *key, void *_udata);
-static herr_t H5FS__sinfo_serialize_node_cb(void *_item, void UNUSED *key, void *_udata);
+static herr_t H5FS__sinfo_serialize_sect_cb(void *_item, void H5_ATTR_UNUSED *key, void *_udata);
+static herr_t H5FS__sinfo_serialize_node_cb(void *_item, void H5_ATTR_UNUSED *key, void *_udata);
 
 /* Metadata cache callbacks */
 static herr_t H5FS__cache_hdr_get_load_size(const void *udata, size_t *image_len);
@@ -202,7 +202,7 @@ H5FS__cache_hdr_get_load_size(const void *_udata, size_t *image_len)
  */
 static void *
 H5FS__cache_hdr_deserialize(const void *_image, size_t len, void *_udata, 
-    hbool_t UNUSED *dirty)
+    hbool_t H5_ATTR_UNUSED *dirty)
 {
     H5FS_t		*fspace = NULL; /* Free space header info */
     H5FS_hdr_cache_ud_t *udata = (H5FS_hdr_cache_ud_t *)_udata;  /* User data for callback */
@@ -322,7 +322,8 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5FS__cache_hdr_image_len(const void *_thing, size_t *image_len, hbool_t UNUSED *compressed_ptr, size_t UNUSED *compressed_image_len_ptr)
+H5FS__cache_hdr_image_len(const void *_thing, size_t *image_len,
+    hbool_t H5_ATTR_UNUSED *compressed_ptr, size_t H5_ATTR_UNUSED *compressed_image_len_ptr)
 {
     const H5FS_t *fspace = (const H5FS_t *)_thing;       /* Pointer to the object */
 
@@ -370,8 +371,8 @@ H5FS__cache_hdr_image_len(const void *_thing, size_t *image_len, hbool_t UNUSED 
  */
 static herr_t 
 H5FS__cache_hdr_pre_serialize(const H5F_t *f, hid_t dxpl_id, void *_thing,
-    haddr_t addr, size_t UNUSED len, size_t UNUSED compressed_len, 
-    haddr_t *new_addr, size_t *new_len, size_t UNUSED *new_compressed_len, 
+    haddr_t addr, size_t H5_ATTR_UNUSED len, size_t H5_ATTR_UNUSED compressed_len, 
+    haddr_t *new_addr, size_t *new_len, size_t H5_ATTR_UNUSED *new_compressed_len, 
     unsigned *flags)
 {
     H5FS_t 	*fspace = (H5FS_t *)_thing;     /* Pointer to the object */
@@ -972,7 +973,8 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5FS__cache_sinfo_image_len(const void *_thing, size_t *image_len, hbool_t UNUSED *compressed_ptr, size_t UNUSED *compressed_image_len_ptr)
+H5FS__cache_sinfo_image_len(const void *_thing, size_t *image_len,
+    hbool_t H5_ATTR_UNUSED *compressed_ptr, size_t H5_ATTR_UNUSED *compressed_image_len_ptr)
 {
     const H5FS_sinfo_t *sinfo = (const H5FS_sinfo_t *)_thing;   /* Pointer to the object */
     const H5FS_t *fspace;               /* Free space header */
@@ -1014,8 +1016,8 @@ H5FS__cache_sinfo_image_len(const void *_thing, size_t *image_len, hbool_t UNUSE
  */
 static herr_t 
 H5FS__cache_sinfo_pre_serialize(const H5F_t *f, hid_t dxpl_id, void *_thing,
-    haddr_t addr, size_t len, size_t UNUSED compressed_len, haddr_t *new_addr,
-    size_t *new_len, size_t UNUSED *new_compressed_len, unsigned *flags)
+    haddr_t addr, size_t len, size_t H5_ATTR_UNUSED compressed_len, haddr_t *new_addr,
+    size_t *new_len, size_t H5_ATTR_UNUSED *new_compressed_len, unsigned *flags)
 {
     H5FS_sinfo_t 	*sinfo = (H5FS_sinfo_t *)_thing;        /* Pointer to the object */
     H5FS_t 		*fspace;                /* Free space header */
@@ -1225,7 +1227,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5FS__sinfo_serialize_sect_cb(void *_item, void UNUSED *key, void *_udata)
+H5FS__sinfo_serialize_sect_cb(void *_item, void H5_ATTR_UNUSED *key, void *_udata)
 {
     H5FS_section_class_t *sect_cls;     /* Class of section */
     H5FS_section_info_t *sect= (H5FS_section_info_t *)_item;   /* Free space section to work on */
@@ -1281,7 +1283,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5FS__sinfo_serialize_node_cb(void *_item, void UNUSED *key, void *_udata)
+H5FS__sinfo_serialize_node_cb(void *_item, void H5_ATTR_UNUSED *key, void *_udata)
 {
     H5FS_node_t *fspace_node = (H5FS_node_t *)_item;   /* Free space size node to work on */
     H5FS_iter_ud_t *udata = (H5FS_iter_ud_t *)_udata; /* Callback info */

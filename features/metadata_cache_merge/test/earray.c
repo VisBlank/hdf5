@@ -647,7 +647,6 @@ error:
  *
  *-------------------------------------------------------------------------
  */
-
 static herr_t
 earray_cache_test_get_load_size(const void *udata_ptr, size_t *image_len_ptr)
 {
@@ -719,10 +718,9 @@ earray_cache_test_deserialize(const void *image_ptr,
  *
  *-------------------------------------------------------------------------
  */
-
 static herr_t
 earray_cache_test_image_len(const void *thing, size_t *image_len_ptr,
-    hbool_t UNUSED * compressed_ptr, size_t UNUSED * compressed_len_ptr)
+    hbool_t H5_ATTR_UNUSED * compressed_ptr, size_t H5_ATTR_UNUSED * compressed_len_ptr)
 {
 
     HDassert(thing);
@@ -763,7 +761,7 @@ earray_cache_test_image_len(const void *thing, size_t *image_len_ptr,
 static herr_t
 earray_cache_test_serialize(const H5F_t *f,
                             void *image_ptr,
-                            UNUSED size_t len,
+                            H5_ATTR_UNUSED size_t len,
                             void *thing)
 {
     earray_test_t *test = NULL;
@@ -887,7 +885,7 @@ earray_cache_test_free_icr(void *thing)
  *-------------------------------------------------------------------------
  */
 static unsigned
-test_create(hid_t fapl, H5EA_create_t *cparam, earray_test_param_t UNUSED *tparam)
+test_create(hid_t fapl, H5EA_create_t *cparam, earray_test_param_t H5_ATTR_UNUSED *tparam)
 {
     hid_t	file = -1;              /* File ID */
     H5F_t	*f = NULL;              /* Internal file object pointer */
@@ -1465,7 +1463,7 @@ test_flush_depend_cb(const void *_elmt, size_t nelmts, void *udata)
  *-------------------------------------------------------------------------
  */
 static unsigned
-test_flush_depend(hid_t fapl, H5EA_create_t *cparam, earray_test_param_t UNUSED *tparam)
+test_flush_depend(hid_t fapl, H5EA_create_t *cparam, earray_test_param_t H5_ATTR_UNUSED *tparam)
 {
     hid_t	file = -1;              /* File ID */
     H5F_t	*f = NULL;              /* Internal file object pointer */
@@ -1700,8 +1698,8 @@ typedef struct eiter_fw_t {
  *-------------------------------------------------------------------------
  */
 static void *
-eiter_fw_init(const H5EA_create_t UNUSED *cparam, const earray_test_param_t UNUSED *tparam,
-    hsize_t UNUSED cnt)
+eiter_fw_init(const H5EA_create_t H5_ATTR_UNUSED *cparam, const earray_test_param_t H5_ATTR_UNUSED *tparam,
+    hsize_t H5_ATTR_UNUSED cnt)
 {
     eiter_fw_t *eiter;          /* Forward element iteration object */
 
@@ -2145,7 +2143,7 @@ typedef struct eiter_rnd_t {
  *-------------------------------------------------------------------------
  */
 static void *
-eiter_rnd_init(const H5EA_create_t UNUSED *cparam, const earray_test_param_t UNUSED *tparam,
+eiter_rnd_init(const H5EA_create_t H5_ATTR_UNUSED *cparam, const earray_test_param_t H5_ATTR_UNUSED *tparam,
     hsize_t cnt)
 {
     eiter_rnd_t *eiter;         /* Random element iteration object */
@@ -2298,7 +2296,7 @@ static const earray_iter_t ea_iter_rnd = {
  *-------------------------------------------------------------------------
  */
 static void *
-eiter_rnd2_init(const H5EA_create_t UNUSED *cparam, const earray_test_param_t UNUSED *tparam,
+eiter_rnd2_init(const H5EA_create_t H5_ATTR_UNUSED *cparam, const earray_test_param_t H5_ATTR_UNUSED *tparam,
     hsize_t cnt)
 {
     eiter_rnd_t *eiter;        /* Random element iteration object */
@@ -2382,7 +2380,7 @@ typedef struct eiter_cyc_t {
  *-------------------------------------------------------------------------
  */
 static void *
-eiter_cyc_init(const H5EA_create_t UNUSED *cparam, const earray_test_param_t UNUSED *tparam,
+eiter_cyc_init(const H5EA_create_t H5_ATTR_UNUSED *cparam, const earray_test_param_t H5_ATTR_UNUSED *tparam,
     hsize_t cnt)
 {
     eiter_cyc_t *eiter;         /* Cyclic element iteration object */

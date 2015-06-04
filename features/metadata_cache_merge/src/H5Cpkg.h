@@ -1774,13 +1774,12 @@ if ( ( (entry_ptr) == NULL ) ||                                                \
 }
 
 #define H5C__UPDATE_STATS_FOR_EVICTION(cache_ptr, entry_ptr, take_ownership) \
-    {                                                                        \
-        if ( take_ownership ) {                                              \
-	    (((cache_ptr)->take_ownerships)[(entry_ptr)->type->id])++;       \
-        } else {                                                             \
-	    (((cache_ptr)->evictions)[(entry_ptr)->type->id])++;             \
-        }                                                                    \
-    }
+{                                                                            \
+    if ( take_ownership )                                                    \
+        (((cache_ptr)->take_ownerships)[(entry_ptr)->type->id])++;           \
+    else                                                                     \
+        (((cache_ptr)->evictions)[(entry_ptr)->type->id])++;                 \
+}
 
 #define H5C__UPDATE_STATS_FOR_INSERTION(cache_ptr, entry_ptr)        \
 {                                                                    \

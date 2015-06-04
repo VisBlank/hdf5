@@ -2405,7 +2405,7 @@ datum_get_load_size(const void * udata_ptr,
  */
 static void *
 datum_deserialize(const void * image_ptr,
-                  UNUSED size_t len,
+                  H5_ATTR_UNUSED size_t len,
                   void * udata_ptr,
                   hbool_t * dirty_ptr)
 {
@@ -2469,7 +2469,8 @@ datum_deserialize(const void * image_ptr,
  *-------------------------------------------------------------------------
  */
 static herr_t
-datum_image_len(void *thing, size_t *image_len, hbool_t UNUSED *compressed_ptr, size_t UNUSED *compressed_len_ptr)
+datum_image_len(void *thing, size_t *image_len,
+    hbool_t H5_ATTR_UNUSED *compressed_ptr, size_t H5_ATTR_UNUSED *compressed_len_ptr)
 {
     int idx;
     struct datum * entry_ptr;
@@ -2978,9 +2979,9 @@ datum_free_icr(void * thing)
  *-------------------------------------------------------------------------
  */
 static herr_t
-datum_clear(H5F_t UNUSED * f,
+datum_clear(H5F_t H5_ATTR_UNUSED * f,
             void *  thing,
-            hbool_t UNUSED about_to_destroy)
+            hbool_t H5_ATTR_UNUSED about_to_destroy)
 {
     const char * fcn_name = "datum_clear()";
     int idx;

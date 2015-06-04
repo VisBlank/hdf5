@@ -245,8 +245,8 @@ static herr_t H5C__epoch_marker_free_icr(void * thing);
 
 static herr_t H5C__epoch_marker_clear(const H5F_t *f, void * thing, 
                                       hbool_t about_to_destroy);
-static herr_t H5C__epoch_marker_fsf_size(const void UNUSED * thing, 
-                                         size_t UNUSED * fsf_size_ptr);
+static herr_t H5C__epoch_marker_fsf_size(const void H5_ATTR_UNUSED * thing, 
+                                         size_t H5_ATTR_UNUSED * fsf_size_ptr);
 
 const H5C_class_t epoch_marker_class =
 {
@@ -276,8 +276,8 @@ const H5C_class_t epoch_marker_class =
  *
  ***************************************************************************/
 static herr_t
-H5C__epoch_marker_get_load_size(const void UNUSED *udata_ptr,
-    size_t UNUSED *image_len_ptr)
+H5C__epoch_marker_get_load_size(const void H5_ATTR_UNUSED *udata_ptr,
+    size_t H5_ATTR_UNUSED *image_len_ptr)
 {
     FUNC_ENTER_STATIC_NOERR /* Yes, even though this pushes an error on the stack */
 
@@ -288,8 +288,8 @@ H5C__epoch_marker_get_load_size(const void UNUSED *udata_ptr,
 
 
 static void *
-H5C__epoch_marker_deserialize(const void UNUSED * image_ptr, size_t UNUSED len,
-    void UNUSED * udata, hbool_t UNUSED * dirty_ptr)
+H5C__epoch_marker_deserialize(const void H5_ATTR_UNUSED * image_ptr, size_t H5_ATTR_UNUSED len,
+    void H5_ATTR_UNUSED * udata, hbool_t H5_ATTR_UNUSED * dirty_ptr)
 {
     FUNC_ENTER_STATIC_NOERR /* Yes, even though this pushes an error on the stack */
 
@@ -299,12 +299,10 @@ H5C__epoch_marker_deserialize(const void UNUSED * image_ptr, size_t UNUSED len,
 } /* end H5C__epoch_marker_deserialize() */
 
 
-
-
 static herr_t
-H5C__epoch_marker_image_len(const void UNUSED *thing,
-    size_t UNUSED *image_len_ptr, hbool_t UNUSED *compressed_ptr,
-    size_t UNUSED *compressed_len_ptr)
+H5C__epoch_marker_image_len(const void H5_ATTR_UNUSED *thing,
+    size_t H5_ATTR_UNUSED *image_len_ptr, hbool_t H5_ATTR_UNUSED *compressed_ptr,
+    size_t H5_ATTR_UNUSED *compressed_len_ptr)
 {
     FUNC_ENTER_STATIC_NOERR /* Yes, even though this pushes an error on the stack */
 
@@ -314,14 +312,12 @@ H5C__epoch_marker_image_len(const void UNUSED *thing,
 } /* end H5C__epoch_marker_image_len() */
 
 
-
-
 static herr_t
-H5C__epoch_marker_pre_serialize(const H5F_t UNUSED *f, hid_t UNUSED dxpl_id,
-    void UNUSED *thing, haddr_t UNUSED addr, size_t UNUSED len,
-    size_t UNUSED compressed_len, haddr_t UNUSED *new_addr_ptr, 
-    size_t UNUSED *new_len_ptr, size_t UNUSED *new_compressed_len_ptr,
-    unsigned UNUSED *flags_ptr)
+H5C__epoch_marker_pre_serialize(const H5F_t H5_ATTR_UNUSED *f, hid_t H5_ATTR_UNUSED dxpl_id,
+    void H5_ATTR_UNUSED *thing, haddr_t H5_ATTR_UNUSED addr, size_t H5_ATTR_UNUSED len,
+    size_t H5_ATTR_UNUSED compressed_len, haddr_t H5_ATTR_UNUSED *new_addr_ptr, 
+    size_t H5_ATTR_UNUSED *new_len_ptr, size_t H5_ATTR_UNUSED *new_compressed_len_ptr,
+    unsigned H5_ATTR_UNUSED *flags_ptr)
 {
     FUNC_ENTER_STATIC_NOERR /* Yes, even though this pushes an error on the stack */
 
@@ -332,8 +328,8 @@ H5C__epoch_marker_pre_serialize(const H5F_t UNUSED *f, hid_t UNUSED dxpl_id,
 
 
 static herr_t
-H5C__epoch_marker_serialize(const H5F_t UNUSED *f, void UNUSED *image_ptr,
-    size_t UNUSED len, void UNUSED *thing)
+H5C__epoch_marker_serialize(const H5F_t H5_ATTR_UNUSED *f, void H5_ATTR_UNUSED *image_ptr,
+    size_t H5_ATTR_UNUSED len, void H5_ATTR_UNUSED *thing)
 {
     FUNC_ENTER_STATIC_NOERR /* Yes, even though this pushes an error on the stack */
 
@@ -344,8 +340,8 @@ H5C__epoch_marker_serialize(const H5F_t UNUSED *f, void UNUSED *image_ptr,
 
 
 static herr_t
-H5C__epoch_marker_notify(H5C_notify_action_t UNUSED action,
-                       void UNUSED * thing)
+H5C__epoch_marker_notify(H5C_notify_action_t H5_ATTR_UNUSED action,
+                       void H5_ATTR_UNUSED * thing)
 {
     FUNC_ENTER_STATIC_NOERR /* Yes, even though this pushes an error on the stack */
 
@@ -356,7 +352,7 @@ H5C__epoch_marker_notify(H5C_notify_action_t UNUSED action,
 
 
 static herr_t
-H5C__epoch_marker_free_icr(void UNUSED * thing)
+H5C__epoch_marker_free_icr(void H5_ATTR_UNUSED * thing)
 {
     FUNC_ENTER_STATIC_NOERR /* Yes, even though this pushes an error on the stack */
 
@@ -367,7 +363,7 @@ H5C__epoch_marker_free_icr(void UNUSED * thing)
 
 
 static herr_t 
-H5C__epoch_marker_clear(const H5F_t UNUSED *f, void UNUSED * thing, hbool_t UNUSED about_to_destroy)
+H5C__epoch_marker_clear(const H5F_t H5_ATTR_UNUSED *f, void H5_ATTR_UNUSED * thing, hbool_t H5_ATTR_UNUSED about_to_destroy)
 {
     FUNC_ENTER_STATIC_NOERR /* Yes, even though this pushes an error on the stack */
 
@@ -378,7 +374,7 @@ H5C__epoch_marker_clear(const H5F_t UNUSED *f, void UNUSED * thing, hbool_t UNUS
 
 
 static herr_t 
-H5C__epoch_marker_fsf_size(const void UNUSED * thing, size_t UNUSED *fsf_size_ptr)
+H5C__epoch_marker_fsf_size(const void H5_ATTR_UNUSED * thing, size_t H5_ATTR_UNUSED *fsf_size_ptr)
 {
     FUNC_ENTER_STATIC_NOERR /* Yes, even though this pushes an error on the stack */
 
@@ -1524,7 +1520,7 @@ H5C_def_auto_resize_rpt_fcn(H5C_t * cache_ptr,
 #ifndef NDEBUG
                             int32_t version,
 #else /* NDEBUG */
-                            int32_t UNUSED version,
+                            int32_t H5_ATTR_UNUSED version,
 #endif /* NDEBUG */
                             double hit_rate,
                             enum H5C_resize_status status,
@@ -3928,7 +3924,7 @@ H5C_pin_entry_from_client(H5C_t *	          cache_ptr,
                         H5C_cache_entry_t * entry_ptr)
 #else
 static herr_t
-H5C_pin_entry_from_client(H5C_t UNUSED *	cache_ptr,
+H5C_pin_entry_from_client(H5C_t H5_ATTR_UNUSED *	cache_ptr,
                         H5C_cache_entry_t * entry_ptr)
 #endif
 {
@@ -4966,7 +4962,7 @@ H5C_stats(H5C_t * cache_ptr,
           const char *  cache_name,
           hbool_t
 #if !H5C_COLLECT_CACHE_STATS
-          UNUSED
+          H5_ATTR_UNUSED
 #endif /* H5C_COLLECT_CACHE_STATS */
           display_detailed_stats)
 {
@@ -5451,7 +5447,7 @@ H5C_stats__reset(H5C_t * cache_ptr)
 #if H5C_COLLECT_CACHE_STATS
 H5C_stats__reset(H5C_t * cache_ptr)
 #else /* H5C_COLLECT_CACHE_STATS */
-H5C_stats__reset(H5C_t UNUSED * cache_ptr)
+H5C_stats__reset(H5C_t H5_ATTR_UNUSED * cache_ptr)
 #endif /* H5C_COLLECT_CACHE_STATS */
 #endif /* NDEBUG */
 {

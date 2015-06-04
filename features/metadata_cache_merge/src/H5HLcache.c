@@ -276,7 +276,7 @@ H5HL__fl_serialize(const H5HL_t *heap)
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5HL__cache_prefix_get_load_size(const void UNUSED *_udata, size_t *image_len)
+H5HL__cache_prefix_get_load_size(const void H5_ATTR_UNUSED *_udata, size_t *image_len)
 {
     FUNC_ENTER_STATIC_NOERR
 
@@ -305,7 +305,7 @@ H5HL__cache_prefix_get_load_size(const void UNUSED *_udata, size_t *image_len)
  */
 static void *
 H5HL__cache_prefix_deserialize(const void *_image, size_t len, void *_udata,
-    hbool_t UNUSED *dirty)
+    hbool_t H5_ATTR_UNUSED *dirty)
 {
     H5HL_t               *heap = NULL;  /* Local heap */
     H5HL_prfx_t          *prfx = NULL;  /* Heap prefix deserialized */
@@ -451,7 +451,7 @@ done:
  */
 static herr_t
 H5HL__cache_prefix_image_len(const void *_thing, size_t *image_len,
-    hbool_t UNUSED *compressed_ptr, size_t UNUSED *compressed_image_len_ptr)
+    hbool_t H5_ATTR_UNUSED *compressed_ptr, size_t H5_ATTR_UNUSED *compressed_image_len_ptr)
 {
     const H5HL_prfx_t *prfx = (const H5HL_prfx_t *)_thing;  /* Pointer to local heap prefix to query */
 
@@ -666,7 +666,7 @@ H5HL__cache_datablock_get_load_size(const void *_udata, size_t *image_len)
  */
 static void *
 H5HL__cache_datablock_deserialize(const void *image, size_t len, void *_udata,
-    hbool_t UNUSED *dirty)
+    hbool_t H5_ATTR_UNUSED *dirty)
 {
     H5HL_dblk_t          *dblk = NULL;  /* Local heap data block deserialized */
     H5HL_cache_dblk_ud_t *udata = (H5HL_cache_dblk_ud_t *)_udata; /* User data for callback */
@@ -733,7 +733,7 @@ done:
  */
 static herr_t
 H5HL__cache_datablock_image_len(const void *_thing, size_t *image_len,
-    hbool_t UNUSED *compressed_ptr, size_t UNUSED *compressed_image_len_ptr)
+    hbool_t H5_ATTR_UNUSED *compressed_ptr, size_t H5_ATTR_UNUSED *compressed_image_len_ptr)
 {
     const H5HL_dblk_t *dblk = (const H5HL_dblk_t *)_thing;    /* Pointer to the local heap data block */
 

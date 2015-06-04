@@ -159,7 +159,7 @@ H5FL_EXTERN(H5F_super_t);
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5F__cache_superblock_get_load_size(const void UNUSED *udata, size_t *image_len)
+H5F__cache_superblock_get_load_size(const void H5_ATTR_UNUSED *udata, size_t *image_len)
 {
     FUNC_ENTER_STATIC_NOERR
 
@@ -190,7 +190,7 @@ H5F__cache_superblock_get_load_size(const void UNUSED *udata, size_t *image_len)
  */
 static void *
 H5F__cache_superblock_deserialize(const void *_image, size_t len, void *_udata,
-    hbool_t UNUSED *dirty)
+    hbool_t H5_ATTR_UNUSED *dirty)
 {
     H5F_super_t         *sblock = NULL; /* File's superblock */
     H5F_superblock_cache_ud_t *udata = (H5F_superblock_cache_ud_t *)_udata; /* User data */
@@ -453,7 +453,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5F__cache_superblock_image_len(const void *_thing, size_t *image_len, hbool_t *compressed_ptr, size_t UNUSED *compressed_image_len_ptr)
+H5F__cache_superblock_image_len(const void *_thing, size_t *image_len, hbool_t *compressed_ptr, size_t H5_ATTR_UNUSED *compressed_image_len_ptr)
 {
     const H5F_super_t *sblock = (const H5F_super_t *)_thing;    /* Pointer to the object */
 
@@ -510,10 +510,10 @@ H5F__cache_superblock_image_len(const void *_thing, size_t *image_len, hbool_t *
  */
 static herr_t
 H5F__cache_superblock_pre_serialize(const H5F_t *f, hid_t dxpl_id, 
-    void *_thing, haddr_t UNUSED addr, size_t UNUSED len, 
-    size_t UNUSED compressed_len, haddr_t UNUSED *new_addr, 
-    size_t UNUSED *new_len, size_t UNUSED *new_compressed_len, 
-    unsigned UNUSED *flags)
+    void *_thing, haddr_t H5_ATTR_UNUSED addr, size_t H5_ATTR_UNUSED len, 
+    size_t H5_ATTR_UNUSED compressed_len, haddr_t H5_ATTR_UNUSED *new_addr, 
+    size_t H5_ATTR_UNUSED *new_len, size_t H5_ATTR_UNUSED *new_compressed_len, 
+    unsigned H5_ATTR_UNUSED *flags)
 {
     H5F_super_t *sblock = (H5F_super_t *)_thing; /* Pointer to the super block */
     herr_t ret_value = SUCCEED; /* Return value */
@@ -595,7 +595,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5F__cache_superblock_serialize(const H5F_t *f, void *_image, size_t UNUSED len,
+H5F__cache_superblock_serialize(const H5F_t *f, void *_image, size_t H5_ATTR_UNUSED len,
     void *_thing)
 {
     H5F_super_t *sblock = (H5F_super_t *)_thing;      /* Pointer to the object */
@@ -777,7 +777,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5F__cache_drvrinfo_get_load_size(const void UNUSED *udata, size_t *image_len)
+H5F__cache_drvrinfo_get_load_size(const void H5_ATTR_UNUSED *udata, size_t *image_len)
 {
     FUNC_ENTER_STATIC_NOERR
 
@@ -807,7 +807,7 @@ H5F__cache_drvrinfo_get_load_size(const void UNUSED *udata, size_t *image_len)
  */
 static void *
 H5F__cache_drvrinfo_deserialize(const void *_image, size_t len, void *_udata,
-    hbool_t UNUSED *dirty)
+    hbool_t H5_ATTR_UNUSED *dirty)
 {
     H5O_drvinfo_t       *drvinfo = NULL; /* Driver info */
     H5F_drvrinfo_cache_ud_t *udata = (H5F_drvrinfo_cache_ud_t *)_udata;     /* User data */
@@ -902,7 +902,8 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5F__cache_drvrinfo_image_len(const void *_thing, size_t *image_len, hbool_t UNUSED *compressed_ptr, size_t UNUSED *compressed_image_len_ptr)
+H5F__cache_drvrinfo_image_len(const void *_thing, size_t *image_len,
+    hbool_t H5_ATTR_UNUSED *compressed_ptr, size_t H5_ATTR_UNUSED *compressed_image_len_ptr)
 {
     const H5O_drvinfo_t *drvinfo = (const H5O_drvinfo_t *)_thing;       /* Pointer to the object */
 

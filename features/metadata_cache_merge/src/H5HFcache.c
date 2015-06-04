@@ -392,7 +392,7 @@ H5HF__cache_hdr_get_load_size(const void *_udata, size_t *image_len)
  */
 static void *
 H5HF__cache_hdr_deserialize(const void *_image, size_t len, void *_udata,
-    hbool_t UNUSED *dirty)
+    hbool_t H5_ATTR_UNUSED *dirty)
 {
     H5HF_hdr_t          *hdr = NULL;     /* Fractal heap info */
     H5HF_hdr_cache_ud_t *udata = (H5HF_hdr_cache_ud_t *)_udata; /* User data for callback */
@@ -578,7 +578,8 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t 
-H5HF__cache_hdr_image_len(const void *_thing, size_t *image_len, hbool_t UNUSED *compressed_ptr, size_t UNUSED *compressed_image_len_ptr)
+H5HF__cache_hdr_image_len(const void *_thing, size_t *image_len,
+    hbool_t H5_ATTR_UNUSED *compressed_ptr, size_t H5_ATTR_UNUSED *compressed_image_len_ptr)
 {
     const H5HF_hdr_t  *hdr = (const H5HF_hdr_t *)_thing;    /* Fractal heap info */
 
@@ -618,9 +619,9 @@ H5HF__cache_hdr_image_len(const void *_thing, size_t *image_len, hbool_t UNUSED 
  */
 static herr_t 
 H5HF__cache_hdr_pre_serialize(const H5F_t *f, hid_t dxpl_id, void *_thing,
-    haddr_t addr, size_t len, size_t UNUSED compressed_len, 
-    haddr_t UNUSED *new_addr, size_t UNUSED *new_len,
-    size_t UNUSED *new_compressed_len, unsigned *flags)
+    haddr_t addr, size_t len, size_t H5_ATTR_UNUSED compressed_len, 
+    haddr_t H5_ATTR_UNUSED *new_addr, size_t H5_ATTR_UNUSED *new_len,
+    size_t H5_ATTR_UNUSED *new_compressed_len, unsigned *flags)
 {
     H5HF_hdr_t *hdr = (H5HF_hdr_t *)_thing;     /* Fractal heap info */
     herr_t      ret_value = SUCCEED;    /* Return value */
@@ -867,6 +868,10 @@ H5HF__cache_iblock_get_load_size(const void *_udata, size_t *image_len)
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5HF__cache_iblock_get_load_size() */
 
+/***********************************************************/
+/* metadata cache callback definitions for indirect blocks */
+/***********************************************************/
+
 
 /*-------------------------------------------------------------------------
  * Function:	H5HF__cache_iblock_deserialize
@@ -890,7 +895,7 @@ H5HF__cache_iblock_get_load_size(const void *_udata, size_t *image_len)
  */
 static void *
 H5HF__cache_iblock_deserialize(const void *_image, size_t len, void *_udata,
-    hbool_t UNUSED *dirty)
+    hbool_t H5_ATTR_UNUSED *dirty)
 {
     H5HF_hdr_t          *hdr;           /* Shared fractal heap information */
     H5HF_iblock_cache_ud_t *udata = (H5HF_iblock_cache_ud_t *)_udata; /* User data for callback */
@@ -1078,7 +1083,8 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t 
-H5HF__cache_iblock_image_len(const void *_thing, size_t *image_len, hbool_t UNUSED *compressed_ptr, size_t UNUSED *compressed_image_len_ptr)
+H5HF__cache_iblock_image_len(const void *_thing, size_t *image_len,
+    hbool_t H5_ATTR_UNUSED *compressed_ptr, size_t H5_ATTR_UNUSED *compressed_image_len_ptr)
 {
     const H5HF_indirect_t *iblock = (const H5HF_indirect_t *)_thing;    /* Indirect block info */
 
@@ -1117,9 +1123,9 @@ H5HF__cache_iblock_image_len(const void *_thing, size_t *image_len, hbool_t UNUS
  */
 static herr_t 
 H5HF__cache_iblock_pre_serialize(const H5F_t *f, hid_t dxpl_id, void *_thing,
-    haddr_t addr, size_t UNUSED len, size_t UNUSED compressed_len,
-    haddr_t *new_addr, size_t UNUSED *new_len,
-    size_t UNUSED *new_compressed_len, unsigned *flags)
+    haddr_t addr, size_t H5_ATTR_UNUSED len, size_t H5_ATTR_UNUSED compressed_len,
+    haddr_t *new_addr, size_t H5_ATTR_UNUSED *new_len,
+    size_t H5_ATTR_UNUSED *new_compressed_len, unsigned *flags)
 {
     H5HF_hdr_t          *hdr;                   /* Shared fractal heap information */
     H5HF_indirect_t     *iblock = (H5HF_indirect_t *)_thing;    /* Indirect block info */
@@ -1549,6 +1555,10 @@ H5HF__cache_dblock_get_load_size(const void *_udata, size_t *image_len)
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5HF__cache_dblock_get_load_size() */
 
+/*********************************************************/
+/* metadata cache callback definitions for direct blocks */
+/*********************************************************/
+
 
 /*-------------------------------------------------------------------------
  * Function:	H5HF__cache_dblock_deserialize
@@ -1572,7 +1582,7 @@ H5HF__cache_dblock_get_load_size(const void *_udata, size_t *image_len)
  */
 static void *
 H5HF__cache_dblock_deserialize(const void *_image, size_t len, void *_udata,
-    hbool_t UNUSED *dirty)
+    hbool_t H5_ATTR_UNUSED *dirty)
 {
     H5HF_hdr_t          *hdr;           /* Shared fractal heap information */
     H5HF_dblock_cache_ud_t *udata = (H5HF_dblock_cache_ud_t *)_udata;   /* User data for callback */
@@ -1906,7 +1916,7 @@ H5HF__cache_dblock_image_len(const void *_thing, size_t *image_len, hbool_t *com
 static herr_t 
 H5HF__cache_dblock_pre_serialize(const H5F_t *f, hid_t dxpl_id, void *_thing,
     haddr_t addr, size_t len, size_t compressed_len, haddr_t *new_addr, 
-    size_t UNUSED *new_len, size_t *new_compressed_len, unsigned *flags)
+    size_t H5_ATTR_UNUSED *new_len, size_t *new_compressed_len, unsigned *flags)
 {
     hbool_t 		 at_tmp_addr;  /* Flag to indicate direct block is */
                                        /* at temporary address */

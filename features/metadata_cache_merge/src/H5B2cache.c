@@ -205,8 +205,8 @@ H5B2__cache_hdr_get_load_size(const void *_udata, size_t *image_len)
  *-------------------------------------------------------------------------
  */
 static void *
-H5B2__cache_hdr_deserialize(const void *_image, size_t UNUSED len,
-    void *_udata, hbool_t UNUSED *dirty)
+H5B2__cache_hdr_deserialize(const void *_image, size_t H5_ATTR_UNUSED len,
+    void *_udata, hbool_t H5_ATTR_UNUSED *dirty)
 {
     H5B2_hdr_t		*hdr = NULL;    /* B-tree header */
     H5B2_hdr_cache_ud_t *udata = (H5B2_hdr_cache_ud_t *)_udata;
@@ -312,7 +312,8 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5B2__cache_hdr_image_len(const void *_thing, size_t *image_len, hbool_t UNUSED *compressed_ptr, size_t UNUSED *compressed_image_len_ptr)
+H5B2__cache_hdr_image_len(const void *_thing, size_t *image_len,
+    hbool_t H5_ATTR_UNUSED *compressed_ptr, size_t H5_ATTR_UNUSED *compressed_image_len_ptr)
 {
     const H5B2_hdr_t *hdr = (const H5B2_hdr_t *)_thing;      /* Pointer to the B-tree header */
 
@@ -343,7 +344,7 @@ H5B2__cache_hdr_image_len(const void *_thing, size_t *image_len, hbool_t UNUSED 
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5B2__cache_hdr_serialize(const H5F_t *f, void *_image, size_t UNUSED len,
+H5B2__cache_hdr_serialize(const H5F_t *f, void *_image, size_t H5_ATTR_UNUSED len,
     void *_thing)
 {
     H5B2_hdr_t *hdr = (H5B2_hdr_t *)_thing;     /* Pointer to the B-tree header */
@@ -480,8 +481,8 @@ H5B2__cache_int_get_load_size(const void *_udata, size_t *image_len)
  *-------------------------------------------------------------------------
  */
 static void *
-H5B2__cache_int_deserialize(const void *_image, size_t UNUSED len,
-    void *_udata, hbool_t UNUSED *dirty)
+H5B2__cache_int_deserialize(const void *_image, size_t H5_ATTR_UNUSED len,
+    void *_udata, hbool_t H5_ATTR_UNUSED *dirty)
 {
     H5B2_internal_cache_ud_t *udata = (H5B2_internal_cache_ud_t *)_udata;     /* Pointer to user data */
     H5B2_internal_t	*internal = NULL;       /* Internal node read */
@@ -602,7 +603,8 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5B2__cache_int_image_len(const void *_thing, size_t *image_len, hbool_t UNUSED *compressed_ptr, size_t UNUSED *compressed_image_len_ptr)
+H5B2__cache_int_image_len(const void *_thing, size_t *image_len,
+    hbool_t H5_ATTR_UNUSED *compressed_ptr, size_t H5_ATTR_UNUSED *compressed_image_len_ptr)
 {
     const H5B2_internal_t *internal = (const H5B2_internal_t *)_thing;      /* Pointer to the B-tree internal node */
 
@@ -634,7 +636,7 @@ H5B2__cache_int_image_len(const void *_thing, size_t *image_len, hbool_t UNUSED 
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5B2__cache_int_serialize(const H5F_t *f, void *_image, size_t UNUSED len,
+H5B2__cache_int_serialize(const H5F_t *f, void *_image, size_t H5_ATTR_UNUSED len,
     void *_thing)
 {
     H5B2_internal_t *internal = (H5B2_internal_t *)_thing;      /* Pointer to the B-tree internal node */
@@ -783,8 +785,8 @@ H5B2__cache_leaf_get_load_size(const void *_udata, size_t *image_len)
  *-------------------------------------------------------------------------
  */
 static void *
-H5B2__cache_leaf_deserialize(const void *_image, size_t UNUSED len,
-    void *_udata, hbool_t UNUSED *dirty)
+H5B2__cache_leaf_deserialize(const void *_image, size_t H5_ATTR_UNUSED len,
+    void *_udata, hbool_t H5_ATTR_UNUSED *dirty)
 {
     H5B2_leaf_cache_ud_t *udata = (H5B2_leaf_cache_ud_t *)_udata;
     H5B2_leaf_t		*leaf = NULL;   /* Pointer to lead node loaded */
@@ -887,7 +889,8 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5B2__cache_leaf_image_len(const void *_thing, size_t *image_len, hbool_t UNUSED *compressed_ptr, size_t UNUSED *compressed_image_len_ptr)
+H5B2__cache_leaf_image_len(const void *_thing, size_t *image_len,
+    hbool_t H5_ATTR_UNUSED *compressed_ptr, size_t H5_ATTR_UNUSED *compressed_image_len_ptr)
 {
     const H5B2_leaf_t *leaf = (const H5B2_leaf_t *)_thing;      /* Pointer to the B-tree leaf node  */
 
@@ -919,7 +922,7 @@ H5B2__cache_leaf_image_len(const void *_thing, size_t *image_len, hbool_t UNUSED
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5B2__cache_leaf_serialize(const H5F_t *f, void *_image, size_t UNUSED len,
+H5B2__cache_leaf_serialize(const H5F_t *f, void *_image, size_t H5_ATTR_UNUSED len,
     void *_thing)
 {
     H5B2_leaf_t *leaf = (H5B2_leaf_t *)_thing;      /* Pointer to the B-tree leaf node  */
