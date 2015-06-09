@@ -3,12 +3,301 @@
 # Author: Allen Byrne
 #         Albert Cheng
 # Creation Date: Nov 2012
+# Modified:
+#	Changed to use the quick steps described in INSTALL_CMake.txt. (AKC 2014/1/1)
 
-# Copyright: The HDF Group, 2012
+# Copyright: The HDF Group, 2012-14
 
-# Debug: remove the comment hash if you want DPRINT to do echo
+# Debug Print: remove the comment hash if you want DPRINT to do echo
 DPRINT=:
 #DPRINT=echo
+
+# use the ctest scripting method if --script is given
+if [ "$1" != "--script" ]; then
+# variable names
+# The "extra" number is the step number and easier to see all logfiles in
+# the sorted order of steps
+progname=`basename $0`	# program name
+configlog="#${progname}_1config.log"
+makelog="#${progname}_2build.log"
+testlog="#${progname}_3test.log"
+packlog="#${progname}_4pack.log"
+installlog="#${progname}_5install.log"
+config_summary=libhdf5.settings
+exit_code=0
+
+# This command should be in the source directory's bin/
+# and should have invoked as "$srcdir/bin/$progname" or
+# "bin/$progname". So, by striping bin/$program from $0,
+# we can find $srcdir.
+if [ $0 == bin/$progname ]; then
+    srcdir="."		# current directory
+else
+    # $0 is $srdir/bin/$progname
+    srcdir=`echo $0 | sed -e s%/bin/$progname\$%%`
+fi
+# Sanity check
+if [ ! -r $srcdir/bin/$progname ]; then
+    echo "encountered error while trying to find srcdir($srdir)"
+    exit 1
+fi
+
+# Cmake build options
+cacheinit=$srcdir/config/cmake/cacheinit.cmake
+build_cpp_lib=-DHDF5_BUILD_CPP_LIB:BOOL=OFF	# C++ interface default off
+build_fortran=-DHDF5_BUILD_FORTRAN:BOOL=OFF	# Fortran interface default off
+enable_f2003=-DHDF5_ENABLE_F2003:BOOL=OFF	# Fortran2003 interface default off
+build_hl_lib=-DHDF5_BUILD_HL_LIB:BOOL=ON	# High Level interface default on
+build_testing=-DBUILD_TESTING:BOOL=ON		# Build tests default on
+build_tools=-DHDF5_BUILD_TOOLS:BOOL=ON		# Build tools default on
+with_zlib=-DHDF5_ENABLE_Z_LIB_SUPPORT=ON	# enable zlib filter default on
+with_szlib=-DHDF5_ENABLE_SZIP_SUPPORT=OFF	# enables zlib filter default off
+shared_lib=-DBUILD_SHARED_LIBS:BOOL=ON		# enables shared lib; default on
+
+
+#=============
+# Function definitions
+#=============
+
+# Show user brief help page
+HELP_BRIEF()
+{
+cat << EOF
+Usage: $progname [options]
+  --help: shows details help page
+EOF
+}
+
+# Show user detail help page
+HELP()
+{
+cat << EOF
+Usage: $progname [<options>]
+  where options are:
+  --enable-fortran | --disable-fortran:
+    enable or disable fortran API. Default is off.
+  --enable-fortran2003 | --disable-fortran2003:
+    enable or disable fortran2003 API. Default is off.
+  --enable-cxx | --disable-cxx:
+    enable or disable c++ API. Default is off.
+  --enable-hl | --disable-hl:
+    enable or disable high level API. Default is on.
+  --enable-shared | --disable-shared:
+    enable or disable shared lib. Default is on.
+  --enable-tools | --disable-tools:
+    enable or disable building tools. Default is on.
+  --enable-testing | --disable-testing:
+    enable or disable building tests. Default is on.
+  --with-zlib | --without-zlib:
+    Use zlib library for external deflate I/O filter. Default is on.
+  --help: shows details help page
+EOF
+}
+
+# Display a time stamp
+TIMESTAMP()
+{
+    echo "=====" "`date`" "====="
+}
+
+
+# Do one step bracketed with time stamps
+# The '< /dev/null' is needed to prevent some applications like MPI
+# jobs blocked for reading when they read stdin unnecessary.
+# $1 is banner message to be displayed.
+# $2 is command to run
+# $3 is logfile name for saving output from the command
+STEP()
+{
+    banner="$1"
+    command="$2"
+    logfile="$3"
+
+    echo "$banner" with output saved in $logfile
+    (TIMESTAMP; nerror=0 ;
+	echo "eval $command"
+	eval $command || nerror=1 ;
+	TIMESTAMP; exit $nerror) < /dev/null > "$logfile" 2>&1
+    if [ $? -ne 0 ]; then
+	echo "error in '$banner'.  $progname aborted."
+	exit 1
+    fi
+}
+
+
+# Install the generated installation image file.  Different platform uses
+# different image files.
+# Linux: HDF5-<version>-Linux.sh file
+# Mac OS X: Not implemented yet
+# Others: Not implemented yet
+INSTALL_HDF5()
+{
+    myos="`uname -s`"
+    case "$myos" in
+	Linux)
+	    install_file=./HDF5-${version}-Linux.sh
+	    $install_file  --skip-license $*
+	    ;;
+	Darwin)		# Mac OSX DMG file
+	    install_file=HDF5-${version}-Darwin.dmg
+	    test -d hdf5 || mkdir hdf5
+	    basename=`basename $install_file .dmg`
+	    # mount the DMG file as /Volumes/$basename
+	    # echo 'Y' as yes for license.
+	    echo Y | hdiutil mount $install_file
+	    # copy the contents to the install location
+	    cp -R "/Volumes/$basename/HDF_Group" hdf5
+	    # unmount the DMG file
+	    hdiutil unmount /Volumes/$basename
+	    ;;
+	*) 		# unknown/unsupported OS.
+	    echo "INSTALL_HDF5: Error--unknown/unsupported OS($myos)"
+	    return 1
+	    ;;
+    esac
+    return 0
+}
+
+
+#==========
+# main
+#==========
+
+# Show a start time stamp
+TIMESTAMP
+
+# Parse Cmake configure options
+# --enable-XXX or --disable-XXX will enable or disable feature XXX.
+# XXX can be:
+# fortran	Fortran interface
+# cxx		C++ interface
+# hl		Highlevel interface
+# testing	Build tests
+# tools		Build tools
+while [ $# -gt 0 ]; do
+    case "$1" in
+	--enable-fortran)
+	    build_fortran=-DHDF5_BUILD_FORTRAN:BOOL=ON
+	    ;;
+	--disable-fortran)
+	    build_fortran=-DHDF5_BUILD_FORTRAN:BOOL=OFF
+	    ;;
+	--enable-fortran2003)
+	    enable_f2003=-DHDF5_ENABLE_F2003:BOOL=ON
+	    ;;
+	--disable-fortran2003)
+	    enable_f2003=-DHDF5_ENABLE_F2003:BOOL=OFF
+	    ;;
+	--enable-cxx)
+	    build_cpp_lib=-DHDF5_BUILD_CPP_LIB:BOOL=ON
+	    ;;
+	--disable-cxx)
+	    build_cpp_lib=-DHDF5_BUILD_CPP_LIB:BOOL=OFF
+	    ;;
+	--enable-hl)
+	    build_hl_lib=-DHDF5_BUILD_HL_LIB:BOOL=ON
+	    ;;
+	--disable-hl)
+	    build_hl_lib=-DHDF5_BUILD_HL_LIB:BOOL=OFF
+	    ;;
+	--enable-shared)
+	    shared_lib=-DBUILD_SHARED_LIBS:BOOL=ON
+	    ;;
+	--disable-shared)
+	    shared_lib=-DBUILD_SHARED_LIBS:BOOL=OFF
+	    ;;
+	--enable-tools)
+	    build_tools=-DHDF5_BUILD_TOOLS:BOOL=ON
+	    ;;
+	--disable-tools)
+	    build_tools=-DHDF5_BUILD_TOOLS:BOOL=OFF
+	    ;;
+	--enable-testing)
+	    build_testing=-DBUILD_TESTING:BOOL=ON
+	    ;;
+	--disable-testing)
+	    build_testing=-DBUILD_TESTING:BOOL=OFF
+	    ;;
+	--with-zlib)
+	    with_zlib=-DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=ON
+	    ;;
+	--without-zlib)
+	    with_zlib=-DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=OFF
+	    ;;
+	--help)
+	    # print the detail help page and exit
+	    HELP
+	    exit 0
+	    ;;
+	*)
+	    echo "Unknown options: $1"
+	    HELP
+	    exit 1
+	    ;;
+    esac
+    shift
+done
+
+# Always display the brief help page
+HELP_BRIEF
+
+# Verify there is a valid hdf5 source directory present
+if [ ! -d $srcdir ]; then
+    echo $srcdir not found. Aborted.
+    exit 1
+fi
+
+# figure out version information
+vers=bin/h5vers
+if [ ! -x $srcdir/$vers ]; then
+    echo $srcdir/$vers not found or not executable. Aborted.
+    exit 1
+fi
+version=`cd $srcdir; $vers`
+if [ $? != 0 ]; then
+    echo $vers failed. Aborted.
+    exit 1
+fi
+echo Running Cmake for HDF5-${version} ...  
+#      4. Configure the C library, tools and tests with this command:
+#         If successful, append the configure summary to the configure logfile.
+STEP "Configure..." "cmake \
+    -C $cacheinit \
+    $build_cpp_lib \
+    $build_fortran \
+    $enable_f2003 \
+    $build_hl_lib \
+    $shared_lib \
+    $build_testing \
+    $build_tools \
+    $with_zlib \
+    $with_szlib \
+    $srcdir" $configlog &&\
+    cat $config_summary >> $configlog
+      
+#      5. Build the C library, tools and tests with this command:
+STEP "Build the library, tools and tests, ..." "cmake --build . --config Release" $makelog
+      
+#      6. Test the C library and tools with this command:
+STEP "Test the library and tools..." "ctest . -C Release" $testlog
+      
+#      7. Create an install image with this command:
+STEP "Create an install image..." "cpack -C Release CPackConfig.cmake" $packlog
+      
+#      8. Install with this command:
+#STEP "Install..." "./HDF5-${version}-Linux.sh --skip-license" $installlog
+STEP "Install..." "INSTALL_HDF5" $installlog
+# save the last exit code
+exit_code=$?
+
+# Show a closing time stamp
+TIMESTAMP
+exit $exit_code
+
+else
+# ---------------
+# older version
+# ---------------
 
 # variable names
 progname=`basename $0`	# program name
@@ -61,7 +350,7 @@ EOF
 #==========
 #==========
 cat > $cfgfile <<'EOF'
-cmake_minimum_required(VERSION 2.8.10 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 ########################################################
 # This dashboard is maintained by The HDF Group
 # For any comments please contact cdashhelp@hdfgroup.org
@@ -83,9 +372,9 @@ set (SITE_BUILDNAME_SUFFIX "cmakehdf5")
 
 # -- URL set for internal check, default is to not update
 set (LOCAL_SKIP_UPDATE TRUE)
-set (REPOSITORY_URL "http://svn.hdfgroup.uiuc.edu/hdf5/branches/hdf5_1_8")
+set (REPOSITORY_URL "http://svn.${hdfgroup_url}/hdf5/branches/hdf5_1_8")
 # -- Standard build options  
-set (ADD_BUILD_OPTIONS "-DCMAKE_INSTALL_PREFIX:PATH=/usr/local/hdf5.1.8 -DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=\"SVN\" -DHDF5_PACKAGE_EXTLIBS:BOOL=ON")
+set (ADD_BUILD_OPTIONS "-DCMAKE_INSTALL_PREFIX:PATH=${CTEST_BINARY_DIRECTORY} -DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=\"SVN\" -DHDF5_PACKAGE_EXTLIBS:BOOL=ON")
 
 # Use multiple CPU cores to build
 include(ProcessorCount)
@@ -172,8 +461,8 @@ set($ENV{LC_MESSAGES}  "en_EN")
 #-----------------------------------------------------------------------------
 # Initialize the CTEST commands
 #------------------------------
-SET (CTEST_CMAKE_COMMAND "\"${CMAKE_COMMAND}\"")
-SET (CTEST_CONFIGURE_COMMAND
+set (CTEST_CMAKE_COMMAND "\"${CMAKE_COMMAND}\"")
+set (CTEST_CONFIGURE_COMMAND
     "${CTEST_CMAKE_COMMAND} -C \"${CTEST_SOURCE_DIRECTORY}/config/cmake/cacheinit.cmake\" -DCMAKE_BUILD_TYPE:STRING=${CTEST_BUILD_CONFIGURATION} ${BUILD_OPTIONS} \"-G${CTEST_CMAKE_GENERATOR}\" \"${CTEST_SOURCE_DIRECTORY}\"")
 
 # Print summary information.
@@ -260,3 +549,6 @@ else
 fi
 TIMESTAMP
 exit $exit_code
+
+fi
+

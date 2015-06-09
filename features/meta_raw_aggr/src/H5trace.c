@@ -110,7 +110,7 @@
  *		SO MAY CAUSE H5_trace() TO BE INVOKED RECURSIVELY OR MAY
  *		CAUSE LIBRARY INITIALIZATIONS THAT ARE NOT DESIRED.
  *
- * Return:	void
+ * Return:	Execution time for an API call
  *
  * Programmer:	Robb Matzke
  *              Tuesday, June 16, 1998
@@ -129,34 +129,34 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
     void		*vp = NULL;
     FILE		*out = H5_debug_g.trace;
     H5_timer_t          event_time;
-    static H5_timer_t   first_time = {0.0, 0.0, 0.0};
+    static H5_timer_t   first_time = {0.0F, 0.0F, 0.0F};
     static int          current_depth = 0;
     static int          last_call_depth = 0;
 
     /* FUNC_ENTER() should not be called */
 
     if(!out)
-        return 0.0;	/*tracing is off*/
+        return 0.0F;	/*tracing is off*/
     va_start(ap, type);
 
     if(H5_debug_g.ttop) {
         if(returning) {
             if(current_depth > 1) {
                 --current_depth;
-                return 0.0;
+                return 0.0F;
             } /* end if */
         } /* end if */
         else {
             if(current_depth > 0) {
                 /*do not update last_call_depth*/
                 current_depth++;
-                return 0.0;
+                return 0.0F;
             } /* end if */
         } /* end else */
     } /* end if */
 
-    /* Get tim for event */
-    if(HDfabs(first_time.etime) < 0.0000000001)
+    /* Get time for event */
+    if(HDfabs(first_time.etime) < 0.0000000001F)
         /* That is == 0.0, but direct comparison between floats is bad */
         H5_timer_begin(&first_time);
     if(H5_debug_g.ttimes)
@@ -544,48 +544,45 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
                         } /* end if */
                         else {
                             H5D_mpio_no_collective_cause_t nocol_cause_mode = (H5D_mpio_no_collective_cause_t)va_arg(ap, int);
+                            hbool_t flag_already_displayed = FALSE;
 
-                            switch(nocol_cause_mode) {
-                                case H5D_MPIO_COLLECTIVE:
-                                    fprintf(out, "H5D_MPIO_COLLECTIVE");
-                                    break;
+                            /* Check for all bit-flags which might be set */
+                            if(nocol_cause_mode & H5D_MPIO_COLLECTIVE) {
+                                fprintf(out, "H5D_MPIO_COLLECTIVE");
+                                flag_already_displayed = TRUE;
+                            } /* end if */
+                            if(nocol_cause_mode & H5D_MPIO_SET_INDEPENDENT) {
+                                fprintf(out, "%sH5D_MPIO_SET_INDEPENDENT", flag_already_displayed ? " | " : "");
+                                flag_already_displayed = TRUE;
+                            } /* end if */
+                            if(nocol_cause_mode & H5D_MPIO_DATATYPE_CONVERSION) {
+                                fprintf(out, "%sH5D_MPIO_DATATYPE_CONVERSION", flag_already_displayed ? " | " : "");
+                                flag_already_displayed = TRUE;
+                            } /* end if */
+                            if(nocol_cause_mode & H5D_MPIO_DATA_TRANSFORMS) {
+                                fprintf(out, "%sH5D_MPIO_DATA_TRANSFORMS", flag_already_displayed ? " | " : "");
+                                flag_already_displayed = TRUE;
+                            } /* end if */
+                            if(nocol_cause_mode & H5D_MPIO_MPI_OPT_TYPES_ENV_VAR_DISABLED) {
+                                fprintf(out, "%sH5D_MPIO_MPI_OPT_TYPES_ENV_VAR_DISABLED", flag_already_displayed ? " | " : "");
+                                flag_already_displayed = TRUE;
+                            } /* end if */
+                            if(nocol_cause_mode & H5D_MPIO_NOT_SIMPLE_OR_SCALAR_DATASPACES) {
+                                fprintf(out, "%sH5D_MPIO_NOT_SIMPLE_OR_SCALAR_DATASPACES", flag_already_displayed ? " | " : "");
+                                flag_already_displayed = TRUE;
+                            } /* end if */
+                            if(nocol_cause_mode & H5D_MPIO_NOT_CONTIGUOUS_OR_CHUNKED_DATASET) {
+                                fprintf(out, "%sH5D_MPIO_NOT_CONTIGUOUS_OR_CHUNKED_DATASET", flag_already_displayed ? " | " : "");
+                                flag_already_displayed = TRUE;
+                            } /* end if */
+                            if(nocol_cause_mode & H5D_MPIO_FILTERS) {
+                                fprintf(out, "%sH5D_MPIO_FILTERS", flag_already_displayed ? " | " : "");
+                                flag_already_displayed = TRUE;
+                            } /* end if */
 
-                                case H5D_MPIO_SET_INDEPENDENT:
-                                    fprintf(out, "H5D_MPIO_SET_INDEPENDENT");
-                                    break;
-
-                                case H5D_MPIO_DATATYPE_CONVERSION:
-                                    fprintf(out, "H5D_MPIO_DATATYPE_CONVERSION");
-                                    break;
-
-                                case H5D_MPIO_DATA_TRANSFORMS:
-                                    fprintf(out, "H5D_MPIO_DATA_TRANSFORMS");
-                                    break;
-
-                                case H5D_MPIO_SET_MPIPOSIX:
-                                    fprintf(out, "H5D_MPIO_SET_MPIPOSIX");
-                                    break;
-
-                                case H5D_MPIO_NOT_SIMPLE_OR_SCALAR_DATASPACES:
-                                    fprintf(out, "H5D_MPIO_NOT_SIMPLE_OR_SCALAR_DATASPACES");
-                                    break;
-
-                                case H5D_MPIO_POINT_SELECTIONS:
-                                    fprintf(out, "H5D_MPIO_POINT_SELECTIONS");
-                                    break;
-
-                                case H5D_MPIO_NOT_CONTIGUOUS_OR_CHUNKED_DATASET:
-                                    fprintf(out, "H5D_MPIO_NOT_CONTIGUOUS_OR_CHUNKED_DATASET");
-                                    break;
-
-                                case H5D_MPIO_FILTERS:
-                                    fprintf(out, "H5D_MPIO_FILTERS");
-                                    break;
-
-                                default:
-                                    fprintf(out, "%ld", (long)nocol_cause_mode);
-                                    break;
-                            } /* end switch */
+                            /* Display '<none>' if there's no flags set */
+                            if(!flag_already_displayed)
+                                fprintf(out, "<none>");
                         } /* end else */
                         break;
 
@@ -820,9 +817,9 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
                                 fprintf(out, "NULL");
                         } /* end if */
                         else {
-                            H5F_fspace_strategy_t fs_type = (H5F_fspace_strategy_t)va_arg(ap, int);
+                            H5F_fspace_strategy_t fs_strategy = (H5F_fspace_strategy_t)va_arg(ap, int);
 
-                            switch(fs_type) {
+                            switch(fs_strategy) {
                                 case H5F_FSPACE_STRATEGY_AGGR:
                                     fprintf(out, "H5F_FSPACE_STRATEGY_AGGR");
                                     break;
@@ -837,7 +834,7 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
 
                                 case H5F_FSPACE_STRATEGY_NTYPES:
                                 default:
-                                    fprintf(out, "%ld", (long)fs_type);
+                                    fprintf(out, "%ld", (long)fs_strategy);
                                     break;
                             } /* end switch */
                         } /* end else */
@@ -915,6 +912,44 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
 
                                 default:
                                     fprintf(out, "%ld", (long)scope);
+                                    break;
+                            } /* end switch */
+                        } /* end else */
+                        break;
+
+                    case 't':
+                        if(ptr) {
+                            if(vp)
+                                fprintf(out, "0x%lx", (unsigned long)vp);
+                            else
+                                fprintf(out, "NULL");
+                        } /* end if */
+                        else {
+                            H5F_fspace_type_t fs_type = (H5F_fspace_type_t)va_arg(ap, int);
+
+                            switch(fs_type) {
+                                case H5F_FSPACE_TYPE_META:
+                                    fprintf(out, "H5F_FSPACE_TYPE_META");
+                                    break;
+
+                                case H5F_FSPACE_TYPE_RAW:
+                                    fprintf(out, "H5F_FSPACE_TYPE_RAW");
+                                    break;
+
+                                case H5F_FSPACE_TYPE_GENERIC:
+                                    fprintf(out, "H5F_FSPACE_TYPE_GENERIC");
+                                    break;
+
+                                case H5F_FSPACE_TYPE_ALL:
+                                    fprintf(out, "H5F_FSPACE_TYPE_ALL");
+                                    break;
+
+                                case H5F_FSPACE_TYPE_NTYPES:
+                                    fprintf(out, "H5F_FSPACE_TYPE_NTYPES");
+                                    break;
+
+                                default:
+                                    fprintf(out, "%ld", (long)fs_type);
                                     break;
                             } /* end switch */
                         } /* end else */
@@ -2343,7 +2378,7 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
                             unsigned long iul = va_arg(ap, unsigned long); /*lint !e732 Loss of sign not really occuring */
 
                             fprintf(out, "%lu", iul);
-                            asize[argno] = iul;
+                            asize[argno] = (hssize_t)iul;
                         } /* end else */
                         break;
 
@@ -2367,7 +2402,7 @@ H5_trace(const double *returning, const char *func, const char *type, ...)
                             unsigned long long iull = va_arg(ap, unsigned long long); /*lint !e732 Loss of sign not really occuring */
 
                             fprintf(out, "%llu", iull);
-                            asize[argno] = iull;
+                            asize[argno] = (hssize_t)iull;
                         } /* end else */
                         break;
 

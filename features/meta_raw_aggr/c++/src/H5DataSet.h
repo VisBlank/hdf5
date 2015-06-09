@@ -30,6 +30,7 @@ namespace H5 {
 */
 class H5_DLLCPP DataSet : public H5Object, public AbstractDs {
    public:
+
 	// Close this dataset.
 	virtual void close();
 
@@ -37,9 +38,12 @@ class H5_DLLCPP DataSet : public H5Object, public AbstractDs {
 	void extend( const hsize_t* size ) const;
 
 	// Fills a selection in memory with a value
-	void fillMemBuf(const void *fill, DataType& fill_type, void *buf, DataType& buf_type, DataSpace& space);
+	void fillMemBuf(const void *fill, const DataType& fill_type, void *buf, const DataType& buf_type, const DataSpace& space) const;
+	void fillMemBuf(const void *fill, DataType& fill_type, void *buf, DataType& buf_type, DataSpace& space); // kept for backward compatibility
+
 	// Fills a selection in memory with zero
-	void fillMemBuf(void *buf, DataType& buf_type, DataSpace& space);
+	void fillMemBuf(void *buf, const DataType& buf_type, const DataSpace& space) const;
+	void fillMemBuf(void *buf, DataType& buf_type, DataSpace& space); // kept for backward compatibility
 
 	// Gets the creation property list of this dataset.
 	DSetCreatPropList getCreatePlist() const;
@@ -60,7 +64,8 @@ class H5_DLLCPP DataSet : public H5Object, public AbstractDs {
 	virtual size_t getInMemDataSize() const;
 
 	// Returns the number of bytes required to store VL data.
-	hsize_t getVlenBufSize( DataType& type, DataSpace& space ) const;
+	hsize_t getVlenBufSize(const DataType& type, const DataSpace& space ) const;
+	hsize_t getVlenBufSize(DataType& type, DataSpace& space) const; // kept for backward compatibility
 
 	// Reclaims VL datatype memory buffers.
 	static void vlenReclaim(const DataType& type, const DataSpace& space, const DSetMemXferPropList& xfer_plist, void* buf );
@@ -121,6 +126,10 @@ class H5_DLLCPP DataSet : public H5Object, public AbstractDs {
 	// Reads variable or fixed len strings from this dataset.
 	void p_read_fixed_len(const hid_t mem_type_id, const hid_t mem_space_id, const hid_t file_space_id, const hid_t xfer_plist_id, H5std_string& strg) const;
 	void p_read_variable_len(const hid_t mem_type_id, const hid_t mem_space_id, const hid_t file_space_id, const hid_t xfer_plist_id, H5std_string& strg) const;
+
+	// Friend function to set DataSet id.  For library use only.
+	friend void f_DataSet_setId(DataSet* dset, hid_t new_id);
+
 };
 #ifndef H5_NO_NAMESPACE
 }

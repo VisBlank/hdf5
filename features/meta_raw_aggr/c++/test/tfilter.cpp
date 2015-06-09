@@ -57,9 +57,13 @@ static herr_t test_filter_internal(hid_t fid, const char *name, hid_t dcpl,
 #endif
 
 /* Temporary filter IDs used for testing */
-#define H5Z_FILTER_BOGUS        305
+const int H5Z_FILTER_BOGUS = 305;
+
+#if 0 // H5_ATTR_UNUSED variables caused warning, so duplicated below with NULL instead
 static size_t filter_bogus(unsigned int flags, size_t cd_nelmts,
     const unsigned int *cd_values, size_t nbytes, size_t *buf_size, void **buf);
+#endif
+static size_t filter_bogus(size_t nbytes);
 /* This message derives from H5Z */
 const H5Z_class2_t H5Z_BOGUS[1] = {{
     H5Z_CLASS_T_VERS,       /* H5Z_class_t version */
@@ -88,9 +92,12 @@ const H5Z_class2_t H5Z_BOGUS[1] = {{
  *-------------------------------------------------------------------------
  */
 static size_t
-filter_bogus(unsigned int UNUSED flags, size_t UNUSED cd_nelmts,
-      const unsigned int UNUSED *cd_values, size_t nbytes,
-      size_t UNUSED *buf_size, void UNUSED **buf)
+#if 0 // H5_ATTR_UNUSED variables caused warning, so duplicated below with NULL instead
+filter_bogus(unsigned int H5_ATTR_UNUSED flags, size_t H5_ATTR_UNUSED cd_nelmts,
+      const unsigned int H5_ATTR_UNUSED *cd_values, size_t nbytes,
+      size_t H5_ATTR_UNUSED *buf_size, void H5_ATTR_UNUSED **buf)
+#endif
+filter_bogus(size_t nbytes)
 {
     return nbytes;
 }
@@ -165,7 +172,7 @@ static void test_null_filter()
 
 const H5std_string      DSET_SZIP_NAME("szipped dataset");
 
-void test_szip_filter(H5File& file1)
+static void test_szip_filter(H5File& file1)
 {
 #ifdef H5_HAVE_FILTER_SZIP
     int      points[DSET_DIM1][DSET_DIM2], check[DSET_DIM1][DSET_DIM2];
@@ -239,7 +246,8 @@ void test_szip_filter(H5File& file1)
 #else /* H5_HAVE_FILTER_SZIP */
     SUBTEST("szip filter");
     SKIPPED();
-    puts("    Szip filter not enabled");
+    H5std_string fname = file1.getFileName();
+    cerr << "    Szip filter not enabled for file '" << fname << "'" << endl;
 #endif /* H5_HAVE_FILTER_SZIP */
 }  // test_szip_filter
 

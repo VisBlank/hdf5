@@ -50,13 +50,13 @@ const char *FILENAMES[] = {
 static void gen_file(void)
 {
     hid_t   	fid = -1;		/* File ID */
+    hid_t   	fcpl = -1;		/* File creation property list */
     hid_t       dataset = -1;		/* Dataset ID */
     hid_t       space = -1;		/* Dataspace ID */
-    hid_t   	fcpl;			/* File creation property list */
     hsize_t     dim[1];			/* Dimension sizes */
     int         data[NUM_ELMTS];	/* Buffer for data */
     unsigned    i, j;			/* Local index variables */
-    H5F_fspace_strategy_t fs_strategy;		/* File space handling strategy */
+    H5F_fspace_strategy_t fs_strategy;	/* File space handling strategy */
     hbool_t    	fs_persist;
 
     j = 0;

@@ -47,7 +47,7 @@ int         prop1_def=10;   /* Property 1 default value */
 #define PROP1_DEF_VALUE (&prop1_def)
 
 #define PROP2_NAME     "Property 2"
-float         prop2_def=(float)3.14;   /* Property 2 default value */
+float         prop2_def=3.14F;   /* Property 2 default value */
 #define PROP2_SIZE      sizeof(prop2_def)
 #define PROP2_DEF_VALUE (&prop2_def)
 
@@ -57,7 +57,7 @@ char          prop3_def[10]="Ten chars";   /* Property 3 default value */
 #define PROP3_DEF_VALUE (&prop3_def)
 
 #define PROP4_NAME     "Property 4"
-double          prop4_def=1.41;   /* Property 4 default value */
+double          prop4_def=1.41F;   /* Property 4 default value */
 #define PROP4_SIZE      sizeof(prop4_def)
 #define PROP4_DEF_VALUE (&prop4_def)
 
@@ -88,7 +88,7 @@ test_genprop_basic_class(void)
     CHECK_PTR(name, "H5Pget_class_name");
     if(HDstrcmp(name,CLASS1_NAME)!=0)
         TestErrPrintf("Class names don't match!, name=%s, CLASS1_NAME=%s\n",name,CLASS1_NAME);
-    HDfree(name);
+    H5free_memory(name);
 
     /* Check class parent */
     cid2 = H5Pget_class_parent(cid1);
@@ -119,7 +119,7 @@ test_genprop_basic_class(void)
     CHECK_PTR(name, "H5Pget_class_name");
     if(HDstrcmp(name,CLASS2_NAME)!=0)
         TestErrPrintf("Class names don't match!, name=%s, CLASS2_NAME=%s\n",name,CLASS2_NAME);
-    HDfree(name);
+    H5free_memory(name);
 
     /* Check class parent */
     cid2 = H5Pget_class_parent(cid1);
@@ -385,7 +385,7 @@ test_genprop_cls_crt_cb1(hid_t list_id, void *create_data)
 }
 
 static herr_t
-test_genprop_cls_cpy_cb1(hid_t new_list_id, hid_t UNUSED old_list_id, void *copy_data)
+test_genprop_cls_cpy_cb1(hid_t new_list_id, hid_t H5_ATTR_UNUSED old_list_id, void *copy_data)
 {
     struct {                /* Struct for iterations */
         int count;
@@ -683,7 +683,7 @@ test_genprop_basic_list(void)
     /* Verify the floating-poing value in this way to avoid compiler warning. */
     if(!FLT_ABS_EQUAL(prop2_value,*PROP2_DEF_VALUE))
 	printf("*** UNEXPECTED VALUE from %s should be %f, but is %f at line %4d in %s\n",
-	    "H5Pget", *PROP2_DEF_VALUE, prop2_value, (int)__LINE__, __FILE__);
+	    "H5Pget", (double)*PROP2_DEF_VALUE, (double)prop2_value, (int)__LINE__, __FILE__);
 
 
     /* Close list */
@@ -775,7 +775,7 @@ test_genprop_basic_list_prop(void)
     /* Verify the floating-poing value in this way to avoid compiler warning. */
     if(!FLT_ABS_EQUAL(prop2_value,*PROP2_DEF_VALUE))
 	printf("*** UNEXPECTED VALUE from %s should be %f, but is %f at line %4d in %s\n",
-	    "H5Pget", *PROP2_DEF_VALUE, prop2_value, (int)__LINE__, __FILE__);
+	    "H5Pget", (double)*PROP2_DEF_VALUE, (double)prop2_value, (int)__LINE__, __FILE__);
 
 
     /* Check values of temporary properties (set with regular values) */
@@ -993,7 +993,7 @@ prop_cb_info prop3_cb_info;     /* Callback statistics for property #3 */
 **
 ****************************************************************/
 static herr_t
-test_genprop_cls_cpy_cb2(hid_t new_list_id, hid_t UNUSED old_list_id, void *create_data)
+test_genprop_cls_cpy_cb2(hid_t new_list_id, hid_t H5_ATTR_UNUSED old_list_id, void *create_data)
 {
     struct {                /* Struct for iterations */
         int count;
@@ -1239,7 +1239,7 @@ test_genprop_list_callback(void)
     /* Verify the floating-poing value in this way to avoid compiler warning. */
     if(!FLT_ABS_EQUAL(prop2_value,*PROP2_DEF_VALUE))
 	printf("*** UNEXPECTED VALUE from %s should be %f, but is %f at line %4d in %s\n",
-	    "H5Pget", *PROP2_DEF_VALUE, prop2_value, (int)__LINE__, __FILE__);
+	    "H5Pget", (double)*PROP2_DEF_VALUE, (double)prop2_value, (int)__LINE__, __FILE__);
 
     /* Check values of temporary properties (set with regular values) */
     ret = H5Pget(lid1, PROP3_NAME,&prop3_value);
@@ -1868,7 +1868,7 @@ test_genprop_refcount(void)
     CHECK_PTR(name, "H5Pget_class_name");
     if(HDstrcmp(name,CLASS1_NAME)!=0)
         TestErrPrintf("Class names don't match!, name=%s, CLASS1_NAME=%s\n",name,CLASS1_NAME);
-    HDfree(name);
+    H5free_memory(name);
 
     /* Close class */
     ret = H5Pclose_class(cid1);
@@ -1887,7 +1887,7 @@ test_genprop_refcount(void)
     CHECK_PTR(name, "H5Pget_class_name");
     if(HDstrcmp(name,CLASS1_NAME)!=0)
         TestErrPrintf("Class names don't match!, name=%s, CLASS1_NAME=%s\n",name,CLASS1_NAME);
-    HDfree(name);
+    H5free_memory(name);
 
     /* Close list */
     ret = H5Pclose(lid1);
@@ -1898,7 +1898,7 @@ test_genprop_refcount(void)
     CHECK_PTR(name, "H5Pget_class_name");
     if(HDstrcmp(name,CLASS1_NAME)!=0)
         TestErrPrintf("Class names don't match!, name=%s, CLASS1_NAME=%s\n",name,CLASS1_NAME);
-    HDfree(name);
+    H5free_memory(name);
 
     /* Close class */
     ret = H5Pclose_class(cid1);

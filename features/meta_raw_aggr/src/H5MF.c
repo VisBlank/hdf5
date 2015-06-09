@@ -38,8 +38,9 @@
 #include "H5private.h"		/* Generic Functions			*/
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5Fpkg.h"             /* File access				*/
+#include "H5Iprivate.h"		/* IDs			  		*/
 #include "H5MFpkg.h"		/* File memory management		*/
-#include "H5Vprivate.h"		/* Vectors and arrays 			*/
+#include "H5VMprivate.h"	/* Vectors and arrays 			*/
 
 
 /****************/
@@ -336,7 +337,7 @@ H5MF_create_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type)
     fs_create.client = H5FS_CLIENT_FILE_ID;
     fs_create.shrink_percent = H5MF_FSPACE_SHRINK;
     fs_create.expand_percent = H5MF_FSPACE_EXPAND;
-    fs_create.max_sect_addr = 1 + H5V_log2_gen((uint64_t)f->shared->maxaddr);
+    fs_create.max_sect_addr = 1 + H5VM_log2_gen((uint64_t)f->shared->maxaddr);
     fs_create.max_sect_size = f->shared->maxaddr;
 
     /* Set up alignment and threshold to use depending on TYPE */
@@ -1251,7 +1252,7 @@ HDfprintf(stderr, "%s: size = %Hu\n", FUNC, size);
     HDassert(size > 0);
 
     /* Retrieve the 'eoa' for the file */
-    if(HADDR_UNDEF == (eoa = H5FD_get_eoa(f->shared->lf, H5FD_MEM_DEFAULT)))
+    if(HADDR_UNDEF == (eoa = H5F_get_eoa(f, H5FD_MEM_DEFAULT)))
 	HGOTO_ERROR(H5E_RESOURCE, H5E_CANTGET, HADDR_UNDEF, "driver get_eoa request failed")
 
     /* Compute value to return */
@@ -1287,6 +1288,7 @@ herr_t
 H5MF_xfree(H5F_t *f, H5FD_mem_t alloc_type, hid_t dxpl_id, haddr_t addr,
     hsize_t size)
 {
+    H5F_io_info_t fio_info;             /* I/O info for operation */
     H5FD_mem_t  fs_type;                /* Free space type (mapped from allocation type) */
     H5MF_free_section_t *node = NULL;   /* Free space section pointer */
     unsigned ctype;			/* section class type */
@@ -1312,8 +1314,13 @@ HDfprintf(stderr, "%s: Entering - alloc_type = %u, addr = %a, size = %Hu\n", FUN
     if(H5F_addr_le(f->shared->fs.tmp_addr, addr))
         HGOTO_ERROR(H5E_RESOURCE, H5E_BADRANGE, FAIL, "attempting to free temporary file space")
 
+    /* Set up I/O info for operation */
+    fio_info.f = f;
+    if(NULL == (fio_info.dxpl = (H5P_genplist_t *)H5I_object(dxpl_id)))
+        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "can't get property list")
+
     /* Check if the space to free intersects with the file's metadata accumulator */
-    if(H5F_accum_free(f, dxpl_id, alloc_type, addr, size) < 0)
+    if(H5F__accum_free(&fio_info, alloc_type, addr, size) < 0)
         HGOTO_ERROR(H5E_RESOURCE, H5E_CANTFREE, FAIL, "can't check free space intersection w/metadata accumulator")
 
     /* Get free-space manager type from allocation type */
@@ -2090,7 +2097,7 @@ H5MF_get_freespace(H5F_t *f, hid_t dxpl_id, hsize_t *tot_space, hsize_t *meta_si
     } /* end else */
 
     /* Retrieve the 'eoa' for the file */
-    if(HADDR_UNDEF == (eoa = H5FD_get_eoa(f->shared->lf, H5FD_MEM_DEFAULT)))
+    if(HADDR_UNDEF == (eoa = H5F_get_eoa(f, H5FD_MEM_DEFAULT)))
 	HGOTO_ERROR(H5E_RESOURCE, H5E_CANTGET, FAIL, "driver get_eoa request failed")
 
     if(!H5F_PAGED_AGGR(f)) {
@@ -2346,7 +2353,7 @@ H5MF_get_free_sects(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace, H5MF_sect_iter_ud_t
     /* Query how many sections of this type */
     if(H5FS_sect_stats(fspace, NULL, &hnums) < 0)
 	HGOTO_ERROR(H5E_RESOURCE, H5E_CANTGET, FAIL, "can't query free space stats")
-    H5_ASSIGN_OVERFLOW(*nums, hnums, hsize_t, size_t);
+    H5_CHECKED_ASSIGN(*nums, size_t, hnums, hsize_t);
 
     /* Check if we should retrieve the section info */
     if(sect_udata->sects && *nums > 0) {

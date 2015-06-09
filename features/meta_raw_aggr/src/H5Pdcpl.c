@@ -53,7 +53,7 @@
 /* Define default layout information */
 #define H5D_DEF_STORAGE_COMPACT_INIT  {(hbool_t)FALSE, (size_t)0, NULL}
 #define H5D_DEF_STORAGE_CONTIG_INIT   {HADDR_UNDEF, (hsize_t)0}
-#define H5D_DEF_STORAGE_CHUNK_INIT    {H5D_CHUNK_BTREE, HADDR_UNDEF,  NULL, {{HADDR_UNDEF, NULL}}}
+#define H5D_DEF_STORAGE_CHUNK_INIT    {H5D_CHUNK_IDX_BTREE, HADDR_UNDEF,  NULL, {{HADDR_UNDEF, NULL}}}
 #define H5D_DEF_LAYOUT_CHUNK_INIT    {(unsigned)0, {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, (uint32_t)0, (hsize_t)0, {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}}
 #ifdef H5_HAVE_C99_DESIGNATED_INITIALIZER
 #define H5D_DEF_STORAGE_COMPACT  {H5D_COMPACT, { .compact = H5D_DEF_STORAGE_COMPACT_INIT }}
@@ -144,10 +144,13 @@ static int H5P__dcrt_ext_file_list_cmp(const void *value1, const void *value2, s
 const H5P_libclass_t H5P_CLS_DCRT[1] = {{
     "dataset create",		/* Class name for debugging     */
     H5P_TYPE_DATASET_CREATE,    /* Class type                   */
-    &H5P_CLS_OBJECT_CREATE_g,	/* Parent class ID              */
-    &H5P_CLS_DATASET_CREATE_g,	/* Pointer to class ID          */
-    &H5P_LST_DATASET_CREATE_g,	/* Pointer to default property list ID */
+
+    &H5P_CLS_OBJECT_CREATE_g,	/* Parent class                 */
+    &H5P_CLS_DATASET_CREATE_g,	/* Pointer to class             */
+    &H5P_CLS_DATASET_CREATE_ID_g,	/* Pointer to class ID          */
+    &H5P_LST_DATASET_CREATE_ID_g,	/* Pointer to default property list ID */
     H5P__dcrt_reg_prop,		/* Default property registration routine */
+
     NULL,		        /* Class creation callback      */
     NULL,		        /* Class creation callback info */
     H5P__dcrt_copy,		/* Class copy callback          */
@@ -253,7 +256,7 @@ done:
  */
 /* ARGSUSED */
 static herr_t
-H5P__dcrt_copy(hid_t dst_plist_id, hid_t src_plist_id, void UNUSED *copy_data)
+H5P__dcrt_copy(hid_t dst_plist_id, hid_t src_plist_id, void H5_ATTR_UNUSED *copy_data)
 {
     H5O_fill_t     src_fill, dst_fill;          /* Source & destination fill values */
     H5O_efl_t      src_efl, dst_efl;            /* Source & destination external file lists */
@@ -367,7 +370,7 @@ done:
  */
 /* ARGSUSED */
 static herr_t
-H5P__dcrt_close(hid_t dcpl_id, void UNUSED *close_data)
+H5P__dcrt_close(hid_t dcpl_id, void H5_ATTR_UNUSED *close_data)
 {
     H5O_fill_t      fill;               /* Fill value */
     H5O_efl_t       efl;                /* External file list */
@@ -559,7 +562,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static int
-H5P__dcrt_layout_cmp(const void *_layout1, const void *_layout2, size_t UNUSED size)
+H5P__dcrt_layout_cmp(const void *_layout1, const void *_layout2, size_t H5_ATTR_UNUSED size)
 {
     const H5O_layout_t *layout1 = (const H5O_layout_t *)_layout1,     /* Create local aliases for values */
         *layout2 = (const H5O_layout_t *)_layout2;
@@ -668,7 +671,7 @@ H5P__fill_value_enc(const void *value, void **_pp, size_t *size)
 
             /* Encode the size of a size_t */
             enc_value = (uint64_t)dt_size;
-            enc_size = H5V_limit_enc_size(enc_value);
+            enc_size = H5VM_limit_enc_size(enc_value);
             HDassert(enc_size < 256);
 
             /* Encode the size */
@@ -697,7 +700,7 @@ H5P__fill_value_enc(const void *value, void **_pp, size_t *size)
             if(H5T_encode(fill->type, NULL, &dt_size) < 0)
                 HGOTO_ERROR(H5E_DATATYPE, H5E_CANTENCODE, FAIL, "can't encode datatype")
             enc_value = (uint64_t)dt_size;
-            enc_size = H5V_limit_enc_size(enc_value);
+            enc_size = H5VM_limit_enc_size(enc_value);
         }
         *size += (1 + enc_size);
         *size += dt_size;
@@ -791,7 +794,7 @@ done:
  *-------------------------------------------------------------------------
  */
 int
-H5P_fill_value_cmp(const void *_fill1, const void *_fill2, size_t UNUSED size)
+H5P_fill_value_cmp(const void *_fill1, const void *_fill2, size_t H5_ATTR_UNUSED size)
 {
     const H5O_fill_t *fill1 = (const H5O_fill_t *)_fill1,     /* Create local aliases for values */
         *fill2 = (const H5O_fill_t *)_fill2;
@@ -873,7 +876,7 @@ H5P__dcrt_ext_file_list_enc(const void *value, void **_pp, size_t *size)
     if(NULL != *pp) {
         /* Encode number of slots used */
         enc_value = (uint64_t)efl->nused;
-        enc_size = H5V_limit_enc_size(enc_value);
+        enc_size = H5VM_limit_enc_size(enc_value);
         HDassert(enc_size < 256);
         *(*pp)++ = (uint8_t)enc_size;
         UINT64ENCODE_VAR(*pp, enc_value, enc_size);
@@ -883,7 +886,7 @@ H5P__dcrt_ext_file_list_enc(const void *value, void **_pp, size_t *size)
             /* Calculate length of slot name and encode it */
             len = HDstrlen(efl->slot[u].name) + 1;
             enc_value = (uint64_t)len;
-            enc_size = H5V_limit_enc_size(enc_value);
+            enc_size = H5VM_limit_enc_size(enc_value);
             HDassert(enc_size < 256);
             *(*pp)++ = (uint8_t)enc_size;
             UINT64ENCODE_VAR(*pp, enc_value, enc_size);
@@ -894,14 +897,14 @@ H5P__dcrt_ext_file_list_enc(const void *value, void **_pp, size_t *size)
 
             /* Encode offset */
             enc_value = (uint64_t)efl->slot[u].offset;
-            enc_size = H5V_limit_enc_size(enc_value);
+            enc_size = H5VM_limit_enc_size(enc_value);
             HDassert(enc_size < 256);
             *(*pp)++ = (uint8_t)enc_size;
             UINT64ENCODE_VAR(*pp, enc_value, enc_size);
 
             /* encode size */
             enc_value = (uint64_t)efl->slot[u].size;
-            enc_size = H5V_limit_enc_size(enc_value);
+            enc_size = H5VM_limit_enc_size(enc_value);
             HDassert(enc_size < 256);
             *(*pp)++ = (uint8_t)enc_size;
             UINT64ENCODE_VAR(*pp, enc_value, enc_size);
@@ -909,13 +912,13 @@ H5P__dcrt_ext_file_list_enc(const void *value, void **_pp, size_t *size)
     } /* end if */
 
     /* Calculate size needed for encoding */
-    *size += (1 + H5V_limit_enc_size((uint64_t)efl->nused));
+    *size += (1 + H5VM_limit_enc_size((uint64_t)efl->nused));
     for(u = 0; u < efl->nused; u++) {
         len = HDstrlen(efl->slot[u].name) + 1;
-        *size += (1 + H5V_limit_enc_size((uint64_t)len));
+        *size += (1 + H5VM_limit_enc_size((uint64_t)len));
         *size += len;
-        *size += (1 + H5V_limit_enc_size((uint64_t)efl->slot[u].offset));
-        *size += (1 + H5V_limit_enc_size((uint64_t)efl->slot[u].size));
+        *size += (1 + H5VM_limit_enc_size((uint64_t)efl->slot[u].offset));
+        *size += (1 + H5VM_limit_enc_size((uint64_t)efl->slot[u].size));
     } /* end for */
 
     FUNC_LEAVE_NOAPI(SUCCEED)
@@ -1028,7 +1031,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static int
-H5P__dcrt_ext_file_list_cmp(const void *_efl1, const void *_efl2, size_t UNUSED size)
+H5P__dcrt_ext_file_list_cmp(const void *_efl1, const void *_efl2, size_t H5_ATTR_UNUSED size)
 {
     const H5O_efl_t *efl1 = (const H5O_efl_t *)_efl1,     /* Create local aliases for values */
         *efl2 = (const H5O_efl_t *)_efl2;
@@ -2006,7 +2009,7 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5P_get_fill_value(H5P_genplist_t *plist, H5T_t *type, void *value/*out*/,
+H5P_get_fill_value(H5P_genplist_t *plist, const H5T_t *type, void *value/*out*/,
     hid_t dxpl_id)
 {
     H5O_fill_t          fill;                   /* Fill value to retrieve */

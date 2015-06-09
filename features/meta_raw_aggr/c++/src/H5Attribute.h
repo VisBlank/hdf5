@@ -31,6 +31,16 @@ namespace H5 {
 */
 class H5_DLLCPP Attribute : public AbstractDs, public IdComponent {
    public:
+
+	// Copy constructor: makes a copy of an existing Attribute object.
+	Attribute( const Attribute& original );
+
+	// Default constructor
+	Attribute();
+
+	// Creates a copy of an existing attribute using the attribute id
+	Attribute( const hid_t attr_id );
+
 	// Closes this attribute.
 	virtual void close();
 
@@ -38,9 +48,13 @@ class H5_DLLCPP Attribute : public AbstractDs, public IdComponent {
 	H5std_string getFileName() const;
 
 	// Gets the name of this attribute.
+	ssize_t getName(char* attr_name, size_t buf_size = 0) const;
+	H5std_string getName(size_t len) const;
+	H5std_string getName() const;
+	ssize_t getName(H5std_string& attr_name, size_t len = 0) const;
+	// The overloaded function below is replaced by the one above and it
+	// is kept for backward compatibility purpose.
 	ssize_t getName( size_t buf_size, H5std_string& attr_name ) const;
-	H5std_string getName( size_t buf_size ) const; // returns name, not its length
-	H5std_string getName() const; // returns name, no argument
 
 	// Gets a copy of the dataspace for this attribute.
 	virtual DataSpace getSpace() const;
@@ -60,20 +74,11 @@ class H5_DLLCPP Attribute : public AbstractDs, public IdComponent {
 	void write(const DataType& mem_type, const H5std_string& strg ) const;
 
 	// Flushes all buffers associated with the file specified by this
-	// attribute to disk
+	// attribute to disk.
 	void flush( H5F_scope_t scope ) const;
 
 	///\brief Returns this class name.
 	virtual H5std_string fromClass () const { return("Attribute"); }
-
-	// Creates a copy of an existing attribute using the attribute id
-	Attribute( const hid_t attr_id );
-
-	// Copy constructor: makes a copy of an existing Attribute object.
-	Attribute( const Attribute& original );
-
-	// Default constructor
-	Attribute();
 
 	// Gets the attribute id.
 	virtual hid_t getId() const;
@@ -105,6 +110,10 @@ class H5_DLLCPP Attribute : public AbstractDs, public IdComponent {
 
 	// do not inherit H5Object::renameAttr
 	void renameAttr() {}
+
+	// Friend function to set Attribute id.  For library use only.
+	friend void f_Attribute_setId(Attribute* attr, hid_t new_id);
+
 };
 #ifndef H5_NO_NAMESPACE
 }

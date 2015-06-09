@@ -200,16 +200,22 @@ H5FD_term_interface(void)
     FUNC_ENTER_NOAPI_NOINIT_NOERR
 
     if(H5_interface_initialize_g) {
-	if((n=H5I_nmembers(H5I_VFL))!=0) {
-	    H5I_clear_type(H5I_VFL, FALSE, FALSE);
-	} else {
-	    H5I_dec_type_ref(H5I_VFL);
+	if(H5I_nmembers(H5I_VFL) > 0) {
+	    (void)H5I_clear_type(H5I_VFL, FALSE, FALSE);
+            n++; /*H5I*/
+	} /* end if */
+        else {
+            /* Destroy the VFL driver id group */
+	    (void)H5I_dec_type_ref(H5I_VFL);
+            n++; /*H5I*/
+
+	    /* Mark closed */
 	    H5_interface_initialize_g = 0;
-	    n = 1; /*H5I*/
-	}
-    }
+	} /* end else */
+    } /* end if */
+
     FUNC_LEAVE_NOAPI(n)
-}
+} /* end H5FD_term_interface() */
 
 
 /*-------------------------------------------------------------------------
@@ -534,11 +540,11 @@ H5FD_sb_encode(H5FD_t *file, char *name/*out*/, uint8_t *buf)
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-}
+} /* end H5FD_sb_encode() */
 
 
 /*-------------------------------------------------------------------------
- * Function:	H5FD_sb_decode
+ * Function:	H5FD__sb_decode
  *
  * Purpose:	Decodes the driver information block.
  *
@@ -550,20 +556,61 @@ done:
  *
  *-------------------------------------------------------------------------
  */
+static herr_t
+H5FD__sb_decode(H5FD_t *file, const char *name, const uint8_t *buf)
+{
+    herr_t      ret_value = SUCCEED;    /* Return value */
+
+    FUNC_ENTER_STATIC
+
+    HDassert(file && file->cls);
+
+    /* Decode driver information */
+    if(file->cls->sb_decode && (file->cls->sb_decode)(file, name, buf) < 0)
+	HGOTO_ERROR(H5E_VFL, H5E_CANTINIT, FAIL, "driver sb_decode request failed")
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5FD__sb_decode() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5FD_sb_load
+ *
+ * Purpose:	Validate and decode the driver information block.
+ *
+ * Return:	Success:	Non-negative
+ *		Failure:	Negative
+ *
+ * Programmer:	Quincey Koziol
+ *              Friday, July 19, 2013
+ *
+ *-------------------------------------------------------------------------
+ */
 herr_t
-H5FD_sb_decode(H5FD_t *file, const char *name, const uint8_t *buf)
+H5FD_sb_load(H5FD_t *file, const char *name, const uint8_t *buf)
 {
     herr_t      ret_value = SUCCEED;    /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
 
     HDassert(file && file->cls);
-    if(file->cls->sb_decode && (file->cls->sb_decode)(file, name, buf) < 0)
-	HGOTO_ERROR(H5E_VFL, H5E_CANTINIT, FAIL, "driver sb_decode request failed")
+
+    /* Check if driver matches driver information saved. Unfortunately, we can't push this
+     * function to each specific driver because we're checking if the driver is correct.
+     */
+    if(!HDstrncmp(name, "NCSAfami", (size_t)8) && HDstrcmp(file->cls->name, "family"))
+        HGOTO_ERROR(H5E_VFL, H5E_BADVALUE, FAIL, "family driver should be used")
+    if(!HDstrncmp(name, "NCSAmult", (size_t)8) && HDstrcmp(file->cls->name, "multi"))
+        HGOTO_ERROR(H5E_VFL, H5E_BADVALUE, FAIL, "multi driver should be used")
+
+    /* Decode driver information */
+    if(H5FD__sb_decode(file, name, buf) < 0)
+        HGOTO_ERROR(H5E_VFL, H5E_CANTDECODE, FAIL, "unable to decode driver information")
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5FD_sb_decode() */
+} /* end H5FD_sb_load() */
 
 
 /*-------------------------------------------------------------------------
@@ -880,6 +927,7 @@ H5FDopen(const char *name, unsigned flags, hid_t fapl_id, haddr_t maxaddr)
     H5FD_t	*ret_value=NULL;
 
     FUNC_ENTER_API(NULL)
+    H5TRACE4("*x", "*sIuia", name, flags, fapl_id, maxaddr);
 
     /* Check arguments */
     if(H5P_DEFAULT == fapl_id)
@@ -1515,19 +1563,19 @@ done:
  *-------------------------------------------------------------------------
  */
 haddr_t
-H5FDget_eof(H5FD_t *file)
+H5FDget_eof(H5FD_t *file, H5FD_mem_t type)
 {
     haddr_t	ret_value;
 
     FUNC_ENTER_API(HADDR_UNDEF)
-    H5TRACE1("a", "*x", file);
+    H5TRACE2("a", "*xMt", file, type);
 
     /* Check arguments */
     if(!file || !file->cls)
 	HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, HADDR_UNDEF, "invalid file pointer")
 
     /* The real work */
-    if(HADDR_UNDEF == (ret_value = H5FD_get_eof(file)))
+    if(HADDR_UNDEF == (ret_value = H5FD_get_eof(file, type)))
 	HGOTO_ERROR(H5E_VFL, H5E_CANTINIT, HADDR_UNDEF, "file get eof request failed")
 
     /* (Note compensating for base address subtraction in internal routine) */
@@ -1652,15 +1700,14 @@ done:
  * Programmer:	Robb Matzke
  *              Thursday, July 29, 1999
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 herr_t
 H5FDread(H5FD_t *file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr, size_t size,
 	 void *buf/*out*/)
 {
-    herr_t      ret_value = SUCCEED;       /* Return value */
+    H5P_genplist_t *dxpl;               /* DXPL object */
+    herr_t      ret_value = SUCCEED;    /* Return value */
 
     FUNC_ENTER_API(FAIL)
     H5TRACE6("e", "*xMtiazx", file, type, dxpl_id, addr, size, buf);
@@ -1678,9 +1725,13 @@ H5FDread(H5FD_t *file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr, size_t size
     if(!buf)
 	HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "null result buffer")
 
+    /* Get the DXPL plist object for DXPL ID */
+    if(NULL == (dxpl = (H5P_genplist_t *)H5I_object(dxpl_id)))
+        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "can't get property list")
+
     /* Do the real work */
     /* (Note compensating for base address addition in internal routine) */
-    if(H5FD_read(file, dxpl_id, type, addr - file->base_addr, size, buf) < 0)
+    if(H5FD_read(file, dxpl, type, addr - file->base_addr, size, buf) < 0)
 	HGOTO_ERROR(H5E_VFL, H5E_READERROR, FAIL, "file read request failed")
 
 done:
@@ -1703,15 +1754,14 @@ done:
  * Programmer:	Robb Matzke
  *              Thursday, July 29, 1999
  *
- * Modifications:
- *
  *-------------------------------------------------------------------------
  */
 herr_t
 H5FDwrite(H5FD_t *file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr, size_t size,
 	  const void *buf)
 {
-    herr_t      ret_value = SUCCEED;       /* Return value */
+    H5P_genplist_t *dxpl;               /* DXPL object */
+    herr_t      ret_value = SUCCEED;    /* Return value */
 
     FUNC_ENTER_API(FAIL)
     H5TRACE6("e", "*xMtiaz*x", file, type, dxpl_id, addr, size, buf);
@@ -1728,9 +1778,13 @@ H5FDwrite(H5FD_t *file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr, size_t siz
     if(!buf)
 	HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "null buffer")
 
+    /* Get the DXPL plist object for DXPL ID */
+    if(NULL == (dxpl = (H5P_genplist_t *)H5I_object(dxpl_id)))
+        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "can't get property list")
+
     /* The real work */
     /* (Note compensating for base address addition in internal routine) */
-    if(H5FD_write(file, dxpl_id, type, addr - file->base_addr, size, buf) < 0)
+    if(H5FD_write(file, dxpl, type, addr - file->base_addr, size, buf) < 0)
 	HGOTO_ERROR(H5E_VFL, H5E_WRITEERROR, FAIL, "file write request failed")
 
 done:
@@ -1827,12 +1881,12 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5FDtruncate(H5FD_t *file, hid_t dxpl_id, unsigned closing)
+H5FDtruncate(H5FD_t *file, hid_t dxpl_id, hbool_t closing)
 {
     herr_t ret_value = SUCCEED;       /* Return value */
 
     FUNC_ENTER_API(FAIL)
-    H5TRACE3("e", "*xiIu", file, dxpl_id, closing);
+    H5TRACE3("e", "*xib", file, dxpl_id, closing);
 
     /* Check args */
     if(!file || !file->cls)
@@ -1866,7 +1920,7 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5FD_truncate(H5FD_t *file, hid_t dxpl_id, unsigned closing)
+H5FD_truncate(H5FD_t *file, hid_t dxpl_id, hbool_t closing)
 {
     herr_t      ret_value = SUCCEED;       /* Return value */
 

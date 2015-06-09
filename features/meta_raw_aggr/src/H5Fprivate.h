@@ -27,35 +27,12 @@
 #include "H5FDpublic.h"		/* File drivers				*/
 
 /* Private headers needed by this file */
-#include "H5Vprivate.h"		/* Vectors and arrays */
+#include "H5VMprivate.h"		/* Vectors and arrays */
 
 
-/****************************/
-/* Library Private Typedefs */
-/****************************/
-
-/* Main file structure */
-typedef struct H5F_t H5F_t;
-typedef struct H5F_file_t H5F_file_t;
-
-/* Enum for free space manager state */
-typedef enum H5F_fs_state_t {
-    H5F_FS_STATE_CLOSED = 0,                /* Free space manager is closed */
-    H5F_FS_STATE_OPEN = 1,                  /* Free space manager has been opened */
-    H5F_FS_STATE_DELETING = 2               /* Free space manager is being deleted */
-} H5F_fs_state_t;
-
-/* File space types for paged aggregation */
-typedef enum H5F_mem_page_t {
-    H5F_MEM_PAGE_META = 0,     	/* Small-sized meta data */
-    H5F_MEM_PAGE_RAW = 1,     	/* Small-sized raw data */
-    H5F_MEM_PAGE_GENERIC = 2,   /* Large-sized untyped data (meta or raw data) */
-    H5F_MEM_PAGE_NTYPES         /* Sentinel value - must be last */
-} H5F_mem_page_t;
-
-/* Block aggregation structure */
-typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
-
+/**************************/
+/* Library Private Macros */
+/**************************/
 
 /*
  * Encode and decode macros for file meta-data.
@@ -134,7 +111,7 @@ typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
 /* (Assumes that the high bits of the integer are zero) */
 #  define UINT64ENCODE_VARLEN(p, n) {					      \
    uint64_t __n = (uint64_t)(n);							      \
-   unsigned _s = H5V_limit_enc_size(__n);				      \
+   unsigned _s = H5VM_limit_enc_size(__n);				      \
 									      \
    *(p)++ = (uint8_t)_s;						      \
    UINT64ENCODE_VAR(p, __n, _s);						      \
@@ -267,7 +244,6 @@ typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
 #define H5F_addr_overflow(X,Z)	(HADDR_UNDEF==(X) ||			      \
 				 HADDR_UNDEF==(X)+(haddr_t)(Z) ||	      \
 				 (X)+(haddr_t)(Z)<(X))
-#define H5F_addr_hash(X,M)	((unsigned)((X)%(M)))
 #define H5F_addr_defined(X)	((X)!=HADDR_UNDEF)
 /* The H5F_addr_eq() macro guarantees that Y is not HADDR_UNDEF by making
  * certain that X is not HADDR_UNDEF and then checking that X equals Y
@@ -424,13 +400,13 @@ typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
  */
 #if (H5_SIZEOF_SIZE_T >= H5_SIZEOF_OFF_T)
 #   define H5F_OVERFLOW_SIZET2OFFT(X)					      \
-    ((size_t)(X)>=(size_t)((size_t)1<<(8*sizeof(off_t)-1)))
+    ((size_t)(X)>=(size_t)((size_t)1<<(8*sizeof(HDoff_t)-1)))
 #else
 #   define H5F_OVERFLOW_SIZET2OFFT(X) 0
 #endif
 #if (H5_SIZEOF_HSIZE_T >= H5_SIZEOF_OFF_T)
 #   define H5F_OVERFLOW_HSIZET2OFFT(X)					      \
-    ((hsize_t)(X)>=(hsize_t)((hsize_t)1<<(8*sizeof(off_t)-1)))
+    ((hsize_t)(X)>=(hsize_t)((hsize_t)1<<(8*sizeof(HDoff_t)-1)))
 #else
 #   define H5F_OVERFLOW_HSIZET2OFFT(X) 0
 #endif
@@ -485,6 +461,8 @@ typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
 #define H5F_ACS_WANT_POSIX_FD_NAME              "want_posix_fd" /* Internal: query the file descriptor from the core VFD, instead of the memory address */
 #define H5F_ACS_EFC_SIZE_NAME                   "efc_size"      /* Size of external file cache */
 #define H5F_ACS_FILE_IMAGE_INFO_NAME            "file_image_info" /* struct containing initial file image and callback info */
+#define H5F_ACS_CORE_WRITE_TRACKING_FLAG_NAME       "core_write_tracking_flag" /* Whether or not core VFD backing store write tracking is enabled */
+#define H5F_ACS_CORE_WRITE_TRACKING_PAGE_SIZE_NAME  "core_write_tracking_page_size" /* The page size in kiB when core VFD write tracking is enabled */
 
 /* ======================== File Mount properties ====================*/
 #define H5F_MNT_SYM_LOCAL_NAME 		"local"                 /* Whether absolute symlinks local to file. */
@@ -494,6 +472,10 @@ typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
 /* Which process writes metadata */
 #define H5_PAR_META_WRITE 0
 #endif /* H5_HAVE_PARALLEL */
+
+/* Define the HDF5 file signature */
+#define H5F_SIGNATURE	  "\211HDF\r\n\032\n"
+#define H5F_SIGNATURE_LEN 8
 
 /* Version #'s of the major components of the file format */
 #define HDF5_SUPERBLOCK_VERSION_DEF	0	/* The default super block format	  */
@@ -513,6 +495,8 @@ typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
                                                     if it is changed, the code
                                                     must compensate. -QAK
                                                  */
+#define HDF5_BTREE_IK_MAX_ENTRIES       65536 	/* 2^16 - 2 bytes for storing entries (children) */
+						/* See format specification on version 1 B-trees */
 
 /* Default file space handling strategy */
 #define H5F_FILE_SPACE_STRATEGY_DEF	        H5F_FSPACE_STRATEGY_AGGR
@@ -597,11 +581,63 @@ typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
 #define H5SM_LIST_MAGIC                 "SMLI"          /* Shared Message List */
 
 
-/* Forward declarations for prototype arguments */
+/****************************/
+/* Library Private Typedefs */
+/****************************/
+
+/* Forward declarations (for prototypes & type definitions) */
 struct H5B_class_t;
 struct H5UC_t;
 struct H5O_loc_t;
 struct H5HG_heap_t;
+struct H5P_genplist_t;
+
+/* Forward declarations for anonymous H5F objects */
+
+/* Main file structures */
+typedef struct H5F_t H5F_t;
+typedef struct H5F_file_t H5F_file_t;
+
+/* Block aggregation structure */
+typedef struct H5F_blk_aggr_t H5F_blk_aggr_t;
+
+/* I/O Info for an operation */
+typedef struct H5F_io_info_t {
+    const H5F_t *f;                     /* File object */
+    const struct H5P_genplist_t *dxpl;         /* DXPL object */
+} H5F_io_info_t;
+
+/* Concise info about a block of bytes in a file */
+typedef struct H5F_block_t {
+    haddr_t offset;             /* Offset of the block in the file */
+    hsize_t length;             /* Length of the block in the file */
+} H5F_block_t;
+
+/* Enum for free space manager state */
+typedef enum H5F_fs_state_t {
+    H5F_FS_STATE_CLOSED = 0,                /* Free space manager is closed */
+    H5F_FS_STATE_OPEN = 1,                  /* Free space manager has been opened */
+    H5F_FS_STATE_DELETING = 2               /* Free space manager is being deleted */
+} H5F_fs_state_t;
+
+/* File space types for paged aggregation */
+typedef enum H5F_mem_page_t {
+    H5F_MEM_PAGE_META = 0,     	/* Small-sized meta data */
+    H5F_MEM_PAGE_RAW = 1,     	/* Small-sized raw data */
+    H5F_MEM_PAGE_GENERIC = 2,   /* Large-sized untyped data (meta or raw data) */
+    H5F_MEM_PAGE_NTYPES         /* Sentinel value - must be last */
+} H5F_mem_page_t;
+
+
+/*****************************/
+/* Library-private Variables */
+/*****************************/
+
+
+/***************************************/
+/* Library-private Function Prototypes */
+/***************************************/
+
 
 /* Private functions */
 H5_DLL H5F_t *H5F_open(const char *name, unsigned flags, hid_t fcpl_id,
@@ -619,6 +655,7 @@ H5_DLL unsigned H5F_get_nopen_objs(const H5F_t *f);
 H5_DLL unsigned H5F_incr_nopen_objs(H5F_t *f);
 H5_DLL unsigned H5F_decr_nopen_objs(H5F_t *f);
 H5_DLL hid_t H5F_get_file_id(const H5F_t *f);
+H5_DLL ssize_t H5F_get_file_image(H5F_t *f, void *buf_ptr, size_t buf_len);
 H5_DLL H5F_t *H5F_get_parent(const H5F_t *f);
 H5_DLL unsigned H5F_get_nmounts(const H5F_t *f);
 H5_DLL hid_t H5F_get_access_plist(H5F_t *f, hbool_t app_ref);

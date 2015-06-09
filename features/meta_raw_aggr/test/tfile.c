@@ -1066,7 +1066,7 @@ test_get_obj_ids(void)
     H5Fclose(fid);
 
     /* Get the number of all opened objects */
-    oid_count = H5Fget_obj_count(H5F_OBJ_ALL, H5F_OBJ_ALL);
+    oid_count = H5Fget_obj_count((hid_t)H5F_OBJ_ALL, H5F_OBJ_ALL);
     CHECK(oid_count, FAIL, "H5Fget_obj_count");
     VERIFY(oid_count, NDSETS, "H5Fget_obj_count");
 
@@ -1074,7 +1074,7 @@ test_get_obj_ids(void)
     CHECK(oid_list, NULL, "HDcalloc");
 
     /* Get the list of all opened objects */
-    ret_count = H5Fget_obj_ids(H5F_OBJ_ALL, H5F_OBJ_ALL, (size_t)oid_count, oid_list);
+    ret_count = H5Fget_obj_ids((hid_t)H5F_OBJ_ALL, H5F_OBJ_ALL, (size_t)oid_count, oid_list);
     CHECK(ret_count, FAIL, "H5Fget_obj_ids");
     VERIFY(ret_count, NDSETS, "H5Fget_obj_count");
 
@@ -1126,7 +1126,7 @@ test_get_file_id(void)
     CHECK(ret, FAIL, "H5Fclose");
 
     /* Test H5Iget_file_id() */
-    check_file_id(-1, group_id);
+    check_file_id((hid_t)-1, group_id);
 
     ret = H5Gclose(group_id);
     CHECK(ret, FAIL, "H5Gclose");
@@ -1265,32 +1265,32 @@ test_obj_count_and_id(hid_t fid1, hid_t fid2, hid_t did, hid_t gid1,
     CHECK(fid4, FAIL, "H5Fcreate");
 
     /* test object count of all files IDs open */
-    oid_count = H5Fget_obj_count(H5F_OBJ_ALL, H5F_OBJ_FILE);
+    oid_count = H5Fget_obj_count((hid_t)H5F_OBJ_ALL, H5F_OBJ_FILE);
     CHECK(oid_count, FAIL, "H5Fget_obj_count");
     VERIFY(oid_count, OBJ_ID_COUNT_4, "H5Fget_obj_count");
 
     /* test object count of all datasets open */
-    oid_count = H5Fget_obj_count(H5F_OBJ_ALL, H5F_OBJ_DATASET);
+    oid_count = H5Fget_obj_count((hid_t)H5F_OBJ_ALL, H5F_OBJ_DATASET);
     CHECK(oid_count, FAIL, "H5Fget_obj_count");
     VERIFY(oid_count, OBJ_ID_COUNT_1, "H5Fget_obj_count");
 
     /* test object count of all groups open */
-    oid_count = H5Fget_obj_count(H5F_OBJ_ALL, H5F_OBJ_GROUP);
+    oid_count = H5Fget_obj_count((hid_t)H5F_OBJ_ALL, H5F_OBJ_GROUP);
     CHECK(oid_count, FAIL, "H5Fget_obj_count");
     VERIFY(oid_count, OBJ_ID_COUNT_3, "H5Fget_obj_count");
 
     /* test object count of all named datatypes open */
-    oid_count = H5Fget_obj_count(H5F_OBJ_ALL, H5F_OBJ_DATATYPE);
+    oid_count = H5Fget_obj_count((hid_t)H5F_OBJ_ALL, H5F_OBJ_DATATYPE);
     CHECK(oid_count, FAIL, "H5Fget_obj_count");
     VERIFY(oid_count, OBJ_ID_COUNT_0, "H5Fget_obj_count");
 
     /* test object count of all attributes open */
-    oid_count = H5Fget_obj_count(H5F_OBJ_ALL, H5F_OBJ_ATTR);
+    oid_count = H5Fget_obj_count((hid_t)H5F_OBJ_ALL, H5F_OBJ_ATTR);
     CHECK(oid_count, FAIL, "H5Fget_obj_count");
     VERIFY(oid_count, OBJ_ID_COUNT_0, "H5Fget_obj_count");
 
     /* test object count of all objects currently open */
-    oid_count = H5Fget_obj_count(H5F_OBJ_ALL, H5F_OBJ_ALL);
+    oid_count = H5Fget_obj_count((hid_t)H5F_OBJ_ALL, H5F_OBJ_ALL);
     CHECK(oid_count, FAIL, "H5Fget_obj_count");
     VERIFY(oid_count, OBJ_ID_COUNT_8, "H5Fget_obj_count");
  
@@ -1301,7 +1301,7 @@ test_obj_count_and_id(hid_t fid1, hid_t fid2, hid_t did, hid_t gid1,
         if(oid_list != NULL) {
             int   i;
 
-	    ret_count = H5Fget_obj_ids(H5F_OBJ_ALL, H5F_OBJ_ALL, (size_t)oid_count, oid_list);
+	    ret_count = H5Fget_obj_ids((hid_t)H5F_OBJ_ALL, H5F_OBJ_ALL, (size_t)oid_count, oid_list);
 	    CHECK(ret_count, FAIL, "H5Fget_obj_ids");
 
             for(i = 0; i < oid_count; i++) {
@@ -2275,7 +2275,7 @@ test_rw_noupdate(void)
     diff = HDdifftime(sb2.st_mtime, sb1.st_mtime);
 
     /* Check That Timestamps Are Equal */
-    if(diff > (double)0.0f) {
+    if(diff > 0.0F) {
         /* Output message about test being performed */
         MESSAGE(1, ("Testing to verify that nothing is written if nothing is changed: This test is skipped on this system because the modification time from stat is the same as the last access time (We know OpenVMS behaves in this way).\n"));
     } /* end if */
@@ -4362,9 +4362,7 @@ test_file(void)
 
     test_file_create();		/* Test file creation(also creation templates)*/
     test_file_open();		/* Test file opening */
-#ifndef H5_NO_SHARED_WRITING
     test_file_close();          /* Test file close behavior */
-#endif /* H5_NO_SHARED_WRITING */
     test_get_file_id();         /* Test H5Iget_file_id */
     test_get_obj_ids();         /* Test H5Fget_obj_ids for Jira Issue 8528 */
     test_file_perm();           /* Test file access permissions */

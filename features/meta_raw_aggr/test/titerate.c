@@ -40,7 +40,6 @@
 #define NAMELEN     80
 
 /* 1-D dataset with fixed dimensions */
-#define SPACE1_NAME  "Space1"
 #define SPACE1_RANK	1
 #define SPACE1_DIM1	4
 
@@ -84,7 +83,7 @@ int iter_strcmp(const void *s1, const void *s2)
 **
 ****************************************************************/
 static herr_t
-liter_cb(hid_t UNUSED group, const char *name, const H5L_info_t UNUSED *link_info,
+liter_cb(hid_t H5_ATTR_UNUSED group, const char *name, const H5L_info_t H5_ATTR_UNUSED *link_info,
     void *op_data)
 {
     iter_info *info = (iter_info *)op_data;
@@ -345,7 +344,7 @@ test_iter_group(hid_t fapl, hbool_t new_format)
 **
 ****************************************************************/
 herr_t
-aiter_cb(hid_t UNUSED group, const char *name, const H5A_info_t UNUSED *ainfo,
+aiter_cb(hid_t H5_ATTR_UNUSED group, const char *name, const H5A_info_t H5_ATTR_UNUSED *ainfo,
     void *op_data)
 {
     iter_info *info = (iter_info *)op_data;
@@ -539,7 +538,7 @@ int iter_strcmp2(const void *s1, const void *s2)
 **
 ****************************************************************/
 static herr_t
-liter_cb2(hid_t loc_id, const char *name, const H5L_info_t UNUSED *link_info,
+liter_cb2(hid_t loc_id, const char *name, const H5L_info_t H5_ATTR_UNUSED *link_info,
     void *opdata)
 {
     const iter_info *test_info = (const iter_info *)opdata;

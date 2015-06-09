@@ -24,6 +24,7 @@ include $(top_srcdir)/config/commence.am
 # These are the programs that 'make all' or 'make prog' will build and
 # which 'make check' will run.  List them in the order they should be run.
 EXAMPLE_PROG=ptExampleFL
+TEST_EXAMPLES_SCRIPT=$(INSTALL_SCRIPT_FILES)
 
 # These are the example files to be installed
 INSTALL_FILES=ptExampleFL.cpp
@@ -35,6 +36,7 @@ CXX_API=yes
 # Where to install examples
 # Note: no '/' after DESTDIR.  Explanation in commence.am
 EXAMPLEDIR=${DESTDIR}$(exec_prefix)/share/hdf5_examples/hl/c++
+EXAMPLETOPDIR=${DESTDIR}$(exec_prefix)/share/hdf5_examples/hl
 
 # How to build programs using h5c++
 $(EXTRA_PROG): $(H5CPP)

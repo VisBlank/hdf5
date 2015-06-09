@@ -165,7 +165,7 @@
 #define H5D_XFER_DIRECT_CHUNK_WRITE_FILTERS_DEF		0
 #define H5D_XFER_DIRECT_CHUNK_WRITE_OFFSET_SIZE		sizeof(hsize_t *)
 #define H5D_XFER_DIRECT_CHUNK_WRITE_OFFSET_DEF		NULL
-#define H5D_XFER_DIRECT_CHUNK_WRITE_DATASIZE_SIZE	sizeof(size_t)
+#define H5D_XFER_DIRECT_CHUNK_WRITE_DATASIZE_SIZE	sizeof(uint32_t)
 #define H5D_XFER_DIRECT_CHUNK_WRITE_DATASIZE_DEF	0
 
 /******************/
@@ -214,10 +214,13 @@ static herr_t H5P__dxfr_xform_close(const char* name, size_t size, void* value);
 const H5P_libclass_t H5P_CLS_DXFR[1] = {{
     "data transfer",		/* Class name for debugging     */
     H5P_TYPE_DATASET_XFER,      /* Class type                   */
-    &H5P_CLS_ROOT_g,		/* Parent class ID              */
-    &H5P_CLS_DATASET_XFER_g,	/* Pointer to class ID          */
-    &H5P_LST_DATASET_XFER_g,	/* Pointer to default property list ID */
+
+    &H5P_CLS_ROOT_g,		/* Parent class                 */
+    &H5P_CLS_DATASET_XFER_g,	/* Pointer to class             */
+    &H5P_CLS_DATASET_XFER_ID_g,	/* Pointer to class ID          */
+    &H5P_LST_DATASET_XFER_ID_g,	/* Pointer to default property list ID */
     H5P__dxfr_reg_prop,		/* Default property registration routine */
+
     NULL,		        /* Class creation callback      */
     NULL,		        /* Class creation callback info */
     NULL,			/* Class copy callback          */
@@ -267,7 +270,7 @@ static const void *H5D_def_xfer_xform_g = H5D_XFER_XFORM_DEF;          /* Defaul
 static const hbool_t H5D_def_direct_chunk_flag_g = H5D_XFER_DIRECT_CHUNK_WRITE_FLAG_DEF; 	/* Default value for the flag of direct chunk write */
 static const uint32_t H5D_def_direct_chunk_filters_g = H5D_XFER_DIRECT_CHUNK_WRITE_FILTERS_DEF;	/* Default value for the filters of direct chunk write */
 static const hsize_t *H5D_def_direct_chunk_offset_g = H5D_XFER_DIRECT_CHUNK_WRITE_OFFSET_DEF; 	/* Default value for the offset of direct chunk write */
-static const size_t H5D_def_direct_chunk_datasize_g = H5D_XFER_DIRECT_CHUNK_WRITE_DATASIZE_DEF; /* Default value for the datasize of direct chunk write */
+static const uint32_t H5D_def_direct_chunk_datasize_g = H5D_XFER_DIRECT_CHUNK_WRITE_DATASIZE_DEF; /* Default value for the datasize of direct chunk write */
 
 
 /*-------------------------------------------------------------------------
@@ -681,7 +684,7 @@ H5P__dxfr_xform_enc(const void *value, void **_pp, size_t *size)
 
         /* encode the length of the prefix */
         enc_value = (uint64_t)len;
-        enc_size = H5V_limit_enc_size(enc_value);
+        enc_size = H5VM_limit_enc_size(enc_value);
         HDassert(enc_size < 256);
         *(*pp)++ = (uint8_t)enc_size;
         UINT64ENCODE_VAR(*pp, enc_value, enc_size);
@@ -698,7 +701,7 @@ H5P__dxfr_xform_enc(const void *value, void **_pp, size_t *size)
     } /* end if */
 
     /* Size of encoded data transform */
-    *size += (1 + H5V_limit_enc_size((uint64_t)len));
+    *size += (1 + H5VM_limit_enc_size((uint64_t)len));
     if(NULL != pexp)
         *size += len;
 
@@ -774,7 +777,7 @@ done:
  */
 /* ARGSUSED */
 static herr_t
-H5P__dxfr_xform_del(hid_t UNUSED prop_id, const char UNUSED *name, size_t UNUSED size, void *value)
+H5P__dxfr_xform_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED size, void *value)
 {
     herr_t ret_value = SUCCEED;         /* Return value */
 
@@ -806,7 +809,7 @@ done:
  */
 /* ARGSUSED */
 static herr_t
-H5P__dxfr_xform_copy(const char UNUSED *name, size_t UNUSED size, void *value)
+H5P__dxfr_xform_copy(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED size, void *value)
 {
     herr_t ret_value = SUCCEED;         /* Return value */
 
@@ -836,7 +839,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static int
-H5P__dxfr_xform_cmp(const void *_xform1, const void *_xform2, size_t UNUSED size)
+H5P__dxfr_xform_cmp(const void *_xform1, const void *_xform2, size_t H5_ATTR_UNUSED size)
 {
     const H5Z_data_xform_t * const *xform1 = (const H5Z_data_xform_t * const *)_xform1; /* Create local aliases for values */
     const H5Z_data_xform_t * const *xform2 = (const H5Z_data_xform_t * const *)_xform2; /* Create local aliases for values */
@@ -891,7 +894,7 @@ done:
  */
 /* ARGSUSED */
 static herr_t
-H5P__dxfr_xform_close(const char UNUSED *name, size_t UNUSED size, void *value)
+H5P__dxfr_xform_close(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED size, void *value)
 {
     herr_t ret_value = SUCCEED;         /* Return value */
 
@@ -1493,8 +1496,9 @@ H5Pset_btree_ratios(hid_t plist_id, double left, double middle,
     H5TRACE4("e", "iddd", plist_id, left, middle, right);
 
     /* Check arguments */
-    if(left < 0.0 || left > 1.0 || middle < 0.0 || middle > 1.0 ||
-            right < 0.0 || right > 1.0)
+    if(left < (double)0.0f || left > (double)1.0f
+            || middle < (double)0.0f || middle > (double)1.0f
+            || right < (double)0.0f || right > (double)1.0f)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "split ratio must satisfy 0.0<=X<=1.0")
 
     /* Get the plist structure */

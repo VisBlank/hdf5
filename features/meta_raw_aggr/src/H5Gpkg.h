@@ -55,7 +55,7 @@
     + 2         /* Number of symbols */                                       \
                                                                               \
     /* Entries */                                                             \
-    + ((2 * H5F_SYM_LEAF_K(f)) * H5G_SIZEOF_ENTRY(f))                         \
+    + ((2 * H5F_SYM_LEAF_K(f)) * H5G_SIZEOF_ENTRY_FILE(f))                    \
     )
 
 
@@ -352,6 +352,7 @@ H5_DLL herr_t H5G__traverse_special(const H5G_loc_t *grp_loc,
  * Utility functions
  */
 H5_DLL herr_t H5G__init(void);
+H5_DLL herr_t H5G__term_deprec_interface(void);
 H5_DLL const char *H5G__component(const char *name, size_t *size_p);
 
 /*

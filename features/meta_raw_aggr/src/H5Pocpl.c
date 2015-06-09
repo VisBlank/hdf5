@@ -104,10 +104,13 @@ static herr_t H5P__set_filter(H5P_genplist_t *plist, H5Z_filter_t filter,
 const H5P_libclass_t H5P_CLS_OCRT[1] = {{
     "object create",		/* Class name for debugging     */
     H5P_TYPE_OBJECT_CREATE,     /* Class type                   */
-    &H5P_CLS_ROOT_g,		/* Parent class ID              */
-    &H5P_CLS_OBJECT_CREATE_g,	/* Pointer to class ID          */
+
+    &H5P_CLS_ROOT_g,		/* Parent class                 */
+    &H5P_CLS_OBJECT_CREATE_g,	/* Pointer to class             */
+    &H5P_CLS_OBJECT_CREATE_ID_g,	/* Pointer to class ID          */
     NULL,			/* Pointer to default property list ID */
     H5P__ocrt_reg_prop,		/* Default property registration routine */
+
     NULL,		        /* Class creation callback      */
     NULL,		        /* Class creation callback info */
     H5P__ocrt_copy,		/* Class copy callback          */
@@ -200,7 +203,7 @@ done:
  */
 /* ARGSUSED */
 static herr_t
-H5P__ocrt_copy(hid_t dst_plist_id, hid_t src_plist_id, void UNUSED *copy_data)
+H5P__ocrt_copy(hid_t dst_plist_id, hid_t src_plist_id, void H5_ATTR_UNUSED *copy_data)
 {
     H5O_pline_t    src_pline, dst_pline;        /* Source & destination pipelines */
     H5P_genplist_t *src_plist;                  /* Pointer to source property list */
@@ -249,7 +252,7 @@ done:
  */
 /* ARGSUSED */
 static herr_t
-H5P__ocrt_close(hid_t dcpl_id, void UNUSED *close_data)
+H5P__ocrt_close(hid_t dcpl_id, void H5_ATTR_UNUSED *close_data)
 {
     H5O_pline_t     pline;              /* I/O pipeline */
     H5P_genplist_t *plist;              /* Property list */
@@ -1495,7 +1498,7 @@ H5P__ocrt_pipeline_enc(const void *value, void **_pp, size_t *size)
 
         /* encode nused value */
         enc_value = (uint64_t)pline->nused;
-        enc_size = H5V_limit_enc_size(enc_value);
+        enc_size = H5VM_limit_enc_size(enc_value);
         HDassert(enc_size < 256);
         *(*pp)++ = (uint8_t)enc_size;
         UINT64ENCODE_VAR(*pp, enc_value, enc_size);
@@ -1525,7 +1528,7 @@ H5P__ocrt_pipeline_enc(const void *value, void **_pp, size_t *size)
 
             /* encode cd_nelmts */
             enc_value = (uint64_t)pline->filter[u].cd_nelmts;
-            enc_size = H5V_limit_enc_size(enc_value);
+            enc_size = H5VM_limit_enc_size(enc_value);
             HDassert(enc_size < 256);
             *(*pp)++ = (uint8_t)enc_size;
             UINT64ENCODE_VAR(*pp, enc_value, enc_size);
@@ -1538,12 +1541,12 @@ H5P__ocrt_pipeline_enc(const void *value, void **_pp, size_t *size)
 
     /* calculate size required for encoding */
     *size += 1;
-    *size += (1 + H5V_limit_enc_size((uint64_t)pline->nused));
+    *size += (1 + H5VM_limit_enc_size((uint64_t)pline->nused));
     for(u = 0; u < pline->nused; u++) {
         *size += (sizeof(int32_t) + sizeof(unsigned) + 1);
         if(NULL != pline->filter[u].name)
             *size += H5Z_COMMON_NAME_LEN;
-        *size += (1 + H5V_limit_enc_size((uint64_t)pline->filter[u].cd_nelmts));
+        *size += (1 + H5VM_limit_enc_size((uint64_t)pline->filter[u].cd_nelmts));
         *size += pline->filter[u].cd_nelmts * sizeof(unsigned);
     } /* end for */
 
@@ -1659,7 +1662,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static int
-H5P__ocrt_pipeline_cmp(const void *_pline1, const void *_pline2, size_t UNUSED size)
+H5P__ocrt_pipeline_cmp(const void *_pline1, const void *_pline2, size_t H5_ATTR_UNUSED size)
 {
     const H5O_pline_t *pline1 = (const H5O_pline_t *)_pline1,     /* Create local aliases for values */
         *pline2 = (const H5O_pline_t *)_pline2;

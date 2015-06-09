@@ -64,8 +64,8 @@
 /* Local Macros */
 
 /* Combine a Type number and an atom index into an atom */
-#define H5I_MAKE(g,i)	((((hid_t)(g)&TYPE_MASK)<<ID_BITS)|	  \
-			     ((hid_t)(i)&ID_MASK))
+#define H5I_MAKE(g,i)	((((hid_t)(g) & TYPE_MASK) << ID_BITS) |	  \
+			     ((hid_t)(i) & ID_MASK))
 
 /* Local typedefs */
 
@@ -81,9 +81,8 @@ typedef struct H5I_id_info_t {
 typedef struct {
     const H5I_class_t *cls;     /* Pointer to ID class                      */
     unsigned	init_count;	/* # of times this type has been initialized*/
-    hbool_t	wrapped;	/* Whether the id count has wrapped around  */
-    unsigned	id_count;	/* Current number of IDs held		    */
-    unsigned	nextid;		/* ID to use for the next atom		    */
+    uint64_t	id_count;	/* Current number of IDs held		    */
+    uint64_t	nextid;		/* ID to use for the next atom		    */
     H5SL_t      *ids;           /* Pointer to skip list that stores IDs     */
 } H5I_id_type_t;
 
@@ -92,11 +91,6 @@ typedef struct {
     void *app_key;              /* Application's "key" (user data) */
     void *ret_obj;              /* Object to return */
 } H5I_search_ud_t;
-
-/* User data for iterator callback when IDs have wrapped */
-typedef struct {
-    unsigned nextid;            /* Next ID to expect */
-} H5I_wrap_ud_t;
 
 /* User data for iterator callback for ID iteration */
 typedef struct {
@@ -340,7 +334,6 @@ H5I_register_type(const H5I_class_t *cls)
     /* Initialize the ID type structure for new types */
     if(type_ptr->init_count == 0) {
         type_ptr->cls = cls;
-        type_ptr->wrapped = FALSE;
         type_ptr->id_count = 0;
         type_ptr->nextid = cls->reserved;
         if(NULL == (type_ptr->ids = H5SL_create(H5SL_TYPE_HID, NULL)))
@@ -435,12 +428,12 @@ H5Inmembers(H5I_type_t type, hsize_t *num_members)
 	HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "supplied type does not exist")
 
     if(num_members) {
-        int members;
+        int64_t members;
 
         if((members = H5I_nmembers(type)) < 0)
             HGOTO_ERROR(H5E_ATOM, H5E_CANTCOUNT, FAIL, "can't compute number of members")
 
-        *num_members = (hsize_t)members;
+        H5_CHECKED_ASSIGN(*num_members, hsize_t, members, int64_t);
     } /* end if */
 
 done:
@@ -463,11 +456,11 @@ done:
  *
  *-------------------------------------------------------------------------
  */
-int
+int64_t
 H5I_nmembers(H5I_type_t type)
 {
     H5I_id_type_t	*type_ptr = NULL;
-    int		ret_value;
+    int64_t		    ret_value;
 
     FUNC_ENTER_NOAPI(FAIL)
 
@@ -477,7 +470,7 @@ H5I_nmembers(H5I_type_t type)
 	HGOTO_DONE(0);
 
     /* Set return value */
-    H5_ASSIGN_OVERFLOW(ret_value, type_ptr->id_count, unsigned, int);
+    H5_CHECKED_ASSIGN(ret_value, int64_t, type_ptr->id_count, uint64_t);
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -600,15 +593,9 @@ H5I_clear_type(H5I_type_t type, hbool_t force, hbool_t app_ref)
 
         /* Check if we should delete this node or not */
         if(delete_node) {
-            /* Decrement the number of IDs in the type */
-            (type_ptr->id_count)--;
-
-            /* Remove the node from the list */
-            if(NULL == H5SL_remove(type_ptr->ids, &cur->id))
-                HGOTO_ERROR(H5E_ATOM, H5E_CANTDELETE, FAIL, "can't remove ID node from skip list")
-
-            /* Free the node */
-            cur = H5FL_FREE(H5I_id_info_t, cur);
+            /* Remove the node from the type */
+            if(NULL == H5I__remove_common(type_ptr, cur->id))
+                HGOTO_ERROR(H5E_ATOM, H5E_CANTDELETE, FAIL, "can't remove ID node")
         } /* end if */
     } /* end for */
 
@@ -734,47 +721,6 @@ done:
 
 
 /*-------------------------------------------------------------------------
- * Function:	H5I__wrapped_cb
- *
- * Purpose:	Callback for searching for next free ID, when IDs have wrapped
- *
- * Return:	Success:	Non-negative
- *		Failure:	Negative
- *
- * Programmer:	Quincey Koziol
- *              Thursday, October 3, 2013
- *
- *-------------------------------------------------------------------------
- */
-static herr_t
-H5I__wrapped_cb(void *_item, void UNUSED *_key, void *_udata)
-{
-    H5I_id_info_t *item = (H5I_id_info_t *)_item;       /* Pointer to the ID node */
-    H5I_wrap_ud_t *udata = (H5I_wrap_ud_t *)_udata;     /* Pointer to user data */
-    int ret_value = H5_ITER_CONT;                       /* Return value */
-
-    FUNC_ENTER_STATIC_NOERR
-
-    /* Sanity check */
-    HDassert(item);
-    HDassert(udata);
-
-    /* Break out if we see a free ID */
-    if(udata->nextid != item->id) {
-        /* Sanity check */
-        HDassert(item->id > udata->nextid);
-
-        ret_value = H5_ITER_STOP;
-    } /* end if */
-    else
-        /* Increment to expect the next ID */
-        udata->nextid++;
-
-    FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5I__wrapped_cb() */
-
-
-/*-------------------------------------------------------------------------
  * Function:	H5I_register
  *
  * Purpose:	Registers an OBJECT in a TYPE and returns an ID for it.
@@ -825,39 +771,9 @@ H5I_register(H5I_type_t type, const void *object, hbool_t app_ref)
     type_ptr->nextid++;
 
     /*
-     * This next section of code checks for the 'nextid' getting too large and
-     * wrapping around, thus necessitating checking for duplicate IDs being
-     * handed out.
+     * Sanity check for the 'nextid' getting too large and wrapping around.
      */
-    if(type_ptr->nextid > (unsigned)ID_MASK)
-	type_ptr->wrapped = TRUE;
-
-    /*
-     * If we've wrapped around then we need to check for duplicate id's being
-     * handed out.
-     */
-    if(type_ptr->wrapped) {
-        H5I_wrap_ud_t udata;    /* User data for iteration */
-        hid_t previd;           /* Previous ID value */
-        herr_t iter_status;     /* Iteration status */
-
-        /* Set up user data for iteration */
-        udata.nextid = type_ptr->cls->reserved;
-
-        /* Iterate over all the ID nodes, looking for a gap in the ID sequence */
-        if((iter_status = H5SL_iterate(type_ptr->ids, H5I__wrapped_cb, &udata)) < 0)
-            HGOTO_ERROR(H5E_ATOM, H5E_BADITER, FAIL, "ID iteration failed")
-
-        /* If we didn't break out of the iteration and we're at the max. ID, we've used all the IDs */
-        if(0 == iter_status && udata.nextid >= ID_MASK)
-            HGOTO_ERROR(H5E_ATOM, H5E_NOIDS, FAIL, "no IDs available in type")
-
-        /* Sanity check */
-        HDassert(udata.nextid < ID_MASK);
-
-        /* Retain the next ID for the class */
-        type_ptr->nextid = udata.nextid;
-    } /* end if */
+    HDassert(type_ptr->nextid <= ID_MASK);
 
     /* Set return value */
     ret_value = new_id;
@@ -961,6 +877,7 @@ H5Iobject_verify(hid_t id, H5I_type_t id_type)
     void * ret_value;                      /* Return value */
 
     FUNC_ENTER_API(NULL)
+    H5TRACE2("*x", "iIt", id, id_type);
 
     if(H5I_IS_LIB_TYPE(id_type))
         HGOTO_ERROR(H5E_ATOM, H5E_BADGROUP, NULL, "cannot call public function on library type")
@@ -1101,6 +1018,7 @@ H5Iremove_verify(hid_t id, H5I_type_t id_type)
     void * ret_value;                      /* Return value */
 
     FUNC_ENTER_API(NULL)
+    H5TRACE2("*x", "iIt", id, id_type);
 
     if(H5I_IS_LIB_TYPE(id_type))
         HGOTO_ERROR(H5E_ATOM, H5E_BADGROUP, NULL, "cannot call public function on library type")
@@ -1173,7 +1091,7 @@ H5I__remove_common(H5I_id_type_t *type_ptr, hid_t id)
     HDassert(type_ptr);
 
     /* Get the ID node for the ID */
-    if(NULL == (curr_id = H5SL_remove(type_ptr->ids, &id)))
+    if(NULL == (curr_id = (H5I_id_info_t *)H5SL_remove(type_ptr->ids, &id)))
         HGOTO_ERROR(H5E_ATOM, H5E_CANTDELETE, NULL, "can't remove ID node from skip list")
 
     /* (Casting away const OK -QAK) */
@@ -1206,7 +1124,6 @@ void *
 H5I_remove(hid_t id)
 {
     H5I_id_type_t	*type_ptr;	/*ptr to the atomic type	*/
-    H5I_id_info_t	*curr_id;	/*ptr to the current atom	*/
     H5I_type_t		type;		/*atom's atomic type		*/
     void *	        ret_value;	/*return value			*/
 
@@ -1285,8 +1202,6 @@ done:
 int
 H5I_dec_ref(hid_t id)
 {
-    H5I_type_t		type;		/*type the object is in*/
-    H5I_id_type_t	*type_ptr;	/*ptr to the type	*/
     H5I_id_info_t	*id_ptr;	/*ptr to the new ID	*/
     int ret_value;                      /* Return value */
 
@@ -1295,17 +1210,9 @@ H5I_dec_ref(hid_t id)
     /* Sanity check */
     HDassert(id >= 0);
 
-    /* Check arguments */
-    type = H5I_TYPE(id);
-    if(type <= H5I_BADID || type >= H5I_next_type)
-	HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "invalid type number")
-    type_ptr = H5I_id_type_list_g[type];
-    if(NULL == type_ptr || type_ptr->init_count <= 0)
-	HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "invalid type number")
-
     /* General lookup of the ID */
-    if(NULL == (id_ptr = H5SL_search(type_ptr->ids, &id)))
-	HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "can't locate ID")
+    if(NULL == (id_ptr = H5I__find_id(id)))
+        HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "can't locate ID")
 
     /*
      * If this is the last reference to the object then invoke the type's
@@ -1323,6 +1230,11 @@ H5I_dec_ref(hid_t id)
      * file.  We have to close the dataset anyway. (SLU - 2010/9/7)
      */
     if(1 == id_ptr->count) {
+        H5I_id_type_t	*type_ptr;		/*ptr to the type	*/
+
+        /* Get the ID's type */
+        type_ptr = H5I_id_type_list_g[H5I_TYPE(id)];
+
         /* (Casting away const OK -QAK) */
         if(!type_ptr->cls->free_func || (type_ptr->cls->free_func)((void *)id_ptr->obj_ptr) >= 0) {
             /* Remove the node from the type */
@@ -1486,8 +1398,6 @@ done:
 int
 H5I_inc_ref(hid_t id, hbool_t app_ref)
 {
-    H5I_type_t		type;		/*type the object is in*/
-    H5I_id_type_t	*type_ptr;	/*ptr to the type	*/
     H5I_id_info_t	*id_ptr;	/*ptr to the ID		*/
     int ret_value;                      /* Return value */
 
@@ -1496,16 +1406,8 @@ H5I_inc_ref(hid_t id, hbool_t app_ref)
     /* Sanity check */
     HDassert(id >= 0);
 
-    /* Check arguments */
-    type = H5I_TYPE(id);
-    if(type <= H5I_BADID || type >= H5I_next_type)
-	HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "invalid type number")
-    type_ptr = H5I_id_type_list_g[type];
-    if(!type_ptr || type_ptr->init_count <= 0)
-	HGOTO_ERROR(H5E_ATOM, H5E_BADGROUP, FAIL, "invalid type")
-
     /* General lookup of the ID */
-    if(NULL == (id_ptr = H5SL_search(type_ptr->ids, &id)))
+    if(NULL == (id_ptr = H5I__find_id(id)))
 	HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "can't locate ID")
 
     /* Adjust reference counts */
@@ -1571,8 +1473,6 @@ done:
 int
 H5I_get_ref(hid_t id, hbool_t app_ref)
 {
-    H5I_type_t		type;		/*type the object is in*/
-    H5I_id_type_t	*type_ptr;	/*ptr to the type	*/
     H5I_id_info_t	*id_ptr;	/*ptr to the ID		*/
     int ret_value;                      /* Return value */
 
@@ -1581,16 +1481,8 @@ H5I_get_ref(hid_t id, hbool_t app_ref)
     /* Sanity check */
     HDassert(id >= 0);
 
-    /* Check arguments */
-    type = H5I_TYPE(id);
-    if(type <= H5I_BADID || type >= H5I_next_type)
-	HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "invalid type number")
-    type_ptr = H5I_id_type_list_g[type];
-    if(!type_ptr || type_ptr->init_count <= 0)
-	HGOTO_ERROR(H5E_ATOM, H5E_BADGROUP, FAIL, "invalid type")
-
     /* General lookup of the ID */
-    if(NULL == (id_ptr = H5SL_search(type_ptr->ids, &id)))
+    if(NULL == (id_ptr = H5I__find_id(id)))
 	HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "can't locate ID")
 
     /* Set return value */
@@ -1950,6 +1842,7 @@ H5Isearch(H5I_type_t type, H5I_search_func_t func, void *key)
     void *ret_value;            /* Return value */
 
     FUNC_ENTER_API(NULL)
+    H5TRACE3("*x", "Itx*x", type, func, key);
 
     /* Check arguments */
     if(H5I_IS_LIB_TYPE(type))
@@ -1989,7 +1882,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static int
-H5I__iterate_cb(void *_item, void UNUSED *_key, void *_udata)
+H5I__iterate_cb(void *_item, void H5_ATTR_UNUSED *_key, void *_udata)
 {
     H5I_id_info_t *item = (H5I_id_info_t *)_item;       /* Pointer to the ID node */
     H5I_iterate_ud_t *udata = (H5I_iterate_ud_t *)_udata; /* User data for callback */
@@ -2092,23 +1985,23 @@ done:
 static H5I_id_info_t *
 H5I__find_id(hid_t id)
 {
-    H5I_id_type_t	*type_ptr;		/*ptr to the type	*/
     H5I_type_t		type;			/*ID's type		*/
+    H5I_id_type_t	*type_ptr;		/*ptr to the type	*/
     H5I_id_info_t	*ret_value;		/*return value		*/
 
     FUNC_ENTER_STATIC_NOERR
 
     /* Check arguments */
     type = H5I_TYPE(id);
-    if (type <= H5I_BADID || type >= H5I_next_type)
-        HGOTO_DONE(NULL);
+    if(type <= H5I_BADID || type >= H5I_next_type)
+	HGOTO_DONE(NULL)
 
     type_ptr = H5I_id_type_list_g[type];
-    if (!type_ptr || type_ptr->init_count <= 0)
-        HGOTO_DONE(NULL);
+    if(!type_ptr || type_ptr->init_count <= 0)
+	HGOTO_DONE(NULL)
 
     /* Locate the ID node for the ID */
-    ret_value = H5SL_search(type_ptr->ids, &id);
+    ret_value = (H5I_id_info_t *)H5SL_search(type_ptr->ids, &id);
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -2259,7 +2152,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5I__debug_cb(void *_item, void UNUSED *_key, void *_udata)
+H5I__debug_cb(void *_item, void H5_ATTR_UNUSED *_key, void *_udata)
 {
     H5I_id_info_t *item = (H5I_id_info_t *)_item;       /* Pointer to the ID node */
     H5I_type_t type = *(H5I_type_t *)_udata;            /* User data */
@@ -2327,9 +2220,8 @@ H5I__debug(H5I_type_t type)
     /* Header */
     fprintf(stderr, "	 init_count = %u\n", type_ptr->init_count);
     fprintf(stderr, "	 reserved   = %u\n", type_ptr->cls->reserved);
-    fprintf(stderr, "	 wrapped    = %u\n", type_ptr->wrapped);
-    fprintf(stderr, "	 id_count   = %u\n", type_ptr->id_count);
-    fprintf(stderr, "	 nextid	    = %u\n", type_ptr->nextid);
+    fprintf(stderr, "	 id_count   = %llu\n", (unsigned long long)type_ptr->id_count);
+    fprintf(stderr, "	 nextid	    = %llu\n", (unsigned long long)type_ptr->nextid);
 
     /* List */
     fprintf(stderr, "	 List:\n");

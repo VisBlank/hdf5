@@ -112,7 +112,7 @@ dump_dataspace(hid_t space)
  *-------------------------------------------------------------------------
  */
 herr_t
-dump_attr_cb(hid_t oid, const char *attr_name, const H5A_info_t UNUSED *info, void UNUSED *_op_data)
+dump_attr_cb(hid_t oid, const char *attr_name, const H5A_info_t H5_ATTR_UNUSED *info, void H5_ATTR_UNUSED *_op_data)
 {
     h5tools_context_t ctx;            /* print context  */
     h5tool_format_t  *outputformat = &h5tools_dataformat;
@@ -182,7 +182,7 @@ dump_attr_cb(hid_t oid, const char *attr_name, const H5A_info_t UNUSED *info, vo
  *-------------------------------------------------------------------------
  */
 static herr_t
-dump_all_cb(hid_t group, const char *name, const H5L_info_t *linfo, void UNUSED *op_data)
+dump_all_cb(hid_t group, const char *name, const H5L_info_t *linfo, void H5_ATTR_UNUSED *op_data)
 {
     hid_t       obj;
     herr_t      ret = SUCCEED;
@@ -1187,67 +1187,63 @@ dump_fcpl(hid_t fid)
     * SUPER_BLOCK
     *-------------------------------------------------------------------------
     */
-    PRINTSTREAM(rawoutstream, "\n%s %s\n",SUPER_BLOCK, BEGIN);
+    PRINTSTREAM(rawoutstream, "\n%s %s\n",SUPER_BLOCK, BEGIN)
     indentation(dump_indent + COL);
-    PRINTSTREAM(rawoutstream, "%s %u\n","SUPERBLOCK_VERSION", finfo.super.version);
+    PRINTSTREAM(rawoutstream, "%s %u\n","SUPERBLOCK_VERSION", finfo.super.version)
     indentation(dump_indent + COL);
-    PRINTSTREAM(rawoutstream, "%s %u\n","FREELIST_VERSION", finfo.free.version);
+    PRINTSTREAM(rawoutstream, "%s %u\n","FREELIST_VERSION", finfo.free.version)
     indentation(dump_indent + COL);
-    PRINTSTREAM(rawoutstream, "%s %u\n","SYMBOLTABLE_VERSION", 0);  /* Retain this for backward compatibility, for now (QAK) */
+    PRINTSTREAM(rawoutstream, "%s %u\n","SYMBOLTABLE_VERSION", 0)  /* Retain this for backward compatibility, for now (QAK) */
     indentation(dump_indent + COL);
-    PRINTSTREAM(rawoutstream, "%s %u\n","OBJECTHEADER_VERSION", finfo.sohm.version);
+    PRINTSTREAM(rawoutstream, "%s %u\n","OBJECTHEADER_VERSION", finfo.sohm.version)
     indentation(dump_indent + COL);
-    PRINTSTREAM(rawoutstream,"%s %zu\n","OFFSET_SIZE", off_size);
+    PRINTSTREAM(rawoutstream,"%s %zu\n","OFFSET_SIZE", off_size)
     indentation(dump_indent + COL);
-    PRINTSTREAM(rawoutstream,"%s %zu\n","LENGTH_SIZE", len_size);
+    PRINTSTREAM(rawoutstream,"%s %zu\n","LENGTH_SIZE", len_size)
     indentation(dump_indent + COL);
-    PRINTSTREAM(rawoutstream, "%s %u\n","BTREE_RANK", sym_ik);
+    PRINTSTREAM(rawoutstream, "%s %u\n","BTREE_RANK", sym_ik)
     indentation(dump_indent + COL);
-    PRINTSTREAM(rawoutstream, "%s %d\n","BTREE_LEAF", sym_lk);
+    PRINTSTREAM(rawoutstream, "%s %d\n","BTREE_LEAF", sym_lk)
 
 #ifdef SHOW_FILE_DRIVER
-    if (H5FD_CORE==fdriver)
+    if(H5FD_CORE==fdriver)
         HDstrcpy(dname,"H5FD_CORE");
 #ifdef H5_HAVE_DIRECT
-    else if (H5FD_DIRECT==fdriver)
+    else if(H5FD_DIRECT==fdriver)
         HDstrcpy(dname,"H5FD_DIRECT");
 #endif
-    else if (H5FD_FAMILY==fdriver)
+    else if(H5FD_FAMILY==fdriver)
         HDstrcpy(dname,"H5FD_FAMILY");
-    else if (H5FD_LOG==fdriver)
+    else if(H5FD_LOG==fdriver)
         HDstrcpy(dname,"H5FD_LOG");
-    else if (H5FD_MPIO==fdriver)
+    else if(H5FD_MPIO==fdriver)
         HDstrcpy(dname,"H5FD_MPIO");
-    else if (H5FD_MULTI==fdriver)
+    else if(H5FD_MULTI==fdriver)
         HDstrcpy(dname,"H5FD_MULTI");
-    else if (H5FD_SEC2==fdriver)
+    else if(H5FD_SEC2==fdriver)
         HDstrcpy(dname,"H5FD_SEC2");
-    else if (H5FD_STDIO==fdriver)
+    else if(H5FD_STDIO==fdriver)
         HDstrcpy(dname,"H5FD_STDIO");
-#ifdef H5_HAVE_STREAM
-    else if (H5FD_STREAM==fdriver)
-        HDstrcpy(dname,"H5FD_STREAM");
-#endif
     else
         HDstrcpy(dname,"Unknown driver");
 
     /* Take out this because the driver used can be different from the
      * standard output. */
     /*indentation(dump_indent + COL);
-    PRINTSTREAM(rawoutstream, "%s %s\n","FILE_DRIVER", dname);*/
+    PRINTSTREAM(rawoutstream, "%s %s\n","FILE_DRIVER", dname)*/
 #endif
     indentation(dump_indent + COL);
-    PRINTSTREAM(rawoutstream, "%s %u\n","ISTORE_K", istore_ik);
+    PRINTSTREAM(rawoutstream, "%s %u\n","ISTORE_K", istore_ik)
 
     indentation(dump_indent + COL);
     if(fs_strategy == H5F_FSPACE_STRATEGY_AGGR)
-        HDfprintf(rawoutstream, "%s %s\n", "FILE_SPACE_STRATEGY", "H5F_FSPACE_STRATEGY_AGGR");
+        PRINTSTREAM(rawoutstream, "%s %s\n", "FILE_SPACE_STRATEGY", "H5F_FSPACE_STRATEGY_AGGR")
     else if(fs_strategy == H5F_FSPACE_STRATEGY_PAGE)
-        HDfprintf(rawoutstream, "%s %s\n", "FILE_SPACE_STRATEGY", "H5F_FSPACE_STRATEGY_PAGE");
+        PRINTSTREAM(rawoutstream, "%s %s\n", "FILE_SPACE_STRATEGY", "H5F_FSPACE_STRATEGY_PAGE")
     else if(fs_strategy == H5F_FSPACE_STRATEGY_NONE)
-        HDfprintf(rawoutstream, "%s %s\n", "FILE_SPACE_STRATEGY", "H5F_FSPACE_STRATEGY_NONE");
+        PRINTSTREAM(rawoutstream, "%s %s\n", "FILE_SPACE_STRATEGY", "H5F_FSPACE_STRATEGY_NONE")
     else
-        HDfprintf(rawoutstream, "%s %s\n", "FILE_SPACE_STRATEGY", "Unknown strategy");
+        PRINTSTREAM(rawoutstream, "%s %s\n", "FILE_SPACE_STRATEGY", "Unknown strategy")
     indentation(dump_indent + COL);
     HDfprintf(rawoutstream, "%s %s\n","FREE_SPACE_PERSIST", fs_persist ? "TRUE" : "FALSE");
     indentation(dump_indent + COL);
@@ -1260,13 +1256,13 @@ dump_fcpl(hid_t fid)
     *-------------------------------------------------------------------------
     */
     indentation(dump_indent + COL);
-    PRINTSTREAM(rawoutstream, "USER_BLOCK %s\n",BEGIN);
+    PRINTSTREAM(rawoutstream, "USER_BLOCK %s\n",BEGIN)
     indentation(dump_indent + COL + COL);
-    PRINTSTREAM(rawoutstream,"%s %Hu\n","USERBLOCK_SIZE", userblock);
+    PRINTSTREAM(rawoutstream,"%s %Hu\n","USERBLOCK_SIZE", userblock)
     indentation(dump_indent + COL);
-    PRINTSTREAM(rawoutstream, "%s\n",END);
+    PRINTSTREAM(rawoutstream, "%s\n",END)
 
-    PRINTSTREAM(rawoutstream, "%s",END);
+    PRINTSTREAM(rawoutstream, "%s",END)
 }
 
 /*-------------------------------------------------------------------------
@@ -1285,7 +1281,7 @@ dump_fcpl(hid_t fid)
 void
 dump_fcontents(hid_t fid)
 {
-    PRINTSTREAM(rawoutstream, "%s %s\n",FILE_CONTENTS, BEGIN);
+    PRINTSTREAM(rawoutstream, "%s %s\n",FILE_CONTENTS, BEGIN)
 
     /* special case of unamed types in root group */
     if (unamedtype) {
@@ -1293,18 +1289,18 @@ dump_fcontents(hid_t fid)
 
         for (u = 0; u < type_table->nobjs; u++) {
             if (!type_table->objs[u].recorded)
-                PRINTSTREAM(rawoutstream, " %-10s /#"H5_PRINTF_HADDR_FMT"\n", "datatype", type_table->objs[u].objno);
+                PRINTSTREAM(rawoutstream, " %-10s /#"H5_PRINTF_HADDR_FMT"\n", "datatype", type_table->objs[u].objno)
         }
     }
 
     /* print objects in the files */
     h5trav_print(fid);
 
-    PRINTSTREAM(rawoutstream, " %s\n",END);
+    PRINTSTREAM(rawoutstream, " %s\n",END)
 }
 
 static herr_t
-attr_search(hid_t oid, const char *attr_name, const H5A_info_t UNUSED *ainfo, void *_op_data)
+attr_search(hid_t oid, const char *attr_name, const H5A_info_t H5_ATTR_UNUSED *ainfo, void *_op_data)
 {
     herr_t              ret = SUCCEED;
     int 				i;
@@ -1360,7 +1356,7 @@ attr_search(hid_t oid, const char *attr_name, const H5A_info_t UNUSED *ainfo, vo
 } /* end attr_search() */
 
 static herr_t
-obj_search(const char *path, const H5O_info_t *oi, const char UNUSED *already_visited, void *_op_data)
+obj_search(const char *path, const H5O_info_t *oi, const char H5_ATTR_UNUSED *already_visited, void *_op_data)
 {
 	trav_handle_udata_t  *handle_data = (trav_handle_udata_t*)_op_data;
     char *op_name = (char*)handle_data->op_name;
@@ -1452,7 +1448,7 @@ lnk_search(const char *path, const H5L_info_t *li, void *_op_data)
  *-------------------------------------------------------------------------
  */
 void
-handle_paths(hid_t fid, const char *path_name, void UNUSED * data, int UNUSED pe, const char UNUSED *display_name)
+handle_paths(hid_t fid, const char *path_name, void H5_ATTR_UNUSED * data, int H5_ATTR_UNUSED pe, const char H5_ATTR_UNUSED *display_name)
 {
     hid_t  gid = -1;
 
@@ -1515,7 +1511,7 @@ handle_paths(hid_t fid, const char *path_name, void UNUSED * data, int UNUSED pe
  *-------------------------------------------------------------------------
  */
 void
-handle_attributes(hid_t fid, const char *attr, void UNUSED * data, int UNUSED pe, const char UNUSED *display_name)
+handle_attributes(hid_t fid, const char *attr, void H5_ATTR_UNUSED * data, int H5_ATTR_UNUSED pe, const char H5_ATTR_UNUSED *display_name)
 {
     hid_t  oid = -1;
     hid_t  attr_id = -1;
@@ -1781,7 +1777,7 @@ handle_datasets(hid_t fid, const char *dset, void *data, int pe, const char *dis
                 begin_obj(h5tools_dump_header_format->datasetbegin, real_name, h5tools_dump_header_format->datasetblockbegin);
                 PRINTVALSTREAM(rawoutstream, "\n");
                 indentation(dump_indent + COL);
-                PRINTSTREAM(rawoutstream, "%s \"%s\"\n", HARDLINK, found_obj->objname);
+                PRINTSTREAM(rawoutstream, "%s \"%s\"\n", HARDLINK, found_obj->objname)
                 indentation(dump_indent);
                 end_obj(h5tools_dump_header_format->datasetend, h5tools_dump_header_format->datasetblockend);
             } 
@@ -1826,7 +1822,7 @@ handle_datasets(hid_t fid, const char *dset, void *data, int pe, const char *dis
  *-------------------------------------------------------------------------
  */
 void
-handle_groups(hid_t fid, const char *group, void UNUSED *data, int pe, const char *display_name)
+handle_groups(hid_t fid, const char *group, void H5_ATTR_UNUSED *data, int pe, const char *display_name)
 {
     hid_t       gid;
     const char  *real_name = display_name ? display_name : group;
@@ -1876,7 +1872,7 @@ handle_groups(hid_t fid, const char *group, void UNUSED *data, int pe, const cha
  *-------------------------------------------------------------------------
  */
 void
-handle_links(hid_t fid, const char *links, void UNUSED * data, int UNUSED pe, const char UNUSED *display_name)
+handle_links(hid_t fid, const char *links, void H5_ATTR_UNUSED * data, int H5_ATTR_UNUSED pe, const char H5_ATTR_UNUSED *display_name)
 {
     H5L_info_t linfo;
 
@@ -1898,7 +1894,7 @@ handle_links(hid_t fid, const char *links, void UNUSED * data, int UNUSED pe, co
             PRINTVALSTREAM(rawoutstream, "\n");
             indentation(COL);
             if(H5Lget_val(fid, links, buf, linfo.u.val_size, H5P_DEFAULT) >= 0)
-                PRINTSTREAM(rawoutstream, "LINKTARGET \"%s\"\n", buf);
+                PRINTSTREAM(rawoutstream, "LINKTARGET \"%s\"\n", buf)
             else {
                 error_msg("h5dump error: unable to get link value for \"%s\"\n", links);
                 h5tools_setstatus(EXIT_FAILURE);
@@ -1918,11 +1914,11 @@ handle_links(hid_t fid, const char *links, void UNUSED * data, int UNUSED pe, co
 
                 if(H5Lunpack_elink_val(buf, linfo.u.val_size, NULL, &elink_file, &elink_path)>=0) {
                     indentation(COL);
-                    PRINTSTREAM(rawoutstream, "LINKCLASS %d\n", linfo.type);
+                    PRINTSTREAM(rawoutstream, "LINKCLASS %d\n", linfo.type)
                     indentation(COL);
-                    PRINTSTREAM(rawoutstream, "TARGETFILE \"%s\"\n", elink_file);
+                    PRINTSTREAM(rawoutstream, "TARGETFILE \"%s\"\n", elink_file)
                     indentation(COL);
-                    PRINTSTREAM(rawoutstream, "TARGETPATH \"%s\"\n", elink_path);
+                    PRINTSTREAM(rawoutstream, "TARGETPATH \"%s\"\n", elink_path)
                 } 
                 else {
                     error_msg("h5dump error: unable to unpack external link value for \"%s\"\n", links);
@@ -1943,7 +1939,7 @@ handle_links(hid_t fid, const char *links, void UNUSED * data, int UNUSED pe, co
             begin_obj(h5tools_dump_header_format->udlinkbegin, links, h5tools_dump_header_format->udlinkblockbegin);
             PRINTVALSTREAM(rawoutstream, "\n");
             indentation(COL);
-            PRINTSTREAM(rawoutstream, "LINKCLASS %d\n", linfo.type);
+            PRINTSTREAM(rawoutstream, "LINKCLASS %d\n", linfo.type)
             end_obj(h5tools_dump_header_format->udlinkend, h5tools_dump_header_format->udlinkblockend);
             break;
         } /* end switch */
@@ -1971,7 +1967,7 @@ handle_links(hid_t fid, const char *links, void UNUSED * data, int UNUSED pe, co
  *-------------------------------------------------------------------------
  */
 void
-handle_datatypes(hid_t fid, const char *type, void UNUSED * data, int pe, const char *display_name)
+handle_datatypes(hid_t fid, const char *type, void H5_ATTR_UNUSED * data, int pe, const char *display_name)
 {
     hid_t       type_id;
     const char  *real_name = display_name ? display_name : type;

@@ -50,10 +50,6 @@ const H5std_string FILENAME("tvlstr.h5");
 const int SPACE1_RANK = 1;
 const hsize_t SPACE1_DIM1 = 4;
 
-// Utility functions - not used now, later though.
-void *test_vlstr_alloc_custom(size_t size, void *info);
-void test_vlstr_free_custom(void *mem, void *info);
-
 /****************************************************************
 **
 **  test_vlstr_alloc_custom(): Test VL datatype custom memory
@@ -62,9 +58,10 @@ void test_vlstr_free_custom(void *mem, void *info);
 **	allocated.  It is passed into setVlenMemManager.
 **
 **  Note: exact copy from the C version.
-**
+**  (Not used now)
 ****************************************************************/
-void *test_vlstr_alloc_custom(size_t size, void *info)
+#if 0 // not used now
+static void *test_vlstr_alloc_custom(size_t size, void *info)
 {
     void *ret_value=NULL;	// Pointer to return
     size_t *mem_used=(size_t *)info;  // Get the pointer to the memory used
@@ -85,6 +82,7 @@ void *test_vlstr_alloc_custom(size_t size, void *info)
 
     return(ret_value);
 }
+#endif
 
 /****************************************************************
 **
@@ -94,9 +92,10 @@ void *test_vlstr_alloc_custom(size_t size, void *info)
 **	allocated.  It is passed into setVlenMemManager.
 **
 **  Note: exact copy from the C version.
-**
+**  (Not used now)
 ****************************************************************/
-void test_vlstr_free_custom(void *_mem, void *info)
+#if 0 // not used now
+static void test_vlstr_free_custom(void *_mem, void *info)
 {
     unsigned char *mem;
     size_t *mem_used=(size_t *)info;  // Get the pointer to the memory used
@@ -115,6 +114,7 @@ void test_vlstr_free_custom(void *_mem, void *info)
         HDfree(mem);
     } // end if
 }
+#endif
 
 /*-------------------------------------------------------------------------
  * Function:	test_vlstring_dataset
@@ -260,7 +260,7 @@ static void test_vlstring_array_dataset()
 	char *string_ds_check[SPACE1_DIM1];
 	dataset.read(string_ds_check, vlst);
 
-	int ii;
+	hsize_t ii;
 	for (ii = 0; ii < SPACE1_DIM1; ii++)
 	{
 	    if(HDstrcmp(string_ds_check[ii], string_ds_array[ii])!=0)
@@ -355,25 +355,25 @@ static void test_vlstrings_special()
 	dataset.read(rdata, vlst);
 
 	// Check data read in.
-	hsize_t i;      	// counting variable
-	for (i=0; i<SPACE1_DIM1; i++)
-	    if(rdata[i]!=NULL)
-		TestErrPrintf("VL doesn't match!, rdata[%d]=%p\n",(int)i,rdata[i]);
+	hsize_t ii;      	// counting variable
+	for (ii=0; ii<SPACE1_DIM1; ii++)
+	    if(rdata[ii]!=NULL)
+		TestErrPrintf("VL doesn't match!, rdata[%d]=%p\n",(int)ii,rdata[ii]);
 
 	// Write dataset to disk, then read it back.
 	dataset.write(wdata, vlst);
 	dataset.read(rdata, vlst);
 
 	// Compare data read in.
-	for (i = 0; i < SPACE1_DIM1; i++) {
-	    size_t wlen = HDstrlen(wdata[i]);
-	    size_t rlen = HDstrlen(rdata[i]);
+	for (ii = 0; ii < SPACE1_DIM1; ii++) {
+	    size_t wlen = HDstrlen(wdata[ii]);
+	    size_t rlen = HDstrlen(rdata[ii]);
 	    if(wlen != rlen) {
-		TestErrPrintf("VL data lengths don't match!, strlen(wdata[%d])=%u, strlen(rdata[%d])=%u\n", (int)i, (unsigned)wlen, (int)i, (unsigned)rlen);
+		TestErrPrintf("VL data lengths don't match!, strlen(wdata[%d])=%u, strlen(rdata[%d])=%u\n", (int)ii, (unsigned)wlen, (int)ii, (unsigned)rlen);
 		continue;
 	    } // end if
-	    if(HDstrcmp(wdata[i],rdata[i]) != 0) {
-		TestErrPrintf("VL data values don't match!, wdata[%d]=%s, rdata[%d]=%s\n", (int)i, wdata[i], (int)i, rdata[i]);
+	    if(HDstrcmp(wdata[ii],rdata[ii]) != 0) {
+		TestErrPrintf("VL data values don't match!, wdata[%d]=%s, rdata[%d]=%s\n", (int)ii, wdata[ii], (int)ii, rdata[ii]);
 		continue;
 	    } // end if
 	} // end for
@@ -402,9 +402,9 @@ static void test_vlstrings_special()
 	dataset.read(rdata, vlst);
 
 	// Check data read in.
-	for (i=0; i<SPACE1_DIM1; i++)
-	  if(rdata[i]!=NULL)
-	    TestErrPrintf("VL doesn't match!, rdata[%d]=%p\n",(int)i,rdata[i]);
+	for (ii=0; ii<SPACE1_DIM1; ii++)
+	  if(rdata[ii]!=NULL)
+	    TestErrPrintf("VL doesn't match!, rdata[%d]=%p\n",(int)ii,rdata[ii]);
 
 	// Try to write nil strings to disk.
 	dataset.write(wdata2, vlst);
@@ -413,9 +413,9 @@ static void test_vlstrings_special()
 	dataset.read(rdata, vlst);
 
 	// Check data read in.
-	for (i=0; i<SPACE1_DIM1; i++)
-	  if(rdata[i]!=NULL)
-	    TestErrPrintf("VL doesn't match!, rdata[%d]=%p\n",(int)i,rdata[i]);
+	for (ii=0; ii<SPACE1_DIM1; ii++)
+	  if(rdata[ii]!=NULL)
+	    TestErrPrintf("VL doesn't match!, rdata[%d]=%p\n",(int)ii,rdata[ii]);
 
 	// Close objects and file.
 	dataset.close();
@@ -797,7 +797,7 @@ static void test_vlstring_array_attribute()
 	char *string_att_check[SPACE1_DIM1];
 	gr_attr.read(vlst, &string_att_check);
 
-	int ii;
+	hsize_t ii;
 	for (ii = 0; ii < SPACE1_DIM1; ii++)
 	{
 	    if(HDstrcmp(string_att_check[ii], string_att_array[ii])!=0)

@@ -229,7 +229,7 @@ static void
 usage(const char *prog)
 {
     FLUSHSTREAM(rawoutstream);
-    PRINTSTREAM(rawoutstream, "usage: %s [OPTIONS] files\n", prog);
+    PRINTSTREAM(rawoutstream, "usage: %s [OPTIONS] files\n", prog)
     PRINTVALSTREAM(rawoutstream, "  OPTIONS\n");
     PRINTVALSTREAM(rawoutstream, "     -h,   --help         Print a usage message and exit\n");
     PRINTVALSTREAM(rawoutstream, "     -V,   --version      Print version number and exit\n");
@@ -1494,7 +1494,7 @@ main(int argc, const char *argv[])
             if (useschema) {
                 if (HDstrcmp(xmlnsprefix,"") == 0) {
                     PRINTSTREAM(rawoutstream, "<HDF5-File xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"%s\">\n",
-                            xml_dtd_uri);
+                            xml_dtd_uri)
                 } 
                 else {
                     /*  TO DO: make -url option work in this case (may need new option) */
@@ -1508,12 +1508,12 @@ main(int argc, const char *argv[])
                     PRINTSTREAM(rawoutstream, "<%sHDF5-File xmlns:%s=\"http://hdfgroup.org/HDF5/XML/schema/HDF5-File.xsd\" "
                             "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
                             "xsi:schemaLocation=\"http://hdfgroup.org/HDF5/XML/schema/HDF5-File "
-                            "http://www.hdfgroup.org/HDF5/XML/schema/HDF5-File.xsd\">\n",xmlnsprefix,ns);
+                            "http://www.hdfgroup.org/HDF5/XML/schema/HDF5-File.xsd\">\n",xmlnsprefix,ns)
                     HDfree(ns);
                 }
             } 
             else {
-                PRINTSTREAM(rawoutstream, "<!DOCTYPE HDF5-File PUBLIC \"HDF5-File.dtd\" \"%s\">\n", xml_dtd_uri);
+                PRINTSTREAM(rawoutstream, "<!DOCTYPE HDF5-File PUBLIC \"HDF5-File.dtd\" \"%s\">\n", xml_dtd_uri)
                 PRINTVALSTREAM(rawoutstream, "<HDF5-File>\n");
             }
         }
@@ -1572,7 +1572,7 @@ main(int argc, const char *argv[])
             PRINTVALSTREAM(rawoutstream, "\n");
         } 
         else {
-            PRINTSTREAM(rawoutstream, "</%sHDF5-File>\n", xmlnsprefix);
+            PRINTSTREAM(rawoutstream, "</%sHDF5-File>\n", xmlnsprefix)
         }
         /* Free tables for objects */
         table_list_free();

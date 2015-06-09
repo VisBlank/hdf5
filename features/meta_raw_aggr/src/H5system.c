@@ -200,20 +200,28 @@ HDfprintf(FILE *stream, const char *fmt, ...)
                     case 'H':
                         if(sizeof(hsize_t) < sizeof(long))
                             modifier[0] = '\0';
-                        else if(sizeof(hsize_t) == sizeof(long))
-                            HDstrncpy(modifier, "l", (size_t)2);
-                        else
-                            HDstrncpy(modifier, H5_PRINTF_LL_WIDTH, HDstrlen(H5_PRINTF_LL_WIDTH) + 1);
+                        else if(sizeof(hsize_t) == sizeof(long)) {
+                            HDstrncpy(modifier, "l", sizeof(modifier));
+                            modifier[sizeof(modifier) - 1] = '\0';
+                        } /* end if */
+                        else {
+                            HDstrncpy(modifier, H5_PRINTF_LL_WIDTH, sizeof(modifier));
+                            modifier[sizeof(modifier) - 1] = '\0';
+                        } /* end else */
                         break;
 
                     case 'Z':
                     case 'z':
                         if(sizeof(size_t) < sizeof(long))
                             modifier[0] = '\0';
-                        else if(sizeof(size_t) == sizeof(long))
-                            HDstrncpy(modifier, "l", (size_t)2);
-                        else
-                            HDstrncpy(modifier, H5_PRINTF_LL_WIDTH, HDstrlen(H5_PRINTF_LL_WIDTH) + 1);
+                        else if(sizeof(size_t) == sizeof(long)) {
+                            HDstrncpy(modifier, "l", sizeof(modifier));
+                            modifier[sizeof(modifier) - 1] = '\0';
+                        } /* end if */
+                        else {
+                            HDstrncpy(modifier, H5_PRINTF_LL_WIDTH, sizeof(modifier));
+                            modifier[sizeof(modifier) - 1] = '\0';
+                        } /* end else */
                         break;
 
                     default:
@@ -305,7 +313,7 @@ HDfprintf(FILE *stream, const char *fmt, ...)
                 case 'G':
                     if(!HDstrcmp(modifier, "h")) {
                         float x = (float)va_arg(ap, double);
-                        n = fprintf(stream, format_templ, x);
+                        n = fprintf(stream, format_templ, (double)x);
                     } else if(!*modifier || !HDstrcmp(modifier, "l")) {
                         double x = va_arg(ap, double);
                         n = fprintf(stream, format_templ, x);

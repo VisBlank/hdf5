@@ -49,17 +49,19 @@
 
 const H5std_string	FILE1("dataset.h5");
 const H5std_string	DSET_DEFAULT_NAME("default");
+const H5std_string	DSET_DEFAULT_NAME_PATH("/default");
 const H5std_string	DSET_CHUNKED_NAME("chunked");
 const H5std_string	DSET_SIMPLE_IO_NAME("simple_io");
 const H5std_string	DSET_TCONV_NAME	("tconv");
 const H5std_string	DSET_COMPRESS_NAME("compressed");
 const H5std_string	DSET_BOGUS_NAME	("bogus");
 
+/* Temporary filter IDs used for testing */
 const int H5Z_FILTER_BOGUS = 305;
 
-// Local prototypes
 static size_t filter_bogus(unsigned int flags, size_t cd_nelmts,
     const unsigned int *cd_values, size_t nbytes, size_t *buf_size, void **buf);
+// H5_ATTR_UNUSED variables caused warning, but taking them out caused failure.
 
 /*-------------------------------------------------------------------------
  * Function:	test_create
@@ -96,6 +98,7 @@ test_create( H5File& file)
 	dataset = new DataSet (file.createDataSet
 		(DSET_DEFAULT_NAME, PredType::NATIVE_DOUBLE, space));
 
+
 	// Add a comment to the dataset
 	file.setComment (DSET_DEFAULT_NAME, "This is a dataset");
 
@@ -119,6 +122,16 @@ test_create( H5File& file)
 	// Open the dataset we created above and then close it.  This is one
 	// way to open an existing dataset for accessing.
 	dataset = new DataSet (file.openDataSet (DSET_DEFAULT_NAME));
+
+	// Get and verify the name of this dataset, using
+	// H5std_string getObjName()
+	H5std_string ds_name = dataset->getObjName();
+	verify_val(ds_name, DSET_DEFAULT_NAME_PATH, "DataSet::getObjName", __LINE__, __FILE__);
+
+	// Get and verify the comment from this dataset, using
+	// H5std_string getComment(const H5std_string& name, <buf_size=0, by default>)
+	H5std_string comment = file.getComment(DSET_DEFAULT_NAME);
+	verify_val(comment, "This is a dataset", "DataSet::getComment", __LINE__, __FILE__);
 
 	// Close the dataset when accessing is completed
 	delete dataset;
@@ -300,10 +313,14 @@ test_datasize(FileAccPropList &fapl)
 	// Get the dimension sizes.
 	hsize_t dims[2];
 	int n_dims = space.getSimpleExtentDims(dims);
+	if (n_dims < 0)
+	{
+	    throw Exception("test_compression", "DataSpace::getSimpleExtentDims() failed");
+	}
 
 	// Calculate the supposed size.  Size of each value is int (4), from
 	// test_simple_io.
-	int expected_size = 4 * dims[0] * dims[1];
+	size_t expected_size = 4 * dims[0] * dims[1];
 
 	// getInMemDataSize() returns the in memory size of the data.
 	size_t ds_size = dset.getInMemDataSize();
@@ -442,13 +459,10 @@ const H5Z_class2_t H5Z_BOGUS[1] = {{
  *-------------------------------------------------------------------------
  */
 static size_t
-/*bogus(unsigned int UNUSED flags, size_t UNUSED cd_nelmts,
-      const unsigned int UNUSED cd_values[], size_t nbytes,
-      size_t UNUSED *buf_size, void UNUSED **buf)
-BMR: removed UNUSED for now until asking Q. or R. to pass compilation*/
 filter_bogus(unsigned int flags, size_t cd_nelmts,
       const unsigned int cd_values[], size_t nbytes,
       size_t *buf_size, void **buf)
+// H5_ATTR_UNUSED variables caused warning, but taking them out caused failure.
 {
     return nbytes;
 }
@@ -1045,11 +1059,6 @@ void test_dset()
 
     try
     {
-	// Turn of the auto-printing when failure occurs so that we can
-	// handle the errors appropriately since sometime failures are
-	// caused deliberately and expected.
-	Exception::dontPrint();
-
 	// Use the file access template id to create a file access prop.
 	// list object to pass in H5File::H5File
 	FileAccPropList fapl(fapl_id);
@@ -1060,18 +1069,19 @@ void test_dset()
 	Group grp = file.createGroup( "emit diagnostics", 0);
 	grp.setComment("Causes diagnostic messages to be emitted");
 
-	nerrors += test_create(file)<0 	?1:0;
-	nerrors += test_simple_io(file)<0	?1:0;
-	nerrors += test_tconv(file)<0	?1:0;
-	nerrors += test_compression(file)<0	?1:0;
-	nerrors += test_multiopen (file)<0	?1:0;
-	nerrors += test_types(file)<0       ?1:0;
+	nerrors += test_create(file) < 0 ? 1:0;
+	nerrors += test_simple_io(file) < 0 ? 1:0;
+	nerrors += test_tconv(file) < 0 ? 1:0;
+	nerrors += test_compression(file) < 0 ? 1:0;
+	nerrors += test_multiopen (file) < 0 ? 1:0;
+	nerrors += test_types(file) < 0 ? 1:0;
 
 	// Close group "emit diagnostics".
 	grp.close();
 
 	// Close the file before testing data size.
 	file.close();
+
 	nerrors += test_datasize(fapl) <0 ? 1:0;
     }
     catch (Exception E)

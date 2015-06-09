@@ -32,6 +32,7 @@ endif
 # We don't tell automake about these programs so that it doesn't try to
 # compile them with the regular fortran compiler.
 EXAMPLE_PROG=exlite ex_ds1
+TEST_EXAMPLES_SCRIPT=$(INSTALL_SCRIPT_FILES)
 
 # List files to be installed here
 INSTALL_FILES= exlite.f90 ex_ds1.f90
@@ -53,6 +54,7 @@ endif
 # Tell automake how to install examples
 # Note: no '/' after DESTDIR.  Explanation in commence.am
 EXAMPLEDIR=${DESTDIR}$(exec_prefix)/share/hdf5_examples/hl/fortran
+EXAMPLETOPDIR=${DESTDIR}$(exec_prefix)/share/hdf5_examples/hl
 
 # List dependencies for each example.  Normally, automake would take
 # care of this for us, but if we tell automake about the programs it

@@ -32,15 +32,15 @@
 
 /* private function declarations: */
 
-static void check_fapl_mdc_api_calls(void);
+static unsigned check_fapl_mdc_api_calls(void);
 
-static void check_file_mdc_api_calls(void);
+static unsigned check_file_mdc_api_calls(void);
 
-static void mdc_api_call_smoke_check(int express_test);
+static unsigned mdc_api_call_smoke_check(int express_test);
 
-static void check_fapl_mdc_api_errs(void);
+static unsigned check_fapl_mdc_api_errs(void);
 
-static void check_file_mdc_api_errs(void);
+static unsigned check_file_mdc_api_errs(void);
 
 
 /**************************************************************************/
@@ -67,7 +67,7 @@ static void check_file_mdc_api_errs(void);
  *
  *-------------------------------------------------------------------------
  */
-static void
+static unsigned
 check_fapl_mdc_api_calls(void)
 {
     const char * fcn_name = "check_fapl_mdc_api_calls()";
@@ -489,6 +489,8 @@ check_fapl_mdc_api_calls(void)
         HDfprintf(stdout, "%s: failure_mssg = \"%s\".\n",
                   fcn_name, failure_mssg);
 
+    return !pass;
+
 } /* check_fapl_mdc_api_calls() */
 
 
@@ -516,7 +518,7 @@ check_fapl_mdc_api_calls(void)
  *-------------------------------------------------------------------------
  */
 
-static void
+static unsigned
 check_file_mdc_api_calls(void)
 {
     const char * fcn_name = "check_file_mdc_api_calls()";
@@ -839,6 +841,8 @@ check_file_mdc_api_calls(void)
         HDfprintf(stdout, "%s: failure_mssg = \"%s\".\n",
                   fcn_name, failure_mssg);
 
+    return !pass;
+
 } /* check_file_mdc_api_calls() */
 
 
@@ -865,7 +869,7 @@ check_file_mdc_api_calls(void)
 #define NUM_DSETS               6
 #define NUM_RANDOM_ACCESSES     200000
 
-static void
+static unsigned
 mdc_api_call_smoke_check(int express_test)
 {
     const char * fcn_name = "mdc_api_call_smoke_check()";
@@ -883,7 +887,6 @@ mdc_api_call_smoke_check(int express_test)
     hid_t properties;
     char dset_name[64];
     int i, j, k, l, m, n;
-    int progress_counter;
     herr_t status;
     hsize_t dims[2];
     hsize_t a_size[2];
@@ -1005,7 +1008,7 @@ mdc_api_call_smoke_check(int express_test)
 
         HDfprintf(stdout, "     Long tests disabled.\n");
 
-        return;
+        return 0;
     }
 
     pass = TRUE;
@@ -1106,7 +1109,7 @@ mdc_api_call_smoke_check(int express_test)
 
                 sprintf(dset_name, "/dset%03d", i);
                 dataset_ids[i] = H5Dcreate2(file_id, dset_name, H5T_STD_I32BE,
-                                           dataspace_id, H5P_DEFAULT, properties, H5P_DEFAULT);
+				            dataspace_id, H5P_DEFAULT, properties, H5P_DEFAULT);
 
                 if ( dataset_ids[i] < 0 ) {
 
@@ -1164,7 +1167,6 @@ mdc_api_call_smoke_check(int express_test)
 
     /* initialize all datasets on a round robin basis */
     i = 0;
-    progress_counter = 0;
 
     while ( ( pass ) && ( i < DSET_SIZE ) )
     {
@@ -1249,7 +1251,6 @@ mdc_api_call_smoke_check(int express_test)
 
     /* do random reads on all datasets */
     n = 0;
-    progress_counter = 0;
     while ( ( pass ) && ( n < NUM_RANDOM_ACCESSES ) )
     {
         m = rand() % NUM_DSETS;
@@ -1332,8 +1333,8 @@ mdc_api_call_smoke_check(int express_test)
         }
 
         n++;
-
     }
+
 
     /* close the file spaces we are done with */
     i = 1;
@@ -1376,7 +1377,6 @@ mdc_api_call_smoke_check(int express_test)
     /* do random reads on data set 0 only */
     m = 0;
     n = 0;
-    progress_counter = 0;
     while ( ( pass ) && ( n < NUM_RANDOM_ACCESSES ) )
     {
         i = (rand() % (DSET_SIZE / CHUNK_SIZE)) * CHUNK_SIZE;
@@ -1454,7 +1454,6 @@ mdc_api_call_smoke_check(int express_test)
         }
 
         n++;
-
     }
 
     /* close file space 0 */
@@ -1518,6 +1517,8 @@ mdc_api_call_smoke_check(int express_test)
     if ( ! pass )
         HDfprintf(stdout, "%s: failure_mssg = \"%s\".\n",
                   fcn_name, failure_mssg);
+
+    return !pass;
 
 } /* mdc_api_call_smoke_check() */
 
@@ -2177,7 +2178,7 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* long int    epoch_length           = */ 50000,
     /* enum H5C_cache_incr_mode incr_mode = */ H5C_incr__threshold,
     /* double      lower_hr_threshold     = */ 0.9f,
-    /* double      increment              = */ 0.999999999999,
+    /* double      increment              = */ H5_DOUBLE(0.999999999999),
     /* hbool_t     apply_max_increment    = */ TRUE,
     /* size_t      max_increment          = */ (4 * 1024 * 1024),
     /* enum H5C_cache_flash_incr_mode       */
@@ -2536,7 +2537,7 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* double      flash_threshold        = */ 0.5f,
     /* enum H5C_cache_decr_mode decr_mode = */ H5C_decr__threshold,
     /* double      upper_hr_threshold     = */ 0.999f,
-    /* double      decrement              = */ 1.0000000001,
+    /* double      decrement              = */ H5_DOUBLE(1.0000000001),
     /* hbool_t     apply_max_decrement    = */ TRUE,
     /* size_t      max_decrement          = */ (1 * 1024 * 1024),
     /* int         epochs_before_eviction = */ 3,
@@ -2716,7 +2717,7 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* size_t      max_decrement          = */ (1 * 1024 * 1024),
     /* int         epochs_before_eviction = */ 3,
     /* hbool_t     apply_empty_reserve    = */ TRUE,
-    /* double      empty_reserve          = */ 1.00000000001,
+    /* double      empty_reserve          = */ H5_DOUBLE(1.00000000001),
     /* int         dirty_bytes_threshold  = */ (256 * 1024),
     /* int	  metadata_write_strategy = */
 				      H5AC__DEFAULT_METADATA_WRITE_STRATEGY
@@ -2780,7 +2781,7 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
     /* double      flash_multiple         = */ 2.0f,
     /* double      flash_threshold        = */ 0.5f,
     /* enum H5C_cache_decr_mode decr_mode = */ H5C_decr__age_out_with_threshold,
-    /* double      upper_hr_threshold     = */ 1.00000001,
+    /* double      upper_hr_threshold     = */ H5_DOUBLE(1.00000001),
     /* double      decrement              = */ 0.9f,
     /* hbool_t     apply_max_decrement    = */ TRUE,
     /* size_t      max_decrement          = */ (1 * 1024 * 1024),
@@ -3019,7 +3020,7 @@ H5AC_cache_config_t invalid_configs[NUM_INVALID_CONFIGS] =
  *-------------------------------------------------------------------------
  */
 
-static void
+static unsigned
 check_fapl_mdc_api_errs(void)
 {
     const char * fcn_name = "check_fapl_mdc_api_errs()";
@@ -3042,7 +3043,7 @@ check_fapl_mdc_api_errs(void)
     if  ( pass ) {
 
         H5E_BEGIN_TRY {
-	    result = H5Pget_mdc_config(-1, &scratch);
+	    result = H5Pget_mdc_config((hid_t)-1, &scratch);
 	} H5E_END_TRY;
 
         if ( result >= 0 ) {
@@ -3069,7 +3070,7 @@ check_fapl_mdc_api_errs(void)
 
     scratch.version = H5C__CURR_AUTO_SIZE_CTL_VER;
     if ( ( pass ) &&
-         ( ( H5Pget_mdc_config(fapl_id, &scratch) < 0 ) ||
+         ( ( H5Pget_mdc_config(fapl_id, &scratch) < 0) ||
            ( !CACHE_CONFIGS_EQUAL(default_config, scratch, TRUE, TRUE) ) ) ) {
 
         pass = FALSE;
@@ -3113,7 +3114,7 @@ check_fapl_mdc_api_errs(void)
     if ( pass ) {
 
         H5E_BEGIN_TRY {
-            result = H5Pset_mdc_config(-1, &default_config);
+            result = H5Pset_mdc_config((hid_t)-1, &default_config);
         } H5E_END_TRY;
 
         if ( result >= 0 ) {
@@ -3171,6 +3172,8 @@ check_fapl_mdc_api_errs(void)
         HDfprintf(stdout, "%s: failure_mssg = \"%s\".\n",
                   fcn_name, failure_mssg);
 
+    return !pass;
+
 } /* check_fapl_mdc_api_errs() */
 
 
@@ -3190,7 +3193,7 @@ check_fapl_mdc_api_errs(void)
  *-------------------------------------------------------------------------
  */
 
-static void
+static unsigned
 check_file_mdc_api_errs(void)
 {
     const char * fcn_name = "check_file_mdc_api_errs()";
@@ -3262,7 +3265,7 @@ check_file_mdc_api_errs(void)
 	}
 
         H5E_BEGIN_TRY {
-            result = H5Fget_mdc_config(-1, &scratch);
+            result = H5Fget_mdc_config((hid_t)-1, &scratch);
         } H5E_END_TRY;
 
         if ( result >= 0 ) {
@@ -3321,7 +3324,7 @@ check_file_mdc_api_errs(void)
 	}
 
         H5E_BEGIN_TRY {
-            result = H5Fset_mdc_config(-1, &default_config);
+            result = H5Fset_mdc_config((hid_t)-1, &default_config);
         } H5E_END_TRY;
 
         if ( result >= 0 ) {
@@ -3389,7 +3392,7 @@ check_file_mdc_api_errs(void)
 	}
 
         H5E_BEGIN_TRY {
-            result = H5Fget_mdc_hit_rate(-1, &hit_rate);
+            result = H5Fget_mdc_hit_rate((hid_t)-1, &hit_rate);
         } H5E_END_TRY;
 
         if ( result >= 0 ) {
@@ -3429,7 +3432,7 @@ check_file_mdc_api_errs(void)
 	}
 
         H5E_BEGIN_TRY {
-            result = H5Freset_mdc_hit_rate_stats(-1);
+            result = H5Freset_mdc_hit_rate_stats((hid_t)-1);
         } H5E_END_TRY;
 
         if ( result >= 0 ) {
@@ -3450,7 +3453,7 @@ check_file_mdc_api_errs(void)
 	}
 
         H5E_BEGIN_TRY {
-            result = H5Fget_mdc_size(-1, &max_size, &min_clean_size,
+            result = H5Fget_mdc_size((hid_t)-1, &max_size, &min_clean_size,
                                      &cur_size, &cur_num_entries);
         } H5E_END_TRY;
 
@@ -3508,6 +3511,8 @@ check_file_mdc_api_errs(void)
         HDfprintf(stdout, "%s: failure_mssg = \"%s\".\n",
                   fcn_name, failure_mssg);
 
+    return !pass;
+
 } /* check_file_mdc_api_errs() */
 
 
@@ -3531,28 +3536,35 @@ check_file_mdc_api_errs(void)
 int
 main(void)
 {
+    unsigned nerrs = 0;
     int express_test;
 
     H5open();
 
     express_test = GetTestExpress();
 
+    printf("===================================\n");
+    printf("Cache API tests\n");
+    printf("        express_test = %d\n", express_test);
+    printf("===================================\n");
+
+
 #if 1
-    check_fapl_mdc_api_calls();
+    nerrs += check_fapl_mdc_api_calls();
 #endif
 #if 1
-    check_file_mdc_api_calls();
+    nerrs += check_file_mdc_api_calls();
 #endif
 #if 1
-    mdc_api_call_smoke_check(express_test);
+    nerrs += mdc_api_call_smoke_check(express_test);
 #endif
 #if 1
-    check_fapl_mdc_api_errs();
+    nerrs += check_fapl_mdc_api_errs();
 #endif
 #if 1
-    check_file_mdc_api_errs();
+    nerrs += check_file_mdc_api_errs();
 #endif
 
-    return(0);
+    return( nerrs > 0 );
 
 } /* main() */

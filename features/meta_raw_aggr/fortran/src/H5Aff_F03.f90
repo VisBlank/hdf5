@@ -143,12 +143,9 @@ MODULE H5A_PROVISIONAL
 !  to the C H5Awrite routine
 
   INTERFACE
-     INTEGER FUNCTION h5awrite_f_c(attr_id, mem_type_id, buf)
+     INTEGER FUNCTION h5awrite_f_c(attr_id, mem_type_id, buf) BIND(C, NAME='h5awrite_f_c')
+       USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_ptr
        USE H5GLOBAL
-       USE, INTRINSIC :: ISO_C_BINDING
-       !DEC$IF DEFINED(HDF5F90_WINDOWS)
-       !DEC$ATTRIBUTES C,reference,decorate,alias:'H5AWRITE_F_C'::h5awrite_f_c
-       !DEC$ENDIF
        INTEGER(HID_T), INTENT(IN) :: attr_id
        INTEGER(HID_T), INTENT(IN) :: mem_type_id
        TYPE(C_PTR), VALUE :: buf
@@ -159,12 +156,9 @@ MODULE H5A_PROVISIONAL
 !  to the C H5Aread routine
 
   INTERFACE
-     INTEGER FUNCTION h5aread_f_c(attr_id, mem_type_id, buf)
+     INTEGER FUNCTION h5aread_f_c(attr_id, mem_type_id, buf) BIND(C, NAME='h5aread_f_c')
+       USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_ptr
        USE H5GLOBAL
-       USE, INTRINSIC :: ISO_C_BINDING
-       !DEC$IF DEFINED(HDF5F90_WINDOWS)
-       !DEC$ATTRIBUTES C,reference,decorate,alias:'H5AREAD_F_C'::h5aread_f_c
-       !DEC$ENDIF
        INTEGER(HID_T), INTENT(IN) :: attr_id
        INTEGER(HID_T), INTENT(IN) :: mem_type_id
        TYPE(C_PTR), VALUE :: buf
@@ -1065,17 +1059,16 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(INOUT) :: buf ! Attribute data
     INTEGER, INTENT(OUT) :: hdferr         ! Error code
 
-    CALL h5aread_char_scalar_fix(attr_id, memtype_id, buf, LEN(buf), dims, hdferr)
+    CALL h5aread_char_scalar_fix(attr_id, memtype_id, buf, LEN(buf), hdferr)
 
   END SUBROUTINE h5aread_char_scalar
 
-  SUBROUTINE h5aread_char_scalar_fix(attr_id, memtype_id, buf, buf_len, dims, hdferr)
+  SUBROUTINE h5aread_char_scalar_fix(attr_id, memtype_id, buf, buf_len, hdferr)
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
     INTEGER(HID_T), INTENT(IN) :: attr_id    ! Attribute identifier
     INTEGER(HID_T), INTENT(IN) :: memtype_id ! Attribute datatype
                                              ! identifier  (in memory)
-    INTEGER(HSIZE_T), INTENT(IN), DIMENSION(*) :: dims ! Array to story buf dimension sizes
     INTEGER, INTENT(IN)  :: buf_len
     CHARACTER(LEN=buf_len), INTENT(INOUT), TARGET :: buf ! Attribute data
     INTEGER, INTENT(OUT) :: hdferr         ! Error code

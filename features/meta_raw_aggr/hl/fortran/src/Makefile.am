@@ -22,7 +22,7 @@
 include $(top_srcdir)/config/commence.am
 include $(top_srcdir)/config/lt_vers.am
 
-INCLUDES=-I$(top_srcdir)/src -I$(top_srcdir)/hl/src -I$(top_builddir)/hl/src \
+AM_CPPFLAGS+=-I$(top_srcdir)/src -I$(top_srcdir)/hl/src -I$(top_builddir)/hl/src \
          -I$(top_srcdir)/fortran/src -I$(top_builddir)/fortran/src
 AM_FCFLAGS+=-I$(top_builddir)/fortran/src $(F9XMODFLAG)$(top_builddir)/fortran/src
 
@@ -49,11 +49,8 @@ endif
 libhdf5hl_fortran_la_SOURCES=H5DSfc.c H5LTfc.c  H5IMfc.c H5IMcc.c H5TBfc.c \
 	H5DSff.f90 H5LTff.f90 H5IMff.f90 H5TBff.f90
 
-# HDF5 HL Fortran library depends on HDF5 Library.  However, only add the dependency
-# if --enable-sharedlib-rpath is yes.
-if LT_ADD_LIBHDF5_DEPENDENCY
+# HDF5 HL Fortran library depends on HDF5 Library.
 libhdf5hl_fortran_la_LIBADD=$(LIBH5_HL) $(LIBH5F)
-endif
 
 # Fortran module files can have different extensions and different names
 # (e.g., different capitalizations) on different platforms.  Write rules

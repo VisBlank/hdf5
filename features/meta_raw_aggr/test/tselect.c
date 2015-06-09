@@ -162,6 +162,12 @@
 /* #defines for shape same / different rank tests */
 #define SS_DR_MAX_RANK		5
 
+/* Information for regular hyperslab query test */
+#define SPACE13_RANK	3
+#define SPACE13_DIM1    50
+#define SPACE13_DIM2    50
+#define SPACE13_DIM3    50
+#define SPACE13_NPOINTS 4
 
 
 /* Location comparison function */
@@ -180,7 +186,7 @@ static herr_t test_select_hyper_iter3(void *elem,hid_t type_id, unsigned ndim, c
 **
 ****************************************************************/
 static herr_t
-test_select_hyper_iter1(void *_elem, hid_t UNUSED type_id, unsigned UNUSED ndim, const hsize_t UNUSED *point, void *_operator_data)
+test_select_hyper_iter1(void *_elem, hid_t H5_ATTR_UNUSED type_id, unsigned H5_ATTR_UNUSED ndim, const hsize_t H5_ATTR_UNUSED *point, void *_operator_data)
 {
     uint8_t *tbuf=(uint8_t *)_elem,     /* temporary buffer pointer */
             **tbuf2=(uint8_t **)_operator_data; /* temporary buffer handle */
@@ -292,9 +298,13 @@ test_select_hyper(hid_t xfer_plist)
     ret=H5Dwrite(dataset,H5T_NATIVE_UCHAR,sid2,sid1,xfer_plist,wbuf);
     CHECK(ret, FAIL, "H5Dwrite");
 
-    /* Exercise check for NULL buffer and valid selection */
+    /* Exercise checks for NULL buffer and valid selection */
     H5E_BEGIN_TRY {
         ret=H5Dwrite(dataset,H5T_NATIVE_UCHAR,sid2,sid1,xfer_plist,NULL);
+    } H5E_END_TRY;
+    VERIFY(ret, FAIL, "H5Dwrite");
+    H5E_BEGIN_TRY {
+        ret=H5Dwrite(dataset,H5T_NATIVE_UCHAR,H5S_ALL,H5S_ALL,xfer_plist,NULL);
     } H5E_END_TRY;
     VERIFY(ret, FAIL, "H5Dwrite");
 
@@ -326,9 +336,13 @@ test_select_hyper(hid_t xfer_plist)
     ret=H5Dread(dataset,H5T_NATIVE_UCHAR,sid2,sid1,xfer_plist,rbuf);
     CHECK(ret, FAIL, "H5Dread");
 
-    /* Exercise check for NULL buffer and valid selection */
+    /* Exercise checks for NULL buffer and valid selection */
     H5E_BEGIN_TRY {
         ret=H5Dread(dataset,H5T_NATIVE_UCHAR,sid2,sid1,xfer_plist,NULL);
+    } H5E_END_TRY;
+    VERIFY(ret, FAIL, "H5Dread");
+    H5E_BEGIN_TRY {
+        ret=H5Dread(dataset,H5T_NATIVE_UCHAR,H5S_ALL,H5S_ALL,xfer_plist,NULL);
     } H5E_END_TRY;
     VERIFY(ret, FAIL, "H5Dread");
 
@@ -371,7 +385,7 @@ struct pnt_iter {
 **
 ****************************************************************/
 static herr_t
-test_select_point_iter1(void *_elem, hid_t UNUSED type_id, unsigned UNUSED ndim, const hsize_t UNUSED *point, void *_operator_data)
+test_select_point_iter1(void *_elem, hid_t H5_ATTR_UNUSED type_id, unsigned H5_ATTR_UNUSED ndim, const hsize_t H5_ATTR_UNUSED *point, void *_operator_data)
 {
     uint8_t *elem=(uint8_t *)_elem;  /* Pointer to the element to examine */
     uint8_t *tmp;                       /* temporary ptr to element in operator data */
@@ -648,7 +662,7 @@ test_select_point(hid_t xfer_plist)
 **
 ****************************************************************/
 static herr_t
-test_select_all_iter1(void *_elem, hid_t UNUSED type_id, unsigned UNUSED ndim, const hsize_t UNUSED *point, void *_operator_data)
+test_select_all_iter1(void *_elem, hid_t H5_ATTR_UNUSED type_id, unsigned H5_ATTR_UNUSED ndim, const hsize_t H5_ATTR_UNUSED *point, void *_operator_data)
 {
     uint8_t *tbuf=(uint8_t *)_elem,     /* temporary buffer pointer */
             **tbuf2=(uint8_t **)_operator_data; /* temporary buffer handle */
@@ -668,7 +682,7 @@ test_select_all_iter1(void *_elem, hid_t UNUSED type_id, unsigned UNUSED ndim, c
 **
 ****************************************************************/
 static herr_t
-test_select_none_iter1(void UNUSED *_elem, hid_t UNUSED type_id, unsigned UNUSED ndim, const hsize_t UNUSED *point, void UNUSED *_operator_data)
+test_select_none_iter1(void H5_ATTR_UNUSED *_elem, hid_t H5_ATTR_UNUSED type_id, unsigned H5_ATTR_UNUSED ndim, const hsize_t H5_ATTR_UNUSED *point, void H5_ATTR_UNUSED *_operator_data)
 {
     return(-1);
 }   /* end test_select_none_iter1() */
@@ -2734,7 +2748,6 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
     hid_t dset_type, hid_t xfer_plist)
 {
     hbool_t		data_ok;
-    hbool_t		start_in_checker[5];
     hid_t               fapl;                   /* File access property list */
     hid_t		fid;			/* HDF5 File IDs		*/
     hid_t		full_small_cube_sid;    /* Dataspace for small cube w/all selection */
@@ -2955,7 +2968,6 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
      * large cube.
      */
 
-    start_in_checker[0] = TRUE;
     u = 0;
     do {
         if(small_rank_offset > 0)
@@ -3063,7 +3075,6 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
                                                              sel_start);
 
 
-    start_in_checker[0] = TRUE;
     u = 0;
     do {
         if(0 < small_rank_offset)
@@ -3207,7 +3218,6 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
                                                              small_rank,
                                                              sel_start);
 
-    start_in_checker[0] = TRUE;
     u = 0;
     do {
         if(small_rank_offset > 0)
@@ -3340,7 +3350,6 @@ test_select_hyper_checker_board_dr__run_test(int test_num, const uint16_t *cube_
                                                              small_rank,
                                                              sel_start);
 
-    start_in_checker[0] = TRUE;
     u = 0;
     do {
         if(small_rank_offset > 0)
@@ -5807,7 +5816,7 @@ test_select_hyper_nota_2d(void)
 **
 ****************************************************************/
 static herr_t
-test_select_hyper_iter2(void *_elem, hid_t UNUSED type_id, unsigned ndim, const hsize_t *point, void *_operator_data)
+test_select_hyper_iter2(void *_elem, hid_t H5_ATTR_UNUSED type_id, unsigned ndim, const hsize_t *point, void *_operator_data)
 {
     int *tbuf=(int *)_elem,     /* temporary buffer pointer */
         **tbuf2=(int **)_operator_data; /* temporary buffer handle */
@@ -6999,7 +7008,7 @@ typedef struct {
 **
 ****************************************************************/
 static herr_t
-test_select_hyper_iter3(void *_elem, hid_t UNUSED type_id, unsigned ndim, const hsize_t *point, void *_operator_data)
+test_select_hyper_iter3(void *_elem, hid_t H5_ATTR_UNUSED type_id, unsigned ndim, const hsize_t *point, void *_operator_data)
 {
     unsigned *tbuf = (unsigned *)_elem;     /* temporary buffer pointer */
     fill_iter_info *iter_info = (fill_iter_info *)_operator_data; /* Get the pointer to the iterator information */
@@ -13066,6 +13075,161 @@ test_select_bounds(void)
 
 /****************************************************************
 **
+**  test_hyper_regular(): Tests query operations on regular hyperslabs
+**
+****************************************************************/
+static void
+test_hyper_regular(void)
+{
+    hid_t sid;          /* Dataspace ID */
+    const hsize_t dims[SPACE13_RANK] = {SPACE13_DIM1, SPACE13_DIM2, SPACE13_DIM3};    /* Dataspace dimensions */
+    hsize_t coord[SPACE13_NPOINTS][SPACE13_RANK]; /* Coordinates for point selection */
+    hsize_t start[SPACE13_RANK];        /* The start of the hyperslab */
+    hsize_t stride[SPACE13_RANK];       /* The stride between block starts for the hyperslab */
+    hsize_t count[SPACE13_RANK];        /* The number of blocks for the hyperslab */
+    hsize_t block[SPACE13_RANK];        /* The size of each block for the hyperslab */
+    hsize_t t_start[SPACE13_RANK];      /* Temporary start of the hyperslab */
+    hsize_t t_count[SPACE13_RANK];      /* Temporary number of blocks for the hyperslab */
+    hsize_t q_start[SPACE13_RANK];      /* The queried start of the hyperslab */
+    hsize_t q_stride[SPACE13_RANK];     /* The queried stride between block starts for the hyperslab */
+    hsize_t q_count[SPACE13_RANK];      /* The queried number of blocks for the hyperslab */
+    hsize_t q_block[SPACE13_RANK];      /* The queried size of each block for the hyperslab */
+    htri_t is_regular;                  /* Whether a hyperslab selection is regular */
+    unsigned u;                         /* Local index variable */
+    herr_t ret;                         /* Generic return value */
+
+    /* Output message about test being performed */
+    MESSAGE(6, ("Testing queries on regular hyperslabs\n"));
+
+    /* Create dataspace */
+    sid = H5Screate_simple(SPACE13_RANK, dims, NULL);
+    CHECK(sid, FAIL, "H5Screate_simple");
+
+    /* Query if 'all' selection is regular hyperslab (should fail) */
+    H5E_BEGIN_TRY {
+        is_regular = H5Sis_regular_hyperslab(sid);
+    } H5E_END_TRY;                                  
+    VERIFY(is_regular, FAIL, "H5Sis_regular_hyperslab");     
+
+    /* Query regular hyperslab selection info (should fail) */
+    H5E_BEGIN_TRY {
+        ret = H5Sget_regular_hyperslab(sid, q_start, q_stride, q_count, q_block);
+    } H5E_END_TRY;                                  
+    VERIFY(ret, FAIL, "H5Sget_regular_hyperslab");     
+
+    /* Set 'none' selection */
+    ret = H5Sselect_none(sid);
+    CHECK(ret, FAIL, "H5Sselect_none");
+
+    /* Query if 'none' selection is regular hyperslab (should fail) */
+    H5E_BEGIN_TRY {
+        is_regular = H5Sis_regular_hyperslab(sid);
+    } H5E_END_TRY;                                  
+    VERIFY(is_regular, FAIL, "H5Sis_regular_hyperslab");     
+
+    /* Query regular hyperslab selection info (should fail) */
+    H5E_BEGIN_TRY {
+        ret = H5Sget_regular_hyperslab(sid, q_start, q_stride, q_count, q_block);
+    } H5E_END_TRY;                                  
+    VERIFY(ret, FAIL, "H5Sget_regular_hyperslab");     
+
+    /* Set point selection */
+    coord[0][0] =  3; coord[0][1] =  3; coord[0][2] = 3;
+    coord[1][0] =  3; coord[1][1] = 48; coord[1][2] = 48;
+    coord[2][0] = 48; coord[2][1] =  3; coord[2][2] = 3;
+    coord[3][0] = 48; coord[3][1] = 48; coord[3][2] = 48;
+    ret = H5Sselect_elements(sid, H5S_SELECT_SET, (size_t)SPACE13_NPOINTS, (const hsize_t *)coord);
+    CHECK(ret, FAIL, "H5Sselect_elements");
+
+    /* Query if 'point' selection is regular hyperslab (should fail) */
+    H5E_BEGIN_TRY {
+        is_regular = H5Sis_regular_hyperslab(sid);
+    } H5E_END_TRY;                                  
+    VERIFY(is_regular, FAIL, "H5Sis_regular_hyperslab");     
+
+    /* Query regular hyperslab selection info (should fail) */
+    H5E_BEGIN_TRY {
+        ret = H5Sget_regular_hyperslab(sid, q_start, q_stride, q_count, q_block);
+    } H5E_END_TRY;                                  
+    VERIFY(ret, FAIL, "H5Sget_regular_hyperslab");     
+
+    /* Set "regular" hyperslab selection */
+    start[0]  = 2; start[1]  = 2; start[2]  = 2;
+    stride[0] = 5; stride[1] = 5; stride[2] = 5;
+    count[0]  = 3; count[1]  = 3; count[2]  = 3;
+    block[0]  = 4; block[1]  = 4; block[2]  = 4;
+    ret = H5Sselect_hyperslab(sid, H5S_SELECT_SET, start, stride, count, block);
+    CHECK(ret, FAIL, "H5Sselect_hyperslab");
+
+    /* Query if 'hyperslab' selection is regular hyperslab (should be TRUE) */
+    is_regular = H5Sis_regular_hyperslab(sid);
+    VERIFY(is_regular, TRUE, "H5Sis_regular_hyperslab");     
+
+    /* Retrieve the hyperslab parameters */
+    ret = H5Sget_regular_hyperslab(sid, q_start, q_stride, q_count, q_block);
+    CHECK(ret, FAIL, "H5Sget_regular_hyperslab");
+
+    /* Verify the hyperslab parameters */
+    for(u = 0; u < SPACE13_RANK; u++) {
+        if(start[u] != q_start[u])
+            ERROR("H5Sget_regular_hyperslab, start");
+        if(stride[u] != q_stride[u])
+            ERROR("H5Sget_regular_hyperslab, stride");
+        if(count[u] != q_count[u])
+            ERROR("H5Sget_regular_hyperslab, count");
+        if(block[u] != q_block[u])
+            ERROR("H5Sget_regular_hyperslab, block");
+    } /* end for */
+
+    /* 'OR' in another point */
+    t_start[0]  = 0; t_start[1]  = 0; t_start[2]  = 0;
+    t_count[0]  = 1; t_count[1]  = 1; t_count[2]  = 1;
+    ret = H5Sselect_hyperslab(sid, H5S_SELECT_OR, t_start, NULL, t_count, NULL);
+    CHECK(ret, FAIL, "H5Sselect_hyperslab");
+
+    /* Query if 'hyperslab' selection is regular hyperslab (should be FALSE) */
+    is_regular = H5Sis_regular_hyperslab(sid);
+    VERIFY(is_regular, FALSE, "H5Sis_regular_hyperslab");     
+
+    /* Query regular hyperslab selection info (should fail) */
+    H5E_BEGIN_TRY {
+        ret = H5Sget_regular_hyperslab(sid, q_start, q_stride, q_count, q_block);
+    } H5E_END_TRY;                                  
+    VERIFY(ret, FAIL, "H5Sget_regular_hyperslab");     
+
+    /* 'XOR' in the point again, to remove it, which should make it regular again */
+    t_start[0]  = 0; t_start[1]  = 0; t_start[2]  = 0;
+    t_count[0]  = 1; t_count[1]  = 1; t_count[2]  = 1;
+    ret = H5Sselect_hyperslab(sid, H5S_SELECT_XOR, t_start, NULL, t_count, NULL);
+    CHECK(ret, FAIL, "H5Sselect_hyperslab");
+
+    /* Query if 'hyperslab' selection is regular hyperslab (should be TRUE) */
+    is_regular = H5Sis_regular_hyperslab(sid);
+    VERIFY(is_regular, TRUE, "H5Sis_regular_hyperslab");     
+
+    /* Retrieve the hyperslab parameters */
+    ret = H5Sget_regular_hyperslab(sid, q_start, q_stride, q_count, q_block);
+    CHECK(ret, FAIL, "H5Sget_regular_hyperslab");
+
+    /* Verify the hyperslab parameters */
+    for(u = 0; u < SPACE13_RANK; u++) {
+        if(start[u] != q_start[u])
+            ERROR("H5Sget_regular_hyperslab, start");
+        if(stride[u] != q_stride[u])
+            ERROR("H5Sget_regular_hyperslab, stride");
+        if(count[u] != q_count[u])
+            ERROR("H5Sget_regular_hyperslab, count");
+        if(block[u] != q_block[u])
+            ERROR("H5Sget_regular_hyperslab, block");
+    } /* end for */
+
+    /* Close the dataspace */
+    ret = H5Sclose(sid);
+    CHECK(ret, FAIL, "H5Sclose");
+}   /* test_hyper_regular() */
+
+/****************************************************************
+**
 **  test_select(): Main H5S selection testing routine.
 **
 ****************************************************************/
@@ -13224,6 +13388,9 @@ test_select(void)
 
     /* Test selection bounds with & without offsets */
     test_select_bounds();
+
+    /* Test 'regular' hyperslab query routines */
+    test_hyper_regular();
 
 }   /* test_select() */
 

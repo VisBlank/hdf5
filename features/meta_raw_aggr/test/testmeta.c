@@ -29,14 +29,12 @@
 
 #define FILEN		"testmeta.h5"
 
-#define MEMB_SIZE		100000000
 #define CHUNK_SIZE		512
 
 #define NDATAARRAYS		3
 /*#define NPOINTS			2048*/
 #define NPOINTS			20
 #define NEXTARRAYS		10
-#define NWATTRS			2
 #define NDATAOBJECTS	100000
 
 int main(void)
@@ -107,9 +105,11 @@ int main(void)
 
     for(j=0; j<NDATAOBJECTS; j++)
     {
-        printf("\rWriting Object #%d of %d", j+1, NDATAOBJECTS);
-        fflush(stdout);
-
+        /* Removed print statement as it would lock system resources on Windows */
+        /*
+         * printf("\rWriting Object #%d of %d", j+1, NDATAOBJECTS);
+         * fflush(stdout);
+         */
         floatval = (float)j;
 
         /* Create group to hold data arrays for this object */

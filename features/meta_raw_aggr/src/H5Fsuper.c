@@ -101,70 +101,6 @@ H5F_init_super_interface(void)
 
 
 /*-------------------------------------------------------------------------
- * Function:    H5F_locate_signature
- *
- * Purpose:     Finds the HDF5 superblock signature in a file.  The
- *              signature can appear at address 0, or any power of two
- *              beginning with 512.
- *
- * Return:      Success:        SUCCEED
- *              Failure:        FAIL
- *
- * Programmer:  Robb Matzke
- *              Friday, November  7, 1997
- *
- *-------------------------------------------------------------------------
- */
-herr_t
-H5F_locate_signature(H5FD_t *file, hid_t dxpl_id, haddr_t *sig_addr)
-{
-    haddr_t         addr, eoa;
-    uint8_t         buf[H5F_SIGNATURE_LEN];
-    unsigned        n, maxpow;
-    herr_t          ret_value = SUCCEED; /* Return value */
-
-    FUNC_ENTER_NOAPI_NOINIT
-
-    /* Find the least N such that 2^N is larger than the file size */
-    if(HADDR_UNDEF == (addr = H5FD_get_eof(file)) || HADDR_UNDEF == (eoa = H5FD_get_eoa(file, H5FD_MEM_SUPER)))
-        HGOTO_ERROR(H5E_IO, H5E_CANTINIT, FAIL, "unable to obtain EOF/EOA value")
-    for(maxpow = 0; addr; maxpow++)
-        addr >>= 1;
-    maxpow = MAX(maxpow, 9);
-
-    /*
-     * Search for the file signature at format address zero followed by
-     * powers of two larger than 9.
-     */
-    for(n = 8; n < maxpow; n++) {
-        addr = (8 == n) ? 0 : (haddr_t)1 << n;
-        if(H5FD_set_eoa(file, H5FD_MEM_SUPER, addr + H5F_SIGNATURE_LEN) < 0)
-            HGOTO_ERROR(H5E_IO, H5E_CANTINIT, FAIL, "unable to set EOA value for file signature")
-        if(H5FD_read(file, dxpl_id, H5FD_MEM_SUPER, addr, (size_t)H5F_SIGNATURE_LEN, buf) < 0)
-            HGOTO_ERROR(H5E_IO, H5E_CANTINIT, FAIL, "unable to read file signature")
-        if(!HDmemcmp(buf, H5F_SIGNATURE, (size_t)H5F_SIGNATURE_LEN))
-            break;
-    } /* end for */
-
-    /*
-     * If the signature was not found then reset the EOA value and return
-     * HADDR_UNDEF.
-     */
-    if(n >= maxpow) {
-        if(H5FD_set_eoa(file, H5FD_MEM_SUPER, eoa) < 0)
-            HGOTO_ERROR(H5E_IO, H5E_CANTINIT, FAIL, "unable to reset EOA value")
-        *sig_addr = HADDR_UNDEF;
-    } /* end if */
-    else
-        /* Set return value */
-        *sig_addr = addr;
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5F_locate_signature() */
-
-
-/*-------------------------------------------------------------------------
  * Function:    H5F_super_ext_create
  *
  * Purpose:     Create the superblock extension
@@ -302,7 +238,7 @@ done:
 
 
 /*-------------------------------------------------------------------------
- * Function:    H5F_super_read
+ * Function:    H5F__super_read
  *
  * Purpose:     Reads the superblock from the file or from the BUF. If
  *              ADDR is a valid address, then it reads it from the file.
@@ -319,19 +255,24 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5F_super_read(H5F_t *f, hid_t dxpl_id)
+H5F__super_read(H5F_t *f, hid_t dxpl_id)
 {
-    H5F_super_t *       sblock = NULL;      /* superblock structure                         */
+    H5P_genplist_t     *dxpl;               /* DXPL object */
+    H5F_super_t *       sblock = NULL;      /* Superblock structure */
     unsigned            sblock_flags = H5AC__NO_FLAGS_SET;       /* flags used in superblock unprotect call      */
     haddr_t             super_addr;         /* Absolute address of superblock */
-    H5AC_protect_t      rw;                 /* read/write permissions for file              */
+    H5AC_protect_t      rw;                 /* Read/write permissions for file  */
     hbool_t             dirtied = FALSE;    /* Bool for sblock protect call                 */
-    herr_t              ret_value = SUCCEED; /* return value                                */
+    herr_t              ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_TAG(dxpl_id, H5AC__SUPERBLOCK_TAG, FAIL)
+    FUNC_ENTER_PACKAGE_TAG(dxpl_id, H5AC__SUPERBLOCK_TAG, FAIL)
+
+    /* Get the DXPL plist object for DXPL ID */
+    if(NULL == (dxpl = (H5P_genplist_t *)H5I_object(dxpl_id)))
+        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "can't get property list")
 
     /* Find the superblock */
-    if(H5F_locate_signature(f->shared->lf, dxpl_id, &super_addr) < 0)
+    if(H5FD_locate_signature(f->shared->lf, dxpl, &super_addr) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_NOTHDF5, FAIL, "unable to locate file signature")
     if(HADDR_UNDEF == super_addr)
         HGOTO_ERROR(H5E_FILE, H5E_NOTHDF5, FAIL, "file signature not found")
@@ -339,7 +280,7 @@ H5F_super_read(H5F_t *f, hid_t dxpl_id)
     /* Check for userblock present */
     if(H5F_addr_gt(super_addr, 0)) {
         /* Set the base address for the file in the VFD now */
-        if(H5FD_set_base_addr(f->shared->lf, super_addr) < 0)
+        if(H5F__set_base_addr(f, super_addr) < 0)
             HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "failed to set base address for file driver")
     } /* end if */
 
@@ -351,7 +292,7 @@ H5F_super_read(H5F_t *f, hid_t dxpl_id)
 
     /* Look up the superblock */
     if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, dxpl_id, H5AC_SUPERBLOCK, (haddr_t)0, &dirtied, rw)))
-        HGOTO_ERROR(H5E_CACHE, H5E_CANTPROTECT, FAIL, "unable to load superblock")
+        HGOTO_ERROR(H5E_FILE, H5E_CANTPROTECT, FAIL, "unable to load superblock")
 
     /* Mark the superblock dirty if it was modified during loading or VFD indicated to do so */
     if((H5AC_WRITE == rw) && (dirtied || H5F_HAS_FEATURE(f, H5FD_FEAT_DIRTY_SBLK_LOAD)))
@@ -359,7 +300,7 @@ H5F_super_read(H5F_t *f, hid_t dxpl_id)
 
     /* Pin the superblock in the cache */
     if(H5AC_pin_protected_entry(sblock) < 0)
-        HGOTO_ERROR(H5E_FSPACE, H5E_CANTPIN, FAIL, "unable to pin superblock")
+        HGOTO_ERROR(H5E_FILE, H5E_CANTPIN, FAIL, "unable to pin superblock")
 
     /* Set the pointer to the pinned superblock */
     f->shared->sblock = sblock;
@@ -367,14 +308,14 @@ H5F_super_read(H5F_t *f, hid_t dxpl_id)
 done:
     /* Release the superblock */
     if(sblock && H5AC_unprotect(f, dxpl_id, H5AC_SUPERBLOCK, (haddr_t)0, sblock, sblock_flags) < 0)
-        HDONE_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
+        HDONE_ERROR(H5E_FILE, H5E_CANTUNPROTECT, FAIL, "unable to close superblock")
 
     FUNC_LEAVE_NOAPI_TAG(ret_value, FAIL)
-} /* end H5F_super_read() */
+} /* end H5F__super_read() */
 
 
 /*-------------------------------------------------------------------------
- * Function:    H5F_super_init
+ * Function:    H5F__super_init
  *
  * Purpose:     Allocates the superblock for the file and initializes
  *              information about the superblock in memory.  Writes extension
@@ -390,7 +331,7 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5F_super_init(H5F_t *f, hid_t dxpl_id)
+H5F__super_init(H5F_t *f, hid_t dxpl_id)
 {
     H5F_super_t    *sblock = NULL;      /* Superblock cache structure                 */
     hbool_t         sblock_in_cache = FALSE;    /* Whether the superblock has been inserted into the metadata cache */
@@ -407,7 +348,7 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
     hbool_t         non_default_fs_settings = FALSE;    /* Whether the file has non-default free-space settings */
     herr_t          ret_value = SUCCEED; /* Return Value                              */
 
-    FUNC_ENTER_NOAPI_TAG(dxpl_id, H5AC__SUPERBLOCK_TAG, FAIL)
+    FUNC_ENTER_PACKAGE_TAG(dxpl_id, H5AC__SUPERBLOCK_TAG, FAIL)
 
     /* Allocate space for the superblock */
     if(NULL == (sblock = H5FL_CALLOC(H5F_super_t)))
@@ -530,13 +471,13 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
     sblock->status_flags = 0;
 
     /* Reserve space for the userblock */
-    if(H5FD_set_eoa(f->shared->lf, H5FD_MEM_SUPER, userblock_size) < 0)
+    if(H5F__set_eoa(f, H5FD_MEM_SUPER, userblock_size) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "unable to set EOA value for userblock")
 
     /* Set the base address for the file in the VFD now, after allocating
      *  space for userblock.
      */
-    if(H5FD_set_base_addr(f->shared->lf, sblock->base_addr) < 0)
+    if(H5F__set_base_addr(f, sblock->base_addr) < 0)
 	HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "failed to set base address for file driver")
 
     /* Save a local copy of the superblock version number */
@@ -546,7 +487,7 @@ H5F_super_init(H5F_t *f, hid_t dxpl_id)
     superblock_size = (hsize_t)H5F_SUPERBLOCK_SIZE(super_vers, f);
 
     /* Compute the size of the driver information block */
-    H5_ASSIGN_OVERFLOW(driver_size, H5FD_sb_size(f->shared->lf), hsize_t, size_t);
+    H5_CHECKED_ASSIGN(driver_size, size_t, H5FD_sb_size(f->shared->lf), hsize_t);
     if(driver_size > 0) {
         driver_size += H5F_DRVINFOBLOCK_HDR_SIZE;
 
@@ -709,7 +650,7 @@ done:
             } /* end if */
             else
                 /* Free superblock */
-                if(H5F_super_free(sblock) < 0)
+                if(H5F__super_free(sblock) < 0)
                     HDONE_ERROR(H5E_FILE, H5E_CANTFREE, FAIL, "unable to destroy superblock")
 
             /* Reset variables in file structure */
@@ -718,7 +659,7 @@ done:
     } /* end if */
 
     FUNC_LEAVE_NOAPI_TAG(ret_value, FAIL)
-} /* end H5F_super_init() */
+} /* end H5F__super_init() */
 
 
 /*-------------------------------------------------------------------------
@@ -756,7 +697,7 @@ done:
 
 
 /*-------------------------------------------------------------------------
- * Function:    H5F_super_free
+ * Function:    H5F__super_free
  *
  * Purpose:     Destroyer the file's superblock
  *
@@ -769,9 +710,9 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5F_super_free(H5F_super_t *sblock)
+H5F__super_free(H5F_super_t *sblock)
 {
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_PACKAGE_NOERR
 
     /* Sanity check */
     HDassert(sblock);
@@ -783,11 +724,11 @@ H5F_super_free(H5F_super_t *sblock)
     sblock = (H5F_super_t *)H5FL_FREE(H5F_super_t, sblock);
 
     FUNC_LEAVE_NOAPI(SUCCEED)
-} /* H5F_super_free() */
+} /* H5F__super_free() */
 
 
 /*-------------------------------------------------------------------------
- * Function:    H5F_super_size
+ * Function:    H5F__super_size
  *
  * Purpose:     Get storage size of the superblock and superblock extension
  *
@@ -800,11 +741,11 @@ H5F_super_free(H5F_super_t *sblock)
  *-------------------------------------------------------------------------
  */
 herr_t
-H5F_super_size(H5F_t *f, hid_t dxpl_id, hsize_t *super_size, hsize_t *super_ext_size)
+H5F__super_size(H5F_t *f, hid_t dxpl_id, hsize_t *super_size, hsize_t *super_ext_size)
 {
     herr_t ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_PACKAGE
 
     /* Sanity check */
     HDassert(f);
@@ -840,7 +781,7 @@ H5F_super_size(H5F_t *f, hid_t dxpl_id, hsize_t *super_size, hsize_t *super_ext_
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-} /* H5F_super_size() */
+} /* H5F__super_size() */
 
 
 /*-------------------------------------------------------------------------

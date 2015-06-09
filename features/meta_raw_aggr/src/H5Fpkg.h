@@ -53,10 +53,6 @@
 #  undef H5F_DEBUG
 #endif
 
-/* Define the HDF5 file signature */
-#define H5F_SIGNATURE	  "\211HDF\r\n\032\n"
-#define H5F_SIGNATURE_LEN 8
-
 /* Superblock status flags */
 #define H5F_SUPER_WRITE_ACCESS          0x01
 #define H5F_SUPER_FILE_OK               0x02
@@ -88,34 +84,34 @@
         + 1 /* reserved */                                              \
         + 4 /* group leaf k, group internal k */                        \
         + 4) /* consistency flags */
-#define H5F_SUPERBLOCK_VARLEN_SIZE_V0(f)                                \
+#define H5F_SUPERBLOCK_VARLEN_SIZE_V0(sizeof_addr, sizeof_size)         \
         ( H5F_SUPERBLOCK_VARLEN_SIZE_COMMON /* Common variable-length info */ \
-        + H5F_SIZEOF_ADDR(f) /* base address */                         \
-        + H5F_SIZEOF_ADDR(f) /* <unused> */				\
-        + H5F_SIZEOF_ADDR(f) /* EOF address */                          \
-        + H5F_SIZEOF_ADDR(f) /* driver block address */                 \
-        + H5G_SIZEOF_ENTRY(f)) /* root group ptr */
-#define H5F_SUPERBLOCK_VARLEN_SIZE_V1(f)                                \
+        + (sizeof_addr) /* base address */                              \
+        + (sizeof_addr) /* <unused> */                                  \
+        + (sizeof_addr) /* EOF address */                               \
+        + (sizeof_addr) /* driver block address */                      \
+        + H5G_SIZEOF_ENTRY(sizeof_addr, sizeof_size)) /* root group ptr */
+#define H5F_SUPERBLOCK_VARLEN_SIZE_V1(sizeof_addr, sizeof_size)         \
         ( H5F_SUPERBLOCK_VARLEN_SIZE_COMMON /* Common variable-length info */ \
         + 2 /* indexed B-tree internal k */                             \
         + 2 /* reserved */                                              \
-        + H5F_SIZEOF_ADDR(f) /* base address */                         \
-        + H5F_SIZEOF_ADDR(f) /* <unused> */				\
-        + H5F_SIZEOF_ADDR(f) /* EOF address */                          \
-        + H5F_SIZEOF_ADDR(f) /* driver block address */                 \
-        + H5G_SIZEOF_ENTRY(f)) /* root group ptr */
-#define H5F_SUPERBLOCK_VARLEN_SIZE_V2(f)                                \
+        + (sizeof_addr) /* base address */                              \
+        + (sizeof_addr) /* <unused> */                                  \
+        + (sizeof_addr) /* EOF address */                               \
+        + (sizeof_addr) /* driver block address */                      \
+        + H5G_SIZEOF_ENTRY(sizeof_addr, sizeof_size)) /* root group ptr */
+#define H5F_SUPERBLOCK_VARLEN_SIZE_V2(sizeof_addr)                      \
         ( 2 /* size of address, size of lengths */                      \
         + 1 /* consistency flags */                                     \
-        + H5F_SIZEOF_ADDR(f) /* base address */                         \
-        + H5F_SIZEOF_ADDR(f) /* superblock extension address */         \
-        + H5F_SIZEOF_ADDR(f) /* EOF address */                          \
-        + H5F_SIZEOF_ADDR(f) /* root group object header address */     \
+        + (sizeof_addr) /* base address */                              \
+        + (sizeof_addr) /* superblock extension address */              \
+        + (sizeof_addr) /* EOF address */                               \
+        + (sizeof_addr) /* root group object header address */          \
         + H5F_SIZEOF_CHKSUM) /* superblock checksum (keep this last) */
 #define H5F_SUPERBLOCK_VARLEN_SIZE(v, f) (				\
-        (v == 0 ? H5F_SUPERBLOCK_VARLEN_SIZE_V0(f) : 0)			\
-        + (v == 1 ? H5F_SUPERBLOCK_VARLEN_SIZE_V1(f) : 0)               \
-        + (v == 2 ? H5F_SUPERBLOCK_VARLEN_SIZE_V2(f) : 0))
+        (v == 0 ? H5F_SUPERBLOCK_VARLEN_SIZE_V0(H5F_SIZEOF_ADDR(f), H5F_SIZEOF_SIZE(f)) : 0) \
+        + (v == 1 ? H5F_SUPERBLOCK_VARLEN_SIZE_V1(H5F_SIZEOF_ADDR(f), H5F_SIZEOF_SIZE(f)) : 0) \
+        + (v == 2 ? H5F_SUPERBLOCK_VARLEN_SIZE_V2(H5F_SIZEOF_ADDR(f)) : 0))
 
 /* Total size of superblock, depends on superblock version */
 #define H5F_SUPERBLOCK_SIZE(v, f) ( H5F_SUPERBLOCK_FIXED_SIZE           \
@@ -293,8 +289,14 @@ H5_DLLVAR const H5AC_class_t H5AC_SUPERBLOCK[1];
 
 /* General routines */
 H5_DLL herr_t H5F_init(void);
-H5_DLL herr_t H5F_locate_signature(H5FD_t *file, hid_t dxpl_id, haddr_t *sig_addr);
+H5_DLL herr_t H5F__term_deprec_interface(void);
+H5F_t *H5F_new(H5F_file_t *shared, unsigned flags, hid_t fcpl_id,
+    hid_t fapl_id, H5FD_t *lf);
+herr_t H5F_dest(H5F_t *f, hid_t dxpl_id, hbool_t flush);
 H5_DLL herr_t H5F_flush(H5F_t *f, hid_t dxpl_id, hbool_t closing);
+H5_DLL htri_t H5F_is_hdf5(const char *name);
+H5_DLL herr_t H5F_get_objects(const H5F_t *f, unsigned types, size_t max_index, hid_t *obj_id_list, hbool_t app_ref, size_t *obj_id_count_ptr);
+H5_DLL herr_t H5F_close(H5F_t *f);
 
 /* File mount related routines */
 H5_DLL herr_t H5F_close_mounts(H5F_t *f);
@@ -302,10 +304,10 @@ H5_DLL int H5F_term_unmount_cb(void *obj_ptr, hid_t obj_id, void *key);
 H5_DLL herr_t H5F_mount_count_ids(H5F_t *f, unsigned *nopen_files, unsigned *nopen_objs);
 
 /* Superblock related routines */
-H5_DLL herr_t H5F_super_init(H5F_t *f, hid_t dxpl_id);
-H5_DLL herr_t H5F_super_read(H5F_t *f, hid_t dxpl_id);
-H5_DLL herr_t H5F_super_size(H5F_t *f, hid_t dxpl_id, hsize_t *super_size, hsize_t *super_ext_size);
-H5_DLL herr_t H5F_super_free(H5F_super_t *sblock);
+H5_DLL herr_t H5F__super_init(H5F_t *f, hid_t dxpl_id);
+H5_DLL herr_t H5F__super_read(H5F_t *f, hid_t dxpl_id);
+H5_DLL herr_t H5F__super_size(H5F_t *f, hid_t dxpl_id, hsize_t *super_size, hsize_t *super_ext_size);
+H5_DLL herr_t H5F__super_free(H5F_super_t *sblock);
 
 /* Superblock extension related routines */
 H5_DLL herr_t H5F_super_ext_open(H5F_t *f, haddr_t ext_addr, H5O_loc_t *ext_ptr);
@@ -315,14 +317,14 @@ H5_DLL herr_t H5F_super_ext_close(H5F_t *f, H5O_loc_t *ext_ptr, hid_t dxpl_id,
     hbool_t was_created);
 
 /* Metadata accumulator routines */
-H5_DLL herr_t H5F_accum_read(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type,
+H5_DLL herr_t H5F__accum_read(const H5F_io_info_t *fio_info, H5FD_mem_t type,
     haddr_t addr, size_t size, void *buf);
-H5_DLL herr_t H5F_accum_write(const H5F_t *f, hid_t dxpl_id, H5FD_mem_t type,
+H5_DLL herr_t H5F__accum_write(const H5F_io_info_t *fio_info, H5FD_mem_t type,
     haddr_t addr, size_t size, const void *buf);
-H5_DLL herr_t H5F_accum_free(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type,
+H5_DLL herr_t H5F__accum_free(const H5F_io_info_t *fio_info, H5FD_mem_t type,
     haddr_t addr, hsize_t size);
-H5_DLL herr_t H5F_accum_flush(const H5F_t *f, hid_t dxpl_id);
-H5_DLL herr_t H5F_accum_reset(const H5F_t *f, hid_t dxpl_id, hbool_t flush);
+H5_DLL herr_t H5F__accum_flush(const H5F_io_info_t *fio_info);
+H5_DLL herr_t H5F__accum_reset(const H5F_io_info_t *fio_info, hbool_t flush);
 
 /* Shared file list related routines */
 H5_DLL herr_t H5F_sfile_add(H5F_file_t *shared);
@@ -340,6 +342,10 @@ H5_DLL herr_t H5F_efc_try_close(H5F_t *f);
 H5_DLL haddr_t H5F_alloc(H5F_t *f, hid_t dxpl_id, H5F_mem_t type, hsize_t size);
 H5_DLL herr_t H5F_free(H5F_t *f, hid_t dxpl_id, H5F_mem_t type, haddr_t addr, hsize_t size);
 H5_DLL htri_t H5F_try_extend(H5F_t *f, H5FD_mem_t type, haddr_t blk_end, hsize_t extra_requested);
+
+/* Functions that get/retrieve values from VFD layer */
+H5_DLL herr_t H5F__set_eoa(const H5F_t *f, H5F_mem_t type, haddr_t addr);
+H5_DLL herr_t H5F__set_base_addr(const H5F_t *f, haddr_t addr);
 
 /* Testing functions */
 #ifdef H5F_TESTING

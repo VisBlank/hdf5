@@ -21,13 +21,14 @@
 namespace H5 {
 #endif
 
+// Class forwarding
 class Group;
 class H5File;
 class ArrayType;
 class VarLenType;
 
 /*! \class CommonFG
-    \brief \i CommonFG is an abstract base class of H5File and H5Group.
+    \brief \a CommonFG is an abstract base class of H5File and H5Group.
 
     It provides common operations of H5File and H5Group.
 */
@@ -64,6 +65,17 @@ class H5_DLLCPP CommonFG {
 	ssize_t getObjnameByIdx(hsize_t idx, char* name, size_t size) const;
 	ssize_t getObjnameByIdx(hsize_t idx, H5std_string& name, size_t size) const;
 
+	// Retrieves the type of an object in this file or group, given the
+	// object's name
+	H5O_type_t childObjType(const H5std_string& objname) const;
+	H5O_type_t childObjType(const char* objname) const;
+	H5O_type_t childObjType(hsize_t index, H5_index_t index_type=H5_INDEX_NAME, H5_iter_order_t order=H5_ITER_INC, const char* objname=".") const;
+
+	// Returns the object header version of an object in this file or group,
+	// given the object's name.
+	unsigned childObjVersion(const char* objname) const;
+	unsigned childObjVersion(const H5std_string& objname) const;
+
 #ifndef H5_NO_DEPRECATED_SYMBOLS
 	// Returns the type of an object in this group, given the
 	// object's index.
@@ -94,8 +106,10 @@ class H5_DLLCPP CommonFG {
 	void unlink(const H5std_string& name) const;
 
 	// Mounts the file 'child' onto this location.
-	void mount(const char* name, H5File& child, PropList& plist) const;
-	void mount(const H5std_string& name, H5File& child, PropList& plist) const;
+	void mount(const char* name, const H5File& child, const PropList& plist) const;
+	void mount(const char* name, H5File& child, PropList& plist) const; // backward compatibility
+	void mount(const H5std_string& name, const H5File& child, const PropList& plist) const;
+	void mount(const H5std_string& name, H5File& child, PropList& plist) const; // backward compatibility
 
 	// Unmounts the file named 'name' from this parent location.
 	void unmount(const char* name) const;
@@ -151,6 +165,10 @@ class H5_DLLCPP CommonFG {
 
 	// Noop destructor.
 	virtual ~CommonFG();
+
+    protected:
+	virtual void p_setId(const hid_t new_id) = 0;
+
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
 }; // end of CommonFG declaration

@@ -43,7 +43,7 @@
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5EApkg.h"		/* Extensible Arrays			*/
 #include "H5MFprivate.h"	/* File memory management		*/
-#include "H5Vprivate.h"		/* Vectors and arrays 			*/
+#include "H5VMprivate.h"		/* Vectors and arrays 			*/
 
 
 /****************/
@@ -201,7 +201,7 @@ H5EA__hdr_init(H5EA_hdr_t *hdr, void *ctx_udata))
     HDassert(hdr->cparam.sup_blk_min_data_ptrs);
 
     /* Compute general information */
-    hdr->nsblks = 1 + (hdr->cparam.max_nelmts_bits - H5V_log2_of2(hdr->cparam.data_blk_min_elmts));
+    hdr->nsblks = 1 + (hdr->cparam.max_nelmts_bits - H5VM_log2_of2(hdr->cparam.data_blk_min_elmts));
     hdr->dblk_page_nelmts = (size_t)1 << hdr->cparam.max_dblk_page_nelmts_bits;
     hdr->arr_off_size = (unsigned char)H5EA_SIZEOF_OFFSET_BITS(hdr->cparam.max_nelmts_bits);
 #ifdef QAK
@@ -230,7 +230,7 @@ HDfprintf(stderr, "%s: hdr->sblk_info[%Zu] = {%Zu, %Zu, %Hu, %Hu}\n", FUNC, u, h
     } /* end for */
 
     /* Set size of header on disk (locally and in statistics) */
-    hdr->stats.computed.hdr_size = hdr->size = H5EA_HEADER_SIZE(hdr);
+    hdr->stats.computed.hdr_size = hdr->size = H5EA_HEADER_SIZE_HDR(hdr);
 
     /* Create the callback context, if there's one */
     if(hdr->cparam.cls->crt_context) {
@@ -270,7 +270,7 @@ H5EA__hdr_alloc_elmts(H5EA_hdr_t *hdr, size_t nelmts))
 
     /* Compute the index of the element buffer factory */
     H5_CHECK_OVERFLOW(nelmts, /*From:*/size_t, /*To:*/uint32_t);
-    idx = H5V_log2_of2((uint32_t)nelmts) - H5V_log2_of2((uint32_t)hdr->cparam.data_blk_min_elmts);
+    idx = H5VM_log2_of2((uint32_t)nelmts) - H5VM_log2_of2((uint32_t)hdr->cparam.data_blk_min_elmts);
 #ifdef QAK
 HDfprintf(stderr, "%s: nelmts = %Zu, hdr->data_blk_min_elmts = %u, idx = %u\n", FUNC, nelmts, (unsigned)hdr->data_blk_min_elmts, idx);
 #endif /* QAK */
@@ -340,7 +340,7 @@ H5EA__hdr_free_elmts(H5EA_hdr_t *hdr, size_t nelmts, void *elmts))
 
     /* Compute the index of the element buffer factory */
     H5_CHECK_OVERFLOW(nelmts, /*From:*/size_t, /*To:*/uint32_t);
-    idx = H5V_log2_of2((uint32_t)nelmts) - H5V_log2_of2((uint32_t)hdr->cparam.data_blk_min_elmts);
+    idx = H5VM_log2_of2((uint32_t)nelmts) - H5VM_log2_of2((uint32_t)hdr->cparam.data_blk_min_elmts);
 #ifdef QAK
 HDfprintf(stderr, "%s: nelmts = %Zu, hdr->data_blk_min_elmts = %u, idx = %u\n", FUNC, nelmts, (unsigned)hdr->data_blk_min_elmts, idx);
 #endif /* QAK */
@@ -612,6 +612,70 @@ END_FUNC(PKG)   /* end H5EA__hdr_modified() */
 
 
 /*-------------------------------------------------------------------------
+ * Function:	H5EA__hdr_protect
+ *
+ * Purpose:	Convenience wrapper around protecting extensible array header
+ *
+ * Return:	Non-NULL pointer to index block on success/NULL on failure
+ *
+ * Programmer:	Quincey Koziol
+ *		koziol@hdfgroup.org
+ *		Jul 31 2013
+ *
+ *-------------------------------------------------------------------------
+ */
+BEGIN_FUNC(PKG, ERR,
+H5EA_hdr_t *, NULL, NULL,
+H5EA__hdr_protect(H5F_t *f, hid_t dxpl_id, haddr_t ea_addr, void *ctx_udata,
+    H5AC_protect_t rw))
+
+    /* Local variables */
+
+    /* Sanity check */
+    HDassert(f);
+    HDassert(H5F_addr_defined(ea_addr));
+
+    /* Protect the header */
+    if(NULL == (ret_value = (H5EA_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_EARRAY_HDR, ea_addr, ctx_udata, rw)))
+        H5E_THROW(H5E_CANTPROTECT, "unable to protect extensible array header, address = %llu", (unsigned long long)ea_addr)
+
+CATCH
+
+END_FUNC(PKG)   /* end H5EA__hdr_protect() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5EA__hdr_unprotect
+ *
+ * Purpose:	Convenience wrapper around unprotecting extensible array header
+ *
+ * Return:	Non-negative on success/Negative on failure
+ *
+ * Programmer:	Quincey Koziol
+ *		koziol@hdfgroup.org
+ *		Aug  1 2013
+ *
+ *-------------------------------------------------------------------------
+ */
+BEGIN_FUNC(PKG, ERR,
+herr_t, SUCCEED, FAIL,
+H5EA__hdr_unprotect(H5EA_hdr_t *hdr, hid_t dxpl_id, unsigned cache_flags))
+
+    /* Local variables */
+
+    /* Sanity check */
+    HDassert(hdr);
+
+    /* Unprotect the header */
+    if(H5AC_unprotect(hdr->f, dxpl_id, H5AC_EARRAY_HDR, hdr->addr, hdr, cache_flags) < 0)
+        H5E_THROW(H5E_CANTUNPROTECT, "unable to unprotect extensible array hdr, address = %llu", (unsigned long long)hdr->addr)
+
+CATCH
+
+END_FUNC(PKG)   /* end H5EA__hdr_unprotect() */
+
+
+/*-------------------------------------------------------------------------
  * Function:	H5EA__hdr_delete
  *
  * Purpose:	Delete an extensible array, starting with the header
@@ -665,7 +729,7 @@ HDfprintf(stderr, "%s: hdr->idx_blk_addr = %a\n", FUNC, hdr->idx_blk_addr);
 CATCH
 
     /* Unprotect the header, deleting it if an error hasn't occurred */
-    if(H5AC_unprotect(hdr->f, dxpl_id, H5AC_EARRAY_HDR, hdr->addr, hdr, cache_flags) < 0)
+    if(H5EA__hdr_unprotect(hdr, dxpl_id, cache_flags) < 0)
         H5E_THROW(H5E_CANTUNPROTECT, "unable to release extensible array header")
 
 END_FUNC(PKG)   /* end H5EA__hdr_delete() */

@@ -43,7 +43,7 @@
 #include "H5MFprivate.h"	/* File memory management		*/
 #include "H5Oprivate.h"		/* Object headers		  	*/
 #include "H5Pprivate.h"		/* Property lists			*/
-#include "H5Vprivate.h"		/* Vector and array functions		*/
+#include "H5VMprivate.h"		/* Vector and array functions		*/
 
 
 /****************/
@@ -192,7 +192,7 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5D__contig_fill(H5D_t *dset, hid_t dxpl_id)
+H5D__contig_fill(const H5D_t *dset, hid_t dxpl_id)
 {
     H5D_io_info_t ioinfo;       /* Dataset I/O info */
     H5D_storage_t store;        /* Union of storage info for dataset */
@@ -259,7 +259,7 @@ H5D__contig_fill(H5D_t *dset, hid_t dxpl_id)
     /* Get the number of elements in the dataset's dataspace */
     if((snpoints = H5S_GET_EXTENT_NPOINTS(dset->shared->space)) < 0)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "dataset has negative number of elements")
-    H5_ASSIGN_OVERFLOW(npoints, snpoints, hssize_t, size_t);
+    H5_CHECKED_ASSIGN(npoints, size_t, snpoints, hssize_t);
 
     /* Initialize the fill value buffer */
     if(H5D__fill_init(&fb_info, NULL, NULL, NULL, NULL, NULL,
@@ -396,10 +396,7 @@ H5D__contig_construct(H5F_t *f, H5D_t *dset)
     size_t dt_size;                     /* Size of datatype */
     hsize_t tmp_size;                   /* Temporary holder for raw data size */
     size_t tmp_sieve_buf_size;          /* Temporary holder for sieve buffer size */
-    hsize_t dim[H5O_LAYOUT_NDIMS];	/* Current size of data in elements */
-    hsize_t max_dim[H5O_LAYOUT_NDIMS];  /* Maximum size of data in elements */
-    int ndims;                          /* Rank of dataspace */
-    int i;                              /* Local index variable */
+    unsigned u;                         /* Local index variable */
     herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_STATIC
@@ -415,11 +412,9 @@ H5D__contig_construct(H5F_t *f, H5D_t *dset)
      */
 
     /* Check for invalid dataset dimensions */
-    if((ndims = H5S_get_simple_extent_dims(dset->shared->space, dim, max_dim)) < 0)
-        HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, "unable to initialize contiguous storage")
-    for(i = 0; i < ndims; i++)
-        if(max_dim[i] > dim[i])
-            HGOTO_ERROR(H5E_DATASET, H5E_UNSUPPORTED, FAIL, "extendible contiguous non-external dataset")
+    for(u = 0; u < dset->shared->ndims; u++)
+        if(dset->shared->max_dims[u] > dset->shared->curr_dims[u])
+            HGOTO_ERROR(H5E_DATASET, H5E_UNSUPPORTED, FAIL, "extendible contiguous non-external dataset not allowed")
 
     /* Retrieve the number of elements in the dataspace */
     if((snelmts = H5S_GET_EXTENT_NPOINTS(dset->shared->space)) < 0)
@@ -497,9 +492,9 @@ H5D__contig_is_space_alloc(const H5O_storage_t *storage)
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5D__contig_io_init(const H5D_io_info_t *io_info, const H5D_type_info_t UNUSED *type_info,
-    hsize_t UNUSED nelmts, const H5S_t UNUSED *file_space, const H5S_t UNUSED *mem_space,
-    H5D_chunk_map_t UNUSED *cm)
+H5D__contig_io_init(const H5D_io_info_t *io_info, const H5D_type_info_t H5_ATTR_UNUSED *type_info,
+    hsize_t H5_ATTR_UNUSED nelmts, const H5S_t H5_ATTR_UNUSED *file_space, const H5S_t H5_ATTR_UNUSED *mem_space,
+    H5D_chunk_map_t H5_ATTR_UNUSED *cm)
 {
     FUNC_ENTER_STATIC_NOERR
 
@@ -525,7 +520,7 @@ H5D__contig_io_init(const H5D_io_info_t *io_info, const H5D_type_info_t UNUSED *
 herr_t
 H5D__contig_read(H5D_io_info_t *io_info, const H5D_type_info_t *type_info,
     hsize_t nelmts, const H5S_t *file_space, const H5S_t *mem_space,
-    H5D_chunk_map_t UNUSED *fm)
+    H5D_chunk_map_t H5_ATTR_UNUSED *fm)
 {
     herr_t	ret_value = SUCCEED;	/*return value		*/
 
@@ -562,7 +557,7 @@ done:
 herr_t
 H5D__contig_write(H5D_io_info_t *io_info, const H5D_type_info_t *type_info,
     hsize_t nelmts, const H5S_t *file_space, const H5S_t *mem_space,
-    H5D_chunk_map_t UNUSED *fm)
+    H5D_chunk_map_t H5_ATTR_UNUSED *fm)
 {
     herr_t	ret_value = SUCCEED;	/*return value		*/
 
@@ -638,7 +633,7 @@ static herr_t
 H5D__contig_readvv_sieve_cb(hsize_t dst_off, hsize_t src_off, size_t len,
     void *_udata)
 {
-    H5D_contig_readvv_sieve_ud_t *udata = (H5D_contig_readvv_sieve_ud_t *)_udata; /* User data for H5V_opvv() operator */
+    H5D_contig_readvv_sieve_ud_t *udata = (H5D_contig_readvv_sieve_ud_t *)_udata; /* User data for H5VM_opvv() operator */
     H5F_t *file = udata->file;        /* File for dataset */
     H5D_rdcdc_t *dset_contig = udata->dset_contig; /* Cached information about contiguous data */
     const H5D_contig_storage_t *store_contig = udata->store_contig;    /* Contiguous storage info for this I/O operation */
@@ -649,6 +644,7 @@ H5D__contig_readvv_sieve_cb(hsize_t dst_off, hsize_t src_off, size_t len,
     size_t sieve_size = (size_t)-1;   /* Size of sieve buffer */
     haddr_t rel_eoa;	        /* Relative end of file address	*/
     hsize_t max_data;           /* Actual maximum size of data to cache */
+    hsize_t min;                /* temporary minimum value (avoids some ugly macro nesting) */
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_STATIC
@@ -675,7 +671,7 @@ H5D__contig_readvv_sieve_cb(hsize_t dst_off, hsize_t src_off, size_t len,
         } /* end if */
         else {
             /* Allocate room for the data sieve buffer */
-            if(NULL == (dset_contig->sieve_buf = H5FL_BLK_MALLOC(sieve_buf, dset_contig->sieve_buf_size)))
+            if(NULL == (dset_contig->sieve_buf = H5FL_BLK_CALLOC(sieve_buf, dset_contig->sieve_buf_size)))
                 HGOTO_ERROR(H5E_DATASET, H5E_CANTALLOC, FAIL, "memory allocation failed")
 
             /* Determine the new sieve buffer size & location */
@@ -689,7 +685,8 @@ H5D__contig_readvv_sieve_cb(hsize_t dst_off, hsize_t src_off, size_t len,
             max_data = store_contig->dset_size - dst_off;
 
             /* Compute the size of the sieve buffer */
-            H5_ASSIGN_OVERFLOW(dset_contig->sieve_size, MIN3(rel_eoa - dset_contig->sieve_loc, max_data, dset_contig->sieve_buf_size), hsize_t, size_t);
+            min = MIN3(rel_eoa - dset_contig->sieve_loc, max_data, dset_contig->sieve_buf_size);
+            H5_CHECKED_ASSIGN(dset_contig->sieve_size, size_t, min, hsize_t);
 
             /* Read the new sieve buffer */
             if(H5F_block_read(file, H5FD_MEM_DRAW, dset_contig->sieve_loc, dset_contig->sieve_size, udata->dxpl_id, dset_contig->sieve_buf) < 0)
@@ -762,9 +759,13 @@ H5D__contig_readvv_sieve_cb(hsize_t dst_off, hsize_t src_off, size_t len,
                 /* Only need this when resizing sieve buffer */
                 max_data = store_contig->dset_size - dst_off;
 
-                /* Compute the size of the sieve buffer */
-                /* Don't read off the end of the file, don't read past the end of the data element and don't read more than the buffer size */
-                H5_ASSIGN_OVERFLOW(dset_contig->sieve_size, MIN3(rel_eoa - dset_contig->sieve_loc, max_data, dset_contig->sieve_buf_size), hsize_t, size_t);
+                /* Compute the size of the sieve buffer.
+                 * Don't read off the end of the file, don't read past
+                 * the end of the data element, and don't read more than
+                 * the buffer size.
+                 */
+                min = MIN3(rel_eoa - dset_contig->sieve_loc, max_data, dset_contig->sieve_buf_size); 
+                H5_CHECKED_ASSIGN(dset_contig->sieve_size, size_t, min, hsize_t);
 
                 /* Update local copies of sieve information */
                 sieve_start = dset_contig->sieve_loc;
@@ -804,7 +805,7 @@ done:
 static herr_t
 H5D__contig_readvv_cb(hsize_t dst_off, hsize_t src_off, size_t len, void *_udata)
 {
-    H5D_contig_readvv_ud_t *udata = (H5D_contig_readvv_ud_t *)_udata; /* User data for H5V_opvv() operator */
+    H5D_contig_readvv_ud_t *udata = (H5D_contig_readvv_ud_t *)_udata; /* User data for H5VM_opvv() operator */
     herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_STATIC
@@ -857,9 +858,9 @@ H5D__contig_readvv(const H5D_io_info_t *io_info,
 
     /* Check if data sieving is enabled */
     if(H5F_HAS_FEATURE(io_info->dset->oloc.file, H5FD_FEAT_DATA_SIEVE)) {
-        H5D_contig_readvv_sieve_ud_t udata;     /* User data for H5V_opvv() operator */
+        H5D_contig_readvv_sieve_ud_t udata;     /* User data for H5VM_opvv() operator */
 
-        /* Set up user data for H5V_opvv() */
+        /* Set up user data for H5VM_opvv() */
         udata.file = io_info->dset->oloc.file;
         udata.dset_contig = &(io_info->dset->shared->cache.contig);
         udata.store_contig = &(io_info->store->contig);
@@ -867,22 +868,22 @@ H5D__contig_readvv(const H5D_io_info_t *io_info,
         udata.dxpl_id = io_info->dxpl_id;
 
         /* Call generic sequence operation routine */
-        if((ret_value = H5V_opvv(dset_max_nseq, dset_curr_seq, dset_len_arr, dset_off_arr,
+        if((ret_value = H5VM_opvv(dset_max_nseq, dset_curr_seq, dset_len_arr, dset_off_arr,
                 mem_max_nseq, mem_curr_seq, mem_len_arr, mem_off_arr,
                 H5D__contig_readvv_sieve_cb, &udata)) < 0)
             HGOTO_ERROR(H5E_DATASET, H5E_CANTOPERATE, FAIL, "can't perform vectorized sieve buffer read")
     } /* end if */
     else {
-        H5D_contig_readvv_ud_t udata;     /* User data for H5V_opvv() operator */
+        H5D_contig_readvv_ud_t udata;     /* User data for H5VM_opvv() operator */
 
-        /* Set up user data for H5V_opvv() */
+        /* Set up user data for H5VM_opvv() */
         udata.file = io_info->dset->oloc.file;
         udata.dset_addr = io_info->store->contig.dset_addr;
         udata.rbuf = (unsigned char *)io_info->u.rbuf;
         udata.dxpl_id = io_info->dxpl_id;
 
         /* Call generic sequence operation routine */
-        if((ret_value = H5V_opvv(dset_max_nseq, dset_curr_seq, dset_len_arr, dset_off_arr,
+        if((ret_value = H5VM_opvv(dset_max_nseq, dset_curr_seq, dset_len_arr, dset_off_arr,
                 mem_max_nseq, mem_curr_seq, mem_len_arr, mem_off_arr,
                 H5D__contig_readvv_cb, &udata)) < 0)
             HGOTO_ERROR(H5E_DATASET, H5E_CANTOPERATE, FAIL, "can't perform vectorized read")
@@ -909,7 +910,7 @@ static herr_t
 H5D__contig_writevv_sieve_cb(hsize_t dst_off, hsize_t src_off, size_t len,
     void *_udata)
 {
-    H5D_contig_writevv_sieve_ud_t *udata = (H5D_contig_writevv_sieve_ud_t *)_udata; /* User data for H5V_opvv() operator */
+    H5D_contig_writevv_sieve_ud_t *udata = (H5D_contig_writevv_sieve_ud_t *)_udata; /* User data for H5VM_opvv() operator */
     H5F_t *file = udata->file;        /* File for dataset */
     H5D_rdcdc_t *dset_contig = udata->dset_contig; /* Cached information about contiguous data */
     const H5D_contig_storage_t *store_contig = udata->store_contig;    /* Contiguous storage info for this I/O operation */
@@ -920,6 +921,7 @@ H5D__contig_writevv_sieve_cb(hsize_t dst_off, hsize_t src_off, size_t len,
     size_t sieve_size = (size_t)-1; /* size of sieve buffer */
     haddr_t rel_eoa;	        /* Relative end of file address	*/
     hsize_t max_data;           /* Actual maximum size of data to cache */
+    hsize_t min;                /* temporary minimum value (avoids some ugly macro nesting) */
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_STATIC
@@ -946,7 +948,7 @@ H5D__contig_writevv_sieve_cb(hsize_t dst_off, hsize_t src_off, size_t len,
         } /* end if */
         else {
             /* Allocate room for the data sieve buffer */
-            if(NULL == (dset_contig->sieve_buf = H5FL_BLK_MALLOC(sieve_buf, dset_contig->sieve_buf_size)))
+            if(NULL == (dset_contig->sieve_buf = H5FL_BLK_CALLOC(sieve_buf, dset_contig->sieve_buf_size)))
                 HGOTO_ERROR(H5E_DATASET, H5E_CANTALLOC, FAIL, "memory allocation failed")
 
 #ifdef H5_CLEAR_MEMORY
@@ -965,7 +967,8 @@ if(dset_contig->sieve_size > len)
             max_data = store_contig->dset_size - dst_off;
 
             /* Compute the size of the sieve buffer */
-            H5_ASSIGN_OVERFLOW(dset_contig->sieve_size, MIN3(rel_eoa - dset_contig->sieve_loc, max_data, dset_contig->sieve_buf_size), hsize_t, size_t);
+            min = MIN3(rel_eoa - dset_contig->sieve_loc, max_data, dset_contig->sieve_buf_size); 
+            H5_CHECKED_ASSIGN(dset_contig->sieve_size, size_t, min, hsize_t);
 
             /* Check if there is any point in reading the data from the file */
             if(dset_contig->sieve_size > len) {
@@ -1080,9 +1083,13 @@ if(dset_contig->sieve_size > len)
                     /* Only need this when resizing sieve buffer */
                     max_data = store_contig->dset_size - dst_off;
 
-                    /* Compute the size of the sieve buffer */
-                    /* Don't read off the end of the file, don't read past the end of the data element and don't read more than the buffer size */
-                    H5_ASSIGN_OVERFLOW(dset_contig->sieve_size, MIN3(rel_eoa - dset_contig->sieve_loc, max_data, dset_contig->sieve_buf_size), hsize_t, size_t);
+                    /* Compute the size of the sieve buffer.
+                     * Don't read off the end of the file, don't read past
+                     * the end of the data element, and don't read more than
+                     * the buffer size.
+                     */
+                    min = MIN3(rel_eoa - dset_contig->sieve_loc, max_data, dset_contig->sieve_buf_size); 
+                    H5_CHECKED_ASSIGN(dset_contig->sieve_size, size_t, min, hsize_t);
 
                     /* Update local copies of sieve information */
                     sieve_start = dset_contig->sieve_loc;
@@ -1126,7 +1133,7 @@ done:
 static herr_t
 H5D__contig_writevv_cb(hsize_t dst_off, hsize_t src_off, size_t len, void *_udata)
 {
-    H5D_contig_writevv_ud_t *udata = (H5D_contig_writevv_ud_t *)_udata; /* User data for H5V_opvv() operator */
+    H5D_contig_writevv_ud_t *udata = (H5D_contig_writevv_ud_t *)_udata; /* User data for H5VM_opvv() operator */
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_STATIC
@@ -1178,9 +1185,9 @@ H5D__contig_writevv(const H5D_io_info_t *io_info,
 
     /* Check if data sieving is enabled */
     if(H5F_HAS_FEATURE(io_info->dset->oloc.file, H5FD_FEAT_DATA_SIEVE)) {
-        H5D_contig_writevv_sieve_ud_t udata;    /* User data for H5V_opvv() operator */
+        H5D_contig_writevv_sieve_ud_t udata;    /* User data for H5VM_opvv() operator */
 
-        /* Set up user data for H5V_opvv() */
+        /* Set up user data for H5VM_opvv() */
         udata.file = io_info->dset->oloc.file;
         udata.dset_contig = &(io_info->dset->shared->cache.contig);
         udata.store_contig = &(io_info->store->contig);
@@ -1188,22 +1195,22 @@ H5D__contig_writevv(const H5D_io_info_t *io_info,
         udata.dxpl_id = io_info->dxpl_id;
 
         /* Call generic sequence operation routine */
-        if((ret_value = H5V_opvv(dset_max_nseq, dset_curr_seq, dset_len_arr, dset_off_arr,
+        if((ret_value = H5VM_opvv(dset_max_nseq, dset_curr_seq, dset_len_arr, dset_off_arr,
                 mem_max_nseq, mem_curr_seq, mem_len_arr, mem_off_arr,
                 H5D__contig_writevv_sieve_cb, &udata)) < 0)
             HGOTO_ERROR(H5E_DATASET, H5E_CANTOPERATE, FAIL, "can't perform vectorized sieve buffer write")
     } /* end if */
     else {
-        H5D_contig_writevv_ud_t udata;     /* User data for H5V_opvv() operator */
+        H5D_contig_writevv_ud_t udata;     /* User data for H5VM_opvv() operator */
 
-        /* Set up user data for H5V_opvv() */
+        /* Set up user data for H5VM_opvv() */
         udata.file = io_info->dset->oloc.file;
         udata.dset_addr = io_info->store->contig.dset_addr;
         udata.wbuf = (const unsigned char *)io_info->u.wbuf;
         udata.dxpl_id = io_info->dxpl_id;
 
         /* Call generic sequence operation routine */
-        if((ret_value = H5V_opvv(dset_max_nseq, dset_curr_seq, dset_len_arr, dset_off_arr,
+        if((ret_value = H5VM_opvv(dset_max_nseq, dset_curr_seq, dset_len_arr, dset_off_arr,
                 mem_max_nseq, mem_curr_seq, mem_len_arr, mem_off_arr,
                 H5D__contig_writevv_cb, &udata)) < 0)
             HGOTO_ERROR(H5E_DATASET, H5E_CANTOPERATE, FAIL, "can't perform vectorized read")

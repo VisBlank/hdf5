@@ -1,4 +1,4 @@
-!****h* root/fortran/test/tH5F.f90
+!***rh* root/fortran/test/tH5F.f90
 !
 ! NAME
 !  tH5F.f90
@@ -31,11 +31,19 @@
 !  and another file with a dataset. Mounting is used to
 !  access the dataset from the second file as a member of a group 
 !  in the first file. 
+
+
+
+MODULE TH5F
+
+CONTAINS
+
         SUBROUTINE mountingtest(cleanup, total_error)
         USE HDF5  ! This module contains all necessary modules
+        USE TH5_MISC
           IMPLICIT NONE
           LOGICAL, INTENT(IN)  :: cleanup
-          INTEGER, INTENT(OUT) :: total_error
+          INTEGER, INTENT(INOUT) :: total_error
 
           !
           !the respective filename is "mount1.h5" and "mount2.h5"
@@ -133,13 +141,11 @@
           CALL h5fcreate_f(fix_filename1, H5F_ACC_TRUNC_F, file1_id, error)
                CALL check("h5fcreate_f",error,total_error)
 
-
           !
           !Create group "/G" inside file "mount1.h5".
           !
           CALL h5gcreate_f(file1_id, "/G", gid, error)
                CALL check("h5gcreate_f",error,total_error)
-
           !
           !close file and group identifiers.
           !
@@ -241,7 +247,6 @@
           do i = 1, NX
               do j = 1, NY
                   IF (data_out(i,j) .NE. data_in(i, j)) THEN
-                      write(*, *) "mounting test error occured"
                   END IF
               end do
           end do
@@ -289,9 +294,10 @@
 
         SUBROUTINE reopentest(cleanup, total_error)
         USE HDF5  ! This module contains all necessary modules
+        USE TH5_MISC
           IMPLICIT NONE
           LOGICAL, INTENT(IN) :: cleanup
-          INTEGER, INTENT(OUT) :: total_error
+          INTEGER, INTENT(INOUT) :: total_error
 
           !
           CHARACTER(LEN=6), PARAMETER :: filename = "reopen"
@@ -475,9 +481,10 @@
 
         SUBROUTINE plisttest(cleanup, total_error)
          USE HDF5  ! This module contains all necessary modules
+         USE TH5_MISC
           IMPLICIT NONE
           LOGICAL, INTENT(IN)  :: cleanup
-          INTEGER, INTENT(OUT) :: total_error
+          INTEGER, INTENT(INOUT) :: total_error
 
           !
           !file names are "plist1.h5" and "plist2.h5"
@@ -574,9 +581,10 @@
 
         SUBROUTINE file_close(cleanup, total_error)
         USE HDF5  ! This module contains all necessary modules
+        USE TH5_MISC
           IMPLICIT NONE
           LOGICAL, INTENT(IN) :: cleanup
-          INTEGER, INTENT(OUT) :: total_error
+          INTEGER, INTENT(INOUT) :: total_error
           INTEGER              :: error
 
           !
@@ -702,10 +710,11 @@
 
         SUBROUTINE file_space(filename, cleanup, total_error)
         USE HDF5  ! This module contains all necessary modules
+        USE TH5_MISC
           IMPLICIT NONE
           CHARACTER(*), INTENT(IN) :: filename
           LOGICAL, INTENT(IN) :: cleanup
-          INTEGER, INTENT(OUT) :: total_error
+          INTEGER, INTENT(INOUT) :: total_error
           INTEGER              :: error
           !
           CHARACTER(LEN=3), PARAMETER :: grpname = "grp"
@@ -770,4 +779,4 @@
         END SUBROUTINE file_space
 
 
-
+END MODULE TH5F

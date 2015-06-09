@@ -59,16 +59,16 @@ class H5_DLLCPP H5File : public H5Location, public CommonFG {
 
 	// Returns the number of opened object IDs (files, datasets, groups
 	// and datatypes) in the same file.
-	ssize_t getObjCount(unsigned types) const;
-	ssize_t getObjCount() const;
+	ssize_t getObjCount(unsigned types = H5F_OBJ_ALL) const;
 
 	// Retrieves a list of opened object IDs (files, datasets, groups
 	// and datatypes) in the same file.
 	void getObjIDs(unsigned types, size_t max_objs, hid_t *oid_list) const;
 
 	// Returns the pointer to the file handle of the low-level file driver.
-	void getVFDHandle(FileAccPropList& fapl, void **file_handle) const;
 	void getVFDHandle(void **file_handle) const;
+	void getVFDHandle(const FileAccPropList& fapl, void **file_handle) const;
+	void getVFDHandle(FileAccPropList& fapl, void **file_handle) const; // kept for backward compatibility
 
 	// Determines if a file, specified by its name, is in HDF5 format
 	static bool isHdf5(const char* name );
@@ -76,16 +76,24 @@ class H5_DLLCPP H5File : public H5Location, public CommonFG {
 
 	// Reopens this file.
 	void reOpen();	// added for better name
-	void reopen();
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+	void reopen();  // obsolete in favor of reOpen()
+
+	// Gets the file id
+	virtual hid_t getLocId() const;
+
+	// Creates an H5File using an existing file id.  Not recommended
+	// in applications.
+	H5File(hid_t existing_id);
+
+#endif // DOXYGEN_SHOULD_SKIP_THIS
 
 	///\brief Returns this class name.
 	virtual H5std_string fromClass () const { return("H5File"); }
 
 	// Throw file exception.
 	virtual void throwException(const H5std_string& func_name, const H5std_string& msg) const;
-
-	// Gets the file id
-	virtual hid_t getLocId() const;
 
 	// Default constructor
 	H5File();

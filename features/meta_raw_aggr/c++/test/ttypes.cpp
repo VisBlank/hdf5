@@ -109,7 +109,7 @@ static void test_classes()
 {
     SUBTEST("PredType::getClass()");
     try {
-	int curr_nerrors = GetTestNumErrs();
+	// maybe later, int curr_nerrors = GetTestNumErrs();
 
 	// PredType::NATIVE_INT should be in H5T_INTEGER class
 	H5T_class_t tcls = PredType::NATIVE_INT.getClass();
@@ -213,7 +213,7 @@ static void test_query()
 	float  b;
 	long   c;
 	double d;
-    } s_type_t;
+    } src_typ_t;
     short	enum_val;
 
     // Output message about test being performed
@@ -224,12 +224,12 @@ static void test_query()
 	H5File file(FILENAME[2], H5F_ACC_TRUNC);
 
 	// Create a compound datatype
-	CompType tid1(sizeof(s_type_t));
+	CompType tid1(sizeof(src_typ_t));
 
-	tid1.insertMember("a", HOFFSET(s_type_t, a), PredType::NATIVE_INT);
-	tid1.insertMember("b", HOFFSET(s_type_t, b), PredType::NATIVE_FLOAT);
-	tid1.insertMember("c", HOFFSET(s_type_t, c), PredType::NATIVE_LONG);
-	tid1.insertMember("d", HOFFSET(s_type_t, d), PredType::NATIVE_DOUBLE);
+	tid1.insertMember("a", HOFFSET(src_typ_t, a), PredType::NATIVE_INT);
+	tid1.insertMember("b", HOFFSET(src_typ_t, b), PredType::NATIVE_FLOAT);
+	tid1.insertMember("c", HOFFSET(src_typ_t, c), PredType::NATIVE_LONG);
+	tid1.insertMember("d", HOFFSET(src_typ_t, d), PredType::NATIVE_DOUBLE);
 
 	// Create a enumerate datatype
 	EnumType tid2(sizeof(short));
@@ -283,10 +283,16 @@ static void test_query()
 	tid2.close();
 	file.close();
 
+	// Try truncating the file to make sure reference counting is good.
+	// If any references to ids of tid1 and tid2 are left unterminated,
+	// the truncating will fail, because the file will not be closed in
+	// the file.close() above.
+	H5File file1(FILENAME[2], H5F_ACC_TRUNC);
+
 	PASSED();
     }   // end of try block
     catch (Exception E) {
-        issue_fail_msg("test_query", __LINE__, __FILE__, E.getCDetailMsg());
+	issue_fail_msg("test_query", __LINE__, __FILE__, E.getCDetailMsg());
     }
 }   // test_query
 
@@ -414,6 +420,23 @@ static void test_named ()
         IntType itype(PredType::NATIVE_INT);
         itype.commit(file, "native-int");
 
+	// Test commit passing in const H5File& for prototype with const
+	try
+	{
+	    // Create random char type
+	    IntType atype(PredType::NATIVE_UCHAR);
+
+	    // Creating group, declared as const
+	    const Group const_grp = file.createGroup("GR as loc");
+
+	    // Commit type passing in const group; compilation would fail if
+	    // no matching prototype
+	    atype.commit(const_grp, "random uchar");
+	}   // end of try block
+	catch (Exception E) {
+	    issue_fail_msg("test_named", __LINE__, __FILE__, "Commit at const group");
+	}
+
 	// Check that it is committed.
 	if (itype.committed() == false)
 	    cerr << "IntType::committed() returned false" << endl;
@@ -450,27 +473,20 @@ static void test_named ()
 	trans_type.setPrecision(256);
 	trans_type.close();
 
-    /*
-     * Close the committed type and reopen it.  It should return a named type.
-* This had something to do with the way IntType was returned and assigned
-and caused itype.committed not working correctly.  So, use another_type for
-now.
+	// Close the committed type and reopen it.  It should be a named type.
 	itype.close();
 	itype = file.openIntType("native-int");
 	iscommitted = itype.committed();
-*/
-	IntType another_type = file.openIntType("native-int");
-	iscommitted = another_type.committed();
 	if (!iscommitted)
 	    throw InvalidActionException("IntType::committed()", "Opened named types should be named types!");
 
 	// Create a dataset that uses the named type, then get the dataset's
 	// datatype and make sure it's a named type.
-	DataSet dset = file.createDataSet("dset1", another_type, space);
+	DataSet dset = file.createDataSet("dset1", itype, space);
 	ds_type = new DataType(dset.getDataType());
 	iscommitted = ds_type->committed();
 	if (!iscommitted)
-	    throw InvalidActionException("IntType::committed()", "1 Dataset type should be named type!");
+	    throw InvalidActionException("IntType::committed()", "Dataset type should be named type!");
 	dset.close();
 	ds_type->close();
         delete ds_type;

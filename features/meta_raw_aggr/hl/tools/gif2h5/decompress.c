@@ -17,12 +17,6 @@
 
 #include "gif.h"
 
-#define NEXTBYTE        (*ptr++)
-
-#define IMAGESEP        0x2c
-#define INTERLACEMASK   0x40
-#define COLORMAPMASK    0x80
-
 WORD iWIDE, iHIGH, eWIDE, eHIGH, expand, numcols, strip, nostrip;
 unsigned long  cols[256];
 char *cmd;
@@ -96,7 +90,7 @@ ReadCode(void)
         RawCode += (0x10000 * Raster[ByteOffset + 2]);
 
     RawCode >>= (BitOffset % 8);
-    BitOffset += CodeSize;
+    BitOffset += (int)CodeSize;
     return (RawCode & ReadMask);
 }
 

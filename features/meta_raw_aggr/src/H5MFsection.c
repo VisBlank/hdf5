@@ -61,10 +61,8 @@
 static H5FS_section_info_t *H5MF_sect_deserialize(const H5FS_section_class_t *cls,
     hid_t dxpl_id, const uint8_t *buf, haddr_t sect_addr, hsize_t sect_size,
     unsigned *des_flags);
-
 static herr_t H5MF_sect_valid(const H5FS_section_class_t *cls,
     const H5FS_section_info_t *sect);
-
 static H5FS_section_info_t *H5MF_sect_split(H5FS_section_info_t *sect,
     hsize_t frag_size);
 
@@ -74,22 +72,18 @@ static htri_t H5MF_sect_simple_can_merge(const H5FS_section_info_t *sect1,
     const H5FS_section_info_t *sect2, void *udata);
 static herr_t H5MF_sect_simple_merge(H5FS_section_info_t **sect1,
     H5FS_section_info_t *sect2, void *udata);
-
 static htri_t H5MF_sect_simple_can_shrink(const H5FS_section_info_t *_sect,
     void *udata);
 static herr_t H5MF_sect_simple_shrink(H5FS_section_info_t **_sect,
     void *udata);
 
 
-
 /* 'small' section callbacks */
 static herr_t H5MF_sect_small_add(H5FS_section_info_t **_sect, unsigned *flags, void *_udata);
-
 static htri_t H5MF_sect_small_can_merge(const H5FS_section_info_t *sect1,
     const H5FS_section_info_t *sect2, void *udata);
 static herr_t H5MF_sect_small_merge(H5FS_section_info_t **sect1,
     H5FS_section_info_t *sect2, void *udata);
-
 static htri_t H5MF_sect_small_can_shrink(const H5FS_section_info_t *_sect,
     void *udata);
 static herr_t H5MF_sect_small_shrink(H5FS_section_info_t **_sect,
@@ -100,7 +94,6 @@ static htri_t H5MF_sect_large_can_merge(const H5FS_section_info_t *sect1,
     const H5FS_section_info_t *sect2, void *udata);
 static herr_t H5MF_sect_large_merge(H5FS_section_info_t **sect1,
     H5FS_section_info_t *sect2, void *udata);
-
 static htri_t H5MF_sect_large_can_shrink(const H5FS_section_info_t *_sect,
     void *udata);
 static herr_t H5MF_sect_large_shrink(H5FS_section_info_t **_sect,
@@ -302,8 +295,8 @@ H5MF_sect_free(H5FS_section_info_t *_sect)
  */
 static H5FS_section_info_t *
 H5MF_sect_deserialize(const H5FS_section_class_t *cls,
-    hid_t UNUSED dxpl_id, const uint8_t UNUSED *buf, haddr_t sect_addr,
-    hsize_t sect_size, unsigned UNUSED *des_flags)
+    hid_t H5_ATTR_UNUSED dxpl_id, const uint8_t H5_ATTR_UNUSED *buf, haddr_t sect_addr,
+    hsize_t sect_size, unsigned H5_ATTR_UNUSED *des_flags)
 {
     H5MF_free_section_t *sect;          /* New section */
     H5FS_section_info_t *ret_value;     /* Return value */
@@ -345,10 +338,10 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5MF_sect_valid(const H5FS_section_class_t UNUSED *cls,
+H5MF_sect_valid(const H5FS_section_class_t H5_ATTR_UNUSED *cls,
     const H5FS_section_info_t
 #ifdef NDEBUG
-    UNUSED
+    H5_ATTR_UNUSED
 #endif /* NDEBUG */
     *_sect)
 {
@@ -362,7 +355,7 @@ H5MF_sect_valid(const H5FS_section_class_t UNUSED *cls,
     HDassert(sect);
 
     FUNC_LEAVE_NOAPI(SUCCEED)
-}   /* H5MF_sect_simple_valid() */
+}   /* H5MF_sect_valid() */
 
 
 /*-------------------------------------------------------------------------
@@ -421,7 +414,7 @@ done:
  */
 static htri_t
 H5MF_sect_simple_can_merge(const H5FS_section_info_t *_sect1,
-    const H5FS_section_info_t *_sect2, void UNUSED *_udata)
+    const H5FS_section_info_t *_sect2, void H5_ATTR_UNUSED *_udata)
 {
     const H5MF_free_section_t *sect1 = (const H5MF_free_section_t *)_sect1;   /* File free section */
     const H5MF_free_section_t *sect2 = (const H5MF_free_section_t *)_sect2;   /* File free section */
@@ -459,7 +452,7 @@ H5MF_sect_simple_can_merge(const H5FS_section_info_t *_sect1,
  */
 static herr_t
 H5MF_sect_simple_merge(H5FS_section_info_t **_sect1, H5FS_section_info_t *_sect2,
-    void UNUSED *_udata)
+    void H5_ATTR_UNUSED *_udata)
 {
     H5MF_free_section_t **sect1 = (H5MF_free_section_t **)_sect1;   /* File free section */
     H5MF_free_section_t *sect2 = (H5MF_free_section_t *)_sect2;   /* File free section */
@@ -516,7 +509,7 @@ H5MF_sect_simple_can_shrink(const H5FS_section_info_t *_sect, void *_udata)
     HDassert(udata->f);
 
     /* Retrieve the end of the file's address space */
-    if(HADDR_UNDEF == (eoa = H5FD_get_eoa(udata->f->shared->lf, udata->alloc_type)))
+    if(HADDR_UNDEF == (eoa = H5F_get_eoa(udata->f, udata->alloc_type)))
 	HGOTO_ERROR(H5E_RESOURCE, H5E_CANTGET, FAIL, "driver get_eoa request failed")
 
     /* Compute address of end of section to check */
@@ -935,7 +928,7 @@ done:
  */
 static htri_t
 H5MF_sect_large_can_merge(const H5FS_section_info_t *_sect1,
-    const H5FS_section_info_t *_sect2, void UNUSED *_udata)
+    const H5FS_section_info_t *_sect2, void H5_ATTR_UNUSED *_udata)
 {
     const H5MF_free_section_t *sect1 = (const H5MF_free_section_t *)_sect1;   	/* File free section */
     const H5MF_free_section_t *sect2 = (const H5MF_free_section_t *)_sect2;   	/* File free section */
@@ -975,7 +968,7 @@ HDfprintf(stderr, "%s: Leaving: ret_value = %t\n", FUNC, ret_value);
  */
 static herr_t
 H5MF_sect_large_merge(H5FS_section_info_t **_sect1, H5FS_section_info_t *_sect2,
-    void UNUSED *_udata)
+    void H5_ATTR_UNUSED *_udata)
 {
     H5MF_free_section_t **sect1 = (H5MF_free_section_t **)_sect1;   /* File free section */
     H5MF_free_section_t *sect2 = (H5MF_free_section_t *)_sect2;   /* File free section */

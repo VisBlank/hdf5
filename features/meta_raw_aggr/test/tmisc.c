@@ -316,6 +316,15 @@ unsigned m13_rdata[MISC13_DIM1][MISC13_DIM2];          /* Data read from dataset
 /* Definitions for misc. test #30 */
 #define MISC30_FILE             "tmisc30.h5"
 
+/* Definitions for misc. test #31 */
+#define MISC31_FILE             "tmisc31.h5"
+#define MISC31_DSETNAME         "dset"
+#define MISC31_ATTRNAME1        "attr1"
+#define MISC31_ATTRNAME2        "attr2"
+#define MISC31_GROUPNAME        "group"
+#define MISC31_PROPNAME         "misc31_prop"
+#define MISC31_DTYPENAME        "dtype"
+
 /****************************************************************
 **
 **  test_misc1(): test unlinking a dataset from a group and immediately
@@ -1839,8 +1848,20 @@ test_misc11(void)
     ret = H5Pset_sizes(fcpl, (size_t)MISC11_SIZEOF_OFF, (size_t)MISC11_SIZEOF_LEN);
     CHECK(ret, FAIL, "H5Pset_sizes");
 
+    /* This should fail as (32770*2) will exceed ^16 - 2 bytes for storing btree entries */
+    H5E_BEGIN_TRY {
+	ret=H5Pset_sym_k(fcpl, 32770, 0);
+    } H5E_END_TRY;
+    VERIFY(ret, FAIL, "H5Pset_sym_k");
+
     ret=H5Pset_sym_k(fcpl,MISC11_SYM_IK,MISC11_SYM_LK);
     CHECK(ret, FAIL, "H5Pset_sym_k");
+
+    /* This should fail as (32770*2) will exceed ^16 - 2 bytes for storing btree entries */
+    H5E_BEGIN_TRY {
+	ret=H5Pset_istore_k(fcpl, 32770);
+    } H5E_END_TRY;
+    VERIFY(ret, FAIL, "H5Pset_istore_k");
 
     ret=H5Pset_istore_k(fcpl,MISC11_ISTORE_IK);
     CHECK(ret, FAIL, "H5Pset_istore_k");
@@ -2420,17 +2441,17 @@ test_misc13(void)
 static void
 test_misc14(void)
 {
-    hid_t file_id;              /* File ID */
-    hid_t fapl;                 /* File access property list ID */
-    hid_t DataSpace;            /* Dataspace ID */
-    hid_t Dataset1;             /* Dataset ID #1 */
-    hid_t Dataset2;             /* Dataset ID #2 */
-    hid_t Dataset3;             /* Dataset ID #3 */
-    double data1 = 5.0;         /* Data to write for dataset #1 */
-    double data2 = 10.0;        /* Data to write for dataset #2 */
-    double data3 = 15.0;        /* Data to write for dataset #3 */
-    double rdata;               /* Data read in */
-    herr_t ret;                 /* Generic return value */
+    hid_t file_id;                  /* File ID */
+    hid_t fapl;                     /* File access property list ID */
+    hid_t DataSpace;                /* Dataspace ID */
+    hid_t Dataset1;                 /* Dataset ID #1 */
+    hid_t Dataset2;                 /* Dataset ID #2 */
+    hid_t Dataset3;                 /* Dataset ID #3 */
+    double data1 = 5.0F;            /* Data to write for dataset #1 */
+    double data2 = 10.0F;           /* Data to write for dataset #2 */
+    double data3 = 15.0F;           /* Data to write for dataset #3 */
+    double rdata;                   /* Data read in */
+    herr_t ret;                     /* Generic return value */
 
     /* Test creating two datasets and deleting the second */
 
@@ -4942,7 +4963,7 @@ test_misc28(void)
      * bytes). */
     fapl = H5Pcreate(H5P_FILE_ACCESS);
     CHECK(fapl, FAIL, "H5Pcreate");
-    ret = H5Pset_cache(fapl, MISC28_NSLOTS, MISC28_NSLOTS, MISC28_SIZE, 0.75);
+    ret = H5Pset_cache(fapl, MISC28_NSLOTS, MISC28_NSLOTS, MISC28_SIZE, 0.75F);
     CHECK(ret, FAIL, "H5Pset_cache");
 
     /* Create the dcpl and set the chunk size */
@@ -5118,8 +5139,8 @@ test_misc29(void)
 
 
 static int
-test_misc30_get_info_cb(hid_t loc_id, const char *name, const H5L_info_t UNUSED *info,
-    void UNUSED *op_data)
+test_misc30_get_info_cb(hid_t loc_id, const char *name, const H5L_info_t H5_ATTR_UNUSED *info,
+    void H5_ATTR_UNUSED *op_data)
 {
     H5O_info_t object_info;
 
@@ -5197,6 +5218,172 @@ test_misc30(void)
     VERIFY(file_size[0], file_size[1], "test_misc30");
 } /* end test_misc30() */
 
+
+/****************************************************************
+**
+**  test_misc31(): Test reentering library through deprecated
+*                  routines that register an id after calling
+*                  H5close().
+**
+****************************************************************/
+static void
+test_misc31(void)
+{
+    hid_t file_id;              /* File id */
+    hid_t space_id;             /* Dataspace id */
+    hid_t dset_id;              /* Dataset id */
+    hid_t attr_id;              /* Attribute id */
+    hid_t group_id;             /* Group id */
+    hid_t dtype_id;             /* Datatype id */
+    herr_t ret;                 /* Generic return value */
+
+    /* Output message about test being performed */
+    MESSAGE(5, ("Deprecated routines initialize after H5close()\n"));
+
+#ifndef H5_NO_DEPRECATED_SYMBOLS
+    file_id = H5Fcreate(MISC31_FILE, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    CHECK(file_id, FAIL, "H5Fcreate");
+
+    /* Test dataset package */
+    space_id = H5Screate(H5S_SCALAR);
+    CHECK(space_id, FAIL, "H5Screate");
+    dset_id = H5Dcreate1(file_id, MISC31_DSETNAME, H5T_NATIVE_INT, space_id, H5P_DEFAULT);
+    CHECK(dset_id, FAIL, "H5Dcreate1");
+    ret = H5close();
+    CHECK(ret, FAIL, "H5close");
+    file_id = H5Fopen(MISC31_FILE, H5F_ACC_RDWR, H5P_DEFAULT);
+    CHECK(file_id, FAIL, "H5Fopen");
+    dset_id = H5Dopen1(file_id, MISC31_DSETNAME);
+    CHECK(dset_id, FAIL, "H5Dopen1");
+
+    /* Test attribute package */
+    space_id = H5Screate(H5S_SCALAR);
+    CHECK(space_id, FAIL, "H5Screate");
+    attr_id = H5Acreate1(dset_id, MISC31_ATTRNAME1, H5T_NATIVE_INT, space_id, H5P_DEFAULT);
+    CHECK(attr_id, FAIL, "H5Acreate1");
+    ret = H5close();
+    CHECK(ret, FAIL, "H5close");
+    file_id = H5Fopen(MISC31_FILE, H5F_ACC_RDWR, H5P_DEFAULT);
+    CHECK(file_id, FAIL, "H5Fopen");
+    dset_id = H5Dopen1(file_id, MISC31_DSETNAME);
+    CHECK(dset_id, FAIL, "H5Dopen1");
+    space_id = H5Screate(H5S_SCALAR);
+    CHECK(space_id, FAIL, "H5Screate");
+    attr_id = H5Acreate1(dset_id, MISC31_ATTRNAME2, H5T_NATIVE_INT, space_id, H5P_DEFAULT);
+    CHECK(attr_id, FAIL, "H5Acreate1");
+
+    /* Test group package */
+    group_id = H5Gcreate1(file_id, MISC31_GROUPNAME, 0);
+    CHECK(group_id, FAIL, "H5Gcreate1");
+    ret = H5close();
+    CHECK(ret, FAIL, "H5close");
+    file_id = H5Fopen(MISC31_FILE, H5F_ACC_RDWR, H5P_DEFAULT);
+    CHECK(file_id, FAIL, "H5Fopen");
+    group_id = H5Gopen1(file_id, MISC31_GROUPNAME);
+    CHECK(group_id, FAIL, "H5Gopen1");
+
+    /* Test property list package */
+    ret = H5Pregister1(H5P_OBJECT_CREATE, MISC31_PROPNAME, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+    CHECK(ret, FAIL, "H5Pregister1");
+    ret = H5close();
+    CHECK(ret, FAIL, "H5close");
+    ret = H5Pregister1(H5P_OBJECT_CREATE, MISC31_PROPNAME, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+    CHECK(ret, FAIL, "H5Pregister1");
+    ret = H5close();
+    CHECK(ret, FAIL, "H5close");
+
+    /* Test datatype package */
+    file_id = H5Fopen(MISC31_FILE, H5F_ACC_RDWR, H5P_DEFAULT);
+    CHECK(file_id, FAIL, "H5Fopen");
+    dtype_id = H5Tcopy(H5T_NATIVE_INT);
+    CHECK(dtype_id, FAIL, "H5Tcopy");
+    ret = H5Tcommit1(file_id, MISC31_DTYPENAME, dtype_id);
+    CHECK(ret, FAIL, "H5Tcommit1");
+    ret = H5close();
+    CHECK(ret, FAIL, "H5close");
+    file_id = H5Fopen(MISC31_FILE, H5F_ACC_RDWR, H5P_DEFAULT);
+    CHECK(file_id, FAIL, "H5Fopen");
+    dtype_id = H5Topen1(file_id, MISC31_DTYPENAME);
+    CHECK(ret, FAIL, "H5Topen1");
+    ret = H5Fclose(file_id);
+    CHECK(ret, FAIL, "H5Fclose");
+    ret = H5Tclose(dtype_id);
+    CHECK(ret, FAIL, "H5Tclose");
+    
+#else /* H5_NO_DEPRECATED_SYMBOLS */
+    /* Output message about test being skipped */
+    MESSAGE(5, (" ...Skipped"));
+#endif /* H5_NO_DEPRECATED_SYMBOLS */
+} /* end test_misc31() */
+
+
+/****************************************************************
+ *
+ *  test_misc32(): Simple test of filter memory allocation
+ *                 functions.
+ *
+ ***************************************************************/
+static void
+test_misc32(void)
+{
+    void *buffer;
+    void *resized;
+    size_t size;
+
+    /* Output message about test being performed */
+    MESSAGE(5, ("Edge case test of filter memory allocation functions\n"));
+
+    /* Test that the filter memory allocation functions behave correctly
+     * at edge cases.
+     */
+
+    /* FREE */
+
+    /* Test freeing a NULL pointer.
+     * No real confirmation check here, but Valgrind will confirm no
+     * shenanigans.
+     */
+    buffer = NULL;
+    H5free_memory(buffer);
+
+    /* ALLOCATE */
+
+    /* Size zero returns NULL.
+     * Also checks that a size of zero and setting the buffer clear flag
+     * to TRUE can be used together.
+     *
+     * Note that we have asserts in the code, so only check when NDEBUG
+     * is defined.
+     */
+#ifdef NDEBUG
+    buffer = H5allocate_memory(0, FALSE);
+    CHECK_PTR_NULL(buffer, "H5allocate_memory"); /*BAD*/
+    buffer = H5allocate_memory(0, TRUE);
+    CHECK_PTR_NULL(buffer, "H5allocate_memory"); /*BAD*/
+#endif /* NDEBUG */
+
+    /* RESIZE */
+
+    /* Size zero returns NULL. Valgrind will confirm buffer is freed. */
+    size = 1024;
+    buffer = H5allocate_memory(size, TRUE);
+    resized = H5resize_memory(buffer, 0);
+    CHECK_PTR_NULL(resized, "H5resize_memory");
+
+    /* NULL input pointer returns new buffer */
+    resized = H5resize_memory(NULL, 1024);
+    CHECK_PTR(resized, "H5resize_memory");
+    H5free_memory(resized);
+
+    /* NULL input pointer and size zero returns NULL */
+#ifdef NDEBUG
+    resized = H5resize_memory(NULL, 0);
+    CHECK_PTR_NULL(resized, "H5resize_memory"); /*BAD*/
+#endif /* NDEBUG */
+    
+} /* end test_misc32() */
+
+
 /****************************************************************
 **
 **  test_misc(): Main misc. test routine.
@@ -5242,6 +5429,8 @@ test_misc(void)
     test_misc28();      /* Test that chunks are cached appropriately */
     test_misc29();      /* Test that speculative metadata reads are handled correctly */
     test_misc30();      /* Exercise local heap loading bug where free lists were getting dropped */
+    test_misc31();      /* Test Reentering library through deprecated routines after H5close() */
+    test_misc32();      /* Test filter memory allocation functions */
 
 } /* test_misc() */
 
@@ -5298,5 +5487,6 @@ cleanup_misc(void)
     HDremove(MISC28_FILE);
     HDremove(MISC29_COPY_FILE);
     HDremove(MISC30_FILE);
+    HDremove(MISC31_FILE);
 }
 

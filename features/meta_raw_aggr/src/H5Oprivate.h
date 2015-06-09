@@ -35,6 +35,7 @@
 #include "H5Spublic.h"		/* Dataspace functions			*/
 
 /* Private headers needed by this file */
+#include "H5private.h"          /* Generic Functions                    */
 #include "H5ACprivate.h"        /* Metadata cache                       */
 #include "H5Fprivate.h"		/* File access				*/
 #include "H5SLprivate.h"	/* Skip lists				*/
@@ -70,11 +71,11 @@ typedef struct H5O_t H5O_t;
 #define H5O_MSG_FLAG_CONSTANT	0x01u
 #define H5O_MSG_FLAG_SHARED	0x02u
 #define H5O_MSG_FLAG_DONTSHARE	0x04u
-#define H5O_MSG_FLAG_FAIL_IF_UNKNOWN 0x08u
+#define H5O_MSG_FLAG_FAIL_IF_UNKNOWN_AND_OPEN_FOR_WRITE 0x08u
 #define H5O_MSG_FLAG_MARK_IF_UNKNOWN 0x10u
 #define H5O_MSG_FLAG_WAS_UNKNOWN 0x20u
 #define H5O_MSG_FLAG_SHAREABLE  0x40u
-#define H5O_MSG_FLAG_BITS	(H5O_MSG_FLAG_CONSTANT|H5O_MSG_FLAG_SHARED|H5O_MSG_FLAG_DONTSHARE|H5O_MSG_FLAG_FAIL_IF_UNKNOWN|H5O_MSG_FLAG_MARK_IF_UNKNOWN|H5O_MSG_FLAG_WAS_UNKNOWN|H5O_MSG_FLAG_SHAREABLE)
+#define H5O_MSG_FLAG_BITS	(H5O_MSG_FLAG_CONSTANT|H5O_MSG_FLAG_SHARED|H5O_MSG_FLAG_DONTSHARE|H5O_MSG_FLAG_FAIL_IF_UNKNOWN_AND_OPEN_FOR_WRITE|H5O_MSG_FLAG_MARK_IF_UNKNOWN|H5O_MSG_FLAG_WAS_UNKNOWN|H5O_MSG_FLAG_SHAREABLE)
 
 /* Flags for updating messages */
 #define H5O_UPDATE_TIME         0x01u
@@ -424,8 +425,8 @@ typedef struct H5O_layout_chunk_t {
     uint32_t	dim[H5O_LAYOUT_NDIMS];	/* Size of chunk in elements         */
     uint32_t    size;                   /* Size of chunk in bytes            */
     hsize_t     nchunks;                /* Number of chunks in dataset	     */
-    hsize_t     chunks[H5O_LAYOUT_NDIMS]; /* # of chunks in dataset dimensions */
-    hsize_t    	down_chunks[H5O_LAYOUT_NDIMS];	/* "down" size of number of chunks in each dimension */
+    hsize_t     chunks[H5O_LAYOUT_NDIMS];          /* # of chunks in each dataset dimension  */
+    hsize_t    	down_chunks[H5O_LAYOUT_NDIMS];     /* "down" size of number of chunks in each dimension */
 } H5O_layout_chunk_t;
 
 typedef struct H5O_layout_t {

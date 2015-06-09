@@ -123,10 +123,13 @@ static herr_t H5P_lacc_elink_fapl_close(const char* name, size_t size, void* val
 const H5P_libclass_t H5P_CLS_LACC[1] = {{
     "link access",		/* Class name for debugging     */
     H5P_TYPE_LINK_ACCESS,       /* Class type                   */
-    &H5P_CLS_ROOT_g,		/* Parent class ID              */
-    &H5P_CLS_LINK_ACCESS_g,	/* Pointer to class ID          */
-    &H5P_LST_LINK_ACCESS_g,	/* Pointer to default property list ID */
+
+    &H5P_CLS_ROOT_g,		/* Parent class                 */
+    &H5P_CLS_LINK_ACCESS_g,	/* Pointer to class             */
+    &H5P_CLS_LINK_ACCESS_ID_g,	/* Pointer to class ID          */
+    &H5P_LST_LINK_ACCESS_ID_g,	/* Pointer to default property list ID */
     H5P_lacc_reg_prop,		/* Default property registration routine */
+
     NULL,		        /* Class creation callback      */
     NULL,		        /* Class creation callback info */
     NULL,			/* Class copy callback          */
@@ -341,7 +344,7 @@ done:
  */
 /* ARGSUSED */
 static herr_t
-H5P_lacc_elink_fapl_del(hid_t UNUSED prop_id, const char UNUSED *name, size_t UNUSED size, void *value)
+H5P_lacc_elink_fapl_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED size, void *value)
 {
     hid_t          l_fapl_id;
     herr_t         ret_value = SUCCEED;
@@ -375,7 +378,7 @@ done:
  */
 /* ARGSUSED */
 static herr_t
-H5P_lacc_elink_fapl_copy(const char UNUSED *name, size_t UNUSED size, void *value)
+H5P_lacc_elink_fapl_copy(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED size, void *value)
 {
     hid_t          l_fapl_id;
     herr_t         ret_value = SUCCEED;
@@ -416,7 +419,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static int
-H5P_lacc_elink_fapl_cmp(const void *value1, const void *value2, size_t UNUSED size)
+H5P_lacc_elink_fapl_cmp(const void *value1, const void *value2, size_t H5_ATTR_UNUSED size)
 {
     const hid_t *fapl1 = (const hid_t *)value1;
     const hid_t *fapl2 = (const hid_t *)value2;
@@ -463,7 +466,7 @@ done:
  */
 /* ARGSUSED */
 static herr_t
-H5P_lacc_elink_fapl_close(const char UNUSED *name, size_t UNUSED size, void *value)
+H5P_lacc_elink_fapl_close(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED size, void *value)
 {
     hid_t		l_fapl_id;
     herr_t     		ret_value = SUCCEED;
@@ -514,7 +517,7 @@ H5P_lacc_elink_pref_enc(const void *value, void **_pp, size_t *size)
         len = HDstrlen(elink_pref);
 
     enc_value = (uint64_t)len;
-    enc_size = H5V_limit_enc_size(enc_value);
+    enc_size = H5VM_limit_enc_size(enc_value);
     HDassert(enc_size < 256);
 
     if(NULL != *pp) {
@@ -608,7 +611,7 @@ done:
  */
 /* ARGSUSED */
 static herr_t
-H5P_lacc_elink_pref_del(hid_t UNUSED prop_id, const char UNUSED *name, size_t UNUSED size, void *value)
+H5P_lacc_elink_pref_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED size, void *value)
 {
     FUNC_ENTER_NOAPI_NOINIT_NOERR
 
@@ -634,7 +637,7 @@ H5P_lacc_elink_pref_del(hid_t UNUSED prop_id, const char UNUSED *name, size_t UN
  */
 /* ARGSUSED */
 static herr_t
-H5P_lacc_elink_pref_copy(const char UNUSED *name, size_t UNUSED size, void *value)
+H5P_lacc_elink_pref_copy(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED size, void *value)
 {
     FUNC_ENTER_NOAPI_NOINIT_NOERR
 
@@ -661,7 +664,7 @@ H5P_lacc_elink_pref_copy(const char UNUSED *name, size_t UNUSED size, void *valu
  *-------------------------------------------------------------------------
  */
 static int
-H5P_lacc_elink_pref_cmp(const void *value1, const void *value2, size_t UNUSED size)
+H5P_lacc_elink_pref_cmp(const void *value1, const void *value2, size_t H5_ATTR_UNUSED size)
 {
     const char *pref1 = *(const char * const *)value1;
     const char *pref2 = *(const char * const *)value2;
@@ -695,7 +698,7 @@ done:
  */
 /* ARGSUSED */
 static herr_t
-H5P_lacc_elink_pref_close(const char UNUSED *name, size_t UNUSED size, void *value)
+H5P_lacc_elink_pref_close(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED size, void *value)
 {
     FUNC_ENTER_NOAPI_NOINIT_NOERR
 
