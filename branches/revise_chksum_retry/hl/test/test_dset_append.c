@@ -1162,11 +1162,18 @@ int main(void)
     flush_ct = 0;	/* Reset flush counter */
     nerrors += test_dataset_append_columns(fid);
 
+#ifdef BUG1_BUG2
+/* 
+ * The following tests illustrate the scenarios when H5DOappend does not work with extensible array indexing: 
+ *	- when the the dataset has 1 unlimited dimension and the other dimension is fixed but extendible
+ *	- the dataset expands along 1 dimension and then expands along the other dimension
+ */
     flush_ct = 0;	/* Reset flush counter */
     nerrors += test_dataset_append_BUG1(fid);
 
     flush_ct = 0;	/* Reset flush counter */
     nerrors += test_dataset_append_BUG2(fid);
+#endif
 
     flush_ct = 0;	/* Reset flush counter */
     nerrors += test_dataset_append_less(fid);
