@@ -7117,6 +7117,10 @@ test_mf_strat_thres_persist(const char *env_h5_drvr, hid_t fapl, hbool_t new_for
 		if((file = H5Fopen(filename, H5F_ACC_RDWR, fapl2)) < 0)
 		    FAIL_STACK_ERROR
 
+		/* Get a pointer to the internal file object */
+		if(NULL == (f = (H5F_t *)H5I_object(file)))
+		    FAIL_STACK_ERROR
+
 		if(H5F_PAGED_AGGR(f))
 		    tt = (H5FD_mem_t)H5MF_ALLOC_TO_FS_PAGE_TYPE(f, type, TBLOCK_SIZE6);
 		else
