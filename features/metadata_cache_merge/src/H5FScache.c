@@ -547,7 +547,7 @@ H5FS__cache_hdr_pre_serialize(const H5F_t *f, hid_t dxpl_id, void *_thing,
         HDassert(fspace->alloc_sect_size == (size_t)fspace->sect_size);
 
         if(H5F_IS_TMP_ADDR(f, fspace->sect_addr)) {
-            unsigned sect_status;
+            unsigned sect_status = 0;
             haddr_t new_sect_addr;
 
 	    /* we have work to do -- must relocate section info into 

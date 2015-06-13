@@ -1152,7 +1152,7 @@ H5HF__cache_iblock_pre_serialize(const H5F_t *f, hid_t dxpl_id, void *_thing,
 #ifndef NDEBUG
 {
     hbool_t 		 descendants_clean = TRUE;
-    unsigned 		 iblock_status;
+    unsigned 		 iblock_status = 0;
 
     /* verify that flush dependencies are working correctly.  Do this
      * by verifying that all children of this iblock are clean.
