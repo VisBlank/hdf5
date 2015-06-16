@@ -241,10 +241,10 @@ const H5C_class_t epoch_marker_class =
  ***************************************************************************/
 
 static void *
-H5C_epoch_marker_load(H5F_t UNUSED * f,
-                      hid_t UNUSED dxpl_id,
-                      haddr_t UNUSED addr,
-                      void UNUSED * udata)
+H5C_epoch_marker_load(H5F_t H5_ATTR_UNUSED * f,
+                      hid_t H5_ATTR_UNUSED dxpl_id,
+                      haddr_t H5_ATTR_UNUSED addr,
+                      void H5_ATTR_UNUSED * udata)
 {
     void * ret_value = NULL;      /* Return value */
 
@@ -260,12 +260,12 @@ done:
 
 
 static herr_t
-H5C_epoch_marker_flush(H5F_t UNUSED *f,
-                       hid_t UNUSED dxpl_id,
-                       hbool_t UNUSED dest,
-                       haddr_t UNUSED addr,
-                       void UNUSED *thing,
-		       unsigned UNUSED * flags_ptr)
+H5C_epoch_marker_flush(H5F_t H5_ATTR_UNUSED *f,
+                       hid_t H5_ATTR_UNUSED dxpl_id,
+                       hbool_t H5_ATTR_UNUSED dest,
+                       haddr_t H5_ATTR_UNUSED addr,
+                       void H5_ATTR_UNUSED *thing,
+		       unsigned H5_ATTR_UNUSED * flags_ptr)
 {
     herr_t ret_value = FAIL;      /* Return value */
 
@@ -281,8 +281,8 @@ done:
 
 
 static herr_t
-H5C_epoch_marker_dest(H5F_t UNUSED * f,
-                      void UNUSED * thing)
+H5C_epoch_marker_dest(H5F_t H5_ATTR_UNUSED * f,
+                      void H5_ATTR_UNUSED * thing)
 {
     herr_t ret_value = FAIL;      /* Return value */
 
@@ -296,9 +296,9 @@ done:
 }
 
 static herr_t
-H5C_epoch_marker_clear(H5F_t UNUSED * f,
-                       void UNUSED * thing,
-                       hbool_t UNUSED dest)
+H5C_epoch_marker_clear(H5F_t H5_ATTR_UNUSED * f,
+                       void H5_ATTR_UNUSED * thing,
+                       hbool_t H5_ATTR_UNUSED dest)
 {
     herr_t ret_value = FAIL;      /* Return value */
 
@@ -312,8 +312,8 @@ done:
 }
 
 static herr_t
-H5C_epoch_marker_notify(H5C_notify_action_t UNUSED action,
-                       void UNUSED * thing)
+H5C_epoch_marker_notify(H5C_notify_action_t H5_ATTR_UNUSED action,
+                       void H5_ATTR_UNUSED * thing)
 {
     herr_t ret_value = FAIL;      /* Return value */
 
@@ -326,9 +326,9 @@ done:
 }
 
 static herr_t
-H5C_epoch_marker_size(const H5F_t UNUSED * f,
-                      const void UNUSED * thing,
-                      size_t UNUSED * size_ptr)
+H5C_epoch_marker_size(const H5F_t H5_ATTR_UNUSED * f,
+                      const void H5_ATTR_UNUSED * thing,
+                      size_t H5_ATTR_UNUSED * size_ptr)
 {
     herr_t ret_value = FAIL;      /* Return value */
 
@@ -621,7 +621,7 @@ H5C_apply_candidate_list(H5F_t * f,
               (int)(cache_ptr->LRU_list_len));
 #endif /* H5C_APPLY_CANDIDATE_LIST__DEBUG */
 
-    /* ====================================================================== *
+    /* ===================================================================== *
      * Now scan the LRU and PEL lists, flushing or clearing entries as
      * needed.
      *
@@ -632,7 +632,7 @@ H5C_apply_candidate_list(H5F_t * f,
      * to account for this one case where they come into play. If these flags
      * are ever expanded upon, this function and the following flushing steps
      * should be reworked to account for additional cases.
-     * ====================================================================== */
+     * ===================================================================== */
 
     entries_examined = 0;
     initial_list_len = cache_ptr->LRU_list_len;
@@ -1339,7 +1339,7 @@ H5C_def_auto_resize_rpt_fcn(H5C_t * cache_ptr,
 #ifndef NDEBUG
                             int32_t version,
 #else /* NDEBUG */
-                            int32_t UNUSED version,
+                            int32_t H5_ATTR_UNUSED version,
 #endif /* NDEBUG */
                             double hit_rate,
                             enum H5C_resize_status status,
@@ -1612,9 +1612,7 @@ H5C_expunge_entry(H5F_t *             f,
 
     HDassert(f);
     HDassert(f->shared);
-
     cache_ptr = f->shared->cache;
-
     HDassert(cache_ptr);
     HDassert(cache_ptr->magic == H5C__H5C_T_MAGIC);
     HDassert(type);
@@ -1720,10 +1718,10 @@ H5C_flush_cache(H5F_t *f, hid_t primary_dxpl_id, hid_t secondary_dxpl_id, unsign
     H5C_cache_entry_t *	entry_ptr = NULL;
     H5C_cache_entry_t *	next_entry_ptr = NULL;
 #if H5C_DO_SANITY_CHECKS
-    int64_t		flushed_entries_count;
-    size_t		flushed_entries_size;
-    int64_t		initial_slist_len;
-    size_t              initial_slist_size;
+    int64_t		flushed_entries_count = 0;
+    int64_t		flushed_entries_size = 0;
+    int64_t		initial_slist_len = 0;
+    size_t              initial_slist_size = 0;
 #endif /* H5C_DO_SANITY_CHECKS */
 
     FUNC_ENTER_NOAPI(FAIL)
@@ -1945,7 +1943,7 @@ H5C_flush_cache(H5F_t *f, hid_t primary_dxpl_id, hid_t secondary_dxpl_id, unsign
                             if(entry_ptr->flush_dep_height == curr_flush_dep_height ) {
 #if H5C_DO_SANITY_CHECKS
                                 flushed_entries_count++;
-                                flushed_entries_size += entry_ptr->size;
+                                flushed_entries_size += (int64_t)entry_ptr->size;
 #endif /* H5C_DO_SANITY_CHECKS */
                                 status = H5C_flush_single_entry(f,
                                                                 primary_dxpl_id,
@@ -1978,7 +1976,7 @@ H5C_flush_cache(H5F_t *f, hid_t primary_dxpl_id, hid_t secondary_dxpl_id, unsign
                             if(entry_ptr->flush_dep_height == curr_flush_dep_height ) {
 #if H5C_DO_SANITY_CHECKS
                                 flushed_entries_count++;
-                                flushed_entries_size += entry_ptr->size;
+                                flushed_entries_size += (int64_t)entry_ptr->size;
 #endif /* H5C_DO_SANITY_CHECKS */
                                 status = H5C_flush_single_entry(f,
                                                                 primary_dxpl_id,
@@ -2029,8 +2027,8 @@ end_of_inner_loop:
 
 	    HDassert( (initial_slist_len + cache_ptr->slist_len_increase -
                        flushed_entries_count) == cache_ptr->slist_len );
-	    HDassert( (initial_slist_size + 
-                       (size_t)(cache_ptr->slist_size_increase) -
+	    HDassert( (size_t)((int64_t)initial_slist_size + 
+                       cache_ptr->slist_size_increase -
 		       flushed_entries_size) == cache_ptr->slist_size );
 #endif /* H5C_DO_SANITY_CHECKS */
 
@@ -2129,9 +2127,7 @@ H5C_flush_to_min_clean(H5F_t * f,
 
     if ( cache_ptr->check_write_permitted != NULL ) {
 
-        result = (cache_ptr->check_write_permitted)(f,
-                                                    primary_dxpl_id,
-                                                    &write_permitted);
+        result = (cache_ptr->check_write_permitted)(f, &write_permitted);
 
         if ( result < 0 ) {
 
@@ -2394,7 +2390,7 @@ H5C_get_cache_hit_rate(H5C_t * cache_ptr, double * hit_rate_ptr)
 
     FUNC_ENTER_NOAPI(FAIL)
 
-    if((cache_ptr == NULL ) || (cache_ptr->magic != H5C__H5C_T_MAGIC))
+    if((cache_ptr == NULL) || (cache_ptr->magic != H5C__H5C_T_MAGIC))
         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad cache_ptr on entry.")
     if(hit_rate_ptr == NULL)
         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad hit_rate_ptr on entry.")
@@ -2571,25 +2567,23 @@ done:
  *              file logging is turned off), or contain a pointer to the
  *              open file to which trace file data is to be written.
  *
- * Return:      Non-negative on success/Negative on failure
+ * Return:      Non-NULL trace file pointer (can't fail)
  *
  * Programmer:  John Mainzer
  *              1/20/06
  *
  *-------------------------------------------------------------------------
  */
-herr_t
-H5C_get_trace_file_ptr(const H5C_t *cache_ptr, FILE **trace_file_ptr_ptr)
+FILE *
+H5C_get_trace_file_ptr(const H5C_t *cache_ptr)
 {
     FUNC_ENTER_NOAPI_NOERR
 
+    /* Check arguments */
     HDassert(cache_ptr);
     HDassert(cache_ptr->magic == H5C__H5C_T_MAGIC);
-    HDassert(trace_file_ptr_ptr);
 
-    *trace_file_ptr_ptr = cache_ptr->trace_file_ptr;
-
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI(cache_ptr->trace_file_ptr)
 } /* H5C_get_trace_file_ptr() */
 
 
@@ -2602,16 +2596,15 @@ H5C_get_trace_file_ptr(const H5C_t *cache_ptr, FILE **trace_file_ptr_ptr)
  *              file logging is turned off), or contain a pointer to the
  *              open file to which trace file data is to be written.
  *
- * Return:      Non-negative on success/Negative on failure
+ * Return:      Non-NULL trace file pointer (can't fail)
  *
  * Programmer:  Quincey Koziol
  *              6/9/08
  *
  *-------------------------------------------------------------------------
  */
-herr_t
-H5C_get_trace_file_ptr_from_entry(const H5C_cache_entry_t *entry_ptr,
-    FILE **trace_file_ptr_ptr)
+FILE *
+H5C_get_trace_file_ptr_from_entry(const H5C_cache_entry_t *entry_ptr)
 {
     FUNC_ENTER_NOAPI_NOERR
 
@@ -2619,9 +2612,7 @@ H5C_get_trace_file_ptr_from_entry(const H5C_cache_entry_t *entry_ptr,
     HDassert(entry_ptr);
     HDassert(entry_ptr->cache_ptr);
 
-    H5C_get_trace_file_ptr(entry_ptr->cache_ptr, trace_file_ptr_ptr);
-
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI(H5C_get_trace_file_ptr(entry_ptr->cache_ptr))
 } /* H5C_get_trace_file_ptr_from_entry() */
 
 
@@ -2733,7 +2724,7 @@ H5C_insert_entry(H5F_t *             f,
     entry_ptr->cache_ptr = cache_ptr;
     entry_ptr->addr  = addr;
     entry_ptr->type  = type;
- 
+
     /* Apply tag to newly inserted entry */
     if(H5C_tag_entry(cache_ptr, entry_ptr, primary_dxpl_id) < 0)
         HGOTO_ERROR(H5E_CACHE, H5E_CANTTAG, FAIL, "Cannot tag metadata entry")
@@ -2822,9 +2813,7 @@ H5C_insert_entry(H5F_t *             f,
 
         if ( cache_ptr->check_write_permitted != NULL ) {
 
-            result = (cache_ptr->check_write_permitted)(f,
-                                                        primary_dxpl_id,
-                                                        &write_permitted);
+            result = (cache_ptr->check_write_permitted)(f, &write_permitted);
 
             if ( result < 0 ) {
 
@@ -3469,7 +3458,7 @@ H5C_move_entry(H5C_t *	     cache_ptr,
 #endif /* H5C_DO_SANITY_CHECKS */
 
             H5C__UPDATE_RP_FOR_MOVE(cache_ptr, entry_ptr, was_dirty, FAIL)
-	}
+        }
     }
 
     H5C__UPDATE_STATS_FOR_MOVE(cache_ptr, entry_ptr)
@@ -3637,7 +3626,7 @@ H5C_pin_entry_from_client(H5C_t *	          cache_ptr,
                         H5C_cache_entry_t * entry_ptr)
 #else
 static herr_t
-H5C_pin_entry_from_client(H5C_t UNUSED *	cache_ptr,
+H5C_pin_entry_from_client(H5C_t H5_ATTR_UNUSED *	cache_ptr,
                         H5C_cache_entry_t * entry_ptr)
 #endif
 {
@@ -3936,9 +3925,7 @@ H5C_protect(H5F_t *		f,
 
             if ( cache_ptr->check_write_permitted != NULL ) {
 
-                result = (cache_ptr->check_write_permitted)(f,
-                                                            primary_dxpl_id,
-                                                            &write_permitted);
+                result = (cache_ptr->check_write_permitted)(f, &write_permitted);
 
                 if ( result < 0 ) {
 
@@ -4085,9 +4072,7 @@ H5C_protect(H5F_t *		f,
 
             if ( cache_ptr->check_write_permitted != NULL ) {
 
-                result = (cache_ptr->check_write_permitted)(f,
-                                                            primary_dxpl_id,
-                                                            &write_permitted);
+                result = (cache_ptr->check_write_permitted)(f, &write_permitted);
 
                 if ( result < 0 ) {
 
@@ -4658,12 +4643,10 @@ H5C_stats(H5C_t * cache_ptr,
           const char *  cache_name,
           hbool_t
 #if !H5C_COLLECT_CACHE_STATS
-          UNUSED
+          H5_ATTR_UNUSED
 #endif /* H5C_COLLECT_CACHE_STATS */
           display_detailed_stats)
 {
-    herr_t	ret_value = SUCCEED;   /* Return value */
-
 #if H5C_COLLECT_CACHE_STATS
     int		i;
     int64_t     total_hits = 0;
@@ -4695,11 +4678,12 @@ H5C_stats(H5C_t * cache_ptr,
     size_t      aggregate_max_size = 0;
     int32_t	aggregate_max_pins = 0;
     double      hit_rate;
-    double	average_successful_search_depth = 0.0;
-    double	average_failed_search_depth = 0.0;
-    double      average_entries_skipped_per_calls_to_msic = 0.0;
-    double      average_entries_scanned_per_calls_to_msic = 0.0;
+    double	average_successful_search_depth = 0.0f;
+    double	average_failed_search_depth = 0.0f;
+    double      average_entries_skipped_per_calls_to_msic = 0.0f;
+    double      average_entries_scanned_per_calls_to_msic = 0.0f;
 #endif /* H5C_COLLECT_CACHE_STATS */
+    herr_t	ret_value = SUCCEED;   /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
 
@@ -4729,11 +4713,9 @@ H5C_stats(H5C_t * cache_ptr,
         total_clears            += cache_ptr->clears[i];
         total_flushes           += cache_ptr->flushes[i];
         total_evictions         += cache_ptr->evictions[i];
-        total_moves           += cache_ptr->moves[i];
-	total_entry_flush_moves
-				+= cache_ptr->entry_flush_moves[i];
-	total_cache_flush_moves
-				+= cache_ptr->cache_flush_moves[i];
+        total_moves             += cache_ptr->moves[i];
+	total_entry_flush_moves += cache_ptr->entry_flush_moves[i];
+	total_cache_flush_moves += cache_ptr->cache_flush_moves[i];
         total_size_increases    += cache_ptr->size_increases[i];
         total_size_decreases    += cache_ptr->size_decreases[i];
     	total_entry_flush_size_changes
@@ -4765,10 +4747,10 @@ H5C_stats(H5C_t * cache_ptr,
 
     if ( ( total_hits > 0 ) || ( total_misses > 0 ) ) {
 
-        hit_rate = 100.0 * ((double)(total_hits)) /
+        hit_rate = (double)100.0f * ((double)(total_hits)) /
                    ((double)(total_hits + total_misses));
     } else {
-        hit_rate = 0.0;
+        hit_rate = 0.0f;
     }
 
     if ( cache_ptr->successful_ht_searches > 0 ) {
@@ -4889,14 +4871,14 @@ H5C_stats(H5C_t * cache_ptr,
               (long)total_evictions);
 
     HDfprintf(stdout,
-	      "%s  Total insertions(pinned) / moves = %ld(%ld) / %ld\n",
+	      "%s  Total insertions(pinned) / moves   = %ld(%ld) / %ld\n",
               cache_ptr->prefix,
               (long)total_insertions,
               (long)total_pinned_insertions,
               (long)total_moves);
 
     HDfprintf(stdout,
-	      "%s  Total entry / cache flush moves  = %ld / %ld\n",
+	      "%s  Total entry / cache flush moves    = %ld / %ld\n",
               cache_ptr->prefix,
               (long)total_entry_flush_moves,
               (long)total_cache_flush_moves);
@@ -4935,7 +4917,7 @@ H5C_stats(H5C_t * cache_ptr,
 
     HDfprintf(stdout, "%s  MSIC: Average/max entries skipped  = %lf / %ld\n",
               cache_ptr->prefix,
-              (float)average_entries_skipped_per_calls_to_msic,
+              (double)average_entries_skipped_per_calls_to_msic,
               (long)(cache_ptr->max_entries_skipped_in_msic));
 
     if (cache_ptr->calls_to_msic > 0) {
@@ -4946,7 +4928,7 @@ H5C_stats(H5C_t * cache_ptr,
 
     HDfprintf(stdout, "%s  MSIC: Average/max entries scanned  = %lf / %ld\n",
               cache_ptr->prefix,
-              (float)average_entries_scanned_per_calls_to_msic,
+              (double)average_entries_scanned_per_calls_to_msic,
               (long)(cache_ptr->max_entries_scanned_in_msic));
 
     HDfprintf(stdout, "%s  MSIC: Scanned to make space(evict) = %lld\n",
@@ -4990,10 +4972,10 @@ H5C_stats(H5C_t * cache_ptr,
 
             if ( ( cache_ptr->hits[i] > 0 ) || ( cache_ptr->misses[i] > 0 ) ) {
 
-                hit_rate = 100.0 * ((double)(cache_ptr->hits[i])) /
+                hit_rate = (double)100.0f * ((double)(cache_ptr->hits[i])) /
                           ((double)(cache_ptr->hits[i] + cache_ptr->misses[i]));
             } else {
-                hit_rate = 0.0;
+                hit_rate = 0.0f;
             }
 
             HDfprintf(stdout,
@@ -5018,14 +5000,14 @@ H5C_stats(H5C_t * cache_ptr,
                       (long)(cache_ptr->evictions[i]));
 
             HDfprintf(stdout,
-                      "%s    insertions(pinned) / moves   = %ld(%ld) / %ld\n",
+                      "%s    insertions(pinned) / moves     = %ld(%ld) / %ld\n",
                       cache_ptr->prefix,
                       (long)(cache_ptr->insertions[i]),
                       (long)(cache_ptr->pinned_insertions[i]),
                       (long)(cache_ptr->moves[i]));
 
             HDfprintf(stdout,
-                      "%s    entry / cache flush moves    = %ld / %ld\n",
+                      "%s    entry / cache flush moves      = %ld / %ld\n",
                       cache_ptr->prefix,
                       (long)(cache_ptr->entry_flush_moves[i]),
                       (long)(cache_ptr->cache_flush_moves[i]));
@@ -5050,7 +5032,7 @@ H5C_stats(H5C_t * cache_ptr,
                       (long)(cache_ptr->unpins[i]));
 
             HDfprintf(stdout,
-                      "%s    entry dirty pins/pin'd flushes  = %ld / %ld\n",
+                      "%s    entry dirty pins/pin'd flushes = %ld / %ld\n",
                       cache_ptr->prefix,
                       (long)(cache_ptr->dirty_pins[i]),
                       (long)(cache_ptr->pinned_flushes[i]));
@@ -5119,7 +5101,7 @@ H5C_stats__reset(H5C_t * cache_ptr)
 #if H5C_COLLECT_CACHE_STATS
 H5C_stats__reset(H5C_t * cache_ptr)
 #else /* H5C_COLLECT_CACHE_STATS */
-H5C_stats__reset(H5C_t UNUSED * cache_ptr)
+H5C_stats__reset(H5C_t H5_ATTR_UNUSED * cache_ptr)
 #endif /* H5C_COLLECT_CACHE_STATS */
 #endif /* NDEBUG */
 {
@@ -5144,8 +5126,8 @@ H5C_stats__reset(H5C_t UNUSED * cache_ptr)
         cache_ptr->flushes[i]			= 0;
         cache_ptr->evictions[i]	 		= 0;
         cache_ptr->moves[i]	 		= 0;
-        cache_ptr->entry_flush_moves[i]	= 0;
-        cache_ptr->cache_flush_moves[i]	= 0;
+        cache_ptr->entry_flush_moves[i]		= 0;
+        cache_ptr->cache_flush_moves[i]		= 0;
         cache_ptr->pins[i]	 		= 0;
         cache_ptr->unpins[i]	 		= 0;
         cache_ptr->dirty_pins[i]	 	= 0;
@@ -8246,7 +8228,6 @@ H5C_flush_single_entry(H5F_t *	   	   f,
     hbool_t		was_dirty;
     hbool_t		destroy_entry;
     herr_t		status;
-    int			type_id;
     unsigned		flush_flags = H5C_CALLBACK__NO_FLAGS_SET;
     H5C_cache_entry_t * entry_ptr = NULL;
     herr_t		ret_value = SUCCEED;      /* Return value */
@@ -8347,7 +8328,6 @@ H5C_flush_single_entry(H5F_t *	   	   f,
 #endif /* H5_HAVE_PARALLEL */
 
         was_dirty = entry_ptr->is_dirty;
-        type_id = entry_ptr->type->id;
 
         entry_ptr->flush_marker = FALSE;
 
@@ -8615,8 +8595,7 @@ H5C_flush_single_entry(H5F_t *	   	   f,
 
         if ( cache_ptr->log_flush ) {
 
-            status = (cache_ptr->log_flush)(cache_ptr, addr, was_dirty,
-                                            flags, type_id);
+            status = (cache_ptr->log_flush)(cache_ptr, addr, was_dirty, flags);
 
             if ( status < 0 ) {
 
@@ -8942,7 +8921,6 @@ H5C_make_space_in_cache(H5F_t *	f,
 #if H5C_COLLECT_CACHE_STATS
                 total_entries_scanned++;
 #endif /* H5C_COLLECT_CACHE_STATS */
-
 
             } else {
 
