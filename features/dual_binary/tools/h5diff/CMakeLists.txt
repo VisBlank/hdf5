@@ -64,10 +64,7 @@ endif (BUILD_TESTING)
 install (
     TARGETS
         h5diff
-    RUNTIME DESTINATION
-        ${HDF5_INSTALL_BIN_DIR}
-    COMPONENT
-        toolsapplications
+    RUNTIME DESTINATION ${HDF5_INSTALL_BIN_DIR} COMPONENT toolsapplications
 )
 
 if (H5_HAVE_PARALLEL)
@@ -77,9 +74,6 @@ if (H5_HAVE_PARALLEL)
   install (
       TARGETS
           ph5diff
-      RUNTIME DESTINATION
-          ${HDF5_INSTALL_BIN_DIR}
-      COMPONENT
-          toolsapplications
+      RUNTIME DESTINATION ${HDF5_INSTALL_BIN_DIR} COMPONENT toolsapplications
   )
 endif (H5_HAVE_PARALLEL)

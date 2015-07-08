@@ -1,0 +1,12 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${exec_prefix}/include
+
+Name: libhdf5
+Description: HDF5 (Hierarchical Data Format 5) Software Library
+URL: http://www.hdfgroup.org
+Version: @HDF5_PACKAGE_VERSION_STRING@
+Libs: -L${libdir} @HDF5LIBS@ -Wl,-rpath,${libdir} @CMAKE_EXE_LINKER_FLAGS@
+Libs.private: @LIBS@
+Cflags: -I${includedir} @CMAKE_C_FLAGS@
