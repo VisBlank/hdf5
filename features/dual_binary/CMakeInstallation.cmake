@@ -405,7 +405,6 @@ if (NOT HDF5_EXTERNALLY_CONFIGURED AND NOT HDF5_NO_PACKAGES)
       )
       install (
           FILES ${HDF5_BINARY_DIR}/CMakeFiles/PkgInfo
-                ${HDF5_BINARY_DIR}/CMakeFiles/version.plist
           DESTINATION ..
       )
     endif (HDF5_PACK_MACOSX_FRAMEWORK AND HDF5_BUILD_FRAMEWORKS)
